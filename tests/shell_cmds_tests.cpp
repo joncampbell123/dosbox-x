@@ -18,8 +18,6 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#if C_DEBUG
-
 #include "shell.h"
 
 #include <string>
@@ -175,4 +173,3 @@ TEST_F(DOS_Shell_CMDSTest, CMD_ECHO_space_handling)
 }
 
 } // namespace
-#endif

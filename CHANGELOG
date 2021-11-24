@@ -16,8 +16,8 @@
   - CPUID for Pentium II will now report stepping 3
     and model 3 which is a minimum requirement for OSes
     to attempt to use SYSENTER/SYSEXIT (joncampbell123)
-  - Added MSRs for SYSENTER/SYSEXIT (joncampbell123)
-  - Implemented Pentium II SYSENTER/SYSEXIT (joncampbell123)
+  - Implemented Pentium II instructions SYSENTER and
+    SYSEXIT, and added MSRs for them. (joncampbell123)
   - 8086 and 80186 CPU types no longer check segment
     limits. (joncampbell123)
   - Add MSR register 0x0000001B to Pentium II
@@ -47,7 +47,7 @@
     J-3100 DCGA, depending on if J-3100 is enabled)
     mode from other video modes. (nanshiki & Wengier)
   - Added support for unit tests based on GoogleTest
-    framework (GTest/GMock) to ensure code stability.
+    framework (gTest/gMock) to ensure code stability.
     Unit tests can be started with command-line option
     -tests in the debug builds. Some unit tests are
     ported from DOSBox Staging. (Wengier)

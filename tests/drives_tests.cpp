@@ -18,8 +18,6 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#if C_DEBUG
-
 #include "../src/dos/drives.h"
 
 #include <gtest/gtest.h>
@@ -156,4 +154,3 @@ TEST(Set_Label, InvalidCharsEndingDotCD)
 }
 
 } // namespace
-#endif
