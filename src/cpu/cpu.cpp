@@ -87,6 +87,11 @@ extern bool auto_determine_dynamic_core_paging;
 bool cpu_double_fault_enable;
 bool cpu_triple_fault_reset;
 
+/* SYSENTER/SYSEXIT */
+uint16_t cpu_sep_cs = 0;		/* MSR 0x174h value of CS */
+uint32_t cpu_sep_esp = 0;		/* MSR 0x175h value of ESP */
+uint32_t cpu_sep_eip = 0;		/* MSR 0x176h value of EIP */
+
 int cpu_rep_max = 0;
 
 Bitu DEBUG_EnableDebugger(void);
@@ -2956,13 +2961,28 @@ bool CPU_CPUID(void) {
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
 			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII || CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
-			reg_eax=0x632;		/* intel pentium II */
+			/* NTS: Most operating systems will not attempt SYSENTER/SYSEXIT unless this returns model 3, stepping 3, or higher. */
+			/* From Intel [https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-vol-2b-manual.pdf]:
+			 *
+			 * "The SYSENTER and SYSEXIT instructions were introduced into the IA-32 architecture in the Pentium II processor."
+			 *
+			 * "An operating system that qualifies the SEP flag must also qualify the processor family and model to ensure that
+			 * the SYSENTER/SYSEXIT instructions are actually present"
+			 *
+			 * "When the CPUID instruction is executed on the Pentium Pro processor (model 1), the processor returns a the SEP
+			 * flag as set, but does not support the SYSENTER/SYSEXIT instructions."
+			 *
+			 * Therefore, always return with bit 11 (SEP) set whether or not SYSCALL is enabled because Intel made a stupid mistake.
+			 *
+			 * This website [https://www.geoffchappell.com/studies/windows/km/cpu/sep.htm?tx=256] notes how the Windows NT kernel
+			 * follows this rule, and the Linux kernel does too */
+			reg_eax=enable_syscall?0x633:0x631; /* intel pentium II */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
 			reg_edx=0x00008011;	/* FPU+TimeStamp/RDTSC */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
 			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
-			if (enable_syscall) reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT */
+			reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT [SEE NOTES AT TOP OF THIS IF STATEMENT] */
 		} else {
 			return false;
 		}
@@ -4113,14 +4133,76 @@ void CPU_ForceV86FakeIO_Out(Bitu port,Bitu val,Bitu len) {
 /* pentium II fast system call */
 bool CPU_SYSENTER() {
 	if (!enable_syscall) return false;
-	UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("SYSENTER: UNIMPLEMENTED");
-	return false; /* TODO */
+	if (!cpu.pmode || cpu_sep_cs == 0) return false; /* CS != 0 and not real mode */
+
+//	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSENTER: From CS=%04x EIP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip - 2);
+
+	CPU_SetCPL(0);
+
+	SETFLAGBIT(VM,false);
+	SETFLAGBIT(IF,false);
+
+	reg_eip = cpu_sep_eip;
+	reg_esp = cpu_sep_esp;
+
+	/* NTS: Do NOT use SetSegGeneral, SYSENTER is documented to set CS and SS based on what was given to the MSR,
+	 *      but with fixed and very specific descriptor cache values that represent 32-bit flat segments with
+	 *      base == 0 and limit == 4GB. */
+	Segs.val[cs] = (cpu_sep_cs & 0xFFFC);
+	Segs.phys[cs] = 0;
+	Segs.limit[cs] = 0xFFFFFFFF;
+	Segs.expanddown[cs] = false;
+	cpu.code.big = true;
+
+	Segs.val[ss] = (cpu_sep_cs & 0xFFFC) + 0x8; /* Yes, really. Look it up in Intel's documentation */
+	Segs.phys[ss] = 0;
+	Segs.limit[ss] = 0xFFFFFFFF;
+	Segs.expanddown[ss] = false;
+	cpu.stack.big = true;
+	cpu.stack.mask=0xffffffff;
+	cpu.stack.notmask=0x00000000;
+
+	// DEBUG
+//	DEBUG_EnableDebugger();
+
+//	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSENTER: CS=%04x EIP=%08x ESP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip,(unsigned int)reg_esp);
+	return true;
 }
 
 bool CPU_SYSEXIT() {
 	if (!enable_syscall) return false;
-	UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("SYSEXIT: UNIMPLEMENTED");
-	return false; /* TODO */
+	if (!cpu.pmode || cpu_sep_cs == 0 || cpu.cpl != 0) return false; /* CS != 0 and not real mode, or not ring 0 */
+
+//	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSEXIT: From CS=%04x EIP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip - 2);
+
+	/* Yes, really. Read Intel's documentation */
+	reg_eip = reg_edx;
+	reg_esp = reg_ecx;
+
+	/* NTS: Do NOT use SetSegGeneral, SYSENTER is documented to set CS and SS based on what was given to the MSR,
+	 *      but with fixed and very specific descriptor cache values that represent 32-bit flat segments with
+	 *      base == 0 and limit == 4GB. */
+	Segs.val[cs] = (cpu_sep_cs | 3) + 0x10; /* Yes, really. Look it up in Intel's documentation */
+	Segs.phys[cs] = 0;
+	Segs.limit[cs] = 0xFFFFFFFF;
+	Segs.expanddown[cs] = false;
+	cpu.code.big = true;
+
+	Segs.val[ss] = (cpu_sep_cs | 3) + 0x18; /* Yes, really. Look it up in Intel's documentation */
+	Segs.phys[ss] = 0;
+	Segs.limit[ss] = 0xFFFFFFFF;
+	Segs.expanddown[ss] = false;
+	cpu.stack.big = true;
+	cpu.stack.mask=0xffffffff;
+	cpu.stack.notmask=0x00000000;
+
+	CPU_SetCPL(3);
+
+	// DEBUG
+//	DEBUG_EnableDebugger();
+
+//	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("SYSEXIT: CS=%04x EIP=%08x ESP=%08x",(unsigned int)Segs.val[cs],(unsigned int)reg_eip,(unsigned int)reg_esp);
+	return true;
 }
 
 /* pentium machine-specific registers */
@@ -4131,9 +4213,32 @@ bool CPU_RDMSR() {
 		case 0x0000001b: /* Local APIC */
 			/* NTS: Windows ME assumes this MSR is present if we report ourself as a Pentium II,
 			 *      instead of, you know, using CPUID */
+			/* NTS: Apparently the Linux kernel also assumes this register is present. */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
 			reg_edx = reg_eax = 0;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Faking Local APIC");
+			return true;
+		case 0x0000008b: /* Intel microcode revision... Windows ME insists on reading this at startup if Pentium II and stepping 3 */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Guest is reading Intel microcode revision");
+			// FIXME: This is a guess. Pull out the Pentium II DOS system and see what comes back for this
+			reg_edx = 0;
+			reg_eax = 0x333;
+			return true;
+		case 0x00000174: /* SYSENTER CS selector */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
+			reg_edx = 0;
+			reg_eax = cpu_sep_cs;
+			return true;
+		case 0x00000175: /* SYSENTER ESP stack pointer */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
+			reg_edx = 0;
+			reg_eax = cpu_sep_esp;
+			return true;
+		case 0x00000176: /* SYSENTER EIP instruction pointer */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
+			reg_edx = 0;
+			reg_eax = cpu_sep_eip;
 			return true;
 		default:
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Unknown register 0x%08lx",(unsigned long)reg_ecx);
@@ -4152,15 +4257,39 @@ bool CPU_RDMSR() {
 bool CPU_WRMSR() {
 	if (!enable_msr) return false;
 
+//	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("WRMSR ECX=%08x EDX:EAX=%08x:%08x",reg_ecx,reg_edx,reg_eax);
+
 	switch (reg_ecx) {
 		case 0x0000001b: /* Local APIC */
 			/* NTS: Windows ME assumes this MSR is present if we report ourself as a Pentium II,
 			 *      instead of, you know, using CPUID. It will also set the enable bit, even if
 			 *      this register was 0x00000000 when it booted. Fortunately, Windows ME still
 			 *      runs properly if we silently ignore the write and leave it 0x00000000. */
+			/* NTS: Apparently the Linux kernel also assumes this register is present. */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Faking Local APIC");
 			if (reg_eax & 0x800) UNBLOCKED_LOG(LOG_CPU,LOG_WARN)("Guest OS is attempting to enable the Local APIC which we do not emulate yet");
+			return true;
+		case 0x00000079: /* Intel microcode update (EDX:EAX contains a virtual memory address of a microcode blob) */
+			/* NTS: Windows ME, if it sees a Pentium II stepping 3 or higher, will attempt to do a microcode update at startup. Why? */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Guest is attempting to update microcode (is that you Windows ME?) EDX:EAX=%08x:%08x",reg_edx,reg_eax);
+			return true;
+		case 0x0000008b: /* Intel microcode revision... why is Windows ME writing this register before reading it? */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Attempt to write Intel microcode revision (is that you Windows ME?) EDX:EAX=%08x:%08x",reg_edx,reg_eax);
+			return true;
+		case 0x00000174: /* SYSENTER CS selector */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
+			cpu_sep_cs = (uint16_t)(reg_eax & 0xFFFFu);
+			return true;
+		case 0x00000175: /* SYSENTER ESP stack pointer */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
+			cpu_sep_esp = reg_eax;
+			return true;
+		case 0x00000176: /* SYSENTER EIP instruction pointer */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
+			cpu_sep_eip = reg_eax;
 			return true;
 		default:
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Unknown register 0x%08lx (write 0x%08lx:0x%08lx)",(unsigned long)reg_ecx,(unsigned long)reg_edx,(unsigned long)reg_eax);
@@ -4172,35 +4301,38 @@ bool CPU_WRMSR() {
 }
 
 /* NTS: Hopefully by implementing this Windows ME can stop randomly crashing when cputype=pentium */
+/* NTS: Linux kernels compiled for "i686" rely on this instruction too. */
 void CPU_CMPXCHG8B(PhysPt eaa) {
-    uint32_t hi,lo;
+	uint32_t hi,lo;
 
-    /* NTS: We assume that, if reading doesn't cause a page fault, writing won't either */
-    hi = (uint32_t)mem_readd(eaa+(PhysPt)4);
-    lo = (uint32_t)mem_readd(eaa);
+	/* NTS: We assume that, if reading doesn't cause a page fault, writing won't either */
+	hi = (uint32_t)mem_readd(eaa+(PhysPt)4);
+	lo = (uint32_t)mem_readd(eaa);
 
-    LOG_MSG("Experimental CMPXCHG8B implementation executed. EDX:EAX=0x%08lx%08lx ECX:EBX=0x%08lx%08lx EA=0x%08lx MEM64=0x%08lx%08lx",
-        (unsigned long)reg_edx,
-        (unsigned long)reg_eax,
-        (unsigned long)reg_ecx,
-        (unsigned long)reg_ebx,
-        (unsigned long)eaa,
-        (unsigned long)hi,
-        (unsigned long)lo);
+#if 0 // it works, shut up now
+	LOG_MSG("Experimental CMPXCHG8B implementation executed. EDX:EAX=0x%08lx%08lx ECX:EBX=0x%08lx%08lx EA=0x%08lx MEM64=0x%08lx%08lx",
+		(unsigned long)reg_edx,
+		(unsigned long)reg_eax,
+		(unsigned long)reg_ecx,
+		(unsigned long)reg_ebx,
+		(unsigned long)eaa,
+		(unsigned long)hi,
+		(unsigned long)lo);
+#endif
 
-    /* Compare EDX:EAX with 64-bit DWORD at memaddr 'eaa'.
-     * if they match, ZF=1 and write ECX:EBX to memaddr 'eaa'.
-     * else, ZF=0 and load memaddr 'eaa' into EDX:EAX */
-    if (reg_edx == hi && reg_eax == lo) {
-        mem_writed(eaa+(PhysPt)4,reg_ecx);
-        mem_writed(eaa,          reg_ebx);
+	/* Compare EDX:EAX with 64-bit DWORD at memaddr 'eaa'.
+	 * if they match, ZF=1 and write ECX:EBX to memaddr 'eaa'.
+	 * else, ZF=0 and load memaddr 'eaa' into EDX:EAX */
+	if (reg_edx == hi && reg_eax == lo) {
+		mem_writed(eaa+(PhysPt)4,reg_ecx);
+		mem_writed(eaa,          reg_ebx);
 		SETFLAGBIT(ZF,true);
-    }
-    else {
+	}
+	else {
 		SETFLAGBIT(ZF,false);
-        reg_edx = hi;
-        reg_eax = lo;
-    }
+		reg_edx = hi;
+		reg_eax = lo;
+	}
 }
 
 namespace

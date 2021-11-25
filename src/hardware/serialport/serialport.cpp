@@ -103,6 +103,7 @@ device_COM::~device_COM() {
 // COM1 - COM9 objects
 CSerial* serialports[9] ={0,0,0,0,0,0,0,0,0};
 uint16_t serial_baseaddr[9] = {0,0,0,0,0,0,0,0,0};
+bool serialMouseEmulated = false;
 
 static Bitu SERIAL_Read (Bitu port, Bitu iolen) {
     (void)iolen;//UNUSED
@@ -1379,6 +1380,7 @@ public:
 			}
 			else if (type=="serialmouse") {
 				serialports[i] = new CSerialMouse (i, &cmd);
+                serialMouseEmulated = true;
 			}
 #ifdef DIRECTSERIAL_AVAILIBLE
 			else if (type=="directserial") {

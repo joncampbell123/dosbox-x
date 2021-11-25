@@ -29,6 +29,10 @@ using namespace std;
 
 #include <algorithm>
 
+/* Do not emulate segment limit exceptions on 8086. This turns the if() statements into if (0)
+ * and the C++ compiler optimizer should then completely omit the code for the 8086 cputype. */
+#define do_seg_limits (0)
+
 /* 8086: Apparently exceptions like DIVIDE BY ZERO are given a return address of the next instruction */
 #define PRE_EXCEPTION SAVEIP
 

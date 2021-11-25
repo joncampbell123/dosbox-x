@@ -559,6 +559,7 @@ MOUNTのその他の使用例:
 .
 :PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL
 仮想ドライブのマウントを解除することはできません。
+
 .
 :PROGRAM_MOUNT_WARNING_WIN
 警告: C:\ をマウントすることは推奨されません。
@@ -571,7 +572,7 @@ MOUNTのその他の使用例:
 
 .
 :PROGRAM_MOUNT_OVERLAY_NO_BASE
-Overlayを追加する前に、通常のディレクトリを MOUNT する必要があります。
+Overlay を追加する前に、通常のディレクトリを MOUNT する必要があります。
 
 .
 :PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE
@@ -579,7 +580,7 @@ Overlayを追加する前に、通常のディレクトリを MOUNT する必要
 
 .
 :PROGRAM_MOUNT_OVERLAY_MIXED_BASE
-Overlayのディレクトリは、追加前のディレクトリと同じアドレス指定方法で指定する必要があります。相対パス・絶対パスの混在はできません。
+Overlay のディレクトリは、追加前のディレクトリと同じアドレス指定方法で指定する必要があります。相対パス・絶対パスの混在はできません。
 
 .
 :PROGRAM_MOUNT_OVERLAY_SAME_AS_BASE
@@ -587,7 +588,7 @@ Overlay のディレクトリには、追加前のディレクトリと同じも
 
 .
 :PROGRAM_MOUNT_OVERLAY_ERROR
-Overlayドライブの作成でエラーがありました。
+Overlay ドライブの作成でエラーがありました。
 
 .
 :PROGRAM_MOUNT_OVERLAY_STATUS
@@ -604,12 +605,12 @@ Overlay %s を %c ドライブにマウントしました。
 .
 :PROGRAM_LOADFIX_DEALLOCALL
 使用していたメモリを解放しました。
-.
 
+.
 :PROGRAM_LOADFIX_ERROR
 メモリ確保エラー。
-.
 
+.
 :PROGRAM_LOADFIX_HELP
 使用可能なメモリを減らして、最初の64KBメモリより上にプログラムをロードします。
 
@@ -1580,7 +1581,7 @@ DOSBox-Xへようこそ !
 :SHELL_STARTUP_TEXT3_PC98
 [32mプロジェクト ページ[37m: [33mhttps://dosbox-x.com/ [36mComplete DOS emulations[37m
 [32mユーザガイドWiki[37m: [33mhttps://dosbox-x.com/wiki[32m [36mDOS,Windows 3.x and 9x[37m
-[32mバグ報告・提案 [37m: [33mhttps://github.com/joncampbell123/dosbox-x/issues[37m
+[32mバグ報告と提案 [37m: [33mhttps://github.com/joncampbell123/dosbox-x/issues[37m
 .
 :SHELL_STARTUP_HEAD1
 [36mDOSBox-X をはじめよう:                                                      [37m
@@ -1622,7 +1623,7 @@ Use [31mCtrl+F8[37m to toggle horizontal blending (only in graphics mode).
 :SHELL_STARTUP_TEXT3
 [32mプロジェクト ページ[37m: [33mhttps://dosbox-x.com/           [36mComplete DOS emulations[37m
 [32mユーザガイド Wiki  [37m: [33mhttps://dosbox-x.com/wiki[32m       [36mDOS, Windows 3.x and 9x[37m
-[32mバグ報告・提案     [37m: [33mhttps://github.com/joncampbell123/dosbox-x/issues      [37m
+[32mバグ報告と提案     [37m: [33mhttps://github.com/joncampbell123/dosbox-x/issues      [37m
 .
 :SHELL_STARTUP_LAST
 HAVE FUN WITH DOSBox-X !

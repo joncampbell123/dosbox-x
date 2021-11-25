@@ -386,7 +386,7 @@
 			src.q=LoadMq(eaa);
 		}
 		if (src.ub.b0 > 63) dest->q = 0;
-		else dest->q <<= src.ub.b0;
+		else dest->q <<= (uint64_t)src.ub.b0;
 		break;
 	}
 	CASE_0F_MMX(0xd3)												/* PSRLQ Pq,Qq */
@@ -402,7 +402,7 @@
 			src.q=LoadMq(eaa);
 		}
 		if (src.ub.b0 > 63) dest->q = 0;
-		else dest->q >>= src.ub.b0;
+		else dest->q >>= (uint64_t)src.ub.b0;
 		break;
 	}
 	CASE_0F_MMX(0x73)												/* PSLLQ/PSRLQ Pq,Ib */
@@ -415,9 +415,9 @@
 		else {
 			uint8_t op=rm&0x20;
 			if (op) {
-				dest->q <<= shift;
+				dest->q <<= (uint64_t)shift;
 			} else {
-				dest->q >>= shift;
+				dest->q >>= (uint64_t)shift;
 			}
 		}
 		break;
@@ -532,14 +532,14 @@
 			GetEAa;
 			src.q = LoadMq(eaa);
 		}
-		dest->ub.b0 = SaturateWordSToByteU((int16_t)dest->ub.b0+(int16_t)src.ub.b0);
-		dest->ub.b1 = SaturateWordSToByteU((int16_t)dest->ub.b1+(int16_t)src.ub.b1);
-		dest->ub.b2 = SaturateWordSToByteU((int16_t)dest->ub.b2+(int16_t)src.ub.b2);
-		dest->ub.b3 = SaturateWordSToByteU((int16_t)dest->ub.b3+(int16_t)src.ub.b3);
-		dest->ub.b4 = SaturateWordSToByteU((int16_t)dest->ub.b4+(int16_t)src.ub.b4);
-		dest->ub.b5 = SaturateWordSToByteU((int16_t)dest->ub.b5+(int16_t)src.ub.b5);
-		dest->ub.b6 = SaturateWordSToByteU((int16_t)dest->ub.b6+(int16_t)src.ub.b6);
-		dest->ub.b7 = SaturateWordSToByteU((int16_t)dest->ub.b7+(int16_t)src.ub.b7);
+		dest->ub.b0 = SaturateWordSToByteU((uint16_t)dest->ub.b0+(uint16_t)src.ub.b0);
+		dest->ub.b1 = SaturateWordSToByteU((uint16_t)dest->ub.b1+(uint16_t)src.ub.b1);
+		dest->ub.b2 = SaturateWordSToByteU((uint16_t)dest->ub.b2+(uint16_t)src.ub.b2);
+		dest->ub.b3 = SaturateWordSToByteU((uint16_t)dest->ub.b3+(uint16_t)src.ub.b3);
+		dest->ub.b4 = SaturateWordSToByteU((uint16_t)dest->ub.b4+(uint16_t)src.ub.b4);
+		dest->ub.b5 = SaturateWordSToByteU((uint16_t)dest->ub.b5+(uint16_t)src.ub.b5);
+		dest->ub.b6 = SaturateWordSToByteU((uint16_t)dest->ub.b6+(uint16_t)src.ub.b6);
+		dest->ub.b7 = SaturateWordSToByteU((uint16_t)dest->ub.b7+(uint16_t)src.ub.b7);
 		break;
 	}
 	CASE_0F_MMX(0xDD)												/* PADDUSW Pq,Qq */
@@ -554,10 +554,10 @@
 			GetEAa;
 			src.q = LoadMq(eaa);
 		}
-		dest->uw.w0 = SaturateDwordSToWordU((int32_t)dest->uw.w0+(int32_t)src.uw.w0);
-		dest->uw.w1 = SaturateDwordSToWordU((int32_t)dest->uw.w1+(int32_t)src.uw.w1);
-		dest->uw.w2 = SaturateDwordSToWordU((int32_t)dest->uw.w2+(int32_t)src.uw.w2);
-		dest->uw.w3 = SaturateDwordSToWordU((int32_t)dest->uw.w3+(int32_t)src.uw.w3);
+		dest->uw.w0 = SaturateDwordSToWordU((uint32_t)dest->uw.w0+(uint32_t)src.uw.w0);
+		dest->uw.w1 = SaturateDwordSToWordU((uint32_t)dest->uw.w1+(uint32_t)src.uw.w1);
+		dest->uw.w2 = SaturateDwordSToWordU((uint32_t)dest->uw.w2+(uint32_t)src.uw.w2);
+		dest->uw.w3 = SaturateDwordSToWordU((uint32_t)dest->uw.w3+(uint32_t)src.uw.w3);
 		break;
 	}
 	CASE_0F_MMX(0xF8)												/* PSUBB Pq,Qq */
@@ -1064,3 +1064,23 @@
 		dest->ud.d1 = src.ud.d0;
 		break;
 	}
+	CASE_0F_MMX(0x70)												/* PSHUFW Pq,Qq,imm8 */
+	{
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PMMXSLOW) goto illegal_opcode;
+		GetRM;
+		uint8_t imm8 = Fetchb();
+		MMX_reg* dest=lookupRMregMM[rm];
+		MMX_reg src;
+		if (rm>=0xc0) {
+			src.q=reg_mmx[rm&7]->q;
+		} else {
+			GetEAa;
+			src.q = LoadMq(eaa);
+		}
+		dest->uw.w0 = src.uwa[ imm8     &3u]; /* uwa[0] is uw.w0, see MMX_reg union */
+		dest->uw.w1 = src.uwa[(imm8>>2u)&3u];
+		dest->uw.w2 = src.uwa[(imm8>>4u)&3u];
+		dest->uw.w3 = src.uwa[(imm8>>6u)&3u];
+		break;
+	}
+

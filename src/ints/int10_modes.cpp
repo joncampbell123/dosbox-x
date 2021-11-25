@@ -39,6 +39,7 @@
 #define GFX_REGS 0x09
 #define ATT_REGS 0x15
 
+void J3_GetPalette(uint8_t no, uint8_t &r, uint8_t &g, uint8_t &b);
 extern bool window_was_maximized;
 extern bool enable_vga_8bit_dac;
 extern bool int10_vesa_map_as_128kb;
@@ -888,6 +889,7 @@ uint8_t TandyGetCRTPage(void) {
 }
 
 extern bool en_int33;
+extern std::string j3type;
 void change_output(int output);
 void SetVal(const std::string& secname, const std::string& preval, const std::string& val);
 bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
@@ -2002,7 +2004,43 @@ att_text16:
 			}
 			break;
 		case M_DCGA:
+			if (IS_J3100 && J3_GetMachineCode()) {
+				uint8_t r, g, b;
+				uint8_t vmode = GetTrueVideoMode();
+				J3_GetPalette(0, r, g, b);
+				IO_Write(0x3c9, r);
+				IO_Write(0x3c9, g);
+				IO_Write(0x3c9, b);
+				J3_GetPalette(1, r, g, b);
+				for(i = 1 ; i < 64 ; i++) {
+					if(vmode != 0x74 || (vmode == 0x74 && i == 23)) {
+						IO_Write(0x3c9, r);
+						IO_Write(0x3c9, g);
+						IO_Write(0x3c9, b);
+					} else {
+						IO_Write(0x3c9,cga_palette_2[i][0]);
+						IO_Write(0x3c9,cga_palette_2[i][1]);
+						IO_Write(0x3c9,cga_palette_2[i][2]);
+					}
+				}
+				break;
+			}
 		case M_CGA2:
+			if(IS_J3100 && J3_GetMachineCode()) {
+				uint8_t r, g, b;
+				uint8_t vmode = GetTrueVideoMode();
+				J3_GetPalette(0, r, g, b);
+				IO_Write(0x3c9, r);
+				IO_Write(0x3c9, g);
+				IO_Write(0x3c9, b);
+				J3_GetPalette(1, r, g, b);
+				for(i = 1 ; i < 64 ; i++) {
+					IO_Write(0x3c9, r);
+					IO_Write(0x3c9, g);
+					IO_Write(0x3c9, b);
+				}
+				break;
+			}
 		case M_CGA4:
 		case M_TANDY16:
 			for (i=0;i<64;i++) {

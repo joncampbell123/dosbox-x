@@ -21,6 +21,8 @@
 
 #if C_FPU
 
+#include <stddef.h>
+
 typedef union {
 
 	uint64_t q;
@@ -29,50 +31,69 @@ typedef union {
 	struct {
 		uint32_t d0,d1;
 	} ud;
+	static_assert(sizeof(ud) == 8, "MMX packing error");
 
 	struct {
 		int32_t d0,d1;
 	} sd;
+	static_assert(sizeof(sd) == 8, "MMX packing error");
 
-	struct {
+	struct uw_t {
 		uint16_t w0,w1,w2,w3;
 	} uw;
+	static_assert(sizeof(uw) == 8, "MMX packing error");
+
+	uint16_t uwa[4]; /* for PSHUFW */
+	static_assert(sizeof(uwa) == 8, "MMX packing error");
+	static_assert(offsetof(uw_t,w0) == 0, "MMX packing error");
+	static_assert(offsetof(uw_t,w1) == 2, "MMX packing error");
+	static_assert(offsetof(uw_t,w2) == 4, "MMX packing error");
+	static_assert(offsetof(uw_t,w3) == 6, "MMX packing error");
 
 	struct {
 		int16_t w0,w1,w2,w3;
 	} sw;
+	static_assert(sizeof(sw) == 8, "MMX packing error");
 
 	struct {
 		uint8_t b0,b1,b2,b3,b4,b5,b6,b7;
 	} ub;
+	static_assert(sizeof(ub) == 8, "MMX packing error");
 
 	struct {
 		int8_t b0,b1,b2,b3,b4,b5,b6,b7;
 	} sb;
+	static_assert(sizeof(sb) == 8, "MMX packing error");
 #else
 	struct {
 		uint32_t d1,d0;
 	} ud;
+	static_assert(sizeof(ud) == 8, "MMX packing error");
 
 	struct {
 		int32_t d1,d0;
 	} sd;
+	static_assert(sizeof(sd) == 8, "MMX packing error");
 
 	struct {
 		uint16_t w3,w2,w1,w0;
 	} uw;
+	static_assert(sizeof(uw) == 8, "MMX packing error");
 
 	struct {
 		uint16_t w3,w2,w1,w0;
 	} sw;
+	static_assert(sizeof(sw) == 8, "MMX packing error");
 
 	struct {
 		uint8_t b7,b6,b5,b4,b3,b2,b1,b0;
 	} ub;
+	static_assert(sizeof(ub) == 8, "MMX packing error");
 
 	struct {
 		uint8_t b7,b6,b5,b4,b3,b2,b1,b0;
 	} sb;
+	static_assert(sizeof(sb) == 8, "MMX packing error");
 #endif
 
 } MMX_reg;

@@ -1380,6 +1380,15 @@ Bitu INT16_Handler(void) {
         /* Weird call used by some dos apps */
         LOG(LOG_BIOS,LOG_NORMAL)("INT16:55:Word TSR compatible call");
         break;
+    case 0xf0:
+        // J-3100 beep
+        break;
+    case 0xf1:
+        // J-3100 set shift
+        break;
+    case 0xf2:
+        // J-3100 key click sound
+        break;
     case 0xf5:
         // J-3100 set key data
         if(J3_IsJapanese()) {
@@ -1407,8 +1416,7 @@ Bitu INT16_Handler(void) {
             if(reg_ax == size / 2) {
                 reg_ax = 0xffff;
             }
-            // J-3100 machine code(dummy)
-            reg_bx = 0x6a74;
+            reg_bx = J3_GetMachineCode() == 0 ? 0x6a74 : J3_GetMachineCode();
         }
         break;
     default:

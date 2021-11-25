@@ -1,29 +1,66 @@
 0.83.20
-  - Add MSR register 0x0000001B to Pentium II
-    emulation. DOSBox-X does not emulate a local
-    APIC but Windows Millenium Edition assumes that
-    MSR is present and reads/writes it on startup
-    if DOSBox-X reports itself as a Pentium II.
+  - Added most Pentium-level MMX instructions to debugger
+    disassembler (joncampbell123)
+  - Added MOVD, MOVQ, and EMMS instructions to debugger
+    disassembler and support for the disassembler to
+    represent MMX registers. (joncampbell123)
+  - Added MMX instruction PSHUFW and added typecasts
+    to some MMX instructions in case compilers cannot
+    properly shift uint64_t by uint8_t otherwise.
     (joncampbell123)
+  - Added code to normal core to flush paging TLB
+    whenever handing a non-recursive guest page fault.
+    The guest OS will likely update the page tables
+    to resolve the fault. The Linux kernel will
+    constantly get "stuck" whenever you run a command
+    without this change. (joncampbell123)
+  - Added MSRs related to Intel microcode because both
+    Linux and Windows ME probe those MSRs if Pentium II
+    emulation reports stepping 3 model 3. The microcode
+    MSRs are silently ignored. (joncampbell123)
+  - CPUID for Pentium II will now report stepping 3
+    and model 3 which is a minimum requirement for OSes
+    to attempt to use SYSENTER/SYSEXIT (joncampbell123)
+  - Implemented Pentium II instructions SYSENTER and
+    SYSEXIT, and added MSRs for them. (joncampbell123)
+  - 8086 and 80186 CPU types no longer check segment
+    limits. (joncampbell123)
+  - Add MSR register 0x0000001B to Pentium II
+    emulation. DOSBox-X does not emulate a local APIC
+    but Windows ME assumes that MSR is present and
+    reads/writes it on startup if DOSBox-X reports
+    itself as a Pentium II. (joncampbell123)
   - While CPU "debug spew" is silenced by default,
     remove silencing for RDMSR/WRMSR and
     SYSENTER/SYSEXIT debug messages (joncampbell123).
   - Added Pentium II SYSENTER/SYSEXIT instructions
     to normal core and debugger disassembler. The
     instructions are stubs at this time to be added
-    later. (joncampbell123).
-  - Added Pentium II cputype, to begin development
-    of such emulation. (joncampbell123)
+    later. (joncampbell123)
+  - Added support for Pentium II cputype, to begin
+    development of such emulation. (joncampbell123)
   - Added support for DCGA and Toshiba J-3100 emulation
-    modes. The J-3100 emulation can be enabled with the
-    options "dosv=jp" & "j3100=true" in [dosv] section.
-    There is also DCGA command which can enter DCGA
-    from other video modes. (nanshiki)
+    modes by importing code from DOSVAXJ3 by nanshiki.
+    The J-3100 emulation mode can be enabled with the
+    option "dosv=jp" along with a non-off setting of
+    "j3100" option in [dosv] section. For example, with
+    "j3100=on" or "j3100=auto" (and "dosv=jp") J-3100
+    system will be enabled and activated at start. With
+    "j3100=manual" (and "dosv=jp") J-3100 system will
+    be enabled and not activated at start, but there is
+    now a DCGA command to enter DCGA (either English or
+    J-3100 DCGA, depending on if J-3100 is enabled)
+    mode from other video modes. (nanshiki & Wengier)
+  - Added support for unit tests based on GoogleTest
+    framework (gTest/gMock) to ensure code stability.
+    Unit tests can be started with command-line option
+    -tests in the debug builds. Some unit tests are
+    ported from DOSBox Staging. (Wengier)
   - Added IMGSWAP command to swap disks for drives.
     e.g. "IMGSWAP D" to swap C: drive to the next swap
     position, and "IMGSWAP A 3" to swap A: drive to
     the 3nd swap position. (Wengier)
-  - The CAPMOUSE command without a paramter now shows
+  - The CAPMOUSE command without a parameter now shows
     whether the mouse is captured/released. (Wengier)
   - The command "config -set" is now case-insensitive
     for property names. Also, if an option cannot be
@@ -65,11 +102,14 @@
     Traditional Chinese (ChinaSea extension). (Wengier)
   - Added config option "chinasea" (in [ttf] section)
     which when set to "true" allows ChinaSea (中國海字集)
-    extension of the Big5 charset for the Traditional
-    Chinese TTF output. This requires the use of a
-    TTF/OTF font containing such extended characters;
-    the included SarasaGothicFixed TTF font is updated
-    to support such characters. Also moved "gbk" config
+    and Big5-2003 extension of the original Big5-1984
+    charset for Traditional Chinese TTF output. This
+    requires the use of a TTF/OTF font containing such
+    extended characters to correctly render them; the
+    included SarasaGothicFixed TTF font is updated to
+    support such characters.Certain Traditional Chinese
+    DOS software like the Hyper Editor 5.03 (漢書5) makes
+    use of ChinaSea characters. Also moved "gbk" config
     option from [dosv] to [ttf] section. (Wengier)
   - Added code to INT 18h emulation (IBM PC mode) to
     jump to ROM BASIC if the user provided an IBM
@@ -103,6 +143,9 @@
     after changing a CD image from the menu. (Wengier)
   - Fixed copying full-screen or multi-line text from a
     DBCS codepage in TTF output or PC98 mode. (Wengier)
+  - Fixed possible crash at start with getsysfont=true
+    when a font may not be obtained on some Chinese
+    Windows systems. (Wengier)
   - Fixed TTF color issue with some DOS GUI programs by
     initializing the color scheme when with default
     COLORS= setting in EGA or VGA mode. (Wengier)
@@ -114,10 +157,16 @@
     working when using the 4DOS shell. (Wengier)
   - Fixed "DIR>NUL" freeze/crash when only disk or CD
     images are mounted. (nanshiki)
+  - Fixed BIOS screen when resetting the machine with a
+    non-TTF output and DOS/V mode enabled. (Wengier)
+  - Fixed the key `/~ not working when IME is enabled
+    on a non-Japanese keyboard. (Wengier)
+  - Fixed display glitches in the game "Continuing
+    adventures of Cyberbox". (Wengier)
   - Make memory B0000-B7FFF unmapped for the CGA
     emulation. Fixes "Backgammon 5.0" detecting that
     an MDA is also present when using CGA. (Allofich)
-  - Make floppy I/O delay separataly configurable from
+  - Make floppy I/O delay separately configurable from
     hard drive delay, and make it slower than before
     by default. It is adjustable via the "floppy drive
     data rate limit" config option. (Allofich)
@@ -131,6 +180,8 @@
     the remaining block of undefined/undocumented EGC
     ROPs. This fixes "Atomic Punker" which uses EGC ROP
     0xBE for sprite rendering. (joncampbell123)
+  - Don't run mouse setup code if there is no emulated
+    mouse. (Allofich)
   - Integrated commits from mainline (Allofich)
     - Add proper opl3 handling of the waveform select
     to dbopl.

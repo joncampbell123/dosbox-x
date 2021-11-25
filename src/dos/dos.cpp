@@ -59,11 +59,12 @@
 #endif
 
 static bool first_run=true;
-extern bool use_quick_reboot, enable_config_as_shell_commands;
 extern std::string log_dev_con_str;
 extern const char* RunningProgram;
 extern bool log_int21, log_fileio;
 extern bool sync_time, manualtime;
+extern bool use_quick_reboot, j3100_start;
+extern bool enable_config_as_shell_commands;
 #if defined(USE_TTF)
 extern bool ttf_dosv;
 #endif
@@ -3686,7 +3687,7 @@ public:
                 ::disk_data_rate = 3500000; /* Probably an average IDE data rate for early 1990s ISA IDE controllers in PIO mode */
         }
         if(::floppy_data_rate < 0) {
-            ::floppy_data_rate = 5000; // Slow enough so that PC Booter game title screens that depend on floppy drive speed will show for a few seconds
+            ::floppy_data_rate = 22400; // 175 kbps
         }
 		maxfcb=100;
 		DOS_FILES=200;
@@ -4165,7 +4166,7 @@ public:
 		if(IS_DOSV) {
 #endif
 			DOSV_Setup();
-			if(IS_J3100) {
+			if(IS_J3100 && j3100_start) {
 				INT10_SetVideoMode(0x74);
 				SetTrueVideoMode(0x74);
 			} else if(IS_DOSV) {

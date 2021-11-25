@@ -63,6 +63,7 @@ extern bool dpi_aware_enable;
 extern bool log_int21;
 extern bool log_fileio;
 extern bool ticksLocked;
+extern bool isJPkeyboard;
 extern bool enable_autosave;
 extern bool noremark_save_state;
 extern bool use_quick_reboot;
@@ -99,6 +100,7 @@ void GFX_OpenGLRedrawScreen(void), InitFontHandle(), DOSV_FillScreen(), SetWindo
 #include <algorithm> // std::transform
 #include <fcntl.h>
 #include <sys/stat.h>
+#include <gtest/gtest.h>
 #ifdef WIN32
 # include <signal.h>
 # include <process.h>
@@ -292,8 +294,9 @@ void d3d_init(void);
 #endif
 void ShutDownMemHandles(Section * sec);
 void resetFontSize(), decreaseFontSize();
-void MAPPER_ReleaseAllKeys(), GFX_ReleaseMouse(), makestdcp950table();
+void GFX_ReleaseMouse(), makestdcp950table();
 void GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight);
+void MAPPER_CheckEvent(SDL_Event * event), MAPPER_CheckKeyboardLayout(), MAPPER_ReleaseAllKeys();
 bool isDBCSCP(), InitCodePage();
 int GetNumScreen();
 extern SHELL_Cmd cmd_list[];
@@ -338,7 +341,7 @@ bool wpExtChar = false;
 
 static unsigned long ttfSize = sizeof(DOSBoxTTFbi), ttfSizeb = 0, ttfSizei = 0, ttfSizebi = 0;
 static void * ttfFont = DOSBoxTTFbi, * ttfFontb = NULL, * ttfFonti = NULL, * ttfFontbi = NULL;
-extern bool resetreq, enable_dbcs_tables, loadlang;
+extern bool resetreq, enable_dbcs_tables;
 extern uint8_t ccount;
 extern uint16_t cpMap[512];
 static SDL_Color ttf_fgColor = {0, 0, 0, 0};
@@ -375,8 +378,8 @@ BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam
 #endif
 extern int bootdrive, resolveopt;
 extern int dos_clipboard_device_access;
-extern bool sync_time, manualtime, addovl;
-extern bool bootguest, bootfast, bootvm, morelen;
+extern bool bootguest, bootfast, bootvm, addovl;
+extern bool sync_time, manualtime, morelen, loadlang;
 extern struct BuiltinFileBlob bfb_GLIDE2X_OVL;
 void VFILE_Remove(const char *name,const char *dir = "");
 void GLIDE_ShutDown(Section* sec), GLIDE_PowerOn(Section* sec);
@@ -3958,6 +3961,27 @@ void CheckTTFLimit() {
     }
 }
 
+void SetOutputSwitch(const char *outputstr) {
+#if C_DIRECT3D
+        if (!strcasecmp(outputstr, "direct3d"))
+            switchoutput = 6;
+        else
+#endif
+#if C_OPENGL
+        if (!strcasecmp(outputstr, "openglpp"))
+            switchoutput = 5;
+        else if (!strcasecmp(outputstr, "openglnb"))
+            switchoutput = 4;
+        else if (!strcasecmp(outputstr, "opengl")||!strcasecmp(outputstr, "openglnq"))
+            switchoutput = 3;
+        else
+#endif
+        if (!strcasecmp(outputstr, "surface"))
+            switchoutput = 0;
+        else
+            switchoutput = -1;
+}
+
 #define MIN_PTSIZE 9
 bool firstset=true;
 void OUTPUT_TTF_Select(int fsize=-1) {
@@ -4066,26 +4090,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         autoboxdraw = ttf_section->Get_bool("autoboxdraw");
         halfwidthkana = ttf_section->Get_bool("halfwidthkana");
         ttf_dosv = ttf_section->Get_bool("dosvfunc");
-        const char *outputstr=ttf_section->Get_string("outputswitch");
-#if C_DIRECT3D
-        if (!strcasecmp(outputstr, "direct3d"))
-            switchoutput = 6;
-        else
-#endif
-#if C_OPENGL
-        if (!strcasecmp(outputstr, "openglpp"))
-            switchoutput = 5;
-        else if (!strcasecmp(outputstr, "openglnb"))
-            switchoutput = 4;
-        else if (!strcasecmp(outputstr, "opengl")||!strcasecmp(outputstr, "openglnq"))
-            switchoutput = 3;
-        else
-#endif
-        if (!strcasecmp(outputstr, "surface"))
-            switchoutput = 0;
-        else
-            switchoutput = -1;
-
+        SetOutputSwitch(ttf_section->Get_string("outputswitch"));
         rtl = ttf_section->Get_bool("righttoleft");
         ttf.lins = ttf_section->Get_int("lins");
         ttf.cols = ttf_section->Get_int("cols");
@@ -8117,7 +8122,10 @@ void GFX_Events() {
                 }
 #endif
                 // Hankaku/Zenkaku
-                if(event.key.keysym.scancode == 0x35) break;
+                if(event.key.keysym.scancode == 0x35) {
+                    MAPPER_CheckKeyboardLayout();
+                    if (isJPkeyboard) break;
+                }
             }
 #endif
 #if defined (MACOSX)
@@ -8132,7 +8140,6 @@ void GFX_Events() {
 #endif
         default:
             gfx_in_mapper = true;
-            void MAPPER_CheckEvent(SDL_Event * event);
             MAPPER_CheckEvent(&event);
             gfx_in_mapper = false;
         }
@@ -8491,14 +8498,16 @@ void GFX_Events() {
         default:
 #if defined(WIN32) && !defined(HX_DOS) && defined(SDL_DOSBOX_X_SPECIAL)
             if(dos.im_enable_flag) {
-                if(event.key.keysym.scancode == 0x94 || event.key.keysym.scancode == 0x29) {
+                if(event.key.keysym.scancode == 0x94) {
                     break;
+                } else if(event.key.keysym.scancode == 0x29) {
+                    MAPPER_CheckKeyboardLayout();
+                    if (isJPkeyboard) break;
                 } else if(event.key.keysym.scancode == 0x70) {
                     event.type = SDL_KEYDOWN;
                 }
             }
 #endif
-            void MAPPER_CheckEvent(SDL_Event * event);
             MAPPER_CheckEvent(&event);
         }
     }
@@ -9810,7 +9819,8 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -noconsole                              Do not show logging console (Windows debug builds only)\n");
             fprintf(stderr,"  -log-con                                Log CON output to a log file\n");
             fprintf(stderr,"  -log-int21                              Log calls to INT 21h (debug level)\n");
-            fprintf(stderr,"  -log-fileio                             Log file I/O through INT 21h (debug level)\n\n");
+            fprintf(stderr,"  -log-fileio                             Log file I/O through INT 21h (debug level)\n");
+            fprintf(stderr,"  -tests                                  Run unit tests to test the DOSBox-X code\n\n");
 
 #if defined(WIN32)
             DOSBox_ConsolePauseWait();
@@ -9847,6 +9857,16 @@ bool DOSBOX_parse_argv() {
             control->opt_nomenu = true;
             control->opt_fastlaunch = true;
         }
+#if C_DEBUG
+        else if (optname == "tests" || optname == "gtest_list_tests") {
+            putenv(const_cast<char*>("SDL_VIDEODRIVER=dummy"));
+            control->opt_test = true;
+            control->opt_noconsole = false;
+            control->opt_console = true;
+            control->opt_nomenu = true;
+            control->opt_fastlaunch = true;
+        }
+#endif
         else if (optname == "exit") {
             control->opt_exit = true;
         }
@@ -13179,7 +13199,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     }
 
     /* default do not prompt if -conf, -userconf, -defaultconf, or -defaultdir is used */
-    if (control->opt_promptfolder < 0 && (!control->config_file_list.empty() || control->opt_userconf || control->opt_defaultconf || control->opt_used_defaultdir || control->opt_fastlaunch || workdiropt == "noprompt")) {
+    if (control->opt_promptfolder < 0 && (!control->config_file_list.empty() || control->opt_userconf || control->opt_defaultconf || control->opt_used_defaultdir || control->opt_fastlaunch || control->opt_test || workdiropt == "noprompt")) {
         control->opt_promptfolder = 0;
     }
 
@@ -15125,6 +15145,10 @@ fresh_boot:
         reboot_machine = false;
         dos_kernel_shutdown = false;
         guest_msdos_mcb_chain = (uint16_t)(~0u);
+
+#if C_DEBUG
+        if (control->opt_test) ::testing::InitGoogleTest(&argc, argv);
+#endif
 
         /* NTS: CPU reset handler, and BIOS init, has the instruction pointer poised to run through BIOS initialization,
          *      which will then "boot" into the DOSBox-X kernel, and then the shell, by calling VM_Boot_DOSBox_Kernel() */

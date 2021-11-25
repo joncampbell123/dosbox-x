@@ -262,13 +262,13 @@
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) goto illegal_opcode;
 			if (!CPU_SYSENTER()) goto illegal_opcode;
 		}
-		break;
+		continue;
 	CASE_0F_B(0x35)												/* SYSEXIT */
 		{
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) goto illegal_opcode;
 			if (!CPU_SYSEXIT()) goto illegal_opcode;
 		}
-		break;
+		continue;
 
 	// Pentium Pro Conditional Moves
 	CASE_0F_W(0x40)												/* CMOVO */
