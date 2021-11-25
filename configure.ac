@@ -934,6 +934,13 @@ AH_TEMPLATE(C_IPX,[Define to 1 to enable IPX over Internet networking, requires 
 
 dnl enable SDL2 net if SDL2
 if test -n "$SDL2_LIBS"; then
+  case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+       if test x$have_sdl_net_h = xyes; then
+         have_sdl_net_lib=yes
+       fi
+    ;;
+  esac
  if test x$have_sdl2_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
   LIBS="$LIBS -lSDL2_net"
   AC_DEFINE(C_SDL_NET,1)
