@@ -29,9 +29,9 @@
 #include "zip.h"
 #include "unzip.h"
 #include "ioapi.h"
-#include "vs2015/zlib/contrib/minizip/zip.c"
-#include "vs2015/zlib/contrib/minizip/unzip.c"
-#include "vs2015/zlib/contrib/minizip/ioapi.c"
+#include "vs/zlib/contrib/minizip/zip.c"
+#include "vs/zlib/contrib/minizip/unzip.c"
+#include "vs/zlib/contrib/minizip/ioapi.c"
 #if !defined(HX_DOS)
 #include "../libs/tinyfiledialogs/tinyfiledialogs.h"
 #endif

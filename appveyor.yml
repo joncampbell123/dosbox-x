@@ -17,15 +17,15 @@ platform:
 configuration: Release
 
 build:
-  project: vs2015\dosbox-x.sln
+  project: vs\dosbox-x.sln
   
 after_build:
   - ps : >-
         $shortHash = $env:APPVEYOR_REPO_COMMIT.Substring(0, 7);
-        7z a dosbox-x-windows-$shortHash.zip C:\projects\dosbox-x\vs2015\..\bin\x64\Release\changelog.txt;
-        7z a dosbox-x-windows-$shortHash.zip C:\projects\dosbox-x\vs2015\..\bin\x64\Release\dosbox-x.reference.conf;
-        7z a dosbox-x-windows-$shortHash.zip C:\projects\dosbox-x\vs2015\..\bin\x64\Release\dosbox-x.exe;
-        7z a dosbox-x-windows-$shortHash.zip C:\projects\dosbox-x\vs2015\..\bin\x64\Release\FREECG98.BMP;
+        7z a dosbox-x-windows-$shortHash.zip C:\projects\dosbox-x\vs\..\bin\x64\Release\changelog.txt;
+        7z a dosbox-x-windows-$shortHash.zip C:\projects\dosbox-x\vs\..\bin\x64\Release\dosbox-x.reference.conf;
+        7z a dosbox-x-windows-$shortHash.zip C:\projects\dosbox-x\vs\..\bin\x64\Release\dosbox-x.exe;
+        7z a dosbox-x-windows-$shortHash.zip C:\projects\dosbox-x\vs\..\bin\x64\Release\FREECG98.BMP;
   
 #---------------------------------#
 #      artifacts configuration    #

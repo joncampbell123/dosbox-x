@@ -878,7 +878,7 @@ typedef char assert_right_size [MAX_SCANCODES == (sizeof(sdlkey_map)/sizeof(sdlk
 
 #elif defined (__linux__)
 #define MAX_SCANCODES 0x90
-#include "../../vs2015/sdl/include/SDL_keysym.h"
+#include "../../vs/sdl/include/SDL_keysym.h"
 static SDLKey sdlkey_map[MAX_SCANCODES] = { // Convert hardware scancode (XKB = evdev + 8) to SDL virtual keycode
     /* Refer to https://chromium.googlesource.com/chromium/src/+/lkgr/ui/events/keycodes/keyboard_code_conversion_x.cc */
     SDLK_UNKNOWN,//0x00

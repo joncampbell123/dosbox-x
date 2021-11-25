@@ -12,7 +12,7 @@
                 "/p:Configuration=Debug",
                 "/p:Platform=Win32",
                 "/t:build",
-                "vs2015/dosbox-x.sln"
+                "vs/dosbox-x.sln"
             ],
             "group": {
                 "kind": "build",
@@ -32,7 +32,7 @@
                 "/p:Configuration=Debug",
                 "/p:Platform=x64",
                 "/t:build",
-                "vs2015/dosbox-x.sln"
+                "vs/dosbox-x.sln"
             ],
             "group": "build",
             "presentation": {
@@ -49,7 +49,7 @@
                 "/p:Configuration=Release",
                 "/p:Platform=Win32",
                 "/t:build",
-                "vs2015/dosbox-x.sln"
+                "vs/dosbox-x.sln"
             ],
             "group": "build",
             "presentation": {
@@ -66,7 +66,7 @@
                 "/p:Configuration=Release",
                 "/p:Platform=x64",
                 "/t:build",
-                "vs2015/dosbox-x.sln"
+                "vs/dosbox-x.sln"
             ],
             "group": "build",
             "presentation": {
@@ -83,7 +83,7 @@
                 "/p:Configuration='Debug SDL2'",
                 "/p:Platform=Win32",
                 "/t:build",
-                "vs2015/dosbox-x.sln"
+                "vs/dosbox-x.sln"
             ],
             "group": "build",
             "presentation": {
@@ -100,7 +100,7 @@
                 "/p:Configuration='Debug SDL2'",
                 "/p:Platform=x64",
                 "/t:build",
-                "vs2015/dosbox-x.sln"
+                "vs/dosbox-x.sln"
             ],
             "group": "build",
             "presentation": {
@@ -117,7 +117,7 @@
                 "/p:Configuration='Release SDL2'",
                 "/p:Platform=Win32",
                 "/t:build",
-                "vs2015/dosbox-x.sln"
+                "vs/dosbox-x.sln"
             ],
             "group": "build",
             "presentation": {
@@ -134,7 +134,7 @@
                 "/p:Configuration='Release SDL2'",
                 "/p:Platform=x64",
                 "/t:build",
-                "vs2015/dosbox-x.sln"
+                "vs/dosbox-x.sln"
             ],
             "group": "build",
             "presentation": {

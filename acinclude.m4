@@ -27,9 +27,9 @@ AC_ARG_ENABLE(sdl2,     [  --enable-sdl2           Enable SDL 2.x],
       fi
     fi
 
-    if test -x vs2015/sdl2/linux-host/bin/sdl2-config ; then
-      SDL2_CONFIG=vs2015/sdl2/linux-host/bin/sdl2-config
-      PATH=vs2015/sdl2/linux-host/bin:$PATH
+    if test -x vs/sdl2/linux-host/bin/sdl2-config ; then
+      SDL2_CONFIG=vs/sdl2/linux-host/bin/sdl2-config
+      PATH=vs/sdl2/linux-host/bin:$PATH
     fi
 
     AC_PATH_PROG(SDL2_CONFIG, sdl2-config, no)
@@ -82,9 +82,9 @@ AC_ARG_ENABLE(sdl, [  --enable-sdl            Enable SDL 1.x],
       fi
     fi
 
-    if test -x vs2015/sdl/linux-host/bin/sdl-config ; then
-      SDL_CONFIG=vs2015/sdl/linux-host/bin/sdl-config
-      PATH=vs2015/sdl/linux-host/bin:$PATH
+    if test -x vs/sdl/linux-host/bin/sdl-config ; then
+      SDL_CONFIG=vs/sdl/linux-host/bin/sdl-config
+      PATH=vs/sdl/linux-host/bin:$PATH
     fi
 
     AC_PATH_PROG(SDL_CONFIG, sdl-config, no)

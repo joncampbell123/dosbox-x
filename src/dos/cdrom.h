@@ -52,7 +52,7 @@
 	*(M) = value;							\
 }
 #define MSF_TO_FRAMES(M, S, F)	((M)*60*CD_FPS+(S)*CD_FPS+(F))
-#include "../../vs2015/sdl/src/cdrom/compat_SDL_cdrom.h"
+#include "../../vs/sdl/src/cdrom/compat_SDL_cdrom.h"
 #endif /* C_SDL2 */
 
 #define RAW_SECTOR_SIZE		2352

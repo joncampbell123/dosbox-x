@@ -4,9 +4,9 @@ LD		= 	link
 LIBR	=	lib
 WINDRES =	rc
 
-ZLIB = ..\..\vs2015\zlib
+ZLIB = ..\..\vs\zlib
 
-LPNG = ..\..\vs2015\libpng
+LPNG = ..\..\vs\libpng
 
 CXXFLAGS =  -nologo -O2 -MT -DNDEBUG -I$(ZLIB)
 

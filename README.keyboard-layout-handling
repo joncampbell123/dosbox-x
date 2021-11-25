@@ -21,7 +21,7 @@ https://dosbox-x.com/wiki
 Below is the source code that handles the keyboard layouts.
 
 VK_* mapping in SDL1 (Windows):
-- vs2015/sdl/src/video/windib/SDL_dibevents.c: DIB_InitOSKeymapPriv()
+- vs/sdl/src/video/windib/SDL_dibevents.c: DIB_InitOSKeymapPriv()
 
 DOSBox-X keyboard layout enum:
 - include/keymap.h (DKM_*) constants

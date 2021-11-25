@@ -4,7 +4,7 @@ LD		= 	link
 LIBR	=	lib
 WINDRES =	rc
 
-SDLDIR = ..\..\vs2015\sdl
+SDLDIR = ..\..\vs\sdl
 
 CXXFLAGS =  -nologo -O2 -MT -DNDEBUG -DNO_STDIO_REDIRECT -D_WIN32_WINNT=0x0501 -I$(SDLDIR)\include
 

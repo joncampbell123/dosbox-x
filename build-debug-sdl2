@@ -15,7 +15,7 @@ fi
 ./autogen.sh || exit 1
 
 # fix
-chmod +x vs2015/sdl/build-scripts/strip_fPIC.sh
+chmod +x vs/sdl/build-scripts/strip_fPIC.sh
 
 # prefer to compile against our own copy of SDL 2.x IF the system does not provide one
 if [[ "$no_host_sdl2" ]]; then
@@ -25,12 +25,12 @@ else
 fi
 if test -z "$x" ; then
     echo Compiling our internal SDL 2.x
-    (cd vs2015/sdl2 && ./build-dosbox.sh) || exit 1
+    (cd vs/sdl2 && ./build-dosbox.sh) || exit 1
 fi
 
 # prefer to compile against our own copy of SDLnet 1.x
 echo Compiling our internal SDLnet 1.x
-(cd vs2015/sdlnet && ./build-dosbox.sh) || exit 1
+(cd vs/sdlnet && ./build-dosbox.sh) || exit 1
 
 chmod +x configure
 ./configure --enable-core-inline --enable-debug=heavy --prefix=/usr --enable-sdl2 "$@" $opt || exit 1

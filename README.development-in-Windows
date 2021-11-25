@@ -49,7 +49,7 @@ Setting up the environment from scratch
 - download the DirectX SDK (June 2010) from https://www.microsoft.com/en-us/download/details.aspx?id=6812
 - launch the installer and follow the instructions
 - if you encounter error S1023 during installation, follow the instructions at https://support.microsoft.com/en-us/help/2728613/s1023-error-when-you-install-the-directx-sdk-june-2010
-- open the DOSBox-X Visual Studio solution located in 'vs2015' folder of the repository
+- open the DOSBox-X Visual Studio solution located in 'vs' folder of the repository
 - for debugging, you might want to change 'Working Directory' default value of $(ProjectDir) to $(TargetDir)
 
 Note that Visual Studio must be closed prior installing the DirectX SDK, else it won't pick up environment variables set by the DirectX SDK and this will result in building errors.

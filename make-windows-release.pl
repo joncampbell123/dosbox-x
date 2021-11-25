@@ -2,7 +2,7 @@
 my ($sec,$min,$hour,$mday,$mon,$year,$wday,$yday,$isdst) = localtime();
 my $datestr = sprintf("%04u%02u%02u%02u%02u%02u",$year+1900,$mon+1,$mday,$hour,$min,$sec);
 
-my $ziptool = "vs2015/tool/zip.exe";
+my $ziptool = "vs/tool/zip.exe";
 
 my $subdir="release/windows";
 

@@ -433,10 +433,10 @@ fi
 pwd=`realpath $srcdir`
 if [[ -z "$pwd" ]]; then pwd=`pwd`; fi
 
-CFLAGS="$CFLAGS -I$pwd -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
-LDFLAGS="$LDFLAGS -L$pwd/vs2015/sdlnet/linux-host/lib"
-CPPFLAGS="$CPPFLAGS -I$pwd -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
-CXXFLAGS="$CXXFLAGS -I$pwd -I$pwd/vs2015/sdlnet/linux-host/include -I$pwd/vs2015/sdlnet/linux-host/include/SDL"
+CFLAGS="$CFLAGS -I$pwd -I$pwd/vs/sdlnet/linux-host/include -I$pwd/vs/sdlnet/linux-host/include/SDL"
+LDFLAGS="$LDFLAGS -L$pwd/vs/sdlnet/linux-host/lib"
+CPPFLAGS="$CPPFLAGS -I$pwd -I$pwd/vs/sdlnet/linux-host/include -I$pwd/vs/sdlnet/linux-host/include/SDL"
+CXXFLAGS="$CXXFLAGS -I$pwd -I$pwd/vs/sdlnet/linux-host/include -I$pwd/vs/sdlnet/linux-host/include/SDL"
 
 if test x$enable_emscripten != xyes; then
 dnl Some target detection and actions for them
@@ -990,8 +990,8 @@ dnl FEATURE: Whether to use libpcap, and enable ethernet passthrough
 AH_TEMPLATE(C_PCAP,[Define to 1 to enable ethernet passthrough, requires libpcap])
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
-       CFLAGS="$CFLAGS -I$pwd/vs2015/pcap"
-       CXXFLAGS="$CXXFLAGS -I$pwd/vs2015/pcap"
+       CFLAGS="$CFLAGS -I$pwd/vs/pcap"
+       CXXFLAGS="$CXXFLAGS -I$pwd/vs/pcap"
        AC_DEFINE(C_PCAP,1)
     ;;
     *)
@@ -1179,7 +1179,7 @@ if test x$enable_emscripten != xyes; then
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
        if test x$have_slirp = xyes; then
-         LIBS="$LIBS -lole32"
+         LIBS="$LIBS -luuid -lole32"
        fi
        LIBS="$LIBS -lwsock32 -lws2_32 -liphlpapi -lshlwapi"
        if test x$enable_freetype = xyes; then
@@ -1231,5 +1231,5 @@ AC_OUTPUT
 # HACK: it's a script...
 chmod +x make-rpm.sh
 
-# HACK: Write all PACKAGE defines to vs2015/config_package.h so Windows builds are kept in sync
-grep -E 'PACKAGE|VERSION' config.h > $srcdir/vs2015/config_package.h
+# HACK: Write all PACKAGE defines to vs/config_package.h so Windows builds are kept in sync
+grep -E 'PACKAGE|VERSION' config.h > $srcdir/vs/config_package.h

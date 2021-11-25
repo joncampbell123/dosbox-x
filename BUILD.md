@@ -161,7 +161,7 @@ Compiling the source code using Visual Studio (Windows)
 You can build the source code with Visual Studio (2015, 2017, 2019).
 The executables will work on 32-bit and 64-bit Windows Vista or higher.
 
-Use the ```./vs2015/dosbox-x.sln``` "solution" file and build the source code.
+Use the ```./vs/dosbox-x.sln``` "solution" file and build the source code.
 You will need the DirectX 2010 SDK for Direct3D9 support.
 
 By default the targeted platform is v142 (Visual Studio 2019).

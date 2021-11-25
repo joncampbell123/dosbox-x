@@ -13,7 +13,7 @@ LFLAGS	=	-nologo
 
 TARGET	=	z.lib
 
-ZLIB = ..\..\vs2015\zlib
+ZLIB = ..\..\vs\zlib
 
 OBJS	=	$(ZLIB)\adler32.obj \
 			$(ZLIB)\compress.obj \

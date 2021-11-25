@@ -74,7 +74,7 @@ modules:
     buildsystem: simple
     build-commands:
       # We need to first build the included (modified) SDL1, otherwise the build will fail
-      - cd vs2015/sdl ; ./build-dosbox.sh
+      - cd vs/sdl ; ./build-dosbox.sh
       # Build the SDL1 debugger enabled version of DOSBox-X
       - ./build-debug
       - make bindir=/app/bin prefix=/app install

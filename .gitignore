@@ -8,9 +8,9 @@
 aclocal.m4
 configure
 
-vs2015/sdlnet/Makefile.in
-vs2015/sdlnet/aclocal.m4
-vs2015/sdlnet/configure
+vs/sdlnet/Makefile.in
+vs/sdlnet/aclocal.m4
+vs/sdlnet/configure
 
 # User-specific files
 *.suo
@@ -37,7 +37,7 @@ bld/
 [Oo]bj/
 [Ll]og/
 
-# Visual Studio 2015 cache/options directory
+# Visual Studio cache/options directory
 .vs/
 # Uncomment if you have tasks that create the project's static files in wwwroot
 #wwwroot/
@@ -347,52 +347,52 @@ Makefile
 doxygen
 doxygen/*
 
-vs2015/sdl/linux-host
-vs2015/sdl/linux-host/*
+vs/sdl/linux-host
+vs/sdl/linux-host/*
 
-vs2015/sdl/linux-build
-vs2015/sdl/linux-build/*
+vs/sdl/linux-build
+vs/sdl/linux-build/*
 
-vs2015/sdl/include/SDL_config.h
+vs/sdl/include/SDL_config.h
 
-vs2015/zlib/linux-host
-vs2015/zlib/linux-host/*
+vs/zlib/linux-host
+vs/zlib/linux-host/*
 
-vs2015/zlib/linux-build
-vs2015/zlib/linux-build/*
+vs/zlib/linux-build
+vs/zlib/linux-build/*
 
-vs2015/libpng/linux-host
-vs2015/libpng/linux-host/*
+vs/libpng/linux-host
+vs/libpng/linux-host/*
 
-vs2015/libpng/linux-build
-vs2015/libpng/linux-build/*
+vs/libpng/linux-build
+vs/libpng/linux-build/*
 
-/vs2015/libpdcurses/wincon/xmas.exe
-/vs2015/libpdcurses/wincon/worm.exe
-/vs2015/libpdcurses/wincon/tuidemo.exe
-/vs2015/libpdcurses/wincon/testcurs.exe
-/vs2015/libpdcurses/wincon/rain.exe
-/vs2015/libpdcurses/wincon/ptest.exe
-/vs2015/libpdcurses/wincon/pdcurses.lib
-/vs2015/libpdcurses/wincon/ozdemo.exe
-/vs2015/libpdcurses/wincon/firework.exe
-/vs2015/libpdcurses/wincon/xmas.exe
-/vs2015/libpdcurses/wincon/worm.exe
-/vs2015/libpdcurses/wincon/tuidemo.exe
-/vs2015/libpdcurses/wincon/testcurs.exe
-/vs2015/libpdcurses/wincon/rain.exe
-/vs2015/libpdcurses/wincon/ptest.exe
-/vs2015/libpdcurses/wincon/pdcurses.lib
-/vs2015/libpdcurses/wincon/ozdemo.exe
-/vs2015/libpdcurses/wincon/firework.exe
-/vs2015/libpdcurses/wincon/xmas.exe
-/vs2015/libpdcurses/wincon/worm.exe
-/vs2015/libpdcurses/wincon/tuidemo.exe
-/vs2015/libpdcurses/wincon/testcurs.exe
-/vs2015/libpdcurses/wincon/rain.exe
-/vs2015/libpdcurses/wincon/ptest.exe
-/vs2015/libpdcurses/wincon/pdcurses.lib
-/vs2015/libpdcurses/wincon/ozdemo.exe
-/vs2015/libpdcurses/wincon/firework.exe
+/vs/libpdcurses/wincon/xmas.exe
+/vs/libpdcurses/wincon/worm.exe
+/vs/libpdcurses/wincon/tuidemo.exe
+/vs/libpdcurses/wincon/testcurs.exe
+/vs/libpdcurses/wincon/rain.exe
+/vs/libpdcurses/wincon/ptest.exe
+/vs/libpdcurses/wincon/pdcurses.lib
+/vs/libpdcurses/wincon/ozdemo.exe
+/vs/libpdcurses/wincon/firework.exe
+/vs/libpdcurses/wincon/xmas.exe
+/vs/libpdcurses/wincon/worm.exe
+/vs/libpdcurses/wincon/tuidemo.exe
+/vs/libpdcurses/wincon/testcurs.exe
+/vs/libpdcurses/wincon/rain.exe
+/vs/libpdcurses/wincon/ptest.exe
+/vs/libpdcurses/wincon/pdcurses.lib
+/vs/libpdcurses/wincon/ozdemo.exe
+/vs/libpdcurses/wincon/firework.exe
+/vs/libpdcurses/wincon/xmas.exe
+/vs/libpdcurses/wincon/worm.exe
+/vs/libpdcurses/wincon/tuidemo.exe
+/vs/libpdcurses/wincon/testcurs.exe
+/vs/libpdcurses/wincon/rain.exe
+/vs/libpdcurses/wincon/ptest.exe
+/vs/libpdcurses/wincon/pdcurses.lib
+/vs/libpdcurses/wincon/ozdemo.exe
+/vs/libpdcurses/wincon/firework.exe
 .vscode/settings.json
-vs2015/freetype/objs
+vs/freetype/objs
