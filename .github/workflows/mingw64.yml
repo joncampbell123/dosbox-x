@@ -1,6 +1,6 @@
 name: 64-bit MinGW builds
-on: [push, pull_request]
-#on: workflow_dispatch
+on: workflow_dispatch
+#on: [push, pull_request]
 
 jobs:
   build:

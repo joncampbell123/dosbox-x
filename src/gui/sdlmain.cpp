@@ -8599,13 +8599,14 @@ void SDL_SetupConfigSection() {
     Pstring = sdl_sec->Add_string("autolock_feedback", Property::Changeable::Always, feeds[1]);
     Pstring->Set_help("Autolock status feedback type, i.e. visual, auditive, none.");
     Pstring->Set_values(feeds);
+    Pstring->SetBasic(true);
 
     const char* unlocks[] = { "none", "manual", "auto", "both", nullptr};
     Pstring = sdl_sec->Add_string("middle_unlock",Property::Changeable::Always, unlocks[1]);
     Pstring->Set_help("Whether you can press the middle mouse button to unlock the mouse when the mouse has been locked.\n"
         "If set to \"manual\", it works only with \"autolock=false\"; if set to \"auto\", it works only with \"autolock=true\".");
-    Pstring->SetBasic(true);
     Pstring->Set_values(unlocks);
+    Pstring->SetBasic(true);
 
 	const char* clipboardbutton[] = { "none", "middle", "right", "arrows", 0};
 	Pstring = sdl_sec->Add_string("clip_mouse_button",Property::Changeable::Always, "right");
