@@ -13,7 +13,7 @@ jobs:
       - name: DOSBox-X Linux
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y fluidsynth libfluidsynth-dev libpcap-dev libslirp-dev
+          sudo apt-get install -y nasm fluidsynth libfluidsynth-dev libpcap-dev libslirp-dev
           top=`pwd`
           mkdir $top/src/bin
           ./build-debug

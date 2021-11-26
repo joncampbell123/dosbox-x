@@ -14,20 +14,27 @@ jobs:
         with:
           msystem: MINGW32
           update: true
-          install: git mingw-w64-i686-toolchain mingw-w64-i686-libslirp mingw-w64-i686-libtool autoconf automake
+          install: git mingw-w64-i686-toolchain mingw-w64-i686-libslirp mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake
       - name: DOSBox-X MinGW32
         run: |
           top=`pwd`
           ln -s $top/build-scripts/mingw/make.exe /usr/bin/make.exe
-          mkdir $top/src/bin
           ./build-mingw
           strip --strip-all $top/src/dosbox-x.exe
-          cp $top/src/dosbox-x.exe $top/src/bin/dosbox-x-sdl1.exe
+          mkdir -p $top/package/mingw-build/mingw
+          cp $top/src/dosbox-x.exe $top/package/mingw-build/mingw/dosbox-x.exe
+          cp $top/CHANGELOG $top/package/mingw-build/mingw/CHANGELOG.txt
+          cp $top/dosbox-x.reference.conf $top/package/mingw-build/mingw/dosbox-x.reference.conf
+          cp $top/dosbox-x.reference.full.conf $top/package/mingw-build/mingw/dosbox-x.reference.full.conf
           ./build-mingw-sdl2
           strip --strip-all $top/src/dosbox-x.exe
-          cp $top/src/dosbox-x.exe $top/src/bin/dosbox-x-sdl2.exe
+          mkdir -p $top/package/mingw-build/mingw-sdl2
+          cp $top/src/dosbox-x.exe $top/package/mingw-build/mingw-sdl2/dosbox-x.exe
+          cp $top/CHANGELOG $top/package/mingw-build/mingw-sdl2/CHANGELOG.txt
+          cp $top/dosbox-x.reference.conf $top/package/mingw-build/mingw-sdl2/dosbox-x.reference.conf
+          cp $top/dosbox-x.reference.full.conf $top/package/mingw-build/mingw-sdl2/dosbox-x.reference.full.conf
       - name: Upload release package
         uses: actions/upload-artifact@v2
         with:
           name: dosbox-x-mingw32
-          path: ${{ github.workspace }}/src/bin/
+          path: ${{ github.workspace }}/package/
