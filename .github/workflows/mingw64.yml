@@ -1,7 +1,7 @@
 name: 64-bit MinGW builds
-on: workflow_dispatch
-#on: [push, pull_request]
-
+on:
+  workflow_dispatch:
+  pull_request:
 jobs:
   build:
     runs-on: windows-latest
