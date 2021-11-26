@@ -1,0 +1,33 @@
+name: 32-bit MinGW builds
+on: [push, pull_request]
+#on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: msys2 {0}
+    steps:
+      - uses: actions/checkout@v2
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW32
+          update: true
+          install: git mingw-w64-i686-toolchain mingw-w64-i686-libslirp mingw-w64-i686-libtool autoconf automake
+      - name: DOSBox-X MinGW32
+        run: |
+          top=`pwd`
+          ln -s $top/build-scripts/mingw/make.exe /usr/bin/make.exe
+          mkdir $top/src/bin
+          ./build-mingw
+          strip --strip-all $top/src/dosbox-x.exe
+          cp $top/src/dosbox-x.exe $top/src/bin/dosbox-x-sdl1.exe
+          ./build-mingw-sdl2
+          strip --strip-all $top/src/dosbox-x.exe
+          cp $top/src/dosbox-x.exe $top/src/bin/dosbox-x-sdl2.exe
+      - name: Upload release package
+        uses: actions/upload-artifact@v2
+        with:
+          name: dosbox-x-mingw32
+          path: ${{ github.workspace }}/src/bin/

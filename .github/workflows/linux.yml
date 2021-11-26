@@ -1,0 +1,31 @@
+name: Linux builds
+on: [push, pull_request]
+#on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v2
+        with:
+          node-version: '14'
+      - name: DOSBox-X Linux
+        run: |
+          sudo apt-get update -y
+          sudo apt-get install -y fluidsynth libfluidsynth-dev libpcap-dev libslirp-dev
+          top=`pwd`
+          mkdir $top/src/bin
+          ./build-debug
+          strip --strip-all $top/src/dosbox-x
+          $top/src/dosbox-x -tests
+          cp $top/src/dosbox-x $top/src/bin/dosbox-x-sdl1
+          ./build-debug-sdl2
+          strip --strip-all $top/src/dosbox-x
+          $top/src/dosbox-x -tests
+          cp $top/src/dosbox-x $top/src/bin/dosbox-x-sdl2
+      - name: Upload release package
+        uses: actions/upload-artifact@v2
+        with:
+          name: dosbox-x-linux
+          path: ${{ github.workspace }}/src/bin/
