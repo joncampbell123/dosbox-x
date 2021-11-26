@@ -764,7 +764,15 @@ initpage_retry:
 			// Read the paging stuff, throw not present exceptions if needed
 			// and find out how the page should be mapped
 			PhysPt dirEntryAddr = GetPageDirectoryEntryAddr(lin_addr);
-			dir_entry.load=phys_readd(dirEntryAddr);
+			// Range check to avoid emulator segfault: phys_readd() reads from MemBase+addr and does NOT range check.
+			// Needed to avoid segfault when running 1999 demo "Void Main" in a bootable Windows 95 image in pure DOS mode.
+			if ((dirEntryAddr+4) <= (MEM_TotalPages()<<12u)) {
+				dir_entry.load=phys_readd(dirEntryAddr);
+			}
+			else {
+				LOG(LOG_CPU,LOG_WARN)("Page directory access beyond end of memory, page %08x >= %08x",(unsigned int)(dirEntryAddr>>12u),(unsigned int)MEM_TotalPages());
+				dir_entry.load=0xFFFFFFFF;
+			}
 
 			if (!dir_entry.block.p) {
 				// table pointer is not present, do a page fault
@@ -775,7 +783,14 @@ initpage_retry:
 				else goto initpage_retry; // TODO maybe E_Exit after a few loops
 			}
 			PhysPt tableEntryAddr = GetPageTableEntryAddr(lin_addr, dir_entry);
-			table_entry.load=phys_readd(tableEntryAddr);
+			// Range check to avoid emulator segfault: phys_readd() reads from MemBase+addr and does NOT range check.
+			if ((tableEntryAddr+4) <= (MEM_TotalPages()<<12u)) {
+				table_entry.load=phys_readd(tableEntryAddr);
+			}
+			else {
+				LOG(LOG_CPU,LOG_WARN)("Page table entry access beyond end of memory, page %08x >= %08x",(unsigned int)(tableEntryAddr>>12u),(unsigned int)MEM_TotalPages());
+				table_entry.load=0xFFFFFFFF;
+			}
 
 			// set page table accessed (IA manual: A is set whenever the entry is 
 			// used in a page translation)
