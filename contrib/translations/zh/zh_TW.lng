@@ -754,7 +754,7 @@ dosbox-x [名稱] [-exit] [-version] [-fastlaunch] [-fullscreen]
 	輸出版本資訊並結束. 特別對於前景程式有用.
 
 [33;1m  -fastlaunch[0m
-	啟動快速啟動方式 (跳過 BIOS 和歡迎畫面).
+	啟用快速啟動模式 (跳過 BIOS 和歡迎畫面).
 
 [33;1m  -fullscreen[0m
 	以全螢幕模式啟動 DOSBox-X.
