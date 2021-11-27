@@ -339,7 +339,7 @@ public:
 
 #if C_PRINTER
         // we can only have one printer redirection, hence the variable
-        bool printer_used = false;
+        printer_used = false;
 #endif
 
 		// default ports & interrupts
@@ -369,9 +369,12 @@ public:
 #if C_DIRECTLPT
 			if(str=="reallpt") {
 				CDirectLPT* cdlpt= new CDirectLPT(i, defaultirq[i],&cmd);
-				if(cdlpt->InstallationSuccessful)
+				if(cdlpt->InstallationSuccessful) {
 					parallelPortObjects[i]=cdlpt;
-				else {
+					parallelPortObjects[i]->parallelType = PARALLEL_TYPE_REALLPT;
+					cmd.Shift(1);
+					cmd.GetStringRemain(parallelPortObjects[i]->commandLineString);
+				} else {
 					delete cdlpt;
 					parallelPortObjects[i]=0;
 				}
@@ -379,9 +382,12 @@ public:
 #endif
 			if(!str.compare("file")) {
 				CFileLPT* cflpt= new CFileLPT(i, defaultirq[i], &cmd, squote);
-				if(cflpt->InstallationSuccessful)
+				if(cflpt->InstallationSuccessful) {
 					parallelPortObjects[i]=cflpt;
-				else {
+					parallelPortObjects[i]->parallelType = PARALLEL_TYPE_FILE;
+					cmd.Shift(1);
+					cmd.GetStringRemain(parallelPortObjects[i]->commandLineString);
+				} else {
 					delete cflpt;
 					parallelPortObjects[i]=0;
 				}
@@ -394,6 +400,9 @@ public:
                 if (cprd->InstallationSuccessful)
                 {
                     parallelPortObjects[i] = cprd;
+					parallelPortObjects[i]->parallelType = PARALLEL_TYPE_PRINTER;
+					cmd.Shift(1);
+					cmd.GetStringRemain(parallelPortObjects[i]->commandLineString);
                     printer_used = true;
                 }
                 else
@@ -410,6 +419,9 @@ public:
 				if (!DISNEY_HasInit()) {
 					LOG_MSG("LPT%d: User explicitly assigned Disney Sound Source to this port",(int)i+1);
 					DISNEY_Init(parallel_baseaddr[i]);
+					parallelPortObjects[i]->parallelType = PARALLEL_TYPE_DISNEY;
+					cmd.Shift(1);
+					cmd.GetStringRemain(parallelPortObjects[i]->commandLineString);
 				}
 				else {
 					LOG_MSG("LPT%d: Disney Sound Source already initialized on a port, cannot init again",(int)i+1);
@@ -418,8 +430,12 @@ public:
 				LOG_MSG ("Invalid type for LPT%d.",(int)i + 1);
 				parallelPortObjects[i] = 0;
 			}
-		} // for lpt 1-3
+		} // for lpt 1-9
 	}
+#if C_PRINTER
+	// we can only have one printer redirection, hence the variable
+	bool printer_used = false;
+#endif
 
 	~PARPORTS () {
 //		LOG_MSG("Parports destructor\n");
@@ -429,10 +445,181 @@ public:
 				parallelPortObjects[i] = 0;
 			}
 		}
+#if C_PRINTER
+		printer_used = false;
+#endif
 	}
 };
 
 static PARPORTS *testParallelPortsBaseclass = NULL;
+
+static const char *parallelTypes[PARALLEL_TYPE_COUNT] = {
+	"disabled",
+#if C_DIRECTLPT
+	"reallpt",
+#endif
+	"file",
+#if C_PRINTER
+	"printer",
+#endif
+	"disney",
+};
+
+class PARALLEL : public Program {
+public:
+	void Run();
+private:
+	void showPort(int port);
+};
+
+void PARALLEL::showPort(int port) {
+	if (parallelPortObjects[port] != nullptr) {
+		WriteOut("LPT%d: %s %s\n", port + 1, parallelTypes[parallelPortObjects[port]->parallelType], parallelPortObjects[port]->commandLineString.c_str());
+	} else {
+		WriteOut("LPT%d: %s %s\n", port + 1, parallelTypes[PARALLEL_TYPE_DISABLED], "");
+	}
+}
+
+void PARALLEL::Run()
+{
+    if (!testParallelPortsBaseclass) return;
+    if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		WriteOut("Views or changes the parallel port options.\n\nPARALLEL [port] [type] [option]\n\n"
+				" port   Parallel port number (between 1 and 9).\n type   Type of the parallel port, including:\n        ");
+		for (int x=0; x<PARALLEL_TYPE_COUNT; x++) {
+			WriteOut("%s", parallelTypes[x]);
+			if (x<PARALLEL_TYPE_COUNT-1) WriteOut(", ");
+		}
+		WriteOut("\n option Parallel options, if any (see [parallel] section of the configuration).\n");
+		return;
+	}
+	// Select LPT mode.
+	if (cmd->GetCount() == 1) {
+		int port = -1;
+		cmd->FindCommand(1, temp_line);
+		try {
+			port = stoi(temp_line);
+		} catch (...) {
+		}
+		if (port >= 1 && port <= 9) {
+			showPort(port-1);
+			return;
+		}
+		if (port < 1 || port > 9) {
+			WriteOut("Must specify a port number between 1 and 9.\n");
+			return;
+		}
+	} if (cmd->GetCount() >= 2) {
+		// Which COM did they want to change?
+		int port = -1;
+		cmd->FindCommand(1, temp_line);
+		try {
+			port = stoi(temp_line);
+		} catch (...) {
+		}
+		if (port < 1 || port > 9) {
+			WriteOut("Must specify a port number between 1 and 9.\n");
+			return;
+		}
+		// Which mode do they want?
+		int mode = -1;
+		cmd->FindCommand(2, temp_line);
+		for (int x=0; x<PARALLEL_TYPE_COUNT; x++) {
+			if (!strcasecmp(temp_line.c_str(), parallelTypes[x])) {
+				mode = x;
+				break;
+			}
+		}
+		if (mode < 0) {
+			// No idea what they asked for.
+			WriteOut("Type must be one of the following:\n");
+			for (int x=0; x<PARALLEL_TYPE_COUNT; x++)
+				WriteOut("  %s\n", parallelTypes[x]);
+			return;
+		}
+		uint8_t defaultirq[] = { 7, 5, 12, 0, 0, 0, 0, 0, 0};
+		// Build command line, if any.
+		int i = 3;
+		std::string commandLineString = "";
+		while (cmd->FindCommand(i++, temp_line)) {
+			commandLineString.append(temp_line);
+			commandLineString.append(" ");
+		}
+            CommandLine cmd("PARALLEL.COM",commandLineString.c_str());
+            CommandLine tmp("PARALLEL.COM",commandLineString.c_str(), CommandLine::either, true);
+            std::string str;
+            bool squote = false;
+            // single quotes to quote string?
+            if(cmd.FindStringBegin("squote",str,false)) {
+                squote = true;
+                cmd=tmp;
+            }
+			if(cmd.FindStringBegin("base:",str,true))
+				parallel_baseaddr[port-1] = (uint16_t)strtol(str.c_str(), NULL, 16);
+			if(cmd.FindStringBegin("irq:",str,true))
+				defaultirq[port-1] = (uint8_t)strtol(str.c_str(), NULL, 10);
+		// Remove existing port.
+		if (parallelPortObjects[port-1]) {
+			if ((port==1&&mode==PARALLEL_TYPE_DISABLED)||(mode==PARALLEL_TYPE_PRINTER&&parallelPortObjects[port-1]->parallelType!=PARALLEL_TYPE_PRINTER&&testParallelPortsBaseclass->printer_used)) {
+				showPort(port-1);
+				return;
+			}
+#if C_PRINTER
+			if (parallelPortObjects[port-1]->parallelType == PARALLEL_TYPE_PRINTER) testParallelPortsBaseclass->printer_used = false;
+#endif
+			delete parallelPortObjects[port-1];
+			parallelPortObjects[port-1] = 0;
+		}
+		// Recreate the port with the new mode.
+		switch (mode) {
+			case PARALLEL_TYPE_DISABLED:
+				parallelPortObjects[port-1] = 0;
+				break;
+#if C_DIRECTLPT
+			case PARALLEL_TYPE_REALLPT:
+			{
+				CDirectLPT* cdlpt= new CDirectLPT(port-1, defaultirq[port-1],&cmd);
+				if(cdlpt->InstallationSuccessful) parallelPortObjects[port-1]=cdlpt;
+				break;
+			}
+#endif
+			case PARALLEL_TYPE_FILE:
+			{
+				CFileLPT* cflpt= new CFileLPT(port-1, defaultirq[port-1], &cmd, squote);
+				if(cflpt->InstallationSuccessful) parallelPortObjects[port-1]=cflpt;
+				break;
+			}
+#if C_PRINTER
+			case PARALLEL_TYPE_PRINTER:
+                if (!testParallelPortsBaseclass->printer_used) {
+                    CPrinterRedir* cprd = new CPrinterRedir(port-1, defaultirq[port-1], &cmd);
+                    if(cprd->InstallationSuccessful) {
+                        parallelPortObjects[port-1]=cprd;
+                        testParallelPortsBaseclass->printer_used=true;
+                    }
+                }
+                break;
+#endif
+			case PARALLEL_TYPE_DISNEY:
+				if (!DISNEY_HasInit()) DISNEY_Init(parallel_baseaddr[port-1]);
+				break;
+		}
+		if (parallelPortObjects[port-1]) {
+            parallelPortObjects[port-1]->registerDOSDevice();
+			parallelPortObjects[port-1]->parallelType = (ParallelTypesE)mode;
+			parallelPortObjects[port-1]->commandLineString = commandLineString;
+		}
+		showPort(port-1);
+		return;
+	}
+	// Show current serial port configurations.
+	for (int x=0; x<9; x++) showPort(x);
+}
+
+void PARALLEL_ProgramStart(Program **make)
+{
+	*make = new PARALLEL;
+}
 
 void PARALLEL_Destroy (Section * sec) {
     (void)sec;//UNUSED

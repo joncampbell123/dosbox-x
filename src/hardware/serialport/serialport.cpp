@@ -1390,7 +1390,7 @@ public:
 				cmd.GetStringRemain(serialports[i]->commandLineString);
 				serialMouseEmulated = true;
 			}
-#ifdef DIRECTSERIAL_AVAILIBLE
+#if C_DIRECTSERIAL
 			else if (type=="directserial") {
 				serialports[i] = new CDirectSerial (i, &cmd);
 				serialports[i]->serialType = SERIAL_TYPE_DIRECT_SERIAL;
@@ -1443,13 +1443,15 @@ public:
 	}
 };
 
+static SERIALPORTS *testSerialPortsBaseclass;
+
 static const char *serialTypes[SERIAL_TYPE_COUNT] = {
 	"disabled",
 	"dummy",
 	"log",
 	"file",
 	"serialmouse",
-#ifdef C_DIRECTSERIAL
+#if C_DIRECTSERIAL
 	"directserial",
 #endif
 #if C_MODEM
@@ -1475,14 +1477,15 @@ void SERIAL::showPort(int port) {
 
 void SERIAL::Run()
 {
+    if (!testSerialPortsBaseclass) return;
     if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		WriteOut("Views or changes the serial port options.\n\nSERIAL [port] [type] [options]\n\n"
-				"  port  Serial port number (between 1 and 9).\n  type  Type of the serial port, including:\n        ");
+		WriteOut("Views or changes the serial port options.\n\nSERIAL [port] [type] [option]\n\n"
+				" port   Serial port number (between 1 and 9).\n type   Type of the serial port, including:\n        ");
 		for (int x=0; x<SERIAL_TYPE_COUNT; x++) {
 			WriteOut("%s", serialTypes[x]);
 			if (x<SERIAL_TYPE_COUNT-1) WriteOut(", ");
 		}
-		WriteOut("\n");
+		WriteOut("\n option Serial options, if any (see [serial] section of the configuration).\n");
 		return;
 	}
 	// Select COM mode.
@@ -1546,7 +1549,10 @@ void SERIAL::Run()
                 cmd=tmp;
             }
 		// Remove existing port.
-		delete serialports[port-1];
+		if (serialports[port-1]) {
+			delete serialports[port-1];
+			serialports[port-1] = NULL;
+		}
 		// Recreate the port with the new mode.
 		switch (mode) {
 			case SERIAL_TYPE_DISABLED:
@@ -1607,8 +1613,6 @@ void SERIAL_ProgramStart(Program **make)
 {
 	*make = new SERIAL;
 }
-
-static SERIALPORTS *testSerialPortsBaseclass;
 
 void SERIAL_Destroy (Section * sec) {
     (void)sec;//UNUSED

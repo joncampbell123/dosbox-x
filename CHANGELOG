@@ -56,9 +56,10 @@
     Unit tests can be started with command-line option
     -tests in the debug builds. Some unit tests are
     ported from DOSBox Staging. (Wengier)
-  - Added SERIAL command to view or changes the current
-    config of serial ports. Type SERIAL /? for further
-    information about the command. (sduensin & Wengier)
+  - Added SERIAL and PARALLEL commands to view/change
+    the current configuration of serial/parallel ports.
+    Type "SERIAL /?" and "PARALLEL /?" for further info
+    about the two commands. (sduensin & Wengier)
   - Added IMGSWAP command to swap disks for drives.
     e.g. "IMGSWAP D" to swap C: drive to the next swap
     position, and "IMGSWAP A 3" to swap A: drive to

@@ -41,6 +41,18 @@ private:
 	uint8_t num; // This device is LPTnum
 };
 
+enum ParallelTypesE {
+	PARALLEL_TYPE_DISABLED = 0,
+#if C_DIRECTLPT
+	PARALLEL_TYPE_REALLPT,
+#endif
+	PARALLEL_TYPE_FILE,
+#if C_PRINTER
+	PARALLEL_TYPE_PRINTER,
+#endif
+	PARALLEL_TYPE_DISNEY,
+	PARALLEL_TYPE_COUNT
+};
 
 class CParallel {
 public:
@@ -86,6 +98,12 @@ public:
 	virtual bool Putchar(uint8_t)=0;
 	uint8_t getPrinterStatus();
 	void initialize();
+
+	// What type of port is this?
+	ParallelTypesE parallelType = PARALLEL_TYPE_DISABLED;
+
+	// How was it created?
+	std::string commandLineString = "";
 
 	DOS_Device* mydosdevice;
 };
