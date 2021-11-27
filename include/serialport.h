@@ -112,6 +112,22 @@ private:
 	Bitu maxsize,size,pos,used;
 };
 
+enum SerialTypesE {
+	SERIAL_TYPE_DISABLED = 0,
+	SERIAL_TYPE_DUMMY,
+	SERIAL_TYPE_LOG,
+	SERIAL_TYPE_FILE,
+	SERIAL_TYPE_MOUSE,
+#if C_DIRECTSERIAL
+	SERIAL_TYPE_DIRECT_SERIAL,
+#endif
+#if C_MODEM
+	SERIAL_TYPE_MODEM,
+	SERIAL_TYPE_NULL_MODEM,
+#endif
+	SERIAL_TYPE_COUNT
+};
+
 class CSerial {
 public:
 
@@ -234,6 +250,12 @@ public:
 	
 	bool Putchar(uint8_t data, bool wait_dsr, bool wait_cts, Bitu timeout);
 	bool Getchar(uint8_t* data, uint8_t* lsr, bool wait_dsr, Bitu timeout);
+
+	// What type of port is this?
+	SerialTypesE serialType = SERIAL_TYPE_DISABLED;
+
+	// How was it created?
+	std::string commandLineString = "";
 
 	DOS_Device* mydosdevice;
 

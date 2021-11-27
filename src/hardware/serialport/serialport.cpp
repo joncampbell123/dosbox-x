@@ -1371,20 +1371,30 @@ public:
 			// detect the type
 			if (type=="dummy") {
 				serialports[i] = new CSerialDummy (i, &cmd);
+				serialports[i]->serialType = SERIAL_TYPE_DUMMY;
+				cmd.GetStringRemain(serialports[i]->commandLineString);
 			}
 			else if (type=="log") {
 				serialports[i] = new CSerialLog (i, &cmd);
+				serialports[i]->serialType = SERIAL_TYPE_LOG;
+				cmd.GetStringRemain(serialports[i]->commandLineString);
 			}
 			else if (type=="file") {
 				serialports[i] = new CSerialFile (i, &cmd, squote);
+				serialports[i]->serialType = SERIAL_TYPE_FILE;
+				cmd.GetStringRemain(serialports[i]->commandLineString);
 			}
 			else if (type=="serialmouse") {
 				serialports[i] = new CSerialMouse (i, &cmd);
-                serialMouseEmulated = true;
+				serialports[i]->serialType = SERIAL_TYPE_MOUSE;
+				cmd.GetStringRemain(serialports[i]->commandLineString);
+				serialMouseEmulated = true;
 			}
 #ifdef DIRECTSERIAL_AVAILIBLE
 			else if (type=="directserial") {
 				serialports[i] = new CDirectSerial (i, &cmd);
+				serialports[i]->serialType = SERIAL_TYPE_DIRECT_SERIAL;
+				cmd.GetStringRemain(serialports[i]->commandLineString);
 				if (!serialports[i]->InstallationSuccessful)  {
 					// serial port name was wrong or already in use
 					delete serialports[i];
@@ -1395,6 +1405,8 @@ public:
 #if C_MODEM
 			else if(type=="modem") {
 				serialports[i] = new CSerialModem (i, &cmd);
+				serialports[i]->serialType = SERIAL_TYPE_MODEM;
+				cmd.GetStringRemain(serialports[i]->commandLineString);
 				if (!serialports[i]->InstallationSuccessful)  {
 					delete serialports[i];
 					serialports[i] = NULL;
@@ -1402,6 +1414,8 @@ public:
 			}
 			else if(type=="nullmodem") {
 				serialports[i] = new CNullModem (i, &cmd);
+				serialports[i]->serialType = SERIAL_TYPE_NULL_MODEM;
+				cmd.GetStringRemain(serialports[i]->commandLineString);
 				if (!serialports[i]->InstallationSuccessful)  {
 					delete serialports[i];
 					serialports[i] = NULL;
@@ -1428,6 +1442,168 @@ public:
 #endif
 	}
 };
+
+static const char *serialTypes[SERIAL_TYPE_COUNT] = {
+	"disabled",
+	"dummy",
+	"log",
+	"file",
+	"serialmouse",
+#ifdef C_DIRECTSERIAL
+	"directserial",
+#endif
+#if C_MODEM
+	"modem",
+	"nullmodem"
+#endif
+};
+
+class SERIAL : public Program {
+public:
+	void Run();
+private:
+	void showPort(int port);
+};
+
+void SERIAL::showPort(int port) {
+	if (serialports[port] != nullptr) {
+		WriteOut("COM%d: %s %s\n", port + 1, serialTypes[serialports[port]->serialType], serialports[port]->commandLineString.c_str());
+	} else {
+		WriteOut("COM%d: %s %s\n", port + 1, serialTypes[SERIAL_TYPE_DISABLED], "");
+	}
+}
+
+void SERIAL::Run()
+{
+    if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		WriteOut("Views or changes the serial port options.\n\nSERIAL [port] [type] [options]\n\n"
+				"  port  Serial port number (between 1 and 9).\n  type  Type of the serial port, including:\n        ");
+		for (int x=0; x<SERIAL_TYPE_COUNT; x++) {
+			WriteOut("%s", serialTypes[x]);
+			if (x<SERIAL_TYPE_COUNT-1) WriteOut(", ");
+		}
+		WriteOut("\n");
+		return;
+	}
+	// Select COM mode.
+	if (cmd->GetCount() == 1) {
+		int port = -1;
+		cmd->FindCommand(1, temp_line);
+		try {
+			port = stoi(temp_line);
+		} catch (...) {
+		}
+		if (port >= 1 && port <= 9) {
+            showPort(port-1);
+            return;
+        }
+	} if (cmd->GetCount() >= 2) {
+		// Which COM did they want to change?
+		int port = -1;
+		cmd->FindCommand(1, temp_line);
+		try {
+			port = stoi(temp_line);
+		} catch (...) {
+		}
+		if (port < 1 || port > 9) {
+			// Didn't understand the port number.
+			WriteOut("Must specify a port number between 1 and 9.\n");
+			return;
+		}
+		// Which mode do they want?
+		int mode = -1;
+		cmd->FindCommand(2, temp_line);
+		for (int x=0; x<SERIAL_TYPE_COUNT; x++) {
+			if (!strcasecmp(temp_line.c_str(), serialTypes[x])) {
+				mode = x;
+				break;
+			}
+		}
+		if (mode < 0) {
+			// No idea what they asked for.
+			WriteOut("Type must be one of the following:\n");
+			for (int x=0; x<SERIAL_TYPE_COUNT; x++)
+				WriteOut("  %s\n", serialTypes[x]);
+			return;
+		}
+		// Build command line, if any.
+		int i = 3;
+		std::string commandLineString = "";
+		while (cmd->FindCommand(i++, temp_line)) {
+			commandLineString.append(temp_line);
+			commandLineString.append(" ");
+		}
+            CommandLine cmd("SERIAL.COM",commandLineString.c_str());
+            CommandLine tmp("SERIAL.COM",commandLineString.c_str(), CommandLine::either, true);
+            std::string str;
+            bool squote = false;
+            // single quotes to quote string?
+            if(cmd.FindStringBegin("squote",str,false)) {
+                squote = true;
+                cmd=tmp;
+            }
+		// Remove existing port.
+		delete serialports[port-1];
+		// Recreate the port with the new mode.
+		switch (mode) {
+			case SERIAL_TYPE_DISABLED:
+				serialports[port-1] = NULL;
+				break;
+			case SERIAL_TYPE_DUMMY:
+				serialports[port-1] = new CSerialDummy(port-1, &cmd);
+				break;
+			case SERIAL_TYPE_LOG:
+				serialports[port-1] = new CSerialLog(port-1, &cmd);
+				break;
+			case SERIAL_TYPE_FILE:
+				serialports[port-1] = new CSerialFile(port-1, &cmd, squote);
+				break;
+			case SERIAL_TYPE_MOUSE:
+				serialports[port-1] = new CSerialMouse(port-1, &cmd);
+				serialMouseEmulated = true;
+				break;
+#if C_DIRECTSERIAL
+			case SERIAL_TYPE_DIRECT_SERIAL:
+				serialports[port-1] = new CDirectSerial(port-1, &cmd);
+				if (!serialports[port-1]->InstallationSuccessful) {
+					delete serialports[port-1];
+					serialports[port-1] = NULL;
+				}
+				break;
+#endif
+#if C_MODEM
+			case SERIAL_TYPE_MODEM:
+				serialports[port-1] = new CSerialModem(port-1, &cmd);
+				if (!serialports[port-1]->InstallationSuccessful) {
+					delete serialports[port-1];
+					serialports[port-1] = NULL;
+				}
+				break;
+			case SERIAL_TYPE_NULL_MODEM:
+				serialports[port-1] = new CNullModem(port-1, &cmd);
+				if (!serialports[port-1]->InstallationSuccessful) {
+					delete serialports[port-1];
+					serialports[port-1] = NULL;
+				}
+				break;
+#endif
+		}
+		if (serialports[port-1] != NULL) {
+            serialports[port-1]->registerDOSDevice();
+			serialports[port-1]->serialType = (SerialTypesE)mode;
+			serialports[port-1]->commandLineString = commandLineString;
+		}
+		showPort(port-1);
+		return;
+	}
+	// Show current serial port configurations.
+	for (int x=0; x<9; x++) showPort(x);
+}
+
+void SERIAL_ProgramStart(Program **make)
+{
+	*make = new SERIAL;
+}
 
 static SERIALPORTS *testSerialPortsBaseclass;
 

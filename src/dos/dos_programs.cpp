@@ -6382,6 +6382,7 @@ static void MORE_ProgramStart(Program * * make) {
 */
 
 void REDOS_ProgramStart(Program * * make);
+void SERIAL_ProgramStart(Program * * make);
 void A20GATE_ProgramStart(Program * * make);
 void PC98UTIL_ProgramStart(Program * * make);
 void VESAMOED_ProgramStart(Program * * make);
@@ -8401,6 +8402,7 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("TREE.COM", TREE_ProgramStart,"/DOS/");
     PROGRAMS_MakeFile("DELTREE.EXE",DELTREE_ProgramStart,"/DOS/");
     PROGRAMS_MakeFile("AUTOTYPE.COM", AUTOTYPE_ProgramStart,"/BIN/");
+    PROGRAMS_MakeFile("SERIAL.COM", SERIAL_ProgramStart,"/SYSTEM/");
     if (IS_DOSV)
         PROGRAMS_MakeFile("VTEXT.COM", VTEXT_ProgramStart,"/TEXTUTIL/");
 }

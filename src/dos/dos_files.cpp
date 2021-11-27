@@ -842,7 +842,7 @@ bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 	uint8_t devnum = DOS_FindDevice(name);
 	bool device = (devnum != DOS_DEVICES);
 	if(!device && DOS_GetFileAttr(name,&attr)) {
-	//DON'T ALLOW directories to be openened.(skip test if file is device).
+	//DON'T ALLOW directories to be opened. (skip test if file is device).
 		if((attr & DOS_ATTR_DIRECTORY) || (attr & DOS_ATTR_VOLUME)){
 			DOS_SetError(DOSERR_ACCESS_DENIED);
 			return false;

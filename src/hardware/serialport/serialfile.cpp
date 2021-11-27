@@ -42,7 +42,7 @@ CSerialFile::CSerialFile(Bitu id,CommandLine* cmd,bool sq):CSerial(id, cmd) {
     filename = "serial"; // Default output filename
     cmd->FindStringBegin("file:", filename, false); // if the user specifies serial1=file file:something, set it to that
     ResolvePath(filename);
-    LOG_MSG("Serial: port %d will write to file %s", int(id), filename.c_str());
+    LOG_MSG("Serial: port %d will write to file %s", int(id)+1, filename.c_str());
 
     std::string str;
 	if(cmd->FindStringBegin("shellhide",str,false))	shellhide = true;
@@ -58,7 +58,7 @@ CSerialFile::CSerialFile(Bitu id,CommandLine* cmd,bool sq):CSerial(id, cmd) {
 
 	if (cmd->FindStringBegin("timeout:",str,false)) {
 		if(sscanf(str.c_str(), "%u",&timeout)!=1) {
-			LOG_MSG("parallel%d: Invalid timeout parameter.",(int)id);
+			LOG_MSG("serial%d: Invalid timeout parameter.",int(id)+1);
 			return;
 		}
 	}
