@@ -27,12 +27,8 @@
 std::string run_Set_Label(char const * const input, bool cdrom) {
     char output[32] = { 0 };
     Set_Label(input, output, cdrom);
-    std::cout << "Set_Label " << "CD-ROM? " << (cdrom ? 'y' : 'n') << \
-        " Input: " << input << " Output: " << output << '\n';
     return std::string(output);
 }
-
-// Open anonymous namespace (this is Google Test requirement)
 
 namespace {
 

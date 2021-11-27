@@ -1428,7 +1428,7 @@ public:
 				serialports[i] = NULL;
 				LOG_MSG("Invalid type for serial%d",(int)i+1);
 			}
-		} // for 1-4
+		} // for 1-9
 	}
 
 	~SERIALPORTS () {

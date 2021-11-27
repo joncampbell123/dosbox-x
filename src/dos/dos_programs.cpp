@@ -19,6 +19,7 @@
  *  With major works from joncampbell123, Wengier, and rderooy
  *  AUTOTYPE command Copyright (C) 2020 the DOSBox Staging Team
  *  FLAGSAVE command Copyright PogoMan361 and Wengier
+ *  SERIAL command Copyright sduensin and Wengier
  */
 
 #include "dosbox.h"

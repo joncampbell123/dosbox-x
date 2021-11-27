@@ -38,6 +38,8 @@ namespace {
 
 class DOS_FilesTest : public DOSBoxTestFixture {};
 
+// These aren't passed by reference to simplify the code, so that
+// we can pass expectations as literals
 void assert_DTAExtendName(std::string input,
                           std::string expected_name,
                           std::string expected_ext)
@@ -135,7 +137,10 @@ TEST_F(DOS_FilesTest, DOS_MakeName_Uppercase)
 TEST_F(DOS_FilesTest, DOS_MakeName_CONVERTS_FWD_SLASH)
 {
 	assert_DOS_MakeName("Z:/AUTOEXEC.BAT", true, "AUTOEXEC.BAT", 25);
-}
+	assert_DOS_MakeName("Z://AUTOEXEC.BAT", true, "AUTOEXEC.BAT", 25);
+	assert_DOS_MakeName("Z:///AUTOEXEC.BAT", true, "AUTOEXEC.BAT", 25);
+	assert_DOS_MakeName("Z:/FOLDER/", true, "FOLDER", 25);
+	assert_DOS_MakeName("Z:/FOLDER/FILE", true, "FOLDER\\FILE", 25);}
 
 // spaces get stripped out before processing (\t, \r, etc, are illegal chars,
 // not whitespace)
@@ -149,6 +154,7 @@ TEST_F(DOS_FilesTest, DOS_MakeName_STRIP_SPACE)
 	assert_DOS_MakeName("Z: \\   A U T  OE X   EC     .BAT", true,
 	                    "AUTOEXEC.BAT", 25);
 	assert_DOS_MakeName("12345   678.123", true, "12345678.123", 25);
+	assert_DOS_MakeName("Z:\\\\A\\ B \\CDE\\ E F G\\", true, "A\\B\\CDE\\EFG", 25);
 	// except here, whitespace isn't stripped & causes failure
 	//assert_DOS_MakeName("Z :\\AUTOEXEC.BAT", false);
 	uselfn = oldlfn;
@@ -161,7 +167,10 @@ TEST_F(DOS_FilesTest, DOS_MakeName_Dir_Handling)
 	assert_DOS_MakeName("Z:\\DIR\\UNTERM", true, "DIR\\UNTERM", 25);
 	// trailing gets trimmed
 	assert_DOS_MakeName("Z:\\CODE\\TERM\\", true, "CODE\\TERM", 25);
-}
+	assert_DOS_MakeName("Z:\\CODE\\BIN\\", true, "CODE\\BIN", 25);
+	assert_DOS_MakeName("Z:\\CODE\\BIN\\\\", true, "CODE\\BIN", 25);
+	assert_DOS_MakeName("Z:\\CODE\\BIN\\\\\\\\", true, "CODE\\BIN", 25);
+	assert_DOS_MakeName("Z:\\CODE\\\\BIN\\\\\\\\", true, "CODE\\BIN", 25);}
 
 TEST_F(DOS_FilesTest, DOS_MakeName_Assumes_Current_Drive_And_Dir)
 {
@@ -269,7 +278,9 @@ TEST_F(DOS_FilesTest, DOS_MakeName_GoodChars)
 	                                   '{', '}',  '`',  '~',  '_', '-', '.',
 	                                   '*', '?',  '&',  '\'', '+', '^', 246,
 	                                   255, 0xa0, 0xe5, 0xbd, 0x9d};
+	// iterate A-Z
 	for (unsigned char li = 0; li < 26; li++) {
+		// iterate 0-9
 		for (unsigned char ni = 0; ni < 10; ni++) {
 			for (auto &c : symbols) {
 				unsigned char input_array[3] = {
