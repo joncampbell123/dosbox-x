@@ -5,7 +5,7 @@ on:
   workflow_dispatch:
 jobs:
   build:
-    if: contains('joncampbell123', github.actor) == false
+    if: github.event_name == 'workflow_dispatch' || contains('joncampbell123', github.actor) == false
     runs-on: macos-latest
     steps:
       - name: Cancel Previous Runs
