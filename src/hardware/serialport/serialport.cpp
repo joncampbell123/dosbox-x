@@ -1494,9 +1494,13 @@ void SERIAL::Run()
 		} catch (...) {
 		}
 		if (port >= 1 && port <= 9) {
-            showPort(port-1);
-            return;
-        }
+			showPort(port-1);
+			return;
+		}
+		if (port < 1 || port > 9) {
+			WriteOut("Must specify a port number between 1 and 9.\n");
+			return;
+		}
 	} if (cmd->GetCount() >= 2) {
 		// Which COM did they want to change?
 		int port = -1;
@@ -1506,7 +1510,6 @@ void SERIAL::Run()
 		} catch (...) {
 		}
 		if (port < 1 || port > 9) {
-			// Didn't understand the port number.
 			WriteOut("Must specify a port number between 1 and 9.\n");
 			return;
 		}

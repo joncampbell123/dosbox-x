@@ -1,9 +1,11 @@
 name: macOS builds
 on:
+  push:
   pull_request:
   workflow_dispatch:
 jobs:
   build:
+    if: contains('joncampbell123', github.actor) == false
     runs-on: macos-latest
     steps:
       - name: Cancel Previous Runs

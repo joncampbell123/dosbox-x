@@ -1,9 +1,11 @@
 name: 64-bit MinGW builds
 on:
+  push:
   pull_request:
   workflow_dispatch:
 jobs:
   build:
+    if: contains('joncampbell123', github.actor) == false
     runs-on: windows-latest
     defaults:
       run:
