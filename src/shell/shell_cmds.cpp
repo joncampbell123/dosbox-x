@@ -122,13 +122,14 @@ const char *GetCmdName(int i) {
 }
 
 extern int enablelfn, lfn_filefind_handle, file_access_tries;
-extern bool date_host_forced, usecon, rsize, sync_time, manualtime, inshell;
+extern bool date_host_forced, usecon, rsize, dbcs_sbcs, sync_time, manualtime, inshell;
 extern unsigned long freec;
 extern uint16_t countryNo, altcp_to_unicode[256];
 void GetExpandedPath(std::string &path);
 bool Network_IsNetworkResource(const char * filename);
 void DOS_SetCountry(uint16_t countryNo), DOSV_FillScreen();
 extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
+extern bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4);
 std::string GetDOSBoxXPath(bool withexe=false);
 
 /* support functions */
@@ -2795,10 +2796,28 @@ nextfile:
 		return;
 	}
 	ctrlbrk=false;
+	bool lead=false;
+	uint8_t last3, last2;
+	last3=last2=last=0;
 	do {
 		n=1;
 		DOS_ReadFile(handle,&c,&n);
+		if (lead) lead=false;
+		else if ((IS_PC98_ARCH || isDBCSCP()) && dbcs_sbcs) lead = isKanji1(c) && !CheckBoxDrawing(last3, last2, last, c);
+		if (lead && nchars == COLS-1) {
+			last3=last2=last=0;
+			nlines++;
+			nchars = 0;
+			WriteOut("\n");
+			if (nlines == LINES) {
+				WriteOut("-- More -- %s (%u) --",word,linecount);
+				if (PAUSED()==3) {DOS_CloseFile(handle);return;}
+				WriteOut("\n");
+				nlines=0;
+            }
+		}
 		DOS_WriteFile(STDOUT,&c,&n);
+		last3=last2;last2=last;last=c;
 		if (c != '\t') nchars++;
 		else do {
 			WriteOut(" ");
@@ -2806,7 +2825,8 @@ nextfile:
 		} while ( nchars < COLS && nchars % TABSIZE );
 
 		if (c == '\n') linecount++;
-		if ((c == '\n') || (nchars >= COLS)) {
+		if (c == '\n' || nchars >= COLS) {
+			last3=last2=last=0;
 			nlines++;
 			nchars = 0;
 			if (nlines == LINES) {

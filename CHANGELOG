@@ -142,6 +142,8 @@
   - Fixed possible crash with printing. (jamesbond3142)
   - Fixed possible freeze when shutting down Windows 9x
     after changing a CD image from the menu. (Wengier)
+  - Fixed the default U.S. keyboard layout for the
+    HX-DOS build. (Wengier)
   - Fixed copying full-screen or multi-line text from a
     DBCS codepage in TTF output or PC98 mode. (Wengier)
   - Fixed possible crash at start with getsysfont=true
