@@ -3688,7 +3688,8 @@ void DOSBOX_SetupConfigSections(void) {
         "               connections are limited to localhost unless you specify nonlocal:1\n"
         "Example: serial1=modem listenport:5000\n"
         "Note: COM1-4 are standard COM ports in DOS, whereas COM5-9 are extended COM ports.\n"
-        "      You can optionally specify base addresses and IRQs for them with base: and irq: options."
+        "      You can optionally specify base addresses and IRQs for them with base: and irq: options.\n"
+        "      Serial port settings can also be changed via the built-in SERIAL command."
         );
     Pmulti_remain->SetBasic(true);
 
@@ -3807,7 +3808,8 @@ void DOSBOX_SetupConfigSections(void) {
             "  for printer:\n"
             "    printer still has it's own configuration section above.\n"
             "Note: LPT1-3 are standard LPT ports in DOS, whereas LPT4-9 are extended LPT ports.\n"
-            "      You can optionally specify base addresses and IRQs for them with base: and irq: options."
+            "      You can optionally specify base addresses and IRQs for them with base: and irq: options.\n"
+            "      Parallel port settings can also be changed via the built-in PARALLEL command."
     );
     Pstring->SetBasic(true);
     Pstring = secprop->Add_string("parallel2",Property::Changeable::WhenIdle,"disabled");

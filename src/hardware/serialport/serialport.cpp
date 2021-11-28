@@ -1479,7 +1479,7 @@ void SERIAL::Run()
 {
     if (!testSerialPortsBaseclass) return;
     if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		WriteOut("Views or changes the serial port options.\n\nSERIAL [port] [type] [option]\n\n"
+		WriteOut("Views or changes the serial port settings.\n\nSERIAL [port] [type] [option]\n\n"
 				" port   Serial port number (between 1 and 9).\n type   Type of the serial port, including:\n        ");
 		for (int x=0; x<SERIAL_TYPE_COUNT; x++) {
 			WriteOut("%s", serialTypes[x]);

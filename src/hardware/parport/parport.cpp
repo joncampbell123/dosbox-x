@@ -484,7 +484,7 @@ void PARALLEL::Run()
 {
     if (!testParallelPortsBaseclass) return;
     if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-		WriteOut("Views or changes the parallel port options.\n\nPARALLEL [port] [type] [option]\n\n"
+		WriteOut("Views or changes the parallel port settings.\n\nPARALLEL [port] [type] [option]\n\n"
 				" port   Parallel port number (between 1 and 9).\n type   Type of the parallel port, including:\n        ");
 		for (int x=0; x<PARALLEL_TYPE_COUNT; x++) {
 			WriteOut("%s", parallelTypes[x]);
@@ -621,7 +621,7 @@ void PARALLEL::Run()
 		showPort(port-1);
 		return;
 	}
-	// Show current serial port configurations.
+	// Show current parallel port configurations.
 	for (int x=0; x<9; x++) showPort(x);
 }
 
