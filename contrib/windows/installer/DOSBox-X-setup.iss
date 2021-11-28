@@ -198,7 +198,7 @@ begin
 end;
 procedure HelpButtonOnClick(Sender: TObject);
 begin
-  MsgBox('The Setup pre-selects a Windows build for you according to your platform automatically, but you can change the default build to run if you encounter specific problem(s) with the pre-selected one.' #13#13 'For example, while the SDL1 version (which uses native Windows menus) is the default version to run, the SDL2 version may be preferred over the SDL1 version for certain features such as touchscreen input support. Also, MinGW builds may work better with certain features (such as the Slirp backend for the NE2000 networking in 64-bit MinGW builds) than Visual Studio builds even though they do not come with the debugger.' #13#13 'If you are not sure about which build to use, then you can just leave it unmodified and use the pre-selected one as the default build.', mbConfirmation, MB_OK);
+  MsgBox('The Setup pre-selects a Windows build for you according to your platform automatically, but you can change the default build to run if you encounter specific problem(s) with the pre-selected one.' #13#13 'For example, while the SDL1 version (which uses native Windows menus) is the default version to run, the SDL2 version may be preferred over the SDL1 version for certain features such as touchscreen input support. Also, MinGW builds may work better with certain features (such as the Slirp backend for the NE2000 networking in MinGW builds) than Visual Studio builds even though they do not come with the debugger.' #13#13 'If you are not sure about which build to use, then you can just leave it unmodified and use the pre-selected one as the default build.', mbConfirmation, MB_OK);
 end;
 procedure CreateHelpButton(X: integer; Y: integer; W: integer; H: integer);
 begin
@@ -219,7 +219,7 @@ begin
         MsgBox('You are running 32-bit Windows. Use the 32-bit installer instead of this 64-bit installer.', mbInformation, MB_OK);
       abort();
     end;
-    msg:='The selected build will be the default build when you run DOSBox-X from the Windows Start Menu or the desktop. Click the "Help" button for more information about this.';
+    msg:='The selected build will be the default build when you run DOSBox-X from the Windows Start Menu or the desktop. You probably want to use SDL1 builds if native Windows menus are desired, or you may prefer SDL2 builds if for example you encounter some issues with a non-U.S. keyboard layout in SDL1 builds.' #13#13 'Click the "Help" button for more information about selecting a DOSBox-X build.';
     PageBuild:=CreateInputOptionPage(wpSelectDir, 'Default DOSBox-X build (32-bit)', 'Select the default DOSBox-X build to run', msg, True, False);
     PageBuild.Add('Release SDL1 (Default Visual Studio build)');
     PageBuild.Add('Release SDL2 (Alternative Visual Studio build)');
@@ -231,6 +231,11 @@ begin
     begin
       PageBuild.CheckListBox.ItemEnabled[2] := False;
       PageBuild.CheckListBox.ItemEnabled[3] := False;
+    end;
+    if not IsWindowsVersionOrNewer(6, 0) then
+    begin
+      PageBuild.CheckListBox.ItemEnabled[4] := False;
+      PageBuild.CheckListBox.ItemEnabled[5] := False;
     end;
     if IsARM64 then
       begin
