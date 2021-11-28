@@ -391,6 +391,7 @@ public:
 	void	MakeNew				(uint16_t mem_size);
 	void	CopyFileTable		(DOS_PSP* srcpsp,bool createchildpsp);
 	uint16_t	FindFreeFileEntry	(void);
+	void	CloseFile			(const char *name);
 	void	CloseFiles			(void);
 
 	void	SaveVectors			(void);

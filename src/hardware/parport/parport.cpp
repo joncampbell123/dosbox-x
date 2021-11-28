@@ -560,13 +560,19 @@ void PARALLEL::Run()
 				defaultirq[port-1] = (uint8_t)strtol(str.c_str(), NULL, 10);
 		// Remove existing port.
 		if (parallelPortObjects[port-1]) {
-			if ((port==1&&mode==PARALLEL_TYPE_DISABLED)||(mode==PARALLEL_TYPE_PRINTER&&parallelPortObjects[port-1]->parallelType!=PARALLEL_TYPE_PRINTER&&testParallelPortsBaseclass->printer_used)) {
+			if ((mode==PARALLEL_TYPE_PRINTER&&parallelPortObjects[port-1]->parallelType!=PARALLEL_TYPE_PRINTER&&testParallelPortsBaseclass->printer_used)) {
 				showPort(port-1);
 				return;
 			}
 #if C_PRINTER
 			if (parallelPortObjects[port-1]->parallelType == PARALLEL_TYPE_PRINTER) testParallelPortsBaseclass->printer_used = false;
 #endif
+			DOS_PSP curpsp(dos.psp());
+			if (dos.psp()!=curpsp.GetParent()) {
+                char name[5];
+                sprintf(name, "LPT%d", port);
+                curpsp.CloseFile(name);
+            }
 			delete parallelPortObjects[port-1];
 			parallelPortObjects[port-1] = 0;
 		}
@@ -619,6 +625,12 @@ void PARALLEL::Run()
 void PARALLEL_ProgramStart(Program **make)
 {
 	*make = new PARALLEL;
+}
+
+void runParallel(const char *str) {
+	PARALLEL parallel;
+	parallel.cmd=new CommandLine("PARALLEL", str);
+	parallel.Run();
 }
 
 void PARALLEL_Destroy (Section * sec) {

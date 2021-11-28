@@ -1550,6 +1550,12 @@ void SERIAL::Run()
             }
 		// Remove existing port.
 		if (serialports[port-1]) {
+			DOS_PSP curpsp(dos.psp());
+			if (dos.psp()!=curpsp.GetParent()) {
+                char name[5];
+                sprintf(name, "COM%d", port);
+                curpsp.CloseFile(name);
+			}
 			delete serialports[port-1];
 			serialports[port-1] = NULL;
 		}
@@ -1612,6 +1618,12 @@ void SERIAL::Run()
 void SERIAL_ProgramStart(Program **make)
 {
 	*make = new SERIAL;
+}
+
+void runSerial(const char *str) {
+	SERIAL serial;
+	serial.cmd=new CommandLine("SERIAL", str);
+	serial.Run();
 }
 
 void SERIAL_Destroy (Section * sec) {

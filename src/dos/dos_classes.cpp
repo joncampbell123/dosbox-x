@@ -326,6 +326,17 @@ void DOS_PSP::CopyFileTable(DOS_PSP* srcpsp,bool createchildpsp) {
 	}
 }
 
+void DOS_PSP::CloseFile(const char *name) {
+	for (uint16_t i=0;i<sGet(sPSP,max_files);i++) {
+        uint32_t handle = RealHandle(i);
+        if (handle<DOS_FILES && Files[handle] && !strcmp(Files[handle]->name, name)) {
+            if (Files[handle]->IsOpen()) Files[handle]->open = false;
+            Files[handle] = NULL;
+            return;
+        }
+	}
+}
+
 void DOS_PSP::CloseFiles(void) {
 	for (uint16_t i=0;i<sGet(sPSP,max_files);i++) {
 		DOS_CloseFile(i);
