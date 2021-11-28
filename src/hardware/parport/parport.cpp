@@ -510,7 +510,7 @@ void PARALLEL::Run()
 			return;
 		}
 	} if (cmd->GetCount() >= 2) {
-		// Which COM did they want to change?
+		// Which LPT did they want to change?
 		int port = -1;
 		cmd->FindCommand(1, temp_line);
 		try {

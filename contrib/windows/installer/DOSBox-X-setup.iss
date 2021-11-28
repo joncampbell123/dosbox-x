@@ -219,7 +219,7 @@ begin
         MsgBox('You are running 32-bit Windows. Use the 32-bit installer instead of this 64-bit installer.', mbInformation, MB_OK);
       abort();
     end;
-    msg:='The selected build will be the default build when you run DOSBox-X from the Windows Start Menu or the desktop. You probably want to use SDL1 builds if native Windows menus are desired, or you may prefer SDL2 builds if for example you encounter some issues with a non-U.S. keyboard layout in SDL1 builds.' #13#13 'Click the "Help" button for more information about selecting a DOSBox-X build.';
+    msg:='The selected build will be the default build when you run DOSBox-X from the Windows Start Menu or the desktop. You probably want to use SDL1 builds if native Windows menus are desired, or you may prefer SDL2 builds if for example you encounter some issues with a non-U.S. keyboard layout in SDL1 builds.' #13#13 'Click the "Help" button below for more information about the DOSBox-X build selection.';
     PageBuild:=CreateInputOptionPage(wpSelectDir, 'Default DOSBox-X build (32-bit)', 'Select the default DOSBox-X build to run', msg, True, False);
     PageBuild.Add('Release SDL1 (Default Visual Studio build)');
     PageBuild.Add('Release SDL2 (Alternative Visual Studio build)');

@@ -1,13 +1,16 @@
 0.83.20
-  - Added most Pentium-level MMX instructions to debugger
-    disassembler (joncampbell123)
-  - Added MOVD, MOVQ, and EMMS instructions to debugger
-    disassembler and support for the disassembler to
-    represent MMX registers. (joncampbell123)
+  - Implemented support for Pentium II cputype, and
+    added Pentium II SYSENTER/SYSEXIT instructions to
+    normal core and debugger disassembler. The two
+    instructions are supported for Pentium II cputype
+    with MSR added. (joncampbell123)
   - Added MMX instruction PSHUFW and added typecasts
     to some MMX instructions in case compilers cannot
-    properly shift uint64_t by uint8_t otherwise.
-    (joncampbell123)
+    properly shift uint64_t by uint8_t otherwise. Most
+    Pentium-level MMX instructions (such as MOVD, MOVQ,
+    and EMMS) are added to the debugger disassembler
+    and support for the disassembler to represent MMX
+    registers. (joncampbell123)
   - Added code to normal core to flush paging TLB
     whenever handing a non-recursive guest page fault.
     The guest OS will likely update the page tables
@@ -31,11 +34,6 @@
   - While CPU "debug spew" is silenced by default,
     remove silencing for RDMSR/WRMSR and
     SYSENTER/SYSEXIT debug messages (joncampbell123).
-  - Implemented support for Pentium II cputype, and
-    added Pentium II SYSENTER/SYSEXIT instructions to
-    normal core and debugger disassembler. The two
-    instructions are supported for Pentium II cputype
-    with MSR added. (joncampbell123)
   - Added support for DCGA and Toshiba J-3100 emulation
     modes by importing code from DOSVAXJ3 by nanshiki.
     The J-3100 emulation mode can be enabled with the
@@ -48,10 +46,10 @@
     now a DCGA command to enter DCGA (either English or
     J-3100 DCGA, depending on if J-3100 is enabled)
     mode from other video modes. (nanshiki & Wengier)
-  - Added support for unit tests based on GoogleTest
+  - Added support for unit tests based on Google Test
     framework (gTest/gMock) to ensure code stability.
     Unit tests can be started with command-line option
-    -tests in the debug builds. Some unit tests are
+    "-tests" in the debug builds. Some unit tests are
     ported from DOSBox Staging. (Wengier)
   - Added SERIAL and PARALLEL commands to view/change
     the current configuration of serial/parallel ports.
