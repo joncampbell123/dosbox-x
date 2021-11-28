@@ -2799,6 +2799,7 @@ nextfile:
 	bool lead=false;
 	uint8_t last3, last2;
 	last3=last2=last=0;
+	nlines=0;
 	do {
 		n=1;
 		DOS_ReadFile(handle,&c,&n);
@@ -2809,7 +2810,7 @@ nextfile:
 			nlines++;
 			nchars = 0;
 			WriteOut("\n");
-			if (nlines == LINES) {
+			if (nlines == LINES && usecon) {
 				WriteOut("-- More -- %s (%u) --",word,linecount);
 				if (PAUSED()==3) {DOS_CloseFile(handle);return;}
 				WriteOut("\n");
@@ -2829,7 +2830,9 @@ nextfile:
 			last3=last2=last=0;
 			nlines++;
 			nchars = 0;
-			if (nlines == LINES) {
+			if (!usecon) {
+				if (c != '\n') WriteOut("\n");
+			} else if (nlines == LINES) {
 				WriteOut("-- More -- %s (%u) --",word,linecount);
 				if (PAUSED()==3) {DOS_CloseFile(handle);return;}
 				WriteOut("\n");
@@ -2841,7 +2844,7 @@ nextfile:
 	DOS_CloseFile(handle);
 	if (*args) {
 		WriteOut("\n");
-		if (PAUSED()==3) return;
+		if (usecon && PAUSED()==3) return;
 		goto nextfile;
 	}
 }

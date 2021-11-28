@@ -158,6 +158,7 @@
     in Linux/macOS SDL1 builds. (Wengier)
   - Fixed copying files from the virtual drive Z: not
     working when using the 4DOS shell. (Wengier)
+  - Fixed some issues in MORE command. (Wengier)
   - Fixed "DIR>NUL" freeze/crash when only disk or CD
     images are mounted. (nanshiki)
   - Fixed BIOS screen when resetting the machine with a
