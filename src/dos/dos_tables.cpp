@@ -221,7 +221,7 @@ void SetupDBCSTable() {
 
         // write a valid table, or else Windows 3.1 is unhappy.
         // Values are copied from INT 21h AX=6300h as returned by an MS-DOS 6.22 boot disk
-        if (IS_PC98_ARCH || IS_JEGA_ARCH || IS_JDOSV || dos.loaded_codepage == 932) {   // Japanese
+        if (IS_PC98_ARCH || IS_JEGA_ARCH || IS_JDOSV || dos.loaded_codepage == 932) { // Japanese
             mem_writew(Real2Phys(dos.tables.dbcs)+0,0x0006);
             mem_writeb(Real2Phys(dos.tables.dbcs)+2,0x81);   // low/high DBCS pair 1
             mem_writeb(Real2Phys(dos.tables.dbcs)+3,0x9F);

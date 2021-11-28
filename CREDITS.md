@@ -43,7 +43,7 @@ A list of features ported from DOSBox Staging (maintainers: dreamer and kcgen):
 A list of features ported from DOSVAX (maintainer: akm) and DOSVAXJ3 (maintainer: nanshiki):
 
 * Support for JEGA/AX machine type (imported from DOSVAX and DOSVAXJ3, cleaned up with some improvements by Wengier)
-* Support for Toshiba J-3100 machine type (imported from DOSVAXJ3 by nanshiki and Wengier)
+* Support for DCGA and Toshiba J-3100 system type (imported by nanshiki and Wengier from DOSVAXJ3)
 * Support for DOS/V service (imported from DOSVAXJ3 and then extended by Wengier, including support for non-Japanese DOS/V modes)
 * Support for system input methods (IMEs) in Windows/Linux SDL1 builds (SDL-IM-plus by the DOSVAXJ3 maintainer, cleaned up and improved by Wengier)
 
