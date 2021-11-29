@@ -1704,6 +1704,9 @@ void SHELL_Init() {
 	VFILE_RegisterBuiltinFileBlob(bfb_DEVICE_COM, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_BUFFERS_COM, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_CHKDSK_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_COMP_COM, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_FC_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EDLIN_EXE, "/DOS/");
 #if C_IPX
 	if (addipx) PROGRAMS_MakeFile("IPXNET.COM",IPXNET_ProgramStart,"/SYSTEM/");
 #endif

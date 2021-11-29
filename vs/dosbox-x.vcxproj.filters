@@ -189,6 +189,9 @@
     <ClCompile Include="..\src\builtin\edit_com.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\builtin\fc_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\builtin\fcbs_com.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>

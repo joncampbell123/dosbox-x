@@ -20,7 +20,7 @@ extern struct BuiltinFileBlob bfb_DOS4GW_EXE;		// DOS4GW.EXE
 extern struct BuiltinFileBlob bfb_DOSIDLE_EXE;		// DOSIDLE.EXE
 extern struct BuiltinFileBlob bfb_HEXMEM16_EXE;		// HEXMEM16.EXE
 extern struct BuiltinFileBlob bfb_HEXMEM32_EXE;		// HEXMEM32.EXE
-extern struct BuiltinFileBlob bfb_REPLACE_EXE;		// REPLACE.EXE
+extern struct BuiltinFileBlob bfb_REPLACE_EXE;		// REPLACE.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_SORT_EXE;		// SORT.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_MOVE_EXE;		// MOVE.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_MEM_EXE;		// MEM.EXE (FreeDOS)
@@ -29,11 +29,13 @@ extern struct BuiltinFileBlob bfb_DEBUG_EXE;		// DEBUG.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_XCOPY_EXE;		// XCOPY.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_APPEND_EXE;		// APPEND.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_EDIT_COM;		// EDIT.COM (FreeDOS)
+extern struct BuiltinFileBlob bfb_EDLIN_EXE;		// EDLIN.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_DEVICE_COM;		// DEVICE.COM
 extern struct BuiltinFileBlob bfb_BUFFERS_COM;		// BUFFERS.COM
 extern struct BuiltinFileBlob bfb_LASTDRIV_COM;		// LASTDRIV.COM
 extern struct BuiltinFileBlob bfb_FCBS_COM;		// FCBS.COM
-extern struct BuiltinFileBlob bfb_COPY_EXE;		// COPY.EXE
+extern struct BuiltinFileBlob bfb_FC_EXE;		// FC.EXE (FreeDOS)
+extern struct BuiltinFileBlob bfb_COMP_COM;		// COMP.COM (FreeDOS)
 extern struct BuiltinFileBlob bfb_EVAL_EXE;		// EVAL.EXE
 extern struct BuiltinFileBlob bfb_EVAL_HLP;		// EVAL.HLP
 extern struct BuiltinFileBlob bfb_28_COM;		// 28.COM

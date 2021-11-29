@@ -61,6 +61,8 @@
     e.g. "IMGSWAP D" to swap C: drive to the next swap
     position, and "IMGSWAP A 3" to swap A: drive to
     the 3nd swap position. (Wengier)
+  - Added DOS commands COMP, FC, and EDLIN from FreeDOS
+    to the built-in Z drive. (Wengier)
   - The CAPMOUSE command without a parameter now shows
     whether the mouse is captured/released. (Wengier)
   - The command "config -set" is now case-insensitive
