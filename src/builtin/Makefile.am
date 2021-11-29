@@ -28,7 +28,6 @@ libbuiltin_a_SOURCES = \
 	fdisk_exe.cpp \
 	format_exe.cpp \
 	chkdsk_exe.cpp \
-	copy_exe.cpp \
 	sys_com.cpp \
 	28_com.cpp \
 	50_com.cpp \

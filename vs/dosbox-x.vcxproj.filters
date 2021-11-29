@@ -165,9 +165,6 @@
     <ClCompile Include="..\src\builtin\chkdsk_exe.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\builtin\copy_exe.cpp">
-      <Filter>Sources\builtin</Filter>
-    </ClCompile>
     <ClCompile Include="..\src\builtin\cwsdpmi_exe.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>

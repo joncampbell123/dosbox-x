@@ -1692,6 +1692,7 @@ void SHELL_Init() {
 
     drivezRegister(path, "/");
 
+	VFILE_RegisterBuiltinFileBlob(bfb_EDLIN_EXE, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_DEBUG_EXE, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_MOVE_EXE, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_FIND_EXE, "/DOS/");
@@ -1706,7 +1707,6 @@ void SHELL_Init() {
 	VFILE_RegisterBuiltinFileBlob(bfb_CHKDSK_EXE, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_COMP_COM, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_FC_EXE, "/DOS/");
-	VFILE_RegisterBuiltinFileBlob(bfb_EDLIN_EXE, "/DOS/");
 #if C_IPX
 	if (addipx) PROGRAMS_MakeFile("IPXNET.COM",IPXNET_ProgramStart,"/SYSTEM/");
 #endif
@@ -1722,7 +1722,6 @@ void SHELL_Init() {
 		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM16_EXE, "/DEBUG/");
 		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM32_EXE, "/DEBUG/");
 		VFILE_RegisterBuiltinFileBlob(bfb_DOSIDLE_EXE, "/BIN/");
-		VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE, "/BIN/");
 		VFILE_RegisterBuiltinFileBlob(bfb_DOS32A_EXE, "/BIN/");
 		VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE, "/BIN/");
 		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_EXE, "/BIN/");
@@ -1765,15 +1764,19 @@ void SHELL_Init() {
     if(!IS_PC98_ARCH && CPU_ArchitectureType >= CPU_ARCHTYPE_80186)
         VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE, "/DOS/");
 
+    VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE, "/BIN/");
     /* DSXMENU.EXE */
     if(IS_PC98_ARCH)
         VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC98, "/BIN/");
     else {
         VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC, "/BIN/");
-        VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP, "/BIN/");
+        VFILE_RegisterBuiltinFileBlob(bfb_SHUTDOWN_COM, "/BIN/");
     }
 
 	VFILE_RegisterBuiltinFileBlob(bfb_EVAL_EXE, "/BIN/");
+    if(!IS_PC98_ARCH)
+        VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP, "/BIN/");
+
 
 	DOS_PSP psp(psp_seg);
 	psp.MakeNew(0);

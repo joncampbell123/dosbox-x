@@ -8,6 +8,7 @@
 #include "../src/builtin/ne2000.h"
 #include "../src/builtin/glide2x.h"
 #include "../src/builtin/emsmagic.h"
+#include "../src/builtin/shutdown.h"
 #include "../src/builtin/textutil.h"
 #include "../src/builtin/4DOS_img.h"
 
@@ -62,6 +63,7 @@ extern struct BuiltinFileBlob bfb_EGA_COM;	// EGA.COM
 extern struct BuiltinFileBlob bfb_CLR_COM;	// CLR.COM
 extern struct BuiltinFileBlob bfb_CGA_COM;	// CGA.COM
 extern struct BuiltinFileBlob bfb_EMSMAGIC_COM;	// EMSMAGIC.COM
+extern struct BuiltinFileBlob bfb_SHUTDOWN_COM;	// SHUTDOWN.COM
 extern struct BuiltinFileBlob bfb_DEFRAG_EXE;	// DEFRAG.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_FDISK_EXE;	// FDISK.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_FORMAT_EXE;	// FORMAT.EXE (FreeDOS)
