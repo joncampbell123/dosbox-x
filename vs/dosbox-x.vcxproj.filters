@@ -183,6 +183,9 @@
     <ClCompile Include="..\src\builtin\dosidle_exe.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\builtin\diskcopy_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\builtin\edit_com.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
@@ -214,6 +217,9 @@
       <Filter>Sources\builtin</Filter>
     </ClCompile>
     <ClCompile Include="..\src\builtin\move_exe.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\builtin\print_com.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
     <ClCompile Include="..\src\builtin\replace_exe.cpp">

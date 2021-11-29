@@ -61,9 +61,9 @@
     e.g. "IMGSWAP D" to swap C: drive to the next swap
     position, and "IMGSWAP A 3" to swap A: drive to
     the 3nd swap position. (Wengier)
-  - Added DOS commands COMP, EDLIN, FC, and SHUTDOWN
-    (the former three are from FreeDOS) to the built-in
-    virtual drive Z:. The EDLIN command is recompiled
+  - Added DOS commands COMP, DISKCOPY, EDLIN, FC, PRINT
+    and SHUTDOWN (all but last one from FreeDOS) to the
+    built-in Z: drive. The EDLIN command is recompiled
     with long filename (LFN) support. (Wengier)
   - The CAPMOUSE command without a parameter now shows
     whether the mouse is captured/released. (Wengier)

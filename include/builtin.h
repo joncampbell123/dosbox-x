@@ -27,6 +27,7 @@ extern struct BuiltinFileBlob bfb_MOVE_EXE;		// MOVE.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_MEM_EXE;		// MEM.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_FIND_EXE;		// FIND.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_DEBUG_EXE;		// DEBUG.EXE (FreeDOS)
+extern struct BuiltinFileBlob bfb_PRINT_COM;		// PRINT.COM (FreeDOS)
 extern struct BuiltinFileBlob bfb_XCOPY_EXE;		// XCOPY.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_APPEND_EXE;		// APPEND.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_EDIT_COM;		// EDIT.COM (FreeDOS)
@@ -64,6 +65,7 @@ extern struct BuiltinFileBlob bfb_CLR_COM;	// CLR.COM
 extern struct BuiltinFileBlob bfb_CGA_COM;	// CGA.COM
 extern struct BuiltinFileBlob bfb_EMSMAGIC_COM;	// EMSMAGIC.COM
 extern struct BuiltinFileBlob bfb_SHUTDOWN_COM;	// SHUTDOWN.COM
+extern struct BuiltinFileBlob bfb_DISKCOPY_EXE;	// DISKCOPY.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_DEFRAG_EXE;	// DEFRAG.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_FDISK_EXE;	// FDISK.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_FORMAT_EXE;	// FORMAT.EXE (FreeDOS)
