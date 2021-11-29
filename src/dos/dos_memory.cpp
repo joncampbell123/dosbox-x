@@ -158,12 +158,16 @@ static uint16_t GetMaximumMCBFreeSize(uint16_t mcb_segment)
 {
 	uint16_t largestSize = 0;
 	DOS_MCB mcb(mcb_segment);
+    uint16_t last_mcb_segment;
 	for (bool endOfChain = false; !endOfChain; mcb.SetPt(mcb_segment))
 	{
 		auto size = mcb.GetSize();
 		if (mcb.GetPSPSeg()==MCB_FREE) largestSize = (std::max)(largestSize, size);
 		endOfChain = DOS_MCB::MCBType(mcb.GetType())==DOS_MCB::MCBType::LastBlock;
+        last_mcb_segment = mcb_segment;
 		mcb_segment += size+1;
+        if (mcb_segment == last_mcb_segment) // Check for infinite loop
+            break;
 	}
 	return largestSize;
 }

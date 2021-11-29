@@ -348,7 +348,7 @@ DOSBox-X 命令列組態工具. 支援的選項有:
 
 .
 :PROGRAM_CONFIG_APPLY_RESTART
-是否要立即重開以套用設定 [Y/N]?
+是否要立即重新啟動以套用設定 [Y/N]?
 .
 :PROGRAM_CONFIG_HLP_POSINT
 正整數
@@ -754,7 +754,7 @@ dosbox-x [名稱] [-exit] [-version] [-fastlaunch] [-fullscreen]
 	輸出版本資訊並結束. 特別對於前景程式有用.
 
 [33;1m  -fastlaunch[0m
-	啟動快速啟動方式 (跳過 BIOS 和歡迎畫面).
+	啟用快速啟動模式 (跳過 BIOS 和歡迎畫面).
 
 [33;1m  -fullscreen[0m
 	以全螢幕模式啟動 DOSBox-X.
@@ -1203,7 +1203,7 @@ KEYB [鍵盤配置 ID [字碼頁編號 [字碼頁檔案]]]
 
 .
 :PROGRAM_KEYB_NOERROR
-已載入鍵盤配置 %s 作用於字碼頁 %i
+已載入鍵盤配置 %s 於字碼頁 %i
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
@@ -1216,7 +1216,7 @@ KEYB [鍵盤配置 ID [字碼頁編號 [字碼頁檔案]]]
 
 .
 :PROGRAM_KEYB_LAYOUTNOTFOUND
-無法找到鍵盤配置 %s 作用於字碼頁 %i
+無法找到鍵盤配置 %s 於字碼頁 %i
 
 .
 :PROGRAM_KEYB_INVCPFILE
@@ -1483,10 +1483,7 @@ GOTO: 標籤 %s 找不到.
 您是否想讓 DOSBox-X 存取您真實電腦中的網路磁碟機 %c [Y/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_FIXED
-您認真要讓 DOSBox-X 存取位於您真實電腦中硬碟機 %c [Y/N]?
-.
-:SHELL_EXECUTE_DRIVE_ACCESS_FIXED_LESS
-您是否想讓 DOSBox-X 存取您真實電腦中的硬碟機 %c [Y/N]?
+您是否真的想讓 DOSBox-X 存取您真實電腦中的硬碟機 %c [Y/N]?
 .
 :SHELL_EXECUTE_ILLEGAL_COMMAND
 錯誤的命令或檔名 - "%s"
@@ -2023,7 +2020,7 @@ PROMPT [文字]
   $B   | (直線)
   $C   ( (左括弧)
   $D   目前日期
-  $E   跳離代碼 (美國標準資訊交換碼 (ASCII) 字元代碼 27)
+  $E   跳脫碼 (美國標準資訊交換碼 (ASCII) 字碼 27)
   $F   ) (右括弧)
   $G   > (大於符號)
   $H   退位字元 (清除前一個字元)
@@ -2621,7 +2618,7 @@ TTF 文字處理器: FastEdit
 中日韓文字: 允許半形日文片假名
 .
 :MENU:ttf_extcharset
-中日韓文字: 啟用擴展中文字元集
+中日韓文字: 啟用中文擴充字集
 .
 :MENU:VideoPC98Menu
 PC-98 選項
