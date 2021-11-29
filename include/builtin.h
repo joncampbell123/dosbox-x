@@ -30,8 +30,8 @@ extern struct BuiltinFileBlob bfb_DEBUG_EXE;		// DEBUG.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_PRINT_COM;		// PRINT.COM (FreeDOS)
 extern struct BuiltinFileBlob bfb_XCOPY_EXE;		// XCOPY.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_APPEND_EXE;		// APPEND.EXE (FreeDOS)
-extern struct BuiltinFileBlob bfb_EDIT_COM;		// EDIT.COM (FreeDOS)
 extern struct BuiltinFileBlob bfb_EDLIN_EXE;		// EDLIN.EXE (FreeDOS)
+extern struct BuiltinFileBlob bfb_EDIT_COM;		// EDIT.COM
 extern struct BuiltinFileBlob bfb_DEVICE_COM;		// DEVICE.COM
 extern struct BuiltinFileBlob bfb_BUFFERS_COM;		// BUFFERS.COM
 extern struct BuiltinFileBlob bfb_LASTDRIV_COM;		// LASTDRIV.COM
