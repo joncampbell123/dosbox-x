@@ -143,6 +143,8 @@
     of Apple Panic. (Allofich)
   - Fixed underflow when INT 13 AH=2 called for
     sector 0. (Allofich)
+  - Fixed infinite loop when trying to run a 32-bit
+    program with the 8086 CPU type.
   - Fixed possible crash with printing. (jamesbond3142)
   - Fixed possible freeze when shutting down Windows 9x
     after changing a CD image from the menu. (Wengier)
