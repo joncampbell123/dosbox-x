@@ -1,9 +1,15 @@
 0.83.20
-  - Implemented support for Pentium II cputype, and
-    added Pentium II SYSENTER/SYSEXIT instructions to
-    normal core and debugger disassembler. The two
-    instructions are supported for Pentium II cputype
-    with MSR added. (joncampbell123)
+  - Implemented support for Pentium II cputype (with
+    the setting "cputype=pentium_ii" in [cpu] section),
+    and added Pentium II SYSENTER/SYSEXIT instructions
+    to normal core and debugger disassembler. The two
+    instructions are supported for Pentium II cputype.
+    CPUID for Pentium II will now report stepping 3 and
+    model 3 which is a minimum requirement for OSes to
+    attempt to use SYSENTER/SYSEXIT. Moreover, while
+    CPU "debug spew" is silenced by default, remove
+    silencing for RDMSR/WRMSR and SYSENTER/SYSEXIT
+    debug messages. (joncampbell123)
   - Added MMX instruction PSHUFW and added typecasts
     to some MMX instructions in case compilers cannot
     properly shift uint64_t by uint8_t otherwise. Most
@@ -20,20 +26,12 @@
   - Added MSRs related to Intel microcode because both
     Linux and Windows ME probe those MSRs if Pentium II
     emulation reports stepping 3 model 3. The microcode
-    MSRs are silently ignored. (joncampbell123)
-  - Add MSR register 0x0000001B to Pentium II
+    MSRs are silently ignored. Furthermore, the MSR
+    register 0x0000001B has been added to Pentium II
     emulation. DOSBox-X does not emulate a local APIC
     but Windows ME assumes that MSR is present and
     reads/writes it on startup if DOSBox-X reports
     itself as a Pentium II. (joncampbell123)
-  - CPUID for Pentium II will now report stepping 3
-    and model 3 which is a minimum requirement for OSes
-    to attempt to use SYSENTER/SYSEXIT (joncampbell123)
-  - 8086 and 80186 CPU types no longer check segment
-    limits. (joncampbell123)
-  - While CPU "debug spew" is silenced by default,
-    remove silencing for RDMSR/WRMSR and
-    SYSENTER/SYSEXIT debug messages (joncampbell123).
   - Added support for DCGA and Toshiba J-3100 emulation
     modes by importing code from DOSVAXJ3 by nanshiki.
     The J-3100 emulation mode can be enabled with the
@@ -127,6 +125,8 @@
     so that when BASIC(A).COM from MS-DOS 1.x and 2.x
     are run, a polite message is displayed instead of
     invalid code and crashes. (joncampbell123)
+  - 8086 and 80186 CPU types no longer check segment
+    limits. (joncampbell123 & Allofich)
   - Put in undocumented behavior in opcode 0x8e for
     8086 and 80186. (Allofich)
   - Made 8086 treat opcodes C0,C1,C8,C9,F1 as aliases
@@ -144,7 +144,7 @@
   - Fixed underflow when INT 13 AH=2 called for
     sector 0. (Allofich)
   - Fixed infinite loop when trying to run a 32-bit
-    program with the 8086 CPU type.
+    program with the 8086 CPU type. (Allofich)
   - Fixed possible crash with printing. (jamesbond3142)
   - Fixed possible freeze when shutting down Windows 9x
     after changing a CD image from the menu. (Wengier)
@@ -173,6 +173,8 @@
     on a non-Japanese keyboard. (Wengier)
   - Fixed display glitches in the game "Continuing
     adventures of Cyberbox". (Wengier)
+  - Fixed unusable joystick with config options like
+    joy1response1 set to certain values. (Baderian)
   - Make memory B0000-B7FFF unmapped for the CGA
     emulation. Fixes "Backgammon 5.0" detecting that
     an MDA is also present when using CGA. (Allofich)
