@@ -1249,6 +1249,10 @@ Configures system devices.
 Invalid parameter(s).
 
 .
+:PROGRAM_PORT_INVALID_NUMBER
+Must specify a port number between 1 and 9.
+
+.
 :SHELL_CMD_TREE_ERROR
 No subdirectories exist
 
@@ -1856,7 +1860,7 @@ This command is only useful if LFN support is currently enabled.
 
 .
 :SHELL_CMD_TYPE_HELP
-Displays the contents of a text-file.
+Displays the contents of a text file.
 
 .
 :SHELL_CMD_TYPE_HELP_LONG
@@ -3132,6 +3136,9 @@ Pentium MMX
 .
 :MENU:cputype_ppro_slow
 Pentium Pro
+.
+:MENU:cputype_pentium_ii
+Pentium II
 .
 :MENU:cputype_experimental
 Experimental

@@ -1188,11 +1188,10 @@ Création du fichier image "%s" avec %u cylindres, %u têtes et %u secteurs
 
 .
 :PROGRAM_IMGMAKE_CANT_READ_FLOPPY
+
+
 Impossible de lire la disquette.
-
-
 .
-
 :PROGRAM_KEYB_INFO
 La page de code %i a été chargée
 
@@ -1245,6 +1244,10 @@ Configure les périphériques du système.
 .
 :PROGRAM_MODE_INVALID_PARAMETERS
 Paramètre(s) invalide(s).
+
+.
+:PROGRAM_PORT_INVALID_NUMBER
+Doit spécifier un numéro de port entre 1 et 9.
 
 .
 :SHELL_CMD_TREE_ERROR
@@ -3140,6 +3143,9 @@ Pentium MMX
 .
 :MENU:cputype_ppro_slow
 Pentium Pro
+.
+:MENU:cputype_pentium_ii
+Pentium II
 .
 :MENU:cputype_experimental
 Expérimental

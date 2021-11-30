@@ -1241,6 +1241,10 @@ KEYB [キーボードレイアウト ID [コードページ番号 [コードペ�
 無効なパラメータです。
 
 .
+:PROGRAM_PORT_INVALID_NUMBER
+1〜9のポート番号を指定する必要があります。
+
+.
 :SHELL_CMD_TREE_ERROR
 サブディレクトリがありません。
 
@@ -3119,6 +3123,9 @@ Pentium MMX
 .
 :MENU:cputype_ppro_slow
 Pentium Pro
+.
+:MENU:cputype_pentium_ii
+Pentium II
 .
 :MENU:cputype_experimental
 実験用 CPU

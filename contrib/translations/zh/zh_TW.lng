@@ -1236,6 +1236,10 @@ KEYB [鍵盤配置 ID [字碼頁編號 [字碼頁檔案]]]
 無效的參數.
 
 .
+:PROGRAM_PORT_INVALID_NUMBER
+必須指定介於 1 和 9 之間的連接埠號碼.
+
+.
 :SHELL_CMD_TREE_ERROR
 不存在子目錄
 
@@ -3105,6 +3109,9 @@ Turbo (快轉模式)
 .
 :MENU:cputype_ppro_slow
 奔騰 Pro
+.
+:MENU:cputype_pentium_ii
+奔騰 II
 .
 :MENU:cputype_experimental
 實驗 CPU

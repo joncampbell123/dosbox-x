@@ -1416,7 +1416,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_FOR_HELP_LONG","FOR %%variable IN (set) DO command [command-parameters]\n\n  %%variable  Specifies a replaceable parameter.\n  (set)      Specifies a set of one or more files. Wildcards may be used.\n  command    Specifies the command to carry out for each file.\n  command-parameters\n             Specifies parameters or switches for the specified command.\n\nTo use the command in a batch program, specify %%%%variable instead of %%variable.\n");
 	MSG_Add("SHELL_CMD_LFNFOR_HELP","Enables or disables long filenames when processing FOR wildcards.\n");
 	MSG_Add("SHELL_CMD_LFNFOR_HELP_LONG","LFNFOR [ON | OFF]\n\nType LFNFOR without a parameter to display the current LFNFOR setting.\n\nThis command is only useful if LFN support is currently enabled.\n");
-	MSG_Add("SHELL_CMD_TYPE_HELP","Displays the contents of a text-file.\n");
+	MSG_Add("SHELL_CMD_TYPE_HELP","Displays the contents of a text file.\n");
 	MSG_Add("SHELL_CMD_TYPE_HELP_LONG","TYPE [drive:][path][filename]\n");
 	MSG_Add("SHELL_CMD_REM_HELP","Adds comments in a batch file.\n");
 	MSG_Add("SHELL_CMD_REM_HELP_LONG","REM [comment]\n");

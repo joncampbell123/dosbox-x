@@ -1501,7 +1501,7 @@ void SERIAL::Run()
 			return;
 		}
 		if (port < 1 || port > 9) {
-			WriteOut("Must specify a port number between 1 and 9.\n");
+			WriteOut(MSG_Get("PROGRAM_PORT_INVALID_NUMBER"));
 			return;
 		}
 	} if (cmd->GetCount() >= 2) {
@@ -1513,7 +1513,7 @@ void SERIAL::Run()
 		} catch (...) {
 		}
 		if (port < 1 || port > 9) {
-			WriteOut("Must specify a port number between 1 and 9.\n");
+			WriteOut(MSG_Get("PROGRAM_PORT_INVALID_NUMBER"));
 			return;
 		}
 		// Which mode do they want?

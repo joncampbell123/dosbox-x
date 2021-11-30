@@ -1250,6 +1250,10 @@ Configura dispositivos de sistema.
 Parámetro(s) no válido(s).
 
 .
+:PROGRAM_PORT_INVALID_NUMBER
+Debe especificar un número de puerto entre 1 y 9.
+
+.
 :SHELL_CMD_TREE_ERROR
 No existen subdirectorios
 
@@ -3135,6 +3139,9 @@ Pentium MMX
 .
 :MENU:cputype_ppro_slow
 Pentium Pro
+.
+:MENU:cputype_pentium_ii
+Pentium II
 .
 :MENU:cputype_experimental
 Experimental

@@ -1249,6 +1249,10 @@ Sistem aygıtlarını yapılandırır.
 Geçersiz parametre(ler).
 
 .
+:PROGRAM_PORT_INVALID_NUMBER
+1 ile 9 arasında bir bağlantı noktası numarası belirtilmelidir.
+
+.
 :SHELL_CMD_TREE_ERROR
 Bir alt dizin mevcut değil
 
@@ -3134,6 +3138,9 @@ Pentium MMX
 .
 :MENU:cputype_ppro_slow
 Pentium Pro
+.
+:MENU:cputype_pentium_ii
+Pentium II
 .
 :MENU:cputype_experimental
 Deneysel

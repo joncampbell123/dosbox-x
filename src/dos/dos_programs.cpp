@@ -8330,6 +8330,7 @@ void DOS_SetupPrograms(void) {
             "\033[34;1mMODE CON COLS=\033[0mc \033[34;1mLINES=\033[0mn :columns and lines, c=80 or 132, n=25, 43, 50, or 60\n"
             "\033[34;1mMODE CON RATE=\033[0mr \033[34;1mDELAY=\033[0md :typematic rates, r=1-32 (32=fastest), d=1-4 (1=lowest)\n");
     MSG_Add("PROGRAM_MODE_INVALID_PARAMETERS","Invalid parameter(s).\n");
+    MSG_Add("PROGRAM_PORT_INVALID_NUMBER","Must specify a port number between 1 and 9.\n");
 
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");

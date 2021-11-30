@@ -1236,6 +1236,10 @@ KEYB [键盘布局 ID [代码页 [代码页文件]]]
 非法参数.
 
 .
+:PROGRAM_PORT_INVALID_NUMBER
+必须指定介于 1 和 9 之间的端口号.
+
+.
 :SHELL_CMD_TREE_ERROR
 不存在子目录
 
@@ -3098,6 +3102,9 @@ DOS 命令
 .
 :MENU:cputype_ppro_slow
 奔腾 Pro
+.
+:MENU:cputype_pentium_ii
+奔腾 II
 .
 :MENU:cputype_experimental
 实验 CPU
