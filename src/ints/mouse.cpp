@@ -613,6 +613,22 @@ extern int  user_cursor_x,  user_cursor_y;
 extern int  user_cursor_sw, user_cursor_sh;
 extern bool user_cursor_locked;
 
+/* Do not access BIOS data areas or other real-mode areas
+ * unless running in real mode or virtual 8086 mode, AND the
+ * DOS kernel must not be shutdown since INT 33h is an MS-DOS
+ * interface. That means booting into a guest OS should disable
+ * all INT 33h emulation leaving only PS/2, serial, and AUX. */
+static bool AllowINT33RMAccess() {
+	if (!dos_kernel_disabled) {
+		if (!cpu.pmode) // not protected mode
+			return true;
+		if (GETFLAG(VM)) // protected mode, but virtual 8086 mode
+			return true;
+	}
+
+	return false;
+}
+
 /* FIXME: Re-test this code */
 void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
     extern bool Mouse_Vertical;
@@ -650,7 +666,7 @@ void Mouse_CursorMoved(float xrel,float yrel,float x,float y,bool emulate) {
     if (emulate) {
         mouse.x += dx;
         mouse.y += dy;
-    } else if (CurMode != NULL) {
+    } else if (AllowINT33RMAccess() && CurMode != NULL) {
         if (CurMode->type == M_TEXT) {
             mouse.x = x*real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)*8;
             mouse.y = y*(IS_EGAVGA_ARCH?(real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS)+1):25)*8;
@@ -1795,10 +1811,10 @@ static Bitu INT74_Handler(void) {
          * the original DOSBox code did it. Doing this allows the INT 33h emulation
          * to draw the cursor while not causing Windows 3.1 to crash or behave
          * erratically. */
-        if (en_int33) DrawCursor();
+        if (AllowINT33RMAccess() && en_int33) DrawCursor();
 
         /* Check for an active Interrupt Handler that will get called */
-        if (mouse.sub_mask & mouse.event_queue[mouse.events].type) {
+        if (AllowINT33RMAccess() && (mouse.sub_mask & mouse.event_queue[mouse.events].type)) {
             reg_ax=mouse.event_queue[mouse.events].type;
             reg_bx=mouse.event_queue[mouse.events].buttons;
             reg_cx=(uint16_t)POS_X;
