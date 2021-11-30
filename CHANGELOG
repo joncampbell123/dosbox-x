@@ -1,4 +1,16 @@
 0.83.20
+  - Fixed INT 13h emulation to no longer call the DOS
+    kernel "DriveManager" if the DOS kernel has been
+    shutdown. This fixes memory corruption issues in
+    the guest OS system run by the BOOT command that
+    can occur when the "swap disks" command is used in
+    the emulator (joncampbell123).
+  - Added code to make sure DOS kernel drives and drive
+    letters have been unmounted and deallocated before
+    booting a guest OS or shutting down DOSBox-X
+    (joncampbell123).
+  - Fixed DTA memory leak from FAT driver if FAT drive
+    was mounted when booting into a guest OS (joncampbell123).
   - Fixed a crash on unmount that occurs if IMGMOUNT
     is used to mount multiple floppy disk images to
     a drive letter. (joncampbell123)
