@@ -1250,7 +1250,7 @@ Geçersiz parametre(ler).
 
 .
 :PROGRAM_PORT_INVALID_NUMBER
-1 ile 9 arasında bir bağlantı noktası numarası belirtilmelidir.
+1 ile 9 arasında bir kapı belirtilmelidir.
 
 .
 :SHELL_CMD_TREE_ERROR
