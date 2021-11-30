@@ -2318,6 +2318,12 @@ CPU 類型
 :MENU:cpu586-166
 奔騰 166MHz MMX (約 97240 個週期)
 .
+:MENU:cpuak6-200
+AMD K6 200MHz (約 130000 個週期)
+.
+:MENU:cpuak6-300
+AMD K6-2 300MHz (約 193000 個週期)
+.
 :MENU:VideoMenu
 影像
 .
