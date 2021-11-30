@@ -1,4 +1,10 @@
 0.83.20
+  - Do not read real-mode data areas from mouse
+    event handling if running a protected mode OS like
+    Windows NT, and disable INT 33h functions when
+    DOS kernel is shut down to boot into a guest OS.
+    Moving the mouse while Windows NT is running should
+    no longer cause page faults and crashes. (joncampbell123).
   - Fixed INT 13h emulation to no longer call the DOS
     kernel "DriveManager" if the DOS kernel has been
     shutdown. This fixes memory corruption issues in
