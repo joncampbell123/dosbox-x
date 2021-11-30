@@ -457,6 +457,7 @@ char * DriveManager::GetDrivePosition(int drive) {
 
 bool drivemanager_init = false;
 bool int13_extensions_enable = true;
+bool int13_disk_change_detect_enable = true;
 
 void DriveManager::Init(Section* s) {
     const Section_prop* section = static_cast<Section_prop*>(s);
@@ -464,7 +465,8 @@ void DriveManager::Init(Section* s) {
 	drivemanager_init = true;
 
 	int13_extensions_enable = section->Get_bool("int 13 extensions");
-	
+	int13_disk_change_detect_enable = section->Get_bool("int 13 disk change detect");
+
 	// setup driveInfos structure
 	currentDrive = 0;
 	for(int i = 0; i < DOS_DRIVES; i++) {

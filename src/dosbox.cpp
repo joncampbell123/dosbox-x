@@ -4243,6 +4243,9 @@ void DOSBOX_SetupConfigSections(void) {
                     "If not set, the mouse pointer position is rounded to the top-left corner of a character cell in text modes.\n"
                     "This option is OFF by default.");
 
+    Pbool = secprop->Add_bool("int 13 disk change detect",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("Enable INT 13h disk change detect function (AH=16h)");
+
     Pbool = secprop->Add_bool("int 13 extensions",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Enable INT 13h extensions (functions 0x40-0x48). You will need this enabled if the virtual hard drive image is 8.4GB or larger.");
 
