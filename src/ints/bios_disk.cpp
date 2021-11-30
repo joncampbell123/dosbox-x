@@ -201,7 +201,7 @@ bool getSwapRequest(void) {
 }
 
 void swapInDrive(int drive, int position=0) {
-    DriveManager::CycleDisks(drive, true, position);
+    if (!dos_kernel_disabled) DriveManager::CycleDisks(drive, true, position);
     /* Hack/feature: rescan all disks as well */
     LOG_MSG("Diskcaching reset for drive %c.", drive+'A');
     if (Drives[drive] != NULL) {
@@ -219,7 +219,7 @@ void swapInDrive(int drive, int position=0) {
 void swapInNextDisk(bool pressed) {
     if (!pressed)
         return;
-    DriveManager::CycleAllDisks();
+    if (!dos_kernel_disabled) DriveManager::CycleAllDisks();
     /* Hack/feature: rescan all disks as well */
     LOG_MSG("Diskcaching reset for floppy drives.");
     for(Bitu i=0;i<2;i++) { /* Swap A: and B: where DOSBox mainline would run through ALL drive letters */
@@ -238,7 +238,7 @@ void swapInNextDisk(bool pressed) {
 void swapInNextCD(bool pressed) {
     if (!pressed)
         return;
-    DriveManager::CycleAllCDs();
+    if (!dos_kernel_disabled) DriveManager::CycleAllCDs();
     /* Hack/feature: rescan all disks as well */
     LOG_MSG("Diskcaching reset for normal mounted drives.");
     for(Bitu i=2;i<DOS_DRIVES;i++) { /* Swap C: D: .... Z: if it is a CD/DVD drive */
