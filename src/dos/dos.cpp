@@ -4350,8 +4350,10 @@ void DOS_ShutdownFiles() {
 void DOS_ShutdownDrives() {
 	for (uint16_t i=0;i<DOS_DRIVES;i++) {
 		if (Drives[i] != NULL) {
-			DriveManager::UnmountDrive(i);
-			Drives[i] = NULL; /* deletes drive but does not set to NULL because surrounding code does that */
+			if (DriveManager::UnmountDrive(i) == 0)
+				Drives[i] = NULL; /* deletes drive but does not set to NULL because surrounding code does that */
+			else
+				LOG(LOG_DOSMISC,LOG_DEBUG)("Failed to unmount drive %c",i+'A'); /* probably drive Z: , UnMount() always returns nonzero */
 		}
 
 		if (Drives[i] != NULL) { /* just in case */
