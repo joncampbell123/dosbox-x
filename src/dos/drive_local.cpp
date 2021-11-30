@@ -314,6 +314,8 @@ template <class MT> int SBCS_From_Host_Find(int c,const MT *map,const size_t map
 
 // TODO: This is SLOW. Optimize.
 template <class MT> int DBCS_From_Host_Find(int c,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
+    if ((MT)c>=0x20 && (MT)c<0x80 && !(altcp && dos.loaded_codepage == altcp) && !(customcp && dos.loaded_codepage == customcp)) return c;
+
     for (size_t h=0;h < 1024;h++) {
         MT ofs = hitbl[h];
 
