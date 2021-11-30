@@ -29,6 +29,7 @@
 #include "control.h"
 #include "dosbox.h"
 #include "dos_inc.h"
+#include "bios_disk.h"
 #include "bios.h"
 #include "logging.h"
 #include "mem.h"
@@ -4357,6 +4358,13 @@ void DOS_ShutdownDrives() {
 			delete Drives[i];
 			Drives[i] = NULL;
 		}
+	}
+
+	if (imgDTA != NULL) { /* NTS: Allocated by FAT driver */
+		delete imgDTA;
+		imgDTA = NULL;
+		imgDTASeg = 0;
+		imgDTAPtr = 0;
 	}
 }
 
