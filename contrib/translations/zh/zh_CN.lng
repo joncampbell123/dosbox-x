@@ -2311,6 +2311,9 @@ CPU 类型
 :MENU:cpu586-166
 奔腾 166MHz MMX (约 97240 周期)
 .
+:MENU:cpuak6-166
+AMD K6 166MHz (约 110000 周期)
+.
 :MENU:cpuak6-200
 AMD K6 200MHz (约 130000 周期)
 .

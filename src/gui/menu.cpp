@@ -240,6 +240,7 @@ static const char *def_menu_cpu_speed[] =
     "cpu586-120",
     "cpu586-133",
     "cpu586-166",
+    "cpuak6-166",
     "cpuak6-200",
     "cpuak6-300",
     NULL

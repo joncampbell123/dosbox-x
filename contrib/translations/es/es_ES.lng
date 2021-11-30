@@ -2348,6 +2348,9 @@ Pentium 133MHz     (~80000 ciclos)
 :MENU:cpu586-166
 Pentium 166MHz MMX (~97240 ciclos)
 .
+:MENU:cpuak6-166
+AMD K6 166MHz      (~110000 ciclos)
+.
 :MENU:cpuak6-200
 AMD K6 200MHz      (~130000 ciclos)
 .

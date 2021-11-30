@@ -86,6 +86,9 @@
   - Added warning message if DOS/V or Japanese PC-98/AX
     machine type is selected and a language file with
     an incompatible code page is specified. (Wengier)
+  - Added "AMD K6 166 MHz", "AMD K6 200 MHz" and "AMD
+    K6-2 300 MHz" menu options within the menu group
+    "Emulate CPU speed" (under "CPU"). (Wengier)
   - Added a TrueType font selection page into Windows
     installer, which will show when TrueType font (TTF)
     output is selected for new installations. (Wengier)
