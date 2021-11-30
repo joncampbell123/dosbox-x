@@ -1,4 +1,10 @@
 0.83.20
+  - Added INT 13h AH=16h, detect disk change. This
+    is controlled by a dosbox.conf option in case
+    any older OS cannot handle it. INT 13h AH=15h
+    will report a floppy drive with change line
+    support if enabled. MS-DOS seems to work just
+    fine with it. (joncampbell123)
   - Implemented support for Pentium II cputype (with
     the setting "cputype=pentium_ii" in [cpu] section),
     and added Pentium II SYSENTER/SYSEXIT instructions
