@@ -94,7 +94,7 @@ extern int initgl, lastcp;
 extern bool font_16_init;
 extern uint8_t int10_font_16[256 * 16], int10_font_16_init[256 * 16];
 
-SDL_OpenGL sdl_opengl;
+SDL_OpenGL sdl_opengl = {0};
 
 int Voodoo_OGL_GetWidth();
 int Voodoo_OGL_GetHeight();
@@ -573,14 +573,14 @@ Bitu OUTPUT_OPENGL_SetSize()
 
     if (sdl_opengl.pixel_buffer_object)
     {
-        glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
-        if (sdl_opengl.buffer) glDeleteBuffersARB(1, &sdl_opengl.buffer);
+	    glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
+	    if (sdl_opengl.buffer) glDeleteBuffersARB(1, &sdl_opengl.buffer);
+	    sdl_opengl.buffer = 0;
     }
-    else if (sdl_opengl.framebuf)
-    {
-        free(sdl_opengl.framebuf);
+    if (sdl_opengl.framebuf != NULL) {
+	    free(sdl_opengl.framebuf);
+	    sdl_opengl.framebuf = NULL;
     }
-    sdl_opengl.framebuf = 0;
 
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     Section_prop* sec = static_cast<Section_prop*>(control->GetSection("vsync"));
@@ -1101,7 +1101,16 @@ void OUTPUT_OPENGL_EndUpdate(const uint16_t *changedLines)
 
 void OUTPUT_OPENGL_Shutdown()
 {
-    // nothing to shutdown (yet?)
+	if (sdl_opengl.pixel_buffer_object)
+	{
+		glBindBufferARB(GL_PIXEL_UNPACK_BUFFER_EXT, 0);
+		if (sdl_opengl.buffer) glDeleteBuffersARB(1, &sdl_opengl.buffer);
+		sdl_opengl.buffer = 0;
+	}
+	if (sdl_opengl.framebuf != NULL) {
+		free(sdl_opengl.framebuf);
+		sdl_opengl.framebuf = NULL;
+	}
 }
 
 #endif
