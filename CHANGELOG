@@ -59,10 +59,10 @@
     e.g. "IMGSWAP D" to swap C: drive to the next swap
     position, and "IMGSWAP A 3" to swap A: drive to
     the 3nd swap position. (Wengier)
-  - Added DOS commands COMP, DISKCOPY, EDLIN, FC, PRINT
-    and SHUTDOWN (all but last one from FreeDOS) to the
-    built-in Z: drive. Updated or recompiled EDIT and
-    EDLIN commands to support LFNs. (Wengier)
+  - Added DOS commands including COMP, DISKCOPY, EDLIN,
+    FC, FILES, PRINT, and SHUTDOWN (most from FreeDOS)
+    to the built-in Z: drive. Updated or recompiled
+    EDIT and EDLIN commands to support LFNs. (Wengier)
   - The CAPMOUSE command without a parameter now shows
     whether the mouse is captured/released. (Wengier)
   - The command "config -set" is now case-insensitive

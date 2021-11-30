@@ -1697,6 +1697,7 @@ void SHELL_Init() {
 	VFILE_RegisterBuiltinFileBlob(bfb_MOVE_EXE, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_FIND_EXE, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_FCBS_COM, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_FILES_COM, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_LASTDRIV_COM, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_REPLACE_EXE, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_SORT_EXE, "/DOS/");

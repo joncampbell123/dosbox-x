@@ -195,6 +195,9 @@
     <ClCompile Include="..\src\builtin\fcbs_com.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\builtin\files_com.cpp">
+      <Filter>Sources\builtin</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\builtin\fdisk_exe.cpp">
       <Filter>Sources\builtin</Filter>
     </ClCompile>

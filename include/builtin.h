@@ -35,6 +35,7 @@ extern struct BuiltinFileBlob bfb_EDIT_COM;		// EDIT.COM
 extern struct BuiltinFileBlob bfb_DEVICE_COM;		// DEVICE.COM
 extern struct BuiltinFileBlob bfb_BUFFERS_COM;		// BUFFERS.COM
 extern struct BuiltinFileBlob bfb_LASTDRIV_COM;		// LASTDRIV.COM
+extern struct BuiltinFileBlob bfb_FILES_COM;		// FILES.COM
 extern struct BuiltinFileBlob bfb_FCBS_COM;		// FCBS.COM
 extern struct BuiltinFileBlob bfb_FC_EXE;		// FC.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_COMP_COM;		// COMP.COM (FreeDOS)
