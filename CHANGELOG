@@ -1,4 +1,7 @@
 0.83.20
+  - Fixed a crash on unmount that occurs if IMGMOUNT
+    is used to mount multiple floppy disk images to
+    a drive letter. (joncampbell123)
   - Added INT 13h AH=16h, detect disk change. This
     is controlled by a dosbox.conf option in case
     any older OS cannot handle it. INT 13h AH=15h
