@@ -5642,12 +5642,9 @@ private:
                         swapInDisksSpecificDrive = driveIndex;
 
                         for (size_t si=1;si < MAX_SWAPPABLE_DISKS && si < paths.size();si++) {
-                            imageDisk *img = MountImageNone(paths[si].c_str(), diskfiles[si], sizes, reserved_cylinders, roflag);
-
-                            if (img != NULL) {
-                                diskSwap[si] = img;
-                                diskSwap[si]->Addref();
-                            }
+                            imageDisk *img = ((fatDrive*)imgDisks[si])->loadedDisk;
+                            diskSwap[si] = img;
+                            diskSwap[si]->Addref();
                         }
                     }
                 }
