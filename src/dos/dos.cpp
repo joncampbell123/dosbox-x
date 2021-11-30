@@ -4348,8 +4348,15 @@ void DOS_ShutdownFiles() {
 
 void DOS_ShutdownDrives() {
 	for (uint16_t i=0;i<DOS_DRIVES;i++) {
-		delete Drives[i];
-		Drives[i] = NULL;
+		if (Drives[i] != NULL) {
+			DriveManager::UnmountDrive(i);
+			Drives[i] = NULL; /* deletes drive but does not set to NULL because surrounding code does that */
+		}
+
+		if (Drives[i] != NULL) { /* just in case */
+			delete Drives[i];
+			Drives[i] = NULL;
+		}
 	}
 }
 
