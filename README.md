@@ -53,6 +53,8 @@ Although based on the DOSBox project, DOSBox-X is now a separate project because
 
 * Support for more DOS commands and built-in external tools
 
+* Support for different ways to customize the internal Z: drive
+
 * Support for CPU types like Pentium Pro/II and MMX instructions
 
 * Support for IDE interfaces and improved Windows 3.x/9x emulation
