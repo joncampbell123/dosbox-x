@@ -114,6 +114,9 @@
     DOS software like the Hyper Editor 5.03 (漢書5) makes
     use of ChinaSea characters. Also moved "gbk" config
     option from [dosv] to [ttf] section. (Wengier)
+  - Added config option "forcesquarecorner" (in [sdl]
+    section) which when set to "true" will force to
+    disable rounded corners on Windows 11. (Wengier)
   - Added code to INT 18h emulation (IBM PC mode) to
     jump to ROM BASIC if the user provided an IBM
     ROM BASIC image to load. (joncampbell123)

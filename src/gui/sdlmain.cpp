@@ -375,6 +375,35 @@ BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam
 	return TRUE;
 
 }
+enum class CornerPreference {
+    Default    = 0,
+    DoNotRound = 1,
+    Round      = 2,
+    RoundSmall = 3,
+};
+bool UpdateWindows11RoundCorners(HWND hWnd, CornerPreference cornerPreference) {
+    typedef HRESULT(WINAPI *PFNSETWINDOWATTRIBUTE)(HWND hWnd, DWORD dwAttribute, LPCVOID pvAttribute, DWORD cbAttribute);
+    enum DWMWINDOWATTRIBUTE {
+        DWMWA_WINDOW_CORNER_PREFERENCE = 33
+    };
+    enum DWM_WINDOW_CORNER_PREFERENCE {
+        DWMWCP_DEFAULT    = 0,
+        DWMWCP_DONOTROUND = 1,
+        DWMWCP_ROUND      = 2,
+        DWMWCP_ROUNDSMALL = 3
+    };
+    HMODULE hDwmApi = ::LoadLibrary("dwmapi.dll");
+    if (hDwmApi) {
+        auto *pfnSetWindowAttribute = reinterpret_cast<PFNSETWINDOWATTRIBUTE>(GetProcAddress(hDwmApi, "DwmSetWindowAttribute"));
+        if (pfnSetWindowAttribute) {
+            auto preference = static_cast<DWM_WINDOW_CORNER_PREFERENCE>(cornerPreference);
+            HRESULT res = pfnSetWindowAttribute(hWnd, DWMWA_WINDOW_CORNER_PREFERENCE, &preference, sizeof(DWM_WINDOW_CORNER_PREFERENCE));
+            return res == S_OK;
+        }
+        ::FreeLibrary(hDwmApi);
+    }
+    return false;
+}
 #endif
 extern int bootdrive, resolveopt;
 extern int dos_clipboard_device_access;
@@ -2220,7 +2249,7 @@ Bitu GFX_GetBestMode(Bitu flags)
             retFlags = OUTPUT_SURFACE_GetBestMode(flags);
         }
         if (retFlags == 0)
-            LOG_MSG("SDL:Failed everything including falling back to surface GFX_GetBestMode"); // completely failed it seems
+            LOG_MSG("SDL: Failed everything including falling back to surface GFX_GetBestMode"); // completely failed it seems
     }
 
     return retFlags;
@@ -3131,7 +3160,7 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
             retFlags = OUTPUT_SURFACE_SetSize();
         }
         if (retFlags == 0)
-            LOG_MSG("SDL:Failed everything including falling back to surface in GFX_GetSize"); // completely failed it seems
+            LOG_MSG("SDL: Failed everything including falling back to surface in GFX_GetSize"); // completely failed it seems
     }
 
     // we have selected an actual desktop type
@@ -4003,7 +4032,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         const char * fbName = ttf_section->Get_string("fontbold");
         const char * fiName = ttf_section->Get_string("fontital");
         const char * fbiName = ttf_section->Get_string("fontboit");
-        LOG_MSG("SDL:TTF activated %s", fName);
+        LOG_MSG("SDL: TTF activated %s", fName);
         force_conversion = true;
         int cp = dos.loaded_codepage;
         bool trysgf = false;
@@ -4273,7 +4302,7 @@ void change_output(int output) {
 #endif
 
     default:
-        LOG_MSG("SDL:Unsupported output device %d, switching back to surface",output);
+        LOG_MSG("SDL: Unsupported output device %d, switching back to surface",output);
         OUTPUT_SURFACE_Select();
         break;
     }
@@ -5130,11 +5159,11 @@ void GFX_SetPalette(Bitu start,Bitu count,GFX_PalEntry * entries) {
     /* I should probably not change the GFX_PalEntry :) */
     if (sdl.surface->flags & SDL_HWPALETTE) {
         if (!SDL_SetPalette(sdl.surface,SDL_PHYSPAL,(SDL_Color *)entries,(int)start,(int)count)) {
-            E_Exit("SDL:Can't set palette");
+            E_Exit("SDL: Cannot set palette");
         }
     } else {
         if (!SDL_SetPalette(sdl.surface,SDL_LOGPAL,(SDL_Color *)entries,(int)start,(int)count)) {
-            E_Exit("SDL:Can't set palette");
+            E_Exit("SDL: Cannot set palette");
         }
     }
 #endif
@@ -5955,7 +5984,7 @@ static void GUI_StartUp() {
     {
         OUTPUT_DIRECT3D_Select();
 #if LOG_D3D
-        LOG_MSG("SDL:Direct3D activated");
+        LOG_MSG("SDL: Direct3D activated");
 #endif
 #endif
     }
@@ -5967,7 +5996,7 @@ static void GUI_StartUp() {
 #endif
     else 
     {
-        LOG_MSG("SDL:Unsupported output device %s, switching back to surface",output.c_str());
+        LOG_MSG("SDL: Unsupported output device %s, switching back to surface",output.c_str());
         OUTPUT_SURFACE_Select(); // should not reach there anymore
     }
 
@@ -6040,7 +6069,7 @@ static void GUI_StartUp() {
     }
     //SDL_Rect splash_rect=GFX_GetSDLSurfaceSubwindowDims(640,400);
     sdl.desktop.pixelFormat = SDL_GetWindowPixelFormat(sdl.window);
-    LOG_MSG("SDL:Current window pixel format: %s", SDL_GetPixelFormatName(sdl.desktop.pixelFormat));
+    LOG_MSG("SDL: Current window pixel format: %s", SDL_GetPixelFormatName(sdl.desktop.pixelFormat));
     sdl.desktop.bpp=8*SDL_BYTESPERPIXEL(sdl.desktop.pixelFormat);
     if (SDL_BITSPERPIXEL(sdl.desktop.pixelFormat) == 24)
         LOG_MSG("SDL: You are running in 24 bpp mode, this will slow down things!");
@@ -6053,7 +6082,7 @@ static void GUI_StartUp() {
     sdl.must_redraw_all = true;
     sdl.desktop.bpp=sdl.surface->format->BitsPerPixel;
     if (sdl.desktop.bpp==24)
-        LOG_MSG("SDL:You are running in 24 bpp mode, this will slow down things!");
+        LOG_MSG("SDL: You are running in 24 bpp mode, this will slow down things!");
 #endif
 
     GFX_LogSDLState();
@@ -6089,6 +6118,10 @@ static void GUI_StartUp() {
     /* Please leave the Splash screen stuff in working order in DOSBox-X. We spend a lot of time making DOSBox-X. */
     //ShowSplashScreen();   /* I will keep the splash screen alive. But now, the BIOS will do it --J.C. */
 
+#if defined(WIN32) && !defined(HX_DOS)
+    if (section->Get_bool("forcesquarecorner") && UpdateWindows11RoundCorners(GetHWND(), CornerPreference::DoNotRound))
+        LOG_MSG("SDL: Windows 11 round corners will be disabled.");
+#endif
     transparency = 0;
     SetWindowTransparency(section->Get_int("transparency"));
     UpdateWindowDimensions();
@@ -8707,16 +8740,20 @@ void SDL_SetupConfigSection() {
     Pstring = sdl_sec->Add_path("mapperfile_sdl2",Property::Changeable::Always,"");
     Pstring->Set_help("File used to load/save the key/event mappings from DOSBox-X SDL2 builds. If set it will override \"mapperfile\" for SDL2 builds.");
 
+    Pbool = sdl_sec->Add_bool("forcesquarecorner", Property::Changeable::OnlyAtStart, true);
+    Pbool->Set_help("If set, DOSBox-X will force square corners (instead of round corners) for the DOSBox-X window when running in Windows 11.");
+
 	const char* truefalseautoopt[] = { "true", "false", "1", "0", "auto", 0};
     Pstring = sdl_sec->Add_string("usescancodes",Property::Changeable::OnlyAtStart,"auto");
     Pstring->Set_values(truefalseautoopt);
-    Pstring->Set_help("Avoid usage of symkeys, might not work on all operating systems.\n"
-        "If set to \"auto\" (default), it is enabled for SDL1 and non-US keyboards.");
+    Pstring->Set_help("Avoid usage of symkeys, in favor of scancodes. Might not work on all operating systems.\n"
+        "If set to \"auto\" (default), it is enabled when using non-US keyboards in SDL1 builds.");
     Pstring->SetBasic(true);
 
     Pint = sdl_sec->Add_int("overscan",Property::Changeable::Always, 0);
     Pint->SetMinMax(0,10);
-    Pint->Set_help("Width of overscan border (0 to 10). (works only if output=surface)");
+    Pint->Set_help("Width of the overscan border (0 to 10) for the \"surface\" output.");
+    Pint->SetBasic(true);
 
     Pstring = sdl_sec->Add_string("titlebar", Property::Changeable::Always, "");
     Pstring->Set_help("Change the string displayed in the DOSBox-X title bar.");
