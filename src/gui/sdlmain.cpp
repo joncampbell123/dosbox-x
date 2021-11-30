@@ -11254,9 +11254,9 @@ void Restart_config_file() {
         return;
     }
     std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
-    const char *lFilterPatterns[] = {"*.conf","*.CONF"};
-    const char *lFilterDescription = "DOSBox-X config files (*.conf)";
-    char const * lTheOpenFileName = tinyfd_openFileDialog("Select config file",cwd.c_str(),2,lFilterPatterns,lFilterDescription,0);
+    const char *lFilterPatterns[] = {"*.conf","*.CONF","*.cfg","*.CFG"};
+    const char *lFilterDescription = "DOSBox-X config files (*.conf, *.cfg)";
+    char const * lTheOpenFileName = tinyfd_openFileDialog("Select config file",cwd.c_str(),4,lFilterPatterns,lFilterDescription,0);
 
     if (lTheOpenFileName) {
         /* Windows will fill lpstrFile with the FULL PATH.
