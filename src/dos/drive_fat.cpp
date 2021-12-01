@@ -15,7 +15,11 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-
+/* VIM ref for tabbing:
+ *
+ * set tabstop=8 | set softtabstop=8 | set shiftwidth=8 | set expandtab
+ *
+ */
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
