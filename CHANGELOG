@@ -1,4 +1,6 @@
 0.83.20
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.20.html
   - Implemented support for Pentium II cputype (with
     the setting "cputype=pentium_ii" in [cpu] section),
     and added Pentium II SYSENTER/SYSEXIT instructions
@@ -42,7 +44,7 @@
     serial?=..." and "config -set parallel?=..." will
     also auto-call these commands. (sduensin & Wengier)
   - Added IMGSWAP command to swap disks for drives.
-    e.g. "IMGSWAP D" to swap C: drive to the next swap
+    e.g. "IMGSWAP D" to swap D: drive to the next swap
     position, and "IMGSWAP A 3" to swap A: drive to
     the 3nd swap position. (Wengier)
   - Added DOS commands including COMP, DISKCOPY, EDLIN,
