@@ -1588,7 +1588,8 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 			if (optB) {
 				// this overrides pretty much everything
 				if (strcmp(".",uselfn&&!optZ?lname:name) && strcmp("..",uselfn&&!optZ?lname:name)) {
-					shell->WriteOut("%s\n",uselfn&&!optZ?lname:name);
+					shell->WriteOut_NoParsing(uselfn&&!optZ?lname:name, true);
+					shell->WriteOut("\n");
 				}
 			} else {
 				if (first&&optS) {
@@ -1626,7 +1627,12 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 							for (size_t i=14-namelen;i>0;i--) shell->WriteOut(" ");
 						}
 					} else {
-						shell->WriteOut("%-8s %-3s   %-16s %s %s %s\n",name,ext,"<DIR>",FormatDate(year,month,day),FormatTime(hour,minute,100,100),uselfn&&!optZ?lname:"");
+						shell->WriteOut("%-8s %-3s   %-16s %s %s",name,ext,"<DIR>",FormatDate(year,month,day),FormatTime(hour,minute,100,100));
+                        if (uselfn&&!optZ) {
+                            shell->WriteOut(" ");
+                            shell->WriteOut_NoParsing(lname, true);
+                        }
+                        shell->WriteOut("\n");
 					}
 					dir_count++;
 				} else {
@@ -1634,7 +1640,12 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 						shell->WriteOut("%-16s",name);
 					} else {
 						FormatNumber(size,numformat);
-						shell->WriteOut("%-8s %-3s   %16s %s %s %s\n",name,ext,numformat,FormatDate(year,month,day),FormatTime(hour,minute,100,100),uselfn&&!optZ?lname:"");
+						shell->WriteOut("%-8s %-3s   %16s %s %s",name,ext,numformat,FormatDate(year,month,day),FormatTime(hour,minute,100,100));
+                        if (uselfn&&!optZ) {
+                            shell->WriteOut(" ");
+                            shell->WriteOut_NoParsing(lname, true);
+                        }
+                        shell->WriteOut("\n");
 					}
 					if (optS) {
 						cfile_count++;
@@ -2049,7 +2060,9 @@ void DOS_Shell::CMD_LS(char *args) {
 		if (entry.attr & DOS_ATTR_DIRECTORY) {
 			if (!uselfn||optZ) upcase(name);
 			if (col==1) {
-				WriteOut("\033[34;1m%s\033[0m\n", name.c_str());
+				WriteOut("\033[34;1m");
+				WriteOut_NoParsing(name.c_str(), true);
+				WriteOut("\033[0m\n");
 				p_count++;
 			} else
 				WriteOut("\033[34;1m%s\033[0m%-*s", name.c_str(), max[w_count % col]-name.size(), "");
@@ -2062,7 +2075,9 @@ void DOS_Shell::CMD_LS(char *args) {
 				if (ext==".exe"||ext==".com"||ext==".bat") is_executable=true;
 			}
 			if (col==1) {
-				WriteOut(is_executable?"\033[32;1m%s\033[0m\n":"%s\n", name.c_str());
+				if (is_executable) WriteOut("\033[32;1m");
+				WriteOut_NoParsing(name.c_str(), true);
+				WriteOut(is_executable?"\033[0m\n":"\n");
 				p_count++;
 			} else
 				WriteOut(is_executable?"\033[32;1m%-*s\033[0m":"%-*s", max[w_count % col], name.c_str());

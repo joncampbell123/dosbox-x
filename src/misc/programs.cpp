@@ -55,7 +55,7 @@ Bitu call_program;
 extern const char *modifier;
 extern std::string langname, configfile;
 extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor;
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, enable_dbcs_tables;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, usecon, enable_dbcs_tables;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -94,6 +94,7 @@ public:
 };
 
 static std::vector<InternalProgramEntry*> internal_progs;
+bool isDBCSCP(void), CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4);
 void EMS_DoShutDown(void), UpdateDefaultPrinterFont(void), GFX_ForceRedrawScreen(void), resetFontSize(void), ttf_reset_colors(void), makestdcp950table(void);
 void EMS_Startup(Section* sec), DOSV_SetConfig(Section_prop *section), DOSBOX_UnlockSpeed2(bool pressed), RebootLanguage(std::string filename, bool confirm=false), SetWindowTransparency(int trans), SetOutputSwitch(const char *outputstr), runSerial(const char *str), runParallel(const char *str);
 
@@ -252,19 +253,37 @@ void Program::WriteOut(const char *format, const char *arguments) {
 //	DOS_WriteFile(STDOUT,(uint8_t *)buf,&size);
 }
 
-void Program::WriteOut_NoParsing(const char * format) {
+int Program::WriteOut_NoParsing(const char * format, bool dbcs) {
 	uint16_t size = (uint16_t)strlen(format);
 	char const* buf = format;
+	char last2 = 0, last3 = 0;
+	int lastcol = 0, COLS=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+	uint8_t page=usecon?real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE):0;
+	bool lead=false;
 	dos.internal_output=true;
+	int rcount = 0;
 	for(uint16_t i = 0; i < size;i++) {
 		uint8_t out;uint16_t s=1;
-		if (buf[i] == 0xA && last_written_character != 0xD) {
+		BIOS_NCOLS;
+		if (!CURSOR_POS_COL(page)) last2=last3=0;
+		if (lead) lead = false;
+		else if ((IS_PC98_ARCH || isDBCSCP()) && dbcs_sbcs && dbcs && isKanji1(buf[i])) lead = true;
+		if (buf[i] == 0xA) {
+			if (last_written_character != 0xD) {out = 0xD;DOS_WriteFile(STDOUT,&out,&s);}
+			if (usecon) rcount++;
+		} else if (usecon && lead && CURSOR_POS_COL(page)==COLS-1 && !CheckBoxDrawing(last3, last2, last_written_character, buf[i])) {
 			out = 0xD;DOS_WriteFile(STDOUT,&out,&s);
-		}
+			out = 0xA;DOS_WriteFile(STDOUT,&out,&s);
+			rcount++;
+		} else if (usecon && !CURSOR_POS_COL(page) && lastcol == COLS-1)
+			rcount++;
+		lastcol=CURSOR_POS_COL(page);
+		last3=last2;last2=last_written_character;
 		last_written_character = (char)(out = (uint8_t)buf[i]);
 		DOS_WriteFile(STDOUT,&out,&s);
 	}
 	dos.internal_output=false;
+	return rcount;
 
 //	DOS_WriteFile(STDOUT,(uint8_t *)format,&size);
 }
