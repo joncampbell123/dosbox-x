@@ -877,13 +877,10 @@ As such it is recommended to disable SmartDrive.</p>
 <div class="sect2">
 <h3 id="_shutdown_dos">Shutdown DOS</h3>
 <div class="paragraph">
-<p>Normally when running DOSBox-X, you can simply <code>EXIT</code> and DOSBox-X will close.
-But when your running a real DOS Disk image, this no longer works.</p>
+<p>Normally when running DOSBox-X, you can simply type either <code>EXIT</code> or <code>SHUTDOWN /S</code> command and DOSBox-X will close. The <code>/S</code> option of <code>SHUTDOWN</code> command instructs DOSBox to shutdown, and it relies on the APM support provided by DOSBox-X. It has become a built-in DOS command as of DOSBox-X version 0.83.20.</p>
 </div>
 <div class="paragraph">
-<p>The solution to this is a small 3rd party utility called <code>ATXOFF.COM</code>.
-This can be useful for scripted operations, for instance if your running a program from AUTOEXEC.BAT, and want it to shutdown DOSBox-X when it finishes.
-ATXOFF relies on the APM support provided by DOSBox-X.</p>
+<p>On the other hand, if you are running a real DOS disk image, you will need to copy the <code>SHUTDOWN.COM</code> program (located in the <code>Z:\BIN</code> directory) to your disk image. This can be useful for scripted operations, for instance if your running a program from AUTOEXEC.BAT, and want it to shutdown DOSBox-X when it finishes.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -892,7 +889,7 @@ ATXOFF relies on the APM support provided by DOSBox-X.</p>
 <div class="title">Note</div>
 </td>
 <td class="content">
-If SMARTDRV is being used, you MUST do a <code>SMARTDRV /C</code> <strong>before</strong> running ATXOFF as otherwise you risk filesystem corruption.
+If SMARTDRV is being used, you MUST do a <code>SMARTDRV /C</code> <strong>before</strong> invoking the <code>SHUTDOWN</code> command as otherwise you risk filesystem corruption.
 </td>
 </tr>
 </table>
@@ -907,7 +904,7 @@ SET TEMP=C:\WINDOWS\TEMP
 C:\WINDOWS\SMARTDRV.EXE
 C:\WINDOWS\WIN.COM
 C:\WINDOWS\SMARTDRV.EXE /C
-ATXOFF.COM</pre>
+SHUTDOWN.COM /S</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -925,8 +922,8 @@ You can bypass it by editing CONFIG.SYS and changing <code>DEVICE=C:\DOS\HIMEM.S
 <h3 id="_reboot_dos">Reboot DOS</h3>
 <div class="paragraph">
 <p>You can reboot (restart) DOS by selecting the "Reboot guest system" menu item (under "Main").
-If for some reason you want to do a reboot from the command-line, look for a 3rd party utility called <code>RESTART.COM</code>.
-For rebooting DOS using such a utility you may also want to check the "Enable quick reboot" menu item (under "DOS") for a faster restart of the guest DOS system.</p>
+If for some reason you want to do a reboot from the command-line, you can do so with the command <code>SHUTDOWN /R</code>. For running real DOS disk images, you need to copy the <code>SHUTDOWN.COM</code> program located in the <code>Z:\BIN</code> directory to your disk image.
+For rebooting DOS with such a command you may also want to check the "Enable quick reboot" menu item (under "DOS") for a faster restart of the guest DOS system.</p>
 </div>
 </div>
 <div class="sect2">
@@ -955,7 +952,7 @@ Alternatively you can remove the boot menu by booting to DOS and running <code>F
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-11-01 19:42:46 -0400
+Last updated 2021-12-01 04:05:49 -0500
 </div>
 </div>
 </body>

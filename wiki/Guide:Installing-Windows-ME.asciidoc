@@ -46,6 +46,7 @@ vesa modelist height limit=0
 ver=8.0
 lfn=false
 hard drive data rate limit=0
+floppy drive data rate limit=0
 
 [cpu]
 cputype=pentium_mmx

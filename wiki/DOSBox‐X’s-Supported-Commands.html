@@ -673,6 +673,18 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
+<p><strong>COMP</strong> (external command)</p>
+<div class="paragraph">
+<p>Compares files.</p>
+</div>
+<div class="paragraph">
+<p>Usage: COMP file1 [file2] [options]</p>
+</div>
+<div class="paragraph">
+<p>Note: It uses the COMP command from FreeDOS.</p>
+</div>
+</li>
+<li>
 <p><strong>CONFIG</strong> (external command)</p>
 <div class="paragraph">
 <p>Starts DOSBox-X&#8217;s command-line configuration utility to change it settings.</p>
@@ -790,6 +802,18 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
+<p><strong>DISKCOPY</strong> (external command)</p>
+<div class="paragraph">
+<p>Optimizes file loading times by moving file fragments together.</p>
+</div>
+<div class="paragraph">
+<p>Usage: DISKCOPY [drive1:] [drive2:] [options]</p>
+</div>
+<div class="paragraph">
+<p>Note: It uses the DISKCOPY command from FreeDOS.</p>
+</div>
+</li>
+<li>
 <p><strong>DOS32A</strong> (external command)</p>
 <div class="paragraph">
 <p>Starts DOS32A, a 32-bit DOS extender used by various DOS games/applications.</p>
@@ -867,10 +891,16 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>Starts the full-screen file editor.</p>
 </div>
 <div class="paragraph">
-<p>Usage: EDIT [/B] [/I] [/H] [/R] [file(s)]</p>
+<p>Usage: EDIT [file] [-l LineNum]</p>
+</div>
+</li>
+<li>
+<p><strong>EDLIN</strong> (external command)</p>
+<div class="paragraph">
+<p>Edits files by lines.</p>
 </div>
 <div class="paragraph">
-<p>Note: It uses the EDIT command from FreeDOS.</p>
+<p>Usage: EDLIN [file]</p>
 </div>
 </li>
 <li>
@@ -880,6 +910,18 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div class="paragraph">
 <p>Usage: Simply enter EXIT without any parameters.</p>
+</div>
+</li>
+<li>
+<p><strong>FC</strong> (external command)</p>
+<div class="paragraph">
+<p>Compares two files or sets of files and displays the differences between them.</p>
+</div>
+<div class="paragraph">
+<p>Usage: FC file1 file2 [options]</p>
+</div>
+<div class="paragraph">
+<p>Note: It uses the FC command from FreeDOS.</p>
 </div>
 </li>
 <li>
@@ -901,6 +943,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div class="paragraph">
 <p>Note: It uses the FDISK command from FreeDOS.</p>
+</div>
+</li>
+<li>
+<p><strong>FILES</strong> (external command)</p>
+<div class="paragraph">
+<p>Displays or changes the CONFIG.SYS&#8217;s FILES setting.</p>
+</div>
+<div class="paragraph">
+<p>Usage: FILES [filenum]</p>
 </div>
 </li>
 <li>
@@ -1003,6 +1054,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div class="paragraph">
 <p>Note: You can write-protect a disk image by putting a leading colon (:) before the image file name in the default setting.</p>
+</div>
+</li>
+<li>
+<p><strong>IMGSWAP</strong> (external command)</p>
+<div class="paragraph">
+<p>Swaps floppy, hard drive and optical disc images (when there are multiple disks mounted on the same drive).</p>
+</div>
+<div class="paragraph">
+<p>Usage: IMGSWAP drive [position]</p>
 </div>
 </li>
 <li>
@@ -1186,6 +1246,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
+<p><strong>PARALLEL</strong> (external command)</p>
+<div class="paragraph">
+<p>Views or changes the parallel port settings.</p>
+</div>
+<div class="paragraph">
+<p>Usage: PARALLEL [port] [type] [option]</p>
+</div>
+</li>
+<li>
 <p><strong>PATH</strong> (internal command)</p>
 <div class="paragraph">
 <p>Displays/Sets a search patch for executable files.</p>
@@ -1210,6 +1279,18 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div class="paragraph">
 <p>Usage: POPD</p>
+</div>
+</li>
+<li>
+<p><strong>PRINT</strong> (external command)</p>
+<div class="paragraph">
+<p>Prints a file in the background.</p>
+</div>
+<div class="paragraph">
+<p>Usage: PRINT file [options]</p>
+</div>
+<div class="paragraph">
+<p>Note: It uses the PRINT command from FreeDOS.</p>
 </div>
 </li>
 <li>
@@ -1288,6 +1369,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
+<p><strong>SERIAL</strong> (external command)</p>
+<div class="paragraph">
+<p>Views or changes the serial port settings.</p>
+</div>
+<div class="paragraph">
+<p>Usage: SERIAL [port] [type] [option]</p>
+</div>
+</li>
+<li>
 <p><strong>SET</strong> (internal command)</p>
 <div class="paragraph">
 <p>Displays and sets environment variables.</p>
@@ -1315,6 +1405,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div class="paragraph">
 <p>Usage: Simply enter SHIFT without any parameters.</p>
+</div>
+</li>
+<li>
+<p><strong>SHUTDOWN</strong> (external command)</p>
+<div class="paragraph">
+<p>Restarts or shuts down DOSBox-X.</p>
+</div>
+<div class="paragraph">
+<p>Usage: SHUTDOWN [/R|/S]</p>
 </div>
 </li>
 <li>
@@ -1441,18 +1540,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><strong>VTEXT</strong> (external command)</p>
-<div class="paragraph">
-<p>Changes V-text mode for the DOS/V emulation.</p>
-</div>
-<div class="paragraph">
-<p>Usage: VTEXT [0|1|2]</p>
-</div>
-<div class="paragraph">
-<p>Note: This command is only available in DOS/V emulation mode.</p>
-</div>
-</li>
-<li>
 <p><strong>XCOPY</strong> (external command)</p>
 <div class="paragraph">
 <p>Copies files and directory trees.</p>
@@ -1462,6 +1549,82 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div class="paragraph">
 <p>Note: It uses the XCOPY command from FreeDOS.</p>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The following commands are for switching modes in the text mode:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>80x25</strong>, <strong>80x43</strong>, <strong>80x50</strong>, <strong>80x60</strong>, <strong>132x25</strong>, <strong>132x43</strong>, <strong>132x50</strong>, <strong>132x60</strong> (external command)</p>
+<div class="paragraph">
+<p>Changes the text mode to 80x25, 80x43, 80x50, 80x60, 132x25, 132x43, 132x50, and 132x60 modes respectively.</p>
+</div>
+<div class="paragraph">
+<p>Note: This command is only available with a VGA machine type.</p>
+</div>
+</li>
+<li>
+<p><strong>CGA</strong> (external command)</p>
+<div class="paragraph">
+<p>Changes the video mode to the CGA emulation mode.</p>
+</div>
+<div class="paragraph">
+<p>Usage: CGA</p>
+</div>
+<div class="paragraph">
+<p>Note: This command is only available with a VGA machine type.</p>
+</div>
+</li>
+<li>
+<p><strong>DCGA</strong> (external command)</p>
+<div class="paragraph">
+<p>Changes the video mode to the DCGA emulation mode.</p>
+</div>
+<div class="paragraph">
+<p>Usage: DCGA</p>
+</div>
+<div class="paragraph">
+<p>Note: This command can be used to enter J-3100 DCGA mode with Japanese support when J-3100 is enabled along with <code>dosv=jp</code>.</p>
+</div>
+</li>
+<li>
+<p><strong>EGA</strong> (external command)</p>
+<div class="paragraph">
+<p>Changes the video mode to the EGA emulation mode.</p>
+</div>
+<div class="paragraph">
+<p>Usage: EGA</p>
+</div>
+<div class="paragraph">
+<p>Note: This command is only available with a VGA machine type.</p>
+</div>
+</li>
+<li>
+<p><strong>VGA</strong> (external command)</p>
+<div class="paragraph">
+<p>Changes the video mode to the VGA mode.</p>
+</div>
+<div class="paragraph">
+<p>Usage: VGA</p>
+</div>
+<div class="paragraph">
+<p>Note: This command can be used to return from other video modes (such as CGA or DCGA mode) back to the VGA mode.</p>
+</div>
+</li>
+<li>
+<p><strong>VTEXT</strong> (external command)</p>
+<div class="paragraph">
+<p>Changes V-text mode for the DOS/V emulation.</p>
+</div>
+<div class="paragraph">
+<p>Usage: VTEXT [0|1|2]</p>
+</div>
+<div class="paragraph">
+<p>Note: This command is only available in DOS/V emulation mode.</p>
 </div>
 </li>
 </ul>
@@ -1574,7 +1737,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-11-01 19:42:46 -0400
+Last updated 2021-12-01 04:05:49 -0500
 </div>
 </div>
 </body>

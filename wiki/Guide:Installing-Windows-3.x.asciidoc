@@ -111,6 +111,7 @@ memsize=16
 
 [dos]
 hard drive data rate limit=0
+floppy drive data rate limit=0
 
 [cpu]
 cputype=pentium

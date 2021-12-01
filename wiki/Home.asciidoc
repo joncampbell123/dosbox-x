@@ -303,6 +303,7 @@ cycles = max
 
 [dos]
 hard drive data rate limit = 0
+floppy drive data rate limit = 0
 ```
 
 Using the TrueType font (TTF) output and disabling double-scanning can improve the performance too (especially for text-mode applications):

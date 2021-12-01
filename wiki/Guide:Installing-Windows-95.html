@@ -638,6 +638,7 @@ vesa modelist height limit=0
 # Set 'ver=7.1' if using Win95 OSR2 (95B) or later
 ver=7.0
 hard drive data rate limit=0
+floppy drive data rate limit=0
 
 [cpu]
 cputype=pentium_mmx
@@ -1341,14 +1342,13 @@ After the reboot you should have working TCP/IP networking.</p>
 <p>The default video adapter that DOSBox-X emulates is the S3 Trio64, which is the best emulated video adapter that DOSBox-X offers, with the widest range of resolutions and colour depths.</p>
 </div>
 <div class="paragraph">
-<p>If you installed Windows 95 RTM (original release), or Windows 95 OSR1 (aka Win95A), there is a newer S3 video driver with additional supported resolutions.
-This video driver is v2.02.04 and dated April 18, 1996.
-It can typically be found online as w9520204.zip.
-This update however does not add support for 8MB video RAM, or wide-screen video modes.
-If you installed Windows 95 OSR2 or later, you already have the latest video driver installed.</p>
+<p>There is a newer S3 video driver for Win95, version <a href="http://files.mpoli.fi/hardware/display/s3/w9521103.zip">2.11.03</a>, dated June 12, 1996.</p>
 </div>
 <div class="paragraph">
-<p>The available video modes with the S3 Trio64 driver are:</p>
+<p>This update adds some additional video modes. But it does not add support for 8MB video RAM, or wide-screen video modes.</p>
+</div>
+<div class="paragraph">
+<p>The available video modes with the updated S3 Trio64 driver are:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1359,10 +1359,13 @@ If you installed Windows 95 OSR2 or later, you already have the latest video dri
 <p>8-bit colour (256): 640x480, 800x600, 1024x768, 1152x864, 1280x1024 and 1600x1200</p>
 </li>
 <li>
-<p>16-bit colour (65536): 640x480, 800x600 and 1024x768</p>
+<p>16-bit colour (65536): 640x480, 800x600, 1024x768 and 1280x1024</p>
 </li>
 <li>
-<p>32-bit colour (16.7M): 640x480 and 800x600</p>
+<p>24-bit colour (16.7M): 640x480 (currently broken in DOSBox-X)</p>
+</li>
+<li>
+<p>32-bit colour (16.7M + alpha): 640x480, 800x600 and 1024x768</p>
 </li>
 </ul>
 </div>
@@ -1382,6 +1385,20 @@ If you installed Windows 95 OSR2 or later, you already have the latest video dri
 <div class="paragraph">
 <p>However, these enhancements cannot be used in Windows 95 with the S3 video driver due to driver limitations.
 As such you will be limited to the above video modes with this driver.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If you use the S3 2.02.04 driver you will experience graphical problems (green tint) in 32-bit colour mode.
+These problems will not be completely solved by upgrading from 2.02.04 to 2.11.03.
+The only known solution for now if you used the 2.02.04 driver is to re-install Win95 and use the 2.11.03 driver instead.
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
@@ -1560,7 +1577,7 @@ This is no doubt because the host system is better at caching then the Windows 9
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-11-01 19:42:46 -0400
+Last updated 2021-12-01 04:05:49 -0500
 </div>
 </div>
 </body>

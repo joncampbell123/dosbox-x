@@ -455,8 +455,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel0">
 <li><a href="#_east_asian_language_and_system_support">East Asian language and system support</a>
 <ul class="sectlevel1">
-<li><a href="#_dosv_support">DOS/V support</a></li>
 <li><a href="#_truetype_font_output_with_cjk_support">TrueType font output with CJK support</a></li>
+<li><a href="#_dosv_support">DOS/V support</a></li>
+<li><a href="#_j_3100_mode">J-3100 mode</a></li>
 <li><a href="#_pc_98_mode">PC-98 mode</a></li>
 <li><a href="#_ax_jega_mode">AX (JEGA) mode</a></li>
 <li><a href="#_external_links">External links</a></li>
@@ -465,7 +466,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 <div class="paragraph">
-<p>DOSBox-X is designed to be complete DOS emulator and provides official support for East Asian languages and systems, including (Simplified and Traditional) Chinese, Japanese, and Korean languages in different emulation modes. These languages use double-byte character set (DBCS) to render text instead of using standard ASCII characters. All of these languages are well-supported in DOS/V modes or the TrueType font (TTF) output with CJK code pages (932, 936, 949, and 950), with additional support for the Japanese language in PC-98 and AX (JEGA) modes. There are also translation files for almost all of these languages available for use with DOSBox-X so that the user interfaces will be displayed in these languages:</p>
+<p>DOSBox-X is designed to be complete DOS emulator and provides official support for East Asian languages and systems, including (Simplified and Traditional) Chinese, Japanese, and Korean languages in different emulation modes. These languages use double-byte character set (DBCS) to render text instead of using standard ASCII characters. All of these languages are well-supported in DOS/V modes or the TrueType font (TTF) output with CJK code pages (932, 936, 949, and 950), with additional support for the Japanese language in the J-3100 DCGA, PC-98, and AX (JEGA) modes. There are also translation files for almost all of these languages available for use with DOSBox-X so that the user interfaces will be displayed in these languages:</p>
 </div>
 <div class="paragraph">
 <p>Japanese language file: <a href="https://raw.githubusercontent.com/joncampbell123/dosbox-x/master/contrib/translations/ja/ja_JP.lng">ja_JP.lng</a></p>
@@ -482,32 +483,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect1">
-<h2 id="_dosv_support">DOS/V support</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Native DOS/V services are supported by DOSBox-X, with options for Simplified and Traditional Chinese, Japanese, and Korean language modes. There is a [dosv] section in the config file, and you can enable different DOS/V modes with the <code>dosv</code> config option, i.e. <code>chs</code> (<code>cn</code>) for Simplified Chinese DOS/V, <code>cht</code> (<code>tw</code>) for Traditional Chinese DOS/V, <code>jp</code> for Japanese DOS/V, and <code>ko</code> for Korean DOS/V. DOSBox-X will try to get or use the fonts for these languages in the DOS/V mode, but you can also specify your own font files (in FONTX2 formats for Japanese, or <a href="https://github.com/aguegu/BitmapFont/blob/master/font/HZK16">HZK16</a> for Simplified Chinese, or STDFONT.15 from ETen Chinese DOS system for Traditional Chinese) via config options starting with <code>fontx</code> (such as <code>fontxsbcs</code> and <code>fontxdbcs</code> options) in the [dosv] section of the config file. For Simplified Chinese, the GB2312 charset is supported by default, but you can optionally enable the GBK extension with the <code>gbk</code> config option. Note that this mode is mainly designed to run DOS/V compatible programs or games, along with some normal DOS software. <strong>For a general DOS CJK environment it is recommended to use the TrueType font output with CJK support (described below) instead.</strong></p>
-</div>
-<div class="paragraph">
-<p>A screenshot of the Japanese DOS/V mode:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="https://user-images.githubusercontent.com/8216923/124234430-036ef700-dae2-11eb-9f22-e744a9bf1e2d.png" alt="Japanese DOS/V emulation">
-</div>
-</div>
-<div class="paragraph">
-<p>In addition, there is a <code>fontxdbcs14</code> option which is useful for displaying CJK characters in the Configuration Tool and Mapper Editor (if you use a language file). It is similar to the <code>fontdbcs</code> option, but it accepts 14-pixel DBCS fonts rather than 16-pixel ones. Use <a href="https://github.com/aguegu/BitmapFont/blob/master/font/HZK14">HZK14</a> for Simplified Chinese, and STDFONT.15 for Traditional Chinese.</p>
-</div>
-<div class="paragraph">
-<p>24-pixel fonts are also supported as of DOSBox-X version 0.83.19. You need to use the V-text function of DOS/V in order to enable it. There are 2 V-text modes available, namely vtext1 and vtext2. You can use either (or both) of them for different DOS/V screen modes. It is recommended to set <code>machine=svga_et4000</code> in [dosbox] section in order to use all its screen modes. For example, you can set <code>vtext1=xga24</code> (in addition to <code>machine=svga_et4000</code> and the <code>dosv</code> option) in the configuration, and use the command <code>VTEXT 1</code> to enter vtext1. In such case you can set the <code>fontxdbcs24</code> option which is useful for displaying CJK characters in this screen mode. Similar to the above <code>fontxdbcs14</code> and <code>fontxdbcs16</code> options, you can also use any of the HZK24? fonts (<a href="https://github.com/aguegu/BitmapFont/blob/master/font/">available in this link</a>) for Simplified Chinese, and STDFONT.24 from ETen Chinese DOS system for Traditional Chinese for the <code>fontxdbcs24</code> option.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
 <h2 id="_truetype_font_output_with_cjk_support">TrueType font output with CJK support</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>In addition to DOS/V modes, you can enable CJK support using the TrueType font (TTF) output with a CJK code page (932 for Japanese, 936 for Simplified Chinese, 949 for Korean, and 950 for Traditional Chinese). General information about DOSBox-X&#8217;s TrueType font output is available from the <a href="Guide%3AUsing-TrueType-font-output-in-DOSBox‐X">TrueType font output guide page</a>. Set the code page with either the <code>country</code> option in [config] section of the config file, or using <code>CHCP</code> command, such as <code>country=81,932</code> or <code>CHCP 932</code> for Japanese. The default TTF font bundled with DOSBox-X does not support Chinese/Japanese/Korean characters, but there are many TTF fonts (or TTC/OTF fonts) available containing support for CJK characters, and you can load them for the TTF output via the <code>font</code> config option in [ttf] section of the config file. Some of these fonts (such as <a href="https://unifoundry.com/unifont/">GNU Unifont</a> and <a href="https://github.com/be5invis/Sarasa-Gothic">Sarasa Gothic</a>) are intended to cover all CJK languages, whereas other TTF fonts (e.g. MigMix or M+ fonts) are intended to cover only characters of a specific CJK language. TTF or TTC fonts like <code>simkai.ttf</code>, <code>simhei.ttf</code>, and <code>mingliu.ttc</code> are included in some versions of Windows, so you need to only specify a setting like <code>font=simkai</code> or <code>font=mingliu.ttc</code> to load them in such cases. Otherwise you will need to download TTF fonts and load them accordingly. The <code>SarasaGothicFixed.ttf</code> and <code>UnifontFullMediumMono.ttf</code> font files are also available in the DOSBox-X repository for download:</p>
+<p>As a general DOS emulation environment, you can enable CJK support using the TrueType font (TTF) output with a CJK code page (932 for Japanese, 936 for Simplified Chinese, 949 for Korean, and 950 for Traditional Chinese). General information about DOSBox-X&#8217;s TrueType font output is available from the <a href="Guide%3AUsing-TrueType-font-output-in-DOSBox‐X">TrueType font output guide page</a>. Set the code page with either the <code>country</code> option in [config] section of the config file, or using <code>CHCP</code> command, such as <code>country=81,932</code> or <code>CHCP 932</code> for Japanese. The default TTF font bundled with DOSBox-X does not support Chinese/Japanese/Korean characters, but there are many TTF fonts (or TTC/OTF fonts) available containing support for CJK characters, and you can load them for the TTF output via the <code>font</code> config option in [ttf] section of the config file. Some of these fonts (such as <a href="https://unifoundry.com/unifont/">GNU Unifont</a> and <a href="https://github.com/be5invis/Sarasa-Gothic">Sarasa Gothic</a>) are intended to cover all CJK languages, whereas other TTF fonts (e.g. MigMix or M+ fonts) are intended to cover only characters of a specific CJK language. TTF or TTC fonts like <code>simkai.ttf</code>, <code>simhei.ttf</code>, and <code>mingliu.ttc</code> are included in some versions of Windows, so you need to only specify a setting like <code>font=simkai</code> or <code>font=mingliu.ttc</code> to load them in such cases. Otherwise you will need to download TTF fonts and load them accordingly. The <code>SarasaGothicFixed.ttf</code> and <code>UnifontFullMediumMono.ttf</code> font files are also available in the DOSBox-X repository for download:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -531,10 +510,48 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="paragraph">
-<p>There are some TTF config options related to CJK support, such as automatic box-drawing recognition and SBCS &lt;&#8658; DBCS mode switch, as found in the [ttf] section of the config file. These can also be toggled dynamically from the drop-down menu (inside "Video" &#8658; "TTF options" menu group).</p>
+<p>For the Simplified Chinese, the GB2312 charset is supported by default, but you can optionally enable the GBK extension with the <code>gbk</code> config option. Similar for the Traditional Chinese, where the ChinaSea (中國海字集) and Big5-2003 extension for the original Big5-1984 charset can be optionally enabled with the <code>chinasea</code> config option. You can also enable either the GBK or ChinaSea extension from the drop-down menu (inside "Video" &#8658; "TTF options" menu group). Below is a screenshot showing the TrueType font output running <a href="http://cndos.fam.cx/dosware/he5.zip">Hyper Editor 5.03</a> (漢書5) with the Traditional Chinese code page (950) and ChinaSea extension enabled:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://dosbox-x.com/images/ttfhe5.png" alt="Truetype font output running Hyper Editor 5 with the Traditional Chinese code page and ChinaSea extension">
+</div>
 </div>
 <div class="paragraph">
-<p>DOSBox-X additionally allows to run (Simplified or Traditional) Chinese DOS systems such as CCDOS 97, PDOS, or TechWay SCS (天汇) to run when in the TTF output. DOSBox-X will automatically switch to a graphical output to let Chinese DOS systems to render correctly in this case. For the ETen Chinese DOS system (倚天中文系統), please set the option <code>machine=svga_et4000</code> (in [dosbox] section) and <code>vga fill active memory=true</code> (in [video] section) of the DOSBox-X configuration (the latter option is supported by DOSBox-X 0.83.19 and later) so that it will run properly.</p>
+<p>There are also other config options for the TrueType font relating to CJK support, such as automatic box-drawing recognition and SBCS &lt;&#8658; DBCS mode switch, as found in the [ttf] section of the config file (such as <code>autodbcs</code> and <code>autoboxdraw</code> options). These can also be toggled dynamically from the drop-down menu (inside "Video" ⇒ "TTF options" menu group).</p>
+</div>
+<div class="paragraph">
+<p>DOSBox-X additionally allows to run (Simplified or Traditional) Chinese DOS systems such as CCDOS 97, PDOS, or TechWay SCS (天汇汉字系统) to run when in the TTF output. DOSBox-X will automatically switch to a graphical output to let Chinese DOS systems to render correctly in this case. For the ETen Chinese DOS system (倚天中文系統) and running ET16V (飛碟五號) or ET24VA (飛碟24) it is strongly recommended to set the option <code>vga fill active memory=true</code> (in [video] section, supported since DOSBox-X 0.83.19), and for the latter (ET24VA), also the option <code>machine=svga_et4000</code> (in [dosbox] section) of the DOSBox-X configuration so that it will run properly.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_dosv_support">DOS/V support</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Native DOS/V services are also supported by DOSBox-X, with options for Simplified and Traditional Chinese, Japanese, and Korean language modes. There is a [dosv] section in the config file, and you can enable different DOS/V modes with the <code>dosv</code> config option, i.e. <code>chs</code> (<code>cn</code>) for Simplified Chinese DOS/V, <code>cht</code> (<code>tw</code>) for Traditional Chinese DOS/V, <code>jp</code> for Japanese DOS/V, and <code>ko</code> for Korean DOS/V. DOSBox-X will try to get or use the fonts for these languages in the DOS/V mode, but you can also specify your own font files (in FONTX2 formats for Japanese, or <a href="https://github.com/aguegu/BitmapFont/blob/master/font/HZK16">HZK16</a> for Simplified Chinese, or STDFONT.15 from ETen Chinese DOS system for Traditional Chinese) via config options starting with <code>fontx</code> (such as <code>fontxsbcs</code> and <code>fontxdbcs</code> options) in the [dosv] section of the config file. Note that this mode is mainly designed to run DOS/V compatible programs or games, along with some normal DOS software; <strong>for a general DOS CJK environment it is recommended to use the TrueType font output with CJK support (described in the previous section) instead</strong>.</p>
+</div>
+<div class="paragraph">
+<p>A screenshot of the Japanese DOS/V mode:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://user-images.githubusercontent.com/8216923/124234430-036ef700-dae2-11eb-9f22-e744a9bf1e2d.png" alt="Japanese DOS/V emulation">
+</div>
+</div>
+<div class="paragraph">
+<p>In addition, there is a <code>fontxdbcs14</code> option which is useful for displaying CJK characters in the Configuration Tool and Mapper Editor (if you use a language file). It is similar to the <code>fontdbcs</code> option, but it accepts 14-pixel DBCS fonts rather than 16-pixel ones. Use <a href="https://github.com/aguegu/BitmapFont/blob/master/font/HZK14">HZK14</a> for Simplified Chinese, and STDFONT.15 (from ETen Chinese DOS system) for Traditional Chinese.</p>
+</div>
+<div class="paragraph">
+<p>24-pixel fonts are also supported as of DOSBox-X version 0.83.19. You need to use the V-text function of DOS/V in order to enable it. There are 2 V-text modes available, namely vtext1 and vtext2. You can use either (or both) of them for different DOS/V screen modes. It is recommended to set <code>machine=svga_et4000</code> in [dosbox] section in order to use all its screen modes. For example, you can set <code>vtext1=xga24</code> (in addition to <code>machine=svga_et4000</code> and the <code>dosv</code> option) in the configuration, and use the command <code>VTEXT 1</code> to enter vtext1. In such case you can set the <code>fontxdbcs24</code> option which is useful for displaying CJK characters in this screen mode. Similar to the above <code>fontxdbcs14</code> and <code>fontxdbcs16</code> options, you can also use any of the HZK24? fonts (<a href="https://github.com/aguegu/BitmapFont/blob/master/font/">available in this link</a>) for Simplified Chinese, and STDFONT.24 from ETen Chinese DOS system for Traditional Chinese for the <code>fontxdbcs24</code> option.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_j_3100_mode">J-3100 mode</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Emulation modes for the Toshiba J-3100 are supported as of DOSBox-X 0.83.20. The J-3100 is the Japanese version of the Toshiba T3100, which was once popular as a Japanese-capable IBM AT-compatible machine. The J-3100 system in DOSBox-X can be activated by enabling support for both the Japanese DOS/V and the J-3100 machine for the DCGA emulation. In this case set the config option <code>j3100</code> to a value other than <code>off</code> along with <code>dosv=jp</code> in [dosv] section. If you set <code>j3100=on</code> or <code>j3100=auto</code> (apart from <code>dosv=jp</code> and a VGA machine type), then J-3100 support will be enabled automatically when DOSBox-X starts. On the other hand, if you set <code>j3100=manual</code> (apart from <code>dosv=jp</code> and a VGA machine type), then you will be in the Japanese DOS/V mode when DOSBox-X starts, but the J-3100 DCGA mode will be entered with <code>DCGA</code> command. In either case you can return to the Japanese DOS/V mode with <code>VGA</code> command, or re-enter the J-3100 DCGA mode with <code>DCGA</code> command. There is also the <code>j3100type</code> option to set the J-3100 machine type. With a different machine type the J-3100 color palette will be different. The following are the supported J-3100 machine types (other than <code>default</code>) for the <code>j3100type</code> option: <code>gt</code>, <code>sgt</code>, <code>gx</code>, <code>gl</code>, <code>sl</code>, <code>sgx</code>, <code>ss</code>, <code>gs</code>, <code>sx</code>, <code>sxb</code>, <code>sxw</code>, <code>sxp</code>, <code>ez</code>, <code>zs</code>, <code>zx</code></p>
 </div>
 </div>
 </div>
@@ -542,7 +559,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="_pc_98_mode">PC-98 mode</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>DOSBox-X provides emulation for the Japanese NEC PC-98 mode, so that you can play PC-98 games or run PC-98 programs in it, such as the early Touhou games. The PC-98 mode can be started with the setting <code>machine=pc98</code>, and it may also work in combination with the TrueType font output. See the <a href="Guide%3APC‐98-emulation-in-DOSBox‐X">PC‐98 emulation guide page</a> for detailed information about PC-98 emulation in DOSBox-X.</p>
+<p>DOSBox-X provides emulation for the Japanese NEC PC-98 mode, a platform that established NEC&#8217;s dominance in the Japanese PC market. With this support you can play PC-98 games or run PC-98 programs in DOSBox-X, such as the early Touhou (東方) games. The PC-98 mode can be started with the setting <code>machine=pc98</code>, and it may also work in combination with the TrueType font output. See the <a href="Guide%3APC‐98-emulation-in-DOSBox‐X">PC‐98 emulation guide page</a> for detailed information about PC-98 emulation in DOSBox-X.</p>
 </div>
 </div>
 </div>
@@ -550,7 +567,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="_ax_jega_mode">AX (JEGA) mode</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>DOSBox-X also provides emulation for the Japanese AX (JEGA) mode, a Japanese computing initiative starting in around 1986 to allow PCs to handle double-byte (DBCS) Japanese text via special hardware chips. The AX (JEGA) mode can be started with the setting <code>machine=jega</code>, and may also work in combination with the TrueType font output. In this mode you can press the right Ctrl key to toggle between romaji and kana input modes. Several config options related to DOS/V (see [dosv] section) can also be used for the JEGA mode.</p>
+<p>DOSBox-X also provides emulation for the Japanese AX (JEGA) mode, a Japanese computing initiative starting in around 1986 to allow PCs to handle double-byte (DBCS) Japanese text via special hardware chips. The AX (JEGA) mode may be started with the setting <code>machine=jega</code>, and it can also work in combination with the TrueType font output. In this mode you can press the right Ctrl key to toggle between romaji and kana input modes. Several config options related to DOS/V (see [dosv] section) can also be used for the JEGA mode.</p>
 </div>
 </div>
 </div>
@@ -566,6 +583,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><a href="https://en.wikipedia.org/wiki/DOS/V">Wikipedia: DOS/V</a></p>
 </li>
 <li>
+<p><a href="https://en.wikipedia.org/wiki/Toshiba_T3100">Wikipedia: Toshiba T3100</a></p>
+</li>
+<li>
 <p><a href="https://en.wikipedia.org/wiki/PC-9800_series">Wikipedia: PC-9800 series</a></p>
 </li>
 <li>
@@ -578,7 +598,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-11-01 19:42:46 -0400
+Last updated 2021-12-01 04:05:49 -0500
 </div>
 </div>
 </body>

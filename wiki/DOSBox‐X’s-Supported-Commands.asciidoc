@@ -136,6 +136,13 @@ Note: Use SETCOLOR command to views or changes the text-mode color scheme settin
 Runs DOSBox-X's internal command shell.
 +
 Usage: COMMAND [options]
+* **COMP** (external command)
++
+Compares files.
++
+Usage: COMP file1 [file2] [options]
++
+Note: It uses the COMP command from FreeDOS.
 * **CONFIG** (external command)
 +
 Starts DOSBox-X's command-line configuration utility to change it settings.
@@ -202,6 +209,13 @@ Usage: DEVICE [program] [options]
 Lists available files and sub-directories inside the current directory.
 +
 Usage: DIR [drive:][path][filename] [options]
+* **DISKCOPY** (external command)
++
+Optimizes file loading times by moving file fragments together.
++
+Usage: DISKCOPY [drive1:] [drive2:] [options]
++
+Note: It uses the DISKCOPY command from FreeDOS.
 * **DOS32A** (external command)
 +
 Starts DOS32A, a 32-bit DOS extender used by various DOS games/applications.
@@ -247,14 +261,24 @@ Usage: ECHO [message] or ECHO [ON | OFF]
 +
 Starts the full-screen file editor.
 +
-Usage: EDIT [/B] [/I] [/H] [/R] [file(s)]
+Usage: EDIT [file] [-l LineNum]
+* **EDLIN** (external command)
 +
-Note: It uses the EDIT command from FreeDOS.
+Edits files by lines.
++
+Usage: EDLIN [file]
 * **EXIT** (internal command)
 +
 Exits from the batch file or DOSBox-X.
 +
 Usage: Simply enter EXIT without any parameters.
+* **FC** (external command)
++
+Compares two files or sets of files and displays the differences between them.
++
+Usage: FC file1 file2 [options]
++
+Note: It uses the FC command from FreeDOS.
 * **FCBS** (external command)
 +
 Displays or changes the CONFIG.SYS's FCBS setting.
@@ -267,6 +291,11 @@ Manages partitions on the hard drive.
 Usage: FDISK [options]
 +
 Note: It uses the FDISK command from FreeDOS.
+* **FILES** (external command)
++
+Displays or changes the CONFIG.SYS's FILES setting.
++
+Usage: FILES [filenum]
 * **FIND** (external command)
 +
 Prints lines of a file that contains the specified string.
@@ -325,6 +354,11 @@ Mounts drives from floppy drive, hard-disk, or CD images in the host system.
 Usage: IMGMOUNT drive filename [options] or IMGMOUNT -u drive|driveLocation
 +
 Note: You can write-protect a disk image by putting a leading colon (:) before the image file name in the default setting.
+* **IMGSWAP** (external command)
++
+Swaps floppy, hard drive and optical disc images (when there are multiple disks mounted on the same drive).
++
+Usage: IMGSWAP drive [position]
 * **INTRO** (external command)
 +
 A full-screen introduction.
@@ -427,8 +461,12 @@ Loads the NE2000 packet driver for the NE2000 networking feature.
 +
 Usage: NE2000 [options]
 +
-
 Note: This command is available when the NE2000 networking emulation is enabled.
+* **PARALLEL** (external command)
++
+Views or changes the parallel port settings.
++
+Usage: PARALLEL [port] [type] [option]
 * **PATH** (internal command)
 +
 Displays/Sets a search patch for executable files.
@@ -444,6 +482,13 @@ Usage: PAUSE [message]
 Changes to the directory stored by the PUSHD command.
 +
 Usage: POPD
+* **PRINT** (external command)
++
+Prints a file in the background.
++
+Usage: PRINT file [options]
++
+Note: It uses the PRINT command from FreeDOS.
 * **PROMPT** (internal command)
 +
 Changes the DOS command prompt.
@@ -486,6 +531,11 @@ Refreshes mounted drives by clearing their caches.
 Usage: RESCAN [/A] or RESCAN [drive:]
 +
 Note: Simply enter RESCAN without any parameters to refresh the current drive. You can also refresh drives from the menu (under "DOS" for all drives or "Drive" for individual drives).
+* **SERIAL** (external command)
++
+Views or changes the serial port settings.
++
+Usage: SERIAL [port] [type] [option]
 * **SET** (internal command)
 +
 Displays and sets environment variables.
@@ -503,6 +553,11 @@ Note: Use COLOR command to change the current background and foreground colors.
 Left-shifts command-line parameters in a batch script.
 +
 Usage: Simply enter SHIFT without any parameters.
+* **SHUTDOWN** (external command)
++
+Restarts or shuts down DOSBox-X.
++
+Usage: SHUTDOWN [/R|/S]
 * **SORT** (external command)
 +
 Sorts input and writes results to the screen, a file, or another device.
@@ -573,14 +628,6 @@ Usage: VERIFY [ON | OFF]
 Displays the disk volume label and serial number, if they exist.
 +
 Usage: VOL [drive]
-* **VTEXT** (external command)
-+
-Changes V-text mode for the DOS/V emulation.
-+
-Usage: VTEXT [0|1|2]
-+
-Note: This command is only available in DOS/V emulation mode.
-
 * **XCOPY** (external command)
 +
 Copies files and directory trees.
@@ -588,6 +635,49 @@ Copies files and directory trees.
 Usage: XCOPY source [destination] [options]
 +
 Note: It uses the XCOPY command from FreeDOS.
+
+The following commands are for switching modes in the text mode:
+
+* **80x25**, **80x43**, **80x50**, **80x60**, **132x25**, **132x43**, **132x50**, **132x60** (external command)
++
+Changes the text mode to 80x25, 80x43, 80x50, 80x60, 132x25, 132x43, 132x50, and 132x60 modes respectively.
++
+Note: This command is only available with a VGA machine type.
+* **CGA** (external command)
++
+Changes the video mode to the CGA emulation mode.
++
+Usage: CGA
++
+Note: This command is only available with a VGA machine type.
+* **DCGA** (external command)
++
+Changes the video mode to the DCGA emulation mode.
++
+Usage: DCGA
++
+Note: This command can be used to enter J-3100 DCGA mode with Japanese support when J-3100 is enabled along with `dosv=jp`.
+* **EGA** (external command)
++
+Changes the video mode to the EGA emulation mode.
++
+Usage: EGA
++
+Note: This command is only available with a VGA machine type.
+* **VGA** (external command)
++
+Changes the video mode to the VGA mode.
++
+Usage: VGA
++
+Note: This command can be used to return from other video modes (such as CGA or DCGA mode) back to the VGA mode.
+* **VTEXT** (external command)
++
+Changes V-text mode for the DOS/V emulation.
++
+Usage: VTEXT [0|1|2]
++
+Note: This command is only available in DOS/V emulation mode.
 
 The following commands are for debugging purposes (many of them only available on builds that have the debugging feature enabled):
 

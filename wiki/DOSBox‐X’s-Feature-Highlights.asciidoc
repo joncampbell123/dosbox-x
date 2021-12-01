@@ -19,9 +19,9 @@ DOSBox-X provides a fully-featured system for saving and loading states with sup
 * **Automatic image file and drive mounting**
 +
 For image files, DOSBox-X allows you to mount them automatically without specifying additional options such as -size and -t. And for drive mounting on Windows, DOSBox-X automatically asks you mount a drive if you try to enter a drive which is not yet mounted, and you can also let DOSBox-X automatically mount all available Windows drives at start.
-* **Japanese NEC PC-98 and AX emulations**
+* **Japanese NEC PC-98, AX, and J-3100 emulations**
 +
-With DOSBox-X you can run the Japanese PC-98 system and PC-98 games and applications, as well as the Japanese AX (JEGA) system. Set ``machine=pc98`` or ``machine=jega`` in the config file to start DOSBox-X in the PC-98 or JEGA mode. Look at the link:Guide%3APC‐98-emulation-in-DOSBox‐X{suffixappend}[PC‐98 emulation in DOSBox‐X] guide page for more information about PC-98 support.
+With DOSBox-X you can run the Japanese PC-98 system and PC-98 games and applications, as well as the Japanese AX (JEGA) and J-3100 systems. Set ``machine=pc98`` or ``machine=jega`` in the config file to start DOSBox-X in the PC-98 or JEGA mode. Look at the link:Guide%3APC‐98-emulation-in-DOSBox‐X{suffixappend}[PC‐98 emulation in DOSBox‐X] guide page for more information about PC-98 support.
 * **Support for native DOS/V service emulations**
 +
 DOSBox-X implements native DOS/V services for Chinese/Japanese/Korean language support, so that are these languages can be displayed without any external tools. Set "dosv" to "jp", "chs" (or "cn"), "cht" (or "tw"), or "ko" for different CJK languages. Look at the link:Guide%3AEast-Asian-language-support-in-DOSBox‐X{suffixappend}[East Asian language support in DOSBox‐X] guide page for more information about support for East Asian languages and systems.
@@ -73,9 +73,9 @@ You can mount ZIP or 7Z archives as DOSBox-X drives and run your DOS programs or
 * **Support for the IDE interface for disk images**
 +
 DOSBox-X supports the BIOS IDE interface for hard disk and CD drives, which is especially useful for running guest systems inside DOSBox-X.
-* **Support for more CPU types (e.g. Pentium MMX and Pro) and emulating CPU speed**
+* **Support for more CPU types (e.g. Pentium MMX and Pro/II) and emulating CPU speed**
 +
-DOSBox-X supports virtually all CPU types prior to Pentium II at this time, from 8086 to Pentium Pro, including support for Pentium MMX instructions. DOSBox-X also allow you to emulate the speed of a specific CPU (from 8088 XT 4.77MHz to Pentium 166MHz MMX) in terms of cycles. Select them from the "CPU" menu.
+DOSBox-X supports virtually all CPU types prior to Pentium II at this time, from 8086 to Pentium Pro/II, including support for Pentium MMX instructions. DOSBox-X also allow you to emulate the speed of a specific CPU (from 8088 XT 4.77MHz to Pentium 166MHz MMX) in terms of cycles. Select them from the "CPU" menu.
 * **Support for more video modes (e.g. MDA and MCGA)**
 +
 DOSBox-X supports more video modes in addition to the more common ones, such as MDA, MCGA, Amstrad, and a few others, in addition to the standard ones.

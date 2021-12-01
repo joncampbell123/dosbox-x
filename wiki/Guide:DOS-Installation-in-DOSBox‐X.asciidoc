@@ -138,14 +138,11 @@ This made sense back in the day, but it provides no speed advantages when run on
 As such it is recommended to disable SmartDrive.
 
 ### Shutdown DOS
-Normally when running DOSBox-X, you can simply ``EXIT`` and DOSBox-X will close.
-But when your running a real DOS Disk image, this no longer works.
+Normally when running DOSBox-X, you can simply type either ``EXIT`` or ``SHUTDOWN /S`` command and DOSBox-X will close. The ``/S`` option of ``SHUTDOWN`` command instructs DOSBox to shutdown, and it relies on the APM support provided by DOSBox-X. It has become a built-in DOS command as of DOSBox-X version 0.83.20.
 
-The solution to this is a small 3rd party utility called ``ATXOFF.COM``.
-This can be useful for scripted operations, for instance if your running a program from AUTOEXEC.BAT, and want it to shutdown DOSBox-X when it finishes.
-ATXOFF relies on the APM support provided by DOSBox-X.
+On the other hand, if you are running a real DOS disk image, you will need to copy the ``SHUTDOWN.COM`` program (located in the ``Z:\BIN`` directory) to your disk image. This can be useful for scripted operations, for instance if your running a program from AUTOEXEC.BAT, and want it to shutdown DOSBox-X when it finishes.
 
-NOTE: If SMARTDRV is being used, you MUST do a ``SMARTDRV /C`` *before* running ATXOFF as otherwise you risk filesystem corruption.
+NOTE: If SMARTDRV is being used, you MUST do a ``SMARTDRV /C`` *before* invoking the ``SHUTDOWN`` command as otherwise you risk filesystem corruption.
 
 Example AUTOEXEC.BAT usage of ATXOFF in combination with Windows 3.x:
 ....
@@ -154,7 +151,7 @@ SET TEMP=C:\WINDOWS\TEMP
 C:\WINDOWS\SMARTDRV.EXE
 C:\WINDOWS\WIN.COM
 C:\WINDOWS\SMARTDRV.EXE /C
-ATXOFF.COM
+SHUTDOWN.COM /S
 ....
 With this example, it will start Windows automatically on startup, and when you exit Windows, it will flush the disk cache and shutdown DOSBox-X.
 
@@ -164,8 +161,8 @@ You can bypass it by editing CONFIG.SYS and changing ``DEVICE=C:\DOS\HIMEM.SYS``
 
 ### Reboot DOS
 You can reboot (restart) DOS by selecting the "Reboot guest system" menu item (under "Main").
-If for some reason you want to do a reboot from the command-line, look for a 3rd party utility called ``RESTART.COM``.
-For rebooting DOS using such a utility you may also want to check the "Enable quick reboot" menu item (under "DOS") for a faster restart of the guest DOS system.
+If for some reason you want to do a reboot from the command-line, you can do so with the command ``SHUTDOWN /R``. For running real DOS disk images, you need to copy the ``SHUTDOWN.COM`` program located in the ``Z:\BIN`` directory to your disk image.
+For rebooting DOS with such a command you may also want to check the "Enable quick reboot" menu item (under "DOS") for a faster restart of the guest DOS system.
 
 ### Boot menu
 When using ``IMGMAKE`` to create a partitioned image, and when booting from the image afterwards you will get the following boot menu with a 4 second timeout.

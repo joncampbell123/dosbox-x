@@ -579,6 +579,19 @@ It also has partial support for the IBM Pro Printer, where the control codes do 
 <div class="paragraph">
 <p>This section lists the available configuration options for the <code>[parallel]</code> section that DOSBox-X provides.</p>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Starting with DOSBox-X v0.83.20 it is possible to modify parallel port settings directly from the DOSBox-X DOS prompt with either the <code>parallel</code> or <code>config -set parallel</code> commands.
+This however does not allow changing the emulated printer settings, and the settings are lost when you restart DOSBox-X.
+</td>
+</tr>
+</table>
+</div>
 <div class="sect3">
 <h4 id="_parallel1">parallel1</h4>
 <div class="ulist">
@@ -708,7 +721,7 @@ The parallel1 port may be auto-enabled for Disney Sound Source emulation.
 <p><code>timeout:&lt;milliseconds&gt;</code> = how long to wait before closing the file on inactivity (default:500)</p>
 </li>
 <li>
-<p><code>squote</code> squote to use single quotes instad of double quotes for quoted program commands</p>
+<p><code>squote</code> squote to use single quotes instead of double quotes for quoted program commands</p>
 </li>
 <li>
 <p><code>addFF</code> to add a formfeed when closing</p>
@@ -1067,7 +1080,8 @@ device="Microsoft Print to PDF"</pre>
 </ul>
 </div>
 <div class="paragraph">
-<p>The path (directory) where the output files are stored. Defaults to the current working directory.</p>
+<p>The path (directory) where the output files are stored.
+Defaults to the current working directory.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1080,7 +1094,8 @@ device="Microsoft Print to PDF"</pre>
 </ul>
 </div>
 <div class="paragraph">
-<p>The path (directory) where the TTF fonts (courier.ttf, ocra.ttf, roman.ttf, sansserif.ttf, script.ttf) are stored. Defaults to the FONTS subdirectory in the current working directory (or where the DOSBox-X executable is located).</p>
+<p>The path (directory) where the TTF fonts (courier.ttf, ocra.ttf, roman.ttf, sansserif.ttf, script.ttf) are stored.
+Defaults to the FONTS subdirectory in the current working directory (or where the DOSBox-X executable is located).</p>
 </div>
 </div>
 <div class="sect3">
@@ -1096,7 +1111,8 @@ device="Microsoft Print to PDF"</pre>
 </ul>
 </div>
 <div class="paragraph">
-<p>Allows DOSBox-X to print Chinese/Japanese/Korean DBCS (double-byte) characters when a DBCS code pages (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese) is active. If set to auto (default), this is enabled only for the TrueType font (TTF) output with the DBCS support enabled.</p>
+<p>Allows DOSBox-X to print Chinese/Japanese/Korean DBCS (double-byte) characters when a DBCS code pages (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese) is active.
+If set to auto (default), this is enabled only for the TrueType font (TTF) output with the DBCS support enabled.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1163,7 +1179,7 @@ device="Microsoft Print to PDF"</pre>
 </ul>
 </div>
 <div class="paragraph">
-<p>If set, the command window will be hidden for openwith/openerror options. Only supported in the Windows platform.</p>
+<p>If set, the command window will be hidden for openwith/openerror options. Only supported on the Windows platform.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1201,7 +1217,8 @@ device="Microsoft Print to PDF"</pre>
 <div class="openblock partintro">
 <div class="content">
 <div class="paragraph">
-<p>The emulated printer requires TrueType fonts in order to be able to print text. If you use the TrueType font output, then the TTF font that is currently active on the screen will automatically be used for printing as well if the <code>ttf.printfont</code> option (in [render] section) is enabled (default) as of DOSBox-X version 0.83.14.</p>
+<p>The emulated printer requires TrueType fonts in order to be able to print text.
+If you use the TrueType font output, then the TTF font that is currently active on the screen will automatically be used for printing as well if the <code>ttf.printfont</code> option (in [render] section) is enabled (default) as of DOSBox-X version 0.83.14.</p>
 </div>
 <div class="paragraph">
 <p>If no TTF font can be found then DOSBox-X will print with the internal (default) TTF font as used by the TrueType font output.</p>
@@ -1230,28 +1247,28 @@ If the fonts cannot be found, then it will search for the system fonts, as follo
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">FONTS\courier.ttf</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">C:\Windows\Fonts\cour.ttf</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FONTS\courier.ttf</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>C:\Windows\Fonts\cour.ttf</code></p></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">FONTS\roman.ttf</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">C:\Windows\Fonts\times.ttf</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FONTS\roman.ttf</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>C:\Windows\Fonts\times.ttf</code></p></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">FONTS\sansserif.ttf</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">C:\Windows\Fonts\arial.ttf</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FONTS\sansserif.ttf</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>C:\Windows\Fonts\arial.ttf</code></p></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">FONTS\ocra.ttf</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">C:\Windows\Fonts\Ocraext.ttf</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Download Ocraext.ttf if not installed</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FONTS\ocra.ttf</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>C:\Windows\Fonts\Ocraext.ttf</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Download <code>Ocraext.ttf</code> if not installed</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">FONTS\script.ttf</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">C:\Windows\Fonts\freescpt.ttf</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>FONTS\script.ttf</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>C:\Windows\Fonts\freescpt.ttf</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Installed by MS Office</p></td>
 </tr>
 </tbody>
@@ -1271,7 +1288,8 @@ If you need them you may need to find those online.</p>
 <h2 id="_linux_host">Linux host</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>DOSBox-X will first search for fonts in the ~/.config/dosbox-x/FONTS directory (or FONTS subdirectory in the current working directory). If the fonts cannot be found, then it will search for the fonts in the /usr/share/fonts directory, as follows:</p>
+<p>DOSBox-X will first search for fonts in the ~/.config/dosbox-x/FONTS directory (or FONTS subdirectory in the current working directory).
+If the fonts cannot be found, then it will search for the fonts in the <code>/usr/share/fonts</code> directory, as follows:</p>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -1288,34 +1306,35 @@ If you need them you may need to find those online.</p>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~/.config/dosbox-x/FONTS/courier.ttf</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">/usr/share/fonts/liberation-mono/LiberationMono-Regular.ttf</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code> ~/.config/dosbox-x/FONTS/courier.ttf</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/usr/share/fonts/liberation-mono/LiberationMono-Regular.ttf</code></p></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~/.config/dosbox-x/FONTS/roman.ttf</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">/usr/share/fonts/liberation-serif/LiberationSerif-Regular.ttf</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code> ~/.config/dosbox-x/FONTS/roman.ttf</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/usr/share/fonts/liberation-serif/LiberationSerif-Regular.ttf</code></p></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~/.config/dosbox-x/FONTS/sansserif.ttf</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">/usr/share/fonts/liberation-sans/LiberationSans-Regular.ttf</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code> ~/.config/dosbox-x/FONTS/sansserif.ttf</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/usr/share/fonts/liberation-sans/LiberationSans-Regular.ttf</code></p></td>
 <td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~/.config/dosbox-x/FONTS/ocra.ttf</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">/usr/share/fonts/Ocraext.ttf</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Download Ocraext.ttf if not installed</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code> ~/.config/dosbox-x/FONTS/ocra.ttf</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/usr/share/fonts/Ocraext.ttf</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Download <code>Ocraext.ttf</code> if not installed</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">~/.config/dosbox-x/FONTS/script.ttf</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">/usr/share/fonts/freescpt.ttf</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code> ~/.config/dosbox-x/FONTS/script.ttf</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>/usr/share/fonts/freescpt.ttf</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Download a Script (cursive) font</p></td>
 </tr>
 </tbody>
 </table>
 <div class="paragraph">
-<p>You are free to use suitable alternatives for these fonts, by copying them to the FONTS directory with file names mentioned in the first column of the above table. Moreover, DOSBox-X 0.83.4 and earlier will only search for font files in the FONTS directory.</p>
+<p>You are free to use suitable alternatives for these fonts, by copying them to the FONTS directory with file names mentioned in the first column of the above table.
+Moreover, DOSBox-X 0.83.4 and earlier will only search for font files in the FONTS directory.</p>
 </div>
 <div class="paragraph">
 <p>Ocra (OCR-A) and Script (cursive) fonts may not be installed on your system.
@@ -1401,7 +1420,9 @@ device=-</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>In DOSBox-X you can now simply redirect output to LPT1, or in DOS applications configure one of the printers listed above. The printer dialogue will show up once when a printer selection is made. If you want the printer dialogue to show up every time for printing to LPT1, please leave the "device" empty.</p>
+<p>In DOSBox-X you can now simply redirect output to LPT1, or in DOS applications configure one of the printers listed above.
+The printer dialogue will show up once when a printer selection is made.
+If you want the printer dialogue to show up every time for printing to LPT1, please leave the "device" empty.</p>
 </div>
 </div>
 </div>
@@ -1413,7 +1434,8 @@ device=-</pre>
 It reportedly will not work with USB printer adapters or PCI printer port adapters.</p>
 </div>
 <div class="paragraph">
-<p>Also note that the output is sent verbatim from the DOS application to the printer, without any filtering or conversion. Therefore it is important that the printer can understand the control codes that are being sent.
+<p>Also note that the output is sent verbatim from the DOS application to the printer, without any filtering or conversion.
+Therefore it is important that the printer can understand the control codes that are being sent.
 In practice this means that this method is only really meant for situations where you have a legacy printer, or are perhaps only sending pure text.</p>
 </div>
 <div class="paragraph">
@@ -1440,18 +1462,26 @@ parallel1=reallpt directlpt:378</pre>
 <h2 id="_windows_host_in_combination_with_3rd_party_printing_solution">Windows host, in combination with 3rd-party printing solution</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>In addition to relying entirely on the built-in printing methods, DOSBox-X can also work in combination with external third-party printing solutions like <a href="https://www.printfil.com/">Printfil</a>, <a href="http://www.dosprn.com/">DOSPRN</a>, or <a href="http://sourceforge.net/projects/winprint/">WinPrint</a> (open-source). Both Printfil and DOSPRN are shareware applications that specifically list DOSBox-X as supported for printing to any printer configured on the Windows host system.</p>
+<p>In addition to relying entirely on the built-in printing methods, DOSBox-X can also work in combination with external third-party printing solutions like <a href="https://www.printfil.com/">Printfil</a>, <a href="http://www.dosprn.com/">DOSPRN</a>, or <a href="http://sourceforge.net/projects/winprint/">WinPrint</a> (open-source).
+Both Printfil and DOSPRN are shareware applications that specifically list DOSBox-X as supported for printing to any printer configured on the Windows host system.</p>
 </div>
 <div class="sect2">
 <h3 id="_windows_host_extended_solution_using_printfil">Windows host, extended solution using Printfil</h3>
 <div class="paragraph">
-<p>According to its description, Printfil allows text-based applications to print to any Windows printer, including USB, network printers, fax modems and PDF writers, without any changes to the original applications. You can set your application to print to an ASCII file, or have Printfil capturing a parallel port (PRN: and from LPT1: to LPT9:) or serial port (from COM1: to COM9:), automatically redirecting your print jobs to any printer.</p>
+<p>According to its description, Printfil allows text-based applications to print to any Windows printer, including USB, network printers, fax modems and PDF writers, without any changes to the original applications.
+You can set your application to print to an ASCII file, or have Printfil capturing a parallel port (PRN: and from LPT1: to LPT9:) or serial port (from COM1: to COM9:), automatically redirecting your print jobs to any printer.</p>
 </div>
 <div class="paragraph">
-<p>Printfil has implemented official support for integration with DOSBox-X since version 5.27. In addition to automatic printer handling via printing ports, it also supports additional features such as print preview, background image inclusion, text colorization, direct PDF and emailing. You can find the main features of Printfil in <a href="https://www.printfil.com/edesc.htm">its feature list page</a>. Once configured, there is no additional setup needed for printing support on the DOSBox-X side.</p>
+<p>Printfil has implemented official support for integration with DOSBox-X since version 5.27.
+In addition to automatic printer handling via printing ports, it also supports additional features such as print preview, background image inclusion, text colorization, direct PDF and emailing.
+You can find the main features of Printfil in <a href="https://www.printfil.com/edesc.htm">its feature list page</a>.
+Once configured, there is no additional setup needed for printing support on the DOSBox-X side.</p>
 </div>
 <div class="paragraph">
-<p>You can select the port to capture (e.g. LPT1) and the printer to use (e.g. Microsoft Print to PDF) from its configuration window. Printfil will automatically detect DOSBox-X if it is installed in the default path (C:\DOSBox-X), and ask whether to capture the selected port for DOSBox-X. If you answer Yes, then the specified printing port(s) will be automatically captured in future DOSBox-X sessions. Below is a screenshot of its configuration window.</p>
+<p>You can select the port to capture (e.g. LPT1) and the printer to use (e.g. Microsoft Print to PDF) from its configuration window.
+Printfil will automatically detect DOSBox-X if it is installed in the default path (C:\DOSBox-X), and ask whether to capture the selected port for DOSBox-X.
+If you answer Yes, then the specified printing port(s) will be automatically captured in future DOSBox-X sessions.
+Below is a screenshot of its configuration window.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -1465,7 +1495,7 @@ parallel1=reallpt directlpt:378</pre>
 <h2 id="_linux_host_2">Linux host</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>First you need to give your Linux user access to the /dev/parport0 device, otherwise you will get permission denied errors.
+<p>First you need to give your Linux user access to the <code>/dev/parport0</code> device, otherwise you will get permission denied errors.
 Replace "username" with your Linux username.</p>
 </div>
 <div class="literalblock">
@@ -1601,7 +1631,7 @@ parallel1 = file file:~/Documents/output1.ps timeout:1000 squote openps:'open -s
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-11-01 19:42:46 -0400
+Last updated 2021-12-01 04:05:49 -0500
 </div>
 </div>
 </body>
