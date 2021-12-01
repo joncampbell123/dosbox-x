@@ -5,7 +5,7 @@ rem One of them will be selected by user as the default Windows version to be ex
 
 @echo off
 
-rem %rootdir% is the root directory of the respository. "." assumes the current directory.
+rem %rootdir% is the root directory of the repository. "." assumes the current directory.
 rem Make sure to surround the directory in quotes (") in case it includes spaces.
 set rootdir=.
 

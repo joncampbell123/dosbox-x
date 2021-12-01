@@ -111,8 +111,8 @@ Name: "{group}\All DOSBox-X builds\x86 Release SDL1"; Filename: "{app}\Win32_bui
 Name: "{group}\All DOSBox-X builds\x86 Release SDL2"; Filename: "{app}\Win32_builds\x86_Release_SDL2\dosbox-x.exe"; WorkingDir: "{app}"; Components: full
 Name: "{group}\All DOSBox-X builds\ARM Release SDL1"; Filename: "{app}\Win32_builds\ARM_Release\dosbox-x.exe"; WorkingDir: "{app}"; Check: not (IsX86 or IsX64); Components: full
 Name: "{group}\All DOSBox-X builds\ARM Release SDL2"; Filename: "{app}\Win32_builds\ARM_Release_SDL2\dosbox-x.exe"; WorkingDir: "{app}"; Check: not (IsX86 or IsX64); Components: full
-Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL1"; Filename: "{app}\Win32_builds\mingw\dosbox-x.exe"; WorkingDir: "{app}"; Components: full
-Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL2"; Filename: "{app}\Win32_builds\mingw-sdl2\dosbox-x.exe"; WorkingDir: "{app}"; Components: full
+Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL1"; Filename: "{app}\Win32_builds\mingw\dosbox-x.exe"; WorkingDir: "{app}"; Check: IsWindowsVersionOrNewer(6, 0); Components: full
+Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL2"; Filename: "{app}\Win32_builds\mingw-sdl2\dosbox-x.exe"; WorkingDir: "{app}"; check: IsWindowsVersionOrNewer(6, 0); Components: full
 Name: "{code:GetDesktopFolder}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
 
@@ -463,7 +463,7 @@ begin
             FileLines[i] := linetmp+' 0';
             found4 := True;
           end;
-          if found1 and found2 and (IsTaskSelected('drivedelay') or (found3 and found4)) then
+          if found1 and found2 and ((found3 and found4) or IsTaskSelected('drivedelay')) then
             break;
         end
       end;
