@@ -560,11 +560,11 @@ void PARALLEL::Run()
 				defaultirq[port-1] = (uint8_t)strtol(str.c_str(), NULL, 10);
 		// Remove existing port.
 		if (parallelPortObjects[port-1]) {
+#if C_PRINTER
 			if (mode==PARALLEL_TYPE_PRINTER&&parallelPortObjects[port-1]->parallelType!=PARALLEL_TYPE_PRINTER&&testParallelPortsBaseclass->printer_used) {
 				WriteOut("Printer is already assigned to a different port.\n");
 				return;
 			}
-#if C_PRINTER
 			if (parallelPortObjects[port-1]->parallelType == PARALLEL_TYPE_PRINTER) testParallelPortsBaseclass->printer_used = false;
 #endif
 			DOS_PSP curpsp(dos.psp());
@@ -575,9 +575,11 @@ void PARALLEL::Run()
             }
 			delete parallelPortObjects[port-1];
 			parallelPortObjects[port-1] = 0;
+#if C_PRINTER
 		} else if (mode==PARALLEL_TYPE_PRINTER&&testParallelPortsBaseclass->printer_used) {
 			WriteOut("Printer is already assigned to a different port.\n");
 			return;
+#endif
 		}
 		// Recreate the port with the new mode.
 		switch (mode) {
