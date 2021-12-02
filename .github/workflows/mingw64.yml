@@ -42,5 +42,5 @@ jobs:
       - name: Upload release package
         uses: actions/upload-artifact@v2
         with:
-          name: dosbox-x-mingw64
+          name: dosbox-x-mingw-win64
           path: ${{ github.workspace }}/package/
