@@ -36,8 +36,8 @@ Apart from the Windows installers, you can find six zip packages (three before 0
 * [dosbox-x-vsbuild-win64-20211130230328.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.20/dosbox-x-vsbuild-win64-20211130230328.zip) (Visual Studio Win64 builds)
 * [dosbox-x-vsbuild-arm32-20211130230328.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.20/dosbox-x-vsbuild-arm32-20211130230328.zip) (Visual Studio ARM32 builds)
 * [dosbox-x-vsbuild-arm64-20211130230328.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.20/dosbox-x-vsbuild-arm64-20211130230328.zip) (Visual Studio ARM64 builds)
-* [dosbox-x-mingw32.zip](https://github.com/joncampbell123/dosbox-x/suites/4515665829/artifacts/120710203) (MinGW Win32 builds)
-* [dosbox-x-mingw64.zip](https://github.com/joncampbell123/dosbox-x/suites/4515665833/artifacts/120711225) (MinGW Win64 builds)
+* [dosbox-x-mingw-win32-20211201234567.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.20/dosbox-x-mingw-win32-20211201234567.zip) (MinGW Win32 builds)
+* [dosbox-x-mingw-win64-20211201234567.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.20/dosbox-x-mingw-win64-20211201234567.zip) (MinGW Win64 builds)
 
 The Visual Studio builds are the default Windows builds to use, which include the debugger. On the other hand, the MinGW builds of DOSBox-X versions support the Slirp backend for the NE2000 networking, but they won't run on Windows XP in recent versions. You may want to use one of the MinGW builds (SDL1 or SDL2) if you encounter specific problem(s) with the Visual Studio builds (such as floating point precision issues). In addition, while the SDL1 version is the default version, which uses the native Windows menus, the SDL2 version may be preferred over the SDL1 version for certain features (particularly related to input handling) such as better international keyboard support.
 
