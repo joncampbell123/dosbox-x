@@ -37,7 +37,7 @@ print "$zipname\n";
 
 my @platforms = ('ARM', 'ARM64', 'Win32', 'x64');
 my @builds = ('Release', 'Release SDL2');
-my @files = ('dosbox-x.reference.conf', 'dosbox-x.reference.full.conf', 'dosbox-x.exe', 'FREECG98.bmp', 'changelog.txt', 'shaders');
+my @files = ('dosbox-x.reference.conf', 'dosbox-x.reference.full.conf', 'dosbox-x.exe', 'FREECG98.bmp', 'Nouveau_IBM.ttf', 'SarasaGothicFixed.ttf', 'changelog.txt', 'shaders');
 
 foreach $platform (@platforms) {
 	$plat = $platform;
@@ -52,6 +52,9 @@ foreach $platform (@platforms) {
 	my @filelist = ();
 
 	foreach $build (@builds) {
+        push(@filelist, "COPYING");
+        push(@filelist, "bin/$platform/$build/glshaders", "bin/$platform/$build/inpout32.dll") if $plat eq 'win32';
+        push(@filelist, "bin/$platform/$build/glshaders", "bin/$platform/$build/inpoutx64.dll") if $plat eq 'win64';
 		foreach $file (@files) {
 			$addfile = "bin/$platform/$build/$file";
 			die "Missing file $addfile" unless -e $addfile;
