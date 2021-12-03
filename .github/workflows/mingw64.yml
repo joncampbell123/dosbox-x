@@ -27,32 +27,44 @@ jobs:
           ln -s $top/build-scripts/mingw/make.exe /usr/bin/make.exe
           ./build-mingw
           strip --strip-all $top/src/dosbox-x.exe
+          mkdir -p $top/package/mingw-build/mingw/drivez
           mkdir -p $top/package/mingw-build/mingw/shaders
+          mkdir -p $top/package/mingw-build/mingw/glshaders
+          mkdir -p $top/package/mingw-build/mingw/languages
           sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/' -e 's/^\(file access tries[ ]*=[ ]*\)0$/\13/' -e 's/^\(printoutput[ ]*=[ ]*\)png$/\1printer/' -e 's/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/mingw-build/mingw/dosbox-x.conf
           cp $top/src/dosbox-x.exe $top/package/mingw-build/mingw/dosbox-x.exe
           cp $top/CHANGELOG $top/package/mingw-build/mingw/CHANGELOG.txt
           cp $top/dosbox-x.reference.conf $top/package/mingw-build/mingw/dosbox-x.reference.conf
           cp $top/dosbox-x.reference.full.conf $top/package/mingw-build/mingw/dosbox-x.reference.full.conf
+          cp $top/contrib/windows/installer/readme.txt $top/package/mingw-build/mingw/readme.txt
           cp $top/contrib/windows/installer/inpoutx64.dll $top/package/mingw-build/mingw/inpoutx64.dll
           cp $top/contrib/fonts/FREECG98.BMP $top/package/mingw-build/mingw/FREECG98.BMP
           cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/mingw-build/mingw/Nouveau_IBM.ttf
           cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/mingw-build/mingw/SarasaGothicFixed.ttf
+          cp $top/contrib/windows/installer/drivez_readme.txt $top/package/mingw-build/mingw/drivez/readme.txt
           cp $top/contrib/windows/shaders/* $top/package/mingw-build/mingw/shaders/
           cp $top/contrib/glshaders/* $top/package/mingw-build/mingw/glshaders/
+          for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i $top/package/mingw-build/mingw/languages/; done
           ./build-mingw-sdl2
           strip --strip-all $top/src/dosbox-x.exe
+          mkdir -p $top/package/mingw-build/mingw-sdl2/drivez
           mkdir -p $top/package/mingw-build/mingw-sdl2/shaders
+          mkdir -p $top/package/mingw-build/mingw-sdl2/glshaders
+          mkdir -p $top/package/mingw-build/mingw-sdl2/languages
           sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/' -e 's/^\(file access tries[ ]*=[ ]*\)0$/\13/' -e 's/^\(printoutput[ ]*=[ ]*\)png$/\1printer/' -e 's/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/mingw-build/mingw-sdl2/dosbox-x.conf
           cp $top/src/dosbox-x.exe $top/package/mingw-build/mingw-sdl2/dosbox-x.exe
           cp $top/CHANGELOG $top/package/mingw-build/mingw-sdl2/CHANGELOG.txt
           cp $top/dosbox-x.reference.conf $top/package/mingw-build/mingw-sdl2/dosbox-x.reference.conf
           cp $top/dosbox-x.reference.full.conf $top/package/mingw-build/mingw-sdl2/dosbox-x.reference.full.conf
+          cp $top/contrib/windows/installer/readme.txt $top/package/mingw-build/mingw-sdl2/readme.txt
           cp $top/contrib/windows/installer/inpoutx64.dll $top/package/mingw-build/mingw-sdl2/inpoutx64.dll
           cp $top/contrib/fonts/FREECG98.BMP $top/package/mingw-build/mingw-sdl2/FREECG98.BMP
           cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/mingw-build/mingw-sdl2/Nouveau_IBM.ttf
           cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/mingw-build/mingw-sdl2/SarasaGothicFixed.ttf
+          cp $top/contrib/windows/installer/drivez_readme.txt $top/package/mingw-build/mingw-sdl2/drivez/readme.txt
           cp $top/contrib/windows/shaders/* $top/package/mingw-build/mingw-sdl2/shaders/
           cp $top/contrib/glshaders/* $top/package/mingw-build/mingw-sdl2/glshaders/
+          for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i $top/package/mingw-build/mingw-sdl2/languages/; done
           cp $top/COPYING $top/package/COPYING
       - name: Upload release package
         uses: actions/upload-artifact@v2
