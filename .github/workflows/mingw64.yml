@@ -27,18 +27,23 @@ jobs:
           ln -s $top/build-scripts/mingw/make.exe /usr/bin/make.exe
           ./build-mingw
           strip --strip-all $top/src/dosbox-x.exe
-          mkdir -p $top/package/mingw-build/mingw
+          mkdir -p $top/package/mingw-build/mingw/shaders
           cp $top/src/dosbox-x.exe $top/package/mingw-build/mingw/dosbox-x.exe
           cp $top/CHANGELOG $top/package/mingw-build/mingw/CHANGELOG.txt
           cp $top/dosbox-x.reference.conf $top/package/mingw-build/mingw/dosbox-x.reference.conf
           cp $top/dosbox-x.reference.full.conf $top/package/mingw-build/mingw/dosbox-x.reference.full.conf
+          cp $top/contrib/fonts/FREECG98.BMP $top/package/mingw-build/mingw/FREECG98.BMP
+          cp $top/contrib/windows/shaders/* $top/package/mingw-build/mingw/shaders/
           ./build-mingw-sdl2
           strip --strip-all $top/src/dosbox-x.exe
-          mkdir -p $top/package/mingw-build/mingw-sdl2
+          mkdir -p $top/package/mingw-build/mingw-sdl2/shaders
           cp $top/src/dosbox-x.exe $top/package/mingw-build/mingw-sdl2/dosbox-x.exe
           cp $top/CHANGELOG $top/package/mingw-build/mingw-sdl2/CHANGELOG.txt
           cp $top/dosbox-x.reference.conf $top/package/mingw-build/mingw-sdl2/dosbox-x.reference.conf
           cp $top/dosbox-x.reference.full.conf $top/package/mingw-build/mingw-sdl2/dosbox-x.reference.full.conf
+          cp $top/contrib/fonts/FREECG98.BMP $top/package/mingw-build/mingw-sdl2/FREECG98.BMP
+          cp $top/contrib/windows/shaders/* $top/package/mingw-build/mingw-sdl2/shaders/
+          cp $top/COPYING $top/package/COPYING
       - name: Upload release package
         uses: actions/upload-artifact@v2
         with:
