@@ -158,7 +158,7 @@ int main(int argc,char **argv) {
         return 1;
     }
 
-#if 1
+#if 0
     fprintf(stderr,"Mach-O header:\n");
     fprintf(stderr,"    cputype:        0x%08lx\n",(unsigned long)cputype);
     fprintf(stderr,"    cpusubtype:     0x%08lx\n",(unsigned long)cpusubtype);
@@ -172,6 +172,8 @@ int main(int argc,char **argv) {
         fprintf(stderr,"This tool is intended for use with executables or dylib files\n");
         return 1;
     }
+
+    printf("Replacing dylib references in: %s\n",fpath.c_str());
 
     /* read load commands */
     const uint8_t *load_cmd_fence = src_scan + sizeofcmds;
@@ -197,7 +199,7 @@ int main(int argc,char **argv) {
             return 1;
         }
 
-#if 1
+#if 0
         fprintf(stderr,"Load command:\n");
         fprintf(stderr,"    cmd:         0x%08lx\n",(unsigned long)cmd->cmd);
         fprintf(stderr,"    cmdsize:     %lu\n",(unsigned long)cmd->cmdsize);
@@ -207,7 +209,7 @@ int main(int argc,char **argv) {
             const struct dylib_command *dycmd = (const struct dylib_command*)cmd;
             if (cmd->cmdsize < sizeof(*dycmd)) continue;
 
-#if 1
+#if 0
             switch (cmd->cmd) {
                 case LC_ID_DYLIB:           fprintf(stderr,"    LC_ID_DYLIB:\n"); break;
                 case LC_LOAD_DYLIB:         fprintf(stderr,"    LC_LOAD_DYLIB:\n"); break;
@@ -219,7 +221,7 @@ int main(int argc,char **argv) {
 
             string name = get_macho_lcstr(dycmd->dylib.name,(const uint8_t*)cmd,(const uint8_t*)src_scan);
 
-#if 1
+#if 0
             fprintf(stderr,"        name:                   %s\n",name.c_str());
             fprintf(stderr,"        timestamp:              %lu\n",(unsigned long)dycmd->dylib.timestamp);
             fprintf(stderr,"        current_version:        0x%08lx\n",(unsigned long)dycmd->dylib.current_version);
