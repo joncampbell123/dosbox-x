@@ -24,6 +24,33 @@
 
 using namespace std;
 
+bool str_startswith(const char *str,const char *starts) {
+    const size_t l = strlen(starts);
+    return strncmp(str,starts,l) == 0;
+}
+
+/* replace /opt/homebrew/lib/libsomething.dylib with @executable_path/libsomething.dylib */
+string dylib_replace(string path) {
+    const char *s = path.c_str();
+    const char *fn = strrchr(s,'/');
+
+    if (fn != NULL)
+        fn++;
+    else
+        fn = s;
+
+    if (str_startswith(s,"/opt/homebrew/"))
+        return string("@executable_path/") + fn;
+    if (str_startswith(s,"/usr/local/lib/"))
+        return string("@executable_path/") + fn;
+    if (str_startswith(s,"/usr/local/opt/"))
+        return string("@executable_path/") + fn;
+    if (str_startswith(s,"/usr/local/Cellar/"))
+        return string("@executable_path/") + fn;
+
+    return path;
+}
+
 string get_macho_lcstr(union lc_str str,const uint8_t *base,const uint8_t *fence) {
     string r;
 
@@ -199,7 +226,7 @@ int main(int argc,char **argv) {
             fprintf(stderr,"        compatibility_version:  0x%08lx\n",(unsigned long)dycmd->dylib.compatibility_version);
 #endif
 
-            string newname = name;
+            string newname = dylib_replace(name);
 
             /* construct a new entry with a possibly altered path */
             {
@@ -268,6 +295,7 @@ int main(int argc,char **argv) {
     }
 
     munmap((void*)src_mmap,src_mmap_sz);
+    fchmod(tmp_fd,0755);
     close(tmp_fd);
     close(src_fd);
     return 0;
