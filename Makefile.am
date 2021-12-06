@@ -43,6 +43,12 @@ dosbox-x.app: src/dosbox-x contrib/macos/dosbox.icns
 	done; \
 	codesign --deep -s - dosbox-x.app/Contents/MacOS/DosBox || exit 1
 
+src/tool/mach-o-matic: src/tool/mach-o-matic.cpp
+	g++ -o $@ $<
+
+clean-local:
+	rm -f src/tool/mach-o-matic
+
 contrib/macos/dosbox.icns: contrib/macos/dosbox-x.png
 	rm -Rfv src/dosbox.iconset
 	mkdir src/dosbox.iconset
