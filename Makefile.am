@@ -46,6 +46,11 @@ dosbox-x.app: src/dosbox-x contrib/macos/dosbox.icns src/tool/mach-o-matic
 	src/tool/mach-o-matic dosbox-x.app/Contents/MacOS/DosBox || exit 1; \
 	codesign --deep -s - dosbox-x.app/Contents/MacOS/DosBox || exit 1
 
+debug-dosbox-x-app:
+	(cd dosbox-x.app/Contents/MacOS && (DYLD_PRINT_LIBRARIES=1 ./DosBox -defaultconf -defaultdir . -silent -c 'echo hello' -c 'exit')) 2>mac-os-x-dylib-report.txt
+	@echo 'Please review mac-os-x-dylib-report.txt to make sure the .app bundle loaded only from the executable path and not any external Brew libraries.'
+	@echo 'This is crucial to maintain the ability to distribute this application in the Mac OS X world.'
+
 src/tool/mach-o-matic: src/tool/mach-o-matic.cpp
 	g++ -o $@ $<
 
