@@ -39,12 +39,14 @@ string get_macho_lcstr(union lc_str str,const uint8_t *base,const uint8_t *fence
 }
 
 int main(int argc,char **argv) {
-    std::string fpath;
+    string fpath;
+    string tpath;
     struct stat st;
     size_t src_mmap_sz;
     const uint8_t *src_mmap;
     const uint8_t *src_mmap_fence;
     const uint8_t *src_scan;
+    uint8_t tmp[4096];
     uint32_t cputype;
     uint32_t cpusubtype;
     uint32_t filetype;
@@ -53,6 +55,10 @@ int main(int argc,char **argv) {
     uint32_t flags;
     int src_bits;
     int src_fd;
+    int tmp_fd;
+
+    off_t sizeofcmds_ofs;
+    off_t endofheader;
 
     if (argc < 2) {
         fprintf(stderr,"mach-o-matic <Mach-O executable or dylib>\n");
@@ -71,6 +77,12 @@ int main(int argc,char **argv) {
 
     if ((src_fd=open(fpath.c_str(),O_RDONLY)) < 0) {
         fprintf(stderr,"Cannot open %s\n",fpath.c_str());
+        return 1;
+    }
+
+    tpath = fpath + ".tmp";
+    if ((tmp_fd=open(tpath.c_str(),O_WRONLY|O_CREAT|O_TRUNC,0600)) < 0) {
+        fprintf(stderr,"Cannot open temporary file\n");
         return 1;
     }
 
@@ -108,6 +120,11 @@ int main(int argc,char **argv) {
         ncmds = hdr->ncmds;
         sizeofcmds = hdr->sizeofcmds;
         flags = hdr->flags;
+
+        sizeofcmds_ofs = (off_t)offsetof(const mach_header_64,sizeofcmds);
+        endofheader = (off_t)sizeof(*hdr);
+
+        if (write(tmp_fd,hdr,sizeof(*hdr)) != sizeof(*hdr)) return 2;
     }
     else {
         fprintf(stderr,"%s: Unknown signature\n",fpath.c_str());
@@ -181,10 +198,77 @@ int main(int argc,char **argv) {
             fprintf(stderr,"        current_version:        0x%08lx\n",(unsigned long)dycmd->dylib.current_version);
             fprintf(stderr,"        compatibility_version:  0x%08lx\n",(unsigned long)dycmd->dylib.compatibility_version);
 #endif
+
+            string newname = name;
+
+            /* construct a new entry with a possibly altered path */
+            {
+                uint8_t *w = tmp;
+
+                struct dylib_command *ncmd = (struct dylib_command*)w;
+                w += sizeof(*ncmd);
+
+                ncmd->cmd = cmd->cmd;
+                ncmd->dylib = dycmd->dylib;
+                ncmd->dylib.name.offset = (uint32_t)(w - tmp);
+
+                if (!newname.empty()) {
+                    memcpy(w,newname.c_str(),newname.length());
+                    w += newname.length();
+                    *w++ = 0;
+                }
+
+                ncmd->cmdsize = (uint32_t)(w - tmp);
+
+                /* padding */
+                if (src_bits == 64) {
+                    while ((ncmd->cmdsize & 7) != 0) {
+                        *w++ = 0;
+                        ncmd->cmdsize = (uint32_t)(w - tmp);
+                    }
+                }
+
+                if (write(tmp_fd,(void*)tmp,(size_t)(w - tmp)) != (size_t)(w - tmp)) return 2;
+            }
+        }
+        else {
+            /* copy as-is */
+            if (write(tmp_fd,(void*)cmd,cmd->cmdsize) != cmd->cmdsize) return 2;
         }
     }
 
+    /* update size of commands */
+    {
+        off_t eoc = lseek(tmp_fd,0,SEEK_CUR);
+        uint32_t sz = (uint32_t)(eoc - endofheader);
+        lseek(tmp_fd,sizeofcmds_ofs,SEEK_SET);
+        if (write(tmp_fd,&sz,4) != 4) return 2;
+
+        off_t pos = lseek(tmp_fd,0,SEEK_END);
+        off_t tgt = (off_t)(src_scan - src_mmap);
+
+        if (pos > tgt) {
+            fprintf(stderr,"Modification expanded load command list\n");
+            return 1;
+        }
+
+        const uint8_t zc = 0;
+
+        while (pos < tgt) {
+            if (write(tmp_fd,&zc,1) != 1) return 2;
+        }
+    }
+
+    /* then copy the rest of the executable */
+    if (src_scan < src_mmap_fence) {
+        size_t rem = src_mmap_fence - src_scan;
+        if (write(tmp_fd,src_scan,rem) != rem) return 2;
+        src_scan += rem;
+        assert(src_scan == src_mmap_fence);
+    }
+
     munmap((void*)src_mmap,src_mmap_sz);
+    close(tmp_fd);
     close(src_fd);
     return 0;
 }
