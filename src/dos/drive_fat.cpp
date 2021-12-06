@@ -15,7 +15,11 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
-
+/* VIM ref for tabbing:
+ *
+ * set tabstop=8 | set softtabstop=8 | set shiftwidth=8 | set expandtab
+ *
+ */
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,13 +39,13 @@
 
 #include <algorithm>
 
-#define IMGTYPE_FLOPPY 0
-#define IMGTYPE_ISO    1
-#define IMGTYPE_HDD	   2
+#define IMGTYPE_FLOPPY          0
+#define IMGTYPE_ISO             1
+#define IMGTYPE_HDD             2
 
-#define FAT12		   0
-#define FAT16		   1
-#define FAT32		   2
+#define FAT12                   0
+#define FAT16                   1
+#define FAT32                   2
 
 static uint16_t dpos[256];
 static uint32_t dnum[256];
@@ -53,232 +57,227 @@ extern bool gbk, isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
 int PC98AutoChoose_FAT(const std::vector<_PC98RawPartition> &parts,imageDisk *loadedDisk) {
-	for (size_t i=0;i < parts.size();i++) {
-		const _PC98RawPartition &pe = parts[i];
+        for (size_t i=0;i < parts.size();i++) {
+                const _PC98RawPartition &pe = parts[i];
 
-		/* skip partitions already in use */
-		if (loadedDisk->partitionInUse(i)) continue;
+                /* skip partitions already in use */
+                if (loadedDisk->partitionInUse(i)) continue;
 
-		/* We're looking for MS-DOS partitions.
-		 * I've heard that some other OSes were once ported to PC-98, including Windows NT and OS/2,
-		 * so I would rather not mistake NTFS or HPFS as FAT and cause damage. --J.C.
-		 * FIXME: Is there a better way? */
-		if (!strncasecmp(pe.name,"MS-DOS",6) ||
-			!strncasecmp(pe.name,"MSDOS",5) ||
-			!strncasecmp(pe.name,"Windows",7))
-			return (int)i;
-	}
+                /* We're looking for MS-DOS partitions.
+                 * I've heard that some other OSes were once ported to PC-98, including Windows NT and OS/2,
+                 * so I would rather not mistake NTFS or HPFS as FAT and cause damage. --J.C.
+                 * FIXME: Is there a better way? */
+                if (    !strncasecmp(pe.name,"MS-DOS",6) ||
+                        !strncasecmp(pe.name,"MSDOS",5) ||
+                        !strncasecmp(pe.name,"Windows",7))
+                        return (int)i;
+        }
 
-	return -1;
+        return -1;
 }
 
 int MBRAutoChoose_FAT(const std::vector<partTable::partentry_t> &parts,imageDisk *loadedDisk,uint8_t use_ver_maj=0,uint8_t use_ver_min=0) {
-	bool prompt1 = false, prompt2 = false;
-	if (use_ver_maj == 0 && use_ver_min == 0) {
-		use_ver_maj = dos.version.major;
-		use_ver_min = dos.version.minor;
-		prompt1 = prompt2 = true;
-	}
+        bool prompt1 = false, prompt2 = false;
+        if (use_ver_maj == 0 && use_ver_min == 0) {
+                use_ver_maj = dos.version.major;
+                use_ver_min = dos.version.minor;
+                prompt1 = prompt2 = true;
+        }
 
-	for (size_t i=0;i < parts.size();i++) {
-		const partTable::partentry_t &pe = parts[i];
+        for (size_t i=0;i < parts.size();i++) {
+                const partTable::partentry_t &pe = parts[i];
 
-		/* skip partitions already in use */
-		if (loadedDisk->partitionInUse(i)) continue;
+                /* skip partitions already in use */
+                if (loadedDisk->partitionInUse(i)) continue;
 
-		if (pe.parttype == 0x01/*FAT12*/ ||
-			pe.parttype == 0x04/*FAT16*/ ||
-			pe.parttype == 0x06/*FAT16*/) {
-			return (int)i;
-		}
-		else if (pe.parttype == 0x0E/*FAT16B LBA*/) {
-            if (use_ver_maj < 7 && prompt1 && systemmessagebox("Mounting LBA disk image","Mounting this type of disk images requires a reported DOS version of 7.0 or higher. Do you want to auto-change the reported DOS version to 7.0 now and mount the disk image?","yesno", "question", 1)) {
-                use_ver_maj = dos.version.major = 7;
-                use_ver_min = dos.version.minor = 0;
-                dos_ver_menu(false);
-            }
-			if (use_ver_maj >= 7) /* MS-DOS 7.0 or higher */
-				return (int)i;
-            else
-                prompt1 = false;
-		}
-		else if (pe.parttype == 0x0B || pe.parttype == 0x0C) { /* FAT32 types */
-            if ((use_ver_maj < 7 || ((use_ver_maj == 7 && use_ver_min < 10))) && prompt2 && systemmessagebox("Mounting FAT32 disk image","Mounting this type of disk images requires a reported DOS version of 7.10 or higher. Do you want to auto-change the reported DOS version to 7.10 now and mount the disk image?","yesno", "question", 1)) {
-                use_ver_maj = dos.version.major = 7;
-                use_ver_min = dos.version.minor = 10;
-                dos_ver_menu(true);
-            }
-			if (use_ver_maj > 7 || (use_ver_maj == 7 && use_ver_min >= 10)) /* MS-DOS 7.10 or higher */
-				return (int)i;
-            else
-                prompt2 = false;
-		}
-	}
+                if (    pe.parttype == 0x01/*FAT12*/ ||
+                        pe.parttype == 0x04/*FAT16*/ ||
+                        pe.parttype == 0x06/*FAT16*/) {
+                        return (int)i;
+                }
+                else if (pe.parttype == 0x0E/*FAT16B LBA*/) {
+                        if (use_ver_maj < 7 && prompt1 && systemmessagebox("Mounting LBA disk image","Mounting this type of disk images requires a reported DOS version of 7.0 or higher. Do you want to auto-change the reported DOS version to 7.0 now and mount the disk image?","yesno", "question", 1)) {
+                                use_ver_maj = dos.version.major = 7;
+                                use_ver_min = dos.version.minor = 0;
+                                dos_ver_menu(false);
+                        }
 
-	return -1;
+                        if (use_ver_maj >= 7) /* MS-DOS 7.0 or higher */
+                                return (int)i;
+                        else
+                                prompt1 = false;
+                }
+                else if (pe.parttype == 0x0B || pe.parttype == 0x0C) { /* FAT32 types */
+                        if ((use_ver_maj < 7 || ((use_ver_maj == 7 && use_ver_min < 10))) && prompt2 && systemmessagebox("Mounting FAT32 disk image","Mounting this type of disk images requires a reported DOS version of 7.10 or higher. Do you want to auto-change the reported DOS version to 7.10 now and mount the disk image?","yesno", "question", 1)) {
+                                use_ver_maj = dos.version.major = 7;
+                                use_ver_min = dos.version.minor = 10;
+                                dos_ver_menu(true);
+                        }
+                        if (use_ver_maj > 7 || (use_ver_maj == 7 && use_ver_min >= 10)) /* MS-DOS 7.10 or higher */
+                                return (int)i;
+                        else
+                                prompt2 = false;
+                }
+        }
+
+        return -1;
 }
 
 bool filename_not_8x3(const char *n) {
-	bool lead;
-	unsigned int i;
+        bool lead;
+        unsigned int i;
 
-	i = 0;
-	lead = false;
-	while (*n != 0) {
-		if (*n == '.') break;
-		if ((*n&0xFF)<=32||*n==127||*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') return true;
-		if (lead) lead = false;
-		else if ((IS_PC98_ARCH && shiftjis_lead_byte(*n&0xFF)) || (isDBCSCP() && isKanji1(*n&0xFF))) lead = true;
-		i++;
-		n++;
-	}
-	if (i > 8) return true;
-	if (*n == 0) return false; /* made it past 8 or less normal chars and end of string: normal */
+        i = 0;
+        lead = false;
+        while (*n != 0) {
+                if (*n == '.') break;
+                if ((*n&0xFF)<=32||*n==127||*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') return true;
+                if (lead) lead = false;
+                else if ((IS_PC98_ARCH && shiftjis_lead_byte(*n&0xFF)) || (isDBCSCP() && isKanji1(*n&0xFF))) lead = true;
+                i++;
+                n++;
+        }
+        if (i > 8) return true;
+        if (*n == 0) return false; /* made it past 8 or less normal chars and end of string: normal */
 
-	/* skip dot */
-	assert(*n == '.');
-	n++;
+        /* skip dot */
+        assert(*n == '.');
+        n++;
 
-	i = 0;
-	lead = false;
-	while (*n != 0) {
-		if (*n == '.') return true; /* another '.' means LFN */
-		if ((*n&0xFF)<=32||*n==127||*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') return true;
-		if (lead) lead = false;
-		else if ((IS_PC98_ARCH && shiftjis_lead_byte(*n&0xFF)) || (isDBCSCP() && isKanji1(*n&0xFF))) lead = true;
-		i++;
-		n++;
-	}
-	if (i > 3) return true;
+        i = 0;
+        lead = false;
+        while (*n != 0) {
+                if (*n == '.') return true; /* another '.' means LFN */
+                if ((*n&0xFF)<=32||*n==127||*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') return true;
+                if (lead) lead = false;
+                else if ((IS_PC98_ARCH && shiftjis_lead_byte(*n&0xFF)) || (isDBCSCP() && isKanji1(*n&0xFF))) lead = true;
+                i++;
+                n++;
+        }
+        if (i > 3) return true;
 
-	return false; /* it is 8.3 case */
+        return false; /* it is 8.3 case */
 }
 
 /* Assuming an LFN call, if the name is not strict 8.3 uppercase, return true.
  * If the name is strict 8.3 uppercase like "FILENAME.TXT" there is no point making an LFN because it is a waste of space */
 bool filename_not_strict_8x3(const char *n) {
-	if (filename_not_8x3(n)) return true;
-	bool lead = false;
-	for (unsigned int i=0; i<strlen(n); i++) {
-		if (lead) lead = false;
-		else if ((IS_PC98_ARCH && shiftjis_lead_byte(n[i]&0xFF)) || (isDBCSCP() && isKanji1(n[i]&0xFF))) lead = true;
-		else if (n[i]>='a' && n[i]<='z') return true;
-	}
-	return false; /* it is strict 8.3 upper case */
+        if (filename_not_8x3(n)) return true;
+        bool lead = false;
+        for (unsigned int i=0; i<strlen(n); i++) {
+                if (lead) lead = false;
+                else if ((IS_PC98_ARCH && shiftjis_lead_byte(n[i]&0xFF)) || (isDBCSCP() && isKanji1(n[i]&0xFF))) lead = true;
+                else if (n[i]>='a' && n[i]<='z') return true;
+        }
+        return false; /* it is strict 8.3 upper case */
 }
 
 void GenerateSFN(char *lfn, unsigned int k, unsigned int &i, unsigned int &t);
 /* Generate 8.3 names from LFNs, with tilde usage (from ~1 to ~9999). */
 char* fatDrive::Generate_SFN(const char *path, const char *name) {
-	if (!filename_not_8x3(name)) {
-		strcpy(sfn, name);
-		DBCS_upcase(sfn);
-		return sfn;
-	}
-	char lfn[LFN_NAMELENGTH+1], fullname[DOS_PATHLENGTH+DOS_NAMELENGTH_ASCII];
-	if (name==NULL||!*name) return NULL;
-	if (strlen(name)>LFN_NAMELENGTH) {
-		strncpy(lfn, name, LFN_NAMELENGTH);
-		lfn[LFN_NAMELENGTH]=0;
-	} else
-		strcpy(lfn, name);
-	if (!strlen(lfn)) return NULL;
-	direntry fileEntry = {};
-	uint32_t dirClust, subEntry;
-	unsigned int k=1, i, t=10000;
-	while (k<10000) {
-		GenerateSFN(lfn, k, i, t);
-		strcpy(fullname, path);
-		strcat(fullname, sfn);
-		if(!getFileDirEntry(fullname, &fileEntry, &dirClust, &subEntry,/*dirOk*/true)) return sfn;
-		k++;
-	}
-	return NULL;
+        if (!filename_not_8x3(name)) {
+                strcpy(sfn, name);
+                DBCS_upcase(sfn);
+                return sfn;
+        }
+        char lfn[LFN_NAMELENGTH+1], fullname[DOS_PATHLENGTH+DOS_NAMELENGTH_ASCII];
+        if (name==NULL||!*name) return NULL;
+        if (strlen(name)>LFN_NAMELENGTH) {
+                strncpy(lfn, name, LFN_NAMELENGTH);
+                lfn[LFN_NAMELENGTH]=0;
+        } else
+                strcpy(lfn, name);
+        if (!strlen(lfn)) return NULL;
+        direntry fileEntry = {};
+        uint32_t dirClust, subEntry;
+        unsigned int k=1, i, t=10000;
+        while (k<10000) {
+                GenerateSFN(lfn, k, i, t);
+                strcpy(fullname, path);
+                strcat(fullname, sfn);
+                if(!getFileDirEntry(fullname, &fileEntry, &dirClust, &subEntry,/*dirOk*/true)) return sfn;
+                k++;
+        }
+        return NULL;
 }
 
 class fatFile : public DOS_File {
-public:
-	fatFile(const char* name, uint32_t startCluster, uint32_t fileLen, fatDrive *useDrive);
-	bool Read(uint8_t * data,uint16_t * size);
-	bool Write(const uint8_t * data,uint16_t * size);
-	bool Seek(uint32_t * pos,uint32_t type);
-	bool Close();
-	uint16_t GetInformation(void);
-    void Flush(void);
-	bool UpdateDateTimeFromHost(void);   
-	uint32_t GetSeekPos(void);
-	uint32_t firstCluster;
-	uint32_t seekpos = 0;
-	uint32_t filelength;
-	uint32_t currentSector = 0;
-	uint32_t curSectOff = 0;
-	uint8_t sectorBuffer[SECTOR_SIZE_MAX];
-	/* Record of where in the directory structure this file is located */
-	uint32_t dirCluster = 0;
-	uint32_t dirIndex = 0;
+        public:
+                fatFile(const char* name, uint32_t startCluster, uint32_t fileLen, fatDrive *useDrive);
+                bool Read(uint8_t * data,uint16_t * size);
+                bool Write(const uint8_t * data,uint16_t * size);
+                bool Seek(uint32_t * pos,uint32_t type);
+                bool Close();
+                uint16_t GetInformation(void);
+                void Flush(void);
+                bool UpdateDateTimeFromHost(void);   
+                uint32_t GetSeekPos(void);
+                uint32_t firstCluster;
+                uint32_t seekpos = 0;
+                uint32_t filelength;
+                uint32_t currentSector = 0;
+                uint32_t curSectOff = 0;
+                uint8_t sectorBuffer[SECTOR_SIZE_MAX];
+                /* Record of where in the directory structure this file is located */
+                uint32_t dirCluster = 0;
+                uint32_t dirIndex = 0;
 
-    bool modified = false;
-	bool loadedSector = false;
-	fatDrive *myDrive;
-
-#if 0/*unused*/
-private:
-    enum { NONE,READ,WRITE } last_action;
-	uint16_t info;
-#endif
+                bool modified = false;
+                bool loadedSector = false;
+                fatDrive *myDrive;
 };
 
 void time_t_to_DOS_DateTime(uint16_t &t,uint16_t &d,time_t unix_time) {
-    struct tm time;
-    time.tm_isdst = -1;
+        struct tm time;
+        time.tm_isdst = -1;
 
-    uint16_t oldax=reg_ax, oldcx=reg_cx, olddx=reg_dx;
-	reg_ah=0x2a; // get system date
-	CALLBACK_RunRealInt(0x21);
+        uint16_t oldax=reg_ax, oldcx=reg_cx, olddx=reg_dx;
+        reg_ah=0x2a; // get system date
+        CALLBACK_RunRealInt(0x21);
 
-	time.tm_year = reg_cx-1900;
-	time.tm_mon = reg_dh-1;
-	time.tm_mday = reg_dl;
+        time.tm_year = reg_cx-1900;
+        time.tm_mon = reg_dh-1;
+        time.tm_mday = reg_dl;
 
-	reg_ah=0x2c; // get system time
-	CALLBACK_RunRealInt(0x21);
+        reg_ah=0x2c; // get system time
+        CALLBACK_RunRealInt(0x21);
 
-	time.tm_hour = reg_ch;
-	time.tm_min = reg_cl;
-	time.tm_sec = reg_dh;
+        time.tm_hour = reg_ch;
+        time.tm_min = reg_cl;
+        time.tm_sec = reg_dh;
 
-    reg_ax=oldax;
-    reg_cx=oldcx;
-    reg_dx=olddx;
+        reg_ax=oldax;
+        reg_cx=oldcx;
+        reg_dx=olddx;
 
-    time_t timet = mktime(&time);
-    const struct tm *tm = localtime(timet == -1?&unix_time:&timet);
-    if (tm == NULL) return;
+        time_t timet = mktime(&time);
+        const struct tm *tm = localtime(timet == -1?&unix_time:&timet);
+        if (tm == NULL) return;
 
-    /* NTS: tm->tm_year = years since 1900,
-     *      tm->tm_mon = months since January therefore January == 0
-     *      tm->tm_mday = day of the month, starting with 1 */
+        /* NTS: tm->tm_year = years since 1900,
+         *      tm->tm_mon = months since January therefore January == 0
+         *      tm->tm_mday = day of the month, starting with 1 */
 
-    t = ((unsigned int)tm->tm_hour << 11u) + ((unsigned int)tm->tm_min << 5u) + ((unsigned int)tm->tm_sec >> 1u);
-    d = (((unsigned int)tm->tm_year - 80u) << 9u) + (((unsigned int)tm->tm_mon + 1u) << 5u) + (unsigned int)tm->tm_mday;
+        t = ((unsigned int)tm->tm_hour << 11u) + ((unsigned int)tm->tm_min << 5u) + ((unsigned int)tm->tm_sec >> 1u);
+        d = (((unsigned int)tm->tm_year - 80u) << 9u) + (((unsigned int)tm->tm_mon + 1u) << 5u) + (unsigned int)tm->tm_mday;
 }
 
 /* IN - char * filename: Name in regular filename format, e.g. bob.txt */
 /* OUT - char * filearray: Name in DOS directory format, eleven char, e.g. bob     txt */
 static void convToDirFile(const char *filename, char *filearray) {
-	uint32_t charidx = 0;
-	uint32_t flen,i;
-	flen = (uint32_t)strlen(filename);
-	memset(filearray, 32, 11);
-	for(i=0;i<flen;i++) {
-		if(charidx >= 11) break;
-		if(filename[i] != '.') {
-			filearray[charidx] = filename[i];
-			charidx++;
-		} else {
-			charidx = 8;
-		}
-	}
+        uint32_t charidx = 0;
+        uint32_t flen,i;
+        flen = (uint32_t)strlen(filename);
+        memset(filearray, 32, 11);
+        for(i=0;i<flen;i++) {
+                if(charidx >= 11) break;
+                if(filename[i] != '.') {
+                        filearray[charidx] = filename[i];
+                        charidx++;
+                } else {
+                        charidx = 8;
+                }
+        }
 }
 
 fatFile::fatFile(const char* /*name*/, uint32_t startCluster, uint32_t fileLen, fatDrive *useDrive) : firstCluster(startCluster), filelength(fileLen), myDrive(useDrive) {
