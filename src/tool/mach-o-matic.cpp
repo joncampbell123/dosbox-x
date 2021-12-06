@@ -24,6 +24,20 @@
 
 using namespace std;
 
+string get_macho_lcstr(union lc_str str,const uint8_t *base,const uint8_t *fence) {
+    string r;
+
+    if (str.offset <= (uint32_t)(fence-base)) {
+        base += str.offset;
+        assert(base <= fence);
+
+        while (base < fence && *base != 0)
+            r += *base++;
+    }
+
+    return r;
+}
+
 int main(int argc,char **argv) {
     std::string fpath;
     struct stat st;
@@ -119,9 +133,13 @@ int main(int argc,char **argv) {
     const uint8_t *load_cmd_fence = src_scan + sizeofcmds;
     while ((src_scan+8) <= load_cmd_fence) {
         const struct load_command *cmd = (const struct load_command*)src_scan;
+        if (cmd->cmdsize < 8) {
+            fprintf(stderr,"Load command with too-small size\n");
+            return 1;
+        }
         if (cmd->cmdsize > sizeofcmds) {
             fprintf(stderr,"Load command with excessive size\n");
-return 1;
+            return 1;
         }
         src_scan += cmd->cmdsize;
         if (src_scan > load_cmd_fence) {
@@ -140,6 +158,30 @@ return 1;
         fprintf(stderr,"    cmd:         0x%08lx\n",(unsigned long)cmd->cmd);
         fprintf(stderr,"    cmdsize:     %lu\n",(unsigned long)cmd->cmdsize);
 #endif
+
+        if (cmd->cmd == LC_ID_DYLIB || cmd->cmd == LC_LOAD_DYLIB || cmd->cmd == LC_LOAD_WEAK_DYLIB || cmd->cmd == LC_REEXPORT_DYLIB) {
+            const struct dylib_command *dycmd = (const struct dylib_command*)cmd;
+            if (cmd->cmdsize < sizeof(*dycmd)) continue;
+
+#if 1
+            switch (cmd->cmd) {
+                case LC_ID_DYLIB:           fprintf(stderr,"    LC_ID_DYLIB:\n"); break;
+                case LC_LOAD_DYLIB:         fprintf(stderr,"    LC_LOAD_DYLIB:\n"); break;
+                case LC_LOAD_WEAK_DYLIB:    fprintf(stderr,"    LC_LOAD_WEAK_DYLIB:\n"); break;
+                case LC_REEXPORT_DYLIB:     fprintf(stderr,"    LC_REEXPORT_DYLIB:\n"); break;
+                default:                    abort(); break;
+            }
+#endif
+
+            string name = get_macho_lcstr(dycmd->dylib.name,(const uint8_t*)cmd,(const uint8_t*)src_scan);
+
+#if 1
+            fprintf(stderr,"        name:                   %s\n",name.c_str());
+            fprintf(stderr,"        timestamp:              %lu\n",(unsigned long)dycmd->dylib.timestamp);
+            fprintf(stderr,"        current_version:        0x%08lx\n",(unsigned long)dycmd->dylib.current_version);
+            fprintf(stderr,"        compatibility_version:  0x%08lx\n",(unsigned long)dycmd->dylib.compatibility_version);
+#endif
+        }
     }
 
     munmap((void*)src_mmap,src_mmap_sz);
