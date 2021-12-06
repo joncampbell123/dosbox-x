@@ -283,6 +283,7 @@ int main(int argc,char **argv) {
 
         while (pos < tgt) {
             if (write(tmp_fd,&zc,1) != 1) return 2;
+            pos++;
         }
     }
 
@@ -298,6 +299,12 @@ int main(int argc,char **argv) {
     fchmod(tmp_fd,0755);
     close(tmp_fd);
     close(src_fd);
+
+    if (rename(tpath.c_str(),fpath.c_str()) < 0) {
+        fprintf(stderr,"Failed to replace file\n");
+        return 1;
+    }
+
     return 0;
 }
 
