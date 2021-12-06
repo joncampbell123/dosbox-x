@@ -5,7 +5,8 @@
     a hypocondriac and is sitting in the corner screaming
     about link edit data that doesn't fill a __LINKEDIT
     segment. It is once again possible to make Mac OS X
-    ARM releases. (joncampbell123)
+    ARM releases and to use dylib files from Brew doing
+    so. (joncampbell123)
 0.83.20
   - Release notes for this version:
     https://dosbox-x.com/release-0.83.20.html
