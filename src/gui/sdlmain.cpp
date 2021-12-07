@@ -4233,6 +4233,23 @@ void OUTPUT_TTF_Select(int fsize=-1) {
     GFX_SelectFontByPoints(curSize);
     if (fontSize>=MIN_PTSIZE && 100*ttf.cols*ttf.width/maxWidth*ttf.lins*ttf.height/maxHeight > 100)
         E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
+    if (ttf.SDL_font && ttf.width) {
+        int widthb, widthm, widthx, width1, width9;
+        TTF_GlyphMetrics(ttf.SDL_font, 'B', NULL, NULL, NULL, NULL, &widthb);
+        TTF_GlyphMetrics(ttf.SDL_font, 'M', NULL, NULL, NULL, NULL, &widthm);
+        TTF_GlyphMetrics(ttf.SDL_font, 'X', NULL, NULL, NULL, NULL, &widthx);
+        if (ttf.width != widthb || ttf.width != widthm || ttf.width != widthx) LOG_MSG("TTF: The loaded font is not monospaced.");
+        int cp=dos.loaded_codepage;
+        if (!cp) InitCodePage();
+        if ((IS_PC98_ARCH || isDBCSCP()) && dbcs_sbcs) {
+            int width = 0, height = 0;
+            TTF_GlyphMetrics(ttf.SDL_font, 0x4E00, NULL, NULL, NULL, NULL, &width1);
+            TTF_GlyphMetrics(ttf.SDL_font, 0x4E5D, NULL, NULL, NULL, NULL, &width9);
+            if (width1 <= ttf.width || width9 <= ttf.width) LOG_MSG("TTF: The loaded font may not support DBCS characters.");
+            else if ((ttf.width*2 != width1 || ttf.width*2 != width9) && ttf.width == widthb && ttf.width == widthm && ttf.width == widthx) LOG_MSG("TTF: The loaded font is not monospaced.");
+        }
+        dos.loaded_codepage = cp;
+    }
     resetreq=false;
     sdl.desktop.want_type = SCREEN_TTF;
 }
