@@ -97,6 +97,7 @@ Source: "Win32_builds\ARM_Release\dosbox-x.exe"; DestDir: "{app}"; Flags: ignore
 Source: "Win32_builds\ARM_Release_SDL2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\ARM_Release_SDL2'); Components: full typical compact
 Source: "Win32_builds\mingw\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\mingw'); Components: full typical compact
 Source: "Win32_builds\mingw-sdl2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\mingw-sdl2'); Components: full typical compact
+Source: "Win32_builds\mingw-lowend\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\mingw-lowend'); Components: full typical compact
 Source: "Win32_builds\*"; DestDir: "{app}\Win32_builds"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: full
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
@@ -113,6 +114,7 @@ Name: "{group}\All DOSBox-X builds\ARM Release SDL1"; Filename: "{app}\Win32_bui
 Name: "{group}\All DOSBox-X builds\ARM Release SDL2"; Filename: "{app}\Win32_builds\ARM_Release_SDL2\dosbox-x.exe"; WorkingDir: "{app}"; Check: not (IsX86 or IsX64); Components: full
 Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL1"; Filename: "{app}\Win32_builds\mingw\dosbox-x.exe"; WorkingDir: "{app}"; Check: IsWindowsVersionOrNewer(6, 0); Components: full
 Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL2"; Filename: "{app}\Win32_builds\mingw-sdl2\dosbox-x.exe"; WorkingDir: "{app}"; check: IsWindowsVersionOrNewer(6, 0); Components: full
+Name: "{group}\All DOSBox-X builds\32-bit MinGW lowend"; Filename: "{app}\Win32_builds\mingw-lowend\dosbox-x.exe"; WorkingDir: "{app}"; check: Is32BitInstaller(); Components: full
 Name: "{code:GetDesktopFolder}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
 
@@ -192,13 +194,20 @@ var
   Version: TWindowsVersion;
 begin
   GetWindowsVersionEx(Version);
-  Result :=
-    (Version.Major > Major) or
-    ((Version.Major = Major) and (Version.Minor >= Minor));
+  Result := (Version.Major > Major) or ((Version.Major = Major) and (Version.Minor >= Minor));
+end;
+function Is32BitInstaller(): Boolean;
+begin
+    if True then
+    begin
+      Result := True;
+    end
+    else
+      Result := False;
 end;
 procedure HelpButtonOnClick(Sender: TObject);
 begin
-  MsgBox('The Setup pre-selects a Windows build for you according to your platform automatically, but you can change the default build to run if you encounter specific problem(s) with the pre-selected one.' #13#13 'For example, while the SDL1 version (which uses native Windows menus) is the default version to run, the SDL2 version may be preferred over the SDL1 version for certain features such as touchscreen input support. Also, MinGW builds may work better with certain features (such as the Slirp backend for the NE2000 networking in MinGW builds) than Visual Studio builds even though they do not come with the debugger.' #13#13 'If you are not sure about which build to use, then you can just leave it unmodified and use the pre-selected one as the default build.', mbConfirmation, MB_OK);
+  MsgBox('The Setup pre-selects a Windows build for you according to your platform automatically, but you can change the default build to run if you encounter specific problem(s) with the pre-selected one.' #13#13 'For example, while the SDL1 version (which uses native Windows menus) is the default version to run, the SDL2 version may be preferred over the SDL1 version for certain features such as touchscreen input support. Also, MinGW builds may work better with certain features (such as the Slirp backend for the NE2000 networking in most MinGW builds) than Visual Studio builds even though they do not come with the debugger.' #13#13 'If you are not sure about which build to use, then you can just leave it unmodified and use the pre-selected one as the default build.', mbConfirmation, MB_OK);
 end;
 procedure CreateHelpButton(X: integer; Y: integer; W: integer; H: integer);
 begin
@@ -213,13 +222,13 @@ begin
 end;
 procedure InitializeWizard();
 begin
-    if False and not IsWin64 then
+    if not Is32BitInstaller() and not IsWin64 then
     begin
       if not IsVerySilent() then
         MsgBox('You are running 32-bit Windows. Use the 32-bit installer instead of this 64-bit installer.', mbInformation, MB_OK);
       abort();
     end;
-    msg:='The selected build will be the default build when you run DOSBox-X from the Windows Start Menu or the desktop. You probably want to use SDL1 builds if native Windows menus are desired, or you may prefer SDL2 builds if for example you encounter some issues with a non-U.S. keyboard layout in SDL1 builds.' #13#13 'Click the "Help" button below for more information about the DOSBox-X build selection.';
+    msg:='The selected build will be the default build when you run DOSBox-X from the Windows Start Menu or the desktop. You probably want to use SDL1 builds if native Windows menus are desired, or you may prefer SDL2 builds if for example you encounter some issues with a non-U.S. keyboard layout in SDL1 builds. Please click the "Help" button below for more information about the DOSBox-X build selection.';
     PageBuild:=CreateInputOptionPage(wpSelectDir, 'Default DOSBox-X build (32-bit)', 'Select the default DOSBox-X build to run', msg, True, False);
     PageBuild.Add('Release SDL1 (Default Visual Studio build)');
     PageBuild.Add('Release SDL2 (Alternative Visual Studio build)');
@@ -227,6 +236,8 @@ begin
     PageBuild.Add('ARM Release SDL2 (ARM platform only)');
     PageBuild.Add('MinGW build SDL1 (Default MinGW build)');
     PageBuild.Add('MinGW build SDL2 (Alternative MinGW build)');
+    if Is32BitInstaller() then
+      PageBuild.Add('MinGW lowend build (SDL1 build on low-end systems)');
     if IsX86 or IsX64 then
     begin
       PageBuild.CheckListBox.ItemEnabled[2] := False;
@@ -329,6 +340,8 @@ begin
       msg:=msg+'MinGW build SDL1';
     if (PageBuild.Values[5]) then
       msg:=msg+'MinGW build SDL2';
+    if Is32BitInstaller() and (PageBuild.Values[6]) then
+      msg:=msg+'MinGW lowend build';
     Wizardform.ReadyMemo.Lines.Add('      '+msg);
     if not FileExists(ExpandConstant('{app}\dosbox-x.conf')) then
     begin
@@ -936,6 +949,8 @@ begin
       dir:=dir+'mingw';
     if (PageBuild.Values[5]) then
       dir:=dir+'mingw-sdl2';
+    if Is32BitInstaller() and (PageBuild.Values[6]) then
+      dir:=dir+'mingw-lowend';
     Result := False;
     if (dir=name) then
       Result := True;

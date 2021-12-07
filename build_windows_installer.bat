@@ -114,6 +114,7 @@ if exist %isspath%\Win64_builds\nul rd %isspath%\Win64_builds /s /q
 %isspath%\7za.exe e -y -o%isspath%\Win64_builds\ARM64_Release_SDL2 %varm64zip% "bin\ARM64\Release SDL2\dosbox-x.exe"
 %isspath%\7za.exe e -y -o%isspath%\Win32_builds\mingw %m32zip% "mingw-build\mingw\dosbox-x.exe"
 %isspath%\7za.exe e -y -o%isspath%\Win32_builds\mingw-sdl2 %m32zip% "mingw-build\mingw-sdl2\dosbox-x.exe"
+%isspath%\7za.exe e -y -o%isspath%\Win32_builds\mingw-lowend %m32zip% "mingw-build\mingw-lowend\dosbox-x.exe"
 %isspath%\7za.exe e -y -o%isspath%\Win64_builds\mingw %m64zip% "mingw-build\mingw\dosbox-x.exe"
 %isspath%\7za.exe e -y -o%isspath%\Win64_builds\mingw-sdl2 %m64zip% "mingw-build\mingw-sdl2\dosbox-x.exe"
 for %%i in (dosbox-x.reference.conf dosbox-x.reference.full.conf) do (
@@ -129,6 +130,7 @@ for %%i in (dosbox-x.reference.conf dosbox-x.reference.full.conf) do (
 	copy /y %isspath%\%%i %isspath%\Win64_builds\ARM64_Release_SDL2
 	copy /y %isspath%\%%i %isspath%\Win32_builds\mingw
 	copy /y %isspath%\%%i %isspath%\Win32_builds\mingw-sdl2
+	copy /y %isspath%\%%i %isspath%\Win32_builds\mingw-lowend
 	copy /y %isspath%\%%i %isspath%\Win64_builds\mingw
 	copy /y %isspath%\%%i %isspath%\Win64_builds\mingw-sdl2
 )
@@ -165,9 +167,10 @@ copy /y %isspath%\DOSBox-X-setup.iss %isspath%\64bit\DOSBox-X-setup.iss
 %isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "ARM Release" "ARM64 Release"
 %isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "{userappdata}" "{commonappdata}"
 %isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "HKCU;" "HKA;"
-%isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "False and not IsWin64" "not IsWin64"
+%isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "if True then" "if False then"
 %isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss " IsTaskSelected" " WizardIsTaskSelected"
 %isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "IsAdminLoggedOn" "IsAdmin"
+%isspath%\fart.exe %isspath%\64bit\DOSBox-X-setup.iss "Source: \"..\Win64_builds\mingw-lowend" ";Source: \"..\Win64_builds\mingw-lowend"
 %isspath%\ISCC.exe %isspath%\DOSBox-X-setup.iss
 %isspath%\64bit\ISCC.exe %isspath%\64bit\DOSBox-X-setup.iss
 if exist %isspath%\dosbox-x-win32-*-setup.exe if exist %isspath%\dosbox-x-win64-*-setup.exe (
