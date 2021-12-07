@@ -25,6 +25,7 @@ bool informd3d = false;
 
 #if (HAVE_D3D9_H) && defined(WIN32)
 
+int FileDirExistCP(const char *name);
 extern Bitu currentWindowWidth, currentWindowHeight;
 
 #include "direct3d.h"
@@ -57,7 +58,7 @@ std::string shader_translate_directory(const std::string& path) {
     if (path == "none")
         return path;
 
-    /* DOSBox fork compatability: if only the name of a file is given, assume it
+    /* DOSBox fork compatibility: if only the name of a file is given, assume it
        exists in the shaders\ directory.
 
        DOSBox-X's variation is to NOT prefix shaders\ to it if it looks like a
@@ -66,6 +67,12 @@ std::string shader_translate_directory(const std::string& path) {
         return path;
     if (path.length() >= 1 && path.find('\\') != std::string::npos) /* perhaps a path with "\" */
         return path;
+    if (FileDirExistCP(path.c_str())==1)
+        return path;
+    if (FileDirExistCP((path+".fx").c_str())==1)
+        return path+".fx";
+    if (FileDirExistCP(("shaders\\"+path+".fx").c_str())==1)
+        return "shaders\\"+path+".fx";
 
     return std::string("shaders\\") + path;
 }
@@ -1007,6 +1014,7 @@ HRESULT CDirect3D::LoadPixelShader(const char * shader, double scalex, double sc
 	    psActive = true;
 	    return S_OK;
 	} else {
+	    if (!dblgfx && !forced) SetVal("render", "pixelshader", "none");
 	    LOG_MSG("D3D:Pixel shader not needed");
 	    psActive = false;
 	    return E_FAIL;
