@@ -27,7 +27,9 @@
 
 #include "SDLnetsys.h"
 #include "SDL_net.h"
-
+#if defined(__WIN32__)
+#include "winerror.h"
+#endif
 
 const SDL_version *SDLNet_Linked_Version(void)
 {

@@ -69,7 +69,7 @@
 #include "src/libs/libchdr/FLAC/lpc.c"
 #include "src/libs/libchdr/FLAC/md5.c"
 #include "src/libs/libchdr/FLAC/memory.c"
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 #include "src/libs/libchdr/FLAC/windows_unicode_filenames.c"
 #endif
 #include "src/libs/libchdr/lzma/LzmaDec.c"

@@ -138,7 +138,7 @@
 
 #define FLUIDINC
 #include "config.h"
-#if defined(_WIN32) && !defined(C_HX_DOS)
+#if defined(_WIN32) && !defined(C_HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 /* All char* strings are in UTF-8 format. Added to support Unicode files on Windows */
 
 #include "win_utf8_io.h"

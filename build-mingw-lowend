@@ -58,6 +58,6 @@ export INTERNAL_FREETYPE=1
 echo Compiling DOSBox-X
 chmod +x configure
 # FIXME: I would like MinGW builds to enable the debugger, eventually
-./configure --enable-core-inline --disable-mt32 --disable-libfluidsynth --disable-libslirp --enable-d3d9 --enable-d3d-shaders --prefix=/usr "$@" || exit 1
+./configure --enable-core-inline --disable-libfluidsynth --disable-libslirp --enable-d3d9 --enable-d3d-shaders --prefix=/usr "$@" || exit 1
 make -j3 || exit 1
 
