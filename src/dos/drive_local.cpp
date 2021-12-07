@@ -844,6 +844,7 @@ int FileDirExistUTF8(std::string &localname, const char *name) {
 #else
     return 0;
 #endif
+    if (dos.loaded_codepage == 950 && !chinasea) makestdcp950table();
     if (!CodePageHostToGuestUTF8((char *)cpcnv_temp, (char *)name)) {
         dos.loaded_codepage = cp;
         return 0;
