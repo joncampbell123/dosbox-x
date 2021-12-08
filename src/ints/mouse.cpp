@@ -808,7 +808,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 #endif
 	for (int i=r1; i<=r2; i++) {
         bool lead1 = false, lead2 = false;
-        if (IS_DOSV && (CurMode->type != M_DCGA || IS_J3100)) {
+        if ((IS_DOSV && DOSV_CheckCJKVideoMode()) || (IS_J3100 && J3_IsJapanese())) {
             for (int k=0; k<c1; k++) {
                 if (lead1) lead1=false;
                 else if (isKanji1(real_readb(seg,(i*c+k)*2))) lead1=true;
@@ -834,7 +834,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
                         text[len++]=result;
                 } else if (result)
                     text[len++]=result;
-            } else if (IS_DOSV && (CurMode->type != M_DCGA || IS_J3100)) {
+            } else if ((IS_DOSV && DOSV_CheckCJKVideoMode()) || (IS_J3100 && J3_IsJapanese())) {
                 if (lead2) lead2=false;
                 else if (isKanji1(real_readb(seg,(i*c+j)*2))) lead2=true;
                 result=real_readb(seg,(i*c+j)*2);
@@ -924,7 +924,7 @@ void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h, bool select) {
 			if (IS_PC98_ARCH) {
 				PhysPt where = CurMode->pstart+((i*80)+j)*2;
 				mem_writeb(where+0x2000,mem_readb(where+0x2000)^16);
-			} else if ((IS_DOSV && DOSV_CheckCJKVideoMode()) || IS_J3100) {
+			} else if ((IS_DOSV && DOSV_CheckCJKVideoMode()) || (IS_J3100 && J3_IsJapanese())) {
 				uint8_t attr = real_readb(seg,(i*c+j)*2+1);
 				real_writeb(seg,(i*c+j)*2+1,attr/0x10+(attr&0xF)*0x10);
 				if (j==c2) WriteCharTopView(c*i*2,j+1);
