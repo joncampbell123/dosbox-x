@@ -1875,7 +1875,7 @@ void PauseDOSBoxLoop(Bitu /*unused*/) {
     mainMenu.get_item("mapper_pause").check(true).refresh_item(mainMenu);
 
     MAPPER_ReleaseAllKeys();
-
+    GFX_ReleaseMouse();
     GFX_SetTitle(-1,-1,-1,true);
 //  KEYBOARD_ClrBuffer();
     GFX_LosingFocus();
@@ -3613,7 +3613,7 @@ void CaptureMouseNotify(bool capture)
 }
 
 static void CaptureMouse(bool pressed) {
-    if (!pressed)
+    if (!pressed || is_paused)
         return;
 
     CaptureMouseNotify();
