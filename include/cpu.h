@@ -368,13 +368,20 @@ public:
 	void Load(PhysPt address);
 	void Save(PhysPt address);
 
-    PhysPt GetBase (void) const {
-        return (PhysPt)(
-            ((PhysPt)saved.seg.base_24_31 << (PhysPt)24U) |
-            ((PhysPt)saved.seg.base_16_23 << (PhysPt)16U) |
-             (PhysPt)saved.seg.base_0_15);
-    }
-	bool GetExpandDown (void) {
+	PhysPt GetBase (void) const {
+		if (CPU_ArchitectureType >= CPU_ARCHTYPE_386) {
+			return (PhysPt)(
+					((PhysPt)saved.seg.base_24_31 << (PhysPt)24U) |
+					((PhysPt)saved.seg.base_16_23 << (PhysPt)16U) |
+					(PhysPt)saved.seg.base_0_15);
+		}
+		else {
+			return (PhysPt)(
+					((PhysPt)saved.seg.base_16_23 << (PhysPt)16U) |
+					(PhysPt)saved.seg.base_0_15);
+		}
+	}
+    bool GetExpandDown (void) {
 #if 0
 	uint32_t limit_0_15	:16;
 	uint32_t base_0_15	:16;
@@ -402,11 +409,14 @@ public:
 	}
 	Bitu GetLimit (void) const {
 		const Bitu limit = ((Bitu)saved.seg.limit_16_19 << (Bitu)16U) | (Bitu)saved.seg.limit_0_15;
-		if (saved.seg.g) return ((Bitu)limit << (Bitu)12U) | (Bitu)0xFFFU;
+		if (saved.seg.g && CPU_ArchitectureType >= CPU_ARCHTYPE_386) return ((Bitu)limit << (Bitu)12U) | (Bitu)0xFFFU;
 		return limit;
 	}
 	Bitu GetOffset(void) const {
-		return ((Bitu)saved.gate.offset_16_31 << (Bitu)16U) | (Bitu)saved.gate.offset_0_15;
+		if (CPU_ArchitectureType >= CPU_ARCHTYPE_386)
+			return ((Bitu)saved.gate.offset_16_31 << (Bitu)16U) | (Bitu)saved.gate.offset_0_15;
+		else
+			return (Bitu)saved.gate.offset_0_15;
 	}
 	Bitu GetSelector(void) const {
 		return saved.gate.selector;
