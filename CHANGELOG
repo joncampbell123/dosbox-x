@@ -1,4 +1,6 @@
 0.83.21
+  - The selected text will be highlighted when you try
+    to select text for copying in J-3100 mode. (Wengier)
   - Config option "pixelshader" now allows a shader file
     name without the .fx extension, or a shader file in
     the current directory. (Wengier)

@@ -1149,7 +1149,10 @@ void WriteCharTopView(uint16_t off, int count) {
 			real_writeb(seg, row * width * 2 + col * 2, code);
 			real_writeb(seg, row * width * 2 + col * 2 + 1, attr);
 			off += 2;
-			WriteCharDOSVDbcs(col, row, ((uint16_t)code << 8) | real_readb(seg, off), attr);
+			if (IS_J3100 && J3_IsJapanese())
+				WriteCharDCGADbcs(col, row, ((uint16_t)code << 8) | real_readb(seg, off), attr);
+			else
+				WriteCharDOSVDbcs(col, row, ((uint16_t)code << 8) | real_readb(seg, off), attr);
 			count--;
 			col++;
 			if (col >= width) {
@@ -1161,7 +1164,10 @@ void WriteCharTopView(uint16_t off, int count) {
 		} else {
 			real_writeb(seg, row * width * 2 + col * 2, code);
 			real_writeb(seg, row * width * 2 + col * 2 + 1, attr);
-			WriteCharDOSVSbcs(col, row, code, attr);
+			if (IS_J3100 && J3_IsJapanese())
+				WriteCharDCGASbcs(col, row, code, attr);
+			else
+				WriteCharDOSVSbcs(col, row, code, attr);
 		}
 		col++;
 		if (col >= width) {

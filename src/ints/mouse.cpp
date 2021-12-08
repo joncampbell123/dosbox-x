@@ -924,7 +924,7 @@ void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h, bool select) {
 			if (IS_PC98_ARCH) {
 				PhysPt where = CurMode->pstart+((i*80)+j)*2;
 				mem_writeb(where+0x2000,mem_readb(where+0x2000)^16);
-			} else if (IS_DOSV && !IS_J3100) {
+			} else if ((IS_DOSV && DOSV_CheckCJKVideoMode()) || IS_J3100) {
 				uint8_t attr = real_readb(seg,(i*c+j)*2+1);
 				real_writeb(seg,(i*c+j)*2+1,attr/0x10+(attr&0xF)*0x10);
 				if (j==c2) WriteCharTopView(c*i*2,j+1);
