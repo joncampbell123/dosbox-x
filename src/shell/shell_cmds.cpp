@@ -4159,7 +4159,7 @@ void DOS_Shell::CMD_CHCP(char * args) {
         FILE* file = fopen(cpfile.c_str(), "r"); /* should check the result */
         std::string exepath = GetDOSBoxXPath();
         if (!file && exepath.size()) file = fopen((exepath+CROSS_FILESPLIT+cpfile).c_str(), "r");
-        if (file && newCP > 0 && newCP != 932 && newCP != 936 && newCP != 949 && newCP != 950) {
+        if (file && newCP > 0 && newCP != 932 && newCP != 936 && newCP != 949 && newCP != 950 && newCP != 951) {
             altcp = newCP;
             char line[256], *l=line;
             while (fgets(line, sizeof(line), file)) {

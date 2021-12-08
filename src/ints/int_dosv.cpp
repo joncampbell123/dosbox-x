@@ -132,8 +132,8 @@ bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*
 bool isKanji1(uint8_t chr) {
     if (dos.loaded_codepage == 936 || IS_PDOSV)
         return chr >= (gbk ? 0x81 : 0xa1) && chr <= 0xfe;
-    else if (dos.loaded_codepage == 950 || IS_TDOSV)
-        return chr >= 0x81 && chr <= 0xfe && !(!chinasea && chr >= 0xc7 && chr <= 0xc8);
+    else if (dos.loaded_codepage == 950 || dos.loaded_codepage == 951 || IS_TDOSV)
+        return chr >= 0x81 && chr <= 0xfe && !(dos.loaded_codepage != 951 && !chinasea && chr >= 0xc7 && chr <= 0xc8);
     else if (dos.loaded_codepage == 949 || IS_KDOSV)
         return chr >= 0x81 && chr <= 0xfe;
     else
@@ -142,9 +142,9 @@ bool isKanji1(uint8_t chr) {
 
 bool isKanji2(uint8_t chr) {
 #if defined(USE_TTF)
-    if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || ((IS_DOSV || ttf_dosv) && !IS_JDOSV))
+    if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951 || ((IS_DOSV || ttf_dosv) && !IS_JDOSV))
 #else
-    if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || (IS_DOSV && !IS_JDOSV))
+    if (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951 || (IS_DOSV && !IS_JDOSV))
 #endif
         return chr >= (dos.loaded_codepage == 936 && !gbk? 0xa1 : 0x40) && chr <= 0xfe;
     else
@@ -234,7 +234,7 @@ static bool LoadFontxFile(const char *fname, int height, bool dbcs) {
                 fclose(mfile);
                 return true;
             }
-		} else if (dos.loaded_codepage == 936 || dos.loaded_codepage == 950) {
+		} else if (dos.loaded_codepage == 936 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) {
             fseek(mfile, 0L, SEEK_END);
             long int sz = ftell(mfile);
             rewind(mfile);
@@ -648,7 +648,7 @@ uint8_t *GetDbcsFont(Bitu code)
                     jfont_cache_dbcs_16[code] = 1;
                     return &jfont_dbcs_16[code * 32];
                 }
-            } if (((dos.loaded_codepage == 936 && gbk) || dos.loaded_codepage == 950) && !(fontsize16%15) && isKanji1(code/0x100)) {
+            } if (((dos.loaded_codepage == 936 && gbk) || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && !(fontsize16%15) && isKanji1(code/0x100)) {
                 Bitu c = code;
                 if (dos.loaded_codepage == 936) code = GetConvertedCode(code, 950);
                 int offset = -1, ser = (code/0x100 - 161) * 157 + ((code%0x100) - ((code%0x100)>160?161:64)) + ((code%0x100)>160?64:1);
@@ -672,7 +672,7 @@ uint8_t *GetDbcsFont(Bitu code)
 			memcpy(&jfont_dbcs_16[code * 32], jfont_dbcs, 32);
 			jfont_cache_dbcs_16[code] = 1;
 		} else {
-			if (!IS_JDOSV && (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950)) {
+			if (!IS_JDOSV && (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951)) {
 				code = GetConvertedCode(code, 932);
 				if (!code) return jfont_dbcs;
 			}
@@ -716,7 +716,7 @@ uint8_t *GetDbcs14Font(Bitu code, bool &is14)
                     return &jfont_dbcs_14[code * 28];
                 }
             }
-            if (((dos.loaded_codepage == 936 && gbk) || dos.loaded_codepage == 950) && !(fontsize14%15) && isKanji1(code/0x100)) {
+            if (((dos.loaded_codepage == 936 && gbk) || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && !(fontsize14%15) && isKanji1(code/0x100)) {
                 Bitu c = code;
                 if (dos.loaded_codepage == 936) code = GetConvertedCode(code, 950);
                 int offset = -1, ser = (code/0x100 - 161) * 157 + ((code%0x100) - ((code%0x100)>160?161:64)) + ((code%0x100)>160?64:1);
@@ -739,7 +739,7 @@ uint8_t *GetDbcs14Font(Bitu code, bool &is14)
             is14 = true;
             return jfont_dbcs;
         } else {
-            if (!IS_JDOSV && (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950)) {
+            if (!IS_JDOSV && (dos.loaded_codepage == 936 || dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951)) {
                 code = GetConvertedCode(code, 932);
                 if (!code) return jfont_dbcs;
             }
@@ -784,7 +784,7 @@ uint8_t *GetDbcs24Font(Bitu code)
                     memcpy(&jfont_dbcs_24[code * 72], fontdata24+offset, 72);
                     return &jfont_dbcs_24[code * 72];
                 }
-            } else if (dos.loaded_codepage == 950 && !(fontsize24%24) && isKanji1(code/0x100)) {
+            } else if ((dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && !(fontsize24%24) && isKanji1(code/0x100)) {
                 int offset = -1, ser = (code/0x100 - 161) * 157 + ((code%0x100) - ((code%0x100)>160?161:64)) + ((code%0x100)>160?64:1);
                 if (ser >= 472 && ser <= 5872) offset = (ser-472)*72;
                 else if (ser >= 6281 && ser <= 13973) offset = (ser-6281)*72+162030;
@@ -887,7 +887,7 @@ void InitFontHandle()
 	if(jfont_16 == NULL || jfont_14 == NULL || jfont_24 == NULL) {
 		LOGFONT lf = { 0 };
 		lf.lfHeight = 16;
-		lf.lfCharSet = IS_KDOSV||(!IS_DOSV&&dos.loaded_codepage==949)?HANGUL_CHARSET:(IS_PDOSV||(!IS_DOSV&&dos.loaded_codepage==936)?GB2312_CHARSET:(IS_TDOSV||(!IS_DOSV&&dos.loaded_codepage==950)?CHINESEBIG5_CHARSET:SHIFTJIS_CHARSET));
+		lf.lfCharSet = IS_KDOSV||(!IS_DOSV&&dos.loaded_codepage==949)?HANGUL_CHARSET:(IS_PDOSV||(!IS_DOSV&&dos.loaded_codepage==936)?GB2312_CHARSET:(IS_TDOSV||(!IS_DOSV&&(dos.loaded_codepage==950||dos.loaded_codepage == 951))?CHINESEBIG5_CHARSET:SHIFTJIS_CHARSET));
 		lf.lfOutPrecision = OUT_DEFAULT_PRECIS;
 		lf.lfClipPrecision = CLIP_DEFAULT_PRECIS;
 		lf.lfQuality = DEFAULT_QUALITY;

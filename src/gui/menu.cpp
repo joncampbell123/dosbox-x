@@ -1234,6 +1234,7 @@ LPWSTR getWString(std::string str, wchar_t *def, wchar_t*& buffer) {
     if (cp>0) {
         if (cp==808) cp=866;
         else if (cp==872) cp=855;
+        else if (cp==951) cp=950;
         reqsize = MultiByteToWideChar(cp, 0, str.c_str(), len+1, NULL, 0);
         buffer = new wchar_t[reqsize];
         if (reqsize>0 && MultiByteToWideChar(cp, 0, str.c_str(), len+1, buffer, reqsize)==reqsize) ret = (LPWSTR)buffer;

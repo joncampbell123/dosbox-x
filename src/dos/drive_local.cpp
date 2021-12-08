@@ -94,6 +94,7 @@
 #include "cp936_uni.h"
 #include "cp949_uni.h"
 #include "cp950_uni.h"
+#include "cp951_uni.h"
 #include "cp1250_uni.h"
 #include "cp1251_uni.h"
 #include "cp1252_uni.h"
@@ -241,7 +242,7 @@ template <class MT> bool String_DBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,cons
 
     while (*s != 0 && s < sf) {
         uint16_t ic = (unsigned char)(*s++);
-        if ((dos.loaded_codepage==932 &&((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0)) || ((dos.loaded_codepage==936 || dos.loaded_codepage==949 || dos.loaded_codepage==950) && (ic & 0x80) == 0x80)) {
+        if ((dos.loaded_codepage==932 &&((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0)) || ((dos.loaded_codepage==936 || dos.loaded_codepage==949 || dos.loaded_codepage==950 || dos.loaded_codepage==951) && (ic & 0x80) == 0x80)) {
             if (*s == 0) return false;
             ic <<= 8U;
             ic += (unsigned char)(*s++);
@@ -271,7 +272,7 @@ template <class MT> bool String_DBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const cha
 
     while (*s != 0 && s < sf) {
         uint16_t ic = (unsigned char)(*s++);
-        if ((dos.loaded_codepage==932 &&((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0)) || ((dos.loaded_codepage==936 || dos.loaded_codepage==949 || dos.loaded_codepage==950) && (ic & 0x80) == 0x80)) {
+        if ((dos.loaded_codepage==932 &&((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0)) || ((dos.loaded_codepage==936 || dos.loaded_codepage==949 || dos.loaded_codepage==950 || dos.loaded_codepage==951) && (ic & 0x80) == 0x80)) {
             if (*s == 0) return false;
             if (morelen && !(dos.loaded_codepage==932 && (halfwidthkana || IS_PC98_ARCH || IS_JEGA_ARCH)) && (ic == 179 || ic == 186) && (s < sf && (*s == 32 || *s == 13))) {
                 MT wc = cp437_to_unicode[ic];
@@ -529,6 +530,8 @@ bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*
         case 950:
             if (chinasea) return String_HOST_TO_DBCS_UTF16<uint16_t>(d,s,cp950ext_to_unicode_hitbl,cp950ext_to_unicode_raw,sizeof(cp950ext_to_unicode_raw)/sizeof(cp950ext_to_unicode_raw[0]));
             return String_HOST_TO_DBCS_UTF16<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
+        case 951:
+            return String_HOST_TO_DBCS_UTF16<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951_to_unicode_raw,sizeof(cp951_to_unicode_raw)/sizeof(cp951_to_unicode_raw[0]));
         case 1250:
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp1250_to_unicode,sizeof(cp1250_to_unicode)/sizeof(cp1250_to_unicode[0]));
         case 1251:
@@ -608,6 +611,8 @@ bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
         case 950:
             if (chinasea) return String_HOST_TO_DBCS_UTF8<uint16_t>(d,s,cp950ext_to_unicode_hitbl,cp950ext_to_unicode_raw,sizeof(cp950ext_to_unicode_raw)/sizeof(cp950ext_to_unicode_raw[0]));
             return String_HOST_TO_DBCS_UTF8<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
+        case 951:
+            return String_HOST_TO_DBCS_UTF8<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951_to_unicode_raw,sizeof(cp951_to_unicode_raw)/sizeof(cp951_to_unicode_raw[0]));
         case 1250:
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp1250_to_unicode,sizeof(cp1250_to_unicode)/sizeof(cp1250_to_unicode[0]));
         case 1251:
@@ -687,6 +692,8 @@ bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*
         case 950:
             if (chinasea) return String_DBCS_TO_HOST_UTF16<uint16_t>(d,s,cp950ext_to_unicode_hitbl,cp950ext_to_unicode_raw,sizeof(cp950ext_to_unicode_raw)/sizeof(cp950ext_to_unicode_raw[0]));
             return String_DBCS_TO_HOST_UTF16<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
+        case 951:
+            return String_DBCS_TO_HOST_UTF16<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951_to_unicode_raw,sizeof(cp951_to_unicode_raw)/sizeof(cp951_to_unicode_raw[0]));
         case 1250:
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp1250_to_unicode,sizeof(cp1250_to_unicode)/sizeof(cp1250_to_unicode[0]));
         case 1251:
@@ -766,6 +773,8 @@ bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
         case 950:
             if (chinasea) return String_DBCS_TO_HOST_UTF8<uint16_t>(d,s,cp950ext_to_unicode_hitbl,cp950ext_to_unicode_raw,sizeof(cp950ext_to_unicode_raw)/sizeof(cp950ext_to_unicode_raw[0]));
             return String_DBCS_TO_HOST_UTF8<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
+        case 951:
+            return String_DBCS_TO_HOST_UTF8<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951_to_unicode_raw,sizeof(cp951_to_unicode_raw)/sizeof(cp951_to_unicode_raw[0]));
         case 1250:
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp1250_to_unicode,sizeof(cp1250_to_unicode)/sizeof(cp1250_to_unicode[0]));
         case 1251:

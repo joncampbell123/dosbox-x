@@ -2451,8 +2451,8 @@ void VGA_SetupHandlers(void) {
 		break;
 	}
     // Workaround for ETen Chinese DOS system (e.g. ET24VA)
-    if (dos.loaded_codepage == 950 && strlen(RunningProgram) > 3 && !strncmp(RunningProgram, "ET", 2)) enveten = true;
-    runeten = !vga_fill_inactive_ram && dos.loaded_codepage == 950 && ((strlen(RunningProgram) > 3 && !strncmp(RunningProgram, "ET", 2)) || (enveten && (!strcmp(RunningProgram, "COMMAND") || !strcmp(RunningProgram, "PRDRV") || !strcmp(RunningProgram, "TLFONT"))));
+    if ((dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && strlen(RunningProgram) > 3 && !strncmp(RunningProgram, "ET", 2)) enveten = true;
+    runeten = !vga_fill_inactive_ram && (dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && ((strlen(RunningProgram) > 3 && !strncmp(RunningProgram, "ET", 2)) || (enveten && (!strcmp(RunningProgram, "COMMAND") || !strcmp(RunningProgram, "PRDRV") || !strcmp(RunningProgram, "TLFONT"))));
 	switch ((vga.gfx.miscellaneous >> 2) & 3) {
 	case 0:
         vgapages.base = VGA_PAGE_A0;

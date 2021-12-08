@@ -722,7 +722,7 @@ void DOS_Shell::Prepare(void) {
                         else if (IS_KDOSV) newCP=949;
                         else if (IS_TDOSV) newCP=950;
                     }
-                    if (newCP==932||newCP==936||newCP==949||newCP==950) {
+                    if (newCP==932||newCP==936||newCP==949||newCP==950||newCP==951) {
                         dos.loaded_codepage=newCP;
                         SetupDBCSTable();
                         runRescan("-A -Q");
