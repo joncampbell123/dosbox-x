@@ -24,6 +24,8 @@
 #include "logging.h"
 #include <time.h>
 #include <algorithm>
+#include <cassert>
+#include <map>
 #include "dosbox.h"
 
 extern std::string niclist;
@@ -184,6 +186,14 @@ bool SlirpEthernetConnection::Initialize(Section* dosbox_config)
 	slirp = slirp_new(&config, &slirp_callbacks, this);
 	if(slirp)
 	{
+        const auto section = static_cast<Section_prop *>(dosbox_config);
+		bool is_udp = false;
+		ClearPortForwards(is_udp, forwarded_tcp_ports);
+		forwarded_tcp_ports = SetupPortForwards(is_udp, section->Get_string("tcp_port_forwards"));
+		is_udp = true;
+		ClearPortForwards(is_udp, forwarded_udp_ports);
+		forwarded_udp_ports = SetupPortForwards(is_udp, section->Get_string("udp_port_forwards"));
+
 		LOG_MSG("SLIRP: Successfully initialized");
         niclist = "You have currently enabled the slirp backend for NE2000 Ethernet emulation.\nTo show a list of network interfaces please enable the pcap backend instead.\nCheck [ne2000] and [ethernet, pcap] sections of the DOSBox-X configuration.";
 		return true;
@@ -193,6 +203,133 @@ bool SlirpEthernetConnection::Initialize(Section* dosbox_config)
 		LOG_MSG("SLIRP: Failed to initialize");
 		return false;
 	}
+}
+
+void SlirpEthernetConnection::ClearPortForwards(const bool is_udp, std::map<int, int> &existing_port_forwards)
+{
+	const auto protocol = is_udp ? "UDP" : "TCP";
+	const in_addr host_addr = {htonl(INADDR_ANY)};
+
+	for (const auto &[host_port, guest_port] : existing_port_forwards)
+		if (slirp_remove_hostfwd(slirp, is_udp, host_addr, host_port) >= 0)
+			LOG_MSG("SLIRP: Removed old %s port %d:%d forward", protocol, host_port, guest_port);
+		else
+			LOG_MSG("SLIRP: Failed removing old %s port %d:%d foward", protocol, host_port, guest_port);
+
+	existing_port_forwards.clear();
+}
+
+std::map<int, int> SlirpEthernetConnection::SetupPortForwards(const bool is_udp, const std::string &port_forward_rules)
+{
+	std::map<int, int> forwarded_ports;
+	const auto protocol = is_udp ? "UDP" : "TCP";
+	constexpr in_addr bind_addr = {INADDR_ANY};
+
+	// Split the rules first by spaces
+	for (auto &forward_rule : split(port_forward_rules, ' ')) {
+		if (forward_rule.empty())
+			continue;
+
+		// Split the rule into host:guest portions
+		auto forward_rule_parts = split(forward_rule, ':');
+		// if only one is provided, then the guest port is the same
+		if (forward_rule_parts.size() == 1)
+			forward_rule_parts.push_back(forward_rule_parts[0]);
+
+		// We should now have two parts, host and guest
+		if (forward_rule_parts.size() != 2) {
+			LOG_MSG("SLIRP: Invalid %s port forward rule: %s", protocol, forward_rule.c_str());
+			continue;
+		}
+
+		// We're not going to populate this rules port extents
+		std::vector<int> ports = {};
+		ports.reserve(4);
+
+		// Process the host and guest portions separately
+		for (const auto &port_range_part : forward_rule_parts) {
+			auto port_range = split(port_range_part, '-');
+
+			// If only one value is provided, then the start and end are the same
+			if (port_range.size() == 1 && !port_range[0].empty())
+				port_range.push_back(port_range[0]);
+
+			// We should now have two parts, start and end
+			if (port_range.size() != 2) {
+				LOG_MSG("SLIRP: Invalid %s port range: %s", protocol, port_range_part.c_str());
+				break;
+			}
+
+			// Now convert the ports to integers and push them into the 'ports' vector
+			assert(port_range.size() == 2);
+			for (const auto &port : port_range) {
+				if (port.empty()) {
+					LOG_MSG("SLIRP: Invalid %s port range: %s", protocol, port_range_part.c_str());
+					break;
+				}
+				// Check if the port is in-range
+				int port_num = -1;
+				try {
+					port_num = std::stoi(port);
+				} catch (std::invalid_argument &e) {
+					LOG_MSG("SLIRP: Invalid %s port: %s", protocol, port.c_str());
+					break;
+				} catch (std::out_of_range &e) {
+					LOG_MSG("SLIRP: Invalid %s port: %s", protocol, port.c_str());
+					break;
+				}
+				ports.push_back(port_num);
+			}
+		}
+
+		// If both halves of the rule are valid, we will have four ports in the vector
+		if (ports.size() != 4) {
+			LOG_MSG("SLIRP: Invalid %s port forward rule: %s", protocol, forward_rule.c_str());
+			continue;
+		}
+		assert(ports.size() == 4);
+
+		// assign the ports to the host and guest portions
+		const auto &host_port_start = ports[0];
+		const auto &host_port_end = ports[1];
+		const auto &guest_port_start = ports[2];
+		const auto &guest_port_end = ports[3];
+
+		// Check if the host port range is valid
+		if (host_port_end < host_port_start || guest_port_end < guest_port_start) {
+			LOG_MSG("SLIRP: Invalid %s port range: %s", protocol, forward_rule.c_str());
+			continue;
+		}
+
+		// Sanity check that the maximum range doesn't go beyond the maximum port number
+		constexpr auto min_valid_port = 1;
+		constexpr auto max_valid_port = 65535;
+		const auto range = std::max(host_port_end - host_port_start, guest_port_end - guest_port_start);
+		if (host_port_start < min_valid_port || host_port_start + range > max_valid_port ||
+		    guest_port_start < min_valid_port || guest_port_start + range > max_valid_port) {
+			LOG_MSG("SLIRP: Invalid %s port range: %s", protocol, forward_rule.c_str());
+			continue;
+		}
+
+		// Start adding the port forwards
+		auto n = range + 1;
+		auto host_port = host_port_start;
+		auto guest_port = guest_port_start;
+		LOG_MSG("SLIRP: Processing %s port forward rule: %s", protocol, forward_rule.c_str());
+		while (n--) {
+			// Add the port forward rule
+			if (slirp_add_hostfwd(slirp, is_udp, bind_addr, host_port, bind_addr, guest_port) == 0) {
+				LOG_MSG("SLIRP: Setup %s port %d:%d forward", protocol, host_port, guest_port);
+				forwarded_ports[host_port] = guest_port;
+			} else {
+				LOG_MSG("SLIRP: Failed setting up %s port %d:%d forward", protocol, host_port, guest_port);
+			}
+			++host_port;
+			++guest_port;
+		} // end port addition loop
+	} // end forward rule loop
+
+	return forwarded_ports;
 }
 
 void SlirpEthernetConnection::SendPacket(const uint8_t* packet, int len)

@@ -26,6 +26,7 @@
 #include "ethernet.h"
 #include <slirp/libslirp.h>
 #include <list>
+#include <map>
 
 /*
  * libslirp really wants a poll() API, so we'll use that when we're
@@ -84,7 +85,10 @@ class SlirpEthernetConnection : public EthernetConnection {
 		void TimersRun();
 		void TimersClear();
 
-                /* Builds a list of descriptors and polls them */
+		void ClearPortForwards(const bool is_udp, std::map<int, int> &existing_port_forwards);
+		std::map<int, int> SetupPortForwards(const bool is_udp, const std::string &port_forward_rules);
+
+		/* Builds a list of descriptors and polls them */
 		void PollsAddRegistered();
 		void PollsClear();
 		bool PollsPoll(uint32_t timeout_ms);
@@ -106,6 +110,9 @@ class SlirpEthernetConnection : public EthernetConnection {
 
 		std::list<int> registered_fds; /*!< File descriptors to watch */
 
+		// keep track of the ports fowarded
+		std::map<int, int> forwarded_tcp_ports = {};
+		std::map<int, int> forwarded_udp_ports = {};
 #ifndef WIN32
 		std::vector<struct pollfd> polls; /*!< Descriptors for poll() */
 #else

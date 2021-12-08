@@ -4398,6 +4398,30 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("The start address used for DHCP by the host services on the IPv4 network.");
     Pstring->SetBasic(true);
 
+    Pstring = secprop->Add_string("tcp_port_forwards", Property::Changeable::WhenIdle, "");
+    Pstring->Set_help("Forwards one or more TCP ports from the host into the DOS guest.\n"
+	                  "The format is:\n"
+	                  "  port1  port2  port3 ... (e.g., 21 80 443)\n"
+	                  "  This will forward FTP, HTTP, and HTTPS into the DOS guest.\n"
+	                  "If the ports are privileged on the host, a mapping can be used\n"
+	                  "  host:guest  ..., (e.g., 8021:21 8080:80)\n"
+	                  "  This will forward ports 8021 and 8080 to FTP and HTTP in the guest\n"
+	                  "A range of adjacent ports can be abbreviated with a dash:\n"
+	                  "  start-end ... (e.g., 27910-27960)\n"
+	                  "  This will forward ports 27910 to 27960 into the DOS guest.\n"
+	                  "Mappings and ranges can be combined, too:\n"
+	                  "  hstart-hend:gstart-gend ..., (e.g, 8040-8080:20-60)\n"
+	                  "  This forwards ports 8040 to 8080 into 20 to 60 in the guest\n"
+	                  ""
+	                  "Notes:\n"
+	                  "  - If mapped ranges differ, the shorter range is extended to fit.\n"
+	                  "  - If conflicting host ports are given, only the first one is setup.\n"
+	                  "  - If conflicting guest ports are given, the latter rule takes predecent.");
+
+	Pstring = secprop->Add_string("udp_port_forwards", Property::Changeable::WhenIdle, "");
+	Pstring->Set_help("Forwards one or more UDP ports from the host into the DOS guest.\n"
+	                  "The format is the same as for TCP port forwards.");
+
     /* IDE emulation options and setup */
     for (size_t i=0;i < MAX_IDE_CONTROLLERS;i++) {
         secprop=control->AddSection_prop(ide_names[i],&Null_Init,false);//done
