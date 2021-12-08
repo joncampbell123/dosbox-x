@@ -188,7 +188,7 @@ static GetEAHandler EATable[512]={
 			}					\
 		}						\
 		else {						\
-			if ((eaa+(sz)-1UL) > SegLimit(core.base_val_ds)) { \
+			if ((uint32_t)(eaa+(sz)-1UL) > (uint32_t)SegLimit(core.base_val_ds)) { \
 				LOG_MSG("Limit check %x+%x-1 = %x > %x",(unsigned int)eaa,(unsigned int)sz,(unsigned int)(eaa+(sz)-1U),(unsigned int)SegLimit(core.base_val_ds)); \
 				goto gp_fault;			\
 			}					\
