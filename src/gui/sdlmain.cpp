@@ -4235,6 +4235,7 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
     if (ttf.SDL_font && ttf.width) {
         int widthb, widthm, widthx, width1, width9;
+        widthb = widthm = widthx = width1 = width9 = 0;
         TTF_GlyphMetrics(ttf.SDL_font, 'B', NULL, NULL, NULL, NULL, &widthb);
         TTF_GlyphMetrics(ttf.SDL_font, 'M', NULL, NULL, NULL, NULL, &widthm);
         TTF_GlyphMetrics(ttf.SDL_font, 'X', NULL, NULL, NULL, NULL, &widthx);

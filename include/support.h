@@ -43,6 +43,7 @@ char *rtrim(char *str);
 char *trim(char * str);
 char * upcase(char * str);
 char * lowcase(char * str);
+std::vector<std::string> split(const std::string& str, char split_char);
 char * StripArg(char *&cmd);
 bool ScanCMDBool(char * cmd,char const * const check);
 char * ScanCMDRemain(char * cmd);
