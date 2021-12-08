@@ -170,20 +170,20 @@ char * lowcase(char * str) {
 }
 
 std::vector<std::string> split(const std::string& str, char split_char) {
-  const char* cur = str.c_str();
-  const char* str_end = str.c_str() + str.size();
-  std::vector<std::string> chunks;
-  while (cur < str_end) {
-    const char* start = cur;
-    while (start < str_end and *start == split_char)
-        start++;
-    const char* end = start + 1;
-    while (end < str_end and *end != split_char)
-        end++;
-    cur = end + 1;
-    chunks.push_back(std::string(start, end - start));
-  }
-  return chunks;
+    const char* cur = str.c_str();
+    const char* str_end = str.c_str() + str.size();
+    std::vector<std::string> chunks;
+    while (cur < str_end) {
+        const char* start = cur;
+        while (start < str_end && *start == split_char)
+            start++;
+        const char* end = start + 1;
+        while (end < str_end && *end != split_char)
+            end++;
+        cur = end + 1;
+        chunks.push_back(std::string(start, end - start));
+    }
+    return chunks;
 }
 
 bool ScanCMDBool(char * cmd,char const * const check) {
