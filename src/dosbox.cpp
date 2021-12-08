@@ -1052,7 +1052,7 @@ void DOSBOX_RealInit() {
 
     else E_Exit("DOSBOX-X:Unknown machine type %s",mtype.c_str());
 
-    dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_cdosv_enabled = dos.set_j3100_enabled = j3100_start = false;
+    dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_tdosv_enabled = dos.set_j3100_enabled = j3100_start = false;
     Section_prop *dosv_section = static_cast<Section_prop *>(control->GetSection("dosv"));
     const char *dosvstr = dosv_section->Get_string("dosv");
     del_flag = dosv_section->Get_bool("del");
@@ -1068,10 +1068,10 @@ void DOSBOX_RealInit() {
     }
     if (!strcasecmp(dosvstr, "ko")) dos.set_kdosv_enabled = true;
     if (!strcasecmp(dosvstr, "chs")||!strcasecmp(dosvstr, "cn")) dos.set_pdosv_enabled = true;
-    if (!strcasecmp(dosvstr, "cht")||!strcasecmp(dosvstr, "tw")) dos.set_cdosv_enabled = true;
+    if (!strcasecmp(dosvstr, "cht")||!strcasecmp(dosvstr, "tw")) dos.set_tdosv_enabled = true;
     if (machine != MCH_VGA || want_fm_towns) {
         LOG_MSG("WARNING: DOS/V is only supported for VGA video cards.");
-        dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_cdosv_enabled = false;
+        dos.set_jdosv_enabled = dos.set_kdosv_enabled = dos.set_pdosv_enabled = dos.set_tdosv_enabled = false;
     }
     int cp = dos.loaded_codepage;
     if (!cp) InitCodePage();

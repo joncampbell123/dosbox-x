@@ -238,7 +238,7 @@ void SetupDBCSTable() {
             mem_writeb(Real2Phys(dos.tables.dbcs)+2,0x81);   // low/high DBCS pair
             mem_writeb(Real2Phys(dos.tables.dbcs)+3,0xFE);
             mem_writed(Real2Phys(dos.tables.dbcs)+4,0);
-        } else if (IS_CDOSV || dos.loaded_codepage == 950) { // Traditional Chinese
+        } else if (IS_TDOSV || dos.loaded_codepage == 950) { // Traditional Chinese
             mem_writew(Real2Phys(dos.tables.dbcs)+0,0x0004);
             mem_writeb(Real2Phys(dos.tables.dbcs)+2,0x81);   // low/high DBCS pair
             mem_writeb(Real2Phys(dos.tables.dbcs)+3,0xFE);

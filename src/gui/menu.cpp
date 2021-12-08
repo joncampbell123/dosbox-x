@@ -1227,7 +1227,7 @@ LPWSTR getWString(std::string str, wchar_t *def, wchar_t*& buffer) {
             if (IS_PC98_ARCH || IS_JEGA_ARCH || IS_JDOSV) cp = 932;
             else if (IS_PDOSV) cp = 936;
             else if (IS_KDOSV) cp = 949;
-            else if (IS_CDOSV) cp = 950;
+            else if (IS_TDOSV) cp = 950;
         }
     }
     uint16_t len=(uint16_t)str.size();

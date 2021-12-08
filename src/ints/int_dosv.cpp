@@ -132,7 +132,7 @@ bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*
 bool isKanji1(uint8_t chr) {
     if (dos.loaded_codepage == 936 || IS_PDOSV)
         return chr >= (gbk ? 0x81 : 0xa1) && chr <= 0xfe;
-    else if (dos.loaded_codepage == 950 || IS_CDOSV)
+    else if (dos.loaded_codepage == 950 || IS_TDOSV)
         return chr >= 0x81 && chr <= 0xfe && !(!chinasea && chr >= 0xc7 && chr <= 0xc8);
     else if (dos.loaded_codepage == 949 || IS_KDOSV)
         return chr >= 0x81 && chr <= 0xfe;
@@ -858,14 +858,14 @@ void InitFontHandle()
 		font_display = XOpenDisplay("");
 	if(font_display) {
 		if(!font_set16) {
-			if(IS_CDOSV) {
+			if(IS_TDOSV) {
 				xfont_16 = XLoadQueryFont(font_display, "-wenquanyi-*-medium-r-normal-*-16-*-*-*-*-*-iso10646-*"); 
 			}
 			font_set16 = XCreateFontSet(font_display, "-*-*-medium-r-normal--16-*-*-*", &missing_list, &missing_count, &def_string);
 			XFreeStringList(missing_list);
 		}
 		if(!font_set14) {
-			if(IS_CDOSV) {
+			if(IS_TDOSV) {
 				font_set14 = XCreateFontSet(font_display, "-wenquanyi-*-medium-r-normal--14-*-*-*", &missing_list, &missing_count, &def_string);
 			} else{
 				font_set14 = XCreateFontSet(font_display, "-*-*-medium-r-normal--14-*-*-*", &missing_list, &missing_count, &def_string);
@@ -887,7 +887,7 @@ void InitFontHandle()
 	if(jfont_16 == NULL || jfont_14 == NULL || jfont_24 == NULL) {
 		LOGFONT lf = { 0 };
 		lf.lfHeight = 16;
-		lf.lfCharSet = IS_KDOSV||(!IS_DOSV&&dos.loaded_codepage==949)?HANGUL_CHARSET:(IS_CDOSV||(!IS_DOSV&&dos.loaded_codepage==950)?CHINESEBIG5_CHARSET:(IS_PDOSV||(!IS_DOSV&&dos.loaded_codepage==936)?GB2312_CHARSET:SHIFTJIS_CHARSET));
+		lf.lfCharSet = IS_KDOSV||(!IS_DOSV&&dos.loaded_codepage==949)?HANGUL_CHARSET:(IS_PDOSV||(!IS_DOSV&&dos.loaded_codepage==936)?GB2312_CHARSET:(IS_TDOSV||(!IS_DOSV&&dos.loaded_codepage==950)?CHINESEBIG5_CHARSET:SHIFTJIS_CHARSET));
 		lf.lfOutPrecision = OUT_DEFAULT_PRECIS;
 		lf.lfClipPrecision = CLIP_DEFAULT_PRECIS;
 		lf.lfQuality = DEFAULT_QUALITY;

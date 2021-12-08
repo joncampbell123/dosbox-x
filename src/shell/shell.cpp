@@ -683,7 +683,7 @@ void DOS_Shell::Prepare(void) {
             if (IS_PC98_ARCH || IS_JEGA_ARCH)
                 countryNo = 81;
             else if (IS_DOSV)
-                countryNo = IS_PDOSV?86:(IS_CDOSV?886:(IS_KDOSV?82:81));
+                countryNo = IS_PDOSV?86:(IS_TDOSV?886:(IS_KDOSV?82:81));
 #if defined(WIN32)
 			else if (GetLocaleInfo(LOCALE_USER_DEFAULT, LOCALE_ICOUNTRY, buffer, 128)) {
 				countryNo = uint16_t(atoi(buffer));
@@ -719,8 +719,8 @@ void DOS_Shell::Prepare(void) {
                     if (!newCP && IS_DOSV) {
                         if (IS_JDOSV) newCP=932;
                         else if (IS_PDOSV) newCP=936;
-                        else if (IS_CDOSV) newCP=949;
-                        else if (IS_KDOSV) newCP=950;
+                        else if (IS_KDOSV) newCP=949;
+                        else if (IS_TDOSV) newCP=950;
                     }
                     if (newCP==932||newCP==936||newCP==949||newCP==950) {
                         dos.loaded_codepage=newCP;
