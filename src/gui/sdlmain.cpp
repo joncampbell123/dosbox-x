@@ -11899,6 +11899,7 @@ bool ttf_extend_charset_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
         if (chinasea) makeseacp951table();
         SetVal("ttf", "chinasea", chinasea?"true":"false");
         mainMenu.get_item("ttf_extcharset").check(chinasea).refresh_item(mainMenu);
+        MSG_Init();
     }
     resetFontSize();
     return true;

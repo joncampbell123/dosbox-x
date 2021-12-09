@@ -12,8 +12,11 @@
     "tcp_port_forwards" and "tcp_port_forwards" for port
     forwarding when using the Slirp backend. (kcgen)
   - Added hidden code page 951 for Big5-HKSCS encoding
-    (with "uao" defaults to false) or the Unicode-At-On
-    encoding (with "uao" set to true). If ChinaSea is
+    or Big5 Unicode-At-On (Big5-UAO) encoding. Config
+    option "uao" is added in [ttf] section so that if
+    set to "true" code page 950 will use the Big5-UAO
+    encoding instead of the Big-HKSCS encoding, the
+    latter being the default for CP951. If ChinaSea is
     enabled, ChinaSea characters will be used instead
     of original characters in these encodings. (Wengier)
   - Mac OS X builds from now on will use an in-tree tool
