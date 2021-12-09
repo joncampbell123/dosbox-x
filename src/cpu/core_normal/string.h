@@ -172,7 +172,7 @@ void DoString(STRING_OP type) {
 								}
 								else {
 									if (((uint64_t)di_index+1ULL-1ULL) > (uint64_t)SegLimit(es)) {
-										if (SegLimit(es) != 0xFFFFFFFF) {
+										if (SegLimit(es) != EANoSegmentLimitMagic) {
 											LOG_MSG("Limit check %x+%x-1 = %x > %x ES:DI",(unsigned int)di_index,(unsigned int)1U,
 													(unsigned int)(di_index+1U-1U),(unsigned int)SegLimit(es));
 											LOG_MSG("Segment limit violation");
@@ -202,7 +202,7 @@ void DoString(STRING_OP type) {
 							}
 							else {
 								if (((uint64_t)di_index+2ULL-1ULL) > (uint64_t)SegLimit(es)) {
-									if (SegLimit(es) != 0xFFFFFFFF) {
+									if (SegLimit(es) != EANoSegmentLimitMagic) {
 										LOG_MSG("Limit check %x+%x-1 = %x > %x ES:DI",(unsigned int)di_index,(unsigned int)2U,
 												(unsigned int)(di_index+2U-1U),(unsigned int)SegLimit(es));
 										LOG_MSG("Segment limit violation");
@@ -231,7 +231,7 @@ void DoString(STRING_OP type) {
 							}
 							else {
 								if (((uint64_t)di_index+4ULL-1ULL) > (uint64_t)SegLimit(es)) {
-									if (SegLimit(es) != 0xFFFFFFFF) {
+									if (SegLimit(es) != EANoSegmentLimitMagic) {
 										LOG_MSG("Limit check %x+%x-1 = %x > %x ES:DI",(unsigned int)di_index,(unsigned int)4U,
 												(unsigned int)(di_index+4U-1U),(unsigned int)SegLimit(es));
 										LOG_MSG("Segment limit violation");
@@ -260,7 +260,7 @@ void DoString(STRING_OP type) {
 							}
 							else {
 								if (((uint64_t)si_index+1ULL-1ULL) > (uint64_t)SegLimit(core.base_val_ds)) {
-									if (SegLimit(core.base_val_ds) != 0xFFFFFFFF) {
+									if (SegLimit(core.base_val_ds) != EANoSegmentLimitMagic) {
 										LOG_MSG("Limit check %x+%x-1 = %x > %x DS:SI",(unsigned int)si_index,(unsigned int)1U,
 												(unsigned int)(si_index+1U-1U),(unsigned int)SegLimit(core.base_val_ds));
 										LOG_MSG("Segment limit violation");
@@ -278,7 +278,7 @@ void DoString(STRING_OP type) {
 							}
 							else {
 								if (((uint64_t)di_index+1ULL-1ULL) > (uint64_t)SegLimit(es)) {
-									if (SegLimit(es) != 0xFFFFFFFF) {
+									if (SegLimit(es) != EANoSegmentLimitMagic) {
 										LOG_MSG("Limit check %x+%x-1 = %x > %x ES:DI",(unsigned int)di_index,(unsigned int)1U,
 												(unsigned int)(di_index+1U-1U),(unsigned int)SegLimit(es));
 										LOG_MSG("Segment limit violation");
@@ -308,7 +308,7 @@ void DoString(STRING_OP type) {
 							}
 							else {
 								if (((uint64_t)si_index+2ULL-1ULL) > (uint64_t)SegLimit(core.base_val_ds)) {
-									if (SegLimit(core.base_val_ds) != 0xFFFFFFFF) {
+									if (SegLimit(core.base_val_ds) != EANoSegmentLimitMagic) {
 										LOG_MSG("Limit check %x+%x-1 = %x > %x DS:SI",(unsigned int)si_index,(unsigned int)2U,
 												(unsigned int)(si_index+2U-1U),(unsigned int)SegLimit(core.base_val_ds));
 										LOG_MSG("Segment limit violation");
@@ -326,7 +326,7 @@ void DoString(STRING_OP type) {
 							}
 							else {
 								if (((uint64_t)di_index+2ULL-1ULL) > (uint64_t)SegLimit(es)) {
-									if (SegLimit(es) != 0xFFFFFFFF) {
+									if (SegLimit(es) != EANoSegmentLimitMagic) {
 										LOG_MSG("Limit check %x+%x-1 = %x > %x ES:DI",(unsigned int)di_index,(unsigned int)2U,
 												(unsigned int)(di_index+2U-1U),(unsigned int)SegLimit(es));
 										LOG_MSG("Segment limit violation");
@@ -369,7 +369,7 @@ void DoString(STRING_OP type) {
 							}
 							else {
 								if (((uint64_t)si_index+4ULL-1ULL) > (uint64_t)SegLimit(core.base_val_ds)) {
-									if (SegLimit(core.base_val_ds) != 0xFFFFFFFF) {
+									if (SegLimit(core.base_val_ds) != EANoSegmentLimitMagic) {
 										LOG_MSG("Limit check %x+%x-1 = %x > %x DS:SI",(unsigned int)si_index,(unsigned int)4U,
 												(unsigned int)(si_index+4U-1U),(unsigned int)SegLimit(core.base_val_ds));
 										LOG_MSG("Segment limit violation");
@@ -387,7 +387,7 @@ void DoString(STRING_OP type) {
 							}
 							else {
 								if (((uint64_t)di_index+4ULL-1ULL) > (uint64_t)SegLimit(es)) {
-									if (SegLimit(es) != 0xFFFFFFFF) {
+									if (SegLimit(es) != EANoSegmentLimitMagic) {
 										LOG_MSG("Limit check %x+%x-1 = %x > %x ES:DI",(unsigned int)di_index,(unsigned int)4U,
 												(unsigned int)(di_index+4U-1U),(unsigned int)SegLimit(es));
 										LOG_MSG("Segment limit violation");
