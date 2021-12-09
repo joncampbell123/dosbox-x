@@ -3428,21 +3428,6 @@ void makestdcp950table() {
     cp950_to_unicode_raw[64*260+61] = 0x256f;
     madecp950 = true;
 };
-bool madecp951 = false;
-uint16_t cp951sea_to_unicode_raw[24320];
-extern const uint16_t cp951_to_unicode_raw[24320];
-void makeseacp951table() {
-    if (madecp951) return;
-    for (int i=0; i<64*41; i++)
-        cp951sea_to_unicode_raw[i] = cp951_to_unicode_raw[i];
-    for (int i=64*41; i<64*98; i++)
-        cp951sea_to_unicode_raw[i] = cp950ext_to_unicode_raw[i];
-    for (int i=64*98; i<64*365; i++)
-        cp951sea_to_unicode_raw[i] = cp951_to_unicode_raw[i];
-    for (int i=64*365; i<64*380; i++)
-        cp951sea_to_unicode_raw[i] = cp950ext_to_unicode_raw[i-64*3];
-    madecp951 = true;
-};
 const uint16_t cp950_to_unicode_hitbl[1024] = {
 	0x0000, /* 0x0000-0x003F */
 	0x0040, /* 0x0040-0x007F */

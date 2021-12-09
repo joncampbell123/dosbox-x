@@ -148,6 +148,7 @@ uint16_t              guest_msdos_mcb_chain = 0;
 int                 boothax = BOOTHAX_NONE;
 bool                gbk = false;
 bool                chinasea = false;
+bool                uao = false;
 bool                jp_ega = false;
 bool                j3100_start = false;
 bool                want_fm_towns = false;
@@ -1086,8 +1087,11 @@ void DOSBOX_RealInit() {
     Section_prop *ttf_section = static_cast<Section_prop *>(control->GetSection("ttf"));
     gbk = ttf_section->Get_bool("gbk");
     chinasea = ttf_section->Get_bool("chinasea");
-    if (!chinasea) makestdcp950table();
-    else makeseacp951table();
+    uao = ttf_section->Get_bool("uao");
+    if (IS_PDOSV || IS_TDOSV || dos.loaded_codepage == 936 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) {
+        makestdcp950table();
+        makeseacp951table();
+    }
     dos.loaded_codepage = cp;
 #if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
     if (enableime && !control->opt_silent) {
@@ -2840,6 +2844,9 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool->Set_help("Enables the ChinaSea and Big5-2003 extension (in addition to the standard Big5-1984 charset) for the Traditional Chinese TTF output.\n"
                      "A TTF/OTF font containing such characters (such as the included SarasaGothicFixed TTF font) is needed to correctly render ChinaSea characters.");
     Pbool->SetBasic(true);
+
+	Pbool = secprop->Add_bool("uao",Property::Changeable::WhenIdle,false);
+	Pbool->Set_help("Enables the Big5 Unicode-At-On (UAO) extension instead of the Big5 HKSCS extension for the hidden code page 951 of the Traditional Chinese TTF output.");
 
 	Pbool = secprop->Add_bool("dosvfunc", Property::Changeable::OnlyAtStart, false);
     Pbool->Set_help("If set, enables FEP control to function for Japanese DOS/V applications, and changes the blinking of character attributes to high brightness.");

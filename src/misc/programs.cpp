@@ -55,7 +55,7 @@ Bitu call_program;
 extern const char *modifier;
 extern std::string langname, configfile;
 extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor;
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, usecon, enable_dbcs_tables;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, uao, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, usecon, enable_dbcs_tables;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -95,7 +95,7 @@ public:
 
 static std::vector<InternalProgramEntry*> internal_progs;
 bool isDBCSCP(void), CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4);
-void EMS_DoShutDown(void), UpdateDefaultPrinterFont(void), GFX_ForceRedrawScreen(void), resetFontSize(void), ttf_reset_colors(void), makestdcp950table(void), makeseacp951table(void);
+void EMS_DoShutDown(void), UpdateDefaultPrinterFont(void), GFX_ForceRedrawScreen(void), resetFontSize(void), ttf_reset_colors(void), makestdcp950table(void), makeseacp951table(void), DOSBox_SetSysMenu(void), MSG_Init(void);
 void EMS_Startup(Section* sec), DOSV_SetConfig(Section_prop *section), DOSBOX_UnlockSpeed2(bool pressed), RebootLanguage(std::string filename, bool confirm=false), SetWindowTransparency(int trans), SetOutputSwitch(const char *outputstr), runSerial(const char *str), runParallel(const char *str);
 
 void PROGRAMS_Shutdown(void) {
@@ -1400,7 +1400,6 @@ next:
                                 GFX_LosingFocus();
                                 toOutput(output.c_str());
 #if defined(WIN32) && !defined(HX_DOS)
-                                void DOSBox_SetSysMenu(void);
                                 DOSBox_SetSysMenu();
 #endif
                             }
@@ -1720,7 +1719,7 @@ next:
                                     if (enable_dbcs_tables&&dos.tables.dbcs&&(IS_PDOSV||dos.loaded_codepage==936)) mem_writeb(Real2Phys(dos.tables.dbcs)+2,gbk?0x81:0xA1);
                                     if (dos.loaded_codepage!=950&&dos.loaded_codepage!=951) mainMenu.get_item("ttf_extcharset").check(dos.loaded_codepage==936?gbk:(gbk&&chinasea)).refresh_item(mainMenu);
 #if defined(USE_TTF)
-                                    if (TTF_using()) resetFontSize();
+                                    if (TTF_using() && dos.loaded_codepage==936) resetFontSize();
 #endif
                                 }
 							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "chinasea=")) {
@@ -1730,7 +1729,20 @@ next:
                                     else makeseacp951table();
                                     if (dos.loaded_codepage!=936) mainMenu.get_item("ttf_extcharset").check(dos.loaded_codepage==950||dos.loaded_codepage==951?chinasea:(gbk&&chinasea)).refresh_item(mainMenu);
 #if defined(USE_TTF)
-                                    if (TTF_using()) resetFontSize();
+                                    if (TTF_using() && (dos.loaded_codepage==950 || dos.loaded_codepage==951)) {
+                                        MSG_Init();
+                                        resetFontSize();
+                                    }
+#endif
+                                }
+							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "uao=")) {
+                                if (uao != section->Get_bool("uao")) {
+                                    uao = !uao;
+#if defined(USE_TTF)
+                                    if (TTF_using() && dos.loaded_codepage==951) {
+                                        MSG_Init();
+                                        resetFontSize();
+                                    }
 #endif
                                 }
 							}

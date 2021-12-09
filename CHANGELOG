@@ -1,8 +1,8 @@
 0.83.21
   - Pausing the emulation will automatically release the
     mouse and prevent mouse capture. (Wengier)
-  - Improved IME support for CJK languages on the
-    Windows SDL2 builds. (Wengier)
+  - Improved IME support for Chinese/Japanese/Korean
+    languages on Windows SDL2 builds. (Wengier)
   - The selected text will be highlighted when you try
     to select text for copying in J-3100 mode. (Wengier)
   - Config option "pixelshader" now allows a shader file
@@ -11,9 +11,11 @@
   - Added config options (in "ethernet, slirp" section)
     "tcp_port_forwards" and "tcp_port_forwards" for port
     forwarding when using the Slirp backend. (kcgen)
-  - Added hidden code page 951 for Big5-HKSCS encoding.
-    If ChinaSea is enabled, ChinaSea characters will be
-    used instead of the original characters. (Wengier)
+  - Added hidden code page 951 for Big5-HKSCS encoding
+    (with "uao" defaults to false) or the Unicode-At-On
+    encoding (with "uao" set to true). If ChinaSea is
+    enabled, ChinaSea characters will be used instead
+    of original characters in these encodings. (Wengier)
   - Mac OS X builds from now on will use an in-tree tool
     to replace dylib references in all executable files.
     XCode install_name_tool is no longer used, it became

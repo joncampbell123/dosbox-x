@@ -52,7 +52,6 @@ int switchoutput=-1;
 int selsrow = -1, selscol = -1;
 int selerow = -1, selecol = -1;
 int middleunlock = 1;
-unsigned long endtick = 0;
 bool rtl = false;
 bool selmark = false;
 extern int enablelfn;
@@ -8114,7 +8113,6 @@ void GFX_Events() {
 			break;
 #if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11
         case SDL_TEXTEDITING:
-            if (ime_text.size() && !strlen(event.text.text)) endtick = GetTicks();
             ime_text = event.edit.text;
             break;
         case SDL_TEXTINPUT:
@@ -8163,17 +8161,13 @@ void GFX_Events() {
                         if(ime_text.size() != 0) {
                             break;
                         }
-                    } else if((event.key.keysym.mod & 0x03) == 0 && event.key.keysym.scancode == 0x2c && ime_text.size() == 0) {
-                        if (dos.loaded_codepage == 932) {
-                            // Zenkaku space
-                            BIOS_AddKeyToBuffer(0xf100 | 0x81);
-                            BIOS_AddKeyToBuffer(0xf000 | 0x40);
-                        } else if (GetTicks() - endtick >= 50)
-                            BIOS_AddKeyToBuffer(0x20);
+                    } else if((event.key.keysym.mod & 0x03) == 0 && event.key.keysym.scancode == 0x2c && ime_text.size() == 0 && dos.loaded_codepage == 932) {
+                        // Zenkaku space
+                        BIOS_AddKeyToBuffer(0xf100 | 0x81);
+                        BIOS_AddKeyToBuffer(0xf000 | 0x40);
                         break;
-                    } else if(!CheckEnableImmOnKey(event.key)) {
+                    } else if(!CheckEnableImmOnKey(event.key))
                         break;
-                    }
                 }
 #endif
                 // Hankaku/Zenkaku
