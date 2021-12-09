@@ -174,6 +174,19 @@ static GetEAHandler EATable[512]={
 	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0,	0
 };
 
+/* NTS: Despite my theories about segment limit check overflow, Intel processors do range check properly
+ *      BUT a segment limit of 0xFFFFFFFF disables the check entirely. To emulate this the range check
+ *      for 32-bit addresses is done with 64-bit integers. The 0xFFFFFFFF check is only done AFTER the
+ *      range check because a segment limit violation is uncommon compared to normal code execution.
+ *
+ *      Based on current Intel hardware so far, a segment limit 0xFFFFFFFF seems to completely disable
+ *      segment limit checks, else, offset+size-1 > limit triggers a fault.
+ *
+ *      Guess: If 0xFFFFFFFF disables normal segment limit checks, then perhaps 0x00000000 disables
+ *             expand-down segment limit checks?
+ *
+ *      TODO: The above is based on CURRENT Intel hardware, what does the 286 and 386 do? Perhaps the
+ *            286 has a bug that allows WORD reads at FFFFh to circumvent segment limits? */
 #define GetEADirect(sz)						\
 	PhysPt eaa;						\
 	if (TEST_PREFIX_ADDR)					\
@@ -183,14 +196,18 @@ static GetEAHandler EATable[512]={
 	if (do_seg_limits) {					\
 		if (Segs.expanddown[core.base_val_ds]) {	\
 			if (eaa <= SegLimit(core.base_val_ds)) {\
-				LOG_MSG("Limit check %x <= %x (E)",(unsigned int)eaa,(unsigned int)SegLimit(core.base_val_ds)); \
-				goto gp_fault;			\
+				if (SegLimit(core.base_val_ds) != 0) { \
+					LOG_MSG("Limit check %x <= %x (E)",(unsigned int)eaa,(unsigned int)SegLimit(core.base_val_ds)); \
+					goto gp_fault;		\
+				}				\
 			}					\
 		}						\
 		else {						\
-			if ((eaa+(sz)-1UL) > SegLimit(core.base_val_ds)) { \
-				LOG_MSG("Limit check %x+%x-1 = %x > %x",(unsigned int)eaa,(unsigned int)sz,(unsigned int)(eaa+(sz)-1U),(unsigned int)SegLimit(core.base_val_ds)); \
-				goto gp_fault;			\
+			if (((uint64_t)eaa+(uint64_t)(sz)-1ULL) > (uint64_t)SegLimit(core.base_val_ds)) { \
+				if (SegLimit(core.base_val_ds) != 0xFFFFFFFF) { \
+					LOG_MSG("Limit check %x+%x-1 = %x > %x",(unsigned int)eaa,(unsigned int)sz,(unsigned int)(eaa+(sz)-1U),(unsigned int)SegLimit(core.base_val_ds)); \
+					goto gp_fault;		\
+				}				\
 			}					\
 		}						\
 	}							\
