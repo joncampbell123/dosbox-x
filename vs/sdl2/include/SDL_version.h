@@ -36,6 +36,9 @@
 extern "C" {
 #endif
 
+/* This is the DOSBox-X's modified SDL 2.x with IME support, not the general library */
+#define SDL_DOSBOX_X_IME 1
+
 /**
  *  \brief Information the version of SDL in use.
  *

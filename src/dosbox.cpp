@@ -1102,6 +1102,9 @@ void DOSBOX_RealInit() {
     }
 #elif (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && defined(C_SDL2)
     if (enableime && !control->opt_silent) {
+#if !defined(SDL_DOSBOX_X_IME)
+        LOG_MSG("Note: The linked SDL 2.x library is not compiled with enhanced IME functions.")
+#endif
         dos.im_enable_flag = true;
         SDL_StartTextInput();
 #if defined(LINUX)

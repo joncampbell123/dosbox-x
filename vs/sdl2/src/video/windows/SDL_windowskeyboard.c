@@ -31,6 +31,8 @@
 #include <oleauto.h>
 
 #ifndef SDL_DISABLE_WINDOWS_IME
+static Uint32 end_ticks = 0;
+static SDL_bool ime_incompos;
 static void IME_Init(SDL_VideoData *videodata, HWND hwnd);
 static void IME_Enable(SDL_VideoData *videodata, HWND hwnd);
 static void IME_Disable(SDL_VideoData *videodata, HWND hwnd);
@@ -154,6 +156,15 @@ WIN_QuitKeyboard(_THIS)
 {
 #ifndef SDL_DISABLE_WINDOWS_IME
     IME_Quit((SDL_VideoData *)_this->driverdata);
+#endif
+}
+
+SDL_bool SDL_IM_Composition() {
+#ifndef SDL_DISABLE_WINDOWS_IME
+#define IME_END_CR_WAIT 50
+    return ime_incompos||end_ticks&&(GetTickCount()-end_ticks<IME_END_CR_WAIT) ? SDL_TRUE : SDL_FALSE;
+#else
+    return SDL_FALSE;
 #endif
 }
 
@@ -887,6 +898,7 @@ IME_HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM *lParam, SDL_VideoD
         //*lParam = 0;
         break;
     case WM_IME_STARTCOMPOSITION:
+        ime_incompos = 1;
         //trap = SDL_TRUE;
         break;
     case WM_IME_COMPOSITION:
@@ -906,6 +918,8 @@ IME_HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM *lParam, SDL_VideoD
         ImmReleaseContext(hwnd, himc);
         break;
     case WM_IME_ENDCOMPOSITION:
+        end_ticks = GetTickCount();
+        ime_incompos = 0;
         videodata->ime_composition[0] = 0;
         videodata->ime_readingstring[0] = 0;
         videodata->ime_cursor = 0;

@@ -50,9 +50,8 @@
 bool clearline=false, inshell=false;
 int autofixwarn=3;
 extern int lfn_filefind_handle;
-extern bool ctrlbrk, gbk, rtl;
-extern bool DOS_BreakFlag;
-extern bool DOS_BreakConioFlag;
+extern bool ctrlbrk, gbk, rtl, dbcs_sbcs;
+extern bool DOS_BreakFlag, DOS_BreakConioFlag;
 extern uint16_t cmd_line_seg;
 #if defined(USE_TTF)
 extern bool ttf_dosv;
@@ -558,7 +557,7 @@ void DOS_Shell::InputCommand(char * line) {
                 break;
 
             case 0x4B00:	/* LEFT */
-                if(IS_PC98_ARCH || (isDBCSCP() && IS_DOS_JAPANESE)) {
+                if(IS_PC98_ARCH || (isDBCSCP() && dbcs_sbcs && IS_DOS_JAPANESE)) {
                     if (str_index) {
                         uint16_t count = GetWideCount(line, str_index);
                         uint8_t ch = line[str_index - 1];
@@ -572,7 +571,7 @@ void DOS_Shell::InputCommand(char * line) {
                         }
                     }
                 } else {
-                    if (isDBCSCP()&&str_index>1&&(line[str_index-1]<0||((dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950||dos.loaded_codepage==951)&&line[str_index-1]>=0x40))&&line[str_index-2]<0) {
+                    if (isDBCSCP()&&dbcs_sbcs&&str_index>1&&(line[str_index-1]<0||((dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950||dos.loaded_codepage==951)&&line[str_index-1]>=0x40))&&line[str_index-2]<0) {
                         backone();
                         str_index --;
                         MoveCaretBackwards();
@@ -631,7 +630,7 @@ void DOS_Shell::InputCommand(char * line) {
 				}	
         		break;
             case 0x4D00:	/* RIGHT */
-                if(IS_PC98_ARCH || (isDBCSCP() && IS_DOS_JAPANESE)) {
+                if(IS_PC98_ARCH || (isDBCSCP() && dbcs_sbcs && IS_DOS_JAPANESE)) {
                     if (str_index < str_len) {
                         uint16_t count = 1;
                         if(str_index < str_len - 1) {
@@ -643,7 +642,7 @@ void DOS_Shell::InputCommand(char * line) {
                         }
                     }
                 } else {
-                    if (isDBCSCP()&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||((dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950||dos.loaded_codepage==951)&&line[str_index+1]>=0x40))) {
+                    if (isDBCSCP()&&dbcs_sbcs&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||((dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950||dos.loaded_codepage==951)&&line[str_index+1]>=0x40))) {
                         outc((uint8_t)line[str_index++]);
                     }
                     if (str_index < str_len) {
@@ -735,14 +734,14 @@ void DOS_Shell::InputCommand(char * line) {
 
                 break;
             case 0x5300:/* DELETE */
-                if(IS_PC98_ARCH || (isDBCSCP() && IS_DOS_JAPANESE)) {
+                if(IS_PC98_ARCH || (isDBCSCP() && dbcs_sbcs && IS_DOS_JAPANESE)) {
                     if(str_len) {
                         size += DeleteBackspace(true, line, str_index, str_len);
                     }
                 } else {
                     if(str_index>=str_len) break;
                     int k=1;
-                    if (isDBCSCP()&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||((dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950||dos.loaded_codepage==951)&&line[str_index+1]>=0x40)))
+                    if (isDBCSCP()&&dbcs_sbcs&&str_index<str_len-1&&line[str_index]<0&&(line[str_index+1]<0||((dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950||dos.loaded_codepage==951)&&line[str_index+1]>=0x40)))
                         k=2;
                     for (int i=0; i<k; i++) {
                         uint16_t a=str_len-str_index-1;
@@ -784,13 +783,13 @@ void DOS_Shell::InputCommand(char * line) {
                 }
                 break;
             case 0x08:				/* BackSpace */
-                if(IS_PC98_ARCH || (isDBCSCP() && IS_DOS_JAPANESE)) {
+                if(IS_PC98_ARCH || (isDBCSCP() && dbcs_sbcs && IS_DOS_JAPANESE)) {
                     if(str_index) {
                         size += DeleteBackspace(false, line, str_index, str_len);
                     }
                 } else {
                     int k=1;
-                    if (isDBCSCP()&&str_index>1&&(line[str_index-1]<0||((dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950||dos.loaded_codepage==951)&&line[str_index-1]>=0x40))&&line[str_index-2]<0)
+                    if (isDBCSCP()&&dbcs_sbcs&&str_index>1&&(line[str_index-1]<0||((dos.loaded_codepage==932||(dos.loaded_codepage==936&&gbk)||dos.loaded_codepage==950||dos.loaded_codepage==951)&&line[str_index-1]>=0x40))&&line[str_index-2]<0)
                         k=2;
                     for (int i=0; i<k; i++)
                         if (str_index) {
@@ -950,7 +949,7 @@ void DOS_Shell::InputCommand(char * line) {
                 str_len = 0;
                 break;
             default:
-                if(IS_PC98_ARCH || (isDBCSCP() && IS_DOS_JAPANESE)) {
+                if(IS_PC98_ARCH || (isDBCSCP() && dbcs_sbcs && IS_DOS_JAPANESE)) {
                     bool kanji_flag = false;
                     uint16_t pos = str_index;
                     while(1) {
