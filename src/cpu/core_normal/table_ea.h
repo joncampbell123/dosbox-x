@@ -187,6 +187,7 @@ static GetEAHandler EATable[512]={
  *
  *      TODO: The above is based on CURRENT Intel hardware, what does the 286 and 386 do? Perhaps the
  *            286 has a bug that allows WORD reads at FFFFh to circumvent segment limits? */
+
 #define GetEADirect(sz)						\
 	PhysPt eaa;						\
 	if (TEST_PREFIX_ADDR)					\
@@ -204,7 +205,7 @@ static GetEAHandler EATable[512]={
 		}						\
 		else {						\
 			if (((uint64_t)eaa+(uint64_t)(sz)-1ULL) > (uint64_t)SegLimit(core.base_val_ds)) { \
-				if (SegLimit(core.base_val_ds) != 0xFFFFFFFF) { \
+				if (SegLimit(core.base_val_ds) != EANoSegmentLimitMagic) { \
 					LOG_MSG("Limit check %x+%x-1 = %x > %x",(unsigned int)eaa,(unsigned int)sz,(unsigned int)(eaa+(sz)-1U),(unsigned int)SegLimit(core.base_val_ds)); \
 					goto gp_fault;		\
 				}				\
