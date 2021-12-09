@@ -531,6 +531,7 @@ bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*
             if (chinasea) return String_HOST_TO_DBCS_UTF16<uint16_t>(d,s,cp950ext_to_unicode_hitbl,cp950ext_to_unicode_raw,sizeof(cp950ext_to_unicode_raw)/sizeof(cp950ext_to_unicode_raw[0]));
             return String_HOST_TO_DBCS_UTF16<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
         case 951:
+            if (chinasea) return String_HOST_TO_DBCS_UTF16<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951sea_to_unicode_raw,sizeof(cp951sea_to_unicode_raw)/sizeof(cp951sea_to_unicode_raw[0]));
             return String_HOST_TO_DBCS_UTF16<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951_to_unicode_raw,sizeof(cp951_to_unicode_raw)/sizeof(cp951_to_unicode_raw[0]));
         case 1250:
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp1250_to_unicode,sizeof(cp1250_to_unicode)/sizeof(cp1250_to_unicode[0]));
@@ -612,6 +613,7 @@ bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
             if (chinasea) return String_HOST_TO_DBCS_UTF8<uint16_t>(d,s,cp950ext_to_unicode_hitbl,cp950ext_to_unicode_raw,sizeof(cp950ext_to_unicode_raw)/sizeof(cp950ext_to_unicode_raw[0]));
             return String_HOST_TO_DBCS_UTF8<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
         case 951:
+            if (chinasea) return String_HOST_TO_DBCS_UTF8<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951sea_to_unicode_raw,sizeof(cp951sea_to_unicode_raw)/sizeof(cp951sea_to_unicode_raw[0]));
             return String_HOST_TO_DBCS_UTF8<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951_to_unicode_raw,sizeof(cp951_to_unicode_raw)/sizeof(cp951_to_unicode_raw[0]));
         case 1250:
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp1250_to_unicode,sizeof(cp1250_to_unicode)/sizeof(cp1250_to_unicode[0]));
@@ -693,6 +695,7 @@ bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*
             if (chinasea) return String_DBCS_TO_HOST_UTF16<uint16_t>(d,s,cp950ext_to_unicode_hitbl,cp950ext_to_unicode_raw,sizeof(cp950ext_to_unicode_raw)/sizeof(cp950ext_to_unicode_raw[0]));
             return String_DBCS_TO_HOST_UTF16<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
         case 951:
+            if (chinasea) return String_DBCS_TO_HOST_UTF16<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951sea_to_unicode_raw,sizeof(cp951sea_to_unicode_raw)/sizeof(cp951sea_to_unicode_raw[0]));
             return String_DBCS_TO_HOST_UTF16<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951_to_unicode_raw,sizeof(cp951_to_unicode_raw)/sizeof(cp951_to_unicode_raw[0]));
         case 1250:
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp1250_to_unicode,sizeof(cp1250_to_unicode)/sizeof(cp1250_to_unicode[0]));
@@ -774,6 +777,7 @@ bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
             if (chinasea) return String_DBCS_TO_HOST_UTF8<uint16_t>(d,s,cp950ext_to_unicode_hitbl,cp950ext_to_unicode_raw,sizeof(cp950ext_to_unicode_raw)/sizeof(cp950ext_to_unicode_raw[0]));
             return String_DBCS_TO_HOST_UTF8<uint16_t>(d,s,cp950_to_unicode_hitbl,cp950_to_unicode_raw,sizeof(cp950_to_unicode_raw)/sizeof(cp950_to_unicode_raw[0]));
         case 951:
+            if (chinasea) return String_DBCS_TO_HOST_UTF8<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951sea_to_unicode_raw,sizeof(cp951sea_to_unicode_raw)/sizeof(cp951sea_to_unicode_raw[0]));
             return String_DBCS_TO_HOST_UTF8<uint16_t>(d,s,cp951_to_unicode_hitbl,cp951_to_unicode_raw,sizeof(cp951_to_unicode_raw)/sizeof(cp951_to_unicode_raw[0]));
         case 1250:
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp1250_to_unicode,sizeof(cp1250_to_unicode)/sizeof(cp1250_to_unicode[0]));
@@ -854,6 +858,7 @@ int FileDirExistUTF8(std::string &localname, const char *name) {
     return 0;
 #endif
     if (dos.loaded_codepage == 950 && !chinasea) makestdcp950table();
+    if (dos.loaded_codepage == 951 && chinasea) makeseacp951table();
     if (!CodePageHostToGuestUTF8((char *)cpcnv_temp, (char *)name)) {
         dos.loaded_codepage = cp;
         return 0;

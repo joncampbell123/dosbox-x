@@ -211,7 +211,7 @@ static uint32_t           Ticks = 0;
 extern double           rtdelta;
 static LoopHandler*     loop;
 
-void increaseticks(), makestdcp950table();
+void increaseticks(), makestdcp950table(), makeseacp951table();
 
 /* The whole load of startups for all the subfunctions */
 void                MEM_Init(Section *);
@@ -1087,6 +1087,7 @@ void DOSBOX_RealInit() {
     gbk = ttf_section->Get_bool("gbk");
     chinasea = ttf_section->Get_bool("chinasea");
     if (!chinasea) makestdcp950table();
+    else makeseacp951table();
     dos.loaded_codepage = cp;
 #if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
     if (enableime && !control->opt_silent) {

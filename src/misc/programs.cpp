@@ -95,7 +95,7 @@ public:
 
 static std::vector<InternalProgramEntry*> internal_progs;
 bool isDBCSCP(void), CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4);
-void EMS_DoShutDown(void), UpdateDefaultPrinterFont(void), GFX_ForceRedrawScreen(void), resetFontSize(void), ttf_reset_colors(void), makestdcp950table(void);
+void EMS_DoShutDown(void), UpdateDefaultPrinterFont(void), GFX_ForceRedrawScreen(void), resetFontSize(void), ttf_reset_colors(void), makestdcp950table(void), makeseacp951table(void);
 void EMS_Startup(Section* sec), DOSV_SetConfig(Section_prop *section), DOSBOX_UnlockSpeed2(bool pressed), RebootLanguage(std::string filename, bool confirm=false), SetWindowTransparency(int trans), SetOutputSwitch(const char *outputstr), runSerial(const char *str), runParallel(const char *str);
 
 void PROGRAMS_Shutdown(void) {
@@ -1718,7 +1718,7 @@ next:
                                 if (gbk != section->Get_bool("gbk")) {
                                     gbk = !gbk;
                                     if (enable_dbcs_tables&&dos.tables.dbcs&&(IS_PDOSV||dos.loaded_codepage==936)) mem_writeb(Real2Phys(dos.tables.dbcs)+2,gbk?0x81:0xA1);
-                                    if (dos.loaded_codepage!=950) mainMenu.get_item("ttf_extcharset").check(dos.loaded_codepage==936?gbk:(gbk&&chinasea)).refresh_item(mainMenu);
+                                    if (dos.loaded_codepage!=950&&dos.loaded_codepage!=951) mainMenu.get_item("ttf_extcharset").check(dos.loaded_codepage==936?gbk:(gbk&&chinasea)).refresh_item(mainMenu);
 #if defined(USE_TTF)
                                     if (TTF_using()) resetFontSize();
 #endif
@@ -1727,7 +1727,8 @@ next:
                                 if (chinasea != section->Get_bool("chinasea")) {
                                     chinasea = !chinasea;
                                     if (!chinasea) makestdcp950table();
-                                    if (dos.loaded_codepage!=936) mainMenu.get_item("ttf_extcharset").check(dos.loaded_codepage==950?chinasea:(gbk&&chinasea)).refresh_item(mainMenu);
+                                    else makeseacp951table();
+                                    if (dos.loaded_codepage!=936) mainMenu.get_item("ttf_extcharset").check(dos.loaded_codepage==950||dos.loaded_codepage==951?chinasea:(gbk&&chinasea)).refresh_item(mainMenu);
 #if defined(USE_TTF)
                                     if (TTF_using()) resetFontSize();
 #endif
