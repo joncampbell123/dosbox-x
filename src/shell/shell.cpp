@@ -1735,7 +1735,13 @@ void SHELL_Init() {
 		VFILE_RegisterBuiltinFileBlob(bfb_EMSMAGIC_COM, "/BIN/");
 		VFILE_RegisterBuiltinFileBlob(bfb_DISKCOPY_EXE, "/DOS/");
 		VFILE_RegisterBuiltinFileBlob(bfb_PRINT_COM, "/DOS/");
-		VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM, "/DOS/");
+
+		/* It appears the latest EDIT.COM requires a 386, and it does not bother
+		 * to detect if the CPU is a 386. If you run this program for 286 and lower
+		 * you get a crash. */
+		if (CPU_ArchitectureType >= CPU_ARCHTYPE_386)
+			VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM, "/DOS/");
+
 		VFILE_RegisterBuiltinFileBlob(bfb_LICENSE_TXT, "/4DOS/");
 		VFILE_RegisterBuiltinFileBlob(bfb_EXAMPLES_BTM, "/4DOS/");
 		VFILE_RegisterBuiltinFileBlob(bfb_BATCOMP_EXE, "/4DOS/");
