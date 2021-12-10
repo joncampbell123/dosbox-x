@@ -6850,13 +6850,6 @@ void UTF8::Run()
     char source[11] = "UTF-8";
     if (cmd->FindExist("-BE", false) || cmd->FindExist("/BE", false)) strcpy(source, "UTF-16BE");
     else if (cmd->FindExist("-LE", false) || cmd->FindExist("/LE", false)) strcpy(source, "UTF-16LE");
-    std::string text="";
-    uint8_t c;uint16_t m=1;
-    while (true) {
-        DOS_ReadFile (STDIN,&c,&m);
-        if (m==0) break;
-        else text+=std::string(1, c);
-    }
     char target[11] = "CP437";
     if (dos.loaded_codepage==808) strcpy(target, "CP866");
     else if (dos.loaded_codepage==872) strcpy(target, "CP855");
@@ -6866,18 +6859,26 @@ void UTF8::Run()
     _Iconv<char,test_char_t> *x = _Iconv<char,test_char_t>::create(source);
     _Iconv<test_char_t,char> *fx = _Iconv<test_char_t,char>::create(target);
     if (x == NULL || fx == NULL) {
-        LOG_MSG("UTF8: The code page to convert is invalid.\n");
-        WriteOut_NoParsing(text.c_str(), true);
+        WriteOut("Invalid code page for conversion.\n");
         return;
     }
     test_string dst;
-    x->set_src(text.c_str());
-    if (x->string_convert_dest(dst) < 0) {
-        LOG_MSG("UTF8: An error occurred during text conversion.\n");
-        WriteOut_NoParsing(text.c_str(), true);
-        return;
+    std::string text="";
+    uint8_t c;uint16_t m=1;
+    while (true) {
+        DOS_ReadFile (STDIN,&c,&m);
+        if (m) text+=std::string(1, c);
+        if (!m || c==10 || c==26) {
+            x->set_src(text.c_str());
+            if (x->string_convert_dest(dst) < 0 || (text.size() && !fx->string_convert(dst).size())) {
+                WriteOut("An error occurred during text conversion.\n");
+                return;
+            }
+            WriteOut_NoParsing(fx->string_convert(dst).c_str(), true);
+            text="";
+            if (!m||c==26) break;
+        }
     }
-    WriteOut_NoParsing(fx->string_convert(dst).c_str(), true);
 }
 
 static void UTF8_ProgramStart(Program * * make) {
