@@ -41,8 +41,8 @@
 #define GetProcAddressA GetProcAddress
 #endif
 
-#if 1
-//# define MAKE_EXE
+#if 0
+# define MAKE_EXE
 # define MAKE_DLL
 # define USE_LIBICONV_DLL
 #endif
