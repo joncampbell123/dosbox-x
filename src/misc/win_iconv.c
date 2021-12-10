@@ -68,7 +68,7 @@ typedef void* iconv_t;
 
 iconv_t iconv_open(const char *tocode, const char *fromcode);
 int iconv_close(iconv_t cd);
-size_t iconv(iconv_t cd, const char **inbuf, size_t *inbytesleft, char **outbuf, size_t *outbytesleft);
+size_t iconv(iconv_t cd, /*const*/ char **inbuf, size_t *inbytesleft, char **outbuf, size_t *outbytesleft);
 /* libiconv interface for vim */
 #if defined(MAKE_DLL)
 int
@@ -782,10 +782,10 @@ iconv_close(iconv_t _cd)
 }
 
 size_t
-iconv(iconv_t _cd, const char **inbuf, size_t *inbytesleft, char **outbuf, size_t *outbytesleft)
+iconv(iconv_t _cd, /*const*/ char **inbuf, size_t *inbytesleft, char **outbuf, size_t *outbytesleft)
 {
     rec_iconv_t *cd = (rec_iconv_t *)_cd;
-    size_t r = cd->iconv(cd->cd, (char **)inbuf, inbytesleft, outbuf, outbytesleft);
+    size_t r = cd->iconv(cd->cd, inbuf, inbytesleft, outbuf, outbytesleft);
     errno = *(cd->_errno());
     return r;
 }

@@ -245,7 +245,7 @@ public:
             iconv(context,NULL,NULL,NULL,NULL);
 
             /* Ref: [http://man7.org/linux/man-pages/man3/iconv.3.html] */
-            int ret = iconv(context,(const char**)(&(pclass::src_ptr)),&src_left,(char**)(&(pclass::dst_ptr)),&dst_left);
+            int ret = iconv(context,(char**)(&(pclass::src_ptr)),&src_left,(char**)(&(pclass::dst_ptr)),&dst_left);
 
             pclass::src_adv = (size_t)(pclass::src_ptr - i_src);
             pclass::dst_adv = (size_t)(pclass::dst_ptr - i_dst);
