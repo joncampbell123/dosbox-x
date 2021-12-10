@@ -71,7 +71,7 @@ jobs:
           for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/package/mingw-build/mingw-sdl2/languages/; done
           cp $top/COPYING $top/package/COPYING
       - name: Upload release package
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v2.2.4
         with:
           name: dosbox-x-mingw-win64
           path: ${{ github.workspace }}/package/

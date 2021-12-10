@@ -2534,7 +2534,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("segment limits",Property::Changeable::Always,true);
-    Pbool->Set_help("Enforce segment limits");
+    Pbool->Set_help("Enforce checks for segment limits on 80286 and higher CPU types.");
+    Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("double fault",Property::Changeable::Always,true);
     Pbool->Set_help("Emulate double fault exception");
