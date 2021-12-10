@@ -6826,7 +6826,7 @@ public:
 private:
 	void PrintUsage() {
         constexpr const char *msg =
-            "Converts UTF-8 (or UTF-16) text to the current code page.\n\n"
+            "Converts UTF-8 (or UTF-16 BE/LE) text to the current code page.\n\n"
             "UTF8 [/BE|/LE] < [drive:][path]filename\ncommand-name | UTF8 [/BE|/LE]\n\n"
             "  /BE  Converts UTF-16 BE text.\n  /LE  Converts UTF-16 LE text.\n";
         WriteOut(msg);
@@ -6863,18 +6863,17 @@ void UTF8::Run()
     else if (dos.loaded_codepage==951 && !uao) strcpy(target, "BIG5HKSCS");
     else if (dos.loaded_codepage==951) strcpy(target, "CP950");
     else sprintf(target, "CP%d", dos.loaded_codepage);
-
     _Iconv<char,test_char_t> *x = _Iconv<char,test_char_t>::create(source);
     _Iconv<test_char_t,char> *fx = _Iconv<test_char_t,char>::create(target);
     if (x == NULL || fx == NULL) {
+        LOG_MSG("UTF8: The code page to convert is invalid.\n");
         WriteOut_NoParsing(text.c_str(), true);
         return;
     }
     test_string dst;
     x->set_src(text.c_str());
-    int err = x->string_convert_dest(dst);
-    LOG_MSG("err %d\n", err);
-    if (err < 0) {
+    if (x->string_convert_dest(dst) < 0) {
+        LOG_MSG("UTF8: An error occurred during text conversion.\n");
         WriteOut_NoParsing(text.c_str(), true);
         return;
     }
