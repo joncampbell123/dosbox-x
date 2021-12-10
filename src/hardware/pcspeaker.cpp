@@ -729,14 +729,14 @@ public:
 		 * by setting the counter to an ultrasonic frequency, it averages out into a quiet hiss rather
 		 * than noisy aliasing noise. */
 		spkr.minimum_counter = PIT_TICK_RATE/(spkr.rate*10);
-		SPKR_SPEED = (pic_tickindex_t)((SPKR_VOLUME*2*44100)/(0.050*spkr.rate)); /* calibrated around DOSBox-X default rate 44100h */
+		SPKR_SPEED = (pic_tickindex_t)((SPKR_VOLUME*2*64000)/(0.070*spkr.rate));
 		spkr.used=0;
 		/* Register the sound channel */
 		spkr.chan=MixerChan.Install(&PCSPEAKER_CallBack,spkr.rate,"SPKR");
 		if (!spkr.chan) {
 			E_Exit(__FILE__ ": Unable to register channel with mixer.");
 		}
-		spkr.chan->SetLowpassFreq(14000);
+		spkr.chan->SetLowpassFreq(10000,3);
 		spkr.chan->Enable(true);
 #ifdef SPKR_DEBUGGING
 		PCSpeakerLog = fopen("PCSpeakerLog.txt", "w");
