@@ -6826,9 +6826,8 @@ public:
 private:
 	void PrintUsage() {
         constexpr const char *msg =
-            "Converts UTF-8 (or UTF-16 BE/LE) text to the current code page.\n\n"
-            "UTF8 [/BE|/LE] < [drive:][path]filename\ncommand-name | UTF8 [/BE|/LE]\n\n"
-            "  /BE  Converts UTF-16 BE text.\n  /LE  Converts UTF-16 LE text.\n";
+            "Converts UTF-8 text to view in the current code page.\n\n"
+            "UTF8 < [drive:][path]filename\ncommand-name | UTF8\n";
         WriteOut(msg);
 	}
 };
@@ -6847,16 +6846,13 @@ void UTF8::Run()
         WriteOut("This command does not support customized code pages.\n");
         return;
     }
-    char source[11] = "UTF-8";
-    if (cmd->FindExist("-BE", false) || cmd->FindExist("/BE", false)) strcpy(source, "UTF-16BE");
-    else if (cmd->FindExist("-LE", false) || cmd->FindExist("/LE", false)) strcpy(source, "UTF-16LE");
     char target[11] = "CP437";
     if (dos.loaded_codepage==808) strcpy(target, "CP866");
     else if (dos.loaded_codepage==872) strcpy(target, "CP855");
     else if (dos.loaded_codepage==951 && !uao) strcpy(target, "BIG5HKSCS");
     else if (dos.loaded_codepage==951) strcpy(target, "CP950");
     else sprintf(target, "CP%d", dos.loaded_codepage);
-    _Iconv<char,test_char_t> *x = _Iconv<char,test_char_t>::create(source);
+    _Iconv<char,test_char_t> *x = _Iconv<char,test_char_t>::create("UTF-8");
     _Iconv<test_char_t,char> *fx = _Iconv<test_char_t,char>::create(target);
     if (x == NULL || fx == NULL) {
         WriteOut("Invalid code page for conversion.\n");

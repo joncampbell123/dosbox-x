@@ -380,8 +380,10 @@ void DOS_Shell::ParseLine(char * line) {
 			LOG_MSG("SHELL:Redirect input from %s",in);
 			if(normalstdin) DOS_CloseFile(0);	//Close stdin
 			DOS_OpenFile(in,OPEN_READ,&dummy);	//Open new stdin
-		} else
+		} else {
 			WriteOut(!*in?"File open error\n":(dos.errorcode==DOSERR_ACCESS_DENIED?MSG_Get("SHELL_CMD_FILE_ACCESS_DENIED"):"File open error - %s\n"), in);
+			in = 0;
+		}
 	}
 	bool fail=false;
 	char pipetmp[270];
