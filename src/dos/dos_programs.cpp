@@ -69,6 +69,11 @@
 #  define ht_stat_t struct _stat64
 #  define ht_stat(x,y) _wstat64(x,y)
 # endif
+#ifndef C_ICONV
+# define C_ICONV
+# include "iconv.h"
+# include "../misc/win_iconv.c"
+#endif
 typedef wchar_t host_cnv_char_t;
 host_cnv_char_t *CodePageGuestToHost(const char *s);
 #if !defined(S_ISREG)
@@ -78,6 +83,11 @@ host_cnv_char_t *CodePageGuestToHost(const char *s);
 #include <ShlObj.h>
 #else
 #include <libgen.h>
+#endif
+#ifdef C_ICONV
+#include "iconvpp.hpp"
+typedef uint16_t test_char_t;
+typedef std::basic_string<test_char_t> test_string;
 #endif
 int freesizecap = 1;
 bool Mouse_Drv=true;
@@ -92,7 +102,7 @@ bool starttranspath = false;
 bool mountwarning = true;
 bool qmount = false;
 bool nowarn = false;
-extern bool inshell, mountfro[26], mountiro[26], clear_screen(), OpenGL_using(void);
+extern bool inshell, usecon, uao, mountfro[26], mountiro[26], clear_screen(), OpenGL_using(void);
 extern int lastcp, FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused), UpdateSDLDrawTexture();
 void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str), show_prompt();
@@ -6809,6 +6819,73 @@ static void LS_ProgramStart(Program * * make) {
     *make=new LS;
 }
 
+#ifdef C_ICONV
+class UTF8 : public Program {
+public:
+    void Run(void);
+private:
+	void PrintUsage() {
+        constexpr const char *msg =
+            "Converts UTF-8 (or UTF-16) text to the current code page.\n\n"
+            "UTF8 [/BE|/LE] < [drive:][path]filename\ncommand-name | UTF8 [/BE|/LE]\n\n"
+            "  /BE  Converts UTF-16 BE text.\n  /LE  Converts UTF-16 LE text.\n";
+        WriteOut(msg);
+	}
+};
+
+void UTF8::Run()
+{
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		PrintUsage();
+		return;
+	}
+    if (usecon) {
+        WriteOut("No input text found.\n");
+        return;
+    }
+    if ((customcp && dos.loaded_codepage==customcp) || (altcp && dos.loaded_codepage==altcp)) {
+        WriteOut("This command does not support customized code pages.\n");
+        return;
+    }
+    char source[11] = "UTF-8";
+    if (cmd->FindExist("-BE", false) || cmd->FindExist("/BE", false)) strcpy(source, "UTF-16BE");
+    else if (cmd->FindExist("-LE", false) || cmd->FindExist("/LE", false)) strcpy(source, "UTF-16LE");
+    std::string text="";
+    uint8_t c;uint16_t m=1;
+    while (true) {
+        DOS_ReadFile (STDIN,&c,&m);
+        if (m==0) break;
+        else text+=std::string(1, c);
+    }
+    char target[11] = "CP437";
+    if (dos.loaded_codepage==808) strcpy(target, "CP866");
+    else if (dos.loaded_codepage==872) strcpy(target, "CP855");
+    else if (dos.loaded_codepage==951 && !uao) strcpy(target, "BIG5HKSCS");
+    else if (dos.loaded_codepage==951) strcpy(target, "CP950");
+    else sprintf(target, "CP%d", dos.loaded_codepage);
+
+    _Iconv<char,test_char_t> *x = _Iconv<char,test_char_t>::create(source);
+    _Iconv<test_char_t,char> *fx = _Iconv<test_char_t,char>::create(target);
+    if (x == NULL || fx == NULL) {
+        WriteOut_NoParsing(text.c_str(), true);
+        return;
+    }
+    test_string dst;
+    x->set_src(text.c_str());
+    int err = x->string_convert_dest(dst);
+    LOG_MSG("err %d\n", err);
+    if (err < 0) {
+        WriteOut_NoParsing(text.c_str(), true);
+        return;
+    }
+    WriteOut_NoParsing(fx->string_convert(dst).c_str(), true);
+}
+
+static void UTF8_ProgramStart(Program * * make) {
+    *make=new UTF8;
+}
+#endif
+
 class VTEXT : public Program {
 public:
     void Run(void);
@@ -8402,6 +8479,9 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("TREE.COM", TREE_ProgramStart,"/DOS/");
     PROGRAMS_MakeFile("DELTREE.EXE",DELTREE_ProgramStart,"/DOS/");
     PROGRAMS_MakeFile("AUTOTYPE.COM", AUTOTYPE_ProgramStart,"/BIN/");
+#ifdef C_ICONV
+    PROGRAMS_MakeFile("UTF8.COM", UTF8_ProgramStart,"/BIN/");
+#endif
     PROGRAMS_MakeFile("SERIAL.COM", SERIAL_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("PARALLEL.COM", PARALLEL_ProgramStart,"/SYSTEM/");
     if (IS_DOSV)

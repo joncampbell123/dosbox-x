@@ -4,6 +4,7 @@
 #endif
 
 #if defined(__MINGW32__) || defined(_WIN32) || defined(WINDOWS)
+#define NOMINMAX
 # include <windows.h>
 # define ICONV_LITTLE_ENDIAN 1234
 # define ICONV_BIG_ENDIAN 4321
@@ -244,7 +245,7 @@ public:
             iconv(context,NULL,NULL,NULL,NULL);
 
             /* Ref: [http://man7.org/linux/man-pages/man3/iconv.3.html] */
-            int ret = iconv(context,(char**)(&(pclass::src_ptr)),&src_left,(char**)(&(pclass::dst_ptr)),&dst_left);
+            int ret = iconv(context,(const char**)(&(pclass::src_ptr)),&src_left,(char**)(&(pclass::dst_ptr)),&dst_left);
 
             pclass::src_adv = (size_t)(pclass::src_ptr - i_src);
             pclass::dst_adv = (size_t)(pclass::dst_ptr - i_dst);
