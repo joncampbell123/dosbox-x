@@ -383,6 +383,7 @@ void DOS_Shell::ParseLine(char * line) {
 		} else {
 			WriteOut(!*in?"File open error\n":(dos.errorcode==DOSERR_ACCESS_DENIED?MSG_Get("SHELL_CMD_FILE_ACCESS_DENIED"):"File open error - %s\n"), in);
 			in = 0;
+			return;
 		}
 	}
 	bool fail=false;
