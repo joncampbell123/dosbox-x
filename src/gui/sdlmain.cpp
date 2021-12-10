@@ -7462,7 +7462,7 @@ bool GFX_IsFullscreen(void) {
 #if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 static bool CheckEnableImmOnKey(SDL_KeyboardEvent key)
 {
-	if(key.keysym.sym == 0 || (!SDL_IM_Composition() && (key.keysym.sym == 0x08 || key.keysym.sym == 0x09 || (key.keysym.sym >= 0x20 && key.keysym.sym <= 0x7F) || (key.keysym.sym >= 0x100 && key.keysym.sym <= 0x119) || key.keysym.sym == 0x12C) || (strPasteBuffer.length() && key.keysym.sym >= 0x80))) {
+	if(key.keysym.sym == 0 || (!SDL_IM_Composition() && (key.keysym.sym == 0x08 || key.keysym.sym == 0x09 || (key.keysym.sym >= 0x20 && key.keysym.sym <= 0x7F) || (key.keysym.sym >= 0x100 && key.keysym.sym <= 0x119) || key.keysym.sym == 0x12C || key.keysym.sym == 0x12D) || (strPasteBuffer.length() && key.keysym.sym >= 0x80))) {
 		// BS, <-, ->, PgUp, PgDn, etc.
 		return true;
 	}
@@ -7489,7 +7489,7 @@ static bool CheckEnableImmOnKey(SDL_KeyboardEvent key)
 {
 	if(key.keysym.scancode == 0x29 ||
 #if defined(SDL_DOSBOX_X_IME)
-	(!SDL_IM_Composition() && (key.keysym.sym == 0x08 || key.keysym.sym == 0x09 || (key.keysym.sym >= 0x20 && key.keysym.sym <= 0x7F) || (key.keysym.scancode >= 0x53 && key.keysym.scancode <= 0x63))) ||
+	(!SDL_IM_Composition() && (key.keysym.sym == 0x08 || key.keysym.sym == 0x09 || (key.keysym.sym >= 0x20 && key.keysym.sym <= 0x7F) || key.keysym.scancode == 0x39 || (key.keysym.scancode >= 0x53 && key.keysym.scancode <= 0x63))) ||
 #endif
 	(key.keysym.scancode >= 0x49 && key.keysym.scancode <= 0x52) || (key.keysym.scancode >= 0xe0 && key.keysym.scancode <= 0xe6) || (strPasteBuffer.length() && key.keysym.sym >= 0x20)) {
 		// ESC, shift, control, alt, PgUp, PgDn, etc.
