@@ -88,7 +88,7 @@ void DOS_Shell::ShowPrompt(void) {
 			case 'H': WriteOut("\b");   break;
 			case 'L': WriteOut("<"); break;
 			case 'N': WriteOut("%c",DOS_GetDefaultDrive()+'A'); break;
-			case 'P': WriteOut("%c:\\%s",DOS_GetDefaultDrive()+'A',dir); break;
+			case 'P': WriteOut("%c:\\",DOS_GetDefaultDrive()+'A'); WriteOut_NoParsing(dir, true); break;
 			case 'Q': WriteOut("="); break;
 			case 'S': WriteOut(" "); break;
 			case 'T': {
@@ -860,7 +860,8 @@ void DOS_Shell::InputCommand(char * line) {
                 for (std::list<std::string>::iterator source = l_completion.begin(); source != l_completion.end(); ++source) {
                     std::string name = source->c_str();
                     if (col==1) {
-                        WriteOut("%s\n", name.c_str());
+                        WriteOut_NoParsing(name.c_str(), true);
+                        WriteOut("\n");
                         lastcr=true;
                         p_count++;
                     } else {

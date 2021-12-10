@@ -628,7 +628,7 @@ size_t GetPauseCount() {
 		rows=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
 	else
 		rows=(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
-	return (rows > 3u) ? (rows - 3u) : 22u;
+	return (rows > 2u) ? (rows - 2u) : 23u;
 }
 
 struct DtaResult {
@@ -1327,8 +1327,10 @@ void DOS_Shell::CMD_CHDIR(char * args) {
 	uint8_t drive = DOS_GetDefaultDrive()+'A';
 	char dir[DOS_PATHLENGTH];
 	if (!*args) {
-        DOS_GetCurrentDir(0,dir,true);
-		WriteOut("%c:\\%s\n",drive,dir);
+		DOS_GetCurrentDir(0,dir,true);
+		WriteOut("%c:\\\n",drive);
+		WriteOut_NoParsing(dir, true);
+		WriteOut("\n");
 	} else if(strlen(args) == 2 && args[1]==':') {
 		uint8_t targetdrive = (args[0] | 0x20)-'a' + 1;
 		unsigned char targetdisplay = *reinterpret_cast<unsigned char*>(&args[0]);
@@ -1340,7 +1342,9 @@ void DOS_Shell::CMD_CHDIR(char * args) {
 			}
 			return;
 		}
-		WriteOut("%c:\\%s\n",toupper(targetdisplay),dir);
+		WriteOut("%c:\\",toupper(targetdisplay));
+		WriteOut_NoParsing(dir, true);
+		WriteOut("\n");
 		if(drive == 'Z')
 			WriteOut(MSG_Get("SHELL_CMD_CHDIR_HINT"),toupper(targetdisplay));
 	} else if (!DOS_ChangeDir(sargs)) {
@@ -1588,8 +1592,19 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 			if (optB) {
 				// this overrides pretty much everything
 				if (strcmp(".",uselfn&&!optZ?lname:name) && strcmp("..",uselfn&&!optZ?lname:name)) {
-					shell->WriteOut_NoParsing(uselfn&&!optZ?lname:name, true);
+					int m=shell->WriteOut_NoParsing(uselfn&&!optZ?lname:name, true);
 					shell->WriteOut("\n");
+					if (optP) {
+						p_count+=m+1;
+						if (p_count%GetPauseCount()<m+1) {
+							shell->WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
+							uint8_t c;uint16_t n=1;
+							DOS_ReadFile(STDIN,&c,&n);
+							if (c==3) return false;
+							if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
+							p_count=0;
+						}
+					}
 				}
 			} else {
 				if (first&&optS) {
@@ -1618,7 +1633,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 				uint16_t year = (uint16_t)((date >> 9) + 1980);
 				uint8_t hour	= (uint8_t)((time >> 5 ) >> 6);
 				uint8_t minute = (uint8_t)((time >> 5) & 0x003f);
-
+				unsigned int m=0;
 				if (attr & DOS_ATTR_DIRECTORY) {
 					if (optW) {
 						shell->WriteOut("[%s]",name);
@@ -1630,9 +1645,20 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 						shell->WriteOut("%-8s %-3s   %-16s %s %s",name,ext,"<DIR>",FormatDate(year,month,day),FormatTime(hour,minute,100,100));
                         if (uselfn&&!optZ) {
                             shell->WriteOut(" ");
-                            shell->WriteOut_NoParsing(lname, true);
+                            m=shell->WriteOut_NoParsing(lname, true);
                         }
                         shell->WriteOut("\n");
+                        if (optP) {
+                            p_count+=(optW?5:1)*m;
+                            if (p_count%(GetPauseCount()*w_size)<m) {
+                                shell->WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
+                                uint8_t c;uint16_t n=1;
+                                DOS_ReadFile(STDIN,&c,&n);
+                                if (c==3) return false;
+                                if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
+                                p_count=0;
+                            }
+                        }
 					}
 					dir_count++;
 				} else {
@@ -1643,9 +1669,20 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 						shell->WriteOut("%-8s %-3s   %16s %s %s",name,ext,numformat,FormatDate(year,month,day),FormatTime(hour,minute,100,100));
                         if (uselfn&&!optZ) {
                             shell->WriteOut(" ");
-                            shell->WriteOut_NoParsing(lname, true);
+                            m=shell->WriteOut_NoParsing(lname, true);
                         }
                         shell->WriteOut("\n");
+                        if (optP) {
+                            p_count+=(optW?5:1)*m;
+                            if (p_count%(GetPauseCount()*w_size)<m) {
+                                shell->WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
+                                uint8_t c;uint16_t n=1;
+                                DOS_ReadFile(STDIN,&c,&n);
+                                if (c==3) return false;
+                                if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
+                                p_count=0;
+                            }
+                        }
 					}
 					if (optS) {
 						cfile_count++;
@@ -1656,8 +1693,8 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 				}
 				if (optW) w_count++;
 			}
-            if (optW && w_count%5==0 && tcols>80) shell->WriteOut("\n");
-			if (optP && !(++p_count%(GetPauseCount()*w_size))) {
+			if (optW && w_count%5==0 && tcols>80) shell->WriteOut("\n");
+			if (optP && !optB && !(++p_count%(GetPauseCount()*w_size))) {
 				if (optW&&w_count%5) {shell->WriteOut("\n");w_count=0;}
 				shell->WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
 				uint8_t c;uint16_t n=1;
@@ -2061,7 +2098,7 @@ void DOS_Shell::CMD_LS(char *args) {
 			if (!uselfn||optZ) upcase(name);
 			if (col==1) {
 				WriteOut("\033[34;1m");
-				WriteOut_NoParsing(name.c_str(), true);
+				p_count+=WriteOut_NoParsing(name.c_str(), true);
 				WriteOut("\033[0m\n");
 				p_count++;
 			} else
@@ -2076,7 +2113,7 @@ void DOS_Shell::CMD_LS(char *args) {
 			}
 			if (col==1) {
 				if (is_executable) WriteOut("\033[32;1m");
-				WriteOut_NoParsing(name.c_str(), true);
+				p_count+=WriteOut_NoParsing(name.c_str(), true);
 				WriteOut(is_executable?"\033[0m\n":"\n");
 				p_count++;
 			} else
