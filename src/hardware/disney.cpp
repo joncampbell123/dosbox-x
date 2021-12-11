@@ -421,12 +421,16 @@ public:
 
 static DISNEY* test = NULL;
 
-static void DISNEY_ShutDown(Section* sec){
-    (void)sec;//UNUSED
+void DISNEY_Close() {
     if (test) {
         delete test;
         test = NULL;
     }
+}
+
+static void DISNEY_ShutDown(Section* sec){
+    (void)sec;//UNUSED
+    DISNEY_Close();
 }
 
 Bitu DISNEY_BasePort() {

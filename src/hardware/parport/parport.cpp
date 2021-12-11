@@ -297,10 +297,11 @@ void CParallel::initialize()
 
 
 CParallel* parallelPortObjects[]={NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
-
+static int disneyport = 0;
 bool DISNEY_HasInit();
 Bitu DISNEY_BasePort();
 bool DISNEY_ShouldInit();
+void DISNEY_Close();
 void DISNEY_Init(unsigned int base_port);
 
 Bitu bios_post_parport_count() {
@@ -341,6 +342,7 @@ public:
         // we can only have one printer redirection, hence the variable
         printer_used = false;
 #endif
+        disneyport = 0;
 
 		// default ports & interrupts
 		uint8_t defaultirq[] = { 7, 5, 12, 0, 0, 0, 0, 0, 0};
@@ -419,9 +421,7 @@ public:
 				if (!DISNEY_HasInit()) {
 					LOG_MSG("LPT%d: User explicitly assigned Disney Sound Source to this port",(int)i+1);
 					DISNEY_Init(parallel_baseaddr[i]);
-					parallelPortObjects[i]->parallelType = PARALLEL_TYPE_DISNEY;
-					cmd.Shift(1);
-					cmd.GetStringRemain(parallelPortObjects[i]->commandLineString);
+                    if (DISNEY_HasInit()) disneyport = i+1;
 				}
 				else {
 					LOG_MSG("LPT%d: Disney Sound Source already initialized on a port, cannot init again",(int)i+1);
@@ -473,11 +473,12 @@ private:
 };
 
 void PARALLEL::showPort(int port) {
-	if (parallelPortObjects[port] != nullptr) {
+	if (parallelPortObjects[port] != nullptr)
 		WriteOut("LPT%d: %s %s\n", port + 1, parallelTypes[parallelPortObjects[port]->parallelType], parallelPortObjects[port]->commandLineString.c_str());
-	} else {
+	else if (disneyport==port+1)
+		WriteOut("LPT%d: %s %s\n", port + 1, parallelTypes[PARALLEL_TYPE_DISNEY], "");
+	else
 		WriteOut("LPT%d: %s %s\n", port + 1, parallelTypes[PARALLEL_TYPE_DISABLED], "");
-	}
 }
 
 void PARALLEL::Run()
@@ -567,6 +568,10 @@ void PARALLEL::Run()
 			}
 			if (parallelPortObjects[port-1]->parallelType == PARALLEL_TYPE_PRINTER) testParallelPortsBaseclass->printer_used = false;
 #endif
+			if (mode==PARALLEL_TYPE_DISNEY&&disneyport!=port&&DISNEY_HasInit()) {
+				WriteOut("Disney is already assigned to a different port.\n");
+				return;
+            }
 			DOS_PSP curpsp(dos.psp());
 			if (dos.psp()!=curpsp.GetParent()) {
                 char name[5];
@@ -580,7 +585,18 @@ void PARALLEL::Run()
 			WriteOut("Printer is already assigned to a different port.\n");
 			return;
 #endif
-		}
+		} else if (mode==PARALLEL_TYPE_DISNEY&&disneyport!=port&&DISNEY_HasInit()) {
+			WriteOut("Disney is already assigned to a different port.\n");
+			return;
+		} else if (disneyport==port) {
+            if (mode==PARALLEL_TYPE_DISNEY) {
+                showPort(port-1);
+                return;
+            } else {
+                DISNEY_Close();
+                if (!DISNEY_HasInit()) disneyport=0;
+            }
+        }
 		// Recreate the port with the new mode.
 		switch (mode) {
 			case PARALLEL_TYPE_DISABLED:
@@ -612,7 +628,10 @@ void PARALLEL::Run()
                 break;
 #endif
 			case PARALLEL_TYPE_DISNEY:
-				if (!DISNEY_HasInit()) DISNEY_Init(parallel_baseaddr[port-1]);
+				if (!DISNEY_HasInit()) {
+                    DISNEY_Init(parallel_baseaddr[port-1]);
+                    if (DISNEY_HasInit()) disneyport=port;
+                }
 				break;
 		}
 		if (parallelPortObjects[port-1]) {

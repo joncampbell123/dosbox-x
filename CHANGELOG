@@ -36,6 +36,8 @@
     segment. It is once again possible to make Mac OS X
     ARM releases and to use dylib files from Brew doing
     so. (joncampbell123)
+  - Fixed Disney sound source connecting to parallel
+    port not working in the previous version. (Wengier)
   - Fixed command-line parameters (when launching
     DOSBox-X) containing Chinese characters in code page
     950 not working in Windows SDL2 builds. (Wengier)
