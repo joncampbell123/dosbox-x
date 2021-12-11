@@ -3540,7 +3540,7 @@ void DOSBOX_SetupConfigSections(void) {
             "this option to 0 to silence the PC speaker until reprogrammed by the demo.\n"
             "Set to 0 for some early Abaddon demos including \"Torso\" and \"Cycling\".");
 
-    Pint = secprop->Add_int("pcrate",Property::Changeable::WhenIdle,48000);
+    Pint = secprop->Add_int("pcrate",Property::Changeable::WhenIdle,65536);
     Pint->Set_values(rates);
     Pint->Set_help("Sample rate of the PC-Speaker sound generation.");
     Pint->SetBasic(true);
