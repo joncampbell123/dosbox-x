@@ -2790,7 +2790,9 @@ void DOS_Shell::CMD_MORE(char * args) {
 	//ScanCMDBool(args,">");
 	int nchars = 0, nlines = 0, linecount = 0, LINES = 25, COLS = 80, TABSIZE = 8;
 	char * word;
-	uint8_t c, last=0;
+	uint8_t c,last,last2,last3;
+	last3=last2=last=0;
+	bool lead=false;
 	uint16_t n=1;
 	StripSpaces(args);
 	if (IS_PC98_ARCH) {
@@ -2804,6 +2806,8 @@ void DOS_Shell::CMD_MORE(char * args) {
 	if(!*args||!strcasecmp(args, "con")) {
 		while (true) {
 			DOS_ReadFile (STDIN,&c,&n);
+			if (lead) lead=false;
+			else if ((IS_PC98_ARCH || isDBCSCP()) && dbcs_sbcs) lead = isKanji1(c) && !CheckBoxDrawing(last3, last2, last, c);
 			if (c==3) {dos.echo=echo;return;}
 			else if (n==0) {if (last!=10) WriteOut("\r\n");dos.echo=echo;return;}
 			else if (c==13&&last==26) {dos.echo=echo;return;}
@@ -2812,14 +2816,27 @@ void DOS_Shell::CMD_MORE(char * args) {
 				else if (c==13) {
 					linecount++;
 					WriteOut("\r\n");
+					last3=last2=last=0;
 				} else if (c=='\t') {
 					do {
 						WriteOut(" ");
 						nchars++;
 					} while ( nchars < COLS && nchars % TABSIZE );
 				} else {
-					nchars++;
-					WriteOut("%c", c);
+                    if (lead && nchars == COLS-1) {
+                        last3=last2=last=0;
+                        nlines++;
+                        nchars = 0;
+                        WriteOut("\n");
+                        if (nlines == LINES) {
+                            WriteOut("-- More -- (%u) --",linecount);
+                            if (PAUSED()==3) return;
+                            WriteOut("\n");
+                            nlines=0;
+                        }
+                    }
+                    nchars++;
+                    WriteOut("%c", c);
 				}
 				if (c == 13 || nchars >= COLS) {
 					nlines++;
@@ -2831,7 +2848,7 @@ void DOS_Shell::CMD_MORE(char * args) {
 						nlines=0;
 					}
 				}
-				last=c;
+				last3=last2;last2=last;last=c;
 			}
 		}
 	}
@@ -2848,8 +2865,7 @@ nextfile:
 		return;
 	}
 	ctrlbrk=false;
-	bool lead=false;
-	uint8_t last3, last2;
+	lead=false;
 	last3=last2=last=0;
 	nlines=0;
 	do {
