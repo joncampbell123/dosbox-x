@@ -11,10 +11,12 @@
   - Added config options (in "ethernet, slirp" section)
     "tcp_port_forwards" and "tcp_port_forwards" for port
     forwarding when using the Slirp backend. (kcgen)
-  - Added UTF8 command to convert UTF-8 text to view in
-    the current code page. For example, the command
-    "UTF8 < UTF8TEXT.TXT" will output converted text
-    UTF8TEXT.TXT in the current code page. (Wengier)
+  - Added UTF8 and UTF16 commands to convert UTF-8 and
+    UTF-16 text to view in the current code page. For
+    example, the command "UTF8 < UTF8TEXT.TXT" will
+    output converted text UTF8TEXT.TXT in the current
+    code page, and for UTF16 command there are optional
+    /BE & /LE options to specify endianness. (Wengier)
   - Added hidden code page 951 for Big5-HKSCS encoding
     or Big5 Unicode-At-On (Big5-UAO) encoding. Config
     option "uao" is added in [ttf] section so that if

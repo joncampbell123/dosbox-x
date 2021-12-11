@@ -88,6 +88,7 @@ host_cnv_char_t *CodePageGuestToHost(const char *s);
 #include "iconvpp.hpp"
 typedef uint16_t test_char_t;
 typedef std::basic_string<test_char_t> test_string;
+typedef std::basic_string<char> test_char;
 #endif
 int freesizecap = 1;
 bool Mouse_Drv=true;
@@ -6855,30 +6856,137 @@ void UTF8::Run()
     _Iconv<char,test_char_t> *x = _Iconv<char,test_char_t>::create("UTF-8");
     _Iconv<test_char_t,char> *fx = _Iconv<test_char_t,char>::create(target);
     if (x == NULL || fx == NULL) {
-        WriteOut("Invalid code page for conversion.\n");
+        WriteOut("Invalid code page for text conversion.\n");
         return;
     }
     test_string dst;
     std::string text="";
+    bool first=true;
     uint8_t c;uint16_t m=1;
     while (true) {
         DOS_ReadFile (STDIN,&c,&m);
         if (m) text+=std::string(1, c);
-        if (!m || c==10 || c==26) {
+        if (m && first && text.size() == 2 && (((uint8_t)text[0] == 0xFE && (uint8_t)text[1] == 0xFF) || (uint8_t)text[0] == 0xFF && (uint8_t)text[1] == 0xFE)) {
+            WriteOut("The input text is UTF-16.\n");
+            break;
+        }
+        if (m && first && text.size() == 3 && (uint8_t)text[0] == 0xEF && (uint8_t)text[1] == 0xBB && (uint8_t)text[2] == 0xBF) {
+            first=false;
+            text="";
+        } else if (!m || c==0xA || c==0x1A) {
             x->set_src(text.c_str());
             if (x->string_convert_dest(dst) < 0 || (text.size() && !fx->string_convert(dst).size())) {
                 WriteOut("An error occurred during text conversion.\n");
                 return;
             }
             WriteOut_NoParsing(fx->string_convert(dst).c_str(), true);
+            first=false;
             text="";
-            if (!m||c==26) break;
+            if (!m||c==0x1A) break;
         }
     }
+    x->finish();
 }
 
 static void UTF8_ProgramStart(Program * * make) {
     *make=new UTF8;
+}
+
+class UTF16 : public Program {
+public:
+    void Run(void);
+private:
+	void PrintUsage() {
+        constexpr const char *msg =
+            "Converts UTF-16 text to view in the current code page.\n\n"
+            "UTF16 [/BE|/LE] < [drive:][path]filename\ncommand-name | UTF16 [/BE|/LE]\n\n"
+            "  /BE  Use UTF-16 Big Endian\n  /LE  Use UTF-16 Little Endian\n";
+        WriteOut(msg);
+	}
+};
+
+void UTF16::Run()
+{
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+		PrintUsage();
+		return;
+	}
+    if (usecon) {
+        WriteOut("No input text found.\n");
+        return;
+    }
+    if ((customcp && dos.loaded_codepage==customcp) || (altcp && dos.loaded_codepage==altcp)) {
+        WriteOut("This command does not support customized code pages.\n");
+        return;
+    }
+    char target[11] = "CP437";
+    if (dos.loaded_codepage==808) strcpy(target, "CP866");
+    else if (dos.loaded_codepage==872) strcpy(target, "CP855");
+    else if (dos.loaded_codepage==951 && !uao) strcpy(target, "BIG5HKSCS");
+    else if (dos.loaded_codepage==951) strcpy(target, "CP950");
+    else sprintf(target, "CP%d", dos.loaded_codepage);
+    uint8_t buf[3];uint16_t m=2;
+    DOS_ReadFile (STDIN,buf,&m);
+    if (m<2) {
+        if (m==1) WriteOut("An error occurred during text conversion.\n");
+        return;
+    }
+    bool le=true;
+	if (cmd->FindExist("-BE", false) || cmd->FindExist("/BE", false))
+		le=false;
+	else if (cmd->FindExist("-LE", false) || cmd->FindExist("/LE", false))
+		le=true;
+    else if (buf[0] == 0xFE && buf[1]== 0xFF)
+        le=false;
+    else if (buf[0] == 0xFF && buf[1]== 0xFE)
+        le=true;
+#if defined(MACOSX)
+    else
+        le=false;
+#endif
+    _Iconv<test_char_t,char> *x = _Iconv<test_char_t,char>::create(target);
+    if (x == NULL) {
+        WriteOut("Invalid code page for text conversion.\n");
+        return;
+    }
+    test_char dst;
+    test_char_t *wch, ch;
+    std::wstring text=L"";
+    unsigned int c=0;
+    bool first=true;
+    while (true) {
+        if (!first || (buf[0] == 0xFE && buf[1]== 0xFF) || (buf[0] == 0xFF && buf[1]== 0xFE)) DOS_ReadFile (STDIN,buf,&m);
+        first=false;
+        if (m==1) {
+            WriteOut("An error occurred during text conversion.\n");
+            break;
+        } else if (m==2) {
+            ch=buf[le?1:0]*0x100+buf[le?0:1];
+            text+=ch;
+            c++;
+        }
+        if (!m || ch==0xA || ch==0x1A) {
+            wch=new test_char_t[c+1];
+            for (unsigned int i=0; i<c; i++) wch[i]=(test_char_t)text[i];
+            wch[c]=0;
+            x->set_src(wch);
+            delete[] wch;
+            int err=x->string_convert_dest(dst);
+            if (err < 0 || (c && !dst.size())) {
+                WriteOut("An error occurred during text conversion.\n");
+                return;
+            }
+            WriteOut_NoParsing(dst.c_str(), true);
+            text=L"";
+            c=0;
+            if (!m||ch==0x1A) break;
+        }
+    }
+    x->finish();
+}
+
+static void UTF16_ProgramStart(Program * * make) {
+    *make=new UTF16;
 }
 #endif
 
@@ -8477,6 +8585,7 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("AUTOTYPE.COM", AUTOTYPE_ProgramStart,"/BIN/");
 #ifdef C_ICONV
     PROGRAMS_MakeFile("UTF8.COM", UTF8_ProgramStart,"/BIN/");
+    PROGRAMS_MakeFile("UTF16.COM", UTF16_ProgramStart,"/BIN/");
 #endif
     PROGRAMS_MakeFile("SERIAL.COM", SERIAL_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("PARALLEL.COM", PARALLEL_ProgramStart,"/SYSTEM/");
