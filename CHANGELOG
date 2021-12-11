@@ -11,6 +11,8 @@
   - Added config options (in "ethernet, slirp" section)
     "tcp_port_forwards" and "tcp_port_forwards" for port
     forwarding when using the Slirp backend. (kcgen)
+  - Added code pages 737 (Greek) and 775 (Baltic) for
+    the guest-to-host code page conversions. (Wengier)
   - Added UTF8 and UTF16 commands to convert UTF-8 and
     UTF-16 text to view in the current code page. For
     example, the command "UTF8 < UTF8TEXT.TXT" will

@@ -2120,9 +2120,13 @@ CHCP [nnn [file]]
 
 Supported code pages for changing in the TrueType font output:
 
-437,808,850,852,853,855,857,858,860-866,869,872,874,1250-1258
+437,737,775,808,850,852,853,855,857,858,860-866,869,872,874
 
-Also double-byte code pages including 932, 936, 949, and 950.
+Windows code pages: 1250,1251,1252,1253,1254,1255,1256,1257,1258
+
+Also double-byte code pages, including 932, 936, 949, and 950.
+
+Customized code pages are supported by providing code page files.
 
 .
 :SHELL_CMD_CHCP_ACTIVE

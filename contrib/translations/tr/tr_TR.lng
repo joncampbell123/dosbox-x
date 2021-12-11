@@ -2122,9 +2122,13 @@ CHCP [nnn [dosya]]
 
 TrueType yazıtipi çıktısında desteklenen kod sayfaları aşağıdaki gibidir:
 
-437,808,850,852,853,855,857,858,860-866,869,872,874,1250-1258
+437,737,775,808,850,852,853,855,857,858,860-866,869,872,874
+
+Windows kod sayfaları: 1250,1251,1252,1253,1254,1255,1256,1257,1258
 
 Ek olarak 932, 936, 949 ve 950 numaralı çoklu bit kod sayfaları da desteklenir.
+
+Özel kod sayfaları, kod sayfası dosyaları sağlanarak desteklenir.
 
 .
 :SHELL_CMD_CHCP_ACTIVE

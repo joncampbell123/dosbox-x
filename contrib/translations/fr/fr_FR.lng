@@ -2124,9 +2124,13 @@ CHCP [nnn [fichier]]
 Pages de code prises en charge pour être modifiées dans la sortie 
 de la police TrueType :
 
-437,808,850,852,853,855,857,858,860-866,869,872,874,1250-1258
+437,737,775,808,850,852,853,855,857,858,860-866,869,872,874
+
+Pages de codes Windows: 1250,1251,1252,1253,1254,1255,1256,1257,1258
 
 Également des pages de code à double octet, notamment 932, 936, 949 et 950.
+
+Les pages de codes personnalisées sont prises en charge en fournissant des fichiers de pages de codes.
 
 .
 :SHELL_CMD_CHCP_ACTIVE
