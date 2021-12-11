@@ -55,7 +55,7 @@ Bitu call_program;
 extern const char *modifier;
 extern std::string langname, configfile;
 extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor;
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, uao, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, usecon, enable_dbcs_tables;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, uao, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, outcon, enable_dbcs_tables;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -258,7 +258,7 @@ int Program::WriteOut_NoParsing(const char * format, bool dbcs) {
 	char const* buf = format;
 	char last2 = 0, last3 = 0;
 	int lastcol = 0, COLS=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-	uint8_t page=usecon?real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE):0;
+	uint8_t page=outcon?real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE):0;
 	bool lead=false;
 	dos.internal_output=true;
 	int rcount = 0;
@@ -270,12 +270,12 @@ int Program::WriteOut_NoParsing(const char * format, bool dbcs) {
 		else if ((IS_PC98_ARCH || isDBCSCP()) && dbcs_sbcs && dbcs && isKanji1(buf[i])) lead = true;
 		if (buf[i] == 0xA) {
 			if (last_written_character != 0xD) {out = 0xD;DOS_WriteFile(STDOUT,&out,&s);}
-			if (usecon) rcount++;
-		} else if (usecon && lead && CURSOR_POS_COL(page)==COLS-1 && !CheckBoxDrawing(last3, last2, last_written_character, buf[i])) {
+			if (outcon) rcount++;
+		} else if (outcon && lead && CURSOR_POS_COL(page)==COLS-1 && !CheckBoxDrawing(last3, last2, last_written_character, buf[i])) {
 			out = 0xD;DOS_WriteFile(STDOUT,&out,&s);
 			out = 0xA;DOS_WriteFile(STDOUT,&out,&s);
 			rcount++;
-		} else if (usecon && !CURSOR_POS_COL(page) && lastcol == COLS-1)
+		} else if (outcon && !CURSOR_POS_COL(page) && lastcol == COLS-1)
 			rcount++;
 		lastcol=CURSOR_POS_COL(page);
 		last3=last2;last2=last_written_character;

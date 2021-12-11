@@ -58,7 +58,7 @@ extern bool addovl, addipx, addne2k, enableime;
 extern const char* RunningProgram;
 extern int enablelfn, msgcodepage;
 extern uint16_t countryNo;
-bool usecon = true;
+bool outcon = true, usecon = true;
 bool shellrun = false;
 
 uint16_t shell_psp = 0;
@@ -446,6 +446,7 @@ void DOS_Shell::ParseLine(char * line) {
 	int Reflect_Menu(void);
 	Reflect_Menu();
 #endif
+	if (toc||(!toc&&((out&&DOS_FindDevice(out)!=DOS_FindDevice("con"))))) outcon=false;
 	if (toc||(!toc&&((out&&DOS_FindDevice(out)!=DOS_FindDevice("con"))||(in&&DOS_FindDevice(in)!=DOS_FindDevice("con"))))) usecon=false;
 
 	DoCommand(line);
@@ -487,7 +488,7 @@ void DOS_Shell::ParseLine(char * line) {
 		free(toc);
 		if (DOS_FindFirst(pipetmp, ~DOS_ATTR_VOLUME)) DOS_UnlinkFile(pipetmp);
 		}
-	usecon=true;
+	outcon=usecon=true;
 }
 
 

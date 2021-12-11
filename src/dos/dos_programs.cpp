@@ -103,6 +103,7 @@ bool starttranspath = false;
 bool mountwarning = true;
 bool qmount = false;
 bool nowarn = false;
+bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 extern bool inshell, usecon, uao, mountfro[26], mountiro[26], clear_screen(), OpenGL_using(void);
 extern int lastcp, FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused), UpdateSDLDrawTexture();
@@ -6861,6 +6862,7 @@ void UTF8::Run()
     }
     test_string dst;
     std::string text="";
+    char temp[4096];
     bool first=true;
     uint8_t c;uint16_t m=1;
     while (true) {
@@ -6874,12 +6876,16 @@ void UTF8::Run()
             first=false;
             text="";
         } else if (!m || c==0xA || c==0x1A) {
-            x->set_src(text.c_str());
-            if (x->string_convert_dest(dst) < 0 || (text.size() && !fx->string_convert(dst).size())) {
-                WriteOut("An error occurred during text conversion.\n");
-                return;
+            if (CodePageHostToGuestUTF8(temp,text.c_str())) {
+                WriteOut_NoParsing(temp, true);
+            } else {
+                x->set_src(text.c_str());
+                if (x->string_convert_dest(dst) < 0 || (text.size() && !fx->string_convert(dst).size())) {
+                    WriteOut("An error occurred during text conversion.\n");
+                    return;
+                } else
+                    WriteOut_NoParsing(fx->string_convert(dst).c_str(), true);
             }
-            WriteOut_NoParsing(fx->string_convert(dst).c_str(), true);
             first=false;
             text="";
             if (!m||c==0x1A) break;
@@ -6952,6 +6958,7 @@ void UTF16::Run()
     test_char dst;
     test_char_t *wch, ch;
     std::wstring text=L"";
+    char temp[4096];
     unsigned int c=0;
     bool first=true;
     while (true) {
@@ -6969,14 +6976,18 @@ void UTF16::Run()
             wch=new test_char_t[c+1];
             for (unsigned int i=0; i<c; i++) wch[i]=(test_char_t)text[i];
             wch[c]=0;
-            x->set_src(wch);
-            delete[] wch;
-            int err=x->string_convert_dest(dst);
-            if (err < 0 || (c && !dst.size())) {
-                WriteOut("An error occurred during text conversion.\n");
-                return;
+            if (CodePageHostToGuestUTF16(temp,wch)) {
+                WriteOut_NoParsing(temp, true);
+            } else {
+                x->set_src(wch);
+                if (x->string_convert_dest(dst) < 0 || (c && !dst.size())) {
+                    WriteOut("An error occurred during text conversion.\n");
+                    delete[] wch;
+                    return;
+                } else
+                    WriteOut_NoParsing(dst.c_str(), true);
             }
-            WriteOut_NoParsing(dst.c_str(), true);
+            delete[] wch;
             text=L"";
             c=0;
             if (!m||ch==0x1A) break;
