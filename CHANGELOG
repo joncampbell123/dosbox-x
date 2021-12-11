@@ -22,7 +22,7 @@
   - Added hidden code page 951 for Big5-HKSCS encoding
     or Big5 Unicode-At-On (Big5-UAO) encoding. Config
     option "uao" is added in [ttf] section so that if
-    set to "true" code page 950 will use the Big5-UAO
+    set to "true" code page 951 will use the Big5-UAO
     encoding instead of the Big-HKSCS encoding, the
     latter being the default for CP951. If ChinaSea is
     enabled, ChinaSea characters will be used instead

@@ -104,7 +104,7 @@ bool mountwarning = true;
 bool qmount = false;
 bool nowarn = false;
 bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
-extern bool inshell, usecon, uao, mountfro[26], mountiro[26], clear_screen(), OpenGL_using(void);
+extern bool inshell, usecon, uao, morelen, mountfro[26], mountiro[26], clear_screen(), OpenGL_using(void);
 extern int lastcp, FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused), UpdateSDLDrawTexture();
 void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str), show_prompt();
@@ -6863,6 +6863,7 @@ void UTF8::Run()
     test_string dst;
     std::string text="";
     char temp[4096];
+    morelen=true;
     bool first=true;
     uint8_t c;uint16_t m=1;
     while (true) {
@@ -6882,6 +6883,7 @@ void UTF8::Run()
                 x->set_src(text.c_str());
                 if (x->string_convert_dest(dst) < 0 || (text.size() && !fx->string_convert(dst).size())) {
                     WriteOut("An error occurred during text conversion.\n");
+                    morelen=false;
                     return;
                 } else
                     WriteOut_NoParsing(fx->string_convert(dst).c_str(), true);
@@ -6892,6 +6894,7 @@ void UTF8::Run()
         }
     }
     x->finish();
+    morelen=false;
 }
 
 static void UTF8_ProgramStart(Program * * make) {
@@ -6960,6 +6963,7 @@ void UTF16::Run()
     std::wstring text=L"";
     char temp[4096];
     unsigned int c=0;
+    morelen=true;
     bool first=true;
     while (true) {
         if (!first || (buf[0] == 0xFE && buf[1]== 0xFF) || (buf[0] == 0xFF && buf[1]== 0xFE)) DOS_ReadFile (STDIN,buf,&m);
@@ -6983,6 +6987,7 @@ void UTF16::Run()
                 if (x->string_convert_dest(dst) < 0 || (c && !dst.size())) {
                     WriteOut("An error occurred during text conversion.\n");
                     delete[] wch;
+                    morelen=false;
                     return;
                 } else
                     WriteOut_NoParsing(dst.c_str(), true);
@@ -6994,6 +6999,7 @@ void UTF16::Run()
         }
     }
     x->finish();
+    morelen=false;
 }
 
 static void UTF16_ProgramStart(Program * * make) {
