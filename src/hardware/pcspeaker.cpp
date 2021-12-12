@@ -366,7 +366,7 @@ void PCSPEAKER_SetCounter_NoNewMode(Bitu cntr) {
 		break;
 	default:
 #ifdef SPKR_DEBUGGING
-		LOG_MSG("Unhandled speaker mode %d at %f", mode, PIC_FullIndex());
+		LOG_MSG("Unhandled speaker mode %d at %f", spkr.pit_mode, PIC_FullIndex());
 #endif
 		return;
 	}
@@ -729,7 +729,7 @@ public:
 		 * by setting the counter to an ultrasonic frequency, it averages out into a quiet hiss rather
 		 * than noisy aliasing noise. */
 		spkr.minimum_counter = PIT_TICK_RATE/(spkr.rate*10);
-		SPKR_SPEED = (pic_tickindex_t)((SPKR_VOLUME*2*64000)/(0.070*spkr.rate));
+		SPKR_SPEED = (pic_tickindex_t)((SPKR_VOLUME*2*44100)/(0.010*spkr.rate));
 		spkr.used=0;
 		/* Register the sound channel */
 		spkr.chan=MixerChan.Install(&PCSPEAKER_CallBack,spkr.rate,"SPKR");
