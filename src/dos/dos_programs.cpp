@@ -6844,16 +6844,13 @@ void UTF8::Run()
         WriteOut("No input text found.\n");
         return;
     }
-    if ((customcp && dos.loaded_codepage==customcp) || (altcp && dos.loaded_codepage==altcp)) {
-        WriteOut("This command does not support customized code pages.\n");
-        return;
-    }
+    int cp=dos.loaded_codepage;
     char target[11] = "CP437";
     if (dos.loaded_codepage==808) strcpy(target, "CP866");
     else if (dos.loaded_codepage==872) strcpy(target, "CP855");
     else if (dos.loaded_codepage==951 && !uao) strcpy(target, "BIG5HKSCS");
     else if (dos.loaded_codepage==951) strcpy(target, "CP950");
-    else sprintf(target, "CP%d", dos.loaded_codepage);
+    else if (!(customcp && dos.loaded_codepage==customcp) && !(altcp && dos.loaded_codepage==altcp)) sprintf(target, "CP%d", dos.loaded_codepage);
     _Iconv<char,test_char_t> *x = _Iconv<char,test_char_t>::create("UTF-8");
     _Iconv<test_char_t,char> *fx = _Iconv<test_char_t,char>::create(target);
     if (x == NULL || fx == NULL) {
@@ -6881,7 +6878,7 @@ void UTF8::Run()
                 WriteOut_NoParsing(temp, true);
             } else {
                 x->set_src(text.c_str());
-                if (x->string_convert_dest(dst) < 0 || (text.size() && !fx->string_convert(dst).size())) {
+                if ((customcp && dos.loaded_codepage==customcp) || (altcp && dos.loaded_codepage==altcp) || x->string_convert_dest(dst) < 0 || (text.size() && !fx->string_convert(dst).size())) {
                     WriteOut("An error occurred during text conversion.\n");
                     morelen=false;
                     return;
@@ -6924,16 +6921,12 @@ void UTF16::Run()
         WriteOut("No input text found.\n");
         return;
     }
-    if ((customcp && dos.loaded_codepage==customcp) || (altcp && dos.loaded_codepage==altcp)) {
-        WriteOut("This command does not support customized code pages.\n");
-        return;
-    }
     char target[11] = "CP437";
     if (dos.loaded_codepage==808) strcpy(target, "CP866");
     else if (dos.loaded_codepage==872) strcpy(target, "CP855");
     else if (dos.loaded_codepage==951 && !uao) strcpy(target, "BIG5HKSCS");
     else if (dos.loaded_codepage==951) strcpy(target, "CP950");
-    else sprintf(target, "CP%d", dos.loaded_codepage);
+    else if (!(customcp && dos.loaded_codepage==customcp) && !(altcp && dos.loaded_codepage==altcp)) sprintf(target, "CP%d", dos.loaded_codepage);
     uint8_t buf[3];uint16_t m=2;
     DOS_ReadFile (STDIN,buf,&m);
     if (m<2) {
@@ -6984,7 +6977,7 @@ void UTF16::Run()
                 WriteOut_NoParsing(temp, true);
             } else {
                 x->set_src(wch);
-                if (x->string_convert_dest(dst) < 0 || (c && !dst.size())) {
+                if ((customcp && dos.loaded_codepage==customcp) || (altcp && dos.loaded_codepage==altcp) || x->string_convert_dest(dst) < 0 || (c && !dst.size())) {
                     WriteOut("An error occurred during text conversion.\n");
                     delete[] wch;
                     morelen=false;

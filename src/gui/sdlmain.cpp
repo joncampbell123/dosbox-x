@@ -5364,11 +5364,13 @@ void RebootGuest(bool pressed) {
 }
 
 #if defined(USE_TTF)
+#include "cp437_uni.h"
 extern int eurAscii;
 extern bool enable_dbcs_tables;
 extern uint16_t cpMap_PC98[256];
+uint16_t cpMap_copy[256];
 void initcodepagefont();
-bool forceswk=false;
+bool copied=false, forceswk=false;
 std::map<int, int> lowboxdrawmap {
     {1, 218}, {2, 191}, {3, 192}, {4, 217}, {5, 179}, {6, 196}, {0xe, 178},
     {0x10, 197}, {0x14, 177}, {0x15, 193}, {0x16, 194}, {0x17, 180}, {0x19, 195}, {0x1a, 176},
@@ -5378,6 +5380,10 @@ uint16_t cpMap_AX[32] = {
 	0x2524, 0x2534, 0x253c, 0x2550, 0x2551, 0x2554, 0x2557, 0x255d, 0x255a, 0x2560, 0x2566, 0x2563, 0x2569, 0x256c, 0x00ab, 0x00bb
 };
 int setTTFCodePage() {
+    if (!copied) {
+        memcpy(cpMap_copy,cpMap,sizeof(cpMap[0])*256);
+        copied=true;
+    }
     int cp = dos.loaded_codepage;
     if (IS_PC98_ARCH) {
         static_assert(sizeof(cpMap[0])*256 >= sizeof(cpMap_PC98), "sizeof err 1");
@@ -5409,7 +5415,8 @@ int setTTFCodePage() {
         int notMapped = 0;
         for (int y = ((customcp&&dos.loaded_codepage==customcp)||(altcp&&dos.loaded_codepage==altcp)?0:8); y < 16; y++)
             for (int x = 0; x < 16; x++) {
-                unimap = wcTest[y*16+x];
+                if (y<8 && (wcTest[y*16+x] == y*16+x || wcTest[y*16+x] == cp437_to_unicode[y*16+x])) unimap = cpMap_copy[y*16+x];
+                else unimap = wcTest[y*16+x];
                 if (!TTF_GlyphIsProvided(ttf.SDL_font, unimap)) {
                     cpMap[y*16+x] = 0;
                     notMapped++;
