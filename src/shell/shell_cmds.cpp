@@ -4190,7 +4190,7 @@ void DOS_Shell::CMD_COUNTRY(char * args) {
 
 #if defined(USE_TTF)
 extern bool jfont_init, isDBCSCP();
-void runRescan(const char *str), MSG_Init(), JFONT_Init(), DOSBox_SetSysMenu();
+void runRescan(const char *str), MSG_Init(), JFONT_Init(), InitFontHandle(), ShutFontHandle(), DOSBox_SetSysMenu();
 void toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
     if (isSupportedCP(newCP)) {
 		dos.loaded_codepage = newCP;
@@ -4203,7 +4203,11 @@ void toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
             shell->WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
             if (missing > 0) shell->WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
         }
-        if (!jfont_init && isDBCSCP()) JFONT_Init();
+        if (isDBCSCP()) {
+            ShutFontHandle();
+            InitFontHandle();
+            JFONT_Init();
+        }
         SetupDBCSTable();
         runRescan("-A -Q");
     } else if (opt<1)

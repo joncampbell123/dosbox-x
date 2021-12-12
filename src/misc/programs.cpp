@@ -1365,6 +1365,13 @@ next:
                                 force_load_state = section->Get_bool("forceloadstate");
                                 mainMenu.get_item("force_loadstate").check(force_load_state).refresh_item(mainMenu);
                             }
+                            if (!strcasecmp(inputline.substr(0, 9).c_str(), "language=")) {
+                                if (control->opt_lang != "") control->opt_lang = section->Get_string("language");
+                                MSG_Init();
+#if defined(USE_TTF)
+                                if (TTF_using()) resetFontSize();
+#endif
+                            }
 						} else if (!strcasecmp(pvars[0].c_str(), "sdl")) {
 							modifier = section->Get_string("clip_key_modifier");
 							paste_speed = section->Get_int("clip_paste_speed");
