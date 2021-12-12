@@ -2011,6 +2011,10 @@ bool DOS_SetFileDate(uint16_t entry, uint16_t ntime, uint16_t ndate)
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if(Network_IsActiveResource(entry))
+		return Network_SetFileDate(entry, ntime, ndate);
+#endif
 	if (!Files[handle]) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;

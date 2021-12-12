@@ -65,12 +65,13 @@ HANDLE hFind = INVALID_HANDLE_VALUE;
 	uint8_t fattr;char pattern[CROSS_LEN];
 	uint16_t date, time, attr;
 	std::string name,lname;
-	SYSTEMTIME lt;
+	SYSTEMTIME lt, local;
 	dta.GetSearchParams(fattr,pattern,true);
     if (hFind != INVALID_HANDLE_VALUE) {
         while (usefdw?FindNextFileW(hFind, &fdw):FindNextFile(hFind, &fda)) {
             if ((fattr & DOS_ATTR_DIRECTORY)||!(fdw.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)) {
                 FileTimeToSystemTime(usefdw?&fdw.ftLastWriteTime:&fda.ftLastWriteTime, &lt);
+                if (SystemTimeToTzSpecificLocalTime(NULL, &lt, &local)) lt = local;
                 if (usefdw && wcslen(fdw.cAlternateFileName) && CodePageHostToGuestUTF16(pattern,(uint16_t *)fdw.cAlternateFileName))
                     name = pattern;
                 else if (!usefdw && *fda.cAlternateFileName)
@@ -82,7 +83,7 @@ HANDLE hFind = INVALID_HANDLE_VALUE;
                 date = DOS_PackDate(lt.wYear,lt.wMonth,lt.wDay);
                 time = DOS_PackTime(lt.wHour,lt.wMinute,lt.wSecond);
                 attr = ((usefdw?fdw.dwFileAttributes:fda.dwFileAttributes) & FILE_ATTRIBUTE_DIRECTORY ? DOS_ATTR_DIRECTORY : 0) | ((usefdw?fdw.dwFileAttributes:fda.dwFileAttributes) & 0x3f);
-                dta.SetResult(name.c_str(),!usefdw ? fda.cFileName : (CodePageHostToGuestUTF16(pattern,(uint16_t *)fdw.cFileName) ? pattern : ""),usefdw?fdw.nFileSizeLow:fda.nFileSizeLow,date,time,attr);
+                dta.SetResult(name.c_str(),!usefdw ? fda.cFileName : (CodePageHostToGuestUTF16(pattern,(uint16_t *)fdw.cFileName) ? pattern : name.c_str()),usefdw?fdw.nFileSizeLow:fda.nFileSizeLow,date,time,attr);
                 return true;
             }
         }
@@ -100,7 +101,7 @@ HANDLE hFind = INVALID_HANDLE_VALUE;
 	uint8_t fattr;char pattern[CROSS_LEN];
 	uint16_t date, time, attr;
 	std::string name;
-	SYSTEMTIME lt;
+	SYSTEMTIME lt, local;
 	dta.GetSearchParams(fattr,pattern,true);
 	if (lfn_filefind_handle>=LFN_FILEFIND_MAX)
 		dta.SetDirID(65534);
@@ -115,6 +116,7 @@ HANDLE hFind = INVALID_HANDLE_VALUE;
         do {
             if ((fattr & DOS_ATTR_DIRECTORY)||!((usefdw?fdw.dwFileAttributes:fda.dwFileAttributes) & FILE_ATTRIBUTE_DIRECTORY)) {
                 FileTimeToSystemTime(usefdw?&fdw.ftLastWriteTime:&fda.ftLastWriteTime, &lt);
+                if (SystemTimeToTzSpecificLocalTime(NULL, &lt, &local)) lt = local;
                 if (usefdw && wcslen(fdw.cAlternateFileName) && CodePageHostToGuestUTF16(pattern,(uint16_t *)fdw.cAlternateFileName))
                     name = pattern;
                 else if (!usefdw && *fda.cAlternateFileName)
@@ -126,7 +128,7 @@ HANDLE hFind = INVALID_HANDLE_VALUE;
                 date = DOS_PackDate(lt.wYear,lt.wMonth,lt.wDay);
                 time = DOS_PackTime(lt.wHour,lt.wMinute,lt.wSecond);
                 attr = ((usefdw?fdw.dwFileAttributes:fda.dwFileAttributes) & FILE_ATTRIBUTE_DIRECTORY ? DOS_ATTR_DIRECTORY : 0) | ((usefdw?fdw.dwFileAttributes:fda.dwFileAttributes) & 0x3f);
-                dta.SetResult(name.c_str(),!usefdw ? fda.cFileName : (CodePageHostToGuestUTF16(pattern,(uint16_t *)fdw.cFileName) ? pattern : ""),usefdw?fdw.nFileSizeLow:fda.nFileSizeLow,date,time,attr);
+                dta.SetResult(name.c_str(),!usefdw ? fda.cFileName : (CodePageHostToGuestUTF16(pattern,(uint16_t *)fdw.cFileName) ? pattern : name.c_str()),usefdw?fdw.nFileSizeLow:fda.nFileSizeLow,date,time,attr);
                 return true;
             }
         } while (usefdw?FindNextFileW(hFind, &fdw):FindNextFile(hFind, &fda));
@@ -237,18 +239,6 @@ bool Network_SetFileAttr(char const * const filename, uint16_t attr) {
 	return true;
 }
 
- bool Network_FileExists(const char* filename)
-{
-    std::string name = filename;
-    if (filename[0]=='"') {
-        name=filename+1;
-        if (name.back()=='"') name.pop_back();
-    }
-    bool wc = CodePageGuestToHostUTF16(namehost, name.c_str());
-    DWORD dwAttrib = wc?GetFileAttributesW((LPCWSTR)namehost):GetFileAttributes(name.c_str());
-    return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
-}
-
  bool Network_GetFileDate(uint16_t entry, uint16_t*& otime, uint16_t*& odate)
 {
 	struct stat temp_stat;
@@ -261,6 +251,47 @@ bool Network_SetFileAttr(char const * const filename, uint16_t attr) {
 		*otime=1;*odate=1;
 	}
 	return true;
+}
+
+ bool Network_SetFileDate(uint16_t entry, uint16_t otime, uint16_t odate)
+{
+	uint32_t handle=RealHandle(entry);
+	HANDLE hand = (HANDLE)_get_osfhandle(handle);
+	if (hand == INVALID_HANDLE_VALUE) {
+		dos.errorcode = DOSERR_INVALID_HANDLE;
+		return false;
+	}
+    time_t clock = time(NULL), ttime;
+    struct tm *t = localtime(&clock);
+    FILETIME time;
+    t->tm_isdst = -1;
+    t->tm_sec  = (((int)otime) << 1) & 0x3e;
+    t->tm_min  = (((int)otime) >> 5) & 0x3f;
+    t->tm_hour = (((int)otime) >> 11) & 0x1f;
+    t->tm_mday = (int)(odate) & 0x1f;
+    t->tm_mon  = ((int)(odate >> 5) & 0x0f) - 1;
+    t->tm_year = ((int)(odate >> 9) & 0x7f) + 80;
+    ttime=mktime(t);
+    LONGLONG ll = Int32x32To64(ttime, 10000000) + 116444736000000000;
+    time.dwLowDateTime = (DWORD) ll;
+    time.dwHighDateTime = (DWORD) (ll >> 32);
+	if (!SetFileTime(hand, NULL, NULL, &time)) {
+		dos.errorcode=(uint16_t)GetLastError();
+		return false;
+	}
+	return true;
+}
+
+ bool Network_FileExists(const char* filename)
+{
+    std::string name = filename;
+    if (filename[0]=='"') {
+        name=filename+1;
+        if (name.back()=='"') name.pop_back();
+    }
+    bool wc = CodePageGuestToHostUTF16(namehost, name.c_str());
+    DWORD dwAttrib = wc?GetFileAttributesW((LPCWSTR)namehost):GetFileAttributes(name.c_str());
+    return (dwAttrib != INVALID_FILE_ATTRIBUTES && !(dwAttrib & FILE_ATTRIBUTE_DIRECTORY));
 }
 
  bool Network_CreateFile(char const * filename,uint16_t attributes,uint16_t * entry)
