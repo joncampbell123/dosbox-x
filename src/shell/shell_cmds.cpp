@@ -122,7 +122,7 @@ const char *GetCmdName(int i) {
 }
 
 extern int enablelfn, lfn_filefind_handle, file_access_tries;
-extern bool date_host_forced, usecon, rsize, dbcs_sbcs, sync_time, manualtime, inshell;
+extern bool date_host_forced, usecon, outcon, rsize, dbcs_sbcs, sync_time, manualtime, inshell;
 extern unsigned long freec;
 extern uint16_t countryNo, altcp_to_unicode[256];
 void GetExpandedPath(std::string &path);
@@ -1256,8 +1256,12 @@ void DOS_Shell::CMD_ECHO(char * args){
 	size_t len = strlen(args); //TODO check input of else ook nodig is.
 	if(len && args[len - 1] == '\r') {
 		LOG(LOG_MISC,LOG_WARN)("Hu ? carriage return already present. Is this possible?");
-		WriteOut("%s\n",args);
-	} else WriteOut("%s\r\n",args);
+		WriteOut_NoParsing(args, true);
+		WriteOut("\n");
+	} else {
+		WriteOut_NoParsing(args, true);
+		WriteOut("\r\n");
+	}
 }
 
 
@@ -1328,7 +1332,7 @@ void DOS_Shell::CMD_CHDIR(char * args) {
 	char dir[DOS_PATHLENGTH];
 	if (!*args) {
 		DOS_GetCurrentDir(0,dir,true);
-		WriteOut("%c:\\\n",drive);
+		WriteOut("%c:\\",drive);
 		WriteOut_NoParsing(dir, true);
 		WriteOut("\n");
 	} else if(strlen(args) == 2 && args[1]==':') {
@@ -2749,6 +2753,11 @@ void DOS_Shell::CMD_TYPE(char * args) {
 	}
 	uint16_t handle;
 	char * word;
+	bool lead = false;
+	int COLS = 80;
+	if (!IS_PC98_ARCH && outcon) COLS=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+	BIOS_NCOLS;
+	uint8_t page=outcon?real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE):0;
 nextfile:
 	word=StripArg(args);
 	if (!DOS_OpenFile(word,0,&handle)) {
@@ -2756,16 +2765,22 @@ nextfile:
 		return;
 	}
 	ctrlbrk=false;
-	uint8_t c;uint16_t n=1;
+	uint8_t c,last,last2,last3;uint16_t n=1;
+	last3=last2=last=0;
 	bool iscon=DOS_FindDevice(word)==DOS_FindDevice("con");
 	while (n) {
 		DOS_ReadFile(handle,&c,&n);
+		if (outcon && !CURSOR_POS_COL(page)) last3=last2=last=0;
+		if (lead) lead=false;
+		else if ((IS_PC98_ARCH || isDBCSCP()) && dbcs_sbcs) lead = isKanji1(c) && !CheckBoxDrawing(last3, last2, last, c);
 		if (n==0 || c==0x1a) break; // stop at EOF
 		if (iscon) {
 			if (c==3) break;
 			else if (c==13) WriteOut("\r\n");
 		} else if (CheckBreak(this)) break;
+		else if (outcon && lead && CURSOR_POS_COL(page) == COLS-1) WriteOut(" ");
 		DOS_WriteFile(STDOUT,&c,&n);
+		if (outcon) {last3=last2;last2=last;last=c;}
 	}
 	DOS_CloseFile(handle);
 	if (*args) goto nextfile;
@@ -3315,12 +3330,18 @@ static bool doAttrib(DOS_Shell * shell, char * args, DOS_DTA dta, bool optS, boo
 					if (subh) fattr&=~DOS_ATTR_HIDDEN;
 					if (subr) fattr&=~DOS_ATTR_READ_ONLY;
 					if (DOS_SetFileAttr(((uselfn||strchr(full, ' ')?(full[0]!='"'?"\"":""):"")+std::string(full)+(uselfn||strchr(full, ' ')?(full[strlen(full)-1]!='"'?"\"":""):"")).c_str(), fattr)) {
-						if (DOS_GetFileAttr(((uselfn||strchr(full, ' ')?(full[0]!='"'?"\"":""):"")+std::string(full)+(uselfn||strchr(full, ' ')?(full[strlen(full)-1]!='"'?"\"":""):"")).c_str(), &fattr))
-							shell->WriteOut("  %c  %c%c%c	%s\n", fattr&DOS_ATTR_ARCHIVE?'A':' ', fattr&DOS_ATTR_SYSTEM?'S':' ', fattr&DOS_ATTR_HIDDEN?'H':' ', fattr&DOS_ATTR_READ_ONLY?'R':' ', uselfn?sfull:full);
+						if (DOS_GetFileAttr(((uselfn||strchr(full, ' ')?(full[0]!='"'?"\"":""):"")+std::string(full)+(uselfn||strchr(full, ' ')?(full[strlen(full)-1]!='"'?"\"":""):"")).c_str(), &fattr)) {
+							shell->WriteOut("  %c  %c%c%c	", fattr&DOS_ATTR_ARCHIVE?'A':' ', fattr&DOS_ATTR_SYSTEM?'S':' ', fattr&DOS_ATTR_HIDDEN?'H':' ', fattr&DOS_ATTR_READ_ONLY?'R':' ');
+							shell->WriteOut_NoParsing(uselfn?sfull:full, true);
+							shell->WriteOut("\n");
+						}
 					} else
 						shell->WriteOut(MSG_Get("SHELL_CMD_ATTRIB_SET_ERROR"),uselfn?sfull:full);
-				} else
-					shell->WriteOut("  %c  %c%c%c	%s\n", attra?'A':' ', attrs?'S':' ', attrh?'H':' ', attrr?'R':' ', uselfn?sfull:full);
+				} else {
+					shell->WriteOut("  %c  %c%c%c	", attra?'A':' ', attrs?'S':' ', attrh?'H':' ', attrr?'R':' ');
+					shell->WriteOut_NoParsing(uselfn?sfull:full, true);
+					shell->WriteOut("\n");
+				}
 			} else
 				shell->WriteOut(MSG_Get("SHELL_CMD_ATTRIB_GET_ERROR"),uselfn?sfull:full);
 		}
@@ -3586,15 +3607,23 @@ void DOS_Shell::CMD_TRUENAME(char * args) {
                std::string hostname = "";
                if (odp) hostname = odp->GetHostName(fullname);
                else if (ldp) hostname = ldp->GetHostName(fullname);
-               if (hostname.size()) WriteOut("%s\n", hostname.c_str());
+               if (hostname.size()) {
+                   WriteOut_NoParsing(hostname.c_str(), true);
+                   WriteOut("\n");
+               }
            }
         } else
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-            if (Network_IsNetworkResource(fullname))
-                WriteOut("%s\r\n", name);
-            else
+            if (Network_IsNetworkResource(fullname)) {
+                WriteOut_NoParsing(name, true);
+                WriteOut("\r\n");
+            } else
 #endif
-            WriteOut("%c:\\%s\r\n", drive+'A', fullname);
+            {
+                WriteOut("%c:\\", drive+'A');
+                WriteOut_NoParsing(fullname, true);
+                WriteOut("\r\n");
+            }
     }
 	else
 		WriteOut(dos.errorcode==DOSERR_PATH_NOT_FOUND?"Path not found\n":"File not found\n");

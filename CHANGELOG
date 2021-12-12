@@ -27,6 +27,8 @@
     latter being the default for CP951. If ChinaSea is
     enabled, ChinaSea characters will be used instead
     of original characters in these encodings. (Wengier)
+  - Improved DBCS support for DOS commands including
+    ATTRIB, ECHO, TYPE, MORE, and TRUENAME. (Wengier)
   - Improved checking of segment limits. (joncampbell123)
   - Mac OS X builds from now on will use an in-tree tool
     to replace dylib references in all executable files.
