@@ -1987,6 +1987,10 @@ bool DOS_GetFileDate(uint16_t entry, uint16_t* otime, uint16_t* odate) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
 	}
+#if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	if(Network_IsActiveResource(entry))
+		return Network_GetFileDate(entry, otime, odate);
+#endif
 	if (!Files[handle] || !Files[handle]->IsOpen()) {
 		DOS_SetError(DOSERR_INVALID_HANDLE);
 		return false;
