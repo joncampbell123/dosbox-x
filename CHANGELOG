@@ -19,6 +19,9 @@
     output converted text UTF8TEXT.TXT in the current
     code page, and for UTF16 command there are optional
     /BE & /LE options to specify endianness. (Wengier)
+  - Added support for DBCS characters located in UNC
+    network paths of the form \\COMPUTER\FOLDER\FILE
+    on the Windows platform. (Wengier)
   - Added hidden code page 951 for Big5-HKSCS encoding
     or Big5 Unicode-At-On (Big5-UAO) encoding. Config
     option "uao" is added in [ttf] section so that if
