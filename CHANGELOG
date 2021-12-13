@@ -8,6 +8,8 @@
   - Config option "pixelshader" now allows a shader file
     name without the .fx extension, or a shader file in
     the current directory. (Wengier)
+  - Added debugger commands DATE and TIME to view or
+    change the internal date and time. (Wengier)
   - Added config options (in "ethernet, slirp" section)
     "tcp_port_forwards" and "tcp_port_forwards" for port
     forwarding when using the Slirp backend. (kcgen)

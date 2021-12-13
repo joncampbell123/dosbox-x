@@ -3076,7 +3076,7 @@ void DOS_Shell::CMD_TIME(char * args) {
 		else {
 			uint32_t ticks=(uint32_t)(((double)(newhour*3600+
 											newminute*60+
-											newsecond))*18.206481481);
+											newsecond+0.2))*18.206481481);
 			mem_writed(BIOS_TIMER,ticks);
 		}
 		if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}

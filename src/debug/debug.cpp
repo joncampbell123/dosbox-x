@@ -33,6 +33,8 @@ using namespace std;
 #include "debug.h"
 #include "cross.h" //snprintf
 #include "fpu.h"
+#include "bios.h"
+#include "timer.h"
 #include "video.h"
 #include "vga.h"
 #include "mapper.h"
@@ -154,6 +156,8 @@ void DEBUG_DrawInput(void) {
     DrawInput();
 }
 
+int GetMonthDays(uint8_t month);
+void DOS_AddDays(uint8_t days);
 void DEBUG_BeginPagedContent(void);
 void DEBUG_EndPagedContent(void);
 Bitu MEM_PageMaskActive(void);
@@ -2677,6 +2681,54 @@ bool ParseCommand(char* str) {
 		return true;
 	}
 
+	if(command == "TIME") { //Current time
+		command.clear();
+		stream >> command;
+        char c=dos.tables.country[13], c1, c2;
+        uint32_t hour, min, sec;
+        if (command != "" && sscanf(command.c_str(),"%u%c%u%c%u",&hour,&c1,&min,&c2,&sec) == 5 && c1==c && c2==c && hour < 24 && min < 60 && sec < 60) {
+            uint32_t ticks=(uint32_t)(((double)(hour*3600+min*60+sec+0.2))*18.206481481);
+            mem_writed(BIOS_TIMER,ticks);
+        }
+        uint32_t ticks=mem_readd(BIOS_TIMER);
+        uint8_t add=mem_readb(BIOS_24_HOURS_FLAG);
+        mem_writeb(BIOS_24_HOURS_FLAG,0); // reset the "flag"
+        uint16_t cx=(uint16_t)(ticks >> 16u), dx=(uint16_t)(ticks & 0xffff);
+        if (add) DOS_AddDays(add);
+        ticks=((Bitu)cx<<16)|dx;
+        Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * (double)ticks);
+        time/=100;
+        sec=(uint8_t)((Bitu)time % 60); // seconds
+        time/=60;
+        min=(uint8_t)((Bitu)time % 60); // minutes
+        time/=60;
+        hour=(uint8_t)((Bitu)time % 24); // hours
+        DEBUG_ShowMsg("Internal time: %u%c%02u%c%02u\n",hour,c,min,c,sec);
+		return true;
+	}
+
+	if(command == "DATE") { //Current date
+		command.clear();
+		stream >> command;
+        char c=dos.tables.country[11], c1, c2;
+        uint32_t year,month,day;
+        int n = dos.tables.country[0]==1?sscanf(command.c_str(),"%u%c%u%c%u",&day,&c1,&month,&c2,&year):(dos.tables.country[0]==2?sscanf(command.c_str(),"%u%c%u%c%u",&year,&c1,&month,&c2,&day):sscanf(command.c_str(),"%u%c%u%c%u",&month,&c1,&day,&c2,&year));
+        if (command != "" && n == 5 && c1==c && c2==c && year>=1980 && month && month<=12 && day && (day<=GetMonthDays(month)||(month==2&&year%4==0&&day==29))) {
+            dos.date.year=year;
+            dos.date.month=month;
+            dos.date.day=day;
+        }
+        uint32_t ticks=mem_readd(BIOS_TIMER);
+        uint8_t add=mem_readb(BIOS_24_HOURS_FLAG);
+        mem_writeb(BIOS_24_HOURS_FLAG,0); // reset the "flag"
+        if (add) DOS_AddDays(add);
+        char format[11];
+        if (dos.tables.country[0]==1) sprintf(format, "%02u%c%02u%c%04u", dos.date.day, c, dos.date.month, c, dos.date.year);
+        else if (dos.tables.country[0]==2) sprintf(format, "%04u%c%02u%c%02u", dos.date.year, c, dos.date.month, c, dos.date.day);
+        else sprintf(format, "%02u%c%02u%c%04u", dos.date.month, c, dos.date.day, c, dos.date.year);
+        DEBUG_ShowMsg("Internal date: %s\n", format);
+		return true;
+	}
 
 #if C_HEAVY_DEBUG
 	if (command == "HEAVYLOG") { // Create Cpu log file
@@ -2716,9 +2768,9 @@ bool ParseCommand(char* str) {
         DEBUG_ShowMsg("BIOS MEM                  - Show BIOS memory blocks.\n");
 		DEBUG_ShowMsg("INT [nr] / INTT [nr]      - Execute / Trace into interrupt.\n");
 #if C_HEAVY_DEBUG
-		DEBUG_ShowMsg("LOG [num]                 - Write cpu log file.\n");
-		DEBUG_ShowMsg("LOGS/LOGL/LOGC [num]      - Write short/long/cs:ip-only cpu log file.\n");
-		DEBUG_ShowMsg("HEAVYLOG                  - Enable/Disable automatic cpu log when DOSBox-X exits.\n");
+		DEBUG_ShowMsg("LOG [num]                 - Write CPU log file.\n");
+		DEBUG_ShowMsg("LOGS/LOGL/LOGC [num]      - Write short/long/cs:ip-only CPU log file.\n");
+		DEBUG_ShowMsg("HEAVYLOG                  - Enable/Disable automatic CPU log when DOSBox-X exits.\n");
 		DEBUG_ShowMsg("ZEROPROTECT               - Enable/Disable zero code execution detection.\n");
 #endif
 		DEBUG_ShowMsg("SR [reg] [value]          - Set register value. Multiple pairs allowed.\n");
@@ -2746,6 +2798,8 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("PAGING [page]             - Display content of page table.\n");
 		DEBUG_ShowMsg("EXTEND                    - Toggle additional info.\n");
 		DEBUG_ShowMsg("TIMERIRQ                  - Run the system timer.\n");
+		DEBUG_ShowMsg("TIME [time]               - Display or change the internal time.\n");
+		DEBUG_ShowMsg("DATE [date]               - Display or change the internal date.\n");
 
         DEBUG_ShowMsg("IN[P|W|D] [port]          - I/O port read byte/word/dword.\n");
         DEBUG_ShowMsg("OUT[P|W|D] [port] [data]  - I/O port write byte/word/dword.\n");

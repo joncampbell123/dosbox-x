@@ -390,9 +390,13 @@ const uint8_t DOS_DATE_months[] = {
 	0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 };
 
-static void DOS_AddDays(uint8_t days) {
+int GetMonthDays(uint8_t month) {
+    return DOS_DATE_months[month];
+}
+
+void DOS_AddDays(uint8_t days) {
 	dos.date.day += days;
-	uint8_t monthlimit = DOS_DATE_months[dos.date.month];
+	uint8_t monthlimit = GetMonthDays(dos.date.month);
 
 	if(dos.date.day > monthlimit) {
 		if((dos.date.year %4 == 0) && (dos.date.month==2)) {
@@ -1403,7 +1407,7 @@ static Bitu DOS_21Handler(void) {
             if (reg_cx<1980) { reg_al=0xff;break;}
             if ((reg_dh>12) || (reg_dh==0)) { reg_al=0xff;break;}
             if (reg_dl==0) { reg_al=0xff;break;}
-            if (reg_dl>DOS_DATE_months[reg_dh]) {
+            if (reg_dl>GetMonthDays(reg_dh)) {
                 if(!((reg_dh==2)&&(reg_cx%4 == 0)&&(reg_dl==29))) // february pass
                 { reg_al=0xff;break; }
             }
