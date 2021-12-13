@@ -48,8 +48,8 @@ DOSBox-X 配置工具
 :CLOSE
 关闭
 .
-:UPDATE
-更新
+:DEBUGCMD
+输入调试器命令
 .
 :ADD
 加入

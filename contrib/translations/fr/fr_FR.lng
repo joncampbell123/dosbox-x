@@ -50,8 +50,8 @@ Annuler
 :CLOSE
 Fermer
 .
-:UPDATE
-Mettre à jour
+:DEBUGCMD
+Commande de débogueur
 .
 :ADD
 Ajouter

@@ -4662,7 +4662,7 @@ void DOSBOX_SetupConfigSections(void) {
     MSG_Add("OK","OK");
     MSG_Add("CANCEL","Cancel");
     MSG_Add("CLOSE","Close");
-    MSG_Add("UPDATE","Update");
+    MSG_Add("DEBUGCMD","Enter Debugger Command");
     MSG_Add("ADD","Add");
     MSG_Add("DEL","Del");
     MSG_Add("NEXT","Next");

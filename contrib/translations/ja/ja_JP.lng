@@ -49,8 +49,8 @@ OK
 :CLOSE
 閉じる
 .
-:UPDATE
-更新
+:DEBUGCMD
+デバッガコマンドを入力します
 .
 :ADD
 追加

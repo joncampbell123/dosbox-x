@@ -48,8 +48,8 @@ DOSBox-X 組態工具
 :CLOSE
 關閉
 .
-:UPDATE
-更新
+:DEBUGCMD
+輸入偵錯工具命令
 .
 :ADD
 加入

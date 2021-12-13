@@ -914,6 +914,60 @@ std::string RestoreName(std::string name) {
 }
 
 #if C_DEBUG
+bool ParseCommand(char* str);
+int logwin = true;
+GUI::MessageBox3 *npwin = NULL;
+class EnterDebuggerCommand : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *cmd;
+    GUI::Button *okButton = NULL, *cancelButton = NULL;
+    std::string str = "";
+public:
+    EnterDebuggerCommand(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 400, 140, title) {
+        new GUI::Label(this, 5, 10, "Enter debugger command:");
+        cmd = new GUI::Input(this, 5, 30, 350);
+        cmd->setText("");
+        okButton=new GUI::Button(this, 100, 70, MSG_Get("OK"), 90);
+        okButton->addActionHandler(this);
+        cancelButton=new GUI::Button(this, 200, 70, MSG_Get("CANCEL"), 90);
+        cancelButton->addActionHandler(this);
+        move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
+        cmd->raise();
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == MSG_Get("OK")) {
+            ParseCommand(cmd->getText());
+            if (npwin) {
+                if (logwin) getlogtext(str);
+                else getcodetext(str);
+                npwin->setText(str);
+                npwin->wiw->scroll_pos_y = npwin->wiw->scroll_pos_h;
+            }
+        }
+        if (arg == MSG_Get("OK") || arg == MSG_Get("CANCEL"))
+            close();
+    }
+
+    bool keyUp(const GUI::Key &key) {
+        if (GUI::ToplevelWindow::keyUp(key)) return true;
+
+        if (key.special == GUI::Key::Enter) {
+            okButton->executeAction();
+            return true;
+        }
+
+        if (key.special == GUI::Key::Escape) {
+            cancelButton->executeAction();
+            return true;
+        }
+
+        return false;
+    }
+};
+
 class LogWindow : public GUI::MessageBox3 {
 public:
     std::vector<GUI::Char> cfg_sname;
@@ -929,11 +983,14 @@ public:
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == MSG_Get("UPDATE")) {
-            getlogtext(str);
-            setText(str);
-        } else if (arg == MSG_Get("CLOSE"))
+        if (arg == MSG_Get("DEBUGCMD")) {
+            logwin = true;
+            auto *np = new EnterDebuggerCommand(static_cast<GUI::Screen*>(parent), 90, 100, "Debugger command");
+            np->raise();
+        } else if (arg == MSG_Get("CLOSE")) {
             if(shortcut) running=false;
+            npwin = NULL;
+        }
     }
 
     ~LogWindow() {
@@ -959,11 +1016,14 @@ public:
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         (void)b;//UNUSED
-        if (arg == MSG_Get("UPDATE")) {
-            getcodetext(str);
-            setText(str);
-        } else if (arg == MSG_Get("CLOSE"))
+        if (arg == MSG_Get("DEBUGCMD")) {
+            logwin = false;
+            auto *np = new EnterDebuggerCommand(static_cast<GUI::Screen*>(parent), 90, 100, "Debugger command");
+            np->raise();
+        } else if (arg == MSG_Get("CLOSE")) {
             if(shortcut) running=false;
+            npwin = NULL;
+        }
     }
 
     ~CodeWindow() {
@@ -3082,12 +3142,12 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             } break;
 #if C_DEBUG
         case 40: {
-            auto *np = new LogWindow(screen, 70, 70);
-            np->raise();
+            npwin = new LogWindow(screen, 70, 70);
+            npwin->raise();
             } break;
         case 41: {
-            auto *np = new CodeWindow(screen, 70, 70);
-            np->raise();
+            npwin = new CodeWindow(screen, 70, 70);
+            npwin->raise();
             } break;
 #endif
         default:

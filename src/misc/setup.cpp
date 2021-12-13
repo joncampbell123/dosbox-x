@@ -331,7 +331,7 @@ bool Prop_int::CheckValue(Value const& in, bool warn) {
 
 bool Prop_double::SetValue(std::string const& input) {
     Value val;
-    if (!val.SetValue(input,Value::V_DOUBLE)) return false;
+    if (!val.SetValue(input.size()?input:default_value.ToString(),Value::V_DOUBLE)) return false;
     return SetVal(val,false,/*warn*/true);
 }
 
@@ -369,7 +369,7 @@ bool Prop_double::CheckValue(Value const& in, bool warn)
 
 bool Prop_int::SetValue(std::string const& input) {
     Value val;
-    if (!val.SetValue(input,Value::V_INT)) return false;
+    if (!val.SetValue(input.size()?input:default_value.ToString(),Value::V_INT)) return false;
     return SetVal(val,false,/*warn*/true);
 }
 
@@ -428,7 +428,7 @@ bool Prop_bool::SetValue(std::string const& input) {
 
 bool Prop_hex::SetValue(std::string const& input) {
     Value val;
-    if (!val.SetValue(input,Value::V_HEX)) return false;
+    if (!val.SetValue(input.size()?input:default_value.ToString(),Value::V_HEX)) return false;
     return SetVal(val,false,/*warn*/true);
 }
 

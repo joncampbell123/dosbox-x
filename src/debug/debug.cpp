@@ -1168,6 +1168,9 @@ static void DrawRegisters(void) {
 bool DEBUG_IsPagingOutput(void);
 
 static void DrawInput(void) {
+	if (dbg.win_inp == NULL)
+		return;
+
     if (!debugging) {
         if (has_colors())
         {

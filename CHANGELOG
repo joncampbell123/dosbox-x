@@ -8,6 +8,10 @@
   - Config option "pixelshader" now allows a shader file
     name without the .fx extension, or a shader file in
     the current directory. (Wengier)
+  - Added "Enter Debuger Command" button to "DOSBox-X
+    logging output" and "Code overview" windows (from
+    "Debug" menu") for users to enter some debugger
+    command(s) and see the result. (Wengier)
   - Added debugger commands DATE & TIME to view/change
     the internal date and time, using the same date and
     time formats as shell DATE/TIME commands. (Wengier)

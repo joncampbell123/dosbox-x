@@ -50,8 +50,8 @@ Cancel
 :CLOSE
 Close
 .
-:UPDATE
-Update
+:DEBUGCMD
+Enter Debugger Command
 .
 :ADD
 Add

@@ -2666,17 +2666,17 @@ public:
 class MessageBox3 : public GUI::ToplevelWindow {
 protected:
 	Label *message;
-	Button *update, *close;
-    WindowInWindow *wiw;
+	Button *debugcmd, *close;
 public:
+	WindowInWindow *wiw;
 	/// Create a new message box
 	template <typename STR> MessageBox3(Screen *parent, int x, int y, int width, const STR title, const STR text) :
 		ToplevelWindow(parent, x, y, width, 1, title) {
 		wiw = new WindowInWindow(this, 5, 5, width-border_left-border_right-10, 70);
 		message = new Label(wiw, 0, 0, text, width-border_left-border_right-10);
-		update = new GUI::Button(this, (width-border_left-border_right-30-70*2)/2, 10, MSG_Get("UPDATE"), 70);
-		update->addActionHandler(this);
-		close = new GUI::Button(this, (width-border_left-border_right-10)/2, 10, MSG_Get("CLOSE"), 70);
+		debugcmd = new GUI::Button(this, (width-border_left-border_right-30-70*4)/2, 10, MSG_Get("DEBUGCMD"), 210);
+		debugcmd->addActionHandler(this);
+		close = new GUI::Button(this, (width-border_left-border_right+70*2)/2, 10, MSG_Get("CLOSE"), 70);
 		close->addActionHandler(this);
 		setText(text);
 
@@ -2711,8 +2711,8 @@ public:
             message->resize(msgw, message->getHeight());
         }
 
-		update->move((width-border_left-border_right-30-70*2)/2, sfh);
-		close->move((width-border_left-border_right-10)/2, sfh);
+		debugcmd->move((width-border_left-border_right-30-70*4)/2, sfh);
+		close->move((width-border_left-border_right+70*2)/2, sfh);
         wiw->resize(width-border_left-border_right-10, sfh-10);
 		resize(width, sfh+close->getHeight()+border_bottom+border_top+5);
 	}

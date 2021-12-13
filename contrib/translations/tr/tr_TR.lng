@@ -50,8 +50,8 @@ Tamam
 :CLOSE
 Kapat
 .
-:UPDATE
-Güncelle
+:DEBUGCMD
+Hata Ayıklayıcı Komutu
 .
 :ADD
 Ekle

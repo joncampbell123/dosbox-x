@@ -50,8 +50,8 @@ Cancelar
 :CLOSE
 Cerrar
 .
-:UPDATE
-Actualizar
+:DEBUGCMD
+Comando del depurador
 .
 :ADD
 Añadir
