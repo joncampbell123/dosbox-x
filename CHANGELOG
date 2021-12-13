@@ -8,8 +8,13 @@
   - Config option "pixelshader" now allows a shader file
     name without the .fx extension, or a shader file in
     the current directory. (Wengier)
-  - Added debugger commands DATE and TIME to view or
-    change the internal date and time. (Wengier)
+  - Added debugger commands DATE & TIME to view/change
+    the internal date and time, using the same date and
+    time formats as shell DATE/TIME commands. (Wengier)
+  - Added config option "badcommandhandler" (in [dos]
+    section) which allows to specify a custom error
+    handler program before error message "Bad command
+    or file name" shows up in the DOS shell. (Wengier)
   - Added config options (in "ethernet, slirp" section)
     "tcp_port_forwards" and "tcp_port_forwards" for port
     forwarding when using the Slirp backend. (kcgen)
