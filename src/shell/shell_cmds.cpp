@@ -2780,7 +2780,11 @@ nextfile:
 		DOS_ReadFile(handle,&c,&n);
 		if (outcon && !CURSOR_POS_COL(page)) last3=last2=last=0;
 		if (lead) lead=false;
-		else if ((IS_PC98_ARCH || isDBCSCP()) && dbcs_sbcs) lead = isKanji1(c) && !CheckBoxDrawing(last3, last2, last, c);
+		else if ((IS_PC98_ARCH || isDBCSCP())
+#if defined(USE_TTF)
+            && dbcs_sbcs
+#endif
+        ) lead = isKanji1(c) && !CheckBoxDrawing(last3, last2, last, c);
 		if (n==0 || c==0x1a) break; // stop at EOF
 		if (iscon) {
 			if (c==3) break;
@@ -2830,7 +2834,11 @@ void DOS_Shell::CMD_MORE(char * args) {
 		while (true) {
 			DOS_ReadFile (STDIN,&c,&n);
 			if (lead) lead=false;
-			else if ((IS_PC98_ARCH || isDBCSCP()) && dbcs_sbcs) lead = isKanji1(c) && !CheckBoxDrawing(last3, last2, last, c);
+			else if ((IS_PC98_ARCH || isDBCSCP())
+#if defined(USE_TTF)
+                && dbcs_sbcs
+#endif
+            ) lead = isKanji1(c) && !CheckBoxDrawing(last3, last2, last, c);
 			if (c==3) {dos.echo=echo;return;}
 			else if (n==0) {if (last!=10) WriteOut("\r\n");dos.echo=echo;return;}
 			else if (c==13&&last==26) {dos.echo=echo;return;}
@@ -2895,7 +2903,11 @@ nextfile:
 		n=1;
 		DOS_ReadFile(handle,&c,&n);
 		if (lead) lead=false;
-		else if ((IS_PC98_ARCH || isDBCSCP()) && dbcs_sbcs) lead = isKanji1(c) && !CheckBoxDrawing(last3, last2, last, c);
+		else if ((IS_PC98_ARCH || isDBCSCP())
+#if defined(USE_TTF)
+            && dbcs_sbcs
+#endif
+        ) lead = isKanji1(c) && !CheckBoxDrawing(last3, last2, last, c);
 		if (lead && nchars == COLS-1) {
 			last3=last2=last=0;
 			nlines++;

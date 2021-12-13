@@ -267,7 +267,11 @@ int Program::WriteOut_NoParsing(const char * format, bool dbcs) {
 		BIOS_NCOLS;
 		if (!CURSOR_POS_COL(page)) last2=last3=0;
 		if (lead) lead = false;
-		else if ((IS_PC98_ARCH || isDBCSCP()) && dbcs_sbcs && dbcs && isKanji1(buf[i])) lead = true;
+		else if ((IS_PC98_ARCH || isDBCSCP())
+#if defined(USE_TTF)
+            && dbcs_sbcs
+#endif
+            && dbcs && isKanji1(buf[i])) lead = true;
 		if (buf[i] == 0xA) {
 			if (last_written_character != 0xD) {out = 0xD;DOS_WriteFile(STDOUT,&out,&s);}
 			if (outcon) rcount++;
@@ -1625,9 +1629,13 @@ next:
                                 lastset=0;
 #endif
 							} else if (!strcasecmp(inputline.substr(0, 13).c_str(), "outputswitch=")) {
+#if defined(USE_TTF)
                                 SetOutputSwitch(section->Get_string("outputswitch"));
+#endif
 							} else if (!strcasecmp(inputline.substr(0, 7).c_str(), "colors=")) {
+#if defined(USE_TTF)
                                 if (!strlen(section->Get_string("colors"))) ttf_reset_colors();
+#endif
 							} else if (!strcasecmp(inputline.substr(0, 3).c_str(), "wp=")) {
 #if defined(USE_TTF)
                                 const char *wpstr=section->Get_string("wp");

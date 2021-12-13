@@ -1179,6 +1179,11 @@ case "$host" in
     *-*-darwin*)
     LIBS="$LIBS -liconv"
     ;;
+    *-*-cygwin* | *-*-mingw32*)
+       if test x$have_slirp = xno; then
+         LIBS="$LIBS -liconv"
+       fi
+    ;;
 esac
 fi
 

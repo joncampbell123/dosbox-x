@@ -276,7 +276,11 @@ template <class MT> bool String_DBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const cha
         uint16_t ic = (unsigned char)(*s++);
         if ((dos.loaded_codepage==932 &&((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0)) || ((dos.loaded_codepage==936 || dos.loaded_codepage==949 || dos.loaded_codepage==950 || dos.loaded_codepage==951) && (ic & 0x80) == 0x80)) {
             if (*s == 0) return false;
-            if (morelen && !(dos.loaded_codepage==932 && (halfwidthkana || IS_PC98_ARCH || IS_JEGA_ARCH)) && (ic == 179 || ic == 186) && (s < sf && (*s == 32 || *s == 13))) {
+            if (morelen && !(dos.loaded_codepage==932 && (IS_PC98_ARCH || IS_JEGA_ARCH
+#if defined(USE_TTF)
+                || halfwidthkana
+#endif
+                )) && (ic == 179 || ic == 186) && (s < sf && (*s == 32 || *s == 13))) {
                 MT wc = cp437_to_unicode[ic];
                 if (utf8_encode(&d,df,(uint32_t)wc) < 0) return false;
                 continue;
