@@ -1088,7 +1088,7 @@ void DOSBOX_RealInit() {
     gbk = ttf_section->Get_bool("gbk");
     chinasea = ttf_section->Get_bool("chinasea");
     uao = ttf_section->Get_bool("uao");
-    if (IS_PDOSV || IS_TDOSV || dos.loaded_codepage == 936 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) {
+    if (IS_PDOSV || IS_TDOSV || dos.loaded_codepage == 936 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951 || control->opt_langcp) {
         makestdcp950table();
         makeseacp951table();
     }
