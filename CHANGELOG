@@ -15,6 +15,11 @@
     section) which allows to specify a custom error
     handler program before error message "Bad command
     or file name" shows up in the DOS shell. (Wengier)
+  - Added config option "j3100colorscroll" (in [dosv]
+    section) which defaults to "false" and allows the
+    J-3100 version of SimCity and VGA version of the
+    Toshiba Windows 3.1 to run, whereas CGA/EGA version
+    of the latter requires a "true" setting. (nanshiki)
   - Added config options (in "ethernet, slirp" section)
     "tcp_port_forwards" and "tcp_port_forwards" for port
     forwarding when using the Slirp backend. (kcgen)

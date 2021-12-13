@@ -1052,7 +1052,8 @@ CX	640x480	800x600	  1024x768/1280x1024
 					real_writeb(BIOSMEM_J3_SEG, BIOSMEM_J3_BLINK, reg_bl);
 				}
 			} else if(reg_al == 0x05) {
-				reg_bl = 0x01;
+				Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosv"));
+				if (section && section->Get_bool("j3100colorscroll")) reg_bl = 0x01;
 			}
 			break;
 		}
