@@ -51,7 +51,10 @@
     to open a file with a specific file extension, e.g.
     "assoc .txt=edit" to open .TXT files with the EDIT
     command when entering the .TXT file name from the
-    DOS command line. Wildcards are allowed (Wengier)
+    DOS command line. Wildcards are allowed, such as
+    "assoc .*=dir", although in such case exceptions
+    including "assoc .com=com", "assoc .exe=exe", and
+    "assoc .bat=bat" are probably desired. (Wengier)
   - COUNTRY command is now an external command that
     appears on Z drive (Z:/SYSTEM/COUNTRY.COM) rather
     than an internal shell command. (Wengier)
