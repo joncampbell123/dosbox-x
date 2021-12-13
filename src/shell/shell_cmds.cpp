@@ -123,7 +123,7 @@ const char *GetCmdName(int i) {
 }
 
 extern int enablelfn, lfn_filefind_handle, file_access_tries;
-extern bool date_host_forced, usecon, outcon, rsize, dbcs_sbcs, sync_time, manualtime, inshell;
+extern bool date_host_forced, usecon, outcon, rsize, dbcs_sbcs, sync_time, manualtime, inshell, noassoc;
 extern unsigned long freec;
 extern uint16_t countryNo, altcp_to_unicode[256];
 void GetExpandedPath(std::string &path);
@@ -216,13 +216,13 @@ bool DOS_Shell::execute_shell_cmd(char *name, char *arguments) {
 
 void DOS_Shell::DoCommand(char * line) {
 /* First split the line into command and arguments */
-    char* orign_cmd_line = line;
+    std::string origin_cmd_line = line;
     std::string last_alias_cmd;
     std::string altered_cmd_line;
     int alias_counter = 0;
 __do_command_begin:
     if (alias_counter > 64) {
-        WriteOut(MSG_Get("SHELL_EXECUTE_ALIAS_EXPAND_OVERFLOW"), orign_cmd_line);
+        WriteOut(MSG_Get("SHELL_EXECUTE_ALIAS_EXPAND_OVERFLOW"), origin_cmd_line.c_str());
     }
 	line=trim(line);
 	char cmd_buffer[CMD_MAXLINE];
@@ -272,7 +272,14 @@ __do_command_begin:
 	} else
 		if(Execute(cmd_buffer,line)) return;
 	if(enable_config_as_shell_commands && CheckConfig(cmd_buffer,line)) return;
-	WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),cmd_buffer);
+    std::string errhandler = static_cast<Section_prop *>(control->GetSection("dos"))->Get_string("badcommandhandler");
+    if (errhandler.size()&&!noassoc) {
+        noassoc=true;
+        LOG_MSG("errhandler %s line %s\n", errhandler.c_str(), origin_cmd_line.c_str());
+        DoCommand((char *)(errhandler+" "+origin_cmd_line).c_str());
+        noassoc=false;
+    } else
+        WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),cmd_buffer);
 }
 
 #define HELP(command) \
