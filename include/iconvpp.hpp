@@ -216,7 +216,9 @@ protected:
 };
 
 #if defined(C_ICONV)
+#if !defined (_MSC_VER)
 # include <iconv.h>
+#endif
 
 /* _Iconv implementation of _IconvBase using GNU libiconv or GLIBC iconv, for Linux and Mac OS X systems. */
 /* See also: "man iconv"

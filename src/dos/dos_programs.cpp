@@ -71,8 +71,7 @@
 # endif
 #ifndef C_ICONV
 # define C_ICONV
-# include "iconv.h"
-# include "../misc/win_iconv.c"
+# include "../misc/winiconv.c"
 #endif
 typedef wchar_t host_cnv_char_t;
 host_cnv_char_t *CodePageGuestToHost(const char *s);
