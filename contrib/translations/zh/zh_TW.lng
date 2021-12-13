@@ -2050,6 +2050,17 @@ ALIAS [名稱[=值] ... ]
 `ALIAS 名稱 = 值'
 
 .
+:SHELL_CMD_ASSOC_HELP
+顯示或變更檔案副檔名關聯.
+
+.
+:SHELL_CMD_ASSOC_HELP_LONG
+ASSOC [.副檔名[=命令] ... ]
+
+輸入不含參數的 ASSOC 命令以顯示目前檔案副檔名關聯.
+檔案副檔名必須以點(.)開頭; 允許使用萬用字元(*和?).
+
+.
 :SHELL_CMD_CHCP_HELP
 顯示或變更目前 DOS 字碼頁.
 

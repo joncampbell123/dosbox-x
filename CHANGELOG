@@ -30,6 +30,15 @@
     latter being the default for CP951. If ChinaSea is
     enabled, ChinaSea characters will be used instead
     of original characters in these encodings. (Wengier)
+  - Added ASSOC command to view/change file extension
+    associations. You can define a command or program
+    to open a file with a specific file extension, e.g.
+    "assoc .txt=edit" to open .TXT files with the EDIT
+    command when entering the .TXT file name from the
+    DOS command line. Wildcards are allowed (Wengier)
+  - COUNTRY command is now an external command that
+    appears on Z drive (Z:/SYSTEM/COUNTRY.COM) rather
+    than an internal shell command. (Wengier)
   - Improved DBCS support for DOS commands including
     ATTRIB, ECHO, TYPE, MORE, and TRUENAME. (Wengier)
   - Improved checking of segment limits. (joncampbell123)

@@ -4220,7 +4220,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Enable START command to start programs to run on the host system. On Windows host programs or commands may also be launched directly.");
     Pbool->SetBasic(true);
 
-    Pbool = secprop->Add_bool("starttranspath",Property::Changeable::WhenIdle,false);
+    Pbool = secprop->Add_bool("starttranspath",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Specify whether DOSBox-X should automatically translate all paths in the command-line to host system paths when starting programs to run on the host system.");
     Pbool->SetBasic(true);
 

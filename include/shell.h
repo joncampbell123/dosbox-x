@@ -76,13 +76,14 @@ private:
             return strcasecmp(_Left.c_str(), _Right.c_str()) < 0;
         }
     };
-    typedef std::map<std::string, std::string, less_ignore_case<std::string> > cmd_alias_map_t;
+    typedef std::map<std::string, std::string, less_ignore_case<std::string> > cmd_alias_map_t, cmd_assoc_map_t;
     cmd_alias_map_t cmd_alias;
-
+    cmd_assoc_map_t cmd_assoc;
 	uint16_t completion_index;
 	
 private:
 	void ProcessCmdLineEnvVarStitution(char * line);
+	std::string hasAssociation(const char* name);
 	static bool hasExecutableExtension(const char* name);
 
 public:
@@ -304,6 +305,10 @@ public:
     /*! \brief      ALIAS
     */
 	void CMD_ALIAS(char* args);
+
+    /*! \brief      ALIAS
+    */
+	void CMD_ASSOC(char* args);
 
     /*! \brief      VTEXT
     */

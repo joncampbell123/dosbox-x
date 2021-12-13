@@ -2097,6 +2097,17 @@ ALIAS [name[=value] ... ]
 `ALIAS NAME = VALUE'
 
 .
+:SHELL_CMD_ASSOC_HELP
+ファイル拡張子の関連付けを表示または変更します。
+
+.
+:SHELL_CMD_ASSOC_HELP_LONG
+ASSOC [.ext[=command] ... ]
+
+現在のファイルの関連付けを表示するには、パラメーターなしで ASSOC と入力します。
+ファイル拡張子はドット（.）で始まる必要があります。 ワイルドカード（*および?）を使用できます。
+
+.
 :SHELL_CMD_CHCP_HELP
 現在の DOS コードページを表示・変更します。
 

@@ -6821,6 +6821,23 @@ static void LS_ProgramStart(Program * * make) {
     *make=new LS;
 }
 
+class COUNTRY : public Program {
+public:
+    void Run(void);
+};
+
+void COUNTRY::Run()
+{
+	char *args=(char *)cmd->GetRawCmdline().c_str();
+	args=trim(args);
+	DOS_Shell temp;
+	temp.CMD_COUNTRY(args);
+}
+
+static void COUNTRY_ProgramStart(Program * * make) {
+    *make=new COUNTRY;
+}
+
 #ifdef C_ICONV
 class UTF8 : public Program {
 public:
@@ -8538,6 +8555,7 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("IMGSWAP.COM", IMGSWAP_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("MOUNT.COM",MOUNT_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("BOOT.COM",BOOT_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("COUNTRY.COM",COUNTRY_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("RESCAN.COM",RESCAN_ProgramStart,"/SYSTEM/");
 #if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)

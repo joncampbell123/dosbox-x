@@ -2105,6 +2105,17 @@ Teclea ALIAS sin parámetros para listar alias acutales en el formato:
 `ALIAS NOMBRE = VALOR'
 
 .
+:SHELL_CMD_ASSOC_HELP
+Muestra o cambia las asociaciones de extensión de archivo.
+
+.
+:SHELL_CMD_ASSOC_HELP_LONG
+ASSOC [.ext[=comando] ... ]
+
+Teclea ASSOC sin parámetros para mostrar las asociaciones de archivos actuales.
+Las extensiones de archivo deben comenzar con un punto (.); Se permiten comodines (* y ?).
+
+.
 :SHELL_CMD_CHCP_HELP
 Muestra o cambia el código de página DOS actual.
 

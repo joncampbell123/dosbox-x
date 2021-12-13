@@ -2046,6 +2046,17 @@ ALIAS [名称[=值] ... ]
 `ALIAS 名称 = 值'
 
 .
+:SHELL_CMD_ASSOC_HELP
+显示或改变文件扩展名关联.
+
+.
+:SHELL_CMD_ASSOC_HELP_LONG
+ASSOC [.扩展名[=命令] ... ]
+
+输入不带参数的 ASSOC 命令以显示当前文件关联.
+文件扩展名必须以点(.)开头; 允许使用通配符(*和?).
+
+.
 :SHELL_CMD_CHCP_HELP
 显示或改变当前 DOS 代码页.
 

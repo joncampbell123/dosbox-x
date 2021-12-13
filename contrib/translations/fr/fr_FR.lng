@@ -2111,6 +2111,16 @@ Tapez ALIAS sans paramètres pour afficher la liste des alias sous la forme :
 `ALIAS NOM = VALEUR'
 
 .
+:SHELL_CMD_ASSOC_HELP
+Affiche ou modifie les associations d'extensions de fichiers.
+
+.
+:SHELL_CMD_ASSOC_HELP_LONG
+ASSOC [.ext[=commander] ... ]
+
+Tapez ASSOC sans paramètres pour afficher les associations de fichiers en cours. Les extensions de fichiers doivent commencer par un point (.); les caractères génériques (* et ?) sont autorisés.
+
+.
 :SHELL_CMD_CHCP_HELP
 Affiche ou modifie la page de code DOS actuelle.
 

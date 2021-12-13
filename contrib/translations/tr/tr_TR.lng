@@ -2110,6 +2110,17 @@ Aşağıdaki biçimde armaları listelemek için parametresiz ALIAS yazın:
 `ALIAS NAME = VALUE'
 
 .
+:SHELL_CMD_ASSOC_HELP
+Dosya uzantısı ilişkilerini görüntüler veya değiştirir.
+
+.
+:SHELL_CMD_ASSOC_HELP_LONG
+ASSOC [.ext[=komut] ... ]
+
+Geçerli dosya ilişkilendirmelerini görüntülemek için parametresiz ASSOC yazın.
+Dosya uzantıları bir nokta (.) ile başlamalıdır; joker karakterlere (* ve ?) izin verilir.
+
+.
 :SHELL_CMD_CHCP_HELP
 Geçerli DOS kod sayfasını görüntüler veya değiştirir.
 

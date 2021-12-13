@@ -59,6 +59,7 @@ SHELL_Cmd cmd_list[]={
 {	"DIR",			0,		&DOS_Shell::CMD_DIR,		"SHELL_CMD_DIR_HELP"},
 {	"CD",			0,		&DOS_Shell::CMD_CHDIR,		"SHELL_CMD_CHDIR_HELP"},
 {	"ALIAS",		1,		&DOS_Shell::CMD_ALIAS,		"SHELL_CMD_ALIAS_HELP"},
+{	"ASSOC",		1,		&DOS_Shell::CMD_ASSOC,		"SHELL_CMD_ASSOC_HELP"},
 {	"ATTRIB",		1,		&DOS_Shell::CMD_ATTRIB,		"SHELL_CMD_ATTRIB_HELP"},
 {	"BREAK",		1,		&DOS_Shell::CMD_BREAK,		"SHELL_CMD_BREAK_HELP"},
 {	"CALL",			1,		&DOS_Shell::CMD_CALL,		"SHELL_CMD_CALL_HELP"},
@@ -67,7 +68,7 @@ SHELL_Cmd cmd_list[]={
 {	"CLS",			0,		&DOS_Shell::CMD_CLS,		"SHELL_CMD_CLS_HELP"},
 {	"COPY",			0,		&DOS_Shell::CMD_COPY,		"SHELL_CMD_COPY_HELP"},
 {	"CHCP",			1,		&DOS_Shell::CMD_CHCP,		"SHELL_CMD_CHCP_HELP"},
-{	"COUNTRY",		1,		&DOS_Shell::CMD_COUNTRY,	"SHELL_CMD_COUNTRY_HELP"},
+//{	"COUNTRY",		1,		&DOS_Shell::CMD_COUNTRY,	"SHELL_CMD_COUNTRY_HELP"}, // COUNTRY as a program (Z:\SYSTEM\COUNTRY.COM) instead of shell command
 {	"CTTY",			1,		&DOS_Shell::CMD_CTTY,		"SHELL_CMD_CTTY_HELP"},
 {	"DATE",			0,		&DOS_Shell::CMD_DATE,		"SHELL_CMD_DATE_HELP"},
 {	"DEL",			0,		&DOS_Shell::CMD_DELETE,		"SHELL_CMD_DELETE_HELP"},
@@ -3998,8 +3999,7 @@ void DOS_Shell::CMD_ALIAS(char* args) {
     HELP("ALIAS");
 	args = trim(args);
     if (!*args || strchr(args, '=') == NULL) {
-        for (cmd_alias_map_t::iterator iter = cmd_alias.begin(), end = cmd_alias.end();
-            iter != end; ++iter) {
+        for (cmd_alias_map_t::iterator iter = cmd_alias.begin(), end = cmd_alias.end(); iter != end; ++iter) {
 			if (!*args || !strcasecmp(args, iter->first.c_str()))
 				WriteOut("ALIAS %s='%s'\n", iter->first.c_str(), iter->second.c_str());
         }
@@ -4020,10 +4020,52 @@ void DOS_Shell::CMD_ALIAS(char* args) {
                     cmd_alias.erase(cmd);
                 } else {
                     cmd_alias[cmd] = args;
+                    cmd_alias_map_t::iterator iter = cmd_alias.find(cmd);
+                    if (iter != cmd_alias.end()) WriteOut("ALIAS %s='%s'\n", iter->first.c_str(), iter->second.c_str());
                 }
                 break;
             } else {
                 alias_name[offset] = *args;
+            }
+        }
+    }
+}
+
+void DOS_Shell::CMD_ASSOC(char* args) {
+    HELP("ASSOC");
+	args = trim(args);
+    if (!*args || strchr(args, '=') == NULL) {
+        for (cmd_assoc_map_t::iterator iter = cmd_assoc.begin(), end = cmd_assoc.end(); iter != end; ++iter) {
+			if (!*args || !strcasecmp(args, iter->first.c_str()))
+				WriteOut("%s=%s\n", iter->first.c_str(), iter->second.c_str());
+        }
+    } else {
+        char assoc_name[256] = { 0 };
+        char* cmd = 0;
+        for (unsigned int offset = 0; *args && offset < sizeof(assoc_name)-1; ++offset, ++args) {
+            if (*args == '=') {
+                cmd = trim(assoc_name);
+                if (!*cmd || cmd[0] != '.') {
+                    WriteOut(MSG_Get("SHELL_INVALID_PARAMETER"), cmd);
+                    break;
+                }
+                ++args;
+                args = trim(args);
+                size_t args_len = strlen(args);
+                if ((*args == '"' && args[args_len - 1] == '"') || (*args == '\'' && args[args_len - 1] == '\'')) {
+                    args[args_len - 1] = 0;
+                    ++args;
+                }
+                if (!*args) {
+                    cmd_assoc.erase(cmd);
+                } else {
+                    cmd_assoc[cmd] = args;
+                    cmd_assoc_map_t::iterator iter = cmd_assoc.find(cmd);
+                    if (iter != cmd_assoc.end()) WriteOut("%s=%s\n", iter->first.c_str(), iter->second.c_str());
+                }
+                break;
+            } else {
+                assoc_name[offset] = *args;
             }
         }
     }
@@ -4165,25 +4207,22 @@ void DOS_Shell::CMD_CTTY(char * args) {
 
 void DOS_Shell::CMD_COUNTRY(char * args) {
 	HELP("COUNTRY");
-	if (char* rem = ScanCMDRemain(args))
-		{
+	if (char* rem = ScanCMDRemain(args)) {
 		WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"), rem);
 		return;
-		}
+	}
 	args = trim(args);
-	if (!*args)
-		{
+	if (!*args) {
 		WriteOut("Current country code: %d\n", countryNo);
 		return;
-		}
+	}
 	int newCC;
 	char buffer[256];
-	if (sscanf(args, "%d%s", &newCC, buffer) == 1 && newCC>0)
-		{
+	if (sscanf(args, "%d%s", &newCC, buffer) == 1 && newCC>0) {
 		countryNo = newCC;
 		DOS_SetCountry(countryNo);
 		return;
-		}
+	}
 	WriteOut("Invalid country code - %s\n", StripArg(args));
 	return;
 }

@@ -2108,6 +2108,17 @@ Type ALIAS without parameters to display the list of aliases in the form:
 `ALIAS NAME = VALUE'
 
 .
+:SHELL_CMD_ASSOC_HELP
+Displays or changes file extension associations.
+
+.
+:SHELL_CMD_ASSOC_HELP_LONG
+ASSOC [.ext[=command] ... ]
+
+Type ASSOC without parameters to display the current file associations.
+File extensions must start with a dot (.); wildcards (* and ?) are allowed.
+
+.
 :SHELL_CMD_CHCP_HELP
 Displays or changes the current DOS code page.
 

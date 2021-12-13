@@ -47,7 +47,7 @@
 # define MAX(a,b) std::max(a,b)
 #endif
 
-bool clearline=false, inshell=false;
+bool clearline=false, inshell=false, noassoc=false;
 int autofixwarn=3;
 extern int lfn_filefind_handle;
 extern bool ctrlbrk, gbk, rtl, dbcs_sbcs;
@@ -284,7 +284,7 @@ bool DOS_Shell::BuildCompletions(char * line, uint16_t str_len) {
                 if(att & DOS_ATTR_DIRECTORY) l_completion.emplace_back(qlname);
             } else {
                 const char *ext = strrchr(name, '.'); // file extension
-                if (ext && (strcmp(ext, ".BAT") == 0 || strcmp(ext, ".COM") == 0 || strcmp(ext, ".EXE") == 0))
+                if ((ext && (strcmp(ext, ".BAT") == 0 || strcmp(ext, ".COM") == 0 || strcmp(ext, ".EXE") == 0)) || hasAssociation(name).size())
                     // we add executables to a separate list and place that list in front of the normal files
                     executable.emplace_front(qlname);
                 else
@@ -1234,8 +1234,15 @@ continue_1:
 	p_fullname = Which(name);
 	if (!p_fullname) return false;
 	strcpy(fullname,p_fullname);
+    std::string assoc = hasAssociation(fullname);
+    if (assoc.size()) {
+        noassoc=true;
+        DoCommand((char *)(assoc+" "+fullname).c_str());
+        noassoc=false;
+        return true;
+    }
 	const char* extension = strrchr(fullname,'.');
-	
+
 	/*always disallow files without extension from being executed. */
 	/*only internal commands can be run this way and they never get in this handler */
 	if(extension == 0)
@@ -1416,9 +1423,34 @@ static const char * bat_ext=".BAT";
 static const char * com_ext=".COM";
 static const char * exe_ext=".EXE";
 static char which_ret[DOS_PATHLENGTH+4], s_ret[DOS_PATHLENGTH+4];
+extern bool wild_match(const char *haystack, char *needle);
+static std::string assocs = "";
+std::string DOS_Shell::hasAssociation(const char* name) {
+    if (noassoc) {
+        assocs = "";
+        return assocs;
+    }
+    std::string extension = strrchr(name, '.') ? strrchr(name, '.') : ".";
+    cmd_assoc_map_t::iterator iter = cmd_assoc.find(extension.c_str());
+    if (iter != cmd_assoc.end()) {
+        assocs = strcasecmp(extension.c_str(), iter->second.c_str()) ? iter->second : "";
+        return assocs;
+    }
+    std::transform(extension.begin(), extension.end(), extension.begin(), ::toupper);
+    for (cmd_assoc_map_t::iterator iter = cmd_assoc.begin(); iter != cmd_assoc.end(); ++iter) {
+        std::string ext = iter->first;
+        if (ext.find('*')==std::string::npos && ext.find('?')==std::string::npos) continue;
+        std::transform(ext.begin(), ext.end(), ext.begin(), ::toupper);
+        if (wild_match(extension.c_str(), (char *)ext.c_str())) {
+            assocs = strcasecmp(extension.c_str(), iter->second.c_str()) ? iter->second : "";
+            return assocs;
+        }
+    }
+    assocs = "";
+    return assocs;
+}
 
-bool DOS_Shell::hasExecutableExtension(const char* name)
-{
+bool DOS_Shell::hasExecutableExtension(const char* name) {
     auto extension = strrchr(name, '.');
     if (!extension) return false;
     return (!strcasecmp(extension, com_ext) || !strcasecmp(extension, exe_ext) || !strcasecmp(extension, bat_ext));
@@ -1431,9 +1463,16 @@ char * DOS_Shell::Which(char * name) {
 	/* Parse through the Path to find the correct entry */
 	/* Check if name is already ok but just misses an extension */
 
-	if (hasExecutableExtension(name)) {
+    std::string upname = name;
+    std::transform(upname.begin(), upname.end(), upname.begin(), ::toupper);
+	if (hasAssociation(name).size() && DOS_FileExists(name))
+		return name;
+	else if (hasAssociation(name).size() && DOS_FileExists(upname.c_str())) {
+		strcpy(name, upname.c_str());
+		return name;
+	} else if (hasExecutableExtension(name)) {
 		if (DOS_FileExists(name)) return name;
-		upcase(name);
+		strcpy(name, upname.c_str());
 		if (DOS_FileExists(name)) return name;
 	} else {
 		/* try to find .com .exe .bat */
@@ -1499,7 +1538,10 @@ char * DOS_Shell::Which(char * name) {
 			if((name_len + len + 1) >= DOS_PATHLENGTH) continue;
 			strcat(path,strchr(name, ' ')?("\""+std::string(name)+"\"").c_str():name);
 
-			if (hasExecutableExtension(path)) {
+			if (hasAssociation(path).size() && DOS_FileExists(path)) {
+				strcpy(which_ret,path);
+				return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, s_ret, false)?s_ret:which_ret;
+			} else if (hasExecutableExtension(path)) {
 				strcpy(which_ret,path);
 				if (DOS_FileExists(which_ret)) return strchr(which_ret, '\"')&&DOS_GetSFNPath(which_ret, s_ret, false)?s_ret:which_ret;
 			} else {
