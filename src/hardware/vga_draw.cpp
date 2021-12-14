@@ -4048,49 +4048,57 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         } else if (dbw) {
                             (*draw).skipped = 1;
                             dbw=dex=false;
-                        } else if (isDBCSCP() && dbcs_sbcs && col<ttf.cols-1 && isKanji1((*draw).chr) && isKanji2(*(vidmem+2)) && !(autoboxdraw &&
-                        ((row < ttf.lins-2 && CheckBoxDrawingV((*draw).chr, *(vidmem+vga.draw.address_add), *(vidmem+2*vga.draw.address_add), *(vidmem+2), *(vidmem+2+vga.draw.address_add), *(vidmem+2+2*vga.draw.address_add), col?*(vidmem-2):0, col?*(vidmem-2+vga.draw.address_add):0, col?*(vidmem-2+2*vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+4):0, col < ttf.cols-2?*(vidmem+4+vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+4+2*vga.draw.address_add):0, row?*(vidmem-vga.draw.address_add):0, row < ttf.lins-3?*(vidmem+3*vga.draw.address_add):0, row?*(vidmem+2-vga.draw.address_add):0, row < ttf.lins-3?*(vidmem+2+3*vga.draw.address_add):0)) ||
-                        (row && row < ttf.lins-1 && CheckBoxDrawingV(*(vidmem-vga.draw.address_add), (*draw).chr, *(vidmem+vga.draw.address_add), *(vidmem+2-vga.draw.address_add), *(vidmem+2), *(vidmem+2+vga.draw.address_add), col?*(vidmem-2-vga.draw.address_add):0, col?*(vidmem-2):0, col?*(vidmem-2+vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+4-vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+4):0, col < ttf.cols-2?*(vidmem+4+vga.draw.address_add):0, row > 1?*(vidmem-2*vga.draw.address_add):0, row < ttf.lins-2?*(vidmem+2*vga.draw.address_add):0, row > 1?*(vidmem+2-2*vga.draw.address_add):0, row < ttf.lins-2?*(vidmem+2+2*vga.draw.address_add):0)) ||
-                        (row > 1 && CheckBoxDrawingV(*(vidmem-2*vga.draw.address_add), *(vidmem-vga.draw.address_add), (*draw).chr, *(vidmem+2-2*vga.draw.address_add), *(vidmem+2-vga.draw.address_add), *(vidmem+2), col?*(vidmem-2-2*vga.draw.address_add):0, col?*(vidmem-2-vga.draw.address_add):0, col?*(vidmem-2):0, col < ttf.cols-2?*(vidmem+4-2*vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+4-vga.draw.address_add):0, col?*(vidmem+4):0, row > 2?*(vidmem-3*vga.draw.address_add):0, row < ttf.lins-1?*(vidmem+vga.draw.address_add):0, row > 2?*(vidmem+2-3*vga.draw.address_add):0, row < ttf.lins-1?*(vidmem+2+vga.draw.address_add):0))))) {
-                            bool boxdefault = (!autoboxdraw || col>=ttf.cols-3) && !bd[col];
-                            if (!boxdefault && col<ttf.cols-3) {
-                                if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+4), (uint8_t)*(vidmem+6)))
-                                    bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=true;
-                                else if (ttf.cols >= 80 && col > 70 && col < 75 && row < ttf.lins-1 && CheckBoxDrawLast(col, (*draw).chr, *(vidmem+2), *(vidmem+4), *(vidmem+6), *(vidmem+8), *(vidmem+10), *(vidmem+12), *(vidmem+14), *(vidmem+16)))
-                                    bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=bd[col+4]=bd[col+5]=bd[col+6]=bd[col+7]=bd[col+8]=true;
-                                else if (!bd[col])
-                                    boxdefault=true;
-                            }
-                            if (boxdefault) {
-                                char text[3];
-                                text[0]=(*draw).chr & 0xFF;
-                                text[1]=*(vidmem+2) & 0xFF;
-                                text[2]=0;
-                                uname[0]=0;
-                                uname[1]=0;
-                                if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && text[1] == 0x7F) text[1]++;
-                                CodePageGuestToHostUTF16(uname,text);
-                                if (autoboxdraw&&row&&col>3&&(((uint8_t)*(vidmem-4)==177||(uint8_t)*(vidmem-4)==254)&&(uint8_t)*(vidmem-2)==16&&(uint8_t)text[0]==196&&(uint8_t)text[1]==217)||((uint8_t)*(vidmem-4)==176&&(uint8_t)*(vidmem-2)==176&&(uint8_t)text[0]==176&&(uint8_t)text[1]==179))
-                                    boxdefault=false;
-                                else if (uname[0]!=0&&uname[1]==0) {
-                                    (*draw).chr=uname[0];
-                                    (*draw).unicode=1;
-                                    res = width = 0;
-                                    if (ttf.SDL_font) res = TTF_SizeUNICODE(ttf.SDL_font, uname, &width, &height);
-                                    if (res >= 0 && width <= ttf.width) { // Single wide, yet DBCS encoding
-                                        if (!width) (*draw).chr=' ';
-                                        last = (*draw).chr;
+                        } else if (isDBCSCP() && dbcs_sbcs && col==ttf.cols-1 && isKanji2((*draw).chr) && bd[ttf.cols-2]) {
+                            bd[col]=true;
+                            (*draw).boxdraw = 1;
+                        } else if (isDBCSCP() && dbcs_sbcs && col<ttf.cols-1 && isKanji1((*draw).chr) && isKanji2(*(vidmem+2))) {
+                            bool boxv = autoboxdraw && ((row < ttf.lins-2 && CheckBoxDrawingV((*draw).chr, *(vidmem+vga.draw.address_add), *(vidmem+2*vga.draw.address_add), *(vidmem+2), *(vidmem+2+vga.draw.address_add), *(vidmem+2+2*vga.draw.address_add), col?*(vidmem-2):0, col?*(vidmem-2+vga.draw.address_add):0, col?*(vidmem-2+2*vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+4):0, col < ttf.cols-2?*(vidmem+4+vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+4+2*vga.draw.address_add):0, row?*(vidmem-vga.draw.address_add):0, row < ttf.lins-3?*(vidmem+3*vga.draw.address_add):0, row?*(vidmem+2-vga.draw.address_add):0, row < ttf.lins-3?*(vidmem+2+3*vga.draw.address_add):0)) ||
+                                                        (row && row < ttf.lins-1 && CheckBoxDrawingV(*(vidmem-vga.draw.address_add), (*draw).chr, *(vidmem+vga.draw.address_add), *(vidmem+2-vga.draw.address_add), *(vidmem+2), *(vidmem+2+vga.draw.address_add), col?*(vidmem-2-vga.draw.address_add):0, col?*(vidmem-2):0, col?*(vidmem-2+vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+4-vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+4):0, col < ttf.cols-2?*(vidmem+4+vga.draw.address_add):0, row > 1?*(vidmem-2*vga.draw.address_add):0, row < ttf.lins-2?*(vidmem+2*vga.draw.address_add):0, row > 1?*(vidmem+2-2*vga.draw.address_add):0, row < ttf.lins-2?*(vidmem+2+2*vga.draw.address_add):0)) ||
+                                                        (row > 1 && CheckBoxDrawingV(*(vidmem-2*vga.draw.address_add), *(vidmem-vga.draw.address_add), (*draw).chr, *(vidmem+2-2*vga.draw.address_add), *(vidmem+2-vga.draw.address_add), *(vidmem+2), col?*(vidmem-2-2*vga.draw.address_add):0, col?*(vidmem-2-vga.draw.address_add):0, col?*(vidmem-2):0, col < ttf.cols-2?*(vidmem+4-2*vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+4-vga.draw.address_add):0, col?*(vidmem+4):0, row > 2?*(vidmem-3*vga.draw.address_add):0, row < ttf.lins-1?*(vidmem+vga.draw.address_add):0, row > 2?*(vidmem+2-3*vga.draw.address_add):0, row < ttf.lins-1?*(vidmem+2+vga.draw.address_add):0)));
+                            if (boxv) (*draw).boxdraw = 1;
+                            else {
+                                bool boxdefault = (!autoboxdraw || col>=ttf.cols-3) && !bd[col];
+                                if (!boxdefault && col<ttf.cols-3) {
+                                    if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+4), (uint8_t)*(vidmem+6))) {
+                                        bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=true;
+                                    } else if (ttf.cols >= 80 && col > 70 && col < 75 && row < ttf.lins-1 && CheckBoxDrawLast(col, (*draw).chr, *(vidmem+2), *(vidmem+4), *(vidmem+6), *(vidmem+8), *(vidmem+10), *(vidmem+12), *(vidmem+14), *(vidmem+16)))
+                                        bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=bd[col+4]=bd[col+5]=bd[col+6]=bd[col+7]=bd[col+8]=true;
+                                    else if (!bd[col])
+                                        boxdefault=true;
+                                }
+                                if (autoboxdraw && bd[col]) (*draw).boxdraw = 1;
+                                if (boxdefault) {
+                                    char text[3];
+                                    text[0]=(*draw).chr & 0xFF;
+                                    text[1]=*(vidmem+2) & 0xFF;
+                                    text[2]=0;
+                                    uname[0]=0;
+                                    uname[1]=0;
+                                    if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && text[1] == 0x7F) text[1]++;
+                                    CodePageGuestToHostUTF16(uname,text);
+                                    if (autoboxdraw&&row&&col>3&&(((uint8_t)*(vidmem-4)==177||(uint8_t)*(vidmem-4)==254)&&(uint8_t)*(vidmem-2)==16&&(uint8_t)text[0]==196&&(uint8_t)text[1]==217)||((uint8_t)*(vidmem-4)==176&&(uint8_t)*(vidmem-2)==176&&(uint8_t)text[0]==176&&(uint8_t)text[1]==179)) {
+                                        boxdefault=false;
+                                        (*draw).boxdraw = 1;
+                                    } else if (uname[0]!=0&&uname[1]==0) {
+                                        (*draw).chr=uname[0];
+                                        (*draw).unicode=1;
+                                        res = width = 0;
+                                        if (ttf.SDL_font) res = TTF_SizeUNICODE(ttf.SDL_font, uname, &width, &height);
+                                        if (res >= 0 && width <= ttf.width) { // Single wide, yet DBCS encoding
+                                            if (!width) (*draw).chr=' ';
+                                            last = (*draw).chr;
+                                            dbw=false;
+                                            dex=true;
+                                        } else {
+                                            (*draw).doublewide = 1;
+                                            dbw=true;
+                                            dex=false;
+                                        }
+                                    } else {
+                                        (*draw).chr=' ';
                                         dbw=false;
                                         dex=true;
-                                    } else {
-                                        (*draw).doublewide = 1;
-                                        dbw=true;
-                                        dex=false;
                                     }
-                                } else {
-                                    (*draw).chr=' ';
-                                    dbw=false;
-                                    dex=true;
                                 }
                             }
                         }
@@ -4130,49 +4138,57 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         } else if (dbw) {
                             (*draw).skipped = 1;
                             dbw=dex=false;
-                        } else if (isDBCSCP() && dbcs_sbcs && col<ttf.cols-1 && isKanji1((*draw).chr) && isKanji2(*(vidmem+1)) && !(autoboxdraw &&
-                        ((row < ttf.lins-2 && CheckBoxDrawingV((*draw).chr, *(vidmem+vga.draw.address_add/2), *(vidmem+vga.draw.address_add), *(vidmem+1), *(vidmem+1+vga.draw.address_add/2), *(vidmem+1+vga.draw.address_add), col?*(vidmem-1):0, col?*(vidmem-1+vga.draw.address_add/2):0, col?*(vidmem-1+vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+2):0, col < ttf.cols-2?*(vidmem+2+vga.draw.address_add/2):0, col < ttf.cols-2?*(vidmem+2+vga.draw.address_add):0, row?*(vidmem-vga.draw.address_add/2):0, row < ttf.lins-3?*(vidmem+3*vga.draw.address_add/2):0, row?*(vidmem+1-vga.draw.address_add/2):0, row < ttf.lins-3?*(vidmem+1+3*vga.draw.address_add/2):0)) ||
-                        (row && row < ttf.lins-1 && CheckBoxDrawingV(*(vidmem-vga.draw.address_add/2), (*draw).chr, *(vidmem+vga.draw.address_add/2), *(vidmem+1-vga.draw.address_add/2), *(vidmem+1), *(vidmem+1+vga.draw.address_add/2), col?*(vidmem-1-vga.draw.address_add/2):0, col?*(vidmem-1):0, col?*(vidmem-1+vga.draw.address_add/2):0, col < ttf.cols-2?*(vidmem+2-vga.draw.address_add/2):0, col < ttf.cols-2?*(vidmem+2):0, col < ttf.cols-2?*(vidmem+2+vga.draw.address_add/2):0, row > 1?*(vidmem-vga.draw.address_add):0, row < ttf.lins-2?*(vidmem+vga.draw.address_add):0, row > 1?*(vidmem+1-vga.draw.address_add):0, row < ttf.lins-2?*(vidmem+1+vga.draw.address_add):0)) ||
-                        (row > 1 && CheckBoxDrawingV(*(vidmem-vga.draw.address_add), *(vidmem-vga.draw.address_add/2), (*draw).chr, *(vidmem+1-vga.draw.address_add), *(vidmem+1-vga.draw.address_add/2), *(vidmem+1), col?*(vidmem-1-vga.draw.address_add):0, col?*(vidmem-1-vga.draw.address_add/2):0, col?*(vidmem-1):0, col < ttf.cols-2?*(vidmem+2-vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+2-vga.draw.address_add/2):0, col?*(vidmem+2):0, row > 2?*(vidmem-3*vga.draw.address_add/2):0, row < ttf.lins-1?*(vidmem+vga.draw.address_add/2):0, row > 2?*(vidmem+1-3*vga.draw.address_add/2):0, row < ttf.lins-1?*(vidmem+1+vga.draw.address_add/2):0))))) {
-                            bool boxdefault = (!autoboxdraw || col>=ttf.cols-3) && !bd[col];
-                            if (!boxdefault && col<ttf.cols-3) {
-                                if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+1), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+3)))
-                                    bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=true;
-                                else if (ttf.cols >= 80 && col > 70 && col < 75 && row < ttf.lins-1 && CheckBoxDrawLast(col, (*draw).chr, *(vidmem+1), *(vidmem+2), *(vidmem+3), *(vidmem+4), *(vidmem+5), *(vidmem+6), *(vidmem+7), *(vidmem+8)))
-                                    bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=bd[col+4]=bd[col+5]=bd[col+6]=bd[col+7]=bd[col+8]=true;
-                                else if (!bd[col])
-                                    boxdefault=true;
-                            }
-                            if (boxdefault) {
-                                char text[3];
-                                text[0]=(*draw).chr & 0xFF;
-                                text[1]=*(vidmem+1) & 0xFF;
-                                text[2]=0;
-                                uname[0]=0;
-                                uname[1]=0;
-                                if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && text[1] == 0x7F) text[1]++;
-                                CodePageGuestToHostUTF16(uname,text);
-                                if (autoboxdraw&&row&&col>3&&(((uint8_t)*(vidmem-2)==177||(uint8_t)*(vidmem-2)==254)&&(uint8_t)*(vidmem-1)==16&&(uint8_t)text[0]==196&&(uint8_t)text[1]==217)||((uint8_t)*(vidmem-2)==176&&(uint8_t)*(vidmem-1)==176&&(uint8_t)text[0]==176&&(uint8_t)text[1]==179))
-                                    boxdefault=false;
-                                else if (uname[0]!=0&&uname[1]==0) {
-                                    (*draw).chr=uname[0];
-                                    (*draw).unicode=1;
-                                    res = width = 0;
-                                    if (ttf.SDL_font) res = TTF_SizeUNICODE(ttf.SDL_font, uname, &width, &height);
-                                    if (res >= 0 && width <= ttf.width) { // Single wide, yet DBCS encoding
-                                        if (!width) (*draw).chr=' ';
-                                        last = (*draw).chr;
+                        } else if (isDBCSCP() && dbcs_sbcs && col==ttf.cols-1 && isKanji2((*draw).chr) && bd[ttf.cols-2]) {
+                            bd[col]=true;
+                            (*draw).boxdraw = 1;
+                        } else if (isDBCSCP() && dbcs_sbcs && col<ttf.cols-1 && isKanji1((*draw).chr) && isKanji2(*(vidmem+1))) {
+                            bool boxv = autoboxdraw && ((row < ttf.lins-2 && CheckBoxDrawingV((*draw).chr, *(vidmem+vga.draw.address_add/2), *(vidmem+vga.draw.address_add), *(vidmem+1), *(vidmem+1+vga.draw.address_add/2), *(vidmem+1+vga.draw.address_add), col?*(vidmem-1):0, col?*(vidmem-1+vga.draw.address_add/2):0, col?*(vidmem-1+vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+2):0, col < ttf.cols-2?*(vidmem+2+vga.draw.address_add/2):0, col < ttf.cols-2?*(vidmem+2+vga.draw.address_add):0, row?*(vidmem-vga.draw.address_add/2):0, row < ttf.lins-3?*(vidmem+3*vga.draw.address_add/2):0, row?*(vidmem+1-vga.draw.address_add/2):0, row < ttf.lins-3?*(vidmem+1+3*vga.draw.address_add/2):0)) ||
+                                                        (row && row < ttf.lins-1 && CheckBoxDrawingV(*(vidmem-vga.draw.address_add/2), (*draw).chr, *(vidmem+vga.draw.address_add/2), *(vidmem+1-vga.draw.address_add/2), *(vidmem+1), *(vidmem+1+vga.draw.address_add/2), col?*(vidmem-1-vga.draw.address_add/2):0, col?*(vidmem-1):0, col?*(vidmem-1+vga.draw.address_add/2):0, col < ttf.cols-2?*(vidmem+2-vga.draw.address_add/2):0, col < ttf.cols-2?*(vidmem+2):0, col < ttf.cols-2?*(vidmem+2+vga.draw.address_add/2):0, row > 1?*(vidmem-vga.draw.address_add):0, row < ttf.lins-2?*(vidmem+vga.draw.address_add):0, row > 1?*(vidmem+1-vga.draw.address_add):0, row < ttf.lins-2?*(vidmem+1+vga.draw.address_add):0)) ||
+                                                        (row > 1 && CheckBoxDrawingV(*(vidmem-vga.draw.address_add), *(vidmem-vga.draw.address_add/2), (*draw).chr, *(vidmem+1-vga.draw.address_add), *(vidmem+1-vga.draw.address_add/2), *(vidmem+1), col?*(vidmem-1-vga.draw.address_add):0, col?*(vidmem-1-vga.draw.address_add/2):0, col?*(vidmem-1):0, col < ttf.cols-2?*(vidmem+2-vga.draw.address_add):0, col < ttf.cols-2?*(vidmem+2-vga.draw.address_add/2):0, col?*(vidmem+2):0, row > 2?*(vidmem-3*vga.draw.address_add/2):0, row < ttf.lins-1?*(vidmem+vga.draw.address_add/2):0, row > 2?*(vidmem+1-3*vga.draw.address_add/2):0, row < ttf.lins-1?*(vidmem+1+vga.draw.address_add/2):0)));
+                            if (boxv) (*draw).boxdraw = 1;
+                            else {
+                                bool boxdefault = (!autoboxdraw || col>=ttf.cols-3) && !bd[col];
+                                if (!boxdefault && col<ttf.cols-3) {
+                                    if (CheckBoxDrawing((uint8_t)((*draw).chr), (uint8_t)*(vidmem+1), (uint8_t)*(vidmem+2), (uint8_t)*(vidmem+3)))
+                                        bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=true;
+                                    else if (ttf.cols >= 80 && col > 70 && col < 75 && row < ttf.lins-1 && CheckBoxDrawLast(col, (*draw).chr, *(vidmem+1), *(vidmem+2), *(vidmem+3), *(vidmem+4), *(vidmem+5), *(vidmem+6), *(vidmem+7), *(vidmem+8)))
+                                        bd[col]=bd[col+1]=bd[col+2]=bd[col+3]=bd[col+4]=bd[col+5]=bd[col+6]=bd[col+7]=bd[col+8]=true;
+                                    else if (!bd[col])
+                                        boxdefault=true;
+                                }
+                                if (autoboxdraw && bd[col]) (*draw).boxdraw = 1;
+                                if (boxdefault) {
+                                    char text[3];
+                                    text[0]=(*draw).chr & 0xFF;
+                                    text[1]=*(vidmem+1) & 0xFF;
+                                    text[2]=0;
+                                    uname[0]=0;
+                                    uname[1]=0;
+                                    if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && text[1] == 0x7F) text[1]++;
+                                    CodePageGuestToHostUTF16(uname,text);
+                                    if (autoboxdraw&&row&&col>3&&(((uint8_t)*(vidmem-2)==177||(uint8_t)*(vidmem-2)==254)&&(uint8_t)*(vidmem-1)==16&&(uint8_t)text[0]==196&&(uint8_t)text[1]==217)||((uint8_t)*(vidmem-2)==176&&(uint8_t)*(vidmem-1)==176&&(uint8_t)text[0]==176&&(uint8_t)text[1]==179)) {
+                                        boxdefault=false;
+                                        (*draw).boxdraw = 1;
+                                    } else if (uname[0]!=0&&uname[1]==0) {
+                                        (*draw).chr=uname[0];
+                                        (*draw).unicode=1;
+                                        res = width = 0;
+                                        if (ttf.SDL_font) res = TTF_SizeUNICODE(ttf.SDL_font, uname, &width, &height);
+                                        if (res >= 0 && width <= ttf.width) { // Single wide, yet DBCS encoding
+                                            if (!width) (*draw).chr=' ';
+                                            last = (*draw).chr;
+                                            dbw=false;
+                                            dex=true;
+                                        } else {
+                                            (*draw).doublewide = 1;
+                                            dbw=true;
+                                            dex=false;
+                                        }
+                                    } else {
+                                        (*draw).chr=' ';
                                         dbw=false;
                                         dex=true;
-                                    } else {
-                                        (*draw).doublewide = 1;
-                                        dbw=true;
-                                        dex=false;
                                     }
-                                } else {
-                                    (*draw).chr=' ';
-                                    dbw=false;
-                                    dex=true;
                                 }
                             }
                         }

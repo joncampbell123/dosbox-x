@@ -237,12 +237,19 @@ template <class MT> bool String_SBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const cha
     return true;
 }
 
+uint16_t baselen = 0;
+std::list<uint16_t> bdlist = {};
 /* needed for Wengier's TTF output and CJK mode */
 template <class MT> bool String_DBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
     const uint16_t* df = d + CROSS_LEN * (morelen?4:1) - 1;
 	const char *sf = s + CROSS_LEN * (morelen?4:1) - 1;
+    const char *ss = s;
 
     while (*s != 0 && s < sf) {
+        if (morelen && !(dos.loaded_codepage == 932 && halfwidthkana) && (std::find(bdlist.begin(), bdlist.end(), (uint16_t)(baselen + s - ss)) != bdlist.end() || (isKanji1(*s) && (!(*(s+1)) || !isKanji2(*(s+1)))))) {
+            *d++ = cp437_to_unicode[(uint8_t)*s++];
+            continue;
+        }
         uint16_t ic = (unsigned char)(*s++);
         if ((dos.loaded_codepage==932 &&((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0)) || ((dos.loaded_codepage==936 || dos.loaded_codepage==949 || dos.loaded_codepage==950 || dos.loaded_codepage==951) && (ic & 0x80) == 0x80)) {
             if (*s == 0) return false;
@@ -271,8 +278,13 @@ template <class MT> bool String_DBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,cons
 template <class MT> bool String_DBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
     const char* df = d + CROSS_LEN * (morelen?6:1) - 1;
 	const char *sf = s + CROSS_LEN * (morelen?6:1) - 1;
+    const char *ss = s;
 
     while (*s != 0 && s < sf) {
+        if (morelen && !(dos.loaded_codepage == 932 && halfwidthkana) && (std::find(bdlist.begin(), bdlist.end(), (uint16_t)(baselen + s - ss)) != bdlist.end() || (isKanji1(*s) && (!(*(s+1)) || !isKanji2(*(s+1))))) && utf8_encode(&d,df,(uint32_t)cp437_to_unicode[(uint8_t)*s]) >= 0) {
+            s++;
+            continue;
+        }
         uint16_t ic = (unsigned char)(*s++);
         if ((dos.loaded_codepage==932 &&((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0)) || ((dos.loaded_codepage==936 || dos.loaded_codepage==949 || dos.loaded_codepage==950 || dos.loaded_codepage==951) && (ic & 0x80) == 0x80)) {
             if (*s == 0) return false;
@@ -346,6 +358,10 @@ template <class MT> bool String_HOST_TO_DBCS_UTF16(char *d/*CROSS_LEN*/,const ui
     while (*s != 0 && s < sf) {
         int ic;
         ic = (int)(*s++);
+        if (morelen && !(dos.loaded_codepage == 932 && halfwidthkana) && ic>=0x2550 && ic<=0x2569) {
+            *d++ = SBCS_From_Host_Find<MT>(ic,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            continue;
+        }
 
         int oc = DBCS_From_Host_Find<MT>(ic,hitbl,rawtbl,rawtbl_max);
         if (oc < 0)

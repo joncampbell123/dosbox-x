@@ -141,6 +141,7 @@ struct ttf_cell {
     unsigned int    bg:4;                       // background color (one of 16)
     unsigned int    doublewide:1;               // double-wide (e.g. PC-98 JIS), therefore skip next character cell.
     unsigned int    blink:1;                    // blink attribute
+    unsigned int    boxdraw:1;                  // box-drawing attribute
     unsigned int    underline:1;                // underline attribute
     unsigned int    unicode:1;                  // chr is unicode code point
     unsigned int    skipped:1;                  // adjacent (ignored) cell to a doublewide
@@ -152,6 +153,7 @@ struct ttf_cell {
         bg = 0;
         doublewide = 0;
         blink = 0;
+        boxdraw = 0;
         underline = 0;
         unicode = 0;
         skipped = 0;

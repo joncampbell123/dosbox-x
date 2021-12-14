@@ -742,9 +742,11 @@ uint8_t Mouse_GetButtonState(void) {
 }
 
 char text[5000];
+extern std::list<uint16_t> bdlist;
 extern bool isDBCSCP();
 extern std::vector<std::pair<int,int>> jtbs;
 const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint16_t *textlen) {
+    bdlist = {};
 	uint16_t result=0, len=0;
 	uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 	uint16_t c=0, r=0;
@@ -790,6 +792,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
                             text[len++]=result;
                         }
                         ReadCharAttr(rtl?ttf.cols-x-1:x,y,page,&result);
+                        if (curAC[rtl?ttf.cols-x-1:x].boxdraw) bdlist.push_back(len);
                         text[len++]=result;
                         if ((int)x==c2&&c2<(int)(ttf.cols-1)&&curAC[rtl?ttf.cols-x-1:x].doublewide&&!curAC[rtl?ttf.cols-x:x+1].selected&&curAC[rtl?ttf.cols-x:x+1].skipped) {
                             ReadCharAttr(rtl?ttf.cols-x:x+1,y,page,&result);
@@ -797,10 +800,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
                         }
                     }
                 while (len>0&&text[len-1]==32) text[--len]=0;
-                if (y<r2) {
-                    text[len++]='\r';
-                    text[len++]='\n';
-                }
+                if (y<r2) text[len++]='\n';
             }
             curAC += ttf.cols;
         }
@@ -850,6 +850,12 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
                 if (!isJEGAEnabled()||j>c1||!find) {
                     ReadCharAttr(ttfuse&&rtl?ttfcols-j-1:j,i,page,&result);
                     if (!result && CurMode->type == M_DCGA && !IS_J3100) result=32;
+#if defined(USE_TTF)
+                    if (ttfuse&&isDBCSCP()&&dbcs_sbcs) {
+                        ttf_cell *curAC = curAttrChar+i*ttfcols;
+                        if (curAC[rtl?ttfcols-j-1:j].boxdraw) bdlist.push_back(len);
+                    }
+#endif
                     text[len++]=result;
                     if (isJEGAEnabled() && find && del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
                 }
@@ -861,10 +867,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 			}
 		}
 		while (len>0&&text[len-1]==32) text[--len]=0;
-		if (i<r2) {
-			text[len++]='\r';
-			text[len++]='\n';
-		}
+		if (i<r2) text[len++]='\n';
 	}
     text[len] = 0;
     if (ttfuse&&rtl) std::reverse(text, text+len);
