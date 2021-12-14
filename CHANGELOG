@@ -1,4 +1,9 @@
 0.83.21
+  - Fix IPL1 partition choice debug message to actually
+    show the partition index chosen, not the -partidx
+    option variable, which if not given by the user, is
+    -1 and was reported as a very large unsigned
+    number. (joncampbell123)
   - Pausing the emulation will automatically release the
     mouse and prevent mouse capture. (Wengier)
   - Improved IME support for Chinese/Japanese/Korean
