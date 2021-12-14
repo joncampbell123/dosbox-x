@@ -4343,7 +4343,9 @@ void DOSBOX_SetupConfigSections(void) {
 
     secprop=control->AddSection_prop("ne2000",&Null_Init,true);
     Pbool = secprop->Add_bool("ne2000", Property::Changeable::WhenIdle, false);
-    Pbool->Set_help("Enable NE2000 Ethernet emulation.");
+    Pbool->Set_help("Enable NE2000 Ethernet emulation. Either pcap or slirp backend can be used, switchable via \"backend\" option.\n"
+                    "Settings for the pcap and slirp backends can be found in the [ethernet, pcap] and [ethernet, slirp] sections.\n"
+                    "Once properly set, load the NE2000 packet driver inside DOSBox-X with base address and interrupt specified below.");
     Pbool->SetBasic(true);
 
     Phex = secprop->Add_hex("nicbase", Property::Changeable::WhenIdle, 0x300);

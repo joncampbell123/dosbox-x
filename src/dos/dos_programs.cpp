@@ -6898,7 +6898,8 @@ void UTF8::Run()
         if (m && first && text.size() == 3 && (uint8_t)text[0] == 0xEF && (uint8_t)text[1] == 0xBB && (uint8_t)text[2] == 0xBF) {
             first=false;
             text="";
-        } else if (!m || c==0xA || c==0x1A) {
+        } else if (!m || c==0x1A || c==0xA || (text.size()>1 && (uint8_t)text[text.size()-2] == 0xD)) {
+            if (c!=0xA && text.size()>1 && (uint8_t)text[text.size()-2] == 0xD) text[text.size()-1] = 0xA;
             if (CodePageHostToGuestUTF8(temp,text.c_str())) {
                 WriteOut_NoParsing(temp, true);
             } else {
@@ -6913,6 +6914,7 @@ void UTF8::Run()
             first=false;
             text="";
             if (!m||c==0x1A) break;
+            else if (c!=0xA) text+=std::string(1, c);
         }
     }
     x->finish();
@@ -6994,7 +6996,8 @@ void UTF16::Run()
             text+=ch;
             c++;
         }
-        if (!m || ch==0xA || ch==0x1A) {
+        if (!m || ch==0x1A || ch==0xA || (c>1 && text[c-2] == 0xD)) {
+            if (ch!=0xA && c>1 && text[c-2] == 0xD) {text[c-1] = 0xA;}
             wch=new test_char_t[c+1];
             for (unsigned int i=0; i<c; i++) wch[i]=(test_char_t)text[i];
             wch[c]=0;
@@ -7014,6 +7017,7 @@ void UTF16::Run()
             text=L"";
             c=0;
             if (!m||ch==0x1A) break;
+            else if (ch!=0xA) {text+=ch;c++;}
         }
     }
     x->finish();
