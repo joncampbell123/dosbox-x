@@ -392,6 +392,10 @@ template <class MT> bool String_HOST_TO_DBCS_UTF8(char *d/*CROSS_LEN*/,const cha
         int ic;
         if ((ic=utf8_decode(&s,sf)) < 0)
             return false; // non-representable
+        if (morelen && !(dos.loaded_codepage == 932 && halfwidthkana) && ic>=0x2550 && ic<=0x2569) {
+            *d++ = SBCS_From_Host_Find<MT>(ic,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            continue;
+        }
 
         int oc = DBCS_From_Host_Find<MT>(ic,hitbl,rawtbl,rawtbl_max);
         if (oc < 0)

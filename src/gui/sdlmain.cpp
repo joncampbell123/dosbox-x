@@ -9246,6 +9246,7 @@ void PasteClipboard(bool bPressed) {
 #endif
     if (text==NULL) return;
     std::string result="", pre="";
+    morelen=true;
     for (unsigned int i=0; i<strlen(text); i++) {
         if (swapad&&text[i]==0x0A&&(i==0||text[i-1]!=0x0D)) text[i]=0x0D;
         if (text[i]==9) result+="    ";
@@ -9273,6 +9274,7 @@ void PasteClipboard(bool bPressed) {
             result+=asc != NULL?std::string(asc):std::string(1, text[i]);
         }
     }
+    morelen=false;
     delete text;
     strPasteBuffer.append(result.c_str());
 }
