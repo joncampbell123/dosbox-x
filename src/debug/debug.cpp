@@ -2769,6 +2769,7 @@ bool ParseCommand(char* str) {
         DEBUG_ShowMsg("DOS EMS                   - Show EMS memory handles.\n");
         DEBUG_ShowMsg("DOS FNKEY                 - Show PC-98 FnKey mapping.\n");
         DEBUG_ShowMsg("BIOS MEM                  - Show BIOS memory blocks.\n");
+		DEBUG_ShowMsg("CALLBACKS                 - Show callbacks of interrupts.\n");
 		DEBUG_ShowMsg("INT [nr] / INTT [nr]      - Execute / Trace into interrupt.\n");
 #if C_HEAVY_DEBUG
 		DEBUG_ShowMsg("LOG [num]                 - Write CPU log file.\n");
@@ -2776,16 +2777,17 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("HEAVYLOG                  - Enable/Disable automatic CPU log when DOSBox-X exits.\n");
 		DEBUG_ShowMsg("ZEROPROTECT               - Enable/Disable zero code execution detection.\n");
 #endif
+		DEBUG_ShowMsg("ADDLOG [message]          - Add message to the log file.\n");
 		DEBUG_ShowMsg("SR [reg] [value]          - Set register value. Multiple pairs allowed.\n");
 		DEBUG_ShowMsg("SM [seg]:[off] [val] [.]..- Set memory with following values.\n");
         DEBUG_ShowMsg("EV [value [value] ...]    - Show register value(s).\n");
-	
 		DEBUG_ShowMsg("IV [seg]:[off] [name]     - Create var name for memory address.\n");
 		DEBUG_ShowMsg("SV [filename]             - Save var list in file.\n");
 		DEBUG_ShowMsg("LV [filename]             - Load var list from file.\n");
-		
-		DEBUG_ShowMsg("ADDLOG [message]          - Add message to the log file.\n");
 
+		DEBUG_ShowMsg("VGA cmd                   - VGA related debugging commands.\n");
+		DEBUG_ShowMsg("PC98 cmd                  - PC98 related debugging commands.\n");
+		DEBUG_ShowMsg("EMU MEM/MACHINE           - Show emulator memory or machine info.\n");
 		DEBUG_ShowMsg("MEMDUMP [seg]:[off] [len] - Write memory to file memdump.txt.\n");
 		DEBUG_ShowMsg("MEMDUMPBIN [s]:[o] [len]  - Write memory to file memdump.bin.\n");
 		DEBUG_ShowMsg("SELINFO [segName]         - Show selector info.\n");

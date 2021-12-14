@@ -132,6 +132,7 @@ LOGS <hexadecimal count>                    Log CPU state, short log, to LOGCPU.
 LOGL <hexadecimal count>                    Log CPU state, long log, to LOGCPU.TXT
 INTT <intnum>                               Trace interrupt
 INT <intnum>                                Start interrupt
+CALLBACKS                                   Show callbacks of interrupts.
 SELINFO <n>                                 Show selector information
 DOS MCBS                                    Dump DOS kernel MCB chain (conventional memory allocation chain)
 DOS KERN                                    Dump DOS kernel memory allocation list
@@ -143,10 +144,15 @@ LDT                                         Dump LDT (local descriptor table)
 IDT                                         Dump IDT (interrupt descriptor table)
 PAGING                                      Dump page table information
 CPU                                         Dump additional CPU information
+VGA cmd                                     VGA related debugging commands.
+PC98 cmd                                    PC98 related debugging commands.
+EMU MEM/MACHINE                             Show emulator memory or machine info.
 INTVEC <file>                               Dump interrupt vector table to <file>
 INTHAND <intnum>                            Set code view to start of interrupt handler
 EXTEND                                      Toggle additional information
 TIMERIRQ                                    Start timer IRQ
+TIME <time>                                 Display or change the internal time
+DATE <date>                                 Display or change the internal date
 HEAVYLOG                                    Toggle heavy CPU logging
 ZEROPROTECT                                 Toggle zero protection
 HELP                                        Show some debugger commands for reference
