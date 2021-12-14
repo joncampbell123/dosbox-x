@@ -36,6 +36,7 @@
 #include <fstream>
 
 DOS_Device * Devices[DOS_DEVICES] = {NULL};
+extern bool morelen;
 extern int dos_clipboard_device_access;
 extern const char * dos_clipboard_device_name;
 bool isDBCSCP(), shiftjis_lead_byte(int c);
@@ -390,20 +391,30 @@ uint8_t *clipAscii = NULL;
 uint32_t clipSize = 0, cPointer = 0, fPointer;
 
 #if defined(WIN32)
+bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 void Unicode2Ascii(const uint16_t* unicode) {
-	int memNeeded = WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:(dos.loaded_codepage==951?950:dos.loaded_codepage)), WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, NULL, 0, "\x07", NULL);
-	if (memNeeded <= 1)																// Includes trailing null
-		return;
-	if (!(clipAscii = (uint8_t *)malloc(memNeeded)))
-		return;
-	// Untranslated characters will be set to 0x07 (BEL), and later stripped
-	if (WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:(dos.loaded_codepage==951?950:dos.loaded_codepage)), WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, (LPSTR)clipAscii, memNeeded, "\x07", NULL) != memNeeded)
-		{																			// Can't actually happen of course
-		free(clipAscii);
-		clipAscii = NULL;
-		return;
-		}
-	memNeeded--;																	// Don't include trailing null
+    int memNeeded = 0;
+    char temp[4096];
+    morelen=true;
+    if (CodePageHostToGuestUTF16(temp,unicode) && (clipAscii = (uint8_t *)malloc(strlen(temp)+1))) {
+        morelen=false;
+        strcpy((char *)clipAscii, temp);
+        memNeeded = strlen(temp);
+    } else {
+        morelen=false;
+        int memNeeded = WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:(dos.loaded_codepage==951?950:dos.loaded_codepage)), WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, NULL, 0, "\x07", NULL);
+        if (memNeeded <= 1)																// Includes trailing null
+            return;
+        if (!(clipAscii = (uint8_t *)malloc(memNeeded)))
+            return;
+        // Untranslated characters will be set to 0x07 (BEL), and later stripped
+        if (WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:(dos.loaded_codepage==951?950:dos.loaded_codepage)), WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, (LPSTR)clipAscii, memNeeded, "\x07", NULL) != memNeeded) {																			// Can't actually happen of course
+            free(clipAscii);
+            clipAscii = NULL;
+            return;
+        }
+        memNeeded--;																	// Don't include trailing null
+    }
 	for (int i = 0; i < memNeeded; i++)
 		if (clipAscii[i] > 31 || clipAscii[i] == 9 || clipAscii[i] == 10 || clipAscii[i] == 13)	// Space and up, or TAB, CR/LF allowed (others make no sense when pasting)
 			clipAscii[clipSize++] = clipAscii[i];

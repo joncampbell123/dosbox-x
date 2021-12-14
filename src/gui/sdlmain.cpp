@@ -9379,23 +9379,45 @@ void PasteClipboard(bool bPressed) {
 #endif
 
 #ifdef WIN32
-void CopyClipboardW(int all) {
+void CopyClipboard(int all) {
 	uint16_t len=0;
 	const char* text = (char *)(all==2?Mouse_GetSelected(0,0,(int)(currentWindowWidth-1-sdl.clip.x),(int)(currentWindowHeight-1-sdl.clip.y),(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):(all==1?Mouse_GetSelected(selscol, selsrow, selecol, selerow, -1, -1, &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,sdl.clip.w,sdl.clip.h, &len)));
 	if (OpenClipboard(NULL)&&EmptyClipboard()) {
-		HGLOBAL clipbuffer = GlobalAlloc(GMEM_DDESHARE, (len+1)*2);
-		LPWSTR buffer = static_cast<LPWSTR>(GlobalLock(clipbuffer));
-		if (buffer!=NULL) {
-			int reqsize = MultiByteToWideChar(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:(dos.loaded_codepage==951?950:dos.loaded_codepage)), 0, text, len+1, NULL, 0);
-			if (reqsize>0 && MultiByteToWideChar(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:(dos.loaded_codepage==951?950:dos.loaded_codepage)), 0, text, len+1, buffer, reqsize)==reqsize) {
-				GlobalUnlock(clipbuffer);
-				SetClipboardData(CF_UNICODETEXT,clipbuffer);
-			}
-		}
-		CloseClipboard();
-	}
+        std::wstring result=L"";
+        std::istringstream iss(text);
+        uint16_t* wch, temp[4096];
+        morelen=true;
+        for (std::string token; std::getline(iss, token); ) {
+            if (CodePageGuestToHostUTF16(temp,token.c_str())) {
+                result+=(wchar_t *)temp;
+            } else {
+                int reqsize = MultiByteToWideChar(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:(dos.loaded_codepage==951?950:dos.loaded_codepage)), 0, token.c_str(), token.size()+1, NULL, 0);
+                if (reqsize>0) {
+                    wch = new uint16_t[reqsize+1];
+                    if (MultiByteToWideChar(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:(dos.loaded_codepage==951?950:dos.loaded_codepage)), 0, token.c_str(), token.size()+1, (LPWSTR)wch, reqsize)==reqsize) {
+                        result+=(wchar_t *)wch;
+                        delete[] wch;
+                        continue;
+                    } else
+                        delete[] wch;
+                }
+                wch = new uint16_t[token.size()+1];
+                mbstowcs((wchar_t *)wch, token.c_str(), token.size()+1);
+                result+=(wchar_t *)wch;
+                delete[] wch;
+            }
+        }
+        morelen=false;
+        HGLOBAL clipbuffer = GlobalAlloc(GMEM_DDESHARE, (result.size()+1)*sizeof(wchar_t));
+        LPWSTR buffer = static_cast<LPWSTR>(GlobalLock(clipbuffer));
+        if (buffer!=NULL) {
+            for (unsigned int i=0; i<result.size(); i++) buffer[i]=(wchar_t)result[i];
+            GlobalUnlock(clipbuffer);
+            SetClipboardData(CF_UNICODETEXT,clipbuffer);
+        }
+    }
+    CloseClipboard();
 }
-
 static BOOL WINAPI ConsoleEventHandler(DWORD event) {
     switch (event) {
     case CTRL_SHUTDOWN_EVENT:
@@ -9409,26 +9431,16 @@ static BOOL WINAPI ConsoleEventHandler(DWORD event) {
         return FALSE;
     }
 }
-#endif
-
-#if defined(C_SDL2) || defined(MACOSX)
+#elif defined(C_SDL2) || defined(MACOSX)
 bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 void CopyClipboard(int all) {
-#ifdef WIN32
-    if (!isDBCSCP()) {
-        CopyClipboardW(all);
-        return;
-    }
-#endif
 	uint16_t len=0;
 	char* text = (char *)(all==2?Mouse_GetSelected(0,0,currentWindowWidth-1-sdl.clip.x,currentWindowHeight-1-sdl.clip.y,(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len):(all==1?Mouse_GetSelected(selscol, selsrow, selecol, selerow, -1, -1, &len):Mouse_GetSelected(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,mouse_end_x-sdl.clip.x,mouse_end_y-sdl.clip.y,sdl.clip.w,sdl.clip.h, &len)));
-#ifndef WIN32
     unsigned int k=0;
     for (unsigned int i=0; i<len; i++)
         if (text[i]&&text[i]!=13)
             text[k++]=text[i];
     text[k]=0;
-#endif
     std::string result="";
     std::istringstream iss(text);
     char temp[4096];
@@ -9447,10 +9459,6 @@ void CopyClipboard(int all) {
 #else
     SetClipboard(result);
 #endif
-}
-#elif defined (WIN32)
-void CopyClipboard(int all) {
-    CopyClipboardW(all);
 }
 #endif
 
