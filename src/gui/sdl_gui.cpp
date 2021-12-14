@@ -924,13 +924,13 @@ protected:
     std::string str = "";
 public:
     EnterDebuggerCommand(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 400, 140, title) {
+        ToplevelWindow(parent, x, y, 400, 110 + GUI::titlebar_y_stop, title) {
         new GUI::Label(this, 5, 10, "Enter debugger command:");
-        cmd = new GUI::Input(this, 5, 30, 350);
+        cmd = new GUI::Input(this, 5, 30, width - 10 - border_left - border_right);
         cmd->setText("");
-        okButton=new GUI::Button(this, 100, 70, MSG_Get("OK"), 90);
+        okButton=new GUI::Button(this, 100, 65, MSG_Get("OK"), 90);
         okButton->addActionHandler(this);
-        cancelButton=new GUI::Button(this, 200, 70, MSG_Get("CANCEL"), 90);
+        cancelButton=new GUI::Button(this, 200, 65, MSG_Get("CANCEL"), 90);
         cancelButton->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
         cmd->raise();
@@ -1967,16 +1967,16 @@ protected:
     GUI::Input *name;
 public:
     SetVsyncrate(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 400, 150, title) {
+        ToplevelWindow(parent, x, y, 400, 100 + GUI::titlebar_y_stop, title) {
         new GUI::Label(this, 5, 10, "Enter vertical syncrate (Hz):");
-        name = new GUI::Input(this, 5, 30, 350);
+        name = new GUI::Input(this, 5, 30, width - 10 - border_left - border_right);
         Section_prop * sec = static_cast<Section_prop *>(control->GetSection("vsync"));
         if (sec)
             name->setText(sec->Get_string("vsyncrate"));
         else
             name->setText("");
-        (new GUI::Button(this, 100, 70, MSG_Get("OK"), 90))->addActionHandler(this);
-        (new GUI::Button(this, 200, 70, MSG_Get("CANCEL"), 90))->addActionHandler(this);
+        (new GUI::Button(this, 100, 60, MSG_Get("OK"), 90))->addActionHandler(this);
+        (new GUI::Button(this, 200, 60, MSG_Get("CANCEL"), 90))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
