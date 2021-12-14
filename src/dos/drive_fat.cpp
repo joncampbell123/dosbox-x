@@ -1523,7 +1523,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 						std::string name = std::string(pe.name,sizeof(pe.name));
 
 						LOG_MSG("Using IPL1 entry %lu name '%s' which starts at sector %lu",
-							(unsigned long)opt_partition_index,name.c_str(),(unsigned long)startSector);
+							(unsigned long)chosen_idx,name.c_str(),(unsigned long)startSector);
 					}
 
 					partition_index = chosen_idx;

@@ -1,4 +1,9 @@
 0.83.21
+  - Fix IPL1 partition choice debug message to actually
+    show the partition index chosen, not the -partidx
+    option variable, which if not given by the user, is
+    -1 and was reported as a very large unsigned
+    number. (joncampbell123)
   - Improved clipboard copying & pasting for different
     code pages on Windows systems. Also, for copying
     in J-3100 mode, the selected text will now be
