@@ -792,7 +792,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
                             text[len++]=result;
                         }
                         ReadCharAttr(rtl?ttf.cols-x-1:x,y,page,&result);
-                        if (curAC[rtl?ttf.cols-x-1:x].boxdraw) bdlist.push_back(len);
+                        if (curAC[rtl?ttf.cols-x-1:x].boxdraw||(!x&&curAC[rtl?ttf.cols-x:x+1].boxdraw)) bdlist.push_back(len);
                         text[len++]=result;
                         if ((int)x==c2&&c2<(int)(ttf.cols-1)&&curAC[rtl?ttf.cols-x-1:x].doublewide&&!curAC[rtl?ttf.cols-x:x+1].selected&&curAC[rtl?ttf.cols-x:x+1].skipped) {
                             ReadCharAttr(rtl?ttf.cols-x:x+1,y,page,&result);
@@ -853,7 +853,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 #if defined(USE_TTF)
                     if (ttfuse&&isDBCSCP()&&dbcs_sbcs) {
                         ttf_cell *curAC = curAttrChar+i*ttfcols;
-                        if (curAC[rtl?ttfcols-j-1:j].boxdraw) bdlist.push_back(len);
+                        if (curAC[rtl?ttfcols-j-1:j].boxdraw||(!j&&curAC[rtl?ttf.cols-j:j+1].boxdraw)) bdlist.push_back(len);
                     }
 #endif
                     text[len++]=result;

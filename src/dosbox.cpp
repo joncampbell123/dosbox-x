@@ -4025,7 +4025,7 @@ void DOSBOX_SetupConfigSections(void) {
             "   direct    Non-standard behavior, encode the CALL FAR directly to the entry point rather than indirectly");
 
     Pbool = secprop->Add_bool("share",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Report SHARE.EXE as resident. This will allow file locking to be performed, although not all SHARE functions are emulated.");
+    Pbool->Set_help("Reports SHARE.EXE as resident and provides functions such as file-locking and record-locking, although not all SHARE functions are emulated.");
     Pbool->SetBasic(true);
 
     Pint = secprop->Add_int("file access tries",Property::Changeable::WhenIdle,0);
