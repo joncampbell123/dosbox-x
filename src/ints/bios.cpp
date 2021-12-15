@@ -5523,11 +5523,11 @@ static Bitu INT8_Handler(void) {
 #endif
     }
 
-    /* decrease floppy motor timer */
+    /* decrement FDD motor timeout counter; roll over on earlier PC, stop at zero on later PC */
     uint8_t val = mem_readb(BIOS_DISK_MOTOR_TIMEOUT);
-    if (val) mem_writeb(BIOS_DISK_MOTOR_TIMEOUT,val-1);
-    /* and running drive */
-    mem_writeb(BIOS_DRIVE_RUNNING,mem_readb(BIOS_DRIVE_RUNNING) & 0xF0);
+    if (val || !IS_EGAVGA_ARCH) mem_writeb(BIOS_DISK_MOTOR_TIMEOUT,val-1);
+    /* clear FDD motor bits when counter reaches zero */
+    if (val == 1) mem_writeb(BIOS_DRIVE_RUNNING,mem_readb(BIOS_DRIVE_RUNNING) & 0xF0);
     return CBRET_NONE;
 }
 #undef DOSBOX_CLOCKSYNC

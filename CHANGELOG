@@ -81,6 +81,10 @@
   - Fixed command-line parameters (when launching
     DOSBox-X) containing Chinese characters in code page
     950 not working in Windows SDL2 builds. (Wengier)
+  - Integrated commits from mainline (Allofich)
+    - Improve BIOS FDD motor timeout counter, most
+    notably for earlier PCs. Fixes a Chinese variant
+    of Space Harrier.
 0.83.20
   - Release notes for this version:
     https://dosbox-x.com/release-0.83.20.html
