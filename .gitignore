@@ -341,7 +341,7 @@ contrib/linux/com.dosbox_x.DOSBox-X.metainfo.xml
 *.a
 *.la
 *.deps
-dosbox-x
+src/dosbox-x
 Makefile
 
 doxygen
