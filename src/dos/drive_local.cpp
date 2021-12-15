@@ -146,10 +146,12 @@ static uint16_t ldid[256];
 static std::string ldir[256];
 static std::string hostname = "";
 extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
-extern bool rsize, morelen, force_sfn, enable_share_exe, chinasea, uao, halfwidthkana;
+extern bool rsize, morelen, force_sfn, enable_share_exe, chinasea, uao, halfwidthkana, forceswk;
 extern int lfn_filefind_handle, freesizecap, file_access_tries;
 extern unsigned long totalc, freec;
 uint16_t customcp_to_unicode[256], altcp_to_unicode[256];
+extern uint16_t cpMap_PC98[256];
+extern std::map<int, int> lowboxdrawmap;
 
 bool String_ASCII_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     const uint16_t* df = d + CROSS_LEN * (morelen?4:1) - 1;
@@ -186,9 +188,6 @@ bool String_ASCII_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) 
     return true;
 }
 
-extern bool forceswk;
-extern uint16_t cpMap_PC98[256];
-extern std::map<int, int> lowboxdrawmap;
 template <class MT> bool String_SBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *map,const size_t map_max) {
     const uint16_t* df = d + CROSS_LEN * (morelen?4:1) - 1;
 	const char *sf = s + CROSS_LEN * (morelen?4:1) - 1;
@@ -202,7 +201,7 @@ template <class MT> bool String_SBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,cons
             if (ic>=0xA1&&ic<=0xDF) wc = cpMap_PC98[ic];
             else {
                 std::map<int, int>::iterator it = lowboxdrawmap.find(ic);
-                wc = map[lowboxdrawmap.find(ic)==lowboxdrawmap.end()?ic:it->second];
+                wc = map[it==lowboxdrawmap.end()?ic:it->second];
             }
         } else
 #endif
@@ -239,6 +238,7 @@ template <class MT> bool String_SBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const cha
 
 uint16_t baselen = 0;
 std::list<uint16_t> bdlist = {};
+extern uint16_t cpMap_AX[32];
 /* needed for Wengier's TTF output and CJK mode */
 template <class MT> bool String_DBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
     const uint16_t* df = d + CROSS_LEN * (morelen?4:1) - 1;
@@ -246,8 +246,21 @@ template <class MT> bool String_DBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,cons
     const char *ss = s;
 
     while (*s != 0 && s < sf) {
+#if defined(USE_TTF)
         if (morelen && !(dos.loaded_codepage == 932 && halfwidthkana) && (std::find(bdlist.begin(), bdlist.end(), (uint16_t)(baselen + s - ss)) != bdlist.end() || (isKanji1(*s) && (!(*(s+1)) || !isKanji2(*(s+1)))))) {
             *d++ = cp437_to_unicode[(uint8_t)*s++];
+            continue;
+        } else
+#endif
+            if (morelen && IS_JEGA_ARCH && (uint8_t)(*s) && (uint8_t)(*s)<32) {
+            *d++ = cpMap_AX[(uint8_t)*s++];
+            continue;
+        } else if (morelen && dos.loaded_codepage == 932
+#if defined(USE_TTF)
+        && halfwidthkana
+#endif
+        && !IS_PC98_ARCH && !IS_JEGA_ARCH && lowboxdrawmap.find(*s)!=lowboxdrawmap.end()) {
+            *d++ = cp437_to_unicode[(uint8_t)lowboxdrawmap.find(*s++)->second];
             continue;
         }
         uint16_t ic = (unsigned char)(*s++);
@@ -281,10 +294,12 @@ template <class MT> bool String_DBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const cha
     const char *ss = s;
 
     while (*s != 0 && s < sf) {
+#if defined(USE_TTF)
         if (morelen && !(dos.loaded_codepage == 932 && halfwidthkana) && (std::find(bdlist.begin(), bdlist.end(), (uint16_t)(baselen + s - ss)) != bdlist.end() || (isKanji1(*s) && (!(*(s+1)) || !isKanji2(*(s+1))))) && utf8_encode(&d,df,(uint32_t)cp437_to_unicode[(uint8_t)*s]) >= 0) {
             s++;
             continue;
         }
+#endif
         uint16_t ic = (unsigned char)(*s++);
         if ((dos.loaded_codepage==932 &&((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0)) || ((dos.loaded_codepage==936 || dos.loaded_codepage==949 || dos.loaded_codepage==950 || dos.loaded_codepage==951) && (ic & 0x80) == 0x80)) {
             if (*s == 0) return false;
@@ -358,9 +373,35 @@ template <class MT> bool String_HOST_TO_DBCS_UTF16(char *d/*CROSS_LEN*/,const ui
     while (*s != 0 && s < sf) {
         int ic;
         ic = (int)(*s++);
+#if defined(USE_TTF)
         if (morelen && !(dos.loaded_codepage == 932 && halfwidthkana) && ic>=0x2550 && ic<=0x2569) {
             *d++ = SBCS_From_Host_Find<MT>(ic,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
             continue;
+        } else
+#endif
+            if (morelen && dos.loaded_codepage == 932
+#if defined(USE_TTF)
+            && halfwidthkana
+#endif
+            && !IS_PC98_ARCH && !IS_JEGA_ARCH) {
+            int wc = SBCS_From_Host_Find<MT>(ic,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            bool found = false;
+            for (auto it = lowboxdrawmap.begin(); it != lowboxdrawmap.end(); ++it)
+                if (it->second == wc) {
+                    *d++ = it->first;
+                    found = true;
+                    break;
+                }
+            if (found) continue;
+        } else if (morelen && IS_JEGA_ARCH) {
+            bool found = false;
+            for (uint8_t i=1; i<32; i++)
+                if (cpMap_AX[i] == ic) {
+                    *d++ = i;
+                    found = true;
+                    break;
+                }
+            if (found) continue;
         }
 
         int oc = DBCS_From_Host_Find<MT>(ic,hitbl,rawtbl,rawtbl_max);
@@ -392,11 +433,12 @@ template <class MT> bool String_HOST_TO_DBCS_UTF8(char *d/*CROSS_LEN*/,const cha
         int ic;
         if ((ic=utf8_decode(&s,sf)) < 0)
             return false; // non-representable
+#if defined(USE_TTF)
         if (morelen && !(dos.loaded_codepage == 932 && halfwidthkana) && ic>=0x2550 && ic<=0x2569) {
             *d++ = SBCS_From_Host_Find<MT>(ic,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
             continue;
         }
-
+#endif
         int oc = DBCS_From_Host_Find<MT>(ic,hitbl,rawtbl,rawtbl_max);
         if (oc < 0)
             return false; // non-representable

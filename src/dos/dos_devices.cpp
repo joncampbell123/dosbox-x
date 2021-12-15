@@ -36,7 +36,8 @@
 #include <fstream>
 
 DOS_Device * Devices[DOS_DEVICES] = {NULL};
-extern bool morelen;
+extern std::map<int, int> lowboxdrawmap;
+extern bool morelen, halfwidthkana;
 extern int dos_clipboard_device_access;
 extern const char * dos_clipboard_device_name;
 bool isDBCSCP(), shiftjis_lead_byte(int c);
@@ -392,33 +393,36 @@ uint32_t clipSize = 0, cPointer = 0, fPointer;
 
 #if defined(WIN32)
 bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
-void Unicode2Ascii(const uint16_t* unicode) {
+bool Unicode2Ascii(const uint16_t* unicode) {
     int memNeeded = 0;
     char temp[4096];
+    bool ret=false;
     morelen=true;
     if (CodePageHostToGuestUTF16(temp,unicode) && (clipAscii = (uint8_t *)malloc(strlen(temp)+1))) {
         morelen=false;
+        ret=true;
         strcpy((char *)clipAscii, temp);
         memNeeded = strlen(temp);
     } else {
         morelen=false;
         int memNeeded = WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:(dos.loaded_codepage==951?950:dos.loaded_codepage)), WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, NULL, 0, "\x07", NULL);
         if (memNeeded <= 1)																// Includes trailing null
-            return;
+            return false;
         if (!(clipAscii = (uint8_t *)malloc(memNeeded)))
-            return;
+            return false;
         // Untranslated characters will be set to 0x07 (BEL), and later stripped
         if (WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:(dos.loaded_codepage==951?950:dos.loaded_codepage)), WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, (LPSTR)clipAscii, memNeeded, "\x07", NULL) != memNeeded) {																			// Can't actually happen of course
             free(clipAscii);
             clipAscii = NULL;
-            return;
+            return false;
         }
         memNeeded--;																	// Don't include trailing null
     }
 	for (int i = 0; i < memNeeded; i++)
-		if (clipAscii[i] > 31 || clipAscii[i] == 9 || clipAscii[i] == 10 || clipAscii[i] == 13)	// Space and up, or TAB, CR/LF allowed (others make no sense when pasting)
+		if (clipAscii[i] > 31 || clipAscii[i] == 9 || clipAscii[i] == 10 || clipAscii[i] == 13 // Space and up, or TAB, CR/LF allowed (others make no sense when pasting)
+            || (dos.loaded_codepage == 932 && halfwidthkana && ((IS_JEGA_ARCH && clipAscii[i] && clipAscii[i] < 32) || (!IS_PC98_ARCH && lowboxdrawmap.find(clipAscii[i])!=lowboxdrawmap.end()))))
 			clipAscii[clipSize++] = clipAscii[i];
-	return;																			// clipAscii dould be downsized, but of no real interest
+	return ret;																			// clipAscii dould be downsized, but of no real interest
 }
 #else
 typedef char host_cnv_char_t;

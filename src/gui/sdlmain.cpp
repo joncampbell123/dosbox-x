@@ -5372,8 +5372,12 @@ uint16_t cpMap_copy[256];
 void initcodepagefont();
 bool copied=false, forceswk=false;
 std::map<int, int> lowboxdrawmap {
-    {1, 218}, {2, 191}, {3, 192}, {4, 217}, {5, 179}, {6, 196}, {0xe, 178},
-    {0x10, 197}, {0x14, 177}, {0x15, 193}, {0x16, 194}, {0x17, 180}, {0x19, 195}, {0x1a, 176},
+    {1, 201}, {2, 187}, {3, 200}, {4, 188}, {5, 186}, {6, 205}, {0xe, 178},
+    {0x10, 206}, {0x14, 177}, {0x15, 202}, {0x16, 203}, {0x17, 185}, {0x19, 204}, {0x1a, 176},
+};
+std::map<uint16_t, uint8_t> pc98boxmap {
+    {0x260B, 0xB3}, {0x4C0B, 0xB6}, {0x270B, 0xBA}, {0x370B, 0xBB}, {0x3F0B, 0xBC}, {0x340B, 0xBF}, {0x380B, 0xC0},
+    {0x240B, 0xC4}, {0x440B, 0xC7}, {0x3B0B, 0xC8}, {0x330B, 0xC9}, {0x250B, 0xCD}, {0x3C0B, 0xD9}, {0x300B, 0xDA},
 };
 uint16_t cpMap_AX[32] = {
 	0x0020, 0x00b6, 0x2195, 0x2194, 0x2191, 0x2193, 0x2192, 0x2190, 0x2500, 0x2502, 0x250c, 0x2510, 0x2518, 0x2514, 0x251c, 0x252c,
@@ -7409,12 +7413,18 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 		if (!sdl.mouse.locked && ((mbutton==2 && button->button == SDL_BUTTON_MIDDLE) || (mbutton==3 && button->button == SDL_BUTTON_RIGHT)) && mouse_start_x >= 0 && mouse_start_y >= 0) {
 			mouse_end_x=motion->x;
 			mouse_end_y=motion->y;
-			if (mouse_start_x == mouse_end_x && mouse_start_y == mouse_end_y)
+			if (mouse_start_x == mouse_end_x && mouse_start_y == mouse_end_y) {
 				PasteClipboard(true);
-			else {
-				if (abs(mouse_end_x - mouse_start_x) + abs(mouse_end_y - mouse_start_y)<5)
+#ifdef USE_TTF
+				if (ttf.inUse) resetFontSize();
+#endif
+			} else {
+				if (abs(mouse_end_x - mouse_start_x) + abs(mouse_end_y - mouse_start_y)<5) {
 					PasteClipboard(true);
-				else
+#ifdef USE_TTF
+					if (ttf.inUse) resetFontSize();
+#endif
+				} else
 					CopyClipboard(0);
 				if (fx >= 0 && fy >= 0)
 					Mouse_Select(mouse_start_x-sdl.clip.x,mouse_start_y-sdl.clip.y,fx-sdl.clip.x,fy-sdl.clip.y,sdl.clip.w,sdl.clip.h, false);
@@ -9148,7 +9158,7 @@ static bool PasteClipboardNext() {
 #if defined(WIN32) && !defined(C_SDL2) && !defined(__MINGW32__)
 extern uint8_t* clipAscii;
 extern uint32_t clipSize;
-extern void Unicode2Ascii(const uint16_t* unicode);
+extern bool Unicode2Ascii(const uint16_t* unicode);
 
 void PasteClipboard(bool bPressed)
 {
@@ -9166,9 +9176,13 @@ void PasteClipboard(bool bPressed)
     if (szClipboard)
     {
 		clipSize=0;
-		Unicode2Ascii(szClipboard);
+		bool ret=Unicode2Ascii(szClipboard);
         unsigned long j=0;
-        for (size_t i = 0; i < clipSize; ++i) if (clipAscii[i] == 9) j++;
+        for (size_t i = 0; i < clipSize; ++i) {
+            if (clipAscii[i] == 9) j++;
+            else if (ret&&clipAscii[i]==0x0A&&(i==0||clipAscii[i-1]!=0x0D)) clipAscii[i]=0x0D;
+        }
+        if (ret&&clipAscii[clipSize-1]==0xD) clipAscii[--clipSize]=0;
         // Create a copy of the string, and filter out Linefeed characters (ASCII '10')
         char* szFilteredText = reinterpret_cast<char*>(alloca(clipSize + j*3 + 1));
         char* szFilterNextChar = szFilteredText;
@@ -9196,7 +9210,7 @@ void PasteClipboard(bool bPressed)
 #if defined(WIN32) // SDL2, MinGW / Added by Wengier
 extern uint8_t* clipAscii;
 extern uint32_t clipSize;
-extern void Unicode2Ascii(const uint16_t* unicode);
+extern bool Unicode2Ascii(const uint16_t* unicode);
 void PasteClipboard(bool bPressed) {
 	if (!bPressed||!OpenClipboard(NULL)) return;
     if (!IsClipboardFormatAvailable(CF_UNICODETEXT)) {CloseClipboard();return;}
@@ -9206,9 +9220,13 @@ void PasteClipboard(bool bPressed) {
     if (szClipboard)
     {
 		clipSize=0;
-		Unicode2Ascii(szClipboard);
+		bool ret=Unicode2Ascii(szClipboard);
         unsigned long j=0;
-        for (size_t i = 0; i < clipSize; ++i) if (clipAscii[i] == 9) j++;
+        for (size_t i = 0; i < clipSize; ++i) {
+            if (clipAscii[i] == 9) j++;
+            else if (ret&&clipAscii[i]==0xA&&(i==0||clipAscii[i-1]!=0xD)) clipAscii[i]=0xD;
+        }
+        if (ret&&clipAscii[clipSize-1]==0xD) clipAscii[--clipSize]=0;
         char* szFilteredText = reinterpret_cast<char*>(alloca(clipSize + j*3 + 1));
         char* szFilterNextChar = szFilteredText;
         for (size_t i = 0; i < clipSize; ++i)

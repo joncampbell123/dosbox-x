@@ -3407,6 +3407,7 @@ bool isDBCSLB(uint8_t chr) {
 }
 
 uint8_t ccount = 0;
+extern std::map<uint16_t, uint8_t> pc98boxmap;
 static void VGA_VerticalTimer(Bitu /*val*/) {
     double current_time = PIC_GetCurrentEventTime();
 
@@ -3934,19 +3935,18 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         /* Single wide, yet DBCS encoding.
                          * This includes proprietary box characters specific to PC-98 */
                         // Manually convert box characters to Unicode for now
-                        if (*charram==0x330B) // top-left
-                            (*draw).chr=0x250C;
-                        else if (*charram==0x370B) // top-right
-                            (*draw).chr=0x2510;
-                        else if (*charram==0x3B0B) // buttom-left
-                            (*draw).chr=0x2514;
-                        else if (*charram==0x3F0B) // buttom-right
-                            (*draw).chr=0x2518;
-                        else if (*charram==0x250B) // '-'
-                            (*draw).chr=0x2500;
-                        else if (*charram==0x270B) // '|'
-                            (*draw).chr=0x2502;
-                        else
+                        std::map<uint16_t, uint8_t>::iterator it = pc98boxmap.find(*charram);
+                        if (it!=pc98boxmap.end()) {
+                            dos.loaded_codepage = 437;
+                            char text[3];
+                            text[0]=it->second;
+                            text[1]=0;
+                            uname[0]=0;
+                            uname[1]=0;
+                            CodePageGuestToHostUTF16(uname,text);
+                            (*draw).chr=uname[0]!=0&&uname[1]==0?uname[0]:' ';
+                            dos.loaded_codepage = 932;
+                        } else
                             (*draw).chr=' ';
                         (*draw).unicode=1;
                     }
