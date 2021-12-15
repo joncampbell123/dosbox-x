@@ -3407,6 +3407,7 @@ bool isDBCSLB(uint8_t chr) {
 }
 
 uint8_t ccount = 0;
+extern std::map<int, int> lowboxdrawmap;
 extern std::map<uint16_t, uint8_t> pc98boxmap;
 static void VGA_VerticalTimer(Bitu /*val*/) {
     double current_time = PIC_GetCurrentEventTime();
@@ -4101,6 +4102,12 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                     }
                                 }
                             }
+                        } else if (dos.loaded_codepage == 932 && !IS_JEGA_ARCH && !halfwidthkana) {
+                            for (auto it = lowboxdrawmap.begin(); it != lowboxdrawmap.end(); ++it)
+                                if (it->second == (int)(*draw).chr) {
+                                    (*draw).boxdraw = 1;
+                                    break;
+                                }
                         }
                         Bitu attr = (*vidmem >> 8u) & 0xFFu;
                         vidmem+=2; // because planar EGA/VGA, and odd/even mode as real hardware arranges alphanumeric mode in VRAM
@@ -4191,6 +4198,12 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                     }
                                 }
                             }
+                        } else if (dos.loaded_codepage == 932 && !IS_JEGA_ARCH && !halfwidthkana) {
+                            for (auto it = lowboxdrawmap.begin(); it != lowboxdrawmap.end(); ++it)
+                                if (it->second == (int)(*draw).chr) {
+                                    (*draw).boxdraw = 1;
+                                    break;
+                                }
                         }
                         Bitu attr = (*vidmem >> 8u) & 0xFFu;
                         vidmem++;

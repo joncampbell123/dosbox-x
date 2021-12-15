@@ -298,8 +298,26 @@ template <class MT> bool String_DBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const cha
         if (morelen && !(dos.loaded_codepage == 932 && halfwidthkana) && (std::find(bdlist.begin(), bdlist.end(), (uint16_t)(baselen + s - ss)) != bdlist.end() || (isKanji1(*s) && (!(*(s+1)) || !isKanji2(*(s+1))))) && utf8_encode(&d,df,(uint32_t)cp437_to_unicode[(uint8_t)*s]) >= 0) {
             s++;
             continue;
-        }
+        } else
 #endif
+        if (morelen && IS_JEGA_ARCH && (uint8_t)(*s) && (uint8_t)(*s)<32) {
+            uint16_t oc = cpMap_AX[(uint8_t)*s];
+            if (utf8_encode(&d,df,(uint32_t)oc) >= 0) {
+                s++;
+                continue;
+            }
+        } else if (morelen && dos.loaded_codepage == 932
+#if defined(USE_TTF)
+        && halfwidthkana
+#endif
+        && !IS_PC98_ARCH && !IS_JEGA_ARCH && lowboxdrawmap.find(*s)!=lowboxdrawmap.end()) {
+            uint16_t oc = cp437_to_unicode[(uint8_t)lowboxdrawmap.find(*s)->second];
+            if (utf8_encode(&d,df,(uint32_t)oc) >= 0) {
+                s++;
+                continue;
+            }
+        }
+
         uint16_t ic = (unsigned char)(*s++);
         if ((dos.loaded_codepage==932 &&((ic & 0xE0) == 0x80 || (ic & 0xE0) == 0xE0)) || ((dos.loaded_codepage==936 || dos.loaded_codepage==949 || dos.loaded_codepage==950 || dos.loaded_codepage==951) && (ic & 0x80) == 0x80)) {
             if (*s == 0) return false;
@@ -437,8 +455,37 @@ template <class MT> bool String_HOST_TO_DBCS_UTF8(char *d/*CROSS_LEN*/,const cha
         if (morelen && !(dos.loaded_codepage == 932 && halfwidthkana) && ic>=0x2550 && ic<=0x2569) {
             *d++ = SBCS_From_Host_Find<MT>(ic,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
             continue;
-        }
+        } else
 #endif
+            if (morelen && dos.loaded_codepage == 932
+#if defined(USE_TTF)
+            && halfwidthkana
+#endif
+            && !IS_PC98_ARCH && !IS_JEGA_ARCH) {
+            int wc = SBCS_From_Host_Find<MT>(ic,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            uint16_t j = 0;
+            for (auto it = lowboxdrawmap.begin(); it != lowboxdrawmap.end(); ++it)
+                if (it->second == wc) {
+                    j = it->first;
+                    break;
+                }
+            if (j && utf8_encode(&d,df,(uint32_t)j) >= 0) {
+                s++;
+                continue;
+            }
+        } else if (morelen && IS_JEGA_ARCH) {
+            bool found = false;
+            uint8_t j = 0;
+            for (uint8_t i=1; i<32; i++)
+                if (cpMap_AX[i] == ic) {
+                    j = i;
+                    break;
+                }
+            if (j && utf8_encode(&d,df,(uint32_t)j) >= 0) {
+                s++;
+                continue;
+            }
+        }
         int oc = DBCS_From_Host_Find<MT>(ic,hitbl,rawtbl,rawtbl_max);
         if (oc < 0)
             return false; // non-representable
