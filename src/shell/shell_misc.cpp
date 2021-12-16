@@ -56,7 +56,7 @@ extern uint16_t cmd_line_seg;
 #if defined(USE_TTF)
 extern bool ttf_dosv;
 #endif
-
+extern std::map<uint8_t, uint8_t> pc98boxconvert;
 void DOS_Shell::ShowPrompt(void) {
 	char dir[DOS_PATHLENGTH];
 	dir[0] = 0; //DOS_GetCurrentDir doesn't always return something. (if drive is messed up)
@@ -323,6 +323,63 @@ static uint16_t GetWideCount(char *line, uint16_t str_index)
 	return count;
 }
 
+static uint16_t GetLastCount(char *line, uint16_t str_index)
+{
+	bool kanji_flag = false;
+	uint16_t count = 1;
+	for(uint16_t pos = 0 ; pos < str_index ; pos++) {
+		if(!kanji_flag) {
+			if(isKanji1(line[pos])) {
+				kanji_flag = true;
+			}
+			count = 1;
+		} else {
+			if(isKanji2(line[pos])) {
+				bool found=false;
+				if (IS_PC98_ARCH && line[pos-1] == 0xFFFFFF86) {
+                    for (auto it = pc98boxconvert.begin(); it != pc98boxconvert.end(); ++it)
+                        if (it->second ==line[pos]) {
+                            found=true;
+                            break;
+                        }
+                }
+				if (!found) count = 2;
+			}
+			kanji_flag = false;
+		}
+	}
+	return count;
+}
+
+static uint16_t GetRemoveCount(char *line, uint16_t str_index)
+{
+	bool kanji_flag = false;
+	uint16_t count = 1, total = 0;
+	for(uint16_t pos = 0 ; pos < str_index ; pos++) {
+		if(!kanji_flag) {
+			if(isKanji1(line[pos])) {
+				kanji_flag = true;
+			}
+			count = 1;
+		} else {
+			if(isKanji2(line[pos])) {
+				bool found=false;
+				if (IS_PC98_ARCH && line[pos-1] == 0xFFFFFF86) {
+                    for (auto it = pc98boxconvert.begin(); it != pc98boxconvert.end(); ++it)
+                        if (it->second ==line[pos]) {
+                            found=true;
+                            break;
+                        }
+                }
+				count = found?0:1;
+			}
+			kanji_flag = false;
+		}
+		total += count;
+	}
+	return total;
+}
+
 static void RemoveAllChar(char *line, uint16_t str_index)
 {
 	for ( ; str_index > 0 ; str_index--) {
@@ -340,12 +397,11 @@ static void RemoveAllChar(char *line, uint16_t str_index)
 
 static uint16_t DeleteBackspace(bool delete_flag, char *line, uint16_t &str_index, uint16_t &str_len)
 {
-	uint16_t count, pos;
-	uint16_t len;
+	uint16_t count, pos, len;
 
 	pos = str_index;
 	if(delete_flag) {
-		if(isKanji1(line[pos])) {
+		if(isKanji1(line[pos])&&line[pos+1]) {
 			pos += 2;
 		} else {
 			pos += 1;
@@ -361,7 +417,7 @@ static uint16_t DeleteBackspace(bool delete_flag, char *line, uint16_t &str_inde
 	}
 	if (delete_flag && str_index >= str_len)
 		return 0;
-	RemoveAllChar(line, str_len);
+	RemoveAllChar(line, GetRemoveCount(line, pos));
 	pos = delete_flag ? str_index : str_index - count;
 	while(pos < str_len - count) {
 		line[pos] = line[pos + count];
@@ -374,7 +430,7 @@ static uint16_t DeleteBackspace(bool delete_flag, char *line, uint16_t &str_inde
 	str_len -= count;
 	len = str_len;
 	DOS_WriteFile(STDOUT, (uint8_t *)line, &len);
-	pos = str_len;
+	pos = GetRemoveCount(line, str_len);
 	while(pos > str_index) {
 		backone();
 		if(CheckHat(line[pos - 1])) {
@@ -563,11 +619,13 @@ void DOS_Shell::InputCommand(char * line) {
 #endif
                     && IS_DOS_JAPANESE)) {
                     if (str_index) {
-                        uint16_t count = GetWideCount(line, str_index);
+                        uint16_t count = GetLastCount(line, str_index);
                         uint8_t ch = line[str_index - 1];
                         while(count > 0) {
+                            uint16_t wide = GetWideCount(line, str_index);
                             backone();
                             str_index --;
+                            if (wide > count) str_index --;
                             count--;
                         }
                         if(CheckHat(ch)) {
@@ -646,7 +704,7 @@ void DOS_Shell::InputCommand(char * line) {
                     if (str_index < str_len) {
                         uint16_t count = 1;
                         if(str_index < str_len - 1) {
-                            count = GetWideCount(line, str_index + 2);
+                            count = GetLastCount(line, str_index + 2);
                         }
                         while(count > 0) {
                             outc(line[str_index++]);
@@ -965,15 +1023,35 @@ void DOS_Shell::InputCommand(char * line) {
                 //      DOSBox / DOSBox-X have always acted as if DOSKEY is loaded in a fashion, so
                 //      we'll emulate DOSKEY behavior here.
                 while (str_index < str_len) {
+                    uint16_t count = 1, wide = 1;
+                    if(IS_PC98_ARCH || (isDBCSCP()
+#if defined(USE_TTF)
+                        && dbcs_sbcs
+#endif
+                        && IS_DOS_JAPANESE)) {
+                            count = GetLastCount(line, str_index+1);
+                            wide = GetWideCount(line, str_index+1);
+                    }
                     outc(' ');
                     str_index++;
+                    if (wide > count) str_index ++;
                 }
                 while (str_index > 0) {
+                    uint16_t count = 1, wide = 1;
+                if(IS_PC98_ARCH || (isDBCSCP()
+#if defined(USE_TTF)
+                    && dbcs_sbcs
+#endif
+                    && IS_DOS_JAPANESE)) {
+                        count = GetLastCount(line, str_index);
+                        wide = GetWideCount(line, str_index);
+                    }
                     backone();
                     outc(' ');
                     backone();
                     MoveCaretBackwards();
                     str_index--;
+                    if (wide > count) str_index --;
                 }
 
                 *line = 0;      // reset the line.
@@ -1015,7 +1093,7 @@ void DOS_Shell::InputCommand(char * line) {
                         outc(line[pos]);
                         pos++;
                     }
-                    pos = str_len;
+                    pos = GetRemoveCount(line, str_len);
                     while(pos > str_index) {
                         backone();
                         pos--;

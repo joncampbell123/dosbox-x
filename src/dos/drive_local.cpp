@@ -154,6 +154,7 @@ extern uint16_t cpMap_AX[32];
 extern uint16_t cpMap_PC98[256];
 extern std::map<int, int> lowboxdrawmap;
 extern std::map<uint16_t, uint8_t> pc98boxmap;
+extern std::map<uint8_t, uint8_t> pc98boxconvert;
 
 bool String_ASCII_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     const uint16_t* df = d + CROSS_LEN * (morelen?4:1) - 1;
@@ -435,29 +436,10 @@ template <class MT> bool String_HOST_TO_DBCS_UTF16(char *d/*CROSS_LEN*/,const ui
             if (found) continue;
         } else if (morelen && IS_PC98_ARCH && ic > 0xFF) {
             int wc = SBCS_From_Host_Find<MT>(ic,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
-            if (wc == 0xBA) {
+            std::map<uint8_t, uint8_t>::iterator it = pc98boxconvert.find(wc);
+            if (it != pc98boxconvert.end()) {
                 *d++ = 0x86;
-                *d++ = 0x46;
-                continue;
-            } else if (wc == 0xBB) {
-                *d++ = 0x86;
-                *d++ = 0x56;
-                continue;
-            } else if (wc == 0xBC) {
-                *d++ = 0x86;
-                *d++ = 0x5E;
-                continue;
-            } else if (wc == 0xCD) {
-                *d++ = 0x86;
-                *d++ = 0x44;
-                continue;
-            } else if (wc == 0xC9) {
-                *d++ = 0x86;
-                *d++ = 0x52;
-                continue;
-            } else if (wc == 0xC8) {
-                *d++ = 0x86;
-                *d++ = 0x5A;
+                *d++ = it->second;
                 continue;
             }
         } else if (morelen && IS_JEGA_ARCH) {
@@ -524,29 +506,10 @@ template <class MT> bool String_HOST_TO_DBCS_UTF8(char *d/*CROSS_LEN*/,const cha
             }
         } else if (morelen && IS_PC98_ARCH && ic > 0xFF) {
             int wc = SBCS_From_Host_Find<MT>(ic,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
-            if (wc == 0xBA) {
+            std::map<uint8_t, uint8_t>::iterator it = pc98boxconvert.find(wc);
+            if (it != pc98boxconvert.end()) {
                 *d++ = 0x86;
-                *d++ = 0x46;
-                continue;
-            } else if (wc == 0xBB) {
-                *d++ = 0x86;
-                *d++ = 0x56;
-                continue;
-            } else if (wc == 0xBC) {
-                *d++ = 0x86;
-                *d++ = 0x5E;
-                continue;
-            } else if (wc == 0xCD) {
-                *d++ = 0x86;
-                *d++ = 0x44;
-                continue;
-            } else if (wc == 0xC9) {
-                *d++ = 0x86;
-                *d++ = 0x52;
-                continue;
-            } else if (wc == 0xC8) {
-                *d++ = 0x86;
-                *d++ = 0x5A;
+                *d++ = it->second;
                 continue;
             }
         } else if (morelen && IS_JEGA_ARCH) {
