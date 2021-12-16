@@ -3935,7 +3935,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                     if ((*charram & 0x7Cu) == 0x08u) {
                         /* Single wide, yet DBCS encoding.
                          * This includes proprietary box characters specific to PC-98 */
-                        // Manually convert box characters to Unicode for now
+                        // Convert box characters to Unicode (incomplete for now)
                         std::map<uint16_t, uint8_t>::iterator it = pc98boxmap.find(*charram);
                         if (it!=pc98boxmap.end()) {
                             dos.loaded_codepage = 437;
@@ -4102,13 +4102,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                     }
                                 }
                             }
-                        } else if (dos.loaded_codepage == 932 && !IS_JEGA_ARCH && !halfwidthkana) {
-                            for (auto it = lowboxdrawmap.begin(); it != lowboxdrawmap.end(); ++it)
-                                if (it->second == (int)(*draw).chr) {
-                                    (*draw).boxdraw = 1;
-                                    break;
-                                }
-                        }
+                        } else if (isDBCSCP() && (!dbcs_sbcs||dos.loaded_codepage!=932||(dos.loaded_codepage==932&&!halfwidthkana)) && (*draw).chr>=0x80 && (*draw).chr<=0xFF)
+                            (*draw).boxdraw = 1;
                         Bitu attr = (*vidmem >> 8u) & 0xFFu;
                         vidmem+=2; // because planar EGA/VGA, and odd/even mode as real hardware arranges alphanumeric mode in VRAM
                         Bitu background = attr >> 4;
@@ -4198,13 +4193,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                     }
                                 }
                             }
-                        } else if (dos.loaded_codepage == 932 && !IS_JEGA_ARCH && !halfwidthkana) {
-                            for (auto it = lowboxdrawmap.begin(); it != lowboxdrawmap.end(); ++it)
-                                if (it->second == (int)(*draw).chr) {
-                                    (*draw).boxdraw = 1;
-                                    break;
-                                }
-                        }
+                        } else if (isDBCSCP() && (!dbcs_sbcs||dos.loaded_codepage!=932||(dos.loaded_codepage==932&&!halfwidthkana)) && (*draw).chr>=0x80 && (*draw).chr<=0xFF)
+                            (*draw).boxdraw = 1;
                         Bitu attr = (*vidmem >> 8u) & 0xFFu;
                         vidmem++;
                         Bitu background = attr >> 4;

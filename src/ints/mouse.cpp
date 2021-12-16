@@ -745,6 +745,7 @@ char text[5000];
 extern std::list<uint16_t> bdlist;
 extern bool isDBCSCP();
 extern std::vector<std::pair<int,int>> jtbs;
+extern std::map<uint16_t, uint8_t> pc98boxmap;
 const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint16_t *textlen) {
     bdlist = {};
 	uint16_t result=0, len=0;
@@ -819,7 +820,9 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 				uint16_t address=((i*80)+(ttfuse&&rtl?ttfcols-j-1:j))*2;
 				PhysPt where = CurMode->pstart+address;
 				result=mem_readw(where);
-				if ((result & 0xFF00u) != 0u && (result & 0xFCu) != 0x08u && result==mem_readw(where+(ttfuse&&rtl?-2:2)) && ++j<c) {
+                if ((result & 0xFF00u) != 0u && (result & 0x7Cu) == 0x08u && pc98boxmap.find(result)!=pc98boxmap.end()) {
+                    text[len++]=pc98boxmap.find(result)->second;
+                } else if ((result & 0xFF00u) != 0u && (result & 0x7Cu) != 0x08u && result==mem_readw(where+(ttfuse&&rtl?-2:2)) && ++j<c) {
 					result&=0x7F7F;
 					uint8_t j1=(result%0x100)+0x20, j2=result/0x100;
 					if (j1>32&&j1<127&&j2>32&&j2<127) {

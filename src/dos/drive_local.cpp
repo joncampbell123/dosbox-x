@@ -150,8 +150,10 @@ extern bool rsize, morelen, force_sfn, enable_share_exe, chinasea, uao, halfwidt
 extern int lfn_filefind_handle, freesizecap, file_access_tries;
 extern unsigned long totalc, freec;
 uint16_t customcp_to_unicode[256], altcp_to_unicode[256];
+extern uint16_t cpMap_AX[32];
 extern uint16_t cpMap_PC98[256];
 extern std::map<int, int> lowboxdrawmap;
+extern std::map<uint16_t, uint8_t> pc98boxmap;
 
 bool String_ASCII_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     const uint16_t* df = d + CROSS_LEN * (morelen?4:1) - 1;
@@ -238,7 +240,6 @@ template <class MT> bool String_SBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const cha
 
 uint16_t baselen = 0;
 std::list<uint16_t> bdlist = {};
-extern uint16_t cpMap_AX[32];
 /* needed for Wengier's TTF output and CJK mode */
 template <class MT> bool String_DBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/,const MT *hitbl,const MT *rawtbl,const size_t rawtbl_max) {
     const uint16_t* df = d + CROSS_LEN * (morelen?4:1) - 1;
@@ -255,6 +256,15 @@ template <class MT> bool String_DBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,cons
             if (morelen && IS_JEGA_ARCH && (uint8_t)(*s) && (uint8_t)(*s)<32) {
             *d++ = cpMap_AX[(uint8_t)*s++];
             continue;
+        } else if (morelen && IS_PC98_ARCH && (uint8_t)(*s) > 0xA0) {
+            bool found = false;
+            for (auto it = pc98boxmap.begin(); it != pc98boxmap.end(); ++it)
+                if (it->second == (uint8_t)*s) {
+                    *d++ = cp437_to_unicode[(uint8_t)*s++];
+                    found = true;
+                    break;
+                }
+            if (found) continue;
         } else if (morelen && dos.loaded_codepage == 932
 #if defined(USE_TTF)
         && halfwidthkana
@@ -306,6 +316,18 @@ template <class MT> bool String_DBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const cha
                 s++;
                 continue;
             }
+        } else if (morelen && IS_PC98_ARCH && (uint8_t)(*s) > 0xA0) {
+            bool found = false;
+            for (auto it = pc98boxmap.begin(); it != pc98boxmap.end(); ++it)
+                if (it->second == (uint8_t)*s) {
+                    uint16_t oc = cp437_to_unicode[(uint8_t)*s];
+                    if (utf8_encode(&d,df,(uint32_t)oc) >= 0) {
+                        s++;
+                        found=true;
+                    }
+                    break;
+                }
+            if (found) continue;
         } else if (morelen && dos.loaded_codepage == 932
 #if defined(USE_TTF)
         && halfwidthkana
@@ -411,6 +433,33 @@ template <class MT> bool String_HOST_TO_DBCS_UTF16(char *d/*CROSS_LEN*/,const ui
                     break;
                 }
             if (found) continue;
+        } else if (morelen && IS_PC98_ARCH && ic > 0xFF) {
+            int wc = SBCS_From_Host_Find<MT>(ic,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            if (wc == 0xBA) {
+                *d++ = 0x86;
+                *d++ = 0x46;
+                continue;
+            } else if (wc == 0xBB) {
+                *d++ = 0x86;
+                *d++ = 0x56;
+                continue;
+            } else if (wc == 0xBC) {
+                *d++ = 0x86;
+                *d++ = 0x5E;
+                continue;
+            } else if (wc == 0xCD) {
+                *d++ = 0x86;
+                *d++ = 0x44;
+                continue;
+            } else if (wc == 0xC9) {
+                *d++ = 0x86;
+                *d++ = 0x52;
+                continue;
+            } else if (wc == 0xC8) {
+                *d++ = 0x86;
+                *d++ = 0x5A;
+                continue;
+            }
         } else if (morelen && IS_JEGA_ARCH) {
             bool found = false;
             for (uint8_t i=1; i<32; i++)
@@ -471,6 +520,33 @@ template <class MT> bool String_HOST_TO_DBCS_UTF8(char *d/*CROSS_LEN*/,const cha
                 }
             if (j && utf8_encode(&d,df,(uint32_t)j) >= 0) {
                 s++;
+                continue;
+            }
+        } else if (morelen && IS_PC98_ARCH && ic > 0xFF) {
+            int wc = SBCS_From_Host_Find<MT>(ic,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+            if (wc == 0xBA) {
+                *d++ = 0x86;
+                *d++ = 0x46;
+                continue;
+            } else if (wc == 0xBB) {
+                *d++ = 0x86;
+                *d++ = 0x56;
+                continue;
+            } else if (wc == 0xBC) {
+                *d++ = 0x86;
+                *d++ = 0x5E;
+                continue;
+            } else if (wc == 0xCD) {
+                *d++ = 0x86;
+                *d++ = 0x44;
+                continue;
+            } else if (wc == 0xC9) {
+                *d++ = 0x86;
+                *d++ = 0x52;
+                continue;
+            } else if (wc == 0xC8) {
+                *d++ = 0x86;
+                *d++ = 0x5A;
                 continue;
             }
         } else if (morelen && IS_JEGA_ARCH) {

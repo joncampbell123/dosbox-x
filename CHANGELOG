@@ -5,9 +5,10 @@
     -1 and was reported as a very large unsigned
     number. (joncampbell123)
   - Improved clipboard copying & pasting for different
-    code pages on Windows systems. Also, for the J-3100
-    mode, the selected text will be highlighted when
-    you try to select text for copying. (Wengier)
+    code pages including box-drawing characters in DBCS
+    code pages. Also, for the J-3100 mode, the selected
+    text will now be highlighted when you try to select
+    text for copying. (Wengier)
   - Improved IME support for Chinese/Japanese/Korean
     languages on Windows SDL2 builds. (Wengier)
   - Pausing the emulation will automatically release
