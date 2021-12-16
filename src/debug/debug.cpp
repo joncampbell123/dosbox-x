@@ -4374,6 +4374,9 @@ void DEBUG_Init() {
 	DOSBoxMenu::item *item;
 
     LOG(LOG_MISC, LOG_DEBUG)("Initializing debug system");
+#if C_DEBUG_SERVER
+    DEBUG_EnableServer();
+#endif
 
 	/* Add some keyhandlers */
 	MAPPER_AddHandler(DEBUG_Enable_Handler,

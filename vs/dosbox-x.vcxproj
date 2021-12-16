@@ -1108,6 +1108,8 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClCompile Include="..\src\debug\debug.cpp" />
     <ClCompile Include="..\src\debug\debug_disasm.cpp" />
     <ClCompile Include="..\src\debug\debug_gui.cpp" />
+    <ClCompile Include="..\src\debug\debug_server.cpp" />
+    <ClCompile Include="..\src\debug\debug_server_win32.cpp" />
     <ClCompile Include="..\src\debug\debug_win32.cpp" />
     <ClCompile Include="..\src\dosbox.cpp" />
     <ClCompile Include="..\src\dos\cdrom.cpp" />

@@ -1575,6 +1575,12 @@
     <ClCompile Include="..\src\ints\int_dosv.cpp">
       <Filter>Sources\ints</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\debug\debug_server.cpp">
+      <Filter>Sources\debug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\debug\debug_server_win32.cpp">
+      <Filter>Sources\debug</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">

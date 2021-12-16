@@ -25,11 +25,35 @@ void DEBUG_CheckExecuteBreakpoint(uint16_t seg, uint32_t off);
 bool DEBUG_ExitLoop(void);
 void DEBUG_RefreshPage(char scroll);
 Bitu DEBUG_EnableDebugger(void);
+void DEBUG_Enable_Handler(bool pressed);
 
 extern Bitu cycle_count;
 extern Bitu debugCallback;
 
+bool IsDebuggerActive(void);
+bool IsDebuggerRunwatch(void);
+bool IsDebuggerRunNormal(void);
+bool ParseCommand(char* str);
+
+
 #ifdef C_HEAVY_DEBUG
 bool DEBUG_HeavyIsBreakpoint(void);
 void DEBUG_HeavyWriteLogInstruction(void);
+#endif
+#ifdef C_DEBUG_SERVER
+void DEBUG_EnableServer(void);
+void DEBUG_ShutdownServer(void);
+void DEBUG_Server(void* arguments);
+
+// Those must be implemented platform-specific
+bool DEBUG_ServerStartThread();
+void DEBUG_ServerShutdownThread();
+void* DEBUG_ServerAcceptConnection(char* addr, char* port);
+int DEBUG_ServerReadRequest(char* buffer, int bufferLength);
+int DEBUG_ServerWriteResponse(char* response);
+
+struct DebugServerControl {
+    bool shutdown = false;
+};
+extern struct DebugServerControl DEBUG_server;
 #endif
