@@ -152,9 +152,7 @@ extern unsigned long totalc, freec;
 uint16_t customcp_to_unicode[256], altcp_to_unicode[256];
 extern uint16_t cpMap_AX[32];
 extern uint16_t cpMap_PC98[256];
-extern std::map<int, int> lowboxdrawmap;
-extern std::map<uint16_t, uint8_t> pc98boxmap;
-extern std::map<uint8_t, uint8_t> pc98boxconvert;
+extern std::map<int, int> lowboxdrawmap, pc98boxdrawmap;
 
 bool String_ASCII_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     const uint16_t* df = d + CROSS_LEN * (morelen?4:1) - 1;
@@ -257,15 +255,9 @@ template <class MT> bool String_DBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,cons
             if (morelen && IS_JEGA_ARCH && (uint8_t)(*s) && (uint8_t)(*s)<32) {
             *d++ = cpMap_AX[(uint8_t)*s++];
             continue;
-        } else if (morelen && IS_PC98_ARCH && (uint8_t)(*s) > 0xA0) {
-            bool found = false;
-            for (auto it = pc98boxmap.begin(); it != pc98boxmap.end(); ++it)
-                if (it->second == (uint8_t)*s) {
-                    *d++ = cp437_to_unicode[(uint8_t)*s++];
-                    found = true;
-                    break;
-                }
-            if (found) continue;
+        } else if (morelen && IS_PC98_ARCH && pc98boxdrawmap.find((uint8_t)*s) != pc98boxdrawmap.end()) {
+            *d++ = cp437_to_unicode[(uint8_t)*s++];
+            continue;
         } else if (morelen && dos.loaded_codepage == 932
 #if defined(USE_TTF)
         && halfwidthkana
@@ -317,18 +309,12 @@ template <class MT> bool String_DBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const cha
                 s++;
                 continue;
             }
-        } else if (morelen && IS_PC98_ARCH && (uint8_t)(*s) > 0xA0) {
-            bool found = false;
-            for (auto it = pc98boxmap.begin(); it != pc98boxmap.end(); ++it)
-                if (it->second == (uint8_t)*s) {
-                    uint16_t oc = cp437_to_unicode[(uint8_t)*s];
-                    if (utf8_encode(&d,df,(uint32_t)oc) >= 0) {
-                        s++;
-                        found=true;
-                    }
-                    break;
-                }
-            if (found) continue;
+        } else if (morelen && IS_PC98_ARCH && pc98boxdrawmap.find((uint8_t)*s) != pc98boxdrawmap.end()) {
+            uint16_t oc = cp437_to_unicode[(uint8_t)*s];
+            if (utf8_encode(&d,df,(uint32_t)oc) >= 0) {
+                s++;
+                continue;
+            }
         } else if (morelen && dos.loaded_codepage == 932
 #if defined(USE_TTF)
         && halfwidthkana
@@ -436,8 +422,8 @@ template <class MT> bool String_HOST_TO_DBCS_UTF16(char *d/*CROSS_LEN*/,const ui
             if (found) continue;
         } else if (morelen && IS_PC98_ARCH && ic > 0xFF) {
             int wc = SBCS_From_Host_Find<MT>(ic,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
-            std::map<uint8_t, uint8_t>::iterator it = pc98boxconvert.find(wc);
-            if (it != pc98boxconvert.end()) {
+            auto it = pc98boxdrawmap.find(wc);
+            if (it != pc98boxdrawmap.end()) {
                 *d++ = 0x86;
                 *d++ = it->second;
                 continue;
@@ -506,8 +492,8 @@ template <class MT> bool String_HOST_TO_DBCS_UTF8(char *d/*CROSS_LEN*/,const cha
             }
         } else if (morelen && IS_PC98_ARCH && ic > 0xFF) {
             int wc = SBCS_From_Host_Find<MT>(ic,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
-            std::map<uint8_t, uint8_t>::iterator it = pc98boxconvert.find(wc);
-            if (it != pc98boxconvert.end()) {
+            auto it = pc98boxdrawmap.find(wc);
+            if (it != pc98boxdrawmap.end()) {
                 *d++ = 0x86;
                 *d++ = it->second;
                 continue;

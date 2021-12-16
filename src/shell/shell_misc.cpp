@@ -56,7 +56,7 @@ extern uint16_t cmd_line_seg;
 #if defined(USE_TTF)
 extern bool ttf_dosv;
 #endif
-extern std::map<uint8_t, uint8_t> pc98boxconvert;
+extern std::map<int, int> pc98boxdrawmap;
 void DOS_Shell::ShowPrompt(void) {
 	char dir[DOS_PATHLENGTH];
 	dir[0] = 0; //DOS_GetCurrentDir doesn't always return something. (if drive is messed up)
@@ -337,7 +337,7 @@ static uint16_t GetLastCount(char *line, uint16_t str_index)
 			if(isKanji2(line[pos])) {
 				bool found=false;
 				if (IS_PC98_ARCH && line[pos-1] == 0xFFFFFF86) {
-                    for (auto it = pc98boxconvert.begin(); it != pc98boxconvert.end(); ++it)
+                    for (auto it = pc98boxdrawmap.begin(); it != pc98boxdrawmap.end(); ++it)
                         if (it->second ==line[pos]) {
                             found=true;
                             break;
@@ -365,7 +365,7 @@ static uint16_t GetRemoveCount(char *line, uint16_t str_index)
 			if(isKanji2(line[pos])) {
 				bool found=false;
 				if (IS_PC98_ARCH && line[pos-1] == 0xFFFFFF86) {
-                    for (auto it = pc98boxconvert.begin(); it != pc98boxconvert.end(); ++it)
+                    for (auto it = pc98boxdrawmap.begin(); it != pc98boxdrawmap.end(); ++it)
                         if (it->second ==line[pos]) {
                             found=true;
                             break;
