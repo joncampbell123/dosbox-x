@@ -4360,6 +4360,9 @@ void DEBUG_ShutDown(Section * /*sec*/) {
 		tcsetattr(0,TCSANOW,&consolesettings);
 #endif
 	}
+#if C_DEBUG_SERVER
+    DEBUG_ShutdownServer();
+#endif
 }
 
 Bitu debugCallback;
