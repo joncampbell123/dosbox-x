@@ -4087,7 +4087,10 @@ void OUTPUT_TTF_Select(int fsize=-1) {
                 sprintf(value,"#%02x%02x%02x",rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue);
                 str+=std::string(value)+" ";
             }
-            if (str.size()) setColors(str.c_str(),-1);
+            if (str.size()) {
+                setColors(str.c_str(),-1);
+                colorChanged=justChanged=false;
+            }
         }
         SetBlinkRate(ttf_section);
         const char *wpstr=ttf_section->Get_string("wp");

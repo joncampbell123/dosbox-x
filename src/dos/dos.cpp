@@ -2317,7 +2317,15 @@ static Bitu DOS_21Handler(void) {
             }
             break;
         case 0x5e:                  /* Network and printer functions */
-            if (reg_al == 0 && !control->SecureMode() && enable_network_redirector) {	// Get machine name
+        {
+            bool net = false;
+            if (!reg_al && !control->SecureMode()) {
+                reg_ax = 0x1100;
+                CALLBACK_RunRealInt(0x2f);
+                net = reg_al == 0xFF;
+                reg_ax = 0x5e00;
+            }
+            if (net) {	// Get machine name
 #if defined(WIN32)
                 DWORD size = DOSNAMEBUF;
                 GetComputerName(name1, &size);
@@ -2340,8 +2348,10 @@ static Bitu DOS_21Handler(void) {
                     break;
                 }
             }
+            reg_al = 1;
             CALLBACK_SCF(true);
             break;
+        }
         case 0x5f:                  /* Network redirection */
 #if defined(WIN32) && !defined(HX_DOS)
             switch(reg_al)
