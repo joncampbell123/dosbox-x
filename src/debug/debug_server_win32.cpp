@@ -139,6 +139,8 @@ void* DEBUG_ServerAcceptConnection(char* addr, char* port) {
         return false;
     }
 
+    WIN32_SetConsoleTitle();
+
     // Wait for an incoming connection (this is blocking)
     addressLength = sizeof(winServer.clientAddress);
     winServer.client = accept(winServer.listen, &winServer.clientAddress, &addressLength);
@@ -148,8 +150,14 @@ void* DEBUG_ServerAcceptConnection(char* addr, char* port) {
         WSACleanup();
         return NULL;
     }
-    LOG_MSG(LOGPREFIX ": New connection from %s\n", GetFormattedAddress(&winServer.clientAddress));
-    
+
+    // Got a client connection -> update server state
+    char* address = GetFormattedAddress(&winServer.clientAddress);
+    LOG_MSG(LOGPREFIX ": New connection from %s\n", address);
+    DEBUG_server.isConnected = true;
+    safe_strcpy(DEBUG_server.clientAddress, address);
+    WIN32_SetConsoleTitle();
+
     // Stop listening for new connections
     closesocket(winServer.listen);
 
@@ -190,6 +198,8 @@ int DEBUG_ServerReadRequest(char* requestBuffer, int bufferLength) {
             LOG_WinError("shutdown", WSAGetLastError());
         }
         closesocket(winServer.client);
+        DEBUG_server.isConnected = false;
+        strcpy(DEBUG_server.clientAddress, "");
     }
     return bytesRead;
 }

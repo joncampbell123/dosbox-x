@@ -5,16 +5,18 @@
 #include "debug.h"
 #include "logging.h"
 #include "support.h"
+#include "regs.h"
+#include "fpu.h"
+#include "paging.h"
 
 #define MAX_REQUEST_SIZE 512
-#define PORT "2999"
 
 // From debug.c
 extern int debugrunmode;
 extern bool tohide;
 
 // This structure controls various aspects of the serverr
-struct DebugServerControl DEBUG_server;
+struct DebugServer DEBUG_server;
 
 /**
  * Enables the debug server
@@ -74,6 +76,43 @@ static int RespondState() {
     }
 }
 
+static char* FormatBreakpoint(int nr, Breakpoint* bp) {
+    char formatted[128];
+    int offset = bp->offset;
+    if (bp->type == Breakpoint::BP_INTERRUPT) {
+        if (bp->GetValue() == Breakpoint::BPINT_ALL) {
+            offset = 0 << 24 | bp->intNr << 16;
+        }
+        else if (bp->GetOther() == Breakpoint::BPINT_ALL) {
+            offset = 1 << 24 | bp->intNr << 16 | bp->GetValue() << 8;
+        }
+        else {
+            offset = 2 << 24 | bp->intNr << 16 | bp->GetValue() << 8 | bp->GetOther();
+        }
+    }
+    else if (bp->type == Breakpoint::BP_MEMORY) {
+        
+        //DEBUG_ShowMsg("%02X. BPMEM %04X:%04X (%02X)\n", nr, bp->segment, bp->offset, bp->GetValue());
+    }
+    else if (bp->type == Breakpoint::BP_MEMORY_PROT) {
+        
+        //DEBUG_ShowMsg("%02X. BPPM %04X:%08X (%02X)\n", nr, bp->segment, bp->offset, bp->GetValue());
+    }
+    else if (bp->type == Breakpoint::BP_MEMORY_LINEAR) {
+        //DEBUG_ShowMsg("%02X. BPLM %08X (%02X)\n", nr, bp->offset, bp->GetValue());
+    }
+    snprintf(formatted, sizeof(formatted) - 1,
+        "%02x,%02x,%02x,%02x,%04x,%08x",
+        nr,
+        bp->type,
+        bp->active,
+        bp->once,
+        bp->segment,
+        bp->offset
+    );
+    return formatted;
+}
+
 /**
  * Handles a single request from the remote debugger and sends a response
  *
@@ -110,6 +149,50 @@ int DEBUG_ServerHandleRequest(char* request) {
         DEBUG_EnableDebugger();
         return RespondState();
     }
+    else if (strcmp(request, "bp") == 0) {
+        // List breakpoints
+        int nr = 0;
+        std::list<Breakpoint*>::iterator i;
+        char breakpoints[1024];
+        strcpy(breakpoints, "bp:");
+        for (i = Breakpoint::BPoints.begin(); i != Breakpoint::BPoints.end(); ++i) {
+            Breakpoint* bp = *i;
+            char* breakpoint = FormatBreakpoint(nr, bp);
+            if (nr > 0) {
+                safe_strcat(breakpoints, ";");
+            }
+            safe_strcat(breakpoints, breakpoint);
+            nr++;
+        }
+        return DEBUG_ServerWriteResponse(breakpoints);
+    }
+    else if (strcmp(request, "r") == 0) {
+        // Return registers and status
+        char regs[512];
+        char x87buf[8][12] = {};
+        snprintf(regs, sizeof(regs) - 1, 
+            "r:eax=%08x;ebx=%08x;ecx=%08x;edx=%08x;esi=%08x;edi=%08x;"  
+            "eip=%08x;ebp=%08x;esp=%08x;eflags=%08x;" 
+            "cs=%04x;ds=%04x;es=%04x;fs=%04x;gs=%04x;" 
+            "st0=%s;st1=%s;st2=%s;st3=%s;st4=%s;st5=%s;st6=%s;st7=%s;" 
+            "mode=%02x;big=%02x;cpl=%02x;paging=%02x;cr0=%08x;" 
+            "cycles=%08x", 
+            reg_eax, reg_ebx, reg_ecx, reg_edx, reg_esi, reg_edi,
+            reg_eip, reg_ebp, reg_esp, reg_flags,
+            SegValue(cs), SegValue(ds), SegValue(es), SegValue(fs), SegValue(gs),
+            F80ToString(STV(0), x87buf[0]),
+            F80ToString(STV(1), x87buf[1]),
+            F80ToString(STV(2), x87buf[2]),
+            F80ToString(STV(3), x87buf[3]),
+            F80ToString(STV(4), x87buf[4]),
+            F80ToString(STV(5), x87buf[5]),
+            F80ToString(STV(6), x87buf[6]),
+            F80ToString(STV(7), x87buf[7]),
+            cpu.pmode, cpu.code.big, cpu.cpl, paging.enabled, cpu.cr0,
+            cycle_count
+        );
+        return DEBUG_ServerWriteResponse(regs);
+    }
     else if (strncmp(request, "cmd:", 4) == 0 && strlen(request) > 4) {
         // Run an abitrary command in the debugger
         if (IsDebuggerActive()) {
@@ -140,7 +223,7 @@ void DEBUG_Server(void* arguments) {
 
     while (!DEBUG_server.shutdown) {
         // Wait for a single connection
-        DEBUG_ServerAcceptConnection(NULL, PORT);
+        DEBUG_ServerAcceptConnection(NULL, DEBUG_SERVER_PORT);
 
         // Receive until the remote debugger disconnects
         while (0 < (bytesRead = DEBUG_ServerReadRequest(request, sizeof(request)))) {

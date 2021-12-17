@@ -16,33 +16,44 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-void DEBUG_SetupConsole(void);
-void DEBUG_DrawScreen(void);
-bool DEBUG_Breakpoint(void);
+#include "Breakpoint.h"
+#include "DebugVariable.h"
+
+void DEBUG_SetupConsole();
+void DEBUG_DrawScreen();
+bool DEBUG_Breakpoint();
 bool DEBUG_IntBreakpoint(uint8_t intNum);
-void DEBUG_Enable(bool pressed);
+//void DEBUG_Enable(bool pressed); ? not defined
 void DEBUG_CheckExecuteBreakpoint(uint16_t seg, uint32_t off);
-bool DEBUG_ExitLoop(void);
+bool DEBUG_ExitLoop();
 void DEBUG_RefreshPage(char scroll);
-Bitu DEBUG_EnableDebugger(void);
+Bitu DEBUG_EnableDebugger();
 void DEBUG_Enable_Handler(bool pressed);
+void DEBUG_ShowMsg(char const* format, ...);
 
 extern Bitu cycle_count;
 extern Bitu debugCallback;
 
-bool IsDebuggerActive(void);
-bool IsDebuggerRunwatch(void);
-bool IsDebuggerRunNormal(void);
+bool IsDebuggerActive();
+bool IsDebuggerRunwatch();
+bool IsDebuggerRunNormal();
 bool ParseCommand(char* str);
+char* F80ToString(int regIndex, char* dest);
+uint64_t GetAddress(uint16_t seg, uint32_t offset);
 
+#if WIN32
+void WIN32_SetConsoleTitle();
+#endif
 
 #ifdef C_HEAVY_DEBUG
-bool DEBUG_HeavyIsBreakpoint(void);
-void DEBUG_HeavyWriteLogInstruction(void);
+bool DEBUG_HeavyIsBreakpoint();
+void DEBUG_HeavyWriteLogInstruction();
 #endif
 #ifdef C_DEBUG_SERVER
-void DEBUG_EnableServer(void);
-void DEBUG_ShutdownServer(void);
+#define DEBUG_SERVER_PORT "2999"
+
+void DEBUG_EnableServer();
+void DEBUG_ShutdownServer();
 void DEBUG_Server(void* arguments);
 
 // Those must be implemented platform-specific
@@ -52,8 +63,10 @@ void* DEBUG_ServerAcceptConnection(char* addr, char* port);
 int DEBUG_ServerReadRequest(char* buffer, int bufferLength);
 int DEBUG_ServerWriteResponse(char* response);
 
-struct DebugServerControl {
-    bool shutdown = false;
+struct DebugServer {
+    bool shutdown;
+    bool isConnected;
+    char clientAddress[128];
 };
-extern struct DebugServerControl DEBUG_server;
+extern struct DebugServer DEBUG_server;
 #endif

@@ -16,11 +16,14 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifdef WIN32
+#include "dosbox.h"
+
+#ifdef C_DEBUG && WIN32
 
 #include <windows.h>
 #include <stdio.h>
 #include <stdarg.h>
+#include "debug.h"
 
 #ifndef min
 #define min(a,b) ((a)<(b)?(a):(b))
@@ -72,13 +75,28 @@ static void ResizeConsole( HANDLE hConsole, SHORT xSize, SHORT ySize ) {
 #ifndef ENABLE_VIRTUAL_TERMINAL_PROCESSING
 #define ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
 #endif
-void DEBUG_ShowMsg(char const* format,...);
+
+void WIN32_SetConsoleTitle() {
+#if C_DEBUG_SERVER
+    static char title[64];
+    if (DEBUG_server.isConnected) {
+        snprintf(title, sizeof(title) - 1, "DOSBox-X Debugger - Connected to %s", DEBUG_server.clientAddress);
+    }
+    else {
+        snprintf(title, sizeof(title) - 1, "DOSBox-X Debugger - Listening on localhost:%s", DEBUG_SERVER_PORT);
+    }
+    SetConsoleTitle(title);
+#else
+    SetConsoleTitle("DOSBox-X Debugger");
+#endif
+}
+
 void WIN32_Console() {
 	AllocConsole();
-	SetConsoleTitle("DOSBox-X Debugger");
+    WIN32_SetConsoleTitle();
 	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 	DWORD dwMode = 0;
 	if (GetConsoleMode(hOut, &dwMode)) SetConsoleMode(hOut, dwMode | ENABLE_VIRTUAL_TERMINAL_PROCESSING);
 	ResizeConsole(hOut,80,50);
 }
-#endif
+#endif // C_DEBUG && WIN32

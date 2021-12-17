@@ -1581,6 +1581,12 @@
     <ClCompile Include="..\src\debug\debug_server_win32.cpp">
       <Filter>Sources\debug</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\debug\Breakpoint.cpp">
+      <Filter>Sources\debug</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\debug\DebugVariable.cpp">
+      <Filter>Sources\debug</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -2503,6 +2509,12 @@
     </ClInclude>
     <ClInclude Include="..\src\libs\gui_tk\gui_tk.h">
       <Filter>Sources\libs\gui_tk</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\Breakpoint.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\DebugVariable.h">
+      <Filter>Includes</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
