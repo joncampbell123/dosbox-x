@@ -1,74 +1,74 @@
 #include "DebugVariable.h"
 
-std::vector<CDebugVar*> CDebugVar::varList;
+std::vector<DebugVariable*> DebugVariable::allVariables;
 
-CDebugVar::CDebugVar(char* _name, PhysPt _adr) {
+DebugVariable::DebugVariable(char* _name, PhysPt _adr) {
     adr = _adr;
     safe_strncpy(name, _name, 16);
     hasvalue = false; value = 0;
 };
 
-char* CDebugVar::GetName(void) {
+char* DebugVariable::GetName(void) {
     return name;
 }
 
-PhysPt CDebugVar::GetAdr(void) {
+PhysPt DebugVariable::GetAdr(void) {
     return adr;
 }
 
-void CDebugVar::SetValue(bool has, uint16_t val) {
+void DebugVariable::SetValue(bool has, uint16_t val) {
     hasvalue = has; value = val;
 }
 
-uint16_t CDebugVar::GetValue(void) {
+uint16_t DebugVariable::GetValue(void) {
     return value;
 }
 
-bool CDebugVar::HasValue(void) {
+bool DebugVariable::HasValue(void) {
     return hasvalue;
 }
 
 
-void CDebugVar::InsertVariable(char* name, PhysPt adr)
+void DebugVariable::InsertVariable(char* name, PhysPt adr)
 {
-	varList.push_back(new CDebugVar(name,adr));
+	allVariables.push_back(new DebugVariable(name,adr));
 }
 
-void CDebugVar::DeleteAll(void)
+void DebugVariable::DeleteAll(void)
 {
-	std::vector<CDebugVar*>::iterator i;
-	for(i=varList.begin(); i != varList.end(); ++i) {
-		CDebugVar* bp = *i;
+	std::vector<DebugVariable*>::iterator i;
+	for(i=allVariables.begin(); i != allVariables.end(); ++i) {
+		DebugVariable* bp = *i;
 		delete bp;
 	}
-	(varList.clear)();
+	(allVariables.clear)();
 }
 
-CDebugVar* CDebugVar::FindVar(PhysPt pt)
+DebugVariable* DebugVariable::FindVar(PhysPt pt)
 {
-	if (varList.empty()) return 0;
+	if (allVariables.empty()) return 0;
 
-	std::vector<CDebugVar*>::size_type s = varList.size();
-	for(std::vector<CDebugVar*>::size_type i = 0; i != s; i++) {
-		CDebugVar* bp = varList[i];
+	std::vector<DebugVariable*>::size_type s = allVariables.size();
+	for(std::vector<DebugVariable*>::size_type i = 0; i != s; i++) {
+		DebugVariable* bp = allVariables[i];
 		if (bp->GetAdr() == pt) return bp;
 	}
 	return 0;
 }
 
-bool CDebugVar::SaveVars(char* name) {
-	if (varList.size() > 65535) return false;
+bool DebugVariable::SaveVars(char* name) {
+	if (allVariables.size() > 65535) return false;
 
 	FILE* f = fopen(name,"wb+");
 	if (!f) return false;
 
 	// write number of vars
-	uint16_t num = (uint16_t)varList.size();
+	uint16_t num = (uint16_t)allVariables.size();
 	fwrite(&num,1,sizeof(num),f);
 
-	std::vector<CDebugVar*>::iterator i;
-	CDebugVar* bp;
-	for(i=varList.begin(); i != varList.end(); ++i) {
+	std::vector<DebugVariable*>::iterator i;
+	DebugVariable* bp;
+	for(i=allVariables.begin(); i != allVariables.end(); ++i) {
 		bp = *i;
 		// name
 		fwrite(bp->GetName(),1,16,f);
@@ -80,7 +80,7 @@ bool CDebugVar::SaveVars(char* name) {
 	return true;
 }
 
-bool CDebugVar::LoadVars(char* name)
+bool DebugVariable::LoadVars(char* name)
 {
 	FILE* f = fopen(name,"rb");
 	if (!f) return false;

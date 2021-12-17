@@ -1294,7 +1294,7 @@ bool ParseCommand(char* str) {
 
 		if(!name[0]) return false;
 		DEBUG_ShowMsg("DEBUG: Created debug var %s at %04X:%04X\n",name,seg,ofs);
-		CDebugVar::InsertVariable(name,(PhysPt)GetAddress(seg,ofs));
+		DebugVariable::InsertVariable(name,(PhysPt)GetAddress(seg,ofs));
 		return true;
 	}
 
@@ -1306,7 +1306,7 @@ bool ParseCommand(char* str) {
 		}
 		name[12] = 0;
 		if(!name[0]) return false;
-		DEBUG_ShowMsg("DEBUG: Variable list save (%s) : %s.\n",name,(CDebugVar::SaveVars(name)?"ok":"failure"));
+		DEBUG_ShowMsg("DEBUG: Variable list save (%s) : %s.\n",name,(DebugVariable::SaveVars(name)?"ok":"failure"));
 		return true;
 	}
 
@@ -1318,7 +1318,7 @@ bool ParseCommand(char* str) {
 		}
 		name[12] = 0;
 		if(!name[0]) return false;
-		DEBUG_ShowMsg("DEBUG: Variable list load (%s) : %s.\n",name,(CDebugVar::LoadVars(name)?"ok":"failure"));
+		DEBUG_ShowMsg("DEBUG: Variable list load (%s) : %s.\n",name,(DebugVariable::LoadVars(name)?"ok":"failure"));
 		return true;
 	}
 
@@ -2477,7 +2477,7 @@ char* AnalyzeInstruction(char* inst, bool saveSelector) {
 			sprintf(result,"[illegal]");
 		}
 		// Variable found ?
-		CDebugVar* var = CDebugVar::FindVar(address);
+		DebugVariable* var = DebugVariable::FindVar(address);
 		if (var) {
 			// Replace occurrence
 			char* pos1 = strchr(inst,'[');
@@ -3924,7 +3924,7 @@ void DEBUG_SetupConsole(void) {
 
 void DEBUG_ShutDown(Section * /*sec*/) {
 	Breakpoint::DeleteAll();
-	CDebugVar::DeleteAll();
+	DebugVariable::DeleteAll();
 	if (dbg.win_main != NULL) {
         LOG(LOG_MISC, LOG_DEBUG)("DEBUG_Shutdown freeing ncurses state");
 		curs_set(old_cursor_state);
@@ -4081,20 +4081,20 @@ static void OutputVecTable(char* filename) {
 
 #define DEBUG_VAR_BUF_LEN 16
 static void DrawVariables(void) {
-	if (CDebugVar::varList.empty()) return;
+	if (DebugVariable::allVariables.empty()) return;
 
 	char buffer[DEBUG_VAR_BUF_LEN];
-	std::vector<CDebugVar*>::size_type s = CDebugVar::varList.size();
+	std::vector<DebugVariable*>::size_type s = DebugVariable::allVariables.size();
 	bool windowchanges = false;
 
-	for(std::vector<CDebugVar*>::size_type i = 0; i != s; i++) {
+	for(std::vector<DebugVariable*>::size_type i = 0; i != s; i++) {
 
 		if (i == 4*3) {
 			/* too many variables */
 			break;
 		}
 
-		CDebugVar *dv = CDebugVar::varList[i];
+		DebugVariable *dv = DebugVariable::allVariables[i];
 		uint16_t value;
 		bool varchanges = false;
 		bool has_no_value = mem_readw_checked(dv->GetAdr(),&value);
@@ -4282,7 +4282,7 @@ bool DEBUG_HeavyIsBreakpoint(void) {
 		skipFirstInstruction = false;
 		return false;
 	}
-	if (!Breakpoint::BPoints.empty() && Breakpoint::CheckBreakpoint(SegValue(cs),reg_eip)) {
+	if (!Breakpoint::allBreakpoints.empty() && Breakpoint::CheckBreakpoint(SegValue(cs),reg_eip)) {
 		return true;
 	}
 	return false;
