@@ -390,7 +390,7 @@ const uint8_t DOS_DATE_months[] = {
 	0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 };
 
-int GetMonthDays(uint8_t month) {
+uint8_t GetMonthDays(uint8_t month) {
     return DOS_DATE_months[month];
 }
 

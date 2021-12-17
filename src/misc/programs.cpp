@@ -38,6 +38,8 @@
 #include "hardware.h"
 #include "mapper.h"
 #include "menu.h"
+#include "bios.h"
+#include "timer.h"
 #include "jfont.h"
 #include "render.h"
 #include "../ints/int10.h"
@@ -95,8 +97,9 @@ public:
 
 static std::vector<InternalProgramEntry*> internal_progs;
 bool isDBCSCP(void), CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4);
-void EMS_DoShutDown(void), UpdateDefaultPrinterFont(void), GFX_ForceRedrawScreen(void), resetFontSize(void), ttf_reset_colors(void), makestdcp950table(void), makeseacp951table(void), DOSBox_SetSysMenu(void), MSG_Init(void);
-void EMS_Startup(Section* sec), DOSV_SetConfig(Section_prop *section), DOSBOX_UnlockSpeed2(bool pressed), RebootLanguage(std::string filename, bool confirm=false), SetWindowTransparency(int trans), SetOutputSwitch(const char *outputstr), runSerial(const char *str), runParallel(const char *str);
+char *FormatDate(uint16_t year, uint8_t month, uint8_t day);
+void EMS_DoShutDown(void), UpdateDefaultPrinterFont(void), GFX_ForceRedrawScreen(void), resetFontSize(void), ttf_reset_colors(void), makestdcp950table(void), makeseacp951table(void), DOSBox_SetSysMenu(void), MSG_Init(void), initRand(void);
+void EMS_Startup(Section* sec), DOSV_SetConfig(Section_prop *section), DOSBOX_UnlockSpeed2(bool pressed), RebootLanguage(std::string filename, bool confirm=false), SetWindowTransparency(int trans), SetOutputSwitch(const char *outputstr), runSerial(const char *str), runParallel(const char *str), DOS_AddDays(uint8_t days);
 
 void PROGRAMS_Shutdown(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Shutting down internal programs list");
@@ -1121,6 +1124,50 @@ void CONFIG::Run(void) {
                             }
                             WriteOut("%s\n",configdir.c_str());
                             first_shell->SetEnv("CONFIG",configdir.c_str());
+                        } else if (!strcasecmp(pvars[0].c_str(), "cd")) {
+                            uint8_t drive = DOS_GetDefaultDrive()+'A';
+                            char dir[DOS_PATHLENGTH];
+                            DOS_GetCurrentDir(0,dir,true);
+                            WriteOut("%c:\\",drive);
+                            WriteOut_NoParsing(dir, true);
+                            WriteOut("\n");
+                            first_shell->SetEnv("CONFIG",(std::string(1, drive)+":\\"+std::string(dir)).c_str());
+                        } else if (!strcasecmp(pvars[0].c_str(), "date")) {
+                            uint32_t ticks=mem_readd(BIOS_TIMER);
+                            uint8_t add=mem_readb(BIOS_24_HOURS_FLAG);
+                            mem_writeb(BIOS_24_HOURS_FLAG,0); // reset the "flag"
+                            if (add) DOS_AddDays(add);
+                            const char *date = FormatDate(dos.date.year, dos.date.month, dos.date.day);
+                            WriteOut("%s\n",date);
+                            first_shell->SetEnv("CONFIG",date);
+                        } else if (!strcasecmp(pvars[0].c_str(), "errorlevel")) {
+                            WriteOut("%d\n",dos.return_code);
+                            first_shell->SetEnv("CONFIG",std::to_string(dos.return_code).c_str());
+                        } else if (!strcasecmp(pvars[0].c_str(), "random")) {
+                            initRand();
+                            int random = rand()%32768;
+                            WriteOut("%s\n",std::to_string(random).c_str());
+                            first_shell->SetEnv("CONFIG",std::to_string(random).c_str());
+                        } else if (!strcasecmp(pvars[0].c_str(), "time")) {
+                            uint32_t hour, min, sec;
+                            char c=dos.tables.country[13];
+                            uint32_t ticks=mem_readd(BIOS_TIMER);
+                            uint8_t add=mem_readb(BIOS_24_HOURS_FLAG);
+                            mem_writeb(BIOS_24_HOURS_FLAG,0); // reset the "flag"
+                            uint16_t cx=(uint16_t)(ticks >> 16u), dx=(uint16_t)(ticks & 0xffff);
+                            if (add) DOS_AddDays(add);
+                            ticks=((Bitu)cx<<16)|dx;
+                            Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * (double)ticks);
+                            time/=100;
+                            sec=(uint8_t)((Bitu)time % 60); // seconds
+                            time/=60;
+                            min=(uint8_t)((Bitu)time % 60); // minutes
+                            time/=60;
+                            hour=(uint8_t)((Bitu)time % 24); // hours
+                            char format[11];
+                            sprintf(format,"%u%c%02u%c%02u",hour,c,min,c,sec);
+                            WriteOut("%s\n",format);
+                            first_shell->SetEnv("CONFIG",format);
                         } else
                             WriteOut(MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));
 						return;

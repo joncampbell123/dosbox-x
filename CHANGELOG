@@ -16,6 +16,11 @@
   - Config option "pixelshader" now allows a shader file
     name without the .fx extension, or a shader file in
     the current directory. (Wengier)
+  - Added special properties to CONFIG command including
+    "cd", "date", "errorlevel", "random", "time" so that
+    commands like "CONFIG -GET cd" and "CONFIG -GET
+    errorlevel" will get the current DOS directory and
+    the current ERRORLEVEL value. (Wengier)
   - Added "Enter Debugger Command" button to "DOSBox-X
     logging output" and "Code overview" windows (from
     "Debug" menu") for users to enter some debugger
