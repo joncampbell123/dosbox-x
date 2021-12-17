@@ -2583,8 +2583,8 @@ void DOSBOX_SetupConfigSections(void) {
     /* NTS: This setting is honored by all cpu cores except dynamic core */
     Pint = secprop->Add_int("interruptible rep string op",Property::Changeable::Always,-1);
     Pint->SetMinMax(-1,65536);
-    Pint->Set_help("if nonzero, REP string instructions (LODS/MOVS/STOS/INS/OUTS) are interruptible (by interrupts or other events).\n"
-            "if zero, REP string instructions are carried out in full before processing events and interrupts.\n"
+    Pint->Set_help("If nonzero, REP string instructions (LODS/MOVS/STOS/INS/OUTS) are interruptible (by interrupts or other events).\n"
+            "If zero, REP string instructions are carried out in full before processing events and interrupts.\n"
             "Set to -1 for a reasonable default setting based on cpu type and other configuration.\n"
             "A setting of 0 can improve emulation speed at the expense of emulation accuracy.\n"
             "A nonzero setting (1-8) may be needed for DOS games and demos that use the IRQ 0 interrupt to play digitized samples\n"
@@ -2593,15 +2593,14 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pint = secprop->Add_int("dynamic core cache block size",Property::Changeable::Always,32);
     Pint->SetMinMax(1,65536);
-    Pint->Set_help("dynamic core cache block size. default value is 32. change this value carefully.\n"
-            "according to forum discussion, setting this to 1 can aid debugging, however doing so\n"
-            "also causes problems with 32-bit protected mode DOS games and reduces the performance\n"
-            "of the dynamic core.\n");
+    Pint->Set_help("The dynamic core cache block size (the default value is 32). Please change this value carefully.\n"
+            "According to forum discussions, setting this to 1 can aid debugging, however doing so also causes\n"
+            "problems with 32-bit protected mode DOS games and reduces the performance of the dynamic core.\n");
 
     Pstring = secprop->Add_string("cputype",Property::Changeable::Always,"auto");
     Pstring->Set_values(cputype_values);
-    Pstring->Set_help("CPU Type used in emulation. auto emulates a 486 which tolerates Pentium instructions.\n"
-            "experimental enables newer instructions not normally found in the CPU types emulated by DOSBox, such as FISTTP.");
+    Pstring->Set_help("CPU Type used in emulation. \"auto\" emulates a 486 which tolerates Pentium instructions.\n"
+            "\"experimental\" enables newer instructions not normally found in the CPU types emulated by DOSBox-X, such as FISTTP.");
     Pstring->SetBasic(true);
 
     Pmulti_remain = secprop->Add_multiremain("cycles",Property::Changeable::Always," ");

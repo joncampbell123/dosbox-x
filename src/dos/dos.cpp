@@ -2320,10 +2320,14 @@ static Bitu DOS_21Handler(void) {
         {
             bool net = false;
             if (!reg_al && !control->SecureMode()) {
-                reg_ax = 0x1100;
-                CALLBACK_RunRealInt(0x2f);
-                net = reg_al == 0xFF;
-                reg_ax = 0x5e00;
+                if (enable_network_redirector)
+                    net = true;
+                else {
+                    reg_ax = 0x1100;
+                    CALLBACK_RunRealInt(0x2f);
+                    net = reg_al == 0xFF;
+                    reg_ax = 0x5e00;
+                }
             }
             if (net) {	// Get machine name
 #if defined(WIN32)
