@@ -64,9 +64,9 @@ const char *egc_fgc_modes[4] = {
     "foreground",
     "(invalid)",
 };
-
-bool pc98_pegc_linear_framebuffer_enabled(void);
+char *FormatDate(uint16_t year, uint8_t month, uint8_t day);
 void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
+bool pc98_pegc_linear_framebuffer_enabled(void);
 
 extern bool                 dos_kernel_disabled;
 extern bool                 is_paused;
@@ -156,7 +156,7 @@ void DEBUG_DrawInput(void) {
     DrawInput();
 }
 
-int GetMonthDays(uint8_t month);
+uint8_t GetMonthDays(uint8_t month);
 void DOS_AddDays(uint8_t days);
 void DEBUG_BeginPagedContent(void);
 void DEBUG_EndPagedContent(void);
@@ -2725,11 +2725,7 @@ bool ParseCommand(char* str) {
         uint8_t add=mem_readb(BIOS_24_HOURS_FLAG);
         mem_writeb(BIOS_24_HOURS_FLAG,0); // reset the "flag"
         if (add) DOS_AddDays(add);
-        char format[11];
-        if (dos.tables.country[0]==1) sprintf(format, "%02u%c%02u%c%04u", dos.date.day, c, dos.date.month, c, dos.date.year);
-        else if (dos.tables.country[0]==2) sprintf(format, "%04u%c%02u%c%02u", dos.date.year, c, dos.date.month, c, dos.date.day);
-        else sprintf(format, "%02u%c%02u%c%04u", dos.date.month, c, dos.date.day, c, dos.date.year);
-        DEBUG_ShowMsg("Internal date: %s\n", format);
+        DEBUG_ShowMsg("Internal date: %s\n", FormatDate(dos.date.year, dos.date.month, dos.date.day));
 		return true;
 	}
 
