@@ -23,10 +23,10 @@
 
 #if C_DEBUG
 
-class CDebugVar
+class DebugVariable
 {
     public:
-        CDebugVar(char* _name, PhysPt _adr);
+        DebugVariable(char* _name, PhysPt _adr);
         char* GetName(void);
         PhysPt GetAdr(void);
         void SetValue(bool has, uint16_t val);
@@ -34,9 +34,9 @@ class CDebugVar
         bool HasValue(void);
 
         // static
-        static std::vector<CDebugVar*> varList;
+        static std::vector<DebugVariable*> allVariables;
         static void InsertVariable(char* name, PhysPt adr);
-        static CDebugVar* FindVar(PhysPt pt);
+        static DebugVariable* FindVar(PhysPt pt);
         static void DeleteAll();
         static bool SaveVars(char* name);
         static bool LoadVars(char* name);

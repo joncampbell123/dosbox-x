@@ -26,7 +26,7 @@ class Breakpoint
 {
     public:
         static const int BPINT_ALL = 0x100;
-        static std::list<Breakpoint*> BPoints;
+        static std::list<Breakpoint*> allBreakpoints;
 
         enum BreakpointType {
             BP_UNKNOWN,

@@ -155,7 +155,7 @@ int DEBUG_ServerHandleRequest(char* request) {
         std::list<Breakpoint*>::iterator i;
         char breakpoints[1024];
         strcpy(breakpoints, "bp:");
-        for (i = Breakpoint::BPoints.begin(); i != Breakpoint::BPoints.end(); ++i) {
+        for (i = Breakpoint::allBreakpoints.begin(); i != Breakpoint::allBreakpoints.end(); ++i) {
             Breakpoint* bp = *i;
             char* breakpoint = FormatBreakpoint(nr, bp);
             if (nr > 0) {

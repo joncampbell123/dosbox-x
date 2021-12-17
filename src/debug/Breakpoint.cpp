@@ -4,14 +4,14 @@
 #include "cpu.h"
 #include "paging.h"
 
-std::list<Breakpoint*> Breakpoint::BPoints;
+std::list<Breakpoint*> Breakpoint::allBreakpoints;
 
 Breakpoint* Breakpoint::AddBreakpoint(uint16_t seg, uint32_t off, bool once)
 {
     Breakpoint* bp = new Breakpoint();
     bp->SetAddress(seg, off);
     bp->once = once;
-    BPoints.push_front(bp);
+    allBreakpoints.push_front(bp);
     return bp;
 }
 
@@ -59,7 +59,7 @@ Breakpoint* Breakpoint::AddIntBreakpoint(uint8_t intNum, uint16_t ah, uint16_t a
     Breakpoint* bp = new Breakpoint();
     bp->SetInt(intNum, ah, al);
     bp->once = once;
-    BPoints.push_front(bp);
+    allBreakpoints.push_front(bp);
     return bp;
 }
 
@@ -69,7 +69,7 @@ Breakpoint* Breakpoint::AddMemBreakpoint(uint16_t seg, uint32_t off)
     bp->SetAddress(seg, off);
     bp->once = false;
     bp->type = BP_MEMORY;
-    BPoints.push_front(bp);
+    allBreakpoints.push_front(bp);
     return bp;
 }
 
@@ -77,7 +77,7 @@ void Breakpoint::ActivateBreakpoints()
 {
     // activate all breakpoints
     std::list<Breakpoint*>::iterator i;
-    for (i = BPoints.begin(); i != BPoints.end(); ++i)
+    for (i = allBreakpoints.begin(); i != allBreakpoints.end(); ++i)
         (*i)->Activate(true);
 }
 
@@ -85,7 +85,7 @@ void Breakpoint::DeactivateBreakpoints()
 {
     // deactivate all breakpoints
     std::list<Breakpoint*>::iterator i;
-    for (i = BPoints.begin(); i != BPoints.end(); ++i)
+    for (i = allBreakpoints.begin(); i != allBreakpoints.end(); ++i)
         (*i)->Activate(false);
 }
 
@@ -93,7 +93,7 @@ void Breakpoint::ActivateBreakpointsExceptAt(PhysPt adr)
 {
     // activate all breakpoints, except those at adr
     std::list<Breakpoint*>::iterator i;
-    for (i = BPoints.begin(); i != BPoints.end(); ++i) {
+    for (i = allBreakpoints.begin(); i != allBreakpoints.end(); ++i) {
         Breakpoint* bp = (*i);
         // Do not activate breakpoints at adr
         if (bp->type == BP_PHYSICAL && bp->location == adr)
@@ -106,10 +106,10 @@ bool Breakpoint::CheckBreakpoint(uint16_t seg, uint32_t off)
 // Checks if breakpoint is valid and should stop execution
 {
     // Quick exit if there are no breakpoints
-    if (BPoints.empty()) return false;
+    if (allBreakpoints.empty()) return false;
 
     // Search matching breakpoint
-    for (auto i = BPoints.begin(); i != BPoints.end(); ++i) {
+    for (auto i = allBreakpoints.begin(); i != allBreakpoints.end(); ++i) {
         Breakpoint* bp = (*i);
 
         if ((bp->type == BP_PHYSICAL) && bp->IsActive() &&
@@ -117,7 +117,7 @@ bool Breakpoint::CheckBreakpoint(uint16_t seg, uint32_t off)
             // Found
             if (bp->once) {
                 // delete it, if it should only be used once
-                (BPoints.erase)(i);
+                (allBreakpoints.erase)(i);
                 bp->Activate(false);
                 delete bp;
             }
@@ -125,7 +125,7 @@ bool Breakpoint::CheckBreakpoint(uint16_t seg, uint32_t off)
                 // Also look for once-only breakpoints at this address
                 bp = FindPhysBreakpoint(seg, off, true);
                 if (bp) {
-                    BPoints.remove(bp);
+                    allBreakpoints.remove(bp);
                     bp->Activate(false);
                     delete bp;
                 }
@@ -167,14 +167,14 @@ bool Breakpoint::CheckBreakpoint(uint16_t seg, uint32_t off)
 bool Breakpoint::CheckIntBreakpoint(PhysPt adr, uint8_t intNr, uint16_t ahValue, uint16_t alValue)
 // Checks if interrupt breakpoint is valid and should stop execution
 {
-    if (BPoints.empty()) return false;
+    if (allBreakpoints.empty()) return false;
 
     // unused
     (void)adr;
 
     // Search matching breakpoint
     std::list<Breakpoint*>::iterator i;
-    for (i = BPoints.begin(); i != BPoints.end(); ++i) {
+    for (i = allBreakpoints.begin(); i != allBreakpoints.end(); ++i) {
         Breakpoint* bp = (*i);
         if ((bp->type == BP_INTERRUPT) && bp->IsActive() && (bp->intNr == intNr)) {
             if (((bp->GetValue() == BPINT_ALL) || (bp->GetValue() == ahValue)) && ((bp->GetOther() == BPINT_ALL) || (bp->GetOther() == alValue))) {
@@ -182,7 +182,7 @@ bool Breakpoint::CheckIntBreakpoint(PhysPt adr, uint8_t intNr, uint16_t ahValue,
                 // Found
                 if (bp->once) {
                     // delete it, if it should only be used once
-                    (BPoints.erase)(i);
+                    (allBreakpoints.erase)(i);
                     bp->Activate(false);
                     delete bp;
                 }
@@ -196,12 +196,12 @@ bool Breakpoint::CheckIntBreakpoint(PhysPt adr, uint8_t intNr, uint16_t ahValue,
 void Breakpoint::DeleteAll()
 {
     std::list<Breakpoint*>::iterator i;
-    for (i = BPoints.begin(); i != BPoints.end(); ++i) {
+    for (i = allBreakpoints.begin(); i != allBreakpoints.end(); ++i) {
         Breakpoint* bp = (*i);
         bp->Activate(false);
         delete bp;
     }
-    (BPoints.clear)();
+    (allBreakpoints.clear)();
 }
 
 
@@ -211,10 +211,10 @@ bool Breakpoint::DeleteByIndex(uint16_t index)
     int nr = 0;
     std::list<Breakpoint*>::iterator i;
     Breakpoint* bp;
-    for (i = BPoints.begin(); i != BPoints.end(); ++i) {
+    for (i = allBreakpoints.begin(); i != allBreakpoints.end(); ++i) {
         if (nr == index) {
             bp = (*i);
-            (BPoints.erase)(i);
+            (allBreakpoints.erase)(i);
             bp->Activate(false);
             delete bp;
             return true;
@@ -226,14 +226,14 @@ bool Breakpoint::DeleteByIndex(uint16_t index)
 
 Breakpoint* Breakpoint::FindPhysBreakpoint(uint16_t seg, uint32_t off, bool once)
 {
-    if (BPoints.empty()) return 0;
+    if (allBreakpoints.empty()) return 0;
 #if !C_HEAVY_DEBUG
     PhysPt adr = GetAddress(seg, off);
 #endif
     // Search for matching breakpoint
     std::list<Breakpoint*>::iterator i;
     Breakpoint* bp;
-    for (i = BPoints.begin(); i != BPoints.end(); ++i) {
+    for (i = allBreakpoints.begin(); i != allBreakpoints.end(); ++i) {
         bp = (*i);
 #if C_HEAVY_DEBUG
         // Heavy debugging breakpoints are triggered by matching seg:off
@@ -253,7 +253,7 @@ Breakpoint* Breakpoint::FindPhysBreakpoint(uint16_t seg, uint32_t off, bool once
 Breakpoint* Breakpoint::FindOtherActiveBreakpoint(PhysPt adr, Breakpoint* skip)
 {
     std::list<Breakpoint*>::iterator i;
-    for (i = BPoints.begin(); i != BPoints.end(); ++i) {
+    for (i = allBreakpoints.begin(); i != allBreakpoints.end(); ++i) {
         Breakpoint* bp = (*i);
         if (bp != skip && bp->type == BP_PHYSICAL && bp->location == adr && bp->IsActive())
             return bp;
@@ -271,7 +271,7 @@ bool Breakpoint::DeleteBreakpoint(uint16_t seg, uint32_t off)
 {
     Breakpoint* bp = FindPhysBreakpoint(seg, off, false);
     if (bp) {
-        BPoints.remove(bp);
+        allBreakpoints.remove(bp);
         delete bp;
         return true;
     }
@@ -284,7 +284,7 @@ void Breakpoint::ShowList(void)
     // iterate list
     int nr = 0;
     std::list<Breakpoint*>::iterator i;
-    for (i = BPoints.begin(); i != BPoints.end(); ++i) {
+    for (i = allBreakpoints.begin(); i != allBreakpoints.end(); ++i) {
         Breakpoint* bp = (*i);
         if (bp->type == BP_PHYSICAL) {
             DEBUG_ShowMsg("%02X. BP %04X:%04X\n", nr, bp->segment, bp->offset);
