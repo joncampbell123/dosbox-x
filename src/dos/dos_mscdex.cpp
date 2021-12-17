@@ -1252,12 +1252,8 @@ static bool MSCDEX_Handler(void) {
 			}
 			reg_al = 0xff;
 			return true;
-		} else {
-			LOG(LOG_MISC,LOG_ERROR)("NETWORK REDIRECTOR USED!!!");
-			reg_ax = 0x49;//NETWERK SOFTWARE NOT INSTALLED
-			CALLBACK_SCF(true);
-			return true;
-		}
+		} else
+			return false;
 	}
 
 	if (reg_ah!=0x15) return false;		// not handled here, continue chain
