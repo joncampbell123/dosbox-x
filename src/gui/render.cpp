@@ -797,6 +797,7 @@ forcenormal:
     render.scale.outWrite = 0;
     /* Signal the next frame to first reinit the cache */
     render.scale.clearCache = true;
+    render.scale.cacheRead = (uint8_t*)&scalerSourceCache;
     render.active=true;
 
     last_gfx_flags = gfx_flags;
