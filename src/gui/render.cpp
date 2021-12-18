@@ -820,50 +820,61 @@ void RENDER_CallBack( GFX_CallBackFunctions_t function ) {
     }
 }
 
-void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio) {
-    RENDER_Halt( );
+/**
+ * Sets the rendering size, bpp and fps
+ *
+ * It also updates the render source's scaler ratio and determines whether
+ * double width (dblw) or double height (dblh) should be used.
+ *
+ * If the requested aspect ratio (i.e. width / height) is above 1.6, double width is set
+ * If the requested aspect ratio is below 0.75, double height is set
+ *
+ * Double width will double the render source aspect ratio, double height
+ * will divide it by half.
+ */
+void RENDER_SetSize(Bitu width, Bitu height, Bitu bpp, float fps, double screenratio) {
+    RENDER_Halt();
     if (!width || !height || width > SCALER_MAXWIDTH || height > SCALER_MAXHEIGHT) {
-        LOG(LOG_MISC,LOG_WARN)("RENDER_SetSize() rejected video mode %u x %u",(unsigned int)width,(unsigned int)height);
+        LOG(LOG_MISC,LOG_WARN)("RENDER_SetSize() rejected video mode %u x %u", (unsigned int)width, (unsigned int)height);
         return; 
     }
-
 #if defined(USE_TTF)
     if (sdl.desktop.want_type == SCREEN_TTF) {
         render.cache.width	= width;
         render.cache.height	= height;
     }
 #endif
-
-    // figure out doublewidth/height values
+    // Figure out double width & double height
     bool dblw = false;
     bool dblh = false;
-    double ratio = (((double)width)/((double)height))/scrn_ratio;
-    if(ratio > 1.6) {
-        dblh=true;
+    double ratio = (((double)width) / ((double)height)) / screenratio;
+    if (ratio > 1.6) {
+        dblh = true;
         ratio /= 2.0;
-    } else if(ratio < 0.75) {
-        dblw=true;
+    } else if (ratio < 0.75) {
+        dblw = true;
         ratio *= 2.0;
-    } else if(width < 370 && height < 280) {
-        dblw=true; dblh=true;
+    } else if (width < 370 && height < 280) {
+        dblw = true;
+        dblh = true;
     }
-    LOG_MSG("pixratio %1.3f, dw %s, dh %s",ratio,dblw?"true":"false",dblh?"true":"false");
-
-    if ( ratio > 1.0 ) {
+    LOG(LOG_MISC,LOG_DEBUG)("pixratio %1.3f, dw %s, dh %s", ratio, dblw ? "true" : "false", dblh ? "true" : "false");
+    if (ratio > 1.0) {
+        // TODO: how does this work?
         double target = height * ratio + 0.025;
         ratio = target / height;
     } else {
-        //This would alter the width of the screen, we don't care about rounding errors here
+        // This would alter the width of the screen, we don't care about rounding errors here
     }
-    render.src.width=width;
-    render.src.height=height;
-    render.src.bpp=bpp;
-    render.src.dblw=dblw;
-    render.src.dblh=dblh;
-    render.src.fps=fps;
-    render.src.ratio=ratio;
-    render.src.scrn_ratio=scrn_ratio;
-    RENDER_Reset( );
+    render.src.width = width;
+    render.src.height = height;
+    render.src.bpp = bpp;
+    render.src.dblw = dblw;
+    render.src.dblh = dblh;
+    render.src.fps = fps;
+    render.src.ratio = ratio;
+    render.src.scrn_ratio = screenratio;
+    RENDER_Reset();
 }
 
 /*void BlankDisplay(void);
@@ -1332,10 +1343,8 @@ private:
 
 	virtual void setBytes(std::istream& stream)
 	{
+        // Load data
 		SerializeGlobalPOD::setBytes(stream);
-
-
-		// - pure data
 		READ_POD( &render.src, render.src );
 		READ_POD( &render.pal, render.pal );
 		READ_POD( &render.updating, render.updating );
@@ -1351,15 +1360,11 @@ private:
 		render.scale.size = size;
 		render.scale.hardware = hardware;
 
-		//***************************************
-		//***************************************
-
-		// reset screen
-		//memset( &render.frameskip, 0, sizeof(render.frameskip) );
-
-		if (render.aspect==ASPECT_FALSE) {
+		// Reset screen
+		if (render.aspect == ASPECT_FALSE) {
 			render.scale.clearCache = true;
-			if( render.scale.outWrite ) { GFX_EndUpdate(NULL); }
+			if(render.scale.outWrite )
+                GFX_EndUpdate(NULL);
 			RENDER_SetSize(render.src.width, render.src.height, render.src.bpp, render.src.fps, render.src.scrn_ratio);
 		} else
 			GFX_ResetScreen();
