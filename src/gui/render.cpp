@@ -1315,22 +1315,18 @@ void RENDER_Init() {
     RENDER_UpdateScalerMenu();
 }
 
-//save state support
+// Save state support
 namespace
 {
 class SerializeRender : public SerializeGlobalPOD
 {
 public:
-	SerializeRender() : SerializeGlobalPOD("Render")
-	{}
+	SerializeRender() : SerializeGlobalPOD("Render") {}
 
 private:
-	virtual void getBytes(std::ostream& stream)
-	{
+	virtual void getBytes(std::ostream& stream) {
+        // Save rendering state data
 		SerializeGlobalPOD::getBytes(stream);
-
-
-		// - pure data
 		WRITE_POD( &render.src, render.src );
 		WRITE_POD( &render.pal, render.pal );
 		WRITE_POD( &render.updating, render.updating );
@@ -1341,29 +1337,30 @@ private:
 		WRITE_POD( &render.scale, render.scale );
 	}
 
-	virtual void setBytes(std::istream& stream)
-	{
-        // Load data
+	virtual void setBytes(std::istream& stream) {
+        // Load rendering state data
 		SerializeGlobalPOD::setBytes(stream);
-		READ_POD( &render.src, render.src );
-		READ_POD( &render.pal, render.pal );
-		READ_POD( &render.updating, render.updating );
-		READ_POD( &render.active, render.active );
-		READ_POD( &render.fullFrame, render.fullFrame );
-		READ_POD( &render.frameskip, render.frameskip );
-		READ_POD( &render.aspect, render.aspect );
+		READ_POD(&render.src, render.src);
+		READ_POD(&render.pal, render.pal);
+		READ_POD(&render.updating, render.updating);
+		READ_POD(&render.active, render.active);
+		READ_POD(&render.fullFrame, render.fullFrame);
+		READ_POD(&render.frameskip, render.frameskip);
+		READ_POD(&render.aspect, render.aspect);
+
+        // Some scaling fields should not be overwritten -> so store them and set again after reading
 		scalerOperation_t op = render.scale.op;
 		Bitu size = render.scale.size;
 		bool hardware = render.scale.hardware;
-		READ_POD( &render.scale, render.scale );
+		READ_POD(&render.scale, render.scale);
 		render.scale.op = op;
 		render.scale.size = size;
 		render.scale.hardware = hardware;
 
-		// Reset screen
+		// Update screen
 		if (render.aspect == ASPECT_FALSE) {
 			render.scale.clearCache = true;
-			if(render.scale.outWrite )
+			if (render.scale.outWrite)
                 GFX_EndUpdate(NULL);
 			RENDER_SetSize(render.src.width, render.src.height, render.src.bpp, render.src.fps, render.src.scrn_ratio);
 		} else
