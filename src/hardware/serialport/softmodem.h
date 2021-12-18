@@ -237,10 +237,10 @@ protected:
 	Bitu listenport;
 	uint8_t reg[SREGS];
 	
-	
-	TCPServerSocket* serversocket;
-	TCPClientSocket* clientsocket;
-	TCPClientSocket* waitingclientsocket;
+	SocketTypesE socketType = SOCKET_TYPE_TCP;
+	NETServerSocket* serversocket;
+	NETClientSocket* clientsocket;
+	NETClientSocket* waitingclientsocket;
 
 	struct {
 		bool binary[2];

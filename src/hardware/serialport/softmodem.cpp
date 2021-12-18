@@ -111,9 +111,16 @@ static const char *MODEM_GetAddressFromPhone(const char *input) {
 }
 
 CSerialModem::CSerialModem(Bitu id, CommandLine* cmd):CSerial(id, cmd) {
+	uint32_t bool_temp = 0;
 	InstallationSuccessful=false;
 	connected=false;
 
+	// enet: Setting to 1 enables enet on the port, otherwise TCP.
+	if (getBituSubstring("sock:", &bool_temp, cmd)) {
+		if (bool_temp == 1) {
+			socketType = SOCKET_TYPE_ENET;
+		}
+	}
 	rqueue=new CFifo(MODEM_BUFFER_QUEUE_SIZE);
 	tqueue=new CFifo(MODEM_BUFFER_QUEUE_SIZE);
 	
@@ -270,7 +277,7 @@ bool CSerialModem::Dial(const char *host) {
 	
         // Resolve host we're gonna dial
 	LOG_MSG("Connecting to host %s port %u", destination, port);
-	clientsocket = new TCPClientSocket(destination, port);
+	clientsocket = NETClientSocket::NETClientFactory(socketType, destination, port);
 	if(!clientsocket->isopen) {
 		delete clientsocket;
 		clientsocket=0;
@@ -363,16 +370,16 @@ void CSerialModem::EnterIdleState(void){
 			delete waitingclientsocket;
 	} else if (listenport) {
 
-		serversocket=new TCPServerSocket((uint16_t)listenport);
+		serversocket=NETServerSocket::NETServerFactory(socketType,listenport);
 		if(!serversocket->isopen) {
-			LOG_MSG("Serial%d: Modem could not open TCP port %u.",
-                                static_cast<uint32_t>(COMNUMBER),
+			LOG_MSG("Serial%d: Modem could not open %s port %u.",
+                                static_cast<uint32_t>(COMNUMBER), socketType ? "ENet" : "TCP",
                                 static_cast<uint32_t>(listenport));
 			delete serversocket;
 			serversocket = 0;
 		} else
-                    LOG_MSG("Serial%u: Modem listening on port %u...",
-		            static_cast<uint32_t>(COMNUMBER),
+                    LOG_MSG("Serial%u: Modem listening on %s port %u...",
+		            static_cast<uint32_t>(COMNUMBER), socketType ? "ENet" : "TCP",
 			        static_cast<uint32_t>(listenport));
 	}
 	waitingclientsocket = 0;
@@ -399,6 +406,16 @@ void CSerialModem::EnterConnectedState(void) {
         dtrofftimer = -1;
 	CSerial::setCD(true);
 	CSerial::setRI(false);
+}
+
+template <size_t N>
+bool is_next_token(const char (&a)[N], const char *b) noexcept
+{
+	// Is 'b' at least as long as 'a'?
+	constexpr size_t N_without_null = N - 1;
+	if (strnlen(b, N) < N_without_null)
+		return false;
+	return (strncmp(a, b, N_without_null) == 0);
 }
 
 void CSerialModem::DoCommand() {
@@ -439,6 +456,56 @@ void CSerialModem::DoCommand() {
 		// LOG_MSG("loopstart ->%s<-",scanbuf);
 		char chr = GetChar(scanbuf);
 		switch (chr) {
+		// Multi-character AT-commands are prefixed with +
+		// -----------------------------------------------
+		// Note: successfully finding your multi-char command
+		// requires moving the scanbuf position one beyond the
+		// the last character in the multi-char sequence to ensure
+		// single-character detection resumes on the next character.
+		// Either break if successful or fail with SendRes(ResERROR)
+		// and return (halting the command sequence all together).
+		case '+':
+			// +NET1 enables telnet-mode and +NET0 disables it
+			if (is_next_token("NET", scanbuf)) {
+				// only walk the pointer ahead if the command matches
+				scanbuf += 3;
+				const uint32_t requested_mode = ScanNumber(scanbuf);
+
+				// If the mode isn't valid then stop parsing
+				if (requested_mode != 1 && requested_mode != 0) {
+					SendRes(ResERROR);
+					return;
+				}
+				// Inform the user on changes
+				if (telnetmode != static_cast<bool>(requested_mode)) {
+					telnetmode = requested_mode;
+					LOG_MSG("SERIAL: Port %u telnet-mode %s",
+					        idnumber + 1,
+					        telnetmode ? "enabled" : "disabled");
+				}
+				break;
+			}
+			// +SOCK1 enables enet.  +SOCK0 is TCP.
+			if (is_next_token("SOCK", scanbuf)) {
+				scanbuf += 4;
+				const uint32_t requested_mode = ScanNumber(scanbuf);
+				if (requested_mode >= SOCKET_TYPE_COUNT) {
+					SendRes(ResERROR);
+					return;
+				}
+				socketType = (SocketTypesE)requested_mode;
+				// This will break when there's more than two
+				// socket types.
+				LOG_MSG("SERIAL: Port %u socket type %s",
+				        idnumber + 1,
+				        socketType ? "ENet" : "TCP");
+				// Reset port state.
+				EnterIdleState();
+				break;
+			}
+			// If the command wasn't recognized then stop parsing
+			SendRes(ResERROR);
+			return;
 		case 'D': { // Dial
 			char *foundstr = &scanbuf[0];
 			if (*foundstr=='T' || *foundstr=='P') foundstr++;
@@ -837,6 +904,7 @@ void CSerialModem::Timer2(void) {
 		// down here it saves a lot of network traffic
 		if(!clientsocket->SendArray(tmpbuf,txbuffersize)) {
 			SendRes(ResNOCARRIER);
+			LOG_MSG("SERIAL: No carrier on send");
 			EnterIdleState();
 		}
 	}
@@ -844,8 +912,9 @@ void CSerialModem::Timer2(void) {
 	if(!commandmode && clientsocket && rqueue->left()) {
 		usesize = rqueue->left();
 		if (usesize>16) usesize=16;
-		if(!clientsocket->ReceiveArray(tmpbuf, &usesize)) {
+		if(!clientsocket->ReceiveArray(tmpbuf, usesize)) {
 			SendRes(ResNOCARRIER);
+			LOG_MSG("SERIAL: No carrier on receive");
 			EnterIdleState();
 		} else if(usesize) {
 			// Filter telnet commands 

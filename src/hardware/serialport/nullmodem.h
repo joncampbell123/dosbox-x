@@ -48,9 +48,11 @@ public:
 	void setDTR(bool val);
 	void handleUpperEvent(uint16_t type);
 
+	SocketTypesE socketType = SOCKET_TYPE_TCP;
+
 private:
-	TCPServerSocket* serversocket;
-	TCPClientSocket* clientsocket;
+	NETServerSocket* serversocket;
+	NETClientSocket* clientsocket;
 
 	bool receiveblock;		// It's not a block of data it rather blocks
 	uint16_t serverport;		// we are a server if this is nonzero
@@ -66,11 +68,11 @@ private:
 #define N_RX_DISC		4
 
 	bool doReceive();
-	bool ClientConnect(TCPClientSocket* newsocket);
+	bool ClientConnect(NETClientSocket * newsocket);
 	bool ServerListen();
 	bool ServerConnect();
     void Disconnect();
-	Bits readChar();
+	Bits readChar(uint8_t &val);
 	void WriteChar(uint8_t data);
 
 	bool DTR_delta;		// with dtrrespect, we try to establish a connection

@@ -16,6 +16,14 @@
   - Config option "pixelshader" now allows a shader file
     name without the .fx extension, or a shader file in
     the current directory. (Wengier)
+  - Added support for ENET reliable UDP as an option for
+    modem and null-modem emulation. You can enable it
+    with "sock:1" option for modems/null-modems that are
+    connected with serial ports (COM1-COM9), such as
+    "serial1=modem listenport:5000 sock:1" for COM1 to
+    listen to port 5000 with reliable ENET UDP instead
+    of TCP connection. The feature is ported from DOSBox
+    Staging. (sduensin, GranMinigun, kcgen, Wengier)
   - Added special properties to CONFIG command including
     "cd", "date", "errorlevel", "random", "time" so that
     commands like "CONFIG -GET cd" and "CONFIG -GET
