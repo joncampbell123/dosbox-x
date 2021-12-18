@@ -1310,17 +1310,14 @@ namespace
 class SerializeRender : public SerializeGlobalPOD
 {
 public:
-	SerializeRender() : SerializeGlobalPOD("Render")
-	{}
+	SerializeRender() : SerializeGlobalPOD("Render") {}
 
 private:
 	virtual void getBytes(std::ostream& stream)
 	{
-		SerializeGlobalPOD::getBytes(stream);
-
-
 		// - pure data
-		WRITE_POD( &render.src, render.src );
+        SerializeGlobalPOD::getBytes(stream);
+        WRITE_POD( &render.src, render.src );
 		WRITE_POD( &render.pal, render.pal );
 		WRITE_POD( &render.updating, render.updating );
 		WRITE_POD( &render.active, render.active );
@@ -1332,10 +1329,8 @@ private:
 
 	virtual void setBytes(std::istream& stream)
 	{
-		SerializeGlobalPOD::setBytes(stream);
-
-
 		// - pure data
+        SerializeGlobalPOD::setBytes(stream);
 		READ_POD( &render.src, render.src );
 		READ_POD( &render.pal, render.pal );
 		READ_POD( &render.updating, render.updating );
@@ -1348,9 +1343,13 @@ private:
 		bool hardware = render.scale.hardware;
         uint8_t* cacheRead = render.scale.cacheRead;
         uint8_t* outWrite = render.scale.outWrite;
+        Bitu cachePitch = render.scale.cachePitch;
+        Bitu outPitch = render.scale.outPitch;
         READ_POD( &render.scale, render.scale );
         render.scale.cacheRead = cacheRead;
+        render.scale.cachePitch = cachePitch;
         render.scale.outWrite = outWrite;
+        render.scale.outPitch = outPitch;
         render.scale.op = op;
 		render.scale.size = size;
 		render.scale.hardware = hardware;
