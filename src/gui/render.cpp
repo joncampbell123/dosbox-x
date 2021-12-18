@@ -1360,7 +1360,7 @@ private:
 		if (render.aspect==ASPECT_FALSE) {
 			render.scale.clearCache = true;
 			if( render.scale.outWrite ) { GFX_EndUpdate(NULL); }
-			RENDER_SetSize( render.src.width, render.src.height, render.src.bpp, render.src.fps, render.src.ratio );
+			RENDER_SetSize(render.src.width, render.src.height, render.src.bpp, render.src.fps, render.src.scrn_ratio);
 		} else
 			GFX_ResetScreen();
 	}
