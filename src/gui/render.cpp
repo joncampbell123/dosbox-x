@@ -797,7 +797,6 @@ forcenormal:
     render.scale.outWrite = 0;
     /* Signal the next frame to first reinit the cache */
     render.scale.clearCache = true;
-    render.scale.cacheRead = (uint8_t*)&scalerSourceCache;
     render.active=true;
 
     last_gfx_flags = gfx_flags;
@@ -1344,24 +1343,23 @@ private:
 		READ_POD( &render.fullFrame, render.fullFrame );
 		READ_POD( &render.frameskip, render.frameskip );
 		READ_POD( &render.aspect, render.aspect );
-		scalerOperation_t op = render.scale.op;
+        scalerOperation_t op = render.scale.op;
 		Bitu size = render.scale.size;
 		bool hardware = render.scale.hardware;
-		READ_POD( &render.scale, render.scale );
-		render.scale.op = op;
+        uint8_t* cacheRead = render.scale.cacheRead;
+        uint8_t* outWrite = render.scale.outWrite;
+        READ_POD( &render.scale, render.scale );
+        render.scale.cacheRead = cacheRead;
+        render.scale.outWrite = outWrite;
+        render.scale.op = op;
 		render.scale.size = size;
 		render.scale.hardware = hardware;
-
-		//***************************************
-		//***************************************
-
+ 
 		// reset screen
-		//memset( &render.frameskip, 0, sizeof(render.frameskip) );
-
 		if (render.aspect==ASPECT_FALSE) {
 			render.scale.clearCache = true;
 			if( render.scale.outWrite ) { GFX_EndUpdate(NULL); }
-			RENDER_SetSize( render.src.width, render.src.height, render.src.bpp, render.src.fps, render.src.ratio );
+			RENDER_SetSize( render.src.width, render.src.height, render.src.bpp, render.src.fps, render.src.scrn_ratio );
 		} else
 			GFX_ResetScreen();
 	}
