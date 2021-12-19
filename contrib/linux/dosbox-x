@@ -27,14 +27,14 @@ _dosbox-x()
                     -nogui -nomenu -showcycles -showrt -savedir -defaultdir
                     -defaultconf -defaultmapper -date-host-forced -display2
                     -nodpiaware -securemode -prerun -hostrun -noconfig -silent
-                    -time-limit -fastlaunch -debug
+                    -time-limit -fastlaunch -debug -o
                   )\
      _repeat_opts=(
                     -conf -c -set
                   )\
   _exclusive_opts=(
-                    -v -ver -version -printconf -editconf -resetconf
-                    -eraseconf -erasemapper -resetmapper -help -h
+                    -ver -version -printconf -editconf -resetconf
+                    -eraseconf -erasemapper -resetmapper -help #-h
                     -opencaptures -opensaves -helpdebug
                   )
   ####
@@ -45,7 +45,7 @@ _dosbox-x()
   local _conf="$HOME/.config/dosbox-x/"
 
   case "$prev" in
-    -?(-)conf)
+    -conf)
       compopt -o plusdirs
       readarray -t -O ${#COMPREPLY[@]} COMPREPLY \
         < <( compgen -f -X '!*.@(conf|CONF)' -- "${cur}" )
@@ -74,6 +74,10 @@ _dosbox-x()
     -c)
       readarray -t -O ${#COMPREPLY[@]} COMPREPLY \
       < <(printf "» -c\nDOS command to run in DOSBox-X (enclose in quotes, if it contains spaces)")
+      return;;
+    -o)
+      readarray -t -O ${#COMPREPLY[@]} COMPREPLY \
+      < <(printf "» -c\nCommand-line option(s) to pass to program (enclose in quotes, if it contains spaces)")
       return;;
     -set)
       readarray -t -O ${#COMPREPLY[@]} COMPREPLY \
