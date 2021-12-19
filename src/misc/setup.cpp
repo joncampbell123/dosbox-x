@@ -1235,7 +1235,7 @@ bool CommandLine::FindEntry(char const * const name,cmd_it & it,bool neednext) {
 bool CommandLine::FindStringBegin(char const* const begin,std::string & value, bool remove) {
     size_t len = strlen(begin);
     for (cmd_it it = cmds.begin(); it != cmds.end();++it) {
-        if (strncmp(begin,(*it).c_str(),len)==0) {
+        if (strncasecmp(begin,(*it).c_str(),len)==0) {
             value=((*it).c_str() + len);
             if (remove) cmds.erase(it);
             return true;

@@ -95,6 +95,8 @@
     not working from the internal DOS shell. (Wengier)
   - Fixed Disney sound source connecting to parallel
     port not working in the previous version. (Wengier)
+  - Fixed MODE command options like "rate" and "delay"
+    not working if entered in upper cases. (Wengier)
   - Fixed command-line parameters (when launching
     DOSBox-X) containing Chinese characters in code page
     950 not working in Windows SDL2 builds. (Wengier)
