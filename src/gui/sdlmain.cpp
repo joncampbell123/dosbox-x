@@ -5366,14 +5366,6 @@ void RebootGuest(bool pressed) {
 	throw int(3);
 }
 
-#if defined(USE_TTF)
-#include "cp437_uni.h"
-extern int eurAscii;
-extern bool enable_dbcs_tables;
-extern uint16_t cpMap_PC98[256];
-uint16_t cpMap_copy[256];
-void initcodepagefont();
-bool copied=false, forceswk=false;
 std::map<int, int> lowboxdrawmap {
     {1, 201}, {2, 187}, {3, 200}, {4, 188}, {5, 186}, {6, 205}, {0xe, 178},
     {0x10, 206}, {0x14, 177}, {0x15, 202}, {0x16, 203}, {0x17, 185}, {0x19, 204}, {0x1a, 176},
@@ -5387,6 +5379,14 @@ uint16_t cpMap_AX[32] = {
 	0x0020, 0x00b6, 0x2195, 0x2194, 0x2191, 0x2193, 0x2192, 0x2190, 0x2500, 0x2502, 0x250c, 0x2510, 0x2518, 0x2514, 0x251c, 0x252c,
 	0x2524, 0x2534, 0x253c, 0x2550, 0x2551, 0x2554, 0x2557, 0x255d, 0x255a, 0x2560, 0x2566, 0x2563, 0x2569, 0x256c, 0x00ab, 0x00bb
 };
+#if defined(USE_TTF)
+#include "cp437_uni.h"
+extern int eurAscii;
+extern bool enable_dbcs_tables;
+extern uint16_t cpMap_PC98[256];
+uint16_t cpMap_copy[256];
+void initcodepagefont();
+bool copied=false, forceswk=false;
 int setTTFCodePage() {
     if (!copied) {
         memcpy(cpMap_copy,cpMap,sizeof(cpMap[0])*256);

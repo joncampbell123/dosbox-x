@@ -41,7 +41,7 @@ extern bool morelen, halfwidthkana;
 extern int dos_clipboard_device_access;
 extern const char * dos_clipboard_device_name;
 bool isDBCSCP(), shiftjis_lead_byte(int c);
-bool Network_IsNetworkResource(const char * filename);
+bool Network_IsNetworkResource(const char * filename), TTF_using(void);
 bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 
 struct ExtDeviceData {
@@ -420,7 +420,11 @@ bool Unicode2Ascii(const uint16_t* unicode) {
     }
 	for (int i = 0; i < memNeeded; i++)
 		if (clipAscii[i] > 31 || clipAscii[i] == 9 || clipAscii[i] == 10 || clipAscii[i] == 13 // Space and up, or TAB, CR/LF allowed (others make no sense when pasting)
-            || (dos.loaded_codepage == 932 && halfwidthkana && ((IS_JEGA_ARCH && clipAscii[i] && clipAscii[i] < 32) || (!IS_PC98_ARCH && lowboxdrawmap.find(clipAscii[i])!=lowboxdrawmap.end()))))
+            || (dos.loaded_codepage == 932 && TTF_using()
+#if defined(USE_TTF)
+            && halfwidthkana
+#endif
+            && ((IS_JEGA_ARCH && clipAscii[i] && clipAscii[i] < 32) || (!IS_PC98_ARCH && lowboxdrawmap.find(clipAscii[i])!=lowboxdrawmap.end()))))
 			clipAscii[clipSize++] = clipAscii[i];
 	return ret;																			// clipAscii dould be downsized, but of no real interest
 }
