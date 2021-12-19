@@ -2164,6 +2164,8 @@ void CPU_RET(bool use32,Bitu bytes,uint32_t oldeip) {
 					"RET to C segment of higher privilege",
 					EXCEPTION_GP,selector & 0xfffc)
 				break;
+			case 0:
+				break;
 			default:
 				E_Exit("RET from illegal descriptor type %X",(int)desc.Type());
 			}
@@ -2218,6 +2220,8 @@ RET_same_level:
 				CPU_CHECK_COND(desc.DPL()>rpl,
 					"RET to outer C segment with DPL>RPL",
 					EXCEPTION_GP,selector & 0xfffc)
+				break;
+			case 0:
 				break;
 			default:
 				E_Exit("RET from illegal descriptor type %X",(int)desc.Type());		// or #GP(selector)

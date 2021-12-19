@@ -95,10 +95,13 @@
     segment. It is once again possible to make Mac OS X
     ARM releases and to use dylib files from Brew doing
     so. (joncampbell123)
-  - Fixed NET command from Windows for Workgroups 3.11
-    not working from the internal DOS shell. (Wengier)
+  - Fixed E_Exit "RET from illegal descriptor type 0"
+    when running DirectX diagnostic program (dxdiag)
+    from a guest Windows 9x system. (Wengier)
   - Fixed Disney sound source connecting to parallel
     port not working in the previous version. (Wengier)
+  - Fixed NET command from Windows for Workgroups 3.11
+    not working from the internal DOS shell. (Wengier)
   - Fixed MODE command options like "rate" and "delay"
     not working if entered in upper cases. (Wengier)
   - Fixed command-line parameters (when launching
