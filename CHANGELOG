@@ -24,6 +24,10 @@
     listen to port 5000 with reliable ENET UDP instead
     of TCP connection. The feature is ported from DOSBox
     Staging. (sduensin, GranMinigun, kcgen, Wengier)
+  - Added new command-line option "-o" for providing
+    command-line option(s) if programs(s) are specified
+    to start when you launch DOSBox-X. An example:
+    dosbox-x program.exe -o "opt1 opt2". (Wengier)
   - Added special properties to CONFIG command including
     "cd", "date", "errorlevel", "random", "time" so that
     commands like "CONFIG -GET cd" and "CONFIG -GET

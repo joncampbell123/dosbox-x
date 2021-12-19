@@ -926,6 +926,7 @@ public:
         int cp=dos.loaded_codepage;
         InitCodePage();
         force_conversion = false;
+        int ind=0;
 
         /* The user may have given .BAT files to run on the command line */
         if (!control->auto_bat_additional.empty()) {
@@ -957,6 +958,8 @@ public:
                         batname = control->auto_bat_additional[i].substr(pos+1);
                         cmd += "@mount c: \"" + batpath + "\" -q\n";
                     }
+                    std::string opt = control->opt_o.size() > ind && control->opt_o[ind].size() ? " "+control->opt_o[ind] : "";
+                    ind++;
                     bool templfn=!uselfn&&filename_not_8x3(batname.c_str())&&(enablelfn==-1||enablelfn==-2);
                     cmd += "@c:\n";
                     cmd += "@cd \\\n";
@@ -966,7 +969,7 @@ public:
 #endif
                     cmd += "@CALL \"";
                     cmd += batname;
-                    cmd += "\"\n";
+                    cmd += "\"" + opt + "\n";
                     if (templfn) cmd += "@config -set lfn=" + std::string(enablelfn==-1?"auto":"autostart") + "\n";
 #if defined(WIN32) && !defined(HX_DOS)
                     if (!winautorun) cmd += "@config -set startcmd=false\n";

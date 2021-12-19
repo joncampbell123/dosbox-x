@@ -9886,6 +9886,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -noautoexec                             Do not execute AUTOEXEC.BAT config section\n");
             fprintf(stderr,"  -exit                                   Exit after executing AUTOEXEC.BAT\n");
             fprintf(stderr,"  -silent                                 Run DOSBox-X silently and exit after executing AUTOEXEC.BAT.\n");
+            fprintf(stderr,"  -o <option string>                      Provide command-line option(s) for [name] if specified.\n");
             fprintf(stderr,"  -c <command string>                     Execute this command in addition to AUTOEXEC.BAT.\n");
             fprintf(stderr,"                                          Make sure to surround the command in quotes to cover spaces.\n");
             fprintf(stderr,"  -set <section property=value>           Set the config option (overriding the config file).\n");
@@ -9926,6 +9927,10 @@ bool DOSBOX_parse_argv() {
 #endif
 
             return 0;
+        }
+        else if (optname == "o") {
+            if (!control->cmdline->NextOptArgv(tmp)) return false;
+            control->opt_o.push_back(tmp);
         }
         else if (optname == "c") {
             if (!control->cmdline->NextOptArgv(tmp)) return false;
