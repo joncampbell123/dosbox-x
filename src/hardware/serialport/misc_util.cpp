@@ -33,6 +33,7 @@
 #include "misc_util.h"
 #include "timer.h"
 #include <cassert>
+#include <limits.h>
 
 #ifdef NATIVESOCKETS
  #define CAPWORD (NETWRAPPER_TCP|NETWRAPPER_TCP_NATIVESOCKET)
@@ -50,14 +51,14 @@ uint32_t Netwrapper_GetCapabilities()
 static inline int GetTicksDiff(const int64_t new_ticks, const int64_t old_ticks)
 {
 	assert(new_ticks >= old_ticks);
-	assert((new_ticks - old_ticks) <= std::numeric_limits<int>::max());
+	assert((new_ticks - old_ticks) <= INT_MAX);
 	return static_cast<int>(new_ticks - old_ticks);
 }
 
 static inline int GetTicksSince(const int64_t old_ticks)
 {
 	const auto now = GetTicks();
-	assert((now - old_ticks) <= std::numeric_limits<int>::max());
+	assert((now - old_ticks) <= INT_MAX);
 	return GetTicksDiff(now, old_ticks);
 }
 

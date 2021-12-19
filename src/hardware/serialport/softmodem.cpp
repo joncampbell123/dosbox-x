@@ -111,7 +111,7 @@ static const char *MODEM_GetAddressFromPhone(const char *input) {
 }
 
 CSerialModem::CSerialModem(Bitu id, CommandLine* cmd):CSerial(id, cmd) {
-	uint32_t bool_temp = 0;
+	Bitu bool_temp = 0;
 	InstallationSuccessful=false;
 	connected=false;
 

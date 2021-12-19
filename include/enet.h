@@ -38,6 +38,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdint.h>
+#include <ctype.h>
 #include <time.h>
 
 #define ENET_VERSION_MAJOR 2
@@ -1036,7 +1037,11 @@ extern "C" {
 // =======================================================================//
 
         // inet_ntop/inet_pton for MinGW from http://mingw-users.1079350.n2.nabble.com/IPv6-getaddrinfo-amp-inet-ntop-td5891996.html
+#ifdef _WIN32
+        const char *inet_ntop(int af, LPCVOID src, LPSTR dst, size_t cnt) {
+#else
         const char *inet_ntop(int af, const void *src, char *dst, socklen_t cnt) {
+#endif
             if (af == AF_INET) {
                 struct sockaddr_in in;
                 memset(&in, 0, sizeof(in));
@@ -1049,7 +1054,7 @@ extern "C" {
                 struct sockaddr_in6 in;
                 memset(&in, 0, sizeof(in));
                 in.sin6_family = AF_INET6;
-                memcpy(&in.sin6_addr, src, sizeof(struct in_addr6));
+                memcpy(&in.sin6_addr, src, sizeof(struct in6_addr));
                 getnameinfo((struct sockaddr *)&in, sizeof(struct sockaddr_in6), dst, cnt, NULL, 0, NI_NUMERICHOST);
                 return dst;
             }
@@ -1203,7 +1208,7 @@ extern "C" {
         }
 
 
-        int inet_pton(int af, const char *src, struct in6_addr *dst) {
+        int inet_pton(int af, const char *src, void *dst) {
             switch (af)
             {
             case AF_INET:
