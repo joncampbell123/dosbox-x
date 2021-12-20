@@ -38,7 +38,7 @@
 
 unsigned char pc98_pegc_mmio[0x200] = {0}; /* PC-98 memory-mapped PEGC registers at E0000h */
 uint32_t pc98_pegc_banks[2] = {0x0000,0x0000}; /* bank switching offsets */
-bool enveten = false;
+bool enveten = false, TTF_using(void);
 
 extern bool non_cga_ignore_oddeven;
 extern bool non_cga_ignore_oddeven_engage;
@@ -2452,7 +2452,7 @@ void VGA_SetupHandlers(void) {
 	}
     // Workaround for ETen Chinese DOS system (e.g. ET24VA)
     if ((dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && strlen(RunningProgram) > 3 && !strncmp(RunningProgram, "ET", 2)) enveten = true;
-    runeten = !vga_fill_inactive_ram && (dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && ((strlen(RunningProgram) > 3 && !strncmp(RunningProgram, "ET", 2)) || (enveten && (!strcmp(RunningProgram, "COMMAND") || !strcmp(RunningProgram, "PRDRV") || !strcmp(RunningProgram, "TLFONT"))));
+    runeten = !vga_fill_inactive_ram && enveten && (dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && ((strlen(RunningProgram) > 3 && !strncmp(RunningProgram, "ET", 2)) || !TTF_using());
 	switch ((vga.gfx.miscellaneous >> 2) & 3) {
 	case 0:
         vgapages.base = VGA_PAGE_A0;
