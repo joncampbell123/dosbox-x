@@ -10,7 +10,7 @@
     text will now be highlighted when you try to select
     text for copying. (Wengier)
   - Improved IME support for Chinese/Japanese/Korean
-    languages on Windows SDL2 builds. (Wengier)
+    languages on Windows builds. (Wengier)
   - Pausing the emulation will automatically release
     the mouse and prevent mouse capture. (Wengier)
   - Config option "pixelshader" now allows a shader file
@@ -45,6 +45,12 @@
     section) which allows to specify a custom error
     handler program before error message "Bad command
     or file name" shows up in the DOS shell. (Wengier)
+  - Added config option "fat32setversion" (in [dos]
+    section) which controls whether DOSBox-X should
+    automatically set reported DOS version to 7.0/7.10
+    when it's less than 7.0/7.10 and mounting LBA/FAT32
+    disk images is requested. It defaults to "ask" so
+    that DOSBox-X will ask in this case. (Wengier)
   - Added config option "j3100colorscroll" (in [dosv]
     section) which defaults to "false" and allows the
     J-3100 version of SimCity and VGA version of the

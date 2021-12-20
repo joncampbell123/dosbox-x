@@ -56,7 +56,7 @@ typedef struct {
 Bitu call_program;
 extern const char *modifier;
 extern std::string langname, configfile;
-extern int enablelfn, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor;
+extern int enablelfn, fat32setver, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor;
 extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, uao, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, outcon, enable_dbcs_tables;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
@@ -1589,6 +1589,11 @@ next:
 								mainMenu.get_item("dos_lfn_enable").check(enablelfn==1).refresh_item(mainMenu);
 								mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).refresh_item(mainMenu);
 								uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && (dos.version.major>6 || winrun));
+							} else if (!strcasecmp(inputline.substr(0, 16).c_str(), "fat32setversion=")) {
+								std::string fat32setverstr = section->Get_string("fat32setversion");
+								if (fat32setverstr=="auto") fat32setver=1;
+								else if (fat32setverstr=="manual") fat32setver=0;
+								else fat32setver=-1;
 							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ver=")) {
 								const char *ver = section->Get_string("ver");
 								if (!*ver) {

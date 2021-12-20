@@ -140,6 +140,7 @@ const char dos_clipboard_device_default[]="CLIP$";
 int maxfcb=100;
 int maxdrive=1;
 int enablelfn=-1;
+int fat32setver=-1;
 bool uselfn, winautorun=false;
 extern int infix, log_dev_con;
 extern bool int15_wait_force_unmask_irq, shellrun, logging_con, ctrlbrk;
@@ -4201,6 +4202,11 @@ public:
 		dos.version.minor=0;
 		dos.direct_output=false;
 		dos.internal_output=false;
+
+        std::string fat32setverstr = section->Get_string("fat32setversion");
+        if (fat32setverstr=="auto") fat32setver=1;
+        else if (fat32setverstr=="manual") fat32setver=0;
+        else fat32setver=-1;
 
 		std::string lfn = section->Get_string("lfn");
 		if (lfn=="true"||lfn=="1") enablelfn=1;
