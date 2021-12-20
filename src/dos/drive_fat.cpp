@@ -77,6 +77,8 @@ int PC98AutoChoose_FAT(const std::vector<_PC98RawPartition> &parts,imageDisk *lo
 }
 
 int MBRAutoChoose_FAT(const std::vector<partTable::partentry_t> &parts,imageDisk *loadedDisk,uint8_t use_ver_maj=0,uint8_t use_ver_min=0) {
+        uint16_t n=1;
+        const char *msg;
         bool prompt1 = false, prompt2 = false;
         if (use_ver_maj == 0 && use_ver_min == 0) {
                 use_ver_maj = dos.version.major;
@@ -96,22 +98,39 @@ int MBRAutoChoose_FAT(const std::vector<partTable::partentry_t> &parts,imageDisk
                         return (int)i;
                 }
                 else if (pe.parttype == 0x0E/*FAT16B LBA*/) {
-                        if (use_ver_maj < 7 && prompt1 && systemmessagebox("Mounting LBA disk image","Mounting this type of disk images requires a reported DOS version of 7.0 or higher. Do you want to auto-change the reported DOS version to 7.0 now and mount the disk image?","yesno", "question", 1)) {
+                        if (use_ver_maj < 7 && prompt1) {
+                            if (systemmessagebox("Mounting LBA disk image","Mounting this type of disk images requires a reported DOS version of 7.0 or higher. Do you want to auto-change the reported DOS version to 7.0 now and mount the disk image?","yesno", "question", 1)) {
                                 use_ver_maj = dos.version.major = 7;
                                 use_ver_min = dos.version.minor = 0;
                                 dos_ver_menu(false);
+                            } else {
+                                msg = "LBA disk images are supported but require a higher reported DOS version.\r\n";
+                                n = (uint16_t)strlen(msg);
+                                DOS_WriteFile (STDOUT,(uint8_t *)msg, &n);
+                                msg = "Please set the reported DOS version to at least 7.0 to mount this disk image.\r\n";
+                                n = (uint16_t)strlen(msg);
+                                DOS_WriteFile (STDOUT,(uint8_t *)msg, &n);
+                            }
                         }
-
                         if (use_ver_maj >= 7) /* MS-DOS 7.0 or higher */
                                 return (int)i;
                         else
                                 prompt1 = false;
                 }
                 else if (pe.parttype == 0x0B || pe.parttype == 0x0C) { /* FAT32 types */
-                        if ((use_ver_maj < 7 || ((use_ver_maj == 7 && use_ver_min < 10))) && prompt2 && systemmessagebox("Mounting FAT32 disk image","Mounting this type of disk images requires a reported DOS version of 7.10 or higher. Do you want to auto-change the reported DOS version to 7.10 now and mount the disk image?","yesno", "question", 1)) {
+                        if ((use_ver_maj < 7 || ((use_ver_maj == 7 && use_ver_min < 10))) && prompt2) {
+                            if (systemmessagebox("Mounting FAT32 disk image","Mounting this type of disk images requires a reported DOS version of 7.10 or higher. Do you want to auto-change the reported DOS version to 7.10 now and mount the disk image?","yesno", "question", 1)) {
                                 use_ver_maj = dos.version.major = 7;
                                 use_ver_min = dos.version.minor = 10;
                                 dos_ver_menu(true);
+                            } else {
+                                msg = "FAT32 disk images are supported but require a higher reported DOS version.\r\n";
+                                n = (uint16_t)strlen(msg);
+                                DOS_WriteFile (STDOUT,(uint8_t *)msg, &n);
+                                msg = "Please set the reported DOS version to at least 7.10 to mount this disk image.\r\n";
+                                n = (uint16_t)strlen(msg);
+                                DOS_WriteFile (STDOUT,(uint8_t *)msg, &n);
+                            }
                         }
                         if (use_ver_maj > 7 || (use_ver_maj == 7 && use_ver_min >= 10)) /* MS-DOS 7.10 or higher */
                                 return (int)i;
