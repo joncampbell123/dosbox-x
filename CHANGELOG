@@ -97,7 +97,7 @@
     so. (joncampbell123)
   - Fixed E_Exit "RET from illegal descriptor type 0"
     when running DirectX diagnostic program (dxdiag)
-    from a guest Windows 9x system. (Wengier)
+    from a guest Windows 98 system. (Wengier)
   - Fixed Disney sound source connecting to parallel
     port not working in the previous version. (Wengier)
   - Fixed NET command from Windows for Workgroups 3.11

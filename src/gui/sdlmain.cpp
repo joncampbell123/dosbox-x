@@ -1623,7 +1623,7 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
 
     bool showbasic = section->Get_bool("showbasic");
     if (showbasic) {
-        if (CPU_CycleAutoAdjust) {
+        if (CPU_CycleAutoAdjust && menu.hidecycles && !menu.showrt) {
             sprintf(title,"%s%sDOSBox-X %s: %d%%",
                 dosbox_title.c_str(),dosbox_title.empty()?"":" - ",
                 VERSION,(int)internal_cycles);

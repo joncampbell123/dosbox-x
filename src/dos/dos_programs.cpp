@@ -8238,7 +8238,7 @@ void DOS_SetupPrograms(void) {
         "dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]\n"
         "         [-conf congfigfile] [-lang languagefile] [-machine machinetype]\n"
         "         [-startmapper] [-noautoexec] [-scaler scaler | -forcescaler scaler]\n"
-        "         [-noconsole] [-c command] [-set <section property=value>]\n\n"
+        "         [-o options] [-c command] [-set <section property=value>]\n\n"
         );
     MSG_Add("PROGRAM_INTRO_USAGE_1",
         "\033[33;1m  name\033[0m\n"
@@ -8260,9 +8260,9 @@ void DOS_SetupPrograms(void) {
         "\tSee the documentation for more details.\n\n"
         "\033[33;1m  -lang\033[0m languagefile\n"
         "\tStart DOSBox-X using the language specified in languagefile.\n\n"
-        "\033[33;1m  -noconsole\033[0m (Windows Only)\n"
-        "\tStart DOSBox-X without showing the console window. Output will\n"
-        "\tbe redirected to stdout.txt and stderr.txt\n\n"
+        "\033[33;1m  -startmapper\033[0m\n"
+        "\tEnter the keymapper directly on startup. Useful for people with\n"
+        "\tkeyboard problems.\n\n"
         "\033[33;1m  -machine\033[0m machinetype\n"
         "\tSetup DOSBox-X to emulate a specific type of machine. Valid choices:\n"
         "\thercules, cga, cga_mono, mcga, mda, pcjr, tandy, ega, vga, vgaonly,\n"
@@ -8270,11 +8270,11 @@ void DOS_SetupPrograms(void) {
         "\tThe machinetype affects both the video card and available sound cards.\n"
         );
     MSG_Add("PROGRAM_INTRO_USAGE_3",
-        "\033[33;1m  -startmapper\033[0m\n"
-        "\tEnter the keymapper directly on startup. Useful for people with\n"
-        "\tkeyboard problems.\n\n"
         "\033[33;1m  -noautoexec\033[0m\n"
         "\tSkips the [autoexec] section of the loaded configuration file.\n\n"
+        "\033[33;1m  -o\033[0m options\n"
+        "\tProvides command-line option(s) for \"name\" if an executable name is\n"
+        "\tspecified. Multiple -o can be used for multiple executable names.\n\n"
         "\033[33;1m  -c\033[0m command\n"
         "\tRuns the specified command before running name. Multiple commands\n"
         "\tcan be specified. Each command should start with -c, though.\n"
