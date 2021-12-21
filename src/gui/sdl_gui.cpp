@@ -645,7 +645,7 @@ protected:
     Section_prop * section;
     Property *prop;
 public:
-    PropertyEditor(Window *parent, int x, int y, Section_prop *section, Property *prop) :
+    PropertyEditor(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
         Window(parent, x, y, 500, 25), section(section), prop(prop) { }
 
     virtual bool prepare(std::string &buffer) = 0;
@@ -677,8 +677,8 @@ class PropertyEditorBool : public PropertyEditor {
     GUI::Checkbox *input;
     GUI::Label *label;
 public:
-    PropertyEditorBool(Window *parent, int x, int y, Section_prop *section, Property *prop) :
-        PropertyEditor(parent, x, y, section, prop) {
+    PropertyEditorBool(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
+        PropertyEditor(parent, x, y, section, prop, opts) {
         label = new GUI::Label(this, 0, 5, prop->propname);
         input = new GUI::Checkbox(this, 480, 3, "");
         input->setChecked(static_cast<bool>(prop->GetValue()));
@@ -700,17 +700,34 @@ class PropertyEditorString : public PropertyEditor {
 protected:
     GUI::Input *input;
     GUI::Label *label;
+    GUI::Button *infoButton = NULL;
 public:
-    PropertyEditorString(Window *parent, int x, int y, Section_prop *section, Property *prop) :
-        PropertyEditor(parent, x, y, section, prop) {
+    PropertyEditorString(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
+        PropertyEditor(parent, x, y, section, prop, opts) {
         label = new GUI::Label(this, 0, 5, prop->propname);
         std::string title(section->GetName());
         if (title=="4dos"&&!strcmp(prop->propname.c_str(), "rem"))
-           input = new GUI::Input(this, 30, 0, 470);
-        else
-           input = new GUI::Input(this, 270, 0, 230);
+            input = new GUI::Input(this, 30, 0, 470);
+        else {
+            input = new GUI::Input(this, 270, 0, opts?210:230);
+            if (opts) {
+                infoButton=new GUI::Button(this, 480, 0, "?", 20);
+                infoButton->addActionHandler(this);
+            }
+        }
         std::string temps = prop->GetValue().ToString();
         input->setText(stringify(temps));
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "?") {
+            std::string values = "Property: \033[31m" + prop->propname + "\033[0m\n\nPossible values:\n";
+            std::vector<Value> pv = prop->GetValues();
+            for(Bitu k = 0; k < pv.size(); k++) if (pv[k].ToString().size()) values += "\n\033[32m" + pv[k].ToString() + "\033[0m";
+            values += (prop->Get_Default_Value().ToString().size()?"\n\nDefault value: \033[32m"+prop->Get_Default_Value().ToString():"")+"\033[0m";
+            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>300?(getScreen()->getWidth()-300)/2:0, 100, 300, ("Values for " + prop->propname).c_str(), values.c_str());
+        }
     }
 
     bool prepare(std::string &buffer) {
@@ -730,12 +747,28 @@ class PropertyEditorFloat : public PropertyEditor {
 protected:
     GUI::Input *input;
     GUI::Label *label;
+    GUI::Button *infoButton = NULL;
 public:
-    PropertyEditorFloat(Window *parent, int x, int y, Section_prop *section, Property *prop) :
-        PropertyEditor(parent, x, y, section, prop) {
+    PropertyEditorFloat(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
+        PropertyEditor(parent, x, y, section, prop, opts) {
         label = new GUI::Label(this, 0, 5, prop->propname);
-        input = new GUI::Input(this, 380, 0, 120);
+        input = new GUI::Input(this, 380, 0, opts?100:120);
+        if (opts) {
+            infoButton=new GUI::Button(this, 480, 0, "?", 20);
+            infoButton->addActionHandler(this);
+        }
         input->setText(stringify((double)prop->GetValue()));
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "?") {
+            std::string values = "Property: \033[31m" + prop->propname + "\033[0m\n\nPossible values:\n";
+            std::vector<Value> pv = prop->GetValues();
+            for(Bitu k = 0; k < pv.size(); k++) if (pv[k].ToString().size()) values += "\n\033[32m" + pv[k].ToString() + "\033[0m";
+            values += (prop->Get_Default_Value().ToString().size()?"\n\nDefault value: \033[32m"+prop->Get_Default_Value().ToString():"")+"\033[0m";
+            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>300?(getScreen()->getWidth()-300)/2:0, 100, 300, ("Values for " + prop->propname).c_str(), values.c_str());
+        }
     }
 
     bool prepare(std::string &buffer) {
@@ -756,13 +789,29 @@ class PropertyEditorHex : public PropertyEditor {
 protected:
     GUI::Input *input;
     GUI::Label *label;
+    GUI::Button *infoButton = NULL;
 public:
-    PropertyEditorHex(Window *parent, int x, int y, Section_prop *section, Property *prop) :
-        PropertyEditor(parent, x, y, section, prop) {
+    PropertyEditorHex(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
+        PropertyEditor(parent, x, y, section, prop, opts) {
         label = new GUI::Label(this, 0, 5, prop->propname);
-        input = new GUI::Input(this, 380, 0, 120);
+        input = new GUI::Input(this, 380, 0, opts?100:120);
+        if (opts) {
+            infoButton=new GUI::Button(this, 480, 0, "?", 20);
+            infoButton->addActionHandler(this);
+        }
         std::string temps = prop->GetValue().ToString();
         input->setText(temps.c_str());
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "?") {
+            std::string values = "Property: \033[31m" + prop->propname + "\033[0m\n\nPossible values:\n";
+            std::vector<Value> pv = prop->GetValues();
+            for(Bitu k = 0; k < pv.size(); k++) if (pv[k].ToString().size()) values += "\n\033[32m" + pv[k].ToString() + "\033[0m";
+            values += (prop->Get_Default_Value().ToString().size()?"\n\nDefault value: \033[32m"+prop->Get_Default_Value().ToString():"")+"\033[0m";
+            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>300?(getScreen()->getWidth()-300)/2:0, 100, 300, ("Values for " + prop->propname).c_str(), values.c_str());
+        }
     }
 
     bool prepare(std::string &buffer) {
@@ -783,14 +832,30 @@ class PropertyEditorInt : public PropertyEditor {
 protected:
     GUI::Input *input;
     GUI::Label *label;
+    GUI::Button *infoButton = NULL;
 public:
-    PropertyEditorInt(Window *parent, int x, int y, Section_prop *section, Property *prop) :
-        PropertyEditor(parent, x, y, section, prop) {
+    PropertyEditorInt(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
+        PropertyEditor(parent, x, y, section, prop, opts) {
         label = new GUI::Label(this, 0, 5, prop->propname);
-        input = new GUI::Input(this, 380, 0, 120);
+        input = new GUI::Input(this, 380, 0, opts?100:120);
+        if (opts) {
+            infoButton=new GUI::Button(this, 480, 0, "?", 20);
+            infoButton->addActionHandler(this);
+        }
         //Maybe use ToString() of Value
         input->setText(stringify(static_cast<int>(prop->GetValue())));
     };
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == "?") {
+            std::string values = "Property: \033[31m" + prop->propname + "\033[0m\n\nPossible values:\n";
+            std::vector<Value> pv = prop->GetValues();
+            for(Bitu k = 0; k < pv.size(); k++) if (pv[k].ToString().size()) values += "\n\033[32m" + pv[k].ToString() + "\033[0m";
+            values += (prop->Get_Default_Value().ToString().size()?"\n\nDefault value: \033[32m"+prop->Get_Default_Value().ToString():"")+"\033[0m";
+            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>300?(getScreen()->getWidth()-300)/2:0, 100, 300, ("Values for " + prop->propname).c_str(), values.c_str());
+        }
+    }
 
     bool prepare(std::string &buffer) {
         int val;
@@ -1143,7 +1208,7 @@ public:
 
         wiw = new GUI::WindowInWindow(this, 5, 5, width-border_left-border_right-10, scroll_h);
 
-        int button_row_y = first_row_y + scroll_h + 5;
+        int button_row_y = first_row_y + scroll_h + 25;
         int button_w = 90;
         int button_pad_w = 10;
         int button_row_w = ((button_pad_w + button_w) * 3) - button_pad_w;
@@ -1159,6 +1224,8 @@ public:
         sprintf(tmp1, MSG_Get("CONFIGURATION_FOR"), CapName(title).c_str());
         setTitle(tmp1);
         title[0] = std::toupper(title[0]);
+
+        new GUI::Label(this, 5, button_row_y - 20, "Press the \"Help\" button below to see more help information.");
 
         GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, mainMenu.get_item("HelpMenu").get_text().c_str(), button_w);
         b->addActionHandler(this);
@@ -1180,15 +1247,16 @@ public:
             Prop_string *pstring = dynamic_cast<Prop_string*>(prop);
             Prop_multival* pmulti = dynamic_cast<Prop_multival*>(prop);
             Prop_multival_remain* pmulti_remain = dynamic_cast<Prop_multival_remain*>(prop);
+            bool opts = !prop->suggested_values.empty();
 
             PropertyEditor *p;
-            if (pbool) p = new PropertyEditorBool(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
-            else if (phex) p = new PropertyEditorHex(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
-            else if (pint) p = new PropertyEditorInt(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
-            else if (pdouble) p = new PropertyEditorFloat(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
-            else if (pstring) p = new PropertyEditorString(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
-            else if (pmulti) p = new PropertyEditorString(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
-            else if (pmulti_remain) p = new PropertyEditorString(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop);
+            if (pbool) p = new PropertyEditorBool(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop, opts);
+            else if (phex) p = new PropertyEditorHex(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop, opts);
+            else if (pint) p = new PropertyEditorInt(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop, opts);
+            else if (pdouble) p = new PropertyEditorFloat(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop, opts);
+            else if (pstring) p = new PropertyEditorString(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop, opts);
+            else if (pmulti) p = new PropertyEditorString(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop, opts);
+            else if (pmulti_remain) p = new PropertyEditorString(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop, opts);
             else { i++; continue; }
             b->addActionHandler(p);
             i++;
@@ -1404,15 +1472,16 @@ public:
             Prop_string *pstring = dynamic_cast<Prop_string*>(prop);
             Prop_multival* pmulti = dynamic_cast<Prop_multival*>(prop);
             Prop_multival_remain* pmulti_remain = dynamic_cast<Prop_multival_remain*>(prop);
+            bool opts = !prop->suggested_values.empty();
 
             PropertyEditor *p;
-            if (pbool) p = new PropertyEditorBool(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (phex) p = new PropertyEditorHex(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (pint) p = new PropertyEditorInt(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (pdouble) p = new PropertyEditorFloat(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (pstring) p = new PropertyEditorString(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (pmulti) p = new PropertyEditorString(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
-            else if (pmulti_remain) p = new PropertyEditorString(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop);
+            if (pbool) p = new PropertyEditorBool(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop, opts);
+            else if (phex) p = new PropertyEditorHex(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop, opts);
+            else if (pint) p = new PropertyEditorInt(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop, opts);
+            else if (pdouble) p = new PropertyEditorFloat(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop, opts);
+            else if (pstring) p = new PropertyEditorString(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop, opts);
+            else if (pmulti) p = new PropertyEditorString(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop, opts);
+            else if (pmulti_remain) p = new PropertyEditorString(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop, opts);
             else { i++; continue; }
             b->addActionHandler(p);
             i++;

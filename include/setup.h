@@ -104,6 +104,7 @@ class Property {
 public:
 	struct Changeable { enum Value {Always, WhenIdle,OnlyAtStart};};
 	const std::string propname;
+	std::vector<Value> suggested_values;
 
 	Property(std::string const& _propname, Changeable::Value when):propname(_propname),is_modified(false),change(when) { use_global_config_str=false; }
 	void Set_values(const char * const * in);
@@ -150,7 +151,6 @@ protected:
 	Value value;
 	bool is_basic=false;
 	bool is_modified;
-	std::vector<Value> suggested_values;
 	typedef std::vector<Value>::const_iterator const_iter;
 	Value default_value;
 	const Changeable::Value change;

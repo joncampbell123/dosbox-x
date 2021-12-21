@@ -13,6 +13,9 @@
     languages on Windows builds. (Wengier)
   - Pausing the emulation will automatically release
     the mouse and prevent mouse capture. (Wengier)
+  - For Configuration Tool, a "?" button is added to
+    properties which have limited numbers of values so
+    that their possible values will be shown. (Wengier)
   - Config option "pixelshader" now allows a shader file
     name without the .fx extension, or a shader file in
     the current directory. (Wengier)
