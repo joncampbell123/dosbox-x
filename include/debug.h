@@ -66,6 +66,7 @@ int DEBUG_ServerWriteResponse(char* response);
 struct DebugServer {
     bool shutdown;
     bool isConnected;
+    bool commandRunning;
     char clientAddress[128];
 };
 extern struct DebugServer DEBUG_server;

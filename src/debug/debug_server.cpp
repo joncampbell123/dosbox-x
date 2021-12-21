@@ -113,6 +113,7 @@ static char* FormatBreakpoint(int nr, Breakpoint* bp) {
     return formatted;
 }
 
+#define MI2_CMD_INTERPRETER_EXEC "-interpreter-exec console "
 /**
  * Handles a single request from the remote debugger and sends a response
  *
@@ -121,30 +122,90 @@ static char* FormatBreakpoint(int nr, Breakpoint* bp) {
 int DEBUG_ServerHandleRequest(char* request) {
 
 
-    if (strcmp(request, "v") == 0) {
-        // Get dosbox version        
-        return DEBUG_ServerWriteResponse("v:" VERSION);
+    if (strncmp(request, MI2_CMD_INTERPRETER_EXEC, strlen(MI2_CMD_INTERPRETER_EXEC)) == 0) {
+        
+        // Strip leading and trailing quotes (TODO: do proper unescaping..)
+        char* cmd = request + strlen(MI2_CMD_INTERPRETER_EXEC) + 1;
+        cmd[strlen(cmd) - 1] = '\0';
+        // Run command
+
+        if (strcmp(cmd, "show version") == 0) {
+            DEBUG_ServerWriteResponse("~\"DOSBox-X " VERSION " gdb-debugserver MI2\"\n");
+        }
+        else if (strcmp(cmd, "show endian") == 0) {
+            DEBUG_ServerWriteResponse("~\"little endian\"\n(gdb)\r\n");
+        }
+        else if (strcmp(cmd, "show os") == 0) {
+            DEBUG_ServerWriteResponse("~\"The current OS ABI is \\\"PC98\\\"\"\n(gdb)\r\n");
+        }
+        else if (strcmp(cmd, "show architecture") == 0) {
+            DEBUG_ServerWriteResponse("~\"(currently i386)\"\n(gdb)\r\n");
+        }
+        else if (strcmp(cmd, "maintenance info sections ALLOBJ nosections") == 0) {
+            // ignore
+        }
+        
+        else if (strncmp(cmd, "set ", 4) == 0) {
+            // ignore for now
+        }
+        else {
+            if (IsDebuggerActive()) {
+                // Run an abitrary command in the debugger
+                ParseCommand(cmd);
+            }
+            else
+                // Cannot run commands in debugger when the program is not stopped
+                return DEBUG_ServerWriteResponse("^error,msg=\"dosbox-not-stopped\",code=\"1\"\r\n(gdb)\r\n");
+        }
+        return DEBUG_ServerWriteResponse("^done\r\n(gdb)\r\n");
     }
-    else if (strcmp(request, "s") == 0) {
-        // Get current debugger state
-        return RespondState();
+    else if (strcmp(request, "-environment-pwd") == 0) {
+        return DEBUG_ServerWriteResponse("^done,cwd=\"/foo/bar\"");
     }
-    else if (strcmp(request, "run") == 0) {
-        // Run program (normal execution)
-        DEBUG_SetRunmode(DEBUG_RUNMODE_NORMAL);
-        return RespondState();
+    else if (strcmp(request, "-exec-continue") == 0) {
+        if (IsDebuggerActive()) {
+            DEBUG_SetRunmode(DEBUG_RUNMODE_NORMAL);
+        }
+        return DEBUG_ServerWriteResponse("*running,thread-id=\"1\"\r\n");
     }
-    else if (strcmp(request, "runwatch") == 0) {
-        // Run program (watch modefor debugger)
-        DEBUG_SetRunmode(DEBUG_RUNMODE_WATCH);
-        return RespondState();
+    else if (strstr(request, "-exec-interrupt")) {
+        if (!IsDebuggerActive()) {
+            DEBUG_SetRunmode(DEBUG_RUNMODE_DEBUG);
+        }
+        return DEBUG_ServerWriteResponse("*stopped,reason=\"exec\",thread-id=\"1\"\r\n(gdb)\r\n");
+
     }
-    else if (strcmp(request, "stop") == 0) {
-        // Run debugger / stop program
-        DEBUG_SetRunmode(DEBUG_RUNMODE_DEBUG);
-        return RespondState();
+    else if (strcmp(request, "-environment-path") == 0) {
+        return DEBUG_ServerWriteResponse("^done,path=\"/foo/bar\"");
     }
-    else if (strcmp(request, "enable") == 0) {
+    else if (strcmp(request, "-break-list") == 0) {
+        return DEBUG_ServerWriteResponse(
+            "^done,BreakpointTable={nr_rows=\"0\",nr_cols=\"2\","
+            "hdr=[{width=\"3\",alignment=\"-1\",col_name=\"number\",colhdr=\"Num\"},"
+            "{width=\"14\",alignment=\"-1\",col_name=\"type\",colhdr=\"Type\"},"
+            "{width=\"3\",alignment=\"-1\",col_name=\"enabled\",colhdr=\"Enb\" },"
+            "{width=\"10\",alignment=\"-1\",col_name=\"addr\",colhdr=\"Address\"}],"
+            "body=[]}\r\n(gdb)\r\n");
+    }
+    else if (strncmp(request, "-thread-select", strlen("-thread-select")) == 0) {
+        return DEBUG_ServerWriteResponse("^done,new-thread-id=\"1\"\r\n");
+    }
+    else if (strncmp(request, "-thread-info", strlen("-thread-info")) == 0) {
+        return DEBUG_ServerWriteResponse("^done,threads=[{id=\"1\",target-id=\"1\",name=\"Emulator\"}],current-thread-id=\"1\"\r\n");
+    }
+    else if (strcmp(request, "-add-inferior") == 0) {
+        return DEBUG_ServerWriteResponse("^done,inferior=\"i1\"\n(gdb)\r\n");
+    }
+    else if (strcmp(request, "-list-thread-groups") == 0) {
+        return DEBUG_ServerWriteResponse("^done,groups=[{id=\"i1\",type=\"process\",pid=\"1\",num_children=\"1\",executable=\"DOSBox-X " VERSION "\",description=\"DOSBox-X " VERSION "\",threads=[{id=\"1\",target-id=\"Emulation\",state=\"running\"}]}]\r\n(gdb)\r\n");
+    }
+    else if (strcmp(request, "-list-thread-groups --available") == 0) {
+        return DEBUG_ServerWriteResponse("^done,groups=[{id=\"1\",type=\"process\",pid=\"1\",num_children=\"1\",executable=\"DOSBox-X " VERSION "\",description=\"DOSBox-X " VERSION "\"}]\r\n(gdb)\r\n");
+    }
+    else if (strcmp(request, "-list-thread-groups i1") == 0) {
+        return DEBUG_ServerWriteResponse("^done,threads=[{id=\"1\",target-id=\"Emulation\",state=\"running\"}]\n(gdb)\r\n");
+    }
+    else if (strcmp(request, "-exec-arguments") == 0) {
         // Enable the debugger
         DEBUG_EnableDebugger();
         return RespondState();
@@ -206,7 +267,7 @@ int DEBUG_ServerHandleRequest(char* request) {
     }
     else {
         // Request is unknown
-        return DEBUG_ServerWriteResponse("e:unknown");
+        return DEBUG_ServerWriteResponse("^error,msg=\"Unknown request\",code=\"0\"\r\n(gdb)\r\n");
     }
 }
 

@@ -158,6 +158,19 @@ void* DEBUG_ServerAcceptConnection(char* addr, char* port) {
     safe_strcpy(DEBUG_server.clientAddress, address);
     WIN32_SetConsoleTitle();
 
+
+    DEBUG_ServerWriteResponse("^connected\r\n");
+    DEBUG_ServerWriteResponse("(gdb)\r\n");
+    DEBUG_ServerWriteResponse("=thread-group-added,id=\"i1\"\r\n");
+    //DEBUG_ServerWriteResponse("=thread-group-started,id=\"i1\",pid=\"1\"\n(gdb)\r\n");
+    //DEBUG_ServerWriteResponse("=thread-created,id=\"1\",group-id=\"i1\"\r\n");
+    if (IsDebuggerActive()) {
+        //DEBUG_ServerWriteResponse("*stopped,reason=\"exec\"\r\n");
+    }
+    else {
+        //DEBUG_ServerWriteResponse("*running\r\n");
+    }
+    
     // Stop listening for new connections
     closesocket(winServer.listen);
 
@@ -171,60 +184,52 @@ void* DEBUG_ServerAcceptConnection(char* addr, char* port) {
  */
 int DEBUG_ServerReadRequest(char* requestBuffer, int bufferLength) {
     int bytesRead = 0, result = 0;
-    bool done = false;
     if (bufferLength < 1) {
         return 0;
     }
     // Read from connection (blocking)
     bytesRead = recv(winServer.client, requestBuffer, bufferLength - 1, 0);
     if (bytesRead == SOCKET_ERROR) {
-        LOG_WinError("recv", WSAGetLastError());
-        done = true;
+        DEBUG_server.isConnected = false;
+        LOG_MSG(LOGPREFIX "[%s]: Connection closed\n", GetFormattedAddress(&winServer.clientAddress));
+        //LOG_WinError("recv", WSAGetLastError());
     }
     else if (bytesRead == 0) {
         // Connection closed
-        done = true;
+        DEBUG_server.isConnected = false;
         requestBuffer[0] = 0;
         LOG_MSG(LOGPREFIX "[%s]: Connection closed\n", GetFormattedAddress(&winServer.clientAddress));
     }
     else {
         requestBuffer[bytesRead] = 0;
-        LOG_MSG(LOGPREFIX "[%s]: %s\n", GetFormattedAddress(&winServer.clientAddress), requestBuffer);
+        //LOG_MSG(LOGPREFIX "[%s]: %s\n", GetFormattedAddress(&winServer.clientAddress), requestBuffer);
     }
-    if (done) {
+    if (!DEBUG_server.isConnected) {
         // Shutdown the connection since we're done
         result = shutdown(winServer.client, SD_SEND);
         if (result == SOCKET_ERROR) {
             LOG_WinError("shutdown", WSAGetLastError());
         }
         closesocket(winServer.client);
-        DEBUG_server.isConnected = false;
         strcpy(DEBUG_server.clientAddress, "");
     }
+    OutputDebugString(requestBuffer);
     return bytesRead;
 }
 
 /**
  * Sends a message string as response to the remote debugger
- *
- * Automatically adds a CRLF to the message
  */
 int DEBUG_ServerWriteResponse(char* message) {
     OutputDebugString(message);
-    OutputDebugString("\n");
     int bytesWritten = 0;
-    // Send message
-    bytesWritten = send(winServer.client, message, strlen(message), 0);
-    if (bytesWritten == SOCKET_ERROR) {
-        LOG_WinError("send data", WSAGetLastError());
-        closesocket(winServer.client);
-        return 0;
-    }
-    // Send CRLF
-    if (send(winServer.client, "\r\n", 2, 0) == SOCKET_ERROR) {
-        LOG_WinError("send crlf", WSAGetLastError());
-        closesocket(winServer.client);
-        return 0;
+    if (DEBUG_server.isConnected) {
+        bytesWritten = send(winServer.client, message, strlen(message), 0);
+        if (bytesWritten == SOCKET_ERROR) {
+            LOG_WinError("send data", WSAGetLastError());
+            closesocket(winServer.client);
+            return 0;
+        }
     }
     return bytesWritten;
 }

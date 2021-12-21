@@ -660,41 +660,92 @@ bool in_debug_showmsg = false;
 
 bool IsDebuggerActive(void);
 
+/**
+ * Waits for user input to advance through all available debug log messages
+ */
+static void DEBUG_WaitOutputPaging() {
+#if !C_DEBUG_SERVER
+    do {
+        int key = -1;
+#if defined(WIN32)
+        if (kbhit())
+            key = getch();
+#else
+        key = getch();
+#endif
+        if (key > 0) {
+            if (key == ' ' || key == 0x0A) {
+                /* continue */
+                break;
+            }
+            else if (key == 0x27/*ESC*/ || key == 0x7F/*DEL*/ || key == 0x08/*BKSP*/ ||
+                key == 'q' || key == 'Q') {
+                /* user wants to stop paging */
+                debugPageStopAt = 0;
+                break;
+            }
+        }
+#if defined(WIN32)
+        /* help inspire confidence in users and in Windows by keeping the event loop going.
+           This is to prevent Windows from graying out the main window during this loop
+           as "application not responding" */
+        SDL_Event ev;
+        if (SDL_PollEvent(&ev)) {
+            // Just keep polling
+        }
+#endif
+    } while (1);
+#else
+    return;
+#endif // !C_DEBUG_SERVER
+}
+
+void GFX_Events();
+
+/**
+ * Show a debugging message
+ *
+ * Depending on the build and configuration, this may send the
+ * message to various places, e.g. stderr, the debug logfile,
+ * the dosbox debugger output window, a remote debugger or emscripten.
+ *
+ * It will also handle paging of the message log where needed (i.e. the debugger
+ * output window).
+ */
 void DEBUG_ShowMsg(char const* format,...) {
 	bool stderrlog = false;
 	char buf[512];
 	va_list msg;
 	size_t len;
+    if (format==NULL || (log_dev_con == 2 && !logging_con) || control->opt_test)
+        return;
+    else
+        in_debug_showmsg = true;
 
-    if (format==NULL || (log_dev_con == 2 && !logging_con) || control->opt_test) return;
-    in_debug_showmsg = true;
-
-    // in case of runaway error from the CPU core, user responsiveness can be helpful
+    // In case of runaway error from the CPU core, user responsiveness can be helpful
     CPU_CycleLeft += CPU_Cycles;
     CPU_Cycles = 0;
-
-    if (!gfx_in_mapper && !in_debug_showmsg) {
-        void GFX_Events();
+    if (!gfx_in_mapper && !in_debug_showmsg)
         GFX_Events();
-    }
 
+    // Format and trim the message
     va_start(msg,format);
 	len = (size_t)vsnprintf(buf,sizeof(buf)-2u,format,msg); /* <- NTS: Did you know sprintf/vsnprintf returns number of chars written? */
 	va_end(msg);
-
-    /* remove newlines if present */
-    while (len > 0 && buf[len-1] == '\n') buf[--len] = 0;
+    rtrim(buf);
 
 #if C_DEBUG
-	if (dbg.win_out != NULL)
-		stderrlog = false;
-    else
+    // Redirect output to stderr if no debug output window is present
+	if (dbg.win_out == NULL)
         stderrlog = true;
+    else
+        stderrlog = false;
 #else
+    // Redirect output to stderr if no debug logfile is set
 	if (do_LOG_stderr || debuglog == NULL)
 		stderrlog = true;
 #endif
-
+    // Log to debug logfile is set
 	if (debuglog != NULL) {
 		fprintf(debuglog,"%s\n",buf);
 		fflush(debuglog);
@@ -713,6 +764,7 @@ void DEBUG_ShowMsg(char const* format,...) {
 	}
 
 #if C_DEBUG
+    // Output message to dosbox debugger message log
 	if (logBuffPos!=logBuff.end()) {
 		logBuffPos=logBuff.end();
 		DEBUG_RefreshPage(0);
@@ -723,9 +775,7 @@ void DEBUG_ShowMsg(char const* format,...) {
         if (logBuffPos == logBuff.begin()) ++logBuffPos; /* keep the iterator valid */
 		logBuff.pop_front();
     }
-
 	logBuffPos = logBuff.end();
-
 	if (dbg.win_out != NULL) {
         if (logBuffSuppressConsole) {
             logBuffSuppressConsoleNeedUpdate = true;
@@ -742,60 +792,29 @@ void DEBUG_ShowMsg(char const* format,...) {
             wrefresh(dbg.win_out);
         }
 	}
-
+#if C_DEBUG_SERVER
+    // Output message to the remote debugger
+    DEBUG_ServerWriteResponse("~\"");
+    DEBUG_ServerWriteResponse(buf);
+    DEBUG_ServerWriteResponse("\"\r\n");
+#endif
+    // Message paging
     if (IsDebuggerActive() && debugPageStopAt > 0) {
         if (++debugPageCounter >= debugPageStopAt) {
             debugPageCounter = 0;
             DEBUG_RefreshPage(0);
             DEBUG_DrawInput();
-
-            /* pause, wait for input */
-            do {
-#if defined(WIN32)
-                int key;
-
-                if (kbhit())
-                    key = getch();
-                else
-                    key = -1;
-#else
-                int key = getch();
-#endif
-                if (key > 0) {
-                    if (key == ' ' || key == 0x0A) {
-                        /* continue */
-                        break;
-                    }
-                    else if (key == 0x27/*ESC*/ || key == 0x7F/*DEL*/ || key == 0x08/*BKSP*/ ||
-                             key == 'q' || key == 'Q') {
-                        /* user wants to stop paging */
-                        debugPageStopAt = 0;
-                        break;
-                    }
-                }
-
-#if defined(WIN32)
-                /* help inspire confidence in users and in Windows by keeping the event loop going.
-                   This is to prevent Windows from graying out the main window during this loop
-                   as "application not responding" */
-                SDL_Event ev;
-
-                if (SDL_PollEvent(&ev)) {
-                    /* TODO */
-                }
-#endif
-            } while (1);
+            DEBUG_WaitOutputPaging();
         }
     }
-#endif
-
+#endif // C_DEBUG
     in_debug_showmsg = false;
 }
 
 /* callback function when DOSBox-X exits */
 void LOG::Exit() {
 	if (debuglog != NULL) {
-		if (log_dev_con != 2) fprintf(debuglog,"--END OF LOG--\n");
+		if (log_dev_con != 2) ::fprintf(debuglog,"--END OF LOG--\n");
 		fclose(debuglog);
 		debuglog = NULL;
 	}
