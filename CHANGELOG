@@ -41,9 +41,10 @@
     logging output" and "Code overview" windows (from
     "Debug" menu") for users to enter some debugger
     command(s) and see the result. (Wengier)
-  - Added debugger commands DATE & TIME to view/change
-    the internal date and time, using the same date and
-    time formats as shell DATE/TIME commands. (Wengier)
+  - Added debugger commands DATE and TIME to view or
+    change DOSBox-X's internal date and time, using the
+    same date and time formats as the shell DATE and
+    TIME commands, e.g. "TIME 10:11:12". (Wengier)
   - Added config option "badcommandhandler" (in [dos]
     section) which allows to specify a custom error
     handler program before error message "Bad command
