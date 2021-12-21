@@ -512,7 +512,8 @@ Uso: ←[34;1m←[32;1mMOUNT←[0m ←[37;1munidad←[0m ←[36;1mlocal_director
  -t               Indica comportamiento del tipo de unidad montada
                   Unidades soportadas: dir, floppy, cdrom, overlay
                   ('overlay' redirige escrituras a otro directorio)
- -label [name]    Establece etiqueta de volumen de la unidad (mayúsculas)
+ -label [name]    Establece etiqueta de volumen de la unidad (mayúsculas).
+ -nl              Usa la próxima unidad disponible si la unidad está montada.
  -ro              Monta la unidad en modo de solo lectura (read-only).
  -pr              Indica la ruta relativa a la ubicación del archivo config.
  -cd              Genera lista de valores del CD local de la "unidad".

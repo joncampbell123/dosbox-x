@@ -32,10 +32,10 @@
     to start when you launch DOSBox-X. An example:
     dosbox-x program.exe -o "opt1 opt2". (Wengier)
   - Added special properties to CONFIG command including
-    "cd", "date", "errorlevel", "random", "time" so that
-    commands like "CONFIG -GET cd" and "CONFIG -GET
-    errorlevel" will get the current DOS directory and
-    the current ERRORLEVEL value. The returned value
+    "cd", "date", "errorlevel", "random", "time", and
+    "lastmount" so that commands like "CONFIG -GET cd"
+    and "CONFIG -GET errorlevel" will get current DOS
+    directory and ERRORLEVEL value. The returned value
     will also be saved to %CONFIG% variable. (Wengier)
   - Added "Enter Debugger Command" button to "DOSBox-X
     logging output" and "Code overview" windows (from
@@ -82,6 +82,11 @@
     latter being the default for CP951. If ChinaSea is
     enabled, ChinaSea characters will be used instead
     of original characters in these encodings. (Wengier)
+  - Added -nl option for MOUNT command to automatically
+    find the next available drive letter to mount if
+    the specified drive is already mounted. This allows
+    multiple directories to be mounted when DOSBox-X
+    starts with multiple [name] arguments. (Wengier)
   - Added ASSOC command to view/change file extension
     associations. You can define a command or program
     to open a file with a specific file extension, e.g.
@@ -105,6 +110,8 @@
     segment. It is once again possible to make Mac OS X
     ARM releases and to use dylib files from Brew doing
     so. (joncampbell123)
+  - Fixed an issue with RENDER_Reset function while
+    loading previously saved states. (yetmorecode)
   - Fixed E_Exit "RET from illegal descriptor type 0"
     when running DirectX diagnostic program (dxdiag)
     from a guest Windows 98 system. (Wengier)

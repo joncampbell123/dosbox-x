@@ -54,6 +54,7 @@ typedef struct {
 #endif
 
 Bitu call_program;
+extern char lastmount;
 extern const char *modifier;
 extern std::string langname, configfile;
 extern int enablelfn, fat32setver, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor;
@@ -1168,6 +1169,9 @@ void CONFIG::Run(void) {
                             sprintf(format,"%u%c%02u%c%02u",hour,c,min,c,sec);
                             WriteOut("%s\n",format);
                             first_shell->SetEnv("CONFIG",format);
+                        } else if (!strcasecmp(pvars[0].c_str(), "lastmount")) {
+                            if (lastmount) WriteOut("%c:\n",lastmount);
+                            first_shell->SetEnv("CONFIG",lastmount?(std::string(1, lastmount) + ":").c_str():"");
                         } else
                             WriteOut(MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));
 						return;

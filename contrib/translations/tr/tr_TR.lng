@@ -512,6 +512,7 @@ Kullanım: ←[34;1m←[32;1mMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mlocal_dir
                   Desteklenen sürücü türleri: dir, floppy, cdrom, overlay
  ('overlay', bağlı sürücüye yazmaları başka bir dizine yönlendirir.)
  -label [ad]      Sürücünün bölüm etiketini ayarlayın (tümü büyük harf).
+ -nl              Sürücü takılıysa bir sonraki kullanılabilir sürücüyü kullan.
  -ro              Sürücüyü saltokunur kipte bağlayın.
  -pr              Yolun yapılandırma konumuna göreli olduğunu belirtin.
  -cd              Yerel CD sürücülerin sürücü numaraları listesini oluşturun.

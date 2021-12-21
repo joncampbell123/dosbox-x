@@ -10176,7 +10176,7 @@ bool DOSBOX_parse_argv() {
         const char *ext = strrchr(tmp.c_str(),'.'); /* if it looks like a file... with an extension */
         if (rescp) {
             if (rescp == 2 || (ext != NULL && rescp == 1 && (!strcasecmp(ext,".zip") || !strcasecmp(ext,".7z")))) {
-                control->auto_bat_additional.push_back("@mount c: \""+tmp+"\"");
+                control->auto_bat_additional.push_back("@mount c: \""+tmp+"\" -nl");
                 control->cmdline->EatCurrentArgv();
                 continue;
             } else if (ext != NULL && rescp == 1 && (!strcasecmp(ext,".bat") || !strcasecmp(ext,".exe") || !strcasecmp(ext,".com"))) { /* .BAT files given on the command line trigger automounting C: to run it */

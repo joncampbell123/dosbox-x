@@ -102,6 +102,7 @@ bool starttranspath = false;
 bool mountwarning = true;
 bool qmount = false;
 bool nowarn = false;
+char lastmount = 0;
 bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 extern bool inshell, usecon, uao, morelen, mountfro[26], mountiro[26], clear_screen(), OpenGL_using(void);
 extern int lastcp, FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
@@ -1095,13 +1096,16 @@ public:
             return;
         }
 
-        bool nocachedir = false;
+        bool nocachedir = false, nextdrive = false;
 
         if (force_nocachedir)
             nocachedir = true;
 
         if (cmd->FindExist("-nocachedir",true))
             nocachedir = true;
+
+        if (cmd->FindExist("-nl",true))
+            nextdrive = true;
 
         bool readonly = false;
         if (cmd->FindExist("-ro",true))
@@ -1208,8 +1212,17 @@ public:
                     return;
                 }
             } else if (Drives[drive-'A']) {
+                bool found = false;
                 if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_ALREADY_MOUNTED"),drive,Drives[drive-'A']->GetInfo());
-                return;
+                if (nextdrive)
+                    for (int i=drive-'A'+1; i<DOS_DRIVES-1; i++) {
+                        if (!Drives[i]) {
+                            drive=i+'A';
+                            found = true;
+                            break;
+                        }
+                    }
+                if (!found) return;
             }
 
             temp_line.erase(std::find_if(temp_line.rbegin(), temp_line.rend(), [](unsigned char ch) {return !std::isspace(ch);}).base(), temp_line.end());
@@ -1478,6 +1491,7 @@ public:
         DOS_EnableDriveMenu(drive);
         /* Set the correct media byte in the table */
         mem_writeb(Real2Phys(dos.tables.mediaid)+((unsigned int)drive-'A')*dos.tables.dpb_size,newdrive->GetMediaByte());
+        lastmount = drive;
         if (!quiet) {
 			if (type != "overlay") WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"),drive,newdrive->GetInfo());
 			else WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_STATUS"),temp_line.c_str(),drive);
@@ -5470,6 +5484,7 @@ private:
         AddToDriveManager(drive, newDrive, 0xF0);
         DOS_EnableDriveMenu(drive);
 
+        lastmount = drive;
         return true;
     }
 
@@ -5502,7 +5517,8 @@ private:
         AttachToBiosByLetter(newImage, drive);
         DOS_EnableDriveMenu(drive);
 
-        WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_ELTORITO"), drive);
+        lastmount = drive;
+        if (!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_ELTORITO"), drive);
 
         return true;
     }
@@ -5632,6 +5648,7 @@ private:
         for (i = 1; i < paths.size(); i++) {
             tmp += "; " + (wpcolon&&paths[i].length()>1&&paths[i].c_str()[0]==':'?paths[i].substr(1):paths[i]);
         }
+        lastmount = drive;
         if (!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
 
         unsigned char driveIndex = drive-'A';
@@ -5703,7 +5720,8 @@ private:
         AddToDriveManager(drive, newDrive, dsk->hardDrive ? 0xF8 : 0xF0);
         DOS_EnableDriveMenu(drive);
 
-        WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_RAMDRIVE"), drive);
+        lastmount = drive;
+        if (!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_RAMDRIVE"), drive);
 
         AttachToBiosAndIdeByLetter(dsk, drive, (unsigned char)ide_index, ide_slave);
 
@@ -6010,6 +6028,7 @@ private:
         for (i = 1; i < paths.size(); i++) {
             tmp += "; " + (wpcolon&&paths[i].length()>1&&paths[i].c_str()[0]==':'?paths[i].substr(1):paths[i]);
         }
+        lastmount = drive;
         if (!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
         return true;
     }
@@ -8122,7 +8141,8 @@ void DOS_SetupPrograms(void) {
         " -t               Specify the drive type the mounted drive to behave as.\n"
         "                  Supported drive type: dir, floppy, cdrom, overlay\n"
         " (Note that 'overlay' redirects writes for mounted drive to another directory)\n"
-        " -label [name]    Set the volume label name of the drive (all upper case)\n"
+        " -label [name]    Set the volume label name of the drive (all upper case).\n"
+        " -nl              Use next available drive letter if the drive is mounted.\n"
         " -ro              Mount the drive in read-only mode.\n"
         " -pr              Specify the path is relative to the config file location.\n"
         " -cd              Generate a list of local CD drive's \"drive #\" values.\n"
@@ -8136,7 +8156,7 @@ void DOS_SetupPrograms(void) {
         " -q               Quiet mode (no message output).\n"
         " -u               Unmount the drive.\n"
         " \033[32;1m-examples        Show some usage examples.\033[0m\n"
-        "Type MOUNT with no parameters to display a list of mounted drives.\n");
+        "Type MOUNT with no parameters to display a list of mounted drives.");
     MSG_Add("PROGRAM_MOUNT_EXAMPLE",
         "A basic example of MOUNT command:\n\n"
         "\033[32;1mMOUNT c %s\033[0m\n\n"

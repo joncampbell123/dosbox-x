@@ -511,7 +511,8 @@ Usage: ←[34;1m←[32;1mMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mlocal_directo
  -t               Specify the drive type the mounted drive to behave as.
                   Supported drive type: dir, floppy, cdrom, overlay
  (Note that 'overlay' redirects writes for mounted drive to another directory)
- -label [name]    Set the volume label name of the drive (all upper case)
+ -label [name]    Set the volume label name of the drive (all upper case).
+ -nl              Use next available drive letter if the drive is mounted.
  -ro              Mount the drive in read-only mode.
  -pr              Specify the path is relative to the config file location.
  -cd              Generate a list of local CD drive's "drive #" values.

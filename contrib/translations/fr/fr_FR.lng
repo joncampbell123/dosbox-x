@@ -512,6 +512,7 @@ Utilisation : ←[34;1m←[32;1mMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mlocal_
                   Type de lecteur pris en charge : dir, floppy, cdrom, overlay
  (Notez que 'overlay' redirige les écritures pour le lecteur monté vers un autre répertoire).
  -label [nom] Définit le nom de l'étiquette du volume du lecteur (tout en majuscules).
+ -nl Utiliser le prochain lecteur disponible si le lecteur spécifié est monté.
  -ro Monter le lecteur en mode lecture seule.
  -pr Spécifiez que le chemin est relatif à l'emplacement du fichier de configuration.
  -cd Génère une liste des valeurs "drive #" du lecteur de CD local.

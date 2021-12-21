@@ -933,9 +933,11 @@ public:
             std::string cmd = "@echo off\n";
 
             for (unsigned int i=0;i<control->auto_bat_additional.size();i++) {
+                if (!control->opt_prerun) cmd += "\n";
                 if (!strncmp(control->auto_bat_additional[i].c_str(), "@mount c: ", 10)) {
                     cmd += control->auto_bat_additional[i]+"\n";
-                    cmd += "@c:";
+                    cmd += "@config -get lastmount>nul\n";
+                    cmd += "@if not '%CONFIG%'=='' %CONFIG%";
                 } else {
                     std::string batname;
                     //LOG_MSG("auto_bat_additional %s\n", control->auto_bat_additional[i].c_str());
@@ -950,18 +952,20 @@ public:
                     }
                     if(pos == std::string::npos) {  //Only a filename, mount current directory
                         batname = control->auto_bat_additional[i];
-                        cmd += "@mount c: . -q\n";
+                        cmd += "@mount c: . -nl -q\n";
                     } else { //Parse the path of .BAT file
                         std::string batpath = control->auto_bat_additional[i].substr(0,pos+1);
                         if (batpath==".\\") batpath=".";
                         else if (batpath=="..\\") batpath="..";
                         batname = control->auto_bat_additional[i].substr(pos+1);
-                        cmd += "@mount c: \"" + batpath + "\" -q\n";
+                        cmd += "@mount c: \"" + batpath + "\" -nl -q\n";
                     }
                     std::string opt = control->opt_o.size() > ind && control->opt_o[ind].size() ? " "+control->opt_o[ind] : "";
                     ind++;
                     bool templfn=!uselfn&&filename_not_8x3(batname.c_str())&&(enablelfn==-1||enablelfn==-2);
-                    cmd += "@c:\n";
+                    cmd += "@config -get lastmount>nul\n";
+                    cmd += "@set LASTMOUNT=%CONFIG%\n";
+                    cmd += "@if not '%LASTMOUNT%'=='' %LASTMOUNT%\n";
                     cmd += "@cd \\\n";
                     if (templfn) cmd += "@config -set lfn=true\n";
 #if defined(WIN32) && !defined(HX_DOS)
@@ -974,7 +978,8 @@ public:
 #if defined(WIN32) && !defined(HX_DOS)
                     if (!winautorun) cmd += "@config -set startcmd=false\n";
 #endif
-                    cmd += "@mount c: -q -u";
+                    cmd += "@if not '%LASTMOUNT%'=='' mount %LASTMOUNT% -q -u\n";
+                    cmd += "@set LASTMOUNT=";
                 }
                 if (control->opt_prerun) cmd += "\n";
             }
