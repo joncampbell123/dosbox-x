@@ -1516,8 +1516,9 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pint = secprop->Add_int("shell environment size",Property::Changeable::OnlyAtStart,0);
     Pint->SetMinMax(0,65280);
-    Pint->Set_help("Size of the initial DOSBox-X shell environment block, in bytes. This does not affect the environment block of sub-processes spawned from the shell.\n"
-            "This option has no effect unless dynamic kernel allocation is enabled.");
+    Pint->Set_help("Size of the initial DOSBox-X shell environment block, in bytes. Setting to 0 implies a default size of 720 bytes as in DOSBox.\n"
+                   "You can increase this size to store more environment variables in DOS, although this does not affect the environment block\n"
+                   "of sub-processes spawned from the DOS shell. This option has no effect unless the dynamic kernel allocation is enabled.");
 
     Pint = secprop->Add_int("private area size",Property::Changeable::OnlyAtStart,32768); // DOSBox mainline compatible 32KB region
     Pint->SetMinMax(16,128*1024);
