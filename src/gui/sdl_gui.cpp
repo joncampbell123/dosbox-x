@@ -1225,7 +1225,7 @@ public:
         setTitle(tmp1);
         title[0] = std::toupper(title[0]);
 
-        new GUI::Label(this, 5, button_row_y - 20, "Click the \"Help\" button below to see more help information.");
+        new GUI::Label(this, 5, button_row_y - 20, "Click the \"Help\" button below to see detailed help information.");
 
         GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, mainMenu.get_item("HelpMenu").get_text().c_str(), button_w);
         b->addActionHandler(this);
