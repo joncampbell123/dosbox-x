@@ -1005,7 +1005,7 @@ HRESULT CDirect3D::LoadPixelShader(const char * shader, double scalex, double sc
 	// Compare optimal scaling factor
 	bool dblgfx=((scalex < scaley ? scalex : scaley) >= psEffect->getScale());
 
-    std::string message = "This pixel shader may be unneeded or have undesired effect:\n\n"+std::string(shader)+"\n\nDo you want to load the pixel shader anyway?";
+	std::string message = "This pixel shader may be unneeded or have undesired effect:\n\n"+std::string(shader)+"\n\nDo you want to load the pixel shader anyway?\n\n(You may append 'forced' to the pixelshader setting to force load the pixel shader without this message)";
 	if(dblgfx || forced || systemmessagebox("Direct3D shader", message.c_str(), "yesno","question", 1)) {
 	    message = "Loaded pixel shader - "+std::string(shader);
 	    if (informd3d) systemmessagebox("Direct3D shader", message.c_str(), "ok","info", 1);

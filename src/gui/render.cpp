@@ -437,6 +437,12 @@ static Bitu MakeAspectTable(Bitu skip,Bitu height,double scaley,Bitu miny) {
     return linesadded;
 }
 
+std::string RENDER_GetScaler(void) {
+    Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));
+    Prop_multival* prop = section->Get_multival("scaler");
+    return prop->GetSection()->Get_string("type");
+}
+
 void RENDER_Reset( void ) {
     Bitu width=render.src.width;
     Bitu height=render.src.height;
@@ -445,6 +451,7 @@ void RENDER_Reset( void ) {
 
     double gfx_scalew;
     double gfx_scaleh;
+    const std::string scaler = RENDER_GetScaler();
 
     if (width == 0 || height == 0)
         return;
@@ -473,6 +480,14 @@ void RENDER_Reset( void ) {
     if( sdl.desktop.isperfect ) /* Handle scaling if no pixel-perfect mode */
         goto forcenormal;
 
+    if((!dblh || !dblw) && scaler != "none" && strncasecmp(scaler.c_str(), "normal", 6) && !render.scale.forced && sdl.desktop.want_type != SCREEN_TTF) {
+        std::string message = "This scaler may not work properly or have undesired effect:\n\n"+scaler+"\n\nDo you want to load the scaler anyway?\n\n(You may append 'forced' to the scaler setting to force load the scaler without this message)";
+        bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+        if (systemmessagebox("Loading scaler", message.c_str(), "yesno","question", 1))
+            render.scale.forced = true;
+        else
+            SetVal("render", "scaler", "none");
+    }
     if ((dblh && dblw) || (render.scale.forced && dblh == dblw/*this branch works best with equal scaling in both directions*/)) {
         /* Initialize always working defaults */
         if (render.scale.size == 2)
@@ -1028,12 +1043,6 @@ void RENDER_OnSectionPropChange(Section *x) {
     RENDER_UpdateFrameskipMenu();
     RENDER_UpdateFromScalerSetting();
     RENDER_UpdateScalerMenu();
-}
-
-std::string RENDER_GetScaler(void) {
-    Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));
-    Prop_multival* prop = section->Get_multival("scaler");
-    return prop->GetSection()->Get_string("type");
 }
 
 extern const char *scaler_menu_opts[][2];
