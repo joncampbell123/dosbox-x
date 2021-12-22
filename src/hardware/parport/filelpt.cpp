@@ -153,12 +153,12 @@ void CFileLPT::doAction() {
                     }
             }
         }
+        if (filetype==FILE_CAPTURE && pathprt.size()) name=pathprt;
         std::string action=action1.size()&&isPS?action1:(action2.size()&&isPCL?action2:action3);
         bool fail=false;
 #if defined(WIN32)
         bool q=false;
         int pos=-1;
-        if (filetype==FILE_CAPTURE && pathprt.size()) name=pathprt;
         std::string para=name;
         for (int i=0; i<action.size(); i++) {
             if (action[i]=='"') q=!q;

@@ -122,7 +122,7 @@
     when running DirectX diagnostic program (dxdiag)
     from a guest Windows 98 system. (Wengier)
   - Fixed "parallel?=file openwith:xxx" not working if
-    a file name is not specified. (Wengier)
+    a file name is not provided. (Wengier)
   - Fixed crash in the following config combination:
     output=ttf, machine=pc98, dosvfunc=true. (Wengier)
   - Fixed Disney sound source connecting to parallel
