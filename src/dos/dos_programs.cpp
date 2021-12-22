@@ -667,7 +667,11 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
                 strcpy(type,"");
         } else
             *type=0;
-		char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
+		char mountstring[CROSS_LEN*4+20];
+        if (files.size()>CROSS_LEN*4) {
+            tinyfd_messageBox("Error","The path for the file(s) to mount is too long.","ok","error", 1);
+            return;
+        }
 		strcpy(mountstring,type);
 		char temp_str[3] = { 0,0,0 };
 		temp_str[0]=drive;
