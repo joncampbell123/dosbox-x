@@ -279,7 +279,11 @@ int Program::WriteOut_NoParsing(const char * format, bool dbcs) {
 		if (buf[i] == 0xA) {
 			if (last_written_character != 0xD) {out = 0xD;DOS_WriteFile(STDOUT,&out,&s);}
 			if (outcon) rcount++;
-		} else if (outcon && lead && CURSOR_POS_COL(page)==COLS-1 && !CheckBoxDrawing(last3, last2, last_written_character, buf[i])) {
+		} else if (outcon && lead && CURSOR_POS_COL(page)==COLS-1 && !(TTF_using()
+#if defined(USE_TTF)
+            && autoboxdraw
+#endif
+            && CheckBoxDrawing(last3, last2, last_written_character, buf[i]))) {
 			out = 0xD;DOS_WriteFile(STDOUT,&out,&s);
 			out = 0xA;DOS_WriteFile(STDOUT,&out,&s);
 			rcount++;

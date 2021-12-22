@@ -132,9 +132,7 @@ bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*
 bool isKanji1(uint8_t chr) {
     if (dos.loaded_codepage == 936 || IS_PDOSV)
         return chr >= (gbk ? 0x81 : 0xa1) && chr <= 0xfe;
-    else if (dos.loaded_codepage == 950 || dos.loaded_codepage == 951 || IS_TDOSV)
-        return chr >= 0x81 && chr <= 0xfe && !(dos.loaded_codepage != 951 && !chinasea && chr >= 0xc7 && chr <= 0xc8);
-    else if (dos.loaded_codepage == 949 || IS_KDOSV)
+    else if (dos.loaded_codepage == 949 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951 || IS_KDOSV || IS_TDOSV)
         return chr >= 0x81 && chr <= 0xfe;
     else
         return (chr >= 0x81 && chr <= 0x9f) || (chr >= 0xe0 && chr <= 0xfc);
