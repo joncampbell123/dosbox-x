@@ -66,7 +66,7 @@ extern "C" {
 #endif
 
 bool            skip_encoding_unchanged_frames = false;
-std::string pathvid = "", pathwav = "", pathmtw = "", pathmid = "", pathopl = "", pathscr = "";
+std::string pathvid = "", pathwav = "", pathmtw = "", pathmid = "", pathopl = "", pathscr = "", pathprt = "";
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
 #if (C_AVCODEC)
@@ -545,6 +545,7 @@ FILE * OpenCaptureFile(const char * type,const char * ext) {
     if (!strcmp(type, "Raw Midi")) pathmid = "";
     if (!strcmp(type, "Raw Opl")) pathopl = "";
     if (!strcmp(type, "Screenshot")) pathscr = "";
+    if (!strcmp(type, "Parallel Port Stream")) pathprt = "";
 	if(capturedir.empty()) {
 		LOG_MSG("Please specify a capture directory");
 		return 0;
@@ -597,6 +598,7 @@ FILE * OpenCaptureFile(const char * type,const char * ext) {
         if (!strcmp(type, "Raw Midi")) pathmid = file_name;
         if (!strcmp(type, "Raw Opl")) pathopl = file_name;
         if (!strcmp(type, "Screenshot")) pathscr = file_name;
+        if (!strcmp(type, "Parallel Port Stream")) pathprt = file_name;
 	} else {
 		LOG_MSG("Failed to open %s for capturing %s",file_name,type);
 	}

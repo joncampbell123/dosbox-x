@@ -32,6 +32,7 @@
 #include "Shellapi.h"
 #endif
 
+extern std::string pathprt;
 void ResolvePath(std::string& in);
 CFileLPT::CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd, bool sq)
                               :CParallel (cmd, nr,initIrq) {
@@ -74,18 +75,19 @@ CFileLPT::CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd, bool sq)
 		}
 	}
 	temp=0;
+	name=pathprt="";
 
 	if(cmd->FindStringBegin("dev:",str,false)) {
-		name = str.c_str();
+		name = str;
 		filetype = FILE_DEV;
 	} else if(cmd->FindStringBegin("file:",str,false)) {
         ResolvePath(str);
-		name = str.c_str();
+		name = str;
 		filetype = FILE_DEV;
         is_file = true;
 	} else if(cmd->FindStringBegin("append:",str,false)) {
         ResolvePath(str);
-		name = str.c_str();
+		name = str;
 		filetype = FILE_APPEND;
 	} else filetype = FILE_CAPTURE;
 
@@ -156,6 +158,7 @@ void CFileLPT::doAction() {
 #if defined(WIN32)
         bool q=false;
         int pos=-1;
+        if (filetype==FILE_CAPTURE && pathprt.size()) name=pathprt;
         std::string para=name;
         for (int i=0; i<action.size(); i++) {
             if (action[i]=='"') q=!q;
@@ -194,6 +197,7 @@ void CFileLPT::doAction() {
             fail=system((action+" "+name).c_str())!=0;
 #endif
         }
+        if (filetype==FILE_CAPTURE) name="";
         bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
         if (fail) systemmessagebox("Error", "The requested file printing handler failed to complete.", "ok","error", 1);
     }
