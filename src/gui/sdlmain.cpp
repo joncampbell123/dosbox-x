@@ -8647,7 +8647,7 @@ void SDL_SetupConfigSection() {
     Pstring->Set_values(outputs);
     Pstring->SetBasic(true);
 
-    Pstring = sdl_sec->Add_string("videodriver",Property::Changeable::WhenIdle, "");
+    Pstring = sdl_sec->Add_string("videodriver",Property::Changeable::OnlyAtStart, "");
     Pstring->Set_help("Forces a video driver (e.g. windib/windows, directx, x11, fbcon, dummy, etc) for the SDL library to use.");
     Pstring->SetBasic(true);
 
@@ -8661,7 +8661,7 @@ void SDL_SetupConfigSection() {
     Pbool->Set_help("If set, the DOSBox-X window will be maximized at start (SDL2 and Windows SDL1 builds only; use fullscreen for TTF output).");
     Pbool->SetBasic(true);
 
-    Pbool = sdl_sec->Add_bool("autolock",Property::Changeable::Always, false);
+    Pbool = sdl_sec->Add_bool("autolock",Property::Changeable::WhenIdle, false);
     Pbool->Set_help("Mouse will automatically lock, if you click on the screen. (Press CTRL-F10 to unlock)");
     Pbool->SetBasic(true);
 

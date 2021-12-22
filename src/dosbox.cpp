@@ -1670,9 +1670,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help("Amount of memory at top to reserve for ACPI structures and tables. Set to 0 for automatic assignment.");
 
 #if defined(C_EMSCRIPTEN)
-    Pint = secprop->Add_int("memsize", Property::Changeable::WhenIdle,4);
+    Pint = secprop->Add_int("memsize", Property::Changeable::OnlyAtStart,4);
 #else
-    Pint = secprop->Add_int("memsize", Property::Changeable::WhenIdle,16);
+    Pint = secprop->Add_int("memsize", Property::Changeable::OnlyAtStart,16);
 #endif
     Pint->SetMinMax(0,3584); // 3.5GB
     Pint->Set_help(
@@ -1682,7 +1682,7 @@ void DOSBOX_SetupConfigSections(void) {
         "Programs that use 286 protected mode like Windows 3.0 in Standard Mode may crash with more than 15MB.");
     Pint->SetBasic(true);
 
-    Pint = secprop->Add_int("memsizekb", Property::Changeable::WhenIdle,0);
+    Pint = secprop->Add_int("memsizekb", Property::Changeable::OnlyAtStart,0);
     Pint->SetMinMax(0,524288);
     Pint->Set_help(
         "Amount of memory DOSBox-X has in kilobytes.\n"

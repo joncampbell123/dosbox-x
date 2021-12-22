@@ -56,7 +56,7 @@ typedef struct {
 Bitu call_program;
 extern char lastmount;
 extern const char *modifier;
-extern std::string langname, configfile;
+extern std::string langname, configfile, dosbox_title;
 extern int enablelfn, fat32setver, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor;
 extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, uao, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, outcon, enable_dbcs_tables;
 
@@ -647,6 +647,10 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
                 if (!strcasecmp(inputline.substr(0, 15).c_str(), "forceloadstate=")) {
                     force_load_state = section->Get_bool("forceloadstate");
                     mainMenu.get_item("force_loadstate").check(force_load_state).refresh_item(mainMenu);
+                }
+                if (!strcasecmp(inputline.substr(0, 6).c_str(), "title=")) {
+                    dosbox_title=section->Get_string("title");
+                    trim(dosbox_title);
                 }
                 if (!strcasecmp(inputline.substr(0, 9).c_str(), "language=")) {
                     if (control->opt_lang != "") control->opt_lang = section->Get_string("language");
