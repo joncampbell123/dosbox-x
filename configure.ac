@@ -779,6 +779,21 @@ else
 fi 
 AM_CONDITIONAL(C_MT32, test "x$enable_mt32" = "xyes")
 
+dnl On some platforms, std::atomic needs a helper library
+AC_MSG_CHECKING(whether -latomic is needed)
+AC_LINK_IFELSE([AC_LANG_SOURCE([
+  #include <atomic>
+  #include <cstdint>
+  std::atomic<std::int64_t> v;
+  int main() {
+    return v;
+  }
+])],STD_ATOMIC_NEED_LIBATOMIC=no,STD_ATOMIC_NEED_LIBATOMIC=yes)
+AC_MSG_RESULT($STD_ATOMIC_NEED_LIBATOMIC)
+if test "x$STD_ATOMIC_NEED_LIBATOMIC" = xyes; then
+  LIBS="$LIBS -latomic"
+fi
+
 dnl NASM (Netwide Assembler)
 AC_PATH_PROG([NASM], [nasm])
 if test -z "$ac_cv_path_NASM"; then
