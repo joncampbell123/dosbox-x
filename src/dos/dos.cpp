@@ -370,7 +370,7 @@ void DOS_SetCountry(uint16_t countryNo) {
 			break;
 	}
 
-    // Time seperation character
+    // Time separation character
 	switch (countryNo) {
 		case 41:  // Switzerland
 			*(dos.tables.country+13)=0x2c; // Comma (,)
@@ -887,7 +887,7 @@ static Bitu DOS_21Handler(void) {
     char name2[DOSNAMEBUF+2+DOS_NAMELENGTH_ASCII];
     
     static Bitu time_start = 0; //For emulating temporary time changes.
-    if (reg_ah!=0x4c) {packerr=false;reqwin=false;}
+    if (reg_ah!=0x4c&&reg_ah!=0x51) {packerr=false;reqwin=false;}
     switch (reg_ah) {
         case 0x00:      /* Terminate Program */
             /* HACK for demoscene prod parties/1995/wired95/surprisecode/w95spcod.zip/WINNERS/SURP-KLF
