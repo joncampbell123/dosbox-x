@@ -99,8 +99,8 @@ public:
 static std::vector<InternalProgramEntry*> internal_progs;
 bool isDBCSCP(void), CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4);
 char *FormatDate(uint16_t year, uint8_t month, uint8_t day);
-void EMS_DoShutDown(void), UpdateDefaultPrinterFont(void), GFX_ForceRedrawScreen(void), resetFontSize(void), ttf_reset_colors(void), makestdcp950table(void), makeseacp951table(void), DOSBox_SetSysMenu(void), MSG_Init(void), initRand(void);
-void EMS_Startup(Section* sec), DOSV_SetConfig(Section_prop *section), DOSBOX_UnlockSpeed2(bool pressed), RebootLanguage(std::string filename, bool confirm=false), SetWindowTransparency(int trans), SetOutputSwitch(const char *outputstr), runSerial(const char *str), runParallel(const char *str), DOS_AddDays(uint8_t days);
+void EMS_DoShutDown(void), UpdateDefaultPrinterFont(void), GFX_ForceRedrawScreen(void), resetFontSize(void), ttf_reset_colors(void), makestdcp950table(void), makeseacp951table(void), DOSBox_SetSysMenu(void), MSG_Init(void), initRand(void), PRINTER_Init(void);
+void EMS_Startup(Section* sec), DOSV_SetConfig(Section_prop *section), DOSBOX_UnlockSpeed2(bool pressed), RebootLanguage(std::string filename, bool confirm=false), SetWindowTransparency(int trans), SetOutputSwitch(const char *outputstr), runSerial(const char *str), runParallel(const char *str), DOS_AddDays(uint8_t days), PRINTER_Shutdown(Section* sec);
 
 void PROGRAMS_Shutdown(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Shutting down internal programs list");
@@ -1395,7 +1395,7 @@ next:
 			bool change_success = tsec->HandleInputline(inputline.c_str());
 			if (change_success) {
                 if (applynew) RebootLanguage("");
-				if (!strcasecmp(pvars[0].c_str(), "dosbox")||!strcasecmp(pvars[0].c_str(), "dos")||!strcasecmp(pvars[0].c_str(), "dosv")||!strcasecmp(pvars[0].c_str(), "cpu")||!strcasecmp(pvars[0].c_str(), "sdl")||!strcasecmp(pvars[0].c_str(), "ttf")||!strcasecmp(pvars[0].c_str(), "render")||!strcasecmp(pvars[0].c_str(), "serial")||!strcasecmp(pvars[0].c_str(), "parallel")) {
+				if (!strcasecmp(pvars[0].c_str(), "dosbox")||!strcasecmp(pvars[0].c_str(), "dos")||!strcasecmp(pvars[0].c_str(), "dosv")||!strcasecmp(pvars[0].c_str(), "cpu")||!strcasecmp(pvars[0].c_str(), "sdl")||!strcasecmp(pvars[0].c_str(), "ttf")||!strcasecmp(pvars[0].c_str(), "render")||!strcasecmp(pvars[0].c_str(), "serial")||!strcasecmp(pvars[0].c_str(), "parallel")||!strcasecmp(pvars[0].c_str(), "printer")) {
 					Section_prop *section = static_cast<Section_prop *>(control->GetSection(pvars[0].c_str()));
 					if (section != NULL) {
 						if (!strcasecmp(pvars[0].c_str(), "dosbox")) {
@@ -1839,6 +1839,11 @@ next:
                                 std::string val = section->Get_string("parallel" + std::string(1, inputline[8])), cmd = std::string(1, inputline[8]) + " " + (val.size()?val:"disabled");
                                 runParallel(cmd.c_str());
                             }
+#if C_PRINTER
+						} else if (!strcasecmp(pvars[0].c_str(), "printer")) {
+                            PRINTER_Shutdown(NULL);
+                            PRINTER_Init();
+#endif
                         }
 					}
 				}
