@@ -15,7 +15,9 @@
     the mouse and prevent mouse capture. (Wengier)
   - For Configuration Tool, a "?" button is added to
     properties which have limited numbers of values so
-    that their possible values will be shown. (Wengier)
+    that their possible values will be shown. Also,
+    more settings will be applied immediately when
+    modified from the Configuration Tool. (Wengier)
   - If a scaler as specified in the config may not work
     as expected and if not forced, DOSBox-X will show a
     a message box asking whether to load it. (Wengier)

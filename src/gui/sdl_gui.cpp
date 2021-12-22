@@ -98,6 +98,8 @@ static bool                 running;
 static int                  saved_bpp;
 static bool                 shell_idle;
 static bool                 in_gui = false;
+static bool                 changed = false;
+static bool                 resetcfg = false;
 #if !defined(C_SDL2)
 static int                  old_unicode;
 #endif
@@ -124,7 +126,7 @@ void                        macosx_reload_touchbar(void);
 GUI::Checkbox *advopt, *saveall, *imgfd360, *imgfd400, *imgfd720, *imgfd1200, *imgfd1440, *imgfd2880, *imghd250, *imghd520, *imghd1gig, *imghd2gig, *imghd4gig, *imghd8gig;
 std::string GetDOSBoxXPath(bool withexe);
 static std::map< std::vector<GUI::Char>, GUI::ToplevelWindow* > cfg_windows_active;
-void getlogtext(std::string &str), getcodetext(std::string &text);
+void getlogtext(std::string &str), getcodetext(std::string &text), ApplySetting(std::string pvar, std::string inputline, bool quiet), GUI_Run(bool pressed);
 bool CheckQuit(void);
 char tmp1[CROSS_LEN*2], tmp2[CROSS_LEN];
 const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ", "
@@ -585,6 +587,10 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
     }
 
     in_gui = false;
+    if (resetcfg) {
+        resetcfg = false;
+        GUI_Run(false);
+    }
 }
 
 bool GUI_IsRunning(void) {
@@ -657,6 +663,10 @@ public:
         std::string line;
         if (prepare(line)) {
             prop->SetValue(GUI::String(line));
+            if (strcmp(section->GetName(),"dosbox")||prop->propname!="language") {
+                changed=true;
+                ApplySetting(section->GetName(), prop->propname+"="+line, true);
+            }
         }
     }
 
@@ -720,14 +730,14 @@ public:
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-        (void)b;//UNUSED
         if (arg == "?") {
             std::string values = "Property: \033[31m" + prop->propname + "\033[0m\n\nPossible values:\n";
             std::vector<Value> pv = prop->GetValues();
             for(Bitu k = 0; k < pv.size(); k++) if (pv[k].ToString().size()) values += "\n\033[32m" + pv[k].ToString() + "\033[0m";
             values += (prop->Get_Default_Value().ToString().size()?"\n\nDefault value: \033[32m"+prop->Get_Default_Value().ToString():"")+"\033[0m";
             new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>300?(getScreen()->getWidth()-300)/2:0, 100, 300, ("Values for " + prop->propname).c_str(), values.c_str());
-        }
+        } else
+            PropertyEditor::actionExecuted(b, arg);
     }
 
     bool prepare(std::string &buffer) {
@@ -761,14 +771,14 @@ public:
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-        (void)b;//UNUSED
         if (arg == "?") {
             std::string values = "Property: \033[31m" + prop->propname + "\033[0m\n\nPossible values:\n";
             std::vector<Value> pv = prop->GetValues();
             for(Bitu k = 0; k < pv.size(); k++) if (pv[k].ToString().size()) values += "\n\033[32m" + pv[k].ToString() + "\033[0m";
             values += (prop->Get_Default_Value().ToString().size()?"\n\nDefault value: \033[32m"+prop->Get_Default_Value().ToString():"")+"\033[0m";
             new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>300?(getScreen()->getWidth()-300)/2:0, 100, 300, ("Values for " + prop->propname).c_str(), values.c_str());
-        }
+        } else
+            PropertyEditor::actionExecuted(b, arg);
     }
 
     bool prepare(std::string &buffer) {
@@ -804,14 +814,14 @@ public:
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-        (void)b;//UNUSED
         if (arg == "?") {
             std::string values = "Property: \033[31m" + prop->propname + "\033[0m\n\nPossible values:\n";
             std::vector<Value> pv = prop->GetValues();
             for(Bitu k = 0; k < pv.size(); k++) if (pv[k].ToString().size()) values += "\n\033[32m" + pv[k].ToString() + "\033[0m";
             values += (prop->Get_Default_Value().ToString().size()?"\n\nDefault value: \033[32m"+prop->Get_Default_Value().ToString():"")+"\033[0m";
             new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>300?(getScreen()->getWidth()-300)/2:0, 100, 300, ("Values for " + prop->propname).c_str(), values.c_str());
-        }
+        } else
+            PropertyEditor::actionExecuted(b, arg);
     }
 
     bool prepare(std::string &buffer) {
@@ -847,14 +857,14 @@ public:
     };
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-        (void)b;//UNUSED
         if (arg == "?") {
             std::string values = "Property: \033[31m" + prop->propname + "\033[0m\n\nPossible values:\n";
             std::vector<Value> pv = prop->GetValues();
             for(Bitu k = 0; k < pv.size(); k++) if (pv[k].ToString().size()) values += "\n\033[32m" + pv[k].ToString() + "\033[0m";
             values += (prop->Get_Default_Value().ToString().size()?"\n\nDefault value: \033[32m"+prop->Get_Default_Value().ToString():"")+"\033[0m";
             new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>300?(getScreen()->getWidth()-300)/2:0, 100, 300, ("Values for " + prop->propname).c_str(), values.c_str());
-        }
+        } else
+            PropertyEditor::actionExecuted(b, arg);
     }
 
     bool prepare(std::string &buffer) {
@@ -1182,6 +1192,7 @@ public:
             LOG_MSG("BUG: SectionEditor constructor called with section == NULL\n");
             return;
         }
+        changed = false;
 
         int first_row_y = 5;
         int row_height = 25;
@@ -1307,7 +1318,8 @@ public:
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         strcpy(tmp1, mainMenu.get_item("HelpMenu").get_text().c_str());
-        if (arg == MSG_Get("OK") || arg == MSG_Get("CANCEL") || arg == MSG_Get("CLOSE")) { close(); if(shortcut) running=false; }
+        if (arg == MSG_Get("OK") && changed) { close(); running=false; if(!shortcut) resetcfg=true; }
+        else if (arg == MSG_Get("OK") || arg == MSG_Get("CANCEL") || arg == MSG_Get("CLOSE")) { close(); if(shortcut) running=false; }
         else if (arg == tmp1) {
             std::vector<GUI::Char> new_cfg_sname;
 

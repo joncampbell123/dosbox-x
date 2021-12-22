@@ -107,7 +107,9 @@ void runRescan(const char *str), DOSBox_SetSysMenu(void);
 void toSetCodePage(DOS_Shell *shell, int newCP, int opt);
 
 #if defined(WIN32)
-void MountAllDrives(Program * program, bool quiet) {
+void MountAllDrives(bool quiet) {
+    char str[100];
+    uint16_t n = 0;
     uint32_t drives = GetLogicalDrives();
     char name[4]="A:\\";
     for (int i=0; i<25; i++) {
@@ -116,7 +118,11 @@ void MountAllDrives(Program * program, bool quiet) {
             name[0]='A'+i;
             int type=GetDriveType(name);
             if (type!=DRIVE_NO_ROOT_DIR) {
-                if (!quiet) program->WriteOut("Mounting %c: => %s..\n", name[0], name);
+                if (!quiet) {
+                    sprintf(str, "Mounting %c: => %s..\r\n", name[0], name);
+                    n = (uint16_t)strlen(str);
+                    DOS_WriteFile(STDOUT,(uint8_t *)str,&n);
+                }
                 char mountstring[DOS_PATHLENGTH+CROSS_LEN+20];
                 name[2]=' ';
                 strcpy(mountstring,name);
@@ -124,8 +130,19 @@ void MountAllDrives(Program * program, bool quiet) {
                 strcat(mountstring,name);
                 strcat(mountstring," -Q");
                 runMount(mountstring);
-                if (!Drives[i] && !quiet) program->WriteOut("Drive %c: failed to mount.\n",name[0]);
-                else if(mountwarning && !quiet && type==DRIVE_FIXED && (strcasecmp(name,"C:\\")==0)) program->WriteOut(MSG_Get("PROGRAM_MOUNT_WARNING_WIN"));
+                if (!Drives[i] && !quiet) {
+                    sprintf(str, "Drive %c: failed to mount.\r\n",name[0]);
+                    n = (uint16_t)strlen(str);
+                    DOS_WriteFile(STDOUT,(uint8_t *)str,&n);
+                } else if(mountwarning && !quiet && type==DRIVE_FIXED && (strcasecmp(name,"C:\\")==0)) {
+                    strcpy(str, MSG_Get("PROGRAM_MOUNT_WARNING_WIN"));
+                    if (strlen(str)>2&&str[strlen(str)-1]=='\n'&&str[strlen(str)-2]!='\r') {
+                        str[strlen(str)-1]=0;
+                        strcat(str, "\r\n");
+                    }
+                    n = (uint16_t)strlen(str);
+                    DOS_WriteFile(STDOUT,(uint8_t *)str,&n);
+                }
             }
         }
     }
@@ -807,7 +824,7 @@ void DOS_Shell::Prepare(void) {
 		{
 			const Section_prop* sec = static_cast<Section_prop*>(control->GetSection("dos"));
 			const char *automountstr = sec->Get_string("automountall");
-			if (strcmp(automountstr, "0") && strcmp(automountstr, "false")) MountAllDrives(this, !strcmp(automountstr, "quiet")||control->opt_fastlaunch);
+			if (strcmp(automountstr, "0") && strcmp(automountstr, "false")) MountAllDrives(!strcmp(automountstr, "quiet")||control->opt_fastlaunch);
 		}
 #endif
 		strcpy(i4dos_data, "");

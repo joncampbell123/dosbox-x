@@ -615,8 +615,470 @@ private:
 	}
 };
 
-void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value), update_dos_ems_menu(void), MountAllDrives(Program * program, bool quiet), GFX_SwitchFullScreen(void), RebootConfig(std::string filename, bool confirm=false);
+void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value), update_dos_ems_menu(void), MountAllDrives(bool quiet), GFX_SwitchFullScreen(void), RebootConfig(std::string filename, bool confirm=false);
 bool set_ver(char *s), GFX_IsFullscreen(void);
+
+void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
+    if (!strcasecmp(pvar.c_str(), "dosbox")||!strcasecmp(pvar.c_str(), "dos")||!strcasecmp(pvar.c_str(), "dosv")||!strcasecmp(pvar.c_str(), "cpu")||!strcasecmp(pvar.c_str(), "sdl")||!strcasecmp(pvar.c_str(), "ttf")||!strcasecmp(pvar.c_str(), "render")||!strcasecmp(pvar.c_str(), "serial")||!strcasecmp(pvar.c_str(), "parallel")||!strcasecmp(pvar.c_str(), "printer")) {
+        Section_prop *section = static_cast<Section_prop *>(control->GetSection(pvar.c_str()));
+        if (section != NULL) {
+            if (!strcasecmp(pvar.c_str(), "dosbox")) {
+                force_nocachedir = section->Get_bool("nocachedir");
+                sync_time = section->Get_bool("synchronize time");
+                if (!strcasecmp(inputline.substr(0, 17).c_str(), "synchronize time=")) {
+                    manualtime=false;
+                    mainMenu.get_item("sync_host_datetime").check(sync_time).refresh_item(mainMenu);
+                }
+                std::string freesizestr = section->Get_string("freesizecap");
+                if (freesizestr == "fixed" || freesizestr == "false" || freesizestr == "0") freesizecap = 0;
+                else if (freesizestr == "relative" || freesizestr == "2") freesizecap = 2;
+                else freesizecap = 1;
+                wpcolon = section->Get_bool("leading colon write protect image");
+                lockmount = section->Get_bool("locking disk image mount");
+                if (!strcasecmp(inputline.substr(0, 9).c_str(), "saveslot=")) SetGameState_Run(section->Get_int("saveslot")-1);
+                if (!strcasecmp(inputline.substr(0, 11).c_str(), "saveremark=")) {
+                    noremark_save_state = !section->Get_bool("saveremark");
+                    mainMenu.get_item("noremark_savestate").check(noremark_save_state).refresh_item(mainMenu);
+                }
+                if (!strcasecmp(inputline.substr(0, 15).c_str(), "forceloadstate=")) {
+                    force_load_state = section->Get_bool("forceloadstate");
+                    mainMenu.get_item("force_loadstate").check(force_load_state).refresh_item(mainMenu);
+                }
+                if (!strcasecmp(inputline.substr(0, 9).c_str(), "language=")) {
+                    if (control->opt_lang != "") control->opt_lang = section->Get_string("language");
+                    MSG_Init();
+#if defined(USE_TTF)
+                    if (TTF_using()) resetFontSize();
+#endif
+                }
+            } else if (!strcasecmp(pvar.c_str(), "sdl")) {
+                modifier = section->Get_string("clip_key_modifier");
+                paste_speed = section->Get_int("clip_paste_speed");
+                if (!strcasecmp(inputline.substr(0, 16).c_str(), "mouse_wheel_key=")) {
+                    wheel_key = section->Get_int("mouse_wheel_key");
+                    wheel_guest=wheel_key>0;
+                    if (wheel_key<0) wheel_key=-wheel_key;
+                    mainMenu.get_item("wheel_updown").check(wheel_key==1).refresh_item(mainMenu);
+                    mainMenu.get_item("wheel_leftright").check(wheel_key==2).refresh_item(mainMenu);
+                    mainMenu.get_item("wheel_pageupdown").check(wheel_key==3).refresh_item(mainMenu);
+                    mainMenu.get_item("wheel_ctrlupdown").check(wheel_key==4).refresh_item(mainMenu);
+                    mainMenu.get_item("wheel_ctrlleftright").check(wheel_key==5).refresh_item(mainMenu);
+                    mainMenu.get_item("wheel_ctrlpageupdown").check(wheel_key==6).refresh_item(mainMenu);
+                    mainMenu.get_item("wheel_ctrlwz").check(wheel_key==7).refresh_item(mainMenu);
+                    mainMenu.get_item("wheel_none").check(wheel_key==0).refresh_item(mainMenu);
+                    mainMenu.get_item("wheel_guest").check(wheel_guest).refresh_item(mainMenu);
+                }
+                if (!strcasecmp(inputline.substr(0, 12).c_str(), "sensitivity=")) {
+                    Prop_multival* p3 = static_cast<Section_prop *>(section)->Get_multival("sensitivity");
+                    sdl.mouse.xsensitivity = p3->GetSection()->Get_int("xsens");
+                    sdl.mouse.ysensitivity = p3->GetSection()->Get_int("ysens");
+                }
+                if (!strcasecmp(inputline.substr(0, 11).c_str(), "fullscreen=")) {
+                    if (section->Get_bool("fullscreen")) {
+                        if (!GFX_IsFullscreen()) {GFX_LosingFocus();GFX_SwitchFullScreen();}
+                    } else if (GFX_IsFullscreen()) {GFX_LosingFocus();GFX_SwitchFullScreen();}
+                }
+                if (!strcasecmp(inputline.substr(0, 7).c_str(), "output=")) {
+                    bool toOutput(const char *output);
+                    std::string GetDefaultOutput();
+                    std::string output=section->Get_string("output");
+                    if (output == "default") output=GetDefaultOutput();
+                    GFX_LosingFocus();
+                    toOutput(output.c_str());
+#if defined(WIN32) && !defined(HX_DOS)
+                    DOSBox_SetSysMenu();
+#endif
+                }
+                if (!strcasecmp(inputline.substr(0, 13).c_str(), "transparency="))
+                    SetWindowTransparency(section->Get_int("transparency"));
+#if defined(C_SDL2)
+                if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl2=")) ReloadMapper(section,true);
+#else
+                if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl1=")) ReloadMapper(section,true);
+#if !defined(HAIKU) && !defined(RISCOS)
+                if (!strcasecmp(inputline.substr(0, 11).c_str(), "mapperfile=")) {
+                    Prop_path* pp;
+#if defined(C_SDL2)
+                    pp = section->Get_path("mapperfile_sdl2");
+#else
+                    pp = section->Get_path("mapperfile_sdl1");
+#endif
+                    if (pp->realpath=="") ReloadMapper(section,true);
+                }
+                if (!strcasecmp(inputline.substr(0, 13).c_str(), "usescancodes=")) {
+                    void setScanCode(Section_prop * section), loadScanCode(), MAPPER_Init();
+                    setScanCode(section);
+                    loadScanCode();
+                    GFX_LosingFocus();
+                    MAPPER_Init();
+                    load=true;
+                }
+#endif
+#endif
+                if (!strcasecmp(inputline.substr(0, 8).c_str(), "display=")) {
+                    void SetDisplayNumber(int display);
+                    int GetNumScreen();
+                    int numscreen = GetNumScreen();
+                    const int display = section->Get_int("display");
+                    if (display >= 0 && display <= numscreen)
+                        SetDisplayNumber(display);
+                }
+                if (!strcasecmp(inputline.substr(0, 15).c_str(), "windowposition=")) {
+                    const char* windowposition = section->Get_string("windowposition");
+                    int GetDisplayNumber(void);
+#if defined(C_SDL2) || defined (WIN32)
+                    int posx = -1, posy = -1;
+#endif
+                    if (windowposition && *windowposition) {
+                        char result[100];
+                        safe_strncpy(result, windowposition, sizeof(result));
+                        char* y = strchr(result, ',');
+                        if (y && *y) {
+                            *y = 0;
+#if defined(C_SDL2) || defined (WIN32)
+                            posx = atoi(result);
+                            posy = atoi(y + 1);
+#endif
+                        }
+                    }
+#if defined(C_SDL2)
+                    SDL_Window* GFX_GetSDLWindow(void);
+                    SDL_SetWindowTitle(GFX_GetSDLWindow(),"DOSBox-X");
+                    if (posx < 0 || posy < 0) {
+                        SDL_DisplayMode dm;
+                        int w = 640,h = 480;
+                        SDL_GetWindowSize(GFX_GetSDLWindow(), &w, &h);
+                        if (SDL_GetDesktopDisplayMode(GetDisplayNumber()?GetDisplayNumber()-1:0,&dm) == 0) {
+                            posx = (dm.w - w)/2;
+                            posy = (dm.h - h)/2;
+                        }
+                    }
+                    if (GetDisplayNumber()>0) {
+                        int displays = SDL_GetNumVideoDisplays();
+                        SDL_Rect bound;
+                        for( int i = 1; i <= displays; i++ ) {
+                            bound = SDL_Rect();
+                            SDL_GetDisplayBounds(i-1, &bound);
+                            if (i == GetDisplayNumber()) {
+                                posx += bound.x;
+                                posy += bound.y;
+                                break;
+                            }
+                        }
+                    }
+                    SDL_SetWindowPosition(GFX_GetSDLWindow(), posx, posy);
+#elif defined(WIN32)
+                    RECT rect;
+                    MONITORINFO info;
+                    GetWindowRect(GetHWND(), &rect);
+#if !defined(HX_DOS)
+                    if (GetDisplayNumber()>0) {
+                        xyp xy={0};
+                        xy.x=-1;
+                        xy.y=-1;
+                        curscreen=0;
+                        BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam);
+                        EnumDisplayMonitors(0, 0, EnumDispProc, reinterpret_cast<LPARAM>(&xy));
+                        HMONITOR monitor = MonitorFromRect(&monrect, MONITOR_DEFAULTTONEAREST);
+                        info.cbSize = sizeof(MONITORINFO);
+                        GetMonitorInfo(monitor, &info);
+                        if (posx >=0 && posy >=0) {
+                            posx+=info.rcMonitor.left;
+                            posy+=info.rcMonitor.top;
+                        } else {
+                            posx = info.rcMonitor.left+(info.rcMonitor.right-info.rcMonitor.left-(rect.right-rect.left))/2;
+                            posy = info.rcMonitor.top+(info.rcMonitor.bottom-info.rcMonitor.top-(rect.bottom-rect.top))/2;
+                        }
+                    } else
+#endif
+                    if (posx < 0 && posy < 0) {
+                        posx = (GetSystemMetrics(SM_CXSCREEN)-(rect.right-rect.left))/2;
+                        posy = (GetSystemMetrics(SM_CYSCREEN)-(rect.bottom-rect.top))/2;
+                    }
+                    MoveWindow(GetHWND(), posx, posy, rect.right-rect.left, rect.bottom-rect.top, true);
+#endif
+                }
+
+#if defined(USE_TTF)
+                if (TTF_using()) resetFontSize();
+#endif
+            } else if (!strcasecmp(pvar.c_str(), "cpu")) {
+                bool turbo = section->Get_bool("turbo");
+                if (turbo != ticksLocked) DOSBOX_UnlockSpeed2(true);
+            } else if (!strcasecmp(pvar.c_str(), "dos")) {
+                mountwarning = section->Get_bool("mountwarning");
+                if (!strcasecmp(inputline.substr(0, 4).c_str(), "lfn=")) {
+                    std::string lfn = section->Get_string("lfn");
+                    if (lfn=="true"||lfn=="1") enablelfn=1;
+                    else if (lfn=="false"||lfn=="0") enablelfn=0;
+                    else if (lfn=="autostart") enablelfn=-2;
+                    else enablelfn=-1;
+                    mainMenu.get_item("dos_lfn_auto").check(enablelfn==-1).refresh_item(mainMenu);
+                    mainMenu.get_item("dos_lfn_enable").check(enablelfn==1).refresh_item(mainMenu);
+                    mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).refresh_item(mainMenu);
+                    uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && (dos.version.major>6 || winrun));
+                } else if (!strcasecmp(inputline.substr(0, 16).c_str(), "fat32setversion=")) {
+                    std::string fat32setverstr = section->Get_string("fat32setversion");
+                    if (fat32setverstr=="auto") fat32setver=1;
+                    else if (fat32setverstr=="manual") fat32setver=0;
+                    else fat32setver=-1;
+                } else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ver=")) {
+                    const char *ver = section->Get_string("ver");
+                    if (!*ver) {
+                        dos.version.minor=0;
+                        dos.version.major=5;
+                        dos_ver_menu(false);
+                    } else if (set_ver((char *)ver))
+                        dos_ver_menu(false);
+                } else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ems=")) {
+                    EMS_DoShutDown();
+                    EMS_Startup(NULL);
+                    update_dos_ems_menu();
+                } else if (!strcasecmp(inputline.substr(0, 32).c_str(), "shell configuration as commands=")) {
+                    enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
+                    mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
+                } else if (!strcasecmp(inputline.substr(0, 18).c_str(), "dos clipboard api=")) {
+                    clipboard_dosapi = section->Get_bool("dos clipboard api");
+                    mainMenu.get_item("clipboard_dosapi").check(clipboard_dosapi).refresh_item(mainMenu);
+#if defined(WIN32) && !defined(HX_DOS)
+                } else if (!strcasecmp(inputline.substr(0, 13).c_str(), "automountall=")) {
+                    const char *automountstr = section->Get_string("automountall");
+                    if (strcmp(automountstr, "0") && strcmp(automountstr, "false")) MountAllDrives(quiet||!strcmp(automountstr, "quiet"));
+                } else if (!strcasecmp(inputline.substr(0, 9).c_str(), "startcmd=")) {
+                    winautorun = section->Get_bool("startcmd");
+                    mainMenu.get_item("dos_win_autorun").check(winautorun).enable(true).refresh_item(mainMenu);
+#endif
+#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
+                } else if (!strcasecmp(inputline.substr(0, 15).c_str(), "starttranspath=")) {
+                    starttranspath = section->Get_bool("starttranspath");
+                    mainMenu.get_item("dos_win_transpath").check(starttranspath).enable(
+#if defined(WIN32) && !defined(HX_DOS)
+                    true
+#else
+                    startcmd
+#endif
+                    ).refresh_item(mainMenu);
+                } else if (!strcasecmp(inputline.substr(0, 10).c_str(), "startwait=")) {
+                    startwait = section->Get_bool("startwait");
+                    mainMenu.get_item("dos_win_wait").check(startwait).enable(
+#if defined(WIN32) && !defined(HX_DOS)
+                    true
+#else
+                    startcmd
+#endif
+                    ).refresh_item(mainMenu);
+                } else if (!strcasecmp(inputline.substr(0, 11).c_str(), "startquiet=")) {
+                    startquiet = section->Get_bool("startquiet");
+                    mainMenu.get_item("dos_win_quiet").check(startquiet).enable(
+#if defined(WIN32) && !defined(HX_DOS)
+                    true
+#else
+                    startcmd
+#endif
+                    ).refresh_item(mainMenu);
+#endif
+                }
+            } else if (!strcasecmp(pvar.c_str(), "ttf")) {
+                void ttf_reset(void), ttf_setlines(int cols, int lins), SetBlinkRate(Section_prop* section);
+                if (!strcasecmp(inputline.substr(0, 5).c_str(), "font=")) {
+#if defined(USE_TTF)
+                    if (TTF_using()) {
+                        ttf_reset();
+#if C_PRINTER
+                        if (printfont) UpdateDefaultPrinterFont();
+#endif
+                    }
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 7).c_str(), "ptsize=")||!strcasecmp(inputline.substr(0, 8).c_str(), "winperc=")) {
+#if defined(USE_TTF)
+                     if (TTF_using()) ttf_reset();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 5).c_str(), "lins=")||!strcasecmp(inputline.substr(0, 5).c_str(), "cols=")) {
+#if defined(USE_TTF)
+                    if (TTF_using()) {
+                        bool iscol=!strcasecmp(inputline.substr(0, 5).c_str(), "cols=");
+                        if (iscol&&IS_PC98_ARCH)
+                            SetVal("render", "cols", "80");
+                        else if (!CurMode)
+                            ;
+                        else if (CurMode->type==M_TEXT || IS_PC98_ARCH) {
+                            const char *str = "\033[2J";
+                            uint16_t n = (uint16_t)strlen(str);
+                            DOS_WriteFile(STDOUT,(uint8_t *)str,&n);
+                            if (quiet && first_shell) first_shell->ShowPrompt();
+                        } else {
+                            reg_ax=CurMode->mode;
+                            CALLBACK_RunRealInt(0x10);
+                        }
+                        lastset=iscol?2:1;
+                        ttf_setlines(0, 0);
+                        lastset=0;
+                    }
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 13).c_str(), "outputswitch=")) {
+#if defined(USE_TTF)
+                    SetOutputSwitch(section->Get_string("outputswitch"));
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 7).c_str(), "colors=")) {
+#if defined(USE_TTF)
+                    if (TTF_using() && !strlen(section->Get_string("colors"))) ttf_reset_colors();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 3).c_str(), "wp=")) {
+#if defined(USE_TTF)
+                    const char *wpstr=section->Get_string("wp");
+                    wpType=wpVersion=0;
+                    if (strlen(wpstr)>1) {
+                        if (!strncasecmp(wpstr, "WP", 2)) wpType=1;
+                        else if (!strncasecmp(wpstr, "WS", 2)) wpType=2;
+                        else if (!strncasecmp(wpstr, "XY", 3)) wpType=3;
+                        if (strlen(wpstr)>2&&wpstr[2]>='1'&&wpstr[2]<='9') wpVersion=wpstr[2]-'0';
+                    }
+                    mainMenu.get_item("ttf_wpno").check(!wpType).refresh_item(mainMenu);
+                    mainMenu.get_item("ttf_wpwp").check(wpType==1).refresh_item(mainMenu);
+                    mainMenu.get_item("ttf_wpws").check(wpType==2).refresh_item(mainMenu);
+                    mainMenu.get_item("ttf_wpxy").check(wpType==3).refresh_item(mainMenu);
+                    mainMenu.get_item("ttf_wpfe").check(wpType==4).refresh_item(mainMenu);
+                    if (TTF_using()) resetFontSize();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 5).c_str(), "wpbg=")) {
+#if defined(USE_TTF)
+                    wpBG = section->Get_int("wpbg");
+                    if (TTF_using()) resetFontSize();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 5).c_str(), "wpfg=")) {
+#if defined(USE_TTF)
+                    wpFG = section->Get_int("wpfg");
+                    if (wpFG<0) wpFG = 7;
+                    if (TTF_using()) resetFontSize();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 5).c_str(), "bold=")) {
+#if defined(USE_TTF)
+                    showbold = section->Get_bool("bold");
+                    mainMenu.get_item("ttf_showbold").check(showbold).refresh_item(mainMenu);
+                    if (TTF_using()) resetFontSize();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 7).c_str(), "italic=")) {
+#if defined(USE_TTF)
+                    showital = section->Get_bool("italic");
+                    mainMenu.get_item("ttf_showital").check(showital).refresh_item(mainMenu);
+                    if (TTF_using()) resetFontSize();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 10).c_str(), "underline=")) {
+#if defined(USE_TTF)
+                    showline = section->Get_bool("underline");
+                    mainMenu.get_item("ttf_showline").check(showline).refresh_item(mainMenu);
+                    if (TTF_using()) resetFontSize();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 10).c_str(), "strikeout=")) {
+#if defined(USE_TTF)
+                    showsout = section->Get_bool("strikeout");
+                    mainMenu.get_item("ttf_showsout").check(showsout).refresh_item(mainMenu);
+                    if (TTF_using()) resetFontSize();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 8).c_str(), "char512=")) {
+#if defined(USE_TTF)
+                    char512 = section->Get_bool("char512");
+                    if (TTF_using()) resetFontSize();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 12).c_str(), "righttoleft=")) {
+#if defined(USE_TTF)
+                    rtl = section->Get_bool("righttoleft");
+                    mainMenu.get_item("ttf_right_left").check(rtl).refresh_item(mainMenu);
+                    if (TTF_using()) resetFontSize();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 10).c_str(), "printfont=")) {
+#if defined(USE_TTF) && C_PRINTER
+                    printfont = section->Get_bool("printfont");
+                    mainMenu.get_item("ttf_printfont").check(printfont).refresh_item(mainMenu);
+                    UpdateDefaultPrinterFont();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 9).c_str(), "autodbcs=")) {
+#if defined(USE_TTF)
+                    dbcs_sbcs = section->Get_bool("autodbcs");
+                    mainMenu.get_item("ttf_dbcs_sbcs").check(dbcs_sbcs).refresh_item(mainMenu);
+                    if (TTF_using()) resetFontSize();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 12).c_str(), "autoboxdraw=")) {
+#if defined(USE_TTF)
+                    autoboxdraw = section->Get_bool("autoboxdraw");
+                    mainMenu.get_item("ttf_autoboxdraw").check(autoboxdraw).refresh_item(mainMenu);
+                    if (TTF_using()) resetFontSize();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 14).c_str(), "halfwidthkana=")) {
+#if defined(USE_TTF)
+                    halfwidthkana = section->Get_bool("halfwidthkana");
+                    mainMenu.get_item("ttf_halfwidthkana").check(halfwidthkana||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
+                    if (TTF_using()) {setTTFCodePage();resetFontSize();}
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 7).c_str(), "blinkc=")) {
+#if defined(USE_TTF)
+                    SetBlinkRate(section);
+                    mainMenu.get_item("ttf_blinkc").check(blinkCursor>-1).refresh_item(mainMenu);
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 4).c_str(), "gbk=")) {
+                    if (gbk != section->Get_bool("gbk")) {
+                        gbk = !gbk;
+                        if (enable_dbcs_tables&&dos.tables.dbcs&&(IS_PDOSV||dos.loaded_codepage==936)) mem_writeb(Real2Phys(dos.tables.dbcs)+2,gbk?0x81:0xA1);
+                        if (dos.loaded_codepage!=950&&dos.loaded_codepage!=951) mainMenu.get_item("ttf_extcharset").check(dos.loaded_codepage==936?gbk:(gbk&&chinasea)).refresh_item(mainMenu);
+#if defined(USE_TTF)
+                        if (TTF_using() && dos.loaded_codepage==936) resetFontSize();
+#endif
+                    }
+                } else if (!strcasecmp(inputline.substr(0, 9).c_str(), "chinasea=")) {
+                    if (chinasea != section->Get_bool("chinasea")) {
+                        chinasea = !chinasea;
+                        if (!chinasea) makestdcp950table();
+                        else makeseacp951table();
+                        if (dos.loaded_codepage!=936) mainMenu.get_item("ttf_extcharset").check(dos.loaded_codepage==950||dos.loaded_codepage==951?chinasea:(gbk&&chinasea)).refresh_item(mainMenu);
+#if defined(USE_TTF)
+                        if (TTF_using() && (dos.loaded_codepage==950 || dos.loaded_codepage==951)) {
+                            MSG_Init();
+                            resetFontSize();
+                        }
+#endif
+                    }
+                } else if (!strcasecmp(inputline.substr(0, 4).c_str(), "uao=")) {
+                    if (uao != section->Get_bool("uao")) {
+                        uao = !uao;
+#if defined(USE_TTF)
+                        if (TTF_using() && dos.loaded_codepage==951) {
+                            MSG_Init();
+                            resetFontSize();
+                        }
+#endif
+                    }
+                }
+            } else if (!strcasecmp(pvar.c_str(), "dosv")) {
+                if (!strcasecmp(inputline.substr(0, 11).c_str(), "fepcontrol=")||!strcasecmp(inputline.substr(0, 7).c_str(), "vtext1=")||!strcasecmp(inputline.substr(0, 7).c_str(), "vtext2="))
+                    DOSV_SetConfig(section);
+            } else if (!strcasecmp(pvar.c_str(), "render")) {
+                if (!strcasecmp(inputline.substr(0, 9).c_str(), "glshader=")) {
+#if C_OPENGL
+                    std::string LoadGLShader(Section_prop * section);
+                    LoadGLShader(section);
+                    GFX_ForceRedrawScreen();
+#endif
+                } else if (!strcasecmp(inputline.substr(0, 12).c_str(), "pixelshader="))
+                    GFX_ForceRedrawScreen();
+            } else if (!strcasecmp(pvar.c_str(), "serial")) {
+                if (!strcasecmp(inputline.substr(0, 6).c_str(), "serial") && inputline[7]=='=') {
+                    std::string val = section->Get_string("serial" + std::string(1, inputline[6])), cmd = std::string(1, inputline[6]) + " " + (val.size()?val:"dummy");
+                    runSerial(cmd.c_str());
+                }
+            } else if (!strcasecmp(pvar.c_str(), "parallel")) {
+                if (!strcasecmp(inputline.substr(0, 8).c_str(), "parallel") && inputline[9]=='=') {
+                    std::string val = section->Get_string("parallel" + std::string(1, inputline[8])), cmd = std::string(1, inputline[8]) + " " + (val.size()?val:"disabled");
+                    runParallel(cmd.c_str());
+                }
+#if C_PRINTER
+            } else if (!strcasecmp(pvar.c_str(), "printer")) {
+                PRINTER_Shutdown(NULL);
+                PRINTER_Init();
+#endif
+            }
+        }
+    }
+}
 
 void CONFIG::Run(void) {
 	static const char* const params[] = {
@@ -1394,459 +1856,8 @@ next:
 			std::string inputline = pvars[1] + "=" + value;
 			bool change_success = tsec->HandleInputline(inputline.c_str());
 			if (change_success) {
-                if (applynew) RebootLanguage("");
-				if (!strcasecmp(pvars[0].c_str(), "dosbox")||!strcasecmp(pvars[0].c_str(), "dos")||!strcasecmp(pvars[0].c_str(), "dosv")||!strcasecmp(pvars[0].c_str(), "cpu")||!strcasecmp(pvars[0].c_str(), "sdl")||!strcasecmp(pvars[0].c_str(), "ttf")||!strcasecmp(pvars[0].c_str(), "render")||!strcasecmp(pvars[0].c_str(), "serial")||!strcasecmp(pvars[0].c_str(), "parallel")||!strcasecmp(pvars[0].c_str(), "printer")) {
-					Section_prop *section = static_cast<Section_prop *>(control->GetSection(pvars[0].c_str()));
-					if (section != NULL) {
-						if (!strcasecmp(pvars[0].c_str(), "dosbox")) {
-							force_nocachedir = section->Get_bool("nocachedir");
-                            sync_time = section->Get_bool("synchronize time");
-                            if (!strcasecmp(inputline.substr(0, 17).c_str(), "synchronize time=")) {
-                                manualtime=false;
-                                mainMenu.get_item("sync_host_datetime").check(sync_time).refresh_item(mainMenu);
-                            }
-							std::string freesizestr = section->Get_string("freesizecap");
-                            if (freesizestr == "fixed" || freesizestr == "false" || freesizestr == "0") freesizecap = 0;
-                            else if (freesizestr == "relative" || freesizestr == "2") freesizecap = 2;
-                            else freesizecap = 1;
-							wpcolon = section->Get_bool("leading colon write protect image");
-							lockmount = section->Get_bool("locking disk image mount");
-							if (!strcasecmp(inputline.substr(0, 9).c_str(), "saveslot=")) SetGameState_Run(section->Get_int("saveslot")-1);
-                            if (!strcasecmp(inputline.substr(0, 11).c_str(), "saveremark=")) {
-                                noremark_save_state = !section->Get_bool("saveremark");
-                                mainMenu.get_item("noremark_savestate").check(noremark_save_state).refresh_item(mainMenu);
-                            }
-                            if (!strcasecmp(inputline.substr(0, 15).c_str(), "forceloadstate=")) {
-                                force_load_state = section->Get_bool("forceloadstate");
-                                mainMenu.get_item("force_loadstate").check(force_load_state).refresh_item(mainMenu);
-                            }
-                            if (!strcasecmp(inputline.substr(0, 9).c_str(), "language=")) {
-                                if (control->opt_lang != "") control->opt_lang = section->Get_string("language");
-                                MSG_Init();
-#if defined(USE_TTF)
-                                if (TTF_using()) resetFontSize();
-#endif
-                            }
-						} else if (!strcasecmp(pvars[0].c_str(), "sdl")) {
-							modifier = section->Get_string("clip_key_modifier");
-							paste_speed = section->Get_int("clip_paste_speed");
-							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mouse_wheel_key=")) {
-								wheel_key = section->Get_int("mouse_wheel_key");
-								wheel_guest=wheel_key>0;
-								if (wheel_key<0) wheel_key=-wheel_key;
-								mainMenu.get_item("wheel_updown").check(wheel_key==1).refresh_item(mainMenu);
-								mainMenu.get_item("wheel_leftright").check(wheel_key==2).refresh_item(mainMenu);
-								mainMenu.get_item("wheel_pageupdown").check(wheel_key==3).refresh_item(mainMenu);
-								mainMenu.get_item("wheel_ctrlupdown").check(wheel_key==4).refresh_item(mainMenu);
-								mainMenu.get_item("wheel_ctrlleftright").check(wheel_key==5).refresh_item(mainMenu);
-								mainMenu.get_item("wheel_ctrlpageupdown").check(wheel_key==6).refresh_item(mainMenu);
-								mainMenu.get_item("wheel_ctrlwz").check(wheel_key==7).refresh_item(mainMenu);
-								mainMenu.get_item("wheel_none").check(wheel_key==0).refresh_item(mainMenu);
-								mainMenu.get_item("wheel_guest").check(wheel_guest).refresh_item(mainMenu);
-							}
-							if (!strcasecmp(inputline.substr(0, 12).c_str(), "sensitivity=")) {
-                                Prop_multival* p3 = static_cast<Section_prop *>(section)->Get_multival("sensitivity");
-                                sdl.mouse.xsensitivity = p3->GetSection()->Get_int("xsens");
-                                sdl.mouse.ysensitivity = p3->GetSection()->Get_int("ysens");
-                            }
-							if (!strcasecmp(inputline.substr(0, 11).c_str(), "fullscreen=")) {
-                                if (section->Get_bool("fullscreen")) {
-                                    if (!GFX_IsFullscreen()) {GFX_LosingFocus();GFX_SwitchFullScreen();}
-                                } else if (GFX_IsFullscreen()) {GFX_LosingFocus();GFX_SwitchFullScreen();}
-                            }
-                            if (!strcasecmp(inputline.substr(0, 7).c_str(), "output=")) {
-                                bool toOutput(const char *output);
-                                std::string GetDefaultOutput();
-                                std::string output=section->Get_string("output");
-                                if (output == "default") output=GetDefaultOutput();
-                                GFX_LosingFocus();
-                                toOutput(output.c_str());
-#if defined(WIN32) && !defined(HX_DOS)
-                                DOSBox_SetSysMenu();
-#endif
-                            }
-                            if (!strcasecmp(inputline.substr(0, 13).c_str(), "transparency="))
-                                SetWindowTransparency(section->Get_int("transparency"));
-#if defined(C_SDL2)
-							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl2=")) ReloadMapper(section,true);
-#else
-							if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapperfile_sdl1=")) ReloadMapper(section,true);
-#if !defined(HAIKU) && !defined(RISCOS)
-							if (!strcasecmp(inputline.substr(0, 11).c_str(), "mapperfile=")) {
-                                Prop_path* pp;
-#if defined(C_SDL2)
-                                pp = section->Get_path("mapperfile_sdl2");
-#else
-                                pp = section->Get_path("mapperfile_sdl1");
-#endif
-                                if (pp->realpath=="") ReloadMapper(section,true);
-                            }
-							if (!strcasecmp(inputline.substr(0, 13).c_str(), "usescancodes=")) {
-								void setScanCode(Section_prop * section), loadScanCode(), MAPPER_Init();
-								setScanCode(section);
-								loadScanCode();
-								GFX_LosingFocus();
-								MAPPER_Init();
-								load=true;
-							}
-#endif
-#endif
-                            if (!strcasecmp(inputline.substr(0, 8).c_str(), "display=")) {
-                                void SetDisplayNumber(int display);
-                                int GetNumScreen();
-                                int numscreen = GetNumScreen();
-                                const int display = section->Get_int("display");
-                                if (display >= 0 && display <= numscreen)
-                                    SetDisplayNumber(display);
-                            }
-                            if (!strcasecmp(inputline.substr(0, 15).c_str(), "windowposition=")) {
-                                const char* windowposition = section->Get_string("windowposition");
-                                int GetDisplayNumber(void);
-#if defined(C_SDL2) || defined (WIN32)
-                                int posx = -1, posy = -1;
-#endif
-                                if (windowposition && *windowposition) {
-                                    char result[100];
-                                    safe_strncpy(result, windowposition, sizeof(result));
-                                    char* y = strchr(result, ',');
-                                    if (y && *y) {
-                                        *y = 0;
-#if defined(C_SDL2) || defined (WIN32)
-                                        posx = atoi(result);
-                                        posy = atoi(y + 1);
-#endif
-                                    }
-                                }
-#if defined(C_SDL2)
-                                SDL_Window* GFX_GetSDLWindow(void);
-                                SDL_SetWindowTitle(GFX_GetSDLWindow(),"DOSBox-X");
-                                if (posx < 0 || posy < 0) {
-                                    SDL_DisplayMode dm;
-                                    int w = 640,h = 480;
-                                    SDL_GetWindowSize(GFX_GetSDLWindow(), &w, &h);
-                                    if (SDL_GetDesktopDisplayMode(GetDisplayNumber()?GetDisplayNumber()-1:0,&dm) == 0) {
-                                        posx = (dm.w - w)/2;
-                                        posy = (dm.h - h)/2;
-                                    }
-                                }
-                                if (GetDisplayNumber()>0) {
-                                    int displays = SDL_GetNumVideoDisplays();
-                                    SDL_Rect bound;
-                                    for( int i = 1; i <= displays; i++ ) {
-                                        bound = SDL_Rect();
-                                        SDL_GetDisplayBounds(i-1, &bound);
-                                        if (i == GetDisplayNumber()) {
-                                            posx += bound.x;
-                                            posy += bound.y;
-                                            break;
-                                        }
-                                    }
-                                }
-                                SDL_SetWindowPosition(GFX_GetSDLWindow(), posx, posy);
-#elif defined(WIN32)
-                                RECT rect;
-                                MONITORINFO info;
-                                GetWindowRect(GetHWND(), &rect);
-#if !defined(HX_DOS)
-                                if (GetDisplayNumber()>0) {
-                                    xyp xy={0};
-                                    xy.x=-1;
-                                    xy.y=-1;
-                                    curscreen=0;
-                                    BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam);
-                                    EnumDisplayMonitors(0, 0, EnumDispProc, reinterpret_cast<LPARAM>(&xy));
-                                    HMONITOR monitor = MonitorFromRect(&monrect, MONITOR_DEFAULTTONEAREST);
-                                    info.cbSize = sizeof(MONITORINFO);
-                                    GetMonitorInfo(monitor, &info);
-                                    if (posx >=0 && posy >=0) {
-                                        posx+=info.rcMonitor.left;
-                                        posy+=info.rcMonitor.top;
-                                    } else {
-                                        posx = info.rcMonitor.left+(info.rcMonitor.right-info.rcMonitor.left-(rect.right-rect.left))/2;
-                                        posy = info.rcMonitor.top+(info.rcMonitor.bottom-info.rcMonitor.top-(rect.bottom-rect.top))/2;
-                                    }
-                                } else
-#endif
-                                if (posx < 0 && posy < 0) {
-                                    posx = (GetSystemMetrics(SM_CXSCREEN)-(rect.right-rect.left))/2;
-                                    posy = (GetSystemMetrics(SM_CYSCREEN)-(rect.bottom-rect.top))/2;
-                                }
-                                MoveWindow(GetHWND(), posx, posy, rect.right-rect.left, rect.bottom-rect.top, true);
-#endif
-                            }
-
-#if defined(USE_TTF)
-							if (TTF_using()) resetFontSize();
-#endif
-						} else if (!strcasecmp(pvars[0].c_str(), "cpu")) {
-							bool turbo = section->Get_bool("turbo");
-                            if (turbo != ticksLocked) DOSBOX_UnlockSpeed2(true);
-						} else if (!strcasecmp(pvars[0].c_str(), "dos")) {
-							mountwarning = section->Get_bool("mountwarning");
-							if (!strcasecmp(inputline.substr(0, 4).c_str(), "lfn=")) {
-								std::string lfn = section->Get_string("lfn");
-								if (lfn=="true"||lfn=="1") enablelfn=1;
-								else if (lfn=="false"||lfn=="0") enablelfn=0;
-								else if (lfn=="autostart") enablelfn=-2;
-								else enablelfn=-1;
-								mainMenu.get_item("dos_lfn_auto").check(enablelfn==-1).refresh_item(mainMenu);
-								mainMenu.get_item("dos_lfn_enable").check(enablelfn==1).refresh_item(mainMenu);
-								mainMenu.get_item("dos_lfn_disable").check(enablelfn==0).refresh_item(mainMenu);
-								uselfn = enablelfn==1 || ((enablelfn == -1 || enablelfn == -2) && (dos.version.major>6 || winrun));
-							} else if (!strcasecmp(inputline.substr(0, 16).c_str(), "fat32setversion=")) {
-								std::string fat32setverstr = section->Get_string("fat32setversion");
-								if (fat32setverstr=="auto") fat32setver=1;
-								else if (fat32setverstr=="manual") fat32setver=0;
-								else fat32setver=-1;
-							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ver=")) {
-								const char *ver = section->Get_string("ver");
-								if (!*ver) {
-									dos.version.minor=0;
-									dos.version.major=5;
-									dos_ver_menu(false);
-								} else if (set_ver((char *)ver))
-									dos_ver_menu(false);
-							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "ems=")) {
-								EMS_DoShutDown();
-								EMS_Startup(NULL);
-								update_dos_ems_menu();
-							} else if (!strcasecmp(inputline.substr(0, 32).c_str(), "shell configuration as commands=")) {
-								enable_config_as_shell_commands = section->Get_bool("shell configuration as commands");
-								mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
-                            } else if (!strcasecmp(inputline.substr(0, 18).c_str(), "dos clipboard api=")) {
-                                clipboard_dosapi = section->Get_bool("dos clipboard api");
-                                mainMenu.get_item("clipboard_dosapi").check(clipboard_dosapi).refresh_item(mainMenu);
-#if defined(WIN32) && !defined(HX_DOS)
-                            } else if (!strcasecmp(inputline.substr(0, 13).c_str(), "automountall=")) {
-                                const char *automountstr = section->Get_string("automountall");
-                                if (strcmp(automountstr, "0") && strcmp(automountstr, "false")) MountAllDrives(this, !strcmp(automountstr, "quiet"));
-							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "startcmd=")) {
-								winautorun = section->Get_bool("startcmd");
-								mainMenu.get_item("dos_win_autorun").check(winautorun).enable(true).refresh_item(mainMenu);
-#endif
-#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
-							} else if (!strcasecmp(inputline.substr(0, 15).c_str(), "starttranspath=")) {
-								starttranspath = section->Get_bool("starttranspath");
-								mainMenu.get_item("dos_win_transpath").check(starttranspath).enable(
-#if defined(WIN32) && !defined(HX_DOS)
-                                true
-#else
-                                startcmd
-#endif
-                                ).refresh_item(mainMenu);
-							} else if (!strcasecmp(inputline.substr(0, 10).c_str(), "startwait=")) {
-								startwait = section->Get_bool("startwait");
-                                mainMenu.get_item("dos_win_wait").check(startwait).enable(
-#if defined(WIN32) && !defined(HX_DOS)
-                                true
-#else
-                                startcmd
-#endif
-                                ).refresh_item(mainMenu);
-							} else if (!strcasecmp(inputline.substr(0, 11).c_str(), "startquiet=")) {
-								startquiet = section->Get_bool("startquiet");
-								mainMenu.get_item("dos_win_quiet").check(startquiet).enable(
-#if defined(WIN32) && !defined(HX_DOS)
-                                true
-#else
-                                startcmd
-#endif
-                                ).refresh_item(mainMenu);
-#endif
-                            }
-						} else if (!strcasecmp(pvars[0].c_str(), "ttf")) {
-                            void ttf_reset(void), ttf_setlines(int cols, int lins), SetBlinkRate(Section_prop* section);
-							if (!strcasecmp(inputline.substr(0, 5).c_str(), "font=")) {
-#if defined(USE_TTF)
-                                ttf_reset();
-#if C_PRINTER
-                                if (TTF_using() && printfont) UpdateDefaultPrinterFont();
-#endif
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 7).c_str(), "ptsize=")||!strcasecmp(inputline.substr(0, 8).c_str(), "winperc=")) {
-#if defined(USE_TTF)
-                                ttf_reset();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 5).c_str(), "lins=")||!strcasecmp(inputline.substr(0, 5).c_str(), "cols=")) {
-#if defined(USE_TTF)
-                                bool iscol=!strcasecmp(inputline.substr(0, 5).c_str(), "cols=");
-                                if (iscol&&IS_PC98_ARCH)
-                                    SetVal("render", "cols", "80");
-                                else if (!CurMode)
-                                    ;
-                                else if (CurMode->type==M_TEXT || IS_PC98_ARCH)
-                                    WriteOut("\033[2J");
-                                else {
-                                    reg_ax=CurMode->mode;
-                                    CALLBACK_RunRealInt(0x10);
-                                }
-                                lastset=iscol?2:1;
-                                ttf_setlines(0, 0);
-                                lastset=0;
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 13).c_str(), "outputswitch=")) {
-#if defined(USE_TTF)
-                                SetOutputSwitch(section->Get_string("outputswitch"));
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 7).c_str(), "colors=")) {
-#if defined(USE_TTF)
-                                if (!strlen(section->Get_string("colors"))) ttf_reset_colors();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 3).c_str(), "wp=")) {
-#if defined(USE_TTF)
-                                const char *wpstr=section->Get_string("wp");
-                                wpType=wpVersion=0;
-                                if (strlen(wpstr)>1) {
-                                    if (!strncasecmp(wpstr, "WP", 2)) wpType=1;
-                                    else if (!strncasecmp(wpstr, "WS", 2)) wpType=2;
-                                    else if (!strncasecmp(wpstr, "XY", 3)) wpType=3;
-                                    if (strlen(wpstr)>2&&wpstr[2]>='1'&&wpstr[2]<='9') wpVersion=wpstr[2]-'0';
-                                }
-                                mainMenu.get_item("ttf_wpno").check(!wpType).refresh_item(mainMenu);
-                                mainMenu.get_item("ttf_wpwp").check(wpType==1).refresh_item(mainMenu);
-                                mainMenu.get_item("ttf_wpws").check(wpType==2).refresh_item(mainMenu);
-                                mainMenu.get_item("ttf_wpxy").check(wpType==3).refresh_item(mainMenu);
-                                mainMenu.get_item("ttf_wpfe").check(wpType==4).refresh_item(mainMenu);
-                                if (TTF_using()) resetFontSize();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 5).c_str(), "wpbg=")) {
-#if defined(USE_TTF)
-                                wpBG = section->Get_int("wpbg");
-                                if (TTF_using()) resetFontSize();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 5).c_str(), "wpfg=")) {
-#if defined(USE_TTF)
-                                wpFG = section->Get_int("wpfg");
-                                if (wpFG<0) wpFG = 7;
-                                if (TTF_using()) resetFontSize();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 5).c_str(), "bold=")) {
-#if defined(USE_TTF)
-                                showbold = section->Get_bool("bold");
-                                mainMenu.get_item("ttf_showbold").check(showbold).refresh_item(mainMenu);
-                                if (TTF_using()) resetFontSize();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 7).c_str(), "italic=")) {
-#if defined(USE_TTF)
-                                showital = section->Get_bool("italic");
-                                mainMenu.get_item("ttf_showital").check(showital).refresh_item(mainMenu);
-                                if (TTF_using()) resetFontSize();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 10).c_str(), "underline=")) {
-#if defined(USE_TTF)
-                                showline = section->Get_bool("underline");
-                                mainMenu.get_item("ttf_showline").check(showline).refresh_item(mainMenu);
-                                if (TTF_using()) resetFontSize();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 10).c_str(), "strikeout=")) {
-#if defined(USE_TTF)
-                                showsout = section->Get_bool("strikeout");
-                                mainMenu.get_item("ttf_showsout").check(showsout).refresh_item(mainMenu);
-                                if (TTF_using()) resetFontSize();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 8).c_str(), "char512=")) {
-#if defined(USE_TTF)
-                                char512 = section->Get_bool("char512");
-                                if (TTF_using()) resetFontSize();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 12).c_str(), "righttoleft=")) {
-#if defined(USE_TTF)
-                                rtl = section->Get_bool("righttoleft");
-                                mainMenu.get_item("ttf_right_left").check(rtl).refresh_item(mainMenu);
-                                if (TTF_using()) resetFontSize();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 10).c_str(), "printfont=")) {
-#if defined(USE_TTF) && C_PRINTER
-                                printfont = section->Get_bool("printfont");
-                                mainMenu.get_item("ttf_printfont").check(printfont).refresh_item(mainMenu);
-                                UpdateDefaultPrinterFont();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "autodbcs=")) {
-#if defined(USE_TTF)
-                                dbcs_sbcs = section->Get_bool("autodbcs");
-                                mainMenu.get_item("ttf_dbcs_sbcs").check(dbcs_sbcs).refresh_item(mainMenu);
-                                if (TTF_using()) resetFontSize();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 12).c_str(), "autoboxdraw=")) {
-#if defined(USE_TTF)
-                                autoboxdraw = section->Get_bool("autoboxdraw");
-                                mainMenu.get_item("ttf_autoboxdraw").check(autoboxdraw).refresh_item(mainMenu);
-                                if (TTF_using()) resetFontSize();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 14).c_str(), "halfwidthkana=")) {
-#if defined(USE_TTF)
-                                halfwidthkana = section->Get_bool("halfwidthkana");
-                                mainMenu.get_item("ttf_halfwidthkana").check(halfwidthkana||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
-                                if (TTF_using()) {setTTFCodePage();resetFontSize();}
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 7).c_str(), "blinkc=")) {
-#if defined(USE_TTF)
-                                SetBlinkRate(section);
-                                mainMenu.get_item("ttf_blinkc").check(blinkCursor>-1).refresh_item(mainMenu);
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "gbk=")) {
-                                if (gbk != section->Get_bool("gbk")) {
-                                    gbk = !gbk;
-                                    if (enable_dbcs_tables&&dos.tables.dbcs&&(IS_PDOSV||dos.loaded_codepage==936)) mem_writeb(Real2Phys(dos.tables.dbcs)+2,gbk?0x81:0xA1);
-                                    if (dos.loaded_codepage!=950&&dos.loaded_codepage!=951) mainMenu.get_item("ttf_extcharset").check(dos.loaded_codepage==936?gbk:(gbk&&chinasea)).refresh_item(mainMenu);
-#if defined(USE_TTF)
-                                    if (TTF_using() && dos.loaded_codepage==936) resetFontSize();
-#endif
-                                }
-							} else if (!strcasecmp(inputline.substr(0, 9).c_str(), "chinasea=")) {
-                                if (chinasea != section->Get_bool("chinasea")) {
-                                    chinasea = !chinasea;
-                                    if (!chinasea) makestdcp950table();
-                                    else makeseacp951table();
-                                    if (dos.loaded_codepage!=936) mainMenu.get_item("ttf_extcharset").check(dos.loaded_codepage==950||dos.loaded_codepage==951?chinasea:(gbk&&chinasea)).refresh_item(mainMenu);
-#if defined(USE_TTF)
-                                    if (TTF_using() && (dos.loaded_codepage==950 || dos.loaded_codepage==951)) {
-                                        MSG_Init();
-                                        resetFontSize();
-                                    }
-#endif
-                                }
-							} else if (!strcasecmp(inputline.substr(0, 4).c_str(), "uao=")) {
-                                if (uao != section->Get_bool("uao")) {
-                                    uao = !uao;
-#if defined(USE_TTF)
-                                    if (TTF_using() && dos.loaded_codepage==951) {
-                                        MSG_Init();
-                                        resetFontSize();
-                                    }
-#endif
-                                }
-							}
-						} else if (!strcasecmp(pvars[0].c_str(), "dosv")) {
-                            if (!strcasecmp(inputline.substr(0, 11).c_str(), "fepcontrol=")||!strcasecmp(inputline.substr(0, 7).c_str(), "vtext1=")||!strcasecmp(inputline.substr(0, 7).c_str(), "vtext2="))
-                                DOSV_SetConfig(section);
-                        } else if (!strcasecmp(pvars[0].c_str(), "render")) {
-                            if (!strcasecmp(inputline.substr(0, 9).c_str(), "glshader=")) {
-#if C_OPENGL
-                                std::string LoadGLShader(Section_prop * section);
-                                LoadGLShader(section);
-                                GFX_ForceRedrawScreen();
-#endif
-							} else if (!strcasecmp(inputline.substr(0, 12).c_str(), "pixelshader="))
-                                GFX_ForceRedrawScreen();
-						} else if (!strcasecmp(pvars[0].c_str(), "serial")) {
-                            if (!strcasecmp(inputline.substr(0, 6).c_str(), "serial") && inputline[7]=='=') {
-                                std::string val = section->Get_string("serial" + std::string(1, inputline[6])), cmd = std::string(1, inputline[6]) + " " + (val.size()?val:"dummy");
-                                runSerial(cmd.c_str());
-                            }
-						} else if (!strcasecmp(pvars[0].c_str(), "parallel")) {
-                            if (!strcasecmp(inputline.substr(0, 8).c_str(), "parallel") && inputline[9]=='=') {
-                                std::string val = section->Get_string("parallel" + std::string(1, inputline[8])), cmd = std::string(1, inputline[8]) + " " + (val.size()?val:"disabled");
-                                runParallel(cmd.c_str());
-                            }
-#if C_PRINTER
-						} else if (!strcasecmp(pvars[0].c_str(), "printer")) {
-                            PRINTER_Shutdown(NULL);
-                            PRINTER_Init();
-#endif
-                        }
-					}
-				}
+				if (applynew) RebootLanguage("");
+				else ApplySetting(pvars[0], inputline, false);
 			} else WriteOut(MSG_Get("PROGRAM_CONFIG_VALUE_ERROR"),
 				value.c_str(),pvars[1].c_str());
 			return;
