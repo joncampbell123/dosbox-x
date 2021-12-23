@@ -2643,6 +2643,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Enables Turbo (Fast Forward) mode to speed up operations.");
     Pbool->SetBasic(true);
 
+    Pbool = secprop->Add_bool("stop turbo on key",Property::Changeable::Always,true);
+    Pbool->Set_help("If set, the Turbo mode will be automatically stopped if a keyboard input is detected.");
+
     Pstring = secprop->Add_string("use dynamic core with paging on",Property::Changeable::Always,"auto");
     Pstring->Set_values(truefalseautoopt);
     Pstring->Set_help("Allow dynamic cores (dynamic_x86 and dynamic_rec) to be used with 386 paging enabled.\n"

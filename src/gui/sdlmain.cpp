@@ -309,6 +309,7 @@ unsigned int sendkeymap=0;
 std::string configfile = "";
 std::string strPasteBuffer = "";
 ScreenSizeInfo screen_size_info;
+void DOSBOX_UnlockSpeed2(bool pressed);
 void RebootLanguage(std::string filename, bool confirm=false);
 bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
@@ -8210,6 +8211,7 @@ void GFX_Events() {
 #endif
         default:
             gfx_in_mapper = true;
+            if (ticksLocked && static_cast<Section_prop *>(control->GetSection("cpu"))->Get_bool("stop turbo on key")) DOSBOX_UnlockSpeed2(true);
             MAPPER_CheckEvent(&event);
             gfx_in_mapper = false;
         }
@@ -8578,6 +8580,7 @@ void GFX_Events() {
                 }
             }
 #endif
+            if (ticksLocked && static_cast<Section_prop *>(control->GetSection("cpu"))->Get_bool("stop turbo on key")) DOSBOX_UnlockSpeed2(true);
             MAPPER_CheckEvent(&event);
         }
     }
