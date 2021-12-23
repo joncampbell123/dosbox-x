@@ -102,9 +102,10 @@
     "assoc .*=dir", although in such case exceptions
     including "assoc .com=com", "assoc .exe=exe", and
     "assoc .bat=bat" are probably desired. (Wengier)
-  - COUNTRY command is now an external command that
-    appears on Z drive (Z:/SYSTEM/COUNTRY.COM) rather
-    than an internal shell command. (Wengier)
+  - Commands CHOICE and COUNTRY are external commands
+    that appear on the Z drive (Z:/DOS/CHOICE.COM and
+    Z:/SYSTEM/COUNTRY.COM respectively) now rather than
+    internal shell commands. (Wengier)
   - You can now change most config options in [printer]
     section of the configuration for the virtual printer
     with CONFIG -set commands. (Wengier)

@@ -69,7 +69,7 @@ extern bool enable_config_as_shell_commands;
 #if defined(USE_TTF)
 extern bool ttf_dosv;
 #endif
-extern int lfn_filefind_handle, autofixwarn;
+extern int lfn_filefind_handle, autofixwarn, result_errorcode;
 extern uint16_t customcp_to_unicode[256];
 int customcp = 0, altcp = 0;
 unsigned long totalc, freec;
@@ -2082,6 +2082,7 @@ static Bitu DOS_21Handler(void) {
             }
         case 0x4b:                  /* EXEC Load and/or execute program */
             {
+                result_errorcode = 0;
                 MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
 
                 /* A20 hack for EXEPACK'd executables */
@@ -2120,6 +2121,10 @@ static Bitu DOS_21Handler(void) {
             //TODO Check for use of execution state AL=5
         case 0x4c:                  /* EXIT Terminate with return code */
             DOS_Terminate(dos.psp(),false,reg_al);
+            if (result_errorcode) {
+                dos.return_code = result_errorcode;
+                result_errorcode = 0;
+            }
             if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
 #if defined (WIN32) && !defined(HX_DOS)
             if (winautorun&&reqwin&&*appname&&!control->SecureMode())

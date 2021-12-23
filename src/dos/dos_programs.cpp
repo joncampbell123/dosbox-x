@@ -90,6 +90,7 @@ typedef std::basic_string<test_char_t> test_string;
 typedef std::basic_string<char> test_char;
 #endif
 int freesizecap = 1;
+int result_errorcode = 0;
 bool Mouse_Drv=true;
 bool Mouse_Vertical = false;
 bool force_nocachedir = false;
@@ -6853,6 +6854,27 @@ static void LS_ProgramStart(Program * * make) {
     *make=new LS;
 }
 
+class CHOICE : public Program {
+public:
+    void Run(void);
+};
+
+void CHOICE::Run()
+{
+	std::string tmp = "";
+	cmd->GetStringRemain(tmp);
+	char args[CMD_MAXLINE];
+	strcpy(args, tmp.c_str());
+	DOS_Shell temp;
+	temp.CMD_CHOICE(args);
+	result_errorcode = dos.return_code;
+}
+
+void CHOICE_ProgramStart(Program **make)
+{
+	*make = new CHOICE;
+}
+
 class COUNTRY : public Program {
 public:
     void Run(void);
@@ -8647,6 +8669,7 @@ void DOS_SetupPrograms(void) {
     PROGRAMS_MakeFile("LABEL.COM", LABEL_ProgramStart,"/DOS/");
     PROGRAMS_MakeFile("TREE.COM", TREE_ProgramStart,"/DOS/");
     PROGRAMS_MakeFile("DELTREE.EXE",DELTREE_ProgramStart,"/DOS/");
+    PROGRAMS_MakeFile("CHOICE.COM", CHOICE_ProgramStart,"/DOS/");
     PROGRAMS_MakeFile("AUTOTYPE.COM", AUTOTYPE_ProgramStart,"/BIN/");
 #ifdef C_ICONV
     PROGRAMS_MakeFile("UTF8.COM", UTF8_ProgramStart,"/BIN/");
