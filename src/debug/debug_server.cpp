@@ -56,26 +56,6 @@ static void DEBUG_SetRunmode(int mode) {
     }
 }
 
-/**
- * Sends a repsonse with the current debugger state
- */
-static int RespondState() {
-    if (IsDebuggerActive()) {
-        // debugger active means program is stopped
-        return DEBUG_ServerWriteResponse("s:stopped");
-    }
-    else if (IsDebuggerRunwatch()) {
-        return DEBUG_ServerWriteResponse("s:watching");
-    }
-    else if (IsDebuggerRunNormal()) {
-        // normal means the program is running
-        return DEBUG_ServerWriteResponse("s:running");
-    }
-    else {
-        return DEBUG_ServerWriteResponse("s:inactive");
-    }
-}
-
 static char* FormatBreakpoint(int nr, Breakpoint* bp) {
     char formatted[128];
     int offset = bp->offset;
@@ -114,6 +94,25 @@ static char* FormatBreakpoint(int nr, Breakpoint* bp) {
 }
 
 #define MI2_CMD_INTERPRETER_EXEC "-interpreter-exec console "
+#define MI2_FRAME_INFO "frame={level=\"0\",addr=\"0xdeadbeef\",func=\"dosbox\",file=\"C:\\foo.exe\"}"
+#define MI2_THREAD_INFO "{id=\"1\",target-id=\"i1\",name=\"Emulator\"," MI2_FRAME_INFO "}"
+
+static void DEBUG_WriteRegister(int number, char* value) {
+    char formatted[128];
+    snprintf(formatted, sizeof(formatted) - 2, "{number=\"%i\",value=\"%s\"}", number, value);
+    DEBUG_ServerWriteResponse(formatted);
+}
+static void DEBUG_WriteRegister32(int number, uint32_t value) {
+    char formatted[128];
+    snprintf(formatted, sizeof(formatted) - 2, "0x%08x", value);
+    DEBUG_WriteRegister(number, formatted);
+}
+static void DEBUG_WriteRegister16(int number, uint16_t value) {
+    char formatted[128];
+    snprintf(formatted, sizeof(formatted) - 2, "0x%04x", value);
+    DEBUG_WriteRegister(number, formatted);
+}
+
 /**
  * Handles a single request from the remote debugger and sends a response
  *
@@ -135,11 +134,14 @@ int DEBUG_ServerHandleRequest(char* request) {
         else if (strcmp(cmd, "show endian") == 0) {
             DEBUG_ServerWriteResponse("~\"little endian\"\n(gdb)\r\n");
         }
+        else if (strcmp(cmd, "info proc mappings") == 0) {
+            DEBUG_ServerWriteResponse("~\"0x0 0x1000000 0x1000000 0x0 mem\"\n");
+        }
         else if (strcmp(cmd, "show os") == 0) {
-            DEBUG_ServerWriteResponse("~\"The current OS ABI is \\\"PC98\\\"\"\n(gdb)\r\n");
+            DEBUG_ServerWriteResponse("~\"The current OS ABI is \\\"Linux\\\"\"\r\n");
         }
         else if (strcmp(cmd, "show architecture") == 0) {
-            DEBUG_ServerWriteResponse("~\"(currently i386)\"\n(gdb)\r\n");
+            DEBUG_ServerWriteResponse("~\"(currently i386)\"\r\n");
         }
         else if (strcmp(cmd, "maintenance info sections ALLOBJ nosections") == 0) {
             // ignore
@@ -155,9 +157,9 @@ int DEBUG_ServerHandleRequest(char* request) {
             }
             else
                 // Cannot run commands in debugger when the program is not stopped
-                return DEBUG_ServerWriteResponse("^error,msg=\"dosbox-not-stopped\",code=\"1\"\r\n(gdb)\r\n");
+                return DEBUG_ServerWriteResponse("^error,msg=\"dosbox-not-stopped\",code=\"1\"\r\n");
         }
-        return DEBUG_ServerWriteResponse("^done\r\n(gdb)\r\n");
+        return DEBUG_ServerWriteResponse("^done\r\n");
     }
     else if (strcmp(request, "-environment-pwd") == 0) {
         return DEBUG_ServerWriteResponse("^done,cwd=\"/foo/bar\"");
@@ -166,17 +168,42 @@ int DEBUG_ServerHandleRequest(char* request) {
         if (IsDebuggerActive()) {
             DEBUG_SetRunmode(DEBUG_RUNMODE_NORMAL);
         }
-        return DEBUG_ServerWriteResponse("*running,thread-id=\"1\"\r\n");
+        DEBUG_ServerWriteResponse("*running,thread-id=\"1\"\r\n");
+        return DEBUG_ServerWriteResponse("^running\r\n");
+    }
+    else if (strstr(request, "-data-read-memory-bytes")) {
+        uint32_t offset, length;
+        char buf[256];
+        sscanf(request, "-data-read-memory-bytes 0x%x %i", &offset, &length);
+        if (length > 4096) {
+            sprintf(buf, "wtf %i", length);
+            DEBUG_ServerWriteResponse(buf);
+            return 1;
+        }
+        snprintf(buf, sizeof(buf) - 2, "^done,memory=[{begin=\"0x%x\",offset=\"0x%x\",end=\"0x%x\",contents=\"", offset, 0, offset+length);
+        DEBUG_ServerWriteResponse(buf);
+        for (int i = 0; i < length; i++) {
+            uint8_t byte = mem_readb(offset + i);
+            sprintf(buf, "%02x", byte);
+            DEBUG_ServerWriteResponse(buf);
+        }
+        DEBUG_ServerWriteResponse("\"}]\r\n");
+
     }
     else if (strstr(request, "-exec-interrupt")) {
         if (!IsDebuggerActive()) {
             DEBUG_SetRunmode(DEBUG_RUNMODE_DEBUG);
         }
-        return DEBUG_ServerWriteResponse("*stopped,reason=\"exec\",thread-id=\"1\"\r\n(gdb)\r\n");
-
+        DEBUG_ServerWriteResponse("*stopped,reason=\"exec\",thread-id=\"1\"\r\n");
+        return DEBUG_ServerWriteResponse("^done\r\n");
     }
     else if (strcmp(request, "-environment-path") == 0) {
         return DEBUG_ServerWriteResponse("^done,path=\"/foo/bar\"");
+    }
+    else if (strstr(request, "-target-attach")) {
+        DEBUG_ServerWriteResponse("=thread-created,id=\"1\",group-id=\"i1\"\r\n");
+        DEBUG_ServerWriteResponse("*stopped,reason=\"exec\",thread-id=\"1\"\r\n");
+        return DEBUG_ServerWriteResponse("^done\r\n");
     }
     else if (strcmp(request, "-break-list") == 0) {
         return DEBUG_ServerWriteResponse(
@@ -191,83 +218,89 @@ int DEBUG_ServerHandleRequest(char* request) {
         return DEBUG_ServerWriteResponse("^done,new-thread-id=\"1\"\r\n");
     }
     else if (strncmp(request, "-thread-info", strlen("-thread-info")) == 0) {
-        return DEBUG_ServerWriteResponse("^done,threads=[{id=\"1\",target-id=\"1\",name=\"Emulator\"}],current-thread-id=\"1\"\r\n");
+        return DEBUG_ServerWriteResponse("^done,threads=[" MI2_THREAD_INFO "],current-thread-id=\"1\"\r\n");
     }
     else if (strcmp(request, "-add-inferior") == 0) {
         return DEBUG_ServerWriteResponse("^done,inferior=\"i1\"\n(gdb)\r\n");
     }
+    else if (strncmp(request, "-stack-list-frames", strlen("-stack-list-frames")) == 0) {
+        return DEBUG_ServerWriteResponse("^done,stack=[" MI2_FRAME_INFO "]\n(gdb)\r\n");
+    }
+    else if (strncmp(request, "-data-list-register-names", strlen("-data-list-register-names")) == 0) {
+        return DEBUG_ServerWriteResponse("^done,register-names=[\"eax\",\"ebx\",\"ecx\",\"edx\",\"esi\",\"edi\",\"ebp\",\"esp\",\"eip\",\"cs\",\"ds\",\"es\",\"fs\",\"gs\",\"eflags\",\"cr0\",\"st0\",\"st1\",\"st2\",\"st3\",\"st4\",\"st5\",\"st6\",\"st7\"]\r\n");
+    }
+    else if (strncmp(request, "-data-evaluate-expression --thread 1 \"{sizeof($eax)", strlen("-data-evaluate-expression --thread 1 \"{sizeof($eax)")) == 0) {
+        return DEBUG_ServerWriteResponse("^done,value=\"{4,4,4,4,4,4,4,4,4,2,2,2,2,2,4,4,4,4,4,4,4,4,4,4}\"\r\n");
+    }
+    else if (strncmp(request, "-data-list-register-values", strlen("-data-list-register-values")) == 0) {
+        char x87buf[8][12] = {};
+        DEBUG_ServerWriteResponse("^done,register-values=[");
+        DEBUG_WriteRegister32(0, reg_eax);
+        DEBUG_ServerWriteResponse(",");
+        DEBUG_WriteRegister32(1, reg_ebx);
+        DEBUG_ServerWriteResponse(",");
+        DEBUG_WriteRegister32(2, reg_ecx);
+        DEBUG_ServerWriteResponse(",");
+        DEBUG_WriteRegister32(3, reg_edx);
+        DEBUG_ServerWriteResponse(",");
+        DEBUG_WriteRegister32(4, reg_esi);
+        DEBUG_ServerWriteResponse(",");
+        DEBUG_WriteRegister32(5, reg_edi);
+        DEBUG_ServerWriteResponse(",");
+        DEBUG_WriteRegister32(6, reg_ebp);
+        DEBUG_ServerWriteResponse(",");
+        DEBUG_WriteRegister32(7, reg_esp);
+        DEBUG_ServerWriteResponse(",");
+        DEBUG_WriteRegister32(8, reg_eip);
+        DEBUG_ServerWriteResponse(",");
+        DEBUG_WriteRegister16(9, SegValue(cs));
+        DEBUG_ServerWriteResponse(",");
+        DEBUG_WriteRegister16(10, SegValue(ds));
+        DEBUG_ServerWriteResponse(",");
+        DEBUG_WriteRegister16(11, SegValue(es));
+        DEBUG_ServerWriteResponse(",");
+        DEBUG_WriteRegister16(12, SegValue(fs));
+        DEBUG_ServerWriteResponse(",");
+        DEBUG_WriteRegister16(13, SegValue(gs));
+        DEBUG_ServerWriteResponse(",");
+        DEBUG_WriteRegister32(14, reg_flags);
+        DEBUG_ServerWriteResponse(",");
+        DEBUG_WriteRegister32(15, cpu.cr0);
+        DEBUG_ServerWriteResponse(",");
+        DEBUG_WriteRegister(16, F80ToString(STV(0), x87buf[0]));
+        DEBUG_ServerWriteResponse(",");
+        DEBUG_WriteRegister(17, F80ToString(STV(1), x87buf[1]));
+        DEBUG_ServerWriteResponse(",");
+        DEBUG_WriteRegister(18, F80ToString(STV(2), x87buf[2]));
+        DEBUG_ServerWriteResponse(",");
+        DEBUG_WriteRegister(19, F80ToString(STV(3), x87buf[3]));
+        DEBUG_ServerWriteResponse(",");
+        DEBUG_WriteRegister(20, F80ToString(STV(4), x87buf[4]));
+        DEBUG_ServerWriteResponse(",");
+        DEBUG_WriteRegister(21, F80ToString(STV(5), x87buf[5]));
+        DEBUG_ServerWriteResponse(",");
+        DEBUG_WriteRegister(22, F80ToString(STV(6), x87buf[6]));
+        DEBUG_ServerWriteResponse(",");
+        DEBUG_WriteRegister(23, F80ToString(STV(7), x87buf[7]));
+        return DEBUG_ServerWriteResponse("]\r\n");
+    }
     else if (strcmp(request, "-list-thread-groups") == 0) {
-        return DEBUG_ServerWriteResponse("^done,groups=[{id=\"i1\",type=\"process\",pid=\"1\",num_children=\"1\",executable=\"DOSBox-X " VERSION "\",description=\"DOSBox-X " VERSION "\",threads=[{id=\"1\",target-id=\"Emulation\",state=\"running\"}]}]\r\n(gdb)\r\n");
+        return DEBUG_ServerWriteResponse("^done,groups=[{id=\"i1\",type=\"process\",pid=\"1\",num_children=\"1\",executable=\"DOSBox-X " VERSION "\",description=\"DOSBox-X " VERSION "\",threads=[" MI2_THREAD_INFO "]}]\r\n");
     }
     else if (strcmp(request, "-list-thread-groups --available") == 0) {
-        return DEBUG_ServerWriteResponse("^done,groups=[{id=\"1\",type=\"process\",pid=\"1\",num_children=\"1\",executable=\"DOSBox-X " VERSION "\",description=\"DOSBox-X " VERSION "\"}]\r\n(gdb)\r\n");
+        return DEBUG_ServerWriteResponse("^done,groups=[{id=\"1\",type=\"process\",pid=\"1\",executable=\"DOSBox-X " VERSION "\",description=\"DOSBox-X " VERSION "\"}]\r\n");
     }
     else if (strcmp(request, "-list-thread-groups i1") == 0) {
-        return DEBUG_ServerWriteResponse("^done,threads=[{id=\"1\",target-id=\"Emulation\",state=\"running\"}]\n(gdb)\r\n");
+        return DEBUG_ServerWriteResponse("^done,threads=[" MI2_THREAD_INFO "]\r\n");
     }
     else if (strcmp(request, "-exec-arguments") == 0) {
         // Enable the debugger
         DEBUG_EnableDebugger();
-        return RespondState();
-    }
-    else if (strcmp(request, "bp") == 0) {
-        // List breakpoints
-        int nr = 0;
-        std::list<Breakpoint*>::iterator i;
-        char breakpoints[1024];
-        strcpy(breakpoints, "bp:");
-        for (i = Breakpoint::allBreakpoints.begin(); i != Breakpoint::allBreakpoints.end(); ++i) {
-            Breakpoint* bp = *i;
-            char* breakpoint = FormatBreakpoint(nr, bp);
-            if (nr > 0) {
-                safe_strcat(breakpoints, ";");
-            }
-            safe_strcat(breakpoints, breakpoint);
-            nr++;
-        }
-        return DEBUG_ServerWriteResponse(breakpoints);
-    }
-    else if (strcmp(request, "r") == 0) {
-        // Return registers and status
-        char regs[512];
-        char x87buf[8][12] = {};
-        snprintf(regs, sizeof(regs) - 1, 
-            "r:eax=%08x;ebx=%08x;ecx=%08x;edx=%08x;esi=%08x;edi=%08x;"  
-            "eip=%08x;ebp=%08x;esp=%08x;eflags=%08x;" 
-            "cs=%04x;ds=%04x;es=%04x;fs=%04x;gs=%04x;" 
-            "st0=%s;st1=%s;st2=%s;st3=%s;st4=%s;st5=%s;st6=%s;st7=%s;" 
-            "mode=%02x;big=%02x;cpl=%02x;paging=%02x;cr0=%08x;" 
-            "cycles=%08x", 
-            reg_eax, reg_ebx, reg_ecx, reg_edx, reg_esi, reg_edi,
-            reg_eip, reg_ebp, reg_esp, reg_flags,
-            SegValue(cs), SegValue(ds), SegValue(es), SegValue(fs), SegValue(gs),
-            F80ToString(STV(0), x87buf[0]),
-            F80ToString(STV(1), x87buf[1]),
-            F80ToString(STV(2), x87buf[2]),
-            F80ToString(STV(3), x87buf[3]),
-            F80ToString(STV(4), x87buf[4]),
-            F80ToString(STV(5), x87buf[5]),
-            F80ToString(STV(6), x87buf[6]),
-            F80ToString(STV(7), x87buf[7]),
-            cpu.pmode, cpu.code.big, cpu.cpl, paging.enabled, cpu.cr0,
-            cycle_count
-        );
-        return DEBUG_ServerWriteResponse(regs);
-    }
-    else if (strncmp(request, "cmd:", 4) == 0 && strlen(request) > 4) {
-        // Run an abitrary command in the debugger
-        if (IsDebuggerActive()) {
-            ParseCommand(request + 4);
-            return RespondState();
-        }
-        else {
-            // Cannot run commands in debugger when the program is not stopped
-            return DEBUG_ServerWriteResponse("e:not-stopped");
-        }
+        return DEBUG_ServerWriteResponse("^done\r\n(gdb)\r\n");
     }
     else {
         // Request is unknown
-        return DEBUG_ServerWriteResponse("^error,msg=\"Unknown request\",code=\"0\"\r\n(gdb)\r\n");
+        return DEBUG_ServerWriteResponse("^error,msg=\"Unknown request\",code=\"0\"\r\n");
     }
 }
 

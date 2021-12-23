@@ -162,7 +162,7 @@ void* DEBUG_ServerAcceptConnection(char* addr, char* port) {
     DEBUG_ServerWriteResponse("^connected\r\n");
     DEBUG_ServerWriteResponse("(gdb)\r\n");
     DEBUG_ServerWriteResponse("=thread-group-added,id=\"i1\"\r\n");
-    //DEBUG_ServerWriteResponse("=thread-group-started,id=\"i1\",pid=\"1\"\n(gdb)\r\n");
+    //DEBUG_ServerWriteResponse("=thread-group-started,id=\"i1\",pid=\"1\"\r\n");
     //DEBUG_ServerWriteResponse("=thread-created,id=\"1\",group-id=\"i1\"\r\n");
     if (IsDebuggerActive()) {
         //DEBUG_ServerWriteResponse("*stopped,reason=\"exec\"\r\n");
