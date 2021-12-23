@@ -4107,8 +4107,8 @@ void DOS_Shell::CMD_HISTORY(char* args) {
     HELP("HISTORY");
     if (ScanCMDBool(args,"C"))
         l_history.clear();
-    for (auto it = l_history.begin(); it != l_history.end(); ++it) {
-        WriteOut_NoParsing(it->c_str());
+    for (auto it = l_history.rbegin(); it != l_history.rend(); ++it) {
+        WriteOut_NoParsing(it->c_str(), true);
         WriteOut("\n");
     }
 }
