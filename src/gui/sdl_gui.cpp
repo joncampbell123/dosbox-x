@@ -98,7 +98,6 @@ static bool                 running;
 static int                  saved_bpp;
 static bool                 shell_idle;
 static bool                 in_gui = false;
-static bool                 changed = false;
 static bool                 resetcfg = false;
 #if !defined(C_SDL2)
 static int                  old_unicode;
@@ -123,6 +122,7 @@ void                        WindowsTaskbarResetPreviewRegion(void);
 void                        macosx_reload_touchbar(void);
 #endif
 
+std::list<std::string> proplist = {};
 GUI::Checkbox *advopt, *saveall, *imgfd360, *imgfd400, *imgfd720, *imgfd1200, *imgfd1440, *imgfd2880, *imghd250, *imghd520, *imghd1gig, *imghd2gig, *imghd4gig, *imghd8gig;
 std::string GetDOSBoxXPath(bool withexe);
 static std::map< std::vector<GUI::Char>, GUI::ToplevelWindow* > cfg_windows_active;
@@ -589,6 +589,14 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
     in_gui = false;
     if (resetcfg) {
         resetcfg = false;
+        std::string sec, line;
+        while (proplist.size()>1) {
+            sec = proplist.front();
+            proplist.pop_front();
+            line = proplist.front();
+            proplist.pop_front();
+            ApplySetting(sec, line, true);
+        }
         GUI_Run(false);
     }
 }
@@ -663,9 +671,10 @@ public:
         std::string line;
         if (prepare(line)) {
             prop->SetValue(GUI::String(line));
-            if (strcmp(section->GetName(),"dosbox")||prop->propname!="language") {
-                changed=true;
-                ApplySetting(section->GetName(), prop->propname+"="+line, true);
+            if (!(!strcmp(section->GetName(),"dosbox")&&prop->propname=="language")) {
+                proplist.push_back(section->GetName());
+                proplist.push_back(prop->propname+"="+line);
+                //ApplySetting(section->GetName(), prop->propname+"="+line, true);
             }
         }
     }
@@ -706,6 +715,66 @@ public:
     }
 };
 
+class ShowOptions : public GUI::MessageBox2 {
+protected:
+    GUI::Input *name, *inp;
+    GUI::Checkbox *opt[200];
+    std::vector<Value> pv;
+    std::vector<GUI::Char> cfg_sname;
+public:
+    ShowOptions(GUI::Screen *parent, int x, int y, const char *title, const char *msg, Property *prop, GUI::Input *input) :
+        MessageBox2(parent, x, y, 300, title, msg) { // 740
+            inp = input;
+            pv = prop->GetValues();
+            Bitu k;
+            bool found = false;
+            for(k = 0; k < pv.size(); k++) if (pv[k].ToString().size()) {
+                opt[k] = new GUI::Checkbox(this, 10, k*20+85, pv[k].ToString().c_str());
+                if (GUI::String(pv[k].ToString())==inp->getText()) {
+                    found = true;
+                    opt[k]->setChecked(true);
+                } else
+                    opt[k]->setChecked(false);
+                opt[k]->addActionHandler(this);
+            }
+            if (!found)
+                for(k = 0; k < pv.size(); k++)
+                    if (pv[k].ToString().size() && pv[k].ToString()==prop->GetValue().ToString())
+                        opt[k]->setChecked(true);
+            (new GUI::Button(this, 60, k*20+95, MSG_Get("OK"), 85))->addActionHandler(this);
+            close->move(160,k*20+95);
+            resize(310, k*20+165);
+            move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        int j, k;
+        for(k = 0; k < pv.size(); k++) if (pv[k].ToString().size()) {
+            if (arg == pv[k].ToString() && opt[k]->isChecked())
+                for(j = 0; j < pv.size(); j++)
+                    if (j!=k) opt[j]->setChecked(false);
+        }
+        if (arg == MSG_Get("OK")) {
+            for(k = 0; k < pv.size(); k++) if (pv[k].ToString().size())
+                if (pv[k].ToString().size() && opt[k]->isChecked()) {
+                    inp->setText(pv[k].ToString());
+                    break;
+                }
+            ToplevelWindow::actionExecuted(b, GUI::String(MSG_Get("CLOSE")));
+        }
+        else if (arg == MSG_Get("CLOSE")) {
+            ToplevelWindow::actionExecuted(b, arg);
+        }
+    }
+
+    ~ShowOptions() {
+        if (!cfg_sname.empty()) {
+            auto i = cfg_windows_active.find(cfg_sname);
+            if (i != cfg_windows_active.end()) cfg_windows_active.erase(i);
+        }
+    }
+};
+
 class PropertyEditorString : public PropertyEditor {
 protected:
     GUI::Input *input;
@@ -719,9 +788,9 @@ public:
         if (title=="4dos"&&!strcmp(prop->propname.c_str(), "rem"))
             input = new GUI::Input(this, 30, 0, 470);
         else {
-            input = new GUI::Input(this, 270, 0, opts?210:230);
+            input = new GUI::Input(this, 270, 0, opts?200:230);
             if (opts) {
-                infoButton=new GUI::Button(this, 480, 0, "?", 20);
+                infoButton=new GUI::Button(this, 470, 0, "...", 30);
                 infoButton->addActionHandler(this);
             }
         }
@@ -730,13 +799,9 @@ public:
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-        if (arg == "?") {
-            std::string values = "Property: \033[31m" + prop->propname + "\033[0m\n\nPossible values:\n";
-            std::vector<Value> pv = prop->GetValues();
-            for(Bitu k = 0; k < pv.size(); k++) if (pv[k].ToString().size()) values += "\n\033[32m" + pv[k].ToString() + "\033[0m";
-            values += (prop->Get_Default_Value().ToString().size()?"\n\nDefault value: \033[32m"+prop->Get_Default_Value().ToString():"")+"\033[0m";
-            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>300?(getScreen()->getWidth()-300)/2:0, 100, 300, ("Values for " + prop->propname).c_str(), values.c_str());
-        } else
+        if (arg == "...")
+            new ShowOptions(getScreen(), 300, 300, "Select value for property", ("Property: \033[31m" + prop->propname + "\033[0m\n\n"+(prop->Get_Default_Value().ToString().size()?"Default value: \033[32m"+prop->Get_Default_Value().ToString()+"\033[0m\n\n":"")+"Possible values to select:\n").c_str(), prop, input);
+        else
             PropertyEditor::actionExecuted(b, arg);
     }
 
@@ -762,22 +827,18 @@ public:
     PropertyEditorFloat(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
         PropertyEditor(parent, x, y, section, prop, opts) {
         label = new GUI::Label(this, 0, 5, prop->propname);
-        input = new GUI::Input(this, 380, 0, opts?100:120);
+        input = new GUI::Input(this, 380, 0, opts?90:120);
         if (opts) {
-            infoButton=new GUI::Button(this, 480, 0, "?", 20);
+            infoButton=new GUI::Button(this, 470, 0, "...", 30);
             infoButton->addActionHandler(this);
         }
         input->setText(stringify((double)prop->GetValue()));
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-        if (arg == "?") {
-            std::string values = "Property: \033[31m" + prop->propname + "\033[0m\n\nPossible values:\n";
-            std::vector<Value> pv = prop->GetValues();
-            for(Bitu k = 0; k < pv.size(); k++) if (pv[k].ToString().size()) values += "\n\033[32m" + pv[k].ToString() + "\033[0m";
-            values += (prop->Get_Default_Value().ToString().size()?"\n\nDefault value: \033[32m"+prop->Get_Default_Value().ToString():"")+"\033[0m";
-            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>300?(getScreen()->getWidth()-300)/2:0, 100, 300, ("Values for " + prop->propname).c_str(), values.c_str());
-        } else
+        if (arg == "...")
+            new ShowOptions(getScreen(), 300, 300, ("Values for " + prop->propname).c_str(), ("Property: \033[31m" + prop->propname + "\033[0m\n\n"+(prop->Get_Default_Value().ToString().size()?"Default value: \033[32m"+prop->Get_Default_Value().ToString()+"\033[0m\n\n":"")+"Possible values to select:\n").c_str(), prop, input);
+        else
             PropertyEditor::actionExecuted(b, arg);
     }
 
@@ -804,9 +865,9 @@ public:
     PropertyEditorHex(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
         PropertyEditor(parent, x, y, section, prop, opts) {
         label = new GUI::Label(this, 0, 5, prop->propname);
-        input = new GUI::Input(this, 380, 0, opts?100:120);
+        input = new GUI::Input(this, 380, 0, opts?90:120);
         if (opts) {
-            infoButton=new GUI::Button(this, 480, 0, "?", 20);
+            infoButton=new GUI::Button(this, 470, 0, "...", 30);
             infoButton->addActionHandler(this);
         }
         std::string temps = prop->GetValue().ToString();
@@ -814,13 +875,9 @@ public:
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-        if (arg == "?") {
-            std::string values = "Property: \033[31m" + prop->propname + "\033[0m\n\nPossible values:\n";
-            std::vector<Value> pv = prop->GetValues();
-            for(Bitu k = 0; k < pv.size(); k++) if (pv[k].ToString().size()) values += "\n\033[32m" + pv[k].ToString() + "\033[0m";
-            values += (prop->Get_Default_Value().ToString().size()?"\n\nDefault value: \033[32m"+prop->Get_Default_Value().ToString():"")+"\033[0m";
-            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>300?(getScreen()->getWidth()-300)/2:0, 100, 300, ("Values for " + prop->propname).c_str(), values.c_str());
-        } else
+        if (arg == "...")
+            new ShowOptions(getScreen(), 300, 300, ("Values for " + prop->propname).c_str(), ("Property: \033[31m" + prop->propname + "\033[0m\n\n"+(prop->Get_Default_Value().ToString().size()?"Default value: \033[32m"+prop->Get_Default_Value().ToString()+"\033[0m\n\n":"")+"Possible values to select:\n").c_str(), prop, input);
+        else
             PropertyEditor::actionExecuted(b, arg);
     }
 
@@ -847,9 +904,9 @@ public:
     PropertyEditorInt(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
         PropertyEditor(parent, x, y, section, prop, opts) {
         label = new GUI::Label(this, 0, 5, prop->propname);
-        input = new GUI::Input(this, 380, 0, opts?100:120);
+        input = new GUI::Input(this, 380, 0, opts?90:120);
         if (opts) {
-            infoButton=new GUI::Button(this, 480, 0, "?", 20);
+            infoButton=new GUI::Button(this, 470, 0, "...", 30);
             infoButton->addActionHandler(this);
         }
         //Maybe use ToString() of Value
@@ -857,13 +914,9 @@ public:
     };
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-        if (arg == "?") {
-            std::string values = "Property: \033[31m" + prop->propname + "\033[0m\n\nPossible values:\n";
-            std::vector<Value> pv = prop->GetValues();
-            for(Bitu k = 0; k < pv.size(); k++) if (pv[k].ToString().size()) values += "\n\033[32m" + pv[k].ToString() + "\033[0m";
-            values += (prop->Get_Default_Value().ToString().size()?"\n\nDefault value: \033[32m"+prop->Get_Default_Value().ToString():"")+"\033[0m";
-            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>300?(getScreen()->getWidth()-300)/2:0, 100, 300, ("Values for " + prop->propname).c_str(), values.c_str());
-        } else
+        if (arg == "...")
+            new ShowOptions(getScreen(), 300, 300, ("Values for " + prop->propname).c_str(), ("Property: \033[31m" + prop->propname + "\033[0m\n\n"+(prop->Get_Default_Value().ToString().size()?"Default value: \033[32m"+prop->Get_Default_Value().ToString()+"\033[0m\n\n":"")+"Possible values to select:\n").c_str(), prop, input);
+        else
             PropertyEditor::actionExecuted(b, arg);
     }
 
@@ -1192,7 +1245,7 @@ public:
             LOG_MSG("BUG: SectionEditor constructor called with section == NULL\n");
             return;
         }
-        changed = false;
+        proplist = {};
 
         int first_row_y = 5;
         int row_height = 25;
@@ -1258,7 +1311,7 @@ public:
             Prop_string *pstring = dynamic_cast<Prop_string*>(prop);
             Prop_multival* pmulti = dynamic_cast<Prop_multival*>(prop);
             Prop_multival_remain* pmulti_remain = dynamic_cast<Prop_multival_remain*>(prop);
-            bool opts = !prop->suggested_values.empty();
+            bool opts = !prop->suggested_values.empty()&&prop->GetValues().size()>1;
 
             PropertyEditor *p;
             if (pbool) p = new PropertyEditorBool(wiw, column_width*(j/items_per_col), (j%items_per_col)*row_height, section, prop, opts);
@@ -1318,7 +1371,7 @@ public:
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         strcpy(tmp1, mainMenu.get_item("HelpMenu").get_text().c_str());
-        if (arg == MSG_Get("OK") && changed) { close(); running=false; if(!shortcut) resetcfg=true; }
+        if (arg == MSG_Get("OK") && proplist.size()) { close(); running=false; if(!shortcut) resetcfg=true; }
         else if (arg == MSG_Get("OK") || arg == MSG_Get("CANCEL") || arg == MSG_Get("CLOSE")) { close(); if(shortcut) running=false; }
         else if (arg == tmp1) {
             std::vector<GUI::Char> new_cfg_sname;
@@ -1484,7 +1537,7 @@ public:
             Prop_string *pstring = dynamic_cast<Prop_string*>(prop);
             Prop_multival* pmulti = dynamic_cast<Prop_multival*>(prop);
             Prop_multival_remain* pmulti_remain = dynamic_cast<Prop_multival_remain*>(prop);
-            bool opts = !prop->suggested_values.empty();
+            bool opts = !prop->suggested_values.empty()&&prop->GetValues().size()>1;
 
             PropertyEditor *p;
             if (pbool) p = new PropertyEditorBool(wiw, column_width*(i/items_per_col), (i%items_per_col)*row_height, section, prop, opts);
