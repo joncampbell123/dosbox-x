@@ -6555,11 +6555,11 @@ class LABEL : public Program
 
 			/* if the label is longer than 11 chars or contains a dot, MS-DOS will reject it and then prompt for another label */
 			if (label.length() > 11) {
-				WriteOut("Label is too long (more than 11 chars)\n");
+				WriteOut("Label is too long (more than 11 characters).\n");
 				label.clear();
 			}
 			else if (label.find_first_of(".:/\\") != std::string::npos) {
-				WriteOut("Label has invalid chars.\n");
+				WriteOut("Label has invalid characters.\n");
 				label.clear();
 			}
 

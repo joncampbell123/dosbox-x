@@ -741,8 +741,8 @@ public:
                 for(k = 0; k < pv.size(); k++)
                     if (pv[k].ToString().size() && pv[k].ToString()==prop->GetValue().ToString())
                         opt[k]->setChecked(true);
-            (new GUI::Button(this, 60, k*20+95, MSG_Get("OK"), 85))->addActionHandler(this);
-            close->move(160,k*20+95);
+            (new GUI::Button(this, 70, k*20+95, MSG_Get("OK"), 70))->addActionHandler(this);
+            close->move(155,k*20+95);
             resize(310, k*20+165);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
@@ -800,7 +800,7 @@ public:
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         if (arg == "...")
-            new ShowOptions(getScreen(), 300, 300, "Select value for property", ("Property: \033[31m" + prop->propname + "\033[0m\n\n"+(prop->Get_Default_Value().ToString().size()?"Default value: \033[32m"+prop->Get_Default_Value().ToString()+"\033[0m\n\n":"")+"Possible values to select:\n").c_str(), prop, input);
+            new ShowOptions(getScreen(), 300, 300, "Select property value", ("Property: \033[31m" + prop->propname + "\033[0m\n\n"+(prop->Get_Default_Value().ToString().size()?"Default value: \033[32m"+prop->Get_Default_Value().ToString()+"\033[0m\n\n":"")+"Possible values to select:\n").c_str(), prop, input);
         else
             PropertyEditor::actionExecuted(b, arg);
     }
