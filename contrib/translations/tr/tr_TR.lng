@@ -1824,6 +1824,16 @@ GOTO etiket
 Bir iki nokta ile başlayan bir etiketi bir satırda kendi başına yazabilirsiniz.
 
 .
+:SHELL_CMD_HISTORY_HELP
+Komut geçmişi listesini görüntüler veya temizler.
+
+.
+:SHELL_CMD_HISTORY_HELP_LONG
+HISTORY [/C]
+
+  /C  Komut geçmişi listesini temizler.
+
+.
 :SHELL_CMD_SHIFT_HELP
 Toplu iş dosyasındaki parametrelerin konumunu değiştirir.
 

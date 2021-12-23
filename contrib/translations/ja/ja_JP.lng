@@ -1813,6 +1813,16 @@ GOTO label
 ラベルは行の先頭に、コロン(:)に続けて指定します。
 
 .
+:SHELL_CMD_HISTORY_HELP
+コマンド履歴リストを表示またはクリアします.
+
+.
+:SHELL_CMD_HISTORY_HELP_LONG
+HISTORY [/C]
+
+  /C  コマンド履歴リストをクリアします.
+
+.
 :SHELL_CMD_SHIFT_HELP
 バッチファイル中の置き換え可能なパラメータの位置を変更します。
 

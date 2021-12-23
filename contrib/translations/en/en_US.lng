@@ -1824,6 +1824,16 @@ GOTO label
 You type a label on a line by itself, beginning with a colon.
 
 .
+:SHELL_CMD_HISTORY_HELP
+Displays or clears the command history list.
+
+.
+:SHELL_CMD_HISTORY_HELP_LONG
+HISTORY [/C]
+
+  /C  Clears the command history list.
+
+.
 :SHELL_CMD_SHIFT_HELP
 Changes the position of replaceable parameters in a batch file.
 

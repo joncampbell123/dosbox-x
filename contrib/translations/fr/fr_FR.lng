@@ -1821,6 +1821,16 @@ GOTO étiquette
 Vous tapez une étiquette sur une ligne à part, en commençant par un deux-points.
 
 .
+:SHELL_CMD_HISTORY_HELP
+Affiche ou efface la liste de l'historique des commandes.
+
+.
+:SHELL_CMD_HISTORY_HELP_LONG
+HISTORY [/C]
+
+  /C  Efface la liste de l'historique des commandes.
+
+.
 :SHELL_CMD_SHIFT_HELP
 Modifie la position des paramètres remplaçables dans un fichier batch.
 

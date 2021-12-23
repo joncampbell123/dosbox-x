@@ -137,6 +137,10 @@ public:
      */
 	char * Which(char * name);
 
+    /*! \brief      Command history list
+     */
+	void CMD_HISTORY(char * args);
+
     /*! \brief      Online HELP for the shell
      */
 	void CMD_HELP(char * args);

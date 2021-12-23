@@ -93,6 +93,8 @@
     the specified drive is already mounted. This allows
     multiple directories to be mounted when DOSBox-X
     starts with multiple [name] arguments. (Wengier)
+  - Added HISTORY command to display or clear command-
+    line history for the internal DOS shell. (Wengier)
   - Added ASSOC command to view/change file extension
     associations. You can define a command or program
     to open a file with a specific file extension, e.g.

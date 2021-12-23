@@ -79,6 +79,7 @@ SHELL_Cmd cmd_list[]={
 {	"FOR",			1,		&DOS_Shell::CMD_FOR,		"SHELL_CMD_FOR_HELP"},
 {	"GOTO",			1,		&DOS_Shell::CMD_GOTO,		"SHELL_CMD_GOTO_HELP"},
 //{	"HELP",			1,		&DOS_Shell::CMD_HELP,		"SHELL_CMD_HELP_HELP"}, // HELP as a program (Z:\SYSTEM\HELP.COM) instead of shell command
+{	"HISTORY",		1,		&DOS_Shell::CMD_HISTORY,	"SHELL_CMD_HISTORY_HELP"},
 {	"IF",			1,		&DOS_Shell::CMD_IF,			"SHELL_CMD_IF_HELP"},
 {	"LFNFOR",		1,		&DOS_Shell::CMD_LFNFOR,		"SHELL_CMD_LFNFOR_HELP"},
 {	"LH",			1,		&DOS_Shell::CMD_LOADHIGH,	"SHELL_CMD_LOADHIGH_HELP"},
@@ -4099,6 +4100,16 @@ void DOS_Shell::CMD_ASSOC(char* args) {
                 assoc_name[offset] = *args;
             }
         }
+    }
+}
+
+void DOS_Shell::CMD_HISTORY(char* args) {
+    HELP("HISTORY");
+    if (ScanCMDBool(args,"C"))
+        l_history.clear();
+    for (auto it = l_history.begin(); it != l_history.end(); ++it) {
+        WriteOut_NoParsing(it->c_str());
+        WriteOut("\n");
     }
 }
 

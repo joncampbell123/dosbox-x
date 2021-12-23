@@ -1771,6 +1771,16 @@ GOTO 标签
 标签将作为单独一行, 前面加上冒号.
 
 .
+:SHELL_CMD_HISTORY_HELP
+显示或清除命令历史列表.
+
+.
+:SHELL_CMD_HISTORY_HELP_LONG
+HISTORY [/C]
+
+  /C  清除命令历史列表.
+
+.
 :SHELL_CMD_SHIFT_HELP
 在批处理文件中改变可替换型参数的位置.
 

@@ -1439,6 +1439,8 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_GOTO_HELP_LONG","GOTO label\n\n"
 		   "   label   Specifies a text string used in the batch program as a label.\n\n"
 		   "You type a label on a line by itself, beginning with a colon.\n");
+	MSG_Add("SHELL_CMD_HISTORY_HELP","Displays or clears the command history list.\n");
+	MSG_Add("SHELL_CMD_HISTORY_HELP_LONG","HISTORY [/C]\n\n  /C  Clears the command history list.\n");
 	MSG_Add("SHELL_CMD_SHIFT_HELP","Changes the position of replaceable parameters in a batch file.\n");
 	MSG_Add("SHELL_CMD_SHIFT_HELP_LONG","SHIFT\n");
 	MSG_Add("SHELL_CMD_FOR_HELP","Runs a specified command for each file in a set of files.\n");

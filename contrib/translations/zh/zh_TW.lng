@@ -1774,6 +1774,16 @@ GOTO 標籤
 標籤名稱必須單獨一行, 並且以冒號開頭.
 
 .
+:SHELL_CMD_HISTORY_HELP
+顯示或清除命令歷程清單.
+
+.
+:SHELL_CMD_HISTORY_HELP_LONG
+HISTORY [/C]
+
+  /C  清除命令歷程清單.
+
+.
 :SHELL_CMD_SHIFT_HELP
 變更批次檔中, 可置換參數的位置.
 

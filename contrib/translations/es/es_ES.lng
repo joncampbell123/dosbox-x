@@ -1823,6 +1823,16 @@ GOTO label
 Escribe una etiqueta en una línea, precedida de dos puntos.
 
 .
+:SHELL_CMD_HISTORY_HELP
+Muestra o borra la lista del historial de comandos.
+
+.
+:SHELL_CMD_HISTORY_HELP_LONG
+HISTORY [/C]
+
+  /C  Borra la lista del historial de comandos.
+
+.
 :SHELL_CMD_SHIFT_HELP
 Intercambia posición de parámetros reemplazables en un .BAT.
 
