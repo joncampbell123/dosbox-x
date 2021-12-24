@@ -126,6 +126,9 @@
     segment. It is once again possible to make Mac OS X
     ARM releases and to use dylib files from Brew doing
     so. (joncampbell123)
+  - Fixed command-line options -starttool & -startmapper
+    not showing messages from specified language file
+    for Configuration Tool and Mapper Editor. (Wengier)
   - Fixed an issue with RENDER_Reset function while
     loading previously saved states. (yetmorecode)
   - Fixed E_Exit "RET from illegal descriptor type 0"
