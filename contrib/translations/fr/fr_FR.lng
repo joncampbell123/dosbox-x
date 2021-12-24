@@ -20,6 +20,9 @@ Valeurs possibles
 :CONFIG_ADVANCED_OPTION
 Options avancées (voir le fichier de référence [dosbox-x.reference.full.conf] pour plus de détails)
 .
+:CONFIG_HELP_INFO
+Cliquez sur le bouton "Aide" ci-dessous pour une aide détaillée.
+.
 :CONFIG_TOOL
 Outil de configuration de DOSBox-X
 .

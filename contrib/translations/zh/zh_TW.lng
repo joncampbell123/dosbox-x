@@ -18,6 +18,9 @@
 :CONFIG_ADVANCED_OPTION
 進階選項 (請見完整的組態設定參照檔案 [dosbox-x.reference.full.conf] 取得更多詳細資訊)
 .
+:CONFIG_HELP_INFO
+點擊下方“說明”按鈕檢視詳細說明資訊.
+.
 :CONFIG_TOOL
 DOSBox-X 組態工具
 .

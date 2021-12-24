@@ -3829,7 +3829,7 @@ void DOSBOX_SetupConfigSections(void) {
             "    openwith:<program>: start a program to open the file in all other conditions.\n"
             "    openerror:<program>: start a program to open the file if an error had occurred.\n"
             "  for printer:\n"
-            "    printer still has it's own configuration section above.\n"
+            "    printer still has its own configuration section above.\n"
             "Note: LPT1-3 are standard LPT ports in DOS, whereas LPT4-9 are extended LPT ports.\n"
             "      You can optionally specify base addresses and IRQs for them with base: and irq: options.\n"
             "      Parallel port settings can also be changed via the built-in PARALLEL command."
@@ -4666,6 +4666,7 @@ void DOSBOX_SetupConfigSections(void) {
         "# To write out ALL options, use command 'config -all' with -wc or -writeconf options.\n");
     MSG_Add("CONFIG_SUGGESTED_VALUES", "Possible values");
     MSG_Add("CONFIG_ADVANCED_OPTION", "Advanced options (see full configuration reference file [dosbox-x.reference.full.conf] for more details)");
+    MSG_Add("CONFIG_HELP_INFO", "Click the \"Help\" button below to see detailed help information.");
     MSG_Add("CONFIG_TOOL","DOSBox-X Configuration Tool");
     MSG_Add("CONFIG_TOOL_EXIT","Exit configuration tool");
     MSG_Add("MAPPER_EDITOR_EXIT","Exit mapper editor");

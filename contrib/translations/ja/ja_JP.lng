@@ -19,6 +19,9 @@ MOUNT したい場合はここに記載できます。
 :CONFIG_ADVANCED_OPTION
 詳細オプション (設定リファレンスファイル[dosbox-x.reference.full.conf]を参照)
 .
+:CONFIG_HELP_INFO
+詳細なヘルプについては、[ヘルプ]ボタンをクリックしてください。
+.
 :CONFIG_TOOL
 DOSBox-X 設定ツール
 .
