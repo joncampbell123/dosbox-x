@@ -530,7 +530,6 @@ Kullanım: ←[34;1m←[32;1mMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mlocal_dir
  -u               Sürücü bağlantısını kes.
  ←[32;1m-examples        Birkaç kullanım örneği göster.←[0m
 Bağlı sürücülerin bir listesini görmek için yalnızca MOUNT yazın.
-
 .
 :PROGRAM_MOUNT_EXAMPLE
 MOUNT komutunun yalın bir örneği:

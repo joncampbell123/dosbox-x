@@ -530,7 +530,6 @@ Usage: ←[34;1m←[32;1mMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mlocal_directo
  -u               Unmount the drive.
  ←[32;1m-examples        Show some usage examples.←[0m
 Type MOUNT with no parameters to display a list of mounted drives.
-
 .
 :PROGRAM_MOUNT_EXAMPLE
 A basic example of MOUNT command:

@@ -530,7 +530,6 @@ Utilisation : ←[34;1m←[32;1mMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mlocal_
  -u Démonter le lecteur.
  ←[32;1m-examples Montrer quelques exemples d'utilisation.←[0m
 Tapez MOUNT sans paramètres pour afficher une liste des lecteurs montés.
-
 .
 :PROGRAM_MOUNT_EXAMPLE
 Un exemple de base de la commande MOUNT :

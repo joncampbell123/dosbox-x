@@ -527,7 +527,6 @@ MOUSE [/?] [/U] [/V]
  -u                卸载驱动器.
  [32;1m-examples         显示用法举例.[0m
 输入不带参数的 MOUNT 命令将显示已挂载的驱动器列表.
-
 .
 :PROGRAM_MOUNT_EXAMPLE
 一个 MOUNT 命令的基本例子:

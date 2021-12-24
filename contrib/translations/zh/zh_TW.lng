@@ -19,7 +19,7 @@
 進階選項 (請見完整的組態設定參照檔案 [dosbox-x.reference.full.conf] 取得更多詳細資訊)
 .
 :CONFIG_HELP_INFO
-點擊下方“說明”按鈕檢視詳細說明資訊.
+點一下下方 "說明" 按鈕檢視詳細說明資訊.
 .
 :CONFIG_TOOL
 DOSBox-X 組態工具
@@ -511,8 +511,8 @@ MOUSE [/?] [/U] [/V]
  -t                指定所掛載磁碟機的顯現類型.
                    支援的磁碟機類型有: dir, floppy, cdrom, overlay
                    (其中 'overlay' 將掛載磁碟機的寫入操作重新導向到另一個目錄)
- -label [名稱]     設定磁碟機中的磁碟區標籤名稱 (全部大寫)
- -nl               如果指定的磁碟機已掛載,自動使用下一個磁碟機.
+ -label [名稱]     設定磁碟機中的磁碟區標籤名稱 (全部大寫).
+ -nl               如果指定的磁碟機已掛載, 自動使用下一個磁碟機代號.
  -ro               以唯讀模式掛載磁碟機.
  -pr               指定路徑為相對於組態檔案所在目錄.
  -cd               顯示包含光碟機編號的本機光碟機清單.
@@ -527,7 +527,6 @@ MOUSE [/?] [/U] [/V]
  -u                卸載磁碟機.
  [32;1m-examples         顯示用法舉例.[0m
 輸入不含參數的 MOUNT 命令將顯示已掛載的磁碟機清單.
-
 .
 :PROGRAM_MOUNT_EXAMPLE
 一個 MOUNT 命令的基本例子:
@@ -1778,13 +1777,13 @@ GOTO 標籤
 
 .
 :SHELL_CMD_HISTORY_HELP
-顯示或清除命令歷程清單.
+顯示或清除命令歷程記錄清單.
 
 .
 :SHELL_CMD_HISTORY_HELP_LONG
 HISTORY [/C]
 
-  /C  清除命令歷程清單.
+  /C  清除命令歷程記錄清單.
 
 .
 :SHELL_CMD_SHIFT_HELP
@@ -2065,14 +2064,14 @@ ALIAS [名稱[=值] ... ]
 
 .
 :SHELL_CMD_ASSOC_HELP
-顯示或變更檔案副檔名關聯.
+顯示或變更副檔名的關聯.
 
 .
 :SHELL_CMD_ASSOC_HELP_LONG
 ASSOC [.副檔名[=命令] ... ]
 
-輸入不含參數的 ASSOC 命令以顯示目前檔案副檔名關聯.
-檔案副檔名必須以點(.)開頭; 允許使用萬用字元(*和?).
+輸入不含參數的 ASSOC 命令以顯示目前的檔案關聯性.
+副檔名必須以點(.)開頭; 允許使用萬用字元(*和?).
 
 .
 :SHELL_CMD_CHCP_HELP
@@ -2273,7 +2272,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 傳送特殊鍵
 .
 :MENU:MainHostKey
-選擇主機系統按鍵
+選擇主機鍵
 .
 :MENU:WheelToArrow
 滑鼠滾輪動作轉換
