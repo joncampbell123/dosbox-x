@@ -749,7 +749,7 @@ if test x$alsa_midi = xtrue ; then
 fi
 
 dnl FEATURE: MT32 (MUNT) emulation
-AH_TEMPLATE(C_MT32,[Define to 1 to enable MT32 emulation (x86/x86_64 only)])
+AH_TEMPLATE(C_MT32,[Define to 1 to enable MT32 emulation])
 AC_ARG_ENABLE(mt32,AC_HELP_STRING([--disable-mt32],[Disable MT32 emulation]),,enable_mt32=yes)
 AC_MSG_CHECKING(whether MT32 emulation will be enabled) 
 
@@ -782,19 +782,27 @@ AM_CONDITIONAL(C_MT32, test "x$enable_mt32" = "xyes")
 dnl On some Linux platforms, std::atomic needs a helper library
 case "$host" in
   *-*-linux*)
-    AC_MSG_CHECKING(whether -latomic is needed)
-    AC_LINK_IFELSE([AC_LANG_SOURCE([
-      #include <atomic>
-      #include <cstdint>
-      std::atomic<std::int64_t> v;
-        int main() {
-          return v;
-        }
-    ])],STD_ATOMIC_NEED_LIBATOMIC=no,STD_ATOMIC_NEED_LIBATOMIC=yes)
-    AC_MSG_RESULT($STD_ATOMIC_NEED_LIBATOMIC)
-    if test "x$STD_ATOMIC_NEED_LIBATOMIC" = xyes; then
-       LIBS="$LIBS -latomic"
-    fi
+    case "$host_cpu" in
+      x86_64 | amd64)
+        ;;
+      i?86)
+        ;;
+      *)
+        AC_MSG_CHECKING(whether -latomic is needed)
+        AC_LINK_IFELSE([AC_LANG_SOURCE([
+          #include <atomic>
+          #include <cstdint>
+          std::atomic<std::int64_t> v;
+            int main() {
+              return v;
+            }
+        ])],STD_ATOMIC_NEED_LIBATOMIC=no,STD_ATOMIC_NEED_LIBATOMIC=yes)
+        AC_MSG_RESULT($STD_ATOMIC_NEED_LIBATOMIC)
+        if test "x$STD_ATOMIC_NEED_LIBATOMIC" = xyes; then
+          LIBS="$LIBS -latomic"
+        fi
+        ;;
+    esac
     ;;
 esac
 
