@@ -801,7 +801,7 @@ public:
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
         if (arg == "...")
-            new ShowOptions(getScreen(), 300, 300, "Select property value", ("Property: \033[31m" + prop->propname + "\033[0m\n\n"+(prop->Get_Default_Value().ToString().size()?"Default value: \033[32m"+prop->Get_Default_Value().ToString()+"\033[0m\n\n":"")+"Possible values to select:\n").c_str(), prop, input);
+            new ShowOptions(getScreen(), 300, 300, MSG_Get("SELECT_VALUE"), ("Property: \033[31m" + prop->propname + "\033[0m\n\n"+(prop->Get_Default_Value().ToString().size()?"Default value: \033[32m"+prop->Get_Default_Value().ToString()+"\033[0m\n\n":"")+"Possible values to select:\n").c_str(), prop, input);
         else
             PropertyEditor::actionExecuted(b, arg);
     }
@@ -1290,7 +1290,7 @@ public:
         setTitle(tmp1);
         title[0] = std::toupper(title[0]);
 
-        new GUI::Label(this, 5, button_row_y - 20, MSG_Get("CONFIG_HELP_INFO"));
+        new GUI::Label(this, 5, button_row_y - 20, MSG_Get("HELP_INFO"));
 
         GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, mainMenu.get_item("HelpMenu").get_text().c_str(), button_w);
         b->addActionHandler(this);

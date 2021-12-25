@@ -20,9 +20,6 @@ Olası değerler
 :CONFIG_ADVANCED_OPTION
 Gelişmiş seçenekler (ayrıntılar için [dosbox-x.reference.full.conf] yapılandırma başvuru dosyasına bakın)
 .
-:CONFIG_HELP_INFO
-Ayrıntılı yardım için aşağıdaki "Yardım" düğmesini tıklayın.
-.
 :CONFIG_TOOL
 DOSBox-X yapılandırma aracı
 .
@@ -103,6 +100,12 @@ Düzenle: %s
 .
 :HELP_FOR
 %s yardımı
+.
+:HELP_INFO
+Ayrıntılı yardım için aşağıdaki "Yardım" düğmesini tıklayın.
+.
+:SELECT_VALUE
+Özellik değerini seçin
 .
 :CONFIGURATION_FOR
 %s yapılandırması

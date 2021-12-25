@@ -18,9 +18,6 @@ Possible values
 :CONFIG_ADVANCED_OPTION
 Advanced option (see full configuration reference file [dosbox-x.reference.full.conf] for more details)
 .
-:CONFIG_HELP_INFO
-点击下方“帮助”按钮查看详细帮助信息.
-.
 :CONFIG_TOOL
 DOSBox-X 配置工具
 .
@@ -101,6 +98,12 @@ DOSBox-X 配置工具
 .
 :HELP_FOR
 %s 的帮助
+.
+:HELP_INFO
+点击下方“帮助”按钮查看详细帮助信息.
+.
+:SELECT_VALUE
+选择属性值
 .
 :CONFIGURATION_FOR
 %s 的配置

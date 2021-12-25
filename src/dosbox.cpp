@@ -4666,7 +4666,6 @@ void DOSBOX_SetupConfigSections(void) {
         "# To write out ALL options, use command 'config -all' with -wc or -writeconf options.\n");
     MSG_Add("CONFIG_SUGGESTED_VALUES", "Possible values");
     MSG_Add("CONFIG_ADVANCED_OPTION", "Advanced options (see full configuration reference file [dosbox-x.reference.full.conf] for more details)");
-    MSG_Add("CONFIG_HELP_INFO", "Click the \"Help\" button below to see detailed help information.");
     MSG_Add("CONFIG_TOOL","DOSBox-X Configuration Tool");
     MSG_Add("CONFIG_TOOL_EXIT","Exit configuration tool");
     MSG_Add("MAPPER_EDITOR_EXIT","Exit mapper editor");
@@ -4694,6 +4693,8 @@ void DOSBOX_SetupConfigSections(void) {
     MSG_Add("CONTENT","Content:");
     MSG_Add("EDIT_FOR","Edit %s");
     MSG_Add("HELP_FOR","Help for %s");
+    MSG_Add("HELP_INFO", "Click the \"Help\" button below to see detailed help information.");
+    MSG_Add("SELECT_VALUE", "Select property value");
     MSG_Add("CONFIGURATION_FOR","Configuration for %s");
     MSG_Add("CONFIGURATION","Configuration");
     MSG_Add("SETTINGS","Settings");
