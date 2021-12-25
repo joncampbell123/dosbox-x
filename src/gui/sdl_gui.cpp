@@ -726,24 +726,25 @@ public:
         MessageBox2(parent, x, y, 300, title, msg) { // 740
             inp = input;
             pv = prop->GetValues();
-            Bitu k;
+            Bitu k, j = 0;
             bool found = false;
             for(k = 0; k < pv.size(); k++) if (pv[k].ToString().size()) {
-                opt[k] = new GUI::Checkbox(this, 10, k*20+85, pv[k].ToString().c_str());
+                opt[k] = new GUI::Checkbox(this, 10, j*20+85, pv[k].ToString().c_str());
                 if (GUI::String(pv[k].ToString())==inp->getText()) {
                     found = true;
                     opt[k]->setChecked(true);
                 } else
                     opt[k]->setChecked(false);
                 opt[k]->addActionHandler(this);
+                j++;
             }
             if (!found)
                 for(k = 0; k < pv.size(); k++)
                     if (pv[k].ToString().size() && pv[k].ToString()==prop->GetValue().ToString())
                         opt[k]->setChecked(true);
-            (new GUI::Button(this, 70, k*20+95, MSG_Get("OK"), 70))->addActionHandler(this);
-            close->move(155,k*20+95);
-            resize(310, k*20+165);
+            (new GUI::Button(this, 70, j*20+95, MSG_Get("OK"), 70))->addActionHandler(this);
+            close->move(155,j*20+95);
+            resize(310, j*20+165);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 
@@ -752,10 +753,10 @@ public:
         for(k = 0; k < pv.size(); k++) if (pv[k].ToString().size()) {
             if (arg == pv[k].ToString() && opt[k]->isChecked())
                 for(j = 0; j < pv.size(); j++)
-                    if (j!=k) opt[j]->setChecked(false);
+                    if (pv[j].ToString().size() && j!=k) opt[j]->setChecked(false);
         }
         if (arg == MSG_Get("OK")) {
-            for(k = 0; k < pv.size(); k++) if (pv[k].ToString().size())
+            for(k = 0; k < pv.size(); k++)
                 if (pv[k].ToString().size() && opt[k]->isChecked()) {
                     inp->setText(pv[k].ToString());
                     break;
@@ -790,7 +791,7 @@ public:
         else {
             input = new GUI::Input(this, 270, 0, opts?200:230);
             if (opts) {
-                infoButton=new GUI::Button(this, 470, 0, "...", 30);
+                infoButton=new GUI::Button(this, 470, 0, "...", 30, 24);
                 infoButton->addActionHandler(this);
             }
         }
@@ -829,7 +830,7 @@ public:
         label = new GUI::Label(this, 0, 5, prop->propname);
         input = new GUI::Input(this, 380, 0, opts?90:120);
         if (opts) {
-            infoButton=new GUI::Button(this, 470, 0, "...", 30);
+            infoButton=new GUI::Button(this, 470, 0, "...", 30, 24);
             infoButton->addActionHandler(this);
         }
         input->setText(stringify((double)prop->GetValue()));
@@ -867,7 +868,7 @@ public:
         label = new GUI::Label(this, 0, 5, prop->propname);
         input = new GUI::Input(this, 380, 0, opts?90:120);
         if (opts) {
-            infoButton=new GUI::Button(this, 470, 0, "...", 30);
+            infoButton=new GUI::Button(this, 470, 0, "...", 30, 24);
             infoButton->addActionHandler(this);
         }
         std::string temps = prop->GetValue().ToString();
@@ -906,7 +907,7 @@ public:
         label = new GUI::Label(this, 0, 5, prop->propname);
         input = new GUI::Input(this, 380, 0, opts?90:120);
         if (opts) {
-            infoButton=new GUI::Button(this, 470, 0, "...", 30);
+            infoButton=new GUI::Button(this, 470, 0, "...", 30, 24);
             infoButton->addActionHandler(this);
         }
         //Maybe use ToString() of Value
