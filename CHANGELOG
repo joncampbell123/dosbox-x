@@ -115,6 +115,8 @@
   - You can now change most config options in [printer]
     section of the configuration for the virtual printer
     with CONFIG -set commands. (Wengier)
+  - Added missing ChinaSea characters in code page 950
+    with ChinaSea/Big5-2003 extension enabled. (Wengier)
   - Improved DBCS support for DOS commands including
     ATTRIB, ECHO, TYPE, MORE, and TRUENAME. (Wengier)
   - Improved checking of segment limits. (joncampbell123)

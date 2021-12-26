@@ -721,15 +721,21 @@ protected:
     GUI::Checkbox *opt[200];
     std::vector<Value> pv;
     std::vector<GUI::Char> cfg_sname;
+    GUI::WindowInWindow * wiw = NULL;
 public:
     ShowOptions(GUI::Screen *parent, int x, int y, const char *title, const char *msg, Property *prop, GUI::Input *input) :
-        MessageBox2(parent, x, y, 300, title, msg) { // 740
+        MessageBox2(parent, x, y, 310, title, msg) { // 740
             inp = input;
             pv = prop->GetValues();
             Bitu k, j = 0;
+            int allowed_dialog_y = parent->getHeight() - 25 - (border_top + border_bottom) - 120;
+            int scroll_h = pv.size() * 20;
+            if (scroll_h > allowed_dialog_y) scroll_h = allowed_dialog_y;
+            scroll_h += 6;
+            wiw = new GUI::WindowInWindow(this, 5, 80, 290, scroll_h);
             bool found = false;
             for(k = 0; k < pv.size(); k++) if (pv[k].ToString().size()) {
-                opt[k] = new GUI::Checkbox(this, 10, j*20+85, pv[k].ToString().c_str());
+                opt[k] = new GUI::Checkbox(wiw, 5, j*20+5, pv[k].ToString().c_str());
                 if (GUI::String(pv[k].ToString())==inp->getText()) {
                     found = true;
                     opt[k]->setChecked(true);
@@ -742,9 +748,18 @@ public:
                 for(k = 0; k < pv.size(); k++)
                     if (pv[k].ToString().size() && pv[k].ToString()==prop->GetValue().ToString())
                         opt[k]->setChecked(true);
-            (new GUI::Button(this, 70, j*20+95, MSG_Get("OK"), 70))->addActionHandler(this);
-            close->move(155,j*20+95);
-            resize(310, j*20+165);
+            scroll_h -= (k-j) * 20;
+            wiw->resize(290, scroll_h);
+            if (wiw->scroll_pos_h != 0) {
+                wiw->enableScrollBars(false/*h*/,true/*v*/);
+                wiw->enableBorder(true);
+            } else {
+                wiw->enableScrollBars(false/*h*/,false/*v*/);
+                wiw->enableBorder(false);
+            }
+            (new GUI::Button(this, 70, scroll_h+90, MSG_Get("OK"), 70))->addActionHandler(this);
+            close->move(155,scroll_h+90);
+            resize(310, scroll_h+156);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     }
 

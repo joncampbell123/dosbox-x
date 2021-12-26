@@ -4089,7 +4089,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                         (*draw).unicode=1;
                                         res = width = 0;
                                         if (ttf.SDL_font) res = TTF_SizeUNICODE(ttf.SDL_font, uname, &width, &height);
-                                        if (res >= 0 && width <= ttf.width) { // Single wide, yet DBCS encoding
+                                        if (res >= 0 && width <= ttf.width+1) { // Single wide, yet DBCS encoding
                                             if (!width) (*draw).chr=' ';
                                             last = (*draw).chr;
                                             dbw=false;
@@ -4180,7 +4180,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                         (*draw).unicode=1;
                                         res = width = 0;
                                         if (ttf.SDL_font) res = TTF_SizeUNICODE(ttf.SDL_font, uname, &width, &height);
-                                        if (res >= 0 && width <= ttf.width) { // Single wide, yet DBCS encoding
+                                        if (res >= 0 && width <= ttf.width+1) { // Single wide, yet DBCS encoding
                                             if (!width) (*draw).chr=' ';
                                             last = (*draw).chr;
                                             dbw=false;
