@@ -2615,7 +2615,7 @@ void DOSBOX_SetupConfigSections(void) {
         "  'fixed #number' will set a fixed number of cycles. This is what you usually\n"
         "                  need if 'auto' fails (Example: fixed 4000).\n"
         "  'max'           will allocate as much cycles as your computer is able to\n"
-        "                  handle.");
+        "                  handle. Recommended if better performance is desired.");
     Pmulti_remain->SetBasic(true);
 
     Pstring = Pmulti_remain->GetSection()->Add_string("type",Property::Changeable::Always,"auto");

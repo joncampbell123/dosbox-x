@@ -6864,8 +6864,8 @@ void makeseacp951table() {
         cp951uaosea_to_unicode_raw[i] = cp951uao_to_unicode_raw[i];
     }
     for (int i=64*365; i<64*380; i++) {
-        cp951sea_to_unicode_raw[i] = cp950ext_to_unicode_raw[i-64*3];
-        cp951uaosea_to_unicode_raw[i] = cp950ext_to_unicode_raw[i-64*3];
+        cp951sea_to_unicode_raw[i] = cp950ext_to_unicode_raw[i];
+        cp951uaosea_to_unicode_raw[i] = cp950ext_to_unicode_raw[i];
     }
     madecp951 = true;
 };
