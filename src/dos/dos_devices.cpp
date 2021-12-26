@@ -906,8 +906,21 @@ bool ANSI_SYS_installed() {
     return false;
 }
 
-void DOS_ClearKeyMap()
-{
+uint8_t DOS_GetAnsiAttr() {
+    if (DOS_CON != NULL)
+        return DOS_CON->GetAnsiAttr();
+    return 0;
+}
+
+bool DOS_SetAnsiAttr(uint8_t attr) {
+    if (DOS_CON != NULL) {
+        DOS_CON->SetAnsiAttr(attr);
+        return true;
+    }
+    return false;
+}
+
+void DOS_ClearKeyMap() {
 	for(Bitu i = 0 ; i < DOS_DEVICES ; i++) {
 		if(Devices[i]) {
 			if(Devices[i]->IsName("CON")) {
@@ -919,8 +932,7 @@ void DOS_ClearKeyMap()
 	}
 }
 
-void DOS_SetConKey(uint16_t src, uint16_t dst)
-{
+void DOS_SetConKey(uint16_t src, uint16_t dst) {
 	for(Bitu i = 0 ; i < DOS_DEVICES ; i++) {
 		if(Devices[i]) {
 			if(Devices[i]->IsName("CON")) {

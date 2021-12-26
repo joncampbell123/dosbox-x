@@ -97,7 +97,8 @@ public:
 };
 
 static std::vector<InternalProgramEntry*> internal_progs;
-bool isDBCSCP(void), CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4);
+uint8_t DOS_GetAnsiAttr(void);
+bool isDBCSCP(void), CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4), DOS_SetAnsiAttr(uint8_t attr);
 char *FormatDate(uint16_t year, uint8_t month, uint8_t day);
 void EMS_DoShutDown(void), UpdateDefaultPrinterFont(void), GFX_ForceRedrawScreen(void), resetFontSize(void), ttf_reset_colors(void), makestdcp950table(void), makeseacp951table(void), DOSBox_SetSysMenu(void), MSG_Init(void), initRand(void), PRINTER_Init(void);
 void EMS_Startup(Section* sec), DOSV_SetConfig(Section_prop *section), DOSBOX_UnlockSpeed2(bool pressed), RebootLanguage(std::string filename, bool confirm=false), SetWindowTransparency(int trans), SetOutputSwitch(const char *outputstr), runSerial(const char *str), runParallel(const char *str), DOS_AddDays(uint8_t days), PRINTER_Shutdown(Section* sec);
@@ -214,8 +215,10 @@ void Program::ChangeToLongCmd() {
 	full_arguments.assign(""); //Clear so it gets even more save
 }
 
+bool resetcolor = false;
 static char last_written_character = 0;//For 0xA to OxD 0xA expansion
 void Program::WriteOut(const char * format,...) {
+	uint8_t attr = DOS_GetAnsiAttr();
 	char buf[2048];
 	va_list msg;
 	
@@ -234,6 +237,8 @@ void Program::WriteOut(const char * format,...) {
 		DOS_WriteFile(STDOUT,&out,&s);
 	}
 	dos.internal_output=false;
+	if (resetcolor && attr) DOS_SetAnsiAttr(attr);
+	resetcolor = false;
 	
 //	DOS_WriteFile(STDOUT,(uint8_t *)buf,&size);
 }

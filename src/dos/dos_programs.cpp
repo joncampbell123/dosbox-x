@@ -104,8 +104,9 @@ bool mountwarning = true;
 bool qmount = false;
 bool nowarn = false;
 char lastmount = 0;
+extern uint8_t DOS_GetAnsiAttr(void);
 bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
-extern bool inshell, usecon, uao, morelen, mountfro[26], mountiro[26], clear_screen(), OpenGL_using(void);
+extern bool inshell, usecon, uao, morelen, mountfro[26], mountiro[26], resetcolor, clear_screen(), OpenGL_using(void), DOS_SetAnsiAttr(uint8_t attr);
 extern int lastcp, FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused), UpdateSDLDrawTexture();
 void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str), show_prompt();
@@ -1045,6 +1046,7 @@ public:
             return;
         }
 		if (cmd->FindExist("/examples")||cmd->FindExist("-examples")) {
+            resetcolor = true;
 #if defined (WIN32) || defined(OS2)
             WriteOut(MSG_Get("PROGRAM_MOUNT_EXAMPLE"),"d:\\dosprogs","d:\\dosprogs","\"d:\\dos games\"","\"d:\\dos games\"","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\dosprogs","d:\\overlaydir");
 #else
@@ -1528,6 +1530,7 @@ public:
         if(type == "floppy") incrementFDD();
         return;
 showusage:
+        resetcolor = true;
         WriteOut(MSG_Get("PROGRAM_MOUNT_USAGE"));
         return;
     }
@@ -1816,6 +1819,7 @@ private:
     /*! \brief      Utility function to print generic boot error
      */
     void printError(void) {
+        resetcolor = true;
         WriteOut(MSG_Get("PROGRAM_BOOT_PRINT_ERROR"));
     }
 
@@ -3071,6 +3075,7 @@ restart_int:
             return;
         }
 		if (cmd->FindExist("/examples")||cmd->FindExist("-examples")) {
+			resetcolor = true;
 			WriteOut(MSG_Get("PROGRAM_IMGMAKE_EXAMPLE"));
 			return;
 		}
@@ -3804,6 +3809,7 @@ restart_int:
         return;
     }
     void printHelp() { // maybe hint parameter?
+        resetcolor = true;
         WriteOut(MSG_Get("PROGRAM_IMGMAKE_SYNTAX"));
     }
 };
@@ -3864,6 +3870,7 @@ public:
         ChangeToLongCmd();
 
         if(cmd->FindExist("/?", true) || cmd->FindExist("-?", true) || cmd->FindExist("?", true)) {
+            resetcolor = true;
             WriteOut("Swaps floppy, hard drive and optical disc images.\n\n"
                 "\033[32;1mIMGSWAP\033[0m \033[37;1mdrive\033[0m \033[36;1m[position]\033[0m\n"
                 " \033[37;1mdrive\033[0m               Drive letter to swap the image.\n"
@@ -3973,6 +3980,7 @@ void LOADFIX::Run(void)
         opta = true;
 
     if (cmd->GetCount()==1 && (cmd->FindExist("-?", false) || cmd->FindExist("/?", false))) {
+        resetcolor = true;
         WriteOut(MSG_Get("PROGRAM_LOADFIX_HELP"));
         return;
     }
@@ -4302,20 +4310,23 @@ public:
 			WriteOut("A full-screen introduction to DOSBox-X.\n\nINTRO [/RUN] [CDROM|MOUNT|USAGE]\n");
 			return;
 		}
+        uint8_t attr = DOS_GetAnsiAttr();
         std::string menuname = "BASIC"; // default
         /* Only run if called from the first shell (Xcom TFTD runs any intro file in the path) */
         if (!cmd->FindExist("-run", true)&&!cmd->FindExist("/run", true)&&DOS_PSP(dos.psp()).GetParent() != DOS_PSP(DOS_PSP(dos.psp()).GetParent()).GetParent()) return;
         if(cmd->FindExist("cdrom",false)) {
             WriteOut(MSG_Get("PROGRAM_INTRO_CDROM"));
+            if (attr) DOS_SetAnsiAttr(attr);
             return;
         }
         if(cmd->FindExist("mount",false)) {
             WriteOut("\033[2J");//Clear screen before printing
             DisplayMount();
+            if (attr) DOS_SetAnsiAttr(attr);
             return;
         }
 
-        if(cmd->FindExist("usage",false)) { DisplayUsage(); return; }
+        if(cmd->FindExist("usage",false)) {DisplayUsage(); if (attr) DOS_SetAnsiAttr(attr); return; }
         uint8_t c;uint16_t n=1;
 
 #define CURSOR(option) \
@@ -4346,6 +4357,7 @@ menufirst:
 
 goto_exit:
         WriteOut("\n"); // Give a line
+        if (attr) DOS_SetAnsiAttr(attr);
         return;
 
 basic:
@@ -4420,7 +4432,8 @@ quit:
                 menuname="GOTO_EXIT";
                 goto menufirst;
         } while (CON_IN(&c));
-    }   
+        if (attr) DOS_SetAnsiAttr(attr);
+    }
 };
 
 bool ElTorito_ChecksumRecord(unsigned char *entry/*32 bytes*/) {
@@ -4688,10 +4701,12 @@ public:
         }
         //show help if /? or -?
         if (cmd->FindExist("/?", true) || cmd->FindExist("-?", true) || cmd->FindExist("?", true) || cmd->FindExist("-help", true)) {
+            resetcolor = true;
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_HELP"));
             return;
         }
 		if (cmd->FindExist("/examples")||cmd->FindExist("-examples")) {
+            resetcolor = true;
 			WriteOut(MSG_Get("PROGRAM_IMGMOUNT_EXAMPLE"));
 			return;
 		}
@@ -6219,6 +6234,7 @@ public:
 void KEYB::Run(void) {
     if (cmd->FindCommand(1,temp_line)) {
         if (cmd->FindString("?",temp_line,false)) {
+            resetcolor = true;
             WriteOut(MSG_Get("PROGRAM_KEYB_SHOWHELP"));
         } else {
             /* first parameter is layout ID */
@@ -6642,7 +6658,8 @@ void AUTOTYPE::PrintUsage()
 	        "  \033[32;1mAUTOTYPE -w 1 -p 0.3 up enter , right enter\033[0m\n"
 	        "  \033[32;1mAUTOTYPE -p 0.2 f1 kp_8 , , enter\033[0m\n"
 	        "  \033[32;1mAUTOTYPE -w 1.3 esc enter , p l a y e r enter\033[0m\n";
-	WriteOut_NoParsing(msg);
+	resetcolor = true;
+	WriteOut(msg);
 }
 
 // Prints the key-names for the mapper's currently-bound events.

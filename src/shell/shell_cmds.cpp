@@ -126,11 +126,12 @@ const char *GetCmdName(int i) {
 extern int enablelfn, lfn_filefind_handle, file_access_tries;
 extern bool date_host_forced, usecon, outcon, rsize, autoboxdraw, dbcs_sbcs, sync_time, manualtime, inshell, noassoc;
 extern unsigned long freec;
+extern uint8_t DOS_GetAnsiAttr(void);
 extern uint16_t countryNo, altcp_to_unicode[256];
 void GetExpandedPath(std::string &path);
-bool Network_IsNetworkResource(const char * filename), TTF_using();
-void DOS_SetCountry(uint16_t countryNo), DOSV_FillScreen();
-extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
+bool Network_IsNetworkResource(const char * filename), DOS_SetAnsiAttr(uint8_t attr);
+void DOS_SetCountry(uint16_t countryNo), DOSV_FillScreen(void);
+extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), TTF_using(void);
 extern bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4);
 std::string GetDOSBoxXPath(bool withexe=false);
 
@@ -285,11 +286,13 @@ __do_command_begin:
 
 #define HELP(command) \
 	if (ScanCMDBool(args,"?")) { \
+		uint8_t attr = DOS_GetAnsiAttr(); \
 		WriteOut(MSG_Get("SHELL_CMD_" command "_HELP")); \
 		const char* long_m = MSG_Get("SHELL_CMD_" command "_HELP_LONG"); \
 		WriteOut("\n"); \
 		if(strcmp("Message not Found!\n",long_m)) WriteOut(long_m); \
 		else WriteOut(command "\n"); \
+		if (attr) DOS_SetAnsiAttr(attr); \
 		return; \
 	}
 
@@ -983,6 +986,7 @@ void DOS_Shell::CMD_HELP(char * args){
 	/* Print the help */
 	args = trim(args);
 	upcase(args);
+	uint8_t attr = DOS_GetAnsiAttr();
 	if(!optall&&!*args) WriteOut(MSG_Get("SHELL_CMD_HELP"));
 	uint32_t cmd_index=0,write_count=0;
 	bool show=false;
@@ -1005,7 +1009,7 @@ void DOS_Shell::CMD_HELP(char * args){
 					WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
 					uint8_t c;uint16_t n=1;
 					DOS_ReadFile(STDIN,&c,&n);
-					if (c==3) return;
+					if (c==3) {if (attr) DOS_SetAnsiAttr(attr);return;}
 					if (c==0) DOS_ReadFile(STDIN,&c,&n); // read extended key
 				}
 			}
@@ -1020,6 +1024,7 @@ void DOS_Shell::CMD_HELP(char * args){
 	}
 	if (!*args&&show)
 		WriteOut(MSG_Get("SHELL_CMD_HELP_END2"));
+	if (attr) DOS_SetAnsiAttr(attr);
 }
 
 void removeChar(char *str, char c) {

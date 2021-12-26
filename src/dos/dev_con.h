@@ -68,6 +68,12 @@ public:
 	bool Write(const uint8_t * data,uint16_t * size);
 	bool Seek(uint32_t * pos,uint32_t type);
 	bool Close();
+	uint8_t GetAnsiAttr(void) {
+		return ansi.attr;
+	}
+	void SetAnsiAttr(uint8_t attr) {
+		ansi.attr = attr;
+	}
 	uint16_t GetInformation(void);
 	bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
 	bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
