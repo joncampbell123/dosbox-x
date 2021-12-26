@@ -16,7 +16,7 @@
 #
 #    The entries are in cp950 order
 #
-# Big5-2003 with ChinaSea extension
+# BIG5-2003 with ChinaSea extension
 0x00	0x0000	#NULL
 0x01	0x0001	#START OF HEADING
 0x02	0x0002	#START OF TEXT

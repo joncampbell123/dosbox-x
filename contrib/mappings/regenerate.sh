@@ -22,8 +22,8 @@
 ./db2u.pl cp932_to_unicode <CP932.TXT >../../include/cp932_uni.h || exit 1
 ./db2u.pl cp936_to_unicode <CP936.TXT >../../include/cp936_uni.h || exit 1
 ./db2u.pl cp949_to_unicode <CP949.TXT >../../include/cp949_uni.h || exit 1
-#./db2u.pl cp950_to_unicode <CP950.TXT >../../include/cp950_uni.h || exit 1
-#./db2u.pl cp951_to_unicode <CP951.TXT >../../include/cp951_uni.h || exit 1
+#./db2u.pl cp950_to_unicode <CP950.TXT >../../include/cp950_uni.h || exit 1 # For BIG5-1984 and BIG5-2003 with ChinaSea extension
+#./db2u.pl cp951_to_unicode <CP951.TXT >../../include/cp951_uni.h || exit 1 # For BIG5-HKSCS and optionally BIG5 Unicode-At-On (UAO)
 ./sb2u.pl cp1250_to_unicode <CP1250.TXT >../../include/cp1250_uni.h || exit 1
 ./sb2u.pl cp1251_to_unicode <CP1251.TXT >../../include/cp1251_uni.h || exit 1
 ./sb2u.pl cp1252_to_unicode <CP1252.TXT >../../include/cp1252_uni.h || exit 1
