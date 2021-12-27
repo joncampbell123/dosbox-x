@@ -3231,8 +3231,8 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
         RECT r;
         bool res = GetWindowRect(GetHWND(), &r);
         int tWidth = menuwidth_atleast(r.right-r.left);
-        if (res && tWidth>0) {
-            int tHeight = (double)(tWidth-r.right+r.left+width)*height/width+(r.bottom-r.top-height);
+        int tHeight = r.bottom-r.top-height<0?(r.bottom-r.top):(double)(tWidth-r.right+r.left+width)*height/width+(r.bottom-r.top-height);
+        if (res && tWidth>0 && tHeight>0) {
             MoveWindow(GetHWND(), r.left, r.top, tWidth, tHeight, true);
             LOG_MSG("SDL: Window size enlarged for the menus\n");
         }
