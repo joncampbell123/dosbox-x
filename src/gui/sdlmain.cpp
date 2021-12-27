@@ -5559,7 +5559,9 @@ void decreaseFontSize() {
 	int dec=ttf.DOSBox ? 2 : 1;
 	if (ttf.inUse && ttf.pointsize >= MIN_PTSIZE + dec) {
 		GFX_SelectFontByPoints(ttf.pointsize - dec);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 		if (!ttf.fullScrn && menu_gui && menu.toggle && menuwidth_atleast(ttf.cols*ttf.width)>0) GFX_SelectFontByPoints(ttf.pointsize + dec);
+#endif
 		GFX_SetSize(720+sdl.clip.x, 400+sdl.clip.y, sdl.draw.flags,sdl.draw.scalex,sdl.draw.scaley,sdl.draw.callback);
 		wmemset((wchar_t*)curAttrChar, -1, ttf.cols*ttf.lins);
 		if (ttf.fullScrn) {																// smaller content area leaves old one behind
