@@ -19,6 +19,9 @@
     shown in a new dialog and can be selected directly.
     Also, more settings will be applied immediately when
     modified from the Configuration Tool. (Wengier)
+  - For Windows SDL1 builds, DOSBox-X will now try to
+    prevent the Windows menus from separating into more
+    than one lines due to small window width. (Wengier)
   - If a scaler as specified in the config may not work
     as expected and if not forced, DOSBox-X will show a
     a message box asking whether to load it. (Wengier)

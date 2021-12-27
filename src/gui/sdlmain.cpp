@@ -3079,6 +3079,25 @@ static Bitu OUTPUT_TTF_SetSize() {
 }
 #endif
 
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+int menuwidth_atleast(int width) {
+    HMENU hMenu = mainMenu.getWinMenu();
+    int count = GetMenuItemCount(hMenu);
+    int tWidth = 0;
+    RECT r;
+    for(int idx = 0; idx < count; ++idx) {
+        if (GetMenuItemRect(GetHWND(), hMenu, idx, &r)) {
+            int res=MapWindowPoints(NULL, GetHWND(), (LPPOINT)&r, 2);
+            tWidth += r.right - r.left;
+        }
+    }
+    tWidth += GetSystemMetrics(SM_CXBORDER)*2+(TTF_using()?0:38);
+    unsigned int maxWidth = 0, maxHeight = 0;
+    GetMaxWidthHeight(&maxWidth, &maxHeight);
+    return tWidth>width && tWidth<=maxWidth ? tWidth : -1;
+}
+#endif
+
 Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scaley, GFX_CallBack_t callback) 
 {
     if ((width == 0 || height == 0) && !TTF_using()) {
@@ -3197,6 +3216,17 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
                 by += (dm.h - sdl.draw.height - sdl.clip.y)/2;
             }
             SDL_SetWindowPosition(sdl.window, bx, by);
+        }
+    }
+#endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+    if (!sdl.desktop.fullscreen && menu_gui && menu.toggle) {
+        RECT r;
+        bool res = GetWindowRect(GetHWND(), &r);
+        int tWidth = menuwidth_atleast(r.right-r.left);
+        if (res && tWidth>0) {
+            MoveWindow(GetHWND(), r.left, r.top, tWidth, r.bottom-r.top, true);
+            LOG_MSG("SDL: Window size enlarged for the menus\n");
         }
     }
 #endif
@@ -4233,7 +4263,15 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         if (ttf.DOSBox && curSize > MIN_PTSIZE)														// make it even for DOSBox-X internal font (a bit nicer)
             curSize &= ~1;
     }
+resize:
     GFX_SelectFontByPoints(curSize);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+    if (!ttf.fullScrn && menu_gui && menu.toggle && menuwidth_atleast(ttf.cols*ttf.width)>0) {
+        if (ttf.cols*ttf.width > maxWidth || ttf.lins*ttf.height > maxHeight) E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
+        curSize++;
+        goto resize;
+    }
+#endif
     if (fontSize>=MIN_PTSIZE && 100*ttf.cols*ttf.width/maxWidth*ttf.lins*ttf.height/maxHeight > 100)
         E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
     if (ttf.SDL_font && ttf.width) {
@@ -5521,6 +5559,7 @@ void decreaseFontSize() {
 	int dec=ttf.DOSBox ? 2 : 1;
 	if (ttf.inUse && ttf.pointsize >= MIN_PTSIZE + dec) {
 		GFX_SelectFontByPoints(ttf.pointsize - dec);
+		if (!ttf.fullScrn && menu_gui && menu.toggle && menuwidth_atleast(ttf.cols*ttf.width)>0) GFX_SelectFontByPoints(ttf.pointsize + dec);
 		GFX_SetSize(720+sdl.clip.x, 400+sdl.clip.y, sdl.draw.flags,sdl.draw.scalex,sdl.draw.scaley,sdl.draw.callback);
 		wmemset((wchar_t*)curAttrChar, -1, ttf.cols*ttf.lins);
 		if (ttf.fullScrn) {																// smaller content area leaves old one behind
