@@ -3228,7 +3228,7 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
     }
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-    if (!sdl.desktop.fullscreen && menu_gui && menu.toggle && ((width == 640 || (vga.draw.char9_set && width == 720)) && (((IS_EGA_ARCH || IS_JEGA_ARCH) && height == 350) || height == 400)) || ((render.aspect || IS_DOSV) && checkmenuwidth)) {
+    if (!sdl.desktop.fullscreen && menu_gui && menu.toggle && ((width == 640 || (vga.draw.char9_set && width == 720)) && ((machine != MCH_CGA && !IS_VGA_ARCH && !IS_PC98_ARCH && height == 350) || height == 400)) || ((render.aspect || IS_DOSV) && checkmenuwidth)) {
         RECT r;
         bool res = GetWindowRect(GetHWND(), &r);
         unsigned int maxWidth, maxHeight;
