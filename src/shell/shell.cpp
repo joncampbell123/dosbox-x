@@ -57,6 +57,7 @@ extern bool addovl, addipx, addne2k, enableime;
 extern const char* RunningProgram;
 extern int enablelfn, msgcodepage;
 extern uint16_t countryNo;
+extern unsigned int dosbox_shell_env_size;
 bool outcon = true, usecon = true;
 bool shellrun = false, prepared = false;
 
@@ -1201,10 +1202,6 @@ static Bitu INT2E_Handler(void) {
 	reg_ax=0;
 	return CBRET_NONE;
 }
-
-extern unsigned int dosbox_shell_env_size;
-void IPXNET_ProgramStart(Program * * make);
-void drivezRegister(std::string path, std::string dir);
 
 /* TODO: Why is all this DOS kernel and VFILE registration here in SHELL_Init()?
  *       That's like claiming that DOS memory and device initialization happens from COMMAND.COM!

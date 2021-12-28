@@ -101,7 +101,7 @@ uint8_t DOS_GetAnsiAttr(void);
 bool isDBCSCP(void), CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4), DOS_SetAnsiAttr(uint8_t attr);
 char *FormatDate(uint16_t year, uint8_t month, uint8_t day);
 void EMS_DoShutDown(void), UpdateDefaultPrinterFont(void), GFX_ForceRedrawScreen(void), resetFontSize(void), ttf_reset_colors(void), makestdcp950table(void), makeseacp951table(void), DOSBox_SetSysMenu(void), MSG_Init(void), initRand(void), PRINTER_Init(void);
-void EMS_Startup(Section* sec), DOSV_SetConfig(Section_prop *section), DOSBOX_UnlockSpeed2(bool pressed), RebootLanguage(std::string filename, bool confirm=false), SetWindowTransparency(int trans), SetOutputSwitch(const char *outputstr), runSerial(const char *str), runParallel(const char *str), DOS_AddDays(uint8_t days), PRINTER_Shutdown(Section* sec);
+void EMS_Startup(Section* sec), DOSV_SetConfig(Section_prop *section), DOSBOX_UnlockSpeed2(bool pressed), RebootLanguage(std::string filename, bool confirm=false), SetWindowTransparency(int trans), SetOutputSwitch(const char *outputstr), runRescan(const char *str), runSerial(const char *str), runParallel(const char *str), DOS_AddDays(uint8_t days), PRINTER_Shutdown(Section* sec);
 
 void PROGRAMS_Shutdown(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Shutting down internal programs list");
@@ -1056,7 +1056,9 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
 #if defined(USE_TTF)
                         if (TTF_using() && dos.loaded_codepage==951) {
                             MSG_Init();
+                            DOSBox_SetSysMenu();
                             resetFontSize();
+                            runRescan("-A -Q");
                         }
 #endif
                     }

@@ -113,7 +113,7 @@ extern int lastcp, FileDirExistCP(const char *name), FileDirExistUTF8(std::strin
 extern uint8_t DOS_GetAnsiAttr(void);
 void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused), UpdateSDLDrawTexture();
 void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str), show_prompt();
-void drivezRegister(std::string path, std::string dir, bool usecp);
+void getdrivezpath(std::string &path, std::string dirname), drivezRegister(std::string path, std::string dir, bool usecp);
 std::string GetDOSBoxXPath(bool withexe=false);
 
 #if defined(OS2)
@@ -8173,24 +8173,7 @@ void Add_VFiles(bool usecp) {
     std::string path = ".";
     path += CROSS_FILESPLIT;
     path += dirname;
-    struct stat cstat;
-    int res=stat(path.c_str(),&cstat);
-    if(res==-1 || !(cstat.st_mode & S_IFDIR)) {
-        path = GetDOSBoxXPath();
-        if (path.size()) {
-            path += dirname;
-            res=stat(path.c_str(),&cstat);
-        }
-        if(!path.size() || res==-1 || (cstat.st_mode & S_IFDIR) == 0) {
-            path = "";
-            Cross::CreatePlatformConfigDir(path);
-            path += dirname;
-            res=stat(path.c_str(),&cstat);
-            if(res==-1 || (cstat.st_mode & S_IFDIR) == 0)
-                path = "";
-        }
-    }
-
+    getdrivezpath(path, dirname);
     drivezRegister(path, "/", usecp);
 
     PROGRAMS_MakeFile("HELP.COM",HELP_ProgramStart,"/SYSTEM/");
@@ -8204,10 +8187,7 @@ void Add_VFiles(bool usecp) {
     PROGRAMS_MakeFile("COUNTRY.COM",COUNTRY_ProgramStart,"/SYSTEM/");
 	PROGRAMS_MakeFile("COMMAND.COM",SHELL_ProgramStart);
     if (usecp) VFILE_Register("AUTOEXEC.BAT",(uint8_t *)autoexec_data,(uint32_t)strlen(autoexec_data));
-    if (prepared) {
-        VFILE_Register("CONFIG.SYS",(uint8_t *)config_data,(uint32_t)strlen(config_data));
-        VFILE_Register("4DOS.INI",(uint8_t *)i4dos_data,(uint32_t)strlen(i4dos_data), "/4DOS/");
-    }
+    if (prepared) VFILE_Register("CONFIG.SYS",(uint8_t *)config_data,(uint32_t)strlen(config_data));
     PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("RESCAN.COM",RESCAN_ProgramStart,"/SYSTEM/");
 #if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
@@ -8331,6 +8311,7 @@ void Add_VFiles(bool usecp) {
 		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_HLP, "/4DOS/");
 		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_COM, "/4DOS/");
 	}
+	if (prepared) VFILE_Register("4DOS.INI",(uint8_t *)i4dos_data,(uint32_t)strlen(i4dos_data), "/4DOS/");
 
 	if (IS_VGA_ARCH) {
         VFILE_RegisterBuiltinFileBlob(bfb_VGA_COM, "/TEXTUTIL/");
