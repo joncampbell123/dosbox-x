@@ -1910,13 +1910,11 @@ next:
 	return;
 }
 
-
-static void CONFIG_ProgramStart(Program * * make) {
+void CONFIG_ProgramStart(Program * * make) {
 	*make=new CONFIG;
 }
 
 void PROGRAMS_DOS_Boot(Section *) {
-	PROGRAMS_MakeFile("CONFIG.COM",CONFIG_ProgramStart,"/SYSTEM/");
 }
 
 /* FIXME: Rename the function to clarify it does not init programs, it inits the callback mechanism

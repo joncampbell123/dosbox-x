@@ -52,6 +52,7 @@ static VFILE_Block * first_file, * lfn_search[256], * parent_dir = NULL;
 
 extern int lfn_filefind_handle;
 extern bool filename_not_8x3(const char *n), filename_not_strict_8x3(const char *n);
+extern void Add_VFiles(bool usecp), PROGRAMS_Shutdown(void);
 extern char * DBCS_upcase(char * str);
 std::string hidefiles="";
 
@@ -667,4 +668,15 @@ Bits Virtual_Drive::UnMount(void) {
 
 char const* Virtual_Drive::GetLabel(void) {
 	return "DOSBOX-X";
+}
+
+void Virtual_Drive::EmptyCache(void) {
+	while (first_file != NULL) {
+		VFILE_Block *n = first_file->next;
+		delete first_file;
+		first_file = n;
+	}
+    vfpos=1;
+    PROGRAMS_Shutdown();
+    Add_VFiles(true);
 }

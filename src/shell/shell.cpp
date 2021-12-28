@@ -33,7 +33,6 @@
 #include "callback.h"
 #include "dos_inc.h"
 #include "support.h"
-#include "builtin.h"
 #include "mapper.h"
 #include "render.h"
 #include "jfont.h"
@@ -59,7 +58,7 @@ extern const char* RunningProgram;
 extern int enablelfn, msgcodepage;
 extern uint16_t countryNo;
 bool outcon = true, usecon = true;
-bool shellrun = false;
+bool shellrun = false, prepared = false;
 
 uint16_t shell_psp = 0;
 Bitu call_int2e = 0;
@@ -84,7 +83,7 @@ static Bitu shellstop_handler(void) {
 	return CBRET_STOP;
 }
 
-static void SHELL_ProgramStart(Program * * make) {
+void SHELL_ProgramStart(Program * * make) {
 	*make = new DOS_Shell;
 }
 //Repeat it with the correct type, could do it in the function below, but this way it should be 
@@ -93,12 +92,10 @@ static void SHELL_ProgramStart_First_shell(DOS_Shell * * make) {
 	*make = new DOS_Shell;
 }
 
-#define CONFIG_SIZE 4096
-#define AUTOEXEC_SIZE 4096
 bool i4dos=false;
-static char i4dos_data[CONFIG_SIZE] = { 0 };
-static char config_data[CONFIG_SIZE] = { 0 };
-static char autoexec_data[AUTOEXEC_SIZE] = { 0 };
+char i4dos_data[CONFIG_SIZE] = { 0 };
+char config_data[CONFIG_SIZE] = { 0 };
+char autoexec_data[AUTOEXEC_SIZE] = { 0 };
 static std::list<std::string> autoexec_strings;
 typedef std::list<std::string>::iterator auto_it;
 
@@ -1589,7 +1586,6 @@ void SHELL_Init() {
 	reg_ip=RealOff(newcsip);
 
 	CALLBACK_Setup(call_shellstop,shellstop_handler,CB_IRET,"shell stop");
-	PROGRAMS_MakeFile("COMMAND.COM",SHELL_ProgramStart);
 
     /* NTS: Some DOS programs behave badly if run from a command interpreter
      *      who's PSP segment is too low in memory and does not appear in
@@ -1701,125 +1697,6 @@ void SHELL_Init() {
 	extern bool Mouse_Drv;
 	Mouse_Drv = true;
 
-    std::string dirname="drivez";
-    std::string path = ".";
-    path += CROSS_FILESPLIT;
-    path += dirname;
-    struct stat cstat;
-    int res=stat(path.c_str(),&cstat);
-    if(res==-1 || !(cstat.st_mode & S_IFDIR)) {
-        path = GetDOSBoxXPath();
-        if (path.size()) {
-            path += dirname;
-            res=stat(path.c_str(),&cstat);
-        }
-        if(!path.size() || res==-1 || (cstat.st_mode & S_IFDIR) == 0) {
-            path = "";
-            Cross::CreatePlatformConfigDir(path);
-            path += dirname;
-            res=stat(path.c_str(),&cstat);
-            if(res==-1 || (cstat.st_mode & S_IFDIR) == 0)
-                path = "";
-        }
-    }
-
-    drivezRegister(path, "/");
-
-	VFILE_RegisterBuiltinFileBlob(bfb_EDLIN_EXE, "/DOS/");
-	VFILE_RegisterBuiltinFileBlob(bfb_DEBUG_EXE, "/DOS/");
-	VFILE_RegisterBuiltinFileBlob(bfb_MOVE_EXE, "/DOS/");
-	VFILE_RegisterBuiltinFileBlob(bfb_FIND_EXE, "/DOS/");
-	VFILE_RegisterBuiltinFileBlob(bfb_FCBS_COM, "/DOS/");
-	VFILE_RegisterBuiltinFileBlob(bfb_FILES_COM, "/DOS/");
-	VFILE_RegisterBuiltinFileBlob(bfb_LASTDRIV_COM, "/DOS/");
-	VFILE_RegisterBuiltinFileBlob(bfb_REPLACE_EXE, "/DOS/");
-	VFILE_RegisterBuiltinFileBlob(bfb_SORT_EXE, "/DOS/");
-	VFILE_RegisterBuiltinFileBlob(bfb_XCOPY_EXE, "/DOS/");
-	VFILE_RegisterBuiltinFileBlob(bfb_APPEND_EXE, "/DOS/");
-	VFILE_RegisterBuiltinFileBlob(bfb_DEVICE_COM, "/DOS/");
-	VFILE_RegisterBuiltinFileBlob(bfb_BUFFERS_COM, "/DOS/");
-	VFILE_RegisterBuiltinFileBlob(bfb_CHKDSK_EXE, "/DOS/");
-	VFILE_RegisterBuiltinFileBlob(bfb_COMP_COM, "/DOS/");
-	VFILE_RegisterBuiltinFileBlob(bfb_FC_EXE, "/DOS/");
-#if C_IPX
-	if (addipx) PROGRAMS_MakeFile("IPXNET.COM",IPXNET_ProgramStart,"/SYSTEM/");
-#endif
-	if (addne2k) VFILE_RegisterBuiltinFileBlob(bfb_NE2000_COM, "/SYSTEM/");
-	if (addovl) VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL, "/SYSTEM/");
-
-	/* These are IBM PC/XT/AT ONLY. They will not work in PC-98 mode. */
-	if (!IS_PC98_ARCH) {
-		VFILE_RegisterBuiltinFileBlob(bfb_SYS_COM, "/DOS/"); /* may rely on INT 13h or IBM PC specific functions and layout */
-		VFILE_RegisterBuiltinFileBlob(bfb_FDISK_EXE, "/DOS/"); /* relies on IBM PC INT 13h */
-		VFILE_RegisterBuiltinFileBlob(bfb_FORMAT_EXE, "/DOS/"); /* does not work in PC-98 mode */
-		VFILE_RegisterBuiltinFileBlob(bfb_DEFRAG_EXE, "/DOS/"); /* relies on IBM PC CGA/EGA/VGA alphanumeric display memory */
-		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM16_EXE, "/DEBUG/");
-		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM32_EXE, "/DEBUG/");
-		VFILE_RegisterBuiltinFileBlob(bfb_DOSIDLE_EXE, "/BIN/");
-		VFILE_RegisterBuiltinFileBlob(bfb_DOS32A_EXE, "/BIN/");
-		VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE, "/BIN/");
-		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_EXE, "/BIN/");
-		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_TXT, "/BIN/");
-		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_ZIP, "/BIN/");
-		VFILE_RegisterBuiltinFileBlob(bfb_DOSMID_EXE, "/BIN/");
-		VFILE_RegisterBuiltinFileBlob(bfb_MPXPLAY_EXE, "/BIN/");
-		VFILE_RegisterBuiltinFileBlob(bfb_ZIP_EXE, "/BIN/");
-		VFILE_RegisterBuiltinFileBlob(bfb_UNZIP_EXE, "/BIN/");
-		VFILE_RegisterBuiltinFileBlob(bfb_EMSMAGIC_COM, "/BIN/");
-		VFILE_RegisterBuiltinFileBlob(bfb_DISKCOPY_EXE, "/DOS/");
-		VFILE_RegisterBuiltinFileBlob(bfb_PRINT_COM, "/DOS/");
-
-		/* It appears the latest EDIT.COM requires a 386, and it does not bother
-		 * to detect if the CPU is a 386. If you run this program for 286 and lower
-		 * you get a crash. */
-		if (CPU_ArchitectureType >= CPU_ARCHTYPE_386)
-			VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM, "/DOS/");
-
-		VFILE_RegisterBuiltinFileBlob(bfb_LICENSE_TXT, "/4DOS/");
-		VFILE_RegisterBuiltinFileBlob(bfb_EXAMPLES_BTM, "/4DOS/");
-		VFILE_RegisterBuiltinFileBlob(bfb_BATCOMP_EXE, "/4DOS/");
-		VFILE_RegisterBuiltinFileBlob(bfb_OPTION_EXE, "/4DOS/");
-		VFILE_RegisterBuiltinFileBlob(bfb_4HELP_EXE, "/4DOS/");
-		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_HLP, "/4DOS/");
-		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_COM, "/4DOS/");
-	}
-
-	if (IS_VGA_ARCH) {
-        VFILE_RegisterBuiltinFileBlob(bfb_VGA_COM, "/TEXTUTIL/");
-        VFILE_RegisterBuiltinFileBlob(bfb_SCANRES_COM, "/TEXTUTIL/");
-        VFILE_RegisterBuiltinFileBlob(bfb_EGA_COM, "/TEXTUTIL/");
-        VFILE_RegisterBuiltinFileBlob(bfb_CLR_COM, "/TEXTUTIL/");
-        VFILE_RegisterBuiltinFileBlob(bfb_CGA_COM, "/TEXTUTIL/");
-        VFILE_RegisterBuiltinFileBlob(bfb_50_COM, "/TEXTUTIL/");
-        VFILE_RegisterBuiltinFileBlob(bfb_28_COM, "/TEXTUTIL/");
-    } else if (IS_EGA_ARCH)
-        VFILE_RegisterBuiltinFileBlob(bfb_28_COM_ega, "/TEXTUTIL/");
-
-    if (IS_VGA_ARCH)
-        VFILE_RegisterBuiltinFileBlob(bfb_25_COM, "/TEXTUTIL/");
-    else if (IS_EGA_ARCH)
-        VFILE_RegisterBuiltinFileBlob(bfb_25_COM_ega, "/TEXTUTIL/");
-    else if (!IS_PC98_ARCH)
-        VFILE_RegisterBuiltinFileBlob(bfb_25_COM_other, "/TEXTUTIL/");
-
-    /* MEM.COM is not compatible with PC-98 and/or 8086 emulation */
-    if(!IS_PC98_ARCH && CPU_ArchitectureType >= CPU_ARCHTYPE_80186)
-        VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE, "/DOS/");
-
-    VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE, "/BIN/");
-    /* DSXMENU.EXE */
-    if(IS_PC98_ARCH)
-        VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC98, "/BIN/");
-    else {
-        VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC, "/BIN/");
-        VFILE_RegisterBuiltinFileBlob(bfb_SHUTDOWN_COM, "/BIN/");
-    }
-
-	VFILE_RegisterBuiltinFileBlob(bfb_EVAL_EXE, "/BIN/");
-    if(!IS_PC98_ARCH)
-        VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP, "/BIN/");
-
-
 	DOS_PSP psp(psp_seg);
 	psp.MakeNew(0);
 	dos.psp(psp_seg);
@@ -1878,6 +1755,7 @@ void SHELL_Run() {
     char namestr[CROSS_LEN], tmpstr[CROSS_LEN], *name=namestr, *tmp=tmpstr;
     SHELL_ProgramStart_First_shell(&first_shell);
     first_shell->Prepare();
+    prepared = true;
     if (section!=NULL&&!control->opt_noconfig&&!control->opt_securemode&&!control->SecureMode()) {
         char *shell = (char *)section->Get_string("shell");
         if (strlen(shell)) {
@@ -1916,6 +1794,7 @@ void SHELL_Run() {
 		first_shell->Run();
 		delete first_shell;
 		first_shell = 0;//Make clear that it shouldn't be used anymore
+		prepared = false;
 		dos_shell_running_program = false;
 #if defined(WIN32) && !defined(C_SDL2)
 		int Reflect_Menu(void);
@@ -1925,6 +1804,7 @@ void SHELL_Run() {
 	catch (...) {
 		delete first_shell;
 		first_shell = 0;//Make clear that it shouldn't be used anymore
+		prepared = false;
 		dos_shell_running_program = false;
 #if defined(WIN32) && !defined(C_SDL2)
 		int Reflect_Menu(void);

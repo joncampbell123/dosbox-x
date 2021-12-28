@@ -115,6 +115,8 @@
     that appear on the Z drive (Z:/DOS/CHOICE.COM and
     Z:/SYSTEM/COUNTRY.COM respectively) now rather than
     internal shell commands. (Wengier)
+  - The internal Virtual Drive Z: can now be rescanned
+    just like mounted local drives. (Wengier)
   - You can now change most config options in [printer]
     section of the configuration for the virtual printer
     with CONFIG -set commands. (Wengier)

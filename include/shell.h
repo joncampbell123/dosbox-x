@@ -32,6 +32,10 @@
 #define CMD_MAXLINE 4096
 #define CMD_MAXCMDS 20
 #define CMD_OLDSIZE 4096
+
+#define CONFIG_SIZE 4096
+#define AUTOEXEC_SIZE 4096
+
 extern Bitu call_shellstop;
 class DOS_Shell;
 

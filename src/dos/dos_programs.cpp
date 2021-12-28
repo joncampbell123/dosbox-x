@@ -42,6 +42,7 @@
 #include "cpu.h"
 #include "callback.h"
 #include "cdrom.h"
+#include "builtin.h"
 #include "bios_disk.h"
 #include "dos_system.h"
 #include "dos_inc.h"
@@ -50,6 +51,7 @@
 #include "dma.h"
 #include "bios_disk.h"
 #include "qcow2_disk.h"
+#include "shell.h"
 #include "setup.h"
 #include "control.h"
 #include <time.h>
@@ -91,6 +93,7 @@ typedef std::basic_string<char> test_char;
 #endif
 int freesizecap = 1;
 int result_errorcode = 0;
+char lastmount = 0;
 bool Mouse_Drv=true;
 bool Mouse_Vertical = false;
 bool force_nocachedir = false;
@@ -103,13 +106,15 @@ bool starttranspath = false;
 bool mountwarning = true;
 bool qmount = false;
 bool nowarn = false;
-char lastmount = 0;
-extern uint8_t DOS_GetAnsiAttr(void);
 bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
-extern bool inshell, usecon, uao, morelen, mountfro[26], mountiro[26], resetcolor, clear_screen(), OpenGL_using(void), DOS_SetAnsiAttr(uint8_t attr);
+extern bool addovl, addipx, addne2k, prepared, inshell, usecon, uao, morelen, mountfro[26], mountiro[26], resetcolor;
+extern bool clear_screen(), OpenGL_using(void), DOS_SetAnsiAttr(uint8_t attr);
 extern int lastcp, FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
+extern uint8_t DOS_GetAnsiAttr(void);
 void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused), UpdateSDLDrawTexture();
 void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str), show_prompt();
+void drivezRegister(std::string path, std::string dir, bool usecp);
+std::string GetDOSBoxXPath(bool withexe=false);
 
 #if defined(OS2)
 #define INCL DOSFILEMGR
@@ -6440,12 +6445,18 @@ static void MORE_ProgramStart(Program * * make) {
 }
 */
 
+void MIXER_ProgramStart(Program * * make);
 void REDOS_ProgramStart(Program * * make);
+void SHELL_ProgramStart(Program * * make);
 void SERIAL_ProgramStart(Program * * make);
+void CONFIG_ProgramStart(Program * * make);
+void IPXNET_ProgramStart(Program * * make);
 void A20GATE_ProgramStart(Program * * make);
+void CGASNOW_ProgramStart(Program * * make);
 void PARALLEL_ProgramStart(Program * * make);
 void PC98UTIL_ProgramStart(Program * * make);
 void VESAMOED_ProgramStart(Program * * make);
+void VFRCRATE_ProgramStart(Program * * make);
 
 #if defined C_DEBUG
 class NMITEST : public Program {
@@ -8150,6 +8161,213 @@ static void FLAGSAVE_ProgramStart(Program** make)
     *make = new FLAGSAVE;
 }
 
+void Add_VFiles(bool usecp) {
+    VFILE_Register("TEXTUTIL", 0, 0, "/");
+    VFILE_Register("SYSTEM", 0, 0, "/");
+    VFILE_Register("DEBUG", 0, 0, "/");
+    VFILE_Register("DOS", 0, 0, "/");
+    VFILE_Register("BIN", 0, 0, "/");
+    VFILE_Register("4DOS", 0, 0, "/");
+
+    std::string dirname="drivez";
+    std::string path = ".";
+    path += CROSS_FILESPLIT;
+    path += dirname;
+    struct stat cstat;
+    int res=stat(path.c_str(),&cstat);
+    if(res==-1 || !(cstat.st_mode & S_IFDIR)) {
+        path = GetDOSBoxXPath();
+        if (path.size()) {
+            path += dirname;
+            res=stat(path.c_str(),&cstat);
+        }
+        if(!path.size() || res==-1 || (cstat.st_mode & S_IFDIR) == 0) {
+            path = "";
+            Cross::CreatePlatformConfigDir(path);
+            path += dirname;
+            res=stat(path.c_str(),&cstat);
+            if(res==-1 || (cstat.st_mode & S_IFDIR) == 0)
+                path = "";
+        }
+    }
+
+    drivezRegister(path, "/", usecp);
+
+    PROGRAMS_MakeFile("HELP.COM",HELP_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("INTRO.COM",INTRO_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("IMGMOUNT.COM", IMGMOUNT_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("IMGMAKE.COM", IMGMAKE_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("IMGSWAP.COM", IMGSWAP_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("MOUNT.COM",MOUNT_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("BOOT.COM",BOOT_ProgramStart,"/SYSTEM/");
+	PROGRAMS_MakeFile("CONFIG.COM",CONFIG_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("COUNTRY.COM",COUNTRY_ProgramStart,"/SYSTEM/");
+	PROGRAMS_MakeFile("COMMAND.COM",SHELL_ProgramStart);
+    if (usecp) VFILE_Register("AUTOEXEC.BAT",(uint8_t *)autoexec_data,(uint32_t)strlen(autoexec_data));
+    if (prepared) {
+        VFILE_Register("CONFIG.SYS",(uint8_t *)config_data,(uint32_t)strlen(config_data));
+        VFILE_Register("4DOS.INI",(uint8_t *)i4dos_data,(uint32_t)strlen(i4dos_data), "/4DOS/");
+    }
+    PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("RESCAN.COM",RESCAN_ProgramStart,"/SYSTEM/");
+#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
+    if (startcmd) PROGRAMS_MakeFile("START.COM", START_ProgramStart,"/SYSTEM/");
+#endif
+
+    if (machine == MCH_CGA) PROGRAMS_MakeFile("CGASNOW.COM",CGASNOW_ProgramStart,"/TEXTUTIL/");
+    PROGRAMS_MakeFile("VFRCRATE.COM",VFRCRATE_ProgramStart,"/DEBUG/");
+
+    if (IS_VGA_ARCH && svgaCard != SVGA_None)
+        PROGRAMS_MakeFile("VESAMOED.COM",VESAMOED_ProgramStart,"/DEBUG/");
+
+    if (!IS_PC98_ARCH) {
+        PROGRAMS_MakeFile("LOADROM.COM", LOADROM_ProgramStart,"/DEBUG/");
+        PROGRAMS_MakeFile("KEYB.COM", KEYB_ProgramStart,"/DOS/");
+        PROGRAMS_MakeFile("MODE.COM", MODE_ProgramStart,"/DOS/");
+        PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart,"/DOS/");
+        PROGRAMS_MakeFile("SETCOLOR.COM", SETCOLOR_ProgramStart,"/BIN/");
+    }
+
+	if (IS_VGA_ARCH) {
+		PROGRAMS_MakeFile("80X60.COM", TEXT80X60_ProgramStart,"/TEXTUTIL/");
+		PROGRAMS_MakeFile("80X50.COM", TEXT80X50_ProgramStart,"/TEXTUTIL/");
+		PROGRAMS_MakeFile("80X43.COM", TEXT80X43_ProgramStart,"/TEXTUTIL/");
+		PROGRAMS_MakeFile("80X25.COM", TEXT80X25_ProgramStart,"/TEXTUTIL/");
+		PROGRAMS_MakeFile("132X60.COM", TEXT132X60_ProgramStart,"/TEXTUTIL/");
+		PROGRAMS_MakeFile("132X50.COM", TEXT132X50_ProgramStart,"/TEXTUTIL/");
+		PROGRAMS_MakeFile("132X43.COM", TEXT132X43_ProgramStart,"/TEXTUTIL/");
+		PROGRAMS_MakeFile("132X25.COM", TEXT132X25_ProgramStart,"/TEXTUTIL/");
+		PROGRAMS_MakeFile("DCGA.COM", DCGA_ProgramStart,"/TEXTUTIL/");
+	}
+
+    PROGRAMS_MakeFile("COLOR.COM",COLOR_ProgramStart,"/BIN/");
+    PROGRAMS_MakeFile("TITLE.COM",TITLE_ProgramStart,"/BIN/");
+    PROGRAMS_MakeFile("LS.COM",LS_ProgramStart,"/BIN/");
+    PROGRAMS_MakeFile("ADDKEY.COM",ADDKEY_ProgramStart,"/BIN/");
+    PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("FLAGSAVE.COM", FLAGSAVE_ProgramStart,"/SYSTEM/");
+#if defined C_DEBUG
+    PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart,"/DEBUG/");
+    PROGRAMS_MakeFile("INT2FDBG.COM",INT2FDBG_ProgramStart,"/DEBUG/");
+    PROGRAMS_MakeFile("BIOSTEST.COM", BIOSTEST_ProgramStart,"/DEBUG/");
+#endif
+    PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart,"/DEBUG/");
+
+    if (IS_PC98_ARCH)
+        PROGRAMS_MakeFile("PC98UTIL.COM",PC98UTIL_ProgramStart,"/BIN/");
+
+    PROGRAMS_MakeFile("CAPMOUSE.COM", CAPMOUSE_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("LOADFIX.COM",LOADFIX_ProgramStart,"/DOS/");
+    PROGRAMS_MakeFile("LABEL.COM", LABEL_ProgramStart,"/DOS/");
+    PROGRAMS_MakeFile("TREE.COM", TREE_ProgramStart,"/DOS/");
+    PROGRAMS_MakeFile("DELTREE.EXE",DELTREE_ProgramStart,"/DOS/");
+    PROGRAMS_MakeFile("CHOICE.COM", CHOICE_ProgramStart,"/DOS/");
+    PROGRAMS_MakeFile("AUTOTYPE.COM", AUTOTYPE_ProgramStart,"/BIN/");
+#ifdef C_ICONV
+    PROGRAMS_MakeFile("UTF8.COM", UTF8_ProgramStart,"/BIN/");
+    PROGRAMS_MakeFile("UTF16.COM", UTF16_ProgramStart,"/BIN/");
+#endif
+    PROGRAMS_MakeFile("MIXER.COM",MIXER_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("SERIAL.COM", SERIAL_ProgramStart,"/SYSTEM/");
+    PROGRAMS_MakeFile("PARALLEL.COM", PARALLEL_ProgramStart,"/SYSTEM/");
+    if (IS_DOSV)
+        PROGRAMS_MakeFile("VTEXT.COM", VTEXT_ProgramStart,"/TEXTUTIL/");
+
+	VFILE_RegisterBuiltinFileBlob(bfb_EDLIN_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_DEBUG_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_MOVE_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_FIND_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_FCBS_COM, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_FILES_COM, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_LASTDRIV_COM, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_REPLACE_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_SORT_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_XCOPY_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_APPEND_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_DEVICE_COM, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_BUFFERS_COM, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_CHKDSK_EXE, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_COMP_COM, "/DOS/");
+	VFILE_RegisterBuiltinFileBlob(bfb_FC_EXE, "/DOS/");
+#if C_IPX
+	if (addipx) PROGRAMS_MakeFile("IPXNET.COM",IPXNET_ProgramStart,"/SYSTEM/");
+#endif
+	if (addne2k) VFILE_RegisterBuiltinFileBlob(bfb_NE2000_COM, "/SYSTEM/");
+	if (addovl) VFILE_RegisterBuiltinFileBlob(bfb_GLIDE2X_OVL, "/SYSTEM/");
+
+	/* These are IBM PC/XT/AT ONLY. They will not work in PC-98 mode. */
+	if (!IS_PC98_ARCH) {
+		VFILE_RegisterBuiltinFileBlob(bfb_SYS_COM, "/DOS/"); /* may rely on INT 13h or IBM PC specific functions and layout */
+		VFILE_RegisterBuiltinFileBlob(bfb_FDISK_EXE, "/DOS/"); /* relies on IBM PC INT 13h */
+		VFILE_RegisterBuiltinFileBlob(bfb_FORMAT_EXE, "/DOS/"); /* does not work in PC-98 mode */
+		VFILE_RegisterBuiltinFileBlob(bfb_DEFRAG_EXE, "/DOS/"); /* relies on IBM PC CGA/EGA/VGA alphanumeric display memory */
+		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM16_EXE, "/DEBUG/");
+		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM32_EXE, "/DEBUG/");
+		VFILE_RegisterBuiltinFileBlob(bfb_DOSIDLE_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_DOS32A_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_DOS4GW_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_TXT, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_CDPLAY_ZIP, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_DOSMID_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_MPXPLAY_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_ZIP_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_UNZIP_EXE, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_EMSMAGIC_COM, "/BIN/");
+		VFILE_RegisterBuiltinFileBlob(bfb_DISKCOPY_EXE, "/DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_PRINT_COM, "/DOS/");
+
+		/* It appears the latest EDIT.COM requires a 386, and it does not bother
+		 * to detect if the CPU is a 386. If you run this program for 286 and lower
+		 * you get a crash. */
+		if (CPU_ArchitectureType >= CPU_ARCHTYPE_386)
+			VFILE_RegisterBuiltinFileBlob(bfb_EDIT_COM, "/DOS/");
+
+		VFILE_RegisterBuiltinFileBlob(bfb_LICENSE_TXT, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_EXAMPLES_BTM, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_BATCOMP_EXE, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_OPTION_EXE, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_4HELP_EXE, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_HLP, "/4DOS/");
+		VFILE_RegisterBuiltinFileBlob(bfb_4DOS_COM, "/4DOS/");
+	}
+
+	if (IS_VGA_ARCH) {
+        VFILE_RegisterBuiltinFileBlob(bfb_VGA_COM, "/TEXTUTIL/");
+        VFILE_RegisterBuiltinFileBlob(bfb_SCANRES_COM, "/TEXTUTIL/");
+        VFILE_RegisterBuiltinFileBlob(bfb_EGA_COM, "/TEXTUTIL/");
+        VFILE_RegisterBuiltinFileBlob(bfb_CLR_COM, "/TEXTUTIL/");
+        VFILE_RegisterBuiltinFileBlob(bfb_CGA_COM, "/TEXTUTIL/");
+        VFILE_RegisterBuiltinFileBlob(bfb_50_COM, "/TEXTUTIL/");
+        VFILE_RegisterBuiltinFileBlob(bfb_28_COM, "/TEXTUTIL/");
+    } else if (IS_EGA_ARCH)
+        VFILE_RegisterBuiltinFileBlob(bfb_28_COM_ega, "/TEXTUTIL/");
+
+    if (IS_VGA_ARCH)
+        VFILE_RegisterBuiltinFileBlob(bfb_25_COM, "/TEXTUTIL/");
+    else if (IS_EGA_ARCH)
+        VFILE_RegisterBuiltinFileBlob(bfb_25_COM_ega, "/TEXTUTIL/");
+    else if (!IS_PC98_ARCH)
+        VFILE_RegisterBuiltinFileBlob(bfb_25_COM_other, "/TEXTUTIL/");
+
+    /* MEM.COM is not compatible with PC-98 and/or 8086 emulation */
+    if(!IS_PC98_ARCH && CPU_ArchitectureType >= CPU_ARCHTYPE_80186)
+        VFILE_RegisterBuiltinFileBlob(bfb_MEM_EXE, "/DOS/");
+
+    VFILE_RegisterBuiltinFileBlob(bfb_CWSDPMI_EXE, "/BIN/");
+    /* DSXMENU.EXE */
+    if(IS_PC98_ARCH)
+        VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC98, "/BIN/");
+    else {
+        VFILE_RegisterBuiltinFileBlob(bfb_DSXMENU_EXE_PC, "/BIN/");
+        VFILE_RegisterBuiltinFileBlob(bfb_SHUTDOWN_COM, "/BIN/");
+    }
+
+	VFILE_RegisterBuiltinFileBlob(bfb_EVAL_EXE, "/BIN/");
+    if(!IS_PC98_ARCH)
+        VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP, "/BIN/");
+}
+
 void DOS_SetupPrograms(void) {
     /*Add Messages */
 
@@ -8620,83 +8838,5 @@ void DOS_SetupPrograms(void) {
     hidefiles = dos_section->Get_string("drive z hide files");
 
     /*regular setup*/
-    VFILE_Register("TEXTUTIL", 0, 0, "/");
-    VFILE_Register("SYSTEM", 0, 0, "/");
-    VFILE_Register("DEBUG", 0, 0, "/");
-    VFILE_Register("DOS", 0, 0, "/");
-    VFILE_Register("BIN", 0, 0, "/");
-    VFILE_Register("4DOS", 0, 0, "/");
-
-    PROGRAMS_MakeFile("HELP.COM",HELP_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("INTRO.COM",INTRO_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("IMGMOUNT.COM", IMGMOUNT_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("IMGMAKE.COM", IMGMAKE_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("IMGSWAP.COM", IMGSWAP_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("MOUNT.COM",MOUNT_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("BOOT.COM",BOOT_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("COUNTRY.COM",COUNTRY_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("RESCAN.COM",RESCAN_ProgramStart,"/SYSTEM/");
-#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)
-    if (startcmd) PROGRAMS_MakeFile("START.COM", START_ProgramStart,"/SYSTEM/");
-#endif
-
-    void CGASNOW_ProgramStart(Program * * make), VFRCRATE_ProgramStart(Program * * make);
-    if (machine == MCH_CGA) PROGRAMS_MakeFile("CGASNOW.COM",CGASNOW_ProgramStart,"/DEBUG/");
-    PROGRAMS_MakeFile("VFRCRATE.COM",VFRCRATE_ProgramStart,"/DEBUG/");
-
-    if (IS_VGA_ARCH && svgaCard != SVGA_None)
-        PROGRAMS_MakeFile("VESAMOED.COM",VESAMOED_ProgramStart,"/DEBUG/");
-
-    if (!IS_PC98_ARCH) {
-        PROGRAMS_MakeFile("LOADROM.COM", LOADROM_ProgramStart,"/DEBUG/");
-        PROGRAMS_MakeFile("KEYB.COM", KEYB_ProgramStart,"/DOS/");
-        PROGRAMS_MakeFile("MODE.COM", MODE_ProgramStart,"/DOS/");
-        PROGRAMS_MakeFile("MOUSE.COM", MOUSE_ProgramStart,"/DOS/");
-        PROGRAMS_MakeFile("SETCOLOR.COM", SETCOLOR_ProgramStart,"/BIN/");
-    }
-
-	if (IS_VGA_ARCH) {
-		PROGRAMS_MakeFile("80X60.COM", TEXT80X60_ProgramStart,"/TEXTUTIL/");
-		PROGRAMS_MakeFile("80X50.COM", TEXT80X50_ProgramStart,"/TEXTUTIL/");
-		PROGRAMS_MakeFile("80X43.COM", TEXT80X43_ProgramStart,"/TEXTUTIL/");
-		PROGRAMS_MakeFile("80X25.COM", TEXT80X25_ProgramStart,"/TEXTUTIL/");
-		PROGRAMS_MakeFile("132X60.COM", TEXT132X60_ProgramStart,"/TEXTUTIL/");
-		PROGRAMS_MakeFile("132X50.COM", TEXT132X50_ProgramStart,"/TEXTUTIL/");
-		PROGRAMS_MakeFile("132X43.COM", TEXT132X43_ProgramStart,"/TEXTUTIL/");
-		PROGRAMS_MakeFile("132X25.COM", TEXT132X25_ProgramStart,"/TEXTUTIL/");
-		PROGRAMS_MakeFile("DCGA.COM", DCGA_ProgramStart,"/TEXTUTIL/");
-	}
-
-    PROGRAMS_MakeFile("COLOR.COM",COLOR_ProgramStart,"/BIN/");
-    PROGRAMS_MakeFile("TITLE.COM",TITLE_ProgramStart,"/BIN/");
-    PROGRAMS_MakeFile("LS.COM",LS_ProgramStart,"/BIN/");
-    PROGRAMS_MakeFile("ADDKEY.COM",ADDKEY_ProgramStart,"/BIN/");
-    PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("FLAGSAVE.COM", FLAGSAVE_ProgramStart,"/SYSTEM/");
-#if defined C_DEBUG
-    PROGRAMS_MakeFile("NMITEST.COM",NMITEST_ProgramStart,"/DEBUG/");
-    PROGRAMS_MakeFile("INT2FDBG.COM",INT2FDBG_ProgramStart,"/DEBUG/");
-    PROGRAMS_MakeFile("BIOSTEST.COM", BIOSTEST_ProgramStart,"/DEBUG/");
-#endif
-    PROGRAMS_MakeFile("A20GATE.COM",A20GATE_ProgramStart,"/DEBUG/");
-
-    if (IS_PC98_ARCH)
-        PROGRAMS_MakeFile("PC98UTIL.COM",PC98UTIL_ProgramStart,"/BIN/");
-
-    PROGRAMS_MakeFile("CAPMOUSE.COM", CAPMOUSE_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("LOADFIX.COM",LOADFIX_ProgramStart,"/DOS/");
-    PROGRAMS_MakeFile("LABEL.COM", LABEL_ProgramStart,"/DOS/");
-    PROGRAMS_MakeFile("TREE.COM", TREE_ProgramStart,"/DOS/");
-    PROGRAMS_MakeFile("DELTREE.EXE",DELTREE_ProgramStart,"/DOS/");
-    PROGRAMS_MakeFile("CHOICE.COM", CHOICE_ProgramStart,"/DOS/");
-    PROGRAMS_MakeFile("AUTOTYPE.COM", AUTOTYPE_ProgramStart,"/BIN/");
-#ifdef C_ICONV
-    PROGRAMS_MakeFile("UTF8.COM", UTF8_ProgramStart,"/BIN/");
-    PROGRAMS_MakeFile("UTF16.COM", UTF16_ProgramStart,"/BIN/");
-#endif
-    PROGRAMS_MakeFile("SERIAL.COM", SERIAL_ProgramStart,"/SYSTEM/");
-    PROGRAMS_MakeFile("PARALLEL.COM", PARALLEL_ProgramStart,"/SYSTEM/");
-    if (IS_DOSV)
-        PROGRAMS_MakeFile("VTEXT.COM", VTEXT_ProgramStart,"/TEXTUTIL/");
+    Add_VFiles(false);
 }

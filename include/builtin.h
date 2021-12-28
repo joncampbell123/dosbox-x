@@ -12,6 +12,10 @@
 #include "../src/builtin/textutil.h"
 #include "../src/builtin/4DOS_img.h"
 
+extern char i4dos_data[CONFIG_SIZE];
+extern char config_data[CONFIG_SIZE];
+extern char autoexec_data[AUTOEXEC_SIZE];
+
 extern struct BuiltinFileBlob bfb_DSXMENU_EXE_PC;		// DSXMENU.EXE
 extern struct BuiltinFileBlob bfb_DSXMENU_EXE_PC98;		// DSXMENU.EXE
 

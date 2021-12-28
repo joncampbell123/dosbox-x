@@ -729,7 +729,7 @@ public:
 	bool FileStat(const char* name, FileStat_Block* const stat_block);
 	virtual void MediaChange() {}
 	uint8_t GetMediaByte(void);
-	void EmptyCache(void){}
+	virtual void EmptyCache(void);
 	bool isRemote(void);
 	virtual bool isRemovable(void);
 	virtual Bits UnMount(void);

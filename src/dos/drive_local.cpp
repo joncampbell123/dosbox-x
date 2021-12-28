@@ -1036,11 +1036,13 @@ int FileDirExistUTF8(std::string &localname, const char *name) {
 extern uint16_t fztime, fzdate;
 extern bool force_conversion, InitCodePage();
 std::string GetDOSBoxXPath(bool withexe=false);
-void drivezRegister(std::string path, std::string dir) {
+void drivezRegister(std::string path, std::string dir, bool usecp) {
     int cp = dos.loaded_codepage;
-    force_conversion = true;
-    InitCodePage();
-    force_conversion = false;
+    if (!usecp || !cp) {
+        force_conversion = true;
+        InitCodePage();
+        force_conversion = false;
+    }
     char exePath[CROSS_LEN];
     std::vector<std::string> names;
     if (path.size()) {
@@ -1103,7 +1105,7 @@ void drivezRegister(std::string path, std::string dir) {
             }
             VFILE_Register(name.substr(0, name.size()-1).c_str(), 0, 0, dir.c_str());
             fztime = fzdate = 0;
-            drivezRegister(path+CROSS_FILESPLIT+name.substr(0, name.size()-1), dir+name);
+            drivezRegister(path+CROSS_FILESPLIT+name.substr(0, name.size()-1), dir+name, usecp);
             continue;
         }
         FILE * f = NULL;
