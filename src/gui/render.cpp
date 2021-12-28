@@ -362,6 +362,7 @@ static void RENDER_Halt( void ) {
 
 extern Bitu PIC_Ticks;
 extern bool pause_on_vsync;
+extern bool checkmenuwidth;
 void PauseDOSBox(bool pressed);
 void AspectRatio_mapper_shortcut(bool pressed);
 
@@ -878,6 +879,7 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
     render.src.fps=fps;
     render.src.ratio=ratio;
     render.src.scrn_ratio=scrn_ratio;
+    checkmenuwidth = true;
     RENDER_Reset( );
 }
 

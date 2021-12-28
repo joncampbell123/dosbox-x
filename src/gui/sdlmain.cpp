@@ -72,6 +72,7 @@ extern bool pc98_force_ibm_layout, clearline;
 extern bool ttfswitch, switch_output_from_ttf;
 extern bool inshell, enable_config_as_shell_commands;
 bool tooutttf = false;
+bool checkmenuwidth = false;
 bool dos_kernel_disabled = true;
 bool winrun=false, use_save_file=false;
 bool usesystemcursor = false, enableime = false;
@@ -1869,7 +1870,7 @@ int menuwidth_atleast(int width) {
             tWidth += r.right - r.left;
         }
     }
-    tWidth += GetSystemMetrics(SM_CXBORDER)*2+(TTF_using()?20:60);
+    tWidth += GetSystemMetrics(SM_CXBORDER)*2+(TTF_using()?24:60);
     unsigned int maxWidth = 0, maxHeight = 0;
     GetMaxWidthHeight(&maxWidth, &maxHeight);
     return tWidth>width && tWidth<=maxWidth ? tWidth : -1;
@@ -3227,11 +3228,15 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
     }
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-    if (!sdl.desktop.fullscreen && menu_gui && menu.toggle && ((width == 640 || (vga.draw.char9_set && width == 720)) && (((IS_EGA_ARCH || IS_JEGA_ARCH) && height == 350) || height == 400) || (IS_DOSV && height == 480))) {
+    if (!sdl.desktop.fullscreen && menu_gui && menu.toggle && ((width == 640 || (vga.draw.char9_set && width == 720)) && (((IS_EGA_ARCH || IS_JEGA_ARCH) && height == 350) || height == 400)) || ((render.aspect || IS_DOSV) && checkmenuwidth)) {
         RECT r;
         bool res = GetWindowRect(GetHWND(), &r);
+        unsigned int maxWidth, maxHeight;
+        GetMaxWidthHeight(&maxWidth, &maxHeight);
         int tWidth = menuwidth_atleast(r.right-r.left);
-        int tHeight = r.bottom-r.top-height<0?(r.bottom-r.top):(double)(tWidth-r.right+r.left+width)*height/width+(r.bottom-r.top-height);
+        if (tWidth>0 && tWidth>maxWidth) tWidth = maxWidth;
+        int tHeight = r.bottom-r.top-height<0?(r.bottom-r.top):(double)(tWidth-((r.right-r.left-width)<0?0:(r.right-r.left-width)))*height/width+(r.bottom-r.top-height);
+        if (tHeight>0 && tHeight>maxHeight) tHeight = maxHeight;
         if (res && tWidth>0 && tHeight>0) {
             MoveWindow(GetHWND(), r.left, r.top, tWidth, tHeight, true);
             LOG_MSG("SDL: Window size enlarged for the menus\n");
@@ -11270,6 +11275,13 @@ void UpdateDefaultPrinterFont();
 void ttf_reset() {
     OUTPUT_TTF_Select(2);
     resetFontSize();
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+    int last = 0;
+    while (TTF_using() && !GFX_IsFullscreen() && menu_gui && menu.toggle && menuwidth_atleast(ttf.cols*ttf.width+ttf.offX*2+GetSystemMetrics(SM_CXBORDER)*2)>0 && ttf.pointsize>last) {
+        last = ttf.pointsize;
+        increaseFontSize();
+    }
+#endif
 }
 
 bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item* const menuitem) {
@@ -15399,6 +15411,7 @@ fresh_boot:
         Reflect_Menu();
 #endif
 
+        checkmenuwidth = false;
         if (dos_kernel_shutdown) {
 
             inshell = false;
