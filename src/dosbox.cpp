@@ -1076,7 +1076,9 @@ void DOSBOX_RealInit() {
     }
     int cp = dos.loaded_codepage;
     if (!cp) InitCodePage();
+#if defined(USE_TTF)
     if (IS_PC98_ARCH) ttf_dosv = false;
+#endif
     if (IS_JEGA_ARCH || IS_DOSV || isDBCSCP()) {
         JFONT_Init();  // Load DBCS fonts for JEGA etc
 #if defined(USE_TTF)

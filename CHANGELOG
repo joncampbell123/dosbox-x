@@ -120,6 +120,8 @@
     with CONFIG -set commands. (Wengier)
   - Added missing ChinaSea characters in code page 950
     with ChinaSea/Big5-2003 extension enabled. (Wengier)
+  - Added support for Bash-shell completion for DOSBox-X
+    on non-Windows platforms. (rderooy & FeignInt)
   - Improved DBCS support for DOS commands including
     ATTRIB, ECHO, TYPE, MORE, and TRUENAME. (Wengier)
   - Improved checking of segment limits. (joncampbell123)
