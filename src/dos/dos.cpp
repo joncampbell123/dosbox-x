@@ -400,7 +400,7 @@ void DOS_AddDays(uint8_t days) {
 	uint8_t monthlimit = GetMonthDays(dos.date.month);
 
 	if(dos.date.day > monthlimit) {
-		if((dos.date.year %4 == 0) && (dos.date.month==2)) {
+		if(dos.date.month==2 && dos.date.year%4==0 && (dos.date.year%100!=0 || dos.date.year%400==0)) {
 			// leap year
 			if(dos.date.day > 29) {
 				dos.date.month++;

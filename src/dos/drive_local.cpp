@@ -1116,6 +1116,7 @@ void drivezRegister(std::string path, std::string dir, bool usecp) {
     const host_cnv_char_t* host_name;
     for (std::string name: names) {
         if (!name.size()) continue;
+        if ((!strcasecmp(name.c_str(), "AUTOEXEC.BAT") || !strcasecmp(name.c_str(), "CONFIG.SYS")) && dir=="/") continue;
         if (name.back()=='/' && dir=="/") {
             ht_stat_t temp_stat;
             host_name = CodePageGuestToHost((path+CROSS_FILESPLIT+name).c_str());

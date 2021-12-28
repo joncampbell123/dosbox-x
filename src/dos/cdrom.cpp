@@ -62,7 +62,12 @@ CDROM_Interface_SDL::~CDROM_Interface_SDL(void) {
 bool CDROM_Interface_SDL::SetDevice(char* path, int forceCD) { 
     (void)forceCD;//UNUSED
 	char buffer[512];
-	strcpy(buffer,path);
+	if (strlen(path)<512)
+		strcpy(buffer,path);
+	else {
+		strncpy(buffer,path,511);
+		buffer[511]=0;
+	}
 	upcase(buffer);
 
 	int num = SDL_CDNumDrives();
