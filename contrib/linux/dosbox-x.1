@@ -1,4 +1,4 @@
-.TH "DOSBOX-X" "1" "Oct 24, 2021" "" ""
+.TH "DOSBOX-X" "1" "Dec 28, 2021" "" ""
 .SH "NAME"
 dosbox\-x \- a x86/DOS and PC98 emulator
 .SH "SYNOPSIS"
@@ -180,7 +180,11 @@ dosbox\-x will close itself when the DOS program specified by \fBNAME\fR ends.
 .RS
 Run DOSBox\-X silently and exit after executing the [autoexec] section of the loaded config file.
 .RE
-\fB\-c  \fIcommand\fR
+\fB\-o \fIoption(s)\fR
+.RS
+Provide command-line option(s) for [name] if specified.
+.RE
+\fB\-c \fIcommand\fR
 .RS
 Runs the specified \fIcommand \fRbefore running \fBNAME\fR. Multiple
 commands can be specified. Each \fIcommand\fR should start with \fB\-c\fR
