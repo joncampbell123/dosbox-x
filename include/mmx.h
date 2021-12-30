@@ -23,7 +23,7 @@
 
 #include <stddef.h>
 
-typedef union {
+typedef union alignas(8) MMX_reg {
 
 	uint64_t q;
 
@@ -96,7 +96,8 @@ typedef union {
 	static_assert(sizeof(sb) == 8, "MMX packing error");
 #endif
 
-} MMX_reg;
+};
+static_assert(sizeof(MMX_reg) == 8, "MMX packing error");
 
 extern MMX_reg * reg_mmx[8];
 extern MMX_reg * lookupRMregMM[256];
