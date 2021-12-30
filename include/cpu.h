@@ -539,6 +539,7 @@ struct CPUBlock {
 	Bitu cpl;							/* Current Privilege */
 	Bitu mpl;
 	Bitu cr0;
+	Bitu cr4;
 	bool pmode;							/* Is Protected mode enabled */
 	GDTDescriptorTable gdt;
 	DescriptorTable idt;

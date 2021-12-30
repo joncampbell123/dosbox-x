@@ -2505,6 +2505,9 @@ void CPU_SET_CRX(Bitu cr,Bitu value) {
 	case 3:
 		PAGING_SetDirBase(value);
 		break;
+	case 4:
+		cpu.cr4=value;
+		break;
 	default:
 		LOG(LOG_CPU,LOG_ERROR)("Unhandled MOV CR%d,%X",cr,value);
 		break;
@@ -2532,6 +2535,8 @@ Bitu CPU_GET_CRX(Bitu cr) {
 		return paging.cr2;
 	case 3:
 		return PAGING_GetDirBase() & 0xfffff000;
+	case 4:
+		return cpu.cr4;
 	default:
 		LOG(LOG_CPU,LOG_ERROR)("Unhandled MOV XXX, CR%d",cr);
 		break;
@@ -3342,8 +3347,10 @@ public:
 		SegSet16(ss,0); Segs.limit[ss] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[ss] = false;
 	
 		CPU_SetFlags(FLAG_IF,FMASK_ALL);		//Enable interrupts
-		cpu.cr0=0xffffffff;
+		cpu.cr0=0x00000000;
+		cpu.cr4=0xffffffff;
 		CPU_SET_CRX(0,0);						//Initialize
+		CPU_SET_CRX(4,0);
 		cpu.code.big=false;
 		cpu.stack.mask=0xffff;
 		cpu.stack.notmask=0xffff0000;
