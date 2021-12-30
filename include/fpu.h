@@ -139,6 +139,35 @@ typedef union {
 #define FPU_Reg_32_exponent_bias	(127)
 static const uint32_t FPU_Reg_32_implied_bit = ((uint32_t)1UL << (uint32_t)23UL);
 
+#pragma pack(push,1)
+typedef union XMM_Reg {
+	FPU_Reg_32		f32[4];
+	FPU_Reg_64		f64[2];
+
+	int8_t			i8[16];
+	int16_t			i16[8];
+	int32_t			i32[4];
+	int64_t			i64[2];
+
+	uint8_t			u8[16];
+	uint16_t		u16[8];
+	uint32_t		u32[4];
+	uint64_t		u64[2];
+
+	static_assert( sizeof(u8)  == 16 /* 128-bit */, "XMM reg struct error" );
+	static_assert( sizeof(u16) == 16 /* 128-bit */, "XMM reg struct error" );
+	static_assert( sizeof(u32) == 16 /* 128-bit */, "XMM reg struct error" );
+	static_assert( sizeof(u64) == 16 /* 128-bit */, "XMM reg struct error" );
+	static_assert( sizeof(i8)  == 16 /* 128-bit */, "XMM reg struct error" );
+	static_assert( sizeof(i16) == 16 /* 128-bit */, "XMM reg struct error" );
+	static_assert( sizeof(i32) == 16 /* 128-bit */, "XMM reg struct error" );
+	static_assert( sizeof(i64) == 16 /* 128-bit */, "XMM reg struct error" );
+	static_assert( sizeof(f32) == 16 /* 128-bit */, "XMM reg struct error" );
+	static_assert( sizeof(f64) == 16 /* 128-bit */, "XMM reg struct error" );
+};
+static_assert( sizeof(XMM_Reg)     == 16 /* 128-bit */, "XMM reg struct error" );
+#pragma pack(pop)
+
 enum FPU_Tag {
 	TAG_Valid = 0,
 	TAG_Zero  = 1,
@@ -240,6 +269,7 @@ typedef struct {
 	FPUControlWord  cw;
 	uint16_t		sw;
 	uint32_t		top;
+	XMM_Reg			xmmreg[8]; // SSE emulation
 } FPU_rec;
 
 
