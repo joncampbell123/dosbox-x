@@ -9013,6 +9013,9 @@ startfunction:
 		case CPU_ARCHTYPE_PENTIUMII:
 		    cpuType = "Pentium II";
 		    break;
+		case CPU_ARCHTYPE_PENTIUMIII:
+		    cpuType = "Pentium III";
+		    break;
                 case CPU_ARCHTYPE_MIXED:
                     cpuType = "Auto (mixed)";
                     break;

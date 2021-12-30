@@ -47,6 +47,7 @@
 #define CPU_ARCHTYPE_PMMXSLOW			0x55
 #define CPU_ARCHTYPE_PPROSLOW			0x60
 #define CPU_ARCHTYPE_PENTIUMII			0x65
+#define CPU_ARCHTYPE_PENTIUMIII			0x6A
 
 /* CPU Cycle Timing */
 extern cpu_cycles_count_t CPU_Cycles;

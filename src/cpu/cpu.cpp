@@ -293,6 +293,9 @@ void menu_update_cputype(void) {
     mainMenu.get_item("cputype_pentium_ii").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII).
         refresh_item(mainMenu);
+    mainMenu.get_item("cputype_pentium_iii").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII).
+        refresh_item(mainMenu);
     mainMenu.get_item("cputype_experimental").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL).
         refresh_item(mainMenu);
@@ -331,6 +334,8 @@ const char *GetCPUType() {
         return "Pentium Pro";
     else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII)
         return "Pentium II";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII)
+        return "Pentium III";
     else
         return "Mixed/other x86";
 }
@@ -2964,7 +2969,7 @@ bool CPU_CPUID(void) {
 			reg_edx=0x00008011;	/* FPU+TimeStamp/RDTSC */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
 			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
-		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII || CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
+		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII) {
 			/* NTS: Most operating systems will not attempt SYSENTER/SYSEXIT unless this returns model 3, stepping 3, or higher. */
 			/* From Intel [https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-vol-2b-manual.pdf]:
 			 *
@@ -2981,6 +2986,14 @@ bool CPU_CPUID(void) {
 			 * This website [https://www.geoffchappell.com/studies/windows/km/cpu/sep.htm?tx=256] notes how the Windows NT kernel
 			 * follows this rule, and the Linux kernel does too */
 			reg_eax=enable_syscall?0x633:0x631; /* intel pentium II */
+			reg_ebx=0;			/* Not Supported */
+			reg_ecx=0;			/* No features */
+			reg_edx=0x00008011;	/* FPU+TimeStamp/RDTSC */
+			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
+			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+			reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT [SEE NOTES AT TOP OF THIS IF STATEMENT] */
+		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII || CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
+			reg_eax=0x673; /* intel pentium III */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
 			reg_edx=0x00008011;	/* FPU+TimeStamp/RDTSC */
@@ -3422,6 +3435,8 @@ public:
             set_text("Pentium Pro").set_callback_function(CpuType_ByName);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_pentium_ii").
             set_text("Pentium II").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_pentium_iii").
+            set_text("Pentium III").set_callback_function(CpuType_ByName);
 
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_experimental").
             set_text("Experimental").set_callback_function(CpuType_ByName);
@@ -3712,6 +3727,8 @@ public:
 			CPU_ArchitectureType = CPU_ARCHTYPE_PPROSLOW;
 		} else if (cputype == "pentium_ii") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUMII;
+		} else if (cputype == "pentium_iii") {
+			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUMIII;
 		}
 		if (!enable_fpu && (cputype == "pentium" || cputype == "pentium_mmx" || cputype == "ppro_slow" || cputype == "pentium_ii"))
 			LOG_MSG("WARNING: Disabling FPU support for this CPU type is unusual, may confuse DOS programs");

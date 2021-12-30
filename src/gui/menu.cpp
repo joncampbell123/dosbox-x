@@ -283,6 +283,7 @@ static const char *def_menu_cpu_type[] =
     "cputype_pentium_mmx",
     "cputype_ppro_slow",
     "cputype_pentium_ii",
+    "cputype_pentium_iii",
     "--",
     "cputype_experimental",
     NULL
