@@ -543,8 +543,6 @@ struct CPUBlock {
 	GDTDescriptorTable gdt;
 	DescriptorTable idt;
 	struct {
-		Bitu cr0_and;
-		Bitu cr0_or;
 		Bitu eflags;
 	} masks;
 	struct {
