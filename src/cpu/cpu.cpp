@@ -2996,7 +2996,7 @@ bool CPU_CPUID(void) {
 			reg_eax=0x673; /* intel pentium III */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
-			reg_edx=0x00008011;	/* FPU+TimeStamp/RDTSC */
+			reg_edx=0x03008011;	/* FPU+TimeStamp/RDTSC+SSE+FXSAVE/FXRESTOR */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
 			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 			reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT [SEE NOTES AT TOP OF THIS IF STATEMENT] */
