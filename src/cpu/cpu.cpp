@@ -30,6 +30,9 @@
 #include "control.h"
 #include "logging.h"
 
+// TODO: #ifdef FPU...
+#include "fpu.h"
+
 /* dynamic core, policy, method, and flags.
  * We're going to make dynamic core more flexible, AND make sure
  * that both dynx86 and dynrec are using common memory mapping
@@ -3347,6 +3350,7 @@ public:
 		SegSet16(ss,0); Segs.limit[ss] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[ss] = false;
 	
 		CPU_SetFlags(FLAG_IF,FMASK_ALL);		//Enable interrupts
+		fpu.mxcsr=0x1F80; // The default MXCSR value is... [https://www.felixcloutier.com/x86/ldmxcsr]
 		cpu.cr0=0x00000000;
 		cpu.cr4=0xffffffff;
 		CPU_SET_CRX(0,0);						//Initialize

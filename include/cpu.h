@@ -577,6 +577,17 @@ struct CPUBlock {
 
 extern CPUBlock cpu;
 
+// SSE instructions are available if bit 9 is on in CR4, also enables FXSAVE and FXRESTOR
+static INLINE bool CPU_SSE(void) {
+	// TODO: The architecture test may be replaced with a general global variable that says "sse" allowed
+	return (cpu.cr4 & 0x200u) && (CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUMIII);
+}
+
+// SSE exceptions enabled by bit 10
+static INLINE bool CPU_SSE_exceptions(void) {
+	return (cpu.cr4 & 0x400u) && CPU_SSE();
+}
+
 static INLINE void CPU_SetFlagsd(const Bitu word) {
 	const Bitu mask=cpu.cpl ? FMASK_NORMAL : FMASK_ALL;
 	CPU_SetFlags(word,mask);
