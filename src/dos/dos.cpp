@@ -340,7 +340,7 @@ void DOS_SetCountry(uint16_t countryNo) {
 			break;
 	}
 
-    // Date seperation character
+    // Date separation character
 	switch (countryNo) {
 		case 3:   // Latin America
 		case 30:  // Greece
@@ -1663,7 +1663,7 @@ static Bitu DOS_21Handler(void) {
             }
             break;
         case 0x38:                  /* Set Country Code */  
-            if (reg_al==0) {        /* Get country specidic information */
+            if (reg_al==0) {        /* Get country specific information */
                 PhysPt dest = SegPhys(ds)+reg_dx;
                 MEM_BlockWrite(dest,dos.tables.country,0x18);
 				reg_al = countryNo<0xff?countryNo:0xff;
