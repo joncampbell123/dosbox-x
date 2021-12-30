@@ -178,6 +178,8 @@ static struct {
 #define BaseDS		core.base_ds
 #define BaseSS		core.base_ss
 
+#define REMEMBER_PREFIX(_x)
+
 //#define PREFETCH_DEBUG
 
 #define MAX_PQ_SIZE 32

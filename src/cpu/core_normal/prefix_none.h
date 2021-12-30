@@ -337,6 +337,7 @@
         goto illegal_opcode;
 #endif
 #if CPU_CORE >= CPU_ARCHTYPE_386
+		REMEMBER_PREFIX(MP_66);
 		core.opcode_index=(cpu.code.big^0x1u)*0x200u;
 		goto restart_opcode;
 #endif
@@ -1282,9 +1283,11 @@
         goto opcode_f0;
 #endif
 	CASE_B(0xf2)												/* REPNZ */
+		REMEMBER_PREFIX(MP_F2);
 		DO_PREFIX_REP(false);	
 		break;		
 	CASE_B(0xf3)												/* REPZ */
+		REMEMBER_PREFIX(MP_F3);
 		DO_PREFIX_REP(true);	
 		break;		
 	CASE_B(0xf4)												/* HLT */

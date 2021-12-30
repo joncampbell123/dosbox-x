@@ -358,6 +358,15 @@ struct TSS_32 {
     uint32_t ldt;                  /* The local descriptor table */
 } GCC_ATTRIBUTE(packed);
 
+/* Last prefix encountered, needed for Pentium III "mandatory opcode prefixes" needed to differentiate SSE instructions given the opcode.
+ * Keeping it small and sequential should help your C++ compiler optimize the switch statement you're probably going to use in the normal core code. */
+enum {
+	MP_NONE=0,
+	MP_66,
+	MP_F2,
+	MP_F3
+};
+
 #ifdef _MSC_VER
 #pragma pack()
 #endif
