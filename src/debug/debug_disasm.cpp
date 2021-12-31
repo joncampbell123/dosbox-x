@@ -632,6 +632,21 @@ static void uputchar(char c)
   *ubufp = 0;
 }
 
+static void ua_backspace_repe(void) {
+  char *s = ubufp - 1;
+
+  while (s >= ubufs && (*s == ' ')) s--;
+  while (s >= ubufs && (*s != ' ')) s--;
+  s++;
+
+  if (s < ubufs) return;
+
+  if (!strncmp(s,"repe ",5) || !strncmp(s,"repne ",6)) {
+    /* set write pointer here, to overwrite it */
+    *s = 0; ubufp = s;
+  }
+}
+
 /*------------------------------------------------------------------------*/
 
 static int bytes(char c)
@@ -1093,6 +1108,8 @@ static void percent(char type, char subtype)
        break;
 
   case 'x':
+       /* problem: for SSE opcodes with REPE/REPNE mandatory prefix this code will have already written repne/repe so that needs to be wiped out of the buffer */
+       if (last_prefix == MP_F2 || last_prefix == MP_F3) ua_backspace_repe();
        ua_str(mpgroups[subtype-'0'][last_c][last_prefix]);
        break;
 
