@@ -3130,7 +3130,7 @@ void DOS_Shell::CMD_TIME(char * args) {
 		reg_ch= // hours
 */
 	if(timeonly) {
-		WriteOut("%u:%02u:%02u\n",reg_ch,reg_cl,reg_dh);
+		WriteOut("%u%c%02u%c%02u\n",reg_ch,dos.tables.country[13],reg_cl,dos.tables.country[13],reg_dh);
 	} else {
 		WriteOut(MSG_Get("SHELL_CMD_TIME_NOW"));
 		WriteOut("%s\n", FormatTime(reg_ch,reg_cl,reg_dh,reg_dl));
