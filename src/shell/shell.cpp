@@ -1560,7 +1560,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_CHCP_MISSING", "ASCII characters not defined in TTF font: %d\n");
 	MSG_Add("SHELL_CMD_CHCP_INVALID", "Invalid code page number - %s\n");
 	MSG_Add("SHELL_CMD_COUNTRY_HELP", "Displays or changes the current country.\n");
-	MSG_Add("SHELL_CMD_COUNTRY_HELP_LONG", "COUNTRY [nnn] \n\n  nnn   Specifies a country code.\n\nDate and time formats will be affected by the specified country code.\n");
+	MSG_Add("SHELL_CMD_COUNTRY_HELP_LONG", "COUNTRY [nnn] \n\n  nnn   Specifies a country code.\n\nCountry-specific information such as date and time formats will be affected.\n");
     MSG_Add("SHELL_CMD_CTTY_HELP","Changes the terminal device used to control the system.\n");
 	MSG_Add("SHELL_CMD_CTTY_HELP_LONG","CTTY device\n  device        The terminal device to use, such as CON.\n");
 	MSG_Add("SHELL_CMD_MORE_HELP","Displays output one screen at a time.\n");

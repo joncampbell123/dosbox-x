@@ -385,6 +385,41 @@ void DOS_SetCountry(uint16_t countryNo) {
 			*(dos.tables.country+13)=0x3a; // Column (:)
 			break;
 	}
+
+    // Thousand and decimal separators
+	switch (countryNo) {
+		case 1:   // United States
+		case 44:  // United Kingdom
+		case 61:  // International English
+		case 81:  // Japan
+		case 82:  // South Korea
+		case 86:  // China
+		case 886: // Taiwan
+			*(dos.tables.country+7)=0x2c; // Comma (,)
+			*(dos.tables.country+9)=0x2e; // Period (.)
+			break;
+		case 3:   // Latin America
+		case 31:  // Netherlands
+		case 34:  // Spain
+		case 38:  // Yugoslavia
+		case 39:  // Italy
+		case 40:  // Romania
+		case 45:  // Denmark
+		case 46:  // Sweden
+		case 49:  // Germany
+		case 55:  // Brazil
+		case 351: // Portugal
+		case 354: // Iceland
+		case 785: // Arabic countries
+		case 972: // Israel
+			*(dos.tables.country+7)=0x2e; // Period (.)
+			*(dos.tables.country+9)=0x2c; // Comma (,)
+			break;
+		default:
+			*(dos.tables.country+7)=0x20; // Space ( )
+			*(dos.tables.country+9)=0x2c; // Comma (,)
+			break;
+	}
 }
 
 const uint8_t DOS_DATE_months[] = {

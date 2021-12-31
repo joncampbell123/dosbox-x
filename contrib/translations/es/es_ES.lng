@@ -2170,7 +2170,7 @@ COUNTRY [nnn]
 
   nnn   Indica el código de país.
 
-Los formatos de fecha/hora serán afectados por el código de país.
+La info específica del país, como los formatos de fecha/hora, se verá afectada.
 
 .
 :SHELL_CMD_CTTY_HELP

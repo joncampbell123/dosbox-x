@@ -2179,7 +2179,7 @@ COUNTRY [nnn]
 
   nnn   Bir ülke kodu belirler.
 
-Tarih ve zaman biçimleri belirlenen ülke kodundan etkilenecektir.
+Tarih ve saat biçimleri gibi ülkeye özgü bilgiler etkilenecektir.
 
 .
 :SHELL_CMD_CTTY_HELP

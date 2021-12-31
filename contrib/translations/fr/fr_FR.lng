@@ -2180,7 +2180,7 @@ COUNTRY [nnn]
 
   nnn Spécifie un code de pays.
 
-Les formats de date et d'heure seront affectés par le code pays spécifié.
+Les informations spécifiques au pays telles que les formats de date et d'heure seront affectées.
 
 .
 :SHELL_CMD_CTTY_HELP
