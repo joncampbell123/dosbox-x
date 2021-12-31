@@ -101,6 +101,16 @@ static INLINE int32_t Fetchds() {
 
 #if CPU_CORE >= CPU_ARCHTYPE_80386
 
+/* Most SSE instructions require memory access aligned to the SSE data type, else
+ * an exception occurs. */
+static INLINE bool SSE_REQUIRE_ALIGNMENT(const PhysPt v) {
+	return ((unsigned int)v & 15u) == 0; /* 16 bytes * 8 bits = 128 bits */
+}
+
+/* FIXME: What exception does SSE throw on misalignment? */
+/* NTS: This macro intended for use in normal core */
+#define SSE_ALIGN_EXCEPTION() goto illegal_opcode
+
 #define STEP(i) SSE_SQRTPS_i(d.f32[i],s.f32[i])
 static INLINE void SSE_SQRTPS_i(FPU_Reg_32 &d,const FPU_Reg_32 &s) {
 	d.v = sqrtf(s.v);
