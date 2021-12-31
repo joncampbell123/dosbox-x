@@ -109,7 +109,8 @@
   - Commands CHOICE and COUNTRY are external commands
     that appear on the Z drive (Z:/DOS/CHOICE.COM and
     Z:/SYSTEM/COUNTRY.COM respectively) now rather than
-    internal shell commands. (Wengier)
+    internal shell commands. COUNTRY command now also
+    affacts thousand and decimal separators. (Wengier)
   - The internal Virtual Drive Z: can now be rescanned
     just like mounted local drives. (Wengier)
   - You can now change most config options in [printer]
