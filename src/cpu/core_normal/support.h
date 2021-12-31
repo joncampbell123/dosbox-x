@@ -16,6 +16,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <math.h>
 
 #define LoadMbs(off) (int8_t)(LoadMb(off))
 #define LoadMws(off) (int16_t)(LoadMw(off))
@@ -97,6 +98,42 @@ static INLINE int32_t Fetchds() {
 	if (rm >= 0xc0 ) {GetEArd; if (COND) *rmrd=*eard;}\
 	else {GetEAa; if (COND) *rmrd=LoadMd(eaa);}		\
 }
+
+#if CPU_CORE >= CPU_ARCHTYPE_80386
+
+#define STEP(i) SSE_SQRTPS_i(d.f32[i],s.f32[i])
+static INLINE void SSE_SQRTPS_i(FPU_Reg_32 &d,const FPU_Reg_32 &s) {
+	d.v = sqrtf(s.v);
+}
+
+static INLINE void SSE_SQRTPS(XMM_Reg &d,const XMM_Reg &s) {
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+}
+
+static INLINE void SSE_SQRTSS(XMM_Reg &d,const XMM_Reg &s) {
+	STEP(0);
+}
+#undef STEP
+
+////
+
+#define STEP(i) SSE_MOVAPS_i(d.f32[i],s.f32[i])
+static INLINE void SSE_MOVAPS_i(FPU_Reg_32 &d,const FPU_Reg_32 &s) {
+	d.raw = s.raw;
+}
+
+static INLINE void SSE_MOVAPS(XMM_Reg &d,const XMM_Reg &s) {
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+}
+#undef STEP
+
+#endif // 386+
 
 #define SETcc(cc)							\
 	{								\

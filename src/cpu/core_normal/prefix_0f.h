@@ -242,6 +242,104 @@
 			if (CPU_WRITE_TRX(which,*eard)) RUNEXCEPTION();
 		}
 		break;
+#if CPU_CORE >= CPU_ARCHTYPE_386
+	CASE_0F_B(0x28)												/* SSE instruction group */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+		{
+			XMM_Reg xmmsrc;
+			GetRM;
+			const unsigned char reg = (rm >> 3) & 7;
+
+			switch (last_prefix) {
+				case MP_NONE:									/* 0F 28 MOVAPS reg, r/m */
+					if (rm >= 0xc0) {
+						SSE_MOVAPS(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+						LOG_MSG("movaps xmm%u,xmm%u: [%.3f,%.3f,%.3f,%.3f] <= [%.3f,%.3f,%.3f,%.3f]",
+							reg,rm & 7,
+							fpu.xmmreg[reg].f32[0].v,
+							fpu.xmmreg[reg].f32[1].v,
+							fpu.xmmreg[reg].f32[2].v,
+							fpu.xmmreg[reg].f32[3].v,
+							fpu.xmmreg[rm & 7].f32[0].v,
+							fpu.xmmreg[rm & 7].f32[1].v,
+							fpu.xmmreg[rm & 7].f32[2].v,
+							fpu.xmmreg[rm & 7].f32[3].v);
+/////////////////////////////////////////////////////////////////////////////////////
+					} else {
+						GetEAa;
+						xmmsrc.u64[0] = LoadMq(eaa);
+						xmmsrc.u64[1] = LoadMq(eaa+8u);
+						SSE_MOVAPS(fpu.xmmreg[reg],xmmsrc);
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+						LOG_MSG("movaps xmm%u,r/m: [%.3f,%.3f,%.3f,%.3f] <= [%.3f,%.3f,%.3f,%.3f]",
+							reg,
+							fpu.xmmreg[reg].f32[0].v,
+							fpu.xmmreg[reg].f32[1].v,
+							fpu.xmmreg[reg].f32[2].v,
+							fpu.xmmreg[reg].f32[3].v,
+							xmmsrc.f32[0].v,
+							xmmsrc.f32[1].v,
+							xmmsrc.f32[2].v,
+							xmmsrc.f32[3].v);
+/////////////////////////////////////////////////////////////////////////
+					}
+					break;
+				default:
+					goto illegal_opcode;
+			};
+		}
+		break;
+#endif
+#if CPU_CORE >= CPU_ARCHTYPE_386
+	CASE_0F_B(0x29)												/* SSE instruction group */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+		{
+			XMM_Reg xmmdst;
+			GetRM;
+			const unsigned char reg = (rm >> 3) & 7;
+
+			switch (last_prefix) {
+				case MP_NONE:									/* 0F 29 MOVAPS r/m, reg */
+					if (rm >= 0xc0) {
+						SSE_MOVAPS(fpu.xmmreg[rm & 7],fpu.xmmreg[reg]);
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+						LOG_MSG("movaps xmm%u,xmm%u: [%.3f,%.3f,%.3f,%.3f] <= [%.3f,%.3f,%.3f,%.3f]",
+							rm & 7,reg,
+							fpu.xmmreg[rm & 7].f32[0].v,
+							fpu.xmmreg[rm & 7].f32[1].v,
+							fpu.xmmreg[rm & 7].f32[2].v,
+							fpu.xmmreg[rm & 7].f32[3].v,
+							fpu.xmmreg[reg].f32[0].v,
+							fpu.xmmreg[reg].f32[1].v,
+							fpu.xmmreg[reg].f32[2].v,
+							fpu.xmmreg[reg].f32[3].v);
+/////////////////////////////////////////////////////////////////////////////////////
+					} else {
+						GetEAa;
+						SSE_MOVAPS(xmmdst,fpu.xmmreg[reg]);
+						SaveMq(eaa,xmmdst.u64[0]);
+						SaveMq(eaa+8u,xmmdst.u64[1]);
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+						LOG_MSG("movaps r/m,xmm%u: [%.3f,%.3f,%.3f,%.3f] <= [%.3f,%.3f,%.3f,%.3f]",
+							reg,
+							xmmdst.f32[0].v,
+							xmmdst.f32[1].v,
+							xmmdst.f32[2].v,
+							xmmdst.f32[3].v,
+							fpu.xmmreg[reg].f32[0].v,
+							fpu.xmmreg[reg].f32[1].v,
+							fpu.xmmreg[reg].f32[2].v,
+							fpu.xmmreg[reg].f32[3].v);
+/////////////////////////////////////////////////////////////////////////
+					}
+					break;
+				default:
+					goto illegal_opcode;
+			};
+		}
+		break;
+#endif
 	CASE_0F_B(0x30)												/* WRMSR */
 		{
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUM) goto illegal_opcode;
@@ -319,6 +417,90 @@
 	CASE_0F_W(0x4F)												/* CMOVNLE */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
 		MoveCond16(TFLG_NLE); break;
+
+#if CPU_CORE >= CPU_ARCHTYPE_386
+	CASE_0F_B(0x51)												/* SSE instruction group */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+		{
+			XMM_Reg xmmsrc;
+			GetRM;
+			const unsigned char reg = (rm >> 3) & 7;
+
+			switch (last_prefix) {
+				case MP_NONE:									/* 0F 51 SQRTPS reg, r/m */
+					if (rm >= 0xc0) {
+						SSE_SQRTPS(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+						LOG_MSG("sqrtps xmm%u,xmm%u: [%.3f,%.3f,%.3f,%.3f] <= [%.3f,%.3f,%.3f,%.3f]",
+							reg,rm & 7,
+							fpu.xmmreg[reg].f32[0].v,
+							fpu.xmmreg[reg].f32[1].v,
+							fpu.xmmreg[reg].f32[2].v,
+							fpu.xmmreg[reg].f32[3].v,
+							fpu.xmmreg[rm & 7].f32[0].v,
+							fpu.xmmreg[rm & 7].f32[1].v,
+							fpu.xmmreg[rm & 7].f32[2].v,
+							fpu.xmmreg[rm & 7].f32[3].v);
+/////////////////////////////////////////////////////////////////////////////////////
+					} else {
+						GetEAa;
+						xmmsrc.u64[0] = LoadMq(eaa);
+						xmmsrc.u64[1] = LoadMq(eaa+8u);
+						SSE_SQRTPS(fpu.xmmreg[reg],xmmsrc);
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+						LOG_MSG("sqrtps xmm%u,r/m: [%.3f,%.3f,%.3f,%.3f] <= [%.3f,%.3f,%.3f,%.3f]",
+							reg,
+							fpu.xmmreg[reg].f32[0].v,
+							fpu.xmmreg[reg].f32[1].v,
+							fpu.xmmreg[reg].f32[2].v,
+							fpu.xmmreg[reg].f32[3].v,
+							xmmsrc.f32[0].v,
+							xmmsrc.f32[1].v,
+							xmmsrc.f32[2].v,
+							xmmsrc.f32[3].v);
+/////////////////////////////////////////////////////////////////////////
+					}
+					break;
+				case MP_F3:									/* F3 0F 51 SQRTSS reg, r/m */
+					if (rm >= 0xc0) {
+						SSE_SQRTSS(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+						LOG_MSG("sqrtss xmm%u,xmm%u: [%.3f,%.3f,%.3f,%.3f] <= [%.3f,%.3f,%.3f,%.3f]",
+							reg,rm & 7,
+							fpu.xmmreg[reg].f32[0].v,
+							fpu.xmmreg[reg].f32[1].v,
+							fpu.xmmreg[reg].f32[2].v,
+							fpu.xmmreg[reg].f32[3].v,
+							fpu.xmmreg[rm & 7].f32[0].v,
+							fpu.xmmreg[rm & 7].f32[1].v,
+							fpu.xmmreg[rm & 7].f32[2].v,
+							fpu.xmmreg[rm & 7].f32[3].v);
+/////////////////////////////////////////////////////////////////////////////////////
+					} else {
+						GetEAa;
+						xmmsrc.u64[0] = LoadMq(eaa);
+						xmmsrc.u64[1] = LoadMq(eaa+8u);
+						SSE_SQRTSS(fpu.xmmreg[reg],xmmsrc);
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+						LOG_MSG("sqrtss xmm%u,r/m: [%.3f,%.3f,%.3f,%.3f] <= [%.3f,%.3f,%.3f,%.3f]",
+							reg,
+							fpu.xmmreg[reg].f32[0].v,
+							fpu.xmmreg[reg].f32[1].v,
+							fpu.xmmreg[reg].f32[2].v,
+							fpu.xmmreg[reg].f32[3].v,
+							xmmsrc.f32[0].v,
+							xmmsrc.f32[1].v,
+							xmmsrc.f32[2].v,
+							xmmsrc.f32[3].v);
+/////////////////////////////////////////////////////////////////////////
+					}
+					break;
+				default:
+					goto illegal_opcode;
+			};
+		}
+		break;
+#endif
 
 	CASE_0F_B(0x32)												/* RDMSR */
 		{
