@@ -60,36 +60,23 @@ CDROM_Interface_SDL::~CDROM_Interface_SDL(void) {
 }
 
 bool CDROM_Interface_SDL::SetDevice(char* path, int forceCD) { 
-    (void)forceCD;//UNUSED
-	char buffer[512];
-	if (strlen(path)<512)
-		strcpy(buffer,path);
-	else {
-		strncpy(buffer,path,511);
-		buffer[511]=0;
+    int num = SDL_CDNumDrives();
+    if ((forceCD >= 0) && (forceCD < num)) {
+        driveID = forceCD;
+        cd = SDL_CDOpen(driveID);
+        SDL_CDStatus(cd);
+       	return true;
 	}
-	upcase(buffer);
-
-	int num = SDL_CDNumDrives();
-	if ((forceCD>=0) && (forceCD<num)) {
-		driveID = forceCD;
-	        cd = SDL_CDOpen(driveID);
-	        SDL_CDStatus(cd);
-	   	return true;
-	}
-	
-	const char* cdname = 0;
-	for (int i=0; i<num; i++) {
-		cdname = SDL_CDName(i);
-		if (strcmp(buffer,cdname)==0) {
-			cd = SDL_CDOpen(i);
-			SDL_CDStatus(cd);
-			driveID = i;
-			return true;
-		}
-	}
-
-	return false; 
+	for (int i=0; i < num; i++) {
+        const char* cdname = SDL_CDName(i);
+        if (strcasecmp(path, cdname) == 0) {
+            cd = SDL_CDOpen(i);
+            SDL_CDStatus(cd);
+            driveID = i;
+            return true;
+        }
+    }
+    return false; 
 }
 
 bool CDROM_Interface_SDL::ReadSectorsHost(void *buffer, bool raw, unsigned long sector, unsigned long num)
