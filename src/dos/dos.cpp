@@ -416,7 +416,7 @@ void DOS_SetCountry(uint16_t countryNo) {
 			*(dos.tables.country+9)=0x2c; // Comma (,)
 			break;
 		default:
-			*(dos.tables.country+7)=0x2e; // Space ( )
+			*(dos.tables.country+7)=0x20; // Space ( )
 			*(dos.tables.country+9)=0x2c; // Comma (,)
 			break;
 	}
