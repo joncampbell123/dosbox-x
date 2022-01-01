@@ -476,6 +476,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </li>
 <li><a href="#_using_diskette_images_in_windows">Using diskette images in Windows</a></li>
+<li><a href="#_using_diskette_images_in_macos">Using diskette images in macOS</a></li>
 </ul>
 </li>
 <li><a href="#_harddisk_images">Harddisk images</a>
@@ -502,6 +503,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </li>
 <li><a href="#_using_harddisk_images_in_windows">Using harddisk images in Windows</a></li>
+<li><a href="#_using_harddisk_images_in_macos">Using harddisk images in macOS</a></li>
 </ul>
 </li>
 <li><a href="#_cd_rom_or_dvd_images">CD-ROM or DVD images</a>
@@ -523,6 +525,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </li>
 <li><a href="#_using_cd_or_dvd_images_in_windows">Using CD or DVD images in Windows</a></li>
+<li><a href="#_using_cd_or_dvd_images_in_macos">Using CD or DVD images in macOS</a></li>
 </ul>
 </li>
 <li><a href="#_copying_files_into_or_out_of_image_files_from_dosbox_x">Copying files into or out of image files from DOSBox-X</a></li>
@@ -1402,6 +1405,18 @@ Unfortunately this support is incompatible with the typical MFM image files used
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_using_diskette_images_in_macos">Using diskette images in macOS</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can mount MFM image files with the extension IMG in macOS from the Finder by double-clicking on it.
+You can unmount it by clicking on the "Eject" button next to it in the Finder.</p>
+</div>
+<div class="paragraph">
+<p>It is also possible to mount the image file from the macOS Terminal using <code>hdiutil</code></p>
+</div>
+</div>
+</div>
 <h1 id="_harddisk_images" class="sect0">Harddisk images</h1>
 <div class="openblock partintro">
 <div class="content">
@@ -2074,7 +2089,7 @@ DOSBox-X supports the <code>-L</code> parameter for the <code>BOOT</code> comman
 <div class="title">Tip</div>
 </td>
 <td class="content">
-Once a disk image is mounted, you can alternatively also boot from an disk image by selecting "Drive" from the menu bar (when in windowed mode), followed by the drive letter and "Boot from drive".
+Once a disk image is mounted, you can alternatively also boot from a disk image by selecting "Drive" from the menu bar (when in windowed mode), followed by the drive letter and "Boot from drive".
 You can also mount and boot a disk image in one step by selecting "Boot from disk image" from this submenu.
 </td>
 </tr>
@@ -2184,15 +2199,48 @@ Unfortunately this support is incompatible with the typical MFM image files used
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_using_harddisk_images_in_macos">Using harddisk images in macOS</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can mount MFM harddisk image files with the extension IMG in macOS from the Finder by double-clicking on it.
+You can unmount it by clicking on the "Eject" button next to it in the Finder.</p>
+</div>
+<div class="paragraph">
+<p>MFM Harddisk images can also be opened in macOS from the Terminal using <code>hdiutil</code> as such:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>hdiutil attach hdd.img
+/dev/disk6              FDisk_partition_scheme
+/dev/disk6a1            DOS_FAT_16</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The output will tell you where the disk is attached.
+In the above example the disk is mounted on <code>/dev/disk6</code>, and the first partition as <code>/dev/disk6a1</code>.</p>
+</div>
+<div class="paragraph">
+<p>After this the harddisk image should be available from both the terminal and from Finder.
+Once your done, you can detach it as follows:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>hdiutil detach /dev/disk6
+"disk6" ejected.</pre>
+</div>
+</div>
+</div>
+</div>
 <h1 id="_cd_rom_or_dvd_images" class="sect0">CD-ROM or DVD images</h1>
 <div class="openblock partintro">
 <div class="content">
 <div class="paragraph">
-<p>DOSbox-X supports CD-ROM or DVD image files with the ISO9660 filesystem in ISO, CUE/BIN or MDF image format.</p>
+<p>DOSbox-X supports CD-ROM or DVD image files with the ISO-9660 (or High-Sierra) filesystem in ISO, CUE+BIN or MDF image format.</p>
 </div>
 <div class="paragraph">
-<p>ISO is the easiest format to work with, as long as there is only a single track on the CD or DVD.
-If the CD or DVD contains multiple tracks, the use of CUE/BIN or MDF is required.</p>
+<p>ISO is the easiest format to work with, as long as there is only a single data track on the CD or DVD.
+If the CD or DVD contains multiple tracks, like DATA and AUDIO (aka redbook audio) the use of CUE+BIN or MDF is required.</p>
 </div>
 </div>
 </div>
@@ -2422,13 +2470,13 @@ DOSBox-X supports the <code>-L</code> parameter for the <code>BOOT</code> comman
 <h2 id="_using_cd_or_dvd_images_in_linux">Using CD or DVD images in Linux</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>ISO images are fully supported by standard Linux tools, but CUE/BIN and MDF are not.</p>
+<p>ISO images are fully supported by standard Linux tools, but CUE+BIN and MDF are not.</p>
 </div>
 <div class="sect2">
 <h3 id="_gnome_disk_image_mounter_3">Gnome Disk Image Mounter</h3>
 <div class="paragraph">
 <p>If your using the Gnome desktop environment, you can open .ISO disks with the "Disk Image Mounter". Simply right click on the file, and select 'Open with Disk Image Mounter' and the file will be mounted in the Gnome file manager.
-This method will not work for CUE/BIN or MDF files.</p>
+This method will not work for CUE+BIN or MDF files.</p>
 </div>
 <div class="paragraph">
 <p>Disks can be unmounted from the Gnome file manager by clicking the unmount button next to the volume name.</p>
@@ -2445,14 +2493,14 @@ This method will not work for CUE/BIN or MDF files.</p>
 <div class="sect2">
 <h3 id="_cdemu">CDEmu</h3>
 <div class="paragraph">
-<p><a href="https://cdemu.sourceforge.io/">CDEmu</a> is a CD-ROM emulator for Linux. It supports numerous image formats, including ISO and CUE/BIN.</p>
+<p><a href="https://cdemu.sourceforge.io/">CDEmu</a> is a CD-ROM emulator for Linux. It supports numerous image formats, including ISO, CUE+BIN and MDF.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_mounting_a_iso_image_from_the_linux_shell">Mounting a ISO image from the Linux shell</h3>
 <div class="paragraph">
 <p>The more traditional Linux method of mounting diskette image files from a Linux terminal.
-This method will not work for CUE/BIN or MDF files.
+This method will not work for CUE+BIN or MDF files.
 This method requires sudo access.</p>
 </div>
 <div class="literalblock">
@@ -2473,10 +2521,22 @@ This method requires sudo access.</p>
 <p>Windows 8 and later has integrated support for mounting ISO files. Simply right-click a ISO file and select "Mount".</p>
 </div>
 <div class="paragraph">
-<p>Alternatively there is <a href="https://wincdemu.sysprogs.org/">WinCDEmu</a> which can mount amongst others ISO, CUE/BIN and MDF images.</p>
+<p>Alternatively there is <a href="https://wincdemu.sysprogs.org/">WinCDEmu</a> which can mount amongst others ISO, CUE+BIN and MDF images.</p>
 </div>
 <div class="paragraph">
 <p>Programs like 7-Zip, WinRAR and WinZIP can also extract the contents of a ISO file</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_cd_or_dvd_images_in_macos">Using CD or DVD images in macOS</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>You can mount ISO image files with the extension ISO in macOS from the Finder by double-clicking on it.
+You can unmount it by clicking on the "Eject" button next to it in the Finder.</p>
+</div>
+<div class="paragraph">
+<p>ISO images can also be opened in macOS from the Terminal using <code>hdiutil</code>.</p>
 </div>
 </div>
 </div>
@@ -2731,10 +2791,7 @@ This is because, once you boot a guest OS, the drive letter mapping loses its me
 <p>imgmount of QCOW2 images only works in combination with <code>-nofs</code>, which is rather restrictive. Can this be easily solved?</p>
 </li>
 <li>
-<p>How about IDE teriary through octenary controllers in dosbox-x config. Do the device number and/or -ide options continue counting up to device number 18 and <code>-ide 8s</code>?</p>
-</li>
-<li>
-<p>Accessing image files from MacOS? I have no MacOS system and no experience with them.</p>
+<p>How about IDE tertiary through octernary controllers in dosbox-x config. Do the device number and/or -ide options continue counting up to device number 18 and <code>-ide 8s</code>?</p>
 </li>
 <li>
 <p>PC-98 descriptions need checking as I have no experience with them.</p>
@@ -2746,7 +2803,7 @@ This is because, once you boot a guest OS, the drive letter mapping loses its me
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-12-01 04:14:20 -0500
+Last updated 2022-01-01 01:51:44 -0500
 </div>
 </div>
 </body>

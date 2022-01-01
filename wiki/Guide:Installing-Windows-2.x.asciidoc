@@ -330,7 +330,7 @@ image::images/Windows:Windows_2.03_SETUP_09.png[Windows 2.03 SETUP printer]
 
 If you indicated wanting to setup a printer, SETUP now asks you which model.
 
-For this guide, scroll to the "**Epson LQ-800 [Epson LQ 2]**", and press Enter.
+For this guide, scroll to the "**Epson LQ-850 [Epson LQ 2]**" (or **Epson LQ-1050** for wide formats), and press Enter.
 
 Later releases may have more options, such as a "**Generic / Text Only**" printer which can also be used.
 
@@ -386,6 +386,7 @@ But first type ``EXIT`` to close DOSBox-X.
 And then edit your ``win2x.conf`` config file and add the following lines into the ``[autoexec]`` section at the end of the file:
 
 ....
+@ECHO OFF
 MOUNT C /home/myuser/winroot
 C:
 IF EXIST C:\WINDOWS\WIN.COM GOTO WINDOWS
@@ -393,11 +394,13 @@ IF EXIST C:\WIN386\WIN386.EXE GOTO WIN386
 GOTO END
 
 :WINDOWS
+ECHO Starting Windows 2.x
 SET PATH=%PATH%;C:\WINDOWS;
 C:\WINDOWS\WIN.COM
 GOTO END
 
 :WIN386
+ECHO Starting Windows/386 2.x
 SET PATH=%PATH%;C:\WIN386
 C:\WIN386\WIN386.EXE
 GOTO END

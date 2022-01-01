@@ -482,10 +482,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_linux_host_2">Linux host</a></li>
 </ul>
 </li>
-<li><a href="#_example_print_to_png_bmp_or_postscript">Example: Print to PNG, BMP or PostScript</a></li>
+<li><a href="#_example_print_to_png_or_bmp">Example: Print to PNG or BMP</a></li>
+<li><a href="#_example_print_to_postscript">Example: Print to PostScript</a></li>
 <li><a href="#_example_redirect_print_output_to_a_program_on_the_host">Example: Redirect print output to a program on the host</a>
 <ul class="sectlevel2">
-<li><a href="#_macos_example">macOS example</a></li>
+<li><a href="#_linux_postscript_printing_example">Linux PostScript printing example</a></li>
+<li><a href="#_macos_postscript_printing_example">macOS PostScript printing example</a></li>
 </ul>
 </li>
 </ul>
@@ -501,83 +503,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="paragraph">
 <p>Printer options in the DOSBox-X config file are split over two sections, <code>[parallel]</code> and <code>[printer]</code>.</p>
 </div>
-<div class="paragraph">
-<p>The Virtual Printer option emulates a colour dot-matrix printer that follows the Epson <a href="https://en.wikipedia.org/wiki/ESC/P">ESC/P2</a> printing standard.
-It also has partial support for the IBM Pro Printer, where the control codes do not conflict with the Epson control codes.</p>
-</div>
-<div class="paragraph">
-<p><strong>Example of printers that may work:</strong></p>
-</div>
-<div class="paragraph">
-<p>These are examples of printers that you may be able to select in a DOS application, which may work with the virtual printer option.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Epson MX-80</p>
-</li>
-<li>
-<p>Epson SQ-860</p>
-</li>
-<li>
-<p>Epson LQ-800</p>
-</li>
-<li>
-<p>IBM Pro Printer (limited function)</p>
-</li>
-<li>
-<p>Generic ESC/P 24pin wide (Windows 3.11 running in DOSBox-X)</p>
-</li>
-<li>
-<p>Generic / Text Only (Windows running in DOSBox-X)</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p><strong>Features:</strong></p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Many of the Epson ESC/P and ESC/P2 instructions are supported</p>
-</li>
-<li>
-<p>Graphics printing for 24-pin and 48-pin modes supported, up to 360dpi</p>
-</li>
-<li>
-<p>Colour output, use "Generic ESC/P 24pin wide" printer on Windows 3.11 or "Epson SQ 860" on Win95</p>
-</li>
-<li>
-<p>Data can be output as Windows bitmap, PNG file, PostScript file, or sent to a Windows</p>
-</li>
-<li>
-<p>Some older non-conflicting IBM control codes are supported</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p><strong>Limitations:</strong></p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Windows printer output in black &amp; white only</p>
-</li>
-<li>
-<p>Not all ESC/P commands are supported, like custom fonts</p>
-</li>
-<li>
-<p>Due to over-exact graphics emulation 360dpi printing from Windows (guest) graphics rastering might not look as expected</p>
-</li>
-<li>
-<p>Country code setup and other configuration switches and buttons found on a real printer are not available, this may be overcome by sending special ESC/P commands to the printer before printing</p>
-</li>
-</ul>
-</div>
 <div class="sect2">
 <h3 id="_parallel_section_options">[parallel] section options</h3>
 <div class="paragraph">
-<p>This section lists the available configuration options for the <code>[parallel]</code> section that DOSBox-X provides.</p>
+<p>This section lists the available configuration options for the <code>[parallel]</code> section that DOSBox-X provides.
+Is is used to configure the virtual parallel ports provided inside DOSBox-X.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -587,7 +517,7 @@ It also has partial support for the IBM Pro Printer, where the control codes do 
 </td>
 <td class="content">
 Starting with DOSBox-X v0.83.20 it is possible to modify parallel port settings directly from the DOSBox-X DOS prompt with either the <code>parallel</code> or <code>config -set parallel</code> commands.
-This however does not allow changing the emulated printer settings, and the settings are lost when you restart DOSBox-X.
+Any settings you modify this way are however lost when you restart DOSBox-X.
 </td>
 </tr>
 </table>
@@ -605,7 +535,8 @@ This however does not allow changing the emulated printer settings, and the sett
 </ul>
 </div>
 <div class="paragraph">
-<p>This enables an emulated LPT1 port on IO base address 0x378. Most DOS applications expect a printer on the LPT1 port.</p>
+<p>This enables an emulated LPT1 port on IO base address 0x378.
+Most DOS applications expect a printer on the LPT1 port.</p>
 </div>
 <div class="paragraph">
 <p>Some values have additional parameters, which if specified must be on the same line in the form of <code>parameter:value</code>.</p>
@@ -664,7 +595,7 @@ The parallel1 port may be auto-enabled for Disney Sound Source emulation.
 <div class="ulist">
 <ul>
 <li>
-<p>Windows:</p>
+<p>Additional Windows options:</p>
 <div class="ulist">
 <ul>
 <li>
@@ -684,7 +615,7 @@ The parallel1 port may be auto-enabled for Disney Sound Source emulation.
 </div>
 </li>
 <li>
-<p>Linux:</p>
+<p>Additional Linux options:</p>
 <div class="ulist">
 <ul>
 <li>
@@ -694,6 +625,22 @@ The parallel1 port may be auto-enabled for Disney Sound Source emulation.
 </div>
 </li>
 </ul>
+</div>
+<div class="paragraph">
+<p>Used to specify that you want to redirect the output to a real physical port on the host PC.
+You will need to use this if you have for instance a parallel port security dongle, but can be used with any parallel device supported by your dos application.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+This option may not work without additional steps, as this tries to do direct access to the port on the host PC, which modern operating systems will block by default.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p><strong>file</strong></p>
@@ -762,13 +709,15 @@ parallel1=file dev:lpt1 timeout=1000 addFF cp:437</pre>
 <p><strong>printer</strong></p>
 </div>
 <div class="paragraph">
-<p>Send to a printer. This has it&#8217;s own configuration section which is documented below.</p>
+<p>Send to a emulated Epson printer.
+This has it&#8217;s own configuration section which is documented below.</p>
 </div>
 <div class="paragraph">
 <p><strong>disney</strong></p>
 </div>
 <div class="paragraph">
-<p>Defines that this port has the emulated Disney Sound Source attached (Covox Voice Master and Covox Speech Thing compatible). It requires the following lines in your config:</p>
+<p>Defines that this port has the emulated Disney Sound Source attached (Covox Voice Master and Covox Speech Thing compatible).
+It requires the following lines in your config:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -869,11 +818,188 @@ You can optionally specify base addresses and IRQs for them with <code>base:</co
 <div class="sect2">
 <h3 id="_printer_section_options">[printer] section options</h3>
 <div class="paragraph">
-<p>This section lists the available configuration options for the <code>[printer]</code> section that DOSBox-X provides.</p>
+<p>This section lists the available configuration options for the <code>[printer]</code> section of the DOSBox-X config file.</p>
 </div>
 <div class="paragraph">
-<p>Only one printer can be emulated, and it can only be connected to a single virtual parallel port.
-It is also recommended for the virtual printer to configure TrueType fonts.</p>
+<p>Only one Epson printer can be emulated, and it can only be connected to a single virtual parallel port.
+It is also recommended for the virtual printer to configure TrueType fonts if you intend to print text.</p>
+</div>
+<div class="paragraph">
+<p>The Virtual Printer option emulates a dot-matrix printer that follows the Epson <a href="https://en.wikipedia.org/wiki/ESC/P">ESC/P2</a> printing standard.
+It also has partial support for the IBM Pro Printer, where the control codes do not conflict with the Epson control codes.</p>
+</div>
+<div class="paragraph">
+<p>Generally speaking when looking through the list of supported printers in a DOS application, look for any Epson printer.
+Epson itself suggested in some of their literature to look for printers in the following order for backward compatibility</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>LQ Series - Letter Quality 24-pin</p>
+<div class="ulist">
+<ul>
+<li>
+<p>B/W - LQ-870, LQ-570/570+, LQ-850+, LQ-850, LQ-510/550, LQ-200, LQ-500, LQ-2550, LQ-2500, LQ-800, LQ-1500</p>
+</li>
+<li>
+<p>Colour - LQ-860+, LQ-860</p>
+</li>
+<li>
+<p>Wide B/W - LQ-2180, LQ-2170/2070, LQ-1070/1070+, LQ-1170, LQ-1050+, LQ-1050, LQ-1010, LQ-1000, LQ-1500</p>
+</li>
+<li>
+<p>Wide Colour - LQ-2550, LQ-2500</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>FX Series</p>
+<div class="ulist">
+<ul>
+<li>
+<p>B/W - FX-880, FX-870, FX-850, FX-800, FX-85, FX-80+, FX-80</p>
+</li>
+<li>
+<p>Wide B/W - FX-2180, FX-2170, FX-1180, FX-1170, FX-1050, FX-1000, EX-1000, FX-105, FX-100+, FX-100</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>LX Series</p>
+<div class="ulist">
+<ul>
+<li>
+<p>B/W - LX-300, LX-810/850, LX-800, LX-80/86</p>
+</li>
+<li>
+<p>Wide B/W - LX-1050+, LX-1050</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>EX Series</p>
+<div class="ulist">
+<ul>
+<li>
+<p>B/W - EX-800</p>
+</li>
+<li>
+<p>Wide B/W - EX-1000</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>RX Series</p>
+<div class="ulist">
+<ul>
+<li>
+<p>B/W - RX-80</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>MX Series</p>
+<div class="ulist">
+<ul>
+<li>
+<p>B/W - MX-85, MX-82, MX-80</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Starting with DOSBox-X v0.83.21 it is possible to modify emulated printer settings directly from the DOSBox-X DOS prompt with the <code>config -set printer</code> commands.
+Any settings you modify this way are however lost when you restart DOSBox-X.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If your wanting to print in landscape on Letter or A4 paper, or in portrait on A3 paper, select a wide printer as otherwise the software may not give you the possibility to configure the paper properly.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+For printing in text mode it should not matter which Epson printer is selected, as DOSBox-X will use TrueType Fonts to render the text at the selected DPI. As such for text mode printing, it does not matter if a 9 or 24-pin printer is selected.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+Printing to any Epson 24-pin printer in "360 x 180" or "360 x 360" mode results in corrupted output. In addition, models that should support colour output like the LQ-860/2500/2550 instead print in B/W. These appear to be issues with the Epson printer emulation.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p><strong>Features:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Many of the Epson ESC/P and ESC/P2 instructions are supported</p>
+</li>
+<li>
+<p>Graphics printing for 24-pin (LQ series) and 48-pin (DLQ series) modes supported, up to 360dpi</p>
+</li>
+<li>
+<p>Data can be output as Windows bitmap, PNG file, PostScript file, or sent to a Windows printer</p>
+</li>
+<li>
+<p>Some older non-conflicting IBM control codes are supported</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Limitations:</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Printer output in black &amp; white only</p>
+</li>
+<li>
+<p>Not all ESC/P commands are supported, like custom fonts</p>
+</li>
+<li>
+<p>Due to over-exact graphics emulation 360dpi printing from Windows (guest) graphics rasterising might not look as expected</p>
+</li>
+<li>
+<p>Country code setup and other configuration switches and buttons found on a real printer are not available, this may be overcome by sending special ESC/P commands to the printer before printing</p>
+</li>
+</ul>
 </div>
 <div class="sect3">
 <h4 id="_printer">printer</h4>
@@ -888,7 +1014,7 @@ It is also recommended for the virtual printer to configure TrueType fonts.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>Enables or disables printer emulation.</p>
+<p>Enables or disables virtual printer emulation.</p>
 </div>
 </div>
 <div class="sect3">
@@ -899,9 +1025,12 @@ It is also recommended for the virtual printer to configure TrueType fonts.</p>
 <p>Default value: 360</p>
 </li>
 <li>
-<p>Possible values:</p>
+<p>Possible values: 0-65535</p>
 </li>
 </ul>
+</div>
+<div class="paragraph">
+<p>Sets the dots-per-inch of the virtual printer.</p>
 </div>
 </div>
 <div class="sect3">
@@ -912,15 +1041,15 @@ It is also recommended for the virtual printer to configure TrueType fonts.</p>
 <p>Default value: 85</p>
 </li>
 <li>
-<p>Possible values:</p>
+<p>Possible values: 0-65535</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>Width of paper in 1/10 inch. The default 85 corresponds to 8.5".</p>
+<p>Width of paper in 1/10 inch. The default of 85 corresponds to 8.5".</p>
 </div>
 <div class="paragraph">
-<p>Example of standard paper sizes in portrait orientation:</p>
+<p>Example of some standard paper sizes in portrait orientation:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -950,15 +1079,15 @@ It is also recommended for the virtual printer to configure TrueType fonts.</p>
 <p>Default value: 110</p>
 </li>
 <li>
-<p>Possible values:</p>
+<p>Possible values: 0-65535</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>Height of paper in 1/10 inch. The default 110 corresponds to 11.0".</p>
+<p>Height of paper in 1/10 inch. The default of 110 corresponds to 11.0".</p>
 </div>
 <div class="paragraph">
-<p>Example of standard paper sizes in portrait orientation:</p>
+<p>Example of some standard paper sizes in portrait orientation:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -985,7 +1114,7 @@ It is also recommended for the virtual printer to configure TrueType fonts.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Default value: printer</p>
+<p>Default value: printer (windows host), else png</p>
 </li>
 <li>
 <p>Possible values: png, ps, bmp, printer</p>
@@ -996,21 +1125,26 @@ It is also recommended for the virtual printer to configure TrueType fonts.</p>
 <p><strong>printer</strong></p>
 </div>
 <div class="paragraph">
-<p>To send the output to a printer in Windows.
-A print dialogue will appear.
+<p>To send the output to a printer on a Windows host.
+A Windows print dialogue will appear.
 You can specify the target printer with the device option.</p>
 </div>
 <div class="paragraph">
 <p><strong>png or bmp</strong></p>
 </div>
 <div class="paragraph">
-<p>Between PNG and BMP, PNG is better. BMP files will be much larger, while the image quality will be identical.</p>
+<p>Create a PNG or BMP file with the print output.</p>
+</div>
+<div class="paragraph">
+<p>Between PNG and BMP, PNG is more modern format.
+BMP will create larger files, due to lack of compression, while the image quality will be identical.</p>
 </div>
 <div class="paragraph">
 <p><strong>ps</strong></p>
 </div>
 <div class="paragraph">
-<p>PostScript, which is the best option typically for Linux and macOS hosts as it supports multipage documents and can easily be converted to PDF.</p>
+<p>Create a PostScript file.
+This is typically the best option for Linux and macOS hosts, as it supports multi-page documents and can easily be converted to PDF.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1029,7 +1163,7 @@ You can specify the target printer with the device option.</p>
 <p>Only applicable if <code>printoutput=ps</code>.</p>
 </div>
 <div class="paragraph">
-<p>Adds all pages to one PostScript file or printer job until CTRL-F2 is pressed.
+<p>Adds all pages printed to one PostScript file until a timeout, or until CTRL-F2 is pressed.
 See also the <code>timeout</code> option below.</p>
 </div>
 </div>
@@ -1046,12 +1180,15 @@ See also the <code>timeout</code> option below.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>Only applicable if <code>printoutput=printer</code>.</p>
+<p>Only applicable on Windows hosts and when <code>printoutput=printer</code>.</p>
 </div>
 <div class="paragraph">
 <p>The default value will cause you to get asked for the printer the first time you print after starting DOSBox-X.
-You can alternatives specify the printer device name (or a partial name) or the device number.
-From a consistency perspective it is best to specify a device name, as the device number can change due to devices being added or removed.</p>
+Any subsequent prints will go to the same printer, until DOSBox-X is restarted.</p>
+</div>
+<div class="paragraph">
+<p>You can use this option to specify the printer device name (or a partial name), or the device number.
+From a consistency perspective it is best to specify a device name, as the device number can change due to devices being added or removed on the host.</p>
 </div>
 <div class="paragraph">
 <p>To see the list of available devices, start DOSBox-X and open the DOS menu, followed by "List printer devices".</p>
@@ -1134,7 +1271,7 @@ If set to auto (default), this is enabled only for the TrueType font (TTF) outpu
 <p>e.g. <code>openwith=notepad</code> will open the file with Notepad on a Windows host.</p>
 </div>
 <div class="paragraph">
-<p>Some examples:</p>
+<p>Some other examples:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1143,9 +1280,6 @@ If set to auto (default), this is enabled only for the TrueType font (TTF) outpu
 </li>
 <li>
 <p>Windows host: <code>openwith=start</code> will cause the file to be opened with the application associated with the file extension</p>
-</li>
-<li>
-<p>Windows host: <code>openwith=notepad</code> will open the file with the Notepad application</p>
 </li>
 <li>
 <p>macOS host: <code>openwith=open -s "Preview"</code> will cause the file to be opened with the application associated with the file extension</p>
@@ -1179,7 +1313,8 @@ If set to auto (default), this is enabled only for the TrueType font (TTF) outpu
 </ul>
 </div>
 <div class="paragraph">
-<p>If set, the command window will be hidden for openwith/openerror options. Only supported on the Windows platform.</p>
+<p>If set, the command window will be hidden for openwith/openerror options.
+Only supported on the Windows platform.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1195,7 +1330,7 @@ If set to auto (default), this is enabled only for the TrueType font (TTF) outpu
 </ul>
 </div>
 <div class="paragraph">
-<p>Timeout (in milliseconds).</p>
+<p>Timeout (in milliseconds). Set to 1000 for a 1-second timeout.</p>
 </div>
 <div class="paragraph">
 <p>If zero, the page will not be ejected until a form-feed is received.</p>
@@ -1204,10 +1339,11 @@ If set to auto (default), this is enabled only for the TrueType font (TTF) outpu
 <p>Since not all software will send one, especially if your redirecting output, you can force a form-feed (eject page) by specifying a non-zero value.</p>
 </div>
 <div class="paragraph">
-<p>If non-zero, it specifies the time after which the page will be ejected automatically when no more data arrives at the printer.</p>
+<p>If non-zero, it specifies the time after which the page will be ejected automatically when no more data arrives at the printer.
+If the printout gets split over multiple files, increase this value.</p>
 </div>
 <div class="paragraph">
-<p>You can also manually eject a form-feed when you want to do so, and this option is available from the DOS menu.</p>
+<p>You can also manually send a form-feed, by pressing CTRL-F2 or using the form-feed option available from the DOS menu.</p>
 </div>
 </div>
 </div>
@@ -1274,8 +1410,7 @@ If the fonts cannot be found, then it will search for the system fonts, as follo
 </tbody>
 </table>
 <div class="paragraph">
-<p>You are free to use suitable alternatives for these fonts, by copying them to the FONTS directory with file names mentioned in the first column of the above table.
-Moreover, DOSBox-X 0.83.4 and earlier will only search for font files in the FONTS directory.</p>
+<p>You are free to use suitable alternatives for these fonts, by copying them to the FONTS directory with file names mentioned in the first column of the above table.</p>
 </div>
 <div class="paragraph">
 <p>Ocra (OCR-A) and Script (cursive) fonts may not be installed on your system.
@@ -1333,8 +1468,7 @@ If the fonts cannot be found, then it will search for the fonts in the <code>/us
 </tbody>
 </table>
 <div class="paragraph">
-<p>You are free to use suitable alternatives for these fonts, by copying them to the FONTS directory with file names mentioned in the first column of the above table.
-Moreover, DOSBox-X 0.83.4 and earlier will only search for font files in the FONTS directory.</p>
+<p>You are free to use suitable alternatives for these fonts, by copying them to the FONTS directory with file names mentioned in the first column of the above table.</p>
 </div>
 <div class="paragraph">
 <p>Ocra (OCR-A) and Script (cursive) fonts may not be installed on your system.
@@ -1347,10 +1481,19 @@ If you need them you may need to find those online.</p>
 <div class="openblock partintro">
 <div class="content">
 <div class="paragraph">
-<p>In this example the output of DOS commands is simply redirected to the virtual LPT port, which in turn will be redirected to a text file.</p>
+<p>In this example the output of a DOS command or application is simply redirected to the virtual LPT port, which in turn will be redirected to a file on the host.</p>
 </div>
 <div class="paragraph">
-<p>Setup a DOSBox-X config file with the following lines:</p>
+<p>This is useful if your printing just simple text, as the file on the host will contain the exact text.</p>
+</div>
+<div class="paragraph">
+<p>If the application expects a printer that can do more then just simple text, and sends control codes for that printer, the file will also contain those control codes.</p>
+</div>
+<div class="paragraph">
+<p>This can actually be useful, if you select a PostScript or HP PCL printer in the DOS application, as the resulting file will be a PostScript or HP PCL file which can be opened on the host with an appropriate application.</p>
+</div>
+<div class="paragraph">
+<p>In this example, setup a DOSBox-X config file with the following lines:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1362,22 +1505,19 @@ parallel1=file</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>No <code>[printer]</code> section is needed for this example.</p>
+<p>No <code>[printer]</code> section is needed for this example, as we are not emulating a printer.</p>
 </div>
 <div class="paragraph">
 <p>Now start DOSBox-X, and type the following command:</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>DIR &gt; LPT1</pre>
+<pre>DIR &gt; LPT1:</pre>
 </div>
 </div>
 <div class="paragraph">
 <p>The above will cause a <code>capture\dosbox_000.prt</code> ASCII text file to be created.
 The exact save location is dependent on the <code>captures=</code> setting in the <code>[dosbox]</code> section.</p>
-</div>
-<div class="paragraph">
-<p>You can also use this in most DOS programs, by selecting a generic text printer, or in Windows 2.x, 3.x, 95 or 98 by selecting the "Generic / Text Only" printer.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1390,10 +1530,6 @@ If you booted real DOS, or Windows 9x in DOSBox-X the output filename will be <c
 </td>
 </tr>
 </table>
-</div>
-<div class="paragraph">
-<p>You may be able to use this with a more advanced printer model selected in your DOS application, but the output will then have printer specific control codes in it.
-In addition, this may not work if the application expects to be able to have bi-directional communication with the printer.</p>
 </div>
 </div>
 </div>
@@ -1420,9 +1556,9 @@ device=-</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>In DOSBox-X you can now simply redirect output to LPT1, or in DOS applications configure one of the printers listed above.
-The printer dialogue will show up once when a printer selection is made.
-If you want the printer dialogue to show up every time for printing to LPT1, please leave the "device" empty.</p>
+<p>In DOSBox-X you can now simply redirect output to LPT1, or in DOS applications configure one of the Epson printers listed above.
+The printer dialogue will show up after a printer selection is made.
+If you want the printer selection to show up every time for printing to LPT1, please leave the "device" empty.</p>
 </div>
 </div>
 </div>
@@ -1430,12 +1566,12 @@ If you want the printer dialogue to show up every time for printing to LPT1, ple
 <h2 id="_windows_host_method_2">Windows host, method 2</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This assumes you PC still has a parallel printer port integrated on the system board, or a legacy ISA printer adapter.
-It reportedly will not work with USB printer adapters or PCI printer port adapters.</p>
+<p>This assumes you PC still has a parallel printer port integrated on the system board, or a legacy ISA parallel printer adapter.
+It reportedly will not work with USB parallel printer adapters or PCI parallel printer port adapters.</p>
 </div>
 <div class="paragraph">
 <p>Also note that the output is sent verbatim from the DOS application to the printer, without any filtering or conversion.
-Therefore it is important that the printer can understand the control codes that are being sent.
+Therefore it is important that the printer can understand the printer control codes that are being sent by the application.
 In practice this means that this method is only really meant for situations where you have a legacy printer, or are perhaps only sending pure text.</p>
 </div>
 <div class="paragraph">
@@ -1448,7 +1584,7 @@ parallel1=file dev:lpt1</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Alternatively you can try to set it up as follows, but this reportedly only works if your host is running Windows 9x, or with later Windows versions by installing "PortTalk"</p>
+<p>Alternatively you can try to set it up as follows, but this reportedly only works if your host is running Windows 9x, or with later Windows versions by installing "PortTalk" as direct port access is no longer permitted with modern Windows versions.</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1495,16 +1631,15 @@ Below is a screenshot of its configuration window.</p>
 <h2 id="_linux_host_2">Linux host</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>First you need to give your Linux user access to the <code>/dev/parport0</code> device, otherwise you will get permission denied errors.
-Replace "username" with your Linux username.</p>
+<p>First you need to give your Linux user access to the parallel printer port on the Linux host, otherwise you will get permission denied errors.</p>
+</div>
+<div class="paragraph">
+<p>Replace "username" in the example below with your own Linux username.</p>
 </div>
 <div class="literalblock">
 <div class="content">
 <pre>sudo usermod -a -G lp username</pre>
 </div>
-</div>
-<div class="paragraph">
-<p>Now, similar to the Windows parallel printing instructions, try the following:</p>
 </div>
 <div class="paragraph">
 <p>Make sure your DOSBox-X config file contains the statements:</p>
@@ -1526,18 +1661,30 @@ parallel1=file dev:/dev/parport0</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>But while this method seems to work on Windows, it does not seem to work properly on Linux.</p>
+<p>But while using this method seems to work on Windows, according to one report, it does not seem to work properly on Linux.</p>
 </div>
 <div class="paragraph">
-<p>Again, just like in the "Windows host, method 2" above, the output is sent verbatim to the printer, so the printer needs to be able to understand any control codes the DOS application sends.</p>
+<p>The output is sent verbatim to the printer, so the printer needs to be able to understand any control codes the DOS application sends.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+In the case of a real parallel port, the first port will be <code>/dev/parport0</code>, but in the case of a USB parallel port adapter it will be <code>/dev/usblp0</code>.
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
-<h1 id="_example_print_to_png_bmp_or_postscript" class="sect0">Example: Print to PNG, BMP or PostScript</h1>
+<h1 id="_example_print_to_png_or_bmp" class="sect0">Example: Print to PNG or BMP</h1>
 <div class="openblock partintro">
 <div class="content">
 <div class="paragraph">
-<p>This method prints to a PNG, BMP or PostScript (PS) image file.</p>
+<p>This method prints to a PNG or BMP image file.</p>
 </div>
 <div class="paragraph">
 <p>Make sure your DOSBox-X config file contains the statements:</p>
@@ -1554,18 +1701,48 @@ timeout=1000</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The above example uses PNG, but you can simply change it to <code>printoutput=bmp</code> or <code>printoutput=ps</code> if you prefer.
+<p>The above example uses PNG, but you can simply change it to <code>printoutput=bmp</code> if you prefer.
 But note that BMP files will be much larger than PNG files, while the image quality will be identical.</p>
 </div>
 <div class="paragraph">
 <p>In DOSBox-X you can now simply redirect output to LPT1, or in DOS applications configure one of the printers listed above.</p>
 </div>
 <div class="paragraph">
-<p>The output will be saved as <code>page1.png</code>, <code>page1.bmp</code> or <code>page1.ps</code> in the current directory, and incremented if it already exists.
+<p>The output will be saved as <code>page1.png</code> or <code>page1.bmp</code> in the current directory, and incremented if it already exists.
+Alternatively you can specify a different directory using the <code>docpath=</code> setting as documented above.</p>
+</div>
+</div>
+</div>
+<h1 id="_example_print_to_postscript" class="sect0">Example: Print to PostScript</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>This method prints to a PostScript (PS) image file, which can be easily converted to PDF.</p>
+</div>
+<div class="paragraph">
+<p>Make sure your DOSBox-X config file contains the statements:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[parallel]
+parallel1=printer
+
+[printer]
+printer=true
+printoutput=ps
+multipage=true
+timeout=1000</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In DOSBox-X you can now simply redirect output to LPT1, or in DOS applications configure one of the printers listed above.</p>
+</div>
+<div class="paragraph">
+<p>The output will be saved as <code>page1.ps</code> in the current directory, and incremented if it already exists.
 Alternatively you can specify a different directory using the <code>docpath=</code> setting as documented above.</p>
 </div>
 <div class="paragraph">
-<p>When using PostScript output, you can prevent a separate PostScript files from being generated for each page, by setting <code>multipage=true</code>.</p>
+<p>The <code>multipage=true</code> setting is specific to PostScript output, and prevents a separate PostScript file from being generated for each printed page.</p>
 </div>
 </div>
 </div>
@@ -1573,7 +1750,8 @@ Alternatively you can specify a different directory using the <code>docpath=</co
 <div class="openblock partintro">
 <div class="content">
 <div class="paragraph">
-<p>In the <code>[parallel]</code> section for the parallel1-9 config options you can use the <code>file</code> option to direct the output to a file, which will then be opened by the specified application on the host.</p>
+<p>In the <code>[parallel]</code> section for the parallel1-9 config options you can use the <code>file</code> option to direct the output to a file, which can then optionally be opened by the specified application on the host.
+This application can then be used to view the output, and possibly print it or used to convert the output to something like PDF with a PDF printer.</p>
 </div>
 <div class="paragraph">
 <p>The options available are:</p>
@@ -1584,7 +1762,7 @@ Alternatively you can specify a different directory using the <code>docpath=</co
 <p><code>openps:&lt;program&gt;</code> start a program to open the file if the printer output is detected to be PostScript.</p>
 </li>
 <li>
-<p><code>openpcl:&lt;program&gt;</code> start a program to open the file if the printer output is detected to be PCL.</p>
+<p><code>openpcl:&lt;program&gt;</code> start a program to open the file if the printer output is detected to be HP PCL.</p>
 </li>
 <li>
 <p><code>openwith:&lt;program&gt;</code> start a program to open the file in all other conditions.</p>
@@ -1600,7 +1778,7 @@ Alternatively you can specify a different directory using the <code>docpath=</co
 <div class="literalblock">
 <div class="content">
 <pre>[parallel]
-parallel1 = file file:output1.prn timeout:1000 openpcl:pcl6 openps:gswin32c openwith:notepad</pre>
+parallel1=file file:output.prn timeout:2000 openpcl:pcl6 openps:gswin32c openwith:notepad</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1616,22 +1794,41 @@ If this is not flexible enough, for instance because you need to have the printe
 </div>
 </div>
 <div class="sect2">
-<h3 id="_macos_example">macOS example</h3>
+<h3 id="_linux_postscript_printing_example">Linux PostScript printing example</h3>
 <div class="paragraph">
 <p>In this example, it is assumed that your printing to a PostScript printer in your DOS application.
-The output is saved to a file on the host, and when the file is closed (when no output is received for 1 second), the file will be opened by the macOS Preview application such that it can be printed.</p>
+This should give you the highest quality output, and depending on the application, you may even get colour by selecting a a colour PostScript printer.
+The output is saved to a file on the host, to the directory specified with the <code>captures=</code> option, and when the file is closed (when no output is received for 2 seconds), the file will be opened using xdg-open such that it can be printed.</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>[parallel]
-parallel1 = file file:~/Documents/output1.ps timeout:1000 squote openps:'open -s "Preview"'</pre>
+<pre>[dosbox]
+captures=capture
+
+[parallel]
+parallel1=file file:output.ps timeout:2000 openps:xdg-open</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_macos_postscript_printing_example">macOS PostScript printing example</h3>
+<div class="paragraph">
+<p>Similar to the Linux example above, but here the macOS Preview application is used to open the PostScript file, from where it can be printed.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[dosbox]
+captures=capture
+
+[parallel]
+parallel1=file file:output.ps timeout:2000 squote openps:'open -s "Preview"'</pre>
 </div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-12-01 04:14:20 -0500
+Last updated 2022-01-01 01:51:44 -0500
 </div>
 </div>
 </body>

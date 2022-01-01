@@ -505,6 +505,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
+<p><strong>ASSOC</strong> (internal command)</p>
+<div class="paragraph">
+<p>Displays or changes file extension associations.</p>
+</div>
+<div class="paragraph">
+<p>Usage: ASSOC [.ext[=command] &#8230;&#8203; ]</p>
+</div>
+</li>
+<li>
 <p><strong>ATTRIB</strong> (internal command)</p>
 <div class="paragraph">
 <p>Displays or changes the attributes of files and directories.</p>
@@ -634,7 +643,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><strong>CHOICE</strong> (internal command)</p>
+<p><strong>CHOICE</strong> (external command)</p>
 <div class="paragraph">
 <p>Waits for a key press and sets ERRORLEVEL. Displays the given prompt followed by [Y,N]? for yes or no response.</p>
 </div>
@@ -706,9 +715,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><strong>COUNTRY</strong> (internal command)</p>
+<p><strong>COUNTRY</strong> (external command)</p>
 <div class="paragraph">
-<p>Changes the country code for country-specific date/time formats.</p>
+<p>Changes the country code for country-specific date/time/decimal formats.</p>
 </div>
 <div class="paragraph">
 <p>Usage: COUNTRY [code]</p>
@@ -1024,6 +1033,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div class="paragraph">
 <p>Note: Included in the related DOSLIB project, this open-source tool was specifically written as a way to poke around the addressable memory available to the CPU and to show how a 16-bit DOS program can access extended memory, including flat real mode, and the 286 reset vector trick for 80286 systems. There is also code to access memory above 4GB if the CPU supports 64-bit long mode or the PAE page table extensions, although these are not yet supported by DOSBox-X.</p>
+</div>
+</li>
+<li>
+<p><strong>HISTORY</strong> (internal command)</p>
+<div class="paragraph">
+<p>Displays or clears the command history list.</p>
+</div>
+<div class="paragraph">
+<p>Usage: HISTORY [/C]</p>
 </div>
 </li>
 <li>
@@ -1510,6 +1528,24 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
+<p><strong>UTF16</strong> (external command)</p>
+<div class="paragraph">
+<p>Converts UTF-16 text to view in the current code page.</p>
+</div>
+<div class="paragraph">
+<p>Usage: UTF16 [/BE|/LE] &lt; [drive:][path]filename or command-name | UTF16 [/BE|/LE]</p>
+</div>
+</li>
+<li>
+<p><strong>UTF8</strong> (external command)</p>
+<div class="paragraph">
+<p>Converts UTF-8 text to view in the current code page.</p>
+</div>
+<div class="paragraph">
+<p>Usage: UTF8 &lt; [drive:][path]filename or command-name | UTF8</p>
+</div>
+</li>
+<li>
 <p><strong>VER</strong> (internal command)</p>
 <div class="paragraph">
 <p>Views and sets the reported DOS version. Also displays the running DOSBox-X version.</p>
@@ -1737,7 +1773,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-12-01 04:14:20 -0500
+Last updated 2022-01-01 01:51:44 -0500
 </div>
 </div>
 </body>

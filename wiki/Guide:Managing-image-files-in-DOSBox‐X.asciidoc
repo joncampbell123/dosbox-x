@@ -323,6 +323,12 @@ Several 3rd party tools are available which can open the diskette image files:
 * link:https://www.win-rar.com/[WinRAR]
 * link:https://www.winzip.com/[WinZIP]
 
+## Using diskette images in macOS
+You can mount MFM image files with the extension IMG in macOS from the Finder by double-clicking on it.
+You can unmount it by clicking on the "Eject" button next to it in the Finder.
+
+It is also possible to mount the image file from the macOS Terminal using `hdiutil`
+
 # Harddisk images
 DOSBox-X supports mounting harddisk images in the following formats:
 
@@ -558,7 +564,7 @@ boot c:
 ....
 NOTE: DOSBox-X supports the ``-L`` parameter for the ``BOOT`` command for backward compatibility with vanilla DOSBox, or other forks, but the parameter is not required with DOSBox-X to boot from a drive letter.
 
-TIP: Once a disk image is mounted, you can alternatively also boot from an disk image by selecting "Drive" from the menu bar (when in windowed mode), followed by the drive letter and "Boot from drive".
+TIP: Once a disk image is mounted, you can alternatively also boot from a disk image by selecting "Drive" from the menu bar (when in windowed mode), followed by the drive letter and "Boot from drive".
 You can also mount and boot a disk image in one step by selecting "Boot from disk image" from this submenu.
 
 ## Using harddisk images in Linux
@@ -599,11 +605,34 @@ Unfortunately this support is incompatible with the typical MFM image files used
 
 One tool which is able to open harddisk images is 7-Zip.
 
-# CD-ROM or DVD images
-DOSbox-X supports CD-ROM or DVD image files with the ISO9660 filesystem in ISO, CUE/BIN or MDF image format.
+## Using harddisk images in macOS
+You can mount MFM harddisk image files with the extension IMG in macOS from the Finder by double-clicking on it.
+You can unmount it by clicking on the "Eject" button next to it in the Finder.
 
-ISO is the easiest format to work with, as long as there is only a single track on the CD or DVD.
-If the CD or DVD contains multiple tracks, the use of CUE/BIN or MDF is required.
+MFM Harddisk images can also be opened in macOS from the Terminal using `hdiutil` as such:
+
+....
+hdiutil attach hdd.img
+/dev/disk6              FDisk_partition_scheme
+/dev/disk6a1            DOS_FAT_16
+....
+
+The output will tell you where the disk is attached.
+In the above example the disk is mounted on `/dev/disk6`, and the first partition as `/dev/disk6a1`.
+
+After this the harddisk image should be available from both the terminal and from Finder.
+Once your done, you can detach it as follows:
+
+....
+hdiutil detach /dev/disk6
+"disk6" ejected.
+....
+
+# CD-ROM or DVD images
+DOSbox-X supports CD-ROM or DVD image files with the ISO-9660 (or High-Sierra) filesystem in ISO, CUE+BIN or MDF image format.
+
+ISO is the easiest format to work with, as long as there is only a single data track on the CD or DVD.
+If the CD or DVD contains multiple tracks, like DATA and AUDIO (aka redbook audio) the use of CUE+BIN or MDF is required.
 
 ## Mounting CD or DVD images
 Mounting a CD or DVD image in DOSBox-X is typically as simple as
@@ -703,11 +732,11 @@ NOTE: The second command is equivalent to ``imgmount a -el-torito d`` or ``imgmo
 NOTE: DOSBox-X supports the ``-L`` parameter for the ``BOOT`` command for backward compatibility with vanilla DOSBox, or other forks, but the parameter is not required with DOSBox-X to boot from a drive letter.
 
 ## Using CD or DVD images in Linux
-ISO images are fully supported by standard Linux tools, but CUE/BIN and MDF are not.
+ISO images are fully supported by standard Linux tools, but CUE+BIN and MDF are not.
 
 ### Gnome Disk Image Mounter
 If your using the Gnome desktop environment, you can open .ISO disks with the "Disk Image Mounter". Simply right click on the file, and select 'Open with Disk Image Mounter' and the file will be mounted in the Gnome file manager.
-This method will not work for CUE/BIN or MDF files.
+This method will not work for CUE+BIN or MDF files.
 
 Disks can be unmounted from the Gnome file manager by clicking the unmount button next to the volume name.
 
@@ -717,11 +746,11 @@ gnome-disk-image-mounter cdrom.iso
 ....
 
 ### CDEmu
-link:https://cdemu.sourceforge.io/[CDEmu] is a CD-ROM emulator for Linux. It supports numerous image formats, including ISO and CUE/BIN.
+link:https://cdemu.sourceforge.io/[CDEmu] is a CD-ROM emulator for Linux. It supports numerous image formats, including ISO, CUE+BIN and MDF.
 
 ### Mounting a ISO image from the Linux shell
 The more traditional Linux method of mounting diskette image files from a Linux terminal.
-This method will not work for CUE/BIN or MDF files.
+This method will not work for CUE+BIN or MDF files.
 This method requires sudo access.
 
 ....
@@ -730,12 +759,17 @@ sudo mount -o loop cdrom.iso /mnt
 The above command will cause cdrom.iso to be mounted under /mnt.
 
 ## Using CD or DVD images in Windows
-
 Windows 8 and later has integrated support for mounting ISO files. Simply right-click a ISO file and select "Mount".
 
-Alternatively there is link:https://wincdemu.sysprogs.org/[WinCDEmu] which can mount amongst others ISO, CUE/BIN and MDF images.
+Alternatively there is link:https://wincdemu.sysprogs.org/[WinCDEmu] which can mount amongst others ISO, CUE+BIN and MDF images.
 
 Programs like 7-Zip, WinRAR and WinZIP can also extract the contents of a ISO file
+
+## Using CD or DVD images in macOS
+You can mount ISO image files with the extension ISO in macOS from the Finder by double-clicking on it.
+You can unmount it by clicking on the "Eject" button next to it in the Finder.
+
+ISO images can also be opened in macOS from the Terminal using `hdiutil`.
 
 # Copying files into or out of image files from DOSBox-X
 If you need to copy files into, or out of an image file, this can be done from the DOSBox-X integrated DOS.
@@ -848,6 +882,5 @@ Some limitations of this support:
 * Mention Bochs bximage support in more detail. Does it support flat, sparse, growing formats?
 * It seems from the sourcecode that ``IMGMAKE`` can create VHD images if you use the .vhd extension, but this does not work in practice?
 * imgmount of QCOW2 images only works in combination with ``-nofs``, which is rather restrictive. Can this be easily solved?
-* How about IDE teriary through octenary controllers in dosbox-x config. Do the device number and/or -ide options continue counting up to device number 18 and ``-ide 8s``?
-* Accessing image files from MacOS? I have no MacOS system and no experience with them.
+* How about IDE tertiary through octernary controllers in dosbox-x config. Do the device number and/or -ide options continue counting up to device number 18 and ``-ide 8s``?
 * PC-98 descriptions need checking as I have no experience with them.

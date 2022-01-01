@@ -12,7 +12,7 @@ toc::[]
 # Overview
 DOSBox-X has support for emulating the Novell NE2000 network adapter through the use of either PCAP or SLIRP back-end. This guide describes how to set it up and also tries to simplify the process for users.
 
-Apart from NE2000 networking, DOSBox-X also has integrated IPX support and network redirector functions. In Windows builds of 
+Apart from NE2000 networking, DOSBox-X also has integrated IPX support and network redirector functions. In Windows builds of
 DOSBox-X version 0.83.15 or higher, you can directly access or browse network resources using UNC network paths in the form \\MACHINE\FOLDER using DOS commands (such as DIR, MD and COPY) when the network redirector feature is not disabled.
 
 ## NE2000 resource usage
@@ -110,7 +110,7 @@ This mode not only allows communication between DOSBox-X instances on the same n
 However, for this to work DOSBox-X needs to have very low level access to your real network adapter.
 In some cases this is not possible, such as:
 
-- Network Adapter or Driver not supporting Promiscuous mode (most WIFI, WAN and BT adapters fall into this category)
+- Network Adapter or Driver not supporting Promiscuous mode (most wireless adapters fall into this category)
 - Your Ethernet switch not allowing multiple MAC addresses on a single port, or doing any kind of MAC address whitelisting.
 - Sandboxed versions of DOSBox-X (e.g. Flatpak) not allowing the required low-level access
 
@@ -162,13 +162,15 @@ For other platforms the default is 3000ms
 
 ### backend=slirp
 Unlike the PCAP back-end, the SLIRP back-end does not require Promiscuous mode.
-As such it will work with WIFI, WAN and BT adapters, and it will work in most sandboxed environments.
+As such it will work with wireless adapters, and it will work in most sandboxed environments.
 
 But obviously, it has its own limitations.
 
 - It is not supported in all platforms (such as Windows Visual Studio builds)
 - It only supports the TCP/IP protocol (other protocols must be TCP/IP encapsulated)
-- It is effectively behind a NAT gateway, meaning that you can communicate outbound, but no systems on the LAN can instantiate a new connection to it. Which means that two DOSBox-X instances on the same LAN using ``backend=slirp`` cannot communicate with each other.
+- The DOSBox-X instance will effectively be behind a NAT gateway, meaning that you can communicate outbound (e.g. download), but no systems on the LAN can instantiate a new connection to the DOSBox-X instance.
+Which means that for instance, two DOSBox-X instances on the same LAN using ``backend=slirp`` cannot communicate with each other.
+This can be overcome using the ``tcp_port_forwards=`` and ``udp_port_forwards=`` options.
 
 To enable NE2000 emulation with the slirp back-end, add the following to your DOSBox-X config file:
 
@@ -245,6 +247,33 @@ The address of the nameserver service provided by the host on the IPv4 network.
 * Default value: 10.0.2.15
 
 The start address used for DHCP by the host services on the IPv4 network.
+
+##### tcp_port_forwards
+* Default value: <blank>
+
+Forwards one or more TCP ports from the host into the DOS guest.
+
+The format is:
+
+* port1  port2  port3 ... (e.g., ``21 80 443``)
+** This which will forward FTP, HTTP, and HTTPS into the DOS guest.
+* If the ports are privileged on the host, a host:guest mapping can be used ... (e.g., ``8021:21 8080:80``).
+** This will forward ports 8021 and 8080 on the host to FTP and HTTP in the guest.
+* A range of adjacent ports can be abbreviated with a dash: start-end ... (e.g., ``27910-27960``)
+** This will forward ports 27910 to 27960 into the DOS guest.
+* Mappings and ranges can be combined, too: hstart-hend:gstart-gend ..., (e.g, ``8040-8080:20-60``)
+** This forwards ports 8040 to 8080 on the host into ports 20 to 60 in the guest
+
+Notes:
+
+* If mapped ranges differ, the shorter range is extended to fit.
+* If conflicting host ports are given, only the first one is setup.
+* If conflicting guest ports are given, the latter rule takes precedence.
+
+##### udp_port_forwards
+* Default value: <blank>
+
+The format is the same as for TCP port forwards.
 
 # Setup guide for Linux hosts
 

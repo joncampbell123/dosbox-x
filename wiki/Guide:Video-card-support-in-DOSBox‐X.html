@@ -1,0 +1,2618 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="generator" content="Asciidoctor 2.0.10">
+<title>Selecting a video adapter in DOSBox-X</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+<style>
+/* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
+/* Uncomment @import statement to use as custom stylesheet */
+/*@import "https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700";*/
+article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section{display:block}
+audio,video{display:inline-block}
+audio:not([controls]){display:none;height:0}
+html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}
+a{background:none}
+a:focus{outline:thin dotted}
+a:active,a:hover{outline:0}
+h1{font-size:2em;margin:.67em 0}
+abbr[title]{border-bottom:1px dotted}
+b,strong{font-weight:bold}
+dfn{font-style:italic}
+hr{-moz-box-sizing:content-box;box-sizing:content-box;height:0}
+mark{background:#ff0;color:#000}
+code,kbd,pre,samp{font-family:monospace;font-size:1em}
+pre{white-space:pre-wrap}
+q{quotes:"\201C" "\201D" "\2018" "\2019"}
+small{font-size:80%}
+sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}
+sup{top:-.5em}
+sub{bottom:-.25em}
+img{border:0}
+svg:not(:root){overflow:hidden}
+figure{margin:0}
+fieldset{border:1px solid silver;margin:0 2px;padding:.35em .625em .75em}
+legend{border:0;padding:0}
+button,input,select,textarea{font-family:inherit;font-size:100%;margin:0}
+button,input{line-height:normal}
+button,select{text-transform:none}
+button,html input[type="button"],input[type="reset"],input[type="submit"]{-webkit-appearance:button;cursor:pointer}
+button[disabled],html input[disabled]{cursor:default}
+input[type="checkbox"],input[type="radio"]{box-sizing:border-box;padding:0}
+button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}
+textarea{overflow:auto;vertical-align:top}
+table{border-collapse:collapse;border-spacing:0}
+*,*::before,*::after{-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box}
+html,body{font-size:100%}
+body{background:#fff;color:rgba(0,0,0,.8);padding:0;margin:0;font-family:"Noto Serif","DejaVu Serif",serif;font-weight:400;font-style:normal;line-height:1;position:relative;cursor:auto;tab-size:4;-moz-osx-font-smoothing:grayscale;-webkit-font-smoothing:antialiased}
+a:hover{cursor:pointer}
+img,object,embed{max-width:100%;height:auto}
+object,embed{height:100%}
+img{-ms-interpolation-mode:bicubic}
+.left{float:left!important}
+.right{float:right!important}
+.text-left{text-align:left!important}
+.text-right{text-align:right!important}
+.text-center{text-align:center!important}
+.text-justify{text-align:justify!important}
+.hide{display:none}
+img,object,svg{display:inline-block;vertical-align:middle}
+textarea{height:auto;min-height:50px}
+select{width:100%}
+.center{margin-left:auto;margin-right:auto}
+.stretch{width:100%}
+.subheader,.admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{line-height:1.45;color:#7a2518;font-weight:400;margin-top:0;margin-bottom:.25em}
+div,dl,dt,dd,ul,ol,li,h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6,pre,form,p,blockquote,th,td{margin:0;padding:0;direction:ltr}
+a{color:#2156a5;text-decoration:underline;line-height:inherit}
+a:hover,a:focus{color:#1d4b8f}
+a img{border:0}
+p{font-family:inherit;font-weight:400;font-size:1em;line-height:1.6;margin-bottom:1.25em;text-rendering:optimizeLegibility}
+p aside{font-size:.875em;line-height:1.35;font-style:italic}
+h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{font-family:"Open Sans","DejaVu Sans",sans-serif;font-weight:300;font-style:normal;color:#ba3925;text-rendering:optimizeLegibility;margin-top:1em;margin-bottom:.5em;line-height:1.0125em}
+h1 small,h2 small,h3 small,#toctitle small,.sidebarblock>.content>.title small,h4 small,h5 small,h6 small{font-size:60%;color:#e99b8f;line-height:0}
+h1{font-size:2.125em}
+h2{font-size:1.6875em}
+h3,#toctitle,.sidebarblock>.content>.title{font-size:1.375em}
+h4,h5{font-size:1.125em}
+h6{font-size:1em}
+hr{border:solid #dddddf;border-width:1px 0 0;clear:both;margin:1.25em 0 1.1875em;height:0}
+em,i{font-style:italic;line-height:inherit}
+strong,b{font-weight:bold;line-height:inherit}
+small{font-size:60%;line-height:inherit}
+code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;color:rgba(0,0,0,.9)}
+ul,ol,dl{font-size:1em;line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
+ul,ol{margin-left:1.5em}
+ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0;font-size:1em}
+ul.square li ul,ul.circle li ul,ul.disc li ul{list-style:inherit}
+ul.square{list-style-type:square}
+ul.circle{list-style-type:circle}
+ul.disc{list-style-type:disc}
+ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
+dl dt{margin-bottom:.3125em;font-weight:bold}
+dl dd{margin-bottom:1.25em}
+abbr,acronym{text-transform:uppercase;font-size:90%;color:rgba(0,0,0,.8);border-bottom:1px dotted #ddd;cursor:help}
+abbr{text-transform:none}
+blockquote{margin:0 0 1.25em;padding:.5625em 1.25em 0 1.1875em;border-left:1px solid #ddd}
+blockquote cite{display:block;font-size:.9375em;color:rgba(0,0,0,.6)}
+blockquote cite::before{content:"\2014 \0020"}
+blockquote cite a,blockquote cite a:visited{color:rgba(0,0,0,.6)}
+blockquote,blockquote p{line-height:1.6;color:rgba(0,0,0,.85)}
+@media screen and (min-width:768px){h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2}
+h1{font-size:2.75em}
+h2{font-size:2.3125em}
+h3,#toctitle,.sidebarblock>.content>.title{font-size:1.6875em}
+h4{font-size:1.4375em}}
+table{background:#fff;margin-bottom:1.25em;border:solid 1px #dedede}
+table thead,table tfoot{background:#f7f8f7}
+table thead tr th,table thead tr td,table tfoot tr th,table tfoot tr td{padding:.5em .625em .625em;font-size:inherit;color:rgba(0,0,0,.8);text-align:left}
+table tr th,table tr td{padding:.5625em .625em;font-size:inherit;color:rgba(0,0,0,.8)}
+table tr.even,table tr.alt{background:#f8f8f7}
+table thead tr th,table tfoot tr th,table tbody tr td,table tr td,table tfoot tr td{display:table-cell;line-height:1.6}
+h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2;word-spacing:-.05em}
+h1 strong,h2 strong,h3 strong,#toctitle strong,.sidebarblock>.content>.title strong,h4 strong,h5 strong,h6 strong{font-weight:400}
+.clearfix::before,.clearfix::after,.float-group::before,.float-group::after{content:" ";display:table}
+.clearfix::after,.float-group::after{clear:both}
+:not(pre):not([class^=L])>code{font-size:.9375em;font-style:normal!important;letter-spacing:0;padding:.1em .5ex;word-spacing:-.15em;background:#f7f7f8;-webkit-border-radius:4px;border-radius:4px;line-height:1.45;text-rendering:optimizeSpeed;word-wrap:break-word}
+:not(pre)>code.nobreak{word-wrap:normal}
+:not(pre)>code.nowrap{white-space:nowrap}
+pre{color:rgba(0,0,0,.9);font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;line-height:1.45;text-rendering:optimizeSpeed}
+pre code,pre pre{color:inherit;font-size:inherit;line-height:inherit}
+pre>code{display:block}
+pre.nowrap,pre.nowrap pre{white-space:pre;word-wrap:normal}
+em em{font-style:normal}
+strong strong{font-weight:400}
+.keyseq{color:rgba(51,51,51,.8)}
+kbd{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;display:inline-block;color:rgba(0,0,0,.8);font-size:.65em;line-height:1.45;background:#f7f7f7;border:1px solid #ccc;-webkit-border-radius:3px;border-radius:3px;-webkit-box-shadow:0 1px 0 rgba(0,0,0,.2),0 0 0 .1em white inset;box-shadow:0 1px 0 rgba(0,0,0,.2),0 0 0 .1em #fff inset;margin:0 .15em;padding:.2em .5em;vertical-align:middle;position:relative;top:-.1em;white-space:nowrap}
+.keyseq kbd:first-child{margin-left:0}
+.keyseq kbd:last-child{margin-right:0}
+.menuseq,.menuref{color:#000}
+.menuseq b:not(.caret),.menuref{font-weight:inherit}
+.menuseq{word-spacing:-.02em}
+.menuseq b.caret{font-size:1.25em;line-height:.8}
+.menuseq i.caret{font-weight:bold;text-align:center;width:.45em}
+b.button::before,b.button::after{position:relative;top:-1px;font-weight:400}
+b.button::before{content:"[";padding:0 3px 0 2px}
+b.button::after{content:"]";padding:0 2px 0 3px}
+p a>code:hover{color:rgba(0,0,0,.9)}
+#header,#content,#footnotes,#footer{width:100%;margin-left:auto;margin-right:auto;margin-top:0;margin-bottom:0;max-width:62.5em;*zoom:1;position:relative;padding-left:.9375em;padding-right:.9375em}
+#header::before,#header::after,#content::before,#content::after,#footnotes::before,#footnotes::after,#footer::before,#footer::after{content:" ";display:table}
+#header::after,#content::after,#footnotes::after,#footer::after{clear:both}
+#content{margin-top:1.25em}
+#content::before{content:none}
+#header>h1:first-child{color:rgba(0,0,0,.85);margin-top:2.25rem;margin-bottom:0}
+#header>h1:first-child+#toc{margin-top:8px;border-top:1px solid #dddddf}
+#header>h1:only-child,body.toc2 #header>h1:nth-last-child(2){border-bottom:1px solid #dddddf;padding-bottom:8px}
+#header .details{border-bottom:1px solid #dddddf;line-height:1.45;padding-top:.25em;padding-bottom:.25em;padding-left:.25em;color:rgba(0,0,0,.6);display:-ms-flexbox;display:-webkit-flex;display:flex;-ms-flex-flow:row wrap;-webkit-flex-flow:row wrap;flex-flow:row wrap}
+#header .details span:first-child{margin-left:-.125em}
+#header .details span.email a{color:rgba(0,0,0,.85)}
+#header .details br{display:none}
+#header .details br+span::before{content:"\00a0\2013\00a0"}
+#header .details br+span.author::before{content:"\00a0\22c5\00a0";color:rgba(0,0,0,.85)}
+#header .details br+span#revremark::before{content:"\00a0|\00a0"}
+#header #revnumber{text-transform:capitalize}
+#header #revnumber::after{content:"\00a0"}
+#content>h1:first-child:not([class]){color:rgba(0,0,0,.85);border-bottom:1px solid #dddddf;padding-bottom:8px;margin-top:0;padding-top:1rem;margin-bottom:1.25rem}
+#toc{border-bottom:1px solid #e7e7e9;padding-bottom:.5em}
+#toc>ul{margin-left:.125em}
+#toc ul.sectlevel0>li>a{font-style:italic}
+#toc ul.sectlevel0 ul.sectlevel1{margin:.5em 0}
+#toc ul{font-family:"Open Sans","DejaVu Sans",sans-serif;list-style-type:none}
+#toc li{line-height:1.3334;margin-top:.3334em}
+#toc a{text-decoration:none}
+#toc a:active{text-decoration:underline}
+#toctitle{color:#7a2518;font-size:1.2em}
+@media screen and (min-width:768px){#toctitle{font-size:1.375em}
+body.toc2{padding-left:15em;padding-right:0}
+#toc.toc2{margin-top:0!important;background:#f8f8f7;position:fixed;width:15em;left:0;top:0;border-right:1px solid #e7e7e9;border-top-width:0!important;border-bottom-width:0!important;z-index:1000;padding:1.25em 1em;height:100%;overflow:auto}
+#toc.toc2 #toctitle{margin-top:0;margin-bottom:.8rem;font-size:1.2em}
+#toc.toc2>ul{font-size:.9em;margin-bottom:0}
+#toc.toc2 ul ul{margin-left:0;padding-left:1em}
+#toc.toc2 ul.sectlevel0 ul.sectlevel1{padding-left:0;margin-top:.5em;margin-bottom:.5em}
+body.toc2.toc-right{padding-left:0;padding-right:15em}
+body.toc2.toc-right #toc.toc2{border-right-width:0;border-left:1px solid #e7e7e9;left:auto;right:0}}
+@media screen and (min-width:1280px){body.toc2{padding-left:20em;padding-right:0}
+#toc.toc2{width:20em}
+#toc.toc2 #toctitle{font-size:1.375em}
+#toc.toc2>ul{font-size:.95em}
+#toc.toc2 ul ul{padding-left:1.25em}
+body.toc2.toc-right{padding-left:0;padding-right:20em}}
+#content #toc{border-style:solid;border-width:1px;border-color:#e0e0dc;margin-bottom:1.25em;padding:1.25em;background:#f8f8f7;-webkit-border-radius:4px;border-radius:4px}
+#content #toc>:first-child{margin-top:0}
+#content #toc>:last-child{margin-bottom:0}
+#footer{max-width:100%;background:rgba(0,0,0,.8);padding:1.25em}
+#footer-text{color:rgba(255,255,255,.8);line-height:1.44}
+#content{margin-bottom:.625em}
+.sect1{padding-bottom:.625em}
+@media screen and (min-width:768px){#content{margin-bottom:1.25em}
+.sect1{padding-bottom:1.25em}}
+.sect1:last-child{padding-bottom:0}
+.sect1+.sect1{border-top:1px solid #e7e7e9}
+#content h1>a.anchor,h2>a.anchor,h3>a.anchor,#toctitle>a.anchor,.sidebarblock>.content>.title>a.anchor,h4>a.anchor,h5>a.anchor,h6>a.anchor{position:absolute;z-index:1001;width:1.5ex;margin-left:-1.5ex;display:block;text-decoration:none!important;visibility:hidden;text-align:center;font-weight:400}
+#content h1>a.anchor::before,h2>a.anchor::before,h3>a.anchor::before,#toctitle>a.anchor::before,.sidebarblock>.content>.title>a.anchor::before,h4>a.anchor::before,h5>a.anchor::before,h6>a.anchor::before{content:"\00A7";font-size:.85em;display:block;padding-top:.1em}
+#content h1:hover>a.anchor,#content h1>a.anchor:hover,h2:hover>a.anchor,h2>a.anchor:hover,h3:hover>a.anchor,#toctitle:hover>a.anchor,.sidebarblock>.content>.title:hover>a.anchor,h3>a.anchor:hover,#toctitle>a.anchor:hover,.sidebarblock>.content>.title>a.anchor:hover,h4:hover>a.anchor,h4>a.anchor:hover,h5:hover>a.anchor,h5>a.anchor:hover,h6:hover>a.anchor,h6>a.anchor:hover{visibility:visible}
+#content h1>a.link,h2>a.link,h3>a.link,#toctitle>a.link,.sidebarblock>.content>.title>a.link,h4>a.link,h5>a.link,h6>a.link{color:#ba3925;text-decoration:none}
+#content h1>a.link:hover,h2>a.link:hover,h3>a.link:hover,#toctitle>a.link:hover,.sidebarblock>.content>.title>a.link:hover,h4>a.link:hover,h5>a.link:hover,h6>a.link:hover{color:#a53221}
+details,.audioblock,.imageblock,.literalblock,.listingblock,.stemblock,.videoblock{margin-bottom:1.25em}
+details>summary:first-of-type{cursor:pointer;display:list-item;outline:none;margin-bottom:.75em}
+.admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{text-rendering:optimizeLegibility;text-align:left;font-family:"Noto Serif","DejaVu Serif",serif;font-size:1rem;font-style:italic}
+table.tableblock.fit-content>caption.title{white-space:nowrap;width:0}
+.paragraph.lead>p,#preamble>.sectionbody>[class="paragraph"]:first-of-type p{font-size:1.21875em;line-height:1.6;color:rgba(0,0,0,.85)}
+table.tableblock #preamble>.sectionbody>[class="paragraph"]:first-of-type p{font-size:inherit}
+.admonitionblock>table{border-collapse:separate;border:0;background:none;width:100%}
+.admonitionblock>table td.icon{text-align:center;width:80px}
+.admonitionblock>table td.icon img{max-width:none}
+.admonitionblock>table td.icon .title{font-weight:bold;font-family:"Open Sans","DejaVu Sans",sans-serif;text-transform:uppercase}
+.admonitionblock>table td.content{padding-left:1.125em;padding-right:1.25em;border-left:1px solid #dddddf;color:rgba(0,0,0,.6)}
+.admonitionblock>table td.content>:last-child>:last-child{margin-bottom:0}
+.exampleblock>.content{border-style:solid;border-width:1px;border-color:#e6e6e6;margin-bottom:1.25em;padding:1.25em;background:#fff;-webkit-border-radius:4px;border-radius:4px}
+.exampleblock>.content>:first-child{margin-top:0}
+.exampleblock>.content>:last-child{margin-bottom:0}
+.sidebarblock{border-style:solid;border-width:1px;border-color:#dbdbd6;margin-bottom:1.25em;padding:1.25em;background:#f3f3f2;-webkit-border-radius:4px;border-radius:4px}
+.sidebarblock>:first-child{margin-top:0}
+.sidebarblock>:last-child{margin-bottom:0}
+.sidebarblock>.content>.title{color:#7a2518;margin-top:0;text-align:center}
+.exampleblock>.content>:last-child>:last-child,.exampleblock>.content .olist>ol>li:last-child>:last-child,.exampleblock>.content .ulist>ul>li:last-child>:last-child,.exampleblock>.content .qlist>ol>li:last-child>:last-child,.sidebarblock>.content>:last-child>:last-child,.sidebarblock>.content .olist>ol>li:last-child>:last-child,.sidebarblock>.content .ulist>ul>li:last-child>:last-child,.sidebarblock>.content .qlist>ol>li:last-child>:last-child{margin-bottom:0}
+.literalblock pre,.listingblock>.content>pre{-webkit-border-radius:4px;border-radius:4px;word-wrap:break-word;overflow-x:auto;padding:1em;font-size:.8125em}
+@media screen and (min-width:768px){.literalblock pre,.listingblock>.content>pre{font-size:.90625em}}
+@media screen and (min-width:1280px){.literalblock pre,.listingblock>.content>pre{font-size:1em}}
+.literalblock pre,.listingblock>.content>pre:not(.highlight),.listingblock>.content>pre[class="highlight"],.listingblock>.content>pre[class^="highlight "]{background:#f7f7f8}
+.literalblock.output pre{color:#f7f7f8;background:rgba(0,0,0,.9)}
+.listingblock>.content{position:relative}
+.listingblock code[data-lang]::before{display:none;content:attr(data-lang);position:absolute;font-size:.75em;top:.425rem;right:.5rem;line-height:1;text-transform:uppercase;color:inherit;opacity:.5}
+.listingblock:hover code[data-lang]::before{display:block}
+.listingblock.terminal pre .command::before{content:attr(data-prompt);padding-right:.5em;color:inherit;opacity:.5}
+.listingblock.terminal pre .command:not([data-prompt])::before{content:"$"}
+.listingblock pre.highlightjs{padding:0}
+.listingblock pre.highlightjs>code{padding:1em;-webkit-border-radius:4px;border-radius:4px}
+.listingblock pre.prettyprint{border-width:0}
+.prettyprint{background:#f7f7f8}
+pre.prettyprint .linenums{line-height:1.45;margin-left:2em}
+pre.prettyprint li{background:none;list-style-type:inherit;padding-left:0}
+pre.prettyprint li code[data-lang]::before{opacity:1}
+pre.prettyprint li:not(:first-child) code[data-lang]::before{display:none}
+table.linenotable{border-collapse:separate;border:0;margin-bottom:0;background:none}
+table.linenotable td[class]{color:inherit;vertical-align:top;padding:0;line-height:inherit;white-space:normal}
+table.linenotable td.code{padding-left:.75em}
+table.linenotable td.linenos{border-right:1px solid currentColor;opacity:.35;padding-right:.5em}
+pre.pygments .lineno{border-right:1px solid currentColor;opacity:.35;display:inline-block;margin-right:.75em}
+pre.pygments .lineno::before{content:"";margin-right:-.125em}
+.quoteblock{margin:0 1em 1.25em 1.5em;display:table}
+.quoteblock:not(.excerpt)>.title{margin-left:-1.5em;margin-bottom:.75em}
+.quoteblock blockquote,.quoteblock p{color:rgba(0,0,0,.85);font-size:1.15rem;line-height:1.75;word-spacing:.1em;letter-spacing:0;font-style:italic;text-align:justify}
+.quoteblock blockquote{margin:0;padding:0;border:0}
+.quoteblock blockquote::before{content:"\201c";float:left;font-size:2.75em;font-weight:bold;line-height:.6em;margin-left:-.6em;color:#7a2518;text-shadow:0 1px 2px rgba(0,0,0,.1)}
+.quoteblock blockquote>.paragraph:last-child p{margin-bottom:0}
+.quoteblock .attribution{margin-top:.75em;margin-right:.5ex;text-align:right}
+.verseblock{margin:0 1em 1.25em}
+.verseblock pre{font-family:"Open Sans","DejaVu Sans",sans;font-size:1.15rem;color:rgba(0,0,0,.85);font-weight:300;text-rendering:optimizeLegibility}
+.verseblock pre strong{font-weight:400}
+.verseblock .attribution{margin-top:1.25rem;margin-left:.5ex}
+.quoteblock .attribution,.verseblock .attribution{font-size:.9375em;line-height:1.45;font-style:italic}
+.quoteblock .attribution br,.verseblock .attribution br{display:none}
+.quoteblock .attribution cite,.verseblock .attribution cite{display:block;letter-spacing:-.025em;color:rgba(0,0,0,.6)}
+.quoteblock.abstract blockquote::before,.quoteblock.excerpt blockquote::before,.quoteblock .quoteblock blockquote::before{display:none}
+.quoteblock.abstract blockquote,.quoteblock.abstract p,.quoteblock.excerpt blockquote,.quoteblock.excerpt p,.quoteblock .quoteblock blockquote,.quoteblock .quoteblock p{line-height:1.6;word-spacing:0}
+.quoteblock.abstract{margin:0 1em 1.25em;display:block}
+.quoteblock.abstract>.title{margin:0 0 .375em;font-size:1.15em;text-align:center}
+.quoteblock.excerpt>blockquote,.quoteblock .quoteblock{padding:0 0 .25em 1em;border-left:.25em solid #dddddf}
+.quoteblock.excerpt,.quoteblock .quoteblock{margin-left:0}
+.quoteblock.excerpt blockquote,.quoteblock.excerpt p,.quoteblock .quoteblock blockquote,.quoteblock .quoteblock p{color:inherit;font-size:1.0625rem}
+.quoteblock.excerpt .attribution,.quoteblock .quoteblock .attribution{color:inherit;text-align:left;margin-right:0}
+table.tableblock{max-width:100%;border-collapse:separate}
+p.tableblock:last-child{margin-bottom:0}
+td.tableblock>.content>:last-child{margin-bottom:-1.25em}
+td.tableblock>.content>:last-child.sidebarblock{margin-bottom:0}
+table.tableblock,th.tableblock,td.tableblock{border:0 solid #dedede}
+table.grid-all>thead>tr>.tableblock,table.grid-all>tbody>tr>.tableblock{border-width:0 1px 1px 0}
+table.grid-all>tfoot>tr>.tableblock{border-width:1px 1px 0 0}
+table.grid-cols>*>tr>.tableblock{border-width:0 1px 0 0}
+table.grid-rows>thead>tr>.tableblock,table.grid-rows>tbody>tr>.tableblock{border-width:0 0 1px}
+table.grid-rows>tfoot>tr>.tableblock{border-width:1px 0 0}
+table.grid-all>*>tr>.tableblock:last-child,table.grid-cols>*>tr>.tableblock:last-child{border-right-width:0}
+table.grid-all>tbody>tr:last-child>.tableblock,table.grid-all>thead:last-child>tr>.tableblock,table.grid-rows>tbody>tr:last-child>.tableblock,table.grid-rows>thead:last-child>tr>.tableblock{border-bottom-width:0}
+table.frame-all{border-width:1px}
+table.frame-sides{border-width:0 1px}
+table.frame-topbot,table.frame-ends{border-width:1px 0}
+table.stripes-all tr,table.stripes-odd tr:nth-of-type(odd),table.stripes-even tr:nth-of-type(even),table.stripes-hover tr:hover{background:#f8f8f7}
+th.halign-left,td.halign-left{text-align:left}
+th.halign-right,td.halign-right{text-align:right}
+th.halign-center,td.halign-center{text-align:center}
+th.valign-top,td.valign-top{vertical-align:top}
+th.valign-bottom,td.valign-bottom{vertical-align:bottom}
+th.valign-middle,td.valign-middle{vertical-align:middle}
+table thead th,table tfoot th{font-weight:bold}
+tbody tr th{display:table-cell;line-height:1.6;background:#f7f8f7}
+tbody tr th,tbody tr th p,tfoot tr th,tfoot tr th p{color:rgba(0,0,0,.8);font-weight:bold}
+p.tableblock>code:only-child{background:none;padding:0}
+p.tableblock{font-size:1em}
+ol{margin-left:1.75em}
+ul li ol{margin-left:1.5em}
+dl dd{margin-left:1.125em}
+dl dd:last-child,dl dd:last-child>:last-child{margin-bottom:0}
+ol>li p,ul>li p,ul dd,ol dd,.olist .olist,.ulist .ulist,.ulist .olist,.olist .ulist{margin-bottom:.625em}
+ul.checklist,ul.none,ol.none,ul.no-bullet,ol.no-bullet,ol.unnumbered,ul.unstyled,ol.unstyled{list-style-type:none}
+ul.no-bullet,ol.no-bullet,ol.unnumbered{margin-left:.625em}
+ul.unstyled,ol.unstyled{margin-left:0}
+ul.checklist{margin-left:.625em}
+ul.checklist li>p:first-child>.fa-square-o:first-child,ul.checklist li>p:first-child>.fa-check-square-o:first-child{width:1.25em;font-size:.8em;position:relative;bottom:.125em}
+ul.checklist li>p:first-child>input[type="checkbox"]:first-child{margin-right:.25em}
+ul.inline{display:-ms-flexbox;display:-webkit-box;display:flex;-ms-flex-flow:row wrap;-webkit-flex-flow:row wrap;flex-flow:row wrap;list-style:none;margin:0 0 .625em -1.25em}
+ul.inline>li{margin-left:1.25em}
+.unstyled dl dt{font-weight:400;font-style:normal}
+ol.arabic{list-style-type:decimal}
+ol.decimal{list-style-type:decimal-leading-zero}
+ol.loweralpha{list-style-type:lower-alpha}
+ol.upperalpha{list-style-type:upper-alpha}
+ol.lowerroman{list-style-type:lower-roman}
+ol.upperroman{list-style-type:upper-roman}
+ol.lowergreek{list-style-type:lower-greek}
+.hdlist>table,.colist>table{border:0;background:none}
+.hdlist>table>tbody>tr,.colist>table>tbody>tr{background:none}
+td.hdlist1,td.hdlist2{vertical-align:top;padding:0 .625em}
+td.hdlist1{font-weight:bold;padding-bottom:1.25em}
+.literalblock+.colist,.listingblock+.colist{margin-top:-.5em}
+.colist td:not([class]):first-child{padding:.4em .75em 0;line-height:1;vertical-align:top}
+.colist td:not([class]):first-child img{max-width:none}
+.colist td:not([class]):last-child{padding:.25em 0}
+.thumb,.th{line-height:0;display:inline-block;border:solid 4px #fff;-webkit-box-shadow:0 0 0 1px #ddd;box-shadow:0 0 0 1px #ddd}
+.imageblock.left{margin:.25em .625em 1.25em 0}
+.imageblock.right{margin:.25em 0 1.25em .625em}
+.imageblock>.title{margin-bottom:0}
+.imageblock.thumb,.imageblock.th{border-width:6px}
+.imageblock.thumb>.title,.imageblock.th>.title{padding:0 .125em}
+.image.left,.image.right{margin-top:.25em;margin-bottom:.25em;display:inline-block;line-height:0}
+.image.left{margin-right:.625em}
+.image.right{margin-left:.625em}
+a.image{text-decoration:none;display:inline-block}
+a.image object{pointer-events:none}
+sup.footnote,sup.footnoteref{font-size:.875em;position:static;vertical-align:super}
+sup.footnote a,sup.footnoteref a{text-decoration:none}
+sup.footnote a:active,sup.footnoteref a:active{text-decoration:underline}
+#footnotes{padding-top:.75em;padding-bottom:.75em;margin-bottom:.625em}
+#footnotes hr{width:20%;min-width:6.25em;margin:-.25em 0 .75em;border-width:1px 0 0}
+#footnotes .footnote{padding:0 .375em 0 .225em;line-height:1.3334;font-size:.875em;margin-left:1.2em;margin-bottom:.2em}
+#footnotes .footnote a:first-of-type{font-weight:bold;text-decoration:none;margin-left:-1.05em}
+#footnotes .footnote:last-of-type{margin-bottom:0}
+#content #footnotes{margin-top:-.625em;margin-bottom:0;padding:.75em 0}
+.gist .file-data>table{border:0;background:#fff;width:100%;margin-bottom:0}
+.gist .file-data>table td.line-data{width:99%}
+div.unbreakable{page-break-inside:avoid}
+.big{font-size:larger}
+.small{font-size:smaller}
+.underline{text-decoration:underline}
+.overline{text-decoration:overline}
+.line-through{text-decoration:line-through}
+.aqua{color:#00bfbf}
+.aqua-background{background:#00fafa}
+.black{color:#000}
+.black-background{background:#000}
+.blue{color:#0000bf}
+.blue-background{background:#0000fa}
+.fuchsia{color:#bf00bf}
+.fuchsia-background{background:#fa00fa}
+.gray{color:#606060}
+.gray-background{background:#7d7d7d}
+.green{color:#006000}
+.green-background{background:#007d00}
+.lime{color:#00bf00}
+.lime-background{background:#00fa00}
+.maroon{color:#600000}
+.maroon-background{background:#7d0000}
+.navy{color:#000060}
+.navy-background{background:#00007d}
+.olive{color:#606000}
+.olive-background{background:#7d7d00}
+.purple{color:#600060}
+.purple-background{background:#7d007d}
+.red{color:#bf0000}
+.red-background{background:#fa0000}
+.silver{color:#909090}
+.silver-background{background:#bcbcbc}
+.teal{color:#006060}
+.teal-background{background:#007d7d}
+.white{color:#bfbfbf}
+.white-background{background:#fafafa}
+.yellow{color:#bfbf00}
+.yellow-background{background:#fafa00}
+span.icon>.fa{cursor:default}
+a span.icon>.fa{cursor:inherit}
+.admonitionblock td.icon [class^="fa icon-"]{font-size:2.5em;text-shadow:1px 1px 2px rgba(0,0,0,.5);cursor:default}
+.admonitionblock td.icon .icon-note::before{content:"\f05a";color:#19407c}
+.admonitionblock td.icon .icon-tip::before{content:"\f0eb";text-shadow:1px 1px 2px rgba(155,155,0,.8);color:#111}
+.admonitionblock td.icon .icon-warning::before{content:"\f071";color:#bf6900}
+.admonitionblock td.icon .icon-caution::before{content:"\f06d";color:#bf3400}
+.admonitionblock td.icon .icon-important::before{content:"\f06a";color:#bf0000}
+.conum[data-value]{display:inline-block;color:#fff!important;background:rgba(0,0,0,.8);-webkit-border-radius:100px;border-radius:100px;text-align:center;font-size:.75em;width:1.67em;height:1.67em;line-height:1.67em;font-family:"Open Sans","DejaVu Sans",sans-serif;font-style:normal;font-weight:bold}
+.conum[data-value] *{color:#fff!important}
+.conum[data-value]+b{display:none}
+.conum[data-value]::after{content:attr(data-value)}
+pre .conum[data-value]{position:relative;top:-.125em}
+b.conum *{color:inherit!important}
+.conum:not([data-value]):empty{display:none}
+dt,th.tableblock,td.content,div.footnote{text-rendering:optimizeLegibility}
+h1,h2,p,td.content,span.alt{letter-spacing:-.01em}
+p strong,td.content strong,div.footnote strong{letter-spacing:-.005em}
+p,blockquote,dt,td.content,span.alt{font-size:1.0625rem}
+p{margin-bottom:1.25rem}
+.sidebarblock p,.sidebarblock dt,.sidebarblock td.content,p.tableblock{font-size:1em}
+.exampleblock>.content{background:#fffef7;border-color:#e0e0dc;-webkit-box-shadow:0 1px 4px #e0e0dc;box-shadow:0 1px 4px #e0e0dc}
+.print-only{display:none!important}
+@page{margin:1.25cm .75cm}
+@media print{*{-webkit-box-shadow:none!important;box-shadow:none!important;text-shadow:none!important}
+html{font-size:80%}
+a{color:inherit!important;text-decoration:underline!important}
+a.bare,a[href^="#"],a[href^="mailto:"]{text-decoration:none!important}
+a[href^="http:"]:not(.bare)::after,a[href^="https:"]:not(.bare)::after{content:"(" attr(href) ")";display:inline-block;font-size:.875em;padding-left:.25em}
+abbr[title]::after{content:" (" attr(title) ")"}
+pre,blockquote,tr,img,object,svg{page-break-inside:avoid}
+thead{display:table-header-group}
+svg{max-width:100%}
+p,blockquote,dt,td.content{font-size:1em;orphans:3;widows:3}
+h2,h3,#toctitle,.sidebarblock>.content>.title{page-break-after:avoid}
+#toc,.sidebarblock,.exampleblock>.content{background:none!important}
+#toc{border-bottom:1px solid #dddddf!important;padding-bottom:0!important}
+body.book #header{text-align:center}
+body.book #header>h1:first-child{border:0!important;margin:2.5em 0 1em}
+body.book #header .details{border:0!important;display:block;padding:0!important}
+body.book #header .details span:first-child{margin-left:0!important}
+body.book #header .details br{display:block}
+body.book #header .details br+span::before{content:none!important}
+body.book #toc{border:0!important;text-align:left!important;padding:0!important;margin:0!important}
+body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-break-before:always}
+.listingblock code[data-lang]::before{display:block}
+#footer{padding:0 .9375em}
+.hide-on-print{display:none!important}
+.print-only{display:block!important}
+.hide-for-print{display:none!important}
+.show-for-print{display:inherit!important}}
+@media print,amzn-kf8{#header>h1:first-child{margin-top:1.25rem}
+.sect1{padding:0!important}
+.sect1+.sect1{border:0}
+#footer{background:none}
+#footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
+@media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
+</style>
+</head>
+<body class="book">
+<div id="header">
+</div>
+<div id="content">
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Back to the <a href="Home">DOSBox-X Wiki Welcome page</a>.</p>
+</div>
+</div>
+</div>
+<h1 id="_selecting_a_video_adapter_in_dosbox_x" class="sect0">Selecting a video adapter in DOSBox-X</h1>
+<div class="openblock partintro">
+<div class="content">
+<div id="toc" class="toc">
+<div id="toctitle" class="title">Table of Contents</div>
+<ul class="sectlevel0">
+<li><a href="#_selecting_a_video_adapter_in_dosbox_x">Selecting a video adapter in DOSBox-X</a></li>
+<li><a href="#_overview">Overview</a></li>
+<li><a href="#_backwards_compatibility">Backwards compatibility</a></li>
+<li><a href="#_supported_pc_video_modes">Supported PC video modes</a>
+<ul class="sectlevel1">
+<li><a href="#_mda">MDA</a></li>
+<li><a href="#_cga">CGA</a>
+<ul class="sectlevel3">
+<li><a href="#_graphics_modes">Graphics modes:</a></li>
+<li><a href="#_text_modes">Text modes:</a></li>
+<li><a href="#_composite_graphics_mode">Composite graphics mode:</a></li>
+<li><a href="#_keyboard_shortcuts">Keyboard shortcuts:</a></li>
+<li><a href="#_cga_machine_options">CGA machine options</a></li>
+<li><a href="#_external_links">External links</a></li>
+<li><a href="#_image_gallery">Image Gallery</a></li>
+</ul>
+</li>
+<li><a href="#_hercules">Hercules</a></li>
+<li><a href="#_ibm_pcjr">IBM PCjr</a>
+<ul class="sectlevel3">
+<li><a href="#_keyboard_shortcuts_2">Keyboard shortcuts:</a></li>
+</ul>
+</li>
+<li><a href="#_tandy">Tandy</a></li>
+<li><a href="#_ega">EGA</a>
+<ul class="sectlevel3">
+<li><a href="#_graphics_modes_2">Graphics modes:</a></li>
+<li><a href="#_text_modes_2">Text modes:</a></li>
+<li><a href="#_ega_machine_options">EGA machine options</a></li>
+<li><a href="#_external_links_2">External links</a></li>
+<li><a href="#_image_gallery_2">Image Gallery</a></li>
+</ul>
+</li>
+<li><a href="#_amstrad">Amstrad</a></li>
+<li><a href="#_pc_98">PC-98</a></li>
+<li><a href="#_jega">JEGA</a></li>
+<li><a href="#_dcga">DCGA</a></li>
+<li><a href="#_mcga">MCGA</a></li>
+<li><a href="#_vga">VGA</a></li>
+<li><a href="#_svga">SVGA</a>
+<ul class="sectlevel2">
+<li><a href="#_s3_graphics">S3 Graphics</a></li>
+<li><a href="#_tseng_labs">Tseng Labs</a></li>
+<li><a href="#_paradise_systems_pvga1a">Paradise Systems PVGA1A</a></li>
+<li><a href="#_vesa_bios_extensions_vbe">VESA BIOS Extensions (VBE)</a></li>
+</ul>
+</li>
+<li><a href="#_dual_monitor">Dual monitor</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<h1 id="_overview" class="sect0">Overview</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>DOSBox-X supports the emulation of a wide range of video adapters that were common in the DOS days.
+This document attempts to help the novice user, especially those that never experienced DOS PC&#8217;s during the 80&#8217;s and 90&#8217;s with selecting an appropriate video adapter for games and programs.</p>
+</div>
+<div class="paragraph">
+<p>You can set the video adapter to emulate in your DOSBox-X config file.
+In the <code>[dosbox]</code> section, by setting <code>machine=</code> to the appropriate value.</p>
+</div>
+<div class="paragraph">
+<p>By default DOSBox-X, just like regular DOSBox on which is it based, emulates a <strong>S3 Trio64</strong> which is a SVGA adapter that is backwards compatible with VGA, EGA and CGA.
+In addition, it supports VESA VBE 2.0 modes. As such it will work with most DOS games and applications.</p>
+</div>
+<div class="paragraph">
+<p>As a general rule of thumb, if a game asks you about what video option you want to use, and your looking for the best experience, go in the following order from lowest quality to highest quality:
+<strong>MDA &gt; Hercules &gt; CGA &gt; PCjr &gt; Tandy &gt; EGA &gt; VGA &gt; SVGA</strong></p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Hercules may in some cases be preferable to CGA as it has a higher resolution, but lacks colour.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+In some cases PCjr or Tandy may be preferable to EGA, as they often look identical, and PCjr/Tandy may give you better sound.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<h1 id="_backwards_compatibility" class="sect0">Backwards compatibility</h1>
+<div class="openblock partintro">
+<div class="content">
+<div class="paragraph">
+<p>Many, but not all, PC video adapters were backward compatible with previous generations.</p>
+</div>
+<table class="tableblock frame-all grid-all stripes-even stretch">
+<colgroup>
+<col style="width: 10%;">
+<col style="width: 10%;">
+<col style="width: 10%;">
+<col style="width: 10%;">
+<col style="width: 10%;">
+<col style="width: 10%;">
+<col style="width: 10%;">
+<col style="width: 10%;">
+<col style="width: 10%;">
+<col style="width: 10%;">
+</colgroup>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-bottom" rowspan="2"><p class="tableblock"><strong>Compatibility</strong></p></td>
+<td class="tableblock halign-center valign-top" colspan="9"><p class="tableblock"><strong>video adapter</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>MDA</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Hercules</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>CGA</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>PCjr</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>Tandy</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>EGA</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>MCGA</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>VGA</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>SVGA</strong></p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MDA mode</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Hercules mode</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CGA mode</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes (RGBI)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes (RGBI)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes (RGBI)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes (RGBI)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">PCjr mode</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes (mostly)</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Tandy mode</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">EGA mode</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">MCGA mode</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">VGA mode</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SVGA mode</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes (vendor specific)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">VESA mode</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Yes (some)</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Some clone video cards had more extensive compatibility, for instance being able to display both Hercules and CGA with a DOS utility to switch between them, such as early ATI cards.
+These type of video cards are not emulated by DOSBox-X.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+SVGA mode is not an actual standard, as each video card vendor had its own implementation.
+An attempt to standardise was made by VESA with the VESA BIOS Extensions (VBE).
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<h1 id="_supported_pc_video_modes" class="sect0">Supported PC video modes</h1>
+<div class="sect1">
+<h2 id="_mda">MDA</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>MDA stands for <strong>Monochrome Display Adapter</strong>, and it was introduced by IBM alongside the original IBM PC in 1981.</p>
+</div>
+<div class="paragraph">
+<p>As the name implies it is monochrome. It was normally used in combination with a green or amber display.
+Moreover, it can only display text and characters from the built-in font in 80 columns and 25 lines with a font size of 7x11 (in a 9x14 'box').
+The only extras that it has are underlined text, bright text and reverse video.
+The vertical refresh of MDA is only 50Hz, but with the phosphor glow of green and amber monochrome monitors this was not noticeable.</p>
+</div>
+<div class="paragraph">
+<p>The main selling feature of this adapter, compared to CGA, was its clarity as it uses effectively a 720x350 resolution, which made it very popular for business software.
+For games your going to be limited to text mode games, like text adventures.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set using <code>machine=mda</code> in your DOSBox-X config file.
+Video memory is fixed to 4KiB and cannot be changed.</p>
+</div>
+<div class="paragraph">
+<p>You can optionally change the display colour by setting in the <code>[render]</code> section of your config <code>monochrome_pal=</code> to "green", "amber", "white" or "gray".
+Or you cycle between them with CTRL-F7.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/IBM_Monochrome_Display_Adapter">Wikipedia article on MDA</a></p>
+</li>
+</ul>
+</div>
+<div class="openblock float-group">
+<div class="content">
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:Microsoft_Adventure_MDA_Green.png" alt="Game:Microsoft Adventure MDA Green">
+</div>
+<div class="title">Microsoft Adventure - MDA Green screen</div>
+</div>
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:Microsoft_Adventure_MDA_Amber.png" alt="Game:Microsoft Adventure MDA Amber">
+</div>
+<div class="title">Microsoft Adventure - MDA Amber screen</div>
+</div>
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:Microsoft_Adventure_MDA_White.png" alt="Game:Microsoft Adventure MDA White">
+</div>
+<div class="title">Microsoft Adventure - MDA White screen</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_cga">CGA</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>CGA stands for <strong>Color Graphics Adapter</strong>, and like MDA was introduced by IBM alongside the original IBM PC in 1981.</p>
+</div>
+<div class="paragraph">
+<p>As the name implies, it supports colour, and unlike MDA, it supports drawing to the screen which made it popular for games.
+Due to the higher price of the adapter and monitor, and the lower resolution, it was less popular for business use than MDA and later Hercules.
+Also note that CGA is not backward compatible with MDA.
+The vertical refresh of CGA is 60Hz, which matches up well with the majority of modern 60Hz LCD displays.</p>
+</div>
+<div class="sect3">
+<h4 id="_graphics_modes">Graphics modes:</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>160x100 in 16 colours, chosen from a 16-colour palette, utilizing a specific configuration of the 80x25 text mode.</p>
+</li>
+<li>
+<p>320×200 in 4 colours, chosen from 3 fixed palettes, with high- and low-intensity variants, with colour 1 chosen from a 16-colour palette.</p>
+</li>
+<li>
+<p>640×200 in 2 colours, one black, one chosen from a 16-colour palette.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_text_modes">Text modes:</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>40×25 with 8×8 pixel font (effective resolution of 320×200)</p>
+</li>
+<li>
+<p>80×25 with 8×8 pixel font (effective resolution of 640×200)</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_composite_graphics_mode">Composite graphics mode:</h4>
+<div class="paragraph">
+<p>One of the features, at least of the IBM CGA adapters, is that they support two types of monitors.
+Either a digital RGBI monitor, or an analogue composite monitor (or NTSC TV) connected via RCA.</p>
+</div>
+<div class="paragraph">
+<p>The composite connection suffers from a lower quality picture with colour bleeding.
+But it also allows for something called artefact colours, which was a way to have to have more colours.
+So where CGA with a RGBI monitor would be limited to just 4 colours in 320x200, with composite you can have 16.
+This composite mode was specifically supported by some games, such as those from Sierra.</p>
+</div>
+<div class="paragraph">
+<p>When the DOSBox-X CGA emulation detects that a game is trying to use artefact colours, it will auto-enable the composite mode emulation.
+As such you cannot experience non-artefact 4-colour CGA mode with such games with <code>machine=cga</code>.
+The workaround is to use a later model video card like EGA or VGA which is backwards compatible with CGA,
+as these later cards do not support the composite mode, you will get RGBI output instead.
+But you may have to find a way to force the game to use CGA, if it also supports EGA or VGA.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_keyboard_shortcuts">Keyboard shortcuts:</h4>
+<div class="paragraph">
+<p>By default the following keyboard shortcuts, specific to CGA and PCjr are available:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>CTRL-F7 switch between early and late model IBM CGA adapter emulation</p>
+</li>
+<li>
+<p>CTRL-F8 switch between Auto, RGBI and Composite monitor output</p>
+</li>
+<li>
+<p>CTRL-Shift-F7 Decrease Hue</p>
+</li>
+<li>
+<p>CTRL-Shift-F8 Increase Hue</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If your using <code>machine=cga_mono</code>, you instead have these shortcuts:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>CTRL-F7 Cycles between CGA monochrome palettes (green, amber, white, grey)</p>
+</li>
+<li>
+<p>CTRL-F8 Cycles between high and low brightness</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+There is no real indicator in DOSBox-X that you changed settings with keyboard shortcuts, or to check the current status.
+The only indications are a possible change of picture output, and if you have the logging enabled, to check the log output.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_cga_machine_options">CGA machine options</h4>
+<div class="paragraph">
+<p>This standard CGA mode can be set using <code>machine=cga</code> in your DOSBox-X config file.
+Video memory is fixed to 16KiB and cannot be changed.</p>
+</div>
+<div class="paragraph">
+<p>In addition, DOSBox-X also has a few CGA variants.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>cga_mono</code> by default gives a green screen CGA output.</p>
+</li>
+<li>
+<p><code>cga_rgb</code> emulates a CGA adapter connected to a RGBI monitor.</p>
+</li>
+<li>
+<p><code>cga_composite</code> emulates an early model IBM CGA adapter connected to a composite monitor.</p>
+</li>
+<li>
+<p><code>cga_composite2</code> emulates a late model IBM CGA adapter connected to a composite monitor.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_external_links">External links</h4>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/Color_Graphics_Adapter">Wikipedia article on CGA</a></p>
+</li>
+<li>
+<p><a href="https://www.reenigne.org/blog/comparison-of-cga-card-versions/">Blog post on CGA adapter revisions</a></p>
+</li>
+<li>
+<p><a href="http://nerdlypleasures.blogspot.com/2013/11/ibm-pc-color-composite-graphics.html">Blog post on CGA composite video, adapter revisions and artefact colours</a></p>
+</li>
+<li>
+<p><a href="https://www.youtube.com/watch?v=niKblgZupOc">YouTube : CGA Graphics - Not as bas as you thought!</a></p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The difference between <code>machine=cga</code>, <code>machine=cga_composite</code> and <code>machine=cga_composite2</code> options, is that the former will only use composite mode if it detects that a game is trying to use artefact colours.
+While the later two will start in composite mode, so you will always get artefact colours even if the game was not designed for it.
+You can however use the CTRL-F7 and CTRL-F8 key combinations with any of them to switch to different output options.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_image_gallery">Image Gallery</h4>
+<div class="openblock float-group">
+<div class="content">
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:Microsoft_Adventure_CGA.png" alt="Game:Microsoft Adventure CGA" width="640">
+</div>
+<div class="title">Microsoft Adventure - CGA 80x25 text</div>
+</div>
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:KQ1_CGA.png" alt="Game:KQ1 CGA" width="640">
+</div>
+<div class="title">King&#8217;s Quest 1 with CGA 4-colour on a EGA or VGA adapter</div>
+</div>
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:KQ1_CGA_Artefact.png" alt="Game:KQ1 CGA Artefact">
+</div>
+<div class="title">King&#8217;s Quest 1 with CGA Artefact colour</div>
+</div>
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:KQ1_CGA_RGB.png" alt="Game:KQ1 CGA RGB" width="640">
+</div>
+<div class="title">King&#8217;s Quest 1 with CGA 4-colour on RGB screen</div>
+</div>
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:KQ1_CGA_Mono_Green.png" alt="Game:KQ1 CGA Mono Green">
+</div>
+<div class="title">King&#8217;s Quest 1 with CGA Mono Green screen</div>
+</div>
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:KQ1_CGA_Mono_Amber.png" alt="Game:KQ1 CGA Mono Amber">
+</div>
+<div class="title">King&#8217;s Quest 1 with CGA Mono Amber screen</div>
+</div>
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:KQ1_CGA_Mono_White.png" alt="Game:KQ1 CGA Mono White">
+</div>
+<div class="title">King&#8217;s Quest 1 with CGA Mono White screen</div>
+</div>
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:Monkey_Island_CGA.png" alt="Game:Monkey Island CGA" width="640">
+</div>
+<div class="title">Monkey Island with CGA 4-colour</div>
+</div>
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:Monkey_Island_CGA_composite.png" alt="Game:Monkey Island CGA composite">
+</div>
+<div class="title">Monkey Island with CGA composite</div>
+</div>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+To get the above 4-colour screenshot of KQ1 with a EGA or VGA adapter, the game was started with <code>sierra -c</code> to force it into CGA mode.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+To get the above CGA RGB screenshot of KQ1 with <code>machine=cga_rgb</code>, it was necessary to start the game with <code>sierra -r</code>, otherwise you only get black-and-white from the game.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_hercules">Hercules</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Hercules Graphics Card was released in 1982 by Hercules Computer Technology.
+It is a monochrome card that is backward compatible with MDA, with the addition of a single 720x350 graphics mode.
+This made it a very popular card for businesses, and due to its graphics support it is supported by many games.
+The vertical refresh of Hercules like MDA is only 50Hz, but with the phosphor glow of green and amber monochrome monitors this was not noticeable.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set using <code>machine=hercules</code> in your DOSBox-X config file.
+Video memory is fixed to 64KiB and cannot be changed.
+You can optionally change the display colour by setting in the <code>[render]</code> section <code>monochrome_pal=</code> to green, amber, grey or white, or cycle between the modes with CTRL-F7.</p>
+</div>
+<div class="paragraph">
+<p>You can also cycle between low and high brightness of the monochrome display by pressing CTRL-F8.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/Hercules_Graphics_Card">Wikipedia article on the Hercules Graphics Card</a></p>
+</li>
+<li>
+<p><a href="http://www.dosdays.co.uk/topics/Manufacturers/hercules.php">DOS Days on Hercules Computer Technology</a></p>
+</li>
+<li>
+<p><a href="https://jeffpar.github.io/kbarchive/kb/044/Q44273/">MS KnowledgeBase article on MSHERC.COM</a></p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Some software like CheckIt and QBasic may detect a Hercules adapter as MDA, unless a TSR like <code>MSHERC.COM</code> is loaded into memory.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Some 3rd party Hercules compatible cards, like early ATI cards, also had support for displaying CGA mode on a MDA/Hercules compatible monitor.
+And there are also TSRs (Terminate and Stay Resident) programs that can emulate CGA on Hercules with varying degrees of success.
+</td>
+</tr>
+</table>
+</div>
+<div class="openblock float-group">
+<div class="content">
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:KQ1_Hercules_Green.png" alt="Game:KQ1 Hercules Green">
+</div>
+<div class="title">King&#8217;s Quest 1 with Hercules Green screen</div>
+</div>
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:KQ1_Hercules_Amber.png" alt="Game:KQ1 Hercules Amber">
+</div>
+<div class="title">King&#8217;s Quest 1 with Hercules Amber screen</div>
+</div>
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:KQ1_Hercules_White.png" alt="Game:KQ1 Hercules White">
+</div>
+<div class="title">King&#8217;s Quest 1 with Hercules White screen</div>
+</div>
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:Monkey_Island_Hercules_White.png" alt="Game:Monkey Island Hercules White">
+</div>
+<div class="title">Monkey Island with Hercules White screen</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ibm_pcjr">IBM PCjr</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The PCjr was introduced by IBM in March 1984, and discontinued due to poor sales just over a year later.
+It&#8217;s integrated video card is backwards compatible with CGA, but adds a few new modes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>160x200 at 16 colours</p>
+</li>
+<li>
+<p>320x200 at 16 colours</p>
+</li>
+<li>
+<p>640x200 at 4 colours</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The vertical refresh of the PCjr like CGA is 60Hz, which matches up well with the majority of modern 60Hz LCD displays.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set using <code>machine=pcjr</code> in your DOSBox-X config file.
+Video memory is fixed to 128KiB and cannot be changed.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Enabling PCjr mode, also enables PCjr sound emulation
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>In addition, DOSBox-X also has a few PCjr variants.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>pcjr_composite</code> emulates an early model IBM CGA connected to a composite monitor.</p>
+</li>
+<li>
+<p><code>pcjr_composite2</code> emulates a late model IBM CGA connected to a composite monitor.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The difference between <code>machine=pcjr</code>, <code>machine=pcjr_composite</code> and <code>machine=pcjr_composite2</code> options, is that the former will only use composite mode if it detects that a game is trying to use artefact colours.
+While the later two will start in composite mode, so you will always get artefact colours even if the game was not designed for it.
+You can however use the CTRL-F7 and CTRL-F8 key combinations with any of them to switch to different output options.
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/IBM_PCjr#Video">Wikipedia article on the IBM PCjr</a></p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="_keyboard_shortcuts_2">Keyboard shortcuts:</h4>
+<div class="paragraph">
+<p>By default the following keyboard shortcuts, specific to CGA and PCjr are available:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>CTRL-F7 switch between early and late model IBM CGA adapter emulation</p>
+</li>
+<li>
+<p>CTRL-F8 switch between Auto, RGBI and Composite monitor output</p>
+</li>
+<li>
+<p>CTRL-Shift-F7 Decrease Hue</p>
+</li>
+<li>
+<p>CTRL-Shift-F8 Increase Hue</p>
+</li>
+</ul>
+</div>
+<div class="openblock float-group">
+<div class="content">
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:KQ1_PCjr.png" alt="Game:KQ1 PCjr" width="640">
+</div>
+<div class="title">King&#8217;s Quest 1 on IBM PCjr</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_tandy">Tandy</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Tandy graphics, sometimes abbreviated to TGA, was introduced with the Tandy 1000 in 1984, which began as a clone of the IBM PCjr.</p>
+</div>
+<div class="paragraph">
+<p>It has all the CGA and PCjr video modes, but some differences exist, such as how the video memory is mapped, which can cause incompatibilities.
+Later Tandy 1000 models added an additional video mode, called "Tandy Video II" or ETGA for 640x200 at 16 colours.</p>
+</div>
+<div class="paragraph">
+<p>Tandy computers with Tandy Graphics were available on the market for much longer than the IBM PCjr, resulting in many games that supported it.
+Tandy computers were also available with faster processors, up to a 286 running at 10MHz while the original IBM PCjr was only ever available with a 4.77MHz 8088.</p>
+</div>
+<div class="paragraph">
+<p>The vertical refresh of the Tandy 1000 like CGA is 60Hz, which matches up well with the majority of modern 60Hz LCD displays.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set using <code>machine=tandy</code> in your DOSBox-X config file.
+Video memory is fixed to 128KiB and cannot be changed.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Enabling Tandy mode, also enables Tandy sound emulation (which is likewise derived from the IBM PCjr)
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+While early Tandy 1000 models had composite out similar to CGA and the PCjr, this is not currently emulated in DOSBox-X.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Many games that support both Tandy and EGA, look near identical in both. It would appear that game developers took a lowest-common-denominator approach and simply used the same resolution and graphic assets for both.
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/Tandy_Graphics_Adapter">Wikipedia article on Tandy Graphics</a></p>
+</li>
+<li>
+<p><a href="http://www.dosdays.co.uk/computers/Tandy%201000/tandy1000.php">DOS Days on the Tandy 1000 Series</a></p>
+</li>
+<li>
+<p><a href="https://www.youtube.com/watch?v=mYHtojsaRkY">Youtube : The Tandy 1000 - The best MS-DOS computer in 1984</a></p>
+</li>
+</ul>
+</div>
+<div class="openblock float-group">
+<div class="content">
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:Monkey_Island_Tandy.png" alt="Game:Monkey Island Tandy" width="640">
+</div>
+<div class="title">Monkey Island with Tandy</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ega">EGA</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>EGA stands for <strong>Enhanced Graphics Adapter</strong> and was introduced by IBM in 1984, as the official follow-on to CGA.
+It still only supports up to 16 colours on-screen, but out of a gamut of 64 colours and at higher resolution.</p>
+</div>
+<div class="paragraph">
+<p>The original adapters came with 64KiB video RAM, but could be upgraded to 128 or 192KiB.
+Some EGA clones even provided 256KiB, and additional high-res video modes.</p>
+</div>
+<div class="paragraph">
+<p>One feature it dropped however, was the composite output support.
+As such, it does not support the CGA artefact colours.</p>
+</div>
+<div class="paragraph">
+<p>The vertical refresh of EGA like CGA is 60Hz, which matches up well with the majority of modern 60Hz LCD displays.</p>
+</div>
+<div class="paragraph">
+<p>The EGA emulation provided by DOSBox-X by default provides 256KiB of video RAM, by setting <code>vmemsizekb=</code> in the <code>[video]</code>section of the DOSBox-X config file, it is possible to reduce it instead to 64 or 128KB. e.g.,</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[dosbox]
+machine=ega
+
+[video]
+vmemsize=0
+vmemsizekb=128</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Emulating 64KiB of video memory with EGA is not recommended, as the code for it is experimental and does not properly emulate a 64KiB EGA card.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Some clone EGA cards added extra video memory and video modes, typically known as SuperEGA cards. The emulation of such cards is not supported by DOSBox-X.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_graphics_modes_2">Graphics modes:</h4>
+<div class="paragraph">
+<p>In addition to being backward compatible with CGA, EGA supports:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>640×350 w/16 colours (from a 6 bit palette of 64 colours), pixel aspect ratio of 1:1.37.</p>
+</li>
+<li>
+<p>640×350 w/2 colours, pixel aspect ratio of 1:1.37.</p>
+</li>
+<li>
+<p>640×200 w/16 colours, pixel aspect ratio of 1:2.4.</p>
+</li>
+<li>
+<p>320×200 w/16 colours, pixel aspect ratio of 1:1.2.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_text_modes_2">Text modes:</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>40×25 with 8×8 pixel font (effective resolution of 320×200)</p>
+</li>
+<li>
+<p>80×25 with 8×8 pixel font (effective resolution of 640×200)</p>
+</li>
+<li>
+<p>80×25 with 8×14 pixel font (effective resolution of 640×350)</p>
+</li>
+<li>
+<p>80×43 with 8×8 pixel font (effective resolution of 640×344)</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_ega_machine_options">EGA machine options</h4>
+<div class="paragraph">
+<p>This mode can be set using <code>machine=ega</code> in your DOSBox-X config file</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_external_links_2">External links</h4>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/Enhanced_Graphics_Adapter">Wikipedia article on EGA Graphics</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_image_gallery_2">Image Gallery</h4>
+<div class="openblock float-group">
+<div class="content">
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:KQ1_EGA.png" alt="Game:KQ1 EGA" width="640">
+</div>
+<div class="title">King&#8217;s Quest 1 on EGA</div>
+</div>
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:Monkey_Island_EGA.png" alt="Game:Monkey Island EGA" width="640">
+</div>
+<div class="title">Monkey Island original Edition in EGA</div>
+</div>
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:Monkey_Island_VGA_in_EGA.png" alt="Game:Monkey Island VGA in EGA">
+</div>
+<div class="title">Monkey Island VGA Edition in EGA</div>
+</div>
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:KQ1_SCI_EGA.png" alt="Game:KQ1 SCI EGA" width="640">
+</div>
+<div class="title">King&#8217;s Quest 1 SCI remake in EGA</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_amstrad">Amstrad</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Amstrad in 1986 introduced the PC1512 which has CGA (RGBI only) graphics but also adds an additional 640x200 16 colour mode.</p>
+</div>
+<div class="paragraph">
+<p>Very little software exists that can use this mode.
+One example was the bundled GEM Paint program, and another is a pretty bad and obscure boxing game "<a href="https://www.mobygames.com/game/dos/frank-brunos-boxing">Frank Bruno&#8217;s Boxing</a>".
+Lastly there is a <a href="http://sierrahelp.com/Patches-Updates/MiscUpdates.html">PC1512.DRV</a> driver for old Sierra SCI0 and SCI1 games.</p>
+</div>
+<div class="paragraph">
+<p>The vertical refresh of the Amstrad like CGA is 60Hz, which matches up well with the majority of modern 60Hz LCD displays.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set using <code>machine=amstrad</code> in your DOSBox-X config file.
+Video memory is fixed to 64KiB and cannot be changed.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/PC1512">Wikipedia article on the Amstrad PC1512</a></p>
+</li>
+<li>
+<p><a href="http://www.dosdays.co.uk/computers/Amstrad%20PC1000/pics.php">Internal pictures of the PC1512</a></p>
+</li>
+</ul>
+</div>
+<div class="openblock float-group">
+<div class="content">
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:KQ1_SCI_Amstrad.png" alt="Game:KQ1 SCI Amstrad">
+</div>
+<div class="title">King&#8217;s Quest 1 SCI remake on Amstrad using PC1512.DRV</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_pc_98">PC-98</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The NEC PC-9800, simply known as the PC-98, were a family of computers made by NEC and sold in Japan throughout 1982 to 2000, which used MS-DOS with modifications to support the PC-98 BIOS and Japanese DBCS (Double Byte Character Set) characters. It&#8217;s supported in DOSBox-X by setting <code>machine=pc98</code> in your DOSBox-X config file. More information about PC-98 support can be found in the PC-98 guide page:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="Guide%3APC‐98-emulation-in-DOSBox‐X">Guide: PC‐98 emulation in DOSBox‐X</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_jega">JEGA</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>JEGA is a variation of EGA for the Japanese market, conceived by Microsoft Japan and released in 1987 as part of AX (Architecture eXtended).</p>
+</div>
+<div class="paragraph">
+<p>Its intended purpose was the display of the Japanese characters which required a higher resolution, as such this added a 640x480 video mode.</p>
+</div>
+<div class="paragraph">
+<p>It was not very successful, as IBM introduced VGA shortly after which has a similar video mode.</p>
+</div>
+<div class="paragraph">
+<p>The vertical refresh of JEGA like EGA and CGA is 60Hz, which matches up well with the majority of modern 60Hz LCD displays.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set using <code>machine=jega</code> in your DOSBox-X config file.
+Video memory defaults to 256KiB.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="Guide%3AEast-Asian-language-support-in-DOSBox‐X">Guide: East Asian language support in DOSBox‐X</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_dcga">DCGA</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>DCGA is the video mode used by the Olivetti M24, AT&amp;T 6300 and Toshiba T3100. DOSBox-X emulates the DCGA mode via the VGA mode.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be enter via <code>DCGA</code> command when you are in a VGA video mode.</p>
+</div>
+<div class="paragraph">
+<p>If you enable Toshiba J-3100 emulation (by setting <code>dosv=jp</code> and <code>j3100=on</code> in your DOSBox-X config file), then the J-3100 mode will be enabled when DOSBox-X starts. Typing <code>VGA</code> command to go to the Japanese DOS/V mode, and then typing <code>DCGA</code> command will return to the J-3100 emulation mode.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="Guide%3AEast-Asian-language-support-in-DOSBox‐X">Guide: East Asian language support in DOSBox‐X</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mcga">MCGA</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>MCGA stands for <strong>Multi-Color Graphics Array</strong> and was introduced by IBM in 1987 as integrated in the IBM PS/2 Model 30 and a bit later the Model 25.
+No stand-alone MCGA cards were ever produced.</p>
+</div>
+<div class="paragraph">
+<p>MCGA supports all CGA display modes (RGBI only) plus 640×480 monochrome at a refresh rate of 60 Hz, and 320×200 with 256 colours (out of a palette of 262,144) at 70 Hz.
+It does not however provide backwards compatibility with EGA.
+In effect, MCGA can be thought of as either an enhanced CGA card, or a cost-reduced VGA card.</p>
+</div>
+<div class="paragraph">
+<p>As the high-colour mode is near identical to the one offered by VGA, many games have a combined "VGA/MCGA" video option, and selecting MCGA with a VGA adapter normally also works.</p>
+</div>
+<div class="paragraph">
+<p>One rare example of a game that offers a MCGA option, but does not support VGA is <a href="https://www.mobygames.com/game/dos/thexder">Thexder</a>.
+This is not because the game could not have worked on VGA, but rather because it looks for specific machine settings that are only true on the above PS/2 Models.
+As such as part of the MCGA emulation, DOSBox-X also emulates some PS/2 specific machine settings, just enough to make games like Thexder work in MCGA mode.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set using <code>machine=mcga</code> in your DOSBox-X config file. Video memory is fixed to 64KiB and cannot be changed.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Many games that offer both a MCGA and VGA option, used the same resolution and assets for both, making them look identical.
+However, due to other MCGA limitations the VGA option may provide a better experience.
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/Multi-Color_Graphics_Array">Wikipedia article on MCGA Graphics</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_vga">VGA</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>VGA stands for <strong>Video Graphics Array</strong> and was introduced by IBM in 1987.
+One of the stand-out features was that it could display up to 256 colours from a palette of 262,144.</p>
+</div>
+<div class="paragraph">
+<p>It originally featured 256KiB of video RAM.</p>
+</div>
+<div class="paragraph">
+<p>VGA is backward compatible with both EGA and CGA (RGBI mode only), and adds the following new graphics modes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>640×480 in 16 colours or monochrome</p>
+</li>
+<li>
+<p>320×200 in 256 colours (Mode 13h)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>One new feature is the ability to run at 70Hz vertical refresh, where CGA and EGA had only supported 60Hz.
+This is important for modern LCD displays, as many will only run at 60Hz, which causes issues with many games that were designed to run at 70Hz, resulting in dropped frames.
+This can cause both video and audio distortion, as in many games the audio is linked to the frame rate.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set using <code>machine=vgaonly</code> in your DOSBox-X config file</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/Video_Graphics_Array">Wikipedia article on VGA Graphics</a></p>
+</li>
+</ul>
+</div>
+<div class="openblock float-group">
+<div class="content">
+<div class="imageblock left">
+<div class="content">
+<img src="images/Game:Monkey_Island_VGA.png" alt="Game:Monkey Island VGA">
+</div>
+<div class="title">Monkey Island VGA Edition</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_svga">SVGA</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Many clones were produced of the VGA adapter, often with enhanced capabilities like more video memory, additional high-res video modes and various types of acceleration which were typically referred to as SuperVGA, or SVGA.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/Super_VGA">Wikipedia article on SVGA Graphics</a></p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_s3_graphics">S3 Graphics</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/S3_Graphics">Wikipedia article on S3 Graphics</a></p>
+</li>
+<li>
+<p><a href="http://www.dosdays.co.uk/topics/Manufacturers/s3.php">DOS Days on S3 Graphics</a></p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The default <code>machine=svga_s3</code> option refers to the S3 Trio64.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect3">
+<h4 id="_s3_trio64">S3 Trio64</h4>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+This is the default video card emulated by DOSBox-X. It currently supports the widest range of video modes of all fully supported cards.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Introduced in 1994. Successor to the Vision864, and has support for VESA VBE.
+The original S3 Trio64 cards would have had VESA VBE 1.2, but the card emulated by DOSBox-X has VESA VBE 2.0.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set using either <code>machine=svga_s3</code> or <code>machine=svga_s3trio64</code> in your DOSBox-X config file.
+Defaults to 2MiB video memory, but can be changed to 512KiB, 1MiB, 4MiB, 8MiB and 16MiB.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Original S3 Trio64 cards were only produced with 1MiB or 2MiB and expandable up to 4MiB.
+This is reflected by the official S3 drivers which do not support more than 4MiB with the S3 Video drivers for Windows.
+More video memory can however be used in VESA mode.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>There are a few variations of the Trio64 that are available:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>machine=vesa_nolfb</code> - The same as svga_s3 with VESA VBE 2.0, but with a no-linear frame buffer hack. Sometimes runs faster than plain svga_s3. Only needed in a few games due to either a bug in DOSBox or the linear-frame buffer mode of the game.</p>
+</li>
+<li>
+<p><code>machine=vesa_oldvbe</code> - The same as svga_s3, but with VESA VBE 1.2. This is necessary for some older VESA VBE programs.</p>
+</li>
+<li>
+<p><code>machine=vesa_oldvbe10</code> - The same as svga_s3, but with VESA VBE 1.0, which does not provide some optional mode information (mainly for testing)</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/S3_Triop">S3 Trio at Wikipedia</a></p>
+</li>
+<li>
+<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/357-s3-trio64">S3 Trio64 at the VGA Museum</a></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_experimental_s3_models">Experimental S3 models</h4>
+<div class="paragraph">
+<p>The emulation of the following S3 SVGA models should be considered experimental.</p>
+</div>
+<div class="sect4">
+<h5 id="_s3_86c928">S3 86c928</h5>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+The emulation of this card is considered experimental. It is not recommended for regular use.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Introduced in July 1992.
+Early Windows accelerator card.</p>
+</div>
+<div class="paragraph">
+<p>The emulated PCI card has 2048KiB video RAM.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set using <code>machine=svga_s386c928</code> in your DOSBox-X config file.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/344-s3-p86c928">S3 86c928 at the VGA Museum</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_s3_vision864">S3 Vision864</h5>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+The emulation of this card is considered experimental. It is not recommended for regular use.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Introduced in November 1993.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set using <code>machine=svga_s3vision864</code> in your DOSBox-X config file.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/351-s3-vision864">S3 Vision864 at the VGA Museum</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_s3_vision868">S3 Vision868</h5>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+The emulation of this card is considered experimental. It is not recommended for regular use.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Introduced in 1994.
+Based on the Vision864, with added motion video acceleration.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set using <code>machine=svga_s3vision868</code> in your DOSBox-X config file.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/353-s3-vision868">S3 Vision868 at the VGA Museum</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_s3_trio32">S3 Trio32</h5>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+The emulation of this card is considered experimental. It is not recommended for regular use.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Introduced in 1994.
+Low-cost 32bit version of the Trio64.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set using <code>machine=svga_s3trio32</code> in your DOSBox-X config file.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/356-s3-trio32">S3 Trio32 at the VGA Museum</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_s3_trio64v">S3 Trio64V+</h5>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+The emulation of this card is considered experimental. It is not recommended for regular use.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Introduced in June 1995. Successor to the Vision868.
+Similar to the Trio64, but adds partial MPEG-1 decode acceleration.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set using <code>machine=svga_s3trio64v+</code> in your DOSBox-X config file.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/359-s3-trio64v">S3 Trio64V+ at the VGA Museum</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_s3_virge">S3 ViRGE</h5>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+The emulation of this card is considered experimental. It is not recommended for regular use.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Introduced in November 1995.
+These cards introduced S3&#8217;s own <strong>S3D</strong> 3D acceleration technology for games.</p>
+</div>
+<div class="paragraph">
+<p>Very few games exist that made use of the S3D technology.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set using <code>machine=svga_s3virge</code> in your DOSBox-X config file.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/S3_ViRGE">S3 ViRGE at Wikipedia</a></p>
+</li>
+<li>
+<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/365-s3-virge">S3 ViRGE at the VGA Museum</a></p>
+</li>
+<li>
+<p><a href="https://www.vogons.org/viewtopic.php?t=33483">List of games supporting S3D mode</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_s3_virgevx">S3 ViRGE/VX</h5>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+The emulation of this card is considered experimental. It is not recommended for regular use.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Introduced in November 1995.
+Similar to the S3 ViRGE but with up to 8MB VRAM and higher resolution graphics modes.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set using <code>machine=svga_s3virgevx</code> in your DOSBox-X config file</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/366-s3-virge-vx">S3 ViRGE/VX at the VGA Museum</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_tseng_labs">Tseng Labs</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/Tseng_Labs">Wikipedia article on Tseng Labs</a></p>
+</li>
+<li>
+<p><a href="http://www.dosdays.co.uk/topics/Manufacturers/tseng_labs.php">DOS Days on Tseng Labs</a></p>
+</li>
+<li>
+<p><a href="http://vogonsdrivers.com/index.php?catid=63">VOGONS Vintage Driver Library for Tseng Labs</a></p>
+</li>
+</ul>
+</div>
+<div class="sect3">
+<h4 id="_tseng_labs_et3000">Tseng Labs ET3000</h4>
+<div class="paragraph">
+<p>Introduced in 1987.
+Early VGA clone card.</p>
+</div>
+<div class="paragraph">
+<p>In addition to standard CGA (RGBI mode only), EGA and VGA this card supports the following display modes with the right drivers:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>640x480 with 2, 16 or 256 colours</p>
+</li>
+<li>
+<p>800x600 with 16 colours</p>
+</li>
+<li>
+<p>1024x768 with 16 colours</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This mode can be set using <code>machine=svga_et3000</code> in your DOSBox-X config file.
+Video memory defaults to 512KiB and cannot be adjusted.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://www.vgamuseum.info/index.php/companies/item/460-tseng-et3000ax">Tseng Labs ET3000 at the VGA Museum</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_tseng_labs_et4000">Tseng Labs ET4000</h4>
+<div class="paragraph">
+<p>Introduced in 1989.
+Became fairly popular, and supported in SVGA mode by various games.</p>
+</div>
+<div class="paragraph">
+<p>In addition to standard CGA (RGBI mode only), EGA and VGA this card supports the following display modes with the right drivers:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>640x480 with 2, 16, 256, 32768, 65535 or 16.7M (*) colours</p>
+</li>
+<li>
+<p>800x600 with 16, 256, 32768 or 65535 colours</p>
+</li>
+<li>
+<p>1024x768 with 16 or 256 colours</p>
+</li>
+<li>
+<p>1280x1024 with 16 colours</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Known issues with the above modes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>(*) Hangs on startup of Windows 3.0 in 16.7M colour mode</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This mode can be set using <code>machine=svga_et4000</code> in your DOSBox-X config file.
+Video memory defaults to 1024KiB, but can be adjusted to 256 or 512KiB as such:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[dosbox]
+machine=svga_et4000
+
+[video]
+vmemsize=0
+vmemsizekb=512</pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://files.mpoli.fi/hardware/DISPLAY/TSENG/ET-4000.ZIP">Tseng Labs ET4000 driver package</a></p>
+</li>
+<li>
+<p><a href="http://www.vgamuseum.info/index.php/companies/item/461-tseng-et4000ax">Tseng Labs ET4000 at the VGA Museum</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_paradise_systems_pvga1a">Paradise Systems PVGA1A</h3>
+<div class="paragraph">
+<p>Introduced in 1988.
+Generic clone VGA card.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set using <code>machine=svga_paradise</code> in your DOSBox-X config file.
+Video memory defaults to 512KiB, but can be adjusted to 256 or 1024KiB.</p>
+</div>
+<div class="paragraph">
+<p>For 256KiB, set your config as follows:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[dosbox]
+machine=svga_paradise
+
+[video]
+vmemsize=0
+vmemsizekb=256</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For 1024KiB, set your config as follows:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[dosbox]
+machine=svga_paradise
+
+[video]
+vmemsize=1
+vmemsizekb=0</pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://www.dosdays.co.uk/topics/Manufacturers/paradise.php">DOS Days on Paradise Systems</a></p>
+</li>
+<li>
+<p><a href="http://www.vgamuseum.info/index.php/companies/item/478-paradise-systems-pvga1a">Paradise Systems PVGA1A</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vesa_bios_extensions_vbe">VESA BIOS Extensions (VBE)</h3>
+<div class="paragraph">
+<p>During the late 80&#8217;s and early 90&#8217;s many video card manufacturers existed, and as IBM was no longer leading the market, each manufacturer was doing it&#8217;s own thing with regards to setting the cards SVGA modes. This made it very difficult for software developers as they needed to support a plethora of different cards if they wanted to offer more then basic VGA.</p>
+</div>
+<div class="paragraph">
+<p>As such the Video Electronics Standards Association (VESA) was born, and one of the first standardization efforts they led was the VESA BIOS Extensions (VBE).</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>VBE 1.0 was defined in 1989</p>
+</li>
+<li>
+<p>VBE 1.1 was defined in 1990</p>
+</li>
+<li>
+<p>VBE 1.2 was defined in 1991</p>
+</li>
+<li>
+<p>VBE 2.0 was defined in 1994</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The only card supported by DOSBox-X to provide VBE is the S3 Trio64, which defaults to VBE 2.0.</p>
+</div>
+<div class="paragraph">
+<p>The following VESA tunables are available in the <code>[video]</code> section of the dosbox-x config file:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>enable 8-bit dac</code> (default: true)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If set, allow VESA BIOS calls in IBM PC mode to set DAC width. Has no effect in PC-98 mode.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>vesa bank switching window mirroring</code> (default: false)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If set, bank switch (windowed) VESA BIOS modes will ignore the window selection when asked to bank switch.
+Requests to control either Window A or Window B will succeed.
+This is needed for some demoscene productions with SVGA support that assume Window B is available, without which graphics do not render properly.
+If clear, Window B is presented as not available and attempts to use it will fail.
+Only Window A will be available, which is also DOSBox SVN behavior.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>vesa bank switching window range check</code> (default: true)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Controls whether calls to bank switch (set the window number) through the VESA BIOS apply range checking.
+If set, out of range window numbers will return with an error code.
+This is also DOSBox SVN behaviour.
+If clear, out of range window numbers are silently truncated to a number within range of available video memory and allowed to succeed.
+This is needed for some demoscene productions that rely on the silent truncation to render correctly without which drawing errors occur (e.g. end credits of Pill by Opiate)</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>vesa zero buffer on get information</code> (default: true)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>This setting affects VESA BIOS function INT 10h AX=4F00h.
+If set, the VESA BIOS will zero the 256-byte buffer defined by the standard at ES:DI, then fill in the structure.
+If clear, only the structure members will be filled in, and memory outside the initial 20-32 bytes will remain unmodified.
+This setting is ON by default.
+Some very early 1990s DOS games that support VESA BIOS standards may need this setting turned OFF if the programmer did not provide enough space for the entire 256 byte structure and the game crashes if it detects VESA BIOS extensions.
+Needed for: GETSADAM.EXE</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>vesa set display vsync</code> (default: -1)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Whether to wait for vertical retrace if VESA Set Display Address is used to pan the display.
+The default value -1 will wait if vesa_oldvbe, or not otherwise.
+0 means not to wait.
+1 means always to wait.
+This affects only subfunction 0x00.
+Subfunction 0x80 will always wait as specified in the VESA BIOS standard.
+It is recommended to set this to 1 for VBETEST.EXE so that the panning test and information does not go by too fast.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>vesa lfb base scanline adjust</code> (default: 0)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If non-zero, the VESA BIOS will report the linear framebuffer offset by this many scanlines.
+This does not affect the linear framebuffer&#8217;s location.
+It only affects the linear framebuffer location reported by the VESA BIOS.
+Set to nonzero for DOS games with sloppy VESA graphics pointer management.
+MFX "Melvindale" (1996): Set this option to 2 to centre the picture properly.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>vesa map non-lfb modes to 128kb region</code> (default: false)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If set, VESA BIOS SVGA modes will be set to map 128KB of video memory to A0000-BFFFF instead of 64KB at A0000-AFFFF.
+This does not affect the SVGA window size or granularity.
+Some games or demoscene productions assume that they can render into the next SVGA window/bank by writing to video memory beyond the current SVGA window address and will not appear correctly without this option.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>vesa modelist cap</code> (default: 0)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If nonzero, the VESA modelist is capped so that it contains no more than the specified number of video modes.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>vesa modelist width limit</code> (default: 1280)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If nonzero, VESA modes with horizontal resolution higher than the specified pixel count will not be listed.
+This is another way the modelist can be capped for DOS applications that have trouble with long modelists.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>vesa modelist height limit</code> (default: 1024)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If nonzero, VESA modes with vertical resolution higher than the specified pixel count will not be listed.
+This is another way the modelist can be capped for DOS applications that have trouble with long modelists.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>vesa vbe put modelist in vesa information</code> (default: false)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If set, the VESA modelist is placed in the VESA information structure itself when the DOS application queries information on the VESA BIOS.
+Setting this option may help with some games, though it limits the mode list reported to the DOS application.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>vesa vbe 1.2 modes are 32bpp</code> (default: true)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If set, truecolor (16M color) VESA BIOS modes in the 0x100-0x11F range are 32bpp. If clear, they are 24bpp.
+Some DOS games and demos assume one bit depth or the other and do not enumerate VESA BIOS modes, which is why this option exists.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>allow low resolution vesa modes</code> (default: true)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If set, allow low resolution VESA modes (320x200x16/24/32bpp and so on).
+You could set this to false to simulate SVGA hardware with a BIOS that does not support the lowres modes for testing purposes.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>allow explicit 24bpp vesa modes</code> (default: false)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If set, additional 24bpp modes are listed in the modelist regardless whether modes 0x100-0x11F are configured to be 24bpp or 32bpp.
+Setting this option can provide the best testing and development environment for new retro DOS code.
+If clear, 24bpp will only be available in the 0x100-0x11F range if the "vesa vbe 1.2 modes are 32bpp" is false.
+Setting to false helps to emulate typical SVGA hardware in which either 24bpp is supported, or 32bpp is supported, but not both.
+Disabled by default.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>allow high definition vesa modes</code> (default: false)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If set, offer HD video modes in the VESA modelist (such as 1280x720 aka 720p or 1920x1080 aka 1080p).
+This option also offers 4:3 versions (960x720 and 1440x1080) for DOS games that cannot properly handle a 16:9 aspect ratio, and several other HD modes.
+The modes enabled by this option are still limited by the width and height limits and available video memory.
+This is unusual for VESA BIOSes to do and is disabled by default.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>allow unusual vesa modes</code> (default: false)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If set, unusual (uncommon) modes are added to the list.
+The modes reflect uncommon resolutions added by external drivers (UNIVBE), some VESA BIOSes, some laptop and netbook displays, and some added by DOSBox-X for additional fun. Disabled by default.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>allow 32bpp vesa modes</code> (default: true)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If the DOS game or demo has problems with 32bpp VESA modes, set to 'false'</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>allow 24bpp vesa modes</code> (default: true)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If the DOS game or demo has problems with 24bpp VESA modes, set to 'false'</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>allow 16bpp vesa modes</code> (default: true)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If the DOS game or demo has problems with 16bpp VESA modes, set to 'false'</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>allow 15bpp vesa modes</code> (default: true)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If the DOS game or demo has problems with 15bpp VESA modes, set to 'false'</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>allow 8bpp vesa modes</code> (default: true)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If the DOS game or demo has problems with 8bpp VESA modes, set to 'false'</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>allow 4bpp vesa modes</code> (default: true)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If the DOS game or demo has problems with 4bpp VESA modes, set to 'false'
+These modes have the same 16-color planar memory layout as standard VGA, but at SVGA resolution.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>allow 4bpp packed vesa modes</code> (default: false)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If the DOS game or demo has problems with 4bpp packed VESA modes, set to 'false'.
+4bpp (16-color) packed is an unusual novelty mode only seen on specific Chips &amp; Tech 65550 VESA BIOSes such as the one in a Toshiba Libretto laptop.
+Disabled by default.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><code>allow tty vesa modes</code> (default: true)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>If the DOS game or demo has problems with text VESA modes, set to 'false'</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>links:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/VESA_BIOS_Extensions">Wikipedia article on VESA BIOS Extensions</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_dual_monitor">Dual monitor</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The original IBM PC could already support dual-monitor by using both MDA and CGA video cards at the same time.
+This also works with MDA+EGA, MDA+VGA and MDA+SVGA. Hercules can be used as a more capable substitute for MDA.</p>
+</div>
+<div class="paragraph">
+<p>This is possible because MDA (and Hercules) don&#8217;t conflict with the resources needed for CGA/EGA/VGA and SVGA.
+As such it is not possible for instance to have two VGA cards, as they would conflict.</p>
+</div>
+<div class="paragraph">
+<p>Programs known to support a dual monitor setup:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>AutoCAD</p>
+</li>
+<li>
+<p>Borland Turbo Debugger</p>
+</li>
+<li>
+<p>CodeView debugger</p>
+</li>
+<li>
+<p>Desqview</p>
+</li>
+<li>
+<p>GEM (debugging only)</p>
+</li>
+<li>
+<p>Lotus 123</p>
+</li>
+<li>
+<p><a href="https://www.mobygames.com/game/dos/mah-jongg-v-g-a-">Mah Jongg -V-G-A</a></p>
+</li>
+<li>
+<p><a href="https://www.mobygames.com/game/mechwarrior-2-mercenaries">Mechwarrior 2: Mercenaries</a> v1.06</p>
+</li>
+<li>
+<p>PowerBASIC DOS</p>
+</li>
+<li>
+<p>Softice debugger</p>
+</li>
+<li>
+<p>Windows 3.x (debugging only)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The use of a secondary monitor is partially supported by DOSBox-X.
+It works by starting DOSBox-X with the <code>-display2</code> option as such:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>dosbox-x -display2</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The secondary (MDA only) display will output on a terminal window.
+If you started DOSBox-X from a terminal, it will output the second display to that same terminal.</p>
+</div>
+<div class="paragraph">
+<p>The second display will default to white text, but you can switch to green with <code>-display2 green</code> or to amber with <code>-display2 amber</code>.</p>
+</div>
+<div class="paragraph">
+<p>At the DOS prompt you can switch primary display by use of the <code>mode</code> command.
+To make the MDA display primary:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>mode mono</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To make the CGA/EGA/VGA or SVGA display primary:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>mode co80</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The current dual monitor support is limited, in part because it uses the terminal window instead of a real window.
+As such it may not work properly with some programs, and it is limited to MDA only (no Hercules).
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+It is advised that you set your terminal window to 80x25 as it may experience rendering issues otherwise.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Because both the second display code and the integrated debugger uses the terminal, they are mutually exclusive. e.g., the "Start DOSBox-X Debugger" option will be greyed out when you start with the <code>-display2</code> option.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>links:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://www.seasip.info/VintagePC/dualhead.html">Dual-Head Operation on a Vintage PC</a></p>
+</li>
+<li>
+<p><a href="https://www.vogons.org/viewtopic.php?f=32&amp;t=26110">Vogons thread on this topic</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div id="footer">
+<div id="footer-text">
+Last updated 2022-01-01 01:51:44 -0500
+</div>
+</div>
+</body>
+</html>

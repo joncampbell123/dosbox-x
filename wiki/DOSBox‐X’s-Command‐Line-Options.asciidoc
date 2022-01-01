@@ -104,6 +104,9 @@ Skips the [autoexec] section of the loaded configuration file.
 * **-exit**
 +
 Exits after executing the [autoexec] section of the loaded configuration file.
+* **-o [option string]**
++
+Provides command-line option(s)/argument(s) to pass to program(s), if specified in the command line. Make sure to surround the arguments in quotes to cover spaces. For example, ``dosbox-x myapp.exe -o myopt`` provides the “myopt” argument for the myapp.exe program.
 * **-c [command string]**
 +
 Executes the specified command in addition to the [autoexec] section of the loaded configuration file. Make sure to surround the command in quotes to cover spaces. For example, ``-c "MOUNT C C:\\DOS"`` will cause DOSBox-X to execute the command ``MOUNT C C:\DOS`` at start.

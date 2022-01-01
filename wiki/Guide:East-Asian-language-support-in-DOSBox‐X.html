@@ -518,7 +518,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="paragraph">
-<p>There are also other config options for the TrueType font relating to CJK support, such as automatic box-drawing recognition and SBCS &lt;&#8658; DBCS mode switch, as found in the [ttf] section of the config file (such as <code>autodbcs</code> and <code>autoboxdraw</code> options). These can also be toggled dynamically from the drop-down menu (inside "Video" ⇒ "TTF options" menu group).</p>
+<p>There are also other config options for the TrueType font relating to CJK support, such as automatic box-drawing recognition and SBCS &lt;&#8658; DBCS mode switch, as found in the [ttf] section of the config file (such as <code>autodbcs</code> and <code>autoboxdraw</code> options). These can also be toggled dynamically from the drop-down menu (inside "Video" ⇒ "TTF options" menu group). Moreover, as of DOSBox-X 0.83.21 there is a <code>UTF8</code> command which allows to convert text encoded in UTF-8 to view in the current code page.</p>
+</div>
+<div class="paragraph">
+<p>Apart from the code page 950 for the Traditional Chinese, there is also a "hidden" code page 951 which enables the Big5-HKSCS charset (or Big5-UAO charset with the option <code>uao</code> set to <code>true</code>) instead of the Big5-1984 or the Big5-2003 charset. They are however not fully compatible with the ChinaSea extension. If you set <code>chinasea</code> to <code>true</code>, then a subset of either the Big5-HKSCS charset or the Big5-UAO charset will be replaced with ChinaSea characters.</p>
 </div>
 <div class="paragraph">
 <p>DOSBox-X additionally allows to run (Simplified or Traditional) Chinese DOS systems such as CCDOS 97, PDOS, or TechWay SCS (天汇汉字系统) to run when in the TTF output. DOSBox-X will automatically switch to a graphical output to let Chinese DOS systems to render correctly in this case. For the ETen Chinese DOS system (倚天中文系統) and running ET16V (飛碟五號) or ET24VA (飛碟24) it is strongly recommended to set the option <code>vga fill active memory=true</code> (in [video] section, supported since DOSBox-X 0.83.19), and for the latter (ET24VA), also the option <code>machine=svga_et4000</code> (in [dosbox] section) of the DOSBox-X configuration so that it will run properly.</p>
@@ -598,7 +601,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-12-01 04:14:20 -0500
+Last updated 2022-01-01 01:51:44 -0500
 </div>
 </div>
 </body>

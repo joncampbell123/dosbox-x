@@ -590,7 +590,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li>
 <p><strong>Support for more CPU types (e.g. Pentium MMX and Pro/II) and emulating CPU speed</strong></p>
 <div class="paragraph">
-<p>DOSBox-X supports virtually all CPU types prior to Pentium II at this time, from 8086 to Pentium Pro/II, including support for Pentium MMX instructions. DOSBox-X also allow you to emulate the speed of a specific CPU (from 8088 XT 4.77MHz to Pentium 166MHz MMX) in terms of cycles. Select them from the "CPU" menu.</p>
+<p>DOSBox-X supports virtually all CPU types prior to Pentium III at this time, from 8086 to Pentium Pro/II, including support for Pentium MMX instructions. DOSBox-X also allow you to emulate the speed of a specific CPU (from 8088 XT 4.77MHz to Pentium 166MHz MMX) in terms of cycles. Select them from the "CPU" menu.</p>
 </div>
 </li>
 <li>
@@ -638,7 +638,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li>
 <p><strong>Support for starting programs to run on the host systems</strong></p>
 <div class="paragraph">
-<p>It is possible to launch a host application from inside DOSBox-X to run on the host system, either using START command or in the case of Windows also run it directly from the shell. Set <code>startcmd=true</code> or <code>-hostrun</code> option to enable this feature.</p>
+<p>It is possible to launch a host application from inside DOSBox-X to run on the host system, either using START command or in the case of Windows also run it directly from the shell. This feature is disabled by default for security reasons, but you can set <code>startcmd=true</code> config option or <code>-hostrun</code> command-line option to enable the feature.</p>
 </div>
 </li>
 <li>
@@ -696,9 +696,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><strong>Support for phone book mapping for the emulated modem</strong></p>
+<p><strong>Support for UDP connection and phone book mapping for the emulated modem</strong></p>
 <div class="paragraph">
-<p>With this feature you can map fake phone numbers to Internet addresses which is useful for programs where limitations on phone number input field are too strict.</p>
+<p>With these features you can connect the emulated modem via reliable UDP (in addition to TCP), and you may also map fake phone numbers to Internet addresses which is useful for programs where limitations on phone number input field are too strict.</p>
 </div>
 </li>
 <li>
@@ -756,6 +756,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
+<p><strong>Support for viewing Unicode (UTF-8 or UTF-16) text in the current code page</strong></p>
+<div class="paragraph">
+<p>DOSBox-X allows you to view text encoded in UTF-8 or UTF-16 just like normal ASCII text in the current code page. For example, the command <code>UTF8 &lt; txtutf8.txt</code> will view the UTF-8 encoded file named "txtutf8.txt", whereas the command <code>UTF16 &lt; txtutf16.txt</code> will view the UTF-16 encoded file named "txtutf16.txt".</p>
+</div>
+</li>
+<li>
 <p><strong>Support for features such as V-Sync, overscan border and stereo swapping</strong></p>
 </li>
 <li>
@@ -777,7 +783,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-12-01 04:14:20 -0500
+Last updated 2022-01-01 01:51:44 -0500
 </div>
 </div>
 </body>

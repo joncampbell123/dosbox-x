@@ -1159,7 +1159,7 @@ If installing Windows/386 2.01, you will need to select the <strong>Microsoft se
 <p>If you indicated wanting to setup a printer, SETUP now asks you which model.</p>
 </div>
 <div class="paragraph">
-<p>For this guide, scroll to the "<strong>Epson LQ-800 [Epson LQ 2]</strong>", and press Enter.</p>
+<p>For this guide, scroll to the "<strong>Epson LQ-850 [Epson LQ 2]</strong>" (or <strong>Epson LQ-1050</strong> for wide formats), and press Enter.</p>
 </div>
 <div class="paragraph">
 <p>Later releases may have more options, such as a "<strong>Generic / Text Only</strong>" printer which can also be used.</p>
@@ -1258,18 +1258,21 @@ And then press enter.</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>MOUNT C /home/myuser/winroot
+<pre>@ECHO OFF
+MOUNT C /home/myuser/winroot
 C:
 IF EXIST C:\WINDOWS\WIN.COM GOTO WINDOWS
 IF EXIST C:\WIN386\WIN386.EXE GOTO WIN386
 GOTO END
 
 :WINDOWS
+ECHO Starting Windows 2.x
 SET PATH=%PATH%;C:\WINDOWS;
 C:\WINDOWS\WIN.COM
 GOTO END
 
 :WIN386
+ECHO Starting Windows/386 2.x
 SET PATH=%PATH%;C:\WIN386
 C:\WIN386\WIN386.EXE
 GOTO END
@@ -1317,7 +1320,7 @@ You can optionally create a shortcut on your desktop to start Windows 2.x direct
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-12-01 04:14:20 -0500
+Last updated 2022-01-01 01:51:44 -0500
 </div>
 </div>
 </body>

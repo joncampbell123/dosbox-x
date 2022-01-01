@@ -39,6 +39,12 @@ Defines or displays aliases.
 +
 Usage: ALIAS [name[=value] ... ]
 +
+* **ASSOC** (internal command)
++
+Displays or changes file extension associations.
++
+Usage: ASSOC [.ext[=command] ... ]
++
 * **ATTRIB** (internal command)
 +
 Displays or changes the attributes of files and directories.
@@ -114,7 +120,7 @@ Checks a volume and returns a status report.
 Usage: CHKDSK [drive:] [options]
 +
 Note: It uses the CHKDSK command from FreeDOS.
-* **CHOICE** (internal command)
+* **CHOICE** (external command)
 +
 Waits for a key press and sets ERRORLEVEL. Displays the given prompt followed by [Y,N]? for yes or no response.
 +
@@ -155,9 +161,9 @@ Note: You can also use CFGTOOL command to start DOSBox-X’s graphical configura
 Copies one or more files.
 +
 Usage: COPY source [destination]
-* **COUNTRY** (internal command)
+* **COUNTRY** (external command)
 +
-Changes the country code for country-specific date/time formats.
+Changes the country code for country-specific date/time/decimal formats.
 +
 Usage: COUNTRY [code]
 * **CTTY** (internal command)
@@ -337,6 +343,11 @@ Runs DOSLIB's HEXMEM tool, a memory viewer/dumper.
 Usage: HEXMEM16 [options] or HEXMEM32 [options]
 +
 Note: Included in the related DOSLIB project, this open-source tool was specifically written as a way to poke around the addressable memory available to the CPU and to show how a 16-bit DOS program can access extended memory, including flat real mode, and the 286 reset vector trick for 80286 systems. There is also code to access memory above 4GB if the CPU supports 64-bit long mode or the PAE page table extensions, although these are not yet supported by DOSBox-X.
+* **HISTORY** (internal command)
++
+Displays or clears the command history list.
++
+Usage: HISTORY [/C]
 * **IF** (internal command)
 +
 Performs conditional processing in batch programs.
@@ -611,6 +622,16 @@ Usage: TRUENAME file
 Displays the contents of a text-file.
 +
 Usage: TYPE [drive:][path][filename]
+* **UTF16** (external command)
++
+Converts UTF-16 text to view in the current code page.
++
+Usage: UTF16 [/BE|/LE] < [drive:][path]filename or command-name | UTF16 [/BE|/LE]
+* **UTF8** (external command)
++
+Converts UTF-8 text to view in the current code page.
++
+Usage: UTF8 < [drive:][path]filename or command-name | UTF8
 * **VER** (internal command)
 +
 Views and sets the reported DOS version. Also displays the running DOSBox-X version.

@@ -75,7 +75,7 @@ You can mount ZIP or 7Z archives as DOSBox-X drives and run your DOS programs or
 DOSBox-X supports the BIOS IDE interface for hard disk and CD drives, which is especially useful for running guest systems inside DOSBox-X.
 * **Support for more CPU types (e.g. Pentium MMX and Pro/II) and emulating CPU speed**
 +
-DOSBox-X supports virtually all CPU types prior to Pentium II at this time, from 8086 to Pentium Pro/II, including support for Pentium MMX instructions. DOSBox-X also allow you to emulate the speed of a specific CPU (from 8088 XT 4.77MHz to Pentium 166MHz MMX) in terms of cycles. Select them from the "CPU" menu.
+DOSBox-X supports virtually all CPU types prior to Pentium III at this time, from 8086 to Pentium Pro/II, including support for Pentium MMX instructions. DOSBox-X also allow you to emulate the speed of a specific CPU (from 8088 XT 4.77MHz to Pentium 166MHz MMX) in terms of cycles. Select them from the "CPU" menu.
 * **Support for more video modes (e.g. MDA and MCGA)**
 +
 DOSBox-X supports more video modes in addition to the more common ones, such as MDA, MCGA, Amstrad, and a few others, in addition to the standard ones.
@@ -99,7 +99,7 @@ With DOSBox-X there are several ways to copy and paste between DOSBox-X and the 
 You can let DOSBox-X automatically convert mouse wheel movements to arrow keys, so that you can use the mouse wheel for scrolling in DOS applications.
 * **Support for starting programs to run on the host systems**
 +
-It is possible to launch a host application from inside DOSBox-X to run on the host system, either using START command or in the case of Windows also run it directly from the shell. Set ``startcmd=true`` or ``-hostrun`` option to enable this feature.
+It is possible to launch a host application from inside DOSBox-X to run on the host system, either using START command or in the case of Windows also run it directly from the shell. This feature is disabled by default for security reasons, but you can set ``startcmd=true`` config option or ``-hostrun`` command-line option to enable the feature.
 * **Support for changing or synchronizing the date and time**
 +
 You can change the date and time either from DOSBox-X's DOS shell (DATE and TIME commands), or using the DOS APIs or with DOSBox-X's BIOS Setup Utility. DOSBox-X also provides the option to automatically synchronize the date and time with the host system.
@@ -127,9 +127,9 @@ DOSBox-X can emulate the 3dfx Voodoo in either the low-level emulation mode (emu
 * **Support for NE2000 Ethernet for network features**
 +
 DOSBox-X supports the emulation of the Novell NE2000 network adapter, which allows you to connect to the Internet from inside DOSBox-X, such as a guest Windows 9x system running with DOSBox-X. Both PCAP and Slirp backends are supported. Look at the link:Guide%3ASetting-up-networking-in-DOSBox‐X{suffixappend}[Setting up networking in DOSBox-X] guide page for more information.
-* **Support for phone book mapping for the emulated modem**
+* **Support for UDP connection and phone book mapping for the emulated modem**
 +
-With this feature you can map fake phone numbers to Internet addresses which is useful for programs where limitations on phone number input field are too strict.
+With these features you can connect the emulated modem via reliable UDP (in addition to TCP), and you may also map fake phone numbers to Internet addresses which is useful for programs where limitations on phone number input field are too strict.
 * **Support for direct browsing for UNC network paths (Windows only)**
 +
 With this feature you can access or browse UNC network paths in the form \\COMPUTER\FOLDER directly on Windows systems, including listing, opening, writing, copying, and executing files on UNC network paths directly without having to mount them as DOS drives first.
@@ -157,6 +157,9 @@ DOSBox-X supports TrueType fonts (TTF) which provides high-resolution display fo
 * **Support for additional code pages, including both SBCS and DBCS code pages**
 +
 DOSBox-X supports many additional code pages for conversions between the host and guest systems, both for the TrueType font (TTF) output and other outputs, and this includes standard SBCS code pages and also DBCS code pages used by Chinese, Japanese, and Korean languages. With a suitable TTF font you will be able to run text-mode DOS applications in these languages using the TTF output as well as printing texts in these languages.
+* **Support for viewing Unicode (UTF-8 or UTF-16) text in the current code page**
++
+DOSBox-X allows you to view text encoded in UTF-8 or UTF-16 just like normal ASCII text in the current code page. For example, the command ``UTF8 < txtutf8.txt`` will view the UTF-8 encoded file named "txtutf8.txt", whereas the command ``UTF16 < txtutf16.txt`` will view the UTF-16 encoded file named "txtutf16.txt".
 * **Support for features such as V-Sync, overscan border and stereo swapping**
 * **Improved debugging features including built-in debugger and logging options**
 * **Including most patches from DOSBox ECE and many community contributions**

@@ -9,6 +9,8 @@ image::images/Windows:Windows_3.11_SPLASH.png[Windows 3.11 splash screen]
 toc::[]
 
 # Overview
+This guide will give a general description of installing Windows 3.x in DOSBox-X, in addition to addressing some common issues.
+
 ## Editions this applies to
 
 * *Windows 3.0*
@@ -83,10 +85,10 @@ This guide does not look to replicate those guides. Instead, this guide will hav
 * link:https://betawiki.net/wiki/Windows_3.1xp[BetaWiki: Windows 3.1x]
 
 ### General Notes
-* Some parts of the installation can take a considerable amount of time. You can speed this up somewhat by using the DOSBox-X Turbo mode.
-From the drop-down menu select "CPU" followed by "Turbo (Fast Forward)".
-But if you decide to use this, be sure to disable Turbo mode whenever you need to enter data or make choices, as it can cause spurious keypresses to be registered causing undesirable effects.
-It can also cause problems with double click with the mouse not working and audio will also not sound properly, so be sure to disable it when using Windows in DOSBox-X.
+* Some parts of the installation can take a considerable amount of time.
+You may be able to speed this up considerably (depending on host CPU speed) by using the DOSBox-X Turbo mode, which can be enabled from the drop-down menu bar by selecting "CPU" followed by "Turbo (Fast Forward)".
+This turbo mode is not like the old Turbo button on retro PCs, but functions more like a fast-forward, and therefore should not be used when interacting with the guest OS.
+Starting with DOSBox-X 0.83.21 the turbo mode is automatically disabled the moment a key is pressed, to prevent spurious keypresses to be registered causing undesirable effects.
 
 ### Windows 3.0 specific notes
 * Unless noted otherwise, Windows 3.1 drivers are not backward compatible with Windows 3.0.
@@ -126,12 +128,11 @@ int13fakev86io=false
 
 [render]
 scaler=none
-aspect=false
 
 [autoexec]
 ....
 
-Copy the above config and save it as *win3x.conf*
+Copy the above config and save it as ``win3x.conf``
 
 *Notes*
 
@@ -185,7 +186,6 @@ The installer is normally found on the CD as ``\MWIN\SETUP.EXE``.
 
 * This method is the easiest, but has a few limitations:
 ** Will not allow for 32-bit disk IO with Windows 3.1x.
-** Will not allow for networking with Windows for Workgroups.
 
 Create a directory on your system that you're going to use (mount) as your Windows 3.x C: drive.
 Valid examples:
@@ -202,7 +202,7 @@ NOTE: For users running Windows natively on their computer, do *NOT* mount the r
 Now create a directory underneath that, which will hold your Windows 3.x installation files.
 e.g., ``C:\users\myuser\win31\INSTALL`` or ``/home/myuser/winroot/INSTALL`` and copy the installation files into it.
 
-You are now ready to start DOSBox-X from the command-line, using the newly created win3x.conf.
+You are now ready to start DOSBox-X from the command-line, using the newly created ``win3x.conf``.
 This assumes that the ``dosbox-x`` program is in your path and ``win3x.conf`` is in your current directory.
 ....
 dosbox-x -conf win3x.conf
@@ -223,39 +223,52 @@ The Windows installation will now take place.
 Once the installation process has finished, you will be asked if you want to start windows or exit to DOS.
 Exit to DOS and type EXIT to close DOSBox-X.
 
-Now edit your win3x.conf config file and add the following lines into the [autoexec] section at the end of the file.
+Now edit your ``win3x.conf`` config file and add the following lines into the [autoexec] section at the end of the file.
 
 ....
+@ECHO OFF
 MOUNT C /home/myuser/winroot
 C:
-IF EXIST C:\WINDOWS\WIN.COM GOTO WINDOWS
+IF EXIST C:\WINDOWS\IFSHLP.SYS GOTO WFW
 IF EXIST C:\MWINDOWS\WIN.COM GOTO MWINDOWS
+IF EXIST C:\WINDOWS\WIN.COM GOTO WINDOWS
 GOTO END
 
-:WINDOWS
+:WFW
+echo Starting Windows for Workgroups 3.1x
 SET PATH=%PATH%;C:\WINDOWS;
 SET TEMP=C:\WINDOWS\TEMP
+DEVICE C:\WINDOWS\IFSHLP.SYS
+C:\WINDOWS\NET.EXE START
 C:\WINDOWS\WIN.COM
+GOTO END
 
 :MWINDOWS
+echo Starting Windows 3.0a with Multimedia Extensions
 SET PATH=%PATH%;C:\MWINDOWS;
 SET TEMP=C:\MWINDOWS\TEMP
 C:\MWINDOWS\WIN.COM
+GOTO END
+
+:WINDOWS
+echo Starting Windows for 3.x
+SET PATH=%PATH%;C:\WINDOWS;
+SET TEMP=C:\WINDOWS\TEMP
+C:\WINDOWS\WIN.COM
+GOTO END
 
 :END
 EXIT
 ....
 
-Adjust the path for mounting the C: drive as needed.
+Adjust the ``MOUNT`` path above for mounting the C: drive as needed.
 
 # Install Windows 3.x into a DOS HDD image
-This method does not have any of the disadvantages listed above.
-But it brings with it a bit of added inconvenience.
+This method brings with it a bit of added inconvenience.
 For instance, you will need to do your own DOS memory management and load DOS drivers for CD-ROM access.
 You can also not mount a host directory in DOSBox-X when you boot a disk image.
 Even host directories that you mounted prior to booting the disk image will become unavailable.
 Everything needs to be done using IMAGE files.
-And you cannot change image files once you boot a guest OS, not even from the menu bar.
 
 The first step is to create a DOS HDD image, for which you can follow the link:Guide%3ADOS-Installation-in-DOSBox‐X[PC DOS and MS-DOS Installation Guide].
 You need at least DOS 3.1 for Windows 3.0 and 3.1x, and DOS 3.3 for Windows for Workgroups.
@@ -281,7 +294,7 @@ IMGMOUNT C hdd.img -reservecyl 1
 BOOT C:
 ....
 
-Now start DOSBox-X with your win3x.conf config file from the command-line:
+Now start DOSBox-X with your ``win3x.conf`` config file from the command-line:
 
 ....
 dosbox-x -conf win3x.conf
@@ -312,6 +325,7 @@ Once Windows 3.x is installed, here is some additional software you may want to 
 * Video for Windows 1.1e
 * WinG API 1.0
 * QuickTime 2.1.2
+* Adobe Acrobat Reader
 * Adobe Type Manager 3.02
 
 # Enabling 32-bit File and Disk access
@@ -372,7 +386,7 @@ In some cases, this is not possible, such as:
 - Your Ethernet switch not allowing multiple MAC addresses on a single port or doing any kind of MAC address whitelisting.
 - Sandboxed versions of DOSBox-X (e.g., Flatpak) not allowing the required low-level access.
 
-To enable NE2000 emulation with the pcap back-end, add the following to your win3x.conf config file:
+To enable NE2000 emulation with the pcap back-end, add the following to your ``win3x.conf`` config file:
 
 ....
 [ne2000]
@@ -393,11 +407,11 @@ As such it will work with WIFI, WAN and BT adapters, and it will work in most sa
 
 But obviously, it has its own limitations.
 
-- For now, it only works on Linux.
+- It is not supported in all platforms, such as Windows Visual Studio builds.
 - It only supports the TCP/IP protocol (other protocols must be TCP/IP encapsulated).
 - It is effectively behind a NAT (Network Address Translation) gateway, meaning that you can communicate outbound, but no systems on the LAN can instantiate a new connection to it. Which means that two DOSBox-X instances on the same LAN using ``backend=slirp`` cannot communicate with each other.
 
-To enable NE2000 emulation with the slirp back-end, add the following to your win3x.conf config file:
+To enable NE2000 emulation with the slirp back-end, add the following to your ``win3x.conf`` config file:
 
 ....
 [ne2000]
@@ -408,14 +422,11 @@ backend=slirp
 
 ## Setting up NE2000 networking
 This only applies to *Windows for Workgroups* (WfW).
-To enable networking functionality, you will need to create a disk image with real DOS and install WfW into that.
-You cannot run the networking components of WfW in the emulated DOS environment that DOSBox-X provides by default.
 
-For instance, if you install WfW inside DOSBox-X with networking support, you're supposed to run ``C:\WINDOWS\NET START`` before starting Windows.
-This command will however return an ``Error 73: (null)`` if run from the DOSbox-X emulated DOS.
+If you install WfW inside DOSBox-X with networking support, you need to run ``DEVICE C:\WINDOWS\IFSHLP.SYS`` and ``C:\WINDOWS\NET START`` before starting Windows if run from DOSBox-X's internal DOS.
 
 Windows for Workgroups by default only supports SMB networking over NBF (NetBIOS Frames aka NetBEUI) or IPX.
-There is no support by default for TCP/IP.
+There is no support by default for the TCP/IP protocol.
 
 There were 3rd party WinSock solutions, but those were meant for dial-up internet access and are not specific to WfW.
 
@@ -465,7 +476,55 @@ image::images/Windows:Windows_3.0_MIDI_2.png[Windows 3.0a MIDI]
 You should now be able to open the Windows 3.0a Media Player and playback ``C:\MWINDOWS\MMDATA\CANYON.MID``.
 
 # Enabling printing
-To enable printing support in Windows 3.x, see: link:Guide%3ASetting-up-printing-in-DOSBox%E2%80%90X[Guide: Setting up printing in DOSBox-X]
+Also see the link:Guide%3ASetting-up-printing-in-DOSBox%E2%80%90X[Guide: Setting up printing in DOSBox-X]
+
+## Print to PostScript
+For the best print quality, you will want to print to a PostScript printer in Windows 3.x.
+
+First, setup your DOSBox-X config to print to a file as such:
+
+....
+[dosbox]
+captures=capture
+
+[parallel]
+parallel1=file timeout=2000
+....
+
+Next in Windows 3.x, select any PostScript printer such as the "QMS ColorScript 100", during printer setup connected to LPT1.
+
+When you print, a .prt file in your ``captures=`` directory will be created, which despite the extension, is actually a PostScript file.
+
+On Linux and macOS, PostScript files are natively supported and can be viewed and printed.
+On a Windows host, it is necessary to install a separate PostScript viewer such as link:http://pages.cs.wisc.edu/~ghost/[GSview].
+
+## Epson emulation
+As an alternative, you can use the integrated Epson printer emulation, but the output quality will be significantly less compared to PostScript.
+
+First, setup your DOSBox-X config to emulate an Epson printer as such:
+....
+[parallel]
+parallel1=printer
+
+[printer]
+printer=true
+printoutput=ps
+multipage=true
+timeout=2000
+....
+
+Next in Windows 3.x, select any Epson dot-matrix printer during printer setup, such as:
+
+- For Windows 3.0, the "Epson LQ-850/950/1050" option, connected to LPT1
+- For Windows 3.1, the "Epson LQ-850" (or "LQ-1050" for wide formats), connected to LPT1
+- For Windows 3.11, the "Epson LQ-860" (or "LQ-1050" for wide formats), connected to LPT1
+
+WARNING: Make sure that you do not configure the Epson printer driver for a graphics resolution other than 180x180, or the output will be corrupted.
+
+image::images/Windows:Windows_3.0_EPSON_SETUP.png[Windows 3.0 Epson setup]
+
+When you print, a PostScript file with the .ps extension will be created in your current working directory.
+The emulated Epson printer settings can be adjusted as documented on the above linked wiki printing guide.
 
 # Installing Win32s
 Win32s is a 32-bit application runtime environment for Windows 3.1x.
@@ -486,14 +545,14 @@ First install the game normally in Windows.
 You can then start the game from DOS simply by appending the Windows game executable behind the WIN.COM executable as such:
 
 ....
-WIN \path\to\game\game.exe
+WIN \path\to\game.exe
 ....
 
 This will prevent the Windows splash screen being shown and will directly start the game without first going to the Program Manager (progman).
 
 The second step you may want to take, is that when you exit the game, you also exit Windows 3.x. For this you need a 3rd party utility called "link:http://www.shdon.com/software/tools[RUNEXIT.EXE]", and place it in your PATH. Now simply start the game as follows:
 ....
-WIN RUNEXIT \path\to\game\game.exe
+WIN RUNEXIT \path\to\game.exe
 ....
 Like before it will start the game without the Windows splash screen, but now when you Exit the game it will also Exit Windows. This way you can launch Windows games from a DOS batch file, or from a DOSBox launcher such as link:http://members.quicknet.nl/blankendaalr/dbgl/[DBGL].
 

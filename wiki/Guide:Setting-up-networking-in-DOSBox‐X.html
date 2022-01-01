@@ -757,7 +757,7 @@ In some cases this is not possible, such as:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Network Adapter or Driver not supporting Promiscuous mode (most WIFI, WAN and BT adapters fall into this category)</p>
+<p>Network Adapter or Driver not supporting Promiscuous mode (most wireless adapters fall into this category)</p>
 </li>
 <li>
 <p>Your Ethernet switch not allowing multiple MAC addresses on a single port, or doing any kind of MAC address whitelisting.</p>
@@ -850,7 +850,7 @@ For other platforms the default is 3000ms</p>
 <h3 id="_backendslirp">backend=slirp</h3>
 <div class="paragraph">
 <p>Unlike the PCAP back-end, the SLIRP back-end does not require Promiscuous mode.
-As such it will work with WIFI, WAN and BT adapters, and it will work in most sandboxed environments.</p>
+As such it will work with wireless adapters, and it will work in most sandboxed environments.</p>
 </div>
 <div class="paragraph">
 <p>But obviously, it has its own limitations.</p>
@@ -864,7 +864,9 @@ As such it will work with WIFI, WAN and BT adapters, and it will work in most sa
 <p>It only supports the TCP/IP protocol (other protocols must be TCP/IP encapsulated)</p>
 </li>
 <li>
-<p>It is effectively behind a NAT gateway, meaning that you can communicate outbound, but no systems on the LAN can instantiate a new connection to it. Which means that two DOSBox-X instances on the same LAN using <code>backend=slirp</code> cannot communicate with each other.</p>
+<p>The DOSBox-X instance will effectively be behind a NAT gateway, meaning that you can communicate outbound (e.g. download), but no systems on the LAN can instantiate a new connection to the DOSBox-X instance.
+Which means that for instance, two DOSBox-X instances on the same LAN using <code>backend=slirp</code> cannot communicate with each other.
+This can be overcome using the <code>tcp_port_forwards=</code> and <code>udp_port_forwards=</code> options.</p>
 </li>
 </ul>
 </div>
@@ -1050,6 +1052,95 @@ If you want to use a larger MRU than default, your hosts network adapter and you
 </div>
 <div class="paragraph">
 <p>The start address used for DHCP by the host services on the IPv4 network.</p>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_tcp_port_forwards">tcp_port_forwards</h5>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: &lt;blank&gt;</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Forwards one or more TCP ports from the host into the DOS guest.</p>
+</div>
+<div class="paragraph">
+<p>The format is:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>port1  port2  port3 &#8230;&#8203; (e.g., <code>21 80 443</code>)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>This which will forward FTP, HTTP, and HTTPS into the DOS guest.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>If the ports are privileged on the host, a host:guest mapping can be used &#8230;&#8203; (e.g., <code>8021:21 8080:80</code>).</p>
+<div class="ulist">
+<ul>
+<li>
+<p>This will forward ports 8021 and 8080 on the host to FTP and HTTP in the guest.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>A range of adjacent ports can be abbreviated with a dash: start-end &#8230;&#8203; (e.g., <code>27910-27960</code>)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>This will forward ports 27910 to 27960 into the DOS guest.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Mappings and ranges can be combined, too: hstart-hend:gstart-gend &#8230;&#8203;, (e.g, <code>8040-8080:20-60</code>)</p>
+<div class="ulist">
+<ul>
+<li>
+<p>This forwards ports 8040 to 8080 on the host into ports 20 to 60 in the guest</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Notes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If mapped ranges differ, the shorter range is extended to fit.</p>
+</li>
+<li>
+<p>If conflicting host ports are given, only the first one is setup.</p>
+</li>
+<li>
+<p>If conflicting guest ports are given, the latter rule takes precedence.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_udp_port_forwards">udp_port_forwards</h5>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: &lt;blank&gt;</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The format is the same as for TCP port forwards.</p>
 </div>
 </div>
 </div>
@@ -1662,7 +1753,7 @@ But note that this is NetBIOS <strong>over</strong> IPX, which cannot communicat
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-12-01 04:14:20 -0500
+Last updated 2022-01-01 01:51:44 -0500
 </div>
 </div>
 </body>

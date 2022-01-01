@@ -73,14 +73,17 @@ scaler=none
 [autoexec]
 ....
 
-Copy the above config and save it as *win98.conf*
+Copy the above config and save it as ``win98.conf``
 
 NOTE: You can increase the allocated RAM up to the Windows 98 maximum of 512MB by setting ``memsize=512``.
 Larger values may be possible with tweaks but are not covered here.
 
 # General installation Notes
 
-* Some parts of the installation can take a considerable amount of time. You can speed this up somewhat by using the DOSBox-X Turbo mode. From the drop-down menu select "CPU" followed by "Turbo (Fast Forward)". But if you decide to use this, be sure to disable Turbo mode whenever you need to enter data or make choices, as it can cause spurious keypresses to be registered causing undesirable effects. It can also cause problems with double click with the mouse not working and audio will also not sound properly, so be sure to disable it when using Windows in DOSBox-X.
+* Some parts of the installation can take a considerable amount of time.
+You may be able to speed this up considerably (depending on host CPU speed) by using the DOSBox-X Turbo mode, which can be enabled from the drop-down menu bar by selecting "CPU" followed by "Turbo (Fast Forward)".
+This turbo mode is not like the old Turbo button on retro PCs, but functions more like a fast-forward, and therefore should not be used when interacting with the guest OS.
+Starting with DOSBox-X 0.83.21 the turbo mode is automatically disabled the moment a key is pressed, to prevent spurious keypresses to be registered causing undesirable effects.
 * When creating your HDD image with ``IMGMAKE``, instead of specifying a custom size, you can choose a pre-defined template. The pre-defined HDD templates can be seen by running ``IMGMAKE`` without arguments.
 
 # Dynamic vs Normal core
@@ -106,8 +109,8 @@ Some quick rules about IMGMAKE (for more detail, see: link:Guide%3AManaging-imag
 
 Alternatively, you can use the ``-fat`` option to instruct ``IMGMAKE`` to create a certain FAT type (assuming that is possible for the harddisk size).
 
-First you need to start DOSBox-X from the command-line, using your newly created win98.conf.
-This assumes that dosbox-x is in your path and win98.conf is in your current directory.
+First you need to start DOSBox-X from the command-line, using your newly created ``win98.conf``.
+This assumes that dosbox-x is in your path and ``win98.conf`` is in your current directory.
 ....
 dosbox-x -conf win98.conf
 ....
@@ -143,7 +146,7 @@ This installation method allows both FAT16 (up to 2GB) and FAT32 volumes, which 
 Getting this image file is outside the scope of this guide.
 
 ## Starting the installation
-This assumes you have already started DOSBox-X with the win98.conf config file and created your harddisk image.
+This assumes you have already started DOSBox-X with the ``win98.conf`` config file and created your harddisk image.
 
 First mount the harddisk image you created earlier:
 ....
@@ -163,7 +166,7 @@ You will first get a Startup menu, where you need to select "Boot from CD-ROM".
 At this point it should format the harddisk and the installation process should start.
 
 When the Windows installer reboots, and your back at the DOSBox-X ``Z:\>`` prompt.
-Close DOSBox-X and edit your win98.conf config file, and add the following lines in the [autoexec] section at the end of the file:
+Close DOSBox-X and edit your ``win98.conf`` config file, and add the following lines in the [autoexec] section at the end of the file:
 
 ....
 IMGMOUNT C hdd.img
@@ -200,7 +203,7 @@ This method will start the install from DOSBox-X and does not require a bootable
 Getting this image file is outside the scope of this guide.
 
 ## Starting the installation
-This assumes you have already started DOSBox-X with the win98.conf config file and created your harddisk image.
+This assumes you have already started DOSBox-X with the ``win98.conf`` config file and created your harddisk image.
 
 First mount the harddisk image you created earlier:
 ....
@@ -280,6 +283,7 @@ Once Windows 98 is installed, here is some additional software you may want to i
 * Install Windows Installer 2.0
 * Install WinG 1.0 (needed by just a few games, and those games typically include it)
 * Install GDI+ redistributable
+* Install Adobe Acrobat Reader 6.0
 * Install/Update to Adobe Flash Player 9.0.47.0
 * Install Apple Quicktime 6.5.2
 
@@ -300,7 +304,7 @@ IMGMOUNT D cd1.iso cd2.iso cd3.iso
 You can then swap between disk images with the swap option from the menu.
 
 # Enabling networking
-To enable networking, you first need to enable NE2000 adapter emulation in your win98.conf config file and select an appropriate back-end for the NE2000 emulation.
+To enable networking, you first need to enable NE2000 adapter emulation in your ``win98.conf`` config file and select an appropriate back-end for the NE2000 emulation.
 
 ## Enabling NE2000 in your DOSBox-X config file
 
@@ -319,7 +323,7 @@ In some cases, this is not possible, such as:
 - Your Ethernet switch not allowing multiple MAC addresses on a single port or doing any kind of MAC address whitelisting.
 - Sandboxed versions of DOSBox-X (e.g., Flatpak) not allowing the required low-level access.
 
-To enable NE2000 emulation with the pcap back-end, add the following to your win98.conf config file:
+To enable NE2000 emulation with the pcap back-end, add the following to your ``win98.conf`` config file:
 
 ....
 [ne2000]
@@ -331,7 +335,7 @@ backend=pcap
 realnic=list
 ....
 
-The ''list'' value for ''realnic='' will need to be replaced by a value representing your actual network adapter.
+The ``list`` value for ``realnic=`` will need to be replaced by a value representing your actual network adapter.
 See link:Guide%3ASetting-up-networking-in-DOSBox%E2%80%90X[Guide: Setting up networking in DOSBox-X] for more information.
 
 ### backend=slirp
@@ -342,9 +346,9 @@ But obviously, it has its own limitations.
 
 - It is not supported in all platforms, such as Windows Visual Studio builds.
 - It only supports the TCP/IP protocol (other protocols must be TCP/IP encapsulated).
-- It is effectively behind a NAT gateway, meaning that you can communicate outbound, but no systems on the LAN can instantiate a new connection to it. Which means that two DOSBox-X instances on the same LAN using ``backend=slirp`` cannot communicate with each other.
+- It is effectively behind a NAT (Network Address Translation) gateway, meaning that you can communicate outbound, but no systems on the LAN can instantiate a new connection to it. Which means that two DOSBox-X instances on the same LAN using ``backend=slirp`` cannot communicate with each other.
 
-To enable NE2000 emulation with the slirp back-end, add the following to your win98.conf config file:
+To enable NE2000 emulation with the slirp back-end, add the following to your ``win98.conf`` config file:
 
 ....
 [ne2000]
@@ -434,7 +438,61 @@ image::images/Windows:Windows_98_MIDI.png[Windows 98 MIDI setup]
 For more information about setting up MIDI support, see link:Guide%3ASetting-up-MIDI-in-DOSBox%E2%80%90X[Guide: Setting up MIDI in DOSBox-X]
 
 # Enabling printing
-To enable printing support in Windows 98, see: link:Guide%3ASetting-up-printing-in-DOSBox%E2%80%90X[Guide: Setting up printing in DOSBox-X]
+Also see the link:Guide%3ASetting-up-printing-in-DOSBox%E2%80%90X[Guide: Setting up printing in DOSBox-X]
+
+## Print to PostScript
+For the best print quality, you will want to print to a PostScript printer in Windows 98.
+
+First, setup your DOSBox-X config to print to a file as such:
+
+....
+[dosbox]
+captures=capture
+
+[parallel]
+parallel1=file timeout=2000
+....
+
+Next in Windows 98, select any PostScript printer such as the "QMS ColorScript 100 Model 30", during printer setup connected to LPT1.
+
+Once the printer is installed, open the printers properties, and on the "Details" tab click on the "Spool Settings..." button.
+In the "Spool Settings", you must select "Print directly to the printer" and click OK.
+
+image::images/Windows:Windows_95_SPOOL.png[Windows 95 - QMS ColorScript Spool Settings]
+
+WARNING: Failing to change the spool setting, when printing to a file, will result in corrupted PostScript files!
+
+NOTE: If two files end up being generated instead of just one for a printjob, you will want to revert the above spool setting.
+And perhaps try changing the spool setting to "Start printing after last page is spooled".
+
+When you print, a .prt file in your ``captures=`` directory will be created, which despite the extension, is actually a PostScript file.
+
+On Linux and macOS, PostScript files are natively supported and can be viewed and printed.
+On a Windows host, it is necessary to install a separate PostScript viewer such as link:http://pages.cs.wisc.edu/~ghost/[GSview].
+
+## Epson emulation
+As an alternative, you can use the integrated Epson printer emulation, but the output quality will be significantly less compared to PostScript.
+
+First, setup your DOSBox-X config to emulate an Epson printer as such:
+....
+[parallel]
+parallel1=printer
+
+[printer]
+printer=true
+printoutput=ps
+multipage=true
+timeout=2000
+....
+
+Next in Windows 98, select any Epson dot-matrix printer, such as the "Epson LQ-860+" option during printer setup connected to LPT1
+
+WARNING: Make sure that you do not configure the Epson printer driver for a graphics resolution other than 180x180, or the output will be corrupted.
+
+image::images/Windows:Windows_95_EPSON.png[Windows 95 - Epson Graphics Properties]
+
+When you print, a PostScript file with the .ps extension will be created in your current working directory.
+The emulated Epson printer settings can be adjusted as documented on the above linked wiki printing guide.
 
 # 3dfx Voodoo
 The emulated 3dfx Voodoo PCI device is enabled by default in DOSBox-X, and both Windows 98 and 98SE include a driver and will automatically detect it.

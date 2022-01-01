@@ -921,7 +921,7 @@ In which case you need to disable the serialmouse option in your DOSBox-X config
 <p>If you indicated wanting to setup a printer, SETUP now asks you which model.</p>
 </div>
 <div class="paragraph">
-<p>For this guide we use option 2, the "<strong>Epson MX-80 Graftrax+</strong>", and press Enter.</p>
+<p>For this guide we use option 2, the "<strong>Epson LQ-1500</strong>", and press Enter.</p>
 </div>
 <div class="paragraph">
 <p>Later releases may have more options, such as a "<strong>Generic / Text Only</strong>" printer which can also be used.</p>
@@ -1040,10 +1040,11 @@ In the version shown, it is option 1, but in some other releases it is option 2.
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>MOUNT C /home/myuser/winroot
+<pre>@ECHO OFF
+MOUNT C /home/myuser/winroot
 C:
 SET PATH=%PATH%;C:\WINDOWS;
-C:\WINDOWS\WIN
+C:\WINDOWS\WIN.COM
 EXIT</pre>
 </div>
 </div>
@@ -1077,7 +1078,7 @@ If you don&#8217;t want DOSBox-X to close when exiting Windows 1.0x, remove the 
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-12-01 04:14:20 -0500
+Last updated 2022-01-01 01:51:44 -0500
 </div>
 </div>
 </body>

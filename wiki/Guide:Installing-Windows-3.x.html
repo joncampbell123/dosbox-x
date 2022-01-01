@@ -501,7 +501,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_enabling_external_midi_in_windows_3_0a_with_mm_extensions">Enabling external MIDI in Windows 3.0a with MM Extensions</a></li>
 </ul>
 </li>
-<li><a href="#_enabling_printing">Enabling printing</a></li>
+<li><a href="#_enabling_printing">Enabling printing</a>
+<ul class="sectlevel1">
+<li><a href="#_print_to_postscript">Print to PostScript</a></li>
+<li><a href="#_epson_emulation">Epson emulation</a></li>
+</ul>
+</li>
 <li><a href="#_installing_win32s">Installing Win32s</a></li>
 <li><a href="#_starting_a_windows_game_from_dos">Starting a Windows game from DOS</a></li>
 <li><a href="#_outstanding_issues">Outstanding issues</a></li>
@@ -510,6 +515,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <h1 id="_overview" class="sect0">Overview</h1>
+<div class="openblock partintro">
+<div class="content">
+This guide will give a general description of installing Windows 3.x in DOSBox-X, in addition to addressing some common issues.
+</div>
+</div>
 <div class="sect1">
 <h2 id="_editions_this_applies_to">Editions this applies to</h2>
 <div class="sectionbody">
@@ -790,10 +800,10 @@ Some examples:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Some parts of the installation can take a considerable amount of time. You can speed this up somewhat by using the DOSBox-X Turbo mode.
-From the drop-down menu select "CPU" followed by "Turbo (Fast Forward)".
-But if you decide to use this, be sure to disable Turbo mode whenever you need to enter data or make choices, as it can cause spurious keypresses to be registered causing undesirable effects.
-It can also cause problems with double click with the mouse not working and audio will also not sound properly, so be sure to disable it when using Windows in DOSBox-X.</p>
+<p>Some parts of the installation can take a considerable amount of time.
+You may be able to speed this up considerably (depending on host CPU speed) by using the DOSBox-X Turbo mode, which can be enabled from the drop-down menu bar by selecting "CPU" followed by "Turbo (Fast Forward)".
+This turbo mode is not like the old Turbo button on retro PCs, but functions more like a fast-forward, and therefore should not be used when interacting with the guest OS.
+Starting with DOSBox-X 0.83.21 the turbo mode is automatically disabled the moment a key is pressed, to prevent spurious keypresses to be registered causing undesirable effects.</p>
 </li>
 </ul>
 </div>
@@ -861,13 +871,12 @@ int13fakev86io=false
 
 [render]
 scaler=none
-aspect=false
 
 [autoexec]</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Copy the above config and save it as <strong>win3x.conf</strong></p>
+<p>Copy the above config and save it as <code>win3x.conf</code></p>
 </div>
 <div class="paragraph">
 <p><strong>Notes</strong></p>
@@ -963,9 +972,6 @@ SETUP.EXE</pre>
 <li>
 <p>Will not allow for 32-bit disk IO with Windows 3.1x.</p>
 </li>
-<li>
-<p>Will not allow for networking with Windows for Workgroups.</p>
-</li>
 </ul>
 </div>
 </li>
@@ -1022,7 +1028,7 @@ For users running Windows natively on their computer, do <strong>NOT</strong> mo
 e.g., <code>C:\users\myuser\win31\INSTALL</code> or <code>/home/myuser/winroot/INSTALL</code> and copy the installation files into it.</p>
 </div>
 <div class="paragraph">
-<p>You are now ready to start DOSBox-X from the command-line, using the newly created win3x.conf.
+<p>You are now ready to start DOSBox-X from the command-line, using the newly created <code>win3x.conf</code>.
 This assumes that the <code>dosbox-x</code> program is in your path and <code>win3x.conf</code> is in your current directory.</p>
 </div>
 <div class="literalblock">
@@ -1064,32 +1070,47 @@ If your path has spaces in it, you need to enclose it in quotes. e.g., <code>MOU
 Exit to DOS and type EXIT to close DOSBox-X.</p>
 </div>
 <div class="paragraph">
-<p>Now edit your win3x.conf config file and add the following lines into the [autoexec] section at the end of the file.</p>
+<p>Now edit your <code>win3x.conf</code> config file and add the following lines into the [autoexec] section at the end of the file.</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>MOUNT C /home/myuser/winroot
+<pre>@ECHO OFF
+MOUNT C /home/myuser/winroot
 C:
-IF EXIST C:\WINDOWS\WIN.COM GOTO WINDOWS
+IF EXIST C:\WINDOWS\IFSHLP.SYS GOTO WFW
 IF EXIST C:\MWINDOWS\WIN.COM GOTO MWINDOWS
+IF EXIST C:\WINDOWS\WIN.COM GOTO WINDOWS
 GOTO END
 
-:WINDOWS
+:WFW
+echo Starting Windows for Workgroups 3.1x
 SET PATH=%PATH%;C:\WINDOWS;
 SET TEMP=C:\WINDOWS\TEMP
+DEVICE C:\WINDOWS\IFSHLP.SYS
+C:\WINDOWS\NET.EXE START
 C:\WINDOWS\WIN.COM
+GOTO END
 
 :MWINDOWS
+echo Starting Windows 3.0a with Multimedia Extensions
 SET PATH=%PATH%;C:\MWINDOWS;
 SET TEMP=C:\MWINDOWS\TEMP
 C:\MWINDOWS\WIN.COM
+GOTO END
+
+:WINDOWS
+echo Starting Windows for 3.x
+SET PATH=%PATH%;C:\WINDOWS;
+SET TEMP=C:\WINDOWS\TEMP
+C:\WINDOWS\WIN.COM
+GOTO END
 
 :END
 EXIT</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Adjust the path for mounting the C: drive as needed.</p>
+<p>Adjust the <code>MOUNT</code> path above for mounting the C: drive as needed.</p>
 </div>
 </div>
 </div>
@@ -1097,13 +1118,11 @@ EXIT</pre>
 <div class="openblock partintro">
 <div class="content">
 <div class="paragraph">
-<p>This method does not have any of the disadvantages listed above.
-But it brings with it a bit of added inconvenience.
+<p>This method brings with it a bit of added inconvenience.
 For instance, you will need to do your own DOS memory management and load DOS drivers for CD-ROM access.
 You can also not mount a host directory in DOSBox-X when you boot a disk image.
 Even host directories that you mounted prior to booting the disk image will become unavailable.
-Everything needs to be done using IMAGE files.
-And you cannot change image files once you boot a guest OS, not even from the menu bar.</p>
+Everything needs to be done using IMAGE files.</p>
 </div>
 <div class="paragraph">
 <p>The first step is to create a DOS HDD image, for which you can follow the <a href="Guide%3ADOS-Installation-in-DOSBox‐X">PC DOS and MS-DOS Installation Guide</a>.
@@ -1139,7 +1158,7 @@ BOOT C:</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Now start DOSBox-X with your win3x.conf config file from the command-line:</p>
+<p>Now start DOSBox-X with your <code>win3x.conf</code> config file from the command-line:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1198,6 +1217,9 @@ SETUP</pre>
 </li>
 <li>
 <p>QuickTime 2.1.2</p>
+</li>
+<li>
+<p>Adobe Acrobat Reader</p>
 </li>
 <li>
 <p>Adobe Type Manager 3.02</p>
@@ -1340,7 +1362,7 @@ In some cases, this is not possible, such as:</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>To enable NE2000 emulation with the pcap back-end, add the following to your win3x.conf config file:</p>
+<p>To enable NE2000 emulation with the pcap back-end, add the following to your <code>win3x.conf</code> config file:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1370,7 +1392,7 @@ As such it will work with WIFI, WAN and BT adapters, and it will work in most sa
 <div class="ulist">
 <ul>
 <li>
-<p>For now, it only works on Linux.</p>
+<p>It is not supported in all platforms, such as Windows Visual Studio builds.</p>
 </li>
 <li>
 <p>It only supports the TCP/IP protocol (other protocols must be TCP/IP encapsulated).</p>
@@ -1381,7 +1403,7 @@ As such it will work with WIFI, WAN and BT adapters, and it will work in most sa
 </ul>
 </div>
 <div class="paragraph">
-<p>To enable NE2000 emulation with the slirp back-end, add the following to your win3x.conf config file:</p>
+<p>To enable NE2000 emulation with the slirp back-end, add the following to your <code>win3x.conf</code> config file:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1398,17 +1420,14 @@ backend=slirp</pre>
 <h2 id="_setting_up_ne2000_networking">Setting up NE2000 networking</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This only applies to <strong>Windows for Workgroups</strong> (WfW).
-To enable networking functionality, you will need to create a disk image with real DOS and install WfW into that.
-You cannot run the networking components of WfW in the emulated DOS environment that DOSBox-X provides by default.</p>
+<p>This only applies to <strong>Windows for Workgroups</strong> (WfW).</p>
 </div>
 <div class="paragraph">
-<p>For instance, if you install WfW inside DOSBox-X with networking support, you&#8217;re supposed to run <code>C:\WINDOWS\NET START</code> before starting Windows.
-This command will however return an <code>Error 73: (null)</code> if run from the DOSbox-X emulated DOS.</p>
+<p>If you install WfW inside DOSBox-X with networking support, you need to run <code>DEVICE C:\WINDOWS\IFSHLP.SYS</code> and <code>C:\WINDOWS\NET START</code> before starting Windows if run from DOSBox-X&#8217;s internal DOS.</p>
 </div>
 <div class="paragraph">
 <p>Windows for Workgroups by default only supports SMB networking over NBF (NetBIOS Frames aka NetBEUI) or IPX.
-There is no support by default for TCP/IP.</p>
+There is no support by default for the TCP/IP protocol.</p>
 </div>
 <div class="paragraph">
 <p>There were 3rd party WinSock solutions, but those were meant for dial-up internet access and are not specific to WfW.</p>
@@ -1495,7 +1514,97 @@ Once finished click the "OK" button and confirm the save.</p>
 <h1 id="_enabling_printing" class="sect0">Enabling printing</h1>
 <div class="openblock partintro">
 <div class="content">
-To enable printing support in Windows 3.x, see: <a href="Guide%3ASetting-up-printing-in-DOSBox%E2%80%90X">Guide: Setting up printing in DOSBox-X</a>
+Also see the <a href="Guide%3ASetting-up-printing-in-DOSBox%E2%80%90X">Guide: Setting up printing in DOSBox-X</a>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_print_to_postscript">Print to PostScript</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For the best print quality, you will want to print to a PostScript printer in Windows 3.x.</p>
+</div>
+<div class="paragraph">
+<p>First, setup your DOSBox-X config to print to a file as such:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[dosbox]
+captures=capture
+
+[parallel]
+parallel1=file timeout=2000</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next in Windows 3.x, select any PostScript printer such as the "QMS ColorScript 100", during printer setup connected to LPT1.</p>
+</div>
+<div class="paragraph">
+<p>When you print, a .prt file in your <code>captures=</code> directory will be created, which despite the extension, is actually a PostScript file.</p>
+</div>
+<div class="paragraph">
+<p>On Linux and macOS, PostScript files are natively supported and can be viewed and printed.
+On a Windows host, it is necessary to install a separate PostScript viewer such as <a href="http://pages.cs.wisc.edu/~ghost/">GSview</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_epson_emulation">Epson emulation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>As an alternative, you can use the integrated Epson printer emulation, but the output quality will be significantly less compared to PostScript.</p>
+</div>
+<div class="paragraph">
+<p>First, setup your DOSBox-X config to emulate an Epson printer as such:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[parallel]
+parallel1=printer
+
+[printer]
+printer=true
+printoutput=ps
+multipage=true
+timeout=2000</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next in Windows 3.x, select any Epson dot-matrix printer during printer setup, such as:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>For Windows 3.0, the "Epson LQ-850/950/1050" option, connected to LPT1</p>
+</li>
+<li>
+<p>For Windows 3.1, the "Epson LQ-850" (or "LQ-1050" for wide formats), connected to LPT1</p>
+</li>
+<li>
+<p>For Windows 3.11, the "Epson LQ-860" (or "LQ-1050" for wide formats), connected to LPT1</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+Make sure that you do not configure the Epson printer driver for a graphics resolution other than 180x180, or the output will be corrupted.
+</td>
+</tr>
+</table>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/Windows:Windows_3.0_EPSON_SETUP.png" alt="Windows 3.0 Epson setup">
+</div>
+</div>
+<div class="paragraph">
+<p>When you print, a PostScript file with the .ps extension will be created in your current working directory.
+The emulated Epson printer settings can be adjusted as documented on the above linked wiki printing guide.</p>
+</div>
 </div>
 </div>
 <h1 id="_installing_win32s" class="sect0">Installing Win32s</h1>
@@ -1539,7 +1648,7 @@ While DOSBox-X&#8217;s integrated SHARE feature was improved compared to that of
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>WIN \path\to\game\game.exe</pre>
+<pre>WIN \path\to\game.exe</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1550,7 +1659,7 @@ While DOSBox-X&#8217;s integrated SHARE feature was improved compared to that of
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>WIN RUNEXIT \path\to\game\game.exe</pre>
+<pre>WIN RUNEXIT \path\to\game.exe</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1576,7 +1685,7 @@ While DOSBox-X&#8217;s integrated SHARE feature was improved compared to that of
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2021-12-01 04:14:20 -0500
+Last updated 2022-01-01 01:51:44 -0500
 </div>
 </div>
 </body>
