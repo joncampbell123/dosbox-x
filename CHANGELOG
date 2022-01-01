@@ -1,3 +1,5 @@
+0.83.22
+  - 
 0.83.21
   - Improved clipboard copying & pasting for different
     code pages including box-drawing characters in DBCS
