@@ -107,9 +107,9 @@ static INLINE bool SSE_REQUIRE_ALIGNMENT(const PhysPt v) {
 	return ((unsigned int)v & 15u) == 0; /* 16 bytes * 8 bits = 128 bits */
 }
 
-/* FIXME: What exception does SSE throw on misalignment? */
+/* Throw GPF on SSE misalignment [https://c9x.me/x86/html/file_module_x86_id_180.html] */
 /* NTS: This macro intended for use in normal core */
-#define SSE_ALIGN_EXCEPTION() goto illegal_opcode
+#define SSE_ALIGN_EXCEPTION() EXCEPTION(EXCEPTION_GP)
 
 #define STEP(i) SSE_SQRTPS_i(d.f32[i],s.f32[i])
 static INLINE void SSE_SQRTPS_i(FPU_Reg_32 &d,const FPU_Reg_32 &s) {
