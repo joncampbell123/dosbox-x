@@ -301,7 +301,7 @@ static char const *second[] = {
   "cmovl %Gv,%Ev",    "cmovge %Gv,%Ev",  "cmovle %Gv,%Ev", "cmovg %Gv,%Ev",
 /* 5 */
   0, "%x0", 0, 0, "%x0", 0, 0, "%x0",
-  0, 0, 0, 0, 0, 0, 0, 0,
+  0, "%x0", 0, 0, 0, 0, 0, 0,
 /* 6 */
   "punpcklbw %GM,%EM","punpcklwd %GM,%EM","punpckldq %GM,%EM","packsswb %GM,%EM",
   "pcmpgtb %GM,%EM",  "pcmpgtw %GM,%EM", "pcmpgtd %GM,%EM","packuswb %GM,%EM",
@@ -391,7 +391,9 @@ static char const *mpgroups[][256][4] = { /* mandatory prefix groups SSE instruc
     /* 0x55 */ { 0,0,0,0 },
     /* 0x56 */ { 0,0,0,0 },
     /* 0x57 */ { "xorps %GX,%EX", "xorpd %GX,%EX", 0,0 },
-    /* 0x58 */ { 0,0,0,0 }, /* 0x59 */ { 0,0,0,0 }, /* 0x5A */ { 0,0,0,0 }, /* 0x5B */ { 0,0,0,0 },
+    /* 0x58 */ { 0,0,0,0 },
+    /* 0x59 */ { "mulps %GX,%EX", "mulpd %GX,%EX", "mulsd %GX,%EX", "mulss %GX,%EX" },
+    /* 0x5A */ { 0,0,0,0 }, /* 0x5B */ { 0,0,0,0 },
     /* 0x5C */ { 0,0,0,0 }, /* 0x5D */ { 0,0,0,0 }, /* 0x5E */ { 0,0,0,0 }, /* 0x5F */ { 0,0,0,0 },
 
     /* 0x60 */ { 0,0,0,0 }, /* 0x61 */ { 0,0,0,0 }, /* 0x62 */ { 0,0,0,0 }, /* 0x63 */ { 0,0,0,0 },
