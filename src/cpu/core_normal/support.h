@@ -111,6 +111,21 @@ static INLINE bool SSE_REQUIRE_ALIGNMENT(const PhysPt v) {
 /* NTS: This macro intended for use in normal core */
 #define SSE_ALIGN_EXCEPTION() EXCEPTION(EXCEPTION_GP)
 
+#define STEP(i) SSE_XORPS_i(d.f32[i],s.f32[i])
+static INLINE void SSE_XORPS_i(FPU_Reg_32 &d,const FPU_Reg_32 &s) {
+	d.raw ^= s.raw;
+}
+
+static INLINE void SSE_XORPS(XMM_Reg &d,const XMM_Reg &s) {
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+}
+#undef STEP
+
+////
+
 #define STEP(i) SSE_SQRTPS_i(d.f32[i],s.f32[i])
 static INLINE void SSE_SQRTPS_i(FPU_Reg_32 &d,const FPU_Reg_32 &s) {
 	d.v = sqrtf(s.v);
