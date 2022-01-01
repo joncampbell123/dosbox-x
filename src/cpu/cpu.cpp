@@ -4242,6 +4242,13 @@ bool CPU_RDMSR() {
 	if (!enable_msr) return false;
 
 	switch (reg_ecx) {
+		case 0x00000017: /* Known in Linux kernel as MSR_IA32_PLATFORM_ID */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			/* NTS: Windows ME assumes this MSR is present if we report ourself as a Pentium III and will BSOD if this does not return a value */
+			/* FIXME: Where is this documented? */
+			reg_edx = reg_eax = 0;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Faking IA32 platform ID");
+			return true;
 		case 0x0000001b: /* Local APIC */
 			/* NTS: Windows ME assumes this MSR is present if we report ourself as a Pentium II,
 			 *      instead of, you know, using CPUID */
