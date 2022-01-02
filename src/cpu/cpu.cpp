@@ -4246,7 +4246,9 @@ bool CPU_RDMSR() {
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
 			/* NTS: Windows ME assumes this MSR is present if we report ourself as a Pentium III and will BSOD if this does not return a value */
 			/* FIXME: Where is this documented? */
-			reg_edx = reg_eax = 0;
+			// Taken from an actual Pentium III system
+			reg_edx = 0x11000000;
+			reg_eax = 0x00000000;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Faking IA32 platform ID");
 			return true;
 		case 0x0000001b: /* Local APIC */
@@ -4260,9 +4262,16 @@ bool CPU_RDMSR() {
 		case 0x0000008b: /* Intel microcode revision... Windows ME insists on reading this at startup if Pentium II and stepping 3 */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Guest is reading Intel microcode revision");
-			// FIXME: This is a guess. Pull out the Pentium II DOS system and see what comes back for this
-			reg_edx = 0;
-			reg_eax = 0x333;
+			if (CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUMIII) {
+				// Taken from an actual Pentium III system. Windows ME will try to update microcode if major version is too low, this value stops that.
+				reg_edx = 0xE;
+				reg_eax = 0x0;
+			}
+			else {
+				// FIXME: This is a guess. Pull out the Pentium II DOS system and see what comes back for this
+				reg_edx = 0x3;
+				reg_eax = 0x3;
+			}
 			return true;
 		case 0x00000174: /* SYSENTER CS selector */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
