@@ -51,9 +51,9 @@
 
 <li><div style="font-weight: 600">Support for ENET reliable UDP for modem and null-modem emulation</div>The ENET reliable UDP is now supported as an option for modem and null-modem emulations. You can enable it with "sock:1" option for modems/null-modems that are connected with serial ports (COM1-COM9), such as "serial1=modem listenport:5000 sock:1" for COM1 to listen to port 5000 with reliable ENET UDP instead of TCP connection.</li>
 
-<li><div style="font-weight: 600">Support for port forwarding for NE2000 networking's Slirp backend</div>Port forwarding is now supported for the Slirp backend of the NE2000 networking feature. There are new config options "tcp_port_forwards" and "udp_port_forwards" in [ethernet, slirp] section for port forwarding options.</li>
+<li><div style="font-weight: 600">Support for port forwarding for NE2000 networking's Slirp backend</div>Port forwarding is now supported for the Slirp backend of the NE2000 networking feature. There are new config options "tcp_port_forwards" and "udp_port_forwards" in [ethernet, slirp] section for TCP and UDP port forwarding options.</li>
 
-<li><div style="font-weight: 600">Support for viewing or changing file extension associations</div>DOSBox-X now allows you to define a command or program to open a file with a specific file extension with ASSOC command, e.g. "assoc .txt=edit" to open .TXT files with the EDIT command when entering the .TXT file name from the DOS command line. Wildcards are also supported.</li>
+<li><div style="font-weight: 600">Support for viewing or changing file extension associations</div>DOSBox-X now allows you to define a command or program to open a file with a specific file extension with ASSOC command, e.g. "assoc .txt=edit" to open .TXT files with the EDIT command when entering the .TXT file name from the DOS command line. Wildcards (* or ?) are also supported.</li>
 
 <li><div style="font-weight: 600">Support for more special properties for CONFIG command</div>CONFIG command now supports special properties including "cd", "date", "errorlevel", "random", "time", and "lastmount" so that commands like "CONFIG -GET cd" and "CONFIG -GET errorlevel" will get current DOS directory and ERRORLEVEL value. The returned value will also be saved to %CONFIG% variable.</li>
 
@@ -63,7 +63,7 @@
 
 <li><div style="font-weight: 600">Much improved DBCS support for Chinese/Japanese/Korean languages</div>DBCS support for Chinese/Japanese/Korean languages have been further improved in this version in various ways. For example, IME support for Chinese/Japanese/Korean languages has been improved; DBCS characters located in UNC network paths of the form \\COMPUTER\FOLDER\FILEDOS are supported; DOS commands like ATTRIB, ECHO, TYPE, MORE, and TRUENAME can now handle DBCS characters better; there is now also a hidden code page 951 for Big5-HKSCS encoding or Big5 Unicode-At-On (Big5-UAO) encoding.</li>
 
-<li><div style="font-weight: 600">Improved support for Windows for Workgroups 3.11 networking</div>Support for the Windows for Workgroups 3.11 networking has been improved in this version, so that you can fully utilize the networking feature of Windows for Workgroups 3.11 when running from the internal DOS shell. Be sure to execute the commands "DEVICE IFSHLP.SYS" and "NET START" before running WFW 3.11 so that its networking feature will work as expected.</li>
+<li><div style="font-weight: 600">Improved support for Windows for Workgroups 3.11 networking</div>Support for the Windows for Workgroups 3.11 networking has been improved in this version, so that you can fully utilize the networking feature of Windows for Workgroups 3.11 when running from the internal DOS shell. Be sure to execute the commands "DEVICE IFSHLP.SYS" and "NET START" before running WFW 3.11 from the shell so that its networking feature will work as expected.</li>
 
 <li><div style="font-weight: 600">Improved support for the save-state feature</div>The save-state feature saw further improvements in this version so that you can expect that saving and loading states to work more reliably than before.</li>
 
@@ -203,7 +203,7 @@ There are also many bugfixes and other improvements, such as fixing issues that 
 </li>
 <li>
     Added config options (in "ethernet, slirp" section)
-    "tcp_port_forwards" and "tcp_port_forwards" for port
+    "tcp_port_forwards" and "udp_port_forwards" for port
     forwarding when using the Slirp backend. (kcgen)
 </li>
 <li>
