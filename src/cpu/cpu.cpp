@@ -4247,6 +4247,7 @@ bool CPU_RDMSR() {
 			/* NTS: Windows ME assumes this MSR is present if we report ourself as a Pentium III and will BSOD if this does not return a value */
 			/* FIXME: Where is this documented? */
 			// Taken from an actual Pentium III system
+			// Also seen on a 500MHz part: EDX=0x51030000 EAX=0x00000000
 			reg_edx = 0x11000000;
 			reg_eax = 0x00000000;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Faking IA32 platform ID");
@@ -4264,6 +4265,7 @@ bool CPU_RDMSR() {
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Guest is reading Intel microcode revision");
 			if (CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUMIII) {
 				// Taken from an actual Pentium III system. Windows ME will try to update microcode if major version is too low, this value stops that.
+				// Also seen on a 500MHz part: EDX=0xA EAX=0x0
 				reg_edx = 0xE;
 				reg_eax = 0x0;
 			}
