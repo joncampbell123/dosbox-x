@@ -158,6 +158,57 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) goto illegal_opcode;
 		if (cpu.pmode && cpu.cpl) EXCEPTION(EXCEPTION_GP);
 		break;
+#if CPU_CORE >= CPU_ARCHTYPE_386
+	CASE_0F_B(0x18)												/* SSE instruction /r group */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) goto illegal_opcode;
+		{
+			XMM_Reg xmmdst;
+			GetRM;
+			const unsigned char reg = (rm >> 3) & 7;
+
+			switch (reg) {
+				case 0:
+					if (rm < 0xC0) {							/* 0F 18 /0 PREFETCHNTA <m> */
+						// do nothing, but GetEAa is required to fully decode the instruction
+						GetEAa;
+					}
+					else {
+						goto illegal_opcode;
+					}
+					break;
+				case 1:
+					if (rm < 0xC0) {							/* 0F 18 /1 PREFETCH0 <m> */
+						// do nothing, but GetEAa is required to fully decode the instruction
+						GetEAa;
+					}
+					else {
+						goto illegal_opcode;
+					}
+					break;
+				case 2:
+					if (rm < 0xC0) {							/* 0F 18 /2 PREFETCH1 <m> */
+						// do nothing, but GetEAa is required to fully decode the instruction
+						GetEAa;
+					}
+					else {
+						goto illegal_opcode;
+					}
+					break;
+				case 3:
+					if (rm < 0xC0) {							/* 0F 18 /3 PREFETCH2 <m> */
+						// do nothing, but GetEAa is required to fully decode the instruction
+						GetEAa;
+					}
+					else {
+						goto illegal_opcode;
+					}
+					break;
+				default:
+					goto illegal_opcode;
+			};
+		}
+		break;
+#endif
 	CASE_0F_B(0x20)												/* MOV Rd.CRx */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		{
@@ -641,6 +692,66 @@
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_386) goto illegal_opcode;
 		RMEwGwOp3(DSHRW,reg_cl);
 		break;
+#if CPU_CORE >= CPU_ARCHTYPE_386
+	CASE_0F_B(0xae)												/* SSE instruction group */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) goto illegal_opcode;
+		{
+			GetRM;
+			const unsigned char reg = (rm >> 3) & 7;
+
+			switch (reg) {
+				case 0:
+					if (rm < 0xC0) {							/* 0F AE /0 FXSAVE <m> */
+						GetEAa;
+						if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
+						CPU_FXSAVE(eaa);
+					}
+					else {
+						goto illegal_opcode;
+					}
+					break;
+				case 1:
+					if (rm < 0xC0) {							/* 0F AE /1 FXRSTOR <m> */
+						GetEAa;
+						if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
+						CPU_FXRSTOR(eaa);
+					}
+					else {
+						goto illegal_opcode;
+					}
+					break;
+				case 2:
+					if (rm < 0xC0) {							/* 0F AE /2 LDMXCSR <m> */
+						GetEAa;
+						if (!CPU_LDMXCSR(eaa)) EXCEPTION(EXCEPTION_GP);
+					}
+					else {
+						goto illegal_opcode;
+					}
+					break;
+				case 3:
+					if (rm < 0xC0) {							/* 0F AE /3 STMXCSR <m> */
+						GetEAa;
+						if (!CPU_STMXCSR(eaa)) EXCEPTION(EXCEPTION_GP);
+					}
+					else {
+						goto illegal_opcode;
+					}
+					break;
+				case 7:
+					if (rm >= 0xC0) {							/* 0F AE /7 SFENCE <not m> */
+						// DO NOTHING
+					}
+					else {
+						goto illegal_opcode;
+					}
+					break;
+				default:
+					goto illegal_opcode;
+			};
+		}
+		break;
+#endif
 	CASE_0F_W(0xaf)												/* IMUL Gw,Ew */
 		RMGwEwOp3(DIMULW,*rmrw);
 		break;

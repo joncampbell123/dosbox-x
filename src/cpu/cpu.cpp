@@ -4276,6 +4276,16 @@ bool CPU_RDMSR() {
 				reg_eax = 0x001E03FF;
 			}
 			return true;
+		case 0x000000ce: /* MSR_PLATFORM_INFO? */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Attempt to read MSR_PLATFORM_INFO");
+			reg_edx = reg_eax = 0;
+			return true;
+		case 0x00000140: /* IA32_MISC_ENABLE [https://www.geoffchappell.com/studies/windows/km/cpu/msr/misc_enable.htm] */
+			/* Linux kernel assumes this MSR is present if Pentium III and will crash otherwise */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			reg_edx = reg_eax = 0;
+			return true;
 		case 0x00000174: /* SYSENTER CS selector */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
 			reg_edx = 0;
@@ -4290,6 +4300,16 @@ bool CPU_RDMSR() {
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
 			reg_edx = 0;
 			reg_eax = cpu_sep_eip;
+			return true;
+		case 0x00000186: /* MSR_P6_EVNTSEL0? */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Attempt to read MSR_P6_EVNTSEL0");
+			reg_edx = reg_eax = 0;
+			return true;
+		case 0x00000187: /* MSR_P6_EVNTSEL1? */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Attempt to read MSR_P6_EVNTSEL1");
+			reg_edx = reg_eax = 0;
 			return true;
 		default:
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Unknown register 0x%08lx",(unsigned long)reg_ecx);
@@ -4330,6 +4350,15 @@ bool CPU_WRMSR() {
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Attempt to write Intel microcode revision (is that you Windows ME?) EDX:EAX=%08x:%08x",reg_edx,reg_eax);
 			return true;
+		case 0x000000ce: /* MSR_PLATFORM_INFO? */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Attempt to write MSR_PLATFORM_INFO EDX:EAX=%08x:%08x",reg_edx,reg_eax);
+			return true;
+		case 0x00000140: /* IA32_MISC_ENABLE [https://www.geoffchappell.com/studies/windows/km/cpu/msr/misc_enable.htm] */
+			/* Linux kernel assumes this MSR is present if Pentium III and will crash otherwise */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: IA32_MISC_ENABLE %08x:%08x",reg_edx,reg_eax);
+			return true;
 		case 0x00000174: /* SYSENTER CS selector */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
 			cpu_sep_cs = (uint16_t)(reg_eax & 0xFFFFu);
@@ -4341,6 +4370,14 @@ bool CPU_WRMSR() {
 		case 0x00000176: /* SYSENTER EIP instruction pointer */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
 			cpu_sep_eip = reg_eax;
+			return true;
+		case 0x00000186: /* MSR_P6_EVNTSEL0? */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Attempt to read MSR_P6_EVNTSEL0 EDX:EAX=%08x:%08x",reg_edx,reg_eax);
+			return true;
+		case 0x00000187: /* MSR_P6_EVNTSEL1? */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Attempt to read MSR_P6_EVNTSEL1 EDX:EAX=%08x:%08x",reg_edx,reg_eax);
 			return true;
 		default:
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Unknown register 0x%08lx (write 0x%08lx:0x%08lx)",(unsigned long)reg_ecx,(unsigned long)reg_edx,(unsigned long)reg_eax);
@@ -4384,6 +4421,16 @@ void CPU_CMPXCHG8B(PhysPt eaa) {
 		reg_edx = hi;
 		reg_eax = lo;
 	}
+}
+
+bool CPU_LDMXCSR(PhysPt eaa) {
+	fpu.mxcsr = mem_readd(eaa);
+	return true;
+}
+
+bool CPU_STMXCSR(PhysPt eaa) {
+	mem_writed(eaa,fpu.mxcsr);
+	return true;
 }
 
 namespace

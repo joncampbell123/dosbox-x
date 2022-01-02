@@ -282,7 +282,7 @@ static char const *second[] = {
 /* 1 */
   "mov %Eb,%Gb",      "mov %Ev,%Gv",     "mov %Gb,%Eb",    "mov %Gv,%Ev",
   0,                  0,                 0,                0,
-  0,                  0,                 0,                0,
+  "%g=",              0,                 0,                0,
   0,                  0,                 0,                0,
 /* 2 */
   "mov %Rd,%Cd",      "mov %Rd,%Dd",     "mov %Cd,%Rd",    "mov %Dd,%Rd",
@@ -326,7 +326,7 @@ static char const *second[] = {
   "push fs",          "pop fs",          "cpuid",          "bt %Ev,%Gv",
   "shld %Ev,%Gv,%Ib", "shld %Ev,%Gv,cl", 0,                0,
   "push gs",          "pop gs",          0,                "bts %Ev,%Gv",
-  "shrd %Ev,%Gv,%Ib", "shrd %Ev,%Gv,cl", 0,                "imul %Gv,%Ev",
+  "shrd %Ev,%Gv,%Ib", "shrd %Ev,%Gv,cl", "%g<",            "imul %Gv,%Ev",
 /* b */
   "cmpxchg %Eb,%Gb",  "cmpxchg %Ev,%Gv", "lss %Mp",        "btr %Ev,%Gv",
   "lfs %Mp",          "lgs %Mp",         "movzx %Gv,%Eb",  "movzx %Gv,%Ew",
@@ -484,8 +484,13 @@ static char const *groups[][8] = {   /* group 0 is group 3 for %Ev set */
     "psrad %EM,%Ib",  0,                 "pslld %EM,%Ib",  0               },
 /* ; (NTS: this is '0'+11 in ASCII) */
   { 0,                0,                 "psrlw %EM,%Ib",  0,
-    "psraw %EM,%Ib",  0,                 "psllw %EM,%Ib",  0               }
-
+    "psraw %EM,%Ib",  0,                 "psllw %EM,%Ib",  0               },
+/* < (NTS: this is '0'+12 in ASCII) */
+  { "fxsave %EM",     "fxrstor %EM",     "ldmxcsr %EM",    "stmxcsr %EM",
+    0,                0,                 0,                "sfence"        },
+/* = (NTS: this is '0'+13 in ASCII) */
+  { "prefetchnta %EM","prefetch0 %EM",   "prefetch1 %EM",  "prefetch2 %EM",
+    0,                0,                 0,                0               }
 };
 
 /* zero here means invalid.  If first entry starts with '*', use st(i) */

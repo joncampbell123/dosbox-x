@@ -201,6 +201,11 @@ static INLINE void SSE_MOVAPS(XMM_Reg &d,const XMM_Reg &s) {
 		else {GetEAa;SaveMb(eaa,(cc) ? 1 : 0);}			\
 	}
 
+void CPU_FXSAVE(PhysPt eaa);
+void CPU_FXRSTOR(PhysPt eaa);
+bool CPU_LDMXCSR(PhysPt eaa);
+bool CPU_STMXCSR(PhysPt eaa);
+
 #include "helpers.h"
 #if CPU_CORE <= CPU_ARCHTYPE_8086
 # include "table_ea_8086.h"
