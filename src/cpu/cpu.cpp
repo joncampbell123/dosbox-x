@@ -4270,9 +4270,10 @@ bool CPU_RDMSR() {
 				reg_eax = 0x0;
 			}
 			else {
-				// FIXME: This is a guess. Pull out the Pentium II DOS system and see what comes back for this
-				reg_edx = 0x3;
-				reg_eax = 0x3;
+				// FIXME: This is a guess. Pull out the Pentium II DOS system and see what comes back for this.
+				// These values are large enough to prevent Windows ME from trying to update microcode.
+				reg_edx = 0x003F003F;
+				reg_eax = 0x001E03FF;
 			}
 			return true;
 		case 0x00000174: /* SYSENTER CS selector */
