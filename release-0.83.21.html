@@ -57,17 +57,17 @@
 
 <li><div style="font-weight: 600">Support for more special properties for CONFIG command</div>CONFIG command now supports special properties including "cd", "date", "errorlevel", "random", "time", and "lastmount" so that commands like "CONFIG -GET cd" and "CONFIG -GET errorlevel" will get current DOS directory and ERRORLEVEL value. The returned value will also be saved to %CONFIG% variable.</li>
 
-<li><div style="font-weight: 600">Support for rescanning the internal virtual drive Z:</div>The internal Virtual Drive Z: can now be rescanned just like mounted local drives. Any changes to the "drivez" directory will now be reflected after a Z: drive rescan.</li>
+<li><div style="font-weight: 600">Support for rescanning the internal virtual drive Z:</div>The internal Virtual Drive Z: can now be rescanned just like mounted local drives. Any changes to the "drivez" directory or code pages will now be reflected after a Z: drive rescan.</li>
 
-<li><div style="font-weight: 600">Support for providing command-line options for launching programs(s) at start</div>There is now a command-line option "-o" which allows you to provide command-line option(s) if programs(s) are specified to start when you launch DOSBox-X, e.g. dosbox-x program.exe -o "opt1 opt2"</li>
+<li><div style="font-weight: 600">Support for providing command-line options for launching programs(s) at start</div>There is now a command-line option "-o" which allows you to provide command-line option(s) or arguments if programs(s) are specified to start when you launch DOSBox-X, e.g. dosbox-x program.exe -o "opt1 opt2"</li>
 
 <li><div style="font-weight: 600">Much improved DBCS support for Chinese/Japanese/Korean languages</div>DBCS support for Chinese/Japanese/Korean languages have been further improved in this version in various ways. For example, IME support for Chinese/Japanese/Korean languages has been improved; DBCS characters located in UNC network paths of the form \\COMPUTER\FOLDER\FILEDOS are supported; DOS commands like ATTRIB, ECHO, TYPE, MORE, and TRUENAME can now handle DBCS characters better; there is now also a hidden code page 951 for Big5-HKSCS encoding or Big5 Unicode-At-On (Big5-UAO) encoding.</li>
 
 <li><div style="font-weight: 600">Improved support for Windows for Workgroups 3.11 networking</div>Support for the Windows for Workgroups 3.11 networking has been improved in this version, so that you can fully utilize the networking feature of Windows for Workgroups 3.11 when running from the internal DOS shell. Be sure to execute the commands "DEVICE IFSHLP.SYS" and "NET START" before running WFW 3.11 so that its networking feature will work as expected.</li>
 
-<li><div style="font-weight: 600">Improved support for the save-state feature</div>The save-state feature saw further improvements in this version so that you can expect that saving and loading states to work more reliably.</li>
+<li><div style="font-weight: 600">Improved support for the save-state feature</div>The save-state feature saw further improvements in this version so that you can expect that saving and loading states to work more reliably than before.</li>
 
-<li><div style="font-weight: 600">Improved clipboard copy and paste support</div>The clipboard copy and paste has been improved for different code pages including box-drawing characters in DBCS code pages. Also, for the Toshiba J-3100 mode, the selected text will now be highlighted when you try to select text for copying.</li>
+<li><div style="font-weight: 600">Improved clipboard copy and paste support</div>The clipboard copy and paste has been improved for different code pages including box-drawing characters in DBCS code pages (including PC-98 mode). Also, for the Toshiba J-3100 mode, the selected text will now be highlighted when you try to select text for copying.</li>
 
 </ul>
 
