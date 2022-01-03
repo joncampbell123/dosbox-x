@@ -182,8 +182,7 @@
 						SSE_MOVSS(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
 					} else {
 						GetEAa;
-						xmmsrc.u64[0] = LoadMq(eaa);
-						xmmsrc.u64[1] = LoadMq(eaa+8u);
+						xmmsrc.u32[0] = LoadMd(eaa);
 						SSE_MOVSS(fpu.xmmreg[reg],xmmsrc);
 					}
 					break;
@@ -218,8 +217,7 @@
 					} else {
 						GetEAa;
 						SSE_MOVSS(xmmdst,fpu.xmmreg[reg]);
-						SaveMq(eaa,xmmdst.u64[0]);
-						SaveMq(eaa+8u,xmmdst.u64[1]);
+						SaveMd(eaa,xmmdst.u32[0]);
 					}
 					break;
 				default:
@@ -519,8 +517,7 @@
 					} else {
 						GetEAa;
 						if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-						xmmsrc.u64[0] = LoadMq(eaa);
-						xmmsrc.u64[1] = LoadMq(eaa+8u);
+						xmmsrc.u32[0] = LoadMd(eaa);
 						SSE_SQRTSS(fpu.xmmreg[reg],xmmsrc);
 					}
 					break;
@@ -611,8 +608,7 @@
 					} else {
 						GetEAa;
 						if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
-						xmmsrc.u64[0] = LoadMq(eaa);
-						xmmsrc.u64[1] = LoadMq(eaa+8u);
+						xmmsrc.u32[0] = LoadMd(eaa);
 						SSE_MULSS(fpu.xmmreg[reg],xmmsrc);
 					}
 					break;
