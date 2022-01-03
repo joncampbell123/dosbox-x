@@ -159,6 +159,76 @@
 		if (cpu.pmode && cpu.cpl) EXCEPTION(EXCEPTION_GP);
 		break;
 #if CPU_CORE >= CPU_ARCHTYPE_386
+	CASE_0F_B(0x10)												/* SSE instruction group */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+		{
+			XMM_Reg xmmsrc;
+			GetRM;
+			const unsigned char reg = (rm >> 3) & 7;
+
+			switch (last_prefix) {
+				case MP_NONE:									/* 0F 10 MOVUPS reg, r/m */
+					if (rm >= 0xc0) {
+						SSE_MOVUPS(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+					} else {
+						GetEAa;
+						xmmsrc.u64[0] = LoadMq(eaa);
+						xmmsrc.u64[1] = LoadMq(eaa+8u);
+						SSE_MOVUPS(fpu.xmmreg[reg],xmmsrc);
+					}
+					break;
+				case MP_F3:									/* F3 0F 10 MOVSS reg, r/m */
+					if (rm >= 0xc0) {
+						SSE_MOVSS(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+					} else {
+						GetEAa;
+						xmmsrc.u64[0] = LoadMq(eaa);
+						xmmsrc.u64[1] = LoadMq(eaa+8u);
+						SSE_MOVSS(fpu.xmmreg[reg],xmmsrc);
+					}
+					break;
+				default:
+					goto illegal_opcode;
+			};
+		}
+		break;
+#endif
+#if CPU_CORE >= CPU_ARCHTYPE_386
+	CASE_0F_B(0x11)												/* SSE instruction group */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+		{
+			XMM_Reg xmmdst;
+			GetRM;
+			const unsigned char reg = (rm >> 3) & 7;
+
+			switch (last_prefix) {
+				case MP_NONE:									/* 0F 11 MOVUPS r/m, reg */
+					if (rm >= 0xc0) {
+						SSE_MOVUPS(fpu.xmmreg[rm & 7],fpu.xmmreg[reg]);
+					} else {
+						GetEAa;
+						SSE_MOVUPS(xmmdst,fpu.xmmreg[reg]);
+						SaveMq(eaa,xmmdst.u64[0]);
+						SaveMq(eaa+8u,xmmdst.u64[1]);
+					}
+					break;
+				case MP_F3:									/* F3 0F 11 MOVSS r/m, reg */
+					if (rm >= 0xc0) {
+						SSE_MOVSS(fpu.xmmreg[rm & 7],fpu.xmmreg[reg]);
+					} else {
+						GetEAa;
+						SSE_MOVSS(xmmdst,fpu.xmmreg[reg]);
+						SaveMq(eaa,xmmdst.u64[0]);
+						SaveMq(eaa+8u,xmmdst.u64[1]);
+					}
+					break;
+				default:
+					goto illegal_opcode;
+			};
+		}
+		break;
+#endif
+#if CPU_CORE >= CPU_ARCHTYPE_386
 	CASE_0F_B(0x18)												/* SSE instruction /r group */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) goto illegal_opcode;
 		{
