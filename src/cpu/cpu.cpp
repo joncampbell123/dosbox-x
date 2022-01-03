@@ -4260,6 +4260,11 @@ bool CPU_RDMSR() {
 			reg_edx = reg_eax = 0;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Faking Local APIC");
 			return true;
+		case 0x0000002a: /* MSR_IA32_EBL_CR_POWERON */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			reg_edx = reg_eax = 0;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: MSR_IA32_EBL_CR_POWERON");
+			return true;
 		case 0x0000008b: /* Intel microcode revision... Windows ME insists on reading this at startup if Pentium II and stepping 3 */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Guest is reading Intel microcode revision");
@@ -4280,6 +4285,16 @@ bool CPU_RDMSR() {
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Attempt to read MSR_PLATFORM_INFO");
 			reg_edx = reg_eax = 0;
+			return true;
+		case 0x00000119: /* MSR_IA32_BBL_CR_CTL */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			reg_edx = reg_eax = 0;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: MSR_IA32_BBL_CR_CTL");
+			return true;
+		case 0x0000011e: /* MSR_IA32_BBL_CR_CTL3 */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			reg_edx = reg_eax = 0;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: MSR_IA32_BBL_CR_CTL3");
 			return true;
 		case 0x00000140: /* IA32_MISC_ENABLE [https://www.geoffchappell.com/studies/windows/km/cpu/msr/misc_enable.htm] */
 			/* Linux kernel assumes this MSR is present if Pentium III and will crash otherwise */
