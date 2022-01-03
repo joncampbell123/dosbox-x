@@ -47,7 +47,8 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr);
  * However, there are cases where the full 80-bit precision is required such
  * as the "Fast Pentium memcpy trick" using the 80-bit versions of FLD/FST to
  * copy memory. */
-typedef union {
+#pragma pack(push,1)
+typedef union alignas(8) {
     double d;
 #ifndef WORDS_BIGENDIAN
     struct {
@@ -62,7 +63,14 @@ typedef union {
 #endif
     int64_t ll;
 	MMX_reg reg_mmx;
+
+	static_assert( sizeof(d) == 8, "FPU_Reg error" );
+	static_assert( sizeof(l) == 8, "FPU_Reg error" );
+	static_assert( sizeof(ll) == 8, "FPU_Reg error" );
+	static_assert( sizeof(reg_mmx) == 8, "FPU_Reg error" );
 } FPU_Reg;
+static_assert( sizeof(FPU_Reg) == 8, "FPU_Reg error" );
+#pragma pack(pop)
 
 // dynamic x86 core needs this
 typedef struct {
@@ -110,7 +118,7 @@ typedef union {
 #define FPU_Reg_80_exponent_bias	(16383)
 
 #pragma pack(push,1)
-typedef union {
+typedef union alignas(8) {
 	struct {
 		uint64_t	mantissa:52;		// [51:0]
 		uint64_t	exponent:11;		// [62:52]
@@ -118,14 +126,19 @@ typedef union {
 	} f;
 	double			v;
 	uint64_t		raw;
+
+	static_assert( sizeof(f) == 8, "FPU_Reg_64 error" );
+	static_assert( sizeof(v) == 8, "FPU_Reg_64 error" );
+	static_assert( sizeof(raw) == 8, "FPU_Reg_64 error" );
 } FPU_Reg_64;
+static_assert( sizeof(FPU_Reg_64) == 8, "FPU_Reg_64 error" );
 #pragma pack(pop)
 
 #define FPU_Reg_64_exponent_bias	(1023)
 static const uint64_t FPU_Reg_64_implied_bit = ((uint64_t)1ULL << (uint64_t)52ULL);
 
 #pragma pack(push,1)
-typedef union {
+typedef union alignas(4) {
 	struct {
 		uint32_t	mantissa:23;		// [22:0]
 		uint32_t	exponent:8;		// [30:23]
@@ -133,11 +146,45 @@ typedef union {
 	} f;
 	float			v;
 	uint32_t		raw;
+
+	static_assert( sizeof(f) == 4, "FPU_Reg_32 error" );
+	static_assert( sizeof(v) == 4, "FPU_Reg_32 error" );
+	static_assert( sizeof(raw) == 4, "FPU_Reg_32 error" );
 } FPU_Reg_32;
+static_assert( sizeof(FPU_Reg_32) == 4, "FPU_Reg_32 error" );
 #pragma pack(pop)
 
 #define FPU_Reg_32_exponent_bias	(127)
 static const uint32_t FPU_Reg_32_implied_bit = ((uint32_t)1UL << (uint32_t)23UL);
+
+#pragma pack(push,1)
+typedef union alignas(16) XMM_Reg {
+	FPU_Reg_32		f32[4];
+	FPU_Reg_64		f64[2];
+
+	int8_t			i8[16];
+	int16_t			i16[8];
+	int32_t			i32[4];
+	int64_t			i64[2];
+
+	uint8_t			u8[16];
+	uint16_t		u16[8];
+	uint32_t		u32[4];
+	uint64_t		u64[2];
+
+	static_assert( sizeof(u8)  == 16 /* 128-bit */, "XMM reg struct error" );
+	static_assert( sizeof(u16) == 16 /* 128-bit */, "XMM reg struct error" );
+	static_assert( sizeof(u32) == 16 /* 128-bit */, "XMM reg struct error" );
+	static_assert( sizeof(u64) == 16 /* 128-bit */, "XMM reg struct error" );
+	static_assert( sizeof(i8)  == 16 /* 128-bit */, "XMM reg struct error" );
+	static_assert( sizeof(i16) == 16 /* 128-bit */, "XMM reg struct error" );
+	static_assert( sizeof(i32) == 16 /* 128-bit */, "XMM reg struct error" );
+	static_assert( sizeof(i64) == 16 /* 128-bit */, "XMM reg struct error" );
+	static_assert( sizeof(f32) == 16 /* 128-bit */, "XMM reg struct error" );
+	static_assert( sizeof(f64) == 16 /* 128-bit */, "XMM reg struct error" );
+};
+static_assert( sizeof(XMM_Reg)     == 16 /* 128-bit */, "XMM reg struct error" );
+#pragma pack(pop)
 
 enum FPU_Tag {
 	TAG_Valid = 0,
@@ -240,8 +287,9 @@ typedef struct {
 	FPUControlWord  cw;
 	uint16_t		sw;
 	uint32_t		top;
+	XMM_Reg			xmmreg[8]; // SSE emulation
+	uint32_t		mxcsr; // SSE control register
 } FPU_rec;
-
 
 //get pi from a real library
 #define PI		3.14159265358979323846

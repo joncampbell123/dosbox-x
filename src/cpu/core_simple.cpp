@@ -85,6 +85,10 @@ extern Bitu cycle_count;
     core.rep_zero=_ZERO;                    \
     goto restart_opcode;
 
+#define REMEMBER_PREFIX(_x) last_prefix = (_x)
+
+static uint8_t last_prefix;
+
 typedef PhysPt (*GetEAHandler)(void);
 
 static const uint32_t AddrMaskTable[2]={0x0000ffffu,0xffffffffu};
@@ -176,6 +180,7 @@ Bits CPU_Core_Simple_Run(void) {
         /* Simple core optimizes for non-paged linear memory access and can break (segfault) if beyond end of memory */
         if (core.cseip >= safety_limit) break;
 
+        last_prefix=MP_NONE;
         core.opcode_index=cpu.code.big*0x200u;
         core.prefixes=cpu.code.big;
         core.ea_table=&EATable[cpu.code.big*256u];

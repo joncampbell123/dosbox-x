@@ -122,6 +122,8 @@ Bits CPU_Core_Prefetch_Trap_Run(void);
 	core.rep_zero=_ZERO;					\
 	goto restart_opcode;
 
+#define REMEMBER_PREFIX(_x)
+
 typedef PhysPt (*GetEAHandler)(void);
 
 static const uint32_t AddrMaskTable[2]={0x0000ffffu,0x0000ffffu};

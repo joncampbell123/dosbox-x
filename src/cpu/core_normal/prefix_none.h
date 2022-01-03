@@ -337,6 +337,7 @@
         goto illegal_opcode;
 #endif
 #if CPU_CORE >= CPU_ARCHTYPE_386
+		REMEMBER_PREFIX(MP_66);
 		core.opcode_index=(cpu.code.big^0x1u)*0x200u;
 		goto restart_opcode;
 #endif
@@ -348,6 +349,7 @@
         goto illegal_opcode;
 #endif
 #if CPU_CORE >= CPU_ARCHTYPE_386
+		REMEMBER_PREFIX(MP_NONE);
 		DO_PREFIX_ADDR();
 #endif
 	CASE_W(0x68)												/* PUSH Iw */
@@ -1267,6 +1269,7 @@
 		break;
 	CASE_B(0xf0)												/* LOCK */
         opcode_f0:
+		REMEMBER_PREFIX(MP_NONE);
 // todo: make an option to show this
 //		LOG(LOG_CPU,LOG_NORMAL)("CPU:LOCK"); /* FIXME: see case D_LOCK in core_full/load.h */
 		break;
@@ -1282,9 +1285,11 @@
         goto opcode_f0;
 #endif
 	CASE_B(0xf2)												/* REPNZ */
+		REMEMBER_PREFIX(MP_F2);
 		DO_PREFIX_REP(false);	
 		break;		
 	CASE_B(0xf3)												/* REPZ */
+		REMEMBER_PREFIX(MP_F3);
 		DO_PREFIX_REP(true);	
 		break;		
 	CASE_B(0xf4)												/* HLT */

@@ -16,6 +16,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <math.h>
 
 #define LoadMbs(off) (int8_t)(LoadMb(off))
 #define LoadMws(off) (int16_t)(LoadMw(off))
@@ -98,12 +99,131 @@ static INLINE int32_t Fetchds() {
 	else {GetEAa; if (COND) *rmrd=LoadMd(eaa);}		\
 }
 
+#if CPU_CORE >= CPU_ARCHTYPE_80386
+
+/* Most SSE instructions require memory access aligned to the SSE data type, else
+ * an exception occurs. */
+static INLINE bool SSE_REQUIRE_ALIGNMENT(const PhysPt v) {
+	return ((unsigned int)v & 15u) == 0; /* 16 bytes * 8 bits = 128 bits */
+}
+
+/* Throw GPF on SSE misalignment [https://c9x.me/x86/html/file_module_x86_id_180.html] */
+/* NTS: This macro intended for use in normal core */
+#define SSE_ALIGN_EXCEPTION() EXCEPTION(EXCEPTION_GP)
+
+#define STEP(i) SSE_MULPS_i(d.f32[i],s.f32[i])
+static INLINE void SSE_MULPS_i(FPU_Reg_32 &d,const FPU_Reg_32 &s) {
+	d.v *= s.v;
+}
+
+static INLINE void SSE_MULPS(XMM_Reg &d,const XMM_Reg &s) {
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+}
+
+static INLINE void SSE_MULSS(XMM_Reg &d,const XMM_Reg &s) {
+	STEP(0);
+}
+#undef STEP
+
+////
+
+#define STEP(i) SSE_ANDPS_i(d.f32[i],s.f32[i])
+static INLINE void SSE_ANDPS_i(FPU_Reg_32 &d,const FPU_Reg_32 &s) {
+	d.raw &= s.raw;
+}
+
+static INLINE void SSE_ANDPS(XMM_Reg &d,const XMM_Reg &s) {
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+}
+#undef STEP
+
+////
+
+#define STEP(i) SSE_XORPS_i(d.f32[i],s.f32[i])
+static INLINE void SSE_XORPS_i(FPU_Reg_32 &d,const FPU_Reg_32 &s) {
+	d.raw ^= s.raw;
+}
+
+static INLINE void SSE_XORPS(XMM_Reg &d,const XMM_Reg &s) {
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+}
+#undef STEP
+
+////
+
+#define STEP(i) SSE_SQRTPS_i(d.f32[i],s.f32[i])
+static INLINE void SSE_SQRTPS_i(FPU_Reg_32 &d,const FPU_Reg_32 &s) {
+	d.v = sqrtf(s.v);
+}
+
+static INLINE void SSE_SQRTPS(XMM_Reg &d,const XMM_Reg &s) {
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+}
+
+static INLINE void SSE_SQRTSS(XMM_Reg &d,const XMM_Reg &s) {
+	STEP(0);
+}
+#undef STEP
+
+////
+
+#define STEP(i) SSE_MOVAPS_i(d.f32[i],s.f32[i])
+static INLINE void SSE_MOVAPS_i(FPU_Reg_32 &d,const FPU_Reg_32 &s) {
+	d.raw = s.raw;
+}
+
+static INLINE void SSE_MOVAPS(XMM_Reg &d,const XMM_Reg &s) {
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+}
+#undef STEP
+
+////
+
+#define STEP(i) SSE_MOVUPS_i(d.f32[i],s.f32[i])
+static INLINE void SSE_MOVUPS_i(FPU_Reg_32 &d,const FPU_Reg_32 &s) {
+	d.raw = s.raw;
+}
+
+static INLINE void SSE_MOVUPS(XMM_Reg &d,const XMM_Reg &s) {
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+}
+
+static INLINE void SSE_MOVSS(XMM_Reg &d,const XMM_Reg &s) {
+	STEP(0);
+}
+#undef STEP
+
+#endif // 386+
+
 #define SETcc(cc)							\
 	{								\
 		GetRM;							\
 		if (rm >= 0xc0 ) {GetEArb;*earb=(cc) ? 1 : 0;}		\
 		else {GetEAa;SaveMb(eaa,(cc) ? 1 : 0);}			\
 	}
+
+void CPU_FXSAVE(PhysPt eaa);
+void CPU_FXRSTOR(PhysPt eaa);
+bool CPU_LDMXCSR(PhysPt eaa);
+bool CPU_STMXCSR(PhysPt eaa);
 
 #include "helpers.h"
 #if CPU_CORE <= CPU_ARCHTYPE_8086
