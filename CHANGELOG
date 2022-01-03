@@ -1,6 +1,8 @@
 0.83.22
   - 
 0.83.21
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.21.html
   - Improved clipboard copying & pasting for different
     code pages including box-drawing characters in DBCS
     code pages. Also, for the J-3100 mode, the selected
@@ -71,7 +73,7 @@
     Toshiba Windows 3.1 to run, whereas CGA/EGA version
     of the latter requires a "true" setting. (nanshiki)
   - Added config options (in "ethernet, slirp" section)
-    "tcp_port_forwards" and "tcp_port_forwards" for port
+    "tcp_port_forwards" and "udp_port_forwards" for port
     forwarding when using the Slirp backend. (kcgen)
   - Added code pages 737 (Greek) and 775 (Baltic) for
     the guest-to-host code page conversions. (Wengier)
@@ -112,7 +114,7 @@
     that appear on the Z drive (Z:/DOS/CHOICE.COM and
     Z:/SYSTEM/COUNTRY.COM respectively) now rather than
     internal shell commands. COUNTRY command now also
-    affacts thousand and decimal separators. (Wengier)
+    affects thousand and decimal separators. (Wengier)
   - The internal Virtual Drive Z: can now be rescanned
     just like mounted local drives. (Wengier)
   - You can now change most config options in [printer]
