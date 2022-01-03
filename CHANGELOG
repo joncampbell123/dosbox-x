@@ -1,5 +1,11 @@
 0.83.22
-  - 
+  - Added Pentium III cputype, added SSE register set,
+    added SSE instructions to debugger disassembler,
+    added some initial SSE instructions. (joncampbell123)
+  - Added some MSRs expected by Linux, Windows, and
+    tools like CPU-Z to make them happy. (joncampbell123)
+  - Added FXSAVE/FXRSTOR which makes Linux happy with
+    Pentium III emulation. (joncampbell123)
 0.83.21
   - Release notes for this version:
     https://dosbox-x.com/release-0.83.21.html
