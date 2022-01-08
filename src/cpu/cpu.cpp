@@ -30,6 +30,9 @@
 #include "control.h"
 #include "logging.h"
 
+// TODO: #ifdef FPU...
+#include "fpu.h"
+
 /* dynamic core, policy, method, and flags.
  * We're going to make dynamic core more flexible, AND make sure
  * that both dynx86 and dynrec are using common memory mapping
@@ -293,6 +296,9 @@ void menu_update_cputype(void) {
     mainMenu.get_item("cputype_pentium_ii").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII).
         refresh_item(mainMenu);
+    mainMenu.get_item("cputype_pentium_iii").
+        check(CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII).
+        refresh_item(mainMenu);
     mainMenu.get_item("cputype_experimental").
         check(CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL).
         refresh_item(mainMenu);
@@ -331,6 +337,8 @@ const char *GetCPUType() {
         return "Pentium Pro";
     else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII)
         return "Pentium II";
+    else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII)
+        return "Pentium III";
     else
         return "Mixed/other x86";
 }
@@ -2500,6 +2508,9 @@ void CPU_SET_CRX(Bitu cr,Bitu value) {
 	case 3:
 		PAGING_SetDirBase(value);
 		break;
+	case 4:
+		cpu.cr4=value;
+		break;
 	default:
 		LOG(LOG_CPU,LOG_ERROR)("Unhandled MOV CR%d,%X",cr,value);
 		break;
@@ -2527,6 +2538,8 @@ Bitu CPU_GET_CRX(Bitu cr) {
 		return paging.cr2;
 	case 3:
 		return PAGING_GetDirBase() & 0xfffff000;
+	case 4:
+		return cpu.cr4;
 	default:
 		LOG(LOG_CPU,LOG_ERROR)("Unhandled MOV XXX, CR%d",cr);
 		break;
@@ -2964,7 +2977,7 @@ bool CPU_CPUID(void) {
 			reg_edx=0x00008011;	/* FPU+TimeStamp/RDTSC */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
 			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
-		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII || CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
+		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII) {
 			/* NTS: Most operating systems will not attempt SYSENTER/SYSEXIT unless this returns model 3, stepping 3, or higher. */
 			/* From Intel [https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-vol-2b-manual.pdf]:
 			 *
@@ -2983,10 +2996,18 @@ bool CPU_CPUID(void) {
 			reg_eax=enable_syscall?0x633:0x631; /* intel pentium II */
 			reg_ebx=0;			/* Not Supported */
 			reg_ecx=0;			/* No features */
-			reg_edx=0x00008011;	/* FPU+TimeStamp/RDTSC */
+			reg_edx=0x00808011;	/* FPU+TimeStamp/RDTSC */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
 			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
 			reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT [SEE NOTES AT TOP OF THIS IF STATEMENT] */
+		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII || CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
+			reg_eax=0x673; /* intel pentium III */
+			reg_ebx=0;			/* Not Supported */
+			reg_ecx=0;			/* No features */
+			reg_edx=0x03808011;	/* FPU+TimeStamp/RDTSC+SSE+FXSAVE/FXRESTOR */
+			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
+			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+			reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT */
 		} else {
 			return false;
 		}
@@ -3329,8 +3350,11 @@ public:
 		SegSet16(ss,0); Segs.limit[ss] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[ss] = false;
 	
 		CPU_SetFlags(FLAG_IF,FMASK_ALL);		//Enable interrupts
-		cpu.cr0=0xffffffff;
+		fpu.mxcsr=0x1F80; // The default MXCSR value is... [https://www.felixcloutier.com/x86/ldmxcsr]
+		cpu.cr0=0x00000000;
+		cpu.cr4=0xffffffff;
 		CPU_SET_CRX(0,0);						//Initialize
+		CPU_SET_CRX(4,0);
 		cpu.code.big=false;
 		cpu.stack.mask=0xffff;
 		cpu.stack.notmask=0xffff0000;
@@ -3422,6 +3446,8 @@ public:
             set_text("Pentium Pro").set_callback_function(CpuType_ByName);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_pentium_ii").
             set_text("Pentium II").set_callback_function(CpuType_ByName);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_pentium_iii").
+            set_text("Pentium III").set_callback_function(CpuType_ByName);
 
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cputype_experimental").
             set_text("Experimental").set_callback_function(CpuType_ByName);
@@ -3712,6 +3738,8 @@ public:
 			CPU_ArchitectureType = CPU_ARCHTYPE_PPROSLOW;
 		} else if (cputype == "pentium_ii") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUMII;
+		} else if (cputype == "pentium_iii") {
+			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUMIII;
 		}
 		if (!enable_fpu && (cputype == "pentium" || cputype == "pentium_mmx" || cputype == "ppro_slow" || cputype == "pentium_ii"))
 			LOG_MSG("WARNING: Disabling FPU support for this CPU type is unusual, may confuse DOS programs");
@@ -4214,6 +4242,16 @@ bool CPU_RDMSR() {
 	if (!enable_msr) return false;
 
 	switch (reg_ecx) {
+		case 0x00000017: /* Known in Linux kernel as MSR_IA32_PLATFORM_ID */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			/* NTS: Windows ME assumes this MSR is present if we report ourself as a Pentium III and will BSOD if this does not return a value */
+			/* FIXME: Where is this documented? */
+			// Taken from an actual Pentium III system
+			// Also seen on a 500MHz part: EDX=0x51030000 EAX=0x00000000
+			reg_edx = 0x11000000;
+			reg_eax = 0x00000000;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Faking IA32 platform ID");
+			return true;
 		case 0x0000001b: /* Local APIC */
 			/* NTS: Windows ME assumes this MSR is present if we report ourself as a Pentium II,
 			 *      instead of, you know, using CPUID */
@@ -4222,12 +4260,46 @@ bool CPU_RDMSR() {
 			reg_edx = reg_eax = 0;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Faking Local APIC");
 			return true;
+		case 0x0000002a: /* MSR_IA32_EBL_CR_POWERON */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			reg_edx = reg_eax = 0;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: MSR_IA32_EBL_CR_POWERON");
+			return true;
 		case 0x0000008b: /* Intel microcode revision... Windows ME insists on reading this at startup if Pentium II and stepping 3 */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Guest is reading Intel microcode revision");
-			// FIXME: This is a guess. Pull out the Pentium II DOS system and see what comes back for this
-			reg_edx = 0;
-			reg_eax = 0x333;
+			if (CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUMIII) {
+				// Taken from an actual Pentium III system. Windows ME will try to update microcode if major version is too low, this value stops that.
+				// Also seen on a 500MHz part: EDX=0xA EAX=0x0
+				reg_edx = 0xE;
+				reg_eax = 0x0;
+			}
+			else {
+				// FIXME: This is a guess. Pull out the Pentium II DOS system and see what comes back for this.
+				// These values are large enough to prevent Windows ME from trying to update microcode.
+				reg_edx = 0x003F003F;
+				reg_eax = 0x001E03FF;
+			}
+			return true;
+		case 0x000000ce: /* MSR_PLATFORM_INFO? */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Attempt to read MSR_PLATFORM_INFO");
+			reg_edx = reg_eax = 0;
+			return true;
+		case 0x00000119: /* MSR_IA32_BBL_CR_CTL */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			reg_edx = reg_eax = 0;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: MSR_IA32_BBL_CR_CTL");
+			return true;
+		case 0x0000011e: /* MSR_IA32_BBL_CR_CTL3 */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			reg_edx = reg_eax = 0;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: MSR_IA32_BBL_CR_CTL3");
+			return true;
+		case 0x00000140: /* IA32_MISC_ENABLE [https://www.geoffchappell.com/studies/windows/km/cpu/msr/misc_enable.htm] */
+			/* Linux kernel assumes this MSR is present if Pentium III and will crash otherwise */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			reg_edx = reg_eax = 0;
 			return true;
 		case 0x00000174: /* SYSENTER CS selector */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
@@ -4243,6 +4315,16 @@ bool CPU_RDMSR() {
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
 			reg_edx = 0;
 			reg_eax = cpu_sep_eip;
+			return true;
+		case 0x00000186: /* MSR_P6_EVNTSEL0? */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Attempt to read MSR_P6_EVNTSEL0");
+			reg_edx = reg_eax = 0;
+			return true;
+		case 0x00000187: /* MSR_P6_EVNTSEL1? */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Attempt to read MSR_P6_EVNTSEL1");
+			reg_edx = reg_eax = 0;
 			return true;
 		default:
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Unknown register 0x%08lx",(unsigned long)reg_ecx);
@@ -4283,6 +4365,15 @@ bool CPU_WRMSR() {
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Attempt to write Intel microcode revision (is that you Windows ME?) EDX:EAX=%08x:%08x",reg_edx,reg_eax);
 			return true;
+		case 0x000000ce: /* MSR_PLATFORM_INFO? */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Attempt to write MSR_PLATFORM_INFO EDX:EAX=%08x:%08x",reg_edx,reg_eax);
+			return true;
+		case 0x00000140: /* IA32_MISC_ENABLE [https://www.geoffchappell.com/studies/windows/km/cpu/msr/misc_enable.htm] */
+			/* Linux kernel assumes this MSR is present if Pentium III and will crash otherwise */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: IA32_MISC_ENABLE %08x:%08x",reg_edx,reg_eax);
+			return true;
 		case 0x00000174: /* SYSENTER CS selector */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
 			cpu_sep_cs = (uint16_t)(reg_eax & 0xFFFFu);
@@ -4294,6 +4385,14 @@ bool CPU_WRMSR() {
 		case 0x00000176: /* SYSENTER EIP instruction pointer */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII || !enable_syscall) return false;
 			cpu_sep_eip = reg_eax;
+			return true;
+		case 0x00000186: /* MSR_P6_EVNTSEL0? */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Attempt to read MSR_P6_EVNTSEL0 EDX:EAX=%08x:%08x",reg_edx,reg_eax);
+			return true;
+		case 0x00000187: /* MSR_P6_EVNTSEL1? */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
+			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Attempt to read MSR_P6_EVNTSEL1 EDX:EAX=%08x:%08x",reg_edx,reg_eax);
 			return true;
 		default:
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Unknown register 0x%08lx (write 0x%08lx:0x%08lx)",(unsigned long)reg_ecx,(unsigned long)reg_edx,(unsigned long)reg_eax);
@@ -4337,6 +4436,16 @@ void CPU_CMPXCHG8B(PhysPt eaa) {
 		reg_edx = hi;
 		reg_eax = lo;
 	}
+}
+
+bool CPU_LDMXCSR(PhysPt eaa) {
+	fpu.mxcsr = mem_readd(eaa);
+	return true;
+}
+
+bool CPU_STMXCSR(PhysPt eaa) {
+	mem_writed(eaa,fpu.mxcsr);
+	return true;
 }
 
 namespace

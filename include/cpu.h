@@ -47,6 +47,7 @@
 #define CPU_ARCHTYPE_PMMXSLOW			0x55
 #define CPU_ARCHTYPE_PPROSLOW			0x60
 #define CPU_ARCHTYPE_PENTIUMII			0x65
+#define CPU_ARCHTYPE_PENTIUMIII			0x6A
 
 /* CPU Cycle Timing */
 extern cpu_cycles_count_t CPU_Cycles;
@@ -357,6 +358,15 @@ struct TSS_32 {
     uint32_t ldt;                  /* The local descriptor table */
 } GCC_ATTRIBUTE(packed);
 
+/* Last prefix encountered, needed for Pentium III "mandatory opcode prefixes" needed to differentiate SSE instructions given the opcode.
+ * Keeping it small and sequential should help your C++ compiler optimize the switch statement you're probably going to use in the normal core code. */
+enum {
+	MP_NONE=0,
+	MP_66,
+	MP_F2,
+	MP_F3
+};
+
 #ifdef _MSC_VER
 #pragma pack()
 #endif
@@ -538,12 +548,11 @@ struct CPUBlock {
 	Bitu cpl;							/* Current Privilege */
 	Bitu mpl;
 	Bitu cr0;
+	Bitu cr4;
 	bool pmode;							/* Is Protected mode enabled */
 	GDTDescriptorTable gdt;
 	DescriptorTable idt;
 	struct {
-		Bitu cr0_and;
-		Bitu cr0_or;
 		Bitu eflags;
 	} masks;
 	struct {
@@ -567,6 +576,17 @@ struct CPUBlock {
 };
 
 extern CPUBlock cpu;
+
+// SSE instructions are available if bit 9 is on in CR4, also enables FXSAVE and FXRESTOR
+static INLINE bool CPU_SSE(void) {
+	// TODO: The architecture test may be replaced with a general global variable that says "sse" allowed
+	return (cpu.cr4 & 0x200u) && (CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUMIII);
+}
+
+// SSE exceptions enabled by bit 10
+static INLINE bool CPU_SSE_exceptions(void) {
+	return (cpu.cr4 & 0x400u) && CPU_SSE();
+}
 
 static INLINE void CPU_SetFlagsd(const Bitu word) {
 	const Bitu mask=cpu.cpl ? FMASK_NORMAL : FMASK_ALL;
