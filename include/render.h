@@ -84,6 +84,7 @@ typedef struct Render_t {
 		scalerOperation_t op;
 		bool clearCache;
 		bool forced;
+		bool prompt;
 		bool hardware;
 		ScalerLineHandler_t lineHandler;
 		ScalerLineHandler_t linePalHandler;

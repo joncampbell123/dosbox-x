@@ -1202,7 +1202,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     // Some frequently used option sets
     const char* vsyncrate[] = { "%u", 0 };
-    const char* force[] = { "", "forced", 0 };
+    const char* force[] = { "", "forced", "prompt", 0 };
     const char* cyclest[] = { "auto","fixed","max","%u",0 };
     const char* mputypes[] = { "intelligent", "uart", "none", 0 };
     const char* vsyncmode[] = { "off", "on" ,"force", "host", 0 };
@@ -1886,6 +1886,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pmulti->SetValue("normal2x",/*init*/true);
     Pmulti->Set_help("Scaler used to enlarge/enhance low resolution modes. If 'forced' is appended,\n"
                      "then the scaler will be used even if the result might not be desired.\n"
+                     "Appending 'prompt' will cause a confirmation message for forcing the scaler.\n"
                      "To fit a scaler in the resolution used at full screen may require a border or side bars.\n"
                      "To fill the screen entirely, depending on your hardware, a different scaler/fullresolution might work.\n"
                      "Scalers should work with most output options, but they are ignored for openglpp and TrueType font outputs.");

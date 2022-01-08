@@ -52,6 +52,7 @@ uint32_t                                GFX_palette32bpp[256] = {0};
 
 unsigned int                            GFX_GetBShift();
 void                                    RENDER_CallBack( GFX_CallBackFunctions_t function );
+bool                                    systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
 #if defined(USE_TTF)
 bool resetreq=false;
@@ -481,13 +482,10 @@ void RENDER_Reset( void ) {
     if( sdl.desktop.isperfect ) /* Handle scaling if no pixel-perfect mode */
         goto forcenormal;
 
-    if((!dblh || !dblw) && scaler != "none" && strncasecmp(scaler.c_str(), "normal", 6) && !render.scale.forced && sdl.desktop.want_type != SCREEN_TTF) {
-        std::string message = "This scaler may not work properly or have undesired effect:\n\n"+scaler+"\n\nDo you want to load the scaler anyway?\n\n(You may append 'forced' to the scaler setting to force load the scaler without this message)";
-        bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
-        if (systemmessagebox("Loading scaler", message.c_str(), "yesno","question", 1))
-            render.scale.forced = true;
-        else
-            SetVal("render", "scaler", "none");
+    if(render.scale.prompt && (!dblh || !dblw) && !((dblh || dblw) && !render.scale.hardware) && scalerOpTV != render.scale.op && scaler != "none" && strncasecmp(scaler.c_str(), "normal", 6) && !render.scale.forced && sdl.desktop.want_type != SCREEN_TTF) {
+        std::string message = "This scaler may not work properly or have undesired effect:\n\n"+scaler+"\n\nDo you want to force load the scaler?";
+        render.scale.forced = systemmessagebox("Loading scaler", message.c_str(), "yesno","question", 1);
+        render.scale.prompt = false;
     }
     if ((dblh && dblw) || (render.scale.forced && dblh == dblw/*this branch works best with equal scaling in both directions*/)) {
         /* Initialize always working defaults */
@@ -1076,7 +1074,9 @@ void RENDER_UpdateFromScalerSetting(void) {
     unsigned int p_op = render.scale.op;
 
     render.scale.forced = false;
+    render.scale.prompt = false;
     if(f == "forced") render.scale.forced = true;
+    else if(f == "prompt") render.scale.prompt = true;
    
     if (scaler == "none") { render.scale.op = scalerOpNormal; render.scale.size = 1; render.scale.hardware=false; }
     else if (scaler == "normal2x") { render.scale.op = scalerOpNormal; render.scale.size = 2; render.scale.hardware=false; }
