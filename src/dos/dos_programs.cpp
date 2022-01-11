@@ -1672,23 +1672,24 @@ void pc98_43d_write(Bitu port,Bitu val,Bitu iolen) {
 #include <sys/file.h>
 #endif
 FILE *retfile = NULL;
-FILE * fopen_lock(const char * fname, const char * mode) {
-    if (lockmount && strlen(mode)>1&&mode[strlen(mode)-1]=='+') {
+FILE * fopen_lock(const char * fname, const char * mode, bool &readonly) {
+    std::string fmode = mode;
+    if (lockmount && fmode.size()>1 && fmode.back()=='+') {
 #if defined(WIN32)
         HANDLE hFile = CreateFile(fname, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
         if (hFile == INVALID_HANDLE_VALUE) {
             const host_cnv_char_t* host_name = CodePageGuestToHost(fname);
             if (host_name != NULL) hFile = CreateFileW(host_name, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
         }
-        if (hFile == INVALID_HANDLE_VALUE) return NULL;
+        if (hFile == INVALID_HANDLE_VALUE) {fmode.pop_back();readonly=true;goto next;}
         int nHandle = _open_osfhandle((intptr_t)hFile, _O_RDONLY);
         if (nHandle == -1) {CloseHandle(hFile);return NULL;}
-        retfile = _fdopen(nHandle, mode);
+        retfile = _fdopen(nHandle, fmode.c_str());
         if(!retfile) {CloseHandle(hFile);return NULL;}
         LockFile(hFile, 0, 0, 0xFFFFFFFF, 0xFFFFFFFF);
 #else
-        retfile = fopen64(fname, mode);
-        if (retfile == NULL) return NULL; /* did you know fopen returns NULL if it cannot open the file? */
+        retfile = fopen64(fname, fmode.c_str());
+        if (retfile == NULL) {fmode.pop_back();readonly=true;goto next;} /* did you know fopen returns NULL if it cannot open the file? */
         int lock = flock(fileno(retfile), LOCK_EX | LOCK_NB); /* did you know fileno() assumes retfile != NULL and you will segfault if that is wrong? */
         if (lock < 0) {
             fclose(retfile); /* don't leak file handles on failure to flock() */
@@ -1696,14 +1697,15 @@ FILE * fopen_lock(const char * fname, const char * mode) {
         }
 #endif
     } else {
-        retfile = fopen64(fname, mode);
+next:
+        retfile = fopen64(fname, fmode.c_str());
 #if defined(WIN32)
         if (retfile == NULL) {
             const host_cnv_char_t* host_name = CodePageGuestToHost(fname);
             if (host_name != NULL) {
-                const size_t size = strlen(mode)+1;
+                const size_t size = fmode.size()+1;
                 wchar_t* wmode = new wchar_t[size];
-                mbstowcs (wmode, mode, size);
+                mbstowcs (wmode, fmode.c_str(), size);
                 retfile = _wfopen(host_name, wmode);
             }
         }
@@ -1798,7 +1800,7 @@ private:
         Cross::ResolveHomedir(filename_s);
 		bool readonly=wpcolon&&filename_s.length()>1&&filename_s[0]==':';
 		if (!readonly)
-			tmpfile = fopen_lock(filename_s.c_str(),"rb+");
+			tmpfile = fopen_lock(filename_s.c_str(),"rb+",readonly);
         if(readonly || !tmpfile) {
             if( (tmpfile = fopen(readonly?filename_s.c_str()+1:filename_s.c_str(),"rb")) ) {
                 //File exists; So can't be opened in correct mode => error 2
@@ -5594,6 +5596,8 @@ private:
                             //load the file with imageDiskVHD, which supports fixed/dynamic/differential disks
                             imageDiskVHD::ErrorCodes ret = imageDiskVHD::Open(ro?paths[i].c_str()+1:paths[i].c_str(), ro||roflag, &vhdImage);
                             switch (ret) {
+                            case imageDiskVHD::UNSUPPORTED_WRITE:
+                                options.push_back("readonly");
                             case imageDiskVHD::OPEN_SUCCESS: {
                                 //upon successful, go back to old code if using a fixed disk, which patches chs values for incorrectly identified disks
                                 skipDetectGeometry = true;
@@ -6082,6 +6086,7 @@ private:
                     case imageDiskVHD::PARENT_UNSUPPORTED_TYPE: WriteOut(MSG_Get("VHD_PARENT_UNSUPPORTED_TYPE")); break;
                     case imageDiskVHD::PARENT_INVALID_MATCH: WriteOut(MSG_Get("VHD_PARENT_INVALID_MATCH")); break;
                     case imageDiskVHD::PARENT_INVALID_DATE: WriteOut(MSG_Get("VHD_PARENT_INVALID_DATE")); break;
+                    case imageDiskVHD::UNSUPPORTED_WRITE: roflag=true; break;
                     default: break;
                     }
                     return newImage;
@@ -6095,7 +6100,7 @@ private:
 
 		bool readonly = wpcolon&&strlen(fileName)>1&&fileName[0]==':';
 		const char* fname=readonly?fileName+1:fileName;
-        FILE *newDisk = file==NULL?fopen_lock(fname, readonly||roflag?"rb":"rb+"):file;
+        FILE *newDisk = file==NULL?fopen_lock(fname, readonly||roflag?"rb":"rb+", roflag):file;
         if (!newDisk) {
             if (!qmount) WriteOut("Unable to open '%s'\n", fname);
             return NULL;
