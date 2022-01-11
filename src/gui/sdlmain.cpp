@@ -9498,7 +9498,7 @@ void CopyClipboard(int all) {
                 result+=(wchar_t *)wch;
                 delete[] wch;
             }
-            result+=std::wstring(1, '\n');
+            result+=std::wstring(1, '\r')+std::wstring(1, '\n');
             baselen+=token.size()+1;
         }
         morelen=false;

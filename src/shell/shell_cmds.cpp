@@ -2015,6 +2015,7 @@ void DOS_Shell::CMD_LS(char *args) {
 		WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"),rem);
 		return;
 	}
+	if (!outcon) optL = true;
 
 	RealPt save_dta=dos.dta();
 	dos.dta(dos.tables.tempdta);

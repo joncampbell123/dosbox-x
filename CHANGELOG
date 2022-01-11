@@ -6,6 +6,19 @@
     tools like CPU-Z to make them happy. (joncampbell123)
   - Added FXSAVE/FXRSTOR which makes Linux happy with
     Pentium III emulation. (joncampbell123)
+  - For piping (|), DOSBox-X will now also try C: drive
+    as a temporary piping path if current directory is
+    read-only and the environment variable %TEMP% (or
+    %TMP%) is not set. (Wengier)
+  - For clipboard copy, CR+LF will now be used instead
+    of LF on Windows for better compatibility. (Wengier)
+  - Disk images are automatically mounted as read-only
+    (instead of failing) now if the image files are
+    read-only and the users do not explicitly specify
+    read-only mode for the disk images. (Wengier)
+  - Fixed the issue of loading scalers in the previous
+    version. A message box will only show up if you
+    append "prompt" to the scaler option. (Wengier)
 0.83.21
   - Release notes for this version:
     https://dosbox-x.com/release-0.83.21.html

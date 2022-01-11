@@ -3021,7 +3021,7 @@ Comandos DOS
 Depurador
 .
 :MENU:HelpDebugMenu
-Logging console
+Consola de registro
 .
 :MENU:debug_blankrefreshtest
 Prueba de refresco (pantalla en blanco)

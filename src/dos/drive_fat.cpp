@@ -1235,7 +1235,7 @@ fatDrive::~fatDrive() {
 	}
 }
 
-FILE * fopen_lock(const char * fname, const char * mode);
+FILE * fopen_lock(const char * fname, const char * mode, bool &readonly);
 fatDrive::fatDrive(const char* sysFilename, uint32_t bytesector, uint32_t cylsector, uint32_t headscyl, uint32_t cylinders, std::vector<std::string>& options) {
 	FILE *diskfile;
 	uint32_t filesize;
@@ -1251,7 +1251,7 @@ fatDrive::fatDrive(const char* sysFilename, uint32_t bytesector, uint32_t cylsec
     bool roflag = it!=options.end();
 	readonly = wpcolon&&strlen(sysFilename)>1&&sysFilename[0]==':';
     const char *fname=readonly?sysFilename+1:sysFilename;
-    diskfile = fopen_lock(fname, readonly||roflag?"rb":"rb+");
+    diskfile = fopen_lock(fname, readonly||roflag?"rb":"rb+", readonly);
     if (!diskfile) {created_successfully = false;return;}
     opts.bytesector = bytesector;
     opts.cylsector = cylsector;
@@ -1329,6 +1329,8 @@ fatDrive::fatDrive(imageDisk *sourceLoadedDisk, std::vector<std::string> &option
 		imgDTAPtr = RealMake(imgDTASeg, 0);
 		imgDTA    = new DOS_DTA(imgDTAPtr);
 	}
+    std::vector<std::string>::iterator it = std::find(options.begin(), options.end(), "readonly");
+    if (it!=options.end()) readonly = true;
     opts = {0,0,0,0,-1};
     imageDiskElToritoFloppy *idelt=dynamic_cast<imageDiskElToritoFloppy *>(sourceLoadedDisk);
     imageDiskMemory* idmem=dynamic_cast<imageDiskMemory *>(sourceLoadedDisk);

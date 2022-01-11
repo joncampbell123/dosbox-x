@@ -441,9 +441,21 @@ void DOS_Shell::ParseLine(char * line) {
 		} else {
 			if (toc&&DOS_FindFirst(pipetmp, ~DOS_ATTR_VOLUME)&&!DOS_UnlinkFile(pipetmp))
 				fail=true;
-			status = DOS_OpenFileExtended(toc?pipetmp:out,OPEN_READWRITE,DOS_ATTR_ARCHIVE,0x12,&dummy,&dummy2);
+			status = DOS_OpenFileExtended(toc&&!fail?pipetmp:out,OPEN_READWRITE,DOS_ATTR_ARCHIVE,0x12,&dummy,&dummy2);
+            if (toc&&(fail||!status)&&!strchr(pipetmp,'\\')) {
+                int len = (int)strlen(pipetmp);
+                for (int i = len; i >= 0; i--)
+                    pipetmp[i + 3] = pipetmp[i];
+                pipetmp[0] = 'c';
+                pipetmp[1] = ':';
+                pipetmp[2] = '\\';
+                fail=false;
+                if (DOS_FindFirst(pipetmp, ~DOS_ATTR_VOLUME) && !DOS_UnlinkFile(pipetmp))
+                    fail=true;
+                else
+                    status = DOS_OpenFileExtended(pipetmp, OPEN_READWRITE, DOS_ATTR_ARCHIVE, 0x12, &dummy, &dummy2);
+            }
 		}
-		
 		if(!status && normalstdout) {
 			DOS_OpenFile("con", OPEN_READWRITE, &dummy);							// Read only file, open con again
 			if (!toc) {
