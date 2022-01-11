@@ -7,7 +7,7 @@
   - Added FXSAVE/FXRSTOR which makes Linux happy with
     Pentium III emulation. (joncampbell123)
   - For piping (|), DOSBox-X will now also try C: drive
-    as temporary piping path if current directory is
+    as a temporary piping path if current directory is
     read-only and the environment variable %TEMP% (or
     %TMP%) is not set. (Wengier)
   - For clipboard copy, CR+LF will now be used instead
