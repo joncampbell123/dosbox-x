@@ -131,7 +131,7 @@ extern bool ignore_vblank_wraparound;
 extern bool vga_double_buffered_line_compare;
 extern bool pc98_crt_mode;      // see port 6Ah command 40h/41h.
 extern bool pc98_31khz_mode;
-extern bool auto_save_state, enable_autosave, enable_dbcs_tables, dbcs_sbcs, autoboxdraw;
+extern bool auto_save_state, enable_autosave, enable_dbcs_tables, showdbcs, dbcs_sbcs, autoboxdraw;
 extern int autosave_second, autosave_count, autosave_start[10], autosave_end[10], autosave_last[10];
 extern std::string failName, autosave_name[10];
 void SetGameState_Run(int value), SaveGameState_Run(void);
@@ -1977,12 +1977,22 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
     unsigned int row = (vidstart - vga.config.real_start - vga.draw.bytes_skip) / vga.draw.address_add, col = 0;
     if (IS_JEGA_ARCH && !jtbs.empty() && line == 1) jtbs.erase(std::remove_if(jtbs.begin(), jtbs.end(), first_equal(row)), jtbs.end());
     while (blocks--) {
-        if (isJEGAEnabled()) {
+        if (isJEGAEnabled() || (isDBCSCP()
+#if defined(USE_TTF)
+            && dbcs_sbcs
+#endif
+            && showdbcs)) {
             VGA_Latch pixels;
             pixels.d = *vidmem;
             vidmem += (uintptr_t)1U << (uintptr_t)vga.config.addr_shift;
             chr = pixels.b[0];
             attr = pixels.b[1];
+            VGA_Latch pixeln1, pixeln2, pixeln3, pixelp1, pixelp2;
+            pixeln1.d = *vidmem;
+            pixeln2.d = *(vidmem + ((uintptr_t)1U << (uintptr_t)vga.config.addr_shift));
+            pixeln3.d = *(vidmem + 2 * ((uintptr_t)1U << (uintptr_t)vga.config.addr_shift));
+            pixelp1.d = *(vidmem - ((uintptr_t)1U << (uintptr_t)vga.config.addr_shift));
+            pixelp2.d = *(vidmem - 2 * ((uintptr_t)1U << (uintptr_t)vga.config.addr_shift));
             if (!chr_wide) {
                 if (!(jega.RMOD2 & 0x80)) {
                     background = attr >> 4;
@@ -1999,25 +2009,43 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
                         foreground = tmp;
                     }
                 }
-                if(isKanji1(chr) && blocks > 0) {
+                if(isKanji1(chr) && blocks > 0 && isKanji2(pixeln1.b[0]) && !(
+#if defined(USE_TTF)
+                autoboxdraw &&
+#endif
+                (CheckBoxDrawing(pixelp2.b[0], pixelp1.b[0], chr, pixeln1.b[0]) ||
+                (blocks > 2 && CheckBoxDrawing(chr, pixeln1.b[0], pixeln2.b[0], pixeln3.b[0]))))) {
                     chr_left=chr;
                     chr_wide=true;
                     blocks++;
                 } else {
-                    Bitu font = jfont_sbcs_19[chr*19+line];
+                    Bitu font = dos.loaded_codepage==932
+#if defined(USE_TTF)
+                    && halfwidthkana
+#endif
+                    ? jfont_sbcs_19[chr*19+line] : int10_font_19[chr*19+line];
                     for (Bitu n = 0; n < 8; n++) {
-                        *draw++ = vga.attr.palette[(font & 0x80) ? foreground : background];
+                        if (card == MCH_VGA)
+                            *draw++ = vga.dac.xlat32[(font & 0x80)? foreground : background];
+                        else
+                            *draw++ = vga.attr.palette[(font & 0x80) ? foreground : background];
                         font <<= 1;
                     }
                     if (bsattr & 0x20) {
                         draw -= 8;
-                        *draw = vga.attr.palette[foreground];
+                        if (card == MCH_VGA)
+                            *draw = vga.dac.xlat32[foreground];
+                        else
+                            *draw = vga.attr.palette[foreground];
                         draw += 8;
                     }
                     if (line == 18 && bsattr & 0x10) {
                         draw -= 8;
                         for (Bitu n = 0; n < 8; n++)
-                            *draw++ = vga.attr.palette[foreground];
+                            if (card == MCH_VGA)
+                                *draw++ = vga.dac.xlat32[foreground];
+                            else
+                                *draw++ = vga.attr.palette[foreground];
                     }
                     chr_wide=false;
                 }
@@ -2026,7 +2054,7 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
             {
                 Bitu pad_y = jega.RPSSC;
                 Bitu exattr = 0;
-                if (jega.RMOD2 & 0x40) {
+                if ((jega.RMOD2 & 0x40)) {
                     exattr = attr;
                     if ((exattr & 0x30) == 0x30) pad_y = jega.RPSSL;
                     else if (exattr & 0x30) pad_y = jega.RPSSU;
@@ -2047,8 +2075,13 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
                             if (!(exattr & 0x08))
                                 font = f[fline * 2 + 1];
                             for (Bitu n = 0; n < 8; n++) {
-                                *draw++ = vga.attr.palette[(font & 0x80) ? foreground : background];
-                                *draw++ = vga.attr.palette[(font & 0x80) ? foreground : background];
+                                if (card == MCH_VGA) {
+                                    *draw++ = vga.dac.xlat32[(font & 0x80) ? foreground : background];
+                                    *draw++ = vga.dac.xlat32[(font & 0x80) ? foreground : background];
+                                } else {
+                                    *draw++ = vga.attr.palette[(font & 0x80) ? foreground : background];
+                                    *draw++ = vga.attr.palette[(font & 0x80) ? foreground : background];
+                                }
                                 font <<= 1;
                             }
                         } else {
@@ -2062,19 +2095,38 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
                                 font |= font2;
                             }
                             for (Bitu n = 0; n < 16; n++) {
-                                *draw++ = vga.attr.palette[(font & 0x8000) ? foreground : background];
+                                if (card == MCH_VGA)
+                                    *draw++ = vga.dac.xlat32[(font & 0x8000)? foreground : background];
+                                else
+                                    *draw++ = vga.attr.palette[(font & 0x8000) ? foreground : background];
                                 font <<= 1;
                             }
                         }
-                    } else for (Bitu n = 0; n < 16; n++)
-                        *draw++ = vga.attr.palette[background];
+                    } else for (Bitu n = 0; n < 16; n++) {
+                        if (card == MCH_VGA)
+                            *draw++ = vga.dac.xlat32[background];
+                        else
+                            *draw++ = vga.attr.palette[background];
+                    }
                 } else if (line == (17 + pad_y) && (bsattr & 0x10)) {
-                        for (Bitu n = 0; n < 16; n++)
-                            *draw++ = vga.attr.palette[foreground];
-                } else for (Bitu n = 0; n < 16; n++) *draw++ = vga.attr.palette[background];
+                        for (Bitu n = 0; n < 16; n++) {
+                            if (card == MCH_VGA)
+                                *draw++ = vga.dac.xlat32[foreground];
+                            else
+                                *draw++ = vga.attr.palette[foreground];
+                        }
+                } else for (Bitu n = 0; n < 16; n++) {
+                    if (card == MCH_VGA)
+                        *draw++ = vga.dac.xlat32[background];
+                    else
+                        *draw++ = vga.attr.palette[background];
+                }
                 if (bsattr & 0x20) {
                     draw -= 16;
-                    *draw = vga.attr.palette[foreground];
+                    if (card == MCH_VGA)
+                        *draw = vga.dac.xlat32[foreground];
+                    else
+                        *draw = vga.attr.palette[foreground];
                     draw += 16;
                 }
                 chr_wide=false;
@@ -3903,7 +3955,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 #if defined(USE_TTF)
     if (ttf.inUse) {
         GFX_StartUpdate(render.scale.outWrite, render.scale.outPitch);
-        vga.draw.blink = ((vga.draw.blinking & time(NULL)) || !vga.draw.blinking) ? true : false;	// eventually blink once per second
+        vga.draw.blink = ((vga.draw.blinking & (GetTicks()/300)) || !vga.draw.blinking) ? true : false;	// eventually blink about thrice per second
         vga.draw.cursor.address = vga.config.cursor_start*2;
         Bitu vidstart = vga.config.real_start + vga.draw.bytes_skip;
         vidstart *= 2;

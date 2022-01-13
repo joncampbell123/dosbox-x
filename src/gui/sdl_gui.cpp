@@ -35,6 +35,7 @@
 #include "control.h"
 #include "shell.h"
 #include "cpu.h"
+#include "pic.h"
 #include "midi.h"
 #include "bios_disk.h"
 #include "../dos/drives.h"
@@ -88,6 +89,7 @@ extern Bitu                 currentWindowWidth, currentWindowHeight;
 extern std::string          strPasteBuffer, langname;
 
 extern void                 resetFontSize(void);
+extern void                 MAPPER_ReleaseAllKeys(void);
 extern void                 PasteClipboard(bool bPressed);
 extern bool                 MSG_Write(const char *, const char *);
 extern void                 LoadMessageFile(const char * fname);
@@ -110,6 +112,7 @@ static SDL_Surface*         background = NULL;
 static bool                 gui_menu_init = true, null_menu_init = true;
 #endif
 int                         shortcutid = -1;
+bool                        GFX_GetPreventFullscreen(void);
 void                        GFX_GetSizeAndPos(int &x,int &y,int &width, int &height, bool &fullscreen);
 
 #if defined(WIN32) && !defined(HX_DOS)
@@ -127,6 +130,7 @@ GUI::Checkbox *advopt, *saveall, *imgfd360, *imgfd400, *imgfd720, *imgfd1200, *i
 std::string GetDOSBoxXPath(bool withexe);
 static std::map< std::vector<GUI::Char>, GUI::ToplevelWindow* > cfg_windows_active;
 void getlogtext(std::string &str), getcodetext(std::string &text), ApplySetting(std::string pvar, std::string inputline, bool quiet), GUI_Run(bool pressed);
+void ttf_switch_on(bool ss=true), ttf_switch_off(bool ss=true);
 bool CheckQuit(void);
 char tmp1[CROSS_LEN*2], tmp2[CROSS_LEN];
 const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ", "
@@ -326,7 +330,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
                 getPixel((x-1)*(int)render.src.width/sw, (y+1)*(int)render.src.height/sh, r, g, b, 3); 
                 int r1, g1, b1;
 #if defined(USE_TTF)
-                if (ttf.inUse) {
+                if (ttf.inUse && confres) {
                     std::string theme = section->Get_string("bannercolortheme");
                     if (theme == "black") {
                         r1 = 0; g1 = 0; b1 = 0;
@@ -3346,10 +3350,43 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
     }
 }
 
+int sel = -1;
+bool switchttf = false, gofs = false;
+void RunCfgTool(Bitu val) {
+    gofs=false;
+#if defined(USE_TTF)
+    if (!ttf.inUse && switchttf) {
+        ttf_switch_on();
+        if (sel==36&&!GFX_IsFullscreen()) {gofs=true;GFX_SwitchFullScreen();}
+    }
+    switchttf = false;
+#endif
+    GUI::ScreenSDL *screen = UI_Startup(NULL);
+    if (sel<0)
+        UI_Execute(screen);
+    else
+        UI_Select(screen,sel);
+    UI_Shutdown(screen);
+    delete screen;
+    if (sel>-1) {
+        if (gofs&&GFX_IsFullscreen()) GFX_SwitchFullScreen();
+        gofs=false;
+        toscale=true;
+        shortcut=false;
+        shortcutid=-1;
+        statusdrive=-1;
+        helpcmd = "";
+        MAPPER_ReleaseAllKeys();
+        GFX_LosingFocus();
+        sel = -1;
+    }
+}
+
 void GUI_Shortcut(int select) {
     if(!select || running) return;
 
-    bool GFX_GetPreventFullscreen(void);
+    MAPPER_ReleaseAllKeys();
+    GFX_LosingFocus();
 
     /* Sorry, the UI screws up 3Dfx OpenGL emulation.
      * Remove this block when fixed. */
@@ -3360,28 +3397,36 @@ void GUI_Shortcut(int select) {
 
     shortcutid=select;
     shortcut=true;
-    GUI::ScreenSDL *screen = UI_Startup(NULL);
-    UI_Select(screen,select);
-    UI_Shutdown(screen);
-    shortcut=false;
-    shortcutid=-1;
-    delete screen;
+    sel = select;
+#if defined(USE_TTF)
+    if (ttf.inUse && !confres) {
+        ttf_switch_off();
+        GFX_EndUpdate(0);
+        switchttf = true;
+        PIC_AddEvent(RunCfgTool, 100);
+    } else
+#endif
+    RunCfgTool(NULL);
 }
 
 void GUI_Run(bool pressed) {
     if (pressed || running) return;
 
-    bool GFX_GetPreventFullscreen(void);
-
     /* Sorry, the UI screws up 3Dfx OpenGL emulation.
      * Remove this block when fixed. */
     if (GFX_GetPreventFullscreen()) {
-        LOG_MSG("GUI is not available while 3Dfx OpenGL emulation is running");
+        LOG_MSG("Configuration Tool is not available while 3Dfx OpenGL emulation is running");
         return;
     }
 
-    GUI::ScreenSDL *screen = UI_Startup(NULL);
-    UI_Execute(screen);
-    UI_Shutdown(screen);
-    delete screen;
+    sel = -1;
+#if defined(USE_TTF)
+    if (ttf.inUse) {
+        ttf_switch_off();
+        GFX_EndUpdate(0);
+        switchttf = true;
+        PIC_AddEvent(RunCfgTool, 100);
+    } else
+#endif
+    RunCfgTool(NULL);
 }

@@ -320,6 +320,7 @@ bool export_ffmpeg = false;
 
 std::string capturedir;
 extern std::string savefilename;
+extern bool showdbcs, setchar9;
 extern bool use_save_file, noremark_save_state, force_load_state;
 extern unsigned int hostkeyalt, sendkeymap;
 extern const char* RunningProgram;
@@ -1518,6 +1519,9 @@ void CAPTURE_ScreenShotEvent(bool pressed) {
 	CaptureState |= CAPTURE_IMAGE;
 #endif
 #if defined(USE_TTF)
+    showdbcs = true;
+    setchar9 = static_cast<Section_prop *>(control->GetSection("render"))->Get_bool("char9");
+    SetVal("render", "char9", "false");
     ttf_switch_off();
 #endif
 }

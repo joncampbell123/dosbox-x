@@ -69,6 +69,7 @@ extern bool use_quick_reboot;
 extern bool force_load_state;
 extern bool force_conversion, gbk, chinasea;
 extern bool pc98_force_ibm_layout, clearline;
+extern bool setchar9, showdbcs, switchttf;
 extern bool ttfswitch, switch_output_from_ttf;
 extern bool inshell, enable_config_as_shell_commands;
 bool tooutttf = false;
@@ -762,14 +763,8 @@ bool drive_info_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
 
     if (dos_kernel_disabled) return true;
 
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
     statusdrive=drive;
     GUI_Shortcut(31);
-    statusdrive=-1;
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
-
     return true;
 }
 
@@ -902,28 +897,24 @@ bool change_currentfd_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * c
 bool make_diskimage_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
     if(control->SecureMode()) {
 #if !defined(HX_DOS)
+        MAPPER_ReleaseAllKeys();
+        GFX_LosingFocus();
         GFX_ReleaseMouse();
         tinyfd_messageBox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
+        MAPPER_ReleaseAllKeys();
+        GFX_LosingFocus();
 #endif
     } else
         GUI_Shortcut(37);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
     return true;
 }
 
 bool list_drivenum_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
     GUI_Shortcut(32);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
     return true;
 }
 
@@ -931,11 +922,7 @@ std::string GetIDEInfo();
 bool list_ideinfo_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
     GUI_Shortcut(33);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
     return true;
 }
 
@@ -3049,8 +3036,10 @@ static Bitu OUTPUT_TTF_SetSize() {
         GFX_SetResizeable(false);
         sdl.window = GFX_SetSDLSurfaceWindow(maxWidth, maxHeight);
         sdl.surface = sdl.window?SDL_GetWindowSurface(sdl.window):NULL;
-        if (sdl.displayNumber==0) SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-        else SDL_SetWindowPosition(sdl.window, bx, by);
+        if (posx != -2 || posy != -2) {
+            if (sdl.displayNumber==0) SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
+            else SDL_SetWindowPosition(sdl.window, bx, by);
+        }
 #else
         sdl.surface = SDL_SetVideoMode(maxWidth, maxHeight, 32, SDL_SWSURFACE|
 #if defined(WIN32)
@@ -3079,7 +3068,7 @@ static Bitu OUTPUT_TTF_SetSize() {
         GFX_SetResizeable(false);
         sdl.window = GFX_SetSDLSurfaceWindow(sdl.draw.width + sdl.clip.x, sdl.draw.height + sdl.clip.y);
         sdl.surface = sdl.window?SDL_GetWindowSurface(sdl.window):NULL;
-        if (firstsize && (posx < 0 || posy < 0) && text) {
+        if (firstsize && (posx < 0 || posy < 0) && !(posx == -2 && posy == -2) && text) {
             firstsize=false;
             if (sdl.displayNumber==0) SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
             else SDL_SetWindowPosition(sdl.window, bx, by);
@@ -3202,7 +3191,7 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
         SDL_ShowCursor(sdl.mouse.autolock?SDL_DISABLE:SDL_ENABLE);
 
 #if defined(C_SDL2)
-    if (diff && posx < 0 && posy < 0) {
+    if (diff && posx < 0 && posy < 0 && !(posx == -2 && posy == -2)) {
         if (sdl.displayNumber==0)
             SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
         else {
@@ -4509,9 +4498,9 @@ void GFX_SwitchFullScreen(void)
 #if defined(C_SDL2)
             if (posx >= 0 && posy >= 0)
                 SDL_SetWindowPosition(sdl.window, posx, posy);
-            else if (sdl.displayNumber==0)
+            else if (sdl.displayNumber==0 && !(posx == -2 && posy == -2))
                 SDL_SetWindowPosition(sdl.window, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED);
-            else {
+            else if (posx != -2 || posy != -2) {
                 int bx = 0, by = 0;
                 int displays = SDL_GetNumVideoDisplays();
                 SDL_Rect bound;
@@ -5069,7 +5058,7 @@ void GFX_EndTextLines(bool force=false) {
 			if (blinkCursor>-1)
 				vga.draw.cursor.blinkon = (vga.draw.cursor.count & 1<<blinkCursor) ? true : false;
 
-			if (ttf.cursor != newPos || vga.draw.cursor.sline != prev_sline || ((blinkstate != vga.draw.cursor.blinkon) && blinkCursor>-1)) {				// If new position or shape changed, forse draw
+			if (ttf.cursor != newPos || vga.draw.cursor.sline != prev_sline || ((blinkstate != vga.draw.cursor.blinkon) && blinkCursor>-1)) {				// If new position or shape changed, force draw
 				if (blinkCursor>-1 && blinkstate == vga.draw.cursor.blinkon) {
 					vga.draw.cursor.count = 4;
 					vga.draw.cursor.blinkon = true;
@@ -5082,8 +5071,8 @@ void GFX_EndTextLines(bool force=false) {
 			}
 			blinkstate = vga.draw.cursor.blinkon;
 			ttf.cursor = newPos;
-//			if (x >= xmin && x <= xmax && y >= ymin && y <= ymax  && (GetTickCount()&0x400))	// If overdrawn previuosly (or new shape)
-			if (x >= xmin && x <= xmax && y >= ymin && y <= ymax && !newAttrChar[ttf.cursor].skipped) {							// If overdrawn previuosly (or new shape)
+//			if (x >= xmin && x <= xmax && y >= ymin && y <= ymax  && (GetTickCount()&0x400))	// If overdrawn previously (or new shape)
+			if (x >= xmin && x <= xmax && y >= ymin && y <= ymax && !newAttrChar[ttf.cursor].skipped) {							// If overdrawn previously (or new shape)
 				uint8_t colorBG = newAttrChar[ttf.cursor].bg;
 				uint8_t colorFG = newAttrChar[ttf.cursor].fg;
 				processWP(&colorBG, &colorFG);
@@ -6096,7 +6085,9 @@ static void GUI_StartUp() {
     posy = -1;
     const char* windowposition = section->Get_string("windowposition");
     LOG_MSG("Configured windowposition: %s", windowposition);
-    if (windowposition && *windowposition) {
+    if (windowposition && !strcmp(windowposition, "-"))
+        posx = posy = -2;
+    else if (windowposition && *windowposition) {
         char result[100];
         safe_strncpy(result, windowposition, sizeof(result));
         char* y = strchr(result, ',');
@@ -6138,12 +6129,12 @@ static void GUI_StartUp() {
         setenv("SDL_VIDEO_WINDOW_POS",(std::to_string(posx)+","+std::to_string(posy)).c_str(),0);
 #endif
 #if defined(WIN32) && !defined(HX_DOS)
-    } else if (sdl.displayNumber>0) {
+    } else if (sdl.displayNumber>0 && !(posx == -2 && posy == -2)) {
         safe_strncpy(pos, "SDL_VIDEO_WINDOW_POS=", sizeof(pos));
         safe_strcat(pos, (std::to_string(info.rcMonitor.left+200)+","+std::to_string(info.rcMonitor.top+200)).c_str());
         SDL_putenv(pos);
 #endif
-    } else
+    } else if (posx != -2 || posy != -2)
         putenv((char*)"SDL_VIDEO_CENTERED=center");
 #endif
 
@@ -8692,7 +8683,8 @@ void SDL_SetupConfigSection() {
     Pstring->SetBasic(true);
 
     Pstring = sdl_sec->Add_string("windowposition", Property::Changeable::Always, "");
-    Pstring->Set_help("Set the window position at startup in the positionX,positionY format (e.g.: 1300,200). If empty, the window will be centered.");
+    Pstring->Set_help("Set the window position at startup in the positionX,positionY format (e.g.: 1300,200).\n"
+                      "The window will be centered if empty, and will be in the original position with \"-\".");
     Pstring->SetBasic(true);
 
     const char* outputs[] = {
@@ -10605,45 +10597,21 @@ bool mixer_mute_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
 bool mixer_info_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
     GUI_Shortcut(20);
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
     return true;
 }
 
 bool sb_device_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
     GUI_Shortcut(21);
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
     return true;
 }
 
 bool midi_device_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
     GUI_Shortcut(22);
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
     return true;
 }
 
@@ -10726,15 +10694,7 @@ bool dos_mouse_y_axis_reverse_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::
 bool dos_mouse_sensitivity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
     GUI_Shortcut(28);
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
     return true;
 }
 
@@ -10769,15 +10729,7 @@ bool dos_ver_set_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const 
 bool dos_ver_edit_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
     GUI_Shortcut(19);
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
     return true;
 }
 
@@ -11558,15 +11510,7 @@ bool vsync_set_syncrate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item *
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
 #if !defined(C_SDL2)
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
     GUI_Shortcut(17);
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
 #endif
     return true;
 }
@@ -11574,16 +11518,7 @@ bool vsync_set_syncrate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item *
 bool refresh_rate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
     GUI_Shortcut(30);
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
     return true;
 }
 
@@ -11677,7 +11612,7 @@ bool toOutput(const char *what) {
 #endif
         }
 #if !defined(C_SDL2)
-        putenv((char*)"SDL_VIDEO_CENTERED=center");
+        if (posx != -2 || posy != -2) putenv((char*)"SDL_VIDEO_CENTERED=center");
 #endif
         firstset=false;
         change_output(10);
@@ -12259,22 +12194,14 @@ bool save_logas_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
 bool show_logtext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
     GUI_Shortcut(40);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
     return true;
 }
 
 bool show_codetext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
     GUI_Shortcut(41);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
     return true;
 }
 
@@ -12541,16 +12468,7 @@ bool use_save_file_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * con
 }
 
 bool auto_save_setting_menu_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*menuitem*/) {
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
     GUI_Shortcut(29);
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
     return true;
 }
 
@@ -12903,30 +12821,12 @@ bool help_open_url_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const me
 }
 
 bool help_intro_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*menuitem*/) {
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
     GUI_Shortcut(34);
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
     return true;
 }
 
 bool help_about_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*menuitem*/) {
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
     GUI_Shortcut(35);
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
     return true;
 }
 
@@ -12941,7 +12841,7 @@ bool help_command_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const
 #if defined(C_SDL2)
     int x=-1, y=-1;
 #endif
-    if (!GFX_IsFullscreen()&&!window_was_maximized) {
+    if (!GFX_IsFullscreen()&&!TTF_using()&&!window_was_maximized) {
         switchfs=true;
 #if defined(C_SDL2)
         SDL_GetWindowPosition(sdl.window, &x, &y);
@@ -12951,8 +12851,6 @@ bool help_command_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const
     toscale=false;
     helpcmd = menuitem->get_name().substr(8);
     GUI_Shortcut(36);
-    toscale=true;
-    helpcmd = "";
     if (switchfs) {
         GFX_SwitchFullScreen();
 #if defined(C_SDL2)
@@ -12967,37 +12865,19 @@ bool help_command_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const
     return true;
 }
 
-extern std::string niclist;
 bool help_nic_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*menuitem*/) {
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
     GUI_Shortcut(38);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
     return true;
 }
 
-extern std::string prtlist;
 bool help_prt_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*menuitem*/) {
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
     GUI_Shortcut(39);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
     return true;
 }
 
 
 void SetCyclesCount_mapper_shortcut_RunInternal(void) {
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
-
     GUI_Shortcut(16);
-
-    MAPPER_ReleaseAllKeys();
-
-    GFX_LosingFocus();
 }
 
 void SetCyclesCount_mapper_shortcut_RunEvent(Bitu /*val*/) {
@@ -15512,8 +15392,9 @@ fresh_boot:
 
 #if defined(USE_TTF)
         if (ttfswitch || switch_output_from_ttf) {
+            if (setchar9) SetVal("render", "char9", "true");
             tooutttf = true;
-            ttfswitch = switch_output_from_ttf = false;
+            setchar9 = showdbcs = switchttf = ttfswitch = switch_output_from_ttf = false;
             mainMenu.get_item("output_ttf").enable(true).refresh_item(mainMenu);
         }
 #endif

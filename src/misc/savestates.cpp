@@ -1314,12 +1314,8 @@ void savestatecorrupt(const char* part) {
 bool confres=false;
 bool loadstateconfirm(int ind) {
     if (ind<0||ind>4) return false;
-    confres=false;
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
+    confres=true;
     GUI_Shortcut(23+ind);
-    MAPPER_ReleaseAllKeys();
-    GFX_LosingFocus();
     bool ret=confres;
     confres=false;
     return ret;

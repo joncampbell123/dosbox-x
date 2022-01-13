@@ -16,6 +16,14 @@
     (instead of failing) now if the image files are
     read-only and the users do not explicitly specify
     read-only mode for the disk images. (Wengier)
+  - Setting "windowposition" to "-" in the configuration
+    will leave DOSBox-X window position as is instead of
+    a specific position or being centered. (Wengier)
+  - Fixed slow blinking text in TTF output. (Wengier)
+  - Fixed background for the Configuration Tool when
+    the TTF output is active. (Wengier)
+  - Fixed DBCS characters not showing up when capturing
+    screenshots in TTF CJK mode. (Wengier)
   - Fixed the issue of loading scalers in the previous
     version. A message box will only show up if you
     append "prompt" to the scaler option. (Wengier)

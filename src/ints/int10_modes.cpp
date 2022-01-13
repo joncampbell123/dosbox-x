@@ -33,6 +33,7 @@
 #include "regs.h"
 #include "jfont.h"
 #include "callback.h"
+#include "control.h"
 #include "sdlmain.h"
 
 #define SEQ_REGS 0x05
@@ -40,6 +41,7 @@
 #define ATT_REGS 0x15
 
 void J3_GetPalette(uint8_t no, uint8_t &r, uint8_t &g, uint8_t &b);
+bool setchar9, showdbcs;
 extern bool window_was_maximized;
 extern bool enable_vga_8bit_dac;
 extern bool int10_vesa_map_as_128kb;
@@ -1221,6 +1223,9 @@ void ttf_switch_off(bool ss=true) {
 #endif
         }
         KEYBOARD_Clear();
+        showdbcs = true;
+        setchar9 = static_cast<Section_prop *>(control->GetSection("render"))->Get_bool("char9");
+        SetVal("render", "char9", "false");
         change_output(out);
         SetVal("sdl", "output", output);
         void OutputSettingMenuUpdate(void);
@@ -1250,6 +1255,8 @@ void ttf_switch_on(bool ss=true) {
         bool OpenGL_using(void), gl = OpenGL_using();
         change_output(10);
         SetVal("sdl", "output", "ttf");
+        if (setchar9) SetVal("render", "char9", "true");
+        setchar9 = showdbcs = false;
         void OutputSettingMenuUpdate(void);
         OutputSettingMenuUpdate();
         if (ss) ttfswitch = false;
