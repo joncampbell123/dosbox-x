@@ -23,7 +23,9 @@
   - Fixed background for the Configuration Tool when
     the TTF output is active. (Wengier)
   - Fixed DBCS characters not showing up when capturing
-    screenshots in TTF CJK mode. (Wengier)
+    screenshots in TTF CJK mode, or they do not show up
+    properly in the Configuration Tool when "autodbcs"
+    is set to "false" in the configuration. (Wengier)
   - Fixed the issue of loading scalers in the previous
     version. A message box will only show up if you
     append "prompt" to the scaler option. (Wengier)

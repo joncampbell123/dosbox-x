@@ -35,7 +35,7 @@ using namespace std;
 
 extern bool dos_kernel_disabled, force_conversion;
 int msgcodepage = 0, FileDirExistUTF8(std::string &localname, const char *name);
-bool morelen = false, loadlang = false, systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+bool morelen = false, inmsg = false, loadlang = false, systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 bool isSupportedCP(int newCP), CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 void InitFontHandle(void), ShutFontHandle(void), menu_update_autocycle(void), update_bindbutton_text(void), set_eventbutton_text(const char *eventname, const char *buttonname), JFONT_Init();
 std::string langname = "", langnote = "", GetDOSBoxXPath(bool withexe=false);
@@ -144,7 +144,7 @@ void LoadMessageFile(const char * fname) {
 	char string[LINE_IN_MAXLEN*10], temp[4096];
 	/* Start out with empty strings */
 	name[0]=0;string[0]=0;
-	morelen=true;
+	morelen=inmsg=true;
     bool res=true;
     int cp=dos.loaded_codepage;
     if (!dos.loaded_codepage) res=InitCodePage();
@@ -228,7 +228,7 @@ void LoadMessageFile(const char * fname) {
 			strcat(string,"\n");
 		}
 	}
-	morelen=false;
+	morelen=inmsg=false;
 	fclose(mfile);
     menu_update_autocycle();
     update_bindbutton_text();
@@ -266,7 +266,7 @@ bool MSG_Write(const char * location, const char * name) {
 	if (dos.loaded_codepage) fprintf(out,":DOSBOX-X:CODEPAGE:%d\n",dos.loaded_codepage);
 	fprintf(out,":DOSBOX-X:VERSION:%s\n",VERSION);
 	fprintf(out,":DOSBOX-X:REMARK:%s\n",langnote.c_str());
-	morelen=true;
+	morelen=inmsg=true;
 	for(itmb tel=Lang.begin();tel!=Lang.end();++tel){
         if (!CodePageGuestToHostUTF8(temp,(*tel).val.c_str()))
             fprintf(out,":%s\n%s\n.\n",(*tel).name.c_str(),(*tel).val.c_str());
@@ -296,7 +296,7 @@ bool MSG_Write(const char * location, const char * name) {
         else
             fprintf(out,":MAPPER:%s\n%s\n.\n",it->first.c_str(),temp);
     }
-	morelen=false;
+	morelen=inmsg=false;
 	fclose(out);
 	return true;
 }

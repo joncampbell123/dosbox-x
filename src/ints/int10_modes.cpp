@@ -1192,7 +1192,49 @@ bool ttfswitch=false, switch_output_from_ttf=false;
 extern bool resetreq, colorChanged;
 extern int switchoutput;
 
+void ttf_switch_on(bool ss=true) {
+    if ((ss&&ttfswitch)||(!ss&&switch_output_from_ttf)) {
+        uint16_t oldax=reg_ax;
+        reg_ax=0x1600;
+        CALLBACK_RunRealInt(0x2F);
+        if (reg_al!=0&&reg_al!=0x80) {reg_ax=oldax;return;}
+        reg_ax=oldax;
+        if (window_was_maximized&&!GFX_IsFullscreen()) {
+#if defined(WIN32)
+            ShowWindow(GetHWND(), SW_RESTORE);
+#elif defined(C_SDL2)
+            SDL_RestoreWindow(sdl.window);
+#endif
+        }
+        bool OpenGL_using(void), gl = OpenGL_using();
+        change_output(10);
+        SetVal("sdl", "output", "ttf");
+        if (setchar9) SetVal("render", "char9", "true");
+        setchar9 = showdbcs = false;
+        void OutputSettingMenuUpdate(void);
+        OutputSettingMenuUpdate();
+        if (ss) ttfswitch = false;
+        else switch_output_from_ttf = false;
+        mainMenu.get_item("output_ttf").enable(true).refresh_item(mainMenu);
+        if (ttf.fullScrn) {
+            if (!GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
+            OUTPUT_TTF_Select(3);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+            if (gl && GFX_IsFullscreen()) { // Hack for full-screen switch from OpenGL outputs
+                void GFX_SwitchFullScreen(void);
+                GFX_SwitchFullScreen();
+                GFX_SwitchFullScreen();
+            }
+#endif
+            resetreq = true;
+        }
+        resetFontSize();
+    }
+}
+
 void ttf_switch_off(bool ss=true) {
+    if (!ss&&ttfswitch)
+        ttf_switch_on();
     if (ttf.inUse) {
         std::string output="surface";
         int out=switchoutput;
@@ -1235,46 +1277,6 @@ void ttf_switch_off(bool ss=true) {
         //if (GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
         mainMenu.get_item("output_ttf").enable(false).refresh_item(mainMenu);
         RENDER_Reset();
-    }
-}
-
-void ttf_switch_on(bool ss=true) {
-    if ((ss&&ttfswitch)||(!ss&&switch_output_from_ttf)) {
-        uint16_t oldax=reg_ax;
-        reg_ax=0x1600;
-        CALLBACK_RunRealInt(0x2F);
-        if (reg_al!=0&&reg_al!=0x80) {reg_ax=oldax;return;}
-        reg_ax=oldax;
-        if (window_was_maximized&&!GFX_IsFullscreen()) {
-#if defined(WIN32)
-            ShowWindow(GetHWND(), SW_RESTORE);
-#elif defined(C_SDL2)
-            SDL_RestoreWindow(sdl.window);
-#endif
-        }
-        bool OpenGL_using(void), gl = OpenGL_using();
-        change_output(10);
-        SetVal("sdl", "output", "ttf");
-        if (setchar9) SetVal("render", "char9", "true");
-        setchar9 = showdbcs = false;
-        void OutputSettingMenuUpdate(void);
-        OutputSettingMenuUpdate();
-        if (ss) ttfswitch = false;
-        else switch_output_from_ttf = false;
-        mainMenu.get_item("output_ttf").enable(true).refresh_item(mainMenu);
-        if (ttf.fullScrn) {
-            if (!GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
-            OUTPUT_TTF_Select(3);
-#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-            if (gl && GFX_IsFullscreen()) { // Hack for full-screen switch from OpenGL outputs
-                void GFX_SwitchFullScreen(void);
-                GFX_SwitchFullScreen();
-                GFX_SwitchFullScreen();
-            }
-#endif
-            resetreq = true;
-        }
-        resetFontSize();
     }
 }
 #endif
