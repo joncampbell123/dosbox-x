@@ -9491,7 +9491,12 @@ void CopyClipboard(int all) {
                 delete[] wch;
             }
             result+=std::wstring(1, '\r')+std::wstring(1, '\n');
-            baselen+=token.size()+1;
+            baselen+=token.size()+2;
+        }
+        if (baselen>1) {
+            result.pop_back();
+            result.pop_back();
+            baselen-=2;
         }
         morelen=false;
         baselen=0;

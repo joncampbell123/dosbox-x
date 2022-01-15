@@ -55,7 +55,7 @@ void AUX_INT33_Takeover();
 int KEYBOARD_AUX_Active();
 void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel);
 extern bool MOUSE_IsLocked();
-extern bool usesystemcursor, dbcs_sbcs, del_flag;
+extern bool usesystemcursor, dbcs_sbcs, showdbcs, del_flag;
 
 bool en_int33=false;
 bool en_bios_ps2mouse=false;
@@ -854,7 +854,11 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
                     if (del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
                 }
             } else {
-                bool find = isJEGAEnabled()?std::find(jtbs.begin(), jtbs.end(), std::make_pair(i,j)) != jtbs.end():false;
+                bool find = isJEGAEnabled() || (isDBCSCP()
+#if defined(USE_TTF)
+                && dbcs_sbcs
+#endif
+                && showdbcs) ? std::find(jtbs.begin(), jtbs.end(), std::make_pair(i,j)) != jtbs.end():false;
                 if (!isJEGAEnabled()||j>c1||!find) {
                     ReadCharAttr(ttfuse&&rtl?ttfcols-j-1:j,i,page,&result);
                     if (!result && CurMode->type == M_DCGA && !IS_J3100) result=32;
@@ -867,7 +871,11 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
                     text[len++]=result;
                     if (isJEGAEnabled() && find && del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
                 }
-                if (isJEGAEnabled()&&j==c2&&c2<c-1&&std::find(jtbs.begin(), jtbs.end(), std::make_pair(i,j+1)) != jtbs.end()) {
+                if ((isJEGAEnabled()||(isDBCSCP()
+#if defined(USE_TTF)
+                && dbcs_sbcs
+#endif
+                && showdbcs))&&j==c2&&c2<c-1&&std::find(jtbs.begin(), jtbs.end(), std::make_pair(i,j+1)) != jtbs.end()) {
                     ReadCharAttr(ttfuse&&rtl?(ttfcols-j):(j+1),i,page,&result);
                     text[len++]=result;
                     if (del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;

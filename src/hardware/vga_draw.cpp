@@ -2070,7 +2070,11 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
 	bool chr_wide = false;
 
     unsigned int row = (vidstart - vga.config.real_start - vga.draw.bytes_skip) / vga.draw.address_add, col = 0;
-    if (IS_JEGA_ARCH && !jtbs.empty() && line == 1) jtbs.erase(std::remove_if(jtbs.begin(), jtbs.end(), first_equal(row)), jtbs.end());
+    if ((IS_JEGA_ARCH || (isDBCSCP()
+#if defined(USE_TTF)
+        && dbcs_sbcs
+#endif
+        && showdbcs)) && !jtbs.empty() && line == 1) jtbs.erase(std::remove_if(jtbs.begin(), jtbs.end(), first_equal(row)), jtbs.end());
     while (blocks--) {
         if (isJEGAEnabled() || (isDBCSCP()
 #if defined(USE_TTF)
