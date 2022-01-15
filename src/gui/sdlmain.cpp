@@ -311,8 +311,8 @@ unsigned int sendkeymap=0;
 std::string configfile = "";
 std::string strPasteBuffer = "";
 ScreenSizeInfo screen_size_info;
-void DOSBOX_UnlockSpeed2(bool pressed);
 void RebootLanguage(std::string filename, bool confirm=false);
+void DOSBOX_UnlockSpeed2(bool pressed), FormFeed(bool pressed);
 bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 int FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
@@ -14858,6 +14858,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         DONGLE_Init();
 #if C_PRINTER
         PRINTER_Init();
+        {
+            DOSBoxMenu::item *item;
+            MAPPER_AddHandler(FormFeed, MK_f2 , MMOD1, "ejectpage", "Send form-feed", &item);
+            item->set_text("Send form-feed");
+        }
 #endif
         PARALLEL_Init();
         NE2K_Init();

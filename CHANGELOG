@@ -19,6 +19,8 @@
   - Setting "windowposition" to "-" in the configuration
     will leave DOSBox-X window position as is instead of
     a specific position or being centered. (Wengier)
+  - For printing, the SarasaGothicFixed TTF font will
+    also be searched for DBCS code pages. (Wengier)
   - Fixed slow blinking text in TTF output. (Wengier)
   - Fixed background for the Configuration Tool when
     the TTF output is active. (Wengier)

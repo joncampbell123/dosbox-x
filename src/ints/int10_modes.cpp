@@ -41,7 +41,7 @@
 #define ATT_REGS 0x15
 
 void J3_GetPalette(uint8_t no, uint8_t &r, uint8_t &g, uint8_t &b);
-bool setchar9, showdbcs;
+bool setchar9 = false, showdbcs = false;
 extern bool window_was_maximized;
 extern bool enable_vga_8bit_dac;
 extern bool int10_vesa_map_as_128kb;
