@@ -54,6 +54,7 @@ extern JEGA_DATA jega;
 extern uint8_t prevchr;
 extern bool jp_ega;
 extern uint8_t jfont_sbcs_19[256 * 19];//SBCS font 256 * 19( * 8)
+extern uint8_t jfont_sbcs_16[256 * 16];//SBCS font 256 * 16( * 8)
 extern uint8_t jfont_dbcs_16[65536 * 32];//DBCS font 65536 * 16 * 2 (* 8)
 void SVGA_Setup_JEGA(void);//Init JEGA and AX system area
 bool INT10_AX_SetCRTBIOSMode(Bitu mode);

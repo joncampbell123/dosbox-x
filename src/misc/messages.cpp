@@ -33,7 +33,7 @@
 #include <string>
 using namespace std;
 
-extern bool dos_kernel_disabled, force_conversion;
+extern bool dos_kernel_disabled, force_conversion, showdbcs;
 int msgcodepage = 0, FileDirExistUTF8(std::string &localname, const char *name);
 bool morelen = false, inmsg = false, loadlang = false, systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 bool isSupportedCP(int newCP), CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
@@ -329,4 +329,6 @@ void MSG_Init() {
             LoadMessageFile(path.c_str());
         }
 	}
+    std::string showdbcsstr = static_cast<Section_prop *>(control->GetSection("dosv"))->Get_string("showdbcsnodosv");
+    showdbcs = showdbcsstr=="true"||showdbcsstr=="1"||(showdbcsstr=="auto" && loadlang);
 }

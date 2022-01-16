@@ -117,6 +117,7 @@ double vga_fps = 70;
 double vga_mode_time_base = -1;
 int vga_mode_frames_since_time_base = 0;
 
+bool showdbcs = false;
 bool pc98_display_enable = true;
 
 extern bool pc98_40col_text;
@@ -139,7 +140,7 @@ extern std::map<int, int> lowboxdrawmap, pc98boxdrawmap;
 extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 void SetGameState_Run(int value), SaveGameState_Run(void);
 size_t GetGameState_Run(void);
-uint8_t lead[6], ccount = 0, *GetDbcsFont(Bitu code);
+uint8_t lead[6], ccount = 0, *GetDbcsFont(Bitu code), *GetDbcs14Font(Bitu code, bool &is14);
 uint32_t ticksPrev = 0;
 
 #if defined(USE_TTF)
@@ -2122,12 +2123,19 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
 #if defined(USE_TTF)
                     && halfwidthkana
 #endif
-                    ? jfont_sbcs_19[chr*19+line] : int10_font_19[chr*19+line];
-                    for (Bitu n = 0; n < 8; n++) {
+                    ? (IS_JEGA_ARCH ? jfont_sbcs_19[chr*19+line] : jfont_sbcs_16[chr*16+line]) : int10_font_16[chr*16+line];
+                    if (vga.draw.char9dot) {
+                        font <<=1; // 9 pixels
+                        // extend to the 9th pixel if needed
+                        if ((font&0x2) && (vga.attr.mode_control&0x04) &&
+                            (chr>=0xc0) && (chr<=0xdf)) font |= 1;
+                    }
+                    int width = vga.draw.char9dot ? 9 : 8;
+                    for (Bitu n = 0; n < width; n++) {
                         if (card == MCH_VGA)
-                            *draw++ = vga.dac.xlat32[(font & 0x80)? foreground : background];
+                            *draw++ = vga.dac.xlat32[(font & (vga.draw.char9dot?0x100:0x80))? foreground : background];
                         else
-                            *draw++ = vga.attr.palette[(font & 0x80) ? foreground : background];
+                            *draw++ = vga.attr.palette[(font & (vga.draw.char9dot?0x100:0x80)) ? foreground : background];
                         font <<= 1;
                     }
                     if (bsattr & 0x20) {
@@ -2168,18 +2176,26 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
                             if (exattr & 0x10) fline = (fline >> 1) + 8;
                             else fline = fline >> 1;
                         }
-                        uint8_t *f = GetDbcsFont(chr);
+                        bool is14 = false;
+                        uint8_t *f = IS_JEGA_ARCH || card == MCH_VGA ? GetDbcsFont(chr) : GetDbcs14Font(chr, is14);
                         if (exattr & 0x40) {
                             Bitu font = f[fline * 2];
                             if (!(exattr & 0x08))
                                 font = f[fline * 2 + 1];
-                            for (Bitu n = 0; n < 8; n++) {
+                            if (vga.draw.char9dot) {
+                                font <<=1; // 9 pixels
+                                // extend to the 9th pixel if needed
+                                if ((font&0x2) && (vga.attr.mode_control&0x04) &&
+                                    (chr>=0xc0) && (chr<=0xdf)) font |= 1;
+                            }
+                            int width = vga.draw.char9dot ? 9 : 8;
+                            for (Bitu n = 0; n < width; n++) {
                                 if (card == MCH_VGA) {
-                                    *draw++ = vga.dac.xlat32[(font & 0x80) ? foreground : background];
-                                    *draw++ = vga.dac.xlat32[(font & 0x80) ? foreground : background];
+                                    *draw++ = vga.dac.xlat32[(font & (vga.draw.char9dot?0x100:0x80)) ? foreground : background];
+                                    *draw++ = vga.dac.xlat32[(font & (vga.draw.char9dot?0x100:0x80)) ? foreground : background];
                                 } else {
-                                    *draw++ = vga.attr.palette[(font & 0x80) ? foreground : background];
-                                    *draw++ = vga.attr.palette[(font & 0x80) ? foreground : background];
+                                    *draw++ = vga.attr.palette[(font & (vga.draw.char9dot?0x100:0x80)) ? foreground : background];
+                                    *draw++ = vga.attr.palette[(font & (vga.draw.char9dot?0x100:0x80)) ? foreground : background];
                                 }
                                 font <<= 1;
                             }
@@ -2193,11 +2209,18 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
                                 font2 >>= 1;
                                 font |= font2;
                             }
-                            for (Bitu n = 0; n < 16; n++) {
+                            if (vga.draw.char9dot) {
+                                font <<=1; // 9 pixels
+                                // extend to the 9th pixel if needed
+                                if ((font&0x2) && (vga.attr.mode_control&0x04) &&
+                                    (chr>=0xc0) && (chr<=0xdf)) font |= 1;
+                            }
+                            int width = vga.draw.char9dot ? 9 : 8;
+                            for (Bitu n = 0; n < width * 2; n++) {
                                 if (card == MCH_VGA)
-                                    *draw++ = vga.dac.xlat32[(font & 0x8000)? foreground : background];
+                                    *draw++ = vga.dac.xlat32[(font & (vga.draw.char9dot?0x10000:0x8000))? foreground : background];
                                 else
-                                    *draw++ = vga.attr.palette[(font & 0x8000) ? foreground : background];
+                                    *draw++ = vga.attr.palette[(font & (vga.draw.char9dot?0x10000:0x8000)) ? foreground : background];
                                 font <<= 1;
                             }
                         }

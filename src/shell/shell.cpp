@@ -51,9 +51,9 @@
 #include "build_timestamp.h"
 
 extern bool startcmd, startwait, startquiet, winautorun;
+extern bool halfwidthkana, force_conversion, showdbcs;
 extern bool dos_shell_running_program, mountwarning;
-extern bool halfwidthkana, force_conversion, gbk;
-extern bool addovl, addipx, addne2k, enableime;
+extern bool addovl, addipx, addne2k, enableime, gbk;
 extern const char* RunningProgram;
 extern int enablelfn, msgcodepage;
 extern uint16_t countryNo;
@@ -586,7 +586,7 @@ const char *ParseMsg(const char *msg) {
 #if defined(USE_TTF)
         force_conversion = true;
         int cp=dos.loaded_codepage;
-        if (ttf.inUse && halfwidthkana && InitCodePage() && dos.loaded_codepage==932) uselowbox = true;
+        if ((ttf.inUse || showdbcs) && halfwidthkana && InitCodePage() && dos.loaded_codepage==932) uselowbox = true;
         force_conversion = false;
         dos.loaded_codepage=cp;
 #endif

@@ -21,6 +21,12 @@
     a specific position or being centered. (Wengier)
   - For printing, the SarasaGothicFixed TTF font will
     also be searched for DBCS code pages. (Wengier)
+  - Added config option "showdbcsnodosv" (in the [dosv]
+    section) which when set to true enables rendering of
+    Chinese/Japanese/Korean characters for DBCS code
+    pages in non-DOS/V, non-PC98, and non-TTF mode.
+    Video capturing started from TTF output will enable
+    DBCS characters when possible. (Wengier)
   - Fixed slow blinking text in TTF output. (Wengier)
   - Fixed background for the Configuration Tool when
     the TTF output is active. (Wengier)

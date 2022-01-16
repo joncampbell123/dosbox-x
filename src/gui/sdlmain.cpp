@@ -69,9 +69,8 @@ extern bool use_quick_reboot;
 extern bool force_load_state;
 extern bool force_conversion, gbk, chinasea;
 extern bool pc98_force_ibm_layout, clearline;
-extern bool setchar9, showdbcs, switchttf;
-extern bool ttfswitch, switch_output_from_ttf;
 extern bool inshell, enable_config_as_shell_commands;
+extern bool showdbcs, switchttf, ttfswitch, switch_output_from_ttf;
 bool tooutttf = false;
 bool checkmenuwidth = false;
 bool dos_kernel_disabled = true;
@@ -15402,9 +15401,8 @@ fresh_boot:
 
 #if defined(USE_TTF)
         if (ttfswitch || switch_output_from_ttf) {
-            if (setchar9) SetVal("render", "char9", "true");
             tooutttf = true;
-            setchar9 = showdbcs = switchttf = ttfswitch = switch_output_from_ttf = false;
+            showdbcs = switchttf = ttfswitch = switch_output_from_ttf = false;
             mainMenu.get_item("output_ttf").enable(true).refresh_item(mainMenu);
         }
 #endif

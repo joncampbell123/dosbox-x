@@ -114,6 +114,7 @@ static bool use20pixelfont;
 extern bool autoboxdraw;
 extern bool ttf_dosv;
 #endif
+extern bool showdbcs;
 extern bool gbk, chinasea;
 extern int bootdrive;
 bool del_flag = true;
@@ -1061,6 +1062,26 @@ void JFONT_Init() {
 		if(!MakeSbcs19Font())
 			LOG_MSG("MSG: SBCS 8x19 font file path is not specified.\n");
 	}
+	pathprop = section->Get_path("fontxsbcs16");
+	if(pathprop && !reinit) {
+		std::string path=pathprop->realpath;
+		ResolvePath(path);
+		if(!LoadFontxFile(path.c_str(), 16, false)) {
+			if(!MakeSbcs16Font()) {
+				LOG_MSG("MSG: SBCS 8x16 font file path is not specified.\n");
+#if defined(LINUX)
+				memcpy(jfont_sbcs_16, int10_font_16, 256 * 16);
+#endif
+			}
+		} else if(yen_flag && !(IS_DOSV && !IS_JDOSV)) {
+			if(!CheckEmptyData(&jfont_sbcs_16[0x7f * 16], 16))
+				memcpy(&jfont_sbcs_16[0x5c * 16], &jfont_sbcs_16[0x7f * 16], 16);
+		}
+	} else if (!reinit) {
+		if(!MakeSbcs16Font()) {
+			LOG_MSG("MSG: SBCS 8x16 font file path is not specified.\n");
+		}
+	}
 	pathprop = section->Get_path("fontxdbcs");
 	if(pathprop) {
 		std::string path=pathprop->realpath;
@@ -1077,26 +1098,6 @@ void JFONT_Init() {
 #if defined(USE_TTF)
 		autoboxdraw = true;
 #endif
-		pathprop = section->Get_path("fontxsbcs16");
-		if(pathprop && !reinit) {
-			std::string path=pathprop->realpath;
-			ResolvePath(path);
-			if(!LoadFontxFile(path.c_str(), 16, false)) {
-				if(!MakeSbcs16Font()) {
-					LOG_MSG("MSG: SBCS 8x16 font file path is not specified.\n");
-#if defined(LINUX)
-					memcpy(jfont_sbcs_16, int10_font_16, 256 * 16);
-#endif
-				}
-			} else if(yen_flag && !(IS_DOSV && !IS_JDOSV)) {
-				if(!CheckEmptyData(&jfont_sbcs_16[0x7f * 16], 16))
-					memcpy(&jfont_sbcs_16[0x5c * 16], &jfont_sbcs_16[0x7f * 16], 16);
-			}
-		} else if (!reinit) {
-			if(!MakeSbcs16Font()) {
-				LOG_MSG("MSG: SBCS 8x16 font file path is not specified.\n");
-			}
-		}
 		pathprop = section->Get_path("fontxdbcs24");
 		if(pathprop) {
 			std::string path=pathprop->realpath;

@@ -320,8 +320,7 @@ bool export_ffmpeg = false;
 
 std::string capturedir;
 extern std::string savefilename;
-extern bool showdbcs, setchar9;
-extern bool use_save_file, noremark_save_state, force_load_state;
+extern bool showdbcs, use_save_file, noremark_save_state, force_load_state;
 extern unsigned int hostkeyalt, sendkeymap;
 extern const char* RunningProgram;
 Bitu CaptureState = 0;
@@ -664,12 +663,8 @@ void CAPTURE_VideoEvent(bool pressed) {
 			delete capture.video.codec;
 			capture.video.codec = NULL;
 		}
-	} else {
+	} else
 		CaptureState |= CAPTURE_VIDEO;
-#if defined(USE_TTF)
-        ttf_switch_off();
-#endif
-	}
 	pathvid = "";
 
 	mainMenu.get_item("mapper_video").check(!!(CaptureState & CAPTURE_VIDEO)).refresh_item(mainMenu);
@@ -914,6 +909,9 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 	pathscr = "";
 skip_shot:
 	if (CaptureState & CAPTURE_VIDEO) {
+#if defined(USE_TTF)
+		ttf_switch_off();
+#endif
 		zmbv_format_t format;
 		/* Disable capturing if any of the test fails */
 		if (capture.video.width != width ||
@@ -1520,8 +1518,6 @@ void CAPTURE_ScreenShotEvent(bool pressed) {
 #endif
 #if defined(USE_TTF)
     showdbcs = true;
-    setchar9 = static_cast<Section_prop *>(control->GetSection("render"))->Get_bool("char9");
-    SetVal("render", "char9", "false");
     ttf_switch_off();
 #endif
 }
