@@ -100,11 +100,11 @@ public:
 	virtual void Run(void)=0;                           //! Run() method, called when the program is run. Subclass must override this
 	bool GetEnvStr(const char * entry,std::string & result); //! Return an environment variable by name
 	bool GetEnvNum(Bitu want_num,std::string & result);      //! Return an environment variable by index
-	Bitu GetEnvCount(void);                             //! Return the number of enviormental variables
+	Bitu GetEnvCount(void);                             //! Return the number of environmental variables
 	bool SetEnv(const char * entry,const char * new_string); //! Set environment variable
 	virtual void WriteOut(const char *format, const char * arguments);
 	void WriteOut(const char * format,...);				//! Write to standard output 
-	int WriteOut_NoParsing(const char * format, bool dbcs = false); //! Write to standard output, no parsing
+	virtual int WriteOut_NoParsing(const char * format, bool dbcs = false); //! Write to standard output, no parsing
 	void ChangeToLongCmd();                             //! Get command line from shell instead of PSP
 	void DebugDumpEnv();                                //! Dump environment block to log
 	void WriteExitStatus();                             //! Write exit status to CPU register AL for return to MS-DOS

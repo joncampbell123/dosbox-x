@@ -1278,7 +1278,6 @@ void DOS_Shell::CMD_ECHO(char * args){
 	}
 }
 
-
 void DOS_Shell::CMD_EXIT(char * args) {
 	HELP("EXIT");
 	exit = true;

@@ -381,7 +381,7 @@ void DOS_Shell::ParseLine(char * line) {
 	uint16_t dummy,dummy2;
 	uint32_t bigdummy = 0;
 	bool append;
-	bool normalstdin  = false;	/* wether stdin/out are open on start. */
+	bool normalstdin  = false;	/* whether stdin/out are open on start. */
 	bool normalstdout = false;	/* Bug: Assumed is they are "con"      */
 	
     GetRedirection(line, &in, &out, &toc, &append);
