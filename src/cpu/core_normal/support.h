@@ -211,6 +211,17 @@ static INLINE void SSE_MOVSS(XMM_Reg &d,const XMM_Reg &s) {
 }
 #undef STEP
 
+////
+
+static INLINE void SSE_MOVHLPS(XMM_Reg &d,const XMM_Reg &s) {
+	d.u64[0] = s.u64[1];
+}
+
+static INLINE void SSE_MOVLPS(XMM_Reg &d,const XMM_Reg &s) {
+	d.u64[0] = s.u64[0];
+}
+#undef STEP
+
 #endif // 386+
 
 #define SETcc(cc)							\
