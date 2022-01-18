@@ -323,7 +323,7 @@ void DOS_SetCountry(uint16_t countryNo) {
 			break;
 		case 2:   // Canadian-French
 		case 36:  // Hungary
-		case 38:  // Croatia
+		case 38:  // Yugoslavia
 		case 40:  // Romania
 		case 42:  // Czech Republic / Slovakia
 		case 46:  // Sweden

@@ -4274,20 +4274,23 @@ void DOS_Shell::CMD_COUNTRY(char * args) {
 	return;
 }
 
-#if defined(USE_TTF)
 extern bool jfont_init, isDBCSCP();
 void runRescan(const char *str), MSG_Init(), JFONT_Init(), InitFontHandle(), ShutFontHandle(), DOSBox_SetSysMenu();
 void toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
     if (isSupportedCP(newCP)) {
 		dos.loaded_codepage = newCP;
-		int missing = setTTFCodePage();
+#if defined(USE_TTF)
+		int missing = TTF_using() ? setTTFCodePage() : 0;
+#endif
         if (opt==-1) {
             MSG_Init();
             DOSBox_SetSysMenu();
         }
         if (opt<1) {
             shell->WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
+#if defined(USE_TTF)
             if (missing > 0) shell->WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
+#endif
         }
         if (isDBCSCP()) {
             ShutFontHandle();
@@ -4299,7 +4302,6 @@ void toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
     } else if (opt<1)
        shell->WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), std::to_string(newCP).c_str());
 }
-#endif
 
 void DOS_Shell::CMD_CHCP(char * args) {
 	HELP("CHCP");
@@ -4312,14 +4314,11 @@ void DOS_Shell::CMD_CHCP(char * args) {
         WriteOut("Changing code page is not supported for the PC-98 or JEGA/AX system.\n");
         return;
     }
-#if defined(USE_TTF)
-    if (!ttf.inUse)
-#endif
+    if (IS_DOSV || IS_J3100)
     {
-        WriteOut("Changing code page is only supported for the TrueType font output.\n");
+        WriteOut("Changing code page is not supported for the DOS/V or J-3100 system.\n");
         return;
     }
-#if defined(USE_TTF)
 	int newCP;
 	char buff[256], *r;
     int n = sscanf(args, "%d%s", &newCP, buff);
@@ -4357,7 +4356,6 @@ void DOS_Shell::CMD_CHCP(char * args) {
         if (file) fclose(file);
     }
     else WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
-#endif
 	return;
 }
 
