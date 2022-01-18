@@ -37,8 +37,8 @@
 
 DOS_Device * Devices[DOS_DEVICES] = {NULL};
 extern std::map<int, int> lowboxdrawmap;
-extern bool morelen, halfwidthkana;
 extern int dos_clipboard_device_access;
+extern bool morelen, halfwidthkana, showdbcs;
 extern const char * dos_clipboard_device_name;
 bool isDBCSCP(), shiftjis_lead_byte(int c);
 bool Network_IsNetworkResource(const char * filename), TTF_using(void);
@@ -420,11 +420,11 @@ bool Unicode2Ascii(const uint16_t* unicode) {
     }
 	for (int i = 0; i < memNeeded; i++)
 		if (clipAscii[i] > 31 || clipAscii[i] == 9 || clipAscii[i] == 10 || clipAscii[i] == 13 // Space and up, or TAB, CR/LF allowed (others make no sense when pasting)
-            || (dos.loaded_codepage == 932 && TTF_using()
+            || (dos.loaded_codepage == 932 && (TTF_using() || IS_JEGA_ARCH || showdbcs)
 #if defined(USE_TTF)
             && halfwidthkana
 #endif
-            && ((IS_JEGA_ARCH && clipAscii[i] && clipAscii[i] < 32) || (!IS_PC98_ARCH && lowboxdrawmap.find(clipAscii[i])!=lowboxdrawmap.end()))))
+            && ((IS_JEGA_ARCH && clipAscii[i] && clipAscii[i] < 32) || (!IS_PC98_ARCH && !IS_JEGA_ARCH && lowboxdrawmap.find(clipAscii[i])!=lowboxdrawmap.end()))))
 			clipAscii[clipSize++] = clipAscii[i];
 	return ret;																			// clipAscii dould be downsized, but of no real interest
 }

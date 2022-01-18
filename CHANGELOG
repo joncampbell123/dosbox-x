@@ -28,6 +28,8 @@
     Video capturing started from TTF output will enable
     DBCS characters when possible. (Wengier)
   - Fixed slow blinking text in TTF output. (Wengier)
+  - Fixed copying box drawing characters to clipboard
+    not working in non-TTF JEGA mode. (Wengier)
   - Fixed background for the Configuration Tool when
     the TTF output is active. (Wengier)
   - Fixed DBCS characters not showing up when capturing

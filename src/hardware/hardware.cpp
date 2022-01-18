@@ -37,7 +37,7 @@
 #include "cross.h"
 #include "wave_mmreg.h"
 
-#if (C_SSHOT)
+#if (C_SSHOT) || (C_AVCODEC)
 #include <zlib.h>
 #include <png.h>
 #include "../libs/zmbv/zmbv.h"
