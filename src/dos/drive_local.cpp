@@ -622,6 +622,23 @@ bool String_HOST_TO_ASCII_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) 
 
 bool cpwarn_once = false;
 
+bool isemptyhit(uint16_t code) {
+    switch (dos.loaded_codepage) {
+        case 932:
+            return cp932_to_unicode_hitbl[code >> 6] == 0xffff;
+        case 936:
+            return cp936_to_unicode_hitbl[code >> 6] == 0xffff;
+        case 949:
+            return cp949_to_unicode_hitbl[code >> 6] == 0xffff;
+        case 950:
+            return chinasea ? cp950ext_to_unicode_hitbl[code >> 6] == 0xffff : cp950_to_unicode_hitbl[code >> 6] == 0xffff;
+        case 951:
+            return cp951_to_unicode_hitbl[code >> 6] == 0xffff;
+        default:
+            return code > 0xff;
+    }
+}
+
 bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/) {
     if (altcp && dos.loaded_codepage == altcp) return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,altcp_to_unicode,sizeof(altcp_to_unicode)/sizeof(altcp_to_unicode[0]));
     if (customcp && dos.loaded_codepage == customcp) return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,customcp_to_unicode,sizeof(customcp_to_unicode)/sizeof(customcp_to_unicode[0]));

@@ -589,7 +589,11 @@ const char *ParseMsg(const char *msg) {
 #if defined(USE_TTF)
         || ttf.inUse
 #endif
-        ) && halfwidthkana && InitCodePage() && dos.loaded_codepage==932) uselowbox = true;
+        )
+#if defined(USE_TTF)
+        && halfwidthkana
+#endif
+        && InitCodePage() && dos.loaded_codepage==932) uselowbox = true;
         force_conversion = false;
         dos.loaded_codepage=cp;
         if (uselowbox || IS_JEGA_ARCH || IS_JDOSV) {

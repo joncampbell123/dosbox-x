@@ -336,7 +336,7 @@ static bool LoadFontxFile(const char *fname, int height, bool dbcs) {
 
 }
 
-static bool CheckEmptyData(uint8_t *data, Bitu length)
+bool CheckEmptyData(uint8_t *data, Bitu length)
 {
 	while(length > 0) {
 		if(*data++ != 0) {

@@ -137,7 +137,7 @@ extern bool auto_save_state, enable_autosave, enable_dbcs_tables, showdbcs, dbcs
 extern int autosave_second, autosave_count, autosave_start[10], autosave_end[10], autosave_last[10];
 extern std::string failName, autosave_name[10];
 extern std::map<int, int> lowboxdrawmap, pc98boxdrawmap;
-extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+extern bool isemptyhit(uint16_t code), CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 void SetGameState_Run(int value), SaveGameState_Run(void);
 size_t GetGameState_Run(void);
 uint8_t lead[6], ccount = 0, *GetDbcsFont(Bitu code), *GetDbcs14Font(Bitu code, bool &is14);
@@ -2122,7 +2122,7 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
                         foreground = tmp;
                     }
                 }
-                if (isKanji1(chr) && col < cols && isKanji2(pixeln1.b[0]) && !(!isJEGAEnabled() &&
+                if (isKanji1(chr) && col < cols && isKanji2(pixeln1.b[0]) && !isemptyhit(chr*0x100+pixeln1.b[0]) && !(!isJEGAEnabled() &&
 #if defined(USE_TTF)
                 autoboxdraw &&
 #endif
@@ -2130,6 +2130,7 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
                 (col && col < cols-2 && CheckBoxDrawing(pixelp1.b[0], chr, pixeln1.b[0], pixeln2.b[0])) ||
                 (col > 1 && col < cols-1 && CheckBoxDrawing(pixelp2.b[0], pixelp1.b[0], chr, pixeln1.b[0])) ||
                 (col > 2 && CheckBoxDrawing(pixelp3.b[0], pixelp2.b[0], pixelp1.b[0], chr)) ||
+                (cols >= 79 && col == 74 && row < rows && CheckBoxDrawLast(col-3, *(vidmem-6), *(vidmem-4), *(vidmem-2), chr, *(vidmem+2), *(vidmem+4), *(vidmem+6), *(vidmem+8), *(vidmem+10))) ||
                 (cols >= 79 && col == 78 && row < rows && CheckBoxDrawLast(col-7, *(vidmem-14), *(vidmem-12), *(vidmem-10), *(vidmem-8), *(vidmem-6), *(vidmem-4), *(vidmem-2), chr, *(vidmem+2))) ||
                 (row && col>3 && (((uint8_t)*(vidmem-4)==177||(uint8_t)*(vidmem-4)==254)&&(uint8_t)*(vidmem-2)==16&&(uint8_t)chr==196&&(uint8_t)*(vidmem+2)==217)||((uint8_t)*(vidmem-4)==176&&(uint8_t)*(vidmem-2)==176&&(uint8_t)chr==176&&(uint8_t)*(vidmem+2)==179)) ||
                 (row < rows-2 && CheckBoxDrawingV(chr, *(vidmem+vga.draw.address_add), *(vidmem+2*vga.draw.address_add), *(vidmem+2), *(vidmem+2+vga.draw.address_add), *(vidmem+2+2*vga.draw.address_add), col?*(vidmem-2):0, col?*(vidmem-2+vga.draw.address_add):0, col?*(vidmem-2+2*vga.draw.address_add):0, col < cols-2?*(vidmem+4):0, col < cols-2?*(vidmem+4+vga.draw.address_add):0, col < cols-2?*(vidmem+4+2*vga.draw.address_add):0, row?*(vidmem-vga.draw.address_add):0, row < rows-3?*(vidmem+3*vga.draw.address_add):0, row?*(vidmem+2-vga.draw.address_add):0, row < rows-3?*(vidmem+2+3*vga.draw.address_add):0)) ||
