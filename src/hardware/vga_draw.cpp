@@ -1961,9 +1961,11 @@ static uint8_t * Alt_MDA_TEXT_Draw_Line(Bitu /*vidstart*/, Bitu /*line*/) {
 
 // Wengier: Auto-detect box-drawing characters in CJK mode for TTF output
 bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4) {
+    if (dos.loaded_codepage == 932
 #if defined(USE_TTF)
-    if (dos.loaded_codepage == 932 && halfwidthkana) return false;
+    && halfwidthkana
 #endif
+    ) return false;
     return (c1 == 196 && c2 == 196 && c3 == 196 && (c4 == 180 || c4 == 182 || c4 == 183 || c4 == 189 || c4 == 191 || c4 == 193 || c4 == 194 || c4 == 196 || c4 == 197 || c4 == 208 || c4 == 210 || c4 == 215 || c4 == 217)) ||
     ((c1 == 192 || c1 == 193 || c1 == 194 || c1 == 195 || c1 == 196 || c1 == 197 || c1 == 199 || c1 == 208 || c1 == 210 || c1 == 211 || c1 == 214 || c1 == 215 || c1 == 218) && c2 == 196 && c3 == 196 && c4 == 196) ||
     (c1 == 205 && c2 == 205 && c3 == 205 && (c4 == 181 || c4 == 184 || c4 == 185 || c4 == 187 || c4 == 188 || c4 == 189 || c4 == 190 || c4 == 202 || c4 == 203 || c4 == 205 || c4 == 207 || c4 == 209 || c4 == 216)) ||
@@ -1983,6 +1985,11 @@ bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4) {
 
 // Workaround for Turbo Pascal, Turbo C/C++ 3, and DOS Navigator 2
 bool CheckBoxDrawLast(Bitu col, uint8_t chr0, uint8_t chr1, uint8_t chr2, uint8_t chr3, uint8_t chr4, uint8_t chr5, uint8_t chr6, uint8_t chr7, uint8_t chr8) {
+    if (dos.loaded_codepage == 932
+#if defined(USE_TTF)
+    && halfwidthkana
+#endif
+    ) return false;
     return (col == 71 && (chr0 == 196 || chr0 == 205) && (chr1 == 196 || chr1 == 205) && (chr3 == 196 || chr3 == 205) && chr4 == 91 && (chr5 == 15 || chr5 == 18 || chr5 == 24) && chr6 == 93 && (chr7 == 196 || chr7 == 205) && ((chr7 == 205 && chr8 == 187) || (chr7 == 196 && chr8 == 191))) ||
            (col == 72 && (chr0 == 196 || chr0 == 205) && (chr2 == 196 || chr2 == 205) && chr3 == 91 && (chr4 == 15 || chr4 == 18 || chr4 == 24) && chr5 == 93 && (chr6 == 196 || chr6 == 205) && ((chr6 == 205 && chr7 == 187) || (chr6 == 196 && chr7 == 191))) ||
            (col == 73 && (chr1 == 196 || chr1 == 205) && chr2 == 91 && (chr3 == 15 || chr3 == 18 || chr3 == 24) && chr4 == 93 && (chr5 == 196 || chr5 == 205) && ((chr5 == 205 && chr6 == 187) || (chr5 == 196 && chr6 == 191))) ||
@@ -2028,9 +2035,11 @@ bool isBDV(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4, uint8_t c5, uint8_t c
 }
 
 bool CheckBoxDrawingV(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4, uint8_t c5, uint8_t c6, uint8_t b1, uint8_t b2, uint8_t b3, uint8_t b4, uint8_t b5, uint8_t b6, uint8_t b7, uint8_t b8, uint8_t b9, uint8_t b10) {
+    if (dos.loaded_codepage == 932
 #if defined(USE_TTF)
-    if (dos.loaded_codepage == 932 && halfwidthkana) return false;
+    && halfwidthkana
 #endif
+    ) return false;
     if ((c1 == c2 && c1 == c3 && c1 == c4 && c1 == c5 && c1 == c6) && c1 >= 176 && c1 <= 178) return true;
     if ((c1 < 179 || c1 > 218 || c2 < 179 || c2 > 218 || c3 < 179 || c3 > 218) && (c4 < 179 || c4 > 218 || c5 < 179 || c5 > 218 || c6 < 179 || c6 > 218)) return false;
     return isBDV(c1, c2, c3, c4, c5, c6, b1, b2, b3, b7, b8, true) || isBDV(c4, c5, c6, c1, c2, c3, b4, b5, b6, b9, b10, false);
@@ -2050,7 +2059,7 @@ bool isDBCSLB(uint8_t chr) {
     return isDBCSCP() && ((lead[0]>=0x80 && lead[1] > lead[0] && chr >= lead[0] && chr <= lead[1]) || (lead[2]>=0x80 && lead[3] > lead[2] && chr >= lead[2] && chr <= lead[3]) || (lead[4]>=0x80 && lead[5] > lead[4] && chr >= lead[4] && chr <= lead[5]));
 }
 
-std::vector<std::pair<int,int>> jtbs = {};
+std::vector<std::pair<int,int>> jtbs = {}, dbox = {};
 struct first_equal {
     const int value;
     first_equal(int v):value(v) {}
@@ -2076,7 +2085,10 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
 #if defined(USE_TTF)
         && dbcs_sbcs
 #endif
-        && showdbcs)) && !jtbs.empty() && line == 1) jtbs.erase(std::remove_if(jtbs.begin(), jtbs.end(), first_equal(row)), jtbs.end());
+        && showdbcs)) && line == 1) {
+            if (!jtbs.empty()) jtbs.erase(std::remove_if(jtbs.begin(), jtbs.end(), first_equal(row)), jtbs.end());
+            if (!dbox.empty()) dbox.erase(std::remove_if(dbox.begin(), dbox.end(), first_equal(row)), dbox.end());
+        }
     while (blocks--) {
         if (isJEGAEnabled() || (isDBCSCP()
 #if defined(USE_TTF)
@@ -2089,7 +2101,7 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
             attr = pixels.b[1];
             VGA_Latch pixeln1, pixeln2, pixeln3, pixelp1, pixelp2, pixelp3;
             pixeln1.d = *(vidmem + ((uintptr_t)1U << (uintptr_t)vga.config.addr_shift));
-            pixeln2.d = *(vidmem + 2* ((uintptr_t)1U << (uintptr_t)vga.config.addr_shift));
+            pixeln2.d = *(vidmem + 2 * ((uintptr_t)1U << (uintptr_t)vga.config.addr_shift));
             pixeln3.d = *(vidmem + 3 * ((uintptr_t)1U << (uintptr_t)vga.config.addr_shift));
             pixelp1.d = *(vidmem - ((uintptr_t)1U << (uintptr_t)vga.config.addr_shift));
             pixelp2.d = *(vidmem - 2 * ((uintptr_t)1U << (uintptr_t)vga.config.addr_shift));
@@ -2118,6 +2130,8 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
                 (col && col < cols-2 && CheckBoxDrawing(pixelp1.b[0], chr, pixeln1.b[0], pixeln2.b[0])) ||
                 (col > 1 && col < cols-1 && CheckBoxDrawing(pixelp2.b[0], pixelp1.b[0], chr, pixeln1.b[0])) ||
                 (col > 2 && CheckBoxDrawing(pixelp3.b[0], pixelp2.b[0], pixelp1.b[0], chr)) ||
+                (cols >= 79 && col == 78 && row < rows && CheckBoxDrawLast(col-7, *(vidmem-14), *(vidmem-12), *(vidmem-10), *(vidmem-8), *(vidmem-6), *(vidmem-4), *(vidmem-2), chr, *(vidmem+2))) ||
+                (row && col>3 && (((uint8_t)*(vidmem-4)==177||(uint8_t)*(vidmem-4)==254)&&(uint8_t)*(vidmem-2)==16&&(uint8_t)chr==196&&(uint8_t)*(vidmem+2)==217)||((uint8_t)*(vidmem-4)==176&&(uint8_t)*(vidmem-2)==176&&(uint8_t)chr==176&&(uint8_t)*(vidmem+2)==179)) ||
                 (row < rows-2 && CheckBoxDrawingV(chr, *(vidmem+vga.draw.address_add), *(vidmem+2*vga.draw.address_add), *(vidmem+2), *(vidmem+2+vga.draw.address_add), *(vidmem+2+2*vga.draw.address_add), col?*(vidmem-2):0, col?*(vidmem-2+vga.draw.address_add):0, col?*(vidmem-2+2*vga.draw.address_add):0, col < cols-2?*(vidmem+4):0, col < cols-2?*(vidmem+4+vga.draw.address_add):0, col < cols-2?*(vidmem+4+2*vga.draw.address_add):0, row?*(vidmem-vga.draw.address_add):0, row < rows-3?*(vidmem+3*vga.draw.address_add):0, row?*(vidmem+2-vga.draw.address_add):0, row < rows-3?*(vidmem+2+3*vga.draw.address_add):0)) ||
                 (row && row < rows-1 && CheckBoxDrawingV(*(vidmem-vga.draw.address_add), chr, *(vidmem+vga.draw.address_add), *(vidmem+2-vga.draw.address_add), *(vidmem+2), *(vidmem+2+vga.draw.address_add), col?*(vidmem-2-vga.draw.address_add):0, col?*(vidmem-2):0, col?*(vidmem-2+vga.draw.address_add):0, col < cols-2?*(vidmem+4-vga.draw.address_add):0, col < cols-2?*(vidmem+4):0, col < cols-2?*(vidmem+4+vga.draw.address_add):0, row > 1?*(vidmem-2*vga.draw.address_add):0, row < rows-2?*(vidmem+2*vga.draw.address_add):0, row > 1?*(vidmem+2-2*vga.draw.address_add):0, row < rows-2?*(vidmem+2+2*vga.draw.address_add):0)) ||
                 (row > 1 && CheckBoxDrawingV(*(vidmem-2*vga.draw.address_add), *(vidmem-vga.draw.address_add), chr, *(vidmem+2-2*vga.draw.address_add), *(vidmem+2-vga.draw.address_add), *(vidmem+2), col?*(vidmem-2-2*vga.draw.address_add):0, col?*(vidmem-2-vga.draw.address_add):0, col?*(vidmem-2):0, col < cols-2?*(vidmem+4-2*vga.draw.address_add):0, col < cols-2?*(vidmem+4-vga.draw.address_add):0, col?*(vidmem+4):0, row > 2?*(vidmem-3*vga.draw.address_add):0, row < rows-1?*(vidmem+vga.draw.address_add):0, row > 2?*(vidmem+2-3*vga.draw.address_add):0, row < rows-1?*(vidmem+2+vga.draw.address_add):0))
@@ -2131,6 +2145,7 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
                     && halfwidthkana
 #endif
                     ? (IS_JEGA_ARCH ? jfont_sbcs_19[chr*19+line] : jfont_sbcs_16[chr*16+line]) : int10_font_16[chr*16+line];
+                    if (line == 1) dbox.push_back(std::make_pair(row, col));
                     if (vga.draw.char9dot) {
                         font <<=1; // 9 pixels
                         // extend to the 9th pixel if needed

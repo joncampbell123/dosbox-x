@@ -583,13 +583,15 @@ const char *ParseMsg(const char *msg) {
         if (real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)>80)
             msg = str_replace(str_replace(str_replace((char *)msg, (char*)"\xBA\033[0m", (char*)"\xBA\033[0m\n"), (char*)"\xBB\033[0m", (char*)"\xBB\033[0m\n"), (char*)"\xBC\033[0m", (char*)"\xBC\033[0m\n");
         bool uselowbox = false;
-#if defined(USE_TTF)
         force_conversion = true;
         int cp=dos.loaded_codepage;
-        if ((ttf.inUse || showdbcs) && halfwidthkana && InitCodePage() && dos.loaded_codepage==932) uselowbox = true;
+        if ((showdbcs
+#if defined(USE_TTF)
+        || ttf.inUse
+#endif
+        ) && halfwidthkana && InitCodePage() && dos.loaded_codepage==932) uselowbox = true;
         force_conversion = false;
         dos.loaded_codepage=cp;
-#endif
         if (uselowbox || IS_JEGA_ARCH || IS_JDOSV) {
             std::string m=msg;
             if (strstr(msg, "\xCD\xCD\xCD\xCD") != NULL) {

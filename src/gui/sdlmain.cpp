@@ -2866,8 +2866,10 @@ void MenuDrawText(int x,int y,const char *text,Bitu color,bool check=false) {
 void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
     (void)menu;//UNUSED
 
+    force_conversion = showdbcs;
     int cp = dos.loaded_codepage;
-    if (!cp) InitCodePage();
+    if (!cp || force_conversion) InitCodePage();
+    force_conversion = false;
 
     Bitu bgcolor = GFX_GetRGB(63, 63, 63);
     Bitu fgcolor = GFX_GetRGB(191, 191, 191);
