@@ -2582,7 +2582,7 @@ bool ParseCommand(char* str) {
                     int idx = strtol(found,&found,16);
                     if (idx >= 0 && idx <= 7) {
                         param[pi].u64[0] = reg_mmx[idx]->q;
-			param[pi].u64[1] = 0;
+                        param[pi].u64[1] = 0;
                         paramexist[pi] = true;
                         paramfset[pi] = false;
                         pi++;
@@ -2630,7 +2630,7 @@ bool ParseCommand(char* str) {
                 else if (pi > 4) format = 'W';
                 else if (pi > 2) format = hasfloat ? 'S' : 'D';
                 else if (pi > 1) format = hasfloat ? 'F' : 'Q';
-		else format = 'X';
+                else format = 'X';
             }
 
             if (pi == 0) {
@@ -2655,7 +2655,7 @@ bool ParseCommand(char* str) {
                     if (paramexist[i]) {
                         if (paramfset[i]) param[i].f32[0].v = (float)paramf[i]; /* which becomes u32[] */
                         fpu.xmmreg[which].u32[3-i] = param[i].u32[0];
-		    }
+                    }
                 }
             }
             else if (format == 'D') {
