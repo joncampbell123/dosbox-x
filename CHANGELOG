@@ -1,4 +1,26 @@
 0.83.22
+  - Added multiply (*) and divide (/) operators to debugger
+    expression handling. Order of operations applies, so
+    given mixed addition and multiplication, the multiply
+    is done first then the result is added. (joncampbell123)
+  - Revised debugger expression handling to correctly
+    parse arithmetic operators with order of operations
+    in mind. Prior to this fix, consecutive subtraction
+    would cause seemingly illogical results, for example
+    "10-1-1-1" would yield "9" instead of "7" because
+    subtraction was handled in the wrong order. This fix
+    also makes mixed addition and subtraction possible.
+    (joncampbell123)
+  - Fixed simple expression handling in the debugger.
+    Revised hexadecimal vs register parsing so that
+    hexadecimal numbers that happen to start with
+    the name of certain CPU flag registers does not
+    cause confusing results. Prior to this fix,
+    hexadecimal numbers like "dfe" or "af0" were
+    impossible to enter without leading zeros or
+    quotes because the parser would confuse the
+    first digits with the DF and AF bits of the FLAGS
+    register. (joncampbell123)
   - Added Pentium III cputype, added SSE register set,
     added SSE instructions to debugger disassembler,
     added some initial SSE instructions. (joncampbell123)
