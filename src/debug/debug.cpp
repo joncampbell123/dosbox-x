@@ -37,6 +37,7 @@ using namespace std;
 #include "timer.h"
 #include "video.h"
 #include "vga.h"
+#include "mmx.h"
 #include "mapper.h"
 #include "pc98_gdc.h"
 #include "callback.h"
@@ -1705,6 +1706,36 @@ bool ChangeRegister(char* const str)
 	return true;
 }
 
+void DEBUG_PrintMMX(int which,char format) {
+    char tmp[256],*w=tmp;
+
+    if (which < 0 || which > 7) return;
+
+    MMX_reg &mmx = *reg_mmx[which];
+
+    w += sprintf(w,"mm%d(%c): H->L ",which,format); /* let the user know we're printing from little endian order highest to lowest */
+    if (format == 'B') {
+        w += sprintf(w,"%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x",
+            mmx.ub.b7,mmx.ub.b6,mmx.ub.b5,mmx.ub.b4,
+            mmx.ub.b3,mmx.ub.b2,mmx.ub.b1,mmx.ub.b0);
+    }
+    else if (format == 'W') {
+        w += sprintf(w,"%04x|%04x|%04x|%04x",
+            mmx.uw.w3,mmx.uw.w2,mmx.uw.w1,mmx.uw.w0);
+    }
+    else if (format == 'D') {
+        w += sprintf(w,"%08lx|%08lx",
+            (unsigned long)mmx.ud.d1,(unsigned long)mmx.ud.d0);
+    }
+    else { /* 'Q' */
+        w += sprintf(w,"%08lx%08lx",
+            (unsigned long)mmx.ud.d1,(unsigned long)mmx.ud.d0); /* little endian combine to print 64-bit hex */
+    }
+
+    assert(w < (tmp+sizeof(tmp)));
+    DEBUG_ShowMsg(tmp);
+}
+
 void DEBUG_GUI_Rebuild(void);
 void DBGUI_NextWindowIfActiveHidden(void);
 
@@ -2257,6 +2288,29 @@ bool ParseCommand(char* str) {
 
         if (command == "MEM") LogBIOSMem();
         else return false;
+
+        return true;
+    }
+
+    if (command == "MMX") {
+        while (*found == ' ') found++;
+
+        char format = 'Q'; /* remember at the start of this function the entire string is converted to uppercase */
+        if (*found == '=') { /* =q as quads =d as dword =w as word =b as byte */
+            found++;
+            format = *found++;
+            while (*found == ' ') found++;
+        }
+
+        int which = (*found != 0 && isxdigit(*found)) ? (int)strtol(found,&found,16) : -1; /* accept index as hexadecimal to be consistent with the rest of the debugger */
+
+        if (which >= 0 && which <= 7) {
+            DEBUG_PrintMMX(which,format);
+        }
+        else {
+            for (which=0;which < 8;which++)
+                DEBUG_PrintMMX(which,format);
+        }
 
         return true;
     }
