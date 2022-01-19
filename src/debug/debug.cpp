@@ -1451,7 +1451,6 @@ uint32_t GetHexValue(char* const str, char* &hex,bool *parsed,int exprge)
     std::string something;
     bool hexnumber = true;
     bool quoted = false;
-    bool skip = false;
     char *start;
 
     if (parsed) *parsed = 1;
@@ -1470,38 +1469,36 @@ uint32_t GetHexValue(char* const str, char* &hex,bool *parsed,int exprge)
                 return 0;
         }
         hex++; /* then skip the ) */
-        skip = true; /* don't try to parse "something" go straight to the expression handling below */
-    }
-    // In this code base, scan the string for alphanumeric characters, store the string,
-    // THEN process for identifiers. This is to make sure "DFE" is not confused with
-    // the DF flag, for example.
-    else if (*hex == '\"') {
-        quoted = true;
-        start = ++hex; /* start = first char after quote */
-        while (*hex != 0 && *hex != '\"') {
-                if (!isxdigit(*hex)) hexnumber = false;
-                hex++;
-        }
-        something = std::string(start,(size_t)(hex-start));
-        if (*hex == '\"') hex++;
     }
     else {
-        start = hex;
-        while (isalpha(*hex) || isdigit(*hex) || *hex == '_') {
+        // In this code base, scan the string for alphanumeric characters, store the string,
+        // THEN process for identifiers. This is to make sure "DFE" is not confused with
+        // the DF flag, for example.
+        if (*hex == '\"') {
+            quoted = true;
+            start = ++hex; /* start = first char after quote */
+            while (*hex != 0 && *hex != '\"') {
                 if (!isxdigit(*hex)) hexnumber = false;
                 hex++;
+            }
+            something = std::string(start,(size_t)(hex-start));
+            if (*hex == '\"') hex++;
         }
-        something = std::string(start,(size_t)(hex-start));
-    }
+        else {
+            start = hex;
+            while (isalpha(*hex) || isdigit(*hex) || *hex == '_') {
+                if (!isxdigit(*hex)) hexnumber = false;
+                hex++;
+            }
+            something = std::string(start,(size_t)(hex-start));
+        }
 
-    // "" is not valid
-    if (!skip && something.empty()) { if (parsed) *parsed = 0; return 0; }
+        // "" is not valid
+        if (something.empty()) { if (parsed) *parsed = 0; return 0; }
 
-    // The user can enclose a value in double quotations to enter hex values that
-    // would collide with a flag name (AC, AF, CF, and DF).
-    if (skip) {
-    }
-    else if (!quoted) {
+        // The user can enclose a value in double quotations to enter hex values that
+        // would collide with a flag name (AC, AF, CF, and DF).
+        if (!quoted) {
                  if (something == "EFLAGS") { regval = (uint32_t)reg_flags; }
             else if (something == "FLAGS") { regval = (uint32_t)reg_flags; }
             else if (something == "IOPL") { regval = (reg_flags & FLAG_IOPL) >> 12u; }
@@ -1559,10 +1556,11 @@ uint32_t GetHexValue(char* const str, char* &hex,bool *parsed,int exprge)
             else if (something == "PSPSEG") { regval = (!dos_kernel_disabled) ?  dos.psp()            : 0; }
             else if (hexnumber) { regval = (uint32_t)strtoul(something.c_str(),NULL,16/*hexadecimal*/); }
             else { if (parsed) *parsed = 0; return 0; }
+        }
+        /* quoted */
+        else if (hexnumber) { regval = (uint32_t)strtoul(something.c_str(),NULL,16/*hexadecimal*/); }
+        else { if (parsed) *parsed = 0; return 0; }
     }
-    /* quoted */
-    else if (hexnumber) { regval = (uint32_t)strtoul(something.c_str(),NULL,16/*hexadecimal*/); }
-    else { if (parsed) *parsed = 0; return 0; }
 
     /* support simple add/subtract expressions */
     while (*hex != 0) {
