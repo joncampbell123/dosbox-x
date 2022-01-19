@@ -1542,10 +1542,9 @@ uint32_t GetHexValue(char* const str, char* &hex,bool *parsed)
     /* support simple add/subtract expressions */
     while (*hex != 0) {
         while (*hex == ' ') hex++;
-        if (*hex == '+') { hex++; return regval + GetHexValue(hex, hex, parsed); }
-        else if (*hex == '-') { hex++; return regval - GetHexValue(hex, hex, parsed); }
+        if (*hex == '+') { hex++; regval += GetHexValue(hex, hex, parsed); }
+        else if (*hex == '-') { hex++; regval -= GetHexValue(hex, hex, parsed); }
         else break; // No valid char
-        hex++;
     }
 
     return regval;
