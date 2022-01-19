@@ -226,6 +226,8 @@ LoopHandler *old_loop = NULL;
 /* see also "C operator precedence" */
 enum {
 	EXPR_BASE=0,
+	EXPR_OR,
+	EXPR_XOR,
 	EXPR_AND,
 	EXPR_ADDSUB,
 	EXPR_MULDIV
@@ -1602,6 +1604,16 @@ uint32_t GetHexValue(char* const str, char* &hex,bool *parsed,int exprge)
             hex++;
             regval &= GetHexValue(hex, hex, parsed, EXPR_AND);
         }
+        else if (*hex == '^') {
+            if (exprge >= EXPR_XOR) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex++;
+            regval ^= GetHexValue(hex, hex, parsed, EXPR_XOR);
+	}
+        else if (*hex == '|') {
+            if (exprge >= EXPR_OR) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex++;
+            regval |= GetHexValue(hex, hex, parsed, EXPR_OR);
+	}
         else {
             break; // No valid char
         }
