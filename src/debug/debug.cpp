@@ -229,6 +229,7 @@ enum {
 	EXPR_OR,
 	EXPR_XOR,
 	EXPR_AND,
+	EXPR_BITSHIFT,
 	EXPR_ADDSUB,
 	EXPR_MULDIV
 };
@@ -1608,12 +1609,26 @@ uint32_t GetHexValue(char* const str, char* &hex,bool *parsed,int exprge)
             if (exprge >= EXPR_XOR) break; /* if order of operations says we're handling something higher precedence, stop now */
             hex++;
             regval ^= GetHexValue(hex, hex, parsed, EXPR_XOR);
-	}
+        }
         else if (*hex == '|') {
             if (exprge >= EXPR_OR) break; /* if order of operations says we're handling something higher precedence, stop now */
             hex++;
             regval |= GetHexValue(hex, hex, parsed, EXPR_OR);
-	}
+        }
+        else if (hex[0] == '<' && hex[1] == '<') {
+            if (exprge >= EXPR_BITSHIFT) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex += 2;
+            uint32_t r = GetHexValue(hex, hex, parsed, EXPR_BITSHIFT);
+            if (r < 32) regval <<= r;
+            else regval = 0;
+        }
+        else if (hex[0] == '>' && hex[1] == '>') {
+            if (exprge >= EXPR_BITSHIFT) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex += 2;
+            uint32_t r = GetHexValue(hex, hex, parsed, EXPR_BITSHIFT);
+            if (r < 32) regval >>= r;
+            else regval = 0;
+        }
         else {
             break; // No valid char
         }
