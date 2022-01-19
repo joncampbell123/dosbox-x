@@ -1451,12 +1451,31 @@ uint32_t GetHexValue(char* const str, char* &hex,bool *parsed,int exprge)
     std::string something;
     bool hexnumber = true;
     bool quoted = false;
+    bool skip = false;
     char *start;
 
+    if (parsed) *parsed = 1;
+
+    // parenthesis handling (expr)
+    if (*hex == '(') {
+        bool myparsed = false;
+
+        hex++;
+        regval = GetHexValue(hex,hex,&myparsed);
+        if (!myparsed) return 0;
+
+        while (*hex == ' ') hex++;
+        if (*hex != ')') { // syntax error
+                if (parsed) *parsed = 0;
+                return 0;
+        }
+        hex++; /* then skip the ) */
+        skip = true; /* don't try to parse "something" go straight to the expression handling below */
+    }
     // In this code base, scan the string for alphanumeric characters, store the string,
     // THEN process for identifiers. This is to make sure "DFE" is not confused with
     // the DF flag, for example.
-    if (*hex == '\"') {
+    else if (*hex == '\"') {
         quoted = true;
         start = ++hex; /* start = first char after quote */
         while (*hex != 0 && *hex != '\"') {
@@ -1475,14 +1494,14 @@ uint32_t GetHexValue(char* const str, char* &hex,bool *parsed,int exprge)
         something = std::string(start,(size_t)(hex-start));
     }
 
-    if (parsed) *parsed = 1;
-
     // "" is not valid
-    if (something.empty()) { if (parsed) *parsed = 0; return 0; }
+    if (!skip && something.empty()) { if (parsed) *parsed = 0; return 0; }
 
     // The user can enclose a value in double quotations to enter hex values that
     // would collide with a flag name (AC, AF, CF, and DF).
-    if (!quoted) {
+    if (skip) {
+    }
+    else if (!quoted) {
                  if (something == "EFLAGS") { regval = (uint32_t)reg_flags; }
             else if (something == "FLAGS") { regval = (uint32_t)reg_flags; }
             else if (something == "IOPL") { regval = (reg_flags & FLAG_IOPL) >> 12u; }
