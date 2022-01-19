@@ -2398,11 +2398,12 @@ bool ParseCommand(char* str) {
             //
             // if you don't want to change a particular part of the MMX register, set val to nothing or ""
             // i.e. to set only the low 16 bits use =W 0 ,,,val
-            uint64_t param[4];
-            bool paramexist[4];
+            static constexpr unsigned int param_max = 8;
+            bool paramexist[param_max];
+            uint64_t param[param_max];
             unsigned int pi=0;
 
-            while (*found != 0) {
+            while (*found != 0 && pi < param_max) {
                 if (*found == ',') {
                     found++;
                     paramexist[pi++] = false; // none specified, ok.
@@ -2460,7 +2461,7 @@ bool ParseCommand(char* str) {
                 return true;
             }
 
-            while (pi < 4) paramexist[pi++] = false;
+            while (pi < param_max) paramexist[pi++] = false;
 
             // FIXME: This could be simple for() loops without copy-pasta if the MMX_reg struct had arrays
             if (format == 'B') {
