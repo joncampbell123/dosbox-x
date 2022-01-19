@@ -1,4 +1,6 @@
 0.83.22
+  - Added parenthesis to debugger expression handling.
+    (joncampbell123)
   - Added multiply (*) and divide (/) operators to debugger
     expression handling. Order of operations applies, so
     given mixed addition and multiplication, the multiply
