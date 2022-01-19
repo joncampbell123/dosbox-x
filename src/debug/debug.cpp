@@ -1438,91 +1438,117 @@ void SkipSpace(char*& hex) {
 
 uint32_t GetHexValue(char* const str, char* &hex,bool *parsed)
 {
-    uint32_t	value = 0;
     uint32_t regval = 0;
     hex = str;
     while (*hex == ' ') hex++;
 
+    std::string something;
+    bool hexnumber = true;
+    bool quoted = false;
+    char *start;
+
+    // In this code base, scan the string for alphanumeric characters, store the string,
+    // THEN process for identifiers. This is to make sure "DFE" is not confused with
+    // the DF flag, for example.
+    if (*hex == '\"') {
+        quoted = true;
+        start = ++hex; /* start = first char after quote */
+        while (*hex != 0 && *hex != '\"') {
+                if (!isxdigit(*hex)) hexnumber = false;
+                hex++;
+        }
+        something = std::string(start,(size_t)(hex-start));
+        if (*hex == '\"') hex++;
+    }
+    else {
+        start = hex;
+        while (isalpha(*hex) || isdigit(*hex) || *hex == '_') {
+                if (!isxdigit(*hex)) hexnumber = false;
+                hex++;
+        }
+        something = std::string(start,(size_t)(hex-start));
+    }
+
+    if (parsed) *parsed = 1;
+
+    // "" is not valid
+    if (something.empty()) { if (parsed) *parsed = 0; return 0; }
+
     // The user can enclose a value in double quotations to enter hex values that
     // would collide with a flag name (AC, AF, CF, and DF).
-    if (*hex == '\"') { hex++; }
-    else if (strncmp(hex, "EFLAGS", 6) == 0) { hex += 6; regval = (uint32_t)reg_flags; }
-    else if (strncmp(hex, "FLAGS", 5) == 0) { hex += 5; regval = (uint32_t)reg_flags; }
-    else if (strncmp(hex, "IOPL", 4) == 0) { hex += 4; regval = (reg_flags & FLAG_IOPL) >> 12u; }
-    else if (strncmp(hex, "CR0", 3) == 0) { hex += 3; regval = (uint32_t)cpu.cr0; }
-    else if (strncmp(hex, "CR2", 3) == 0) { hex += 3; regval = (uint32_t)paging.cr2; }
-    else if (strncmp(hex, "CR3", 3) == 0) { hex += 3; regval = (uint32_t)paging.cr3; }
-    else if (strncmp(hex, "EAX", 3) == 0) { hex += 3; regval = reg_eax; }
-    else if (strncmp(hex, "EBX", 3) == 0) { hex += 3; regval = reg_ebx; }
-    else if (strncmp(hex, "ECX", 3) == 0) { hex += 3; regval = reg_ecx; }
-    else if (strncmp(hex, "EDX", 3) == 0) { hex += 3; regval = reg_edx; }
-    else if (strncmp(hex, "ESI", 3) == 0) { hex += 3; regval = reg_esi; }
-    else if (strncmp(hex, "EDI", 3) == 0) { hex += 3; regval = reg_edi; }
-    else if (strncmp(hex, "EBP", 3) == 0) { hex += 3; regval = reg_ebp; }
-    else if (strncmp(hex, "ESP", 3) == 0) { hex += 3; regval = reg_esp; }
-    else if (strncmp(hex, "EIP", 3) == 0) { hex += 3; regval = reg_eip; }
-    else if (strncmp(hex, "AX", 2) == 0) { hex += 2; regval = reg_ax; }
-    else if (strncmp(hex, "BX", 2) == 0) { hex += 2; regval = reg_bx; }
-    else if (strncmp(hex, "CX", 2) == 0) { hex += 2; regval = reg_cx; }
-    else if (strncmp(hex, "DX", 2) == 0) { hex += 2; regval = reg_dx; }
-    else if (strncmp(hex, "SI", 2) == 0) { hex += 2; regval = reg_si; }
-    else if (strncmp(hex, "DI", 2) == 0) { hex += 2; regval = reg_di; }
-    else if (strncmp(hex, "BP", 2) == 0) { hex += 2; regval = reg_bp; }
-    else if (strncmp(hex, "SP", 2) == 0) { hex += 2; regval = reg_sp; }
-    else if (strncmp(hex, "IP", 2) == 0) { hex += 2; regval = reg_ip; }
-    else if (strncmp(hex, "AL", 2) == 0) { hex += 2; regval = reg_al; }
-    else if (strncmp(hex, "BL", 2) == 0) { hex += 2; regval = reg_bl; }
-    else if (strncmp(hex, "CL", 2) == 0) { hex += 2; regval = reg_cl; }
-    else if (strncmp(hex, "DL", 2) == 0) { hex += 2; regval = reg_dl; }
-    else if (strncmp(hex, "AH", 2) == 0) { hex += 2; regval = reg_ah; }
-    else if (strncmp(hex, "BH", 2) == 0) { hex += 2; regval = reg_bh; }
-    else if (strncmp(hex, "CH", 2) == 0) { hex += 2; regval = reg_ch; }
-    else if (strncmp(hex, "DH", 2) == 0) { hex += 2; regval = reg_dh; }
-    else if (strncmp(hex, "CS", 2) == 0) { hex += 2; regval = SegValue(cs); }
-    else if (strncmp(hex, "DS", 2) == 0) { hex += 2; regval = SegValue(ds); }
-    else if (strncmp(hex, "ES", 2) == 0) { hex += 2; regval = SegValue(es); }
-    else if (strncmp(hex, "FS", 2) == 0) { hex += 2; regval = SegValue(fs); }
-    else if (strncmp(hex, "GS", 2) == 0) { hex += 2; regval = SegValue(gs); }
-    else if (strncmp(hex, "SS", 2) == 0) { hex += 2; regval = SegValue(ss); }
-    else if (strncmp(hex, "AC", 2) == 0) { hex += 2; regval = GETFLAG(AC); }
-    else if (strncmp(hex, "AF", 2) == 0) { hex += 2; regval = GETFLAG(AF); }
-    else if (strncmp(hex, "CF", 2) == 0) { hex += 2; regval = GETFLAG(CF); }
-    else if (strncmp(hex, "DF", 2) == 0) { hex += 2; regval = GETFLAG(DF); }
-    else if (strncmp(hex, "ID", 2) == 0) { hex += 2; regval = GETFLAG(ID); }
-    else if (strncmp(hex, "IF", 2) == 0) { hex += 2; regval = GETFLAG(IF); }
-    else if (strncmp(hex, "NT", 2) == 0) { hex += 2; regval = GETFLAG(NT); }
-    else if (strncmp(hex, "OF", 2) == 0) { hex += 2; regval = GETFLAG(OF); }
-    else if (strncmp(hex, "PF", 2) == 0) { hex += 2; regval = GETFLAG(PF); }
-    else if (strncmp(hex, "SF", 2) == 0) { hex += 2; regval = GETFLAG(SF); }
-    else if (strncmp(hex, "TF", 2) == 0) { hex += 2; regval = GETFLAG(TF); }
-    else if (strncmp(hex, "VM", 2) == 0) { hex += 2; regval = GETFLAG(VM); }
-    else if (strncmp(hex, "ZF", 2) == 0) { hex += 2; regval = GETFLAG(ZF); }
+    if (!quoted) {
+                 if (something == "EFLAGS") { regval = (uint32_t)reg_flags; }
+            else if (something == "FLAGS") { regval = (uint32_t)reg_flags; }
+            else if (something == "IOPL") { regval = (reg_flags & FLAG_IOPL) >> 12u; }
+            else if (something == "CR0") { regval = (uint32_t)cpu.cr0; }
+            else if (something == "CR2") { regval = (uint32_t)paging.cr2; }
+            else if (something == "CR3") { regval = (uint32_t)paging.cr3; }
+            else if (something == "EAX") { regval = reg_eax; }
+            else if (something == "EBX") { regval = reg_ebx; }
+            else if (something == "ECX") { regval = reg_ecx; }
+            else if (something == "EDX") { regval = reg_edx; }
+            else if (something == "ESI") { regval = reg_esi; }
+            else if (something == "EDI") { regval = reg_edi; }
+            else if (something == "EBP") { regval = reg_ebp; }
+            else if (something == "ESP") { regval = reg_esp; }
+            else if (something == "EIP") { regval = reg_eip; }
+            else if (something == "AX") { regval = reg_ax; }
+            else if (something == "BX") { regval = reg_bx; }
+            else if (something == "CX") { regval = reg_cx; }
+            else if (something == "DX") { regval = reg_dx; }
+            else if (something == "SI") { regval = reg_si; }
+            else if (something == "DI") { regval = reg_di; }
+            else if (something == "BP") { regval = reg_bp; }
+            else if (something == "SP") { regval = reg_sp; }
+            else if (something == "IP") { regval = reg_ip; }
+            else if (something == "AL") { regval = reg_al; }
+            else if (something == "BL") { regval = reg_bl; }
+            else if (something == "CL") { regval = reg_cl; }
+            else if (something == "DL") { regval = reg_dl; }
+            else if (something == "AH") { regval = reg_ah; }
+            else if (something == "BH") { regval = reg_bh; }
+            else if (something == "CH") { regval = reg_ch; }
+            else if (something == "DH") { regval = reg_dh; }
+            else if (something == "CS") { regval = SegValue(cs); }
+            else if (something == "DS") { regval = SegValue(ds); }
+            else if (something == "ES") { regval = SegValue(es); }
+            else if (something == "FS") { regval = SegValue(fs); }
+            else if (something == "GS") { regval = SegValue(gs); }
+            else if (something == "SS") { regval = SegValue(ss); }
+            else if (something == "AC") { regval = GETFLAG(AC); }
+            else if (something == "AF") { regval = GETFLAG(AF); }
+            else if (something == "CF") { regval = GETFLAG(CF); }
+            else if (something == "DF") { regval = GETFLAG(DF); }
+            else if (something == "ID") { regval = GETFLAG(ID); }
+            else if (something == "IF") { regval = GETFLAG(IF); }
+            else if (something == "NT") { regval = GETFLAG(NT); }
+            else if (something == "OF") { regval = GETFLAG(OF); }
+            else if (something == "PF") { regval = GETFLAG(PF); }
+            else if (something == "SF") { regval = GETFLAG(SF); }
+            else if (something == "TF") { regval = GETFLAG(TF); }
+            else if (something == "VM") { regval = GETFLAG(VM); }
+            else if (something == "ZF") { regval = GETFLAG(ZF); }
 
-    else if (strncmp(hex,"DTASEG", 6) == 0) { hex += 6; regval = (!dos_kernel_disabled) ? (dos.dta() >> 16u)    : 0; }
-    else if (strncmp(hex,"DTAOFF", 6) == 0) { hex += 6; regval = (!dos_kernel_disabled) ? (dos.dta() & 0xFFFFu) : 0; }
-    else if (strncmp(hex,"PSPSEG", 6) == 0) { hex += 6; regval = (!dos_kernel_disabled) ?  dos.psp()            : 0; }
+            else if (something == "DTASEG") { regval = (!dos_kernel_disabled) ? (dos.dta() >> 16u)    : 0; }
+            else if (something == "DTAOFF") { regval = (!dos_kernel_disabled) ? (dos.dta() & 0xFFFFu) : 0; }
+            else if (something == "PSPSEG") { regval = (!dos_kernel_disabled) ?  dos.psp()            : 0; }
+            else if (hexnumber) { regval = (uint32_t)strtoul(something.c_str(),NULL,16/*hexadecimal*/); }
+            else { if (parsed) *parsed = 0; return 0; }
+    }
+    /* quoted */
+    else if (hexnumber) { regval = (uint32_t)strtoul(something.c_str(),NULL,16/*hexadecimal*/); }
+    else { if (parsed) *parsed = 0; return 0; }
 
-    while (*hex && *hex != '\"') {
-        if ((*hex >= '0') && (*hex <= '9')) value = (value << 4u) + ((uint32_t)(*hex)) - '0';
-        else if ((*hex >= 'A') && (*hex <= 'F')) value = (value << 4u) + ((uint32_t)(*hex)) - 'A' + 10u;
-        else {
-            if (*hex == '+') { hex++; return regval + value + GetHexValue(hex, hex, parsed); }
-            else
-                if (*hex == '-') { hex++; return regval + value - GetHexValue(hex, hex, parsed); }
-                else break; // No valid char
-        }
+    /* support simple add/subtract expressions */
+    while (*hex != 0) {
+        while (*hex == ' ') hex++;
+        if (*hex == '+') { hex++; return regval + GetHexValue(hex, hex, parsed); }
+        else if (*hex == '-') { hex++; return regval - GetHexValue(hex, hex, parsed); }
+        else break; // No valid char
         hex++;
     }
 
-    // If there is a closing quote, skip over it.
-    if (*hex == '\"') {
-        hex++;
-    }
-
-    if (parsed != NULL)
-        *parsed = (hex != str);
-
-    return regval + value;
+    return regval;
 }
 
 bool ChangeRegister(char* const str)
