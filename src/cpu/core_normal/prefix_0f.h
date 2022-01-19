@@ -235,10 +235,10 @@
 			const unsigned char reg = (rm >> 3) & 7;
 
 			switch (last_prefix) {
-				case MP_NONE:									/* 0F 12 MOVUPS reg, r/m */
+				case MP_NONE:									/* 0F 12 MOVHLPS reg, r/m */
 					if (rm >= 0xc0) {
 						SSE_MOVHLPS(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
-					} else {
+					} else {								/* 0F 12 MOVLPS reg, r/m */
 						GetEAa;
 						xmmsrc.u64[0] = LoadMq(eaa);
 						SSE_MOVLPS(fpu.xmmreg[reg],xmmsrc);
@@ -259,7 +259,7 @@
 			const unsigned char reg = (rm >> 3) & 7;
 
 			switch (last_prefix) {
-				case MP_NONE:									/* 0F 13 MOVUPS r/m, reg */
+				case MP_NONE:									/* 0F 13 MOVLPS r/m, reg */
 					if (rm >= 0xc0) {
 						goto illegal_opcode;
 					} else {
