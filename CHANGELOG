@@ -3,6 +3,9 @@
     to set SSE register contents. (joncampbell123)
   - Added debugger command to show MMX register file, and
     to set MMX register contents. (joncampbell123)
+  - Added & (AND), ^ (XOR), and | (OR) operators, and
+    << and >> bit shift operators to debugger expression
+    handling. (joncampbell123)
   - Added multiply (*) and divide (/) operators to debugger
     expression handling. Order of operations applies, so
     given mixed addition and multiplication, the multiply
