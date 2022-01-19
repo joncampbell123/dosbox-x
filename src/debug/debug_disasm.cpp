@@ -281,7 +281,7 @@ static char const *second[] = {
   0,                  0,                 0,                0,
 /* 1 */
   "%x0",              "%x0",             "%x0",            "%x0",
-  0,                  0,                 0,                0,
+  "%x0",              "%x0",             0,                0,
   "%g=",              0,                 0,                0,
   0,                  0,                 0,                0,
 /* 2 */
@@ -366,7 +366,9 @@ static char const *mpgroups[][256][4] = { /* mandatory prefix groups SSE instruc
     /* 0x11 */ { "movups %EX,%GX", "movupd %EX,%GX", "movsd %EX,%GX", "movss %EX,%GX" },
     /* 0x12 */ { "movlps %GX,%EX", 0,0,0 }, // FIXME: The design of this disassembler does not allow changing opcode name based on r/m = memory or r/m = reg
     /* 0x13 */ { "movlps %EX,%GX", 0,0,0 },
-    /* 0x14 */ { 0,0,0,0 }, /* 0x15 */ { 0,0,0,0 }, /* 0x16 */ { 0,0,0,0 }, /* 0x17 */ { 0,0,0,0 },
+    /* 0x14 */ { "unpcklps %GX,%EX", 0,0,0 },
+    /* 0x15 */ { "unpckhps %GX,%EX", 0,0,0 },
+    /* 0x16 */ { 0,0,0,0 }, /* 0x17 */ { 0,0,0,0 },
     /* 0x18 */ { 0,0,0,0 }, /* 0x19 */ { 0,0,0,0 }, /* 0x1A */ { 0,0,0,0 }, /* 0x1B */ { 0,0,0,0 },
     /* 0x1C */ { 0,0,0,0 }, /* 0x1D */ { 0,0,0,0 }, /* 0x1E */ { 0,0,0,0 }, /* 0x1F */ { 0,0,0,0 },
 
