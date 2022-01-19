@@ -223,8 +223,10 @@ bool XMS_GetHandleInfo(Bitu &phys_location,Bitu &size,Bitu &lockcount,bool &free
 
 LoopHandler *old_loop = NULL;
 
+/* see also "C operator precedence" */
 enum {
 	EXPR_BASE=0,
+	EXPR_AND,
 	EXPR_ADDSUB,
 	EXPR_MULDIV
 };
@@ -1594,6 +1596,11 @@ uint32_t GetHexValue(char* const str, char* &hex,bool *parsed,int exprge)
             uint32_t r = GetHexValue(hex, hex, parsed, EXPR_MULDIV); /* whoah now, check for zero! */
             if (r != 0) regval %= r;
             else regval = 0;
+        }
+        else if (*hex == '&') {
+            if (exprge >= EXPR_AND) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex++;
+            regval &= GetHexValue(hex, hex, parsed, EXPR_AND);
         }
         else {
             break; // No valid char
