@@ -2,7 +2,8 @@
   - Added multiply (*) and divide (/) operators to debugger
     expression handling. Order of operations applies, so
     given mixed addition and multiplication, the multiply
-    is done first then the result is added. (joncampbell123)
+    is done first then the result is added. Added modulo (%)
+    operator. (joncampbell123)
   - Revised debugger expression handling to correctly
     parse arithmetic operators with order of operations
     in mind. Prior to this fix, consecutive subtraction
