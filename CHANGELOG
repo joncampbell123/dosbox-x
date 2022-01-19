@@ -1,4 +1,5 @@
 0.83.22
+  - Added debugger command to show SSE register file (joncampbell123)
   - Added debugger command to show MMX register file, and
     to set MMX register contents. (joncampbell123)
   - Added multiply (*) and divide (/) operators to debugger
