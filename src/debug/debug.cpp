@@ -2331,6 +2331,7 @@ bool ParseCommand(char* str) {
                 DEBUG_PrintMMX(which,format);
             }
             else {
+                DEBUG_ShowMsg("MMX register contents:");
                 for (which=0;which < 8;which++)
                     DEBUG_PrintMMX(which,format);
             }
@@ -2432,6 +2433,7 @@ bool ParseCommand(char* str) {
                 if (paramexist[0]) reg_mmx[which]->q = param[0];
             }
 
+            DEBUG_PrintMMX(which,format);
 	    return true;
         }
     }
