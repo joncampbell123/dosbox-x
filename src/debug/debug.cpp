@@ -223,8 +223,13 @@ bool XMS_GetHandleInfo(Bitu &phys_location,Bitu &size,Bitu &lockcount,bool &free
 
 LoopHandler *old_loop = NULL;
 
+enum {
+	EXPR_BASE=0,
+	EXPR_ADDSUB
+};
+
 char* AnalyzeInstruction(char* inst, bool saveSelector);
-uint32_t GetHexValue(char* const str, char* &hex,bool *parsed=NULL);
+uint32_t GetHexValue(char* const str, char* &hex,bool *parsed=NULL,int exprge=EXPR_BASE);
 void SkipSpace(char*& hex);
 
 #if 0
@@ -1436,7 +1441,7 @@ void SkipSpace(char*& hex) {
     while (*hex == ' ') hex++;
 }
 
-uint32_t GetHexValue(char* const str, char* &hex,bool *parsed)
+uint32_t GetHexValue(char* const str, char* &hex,bool *parsed,int exprge)
 {
     uint32_t regval = 0;
     hex = str;
@@ -1542,9 +1547,20 @@ uint32_t GetHexValue(char* const str, char* &hex,bool *parsed)
     /* support simple add/subtract expressions */
     while (*hex != 0) {
         while (*hex == ' ') hex++;
-        if (*hex == '+') { hex++; regval += GetHexValue(hex, hex, parsed); }
-        else if (*hex == '-') { hex++; regval -= GetHexValue(hex, hex, parsed); }
-        else break; // No valid char
+
+        if (*hex == '+') {
+            if (exprge >= EXPR_ADDSUB) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex++;
+            regval += GetHexValue(hex, hex, parsed, EXPR_ADDSUB);
+        }
+        else if (*hex == '-') {
+            if (exprge >= EXPR_ADDSUB) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex++;
+            regval -= GetHexValue(hex, hex, parsed, EXPR_ADDSUB);
+        }
+        else {
+            break; // No valid char
+        }
     }
 
     return regval;
