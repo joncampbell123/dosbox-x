@@ -225,7 +225,8 @@ LoopHandler *old_loop = NULL;
 
 enum {
 	EXPR_BASE=0,
-	EXPR_ADDSUB
+	EXPR_ADDSUB,
+	EXPR_MULDIV
 };
 
 char* AnalyzeInstruction(char* inst, bool saveSelector);
@@ -1557,6 +1558,18 @@ uint32_t GetHexValue(char* const str, char* &hex,bool *parsed,int exprge)
             if (exprge >= EXPR_ADDSUB) break; /* if order of operations says we're handling something higher precedence, stop now */
             hex++;
             regval -= GetHexValue(hex, hex, parsed, EXPR_ADDSUB);
+        }
+	else if (*hex == '*') {
+            if (exprge >= EXPR_MULDIV) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex++;
+            regval *= GetHexValue(hex, hex, parsed, EXPR_MULDIV);
+        }
+        else if (*hex == '/') {
+            if (exprge >= EXPR_MULDIV) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex++;
+            uint32_t r = GetHexValue(hex, hex, parsed, EXPR_MULDIV); /* whoah now, check for zero! */
+            if (r != 0) regval /= r;
+            else regval = 0;
         }
         else {
             break; // No valid char
