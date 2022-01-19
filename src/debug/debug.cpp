@@ -2489,7 +2489,7 @@ bool ParseCommand(char* str) {
             }
 
             DEBUG_PrintMMX(which,format);
-	    return true;
+            return true;
         }
     }
 
@@ -2527,6 +2527,122 @@ bool ParseCommand(char* str) {
                     DEBUG_PrintSSE(which,format);
             }
 
+            return true;
+        }
+        else if (subcommand == "SET") { /* remember this function capitalizes the entire string */
+            if (which < 0 || which > 7) return false; // regindex is REQUIRED here
+            // MMX [=B|=W|=D|=Q] <regindex> SET [val,val,...]
+            //
+            // if you don't want to change a particular part of the MMX register, set val to nothing or ""
+            // i.e. to set only the low 16 bits use =W 0 ,,,val
+            static constexpr unsigned int param_max = 16;
+            bool paramexist[param_max];
+            XMM_Reg param[param_max];
+            unsigned int pi=0;
+
+            while (*found != 0 && pi < param_max) {
+                if (*found == ',') {
+                    found++;
+                    paramexist[pi++] = false; // none specified, ok.
+                    while (*found == ' ') found++;
+                    continue; // skip space , space scan below
+                }
+                else if (found[0] == '\"' && found[1] == '\"') {
+                    found += 2;
+                    paramexist[pi++] = false; // none specified, ok.
+                }
+                else if (found[0] == 'X' && found[1] == 'M' && found[2] == 'M' && isxdigit(found[3])) { // i.e. "XMM3", allow using other XMM registers as a value
+                    found += 3;
+                    int idx = strtol(found,&found,16);
+                    if (idx >= 0 && idx <= 7) {
+                        param[pi] = fpu.xmmreg[idx];
+                        paramexist[pi] = true;
+                        pi++;
+                    }
+                    else {
+                        paramexist[pi] = false;
+                        pi++;
+                    }
+                }
+                else if (found[0] == 'M' && found[1] == 'M' && isxdigit(found[2])) { // i.e. "MM3", allow using other MMX registers as a value
+                    found += 2;
+                    int idx = strtol(found,&found,16);
+                    if (idx >= 0 && idx <= 7) {
+                        param[pi].u64[0] = reg_mmx[idx]->q;
+			param[pi].u64[1] = 0;
+                        paramexist[pi] = true;
+                        pi++;
+                    }
+                    else {
+                        paramexist[pi] = false;
+                        pi++;
+                    }
+                }
+                else {
+                    // FIXME: GetHexValue has a 32-bit datatype limit and therefore is unsuitable for 64-bit constants
+                    bool parsed = false;
+                    uint32_t r = GetHexValue(found,found,&parsed);
+                    if (!parsed) return false;
+                    param[pi].u32[0] = (uint64_t)r;
+                    param[pi].u32[1] = 0;
+                    param[pi].u32[2] = 0;
+                    param[pi].u32[3] = 0;
+                    paramexist[pi] = true;
+                    pi++;
+                }
+
+                while (*found == ' ') found++;
+
+                if (*found == ',') {
+                    found++;
+                    while (*found == ' ') found++;
+                }
+                else {
+                    break; // I guess that's the end of the value
+                }
+            }
+
+            /* if format wasn't specified, auto determine from number of parameters */
+            if (format == 'a') {
+                if (pi > 8) format = 'B';
+                else if (pi > 4) format = 'W';
+                else if (pi > 2) format = 'D';
+                else if (pi > 1) format = 'Q';
+		else format = 'X';
+            }
+
+            if (pi == 0) {
+                // um... I guess we're not setting anything, OK then.
+                return true;
+            }
+
+            while (pi < param_max) paramexist[pi++] = false;
+
+            if (format == 'B') {
+                for (unsigned int i=0;i < 16;i++) {
+                    if (paramexist[i]) fpu.xmmreg[which].u8[15-i] = param[i].u8[0];
+                }
+            }
+            else if (format == 'W') {
+                for (unsigned int i=0;i < 8;i++) {
+                    if (paramexist[i]) fpu.xmmreg[which].u16[7-i] = param[i].u16[0];
+                }
+            }
+            else if (format == 'D') {
+                for (unsigned int i=0;i < 4;i++) {
+                    if (paramexist[i]) fpu.xmmreg[which].u32[3-i] = param[i].u32[0];
+                }
+            }
+            else if (format == 'Q') {
+                for (unsigned int i=0;i < 2;i++) {
+                    if (paramexist[i]) fpu.xmmreg[which].u64[1-i] = param[i].u64[0];
+                }
+            }
+            else if (format == 'X') {
+                if (paramexist[0]) fpu.xmmreg[which] = param[0];
+            }
+
+            DEBUG_PrintSSE(which,format);
             return true;
         }
     }
