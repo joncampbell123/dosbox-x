@@ -399,6 +399,8 @@ static uint8_t linux_symbol_24[] = {
 
 bool CheckLinuxSymbol(Bitu code, uint8_t *buff, int width, int height)
 {
+	if (!IS_JDOSV && dos.loaded_codepage != 932)
+		return false;
 	uint8_t *src;
 	int len, offset;
 	if(width == 16 && height == 16) {
@@ -441,17 +443,17 @@ bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 	wchar_t wtext[4];
 	if((height == 24 && font_set24 == NULL) || (height == 14 && font_set14 == NULL) || (height != 24 && height != 14 && font_set16 == NULL)) return false;
 	if(code < 0x100) {
-		if(code == 0x5c && !(IS_DOSV && !IS_JDOSV)) // yen
+		if(code == 0x5c && (IS_JDOSV || dos.loaded_codepage == 932)) // yen
 			wtext[0] = 0xa5;
-		else if(code >= 0xa1 && code <= 0xdf && !(IS_DOSV && !IS_JDOSV)) // half kana
+		else if(code >= 0xa1 && code <= 0xdf && (IS_JDOSV || dos.loaded_codepage == 932)) // half kana
 			wtext[0] = 0xff61 + (code - 0xa1);
 		else
 			wtext[0] = code;
-	} else if(code == 0x8160) {
+	} else if(code == 0x8160 && (IS_JDOSV || dos.loaded_codepage == 932)) {
 		wtext[0] = 0x301c;
-	} else if(code == 0x8161) {
+	} else if(code == 0x8161 && (IS_JDOSV || dos.loaded_codepage == 932)) {
 		wtext[0] = 0x2016;
-	} else if(code == 0x817c) {
+	} else if(code == 0x817c && (IS_JDOSV || dos.loaded_codepage == 932)) {
 		wtext[0] = 0x2212;
 	} else if(CheckLinuxSymbol(code, buff, width, height)) {
 		return true;
@@ -634,6 +636,10 @@ Bitu GetConvertedCode(Bitu code, int codepage) {
     return 0;
 }
 
+bool isChinaSea(Bitu code) {
+    return (code >= 0x8140 && code <= 0xa0ff) || (code >= 0xc680 && code <= 0xc8ff) || (code >= 0xfa40 && code <= 0xfeff) && (IS_TDOSV || dos.loaded_codepage == 950 || dos.loaded_codepage == 951);
+}
+
 uint8_t *GetDbcsFont(Bitu code)
 {
 	memset(jfont_dbcs, 0, sizeof(jfont_dbcs));
@@ -663,10 +669,12 @@ uint8_t *GetDbcsFont(Bitu code)
                 }
             }
         }
-		if(code >= 0x849f && code <= 0x84be) {
+		if(code >= 0x849f && code <= 0x84be && (IS_JDOSV || dos.loaded_codepage == 932)) {
 			GetDbcsFrameFont(code, jfont_dbcs);
 			memcpy(&jfont_dbcs_16[code * 32], jfont_dbcs, 32);
 			jfont_cache_dbcs_16[code] = 1;
+		} else if (isChinaSea(code)) {
+			return jfont_dbcs;
 		} else if(GetWindowsFont(code, jfont_dbcs, 16, 16)) {
 			memcpy(&jfont_dbcs_16[code * 32], jfont_dbcs, 32);
 			jfont_cache_dbcs_16[code] = 1;
@@ -732,7 +740,9 @@ uint8_t *GetDbcs14Font(Bitu code, bool &is14)
                 }
             }
         }
-        if(GetWindowsFont(code, jfont_dbcs, 14, 14)) {
+        if (isChinaSea(code)) {
+            return jfont_dbcs;
+        } else if(GetWindowsFont(code, jfont_dbcs, 14, 14)) {
             memcpy(&jfont_dbcs_14[code * 28], jfont_dbcs, 28);
             jfont_cache_dbcs_14[code] = 1;
             is14 = true;
@@ -818,10 +828,12 @@ uint8_t *GetDbcs24Font(Bitu code)
 				jfont_cache_dbcs_24[code] = 1;
 				return &jfont_dbcs_24[pos];
 			}
-		} else if(code >= 0x849f && code <= 0x84be) {
+		} else if(code >= 0x849f && code <= 0x84be && (IS_JDOSV || dos.loaded_codepage == 932)) {
 			GetDbcs24FrameFont(code, jfont_dbcs);
 			memcpy(&jfont_dbcs_24[code * 72], jfont_dbcs, 72);
 			jfont_cache_dbcs_24[code] = 1;
+		} if (isChinaSea(code)) {
+			return jfont_dbcs;
 		} else if(GetWindowsFont(code, jfont_dbcs, 24, 24)) {
 			memcpy(&jfont_dbcs_24[code * 72], jfont_dbcs, 72);
 			jfont_cache_dbcs_24[code] = 1;
