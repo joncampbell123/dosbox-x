@@ -608,6 +608,13 @@ void GetDbcsFrameFont(Bitu code, uint8_t *buff)
 	}
 }
 
+void GetDbcs14FrameFont(Bitu code, uint8_t *buff)
+{
+	if(code >= 0x849f && code <= 0x84be) {
+		memcpy(buff, &frame_font_data[(code - 0x849f) * 32 + 2], 28);
+	}
+}
+
 void GetDbcs24FrameFont(Bitu code, uint8_t *buff)
 {
 	if(code >= 0x849f && code <= 0x84be) {
@@ -636,8 +643,12 @@ Bitu GetConvertedCode(Bitu code, int codepage) {
     return 0;
 }
 
-bool isChinaSea(Bitu code) {
-    return (code >= 0x8140 && code <= 0xa0ff) || (code >= 0xc680 && code <= 0xc8ff) || (code >= 0xfa40 && code <= 0xfeff) && (IS_TDOSV || dos.loaded_codepage == 950 || dos.loaded_codepage == 951);
+bool isFrameFont(Bitu code) {
+    return code >= 0x849f && code <= 0x84be && (IS_JDOSV || dos.loaded_codepage == 932);
+}
+
+bool isUserFont(Bitu code) {
+    return ((code >= 0x8140 && code <= 0xa0fe) || (code >= 0xc6a1 && code <= 0xc8fe) || (code >= 0xfa40 && code <= 0xfefe)) && (IS_TDOSV || dos.loaded_codepage == 950 || dos.loaded_codepage == 951);
 }
 
 uint8_t *GetDbcsFont(Bitu code)
@@ -669,11 +680,11 @@ uint8_t *GetDbcsFont(Bitu code)
                 }
             }
         }
-		if(code >= 0x849f && code <= 0x84be && (IS_JDOSV || dos.loaded_codepage == 932)) {
+		if (isFrameFont(code)) {
 			GetDbcsFrameFont(code, jfont_dbcs);
 			memcpy(&jfont_dbcs_16[code * 32], jfont_dbcs, 32);
 			jfont_cache_dbcs_16[code] = 1;
-		} else if (isChinaSea(code)) {
+		} else if (isUserFont(code)) {
 			return jfont_dbcs;
 		} else if(GetWindowsFont(code, jfont_dbcs, 16, 16)) {
 			memcpy(&jfont_dbcs_16[code * 32], jfont_dbcs, 32);
@@ -740,7 +751,13 @@ uint8_t *GetDbcs14Font(Bitu code, bool &is14)
                 }
             }
         }
-        if (isChinaSea(code)) {
+        if (isFrameFont(code)) {
+            GetDbcsFrameFont(code, jfont_dbcs);
+            memcpy(&jfont_dbcs_14[code * 28], jfont_dbcs, 28);
+            jfont_cache_dbcs_14[code] = 1;
+            is14 = true;
+            return jfont_dbcs;
+        } else if (isUserFont(code)) {
             return jfont_dbcs;
         } else if(GetWindowsFont(code, jfont_dbcs, 14, 14)) {
             memcpy(&jfont_dbcs_14[code * 28], jfont_dbcs, 28);
@@ -828,11 +845,11 @@ uint8_t *GetDbcs24Font(Bitu code)
 				jfont_cache_dbcs_24[code] = 1;
 				return &jfont_dbcs_24[pos];
 			}
-		} else if(code >= 0x849f && code <= 0x84be && (IS_JDOSV || dos.loaded_codepage == 932)) {
+		} else if (isFrameFont(code)) {
 			GetDbcs24FrameFont(code, jfont_dbcs);
 			memcpy(&jfont_dbcs_24[code * 72], jfont_dbcs, 72);
 			jfont_cache_dbcs_24[code] = 1;
-		} if (isChinaSea(code)) {
+		} else if (isUserFont(code)) {
 			return jfont_dbcs;
 		} else if(GetWindowsFont(code, jfont_dbcs, 24, 24)) {
 			memcpy(&jfont_dbcs_24[code * 72], jfont_dbcs, 72);
@@ -920,8 +937,8 @@ void ShutFontHandle() {
 #if defined(WIN32)
     jfont_16 = jfont_14 = jfont_24 = NULL;
 #endif
-    memset(jfont_cache_dbcs_14, 0, sizeof(jfont_cache_dbcs_14));
     memset(jfont_cache_dbcs_16, 0, sizeof(jfont_cache_dbcs_16));
+    memset(jfont_cache_dbcs_14, 0, sizeof(jfont_cache_dbcs_14));
     memset(jfont_cache_dbcs_24, 0, sizeof(jfont_cache_dbcs_24));
 }
 

@@ -1,11 +1,10 @@
 0.83.22
-  - Added parenthesis to debugger expression handling.
-    (joncampbell123)
   - Added multiply (*) and divide (/) operators to debugger
     expression handling. Order of operations applies, so
     given mixed addition and multiplication, the multiply
-    is done first then the result is added. Added modulo (%)
-    operator. (joncampbell123)
+    is done first then the result is added. Also added
+    support for the modulo (%) operator and parenthesis
+    to debugger expression handling. (joncampbell123)
   - Revised debugger expression handling to correctly
     parse arithmetic operators with order of operations
     in mind. Prior to this fix, consecutive subtraction
@@ -56,6 +55,8 @@
     DBCS characters when possible. (Wengier)
   - Changing code pages is supported for non-DOS/V, non-
     PC-98 and non-TTF mode using CHCP command. (Wengier)
+  - Fixed issues with certain DBCS characters for the
+    DOS/V system. (Wengier)
   - Fixed slow blinking text in TTF output. (Wengier)
   - Fixed copying box drawing characters to clipboard
     not working in non-TTF JEGA mode. (Wengier)
