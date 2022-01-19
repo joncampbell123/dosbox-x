@@ -3280,7 +3280,7 @@ bool ParseCommand(char* str) {
 
 #endif
 	if (command == "HELP" || command == "?") {
-        DEBUG_BeginPagedContent();
+		DEBUG_BeginPagedContent();
 		DEBUG_ShowMsg("Debugger commands (enter all values in hex or as register):\n");
 		DEBUG_ShowMsg("Commands------------------------------------------------\n");
 		DEBUG_ShowMsg("BP     [segment]:[offset] - Set breakpoint.\n");
@@ -3296,11 +3296,11 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("BPDEL  [bpNr] / *         - Delete breakpoint nr / all.\n");
 		DEBUG_ShowMsg("C / D  [segment]:[offset] - Set code / data view address.\n");
 		DEBUG_ShowMsg("DOS MCBS                  - Show Memory Control Block chain.\n");
-        DEBUG_ShowMsg("DOS KERN                  - Show DOS kernel memory blocks.\n");
-        DEBUG_ShowMsg("DOS XMS                   - Show XMS memory handles.\n");
-        DEBUG_ShowMsg("DOS EMS                   - Show EMS memory handles.\n");
-        DEBUG_ShowMsg("DOS FNKEY                 - Show PC-98 FnKey mapping.\n");
-        DEBUG_ShowMsg("BIOS MEM                  - Show BIOS memory blocks.\n");
+		DEBUG_ShowMsg("DOS KERN                  - Show DOS kernel memory blocks.\n");
+		DEBUG_ShowMsg("DOS XMS                   - Show XMS memory handles.\n");
+		DEBUG_ShowMsg("DOS EMS                   - Show EMS memory handles.\n");
+		DEBUG_ShowMsg("DOS FNKEY                 - Show PC-98 FnKey mapping.\n");
+		DEBUG_ShowMsg("BIOS MEM                  - Show BIOS memory blocks.\n");
 		DEBUG_ShowMsg("CALLBACKS                 - Show callbacks of interrupts.\n");
 		DEBUG_ShowMsg("INT [nr] / INTT [nr]      - Execute / Trace into interrupt.\n");
 #if C_HEAVY_DEBUG
@@ -3312,7 +3312,7 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("ADDLOG [message]          - Add message to the log file.\n");
 		DEBUG_ShowMsg("SR [reg] [value]          - Set register value. Multiple pairs allowed.\n");
 		DEBUG_ShowMsg("SM [seg]:[off] [val] [.]..- Set memory with following values.\n");
-        DEBUG_ShowMsg("EV [value [value] ...]    - Show register value(s).\n");
+		DEBUG_ShowMsg("EV [value [value] ...]    - Show register value(s).\n");
 		DEBUG_ShowMsg("IV [seg]:[off] [name]     - Create var name for memory address.\n");
 		DEBUG_ShowMsg("SV [filename]             - Save var list in file.\n");
 		DEBUG_ShowMsg("LV [filename]             - Load var list from file.\n");
@@ -3328,7 +3328,7 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("INTHAND [intNum]          - Set code view to interrupt handler.\n");
 
 		DEBUG_ShowMsg("CPU                       - Display CPU status information.\n");
-        DEBUG_ShowMsg("FPU                       - Display FPU status information.\n");
+		DEBUG_ShowMsg("FPU                       - Display FPU status information.\n");
 		DEBUG_ShowMsg("GDT                       - Lists descriptors of the GDT.\n");
 		DEBUG_ShowMsg("LDT                       - Lists descriptors of the LDT.\n");
 		DEBUG_ShowMsg("IDT                       - Lists descriptors of the IDT.\n");
@@ -3338,8 +3338,8 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("TIME [time]               - Display or change the internal time.\n");
 		DEBUG_ShowMsg("DATE [date]               - Display or change the internal date.\n");
 
-        DEBUG_ShowMsg("IN[P|W|D] [port]          - I/O port read byte/word/dword.\n");
-        DEBUG_ShowMsg("OUT[P|W|D] [port] [data]  - I/O port write byte/word/dword.\n");
+		DEBUG_ShowMsg("IN[P|W|D] [port]          - I/O port read byte/word/dword.\n");
+		DEBUG_ShowMsg("OUT[P|W|D] [port] [data]  - I/O port write byte/word/dword.\n");
 
 		DEBUG_ShowMsg("HELP                      - Help\n");
 		DEBUG_ShowMsg("Keys------------------------------------------------\n");
@@ -3354,8 +3354,8 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("Up/Down                   - Scroll up/down in the current window.\n");
 		DEBUG_ShowMsg("Page Up/Down              - Page up/down in the current window.\n");
 		DEBUG_ShowMsg("Home/End                  - Move to begin/end of the current window.\n");
-        DEBUG_ShowMsg("TAB/Shift+TAB             - Select next/prev window\n");
-        DEBUG_EndPagedContent();
+		DEBUG_ShowMsg("TAB/Shift+TAB             - Select next/prev window\n");
+		DEBUG_EndPagedContent();
 
 		return true;
 	}
