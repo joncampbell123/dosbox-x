@@ -1746,6 +1746,17 @@ std::string pc98_egc_shift_debug_status(void);
 
 static void LogFPUInfo(void);
 
+bool ishexnumber(char* str) {
+    if (*str == 0) return false;
+
+    while (!(*str == 0 || *str == ' ' || *str == ',')) {
+        if (!isxdigit(*str)) return false;
+        str++;
+    }
+
+    return true;
+}
+
 bool ParseCommand(char* str) {
     std::string copy_str = str;
     for (auto &c : copy_str) c = toupper(c);
@@ -2292,10 +2303,10 @@ bool ParseCommand(char* str) {
         return true;
     }
 
-    if (command == "MMX") {
+    if (command == "MMX") { // MMX [=B|=W|=D|=Q] [regindex] [command ...]
         while (*found == ' ') found++;
 
-        char format = 'Q'; /* remember at the start of this function the entire string is converted to uppercase */
+        char format = 'a'; /* internal: 'a' for "auto" */
         if (*found == '=') { /* =q as quads =d as dword =w as word =b as byte */
             found++;
             format = *found++;
@@ -2303,16 +2314,126 @@ bool ParseCommand(char* str) {
         }
 
         int which = (*found != 0 && isxdigit(*found)) ? (int)strtol(found,&found,16) : -1; /* accept index as hexadecimal to be consistent with the rest of the debugger */
+        while (*found == ' ') found++;
 
-        if (which >= 0 && which <= 7) {
-            DEBUG_PrintMMX(which,format);
+        /* is this an alternate command? */
+        std::string subcommand;
+        {
+            char *start = found;
+            while (*found != 0 && *found != ' ') found++;
+            subcommand = std::string(start,(size_t)(found-start));
+            while (*found == ' ') found++;
         }
-        else {
-            for (which=0;which < 8;which++)
+
+	if (subcommand.empty()) {
+            if (format == 'a') format = 'Q'; // =Q is default
+            if (which >= 0 && which <= 7) {
                 DEBUG_PrintMMX(which,format);
-        }
+            }
+            else {
+                for (which=0;which < 8;which++)
+                    DEBUG_PrintMMX(which,format);
+            }
 
-        return true;
+            return true;
+        }
+        else if (subcommand == "SET") { /* remember this function capitalizes the entire string */
+            if (which < 0 || which > 7) return false; // regindex is REQUIRED here
+            // MMX [=B|=W|=D|=Q] <regindex> SET [val,val,...]
+            //
+            // if you don't want to change a particular part of the MMX register, set val to nothing or ""
+            // i.e. to set only the low 16 bits use =W 0 ,,,val
+            uint64_t param[4];
+            bool paramexist[4];
+            unsigned int pi=0;
+
+            while (*found != 0) {
+                if (*found == ',') {
+                    found++;
+                    paramexist[pi++] = false; // none specified, ok.
+                    while (*found == ' ') found++;
+                    continue; // skip space , space scan below
+                }
+                else if (found[0] == '\"' && found[1] == '\"') {
+                    found += 2;
+                    paramexist[pi++] = false; // none specified, ok.
+                }
+                else if (found[0] == 'M' && found[1] == 'M' && isxdigit(found[2])) { // i.e. "MM3", allow using other MMX registers as a value
+                    found += 2;
+                    int idx = strtol(found,&found,16);
+                    if (idx >= 0 && idx <= 7) {
+                        param[pi] = reg_mmx[idx]->q;
+                        paramexist[pi] = true;
+                        pi++;
+                    }
+                    else {
+                        paramexist[pi] = false;
+                        pi++;
+                    }
+                }
+                else {
+                    // FIXME: GetHexValue has a 32-bit datatype limit and therefore is unsuitable for 64-bit constants
+                    bool parsed = false;
+                    uint32_t r = GetHexValue(found,found,&parsed);
+                    if (!parsed) return false;
+                    param[pi] = (uint64_t)r;
+                    paramexist[pi] = true;
+                    pi++;
+                }
+
+                while (*found == ' ') found++;
+
+                if (*found == ',') {
+                    found++;
+                    while (*found == ' ') found++;
+                }
+                else {
+                    break; // I guess that's the end of the value
+                }
+            }
+
+            /* if format wasn't specified, auto determine from number of parameters */
+            if (format == 'a') {
+                if (pi > 4) format = 'B';
+                else if (pi > 2) format = 'W';
+                else if (pi > 1) format = 'D';
+                else format = 'Q';
+            }
+
+            if (pi == 0) {
+                // um... I guess we're not setting anything, OK then.
+                return true;
+            }
+
+            while (pi < 4) paramexist[pi++] = false;
+
+            // FIXME: This could be simple for() loops without copy-pasta if the MMX_reg struct had arrays
+            if (format == 'B') {
+                if (paramexist[0]) reg_mmx[which]->ub.b7 = param[0];
+                if (paramexist[1]) reg_mmx[which]->ub.b6 = param[1];
+                if (paramexist[2]) reg_mmx[which]->ub.b5 = param[2];
+                if (paramexist[3]) reg_mmx[which]->ub.b4 = param[3];
+                if (paramexist[4]) reg_mmx[which]->ub.b3 = param[4];
+                if (paramexist[5]) reg_mmx[which]->ub.b2 = param[5];
+                if (paramexist[6]) reg_mmx[which]->ub.b1 = param[6];
+                if (paramexist[7]) reg_mmx[which]->ub.b0 = param[7];
+            }
+            else if (format == 'W') {
+                if (paramexist[0]) reg_mmx[which]->uw.w3 = param[0];
+                if (paramexist[1]) reg_mmx[which]->uw.w2 = param[1];
+                if (paramexist[2]) reg_mmx[which]->uw.w1 = param[2];
+                if (paramexist[3]) reg_mmx[which]->uw.w0 = param[3];
+            }
+            else if (format == 'D') {
+                if (paramexist[0]) reg_mmx[which]->ud.d1 = param[0];
+                if (paramexist[1]) reg_mmx[which]->ud.d0 = param[1];
+            }
+            else { // 'Q'
+                if (paramexist[0]) reg_mmx[which]->q = param[0];
+            }
+
+	    return true;
+        }
     }
 
     if (command == "VGA") {
