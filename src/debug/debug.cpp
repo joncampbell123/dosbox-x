@@ -1800,11 +1800,20 @@ std::string pc98_egc_shift_debug_status(void);
 
 static void LogFPUInfo(void);
 
-bool ishexnumber(char* str) {
+bool lookslikefloat(char* str) {
     if (*str == 0) return false;
 
+    if (*str == '-') str++;
+    while (!(*str == 0 || *str == ' ' || *str == ',' || *str == '.')) {
+        if (!isdigit(*str)) return false;
+        str++;
+    }
+
+    if (*str != '.') return false;
+    str++;
+
     while (!(*str == 0 || *str == ' ' || *str == ',')) {
-        if (!isxdigit(*str)) return false;
+        if (!isdigit(*str)) return false;
         str++;
     }
 
@@ -2537,7 +2546,10 @@ bool ParseCommand(char* str) {
             // i.e. to set only the low 16 bits use =W 0 ,,,val
             static constexpr unsigned int param_max = 16;
             bool paramexist[param_max];
+            bool paramfset[param_max];
+            double paramf[param_max];
             XMM_Reg param[param_max];
+            bool hasfloat=false;
             unsigned int pi=0;
 
             while (*found != 0 && pi < param_max) {
@@ -2557,6 +2569,7 @@ bool ParseCommand(char* str) {
                     if (idx >= 0 && idx <= 7) {
                         param[pi] = fpu.xmmreg[idx];
                         paramexist[pi] = true;
+                        paramfset[pi] = false;
                         pi++;
                     }
                     else {
@@ -2571,12 +2584,20 @@ bool ParseCommand(char* str) {
                         param[pi].u64[0] = reg_mmx[idx]->q;
 			param[pi].u64[1] = 0;
                         paramexist[pi] = true;
+                        paramfset[pi] = false;
                         pi++;
                     }
                     else {
                         paramexist[pi] = false;
                         pi++;
                     }
+                }
+                else if (lookslikefloat(found)) {
+                    paramf[pi] = strtod(found,&found);
+                    paramexist[pi] = true;
+                    paramfset[pi] = true;
+                    hasfloat = true;
+                    pi++;
                 }
                 else {
                     // FIXME: GetHexValue has a 32-bit datatype limit and therefore is unsuitable for 64-bit constants
@@ -2588,6 +2609,7 @@ bool ParseCommand(char* str) {
                     param[pi].u32[2] = 0;
                     param[pi].u32[3] = 0;
                     paramexist[pi] = true;
+                    paramfset[pi] = false;
                     pi++;
                 }
 
@@ -2606,8 +2628,8 @@ bool ParseCommand(char* str) {
             if (format == 'a') {
                 if (pi > 8) format = 'B';
                 else if (pi > 4) format = 'W';
-                else if (pi > 2) format = 'D';
-                else if (pi > 1) format = 'Q';
+                else if (pi > 2) format = hasfloat ? 'S' : 'D';
+                else if (pi > 1) format = hasfloat ? 'F' : 'Q';
 		else format = 'X';
             }
 
@@ -2628,9 +2650,25 @@ bool ParseCommand(char* str) {
                     if (paramexist[i]) fpu.xmmreg[which].u16[7-i] = param[i].u16[0];
                 }
             }
+            else if (format == 'S') {
+                for (unsigned int i=0;i < 4;i++) {
+                    if (paramexist[i]) {
+                        if (paramfset[i]) param[i].f32[0].v = (float)paramf[i]; /* which becomes u32[] */
+                        fpu.xmmreg[which].u32[3-i] = param[i].u32[0];
+		    }
+                }
+            }
             else if (format == 'D') {
                 for (unsigned int i=0;i < 4;i++) {
                     if (paramexist[i]) fpu.xmmreg[which].u32[3-i] = param[i].u32[0];
+                }
+            }
+            else if (format == 'F') {
+                for (unsigned int i=0;i < 2;i++) {
+                    if (paramexist[i]) {
+                        if (paramfset[i]) param[i].f64[0].v = paramf[i]; /* which becomes u64[] */
+                        fpu.xmmreg[which].u64[1-i] = param[i].u64[0];
+                    }
                 }
             }
             else if (format == 'Q') {
