@@ -10,7 +10,9 @@
     "10-1-1-1" would yield "9" instead of "7" because
     subtraction was handled in the wrong order. This fix
     also makes mixed addition and subtraction possible.
-    (joncampbell123)
+    NOTICE: Remember that all numbers going in and
+    coming out of the expression handler are hexadecimal,
+    NOT decimal! (joncampbell123)
   - Fixed simple expression handling in the debugger.
     Revised hexadecimal vs register parsing so that
     hexadecimal numbers that happen to start with
