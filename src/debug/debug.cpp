@@ -1736,6 +1736,60 @@ void DEBUG_PrintMMX(int which,char format) {
     DEBUG_ShowMsg(tmp);
 }
 
+void DEBUG_PrintSSE(int which,char format) {
+    char tmp[1024],*w=tmp;
+
+    if (which < 0 || which > 7) return;
+
+    XMM_Reg &xmm = fpu.xmmreg[which];
+
+    w += sprintf(w,"xmm%d(%c): H->L ",which,format); /* let the user know we're printing from little endian order highest to lowest */
+    if (format == 'B') {
+        for (int i=15;i >= 0;i--) {
+            w += sprintf(w,"%02x",xmm.u8[(unsigned int)i]);
+            if (i != 0) *w++ = '|';
+        }
+    }
+    else if (format == 'W') {
+        for (int i=7;i >= 0;i--) {
+            w += sprintf(w,"%04x",xmm.u16[(unsigned int)i]);
+            if (i != 0) *w++ = '|';
+        }
+    }
+    else if (format == 'D') {
+        for (int i=3;i >= 0;i--) {
+            w += sprintf(w,"%08lx",(unsigned long)xmm.u32[(unsigned int)i]);
+            if (i != 0) *w++ = '|';
+        }
+    }
+    else if (format == 'Q') {
+        for (int i=3;i >= 0;i--) { /* rather than fight with printf() differences between MSVC++ and glibc just print 32-bit values anyway */
+            w += sprintf(w,"%08lx",(unsigned long)xmm.u32[(unsigned int)i]);
+            if ((i&1u) == 0 && i != 0) *w++ = '|';
+        }
+    }
+    else if (format == 'S') {
+        for (int i=3;i >= 0;i--) {
+            w += sprintf(w,"%.20f",xmm.f32[(unsigned int)i].v);
+            if (i != 0) *w++ = '|';
+        }
+    }
+    else if (format == 'F') {
+        for (int i=1;i >= 0;i--) {
+            w += sprintf(w,"%.30f",xmm.f64[(unsigned int)i].v);
+            if (i != 0) *w++ = '|';
+        }
+    }
+    else { /* 'X' */
+        for (int i=3;i >= 0;i--) { /* rather than fight with printf() differences between MSVC++ and glibc just print 32-bit values anyway */
+            w += sprintf(w,"%08lx",(unsigned long)xmm.u32[(unsigned int)i]);
+        }
+    }
+
+    assert(w < (tmp+sizeof(tmp)));
+    DEBUG_ShowMsg(tmp);
+}
+
 void DEBUG_GUI_Rebuild(void);
 void DBGUI_NextWindowIfActiveHidden(void);
 
@@ -2435,6 +2489,44 @@ bool ParseCommand(char* str) {
 
             DEBUG_PrintMMX(which,format);
 	    return true;
+        }
+    }
+
+    // NTS: S = single precision float   F = double precision float   X = 128-bit unsigned integer constant
+    if (command == "SSE") { // SSE [=B|=W|=D|=Q|=X|=S|=F] [regindex] [command ...]
+        while (*found == ' ') found++;
+
+        char format = 'a'; /* internal: 'a' for "auto" */
+        if (*found == '=') { /* =q as quads =d as dword =w as word =b as byte */
+            found++;
+            format = *found++;
+            while (*found == ' ') found++;
+        }
+
+        int which = (*found != 0 && isxdigit(*found)) ? (int)strtol(found,&found,16) : -1; /* accept index as hexadecimal to be consistent with the rest of the debugger */
+        while (*found == ' ') found++;
+
+        /* is this an alternate command? */
+        std::string subcommand;
+        {
+            char *start = found;
+            while (*found != 0 && *found != ' ') found++;
+            subcommand = std::string(start,(size_t)(found-start));
+            while (*found == ' ') found++;
+        }
+
+	if (subcommand.empty()) {
+            if (format == 'a') format = 'S'; // =S is default (TODO: Wouldn't it be nice if XMM regs remembered the last datatype used with them so we can use that?)
+            if (which >= 0 && which <= 7) {
+                DEBUG_PrintSSE(which,format);
+            }
+            else {
+                DEBUG_ShowMsg("SSE register contents:");
+                for (which=0;which < 8;which++)
+                    DEBUG_PrintSSE(which,format);
+            }
+
+            return true;
         }
     }
 
