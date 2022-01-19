@@ -3327,6 +3327,10 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("INTVEC [filename]         - Writes interrupt vector table to file.\n");
 		DEBUG_ShowMsg("INTHAND [intNum]          - Set code view to interrupt handler.\n");
 
+		DEBUG_ShowMsg("MMX [=t] [reg]            - Display MMX register file (t can be B,W,D,Q)\n");
+		DEBUG_ShowMsg("MMX [=t] [reg] SET [val]  - Set MMX register (t can be B,W,D,Q), val is comma-separated\n");
+		DEBUG_ShowMsg("SSE [=t] [reg]            - Display SSE register file (t can be B,W,D,Q,X,S,F)\n");
+		DEBUG_ShowMsg("SSE [=t] [reg] SET [val]  - Set SSE register (t can be B,W,D,Q,X,S,F), val is comma-separated\n");
 		DEBUG_ShowMsg("CPU                       - Display CPU status information.\n");
 		DEBUG_ShowMsg("FPU                       - Display FPU status information.\n");
 		DEBUG_ShowMsg("GDT                       - Lists descriptors of the GDT.\n");
