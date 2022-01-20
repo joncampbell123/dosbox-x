@@ -37,6 +37,7 @@ using namespace std;
 #include "timer.h"
 #include "video.h"
 #include "vga.h"
+#include "mmx.h"
 #include "mapper.h"
 #include "pc98_gdc.h"
 #include "callback.h"
@@ -223,8 +224,13 @@ bool XMS_GetHandleInfo(Bitu &phys_location,Bitu &size,Bitu &lockcount,bool &free
 
 LoopHandler *old_loop = NULL;
 
+/* see also "C operator precedence" */
 enum {
 	EXPR_BASE=0,
+	EXPR_OR,
+	EXPR_XOR,
+	EXPR_AND,
+	EXPR_BITSHIFT,
 	EXPR_ADDSUB,
 	EXPR_MULDIV
 };
@@ -1595,6 +1601,35 @@ uint32_t GetHexValue(char* const str, char* &hex,bool *parsed,int exprge)
             if (r != 0) regval %= r;
             else regval = 0;
         }
+        else if (*hex == '&') {
+            if (exprge >= EXPR_AND) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex++;
+            regval &= GetHexValue(hex, hex, parsed, EXPR_AND);
+        }
+        else if (*hex == '^') {
+            if (exprge >= EXPR_XOR) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex++;
+            regval ^= GetHexValue(hex, hex, parsed, EXPR_XOR);
+        }
+        else if (*hex == '|') {
+            if (exprge >= EXPR_OR) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex++;
+            regval |= GetHexValue(hex, hex, parsed, EXPR_OR);
+        }
+        else if (hex[0] == '<' && hex[1] == '<') {
+            if (exprge >= EXPR_BITSHIFT) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex += 2;
+            uint32_t r = GetHexValue(hex, hex, parsed, EXPR_BITSHIFT);
+            if (r < 32) regval <<= r;
+            else regval = 0;
+        }
+        else if (hex[0] == '>' && hex[1] == '>') {
+            if (exprge >= EXPR_BITSHIFT) break; /* if order of operations says we're handling something higher precedence, stop now */
+            hex += 2;
+            uint32_t r = GetHexValue(hex, hex, parsed, EXPR_BITSHIFT);
+            if (r < 32) regval >>= r;
+            else regval = 0;
+        }
         else {
             break; // No valid char
         }
@@ -1671,6 +1706,90 @@ bool ChangeRegister(char* const str)
 	return true;
 }
 
+void DEBUG_PrintMMX(int which,char format) {
+    char tmp[256],*w=tmp;
+
+    if (which < 0 || which > 7) return;
+
+    MMX_reg &mmx = *reg_mmx[which];
+
+    w += sprintf(w,"mm%d(%c): H->L ",which,format); /* let the user know we're printing from little endian order highest to lowest */
+    if (format == 'B') {
+        w += sprintf(w,"%02x|%02x|%02x|%02x|%02x|%02x|%02x|%02x",
+            mmx.ub.b7,mmx.ub.b6,mmx.ub.b5,mmx.ub.b4,
+            mmx.ub.b3,mmx.ub.b2,mmx.ub.b1,mmx.ub.b0);
+    }
+    else if (format == 'W') {
+        w += sprintf(w,"%04x|%04x|%04x|%04x",
+            mmx.uw.w3,mmx.uw.w2,mmx.uw.w1,mmx.uw.w0);
+    }
+    else if (format == 'D') {
+        w += sprintf(w,"%08lx|%08lx",
+            (unsigned long)mmx.ud.d1,(unsigned long)mmx.ud.d0);
+    }
+    else { /* 'Q' */
+        w += sprintf(w,"%08lx%08lx",
+            (unsigned long)mmx.ud.d1,(unsigned long)mmx.ud.d0); /* little endian combine to print 64-bit hex */
+    }
+
+    assert(w < (tmp+sizeof(tmp)));
+    DEBUG_ShowMsg(tmp);
+}
+
+void DEBUG_PrintSSE(int which,char format) {
+    char tmp[1024],*w=tmp;
+
+    if (which < 0 || which > 7) return;
+
+    XMM_Reg &xmm = fpu.xmmreg[which];
+
+    w += sprintf(w,"xmm%d(%c): H->L ",which,format); /* let the user know we're printing from little endian order highest to lowest */
+    if (format == 'B') {
+        for (int i=15;i >= 0;i--) {
+            w += sprintf(w,"%02x",xmm.u8[(unsigned int)i]);
+            if (i != 0) *w++ = '|';
+        }
+    }
+    else if (format == 'W') {
+        for (int i=7;i >= 0;i--) {
+            w += sprintf(w,"%04x",xmm.u16[(unsigned int)i]);
+            if (i != 0) *w++ = '|';
+        }
+    }
+    else if (format == 'D') {
+        for (int i=3;i >= 0;i--) {
+            w += sprintf(w,"%08lx",(unsigned long)xmm.u32[(unsigned int)i]);
+            if (i != 0) *w++ = '|';
+        }
+    }
+    else if (format == 'Q') {
+        for (int i=3;i >= 0;i--) { /* rather than fight with printf() differences between MSVC++ and glibc just print 32-bit values anyway */
+            w += sprintf(w,"%08lx",(unsigned long)xmm.u32[(unsigned int)i]);
+            if ((i&1u) == 0 && i != 0) *w++ = '|';
+        }
+    }
+    else if (format == 'S') {
+        for (int i=3;i >= 0;i--) {
+            w += sprintf(w,"%.20f",xmm.f32[(unsigned int)i].v);
+            if (i != 0) *w++ = '|';
+        }
+    }
+    else if (format == 'F') {
+        for (int i=1;i >= 0;i--) {
+            w += sprintf(w,"%.30f",xmm.f64[(unsigned int)i].v);
+            if (i != 0) *w++ = '|';
+        }
+    }
+    else { /* 'X' */
+        for (int i=3;i >= 0;i--) { /* rather than fight with printf() differences between MSVC++ and glibc just print 32-bit values anyway */
+            w += sprintf(w,"%08lx",(unsigned long)xmm.u32[(unsigned int)i]);
+        }
+    }
+
+    assert(w < (tmp+sizeof(tmp)));
+    DEBUG_ShowMsg(tmp);
+}
+
 void DEBUG_GUI_Rebuild(void);
 void DBGUI_NextWindowIfActiveHidden(void);
 
@@ -1680,6 +1799,26 @@ void DEBUG_EndPagedContent(void);
 std::string pc98_egc_shift_debug_status(void);
 
 static void LogFPUInfo(void);
+
+bool lookslikefloat(char* str) {
+    if (*str == 0) return false;
+
+    if (*str == '-') str++;
+    while (!(*str == 0 || *str == ' ' || *str == ',' || *str == '.')) {
+        if (!isdigit(*str)) return false;
+        str++;
+    }
+
+    if (*str != '.') return false;
+    str++;
+
+    while (!(*str == 0 || *str == ' ' || *str == ',')) {
+        if (!isdigit(*str)) return false;
+        str++;
+    }
+
+    return true;
+}
 
 bool ParseCommand(char* str) {
     std::string copy_str = str;
@@ -2225,6 +2364,325 @@ bool ParseCommand(char* str) {
         else return false;
 
         return true;
+    }
+
+    if (command == "MMX") { // MMX [=B|=W|=D|=Q] [regindex] [command ...]
+        while (*found == ' ') found++;
+
+        char format = 'a'; /* internal: 'a' for "auto" */
+        if (*found == '=') { /* =q as quads =d as dword =w as word =b as byte */
+            found++;
+            format = *found++;
+            while (*found == ' ') found++;
+        }
+
+        int which = (*found != 0 && isxdigit(*found)) ? (int)strtol(found,&found,16) : -1; /* accept index as hexadecimal to be consistent with the rest of the debugger */
+        while (*found == ' ') found++;
+
+        /* is this an alternate command? */
+        std::string subcommand;
+        {
+            char *start = found;
+            while (*found != 0 && *found != ' ') found++;
+            subcommand = std::string(start,(size_t)(found-start));
+            while (*found == ' ') found++;
+        }
+
+	if (subcommand.empty()) {
+            if (format == 'a') format = 'Q'; // =Q is default
+            if (which >= 0 && which <= 7) {
+                DEBUG_PrintMMX(which,format);
+            }
+            else {
+                DEBUG_ShowMsg("MMX register contents:");
+                for (which=0;which < 8;which++)
+                    DEBUG_PrintMMX(which,format);
+            }
+
+            return true;
+        }
+        else if (subcommand == "SET") { /* remember this function capitalizes the entire string */
+            if (which < 0 || which > 7) return false; // regindex is REQUIRED here
+            // MMX [=B|=W|=D|=Q] <regindex> SET [val,val,...]
+            //
+            // if you don't want to change a particular part of the MMX register, set val to nothing or ""
+            // i.e. to set only the low 16 bits use =W 0 ,,,val
+            static constexpr unsigned int param_max = 8;
+            bool paramexist[param_max];
+            uint64_t param[param_max];
+            unsigned int pi=0;
+
+            while (*found != 0 && pi < param_max) {
+                if (*found == ',') {
+                    found++;
+                    paramexist[pi++] = false; // none specified, ok.
+                    while (*found == ' ') found++;
+                    continue; // skip space , space scan below
+                }
+                else if (found[0] == '\"' && found[1] == '\"') {
+                    found += 2;
+                    paramexist[pi++] = false; // none specified, ok.
+                }
+                else if (found[0] == 'M' && found[1] == 'M' && isxdigit(found[2])) { // i.e. "MM3", allow using other MMX registers as a value
+                    found += 2;
+                    int idx = strtol(found,&found,16);
+                    if (idx >= 0 && idx <= 7) {
+                        param[pi] = reg_mmx[idx]->q;
+                        paramexist[pi] = true;
+                        pi++;
+                    }
+                    else {
+                        paramexist[pi] = false;
+                        pi++;
+                    }
+                }
+                else {
+                    // FIXME: GetHexValue has a 32-bit datatype limit and therefore is unsuitable for 64-bit constants
+                    bool parsed = false;
+                    uint32_t r = GetHexValue(found,found,&parsed);
+                    if (!parsed) return false;
+                    param[pi] = (uint64_t)r;
+                    paramexist[pi] = true;
+                    pi++;
+                }
+
+                while (*found == ' ') found++;
+
+                if (*found == ',') {
+                    found++;
+                    while (*found == ' ') found++;
+                }
+                else {
+                    break; // I guess that's the end of the value
+                }
+            }
+
+            /* if format wasn't specified, auto determine from number of parameters */
+            if (format == 'a') {
+                if (pi > 4) format = 'B';
+                else if (pi > 2) format = 'W';
+                else if (pi > 1) format = 'D';
+                else format = 'Q';
+            }
+
+            if (pi == 0) {
+                // um... I guess we're not setting anything, OK then.
+                return true;
+            }
+
+            while (pi < param_max) paramexist[pi++] = false;
+
+            // FIXME: This could be simple for() loops without copy-pasta if the MMX_reg struct had arrays
+            if (format == 'B') {
+                if (paramexist[0]) reg_mmx[which]->ub.b7 = param[0];
+                if (paramexist[1]) reg_mmx[which]->ub.b6 = param[1];
+                if (paramexist[2]) reg_mmx[which]->ub.b5 = param[2];
+                if (paramexist[3]) reg_mmx[which]->ub.b4 = param[3];
+                if (paramexist[4]) reg_mmx[which]->ub.b3 = param[4];
+                if (paramexist[5]) reg_mmx[which]->ub.b2 = param[5];
+                if (paramexist[6]) reg_mmx[which]->ub.b1 = param[6];
+                if (paramexist[7]) reg_mmx[which]->ub.b0 = param[7];
+            }
+            else if (format == 'W') {
+                if (paramexist[0]) reg_mmx[which]->uw.w3 = param[0];
+                if (paramexist[1]) reg_mmx[which]->uw.w2 = param[1];
+                if (paramexist[2]) reg_mmx[which]->uw.w1 = param[2];
+                if (paramexist[3]) reg_mmx[which]->uw.w0 = param[3];
+            }
+            else if (format == 'D') {
+                if (paramexist[0]) reg_mmx[which]->ud.d1 = param[0];
+                if (paramexist[1]) reg_mmx[which]->ud.d0 = param[1];
+            }
+            else { // 'Q'
+                if (paramexist[0]) reg_mmx[which]->q = param[0];
+            }
+
+            DEBUG_PrintMMX(which,format);
+            return true;
+        }
+    }
+
+    // NTS: S = single precision float   F = double precision float   X = 128-bit unsigned integer constant
+    if (command == "SSE") { // SSE [=B|=W|=D|=Q|=X|=S|=F] [regindex] [command ...]
+        while (*found == ' ') found++;
+
+        char format = 'a'; /* internal: 'a' for "auto" */
+        if (*found == '=') { /* =q as quads =d as dword =w as word =b as byte */
+            found++;
+            format = *found++;
+            while (*found == ' ') found++;
+        }
+
+        int which = (*found != 0 && isxdigit(*found)) ? (int)strtol(found,&found,16) : -1; /* accept index as hexadecimal to be consistent with the rest of the debugger */
+        while (*found == ' ') found++;
+
+        /* is this an alternate command? */
+        std::string subcommand;
+        {
+            char *start = found;
+            while (*found != 0 && *found != ' ') found++;
+            subcommand = std::string(start,(size_t)(found-start));
+            while (*found == ' ') found++;
+        }
+
+	if (subcommand.empty()) {
+            if (format == 'a') format = 'S'; // =S is default (TODO: Wouldn't it be nice if XMM regs remembered the last datatype used with them so we can use that?)
+            if (which >= 0 && which <= 7) {
+                DEBUG_PrintSSE(which,format);
+            }
+            else {
+                DEBUG_ShowMsg("SSE register contents:");
+                for (which=0;which < 8;which++)
+                    DEBUG_PrintSSE(which,format);
+            }
+
+            return true;
+        }
+        else if (subcommand == "SET") { /* remember this function capitalizes the entire string */
+            if (which < 0 || which > 7) return false; // regindex is REQUIRED here
+            // MMX [=B|=W|=D|=Q] <regindex> SET [val,val,...]
+            //
+            // if you don't want to change a particular part of the MMX register, set val to nothing or ""
+            // i.e. to set only the low 16 bits use =W 0 ,,,val
+            static constexpr unsigned int param_max = 16;
+            bool paramexist[param_max];
+            bool paramfset[param_max];
+            double paramf[param_max];
+            XMM_Reg param[param_max];
+            bool hasfloat=false;
+            unsigned int pi=0;
+
+            while (*found != 0 && pi < param_max) {
+                if (*found == ',') {
+                    found++;
+                    paramexist[pi++] = false; // none specified, ok.
+                    while (*found == ' ') found++;
+                    continue; // skip space , space scan below
+                }
+                else if (found[0] == '\"' && found[1] == '\"') {
+                    found += 2;
+                    paramexist[pi++] = false; // none specified, ok.
+                }
+                else if (found[0] == 'X' && found[1] == 'M' && found[2] == 'M' && isxdigit(found[3])) { // i.e. "XMM3", allow using other XMM registers as a value
+                    found += 3;
+                    int idx = strtol(found,&found,16);
+                    if (idx >= 0 && idx <= 7) {
+                        param[pi] = fpu.xmmreg[idx];
+                        paramexist[pi] = true;
+                        paramfset[pi] = false;
+                        pi++;
+                    }
+                    else {
+                        paramexist[pi] = false;
+                        pi++;
+                    }
+                }
+                else if (found[0] == 'M' && found[1] == 'M' && isxdigit(found[2])) { // i.e. "MM3", allow using other MMX registers as a value
+                    found += 2;
+                    int idx = strtol(found,&found,16);
+                    if (idx >= 0 && idx <= 7) {
+                        param[pi].u64[0] = reg_mmx[idx]->q;
+                        param[pi].u64[1] = 0;
+                        paramexist[pi] = true;
+                        paramfset[pi] = false;
+                        pi++;
+                    }
+                    else {
+                        paramexist[pi] = false;
+                        pi++;
+                    }
+                }
+                else if (lookslikefloat(found)) {
+                    paramf[pi] = strtod(found,&found);
+                    paramexist[pi] = true;
+                    paramfset[pi] = true;
+                    hasfloat = true;
+                    pi++;
+                }
+                else {
+                    // FIXME: GetHexValue has a 32-bit datatype limit and therefore is unsuitable for 64-bit constants
+                    bool parsed = false;
+                    uint32_t r = GetHexValue(found,found,&parsed);
+                    if (!parsed) return false;
+                    param[pi].u32[0] = (uint64_t)r;
+                    param[pi].u32[1] = 0;
+                    param[pi].u32[2] = 0;
+                    param[pi].u32[3] = 0;
+                    paramexist[pi] = true;
+                    paramfset[pi] = false;
+                    pi++;
+                }
+
+                while (*found == ' ') found++;
+
+                if (*found == ',') {
+                    found++;
+                    while (*found == ' ') found++;
+                }
+                else {
+                    break; // I guess that's the end of the value
+                }
+            }
+
+            /* if format wasn't specified, auto determine from number of parameters */
+            if (format == 'a') {
+                if (pi > 8) format = 'B';
+                else if (pi > 4) format = 'W';
+                else if (pi > 2) format = hasfloat ? 'S' : 'D';
+                else if (pi > 1) format = hasfloat ? 'F' : 'Q';
+                else format = 'X';
+            }
+
+            if (pi == 0) {
+                // um... I guess we're not setting anything, OK then.
+                return true;
+            }
+
+            while (pi < param_max) paramexist[pi++] = false;
+
+            if (format == 'B') {
+                for (unsigned int i=0;i < 16;i++) {
+                    if (paramexist[i]) fpu.xmmreg[which].u8[15-i] = param[i].u8[0];
+                }
+            }
+            else if (format == 'W') {
+                for (unsigned int i=0;i < 8;i++) {
+                    if (paramexist[i]) fpu.xmmreg[which].u16[7-i] = param[i].u16[0];
+                }
+            }
+            else if (format == 'S') {
+                for (unsigned int i=0;i < 4;i++) {
+                    if (paramexist[i]) {
+                        if (paramfset[i]) param[i].f32[0].v = (float)paramf[i]; /* which becomes u32[] */
+                        fpu.xmmreg[which].u32[3-i] = param[i].u32[0];
+                    }
+                }
+            }
+            else if (format == 'D') {
+                for (unsigned int i=0;i < 4;i++) {
+                    if (paramexist[i]) fpu.xmmreg[which].u32[3-i] = param[i].u32[0];
+                }
+            }
+            else if (format == 'F') {
+                for (unsigned int i=0;i < 2;i++) {
+                    if (paramexist[i]) {
+                        if (paramfset[i]) param[i].f64[0].v = paramf[i]; /* which becomes u64[] */
+                        fpu.xmmreg[which].u64[1-i] = param[i].u64[0];
+                    }
+                }
+            }
+            else if (format == 'Q') {
+                for (unsigned int i=0;i < 2;i++) {
+                    if (paramexist[i]) fpu.xmmreg[which].u64[1-i] = param[i].u64[0];
+                }
+            }
+            else if (format == 'X') {
+                if (paramexist[0]) fpu.xmmreg[which] = param[0];
+            }
+
+            DEBUG_PrintSSE(which,format);
+            return true;
+        }
     }
 
     if (command == "VGA") {
@@ -2822,7 +3280,7 @@ bool ParseCommand(char* str) {
 
 #endif
 	if (command == "HELP" || command == "?") {
-        DEBUG_BeginPagedContent();
+		DEBUG_BeginPagedContent();
 		DEBUG_ShowMsg("Debugger commands (enter all values in hex or as register):\n");
 		DEBUG_ShowMsg("Commands------------------------------------------------\n");
 		DEBUG_ShowMsg("BP     [segment]:[offset] - Set breakpoint.\n");
@@ -2838,11 +3296,11 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("BPDEL  [bpNr] / *         - Delete breakpoint nr / all.\n");
 		DEBUG_ShowMsg("C / D  [segment]:[offset] - Set code / data view address.\n");
 		DEBUG_ShowMsg("DOS MCBS                  - Show Memory Control Block chain.\n");
-        DEBUG_ShowMsg("DOS KERN                  - Show DOS kernel memory blocks.\n");
-        DEBUG_ShowMsg("DOS XMS                   - Show XMS memory handles.\n");
-        DEBUG_ShowMsg("DOS EMS                   - Show EMS memory handles.\n");
-        DEBUG_ShowMsg("DOS FNKEY                 - Show PC-98 FnKey mapping.\n");
-        DEBUG_ShowMsg("BIOS MEM                  - Show BIOS memory blocks.\n");
+		DEBUG_ShowMsg("DOS KERN                  - Show DOS kernel memory blocks.\n");
+		DEBUG_ShowMsg("DOS XMS                   - Show XMS memory handles.\n");
+		DEBUG_ShowMsg("DOS EMS                   - Show EMS memory handles.\n");
+		DEBUG_ShowMsg("DOS FNKEY                 - Show PC-98 FnKey mapping.\n");
+		DEBUG_ShowMsg("BIOS MEM                  - Show BIOS memory blocks.\n");
 		DEBUG_ShowMsg("CALLBACKS                 - Show callbacks of interrupts.\n");
 		DEBUG_ShowMsg("INT [nr] / INTT [nr]      - Execute / Trace into interrupt.\n");
 #if C_HEAVY_DEBUG
@@ -2854,7 +3312,7 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("ADDLOG [message]          - Add message to the log file.\n");
 		DEBUG_ShowMsg("SR [reg] [value]          - Set register value. Multiple pairs allowed.\n");
 		DEBUG_ShowMsg("SM [seg]:[off] [val] [.]..- Set memory with following values.\n");
-        DEBUG_ShowMsg("EV [value [value] ...]    - Show register value(s).\n");
+		DEBUG_ShowMsg("EV [value [value] ...]    - Show register value(s).\n");
 		DEBUG_ShowMsg("IV [seg]:[off] [name]     - Create var name for memory address.\n");
 		DEBUG_ShowMsg("SV [filename]             - Save var list in file.\n");
 		DEBUG_ShowMsg("LV [filename]             - Load var list from file.\n");
@@ -2869,8 +3327,12 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("INTVEC [filename]         - Writes interrupt vector table to file.\n");
 		DEBUG_ShowMsg("INTHAND [intNum]          - Set code view to interrupt handler.\n");
 
+		DEBUG_ShowMsg("MMX [=t] [reg]            - Display MMX register file (t can be B,W,D,Q)\n");
+		DEBUG_ShowMsg("MMX [=t] [reg] SET [val]  - Set MMX register (t can be B,W,D,Q), val is comma-separated\n");
+		DEBUG_ShowMsg("SSE [=t] [reg]            - Display SSE register file (t can be B,W,D,Q,X,S,F)\n");
+		DEBUG_ShowMsg("SSE [=t] [reg] SET [val]  - Set SSE register (t can be B,W,D,Q,X,S,F), val is comma-separated\n");
 		DEBUG_ShowMsg("CPU                       - Display CPU status information.\n");
-        DEBUG_ShowMsg("FPU                       - Display FPU status information.\n");
+		DEBUG_ShowMsg("FPU                       - Display FPU status information.\n");
 		DEBUG_ShowMsg("GDT                       - Lists descriptors of the GDT.\n");
 		DEBUG_ShowMsg("LDT                       - Lists descriptors of the LDT.\n");
 		DEBUG_ShowMsg("IDT                       - Lists descriptors of the IDT.\n");
@@ -2880,8 +3342,8 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("TIME [time]               - Display or change the internal time.\n");
 		DEBUG_ShowMsg("DATE [date]               - Display or change the internal date.\n");
 
-        DEBUG_ShowMsg("IN[P|W|D] [port]          - I/O port read byte/word/dword.\n");
-        DEBUG_ShowMsg("OUT[P|W|D] [port] [data]  - I/O port write byte/word/dword.\n");
+		DEBUG_ShowMsg("IN[P|W|D] [port]          - I/O port read byte/word/dword.\n");
+		DEBUG_ShowMsg("OUT[P|W|D] [port] [data]  - I/O port write byte/word/dword.\n");
 
 		DEBUG_ShowMsg("HELP                      - Help\n");
 		DEBUG_ShowMsg("Keys------------------------------------------------\n");
@@ -2896,8 +3358,8 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("Up/Down                   - Scroll up/down in the current window.\n");
 		DEBUG_ShowMsg("Page Up/Down              - Page up/down in the current window.\n");
 		DEBUG_ShowMsg("Home/End                  - Move to begin/end of the current window.\n");
-        DEBUG_ShowMsg("TAB/Shift+TAB             - Select next/prev window\n");
-        DEBUG_EndPagedContent();
+		DEBUG_ShowMsg("TAB/Shift+TAB             - Select next/prev window\n");
+		DEBUG_EndPagedContent();
 
 		return true;
 	}

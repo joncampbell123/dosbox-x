@@ -220,7 +220,6 @@ static INLINE void SSE_MOVHLPS(XMM_Reg &d,const XMM_Reg &s) {
 static INLINE void SSE_MOVLPS(XMM_Reg &d,const XMM_Reg &s) {
 	d.u64[0] = s.u64[0];
 }
-#undef STEP
 
 ////
 
@@ -234,6 +233,16 @@ static INLINE void SSE_UNPCKLPS(XMM_Reg &d,const XMM_Reg &s) {
 static INLINE void SSE_UNPCKHPS(XMM_Reg &d,const XMM_Reg &s) {
 	d.u32[0] = d.u32[1] = s.u32[2];
 	d.u32[2] = d.u32[3] = s.u32[3];
+}
+
+////
+
+static INLINE void SSE_MOVLHPS(XMM_Reg &d,const XMM_Reg &s) {
+	d.u64[1] = s.u64[0];
+}
+
+static INLINE void SSE_MOVHPS(XMM_Reg &d,const XMM_Reg &s) {
+	d.u64[1] = s.u64[0];
 }
 
 #endif // 386+

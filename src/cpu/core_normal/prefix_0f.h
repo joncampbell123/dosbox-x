@@ -235,10 +235,10 @@
 			const unsigned char reg = (rm >> 3) & 7;
 
 			switch (last_prefix) {
-				case MP_NONE:									/* 0F 12 MOVUPS reg, r/m */
+				case MP_NONE:									/* 0F 12 MOVHLPS reg, r/m */
 					if (rm >= 0xc0) {
 						SSE_MOVHLPS(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
-					} else {
+					} else {								/* 0F 12 MOVLPS reg, r/m */
 						GetEAa;
 						xmmsrc.u64[0] = LoadMq(eaa);
 						SSE_MOVLPS(fpu.xmmreg[reg],xmmsrc);
@@ -259,7 +259,7 @@
 			const unsigned char reg = (rm >> 3) & 7;
 
 			switch (last_prefix) {
-				case MP_NONE:									/* 0F 13 MOVUPS r/m, reg */
+				case MP_NONE:									/* 0F 13 MOVLPS r/m, reg */
 					if (rm >= 0xc0) {
 						goto illegal_opcode;
 					} else {
@@ -314,6 +314,54 @@
 						GetEAa;
 						xmmsrc.u64[1] = LoadMq(eaa+8); /* this takes from the UPPER quadword */
 						SSE_UNPCKHPS(fpu.xmmreg[reg],xmmsrc);
+					}
+					break;
+				default:
+					goto illegal_opcode;
+			};
+		}
+		break;
+#endif
+#if CPU_CORE >= CPU_ARCHTYPE_386
+	CASE_0F_B(0x16)												/* SSE instruction group */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+		{
+			XMM_Reg xmmsrc;
+			GetRM;
+			const unsigned char reg = (rm >> 3) & 7;
+
+			switch (last_prefix) {
+				case MP_NONE:									/* 0F 16 MOVLHPS reg, r/m */
+					if (rm >= 0xc0) {
+						SSE_MOVLHPS(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+					} else {								/* 0F 16 MOVHPS reg, r/m */
+						GetEAa;
+						xmmsrc.u64[0] = LoadMq(eaa);
+						SSE_MOVHPS(fpu.xmmreg[reg],xmmsrc);
+					}
+					break;
+				default:
+					goto illegal_opcode;
+			};
+		}
+		break;
+#endif
+#if CPU_CORE >= CPU_ARCHTYPE_386
+	CASE_0F_B(0x17)												/* SSE instruction group */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+		{
+			XMM_Reg xmmdst;
+			GetRM;
+			const unsigned char reg = (rm >> 3) & 7;
+
+			switch (last_prefix) {
+				case MP_NONE:									/* 0F 17 MOVHPS r/m, reg */
+					if (rm >= 0xc0) {
+						goto illegal_opcode;
+					} else {
+						GetEAa;
+						SSE_MOVHPS(xmmdst,fpu.xmmreg[reg]);
+						SaveMq(eaa+8,xmmdst.u64[1]); /* modifies only upper 64 bits */
 					}
 					break;
 				default:
