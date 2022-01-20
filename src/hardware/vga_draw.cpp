@@ -2107,10 +2107,10 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
             pixelp2.d = *(vidmem - 2 * ((uintptr_t)1U << (uintptr_t)vga.config.addr_shift));
             pixelp3.d = *(vidmem - 3 * ((uintptr_t)1U << (uintptr_t)vga.config.addr_shift));
             if (!chr_wide) {
-                if (!(jega.RMOD2 & 0x80)) {
+                if (!isJEGAEnabled() || !(jega.RMOD2 & 0x80)) {
                     background = attr >> 4;
-                    foreground = (vga.draw.blink || (!(attr & 0x80))) ? (attr & 0xf) : background;
                     if (vga.draw.blinking) background &= ~0x8;
+                    foreground = (vga.draw.blink || (!(attr & 0x80))) ? (attr & 0xf) : background;
                     bsattr = 0;
                 } else {
                     foreground = (vga.draw.blink || (!(attr & 0x80))) ? (attr & 0xf) : background;
@@ -2169,7 +2169,7 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
                             *draw = vga.attr.palette[foreground];
                         draw += 8;
                     }
-                    if (line == 18 && bsattr & 0x10) {
+                    if (line == 18 && (bsattr & 0x10)) {
                         draw -= 8;
                         for (Bitu n = 0; n < 8; n++)
                             if (card == MCH_VGA)
@@ -2184,7 +2184,7 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
             {
                 Bitu pad_y = jega.RPSSC;
                 Bitu exattr = 0;
-                if ((jega.RMOD2 & 0x40)) {
+                if (isJEGAEnabled() && (jega.RMOD2 & 0x40)) {
                     exattr = attr;
                     if ((exattr & 0x30) == 0x30) pad_y = jega.RPSSL;
                     else if (exattr & 0x30) pad_y = jega.RPSSU;
