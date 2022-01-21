@@ -260,6 +260,26 @@ static INLINE void SSE_CVTSI2SS(XMM_Reg &d,const uint32_t s) {
 	SSE_CVTPI2PS_i(d.f32[0],(int32_t)s);
 }
 
+////
+
+static INLINE void SSE_CVTTPS2PI_i(int32_t &d,const FPU_Reg_32 &s) {
+	if (s.v < -0x7FFFFFFF || s.v > 0x7FFFFFFF)
+		d = (int32_t)0x80000000;
+	else if (s.v > 0) // truncate towards zero
+		d = (int32_t)floor(s.v);
+	else // truncate towards zero
+		d = -((int32_t)floor(-s.v));
+}
+
+static INLINE void SSE_CVTTPS2PI(MMX_reg &d,const XMM_Reg &s) {
+	SSE_CVTTPS2PI_i(d.sd.d0,s.f32[0]);
+	SSE_CVTTPS2PI_i(d.sd.d1,s.f32[1]);
+}
+
+static INLINE void SSE_CVTTSS2SI(uint32_t &d,const XMM_Reg &s) {
+	SSE_CVTTPS2PI_i((int32_t&)d,s.f32[0]);
+}
+
 #endif // 386+
 
 #define SETcc(cc)							\
