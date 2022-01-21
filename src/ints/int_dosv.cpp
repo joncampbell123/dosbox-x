@@ -648,7 +648,7 @@ bool isFrameFont(Bitu code) {
 }
 
 bool isUserFont(Bitu code) {
-    return ((code >= 0x8140 && code <= 0xa0fe) || (code >= 0xc6a1 && code <= 0xc8fe) || (code >= 0xfa40 && code <= 0xfefe)) && (IS_TDOSV || dos.loaded_codepage == 950 || dos.loaded_codepage == 951);
+    return ((code >= 0x8140 && code <= 0xa0fe) || (code >= 0xc6a1 && code <= 0xc8fe) || (code >= 0xfa40 && code <= 0xfefe)) && (IS_TDOSV || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && !chinasea;
 }
 
 uint8_t *GetDbcsFont(Bitu code)
