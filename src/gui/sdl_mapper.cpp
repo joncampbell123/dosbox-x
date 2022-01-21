@@ -1200,6 +1200,9 @@ Bitu GetKeyCode(SDL_keysym keysym) {
         }
         else {
 #if defined (WIN32)
+#if(_WIN32_WINNT >= 0x0500)
+            if(keysym.win32_vk >= 0xa6 && keysym.win32_vk <= 0xb7) return SDLK_UNKNOWN; // Ignore all media keys
+#endif
             switch(keysym.scancode) {
             case 0x46:  // Scroll Lock
                 // LOG_MSG("Scroll_lock scancode=%x, vk_key=%x", keysym.scancode, keysym.win32_vk);
@@ -1290,6 +1293,9 @@ Bitu GetKeyCode(SDL_keysym keysym) {
         /* another hack, for the Yen \ pipe key on Japanese 106-keyboards.
            sym == 0 if English layout, sym == 0x5C if Japanese layout */
         else if(keysym.win32_vk == VK_CANCEL) return (Bitu)SDLK_BREAK;
+#if(_WIN32_WINNT >= 0x0500)
+        else if(keysym.win32_vk >= 0xa6 && keysym.win32_vk <= 0xb7) return (Bitu)SDLK_UNKNOWN; // Ignore all media keys
+#endif
         if (isJPkeyboard && (keysym.sym == 0 || keysym.sym == 0x5C) && (keysym.scancode == 0x7D)) return (Bitu)SDLK_WORLD_11; //FIXME: There's no SDLK code for that key! Re-use one of the world keys!
         /* what is ~ ` on American keyboards is "Hankaku" on Japanese keyboards. Same scan code. */
 		if (keysym.scancode == 0x29) return (Bitu) (isJPkeyboard ? SDLK_WORLD_12 : SDLK_BACKQUOTE); //if JP106 keyboard Hankaku else Backquote(grave)  
