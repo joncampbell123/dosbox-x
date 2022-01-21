@@ -587,7 +587,8 @@ NÑo foi poss°vel montar a unidade PhysFS com o arquivo compactado.
 
 .
 :PROGRAM_MOUNT_OVERLAY_NO_BASE
-Por favor, MONTE primeiro uma pasta normal antes de adicionar uma sobreposiáÑo sobre ela.
+Por favor, MONTE primeiro uma pasta normal antes de adicionar uma sobreposiáÑo
+sobre ela.
 
 .
 :PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE
@@ -627,7 +628,8 @@ Erro de alocaáÑo de mem¢ria.
 
 .
 :PROGRAM_LOADFIX_HELP
-Carrega um programa acima dos primeiros 64 KB de mem¢ria, reduzindo a mem¢ria dispon°vel.
+Carrega um programa acima dos primeiros 64 KB de mem¢ria, reduzindo a mem¢ria
+dispon°vel.
 
 LOADFIX [-xms] [-ems] [-{ram}] [{programa}] [{opáîes}]
 LOADFIX -f [-xms] [-ems]
@@ -1011,7 +1013,8 @@ O arquivo pai do VHD foi alterado e nÑo pode ser carregado.
 
 .
 :PROGRAM_IMGMOUNT_SPECIFY2
-ê necess†rio especificar o n£mero da unidade (0 Ö %d) para montar a imagem em (0,1=fda,fdb;2,3=hda,hdb)
+ê necess†rio especificar o n£mero da unidade (0 Ö %d) para montar a imagem em
+(0,1=fda,fdb;2,3=hda,hdb)
 
 .
 :PROGRAM_IMGMOUNT_INVALID_IMAGE
