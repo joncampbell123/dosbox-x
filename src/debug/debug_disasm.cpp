@@ -280,15 +280,15 @@ static char const *second[] = {
   "invd",             "wbinvd",          0,                "UD2",
   0,                  0,                 0,                0,
 /* 1 */
-  "%x0",              "%x0",             0,                0,
-  0,                  0,                 0,                0,
+  "%x0",              "%x0",             "%x0",            "%x0",
+  "%x0",              "%x0",             "%x0",            "%x0",
   "%g=",              0,                 0,                0,
   0,                  0,                 0,                0,
 /* 2 */
   "mov %Rd,%Cd",      "mov %Rd,%Dd",     "mov %Cd,%Rd",    "mov %Dd,%Rd",
   "mov %Rd,%Td",      0,                 "mov %Td,%Rd",    0,
+  "%x0",              "%x0",             "%x0",            "%x0",
   "%x0",              "%x0",             0,                0,
-  0,                  0,                 0,                0,
 /* 3 */
   0,                  "rdtsc",           0,                0,
   "sysenter",         "sysexit",         0,                0,
@@ -364,8 +364,12 @@ static char const *mpgroups[][256][4] = { /* mandatory prefix groups SSE instruc
 
     /* 0x10 */ { "movups %GX,%EX", "movupd %GX,%EX", "movsd %GX,%EX", "movss %GX,%EX" },
     /* 0x11 */ { "movups %EX,%GX", "movupd %EX,%GX", "movsd %EX,%GX", "movss %EX,%GX" },
-    /* 0x12 */ { 0,0,0,0 }, /* 0x13 */ { 0,0,0,0 },
-    /* 0x14 */ { 0,0,0,0 }, /* 0x15 */ { 0,0,0,0 }, /* 0x16 */ { 0,0,0,0 }, /* 0x17 */ { 0,0,0,0 },
+    /* 0x12 */ { "movlps %GX,%EX", 0,0,0 }, // FIXME: The design of this disassembler does not allow changing opcode name based on r/m = memory or r/m = reg
+    /* 0x13 */ { "movlps %EX,%GX", 0,0,0 },
+    /* 0x14 */ { "unpcklps %GX,%EX", 0,0,0 },
+    /* 0x15 */ { "unpckhps %GX,%EX", 0,0,0 },
+    /* 0x16 */ { "movhps %GX,%EX", 0,0,0 }, // FIXME: The design of this disassembler does not allow changing opcode name based on r/m = memory or r/m = reg
+    /* 0x17 */ { "movhps %EX,%GX", 0,0,0 },
     /* 0x18 */ { 0,0,0,0 }, /* 0x19 */ { 0,0,0,0 }, /* 0x1A */ { 0,0,0,0 }, /* 0x1B */ { 0,0,0,0 },
     /* 0x1C */ { 0,0,0,0 }, /* 0x1D */ { 0,0,0,0 }, /* 0x1E */ { 0,0,0,0 }, /* 0x1F */ { 0,0,0,0 },
 
@@ -373,8 +377,11 @@ static char const *mpgroups[][256][4] = { /* mandatory prefix groups SSE instruc
     /* 0x24 */ { 0,0,0,0 }, /* 0x25 */ { 0,0,0,0 }, /* 0x26 */ { 0,0,0,0 }, /* 0x27 */ { 0,0,0,0 },
     /* 0x28 */ { "movaps %GX,%EX", "movapd %GX,%EX", 0, 0 },
     /* 0x29 */ { "movaps %EX,%GX", "movapd %EX,%GX", 0, 0 },
-    /* 0x2A */ { 0,0,0,0 }, /* 0x2B */ { 0,0,0,0 },
-    /* 0x2C */ { 0,0,0,0 }, /* 0x2D */ { 0,0,0,0 }, /* 0x2E */ { 0,0,0,0 }, /* 0x2F */ { 0,0,0,0 },
+    /* 0x2A */ { "cvtpi2ps %GX,%EM", 0, 0, "cvtsi2ss %GX,%Ed" },
+    /* 0x2B */ { "movntps %EX,%GX", 0,0,0 },
+    /* 0x2C */ { "cvttps2pi %GM,%EX", 0, 0, "cvttss2si %Gd,%EX" },
+    /* 0x2D */ { "cvtps2pi %GM,%EX", 0, 0, "cvtss2si %Gd,%EX" },
+    /* 0x2E */ { 0,0,0,0 }, /* 0x2F */ { 0,0,0,0 },
 
     /* 0x30 */ { 0,0,0,0 }, /* 0x31 */ { 0,0,0,0 }, /* 0x32 */ { 0,0,0,0 }, /* 0x33 */ { 0,0,0,0 },
     /* 0x34 */ { 0,0,0,0 }, /* 0x35 */ { 0,0,0,0 }, /* 0x36 */ { 0,0,0,0 }, /* 0x37 */ { 0,0,0,0 },

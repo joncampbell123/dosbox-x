@@ -1,7 +1,7 @@
 :DOSBOX-X:LANGUAGE:Japanese
 :DOSBOX-X:CODEPAGE:932
-:DOSBOX-X:VERSION:0.83.21
-:DOSBOX-X:REMARK:PC-98, JEGA, DOS/V エミュレーション、または TTF 出力オプションとコード ページ 932 の日本語 TTF フォントを使用して、日本語の表示と印刷を直接サポートします
+:DOSBOX-X:VERSION:0.83.22
+:DOSBOX-X:REMARK:PC-98, JEGA, DOS/V エミュレーション、または とコード ページ 932 の日本語フォントを使用して、日本語の表示と印刷を直接サポートします
 :AUTOEXEC_CONFIGFILE_HELP
 このセクションに記載の行は起動時に実行されます。
 MOUNT したい場合はここに記載できます。

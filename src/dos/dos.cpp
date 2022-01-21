@@ -60,10 +60,10 @@
 #endif
 
 static bool first_run=true;
+bool sync_time = false, manualtime = false;
 extern std::string log_dev_con_str;
 extern const char* RunningProgram;
 extern bool log_int21, log_fileio;
-extern bool sync_time, manualtime;
 extern bool use_quick_reboot, j3100_start;
 extern bool enable_config_as_shell_commands;
 #if defined(USE_TTF)
@@ -323,7 +323,7 @@ void DOS_SetCountry(uint16_t countryNo) {
 			break;
 		case 2:   // Canadian-French
 		case 36:  // Hungary
-		case 38:  // Croatia
+		case 38:  // Yugoslavia
 		case 40:  // Romania
 		case 42:  // Czech Republic / Slovakia
 		case 46:  // Sweden

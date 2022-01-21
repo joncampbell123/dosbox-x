@@ -51,9 +51,9 @@
 #include "build_timestamp.h"
 
 extern bool startcmd, startwait, startquiet, winautorun;
+extern bool halfwidthkana, force_conversion, showdbcs;
 extern bool dos_shell_running_program, mountwarning;
-extern bool halfwidthkana, force_conversion, gbk;
-extern bool addovl, addipx, addne2k, enableime;
+extern bool addovl, addipx, addne2k, enableime, gbk;
 extern const char* RunningProgram;
 extern int enablelfn, msgcodepage;
 extern uint16_t countryNo;
@@ -381,7 +381,7 @@ void DOS_Shell::ParseLine(char * line) {
 	uint16_t dummy,dummy2;
 	uint32_t bigdummy = 0;
 	bool append;
-	bool normalstdin  = false;	/* wether stdin/out are open on start. */
+	bool normalstdin  = false;	/* whether stdin/out are open on start. */
 	bool normalstdout = false;	/* Bug: Assumed is they are "con"      */
 	
     GetRedirection(line, &in, &out, &toc, &append);
@@ -442,11 +442,15 @@ void DOS_Shell::ParseLine(char * line) {
 			if (toc&&DOS_FindFirst(pipetmp, ~DOS_ATTR_VOLUME)&&!DOS_UnlinkFile(pipetmp))
 				fail=true;
 			status = DOS_OpenFileExtended(toc&&!fail?pipetmp:out,OPEN_READWRITE,DOS_ATTR_ARCHIVE,0x12,&dummy,&dummy2);
-            if (toc&&(fail||!status)&&!strchr(pipetmp,'\\')) {
-                int len = (int)strlen(pipetmp);
+			if (toc&&(fail||!status)&&!strchr(pipetmp,'\\')&&(Drives[0]||Drives[2])) {
+				int len = (int)strlen(pipetmp);
+				if (len > 266) {
+					len = 266;
+					pipetmp[len] = 0;
+				}
                 for (int i = len; i >= 0; i--)
                     pipetmp[i + 3] = pipetmp[i];
-                pipetmp[0] = 'c';
+                pipetmp[0] = Drives[2]?'c':'a';
                 pipetmp[1] = ':';
                 pipetmp[2] = '\\';
                 fail=false;
@@ -579,13 +583,19 @@ const char *ParseMsg(const char *msg) {
         if (real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)>80)
             msg = str_replace(str_replace(str_replace((char *)msg, (char*)"\xBA\033[0m", (char*)"\xBA\033[0m\n"), (char*)"\xBB\033[0m", (char*)"\xBB\033[0m\n"), (char*)"\xBC\033[0m", (char*)"\xBC\033[0m\n");
         bool uselowbox = false;
-#if defined(USE_TTF)
         force_conversion = true;
         int cp=dos.loaded_codepage;
-        if (ttf.inUse && halfwidthkana && InitCodePage() && dos.loaded_codepage==932) uselowbox = true;
+        if ((showdbcs
+#if defined(USE_TTF)
+        || ttf.inUse
+#endif
+        )
+#if defined(USE_TTF)
+        && halfwidthkana
+#endif
+        && InitCodePage() && dos.loaded_codepage==932) uselowbox = true;
         force_conversion = false;
         dos.loaded_codepage=cp;
-#endif
         if (uselowbox || IS_JEGA_ARCH || IS_JDOSV) {
             std::string m=msg;
             if (strstr(msg, "\xCD\xCD\xCD\xCD") != NULL) {

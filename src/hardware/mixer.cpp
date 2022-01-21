@@ -1043,14 +1043,9 @@ public:
         }
         if (cmd->FindExist("/NOSHOW"))
             return;
-        else if (cmd->FindExist("/GUI")) {
-            void GFX_LosingFocus(void), MAPPER_ReleaseAllKeys(void);
-            MAPPER_ReleaseAllKeys();
-            GFX_LosingFocus();
+        else if (cmd->FindExist("/GUI"))
             GUI_Shortcut(20);
-            MAPPER_ReleaseAllKeys();
-            GFX_LosingFocus();
-        } else
+        else
             WriteOut(mixerinfo().c_str());
     }
 private:

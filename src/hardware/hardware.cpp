@@ -37,7 +37,7 @@
 #include "cross.h"
 #include "wave_mmreg.h"
 
-#if (C_SSHOT)
+#if (C_SSHOT) || (C_AVCODEC)
 #include <zlib.h>
 #include <png.h>
 #include "../libs/zmbv/zmbv.h"
@@ -320,7 +320,7 @@ bool export_ffmpeg = false;
 
 std::string capturedir;
 extern std::string savefilename;
-extern bool use_save_file, noremark_save_state, force_load_state;
+extern bool showdbcs, use_save_file, noremark_save_state, force_load_state;
 extern unsigned int hostkeyalt, sendkeymap;
 extern const char* RunningProgram;
 Bitu CaptureState = 0;
@@ -663,12 +663,8 @@ void CAPTURE_VideoEvent(bool pressed) {
 			delete capture.video.codec;
 			capture.video.codec = NULL;
 		}
-	} else {
+	} else
 		CaptureState |= CAPTURE_VIDEO;
-#if defined(USE_TTF)
-        ttf_switch_off();
-#endif
-	}
 	pathvid = "";
 
 	mainMenu.get_item("mapper_video").check(!!(CaptureState & CAPTURE_VIDEO)).refresh_item(mainMenu);
@@ -913,6 +909,9 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 	pathscr = "";
 skip_shot:
 	if (CaptureState & CAPTURE_VIDEO) {
+#if defined(USE_TTF)
+		ttf_switch_off();
+#endif
 		zmbv_format_t format;
 		/* Disable capturing if any of the test fails */
 		if (capture.video.width != width ||
@@ -1518,6 +1517,7 @@ void CAPTURE_ScreenShotEvent(bool pressed) {
 	CaptureState |= CAPTURE_IMAGE;
 #endif
 #if defined(USE_TTF)
+    showdbcs = true;
     ttf_switch_off();
 #endif
 }

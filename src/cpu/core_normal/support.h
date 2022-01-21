@@ -211,6 +211,93 @@ static INLINE void SSE_MOVSS(XMM_Reg &d,const XMM_Reg &s) {
 }
 #undef STEP
 
+////
+
+static INLINE void SSE_MOVHLPS(XMM_Reg &d,const XMM_Reg &s) {
+	d.u64[0] = s.u64[1];
+}
+
+static INLINE void SSE_MOVLPS(XMM_Reg &d,const XMM_Reg &s) {
+	d.u64[0] = s.u64[0];
+}
+
+////
+
+static INLINE void SSE_UNPCKLPS(XMM_Reg &d,const XMM_Reg &s) {
+	d.u32[0] = d.u32[1] = s.u32[0];
+	d.u32[2] = d.u32[3] = s.u32[1];
+}
+
+////
+
+static INLINE void SSE_UNPCKHPS(XMM_Reg &d,const XMM_Reg &s) {
+	d.u32[0] = d.u32[1] = s.u32[2];
+	d.u32[2] = d.u32[3] = s.u32[3];
+}
+
+////
+
+static INLINE void SSE_MOVLHPS(XMM_Reg &d,const XMM_Reg &s) {
+	d.u64[1] = s.u64[0];
+}
+
+static INLINE void SSE_MOVHPS(XMM_Reg &d,const XMM_Reg &s) {
+	d.u64[1] = s.u64[0];
+}
+
+////
+
+static INLINE void SSE_CVTPI2PS_i(FPU_Reg_32 &d,const int32_t s) {
+	d.v = (float)s;
+}
+
+static INLINE void SSE_CVTPI2PS(XMM_Reg &d,const MMX_reg &s) {
+	SSE_CVTPI2PS_i(d.f32[0],s.sd.d0);
+	SSE_CVTPI2PS_i(d.f32[1],s.sd.d1);
+}
+
+static INLINE void SSE_CVTSI2SS(XMM_Reg &d,const uint32_t s) {
+	SSE_CVTPI2PS_i(d.f32[0],(int32_t)s);
+}
+
+////
+
+static INLINE void SSE_CVTTPS2PI_i(int32_t &d,const FPU_Reg_32 &s) {
+	if (s.v < -0x7FFFFFFF || s.v > 0x7FFFFFFF)
+		d = (int32_t)0x80000000;
+	else if (s.v > 0) // truncate towards zero
+		d = (int32_t)floor(s.v);
+	else // truncate towards zero
+		d = -((int32_t)floor(-s.v));
+}
+
+static INLINE void SSE_CVTTPS2PI(MMX_reg &d,const XMM_Reg &s) {
+	SSE_CVTTPS2PI_i(d.sd.d0,s.f32[0]);
+	SSE_CVTTPS2PI_i(d.sd.d1,s.f32[1]);
+}
+
+static INLINE void SSE_CVTTSS2SI(uint32_t &d,const XMM_Reg &s) {
+	SSE_CVTTPS2PI_i((int32_t&)d,s.f32[0]);
+}
+
+////
+
+static INLINE void SSE_CVTPS2PI_i(int32_t &d,const FPU_Reg_32 &s) {
+	if (s.v < -0x7FFFFFFF || s.v > 0x7FFFFFFF)
+		d = (int32_t)0x80000000;
+	else // based on rounding mode in MXCSR (TODO)
+		d = (int32_t)s.v;
+}
+
+static INLINE void SSE_CVTPS2PI(MMX_reg &d,const XMM_Reg &s) {
+	SSE_CVTPS2PI_i(d.sd.d0,s.f32[0]);
+	SSE_CVTPS2PI_i(d.sd.d1,s.f32[1]);
+}
+
+static INLINE void SSE_CVTSS2SI(uint32_t &d,const XMM_Reg &s) {
+	SSE_CVTPS2PI_i((int32_t&)d,s.f32[0]);
+}
+
 #endif // 386+
 
 #define SETcc(cc)							\

@@ -55,7 +55,7 @@ void AUX_INT33_Takeover();
 int KEYBOARD_AUX_Active();
 void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel);
 extern bool MOUSE_IsLocked();
-extern bool usesystemcursor, dbcs_sbcs, del_flag;
+extern bool usesystemcursor, dbcs_sbcs, showdbcs, del_flag;
 
 bool en_int33=false;
 bool en_bios_ps2mouse=false;
@@ -744,7 +744,7 @@ uint8_t Mouse_GetButtonState(void) {
 char text[5000];
 extern std::list<uint16_t> bdlist;
 extern bool isDBCSCP();
-extern std::vector<std::pair<int,int>> jtbs;
+extern std::vector<std::pair<int,int>> jtbs, dbox;
 extern std::map<int, int> pc98boxdrawmap;
 const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint16_t *textlen) {
     bdlist = {};
@@ -851,26 +851,39 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
                 if (j==c2&&c2<c-1&&lead2) {
                     result=real_readb(seg,(i*c+j+1)*2);
                     text[len++]=result;
-                    if (del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
+                    if ((IS_JDOSV || dos.loaded_codepage == 932) && del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
                 }
             } else {
-                bool find = isJEGAEnabled()?std::find(jtbs.begin(), jtbs.end(), std::make_pair(i,j)) != jtbs.end():false;
+                bool find = isJEGAEnabled() || (isDBCSCP()
+#if defined(USE_TTF)
+                && dbcs_sbcs
+#endif
+                && showdbcs) ? std::find(jtbs.begin(), jtbs.end(), std::make_pair(i,j)) != jtbs.end():false;
                 if (!isJEGAEnabled()||j>c1||!find) {
                     ReadCharAttr(ttfuse&&rtl?ttfcols-j-1:j,i,page,&result);
                     if (!result && CurMode->type == M_DCGA && !IS_J3100) result=32;
 #if defined(USE_TTF)
-                    if (ttfuse&&isDBCSCP()) {
+                    if (ttfuse && isDBCSCP()) {
                         ttf_cell *curAC = curAttrChar+i*ttfcols;
                         if (curAC[rtl?ttfcols-j-1:j].boxdraw||(!j&&curAC[rtl?ttf.cols-j:j+1].boxdraw)) bdlist.push_back(len);
-                    }
+                    } else
 #endif
+                    if (isDBCSCP()
+#if defined(USE_TTF)
+                    && dbcs_sbcs
+#endif
+                    && showdbcs && std::find(dbox.begin(), dbox.end(), std::make_pair(i,j)) != dbox.end()) bdlist.push_back(len);
                     text[len++]=result;
-                    if (isJEGAEnabled() && find && del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
+                    if (dos.loaded_codepage == 932 && find && del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
                 }
-                if (isJEGAEnabled()&&j==c2&&c2<c-1&&std::find(jtbs.begin(), jtbs.end(), std::make_pair(i,j+1)) != jtbs.end()) {
+                if ((isJEGAEnabled()||(isDBCSCP()
+#if defined(USE_TTF)
+                && dbcs_sbcs
+#endif
+                && showdbcs))&&j==c2&&c2<c-1&&std::find(jtbs.begin(), jtbs.end(), std::make_pair(i,j+1)) != jtbs.end()) {
                     ReadCharAttr(ttfuse&&rtl?(ttfcols-j):(j+1),i,page,&result);
                     text[len++]=result;
-                    if (del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
+                    if (dos.loaded_codepage == 932 && del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
                 }
 			}
 		}

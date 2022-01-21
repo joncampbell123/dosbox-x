@@ -349,8 +349,9 @@ bool isoDrive::Rename(const char* /*oldname*/, const char* /*newname*/) {
 }
 
 bool isoDrive::SetFileAttr(const char * name,uint16_t attr) {
-    (void)name;
     (void)attr;
+	isoDirEntry de;
+	DOS_SetError(lookup(&de, name) ? DOSERR_ACCESS_DENIED : DOSERR_FILE_NOT_FOUND);
 	return false;
 }
 

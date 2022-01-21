@@ -58,7 +58,7 @@ extern char lastmount;
 extern const char *modifier;
 extern std::string langname, configfile, dosbox_title;
 extern int enablelfn, fat32setver, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor;
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, uao, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, outcon, enable_dbcs_tables;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, uao, showdbcs, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, outcon, enable_dbcs_tables;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -1043,24 +1043,24 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
                         if (!chinasea) makestdcp950table();
                         else makeseacp951table();
                         if (dos.loaded_codepage!=936) mainMenu.get_item("ttf_extcharset").check(dos.loaded_codepage==950||dos.loaded_codepage==951?chinasea:(gbk&&chinasea)).refresh_item(mainMenu);
-#if defined(USE_TTF)
-                        if (TTF_using() && (dos.loaded_codepage==950 || dos.loaded_codepage==951)) {
+                        if ((TTF_using() || showdbcs) && (dos.loaded_codepage==950 || dos.loaded_codepage==951)) {
                             MSG_Init();
-                            resetFontSize();
-                        }
+#if defined(USE_TTF)
+                            if (TTF_using()) resetFontSize();
 #endif
+                        }
                     }
                 } else if (!strcasecmp(inputline.substr(0, 4).c_str(), "uao=")) {
                     if (uao != section->Get_bool("uao")) {
                         uao = !uao;
-#if defined(USE_TTF)
-                        if (TTF_using() && dos.loaded_codepage==951) {
+                        if ((TTF_using() || showdbcs) && dos.loaded_codepage==951) {
                             MSG_Init();
                             DOSBox_SetSysMenu();
-                            resetFontSize();
+#if defined(USE_TTF)
+                            if (TTF_using()) resetFontSize();
+#endif
                             runRescan("-A -Q");
                         }
-#endif
                     }
                 }
             } else if (!strcasecmp(pvar.c_str(), "dosv")) {

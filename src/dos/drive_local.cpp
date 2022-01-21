@@ -146,7 +146,7 @@ static uint16_t ldid[256];
 static std::string ldir[256];
 static std::string hostname = "";
 extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
-extern bool rsize, morelen, force_sfn, enable_share_exe, chinasea, uao, halfwidthkana, dbcs_sbcs, forceswk;
+extern bool rsize, morelen, force_sfn, enable_share_exe, chinasea, uao, halfwidthkana, dbcs_sbcs, inmsg, forceswk;
 extern int lfn_filefind_handle, freesizecap, file_access_tries;
 extern unsigned long totalc, freec;
 uint16_t customcp_to_unicode[256], altcp_to_unicode[256];
@@ -401,7 +401,7 @@ template <class MT> bool String_HOST_TO_DBCS_UTF16(char *d/*CROSS_LEN*/,const ui
         int ic;
         ic = (int)(*s++);
 #if defined(USE_TTF)
-        if (morelen && !(dos.loaded_codepage == 932 && halfwidthkana) && (!dbcs_sbcs || (ic>=0x2550 && ic<=0x2569))) {
+        if (morelen && !(dos.loaded_codepage == 932 && halfwidthkana) && ((!dbcs_sbcs && !inmsg) || (ic>=0x2550 && ic<=0x2569))) {
             *d++ = SBCS_From_Host_Find<MT>(ic,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
             continue;
         } else
@@ -469,7 +469,7 @@ template <class MT> bool String_HOST_TO_DBCS_UTF8(char *d/*CROSS_LEN*/,const cha
         if ((ic=utf8_decode(&s,sf)) < 0)
             return false; // non-representable
 #if defined(USE_TTF)
-        if (morelen && !(dos.loaded_codepage == 932 && halfwidthkana) && (!dbcs_sbcs || (ic>=0x2550 && ic<=0x2569))) {
+        if (morelen && !(dos.loaded_codepage == 932 && halfwidthkana) && ((!dbcs_sbcs && !inmsg) || (ic>=0x2550 && ic<=0x2569))) {
             *d++ = SBCS_From_Host_Find<MT>(ic,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
             continue;
         } else
@@ -621,6 +621,23 @@ bool String_HOST_TO_ASCII_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) 
 }
 
 bool cpwarn_once = false;
+
+bool isemptyhit(uint16_t code) {
+    switch (dos.loaded_codepage) {
+        case 932:
+            return cp932_to_unicode_hitbl[code >> 6] == 0xffff;
+        case 936:
+            return cp936_to_unicode_hitbl[code >> 6] == 0xffff;
+        case 949:
+            return cp949_to_unicode_hitbl[code >> 6] == 0xffff;
+        case 950:
+            return chinasea ? cp950ext_to_unicode_hitbl[code >> 6] == 0xffff : cp950_to_unicode_hitbl[code >> 6] == 0xffff;
+        case 951:
+            return cp951_to_unicode_hitbl[code >> 6] == 0xffff;
+        default:
+            return code > 0xff;
+    }
+}
 
 bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/) {
     if (altcp && dos.loaded_codepage == altcp) return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,altcp_to_unicode,sizeof(altcp_to_unicode)/sizeof(altcp_to_unicode[0]));

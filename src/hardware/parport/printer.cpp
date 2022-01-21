@@ -45,10 +45,14 @@ extern bool printfont;
 extern void resetFontSize();
 extern FT_Face GetTTFFace();
 #endif
+extern std::string GetDOSBoxXPath(bool withexe=false);
+extern bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4);
+extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+extern bool isDBCSCP(), isKanji1(uint8_t chr);
 extern void GFX_CaptureMouse(void);
 extern std::map<int, int> lowboxdrawmap;
 extern uint16_t cpMap[512], cpMap_PC98[256];
-extern bool dbcs_sbcs, autoboxdraw;
+extern bool showdbcs, dbcs_sbcs, autoboxdraw;
 extern bool halfwidthkana, mouselocked;
 
 static CPrinter* defaultPrinter = NULL;
@@ -330,18 +334,43 @@ void CPrinter::updateFont()
 	    default:
 		    fontName = basedir + "roman.ttf";
 	}
-	
-#ifndef WIN32
-	std::string configfont;
-	Cross::GetPlatformConfigDir(configfont);
-	configfont += fontName;
-	fontName = configfont;
+    std::string exepath=GetDOSBoxXPath();
+    struct stat wstat;
+    if (stat(fontName.c_str(),&wstat)) {
+        std::string configfont, name = fontName;
+        Cross::GetPlatformConfigDir(configfont);
+        configfont += fontName;
+        fontName = configfont;
+        if (stat(fontName.c_str(),&wstat) && exepath.size()) fontName = exepath + CROSS_FILESPLIT + name;
+    }
+    if ((printdbcs==1 || (printdbcs==-1 && (isJEGAEnabled() || IS_DOSV || ((TTF_using() || showdbcs)
+#if defined(USE_TTF)
+    && dbcs_sbcs
 #endif
-	
+    )))) && (IS_PC98_ARCH || isDBCSCP()) && stat(fontName.c_str(),&wstat)) {
+        fontName = basedir + "SarasaGothicFixed.ttf";
+        if (stat(fontName.c_str(),&wstat)) {
+            std::string configfont, name = fontName;
+            Cross::GetPlatformConfigDir(configfont);
+            configfont += fontName;
+            fontName = configfont;
+            if (stat(fontName.c_str(),&wstat) && exepath.size()) fontName = exepath + CROSS_FILESPLIT + name;
+            if (stat(fontName.c_str(),&wstat)) {
+                fontName = "SarasaGothicFixed.ttf";
+                if (stat(fontName.c_str(),&wstat)) {
+                    std::string configfont, name = fontName;
+                    Cross::GetPlatformConfigDir(configfont);
+                    configfont += fontName;
+                    fontName = configfont;
+                    if (stat(fontName.c_str(),&wstat) && exepath.size()) fontName = exepath + CROSS_FILESPLIT + name;
+                }
+            }
+        }
+    }
+
 	if (FT_New_Face(FTlib, fontName.c_str(), 0, &curFont))
 	{
         std::string oldfont=fontName;
-        struct stat wstat;
 #if defined(WIN32)
         const char* windir = "C:\\WINDOWS";
         if(stat(windir,&wstat) || !(wstat.st_mode & S_IFDIR)) {
@@ -1336,14 +1365,12 @@ void CPrinter::newPage(bool save, bool resetx)
 	}*/
 }
 
-extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
-extern bool isDBCSCP(), isKanji1(uint8_t chr), CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4);
 void CPrinter::printChar(uint8_t ch, int box)
 {
     bool dbcs=false;
     uint8_t ll = 0;
     uint16_t dbchar = 0;
-    if ((printdbcs==1 || (printdbcs==-1 && (isJEGAEnabled() || IS_DOSV || (TTF_using()
+    if ((printdbcs==1 || (printdbcs==-1 && (isJEGAEnabled() || IS_DOSV || ((TTF_using() || showdbcs)
 #if defined(USE_TTF)
     && dbcs_sbcs
 #endif
@@ -1827,7 +1854,7 @@ void CPrinter::printBitGraph(uint8_t ch)
 
 void CPrinter::formFeed()
 {
-    if ((printdbcs==1 || (printdbcs==-1 && TTF_using()
+    if ((printdbcs==1 || (printdbcs==-1 && (TTF_using() || showdbcs)
 #if defined(USE_TTF)
     && dbcs_sbcs
 #endif
@@ -2371,7 +2398,7 @@ Bitu PRINTER_readstatus(Bitu port,Bitu iolen)
 	return status;
 }
 
-static void FormFeed(bool pressed)
+void FormFeed(bool pressed)
 {
 	if (pressed)
 		if (defaultPrinter)
@@ -2383,7 +2410,6 @@ static void FormFeed(bool pressed)
 		}
 }
 
-const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint16_t *textlen);
 void PrintScreen(const char *text, uint16_t len)
 {
     if (!defaultPrinter) defaultPrinter = new CPrinter(confdpi, confwidth, confheight, confoutputDevice, confmultipageOutput);
@@ -2501,10 +2527,6 @@ void PRINTER_Init()
 	//IO_RegisterReadHandler(LPTPORT+1,PRINTER_readstatus,IO_MB);
 	//IO_RegisterWriteHandler(LPTPORT+2,PRINTER_writecontrol,IO_MB);
 	//IO_RegisterReadHandler(LPTPORT+2,PRINTER_readcontrol,IO_MB);
-
-    DOSBoxMenu::item *item;
-	MAPPER_AddHandler(FormFeed, MK_f2 , MMOD1, "ejectpage", "Send form-feed", &item);
-    item->set_text("Send form-feed");
 
 #if defined(WIN32)
     if (!inited && !strcasecmp(confoutputDevice, "printer")) {

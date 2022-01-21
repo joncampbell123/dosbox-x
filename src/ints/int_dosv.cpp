@@ -114,6 +114,7 @@ static bool use20pixelfont;
 extern bool autoboxdraw;
 extern bool ttf_dosv;
 #endif
+extern bool showdbcs;
 extern bool gbk, chinasea;
 extern int bootdrive;
 bool del_flag = true;
@@ -335,7 +336,7 @@ static bool LoadFontxFile(const char *fname, int height, bool dbcs) {
 
 }
 
-static bool CheckEmptyData(uint8_t *data, Bitu length)
+bool CheckEmptyData(uint8_t *data, Bitu length)
 {
 	while(length > 0) {
 		if(*data++ != 0) {
@@ -398,6 +399,8 @@ static uint8_t linux_symbol_24[] = {
 
 bool CheckLinuxSymbol(Bitu code, uint8_t *buff, int width, int height)
 {
+	if (!IS_JDOSV && dos.loaded_codepage != 932)
+		return false;
 	uint8_t *src;
 	int len, offset;
 	if(width == 16 && height == 16) {
@@ -440,17 +443,17 @@ bool GetWindowsFont(Bitu code, uint8_t *buff, int width, int height)
 	wchar_t wtext[4];
 	if((height == 24 && font_set24 == NULL) || (height == 14 && font_set14 == NULL) || (height != 24 && height != 14 && font_set16 == NULL)) return false;
 	if(code < 0x100) {
-		if(code == 0x5c && !(IS_DOSV && !IS_JDOSV)) // yen
+		if(code == 0x5c && (IS_JDOSV || dos.loaded_codepage == 932)) // yen
 			wtext[0] = 0xa5;
-		else if(code >= 0xa1 && code <= 0xdf && !(IS_DOSV && !IS_JDOSV)) // half kana
+		else if(code >= 0xa1 && code <= 0xdf && (IS_JDOSV || dos.loaded_codepage == 932)) // half kana
 			wtext[0] = 0xff61 + (code - 0xa1);
 		else
 			wtext[0] = code;
-	} else if(code == 0x8160) {
+	} else if(code == 0x8160 && (IS_JDOSV || dos.loaded_codepage == 932)) {
 		wtext[0] = 0x301c;
-	} else if(code == 0x8161) {
+	} else if(code == 0x8161 && (IS_JDOSV || dos.loaded_codepage == 932)) {
 		wtext[0] = 0x2016;
-	} else if(code == 0x817c) {
+	} else if(code == 0x817c && (IS_JDOSV || dos.loaded_codepage == 932)) {
 		wtext[0] = 0x2212;
 	} else if(CheckLinuxSymbol(code, buff, width, height)) {
 		return true;
@@ -605,6 +608,13 @@ void GetDbcsFrameFont(Bitu code, uint8_t *buff)
 	}
 }
 
+void GetDbcs14FrameFont(Bitu code, uint8_t *buff)
+{
+	if(code >= 0x849f && code <= 0x84be) {
+		memcpy(buff, &frame_font_data[(code - 0x849f) * 32 + 2], 28);
+	}
+}
+
 void GetDbcs24FrameFont(Bitu code, uint8_t *buff)
 {
 	if(code >= 0x849f && code <= 0x84be) {
@@ -631,6 +641,14 @@ Bitu GetConvertedCode(Bitu code, int codepage) {
         dos.loaded_codepage = cp;
     }
     return 0;
+}
+
+bool isFrameFont(Bitu code) {
+    return code >= 0x849f && code <= 0x84be && (IS_JDOSV || dos.loaded_codepage == 932);
+}
+
+bool isUserFont(Bitu code) {
+    return ((code >= 0x8140 && code <= 0xa0fe) || (code >= 0xc6a1 && code <= 0xc8fe) || (code >= 0xfa40 && code <= 0xfefe)) && (IS_TDOSV || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && !chinasea;
 }
 
 uint8_t *GetDbcsFont(Bitu code)
@@ -662,10 +680,12 @@ uint8_t *GetDbcsFont(Bitu code)
                 }
             }
         }
-		if(code >= 0x849f && code <= 0x84be) {
+		if (isFrameFont(code)) {
 			GetDbcsFrameFont(code, jfont_dbcs);
 			memcpy(&jfont_dbcs_16[code * 32], jfont_dbcs, 32);
 			jfont_cache_dbcs_16[code] = 1;
+		} else if (isUserFont(code)) {
+			return jfont_dbcs;
 		} else if(GetWindowsFont(code, jfont_dbcs, 16, 16)) {
 			memcpy(&jfont_dbcs_16[code * 32], jfont_dbcs, 32);
 			jfont_cache_dbcs_16[code] = 1;
@@ -731,7 +751,15 @@ uint8_t *GetDbcs14Font(Bitu code, bool &is14)
                 }
             }
         }
-        if(GetWindowsFont(code, jfont_dbcs, 14, 14)) {
+        if (isFrameFont(code)) {
+            GetDbcsFrameFont(code, jfont_dbcs);
+            memcpy(&jfont_dbcs_14[code * 28], jfont_dbcs, 28);
+            jfont_cache_dbcs_14[code] = 1;
+            is14 = true;
+            return jfont_dbcs;
+        } else if (isUserFont(code)) {
+            return jfont_dbcs;
+        } else if(GetWindowsFont(code, jfont_dbcs, 14, 14)) {
             memcpy(&jfont_dbcs_14[code * 28], jfont_dbcs, 28);
             jfont_cache_dbcs_14[code] = 1;
             is14 = true;
@@ -817,10 +845,12 @@ uint8_t *GetDbcs24Font(Bitu code)
 				jfont_cache_dbcs_24[code] = 1;
 				return &jfont_dbcs_24[pos];
 			}
-		} else if(code >= 0x849f && code <= 0x84be) {
+		} else if (isFrameFont(code)) {
 			GetDbcs24FrameFont(code, jfont_dbcs);
 			memcpy(&jfont_dbcs_24[code * 72], jfont_dbcs, 72);
 			jfont_cache_dbcs_24[code] = 1;
+		} else if (isUserFont(code)) {
+			return jfont_dbcs;
 		} else if(GetWindowsFont(code, jfont_dbcs, 24, 24)) {
 			memcpy(&jfont_dbcs_24[code * 72], jfont_dbcs, 72);
 			jfont_cache_dbcs_24[code] = 1;
@@ -907,6 +937,9 @@ void ShutFontHandle() {
 #if defined(WIN32)
     jfont_16 = jfont_14 = jfont_24 = NULL;
 #endif
+    memset(jfont_cache_dbcs_16, 0, sizeof(jfont_cache_dbcs_16));
+    memset(jfont_cache_dbcs_14, 0, sizeof(jfont_cache_dbcs_14));
+    memset(jfont_cache_dbcs_24, 0, sizeof(jfont_cache_dbcs_24));
 }
 
 bool MakeSbcs16Font() {
@@ -1061,6 +1094,26 @@ void JFONT_Init() {
 		if(!MakeSbcs19Font())
 			LOG_MSG("MSG: SBCS 8x19 font file path is not specified.\n");
 	}
+	pathprop = section->Get_path("fontxsbcs16");
+	if(pathprop && !reinit) {
+		std::string path=pathprop->realpath;
+		ResolvePath(path);
+		if(!LoadFontxFile(path.c_str(), 16, false)) {
+			if(!MakeSbcs16Font()) {
+				LOG_MSG("MSG: SBCS 8x16 font file path is not specified.\n");
+#if defined(LINUX)
+				memcpy(jfont_sbcs_16, int10_font_16, 256 * 16);
+#endif
+			}
+		} else if(yen_flag && !(IS_DOSV && !IS_JDOSV)) {
+			if(!CheckEmptyData(&jfont_sbcs_16[0x7f * 16], 16))
+				memcpy(&jfont_sbcs_16[0x5c * 16], &jfont_sbcs_16[0x7f * 16], 16);
+		}
+	} else if (!reinit) {
+		if(!MakeSbcs16Font()) {
+			LOG_MSG("MSG: SBCS 8x16 font file path is not specified.\n");
+		}
+	}
 	pathprop = section->Get_path("fontxdbcs");
 	if(pathprop) {
 		std::string path=pathprop->realpath;
@@ -1077,26 +1130,6 @@ void JFONT_Init() {
 #if defined(USE_TTF)
 		autoboxdraw = true;
 #endif
-		pathprop = section->Get_path("fontxsbcs16");
-		if(pathprop && !reinit) {
-			std::string path=pathprop->realpath;
-			ResolvePath(path);
-			if(!LoadFontxFile(path.c_str(), 16, false)) {
-				if(!MakeSbcs16Font()) {
-					LOG_MSG("MSG: SBCS 8x16 font file path is not specified.\n");
-#if defined(LINUX)
-					memcpy(jfont_sbcs_16, int10_font_16, 256 * 16);
-#endif
-				}
-			} else if(yen_flag && !(IS_DOSV && !IS_JDOSV)) {
-				if(!CheckEmptyData(&jfont_sbcs_16[0x7f * 16], 16))
-					memcpy(&jfont_sbcs_16[0x5c * 16], &jfont_sbcs_16[0x7f * 16], 16);
-			}
-		} else if (!reinit) {
-			if(!MakeSbcs16Font()) {
-				LOG_MSG("MSG: SBCS 8x16 font file path is not specified.\n");
-			}
-		}
 		pathprop = section->Get_path("fontxdbcs24");
 		if(pathprop) {
 			std::string path=pathprop->realpath;

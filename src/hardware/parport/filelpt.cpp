@@ -123,7 +123,7 @@ CFileLPT::CFileLPT (Bitu nr, uint8_t initIrq, CommandLine* cmd, bool sq)
 
 char bufput[105];
 int bufct = 0;
-static char sig1PCL[] = "\x1b%-12345X@", sig2PCL[] = "\x1b\x45", sigPS[] = "\n%!PS";
+static char sig1PCL[] = "\x1b%-12345X@", sig2PCL[] = "\x1b\x45", sigPS[] = "\n%!";
 void CFileLPT::doAction() {
     if (action1.size()||action2.size()||action3.size()) {
         bool isPCL = false;															// For now

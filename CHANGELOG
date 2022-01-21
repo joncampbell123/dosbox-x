@@ -1,4 +1,39 @@
 0.83.22
+  - Added debugger command to show SSE register file, and
+    to set SSE register contents. (joncampbell123)
+  - Added debugger command to show MMX register file, and
+    to set MMX register contents. (joncampbell123)
+  - Added support for expressions within parenthesis in
+    debugger expression handling. (joncampbell123)
+  - Added & (AND), ^ (XOR), and | (OR) operators, and
+    << and >> bit shift operators to debugger expression
+    handling. (joncampbell123)
+  - Added multiply (*) and divide (/) operators to debugger
+    expression handling. Order of operations applies, so
+    given mixed addition and multiplication, the multiply
+    is done first then the result is added. Also added
+    support for the modulo (%) operator to the debugger
+    expression handling. (joncampbell123)
+  - Revised debugger expression handling to correctly
+    parse arithmetic operators with order of operations
+    in mind. Prior to this fix, consecutive subtraction
+    would cause seemingly illogical results, for example
+    "10-1-1-1" would yield "9" instead of "7" because
+    subtraction was handled in the wrong order. This fix
+    also makes mixed addition and subtraction possible.
+    NOTICE: Remember that all numbers going in and
+    coming out of the expression handler are hexadecimal,
+    NOT decimal! (joncampbell123)
+  - Fixed simple expression handling in the debugger.
+    Revised hexadecimal vs register parsing so that
+    hexadecimal numbers that happen to start with
+    the name of certain CPU flag registers does not
+    cause confusing results. Prior to this fix,
+    hexadecimal numbers like "dfe" or "af0" were
+    impossible to enter without leading zeros or
+    quotes because the parser would confuse the
+    first digits with the DF and AF bits of the FLAGS
+    register. (joncampbell123)
   - Added Pentium III cputype, added SSE register set,
     added SSE instructions to debugger disassembler,
     added some initial SSE instructions. (joncampbell123)
@@ -16,6 +51,31 @@
     (instead of failing) now if the image files are
     read-only and the users do not explicitly specify
     read-only mode for the disk images. (Wengier)
+  - Setting "windowposition" to "-" in the configuration
+    will leave DOSBox-X window position as is instead of
+    a specific position or being centered. (Wengier)
+  - For printing, the SarasaGothicFixed TTF font will
+    also be searched for DBCS code pages. (Wengier)
+  - Added config option "showdbcsnodosv" (in the [dosv]
+    section) which when set to true enables rendering of
+    Chinese/Japanese/Korean characters for DBCS code
+    pages in non-DOS/V, non-PC98, and non-TTF mode.
+    Video capturing started from TTF output will enable
+    DBCS characters when possible. (Wengier)
+  - Changing code pages is supported for standard modes
+    (i.e. non-DOS/V, non-PC98 and non-TTF modes) using
+    CHCP command. (Wengier)
+  - Fixed issues with certain DBCS characters for the
+    DOS/V system. (Wengier)
+  - Fixed slow blinking text in TTF output. (Wengier)
+  - Fixed copying box drawing characters to clipboard
+    not working in non-TTF JEGA mode. (Wengier)
+  - Fixed background for the Configuration Tool when
+    the TTF output is active. (Wengier)
+  - Fixed DBCS characters not showing up when capturing
+    screenshots in TTF CJK mode, or they do not show up
+    properly in the Configuration Tool when "autodbcs"
+    is set to "false" in the configuration. (Wengier)
   - Fixed the issue of loading scalers in the previous
     version. A message box will only show up if you
     append "prompt" to the scaler option. (Wengier)
