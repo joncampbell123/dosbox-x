@@ -280,6 +280,24 @@ static INLINE void SSE_CVTTSS2SI(uint32_t &d,const XMM_Reg &s) {
 	SSE_CVTTPS2PI_i((int32_t&)d,s.f32[0]);
 }
 
+////
+
+static INLINE void SSE_CVTPS2PI_i(int32_t &d,const FPU_Reg_32 &s) {
+	if (s.v < -0x7FFFFFFF || s.v > 0x7FFFFFFF)
+		d = (int32_t)0x80000000;
+	else // based on rounding mode in MXCSR (TODO)
+		d = (int32_t)s.v;
+}
+
+static INLINE void SSE_CVTPS2PI(MMX_reg &d,const XMM_Reg &s) {
+	SSE_CVTPS2PI_i(d.sd.d0,s.f32[0]);
+	SSE_CVTPS2PI_i(d.sd.d1,s.f32[1]);
+}
+
+static INLINE void SSE_CVTSS2SI(uint32_t &d,const XMM_Reg &s) {
+	SSE_CVTPS2PI_i((int32_t&)d,s.f32[0]);
+}
+
 #endif // 386+
 
 #define SETcc(cc)							\
