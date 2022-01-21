@@ -245,6 +245,21 @@ static INLINE void SSE_MOVHPS(XMM_Reg &d,const XMM_Reg &s) {
 	d.u64[1] = s.u64[0];
 }
 
+////
+
+static INLINE void SSE_CVTPI2PS_i(FPU_Reg_32 &d,const int32_t s) {
+	d.v = (float)s;
+}
+
+static INLINE void SSE_CVTPI2PS(XMM_Reg &d,const MMX_reg &s) {
+	SSE_CVTPI2PS_i(d.f32[0],s.sd.d0);
+	SSE_CVTPI2PS_i(d.f32[1],s.sd.d1);
+}
+
+static INLINE void SSE_CVTSI2SS(XMM_Reg &d,const uint32_t s) {
+	SSE_CVTPI2PS_i(d.f32[0],(int32_t)s);
+}
+
 #endif // 386+
 
 #define SETcc(cc)							\
