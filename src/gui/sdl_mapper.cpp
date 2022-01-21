@@ -1055,7 +1055,7 @@ static SDLKey sdlkey_map[MAX_SCANCODES] = {
 	SDLK_F1, SDLK_F2, SDLK_F3, SDLK_F4, SDLK_F5, SDLK_F6, SDLK_F7, SDLK_F8, SDLK_F9, SDLK_F10,
 	/* 0x45: */
 	SDLK_NUMLOCK, //0x45 Keypad Num Lock and Clear
-	SDLK_SCROLLOCK, //0x46 Scroll-lock
+	SDLK_SCROLLOCK, //0x46 Scroll-lock and Break
 	SDLK_KP7, //0x47 Keypad 7 and Home
 	SDLK_KP8, //0x48 Keypad 8 and Up Arrow
 	SDLK_KP9, //0x49 Keypad 9 and PageUp
@@ -1201,6 +1201,9 @@ Bitu GetKeyCode(SDL_keysym keysym) {
         else {
 #if defined (WIN32)
             switch(keysym.scancode) {
+            case 0x46:  // Scroll Lock
+                // LOG_MSG("Scroll_lock scancode=%x, vk_key=%x", keysym.scancode, keysym.win32_vk);
+                return (keysym.win32_vk == VK_CANCEL ? SDLK_BREAK : SDLK_SCROLLOCK);
             case 0x35:  // SLASH
                 if(keysym.sym != SDLK_KP_DIVIDE) {
                     return SDLK_SLASH; // Various characters are allocated to this key in European keyboards
@@ -1280,12 +1283,13 @@ Bitu GetKeyCode(SDL_keysym keysym) {
     } else {
 #if defined (WIN32)
         /* special handling of 102-key under windows */
-        if ((keysym.sym==SDLK_BACKSLASH) && (keysym.scancode==0x56)) return (Bitu)SDLK_LESS;
+        if((keysym.sym == SDLK_BACKSLASH) && (keysym.scancode == 0x56)) return (Bitu)SDLK_LESS;
         /* special case of the \ _ key on Japanese 106-keyboards. seems to be the same code whether or not you've told Windows it's a 106-key */
         /* NTS: SDL source on Win32 maps this key (VK_OEM_102) to SDLK_LESS */
-        if (isJPkeyboard && (keysym.sym == 0) && (keysym.scancode == 0x73)) return (Bitu)SDLK_WORLD_10; //FIXME: There's no SDLK code for that key! Re-use one of the world keys!
+        else if(isJPkeyboard && (keysym.sym == 0) && (keysym.scancode == 0x73)) return (Bitu)SDLK_WORLD_10; //FIXME: There's no SDLK code for that key! Re-use one of the world keys!
         /* another hack, for the Yen \ pipe key on Japanese 106-keyboards.
            sym == 0 if English layout, sym == 0x5C if Japanese layout */
+        else if(keysym.win32_vk == VK_CANCEL) return (Bitu)SDLK_BREAK;
         if (isJPkeyboard && (keysym.sym == 0 || keysym.sym == 0x5C) && (keysym.scancode == 0x7D)) return (Bitu)SDLK_WORLD_11; //FIXME: There's no SDLK code for that key! Re-use one of the world keys!
         /* what is ~ ` on American keyboards is "Hankaku" on Japanese keyboards. Same scan code. */
 		if (keysym.scancode == 0x29) return (Bitu) (isJPkeyboard ? SDLK_WORLD_12 : SDLK_BACKQUOTE); //if JP106 keyboard Hankaku else Backquote(grave)  
