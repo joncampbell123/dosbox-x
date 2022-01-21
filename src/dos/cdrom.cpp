@@ -30,7 +30,7 @@
 #include "cdrom.h"
 
 #if defined(C_SDL2)
-#include "../../vs/sdl/src/cdrom/compat_SDL_cdrom.c"
+#include "../../vs/sdl/src/cdrom/SDL_cdrom.c"
 #if defined(WIN32)
 #define SDL_CDROM_WIN32
 #include "../../vs/sdl/src/cdrom/win32/SDL_syscdrom.c"

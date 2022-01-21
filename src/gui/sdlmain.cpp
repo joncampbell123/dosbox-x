@@ -14110,7 +14110,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         }
 
 #if defined(C_SDL2)
-        if (Compat_SDL_CDROMInit() < 0) {
+        if (SDL_CDROMInit() < 0) {
 #else
         if (SDL_InitSubSystem(SDL_INIT_CDROM) < 0) {
 #endif
@@ -15607,7 +15607,7 @@ fresh_boot:
 #endif
 
 #if defined(C_SDL2)
-	Compat_SDL_CDROMQuit();
+	SDL_CDROMQuit();
 #endif
     SDL_Quit();//Let's hope sdl will quit as well when it catches an exception
 
