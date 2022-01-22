@@ -544,6 +544,62 @@ void DEBUG_PrintGUS() { //debugger "GUS" command
                         myGUS.timers[t].masked,
                         myGUS.timers[t].running);
         }
+	for (size_t t=0;t < (size_t)myGUS.ActiveChannels;t++) {
+                GUSChannels *ch = guschan[t];
+                if (ch == NULL) continue;
+
+		std::string line;
+
+		switch (ch->WaveCtrl & 3) {
+			case 0:				line += " RUN  "; break;
+			case WCTRL_STOPPED:		line += " STOPD"; break;
+			case WCTRL_STOP:		line += " STOPN"; break;
+			case WCTRL_STOPPED|WCTRL_STOP:	line += " STOP!"; break;
+		}
+
+		if (ch->WaveCtrl & WCTRL_16BIT)
+			line += " PCM16";
+		if (ch->WaveCtrl & WCTRL_LOOP)
+			line += " LOOP";
+		if (ch->WaveCtrl & WCTRL_BIDIRECTIONAL)
+			line += " BIDI";
+		if (ch->WaveCtrl & WCTRL_IRQENABLED)
+			line += " IRQEN";
+		if (ch->WaveCtrl & WCTRL_DECREASING)
+			line += " REV";
+		if (ch->WaveCtrl & WCTRL_IRQPENDING)
+			line += " IRQP";
+
+                LOG_MSG("Voice %u: start=%05x.%03x end=%05x.%03x addr=%05x.%03x add=%05x.%03x ctrl=%02x%s",
+                        (unsigned int)t + 1u,
+                        ch->WaveStart>>WAVE_FRACT,
+                        (ch->WaveStart&WAVE_FRACT_MASK)<<(12-WAVE_FRACT),//current WAVE_FRACT == 9
+                        ch->WaveEnd>>WAVE_FRACT,
+                        (ch->WaveEnd&WAVE_FRACT_MASK)<<(12-WAVE_FRACT),//current WAVE_FRACT == 9
+                        ch->WaveAddr>>WAVE_FRACT,
+                        (ch->WaveAddr&WAVE_FRACT_MASK)<<(12-WAVE_FRACT),//current WAVE_FRACT == 9
+                        ch->WaveAdd>>WAVE_FRACT,
+                        (ch->WaveAdd&WAVE_FRACT_MASK)<<(12-WAVE_FRACT),//current WAVE_FRACT == 9
+                        ch->WaveCtrl,
+			line.c_str());
+#if 0
+		uint32_t RampStart;
+		uint32_t RampEnd;
+		uint32_t RampVol;
+		uint32_t RampAdd;
+
+		uint8_t RampRate;
+		uint8_t RampCtrl;
+
+		uint8_t PanPot;
+		uint8_t channum;
+		uint32_t irqmask;
+		uint32_t PanLeft;
+		uint32_t PanRight;
+		int32_t VolLeft;
+		int32_t VolRight;
+#endif
+	}
 }
 #endif
 
