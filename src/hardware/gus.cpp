@@ -505,6 +505,48 @@ class GUSChannels {
 static GUSChannels *guschan[32] = {NULL};
 static GUSChannels *curchan = NULL;
 
+#if C_DEBUG
+void DEBUG_PrintGUS() { //debugger "GUS" command
+        LOG_MSG("GUS regsel=%02x regseld=%02x regdata=%02x DRAMaddr=%06x/%06x memsz=%06x curch=%02x MAXctrl=%02x regctl=%02x",
+                        myGUS.gRegSelect,
+                        myGUS.gRegSelectData,
+                        myGUS.gRegData,
+                        myGUS.gDramAddr,
+                        myGUS.gDramAddrMask,
+                        myGUS.memsize,
+                        myGUS.gCurChannel,
+                        myGUS.gUltraMAXControl,
+                        myGUS.gRegControl);
+        LOG_MSG("DMActrl=%02x (TC=%u) dmaAddr=%04x%01x timerctl=%02x sampctl=%02x mixctl=%02x activech=%u (want=%u) DACrate=%uHz",
+                        myGUS.DMAControl&0xFF,
+                        (myGUS.DMAControl&0x100)?1:0,
+                        myGUS.dmaAddr,
+                        myGUS.dmaAddrOffset,
+                        myGUS.TimerControl,
+                        myGUS.SampControl,
+                        myGUS.mixControl,
+                        myGUS.ActiveChannels,
+                        myGUS.ActiveChannelsUser,
+                        myGUS.basefreq);
+        LOG_MSG("IRQen=%u IRQstat=%02x IRQchan=%04x RampIRQ=%04x WaveIRQ=%04x",
+                        myGUS.irqenabled,
+                        myGUS.IRQStatus,
+                        myGUS.IRQChan,
+                        myGUS.RampIRQ,
+                        myGUS.WaveIRQ);
+        for (size_t t=0;t < 2;t++) {
+                LOG_MSG("Timer %u: delay=%.3fms value=%02x reached=%u raiseirq=%u masked=%u running=%u\n",
+                        (unsigned int)t + 1u,
+                        myGUS.timers[t].delay,
+                        myGUS.timers[t].value,
+                        myGUS.timers[t].reached,
+                        myGUS.timers[t].raiseirq,
+                        myGUS.timers[t].masked,
+                        myGUS.timers[t].running);
+        }
+}
+#endif
+
 static INLINE void GUS_CheckIRQ(void);
 
 static void GUS_TimerEvent(Bitu val);

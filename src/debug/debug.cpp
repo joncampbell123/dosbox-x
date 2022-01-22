@@ -128,6 +128,8 @@ extern unsigned char        pc98_text_row_scroll_num_lines;      /* port 7Ah */
 extern bool logBuffSuppressConsole;
 extern bool logBuffSuppressConsoleNeedUpdate;
 
+void DEBUG_PrintGUS();
+
 // Forwards
 static void DrawCode(void);
 static void DrawInput(void);
@@ -2707,6 +2709,23 @@ bool ParseCommand(char* str) {
             }
 
             DEBUG_PrintSSE(which,format);
+            return true;
+        }
+    }
+
+    if (command == "GUS") {
+        std::string subcommand;
+        {
+            char *start = found;
+            while (*found != 0 && *found != ' ') found++;
+            subcommand = std::string(start,(size_t)(found-start));
+            while (*found == ' ') found++;
+        }
+
+        if (subcommand.empty()) {
+            DEBUG_BeginPagedContent();
+            DEBUG_PrintGUS();
+            DEBUG_EndPagedContent();
             return true;
         }
     }
