@@ -288,7 +288,7 @@ static char const *second[] = {
   "mov %Rd,%Cd",      "mov %Rd,%Dd",     "mov %Cd,%Rd",    "mov %Dd,%Rd",
   "mov %Rd,%Td",      0,                 "mov %Td,%Rd",    0,
   "%x0",              "%x0",             "%x0",            "%x0",
-  "%x0",              "%x0",             0,                0,
+  "%x0",              "%x0",             "%x0",            "%x0",
 /* 3 */
   0,                  "rdtsc",           0,                0,
   "sysenter",         "sysexit",         0,                0,
@@ -381,7 +381,8 @@ static char const *mpgroups[][256][4] = { /* mandatory prefix groups SSE instruc
     /* 0x2B */ { "movntps %EX,%GX", 0,0,0 },
     /* 0x2C */ { "cvttps2pi %GM,%EX", 0, 0, "cvttss2si %Gd,%EX" },
     /* 0x2D */ { "cvtps2pi %GM,%EX", 0, 0, "cvtss2si %Gd,%EX" },
-    /* 0x2E */ { 0,0,0,0 }, /* 0x2F */ { 0,0,0,0 },
+    /* 0x2E */ { "ucomiss %GX,%EX", 0,0,0 },
+    /* 0x2F */ { "comiss %GX,%EX", 0,0,0 },
 
     /* 0x30 */ { 0,0,0,0 }, /* 0x31 */ { 0,0,0,0 }, /* 0x32 */ { 0,0,0,0 }, /* 0x33 */ { 0,0,0,0 },
     /* 0x34 */ { 0,0,0,0 }, /* 0x35 */ { 0,0,0,0 }, /* 0x36 */ { 0,0,0,0 }, /* 0x37 */ { 0,0,0,0 },

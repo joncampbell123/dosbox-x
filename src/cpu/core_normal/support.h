@@ -298,6 +298,30 @@ static INLINE void SSE_CVTSS2SI(uint32_t &d,const XMM_Reg &s) {
 	SSE_CVTPS2PI_i((int32_t&)d,s.f32[0]);
 }
 
+////
+
+static INLINE void SSE_COMISS_common(const XMM_Reg &d,const XMM_Reg &s) {
+	FillFlags();
+	reg_flags &= ~(FLAG_CF|FLAG_PF|FLAG_AF|FLAG_ZF|FLAG_SF|FLAG_OF);
+
+	if (isnan(d.f32[0].v) || isnan(s.f32[0].v))
+		reg_flags |= FLAG_ZF|FLAG_PF|FLAG_CF; /* unordered compare */
+	else if (d.f32[0].v == s.f32[0].v)
+		reg_flags |= FLAG_ZF;
+	else if (d.f32[0].v > s.f32[0].v)
+		{ /* no change */ }
+	else /* d < s */
+		reg_flags |= FLAG_CF;
+}
+
+static INLINE void SSE_UCOMISS(const XMM_Reg &d,const XMM_Reg &s) {
+	SSE_COMISS_common(d,s);
+}
+
+static INLINE void SSE_COMISS(const XMM_Reg &d,const XMM_Reg &s) {
+	SSE_COMISS_common(d,s);
+}
+
 #endif // 386+
 
 #define SETcc(cc)							\

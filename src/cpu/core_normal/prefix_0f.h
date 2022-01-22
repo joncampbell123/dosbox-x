@@ -640,7 +640,6 @@
 						SSE_CVTTSS2SI(cpu_regs.regs[reg].dword[0],xmmsrc);
 					}
 					break;
-
 				default:
 					goto illegal_opcode;
 			};
@@ -674,7 +673,54 @@
 						SSE_CVTSS2SI(cpu_regs.regs[reg].dword[0],xmmsrc);
 					}
 					break;
+				default:
+					goto illegal_opcode;
+			};
+		}
+		break;
+#endif
+#if CPU_CORE >= CPU_ARCHTYPE_386
+	CASE_0F_B(0x2E)												/* SSE instruction group */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+		{
+			XMM_Reg xmmsrc;
+			GetRM;
+			const unsigned char reg = (rm >> 3) & 7;
 
+			switch (last_prefix) {
+				case MP_NONE:									/* 0F 2E UCOMISS reg, r/m */
+					if (rm >= 0xc0) {
+						SSE_UCOMISS(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+					} else {
+						GetEAa;
+						xmmsrc.u32[0] = LoadMd(eaa);
+						SSE_UCOMISS(fpu.xmmreg[reg],xmmsrc);
+					}
+					break;
+				default:
+					goto illegal_opcode;
+			};
+		}
+		break;
+#endif
+#if CPU_CORE >= CPU_ARCHTYPE_386
+	CASE_0F_B(0x2F)												/* SSE instruction group */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+		{
+			XMM_Reg xmmsrc;
+			GetRM;
+			const unsigned char reg = (rm >> 3) & 7;
+
+			switch (last_prefix) {
+				case MP_NONE:									/* 0F 2F COMISS reg, r/m */
+					if (rm >= 0xc0) {
+						SSE_COMISS(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+					} else {
+						GetEAa;
+						xmmsrc.u32[0] = LoadMd(eaa);
+						SSE_COMISS(fpu.xmmreg[reg],xmmsrc);
+					}
+					break;
 				default:
 					goto illegal_opcode;
 			};
