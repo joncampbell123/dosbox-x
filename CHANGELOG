@@ -71,9 +71,9 @@
     pages in non-DOS/V, non-PC98, and non-TTF mode.
     Video capturing started from TTF output will enable
     DBCS characters when possible. (Wengier)
-  - Changing code pages is supported for standard modes
-    (i.e. non-DOS/V, non-PC98 and non-TTF modes) using
-    CHCP command. (Wengier)
+  - Changing DBCS code pages is supported for standard
+    modes (i.e. non-DOS/V, non-PC98 and non-TTF modes)
+    using CHCP command. (Wengier)
   - Fixed issues with certain DBCS characters for the
     DOS/V system. (Wengier)
   - Fixed slow blinking text in TTF output. (Wengier)
