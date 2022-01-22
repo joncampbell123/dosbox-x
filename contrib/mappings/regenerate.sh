@@ -33,3 +33,4 @@
 ./sb2u.pl cp1256_to_unicode <CP1256.TXT >../../include/cp1256_uni.h || exit 1
 ./sb2u.pl cp1257_to_unicode <CP1257.TXT >../../include/cp1257_uni.h || exit 1
 ./sb2u.pl cp1258_to_unicode <CP1258.TXT >../../include/cp1258_uni.h || exit 1
+./sb2u.pl cp3021_to_unicode <CP3021.TXT >../../include/cp3021_uni.h || exit 1

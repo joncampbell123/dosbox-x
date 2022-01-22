@@ -41,6 +41,8 @@
     tools like CPU-Z to make them happy. (joncampbell123)
   - Added FXSAVE/FXRSTOR which makes Linux happy with
     Pentium III emulation. (joncampbell123)
+  - Added code page 3021 for the MIK character set used
+    by the Bulgarian language (as in FreeDOS). (Wengier)
   - For piping (|), DOSBox-X will now also try C: drive
     as a temporary piping path if current directory is
     read-only and the environment variable %TEMP% (or

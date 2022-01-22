@@ -106,6 +106,7 @@
 #include "cp1256_uni.h"
 #include "cp1257_uni.h"
 #include "cp1258_uni.h"
+#include "cp3021_uni.h"
 
 #if defined(PATH_MAX) && !defined(MAX_PATH)
 #define MAX_PATH PATH_MAX
@@ -715,6 +716,8 @@ bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp1257_to_unicode,sizeof(cp1257_to_unicode)/sizeof(cp1257_to_unicode[0]));
         case 1258:
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp1258_to_unicode,sizeof(cp1258_to_unicode)/sizeof(cp1258_to_unicode[0]));
+        case 3021:
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp3021_to_unicode,sizeof(cp3021_to_unicode)/sizeof(cp3021_to_unicode[0]));
         default: // Otherwise just use code page 437 or ASCII
             if (!cpwarn_once) {
                 cpwarn_once = true;
@@ -803,6 +806,8 @@ bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp1257_to_unicode,sizeof(cp1257_to_unicode)/sizeof(cp1257_to_unicode[0]));
         case 1258:
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp1258_to_unicode,sizeof(cp1258_to_unicode)/sizeof(cp1258_to_unicode[0]));
+        case 3021:
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp3021_to_unicode,sizeof(cp3021_to_unicode)/sizeof(cp3021_to_unicode[0]));
         default: // Otherwise just use code page 437 or ASCII
             if (!cpwarn_once) {
                 cpwarn_once = true;
@@ -891,6 +896,8 @@ bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp1257_to_unicode,sizeof(cp1257_to_unicode)/sizeof(cp1257_to_unicode[0]));
         case 1258:
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp1258_to_unicode,sizeof(cp1258_to_unicode)/sizeof(cp1258_to_unicode[0]));
+        case 3021:
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp3021_to_unicode,sizeof(cp3021_to_unicode)/sizeof(cp3021_to_unicode[0]));
         default: // Otherwise just use code page 437 or ASCII
             if (!cpwarn_once) {
                 cpwarn_once = true;
@@ -979,6 +986,8 @@ bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp1257_to_unicode,sizeof(cp1257_to_unicode)/sizeof(cp1257_to_unicode[0]));
         case 1258:
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp1258_to_unicode,sizeof(cp1258_to_unicode)/sizeof(cp1258_to_unicode[0]));
+        case 3021:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp3021_to_unicode,sizeof(cp3021_to_unicode)/sizeof(cp3021_to_unicode[0]));
         default: // Otherwise just use code page 437 or ASCII
             if (!cpwarn_once) {
                 cpwarn_once = true;
