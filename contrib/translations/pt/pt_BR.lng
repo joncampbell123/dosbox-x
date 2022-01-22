@@ -3,28 +3,28 @@
 :DOSBOX-X:VERSION:0.83.22
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
-As linhas nesta seáÑo serÑo sempre executadas ao se iniciar o DOSBox-X.
-Vocà pode adicionar comandos de montagem aqui.
+As linhas nesta se√ß√£o ser√£o sempre executadas ao se iniciar o DOSBox-X.
+Voc√™ pode adicionar comandos de montagem aqui.
 
 .
 :CONFIGFILE_INTRO
-# Esse Ç ou arquivo de configuraáîes do DOSBox-X %s. (Por favor, use a £ltima versÑo do DOSBox-X)
-# Linhas comeáando com # sÑo linhas de coment†rio e sÑo ignoradas pelo DOSBox-X.
-# Estas linhas sÑo usadas para documentar brevemente ou efeito de cada opáÑo.
-# Para escrever TODAS as opáîes, use ou comando 'config -all' com -wc ou -writeconf.
+# Esse √© ou arquivo de configura√ß√µes do DOSBox-X %s. (Por favor, use a √∫ltima vers√£o do DOSBox-X)
+# Linhas come√ßando com # s√£o linhas de coment√°rio e s√£o ignoradas pelo DOSBox-X.
+# Estas linhas s√£o usadas para documentar brevemente ou efeito de cada op√ß√£o.
+# Para escrever TODAS as op√ß√µes, use ou comando 'config -all' com -wc ou -writeconf.
 
 .
 :CONFIG_SUGGESTED_VALUES
-Valores poss°veis
+Valores poss√≠veis
 .
 :CONFIG_ADVANCED_OPTION
-Opáîes avanáadas (ver arquivo de referància de configuraáÑo completo [dosbox-x.reference.full.conf] para mais detalhes)
+Op√ß√µes avan√ßadas (ver arquivo de refer√™ncia de configura√ß√£o completo [dosbox-x.reference.full.conf] para mais detalhes)
 .
 :CONFIG_TOOL
-Ferramenta configuraáÑo do DOSBox-X
+Ferramenta configura√ß√£o do DOSBox-X
 .
 :CONFIG_TOOL_EXIT
-Sair da ferramenta de configuraáÑo
+Sair da ferramenta de configura√ß√£o
 .
 :MAPPER_EDITOR_EXIT
 Sair do editor de mapeamento
@@ -39,7 +39,7 @@ Aviso
 Sim
 .
 :NO
-NÑo
+N√£o
 .
 :OK
 OK
@@ -60,7 +60,7 @@ Adicionar
 Excluir
 .
 :NEXT
-Pr¢ximo
+Pr√≥ximo
 .
 :SAVE
 Salvar
@@ -72,7 +72,7 @@ Sair
 Capturar
 .
 :SAVE_CONFIGURATION
-Salvar configuraáÑo
+Salvar configura√ß√£o
 .
 :SAVE_LANGUAGE
 Salvar arquivo de idioma
@@ -81,19 +81,19 @@ Salvar arquivo de idioma
 Salvar e reiniciar
 .
 :PASTE_CLIPBOARD
-Colar transferància
+Colar transfer√™ncia
 .
 :APPEND_HISTORY
-Anexar hist¢rico
+Anexar hist√≥rico
 .
 :EXECUTE_NOW
 Executar agora
 .
 :ADDITION_CONTENT
-Conte£do adicional:
+Conte√∫do adicional:
 .
 :CONTENT
-Conte£do:
+Conte√∫do:
 .
 :EDIT_FOR
 Editar %s
@@ -102,43 +102,43 @@ Editar %s
 Ajuda para %s
 .
 :HELP_INFO
-Clique nÑo botÑo "Ajuda" para obter ajuda detalhada.
+Clique n√£o bot√£o "Ajuda" para obter ajuda detalhada.
 .
 :SELECT_VALUE
 Selecionar valor da propriedade
 .
 :CONFIGURATION_FOR
-ConfiguraáÑo de %s
+Configura√ß√£o de %s
 .
 :CONFIGURATION
 Ajuste
 .
 :SETTINGS
-Configuraáîes
+Configura√ß√µes
 .
 :LOGGING_OUTPUT
-Sa°da de registro do DosBox-X
+Sa√≠da de registro do DosBox-X
 .
 :CODE_OVERVIEW
-DescriáÑo geral do c¢digo
+Descri√ß√£o geral do c√≥digo
 .
 :VISIT_HOMEPAGE
-Visitar p†gina do DosBox-X
+Visitar p√°gina do DosBox-X
 .
 :GET_STARTED
 Primeiros passos no DosBox-X
 .
 :CDROM_SUPPORT
-Suporte Ö CD-ROM
+Suporte √† CD-ROM
 .
 :DRIVE_INFORMATION
-InformaáÑo da unidade
+Informa√ß√£o da unidade
 .
 :MOUNTED_DRIVE_NUMBER
-N£mero da unidade montada
+N√∫mero da unidade montada
 .
 :IDE_CONTROLLER_ASSIGNMENT
-AtribuiáÑo do controlador IDE
+Atribui√ß√£o do controlador IDE
 .
 :HELP_COMMAND
 Ajuda de comandos DOS
@@ -147,10 +147,10 @@ Ajuda de comandos DOS
 Valores atuais do mixer
 .
 :CURRENT_SBCONFIG
-ConfiguraáÑo da Sound Blaster
+Configura√ß√£o da Sound Blaster
 .
 :CURRENT_MIDICONFIG
-ConfiguraáÑo atual de MIDI
+Configura√ß√£o atual de MIDI
 .
 :CREATE_IMAGE
 Criar imagem de disco em branco
@@ -159,31 +159,31 @@ Criar imagem de disco em branco
 Lista de adaptadores de rede
 .
 :PRINTER_LIST
-Lista de dispositivos de impressÑo
+Lista de dispositivos de impress√£o
 .
 :INTRODUCTION
-IntroduáÑo
+Introdu√ß√£o
 .
 :CONFIGURE_GROUP
 Grupo de ajustes para configurar:
 .
 :SHOW_ADVOPT
-Incluir avanáados
+Incluir avan√ßados
 .
 :USE_PRIMARYCONFIG
-Usar config prim†ria
+Usar config prim√°ria
 .
 :USE_PORTABLECONFIG
-Usar config port†til
+Usar config port√°til
 .
 :USE_USERCONFIG
-Usar config do usu†rio
+Usar config do usu√°rio
 .
 :CONFIG_SAVETO
-Insira o nome do arquivo para o arquivo de configuraáÑo a ser salvo:
+Insira o nome do arquivo para o arquivo de configura√ß√£o a ser salvo:
 .
 :CONFIG_SAVEALL
-Salvar tudo (includindo ajustes avanáados) no arquivo config
+Salvar tudo (includindo ajustes avan√ßados) no arquivo config
 .
 :LANG_FILENAME
 Introduza o nome do arquivo de idioma:
@@ -194,7 +194,7 @@ Nome do idioma (opcional):
 :INTRO_MESSAGE
 Bem-vindo ao DOSBox-X, um emulador de DOS completo e livre.
 O DOSBox-X cria um console DOS que funciona como um DOS real.
-Vocà tambÇm pode executar o Windows 3.x e 95/98 dentro da m†quina DOS.
+Voc√™ tamb√©m pode executar o Windows 3.x e 95/98 dentro da m√°quina DOS.
 .
 :DRIVE
 Unidade
@@ -203,16 +203,16 @@ Unidade
 Tipo
 .
 :LABEL
-R¢tulo
+R√≥tulo
 .
 :DRIVE_NUMBER
-N£mero da unidade
+N√∫mero da unidade
 .
 :DISK_NAME
 Nome de disco
 .
 :IDE_POSITION
-PosiáÑo IDE
+Posi√ß√£o IDE
 .
 :SWAP_SLOT
 Trocar compartimento
@@ -224,10 +224,10 @@ Compartimento vazio
 Compartimento
 .
 :PREVIOUS_PAGE
-< P†g. anterior
+< P√°g. anterior
 .
 :NEXT_PAGE
-Pr¢x. p†gina >
+Pr√≥x. p√°gina >
 .
 :SELECT_EVENT
 Selecionar evento para alterar.
@@ -245,32 +245,32 @@ Captura ativada. Pressiona ESC para liberar.
 Arquivo de mapeamento salvo.
 .
 :AUTO_CYCLE_MAX
-Ciclos autom†ticos [m†x.]
+Ciclos autom√°ticos [m√°x.]
 .
 :AUTO_CYCLE_AUTO
-Ciclos autom†ticos [auto.]
+Ciclos autom√°ticos [auto.]
 .
 :AUTO_CYCLE_OFF
-Ciclos autom†ticos [desl.]
+Ciclos autom√°ticos [desl.]
 .
 :PROGRAM_CONFIG_PROPERTY_ERROR
-NÑo existe tal seáÑo ou propriedade.
+N√£o existe tal se√ß√£o ou propriedade.
 
 .
 :PROGRAM_CONFIG_NO_PROPERTY
-NÑo existe propriedade %s na seáÑo %s.
+N√£o existe propriedade %s na se√ß√£o %s.
 
 .
 :PROGRAM_CONFIG_SET_SYNTAX
-A sintaxe para a opáÑo -set est† incorreta.
+A sintaxe para a op√ß√£o -set est√° incorreta.
 
 .
 :PROGRAM_CONFIG_NOCONFIGFILE
-NÑo foi carregado o arquivo config!
+N√£o foi carregado o arquivo config!
 
 .
 :PROGRAM_CONFIG_PRIMARY_CONF
-Arquivo config prim†rio: 
+Arquivo config prim√°rio: 
 %s
 
 .
@@ -285,7 +285,7 @@ Arquivo config global:
 
 .
 :PROGRAM_CONFIG_CONFDIR
-Pasta de configuraáÑo do usu†rio DOSBox-X %s: 
+Pasta de configura√ß√£o do usu√°rio DOSBox-X %s: 
 %s
 
 
@@ -298,7 +298,7 @@ Pasta de trabalho do DOSBox-X:
 .
 :PROGRAM_CONFIG_FILE_ERROR
 
-NÑo foi poss°vel abrir o arquivo %s
+N√£o foi poss√≠vel abrir o arquivo %s
 
 .
 :PROGRAM_CONFIG_FILE_WHICH
@@ -310,62 +310,62 @@ Escrito no arquivo de idioma %s
 
 .
 :PROGRAM_CONFIG_USAGE
-Utilit†rio de configuraáÑo por linha de comando do DOSBox-X. Opáîes suportadas:
--wc (ou -writeconf) sem parÉmetro: Escreve no arquivo config prim†rio carregado.
+Utilit√°rio de configura√ß√£o por linha de comando do DOSBox-X. Op√ß√µes suportadas:
+-wc (ou -writeconf) sem par√¢metro: Escreve no arquivo config prim√°rio carregado.
 -wc (ou -writeconf) com nome_de_arquivo: Escreve o arquivo para o dir. de config.
--wl (ou -writelang) com nome_de_arquivo: Escreve sequància de caracteres do idioma atual.
+-wl (ou -writelang) com nome_de_arquivo: Escreve sequ√™ncia de caracteres do idioma atual.
 -ln (ou -langname) Exibe (sem argumentos) ou especifica o nome do idioma.
 -wcp [nome_de_arquivo] Escreve o arquivo para o dir. do programa (dosbox-x.conf ou nome_de_arquivo).
--wcd Escreve no arquivo config padrÑo da pasta de config.
--all, -mod Use com -wc, -wcp, ou -wcd para escrever TODAS as opáîes no arquivo config.
+-wcd Escreve no arquivo config padr√£o da pasta de config.
+-all, -mod Use com -wc, -wcp, ou -wcd para escrever TODAS as op√ß√µes no arquivo config.
 -wcboot, -wcpboot, ou -wcdboot reincia DOSBox-X depois de escrever o arquivo.
--bootconf (ou -bc) reinicia com o arquivo config especificado (ou prim†rio j† carregado).
--norem Use com -wc, -wcp, ou -wcd para nÑo escrever coment†rios das opáîes.
--l Lista os parÉmetros de configuraáÑo do DOSBox-X.
--h, -help, -? Mostra esta ajuda; acrescente a palavra "sections" para uma lista de seáîes.
--h, -help, -? seáÑo / propriedade Mostra informaáîes sobre uma seáÑo ou propriedade espec°fica.
--axclear Limpa a seáÑo [autoexec].
--axadd [linha] Adiciona uma linha na seáÑo [autoexec].
--axtype Imprime o conte£do de uma seáÑo do [autoexec].
--securemode Habilita o modo seguro onde caracter°sticas como montagem serÑo desativadas.
+-bootconf (ou -bc) reinicia com o arquivo config especificado (ou prim√°rio j√° carregado).
+-norem Use com -wc, -wcp, ou -wcd para n√£o escrever coment√°rios das op√ß√µes.
+-l Lista os par√¢metros de configura√ß√£o do DOSBox-X.
+-h, -help, -? Mostra esta ajuda; acrescente a palavra "sections" para uma lista de se√ß√µes.
+-h, -help, -? se√ß√£o / propriedade Mostra informa√ß√µes sobre uma se√ß√£o ou propriedade espec√≠fica.
+-axclear Limpa a se√ß√£o [autoexec].
+-axadd [linha] Adiciona uma linha na se√ß√£o [autoexec].
+-axtype Imprime o conte√∫do de uma se√ß√£o do [autoexec].
+-securemode Habilita o modo seguro onde caracter√≠sticas como montagem ser√£o desativadas.
 -startmapper Inicia o editor de mapeamento do DOSBox-X.
--gui Inicia a ferramenta de configuraáÑo gr†fica.
--get "propriedade da seáÑo" retorna o valor da propriedade (tambÇm para %%CONFIG%%).
--set (-setf para foráar) "seáÑo propriedade=valor" define o valor da propriedade.
+-gui Inicia a ferramenta de configura√ß√£o gr√°fica.
+-get "propriedade da se√ß√£o" retorna o valor da propriedade (tamb√©m para %%CONFIG%%).
+-set (-setf para for√ßar) "se√ß√£o propriedade=valor" define o valor da propriedade.
 
 .
 :PROGRAM_CONFIG_HLP_PROPHLP
-Prop¢sito da propriedade "%s" (conte£do na seáÑo "%s"):
+Prop√≥sito da propriedade "%s" (conte√∫do na se√ß√£o "%s"):
 %s
 
-Valores poss°veis: %s
-Valor padrÑo: %s
+Valores poss√≠veis: %s
+Valor padr√£o: %s
 Valor atual: %s
 
 .
 :PROGRAM_CONFIG_HLP_LINEHLP
-Prop¢sito da seáÑo "%s":
+Prop√≥sito da se√ß√£o "%s":
 %s
 Valor atual:
 %s
 
 .
 :PROGRAM_CONFIG_HLP_NOCHANGE
-Esta propriedade nÑo pode ser alterada durante a execuáÑo.
+Esta propriedade n√£o pode ser alterada durante a execu√ß√£o.
 
 .
 :PROGRAM_CONFIG_APPLY_RESTART
-Deseja reiniciar agora para aplicar a configuraáÑo [Y/N] ?
+Deseja reiniciar agora para aplicar a configura√ß√£o [Y/N] ?
 .
 :PROGRAM_CONFIG_HLP_POSINT
 inteiro positivo
 .
 :PROGRAM_CONFIG_HLP_SECTHLP
-A seáÑo %s contem as seguintes propriedades:
+A se√ß√£o %s contem as seguintes propriedades:
 
 .
 :PROGRAM_CONFIG_HLP_SECTLIST
-A configuraáÑo do DOSBox-X contem as seguintes seáîes:
+A configura√ß√£o do DOSBox-X contem as seguintes se√ß√µes:
 
 
 .
@@ -374,33 +374,33 @@ Alterado para o modo seguro.
 
 .
 :PROGRAM_CONFIG_SECURE_DISALLOW
-Esta operaáÑo nÑo Ç permitida no modo seguro.
+Esta opera√ß√£o n√£o √© permitida no modo seguro.
 
 .
 :PROGRAM_CONFIG_SECTION_ERROR
-A seáÑo %s nÑo existe.
+A se√ß√£o %s n√£o existe.
 
 .
 :PROGRAM_CONFIG_VALUE_ERROR
-"%s" nÑo Ç um valor v†lido para a propriedade %s.
+"%s" n√£o √© um valor v√°lido para a propriedade %s.
 
 .
 :PROGRAM_CONFIG_PROPERTY_DUPLICATE
-Pode haver outras seáîes com o mesmo nome de propriedade.
+Pode haver outras se√ß√µes com o mesmo nome de propriedade.
 
 .
 :PROGRAM_CONFIG_GET_SYNTAX
-Sintaxe correta: config -get "seáÑo propriedade".
+Sintaxe correta: config -get "se√ß√£o propriedade".
 
 .
 :PROGRAM_CONFIG_PRINT_STARTUP
 
-O DOSBox-X foi iniciado com os seguintes parÉmetros de linha de comando:
+O DOSBox-X foi iniciado com os seguintes par√¢metros de linha de comando:
 %s
 
 .
 :PROGRAM_CONFIG_MISSINGPARAM
-Falta um parÉmetro.
+Falta um par√¢metro.
 
 .
 :PROGRAM_MOUSE_INSTALL
@@ -420,11 +420,11 @@ Driver descarregado com sucesso...
 
 .
 :PROGRAM_MOUSE_ERROR
-J† est† instalado na porta PS/2.
+J√° est√° instalado na porta PS/2.
 
 .
 :PROGRAM_MOUSE_NOINSTALLED
-Driver nÑo instalado.
+Driver n√£o instalado.
 
 .
 :PROGRAM_MOUSE_HELP
@@ -448,7 +448,7 @@ Unidade %c montada como unidade de disquete El Torito
 
 .
 :PROGRAM_MOUNT_STATUS_RAMDRIVE
-Unidade %c montada como unidade de mem¢ria RAM
+Unidade %c montada como unidade de mem√≥ria RAM
 
 .
 :PROGRAM_MOUNT_STATUS_2
@@ -456,7 +456,7 @@ Unidade %c montada como %s
 
 .
 :PROGRAM_MOUNT_STATUS_1
-As unidades atualmente montadas sÑo:
+As unidades atualmente montadas s√£o:
 
 .
 :PROGRAM_IMGMOUNT_STATUS_FORMAT
@@ -468,35 +468,35 @@ As unidades atualmente montadas sÑo:
 
 .
 :PROGRAM_IMGMOUNT_STATUS_2
-Os n£meros de unidades atualmente montadas sÑo:
+Os n√∫meros de unidades atualmente montadas s√£o:
 
 .
 :PROGRAM_IMGMOUNT_STATUS_1
-As unidades FAT/ISO montadas atualmente sÑo:
+As unidades FAT/ISO montadas atualmente s√£o:
 
 .
 :PROGRAM_IMGMOUNT_STATUS_NONE
-Nenhuma unidade dispon°vel
+Nenhuma unidade dispon√≠vel
 
 .
 :PROGRAM_IMGSWAP_STATUS
-As unidades atualmente dispon°veis para troca sÑo:
+As unidades atualmente dispon√≠veis para troca s√£o:
 
 .
 :PROGRAM_IMGSWAP_ERROR
-A posiáÑo deve estar entre 1 e %d para esta unidade.
+A posi√ß√£o deve estar entre 1 e %d para esta unidade.
 
 .
 :PROGRAM_MOUNT_ERROR_1
-A pasta %s nÑo existe.
+A pasta %s n√£o existe.
 
 .
 :PROGRAM_MOUNT_ERROR_2
-%s nÑo Ç uma pasta
+%s n√£o √© uma pasta
 
 .
 :PROGRAM_MOUNT_IMGMOUNT
-Para montar arquivos de imagem, use o comando [34;1mIMGMOUNT[0m e nÑo o[0m comando [34;1mMOUNT[0m.
+Para montar arquivos de imagem, use o comando [34;1mIMGMOUNT[0m e n√£o o[0m comando [34;1mMOUNT[0m.
 
 .
 :PROGRAM_MOUNT_ILL_TYPE
@@ -504,62 +504,62 @@ Tipo ilegal %s
 
 .
 :PROGRAM_MOUNT_ALREADY_MOUNTED
-Unidade %c j† montada com %s
+Unidade %c j√° montada com %s
 
 .
 :PROGRAM_MOUNT_USAGE
-Monta pastas ou unidades do sistema anfitriÑo como unidades do DOSBox-X.
-Uso: [34;1m[32;1mMOUNT[0m [37;1munidade[0m [36;1mpasta_local[0m [opáÑo][0m
- [37;1munidade[0m        Letra da unidade onde a pasta ou a unidade ser† montada.
- [36;1mpasta_local[0m    Pasta local ou unidade do sistema anfitriÑo a ser montado. 
- [option]       OpáÑo(îes) para montagem. SÑo aceitas as seguintes opáîes:
+Monta pastas ou unidades do sistema anfitri√£o como unidades do DOSBox-X.
+Uso: [34;1m[32;1mMOUNT[0m [37;1munidade[0m [36;1mpasta_local[0m [op√ß√£o][0m
+ [37;1munidade[0m        Letra da unidade onde a pasta ou a unidade ser√° montada.
+ [36;1mpasta_local[0m    Pasta local ou unidade do sistema anfitri√£o a ser montado. 
+ [option]       Op√ß√£o(√µes) para montagem. S√£o aceitas as seguintes op√ß√µes:
  -t             Indica o comportamento do tipo de unidade montada.
                 Unidades suportadas: dir, floppy, cdrom, overlay
  (Note que overlay redireciona as escritas da unidade montada para outra pasta)
- -label [nome]  Define o r¢tulo do volume de um disco (mai£sculas).
- -nl            Usa a pr¢xima unidade dispon°vel se a unidade estiver montada.
+ -label [nome]  Define o r√≥tulo do volume de um disco (mai√∫sculas).
+ -nl            Usa a pr√≥xima unidade dispon√≠vel se a unidade estiver montada.
  -ro            Monta a unidade no modo somente leitura.
- -pr            Indica o caminho relativo para a localizaáÑo do arquivo config.
+ -pr            Indica o caminho relativo para a localiza√ß√£o do arquivo config.
  -cd            Gera uma lista de valores do CD local da "unidade".
- -usecd [drive #] Para emulaáÑo direta do hardware, como reproduzir †udio.
- -ioctl         Usa acesso ao hardware de baixo n°vel (com opáÑo -usecd).
- -aspi          Usa a camada ASPI instalada (com opáÑo -usecd).
- -freesize [tamanho] Especifica o espaáo livre do disco em MB (KB p/ disquetes)
- -nocachedir    Habilita atualizaáÑo em tempo real e nÑo usa cache na unidade.
+ -usecd [drive #] Para emula√ß√£o direta do hardware, como reproduzir √°udio.
+ -ioctl         Usa acesso ao hardware de baixo n√≠vel (com op√ß√£o -usecd).
+ -aspi          Usa a camada ASPI instalada (com op√ß√£o -usecd).
+ -freesize [tamanho] Especifica o espa√ßo livre do disco em MB (KB p/ disquetes)
+ -nocachedir    Habilita atualiza√ß√£o em tempo real e n√£o usa cache na unidade.
  -z drive       Move a unidade virtual Z: para outra letra diferente.
  -o             Informa a unidade como: local, remota.
  -q             Modo silencioso (sem mensagens na tela).
  -u             Desmontar a unidade.
  [32;1m-examples      Mostra alguns exemplos de uso.[0m
-Digite MOUNT sem parÉmetros para mostrar uma lista de unidades montadas.
+Digite MOUNT sem par√¢metros para mostrar uma lista de unidades montadas.
 .
 :PROGRAM_MOUNT_EXAMPLE
-Um exemplo b†sico do comando MOUNT:
+Um exemplo b√°sico do comando MOUNT:
 
 [32;1mMOUNT c %s[0m
 
 Isto faz com que a pasta %s atue como unidade C: dentro do DOSBox-X.
-A pasta tem que existir no sistema anfitriÑo. Se a pasta tiver espaáo,
+A pasta tem que existir no sistema anfitri√£o. Se a pasta tiver espa√ßo,
 certifique-se de citar corretamente a pasta com aspas duplas.
 Por exemplo: %s
 
-Outros exemplos do uso de MOUNT sÑo:
+Outros exemplos do uso de MOUNT s√£o:
 
 [32;1mMOUNT[0m                             - lista todas as unidades montadas
 [32;1mMOUNT -cd[0m                         - lista todas as unidades de CD
 [32;1mMOUNT d %s[0m            - monta a unidade D: na pasta indicada
 [32;1mMOUNT c %s -t cdrom[0m      - monta a unidade C: como CD-ROM
 [32;1mMOUNT c %s -ro[0m           - monta a unidade C: no modo somente leitura
-[32;1mMOUNT c %s -label TEST[0m   - monta a unidade C: com o r¢tulo TEST
+[32;1mMOUNT c %s -label TEST[0m   - monta a unidade C: com o r√≥tulo TEST
 [32;1mMOUNT c %s -nocachedir [0m  - monta a unidade C: sem usar cache na unidade
 [32;1mMOUNT c %s -freesize 128[0m - monta a unidade C: com 128MB livres
-[32;1mMOUNT c %s -u[0m            - foráa a montagem de C: mesmo se j† estiver montada
+[32;1mMOUNT c %s -u[0m            - for√ßa a montagem de C: mesmo se j√° estiver montada
 [32;1mMOUNT c %s -t overlay[0m  - monta C: com a pasta superior sobreposta
 [32;1mMOUNT c -u[0m                        - desmonta a unidade C:
 
 .
 :PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED
-Unidade %c nÑo montada.
+Unidade %c n√£o montada.
 
 .
 :PROGRAM_MOUNT_UMOUNT_SUCCESS
@@ -567,40 +567,40 @@ A unidade %c foi desmontada com sucesso.
 
 .
 :PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS
-A unidade n£mero %c foi desmontada com sucesso.
+A unidade n√∫mero %c foi desmontada com sucesso.
 
 .
 :PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL
-As unidades virtuais nÑo podem ser desmontadas.
+As unidades virtuais n√£o podem ser desmontadas.
 
 .
 :PROGRAM_MOUNT_WARNING_WIN
-Aviso: Montar C:\ nÑo Ç recomendado.
+Aviso: Montar C:\ n√£o √© recomendado.
 
 .
 :PROGRAM_MOUNT_WARNING_OTHER
-Aviso: Montar / nÑo Ç recomendado.
+Aviso: Montar / n√£o √© recomendado.
 
 .
 :PROGRAM_MOUNT_PHYSFS_ERROR
-NÑo foi poss°vel montar a unidade PhysFS com o arquivo compactado.
+N√£o foi poss√≠vel montar a unidade PhysFS com o arquivo compactado.
 
 .
 :PROGRAM_MOUNT_OVERLAY_NO_BASE
-Por favor, MONTE primeiro uma pasta normal antes de adicionar uma sobreposiáÑo
+Por favor, MONTE primeiro uma pasta normal antes de adicionar uma sobreposi√ß√£o
 sobre ela.
 
 .
 :PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE
-A sobreposiáÑo nÑo Ç compat°vel com a unidade especificada.
+A sobreposi√ß√£o n√£o √© compat√≠vel com a unidade especificada.
 
 .
 :PROGRAM_MOUNT_OVERLAY_MIXED_BASE
-A sobreposiáÑo precisa ser especificada usando o mesmo endereáamento que
+A sobreposi√ß√£o precisa ser especificada usando o mesmo endere√ßamento que
 a unidade subjacente. Sem misturar caminhos relativos e absolutos.
 .
 :PROGRAM_MOUNT_OVERLAY_SAME_AS_BASE
-A pasta de sobreposiáÑo nÑo pode ser a mesma que a da unidade subjacente.
+A pasta de sobreposi√ß√£o n√£o pode ser a mesma que a da unidade subjacente.
 
 .
 :PROGRAM_MOUNT_OVERLAY_ERROR
@@ -608,7 +608,7 @@ Ocorreu um erro ao tentar criar uma unidade de sobreposta.
 
 .
 :PROGRAM_MOUNT_OVERLAY_STATUS
-SobreposiáÑo %s na unidade %c montada.
+Sobreposi√ß√£o %s na unidade %c montada.
 
 .
 :PROGRAM_LOADFIX_ALLOC
@@ -620,36 +620,36 @@ SobreposiáÑo %s na unidade %c montada.
 
 .
 :PROGRAM_LOADFIX_DEALLOCALL
-Mem¢ria usada liberada.
+Mem√≥ria usada liberada.
 
 .
 :PROGRAM_LOADFIX_ERROR
-Erro de alocaáÑo de mem¢ria.
+Erro de aloca√ß√£o de mem√≥ria.
 
 .
 :PROGRAM_LOADFIX_HELP
-Carrega um programa acima dos primeiros 64 KB de mem¢ria, reduzindo a mem¢ria
-dispon°vel.
+Carrega um programa acima dos primeiros 64 KB de mem√≥ria, reduzindo a mem√≥ria
+dispon√≠vel.
 
-LOADFIX [-xms] [-ems] [-{ram}] [{programa}] [{opáîes}]
+LOADFIX [-xms] [-ems] [-{ram}] [{programa}] [{op√ß√µes}]
 LOADFIX -f [-xms] [-ems]
 
-  -xms        Aloca mem¢ria de XMS no lugar da mem¢ria convencional
-  -ems        Aloca mem¢ria de EMS no lugar da mem¢ria convencional
-  -{ram}      Especifica a quantidade de mem¢ria para alocar em KB
-              Por padrÑo 64 KB para mem¢ria base; 1 MB para XMS/EMS
-  -a          Aloca automaticamente mem¢ria suficiente para preencher
+  -xms        Aloca mem√≥ria de XMS no lugar da mem√≥ria convencional
+  -ems        Aloca mem√≥ria de EMS no lugar da mem√≥ria convencional
+  -{ram}      Especifica a quantidade de mem√≥ria para alocar em KB
+              Por padr√£o 64 KB para mem√≥ria base; 1 MB para XMS/EMS
+  -a          Aloca automaticamente mem√≥ria suficiente para preencher
               os 64KB mais baixos
-  -f (ou -d)  Libera mem¢ria previamente alocada
+  -f (ou -d)  Libera mem√≥ria previamente alocada
   {programa}  Executa o programa especificado
-  {opáîes}    Opáîes de programa (se houver)
+  {op√ß√µes}    Op√ß√µes de programa (se houver)
 
 Exemplos:
-  [32;1mLOADFIX jogo.exe[0m     Aloca 64KB de mem¢ria convencional e executa jogo.exe
-  [32;1mLOADFIX -a[0m           Aloca automaticamente mem¢ria suficiente convencional
-  [32;1mLOADFIX -128[0m         Aloca 128KB de mem¢ria convencional
-  [32;1mLOADFIX -xms[0m         Aloca 1MB de mem¢ria XMS
-  [32;1mLOADFIX -f[0m           Libera mem¢ria convencional alocada
+  [32;1mLOADFIX jogo.exe[0m     Aloca 64KB de mem√≥ria convencional e executa jogo.exe
+  [32;1mLOADFIX -a[0m           Aloca automaticamente mem√≥ria suficiente convencional
+  [32;1mLOADFIX -128[0m         Aloca 128KB de mem√≥ria convencional
+  [32;1mLOADFIX -xms[0m         Aloca 1MB de mem√≥ria XMS
+  [32;1mLOADFIX -f[0m           Libera mem√≥ria convencional alocada
 
 .
 :MSCDEX_SUCCESS
@@ -657,23 +657,23 @@ MSCDEX instalado.
 
 .
 :MSCDEX_ERROR_MULTIPLE_CDROMS
-MSCDEX: Erro: as letras da unidade de v†rios CD-ROM devem ser cont°nuas.
+MSCDEX: Erro: as letras da unidade de v√°rios CD-ROM devem ser cont√≠nuas.
 
 .
 :MSCDEX_ERROR_NOT_SUPPORTED
-MSCDEX: Erro: Ainda nÑo suportado.
+MSCDEX: Erro: Ainda n√£o suportado.
 
 .
 :MSCDEX_ERROR_PATH
-MSCDEX: O local especificado nÑo Ç uma unidade de CD-ROM.
+MSCDEX: O local especificado n√£o √© uma unidade de CD-ROM.
 
 .
 :MSCDEX_ERROR_OPEN
-MSCDEX: Erro: Arquivo inv†lido ou nÑo pode ser aberto.
+MSCDEX: Erro: Arquivo inv√°lido ou n√£o pode ser aberto.
 
 .
 :MSCDEX_TOO_MANY_DRIVES
-MSCDEX: Erro: Muitas unidades de CD-ROM (m†x: 5). Falha na instalaáÑo de MSCDEX.
+MSCDEX: Erro: Muitas unidades de CD-ROM (m√°x: 5). Falha na instala√ß√£o de MSCDEX.
 
 .
 :MSCDEX_LIMITED_SUPPORT
@@ -681,7 +681,7 @@ MSCDEX: Subpasta montada: suporte limitado.
 
 .
 :MSCDEX_INVALID_FILEFORMAT
-MSCDEX: Erro: O arquivo nÑo Ç uma imagem ISO/CUE ou contÇm erros.
+MSCDEX: Erro: O arquivo n√£o √© uma imagem ISO/CUE ou cont√©m erros.
 
 .
 :MSCDEX_UNKNOWN_ERROR
@@ -693,28 +693,28 @@ Cache da unidade apagado.
 
 .
 :PROGRAM_INTRO
-[2J[32;1mBem-vindo ao DOSBox-X[0m, um emulador x86 de c¢digo aberto com som e gr†ficos.
+[2J[32;1mBem-vindo ao DOSBox-X[0m, um emulador x86 de c√≥digo aberto com som e gr√°ficos.
 O DOSBox-X cria um console que parece exatamente como um DOS convencional.
 
-[31;1mO DOSBox-X ir† fechar ou parar sem aviso caso ocorrer algum erro![0m
+[31;1mO DOSBox-X ir√° fechar ou parar sem aviso caso ocorrer algum erro![0m
 
 
 
 .
 :PROGRAM_INTRO_MENU_UP
-IntroduáÑo ao DOSBox-X
+Introdu√ß√£o ao DOSBox-X
 .
 :PROGRAM_INTRO_MENU_BASIC
-B†sico sobre montagem
+B√°sico sobre montagem
 .
 :PROGRAM_INTRO_MENU_CDROM
-Suporte Ö CD-ROM
+Suporte √† CD-ROM
 .
 :PROGRAM_INTRO_MENU_USAGE
 Uso
 .
 :PROGRAM_INTRO_MENU_INFO
-InformaáÑo
+Informa√ß√£o
 .
 :PROGRAM_INTRO_MENU_QUIT
 Sair deste menu
@@ -726,27 +726,27 @@ Sair deste menu
 .
 :PROGRAM_INTRO_MENU_CDROM_HELP
 
-[1m   [1m[KPara montar seu CD-ROM no DOSBox-X, vocà precisa indicar opáîes adicionais.[0m
+[1m   [1m[KPara montar seu CD-ROM no DOSBox-X, voc√™ precisa indicar op√ß√µes adicionais.[0m
 
 .
 :PROGRAM_INTRO_MENU_USAGE_HELP
 
-[1m   [1m[KDescriáÑo geral das opáîes de linha de comandos no DOSBox-X.[0m
+[1m   [1m[KDescri√ß√£o geral das op√ß√µes de linha de comandos no DOSBox-X.[0m
 
 .
 :PROGRAM_INTRO_MENU_INFO_HELP
 
-[1m   [1m[KComo obter mais informaáÑo sobre o DOSBox-X.[0m
+[1m   [1m[KComo obter mais informa√ß√£o sobre o DOSBox-X.[0m
 
 .
 :PROGRAM_INTRO_MENU_QUIT_HELP
 
-[1m   [1m[KSair da introduáÑo ao DOSBox-X.[0m
+[1m   [1m[KSair da introdu√ß√£o ao DOSBox-X.[0m
 
 .
 :PROGRAM_INTRO_USAGE_TOP
-[2J[32;1mDescriáÑo geral das opáîes de linha de comandos no DOSBox-X.[0m
-Os usu†rios do Windows devem usar cmd ou editar o atalho do DOSBox-X para isso.
+[2J[32;1mDescri√ß√£o geral das op√ß√µes de linha de comandos no DOSBox-X.[0m
+Os usu√°rios do Windows devem usar cmd ou editar o atalho do DOSBox-X para isso.
 
 dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
          [-conf congfigfile] [-lang languagefile] [-machine machinetype]
@@ -757,18 +757,18 @@ dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
 .
 :PROGRAM_INTRO_USAGE_1
 [33;1m  name[0m
-	Se o nome for uma pasta, ela ser† montada como a unidade C:.
-	Se o nome for um execut†vel, ele montar† a
+	Se o nome for uma pasta, ela ser√° montada como a unidade C:.
+	Se o nome for um execut√°vel, ele montar√° a
 	pasta como a unidade C: e executa name.
 
 [33;1m  -exit[0m
-	O DOSBox-X ser† fechado quando o programa DOS terminar.
+	O DOSBox-X ser√° fechado quando o programa DOS terminar.
 
 [33;1m  -version[0m
-	Exibe a informaáÑo de versÑo e sai. Necess†rio para interfaces.
+	Exibe a informa√ß√£o de vers√£o e sai. Necess√°rio para interfaces.
 
 [33;1m  -fastlaunch[0m
-	Habilita o modo de execuáÑo r†pida (pula BIOS/logotipo e boas-vindas).
+	Habilita o modo de execu√ß√£o r√°pida (pula BIOS/logotipo e boas-vindas).
 
 [33;1m  -fullscreen[0m
 	Inicia DOSBox-X no modo tela cheia.
@@ -776,151 +776,151 @@ dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
 .
 :PROGRAM_INTRO_USAGE_2
 [33;1m  -conf[0m configfile
-	Inicia o DOSBox-X com as opáîes do configfile.
-	Leia a documentaáÑo para mais detalhes.
+	Inicia o DOSBox-X com as op√ß√µes do configfile.
+	Leia a documenta√ß√£o para mais detalhes.
 
 [33;1m  -lang[0m languagefile
 	Inicia DOSBox-X usando o idioma indicado em languagefile.
 
 [33;1m  -noconsole[0m (Windows Only)
 	Inicia o DOSBox-X sem mostrar a janela de console.
-	A sa°da ser† redirecionada para stdout.txt e stderr.txt
+	A sa√≠da ser√° redirecionada para stdout.txt e stderr.txt
 
 [33;1m  -machine[0m machinetype
-	Configura o DOSBox-X para emular um tipo espec°fico de m†quina. Valores
+	Configura o DOSBox-X para emular um tipo espec√≠fico de m√°quina. Valores
 	aceitos: hercules, cga, cga_mono, mcga, mda, pcjr, tandy, ega, vga,
-	vgaonly, pc98, vesa_nolfb, vesa_oldvbe, svga_paradise, svga_s3 (padrÑo).
-	O tipo de computador afeta as placas de som e v°deo.
+	vgaonly, pc98, vesa_nolfb, vesa_oldvbe, svga_paradise, svga_s3 (padr√£o).
+	O tipo de computador afeta as placas de som e v√≠deo.
 
 .
 :PROGRAM_INTRO_USAGE_3
 [33;1m  -startmapper[0m
-	Insira o mapeador de teclado diretamente na inicializaáÑo.
-	ñtil para pessoas com problemas de teclado.
+	Insira o mapeador de teclado diretamente na inicializa√ß√£o.
+	√ötil para pessoas com problemas de teclado.
 
 [33;1m  -noautoexec[0m
-	Ignora a seáÑo [autoexec] do arquivo de configuraáÑo carregado.
+	Ignora a se√ß√£o [autoexec] do arquivo de configura√ß√£o carregado.
 
 [33;1m  -c[0m comando
 	Executa o comando especificado antes do nome.
-	M£ltiplos comandos podem ser especificados. Cada um deve usar -c.
+	M√∫ltiplos comandos podem ser especificados. Cada um deve usar -c.
 	Um comando pode ser: um programa interno, um comando DOS ou um
-	execut†vel na unidade montada.
+	execut√°vel na unidade montada.
 
 [33;1m  -set[0m <section property=value>
-	Define a opáÑo de config (substituindo o arquivo config).
-	M£ltiplas opáîes podem ser especificadas. No entanto, cada
-	opáÑo deve comeáar com -set.
+	Define a op√ß√£o de config (substituindo o arquivo config).
+	M√∫ltiplas op√ß√µes podem ser especificadas. No entanto, cada
+	op√ß√£o deve come√ßar com -set.
 
 .
 :PROGRAM_INTRO_INFO
-[32;1mInformaáÑo:[0m
+[32;1mInforma√ß√£o:[0m
 
-Para informaáîes b†sicas sobre montagem, digite [34;1mintro mount[0m
-Para informaáîes sobre suporte Ö CD-ROM, digite [34;1mintro cdrom[0m
-Para informaáîes sobre teclas especiais, digite [34;1mintro special[0m
-Para informaáîes de uso, digite [34;1mintro usage[0m
+Para informa√ß√µes b√°sicas sobre montagem, digite [34;1mintro mount[0m
+Para informa√ß√µes sobre suporte √† CD-ROM, digite [34;1mintro cdrom[0m
+Para informa√ß√µes sobre teclas especiais, digite [34;1mintro special[0m
+Para informa√ß√µes de uso, digite [34;1mintro usage[0m
 
-Para obter a £ltima versÑo do DOSBox-X, visite a p†gina da web:[34;1m
+Para obter a √∫ltima vers√£o do DOSBox-X, visite a p√°gina da web:[34;1m
 
 [34;1mhttps://dosbox-x.com/[0m ou [34;1mhttp://dosbox-x.software[0m
 
-Para mais informaáîes sobre o DOSBox-X, visite nossa Wiki:
+Para mais informa√ß√µes sobre o DOSBox-X, visite nossa Wiki:
 
 [34;1mhttps://dosbox-x.com/wiki[0m
 
 .
 :PROGRAM_INTRO_MOUNT_START
-[32;1mAqui tem alguns comandos para vocà comeáar:[0m
-Antes que vocà possa utilizar os arquivos localizados em seu pr¢prio
-sistema de arquivos, vocà tem que montar a pasta que contÇm os arquivos.
+[32;1mAqui tem alguns comandos para voc√™ come√ßar:[0m
+Antes que voc√™ possa utilizar os arquivos localizados em seu pr√≥prio
+sistema de arquivos, voc√™ tem que montar a pasta que cont√©m os arquivos.
 
 
 .
 :PROGRAM_INTRO_MOUNT_EXST_WINDOWS
-[32mmount c c:\jogosdos\[37m cria uma unidade C com o conte£do de c:\jogosdos.  
+[32mmount c c:\jogosdos\[37m cria uma unidade C com o conte√∫do de c:\jogosdos.  
 .
 :PROGRAM_INTRO_MOUNT_EXEN_WINDOWS
-c:\jogosdos\[37m Ç um exemplo. Substitua por sua pr¢pria pasta de jogos.[37m    
+c:\jogosdos\[37m √© um exemplo. Substitua por sua pr√≥pria pasta de jogos.[37m    
 .
 :PROGRAM_INTRO_MOUNT_EXST_OTHER
-[32mmount c ~/jogosdos[37m criar† uma unidade C com o conte£do de ~/jogosdos.
+[32mmount c ~/jogosdos[37m criar√° uma unidade C com o conte√∫do de ~/jogosdos.
 .
 :PROGRAM_INTRO_MOUNT_EXEN_OTHER
-[32m~/jogosdos[37m Ç um exemplo. Substitua por sua pr¢pria pasta de jogos.[37m  
+[32m~/jogosdos[37m √© um exemplo. Substitua por sua pr√≥pria pasta de jogos.[37m  
 .
 :PROGRAM_INTRO_MOUNT_END
-Quando mount for completado corretamente vocà pode digitar [34;1mc:[0m para ir para
-sua unidade montada C:. Digite [34;1mdir[0m para mostrar seu conte£do, [34;1mcd[0m permite
-que vocà entre em uma pasta (reconhecido pro [33;1m[][0m em uma pasta listada).
-Vocà pode executar programas terminados em [31m.exe .bat[0m e [31m.com[0m.
+Quando mount for completado corretamente voc√™ pode digitar [34;1mc:[0m para ir para
+sua unidade montada C:. Digite [34;1mdir[0m para mostrar seu conte√∫do, [34;1mcd[0m permite
+que voc√™ entre em uma pasta (reconhecido pro [33;1m[][0m em uma pasta listada).
+Voc√™ pode executar programas terminados em [31m.exe .bat[0m e [31m.com[0m.
 
 .
 :PROGRAM_INTRO_CDROM
 [2J[32;1mMontando um CD-ROM real ou virtual no DOSBox-X:[0m
-O DOSBox-X fornece emulaáÑo de CD-ROM em v†rios n°veis.
+O DOSBox-X fornece emula√ß√£o de CD-ROM em v√°rios n√≠veis.
 
-[33mN°vel b†sico[0m funciona em todos os CD-ROM e pastas normais.
+[33mN√≠vel b√°sico[0m funciona em todos os CD-ROM e pastas normais.
 Instala o MSCDEX e marca os arquivos como somente leitura.
-Normalmente, Ç suficiente para a maioria dos jogos:
+Normalmente, √© suficiente para a maioria dos jogos:
 [34;1mmount d [0;31mD:\[34;1m -t cdrom[0m   ou   [34;1mmount d C:\exemplo -t cdrom[0m
-Se nÑo funcionar, indique ao DOSBox-X o r¢tulo do CD-ROM:
+Se n√£o funcionar, indique ao DOSBox-X o r√≥tulo do CD-ROM:
 [34;1mmount d C:\exemplo -t cdrom -label CDLABEL[0m
 
-[33mPr¢ximo n°vel[0m adiciona algum suporte de baixo n°vel.
-Portanto, s¢ funciona em unidades de CD-ROM:
+[33mPr√≥ximo n√≠vel[0m adiciona algum suporte de baixo n√≠vel.
+Portanto, s√≥ funciona em unidades de CD-ROM:
 [34;1mmount d [0;31mD:\[34;1m -t cdrom -usecd [33m0[0m
 
-[33mUltimo n°vel[0m o suporte depende do seu Sistema Operacional:
+[33mUltimo n√≠vel[0m o suporte depende do seu Sistema Operacional:
 Para [1mWindows 2000[0m, [1mWindows XP[0m e [1mLinux[0m:
 [34;1mmount d [0;31mD:\[34;1m -t cdrom -usecd [33m0 [34m-ioctl[0m
 Para [1mWindows 9x[0m com a camada ASPI instalada:
 [34;1mmount d [0;31mD:\[34;1m -t cdrom -usecd [33m0 [34m-aspi[0m
 
 Substitua [0;31mD:\[0m pelo local do seu CD-ROM.
-Substitua o [33;1m0[0m em [34;1m-usecd [33m0[0m com o n£mero do seu CD-ROM digitando:
+Substitua o [33;1m0[0m em [34;1m-usecd [33m0[0m com o n√∫mero do seu CD-ROM digitando:
 [34;1mmount -cd[0m
 
 .
 :PROGRAM_BOOT_NOT_EXIST
-O arquivo de disco de inicializaáÑo nÑo existe. Abortando.
+O arquivo de disco de inicializa√ß√£o n√£o existe. Abortando.
 
 .
 :PROGRAM_BOOT_NOT_OPEN
-O arquivo de disco de inicializaáÑo nÑo pode ser aberto. Abortando.
+O arquivo de disco de inicializa√ß√£o n√£o pode ser aberto. Abortando.
 
 .
 :PROGRAM_BOOT_WRITE_PROTECTED
-O arquivo de imagem est† em modo somente leitura! Inicialize em modo protegido.
+O arquivo de imagem est√° em modo somente leitura! Inicialize em modo protegido.
 
 .
 :PROGRAM_BOOT_PRINT_ERROR
-Este comando inicia o DOSBox-X de uma imagem de disquete ou de disco r°gido.
+Este comando inicia o DOSBox-X de uma imagem de disquete ou de disco r√≠gido.
 
-Para este comando, Ç poss°vel indicar uma sucessÑo de disquetes intercambi†veis
+Para este comando, √© poss√≠vel indicar uma sucess√£o de disquetes intercambi√°veis
 pelo comando de menu, e unidade: especifica de qual unidade montada iniciar.
-Se nÑo for especificada nenhuma letra, por padrÑo ser† a unidade A. As unidades
-que podem ser iniciadas sÑo A, C e D. Para iniciar do disco r°gido (C ou D), a
+Se n√£o for especificada nenhuma letra, por padr√£o ser√° a unidade A. As unidades
+que podem ser iniciadas s√£o A, C e D. Para iniciar do disco r√≠gido (C ou D), a
 imagem deve estar previamente montada usando o comando [34;1mIMGMOUNT[0m.
 
-A sintaxe deste comando Ç uma das seguintes:
+A sintaxe deste comando √© uma das seguintes:
 
 [34;1mBOOT [letra_da_unidade:][0m
 [34;1mBOOT diskimg1.img [diskimg2.img ...] [-L letra_da_unidade][0m
 
-Nota: Um arquivo de imagem com dois pontos Ö esquerda (:) ser† inicializada com
-somente leitura se a opáÑo "proteger contra escrita com dois pontos iniciais"
+Nota: Um arquivo de imagem com dois pontos √† esquerda (:) ser√° inicializada com
+somente leitura se a op√ß√£o "proteger contra escrita com dois pontos iniciais"
 estiver ativada.
 
 Exemplos:
 
-[32;1mBOOT A:[0m       - inicia a partir da unidade A: se mont†vel e inicializ†vel.
+[32;1mBOOT A:[0m       - inicia a partir da unidade A: se mont√°vel e inicializ√°vel.
 [32;1mBOOT :DOS.IMG[0m - inicia a partir da imagem de disquete DOS.IMG
                 em modo somente leitura.
 
 .
 :PROGRAM_BOOT_UNABLE
-NÑo foi poss°vel inicializar a partir da unidade %c.
+N√£o foi poss√≠vel inicializar a partir da unidade %c.
 
 .
 :PROGRAM_BOOT_IMAGE_OPEN
@@ -928,20 +928,20 @@ Abrindo arquivo imagem: %s
 
 .
 :PROGRAM_BOOT_IMAGE_NOT_OPEN
-NÑo foi poss°vel abrir %s
+N√£o foi poss√≠vel abrir %s
 
 .
 :PROGRAM_BOOT_CART_WO_PCJR
-Cartucho PCjr encontrado, mas a m†quina nÑo Ç um PCjr
+Cartucho PCjr encontrado, mas a m√°quina n√£o √© um PCjr
 .
 :PROGRAM_BOOT_CART_LIST_CMDS
-Comandos dispon°veis no cartucho PCjr: %s
+Comandos dispon√≠veis no cartucho PCjr: %s
 .
 :PROGRAM_BOOT_CART_NO_CMDS
-Os comandos do cartucho PCjr nÑo foram encontrados
+Os comandos do cartucho PCjr n√£o foram encontrados
 .
 :PROGRAM_LOADROM_HELP
-Carrega o arquivo de imagem ROM especificado para BIOS de v°deo ou IBM BASIC.
+Carrega o arquivo de imagem ROM especificado para BIOS de v√≠deo ou IBM BASIC.
 
 LOADROM ROM_file
 
@@ -951,7 +951,7 @@ Deve especificar o arquivo ROM a ser carregado.
 
 .
 :PROGRAM_LOADROM_CANT_OPEN
-Arquivo ROM nÑo acess°vel.
+Arquivo ROM n√£o acess√≠vel.
 
 .
 :PROGRAM_LOADROM_TOO_LARGE
@@ -959,11 +959,11 @@ Arquivo ROM muito grande.
 
 .
 :PROGRAM_LOADROM_INCOMPATIBLE
-BIOS de v°deo nÑo suportada por este tipo de m†quina.
+BIOS de v√≠deo n√£o suportada por este tipo de m√°quina.
 
 .
 :PROGRAM_LOADROM_UNRECOGNIZED
-Arquivo ROM nÑo reconhecido.
+Arquivo ROM n√£o reconhecido.
 
 .
 :PROGRAM_LOADROM_BASIC_LOADED
@@ -977,276 +977,276 @@ BIOSTEST image_file
 
 .
 :VHD_ERROR_OPENING
-NÑo foi poss°vel abrir o arquivo VHD especificado.
+N√£o foi poss√≠vel abrir o arquivo VHD especificado.
 
 .
 :VHD_INVALID_DATA
-O arquivo VHD especificado est† corrompido e nÑo pode ser aberto.
+O arquivo VHD especificado est√° corrompido e n√£o pode ser aberto.
 
 .
 :VHD_UNSUPPORTED_TYPE
-O arquivo VHD especificado Ç de um tipo nÑo suportado.
+O arquivo VHD especificado √© de um tipo n√£o suportado.
 
 .
 :VHD_ERROR_OPENING_PARENT
-O arquivo pai do VHD nÑo pìde ser encontrado.
+O arquivo pai do VHD n√£o p√¥de ser encontrado.
 
 .
 :VHD_PARENT_INVALID_DATA
-O arquivo pai do VHD corrompido e nÑo pode ser aberto.
+O arquivo pai do VHD corrompido e n√£o pode ser aberto.
 
 .
 :VHD_PARENT_UNSUPPORTED_TYPE
-O arquivo pai do VHD Ç de um tipo nÑo suportado.
+O arquivo pai do VHD √© de um tipo n√£o suportado.
 
 .
 :VHD_PARENT_INVALID_MATCH
-O arquivo pai do VHD nÑo contem o identificador esperado.
+O arquivo pai do VHD n√£o contem o identificador esperado.
 
 .
 :VHD_PARENT_INVALID_DATE
-O arquivo pai do VHD foi alterado e nÑo pode ser carregado.
+O arquivo pai do VHD foi alterado e n√£o pode ser carregado.
 
 .
 :PROGRAM_IMGMOUNT_SPECIFY_DRIVE
-ê necess†rio especificar a letra da unidade onde a imagem ser† montada.
+√â necess√°rio especificar a letra da unidade onde a imagem ser√° montada.
 
 .
 :PROGRAM_IMGMOUNT_SPECIFY2
-ê necess†rio especificar o n£mero da unidade (0 Ö %d) para montar a imagem em
+√â necess√°rio especificar o n√∫mero da unidade (0 √† %d) para montar a imagem em
 (0,1=fda,fdb;2,3=hda,hdb)
 
 .
 :PROGRAM_IMGMOUNT_INVALID_IMAGE
-NÑo foi poss°vel carregar o arquivo de imagem.
-Verifique se o caminho est† correto e a imagem acess°vel.
+N√£o foi poss√≠vel carregar o arquivo de imagem.
+Verifique se o caminho est√° correto e a imagem acess√≠vel.
 
 .
 :PROGRAM_IMGMOUNT_DYNAMIC_VHD_UNSUPPORTED
-Arquivos VHD dinÉmicos nÑo sÑo suportados.
+Arquivos VHD din√¢micos n√£o s√£o suportados.
 
 .
 :PROGRAM_IMGMOUNT_INVALID_GEOMETRY
-NÑo foi poss°vel obter a geometria de unidade a partir da imagem.
-Use o parÉmetro -size bps,spc,hpc,cyl para especificar a geometria.
+N√£o foi poss√≠vel obter a geometria de unidade a partir da imagem.
+Use o par√¢metro -size bps,spc,hpc,cyl para especificar a geometria.
 
 .
 :PROGRAM_IMGMOUNT_AUTODET_VALUES
-DetecáÑo autom†tica da geometria da imagem: -size %u,%u,%u,%u
+Detec√ß√£o autom√°tica da geometria da imagem: -size %u,%u,%u,%u
 
 .
 :PROGRAM_IMGMOUNT_TYPE_UNSUPPORTED
-O tipo "%s" nÑo Ç suportado. Especifique "hdd" ou "floppy" ou "iso".
+O tipo "%s" n√£o √© suportado. Especifique "hdd" ou "floppy" ou "iso".
 
 .
 :PROGRAM_IMGMOUNT_FORMAT_UNSUPPORTED
-O formato "%s" nÑo Ç suportado. Especifique "fat" ou "iso" ou "none".
+O formato "%s" n√£o √© suportado. Especifique "fat" ou "iso" ou "none".
 
 .
 :PROGRAM_IMGMOUNT_SPECIFY_FILE
-ê preciso especificar o arquivo de imagem para montar.
+√â preciso especificar o arquivo de imagem para montar.
 
 .
 :PROGRAM_IMGMOUNT_FILE_NOT_FOUND
-Arquivo imagem nÑo encontrado.
+Arquivo imagem n√£o encontrado.
 
 .
 :PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND
-Arquivo imagem nÑo encontrado: IMGMAKE.IMG.
+Arquivo imagem n√£o encontrado: IMGMAKE.IMG.
 
 .
 :PROGRAM_IMGMOUNT_MOUNT
-Para montar pastas, use o comando [34;1mMOUNT[0m e nÑo o[0m comando [34;1mIMGMOUNT[0m.
+Para montar pastas, use o comando [34;1mMOUNT[0m e n√£o o[0m comando [34;1mIMGMOUNT[0m.
 
 .
 :PROGRAM_IMGMOUNT_ALREADY_MOUNTED
-A unidade j† est† montada com essa letra.
+A unidade j√° est√° montada com essa letra.
 
 .
 :PROGRAM_IMGMOUNT_ALREADY_MOUNTED_NUMBER
-Unidade n£mero %d j† est† montada.
+Unidade n√∫mero %d j√° est√° montada.
 
 .
 :PROGRAM_IMGMOUNT_CANT_CREATE
-NÑo Ç poss°vel criar uma unidade a partir de um arquivo.
+N√£o √© poss√≠vel criar uma unidade a partir de um arquivo.
 
 .
 :PROGRAM_IMGMOUNT_CANT_CREATE_PHYSFS
-NÑo foi poss°vel criar a unidade PhysFS.
+N√£o foi poss√≠vel criar a unidade PhysFS.
 
 .
 :PROGRAM_IMGMOUNT_MOUNT_NUMBER
-Unidade n£mero %d est† montada como %s
+Unidade n√∫mero %d est√° montada como %s
 
 .
 :PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE
-A imagem deve estar em um anfitriÑo ou em uma unidade local.
+A imagem deve estar em um anfitri√£o ou em uma unidade local.
 
 .
 :PROGRAM_IMGMOUNT_MULTIPLE_NON_CUEISO_FILES
-O uso de m£ltiplos arquivos s¢ Ç suportado para imagens cue/iso.
+O uso de m√∫ltiplos arquivos s√≥ √© suportado para imagens cue/iso.
 
 .
 :PROGRAM_IMGMOUNT_HELP
-Monta imagens de disquete, disco r°gido e unidades ¢pticas.
+Monta imagens de disquete, disco r√≠gido e unidades √≥pticas.
 [32;1mIMGMOUNT[0m [37;1mdrive[0m [36;1marquivo[0m [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]
 [32;1mIMGMOUNT[0m [37;1mdrive[0m [36;1marquivo[0m [-ro] [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide contr.]
 [32;1mIMGMOUNT[0m [37;1mdriveNum[0m [36;1marquivo[0m [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl #]
 [32;1mIMGMOUNT[0m [37;1mdrive[0m [36;1marquivo[0m [-t iso] [-fs iso]
 [32;1mIMGMOUNT[0m [37;1mdrive[0m [-t floppy] -bootcd cdDrive (ou -el-torito cdDrive)
 [32;1mIMGMOUNT[0m [37;1mdrive[0m -t ram -size tamanho
-[32;1mIMGMOUNT[0m -u [37;1mdrive|driveNum[0m (ou [32;1mIMGMOUNT[0m [37;1mdrive|driveNum[0m [36;1marquivo[0m [opáîes] -u)
+[32;1mIMGMOUNT[0m -u [37;1mdrive|driveNum[0m (ou [32;1mIMGMOUNT[0m [37;1mdrive|driveNum[0m [36;1marquivo[0m [op√ß√µes] -u)
 [37;1mdrive[0m  Letra da unidade onde montar a imagem.
-[37;1mdriveNum[0m  N£mero da unidade a montar, onde 0-1 sÑo FDDs e 2-5 HDDs.
-[36;1marquivo[0m  Arquivo(s) de imagem, ou [33;1mIMGMAKE.IMG[0m se nÑo especificado.
--t iso  A imagem Ç disco ¢ptico ISO ou imagem cue / bin.
--t hdd|floppy|ram  A imagem Ç disco r°gido |disquete|ou unidade de RAM.
--fs iso  Sistema de arquivos Ç ISO 9660 (auto-assumido por iso/cue).
--fs fat  Sistema de arquivos Ç FAT - suporta FAT12, FAT16 e FAT3.
--fs none  NÑo detectar sist. de arquivos (auto-assumido para nß das unidades).
--reservecyl #    Reporta # n£mero de cilindros inferior ao real na BIOS.
+[37;1mdriveNum[0m  N√∫mero da unidade a montar, onde 0-1 s√£o FDDs e 2-5 HDDs.
+[36;1marquivo[0m  Arquivo(s) de imagem, ou [33;1mIMGMAKE.IMG[0m se n√£o especificado.
+-t iso  A imagem √© disco √≥ptico ISO ou imagem cue / bin.
+-t hdd|floppy|ram  A imagem √© disco r√≠gido |disquete|ou unidade de RAM.
+-fs iso  Sistema de arquivos √© ISO 9660 (auto-assumido por iso/cue).
+-fs fat  Sistema de arquivos √© FAT - suporta FAT12, FAT16 e FAT3.
+-fs none  N√£o detectar sist. de arquivos (auto-assumido para n¬∫ das unidades).
+-reservecyl #    Reporta # n√∫mero de cilindros inferior ao real na BIOS.
 -ide controlador Indica o controlador IDE (1m, 1s, 2m, 2s) para montar unidade.
 -size size|ss,s,h,c O tamanho em KB, ou tamanho do sector e geometria CHS.
 -bootcd cdDrive  Indica a unidade de CD de onde carregar o disquete de boot.
--o partidx=#  N£mero de partiáÑo de disco r°gido para montar como unidade.
--ro  Monta imagens somente leitura (ou ':' Ö esquerda para somente leitura).
--u  Desmonta a unidade ou o n£mero de unidade.
+-o partidx=#  N√∫mero de parti√ß√£o de disco r√≠gido para montar como unidade.
+-ro  Monta imagens somente leitura (ou ':' √† esquerda para somente leitura).
+-u  Desmonta a unidade ou o n√∫mero de unidade.
 [32;1m-examples  Mostra exemplos de uso.[0m
 .
 :PROGRAM_IMGMOUNT_EXAMPLE
 Alguns exemplos de uso de IMGMOUNT:
 
 [32;1mIMGMOUNT[0m                      - lista unidades FAT/ISO montadas e numeradas
-[32;1mIMGMOUNT C[0m                    - monta imagem de disco r°gido [33;1mIMGMAKE.IMG[0m em C:
-[32;1mIMGMOUNT C c:\image.img[0m       - monta imagem de disco r°gido c:\image.img em C:
+[32;1mIMGMOUNT C[0m                    - monta imagem de disco r√≠gido [33;1mIMGMAKE.IMG[0m em C:
+[32;1mIMGMOUNT C c:\image.img[0m       - monta imagem de disco r√≠gido c:\image.img em C:
 [32;1mIMGMOUNT D c:\files\game.iso[0m  - monta imagem de CD c:\files\game.iso em D:
 [32;1mIMGMOUNT D cdaudio.cue[0m        - monta arquivo .cue de um par cue/bin como CD
 [32;1mIMGMOUNT 0 dos.ima[0m            - monta imagem de disquete dos.ima como unidade 0
-                                ([33;1mBOOT A:[0m iniciar† a unidade se for boot†vel)
+                                ([33;1mBOOT A:[0m iniciar√° a unidade se for boot√°vel)
 [32;1mIMGMOUNT A -ro dos.ima[0m        - monta imagem dos.ima como A:(somente leitura)
 [32;1mIMGMOUNT A :dsk1.img dsk2.img[0m - monta imagem de disquete dsk1.img e dsk2.img
-                                  como A: alter†vel via menu "Trocar disco",
-                                  com dsk1.img protegido (mas nÑo dsk2.img)
+                                  como A: alter√°vel via menu "Trocar disco",
+                                  com dsk1.img protegido (mas n√£o dsk2.img)
 [32;1mIMGMOUNT A -bootcd D[0m          - monta disquete de boot A: da unidade de CD D:
-[32;1mIMGMOUNT C -t ram -size 10000[0m - monta disco r°gido C: como unidade RAM de 10MB
-[32;1mIMGMOUNT D d.img -o partidx=4[0m - montar a 1¶ partiáÑo l¢gica de d.img como D:
-[32;1mIMGMOUNT C disk.img -u[0m        - foráa a montagem do disco disk.img como C:
-                                (use auto-unmount unidade antes se necess†rio)
+[32;1mIMGMOUNT C -t ram -size 10000[0m - monta disco r√≠gido C: como unidade RAM de 10MB
+[32;1mIMGMOUNT D d.img -o partidx=4[0m - montar a 1¬™ parti√ß√£o l√≥gica de d.img como D:
+[32;1mIMGMOUNT C disk.img -u[0m        - for√ßa a montagem do disco disk.img como C:
+                                (use auto-unmount unidade antes se necess√°rio)
 [32;1mIMGMOUNT A -u[0m                 - desmonta a unidade A: previamente montada
 
 .
 :PROGRAM_IMGMAKE_SYNTAX
-Cria imagens de disquete ou disco r°gido.
+Cria imagens de disquete ou disco r√≠gido.
 Uso: [34;1mIMGMAKE [arquivo] [-t tipo] [[-size tamanho] | [-chs geometria]] [-spc][0m
   [34;1m[-nofs] [-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source] [-retries #][0m
-  file: imagem a criar (ou [33;1mIMGMAKE.IMG[0m se nÑo definido) - [31;1mcaminho do anfitriÑo[0m
+  file: imagem a criar (ou [33;1mIMGMAKE.IMG[0m se n√£o definido) - [31;1mcaminho do anfitri√£o[0m
   -t: Tipo de imagem.
     [33;1mModelos de disquetes[0m (nomes gerados por tamanho em KB ou fd=fd_1440)
      fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880
-    [33;1mModelos de imagem de disco r°gido:[0m
+    [33;1mModelos de imagem de disco r√≠gido:[0m
      hd_250: imagem de 250MB, hd_520: imagem de 520MB, hd_1gig: imagem de 1GB
      hd_2gig: imagem de 2GB, hd_4gig: imagem de 4GB, hd_8gig: imagem de 8GB
      hd_st251: imagem de 40MB, hd_st225: imagem de 20MB (unidades antigas)
-    [33;1mImagens de disco r°gido personalizadas:[0m hd (requer -size ou -chs)
-  -size: Tamanho da imagem do disco r°gido personalizada em MB.
-  -chs:  Geometria do disco: cilindros (1-1023),cabeáas(1-255),setores(1-63).
-  -nofs: Adicione este parÉmetro se uma imagem em branco precisar ser criada.
-  -force: Foráa a substituiáÑo do arquivo de imagem existente.
+    [33;1mImagens de disco r√≠gido personalizadas:[0m hd (requer -size ou -chs)
+  -size: Tamanho da imagem do disco r√≠gido personalizada em MB.
+  -chs:  Geometria do disco: cilindros (1-1023),cabe√ßas(1-255),setores(1-63).
+  -nofs: Adicione este par√¢metro se uma imagem em branco precisar ser criada.
+  -force: For√ßa a substitui√ß√£o do arquivo de imagem existente.
   -bat: Cria um arquivo .bat com ou comando IMGMOUNT requerido por esta imagem.
   -fat: Sistema de arquivos FAT (12, 16, ou 32).
-  -spc: Setores por cluster ignorados. Deve ser potància de 2.
-  -fatcopies: Ignorar n£mero de copias da tabela FAT.
+  -spc: Setores por cluster ignorados. Deve ser pot√™ncia de 2.
+  -fatcopies: Ignorar n√∫mero de copias da tabela FAT.
   -rootdir: Tamanho da pasta raiz em entradas. Ignorado em FAT32.
   -source:  letra da unidade - se a imagem for lida a partir de um disquete.
-  -retries: frequància de tentativas de ler um disquete defeituoso (1-99).
+  -retries: frequ√™ncia de tentativas de ler um disquete defeituoso (1-99).
   [32;1m-examples: Mostra alguns exemplos de uso.[0m
 .
 :PROGRAM_IMGMAKE_EXAMPLE
 Alguns exemplos do uso de IMGMAKE:
 
 [32;1mIMGMAKE -t fd[0m             - cria imagem de disquete de 1.44MB [33;1mIMGMAKE.IMG[0m
-[32;1mIMGMAKE -t fd_1440 -force[0m - foráa a criaáÑo da imagem de disquete [33;1mIMGMAKE.IMG[0m
+[32;1mIMGMAKE -t fd_1440 -force[0m - for√ßa a cria√ß√£o da imagem de disquete [33;1mIMGMAKE.IMG[0m
 [32;1mIMGMAKE dos.img -t fd_2880[0m  - cria um imagem de disquete de 2.88MB dos.img
 [32;1mIMGMAKE c:\disk.img -t hd -size 50[0m      - cria imagem HDD de 50MB c:\disk.img
 [32;1mIMGMAKE c:\disk.img -t hd_520 -nofs[0m     - cria imagem HDD vazia de 520MB
 [32;1mIMGMAKE c:\disk.img -t hd_2gig -fat 32[0m  - cria imagem HDD de 2GB FAT32
 [32;1mIMGMAKE c:\disk.img -t hd -chs 130,2,17[0m - cria imagem HDD com CHS indicados
-[32;1mIMGMAKE c:\disk.img -source a[0m           - là a imagem a partir do disquete
-                                          f°sico A:
+[32;1mIMGMAKE c:\disk.img -source a[0m           - l√™ a imagem a partir do disquete
+                                          f√≠sico A:
 
 .
 :PROGRAM_IMGMAKE_FLREAD
-Geometria do disco: %d Cilindros, %d Cabeáas, %d Setores, %d Kilobytes
+Geometria do disco: %d Cilindros, %d Cabe√ßas, %d Setores, %d Kilobytes
 
 
 .
 :PROGRAM_IMGMAKE_FLREAD2
-%s =bom, %s =recuperado, ! =erro de CRC, x =setor nÑo encontrado, ? =desconhecido
+%s =bom, %s =recuperado, ! =erro de CRC, x =setor n√£o encontrado, ? =desconhecido
 
 
 .
 :PROGRAM_IMGMAKE_FILE_EXISTS
-O arquivo "%s" j† existe. Vocà pode usar "-force" para sobrescrever.
+O arquivo "%s" j√° existe. Voc√™ pode usar "-force" para sobrescrever.
 
 .
 :PROGRAM_IMGMAKE_CANNOT_WRITE
-O arquivo "%s" nÑo pode ser aberto para escrita.
+O arquivo "%s" n√£o pode ser aberto para escrita.
 
 .
 :PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE
-Espaáo insuficiente para o arquivo de imagem. Precisa de %u bytes
+Espa√ßo insuficiente para o arquivo de imagem. Precisa de %u bytes
 
 .
 :PROGRAM_IMGMAKE_PRINT_CHS
-Criando arquivo de imagem "%s" com %u cilindros, %u cabeáas e %u setores
+Criando arquivo de imagem "%s" com %u cilindros, %u cabe√ßas e %u setores
 
 .
 :PROGRAM_IMGMAKE_CANT_READ_FLOPPY
 
 
-NÑo foi poss°vel ler o disquete.
+N√£o foi poss√≠vel ler o disquete.
 .
 :PROGRAM_KEYB_INFO
-P†gina de c¢digo %i carregada
+P√°gina de c√≥digo %i carregada
 
 .
 :PROGRAM_KEYB_INFO_LAYOUT
-P†gina de c¢digo %i carregada para o esquema %s
+P√°gina de c√≥digo %i carregada para o esquema %s
 
 .
 :PROGRAM_KEYB_SHOWHELP
-Configura um teclado para um idioma espec°fico.
+Configura um teclado para um idioma espec√≠fico.
 
 KEYB [keyboard layout ID [codepage number [codepage file]]]
 
 Alguns exemplos:
-  [32;1mKEYB[0m                 Exibe a p†gina de c¢digo carregada atualmente.
+  [32;1mKEYB[0m                 Exibe a p√°gina de c√≥digo carregada atualmente.
   [32;1mKEYB sp[0m              Carrega o esquema espanhol (SP) com a
-                       p†gina de c¢digo apropriada.
+                       p√°gina de c√≥digo apropriada.
   [32;1mKEYB sp 850[0m          Carrega o esquema espanhol (SP) com a
-                       p†gina de c¢digo 850.
+                       p√°gina de c√≥digo 850.
   [32;1mKEYB sp 850 mycp.cpi[0m O mesmo de cima, mas usando o arquivo mycp.cpi.
 
 .
 :PROGRAM_KEYB_NOERROR
-Esquema de teclado %s carregado para p†gina de c¢digo %i
+Esquema de teclado %s carregado para p√°gina de c√≥digo %i
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
-Arquivo de teclado %s nÑo encontrado
+Arquivo de teclado %s n√£o encontrado
 
 
 .
 :PROGRAM_KEYB_INVALIDFILE
-Arquivo de teclado %s inv†lido
+Arquivo de teclado %s inv√°lido
 
 .
 :PROGRAM_KEYB_LAYOUTNOTFOUND
-NÑo existe esquema em %s para a p†gina de c¢digo %i
+N√£o existe esquema em %s para a p√°gina de c√≥digo %i
 
 .
 :PROGRAM_KEYB_INVCPFILE
-Nenhum arquivo de p†gina de c¢digo ou Ç inv†lido para o esquema %s
+Nenhum arquivo de p√°gina de c√≥digo ou √© inv√°lido para o esquema %s
 
 
 .
@@ -1255,19 +1255,19 @@ Configura um dispositivo do sistema.
 
 [34;1mMODE[0m display-type       :Tipos de tela, [1mCO80[0m, [1mBW80[0m, [1mCO40[0m, [1mBW40[0m, [1mMONO[0m
 [34;1mMODE CON COLS=[0mc [34;1mLINES=[0mn :Colunas e linhas, c=80 ou 132, n=25, 43, 50, ou 60
-[34;1mMODE CON RATE=[0mr [34;1mDELAY=[0md :Velocidade do teclado, r=1-32 (32=r†pido), d=1-4 (1=lento)
+[34;1mMODE CON RATE=[0mr [34;1mDELAY=[0md :Velocidade do teclado, r=1-32 (32=r√°pido), d=1-4 (1=lento)
 
 .
 :PROGRAM_MODE_INVALID_PARAMETERS
-ParÉmetro(s) inv†lido(s).
+Par√¢metro(s) inv√°lido(s).
 
 .
 :PROGRAM_PORT_INVALID_NUMBER
-Deve especificar um n£mero de porta entre 1 e 9.
+Deve especificar um n√∫mero de porta entre 1 e 9.
 
 .
 :SHELL_CMD_TREE_ERROR
-NÑo existem subpastas
+N√£o existem subpastas
 
 .
 :SHELL_CMD_VOL_TREE
@@ -1279,27 +1279,27 @@ Listagem de caminhos de pasta para o volume %s
  O volume da unidade %c 
 .
 :SHELL_CMD_VOL_SERIAL
- O N£mero de SÇrie do Volume Ç 
+ O N√∫mero de S√©rie do Volume √© 
 .
 :SHELL_CMD_VOL_SERIAL_NOLABEL
-sem r¢tulo
+sem r√≥tulo
 
 .
 :SHELL_CMD_VOL_SERIAL_LABEL
-Ç %s
+√© %s
 
 .
 :SHELL_ILLEGAL_PATH
-Caminho nÑo encontrado
+Caminho n√£o encontrado
 
 .
 :SHELL_ILLEGAL_DRIVE
-EspecificaáÑo de unidade nÑo v†lida
+Especifica√ß√£o de unidade n√£o v√°lida
 
 .
 :SHELL_CMD_HELP
 Se quiser uma lista de todos os comandos internos suportados digite [33;1mHELP /ALL[0m.
-Vocà tambÇm pode encontrar comandos externos e programas na unidade Z:
+Voc√™ tamb√©m pode encontrar comandos externos e programas na unidade Z:
 Uma breve lista dos comandos mais usados:
 
 .
@@ -1312,31 +1312,31 @@ Digite [33;1mHELP[0m ou [33;1mcomando /?[0m para obter ajuda sobre o comando
 
 .
 :SHELL_CMD_ECHO_ON
-ECHO est† ativado.
+ECHO est√° ativado.
 
 .
 :SHELL_CMD_ECHO_OFF
-ECHO est† desativado.
+ECHO est√° desativado.
 
 .
 :SHELL_ILLEGAL_SWITCH
-ParÉmetro inv†lido - %s
+Par√¢metro inv√°lido - %s
 
 .
 :SHELL_INVALID_PARAMETER
-ParÉmetro inv†lido - %s
+Par√¢metro inv√°lido - %s
 
 .
 :SHELL_MISSING_PARAMETER
-Um parÉmetro obrigat¢rio est† faltando.
+Um par√¢metro obrigat√≥rio est√° faltando.
 
 .
 :SHELL_MISSING_FILE
-O seguinte arquivo est† faltando ou corrompido: %s
+O seguinte arquivo est√° faltando ou corrompido: %s
 
 .
 :SHELL_CMD_CHDIR_ERROR
-Pasta inv†lida - %s
+Pasta inv√°lida - %s
 
 .
 :SHELL_CMD_CHDIR_HINT
@@ -1344,12 +1344,12 @@ Dica: Para mudar para um tipo de unidade diferente [31m%c:[0m
 
 .
 :SHELL_CMD_CHDIR_HINT_2
-nome_de_pasta contem espaáos sem aspas.
+nome_de_pasta contem espa√ßos sem aspas.
 Tente [31mcd %s[0m ou adicione corretamente as aspas.
 
 .
 :SHELL_CMD_CHDIR_HINT_3
-Vocà ainda est† no drive Z:, e a pasta especificada nÑo pode ser encontrada.
+Voc√™ ainda est√° no drive Z:, e a pasta especificada n√£o pode ser encontrada.
 Para acessar uma unidade montada, mude para a unidade com uma sintaxe como [31mC:[0m
 
 .
@@ -1358,7 +1358,7 @@ Exibe ou define a data.
 
 .
 :SHELL_CMD_DATE_ERROR
-A data especificada nÑo Ç correta.
+A data especificada n√£o √© correta.
 
 .
 :SHELL_CMD_DATE_DAYS
@@ -1374,10 +1374,10 @@ Digite a nova data: (%s)
 :SHELL_CMD_DATE_HELP_LONG
 DATE [[/T] [/H] [/S] | data]
   data:       Nova data a ser definida
-  /S:         Usa a data e hora do sistema anfitriÑo no DOS
+  /S:         Usa a data e hora do sistema anfitri√£o no DOS
   /F:         Retorna para a data e hora interna do DOSBox-X
   /T:         Exibe apenas a data, sem solicitar uma nova
-  /H:         Sincronizar com o anfitriÑo
+  /H:         Sincronizar com o anfitri√£o
 
 .
 :SHELL_CMD_TIME_HELP
@@ -1385,7 +1385,7 @@ Exibe ou ajusta a hora do sistema.
 
 .
 :SHELL_CMD_TIME_ERROR
-A hora especificada nÑo Ç correta.
+A hora especificada n√£o √© correta.
 
 .
 :SHELL_CMD_TIME_NOW
@@ -1399,39 +1399,39 @@ Digite a nova hora: (%s)
 TIME [[/T] [/H] | hora]
   hora:       Nova hora a ser definida
   /T:         Exibe apenas a hora, sem solicitar uma nova
-  /H:         Sincronizar com o anfitriÑo
+  /H:         Sincronizar com o anfitri√£o
 
 .
 :SHELL_CMD_MKDIR_EXIST
-A pasta j† existe - %s
+A pasta j√° existe - %s
 
 .
 :SHELL_CMD_MKDIR_ERROR
-NÑo Ç poss°vel criar a pasta - %s
+N√£o √© poss√≠vel criar a pasta - %s
 
 .
 :SHELL_CMD_RMDIR_ERROR
-Caminho inv†lida, nÑo Ç uma pasta ou nÑo est† vazia - %s
+Caminho inv√°lida, n√£o √© uma pasta ou n√£o est√° vazia - %s
 
 .
 :SHELL_CMD_RENAME_ERROR
-NÑo Ç poss°vel renomear - %
+N√£o √© poss√≠vel renomear - %
 
 .
 :SHELL_CMD_ATTRIB_GET_ERROR
-NÑo Ç poss°vel obter atributos: %s
+N√£o √© poss√≠vel obter atributos: %s
 
 .
 :SHELL_CMD_ATTRIB_SET_ERROR
-NÑo Ç poss°vel definir atributos: %s
+N√£o √© poss√≠vel definir atributos: %s
 
 .
 :SHELL_CMD_DEL_ERROR
-NÑo Ç poss°vel excluir - %s
+N√£o √© poss√≠vel excluir - %s
 
 .
 :SHELL_CMD_DEL_SURE
-Todos os arquivos da pasta serÑo exclu°dos!
+Todos os arquivos da pasta ser√£o exclu√≠dos!
 Tem certeza [Y/N]?
 .
 :SHELL_SYNTAXERROR
@@ -1439,11 +1439,11 @@ Erro de sintaxe
 
 .
 :SHELL_CMD_SET_NOT_SET
-Vari†vel de ambiente %s nÑo definida.
+Vari√°vel de ambiente %s n√£o definida.
 
 .
 :SHELL_CMD_SET_OUT_OF_SPACE
-NÑo h† espaáo suficiente no ambiente.
+N√£o h√° espa√ßo suficiente no ambiente.
 
 .
 :SHELL_CMD_IF_EXIST_MISSING_FILENAME
@@ -1451,19 +1451,19 @@ IF EXIST: Arquivo inexistente.
 
 .
 :SHELL_CMD_IF_ERRORLEVEL_MISSING_NUMBER
-IF ERRORLEVEL: Falta n£mero.
+IF ERRORLEVEL: Falta n√∫mero.
 
 .
 :SHELL_CMD_IF_ERRORLEVEL_INVALID_NUMBER
-IF ERRORLEVEL: N£mero invalido.
+IF ERRORLEVEL: N√∫mero invalido.
 
 .
 :SHELL_CMD_GOTO_MISSING_LABEL
-Nenhum r¢tulo fornecido ao comando GOTO.
+Nenhum r√≥tulo fornecido ao comando GOTO.
 
 .
 :SHELL_CMD_GOTO_LABEL_NOT_FOUND
-GOTO: R¢tulo %s nÑo encontrado.
+GOTO: R√≥tulo %s n√£o encontrado.
 
 .
 :SHELL_CMD_FILE_ACCESS_DENIED
@@ -1471,11 +1471,11 @@ Acesso negado - %s
 
 .
 :SHELL_CMD_FILE_NOT_FOUND
-Arquivo nÑo encontrado - %s
+Arquivo n√£o encontrado - %s
 
 .
 :SHELL_CMD_FILE_EXISTS
-O arquivo %s j† existe.
+O arquivo %s j√° existe.
 
 .
 :SHELL_CMD_DIR_INTRO
@@ -1488,7 +1488,7 @@ O arquivo %s j† existe.
 
 .
 :SHELL_CMD_DIR_BYTES_FREE
-%5d pasta(s)  %17s bytes dispon°veis
+%5d pasta(s)  %17s bytes dispon√≠veis
 
 .
 :SHELL_CMD_DIR_FILES_LISTED
@@ -1496,8 +1496,8 @@ Arquivos totais listados:
 
 .
 :SHELL_EXECUTE_DRIVE_NOT_FOUND
-Unidade %c nÑo existe!
-Vocà deve [31mmont†-la[0m antes. Digite [1;33mintro[0m ou [1;33mintro mount[0m para mais informaáÑo.
+Unidade %c n√£o existe!
+Voc√™ deve [31mmont√°-la[0m antes. Digite [1;33mintro[0m ou [1;33mintro mount[0m para mais informa√ß√£o.
 
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_CDROM
@@ -1507,16 +1507,16 @@ Deseja permitir que o DOSBox-X acesse sua unidade de CD-ROM real %c [Y/N]?
 Deseja permitir que o DOSBox-X acesse sua unidade de disquete real %c [Y/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_REMOVABLE
-Deseja permitir que o DOSBox-X acesse sua unidade remov°vel real? %c [Y/N]?
+Deseja permitir que o DOSBox-X acesse sua unidade remov√≠vel real? %c [Y/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_NETWORK
 Deseja permitir que o DOSBox-X acesse sua unidade de rede real %c [Y/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_FIXED
-Realmente deseja permitir que o DOSBox-X acesse o seu disco r°gido real %c [Y/N]?
+Realmente deseja permitir que o DOSBox-X acesse o seu disco r√≠gido real %c [Y/N]?
 .
 :SHELL_EXECUTE_ILLEGAL_COMMAND
-Comando ou nome de arquivo inv†lido - "%s"
+Comando ou nome de arquivo inv√°lido - "%s"
 
 .
 :SHELL_CMD_PAUSE
@@ -1543,7 +1543,7 @@ Erro ao copiar: %s
 Sobrescrever %s (Yes/No/All)?
 .
 :SHELL_CMD_COPY_NOSPACE
-Espaáo em disco insuficiente - %s
+Espa√ßo em disco insuficiente - %s
 
 .
 :SHELL_CMD_COPY_ERROR
@@ -1551,11 +1551,11 @@ Erro ao copiar: %s
 
 .
 :SHELL_CMD_SUBST_DRIVE_LIST
-As unidades locais atualmente montadas sÑo:
+As unidades locais atualmente montadas s√£o:
 
 .
 :SHELL_CMD_SUBST_NO_REMOVE
-NÑo foi poss°vel remover, a unidade nÑo est† em uso.
+N√£o foi poss√≠vel remover, a unidade n√£o est√° em uso.
 
 .
 :SHELL_CMD_SUBST_IN_USE
@@ -1563,11 +1563,11 @@ Unidade de destino em uso.
 
 .
 :SHELL_CMD_SUBST_NOT_LOCAL
-S¢ Ç poss°vel utilizar SUBST em unidades locais.
+S√≥ √© poss√≠vel utilizar SUBST em unidades locais.
 
 .
 :SHELL_CMD_SUBST_INVALID_PATH
-A unidade ou caminho especificado Ç inv†lido.
+A unidade ou caminho especificado √© inv√°lido.
 
 .
 :SHELL_CMD_SUBST_FAILURE
@@ -1575,28 +1575,28 @@ SUBST: Existe um erro na sua linha de comando.
 
 .
 :SHELL_CMD_VTEXT_ON
-DOS/V V-text est† atualmente habilitado.
+DOS/V V-text est√° atualmente habilitado.
 
 .
 :SHELL_CMD_VTEXT_OFF
-DOS/V V-text est† atualmente desativado.
+DOS/V V-text est√° atualmente desativado.
 
 .
 :SHELL_STARTUP_TITLE
 Bem-vindo ao DOSBox-X!
 .
 :SHELL_STARTUP_HEAD1_PC98
-[36mIntroduáÑo ao DOSBox-X:                                           [37m
+[36mIntrodu√ß√£o ao DOSBox-X:                                           [37m
 .
 :SHELL_STARTUP_TEXT1_PC98
 Use [32mHELP[37m para ver a lista de comandos, [32mINTRO[37m para um mini manual. 
-Vocà tambÇm pode realizar v†rias tarefas atravÇs da [33mbarra de menu[37m.
+Voc√™ tamb√©m pode realizar v√°rias tarefas atrav√©s da [33mbarra de menu[37m.
 .
 :SHELL_STARTUP_EXAMPLE_PC98
-[32mEx[37m: Teste a opáÑo [33mFonte TrueType[37m ou [33mOpenGL pixel perfeito[37m         
+[32mEx[37m: Teste a op√ß√£o [33mFonte TrueType[37m ou [33mOpenGL pixel perfeito[37m         
 .
 :SHELL_STARTUP_TEXT2_PC98
-Abra a [33m"Ferramenta de configuraáÑo"[37m com [31mhost+C[37m. A tecla HOST Ç [32mF11[37m
+Abra a [33m"Ferramenta de configura√ß√£o"[37m com [31mhost+C[37m. A tecla HOST √© [32mF11[37m
 Ative o [33m"Editor de mapeamento"[37m para atribuir teclas, com [31mhost+M[37m.  
 Para alternar entre tela cheia ou modo janela, use [31mhost+F[37m.        
 Para ajustar a velocidade da CPU, use [31mhost+Mais[37m ou [31mhost+Menos[37m.    
@@ -1605,62 +1605,62 @@ Para ajustar a velocidade da CPU, use [31mhost+Mais[37m ou [31mhost+Menos[37
 [36mDOSBox-X funcionando no modo NEC PC-98.                      [37m     
 .
 :SHELL_STARTUP_TEXT3_PC98
-[32mProjeto DOSBox-X [33mhttps://dosbox-x.com/   [36mEmulaáÑo completa do DOS [37m
+[32mProjeto DOSBox-X [33mhttps://dosbox-x.com/   [36mEmula√ß√£o completa do DOS [37m
 [32mGuia do DOSBox-X [33mhttps://dosbox-x.com/wiki[37m   [36mDOS Windows 3.x e 9x[37m 
 [32mSuporte DOSBox-X [33mhttps://github.com/joncampbell123/dosbox-x/issues[37m
 .
 :SHELL_STARTUP_HEAD1
-[36mIntroduáÑo ao DOSBox-X:                                                     [37m
+[36mIntrodu√ß√£o ao DOSBox-X:                                                     [37m
 .
 :SHELL_STARTUP_TEXT1
-Digite [32mHELP[37m para ver uma lista de comandos, [32mINTRO[37m para uma breve introduáÑo.
-Vocà tambÇm pode realizar v†rias tarefas atravÇs da [33mbarra de menu[37m.          
+Digite [32mHELP[37m para ver uma lista de comandos, [32mINTRO[37m para uma breve introdu√ß√£o.
+Voc√™ tamb√©m pode realizar v√°rias tarefas atrav√©s da [33mbarra de menu[37m.          
 .
 :SHELL_STARTUP_EXAMPLE
-[32mEx[37m: Teste a opáÑo [33mFonte TrueType[37m ou [33mOpenGL pixel perfeito[37m[37m na sa°da de v°deo.
+[32mEx[37m: Teste a op√ß√£o [33mFonte TrueType[37m ou [33mOpenGL pixel perfeito[37m[37m na sa√≠da de v√≠deo.
 .
 :SHELL_STARTUP_HEAD2
-[36mAlguns atalhos £teis j† predeterminados:                                    [37m
+[36mAlguns atalhos √∫teis j√° predeterminados:                                    [37m
 .
 :SHELL_STARTUP_TEXT2
-- alterne entre modo janela e tela cheia com a combinaáÑo [31mF11[37m+[31mF[37m          [37m   
-- use a [33mFerramenta de configuraáÑo[37m [31mF11[37m+[31mC[37m[37m, e [33mEditor de mapeamento[37m com [31mF11[37m+[31mM[37m  [37m
-- aumente ou diminua a velocidade da emulaáÑo com [31mF11[37m+[31mMais[37m[37m ou [31mF11[37m+[31mMenos[37m     [37m
+- alterne entre modo janela e tela cheia com a combina√ß√£o [31mF11[37m+[31mF[37m          [37m   
+- use a [33mFerramenta de configura√ß√£o[37m [31mF11[37m+[31mC[37m[37m, e [33mEditor de mapeamento[37m com [31mF11[37m+[31mM[37m  [37m
+- aumente ou diminua a velocidade da emula√ß√£o com [31mF11[37m+[31mMais[37m[37m ou [31mF11[37m+[31mMenos[37m     [37m
 .
 :SHELL_STARTUP_DOSV
-[32mModo DOS/V[37m ativado. Teste tambÇm [32mTTF modo CJK [37m para emulaáÑo DOS convencional.
+[32mModo DOS/V[37m ativado. Teste tamb√©m [32mTTF modo CJK [37m para emula√ß√£o DOS convencional.
 .
 :SHELL_STARTUP_CGA
-O modo composto CGA Ç suportado. Use [31mCtrl+F8[37m para lig†-lo ou deslig†-lo.    
+O modo composto CGA √© suportado. Use [31mCtrl+F8[37m para lig√°-lo ou deslig√°-lo.    
 Ajuste de matiz [31mCtrl+Shift+[F7/F8][37m. Use [31mCtrl+F7[37m para modo CGA novo/antigo.  
 .
 :SHELL_STARTUP_CGA_MONO
-Use [31mCtrl+F7[37m para passar por cor verde, Émbar e branco monocrom†tico,        
-e [31mCtrl+F8[37m para mudar as configuraáîes de contraste/brilho.                  
+Use [31mCtrl+F7[37m para passar por cor verde, √¢mbar e branco monocrom√°tico,        
+e [31mCtrl+F8[37m para mudar as configura√ß√µes de contraste/brilho.                  
 .
 :SHELL_STARTUP_HERC
-Use [31mCtrl+F7[37m para alterar entre monitor branco/verde/monocrom†tico/colorido. 
-Use [31mCtrl+F8[37m para alternar a mistura horizontal (s¢ em modo gr†fico).        
+Use [31mCtrl+F7[37m para alterar entre monitor branco/verde/monocrom√°tico/colorido. 
+Use [31mCtrl+F8[37m para alternar a mistura horizontal (s√≥ em modo gr√°fico).        
 .
 :SHELL_STARTUP_HEAD3
 [36mDOSBox-X na internet:                                                       [37m
 .
 :SHELL_STARTUP_TEXT3
-[32mP†gina do projeto[37m:     [33mhttps://dosbox-x.com/       [36mEmulaáÑo completa do DOS[37m 
-[32mGuias de usu†rio na Wiki[37m:  [33mhttps://dosbox-x.com/wiki[32m   [36mDOS, Windows 3.x e 9x[37m
-[32mProblemas ou sugestÑo[37m: [33mhttps://github.com/joncampbell123/dosbox-x/issues    [37m
+[32mP√°gina do projeto[37m:     [33mhttps://dosbox-x.com/       [36mEmula√ß√£o completa do DOS[37m 
+[32mGuias de usu√°rio na Wiki[37m:  [33mhttps://dosbox-x.com/wiki[32m   [36mDOS, Windows 3.x e 9x[37m
+[32mProblemas ou sugest√£o[37m: [33mhttps://github.com/joncampbell123/dosbox-x/issues    [37m
 .
 :SHELL_STARTUP_LAST
 Divirta-se com o DOSBox-X!
 .
 :SHELL_CMD_BREAK_HELP
-Define ou limpa a verificaáÑo estendida CTRL+C.
+Define ou limpa a verifica√ß√£o estendida CTRL+C.
 
 .
 :SHELL_CMD_BREAK_HELP_LONG
 BREAK [ON | OFF]
 
-Digite BREAK sem parÉmetros para exibir a configuraáÑo atual de BREAK.
+Digite BREAK sem par√¢metros para exibir a configura√ß√£o atual de BREAK.
 
 .
 :SHELL_CMD_CHDIR_HELP
@@ -1673,10 +1673,10 @@ CHDIR [..]
 CD [unidade:][caminho]
 CD [..]
 
-  ..   Especifica que vocà quer ir para a pasta pai.
+  ..   Especifica que voc√™ quer ir para a pasta pai.
 
 Digite CD unidade: para exibir a pasta atual na unidade especificada.
-Digite CD sem parÉmetros para exibir a unidade e pasta atuais.
+Digite CD sem par√¢metros para exibir a unidade e pasta atuais.
 
 .
 :SHELL_CMD_CLS_HELP
@@ -1697,22 +1697,22 @@ DIR [drive:][caminho][arqui.] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|D]]
 [drive:][caminho][arquivo]
             Especifica a unidade, pasta e/ou arquivos a serem listados.
 /W          Usa o formato de lista amplo.
-/B          Usa formataáÑo b†sica (sem informaáîes de cabeáalho ou resumo).
+/B          Usa formata√ß√£o b√°sica (sem informa√ß√µes de cabe√ßalho ou resumo).
 /S          Exibe arquivos em uma pasta especificada e todos as subpastas.
-/P          Pausa ap¢s cada tela de informaáîes.
+/P          Pausa ap√≥s cada tela de informa√ß√µes.
 /A          Exibe arquivos com atributos especificados.
 atributos  
            D  Pastas                R  Arquivos somente leitura
            H  Arquivos ocultos      A  Arquivos prontos para arquivamento
-           S  Arquivos de sistema   -  Prefixo significando negaáÑo
+           S  Arquivos de sistema   -  Prefixo significando nega√ß√£o
 /O          Lista por arquivos na ordem classificada.
-ordem_de_classificaáÑo
-           N  Por nome (alfabÇtico)      S  Por tamanho (menor primeiro)
-           E  Por extensÑo (alfabÇtica)  D  Por data/hora (mais antiga primeiro)
+ordem_de_classifica√ß√£o
+           N  Por nome (alfab√©tico)      S  Por tamanho (menor primeiro)
+           E  Por extens√£o (alfab√©tica)  D  Por data/hora (mais antiga primeiro)
            G  Grupos de pastas primeiro  -  Prefixo para inverter a ordem
 
-Opáîes podem estar predefinidas na vari†vel de ambiente DIRCMD. Substituir nas
-opáîes predefinidas ao prefixar qualquer opáÑo com - (h°fen)--por exemplo, /-W.
+Op√ß√µes podem estar predefinidas na vari√°vel de ambiente DIRCMD. Substituir nas
+op√ß√µes predefinidas ao prefixar qualquer op√ß√£o com - (h√≠fen)--por exemplo, /-W.
 
 .
 :SHELL_CMD_ECHO_HELP
@@ -1723,7 +1723,7 @@ Exibe mensagens ou ativa ou desativa o eco de comando.
   ECHO [ON | OFF]
   ECHO [mensagem]
 
-Digite ECHO sem parÉmetros para exibir a configuraáÑo atual.
+Digite ECHO sem par√¢metros para exibir a configura√ß√£o atual.
 
 .
 :SHELL_CMD_EXIT_HELP
@@ -1735,7 +1735,7 @@ EXIT
 
 .
 :SHELL_CMD_HELP_HELP
-Fornece informaáîes de ajuda sobre comandos do DOSBox-X.
+Fornece informa√ß√µes de ajuda sobre comandos do DOSBox-X.
 
 .
 :SHELL_CMD_HELP_HELP_LONG
@@ -1745,26 +1745,26 @@ HELP [comando]
      /A ou /ALL   Lista todos os comandos internos.
      [comando]    Mostra a ajuda para o comando especificado.
 
-[0mEx: [37;1mHELP COPY[0m ou [37;1mCOPY /?[0m mostra informaáÑo de ajuda do comando COPY.
+[0mEx: [37;1mHELP COPY[0m ou [37;1mCOPY /?[0m mostra informa√ß√£o de ajuda do comando COPY.
 
-Nota: Comandos externos como [33;1mMOUNT[0m e [33;1mIMGMOUNT[0m nÑo sÑo listados por HELP [/A].
-      Estes comandos sÑo encontrados na unidade Z: como
+Nota: Comandos externos como [33;1mMOUNT[0m e [33;1mIMGMOUNT[0m n√£o s√£o listados por HELP [/A].
+      Estes comandos s√£o encontrados na unidade Z: como
       programas (ex: MOUNT.COM).
-      Digite o [33;1mcomando /?[0m ou o [33;1m comando HELP[0m para informaáÑo de ajuda
+      Digite o [33;1mcomando /?[0m ou o [33;1m comando HELP[0m para informa√ß√£o de ajuda
       para esse comando.
 
 .
 :SHELL_CMD_LS_HELP
-Lista o conte£do da pasta.
+Lista o conte√∫do da pasta.
 
 .
 :SHELL_CMD_LS_HELP_LONG
 LS [unidade:][caminho][nome_de_arquivo] [/A] [/L] [/P] [/Z]
 
-  /A     Lista tambÇm arquivos ocultos e do sistema.
+  /A     Lista tamb√©m arquivos ocultos e do sistema.
   /L     Lista nomes um por linha.
-  /P     Pausa ap¢s cada tela cheia de informaáîes.
-  /Z     Exibe nomes curtos mesmo que o suporte LFN esteja dispon°vel.
+  /P     Pausa ap√≥s cada tela cheia de informa√ß√µes.
+  /Z     Exibe nomes curtos mesmo que o suporte LFN esteja dispon√≠vel.
 
 .
 :SHELL_CMD_MKDIR_HELP
@@ -1786,19 +1786,19 @@ RD [unidade:][caminho]
 
 .
 :SHELL_CMD_SET_HELP
-Exibe, define ou remove vari†veis de ambiente.
+Exibe, define ou remove vari√°veis de ambiente.
 
 .
 :SHELL_CMD_SET_HELP_LONG
-SET [vari†vel=[sequància]]
+SET [vari√°vel=[sequ√™ncia]]
 
-   vari†vel     Especifica o nome da vari†vel de ambiente.
-   sequància    Especifica uma sÇrie de caracteres a serem
-                atribu°dos Ö vari†vel.
+   vari√°vel     Especifica o nome da vari√°vel de ambiente.
+   sequ√™ncia    Especifica uma s√©rie de caracteres a serem
+                atribu√≠dos √† vari√°vel.
 
-* Se nenhuma sequància for especificada, a vari†vel Ç removida do ambiente.
+* Se nenhuma sequ√™ncia for especificada, a vari√°vel √© removida do ambiente.
 
-Digite SET sem parÉmetros para exibir as vari†veis de ambiente atuais.
+Digite SET sem par√¢metros para exibir as vari√°veis de ambiente atuais.
 
 .
 :SHELL_CMD_IF_HELP
@@ -1806,54 +1806,54 @@ Realiza processamento condicional em arquivos em lotes.
 
 .
 :SHELL_CMD_IF_HELP_LONG
-IF [NOT] ERRORLEVEL n£mero comando
-IF [NOT] sequància1==sequància2 comando
+IF [NOT] ERRORLEVEL n√∫mero comando
+IF [NOT] sequ√™ncia1==sequ√™ncia2 comando
 IF [NOT] EXIST nome_de_arquivo comando
 
-  NOT               Especifica que o DOS s¢ deve executar
-                    o comando se a condiáÑo for falsa.
+  NOT               Especifica que o DOS s√≥ deve executar
+                    o comando se a condi√ß√£o for falsa.
 
-  ERRORLEVEL n£mero Especifica uma condiáÑo verdadeira se o £ltimo programa
-                    executado retornar um c¢digo de sa°da igual ou maior que
-                    o n£mero especificado.
+  ERRORLEVEL n√∫mero Especifica uma condi√ß√£o verdadeira se o √∫ltimo programa
+                    executado retornar um c√≥digo de sa√≠da igual ou maior que
+                    o n√∫mero especificado.
 
-  sequància1==sequància2  Especifica uma condiáÑo verdadeira se as sequàncias
+  sequ√™ncia1==sequ√™ncia2  Especifica uma condi√ß√£o verdadeira se as sequ√™ncias
                     de caracteres de texto especificadas forem correspondentes
 
-  EXIST nome_de_arquivo   Especifica uma condiáÑo verdadeira se o nome
+  EXIST nome_de_arquivo   Especifica uma condi√ß√£o verdadeira se o nome
                     de arquivo especificado existir.
 
-  comando           Especifica o comando a ser executado se a condiáÑo for
+  comando           Especifica o comando a ser executado se a condi√ß√£o for
                     atendida. O comando pode ser seguido pelo comando ELSE, que
-                    executar† o comando ap¢s a palavra-chave ELSE se a
-                    condiáÑo especificada for FALSA
+                    executar√° o comando ap√≥s a palavra-chave ELSE se a
+                    condi√ß√£o especificada for FALSA
 
 .
 :SHELL_CMD_GOTO_HELP
-Desvia o interpretador de comandos para uma linha com um r¢tulo em um
+Desvia o interpretador de comandos para uma linha com um r√≥tulo em um
 arquivo em lotes.
 
 .
 :SHELL_CMD_GOTO_HELP_LONG
-GOTO r¢tulo
+GOTO r√≥tulo
 
-   r¢tulo   Especifica o nome de um r¢tulo no arquivo em lotes.
+   r√≥tulo   Especifica o nome de um r√≥tulo no arquivo em lotes.
 
-Vocà deve digitar um r¢tulo em uma linha iniciada com dois pontos (:).
+Voc√™ deve digitar um r√≥tulo em uma linha iniciada com dois pontos (:).
 
 .
 :SHELL_CMD_HISTORY_HELP
-Exibe ou apaga a lista de hist¢rico de comandos.
+Exibe ou apaga a lista de hist√≥rico de comandos.
 
 .
 :SHELL_CMD_HISTORY_HELP_LONG
 HISTORY [/C]
 
-  /C  Limpa a lista de hist¢rico de comando.
+  /C  Limpa a lista de hist√≥rico de comando.
 
 .
 :SHELL_CMD_SHIFT_HELP
-Altera a posiáÑo dos parÉmetros substitu°veis em um arquivo em lotes.
+Altera a posi√ß√£o dos par√¢metros substitu√≠veis em um arquivo em lotes.
 
 .
 :SHELL_CMD_SHIFT_HELP_LONG
@@ -1865,16 +1865,16 @@ Executa um comando especificado para cada arquivo em um conjunto de arquivos.
 
 .
 :SHELL_CMD_FOR_HELP_LONG
-FOR %%vari†vel IN (conjunto) DO comando [parÉmetros]
+FOR %%vari√°vel IN (conjunto) DO comando [par√¢metros]
 
-  %%vari†vel  Especifica um parÉmetro substitu°vel.
+  %%vari√°vel  Especifica um par√¢metro substitu√≠vel.
   (conjunto)  Especifica um conjunto de um ou mais arquivos. Podem-se
               usar curingas.
   comando     Especifica o comando a ser executado em cada arquivo.
-  parÉmetros  Especifica os parÉmetros ou opáîes do comando especificado.
+  par√¢metros  Especifica os par√¢metros ou op√ß√µes do comando especificado.
 
-Para usar o comando FOR em um arquivo em lotes, especifique %%%%vari†vel
-em vez de %%vari†vel.
+Para usar o comando FOR em um arquivo em lotes, especifique %%%%vari√°vel
+em vez de %%vari√°vel.
 
 .
 :SHELL_CMD_LFNFOR_HELP
@@ -1884,13 +1884,13 @@ Habilita ou desabilita o retorno de nomes extensos de arquivos pelo comando FOR.
 :SHELL_CMD_LFNFOR_HELP_LONG
 LFNFOR [ON | OFF]
 
-Digite LFNFOR sem parÉmetros para exibir a configuraáÑo atual de LFNFOR.
+Digite LFNFOR sem par√¢metros para exibir a configura√ß√£o atual de LFNFOR.
 
-Este comando s¢ Ç £til se o suporte de LFN estiver atualmente habilitado.
+Este comando s√≥ √© √∫til se o suporte de LFN estiver atualmente habilitado.
 
 .
 :SHELL_CMD_TYPE_HELP
-Exibe o conte£do de um arquivo de texto.
+Exibe o conte√∫do de um arquivo de texto.
 
 .
 :SHELL_CMD_TYPE_HELP_LONG
@@ -1898,11 +1898,11 @@ TYPE [unidade:][caminho][arquivo]
 
 .
 :SHELL_CMD_REM_HELP
-Registra coment†rios em um arquivo em lotes.
+Registra coment√°rios em um arquivo em lotes.
 
 .
 :SHELL_CMD_REM_HELP_LONG
-REM [coment†rio]
+REM [coment√°rio]
 
 .
 :SHELL_CMD_RENAME_HELP
@@ -1913,10 +1913,10 @@ Renomeia um ou mais arquivos.
 RENAME [unidade:][caminho][nome_de_pasta1 | arquivo1] [nome_de_pasta2 | arquivo2]
 REN [unidade:][caminho][nome_de_pasta1 | arquivo1] [nome_de_pasta2 | arquivo2]
 
-Note que vocà nÑo pode especificar uma nova unidade ou caminho para o
+Note que voc√™ n√£o pode especificar uma nova unidade ou caminho para o
 arquivo de destino.
 
-Os curingas (* e ?) sÑo suportados para arquivos. Por exemplo, o seguinte comando
+Os curingas (* e ?) s√£o suportados para arquivos. Por exemplo, o seguinte comando
 renomeia todos os arquivos de texto: [37;1mREN *.TXT *.BAK[0m
 
 .
@@ -1930,12 +1930,12 @@ ERASE [/P] [/F] [/Q] nomes
 
   nomes         Especifica uma lista de um ou mais arquivos ou pastas.
                 Caracteres curinga podem ser usados para excluir
-                v†rios arquivos.
+                v√°rios arquivos.
                 Se uma pasta for especificada, todos os arquivos dentro dela
-                serÑo exclu°dos.
-  /P            Solicita confirmaáÑo antes de excluir cada arquivo.
-  /F            Foráa a exclusÑo de arquivos somente leitura.
-  /Q            Modo silencioso, nÑo pede confirmaáÑo para excluir com
+                ser√£o exclu√≠dos.
+  /P            Solicita confirma√ß√£o antes de excluir cada arquivo.
+  /F            For√ßa a exclus√£o de arquivos somente leitura.
+  /Q            Modo silencioso, n√£o pede confirma√ß√£o para excluir com
                 caractere curinga global.
 .
 :SHELL_CMD_COPY_HELP
@@ -1947,16 +1947,16 @@ COPY [/Y | /-Y] origem [+origem [+ ...]] [destino]
 
   origem        Especifica o arquivo ou arquivos a serem copiados.
   destino       Especifica a pasta e/ou nome de arquivo para os novos arquivos.
-  /Y            Suprime o prompt para vocà confirmar se deseja
+  /Y            Suprime o prompt para voc√™ confirmar se deseja
                 substituir um arquivo de destino existente.
-  /-Y           Exibe o prompt para vocà confirmar se deseja substituir
+  /-Y           Exibe o prompt para voc√™ confirmar se deseja substituir
                 um arquivo de destino existente.
 
-A opáÑo /Y pode ser predefinida na vari†vel de ambiente COPYCMD.
-Pode ser substitu°da por /-Y na linha de comando.
+A op√ß√£o /Y pode ser predefinida na vari√°vel de ambiente COPYCMD.
+Pode ser substitu√≠da por /-Y na linha de comando.
 
-Para acrescentar arquivos, especifique um £nico arquivo
-para destino, mas v†rios arquivos para origem
+Para acrescentar arquivos, especifique um √∫nico arquivo
+para destino, mas v√°rios arquivos para origem
 (usando caracteres curingas ou o formato arquivo1+arquivo2+arquivo3).
 
 .
@@ -1965,10 +1965,10 @@ Chama um arquivo em lotes de outro.
 
 .
 :SHELL_CMD_CALL_HELP_LONG
-CALL [unidade:][caminho]arquivo [parÉmetros]
+CALL [unidade:][caminho]arquivo [par√¢metros]
 
-parÉmetros     Especifica qualquer informaáÑo de linha de comando
-               necess†ria ao arquivo em lotes.
+par√¢metros     Especifica qualquer informa√ß√£o de linha de comando
+               necess√°ria ao arquivo em lotes.
 
 .
 :SHELL_CMD_SUBST_HELP
@@ -1979,22 +1979,22 @@ Associa um caminho a uma letra de unidade.
 SUBST [unidade1: [unidade2:]caminho]
 SUBST unidade1: /D
 
-  unidade1:           Especifica uma unidade para a qual vocà deseja
+  unidade1:           Especifica uma unidade para a qual voc√™ deseja
                       atribuir um caminho.
   [unidade2:]caminho] Especifica uma unidade local montada e um caminho
-                      que vocà deseja designar.
-  /D                  Exclui uma unidade montada ou substitu°da.
+                      que voc√™ deseja designar.
+  /D                  Exclui uma unidade montada ou substitu√≠da.
 
-Digite SUBST sem parÉmetros para exibir a lista de unidades locais montadas.
+Digite SUBST sem par√¢metros para exibir a lista de unidades locais montadas.
 
 .
 :SHELL_CMD_LOADHIGH_HELP
-Carrega um programa com mais mem¢ria (requer mem¢ria XMS e UMB).
+Carrega um programa com mais mem√≥ria (requer mem√≥ria XMS e UMB).
 
 .
 :SHELL_CMD_LOADHIGH_HELP_LONG
-LH              [unidade:][caminho]nome_de_arquivo [parÉmetros]
-LOADHIGH        [unidade:][caminho]nome_de_arquivo [parÉmetros]
+LH              [unidade:][caminho]nome_de_arquivo [par√¢metros]
+LOADHIGH        [unidade:][caminho]nome_de_arquivo [par√¢metros]
 
 .
 :SHELL_CMD_CHOICE_HELP
@@ -2003,9 +2003,9 @@ Espera o apertar de uma tecla e define o valor de ERRORLEVEL.
 .
 :SHELL_CMD_CHOICE_HELP_LONG
 CHOICE [/C:escolhas] [/N] [/S] texto
-  /C[:]escolhas - Especifica as teclas permitidas. PadrÑo: yn.
-  /N            - NÑo mostrar as escolhas no final do prompt.
-  /S            - Ativa opáîes de escolhas sens°veis a mai£sculas e min£sculas.
+  /C[:]escolhas - Especifica as teclas permitidas. Padr√£o: yn.
+  /N            - N√£o mostrar as escolhas no final do prompt.
+  /S            - Ativa op√ß√µes de escolhas sens√≠veis a mai√∫sculas e min√∫sculas.
   texto         -   Texto a ser mostrado como prompt.
 
 .
@@ -2024,19 +2024,19 @@ ATTRIB [+R|-R] [+A|-A] [+S|-S] [+H|-H] [unidade:][caminho][nome_de_arquivo] [/S]
   H   Atributo de arquivo oculto.
   [unidade:][caminho][nome_de_arquivo]
       Especifica arquivo(s) ou pasta para processar com ATTRIB.
-  /S  Processa tambÇm os arquivos nas subpastas.
+  /S  Processa tamb√©m os arquivos nas subpastas.
 
 .
 :SHELL_CMD_PATH_HELP
-Exibe ou define um caminho de pesquisa para arquivos execut†veis.
+Exibe ou define um caminho de pesquisa para arquivos execut√°veis.
 
 .
 :SHELL_CMD_PATH_HELP_LONG
 PATH [[unidade:]caminho[;...][;%PATH%]
 PATH ;
 
-Digite PATH ; para limpar todas as configuraáîes de caminhos de pesquisa.
-Digite PATH sem parÉmetros para exibir o caminho atual.
+Digite PATH ; para limpar todas as configura√ß√µes de caminhos de pesquisa.
+Digite PATH sem par√¢metros para exibir o caminho atual.
 
 .
 :SHELL_CMD_PUSHD_HELP
@@ -2048,7 +2048,7 @@ PUSHD [caminho]
 
 caminho        Salva a pasta atual e a altera em seguida.
 
-Digite PUSHD sem parÉmetros para exibir as pastas atualmente armazenadas.
+Digite PUSHD sem par√¢metros para exibir as pastas atualmente armazenadas.
 
 .
 :SHELL_CMD_POPD_HELP
@@ -2060,44 +2060,44 @@ POPD
 
 .
 :SHELL_CMD_VERIFY_HELP
-Faz com que o DosBox-X verifique se os arquivos estÑo gravados
+Faz com que o DosBox-X verifique se os arquivos est√£o gravados
 corretamente em um disco.
 
 .
 :SHELL_CMD_VERIFY_HELP_LONG
 VERIFY [ON | OFF]
 
-Digite VERIFY sem parÉmetros para exibir a configuraáÑo atual de VERIFY.
+Digite VERIFY sem par√¢metros para exibir a configura√ß√£o atual de VERIFY.
 
 .
 :SHELL_CMD_VER_HELP
-Exibe a versÑo do DOS informada pelo DOSBox-X.
+Exibe a vers√£o do DOS informada pelo DOSBox-X.
 
 .
 :SHELL_CMD_VER_HELP_LONG
 VER [/R]
-VER [SET] n£mero ou VER SET [maior menor]
+VER [SET] n√∫mero ou VER SET [maior menor]
 
-  /R                 Exibe a versÑo do commit e data da compilaáÑo do DOSBox-X.
-  [SET] n£mero       Define o n£mero especificado como a versÑo relatada do DOS.
-  SET [maior menor]  Define a versÑo relatada do DOS em formato maior e menor.
+  /R                 Exibe a vers√£o do commit e data da compila√ß√£o do DOSBox-X.
+  [SET] n√∫mero       Define o n√∫mero especificado como a vers√£o relatada do DOS.
+  SET [maior menor]  Define a vers√£o relatada do DOS em formato maior e menor.
 
-  [0mEx: [37;1mVER 6.0[0m ou [37;1mVER 7.1[0m define a versÑo DOS para 6.0 e 7.1, respectivamente.
-  Por outro lado, [37;1mVER SET 7 1[0m define a versÑo DOS para 7.01 em vez de 7.1.
+  [0mEx: [37;1mVER 6.0[0m ou [37;1mVER 7.1[0m define a vers√£o DOS para 6.0 e 7.1, respectivamente.
+  Por outro lado, [37;1mVER SET 7 1[0m define a vers√£o DOS para 7.01 em vez de 7.1.
 
-Digite VER sem parÉmetros para exibir a versÑo do DOSBox-X e do DOS emulada.
+Digite VER sem par√¢metros para exibir a vers√£o do DOSBox-X e do DOS emulada.
 
 .
 :SHELL_CMD_VER_VER
-DOSBox-X versÑo %s (%s). VersÑo do DOS informada %d.%02d.
+DOSBox-X vers√£o %s (%s). Vers√£o do DOS informada %d.%02d.
 
 .
 :SHELL_CMD_VER_INVALID
-A versÑo do DOS especificada nÑo Ç correta.
+A vers√£o do DOS especificada n√£o √© correta.
 
 .
 :SHELL_CMD_VOL_HELP
-Exibe o r¢tulo do volume e o n£mero de sÇrie de um disco.
+Exibe o r√≥tulo do volume e o n√∫mero de s√©rie de um disco.
 
 .
 :SHELL_CMD_VOL_HELP_LONG
@@ -2113,25 +2113,25 @@ PROMPT [texto]
   texto    Especifica um novo prompt de comandos.
 
 O prompt de comando pode constituir-se de caracteres normais e dos seguintes
-c¢digos especiais:
+c√≥digos especiais:
 
   $A   & ('E' comercial)
   $B   | (pipe)
-  $C   ( (paràntese esquerdo)
+  $C   ( (par√™ntese esquerdo)
   $D   data atual
-  $E   c¢digo de escape (c¢digo ASCII 27)
-  $F   ) (paràntese direito)
+  $E   c√≥digo de escape (c√≥digo ASCII 27)
+  $F   ) (par√™ntese direito)
   $G   > (sinal de maior que)
   $H   BACKSPACE (elimina o caractere anterior)
   $L   < (sinal de menor que)
   $N   unidade atual
   $P   unidade e caminho atual
   $Q   = (sinal de igual)
-  $S     (espaáo em branco)
+  $S     (espa√ßo em branco)
   $T   hora atual
-  $V   versÑo do DOS atual
-  $_   retorno de carro e avanáo de linha
-  $$   $ (cifrÑo)
+  $V   vers√£o do DOS atual
+  $_   retorno de carro e avan√ßo de linha
+  $$   $ (cifr√£o)
 
 .
 :SHELL_CMD_ALIAS_HELP
@@ -2141,66 +2141,66 @@ Define ou exibe alias.
 :SHELL_CMD_ALIAS_HELP_LONG
 ALIAS [nome[=valor] ... ]
 
-Digite ALIAS sem parÉmetros para exibir a lista de alias atuais no formato:
+Digite ALIAS sem par√¢metros para exibir a lista de alias atuais no formato:
 `ALIAS NOME = VALOR'
 
 .
 :SHELL_CMD_ASSOC_HELP
-Exibe ou modifica associaáîes de extensîes de arquivo.
+Exibe ou modifica associa√ß√µes de extens√µes de arquivo.
 
 .
 :SHELL_CMD_ASSOC_HELP_LONG
 ASSOC [.ext[=comando] ... ]
 
-Digite ASSOC sem parÉmetros para exibir as associaáîes de arquivos atuais.
-As extensîes de arquivo devem comeáar com um ponto (.);
-SÑo permitidos curingas (* e ?).
+Digite ASSOC sem par√¢metros para exibir as associa√ß√µes de arquivos atuais.
+As extens√µes de arquivo devem come√ßar com um ponto (.);
+S√£o permitidos curingas (* e ?).
 
 .
 :SHELL_CMD_CHCP_HELP
-Exibe ou define o n£mero da p†gina de c¢digo ativa.
+Exibe ou define o n√∫mero da p√°gina de c√≥digo ativa.
 
 .
 :SHELL_CMD_CHCP_HELP_LONG
 CHCP [nnn [arquivo]]
 
-  nnn   Define um n£mero da p†gina de c¢digo.
-  arquivo  Especifica um arquivo de p†gina de c¢digo.
+  nnn   Define um n√∫mero da p√°gina de c√≥digo.
+  arquivo  Especifica um arquivo de p√°gina de c√≥digo.
 
-P†ginas de c¢digo compat°veis para a sa°da de fonte TrueType:
+P√°ginas de c√≥digo compat√≠veis para a sa√≠da de fonte TrueType:
 
 437,737,775,808,850,852,853,855,857,858,860-866,869,872,874
 
-P†ginas de c¢digos do Windows: 1250,1251,1252,1253,1254,1255,1256,1257,1258
+P√°ginas de c√≥digos do Windows: 1250,1251,1252,1253,1254,1255,1256,1257,1258
 
-TambÇm p†ginas de c¢digos de duplo byte includindo 932,936,949,950.
+Tamb√©m p√°ginas de c√≥digos de duplo byte includindo 932,936,949,950.
 
-As p†ginas de c¢digos personalizadas sÑo compat°veis ao proporcionar
-arquivos de p†ginas de c¢digos.
+As p√°ginas de c√≥digos personalizadas s√£o compat√≠veis ao proporcionar
+arquivos de p√°ginas de c√≥digos.
 
 .
 :SHELL_CMD_CHCP_ACTIVE
-P†gina de c¢digo ativa: %d
+P√°gina de c√≥digo ativa: %d
 
 .
 :SHELL_CMD_CHCP_MISSING
-Caracteres ASCII nÑo definidos em fonte TTF: %d
+Caracteres ASCII n√£o definidos em fonte TTF: %d
 
 .
 :SHELL_CMD_CHCP_INVALID
-N£mero de p†gina de c¢digo inv†lido - %s
+N√∫mero de p√°gina de c√≥digo inv√°lido - %s
 
 .
 :SHELL_CMD_COUNTRY_HELP
-Exibe ou altera o pa°s atual.
+Exibe ou altera o pa√≠s atual.
 
 .
 :SHELL_CMD_COUNTRY_HELP_LONG
 COUNTRY [nnn] 
 
-  nnn   Especifica um c¢digo de pa°s.
+  nnn   Especifica um c√≥digo de pa√≠s.
 
-A informaáÑo espec°fica do pa°s, como os formatos de data/hora, ser† afetada.
+A informa√ß√£o espec√≠fica do pa√≠s, como os formatos de data/hora, ser√° afetada.
 
 .
 :SHELL_CMD_CTTY_HELP
@@ -2213,7 +2213,7 @@ CTTY dispositivo
 
 .
 :SHELL_CMD_MORE_HELP
-Exibe a sa°da fazendo pausa a cada tela.
+Exibe a sa√≠da fazendo pausa a cada tela.
 
 .
 :SHELL_CMD_MORE_HELP_LONG
@@ -2231,14 +2231,14 @@ TRUENAME [/H] arquivo
 
 .
 :SHELL_CMD_DXCAPTURE_HELP
-Executa um programa com captura de v°deo ou †udio.
+Executa um programa com captura de v√≠deo ou √°udio.
 
 .
 :SHELL_CMD_DXCAPTURE_HELP_LONG
-DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [comando] [opáîes]
+DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [comando] [op√ß√µes]
 
-Iniciar† a captura de v°deo ou †udio, executar† o programa e, em seguida,
-interromper† automaticamente a captura quando sair do programa.
+Iniciar√° a captura de v√≠deo ou √°udio, executar√° o programa e, em seguida,
+interromper√° automaticamente a captura quando sair do programa.
 
 .
 :SHELL_CMD_DEBUGBOX_HELP
@@ -2246,24 +2246,24 @@ Executa o programa e entra no depurador no ponto de entrada.
 
 .
 :SHELL_CMD_DEBUGBOX_HELP_LONG
-DEBUGBOX [comando] [opáîes]
+DEBUGBOX [comando] [op√ß√µes]
 
-Digite DEBUGBOX sem parÉmetros iniciar o depurador.
+Digite DEBUGBOX sem par√¢metros iniciar o depurador.
 
 .
 :SHELL_CMD_COMMAND_HELP
 Inicia o interpretador de comandos do DOSBox-X.
 
-As seguintes opáîes sÑo aceitas:
+As seguintes op√ß√µes s√£o aceitas:
 
   /C    Executa o comando indicado e retorna.
-  /K    Executa o comando especificado e continua a execuáÑo.
-  /P    Carrega uma c¢pia permanente do interpretador de comandos.
+  /K    Executa o comando especificado e continua a execu√ß√£o.
+  /P    Carrega uma c√≥pia permanente do interpretador de comandos.
   /INIT Inicializa o interpretador de comando.
 
 .
 :MENU:mapper_reset
-Reiniciar m†quina virtual
+Reiniciar m√°quina virtual
 .
 :MENU:mapper_reboot
 Reiniciar sistema convidado
@@ -2272,7 +2272,7 @@ Reiniciar sistema convidado
 Carregar arquivo de mapeamento...
 .
 :MENU:mapper_quickrun
-In°cio r†pido de programa...
+In√≠cio r√°pido de programa...
 .
 :MENU:mapper_shutdown
 Sair do DOSBox-X
@@ -2281,25 +2281,25 @@ Sair do DOSBox-X
 Capturar mouse
 .
 :MENU:mapper_fastedit
-EdiáÑo r†pida: Copiar texto ao selecionar e colar
+Edi√ß√£o r√°pida: Copiar texto ao selecionar e colar
 .
 :MENU:mapper_copyall
 Copiar todo o texto da janela do DOS
 .
 :MENU:mapper_paste
-Colar da transferància
+Colar da transfer√™ncia
 .
 :MENU:mapper_pasteend
-Parar a colagem da †rea de transferància
+Parar a colagem da √°rea de transfer√™ncia
 .
 :MENU:mapper_pause
-Pausar emulaáÑo
+Pausar emula√ß√£o
 .
 :MENU:mapper_pauseints
-Pausar com interrupáîes ativadas
+Pausar com interrup√ß√µes ativadas
 .
 :MENU:mapper_gui
-Ferramenta de configuraáÑo
+Ferramenta de configura√ß√£o
 .
 :MENU:mapper_mapper
 Editor de mapeamento
@@ -2326,19 +2326,19 @@ Principal
 Enviar tecla especial
 .
 :MENU:MainHostKey
-Selecionar tecla do anfitriÑo
+Selecionar tecla do anfitri√£o
 .
 :MENU:WheelToArrow
 Movimentos da roda do mouse
 .
 :MENU:SharedClipboard
-Funáîes †rea de transferància compartilhada
+Fun√ß√µes √°rea de transfer√™ncia compartilhada
 .
 :MENU:CpuMenu
 CPU
 .
 :MENU:CpuCoreMenu
-N£cleo da CPU
+N√∫cleo da CPU
 .
 :MENU:CpuTypeMenu
 Tipo de CPU emulada
@@ -2410,7 +2410,7 @@ AMD K6 200MHz      (~130000 ciclos)
 AMD K6-2 300MHz    (~193000 ciclos)
 .
 :MENU:VideoMenu
-V°deo
+V√≠deo
 .
 :MENU:VideoFrameskipMenu
 Salto de quadros
@@ -2452,7 +2452,7 @@ Desligado
 Redimensionador
 .
 :MENU:scaler_forced
-Foráar escala
+For√ßar escala
 .
 :MENU:scaler_set_none
 Nenhum
@@ -2521,10 +2521,10 @@ HQ 2X
 HQ 3X
 .
 :MENU:scaler_set_advinterp2x
-InterpolaáÑo avanáada 2X
+Interpola√ß√£o avan√ßada 2X
 .
 :MENU:scaler_set_advinterp3x
-InterpolaáÑo avanáada 3X
+Interpola√ß√£o avan√ßada 3X
 .
 :MENU:scaler_set_2xsai
 2xSai
@@ -2542,13 +2542,13 @@ xBRZ
 xBRZ Bilinear
 .
 :MENU:refresh_rate
-Taxa de atualizaáÑo...
+Taxa de atualiza√ß√£o...
 .
 :MENU:VideoOutputMenu
-Sa°da de v°deo
+Sa√≠da de v√≠deo
 .
 :MENU:output_surface
-Superf°cie
+Superf√≠cie
 .
 :MENU:output_direct3d
 Direct3D
@@ -2557,7 +2557,7 @@ Direct3D
 OpenGL
 .
 :MENU:output_openglnb
-OpenGL mais pr¢ximo
+OpenGL mais pr√≥ximo
 .
 :MENU:output_openglpp
 OpenGL pixel perfeito
@@ -2575,16 +2575,16 @@ Sincronia vertical
 Ligada
 .
 :MENU:vsync_force
-Foráar
+For√ßar
 .
 :MENU:vsync_host
-AnfitriÑo
+Anfitri√£o
 .
 :MENU:vsync_off
 Desligada
 .
 :MENU:vsync_set_syncrate
-Definir sincronizaáÑo
+Definir sincroniza√ß√£o
 .
 :MENU:VideoOverscanMenu
 Overscan
@@ -2662,7 +2662,7 @@ Tela: 132 colunas x 50 linhas
 Tela: 132 colunas x 60 linhas
 .
 :MENU:VideoTTFMenu
-Opáîes TTF
+Op√ß√µes TTF
 .
 :MENU:ttf_resetcolor
 Restaurar esquema de cor de TTF
@@ -2671,7 +2671,7 @@ Restaurar esquema de cor de TTF
 Exibir texto em negrito em TTF
 .
 :MENU:ttf_showital
-Exibir texto em it†lico em TTF
+Exibir texto em it√°lico em TTF
 .
 :MENU:ttf_showline
 Exibir texto sublinhado em TTF
@@ -2707,16 +2707,16 @@ Usar fonte TTF atual para imprimir
 CJK: Alternar entre modos DBCS/SBCS
 .
 :MENU:ttf_autoboxdraw
-CJK: Detectar automaticamente s°mbolos de desenho de caixa
+CJK: Detectar automaticamente s√≠mbolos de desenho de caixa
 .
 :MENU:ttf_halfwidthkana
-CJK: Permitir katakana japonàs de largura mÇdia
+CJK: Permitir katakana japon√™s de largura m√©dia
 .
 :MENU:ttf_extcharset
 CJK: Habilitar o conjunto de caracteres chineses estendidos
 .
 :MENU:VideoPC98Menu
-Opáîes do PC-98
+Op√ß√µes do PC-98
 .
 :MENU:pc98_5mhz_gdc
 5MHz GDC clock
@@ -2725,7 +2725,7 @@ Opáîes do PC-98
 Permitir efeito de scanlines de 200 linhas
 .
 :MENU:pc98_allow_4partitions
-Permitir 4 partiáîes de visualizaáÑo na camada gr†fica
+Permitir 4 parti√ß√µes de visualiza√ß√£o na camada gr√°fica
 .
 :MENU:pc98_enable_egc
 Habilitar EGC
@@ -2734,10 +2734,10 @@ Habilitar EGC
 Habilitar GRCG
 .
 :MENU:pc98_enable_analog
-Habilitar tela anal¢gica
+Habilitar tela anal√≥gica
 .
 :MENU:pc98_enable_analog256
-Habilitar tela anal¢gica de 256 colores
+Habilitar tela anal√≥gica de 256 colores
 .
 :MENU:pc98_enable_188user
 Ativar 188+ user CG cells
@@ -2746,10 +2746,10 @@ Ativar 188+ user CG cells
 Limpar camada de texto
 .
 :MENU:pc98_clear_graphics
-Limpar camada gr†fica
+Limpar camada gr√°fica
 .
 :MENU:Video3dfxMenu
-EmulaáÑo 3dfx
+Emula√ß√£o 3dfx
 .
 :MENU:3dfx_voodoo
 Placa Voodoo interna
@@ -2770,7 +2770,7 @@ Selecionar fonte TrueType (TTF/OTF)...
 Som
 .
 :MENU:mixer_swapstereo
-Inverter som estÇreo
+Inverter som est√©reo
 .
 :MENU:mixer_mute
 Silenciar
@@ -2779,10 +2779,10 @@ Silenciar
 Mostrar mixes de volume de som
 .
 :MENU:sb_info
-Mostrar configuraáÑo da Sound Blaster
+Mostrar configura√ß√£o da Sound Blaster
 .
 :MENU:midi_info
-Mostrar configuraáÑo do dispositivo MIDI
+Mostrar configura√ß√£o do dispositivo MIDI
 .
 :MENU:DOSMenu
 DOS
@@ -2797,10 +2797,10 @@ Alterar imagem de CD atual...
 Alterar imagem de disquete atual...
 .
 :MENU:DOSMouseMenu
-EmulaáÑo de mouse
+Emula√ß√£o de mouse
 .
 :MENU:dos_mouse_enable_int33
-EmulaáÑo interna
+Emula√ß√£o interna
 .
 :MENU:dos_mouse_y_axis_reverse
 Inverter eixo-Y
@@ -2809,7 +2809,7 @@ Inverter eixo-Y
 Sensibilidade
 .
 :MENU:DOSVerMenu
-VersÑo do DOS reportada
+Vers√£o do DOS reportada
 .
 :MENU:dos_ver_330
 3.30
@@ -2830,13 +2830,13 @@ Editar
 Suporte a nomes longos
 .
 :MENU:dos_lfn_auto
-Autom†tico por versÑo do DOS reportada
+Autom√°tico por vers√£o do DOS reportada
 .
 :MENU:dos_lfn_enable
 Ativar suporte a nomes longos
 .
 :MENU:dos_lfn_disable
-Desativar emulaáÑo de nomes longos
+Desativar emula√ß√£o de nomes longos
 .
 :MENU:DOSPC98Menu
 PC-98 PIT master clock
@@ -2848,34 +2848,34 @@ PC-98 PIT master clock
 5MHz/10MHz PIT master clock
 .
 :MENU:DOSEMSMenu
-Mem¢ria expandida (EMS)
+Mem√≥ria expandida (EMS)
 .
 :MENU:dos_ems_true
-Ativar emulaáÑo de EMS
+Ativar emula√ß√£o de EMS
 .
 :MENU:dos_ems_board
-EmulaáÑo de placa EMS
+Emula√ß√£o de placa EMS
 .
 :MENU:dos_ems_emm386
-EmulaáÑo de EMM386
+Emula√ß√£o de EMM386
 .
 :MENU:dos_ems_false
-Desativar emulaáÑo de EMS
+Desativar emula√ß√£o de EMS
 .
 :MENU:DOSWinMenu
-Aplicativos do sistema anfitriÑo
+Aplicativos do sistema anfitri√£o
 .
 :MENU:dos_win_autorun
-Lanáar para executar no anfitriÑo Windows
+Lan√ßar para executar no anfitri√£o Windows
 .
 :MENU:dos_win_transpath
-Traduzir caminhos para os caminhos do sistema anfitriÑo
+Traduzir caminhos para os caminhos do sistema anfitri√£o
 .
 :MENU:dos_win_wait
-Aguardar o aplicativo, se poss°vel
+Aguardar o aplicativo, se poss√≠vel
 .
 :MENU:dos_win_quiet
-Modo silencioso - sem mensagem de in°cio
+Modo silencioso - sem mensagem de in√≠cio
 .
 :MENU:CaptureMenu
 Captura
@@ -2890,16 +2890,16 @@ AVI + ZMBV
 MPEG-TS + H.264
 .
 :MENU:saveoptionmenu
-Opáîes de carregamento e salvamento
+Op√ß√µes de carregamento e salvamento
 .
 :MENU:saveslotmenu
 Selecionar compartimento de salvamento
 .
 :MENU:enable_autosave
-Habilitar salvamento autom†tico de estado
+Habilitar salvamento autom√°tico de estado
 .
 :MENU:noremark_savestate
-Sem observaáîes ao salvar estado
+Sem observa√ß√µes ao salvar estado
 .
 :MENU:force_loadstate
 Sem avisos ao carregar o estado
@@ -2911,31 +2911,31 @@ Remover estado no compartimento
 Atualizar estado de tela
 .
 :MENU:lastautosaveslot
-Selecionar o £ltimo compartimento de salvamento autom†tico
+Selecionar o √∫ltimo compartimento de salvamento autom√°tico
 .
 :MENU:usesavefile
 Usar arquivo de salvamento em vez de compartimento
 .
 :MENU:autosavecfg
-Configuraáîes de salvamento autom†tico...
+Configura√ß√µes de salvamento autom√°tico...
 .
 :MENU:browsesavefile
 Procurar arquivo salvo...
 .
 :MENU:current_page
-P†gina atual: 1/10
+P√°gina atual: 1/10
 .
 :MENU:prev_page
-P†gina anterior
+P√°gina anterior
 .
 :MENU:next_page
-Pr¢xima p†gina
+Pr√≥xima p√°gina
 .
 :MENU:first_page
-Ir para a primeira p†gina
+Ir para a primeira p√°gina
 .
 :MENU:last_page
-Ir para a £ltima p†gina
+Ir para a √∫ltima p√°gina
 .
 :MENU:DriveMenu
 Unidade
@@ -2944,7 +2944,7 @@ Unidade
 Automontar unidade Windows
 .
 :MENU:drive_mounthd
-Montar pasta como disco r°gido
+Montar pasta como disco r√≠gido
 .
 :MENU:drive_mountcd
 Montar pasta como CD
@@ -2953,7 +2953,7 @@ Montar pasta como CD
 Montar pasta como unidade de disquete 
 .
 :MENU:drive_mountfro
-OpáÑo: Montar pasta somente leitura
+Op√ß√£o: Montar pasta somente leitura
 .
 :MENU:drive_mountarc
 Montar um arquivo compactado (ZIP/7Z)
@@ -2962,10 +2962,10 @@ Montar um arquivo compactado (ZIP/7Z)
 Montar uma imagem de disco ou CD
 .
 :MENU:drive_mountimgs
-Montar m£ltiplas imagens de disco/CD
+Montar m√∫ltiplas imagens de disco/CD
 .
 :MENU:drive_mountiro
-OpáÑo: montar imagens somente leitura
+Op√ß√£o: montar imagens somente leitura
 .
 :MENU:drive_unmount
 Desmontar unidade
@@ -2977,7 +2977,7 @@ Reverificar unidade
 Trocar disco
 .
 :MENU:drive_info
-InformaáÑo da unidade
+Informa√ß√£o da unidade
 .
 :MENU:drive_boot
 Inicializar da unidade
@@ -2989,10 +2989,10 @@ Inicializar da imagem de disco
 Ajuda
 .
 :MENU:help_intro
-IntroduáÑo
+Introdu√ß√£o
 .
 :MENU:help_homepage
-P†gina do DOSBox-X
+P√°gina do DOSBox-X
 .
 :MENU:help_wiki
 Guia Wiki do DOSBox-X
@@ -3016,7 +3016,7 @@ Mostrar console de registro
 Pausar console em caso de erro
 .
 :MENU:show_codetext
-Mostrar descriáÑo geral do c¢digo
+Mostrar descri√ß√£o geral do c√≥digo
 .
 :MENU:show_logtext
 Mostrar texto de registro
@@ -3025,13 +3025,13 @@ Mostrar texto de registro
 Salvar registro como...
 .
 :MENU:debugger_rundebug
-OpáÑo do depurador: Iniciar depurador
+Op√ß√£o do depurador: Iniciar depurador
 .
 :MENU:debugger_runnormal
-OpáÑo do depurador: Executar normalmente
+Op√ß√£o do depurador: Executar normalmente
 .
 :MENU:debugger_runwatch
-OpáÑo do depurador: Executar observador
+Op√ß√£o do depurador: Executar observador
 .
 :MENU:HelpCommandMenu
 Comandos DOS
@@ -3043,10 +3043,10 @@ Depurador
 Console de registro
 .
 :MENU:debug_blankrefreshtest
-Teste de atualizaáÑo (tela em branco)
+Teste de atualiza√ß√£o (tela em branco)
 .
 :MENU:debug_generatenmi
-Gerar interrupáÑo NMI
+Gerar interrup√ß√£o NMI
 .
 :MENU:debug_int2fhook
 Enganchar chamadas INT 2Fh
@@ -3061,7 +3061,7 @@ Arquivo de registros E/S
 Alternar bloqueio de velocidade
 .
 :MENU:mapper_speedlock2
-Turbo (Avanáo r†pido)
+Turbo (Avan√ßo r√°pido)
 .
 :MENU:mapper_speednorm
 Normal
@@ -3082,13 +3082,13 @@ Salvar estado
 Carregar estado
 .
 :MENU:mapper_showstate
-Exibir informaáÑo do estado
+Exibir informa√ß√£o do estado
 .
 :MENU:mapper_prevslot
 Selecionar compartimento do salvamento anterior
 .
 :MENU:mapper_nextslot
-Selecionar compartimento do pr¢ximo salvamento
+Selecionar compartimento do pr√≥ximo salvamento
 .
 :MENU:mapper_decfskip
 Diminuir salto de quadros
@@ -3097,22 +3097,22 @@ Diminuir salto de quadros
 Aumentar salto de quadros
 .
 :MENU:mapper_aspratio
-Ajustar Ö proporáÑo de tela
+Ajustar √† propor√ß√£o de tela
 .
 :MENU:mapper_recwave
-Gravar †udio em WAV
+Gravar √°udio em WAV
 .
 :MENU:mapper_recmtwave
-Gravar †udio em AVI multi-faixa
+Gravar √°udio em AVI multi-faixa
 .
 :MENU:mapper_caprawmidi
-Gravar sa°da MIDI
+Gravar sa√≠da MIDI
 .
 :MENU:mapper_caprawopl
-Gravar sa°da FM (OPL)
+Gravar sa√≠da FM (OPL)
 .
 :MENU:mapper_video
-Gravar v°deo em AVI
+Gravar v√≠deo em AVI
 .
 :MENU:mapper_scrshot
 Capturar tela
@@ -3127,10 +3127,10 @@ Aumentar volume
 Baixar volume
 .
 :MENU:mapper_recvolup
-Aumentar volume de gravaáÑo
+Aumentar volume de grava√ß√£o
 .
 :MENU:mapper_recvoldown
-Baixar volume de gravaáÑo
+Baixar volume de grava√ß√£o
 .
 :MENU:mapper_sendkey_mapper
 Enviar tecla especial
@@ -3142,55 +3142,55 @@ Baixar ciclos
 Aumentar ciclos
 .
 :MENU:mapper_normal
-N£cleo normal
+N√∫cleo normal
 .
 :MENU:mapper_dynamic
-N£cleo dinÉmico (dynamic_x86)
+N√∫cleo din√¢mico (dynamic_x86)
 .
 :MENU:mapper_simple
-N£cleo simples
+N√∫cleo simples
 .
 :MENU:mapper_full
-N£cleo completo
+N√∫cleo completo
 .
 :MENU:cputype_auto
-Autom†tico
+Autom√°tico
 .
 :MENU:cputype_8086
 8086
 .
 :MENU:cputype_8086_prefetch
-8086 com prÇ-busca
+8086 com pr√©-busca
 .
 :MENU:cputype_80186
 80186
 .
 :MENU:cputype_80186_prefetch
-80186 com prÇ-busca
+80186 com pr√©-busca
 .
 :MENU:cputype_286
 286
 .
 :MENU:cputype_286_prefetch
-286 com prÇ-busca
+286 com pr√©-busca
 .
 :MENU:cputype_386
 386
 .
 :MENU:cputype_386_prefetch
-386 com prÇ-busca
+386 com pr√©-busca
 .
 :MENU:cputype_486old
 486 (antigo)
 .
 :MENU:cputype_486old_prefetch
-486 (antigo) com prÇ-busca
+486 (antigo) com pr√©-busca
 .
 :MENU:cputype_486
 486
 .
 :MENU:cputype_486_prefetch
-486 com prÇ-busca
+486 com pr√©-busca
 .
 :MENU:cputype_pentium
 Pentium
@@ -3208,10 +3208,10 @@ Pentium II
 Experimental
 .
 :MENU:debug_pageflip
-DepuraáÑo de troca de p†gina
+Depura√ß√£o de troca de p√°gina
 .
 :MENU:debug_retracepoll
-Melhorias no rastreamento de depuraáÑo
+Melhorias no rastreamento de depura√ß√£o
 .
 :MENU:mapper_swapimg
 Trocar unidade de disquete
@@ -3220,7 +3220,7 @@ Trocar unidade de disquete
 Trocar de unidade de CD
 .
 :MENU:mapper_ejectpage
-Enviar salto de p†gina
+Enviar salto de p√°gina
 .
 :MENU:mapper_rescanall
 Reverificar todas as unidades
@@ -3229,10 +3229,10 @@ Reverificar todas as unidades
 Definido pelo mapeador
 .
 :MENU:showdetails
-Mostrar FPS e velocidade RT na barra de t°tulo
+Mostrar FPS e velocidade RT na barra de t√≠tulo
 .
 :MENU:restartinst
-Reiniciar instÉncia do DOSBox-X
+Reiniciar inst√¢ncia do DOSBox-X
 .
 :MENU:restartconf
 Reiniciar o DOSBox-X com arquivo config...
@@ -3244,25 +3244,25 @@ Reiniciar o DOSBox-X com arquivo de idioma...
 Travar automaticamente mouse
 .
 :MENU:clipboard_right
-Via botÑo direito do mouse
+Via bot√£o direito do mouse
 .
 :MENU:clipboard_middle
-Via botÑo do meio do mouse
+Via bot√£o do meio do mouse
 .
 :MENU:clipboard_arrows
-Via teclas de setas (Home=in°cio, End=fim)
+Via teclas de setas (Home=in√≠cio, End=fim)
 .
 :MENU:screen_to_clipboard
 Copiar todo o texto da janela do DOS
 .
 :MENU:clipboard_device
-Habilitar acesso ao dispositivo da †rea de transferància do DOS
+Habilitar acesso ao dispositivo da √°rea de transfer√™ncia do DOS
 .
 :MENU:clipboard_dosapi
-Habilitar a API da †rea de transferància do DOS para aplicativos
+Habilitar a API da √°rea de transfer√™ncia do DOS para aplicativos
 .
 :MENU:clipboard_biospaste
-Usar funáÑo da BIOS para pegar da †rea de transferància
+Usar fun√ß√£o da BIOS para pegar da √°rea de transfer√™ncia
 .
 :MENU:sendkey_winlogo
 Enviar tecla de logotipo
@@ -3310,7 +3310,7 @@ Mapeador "Enviar tecla especial": Ctrl+Break
 Mapeador "Enviar tecla especial": Ctrl+Alt+Del
 .
 :MENU:wheel_none
-NÑo converter para teclas de setas
+N√£o converter para teclas de setas
 .
 :MENU:wheel_updown
 Converter para setas cima/baixo
@@ -3334,7 +3334,7 @@ Converter para Ctrl+teclas PgUp/PgDn
 Converter para Ctrl+teclas W/Z
 .
 :MENU:wheel_guest
-Habilitar tambÇm para sistemas convidados
+Habilitar tamb√©m para sistemas convidados
 .
 :MENU:doublebuf
 Buffer duplo (Tela cheia)
@@ -3346,19 +3346,19 @@ Sempre no topo
 Habilitar High DPI
 .
 :MENU:sync_host_datetime
-Sincronizar data e hora com o anfitriÑo
+Sincronizar data e hora com o anfitri√£o
 .
 :MENU:shell_config_commands
-Opáîes de configuraáÑo como comandos
+Op√ß√µes de configura√ß√£o como comandos
 .
 :MENU:quick_reboot
-Habilitar rein°cio r†pido
+Habilitar rein√≠cio r√°pido
 .
 :MENU:make_diskimage
 Criar imagem de disco em branco...
 .
 :MENU:list_drivenum
-Mostrar n£mero das unidades montadas
+Mostrar n√∫mero das unidades montadas
 .
 :MENU:list_ideinfo
 Mostrar estado de disco IDE ou CD
@@ -3370,13 +3370,13 @@ Imprimir tela de texto DOS
 Usar esquema de teclado americano
 .
 :MAPPER:caprawopl
-Gravar sa°da FM/OPL
+Gravar sa√≠da FM/OPL
 .
 :MAPPER:copyall
-Copiar p/ transferància
+Copiar p/ transfer√™ncia
 .
 :MAPPER:cycauto
-Alternar ciclos autom†ticos
+Alternar ciclos autom√°ticos
 .
 :MAPPER:debugger
 Ativar depurador
@@ -3385,13 +3385,13 @@ Ativar depurador
 Reduzir tamanho TTF
 .
 :MAPPER:dynamic
-CPU: n£cleo dinÉmico
+CPU: n√∫cleo din√¢mico
 .
 :MAPPER:fastedit
-EdiáÑo r†pida
+Edi√ß√£o r√°pida
 .
 :MAPPER:full
-CPU: n£cleo completo
+CPU: n√∫cleo completo
 .
 :MAPPER:incsize
 Aumentar tamanho TTF
@@ -3400,25 +3400,25 @@ Aumentar tamanho TTF
 Carregar arquivo de mapeamento
 .
 :MAPPER:nextslot
-Pr¢x. compartimento salvo
+Pr√≥x. compartimento salvo
 .
 :MAPPER:normal
-CPU: n£cleo normal
+CPU: n√∫cleo normal
 .
 :MAPPER:paste
-Colar da transferància
+Colar da transfer√™ncia
 .
 :MAPPER:pasteend
-Parar transferància
+Parar transfer√™ncia
 .
 :MAPPER:pauseints
-Pausar com interrupáÑo
+Pausar com interrup√ß√£o
 .
 :MAPPER:prevslot
 Compartimento salvo anterior
 .
 :MAPPER:quickrun
-Lanáar prog. r†pido
+Lan√ßar prog. r√°pido
 .
 :MAPPER:reboot
 Reinicia sistema DOS
@@ -3427,10 +3427,10 @@ Reinicia sistema DOS
 Gravar a M.T. AVI
 .
 :MAPPER:recvoldown
-Baixar vol. gravaáÑo
+Baixar vol. grava√ß√£o
 .
 :MAPPER:recvolup
-Aumentar vol. gravaáÑo
+Aumentar vol. grava√ß√£o
 .
 :MAPPER:rescanall
 Reverificar unidades
@@ -3439,10 +3439,10 @@ Reverificar unidades
 Reiniciar o DOSBox-X
 .
 :MAPPER:showstate
-Ver informaáÑo do estado
+Ver informa√ß√£o do estado
 .
 :MAPPER:simple
-CPU: n£cleo simples
+CPU: n√∫cleo simples
 .
 :MAPPER:togmenu
 Alternar barra de menu
