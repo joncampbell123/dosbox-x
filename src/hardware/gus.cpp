@@ -586,23 +586,16 @@ void DEBUG_PrintGUS() { //debugger "GUS" command
                         ch->WaveCtrl,
                         ch->RampCtrl,
                         line.c_str());
-#if 0
-		uint32_t RampStart;
-		uint32_t RampEnd;
-		uint32_t RampVol;
-		uint32_t RampAdd;
-
-		uint8_t RampRate;
-		uint8_t RampCtrl;
-
-		uint8_t PanPot;
-		uint8_t channum;
-		uint32_t irqmask;
-		uint32_t PanLeft;
-		uint32_t PanRight;
-		int32_t VolLeft;
-		int32_t VolRight;
-#endif
+                LOG_MSG("    Ramp start=%05x.%03x end=%05x.%03x vol=%05x.%03x add=%05x.%03x pan=%x",
+                        ch->RampStart>>RAMP_FRACT,
+                        (ch->RampStart&RAMP_FRACT_MASK)<<(12-RAMP_FRACT),//current RAMP_FRACT == 10
+                        ch->RampEnd>>RAMP_FRACT,
+                        (ch->RampEnd&RAMP_FRACT_MASK)<<(12-RAMP_FRACT),//current RAMP_FRACT == 10
+                        ch->RampVol>>RAMP_FRACT,
+                        (ch->RampVol&RAMP_FRACT_MASK)<<(12-RAMP_FRACT),//current RAMP_FRACT == 10
+                        ch->RampAdd>>RAMP_FRACT,
+                        (ch->RampAdd&RAMP_FRACT_MASK)<<(12-RAMP_FRACT),//current RAMP_FRACT == 10
+                        ch->PanPot);
 	}
 }
 #endif
