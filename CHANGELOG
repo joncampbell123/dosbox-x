@@ -1,4 +1,11 @@
 0.83.22
+  - Added debugger command to show global and per-voice
+    status of the Gravis Ultrasound emulation. May come
+    in handy for programmers who wish to write their own
+    GUS routines, and for Trixter who brought up the
+    subject of determining whether a program plays music
+    with the GUS or treats it like a dumb sound card.
+    (joncampbell123).
   - Added debugger command to show SSE register file, and
     to set SSE register contents. (joncampbell123)
   - Added debugger command to show MMX register file, and
