@@ -1727,6 +1727,10 @@ void DEBUG_PrintMMX(int which,char format) {
         w += sprintf(w,"%08lx|%08lx",
             (unsigned long)mmx.ud.d1,(unsigned long)mmx.ud.d0);
     }
+    else if (format == 'S') {
+        w += sprintf(w,"%.20f|%.20f",
+            mmx.f32.f1.v,mmx.f32.f0.v);
+    }
     else { /* 'Q' */
         w += sprintf(w,"%08lx%08lx",
             (unsigned long)mmx.ud.d1,(unsigned long)mmx.ud.d0); /* little endian combine to print 64-bit hex */
@@ -2366,7 +2370,7 @@ bool ParseCommand(char* str) {
         return true;
     }
 
-    if (command == "MMX") { // MMX [=B|=W|=D|=Q] [regindex] [command ...]
+    if (command == "MMX") { // MMX [=B|=W|=D|=Q|=S] [regindex] [command ...]
         while (*found == ' ') found++;
 
         char format = 'a'; /* internal: 'a' for "auto" */
