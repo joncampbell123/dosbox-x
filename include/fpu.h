@@ -147,6 +147,11 @@ typedef union alignas(8) MMX_reg {
 		int8_t b0,b1,b2,b3,b4,b5,b6,b7;
 	} sb;
 	static_assert(sizeof(sb) == 8, "MMX packing error");
+
+	struct { /* MMX registers can contain single precision float if the program uses AMD 3DNow! instructions */
+		FPU_Reg_32 f0,f1;
+	} f32;
+	static_assert(sizeof(f32) == 8, "MMX packing error");
 #else
 	struct {
 		uint32_t d1,d0;
@@ -177,6 +182,11 @@ typedef union alignas(8) MMX_reg {
 		uint8_t b7,b6,b5,b4,b3,b2,b1,b0;
 	} sb;
 	static_assert(sizeof(sb) == 8, "MMX packing error");
+
+	struct { /* MMX registers can contain single precision float if the program uses AMD 3DNow! instructions */
+		FPU_Reg_32 f1,f0;
+	} f32;
+	static_assert(sizeof(f32) == 8, "MMX packing error");
 #endif
 
 };
