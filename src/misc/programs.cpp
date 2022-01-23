@@ -56,6 +56,7 @@ typedef struct {
 Bitu call_program;
 extern char lastmount;
 extern const char *modifier;
+extern unsigned int sendkeymap;
 extern std::string langname, configfile, dosbox_title;
 extern int autofixwarn, enablelfn, fat32setver, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor;
 extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, ttfswitch, loadlang, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, uao, showdbcs, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, outcon, enable_dbcs_tables;
@@ -663,6 +664,21 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
 #if defined(USE_TTF)
                     if (TTF_using()) resetFontSize();
 #endif
+                }
+                if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapper send key=")) {
+                    std::string mapsendkey = section->Get_string("mapper send key");
+                    if (mapsendkey=="winlogo") sendkeymap=1;
+                    else if (mapsendkey=="winmenu") sendkeymap=2;
+                    else if (mapsendkey=="alttab") sendkeymap=3;
+                    else if (mapsendkey=="ctrlesc") sendkeymap=4;
+                    else if (mapsendkey=="ctrlbreak") sendkeymap=5;
+                    else sendkeymap=0;
+                    mainMenu.get_item("sendkey_mapper_winlogo").check(sendkeymap==1).refresh_item(mainMenu);
+                    mainMenu.get_item("sendkey_mapper_winmenu").check(sendkeymap==2).refresh_item(mainMenu);
+                    mainMenu.get_item("sendkey_mapper_alttab").check(sendkeymap==3).refresh_item(mainMenu);
+                    mainMenu.get_item("sendkey_mapper_ctrlesc").check(sendkeymap==4).refresh_item(mainMenu);
+                    mainMenu.get_item("sendkey_mapper_ctrlbreak").check(sendkeymap==5).refresh_item(mainMenu);
+                    mainMenu.get_item("sendkey_mapper_cad").check(!sendkeymap).refresh_item(mainMenu);
                 }
             } else if (!strcasecmp(pvar.c_str(), "sdl")) {
                 modifier = section->Get_string("clip_key_modifier");
