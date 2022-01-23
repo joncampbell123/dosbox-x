@@ -154,6 +154,23 @@ uint16_t customcp_to_unicode[256], altcp_to_unicode[256];
 extern uint16_t cpMap_AX[32];
 extern uint16_t cpMap_PC98[256];
 extern std::map<int, int> lowboxdrawmap, pc98boxdrawmap;
+bool cpwarn_once = false, ignorespecial = false;
+const char *prefix_local = "$DBLOCALFILE";
+
+#if defined (WIN32) || defined (OS2)				/* Win 32 & OS/2*/
+#define CROSS_DOSFILENAME(blah)
+#else
+//Convert back to DOS PATH
+#define	CROSS_DOSFILENAME(blah) strreplace(blah,'/','\\')
+#endif
+
+char* GetCrossedName(const char *basedir, const char *dir) {
+	static char crossname[CROSS_LEN];
+	strcpy(crossname, basedir);
+	strcat(crossname, dir);
+	CROSS_FILENAME(crossname);
+	return crossname;
+}
 
 bool String_ASCII_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     const uint16_t* df = d + CROSS_LEN * (morelen?4:1) - 1;
@@ -500,7 +517,6 @@ template <class MT> bool String_HOST_TO_DBCS_UTF8(char *d/*CROSS_LEN*/,const cha
                 continue;
             }
         } else if (morelen && IS_JEGA_ARCH) {
-            bool found = false;
             uint8_t j = 0;
             for (uint8_t i=1; i<32; i++)
                 if (cpMap_AX[i] == ic) {
@@ -620,8 +636,6 @@ bool String_HOST_TO_ASCII_UTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) 
 
     return true;
 }
-
-bool cpwarn_once = false;
 
 bool isemptyhit(uint16_t code) {
     switch (dos.loaded_codepage) {
@@ -1604,11 +1618,17 @@ bool localDrive::FileUnlink(const char * name) {
 		}
 		if(!found_file) return false;
 		if (!ht_unlink(host_name)) {
+#if !defined (WIN32)
+			remove_special_file_from_disk(name, "ATR");
+#endif
 			dirCache.DeleteEntry(newname);
 			return true;
 		}
 		return false;
 	} else {
+#if !defined (WIN32)
+		remove_special_file_from_disk(name, "ATR");
+#endif
 		dirCache.DeleteEntry(newname);
 		return true;
 	}
@@ -1735,8 +1755,21 @@ again:
 	if (attribs != INVALID_FILE_ATTRIBUTES)
 		find_attr|=attribs&0x3f;
 #else
-	if (!(find_attr&DOS_ATTR_DIRECTORY)) find_attr|=DOS_ATTR_ARCHIVE;
+	bool isdir = find_attr & DOS_ATTR_DIRECTORY;
+	if (!isdir) find_attr|=DOS_ATTR_ARCHIVE;
 	if(!(stat_block.st_mode & S_IWUSR)) find_attr|=DOS_ATTR_READ_ONLY;
+    std::string fname = create_filename_of_special_operation(temp_name, "ATR", false);
+    if (ht_stat(fname.c_str(),&stat_block)==0) {
+        unsigned int len = stat_block.st_size;
+        if (len & 1) {
+            if (isdir)
+                find_attr|=DOS_ATTR_ARCHIVE;
+            else
+                find_attr&=~DOS_ATTR_ARCHIVE;
+        }
+        if (len & 2) find_attr|=DOS_ATTR_HIDDEN;
+        if (len & 4) find_attr|=DOS_ATTR_SYSTEM;
+    }
 #endif
  	if (~srch_attr & find_attr & DOS_ATTR_DIRECTORY) goto again;
 	
@@ -1767,6 +1800,52 @@ again:
 	return true;
 }
 
+void localDrive::remove_special_file_from_disk(const char* dosname, const char* operation) {
+#if !defined (WIN32)
+	std::string newname = create_filename_of_special_operation(dosname, operation, true);
+	const host_cnv_char_t* host_name = CodePageGuestToHost(newname.c_str());
+	if (host_name != NULL)
+		ht_unlink(host_name);
+	else
+		unlink(newname.c_str());
+#endif
+}
+
+std::string localDrive::create_filename_of_special_operation(const char* dosname, const char* operation, bool expand) {
+	std::string res(expand?dirCache.GetExpandName(GetCrossedName(basedir, dosname)):dosname);
+	std::string::size_type s = std::string::npos; //CHECK DOS or host endings.... on update_cache
+	bool lead = false;
+	for (unsigned int i=0; i<res.size(); i++) {
+		if (lead) lead = false;
+		else if ((IS_PC98_ARCH && shiftjis_lead_byte(res[i])) || (isDBCSCP() && isKanji1(res[i]))) lead = true;
+		else if (res[i]=='\\'||res[i]==CROSS_FILESPLIT) s = i;
+	}
+	if (s == std::string::npos) s = 0; else s++;
+	std::string oper = special_prefix_local + "_" + operation + "_";
+	res.insert(s,oper);
+	return res;
+}
+
+bool localDrive::add_special_file_to_disk(const char* dosname, const char* operation, uint16_t value, bool isdir) {
+#if !defined (WIN32)
+	std::string newname = create_filename_of_special_operation(dosname, operation, true);
+	const host_cnv_char_t* host_name = CodePageGuestToHost(newname.c_str());
+	FILE* f = fopen_wrap(host_name!=NULL?host_name:newname.c_str(),"wb+");
+	if (!f) return false;
+    size_t len = 0;
+    if (isdir != !(value & DOS_ATTR_ARCHIVE)) len |= 1;
+    if (value & DOS_ATTR_HIDDEN) len |= 2;
+    if (value & DOS_ATTR_SYSTEM) len |= 4;
+    char *buf = new char[len + 1];
+	fwrite(buf,len,1,f);
+	fclose(f);
+    delete[] buf;
+    return true;
+#else
+    return false;
+#endif
+}
+
 bool localDrive::SetFileAttr(const char * name,uint16_t attr) {
 	char newname[CROSS_LEN];
 	strcpy(newname,basedir);
@@ -1793,18 +1872,18 @@ bool localDrive::SetFileAttr(const char * name,uint16_t attr) {
 #else
 	ht_stat_t status;
 	if (ht_stat(host_name,&status)==0) {
-		if (attr & (DOS_ATTR_SYSTEM|DOS_ATTR_HIDDEN))
-			LOG(LOG_DOSMISC,LOG_WARN)("%s: Application attempted to set system or hidden attributes for '%s' which is ignored for local drives",__FUNCTION__,newname);
-
 		if (attr & DOS_ATTR_READ_ONLY)
 			status.st_mode &= ~(S_IWUSR|S_IWGRP|S_IWOTH);
 		else
 			status.st_mode |=  S_IWUSR;
-
 		if (chmod(host_name,status.st_mode) < 0) {
 			DOS_SetError(DOSERR_ACCESS_DENIED);
 			return false;
 		}
+		if (!(attr & (DOS_ATTR_SYSTEM|DOS_ATTR_HIDDEN)) && (status.st_mode & S_IFDIR) == !(attr & DOS_ATTR_ARCHIVE))
+			remove_special_file_from_disk(name, "ATR");
+		else if (!add_special_file_to_disk(name, "ATR", attr, status.st_mode & S_IFDIR))
+			LOG(LOG_DOSMISC,LOG_WARN)("%s: Application attempted to set system or hidden attributes for '%s' which is ignored for local drives",__FUNCTION__,newname);
 
 		return true;
 	}
@@ -1843,9 +1922,22 @@ bool localDrive::GetFileAttr(const char * name,uint16_t * attr) {
 #else
 	ht_stat_t status;
 	if (ht_stat(host_name,&status)==0) {
-		*attr=status.st_mode & S_IFDIR?0:DOS_ATTR_ARCHIVE;
-		if(status.st_mode & S_IFDIR) *attr|=DOS_ATTR_DIRECTORY;
+        bool isdir = status.st_mode & S_IFDIR;
+		*attr=isdir?0:DOS_ATTR_ARCHIVE;
+		if(isdir) *attr|=DOS_ATTR_DIRECTORY;
 		if(!(status.st_mode & S_IWUSR)) *attr|=DOS_ATTR_READ_ONLY;
+		std::string fname = create_filename_of_special_operation(name, "ATR", true);
+        if (ht_stat(fname.c_str(),&status)==0) {
+            unsigned int len = status.st_size;
+            if (len & 1) {
+                if (isdir)
+                    *attr|=DOS_ATTR_ARCHIVE;
+                else
+                    *attr&=~DOS_ATTR_ARCHIVE;
+            }
+            if (len & 2) *attr|=DOS_ATTR_HIDDEN;
+            if (len & 4) *attr|=DOS_ATTR_SYSTEM;
+        }
 		return true;
 	}
 	*attr=0;
@@ -2283,7 +2375,9 @@ void localDrive::closedir(void *handle) {
 bool localDrive::read_directory_first(void *handle, char* entry_name, char* entry_sname, bool& is_directory) {
     host_cnv_char_t tmp[MAX_PATH+1], stmp[MAX_PATH+1];
 
+    ignorespecial = true;
     if (::read_directory_firstw((dir_information*)handle, tmp, stmp, is_directory)) {
+        ignorespecial = false;
         // guest to host code page translation
         const char* n_stemp_name = CodePageHostToGuest(stmp);
         if (n_stemp_name == NULL) {
@@ -2310,6 +2404,7 @@ bool localDrive::read_directory_first(void *handle, char* entry_name, char* entr
 		strcpy(entry_sname,n_stemp_name);
 		return true;
     }
+    ignorespecial = false;
 
     return false;
 }
@@ -2318,7 +2413,9 @@ bool localDrive::read_directory_next(void *handle, char* entry_name, char* entry
     host_cnv_char_t tmp[MAX_PATH+1], stmp[MAX_PATH+1];
 
 next:
+    ignorespecial = true;
     if (::read_directory_nextw((dir_information*)handle, tmp, stmp, is_directory)) {
+        ignorespecial = false;
         // guest to host code page translation
         const char* n_stemp_name = CodePageHostToGuest(stmp);
         if (n_stemp_name == NULL) {
@@ -2345,11 +2442,12 @@ next:
         strcpy(entry_sname,n_stemp_name);
         return true;
     }
+    ignorespecial = false;
 
     return false;
 }
 
-localDrive::localDrive(const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid, std::vector<std::string> &options) {
+localDrive::localDrive(const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid, std::vector<std::string> &options) : special_prefix_local(prefix_local) {
 	strcpy(basedir,startdir);
 	sprintf(info,"local directory %s",startdir);
 	allocation.bytes_sector=_bytes_sector;
@@ -3834,21 +3932,6 @@ Bits physfscdromDrive::UnMount(void) {
 bool logoverlay = false;
 using namespace std;
 
-#if defined (WIN32) || defined (OS2)				/* Win 32 & OS/2*/
-#define CROSS_DOSFILENAME(blah) 
-#else
-//Convert back to DOS PATH 
-#define	CROSS_DOSFILENAME(blah) strreplace(blah,'/','\\')
-#endif
-
-char* GetCrossedName(const char *basedir, const char *dir) {
-	static char crossname[CROSS_LEN];
-	strcpy(crossname, basedir);
-	strcat(crossname, dir);
-	CROSS_FILENAME(crossname);
-	return crossname;
-}
-
 /* 
  * Wengier: Long filenames are supported in all including overlay drives.
  * Shift-JIS characters (Kana, Kanji, etc) are also supported in PC-98 mode.
@@ -4886,8 +4969,21 @@ again:
 	if (attribs != INVALID_FILE_ATTRIBUTES)
 		find_attr|=attribs&0x3f;
 #else
-	if (!(find_attr&DOS_ATTR_DIRECTORY)) find_attr|=DOS_ATTR_ARCHIVE;
+	bool isdir = find_attr & DOS_ATTR_DIRECTORY;
+	if (!isdir) find_attr|=DOS_ATTR_ARCHIVE;
 	if(!(stat_block.st_mode & S_IWUSR)) find_attr|=DOS_ATTR_READ_ONLY;
+    std::string fname = create_filename_of_special_operation(host_name, "ATR");
+    if (ht_stat(fname.c_str(),&stat_block)==0) {
+        unsigned int len = stat_block.st_size;
+        if (len & 1) {
+            if (isdir)
+                find_attr|=DOS_ATTR_ARCHIVE;
+            else
+                find_attr&=~DOS_ATTR_ARCHIVE;
+        }
+        if (len & 2) find_attr|=DOS_ATTR_HIDDEN;
+        if (len & 4) find_attr|=DOS_ATTR_SYSTEM;
+    }
 #endif
  	if (~srch_attr & find_attr & DOS_ATTR_DIRECTORY) goto again;
 	
@@ -4991,6 +5087,9 @@ bool Overlay_Drive::FileUnlink(const char * name) {
 		if (unlink(overlayname) == 0) { //Overlay file removed
 			//Mark basefile as deleted if it exists:
 			if (localDrive::FileExists(name)) add_deleted_file(name,true);
+#if !defined (WIN32)
+			remove_special_file_from_disk(name, "ATR");
+#endif
 			remove_DOSname_from_cache(name); //Should be an else ? although better safe than sorry.
 			//Handle this better
 			dirCache.DeleteEntry(basename);
@@ -5004,12 +5103,14 @@ bool Overlay_Drive::FileUnlink(const char * name) {
 	} else { //Removed from overlay.
 		//TODO IF it exists in the basedir: and more locations above.
 		if (localDrive::FileExists(name)) add_deleted_file(name,true);
+#if !defined (WIN32)
+		remove_special_file_from_disk(name, "ATR");
+#endif
 		remove_DOSname_from_cache(name);
 		//TODODO remove from the update_cache cache as well
 		//Handle this better
 		//Check if it exists in the base dir as well
 		dirCache.DeleteEntry(basename);
-
 		dirCache.EmptyCache();
 		update_cache(false);
 		if (logoverlay) LOG_MSG("OPTIMISE: unlink took %d",GetTicks()-a);
@@ -5050,15 +5151,16 @@ bool Overlay_Drive::SetFileAttr(const char * name,uint16_t attr) {
 	}
 #else
 	if (ht_stat(overtmpname,&status)==0 || ht_stat(overlayname,&status)==0) {
-		if (attr & (DOS_ATTR_SYSTEM|DOS_ATTR_HIDDEN))
-			LOG(LOG_DOSMISC,LOG_WARN)("%s: Application attempted to set system or hidden attributes for '%s' which is ignored for local drives",__FUNCTION__,overlayname);
-
 		if (attr & DOS_ATTR_READ_ONLY)
 			status.st_mode &= ~(S_IWUSR|S_IWGRP|S_IWOTH);
 		else
 			status.st_mode |=  S_IWUSR;
 		if (chmod(overtmpname,status.st_mode) >= 0 || chmod(overlayname,status.st_mode) >= 0)
 			success=true;
+		if (!(attr & (DOS_ATTR_SYSTEM|DOS_ATTR_HIDDEN)) && (status.st_mode & S_IFDIR) == !(attr & DOS_ATTR_ARCHIVE))
+			remove_special_file_from_disk(name, "ATR");
+		else if (!add_special_file_to_disk(name, "ATR", attr, status.st_mode & S_IFDIR))
+			LOG(LOG_DOSMISC,LOG_WARN)("%s: Application attempted to set system or hidden attributes for '%s' which is ignored for local drives",__FUNCTION__,name);
 	}
 #endif
 	if (success) {
@@ -5134,15 +5236,16 @@ bool Overlay_Drive::SetFileAttr(const char * name,uint16_t attr) {
 		}
 #else
 		if (ht_stat(overtmpname,&status)==0 || ht_stat(overlayname,&status)==0) {
-			if (attr & (DOS_ATTR_SYSTEM|DOS_ATTR_HIDDEN))
-				LOG(LOG_DOSMISC,LOG_WARN)("%s: Application attempted to set system or hidden attributes for '%s' which is ignored for local drives",__FUNCTION__,overlayname);
-
 			if (attr & DOS_ATTR_READ_ONLY)
 				status.st_mode &= ~(S_IWUSR|S_IWGRP|S_IWOTH);
 			else
 				status.st_mode |=  S_IWUSR;
 			if (chmod(overtmpname,status.st_mode) >= 0 || chmod(overlayname,status.st_mode) >= 0)
 				success=true;
+			if (!(attr & (DOS_ATTR_SYSTEM|DOS_ATTR_HIDDEN)) && (status.st_mode & S_IFDIR) == !(attr & DOS_ATTR_ARCHIVE))
+				remove_special_file_from_disk(name, "ATR");
+			else if (!add_special_file_to_disk(name, "ATR", attr, status.st_mode & S_IFDIR))
+				LOG(LOG_DOSMISC,LOG_WARN)("%s: Application attempted to set system or hidden attributes for '%s' which is ignored for local drives",__FUNCTION__,name);
 		}
 #endif
 		if (success) {
@@ -5194,10 +5297,24 @@ bool Overlay_Drive::GetFileAttr(const char * name,uint16_t * attr) {
 	}
 #else
 	ht_stat_t status;
-	if (ht_stat(overtmpname,&status)==0 || ht_stat(overlayname,&status)==0) {
-		*attr=status.st_mode & S_IFDIR?0:DOS_ATTR_ARCHIVE;
-		if(status.st_mode & S_IFDIR) *attr|=DOS_ATTR_DIRECTORY;
+	bool res = ht_stat(overtmpname,&status)==0;
+	if (res || ht_stat(overlayname,&status)==0) {
+        bool isdir = status.st_mode & S_IFDIR;
+		*attr=isdir?0:DOS_ATTR_ARCHIVE;
+		if(isdir) *attr|=DOS_ATTR_DIRECTORY;
 		if(!(status.st_mode & S_IWUSR)) *attr|=DOS_ATTR_READ_ONLY;
+		std::string fname = create_filename_of_special_operation(res?overtmpname:overlayname, "ATR");
+        if (ht_stat(fname.c_str(),&status)==0) {
+            unsigned int len = status.st_size;
+            if (len & 1) {
+                if (isdir)
+                    *attr|=DOS_ATTR_ARCHIVE;
+                else
+                    *attr&=~DOS_ATTR_ARCHIVE;
+            }
+            if (len & 2) *attr|=DOS_ATTR_HIDDEN;
+            if (len & 4) *attr|=DOS_ATTR_SYSTEM;
+        }
 		return true;
 	}
 #endif
@@ -5256,7 +5373,7 @@ void Overlay_Drive::add_deleted_file(const char* name,bool create_on_disk) {
 	}
 }
 
-void Overlay_Drive::add_special_file_to_disk(const char* dosname, const char* operation) {
+bool Overlay_Drive::add_special_file_to_disk(const char* dosname, const char* operation, uint16_t value, bool isdir) {
 	std::string name = create_filename_of_special_operation(dosname, operation);
 	char overlayname[CROSS_LEN];
 	strcpy(overlayname,overlaydir);
@@ -5297,9 +5414,21 @@ void Overlay_Drive::add_special_file_to_disk(const char* dosname, const char* op
 		}
 	}
 	if (!f) E_Exit("Failed creation of %s",overlayname);
-	char buf[5] = {'e','m','p','t','y'};
-	fwrite(buf,5,1,f);
-	fclose(f);
+    if (!strcmp(operation, "ATR")) {
+        size_t len = 0;
+        if (isdir != !(value & DOS_ATTR_ARCHIVE)) len |= 1;
+        if (value & DOS_ATTR_HIDDEN) len |= 2;
+        if (value & DOS_ATTR_SYSTEM) len |= 4;
+        char *buf = new char[len + 1];
+        fwrite(buf,len,1,f);
+        fclose(f);
+        delete[] buf;
+    } else {
+        char buf[5] = {'e','m','p','t','y'};
+        fwrite(buf,5,1,f);
+        fclose(f);
+    }
+    return true;
 }
 
 void Overlay_Drive::remove_special_file_from_disk(const char* dosname, const char* operation) {
@@ -5316,7 +5445,7 @@ void Overlay_Drive::remove_special_file_from_disk(const char* dosname, const cha
 		CROSS_FILENAME(overlayname);
 	}
 	const host_cnv_char_t* host_name = CodePageGuestToHost(overlayname);
-	if ((host_name == NULL || ht_unlink(host_name) != 0) && unlink(overlayname) != 0)
+	if ((host_name == NULL || ht_unlink(host_name) != 0) && unlink(overlayname) != 0 && strcmp(operation, "ATR"))
 		E_Exit("Failed removal of %s",overlayname);
 }
 
@@ -5327,14 +5456,13 @@ std::string Overlay_Drive::create_filename_of_special_operation(const char* dosn
 	for (unsigned int i=0; i<res.size(); i++) {
 		if (lead) lead = false;
 		else if ((IS_PC98_ARCH && shiftjis_lead_byte(res[i])) || (isDBCSCP() && isKanji1(res[i]))) lead = true;
-		else if (res[i]=='\\') s = i;
+		else if (res[i]=='\\'||res[i]==CROSS_FILESPLIT) s = i;
 	}
 	if (s == std::string::npos) s = 0; else s++;
 	std::string oper = special_prefix + "_" + operation + "_";
 	res.insert(s,oper);
 	return res;
 }
-
 
 bool Overlay_Drive::is_dir_only_in_overlay(const char* name) {
 	if (!name || !*name) return false;

@@ -48,6 +48,9 @@
     tools like CPU-Z to make them happy. (joncampbell123)
   - Added FXSAVE/FXRSTOR which makes Linux happy with
     Pentium III emulation. (joncampbell123)
+  - Added support for archive, hidden, system attributes
+    on mounted local and overlay drives for non-Windows
+    platforms by using special file(s). (Wengier)
   - Added code page 3021 for the MIK character set used
     by the Bulgarian language (as in FreeDOS). (Wengier)
   - Added language file for the Brazilian Portuguese,

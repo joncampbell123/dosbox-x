@@ -95,7 +95,10 @@ public:
 	virtual void *opendir(const char *name);
 	virtual void closedir(void *handle);
 	virtual bool read_directory_first(void *handle, char* entry_name, char* entry_sname, bool& is_directory);
-    virtual bool read_directory_next(void *handle, char* entry_name, char* entry_sname, bool& is_directory);
+	virtual bool read_directory_next(void *handle, char* entry_name, char* entry_sname, bool& is_directory);
+	virtual void remove_special_file_from_disk(const char* dosname, const char* operation);
+	virtual std::string create_filename_of_special_operation(const char* dosname, const char* operation, bool expand);
+	virtual bool add_special_file_to_disk(const char* dosname, const char* operation, uint16_t value, bool isdir);
 
 	virtual void EmptyCache(void) { dirCache.EmptyCache(); };
 	virtual void MediaChange() {};
@@ -109,6 +112,9 @@ public:
 		unsigned long initfree;
 	} allocation;
 	int remote = -1;
+
+private:
+	const std::string special_prefix_local;
 
 protected:
 	DOS_Drive_Cache dirCache;
@@ -735,7 +741,7 @@ public:
 	virtual Bits UnMount(void);
 	virtual char const* GetLabel(void);
 private:
-    VFILE_Block* search_file = 0;
+	VFILE_Block* search_file = 0;
 };
 
 class Overlay_Drive: public localDrive {
@@ -788,7 +794,7 @@ private:
 
 
 	void remove_special_file_from_disk(const char* dosname, const char* operation);
-	void add_special_file_to_disk(const char* dosname, const char* operation);
+	bool add_special_file_to_disk(const char* dosname, const char* operation, uint16_t value = 0, bool isdir = false);
 	std::string create_filename_of_special_operation(const char* dosname, const char* operation);
 	void convert_overlay_to_DOSname_in_base(char* dirname );
 	//For caching the update_cache routine.
