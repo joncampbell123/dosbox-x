@@ -300,7 +300,7 @@ static char const *second[] = {
   "cmovs %Gv,%Ev",    "cmovns %Gv,%Ev",  "cmovp %Gv,%Ev",  "cmovnp %Gv,%Ev",
   "cmovl %Gv,%Ev",    "cmovge %Gv,%Ev",  "cmovle %Gv,%Ev", "cmovg %Gv,%Ev",
 /* 5 */
-  0, "%x0", 0, 0, "%x0", 0, 0, "%x0",
+  "%x0", "%x0", "%x0", "%x0", "%x0", 0, 0, "%x0",
   0, "%x0", 0, 0, 0, 0, 0, 0,
 /* 6 */
   "punpcklbw %GM,%EM","punpcklwd %GM,%EM","punpckldq %GM,%EM","packsswb %GM,%EM",
@@ -394,9 +394,10 @@ static char const *mpgroups[][256][4] = { /* mandatory prefix groups SSE instruc
     /* 0x48 */ { 0,0,0,0 }, /* 0x49 */ { 0,0,0,0 }, /* 0x4A */ { 0,0,0,0 }, /* 0x4B */ { 0,0,0,0 },
     /* 0x4C */ { 0,0,0,0 }, /* 0x4D */ { 0,0,0,0 }, /* 0x4E */ { 0,0,0,0 }, /* 0x4F */ { 0,0,0,0 },
 
-    /* 0x50 */ { 0,0,0,0 },
+    /* 0x50 */ { "movmskps %Gd,%EX", 0,0,0 },
     /* 0x51 */ { "sqrtps %GX,%EX", "sqrtpd %GX,%EX", "sqrtsd %GX,%EX", "sqrtss %GX,%EX" },
-    /* 0x52 */ { 0,0,0,0 }, /* 0x53 */ { 0,0,0,0 },
+    /* 0x52 */ { "rqsrtps %GX,%EX", 0,0, "rsqrtss %GX,%EX" },
+    /* 0x53 */ { "rcpps %GX,%EX", 0,0, "rcpss %GX,%EX" },
     /* 0x54 */ { "andps %GX,%EX", "andpd %GX,%EX", 0,0 },
     /* 0x55 */ { 0,0,0,0 },
     /* 0x56 */ { 0,0,0,0 },
