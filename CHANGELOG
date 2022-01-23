@@ -50,6 +50,8 @@
     Pentium III emulation. (joncampbell123)
   - Added code page 3021 for the MIK character set used
     by the Bulgarian language (as in FreeDOS). (Wengier)
+  - Added language file for the Brazilian Portuguese,
+    available from Windows installer. (altiereslima)
   - For piping (|), DOSBox-X will now also try C: drive
     as a temporary piping path if current directory is
     read-only and the environment variable %TEMP% (or
@@ -60,6 +62,9 @@
     (instead of failing) now if the image files are
     read-only and the users do not explicitly specify
     read-only mode for the disk images. (Wengier)
+  - The default value of config option "autofixwarning"
+    (in [dos] section) is now "false", and it is now
+    changeable via CONFIG command. (Wengier)
   - Setting "windowposition" to "-" in the configuration
     will leave DOSBox-X window position as is instead of
     a specific position or being centered. (Wengier)
