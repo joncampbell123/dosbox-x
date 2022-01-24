@@ -43,16 +43,18 @@
 #include <CoreGraphics/CoreGraphics.h>
 #endif
 
+int oldblinkc = -1;
 std::string savefilename = "";
 
 extern SHELL_Cmd cmd_list[];
 extern unsigned int page, hostkeyalt, sendkeymap;
 extern int posx, posy, wheel_key, mbutton, enablelfn, dos_clipboard_device_access;
-extern bool addovl, clearline, winrun, window_was_maximized, wheel_guest, clipboard_dosapi, clipboard_biospaste, direct_mouse_clipboard, sync_time, manualtime, pausewithinterrupts_enable, enable_autosave, enable_config_as_shell_commands, noremark_save_state, force_load_state, use_quick_reboot, use_save_file, dpi_aware_enable, pc98_force_ibm_layout, log_int21, log_fileio, x11_on_top, macosx_on_top;
+extern bool addovl, clearline, winrun, window_was_maximized, wheel_guest, clipboard_dosapi, clipboard_biospaste, direct_mouse_clipboard, sync_time, manualtime, pausewithinterrupts_enable, enable_autosave, enable_config_as_shell_commands, noremark_save_state, force_load_state, use_quick_reboot, use_save_file, dpi_aware_enable, pc98_force_ibm_layout, log_int21, log_fileio, x11_on_top, macosx_on_top, rtl, gbk, chinasea;
 extern bool mountfro[26], mountiro[26];
 extern struct BuiltinFileBlob bfb_GLIDE2X_OVL;
 extern const char* RunningProgram;
 
+void MSG_Init(void);
 void SendKey(std::string key);
 void MAPPER_ReleaseAllKeys(void);
 void RENDER_Reset(void);
@@ -71,12 +73,15 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple);
 void MenuBootDrive(char drive);
 void MenuUnmountDrive(char drive);
 void DOSBox_SetSysMenu(void);
+void makestdcp950table(void);
+void makeseacp951table(void);
 void SetGameState_Run(int value);
 void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 void GFX_LosingFocus(void);
 void GFX_ReleaseMouse(void);
 void GFX_ForceRedrawScreen(void);
 bool GFX_GetPreventFullscreen(void);
+bool isDBCSCP(void);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 int FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 size_t GetGameState_Run(void);
@@ -1517,6 +1522,181 @@ bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item*
     }
 #endif
 
+    return true;
+}
+
+bool ttf_blinking_cursor_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    if (blinkCursor>-1) {
+        oldblinkc=blinkCursor;
+        blinkCursor=-1;
+        SetVal("ttf", "blinkc", "false");
+        mainMenu.get_item("ttf_blinkc").check(false).refresh_item(mainMenu);
+    } else {
+        blinkCursor=oldblinkc>-1?oldblinkc:(IS_PC98_ARCH?6:4);
+        SetVal("ttf", "blinkc", "true");
+        mainMenu.get_item("ttf_blinkc").check(true).refresh_item(mainMenu);
+    }
+    resetFontSize();
+    return true;
+}
+
+bool ttf_right_left_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    rtl=!rtl;
+    SetVal("ttf", "righttoleft", rtl?"true":"false");
+    mainMenu.get_item("ttf_right_left").check(rtl).refresh_item(mainMenu);
+    resetFontSize();
+    return true;
+}
+
+bool ttf_dbcs_sbcs_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    if (!isDBCSCP()) {
+        systemmessagebox("Warning", "This function is only available for the Chinese/Japanese/Korean code pages.", "ok","warning", 1);
+        return true;
+    }
+    dbcs_sbcs=!dbcs_sbcs;
+    SetVal("ttf", "autodbcs", dbcs_sbcs?"true":"false");
+    mainMenu.get_item("ttf_dbcs_sbcs").check(dbcs_sbcs).refresh_item(mainMenu);
+    resetFontSize();
+    return true;
+}
+
+bool ttf_auto_boxdraw_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    if (!isDBCSCP()) {
+        systemmessagebox("Warning", "This function is only available for the Chinese/Japanese/Korean code pages.", "ok","warning", 1);
+        return true;
+    }
+    autoboxdraw=!autoboxdraw;
+    SetVal("ttf", "autoboxdraw", autoboxdraw?"true":"false");
+    mainMenu.get_item("ttf_autoboxdraw").check(autoboxdraw).refresh_item(mainMenu);
+    resetFontSize();
+    return true;
+}
+
+bool ttf_halfwidth_katakana_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    if (!isDBCSCP()||dos.loaded_codepage!=932) {
+        systemmessagebox("Warning", "This function is only available for the Japanese code page (932).", "ok","warning", 1);
+        return true;
+    }
+    halfwidthkana=!halfwidthkana;
+    SetVal("ttf", "halfwidthkana", halfwidthkana?"true":"false");
+    mainMenu.get_item("ttf_halfwidthkana").check(halfwidthkana).refresh_item(mainMenu);
+    setTTFCodePage();
+    resetFontSize();
+    return true;
+}
+
+bool ttf_extend_charset_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    if (!isDBCSCP()||(dos.loaded_codepage!=936&&dos.loaded_codepage!=950&&dos.loaded_codepage!=951)) {
+        systemmessagebox("Warning", "This function is only available for the Chinese code pages (936 or 950).", "ok","warning", 1);
+        return true;
+    }
+    if (dos.loaded_codepage==936) {
+        gbk=!gbk;
+        SetVal("ttf", "gbk", gbk?"true":"false");
+        mainMenu.get_item("ttf_extcharset").check(gbk).refresh_item(mainMenu);
+    } else if (dos.loaded_codepage==950) {
+        chinasea=!chinasea;
+        if (!chinasea) makestdcp950table();
+        SetVal("ttf", "chinasea", chinasea?"true":"false");
+        mainMenu.get_item("ttf_extcharset").check(chinasea).refresh_item(mainMenu);
+    } else if (dos.loaded_codepage==951) {
+        chinasea=!chinasea;
+        if (chinasea) makeseacp951table();
+        SetVal("ttf", "chinasea", chinasea?"true":"false");
+        mainMenu.get_item("ttf_extcharset").check(chinasea).refresh_item(mainMenu);
+        MSG_Init();
+    }
+    resetFontSize();
+    return true;
+}
+
+#if C_PRINTER
+bool ttf_print_font_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    printfont=!printfont;
+    SetVal("ttf", "printfont", printfont?"true":"false");
+    mainMenu.get_item("ttf_printfont").check(printfont).refresh_item(mainMenu);
+    UpdateDefaultPrinterFont();
+    return true;
+}
+#endif
+
+void ttf_reset_colors() {
+    SetVal("ttf", "colors", "");
+    setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
+}
+
+bool ttf_reset_colors_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    ttf_reset_colors();
+    return true;
+}
+
+bool ttf_style_change_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    const char *mname = menuitem->get_name().c_str();
+    if (!strcmp(mname, "ttf_showbold")) {
+        showbold=!showbold;
+        SetVal("ttf", "bold", showbold?"true":"false");
+        mainMenu.get_item(mname).check(showbold).refresh_item(mainMenu);
+    } else if (!strcmp(mname, "ttf_showital")) {
+        showital=!showital;
+        SetVal("ttf", "italic", showital?"true":"false");
+        mainMenu.get_item(mname).check(showital).refresh_item(mainMenu);
+    } else if (!strcmp(mname, "ttf_showline")) {
+        showline=!showline;
+        SetVal("ttf", "underline", showline?"true":"false");
+        mainMenu.get_item(mname).check(showline).refresh_item(mainMenu);
+    } else if (!strcmp(mname, "ttf_showsout")) {
+        showsout=!showsout;
+        SetVal("ttf", "strikeout", showsout?"true":"false");
+        mainMenu.get_item(mname).check(showsout).refresh_item(mainMenu);
+    } else
+        return true;
+    resetFontSize();
+    return true;
+}
+
+bool ttf_wp_change_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    const char *mname = menuitem->get_name().c_str();
+    if (!strcmp(mname, "ttf_wpno")) {
+        SetVal("ttf", "wp", "");
+        wpType=0;
+    } else if (!strcmp(mname, "ttf_wpwp")) {
+        SetVal("ttf", "wp", "wp");
+        wpType=1;
+    } else if (!strcmp(mname, "ttf_wpws")) {
+        SetVal("ttf", "wp", "ws");
+        wpType=2;
+    } else if (!strcmp(mname, "ttf_wpxy")) {
+        SetVal("ttf", "wp", "xy");
+        wpType=3;
+    } else if (!strcmp(mname, "ttf_wpfe")) {
+        SetVal("ttf", "wp", "fe");
+        wpType=4;
+    } else
+        return true;
+    mainMenu.get_item("ttf_wpno").check(!wpType).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_wpwp").check(wpType==1).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_wpws").check(wpType==2).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_wpxy").check(wpType==3).refresh_item(mainMenu);
+    mainMenu.get_item("ttf_wpfe").check(wpType==4).refresh_item(mainMenu);
+    resetFontSize();
     return true;
 }
 #endif

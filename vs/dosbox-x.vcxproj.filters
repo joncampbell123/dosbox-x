@@ -339,6 +339,9 @@
     <ClCompile Include="..\src\dos\drive_overlay.cpp">
       <Filter>Sources\dos</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\dos\drive_physfs.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\dos\drive_virtual.cpp">
       <Filter>Sources\dos</Filter>
     </ClCompile>
