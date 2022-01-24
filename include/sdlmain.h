@@ -197,6 +197,7 @@ extern SDL_Block sdl;
 #include <output/output_opengl.h>
 #include <output/output_tools.h>
 #include <output/output_tools_xbrz.h>
+#include <output/output_ttf.h>
 
 #include "zipfile.h"
 
@@ -221,9 +222,13 @@ SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES s
 void SDL_GL_SwapBuffers(void);
 #endif
 
-bool TTF_using(void);
-#ifdef USE_TTF
-int setTTFCodePage(void);
+#if defined(WIN32) && !defined(HX_DOS)
+extern int curscreen;
+extern RECT monrect;
+typedef struct {
+	int	x, y;
+} xyp;
+BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam);
 #endif
 
 #endif /*DOSBOX_SDLMAIN_H*/

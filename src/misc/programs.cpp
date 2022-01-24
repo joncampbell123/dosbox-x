@@ -46,11 +46,8 @@
 #include "sdlmain.h"
 #if defined(WIN32)
 #include "windows.h"
-extern RECT monrect;
-extern int curscreen;
-typedef struct {
-	int	x, y;
-} xyp;
+RECT monrect;
+int curscreen;
 #endif
 
 Bitu call_program;

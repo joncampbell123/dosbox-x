@@ -155,6 +155,15 @@ void GFX_OpenGLRedrawScreen(void), InitFontHandle(), DOSV_FillScreen(), SetWindo
 
 #if defined(WIN32)
 #include "resource.h"
+#if !defined(HX_DOS)
+BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam) {
+	xyp* xy = reinterpret_cast<xyp*>(lParam);
+	curscreen++;
+	if (sdl.displayNumber==curscreen) monrect=*pRcMon;
+	return TRUE;
+
+}
+#endif
 #endif
 
 #if defined(WIN32) && defined(__MINGW32__) /* MinGW does not have IID_ITaskbarList3 */
@@ -205,14 +214,6 @@ typedef enum PROCESS_DPI_AWARENESS {
 #include "fpu.h"
 #include "cross.h"
 #include "keymap.h"
-
-#ifdef _MSC_VER
-# define MIN(a,b) ((a) < (b) ? (a) : (b))
-# define MAX(a,b) ((a) > (b) ? (a) : (b))
-#else
-# define MIN(a,b) std::min(a,b)
-# define MAX(a,b) std::max(a,b)
-#endif
 
 #if !defined(C_SDL2) && !defined(RISCOS)
 # include "SDL_version.h"
@@ -288,9 +289,8 @@ static bool PasteClipboardNext();
 #if C_DIRECT3D
 void d3d_init(void);
 #endif
-void ShutDownMemHandles(Section * sec);
+void ShutDownMemHandles(Section * sec), GFX_ReleaseMouse();
 void resetFontSize(), increaseFontSize(), decreaseFontSize();
-void GFX_ReleaseMouse(), makestdcp950table(), makeseacp951table();
 void GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight);
 void MAPPER_CheckEvent(SDL_Event * event), MAPPER_CheckKeyboardLayout(), MAPPER_ReleaseAllKeys();
 bool isDBCSCP(), InitCodePage();
@@ -318,33 +318,6 @@ extern bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LE
 extern bool IME_GetEnable();
 #endif
 
-std::string dosboxpath="";
-std::string GetDOSBoxXPath(bool withexe=false) {
-    std::string full;
-#if defined(HX_DOS) || defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
-    char exepath[MAX_PATH];
-    GetModuleFileName(NULL, exepath, sizeof(exepath));
-    full=std::string(exepath);
-#else
-    int length = wai_getExecutablePath(NULL, 0, NULL);
-    char *exepath = (char*)malloc(length + 1);
-    wai_getExecutablePath(exepath, length, NULL);
-    exepath[length] = 0;
-    full=std::string(exepath);
-    free(exepath);
-#endif
-    if (withexe)
-        dosboxpath=full;
-    else {
-        size_t found=full.find_last_of("/\\");
-        if (found!=std::string::npos)
-            dosboxpath=full.substr(0, found+1);
-        else
-            dosboxpath="";
-    }
-    return dosboxpath;
-}
-
 int NonUserResizeCounter = 0;
 
 #if defined(WIN32) && !defined(C_SDL2)
@@ -352,18 +325,6 @@ extern "C" void SDL1_hax_SetMenu(HMENU menu);
 #endif
 
 #if defined(WIN32) && !defined(HX_DOS)
-int curscreen;
-RECT monrect;
-typedef struct {
-	int	x, y;
-} xyp;
-BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam) {
-	xyp* xy = reinterpret_cast<xyp*>(lParam);
-	curscreen++;
-	if (sdl.displayNumber==curscreen) monrect=*pRcMon;
-	return TRUE;
-
-}
 enum class CornerPreference {
     Default    = 0,
     DoNotRound = 1,
@@ -394,7 +355,7 @@ bool UpdateWindows11RoundCorners(HWND hWnd, CornerPreference cornerPreference) {
     return false;
 }
 #endif
-#include "../output/output_ttf.cpp"
+
 extern int bootdrive, resolveopt;
 extern int dos_clipboard_device_access;
 extern bool bootguest, bootfast, bootvm, addovl;
@@ -412,6 +373,33 @@ void MenuBrowseProgramFile(void);
 void DOSBox_SetSysMenu(void);
 void SetGameState_Run(int value);
 size_t GetGameState_Run(void);
+
+std::string dosboxpath="";
+std::string GetDOSBoxXPath(bool withexe=false) {
+    std::string full;
+#if defined(HX_DOS) || defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
+    char exepath[MAX_PATH];
+    GetModuleFileName(NULL, exepath, sizeof(exepath));
+    full=std::string(exepath);
+#else
+    int length = wai_getExecutablePath(NULL, 0, NULL);
+    char *exepath = (char*)malloc(length + 1);
+    wai_getExecutablePath(exepath, length, NULL);
+    exepath[length] = 0;
+    full=std::string(exepath);
+    free(exepath);
+#endif
+    if (withexe)
+        dosboxpath=full;
+    else {
+        size_t found=full.find_last_of("/\\");
+        if (found!=std::string::npos)
+            dosboxpath=full.substr(0, found+1);
+        else
+            dosboxpath="";
+    }
+    return dosboxpath;
+}
 
 bool save_slot_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
@@ -10021,6 +10009,58 @@ bool vid_select_glsl_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::it
     }
     if(chdir(Temp_CurrentDir) == -1) {
         LOG(LOG_GUI, LOG_ERROR)("vid_select_glsl_shader_menu_callback failed to change directories.");
+        return false;
+    }
+#endif
+
+    return true;
+}
+#endif
+
+#if defined(USE_TTF)
+bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item* const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+#if !defined(HX_DOS)
+    char CurrentDir[512];
+    char * Temp_CurrentDir = CurrentDir;
+    if(getcwd(Temp_CurrentDir, 512) == NULL) {
+        LOG(LOG_GUI, LOG_ERROR)("vid_select_ttf_font_menu_callback failed to get the current working directory.");
+        return false;
+    }
+    std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
+    const char *lFilterPatterns[] = {"*.ttf","*.TTF","*.ttc","*.TTC","*.otf","*.OTF","*.fon","*.FON"};
+    const char *lFilterDescription = "TrueType font files (*.ttf, *.ttc, *.otf, *.fon)";
+    char const * lTheOpenFileName = tinyfd_openFileDialog("Select TrueType font",cwd.c_str(),8,lFilterPatterns,lFilterDescription,0);
+
+    if (lTheOpenFileName) {
+        /* Windows will fill lpstrFile with the FULL PATH.
+           The full path should be given to the TrueType font setting unless it's just
+           the same base path it was given: <cwd>\shaders in which case just cut it
+           down to the filename. */
+        const char* name = lTheOpenFileName;
+
+        /* filenames in Windows are case insensitive so do the comparison the same */
+        if (!strncasecmp(name, cwd.c_str(), cwd.size())) {
+            name += cwd.size();
+            while (*name == CROSS_FILESPLIT) name++;
+        }
+
+        if (*name) {
+            std::string localname = name;
+            if (!FileDirExistCP(name) && FileDirExistUTF8(localname, name))
+                SetVal("ttf", "font", localname.c_str());
+            else
+                SetVal("ttf", "font", name);
+            ttf_reset();
+#if C_PRINTER
+            if (TTF_using() && printfont) UpdateDefaultPrinterFont();
+#endif
+        }
+    }
+    if(chdir(Temp_CurrentDir) == -1) {
+        LOG(LOG_GUI, LOG_ERROR)("vid_select_ttf_font_menu_callback failed to change directories.");
         return false;
     }
 #endif

@@ -24,6 +24,12 @@
 #include "logging.h"
 #include "sdlmain.h"
 #include "render.h"
+#include "jfont.h"
+#include "inout.h"
+#include "bios.h"
+#include "control.h"
+#include "menudef.h"
+#include "../ints/int10.h"
 
 using namespace std;
 
@@ -42,11 +48,19 @@ uint16_t cpMap_AX[32] = {
 };
 
 #if defined(USE_TTF)
-#include "sdl_ttf.c"
 #include "cp437_uni.h"
 #include "DOSBoxTTF.h"
+#include "../gui/sdl_ttf.c"
 
 #define MIN_PTSIZE 9
+
+#ifdef _MSC_VER
+# define MIN(a,b) ((a) < (b) ? (a) : (b))
+# define MAX(a,b) ((a) > (b) ? (a) : (b))
+#else
+# define MIN(a,b) std::min(a,b)
+# define MAX(a,b) std::max(a,b)
+#endif
 
 Render_ttf ttf;
 bool char512 = true;
@@ -76,11 +90,10 @@ int oldblinkc = -1;
 
 static unsigned long ttfSize = sizeof(DOSBoxTTFbi), ttfSizeb = 0, ttfSizei = 0, ttfSizebi = 0;
 static void * ttfFont = DOSBoxTTFbi, * ttfFontb = NULL, * ttfFonti = NULL, * ttfFontbi = NULL;
-extern bool resetreq, enable_dbcs_tables;
-extern int eurAscii;
+extern int posx, posy, switchoutput, eurAscii, NonUserResizeCounter;
+extern bool rtl, gbk, chinasea, force_conversion, blinking;
 extern uint8_t ccount;
-extern uint16_t cpMap[512];
-extern uint16_t cpMap_PC98[256];
+extern uint16_t cpMap[512], cpMap_PC98[256];
 uint16_t cpMap_copy[256];
 static SDL_Color ttf_fgColor = {0, 0, 0, 0};
 static SDL_Color ttf_bgColor = {0, 0, 0, 0};
@@ -101,16 +114,19 @@ static alt_rgb *rgbColors = (alt_rgb*)render.pal.rgb;
 static bool blinkstate = false;
 bool colorChanged = false, justChanged = false, firstsize = true;
 
-int menuwidth_atleast(int width);
-void AdjustIMEFontSize(), initcodepagefont(void), MSG_Init(), DOSBox_SetSysMenu(void), UpdateDefaultPrinterFont(void);
-bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+int menuwidth_atleast(int width), FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
+void AdjustIMEFontSize(void), initcodepagefont(void), MSG_Init(void), DOSBox_SetSysMenu(void), GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight), resetFontSize(void), RENDER_CallBack( GFX_CallBackFunctions_t function ), makestdcp950table(void), makeseacp951table(void);
+bool isDBCSCP(void), InitCodePage(void), CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+std::string GetDOSBoxXPath(bool withexe=false);
 
 #if defined(C_SDL2)
 void GFX_SetResizeable(bool enable);
 SDL_Window * GFX_SetSDLSurfaceWindow(uint16_t width, uint16_t height);
+#elif defined(WIN32)
+extern "C" void SDL1_hax_SetMenu(HMENU menu);
 #endif
 
-static Bitu OUTPUT_TTF_SetSize() {
+Bitu OUTPUT_TTF_SetSize() {
     bool text=CurMode&&(CurMode->type==0||CurMode->type==2||CurMode->type==M_TEXT||IS_PC98_ARCH);
     if (text) {
         sdl.clip.x = sdl.clip.y = 0;
@@ -576,7 +592,7 @@ void SetOutputSwitch(const char *outputstr) {
             switchoutput = -1;
 }
 
-void OUTPUT_TTF_Select(int fsize=-1) {
+void OUTPUT_TTF_Select(int fsize) {
     if (!initttf&&TTF_Init()) {											// Init SDL-TTF
         std::string message = "Could not init SDL-TTF: " + std::string(SDL_GetError());
         systemmessagebox("Error", message.c_str(), "ok","error", 1);
@@ -752,7 +768,6 @@ void OUTPUT_TTF_Select(int fsize=-1) {
         menu.toggle=false;
         NonUserResizeCounter=1;
         SDL1_hax_SetMenu(NULL);
-        void RENDER_CallBack( GFX_CallBackFunctions_t function );
         RENDER_CallBack( GFX_CallBackReset );
 #endif
 #if defined (WIN32)
@@ -929,7 +944,7 @@ void processWP(uint8_t *pcolorBG, uint8_t *pcolorFG) {
     *pcolorFG = colorFG;
 }
 
-void GFX_EndTextLines(bool force=false) {
+void GFX_EndTextLines(bool force) {
     if (!force&&!IS_PC98_ARCH&&((!CurMode||CurMode->type!=M_TEXT))) return;
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     if (!ttf.fullScrn) {
@@ -1236,56 +1251,6 @@ void ttf_reset() {
         increaseFontSize();
     }
 #endif
-}
-
-bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item* const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-
-#if !defined(HX_DOS)
-    char CurrentDir[512];
-    char * Temp_CurrentDir = CurrentDir;
-    if(getcwd(Temp_CurrentDir, 512) == NULL) {
-        LOG(LOG_GUI, LOG_ERROR)("vid_select_ttf_font_menu_callback failed to get the current working directory.");
-        return false;
-    }
-    std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
-    const char *lFilterPatterns[] = {"*.ttf","*.TTF","*.ttc","*.TTC","*.otf","*.OTF","*.fon","*.FON"};
-    const char *lFilterDescription = "TrueType font files (*.ttf, *.ttc, *.otf, *.fon)";
-    char const * lTheOpenFileName = tinyfd_openFileDialog("Select TrueType font",cwd.c_str(),8,lFilterPatterns,lFilterDescription,0);
-
-    if (lTheOpenFileName) {
-        /* Windows will fill lpstrFile with the FULL PATH.
-           The full path should be given to the TrueType font setting unless it's just
-           the same base path it was given: <cwd>\shaders in which case just cut it
-           down to the filename. */
-        const char* name = lTheOpenFileName;
-
-        /* filenames in Windows are case insensitive so do the comparison the same */
-        if (!strncasecmp(name, cwd.c_str(), cwd.size())) {
-            name += cwd.size();
-            while (*name == CROSS_FILESPLIT) name++;
-        }
-
-        if (*name) {
-            std::string localname = name;
-            if (!FileDirExistCP(name) && FileDirExistUTF8(localname, name))
-                SetVal("ttf", "font", localname.c_str());
-            else
-                SetVal("ttf", "font", name);
-            ttf_reset();
-#if C_PRINTER
-            if (TTF_using() && printfont) UpdateDefaultPrinterFont();
-#endif
-        }
-    }
-    if(chdir(Temp_CurrentDir) == -1) {
-        LOG(LOG_GUI, LOG_ERROR)("vid_select_ttf_font_menu_callback failed to change directories.");
-        return false;
-    }
-#endif
-
-    return true;
 }
 
 void ttf_setlines(int cols, int lins) {

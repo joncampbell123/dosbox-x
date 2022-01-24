@@ -843,6 +843,9 @@
     <ClCompile Include="..\src\output\output_surface_sdl.cpp">
       <Filter>Sources\output</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\output\output_ttf.cpp">
+      <Filter>Sources\output</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\hardware\hardware.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>

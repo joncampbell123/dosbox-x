@@ -1497,6 +1497,7 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClCompile Include="..\src\output\output_surface_sdl2.cpp" />
     <ClCompile Include="..\src\output\output_tools.cpp" />
     <ClCompile Include="..\src\output\output_tools_xbrz.cpp" />
+    <ClCompile Include="..\src\output\output_ttf.cpp" />
     <ClCompile Include="..\src\shell\shell.cpp" />
     <ClCompile Include="..\src\shell\shell_batch.cpp" />
     <ClCompile Include="..\src\shell\shell_cmds.cpp" />
