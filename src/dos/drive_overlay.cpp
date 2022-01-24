@@ -23,9 +23,12 @@
 #include "cross.h"
 #include "inout.h"
 #include "timer.h"
+#include "logging.h"
 
 #include <vector>
 #include <string>
+#include <cassert>
+#include <sys/stat.h>
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -35,6 +38,11 @@
 
 #define OVERLAY_DIR 1
 bool logoverlay = false;
+extern int lfn_filefind_handle;
+extern uint16_t ldid[256];
+extern std::string ldir[256];
+std::string prefix_overlay = ".DBOVERLAY";
+
 using namespace std;
 
 /* 
@@ -62,7 +70,11 @@ using namespace std;
 
 //directories that exist only in overlay can not be added to the drive_cache currently. 
 //Either upgrade addentry to support directories. (without actually caching stuff in! (code in testing))
-//Or create an empty directory in local drive base. 
+//Or create an empty directory in local drive base.
+
+host_cnv_char_t *CodePageGuestToHost(const char *s);
+char* GetCrossedName(const char *basedir, const char *dir);
+bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
 
 bool Overlay_Drive::RemoveDir(const char * dir) {
 	if (ovlnocachedir) {
@@ -1431,6 +1443,7 @@ bool Overlay_Drive::GetFileAttr(const char * name,uint16_t * attr) {
 	return localDrive::GetFileAttr(name,attr);
 }
 
+static std::string hostname = "";
 std::string Overlay_Drive::GetHostName(const char * name) {
 	char overlayname[CROSS_LEN];
 	strcpy(overlayname,overlaydir);

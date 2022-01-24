@@ -1131,6 +1131,7 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClCompile Include="..\src\dos\drive_fat.cpp" />
     <ClCompile Include="..\src\dos\drive_iso.cpp" />
     <ClCompile Include="..\src\dos\drive_local.cpp" />
+    <ClCompile Include="..\src\dos\drive_overlay.cpp" />
     <ClCompile Include="..\src\dos\drive_virtual.cpp" />
     <ClCompile Include="..\src\fpu\fpu.cpp" />
     <ClCompile Include="..\src\gui\bitop.cpp" />

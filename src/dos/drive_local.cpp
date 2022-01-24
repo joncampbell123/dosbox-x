@@ -112,40 +112,10 @@
 #define MAX_PATH PATH_MAX
 #endif
 
-#if defined(WIN32)
-// Windows: Use UTF-16 (wide char)
-// TODO: Offer an option to NOT use wide char on Windows if directed by config.h
-//       for people who compile this code for Windows 95 or earlier where some
-//       widechar functions are missing.
-typedef wchar_t host_cnv_char_t;
-# define host_cnv_use_wchar
-# define _HT(x) L##x
-# if defined(__MINGW32__) /* TODO: Get MinGW to support 64-bit file offsets, at least targeting Windows XP! */
-#  define ht_stat_t struct _stat
-#  define ht_stat(x,y) _wstat(x,y)
-# else
-#  define ht_stat_t struct _stat64 /* WTF Microsoft?? Why aren't _stat and _wstat() consistent on stat struct type? */
-#  define ht_stat(x,y) _wstat64(x,y)
-# endif
-# define ht_access(x,y) _waccess(x,y)
-# define ht_strdup(x) _wcsdup(x)
-# define ht_unlink(x) _wunlink(x)
-#else
-// Linux: Use UTF-8
-typedef char host_cnv_char_t;
-# define _HT(x) x
-# define ht_stat_t struct stat
-# define ht_stat(x,y) stat(x,y)
-# define ht_access(x,y) access(x,y)
-# define ht_strdup(x) strdup(x)
-# define ht_unlink(x) unlink(x)
-#endif
-
+uint16_t ldid[256];
+std::string ldir[256];
 static host_cnv_char_t cpcnv_temp[4096];
 static host_cnv_char_t cpcnv_ltemp[4096];
-static uint16_t ldid[256];
-static std::string ldir[256];
-static std::string hostname = "";
 host_cnv_char_t *CodePageGuestToHost(const char *s);
 extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
 extern bool rsize, morelen, force_sfn, enable_share_exe, chinasea, uao, halfwidthkana, dbcs_sbcs, inmsg, forceswk;
@@ -156,14 +126,7 @@ extern uint16_t cpMap_AX[32];
 extern uint16_t cpMap_PC98[256];
 extern std::map<int, int> lowboxdrawmap, pc98boxdrawmap;
 bool cpwarn_once = false, ignorespecial = false;
-std::string prefix_local = ".DBLOCALFILE", prefix_overlay = ".DBOVERLAY";
-
-#if defined (WIN32) || defined (OS2)				/* Win 32 & OS/2*/
-#define CROSS_DOSFILENAME(blah)
-#else
-//Convert back to DOS PATH
-#define	CROSS_DOSFILENAME(blah) strreplace(blah,'/','\\')
-#endif
+std::string prefix_local = ".DBLOCALFILE";
 
 char* GetCrossedName(const char *basedir, const char *dir) {
 	static char crossname[CROSS_LEN];
@@ -172,8 +135,6 @@ char* GetCrossedName(const char *basedir, const char *dir) {
 	CROSS_FILENAME(crossname);
 	return crossname;
 }
-
-#include "drive_overlay.cpp"
 
 bool String_ASCII_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     const uint16_t* df = d + CROSS_LEN * (morelen?4:1) - 1;
@@ -1965,7 +1926,7 @@ std::string localDrive::GetHostName(const char * name) {
 	dirCache.ExpandName(newname);
 	const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
 	ht_stat_t temp_stat;
-	hostname = host_name != NULL && ht_stat(host_name,&temp_stat)==0 ? newname : "";
+	static std::string hostname = host_name != NULL && ht_stat(host_name,&temp_stat)==0 ? newname : "";
 	return hostname;
 }
 

@@ -3677,10 +3677,12 @@ uint32_t DEBUG_CheckKeys(void) {
                       us if the user vertically shrinks the window (adds scrollbar instead). How do we disable
                       that behavior? */
         {
+#ifdef _MSC_VER
             INPUT_RECORD *r = _pdcurses_hax_inputrecord();
             if (r->EventType == WINDOW_BUFFER_SIZE_EVENT) {
                 resize_term(r->Event.WindowBufferSizeEvent.dwSize.Y, r->Event.WindowBufferSizeEvent.dwSize.X);
             }
+#endif
         }
 #endif
         void DEBUG_GUI_OnResize(void);
