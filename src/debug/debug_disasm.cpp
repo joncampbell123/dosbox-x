@@ -333,8 +333,8 @@ static char const *second[] = {
   0,                  0,                 "%g7 %Ev,%Ib",    "btc %Ev,%Gv",
   "bsf %Gv,%Ev",      "bsr %Gv,%Ev",     "movsx %Gv,%Eb",  "movsx %Gv,%Ew",
 /* c */
-  "xadd %Eb,%Gb",     "xadd %Ev,%Gv",    0,                0,
-  0,                  0,                 0,                "%g8",
+  "xadd %Eb,%Gb",     "xadd %Ev,%Gv",    "%x0",            0,
+  "%x0",              "%x0",             0,                "%g8",
   "bswap eax",        "bswap ecx",       "bswap edx",      "bswap ebx",
   "bswap esp",        "bswap ebp",       "bswap esi",      "bswap edi",
 /* d */
@@ -441,8 +441,14 @@ static char const *mpgroups[][256][4] = { /* mandatory prefix groups SSE instruc
     /* 0xB8 */ { 0,0,0,0 }, /* 0xB9 */ { 0,0,0,0 }, /* 0xBA */ { 0,0,0,0 }, /* 0xBB */ { 0,0,0,0 },
     /* 0xBC */ { 0,0,0,0 }, /* 0xBD */ { 0,0,0,0 }, /* 0xBE */ { 0,0,0,0 }, /* 0xBF */ { 0,0,0,0 },
 
-    /* 0xC0 */ { 0,0,0,0 }, /* 0xC1 */ { 0,0,0,0 }, /* 0xC2 */ { 0,0,0,0 }, /* 0xC3 */ { 0,0,0,0 },
-    /* 0xC4 */ { 0,0,0,0 }, /* 0xC5 */ { 0,0,0,0 }, /* 0xC6 */ { 0,0,0,0 }, /* 0xC7 */ { 0,0,0,0 },
+    /* 0xC0 */ { 0,0,0,0 },
+    /* 0xC1 */ { 0,0,0,0 },
+    /* 0xC2 */ { "cmpps %GX,%EX,%Ib", "cmppd %GX,%EX,%Ib", "cmpsd %GX,%EX,%Ib", "cmpss %GX,%EX,%Ib" }, // FIXME: The immediate byte specifies a comparison operator
+    /* 0xC3 */ { 0,0,0,0 },
+    /* 0xC4 */ { "pinsrw %GM,%Ed,%Ib", "pinsrw %GX,%Ed,%Ib", 0, 0 },
+    /* 0xC5 */ { "pextrw %Ed,%GM,%Ib", "pextrw %Ed,%GX,%Ib", 0, 0 },
+    /* 0xC6 */ { 0,0,0,0 },
+    /* 0xC7 */ { 0,0,0,0 },
     /* 0xC8 */ { 0,0,0,0 }, /* 0xC9 */ { 0,0,0,0 }, /* 0xCA */ { 0,0,0,0 }, /* 0xCB */ { 0,0,0,0 },
     /* 0xCC */ { 0,0,0,0 }, /* 0xCD */ { 0,0,0,0 }, /* 0xCE */ { 0,0,0,0 }, /* 0xCF */ { 0,0,0,0 },
 
