@@ -35,6 +35,11 @@ extern int mouse_start_x, mouse_start_y, mouse_end_x, mouse_end_y, fx, fy, selsr
 bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 
+#ifdef MACOSX
+void GetClipboard(std::string* result);
+bool SetClipboard(std::string value);
+#endif
+
 #if defined(WIN32)
 bool Unicode2Ascii(const uint16_t* unicode) {
     int memNeeded = 0;

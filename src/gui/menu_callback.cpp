@@ -39,13 +39,16 @@
 # include "windows.h"
 # include "Shellapi.h"
 #endif
+#ifdef MACOSX
+#include <CoreGraphics/CoreGraphics.h>
+#endif
 
 std::string savefilename = "";
 
 extern SHELL_Cmd cmd_list[];
 extern unsigned int page, hostkeyalt, sendkeymap;
 extern int posx, posy, wheel_key, mbutton, enablelfn, dos_clipboard_device_access;
-extern bool addovl, clearline, winrun, window_was_maximized, wheel_guest, clipboard_dosapi, clipboard_biospaste, direct_mouse_clipboard, sync_time, manualtime, pausewithinterrupts_enable, enable_autosave, enable_config_as_shell_commands, noremark_save_state, force_load_state, use_quick_reboot, use_save_file, dpi_aware_enable, pc98_force_ibm_layout, log_int21, log_fileio, x11_on_top;
+extern bool addovl, clearline, winrun, window_was_maximized, wheel_guest, clipboard_dosapi, clipboard_biospaste, direct_mouse_clipboard, sync_time, manualtime, pausewithinterrupts_enable, enable_autosave, enable_config_as_shell_commands, noremark_save_state, force_load_state, use_quick_reboot, use_save_file, dpi_aware_enable, pc98_force_ibm_layout, log_int21, log_fileio, x11_on_top, macosx_on_top;
 extern bool mountfro[26], mountiro[26];
 extern struct BuiltinFileBlob bfb_GLIDE2X_OVL;
 extern const char* RunningProgram;

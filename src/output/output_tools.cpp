@@ -38,7 +38,7 @@ void d3d_init(void);
 void resetFontSize();
 #endif
 
-void UpdateOverscanMenu(void);
+void res_init(void), UpdateOverscanMenu(void), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 
 extern int initgl;
 extern bool rtl, gbk, chinasea, isVirtualBox;

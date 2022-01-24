@@ -278,8 +278,6 @@ void macosx_GetWindowDPI(ScreenSizeInfo &info);
 int macosx_yesno(const char *title, const char *message);
 int macosx_yesnocancel(const char *title, const char *message);
 std::string macosx_prompt_folder(const char *default_folder);
-void GetClipboard(std::string* result);
-bool SetClipboard(std::string value);
 #endif
 
 #if C_DIRECT3D

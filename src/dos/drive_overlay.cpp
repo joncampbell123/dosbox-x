@@ -1567,7 +1567,7 @@ void Overlay_Drive::remove_special_file_from_disk(const char* dosname, const cha
 		E_Exit("Failed removal of %s",overlayname);
 }
 
-std::string Overlay_Drive::create_filename_of_special_operation(const char* dosname, const char* operation) {
+std::string Overlay_Drive::create_filename_of_special_operation(const char* dosname, const char* operation, bool expand) {
 	std::string res(dosname);
 	std::string::size_type s = std::string::npos; //CHECK DOS or host endings.... on update_cache
 	bool lead = false;

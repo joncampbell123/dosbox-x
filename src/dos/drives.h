@@ -795,7 +795,7 @@ private:
 
 	void remove_special_file_from_disk(const char* dosname, const char* operation);
 	bool add_special_file_to_disk(const char* dosname, const char* operation, uint16_t value = 0, bool isdir = false);
-	std::string create_filename_of_special_operation(const char* dosname, const char* operation);
+	std::string create_filename_of_special_operation(const char* dosname, const char* operation, bool expand = false);
 	void convert_overlay_to_DOSname_in_base(char* dirname );
 	//For caching the update_cache routine.
 	std::vector<std::string> DOSnames_cache; //Also set is probably better.
