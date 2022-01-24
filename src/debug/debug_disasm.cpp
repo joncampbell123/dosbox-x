@@ -308,7 +308,7 @@ static char const *second[] = {
   "punpckhbw %GM,%EM","punpckhwd %GM,%EM","punpckhdq %GM,%EM","packssdw %GM,%EM",
   0,                  0,                 "movd %GM,%Ed",   "movq %GM,%EM",
 /* 7 */
-  0,                  "%g;",             "%g:",            "%g9",
+  "pshufw %GM,%EM,%Ib","%g;",            "%g:",            "%g9",
   "pcmpeqb %GM,%EM",  "pcmpeqw %GM,%EM", "pcmpeqd %GM,%EM","emms",
   0,                  0,                 0,                0,
   0,                  0,                 "movd %Ed,%GM",   "movq %EM,%GM",
