@@ -1,4 +1,11 @@
 0.83.22
+  - Added debugger command to show global and per-voice
+    status of the Gravis Ultrasound emulation. May come
+    in handy for programmers who wish to write their own
+    GUS routines, and for Trixter who brought up the
+    subject of determining whether a program plays music
+    with the GUS or treats it like a dumb sound card.
+    (joncampbell123).
   - Added debugger command to show SSE register file, and
     to set SSE register contents. (joncampbell123)
   - Added debugger command to show MMX register file, and
@@ -41,6 +48,17 @@
     tools like CPU-Z to make them happy. (joncampbell123)
   - Added FXSAVE/FXRSTOR which makes Linux happy with
     Pentium III emulation. (joncampbell123)
+  - Added support for archive, hidden, system attributes
+    on mounted local and overlay drives for non-Windows
+    platforms by using special file(s). (Wengier)
+  - Added config option "special operation file prefix"
+    (in [dos] section) to speciay an alterantive file
+    prefix for DOSBox-X's special operations on mounted
+    local and overlay drives. (Wengier)
+  - Added code page 3021 for the MIK character set used
+    by the Bulgarian language (as in FreeDOS). (Wengier)
+  - Added language file for the Brazilian Portuguese,
+    available from Windows installer. (altiereslima)
   - For piping (|), DOSBox-X will now also try C: drive
     as a temporary piping path if current directory is
     read-only and the environment variable %TEMP% (or
@@ -51,6 +69,11 @@
     (instead of failing) now if the image files are
     read-only and the users do not explicitly specify
     read-only mode for the disk images. (Wengier)
+  - The default value of config option "autofixwarning"
+    (in [dos] section) is now "false", and it is now
+    changeable via CONFIG command. (Wengier)
+  - The default output for Linux SDL1 builds is changed
+    from surface to opengl, unlike Linux SDL2. (Wengier)
   - Setting "windowposition" to "-" in the configuration
     will leave DOSBox-X window position as is instead of
     a specific position or being centered. (Wengier)
@@ -62,9 +85,9 @@
     pages in non-DOS/V, non-PC98, and non-TTF mode.
     Video capturing started from TTF output will enable
     DBCS characters when possible. (Wengier)
-  - Changing code pages is supported for standard modes
-    (i.e. non-DOS/V, non-PC98 and non-TTF modes) using
-    CHCP command. (Wengier)
+  - Changing DBCS code pages is supported for standard
+    modes (i.e. non-DOS/V, non-PC98 and non-TTF modes)
+    using CHCP command. (Wengier)
   - Fixed issues with certain DBCS characters for the
     DOS/V system. (Wengier)
   - Fixed slow blinking text in TTF output. (Wengier)

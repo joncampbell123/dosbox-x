@@ -2137,7 +2137,7 @@ void DOSBOX_SetupConfigSections(void) {
                     "For Traditional Chinese DOS/V, loading the STDFONT.24 font file from the ETen Chinese DOS system is also supported.");
     Pstring->SetBasic(true);
 
-	Pstring = secprop->Add_string("showdbcsnodosv",Property::Changeable::OnlyAtStart,"auto");
+	Pstring = secprop->Add_string("showdbcsnodosv",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(truefalseautoopt);
 	Pstring->Set_help("Enables rendering of Chinese/Japanese/Korean characters for DBCS code pages in non-DOS/V, non-PC98, and non-TTF mode.\n"
                       "Setting to \"auto\" enables rendering of Chinese/Japanese/Korean characters if a language file is loaded in such cases.");
@@ -3985,6 +3985,9 @@ void DOSBOX_SetupConfigSections(void) {
                    "The disk I/O performance as in DOSBox SVN can be achieved by setting this to 0.");
     Pint->SetBasic(true);
 
+    Pstring = secprop->Add_string("special operation file prefix",Property::Changeable::OnlyAtStart,".DB");
+    Pstring->Set_help("The file prefix used by DOSBox-X's special operations on mounted local/overlay drives. It is fixed to \"DB\" in mainline DOSBox.");
+
     Pstring = secprop->Add_string("drive z is remote",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(truefalseautoopt);
     Pstring->Set_help("If set, DOS will report drive Z as remote. If not set, DOS will report drive Z as local.\n"
@@ -3997,7 +4000,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("drive z hide files",Property::Changeable::OnlyAtStart,"/TEXTUTIL\\25.COM /TEXTUTIL\\28.COM /TEXTUTIL\\50.COM");
     Pstring->Set_help("The files or directories listed here (separated by space) will be either hidden or removed from the Z drive.\n"
-                      "Files with leading forward slashs (e.g. \"/DEBUG\\BIOSTEST.COM\") will become hidden files (DIR /A will list them).");
+                      "Files with leading forward slashes (e.g. \"/DEBUG\\BIOSTEST.COM\") will become hidden files (DIR /A will list them).");
 
     Pbool = secprop->Add_bool("hidenonrepresentable",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, DOSBox-X will hide files on local drives that are non-representative in the current DOS code page.\n"
@@ -4230,7 +4233,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("autoloadfix",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set (default), DOSBox-X will automatically re-run the executable with LOADFIX if it failed with the \"Packed file is corrupt\" error.");
 
-    Pstring = secprop->Add_string("autofixwarning",Property::Changeable::WhenIdle,"true");
+    Pstring = secprop->Add_string("autofixwarning",Property::Changeable::WhenIdle,"false");
     Pstring->Set_values(autofix_settings);
     Pstring->Set_help("If set to true or both, DOSBox-X shows messages while trying to automatically fix the \"Packed file is corrupt\" error.\n"
                       "If set to false or none, DOSBox-X will not show such messages on the screen when the error occurred.\n"

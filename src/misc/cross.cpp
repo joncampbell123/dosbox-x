@@ -42,7 +42,8 @@ typedef wchar_t host_cnv_char_t;
 #else
 typedef char host_cnv_char_t;
 #endif
-extern bool hidenonrep;
+extern std::string prefix_local;
+extern bool hidenonrep, ignorespecial;
 extern char *CodePageHostToGuest(const host_cnv_char_t *s);
 
 #if defined HAVE_SYS_TYPES_H && defined HAVE_PWD_H
@@ -402,10 +403,11 @@ dir_information* open_directory(const char* dirname) {
 bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {	
 	if (!dirp) return false;
 	struct dirent* dentry;
+	std::string::size_type const prefix_lengh = prefix_local.size();
 	do {
 		dentry = readdir(dirp->dir);
 		if (dentry==NULL) return false;
-	} while (hidenonrep&&CodePageHostToGuest(dentry->d_name)==NULL);
+	} while ((hidenonrep && CodePageHostToGuest(dentry->d_name)==NULL) || (ignorespecial && (strlen(dentry->d_name) > prefix_lengh+5) && strncmp(dentry->d_name,prefix_local.c_str(),prefix_lengh) == 0));
 
 //	safe_strncpy(entry_name,dentry->d_name,(FILENAME_MAX<MAX_PATH)?FILENAME_MAX:MAX_PATH);	// [include stdio.h], maybe pathconf()
 	safe_strncpy(entry_name,dentry->d_name,CROSS_LEN);
@@ -436,10 +438,11 @@ bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_s
 bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {
 	if (!dirp) return false;
 	struct dirent* dentry;
+	std::string::size_type const prefix_lengh = prefix_local.size();
 	do {
 		dentry = readdir(dirp->dir);
 		if (dentry==NULL) return false;
-	} while (hidenonrep&&CodePageHostToGuest(dentry->d_name)==NULL);
+	} while ((hidenonrep && CodePageHostToGuest(dentry->d_name)==NULL) || (ignorespecial && (strlen(dentry->d_name) > prefix_lengh+5) && strncmp(dentry->d_name,prefix_local.c_str(),prefix_lengh) == 0));
 
 //	safe_strncpy(entry_name,dentry->d_name,(FILENAME_MAX<MAX_PATH)?FILENAME_MAX:MAX_PATH);	// [include stdio.h], maybe pathconf()
 	safe_strncpy(entry_name,dentry->d_name,CROSS_LEN);

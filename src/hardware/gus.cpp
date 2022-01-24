@@ -98,8 +98,8 @@ static void CheckVoiceIrq(void);
 
 struct GFGus {
 	uint8_t gRegSelectData;		// what is read back from 3X3. not necessarily the index selected, but
-					// apparently the last byte read OR written to ports 3X3-3X5 as seen
-					// on actual GUS hardware.
+	// apparently the last byte read OR written to ports 3X3-3X5 as seen
+	// on actual GUS hardware.
 	uint8_t gRegSelect;
 	uint16_t gRegData;
 	uint32_t gDramAddr;
@@ -107,8 +107,8 @@ struct GFGus {
 	uint16_t gCurChannel;
 
 	uint8_t gUltraMAXControl;
-    uint16_t DMAControl; /* NTS: bit 8 for DMA TC IRQ status. Only bits [7:0] exist on real hardware.
-                            We're taking the DOSBox SVN approach here (https://sourceforge.net/p/dosbox/code-0/4387/#diff-2) */
+	uint16_t DMAControl; /* NTS: bit 8 for DMA TC IRQ status. Only bits [7:0] exist on real hardware.
+				We're taking the DOSBox SVN approach here (https://sourceforge.net/p/dosbox/code-0/4387/#diff-2) */
 	uint16_t dmaAddr;
 	uint8_t dmaAddrOffset; /* bits 0-3 of the addr */
 	uint8_t TimerControl;
@@ -127,6 +127,7 @@ struct GFGus {
 		bool masked;
 		bool running;
 	} timers[2];
+
 	uint32_t rate;
 	Bitu portbase;
 	uint32_t memsize;
@@ -150,15 +151,15 @@ struct GFGus {
 	uint8_t IRQChan;
 	uint32_t RampIRQ;
 	uint32_t WaveIRQ;
-    double masterVolume;    /* decibels */
-    int32_t masterVolumeMul; /* 1<<9 fixed */
+	double masterVolume;    /* decibels */
+	int32_t masterVolumeMul; /* 1<<9 fixed */
 
-    void updateMasterVolume(void) {
-        double vol = masterVolume;
-        if (vol > 6) vol = 6; // allow some amplification but don't let it overflow
-        masterVolumeMul = (int32_t)((1 << 9) * pow(10.0,vol / 20.0));
-        if (AutoAmp > masterVolumeMul) AutoAmp = masterVolumeMul;
-    }
+	void updateMasterVolume(void) {
+		double vol = masterVolume;
+		if (vol > 6) vol = 6; // allow some amplification but don't let it overflow
+		masterVolumeMul = (int32_t)((1 << 9) * pow(10.0,vol / 20.0));
+		if (AutoAmp > masterVolumeMul) AutoAmp = masterVolumeMul;
+	}
 } myGUS;
 
 Bitu DEBUG_EnableDebugger(void);
@@ -168,341 +169,436 @@ static uint8_t GUS_reset_reg = 0;
 static inline uint8_t read_GF1_mapping_control(const unsigned int ch);
 
 class GUSChannels {
-public:
-	uint32_t WaveStart;
-	uint32_t WaveEnd;
-	uint32_t WaveAddr;
-	uint32_t WaveAdd;
-	uint8_t  WaveCtrl;
-	uint16_t WaveFreq;
+	public:
+		uint32_t WaveStart;
+		uint32_t WaveEnd;
+		uint32_t WaveAddr;
+		uint32_t WaveAdd;
+		uint8_t  WaveCtrl;
+		uint16_t WaveFreq;
 
-	uint32_t RampStart;
-	uint32_t RampEnd;
-	uint32_t RampVol;
-	uint32_t RampAdd;
+		uint32_t RampStart;
+		uint32_t RampEnd;
+		uint32_t RampVol;
+		uint32_t RampAdd;
 
-	uint8_t RampRate;
-	uint8_t RampCtrl;
+		uint8_t RampRate;
+		uint8_t RampCtrl;
 
-	uint8_t PanPot;
-	uint8_t channum;
-	uint32_t irqmask;
-	uint32_t PanLeft;
-	uint32_t PanRight;
-	int32_t VolLeft;
-	int32_t VolRight;
+		uint8_t PanPot;
+		uint8_t channum;
+		uint32_t irqmask;
+		uint32_t PanLeft;
+		uint32_t PanRight;
+		int32_t VolLeft;
+		int32_t VolRight;
 
-	GUSChannels(uint8_t num) { 
-		channum = num;
-		irqmask = 1u << num;
-		WaveStart = 0;
-		WaveEnd = 0;
-		WaveAddr = 0;
-		WaveAdd = 0;
-		WaveFreq = 0;
-		WaveCtrl = 3;
-		RampRate = 0;
-		RampStart = 0;
-		RampEnd = 0;
-		RampCtrl = 3;
-		RampAdd = 0;
-		RampVol = 0;
-		VolLeft = 0;
-		VolRight = 0;
-		PanLeft = 0;
-		PanRight = 0;
-		PanPot = 0x7;
-	}
-
-    INLINE int32_t LoadSample8(const uint32_t addr/*memory address without fractional bits*/) const {
-        return (int8_t)GUSRam[addr & 0xFFFFFu/*1MB*/] << int32_t(8); /* typecast to sign extend 8-bit value */
-    }
-
-    INLINE int32_t LoadSample16(const uint32_t addr/*memory address without fractional bits*/) const {
-        const uint32_t adjaddr = (addr & 0xC0000u/*256KB bank*/) | ((addr & 0x1FFFFu) << 1u/*16-bit sample value within bank*/);
-        return (int16_t)host_readw(GUSRam + adjaddr);/* typecast to sign extend 16-bit value */
-    }
-
-    // Returns a single 16-bit sample from the Gravis's RAM
-    INLINE int32_t GetSample8() const {
-        /* LoadSample*() will take care of wrapping to 1MB */
-        const uint32_t useAddr = WaveAddr >> WAVE_FRACT;
-        {
-            // Interpolate
-            int32_t w1 = LoadSample8(useAddr);
-            int32_t w2 = LoadSample8(useAddr + 1u);
-            int32_t diff = w2 - w1;
-            int32_t scale = (int32_t)(WaveAddr & WAVE_FRACT_MASK);
-            return (w1 + ((diff * scale) >> WAVE_FRACT));
-        }
-    }
-
-    INLINE int32_t GetSample16() const {
-        /* Load Sample*() will take care of wrapping to 1MB and funky bank/sample conversion */
-        const uint32_t useAddr = WaveAddr >> WAVE_FRACT;
-        {
-            // Interpolate
-            int32_t w1 = LoadSample16(useAddr);
-            int32_t w2 = LoadSample16(useAddr + 1u);
-            int32_t diff = w2 - w1;
-            int32_t scale = (int32_t)(WaveAddr & WAVE_FRACT_MASK);
-            return (w1 + ((diff * scale) >> WAVE_FRACT));
-        }
-    }
-
-	void WriteWaveFreq(uint16_t val) {
-		WaveFreq = val;
-		if (myGUS.fixed_sample_rate_output) {
-			double frameadd = double(val >> 1)/512.0;		//Samples / original gus frame
-			double realadd = (frameadd*(double)myGUS.basefreq/(double)GUS_RATE) * (double)(1 << WAVE_FRACT);
-			WaveAdd = (uint32_t)realadd;
+		GUSChannels(uint8_t num) { 
+			channum = num;
+			irqmask = 1u << num;
+			WaveStart = 0;
+			WaveEnd = 0;
+			WaveAddr = 0;
+			WaveAdd = 0;
+			WaveFreq = 0;
+			WaveCtrl = 3;
+			RampRate = 0;
+			RampStart = 0;
+			RampEnd = 0;
+			RampCtrl = 3;
+			RampAdd = 0;
+			RampVol = 0;
+			VolLeft = 0;
+			VolRight = 0;
+			PanLeft = 0;
+			PanRight = 0;
+			PanPot = 0x7;
 		}
-		else {
-			WaveAdd = ((uint32_t)(val >> 1)) << ((uint32_t)(WAVE_FRACT-9));
+
+		INLINE int32_t LoadSample8(const uint32_t addr/*memory address without fractional bits*/) const {
+			return (int8_t)GUSRam[addr & 0xFFFFFu/*1MB*/] << int32_t(8); /* typecast to sign extend 8-bit value */
 		}
-	}
-	void WriteWaveCtrl(uint8_t val) {
-		uint32_t oldirq=myGUS.WaveIRQ;
-		WaveCtrl = val & 0x7f;
 
-		if ((val & 0xa0)==0xa0) myGUS.WaveIRQ|=irqmask;
-		else myGUS.WaveIRQ&=~irqmask;
-
-		if (oldirq != myGUS.WaveIRQ) 
-			CheckVoiceIrq();
-	}
-	INLINE uint8_t ReadWaveCtrl(void) {
-		uint8_t ret=WaveCtrl;
-		if (myGUS.WaveIRQ & irqmask) ret|=0x80;
-		return ret;
-	}
-	void UpdateWaveRamp(void) { 
-		WriteWaveFreq(WaveFreq);
-		WriteRampRate(RampRate);
-	}
-	void WritePanPot(uint8_t val) {
-		PanPot = val;
-		PanLeft = pantable[val & 0xf];
-		PanRight = pantable[0x0f-(val & 0xf)];
-		UpdateVolumes();
-	}
-	uint8_t ReadPanPot(void) {
-		return PanPot;
-	}
-	void WriteRampCtrl(uint8_t val) {
-		uint32_t old=myGUS.RampIRQ;
-		RampCtrl = val & 0x7f;
-        //Manually set the irq
-        if ((val & 0xa0) == 0xa0)
-            myGUS.RampIRQ |= irqmask;
-        else
-            myGUS.RampIRQ &= ~irqmask;
-        if (old != myGUS.RampIRQ)
-            CheckVoiceIrq();
-	}
-	INLINE uint8_t ReadRampCtrl(void) {
-		uint8_t ret=RampCtrl;
-		if (myGUS.RampIRQ & irqmask) ret|=0x80;
-		return ret;
-	}
-	void WriteRampRate(uint8_t val) {
-		RampRate = val;
-		if (myGUS.fixed_sample_rate_output) {
-			double frameadd = (double)(RampRate & 63)/(double)(1 << (3*(val >> 6)));
-			double realadd = (frameadd*(double)myGUS.basefreq/(double)GUS_RATE) * (double)(1 << RAMP_FRACT);
-			RampAdd = (uint32_t)realadd;
+		INLINE int32_t LoadSample16(const uint32_t addr/*memory address without fractional bits*/) const {
+			const uint32_t adjaddr = (addr & 0xC0000u/*256KB bank*/) | ((addr & 0x1FFFFu) << 1u/*16-bit sample value within bank*/);
+			return (int16_t)host_readw(GUSRam + adjaddr);/* typecast to sign extend 16-bit value */
 		}
-		else {
-			/* NTS: Note RAMP_FRACT == 10, shift = 10 - (3*(val>>6)).
-			 * From the upper two bits, the possible shift values for 0, 1, 2, 3 are: 10, 7, 4, 1 */
-			RampAdd = ((uint32_t)(RampRate & 63)) << ((uint32_t)(RAMP_FRACT - (3*(val >> 6))));
-#if 0//SET TO 1 TO CHECK YOUR MATH!
-			double frameadd = (double)(RampRate & 63)/(double)(1 << (3*(val >> 6)));
-			double realadd = frameadd * (double)(1 << RAMP_FRACT);
-			uint32_t checkadd = (uint32_t)realadd;
-			signed long error = (signed long)checkadd - (signed long)RampAdd;
 
-			if (error < -1L || error > 1L)
-				LOG_MSG("RampAdd nonfixed error %ld (%lu != %lu)",error,(unsigned long)checkadd,(unsigned long)RampAdd);
-#endif
+		// Returns a single 16-bit sample from the Gravis's RAM
+		INLINE int32_t GetSample8() const {
+			/* LoadSample*() will take care of wrapping to 1MB */
+			const uint32_t useAddr = WaveAddr >> WAVE_FRACT;
+			{
+				// Interpolate
+				int32_t w1 = LoadSample8(useAddr);
+				int32_t w2 = LoadSample8(useAddr + 1u);
+				int32_t diff = w2 - w1;
+				int32_t scale = (int32_t)(WaveAddr & WAVE_FRACT_MASK);
+				return (w1 + ((diff * scale) >> WAVE_FRACT));
+			}
 		}
-	}
-	INLINE void WaveUpdate(void) {
-		bool endcondition;
 
-		if ((WaveCtrl & (WCTRL_STOP | WCTRL_STOPPED)) == 0/*voice is running*/) {
-			/* NTS: WaveAddr and WaveAdd are unsigned.
-			 *      If WaveAddr <= WaveAdd going backwards, WaveAddr becomes negative, which as an unsigned integer,
-			 *      means carrying down from the highest possible value of the integer type. Which means that if the
-			 *      start position is less than WaveAdd the WaveAddr will skip over the start pointer and continue
-			 *      playing downward from the top of the GUS memory, without stopping/looping as expected.
-			 *
-			 *      This "bug" was implemented on purpose because real Gravis Ultrasound hardware acts this way. */
-			uint32_t WaveExtra = 0;
-			if (WaveCtrl & WCTRL_DECREASING/*backwards (direction)*/) {
-				/* unsigned int subtract, mask, compare. will miss start pointer if WaveStart <= WaveAdd.
-				 * This bug is deliberate, accurate to real GUS hardware, do not fix. */
-				WaveAddr -= WaveAdd;
-				WaveAddr &= ((Bitu)1 << ((Bitu)WAVE_FRACT + (Bitu)20/*1MB*/)) - 1;
-				endcondition = (WaveAddr < WaveStart)?true:false;
-				if (endcondition) WaveExtra = WaveStart - WaveAddr;
+		INLINE int32_t GetSample16() const {
+			/* Load Sample*() will take care of wrapping to 1MB and funky bank/sample conversion */
+			const uint32_t useAddr = WaveAddr >> WAVE_FRACT;
+			{
+				// Interpolate
+				int32_t w1 = LoadSample16(useAddr);
+				int32_t w2 = LoadSample16(useAddr + 1u);
+				int32_t diff = w2 - w1;
+				int32_t scale = (int32_t)(WaveAddr & WAVE_FRACT_MASK);
+				return (w1 + ((diff * scale) >> WAVE_FRACT));
+			}
+		}
+
+		void WriteWaveFreq(uint16_t val) {
+			WaveFreq = val;
+			if (myGUS.fixed_sample_rate_output) {
+				double frameadd = double(val >> 1)/512.0;		//Samples / original gus frame
+				double realadd = (frameadd*(double)myGUS.basefreq/(double)GUS_RATE) * (double)(1 << WAVE_FRACT);
+				WaveAdd = (uint32_t)realadd;
 			}
 			else {
-				WaveAddr += WaveAdd;
-				endcondition = (WaveAddr > WaveEnd)?true:false;
-				WaveAddr &= ((Bitu)1 << ((Bitu)WAVE_FRACT + (Bitu)20/*1MB*/)) - 1;
-				if (endcondition) WaveExtra = WaveAddr - WaveEnd;
+				WaveAdd = ((uint32_t)(val >> 1)) << ((uint32_t)(WAVE_FRACT-9));
 			}
+		}
+		void WriteWaveCtrl(uint8_t val) {
+			uint32_t oldirq=myGUS.WaveIRQ;
+			WaveCtrl = val & 0x7f;
 
-			if (endcondition) {
-				if (WaveCtrl & WCTRL_IRQENABLED) /* generate an IRQ if requested */
-					myGUS.WaveIRQ |= irqmask;
+			if ((val & 0xa0)==0xa0) myGUS.WaveIRQ|=irqmask;
+			else myGUS.WaveIRQ&=~irqmask;
 
-				if ((RampCtrl & WCTRL_16BIT/*roll over*/) && !(WaveCtrl & WCTRL_LOOP)) {
-					/* "3.11. Rollover feature
-					 * 
-					 * Each voice has a 'rollover' feature that allows an application to be notified when a voice's playback position passes
-					 * over a particular place in DRAM.  This is very useful for getting seamless digital audio playback.  Basically, the GF1
-					 * will generate an IRQ when a voice's current position is  equal to the end position.  However, instead of stopping or
-					 * looping back to the start position, the voice will continue playing in the same direction.  This means that there will be
-					 * no pause (or gap) in the playback.  Note that this feature is enabled/disabled through the voice's VOLUME control
-					 * register (since there are no more bits available in the voice control registers).   A voice's loop enable bit takes
-					 * precedence over the rollover.  This means that if a voice's loop enable is on, it will loop when it hits the end position,
-					 * regardless of the state of the rollover enable."
-					 *
-					 * Despite the confusing description above, that means that looping takes precedence over rollover. If not looping, then
-					 * rollover means to fire the IRQ but keep moving. If looping, then fire IRQ and carry out loop behavior. Gravis Ultrasound
-					 * Windows 3.1 drivers expect this behavior, else Windows WAVE output will not work correctly. */
+			if (oldirq != myGUS.WaveIRQ) 
+				CheckVoiceIrq();
+		}
+		INLINE uint8_t ReadWaveCtrl(void) {
+			uint8_t ret=WaveCtrl;
+			if (myGUS.WaveIRQ & irqmask) ret|=0x80;
+			return ret;
+		}
+		void UpdateWaveRamp(void) { 
+			WriteWaveFreq(WaveFreq);
+			WriteRampRate(RampRate);
+		}
+		void WritePanPot(uint8_t val) {
+			PanPot = val;
+			PanLeft = pantable[val & 0xf];
+			PanRight = pantable[0x0f-(val & 0xf)];
+			UpdateVolumes();
+		}
+		uint8_t ReadPanPot(void) {
+			return PanPot;
+		}
+		void WriteRampCtrl(uint8_t val) {
+			uint32_t old=myGUS.RampIRQ;
+			RampCtrl = val & 0x7f;
+			//Manually set the irq
+			if ((val & 0xa0) == 0xa0)
+				myGUS.RampIRQ |= irqmask;
+			else
+				myGUS.RampIRQ &= ~irqmask;
+			if (old != myGUS.RampIRQ)
+				CheckVoiceIrq();
+		}
+		INLINE uint8_t ReadRampCtrl(void) {
+			uint8_t ret=RampCtrl;
+			if (myGUS.RampIRQ & irqmask) ret|=0x80;
+			return ret;
+		}
+		void WriteRampRate(uint8_t val) {
+			RampRate = val;
+			if (myGUS.fixed_sample_rate_output) {
+				double frameadd = (double)(RampRate & 63)/(double)(1 << (3*(val >> 6)));
+				double realadd = (frameadd*(double)myGUS.basefreq/(double)GUS_RATE) * (double)(1 << RAMP_FRACT);
+				RampAdd = (uint32_t)realadd;
+			}
+			else {
+				/* NTS: Note RAMP_FRACT == 10, shift = 10 - (3*(val>>6)).
+				 * From the upper two bits, the possible shift values for 0, 1, 2, 3 are: 10, 7, 4, 1 */
+				RampAdd = ((uint32_t)(RampRate & 63)) << ((uint32_t)(RAMP_FRACT - (3*(val >> 6))));
+#if 0//SET TO 1 TO CHECK YOUR MATH!
+				double frameadd = (double)(RampRate & 63)/(double)(1 << (3*(val >> 6)));
+				double realadd = frameadd * (double)(1 << RAMP_FRACT);
+				uint32_t checkadd = (uint32_t)realadd;
+				signed long error = (signed long)checkadd - (signed long)RampAdd;
+
+				if (error < -1L || error > 1L)
+					LOG_MSG("RampAdd nonfixed error %ld (%lu != %lu)",error,(unsigned long)checkadd,(unsigned long)RampAdd);
+#endif
+			}
+		}
+		INLINE void WaveUpdate(void) {
+			bool endcondition;
+
+			if ((WaveCtrl & (WCTRL_STOP | WCTRL_STOPPED)) == 0/*voice is running*/) {
+				/* NTS: WaveAddr and WaveAdd are unsigned.
+				 *      If WaveAddr <= WaveAdd going backwards, WaveAddr becomes negative, which as an unsigned integer,
+				 *      means carrying down from the highest possible value of the integer type. Which means that if the
+				 *      start position is less than WaveAdd the WaveAddr will skip over the start pointer and continue
+				 *      playing downward from the top of the GUS memory, without stopping/looping as expected.
+				 *
+				 *      This "bug" was implemented on purpose because real Gravis Ultrasound hardware acts this way. */
+				uint32_t WaveExtra = 0;
+				if (WaveCtrl & WCTRL_DECREASING/*backwards (direction)*/) {
+					/* unsigned int subtract, mask, compare. will miss start pointer if WaveStart <= WaveAdd.
+					 * This bug is deliberate, accurate to real GUS hardware, do not fix. */
+					WaveAddr -= WaveAdd;
+					WaveAddr &= ((Bitu)1 << ((Bitu)WAVE_FRACT + (Bitu)20/*1MB*/)) - 1;
+					endcondition = (WaveAddr < WaveStart)?true:false;
+					if (endcondition) WaveExtra = WaveStart - WaveAddr;
 				}
 				else {
-					if (WaveCtrl & WCTRL_LOOP) {
-						if (WaveCtrl & WCTRL_BIDIRECTIONAL) WaveCtrl ^= WCTRL_DECREASING/*change direction*/;
-						WaveAddr = (WaveCtrl & WCTRL_DECREASING) ? (WaveEnd - WaveExtra) : (WaveStart + WaveExtra);
-					} else {
-						WaveCtrl |= 1; /* stop the channel */
-						WaveAddr = (WaveCtrl & WCTRL_DECREASING) ? WaveStart : WaveEnd;
+					WaveAddr += WaveAdd;
+					endcondition = (WaveAddr > WaveEnd)?true:false;
+					WaveAddr &= ((Bitu)1 << ((Bitu)WAVE_FRACT + (Bitu)20/*1MB*/)) - 1;
+					if (endcondition) WaveExtra = WaveAddr - WaveEnd;
+				}
+
+				if (endcondition) {
+					if (WaveCtrl & WCTRL_IRQENABLED) /* generate an IRQ if requested */
+						myGUS.WaveIRQ |= irqmask;
+
+					if ((RampCtrl & WCTRL_16BIT/*roll over*/) && !(WaveCtrl & WCTRL_LOOP)) {
+						/* "3.11. Rollover feature
+						 * 
+						 * Each voice has a 'rollover' feature that allows an application to be notified when a voice's playback position passes
+						 * over a particular place in DRAM.  This is very useful for getting seamless digital audio playback.  Basically, the GF1
+						 * will generate an IRQ when a voice's current position is  equal to the end position.  However, instead of stopping or
+						 * looping back to the start position, the voice will continue playing in the same direction.  This means that there will be
+						 * no pause (or gap) in the playback.  Note that this feature is enabled/disabled through the voice's VOLUME control
+						 * register (since there are no more bits available in the voice control registers).   A voice's loop enable bit takes
+						 * precedence over the rollover.  This means that if a voice's loop enable is on, it will loop when it hits the end position,
+						 * regardless of the state of the rollover enable."
+						 *
+						 * Despite the confusing description above, that means that looping takes precedence over rollover. If not looping, then
+						 * rollover means to fire the IRQ but keep moving. If looping, then fire IRQ and carry out loop behavior. Gravis Ultrasound
+						 * Windows 3.1 drivers expect this behavior, else Windows WAVE output will not work correctly. */
+					}
+					else {
+						if (WaveCtrl & WCTRL_LOOP) {
+							if (WaveCtrl & WCTRL_BIDIRECTIONAL) WaveCtrl ^= WCTRL_DECREASING/*change direction*/;
+							WaveAddr = (WaveCtrl & WCTRL_DECREASING) ? (WaveEnd - WaveExtra) : (WaveStart + WaveExtra);
+						} else {
+							WaveCtrl |= 1; /* stop the channel */
+							WaveAddr = (WaveCtrl & WCTRL_DECREASING) ? WaveStart : WaveEnd;
+						}
+					}
+				}
+			}
+			else if (WaveCtrl & WCTRL_IRQENABLED) {
+				/* Undocumented behavior observed on real GUS hardware: A stopped voice will still rapid-fire IRQs
+				 * if IRQ enabled and current position <= start position OR current position >= end position */
+				if (WaveCtrl & WCTRL_DECREASING/*backwards (direction)*/)
+					endcondition = (WaveAddr <= WaveStart)?true:false;
+				else
+					endcondition = (WaveAddr >= WaveEnd)?true:false;
+
+				if (endcondition)
+					myGUS.WaveIRQ |= irqmask;
+			}
+		}
+		INLINE void UpdateVolumes(void) {
+			int32_t templeft=(int32_t)RampVol - (int32_t)PanLeft;
+			templeft&=~(templeft >> 31); /* <- NTS: This is a rather elaborate way to clamp negative values to zero using negate and sign extend */
+			int32_t tempright=(int32_t)RampVol - (int32_t)PanRight;
+			tempright&=~(tempright >> 31); /* <- NTS: This is a rather elaborate way to clamp negative values to zero using negate and sign extend */
+			VolLeft=vol16bit[templeft >> RAMP_FRACT];
+			VolRight=vol16bit[tempright >> RAMP_FRACT];
+		}
+		INLINE void RampUpdate(void) {
+			if (RampCtrl & 0x3) return; /* if the ramping is turned off, then don't change the ramp */
+
+			int32_t RampLeft;
+			if (RampCtrl & 0x40) {
+				RampVol-=RampAdd;
+				if ((int32_t)RampVol < (int32_t)0) RampVol=0;
+				RampLeft=(int32_t)RampStart-(int32_t)RampVol;
+			} else {
+				RampVol+=RampAdd;
+				if (RampVol > ((4096 << RAMP_FRACT)-1)) RampVol=((4096 << RAMP_FRACT)-1);
+				RampLeft=(int32_t)RampVol-(int32_t)RampEnd;
+			}
+			if (RampLeft<0) {
+				UpdateVolumes();
+				return;
+			}
+			/* Generate an IRQ if needed */
+			if (RampCtrl & 0x20) {
+				myGUS.RampIRQ|=irqmask;
+			}
+			/* Check for looping */
+			if (RampCtrl & 0x08) {
+				/* Bi-directional looping */
+				if (RampCtrl & 0x10) RampCtrl^=0x40;
+				RampVol = (RampCtrl & 0x40) ? (uint32_t)((int32_t)RampEnd-(int32_t)RampLeft) : (uint32_t)((int32_t)RampStart+(int32_t)RampLeft);
+			} else {
+				RampCtrl|=1;	//Stop the channel
+				RampVol = (RampCtrl & 0x40) ? RampStart : RampEnd;
+			}
+			if ((int32_t)RampVol < (int32_t)0) RampVol=0;
+			if (RampVol > ((4096 << RAMP_FRACT)-1)) RampVol=((4096 << RAMP_FRACT)-1);
+			UpdateVolumes();
+		}
+
+		void generateSamples(int32_t* stream, uint32_t len) {
+			int32_t tmpsamp;
+			int i;
+
+			/* NTS: The GUS is *always* rendering the audio sample at the current position,
+			 *      even if the voice is stopped. This can be confirmed using DOSLIB, loading
+			 *      the Ultrasound test program, loading a WAV file into memory, then using
+			 *      the Ultrasound test program's voice control dialog to single-step the
+			 *      voice through RAM (abruptly change the current position) while the voice
+			 *      is stopped. You will hear "popping" noises come out the GUS audio output
+			 *      as the current position changes and the piece of the sample rendered
+			 *      abruptly changes as well. */
+			if (gus_ics_mixer) {
+				const unsigned char Lc = read_GF1_mapping_control(0);
+				const unsigned char Rc = read_GF1_mapping_control(1);
+
+				// output mapped through ICS mixer including channel remapping
+				for (i = 0; i < (int)len; i++) {
+					// Get sample
+					if (WaveCtrl & WCTRL_16BIT)
+						tmpsamp = GetSample16();
+					else
+						tmpsamp = GetSample8();
+					// Output stereo sample if DAC enable on
+					if ((GUS_reset_reg & 0x02/*DAC enable*/) == 0x02) {
+						int32_t* const sp = stream + (i << 1);
+						const int32_t L = tmpsamp * VolLeft;
+						const int32_t R = tmpsamp * VolRight;
+
+						if (Lc & 1) sp[0] += L;
+						if (Lc & 2) sp[1] += L;
+						if (Rc & 1) sp[0] += R;
+						if (Rc & 2) sp[1] += R;
+
+						WaveUpdate();
+						RampUpdate();
+					}
+				}
+			}
+			else {
+				// normal output
+				for (i = 0; i < (int)len; i++) {
+					// Get sample
+					if (WaveCtrl & WCTRL_16BIT)
+						tmpsamp = GetSample16();
+					else
+						tmpsamp = GetSample8();
+
+					// Output stereo sample if DAC enable on
+					if ((GUS_reset_reg & 0x02/*DAC enable*/) == 0x02) {
+						stream[i << 1] += tmpsamp * VolLeft;
+						stream[(i << 1) + 1] += tmpsamp * VolRight;
+
+						WaveUpdate();
+						RampUpdate();
 					}
 				}
 			}
 		}
-		else if (WaveCtrl & WCTRL_IRQENABLED) {
-			/* Undocumented behavior observed on real GUS hardware: A stopped voice will still rapid-fire IRQs
-			 * if IRQ enabled and current position <= start position OR current position >= end position */
-			if (WaveCtrl & WCTRL_DECREASING/*backwards (direction)*/)
-				endcondition = (WaveAddr <= WaveStart)?true:false;
-			else
-				endcondition = (WaveAddr >= WaveEnd)?true:false;
-
-			if (endcondition)
-				myGUS.WaveIRQ |= irqmask;
-		}
-	}
-	INLINE void UpdateVolumes(void) {
-		int32_t templeft=(int32_t)RampVol - (int32_t)PanLeft;
-		templeft&=~(templeft >> 31); /* <- NTS: This is a rather elaborate way to clamp negative values to zero using negate and sign extend */
-		int32_t tempright=(int32_t)RampVol - (int32_t)PanRight;
-		tempright&=~(tempright >> 31); /* <- NTS: This is a rather elaborate way to clamp negative values to zero using negate and sign extend */
-		VolLeft=vol16bit[templeft >> RAMP_FRACT];
-		VolRight=vol16bit[tempright >> RAMP_FRACT];
-	}
-	INLINE void RampUpdate(void) {
-		if (RampCtrl & 0x3) return; /* if the ramping is turned off, then don't change the ramp */
-
-		int32_t RampLeft;
-		if (RampCtrl & 0x40) {
-			RampVol-=RampAdd;
-			if ((int32_t)RampVol < (int32_t)0) RampVol=0;
-			RampLeft=(int32_t)RampStart-(int32_t)RampVol;
-		} else {
-			RampVol+=RampAdd;
-			if (RampVol > ((4096 << RAMP_FRACT)-1)) RampVol=((4096 << RAMP_FRACT)-1);
-			RampLeft=(int32_t)RampVol-(int32_t)RampEnd;
-		}
-		if (RampLeft<0) {
-			UpdateVolumes();
-			return;
-		}
-		/* Generate an IRQ if needed */
-		if (RampCtrl & 0x20) {
-			myGUS.RampIRQ|=irqmask;
-		}
-		/* Check for looping */
-		if (RampCtrl & 0x08) {
-			/* Bi-directional looping */
-			if (RampCtrl & 0x10) RampCtrl^=0x40;
-			RampVol = (RampCtrl & 0x40) ? (uint32_t)((int32_t)RampEnd-(int32_t)RampLeft) : (uint32_t)((int32_t)RampStart+(int32_t)RampLeft);
-		} else {
-			RampCtrl|=1;	//Stop the channel
-			RampVol = (RampCtrl & 0x40) ? RampStart : RampEnd;
-		}
-		if ((int32_t)RampVol < (int32_t)0) RampVol=0;
-		if (RampVol > ((4096 << RAMP_FRACT)-1)) RampVol=((4096 << RAMP_FRACT)-1);
-		UpdateVolumes();
-	}
-
-    void generateSamples(int32_t* stream, uint32_t len) {
-        int32_t tmpsamp;
-        int i;
-
-        /* NTS: The GUS is *always* rendering the audio sample at the current position,
-         *      even if the voice is stopped. This can be confirmed using DOSLIB, loading
-         *      the Ultrasound test program, loading a WAV file into memory, then using
-         *      the Ultrasound test program's voice control dialog to single-step the
-         *      voice through RAM (abruptly change the current position) while the voice
-         *      is stopped. You will hear "popping" noises come out the GUS audio output
-         *      as the current position changes and the piece of the sample rendered
-         *      abruptly changes as well. */
-        if (gus_ics_mixer) {
-            const unsigned char Lc = read_GF1_mapping_control(0);
-            const unsigned char Rc = read_GF1_mapping_control(1);
-
-            // output mapped through ICS mixer including channel remapping
-            for (i = 0; i < (int)len; i++) {
-                // Get sample
-                if (WaveCtrl & WCTRL_16BIT)
-                    tmpsamp = GetSample16();
-                else
-                    tmpsamp = GetSample8();
-                // Output stereo sample if DAC enable on
-                if ((GUS_reset_reg & 0x02/*DAC enable*/) == 0x02) {
-                    int32_t* const sp = stream + (i << 1);
-                    const int32_t L = tmpsamp * VolLeft;
-                    const int32_t R = tmpsamp * VolRight;
-
-                    if (Lc & 1) sp[0] += L;
-                    if (Lc & 2) sp[1] += L;
-                    if (Rc & 1) sp[0] += R;
-                    if (Rc & 2) sp[1] += R;
-
-                    WaveUpdate();
-                    RampUpdate();
-                }
-            }
-        }
-        else {
-            // normal output
-            for (i = 0; i < (int)len; i++) {
-                // Get sample
-                if (WaveCtrl & WCTRL_16BIT)
-                    tmpsamp = GetSample16();
-                else
-                    tmpsamp = GetSample8();
-
-                // Output stereo sample if DAC enable on
-                if ((GUS_reset_reg & 0x02/*DAC enable*/) == 0x02) {
-                    stream[i << 1] += tmpsamp * VolLeft;
-                    stream[(i << 1) + 1] += tmpsamp * VolRight;
-
-                    WaveUpdate();
-                    RampUpdate();
-                }
-            }
-        }
-    }
 };
 
 static GUSChannels *guschan[32] = {NULL};
 static GUSChannels *curchan = NULL;
+
+#if C_DEBUG
+void DEBUG_PrintGUS() { //debugger "GUS" command
+        LOG_MSG("GUS regsel=%02x regseld=%02x regdata=%02x DRAMaddr=%06x/%06x memsz=%06x curch=%02x MAXctrl=%02x regctl=%02x",
+                        myGUS.gRegSelect,
+                        myGUS.gRegSelectData,
+                        myGUS.gRegData,
+                        myGUS.gDramAddr,
+                        myGUS.gDramAddrMask,
+                        myGUS.memsize,
+                        myGUS.gCurChannel,
+                        myGUS.gUltraMAXControl,
+                        myGUS.gRegControl);
+        LOG_MSG("DMActrl=%02x (TC=%u) dmaAddr=%04x%01x timerctl=%02x sampctl=%02x mixctl=%02x activech=%u (want=%u) DACrate=%uHz",
+                        myGUS.DMAControl&0xFF,
+                        (myGUS.DMAControl&0x100)?1:0,
+                        myGUS.dmaAddr,
+                        myGUS.dmaAddrOffset,
+                        myGUS.TimerControl,
+                        myGUS.SampControl,
+                        myGUS.mixControl,
+                        myGUS.ActiveChannels,
+                        myGUS.ActiveChannelsUser,
+                        myGUS.basefreq);
+        LOG_MSG("IRQen=%u IRQstat=%02x IRQchan=%04x RampIRQ=%04x WaveIRQ=%04x",
+                        myGUS.irqenabled,
+                        myGUS.IRQStatus,
+                        myGUS.IRQChan,
+                        myGUS.RampIRQ,
+                        myGUS.WaveIRQ);
+        for (size_t t=0;t < 2;t++) {
+                LOG_MSG("Timer %u: delay=%.3fms value=%02x reached=%u raiseirq=%u masked=%u running=%u\n",
+                        (unsigned int)t + 1u,
+                        myGUS.timers[t].delay,
+                        myGUS.timers[t].value,
+                        myGUS.timers[t].reached,
+                        myGUS.timers[t].raiseirq,
+                        myGUS.timers[t].masked,
+                        myGUS.timers[t].running);
+        }
+	for (size_t t=0;t < (size_t)myGUS.ActiveChannels;t++) {
+                GUSChannels *ch = guschan[t];
+                if (ch == NULL) continue;
+
+		std::string line;
+
+                switch (ch->WaveCtrl & 3) {
+                        case 0:				line += " RUN  "; break;
+                        case WCTRL_STOPPED:		line += " STOPD"; break;
+                        case WCTRL_STOP:		line += " STOPN"; break;
+                        case WCTRL_STOPPED|WCTRL_STOP:	line += " STOP!"; break;
+                }
+
+                if (ch->WaveCtrl & WCTRL_LOOP)
+                        line += " LOOP";
+                else if (ch->RampCtrl & WCTRL_16BIT/*roll over*/) /* !loop and (rampctl & 4) == rollover */
+                        line += " ROLLOVER";
+
+                if (ch->WaveCtrl & WCTRL_16BIT)
+                        line += " PCM16";
+                if (ch->WaveCtrl & WCTRL_BIDIRECTIONAL)
+                        line += " BIDI";
+                if (ch->WaveCtrl & WCTRL_IRQENABLED)
+                        line += " IRQEN";
+                if (ch->WaveCtrl & WCTRL_DECREASING)
+                        line += " REV";
+                if (ch->WaveCtrl & WCTRL_IRQPENDING)
+                        line += " IRQP";
+
+                LOG_MSG("Voice %u: start=%05x.%03x end=%05x.%03x addr=%05x.%03x add=%05x.%03x ctl=%02x rampctl=%02x%s",
+                        (unsigned int)t + 1u,
+                        ch->WaveStart>>WAVE_FRACT,
+                        (ch->WaveStart&WAVE_FRACT_MASK)<<(12-WAVE_FRACT),//current WAVE_FRACT == 9
+                        ch->WaveEnd>>WAVE_FRACT,
+                        (ch->WaveEnd&WAVE_FRACT_MASK)<<(12-WAVE_FRACT),//current WAVE_FRACT == 9
+                        ch->WaveAddr>>WAVE_FRACT,
+                        (ch->WaveAddr&WAVE_FRACT_MASK)<<(12-WAVE_FRACT),//current WAVE_FRACT == 9
+                        ch->WaveAdd>>WAVE_FRACT,
+                        (ch->WaveAdd&WAVE_FRACT_MASK)<<(12-WAVE_FRACT),//current WAVE_FRACT == 9
+                        ch->WaveCtrl,
+                        ch->RampCtrl,
+                        line.c_str());
+                LOG_MSG("    Ramp start=%05x.%03x end=%05x.%03x vol=%05x.%03x add=%05x.%03x pan=%x",
+                        ch->RampStart>>RAMP_FRACT,
+                        (ch->RampStart&RAMP_FRACT_MASK)<<(12-RAMP_FRACT),//current RAMP_FRACT == 10
+                        ch->RampEnd>>RAMP_FRACT,
+                        (ch->RampEnd&RAMP_FRACT_MASK)<<(12-RAMP_FRACT),//current RAMP_FRACT == 10
+                        ch->RampVol>>RAMP_FRACT,
+                        (ch->RampVol&RAMP_FRACT_MASK)<<(12-RAMP_FRACT),//current RAMP_FRACT == 10
+                        ch->RampAdd>>RAMP_FRACT,
+                        (ch->RampAdd&RAMP_FRACT_MASK)<<(12-RAMP_FRACT),//current RAMP_FRACT == 10
+                        ch->PanPot);
+	}
+}
+#endif
 
 static INLINE void GUS_CheckIRQ(void);
 
@@ -534,10 +630,10 @@ static void GUSReset(void) {
 	else
 		myGUS.irqenabled = false;
 
-    if (GUS_reset_reg ^ p_GUS_reset_reg)
-        LOG(LOG_MISC,LOG_DEBUG)("GUS reset with 0x%04X",myGUS.gRegData);
+	if (GUS_reset_reg ^ p_GUS_reset_reg)
+		LOG(LOG_MISC,LOG_DEBUG)("GUS reset with 0x%04X",myGUS.gRegData);
 
-    if ((myGUS.gRegData & 0x100) == 0x000) {
+	if ((myGUS.gRegData & 0x100) == 0x000) {
 		// Stop all channels
 		int i;
 		for(i=0;i<32;i++) {

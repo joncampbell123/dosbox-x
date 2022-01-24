@@ -79,6 +79,7 @@ bool isDBCSCP();
 uint32_t BIOS_get_PC98_INT_STUB(void);
 void ResolvePath(std::string& in);
 std::string GetDOSBoxXPath(bool withexe=false);
+extern std::string prefix_local, prefix_overlay;
 
 int ascii_toupper(int c) {
     if (c >= 'a' && c <= 'z')
@@ -3749,6 +3750,9 @@ public:
         if(::floppy_data_rate < 0) {
             ::floppy_data_rate = 22400; // 175 kbps
         }
+        std::string prefix = section->Get_string("special operation file prefix");
+        if (prefix.size()) prefix_local = prefix + prefix_local.substr(3), prefix_overlay = prefix + prefix_overlay.substr(3);
+
 		maxfcb=100;
 		DOS_FILES=200;
 		Section_prop *config_section = static_cast<Section_prop *>(control->GetSection("config"));

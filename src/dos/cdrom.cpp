@@ -30,7 +30,7 @@
 #include "cdrom.h"
 
 #if defined(C_SDL2)
-#include "../../vs/sdl/src/cdrom/compat_SDL_cdrom.c"
+#include "../../vs/sdl/src/cdrom/SDL_cdrom.c"
 #if defined(WIN32)
 #define SDL_CDROM_WIN32
 #include "../../vs/sdl/src/cdrom/win32/SDL_syscdrom.c"
@@ -44,6 +44,9 @@
 #include "../../vs/sdl/src/cdrom/macosx/AudioFileReaderThread.c"
 #include "../../vs/sdl/src/cdrom/macosx/CDPlayer.c"
 #include "../../vs/sdl/src/cdrom/macosx/SDLOSXCAGuard.c"
+#elif defined(OS2)
+#define SDL_CDROM_OS2
+#include "../../vs/sdl/src/cdrom/os2/SDL_syscdrom.c"
 #else
 #define SDL_CDROM_DUMMY
 #include "../../vs/sdl/src/cdrom/dummy/SDL_syscdrom.c"

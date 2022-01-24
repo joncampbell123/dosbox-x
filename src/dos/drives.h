@@ -95,7 +95,10 @@ public:
 	virtual void *opendir(const char *name);
 	virtual void closedir(void *handle);
 	virtual bool read_directory_first(void *handle, char* entry_name, char* entry_sname, bool& is_directory);
-    virtual bool read_directory_next(void *handle, char* entry_name, char* entry_sname, bool& is_directory);
+	virtual bool read_directory_next(void *handle, char* entry_name, char* entry_sname, bool& is_directory);
+	virtual void remove_special_file_from_disk(const char* dosname, const char* operation);
+	virtual std::string create_filename_of_special_operation(const char* dosname, const char* operation, bool expand);
+	virtual bool add_special_file_to_disk(const char* dosname, const char* operation, uint16_t value, bool isdir);
 
 	virtual void EmptyCache(void) { dirCache.EmptyCache(); };
 	virtual void MediaChange() {};
@@ -109,6 +112,9 @@ public:
 		unsigned long initfree;
 	} allocation;
 	int remote = -1;
+
+private:
+	const std::string special_prefix_local;
 
 protected:
 	DOS_Drive_Cache dirCache;
@@ -735,7 +741,7 @@ public:
 	virtual Bits UnMount(void);
 	virtual char const* GetLabel(void);
 private:
-    VFILE_Block* search_file = 0;
+	VFILE_Block* search_file = 0;
 };
 
 class Overlay_Drive: public localDrive {
@@ -788,7 +794,7 @@ private:
 
 
 	void remove_special_file_from_disk(const char* dosname, const char* operation);
-	void add_special_file_to_disk(const char* dosname, const char* operation);
+	bool add_special_file_to_disk(const char* dosname, const char* operation, uint16_t value = 0, bool isdir = false);
 	std::string create_filename_of_special_operation(const char* dosname, const char* operation);
 	void convert_overlay_to_DOSname_in_base(char* dirname );
 	//For caching the update_cache routine.
@@ -805,5 +811,41 @@ private:
 #define LFN_FILEFIND_INTERNAL       255
 /* Highest valid handle */
 #define LFN_FILEFIND_MAX            255
+
+#if defined(WIN32)
+// Windows: Use UTF-16 (wide char)
+// TODO: Offer an option to NOT use wide char on Windows if directed by config.h
+//       for people who compile this code for Windows 95 or earlier where some
+//       widechar functions are missing.
+typedef wchar_t host_cnv_char_t;
+# define host_cnv_use_wchar
+# define _HT(x) L##x
+# if defined(__MINGW32__) /* TODO: Get MinGW to support 64-bit file offsets, at least targeting Windows XP! */
+#  define ht_stat_t struct _stat
+#  define ht_stat(x,y) _wstat(x,y)
+# else
+#  define ht_stat_t struct _stat64 /* WTF Microsoft?? Why aren't _stat and _wstat() consistent on stat struct type? */
+#  define ht_stat(x,y) _wstat64(x,y)
+# endif
+# define ht_access(x,y) _waccess(x,y)
+# define ht_strdup(x) _wcsdup(x)
+# define ht_unlink(x) _wunlink(x)
+#else
+// Linux: Use UTF-8
+typedef char host_cnv_char_t;
+# define _HT(x) x
+# define ht_stat_t struct stat
+# define ht_stat(x,y) stat(x,y)
+# define ht_access(x,y) access(x,y)
+# define ht_strdup(x) strdup(x)
+# define ht_unlink(x) unlink(x)
+#endif
+
+#if defined (WIN32) || defined (OS2)				/* Win 32 & OS/2*/
+#define CROSS_DOSFILENAME(blah)
+#else
+//Convert back to DOS PATH
+#define	CROSS_DOSFILENAME(blah) strreplace(blah,'/','\\')
+#endif
 
 #endif

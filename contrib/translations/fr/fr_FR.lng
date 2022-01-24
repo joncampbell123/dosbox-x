@@ -2147,10 +2147,10 @@ CHCP [nnn [fichier]]
   nnn      Spécifie un numéro de page de code.
   fichier  Spécifie un fichier de page de code
   
-Pages de code prises en charge pour être modifiées dans la sortie 
+Pages de code prises en charge pour être modifiées dans la sortie
 de la police TrueType :
 
-437,737,775,808,850,852,853,855,857,858,860-866,869,872,874
+437,737,775,808,850,852,853,855,857,858,860-866,869,872,874,3021
 
 Pages de codes Windows: 1250,1251,1252,1253,1254,1255,1256,1257,1258
 

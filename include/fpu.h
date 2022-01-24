@@ -23,6 +23,8 @@
 #include "logging.h"
 #include "mmx.h"
 
+#include <stddef.h>
+
 void FPU_ESC0_Normal(Bitu rm);
 void FPU_ESC0_EA(Bitu rm,PhysPt addr);
 void FPU_ESC1_Normal(Bitu rm);
@@ -39,59 +41,6 @@ void FPU_ESC6_Normal(Bitu rm);
 void FPU_ESC6_EA(Bitu rm,PhysPt addr);
 void FPU_ESC7_Normal(Bitu rm);
 void FPU_ESC7_EA(Bitu rm,PhysPt addr);
-
-/* Floating point register, in the form the native host uses for "double".
- * This is slightly less precise than the 80-bit extended IEEE used by Intel,
- * but can be faster using the host processor "double" support. Most DOS games
- * using the FPU for 3D rendering are unaffected by the loss of precision.
- * However, there are cases where the full 80-bit precision is required such
- * as the "Fast Pentium memcpy trick" using the 80-bit versions of FLD/FST to
- * copy memory. */
-#pragma pack(push,1)
-typedef union alignas(8) {
-    double d;
-#ifndef WORDS_BIGENDIAN
-    struct {
-        uint32_t lower;
-        int32_t upper;
-    } l;
-#else
-    struct {
-        int32_t upper;
-        uint32_t lower;
-    } l;
-#endif
-    int64_t ll;
-	MMX_reg reg_mmx;
-
-	static_assert( sizeof(d) == 8, "FPU_Reg error" );
-	static_assert( sizeof(l) == 8, "FPU_Reg error" );
-	static_assert( sizeof(ll) == 8, "FPU_Reg error" );
-	static_assert( sizeof(reg_mmx) == 8, "FPU_Reg error" );
-} FPU_Reg;
-static_assert( sizeof(FPU_Reg) == 8, "FPU_Reg error" );
-#pragma pack(pop)
-
-// dynamic x86 core needs this
-typedef struct {
-    uint32_t m1;
-    uint32_t m2;
-    uint16_t m3;
-
-    uint16_t d1;
-    uint32_t d2;
-} FPU_P_Reg;
-
-// memory barrier macro. to ensure that reads/stores to one half of the FPU reg struct
-// do not overlap with reads/stores from the other half. things can go wrong if the
-// compiler writes code to write the mantissa, then load the overall as float, then store
-// the exponent. note this is not a hardware level memory barrier, this is a compiler
-// level memory barrier against the optimization engine.
-#if defined(__GCC__)
-# define FPU_Reg_m_barrier()	__asm__ __volatile__ ("":::"memory")
-#else
-# define FPU_Reg_m_barrier()
-#endif
 
 #pragma pack(push,1)
 typedef union {
@@ -157,6 +106,92 @@ static_assert( sizeof(FPU_Reg_32) == 4, "FPU_Reg_32 error" );
 #define FPU_Reg_32_exponent_bias	(127)
 static const uint32_t FPU_Reg_32_implied_bit = ((uint32_t)1UL << (uint32_t)23UL);
 
+typedef union alignas(8) MMX_reg {
+
+	uint64_t q;
+
+#ifndef WORDS_BIGENDIAN
+	struct {
+		uint32_t d0,d1;
+	} ud;
+	static_assert(sizeof(ud) == 8, "MMX packing error");
+
+	struct {
+		int32_t d0,d1;
+	} sd;
+	static_assert(sizeof(sd) == 8, "MMX packing error");
+
+	struct uw_t {
+		uint16_t w0,w1,w2,w3;
+	} uw;
+	static_assert(sizeof(uw) == 8, "MMX packing error");
+
+	uint16_t uwa[4]; /* for PSHUFW */
+	static_assert(sizeof(uwa) == 8, "MMX packing error");
+	static_assert(offsetof(uw_t,w0) == 0, "MMX packing error");
+	static_assert(offsetof(uw_t,w1) == 2, "MMX packing error");
+	static_assert(offsetof(uw_t,w2) == 4, "MMX packing error");
+	static_assert(offsetof(uw_t,w3) == 6, "MMX packing error");
+
+	struct {
+		int16_t w0,w1,w2,w3;
+	} sw;
+	static_assert(sizeof(sw) == 8, "MMX packing error");
+
+	struct {
+		uint8_t b0,b1,b2,b3,b4,b5,b6,b7;
+	} ub;
+	static_assert(sizeof(ub) == 8, "MMX packing error");
+
+	struct {
+		int8_t b0,b1,b2,b3,b4,b5,b6,b7;
+	} sb;
+	static_assert(sizeof(sb) == 8, "MMX packing error");
+
+	struct { /* MMX registers can contain single precision float if the program uses AMD 3DNow! instructions */
+		FPU_Reg_32 f0,f1;
+	} f32;
+	static_assert(sizeof(f32) == 8, "MMX packing error");
+#else
+	struct {
+		uint32_t d1,d0;
+	} ud;
+	static_assert(sizeof(ud) == 8, "MMX packing error");
+
+	struct {
+		int32_t d1,d0;
+	} sd;
+	static_assert(sizeof(sd) == 8, "MMX packing error");
+
+	struct {
+		uint16_t w3,w2,w1,w0;
+	} uw;
+	static_assert(sizeof(uw) == 8, "MMX packing error");
+
+	struct {
+		uint16_t w3,w2,w1,w0;
+	} sw;
+	static_assert(sizeof(sw) == 8, "MMX packing error");
+
+	struct {
+		uint8_t b7,b6,b5,b4,b3,b2,b1,b0;
+	} ub;
+	static_assert(sizeof(ub) == 8, "MMX packing error");
+
+	struct {
+		uint8_t b7,b6,b5,b4,b3,b2,b1,b0;
+	} sb;
+	static_assert(sizeof(sb) == 8, "MMX packing error");
+
+	struct { /* MMX registers can contain single precision float if the program uses AMD 3DNow! instructions */
+		FPU_Reg_32 f1,f0;
+	} f32;
+	static_assert(sizeof(f32) == 8, "MMX packing error");
+#endif
+
+};
+static_assert(sizeof(MMX_reg) == 8, "MMX packing error");
+
 #pragma pack(push,1)
 typedef union alignas(16) XMM_Reg {
 	FPU_Reg_32		f32[4];
@@ -185,6 +220,70 @@ typedef union alignas(16) XMM_Reg {
 };
 static_assert( sizeof(XMM_Reg)     == 16 /* 128-bit */, "XMM reg struct error" );
 #pragma pack(pop)
+
+extern MMX_reg * reg_mmx[8];
+extern MMX_reg * lookupRMregMM[256];
+
+
+int8_t  SaturateWordSToByteS(int16_t value);
+int16_t SaturateDwordSToWordS(int32_t value);
+uint8_t  SaturateWordSToByteU(int16_t value);
+uint16_t SaturateDwordSToWordU(int32_t value);
+
+void   setFPUTagEmpty();
+
+/* Floating point register, in the form the native host uses for "double".
+ * This is slightly less precise than the 80-bit extended IEEE used by Intel,
+ * but can be faster using the host processor "double" support. Most DOS games
+ * using the FPU for 3D rendering are unaffected by the loss of precision.
+ * However, there are cases where the full 80-bit precision is required such
+ * as the "Fast Pentium memcpy trick" using the 80-bit versions of FLD/FST to
+ * copy memory. */
+#pragma pack(push,1)
+typedef union alignas(8) {
+    double d;
+#ifndef WORDS_BIGENDIAN
+    struct {
+        uint32_t lower;
+        int32_t upper;
+    } l;
+#else
+    struct {
+        int32_t upper;
+        uint32_t lower;
+    } l;
+#endif
+    int64_t ll;
+	MMX_reg reg_mmx;
+
+	static_assert( sizeof(d) == 8, "FPU_Reg error" );
+	static_assert( sizeof(l) == 8, "FPU_Reg error" );
+	static_assert( sizeof(ll) == 8, "FPU_Reg error" );
+	static_assert( sizeof(reg_mmx) == 8, "FPU_Reg error" );
+} FPU_Reg;
+static_assert( sizeof(FPU_Reg) == 8, "FPU_Reg error" );
+#pragma pack(pop)
+
+// dynamic x86 core needs this
+typedef struct {
+    uint32_t m1;
+    uint32_t m2;
+    uint16_t m3;
+
+    uint16_t d1;
+    uint32_t d2;
+} FPU_P_Reg;
+
+// memory barrier macro. to ensure that reads/stores to one half of the FPU reg struct
+// do not overlap with reads/stores from the other half. things can go wrong if the
+// compiler writes code to write the mantissa, then load the overall as float, then store
+// the exponent. note this is not a hardware level memory barrier, this is a compiler
+// level memory barrier against the optimization engine.
+#if defined(__GCC__)
+# define FPU_Reg_m_barrier()	__asm__ __volatile__ ("":::"memory")
+#else
+# define FPU_Reg_m_barrier()
+#endif
 
 enum FPU_Tag {
 	TAG_Valid = 0,

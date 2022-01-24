@@ -128,6 +128,8 @@ extern unsigned char        pc98_text_row_scroll_num_lines;      /* port 7Ah */
 extern bool logBuffSuppressConsole;
 extern bool logBuffSuppressConsoleNeedUpdate;
 
+void DEBUG_PrintGUS();
+
 // Forwards
 static void DrawCode(void);
 static void DrawInput(void);
@@ -1727,6 +1729,10 @@ void DEBUG_PrintMMX(int which,char format) {
         w += sprintf(w,"%08lx|%08lx",
             (unsigned long)mmx.ud.d1,(unsigned long)mmx.ud.d0);
     }
+    else if (format == 'S') {
+        w += sprintf(w,"%.20f|%.20f",
+            mmx.f32.f1.v,mmx.f32.f0.v);
+    }
     else { /* 'Q' */
         w += sprintf(w,"%08lx%08lx",
             (unsigned long)mmx.ud.d1,(unsigned long)mmx.ud.d0); /* little endian combine to print 64-bit hex */
@@ -2366,7 +2372,7 @@ bool ParseCommand(char* str) {
         return true;
     }
 
-    if (command == "MMX") { // MMX [=B|=W|=D|=Q] [regindex] [command ...]
+    if (command == "MMX") { // MMX [=B|=W|=D|=Q|=S] [regindex] [command ...]
         while (*found == ' ') found++;
 
         char format = 'a'; /* internal: 'a' for "auto" */
@@ -2403,13 +2409,16 @@ bool ParseCommand(char* str) {
         }
         else if (subcommand == "SET") { /* remember this function capitalizes the entire string */
             if (which < 0 || which > 7) return false; // regindex is REQUIRED here
-            // MMX [=B|=W|=D|=Q] <regindex> SET [val,val,...]
+            // MMX [=B|=W|=D|=Q|=S] <regindex> SET [val,val,...]
             //
             // if you don't want to change a particular part of the MMX register, set val to nothing or ""
             // i.e. to set only the low 16 bits use =W 0 ,,,val
             static constexpr unsigned int param_max = 8;
             bool paramexist[param_max];
+            bool paramfset[param_max];
+            double paramf[param_max];
             uint64_t param[param_max];
+            bool hasfloat=false;
             unsigned int pi=0;
 
             while (*found != 0 && pi < param_max) {
@@ -2429,12 +2438,20 @@ bool ParseCommand(char* str) {
                     if (idx >= 0 && idx <= 7) {
                         param[pi] = reg_mmx[idx]->q;
                         paramexist[pi] = true;
+                        paramfset[pi] = false;
                         pi++;
                     }
                     else {
                         paramexist[pi] = false;
                         pi++;
                     }
+                }
+                else if (lookslikefloat(found)) {
+                    paramf[pi] = strtod(found,&found);
+                    paramexist[pi] = true;
+                    paramfset[pi] = true;
+                    hasfloat = true;
+                    pi++;
                 }
                 else {
                     // FIXME: GetHexValue has a 32-bit datatype limit and therefore is unsuitable for 64-bit constants
@@ -2443,6 +2460,7 @@ bool ParseCommand(char* str) {
                     if (!parsed) return false;
                     param[pi] = (uint64_t)r;
                     paramexist[pi] = true;
+                    paramfset[pi] = false;
                     pi++;
                 }
 
@@ -2461,7 +2479,7 @@ bool ParseCommand(char* str) {
             if (format == 'a') {
                 if (pi > 4) format = 'B';
                 else if (pi > 2) format = 'W';
-                else if (pi > 1) format = 'D';
+                else if (pi > 1) format = hasfloat ? 'S' : 'D';
                 else format = 'Q';
             }
 
@@ -2492,6 +2510,16 @@ bool ParseCommand(char* str) {
             else if (format == 'D') {
                 if (paramexist[0]) reg_mmx[which]->ud.d1 = param[0];
                 if (paramexist[1]) reg_mmx[which]->ud.d0 = param[1];
+            }
+            else if (format == 'S') {
+                if (paramexist[0]) {
+                    if (paramfset[0]) *((float*)(&param[0])) = (float)paramf[0]; /* which becomes u32[] */
+                    reg_mmx[which]->ud.d1 = param[0];
+                }
+                if (paramexist[1]) {
+                    if (paramfset[1]) *((float*)(&param[1])) = (float)paramf[1]; /* which becomes u32[] */
+                    reg_mmx[which]->ud.d0 = param[1];
+                }
             }
             else { // 'Q'
                 if (paramexist[0]) reg_mmx[which]->q = param[0];
@@ -2681,6 +2709,23 @@ bool ParseCommand(char* str) {
             }
 
             DEBUG_PrintSSE(which,format);
+            return true;
+        }
+    }
+
+    if (command == "GUS") {
+        std::string subcommand;
+        {
+            char *start = found;
+            while (*found != 0 && *found != ' ') found++;
+            subcommand = std::string(start,(size_t)(found-start));
+            while (*found == ' ') found++;
+        }
+
+        if (subcommand.empty()) {
+            DEBUG_BeginPagedContent();
+            DEBUG_PrintGUS();
+            DEBUG_EndPagedContent();
             return true;
         }
     }
@@ -3632,10 +3677,12 @@ uint32_t DEBUG_CheckKeys(void) {
                       us if the user vertically shrinks the window (adds scrollbar instead). How do we disable
                       that behavior? */
         {
+#ifdef _MSC_VER
             INPUT_RECORD *r = _pdcurses_hax_inputrecord();
             if (r->EventType == WINDOW_BUFFER_SIZE_EVENT) {
                 resize_term(r->Event.WindowBufferSizeEvent.dwSize.Y, r->Event.WindowBufferSizeEvent.dwSize.X);
             }
+#endif
         }
 #endif
         void DEBUG_GUI_OnResize(void);

@@ -336,6 +336,9 @@
     <ClCompile Include="..\src\dos\drive_local.cpp">
       <Filter>Sources\dos</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\dos\drive_overlay.cpp">
+      <Filter>Sources\dos</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\dos\drive_virtual.cpp">
       <Filter>Sources\dos</Filter>
     </ClCompile>
@@ -841,6 +844,9 @@
       <Filter>Sources\output</Filter>
     </ClCompile>
     <ClCompile Include="..\src\output\output_surface_sdl.cpp">
+      <Filter>Sources\output</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\output\output_ttf.cpp">
       <Filter>Sources\output</Filter>
     </ClCompile>
     <ClCompile Include="..\src\hardware\hardware.cpp">
