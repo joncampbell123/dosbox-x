@@ -59,19 +59,20 @@ bool printfont = true;
 bool autoboxdraw = true;
 bool halfwidthkana = true;
 bool ttf_dosv = false;
+bool lastmenu = true;
+bool initttf = false;
+bool copied = false;
+bool firstset = true;
+bool forceswk = false;
+bool wpExtChar = false;
+int wpType = 0;
+int wpVersion = 0;
+int wpBG = -1;
+int wpFG = 7;
 int lastset = 0;
 int lastfontsize = 0;
 int outputswitch = -1;
 int oldblinkc = -1;
-int wpType = 0;
-int wpVersion = 0;
-int wpBG = -1, wpFG = 7;
-bool wpExtChar = false;
-bool lastmenu = true;
-bool initttf = false;
-bool firstset = true;
-bool forceswk = false;
-bool copied = false;
 
 static unsigned long ttfSize = sizeof(DOSBoxTTFbi), ttfSizeb = 0, ttfSizei = 0, ttfSizebi = 0;
 static void * ttfFont = DOSBoxTTFbi, * ttfFontb = NULL, * ttfFonti = NULL, * ttfFontbi = NULL;
@@ -103,6 +104,11 @@ bool colorChanged = false, justChanged = false, firstsize = true;
 int menuwidth_atleast(int width);
 void AdjustIMEFontSize(), initcodepagefont(void), MSG_Init(), DOSBox_SetSysMenu(void), UpdateDefaultPrinterFont(void);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+
+#if defined(C_SDL2)
+void GFX_SetResizeable(bool enable);
+SDL_Window * GFX_SetSDLSurfaceWindow(uint16_t width, uint16_t height);
+#endif
 
 static Bitu OUTPUT_TTF_SetSize() {
     bool text=CurMode&&(CurMode->type==0||CurMode->type==2||CurMode->type==M_TEXT||IS_PC98_ARCH);
