@@ -348,6 +348,9 @@
     <ClCompile Include="..\src\fpu\fpu.cpp">
       <Filter>Sources\fpu</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\gui\menu_callback.cpp">
+      <Filter>Sources\gui</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\gui\menu.cpp">
       <Filter>Sources\gui</Filter>
     </ClCompile>
@@ -594,6 +597,9 @@
     <ClCompile Include="..\src\ints\ems.cpp">
       <Filter>Sources\ints</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\ints\int_dosv.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\ints\int10.cpp">
       <Filter>Sources\ints</Filter>
     </ClCompile>
@@ -639,6 +645,9 @@
     <ClCompile Include="..\src\libs\porttalk\porttalk.cpp">
       <Filter>Sources\libs\porttalk</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\misc\clipboard.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\misc\cross.cpp">
       <Filter>Sources\misc</Filter>
     </ClCompile>
@@ -658,6 +667,9 @@
       <Filter>Sources\misc</Filter>
     </ClCompile>
     <ClCompile Include="..\src\misc\programs.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\misc\savestates.cpp">
       <Filter>Sources\misc</Filter>
     </ClCompile>
     <ClCompile Include="..\src\misc\setup.cpp">
@@ -1574,12 +1586,6 @@
     </ClCompile>
     <ClCompile Include="..\src\libs\decoders\internal\opus\silk\debug_silk.c">
       <Filter>Sources\libs\decoder</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\misc\savestates.cpp">
-      <Filter>Sources\misc</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\ints\int_dosv.cpp">
-      <Filter>Sources\ints</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

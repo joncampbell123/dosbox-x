@@ -8,8 +8,9 @@ libgui_a_SOURCES = \
 	render_templates.h render_loops.h render_simple.h \
 	render_templates_sai.h render_templates_hq.h \
 	render_templates_hq2x.h render_templates_hq3x.h \
-	midi.cpp midi_win32.h midi_oss.h midi_coreaudio.h midi_alsa.h \
-	midi_coremidi.h sdl_gui.cpp dosbox_splash.h menu.cpp bitop.cpp ptrop.cpp zipcrc.c zipfile.cpp
+	midi.cpp midi_win32.h midi_oss.h midi_coreaudio.h \
+	midi_alsa.h midi_coremidi.h sdl_gui.cpp dosbox_splash.h \
+	menu.cpp menu_callback.cpp bitop.cpp ptrop.cpp zipcrc.c zipfile.cpp
 
 if C_MT32
 AM_CPPFLAGS += -I$(top_srcdir)/src/libs/mt32

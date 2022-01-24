@@ -1351,6 +1351,7 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClCompile Include="..\src\aviwriter\ksdataformat.cpp" />
     <ClCompile Include="..\src\libs\mt32\LA32Ramp.cpp" />
     <ClCompile Include="..\src\libs\mt32\LA32WaveGenerator.cpp" />
+    <ClCompile Include="..\src\gui\menu_callback.cpp" />
     <ClCompile Include="..\src\gui\menu.cpp" />
     <ClCompile Include="..\src\gui\midi.cpp" />
     <ClCompile Include="..\src\libs\mt32\Part.cpp" />
@@ -1477,6 +1478,7 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClCompile Include="..\src\ints\xms.cpp" />
     <ClCompile Include="..\src\libs\gui_tk\gui_tk.cpp" />
     <ClCompile Include="..\src\libs\porttalk\porttalk.cpp" />
+    <ClCompile Include="..\src\misc\clipboard.cpp" />
     <ClCompile Include="..\src\misc\cross.cpp" />
     <ClCompile Include="..\src\misc\ethernet.cpp" />
     <ClCompile Include="..\src\misc\messages.cpp" />

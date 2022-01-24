@@ -87,12 +87,12 @@ int wpBG = -1;
 int wpFG = 7;
 int lastset = 0;
 int lastfontsize = 0;
-int outputswitch = -1;
+int switchoutput = -1;
 int oldblinkc = -1;
 
 static unsigned long ttfSize = sizeof(DOSBoxTTFbi), ttfSizeb = 0, ttfSizei = 0, ttfSizebi = 0;
 static void * ttfFont = DOSBoxTTFbi, * ttfFontb = NULL, * ttfFonti = NULL, * ttfFontbi = NULL;
-extern int posx, posy, switchoutput, eurAscii, NonUserResizeCounter;
+extern int posx, posy, eurAscii, NonUserResizeCounter;
 extern bool rtl, gbk, chinasea, force_conversion, blinking;
 extern uint8_t ccount;
 extern uint16_t cpMap[512], cpMap_PC98[256];

@@ -1191,7 +1191,6 @@ bool GFX_IsFullscreen(void), Direct3D_using(void);
 void ttf_reset(void), resetFontSize(), setVGADAC(), OUTPUT_TTF_Select(int fsize), RENDER_Reset(void), KEYBOARD_Clear(), GFX_SwitchFullscreenNoReset(void);
 bool ttfswitch=false, switch_output_from_ttf=false;
 extern bool resetreq, colorChanged;
-extern int switchoutput;
 
 void ttf_switch_on(bool ss=true) {
     if ((ss&&ttfswitch)||(!ss&&switch_output_from_ttf)) {
