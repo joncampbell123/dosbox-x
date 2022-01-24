@@ -349,7 +349,7 @@ static char const *second[] = {
   "%x0",              "%x0",             "%x0",            "%x0",
 /* f */
   0,                  "psllw %GM,%EM",   "pslld %GM,%EM",  "psllq %GM,%EM",
-  0,                  "pmaddwd %GM,%EM", 0,                0,
+  0,                  "pmaddwd %GM,%EM", "%x0",            "%x0",
   "psubb %GM,%EM",    "psubw %GM,%EM",   "psubd %GM,%EM",  0,
   "paddb %GM,%EM",    "paddw %GM,%EM",   "paddd %GM,%EM",  0
 };
@@ -487,7 +487,10 @@ static char const *mpgroups[][256][4] = { /* mandatory prefix groups SSE instruc
     /* 0xEF */ { "pxor %GM,%EM", "pxor %GX,%EX", 0, 0 },
 
     /* 0xF0 */ { 0,0,0,0 }, /* 0xF1 */ { 0,0,0,0 }, /* 0xF2 */ { 0,0,0,0 }, /* 0xF3 */ { 0,0,0,0 },
-    /* 0xF4 */ { 0,0,0,0 }, /* 0xF5 */ { 0,0,0,0 }, /* 0xF6 */ { 0,0,0,0 }, /* 0xF7 */ { 0,0,0,0 },
+    /* 0xF4 */ { 0,0,0,0 },
+    /* 0xF5 */ { 0,0,0,0 },
+    /* 0xF6 */ { "psadbw %GM,%EM", "psadbw %GX,%EX", 0, 0 },
+    /* 0xF7 */ { "maskmovq %GM,%EM", "maskmovdqu %GX,%EX", 0, 0 },
     /* 0xF8 */ { 0,0,0,0 }, /* 0xF9 */ { 0,0,0,0 }, /* 0xFA */ { 0,0,0,0 }, /* 0xFB */ { 0,0,0,0 },
     /* 0xFC */ { 0,0,0,0 }, /* 0xFD */ { 0,0,0,0 }, /* 0xFE */ { 0,0,0,0 }, /* 0xFF */ { 0,0,0,0 }
   }
