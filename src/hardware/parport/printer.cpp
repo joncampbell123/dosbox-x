@@ -1530,7 +1530,11 @@ void CPrinter::printChar(uint8_t ch, int box)
 	
 	// Find the glyph for the char to render
     uint16_t printch = dbchar?dbchar:curMap[ch];
-    if (!dbchar && dos.loaded_codepage == 932 && (halfwidthkana || isJEGAEnabled())) {
+    if (!dbchar && dos.loaded_codepage == 932 && (
+#if defined(USE_TTF)
+        halfwidthkana ||
+#endif
+        isJEGAEnabled())) {
         if (ch>=0xA1&&ch<=0xDF) printch = cpMap_PC98[ch];
         else {
             std::map<int, int>::iterator it = lowboxdrawmap.find(ch);
