@@ -155,7 +155,7 @@ extern uint16_t cpMap_AX[32];
 extern uint16_t cpMap_PC98[256];
 extern std::map<int, int> lowboxdrawmap, pc98boxdrawmap;
 bool cpwarn_once = false, ignorespecial = false;
-const char *prefix_local = "$DBLOCALFILE";
+std::string prefix_local = ".DBLOCALFILE", prefix_overlay = ".DBOVERLAY";
 
 #if defined (WIN32) || defined (OS2)				/* Win 32 & OS/2*/
 #define CROSS_DOSFILENAME(blah)
@@ -2447,7 +2447,7 @@ next:
     return false;
 }
 
-localDrive::localDrive(const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid, std::vector<std::string> &options) : special_prefix_local(prefix_local) {
+localDrive::localDrive(const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid, std::vector<std::string> &options) : special_prefix_local(prefix_local.c_str()) {
 	strcpy(basedir,startdir);
 	sprintf(info,"local directory %s",startdir);
 	allocation.bytes_sector=_bytes_sector;
@@ -4046,7 +4046,7 @@ bool Overlay_Drive::RemoveDir(const char * dir) {
 
 		if (!empty) return false;
 		if (logoverlay) LOG_MSG("directory empty! Hide it.");
-		//Directory is empty, mark it as deleted and create $DBOVERLAY file.
+		//Directory is empty, mark it as deleted and create .DBOVERLAY file.
 		//Ensure that overlap folder can not be created.
 		char odir[CROSS_LEN];
 		strcpy(odir,overlaydir);
@@ -4360,7 +4360,7 @@ static OverlayFile* ccc(DOS_File* file) {
 }
 
 Overlay_Drive::Overlay_Drive(const char * startdir,const char* overlay, uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid,uint8_t &error,std::vector<std::string> &options)
-:localDrive(startdir,_bytes_sector,_sectors_cluster,_total_clusters,_free_clusters,_mediaid,options),special_prefix("$DBOVERLAY") {
+:localDrive(startdir,_bytes_sector,_sectors_cluster,_total_clusters,_free_clusters,_mediaid,options),special_prefix(prefix_overlay.c_str()) {
 	optimize_cache_v1 = true; //Try to not reread overlay files on deletes. Ideally drive_cache should be improved to handle deletes properly.
 	//Currently this flag does nothing, as the current behavior is to not reread due to caching everything.
 #if defined (WIN32)	
@@ -4841,7 +4841,7 @@ void Overlay_Drive::update_cache(bool read_directory_contents) {
 
 	if (read_directory_contents) {
 		for (i = specials.begin(); i != specials.end(); ++i) {
-			//Specials look like this $DBOVERLAY_YYY_FILENAME.EXT or DIRNAME[\/]$DBOVERLAY_YYY_FILENAME.EXT where 
+			//Specials look like this .DBOVERLAY_YYY_FILENAME.EXT or DIRNAME[\/].DBOVERLAY_YYY_FILENAME.EXT where
 			//YYY is the operation involved. Currently only DEL is supported.
 			//DEL = file marked as deleted, (but exists in localDrive!)
 			std::string name(*i);
@@ -4854,7 +4854,7 @@ void Overlay_Drive::update_cache(bool read_directory_contents) {
 				special_dir = name.substr(0,s);
 				name.erase(0,s);
 			}
-			name.erase(0,special_prefix.length()+1); //Erase $DBOVERLAY_
+			name.erase(0,special_prefix.length()+1); //Erase .DBOVERLAY_
 			s = name.find('_');
 			if (s == std::string::npos || s == 0) continue;
 			special_operation = name.substr(0,s);
