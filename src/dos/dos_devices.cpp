@@ -35,6 +35,11 @@
 #include "dev_con.h"
 #include <fstream>
 
+#if (!defined(WIN32) && defined(C_SDL2)) || defined(MACOSX)
+typedef char host_cnv_char_t;
+host_cnv_char_t *CodePageGuestToHost(const char *s);
+#endif
+
 DOS_Device * Devices[DOS_DEVICES] = {NULL};
 extern std::map<int, int> lowboxdrawmap;
 extern int dos_clipboard_device_access;
