@@ -438,7 +438,7 @@ bool read_directory_first(dir_information* dirp, char* entry_name, char* entry_s
 bool read_directory_next(dir_information* dirp, char* entry_name, char* entry_sname, bool& is_directory) {
 	if (!dirp) return false;
 	struct dirent* dentry;
-	std::string::size_type const prefix_lengh = strlen(prefix_local.length);
+	std::string::size_type const prefix_lengh = strlen(prefix_local);
 	do {
 		dentry = readdir(dirp->dir);
 		if (dentry==NULL) return false;
