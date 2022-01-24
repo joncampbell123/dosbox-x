@@ -45,7 +45,7 @@ std::string savefilename = "";
 extern SHELL_Cmd cmd_list[];
 extern unsigned int page, hostkeyalt, sendkeymap;
 extern int posx, posy, wheel_key, mbutton, enablelfn, dos_clipboard_device_access;
-extern bool addovl, clearline, winrun, window_was_maximized, wheel_guest, clipboard_dosapi, clipboard_biospaste, direct_mouse_clipboard, sync_time, manualtime, pausewithinterrupts_enable, enable_autosave, enable_config_as_shell_commands, noremark_save_state, force_load_state, use_quick_reboot, use_save_file, dpi_aware_enable, pc98_force_ibm_layout, log_int21, log_fileio;
+extern bool addovl, clearline, winrun, window_was_maximized, wheel_guest, clipboard_dosapi, clipboard_biospaste, direct_mouse_clipboard, sync_time, manualtime, pausewithinterrupts_enable, enable_autosave, enable_config_as_shell_commands, noremark_save_state, force_load_state, use_quick_reboot, use_save_file, dpi_aware_enable, pc98_force_ibm_layout, log_int21, log_fileio, x11_on_top;
 extern bool mountfro[26], mountiro[26];
 extern struct BuiltinFileBlob bfb_GLIDE2X_OVL;
 extern const char* RunningProgram;
@@ -57,6 +57,7 @@ void resetFontSize(void);
 void EMS_DoShutDown(void);
 void DOSV_FillScreen(void);
 void CopyClipboard(int all);
+void res_init(void), change_output(int output);
 void VFILE_Remove(const char *name,const char *dir = "");
 void VOODOO_Destroy(Section* /*sec*/), VOODOO_OnPowerOn(Section* /*sec*/);
 void GLIDE_ShutDown(Section* sec), GLIDE_PowerOn(Section* sec);
@@ -68,6 +69,7 @@ void MenuBootDrive(char drive);
 void MenuUnmountDrive(char drive);
 void DOSBox_SetSysMenu(void);
 void SetGameState_Run(int value);
+void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 void GFX_LosingFocus(void);
 void GFX_ReleaseMouse(void);
 void GFX_ForceRedrawScreen(void);
@@ -75,6 +77,78 @@ bool GFX_GetPreventFullscreen(void);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 int FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 size_t GetGameState_Run(void);
+
+void* GetSetSDLValue(int isget, std::string& target, void* setval) {
+    if (target == "wait_on_error") {
+        if (isget) return (void*) sdl.wait_on_error;
+        else sdl.wait_on_error = setval;
+    }
+    else if (target == "opengl.kind") {
+#if C_OPENGL
+        if (isget) return (void*) sdl_opengl.kind;
+        else sdl_opengl.kind = (GLKind)(intptr_t)setval;
+#else
+        if (isget) return (void*) 0;
+#endif
+/*
+    } else if (target == "draw.callback") {
+        if (isget) return (void*) sdl.draw.callback;
+        else sdl.draw.callback = *static_cast<GFX_CallBack_t*>(setval);
+    } else if (target == "desktop.full.width") {
+        if (isget) return (void*) sdl.desktop.full.width;
+        else sdl.desktop.full.width = *static_cast<uint16_t*>(setval);
+    } else if (target == "desktop.full.height") {
+        if (isget) return (void*) sdl.desktop.full.height;
+        else sdl.desktop.full.height = *static_cast<uint16_t*>(setval);
+    } else if (target == "desktop.full.fixed") {
+        if (isget) return (void*) sdl.desktop.full.fixed;
+        else sdl.desktop.full.fixed = setval;
+    } else if (target == "desktop.window.width") {
+        if (isget) return (void*) sdl.desktop.window.width;
+        else sdl.desktop.window.width = *static_cast<uint16_t*>(setval);
+    } else if (target == "desktop.window.height") {
+        if (isget) return (void*) sdl.desktop.window.height;
+        else sdl.desktop.window.height = *static_cast<uint16_t*>(setval);
+*/
+    } else if (target == "desktop.fullscreen") {
+        if (isget) return (void*) sdl.desktop.fullscreen;
+        else sdl.desktop.fullscreen = setval;
+    } else if (target == "desktop.doublebuf") {
+        if (isget) return (void*) sdl.desktop.doublebuf;
+        else sdl.desktop.doublebuf = setval;
+/*
+    } else if (target == "desktop.type") {
+        if (isget) return (void*) sdl.desktop.type;
+        else sdl.desktop.type = *static_cast<SCREEN_TYPES*>(setval);
+*/
+    } else if (target == "desktop.want_type") {
+        if (isget) return (void*) sdl.desktop.want_type;
+        else sdl.desktop.want_type = *static_cast<SCREEN_TYPES*>(setval);
+/*
+    } else if (target == "surface") {
+        if (isget) return (void*) sdl.surface;
+        else sdl.surface = static_cast<SDL_Surface*>(setval);
+    } else if (target == "overlay") {
+        if (isget) return (void*) sdl.overlay;
+        else sdl.overlay = static_cast<SDL_Overlay*>(setval);
+*/
+    } else if (target == "mouse.autoenable") {
+        if (isget) return (void*) sdl.mouse.autoenable;
+        else sdl.mouse.autoenable = setval;
+/*
+    } else if (target == "overscan_width") {
+        if (isget) return (void*) sdl.overscan_width;
+        else sdl.overscan_width = *static_cast<Bitu*>(setval);
+*/
+#if defined (WIN32)
+    } else if (target == "using_windib") {
+        if (isget) return (void*) sdl.using_windib;
+        else sdl.using_windib = setval;
+#endif
+    }
+
+    return NULL;
+}
 
 const char *scaler_menu_opts[][2] = {
     { "none",                   "None" },
@@ -1863,6 +1937,11 @@ bool intensity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
     reg_bx = oldbx;
     return true;
 }
+
+#if defined(LINUX) && C_X11
+# include <X11/Xlib.h>
+# include <X11/Xatom.h>
+#endif
 
 int GetNumScreen() {
     int numscreen = 1;

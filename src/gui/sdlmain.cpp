@@ -143,11 +143,6 @@ void MenuBrowseProgramFile(void), OutputSettingMenuUpdate(void), update_pc98_clo
 # include <alsa/asoundlib.h>
 #endif
 
-#if defined(LINUX) && C_X11
-# include <X11/Xlib.h>
-# include <X11/Xatom.h>
-#endif
-
 #if defined(WIN32) && !defined(HX_DOS)
 # include <shobjidl.h>
 #endif
@@ -212,6 +207,10 @@ typedef enum PROCESS_DPI_AWARENESS {
 #include "fpu.h"
 #include "cross.h"
 #include "keymap.h"
+
+#if defined(MACOSX) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+extern "C" void sdl1_hax_macosx_highdpi_set_enable(const bool enable);
+#endif
 
 #if !defined(C_SDL2) && !defined(RISCOS)
 # include "SDL_version.h"
@@ -4940,78 +4939,6 @@ bool sdl_wait_on_error() {
     return sdl.wait_on_error;
 }
 
-void* GetSetSDLValue(int isget, std::string& target, void* setval) {
-    if (target == "wait_on_error") {
-        if (isget) return (void*) sdl.wait_on_error;
-        else sdl.wait_on_error = setval;
-    }
-    else if (target == "opengl.kind") {
-#if C_OPENGL
-        if (isget) return (void*) sdl_opengl.kind;
-        else sdl_opengl.kind = (GLKind)(intptr_t)setval;
-#else
-        if (isget) return (void*) 0;
-#endif
-/*
-    } else if (target == "draw.callback") {
-        if (isget) return (void*) sdl.draw.callback;
-        else sdl.draw.callback = *static_cast<GFX_CallBack_t*>(setval);
-    } else if (target == "desktop.full.width") {
-        if (isget) return (void*) sdl.desktop.full.width;
-        else sdl.desktop.full.width = *static_cast<uint16_t*>(setval);
-    } else if (target == "desktop.full.height") {
-        if (isget) return (void*) sdl.desktop.full.height;
-        else sdl.desktop.full.height = *static_cast<uint16_t*>(setval);
-    } else if (target == "desktop.full.fixed") {
-        if (isget) return (void*) sdl.desktop.full.fixed;
-        else sdl.desktop.full.fixed = setval;
-    } else if (target == "desktop.window.width") {
-        if (isget) return (void*) sdl.desktop.window.width;
-        else sdl.desktop.window.width = *static_cast<uint16_t*>(setval);
-    } else if (target == "desktop.window.height") {
-        if (isget) return (void*) sdl.desktop.window.height;
-        else sdl.desktop.window.height = *static_cast<uint16_t*>(setval);
-*/
-    } else if (target == "desktop.fullscreen") {
-        if (isget) return (void*) sdl.desktop.fullscreen;
-        else sdl.desktop.fullscreen = setval;
-    } else if (target == "desktop.doublebuf") {
-        if (isget) return (void*) sdl.desktop.doublebuf;
-        else sdl.desktop.doublebuf = setval;
-/*
-    } else if (target == "desktop.type") {
-        if (isget) return (void*) sdl.desktop.type;
-        else sdl.desktop.type = *static_cast<SCREEN_TYPES*>(setval);
-*/
-    } else if (target == "desktop.want_type") {
-        if (isget) return (void*) sdl.desktop.want_type;
-        else sdl.desktop.want_type = *static_cast<SCREEN_TYPES*>(setval);
-/*
-    } else if (target == "surface") {
-        if (isget) return (void*) sdl.surface;
-        else sdl.surface = static_cast<SDL_Surface*>(setval);
-    } else if (target == "overlay") {
-        if (isget) return (void*) sdl.overlay;
-        else sdl.overlay = static_cast<SDL_Overlay*>(setval);
-*/
-    } else if (target == "mouse.autoenable") {
-        if (isget) return (void*) sdl.mouse.autoenable;
-        else sdl.mouse.autoenable = setval;
-/*
-    } else if (target == "overscan_width") {
-        if (isget) return (void*) sdl.overscan_width;
-        else sdl.overscan_width = *static_cast<Bitu*>(setval);
-*/
-#if defined (WIN32)
-    } else if (target == "using_windib") {
-        if (isget) return (void*) sdl.using_windib;
-        else sdl.using_windib = setval;
-#endif
-    }
-
-    return NULL;
-}
-
 #if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
 static uint8_t im_x, im_y;
 static uint32_t last_ticks;
@@ -7144,6 +7071,11 @@ bool VM_PowerOn() {
 
     return true;
 }
+
+#if defined(LINUX) && C_X11
+# include <X11/Xlib.h>
+# include <X11/Xatom.h>
+#endif
 
 #if !defined(C_EMSCRIPTEN)
 void update_capture_fmt_menu(void);
