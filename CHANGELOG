@@ -51,6 +51,10 @@
   - Added support for archive, hidden, system attributes
     on mounted local and overlay drives for non-Windows
     platforms by using special file(s). (Wengier)
+  - Added config option "special operation file prefix"
+    (in [dos] section) to speciay an alterantive file
+    prefix for DOSBox-X's special operations on mounted
+    local and overlay drives. (Wengier)
   - Added code page 3021 for the MIK character set used
     by the Bulgarian language (as in FreeDOS). (Wengier)
   - Added language file for the Brazilian Portuguese,
