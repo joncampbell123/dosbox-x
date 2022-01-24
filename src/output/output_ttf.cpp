@@ -618,7 +618,7 @@ void OUTPUT_TTF_Select(int fsize) {
         bool trysgf = false;
         if (!*fName) {
             std::string mtype(static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_string("machine"));
-            if (IS_PC98_ARCH||mtype.substr(0, 4)=="pc98"||InitCodePage()&&isDBCSCP()) trysgf = true;
+            if (IS_PC98_ARCH||mtype.substr(0, 4)=="pc98"||(InitCodePage()&&isDBCSCP())) trysgf = true;
         }
         force_conversion = false;
         dos.loaded_codepage = cp;
@@ -1049,7 +1049,7 @@ void GFX_EndTextLines(bool force) {
                     if(ttf_dosv && ascii == 0x5c)
                         ascii = 0x9d;
                     curAC[x] = newAC[x];
-                    if (ascii > 175 && ascii < 179 && !IS_PC98_ARCH && !IS_JEGA_ARCH && dos.loaded_codepage != 864 && dos.loaded_codepage != 874 && !(dos.loaded_codepage == 932 && halfwidthkana) && (dos.loaded_codepage<1250 || dos.loaded_codepage>1258) && !(altcp && dos.loaded_codepage == altcp) && !(customcp && dos.loaded_codepage == customcp)) {	// special: shade characters 176-178 unless PC-98
+                    if (ascii > 175 && ascii < 179 && !IS_PC98_ARCH && !IS_JEGA_ARCH && dos.loaded_codepage != 864 && dos.loaded_codepage != 874 && dos.loaded_codepage != 3021 && !(dos.loaded_codepage == 932 && halfwidthkana) && (dos.loaded_codepage < 1250 || dos.loaded_codepage > 1258) && !(altcp && dos.loaded_codepage == altcp) && !(customcp && dos.loaded_codepage == customcp)) {	// special: shade characters 176-178 unless PC-98
                         ttf_bgColor.b = (ttf_bgColor.b*(179-ascii) + ttf_fgColor.b*(ascii-175))>>2;
                         ttf_bgColor.g = (ttf_bgColor.g*(179-ascii) + ttf_fgColor.g*(ascii-175))>>2;
                         ttf_bgColor.r = (ttf_bgColor.r*(179-ascii) + ttf_fgColor.r*(ascii-175))>>2;
