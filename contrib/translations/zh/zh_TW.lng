@@ -744,7 +744,7 @@ Windows 使用者必須開啟 cmd.exe 或者編輯 DOSBox-X.exe 的捷徑內容�
 dosbox-x [名稱] [-exit] [-version] [-fastlaunch] [-fullscreen]
          [-conf 組態檔案] [-lang 語言檔案] [-machine 機器類型]
          [-startmapper] [-noautoexec] [-scaler 縮放器 | -forcescaler 縮放器]
-         [-noconsole] [-c 命令] [-set <段落 屬性=值>]
+         [-o 選項] [-c 命令] [-set <段落 屬性=值>]
 
 
 .
@@ -774,8 +774,8 @@ dosbox-x [名稱] [-exit] [-version] [-fastlaunch] [-fullscreen]
 [33;1m  -lang[0m 語言檔案
 	以指定的語言檔案啟動 DOSBox-X.
 
-[33;1m  -noconsole[0m (僅限 Windows)
-	不顯示主控台視窗. 輸出將重新導向到 stdout.txt 及 stderr.txt.
+[33;1m  -startmapper[0m
+	啟動後直接進入按鍵對應表. 特別適用於出現鍵盤問題的使用者.
 
 [33;1m  -machine[0m 機器類型
 	啟動 DOSBox-X 並模擬指定的機器類型. 有效值包括:
@@ -785,11 +785,12 @@ dosbox-x [名稱] [-exit] [-version] [-fastlaunch] [-fullscreen]
 
 .
 :PROGRAM_INTRO_USAGE_3
-[33;1m  -startmapper[0m
-	啟動後直接進入按鍵對應表. 特別適用於出現鍵盤問題的使用者.
-
 [33;1m  -noautoexec[0m
 	略過載入組態檔案中的 [autoexec] 自動執行段落.
+
+[33;1m  -o[0m 選項
+	如果指定了可執行檔案的名稱, 則為"名稱"提供命令列選項.
+	多個 -o 可用於多個可執行檔案名稱.
 
 [33;1m  -c[0m 命令
 	在啟動程式前先執行指定的命令. 可以用多個 -c 參數指定多個命令.
@@ -3152,6 +3153,9 @@ Turbo (快轉模式)
 .
 :MENU:cputype_pentium_ii
 奔騰 II
+.
+:MENU:cputype_pentium_iii
+奔騰 III
 .
 :MENU:cputype_experimental
 實驗 CPU

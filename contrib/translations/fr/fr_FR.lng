@@ -749,7 +749,7 @@ Les utilisateurs de Windows doivent ouvrir cmd.exe ou modifier le raccourci de D
 dosbox-x [nom] [-exit] [-version] [-fastlaunch] [-fullscreen].
          [-conf congfigfile] [-lang languagefile] [-machine machinetype].
          [-startmapper] [-noautoexec] [-scaler scaler | -forcescaler scaler]
-         [-noconsole] [-c command] [-set <section property=value>]
+         [-o options] [-c command] [-set <section property=value>]
 
 
 .
@@ -780,9 +780,9 @@ dosbox-x [nom] [-exit] [-version] [-fastlaunch] [-fullscreen].
 ←[33;1m -lang←[0m fichier de langue
 ○Lance DOSBox-X en utilisant la langue choisie dans le fichier de langue.
 
-←[33;1m -noconsole←[0m (Windows uniquement)
-○Lance DOSBox-X sans montrer la fenêtre de la console. La sortie sera
-○être redirigé vers stdout.txt et stderr.txt
+←[33;1m -startmapper←[0m
+○Entrez dans le keymapper directement au démarrage. Utile pour les personnes ayant
+○des problèmes de clavier.
 
 ←[33;1m -machine←[0m machinetype
 ○Configure DOSBox-X pour émuler un type spécifique de machine. Choix valides :
@@ -792,22 +792,24 @@ dosbox-x [nom] [-exit] [-version] [-fastlaunch] [-fullscreen].
 
 .
 :PROGRAM_INTRO_USAGE_3
-←[33;1m -startmapper←[0m
-○Entrez dans le keymapper directement au démarrage. Utile pour les personnes ayant
-○des problèmes de clavier.
-
 ←[33;1m -noautoexec←[0m
 ○Saute la section [autoexec] du fichier de configuration chargé.
 
+←[33;1m -o←[0m options
+○Fournit une ou plusieurs options de ligne de commande pour "name" si un
+○nom d'exécutable est spécifié. Plusieurs -o peuvent être utilisés pour
+○plusieurs noms d'exécutables.
+
 ←[33;1m -c←[0m commande
 ○Exécute la commande spécifiée avant le nom. Des commandes multiples
-○ peut être spécifié. Chaque commande doit cependant commencer par -c.
-○Une commande peut être : un programme interne, une commande DOS ou un programme
-○sur un lecteur monté.
+○peut être spécifié. Chaque commande doit cependant commencer par -c.
+○Une commande peut être : un programme interne, une commande DOS ou un
+○programme sur un lecteur monté.
 
 ←[33;1m -set←[0m <section property=value>
-○Définit l'option de configuration (qui remplace le fichier de configuration). Des options multiples peuvent être spécifiées. Chaque option doit cependant commencer par -set.
-
+○Définit l'option de configuration (qui remplace le fichier de
+○configuration). Des options multiples peuvent être spécifiées.
+○Chaque option doit cependant commencer par -set.
 
 .
 :PROGRAM_INTRO_INFO
@@ -3185,6 +3187,9 @@ Pentium Pro
 .
 :MENU:cputype_pentium_ii
 Pentium II
+.
+:MENU:cputype_pentium_iii
+Pentium III
 .
 :MENU:cputype_experimental
 Expérimental

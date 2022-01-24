@@ -750,7 +750,7 @@ Los usuarios de Windows deben usar cmd o editar el acceso directo de DOSBox-X.
 dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
          [-conf congfigfile] [-lang languagefile] [-machine machinetype]
          [-startmapper] [-noautoexec] [-scaler scaler | -forcescaler scaler]
-         [-noconsole] [-c command] [-set <section property=value>]
+         [-o options] [-c command] [-set <section property=value>]
 
 
 .
@@ -781,9 +781,8 @@ dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
 ←[33;1m  -lang←[0m languagefile
 ○Inicia DOSBox-X usando el idioma indicado en languagefile.
 
-←[33;1m  -noconsole←[0m (Windows Only)
-○Inicia DOSBox-X sin mostrar la ventana de consola. 
-○El resultado se redirige a stdout.txt y stderr.txt
+←[33;1m  -startmapper←[0m
+○Inicia un mapeador de teclado por si hay problemas con el teclado.
 
 ←[33;1m  -machine←[0m machinetype
 ○Configura DOSBox-X para emular un tipo de PC concreto, se aceptan:
@@ -793,11 +792,12 @@ dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
 
 .
 :PROGRAM_INTRO_USAGE_3
-←[33;1m  -startmapper←[0m
-○Inicia un mapeador de teclado por si hay problemas con el teclado.
-
 ←[33;1m  -noautoexec←[0m
 ○Ignora el apartado [autoexec] del archivo dosbox.conf ya cargado.
+
+←[33;1m  -o←[0m options
+○Proporciona opciones de línea de comandos para "nombre" con un nombre
+○ejecutable. Múltiple -o se puede utilizar para varios nombres.
 
 ←[33;1m  -c←[0m command
 ○Ejecuta el comando especificado antes de ejecutar nombre. 
@@ -3184,6 +3184,9 @@ Pentium Pro
 .
 :MENU:cputype_pentium_ii
 Pentium II
+.
+:MENU:cputype_pentium_iii
+Pentium III
 .
 :MENU:cputype_experimental
 Experimental

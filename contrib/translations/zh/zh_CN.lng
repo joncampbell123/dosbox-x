@@ -741,10 +741,10 @@ DOSBox-X 创建一个 DOS 环境让您仿佛正在使用原本的 DOS 系统.
 [2J[32;1m这儿提供您可以提供给 DOSBox-X 的命令行参数的概述.[0m
 Windows 用户必须打开 cmd.exe 或者编辑 DOSBox-X.exe 的快捷方式以使用它们.
 
-dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
+dosbox-x [名称] [-exit] [-version] [-fastlaunch] [-fullscreen]
          [-conf 配置文件] [-lang 语言文件] [-machine 机器类型]
          [-startmapper] [-noautoexec] [-scaler 缩放器 | -forcescaler 缩放器]
-         [-noconsole] [-c 命令] [-set <段落 属性=值>]
+         [-o 选项] [-c 命令] [-set <段落 属性=值>]
 
 
 .
@@ -774,8 +774,8 @@ dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
 [33;1m  -lang[0m 语言文件
 	以指定的语言文件启动 DOSBox-X.
 
-[33;1m  -noconsole[0m (仅 Windows)
-	不显示控制台窗口. 输出将重定向到 stdout.txt 及 stderr.txt.
+[33;1m  -startmapper[0m
+	启动后直接进入按键编辑. 特别适用于出现键盘问题的用户.
 
 [33;1m  -machine[0m 机器类型
 	启动 DOSBox-X 并模拟指定的机器类型. 合法值包括:
@@ -785,11 +785,12 @@ dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
 
 .
 :PROGRAM_INTRO_USAGE_3
-[33;1m  -startmapper[0m
-	启动后直接进入按键编辑. 特别适用于出现键盘问题的用户.
-
 [33;1m  -noautoexec[0m
 	跳过调入的配置文件中的 [autoexec] 段落.
+
+[33;1m  -o[0m 选项
+	如果指定了可执行文件名称, 则为"名称"提供命令行选项.
+	多个 -o 可用于多个可执行文件名称.
 
 [33;1m  -c[0m 命令
 	在启动程序前先执行指定的命令. 可以用多个 -c 参数指定多个命令.
@@ -3145,6 +3146,9 @@ DOS 命令
 .
 :MENU:cputype_pentium_ii
 奔腾 II
+.
+:MENU:cputype_pentium_iii
+奔腾 III
 .
 :MENU:cputype_experimental
 实验 CPU

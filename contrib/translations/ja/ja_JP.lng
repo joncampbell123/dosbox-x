@@ -739,7 +739,7 @@ Windowsでは cmd.exe を用いるか, DOSBox-X.exe のショートカットの�
 dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
          [-conf congfigfile] [-lang languagefile] [-machine machinetype]
          [-startmapper] [-noautoexec] [-scaler scaler | -forcescaler scaler]
-         [-noconsole] [-c command] [-set <section property=value>]
+         [-o options] [-c command] [-set <section property=value>]
 
 
 .
@@ -770,9 +770,9 @@ dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
 [33;1m  -lang[0m languagefile
   指定した languagefile を用いて、DOSBox-X を起動します。
 
-[33;1m  -noconsole[0m (Windows Only)
-  コンソールウィンドウを表示せずに DOSBox-X を起動します。
-  出力はstdout.txt と stderr.txtへリダイレクトされます。
+[33;1m  -startmapper[0m
+  起動時にキーマッパーをに入ります。キーボード関連の不具合がある場合に役立つ
+  ことがあります。
 
 [33;1m  -machine[0m machinetype
   DOSBox-X を指定したタイプのマシンとして起動します。指定可能な選択肢:
@@ -782,12 +782,12 @@ dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
 
 .
 :PROGRAM_INTRO_USAGE_3
-[33;1m  -startmapper[0m
-  起動時にキーマッパーをに入ります。キーボード関連の不具合がある場合に役立つ
-  ことがあります。
-
 [33;1m  -noautoexec[0m
   読み込んだ設定ファイルの [autoexec] セクションを実行しません。
+
+[33;1m  -o[0m options
+  実行可能ファイル名が指定されている場合、「name」のコマンドラインオプションを
+  提供します。複数の-oは、複数の実行可能ファイル名に使用できます。
 
 [33;1m  -c[0m command
   name を実行する前に実行するコマンドを指定します。
@@ -3166,6 +3166,9 @@ Pentium Pro
 .
 :MENU:cputype_pentium_ii
 Pentium II
+.
+:MENU:cputype_pentium_iii
+Pentium III
 .
 :MENU:cputype_experimental
 実験用 CPU

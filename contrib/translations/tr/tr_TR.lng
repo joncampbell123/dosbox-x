@@ -749,7 +749,7 @@ Windows kullanıcıları cmd.exe veya DOSBox-X kısayolunu kullanmalıdırlar.
 dosbox-x [ad] [-exit] [-version] [-fastlaunch] [-fullscreen]
          [-conf yapılandırma] [-lang dil-dosyası] [-machine makine-türü]
          [-startmapper] [-noautoexec] [-scaler ölçekleyici | -forcescaler
-         scaler] [-noconsole] [-c komut] [-set <section property=değer>]
+         scaler] [-o seçenekler] [-c komut] [-set <section property=değer>]
 
 
 .
@@ -780,9 +780,9 @@ dosbox-x [ad] [-exit] [-version] [-fastlaunch] [-fullscreen]
 ←[33;1m  -lang←[0m dil-dosyası
 ○DOSBox-X'i dil dosyasında belirtilen dili kullanarak başlatır.
 
-←[33;1m  -noconsole←[0m (Windows Only)
-○DOSBox-X'i konsol penceresini göstermeden başlatır. Çıktı,
-○stdout.txt ve stderr.txt dosyalarına yönlendirilir.
+←[33;1m  -startmapper←[0m
+○Başlangıçta doğrudan eşlemleyiciyi açar. Klavye sorunu yaşayan kişiler
+○için yararlı olabilir.
 
 ←[33;1m  -machine←[0m makine-türü
 ○DOSBox-X'i belirli bir tür makineyi öykünmesi için ayarlar. Seçenekler:
@@ -792,12 +792,12 @@ dosbox-x [ad] [-exit] [-version] [-fastlaunch] [-fullscreen]
 
 .
 :PROGRAM_INTRO_USAGE_3
-←[33;1m  -startmapper←[0m
-○Başlangıçta doğrudan eşlemleyiciyi açar. Klavye sorunu yaşayan kişiler
-○için yararlı olabilir.
-
 ←[33;1m  -noautoexec←[0m
 ○Yüklenen yapılandırma dosyasının [autoexec] bölümünü atlar.
+
+←[33;1m  -o←[0m seçenekler
+○Yürütülebilir bir adla "ad" için komut satırı seçeneği/seçenekleri
+○sağlar. Birden çok yürütülebilir ad için birden çok -o kullanılabilir.
 
 ←[33;1m  -c←[0m komut
 ○Ad'ı çalıştırmadan önce belirtilen komutu çalıştırır. Birden çok komut
@@ -3181,6 +3181,9 @@ Pentium Pro
 .
 :MENU:cputype_pentium_ii
 Pentium II
+.
+:MENU:cputype_pentium_iii
+Pentium III
 .
 :MENU:cputype_experimental
 Deneysel
