@@ -89,8 +89,14 @@
 /* Define to 1 to enable libfluidsynth MIDI synthesis */
 #undef C_FLUIDSYNTH
 
+/* Force Windows native menus for Windows SDL2 */
+#undef C_FORCE_MENU_HMENU
+
+/* Force SDL drawn menus for Windows SDL1 */
+#undef C_FORCE_MENU_SDLDRAW
+
 /* Define to 1 to enable floating point emulation */
-#define C_FPU					1
+#define C_FPU 1
 
 /* Define to 1 to use a x86/x64 assembly fpu core */
 /* FIXME: VS2015 x86_64 will not allow inline asm! */

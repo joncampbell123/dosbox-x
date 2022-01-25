@@ -74,6 +74,8 @@
     changeable via CONFIG command. (Wengier)
   - The default output for Linux SDL1 builds is changed
     from surface to opengl, unlike Linux SDL2. (Wengier)
+  - Using native Windows menus is supported in Windows
+    SDL2 build with an option at compile time. (Wengier)
   - Setting "windowposition" to "-" in the configuration
     will leave DOSBox-X window position as is instead of
     a specific position or being centered. (Wengier)

@@ -164,6 +164,10 @@ dnl yksoft1 wants a MinGW build for Windows that doesn't use the Windows menu sy
 AH_TEMPLATE(C_FORCE_MENU_SDLDRAW,[Define to 1 to force SDL-drawn menus])
 AC_ARG_ENABLE(force-menu-sdldraw,AC_HELP_STRING([--enable-force-menu-sdldraw],[Force SDL drawn menus]),enable_force_menu_sdldraw=yes)
 
+dnl For Windows SDL2 builds that use the Windows native menu system.
+AH_TEMPLATE(C_FORCE_MENU_HMENU,[Define to 1 to force native menus in Windows SDL2 builds])
+AC_ARG_ENABLE(force-menu-hmenu,AC_HELP_STRING([--enable-force-menu-hmenu],[Force Windows SDL2 native menus]),enable_force_menu_hmenu=yes)
+
 dnl This is how the build script can specify a HX DOS extender target
 AH_TEMPLATE(C_HX_DOS,[Define to 1 to target HX DOS])
 AC_ARG_ENABLE(hx-dos,AC_HELP_STRING([--enable-hx-dos],[Enable HX target]),enable_hx=yes)
@@ -210,6 +214,10 @@ esac
 if test x$enable_force_menu_sdldraw = xyes; then
     CXXFLAGS="$CXXFLAGS -DFORCE_SDLDRAW"
     AC_DEFINE(C_FORCE_MENU_SDLDRAW,1,[Force SDL drawn menus])
+fi
+
+if test x$enable_force_menu_hmenu = xyes; then
+    AC_DEFINE(C_FORCE_MENU_HMENU,1,[Force Windows SDL2 native menus])
 fi
 
 dnl TEST: Environ can be included
