@@ -330,7 +330,11 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
                 getPixel((x-1)*(int)render.src.width/sw, (y+1)*(int)render.src.height/sh, r, g, b, 3); 
                 int r1, g1, b1;
 #if defined(USE_TTF)
-                if (ttf.inUse && confres) {
+                if (ttf.inUse
+#if !(defined(C_SDL2) && DOSBOXMENU_TYPE == DOSBOXMENU_HMENU)
+                && confres
+#endif
+                ) {
                     std::string theme = section->Get_string("bannercolortheme");
                     if (theme == "black") {
                         r1 = 0; g1 = 0; b1 = 0;
@@ -3372,7 +3376,7 @@ int sel = -1;
 bool switchttf = false, gofs = false;
 void RunCfgTool(Bitu val) {
     gofs=false;
-#if defined(USE_TTF)
+#if defined(USE_TTF) && !(defined(C_SDL2) && DOSBOXMENU_TYPE == DOSBOXMENU_HMENU)
     if (!ttf.inUse && switchttf) {
         ttf_switch_on();
         if (sel==36&&!GFX_IsFullscreen()) {gofs=true;GFX_SwitchFullScreen();}
@@ -3416,7 +3420,7 @@ void GUI_Shortcut(int select) {
     shortcutid=select;
     shortcut=true;
     sel = select;
-#if defined(USE_TTF)
+#if defined(USE_TTF) && !(defined(C_SDL2) && DOSBOXMENU_TYPE == DOSBOXMENU_HMENU)
     if (ttf.inUse && !confres) {
         ttf_switch_off();
         GFX_EndUpdate(0);
@@ -3438,7 +3442,7 @@ void GUI_Run(bool pressed) {
     }
 
     sel = -1;
-#if defined(USE_TTF)
+#if defined(USE_TTF) && !(defined(C_SDL2) && DOSBOXMENU_TYPE == DOSBOXMENU_HMENU)
     if (ttf.inUse) {
         ttf_switch_off();
         GFX_EndUpdate(0);

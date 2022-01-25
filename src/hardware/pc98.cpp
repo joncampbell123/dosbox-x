@@ -29,6 +29,7 @@ extern bool gdc_5mhz_mode;
 extern bool enable_pc98_egc;
 extern bool enable_pc98_grcg;
 
+int Reflect_Menu(void);
 void gdc_5mhz_mode_update_vars(void);
 void gdc_egc_enable_update_vars(void);
 void gdc_grcg_enable_update_vars(void);
@@ -55,8 +56,7 @@ public:
 					enable_pc98_grcg = true;
 					gdc_grcg_enable_update_vars();
 				}
-#if defined(WIN32) && !defined(C_SDL2)
-				int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 				Reflect_Menu();
 #endif
             }
@@ -64,8 +64,7 @@ public:
                 enable_pc98_egc = false;
                 WriteOut("EGC graphics functions disabled\n");
                 gdc_egc_enable_update_vars();
-#if defined(WIN32) && !defined(C_SDL2)
-				int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 				Reflect_Menu();
 #endif
             }
@@ -74,8 +73,7 @@ public:
                 gdc_5mhz_mode_update_vars();
                 LOG_MSG("PC-98: GDC is running at %.1fMHz.",gdc_5mhz_mode ? 5.0 : 2.5);
                 WriteOut("GDC is now running at 2.5MHz\n");
-#if defined(WIN32) && !defined(C_SDL2)
-				int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 				Reflect_Menu();
 #endif
                 mainMenu.get_item("pc98_5mhz_gdc").check(gdc_5mhz_mode).refresh_item(mainMenu);
@@ -85,8 +83,7 @@ public:
                 gdc_5mhz_mode_update_vars();
                 LOG_MSG("PC-98: GDC is running at %.1fMHz.",gdc_5mhz_mode ? 5.0 : 2.5);
                 WriteOut("GDC is now running at 5MHz\n");
-#if defined(WIN32) && !defined(C_SDL2)
-                int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
                 Reflect_Menu();
 #endif
                 mainMenu.get_item("pc98_5mhz_gdc").check(gdc_5mhz_mode).refresh_item(mainMenu);

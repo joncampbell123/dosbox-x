@@ -65,6 +65,7 @@ uint16_t shell_psp = 0;
 Bitu call_int2e = 0;
 
 std::string GetDOSBoxXPath(bool withexe=false);
+int Reflect_Menu(void);
 void SetIMPosition(void);
 void initRand();
 void initcodepagefont(void);
@@ -473,8 +474,7 @@ void DOS_Shell::ParseLine(char * line) {
 	/* Run the actual command */
 
 	if (this == first_shell) dos_shell_running_program = true;
-#if defined(WIN32) && !defined(C_SDL2)
-	int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 	Reflect_Menu();
 #endif
 	if (toc||(!toc&&((out&&DOS_FindDevice(out)!=DOS_FindDevice("con"))))) outcon=false;
@@ -483,8 +483,7 @@ void DOS_Shell::ParseLine(char * line) {
 	DoCommand(line);
 
 	if (this == first_shell) dos_shell_running_program = false;
-#if defined(WIN32) && !defined(C_SDL2)
-	int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 	Reflect_Menu();
 #endif
 
@@ -1761,8 +1760,7 @@ void SHELL_Init() {
  * What the hell were you guys thinking? --J.C. */
 void SHELL_Run() {
 	dos_shell_running_program = false;
-#if defined(WIN32) && !defined(C_SDL2)
-	int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 	Reflect_Menu();
 #endif
 
@@ -1815,8 +1813,7 @@ void SHELL_Run() {
 		first_shell = 0;//Make clear that it shouldn't be used anymore
 		prepared = false;
 		dos_shell_running_program = false;
-#if defined(WIN32) && !defined(C_SDL2)
-		int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 		Reflect_Menu();
 #endif
 	}
@@ -1825,8 +1822,7 @@ void SHELL_Run() {
 		first_shell = 0;//Make clear that it shouldn't be used anymore
 		prepared = false;
 		dos_shell_running_program = false;
-#if defined(WIN32) && !defined(C_SDL2)
-		int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 		Reflect_Menu();
 #endif
 		throw;

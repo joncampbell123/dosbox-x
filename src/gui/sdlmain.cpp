@@ -75,6 +75,7 @@ bool mountfro[26], mountiro[26];
 bool OpenGL_using(void), Direct3D_using(void);
 void DOSBox_SetSysMenu(void), GFX_OpenGLRedrawScreen(void), InitFontHandle(void), DOSV_FillScreen(void), SetWindowTransparency(int trans);
 void MenuBrowseProgramFile(void), OutputSettingMenuUpdate(void), update_pc98_clock_pit_menu(void), AllocCallback1(void), AllocCallback2(void);
+int Reflect_Menu(void);
 
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE
@@ -2728,7 +2729,8 @@ void GFX_PreventFullscreen(bool lockout) {
         DOSBox_SetSysMenu();
 #if !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
         SDL1_hax_RemoveMinimize = lockout ? 1 : 0;
-        int Reflect_Menu(void);
+#endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         Reflect_Menu();
 #endif
 #endif
@@ -6982,8 +6984,7 @@ bool VM_Boot_DOSBox_Kernel() {
 
         dos_kernel_disabled = true;
 
-#if defined(WIN32) && !defined(C_SDL2)
-        int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         Reflect_Menu();
 #endif
     }
@@ -6999,8 +7000,7 @@ bool VM_Boot_DOSBox_Kernel() {
         void DOS_Startup(Section* sec);
         DOS_Startup(NULL);
 
-#if defined(WIN32) && !defined(C_SDL2)
-        int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         Reflect_Menu();
 #endif
 
@@ -8406,10 +8406,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
          * Init functions are called low-level first to high level last,
          * because some init functions rely on others. */
 
-#if !defined(C_SDL2)
-# if defined(WIN32)
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         Reflect_Menu();
-# endif
 #endif
 
         AllocCallback1();
@@ -8526,7 +8524,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         PARALLEL_Init();
         NE2K_Init();
 
-#if defined(WIN32) && !defined(C_SDL2)
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         Reflect_Menu();
 #endif
 
@@ -8822,7 +8820,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         }
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-        int Reflect_Menu(void);
         Reflect_Menu();
 #endif
 
@@ -8899,8 +8896,7 @@ fresh_boot:
             throw;
         }
 
-#if defined(WIN32) && !defined(C_SDL2)
-        int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         Reflect_Menu();
 #endif
 
@@ -8992,14 +8988,12 @@ fresh_boot:
             else
                 DispatchVMEvent(VM_EVENT_DOS_EXIT_KERNEL);
 
-#if defined(WIN32) && !defined(C_SDL2)
-            int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
             Reflect_Menu();
 #endif
         }
 
-#if defined(WIN32) && !defined(C_SDL2)
-        int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         Reflect_Menu();
 #endif
 
@@ -9046,8 +9040,7 @@ fresh_boot:
             goto fresh_boot;
         }
 
-#if defined(WIN32) && !defined(C_SDL2)
-        int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         Reflect_Menu();
 #endif
 
@@ -9123,8 +9116,7 @@ fresh_boot:
             goto fresh_boot;
         }
 
-#if defined(WIN32) && !defined(C_SDL2)
-        int Reflect_Menu(void);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         Reflect_Menu();
 #endif
 
