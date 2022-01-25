@@ -23,6 +23,9 @@
 #include "dos_inc.h"
 #include "drives.h"
 #include "logging.h"
+#if !defined(WIN32)
+#include <sys/statvfs.h>
+#endif
 
 #include "../libs/physfs/physfs.h"
 #include "../libs/physfs/physfs.c"

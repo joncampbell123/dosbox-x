@@ -19,7 +19,6 @@
  *  With major works from joncampbell123 and Wengier
  */
 
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -35,10 +34,10 @@
 #include <sys/file.h>
 #else
 #include <fcntl.h>
-#include <sys/stat.h>
 #include <sys/utime.h>
 #include <sys/locking.h>
 #endif
+#include <sys/stat.h>
 
 #include "dosbox.h"
 #include "dos_inc.h"
