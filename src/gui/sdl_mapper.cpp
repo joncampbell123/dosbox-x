@@ -5123,7 +5123,9 @@ void MAPPER_RunInternal() {
     if (!TTF_using() || ttf.inUse)
 #endif
     {
-        GFX_ForceRedrawScreen();
+        GFX_Stop();
+        if (sdl.draw.callback) (sdl.draw.callback)( GFX_CallBackReset );
+        GFX_Start();
 #if defined(USE_TTF)
         if (ttf.inUse) resetFontSize();
 #endif

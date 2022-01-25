@@ -1643,10 +1643,8 @@ void GFX_ForceRedrawScreen(void) {
     GFX_Start();
 #if defined(USE_TTF)
     if (TTF_using() && CurMode->type==M_TEXT) ttf.inUse = true;
-    if (ttf.inUse) {
-       void GFX_EndTextLines(bool force);
+    if (ttf.inUse)
        GFX_EndTextLines(true);
-    }
 #endif
 }
 
