@@ -812,7 +812,9 @@ void OUTPUT_TTF_Select(int fsize) {
         if (ttf.DOSBox && curSize > MIN_PTSIZE)														// make it even for DOSBox-X internal font (a bit nicer)
             curSize &= ~1;
     }
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 resize:
+#endif
     GFX_SelectFontByPoints(curSize);
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
     if (!ttf.fullScrn && menu_gui && menu.toggle && menuwidth_atleast(ttf.cols*ttf.width+ttf.offX*2+GetSystemMetrics(SM_CXBORDER)*2)>0) {

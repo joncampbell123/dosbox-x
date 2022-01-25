@@ -254,26 +254,26 @@ int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 		if ((osi.dwPlatformId==VER_PLATFORM_WIN32_NT) && (osi.dwMajorVersion>4)) {
 			// only WIN NT/200/XP
 			if (useCdromInterface==CDROM_USE_IOCTL_DIO) {
-//				cdrom[numDrives] = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_DIO);
-//				LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface.");
-//				break;
+				cdrom[numDrives] = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_DIO);
+				LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface.");
+				break;
 			}
 			if (useCdromInterface==CDROM_USE_IOCTL_DX) {
-//				cdrom[numDrives] = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_DX);
-//				LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface (digital audio extraction).");
-//				break;
+				cdrom[numDrives] = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_DX);
+				LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface (digital audio extraction).");
+				break;
 			}
 			if (useCdromInterface==CDROM_USE_IOCTL_MCI) {
-//				cdrom[numDrives] = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_MCI);
-//				LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface (media control interface).");
-//				break;
+				cdrom[numDrives] = new CDROM_Interface_Ioctl(CDROM_Interface_Ioctl::CDIOCTL_CDA_MCI);
+				LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: IOCTL Interface (media control interface).");
+				break;
 			}
 		}
 		if (useCdromInterface==CDROM_USE_ASPI) {
 			// all Wins - ASPI
-//			cdrom[numDrives] = new CDROM_Interface_Aspi();
-//			LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: ASPI Interface.");
-//			break;
+			cdrom[numDrives] = new CDROM_Interface_Aspi();
+			LOG(LOG_MISC,LOG_NORMAL)("MSCDEX: ASPI Interface.");
+			break;
 		}
 #endif
 #if defined (LINUX) || defined(OS2)
