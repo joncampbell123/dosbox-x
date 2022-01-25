@@ -99,8 +99,8 @@
     screenshots in TTF CJK mode, or they do not show up
     properly in the Configuration Tool when "autodbcs"
     is set to "false" in the configuration. (Wengier)
-  - Fixed IOCTL interface for physical CD drives on the
-    Windows platform. (Wengier)
+  - Fixed IOCTL & ASPI interfaces for mounting physical
+    CD drives on the Windows platform. (Wengier)
   - Fixed the issue of loading scalers in the previous
     version. A message box will only show up if you
     append "prompt" to the scaler option. (Wengier)

@@ -25,6 +25,10 @@
 #include "bios.h"
 #include "../ints/int10.h"
 
+#ifdef __WIN32__
+#include <malloc.h>
+#endif
+
 uint8_t *clipAscii = NULL;
 uint32_t clipSize = 0;
 bool direct_mouse_clipboard = false;
