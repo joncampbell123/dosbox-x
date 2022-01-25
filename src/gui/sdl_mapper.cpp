@@ -4624,13 +4624,21 @@ void BIND_MappingEvents(void) {
 #endif
 
         switch (event.type) {
-#if !defined(C_SDL2) && defined(_WIN32) && !defined(HX_DOS)
+#if defined(_WIN32) && !defined(HX_DOS)
         case SDL_SYSWMEVENT : {
-            switch ( event.syswm.msg->msg ) {
+            switch ( event.syswm.msg->
+#if defined(C_SDL2)
+            msg.win.
+#endif
+            msg ) {
                 case WM_COMMAND:
 # if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
                     if (GetMenu(GetHWND())) {
+# if defined(C_SDL2)
+                        if (mapperMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(event.syswm.msg->msg.win.wParam))) return;
+# else
                         if (mapperMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(event.syswm.msg->wParam))) return;
+# endif
                     }
 # endif
                     break;
@@ -5058,7 +5066,11 @@ void MAPPER_RunInternal() {
     GFX_SetResizeable(true);
 #elif C_DIRECT3D
     bool Direct3D_using(void);
-    if (Direct3D_using() && !IS_VGA_ARCH && !IS_PC98_ARCH) {
+    if (Direct3D_using()
+# if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+        && !IS_VGA_ARCH && !IS_PC98_ARCH
+# endif
+    ) {
         change_output(0);
         change_output(6);
     }
