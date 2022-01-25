@@ -3066,13 +3066,22 @@ static void UI_Execute(GUI::ScreenSDL *screen) {
     while (running) {
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
-#if !defined(C_SDL2) && defined(_WIN32) && !defined(HX_DOS)
+#if defined(_WIN32) && !defined(HX_DOS)
                 case SDL_SYSWMEVENT : {
-                    switch ( event.syswm.msg->msg ) {
+                    switch ( event.syswm.msg->
+#if defined(C_SDL2)
+                    msg.win.
+#endif
+                    msg ) {
                         case WM_COMMAND:
 # if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
                             if (GetMenu(GetHWND())) {
-                                if (guiMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(event.syswm.msg->wParam))) return;
+# if defined(C_SDL2)
+                                if (guiMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(event.syswm.msg->msg.win.wParam)))
+# else
+                                if (guiMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(event.syswm.msg->wParam)))
+# endif
+                                    return;
                             }
 # endif
                             break;
@@ -3312,13 +3321,22 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
     while (running) {
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
-#if !defined(C_SDL2) && defined(_WIN32) && !defined(HX_DOS)
+#if defined(_WIN32) && !defined(HX_DOS)
                 case SDL_SYSWMEVENT : {
-                    switch ( event.syswm.msg->msg ) {
+                    switch ( event.syswm.msg->
+#if defined(C_SDL2)
+                    msg.win.
+#endif
+                    msg ) {
                         case WM_COMMAND:
 # if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
                             if (GetMenu(GetHWND())) {
-                                if (guiMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(event.syswm.msg->wParam))) return;
+# if defined(C_SDL2)
+                                if (guiMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(event.syswm.msg->msg.win.wParam)))
+# else
+                                if (guiMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(event.syswm.msg->wParam)))
+# endif
+                                    return;
                             }
 # endif
                             break;

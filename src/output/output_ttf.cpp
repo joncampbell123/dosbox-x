@@ -124,13 +124,6 @@ std::string GetDOSBoxXPath(bool withexe=false);
 void GFX_SetResizeable(bool enable);
 SDL_Window * GFX_SetSDLSurfaceWindow(uint16_t width, uint16_t height);
 #endif
-#if defined(WIN32)
-#if !defined(C_SDL2)
-extern "C" void SDL1_hax_SetMenu(HMENU menu);
-#elif DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-void SDL1_hax_SetMenu(HMENU menu);
-#endif
-#endif
 
 Bitu OUTPUT_TTF_SetSize() {
     bool text=CurMode&&(CurMode->type==0||CurMode->type==2||CurMode->type==M_TEXT||IS_PC98_ARCH);

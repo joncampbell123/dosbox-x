@@ -1896,7 +1896,7 @@ void ToggleMenu(bool pressed) {
     DOSBox_SetSysMenu();
 }
 
-#if !(defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS))
+#if !(defined(WIN32) && !(defined(C_SDL2) && !defined(SDL_DOSBOX_X_IME)) && !defined(HX_DOS))
 int Reflect_Menu(void) {
     return 0;
 }
@@ -2092,7 +2092,7 @@ void DOSBox_SetSysMenu(void) {
     }
 #endif
 }
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+#if defined(WIN32) && !(defined(C_SDL2) && !defined(SDL_DOSBOX_X_IME)) && !defined(HX_DOS)
 #include <shlobj.h>
 
 void GetDefaultSize(void) {

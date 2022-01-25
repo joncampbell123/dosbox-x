@@ -225,15 +225,16 @@ WIN_CreateDevice(int devindex)
 HMENU WIN_SurfaceMenu = NULL;
 
 void SDL2_hax_SetMenu(SDL_Window * window, HMENU menu) {
-	if (menu == WIN_SurfaceMenu)
-		return;
+    SDL_WindowData *data;
+    if (menu == WIN_SurfaceMenu || !window)
+        return;
 
-	SDL_WindowData *data = (SDL_WindowData *) window->driverdata;
-	WIN_SurfaceMenu = menu;
-	if (window && (window->flags & SDL_WINDOW_FULLSCREEN) == SDL_WINDOW_FULLSCREEN)
-		SetMenu(data->hwnd, NULL);
-	else
-		SetMenu(data->hwnd, WIN_SurfaceMenu);
+    data = (SDL_WindowData *) window->driverdata;
+    WIN_SurfaceMenu = menu;
+    if ((window->flags & SDL_WINDOW_FULLSCREEN) == SDL_WINDOW_FULLSCREEN)
+        SetMenu(data->hwnd, NULL);
+    else
+        SetMenu(data->hwnd, WIN_SurfaceMenu);
 
     DrawMenuBar(data->hwnd);
 }

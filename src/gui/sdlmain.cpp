@@ -311,10 +311,6 @@ extern bool IME_GetEnable();
 
 int NonUserResizeCounter = 0;
 
-#if defined(WIN32) && !defined(C_SDL2)
-extern "C" void SDL1_hax_SetMenu(HMENU menu);
-#endif
-
 #if defined(WIN32) && !defined(HX_DOS)
 enum class CornerPreference {
     Default    = 0,
@@ -9201,11 +9197,9 @@ fresh_boot:
 
     LOG::Exit();
 
-#if defined(WIN32) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
-# if !defined(HX_DOS)
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU && defined(WIN32) && !defined(HX_DOS) && (!defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL) || defined(C_SDL2) && defined(SDL_DOSBOX_X_IME))
     ShowWindow(GetHWND(), SW_HIDE);
     SDL1_hax_SetMenu(NULL);/* detach menu from window, or else Windows will destroy the menu out from under the C++ class */
-# endif
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
     void sdl_hax_macosx_setmenu(void *nsMenu);

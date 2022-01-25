@@ -47,6 +47,8 @@
 #include "wmmsg.h"
 #endif
 
+void (*SDL1_hax_INITMENU_cb)() = NULL;
+
 /* For processing mouse WM_*BUTTON* and WM_MOUSEMOVE message-data from GetMessageExtraInfo() */
 #define MOUSEEVENTF_FROMTOUCH 0xFF515700
 
@@ -896,6 +898,11 @@ WIN_WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             }
 #endif /* System has screensaver support */
         }
+        break;
+
+    case WM_INITMENU:
+        if (SDL1_hax_INITMENU_cb != NULL)
+            SDL1_hax_INITMENU_cb();
         break;
 
     case WM_CLOSE:
