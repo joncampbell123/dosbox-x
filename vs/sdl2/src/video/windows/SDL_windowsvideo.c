@@ -222,6 +222,21 @@ WIN_CreateDevice(int devindex)
     return device;
 }
 
+HMENU WIN_SurfaceMenu = NULL;
+
+void SDL2_hax_SetMenu(SDL_Window * window, HMENU menu) {
+	if (menu == WIN_SurfaceMenu)
+		return;
+
+	WIN_SurfaceMenu = menu;
+	SDL_WindowData *data = (SDL_WindowData *) window->driverdata;
+	if ((window->flags & SDL_WINDOW_FULLSCREEN) == SDL_WINDOW_FULLSCREEN)
+		SetMenu(data->hwnd, NULL);
+	else
+		SetMenu(data->hwnd, WIN_SurfaceMenu);
+
+    DrawMenuBar(data->hwnd);
+}
 
 VideoBootStrap WINDOWS_bootstrap = {
     "windows", "SDL Windows video driver", WIN_Available, WIN_CreateDevice

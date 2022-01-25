@@ -65,10 +65,6 @@ void*                                               sdl_hax_nsMenuItemAlloc(cons
 void                                                sdl_hax_nsMenuItemRelease(void *nsMenuItem);
 #endif
 
-#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-extern "C" void                                     SDL1_hax_SetMenu(HMENU menu);
-#endif
-
 void                                                reflectmenu_INITMENU_cb();
 bool                                                GFX_GetPreventFullscreen(void);
 void                                                RENDER_CallBack( GFX_CallBackFunctions_t function );
@@ -1784,6 +1780,15 @@ void SetVal(const std::string& secname, const std::string& preval, const std::st
         sec->HandleInputline(real_val);
     }
 }
+
+#if defined(WIN32) && defined(C_SDL2) && defined(SDL_DOSBOX_X_IME)
+extern "C" void SDL2_hax_SetMenu(SDL_Window *window, HMENU menu);
+void SDL1_hax_SetMenu(HMENU menu) {
+    SDL2_hax_SetMenu(sdl.window, menu);
+}
+#elif DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+extern "C" void SDL1_hax_SetMenu(HMENU menu);
+#endif
 
 void DOSBox_SetMenu(DOSBoxMenu &altMenu) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW

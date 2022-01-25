@@ -123,8 +123,13 @@ std::string GetDOSBoxXPath(bool withexe=false);
 #if defined(C_SDL2)
 void GFX_SetResizeable(bool enable);
 SDL_Window * GFX_SetSDLSurfaceWindow(uint16_t width, uint16_t height);
-#elif defined(WIN32)
+#endif
+#if defined(WIN32)
+#if !defined(C_SDL2)
 extern "C" void SDL1_hax_SetMenu(HMENU menu);
+#elif DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+void SDL1_hax_SetMenu(HMENU menu);
+#endif
 #endif
 
 Bitu OUTPUT_TTF_SetSize() {

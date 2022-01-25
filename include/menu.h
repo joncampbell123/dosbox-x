@@ -101,7 +101,7 @@ void DOSBox_NoMenu(void);
 
 #if C_FORCE_MENU_SDLDRAW /* Programmer/Dev wants to compile with SDL drawn menus even if host OS offers menus (shrug) Ok */
 # define DOSBOXMENU_TYPE    DOSBOXMENU_SDLDRAW
-#elif defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+#elif defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) // Windows SDL1 (except for HX-DOS)
 # define DOSBOXMENU_TYPE    DOSBOXMENU_HMENU
 #elif defined(MACOSX)
 # define DOSBOXMENU_TYPE    DOSBOXMENU_NSMENU

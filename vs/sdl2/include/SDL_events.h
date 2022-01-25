@@ -38,6 +38,9 @@
 #include "SDL_quit.h"
 #include "SDL_gesture.h"
 #include "SDL_touch.h"
+#if __WIN32__
+#include "windows.h"
+#endif
 
 #include "begin_code.h"
 /* Set up for C function definitions, even when using C++ */
@@ -776,6 +779,10 @@ extern DECLSPEC Uint8 SDLCALL SDL_EventState(Uint32 type, int state);
  *  returns (Uint32)-1
  */
 extern DECLSPEC Uint32 SDLCALL SDL_RegisterEvents(int numevents);
+
+#if __WIN32__
+extern DECLSPEC void SDL2_hax_SetMenu(SDL_Window *window, HMENU menu);
+#endif
 
 /* Ends C function definitions when using C++ */
 #ifdef __cplusplus

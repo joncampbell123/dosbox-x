@@ -41,10 +41,12 @@ bool date_host_forced=false;
 #if defined (WIN32) && !defined (__MINGW32__)
 typedef Bitu suseconds_t;
 
+#if !(defined (C_SDL2) && defined(SDL_DOSBOX_X_IME))
 struct timeval {
     time_t tv_sec;
     suseconds_t tv_usec;
 };
+#endif
 
 static void gettimeofday (timeval* ptime, void* pdummy) {
     struct _timeb thetime;

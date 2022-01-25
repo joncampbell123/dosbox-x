@@ -167,13 +167,14 @@ DEFINE_GUID(SDL_IID_IMMDeviceEnumerator, 0xA95664D2, 0x9614, 0x4F35, 0xA7, 0x46,
 DEFINE_GUID(SDL_IID_IAudioEndpointVolume, 0x5CDF2C82, 0x841E, 0x4546, 0x97, 0x22, 0x0C, 0xF7, 0x40, 0x78, 0x22, 0x9A);
 #endif
 
-
-
 static float GetSystemVolume(void)
 {
     float volume = -1.0f;    /* Return this if we can't get system volume */
 
 #if defined(__WIN32__) && defined(HAVE_ENDPOINTVOLUME_H)
+#ifndef IUnknown_Release
+#define IUnknown_Release(p) (p)->lpVtbl->Release(p)
+#endif
     HRESULT hr = WIN_CoInitialize();
     if (SUCCEEDED(hr)) {
         IMMDeviceEnumerator *pEnumerator;
