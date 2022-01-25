@@ -1910,7 +1910,6 @@ bool vsync_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuit
 
     SetVal("vsync", "vsyncmode", val);
 
-    void change_output(int output);
     change_output(9);
 
     VGA_Vsync VGA_Vsync_Decode(const char *vsyncmodestr);

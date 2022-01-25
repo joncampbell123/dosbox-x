@@ -66,7 +66,6 @@ void                                                sdl_hax_nsMenuItemRelease(vo
 #endif
 
 void                                                reflectmenu_INITMENU_cb();
-bool                                                GFX_GetPreventFullscreen(void);
 void                                                RENDER_CallBack( GFX_CallBackFunctions_t function );
 bool                                                OpenGL_using(void);
 
@@ -1875,8 +1874,6 @@ void DOSBox_NoMenu(void) {
 }
 
 void ToggleMenu(bool pressed) {
-    bool GFX_GetPreventFullscreen(void);
-
     /* prevent removing the menu in 3Dfx mode */
     if (GFX_GetPreventFullscreen())
         return;
@@ -1911,7 +1908,6 @@ void DOSBox_CheckOS(int &id, int &major, int &minor) {
 
 void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 #if defined(WIN32) && !defined(HX_DOS)
-    bool GFX_GetPreventFullscreen(void);
     bool MAPPER_IsRunning(void);
     bool GUI_IsRunning(void);
 

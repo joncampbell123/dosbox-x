@@ -74,7 +74,7 @@ bool usesystemcursor = false, enableime = false;
 bool mountfro[26], mountiro[26];
 bool OpenGL_using(void), Direct3D_using(void);
 void DOSBox_SetSysMenu(void), GFX_OpenGLRedrawScreen(void), InitFontHandle(void), DOSV_FillScreen(void), SetWindowTransparency(int trans);
-void MenuBrowseProgramFile(void), OutputSettingMenuUpdate(void), update_pc98_clock_pit_menu(void), AllocCallback1(void), AllocCallback2(void);
+void MenuBrowseProgramFile(void), OutputSettingMenuUpdate(void), update_pc98_clock_pit_menu(void), AllocCallback1(void), AllocCallback2(void), ToggleMenu(bool pressed);
 int Reflect_Menu(void);
 
 #ifndef _GNU_SOURCE
@@ -1224,7 +1224,6 @@ int menuwidth_atleast(int width) {
 void HideMenu_mapper_shortcut(bool pressed) {
     if (!pressed) return;
 
-    void ToggleMenu(bool pressed);
     ToggleMenu(true);
 
     mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
@@ -1670,9 +1669,7 @@ void GFX_ResetScreen(void) {
     GFX_Start();
     CPU_Reset_AutoAdjust();
     fullscreen_switch=true;
-#if !defined(C_SDL2)
-    if (!sdl.desktop.fullscreen) DOSBox_RefreshMenu(); // for menu
-#endif
+    DOSBox_RefreshMenu(); // for menu
 }
 
 void GFX_ForceFullscreenExit(void) {
@@ -2489,6 +2486,12 @@ void modeSwitched(bool full) {
     // ensure mouse capture when fullscreen || (re-)capture if user said so when windowed
     auto locked = sdl.mouse.locked;
     if ((full && !locked) || (!full && locked)) GFX_CaptureMouse();
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU && defined(C_SDL2)
+    if (!full && menu.gui && menu.toggle) {
+        DOSBox_NoMenu();
+        DOSBox_SetMenu();
+    }
+#endif
 }
 
 void GFX_SwitchFullScreen(void)
@@ -5212,13 +5215,26 @@ void GFX_Events() {
                     break;
                 case WM_SYSCOMMAND:
                     switch (event.syswm.msg->msg.win.wParam) {
+                        case ID_WIN_SYSMENU_RESTOREMENU:
+                            /* prevent removing the menu in 3Dfx mode */
+                            if (!GFX_GetPreventFullscreen()) {
+                                DOSBox_SetMenu();
+                                mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
+                            }
+                            break;
                         case ID_WIN_SYSMENU_TOGGLEMENU:
                             /* prevent removing the menu in 3Dfx mode */
                             if (!GFX_GetPreventFullscreen())
                             {
-                                void ToggleMenu(bool pressed);
                                 ToggleMenu(true);
                                 mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
+#if defined(USE_TTF) && DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+                                int last = 0;
+                                while (TTF_using() && !sdl.desktop.fullscreen && menu_gui && menu.toggle && menuwidth_atleast(ttf.cols*ttf.width+ttf.offX*2+GetSystemMetrics(SM_CXBORDER)*2)>0 && ttf.pointsize>last) {
+                                    last = ttf.pointsize;
+                                    increaseFontSize();
+                                }
+#endif
                             }
                             break;
                         case ID_WIN_SYSMENU_MAPPER:
