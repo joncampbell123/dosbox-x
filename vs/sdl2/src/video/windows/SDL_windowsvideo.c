@@ -228,9 +228,9 @@ void SDL2_hax_SetMenu(SDL_Window * window, HMENU menu) {
 	if (menu == WIN_SurfaceMenu)
 		return;
 
-	WIN_SurfaceMenu = menu;
 	SDL_WindowData *data = (SDL_WindowData *) window->driverdata;
-	if ((window->flags & SDL_WINDOW_FULLSCREEN) == SDL_WINDOW_FULLSCREEN)
+	WIN_SurfaceMenu = menu;
+	if (window && (window->flags & SDL_WINDOW_FULLSCREEN) == SDL_WINDOW_FULLSCREEN)
 		SetMenu(data->hwnd, NULL);
 	else
 		SetMenu(data->hwnd, WIN_SurfaceMenu);
