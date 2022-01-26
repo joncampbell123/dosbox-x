@@ -2352,6 +2352,12 @@ AMD K6 200MHz (约 130000 周期)
 :MENU:cpuak6-300
 AMD K6-2 300MHz (约 193000 周期)
 .
+:MENU:cpuath-600
+AMD Athlon 600MHz (约 306000 周期)
+.
+:MENU:cpu686-866
+Pentium III 866MHz EB (约 407000 周期)
+.
 :MENU:VideoMenu
 视频
 .

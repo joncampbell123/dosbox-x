@@ -913,6 +913,10 @@ bool cpu_speed_emulate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * 
         cyclemu = 130000;
     else if (!strcmp(mname, "cpuak6-300"))
         cyclemu = 193000;
+    else if (!strcmp(mname, "cpuath-600"))
+        cyclemu = 306000;
+    else if (!strcmp(mname, "cpu686-866"))
+        cyclemu = 407000;
     if (cyclemu>0) {
         Section* sec = control->GetSection("cpu");
         if (sec) {
@@ -2960,6 +2964,8 @@ void AllocCallback1() {
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpuak6-166").set_text("AMD K6 166MHz (~110000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpuak6-200").set_text("AMD K6 200MHz (~130000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
             mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpuak6-300").set_text("AMD K6-2 300MHz (~193000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpuath-600").set_text("AMD Athlon 600MHz (~306000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
+            mainMenu.alloc_item(DOSBoxMenu::item_type_id,"cpu686-866").set_text("Pentium III 866MHz EB (~407000 cycles)").set_callback_function(cpu_speed_emulate_menu_callback);
         }
         {
             DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoMenu");

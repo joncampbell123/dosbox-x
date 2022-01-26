@@ -48,6 +48,9 @@
     tools like CPU-Z to make them happy. (joncampbell123)
   - Added FXSAVE/FXRSTOR which makes Linux happy with
     Pentium III emulation. (joncampbell123)
+  - Added menu options "AMD Athlon 600MHz" and "Pentium
+    III 866MHz EB" within the group "Emulate CPU speed"
+    (under "CPU") for CPU speeds to emulate. (Wengier)
   - Added support for archive, hidden, system attributes
     on mounted local and overlay drives for non-Windows
     platforms by using special file(s). (Wengier)

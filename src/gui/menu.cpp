@@ -258,6 +258,8 @@ static const char *def_menu_cpu_speed[] =
     "cpuak6-166",
     "cpuak6-200",
     "cpuak6-300",
+    "cpuath-600",
+    "cpu686-866",
     NULL
 };
 

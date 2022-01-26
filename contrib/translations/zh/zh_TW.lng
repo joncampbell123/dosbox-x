@@ -2359,6 +2359,12 @@ AMD K6 200MHz (約 130000 個週期)
 :MENU:cpuak6-300
 AMD K6-2 300MHz (約 193000 個週期)
 .
+:MENU:cpuath-600
+AMD Athlon 600MHz (約 306000 個週期)
+.
+:MENU:cpu686-866
+Pentium III 866MHz EB (約 407000 個週期)
+.
 :MENU:VideoMenu
 影像
 .

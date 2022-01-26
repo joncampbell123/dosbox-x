@@ -2387,6 +2387,12 @@ AMD K6 200MHz (~130000 çevrim)
 :MENU:cpuak6-300
 AMD K6-2 300MHz (~193000 çevrim)
 .
+:MENU:cpuath-600
+AMD Athlon 600MHz (~306000 çevrim)
+.
+:MENU:cpu686-866
+Pentium III 866MHz EB (~407000 çevrim)
+.
 :MENU:VideoMenu
 Video
 .

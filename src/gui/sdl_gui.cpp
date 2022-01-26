@@ -83,8 +83,8 @@ extern uint32_t             GFX_Bmask;
 extern unsigned char        GFX_Bshift;
 
 extern int                  statusdrive, swapInDisksSpecificDrive;
-extern bool                 ttfswitch, switch_output_from_ttf, swapad;
-extern bool                 dos_kernel_disabled, confres, font_14_init;
+extern bool                 ttfswitch, switch_output_from_ttf, loadlang;
+extern bool                 dos_kernel_disabled, swapad, confres, font_14_init;
 extern Bitu                 currentWindowWidth, currentWindowHeight;
 extern std::string          strPasteBuffer, langname;
 
@@ -453,6 +453,18 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
             guiMenu.displaylist_append(
                     guiMenu.get_item("ConfigGuiMenu").display_list, guiMenu.get_item_id_by_name("ExitGUI"));
         }
+    } else if (!shortcut || shortcutid<16) {
+        {
+            DOSBoxMenu::item &item = guiMenu.get_item("ConfigGuiMenu");
+            item.set_text(mainMenu.get_item("mapper_gui").get_text());
+        }
+        {
+            DOSBoxMenu::item &item = guiMenu.get_item("ExitGUI");
+            item.set_text(MSG_Get("CONFIG_TOOL_EXIT"));
+        }
+# if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+        if (loadlang) guiMenu.unbuild();
+# endif
     }
 
     if (null_menu_init) {
@@ -768,7 +780,7 @@ public:
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-        int j, k;
+        unsigned int j, k;
         for(k = 0; k < pv.size(); k++) if (pv[k].ToString().size()) {
             if (arg == pv[k].ToString() && opt[k]->isChecked())
                 for(j = 0; j < pv.size(); j++)

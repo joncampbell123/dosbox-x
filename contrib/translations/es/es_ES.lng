@@ -2390,6 +2390,12 @@ AMD K6 200MHz      (~130000 ciclos)
 :MENU:cpuak6-300
 AMD K6-2 300MHz    (~193000 ciclos)
 .
+:MENU:cpuath-600
+AMD Athlon 600MHz (~306000 ciclos)
+.
+:MENU:cpu686-866
+Pentium III 866MHz EB (~407000 ciclos)
+.
 :MENU:VideoMenu
 Video
 .

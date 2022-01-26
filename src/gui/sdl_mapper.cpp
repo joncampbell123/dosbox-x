@@ -3546,7 +3546,7 @@ CEvent *get_mapper_event_by_name(const std::string &x) {
 }
 
 unsigned char prvmc = 0;
-extern bool font_14_init;
+extern bool font_14_init, loadlang;
 extern uint8_t int10_font_14_init[256 * 14];
 uint8_t *GetDbcs14Font(Bitu code, bool &is14);
 bool isDBCSCP();
@@ -4978,6 +4978,9 @@ void MAPPER_RunInternal() {
         DOSBoxMenu::item &item = mapperMenu.get_item("SaveMapper");
         item.set_text(MSG_Get("SAVE_MAPPER_FILE"));
     }
+# if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+    if (loadlang) mapperMenu.unbuild();
+# endif
     mapperMenu.rebuild();
 #endif
 

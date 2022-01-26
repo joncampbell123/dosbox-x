@@ -1573,7 +1573,7 @@ DOSBox-Xへようこそ !
 [36mDOSBox-X をはじめよう:[37m                                            
 .
 :SHELL_STARTUP_TEXT1_PC98
-内部コマンドの一覧は [32mHELP[37m, 簡単な紹介は[32mINTRO[37m とタイプして下さい。 
+内部コマンドの一覧は [32mHELP[37m, 簡単な紹介は [32mINTRO[37m とタイプして下さい。
 [33mドロップダウンメニュー[37mからも様々な設定が可能です。                
 .
 :SHELL_STARTUP_EXAMPLE_PC98
@@ -1582,8 +1582,8 @@ DOSBox-Xへようこそ !
 :SHELL_STARTUP_TEXT2_PC98
 [33m設定ツール[37mの起動 [31mhost+C[37m. host キーは [32mF11[37m.                         
 [33mマッパーエディタ[37m(キー設定)の起動 [31mhost+M[37m.                          
-全画面表示とウィンドウ表示の切替 [31mF11 [37m+ [31mF[37m                          
-エミュレーション速度の調整      [31mF11 [37m+ [31mプラス[37m[37m または [31mF11 [37m+ [31mマイナス[37m
+全画面表示とウィンドウ表示の切替 [31mhost+F[37m.                          
+エミュレーション速度の調整       [31mhost+プラス[37m[37m または [31mhost+マイナス[37m.
 .
 :SHELL_STARTUP_INFO_PC98
 [36mDOSBox-X は日本の [32mNEC PC-98[36m エミュレーションモードで動作中です。[37m  
@@ -2374,6 +2374,12 @@ AMD K6 200MHz (～130000 サイクル)
 .
 :MENU:cpuak6-300
 AMD K6-2 300MHz (～193000 サイクル)
+.
+:MENU:cpuath-600
+AMD Athlon 600MHz (~306000 サイクル)
+.
+:MENU:cpu686-866
+Pentium III 866MHz EB (~407000 サイクル)
 .
 :MENU:VideoMenu
 ビデオ
