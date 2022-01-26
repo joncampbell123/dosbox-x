@@ -41,7 +41,7 @@ void resetFontSize();
 
 void res_init(void), RENDER_Reset(void), UpdateOverscanMenu(void), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 
-extern int initgl;
+extern int initgl, posx, posy;
 extern bool rtl, gbk, chinasea, window_was_maximized, isVirtualBox;
 
 std::string GetDefaultOutput() {
