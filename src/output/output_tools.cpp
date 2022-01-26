@@ -25,6 +25,7 @@
 #include "control.h"
 #include "render.h"
 #include "logging.h"
+#include "../ints/int10.h"
 
 #if defined(WIN32)
 #include "resource.h"
@@ -38,10 +39,10 @@ void d3d_init(void);
 void resetFontSize();
 #endif
 
-void res_init(void), UpdateOverscanMenu(void), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
+void res_init(void), RENDER_Reset(void), UpdateOverscanMenu(void), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 
 extern int initgl;
-extern bool rtl, gbk, chinasea, isVirtualBox;
+extern bool rtl, gbk, chinasea, window_was_maximized, isVirtualBox;
 
 std::string GetDefaultOutput() {
     static std::string output = "surface";
@@ -251,4 +252,116 @@ void OutputSettingMenuUpdate(void) {
 #if defined(USE_TTF)
     mainMenu.get_item("output_ttf").check(sdl.desktop.want_type == SCREEN_TTF).refresh_item(mainMenu);
 #endif
+}
+
+bool toOutput(const char *what) {
+    bool reset=false;
+#if defined(USE_TTF)
+    if (TTF_using()) reset=true;
+#endif
+
+    if (!strcmp(what,"surface")) {
+        if (sdl.desktop.want_type == SCREEN_SURFACE) return false;
+        if (window_was_maximized&&!GFX_IsFullscreen()) {
+            change_output(0);
+#if defined(WIN32)
+            ShowWindow(GetHWND(), SW_MAXIMIZE);
+#endif
+        } else
+            change_output(0);
+        RENDER_Reset();
+    }
+    else if (!strcmp(what,"opengl")) {
+#if C_OPENGL
+        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLBilinear) return false;
+        if (window_was_maximized&&!GFX_IsFullscreen()) {
+            change_output(3);
+#if defined(WIN32)
+            ShowWindow(GetHWND(), SW_MAXIMIZE);
+#endif
+        } else
+            change_output(3);
+#endif
+    }
+    else if (!strcmp(what,"openglnb")) {
+#if C_OPENGL
+        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLNearest) return false;
+        if (window_was_maximized&&!GFX_IsFullscreen()) {
+            change_output(4);
+#if defined(WIN32)
+            ShowWindow(GetHWND(), SW_MAXIMIZE);
+#endif
+        } else
+            change_output(4);
+#endif
+    }
+    else if (!strcmp(what,"openglpp")) {
+#if C_OPENGL
+        if (sdl.desktop.want_type == SCREEN_OPENGL && sdl_opengl.kind == GLPerfect) return false;
+        if (window_was_maximized&&!GFX_IsFullscreen()) {
+            change_output(5);
+#if defined(WIN32)
+            ShowWindow(GetHWND(), SW_MAXIMIZE);
+#endif
+        } else
+            change_output(5);
+#endif
+    }
+    else if (!strcmp(what,"direct3d")) {
+#if C_DIRECT3D
+        if (sdl.desktop.want_type == SCREEN_DIRECT3D) return false;
+#if C_OPENGL && defined(C_SDL2)
+        if (sdl.desktop.want_type == SCREEN_OPENGL)
+            GFX_SetSDLWindowMode(currentWindowWidth, currentWindowHeight, SCREEN_SURFACE);
+#endif
+        if (window_was_maximized&&!GFX_IsFullscreen()) {
+            change_output(6);
+#if defined(WIN32)
+            ShowWindow(GetHWND(), SW_MAXIMIZE);
+#endif
+        } else
+            change_output(6);
+#endif
+    }
+    else if (!strcmp(what,"ttf")) {
+#if defined(USE_TTF)
+        if (sdl.desktop.want_type == SCREEN_TTF || (CurMode->type!=M_TEXT && !IS_PC98_ARCH)) return false;
+#if C_OPENGL && defined(MACOSX) && !defined(C_SDL2)
+        if (sdl.desktop.want_type == SCREEN_SURFACE) {
+            sdl_opengl.framebuf = calloc(sdl.draw.width*sdl.draw.height, 4);
+            sdl.desktop.type = SCREEN_OPENGL;
+        }
+#endif
+        bool switchfull = false;
+        if (GFX_IsFullscreen()) {
+            switchfull = true;
+            GFX_SwitchFullScreen();
+        } else if (window_was_maximized) {
+#if defined(WIN32)
+            ShowWindow(GetHWND(), SW_RESTORE);
+#elif defined(C_SDL2)
+            SDL_RestoreWindow(sdl.window);
+#endif
+        }
+#if !defined(C_SDL2)
+        if (posx != -2 || posy != -2) putenv((char*)"SDL_VIDEO_CENTERED=center");
+#endif
+        firstset=false;
+        change_output(10);
+        if (!GFX_IsFullscreen() && switchfull) {
+            switchfull = false;
+            ttf.fullScrn = false;
+            GFX_SwitchFullScreen();
+        } else if (!GFX_IsFullscreen() && ttf.fullScrn) {
+            ttf.fullScrn = false;
+            reset = true;
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+            if (!control->opt_nomenu && static_cast<Section_prop *>(control->GetSection("sdl"))->Get_bool("showmenu")) DOSBox_SetMenu();
+#endif
+        }
+#endif
+    }
+    if (reset) RENDER_Reset();
+    OutputSettingMenuUpdate();
+    return true;
 }

@@ -89,10 +89,7 @@
 /* Define to 1 to enable libfluidsynth MIDI synthesis */
 #undef C_FLUIDSYNTH
 
-/* Force Windows native menus for Windows SDL2 also */
-#undef C_FORCE_MENU_HMENU
-
-/* Force SDL drawn menus for Windows SDL1 also */
+/* Force SDL drawn menus */
 #undef C_FORCE_MENU_SDLDRAW
 
 /* Define to 1 to enable floating point emulation */

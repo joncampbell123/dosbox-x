@@ -299,6 +299,7 @@ void                                            resetFontSize(void);
 #endif
 
 Bitu                                            GUI_JoystickCount(void);                // external
+bool                                            OpenGL_using(void);
 bool                                            GFX_GetPreventFullscreen(void);         // external
 void                                            GFX_ForceRedrawScreen(void);            // external
 #if defined(WIN32) && !defined(HX_DOS)
@@ -5006,7 +5007,7 @@ void MAPPER_RunInternal() {
 #if defined(C_SDL2)
     void GFX_SetResizeable(bool enable);
     GFX_SetResizeable(false);
-    mapper.window=GFX_SetSDLSurfaceWindow(640,480);
+    mapper.window = OpenGL_using() ? GFX_SetSDLWindowMode(640,480,SCREEN_OPENGL) : GFX_SetSDLSurfaceWindow(640,480);
     if (mapper.window == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
     mapper.surface=SDL_GetWindowSurface(mapper.window);
     if (mapper.surface == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());

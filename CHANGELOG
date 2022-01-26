@@ -74,8 +74,8 @@
     changeable via CONFIG command. (Wengier)
   - The default output for Linux SDL1 builds is changed
     from surface to opengl, unlike Linux SDL2. (Wengier)
-  - Using native Windows menus is supported in Windows
-    SDL2 build with an option at compile time. (Wengier)
+  - Native Windows menus is supported in Windows SDL2
+    builds just like Windows SDL1 builds. (Wengier)
   - Setting "windowposition" to "-" in the configuration
     will leave DOSBox-X window position as is instead of
     a specific position or being centered. (Wengier)
@@ -101,6 +101,8 @@
     screenshots in TTF CJK mode, or they do not show up
     properly in the Configuration Tool when "autodbcs"
     is set to "false" in the configuration. (Wengier)
+  - Fixed media keys presses by ignoring these keys in
+    Windows SDL1 builds. (maron2000)
   - Fixed IOCTL & ASPI interfaces for mounting physical
     CD drives on the Windows platform. (Wengier)
   - Fixed the issue of loading scalers in the previous

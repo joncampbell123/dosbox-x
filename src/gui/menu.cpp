@@ -1782,6 +1782,7 @@ void SetVal(const std::string& secname, const std::string& preval, const std::st
 
 #if defined(WIN32) && defined(C_SDL2)
 void SDL1_hax_SetMenu(HMENU menu) {
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
     if (GFX_IsFullscreen()) {
         SetMenu(GetHWND(), NULL);
         return;
@@ -1793,6 +1794,7 @@ void SDL1_hax_SetMenu(HMENU menu) {
         res = SetMenu(GetHWND(), mainMenu.getWinMenu());
     }
     DrawMenuBar(GetHWND());
+#endif
 }
 #elif DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 extern "C" void SDL1_hax_SetMenu(HMENU menu);

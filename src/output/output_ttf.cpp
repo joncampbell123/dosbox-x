@@ -92,7 +92,7 @@ int switchoutput = -1;
 static unsigned long ttfSize = sizeof(DOSBoxTTFbi), ttfSizeb = 0, ttfSizei = 0, ttfSizebi = 0;
 static void * ttfFont = DOSBoxTTFbi, * ttfFontb = NULL, * ttfFonti = NULL, * ttfFontbi = NULL;
 extern int posx, posy, eurAscii, NonUserResizeCounter;
-extern bool rtl, gbk, chinasea, force_conversion, blinking;
+extern bool rtl, gbk, chinasea, switchttf, force_conversion, blinking;
 extern uint8_t ccount;
 extern uint16_t cpMap[512], cpMap_PC98[256];
 uint16_t cpMap_copy[256];
@@ -688,7 +688,10 @@ void OUTPUT_TTF_Select(int fsize) {
         winPerc = ttf_section->Get_int("winperc");
         if (winPerc>100||(fsize==2&&GFX_IsFullscreen())||(fsize!=1&&fsize!=2&&(control->opt_fullscreen||static_cast<Section_prop *>(control->GetSection("sdl"))->Get_bool("fullscreen")))) winPerc=100;
         else if (winPerc<25) winPerc=25;
-        if (fsize==1&&winPerc==100) winPerc=60;
+        if ((fsize==1||switchttf)&&winPerc==100) {
+            winPerc=60;
+            if (switchttf&&GFX_IsFullscreen()) GFX_SwitchFullScreen();
+        }
         fontSize = ttf_section->Get_int("ptsize");
         char512 = ttf_section->Get_bool("char512");
         showbold = ttf_section->Get_bool("bold");
@@ -766,7 +769,9 @@ void OUTPUT_TTF_Select(int fsize) {
         lastmenu = menu.toggle;
         menu.toggle=false;
         NonUserResizeCounter=1;
+#if !defined(C_SDL2)
         SDL1_hax_SetMenu(NULL);
+#endif
         RENDER_CallBack( GFX_CallBackReset );
 #endif
 #if defined (WIN32)
