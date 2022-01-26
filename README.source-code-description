@@ -68,13 +68,14 @@ src/gui/menu.cpp            Menu handling and management, processing,
                             assignment of the DOSBOXMENU_* constant as defined
                             in include/menu.h. By default:
 
-                                Windows (HMENU) is used if targeting Windows
-                                and not HX DOS and not SDL2
+                                Windows native menu (HMENU) is used if
+                                targeting Windows and not HX DOS.
 
-                                macOS (NSMENU) is used if targeting Apple
-                                macOS and not SDL2
+                                macOS native menu (NSMENU) is used if
+                                targeting Apple macOS.
 
-                                SDL drawn menus are used in all other cases.
+                                SDL drawn menus are used in other cases;
+                                can also be forced for Windows and macOS.
 
                                 A define is available via configure.ac if
                                 SDL drawn menus should be used regardless of
@@ -100,9 +101,8 @@ src/gui/menu_macos.mm       macOS Objective C++ code to bridge Objective C
                             and C++ so that the menu manipulation code can
                             work correctly.
 
-src/gui/direct3d.cpp        Windows Direct3D9 support code. This code allows
-                            output=direct3d to work properly. Uses DirectX 9
-                            interfaces.
+src/output/*.cpp            Support code for various output options, such as
+                            surface, opengl, direct3d, and ttf.
 
 include/bitop.h             Header file to provide compile-time and runtime
                             inline functions for bit manipulation and masking.
