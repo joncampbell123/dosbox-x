@@ -1982,7 +1982,7 @@ void show_prompt() {
 
 bool clear_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
-    const char *mname = menuitem->get_name().c_str();
+    (void)menuitem;//UNUSED
     if (!clear_screen()) return true;
     show_prompt();
     return true;
