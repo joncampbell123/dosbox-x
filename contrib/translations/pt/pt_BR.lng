@@ -310,28 +310,28 @@ Escrito no arquivo de idioma %s
 
 .
 :PROGRAM_CONFIG_USAGE
-Utilitário de configuração por linha de comando do DOSBox-X. Opções suportadas:
--wc (ou -writeconf) sem parâmetro: Escreve no arquivo config primário carregado.
--wc (ou -writeconf) com nome_de_arquivo: Escreve o arquivo para o dir. de config.
--wl (ou -writelang) com nome_de_arquivo: Escreve sequência de caracteres do idioma atual.
+Utilitário de configuração por linha de comando. Opções suportadas:
+-wc (ou -writeconf) sem parâmetro: Escreve no arquivo config primário carregado
+-wc (ou -writeconf) com nome_de_arquivo: Escreve arquivo ao dir. de config.
+-wl (ou -writelang) com nome_de_arquivo: Escreve cadeias do idioma atual.
 -ln (ou -langname) Exibe (sem argumentos) ou especifica o nome do idioma.
--wcp [nome_de_arquivo] Escreve o arquivo para o dir. do programa (dosbox-x.conf ou nome_de_arquivo).
--wcd Escreve no arquivo config padrão da pasta de config.
--all, -mod Use com -wc, -wcp, ou -wcd para escrever TODAS as opções no arquivo config.
--wcboot, -wcpboot, ou -wcdboot reincia DOSBox-X depois de escrever o arquivo.
--bootconf (ou -bc) reinicia com o arquivo config especificado (ou primário já carregado).
+-wcp [arquivo] Escreve config ao dir. do DosBox-X dosbox-x.conf ou "arquivo"
+-wcd Escreve no arquivo de config padrão do diretório de config.
+-all, -mod com -wc, -wcp, ou -wcd para escrever TODAS opções no arquivo config.
+-wcboot, -wcpboot, ou -wcdboot reinicia DOSBox-X depois de escrever o arquivo.
+-bootconf (o -bc) reinicia com arquivo config definido (ou primário carregado).
 -norem Use com -wc, -wcp, ou -wcd para não escrever comentários das opções.
 -l Lista os parâmetros de configuração do DOSBox-X.
--h, -help, -? Mostra esta ajuda; acrescente a palavra "sections" para uma lista de seções.
--h, -help, -? seção / propriedade Mostra informações sobre uma seção ou propriedade específica.
+-h, -help, -? Mostra esta ajuda; adicione "sections" para uma lista de seções.
+-h, -help, -? seção / propriedade Informações sobre uma seção ou propriedade.
 -axclear Limpa a seção [autoexec].
 -axadd [linha] Adiciona uma linha na seção [autoexec].
 -axtype Imprime o conteúdo de uma seção do [autoexec].
--securemode Habilita o modo seguro onde características como montagem serão desativadas.
+-securemode Ativa o modo seguro onde opções como MOUNT serão desativadas.
 -startmapper Inicia o editor de mapeamento do DOSBox-X.
 -gui Inicia a ferramenta de configuração gráfica.
--get "propriedade da seção" retorna o valor da propriedade (também para %%CONFIG%%).
--set (-setf para forçar) "seção propriedade=valor" define o valor da propriedade.
+-get "propriedade da seção" retorna o valor da propriedade.
+-set (-setf p/ forçar) "seção propriedade=valor" define o valor da propriedade.
 
 .
 :PROGRAM_CONFIG_HLP_PROPHLP
@@ -1194,7 +1194,7 @@ O arquivo "%s" não pode ser aberto para escrita.
 
 .
 :PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE
-Espaço insuficiente para o arquivo de imagem. Precisa de %u bytes
+Espaço insuficiente para o arquivo de imagem. Precisa de %u bytes.
 
 .
 :PROGRAM_IMGMAKE_PRINT_CHS
