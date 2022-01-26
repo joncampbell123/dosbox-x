@@ -172,9 +172,6 @@ static float GetSystemVolume(void)
     float volume = -1.0f;    /* Return this if we can't get system volume */
 
 #if defined(__WIN32__) && defined(HAVE_ENDPOINTVOLUME_H)
-#ifndef IUnknown_Release
-#define IUnknown_Release(p) (p)->lpVtbl->Release(p)
-#endif
     HRESULT hr = WIN_CoInitialize();
     if (SUCCEEDED(hr)) {
         IMMDeviceEnumerator *pEnumerator;

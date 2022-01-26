@@ -49,6 +49,7 @@
 #include <vector>
 #include <string>
 #include "sdlmain.h"
+#include "menudef.h"
 #include "build_timestamp.h"
 
 #if defined(_MSC_VER)
@@ -132,7 +133,7 @@ void GetExpandedPath(std::string &path);
 bool Network_IsNetworkResource(const char * filename), DOS_SetAnsiAttr(uint8_t attr);
 void DOS_SetCountry(uint16_t countryNo), DOSV_FillScreen(void);
 extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), TTF_using(void);
-extern bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4);
+extern bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4), GFX_GetPreventFullscreen(void);
 std::string GetDOSBoxXPath(bool withexe=false);
 
 /* support functions */
@@ -4285,6 +4286,13 @@ void toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
         if (!TTF_using()) initcodepagefont();
         if (opt==-1) {
             MSG_Init();
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+            mainMenu.unbuild();
+            mainMenu.rebuild();
+            if (!GFX_GetPreventFullscreen()) {
+                if (menu.toggle) DOSBox_SetMenu(); else DOSBox_NoMenu();
+            }
+#endif
             DOSBox_SetSysMenu();
         }
         if (opt<1) {

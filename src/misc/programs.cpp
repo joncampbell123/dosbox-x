@@ -35,6 +35,7 @@
 #include "cross.h"
 #include "control.h"
 #include "shell.h"
+#include "menudef.h"
 #include "hardware.h"
 #include "mapper.h"
 #include "menu.h"
@@ -96,8 +97,8 @@ public:
 
 static std::vector<InternalProgramEntry*> internal_progs;
 uint8_t DOS_GetAnsiAttr(void);
-bool isDBCSCP(void), CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4), DOS_SetAnsiAttr(uint8_t attr);
 char *FormatDate(uint16_t year, uint8_t month, uint8_t day);
+bool isDBCSCP(void), CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4), DOS_SetAnsiAttr(uint8_t attr), GFX_GetPreventFullscreen(void);
 void EMS_DoShutDown(void), UpdateDefaultPrinterFont(void), GFX_ForceRedrawScreen(void), resetFontSize(void), ttf_reset_colors(void), makestdcp950table(void), makeseacp951table(void), clearFontCache(void), DOSBox_SetSysMenu(void), MSG_Init(void), initRand(void), PRINTER_Init(void);
 void EMS_Startup(Section* sec), DOSV_SetConfig(Section_prop *section), DOSBOX_UnlockSpeed2(bool pressed), RebootLanguage(std::string filename, bool confirm=false), SetWindowTransparency(int trans), SetOutputSwitch(const char *outputstr), runRescan(const char *str), runSerial(const char *str), runParallel(const char *str), DOS_AddDays(uint8_t days), PRINTER_Shutdown(Section* sec);
 
@@ -658,6 +659,13 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
                 if (!strcasecmp(inputline.substr(0, 9).c_str(), "language=")) {
                     if (control->opt_lang != "") control->opt_lang = section->Get_string("language");
                     MSG_Init();
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+                    mainMenu.unbuild();
+                    mainMenu.rebuild();
+                    if (!GFX_GetPreventFullscreen()) {
+                        if (menu.toggle) DOSBox_SetMenu(); else DOSBox_NoMenu();
+                    }
+#endif
 #if defined(USE_TTF)
                     if (TTF_using()) resetFontSize();
 #endif

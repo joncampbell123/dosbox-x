@@ -2484,12 +2484,6 @@ void modeSwitched(bool full) {
     // ensure mouse capture when fullscreen || (re-)capture if user said so when windowed
     auto locked = sdl.mouse.locked;
     if ((full && !locked) || (!full && locked)) GFX_CaptureMouse();
-#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU && defined(C_SDL2)
-    if (!full && menu.gui && menu.toggle) {
-        DOSBox_NoMenu();
-        DOSBox_SetMenu();
-    }
-#endif
 }
 
 void GFX_SwitchFullScreen(void)
@@ -9203,7 +9197,7 @@ fresh_boot:
 
     LOG::Exit();
 
-#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU && defined(WIN32) && !defined(HX_DOS) && (!defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL) || defined(C_SDL2) && defined(SDL_DOSBOX_X_IME))
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU && defined(WIN32) && !defined(HX_DOS) && (!defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL) || defined(C_SDL2))
     ShowWindow(GetHWND(), SW_HIDE);
     SDL1_hax_SetMenu(NULL);/* detach menu from window, or else Windows will destroy the menu out from under the C++ class */
 #endif

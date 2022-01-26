@@ -1780,10 +1780,19 @@ void SetVal(const std::string& secname, const std::string& preval, const std::st
     }
 }
 
-#if defined(WIN32) && defined(C_SDL2) && defined(SDL_DOSBOX_X_IME)
-extern "C" void SDL2_hax_SetMenu(SDL_Window *window, HMENU menu);
+#if defined(WIN32) && defined(C_SDL2)
 void SDL1_hax_SetMenu(HMENU menu) {
-    SDL2_hax_SetMenu(sdl.window, menu);
+    if (GFX_IsFullscreen()) {
+        SetMenu(GetHWND(), NULL);
+        return;
+    }
+    bool res = SetMenu(GetHWND(), menu);
+    if (!res) {
+        mainMenu.unbuild();
+        mainMenu.rebuild();
+        res = SetMenu(GetHWND(), mainMenu.getWinMenu());
+    }
+    DrawMenuBar(GetHWND());
 }
 #elif DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
 extern "C" void SDL1_hax_SetMenu(HMENU menu);
@@ -1893,7 +1902,7 @@ void ToggleMenu(bool pressed) {
     DOSBox_SetSysMenu();
 }
 
-#if !(defined(WIN32) && !(defined(C_SDL2) && !defined(SDL_DOSBOX_X_IME)) && !defined(HX_DOS))
+#if !defined(WIN32) || defined(HX_DOS)
 int Reflect_Menu(void) {
     return 0;
 }
@@ -2088,7 +2097,7 @@ void DOSBox_SetSysMenu(void) {
     }
 #endif
 }
-#if defined(WIN32) && !(defined(C_SDL2) && !defined(SDL_DOSBOX_X_IME)) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS)
 #include <shlobj.h>
 
 void GetDefaultSize(void) {
@@ -2311,7 +2320,7 @@ void MENU_KeyDelayRate(int delay, int rate) {
 }
 
 int Reflect_Menu(void) {
-#if !defined(HX_DOS)
+#if !defined(HX_DOS) && !defined(C_SDL2)
     SDL1_hax_INITMENU_cb = reflectmenu_INITMENU_cb;
 #endif
     return 1;
