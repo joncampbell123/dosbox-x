@@ -527,6 +527,15 @@ static INLINE void SSE_CMPSS(XMM_Reg &d,const XMM_Reg &s,const uint8_t cf) {
 }
 #undef STEP
 
+////
+
+static INLINE void SSE_PINSRW(MMX_reg &d,const uint32_t &s,const uint8_t i) {
+	const uint8_t shf = (i&3u)*16u;
+	const uint64_t mask = (uint64_t)0xFFFF << (uint64_t)shf;
+	d.q = (d.q & (~mask)) | (((uint64_t)(s&0xFFFFu)) << (uint64_t)shf);
+}
+#undef STEP
+
 #endif // 386+
 
 #define SETcc(cc)							\

@@ -1764,6 +1764,33 @@
 		break;
 #endif
 
+#if CPU_CORE >= CPU_ARCHTYPE_386
+	CASE_0F_B(0xc4)												/* SSE instruction group */
+		{
+			GetRM;
+			uint8_t imm;
+			uint32_t src;
+			const unsigned char reg = (rm >> 3) & 7;
+
+			switch (last_prefix) {
+				case MP_NONE:									/* 0F C4 PINSRW reg, r/m, imm8 */
+					if (rm >= 0xc0) {
+						imm = Fetchb();
+						SSE_PINSRW(*reg_mmx[reg],cpu_regs.regs[rm & 7].dword[0],imm);
+					} else {
+						GetEAa;
+						src = LoadMd(eaa);
+						imm = Fetchb();
+						SSE_PINSRW(*reg_mmx[reg],src,imm);
+					}
+					break;
+				default:
+					goto illegal_opcode;
+			};
+		}
+		break;
+#endif
+
 	CASE_0F_W(0xc7)
 		{
 			extern bool enable_cmpxchg8b;
