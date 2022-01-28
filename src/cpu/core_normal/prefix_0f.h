@@ -1791,6 +1791,30 @@
 		break;
 #endif
 
+#if CPU_CORE >= CPU_ARCHTYPE_386
+	CASE_0F_B(0xc5)												/* SSE instruction group */
+		{
+			GetRM;
+			uint8_t imm;
+			uint32_t src;
+			const unsigned char reg = (rm >> 3) & 7;
+
+			switch (last_prefix) {
+				case MP_NONE:									/* 0F C5 PEXTRW reg, r/m, imm8 */
+					if (rm >= 0xc0) {
+						imm = Fetchb();
+						SSE_PEXTRW(cpu_regs.regs[reg].dword[0],*reg_mmx[rm & 7],imm);
+					} else {
+						goto illegal_opcode;
+					}
+					break;
+				default:
+					goto illegal_opcode;
+			};
+		}
+		break;
+#endif
+
 	CASE_0F_W(0xc7)
 		{
 			extern bool enable_cmpxchg8b;

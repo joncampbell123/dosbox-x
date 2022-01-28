@@ -534,7 +534,13 @@ static INLINE void SSE_PINSRW(MMX_reg &d,const uint32_t &s,const uint8_t i) {
 	const uint64_t mask = (uint64_t)0xFFFF << (uint64_t)shf;
 	d.q = (d.q & (~mask)) | (((uint64_t)(s&0xFFFFu)) << (uint64_t)shf);
 }
-#undef STEP
+
+////
+
+static INLINE void SSE_PEXTRW(uint32_t &d,const MMX_reg &s,const uint8_t i) {
+	const uint8_t shf = (i&3u)*16u;
+	d = (s.q >> (uint64_t)shf) & (uint64_t)0xFFFFu;
+}
 
 #endif // 386+
 
