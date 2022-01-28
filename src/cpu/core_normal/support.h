@@ -497,6 +497,36 @@ static INLINE void SSE_MAXSS(XMM_Reg &d,const XMM_Reg &s) {
 }
 #undef STEP
 
+////
+
+#define STEP(i) SSE_CMPPS_i(d.u32[i],d.f32[i],s.f32[i],cf)
+static INLINE void SSE_CMPPS_i(uint32_t &d,const FPU_Reg_32 &s1,const FPU_Reg_32 &s2,const uint8_t cf) {
+	switch (cf) {
+		case 0:/*CMPEQPS*/	d = (s1.v == s2.v) ? (uint32_t)0xFFFFFFFFul : (uint32_t)0x00000000ul; break;
+		case 1:/*CMPLTPS*/	d = (s1.v <  s2.v) ? (uint32_t)0xFFFFFFFFul : (uint32_t)0x00000000ul; break;
+		case 2:/*CMPLEPS*/	d = (s1.v <= s2.v) ? (uint32_t)0xFFFFFFFFul : (uint32_t)0x00000000ul; break;
+		case 3:/*CMPUNORDPS*/	d = ( isnan(s1.v) ||  isnan(s2.v)) ? (uint32_t)0xFFFFFFFFul : (uint32_t)0x00000000ul; break;
+#if 0 // These don't actually exist until AVX and you're supposed to emulate in software? WTF Intel?
+		case 4:/*CMPNEQPS*/	d = (s1.v != s2.v) ? (uint32_t)0xFFFFFFFFul : (uint32_t)0x00000000ul; break;
+		case 5:/*CMPNLTPS*/	d = (s1.v >= s2.v) ? (uint32_t)0xFFFFFFFFul : (uint32_t)0x00000000ul; break;
+		case 6:/*CMPNLEPS*/	d = (s1.v >  s2.v) ? (uint32_t)0xFFFFFFFFul : (uint32_t)0x00000000ul; break;
+		case 7:/*CMPORDPS*/	d = (!isnan(s1.v) && !isnan(s2.v)) ? (uint32_t)0xFFFFFFFFul : (uint32_t)0x00000000ul; break;
+#endif
+	}
+}
+
+static INLINE void SSE_CMPPS(XMM_Reg &d,const XMM_Reg &s,const uint8_t cf) {
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+}
+
+static INLINE void SSE_CMPSS(XMM_Reg &d,const XMM_Reg &s,const uint8_t cf) {
+	STEP(0);
+}
+#undef STEP
+
 #endif // 386+
 
 #define SETcc(cc)							\
