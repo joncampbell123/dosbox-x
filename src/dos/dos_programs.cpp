@@ -8800,15 +8800,21 @@ void DOS_SetupPrograms(void) {
 
     MSG_Add("PROGRAM_KEYB_INFO","Codepage %i has been loaded\n");
     MSG_Add("PROGRAM_KEYB_INFO_LAYOUT","Codepage %i has been loaded for layout %s\n");
-    MSG_Add("PROGRAM_KEYB_SHOWHELP","Configures a keyboard for a specific language.\n\n"
-        "KEYB [keyboard layout ID [codepage number [codepage file]]]\n\n"
+    MSG_Add("PROGRAM_KEYB_SHOWHELP","Configures a keyboard for a specific language.\n"
+        "Usage: \033[32;1mKEYB\033[0m [keyboard layout ID [codepage number [codepage file]]]\n"
+        "  layout ID        Name of layout or keyboard file (.kl) to load\n"
+        "  codepage number  Number of codepage to load\n"
+        "  codepage file    .cpi/.cpx file including specified codepage information\n"
+        "  (.kl, .cpi/.cpx files shall be placed under the directory where dosbox-x\n"
+        "   executable exists.)\n\n"
         "Some examples:\n"
         "  \033[32;1mKEYB\033[0m          Display currently loaded codepage.\n"
         "  \033[32;1mKEYB sp\033[0m       Load the Spanish (SP) layout, use an appropriate codepage.\n"
         "  \033[32;1mKEYB sp 850\033[0m   Load the Spanish (SP) layout, use codepage 850.\n"
-        "  \033[32;1mKEYB sp 850 mycp.cpi\033[0m Same as above, but use file mycp.cpi.\n");
+        "  \033[32;1mKEYB sp 850 mycp.cpi\033[0m Same as above, but use file mycp.cpi.\n"
+        "  \033[32;1mKEYB sp_mod 850\033[0m      Load keyboard layout from sp_mod.kl, use codepage 850.\n");
     MSG_Add("PROGRAM_KEYB_NOERROR","Keyboard layout %s loaded for codepage %i\n");
-    MSG_Add("PROGRAM_KEYB_FILENOTFOUND","Keyboard file %s not found\n\n");
+    MSG_Add("PROGRAM_KEYB_FILENOTFOUND","Keyboard file %s not found (or not a valid ID)\n\n");
     MSG_Add("PROGRAM_KEYB_INVALIDFILE","Keyboard file %s invalid\n");
     MSG_Add("PROGRAM_KEYB_LAYOUTNOTFOUND","No layout in %s for codepage %i\n");
     MSG_Add("PROGRAM_KEYB_INVCPFILE","None or invalid codepage file for layout %s\n\n");
