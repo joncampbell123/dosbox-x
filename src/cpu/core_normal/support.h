@@ -440,6 +440,63 @@ static INLINE void SSE_SUBSS(XMM_Reg &d,const XMM_Reg &s) {
 }
 #undef STEP
 
+////
+
+#define STEP(i) SSE_DIVPS_i(d.f32[i],s.f32[i])
+static INLINE void SSE_DIVPS_i(FPU_Reg_32 &d,const FPU_Reg_32 &s) {
+	d.v /= s.v;
+}
+
+static INLINE void SSE_DIVPS(XMM_Reg &d,const XMM_Reg &s) {
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+}
+
+static INLINE void SSE_DIVSS(XMM_Reg &d,const XMM_Reg &s) {
+	STEP(0);
+}
+#undef STEP
+
+////
+
+#define STEP(i) SSE_MINPS_i(d.f32[i],s.f32[i])
+static INLINE void SSE_MINPS_i(FPU_Reg_32 &d,const FPU_Reg_32 &s) {
+	d.v = std::min(d.v,s.v);
+}
+
+static INLINE void SSE_MINPS(XMM_Reg &d,const XMM_Reg &s) {
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+}
+
+static INLINE void SSE_MINSS(XMM_Reg &d,const XMM_Reg &s) {
+	STEP(0);
+}
+#undef STEP
+
+////
+
+#define STEP(i) SSE_MAXPS_i(d.f32[i],s.f32[i])
+static INLINE void SSE_MAXPS_i(FPU_Reg_32 &d,const FPU_Reg_32 &s) {
+	d.v = std::max(d.v,s.v);
+}
+
+static INLINE void SSE_MAXPS(XMM_Reg &d,const XMM_Reg &s) {
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+}
+
+static INLINE void SSE_MAXSS(XMM_Reg &d,const XMM_Reg &s) {
+	STEP(0);
+}
+#undef STEP
+
 #endif // 386+
 
 #define SETcc(cc)							\
