@@ -542,6 +542,14 @@ static INLINE void SSE_PEXTRW(uint32_t &d,const MMX_reg &s,const uint8_t i) {
 	d = (s.q >> (uint64_t)shf) & (uint64_t)0xFFFFu;
 }
 
+////
+
+static INLINE void SSE_SHUFPS(XMM_Reg &d,const XMM_Reg &s,const uint8_t i) {
+	d.u32[0] = s.u32[(i>>0u)&3u];
+	d.u32[1] = s.u32[(i>>2u)&3u];
+	d.u32[2] = s.u32[(i>>4u)&3u];
+	d.u32[3] = s.u32[(i>>6u)&3u];
+}
 #endif // 386+
 
 #define SETcc(cc)							\
