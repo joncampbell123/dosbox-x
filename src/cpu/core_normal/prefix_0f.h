@@ -903,6 +903,43 @@
 #endif
 
 #if CPU_CORE >= CPU_ARCHTYPE_386
+	CASE_0F_B(0x53)												/* SSE instruction group */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+		{
+			XMM_Reg xmmsrc;
+			GetRM;
+			const unsigned char reg = (rm >> 3) & 7;
+
+			switch (last_prefix) {
+				case MP_NONE:									/* 0F 53 RCPPS reg, r/m */
+					if (rm >= 0xc0) {
+						SSE_RCPPS(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+					} else {
+						GetEAa;
+						if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
+						xmmsrc.u64[0] = LoadMq(eaa);
+						xmmsrc.u64[1] = LoadMq(eaa+8u);
+						SSE_RCPPS(fpu.xmmreg[reg],xmmsrc);
+					}
+					break;
+				case MP_F3:									/* F3 0F 53 RCPSS reg, r/m */
+					if (rm >= 0xc0) {
+						SSE_RCPSS(fpu.xmmreg[reg],fpu.xmmreg[rm & 7]);
+					} else {
+						GetEAa;
+						if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
+						xmmsrc.u32[0] = LoadMd(eaa);
+						SSE_RCPSS(fpu.xmmreg[reg],xmmsrc);
+					}
+					break;
+				default:
+					goto illegal_opcode;
+			};
+		}
+		break;
+#endif
+
+#if CPU_CORE >= CPU_ARCHTYPE_386
 	CASE_0F_B(0x54)												/* SSE instruction group */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
 		{

@@ -353,6 +353,25 @@ static INLINE void SSE_RSQRTSS(XMM_Reg &d,const XMM_Reg &s) {
 }
 #undef STEP
 
+////
+
+#define STEP(i) SSE_RCPPS_i(d.f32[i],s.f32[i])
+static INLINE void SSE_RCPPS_i(FPU_Reg_32 &d,const FPU_Reg_32 &s) {
+	d.v = 1.0f / s.v;
+}
+
+static INLINE void SSE_RCPPS(XMM_Reg &d,const XMM_Reg &s) {
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+}
+
+static INLINE void SSE_RCPSS(XMM_Reg &d,const XMM_Reg &s) {
+	STEP(0);
+}
+#undef STEP
+
 #endif // 386+
 
 #define SETcc(cc)							\
