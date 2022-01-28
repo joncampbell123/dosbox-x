@@ -322,6 +322,18 @@ static INLINE void SSE_COMISS(const XMM_Reg &d,const XMM_Reg &s) {
 	SSE_COMISS_common(d,s);
 }
 
+////
+
+static INLINE void SSE_MOVMSKPS(uint32_t &d,const XMM_Reg &s) {
+	/* take sign bits from floats, stick into low bits of register, zero extend */
+	d =
+		(s.f32[0].f.sign ? 0x1 : 0x0) +
+		(s.f32[1].f.sign ? 0x2 : 0x0) +
+		(s.f32[2].f.sign ? 0x4 : 0x0) +
+		(s.f32[3].f.sign ? 0x8 : 0x0);
+
+}
+
 #endif // 386+
 
 #define SETcc(cc)							\
