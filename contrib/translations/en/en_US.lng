@@ -1211,14 +1211,20 @@ Codepage %i has been loaded for layout %s
 .
 :PROGRAM_KEYB_SHOWHELP
 Configures a keyboard for a specific language.
+Usage: ←[32;1mKEYB←[0m [keyboard layout ID [codepage number [codepage file]]]
+  layout ID        Name of layout or keyboard file (.kl) to load
+  codepage number  Number of codepage to load
+  codepage file    .cpi/.cpx file including specified codepage information
+  (.kl, .cpi/.cpx files shall be placed under the directory where dosbox-x
+   executable exists.)
 
-KEYB [keyboard layout ID [codepage number [codepage file]]]
 
 Some examples:
   ←[32;1mKEYB←[0m          Display currently loaded codepage.
   ←[32;1mKEYB sp←[0m       Load the Spanish (SP) layout, use an appropriate codepage.
   ←[32;1mKEYB sp 850←[0m   Load the Spanish (SP) layout, use codepage 850.
   ←[32;1mKEYB sp 850 mycp.cpi←[0m Same as above, but use file mycp.cpi.
+  ←[32;1mKEYB sp_mod 850←[0m      Load keyboard layout from sp_mod.kl, use codepage 850.
 
 .
 :PROGRAM_KEYB_NOERROR
@@ -1226,7 +1232,7 @@ Keyboard layout %s loaded for codepage %i
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
-Keyboard file %s not found
+Keyboard file %s not found (or not a valid ID)
 
 
 .
