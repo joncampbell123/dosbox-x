@@ -402,6 +402,25 @@ static INLINE void SSE_ORPS(XMM_Reg &d,const XMM_Reg &s) {
 }
 #undef STEP
 
+////
+
+#define STEP(i) SSE_ADDPS_i(d.f32[i],s.f32[i])
+static INLINE void SSE_ADDPS_i(FPU_Reg_32 &d,const FPU_Reg_32 &s) {
+	d.v += s.v;
+}
+
+static INLINE void SSE_ADDPS(XMM_Reg &d,const XMM_Reg &s) {
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+}
+
+static INLINE void SSE_ADDSS(XMM_Reg &d,const XMM_Reg &s) {
+	STEP(0);
+}
+#undef STEP
+
 #endif // 386+
 
 #define SETcc(cc)							\
