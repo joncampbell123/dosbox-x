@@ -640,6 +640,17 @@ static INLINE void SSE_PMINSW(MMX_reg &d,MMX_reg &s) {
 	STEP(3);
 #undef STEP
 }
+
+////
+
+static INLINE void SSE_PMAXSW(MMX_reg &d,MMX_reg &s) {
+#define STEP(i) d.sw.w##i = std::max(d.sw.w##i,s.sw.w##i)
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+#undef STEP
+}
 #endif // 386+
 
 #define SETcc(cc)							\
