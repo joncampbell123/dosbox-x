@@ -1766,6 +1766,7 @@
 
 #if CPU_CORE >= CPU_ARCHTYPE_386
 	CASE_0F_B(0xc4)												/* SSE instruction group */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
 		{
 			GetRM;
 			uint8_t imm;
@@ -1793,6 +1794,7 @@
 
 #if CPU_CORE >= CPU_ARCHTYPE_386
 	CASE_0F_B(0xc5)												/* SSE instruction group */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
 		{
 			GetRM;
 			uint8_t imm;
