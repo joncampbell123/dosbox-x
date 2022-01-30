@@ -1,4 +1,7 @@
 0.83.22
+  - Allow WRMSR to set time stamp counter, as it is known
+    though undocumented a standard since the Pentium
+    (joncampbell123).
   - Added debugger command to show global and per-voice
     status of the Gravis Ultrasound emulation. May come
     in handy for programmers who wish to write their own
