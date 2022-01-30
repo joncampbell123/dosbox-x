@@ -607,6 +607,17 @@ static INLINE void SSE_PAVGB(MMX_reg &d,MMX_reg &s) {
 	STEP(7);
 #undef STEP
 }
+
+////
+
+static INLINE void SSE_PAVGW(MMX_reg &d,MMX_reg &s) {
+#define STEP(i) d.uw.w##i = (uint16_t)(((uint32_t)(d.uw.w##i) + (uint32_t)(s.uw.w##i) + 1u) >> 1u)
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+#undef STEP
+}
 #endif // 386+
 
 #define SETcc(cc)							\
