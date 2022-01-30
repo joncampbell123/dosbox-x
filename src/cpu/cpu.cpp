@@ -29,6 +29,7 @@
 #include "lazyflags.h"
 #include "control.h"
 #include "logging.h"
+#include "pic.h"
 
 // TODO: #ifdef FPU...
 #include "fpu.h"
@@ -103,6 +104,10 @@ extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused
 CPU_Regs cpu_regs;
 CPUBlock cpu;
 Segments Segs;
+
+int64_t CPU_RDTSC() {
+	return (int64_t)(PIC_FullIndex()*(double) (CPU_CycleAutoAdjust?70000:CPU_CycleMax));
+}
 
 /* [cpu] setting realbig16.
  * If set, allow code to switch back to real mode with the B (big) set in the
