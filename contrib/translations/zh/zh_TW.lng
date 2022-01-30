@@ -1199,20 +1199,19 @@ BIOSTEST 映像檔
 .
 :PROGRAM_KEYB_SHOWHELP
 設定特定語言的鍵盤.
-Usage: [32;1mKEYB[0m [鍵盤配置 ID [字碼頁編號 [字碼頁檔案]]]
-  layout ID        Name of layout or keyboard file (.kl) to load
-  codepage number  Number of codepage to load
-  codepage file    .cpi/.cpx file including specified codepage information
-  (.kl, .cpi/.cpx files shall be placed under the directory where dosbox-x
-   executable exists.)
 
+用法: [32;1mKEYB[0m [鍵盤配置 ID [字碼頁編號 [字碼頁檔案]]]
+  鍵盤配置 ID   要載入的鍵盤配置檔 (.kl)
+  字碼頁編號    要載入的字碼頁編號
+  字碼頁檔案    包含指定字碼頁內容的 .cpi/.cpx 檔
+  (.kl, .cpi/.cpx 檔必須存在於 DOSBox-X 程式目錄中)
 
 舉例:
   [32;1mKEYB[0m          顯示目前載入的字碼頁.
   [32;1mKEYB sp[0m       載入西班牙語 (SP) 配置, 並使用適當的字碼頁.
   [32;1mKEYB sp 850[0m   載入西班牙語 (SP) 配置, 並使用字碼頁 850.
   [32;1mKEYB sp 850 mycp.cpi[0m 與以上相同, 但使用檔案 mycp.cpi.
-  [32;1mKEYB sp_mod 850[0m      Load keyboard layout from sp_mod.kl, use codepage 850.
+  [32;1mKEYB sp_mod 850[0m      從 sp_mod.kl 檔中載入鍵盤配置, 使用字碼頁 850.
 
 .
 :PROGRAM_KEYB_NOERROR
@@ -1220,7 +1219,7 @@ Usage: [32;1mKEYB[0m [鍵盤配置 ID [字碼頁編號 [字碼頁檔案]]]
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
-鍵盤檔案 %s 未找到 (or not a valid ID)
+鍵盤檔案 %s 未找到 (或者 ID 不合法)
 
 
 .

@@ -1199,20 +1199,19 @@ BIOSTEST 镜像文件
 .
 :PROGRAM_KEYB_SHOWHELP
 为指定语言配置键盘.
-Usage: [32;1mKEYB[0m [键盘布局 ID [代码页 [代码页文件]]]
-  layout ID        Name of layout or keyboard file (.kl) to load
-  codepage number  Number of codepage to load
-  codepage file    .cpi/.cpx file including specified codepage information
-  (.kl, .cpi/.cpx files shall be placed under the directory where dosbox-x
-   executable exists.)
 
+用法: [32;1mKEYB[0m [键盘布局 ID [代码页 [代码页文件]]]
+  键盘布局 ID  要加载的键盘布局文件 (.kl)
+  代码页       要加载的代码页
+  代码页文件   包含指定代码页信息的 .cpi/.cpx 文件
+  (.kl, .cpi/.cpx 档必须存在於 DOSBox-X 程序目录中)
 
 举例:
   [32;1mKEYB[0m          显示当前加载的代码页.
   [32;1mKEYB sp[0m       加载西班牙语 (SP) 布局, 使用相应的代码页.
   [32;1mKEYB sp 850[0m   加载西班牙语 (SP) 布局, 使用代码页 850.
   [32;1mKEYB sp 850 mycp.cpi[0m 与以上相同, 但使用文件 mycp.cpi.
-  [32;1mKEYB sp_mod 850[0m      Load keyboard layout from sp_mod.kl, use codepage 850.
+  [32;1mKEYB sp_mod 850[0m      从 sp_mod.kl 文件中加载键盘布局, 使用代码页 850.
 
 .
 :PROGRAM_KEYB_NOERROR
@@ -1220,7 +1219,7 @@ Usage: [32;1mKEYB[0m [键盘布局 ID [代码页 [代码页文件]]]
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
-键盘文件 %s 未找到 (or not a valid ID)
+键盘文件 %s 未找到 (或者 ID 不合法)
 
 
 .
