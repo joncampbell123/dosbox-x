@@ -1731,7 +1731,7 @@
 				case MP_NONE:									/* 0F C2 CMPPS reg, r/m, imm8 */
 					if (rm >= 0xc0) {
 						/* FIXME: Documentation says these are "reserved", doesn't say it causes a #UD, what really happens? */
-						if ((cf=Fetchb()) > 3) goto illegal_opcode;
+						if ((cf=Fetchb()) > 7) goto illegal_opcode;
 						SSE_CMPPS(fpu.xmmreg[reg],fpu.xmmreg[rm & 7],cf);
 					} else {
 						GetEAa;
@@ -1739,21 +1739,21 @@
 						xmmsrc.u64[0] = LoadMq(eaa);
 						xmmsrc.u64[1] = LoadMq(eaa+8u);
 						/* FIXME: Documentation says these are "reserved", doesn't say it causes a #UD, what really happens? */
-						if ((cf=Fetchb()) > 3) goto illegal_opcode;
+						if ((cf=Fetchb()) > 7) goto illegal_opcode;
 						SSE_CMPPS(fpu.xmmreg[reg],xmmsrc,cf);
 					}
 					break;
 				case MP_F3:									/* F3 0F C2 CMPSS reg, r/m, imm8 */
 					if (rm >= 0xc0) {
 						/* FIXME: Documentation says these are "reserved", doesn't say it causes a #UD, what really happens? */
-						if ((cf=Fetchb()) > 3) goto illegal_opcode;
+						if ((cf=Fetchb()) > 7) goto illegal_opcode;
 						SSE_CMPSS(fpu.xmmreg[reg],fpu.xmmreg[rm & 7],cf);
 					} else {
 						GetEAa;
 						if (!SSE_REQUIRE_ALIGNMENT(eaa)) SSE_ALIGN_EXCEPTION();
 						xmmsrc.u32[0] = LoadMd(eaa);
 						/* FIXME: Documentation says these are "reserved", doesn't say it causes a #UD, what really happens? */
-						if ((cf=Fetchb()) > 3) goto illegal_opcode;
+						if ((cf=Fetchb()) > 7) goto illegal_opcode;
 						SSE_CMPSS(fpu.xmmreg[reg],xmmsrc,cf);
 					}
 					break;

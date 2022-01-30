@@ -506,12 +506,10 @@ static INLINE void SSE_CMPPS_i(uint32_t &d,const FPU_Reg_32 &s1,const FPU_Reg_32
 		case 1:/*CMPLTPS*/	d = (s1.v <  s2.v) ? (uint32_t)0xFFFFFFFFul : (uint32_t)0x00000000ul; break;
 		case 2:/*CMPLEPS*/	d = (s1.v <= s2.v) ? (uint32_t)0xFFFFFFFFul : (uint32_t)0x00000000ul; break;
 		case 3:/*CMPUNORDPS*/	d = ( isnan(s1.v) ||  isnan(s2.v)) ? (uint32_t)0xFFFFFFFFul : (uint32_t)0x00000000ul; break;
-#if 0 // These don't actually exist until AVX and you're supposed to emulate in software? WTF Intel?
 		case 4:/*CMPNEQPS*/	d = (s1.v != s2.v) ? (uint32_t)0xFFFFFFFFul : (uint32_t)0x00000000ul; break;
 		case 5:/*CMPNLTPS*/	d = (s1.v >= s2.v) ? (uint32_t)0xFFFFFFFFul : (uint32_t)0x00000000ul; break;
 		case 6:/*CMPNLEPS*/	d = (s1.v >  s2.v) ? (uint32_t)0xFFFFFFFFul : (uint32_t)0x00000000ul; break;
 		case 7:/*CMPORDPS*/	d = (!isnan(s1.v) && !isnan(s2.v)) ? (uint32_t)0xFFFFFFFFul : (uint32_t)0x00000000ul; break;
-#endif
 	}
 }
 
