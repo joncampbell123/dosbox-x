@@ -2136,6 +2136,43 @@
 		break;
 #endif
 
+#if CPU_CORE >= CPU_ARCHTYPE_386
+	CASE_0F_B(0xf7)												/* SSE instruction group */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+		{
+			GetRM;
+			const unsigned char reg = (rm >> 3) & 7;
+
+			switch (last_prefix) {
+				case MP_NONE:									/* 0F F7 MASKMOVQ reg, r/m */
+					if (rm >= 0xc0) {
+						/* the MSB of each byte in second operand indicates whether to write the corresponding byte value from the first operand
+						 * i.e. MASKMOVQ mm1,mm2 would selectively write bytes from mm1 according to MSBs of each byte in mm1. The target memory
+						 * location is DS:EDI (DS can be overridden by a segment prefix). */
+						/* On real hardware, this controls the byte enables on the wide data path from the processor.
+						 * We don't have that here, so we have to break up the writes */
+						PhysPt aa = BaseDS + (reg_edi & AddrMaskTable[core.prefixes & PREFIX_ADDR]);
+						const MMX_reg *data = reg_mmx[reg];
+						const MMX_reg *msk = reg_mmx[rm & 7];
+						if (msk->ub.b0 & 0x80) SaveMb(aa+0,data->ub.b0);
+						if (msk->ub.b1 & 0x80) SaveMb(aa+1,data->ub.b1);
+						if (msk->ub.b2 & 0x80) SaveMb(aa+2,data->ub.b2);
+						if (msk->ub.b3 & 0x80) SaveMb(aa+3,data->ub.b3);
+						if (msk->ub.b4 & 0x80) SaveMb(aa+4,data->ub.b4);
+						if (msk->ub.b5 & 0x80) SaveMb(aa+5,data->ub.b5);
+						if (msk->ub.b6 & 0x80) SaveMb(aa+6,data->ub.b6);
+						if (msk->ub.b7 & 0x80) SaveMb(aa+7,data->ub.b7);
+					} else {
+						goto illegal_opcode;
+					}
+					break;
+				default:
+					goto illegal_opcode;
+			};
+		}
+		break;
+#endif
+
 #if C_FPU
 #define CASE_0F_MMX(x) CASE_0F_W(x)
 #include "prefix_0f_mmx.h"
