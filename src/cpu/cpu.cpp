@@ -98,6 +98,11 @@ uint16_t cpu_sep_cs = 0;		/* MSR 0x174h value of CS */
 uint32_t cpu_sep_esp = 0;		/* MSR 0x175h value of ESP */
 uint32_t cpu_sep_eip = 0;		/* MSR 0x176h value of EIP */
 
+struct P3_PSN {
+	uint32_t	hi,lo;
+	bool		enabled;
+} p3psn;
+
 int cpu_rep_max = 0;
 
 Bitu DEBUG_EnableDebugger(void);
@@ -3018,8 +3023,20 @@ bool CPU_CPUID(void) {
 			reg_edx=0x03808011;	/* FPU+TimeStamp/RDTSC+SSE+FXSAVE/FXRESTOR */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
 			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+			if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII && p3psn.enabled) reg_edx |= 0x40000;
 			reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT */
 		} else {
+			return false;
+		}
+		break;
+	case 3: /* Processor Serial Number */
+		if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII && p3psn.enabled) {
+			reg_eax = 0;
+			reg_ebx = 0;
+			reg_ecx = p3psn.lo;
+			reg_edx = p3psn.hi;
+		}
+		else {
 			return false;
 		}
 		break;
@@ -3350,6 +3367,37 @@ public:
 		reg_esi=0;
 		reg_ebp=0;
 		reg_esp=0;
+
+		const char *raw_psn = section->Get_string("processor serial number");
+		if (*raw_psn) {
+			const char *scan = raw_psn;
+			uint16_t w[4];
+			int c=0;
+
+			while (*scan != 0 && c < 4) {
+				if (*scan == ' ') {
+					scan++;
+				}
+				else if (*scan == '-') {
+					scan++;
+				}
+				else if (isxdigit(*scan)) {
+					w[c++] = strtoul(scan,(char**)(&scan),16);
+				}
+				else {
+					break;
+				}
+			}
+
+			while (c < 4) w[c++] = 0;
+
+			p3psn.hi  = (w[0] << 16u) + w[1];
+			p3psn.lo  = (w[2] << 16u) + w[3];
+			p3psn.enabled = true;
+		}
+		else {
+			p3psn.enabled = false;
+		}
 
 		do_seg_limits = section->Get_bool("segment limits");
 	

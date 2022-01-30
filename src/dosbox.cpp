@@ -2549,6 +2549,12 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Enable FPU emulation");
     Pbool->SetBasic(true);
 
+    Pstring = secprop->Add_string("processor serial number",Property::Changeable::Always,"");
+    Pstring->Set_help("For Pentium III emulation, this sets the 96-bit Processor Serial Number returned by CPUID.\n"
+            "If not set, then emulation will act as if the PSN has been disabled by the BIOS.\n"
+	    "Enter as 4 sets of 16-bit hexadecimal digits XXXX-XXXX-XXXX-XXXX.\n"
+	    "Note that the processor info and feature bits form the topmost 32 bits of the PSN and cannot be changed.");
+
     Pbool = secprop->Add_bool("segment limits",Property::Changeable::Always,true);
     Pbool->Set_help("Enforce checks for segment limits on 80286 and higher CPU types.");
     Pbool->SetBasic(true);
