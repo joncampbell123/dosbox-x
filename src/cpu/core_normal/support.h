@@ -592,6 +592,21 @@ static INLINE void SSE_PMAXUB(MMX_reg &d,MMX_reg &s) {
 	STEP(7);
 #undef STEP
 }
+
+////
+
+static INLINE void SSE_PAVGB(MMX_reg &d,MMX_reg &s) {
+#define STEP(i) d.ub.b##i = (uint8_t)(((uint16_t)(d.ub.b##i) + (uint16_t)(s.ub.b##i) + 1u) >> 1u)
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+	STEP(4);
+	STEP(5);
+	STEP(6);
+	STEP(7);
+#undef STEP
+}
 #endif // 386+
 
 #define SETcc(cc)							\
