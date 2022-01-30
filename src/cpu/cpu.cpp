@@ -3368,37 +3368,6 @@ public:
 		reg_ebp=0;
 		reg_esp=0;
 
-		const char *raw_psn = section->Get_string("processor serial number");
-		if (*raw_psn) {
-			const char *scan = raw_psn;
-			uint16_t w[4];
-			int c=0;
-
-			while (*scan != 0 && c < 4) {
-				if (*scan == ' ') {
-					scan++;
-				}
-				else if (*scan == '-') {
-					scan++;
-				}
-				else if (isxdigit(*scan)) {
-					w[c++] = strtoul(scan,(char**)(&scan),16);
-				}
-				else {
-					break;
-				}
-			}
-
-			while (c < 4) w[c++] = 0;
-
-			p3psn.hi  = (w[0] << 16u) + w[1];
-			p3psn.lo  = (w[2] << 16u) + w[3];
-			p3psn.enabled = true;
-		}
-		else {
-			p3psn.enabled = false;
-		}
-
 		do_seg_limits = section->Get_bool("segment limits");
 	
 		SegSet16(cs,0); Segs.limit[cs] = do_seg_limits ? 0xFFFF : ((PhysPt)(~0UL)); Segs.expanddown[cs] = false;
@@ -3844,6 +3813,37 @@ public:
 		if (CPU_ArchitectureType>=CPU_ARCHTYPE_486NEW) CPU_extflags_toggle=(FLAG_ID|FLAG_AC);
 		else if (CPU_ArchitectureType>=CPU_ARCHTYPE_486OLD) CPU_extflags_toggle=(FLAG_AC);
 		else CPU_extflags_toggle=0;
+
+		const char *raw_psn = section->Get_string("processor serial number");
+		if (*raw_psn && CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII) {
+			const char *scan = raw_psn;
+			uint16_t w[4];
+			int c=0;
+
+			while (*scan != 0 && c < 4) {
+				if (*scan == ' ') {
+					scan++;
+				}
+				else if (*scan == '-') {
+					scan++;
+				}
+				else if (isxdigit(*scan)) {
+					w[c++] = strtoul(scan,(char**)(&scan),16);
+				}
+				else {
+					break;
+				}
+			}
+
+			while (c < 4) w[c++] = 0;
+
+			p3psn.hi  = (w[0] << 16u) + w[1];
+			p3psn.lo  = (w[2] << 16u) + w[3];
+			p3psn.enabled = true;
+		}
+		else {
+			p3psn.enabled = false;
+		}
 
     // weitek coprocessor emulation?
         if (CPU_ArchitectureType == CPU_ARCHTYPE_386 || CPU_ArchitectureType == CPU_ARCHTYPE_486OLD || CPU_ArchitectureType == CPU_ARCHTYPE_486NEW) {
@@ -4348,6 +4348,7 @@ bool CPU_RDMSR() {
 		case 0x00000119: /* MSR_IA32_BBL_CR_CTL */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
 			reg_edx = reg_eax = 0;
+			if (!p3psn.enabled) reg_eax |= 0x200000;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: MSR_IA32_BBL_CR_CTL");
 			return true;
 		case 0x0000011e: /* MSR_IA32_BBL_CR_CTL3 */
@@ -4431,6 +4432,13 @@ bool CPU_WRMSR() {
 		case 0x000000ce: /* MSR_PLATFORM_INFO? */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Attempt to write MSR_PLATFORM_INFO EDX:EAX=%08x:%08x",reg_edx,reg_eax);
+			return true;
+		case 0x00000119: /* MSR_IA32_BBL_CR_CTL */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			if (p3psn.enabled && (reg_eax & 0x200000)) {
+				UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: MSR_IA32_BBL_CR_CTL guest is disabling Processor Serial Number");
+				p3psn.enabled = false;
+			}
 			return true;
 		case 0x00000140: /* IA32_MISC_ENABLE [https://www.geoffchappell.com/studies/windows/km/cpu/msr/misc_enable.htm] */
 			/* Linux kernel assumes this MSR is present if Pentium III and will crash otherwise */
