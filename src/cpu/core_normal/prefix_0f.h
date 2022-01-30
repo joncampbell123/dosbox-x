@@ -1913,6 +1913,31 @@
 		break;
 #endif
 
+#if CPU_CORE >= CPU_ARCHTYPE_386
+	CASE_0F_B(0xda)												/* SSE instruction group */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
+		{
+			GetRM;
+			MMX_reg smmx;
+			const unsigned char reg = (rm >> 3) & 7;
+
+			switch (last_prefix) {
+				case MP_NONE:									/* 0F DA PMINUB reg, r/m */
+					if (rm >= 0xc0) {
+						SSE_PMINUB(*reg_mmx[reg],*reg_mmx[rm & 7]);
+					} else {
+						GetEAa;
+						smmx.q = LoadMq(eaa);
+						SSE_PMINUB(*reg_mmx[reg],smmx);
+					}
+					break;
+				default:
+					goto illegal_opcode;
+			};
+		}
+		break;
+#endif
+
 #if C_FPU
 #define CASE_0F_MMX(x) CASE_0F_W(x)
 #include "prefix_0f_mmx.h"

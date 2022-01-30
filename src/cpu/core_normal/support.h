@@ -551,7 +551,7 @@ static INLINE void SSE_SHUFPS(XMM_Reg &d,const XMM_Reg &s,const uint8_t i) {
 
 ////
 
-static inline void SSE_PMOVMSKB(uint32_t &d,const MMX_reg &s) {
+static INLINE void SSE_PMOVMSKB(uint32_t &d,const MMX_reg &s) {
 	d =
 		((s.ub.b7 & 0x80u) ? 0x80 : 0x00) |
 		((s.ub.b6 & 0x80u) ? 0x40 : 0x00) |
@@ -561,6 +561,21 @@ static inline void SSE_PMOVMSKB(uint32_t &d,const MMX_reg &s) {
 		((s.ub.b2 & 0x80u) ? 0x04 : 0x00) |
 		((s.ub.b1 & 0x80u) ? 0x02 : 0x00) |
 		((s.ub.b0 & 0x80u) ? 0x01 : 0x00);
+}
+
+////
+
+static INLINE void SSE_PMINUB(MMX_reg &d,MMX_reg &s) {
+#define STEP(i) d.ub.b##i = std::min(d.ub.b##i,s.ub.b##i)
+	STEP(0);
+	STEP(1);
+	STEP(2);
+	STEP(3);
+	STEP(4);
+	STEP(5);
+	STEP(6);
+	STEP(7);
+#undef STEP
 }
 #endif // 386+
 
