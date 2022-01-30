@@ -1,4 +1,8 @@
 0.83.22
+  - Added Pentium 3 Processor Serial Number emulation.
+    Serial number can be set from dosbox.conf or not set,
+    in which case it will act as if disabled by the BIOS.
+    (joncampbell123).
   - Allow WRMSR to set time stamp counter, as it is known
     though undocumented a standard since the Pentium
     (joncampbell123).
