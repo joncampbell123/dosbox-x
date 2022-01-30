@@ -651,6 +651,15 @@ static INLINE void SSE_PMAXSW(MMX_reg &d,MMX_reg &s) {
 	STEP(3);
 #undef STEP
 }
+
+////
+
+static INLINE void SSE_PSADBW(MMX_reg &d,MMX_reg &s) {
+#define STEP(i) (uint16_t)abs((int16_t)(d.ub.b##i) - (int16_t)(s.ub.b##i))
+	d.uw.w0 = STEP(0) + STEP(1) + STEP(2) + STEP(3) + STEP(4) + STEP(5) + STEP(6) + STEP(7);
+	d.uw.w1 = d.uw.w2 = d.uw.w3 = 0;
+#undef STEP
+}
 #endif // 386+
 
 #define SETcc(cc)							\
