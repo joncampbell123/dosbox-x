@@ -88,6 +88,8 @@ extern bool dos_kernel_disabled;
 extern bool use_dynamic_core_with_paging;
 extern bool auto_determine_dynamic_core_paging;
 
+uint64_t rdtsc_adjust = 0;
+
 bool cpu_double_fault_enable;
 bool cpu_triple_fault_reset;
 
@@ -105,8 +107,12 @@ CPU_Regs cpu_regs;
 CPUBlock cpu;
 Segments Segs;
 
-int64_t CPU_RDTSC() {
+int64_t CPU_RDTSC_RAW_internal() {
 	return (int64_t)(PIC_FullIndex()*(double) (CPU_CycleAutoAdjust?70000:CPU_CycleMax));
+}
+
+int64_t CPU_RDTSC() {
+	return (int64_t)(CPU_RDTSC_RAW_internal() + rdtsc_adjust);
 }
 
 /* [cpu] setting realbig16.
@@ -4351,6 +4357,10 @@ bool CPU_WRMSR() {
 //	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("WRMSR ECX=%08x EDX:EAX=%08x:%08x",reg_ecx,reg_edx,reg_eax);
 
 	switch (reg_ecx) {
+		case 0x00000010: /* You can change the time stamp counter by writing this MSR */
+			rdtsc_adjust = ((uint64_t)reg_edx << (uint64_t)32ul) + (uint64_t)reg_eax;
+			rdtsc_adjust -= CPU_RDTSC_RAW_internal();
+			return true;
 		case 0x0000001b: /* Local APIC */
 			/* NTS: Windows ME assumes this MSR is present if we report ourself as a Pentium II,
 			 *      instead of, you know, using CPUID. It will also set the enable bit, even if

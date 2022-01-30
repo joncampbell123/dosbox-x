@@ -633,4 +633,6 @@ extern dyncore_alloc_t      dyncore_alloc;
 extern dyncore_flags_t      dyncore_flags;
 extern dyncore_method_t     dyncore_method;
 
+int64_t CPU_RDTSC();
+
 #endif
