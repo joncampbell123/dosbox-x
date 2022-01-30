@@ -1210,8 +1210,13 @@ Disket okunamıyor.
 .
 :PROGRAM_KEYB_SHOWHELP
 Klavyeyi belirli bir dil için yapılandırır.
+Usage: ←[32;1mKEYB←[0m [klavye dizilimi kimliği [kod sayfası numarası [kod sayfası dosyası]]]
+  layout ID        Name of layout or keyboard file (.kl) to load
+  codepage number  Number of codepage to load
+  codepage file    .cpi/.cpx file including specified codepage information
+  (.kl, .cpi/.cpx files shall be placed under the directory where dosbox-x
+   executable exists.)
 
-KEYB [klavye dizilimi kimliği [kod sayfası numarası [kod sayfası dosyası]]]
 
 Some examples:
   ←[32;1mKEYB←[0m          Şu anda yüklü kod sayfasını görüntüle.
@@ -1219,6 +1224,7 @@ Some examples:
   ←[32;1mKEYB tr440←[0m    Türkçe (TR-F) dizilimini uygun kod sayfası ile yükle.
   ←[32;1mKEYB tr 857←[0m   Türkçe (TR-Q) dizilimin 857 kod sayfası ile yükle.
   ←[32;1mKEYB tr 857 mycp.cpi←[0m Yukarıdakinin aynısı, mycp.cpi dosyası ile.
+  ←[32;1mKEYB tr_mod 857←[0m      Load keyboard layout from tr_mod.kl, use codepage 857.
 
 .
 :PROGRAM_KEYB_NOERROR
@@ -1226,7 +1232,7 @@ Some examples:
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
-Klavye dosyası %s bulunamadı
+Klavye dosyası %s bulunamadı (or not a valid ID)
 
 
 .

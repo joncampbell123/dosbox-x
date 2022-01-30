@@ -1210,14 +1210,20 @@ La page de code %i a été chargée pour la mise en page %s.
 .
 :PROGRAM_KEYB_SHOWHELP
 Configure un clavier pour une langue spécifique.
-
-KEYB [ID de disposition du clavier [numéro de page de code [fichier de page de code]]]
-
+Usage: ←[32;1mKEYB←[0m [ID de disposition du clavier [numéro de page de code [fichier de page de code]]]
+  layout ID        Name of layout or keyboard file (.kl) to load
+  codepage number  Number of codepage to load
+  codepage file    .cpi/.cpx file including specified codepage information
+  (.kl, .cpi/.cpx files shall be placed under the directory where dosbox-x
+   executable exists.)
+   
+   
 Quelques exemples :
   ←[32;1mKEYB←[0m Afficher la page de code actuellement chargée.
   ←[32;1mKEYB sp←[0m Chargez la disposition espagnole (SP), utilisez une page de code appropriée.
   ←[32;1mKEYB sp 850←[0m Chargez la disposition espagnole (SP), utilisez la page de code 850.
   ←[32;1mKEYB sp 850 mycp.cpi←[0m Même chose que ci-dessus, mais utilisez le fichier mycp.cpi.
+  ←[32;1mKEYB sp_mod 850←[0m      Load keyboard layout from sp_mod.kl, use codepage 850.
 
 .
 :PROGRAM_KEYB_NOERROR
@@ -1225,7 +1231,7 @@ Disposition de clavier %s chargée pour la page de code %i
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
-Fichier clavier %s non trouvé
+Fichier clavier %s non trouvé (or not a valid ID)
 
 
 .

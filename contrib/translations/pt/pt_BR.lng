@@ -1216,8 +1216,13 @@ Página de código %i carregada para o esquema %s
 .
 :PROGRAM_KEYB_SHOWHELP
 Configura um teclado para um idioma específico.
+Usage: [32;1mKEYB[0m [keyboard layout ID [codepage number [codepage file]]]
+  layout ID        Name of layout or keyboard file (.kl) to load
+  codepage number  Number of codepage to load
+  codepage file    .cpi/.cpx file including specified codepage information
+  (.kl, .cpi/.cpx files shall be placed under the directory where dosbox-x
+   executable exists.)
 
-KEYB [keyboard layout ID [codepage number [codepage file]]]
 
 Alguns exemplos:
   [32;1mKEYB[0m                 Exibe a página de código carregada atualmente.
@@ -1226,14 +1231,16 @@ Alguns exemplos:
   [32;1mKEYB sp 850[0m          Carrega o esquema espanhol (SP) com a
                        página de código 850.
   [32;1mKEYB sp 850 mycp.cpi[0m O mesmo de cima, mas usando o arquivo mycp.cpi.
-
+  [32;1mKEYB sp_mod 850[0m      Load keyboard layout from sp_mod.kl,
+                       use codepage 850.
+                       
 .
 :PROGRAM_KEYB_NOERROR
 Esquema de teclado %s carregado para página de código %i
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
-Arquivo de teclado %s não encontrado
+Arquivo de teclado %s não encontrado (or not a valid ID)
 
 
 .
