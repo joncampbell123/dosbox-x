@@ -548,6 +548,20 @@ static INLINE void SSE_SHUFPS(XMM_Reg &d,const XMM_Reg &s,const uint8_t i) {
 	d.u32[2] = s.u32[(i>>4u)&3u];
 	d.u32[3] = s.u32[(i>>6u)&3u];
 }
+
+////
+
+static inline void SSE_PMOVMSKB(uint32_t &d,const MMX_reg &s) {
+	d =
+		((s.ub.b7 & 0x80u) ? 0x80 : 0x00) |
+		((s.ub.b6 & 0x80u) ? 0x40 : 0x00) |
+		((s.ub.b5 & 0x80u) ? 0x20 : 0x00) |
+		((s.ub.b4 & 0x80u) ? 0x10 : 0x00) |
+		((s.ub.b3 & 0x80u) ? 0x08 : 0x00) |
+		((s.ub.b2 & 0x80u) ? 0x04 : 0x00) |
+		((s.ub.b1 & 0x80u) ? 0x02 : 0x00) |
+		((s.ub.b0 & 0x80u) ? 0x01 : 0x00);
+}
 #endif // 386+
 
 #define SETcc(cc)							\
