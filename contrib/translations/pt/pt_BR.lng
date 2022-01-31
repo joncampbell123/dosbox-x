@@ -1216,13 +1216,13 @@ Página de código %i carregada para o esquema %s
 .
 :PROGRAM_KEYB_SHOWHELP
 Configura um teclado para um idioma específico.
+
 Usage: [32;1mKEYB[0m [keyboard layout ID [codepage number [codepage file]]]
   layout ID        Name of layout or keyboard file (.kl) to load
   codepage number  Number of codepage to load
   codepage file    .cpi/.cpx file including specified codepage information
   (.kl, .cpi/.cpx files shall be placed under the directory where dosbox-x
    executable exists.)
-
 
 Alguns exemplos:
   [32;1mKEYB[0m                 Exibe a página de código carregada atualmente.

@@ -1210,13 +1210,13 @@ Disket okunamıyor.
 .
 :PROGRAM_KEYB_SHOWHELP
 Klavyeyi belirli bir dil için yapılandırır.
+
 Usage: ←[32;1mKEYB←[0m [klavye dizilimi kimliği [kod sayfası numarası [kod sayfası dosyası]]]
   layout ID        Name of layout or keyboard file (.kl) to load
   codepage number  Number of codepage to load
   codepage file    .cpi/.cpx file including specified codepage information
   (.kl, .cpi/.cpx files shall be placed under the directory where dosbox-x
    executable exists.)
-
 
 Some examples:
   ←[32;1mKEYB←[0m          Şu anda yüklü kod sayfasını görüntüle.

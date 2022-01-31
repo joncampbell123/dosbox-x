@@ -1210,13 +1210,13 @@ La page de code %i a été chargée pour la mise en page %s.
 .
 :PROGRAM_KEYB_SHOWHELP
 Configure un clavier pour une langue spécifique.
+
 Usage: ←[32;1mKEYB←[0m [ID de disposition du clavier [numéro de page de code [fichier de page de code]]]
   layout ID        Name of layout or keyboard file (.kl) to load
   codepage number  Number of codepage to load
   codepage file    .cpi/.cpx file including specified codepage information
   (.kl, .cpi/.cpx files shall be placed under the directory where dosbox-x
    executable exists.)
-   
    
 Quelques exemples :
   ←[32;1mKEYB←[0m Afficher la page de code actuellement chargée.

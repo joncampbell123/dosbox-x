@@ -8800,7 +8800,7 @@ void DOS_SetupPrograms(void) {
 
     MSG_Add("PROGRAM_KEYB_INFO","Codepage %i has been loaded\n");
     MSG_Add("PROGRAM_KEYB_INFO_LAYOUT","Codepage %i has been loaded for layout %s\n");
-    MSG_Add("PROGRAM_KEYB_SHOWHELP","Configures a keyboard for a specific language.\n"
+    MSG_Add("PROGRAM_KEYB_SHOWHELP","Configures a keyboard for a specific language.\n\n"
         "Usage: \033[32;1mKEYB\033[0m [keyboard layout ID [codepage number [codepage file]]]\n"
         "  layout ID        Name of layout or keyboard file (.kl) to load\n"
         "  codepage number  Number of codepage to load\n"
