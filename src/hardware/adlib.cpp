@@ -435,6 +435,10 @@ namespace Retrowave_OPL3 {
 			uint8_t real_reg = reg & 0xff;
 			uint8_t real_val = val;
 
+			if (real_reg == 1)
+				// Prevent writes to the test registers.
+				return;
+
 			if (port) {
 #ifdef RETROWAVE_USE_BUFFER
 				retrowave_opl3_queue_port1(&retrowave_global_context, real_reg, real_val);
@@ -1220,7 +1224,6 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 		  handler = new OPL3DUOBOARD::Handler(oplport.c_str());
 	    }
 	else if (oplemu == "retrowave_opl3") {
-		oplmode = OPL_opl3;
 		handler = new Retrowave_OPL3::Handler(retrowave_bus, retrowave_port, retrowave_spi_cs);
 	}
 	else if (oplemu == "mame") {
