@@ -25,11 +25,7 @@ If you see the message ```Windows Defender SmartScreen prevented an unrecognized
 
 You can easily upgrade from a previous version of DOSBox-X to the new version with the Windows installer. The Windows installer in fact offers an option to automatically upgrade the config file (dosbox-x.conf) to the new version format while keeping all the user-customized settings already made. When you select this (recommended), the config file will include all options of the latest DOSBox-X version and also will keep all the changes already done previously by the user.
 
-<<<<<<< HEAD
 Apart from the Windows installers, you can find six zip packages (three before 0.83.13) for each DOSBox-X version for the Windows platform in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page as an alternative way to install DOSBox-X. These zip files are portable packages containing binaries built with Visual Studio 2019 (Win32, Win64, ARM32, ARM64 respectively), MinGW (Win32 and Win64 respectively). Look for zip files starting with "dosbox-x-vsbuild-" and "dosbox-x-mingw-win" in the Releases page.
-=======
-Apart from the Windows installers, you can find six zip packages (three before 0.83.13) for each DOSBox-X version for the Windows platform in the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page as an alternative way to install DOSBox-X. These zip files are portable packages containing binaries built with Visual Studio 2019 (Win32, Win64, ARM32, ARM64 respectively), MinGW (Win32 and Win64 respectively). These portable builds are separately available from the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page (look for zip files starting with "dosbox-x-vsbuild-" and "dosbox-x-mingw-win").
->>>>>>> 0effe6a1694b83ed5e01a8d35eb1d1ee9730fb01
 
 The Visual Studio builds are the default Windows builds to use, which include the debugger. On the other hand, standard MinGW builds of DOSBox-X versions support the Slirp backend for the NE2000 networking, but as of recent versions they won't run on Windows XP except for the low-end builds. You may also want to use one of the MinGW builds if you encounter specific problem(s) with the Visual Studio builds (such as floating point precision issues). In addition, while DOSBox-X provides both SDL1 and SDL2 versions and the former is the default version, the SDL2 version may be preferred over the SDL1 version for certain features (particularly related to input handling) such as better international keyboard support.
 
@@ -127,10 +123,6 @@ If you see the message ```"dosbox-x" is damaged and can't be opened``` when tryi
 ``xattr -cr .``
 
 Then you should be able to run the binary ``dosbox-x-sdl1`` or ``dosbox-x-sdl2`` normally.
-
-For the previous version 0.83.10, you can download the signed macOS package for both 64-bit Intel-based and 64-bit ARM-based macOS:
-
-* [dosbox-x-macosx-0.83.10-bin64.zip](https://github.com/joncampbell123/dosbox-x/releases/download/dosbox-x-v0.83.10/dosbox-x-macosx-0.83.10-bin64.zip)
 
 macOS versions earlier than 10.12 (Sierra) are not officially supported. If you use an old version such as OS X Lion (10.7) or OS X Yosemite (10.10), then you may try to build and run DOSBox-X yourself with the help of [MacPorts](https://www.macports.org/). Furthermore, you may not see official macOS packages for some DOSBox-X versions. For example, no official macOS package is available for DOSBox-X version 0.83.1.
 
