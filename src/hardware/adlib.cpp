@@ -428,15 +428,14 @@ namespace OPL3DUOBOARD {
 
 namespace Retrowave_OPL3 {
 	struct Handler : public Adlib::Handler {
-		int opl3_port = 0;
-
 		virtual void WriteReg(uint32_t reg, uint8_t val) {
 //			printf("writereg: 0x%08x 0x%02x\n", reg, val);
 
+			uint16_t port = reg & 0x100;
 			uint8_t real_reg = reg & 0xff;
 			uint8_t real_val = val;
 
-			if (opl3_port) {
+			if (port) {
 #ifdef RETROWAVE_USE_BUFFER
 				retrowave_opl3_queue_port1(&retrowave_global_context, real_reg, real_val);
 #else
@@ -456,14 +455,9 @@ namespace Retrowave_OPL3 {
 
 			switch (port & 3) {
 				case 0:
-					opl3_port = 0;
 					return val;
 				case 2:
-					opl3_port = 1;
-					if (val == 0x05)
-						return 0x100 | val;
-					else
-						return val;
+					return 0x100 | val;
 			}
 
 			return 0;
