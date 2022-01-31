@@ -1,8 +1,15 @@
 0.83.22
   - Added Pentium 3 Processor Serial Number emulation.
-    Serial number can be set from dosbox.conf or not set,
-    in which case it will act as if disabled by the BIOS.
-    (joncampbell123).
+    Serial number can be set from dosbox-x.conf or not
+    set, in which case it will act as if disabled by the
+    BIOS. (joncampbell123).
+  - Added Pentium III cputype, added SSE register set,
+    added SSE instructions to debugger disassembler,
+    added some initial SSE instructions. (joncampbell123)
+  - Added some MSRs expected by Linux, Windows, and
+    tools like CPU-Z to make them happy. (joncampbell123)
+  - Added FXSAVE/FXRSTOR which makes Linux happy with
+    Pentium III emulation. (joncampbell123)
   - Allow WRMSR to set time stamp counter, as it is known
     though undocumented a standard since the Pentium
     (joncampbell123).
@@ -48,13 +55,6 @@
     quotes because the parser would confuse the
     first digits with the DF and AF bits of the FLAGS
     register. (joncampbell123)
-  - Added Pentium III cputype, added SSE register set,
-    added SSE instructions to debugger disassembler,
-    added some initial SSE instructions. (joncampbell123)
-  - Added some MSRs expected by Linux, Windows, and
-    tools like CPU-Z to make them happy. (joncampbell123)
-  - Added FXSAVE/FXRSTOR which makes Linux happy with
-    Pentium III emulation. (joncampbell123)
   - Added menu options "AMD Athlon 600MHz" and "Pentium
     III 866MHz EB" within the group "Emulate CPU speed"
     (under "CPU") for CPU speeds to emulate. (Wengier)
