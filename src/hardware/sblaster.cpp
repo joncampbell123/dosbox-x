@@ -1762,6 +1762,11 @@ static void DSP_DoCommand(void) {
         //      DSP block size during the game (such as when transitioning from general gameplay to spoken
         //      dialogue), and it is needed to stop Freddy Pharkas from stuttering when sbtype=sb16 ref
         //      [https://github.com/joncampbell123/dosbox-x/issues/2960]
+	// NTS: Do NOT divide the byte count by 2 if 16-bit PCM audio but using an 8-bit DMA channel (DSP_DMA_16_ALIASED).
+	//      sb.dma.total in that cause really does contain the byte count of a DSP block. 16-bit PCM over 8-bit DMA
+	//      is possible on real hardware too, likely as a fallback in case 16-bit DMA channels are just not available.
+	//      Note that on one of my ViBRA PnP cards, 8-bit DMA is the only option because 16-bit DMA doesn't work for
+	//      some odd reason. --J.C.
         if (sb.dma.mode == DSP_DMA_16) {
 		// NTS: sb.dma.total is the number of individual samples, not paired samples, likely as a side effect of how
 		//      this code was originally written over at DOSBox SVN regarding how block durations are handled with
