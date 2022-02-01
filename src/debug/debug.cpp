@@ -1170,8 +1170,8 @@ static void DrawRegisters(void) {
 	if ((cpu.pmode) && curSelectorName[0]) {
 		char out1[200], out2[200];
 		GetDescriptorInfo(curSelectorName,out1,out2);
-		mvwprintw(dbg.win_reg,2,28,out1);
-		mvwprintw(dbg.win_reg,3,28,out2);
+		mvwprintw(dbg.win_reg, 2, 28, "%s", out1);
+		mvwprintw(dbg.win_reg, 3, 28, "%s", out2);
 	}
 
 	wattrset(dbg.win_reg,0);
@@ -1739,7 +1739,7 @@ void DEBUG_PrintMMX(int which,char format) {
     }
 
     assert(w < (tmp+sizeof(tmp)));
-    DEBUG_ShowMsg(tmp);
+    DEBUG_ShowMsg("%s", tmp);
 }
 
 void DEBUG_PrintSSE(int which,char format) {
@@ -1793,7 +1793,7 @@ void DEBUG_PrintSSE(int which,char format) {
     }
 
     assert(w < (tmp+sizeof(tmp)));
-    DEBUG_ShowMsg(tmp);
+    DEBUG_ShowMsg("%s", tmp);
 }
 
 void DEBUG_GUI_Rebuild(void);
@@ -5190,8 +5190,8 @@ static void DrawVariables(void) {
 		if (varchanges) {
 			unsigned int y = (unsigned int)(i / 3u);
 			unsigned int x = (i % 3u) * 26u;
-			mvwprintw(dbg.win_var, (int)y,  (int)x, dv->GetName());
-			mvwprintw(dbg.win_var, (int)y, ((int)x + DEBUG_VAR_BUF_LEN + 1) , buffer);
+			mvwprintw(dbg.win_var, (int)y,  (int)x, "%s", dv->GetName());
+			mvwprintw(dbg.win_var, (int)y, ((int)x + DEBUG_VAR_BUF_LEN + 1), "%s", buffer);
 			windowchanges = true; //Something has changed in this window
 		}
 	}

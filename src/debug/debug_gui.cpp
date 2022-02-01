@@ -256,7 +256,7 @@ void DBGUI_DrawDebugOutputLine(int y,std::string line) {
 
     /* Const cast is needed for pdcurses which has no const char in mvwprintw (bug maybe) */
     wattrset(dbg.win_out,0);
-    mvwprintw(dbg.win_out, y, 0, const_cast<char*>(line.c_str()));
+    mvwprintw(dbg.win_out, y, 0, "%s", const_cast<char*>(line.c_str()));
 
     if (ellipsisEnd) {
         wattrset(dbg.win_out,COLOR_PAIR(PAIR_GREEN_BLACK));
