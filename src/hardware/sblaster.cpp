@@ -1756,6 +1756,16 @@ static void DSP_DoCommand(void) {
         DSP_SB2_ABOVE;
         //TODO Maybe check limit for new irq?
         sb.dma.total=1u+(unsigned int)sb.dsp.in.data[0]+((unsigned int)sb.dsp.in.data[1] << 8u);
+        // NTS: From Creative documentation: This is the number of BYTES to transfer per IRQ, not SAMPLES!
+        //      sb.dma.total is in SAMPLES (unless 16-bit PCM over 8-bit DMA) because this code inherits that
+        //      design from DOSBox SVN. This check is needed for any DOS game or application that changes
+        //      DSP block size during the game (such as when transitioning from general gameplay to spoken
+        //      dialogue), and it is needed to stop Freddy Pharkas from stuttering when sbtype=sb16 ref
+        //      [https://github.com/joncampbell123/dosbox-x/issues/2960]
+        if (sb.dma.mode == DSP_DMA_16) {
+                if (sb.dma.total & 1) LOG(LOG_SB,LOG_WARN)("DSP command 0x48: 16-bit PCM and odd number of bytes given for block length");
+                sb.dma.total >>= 1u;
+        }
         break;
     case 0x75:  /* 075h : Single Cycle 4-bit ADPCM Reference */
         sb.adpcm.haveref=true;
