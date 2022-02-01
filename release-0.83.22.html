@@ -1,0 +1,220 @@
+
+
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="DOSBox-X: Free, cross-platform and complete DOS, Windows 3.x and 9x emulation package">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="css/style.css">
+
+    <script type="text/javascript" src="js/script.js"></script>
+    <title>DOSBox-X - Complete DOS emulation package</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <table width="100%" style="border: hidden">
+        <tr>
+        <td width="25%" style="border: hidden; min-width: 300px; text-align: center">
+          &nbsp;<p />&nbsp;<br/>
+          <img id="dosbox-x-logo" src="images/dosbox-x-logo.svg" title="DOSBox-X" alt="DOSBox-X logo" style="width:90px" />
+        </td><td>&nbsp;<p />
+          <h1 id="project_title">DOSBox-X</h1>
+          <h2 id="project_tagline">Cross-platform DOS emulation package<br />Complete, accurate emulation and more</h2>
+        </td>
+        </tr>
+        </table>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer"; style="background-color: #fafacf">
+        <div style="text-align: center">
+            <h3 style="padding-top: 10px">DOSBox-X 0.83.22 Release Notes</h3>
+            <h4 style="padding-bottom: 15px; font-weight: normal">Release Date: <span style="color: green">January 31, 2022</span></h4>
+            Please report any issues in our <a href="https://github.com/joncampbell123/dosbox-x/issues">issue tracker</a>.</p>
+            <p>Also, make sure to check out our <a href="wiki">Wiki guide</a>.</p>
+            <h4>New in This Version</h4>
+
+            <table width="100%" style="border: hidden">
+            <tr>
+            <td width="20%" style="border: hidden"></td>
+            <td width="60%" style="border: hidden; text-align: left">
+            <div style="font-size: 20px; font-weight: 800">1. Notable New Features</div>
+<ul>
+<li>
+    Added Pentium 3 Processor Serial Number emulation.
+    Serial number can be set from dosbox-x.conf or not
+    set, in which case it will act as if disabled by the
+    BIOS. (joncampbell123).
+</li><li>
+    Added Pentium III cputype, added SSE register set,
+    added SSE instructions to debugger disassembler,
+    added some initial SSE instructions. (joncampbell123)
+</li><li>
+    Added some MSRs expected by Linux, Windows, and
+    tools like CPU-Z to make them happy. (joncampbell123)
+</li><li>
+    Added FXSAVE/FXRSTOR which makes Linux happy with
+    Pentium III emulation. (joncampbell123)
+</li><li>
+    Allow WRMSR to set time stamp counter, as it is known
+    though undocumented a standard since the Pentium
+    (joncampbell123).
+</li><li>
+    Added debugger command to show global and per-voice
+    status of the Gravis Ultrasound emulation. May come
+    in handy for programmers who wish to write their own
+    GUS routines, and for Trixter who brought up the
+    subject of determining whether a program plays music
+    with the GUS or treats it like a dumb sound card.
+    (joncampbell123).
+</li><li>
+    Added debugger command to show SSE register file, and
+    to set SSE register contents. (joncampbell123)
+</li><li>
+    Added debugger command to show MMX register file, and
+    to set MMX register contents. (joncampbell123)
+</li><li>
+    Added support for expressions within parenthesis in
+    debugger expression handling. (joncampbell123)
+</li><li>
+    Added & (AND), ^ (XOR), and | (OR) operators, and
+    << and >> bit shift operators to debugger expression
+    handling. (joncampbell123)
+</li><li>
+    Added multiply (*) and divide (/) operators to debugger
+    expression handling. Order of operations applies, so
+    given mixed addition and multiplication, the multiply
+    is done first then the result is added. Also added
+    support for the modulo (%) operator to the debugger
+    expression handling. (joncampbell123)
+</li><li>
+    Revised debugger expression handling to correctly
+    parse arithmetic operators with order of operations
+    in mind. Prior to this fix, consecutive subtraction
+    would cause seemingly illogical results, for example
+    "10-1-1-1" would yield "9" instead of "7" because
+    subtraction was handled in the wrong order. This fix
+    also makes mixed addition and subtraction possible.
+    NOTICE: Remember that all numbers going in and
+    coming out of the expression handler are hexadecimal,
+    NOT decimal! (joncampbell123)
+</li><li>
+    Fixed simple expression handling in the debugger.
+    Revised hexadecimal vs register parsing so that
+    hexadecimal numbers that happen to start with
+    the name of certain CPU flag registers does not
+    cause confusing results. Prior to this fix,
+    hexadecimal numbers like "dfe" or "af0" were
+    impossible to enter without leading zeros or
+    quotes because the parser would confuse the
+    first digits with the DF and AF bits of the FLAGS
+    register. (joncampbell123)
+</li><li>
+    Added menu options "AMD Athlon 600MHz" and "Pentium
+    III 866MHz EB" within the group "Emulate CPU speed"
+    (under "CPU") for CPU speeds to emulate. (Wengier)
+</li><li>
+    Added support for archive, hidden, system attributes
+    on mounted local and overlay drives for non-Windows
+    platforms by using special file(s). (Wengier)
+</li><li>
+    Added config option "special operation file prefix"
+    (in [dos] section) to speciay an alterantive file
+    prefix for DOSBox-X's special operations on mounted
+    local and overlay drives. (Wengier)
+</li><li>
+    Added code page 3021 for the MIK character set used
+    by the Bulgarian language (as in FreeDOS). (Wengier)
+</li><li>
+    Added language file for the Brazilian Portuguese,
+    available from Windows installer. (altiereslima)
+</li><li>
+    For piping (|), DOSBox-X will now also try C: drive
+    as a temporary piping path if current directory is
+    read-only and the environment variable %TEMP% (or
+    %TMP%) is not set. (Wengier)
+</li><li>
+    For clipboard copy, CR+LF will now be used instead
+    of LF on Windows for better compatibility. (Wengier)
+</li><li>
+    Disk images are automatically mounted as read-only
+    (instead of failing) now if the image files are
+    read-only and the users do not explicitly specify
+    read-only mode for the disk images. (Wengier)
+</li><li>
+    The default value of config option "autofixwarning"
+    (in [dos] section) is now "false", and it is now
+    changeable via CONFIG command. (Wengier)
+</li><li>
+    The default output for Linux SDL1 builds is changed
+    from opengl to surface, unlike Linux SDL2 builds
+    whose default output remains opengl. (Wengier)
+</li><li>
+    Native Windows menus is supported in Windows SDL2
+    builds just like Windows SDL1 builds. It is possible
+    to force SDL-drawn menus for both Windows SDL1 and
+    SDL2 builds at compile time. (Wengier)
+</li><li>
+    Setting "windowposition" to "-" in the configuration
+    will leave DOSBox-X window position as is instead of
+    a specific position or being centered. (Wengier)
+</li><li>
+    For printing, the SarasaGothicFixed TTF font will
+    also be searched for DBCS code pages. (Wengier)
+</li><li>
+    Added config option "showdbcsnodosv" (in the [dosv]
+    section) which when set to true enables rendering of
+    Chinese/Japanese/Korean characters for DBCS code
+    pages in non-DOS/V, non-PC98, and non-TTF mode.
+    Video capturing started from TTF output will enable
+    DBCS characters when possible. (Wengier)
+</li><li>
+    Changing DBCS code pages is supported for standard
+    modes (i.e. non-DOS/V, non-PC98 and non-TTF modes)
+    using CHCP command. (Wengier)
+</li><li>
+    Fixed issues with certain DBCS characters for the
+    DOS/V system. (Wengier)
+</li><li>
+    Fixed slow blinking text in TTF output. (Wengier)
+</li><li>
+    Fixed copying box drawing characters to clipboard
+    not working in non-TTF JEGA mode. (Wengier)
+</li><li>
+    Fixed background for the Configuration Tool when
+    the TTF output is active. (Wengier)
+</li><li>
+    Fixed DBCS characters not showing up when capturing
+    screenshots in TTF CJK mode, or they do not show up
+    properly in the Configuration Tool when "autodbcs"
+    is set to "false" in the configuration. (Wengier)
+</li><li>
+    Fixed media keys presses by ignoring these keys in
+    Windows SDL1 builds. (maron2000)
+</li><li>
+    Fixed IOCTL & ASPI interfaces for mounting physical
+    CD drives on the Windows platform. (Wengier)
+</li><li>
+    Fixed the issue of loading scalers in the previous
+    version. A message box will only show up if you
+    append "prompt" to the scaler option. (Wengier)
+</li>
+</ul>
+            </td><td></td></tr>
+            <tr><td></td><td style="border: hidden"><table width="100%" style="text-align: center; font-weight: bold"><tr><td width="50%"><b>Previous release: 0.83.21 (<a href="release-0.83.21.html">release notes</a>)</b></td><td width="50%"><b></b></td></tr></table></td><td style="border: hidden"></td></tr>
+            <tr><td style="border: hidden"></td><td style="border: hidden"><center>Return to <a href="index.html">main page</a></center></td><td style="border: hidden"></td></tr>
+            </table>            
+        </div>
+    </div>
+
+    <!-- FOOTER  -->
+    <iframe src="footer.html" onload="this.before((this.contentDocument.body||this.contentDocument).children[0]);this.remove()"></iframe>
+
+  </body>
+</html>
