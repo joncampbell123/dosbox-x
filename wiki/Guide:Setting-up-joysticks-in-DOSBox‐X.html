@@ -447,45 +447,34 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 </div>
-<h1 id="_setting_up_joysticks_in_dosbox_x" class="sect0">Setting up joysticks in DOSBox-X</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_setting_up_joysticks_in_dosbox_x">Setting up joysticks in DOSBox-X</h2>
+<div class="sectionbody">
 <div id="toc" class="toc">
 <div id="toctitle" class="title">Table of Contents</div>
-<ul class="sectlevel0">
+<ul class="sectlevel1">
 <li><a href="#_setting_up_joysticks_in_dosbox_x">Setting up joysticks in DOSBox-X</a></li>
 <li><a href="#_overview">Overview</a></li>
 <li><a href="#_general_notes">General notes</a></li>
 <li><a href="#_calibration">Calibration</a></li>
-<li><a href="#_dosbox_x_config_settings">DOSBox-X config settings</a>
-<ul class="sectlevel1">
+<li><a href="#_dosbox_x_config_settings">DOSBox-X config settings</a></li>
 <li><a href="#_joystick_options">[joystick] options</a></li>
 <li><a href="#_mapper_options">[mapper] options</a></li>
-</ul>
-</li>
-<li><a href="#_known_issues">Known issues</a>
-<ul class="sectlevel1">
-<li><a href="#_ps3_dualshock3_controller">PS3 DualShock3 controller</a></li>
-<li><a href="#_ps4_dualshock4_controller">PS4 DualShock4 controller</a></li>
-<li><a href="#_xbox_360_controller">Xbox 360 controller</a></li>
-<li><a href="#_xbox_one_controller">Xbox One controller</a></li>
-<li><a href="#_triggers_acting_as_3rd_axis">Triggers acting as 3rd axis</a></li>
-</ul>
-</li>
+<li><a href="#_known_issues">Known issues</a></li>
 </ul>
 </div>
 </div>
 </div>
-<h1 id="_overview" class="sect0">Overview</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_overview">Overview</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>While game consoles and most home-computers back in the day had two or more Joystick ports, the IBM PC and its clones typically had none.
 IBM did provide a DA-15 game-port adapter option, but few people had it, or a matching PC compatible Joystick.
 As such most PC games are designed to be played with the keyboard, or for later games with the mouse.</p>
 </div>
 <div class="paragraph">
-<p>The IBM game port, just the the PC, was cloned and found its way onto multi-IO cards and soundcards of the era.
+<p>The IBM game port, just like the PC, was cloned and found its way onto multi-IO cards and soundcards of the era.
 But even if PCs had a game port, few owned a matching joystick.
 And even nowadays games on the PC are often played with a keyboard and mouse.</p>
 </div>
@@ -507,11 +496,11 @@ Any SDL supported gamepads will automatically become available within DOSBox-X a
 </div>
 </div>
 </div>
-<h1 id="_general_notes" class="sect0">General notes</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_general_notes">General notes</h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>You will want to try and experiment as on what settings works best for software A and software B, and will probably end up with software-specific configurations.</p>
+<p>You will want to try and experiment as on what settings work best for software A and software B, and will probably end up with software-specific configurations.</p>
 </div>
 <div class="paragraph">
 <p>Please note that most DOS software supporting joystick input will not react properly when you adjust CPU cycles while they are being run, i.e. either find the appropriate number of CPU cycles it requires first or restart it for a consistent joystick experience.</p>
@@ -521,9 +510,9 @@ Any SDL supported gamepads will automatically become available within DOSBox-X a
 </div>
 </div>
 </div>
-<h1 id="_calibration" class="sect0">Calibration</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_calibration">Calibration</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>While most home computers and game consoles back in the day used digital joysticks or controllers, the IBM PC instead used analogue joysticks.</p>
 </div>
@@ -542,10 +531,12 @@ Others will silently perform a centre calibration on startup, or may omit it com
 </div>
 </div>
 </div>
-<h1 id="_dosbox_x_config_settings" class="sect0">DOSBox-X config settings</h1>
-<div class="openblock partintro">
-<div class="content">
-This section will list the available configuration options that DOSBox-X provides that are relevant to joysticks.
+<div class="sect1">
+<h2 id="_dosbox_x_config_settings">DOSBox-X config settings</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section will list the available configuration options that DOSBox-X provides that are relevant to joysticks.</p>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -607,7 +598,8 @@ They are to be used when your software input method IS a joystick, contrarily to
 <div class="title">Note</div>
 </td>
 <td class="content">
-If changing this setting, or if you saved the mapperfile without joystick connected or with a different joystick, remember to reset dosbox&#8217;s mapperfile. Otherwise the new setting will not work properly (or at all).
+If changing this setting, or if you saved the mapperfile without joystick connected or with a different joystick, remember to reset dosbox&#8217;s mapperfile.
+Otherwise, the new setting will not work properly (or at all).
 </td>
 </tr>
 </table>
@@ -776,8 +768,8 @@ If your having problems with the game when using a joystick, try setting it expl
 <p>Deadzone for joystick 1, thumbstick 1.</p>
 </div>
 <div class="paragraph">
-<p>Deadzone allows an axis to be at rest below a certain threshold.
-As a result, axis value at rest will stay fairly stable whereas previously lot of jittering could be seen.
+<p>The deadzone option allows an axis to be at rest when it is below a certain threshold.
+As a result, axis value at rest will stay fairly stable whereas previously a lot of jitter could be seen.
 A default value of 0.26 will do fine on contemporary gamepads (e.g. Xbox One Controller).
 A higher value might be needed for older devices as they tend to loosen over time.</p>
 </div>
@@ -915,7 +907,7 @@ Only applicable if two joysticks are attached, and set to 2axis mode.</p>
 <p>Axis for joystick 1, axis 0.</p>
 </div>
 <div class="paragraph">
-<p>These settings allows you to remap physical axes, this is useful when either your device or software has a fixed layout.
+<p>These settings allow you to remap physical axes, this is useful when either your device or software has a fixed layout.
 For instance if you want to use the right analogue stick, instead of the left.</p>
 </div>
 </div>
@@ -1722,10 +1714,11 @@ However, make sure to set 'axes mapping' to their default value, or simply remov
 </div>
 </div>
 </div>
-<h1 id="_known_issues" class="sect0">Known issues</h1>
 <div class="sect1">
-<h2 id="_ps3_dualshock3_controller">PS3 DualShock3 controller</h2>
+<h2 id="_known_issues">Known issues</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_ps3_dualshock3_controller">PS3 DualShock3 controller</h3>
 <div class="paragraph">
 <p>There are two modes of operation:</p>
 </div>
@@ -1790,10 +1783,8 @@ Bluetooth as mentioned can be more tricky, but at least authentic Sony PS3 contr
 See here for instructions: <a href="https://www.digitaltrends.com/gaming/how-to-connect-a-ps3-controller-to-a-pc/p" class="bare">https://www.digitaltrends.com/gaming/how-to-connect-a-ps3-controller-to-a-pc/p</a></p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_ps4_dualshock4_controller">PS4 DualShock4 controller</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_ps4_dualshock4_controller">PS4 DualShock4 controller</h3>
 <div class="paragraph">
 <p>There are three modes of operation:</p>
 </div>
@@ -1848,7 +1839,7 @@ Since the DualShock4 has an integrated 3.5mm headphone jack, audio may get redir
 This includes the headphone jack, and the touchpad which will control the mouse.</p>
 </div>
 <div class="paragraph">
-<p>Likewise connecting it over Bluetooth is as simple as putting the controller into pairing mode (hold the 'share' button and then the PS button, until it starts to blink rapidly), and discover it in your Bluetooth settings where it will show up as a "Wireless Controller".</p>
+<p>Likewise, connecting it over Bluetooth is as simple as putting the controller into pairing mode (hold the 'share' button and then the PS button, until it starts to blink rapidly), and discover it in your Bluetooth settings where it will show up as a "Wireless Controller".</p>
 </div>
 <div class="paragraph">
 <p>In 2axis mode, the left analogue stick and the X (Button 1) and O (Button 2) buttons will be used.</p>
@@ -1869,10 +1860,8 @@ If the controller does not work, be sure you pressed the PS button and only one 
 </table>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_xbox_360_controller">Xbox 360 controller</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_xbox_360_controller">Xbox 360 controller</h3>
 <div class="paragraph">
 <p>The Xbox 360 Wireless controller does not work when plugged in over USB, and cannot be connected over Bluetooth.</p>
 </div>
@@ -1905,10 +1894,8 @@ In some cases, like on Fedora it is necessary to manually install the <strong>xp
 </ul>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_xbox_one_controller">Xbox One controller</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_xbox_one_controller">Xbox One controller</h3>
 <div class="paragraph">
 <p>Both the XBox One Wired and Wireless controllers work when connected over USB.</p>
 </div>
@@ -1932,10 +1919,8 @@ The USB Wireless dongles for the Xbox 360 and Xbox One controllers are not inter
 </table>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_triggers_acting_as_3rd_axis">Triggers acting as 3rd axis</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_triggers_acting_as_3rd_axis">Triggers acting as 3rd axis</h3>
 <div class="paragraph">
 <p>When using the 4axis joystick_type, the triggers of a gamepad will be mapped to the 3rd axis.
 To change this, add the following setting: <code>joy1axis2=4</code></p>
@@ -1946,9 +1931,10 @@ To change this, add the following setting: <code>joy1axis2=4</code></p>
 </div>
 </div>
 </div>
+</div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-01-01 01:51:44 -0500
+Last updated 2022-02-01 14:17:48 -0500
 </div>
 </div>
 </body>

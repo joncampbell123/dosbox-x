@@ -2,14 +2,14 @@
 
 Back to the link:Guide%3ADOS-Installation-in-DOSBox‐X[PC DOS and MS-DOS Installation Guide]
 
-# Installing PC DOS 7 or PC DOS 2000 in DOSBox-X
+== Installing PC DOS 7 or PC DOS 2000 in DOSBox-X
 
 toc::[]
 
-# Overview
-## Editions this applies to
+== Overview
+=== Editions this applies to
 
-### PC DOS 7, revision 0
+==== PC DOS 7, revision 0
 ** First version to use XDF disks
 ** Adds a command-line calculator
 ** Adds ability to load device drivers from command line
@@ -19,12 +19,12 @@ toc::[]
 ** Adds Phoenix PCMCIA support
 ** Adds HELP file viewer (OS/2 INF format)
 
-### PC DOS 2000 (aka PC DOS 7.0, revision 1)
+==== PC DOS 2000 (aka PC DOS 7.0, revision 1)
 ** The only PC DOS release to be available on CD-ROM
 ** Minor Y2K fixes
 ** Adds Euro currency symbol support
 
-## Notes
+=== Notes
 
 * There is also PC DOS 7.1 which has LBA and FAT32 support, but it only contains kernel files, and it does not have an installation program.
 * Some disk versions of IBM PC DOS 7 and 2000 were distributed in IBM XDF format or IBM DSKF image format.
@@ -44,11 +44,11 @@ But neither is the case. Officially you could install it in one of two ways:
 ** If you want to do a clean install, the CD-ROM contains six 3.5" 1.44MB disk images in IBM DSKF format together with LOADDSKF.EXE to write them to diskettes.
 You can then boot from the diskettes to install PC DOS 2000.
 
-# Creating a PC DOS 7 HDD image
+== Creating a PC DOS 7 HDD image
 Installing PC DOS 7.0, revision 0 is problematic as it was distributed on XDF diskettes which are not supported by DOSBox-X.
 You would need to install it on a legacy-PC, and then transfer the files manually which is outside the scope of this document.
 
-# Creating a PC DOS 2000 HDD image from CD-ROM
+== Creating a PC DOS 2000 HDD image from CD-ROM
 
 NOTE: In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images from the DOSBox-X menu.
 Go to the "DOS" menu, and select "Create blank disk image…​".
@@ -56,7 +56,7 @@ This option allows for various common harddisk types to be created, for less com
 
 You have the following installation options:
 
-* Use LOADDSKF.EXE to convert the the IBM DSKF image files to regular MFM DSK files, and boot them in DOSBox-X.
+* Use LOADDSKF.EXE to convert the IBM DSKF image files to regular MFM DSK files, and boot them in DOSBox-X.
 * Run the SETUP program on the CD image directly from the DOSBox-X integrated DOS. This is the method we will use below.
 
 NOTE: This method requires DOSBox-X 0.83.2 or newer.
@@ -69,13 +69,13 @@ NOTE: This method requires DOSBox-X 0.83.2 or newer.
  SETUP
 ....
 
-After it finished the install, it will reboot DOSBox-X and your again at the ``Z:\>`` prompt. Now type the following to boot PC DOS 2000 normally.
+After it finished the installation, it will reboot DOSBox-X and your again at the ``Z:\>`` prompt. Now type the following to boot PC DOS 2000 normally.
 ....
 IMGMOUNT C hdd.img
 BOOT C:
 ....
 
-## Creating a PC DOS 2000 HDD image from diskettes
+== Creating a PC DOS 2000 HDD image from diskettes
 If you have the PC DOS 2000 disk images in DSKF format, you first need to convert them, one by one, with LOADDSKF.EXE in DOSBox-X as follows:
 ....
 IMGMAKE DISK1.IMG -t fd_1440
@@ -107,7 +107,7 @@ Once you have the PC DOS 2000 disk images in non-DSKF format, you can install th
  BOOT DISK1.IMG DISK2.IMG DISK3.IMG DISK4.IMG DISK5.IMG DISK6.IMG
 ....
 
-When prompted to change disk, on the DOSBox-X menu bar select "DOS" followed by "Swap disk". After the installation is finished, from the DOSBox-X menu bar select "Main" followed by "Reset guest system" and you will be back at the DOSBox-X ``Z:\>`` prompt.
+When prompted to change disk, on the DOSBox-X menu bar select "DOS" followed by "Swap disk". After the installation is finished, from the DOSBox-X menu bar select "Main" followed by "Reset guest system", and you will be back at the DOSBox-X ``Z:\>`` prompt.
 
 You can now boot these DOS versions directly from the HDD image as follows:
 ....

@@ -5,36 +5,36 @@ ifndef::env-github[:suffixappend:]
 
 Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
 
-# Setting up printing in DOSBox-X
+== Setting up printing in DOSBox-X
 
 toc::[]
 
-## Overview
+== Overview
 DOSBox-X has support for printing to either a real printer, redirect to a file, or create a PNG, BMP or PostScript file.
 
 Printer options in the DOSBox-X config file are split over two sections, ``[parallel]`` and ``[printer]``.
 
-### [parallel] section options
+=== [parallel] section options
 This section lists the available configuration options for the ``[parallel]`` section that DOSBox-X provides.
-Is is used to configure the virtual parallel ports provided inside DOSBox-X.
+They are used to configure the virtual parallel ports provided inside DOSBox-X.
 
 NOTE: Starting with DOSBox-X v0.83.20 it is possible to modify parallel port settings directly from the DOSBox-X DOS prompt with either the ``parallel`` or ``config -set parallel`` commands.
 Any settings you modify this way are however lost when you restart DOSBox-X.
 
-#### parallel1
+==== parallel1
 * Default value: printer
 * Possible values: disabled, reallpt, file, printer, disney
 
 This enables an emulated LPT1 port on IO base address 0x378.
 Most DOS applications expect a printer on the LPT1 port.
 
-Some values have additional parameters, which if specified must be on the same line in the form of ``parameter:value``.
+Some values have additional parameters, which when specified, must be on the same line in the form of ``parameter:value``.
 
 NOTE: The original IBM PC with MDA or Hercules graphics card had the first printer port configured on IO base address 0x3BC, and 0x378 would then become LPT2.
 This is not emulated (see link:https://en.wikipedia.org/wiki/Parallel_port#IBM_PC_implementation[Wikipedia]).
 
 NOTE: Unlike on a typical retro PC, the emulated parallel port does not use an IRQ.
-Therefore there is no resource conflict if the emulated SoundBlaster is configured for IRQ 7.
+Therefore, there is no resource conflict if the emulated SoundBlaster is configured for IRQ 7.
 
 **disabled**
 
@@ -82,8 +82,8 @@ parallel1=file dev:lpt1 timeout=1000 addFF cp:437
 
 **printer**
 
-Send to a emulated Epson printer.
-This has it's own configuration section which is documented below.
+Send to an emulated Epson dot-matrix printer.
+This has its own configuration section which is documented below.
 
 **disney**
 
@@ -99,31 +99,31 @@ parallel1=disney
 ....
 
 If you want to have Disney Sound Source emulation, you need to set ``disney=true`` in the ``[speaker]`` section.
-In addition the ``parallel1=`` value needs to be either set to ``disabled`` (will be auto-enabled for the Disney Sound Source emulation), or ``disney``.
+In addition, the ``parallel1=`` value needs to be either set to ``disabled`` (will be auto-enabled for the Disney Sound Source emulation), or ``disney``.
 Alternatively you can move the Disney Sound Source on a different parallel port, but most games expect it on the first by default.
 
 If you set ``disney=true`` and have ``parallel1=`` set to a different value, the Disney Sound Source emulation will not work.
 
-#### parallel2
+==== parallel2
 * Default value: disabled
 * Possible values: disabled, reallpt, file, printer, disney
 
 This enables an emulated LPT2 port on IO base address 0x278.
 
-#### parallel3
+==== parallel3
 * Default value: disabled
 * Possible values: disabled, reallpt, file, printer, disney
 
 This enables an emulated LPT3 port on IO base address 0x3BC.
 
-#### parallel4-9
+==== parallel4-9
 * Default value: disabled
 * Possible values: disabled, reallpt, file, printer, disney
 
 NOTE: LPT4-9 are extended LPT ports that are only supported by some applications.
 You can optionally specify base addresses and IRQs for them with ``base:`` and ``irq:`` options.
 
-#### dongle
+==== dongle
 * Default value: false
 * Possible values: false, true
 
@@ -131,7 +131,7 @@ When set to true, emulates an Atmel 93c46 based dongle attached to the LPT1 port
 
 Unfortunately this feature is rather incomplete at this time, and requires that dongle.cpp in the source code is edited and the right bytes for the dongle to be emulated are entered in the MEMORY array. After which DOSBox-X needs to be re-compiled.
 
-### [printer] section options
+=== [printer] section options
 This section lists the available configuration options for the ``[printer]`` section of the DOSBox-X config file.
 
 Only one Epson printer can be emulated, and it can only be connected to a single virtual parallel port.
@@ -185,19 +185,19 @@ WARNING: Printing to any Epson 24-pin printer in "360 x 180" or "360 x 360" mode
 * Due to over-exact graphics emulation 360dpi printing from Windows (guest) graphics rasterising might not look as expected
 * Country code setup and other configuration switches and buttons found on a real printer are not available, this may be overcome by sending special ESC/P commands to the printer before printing
 
-#### printer
+==== printer
 * Default value: false
 * Possible values: true, false
 
 Enables or disables virtual printer emulation.
 
-#### dpi
+==== dpi
 * Default value: 360
 * Possible values: 0-65535
 
 Sets the dots-per-inch of the virtual printer.
 
-#### width
+==== width
 * Default value: 85
 * Possible values: 0-65535
 
@@ -211,7 +211,7 @@ Example of some standard paper sizes in portrait orientation:
 * A4 = 82 (210mm = 8.27 inches)
 * A5 = 58 (148mm = 5.83 inches)
 
-#### height
+==== height
 * Default value: 110
 * Possible values: 0-65535
 
@@ -225,7 +225,7 @@ Example of some standard paper sizes in portrait orientation:
 * A4 = 116 (297mm = 11.69 inches)
 * A5 = 82 (210mm = 8.27 inches)
 
-#### printoutput
+==== printoutput
 * Default value: printer (windows host), else png
 * Possible values: png, ps, bmp, printer
 
@@ -247,7 +247,7 @@ BMP will create larger files, due to lack of compression, while the image qualit
 Create a PostScript file.
 This is typically the best option for Linux and macOS hosts, as it supports multi-page documents and can easily be converted to PDF.
 
-#### multipage
+==== multipage
 * Default value: false
 * Possible values: true, false
 
@@ -256,7 +256,7 @@ Only applicable if ``printoutput=ps``.
 Adds all pages printed to one PostScript file until a timeout, or until CTRL-F2 is pressed.
 See also the ``timeout`` option below.
 
-#### device
+==== device
 * Default value: -
 * Possible values: ``-`` or device name or number
 
@@ -280,26 +280,26 @@ printoutput=printer
 device="Microsoft Print to PDF"
 ....
 
-#### docpath
+==== docpath
 * Default value: .
 
 The path (directory) where the output files are stored.
 Defaults to the current working directory.
 
-#### fontpath
+==== fontpath
 * Default value: FONTS
 
 The path (directory) where the TTF fonts (courier.ttf, ocra.ttf, roman.ttf, sansserif.ttf, script.ttf) are stored.
 Defaults to the FONTS subdirectory in the current working directory (or where the DOSBox-X executable is located).
 
-#### printdbcs
+==== printdbcs
 * Default value: auto
 * Possible values: true, false, auto
 
 Allows DOSBox-X to print Chinese/Japanese/Korean DBCS (double-byte) characters when a DBCS code pages (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese) is active.
 If set to auto (default), this is enabled only for the TrueType font (TTF) output with the DBCS support enabled.
 
-#### openwith
+==== openwith
 * Default value: <blank>
 
 Start the specified program to open the output file.
@@ -316,19 +316,19 @@ Some other examples:
 
 - macOS host: ``openwith=open -s "Preview"`` will cause the file to be opened with the application associated with the file extension
 
-#### openerror
+==== openerror
 * Default value: <blank>
 
 Start the specified program to open the output file if an error had occurred.
 
-#### shellhide
+==== shellhide
 * Default value: false
 * Possible values: true, false
 
 If set, the command window will be hidden for openwith/openerror options.
 Only supported on the Windows platform.
 
-#### timeout
+==== timeout
 * Default value: 0
 * Possible values:
 
@@ -336,20 +336,20 @@ Timeout (in milliseconds). Set to 1000 for a 1-second timeout.
 
 If zero, the page will not be ejected until a form-feed is received.
 
-Since not all software will send one, especially if your redirecting output, you can force a form-feed (eject page) by specifying a non-zero value.
+Since not all software will send one, especially if you're redirecting output, you can force a form-feed (eject page) by specifying a non-zero value.
 
 If non-zero, it specifies the time after which the page will be ejected automatically when no more data arrives at the printer.
 If the printout gets split over multiple files, increase this value.
 
 You can also manually send a form-feed, by pressing CTRL-F2 or using the form-feed option available from the DOS menu.
 
-# Setting up fonts for the emulated printer
+== Setting up fonts for the emulated printer
 The emulated printer requires TrueType fonts in order to be able to print text.
 If you use the TrueType font output, then the TTF font that is currently active on the screen will automatically be used for printing as well if the ``ttf.printfont`` option (in [render] section) is enabled (default) as of DOSBox-X version 0.83.14.
 
 If no TTF font can be found then DOSBox-X will print with the internal (default) TTF font as used by the TrueType font output.
 
-## Windows host
+=== Windows host
 DOSBox-X will first search for fonts in the FONTS subdirectory in the current working directory or the directory where your dosbox-x.exe is located.
 If the fonts cannot be found, then it will search for the system fonts, as follows:
 
@@ -369,7 +369,7 @@ Ocra (OCR-A) and Script (cursive) fonts may not be installed on your system.
 They are however rarely needed, and can typically be ignored.
 If you need them you may need to find those online.
 
-## Linux host
+=== Linux host
 DOSBox-X will first search for fonts in the ~/.config/dosbox-x/FONTS directory (or FONTS subdirectory in the current working directory).
 If the fonts cannot be found, then it will search for the fonts in the ``/usr/share/fonts`` directory, as follows:
 
@@ -389,16 +389,16 @@ Ocra (OCR-A) and Script (cursive) fonts may not be installed on your system.
 They are however rarely needed, and can typically be ignored.
 If you need them you may need to find those online.
 
-# Example: Print to file
+== Example: Print to file
 In this example the output of a DOS command or application is simply redirected to the virtual LPT port, which in turn will be redirected to a file on the host.
 
 This is useful if your printing just simple text, as the file on the host will contain the exact text.
 
-If the application expects a printer that can do more then just simple text, and sends control codes for that printer, the file will also contain those control codes.
+If the application expects a printer that can do more than just simple text, and sends control codes for that printer, the file will also contain those control codes.
 
 This can actually be useful, if you select a PostScript or HP PCL printer in the DOS application, as the resulting file will be a PostScript or HP PCL file which can be opened on the host with an appropriate application.
 
-In this example, setup a DOSBox-X config file with the following lines:
+In this example, set up a DOSBox-X config file with the following lines:
 ....
 [dosbox]
 captures=capture
@@ -418,9 +418,9 @@ The exact save location is dependent on the ``captures=`` setting in the ``[dosb
 
 NOTE: If you booted real DOS, or Windows 9x in DOSBox-X the output filename will be ``guest os_000.prt`` instead.
 
-# Example: Printing to a real printer
+== Example: Printing to a real printer
 
-## Windows host, method 1
+=== Windows host, method 1
 It will cause a Windows print dialogue to appear on the host, and you can print to any printer configured on the host, including print to PDF.
 
 Make sure your DOSBox-X config file contains the statements:
@@ -439,12 +439,12 @@ In DOSBox-X you can now simply redirect output to LPT1, or in DOS applications c
 The printer dialogue will show up after a printer selection is made.
 If you want the printer selection to show up every time for printing to LPT1, please leave the "device" empty.
 
-## Windows host, method 2
+=== Windows host, method 2
 This assumes you PC still has a parallel printer port integrated on the system board, or a legacy ISA parallel printer adapter.
 It reportedly will not work with USB parallel printer adapters or PCI parallel printer port adapters.
 
 Also note that the output is sent verbatim from the DOS application to the printer, without any filtering or conversion.
-Therefore it is important that the printer can understand the printer control codes that are being sent by the application.
+Therefore, it is important that the printer can understand the printer control codes that are being sent by the application.
 In practice this means that this method is only really meant for situations where you have a legacy printer, or are perhaps only sending pure text.
 
 Make sure your DOSBox-X config file contains the statements:
@@ -460,12 +460,12 @@ Alternatively you can try to set it up as follows, but this reportedly only work
 parallel1=reallpt directlpt:378
 ....
 
-## Windows host, in combination with 3rd-party printing solution
+=== Windows host, in combination with 3rd-party printing solution
 
 In addition to relying entirely on the built-in printing methods, DOSBox-X can also work in combination with external third-party printing solutions like link:https://www.printfil.com/[Printfil], link:http://www.dosprn.com/[DOSPRN], or link:http://sourceforge.net/projects/winprint/[WinPrint] (open-source).
 Both Printfil and DOSPRN are shareware applications that specifically list DOSBox-X as supported for printing to any printer configured on the Windows host system.
 
-### Windows host, extended solution using Printfil
+=== Windows host, extended solution using Printfil
 
 According to its description, Printfil allows text-based applications to print to any Windows printer, including USB, network printers, fax modems and PDF writers, without any changes to the original applications.
 You can set your application to print to an ASCII file, or have Printfil capturing a parallel port (PRN: and from LPT1: to LPT9:) or serial port (from COM1: to COM9:), automatically redirecting your print jobs to any printer.
@@ -482,7 +482,7 @@ Below is a screenshot of its configuration window.
 
 image::images/Printfil_configuration_window.png[The Printfil configuration window]
 
-## Linux host
+=== Linux host
 
 First you need to give your Linux user access to the parallel printer port on the Linux host, otherwise you will get permission denied errors.
 
@@ -512,7 +512,7 @@ The output is sent verbatim to the printer, so the printer needs to be able to u
 
 NOTE: In the case of a real parallel port, the first port will be ``/dev/parport0``, but in the case of a USB parallel port adapter it will be ``/dev/usblp0``.
 
-# Example: Print to PNG or BMP
+== Example: Print to PNG or BMP
 This method prints to a PNG or BMP image file.
 
 Make sure your DOSBox-X config file contains the statements:
@@ -533,7 +533,7 @@ In DOSBox-X you can now simply redirect output to LPT1, or in DOS applications c
 The output will be saved as ``page1.png`` or ``page1.bmp`` in the current directory, and incremented if it already exists.
 Alternatively you can specify a different directory using the ``docpath=`` setting as documented above.
 
-# Example: Print to PostScript
+== Example: Print to PostScript
 This method prints to a PostScript (PS) image file, which can be easily converted to PDF.
 
 Make sure your DOSBox-X config file contains the statements:
@@ -555,7 +555,7 @@ Alternatively you can specify a different directory using the ``docpath=`` setti
 
 The ``multipage=true`` setting is specific to PostScript output, and prevents a separate PostScript file from being generated for each printed page.
 
-# Example: Redirect print output to a program on the host
+== Example: Redirect print output to a program on the host
 
 In the ``[parallel]`` section for the parallel1-9 config options you can use the ``file`` option to direct the output to a file, which can then optionally be opened by the specified application on the host.
 This application can then be used to view the output, and possibly print it or used to convert the output to something like PDF with a PDF printer.
@@ -572,16 +572,16 @@ e.g. when running DOSBox-X on a Windows host:
 [parallel]
 parallel1=file file:output.prn timeout:2000 openpcl:pcl6 openps:gswin32c openwith:notepad
 ....
-This will cause any output to LPT1 to be written to output.prn, and if the output is determined to be PCL, it will be opened with a "pcl6" application, or if it is PostScript, it will be opened with link:https://www.ghostscript.com/[GhostScript] (gswin32c.exe), while for other filetypes it will be opened in notepad.
+This will cause any output to LPT1 to be written to ``output.prn``, and if the output is determined to be PCL, it will be opened with a "pcl6" application, or if it is PostScript, it will be opened with link:https://www.ghostscript.com/[GhostScript] (gswin32c.exe), while for other filetypes it will be opened in notepad.
 
 If you need to pass additional parameters to the application you can either enclose the command with quotes and add the parameters. e.g. ``openwith:"program arg1 arg2"``, the printer file will be added as a final parameter.
 If this is not flexible enough, for instance because you need to have the printer filename in the middle of other parameters, then create a shell script or batch file with a content similar to ``program arg1 %1 arg2``, and call this shell script/batch file instead of the program directly.
 
 Keep in mind that the output file will be created in your current working directory, if you don't specify a path.
 
-### Linux PostScript printing example
-In this example, it is assumed that your printing to a PostScript printer in your DOS application.
-This should give you the highest quality output, and depending on the application, you may even get colour by selecting a a colour PostScript printer.
+=== Linux PostScript printing example
+In this example, it is assumed that you're printing to a PostScript printer in your DOS application.
+This should give you the highest quality output, and depending on the application, you may even get colour by selecting a colour PostScript printer.
 The output is saved to a file on the host, to the directory specified with the ``captures=`` option, and when the file is closed (when no output is received for 2 seconds), the file will be opened using xdg-open such that it can be printed.
 
 ....
@@ -592,7 +592,7 @@ captures=capture
 parallel1=file file:output.ps timeout:2000 openps:xdg-open
 ....
 
-### macOS PostScript printing example
+=== macOS PostScript printing example
 Similar to the Linux example above, but here the macOS Preview application is used to open the PostScript file, from where it can be printed.
 
 ....

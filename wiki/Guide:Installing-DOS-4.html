@@ -447,14 +447,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 </div>
-<h1 id="_installing_dos_4_0x_in_dosbox_x" class="sect0">Installing DOS 4.0x in DOSBox-X</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_installing_dos_4_0x_in_dosbox_x">Installing DOS 4.0x in DOSBox-X</h2>
+<div class="sectionbody">
 <div id="toc" class="toc">
 <div id="toctitle" class="title">Table of Contents</div>
-<ul class="sectlevel0">
-<li><a href="#_installing_dos_4_0x_in_dosbox_x">Installing DOS 4.0x in DOSBox-X</a>
 <ul class="sectlevel1">
+<li><a href="#_installing_dos_4_0x_in_dosbox_x">Installing DOS 4.0x in DOSBox-X</a></li>
 <li><a href="#_overview">Overview</a>
 <ul class="sectlevel2">
 <li><a href="#_key_new_features_of_dos_4_00">Key new features of DOS 4.00</a></li>
@@ -463,7 +462,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li><a href="#_notes">Notes</a></li>
 <li><a href="#_external_links">External links</a></li>
-<li><a href="#_creating_a_ms_dos_4_0x_hdd_image">Creating a MS-DOS 4.0x HDD image</a>
+<li><a href="#_creating_an_ms_dos_4_0x_hdd_image">Creating an MS-DOS 4.0x HDD image</a>
 <ul class="sectlevel2">
 <li><a href="#_bare_bones_install">Bare-bones install</a></li>
 <li><a href="#_full_install_from_3_5_media">Full install from 3.5" media</a></li>
@@ -471,9 +470,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_booting_ms_dos_4_0x_from_hdd">Booting MS-DOS 4.0x from HDD</a></li>
 </ul>
 </li>
-<li><a href="#_creating_a_ibm_dos_4_0x_hdd_image">Creating a IBM DOS 4.0x HDD image</a></li>
-</ul>
-</li>
+<li><a href="#_creating_an_ibm_dos_4_0x_hdd_image">Creating an IBM DOS 4.0x HDD image</a></li>
 </ul>
 </div>
 </div>
@@ -559,9 +556,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="title">Warning</div>
 </td>
 <td class="content">
-First of all, consider if you really, really want to use DOS 4.x as it was considered a very buggy release.
+First, consider if you really, really want to use DOS 4.x as it was considered a very buggy release.
 If you decide to continue with a full install, and you have the choice, do yourself a favour and use the 3.5" version as it will minimize the amount of disk swapping required.
-Also the IBM PC-DOS release is easier to install then the MS-DOS release as it uses fewer disks, but lacks HIMEM.SYS, EMM386.SYS and SMARTDRV.SYS.
+Also, the IBM PC-DOS release is easier to install then the MS-DOS release as it uses fewer disks, but lacks HIMEM.SYS, EMM386.SYS and SMARTDRV.SYS.
 </td>
 </tr>
 </table>
@@ -636,13 +633,13 @@ IBM released a corrective service (CSD UR22624) to upgrade a 4.00 installation t
 <p>MS-DOS OEM versions could have additional disks such as a Diagnostic disk.</p>
 </li>
 <li>
-<p>In addition the installation process will require BLANK diskette named "Select Copy"</p>
+<p>In addition, the installation process will require BLANK diskette named "Select Copy"</p>
 </li>
 <li>
 <p>Like DOS 3.3 before it, DOS 4.0x supports primary, extended and logical partitions. However, DOSBox-X has only limited support for extended and logical partitions. You can create them, and when you boot your DOS image, you can access them. But when you <code>IMGMOUNT</code> the image in DOSBox-X, the integrated DOS will only be able to access the primary partition. As such it is recommended to only create a single DOS partition per disk image, and if you need more space to create more disk images.</p>
 </li>
 <li>
-<p>DOS 4.0x supports HDDs up to 4,095MB. It is also supposed to support a primary partition up to 2,047MB and a logical partition of 2,048MB. But creating partitions that large will result in numerous problems, typically in <code>FORMAT</code> giving a "Divide overflow" error. The solution, assuming your only going to have a single primary partition, is to create a HDD image no larger then 2014MB.</p>
+<p>DOS 4.0x supports HDDs up to 4,095MB. It is also supposed to support a primary partition up to 2,047MB and a logical partition of 2,048MB. But creating partitions that large will result in numerous problems, typically in <code>FORMAT</code> giving a "Divide overflow" error. The solution, assuming your only going to have a single primary partition, is to create an HDD image no larger than 2014MB.</p>
 </li>
 <li>
 <p>DOS 4.0x supports the "type 6" FAT16 partition which DOSBox-X&#8217;s <code>IMGMAKE</code> creates, but is incompatible with the way the partition is formatted. The DOS 4.0x installer will not offer the option to install to the HDD. And if you manually SYS the drive, it will not boot from it. The solution is to exit to the command line and manually format the C: drive.</p>
@@ -664,7 +661,7 @@ IBM released a corrective service (CSD UR22624) to upgrade a 4.00 installation t
 </div>
 </div>
 <div class="sect1">
-<h2 id="_creating_a_ms_dos_4_0x_hdd_image">Creating a MS-DOS 4.0x HDD image</h2>
+<h2 id="_creating_an_ms_dos_4_0x_hdd_image">Creating an MS-DOS 4.0x HDD image</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>In these examples we use a 32MB HDD image.</p>
@@ -720,7 +717,7 @@ IBM released a corrective service (CSD UR22624) to upgrade a 4.00 installation t
 </div>
 </div>
 <div class="paragraph">
-<p>The HDD image is now bootable and you can optionally copy some of the DOS utilities from the diskette to the HDD and create your <code>CONFIG.SYS</code> and <code>AUTOEXEC.BAT</code>.
+<p>The HDD image is now bootable, and you can optionally copy some DOS utilities from the diskette to the HDD and create your <code>CONFIG.SYS</code> and <code>AUTOEXEC.BAT</code>.
 Alternatively if you want to do a full install, you can type <code>SELECT MENU</code> to return to the installer.</p>
 </div>
 <div class="imageblock">
@@ -740,12 +737,12 @@ Alternatively if you want to do a full install, you can type <code>SELECT MENU</
 <p>The MS-DOS 4.0x installer can corrupt its own installation diskettes, as such it is important that you set the installation disk images read-only.</p>
 </li>
 <li>
-<p>It is required that you first follow the [#bare-bones-install](Bare-bones) install above, up to the point where the DOS partition has been formatted. The alternative is to use the -NOFS flag with <code>IMGMAKE</code> to create a HDD image that is not partitioned and formatted, and to let MS-DOS 4.0x installer create the partition for you, but this requires that you go through the first phase of the installation process twice, including creating the "SELECT COPY" backup diskette twice.</p>
+<p>It is required that you first follow the [#bare-bones-install](Bare-bones) install above, up to the point where the DOS partition has been formatted. The alternative is to use the -NOFS flag with <code>IMGMAKE</code> to create an HDD image that is not partitioned and formatted, and to let MS-DOS 4.0x installer create the partition for you, but this requires that you go through the first phase of the installation process twice, including creating the "SELECT COPY" backup diskette twice.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>For this process, it is assumed that you have followed the Bare-bones install process such that your HDD image file is created, partitioned and formatted with MS-DOS 4.0x.</p>
+<p>For this process, it is assumed that you have followed the Bare-bones installation process such that your HDD image file is created, partitioned and formatted with MS-DOS 4.0x.</p>
 </div>
 <div class="paragraph">
 <p>During install, the installer will insist on a blank disk to be labelled "SELECT COPY", to make a copy of the INSTALL (Setup) disk.
@@ -764,7 +761,7 @@ Unfortunately while it seems the installer should allow to use the B: drive for 
 <div class="ulist">
 <ul>
 <li>
-<p>You may notice in the above BOOT command, that SETUP.IMG and SELECT_COPY.IMG appear twice. This is not an error, and is done to simplify the installation process due to the fact that the install process will ask for you to swap between those disks.</p>
+<p>You may notice in the above BOOT command, that SETUP.IMG and SELECT_COPY.IMG appear twice. This is not an error, and is done to simplify the installation process due to the fact that the installation process will ask for you to swap between those disks.</p>
 </li>
 <li>
 <p>You may also notice that the original install disks have been pre-fixed with a column (:) character. This is a special way of telling DOSBox-X to treat that disk image as read-only.</p>
@@ -806,7 +803,7 @@ Unfortunately while it seems the installer should allow to use the B: drive for 
 <p><strong>Specify Function and Workspace</strong></p>
 </div>
 <div class="paragraph">
-<p>You will now be asked between 3 install options. "program workspace" in this context means the amount of RAM available for programs. Based on your decision FASTOPEN will be enabled, and various DOS buffers will be adjusted.</p>
+<p>You will now be asked between 3 installation options. "program workspace" in this context means the amount of RAM available for programs. Based on your decision FASTOPEN will be enabled, and various DOS buffers will be adjusted.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -906,7 +903,7 @@ Unfortunately while it seems the installer should allow to use the B: drive for 
 This can be accomplished with a hot-key combination, or possibly easier from the DOSBox-X menu bar, select the "DOS" menu, followed by "Swap floppy".
 It is important that you use the "Swap floppy" option each time it asks you to insert a different disk.
 The disks have been "stacked" with the BOOT command in such a way that they are in the correct order.
-If you loose track if which disk is inserted, check the 'Drive' &gt; 'A' &gt; 'Drive Information' menu option.</p>
+If you loose track which disk is inserted, check the 'Drive' &gt; 'A' &gt; 'Drive Information' menu option.</p>
 </div>
 <div class="paragraph">
 <p>You will be asked in turn to insert the "INSTALL" disk (Setup), the "SELECT COPY" disk, again the "INSTALL DISK" and again the "SELECT COPY" disk.
@@ -940,7 +937,7 @@ BOOT -L C</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Depending if we installed DOS Shell or not, we will either get a DOS prompt or a DOS Shell menu.</p>
+<p>Depending on if the DOS Shell was installed or not, you will either get a DOS prompt or the DOS Shell menu.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -956,7 +953,7 @@ BOOT -L C</pre>
 <div class="sect2">
 <h3 id="_full_install_from_5_25_media">Full install from 5.25" media</h3>
 <div class="paragraph">
-<p>This process is basically the same as for the 3.5" media, but you have more disks and they are labelled differently.
+<p>This process is basically the same as for the 3.5" media, but you have more disks, and they are labelled differently.
 You will also need two blank disks.</p>
 </div>
 </div>
@@ -975,16 +972,16 @@ BOOT -L C</pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_creating_a_ibm_dos_4_0x_hdd_image">Creating a IBM DOS 4.0x HDD image</h2>
+<h2 id="_creating_an_ibm_dos_4_0x_hdd_image">Creating an IBM DOS 4.0x HDD image</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Installing IBM DOS 4.0x is easier then MS-DOS 4.0x as it comes on only two 3.5" disks (Install and Operating), or five 5.25" disks.</p>
+<p>Installing IBM DOS 4.0x is easier than MS-DOS 4.0x as it comes on only two 3.5" disks (Install and Operating), or five 5.25" disks.</p>
 </div>
 <div class="paragraph">
 <p>The same limits on disk and partition sizes seem to apply as MS-DOS 4.0x.</p>
 </div>
 <div class="paragraph">
-<p>First start by creating a HDD image file, mount it and boot from disk (this assumes 3.5" media).</p>
+<p>First start by creating an HDD image file, mount it and boot from disk (this assumes 3.5" media).</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -996,14 +993,14 @@ BOOT -L C</pre>
 <div class="paragraph">
 <p>You can now largely follow the instructions for MS-DOS 4.0x.
 There will be fewer questions, for instance you will not get the question if you want to install the DOS Shell.
-After the install is finished and you boot from the HDD image, it will go directly to the DOS Shell program.</p>
+After the installation is finished, and you boot from the HDD image, it will go directly to the DOS Shell program.</p>
 </div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-01-01 01:51:44 -0500
+Last updated 2022-02-01 14:17:48 -0500
 </div>
 </div>
 </body>

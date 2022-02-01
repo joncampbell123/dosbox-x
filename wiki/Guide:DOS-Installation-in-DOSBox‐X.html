@@ -447,14 +447,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 </div>
-<h1 id="_pc_dos_and_ms_dos_installation_guide" class="sect0">PC DOS and MS-DOS Installation Guide</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_pc_dos_and_ms_dos_installation_guide">PC DOS and MS-DOS Installation Guide</h2>
+<div class="sectionbody">
 <div id="toc" class="toc">
 <div id="toctitle" class="title">Table of Contents</div>
-<ul class="sectlevel0">
-<li><a href="#_pc_dos_and_ms_dos_installation_guide">PC DOS and MS-DOS Installation Guide</a>
 <ul class="sectlevel1">
+<li><a href="#_pc_dos_and_ms_dos_installation_guide">PC DOS and MS-DOS Installation Guide</a></li>
 <li><a href="#_readme_1st">README.1ST</a></li>
 <li><a href="#_disadvantages_of_booting_dos_in_dosbox_x">Disadvantages of booting DOS in DOSBox-X</a></li>
 <li><a href="#_external_links">External links</a></li>
@@ -479,8 +478,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </li>
 </ul>
-</li>
-</ul>
 </div>
 <div class="paragraph">
 <p>This guide explains how to boot regular (or real) IBM PC DOS or Microsoft MS-DOS in DOSBox-X, including creating hard disk images.</p>
@@ -493,7 +490,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="paragraph">
 <p>Before going through this guide, consider if you really need this as the integrated DOS functionality in DOSBox-X is more convenient for typical use-cases.
 Booting real DOS is rarely necessary to run DOS applications and games, or even Windows version up to 3.11 in DOSBox-X.
-And even if you have a application that requires a specific DOS version, you can change the reported version of the integrated DOS in DOSBox-X.</p>
+And even if you have an application that requires a specific DOS version, you can change the reported version of the integrated DOS in DOSBox-X.</p>
 </div>
 <div class="paragraph">
 <p>There are three ways to change the DOS version that DOSBox-X reports:</p>
@@ -537,7 +534,7 @@ LFN (Long FileName) support will be enabled when the reported version is set to 
 <p>Inability to use the <code>MOUNT</code> command to access directories on the host filesystem. All storage will have to be in the form of images, and they need to be mounted using <code>IMGMOUNT</code> <strong>before</strong> using the <code>BOOT</code> command to boot regular DOS.</p>
 </li>
 <li>
-<p>If you need to access a CD or DVD drive you need to load a IDE/PATA CD/DVD driver and MSCDEX (or equivalent)</p>
+<p>If you need to access a CD or DVD drive you need to load an IDE/PATA CD/DVD driver and MSCDEX (or equivalent)</p>
 </li>
 <li>
 <p>If you need a mouse, you need to load a mouse driver (e.g. MOUSE.COM or CTMOUSE.EXE)</p>
@@ -607,7 +604,7 @@ Getting these image files is outside the scope of this guide.</p>
 <h3 id="_dos_versions_1_0_5_0x">DOS versions 1.0-5.0x</h3>
 <div class="paragraph">
 <p>Unless noted otherwise, the PC DOS and MS-DOS versions are equivalent for this guide.
-There are various limitations that DOS imposes that are dependant on the version.
+There are various limitations that DOS imposes that are dependent on the version.
 A few milestones:</p>
 </div>
 <div class="ulist">
@@ -870,17 +867,17 @@ This even works for the original IBM PC DOS Version 1.00.</p>
 <h3 id="_dos_disk_caching_software">DOS disk caching software</h3>
 <div class="paragraph">
 <p>DOS may put SMARTDRV.EXE in AUTOEXEC.BAT to run on startup.
-This made sense back in the day, but it provides no speed advantages when run on an emulator on a modern host operating system. In fact it may actually be counter productive.
+This made sense back in the day, but it provides no speed advantages when run on an emulator on a modern host operating system. In fact, it may actually be counterproductive.
 As such it is recommended to disable SmartDrive.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_shutdown_dos">Shutdown DOS</h3>
 <div class="paragraph">
-<p>Normally when running DOSBox-X, you can simply type either <code>EXIT</code> or <code>SHUTDOWN /S</code> command and DOSBox-X will close. The <code>/S</code> option of <code>SHUTDOWN</code> command instructs DOSBox to shutdown, and it relies on the APM support provided by DOSBox-X. It has become a built-in DOS command as of DOSBox-X version 0.83.20.</p>
+<p>Normally when running DOSBox-X, you can simply type either <code>EXIT</code> or <code>SHUTDOWN /S</code> command and DOSBox-X will close. The <code>/S</code> option of <code>SHUTDOWN</code> command instructs DOSBox to shut down, and it relies on the APM support provided by DOSBox-X. It has become a built-in DOS command as of DOSBox-X version 0.83.20.</p>
 </div>
 <div class="paragraph">
-<p>On the other hand, if you are running a real DOS disk image, you will need to copy the <code>SHUTDOWN.COM</code> program (located in the <code>Z:\BIN</code> directory) to your disk image. This can be useful for scripted operations, for instance if your running a program from AUTOEXEC.BAT, and want it to shutdown DOSBox-X when it finishes.</p>
+<p>On the other hand, if you are running a real DOS disk image, you will need to copy the <code>SHUTDOWN.COM</code> program (located in the <code>Z:\BIN</code> directory) to your disk image. This can be useful for scripted operations, for instance if you&#8217;re running a program from AUTOEXEC.BAT, and want it to shut down DOSBox-X when it finishes.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -914,7 +911,7 @@ SHUTDOWN.COM /S</pre>
 <div class="sect2">
 <h3 id="_long_wait_on_himem_sys">Long wait on HIMEM.SYS</h3>
 <div class="paragraph">
-<p>If HIMEM is being loaded on startup, you may get a message "HIMEM is testing extended memory&#8230;&#8203;", which can take a considerable amount of time and is pointless in a emulated environment.
+<p>If HIMEM is being loaded on startup, you may get a message "HIMEM is testing extended memory&#8230;&#8203;", which can take a considerable amount of time and is pointless in an emulated environment.
 You can bypass it by editing CONFIG.SYS and changing <code>DEVICE=C:\DOS\HIMEM.SYS</code> to <code>DEVICE=C:\DOS\HIMEM.SYS /TESTMEM:OFF</code>.</p>
 </div>
 </div>
@@ -929,7 +926,7 @@ For rebooting DOS with such a command you may also want to check the "Enable qui
 <div class="sect2">
 <h3 id="_boot_menu">Boot menu</h3>
 <div class="paragraph">
-<p>When using <code>IMGMAKE</code> to create a partitioned image, and when booting from the image afterwards you will get the following boot menu with a 4 second timeout.</p>
+<p>When using <code>IMGMAKE</code> to create a partitioned image, and when booting from the image afterwards you will get the following boot menu with a 4-second timeout.</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -952,7 +949,7 @@ Alternatively you can remove the boot menu by booting to DOS and running <code>F
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-01-01 01:51:44 -0500
+Last updated 2022-02-01 14:17:48 -0500
 </div>
 </div>
 </body>

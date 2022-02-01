@@ -447,80 +447,39 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 </div>
-<h1 id="_selecting_an_audio_option_in_dosbox_x" class="sect0">Selecting an audio option in DOSBox-X</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_selecting_an_audio_option_in_dosbox_x">Selecting an audio option in DOSBox-X</h2>
+<div class="sectionbody">
 <div id="toc" class="toc">
 <div id="toctitle" class="title">Table of Contents</div>
-<ul class="sectlevel0">
+<ul class="sectlevel1">
 <li><a href="#_selecting_an_audio_option_in_dosbox_x">Selecting an audio option in DOSBox-X</a></li>
-<li><a href="#_overview">Overview</a>
-<ul class="sectlevel1">
+<li><a href="#_overview">Overview</a></li>
 <li><a href="#_midi">MIDI</a></li>
-</ul>
-</li>
 <li><a href="#_supported_pc_audio_options">Supported PC audio options</a>
-<ul class="sectlevel1">
-<li><a href="#_pc_speaker">PC Speaker</a>
 <ul class="sectlevel2">
-<li><a href="#_pcspeaker">pcspeaker</a></li>
-<li><a href="#_pcspeaker_clock_gate_enable_at_startup">pcspeaker clock gate enable at startup</a></li>
-<li><a href="#_initial_frequency">initial frequency</a></li>
-<li><a href="#_pcrate">pcrate</a></li>
-</ul>
-</li>
+<li><a href="#_pc_speaker">PC Speaker</a></li>
 <li><a href="#_ibm_pcjr">IBM PCjr</a></li>
-<li><a href="#_tandy_1000">Tandy 1000</a>
-<ul class="sectlevel2">
-<li><a href="#_tandy">tandy</a></li>
-<li><a href="#_tandyrate">tandyrate</a></li>
-</ul>
-</li>
+<li><a href="#_tandy_1000">Tandy 1000</a></li>
 <li><a href="#_adlib_music_synthesizer_card">AdLib Music Synthesizer Card</a></li>
 <li><a href="#_cms_gameblaster">CMS / GameBlaster</a></li>
-<li><a href="#_ibm_ps1_audio_card">IBM PS/1 Audio Card</a>
-<ul class="sectlevel2">
-<li><a href="#_ps1audio">ps1audio</a></li>
-<li><a href="#_ps1audiorate">ps1audiorate</a></li>
-</ul>
-</li>
-<li><a href="#_disney_sound_source">Disney Sound Source</a>
-<ul class="sectlevel2">
-<li><a href="#_disney">disney</a></li>
-</ul>
-</li>
-<li><a href="#_creative_soundblaster">Creative SoundBlaster</a>
-<ul class="sectlevel2">
-<li><a href="#_soundblaster_1_x">SoundBlaster 1.x</a></li>
-<li><a href="#_soundblaster_2_0">SoundBlaster 2.0</a></li>
-<li><a href="#_soundblaster_pro">SoundBlaster Pro</a></li>
-<li><a href="#_soundblaster_pro_2">SoundBlaster Pro 2</a></li>
-<li><a href="#_soundblaster_16">SoundBlaster 16</a></li>
-<li><a href="#_sblaster_config_options">[sblaster] config options</a></li>
-</ul>
-</li>
+<li><a href="#_ibm_ps1_audio_card">IBM PS/1 Audio Card</a></li>
+<li><a href="#_disney_sound_source">Disney Sound Source</a></li>
+<li><a href="#_creative_soundblaster">Creative SoundBlaster</a></li>
 <li><a href="#_adlib_gold_1000">AdLib Gold 1000</a></li>
 <li><a href="#_ess688_audiodrive">ESS688 AudioDrive</a></li>
 <li><a href="#_reveal_sc400">Reveal SC400</a></li>
-<li><a href="#_gravis_ultrasound">Gravis UltraSound</a>
-<ul class="sectlevel2">
-<li><a href="#_gus_config_options">[gus] config options</a></li>
-</ul>
-</li>
-<li><a href="#_innovation_ssi_2001">Innovation SSI-2001</a>
-<ul class="sectlevel2">
-<li><a href="#_innova_config_options">[innova] config options</a></li>
-</ul>
-</li>
+<li><a href="#_gravis_ultrasound">Gravis UltraSound</a></li>
+<li><a href="#_innovation_ssi_2001">Innovation SSI-2001</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
 </div>
-<h1 id="_overview" class="sect0">Overview</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_overview">Overview</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>DOSBox-X supports the emulation of a wide range of audio output options that were common in the DOS days.
 This document attempts to help the novice user, especially those that never experienced DOS PC&#8217;s during the 80&#8217;s and 90&#8217;s with selecting an appropriate audio output option for games.</p>
@@ -530,7 +489,7 @@ This document attempts to help the novice user, especially those that never expe
 The available audio option can be found in a few sections, such as <code>[pcspeaker]</code>, <code>[sblaster]</code>, <code>[gus]</code> and <code>[innova]</code>.</p>
 </div>
 <div class="paragraph">
-<p>By default DOSBox-X, just like regular DOSBox on which is it based, enables emulation of a <strong>PC Speaker</strong> and the <strong>SoundBlaster 16</strong>.</p>
+<p>By default, DOSBox-X just like regular DOSBox on which is it based, enables emulation of a <strong>PC Speaker</strong> and the <strong>SoundBlaster 16</strong>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -741,10 +700,11 @@ Some games however did try to map all or some of the sound effects to MIDI sound
 </div>
 </div>
 </div>
-<h1 id="_supported_pc_audio_options" class="sect0">Supported PC audio options</h1>
 <div class="sect1">
-<h2 id="_pc_speaker">PC Speaker</h2>
+<h2 id="_supported_pc_audio_options">Supported PC audio options</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_pc_speaker">PC Speaker</h3>
 <div class="paragraph">
 <p>The PC Speaker was the integrated speaker from the earliest IBM PC&#8217;s.
 It was really only meant for simple beeps, but ended up widely used by PC games as it was the lowest common-denominator for PC sound, despite its very limited capabilities.</p>
@@ -753,7 +713,7 @@ It was really only meant for simple beeps, but ended up widely used by PC games 
 <p>It is effectively a single-channel square-wave generator, and with considerable CPU overhead it was possible to get some half-decent sound out of it as demonstrated by RealSound.</p>
 </div>
 <div class="paragraph">
-<p>Sound quality was heavily dependant on the type of speaker and the placement and PC case it was built into.
+<p>Sound quality was heavily dependent on the type of speaker and the placement and PC case it was built into.
 Originally a dynamic speaker was used, but later model PCs used a tiny piezo speaker instead which further reduced sound quality and volume.</p>
 </div>
 <div class="paragraph">
@@ -772,8 +732,8 @@ Originally a dynamic speaker was used, but later model PCs used a tiny piezo spe
 <div class="paragraph">
 <p>The following options are available in the <code>[speaker]</code> section of you config file:</p>
 </div>
-<div class="sect2">
-<h3 id="_pcspeaker">pcspeaker</h3>
+<div class="sect3">
+<h4 id="_pcspeaker">pcspeaker</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -788,8 +748,8 @@ Originally a dynamic speaker was used, but later model PCs used a tiny piezo spe
 <p>Enable or disable the PC speaker emulation.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_pcspeaker_clock_gate_enable_at_startup">pcspeaker clock gate enable at startup</h3>
+<div class="sect3">
+<h4 id="_pcspeaker_clock_gate_enable_at_startup">pcspeaker clock gate enable at startup</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -807,8 +767,8 @@ Originally a dynamic speaker was used, but later model PCs used a tiny piezo spe
 <p>Needed for some games that use the PC speaker for timing on IBM compatible systems.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_initial_frequency">initial frequency</h3>
+<div class="sect3">
+<h4 id="_initial_frequency">initial frequency</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -840,8 +800,8 @@ Set to 0 for some early Abaddon demos including "Torso" and "Cycling".</p>
 </ul>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_pcrate">pcrate</h3>
+<div class="sect3">
+<h4 id="_pcrate">pcrate</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -857,10 +817,8 @@ Set to 0 for some early Abaddon demos including "Torso" and "Cycling".</p>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_ibm_pcjr">IBM PCjr</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_ibm_pcjr">IBM PCjr</h3>
 <div class="paragraph">
 <p>The PCjr was introduced by IBM in March 1984, and discontinued due to poor sales just over a year later.</p>
 </div>
@@ -893,10 +851,8 @@ Enabling PCjr mode, also enables PCjr video emulation
 </ul>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_tandy_1000">Tandy 1000</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_tandy_1000">Tandy 1000</h3>
 <div class="paragraph">
 <p>Tandy audio, was introduced with the Tandy 1000 in 1984, which began as a clone of the IBM PCjr.</p>
 </div>
@@ -940,7 +896,7 @@ So to enable the Tandy DAC, you need to set <code>sblaster=none</code>.
 <p><a href="http://www.dosdays.co.uk/computers/Tandy%201000/tandy1000.php">DOS Days on the Tandy 1000 Series</a></p>
 </li>
 <li>
-<p><a href="https://www.youtube.com/watch?v=mYHtojsaRkY">Youtube : The Tandy 1000 - The best MS-DOS computer in 1984</a></p>
+<p><a href="https://www.youtube.com/watch?v=mYHtojsaRkY">YouTube : The Tandy 1000 - The best MS-DOS computer in 1984</a></p>
 </li>
 <li>
 <p><a href="https://www.mobygames.com/attribute/sheet/attributeId,32/">MobyGames: Games supporting Tandy sound</a></p>
@@ -953,8 +909,8 @@ So to enable the Tandy DAC, you need to set <code>sblaster=none</code>.
 <div class="paragraph">
 <p>The following options are available in the <code>[speaker]</code> section of you config file:</p>
 </div>
-<div class="sect2">
-<h3 id="_tandy">tandy</h3>
+<div class="sect3">
+<h4 id="_tandy">tandy</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -972,8 +928,8 @@ So to enable the Tandy DAC, you need to set <code>sblaster=none</code>.
 <p>It is possible to set <code>tandy=on</code> for non-Tandy <code>machine=</code> settings, but quite a few Tandy compatible games will not offer or allow Tandy sound unless it is detected as a Tandy machine.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_tandyrate">tandyrate</h3>
+<div class="sect3">
+<h4 id="_tandyrate">tandyrate</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -989,10 +945,8 @@ So to enable the Tandy DAC, you need to set <code>sblaster=none</code>.
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_adlib_music_synthesizer_card">AdLib Music Synthesizer Card</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_adlib_music_synthesizer_card">AdLib Music Synthesizer Card</h3>
 <div class="paragraph">
 <p>The AdLib Music Synthesizer Card was released by Ad Lib in 1987.
 It was the first popular sound card for IBM PC&#8217;s and compatibles.
@@ -1037,10 +991,8 @@ Some programs may require the AdLib <code>SOUND.COM</code> TSR to be loaded. See
 </ul>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_cms_gameblaster">CMS / GameBlaster</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_cms_gameblaster">CMS / GameBlaster</h3>
 <div class="paragraph">
 <p>FM synthesizer card, released by Creative Technology in 1987.
 Originally named the <strong>Creative Music System</strong> (CMS), but the year after rebranded as the <strong>GameBlaster</strong>.</p>
@@ -1071,10 +1023,8 @@ Some programs may require the Creative <code>CMSDRV.COM</code> TSR to be loaded.
 </ul>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_ibm_ps1_audio_card">IBM PS/1 Audio Card</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_ibm_ps1_audio_card">IBM PS/1 Audio Card</h3>
 <div class="paragraph">
 <p>Optional audio card released in 1990 for IBM PS/1 computers (model 2011 and 2121).
 Relatively few games support this option, and the FM sounds very much like the PCjr or Tandy 1000, as they all use the same or similar TI sound chips.</p>
@@ -1098,8 +1048,8 @@ Relatively few games support this option, and the FM sounds very much like the P
 <div class="paragraph">
 <p>The following options related to this card are available in the <code>[speaker]</code> section of you config file:</p>
 </div>
-<div class="sect2">
-<h3 id="_ps1audio">ps1audio</h3>
+<div class="sect3">
+<h4 id="_ps1audio">ps1audio</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -1114,8 +1064,8 @@ Relatively few games support this option, and the FM sounds very much like the P
 <p>Enable or disable IBM PS/1 audio emulation.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_ps1audiorate">ps1audiorate</h3>
+<div class="sect3">
+<h4 id="_ps1audiorate">ps1audiorate</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -1131,10 +1081,8 @@ Relatively few games support this option, and the FM sounds very much like the P
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_disney_sound_source">Disney Sound Source</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_disney_sound_source">Disney Sound Source</h3>
 <div class="paragraph">
 <p>Covox introduced the <strong>Covox Speech Thing</strong> parallel port sound dongle in 1987, while Disney introduced the <strong>Disney Sound Source</strong> in 1990.</p>
 </div>
@@ -1157,8 +1105,8 @@ Relatively few games support this option, and the FM sounds very much like the P
 <div class="paragraph">
 <p>The following option is available in the <code>[speaker]</code> section of you config file:</p>
 </div>
-<div class="sect2">
-<h3 id="_disney">disney</h3>
+<div class="sect3">
+<h4 id="_disney">disney</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -1175,10 +1123,8 @@ This feature is backward compatible with the <strong>Covox Speech Thing</strong>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_creative_soundblaster">Creative SoundBlaster</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_creative_soundblaster">Creative SoundBlaster</h3>
 <div class="paragraph">
 <p>Creative Technology created a range of SoundBlaster cards, which quickly became the industry standard for PC sound.</p>
 </div>
@@ -1206,8 +1152,8 @@ Some programs may require the Creative <code>SBFMDRV.COM</code> TSR or <code>CT-
 </tr>
 </table>
 </div>
-<div class="sect2">
-<h3 id="_soundblaster_1_x">SoundBlaster 1.x</h3>
+<div class="sect3">
+<h4 id="_soundblaster_1_x">SoundBlaster 1.x</h4>
 <div class="paragraph">
 <p>The SoundBlaster 1.0 was released by Creative Technology in 1989, followed a year later by the cost-reduced SoundBlaster 1.5.</p>
 </div>
@@ -1231,8 +1177,8 @@ Some programs may require the Creative <code>SBFMDRV.COM</code> TSR or <code>CT-
 <p>SoundBlaster 1.x emulation can be enabled by setting <code>sbtype=sb1</code> in the <code>[sblaster]</code> section of your config file.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_soundblaster_2_0">SoundBlaster 2.0</h3>
+<div class="sect3">
+<h4 id="_soundblaster_2_0">SoundBlaster 2.0</h4>
 <div class="paragraph">
 <p>The SoundBlaster 2.0 was released by Creative Technology in October 1991.</p>
 </div>
@@ -1259,8 +1205,8 @@ Some programs may require the Creative <code>SBFMDRV.COM</code> TSR or <code>CT-
 <p>SoundBlaster 2.0 emulation can be enabled by setting <code>sbtype=sb2</code> in the <code>[sblaster]</code> section of your config file.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_soundblaster_pro">SoundBlaster Pro</h3>
+<div class="sect3">
+<h4 id="_soundblaster_pro">SoundBlaster Pro</h4>
 <div class="paragraph">
 <p>The SoundBlaster Pro was released by Creative Technology in May 1991.</p>
 </div>
@@ -1306,7 +1252,7 @@ This adapter was retroactively often named the SB Pro 1 or SB Pro 1.0.
 </td>
 <td class="content">
 Any software making use of the Stereo FM feature will sound wrong if it was coded for the later SB Pro 2 (or vice versa).
-Therefore it is important that you select the right SB Pro model in DOSBox-X and in the software setup of the game.
+Therefore, it is important that you select the right SB Pro model in DOSBox-X and in the software setup of the game.
 </td>
 </tr>
 </table>
@@ -1315,8 +1261,8 @@ Therefore it is important that you select the right SB Pro model in DOSBox-X and
 <p>SoundBlaster Pro emulation can be enabled by setting <code>sbtype=sbpro1</code> in the <code>[sblaster]</code> section of your config file.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_soundblaster_pro_2">SoundBlaster Pro 2</h3>
+<div class="sect3">
+<h4 id="_soundblaster_pro_2">SoundBlaster Pro 2</h4>
 <div class="paragraph">
 <p>The SoundBlaster Pro 2 was released by Creative Technology in 1991, and quickly replaced the earlier SB Pro.</p>
 </div>
@@ -1347,7 +1293,7 @@ Therefore it is important that you select the right SB Pro model in DOSBox-X and
 </td>
 <td class="content">
 Any software making use of the Stereo FM feature will sound wrong if it was coded for the original SB Pro (or vice versa).
-Therefore it is important that you select the right SB Pro model in DOSBox-X and in the software setup of the game.
+Therefore, it is important that you select the right SB Pro model in DOSBox-X and in the software setup of the game.
 </td>
 </tr>
 </table>
@@ -1356,8 +1302,8 @@ Therefore it is important that you select the right SB Pro model in DOSBox-X and
 <p>SoundBlaster Pro 2 emulation can be enabled by setting <code>sbtype=sbpro2</code> in the <code>[sblaster]</code> section of your config file.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_soundblaster_16">SoundBlaster 16</h3>
+<div class="sect3">
+<h4 id="_soundblaster_16">SoundBlaster 16</h4>
 <div class="paragraph">
 <p>The SoundBlaster 16 was released by Creative Technology in June 1992.</p>
 </div>
@@ -1401,10 +1347,10 @@ The only advantage it offers is support for PnP (Plug-and-Play), which is to all
 </table>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_sblaster_config_options">[sblaster] config options</h3>
 <div class="sect3">
-<h4 id="_sbtype">sbtype</h4>
+<h4 id="_sblaster_config_options">[sblaster] config options</h4>
+<div class="sect4">
+<h5 id="_sbtype">sbtype</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1450,8 +1396,8 @@ The only advantage it offers is support for PnP (Plug-and-Play), which is to all
 </ul>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_sbbase">sbbase</h4>
+<div class="sect4">
+<h5 id="_sbbase">sbbase</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1479,8 +1425,8 @@ The only advantage it offers is support for PnP (Plug-and-Play), which is to all
 </ul>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_irq">irq</h4>
+<div class="sect4">
+<h5 id="_irq">irq</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1514,8 +1460,8 @@ The only advantage it offers is support for PnP (Plug-and-Play), which is to all
 <p>Or set to -1 to start DOSBox-X with the IRQ unassigned.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_mindma">mindma</h4>
+<div class="sect4">
+<h5 id="_mindma">mindma</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1531,12 +1477,12 @@ The only advantage it offers is support for PnP (Plug-and-Play), which is to all
 Set to -1 for default.</p>
 </div>
 <div class="paragraph">
-<p>There are some DOS games/demos that use single-cycle DSP playback in their music tracker and they micromanage the DMA transfer per block poorly in a way that causes popping and artefacts.
+<p>There are some DOS games/demos that use single-cycle DSP playback in their music tracker, and they micromanage the DMA transfer per block poorly in a way that causes popping and artefacts.
 Setting this option to 0 for such DOS applications may reduce audible popping and artefacts.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_irq_hack">irq hack</h4>
+<div class="sect4">
+<h5 id="_irq_hack">irq hack</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1556,8 +1502,8 @@ Setting this option to 0 for such DOS applications may reduce audible popping an
 <p>Read DOSBox-X Wiki or source code for details.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_dma">dma</h4>
+<div class="sect4">
+<h5 id="_dma">dma</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1575,8 +1521,8 @@ Setting this option to 0 for such DOS applications may reduce audible popping an
 <p>Set to -1 to start DOSBox-X with the DMA unassigned</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_hdma">hdma</h4>
+<div class="sect4">
+<h5 id="_hdma">hdma</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1594,8 +1540,8 @@ Setting this option to 0 for such DOS applications may reduce audible popping an
 <p>Set to -1 to start DOSBox-X with the High DMA unassigned</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_dsp_command_aliases">dsp command aliases</h4>
+<div class="sect4">
+<h5 id="_dsp_command_aliases">dsp command aliases</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1612,8 +1558,8 @@ Some broken DOS games and demos rely on these aliases.
 For more information: <a href="https://www.vogons.org/viewtopic.php?f=62&amp;t=61098&amp;start=280" class="bare">https://www.vogons.org/viewtopic.php?f=62&amp;t=61098&amp;start=280</a></p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_pic_unmask_irq">pic unmask irq</h4>
+<div class="sect4">
+<h5 id="_pic_unmask_irq">pic unmask irq</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1636,8 +1582,8 @@ If audio cuts out no matter what IRQ you try, then try setting this option.</p>
 - Public NMI "jump" demo (1992)</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_enable_speaker">enable speaker</h4>
+<div class="sect4">
+<h5 id="_enable_speaker">enable speaker</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1660,8 +1606,8 @@ If a DOS game or demo attempts to play without enabling the speaker, set this op
 <p>This setting has no meaning if emulating a Sound Blaster 16 card, as it is always enabled.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_enable_asp">enable asp</h4>
+<div class="sect4">
+<h5 id="_enable_asp">enable asp</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1682,15 +1628,15 @@ If a DOS game or demo attempts to play without enabling the speaker, set this op
 <div class="title">Note</div>
 </td>
 <td class="content">
-This only emulates it&#8217;s presence and the basic DSP commands to communicate with it.
+This only emulates its presence and the basic DSP commands to communicate with it.
 Actual ASP/CSP functions are not yet implemented.
 </td>
 </tr>
 </table>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_disable_filtering">disable filtering</h4>
+<div class="sect4">
+<h5 id="_disable_filtering">disable filtering</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1702,15 +1648,15 @@ Actual ASP/CSP functions are not yet implemented.
 </ul>
 </div>
 <div class="paragraph">
-<p>By default DOSBox-X filters Sound Blaster output to emulate lowpass filters and analogue output limitations.</p>
+<p>By default, DOSBox-X filters Sound Blaster output to emulate low-pass filters and analogue output limitations.</p>
 </div>
 <div class="paragraph">
 <p>Set this option to true to disable filtering.
-Note that doing so disables emulation of the Sound Blaster Pro output filter and ESS AudioDrive lowpass filter</p>
+Note that doing so disables emulation of the Sound Blaster Pro output filter and ESS AudioDrive low-pass filter</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_dsp_write_buffer_status_must_return_0x7f_or_0xff">dsp write buffer status must return 0x7f or 0xff</h4>
+<div class="sect4">
+<h5 id="_dsp_write_buffer_status_must_return_0x7f_or_0xff">dsp write buffer status must return 0x7f or 0xff</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1733,8 +1679,8 @@ Set this option for some early DOS demos that make that assumption about port 22
 - Overload by Hysteria (1992) - Audio will crackle/saturate (8-bit overflow) except when <code>sbtype=sb16</code></p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_pre_set_sbpro_stereo">pre-set sbpro stereo</h4>
+<div class="sect4">
+<h5 id="_pre_set_sbpro_stereo">pre-set sbpro stereo</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1756,8 +1702,8 @@ Set this option for some early DOS demos that make that assumption about port 22
 - Inconexia by Iguana (1993)</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_sbmixer">sbmixer</h4>
+<div class="sect4">
+<h5 id="_sbmixer">sbmixer</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1779,8 +1725,8 @@ This allows software, such as games, to change the volume levels, which may be u
 <p>When this option is set to false, volume level changes will be ignored.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_oplmode">oplmode</h4>
+<div class="sect4">
+<h5 id="_oplmode">oplmode</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1826,8 +1772,8 @@ This allows software, such as games, to change the volume levels, which may be u
 </ul>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_adlib_force_timer_overflow_on_detect">adlib force timer overflow on detect</h4>
+<div class="sect4">
+<h5 id="_adlib_force_timer_overflow_on_detect">adlib force timer overflow on detect</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1846,8 +1792,8 @@ This allows software, such as games, to change the volume levels, which may be u
 If the game cannot reliably detect AdLib at higher cycles counts, but can reliably detect at lower cycles counts, set this option.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_oplemu">oplemu</h4>
+<div class="sect4">
+<h5 id="_oplemu">oplemu</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1867,8 +1813,8 @@ If the game cannot reliably detect AdLib at higher cycles counts, but can reliab
 <p>See oplrate as well.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_oplrate">oplrate</h4>
+<div class="sect4">
+<h5 id="_oplrate">oplrate</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1884,8 +1830,8 @@ If the game cannot reliably detect AdLib at higher cycles counts, but can reliab
 Use 49716 for highest quality (set the mixer rate accordingly).</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_oplport">oplport</h4>
+<div class="sect4">
+<h5 id="_oplport">oplport</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1900,8 +1846,8 @@ Use 49716 for highest quality (set the mixer rate accordingly).</p>
 <p>Serial port of the OPL2 Audio Board when <code>oplemu=opl2board</code>, opl2mode will become 'opl2' automatically.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_retrowave_bus">retrowave_bus</h4>
+<div class="sect4">
+<h5 id="_retrowave_bus">retrowave_bus</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1917,8 +1863,8 @@ Use 49716 for highest quality (set the mixer rate accordingly).</p>
 SPI is only supported on Linux.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_retrowave_spi_cs">retrowave_spi_cs</h4>
+<div class="sect4">
+<h5 id="_retrowave_spi_cs">retrowave_spi_cs</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1934,8 +1880,8 @@ SPI is only supported on Linux.</p>
 Only supported on Linux.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_retrowave_port">retrowave_port</h4>
+<div class="sect4">
+<h5 id="_retrowave_port">retrowave_port</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1950,8 +1896,8 @@ Only supported on Linux.</p>
 <p>Serial port of the Retrowave series board</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_hardwarebase">hardwarebase</h4>
+<div class="sect4">
+<h5 id="_hardwarebase">hardwarebase</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1969,8 +1915,8 @@ Only supported on Linux.</p>
 <p>For use with <code>oplmode=hardware</code> or <code>oplmode=hardwaregb</code></p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_force_dsp_auto_init">force dsp auto-init</h4>
+<div class="sect4">
+<h5 id="_force_dsp_auto_init">force dsp auto-init</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -1993,8 +1939,8 @@ Do not enable unless you need this workaround.</p>
 - Extreme "lunatic" demo (1993)</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_force_goldplay">force goldplay</h4>
+<div class="sect4">
+<h5 id="_force_goldplay">force goldplay</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2011,8 +1957,8 @@ Testing option.
 You probably don&#8217;t want to enable this.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_goldplay">goldplay</h4>
+<div class="sect4">
+<h5 id="_goldplay">goldplay</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2027,8 +1973,8 @@ You probably don&#8217;t want to enable this.</p>
 <p>Enable goldplay emulation. See <a href="https://github.com/joncampbell123/dosbox-x/wiki/Libraries:Goldplay">Libraries:Goldplay</a> for details.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_goldplay_stereo">goldplay stereo</h4>
+<div class="sect4">
+<h5 id="_goldplay_stereo">goldplay stereo</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2050,8 +1996,8 @@ You probably don&#8217;t want to enable this.</p>
 For accurate emulation of Sound Blaster hardware, disable this option.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_dsp_require_interrupt_acknowledge">dsp require interrupt acknowledge</h4>
+<div class="sect4">
+<h5 id="_dsp_require_interrupt_acknowledge">dsp require interrupt acknowledge</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2077,11 +2023,11 @@ For accurate emulation of Sound Blaster hardware, disable this option.</p>
 </div>
 <div class="paragraph">
 <p>This is a setting for hardware accuracy in emulation.
-If audio briefly plays then stops then your DOS game and it&#8217;s not using IRQ (but using DMA), try setting this option to 'false'</p>
+If audio briefly plays then stops, and it&#8217;s not using IRQ (but using DMA), try setting this option to 'false'</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_dsp_write_busy_delay">dsp write busy delay</h4>
+<div class="sect4">
+<h5 id="_dsp_write_busy_delay">dsp write busy delay</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2112,8 +2058,8 @@ Setting the value way too high (above 1000000ns) can cause significant lag in DO
 </table>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_blaster_environment_variable">blaster environment variable</h4>
+<div class="sect4">
+<h5 id="_blaster_environment_variable">blaster environment variable</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2125,11 +2071,11 @@ Setting the value way too high (above 1000000ns) can cause significant lag in DO
 </ul>
 </div>
 <div class="paragraph">
-<p>Whether or not to set the BLASTER environment variable automatically at startup.</p>
+<p>Determines if the BLASTER environment variable is automatically set at startup.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_sample_rate_limits">sample rate limits</h4>
+<div class="sect4">
+<h5 id="_sample_rate_limits">sample rate limits</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2144,8 +2090,8 @@ Setting the value way too high (above 1000000ns) can cause significant lag in DO
 <p>If true, limit DSP sample rate to what real hardware is limited to.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_instant_direct_dac">instant direct dac</h4>
+<div class="sect4">
+<h5 id="_instant_direct_dac">instant direct dac</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2168,8 +2114,8 @@ Setting the value way too high (above 1000000ns) can cause significant lag in DO
 <p>This fix allows broken Sound Blaster code to work and should not be enabled unless necessary.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_stereo_control_with_sbpro_only">stereo control with sbpro only</h4>
+<div class="sect4">
+<h5 id="_stereo_control_with_sbpro_only">stereo control with sbpro only</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2191,8 +2137,8 @@ Setting the value way too high (above 1000000ns) can cause significant lag in DO
 Accuracy setting.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_dsp_busy_cycle_rate">dsp busy cycle rate</h4>
+<div class="sect4">
+<h5 id="_dsp_busy_cycle_rate">dsp busy cycle rate</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2213,8 +2159,8 @@ If zero, busy cycle will not be emulated.
 If -1, Sound blaster emulation will automatically choose a setting based on the <code>sbtype=</code> setting</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_dsp_busy_cycle_always">dsp busy cycle always</h4>
+<div class="sect4">
+<h5 id="_dsp_busy_cycle_always">dsp busy cycle always</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2230,8 +2176,8 @@ If -1, Sound blaster emulation will automatically choose a setting based on the 
 If clear, DSP busy cycle only happens when audio playback is running. Default setting is to pick according to the sound card.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_dsp_busy_cycle_duty">dsp busy cycle duty</h4>
+<div class="sect4">
+<h5 id="_dsp_busy_cycle_duty">dsp busy cycle duty</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2250,8 +2196,8 @@ If clear, DSP busy cycle only happens when audio playback is running. Default se
 If 0, busy cycle emulation is disabled.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_io_port_aliasing">io port aliasing</h4>
+<div class="sect4">
+<h5 id="_io_port_aliasing">io port aliasing</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2274,10 +2220,8 @@ If 0, busy cycle emulation is disabled.</p>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_adlib_gold_1000">AdLib Gold 1000</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_adlib_gold_1000">AdLib Gold 1000</h3>
 <div class="paragraph">
 <p>The AdLib Gold 1000 was released in 1992. It is backward compatible with the earlier <strong>AdLib Music Synthesizer Card</strong>, but not with the SoundBlaster cards.</p>
 </div>
@@ -2317,10 +2261,8 @@ AdLib Gold 1000 emulation is experimental, it is not meant for regular use.
 </ul>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_ess688_audiodrive">ESS688 AudioDrive</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_ess688_audiodrive">ESS688 AudioDrive</h3>
 <div class="paragraph">
 <p>Introduced in 1996 by Electronic Speech Systems (ESS).
 This chip was used by a range of sound cards from different manufacturers, and integrated into systemboards and notebooks.</p>
@@ -2364,10 +2306,8 @@ ESS688 emulation is experimental, it is not meant for regular use.
 </ul>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_reveal_sc400">Reveal SC400</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_reveal_sc400">Reveal SC400</h3>
 <div class="paragraph">
 <p>According to DOS Days, the Reveal SC400 is an OEM version of the <strong>Aztech Nova 16</strong>, which was released in 1994.
 It was also offered by Packard Bell as the <strong>Forte 16SBP</strong>.</p>
@@ -2411,10 +2351,8 @@ Reveal SC400 emulation is experimental, it is not meant for regular use.
 </ul>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_gravis_ultrasound">Gravis UltraSound</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_gravis_ultrasound">Gravis UltraSound</h3>
 <div class="paragraph">
 <p>The Gravis UltraSound (aka GUS) was released in 1992 by Advanced Gravis Computer Technology.</p>
 </div>
@@ -2427,11 +2365,11 @@ It was a popular sound card in certain circles, such as the demo scene, but neve
 It did ship with a TSR (SBOS) that needed to be loaded into memory to provide AdLib or SoundBlaster emulation, but this caused many issues.</p>
 </div>
 <div class="paragraph">
-<p>In practice you only want to use this option, if the GUS is specifically supported by the software.</p>
+<p>In practice, you only want to use this option, if the GUS is specifically supported by the software.</p>
 </div>
 <div class="paragraph">
-<p>Configuring the GUS is more complex then other soundcards, as quite a few software titles that supports the GUS will require that you have a configure "ULTRASND" directory setup with the necessary files in it.
-By default this directory is expected to be located at <code>C:\ULTRASND</code> within DOSBox-X.</p>
+<p>Configuring the GUS is more complex than other soundcards, as quite a few software titles that supports the GUS require that you have a configured "ULTRASND" directory setup with the necessary files in it.
+By default, this directory is expected to be located at <code>C:\ULTRASND</code> within DOSBox-X.</p>
 </div>
 <div class="paragraph">
 <p>One way is to install the Gravis UltraSound driver disks inside DOSBox-X, another is to find a configured ULTRASND folder online that you can simply unpack to the root of your virtual C: drive.</p>
@@ -2458,10 +2396,10 @@ By default this directory is expected to be located at <code>C:\ULTRASND</code> 
 </li>
 </ul>
 </div>
-<div class="sect2">
-<h3 id="_gus_config_options">[gus] config options</h3>
 <div class="sect3">
-<h4 id="_gus">gus</h4>
+<h4 id="_gus_config_options">[gus] config options</h4>
+<div class="sect4">
+<h5 id="_gus">gus</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2476,8 +2414,8 @@ By default this directory is expected to be located at <code>C:\ULTRASND</code> 
 <p>Enable the Gravis Ultrasound emulation.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_autoamp">autoamp</h4>
+<div class="sect4">
+<h5 id="_autoamp">autoamp</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2498,8 +2436,8 @@ By default this directory is expected to be located at <code>C:\ULTRASND</code> 
 <p>Enable this option for loud music if you want a more pleasing rendition without saturation and distortion.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_umask_dma">umask dma</h4>
+<div class="sect4">
+<h5 id="_umask_dma">umask dma</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2515,8 +2453,8 @@ By default this directory is expected to be located at <code>C:\ULTRASND</code> 
 Use this for DOS applications that expect to operate the GUS but forget to unmask the DMA channel.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_ignore_channel_count_while_active">ignore channel count while active</h4>
+<div class="sect4">
+<h5 id="_ignore_channel_count_while_active">ignore channel count while active</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2533,8 +2471,8 @@ This is a HACK for demoscene prod 'Ice Fever' without which the music sounds wro
 According to current testing real hardware does not behave this way.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_pic_unmask_irq_2">pic unmask irq</h4>
+<div class="sect4">
+<h5 id="_pic_unmask_irq_2">pic unmask irq</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2549,8 +2487,8 @@ According to current testing real hardware does not behave this way.</p>
 <p>Start the DOS virtual machine with the GUS IRQ already unmasked at the PIC.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_startup_initialized">startup initialized</h4>
+<div class="sect4">
+<h5 id="_startup_initialized">startup initialized</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2569,8 +2507,8 @@ If false, leave the card in an uninitialized state (as if cold boot).</p>
 <p>Some DOS games or demoscene productions will hang or fail to use the UltraSound hardware because they assume the card is initialized and their hardware detect does not fully initialize the card.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_dma_enable_on_dma_control_polling">dma enable on dma control polling</h4>
+<div class="sect4">
+<h5 id="_dma_enable_on_dma_control_polling">dma enable on dma control polling</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2582,13 +2520,13 @@ If false, leave the card in an uninitialized state (as if cold boot).</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>If true, automatically enable GUS DMA transfer bit in specific cases when the DMA control register is being polled.
+<p>If true, automatically enable the GUS DMA transfer bit in specific cases when the DMA control register is being polled.
 THIS IS A HACK.
 Some games and demoscene productions need this hack to avoid hanging while uploading sample data to the Gravis UltraSound due to bugs in their implementation.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_clear_dma_tc_irq_if_excess_polling">clear dma tc irq if excess polling</h4>
+<div class="sect4">
+<h5 id="_clear_dma_tc_irq_if_excess_polling">clear dma tc irq if excess polling</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2623,8 +2561,8 @@ Some games and demoscene productions need this hack to avoid hanging while uploa
 </ul>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_force_master_irq_enable">force master irq enable</h4>
+<div class="sect4">
+<h5 id="_force_master_irq_enable">force master irq enable</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2640,8 +2578,8 @@ Some games and demoscene productions need this hack to avoid hanging while uploa
 Usually the cause is buggy GUS support that resets the GUS but fails to set the Master IRQ enable bit.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_gus_panning_table">gus panning table</h4>
+<div class="sect4">
+<h5 id="_gus_panning_table">gus panning table</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2657,8 +2595,8 @@ Usually the cause is buggy GUS support that resets the GUS but fails to set the 
 Accurate emulation attempts to better reflect how the actual hardware handles panning, while the old emulation uses a simpler idealistic mapping.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_gusrate">gusrate</h4>
+<div class="sect4">
+<h5 id="_gusrate">gusrate</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2673,8 +2611,8 @@ Accurate emulation attempts to better reflect how the actual hardware handles pa
 <p>Sample rate, in Hz, of the UltraSound emulation.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_gus_fixed_render_rate">gus fixed render rate</h4>
+<div class="sect4">
+<h5 id="_gus_fixed_render_rate">gus fixed render rate</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2705,8 +2643,8 @@ DOSBox-X defaults to 'false', while mainline DOSBox SVN is currently hardcoded t
 </table>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_gusmemsize">gusmemsize</h4>
+<div class="sect4">
+<h5 id="_gusmemsize">gusmemsize</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2722,8 +2660,8 @@ DOSBox-X defaults to 'false', while mainline DOSBox SVN is currently hardcoded t
 Set to -1 for default, which will be 1024KiB.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_gus_master_volume">gus master volume</h4>
+<div class="sect4">
+<h5 id="_gus_master_volume">gus master volume</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2739,8 +2677,8 @@ Set to -1 for default, which will be 1024KiB.</p>
 Reducing the master volume can help with games or demoscene productions where the music is too loud and clipping.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_gusbase">gusbase</h4>
+<div class="sect4">
+<h5 id="_gusbase">gusbase</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2755,8 +2693,8 @@ Reducing the master volume can help with games or demoscene productions where th
 <p>The base IO address of the Gravis UltraSound.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_gusirq">gusirq</h4>
+<div class="sect4">
+<h5 id="_gusirq">gusirq</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2771,8 +2709,8 @@ Reducing the master volume can help with games or demoscene productions where th
 <p>The IRQ number of the Gravis UltraSound.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_gusdma">gusdma</h4>
+<div class="sect4">
+<h5 id="_gusdma">gusdma</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2787,8 +2725,8 @@ Reducing the master volume can help with games or demoscene productions where th
 <p>The DMA channel of the Gravis UltraSound.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_irq_hack_2">irq hack</h4>
+<div class="sect4">
+<h5 id="_irq_hack_2">irq hack</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2816,8 +2754,8 @@ Reducing the master volume can help with games or demoscene productions where th
 <p>Read DOSBox-X Wiki or source code for details.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_gustype">gustype</h4>
+<div class="sect4">
+<h5 id="_gustype">gustype</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2860,8 +2798,8 @@ MAX and Interwave emulation is experimental, they are not meant for regular use.
 </table>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_ultradir">ultradir</h4>
+<div class="sect4">
+<h5 id="_ultradir">ultradir</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2882,10 +2820,8 @@ Patch sets as used with Timidity should work fine.</p>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_innovation_ssi_2001">Innovation SSI-2001</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_innovation_ssi_2001">Innovation SSI-2001</h3>
 <div class="paragraph">
 <p>Released in April 1989 by Innovation Computer Corporation, utilizing the MOS 6581 (aka SID) chip, as found in the Commodore 64.</p>
 </div>
@@ -2902,10 +2838,10 @@ Patch sets as used with Timidity should work fine.</p>
 </li>
 </ul>
 </div>
-<div class="sect2">
-<h3 id="_innova_config_options">[innova] config options</h3>
 <div class="sect3">
-<h4 id="_innova">innova</h4>
+<h4 id="_innova_config_options">[innova] config options</h4>
+<div class="sect4">
+<h5 id="_innova">innova</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2920,8 +2856,8 @@ Patch sets as used with Timidity should work fine.</p>
 <p>Enable the Innovation SSI-2001 emulation.</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_samplerate">samplerate</h4>
+<div class="sect4">
+<h5 id="_samplerate">samplerate</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2936,8 +2872,8 @@ Patch sets as used with Timidity should work fine.</p>
 <p>Sample rate in Hz of the Innovation SSI-2001 emulation</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_sidbase">sidbase</h4>
+<div class="sect4">
+<h5 id="_sidbase">sidbase</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2952,8 +2888,8 @@ Patch sets as used with Timidity should work fine.</p>
 <p>Base IO address of the Innovation SSI-2001 emulation</p>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_quality">quality</h4>
+<div class="sect4">
+<h5 id="_quality">quality</h5>
 <div class="ulist">
 <ul>
 <li>
@@ -2972,9 +2908,10 @@ Patch sets as used with Timidity should work fine.</p>
 </div>
 </div>
 </div>
+</div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-01-01 01:51:44 -0500
+Last updated 2022-02-01 14:17:48 -0500
 </div>
 </div>
 </body>

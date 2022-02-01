@@ -6,18 +6,18 @@ ifndef::env-github[:suffixappend:]
 
 Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
 
-# Selecting an audio option in DOSBox-X
+== Selecting an audio option in DOSBox-X
 
 toc::[]
 
-# Overview
+== Overview
 DOSBox-X supports the emulation of a wide range of audio output options that were common in the DOS days.
 This document attempts to help the novice user, especially those that never experienced DOS PC's during the 80's and 90's with selecting an appropriate audio output option for games.
 
 You can set the audio output option to emulate in your DOSBox-X config file.
 The available audio option can be found in a few sections, such as ``[pcspeaker]``, ``[sblaster]``, ``[gus]`` and ``[innova]``.
 
-By default DOSBox-X, just like regular DOSBox on which is it based, enables emulation of a *PC Speaker* and the *SoundBlaster 16*.
+By default, DOSBox-X just like regular DOSBox on which is it based, enables emulation of a *PC Speaker* and the *SoundBlaster 16*.
 
 NOTE: DOSBox-X does not support microphone and/or line-in for any of the emulated soundcards.
 
@@ -166,7 +166,7 @@ NOTE: DOSBox-X does not support microphone and/or line-in for any of the emulate
 
 |===
 
-## MIDI
+== MIDI
 Some games support Roland MT-32 and/or General MIDI output.
 See the link:Guide%3ASetting-up-MIDI-in-DOSBox‐X{suffixappend}[Guide: Setting up MIDI in DOSBox-X] for instructions.
 
@@ -180,14 +180,14 @@ Some later DOS games may offer you separate options for Audio and Music, such th
 
 During the early CD-ROM era some games stopped supporting MIDI and replaced the music with CD Audio streamed from the CD during gameplay.
 
-# Supported PC audio options
-## PC Speaker
+== Supported PC audio options
+=== PC Speaker
 The PC Speaker was the integrated speaker from the earliest IBM PC's.
 It was really only meant for simple beeps, but ended up widely used by PC games as it was the lowest common-denominator for PC sound, despite its very limited capabilities.
 
 It is effectively a single-channel square-wave generator, and with considerable CPU overhead it was possible to get some half-decent sound out of it as demonstrated by RealSound.
 
-Sound quality was heavily dependant on the type of speaker and the placement and PC case it was built into.
+Sound quality was heavily dependent on the type of speaker and the placement and PC case it was built into.
 Originally a dynamic speaker was used, but later model PCs used a tiny piezo speaker instead which further reduced sound quality and volume.
 
 PC Speaker emulation is enabled by default, but can be disabled by setting ``pcspeaker=false`` in the ``[speaker]`` section of your config file.
@@ -197,13 +197,13 @@ PC Speaker emulation is enabled by default, but can be disabled by setting ``pcs
 
 The following options are available in the ``[speaker]`` section of you config file:
 
-### pcspeaker
+==== pcspeaker
 * Default value: true
 * Valid values: true, false
 
 Enable or disable the PC speaker emulation.
 
-### pcspeaker clock gate enable at startup
+==== pcspeaker clock gate enable at startup
 * Default value: false
 * Valid values: true, false
 
@@ -211,7 +211,7 @@ Start system with the clock gate (bit 0 of port 61h) on.
 
 Needed for some games that use the PC speaker for timing on IBM compatible systems.
 
-### initial frequency
+==== initial frequency
 * Default value: -1
 * Valid values:
 
@@ -225,13 +225,13 @@ The default value of -1 causes it to default depending on the machine type:
 - IBM PC defaults to 903Hz
 - PC-98 defaults to 2000Hz
 
-### pcrate
+==== pcrate
 * Default value: 44100
 * Valid values: 44100, 48000, 32000, 22050, 16000, 11025, 8000, 49716
 
 Sample rate, in Hz, at which the PC-Speaker generates sound.
 
-## IBM PCjr
+=== IBM PCjr
 The PCjr was introduced by IBM in March 1984, and discontinued due to poor sales just over a year later.
 
 PCjr audio is automatically enabled when you set ``machine=pcjr`` in the ``[dosbox]`` section of your config file.
@@ -242,7 +242,7 @@ NOTE: Enabling PCjr mode, also enables PCjr video emulation
 * link:https://www.mobygames.com/attribute/sheet/attributeId,32/[MobyGames: Games supporting Tandy/PCjr sound]
 * link:http://nerdlypleasures.blogspot.com/2015/10/the-journey-of-pcjrtandy-sound-chip.html[Nerdy Pleasures: The Journey of the "PCjr./Tandy Sound Chip"]
 
-## Tandy 1000
+=== Tandy 1000
 Tandy audio, was introduced with the Tandy 1000 in 1984, which began as a clone of the IBM PCjr.
 
 Tandy audio is automatically enabled when you set ``machine=tandy`` in the ``[dosbox]`` section of your config file.
@@ -256,13 +256,13 @@ So to enable the Tandy DAC, you need to set ``sblaster=none``.
 
 * link:https://en.wikipedia.org/wiki/Tandy_Graphics_Adapter[Wikipedia article on Tandy Graphics]
 * link:http://www.dosdays.co.uk/computers/Tandy%201000/tandy1000.php[DOS Days on the Tandy 1000 Series]
-* link:https://www.youtube.com/watch?v=mYHtojsaRkY[Youtube : The Tandy 1000 - The best MS-DOS computer in 1984]
+* link:https://www.youtube.com/watch?v=mYHtojsaRkY[YouTube : The Tandy 1000 - The best MS-DOS computer in 1984]
 * link:https://www.mobygames.com/attribute/sheet/attributeId,32/[MobyGames: Games supporting Tandy sound]
 * link:https://www.mobygames.com/attribute/sheet/attributeId,33/[MobyGames: Games supporting the Tandy DAC]
 
 The following options are available in the ``[speaker]`` section of you config file:
 
-### tandy
+==== tandy
 * Default value: auto
 * Valid values: auto, on, off
 
@@ -270,13 +270,13 @@ The default auto option means that Tandy sound will be automatically enabled, wh
 
 It is possible to set ``tandy=on`` for non-Tandy ``machine=`` settings, but quite a few Tandy compatible games will not offer or allow Tandy sound unless it is detected as a Tandy machine.
 
-### tandyrate
+==== tandyrate
 * Default value: 44100
 * Valid values: 44100, 48000, 32000, 22050, 16000, 11025, 8000, 49716
 
 Sample rate, in Hz, at which the Tandy emulation generates sound.
 
-## AdLib Music Synthesizer Card
+=== AdLib Music Synthesizer Card
 The AdLib Music Synthesizer Card was released by Ad Lib in 1987.
 It was the first popular sound card for IBM PC's and compatibles.
 It was an easy card to clone, resulting in many AdLib compatible sound cards.
@@ -296,7 +296,7 @@ NOTE: Some programs may require the AdLib ``SOUND.COM`` TSR to be loaded. See th
 * link:http://www.dosdays.co.uk/topics/Manufacturers/adlib.php[DOS Days: AdLib]
 * link:https://www.mobygames.com/attribute/sheet/attributeId,21/[MobyGames: Games supporting AdLib sound]
 
-## CMS / GameBlaster
+=== CMS / GameBlaster
 FM synthesizer card, released by Creative Technology in 1987.
 Originally named the *Creative Music System* (CMS), but the year after rebranded as the *GameBlaster*.
 
@@ -307,7 +307,7 @@ NOTE: Some programs may require the Creative ``CMSDRV.COM`` TSR to be loaded. Se
 * link:https://www.mobygames.com/attribute/sheet/attributeId,42/p,2/[MobyGames: Games supporting the GameBlaster]
 * link:http://www.dosdays.co.uk/topics/Manufacturers/creative.php[DOS Days: Creative Labs]
 
-## IBM PS/1 Audio Card
+=== IBM PS/1 Audio Card
 Optional audio card released in 1990 for IBM PS/1 computers (model 2011 and 2121).
 Relatively few games support this option, and the FM sounds very much like the PCjr or Tandy 1000, as they all use the same or similar TI sound chips.
 
@@ -318,19 +318,19 @@ Relatively few games support this option, and the FM sounds very much like the P
 
 The following options related to this card are available in the ``[speaker]`` section of you config file:
 
-### ps1audio
+==== ps1audio
 * Default value: false
 * Valid values: true, false
 
 Enable or disable IBM PS/1 audio emulation.
 
-### ps1audiorate
+==== ps1audiorate
 * Default value: 22050
 * Valid values: 44100, 48000, 32000, 22050, 16000, 11025, 8000, 49716
 
 Sample rate, in Hz, of the PS1 audio emulation.
 
-## Disney Sound Source
+=== Disney Sound Source
 Covox introduced the *Covox Speech Thing* parallel port sound dongle in 1987, while Disney introduced the *Disney Sound Source* in 1990.
 
 These parallel port devices only provide a DAC at a low frequency for playback of digital samples, and has no FM sound.
@@ -342,21 +342,21 @@ DOSBox-X provides emulation for the Disney Sound Source, which is effectively ba
 
 The following option is available in the ``[speaker]`` section of you config file:
 
-### disney
+==== disney
 * Default value: false
 * Valid values: true, false
 
 Enables or disables Disney Sound Source emulation on the parallel port.
 This feature is backward compatible with the *Covox Speech Thing* and *Covox Voice Master* parallel port dongles.
 
-## Creative SoundBlaster
+=== Creative SoundBlaster
 Creative Technology created a range of SoundBlaster cards, which quickly became the industry standard for PC sound.
 
 NOTE: The SB cards are backwards compatible with the AdLib cards. As such the AdLib ``sound.com`` TSR works on them, but Creative had to create their own version as they could not distribute the one from AdLib. The Creative TSR is named ``sb-sound.com``, but is not 100% compatible. See the link:https://www.vogons.org/viewtopic.php?f=33&t=76607p[Sound Driver Pack] for details.
 
 NOTE: Some programs may require the Creative ``SBFMDRV.COM`` TSR or ``CT-VOICE.DRV``. See the link:https://www.vogons.org/viewtopic.php?f=33&t=76607p[Sound Driver Pack] for details.
 
-### SoundBlaster 1.x
+==== SoundBlaster 1.x
 The SoundBlaster 1.0 was released by Creative Technology in 1989, followed a year later by the cost-reduced SoundBlaster 1.5.
 
 Some key features of the SB 1.x cards
@@ -367,7 +367,7 @@ Some key features of the SB 1.x cards
 
 SoundBlaster 1.x emulation can be enabled by setting ``sbtype=sb1`` in the ``[sblaster]`` section of your config file.
 
-### SoundBlaster 2.0
+==== SoundBlaster 2.0
 The SoundBlaster 2.0 was released by Creative Technology in October 1991.
 
 Some key features of the SB 2.0
@@ -379,7 +379,7 @@ Some key features of the SB 2.0
 
 SoundBlaster 2.0 emulation can be enabled by setting ``sbtype=sb2`` in the ``[sblaster]`` section of your config file.
 
-### SoundBlaster Pro
+==== SoundBlaster Pro
 The SoundBlaster Pro was released by Creative Technology in May 1991.
 
 Some key features of the SB Pro
@@ -393,11 +393,11 @@ Some key features of the SB Pro
 NOTE: This adapter was retroactively often named the SB Pro 1 or SB Pro 1.0.
 
 NOTE: Any software making use of the Stereo FM feature will sound wrong if it was coded for the later SB Pro 2 (or vice versa).
-Therefore it is important that you select the right SB Pro model in DOSBox-X and in the software setup of the game.
+Therefore, it is important that you select the right SB Pro model in DOSBox-X and in the software setup of the game.
 
 SoundBlaster Pro emulation can be enabled by setting ``sbtype=sbpro1`` in the ``[sblaster]`` section of your config file.
 
-### SoundBlaster Pro 2
+==== SoundBlaster Pro 2
 The SoundBlaster Pro 2 was released by Creative Technology in 1991, and quickly replaced the earlier SB Pro.
 
 Some key features of the SB Pro 2
@@ -408,11 +408,11 @@ Some key features of the SB Pro 2
 - Single Yamaha OPL3 for stereo FM sound
 
 NOTE: Any software making use of the Stereo FM feature will sound wrong if it was coded for the original SB Pro (or vice versa).
-Therefore it is important that you select the right SB Pro model in DOSBox-X and in the software setup of the game.
+Therefore, it is important that you select the right SB Pro model in DOSBox-X and in the software setup of the game.
 
 SoundBlaster Pro 2 emulation can be enabled by setting ``sbtype=sbpro2`` in the ``[sblaster]`` section of your config file.
 
-### SoundBlaster 16
+==== SoundBlaster 16
 The SoundBlaster 16 was released by Creative Technology in June 1992.
 
 Some key features of the SB 16
@@ -429,8 +429,8 @@ NOTE: DOSBox-X also provides a ``sbtype=sb16vibra`` variation, which emulates th
 There is no advantage for games to use the sb16vibra over the sb16.
 The only advantage it offers is support for PnP (Plug-and-Play), which is to allow later Windows version like Windows 95 to detect it easier.
 
-### [sblaster] config options
-#### sbtype
+==== [sblaster] config options
+===== sbtype
 * Default value: sb16
 * Valid values: sb1, sb2, sbpro1, sbpro2, sb16, sb16vibra, gb, ess688, reveal_sc400, none
 
@@ -446,7 +446,7 @@ This represents the following variations:
 * ess688 = ESS688 AudioDrive
 * reveal_sc400 = Reveal SC400
 
-#### sbbase
+===== sbbase
 * Default value: 220 (or d2 for PC-98)
 * Valid values: 220, 240, 260, 280, 2a0, 2c0, 2e0, d2, d4, d6, d8, da, dc, de
 
@@ -457,7 +457,7 @@ By default
 - 220h to 2E0h are for use with IBM PC Sound Blaster emulation.
 - D2h to DEh are for use with NEC PC-98 Sound Blaster 16 emulation.
 
-#### irq
+===== irq
 * Default value: 7
 * Valid values: 7, 5, 3, 9, 10, 11, 12, 0, -1
 
@@ -472,17 +472,17 @@ Set to 0 for the default setting of the sound card.
 Or set to -1 to start DOSBox-X with the IRQ unassigned.
 
 
-#### mindma
+===== mindma
 * Default value: -1
 * Valid values:
 
 Minimum DMA transfer left to increase attention across DSP blocks, in milliseconds.
 Set to -1 for default.
 
-There are some DOS games/demos that use single-cycle DSP playback in their music tracker and they micromanage the DMA transfer per block poorly in a way that causes popping and artefacts.
+There are some DOS games/demos that use single-cycle DSP playback in their music tracker, and they micromanage the DMA transfer per block poorly in a way that causes popping and artefacts.
 Setting this option to 0 for such DOS applications may reduce audible popping and artefacts.
 
-#### irq hack
+===== irq hack
 * Default value: none
 * Valid values: none, cs_equ_ds
 
@@ -492,7 +492,7 @@ Specify a hack related to the Sound Blaster IRQ to avoid crashes in a handful of
 
 Read DOSBox-X Wiki or source code for details.
 
-#### dma
+===== dma
 * Default value: 1
 * Valid values: 1, 5, 0, 3, 6, 7, -1
 
@@ -500,7 +500,7 @@ The DMA number of the Sound Blaster.
 
 Set to -1 to start DOSBox-X with the DMA unassigned
 
-#### hdma
+===== hdma
 * Default value: 5
 * Valid values: 1, 5, 0, 3, 6, 7, -1
 
@@ -508,7 +508,7 @@ The High DMA number of the Sound Blaster.
 
 Set to -1 to start DOSBox-X with the High DMA unassigned
 
-#### dsp command aliases
+===== dsp command aliases
 * Default value: true
 * Valid values: true, false
 
@@ -516,7 +516,7 @@ If set (on by default), emulation will support known undocumented aliases of com
 Some broken DOS games and demos rely on these aliases.
 For more information: https://www.vogons.org/viewtopic.php?f=62&t=61098&start=280
 
-#### pic unmask irq
+===== pic unmask irq
 * Default value: false
 * Valid values: true, false
 
@@ -528,7 +528,7 @@ If audio cuts out no matter what IRQ you try, then try setting this option.
 This option is needed for:
 - Public NMI "jump" demo (1992)
 
-#### enable speaker
+===== enable speaker
 * Default value: false
 * Valid values: true, false
 
@@ -540,25 +540,25 @@ If a DOS game or demo attempts to play without enabling the speaker, set this op
 
 This setting has no meaning if emulating a Sound Blaster 16 card, as it is always enabled.
 
-#### enable asp
+===== enable asp
 * Default value: false
 * Valid values: true, false
 
 If set, emulate the presence of the Sound Blaster 16 Advanced Sound Processor/Creative Sound Processor chip.
 
-NOTE: This only emulates it's presence and the basic DSP commands to communicate with it.
+NOTE: This only emulates its presence and the basic DSP commands to communicate with it.
 Actual ASP/CSP functions are not yet implemented.
 
-#### disable filtering
+===== disable filtering
 * Default value: false
 * Valid values: true, false
 
-By default DOSBox-X filters Sound Blaster output to emulate lowpass filters and analogue output limitations.
+By default, DOSBox-X filters Sound Blaster output to emulate low-pass filters and analogue output limitations.
 
 Set this option to true to disable filtering.
-Note that doing so disables emulation of the Sound Blaster Pro output filter and ESS AudioDrive lowpass filter
+Note that doing so disables emulation of the Sound Blaster Pro output filter and ESS AudioDrive low-pass filter
 
-#### dsp write buffer status must return 0x7f or 0xff
+===== dsp write buffer status must return 0x7f or 0xff
 * Default value: false
 * Valid values: true, false
 
@@ -570,7 +570,7 @@ Set this option for some early DOS demos that make that assumption about port 22
 This option is needed for:
 - Overload by Hysteria (1992) - Audio will crackle/saturate (8-bit overflow) except when ``sbtype=sb16``
 
-#### pre-set sbpro stereo
+===== pre-set sbpro stereo
 * Default value: false
 * Valid values: true, false
 
@@ -581,7 +581,7 @@ A few demos support Sound Blaster Pro but forget to set this bit.
 This option is needed for:
 - Inconexia by Iguana (1993)
 
-#### sbmixer
+===== sbmixer
 * Default value: true
 * Valid values: true, false
 
@@ -592,7 +592,7 @@ This allows software, such as games, to change the volume levels, which may be u
 
 When this option is set to false, volume level changes will be ignored.
 
-#### oplmode
+===== oplmode
 * Default value: auto
 * Valid values: auto, cms, opl2, dualopl2, opl3, opl3gold, none, hardware, hardwaregb
 
@@ -608,7 +608,7 @@ Type of Yamaha OPL emulation.
 - hardware = Use a real hardware OPL chip
 - hardwaregb = Use a real hardware Philips SAA1099 (not OPL compatible)
 
-#### adlib force timer overflow on detect
+===== adlib force timer overflow on detect
 * Default value: false
 * Valid values: true, false
 
@@ -617,7 +617,7 @@ If set, AdLib/OPL emulation will signal 'overflow' on timers after 50 I/O reads.
 Certain games (e.g., Wolfenstein 3D) poll the AdLib status port a fixed number of times assuming that the poll loop takes long enough for the AdLib timer to run out.
 If the game cannot reliably detect AdLib at higher cycles counts, but can reliably detect at lower cycles counts, set this option.
 
-#### oplemu
+===== oplemu
 * Default value: default
 * Valid values: default, compat, fast, nuked, mame, opl2board, opl3duoboard, retrowave_opl3
 
@@ -627,40 +627,40 @@ Provider for the OPL emulation.
 
 See oplrate as well.
 
-#### oplrate
+===== oplrate
 * Default value: 44100
 * Valid values: 44100, 49716, 48000, 32000, 22050, 16000, 11025, 8000
 
 Sample rate in Hz of OPL music emulation.
 Use 49716 for highest quality (set the mixer rate accordingly).
 
-#### oplport
+===== oplport
 * Default value: <blank>
 * Valid values:
 
 Serial port of the OPL2 Audio Board when ``oplemu=opl2board``, opl2mode will become 'opl2' automatically.
 
-#### retrowave_bus
+===== retrowave_bus
 * Default value: serial
 * Valid values: serial, spi
 
 Bus to which the Retrowave series board is connected.
 SPI is only supported on Linux.
 
-#### retrowave_spi_cs
+===== retrowave_spi_cs
 * Default value: 0,6
 * Valid values:
 
 SPI chip select pin of the Retrowave series board.
 Only supported on Linux.
 
-#### retrowave_port
+===== retrowave_port
 * Default value: <blank>
 * Valid values:
 
 Serial port of the Retrowave series board
 
-#### hardwarebase
+===== hardwarebase
 * Default value: 220
 * Valid values: 210, 220, 230, 240, 250, 260, 280
 
@@ -668,7 +668,7 @@ Base IO address of the real hardware Sound Blaster.
 
 For use with ``oplmode=hardware`` or ``oplmode=hardwaregb``
 
-#### force dsp auto-init
+===== force dsp auto-init
 * Default value: false
 * Valid values: true, false
 
@@ -680,7 +680,7 @@ Do not enable unless you need this workaround.
 Needed for:
 - Extreme "lunatic" demo (1993)
 
-#### force goldplay
+===== force goldplay
 * Default value: false
 * Valid values: true, false
 
@@ -688,13 +688,13 @@ Always render Sound Blaster output sample-at-a-time.
 Testing option.
 You probably don't want to enable this.
 
-#### goldplay
+===== goldplay
 * Default value: true
 * Valid values: true, false
 
 Enable goldplay emulation. See link:https://github.com/joncampbell123/dosbox-x/wiki/Libraries:Goldplay[Libraries:Goldplay] for details.
 
-#### goldplay stereo
+===== goldplay stereo
 * Default value: true
 * Valid values: true, false
 
@@ -705,7 +705,7 @@ Many DOS demos using this technique don't seem to know they need to double the f
 If stereo playback seems to have artefacts consider enabling this option.
 For accurate emulation of Sound Blaster hardware, disable this option.
 
-#### dsp require interrupt acknowledge
+===== dsp require interrupt acknowledge
 * Default value: auto
 * Valid values: auto, true, false
 
@@ -714,9 +714,9 @@ For accurate emulation of Sound Blaster hardware, disable this option.
 - If set to 'auto' then behaviour is determined by the ``sbtype=`` setting.
 
 This is a setting for hardware accuracy in emulation.
-If audio briefly plays then stops then your DOS game and it's not using IRQ (but using DMA), try setting this option to 'false'
+If audio briefly plays then stops, and it's not using IRQ (but using DMA), try setting this option to 'false'
 
-#### dsp write busy delay
+===== dsp write busy delay
 * Default value: -1
 * Valid values:
 
@@ -727,19 +727,19 @@ Set to -1 to use card-specific defaults.
 WARNING: Setting the value too high (above 20000ns) may have detrimental effects to DOS games that use IRQ 0 and DSP command 0x10 to play audio.
 Setting the value way too high (above 1000000ns) can cause significant lag in DOS games.
 
-#### blaster environment variable
+===== blaster environment variable
 * Default value: true
 * Valid values: true, false
 
-Whether or not to set the BLASTER environment variable automatically at startup.
+Determines if the BLASTER environment variable is automatically set at startup.
 
-#### sample rate limits
+===== sample rate limits
 * Default value: true
 * Valid values: true, false
 
 If true, limit DSP sample rate to what real hardware is limited to.
 
-#### instant direct dac
+===== instant direct dac
 * Default value: false
 * Valid values: true, false
 
@@ -751,7 +751,7 @@ This option is intended as a quick fix for games or demos that play direct DAC m
 
 This fix allows broken Sound Blaster code to work and should not be enabled unless necessary.
 
-#### stereo control with sbpro only
+===== stereo control with sbpro only
 * Default value: true
 * Valid values: true, false
 
@@ -762,7 +762,7 @@ If false, sb16 emulation will honour the sbpro stereo bit.
 Note that Creative SB16 cards do not honour the stereo bit, and this option allows DOSBox-X emulate that fact.
 Accuracy setting.
 
-#### dsp busy cycle rate
+===== dsp busy cycle rate
 * Default value: -1
 * Valid values:
 
@@ -773,14 +773,14 @@ If this option is nonzero, it will be interpreted as the busy cycle rate in Hz.
 If zero, busy cycle will not be emulated.
 If -1, Sound blaster emulation will automatically choose a setting based on the ``sbtype=`` setting
 
-#### dsp busy cycle always
+===== dsp busy cycle always
 * Default value: -1
 * Valid values:
 
 If set, the DSP busy cycle always happens.
 If clear, DSP busy cycle only happens when audio playback is running. Default setting is to pick according to the sound card.
 
-#### dsp busy cycle duty
+===== dsp busy cycle duty
 * Default value: -1
 * Valid values: -1, 0-100
 
@@ -789,7 +789,7 @@ If emulating SB16 busy cycle, this value (0 to 100) controls the duty cycle of t
 If this option is set to -1, Sound Blaster emulation will choose a value automatically according to ``sbtype=``.
 If 0, busy cycle emulation is disabled.
 
-#### io port aliasing
+===== io port aliasing
 * Default value: true
 * Valid values: true, false
 
@@ -799,7 +799,7 @@ This option only applies when ``sbtype=`` is set to sb1 or sb2 (not SBPro or SB1
 
 This is a hack for the Electromotive Force 'Internal Damage' demo which apparently relies on this behaviour for Sound Blaster output and should be enabled for accuracy in emulation.
 
-## AdLib Gold 1000
+=== AdLib Gold 1000
 The AdLib Gold 1000 was released in 1992. It is backward compatible with the earlier *AdLib Music Synthesizer Card*, but not with the SoundBlaster cards.
 
 This card is only partly emulated, for instance no DAC emulation, by using the following config settings:
@@ -816,7 +816,7 @@ NOTE: AdLib Gold 1000 emulation is experimental, it is not meant for regular use
 - link:http://www.vgmpf.com/Wiki/index.php/AdLib_Gold_1000[VGMPF: AdLib Gold 1000]
 - link:https://168-168-never.blogspot.com/2021/03/the-adlib-gold-experience.html[Blogspot: The AdLib Gold Experience]
 
-## ESS688 AudioDrive
+=== ESS688 AudioDrive
 Introduced in 1996 by Electronic Speech Systems (ESS).
 This chip was used by a range of sound cards from different manufacturers, and integrated into systemboards and notebooks.
 
@@ -831,7 +831,7 @@ NOTE: ESS688 emulation is experimental, it is not meant for regular use.
 
 - link:http://www.dosdays.co.uk/topics/Manufacturers/ess.php[DOS Days: Electronic Speech Systems (ESS)]
 
-## Reveal SC400
+=== Reveal SC400
 According to DOS Days, the Reveal SC400 is an OEM version of the *Aztech Nova 16*, which was released in 1994.
 It was also offered by Packard Bell as the *Forte 16SBP*.
 
@@ -846,7 +846,7 @@ NOTE: Reveal SC400 emulation is experimental, it is not meant for regular use.
 
 - link:http://dosdays.co.uk/topics/Manufacturers/aztech.php[DOS Days: Aztech]
 
-## Gravis UltraSound
+=== Gravis UltraSound
 The Gravis UltraSound (aka GUS) was released in 1992 by Advanced Gravis Computer Technology.
 
 It was one of the first to introduce 16bit 44.1kHz stereo, a hardware mixer, and featured MIDI playback capability.
@@ -855,10 +855,10 @@ It was a popular sound card in certain circles, such as the demo scene, but neve
 The downside is that it offered no hardware compatibility with other sound cards.
 It did ship with a TSR (SBOS) that needed to be loaded into memory to provide AdLib or SoundBlaster emulation, but this caused many issues.
 
-In practice you only want to use this option, if the GUS is specifically supported by the software.
+In practice, you only want to use this option, if the GUS is specifically supported by the software.
 
-Configuring the GUS is more complex then other soundcards, as quite a few software titles that supports the GUS will require that you have a configure "ULTRASND" directory setup with the necessary files in it.
-By default this directory is expected to be located at ``C:\ULTRASND`` within DOSBox-X.
+Configuring the GUS is more complex than other soundcards, as quite a few software titles that supports the GUS require that you have a configured "ULTRASND" directory setup with the necessary files in it.
+By default, this directory is expected to be located at ``C:\ULTRASND`` within DOSBox-X.
 
 One way is to install the Gravis UltraSound driver disks inside DOSBox-X, another is to find a configured ULTRASND folder online that you can simply unpack to the root of your virtual C: drive.
 
@@ -869,14 +869,14 @@ One way is to install the Gravis UltraSound driver disks inside DOSBox-X, anothe
 - link:https://www.mobygames.com/attribute/sheet/attributeId,20/[MobyGames: Games supporting the Gravis UltraSound / ACE]
 - link:https://www.mobygames.com/attribute/sheet/attributeId,1045/[MobyGames: Games supporting the Gravis UltraSound MAX]
 
-### [gus] config options
-#### gus
+==== [gus] config options
+===== gus
 * Default value: false
 * Valid values: true, false
 
 Enable the Gravis Ultrasound emulation.
 
-#### autoamp
+===== autoamp
 * Default value: false
 * Valid values: true, false
 
@@ -886,14 +886,14 @@ If false, then loud music will clip to full volume just as it would on real hard
 
 Enable this option for loud music if you want a more pleasing rendition without saturation and distortion.
 
-#### umask dma
+===== umask dma
 * Default value: false
 * Valid values: true, false
 
 Start the DOS virtual machine with the DMA channel already unmasked at the controller.
 Use this for DOS applications that expect to operate the GUS but forget to unmask the DMA channel.
 
-#### ignore channel count while active
+===== ignore channel count while active
 * Default value: false
 * Valid values: true, false
 
@@ -901,13 +901,13 @@ Ignore writes to the active channel count register when the DAC is enabled (bit 
 This is a HACK for demoscene prod 'Ice Fever' without which the music sounds wrong.
 According to current testing real hardware does not behave this way.
 
-#### pic unmask irq
+===== pic unmask irq
 * Default value: false
 * Valid values: true, false
 
 Start the DOS virtual machine with the GUS IRQ already unmasked at the PIC.
 
-#### startup initialized
+===== startup initialized
 * Default value: false
 * Valid values: true, false
 
@@ -916,15 +916,15 @@ If false, leave the card in an uninitialized state (as if cold boot).
 
 Some DOS games or demoscene productions will hang or fail to use the UltraSound hardware because they assume the card is initialized and their hardware detect does not fully initialize the card.
 
-#### dma enable on dma control polling
+===== dma enable on dma control polling
 * Default value: false
 * Valid values: true, false
 
-If true, automatically enable GUS DMA transfer bit in specific cases when the DMA control register is being polled.
+If true, automatically enable the GUS DMA transfer bit in specific cases when the DMA control register is being polled.
 THIS IS A HACK.
 Some games and demoscene productions need this hack to avoid hanging while uploading sample data to the Gravis UltraSound due to bugs in their implementation.
 
-#### clear dma tc irq if excess polling
+===== clear dma tc irq if excess polling
 * Default value: false
 * Valid values: true, false
 
@@ -937,27 +937,27 @@ Needed for:
 * Warcraft II by Blizzard
 ** If using GUS for music and sound, set this option to prevent the game from hanging when you click on the buttons in the main menu.
 
-#### force master irq enable
+===== force master irq enable
 * Default value: false
 * Valid values: true, false
 
 Set this option if a DOS game or demo initializes the GUS but is unable to play any music.
 Usually the cause is buggy GUS support that resets the GUS but fails to set the Master IRQ enable bit.
 
-#### gus panning table
+===== gus panning table
 * Default value: default
 * Valid values: old, accurate, default
 
 Controls which table or equation is used for the Gravis UltraSound panning emulation.
 Accurate emulation attempts to better reflect how the actual hardware handles panning, while the old emulation uses a simpler idealistic mapping.
 
-#### gusrate
+===== gusrate
 * Default value: 44100
 * Valid values: 44100, 48000, 32000, 22050, 16000, 11025, 8000, 49716
 
 Sample rate, in Hz, of the UltraSound emulation.
 
-#### gus fixed render rate
+===== gus fixed render rate
 * Default value: false
 * Valid values: true, false
 
@@ -968,39 +968,39 @@ Else, Gravis UltraSound emulation will change the sample rate of it's output acc
 
 NOTE: DOSBox-X defaults to 'false', while mainline DOSBox SVN is currently hardcoded to render as if this setting is 'true'.
 
-#### gusmemsize
+===== gusmemsize
 * Default value: -1
 * Valid values: -1, 256, 512, 1024
 
 Amount of RAM on the Gravis UltraSound in KiB.
 Set to -1 for default, which will be 1024KiB.
 
-#### gus master volume
+===== gus master volume
 * Default value: 0.00
 * Valid values:
 
 Master Gravis UltraSound GF1 volume, in decibels.
 Reducing the master volume can help with games or demoscene productions where the music is too loud and clipping.
 
-#### gusbase
+===== gusbase
 * Default value: 240
 * Valid values: 240, 220, 260, 280, 2a0, 2c0, 2e0, 300, 210, 230, 250
 
 The base IO address of the Gravis UltraSound.
 
-#### gusirq
+===== gusirq
 * Default value: 5
 * Valid values: 5, 3, 7, 9, 10, 11, 12
 
 The IRQ number of the Gravis UltraSound.
 
-#### gusdma
+===== gusdma
 * Default value: 3
 * Valid values: 3, 0, 1, 5, 6, 7
 
 The DMA channel of the Gravis UltraSound.
 
-#### irq hack
+===== irq hack
 * Default value: none
 * Valid values: none, cs_equ_ds
 
@@ -1011,7 +1011,7 @@ irq hack: Specify a hack related to the Gravis UltraSound IRQ to avoid crashes i
 
 Read DOSBox-X Wiki or source code for details.
 
-#### gustype
+===== gustype
 * Default value: classic
 * Valid values: classic, classic37, max, interwave
 
@@ -1024,7 +1024,7 @@ Type of Gravis UltraSound to emulate.
 
 NOTE: MAX and Interwave emulation is experimental, they are not meant for regular use.
 
-#### ultradir
+===== ultradir
 * Default value: C:\ULTRASND
 * Valid values:
 
@@ -1033,7 +1033,7 @@ Path to UltraSound directory, from within DOSBox-X.
 In this directory there should be a MIDI directory that contains the patch files for GUS playback.
 Patch sets as used with Timidity should work fine.
 
-## Innovation SSI-2001
+=== Innovation SSI-2001
 Released in April 1989 by Innovation Computer Corporation, utilizing the MOS 6581 (aka SID) chip, as found in the Commodore 64.
 
 Very few games support this sound option.
@@ -1041,26 +1041,26 @@ Very few games support this sound option.
 - link:http://www.vgmpf.com/Wiki/index.php/SSI_2001[VGMPF: SSI-2001]
 - link:https://sudonull.com/post/29180-Innovation-SSI-2001-the-story-of-one-of-the-rarest-sound-cards-for-the-IBM-PC-and-its-replica-Audiom[Innovation SSI-2001: the story of one of the rarest sound cards for the IBM PC (and its replica)]
 
-### [innova] config options
-#### innova
+==== [innova] config options
+===== innova
 * Default value: false
 * Valid values: true, false
 
 Enable the Innovation SSI-2001 emulation.
 
-#### samplerate
+===== samplerate
 * Default value: 22050
 * Valid values: 44100, 48000, 32000, 22050, 16000, 11025, 8000, 49716
 
 Sample rate in Hz of the Innovation SSI-2001 emulation
 
-#### sidbase
+===== sidbase
 * Default value: 280
 * Valid values: 240, 220, 260, 280, 2a0, 2c0, 2e0, 300
 
 Base IO address of the Innovation SSI-2001 emulation
 
-#### quality
+===== quality
 * Default value: 0
 * Valid values: 0, 1, 2, 3
 

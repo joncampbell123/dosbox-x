@@ -6,28 +6,28 @@ ifndef::env-github[:suffixappend:]
 
 Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
 
-# Selecting a video adapter in DOSBox-X
+== Selecting a video adapter in DOSBox-X
 
 toc::[]
 
-# Overview
+== Overview
 DOSBox-X supports the emulation of a wide range of video adapters that were common in the DOS days.
 This document attempts to help the novice user, especially those that never experienced DOS PC's during the 80's and 90's with selecting an appropriate video adapter for games and programs.
 
 You can set the video adapter to emulate in your DOSBox-X config file.
 In the ``[dosbox]`` section, by setting ``machine=`` to the appropriate value.
 
-By default DOSBox-X, just like regular DOSBox on which is it based, emulates a *S3 Trio64* which is a SVGA adapter that is backwards compatible with VGA, EGA and CGA.
+By default, DOSBox-X just like regular DOSBox on which is it based, emulates a *S3 Trio64* which is an SVGA adapter that is backwards compatible with VGA, EGA and CGA.
 In addition, it supports VESA VBE 2.0 modes. As such it will work with most DOS games and applications.
 
-As a general rule of thumb, if a game asks you about what video option you want to use, and your looking for the best experience, go in the following order from lowest quality to highest quality:
+As a general rule of thumb, if a game asks you about what video option you want to use, and you're looking for the best experience, the following shows the generally recommended order from the lowest quality to the highest quality:
 *MDA > Hercules > CGA > PCjr > Tandy > EGA > VGA > SVGA*
 
 NOTE: Hercules may in some cases be preferable to CGA as it has a higher resolution, but lacks colour.
 
 NOTE: In some cases PCjr or Tandy may be preferable to EGA, as they often look identical, and PCjr/Tandy may give you better sound.
 
-# Backwards compatibility
+== Backwards compatibility
 
 Many, but not all, PC video adapters were backward compatible with previous generations.
 
@@ -163,8 +163,8 @@ These type of video cards are not emulated by DOSBox-X.
 NOTE: SVGA mode is not an actual standard, as each video card vendor had its own implementation.
 An attempt to standardise was made by VESA with the VESA BIOS Extensions (VBE).
 
-# Supported PC video modes
-## MDA
+== Supported PC video modes
+=== MDA
 MDA stands for *Monochrome Display Adapter*, and it was introduced by IBM alongside the original IBM PC in 1981.
 
 As the name implies it is monochrome. It was normally used in combination with a green or amber display.
@@ -193,31 +193,31 @@ image::images/Game:Microsoft_Adventure_MDA_Amber.png[float="left"]
 image::images/Game:Microsoft_Adventure_MDA_White.png[float="left"]
 --
 
-## CGA
+=== CGA
 CGA stands for *Color Graphics Adapter*, and like MDA was introduced by IBM alongside the original IBM PC in 1981.
 
 As the name implies, it supports colour, and unlike MDA, it supports drawing to the screen which made it popular for games.
 Due to the higher price of the adapter and monitor, and the lower resolution, it was less popular for business use than MDA and later Hercules.
 Also note that CGA is not backward compatible with MDA.
-The vertical refresh of CGA is 60Hz, which matches up well with the majority of modern 60Hz LCD displays.
+The vertical refresh of CGA is 60Hz, which matches up well with the majority of modern 60Hz LCDs.
 
-#### Graphics modes:
+==== Graphics modes:
 
 - 160x100 in 16 colours, chosen from a 16-colour palette, utilizing a specific configuration of the 80x25 text mode.
 - 320×200 in 4 colours, chosen from 3 fixed palettes, with high- and low-intensity variants, with colour 1 chosen from a 16-colour palette.
 - 640×200 in 2 colours, one black, one chosen from a 16-colour palette.
 
-#### Text modes:
+==== Text modes:
 
 - 40×25 with 8×8 pixel font (effective resolution of 320×200)
 - 80×25 with 8×8 pixel font (effective resolution of 640×200)
 
-#### Composite graphics mode:
+==== Composite graphics mode:
 One of the features, at least of the IBM CGA adapters, is that they support two types of monitors.
 Either a digital RGBI monitor, or an analogue composite monitor (or NTSC TV) connected via RCA.
 
 The composite connection suffers from a lower quality picture with colour bleeding.
-But it also allows for something called artefact colours, which was a way to have to have more colours.
+But it also allows for something called artefact colours, which was a way to have more colours.
 So where CGA with a RGBI monitor would be limited to just 4 colours in 320x200, with composite you can have 16.
 This composite mode was specifically supported by some games, such as those from Sierra.
 
@@ -227,15 +227,15 @@ The workaround is to use a later model video card like EGA or VGA which is backw
 as these later cards do not support the composite mode, you will get RGBI output instead.
 But you may have to find a way to force the game to use CGA, if it also supports EGA or VGA.
 
-#### Keyboard shortcuts:
-By default the following keyboard shortcuts, specific to CGA and PCjr are available:
+==== Keyboard shortcuts:
+By default, the following keyboard shortcuts, specific to CGA and PCjr are available:
 
 - CTRL-F7 switch between early and late model IBM CGA adapter emulation
 - CTRL-F8 switch between Auto, RGBI and Composite monitor output
 - CTRL-Shift-F7 Decrease Hue
 - CTRL-Shift-F8 Increase Hue
 
-If your using ``machine=cga_mono``, you instead have these shortcuts:
+If you're using ``machine=cga_mono``, you instead have these shortcuts:
 
 - CTRL-F7 Cycles between CGA monochrome palettes (green, amber, white, grey)
 - CTRL-F8 Cycles between high and low brightness
@@ -243,7 +243,7 @@ If your using ``machine=cga_mono``, you instead have these shortcuts:
 NOTE: There is no real indicator in DOSBox-X that you changed settings with keyboard shortcuts, or to check the current status.
 The only indications are a possible change of picture output, and if you have the logging enabled, to check the log output.
 
-#### CGA machine options
+==== CGA machine options
 
 This standard CGA mode can be set using ``machine=cga`` in your DOSBox-X config file.
 Video memory is fixed to 16KiB and cannot be changed.
@@ -255,7 +255,7 @@ In addition, DOSBox-X also has a few CGA variants.
 * ``cga_composite`` emulates an early model IBM CGA adapter connected to a composite monitor.
 * ``cga_composite2`` emulates a late model IBM CGA adapter connected to a composite monitor.
 
-#### External links
+==== External links
 * link:https://en.wikipedia.org/wiki/Color_Graphics_Adapter[Wikipedia article on CGA]
 * link:https://www.reenigne.org/blog/comparison-of-cga-card-versions/[Blog post on CGA adapter revisions]
 * link:http://nerdlypleasures.blogspot.com/2013/11/ibm-pc-color-composite-graphics.html[Blog post on CGA composite video, adapter revisions and artefact colours]
@@ -265,12 +265,12 @@ NOTE: The difference between ``machine=cga``, ``machine=cga_composite`` and ``ma
 While the later two will start in composite mode, so you will always get artefact colours even if the game was not designed for it.
 You can however use the CTRL-F7 and CTRL-F8 key combinations with any of them to switch to different output options.
 
-#### Image Gallery
+==== Image Gallery
 [.float-group]
 --
 .Microsoft Adventure - CGA 80x25 text
 image::images/Game:Microsoft_Adventure_CGA.png[,640,float="left"]
-.King's Quest 1 with CGA 4-colour on a EGA or VGA adapter
+.King's Quest 1 with CGA 4-colour on an EGA or VGA adapter
 image::images/Game:KQ1_CGA.png[,640,float="left"]
 .King's Quest 1 with CGA Artefact colour
 image::images/Game:KQ1_CGA_Artefact.png[float="left"]
@@ -288,11 +288,11 @@ image::images/Game:Monkey_Island_CGA.png[,640,float="left"]
 image::images/Game:Monkey_Island_CGA_composite.png[float="left"]
 --
 
-NOTE: To get the above 4-colour screenshot of KQ1 with a EGA or VGA adapter, the game was started with ``sierra -c`` to force it into CGA mode.
+NOTE: To get the above 4-colour screenshot of KQ1 with an EGA or VGA adapter, the game was started with ``sierra -c`` to force it into CGA mode.
 
 NOTE: To get the above CGA RGB screenshot of KQ1 with ``machine=cga_rgb``, it was necessary to start the game with ``sierra -r``, otherwise you only get black-and-white from the game.
 
-## Hercules
+=== Hercules
 The Hercules Graphics Card was released in 1982 by Hercules Computer Technology.
 It is a monochrome card that is backward compatible with MDA, with the addition of a single 720x350 graphics mode.
 This made it a very popular card for businesses, and due to its graphics support it is supported by many games.
@@ -310,7 +310,7 @@ You can also cycle between low and high brightness of the monochrome display by 
 
 NOTE: Some software like CheckIt and QBasic may detect a Hercules adapter as MDA, unless a TSR like `MSHERC.COM` is loaded into memory.
 
-NOTE: Some 3rd party Hercules compatible cards, like early ATI cards, also had support for displaying CGA mode on a MDA/Hercules compatible monitor.
+NOTE: Some 3rd party Hercules compatible cards, like early ATI cards, also had support for displaying CGA mode on an MDA/Hercules compatible monitor.
 And there are also TSRs (Terminate and Stay Resident) programs that can emulate CGA on Hercules with varying degrees of success.
 
 [.float-group]
@@ -325,7 +325,7 @@ image::images/Game:KQ1_Hercules_White.png[float="left"]
 image::images/Game:Monkey_Island_Hercules_White.png[float="left"]
 --
 
-## IBM PCjr
+=== IBM PCjr
 The PCjr was introduced by IBM in March 1984, and discontinued due to poor sales just over a year later.
 It's integrated video card is backwards compatible with CGA, but adds a few new modes:
 
@@ -333,7 +333,7 @@ It's integrated video card is backwards compatible with CGA, but adds a few new 
 - 320x200 at 16 colours
 - 640x200 at 4 colours
 
-The vertical refresh of the PCjr like CGA is 60Hz, which matches up well with the majority of modern 60Hz LCD displays.
+The vertical refresh of the PCjr like CGA is 60Hz, which matches up well with the majority of modern 60Hz LCDs.
 
 This mode can be set using ``machine=pcjr`` in your DOSBox-X config file.
 Video memory is fixed to 128KiB and cannot be changed.
@@ -351,8 +351,8 @@ You can however use the CTRL-F7 and CTRL-F8 key combinations with any of them to
 
 * link:https://en.wikipedia.org/wiki/IBM_PCjr#Video[Wikipedia article on the IBM PCjr]
 
-#### Keyboard shortcuts:
-By default the following keyboard shortcuts, specific to CGA and PCjr are available:
+==== Keyboard shortcuts:
+By default, the following keyboard shortcuts, specific to CGA and PCjr are available:
 
 - CTRL-F7 switch between early and late model IBM CGA adapter emulation
 - CTRL-F8 switch between Auto, RGBI and Composite monitor output
@@ -365,16 +365,16 @@ By default the following keyboard shortcuts, specific to CGA and PCjr are availa
 image::images/Game:KQ1_PCjr.png[,640,float="left"]
 --
 
-## Tandy
+=== Tandy
 Tandy graphics, sometimes abbreviated to TGA, was introduced with the Tandy 1000 in 1984, which began as a clone of the IBM PCjr.
 
 It has all the CGA and PCjr video modes, but some differences exist, such as how the video memory is mapped, which can cause incompatibilities.
-Later Tandy 1000 models added an additional video mode, called "Tandy Video II" or ETGA for 640x200 at 16 colours.
+Later Tandy 1000 models added a video mode, called "Tandy Video II" or ETGA for 640x200 at 16 colours.
 
 Tandy computers with Tandy Graphics were available on the market for much longer than the IBM PCjr, resulting in many games that supported it.
-Tandy computers were also available with faster processors, up to a 286 running at 10MHz while the original IBM PCjr was only ever available with a 4.77MHz 8088.
+Tandy computers were also made available with faster processors, up to a 286 running at 10MHz, while the original IBM PCjr was only ever available with a 4.77MHz 8088.
 
-The vertical refresh of the Tandy 1000 like CGA is 60Hz, which matches up well with the majority of modern 60Hz LCD displays.
+The vertical refresh of the Tandy 1000 like CGA is 60Hz, which matches up well with the majority of modern 60Hz LCDs.
 
 This mode can be set using ``machine=tandy`` in your DOSBox-X config file.
 Video memory is fixed to 128KiB and cannot be changed.
@@ -387,7 +387,7 @@ NOTE: Many games that support both Tandy and EGA, look near identical in both. I
 
 * link:https://en.wikipedia.org/wiki/Tandy_Graphics_Adapter[Wikipedia article on Tandy Graphics]
 * link:http://www.dosdays.co.uk/computers/Tandy%201000/tandy1000.php[DOS Days on the Tandy 1000 Series]
-* link:https://www.youtube.com/watch?v=mYHtojsaRkY[Youtube : The Tandy 1000 - The best MS-DOS computer in 1984]
+* link:https://www.youtube.com/watch?v=mYHtojsaRkY[YouTube : The Tandy 1000 - The best MS-DOS computer in 1984]
 
 [.float-group]
 --
@@ -395,7 +395,7 @@ NOTE: Many games that support both Tandy and EGA, look near identical in both. I
 image::images/Game:Monkey_Island_Tandy.png[,640,float="left"]
 --
 
-## EGA
+=== EGA
 EGA stands for *Enhanced Graphics Adapter* and was introduced by IBM in 1984, as the official follow-on to CGA.
 It still only supports up to 16 colours on-screen, but out of a gamut of 64 colours and at higher resolution.
 
@@ -405,7 +405,7 @@ Some EGA clones even provided 256KiB, and additional high-res video modes.
 One feature it dropped however, was the composite output support.
 As such, it does not support the CGA artefact colours.
 
-The vertical refresh of EGA like CGA is 60Hz, which matches up well with the majority of modern 60Hz LCD displays.
+The vertical refresh of EGA like CGA is 60Hz, which matches up well with the majority of modern 60Hz LCDs.
 
 The EGA emulation provided by DOSBox-X by default provides 256KiB of video RAM, by setting ``vmemsizekb=`` in the ``[video]``section of the DOSBox-X config file, it is possible to reduce it instead to 64 or 128KB. e.g.,
 ....
@@ -421,7 +421,7 @@ NOTE: Emulating 64KiB of video memory with EGA is not recommended, as the code f
 
 NOTE: Some clone EGA cards added extra video memory and video modes, typically known as SuperEGA cards. The emulation of such cards is not supported by DOSBox-X.
 
-#### Graphics modes:
+==== Graphics modes:
 In addition to being backward compatible with CGA, EGA supports:
 
 - 640×350 w/16 colours (from a 6 bit palette of 64 colours), pixel aspect ratio of 1:1.37.
@@ -429,20 +429,20 @@ In addition to being backward compatible with CGA, EGA supports:
 - 640×200 w/16 colours, pixel aspect ratio of 1:2.4.
 - 320×200 w/16 colours, pixel aspect ratio of 1:1.2.
 
-#### Text modes:
+==== Text modes:
 
 - 40×25 with 8×8 pixel font (effective resolution of 320×200)
 - 80×25 with 8×8 pixel font (effective resolution of 640×200)
 - 80×25 with 8×14 pixel font (effective resolution of 640×350)
 - 80×43 with 8×8 pixel font (effective resolution of 640×344)
 
-#### EGA machine options
+==== EGA machine options
 This mode can be set using ``machine=ega`` in your DOSBox-X config file
 
-#### External links
+==== External links
 * link:https://en.wikipedia.org/wiki/Enhanced_Graphics_Adapter[Wikipedia article on EGA Graphics]
 
-#### Image Gallery
+==== Image Gallery
 [.float-group]
 --
 .King's Quest 1 on EGA
@@ -455,14 +455,14 @@ image::images/Game:Monkey_Island_VGA_in_EGA.png[float="left"]
 image::images/Game:KQ1_SCI_EGA.png[,640,float="left"]
 --
 
-## Amstrad
-Amstrad in 1986 introduced the PC1512 which has CGA (RGBI only) graphics but also adds an additional 640x200 16 colour mode.
+=== Amstrad
+Amstrad in 1986 introduced the PC1512 which has CGA (RGBI only) graphics but also adds a 640x200 16 colour mode.
 
 Very little software exists that can use this mode.
 One example was the bundled GEM Paint program, and another is a pretty bad and obscure boxing game "link:https://www.mobygames.com/game/dos/frank-brunos-boxing[Frank Bruno's Boxing]".
 Lastly there is a link:http://sierrahelp.com/Patches-Updates/MiscUpdates.html[PC1512.DRV] driver for old Sierra SCI0 and SCI1 games.
 
-The vertical refresh of the Amstrad like CGA is 60Hz, which matches up well with the majority of modern 60Hz LCD displays.
+The vertical refresh of the Amstrad like CGA is 60Hz, which matches up well with the majority of modern 60Hz LCDs.
 
 This mode can be set using ``machine=amstrad`` in your DOSBox-X config file.
 Video memory is fixed to 64KiB and cannot be changed.
@@ -476,36 +476,36 @@ Video memory is fixed to 64KiB and cannot be changed.
 image::images/Game:KQ1_SCI_Amstrad.png[float="left"]
 --
 
-## PC-98
+=== PC-98
 
 The NEC PC-9800, simply known as the PC-98, were a family of computers made by NEC and sold in Japan throughout 1982 to 2000, which used MS-DOS with modifications to support the PC-98 BIOS and Japanese DBCS (Double Byte Character Set) characters. It's supported in DOSBox-X by setting ``machine=pc98`` in your DOSBox-X config file. More information about PC-98 support can be found in the PC-98 guide page:
 
 * link:Guide%3APC‐98-emulation-in-DOSBox‐X{suffixappend}[Guide: PC‐98 emulation in DOSBox‐X]
 
-## JEGA
+=== JEGA
 JEGA is a variation of EGA for the Japanese market, conceived by Microsoft Japan and released in 1987 as part of AX (Architecture eXtended).
 
 Its intended purpose was the display of the Japanese characters which required a higher resolution, as such this added a 640x480 video mode.
 
 It was not very successful, as IBM introduced VGA shortly after which has a similar video mode.
 
-The vertical refresh of JEGA like EGA and CGA is 60Hz, which matches up well with the majority of modern 60Hz LCD displays.
+The vertical refresh of JEGA like EGA and CGA is 60Hz, which matches up well with the majority of modern 60Hz LCDs.
 
 This mode can be set using ``machine=jega`` in your DOSBox-X config file.
 Video memory defaults to 256KiB.
 
 * link:Guide%3AEast-Asian-language-support-in-DOSBox‐X{suffixappend}[Guide: East Asian language support in DOSBox‐X]
 
-## DCGA
+=== DCGA
 DCGA is the video mode used by the Olivetti M24, AT&T 6300 and Toshiba T3100. DOSBox-X emulates the DCGA mode via the VGA mode.
 
-This mode can be enter via ``DCGA`` command when you are in a VGA video mode.
+This mode can be enabled by typing ``DCGA`` at the DOSBox-X prompt when you're in a VGA video mode.
 
-If you enable Toshiba J-3100 emulation (by setting ``dosv=jp`` and ``j3100=on`` in your DOSBox-X config file), then the J-3100 mode will be enabled when DOSBox-X starts. Typing ``VGA`` command to go to the Japanese DOS/V mode, and then typing ``DCGA`` command will return to the J-3100 emulation mode.
+If you enable Toshiba J-3100 emulation (by setting ``dosv=jp`` and ``j3100=on`` in your DOSBox-X config file), then the J-3100 mode will be enabled when DOSBox-X starts. Typing the ``VGA`` command you can go to the Japanese DOS/V mode, and then typing ``DCGA`` command will return you to the J-3100 emulation mode.
 
 * link:Guide%3AEast-Asian-language-support-in-DOSBox‐X{suffixappend}[Guide: East Asian language support in DOSBox‐X]
 
-## MCGA
+=== MCGA
 MCGA stands for *Multi-Color Graphics Array* and was introduced by IBM in 1987 as integrated in the IBM PS/2 Model 30 and a bit later the Model 25.
 No stand-alone MCGA cards were ever produced.
 
@@ -515,18 +515,18 @@ In effect, MCGA can be thought of as either an enhanced CGA card, or a cost-redu
 
 As the high-colour mode is near identical to the one offered by VGA, many games have a combined "VGA/MCGA" video option, and selecting MCGA with a VGA adapter normally also works.
 
-One rare example of a game that offers a MCGA option, but does not support VGA is link:https://www.mobygames.com/game/dos/thexder[Thexder].
+One rare example of a game that offers an MCGA option, but does not support VGA is link:https://www.mobygames.com/game/dos/thexder[Thexder].
 This is not because the game could not have worked on VGA, but rather because it looks for specific machine settings that are only true on the above PS/2 Models.
 As such as part of the MCGA emulation, DOSBox-X also emulates some PS/2 specific machine settings, just enough to make games like Thexder work in MCGA mode.
 
 This mode can be set using ``machine=mcga`` in your DOSBox-X config file. Video memory is fixed to 64KiB and cannot be changed.
 
-NOTE: Many games that offer both a MCGA and VGA option, used the same resolution and assets for both, making them look identical.
+NOTE: Many games that offer both an MCGA and VGA option, used the same resolution and assets for both, making them look identical.
 However, due to other MCGA limitations the VGA option may provide a better experience.
 
 * link:https://en.wikipedia.org/wiki/Multi-Color_Graphics_Array[Wikipedia article on MCGA Graphics]
 
-## VGA
+=== VGA
 VGA stands for *Video Graphics Array* and was introduced by IBM in 1987.
 One of the stand-out features was that it could display up to 256 colours from a palette of 262,144.
 
@@ -538,7 +538,7 @@ VGA is backward compatible with both EGA and CGA (RGBI mode only), and adds the 
 - 320×200 in 256 colours (Mode 13h)
 
 One new feature is the ability to run at 70Hz vertical refresh, where CGA and EGA had only supported 60Hz.
-This is important for modern LCD displays, as many will only run at 60Hz, which causes issues with many games that were designed to run at 70Hz, resulting in dropped frames.
+This is important for modern LCDs, as many will only run at 60Hz, which causes issues with many games that were designed to run at 70Hz, resulting in dropped frames.
 This can cause both video and audio distortion, as in many games the audio is linked to the frame rate.
 
 This mode can be set using ``machine=vgaonly`` in your DOSBox-X config file
@@ -551,18 +551,18 @@ This mode can be set using ``machine=vgaonly`` in your DOSBox-X config file
 image::images/Game:Monkey_Island_VGA.png[float="left"]
 --
 
-## SVGA
+=== SVGA
 Many clones were produced of the VGA adapter, often with enhanced capabilities like more video memory, additional high-res video modes and various types of acceleration which were typically referred to as SuperVGA, or SVGA.
 
 * link:https://en.wikipedia.org/wiki/Super_VGA[Wikipedia article on SVGA Graphics]
 
-### S3 Graphics
+==== S3 Graphics
 * link:https://en.wikipedia.org/wiki/S3_Graphics[Wikipedia article on S3 Graphics]
 * link:http://www.dosdays.co.uk/topics/Manufacturers/s3.php[DOS Days on S3 Graphics]
 
 NOTE: The default ``machine=svga_s3`` option refers to the S3 Trio64.
 
-#### S3 Trio64
+===== S3 Trio64
 NOTE: This is the default video card emulated by DOSBox-X. It currently supports the widest range of video modes of all fully supported cards.
 
 Introduced in 1994. Successor to the Vision864, and has support for VESA VBE.
@@ -584,10 +584,10 @@ There are a few variations of the Trio64 that are available:
 * link:https://en.wikipedia.org/wiki/S3_Triop[S3 Trio at Wikipedia]
 * link:http://www.vgamuseum.info/index.php/component/k2/item/357-s3-trio64[S3 Trio64 at the VGA Museum]
 
-#### Experimental S3 models
+===== Experimental S3 models
 The emulation of the following S3 SVGA models should be considered experimental.
 
-##### S3 86c928
+====== S3 86c928
 WARNING: The emulation of this card is considered experimental. It is not recommended for regular use.
 
 Introduced in July 1992.
@@ -599,7 +599,7 @@ This mode can be set using ``machine=svga_s386c928`` in your DOSBox-X config fil
 
 * link:http://www.vgamuseum.info/index.php/component/k2/item/344-s3-p86c928[S3 86c928 at the VGA Museum]
 
-##### S3 Vision864
+====== S3 Vision864
 WARNING: The emulation of this card is considered experimental. It is not recommended for regular use.
 
 Introduced in November 1993.
@@ -608,7 +608,7 @@ This mode can be set using ``machine=svga_s3vision864`` in your DOSBox-X config 
 
 * link:http://www.vgamuseum.info/index.php/component/k2/item/351-s3-vision864[S3 Vision864 at the VGA Museum]
 
-##### S3 Vision868
+====== S3 Vision868
 WARNING: The emulation of this card is considered experimental. It is not recommended for regular use.
 
 Introduced in 1994.
@@ -618,7 +618,7 @@ This mode can be set using ``machine=svga_s3vision868`` in your DOSBox-X config 
 
 * link:http://www.vgamuseum.info/index.php/component/k2/item/353-s3-vision868[S3 Vision868 at the VGA Museum]
 
-##### S3 Trio32
+====== S3 Trio32
 WARNING: The emulation of this card is considered experimental. It is not recommended for regular use.
 
 Introduced in 1994.
@@ -628,7 +628,7 @@ This mode can be set using ``machine=svga_s3trio32`` in your DOSBox-X config fil
 
 * link:http://www.vgamuseum.info/index.php/component/k2/item/356-s3-trio32[S3 Trio32 at the VGA Museum]
 
-##### S3 Trio64V+
+====== S3 Trio64V+
 WARNING: The emulation of this card is considered experimental. It is not recommended for regular use.
 
 Introduced in June 1995. Successor to the Vision868.
@@ -638,7 +638,7 @@ This mode can be set using ``machine=svga_s3trio64v+`` in your DOSBox-X config f
 
 * link:http://www.vgamuseum.info/index.php/component/k2/item/359-s3-trio64v[S3 Trio64V+ at the VGA Museum]
 
-##### S3 ViRGE
+====== S3 ViRGE
 WARNING: The emulation of this card is considered experimental. It is not recommended for regular use.
 
 Introduced in November 1995.
@@ -652,7 +652,7 @@ This mode can be set using ``machine=svga_s3virge`` in your DOSBox-X config file
 * link:http://www.vgamuseum.info/index.php/component/k2/item/365-s3-virge[S3 ViRGE at the VGA Museum]
 * link:https://www.vogons.org/viewtopic.php?t=33483[List of games supporting S3D mode]
 
-##### S3 ViRGE/VX
+====== S3 ViRGE/VX
 WARNING: The emulation of this card is considered experimental. It is not recommended for regular use.
 
 Introduced in November 1995.
@@ -662,12 +662,12 @@ This mode can be set using ``machine=svga_s3virgevx`` in your DOSBox-X config fi
 
 * link:http://www.vgamuseum.info/index.php/component/k2/item/366-s3-virge-vx[S3 ViRGE/VX at the VGA Museum]
 
-### Tseng Labs
+==== Tseng Labs
 * link:https://en.wikipedia.org/wiki/Tseng_Labs[Wikipedia article on Tseng Labs]
 * link:http://www.dosdays.co.uk/topics/Manufacturers/tseng_labs.php[DOS Days on Tseng Labs]
 * link:http://vogonsdrivers.com/index.php?catid=63[VOGONS Vintage Driver Library for Tseng Labs]
 
-#### Tseng Labs ET3000
+===== Tseng Labs ET3000
 
 Introduced in 1987.
 Early VGA clone card.
@@ -683,7 +683,7 @@ Video memory defaults to 512KiB and cannot be adjusted.
 
 * link:http://www.vgamuseum.info/index.php/companies/item/460-tseng-et3000ax[Tseng Labs ET3000 at the VGA Museum]
 
-#### Tseng Labs ET4000
+===== Tseng Labs ET4000
 
 Introduced in 1989.
 Became fairly popular, and supported in SVGA mode by various games.
@@ -714,7 +714,7 @@ vmemsizekb=512
 * link:http://files.mpoli.fi/hardware/DISPLAY/TSENG/ET-4000.ZIP[Tseng Labs ET4000 driver package]
 * link:http://www.vgamuseum.info/index.php/companies/item/461-tseng-et4000ax[Tseng Labs ET4000 at the VGA Museum]
 
-### Paradise Systems PVGA1A
+==== Paradise Systems PVGA1A
 
 Introduced in 1988.
 Generic clone VGA card.
@@ -746,8 +746,8 @@ vmemsizekb=0
 * link:http://www.dosdays.co.uk/topics/Manufacturers/paradise.php[DOS Days on Paradise Systems]
 * link:http://www.vgamuseum.info/index.php/companies/item/478-paradise-systems-pvga1a[Paradise Systems PVGA1A]
 
-### VESA BIOS Extensions (VBE)
-During the late 80's and early 90's many video card manufacturers existed, and as IBM was no longer leading the market, each manufacturer was doing it's own thing with regards to setting the cards SVGA modes. This made it very difficult for software developers as they needed to support a plethora of different cards if they wanted to offer more then basic VGA.
+==== VESA BIOS Extensions (VBE)
+During the late 80's and early 90's many video card manufacturers existed, and as IBM was no longer leading the market, each manufacturer was doing its own thing in regard to setting the cards SVGA modes. This made it very difficult for software developers as they needed to support a plethora of different cards if they wanted to offer more than basic VGA.
 
 As such the Video Electronics Standards Association (VESA) was born, and one of the first standardization efforts they led was the VESA BIOS Extensions (VBE).
 
@@ -815,7 +815,7 @@ Setting this option may help with some games, though it limits the mode list rep
 Some DOS games and demos assume one bit depth or the other and do not enumerate VESA BIOS modes, which is why this option exists.
 ** ``allow low resolution vesa modes`` (default: true)
 **** If set, allow low resolution VESA modes (320x200x16/24/32bpp and so on).
-You could set this to false to simulate SVGA hardware with a BIOS that does not support the lowres modes for testing purposes.
+You could set this too false to simulate SVGA hardware with a BIOS that does not support the lowres modes for testing purposes.
 ** ``allow explicit 24bpp vesa modes`` (default: false)
 **** If set, additional 24bpp modes are listed in the modelist regardless whether modes 0x100-0x11F are configured to be 24bpp or 32bpp.
 Setting this option can provide the best testing and development environment for new retro DOS code.
@@ -854,7 +854,7 @@ links:
 
 * link:https://en.wikipedia.org/wiki/VESA_BIOS_Extensions[Wikipedia article on VESA BIOS Extensions]
 
-## Dual monitor
+== Dual monitor
 The original IBM PC could already support dual-monitor by using both MDA and CGA video cards at the same time.
 This also works with MDA+EGA, MDA+VGA and MDA+SVGA. Hercules can be used as a more capable substitute for MDA.
 

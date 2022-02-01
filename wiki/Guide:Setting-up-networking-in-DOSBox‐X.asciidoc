@@ -5,31 +5,31 @@ ifndef::env-github[:suffixappend:]
 
 Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
 
-# Setting up networking in DOSBox-X
+== Setting up networking in DOSBox-X
 
 toc::[]
 
-# Overview
+== Overview
 DOSBox-X has support for emulating the Novell NE2000 network adapter through the use of either PCAP or SLIRP back-end. This guide describes how to set it up and also tries to simplify the process for users.
 
 Apart from NE2000 networking, DOSBox-X also has integrated IPX support and network redirector functions. In Windows builds of
 DOSBox-X version 0.83.15 or higher, you can directly access or browse network resources using UNC network paths in the form \\MACHINE\FOLDER using DOS commands (such as DIR, MD and COPY) when the network redirector feature is not disabled.
 
-## NE2000 resource usage
-By default the emulated NE2000 will use IRQ 3 and IO range 300-31F.
+== NE2000 resource usage
+By default, the emulated NE2000 will use IRQ 3 and IO range 300-31F.
 This is typical of a real NE2000 adapter, and some NE2000 drivers will look there by default.
 
 NOTE: DOSBox-X does not support PnP for the NE2000, meaning that Windows 95, 98 and ME may not autodetect it, and even if they do, they may assume the wrong resources.
 
 The problem lies in the fact that, IRQ 3 is also used for COM2, and therefore they conflict.
-Most software will work regardless of the conflict, as long as your not actually using COM2.
+Most software will work regardless of the conflict, as long as you're not actually using COM2.
 But some software, notably Windows 95, 98 and ME may complain about a resource conflict.
 
 As such it is recommended to either move the emulated NE2000 adapter to a different IRQ, or to disable COM2.
 In the below examples the emulated NE2000 is set to IRQ10 using the ``nicirq=`` setting, to resolve the conflict.
 But you need to ensure that any NE2000 device drivers that are loaded, are also set to look for it at the same resources.
 
-NOTE: Setting the NE2000 to IRQ 10 is not possible if your emulating a 8086 (``machine=8086``), as they only have IRQ 0-7 available. In that case it is probably better to disable COM2.
+NOTE: Setting the NE2000 to IRQ 10 is not possible if you're emulating a 8086 (``machine=8086``), as they only have IRQ 0-7 available. In that case it is probably better to disable COM2.
 
 If you want to instead disable COM2, and leave the emulated NE2000 at its default resources, add the following to you DOSBox-X config file.
 ....
@@ -39,15 +39,15 @@ serial2=disabled
 
 To enable networking you first need to enable NE2000 adapter emulation in your DOSBox-X config file and select an appropriate back-end for the NE2000 emulation.
 
-## [ne2000] config options
+== [ne2000] config options
 
-### ne2000
+=== ne2000
 * Default value: false
 * Valid values: true, false
 
 This setting enables or disables the NE2000 emulation.
 
-### nicbase
+=== nicbase
 * Default value: 300
 * Valid values: 200, 220, 240, 260, 280, 2C0, 300, 320, 340, 360
 
@@ -57,7 +57,7 @@ You may sometimes see the base address written as 0x300 which means hex 300.
 It will require 32bits, starting at the defined base address.
 So for the default base value of 300 the full IO range used is actually 300-31F.
 
-### nicirq
+=== nicirq
 * Default value: 3
 * Valid values: 3, 4, 5, 9, 10, 11, 12, 14, 15
 
@@ -77,9 +77,9 @@ You cannot just select a random value as many IRQs are already pre-assigned to v
 
 WARNING: The default IRQ value (3) conflicts with the emulated COM2 port that is enabled by default.
 
-WARNING: If your emulating a 8086 CPU machine type, the valid IRQ needs to be in the range of 0-7, which in this case effectively means 3, 4 or 5. This is because the 8086 only had a single PIC (Programmable Interrupt Controller), while later machines had two.
+WARNING: If you're emulating a 8086 CPU machine type, the valid IRQ needs to be in the range of 0-7, which in this case effectively means 3, 4 or 5. This is because the 8086 only had a single PIC (Programmable Interrupt Controller), while later machines had two.
 
-### macaddr
+=== macaddr
 * Default value: AC:DE:48:88:99:AA
 
 This is the MAC address of the emulated NE2000 adapter.
@@ -98,11 +98,11 @@ Some examples of valid alternative MAC addresses with the same OUI:
 - AC:DE:48:AA:BB:CC
 - AC:DE:48:1D:2E:3F
 
-## Selecting a back-end for NE2000
+== Selecting a back-end for NE2000
 Starting with DOSBox-X 0.83.12 there are two different back-ends to the NE2000 adapter emulation, namely pcap and slirp.
 The default is ``backend=auto``, which implies ``backend=slirp`` if SLIRP support is available, otherwise ``backend=pcap`` is implied if PCAP support is available.
 
-### backend=pcap
+=== backend=pcap
 The PCAP back-end uses something called "Promiscuous mode".
 This has the advantage that DOSBox-X can support various legacy network protocols, such as IPX and NetBIOS Frames (aka NetBEUI) in addition to TCP/IP.
 This mode not only allows communication between DOSBox-X instances on the same network, but also with legacy PCs on the same network.
@@ -129,11 +129,11 @@ realnic=list
 The ''list'' value for ''realnic='' will need to be replaced by a value representing your actual network adapter.
 See below for more information.
 
-#### [ethernet, pcap]
+==== [ethernet, pcap]
 Create this section in your DOSBox-X config file if you want to use PCAP.
 The only value that you normally need to set here is ``realnic=``.
 
-##### realnic
+===== realnic
 * Default value: list
 * Valid values: list, number or (partial) name of interface
 
@@ -151,7 +151,7 @@ You can either specify it as ``realnic=9`` or ``realnic=Realtek``, or if that is
 
 It is recommended to use a name, as the order of the numbers can change due to various events on the host (e.g. adding or removing devices, or even launching other virtual machines)
 
-##### timeout
+===== timeout
 * Default value: default
 * Valid values:
 
@@ -160,7 +160,7 @@ Specifies the read timeout for the device in milliseconds for the pcap backend, 
 The default for Windows hosts is -1 which to WinPCap appears to mean "non-blocking mode".
 For other platforms the default is 3000ms
 
-### backend=slirp
+=== backend=slirp
 Unlike the PCAP back-end, the SLIRP back-end does not require Promiscuous mode.
 As such it will work with wireless adapters, and it will work in most sandboxed environments.
 
@@ -183,26 +183,26 @@ backend=slirp
 
 You can optionally specify additional SLIRP options
 
-#### [ethernet, slirp]
+==== [ethernet, slirp]
 Create this optional section in your DOSBox-X config file.
 Generally these settings do not need to be modified from their default values.
 Just if you happen to be using the 10.0.2.0/24 network locally, will you need to modify the various IP settings.
 
-##### restricted
+===== restricted
 * Default value: false
 * Valid values: true, false
 
 Disables access to the host from the guest.
 This effectively creates an isolated virtual network
 
-##### disable_host_loopback
+===== disable_host_loopback
 * Default value: false
 * Valid values: true, false
 
-Disables guest access to the hosts's loopback interfaces.
+Disables guest access to the hosts loopback interfaces.
 This effectively prevents the guest from accessing the hosts 127.0.0.0/8 loopback network. E.g. 127.0.0.1
 
-##### mtu
+===== mtu
 * Default value: 0
 * Valid values: 576-?
 
@@ -212,7 +212,7 @@ MTU and MRU sizes should normally be identical.
 
 NOTE: If you want to use a larger MTU than default, your hosts network adapter and your network switch needs to support it, otherwise the packets will get truncated.
 
-##### mru
+===== mru
 * Default value: 0
 * Valid values: 576-?
 The maximum recieve unit for Ethernet packets transmitted to the guest.
@@ -221,34 +221,34 @@ MRU and MTU sizes should normally be identical.
 
 NOTE: If you want to use a larger MRU than default, your hosts network adapter and your network switch needs to support it, otherwise the packets will get truncated.
 
-##### ipv4_network
+===== ipv4_network
 * Default value: 10.0.2.0
 * Valid values: Any valid IPv4 network address
 
 The IPv4 network the guest and host services are on.
 
-##### ipv4_netmask
+===== ipv4_netmask
 * Default value: 255.255.255.0
 * Valid values: Any valid IPv4 netmask for the provided network address
 
 The netmask for the IPv4 network.
 
-##### ipv4_host
+===== ipv4_host
 * Default value: 10.0.2.2
 
 The address of the host system on the IPv4 network, which will act as the gateway.
 
-##### ipv4_nameserver
+===== ipv4_nameserver
 * Default value: 10.0.2.3
 
 The address of the nameserver service provided by the host on the IPv4 network.
 
-##### ipv4_dhcp_start
+===== ipv4_dhcp_start
 * Default value: 10.0.2.15
 
 The start address used for DHCP by the host services on the IPv4 network.
 
-##### tcp_port_forwards
+===== tcp_port_forwards
 * Default value: <blank>
 
 Forwards one or more TCP ports from the host into the DOS guest.
@@ -258,43 +258,43 @@ The format is:
 * port1  port2  port3 ... (e.g., ``21 80 443``)
 ** This which will forward FTP, HTTP, and HTTPS into the DOS guest.
 * If the ports are privileged on the host, a host:guest mapping can be used ... (e.g., ``8021:21 8080:80``).
-** This will forward ports 8021 and 8080 on the host to FTP and HTTP in the guest.
+** This will forward port 8021 and 8080 on the host to FTP and HTTP in the guest.
 * A range of adjacent ports can be abbreviated with a dash: start-end ... (e.g., ``27910-27960``)
-** This will forward ports 27910 to 27960 into the DOS guest.
+** This will forward port 27910 to 27960 into the DOS guest.
 * Mappings and ranges can be combined, too: hstart-hend:gstart-gend ..., (e.g, ``8040-8080:20-60``)
 ** This forwards ports 8040 to 8080 on the host into ports 20 to 60 in the guest
 
 Notes:
 
 * If mapped ranges differ, the shorter range is extended to fit.
-* If conflicting host ports are given, only the first one is setup.
+* If conflicting host ports are given, only the first one is set up.
 * If conflicting guest ports are given, the latter rule takes precedence.
 
-##### udp_port_forwards
+===== udp_port_forwards
 * Default value: <blank>
 
 The format is the same as for TCP port forwards.
 
-# Setup guide for Linux hosts
+== Setup guide for Linux hosts
 
-### Install libpcap and/or libslirp
+=== Install libpcap and/or libslirp
 This depends on your Linux distribution, but you need to have the libpcap library installed for the pcap back-end.
 Or the libslirp library for the slirp back-end.
 
-#### Debian based (e.g. Ubuntu)
-If your running a recent Debian or Debian based distribution such as Ubuntu, you can install the libraries from the command-line as follows:
+==== Debian based (e.g. Ubuntu)
+If you're running a recent Debian or Debian based distribution such as Ubuntu, you can install the libraries from the command-line as follows:
 ....
 apt-get install libpcap libslirp
 ....
-#### Red Hat, SUSE or Fedora
+==== Red Hat, SUSE or Fedora
 If you used the provided RPM, libpcap and libslirp are dependencies and will be automatically installed when using a package manager to install DOSBox-X.
 
-Otherwise if your running a recent Red Hat, CentOS, SUSE or Fedora Linux distribution, you can install the libraries from the command-line as follows:
+Otherwise, if you're running a recent Red Hat, CentOS, SUSE or Fedora Linux distribution, you can install the libraries from the command-line as follows:
 ....
 dnf install libpcap libslirp
 ....
 
-### Check if your DOSBox-X binary supports networking
+=== Check if your DOSBox-X binary supports networking
 The provided RPMs have networking enabled, but if you compiled DOSBox-X yourself and the libpcap or libslirp headers where not installed, the resulting DOSBox-X binary will lack libpcap and/or libslirp support.
 To check if your binary has networking support, run the following command:
 
@@ -305,10 +305,10 @@ ldd /usr/bin/dosbox-x |grep "pcap\|slirp"
 ....
 
 In the above example, the DOSBox-X binary has both libpcap and libslirp support, meaning it has networking. If the command returns nothing you do not have networking.
-If you binary has no networking, your options are to use the pre-compiled RPM package, or compile it yourself with libpcap or libslirp support enabled.
+If you're binary has no networking, your options are to use the pre-compiled RPM package, or compile it yourself with libpcap or libslirp support enabled.
 
-### Setup permissions for PCAP
-The provided RPM packages automatically setup the necessary permission for libpcap to function.
+=== Setup permissions for PCAP
+The provided RPM packages automatically set up the necessary permission for libpcap to function.
 
 Otherwise, you need to ensure that the DOSBox-X binary has permission to listen to and generate low level network traffic (promiscuous mode).
 You can do this as follows:
@@ -338,11 +338,11 @@ $ getcap /usr/bin/dosbox-x
 
 Warning: If you manually install the dosbox-x binary, you will have to take this step each time you do an upgrade.
 
-### Locate host network interface for PCAP
+=== Locate host network interface for PCAP
 You now need to find which host network interface you want to use for bridging with PCAP.
 
 For this you need to have a DOSBox-X config file with NE2000 support enabled, and you need to know which host network adapter will be used for bridging.
-It is highly recommended to only bridge to wired Ethernet adapters, as WIFI adapters are known not to work with PCAP.
+It is highly recommended to only bridge to wired Ethernet adapters, as wireless adapters generally do not work with PCAP.
 
 Create a simple ne2000.conf config file as follows:
 
@@ -388,18 +388,19 @@ realnic=eno1
 
 You can merge your config snippet with your Windows for Workgroups, Windows 95 or 98 config file, or use it to run something like mTCP in DOSBox-X.
 
-# Setup guide for Windows hosts
+== Setup guide for Windows hosts
 
-### Install PCAP
+=== Install PCAP
 First you need to install PCAP support. As WinPcap is no longer maintained, Npcap seems the best candidate these days:
 https://nmap.org/npcap/
 
 NOTE: At this point SLIRP is only supported in some MinGW builds, and not in Visual Studio builds.
 
-### Locate host network interface
+=== Locate host network interface
 You now need to find which host network interface you want to use for bridging.
 
-For this you need to have a DOSBox-X config file with NE2000 support enabled, and you need to know which host network adapter will be used for bridging. It is highly recommended to only bridge to wired Ethernet adapters, as WIFI adapters are known not to work.
+For this you need to have a DOSBox-X config file with NE2000 support enabled, and you need to know which host network adapter will be used for bridging.
+It is highly recommended to only bridge to wired Ethernet adapters, as wireless adapters generally do not work.
 
 Create a simple ne2000.conf config file as follows:
 
@@ -465,10 +466,10 @@ realnic="Realtek USB NIC"
 
 You can merge your config snippet with your Windows for Workgroups, Windows 95 or 98 config file, or use it to run something like mTCP in DOSBox-X.
 
-# mTCP example
+== mTCP example
 This example uses mTCP to test if networking is working in DOSBox-X.
 
-This first of all requires that you download the latest version of mTCP, and a NE2000 DOS packet driver (the latter is included in DOSBox-X as of version 0.83.15 when the NE2000 networking feature is enabled).
+This requires that you first download the latest version of mTCP, and a NE2000 DOS packet driver (the latter is included in DOSBox-X as of version 0.83.15 when the NE2000 networking feature is enabled).
 
 *External links*
 
@@ -488,12 +489,12 @@ SET MTCPCFG=C:\SAMPLES\SAMPLE.CFG
 NE2000 0x60 10 0x300
 DHCP
 ....
-If all worked fine, you should have gotten a IP address, and you can now do something like
+If all worked fine, you should have gotten an IP address, and you can now do something like
 ....
 PING google.com
 ....
 
-### Common problem: Invalid MAC Address
+=== Common problem: Invalid MAC Address
 When loading the NE2000 DOS Packet driver you get an all FF MAC address:
 
 ....
@@ -516,9 +517,9 @@ This can actually have several causes.
 2. (Linux) Your DOSBox-X binary does not have the right PCAP permissions to access networking
 3. You do not have PCAP installed (libpcap on Linux, Npcap on Windows), or SLIRP
 4. When loading the NE2000 driver you gave the wrong IRQ or IO port.
-** This should only effect non-standard setups where you specified a different nicirq= or nicbase= in your ne2000.conf config file.
+** This should only affect non-standard setups where you specified a different ``nicirq=`` or ``nicbase=`` in your ne2000.conf config file.
 
-### Common problem: Cannot get DHCP lease
+=== Common problem: Cannot get DHCP lease
 When starting DHCP you get only timeouts.
 
 ....
@@ -539,11 +540,11 @@ Check your cabling and packet driver settings, including the hardware IRQ.
 This can actually have several causes.
 
 1. Check if you got a valid MAC address when loading the NE2000 packet driver.
-2. When using PCAP, try to set REALNIC= in your ne2000.conf config file to a different network interface. In particular WIFI interfaces are unlikely to work, so try wired Ethernet instead. The order in which the interfaces are listed can also change due to plugging or unplugging devices, or launching certain type of programs like Virtual Machines.
+2. When using PCAP, try to set REALNIC= in your ne2000.conf config file to a different network interface. In particular wireless adapters are unlikely to work, so try wired Ethernet instead. The order in which the interfaces are listed can also change due to plugging or unplugging devices, or launching certain type of programs like Virtual Machines.
 3. Perhaps you don't have a DHCP server on your network, or it is configured to only listen to known MAC addresses. Try to set manual IP settings, suitable for your network, at the bottom of SAMPLES/SAMPLE.CFG and try if you can ping.
 
-### Common problem: Multiple DOSBox-X instances
-By default all DOSBox-X instances use the exact same MAC address (AC:DE:48:88:99:AA).
+=== Common problem: Multiple DOSBox-X instances
+By default, all DOSBox-X instances use the exact same MAC address (AC:DE:48:88:99:AA).
 If there are multiple DOSBox-X instances running on the same host, or on different hosts on the same network segment, they will conflict with each other.
 
 Unfortunately not all operating systems will warn you about this, but it will cause problems on the network and the DOSBox-X instances will not be able to communicate with each other.
@@ -565,10 +566,10 @@ macaddr=AC:DE:48:88:99:AB
 realnic=1
 ....
 
-# IPX example
+== IPX example
 There are two ways to enable IPX communication, which was used by some link:https://www.mobygames.com/attribute/sheet/attributeId,82/p,2/[DOS and Windows games] for multi-player support.
 
-### Using DOSBox-X integrated IPX support
+=== Using DOSBox-X integrated IPX support
 DOSBox-X has integrated support for IPX over IP (IPX encapsulated in IP).
 You do not even have to enable NE2000 emulation for this.
 
@@ -579,14 +580,14 @@ A disadvantage of this approach is that you cannot communicate with retro PCs on
 
 This process is described on the link:https://www.dosbox.com/wiki/Connectivity[DOSBox wiki].
 
-### Using the NetWare 16-bit DOS Client
+=== Using the NetWare 16-bit DOS Client
 
 This example uses Novell's IPX, and only works with the PCAP back-end.
 A disadvantage of this approach is that it is not routable over the Internet, meaning it can only communicate with other systems on your local network.
 An advantage is that it can communicate with a real retro DOS PC on your local network.
 
-This first of all requires that you download the vlm121_2.exe and vlm121_6.exe files from the Novell NetWare 16-bit DOS Client.
-The rest of the files are not needed for our purpose of running DOS games that require IPX.
+This requires that you first download the ``vlm121_2.exe`` and ``vlm121_6.exe`` files from the Novell NetWare 16-bit DOS Client.
+The rest of the NetWare client files are not needed for the purpose of running DOS games that require IPX.
 
 *External links*
 
@@ -598,11 +599,11 @@ The easiest way is probably to extract them in DOSBox-X itself.
 
 *Notes*
 
-* If you want to do a full install of the NetWare 16-bit Client, you cannot run the INSTALL.EXE in the emulated DOS environment that DOSBox-X provides. It will fail with "An invalid drive was given in path". You can however install it if you boot a real DOS in DOSBox-X.
+* If you want to do a full installation of the NetWare 16-bit Client, you cannot run the ``INSTALL.EXE`` in the emulated DOS environment that DOSBox-X provides. It will fail with "An invalid drive was given in path". You can however install it if you boot a real DOS in DOSBox-X.
 * These instructions do not apply to the 32-bit NetWare client (client32) for DOS and 16-bit Windows.
 * You can extract the self-extracting EXE files on Linux with the command-line ``arj`` utility, but you need to use the ``-he`` switch to disable the Security Envelope check.
 
-#### Unpacking the VLM archive in DOSBox-X
+==== Unpacking the VLM archive in DOSBox-X
 Move the files to a temporary directory for extraction, and from that directory launch DOSBox-X.
 ....
 MOUNT C .
@@ -627,7 +628,7 @@ The IPX directory that was created now contains the following files:
 * ``NETBIOS.EXE`` (NetBIOS Protocol over IPX)
 * ``NE2000.COM`` (ODI driver for the NE2000 adapter)
 
-#### Create NET.CFG
+==== Create NET.CFG
 Now create a text file called NET.CFG, and place it in the same directory as LSL.COM, with the following content:
 ....
 Link Driver NE2000
@@ -638,10 +639,10 @@ Link Driver NE2000
 
 *Notes*
 
-* If you used a different IRQ or IO (port) base address, adjust NET.CFG accordingly.
-* If your running on Linux, be sure the NET.CFG file is saved in DOS format (with CRLF line terminators), otherwise the NE2000 driver will not be loaded at the specified resources. If necessary use ``unix2dos`` to convert it.
+* If you used a different IRQ or IO (port) base address, adjust ``NET.CFG`` accordingly.
+* If you're running on Linux, be sure the ``NET.CFG`` config file is saved in DOS format (with CRLF line terminators), otherwise the NE2000 driver will not be loaded at the specified resources. If necessary use ``unix2dos`` to convert it.
 
-#### Start IPX
+==== Start IPX
 Now modify your ne2000.conf config file that you created earlier, such that it contains the following lines in the [autoexec] section at the end:
 
 ....

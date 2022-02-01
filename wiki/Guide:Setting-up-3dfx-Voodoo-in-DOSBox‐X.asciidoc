@@ -5,13 +5,13 @@ ifndef::env-github[:suffixappend:]
 
 Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
 
-# Setting up 3dfx Voodoo in DOSBox-X
+== Setting up 3dfx Voodoo in DOSBox-X
 
 toc::[]
 
-# Overview
+== Overview
 The 3dfx Voodoo is a 3D accelerator chipset released in late 1996, and sold by various graphic card manufacturers.
-The original Voodoo 1 adapters are not full video adapters, and in fact need to be used in conjunction with a separate VGA adapter in a pass-through manor.
+The original Voodoo 1 adapters are not full video adapters, and in fact need to be used in conjunction with a separate VGA adapter in a pass-through manner.
 The video-output from the VGA video card must be connected to a video-in on the Voodoo adapter, which then overlays the 3D renderings, and the monitor is then connected to the video-output of the Voodoo adapter.
 
 As these where the early days of 3D acceleration, it uses its own proprietary Glide API which was supported by many DOS and Windows 9x games at the time.
@@ -23,11 +23,11 @@ DOSBox-X has support for emulating the 3dfx Voodoo in one of two modes.
 
 You can find out whether they are currently enabled in DOSBox-X from the menu group ``Video`` => ``3dfx emulation``.
 
-## [voodoo] options
+== [voodoo] options
 This section will list the available 3dfx Voodoo configuration options that DOSBox-X provides.
 Unless otherwise noted the options effecting the 3dfx Voodoo emulation are in the [voodoo] section of the DOSBox-X config file.
 
-### voodoo_card
+=== voodoo_card
 * Default value: auto
 * Possible values: auto, false, software, opengl
 
@@ -37,7 +37,7 @@ The "auto" option means it will try to use OpenGL if possible, and otherwise fal
 
 NOTE: This emulation mode does not work in fullscreen mode.
 
-### voodoo_maxmem
+=== voodoo_maxmem
 * Default value: true
 * Possible values: true, false
 
@@ -45,7 +45,7 @@ Enables maximum memory size for the Voodoo card hardware.
 
 If true (default), the memory size will be 12MB (4MB front buffer + 2x4MB texture units). Otherwise, the memory size will be the standard 4MB (2MB front buffer + 1x2MB texture unit).
 
-### glide
+=== glide
 * Default value: false
 * Possible values: true, false
 
@@ -55,7 +55,7 @@ This requires that the host OS has a Glide API library (or Glide wrapper) instal
 NOTE: This only works for games that dynamically link to the external GLIDE2X library.
 It does not work for so-called statically linked games that have the GLIDE library code integrated with the game code.
 
-### lfb
+=== lfb
 * Default value: full_noaux
 * Possible values: full, full_noaux, read, read_noaux, write, write_noaux, none
 
@@ -63,7 +63,7 @@ Enable LFB (Line-Fill-Buffer) CPU Cache access for Glide.
 
 NOTE: OpenGlide does not support locking aux buffer, as such please use _noaux modes.
 
-### splash
+=== splash
 * Default value: true
 * Possible values: true, false
 
@@ -75,11 +75,11 @@ This has no effect when using the low-level Voodoo adapter emulation, where the 
 In addition, this option is only supported on Windows hosts, and it requires that the ``3dfxSpl2.dll`` library to be installed.
 It is enough for ``3dfxSpl2.dll`` to be in the same directory as ``dosbox-x.exe``
 
-NOTE: The CPU type for ``3dfxSpl2.dll`` and DOSBox-X needs to match for this to work. So if you have a x86 32bit ``3dfxSpl2.dll``, you need to use a x86 32bit ``dosbox-x.exe`` executable.
+NOTE: The CPU type for ``3dfxSpl2.dll`` and DOSBox-X needs to match for this to work. So if you have an x86 32bit ``3dfxSpl2.dll``, you need to use an x86 32bit ``dosbox-x.exe`` executable.
 
-## [cpu] option
+== [cpu] option
 
-### ignore undefined msr
+=== ignore undefined msr
 * Default value: false
 * Possible values: true, false
 
@@ -87,12 +87,12 @@ This setting is located in the [cpu] section of the DOSBox-X config file.
 
 Normally the CPU will fire an Invalid Opcode exception in the case of an undefined MSR (Model-specific register).
 
-This option is off by default, enable if using software or drivers that assumes the presence of certain MSR registers without checking.
+This option is off by default, enable if using software or drivers that assumes the presence of certain 686 MSR registers without checking.
 If you are using certain versions of the original 3dfx Glide drivers for MS-DOS you will need to set this to TRUE as 3dfx appears to have coded GLIDE2X.OVL to assume the presence of Pentium Pro/Pentium II MTRR registers.
 
-Another way to circumvent this issue with the 3dfx drivers, is by emulating a Pentium Pro CPU in DOSBox-X by setting ``cputype=ppro_slow`` in the [cpu] section of your DOSBox-X config file.
+Another (probably better) way to circumvent this issue with the 3dfx drivers, is to emulate a Pentium Pro or Pentium II CPU in DOSBox-X by setting either ``cputype=ppro_slow`` or ``cputype=pentium_ii`` in the [cpu] section of your DOSBox-X config file.
 
-## Low Level emulation
+== Low Level emulation
 This emulation mode has been supported by DOSBox-X for a long time.
 It emulates the original 3dfx Voodoo 1 chipset, and therefore works with the official 3dfx DOS and Windows 9x drivers.
 It is the easiest mode to get working, and is in fact enabled by default.
@@ -103,7 +103,7 @@ The main disadvantage of this mode, is that it requires a PC with a very fast CP
 
 NOTE: Most DOS games shipped with copy of the 3dfx ``glide2x.ovl`` library. For low level emulation it is important that you use an official version of this library.
 
-## High Level emulation
+== High Level emulation
 This mode requires DOSBox-X 0.83.5 or newer, and it only works for DOS games that use the ``GLIDE2X.OVL`` library.
 Or DOSBox-X 0.83.10 or newer for Windows 9x games that use the ``GLIDE2X.DLL`` library.
 
@@ -127,7 +127,7 @@ NOTE: Not all DOS games that support 3dfx use the separate (dynamically linked) 
 Some are statically linked (the GLIDE library code was integrated with the game code during compilation).
 Those games are NOT compatible with GLIDE pass-through mode, and need to be run in low-level emulation mode instead.
 
-### Windows host: Installing glide2x.dll
+=== Windows host: Installing glide2x.dll
 
 NOTE: Although this library has the same filename as the old Windows Glide library for real 3dfx Voodoo adapters, it is in fact not the same.
 The library used here converts Glide API calls to a newer 3D Graphics API, and will not work with a real 3dfx Voodoo adapter.
@@ -139,7 +139,7 @@ Before trying to find an implementation of this library file, please keep in min
 Due to the way how Windows works, a 32-bit x86 ``glide2x.dll`` can only be used by a 32-bit x86 DOSBox-X executable, and likewise a 64-bit x64 ``glide2x.dll`` can only be used by a 64-bit x64 DOSBox-X executable.
 As a result, in order to make Glide work, please make sure that you do not mix up the CPU architecture of the DOSBox-X application and any DLL files.
 
-#### nGlide
+==== nGlide
 nGlide appears to be a popular 3dfx Voodoo Glide wrapper provider which converts Glide API calls to Direct3D or Vulkan, and is supported on Windows XP and later.
 
 It comes with an installer to automatically install the Glide library files including ``glide2x.dll`` to your Windows directory.
@@ -149,16 +149,16 @@ This means that if you choose to use nGlide as your Glide wrapper, then you must
 
 The nGlide installer is available from: https://www.zeus-software.com/downloads/nglide
 
-#### dgVoodoo
+==== dgVoodoo
 dgVoodoo is another 3dfx Voodoo Glide wrapper which converts Glide API calls to Direct3D for Windows 7 and later.
 
 Unlike nGlide it does not come with an installer as of this time, but it does provide both 32-bit x86 and 64-bit x64 ``glide2x.dll`` files in its zip packages.
-Therefore you can use either the 32-bit x86 build or the 64-bit x64 build of DOSBox-X for the Glide feature, as long as the correct ``glide2x.dll`` file is available to the DOSBox-X executable.
+Therefore, you can use either the 32-bit x86 build or the 64-bit x64 build of DOSBox-X for the Glide feature, as long as the correct ``glide2x.dll`` file is available to the DOSBox-X executable.
 You can put the glide2x.dll file (extracted from its zip package) either in your DOSBox-X directory, or in the Windows’ System32/SysWOW64 directory (in the case of 64-bit Windows, C:\WINDOWS\SysWOW64 for 32-bit glide2x.dll file and C:\WINDOWS\System32 for 64-bit glide2x.dll file).
 
 The zip packages are available from: http://dege.freeweb.hu/dgVoodoo2/dgVoodoo2/
 
-#### OpenGlide
+==== OpenGlide
 OpenGlide is an open-source Glide API wrapper to OpenGL implementation that is not actively maintained.
 You will need to compile it yourself using Visual Studio or MinGW, and should therefore only be considered by advanced users.
 
@@ -166,12 +166,12 @@ The OpenGlide GitHub site is located at: https://github.com/voyageur/openglide
 
 WARNING: OpenGlide is currently not compatible with SDL2, as such you can only use it with the DOSBox-X SDL1 version.
 
-### Linux host: Installing libglide2x.so
+=== Linux host: Installing libglide2x.so
 NOTE: Although this library has the same filename as the old Linux Glide library for real 3dfx Voodoo adapters, it is in fact not the same.
 The library used here converts Glide API calls to OpenGL, and will not work with a real 3dfx Voodoo adapter.
 
 WARNING: OpenGlide is not compatible with SDL2, as such you can only use it with the DOSBox-X SDL1 version.
-If you do try to use it with the DOSBox-X SDL2 version, it will segfault when trying to use the glide pass-through.
+If you do try to use it with the DOSBox-X SDL2 version, OpenGlide will segfault when trying to use the glide pass-through.
 
 Unfortunately this library is not included with any Linux distributions, as such you need to compile it yourself.
 The following steps assume that you have the necessary compiler, developer tools and header files already installed.
@@ -206,14 +206,14 @@ sudo sh -c 'echo /usr/local/lib > /etc/ld.so.conf.d/usr-local-lib.conf'
 sudo ldconfig
 ....
 
-### macOS host: Installing libglide2x.dylib
+=== macOS host: Installing libglide2x.dylib
 Just like on Linux, you will need to compile the library yourself.
 The necessary steps are detailed below.
 
 WARNING: OpenGlide is not compatible with SDL2, as such you can only use it with the DOSBox-X SDL1 version.
-If you do try to use it with the DOSBox-X SDL2 version, it will segfault when trying to use the glide pass-through.
+If you do try to use it with the DOSBox-X SDL2 version, OpenGlide will segfault when trying to use the glide pass-through.
 
-#### Install the OpenGlide dependencies
+==== Install the OpenGlide dependencies
 
 1. Install Xcode command-line tools:
 You need Xcode command-line tools from Apple in order to install Home Brew.
@@ -222,6 +222,7 @@ You can install Xcode from the App Store or run the following Terminal command:
 xcode-select --install
 ....
 Alternatively, when you run the Home Brew install script (see below), it will install the command-line tools for you.
+
 [start=2]
 2. Install Home Brew:
 Home Brew is the package manager for macOS that makes it easy to install the required packages needed for OpenGlide to compile successfully.
@@ -229,6 +230,7 @@ You can get it from https://brew.sh or run the following command from a Terminal
 ....
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
 ....
+
 [start=3]
 3. Install the required Homebrew packages needed by OpenGlide:
 Run the following Terminal command:
@@ -236,7 +238,7 @@ Run the following Terminal command:
 brew install SDL1
 ....
 
-#### Build the OpenGlide libraries
+==== Build the OpenGlide libraries
 
 1. Download the source code from this fork of OpenGlide, which has been patched to work on macOS Mojave or higher:
 https://github.com/almeath/openglide
@@ -275,16 +277,16 @@ The macOS dynamic (dlylib) and static (a/la) files are the key components.
 
 These files can remain in your library folder and will be automatically found by DOSBox-X.
 
-Alternatively, you can place them inside your DOSBox-X application package (/Contents/Resources) and they should be recognized in there first, before falling back to the system level files if required.
+Alternatively, you can place them inside your DOSBox-X application package (/Contents/Resources), and they should be recognized in there first, before falling back to the system level files if required.
 
-#### Test for detection of the OpenGlide libraries
+==== Test for detection of the OpenGlide libraries
 
 A good way to test the functionality of your OpenGlide library is to download DOSBox-X and enable glide within the configuration/settings in accordance with the DOSBox-X Wiki.
 
 If the OpenGlide library is successfully detected, when you run DOSBox-X it will generate two output files called OpenGLid.ini and OpenGLid.log (the former providing options to adjust the OpenGlide settings).
 These should be located in the same place as your DOSBox-X application or executable binary.
 
-#### Optimize the OpenGLid.ini settings
+==== Optimize the OpenGLid.ini settings
 
 The following settings are recommended (with ``InitFullScreen=1`` to start in fullscreen mode)
 ....
@@ -305,25 +307,25 @@ FrameBufferMemorySize=16
 NoSplash=1
 ....
 
-# Frequently asked questions
-## No GLIDE2X.OVL on Z: drive
+== Frequently asked questions
+=== No GLIDE2X.OVL on Z: drive
 Q: I have set ``glide=true`` in my config file, yet there is no ``GLIDE2X.OVL`` to be found in ``Z:\SYSTEM``?
 
 A: In addition to setting ``glide=true``, DosBOX-X also checks if it finds a compatible glide library on the host. If this check fails, ``GLIDE2X.OVL`` will not appear, and the menu option ``Video`` ⇒ ``3dfx emulation`` => ``Glide passthrough`` will not be checked.
 
 The glide library installed on the host needs to be the same CPU architecture as the DOSBox-X executable. So for instance, if you are using a 32bit x86 Glide library, such as nGlide, you must also use a 32bit x86 DOSBox-X executable.
 
-## No 3dfx splash screen
+=== No 3dfx splash screen
 Q: I don't see the 3dfx splash screen when starting a game
 
-A: This is normal when your running the game in high-level emulation mode (glide=true). This 3dfx splash screen is built into the original Glide library (GLIDE2X.OVL or GLIDE2X.DLL for Windows 9x).
+A: This is normal when you're running the game in high-level emulation mode (glide=true). This 3dfx splash screen is built into the original Glide library (GLIDE2X.OVL or GLIDE2X.DLL for Windows 9x).
 But the special versions used for Glide pass-through to the host do not have this animation.
 If your running Windows, you may want to have a look at the ``splash=true`` setting, mentioned above.
 
-## Slow Glide emulation
+=== Slow Glide emulation
 Q: I set ``glide=true`` yet the game is very slow
 
-A: Most likely your not actually running in glide pass-through mode, even though you set the option in your config file.
+A: Most likely you're not actually running in glide pass-through mode, even though you set the option in your config file.
 
 One tell-tale way of knowing if the game is running in glide pass-through mode, is the 3dfx splash screen when starting the game. If you see the splash screen, you are probably not running in pass-through mode, but rather in low-level Voodoo emulation mode.
 

@@ -447,38 +447,32 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 </div>
-<h1 id="_setting_up_printing_in_dosbox_x" class="sect0">Setting up printing in DOSBox-X</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_setting_up_printing_in_dosbox_x">Setting up printing in DOSBox-X</h2>
+<div class="sectionbody">
 <div id="toc" class="toc">
 <div id="toctitle" class="title">Table of Contents</div>
-<ul class="sectlevel0">
-<li><a href="#_setting_up_printing_in_dosbox_x">Setting up printing in DOSBox-X</a>
 <ul class="sectlevel1">
+<li><a href="#_setting_up_printing_in_dosbox_x">Setting up printing in DOSBox-X</a></li>
 <li><a href="#_overview">Overview</a>
 <ul class="sectlevel2">
 <li><a href="#_parallel_section_options">[parallel] section options</a></li>
 <li><a href="#_printer_section_options">[printer] section options</a></li>
 </ul>
 </li>
-</ul>
-</li>
 <li><a href="#_setting_up_fonts_for_the_emulated_printer">Setting up fonts for the emulated printer</a>
-<ul class="sectlevel1">
+<ul class="sectlevel2">
 <li><a href="#_windows_host">Windows host</a></li>
 <li><a href="#_linux_host">Linux host</a></li>
 </ul>
 </li>
 <li><a href="#_example_print_to_file">Example: Print to file</a></li>
 <li><a href="#_example_printing_to_a_real_printer">Example: Printing to a real printer</a>
-<ul class="sectlevel1">
+<ul class="sectlevel2">
 <li><a href="#_windows_host_method_1">Windows host, method 1</a></li>
 <li><a href="#_windows_host_method_2">Windows host, method 2</a></li>
-<li><a href="#_windows_host_in_combination_with_3rd_party_printing_solution">Windows host, in combination with 3rd-party printing solution</a>
-<ul class="sectlevel2">
+<li><a href="#_windows_host_in_combination_with_3rd_party_printing_solution">Windows host, in combination with 3rd-party printing solution</a></li>
 <li><a href="#_windows_host_extended_solution_using_printfil">Windows host, extended solution using Printfil</a></li>
-</ul>
-</li>
 <li><a href="#_linux_host_2">Linux host</a></li>
 </ul>
 </li>
@@ -507,7 +501,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h3 id="_parallel_section_options">[parallel] section options</h3>
 <div class="paragraph">
 <p>This section lists the available configuration options for the <code>[parallel]</code> section that DOSBox-X provides.
-Is is used to configure the virtual parallel ports provided inside DOSBox-X.</p>
+They are used to configure the virtual parallel ports provided inside DOSBox-X.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -539,7 +533,7 @@ Any settings you modify this way are however lost when you restart DOSBox-X.
 Most DOS applications expect a printer on the LPT1 port.</p>
 </div>
 <div class="paragraph">
-<p>Some values have additional parameters, which if specified must be on the same line in the form of <code>parameter:value</code>.</p>
+<p>Some values have additional parameters, which when specified, must be on the same line in the form of <code>parameter:value</code>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -562,7 +556,7 @@ This is not emulated (see <a href="https://en.wikipedia.org/wiki/Parallel_port#I
 </td>
 <td class="content">
 Unlike on a typical retro PC, the emulated parallel port does not use an IRQ.
-Therefore there is no resource conflict if the emulated SoundBlaster is configured for IRQ 7.
+Therefore, there is no resource conflict if the emulated SoundBlaster is configured for IRQ 7.
 </td>
 </tr>
 </table>
@@ -709,8 +703,8 @@ parallel1=file dev:lpt1 timeout=1000 addFF cp:437</pre>
 <p><strong>printer</strong></p>
 </div>
 <div class="paragraph">
-<p>Send to a emulated Epson printer.
-This has it&#8217;s own configuration section which is documented below.</p>
+<p>Send to an emulated Epson dot-matrix printer.
+This has its own configuration section which is documented below.</p>
 </div>
 <div class="paragraph">
 <p><strong>disney</strong></p>
@@ -730,7 +724,7 @@ parallel1=disney</pre>
 </div>
 <div class="paragraph">
 <p>If you want to have Disney Sound Source emulation, you need to set <code>disney=true</code> in the <code>[speaker]</code> section.
-In addition the <code>parallel1=</code> value needs to be either set to <code>disabled</code> (will be auto-enabled for the Disney Sound Source emulation), or <code>disney</code>.
+In addition, the <code>parallel1=</code> value needs to be either set to <code>disabled</code> (will be auto-enabled for the Disney Sound Source emulation), or <code>disney</code>.
 Alternatively you can move the Disney Sound Source on a different parallel port, but most games expect it on the first by default.</p>
 </div>
 <div class="paragraph">
@@ -1336,7 +1330,7 @@ Only supported on the Windows platform.</p>
 <p>If zero, the page will not be ejected until a form-feed is received.</p>
 </div>
 <div class="paragraph">
-<p>Since not all software will send one, especially if your redirecting output, you can force a form-feed (eject page) by specifying a non-zero value.</p>
+<p>Since not all software will send one, especially if you&#8217;re redirecting output, you can force a form-feed (eject page) by specifying a non-zero value.</p>
 </div>
 <div class="paragraph">
 <p>If non-zero, it specifies the time after which the page will be ejected automatically when no more data arrives at the printer.
@@ -1349,9 +1343,9 @@ If the printout gets split over multiple files, increase this value.</p>
 </div>
 </div>
 </div>
-<h1 id="_setting_up_fonts_for_the_emulated_printer" class="sect0">Setting up fonts for the emulated printer</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_setting_up_fonts_for_the_emulated_printer">Setting up fonts for the emulated printer</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>The emulated printer requires TrueType fonts in order to be able to print text.
 If you use the TrueType font output, then the TTF font that is currently active on the screen will automatically be used for printing as well if the <code>ttf.printfont</code> option (in [render] section) is enabled (default) as of DOSBox-X version 0.83.14.</p>
@@ -1359,11 +1353,8 @@ If you use the TrueType font output, then the TTF font that is currently active 
 <div class="paragraph">
 <p>If no TTF font can be found then DOSBox-X will print with the internal (default) TTF font as used by the TrueType font output.</p>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_windows_host">Windows host</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_windows_host">Windows host</h3>
 <div class="paragraph">
 <p>DOSBox-X will first search for fonts in the FONTS subdirectory in the current working directory or the directory where your dosbox-x.exe is located.
 If the fonts cannot be found, then it will search for the system fonts, as follows:</p>
@@ -1418,10 +1409,8 @@ They are however rarely needed, and can typically be ignored.
 If you need them you may need to find those online.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_linux_host">Linux host</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_linux_host">Linux host</h3>
 <div class="paragraph">
 <p>DOSBox-X will first search for fonts in the ~/.config/dosbox-x/FONTS directory (or FONTS subdirectory in the current working directory).
 If the fonts cannot be found, then it will search for the fonts in the <code>/usr/share/fonts</code> directory, as follows:</p>
@@ -1477,9 +1466,10 @@ If you need them you may need to find those online.</p>
 </div>
 </div>
 </div>
-<h1 id="_example_print_to_file" class="sect0">Example: Print to file</h1>
-<div class="openblock partintro">
-<div class="content">
+</div>
+<div class="sect1">
+<h2 id="_example_print_to_file">Example: Print to file</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>In this example the output of a DOS command or application is simply redirected to the virtual LPT port, which in turn will be redirected to a file on the host.</p>
 </div>
@@ -1487,13 +1477,13 @@ If you need them you may need to find those online.</p>
 <p>This is useful if your printing just simple text, as the file on the host will contain the exact text.</p>
 </div>
 <div class="paragraph">
-<p>If the application expects a printer that can do more then just simple text, and sends control codes for that printer, the file will also contain those control codes.</p>
+<p>If the application expects a printer that can do more than just simple text, and sends control codes for that printer, the file will also contain those control codes.</p>
 </div>
 <div class="paragraph">
 <p>This can actually be useful, if you select a PostScript or HP PCL printer in the DOS application, as the resulting file will be a PostScript or HP PCL file which can be opened on the host with an appropriate application.</p>
 </div>
 <div class="paragraph">
-<p>In this example, setup a DOSBox-X config file with the following lines:</p>
+<p>In this example, set up a DOSBox-X config file with the following lines:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1533,10 +1523,11 @@ If you booted real DOS, or Windows 9x in DOSBox-X the output filename will be <c
 </div>
 </div>
 </div>
-<h1 id="_example_printing_to_a_real_printer" class="sect0">Example: Printing to a real printer</h1>
 <div class="sect1">
-<h2 id="_windows_host_method_1">Windows host, method 1</h2>
+<h2 id="_example_printing_to_a_real_printer">Example: Printing to a real printer</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_windows_host_method_1">Windows host, method 1</h3>
 <div class="paragraph">
 <p>It will cause a Windows print dialogue to appear on the host, and you can print to any printer configured on the host, including print to PDF.</p>
 </div>
@@ -1561,17 +1552,15 @@ The printer dialogue will show up after a printer selection is made.
 If you want the printer selection to show up every time for printing to LPT1, please leave the "device" empty.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_windows_host_method_2">Windows host, method 2</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_windows_host_method_2">Windows host, method 2</h3>
 <div class="paragraph">
 <p>This assumes you PC still has a parallel printer port integrated on the system board, or a legacy ISA parallel printer adapter.
 It reportedly will not work with USB parallel printer adapters or PCI parallel printer port adapters.</p>
 </div>
 <div class="paragraph">
 <p>Also note that the output is sent verbatim from the DOS application to the printer, without any filtering or conversion.
-Therefore it is important that the printer can understand the printer control codes that are being sent by the application.
+Therefore, it is important that the printer can understand the printer control codes that are being sent by the application.
 In practice this means that this method is only really meant for situations where you have a legacy printer, or are perhaps only sending pure text.</p>
 </div>
 <div class="paragraph">
@@ -1593,13 +1582,12 @@ parallel1=reallpt directlpt:378</pre>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_windows_host_in_combination_with_3rd_party_printing_solution">Windows host, in combination with 3rd-party printing solution</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_windows_host_in_combination_with_3rd_party_printing_solution">Windows host, in combination with 3rd-party printing solution</h3>
 <div class="paragraph">
 <p>In addition to relying entirely on the built-in printing methods, DOSBox-X can also work in combination with external third-party printing solutions like <a href="https://www.printfil.com/">Printfil</a>, <a href="http://www.dosprn.com/">DOSPRN</a>, or <a href="http://sourceforge.net/projects/winprint/">WinPrint</a> (open-source).
 Both Printfil and DOSPRN are shareware applications that specifically list DOSBox-X as supported for printing to any printer configured on the Windows host system.</p>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_windows_host_extended_solution_using_printfil">Windows host, extended solution using Printfil</h3>
@@ -1625,11 +1613,8 @@ Below is a screenshot of its configuration window.</p>
 </div>
 </div>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_linux_host_2">Linux host</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_linux_host_2">Linux host</h3>
 <div class="paragraph">
 <p>First you need to give your Linux user access to the parallel printer port on the Linux host, otherwise you will get permission denied errors.</p>
 </div>
@@ -1680,9 +1665,10 @@ In the case of a real parallel port, the first port will be <code>/dev/parport0<
 </div>
 </div>
 </div>
-<h1 id="_example_print_to_png_or_bmp" class="sect0">Example: Print to PNG or BMP</h1>
-<div class="openblock partintro">
-<div class="content">
+</div>
+<div class="sect1">
+<h2 id="_example_print_to_png_or_bmp">Example: Print to PNG or BMP</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>This method prints to a PNG or BMP image file.</p>
 </div>
@@ -1713,9 +1699,9 @@ Alternatively you can specify a different directory using the <code>docpath=</co
 </div>
 </div>
 </div>
-<h1 id="_example_print_to_postscript" class="sect0">Example: Print to PostScript</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_example_print_to_postscript">Example: Print to PostScript</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>This method prints to a PostScript (PS) image file, which can be easily converted to PDF.</p>
 </div>
@@ -1746,9 +1732,9 @@ Alternatively you can specify a different directory using the <code>docpath=</co
 </div>
 </div>
 </div>
-<h1 id="_example_redirect_print_output_to_a_program_on_the_host" class="sect0">Example: Redirect print output to a program on the host</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_example_redirect_print_output_to_a_program_on_the_host">Example: Redirect print output to a program on the host</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>In the <code>[parallel]</code> section for the parallel1-9 config options you can use the <code>file</code> option to direct the output to a file, which can then optionally be opened by the specified application on the host.
 This application can then be used to view the output, and possibly print it or used to convert the output to something like PDF with a PDF printer.</p>
@@ -1782,7 +1768,7 @@ parallel1=file file:output.prn timeout:2000 openpcl:pcl6 openps:gswin32c openwit
 </div>
 </div>
 <div class="paragraph">
-<p>This will cause any output to LPT1 to be written to output.prn, and if the output is determined to be PCL, it will be opened with a "pcl6" application, or if it is PostScript, it will be opened with <a href="https://www.ghostscript.com/">GhostScript</a> (gswin32c.exe), while for other filetypes it will be opened in notepad.</p>
+<p>This will cause any output to LPT1 to be written to <code>output.prn</code>, and if the output is determined to be PCL, it will be opened with a "pcl6" application, or if it is PostScript, it will be opened with <a href="https://www.ghostscript.com/">GhostScript</a> (gswin32c.exe), while for other filetypes it will be opened in notepad.</p>
 </div>
 <div class="paragraph">
 <p>If you need to pass additional parameters to the application you can either enclose the command with quotes and add the parameters. e.g. <code>openwith:"program arg1 arg2"</code>, the printer file will be added as a final parameter.
@@ -1791,13 +1777,11 @@ If this is not flexible enough, for instance because you need to have the printe
 <div class="paragraph">
 <p>Keep in mind that the output file will be created in your current working directory, if you don&#8217;t specify a path.</p>
 </div>
-</div>
-</div>
 <div class="sect2">
 <h3 id="_linux_postscript_printing_example">Linux PostScript printing example</h3>
 <div class="paragraph">
-<p>In this example, it is assumed that your printing to a PostScript printer in your DOS application.
-This should give you the highest quality output, and depending on the application, you may even get colour by selecting a a colour PostScript printer.
+<p>In this example, it is assumed that you&#8217;re printing to a PostScript printer in your DOS application.
+This should give you the highest quality output, and depending on the application, you may even get colour by selecting a colour PostScript printer.
 The output is saved to a file on the host, to the directory specified with the <code>captures=</code> option, and when the file is closed (when no output is received for 2 seconds), the file will be opened using xdg-open such that it can be printed.</p>
 </div>
 <div class="literalblock">
@@ -1826,9 +1810,11 @@ parallel1=file file:output.ps timeout:2000 squote openps:'open -s "Preview"'</pr
 </div>
 </div>
 </div>
+</div>
+</div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-01-01 01:51:44 -0500
+Last updated 2022-02-01 14:17:48 -0500
 </div>
 </div>
 </body>

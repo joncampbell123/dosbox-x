@@ -5,7 +5,7 @@ ifndef::env-github[:suffixappend:]
 
 Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
 
-# Microsoft Windows Installation Guide
+== Microsoft Windows Installation Guide
 
 toc::[]
 
@@ -17,31 +17,31 @@ Instructions can be found below for the different major versions.
 Later Windows 95, 98 and ME however require that you run the underlying DOS they came with, and as such instead of using the integrated DOS, you will need to boot them inside DOSBox-X.
 Again, instructions are provided below.
 
-## External links
+== External links
 Some external links with useful information:
 
 * link:https://en.wikipedia.org/wiki/Microsoft_Windows[Wikipedia: Microsoft Windows]
 * link:https://en.wikipedia.org/wiki/Microsoft_Windows_version_history[Wikipedia: Microsoft Windows version history]
 
-## Where to get Windows?
+== Where to get Windows?
 These pages assume that you have Windows diskette or CD-ROM images.
 Getting these image files is outside the scope of this guide.
 
-## Windows version highlights
-### Windows versions 1.0-3.11
-For these versions you have the choice if you run the directly in DOSBox-X itself, using the integrated DOS, or if you install a real DOS first and run Windows underneith that.
+== Windows version highlights
+=== Windows versions 1.0-3.11
+For these versions you have the choice if you run the directly in DOSBox-X itself, using the integrated DOS, or if you install a real DOS first and run Windows underneath that.
 
-There are various limitations that Windows imposes that are dependant on the version. A few milestones:
+There are various limitations that Windows imposes that are dependent on the version. A few milestones:
 
 * *MS Windows 1.01* (released Nov 20, 1985)
 ** Initial release
-* *MS Windows 1.02* (released May, 1986)
+* *MS Windows 1.02* (released May 1986)
 ** International release
-* *MS Windows 1.03* (released Aug, 1986)
+* *MS Windows 1.03* (released Aug 1986)
 ** Additional screen and printer drivers
-* *MS Windows 1.04* (released Apr, 1987)
+* *MS Windows 1.04* (released Apr 1987)
 ** Adds limited support for the IBM PS/2
-* *MS Windows/386 2.01* (released Sep, 1987)
+* *MS Windows/386 2.01* (released Sep 1987)
 ** Compaq OEM release with limited drivers
 ** Adds support for protected mode
 ** Adds EMS emulation
@@ -75,7 +75,7 @@ There are various limitations that Windows imposes that are dependant on the ver
 * *MS Windows for Workgroups 3.11* (released Nov 8, 1993)
 ** Standard (286) mode support dropped
 
-### Microsoft Windows 95+
+=== Microsoft Windows 95+
 These versions must be installed in a virtual HDD image.
 
 * *MS Windows 95* (released Aug 24, 1995)
@@ -97,7 +97,7 @@ These versions must be installed in a virtual HDD image.
 ** Adds Active Desktop
 ** Updates DirectX to 5.0
 * *MS Windows 98* (released Jun 25, 1998)
-** Adds Windows Driver Model (WDM) support
+** Add Windows Driver Model (WDM) support
 ** Adds Disk Cleanup, Windows Update, Multi-monitor and Internet Connection sharing
 ** Updates IE to 4.01
 ** Adds Outlook Express, Windows Address Book, FrontPage Express, Microsoft Chat, Personal Web Server and NetShow
@@ -113,7 +113,7 @@ These versions must be installed in a virtual HDD image.
 * *MS Windows ME* (released Sep 14, 2000)
 ** Adds support for USB Mass Storage
 
-## Guides to installing Windows
+== Guides to installing Windows
 
 * link:Guide%3AInstalling-Windows-1.0x[Guide: Installing Windows 1.0x in DOSBox-X]
 * link:Guide%3AInstalling-Windows-2.x[Guide: Installing Windows 2.x in DOSBox-X]

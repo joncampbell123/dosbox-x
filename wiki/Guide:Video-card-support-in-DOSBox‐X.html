@@ -447,69 +447,40 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 </div>
-<h1 id="_selecting_a_video_adapter_in_dosbox_x" class="sect0">Selecting a video adapter in DOSBox-X</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_selecting_a_video_adapter_in_dosbox_x">Selecting a video adapter in DOSBox-X</h2>
+<div class="sectionbody">
 <div id="toc" class="toc">
 <div id="toctitle" class="title">Table of Contents</div>
-<ul class="sectlevel0">
+<ul class="sectlevel1">
 <li><a href="#_selecting_a_video_adapter_in_dosbox_x">Selecting a video adapter in DOSBox-X</a></li>
 <li><a href="#_overview">Overview</a></li>
 <li><a href="#_backwards_compatibility">Backwards compatibility</a></li>
 <li><a href="#_supported_pc_video_modes">Supported PC video modes</a>
-<ul class="sectlevel1">
+<ul class="sectlevel2">
 <li><a href="#_mda">MDA</a></li>
-<li><a href="#_cga">CGA</a>
-<ul class="sectlevel3">
-<li><a href="#_graphics_modes">Graphics modes:</a></li>
-<li><a href="#_text_modes">Text modes:</a></li>
-<li><a href="#_composite_graphics_mode">Composite graphics mode:</a></li>
-<li><a href="#_keyboard_shortcuts">Keyboard shortcuts:</a></li>
-<li><a href="#_cga_machine_options">CGA machine options</a></li>
-<li><a href="#_external_links">External links</a></li>
-<li><a href="#_image_gallery">Image Gallery</a></li>
-</ul>
-</li>
+<li><a href="#_cga">CGA</a></li>
 <li><a href="#_hercules">Hercules</a></li>
-<li><a href="#_ibm_pcjr">IBM PCjr</a>
-<ul class="sectlevel3">
-<li><a href="#_keyboard_shortcuts_2">Keyboard shortcuts:</a></li>
-</ul>
-</li>
+<li><a href="#_ibm_pcjr">IBM PCjr</a></li>
 <li><a href="#_tandy">Tandy</a></li>
-<li><a href="#_ega">EGA</a>
-<ul class="sectlevel3">
-<li><a href="#_graphics_modes_2">Graphics modes:</a></li>
-<li><a href="#_text_modes_2">Text modes:</a></li>
-<li><a href="#_ega_machine_options">EGA machine options</a></li>
-<li><a href="#_external_links_2">External links</a></li>
-<li><a href="#_image_gallery_2">Image Gallery</a></li>
-</ul>
-</li>
+<li><a href="#_ega">EGA</a></li>
 <li><a href="#_amstrad">Amstrad</a></li>
 <li><a href="#_pc_98">PC-98</a></li>
 <li><a href="#_jega">JEGA</a></li>
 <li><a href="#_dcga">DCGA</a></li>
 <li><a href="#_mcga">MCGA</a></li>
 <li><a href="#_vga">VGA</a></li>
-<li><a href="#_svga">SVGA</a>
-<ul class="sectlevel2">
-<li><a href="#_s3_graphics">S3 Graphics</a></li>
-<li><a href="#_tseng_labs">Tseng Labs</a></li>
-<li><a href="#_paradise_systems_pvga1a">Paradise Systems PVGA1A</a></li>
-<li><a href="#_vesa_bios_extensions_vbe">VESA BIOS Extensions (VBE)</a></li>
+<li><a href="#_svga">SVGA</a></li>
 </ul>
 </li>
 <li><a href="#_dual_monitor">Dual monitor</a></li>
 </ul>
-</li>
-</ul>
 </div>
 </div>
 </div>
-<h1 id="_overview" class="sect0">Overview</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_overview">Overview</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>DOSBox-X supports the emulation of a wide range of video adapters that were common in the DOS days.
 This document attempts to help the novice user, especially those that never experienced DOS PC&#8217;s during the 80&#8217;s and 90&#8217;s with selecting an appropriate video adapter for games and programs.</p>
@@ -519,11 +490,11 @@ This document attempts to help the novice user, especially those that never expe
 In the <code>[dosbox]</code> section, by setting <code>machine=</code> to the appropriate value.</p>
 </div>
 <div class="paragraph">
-<p>By default DOSBox-X, just like regular DOSBox on which is it based, emulates a <strong>S3 Trio64</strong> which is a SVGA adapter that is backwards compatible with VGA, EGA and CGA.
+<p>By default, DOSBox-X just like regular DOSBox on which is it based, emulates a <strong>S3 Trio64</strong> which is an SVGA adapter that is backwards compatible with VGA, EGA and CGA.
 In addition, it supports VESA VBE 2.0 modes. As such it will work with most DOS games and applications.</p>
 </div>
 <div class="paragraph">
-<p>As a general rule of thumb, if a game asks you about what video option you want to use, and your looking for the best experience, go in the following order from lowest quality to highest quality:
+<p>As a general rule of thumb, if a game asks you about what video option you want to use, and you&#8217;re looking for the best experience, the following shows the generally recommended order from the lowest quality to the highest quality:
 <strong>MDA &gt; Hercules &gt; CGA &gt; PCjr &gt; Tandy &gt; EGA &gt; VGA &gt; SVGA</strong></p>
 </div>
 <div class="admonitionblock note">
@@ -552,9 +523,9 @@ In some cases PCjr or Tandy may be preferable to EGA, as they often look identic
 </div>
 </div>
 </div>
-<h1 id="_backwards_compatibility" class="sect0">Backwards compatibility</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_backwards_compatibility">Backwards compatibility</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>Many, but not all, PC video adapters were backward compatible with previous generations.</p>
 </div>
@@ -737,10 +708,11 @@ An attempt to standardise was made by VESA with the VESA BIOS Extensions (VBE).
 </div>
 </div>
 </div>
-<h1 id="_supported_pc_video_modes" class="sect0">Supported PC video modes</h1>
 <div class="sect1">
-<h2 id="_mda">MDA</h2>
+<h2 id="_supported_pc_video_modes">Supported PC video modes</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_mda">MDA</h3>
 <div class="paragraph">
 <p>MDA stands for <strong>Monochrome Display Adapter</strong>, and it was introduced by IBM alongside the original IBM PC in 1981.</p>
 </div>
@@ -792,10 +764,8 @@ Or you cycle between them with CTRL-F7.</p>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_cga">CGA</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_cga">CGA</h3>
 <div class="paragraph">
 <p>CGA stands for <strong>Color Graphics Adapter</strong>, and like MDA was introduced by IBM alongside the original IBM PC in 1981.</p>
 </div>
@@ -803,7 +773,7 @@ Or you cycle between them with CTRL-F7.</p>
 <p>As the name implies, it supports colour, and unlike MDA, it supports drawing to the screen which made it popular for games.
 Due to the higher price of the adapter and monitor, and the lower resolution, it was less popular for business use than MDA and later Hercules.
 Also note that CGA is not backward compatible with MDA.
-The vertical refresh of CGA is 60Hz, which matches up well with the majority of modern 60Hz LCD displays.</p>
+The vertical refresh of CGA is 60Hz, which matches up well with the majority of modern 60Hz LCDs.</p>
 </div>
 <div class="sect3">
 <h4 id="_graphics_modes">Graphics modes:</h4>
@@ -842,7 +812,7 @@ Either a digital RGBI monitor, or an analogue composite monitor (or NTSC TV) con
 </div>
 <div class="paragraph">
 <p>The composite connection suffers from a lower quality picture with colour bleeding.
-But it also allows for something called artefact colours, which was a way to have to have more colours.
+But it also allows for something called artefact colours, which was a way to have more colours.
 So where CGA with a RGBI monitor would be limited to just 4 colours in 320x200, with composite you can have 16.
 This composite mode was specifically supported by some games, such as those from Sierra.</p>
 </div>
@@ -857,7 +827,7 @@ But you may have to find a way to force the game to use CGA, if it also supports
 <div class="sect3">
 <h4 id="_keyboard_shortcuts">Keyboard shortcuts:</h4>
 <div class="paragraph">
-<p>By default the following keyboard shortcuts, specific to CGA and PCjr are available:</p>
+<p>By default, the following keyboard shortcuts, specific to CGA and PCjr are available:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -876,7 +846,7 @@ But you may have to find a way to force the game to use CGA, if it also supports
 </ul>
 </div>
 <div class="paragraph">
-<p>If your using <code>machine=cga_mono</code>, you instead have these shortcuts:</p>
+<p>If you&#8217;re using <code>machine=cga_mono</code>, you instead have these shortcuts:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -975,7 +945,7 @@ You can however use the CTRL-F7 and CTRL-F8 key combinations with any of them to
 <div class="content">
 <img src="images/Game:KQ1_CGA.png" alt="Game:KQ1 CGA" width="640">
 </div>
-<div class="title">King&#8217;s Quest 1 with CGA 4-colour on a EGA or VGA adapter</div>
+<div class="title">King&#8217;s Quest 1 with CGA 4-colour on an EGA or VGA adapter</div>
 </div>
 <div class="imageblock left">
 <div class="content">
@@ -1028,7 +998,7 @@ You can however use the CTRL-F7 and CTRL-F8 key combinations with any of them to
 <div class="title">Note</div>
 </td>
 <td class="content">
-To get the above 4-colour screenshot of KQ1 with a EGA or VGA adapter, the game was started with <code>sierra -c</code> to force it into CGA mode.
+To get the above 4-colour screenshot of KQ1 with an EGA or VGA adapter, the game was started with <code>sierra -c</code> to force it into CGA mode.
 </td>
 </tr>
 </table>
@@ -1047,10 +1017,8 @@ To get the above CGA RGB screenshot of KQ1 with <code>machine=cga_rgb</code>, it
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_hercules">Hercules</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_hercules">Hercules</h3>
 <div class="paragraph">
 <p>The Hercules Graphics Card was released in 1982 by Hercules Computer Technology.
 It is a monochrome card that is backward compatible with MDA, with the addition of a single 720x350 graphics mode.
@@ -1097,7 +1065,7 @@ Some software like CheckIt and QBasic may detect a Hercules adapter as MDA, unle
 <div class="title">Note</div>
 </td>
 <td class="content">
-Some 3rd party Hercules compatible cards, like early ATI cards, also had support for displaying CGA mode on a MDA/Hercules compatible monitor.
+Some 3rd party Hercules compatible cards, like early ATI cards, also had support for displaying CGA mode on an MDA/Hercules compatible monitor.
 And there are also TSRs (Terminate and Stay Resident) programs that can emulate CGA on Hercules with varying degrees of success.
 </td>
 </tr>
@@ -1132,10 +1100,8 @@ And there are also TSRs (Terminate and Stay Resident) programs that can emulate 
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_ibm_pcjr">IBM PCjr</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_ibm_pcjr">IBM PCjr</h3>
 <div class="paragraph">
 <p>The PCjr was introduced by IBM in March 1984, and discontinued due to poor sales just over a year later.
 It&#8217;s integrated video card is backwards compatible with CGA, but adds a few new modes:</p>
@@ -1154,7 +1120,7 @@ It&#8217;s integrated video card is backwards compatible with CGA, but adds a fe
 </ul>
 </div>
 <div class="paragraph">
-<p>The vertical refresh of the PCjr like CGA is 60Hz, which matches up well with the majority of modern 60Hz LCD displays.</p>
+<p>The vertical refresh of the PCjr like CGA is 60Hz, which matches up well with the majority of modern 60Hz LCDs.</p>
 </div>
 <div class="paragraph">
 <p>This mode can be set using <code>machine=pcjr</code> in your DOSBox-X config file.
@@ -1209,7 +1175,7 @@ You can however use the CTRL-F7 and CTRL-F8 key combinations with any of them to
 <div class="sect3">
 <h4 id="_keyboard_shortcuts_2">Keyboard shortcuts:</h4>
 <div class="paragraph">
-<p>By default the following keyboard shortcuts, specific to CGA and PCjr are available:</p>
+<p>By default, the following keyboard shortcuts, specific to CGA and PCjr are available:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1239,23 +1205,21 @@ You can however use the CTRL-F7 and CTRL-F8 key combinations with any of them to
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_tandy">Tandy</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_tandy">Tandy</h3>
 <div class="paragraph">
 <p>Tandy graphics, sometimes abbreviated to TGA, was introduced with the Tandy 1000 in 1984, which began as a clone of the IBM PCjr.</p>
 </div>
 <div class="paragraph">
 <p>It has all the CGA and PCjr video modes, but some differences exist, such as how the video memory is mapped, which can cause incompatibilities.
-Later Tandy 1000 models added an additional video mode, called "Tandy Video II" or ETGA for 640x200 at 16 colours.</p>
+Later Tandy 1000 models added a video mode, called "Tandy Video II" or ETGA for 640x200 at 16 colours.</p>
 </div>
 <div class="paragraph">
 <p>Tandy computers with Tandy Graphics were available on the market for much longer than the IBM PCjr, resulting in many games that supported it.
-Tandy computers were also available with faster processors, up to a 286 running at 10MHz while the original IBM PCjr was only ever available with a 4.77MHz 8088.</p>
+Tandy computers were also made available with faster processors, up to a 286 running at 10MHz, while the original IBM PCjr was only ever available with a 4.77MHz 8088.</p>
 </div>
 <div class="paragraph">
-<p>The vertical refresh of the Tandy 1000 like CGA is 60Hz, which matches up well with the majority of modern 60Hz LCD displays.</p>
+<p>The vertical refresh of the Tandy 1000 like CGA is 60Hz, which matches up well with the majority of modern 60Hz LCDs.</p>
 </div>
 <div class="paragraph">
 <p>This mode can be set using <code>machine=tandy</code> in your DOSBox-X config file.
@@ -1306,7 +1270,7 @@ Many games that support both Tandy and EGA, look near identical in both. It woul
 <p><a href="http://www.dosdays.co.uk/computers/Tandy%201000/tandy1000.php">DOS Days on the Tandy 1000 Series</a></p>
 </li>
 <li>
-<p><a href="https://www.youtube.com/watch?v=mYHtojsaRkY">Youtube : The Tandy 1000 - The best MS-DOS computer in 1984</a></p>
+<p><a href="https://www.youtube.com/watch?v=mYHtojsaRkY">YouTube : The Tandy 1000 - The best MS-DOS computer in 1984</a></p>
 </li>
 </ul>
 </div>
@@ -1321,10 +1285,8 @@ Many games that support both Tandy and EGA, look near identical in both. It woul
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_ega">EGA</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_ega">EGA</h3>
 <div class="paragraph">
 <p>EGA stands for <strong>Enhanced Graphics Adapter</strong> and was introduced by IBM in 1984, as the official follow-on to CGA.
 It still only supports up to 16 colours on-screen, but out of a gamut of 64 colours and at higher resolution.</p>
@@ -1338,7 +1300,7 @@ Some EGA clones even provided 256KiB, and additional high-res video modes.</p>
 As such, it does not support the CGA artefact colours.</p>
 </div>
 <div class="paragraph">
-<p>The vertical refresh of EGA like CGA is 60Hz, which matches up well with the majority of modern 60Hz LCD displays.</p>
+<p>The vertical refresh of EGA like CGA is 60Hz, which matches up well with the majority of modern 60Hz LCDs.</p>
 </div>
 <div class="paragraph">
 <p>The EGA emulation provided by DOSBox-X by default provides 256KiB of video RAM, by setting <code>vmemsizekb=</code> in the <code>[video]</code>section of the DOSBox-X config file, it is possible to reduce it instead to 64 or 128KB. e.g.,</p>
@@ -1466,12 +1428,10 @@ Some clone EGA cards added extra video memory and video modes, typically known a
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_amstrad">Amstrad</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_amstrad">Amstrad</h3>
 <div class="paragraph">
-<p>Amstrad in 1986 introduced the PC1512 which has CGA (RGBI only) graphics but also adds an additional 640x200 16 colour mode.</p>
+<p>Amstrad in 1986 introduced the PC1512 which has CGA (RGBI only) graphics but also adds a 640x200 16 colour mode.</p>
 </div>
 <div class="paragraph">
 <p>Very little software exists that can use this mode.
@@ -1479,7 +1439,7 @@ One example was the bundled GEM Paint program, and another is a pretty bad and o
 Lastly there is a <a href="http://sierrahelp.com/Patches-Updates/MiscUpdates.html">PC1512.DRV</a> driver for old Sierra SCI0 and SCI1 games.</p>
 </div>
 <div class="paragraph">
-<p>The vertical refresh of the Amstrad like CGA is 60Hz, which matches up well with the majority of modern 60Hz LCD displays.</p>
+<p>The vertical refresh of the Amstrad like CGA is 60Hz, which matches up well with the majority of modern 60Hz LCDs.</p>
 </div>
 <div class="paragraph">
 <p>This mode can be set using <code>machine=amstrad</code> in your DOSBox-X config file.
@@ -1506,10 +1466,8 @@ Video memory is fixed to 64KiB and cannot be changed.</p>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_pc_98">PC-98</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_pc_98">PC-98</h3>
 <div class="paragraph">
 <p>The NEC PC-9800, simply known as the PC-98, were a family of computers made by NEC and sold in Japan throughout 1982 to 2000, which used MS-DOS with modifications to support the PC-98 BIOS and Japanese DBCS (Double Byte Character Set) characters. It&#8217;s supported in DOSBox-X by setting <code>machine=pc98</code> in your DOSBox-X config file. More information about PC-98 support can be found in the PC-98 guide page:</p>
 </div>
@@ -1521,10 +1479,8 @@ Video memory is fixed to 64KiB and cannot be changed.</p>
 </ul>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_jega">JEGA</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_jega">JEGA</h3>
 <div class="paragraph">
 <p>JEGA is a variation of EGA for the Japanese market, conceived by Microsoft Japan and released in 1987 as part of AX (Architecture eXtended).</p>
 </div>
@@ -1535,7 +1491,7 @@ Video memory is fixed to 64KiB and cannot be changed.</p>
 <p>It was not very successful, as IBM introduced VGA shortly after which has a similar video mode.</p>
 </div>
 <div class="paragraph">
-<p>The vertical refresh of JEGA like EGA and CGA is 60Hz, which matches up well with the majority of modern 60Hz LCD displays.</p>
+<p>The vertical refresh of JEGA like EGA and CGA is 60Hz, which matches up well with the majority of modern 60Hz LCDs.</p>
 </div>
 <div class="paragraph">
 <p>This mode can be set using <code>machine=jega</code> in your DOSBox-X config file.
@@ -1549,18 +1505,16 @@ Video memory defaults to 256KiB.</p>
 </ul>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_dcga">DCGA</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_dcga">DCGA</h3>
 <div class="paragraph">
 <p>DCGA is the video mode used by the Olivetti M24, AT&amp;T 6300 and Toshiba T3100. DOSBox-X emulates the DCGA mode via the VGA mode.</p>
 </div>
 <div class="paragraph">
-<p>This mode can be enter via <code>DCGA</code> command when you are in a VGA video mode.</p>
+<p>This mode can be enabled by typing <code>DCGA</code> at the DOSBox-X prompt when you&#8217;re in a VGA video mode.</p>
 </div>
 <div class="paragraph">
-<p>If you enable Toshiba J-3100 emulation (by setting <code>dosv=jp</code> and <code>j3100=on</code> in your DOSBox-X config file), then the J-3100 mode will be enabled when DOSBox-X starts. Typing <code>VGA</code> command to go to the Japanese DOS/V mode, and then typing <code>DCGA</code> command will return to the J-3100 emulation mode.</p>
+<p>If you enable Toshiba J-3100 emulation (by setting <code>dosv=jp</code> and <code>j3100=on</code> in your DOSBox-X config file), then the J-3100 mode will be enabled when DOSBox-X starts. Typing the <code>VGA</code> command you can go to the Japanese DOS/V mode, and then typing <code>DCGA</code> command will return you to the J-3100 emulation mode.</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1570,10 +1524,8 @@ Video memory defaults to 256KiB.</p>
 </ul>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_mcga">MCGA</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_mcga">MCGA</h3>
 <div class="paragraph">
 <p>MCGA stands for <strong>Multi-Color Graphics Array</strong> and was introduced by IBM in 1987 as integrated in the IBM PS/2 Model 30 and a bit later the Model 25.
 No stand-alone MCGA cards were ever produced.</p>
@@ -1587,7 +1539,7 @@ In effect, MCGA can be thought of as either an enhanced CGA card, or a cost-redu
 <p>As the high-colour mode is near identical to the one offered by VGA, many games have a combined "VGA/MCGA" video option, and selecting MCGA with a VGA adapter normally also works.</p>
 </div>
 <div class="paragraph">
-<p>One rare example of a game that offers a MCGA option, but does not support VGA is <a href="https://www.mobygames.com/game/dos/thexder">Thexder</a>.
+<p>One rare example of a game that offers an MCGA option, but does not support VGA is <a href="https://www.mobygames.com/game/dos/thexder">Thexder</a>.
 This is not because the game could not have worked on VGA, but rather because it looks for specific machine settings that are only true on the above PS/2 Models.
 As such as part of the MCGA emulation, DOSBox-X also emulates some PS/2 specific machine settings, just enough to make games like Thexder work in MCGA mode.</p>
 </div>
@@ -1601,7 +1553,7 @@ As such as part of the MCGA emulation, DOSBox-X also emulates some PS/2 specific
 <div class="title">Note</div>
 </td>
 <td class="content">
-Many games that offer both a MCGA and VGA option, used the same resolution and assets for both, making them look identical.
+Many games that offer both an MCGA and VGA option, used the same resolution and assets for both, making them look identical.
 However, due to other MCGA limitations the VGA option may provide a better experience.
 </td>
 </tr>
@@ -1615,10 +1567,8 @@ However, due to other MCGA limitations the VGA option may provide a better exper
 </ul>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_vga">VGA</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_vga">VGA</h3>
 <div class="paragraph">
 <p>VGA stands for <strong>Video Graphics Array</strong> and was introduced by IBM in 1987.
 One of the stand-out features was that it could display up to 256 colours from a palette of 262,144.</p>
@@ -1641,7 +1591,7 @@ One of the stand-out features was that it could display up to 256 colours from a
 </div>
 <div class="paragraph">
 <p>One new feature is the ability to run at 70Hz vertical refresh, where CGA and EGA had only supported 60Hz.
-This is important for modern LCD displays, as many will only run at 60Hz, which causes issues with many games that were designed to run at 70Hz, resulting in dropped frames.
+This is important for modern LCDs, as many will only run at 60Hz, which causes issues with many games that were designed to run at 70Hz, resulting in dropped frames.
 This can cause both video and audio distortion, as in many games the audio is linked to the frame rate.</p>
 </div>
 <div class="paragraph">
@@ -1665,10 +1615,8 @@ This can cause both video and audio distortion, as in many games the audio is li
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_svga">SVGA</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_svga">SVGA</h3>
 <div class="paragraph">
 <p>Many clones were produced of the VGA adapter, often with enhanced capabilities like more video memory, additional high-res video modes and various types of acceleration which were typically referred to as SuperVGA, or SVGA.</p>
 </div>
@@ -1679,8 +1627,8 @@ This can cause both video and audio distortion, as in many games the audio is li
 </li>
 </ul>
 </div>
-<div class="sect2">
-<h3 id="_s3_graphics">S3 Graphics</h3>
+<div class="sect3">
+<h4 id="_s3_graphics">S3 Graphics</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -1703,8 +1651,8 @@ The default <code>machine=svga_s3</code> option refers to the S3 Trio64.
 </tr>
 </table>
 </div>
-<div class="sect3">
-<h4 id="_s3_trio64">S3 Trio64</h4>
+<div class="sect4">
+<h5 id="_s3_trio64">S3 Trio64</h5>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -1766,13 +1714,13 @@ More video memory can however be used in VESA mode.
 </ul>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_experimental_s3_models">Experimental S3 models</h4>
+<div class="sect4">
+<h5 id="_experimental_s3_models">Experimental S3 models</h5>
 <div class="paragraph">
 <p>The emulation of the following S3 SVGA models should be considered experimental.</p>
 </div>
-<div class="sect4">
-<h5 id="_s3_86c928">S3 86c928</h5>
+<div class="sect5">
+<h6 id="_s3_86c928">S3 86c928</h6>
 <div class="admonitionblock warning">
 <table>
 <tr>
@@ -1803,8 +1751,8 @@ Early Windows accelerator card.</p>
 </ul>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_s3_vision864">S3 Vision864</h5>
+<div class="sect5">
+<h6 id="_s3_vision864">S3 Vision864</h6>
 <div class="admonitionblock warning">
 <table>
 <tr>
@@ -1831,8 +1779,8 @@ The emulation of this card is considered experimental. It is not recommended for
 </ul>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_s3_vision868">S3 Vision868</h5>
+<div class="sect5">
+<h6 id="_s3_vision868">S3 Vision868</h6>
 <div class="admonitionblock warning">
 <table>
 <tr>
@@ -1860,8 +1808,8 @@ Based on the Vision864, with added motion video acceleration.</p>
 </ul>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_s3_trio32">S3 Trio32</h5>
+<div class="sect5">
+<h6 id="_s3_trio32">S3 Trio32</h6>
 <div class="admonitionblock warning">
 <table>
 <tr>
@@ -1889,8 +1837,8 @@ Low-cost 32bit version of the Trio64.</p>
 </ul>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_s3_trio64v">S3 Trio64V+</h5>
+<div class="sect5">
+<h6 id="_s3_trio64v">S3 Trio64V+</h6>
 <div class="admonitionblock warning">
 <table>
 <tr>
@@ -1918,8 +1866,8 @@ Similar to the Trio64, but adds partial MPEG-1 decode acceleration.</p>
 </ul>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_s3_virge">S3 ViRGE</h5>
+<div class="sect5">
+<h6 id="_s3_virge">S3 ViRGE</h6>
 <div class="admonitionblock warning">
 <table>
 <tr>
@@ -1956,8 +1904,8 @@ These cards introduced S3&#8217;s own <strong>S3D</strong> 3D acceleration techn
 </ul>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_s3_virgevx">S3 ViRGE/VX</h5>
+<div class="sect5">
+<h6 id="_s3_virgevx">S3 ViRGE/VX</h6>
 <div class="admonitionblock warning">
 <table>
 <tr>
@@ -1987,8 +1935,8 @@ Similar to the S3 ViRGE but with up to 8MB VRAM and higher resolution graphics m
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_tseng_labs">Tseng Labs</h3>
+<div class="sect3">
+<h4 id="_tseng_labs">Tseng Labs</h4>
 <div class="ulist">
 <ul>
 <li>
@@ -2002,8 +1950,8 @@ Similar to the S3 ViRGE but with up to 8MB VRAM and higher resolution graphics m
 </li>
 </ul>
 </div>
-<div class="sect3">
-<h4 id="_tseng_labs_et3000">Tseng Labs ET3000</h4>
+<div class="sect4">
+<h5 id="_tseng_labs_et3000">Tseng Labs ET3000</h5>
 <div class="paragraph">
 <p>Introduced in 1987.
 Early VGA clone card.</p>
@@ -2036,8 +1984,8 @@ Video memory defaults to 512KiB and cannot be adjusted.</p>
 </ul>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_tseng_labs_et4000">Tseng Labs ET4000</h4>
+<div class="sect4">
+<h5 id="_tseng_labs_et4000">Tseng Labs ET4000</h5>
 <div class="paragraph">
 <p>Introduced in 1989.
 Became fairly popular, and supported in SVGA mode by various games.</p>
@@ -2097,8 +2045,8 @@ vmemsizekb=512</pre>
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_paradise_systems_pvga1a">Paradise Systems PVGA1A</h3>
+<div class="sect3">
+<h4 id="_paradise_systems_pvga1a">Paradise Systems PVGA1A</h4>
 <div class="paragraph">
 <p>Introduced in 1988.
 Generic clone VGA card.</p>
@@ -2144,10 +2092,10 @@ vmemsizekb=0</pre>
 </ul>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_vesa_bios_extensions_vbe">VESA BIOS Extensions (VBE)</h3>
+<div class="sect3">
+<h4 id="_vesa_bios_extensions_vbe">VESA BIOS Extensions (VBE)</h4>
 <div class="paragraph">
-<p>During the late 80&#8217;s and early 90&#8217;s many video card manufacturers existed, and as IBM was no longer leading the market, each manufacturer was doing it&#8217;s own thing with regards to setting the cards SVGA modes. This made it very difficult for software developers as they needed to support a plethora of different cards if they wanted to offer more then basic VGA.</p>
+<p>During the late 80&#8217;s and early 90&#8217;s many video card manufacturers existed, and as IBM was no longer leading the market, each manufacturer was doing its own thing in regard to setting the cards SVGA modes. This made it very difficult for software developers as they needed to support a plethora of different cards if they wanted to offer more than basic VGA.</p>
 </div>
 <div class="paragraph">
 <p>As such the Video Electronics Standards Association (VESA) was born, and one of the first standardization efforts they led was the VESA BIOS Extensions (VBE).</p>
@@ -2331,7 +2279,7 @@ Some DOS games and demos assume one bit depth or the other and do not enumerate 
 <ul>
 <li>
 <p>If set, allow low resolution VESA modes (320x200x16/24/32bpp and so on).
-You could set this to false to simulate SVGA hardware with a BIOS that does not support the lowres modes for testing purposes.</p>
+You could set this too false to simulate SVGA hardware with a BIOS that does not support the lowres modes for testing purposes.</p>
 </li>
 </ul>
 </div>
@@ -2468,6 +2416,7 @@ Disabled by default.</p>
 <p><a href="https://en.wikipedia.org/wiki/VESA_BIOS_Extensions">Wikipedia article on VESA BIOS Extensions</a></p>
 </li>
 </ul>
+</div>
 </div>
 </div>
 </div>
@@ -2611,7 +2560,7 @@ Because both the second display code and the integrated debugger uses the termin
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-01-01 01:51:44 -0500
+Last updated 2022-02-01 14:17:48 -0500
 </div>
 </div>
 </body>

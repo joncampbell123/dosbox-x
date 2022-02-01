@@ -2,43 +2,43 @@
 
 Back to the link:Guide%3ADOS-Installation-in-DOSBox‐X[PC DOS and MS-DOS Installation Guide]
 
-# Installing DOS 2.x-3.x in DOSBox-X
+== Installing DOS 2.x-3.x in DOSBox-X
 
 toc::[]
 
-## Overview
-### Key new features of DOS 2.00
+== Overview
+=== Key new features of DOS 2.00
 ** First version to support HDDs (still using FAT12)
 ** First version to support directories
 ** First version to support redirection (pipes)
 ** First version to support TSRs
 ** First version to support installable device drivers
 ** First version to introduce CONFIG.SYS
-** First to support 5.25" 9-sector 180KB (SSDD) and 360KB disks (DSDD)
+** First to support 5.25" 9-sector 180KB (SSDD) and 360KB (DSDD) disks
 
-### Key new features of DOS 3.00
+=== Key new features of DOS 3.00
 ** Maximum partition size of 32MB (using the new FAT16)
 ** First version to support 5.25" 1.2MB disks (HD)
 ** First version to support the AT internal clock
 ** First version to support file locking and file redirection
 ** First version to include SHARE.EXE, ATTRIB.EXE, KEYBxx.COM
 
-### Key new features of DOS 3.10
+=== Key new features of DOS 3.10
 ** Adds features for networking (e.g. IFS, remote file and print API)
 
-### Key new features of DOS 3.20
+=== Key new features of DOS 3.20
 ** First version to support 3.5" 720kB disks (2DD)
 ** First version to support a phantom B: drive
 ** First version to include REPLACE.EXE, XCOPY.EXE
 
-### Key new features of DOS 3.30
+=== Key new features of DOS 3.30
 ** First version to support the MBR partitioning scheme with primary, extended and logical partitions
 ** First version to support HDDs up to 504MB (partitions still limited to 32MB)
 ** First version to support 3.5" 1.44MB disks (HD)
 
-## This guide applies to
+== This guide applies to
 
-WARNING: DOSBox-X is a IBM PC emulator, and as such the official IBM DOS and later packaged Microsoft DOS versions are the most compatible.
+WARNING: DOSBox-X is an IBM PC emulator, and as such the official IBM DOS and later packaged Microsoft DOS versions are the most compatible.
 Many early IBM PC clone systems had various incompatibilities, and had custom OEM versions of DOS.
 Since DOSBox-X does not emulate the peculiarities of such early clone systems, there OEM DOS versions are also not supported.
 
@@ -61,21 +61,21 @@ Since DOSBox-X does not emulate the peculiarities of such early clone systems, t
 ** First _packaged_ MS-DOS product available to OEMs
 * Microsoft MS-DOS 3.30
 
-## External links
+== External links
 
 * http://www.os2museum.com/wp/dos/dos-2-0-and-2-1/
 * http://www.os2museum.com/wp/dos/dos-3-0-3-2/
 * http://www.os2museum.com/wp/dos/dos-3-3/
 
-## Notes
+== Notes
 
 * For DOS 2.x, the maximum partition size depends on the OEM version, and should be 16 or 32MB using a FAT12 filesystem.
 * For DOS 3.00-3.21, the maximum partition size is supposed to be 32MB, using a FAT16 filesystem, but in reality this only appears to be the case for PC DOS 3.0 and 3.1. Other DOS versions are in practice limited to either 31MB, or their ``FDISK`` (or equivalent) tool is simply incompatible with DOSBox-X. For this reason the below examples will use 31MB for maximum compatibility between DOS versions.
-* While it is possible to use a HDD size larger than the maximum partition size, this is not recommended as these DOS versions only support a maximum of one DOS partition per HDD. In effect, you will not be able to access the additional capacity from DOS, and it is therefore waisted space. In addition the ``FDISK`` option to use the entire fixed disk for DOS gets confused if the drive is larger than 32MB, and depending on the DOS version will either overflow such that a 40MB HDD image becomes a 40-32=8MB partition, or it will create a drive that cannot be formatted.
+* While it is possible to use an HDD size larger than the maximum partition size, this is not recommended as these DOS versions only support a maximum of one DOS partition per HDD. In effect, you will not be able to access the additional capacity from DOS, and it is therefore waisted space. In addition, the ``FDISK`` option to use the entire fixed disk for DOS gets confused if the drive is larger than 32MB, and depending on the DOS version will either overflow such that a 40MB HDD image becomes a 40-32=8MB partition, or it will create a drive that cannot be formatted.
 |===
 |DOS|OEM|Maximum partition size|Note
 
-|MS-DOS 2.11|Tandy 1000|-|Requires machine=tandy. Could read a HDD image created with PC DOS 2.10, but could not boot from it (after SYS), perhaps with HFORMAT which I could not easily locate...
+|MS-DOS 2.11|Tandy 1000|-|Requires machine=tandy. Could read an HDD image created with PC DOS 2.10, but could not boot from it (after SYS), perhaps with HFORMAT which I could not easily locate...
 |MS-DOS 2.11|Zenith|-|Incompatible disk preparation software
 |MS-DOS 3.10|Compaq|-|Incompatible FDISK
 |MS-DOS 3.10|HP|31MB|Fails to boot from diskette, this can be circumvented by renaming CONFIG.SYS. FDISK hangs with 32MB
@@ -93,7 +93,7 @@ Since DOSBox-X does not emulate the peculiarities of such early clone systems, t
 
 The ``IMGMOUNT`` size parameter should have the format of: ``512,<sectors>,<heads>,<cylinders>``.
 
-## Creating a DOS 2.0-3.21 HDD image
+== Creating a DOS 2.0-3.21 HDD image
 
 First you need to start DOSBox-X, and create an empty HDD image file.
 
@@ -112,11 +112,11 @@ You are now ready to boot the DOS diskette image:
 ....
  BOOT dos.img
 ....
-Assuming that your uncompressed DOS 3.0-3.2 image is named dos.img and in your current working directory, it should boot DOS from the diskette image.
+Assuming that your uncompressed DOS 2.0-3.21 floppy image file is named dos.img and in your current working directory, it should boot DOS from the diskette image.
 
 image::images/MS-DOS:PC-DOS_3.2_BOOT.png[Booting PC DOS 3.2 from diskette]
 
-These early DOS versions did not have an installer, so the preparation and installation is a manual process.
+These early DOS versions did not have an installer, so the preparation of the harddisk and installation of DOS is a manual process.
 
 You need to start with creating a DOS partition.
 
@@ -128,14 +128,14 @@ image::images/MS-DOS:PC-DOS_3.2_FDISK_Restart.png[PC DOS 3.2 FDISK restart scree
 After it is finished, press any key and DOS will reboot DOSBox-X and your again at the DOSBox-X ``Z:\>`` prompt.
 At this point the HDD image is partitioned, but not yet formatted or made bootable, so that is what you need to do next.
 
-Since there is now a partition, it is no longer necessary to specify the geometry.
+Since there is now a partition, DOSBox-X can now autodetect the disk geometry. As such, it is no longer necessary to specify the geometry settings.
 ....
  IMGMOUNT 2 hdd.img -fs none
  BOOT dos.img
 ....
 You have now again booted from the disk image, and are ready to format the C: drive and transfer the system files.
 
-TIP: As a IBM PC DOS exclusive, starting with PC DOS 3.0, there is the ``link:https://web.csulb.edu/~murdock/select.html[SELECT.COM]`` program which formats and transfers the OS from one diskette to another.
+TIP: As an IBM PC DOS exclusive, starting with PC DOS 3.0, there is the ``link:https://web.csulb.edu/~murdock/select.html[SELECT.COM]`` program which formats and transfers the OS from one diskette to another.
 With PC DOS 3.2 this is enhanced to also support transfer to the HDD with the following syntax: ``SELECT A: C: 1 US``. The options represent the source, destination, country code and keyboard code.
 ....
  FORMAT C: /S
@@ -149,8 +149,8 @@ You can optionally copy over the rest of the diskette contents at this point
 ....
 You can also create a ``AUTOEXEC.BAT`` and ``CONFIG.SYS`` on the HDD with the included ``EDLIN`` editor.
 
-From the DOSBox-X menu bar select Main and then select Reset guest system.
-You are again at the DOSBox-X ``Z:\>`` prompt.
+From the DOSBox-X menu bar select Main and then select "Reset guest system".
+You should be again at the DOSBox-X ``Z:\>`` prompt.
 
 Your setup is now complete and all that is left is how to boot the image normally.
 From the DOSBox-X ``Z:\>`` prompt this can be accomplished with:
@@ -165,7 +165,7 @@ The advantage of being able to address it as "C" is that you can access the file
 
 image::images/MS-DOS:PC-DOS_3.2_BOOT_HDD.png[PC DOS 3.2 Boot from HDD]
 
-## Creating a DOS 3.3 HDD image
+== Creating a DOS 3.3 HDD image
 Creating a DOS 3.3 HDD image is nearly identical to that of DOS 3.0-3.2 above with a few notes
 
 * DOS 3.3 introduced the MBR partitioning scheme with primary, extended and logical partitions, that was used for all later DOS versions.

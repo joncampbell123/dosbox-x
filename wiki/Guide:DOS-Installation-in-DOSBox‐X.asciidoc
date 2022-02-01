@@ -5,16 +5,16 @@ ifndef::env-github[:suffixappend:]
 
 Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
 
-# PC DOS and MS-DOS Installation Guide
+== PC DOS and MS-DOS Installation Guide
 
 toc::[]
 
 This guide explains how to boot regular (or real) IBM PC DOS or Microsoft MS-DOS in DOSBox-X, including creating hard disk images.
 
-## README.1ST
+== README.1ST
 Before going through this guide, consider if you really need this as the integrated DOS functionality in DOSBox-X is more convenient for typical use-cases.
 Booting real DOS is rarely necessary to run DOS applications and games, or even Windows version up to 3.11 in DOSBox-X.
-And even if you have a application that requires a specific DOS version, you can change the reported version of the integrated DOS in DOSBox-X.
+And even if you have an application that requires a specific DOS version, you can change the reported version of the integrated DOS in DOSBox-X.
 
 There are three ways to change the DOS version that DOSBox-X reports:
 
@@ -24,17 +24,17 @@ There are three ways to change the DOS version that DOSBox-X reports:
 
 NOTE: LFN (Long FileName) support will be enabled when the reported version is set to 7.0 or higher with the default setting, and FAT32 disk image support will be enabled when the reported version is set to 7.1 or higher.
 
-## Disadvantages of booting DOS in DOSBox-X
+== Disadvantages of booting DOS in DOSBox-X
 Some disadvantages of booting regular DOS in DOSBox-X includes:
 
 * Inability to use the ``MOUNT`` command to access directories on the host filesystem. All storage will have to be in the form of images, and they need to be mounted using ``IMGMOUNT`` *before* using the ``BOOT`` command to boot regular DOS.
-* If you need to access a CD or DVD drive you need to load a IDE/PATA CD/DVD driver and MSCDEX (or equivalent)
+* If you need to access a CD or DVD drive you need to load an IDE/PATA CD/DVD driver and MSCDEX (or equivalent)
 * If you need a mouse, you need to load a mouse driver (e.g. MOUSE.COM or CTMOUSE.EXE)
 * Less free memory in the lower 640KB range, and having to tune available memory by selectively loading drivers high
 * If you need XMS memory you need to load a driver (typically HIMEM.SYS)
 * If you need EMS and/or UMB memory you need to load a driver (typically EMM386.EXE)
 
-## External links
+== External links
 Some external links with useful information:
 
 * link:https://en.wikipedia.org/wiki/MS-DOS[Wikipedia: MS-DOS]
@@ -46,14 +46,14 @@ Some external links with useful information:
 * link:https://www.computerhope.com/cdromd.htm[CD-ROM driver help]
 * link:https://www.computerhope.com/issues/ch000007.htm[How to get a mouse to work in MS-DOS]
 
-## Where to get DOS?
+== Where to get DOS?
 These pages assume that you have PC DOS or MS-DOS diskette images.
 Getting these image files is outside the scope of this guide.
 
-## DOS version highlights
-### DOS versions 1.0-5.0x
+== DOS version highlights
+=== DOS versions 1.0-5.0x
 Unless noted otherwise, the PC DOS and MS-DOS versions are equivalent for this guide.
-There are various limitations that DOS imposes that are dependant on the version.
+There are various limitations that DOS imposes that are dependent on the version.
 A few milestones:
 
 * *PC DOS 1.0*, supports only 5.25" 8-sector 160KB (SSDD) diskettes
@@ -84,7 +84,7 @@ A few milestones:
 DOS 5 is the last version for which Microsoft and IBM shared code.
 From this point, Microsoft MS-DOS and IBM PC DOS are developed independently and start to diverge.
 
-### Microsoft MS-DOS 6+
+=== Microsoft MS-DOS 6+
 * *MS-DOS 6.0* included an updated HIMEM.SYS XMS 3.x driver with support for up to 64MB RAM
 * *MS-DOS 7.0* (included with Windows 95 and 95A)
 ** First version to support VFAT
@@ -97,7 +97,7 @@ From this point, Microsoft MS-DOS and IBM PC DOS are developed independently and
 * *MS-DOS 8.0* (included with Windows ME)
 ** Removed some features such as real-mode support, although there are patches to re-enable some of these features.
 
-### IBM PC DOS 6+
+=== IBM PC DOS 6+
 * *PC DOS 6.1*
 * *PC DOS 6.3*
 * *PC DOS 7.0 / 2000*
@@ -105,11 +105,11 @@ From this point, Microsoft MS-DOS and IBM PC DOS are developed independently and
 * *PC DOS 7.1* (kernel files only, and only for OEMs)
 ** Adds support for LBA and FAT32
 
-## DOS editions
+== DOS editions
 MS-DOS was licensed by many clone manufacturers and in the early days these OEM editions were _customized_ to the manufacturer, and therefore many of these early OEM specific editions don't work, or only work partially in DOSBox-X.
 Because of this, up to DOS version 3.2, it is typically easier to use the IBM PC DOS versions in DOSBox-X.
 
-## Booting DOS from diskettes
+== Booting DOS from diskettes
 Booting DOS from a diskette image is pretty straight forward.
 Start DOSBox-X and you should find yourself at the DOSBox-X ``Z:\>`` prompt.
 This is not a real DOS, but a 'simulated' DOS that is compatible with most DOS games and applications.
@@ -122,7 +122,7 @@ This even works for the original IBM PC DOS Version 1.00.
 
 image::images/MS-DOS:PC-DOS_1.0.png[Booting IBM PC DOS 1.00]
 
-## Guides to installing DOS in DOSBox-X
+== Guides to installing DOS in DOSBox-X
 
 * link:Guide%3AInstalling-DOS-2.x-3.x[Guide: Installing DOS 2.x-3.x in DOSBox-X]
 * link:Guide%3AInstalling-DOS-4[Guide: Installing DOS 4.0x in DOSBox-X]
@@ -131,16 +131,16 @@ image::images/MS-DOS:PC-DOS_1.0.png[Booting IBM PC DOS 1.00]
 * link:Guide%3AInstalling-PC-DOS-6[Guide: Installing PC DOS 6.x in DOSBox-X]
 * link:Guide%3AInstalling-PC-DOS-7[Guide: Installing PC DOS 7/2000 in DOSBox-X]
 
-## Hints and Tips
-### DOS disk caching software
+== Hints and Tips
+=== DOS disk caching software
 DOS may put SMARTDRV.EXE in AUTOEXEC.BAT to run on startup.
-This made sense back in the day, but it provides no speed advantages when run on an emulator on a modern host operating system. In fact it may actually be counter productive.
+This made sense back in the day, but it provides no speed advantages when run on an emulator on a modern host operating system. In fact, it may actually be counterproductive.
 As such it is recommended to disable SmartDrive.
 
-### Shutdown DOS
-Normally when running DOSBox-X, you can simply type either ``EXIT`` or ``SHUTDOWN /S`` command and DOSBox-X will close. The ``/S`` option of ``SHUTDOWN`` command instructs DOSBox to shutdown, and it relies on the APM support provided by DOSBox-X. It has become a built-in DOS command as of DOSBox-X version 0.83.20.
+=== Shutdown DOS
+Normally when running DOSBox-X, you can simply type either ``EXIT`` or ``SHUTDOWN /S`` command and DOSBox-X will close. The ``/S`` option of ``SHUTDOWN`` command instructs DOSBox to shut down, and it relies on the APM support provided by DOSBox-X. It has become a built-in DOS command as of DOSBox-X version 0.83.20.
 
-On the other hand, if you are running a real DOS disk image, you will need to copy the ``SHUTDOWN.COM`` program (located in the ``Z:\BIN`` directory) to your disk image. This can be useful for scripted operations, for instance if your running a program from AUTOEXEC.BAT, and want it to shutdown DOSBox-X when it finishes.
+On the other hand, if you are running a real DOS disk image, you will need to copy the ``SHUTDOWN.COM`` program (located in the ``Z:\BIN`` directory) to your disk image. This can be useful for scripted operations, for instance if you're running a program from AUTOEXEC.BAT, and want it to shut down DOSBox-X when it finishes.
 
 NOTE: If SMARTDRV is being used, you MUST do a ``SMARTDRV /C`` *before* invoking the ``SHUTDOWN`` command as otherwise you risk filesystem corruption.
 
@@ -155,17 +155,17 @@ SHUTDOWN.COM /S
 ....
 With this example, it will start Windows automatically on startup, and when you exit Windows, it will flush the disk cache and shutdown DOSBox-X.
 
-### Long wait on HIMEM.SYS
-If HIMEM is being loaded on startup, you may get a message "HIMEM is testing extended memory...", which can take a considerable amount of time and is pointless in a emulated environment.
+=== Long wait on HIMEM.SYS
+If HIMEM is being loaded on startup, you may get a message "HIMEM is testing extended memory...", which can take a considerable amount of time and is pointless in an emulated environment.
 You can bypass it by editing CONFIG.SYS and changing ``DEVICE=C:\DOS\HIMEM.SYS`` to ``DEVICE=C:\DOS\HIMEM.SYS /TESTMEM:OFF``.
 
-### Reboot DOS
+=== Reboot DOS
 You can reboot (restart) DOS by selecting the "Reboot guest system" menu item (under "Main").
 If for some reason you want to do a reboot from the command-line, you can do so with the command ``SHUTDOWN /R``. For running real DOS disk images, you need to copy the ``SHUTDOWN.COM`` program located in the ``Z:\BIN`` directory to your disk image.
 For rebooting DOS with such a command you may also want to check the "Enable quick reboot" menu item (under "DOS") for a faster restart of the guest DOS system.
 
-### Boot menu
-When using ``IMGMAKE`` to create a partitioned image, and when booting from the image afterwards you will get the following boot menu with a 4 second timeout.
+=== Boot menu
+When using ``IMGMAKE`` to create a partitioned image, and when booting from the image afterwards you will get the following boot menu with a 4-second timeout.
 
 ....
 F1 . . . Dos

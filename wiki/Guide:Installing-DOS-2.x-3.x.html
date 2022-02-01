@@ -447,14 +447,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 </div>
-<h1 id="_installing_dos_2_x_3_x_in_dosbox_x" class="sect0">Installing DOS 2.x-3.x in DOSBox-X</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_installing_dos_2_x_3_x_in_dosbox_x">Installing DOS 2.x-3.x in DOSBox-X</h2>
+<div class="sectionbody">
 <div id="toc" class="toc">
 <div id="toctitle" class="title">Table of Contents</div>
-<ul class="sectlevel0">
-<li><a href="#_installing_dos_2_x_3_x_in_dosbox_x">Installing DOS 2.x-3.x in DOSBox-X</a>
 <ul class="sectlevel1">
+<li><a href="#_installing_dos_2_x_3_x_in_dosbox_x">Installing DOS 2.x-3.x in DOSBox-X</a></li>
 <li><a href="#_overview">Overview</a>
 <ul class="sectlevel2">
 <li><a href="#_key_new_features_of_dos_2_00">Key new features of DOS 2.00</a></li>
@@ -469,8 +468,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_notes">Notes</a></li>
 <li><a href="#_creating_a_dos_2_0_3_21_hdd_image">Creating a DOS 2.0-3.21 HDD image</a></li>
 <li><a href="#_creating_a_dos_3_3_hdd_image">Creating a DOS 3.3 HDD image</a></li>
-</ul>
-</li>
 </ul>
 </div>
 </div>
@@ -501,7 +498,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>First version to introduce CONFIG.SYS</p>
 </li>
 <li>
-<p>First to support 5.25" 9-sector 180KB (SSDD) and 360KB disks (DSDD)</p>
+<p>First to support 5.25" 9-sector 180KB (SSDD) and 360KB (DSDD) disks</p>
 </li>
 </ul>
 </div>
@@ -582,7 +579,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="title">Warning</div>
 </td>
 <td class="content">
-DOSBox-X is a IBM PC emulator, and as such the official IBM DOS and later packaged Microsoft DOS versions are the most compatible.
+DOSBox-X is an IBM PC emulator, and as such the official IBM DOS and later packaged Microsoft DOS versions are the most compatible.
 Many early IBM PC clone systems had various incompatibilities, and had custom OEM versions of DOS.
 Since DOSBox-X does not emulate the peculiarities of such early clone systems, there OEM DOS versions are also not supported.
 </td>
@@ -686,7 +683,7 @@ Since DOSBox-X does not emulate the peculiarities of such early clone systems, t
 <p>For DOS 3.00-3.21, the maximum partition size is supposed to be 32MB, using a FAT16 filesystem, but in reality this only appears to be the case for PC DOS 3.0 and 3.1. Other DOS versions are in practice limited to either 31MB, or their <code>FDISK</code> (or equivalent) tool is simply incompatible with DOSBox-X. For this reason the below examples will use 31MB for maximum compatibility between DOS versions.</p>
 </li>
 <li>
-<p>While it is possible to use a HDD size larger than the maximum partition size, this is not recommended as these DOS versions only support a maximum of one DOS partition per HDD. In effect, you will not be able to access the additional capacity from DOS, and it is therefore waisted space. In addition the <code>FDISK</code> option to use the entire fixed disk for DOS gets confused if the drive is larger than 32MB, and depending on the DOS version will either overflow such that a 40MB HDD image becomes a 40-32=8MB partition, or it will create a drive that cannot be formatted.</p>
+<p>While it is possible to use an HDD size larger than the maximum partition size, this is not recommended as these DOS versions only support a maximum of one DOS partition per HDD. In effect, you will not be able to access the additional capacity from DOS, and it is therefore waisted space. In addition, the <code>FDISK</code> option to use the entire fixed disk for DOS gets confused if the drive is larger than 32MB, and depending on the DOS version will either overflow such that a 40MB HDD image becomes a 40-32=8MB partition, or it will create a drive that cannot be formatted.</p>
 </li>
 </ul>
 </div>
@@ -710,7 +707,7 @@ Since DOSBox-X does not emulate the peculiarities of such early clone systems, t
 <td class="tableblock halign-left valign-top"><p class="tableblock">MS-DOS 2.11</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Tandy 1000</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">-</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Requires machine=tandy. Could read a HDD image created with PC DOS 2.10, but could not boot from it (after SYS), perhaps with HFORMAT which I could not easily locate&#8230;&#8203;</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Requires machine=tandy. Could read an HDD image created with PC DOS 2.10, but could not boot from it (after SYS), perhaps with HFORMAT which I could not easily locate&#8230;&#8203;</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">MS-DOS 2.11</p></td>
@@ -844,7 +841,7 @@ Device number 2 represents the first disk on the primary HDD controller.
 </div>
 </div>
 <div class="paragraph">
-<p>Assuming that your uncompressed DOS 3.0-3.2 image is named dos.img and in your current working directory, it should boot DOS from the diskette image.</p>
+<p>Assuming that your uncompressed DOS 2.0-3.21 floppy image file is named dos.img and in your current working directory, it should boot DOS from the diskette image.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -852,7 +849,7 @@ Device number 2 represents the first disk on the primary HDD controller.
 </div>
 </div>
 <div class="paragraph">
-<p>These early DOS versions did not have an installer, so the preparation and installation is a manual process.</p>
+<p>These early DOS versions did not have an installer, so the preparation of the harddisk and installation of DOS is a manual process.</p>
 </div>
 <div class="paragraph">
 <p>You need to start with creating a DOS partition.</p>
@@ -875,7 +872,7 @@ Device number 2 represents the first disk on the primary HDD controller.
 At this point the HDD image is partitioned, but not yet formatted or made bootable, so that is what you need to do next.</p>
 </div>
 <div class="paragraph">
-<p>Since there is now a partition, it is no longer necessary to specify the geometry.</p>
+<p>Since there is now a partition, DOSBox-X can now autodetect the disk geometry. As such, it is no longer necessary to specify the geometry settings.</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -893,7 +890,7 @@ At this point the HDD image is partitioned, but not yet formatted or made bootab
 <div class="title">Tip</div>
 </td>
 <td class="content">
-As a IBM PC DOS exclusive, starting with PC DOS 3.0, there is the <code><a href="https://web.csulb.edu/~murdock/select.html">SELECT.COM</a></code> program which formats and transfers the OS from one diskette to another.
+As an IBM PC DOS exclusive, starting with PC DOS 3.0, there is the <code><a href="https://web.csulb.edu/~murdock/select.html">SELECT.COM</a></code> program which formats and transfers the OS from one diskette to another.
 With PC DOS 3.2 this is enhanced to also support transfer to the HDD with the following syntax: <code>SELECT A: C: 1 US</code>. The options represent the source, destination, country code and keyboard code.
 </td>
 </tr>
@@ -922,8 +919,8 @@ With PC DOS 3.2 this is enhanced to also support transfer to the HDD with the fo
 <p>You can also create a <code>AUTOEXEC.BAT</code> and <code>CONFIG.SYS</code> on the HDD with the included <code>EDLIN</code> editor.</p>
 </div>
 <div class="paragraph">
-<p>From the DOSBox-X menu bar select Main and then select Reset guest system.
-You are again at the DOSBox-X <code>Z:\&gt;</code> prompt.</p>
+<p>From the DOSBox-X menu bar select Main and then select "Reset guest system".
+You should be again at the DOSBox-X <code>Z:\&gt;</code> prompt.</p>
 </div>
 <div class="paragraph">
 <p>Your setup is now complete and all that is left is how to boot the image normally.
@@ -1004,7 +1001,7 @@ BOOT C:</pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-01-01 01:51:44 -0500
+Last updated 2022-02-01 14:17:48 -0500
 </div>
 </div>
 </body>

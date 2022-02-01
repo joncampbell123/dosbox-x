@@ -73,9 +73,9 @@ You can mount ZIP or 7Z archives as DOSBox-X drives and run your DOS programs or
 * **Support for the IDE interface for disk images**
 +
 DOSBox-X supports the BIOS IDE interface for hard disk and CD drives, which is especially useful for running guest systems inside DOSBox-X.
-* **Support for more CPU types (e.g. Pentium MMX and Pro/II) and emulating CPU speed**
+* **Support for more CPU types (e.g. Pentium MMX and Pro/2/3) and emulating CPU speed**
 +
-DOSBox-X supports virtually all CPU types prior to Pentium III at this time, from 8086 to Pentium Pro/II, including support for Pentium MMX instructions. DOSBox-X also allow you to emulate the speed of a specific CPU (from 8088 XT 4.77MHz to Pentium 166MHz MMX) in terms of cycles. Select them from the "CPU" menu.
+DOSBox-X supports virtually all CPU types prior to Pentium 4 at this time, from 8086/8088 to Pentium Pro/2/3, including support for Pentium MMX instructions. DOSBox-X also allow you to emulate the speed of a specific CPU (from 8088 XT 4.77MHz to Pentium 166MHz MMX) in terms of cycles. Select them from the "CPU" menu.
 * **Support for more video modes (e.g. MDA and MCGA)**
 +
 DOSBox-X supports more video modes in addition to the more common ones, such as MDA, MCGA, Amstrad, and a few others, in addition to the standard ones.

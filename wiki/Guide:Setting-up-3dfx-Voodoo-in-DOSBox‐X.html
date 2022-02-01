@@ -447,15 +447,14 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 </div>
-<h1 id="_setting_up_3dfx_voodoo_in_dosbox_x" class="sect0">Setting up 3dfx Voodoo in DOSBox-X</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_setting_up_3dfx_voodoo_in_dosbox_x">Setting up 3dfx Voodoo in DOSBox-X</h2>
+<div class="sectionbody">
 <div id="toc" class="toc">
 <div id="toctitle" class="title">Table of Contents</div>
-<ul class="sectlevel0">
-<li><a href="#_setting_up_3dfx_voodoo_in_dosbox_x">Setting up 3dfx Voodoo in DOSBox-X</a></li>
-<li><a href="#_overview">Overview</a>
 <ul class="sectlevel1">
+<li><a href="#_setting_up_3dfx_voodoo_in_dosbox_x">Setting up 3dfx Voodoo in DOSBox-X</a></li>
+<li><a href="#_overview">Overview</a></li>
 <li><a href="#_voodoo_options">[voodoo] options</a>
 <ul class="sectlevel2">
 <li><a href="#_voodoo_card">voodoo_card</a></li>
@@ -478,10 +477,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_macos_host_installing_libglide2x_dylib">macOS host: Installing libglide2x.dylib</a></li>
 </ul>
 </li>
-</ul>
-</li>
 <li><a href="#_frequently_asked_questions">Frequently asked questions</a>
-<ul class="sectlevel1">
+<ul class="sectlevel2">
 <li><a href="#_no_glide2x_ovl_on_z_drive">No GLIDE2X.OVL on Z: drive</a></li>
 <li><a href="#_no_3dfx_splash_screen">No 3dfx splash screen</a></li>
 <li><a href="#_slow_glide_emulation">Slow Glide emulation</a></li>
@@ -491,12 +488,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 </div>
-<h1 id="_overview" class="sect0">Overview</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_overview">Overview</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>The 3dfx Voodoo is a 3D accelerator chipset released in late 1996, and sold by various graphic card manufacturers.
-The original Voodoo 1 adapters are not full video adapters, and in fact need to be used in conjunction with a separate VGA adapter in a pass-through manor.
+The original Voodoo 1 adapters are not full video adapters, and in fact need to be used in conjunction with a separate VGA adapter in a pass-through manner.
 The video-output from the VGA video card must be connected to a video-in on the Voodoo adapter, which then overlays the 3D renderings, and the monitor is then connected to the video-output of the Voodoo adapter.</p>
 </div>
 <div class="paragraph">
@@ -665,7 +662,7 @@ It is enough for <code>3dfxSpl2.dll</code> to be in the same directory as <code>
 <div class="title">Note</div>
 </td>
 <td class="content">
-The CPU type for <code>3dfxSpl2.dll</code> and DOSBox-X needs to match for this to work. So if you have a x86 32bit <code>3dfxSpl2.dll</code>, you need to use a x86 32bit <code>dosbox-x.exe</code> executable.
+The CPU type for <code>3dfxSpl2.dll</code> and DOSBox-X needs to match for this to work. So if you have an x86 32bit <code>3dfxSpl2.dll</code>, you need to use an x86 32bit <code>dosbox-x.exe</code> executable.
 </td>
 </tr>
 </table>
@@ -695,11 +692,11 @@ The CPU type for <code>3dfxSpl2.dll</code> and DOSBox-X needs to match for this 
 <p>Normally the CPU will fire an Invalid Opcode exception in the case of an undefined MSR (Model-specific register).</p>
 </div>
 <div class="paragraph">
-<p>This option is off by default, enable if using software or drivers that assumes the presence of certain MSR registers without checking.
+<p>This option is off by default, enable if using software or drivers that assumes the presence of certain 686 MSR registers without checking.
 If you are using certain versions of the original 3dfx Glide drivers for MS-DOS you will need to set this to TRUE as 3dfx appears to have coded GLIDE2X.OVL to assume the presence of Pentium Pro/Pentium II MTRR registers.</p>
 </div>
 <div class="paragraph">
-<p>Another way to circumvent this issue with the 3dfx drivers, is by emulating a Pentium Pro CPU in DOSBox-X by setting <code>cputype=ppro_slow</code> in the [cpu] section of your DOSBox-X config file.</p>
+<p>Another (probably better) way to circumvent this issue with the 3dfx drivers, is to emulate a Pentium Pro or Pentium II CPU in DOSBox-X by setting either <code>cputype=ppro_slow</code> or <code>cputype=pentium_ii</code> in the [cpu] section of your DOSBox-X config file.</p>
 </div>
 </div>
 </div>
@@ -839,7 +836,7 @@ This means that if you choose to use nGlide as your Glide wrapper, then you must
 </div>
 <div class="paragraph">
 <p>Unlike nGlide it does not come with an installer as of this time, but it does provide both 32-bit x86 and 64-bit x64 <code>glide2x.dll</code> files in its zip packages.
-Therefore you can use either the 32-bit x86 build or the 64-bit x64 build of DOSBox-X for the Glide feature, as long as the correct <code>glide2x.dll</code> file is available to the DOSBox-X executable.
+Therefore, you can use either the 32-bit x86 build or the 64-bit x64 build of DOSBox-X for the Glide feature, as long as the correct <code>glide2x.dll</code> file is available to the DOSBox-X executable.
 You can put the glide2x.dll file (extracted from its zip package) either in your DOSBox-X directory, or in the Windows’ System32/SysWOW64 directory (in the case of 64-bit Windows, C:\WINDOWS\SysWOW64 for 32-bit glide2x.dll file and C:\WINDOWS\System32 for 64-bit glide2x.dll file).</p>
 </div>
 <div class="paragraph">
@@ -892,7 +889,7 @@ The library used here converts Glide API calls to OpenGL, and will not work with
 </td>
 <td class="content">
 OpenGlide is not compatible with SDL2, as such you can only use it with the DOSBox-X SDL1 version.
-If you do try to use it with the DOSBox-X SDL2 version, it will segfault when trying to use the glide pass-through.
+If you do try to use it with the DOSBox-X SDL2 version, OpenGlide will segfault when trying to use the glide pass-through.
 </td>
 </tr>
 </table>
@@ -958,7 +955,7 @@ The necessary steps are detailed below.</p>
 </td>
 <td class="content">
 OpenGlide is not compatible with SDL2, as such you can only use it with the DOSBox-X SDL1 version.
-If you do try to use it with the DOSBox-X SDL2 version, it will segfault when trying to use the glide pass-through.
+If you do try to use it with the DOSBox-X SDL2 version, OpenGlide will segfault when trying to use the glide pass-through.
 </td>
 </tr>
 </table>
@@ -1093,7 +1090,7 @@ The macOS dynamic (dlylib) and static (a/la) files are the key components.
 <p>These files can remain in your library folder and will be automatically found by DOSBox-X.</p>
 </div>
 <div class="paragraph">
-<p>Alternatively, you can place them inside your DOSBox-X application package (/Contents/Resources) and they should be recognized in there first, before falling back to the system level files if required.</p>
+<p>Alternatively, you can place them inside your DOSBox-X application package (/Contents/Resources), and they should be recognized in there first, before falling back to the system level files if required.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1134,10 +1131,11 @@ NoSplash=1</pre>
 </div>
 </div>
 </div>
-<h1 id="_frequently_asked_questions" class="sect0">Frequently asked questions</h1>
 <div class="sect1">
-<h2 id="_no_glide2x_ovl_on_z_drive">No GLIDE2X.OVL on Z: drive</h2>
+<h2 id="_frequently_asked_questions">Frequently asked questions</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_no_glide2x_ovl_on_z_drive">No GLIDE2X.OVL on Z: drive</h3>
 <div class="paragraph">
 <p>Q: I have set <code>glide=true</code> in my config file, yet there is no <code>GLIDE2X.OVL</code> to be found in <code>Z:\SYSTEM</code>?</p>
 </div>
@@ -1148,28 +1146,24 @@ NoSplash=1</pre>
 <p>The glide library installed on the host needs to be the same CPU architecture as the DOSBox-X executable. So for instance, if you are using a 32bit x86 Glide library, such as nGlide, you must also use a 32bit x86 DOSBox-X executable.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_no_3dfx_splash_screen">No 3dfx splash screen</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_no_3dfx_splash_screen">No 3dfx splash screen</h3>
 <div class="paragraph">
 <p>Q: I don&#8217;t see the 3dfx splash screen when starting a game</p>
 </div>
 <div class="paragraph">
-<p>A: This is normal when your running the game in high-level emulation mode (glide=true). This 3dfx splash screen is built into the original Glide library (GLIDE2X.OVL or GLIDE2X.DLL for Windows 9x).
+<p>A: This is normal when you&#8217;re running the game in high-level emulation mode (glide=true). This 3dfx splash screen is built into the original Glide library (GLIDE2X.OVL or GLIDE2X.DLL for Windows 9x).
 But the special versions used for Glide pass-through to the host do not have this animation.
 If your running Windows, you may want to have a look at the <code>splash=true</code> setting, mentioned above.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_slow_glide_emulation">Slow Glide emulation</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_slow_glide_emulation">Slow Glide emulation</h3>
 <div class="paragraph">
 <p>Q: I set <code>glide=true</code> yet the game is very slow</p>
 </div>
 <div class="paragraph">
-<p>A: Most likely your not actually running in glide pass-through mode, even though you set the option in your config file.</p>
+<p>A: Most likely you&#8217;re not actually running in glide pass-through mode, even though you set the option in your config file.</p>
 </div>
 <div class="paragraph">
 <p>One tell-tale way of knowing if the game is running in glide pass-through mode, is the 3dfx splash screen when starting the game. If you see the splash screen, you are probably not running in pass-through mode, but rather in low-level Voodoo emulation mode.</p>
@@ -1181,9 +1175,10 @@ For instance, if there is a <code>GLIDE2X.OVL</code> file in the game directory,
 </div>
 </div>
 </div>
+</div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-01-01 01:51:44 -0500
+Last updated 2022-02-01 14:17:48 -0500
 </div>
 </div>
 </body>

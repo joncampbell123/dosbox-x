@@ -447,33 +447,67 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 </div>
-<h1 id="_cpu_settings_in_dosbox_x" class="sect0">CPU settings in DOSBox-X</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_cpu_settings_in_dosbox_x">CPU settings in DOSBox-X</h2>
+<div class="sectionbody">
 <div id="toc" class="toc">
 <div id="toctitle" class="title">Table of Contents</div>
-<ul class="sectlevel0">
-<li><a href="#_cpu_settings_in_dosbox_x">CPU settings in DOSBox-X</a>
 <ul class="sectlevel1">
+<li><a href="#_cpu_settings_in_dosbox_x">CPU settings in DOSBox-X</a></li>
 <li><a href="#_overview">Overview</a></li>
+<li><a href="#_cpu_config_section">[cpu] config section</a>
+<ul class="sectlevel2">
+<li><a href="#_core">core</a></li>
+<li><a href="#_fpu">fpu</a></li>
+<li><a href="#_segment_limits">segment limits</a></li>
+<li><a href="#_double_fault">double fault</a></li>
+<li><a href="#_processor_serial_number">processor serial number</a></li>
+<li><a href="#_reset_on_triple_fault">reset on triple fault</a></li>
+<li><a href="#_always_report_double_fault">always report double fault</a></li>
+<li><a href="#_always_report_triple_fault">always report triple fault</a></li>
+<li><a href="#_allow_lmsw_to_exit_protected_mode">allow lmsw to exit protected mode</a></li>
+<li><a href="#_report_fdiv_bug">report fdiv bug</a></li>
+<li><a href="#_enable_msr">enable msr</a></li>
+<li><a href="#_enable_cmpxchg8b">enable cmpxchg8b</a></li>
+<li><a href="#_enable_syscall">enable syscall</a></li>
+<li><a href="#_ignore_undefined_msr">ignore undefined msr</a></li>
+<li><a href="#_interruptible_rep_string_op">interruptible rep string op</a></li>
+<li><a href="#_dynamic_core_cache_block_size">dynamic core cache block size</a></li>
+<li><a href="#_cputype">cputype</a></li>
+<li><a href="#_cycles">cycles</a></li>
+<li><a href="#_cycleup">cycleup</a></li>
+<li><a href="#_cycledown">cycledown</a></li>
+<li><a href="#_cycle_emulation_percentage_adjust">cycle emulation percentage adjust</a></li>
+<li><a href="#_turbo">turbo</a></li>
+<li><a href="#_use_dynamic_core_with_paging_on">use dynamic core with paging on</a></li>
+<li><a href="#_ignore_opcode_63">ignore opcode 63</a></li>
+<li><a href="#_apmbios">apmbios</a></li>
+<li><a href="#_apmbios_pnp">apmbios pnp</a></li>
+<li><a href="#_apmbios_version">apmbios version</a></li>
+<li><a href="#_apmbios_allow_realmode">apmbios allow realmode</a></li>
+<li><a href="#_apmbios_allow_16_bit_protected_mode">apmbios allow 16-bit protected mode</a></li>
+<li><a href="#_apmbios_allow_32_bit_protected_mode">apmbios allow 32-bit protected mode</a></li>
+<li><a href="#_integration_device">integration device</a></li>
+<li><a href="#_integration_device_pnp">integration device pnp</a></li>
+<li><a href="#_isapnpbios">isapnpbios</a></li>
+<li><a href="#_realbig16">realbig16</a></li>
+</ul>
+</li>
 <li><a href="#_differences_in_emulated_cpu_types">Differences in emulated CPU types</a>
 <ul class="sectlevel2">
 <li><a href="#_8086_to_386">8086 to 386</a></li>
-<li><a href="#_486_to_pentium_pro">486 to Pentium Pro</a></li>
-<li><a href="#_vanilla_dosbox_cpu_types">Vanilla DOSBox CPU types</a></li>
-<li><a href="#_floating_point_unit_fpu">Floating Point Unit (FPU)</a></li>
+<li><a href="#_486_to_pentium_iii">486 to Pentium III</a></li>
+<li><a href="#_weitek_fpu">Weitek FPU</a></li>
 </ul>
 </li>
 <li><a href="#_faq">FAQ</a>
-<ul class="sectlevel3">
+<ul class="sectlevel2">
 <li><a href="#_why_is_there_no_8088_cpu_option">Why is there no 8088 CPU option?</a></li>
 <li><a href="#_why_does_dosbox_x_support_the_80186">Why does DOSBox-X support the 80186?</a></li>
 <li><a href="#_is_dosbox_x_cycle_accurate">Is DOSBox-X cycle accurate?</a></li>
 </ul>
 </li>
 <li><a href="#_todo">TODO</a></li>
-</ul>
-</li>
 </ul>
 </div>
 </div>
@@ -487,10 +521,1035 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect1">
+<h2 id="_cpu_config_section">[cpu] config section</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_core">core</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: auto</p>
+</li>
+<li>
+<p>Valid values: auto, dynamic, dynamic_x86, dynamic_nodhfpu, dynamic, dynamic_rec, normal, full, simple</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>CPU Core used in emulation.</p>
+</div>
+<div class="paragraph">
+<p>If you experience compatibility problems, attempt to use the normal core.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>core=auto</code> - Will use the first core available in the following order: "dynamic_x86", "dynamic_rec", "normal".</p>
+</li>
+<li>
+<p><code>core=dynamic</code> - Will use "dynamic_x86" if available, otherwise "dynamic_rec".</p>
+</li>
+<li>
+<p><code>core=dynamic_x86</code> Dynamic re-compiler optimized for x86 host CPUs.</p>
+</li>
+<li>
+<p><code>core=dynamic_nodhfpu</code> Dynamic re-compiler with host FPU support disabled. Do not use.</p>
+</li>
+<li>
+<p><code>core=dynamic_rec</code> - Dynamic re-compiler</p>
+</li>
+<li>
+<p><code>core=normal</code> - The program is interpreted instruction by instruction. This approach is a lot more CPU demanding than the dynamic cores but allows for a more fine-grained time emulation and is needed on platforms for which DOSBox-X doesn&#8217;t have a dynamic core.</p>
+</li>
+<li>
+<p><code>core=full</code> - Deprecated, do not use</p>
+</li>
+<li>
+<p><code>core=simple</code> - Basically the same as normal, but optimized for real-mode (older) games. In case a protected-mode game is started, it automatically switches back to normal core.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Windows 95 or other pre-emptive multitasking OSes will not work with the dynamic_rec core.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_fpu">fpu</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: true</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Floating Point Unit (FPU).
+Also referred to as the x87, or Math co-processor.
+FPU emulation is enabled by default.</p>
+</div>
+<div class="paragraph">
+<p>If <code>cputype=</code> is a 486 variation and <code>fpu=true</code>, the CPUID instruction will report a 486DX, while if <code>fpu=false</code>, it will report a 486SX.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+On real systems, starting with the Pentium CPU generation, an FPU is always present.
+But DOSBox-X allows disabling of the FPU with any CPU type.
+Disabling the FPU could cause problems with software that expects an FPU to be present with these later CPU types.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+The real FPUs have a 80bit precision.
+This is however not supported with Windows DOSBox-X builds compiled using the Microsoft Visual Studio (MSVS) compiler, which is limited to just 64bits precision.
+Very few DOS games used the FPU, but for those that do, this lesser precision can cause a variety of problems, from graphical glitches to crashes, to incorrect outcomes in DOS applications.
+If your running Windows as the host OS, you can either disable the FPU emulation, or if proper FPU emulation is important, use the MinGW builds.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_segment_limits">segment limits</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: true</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Enforce checks for segment limits on 80286 and higher CPU types.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_double_fault">double fault</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: true</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Emulate double fault exception</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_processor_serial_number">processor serial number</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: &lt;blank&gt;</p>
+</li>
+<li>
+<p>Valid values:</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For Pentium III emulation, this sets the 96-bit Processor Serial Number returned by CPUID.</p>
+</div>
+<div class="paragraph">
+<p>If not set, then emulation will act as if the PSN has been disabled by the BIOS.
+Enter as 4 sets of 16-bit hexadecimal digits XXXX-XXXX-XXXX-XXXX.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The processor info and feature bits form the topmost 32 bits of the PSN and cannot be changed.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_reset_on_triple_fault">reset on triple fault</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: true</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Reset CPU on triple fault condition (failure to handle double fault)</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_always_report_double_fault">always report double fault</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: false</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Always report (to the log file) double faults if set.
+Else, a double fault is reported only once.
+Set this option for debugging purposes.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_always_report_triple_fault">always report triple fault</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: false</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Always report (to the log file) triple faults if set.
+Else, a triple fault is reported only once.
+Set this option for debugging purposes.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_allow_lmsw_to_exit_protected_mode">allow lmsw to exit protected mode</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: auto</p>
+</li>
+<li>
+<p>Valid values: true, false, auto</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Controls whether the processor will allow the guest to exit protected mode, back to real mode, using the 286 LMSW instruction (clear the PE bit).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_report_fdiv_bug">report fdiv bug</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: false</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If set, the FDIV (Floating point division) bug will be reported when using the <code>cputype=pentium</code> setting.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+This only effects the reported CPU type using the CPUID instruction.
+It does not actually emulate the FDIV bug behaviour.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_enable_msr">enable msr</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: true</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Allow RDMSR/WRMSR (Read and Write of model-specific register) instructions.
+This option is only meaningful when <code>cputype=pentium</code> (or later CPU models).</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If you experience crashes with running or installing Windows 95/98/ME, you may want to try to disable this.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_enable_cmpxchg8b">enable cmpxchg8b</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: true</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Enable Pentium CMPXCHG8B (compare and exchange 8 bytes) instruction.
+This option is only meaningful when <code>cputype=auto</code> or <code>cputype=pentium</code> (or later CPU models).</p>
+</div>
+<div class="paragraph">
+<p>Enable this explicitly if using software that uses this instruction.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+You must enable this option to run Windows ME because portions of the Windows kernel rely on this instruction.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_enable_syscall">enable syscall</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: true</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Allow SYSENTER/SYSEXIT (Fast call to enter/exit to privilege level 0) instructions.
+This option is only meaningful when <code>cputype=pentium_ii</code> (or later CPU models).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ignore_undefined_msr">ignore undefined msr</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: false</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Ignore RDMSR/WRMSR (Read and Write of model-specific register) on undefined registers.
+Normally the CPU will fire an Invalid Opcode exception in that case.</p>
+</div>
+<div class="paragraph">
+<p>This option is off by default, enable if using software or drivers that assumes the presence of certain MSR registers without checking.</p>
+</div>
+<div class="paragraph">
+<p>If you are using certain versions of the 3dfx Glide drivers for MS-DOS you will need to set this to TRUE as 3dfx appears to have coded GLIDE2X.OVL to assume the presence of Pentium Pro/Pentium II MTRR registers.
+Of course a better fix is to set <code>cputype=ppro_slow</code>, <code>cputype=pentium_ii</code> or <code>cputype=pentium_iii</code> which will prevent this issue.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+Leaving this option enabled while installing Windows 95/98/ME can cause crashes.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_interruptible_rep_string_op">interruptible rep string op</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: -1</p>
+</li>
+<li>
+<p>Valid values: -1, 0, 1-8</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If non-zero, REP string instructions (LODS/MOVS/STOS/INS/OUTS) are interruptible (by interrupts or other events).</p>
+</div>
+<div class="paragraph">
+<p>If zero, REP string instructions are carried out in full before processing events and interrupts.
+Set to -1 for a reasonable default setting of "4".</p>
+</div>
+<div class="paragraph">
+<p>A setting of 0 can improve emulation speed at the expense of emulation accuracy.</p>
+</div>
+<div class="paragraph">
+<p>A non-zero setting (1-8) may be needed for DOS games and demos that use the IRQ 0 interrupt to play digitized samples while doing VGA palette animation at the same time (use case of REP OUTS), where the non-interruptible version would cause an audible drop in audio pitch.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_dynamic_core_cache_block_size">dynamic core cache block size</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: 32</p>
+</li>
+<li>
+<p>Valid values: 1-65536</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The dynamic core cache block size (the default value is 32).
+Please change this value carefully.</p>
+</div>
+<div class="paragraph">
+<p>According to forum discussions, setting this to 1 can aid debugging, however doing so also causes problems with 32-bit protected mode DOS games and reduces the performance of the dynamic core.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_cputype">cputype</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: auto</p>
+</li>
+<li>
+<p>Valid values: auto, 8086, 8086_prefetch, 80186, 80186_prefetch, 286, 286_prefetch, 386, 386_prefetch, 486old, 486old_prefetch, 486, 486_prefetch, pentium, pentium_mmx, ppro_slow, pentium_ii, experimental</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>CPU Type used in emulation.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>auto</code> - Emulates a 486 which tolerates Pentium instructions.</p>
+</li>
+<li>
+<p><code>8086</code> - Similar to the 8088 found in the original IBM PC and IBM PC XT.</p>
+</li>
+<li>
+<p><code>80186</code> - Similar to the 8086, rarely found in IBM PC Compatibles.</p>
+</li>
+<li>
+<p><code>286</code> - Sequel to the 8086, as found in the IBM PC AT. Also called the 80286.</p>
+</li>
+<li>
+<p><code>386</code> - Sequel to the 286. Also called the 80386. First 32-bit capable x86 CPU.</p>
+</li>
+<li>
+<p><code>486</code> - Sequel to the 386. Also called the 80486 or i486.</p>
+</li>
+<li>
+<p><code>pentium</code> - Sequel to the 486. Also called the 586.</p>
+</li>
+<li>
+<p><code>pentium_mmx</code> - Similar to the Pentium, but with additional (MMX) instructions added.</p>
+</li>
+<li>
+<p><code>ppro</code> - Pentium Pro, sequel to the Pentium (without MMX). Also called the 686.</p>
+</li>
+<li>
+<p><code>pentium_ii</code> - Pentium II (aka P2), sequel to the Pentium Pro, but with MMX instructions.</p>
+</li>
+<li>
+<p><code>pentium_iii</code> - Pentium III (aka P3), sequel to the Pentium II, with added SSE instructions.</p>
+</li>
+<li>
+<p><code>experimental</code> - Enables newer instructions not normally found in the CPU types emulated by DOSBox-X, such as FISTTP.</p>
+</li>
+<li>
+<p><code>*_prefetch</code> - CPU types enable more accurate prefetch queue emulation, at the expense of speed</p>
+</li>
+<li>
+<p><code>*_slow</code> - CPU types enable more accurate page privilege check emulation, at the expense of speed</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Regular DOSBox has a few other cputype options not available in DOSBox-X (<code>386_slow</code>, <code>486_slow</code> and <code>pentium_slow</code>). These cputype options are ignored in DOSBox-X, and <code>auto</code> will be used instead.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_cycles">cycles</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: auto</p>
+</li>
+<li>
+<p>Valid values: fixed nnnn | max [default%] [limit cycle limit] | auto [realmode default] [protected mode default%] [limit "cycle limit"]</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Number of instructions DOSBox-X tries to emulate each millisecond.</p>
+</div>
+<div class="paragraph">
+<p>Examples:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>cycles=fixed 5000</code> or <code>cycles=5000</code> - All programs you start are run with a fixed speed of ~5 MIPS. Useful for speed sensitive games or games that need a continuous CPU speed.</p>
+</li>
+<li>
+<p><code>cycles=max</code> - All programs you start run at the maximum speed your CPU permits.</p>
+</li>
+<li>
+<p><code>cycles=max limit 50000</code> - All programs you start run at up to 50000 cycles, depending on the power of your CPU.</p>
+</li>
+<li>
+<p><code>cycles=max 50%</code> - About 50% of your CPU power will be used.</p>
+</li>
+<li>
+<p><code>cycles=auto</code> - Real mode programs will run at 3000 cycles. Protected mode programs run with cycles=max.</p>
+</li>
+<li>
+<p><code>cycles=auto 5000 50% limit 50000</code> - Real mode programs run with 5000 fixed cycles, protected mode programs with cycles=max 50% limit 50000.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Some <strong>rough guidance</strong> on how cycles relates to various legacy CPUs. Note that it depends on which emulated CPU instructions the program uses as DOSBox-X is not cycle accurate.</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Emulated CPU</th>
+<th class="tableblock halign-left valign-top">cycles</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8088 at 4.77MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">240</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">286 at 8MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">750</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">286 at 12MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1510</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">286 at 25MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3300</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">386DX at 25MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4595</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">386DX at 33MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">6075</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">486DX at 33MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">12019</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">486DX2 at 66MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">23880</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">486DX4 at 100MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">33445</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">486DX5 at 133MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">47810</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Pentium at 60MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">31545</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Pentium at 66MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">35620</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Pentium at 75MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">43500</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Pentium at 90MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">52000</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Pentium at 100MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">60000</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Pentium at 120MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">74000</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Pentium at 133MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">80000</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Pentium at 166MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">97240</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Pentium II at 300MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">200000</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">AMD K6 at 166MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">110000</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">AMD K6 at 200MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">130000</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">AMD K6-2 at 300MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">193000</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+Setting the cycles value too high for your host CPU, results in sound dropouts and lag.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+More host CPU cores do not help to increase emulation speed. A newer generation host CPU and higher host CPU clock frequency (GHz) do help.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_cycleup">cycleup</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: 10</p>
+</li>
+<li>
+<p>Valid values: 1-1000000</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Amount of cycles to increase with the mapped keyboard shortcut.
+Setting the value lower than 100, and it will be interpreted as a percentage.</p>
+</div>
+<div class="paragraph">
+<p>The default value of 10 will be interpreted as 10%.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_cycledown">cycledown</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: 20</p>
+</li>
+<li>
+<p>Valid values: 1-1000000</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Amount of cycles to decrease with the mapped keyboard shortcut.
+Setting the value lower than 100, and it will be interpreted as a percentage.</p>
+</div>
+<div class="paragraph">
+<p>The default value of 20 will be interpreted as 20%.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_cycle_emulation_percentage_adjust">cycle emulation percentage adjust</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: 0</p>
+</li>
+<li>
+<p>Valid values: -50-50</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The percentage adjustment for use with the "Emulate CPU speed" feature.</p>
+</div>
+<div class="paragraph">
+<p>Default is 0 (no adjustment), but you can adjust it (between -25% and 25%) if necessary.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_turbo">turbo</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: false</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Enables Turbo (Fast Forward) mode to speed up operations.</p>
+</div>
+<div class="paragraph">
+<p>Any key press will disengage turbo mode.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+This has no relation to the turbo button found on many retro PCs. Instead, this is more a fast-forward mode.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_use_dynamic_core_with_paging_on">use dynamic core with paging on</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: auto</p>
+</li>
+<li>
+<p>Valid values: auto, true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Allow dynamic cores (dynamic_x86 and dynamic_rec) to be used with 386 paging enabled.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If the dynamic_x86 core is set, this allows Windows 9x/ME to run properly, but may somewhat decrease the performance.</p>
+</li>
+<li>
+<p>If the dynamic_rec core is set, this disables the dynamic core if the 386 paging functions are currently enabled.</p>
+</li>
+<li>
+<p>If set to auto, this option will be enabled depending on if the 386 paging and a guest system are currently active.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ignore_opcode_63">ignore opcode 63</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: true</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>When debugging, do not report illegal opcode 0x63.</p>
+</div>
+<div class="paragraph">
+<p>Enable this option to ignore spurious errors while debugging from within Windows 3.1/9x/ME.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_apmbios">apmbios</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: true</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Emulate Advanced Power Management (APM) BIOS calls.</p>
+</div>
+<div class="paragraph">
+<p>This for instance allows a guest OS such as Windows 9x to turn off DOSBox-X on shutdown.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_apmbios_pnp">apmbios pnp</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: false</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If emulating ISA PnP BIOS, announce APM BIOS in PnP enumeration.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+This can cause Windows 95 OSR2 and later to enumerate the APM BIOS twice and cause problems. Due to this, it is not recommended to enable this option, at this point in time.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_apmbios_version">apmbios version</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: auto</p>
+</li>
+<li>
+<p>Valid values: auto, 1.0, 1.1, 1.2</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>What version of the APM BIOS specification to emulate.</p>
+</div>
+<div class="paragraph">
+<p>You will need at least APM BIOS v1.1 for emulation to work with Windows 95/98/ME.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_apmbios_allow_realmode">apmbios allow realmode</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: true</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Allow guest OS to connect from real mode</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_apmbios_allow_16_bit_protected_mode">apmbios allow 16-bit protected mode</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: true</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Allow guest OS to connect from 16-bit protected mode</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_apmbios_allow_32_bit_protected_mode">apmbios allow 32-bit protected mode</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: true</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Allow guest OS to connect from 32-bit protected mode</p>
+</div>
+<div class="paragraph">
+<p>If you want power management in Windows 95/98/ME (beyond using the APM to shut down the computer) you MUST enable this option.</p>
+</div>
+<div class="paragraph">
+<p>Windows 95/98/ME does not support the 16-bit real and protected mode APM BIOS entry points.
+Please note at this time that 32-bit APM is unstable under Windows ME.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_integration_device">integration device</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: false</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Enable DOSBox-X integration I/O device.
+This could be used in the future by the guest OS to match mouse pointer position, for example.</p>
+</div>
+<div class="paragraph">
+<p>EXPERIMENTAL! Do not enable unless you&#8217;re a developer wanting to work on this functionality.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_integration_device_pnp">integration device pnp</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: false</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>List DOSBox-X integration I/O device as part of ISA PnP enumeration.
+This has no purpose yet.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_isapnpbios">isapnpbios</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: true</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Emulate ISA Plug &amp; Play BIOS.</p>
+</div>
+<div class="paragraph">
+<p>Enable if using DOSBox-X to run a PnP aware DOS program or if booting Windows 9x.
+Do not disable if Windows 9x is configured around PnP devices, you will likely confuse it.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_realbig16">realbig16</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: false</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Allow the B (big) bit in real mode.
+If set, allow the DOS program to set the B bit, then jump back to realmode with B still set (aka Huge Unreal mode).</p>
+</div>
+<div class="paragraph">
+<p>Needed for the Project Angel demo.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_differences_in_emulated_cpu_types">Differences in emulated CPU types</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>This is based on: <a href="https://www.vogons.org/viewtopic.php?p=905713#p905713" class="bare">https://www.vogons.org/viewtopic.php?p=905713#p905713</a> and extended/modified for DOSBox-X.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+This is based on: <a href="https://www.vogons.org/viewtopic.php?p=905713#p905713" class="bare">https://www.vogons.org/viewtopic.php?p=905713#p905713</a> and extended/modified for DOSBox-X.
+It is not guaranteed to be 100% accurate.
+</td>
+</tr>
+</table>
 </div>
 <div class="sect2">
 <h3 id="_8086_to_386">8086 to 386</h3>
@@ -521,6 +1580,17 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </tr>
 </thead>
 <tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Real mode</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+</tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Protected mode</p></td>
 <td class="tableblock halign-center valign-top"></td>
@@ -602,19 +1672,21 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </table>
 </div>
 <div class="sect2">
-<h3 id="_486_to_pentium_pro">486 to Pentium Pro</h3>
+<h3 id="_486_to_pentium_iii">486 to Pentium III</h3>
 <table class="tableblock frame-all grid-all stretch">
 <caption class="title">Table 2. cputype options</caption>
 <colgroup>
-<col style="width: 11.1111%;">
-<col style="width: 11.1111%;">
-<col style="width: 11.1111%;">
-<col style="width: 11.1111%;">
-<col style="width: 11.1111%;">
-<col style="width: 11.1111%;">
-<col style="width: 11.1111%;">
-<col style="width: 11.1111%;">
-<col style="width: 11.1112%;">
+<col style="width: 9.0909%;">
+<col style="width: 9.0909%;">
+<col style="width: 9.0909%;">
+<col style="width: 9.0909%;">
+<col style="width: 9.0909%;">
+<col style="width: 9.0909%;">
+<col style="width: 9.0909%;">
+<col style="width: 9.0909%;">
+<col style="width: 9.0909%;">
+<col style="width: 9.0909%;">
+<col style="width: 9.091%;">
 </colgroup>
 <thead>
 <tr>
@@ -625,13 +1697,30 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <th class="tableblock halign-center valign-top">486 prefetch</th>
 <th class="tableblock halign-center valign-top">auto</th>
 <th class="tableblock halign-center valign-top">pentium</th>
-<th class="tableblock halign-center valign-top">pentium mmx</th>
 <th class="tableblock halign-center valign-top">ppro slow</th>
+<th class="tableblock halign-center valign-top">pentium mmx</th>
+<th class="tableblock halign-center valign-top">pentium ii</th>
+<th class="tableblock halign-center valign-top">pentium iii</th>
 </tr>
 </thead>
 <tbody>
 <tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Real mode</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+</tr>
+<tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Protected mode</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
@@ -651,6 +1740,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">486 CPUID</p></td>
@@ -659,6 +1750,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
@@ -672,17 +1765,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
-<td class="tableblock halign-center valign-top"></td>
-</tr>
-<tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Pentium Pro CPUID</p></td>
-<td class="tableblock halign-center valign-top"></td>
-<td class="tableblock halign-center valign-top"></td>
-<td class="tableblock halign-center valign-top"></td>
-<td class="tableblock halign-center valign-top"></td>
-<td class="tableblock halign-center valign-top"></td>
-<td class="tableblock halign-center valign-top"></td>
-<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 </tr>
 <tr>
@@ -695,9 +1779,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">loose (fast) page privilege check</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
@@ -715,11 +1803,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
-<td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">BSWAP, XADD, INVD, WBINVD</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
@@ -739,6 +1831,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">RDTSC</p></td>
@@ -746,6 +1840,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
@@ -761,6 +1857,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">CMOV, FCMOV, FCOMI/FCOMIP, FUCOMI/FUCOMIP, RDPMC, UD2</p></td>
@@ -770,7 +1868,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 </tr>
 <tr>
@@ -780,6 +1880,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
@@ -794,6 +1896,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Prefetch queue emulation</p></td>
@@ -801,6 +1905,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
@@ -814,82 +1920,36 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 <td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">SSE instruction set</p></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 </tr>
 </tbody>
 </table>
 </div>
 <div class="sect2">
-<h3 id="_vanilla_dosbox_cpu_types">Vanilla DOSBox CPU types</h3>
-<div class="paragraph">
-<p>Vanilla DOSBox has a few other cputype options not available in DOSBox-X</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>386_slow</p>
-</li>
-<li>
-<p>486_slow</p>
-</li>
-<li>
-<p>pentium_slow</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>The <code>slow</code> part of the name refers to the page privilege check.
-These cputype options are ignored in DOSBox-X, and <code>auto</code> will be used instead.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_floating_point_unit_fpu">Floating Point Unit (FPU)</h3>
-<div class="paragraph">
-<p>Also referred to as the x87, or Math co-processor.</p>
-</div>
-<div class="paragraph">
-<p>An emulated FPU is enabled by default.
-The following config options are available to change the behaviour.</p>
-</div>
-<div class="paragraph">
-<p>Under the <code>[cpu]</code> heading you can set <code>fpu=false</code> to disable the FPU.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-On real systems, starting with the Pentium CPU generation, a FPU was always present.
-But DOSBox-X allow disabling of the FPU with any CPU type.
-This could cause problems with software that expects a FPU to be present.
-</td>
-</tr>
-</table>
-</div>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Warning</div>
-</td>
-<td class="content">
-The real FPUs had an 80bit precision.
-This is however not supported with Windows DOSBox-X builds compiled using the Microsoft Visual Studio (MSVS) compiler, which is limited to just 64bits precision.
-Very few DOS games used the FPU, but for those that do, this lesser precision can cause a verity of problem, from graphical glitches to crashes, to incorrect outcomes in DOS applications.
-If your running Windows as the host OS, you can either disable the FPU emulation, or if proper FPU emulation is important, use the MinGW builds.
-</td>
-</tr>
-</table>
-</div>
-<div class="sect3">
-<h4 id="_weitek_fpu">Weitek FPU</h4>
+<h3 id="_weitek_fpu">Weitek FPU</h3>
 <div class="paragraph">
 <p>Weitek in the 80&#8217;s made Math co-processors compatible with the FPU socket found on x86 systemboards.
-But note that these FPUs were not software compatible with Intel and AMD FPU units, and required special software that was specifically written for it.
+But note that these Weitek FPUs are not software compatible with Intel and AMD FPU units, and can only be used by applications that specifically support it.
 DOSBox-X supports emulation of Weitek FPUs, but only in combination with 386 and 486 cpu types.</p>
+</div>
+<div class="paragraph">
+<p>To enable Weitek FPU emulation, set the following options in your config file:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -900,12 +1960,11 @@ weitek=true</pre>
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
 <h2 id="_faq">FAQ</h2>
 <div class="sectionbody">
-<div class="sect3">
-<h4 id="_why_is_there_no_8088_cpu_option">Why is there no 8088 CPU option?</h4>
+<div class="sect2">
+<h3 id="_why_is_there_no_8088_cpu_option">Why is there no 8088 CPU option?</h3>
 <div class="paragraph">
 <p>Q: The 8088 is what IBM used in the original IBM PC&#8217;s. So why is there no 8088 option?</p>
 </div>
@@ -917,7 +1976,7 @@ weitek=true</pre>
 </div>
 <div class="paragraph">
 <p>The difference is that the 8086 uses both 16-bit internal and external to the CPU, while the 8088 is 16-bit internal but only 8-bit external to reduce cost.
-The only practical difference with regards to emulation, is that a 8088 is a little slower because of this, but that can be compensated for using the <code>cycles=</code> setting.</p>
+The only practical difference, in regard to emulation, is that a 8088 is a little slower because of this, but that can be compensated for using the <code>cycles=</code> setting.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -932,14 +1991,14 @@ Some software may claim the CPU to be a 8088 when <code>cputype=8086</code>, thi
 </table>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_why_does_dosbox_x_support_the_80186">Why does DOSBox-X support the 80186?</h4>
+<div class="sect2">
+<h3 id="_why_does_dosbox_x_support_the_80186">Why does DOSBox-X support the 80186?</h3>
 <div class="paragraph">
 <p>Q: The 80186 was never used for the IBM PC, so why include it?</p>
 </div>
 <div class="paragraph">
 <p>A: Indeed, the 80186 was mainly meant for embedded use.
-The 80186 was never used by IBM, but there where a few rare PC clones that used it.
+The 80186 was never used by IBM, but there were a few rare PC clones that used it.
 Although they typically had various compatibility problems.</p>
 </div>
 <div class="paragraph">
@@ -959,23 +2018,23 @@ And just like with the 8086, software may identify the 80186 as a 80188.
 </table>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_is_dosbox_x_cycle_accurate">Is DOSBox-X cycle accurate?</h4>
+<div class="sect2">
+<h3 id="_is_dosbox_x_cycle_accurate">Is DOSBox-X cycle accurate?</h3>
 <div class="paragraph">
-<p>Q: Does DOSBox-X emulate the CPUs cycle accurate?</p>
+<p>Q: Does DOSBox-X emulate the CPU cycles accurately?</p>
 </div>
 <div class="paragraph">
-<p>A: No. This would just slow down the emulation, and is practical never needed for emulating PCs.</p>
+<p>A: No. This would just slow down the emulation, and is practical never needed for running PC programs and games.</p>
 </div>
 <div class="paragraph">
-<p>On a legacy PC the amount of cycles it takes to complete an instruction can vary depending on the type of instruction and the CPU generation and vendor.
+<p>On a legacy PC the amount of CPU cycles it takes to complete an instruction can vary depending on the type of instruction and the CPU generation and CPU vendor.
 DOSBox and by extension DOSBox-X instead completes one instruction per emulated-cycle.
 As such the <code>cycles=</code> value has no direct relation to the clock frequency or the amount of flops of the emulated system.</p>
 </div>
 <div class="paragraph">
 <p>For many legacy systems, cycle accurate emulation is desirable.
 But this does not apply to emulating PCs. Due to the vast amount of clone systems and CPU options produced, software developers could not rely on the amount of time it takes to complete a given instruction.
-And therefore used other timing methods, and therefore cycle accurate emulation is simply not needed.</p>
+Software developers therefore used other timing methods, and therefore cycle accurate emulation is simply not needed.</p>
 </div>
 <div class="paragraph">
 <p>If for some reason cycle accurate emulation is required, we suggest you use the <a href="https://pcem-emulator.co.uk/">PCem emulator</a>.</p>
@@ -1001,7 +2060,7 @@ And therefore used other timing methods, and therefore cycle accurate emulation 
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-01-01 01:51:44 -0500
+Last updated 2022-02-01 14:17:48 -0500
 </div>
 </div>
 </body>

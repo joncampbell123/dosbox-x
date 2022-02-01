@@ -447,9 +447,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 </div>
-<h1 id="_installing_microsoft_windows_95_in_dosbox_x" class="sect0">Installing Microsoft Windows 95 in DOSBox-X</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_installing_microsoft_windows_95_in_dosbox_x">Installing Microsoft Windows 95 in DOSBox-X</h2>
+<div class="sectionbody">
 <div class="imageblock">
 <div class="content">
 <img src="images/Windows:Windows_95_SPLASH.png" alt="Windows 95 splash screen">
@@ -457,43 +457,30 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="toc" class="toc">
 <div id="toctitle" class="title">Table of Contents</div>
-<ul class="sectlevel0">
-<li><a href="#_installing_microsoft_windows_95_in_dosbox_x">Installing Microsoft Windows 95 in DOSBox-X</a></li>
-<li><a href="#_overview">Overview</a>
 <ul class="sectlevel1">
+<li><a href="#_installing_microsoft_windows_95_in_dosbox_x">Installing Microsoft Windows 95 in DOSBox-X</a></li>
+<li><a href="#_overview">Overview</a></li>
 <li><a href="#_windows_cd_rom_editions_this_guide_applies_to">Windows CD-ROM editions this guide applies to</a></li>
 <li><a href="#_external_links">External links</a></li>
-</ul>
-</li>
 <li><a href="#_dosbox_x_config_file">DOSBox-X config file</a></li>
 <li><a href="#_general_installation_notes">General installation Notes</a></li>
 <li><a href="#_dynamic_vs_normal_core">Dynamic vs Normal core</a></li>
 <li><a href="#_creating_a_harddisk_image">Creating a Harddisk image</a></li>
 <li><a href="#_installation_method">Installation Method</a>
-<ul class="sectlevel1">
+<ul class="sectlevel2">
 <li><a href="#_requirements">Requirements</a></li>
 <li><a href="#_starting_the_installation">Starting the installation</a></li>
 <li><a href="#_copying_the_contents_of_the_cd_rom">Copying the contents of the CD-ROM</a></li>
 <li><a href="#_running_setup_exe">Running SETUP.EXE</a></li>
+<li><a href="#_booting_windows_95_after_installation">Booting Windows 95 after installation</a></li>
 </ul>
 </li>
-<li><a href="#_booting_windows_95_after_installation">Booting Windows 95 after installation</a></li>
 <li><a href="#_steps_to_take_after_installation">Steps to take after installation</a></li>
 <li><a href="#_mounting_cd_or_diskette_images">Mounting CD or Diskette images</a></li>
 <li><a href="#_enabling_networking">Enabling networking</a>
-<ul class="sectlevel1">
-<li><a href="#_enabling_ne2000_in_your_dosbox_x_config_file">Enabling NE2000 in your DOSBox-X config file</a>
 <ul class="sectlevel2">
-<li><a href="#_backendpcap">backend=pcap</a></li>
-<li><a href="#_backendslirp">backend=slirp</a></li>
-</ul>
-</li>
-<li><a href="#_setting_up_ne2000_networking">Setting up NE2000 networking</a>
-<ul class="sectlevel2">
-<li><a href="#_detection_during_installation">Detection during installation</a></li>
-<li><a href="#_detection_after_installation">Detection after installation</a></li>
-</ul>
-</li>
+<li><a href="#_enabling_ne2000_in_your_dosbox_x_config_file">Enabling NE2000 in your DOSBox-X config file</a></li>
+<li><a href="#_setting_up_ne2000_networking_in_windows_95">Setting up NE2000 networking in Windows 95</a></li>
 </ul>
 </li>
 <li><a href="#_emulated_video_adapter_and_video_mode">Emulated video adapter and video mode</a>
@@ -501,13 +488,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_vesa_driver">VESA driver</a></li>
 </ul>
 </li>
-<li><a href="#_emulated_sound_card">Emulated sound card</a>
-<ul class="sectlevel1">
+<li><a href="#_emulated_sound_card">Emulated sound card</a></li>
 <li><a href="#_enabling_general_midi">Enabling General MIDI</a></li>
-</ul>
-</li>
 <li><a href="#_enabling_printing">Enabling printing</a>
-<ul class="sectlevel1">
+<ul class="sectlevel2">
 <li><a href="#_print_to_postscript">Print to PostScript</a></li>
 <li><a href="#_epson_emulation">Epson emulation</a></li>
 </ul>
@@ -523,10 +507,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 </div>
-<h1 id="_overview" class="sect0">Overview</h1>
-<div class="openblock partintro">
-<div class="content">
-This guide will give a general description of installing Windows 95 in DOSBox-X, in addition to addressing some common issues.
+<div class="sect1">
+<h2 id="_overview">Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This guide will give a general description of installing Windows 95 in DOSBox-X, in addition to addressing some common issues.</p>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -619,9 +605,9 @@ If you want to stick with Windows 95, we recommend to use <strong>Windows 95 OSR
 </div>
 </div>
 </div>
-<h1 id="_dosbox_x_config_file" class="sect0">DOSBox-X config file</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_dosbox_x_config_file">DOSBox-X config file</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>You first need to create a DOSBox-X config file.</p>
 </div>
@@ -700,14 +686,14 @@ Larger values may be possible with tweaks but are not covered here.
 </div>
 </div>
 </div>
-<h1 id="_general_installation_notes" class="sect0">General installation Notes</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_general_installation_notes">General installation Notes</h2>
+<div class="sectionbody">
 <div class="ulist">
 <ul>
 <li>
 <p>Some parts of the installation can take a considerable amount of time.
-You may be able to speed this up considerably (depending on host CPU speed) by using the DOSBox-X Turbo mode, which can be enabled from the drop-down menu bar by selecting "CPU" followed by "Turbo (Fast Forward)".
+You may be able to speed this up considerably (depending on the host CPU) by using the DOSBox-X Turbo mode, which can be enabled from the drop-down menu bar by selecting "CPU" followed by "Turbo (Fast Forward)".
 This turbo mode is not like the old Turbo button on retro PCs, but functions more like a fast-forward, and therefore should not be used when interacting with the guest OS.
 Starting with DOSBox-X 0.83.21 the turbo mode is automatically disabled the moment a key is pressed, to prevent spurious keypresses to be registered causing undesirable effects.</p>
 </li>
@@ -721,15 +707,15 @@ Starting with DOSBox-X 0.83.21 the turbo mode is automatically disabled the mome
 <p>During the installation it may ask you if you have a CD-ROM, Network card or sound card that you want it to scan for. If you have NE2000 enabled in your DOSBox-X config file, you may want to check the Network adapter check box. Your DOSBox-X CD-ROM and Sound Card will be detected regardless if you check its box or not.</p>
 </li>
 <li>
-<p>In case you installed Windows 95 OSR2.5 you may have noticed that you did not get IE4 and the Active Desktop features. This is because this is an optional install. On the CD, simply run \WIN95\IE4SETUP.EXE to install it. While there is no real advantage to either feature, installing it does bring some new and updated libraries such as MSVCRT.DLL and COMCTL32.DLL that some programs need.</p>
+<p>In case you installed Windows 95 OSR2.5 you may have noticed that you did not get IE4 and the Active Desktop features. This is because this is an optional installation. On the CD, simply run \WIN95\IE4SETUP.EXE to install it. While there is no real advantage to either feature, installing it does bring some new and updated libraries such as MSVCRT.DLL and COMCTL32.DLL that some programs need.</p>
 </li>
 </ul>
 </div>
 </div>
 </div>
-<h1 id="_dynamic_vs_normal_core" class="sect0">Dynamic vs Normal core</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_dynamic_vs_normal_core">Dynamic vs Normal core</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>Starting with DOSBox-X 0.83.10 the dynamic_x86 core, which should perform much better, has been sufficiently enhanced that it can now be used for most use-cases with Windows 95.</p>
 </div>
@@ -747,9 +733,9 @@ Starting with DOSBox-X 0.83.21 the turbo mode is automatically disabled the mome
 </div>
 </div>
 </div>
-<h1 id="_creating_a_harddisk_image" class="sect0">Creating a Harddisk image</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_creating_a_harddisk_image">Creating a Harddisk image</h2>
+<div class="sectionbody">
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -820,7 +806,7 @@ This is the maximum size for FAT16 and supported by all Windows 95 releases.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Or if your using <strong>Windows 95 OSR2</strong> or later, you can create a FAT32 volume.
+<p>Or if you&#8217;re using <strong>Windows 95 OSR2</strong> or later, you can create a FAT32 volume.
 Technically the FAT32 filesystem is capable of supporting partitions up to 2TB, but the generic IDE driver in Windows 95 cannot handle volumes greater than 32GB.
 Larger partition sizes may be possible with 3rd party drivers but are not covered here.</p>
 </div>
@@ -843,16 +829,15 @@ This is an example of a 16GB (16*1024=16384 MB) disk, which due to its size, wil
 </div>
 </div>
 </div>
-<h1 id="_installation_method" class="sect0">Installation Method</h1>
-<div class="openblock partintro">
-<div class="content">
-Other installation methods are possible than the one described below.
-This method is however considered to be the quickest one with the least number of steps.
-</div>
-</div>
 <div class="sect1">
-<h2 id="_requirements">Requirements</h2>
+<h2 id="_installation_method">Installation Method</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>Other installation methods are possible than the one described below.
+This method is however considered to be the quickest one with the least number of steps.</p>
+</div>
+<div class="sect2">
+<h3 id="_requirements">Requirements</h3>
 <div class="ulist">
 <ul>
 <li>
@@ -867,10 +852,8 @@ This method is however considered to be the quickest one with the least number o
 <p>Getting this image file is outside the scope of this guide.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_starting_the_installation">Starting the installation</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_starting_the_installation">Starting the installation</h3>
 <div class="paragraph">
 <p>This assumes you have already started DOSBox-X with the <code>win95.conf</code> config file and created your harddisk image.</p>
 </div>
@@ -907,10 +890,8 @@ FAT32 volumes are only supported if your installing <strong>Windows 95 OSR2</str
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_copying_the_contents_of_the_cd_rom">Copying the contents of the CD-ROM</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_copying_the_contents_of_the_cd_rom">Copying the contents of the CD-ROM</h3>
 <div class="paragraph">
 <p>While not strictly necessary, as it is possible to run SETUP.EXE directly from the CD-ROM (if you have the CD-ROM automatically mounted in your [autoexec] section of the config file).
 It is recommended to copy the installation files (contents of the WIN95 directory on the CD-ROM) to your HDD image, as it will prevent Windows 95 from asking for the CD-ROM when it needs additional files later.</p>
@@ -943,10 +924,8 @@ When you get the warning below, select "Other directory" and click "Next &gt;" t
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_running_setup_exe">Running SETUP.EXE</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_running_setup_exe">Running SETUP.EXE</h3>
 <div class="paragraph">
 <p>You can now run SETUP.EXE.</p>
 </div>
@@ -958,8 +937,8 @@ SETUP</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Now run through the install process.
-The actual steps will not be covered in this guide but are pretty self-explanatory and detailed guides on the Windows 95 install process can be found online such as youtube.</p>
+<p>Now run through the installation process.
+The actual steps will not be covered in this guide but are pretty self-explanatory and detailed guides on the Windows 95 install process can be found online such as YouTube.</p>
 </div>
 <div class="paragraph">
 <p>When the installer reboots DOSBox-X, and your back at the DOSBox-X <code>Z:\</code> prompt, type <code>EXIT</code>.</p>
@@ -984,10 +963,8 @@ This is also the command you use, after the installation is finished, to start W
 </div>
 </div>
 </div>
-</div>
-<h1 id="_booting_windows_95_after_installation" class="sect0">Booting Windows 95 after installation</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect2">
+<h3 id="_booting_windows_95_after_installation">Booting Windows 95 after installation</h3>
 <div class="paragraph">
 <p>After the installation is finished, you can start Windows 95 from the command-prompt of your host PC, with the following command:</p>
 </div>
@@ -1001,9 +978,10 @@ This is also the command you use, after the installation is finished, to start W
 </div>
 </div>
 </div>
-<h1 id="_steps_to_take_after_installation" class="sect0">Steps to take after installation</h1>
-<div class="openblock partintro">
-<div class="content">
+</div>
+<div class="sect1">
+<h2 id="_steps_to_take_after_installation">Steps to take after installation</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>Once Windows 95 is installed, here is some additional software you may want to install or update:</p>
 </div>
@@ -1049,11 +1027,11 @@ This is also the command you use, after the installation is finished, to start W
 </div>
 </div>
 </div>
-<h1 id="_mounting_cd_or_diskette_images" class="sect0">Mounting CD or Diskette images</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_mounting_cd_or_diskette_images">Mounting CD or Diskette images</h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>DOSBox-X supports mounting CD and diskette (floppy) images, and making those available to a OS booted in DOSBox-X.
+<p>DOSBox-X supports mounting CD and diskette (floppy) images, and making those available to an OS booted in DOSBox-X.
 But only if the image files are specified before starting real DOS or Windows 9x.
 The option to load image files from the menu bar becomes unavailable the moment you boot DOS or Win9x in DOSBox-X.</p>
 </div>
@@ -1074,21 +1052,20 @@ IMGMOUNT D cd1.iso cd2.iso cd3.iso</pre>
 </div>
 </div>
 </div>
-<h1 id="_enabling_networking" class="sect0">Enabling networking</h1>
-<div class="openblock partintro">
-<div class="content">
-To enable networking, you first need to enable NE2000 adapter emulation in your <code>win95.conf</code> config file and select an appropriate back-end for the NE2000 emulation.
-</div>
-</div>
 <div class="sect1">
-<h2 id="_enabling_ne2000_in_your_dosbox_x_config_file">Enabling NE2000 in your DOSBox-X config file</h2>
+<h2 id="_enabling_networking">Enabling networking</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>To enable networking, you first need to enable NE2000 adapter emulation in your <code>win95.conf</code> config file and select an appropriate back-end for the NE2000 emulation.</p>
+</div>
+<div class="sect2">
+<h3 id="_enabling_ne2000_in_your_dosbox_x_config_file">Enabling NE2000 in your DOSBox-X config file</h3>
 <div class="paragraph">
 <p>Starting with DOSBox-X 0.83.12 there are two different back-ends to the NE2000 adapter emulation.
 The default is <code>backend=auto</code>, which implies <code>backend=slirp</code> if SLIRP support is available, otherwise <code>backend=pcap</code> is implied if PCAP support is available.</p>
 </div>
-<div class="sect2">
-<h3 id="_backendpcap">backend=pcap</h3>
+<div class="sect3">
+<h4 id="_backendpcap">backend=pcap</h4>
 <div class="paragraph">
 <p>The PCAP back-end uses something called "Promiscuous mode".
 This has the advantage that DOSBox-X can support various legacy network protocols, such as IPX and NetBIOS Frames (aka NetBEUI) in addition to TCP/IP.
@@ -1101,7 +1078,7 @@ In some cases, this is not possible, such as:</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Network Adapter or Driver not supporting Promiscuous mode (most WIFI, WAN and BT adapters fall into this category).</p>
+<p>Network Adapter or Driver not supporting Promiscuous mode (most wireless adapters fall into this category).</p>
 </li>
 <li>
 <p>Your Ethernet switch not allowing multiple MAC addresses on a single port or doing any kind of MAC address whitelisting.</p>
@@ -1130,11 +1107,11 @@ realnic=list</pre>
 See <a href="Guide%3ASetting-up-networking-in-DOSBox%E2%80%90X">Guide: Setting up networking in DOSBox-X</a> for more information.</p>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_backendslirp">backend=slirp</h3>
+<div class="sect3">
+<h4 id="_backendslirp">backend=slirp</h4>
 <div class="paragraph">
 <p>Unlike the PCAP back-end, the SLIRP back-end does not require Promiscuous mode.
-As such it will work with WIFI, WAN and BT adapters, and it will work in most sandboxed environments.</p>
+As such it will work with wireless adapters, and it will work in most sandboxed environments.</p>
 </div>
 <div class="paragraph">
 <p>But obviously, it has its own limitations.</p>
@@ -1153,7 +1130,7 @@ As such it will work with WIFI, WAN and BT adapters, and it will work in most sa
 </ul>
 </div>
 <div class="paragraph">
-<p>To enable NE2000 emulation with the slirp back-end, add the following to your <code>win95.conf</code> config file:</p>
+<p>To enable NE2000 emulation with the SLIRP back-end, add the following to your <code>win95.conf</code> config file:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1165,12 +1142,10 @@ backend=slirp</pre>
 </div>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_setting_up_ne2000_networking">Setting up NE2000 networking</h2>
-<div class="sectionbody">
 <div class="sect2">
-<h3 id="_detection_during_installation">Detection during installation</h3>
+<h3 id="_setting_up_ne2000_networking_in_windows_95">Setting up NE2000 networking in Windows 95</h3>
+<div class="sect3">
+<h4 id="_detection_during_installation">Detection during installation</h4>
 <div class="paragraph">
 <p>Windows 95 setup wizard will ask if you want to detect additional hardware during installation.
 The exact options presented may vary depending on the Windows 95 edition.
@@ -1190,7 +1165,7 @@ You can tick the "Network adapter" checkbox, and it should continue and find the
 </div>
 </div>
 <div class="paragraph">
-<p>Once the Windows 95 installation is finished, right click on "My Computer" on the desktop and select "Properties".
+<p>Once the Windows 95 installation is finished, right-click on "My Computer" on the desktop and select "Properties".
 Now in the "System Properties" dialogue, select the "Device Manager" tab.</p>
 </div>
 <div class="imageblock">
@@ -1213,7 +1188,7 @@ Now in the "System Properties" dialogue, select the "Device Manager" tab.</p>
 <p>Next, highlight the "Input/Output Range" entry, and again click the "Change Setting&#8230;&#8203;" button. Now change the value to "0300 - 031F".</p>
 </div>
 <div class="paragraph">
-<p>Once you&#8217;re finished adjusting the resources, click the "OK" button, and Windows 95 will prompt you to shutdown to apply the settings, after which you need to restart Windows 95 in DOSBox-X.</p>
+<p>Once you&#8217;re finished adjusting the resources, click the "OK" button, and Windows 95 will prompt you to shut down to apply the settings, after which you need to restart Windows 95 in DOSBox-X.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1229,8 +1204,8 @@ Most Windows 95 applications expect TCP/IP which you will need to manually enabl
 </table>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_detection_after_installation">Detection after installation</h3>
+<div class="sect3">
+<h4 id="_ne2000_detection_after_installation">NE2000 Detection after installation</h4>
 <div class="paragraph">
 <p>If you enabled NE2000 support in your DOSBox-X config file after Windows 95 installation, go to "Start", "Settings" and "Control Panel" and double-click on "Add New Hardware".</p>
 </div>
@@ -1347,9 +1322,10 @@ After the reboot you should have working TCP/IP networking.</p>
 </div>
 </div>
 </div>
-<h1 id="_emulated_video_adapter_and_video_mode" class="sect0">Emulated video adapter and video mode</h1>
-<div class="openblock partintro">
-<div class="content">
+</div>
+<div class="sect1">
+<h2 id="_emulated_video_adapter_and_video_mode">Emulated video adapter and video mode</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>The default video adapter that DOSBox-X emulates is the S3 Trio64, which is the best emulated video adapter that DOSBox-X offers, with the widest range of resolutions and colour depths.</p>
 </div>
@@ -1412,8 +1388,6 @@ The only known solution for now if you used the 2.02.04 driver is to re-install 
 </tr>
 </table>
 </div>
-</div>
-</div>
 <div class="sect2">
 <h3 id="_vesa_driver">VESA driver</h3>
 <div class="paragraph">
@@ -1448,9 +1422,11 @@ Using the VBEMP driver does have a negative graphics performance impact, which w
 </table>
 </div>
 </div>
-<h1 id="_emulated_sound_card" class="sect0">Emulated sound card</h1>
-<div class="openblock partintro">
-<div class="content">
+</div>
+</div>
+<div class="sect1">
+<h2 id="_emulated_sound_card">Emulated sound card</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>The emulated sound card used in this guide is the SB16 Vibra, instead of the default SB16.
 This is simply because the SB16 Vibra is an ISA PnP card, and therefore automatically detected by Windows.
@@ -1464,7 +1440,7 @@ There is no other real advantage of using the emulated SB16 Vibra over the SB16.
 </td>
 <td class="content">
 One often heard complaint of the real SB16 Vibra is its CQM synthesis, which was used as a low-cost replacement of the OPL3 chip found on earlier cards.
-However, DOSBox-X does not really emulate the CQM, instead if uses the same OPL3 emulation as for the regular SB16 model.
+However, DOSBox-X does not really emulate the CQM, instead it uses the same OPL3 emulation as for the regular SB16 model.
 Therefore, the CQM sound quality issues with the real SB16 Vibra do not apply to DOSBox-X.
 </td>
 </tr>
@@ -1510,20 +1486,19 @@ If you encounter similar issues, try to set <code>sbtype=none</code> and see if 
 </div>
 </div>
 </div>
-<h1 id="_enabling_printing" class="sect0">Enabling printing</h1>
-<div class="openblock partintro">
-<div class="content">
-Also see the <a href="Guide%3ASetting-up-printing-in-DOSBox%E2%80%90X">Guide: Setting up printing in DOSBox-X</a>
-</div>
-</div>
 <div class="sect1">
-<h2 id="_print_to_postscript">Print to PostScript</h2>
+<h2 id="_enabling_printing">Enabling printing</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>Also see the <a href="Guide%3ASetting-up-printing-in-DOSBox%E2%80%90X">Guide: Setting up printing in DOSBox-X</a></p>
+</div>
+<div class="sect2">
+<h3 id="_print_to_postscript">Print to PostScript</h3>
 <div class="paragraph">
 <p>For the best print quality, you will want to print to a PostScript printer in Windows 95.</p>
 </div>
 <div class="paragraph">
-<p>First, setup your DOSBox-X config to print to a file as such:</p>
+<p>First, set up your DOSBox-X config to print to a file as such:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1579,15 +1554,13 @@ And perhaps try changing the spool setting to "Start printing after last page is
 On a Windows host, it is necessary to install a separate PostScript viewer such as <a href="http://pages.cs.wisc.edu/~ghost/">GSview</a>.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_epson_emulation">Epson emulation</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_epson_emulation">Epson emulation</h3>
 <div class="paragraph">
 <p>As an alternative, you can use the integrated Epson printer emulation, but the output quality will be significantly less compared to PostScript.</p>
 </div>
 <div class="paragraph">
-<p>First, setup your DOSBox-X config to emulate an Epson printer as such:</p>
+<p>First, set up your DOSBox-X config to emulate an Epson printer as such:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1627,9 +1600,10 @@ The emulated Epson printer settings can be adjusted as documented on the above l
 </div>
 </div>
 </div>
-<h1 id="_3dfx_voodoo" class="sect0">3dfx Voodoo</h1>
-<div class="openblock partintro">
-<div class="content">
+</div>
+<div class="sect1">
+<h2 id="_3dfx_voodoo">3dfx Voodoo</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>The emulated 3dfx Voodoo PCI device is enabled by default in DOSBox-X, but Windows 95 lacks drivers for it by default.
 As such a "PCI Multimedia Video Device" will show in Device Manager with a yellow exclamation mark.</p>
@@ -1644,8 +1618,6 @@ As such a "PCI Multimedia Video Device" will show in Device Manager with a yello
 <div class="content">
 <pre>[voodoo]
 voodoo_card=false</pre>
-</div>
-</div>
 </div>
 </div>
 <div class="sect2">
@@ -1684,9 +1656,11 @@ If so, you will have to remove this DLL file for glide pass-through to work.</p>
 <p>For more detail on 3dfx Voodoo emulation, see the <a href="Guide%3ASetting-up-3dfx-Voodoo-in-DOSBox%E2%80%90X">Guide: Setting up 3dfx Voodoo in DOSBox-X</a></p>
 </div>
 </div>
-<h1 id="_hard_disk_read_ahead_optimization" class="sect0">Hard Disk Read-ahead optimization</h1>
-<div class="openblock partintro">
-<div class="content">
+</div>
+</div>
+<div class="sect1">
+<h2 id="_hard_disk_read_ahead_optimization">Hard Disk Read-ahead optimization</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>In "System Properties", select the "Performance" tab, and click the "File System&#8230;&#8203;" button.
 A separate "File System Properties" window will open.
@@ -1698,9 +1672,9 @@ This is no doubt because the host system is better at caching then the Windows 9
 </div>
 </div>
 </div>
-<h1 id="_outstanding_issues" class="sect0">Outstanding issues</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_outstanding_issues">Outstanding issues</h2>
+<div class="sectionbody">
 <div class="ulist">
 <ul>
 <li>
@@ -1713,7 +1687,7 @@ This is no doubt because the host system is better at caching then the Windows 9
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-01-01 01:51:44 -0500
+Last updated 2022-02-01 14:17:48 -0500
 </div>
 </div>
 </body>

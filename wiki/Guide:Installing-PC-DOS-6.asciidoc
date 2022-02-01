@@ -2,12 +2,12 @@
 
 Back to the link:Guide%3ADOS-Installation-in-DOSBox‐X[PC DOS and MS-DOS Installation Guide]
 
-# Installing PC DOS 6.x in DOSBox-X
+== Installing PC DOS 6.x in DOSBox-X
 
 toc::[]
 
-## Overview
-### Editions this applies to:
+== Overview
+=== Editions this applies to:
 
 * PC DOS 6.10
 ** Adds F5 and F8 clean boot and selective boot options
@@ -18,18 +18,18 @@ toc::[]
 ** Includes Central Point Backup (DOS and Windows)
 ** Includes Central Point Data Monitor
 ** Includes Central Point Scheduler
-** Includes defrag
+** Includes defragmentation tool
 ** Includes IBM Antivirus (DOS and Windows)
 ** Includes Phoenix PCMCIA support (DOS and Windows)
 ** Includes PenDOS
 * PC DOS 6.30
 ** Includes Addstor SuperStor disk compression software
 
-### Notes
+=== Notes
 * PC DOS 6.1 was delivered on four 3.5" disks
 * PC DOS 6.3 was delivered on five 3.5" disks
 
-## Creating a PC DOS 6.x HDD image
+== Creating a PC DOS 6.x HDD image
 Note: In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images from the DOSBox-X menu.
 Go to the "DOS" menu, and select "Create blank disk image…​".
 This option allows for various common harddisk types to be created, for less common types you need to use the command line utility.
@@ -43,7 +43,7 @@ Assuming your PC DOS 6.x disk images are in the current working directory, and n
  BOOT DISK1.IMG DISK2.IMG DISK3.IMG DISK4.IMG
 ....
 
-When prompted to change disk, on the DOSBox-X menu bar select "DOS" followed by "Swap disk". After the installation is finished, from the DOSBox-X menu bar select "Main" followed by "Reset guest system" and you will be back at the DOSBox-X ``Z:\>`` prompt.
+When prompted to change disk, on the DOSBox-X menu bar select "DOS" followed by "Swap disk". After the installation is finished, from the DOSBox-X menu bar select "Main" followed by "Reset guest system", and you will be back at the DOSBox-X ``Z:\>`` prompt.
 
 You can now boot these DOS versions directly from the HDD image as follows:
 ....

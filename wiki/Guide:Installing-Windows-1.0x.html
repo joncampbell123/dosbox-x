@@ -447,9 +447,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 </div>
-<h1 id="_installing_microsoft_windows_1_0x_in_dosbox_x" class="sect0">Installing Microsoft Windows 1.0x in DOSBox-X</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_installing_microsoft_windows_1_0x_in_dosbox_x">Installing Microsoft Windows 1.0x in DOSBox-X</h2>
+<div class="sectionbody">
 <div class="imageblock">
 <div class="content">
 <img src="images/Windows:Windows_1.01_SPLASH.png" alt="Windows 1.01 splash screen">
@@ -457,21 +457,18 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="toc" class="toc">
 <div id="toctitle" class="title">Table of Contents</div>
-<ul class="sectlevel0">
+<ul class="sectlevel1">
 <li><a href="#_installing_microsoft_windows_1_0x_in_dosbox_x">Installing Microsoft Windows 1.0x in DOSBox-X</a></li>
 <li><a href="#_overview">Overview</a>
-<ul class="sectlevel1">
+<ul class="sectlevel2">
 <li><a href="#_editions_this_applies_to">Editions this applies to</a></li>
 <li><a href="#_limitations">Limitations</a></li>
 <li><a href="#_useful_links">Useful links</a></li>
 </ul>
 </li>
 <li><a href="#_dosbox_x_config_file">DOSBox-X config file</a></li>
-<li><a href="#_preparing_for_installation">Preparing for installation</a>
-<ul class="sectlevel1">
+<li><a href="#_preparing_for_installation">Preparing for installation</a></li>
 <li><a href="#_example_of_extracting_files_from_disk_images">Example of extracting files from disk images</a></li>
-</ul>
-</li>
 <li><a href="#_installing_in_a_mounted_folder">Installing in a mounted folder</a></li>
 <li><a href="#_windows_1_0x_setup_program">Windows 1.0x setup program</a></li>
 <li><a href="#_starting_windows_1_0x_after_installation">Starting Windows 1.0x after installation</a></li>
@@ -479,10 +476,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 </div>
-<h1 id="_overview" class="sect0">Overview</h1>
 <div class="sect1">
-<h2 id="_editions_this_applies_to">Editions this applies to</h2>
+<h2 id="_overview">Overview</h2>
 <div class="sectionbody">
+<div class="sect2">
+<h3 id="_editions_this_applies_to">Editions this applies to</h3>
 <div class="ulist">
 <ul>
 <li>
@@ -544,10 +542,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 A runtime edition was also included with some applications.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_limitations">Limitations</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_limitations">Limitations</h3>
 <div class="paragraph">
 <p>According to Microsoft: <em>Windows 1.0 required a minimum of 256 kilobyte, two double-sided disk drives and a graphics adapter.
 A hard disk and 512KB memory are recommended for running multiple programs or when using DOS 3.0 or higher.</em></p>
@@ -565,10 +561,8 @@ IBM distributed a special OEM version of Windows 1.04 as part of the "<strong>IB
 And likewise, you will be limited to EGA graphics.</p>
 </div>
 </div>
-</div>
-<div class="sect1">
-<h2 id="_useful_links">Useful links</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_useful_links">Useful links</h3>
 <div class="ulist">
 <ul>
 <li>
@@ -584,9 +578,10 @@ And likewise, you will be limited to EGA graphics.</p>
 </div>
 </div>
 </div>
-<h1 id="_dosbox_x_config_file" class="sect0">DOSBox-X config file</h1>
-<div class="openblock partintro">
-<div class="content">
+</div>
+<div class="sect1">
+<h2 id="_dosbox_x_config_file">DOSBox-X config file</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>It is recommended that you create a custom DOSBox-X config file for running Windows 1.0x</p>
 </div>
@@ -624,9 +619,9 @@ scaler=none
 </div>
 </div>
 </div>
-<h1 id="_preparing_for_installation" class="sect0">Preparing for installation</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_preparing_for_installation">Preparing for installation</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>The installation will be into a mounted folder, and Windows 1.0x will run from the integrated DOS that DOSBox-X provides.
 You can optionally install real DOS into DOSBox-X and install Windows 1.0x in that, but there is no known advantage to doing so.</p>
@@ -671,7 +666,7 @@ You can optionally install real DOS into DOSBox-X and install Windows 1.0x in th
 <div class="title">Note</div>
 </td>
 <td class="content">
-For users running Windows on their host computer, do <strong>NOT</strong> mount the root of your C: drive as the DOSBox-X C: drive! (e.g., <code>MOUNT C C:\</code> should NOT be done)
+For users running Windows on their host computer, do <strong>NOT</strong> mount the root of your C: drive as the DOSBox-X C: drive! (e.g., <code>MOUNT C: C:\</code> should NOT be done)
 </td>
 </tr>
 </table>
@@ -679,7 +674,7 @@ For users running Windows on their host computer, do <strong>NOT</strong> mount 
 <div class="paragraph">
 <p>All Windows 1.0x versions were shipped on diskettes, requiring anywhere between 3 and 7 disks, depending on media-type and Windows version.
 And while it is possible to install Windows 1.0x from floppy images in DOSBox-X, the disk-swap process for this is rather tedious for substantial number of disks.
-As such it is highly recommended to make a directory such as "INSTALL" and copy the contents of ALL the diskettes into this directory.
+As such it is recommended to make a directory such as "INSTALL" and copy the contents of ALL the diskettes into this directory.
 This way there is no need to swap disks during the installation process.</p>
 </div>
 </div>
@@ -714,11 +709,11 @@ IMGMOUNT A -U</pre>
 </div>
 </div>
 </div>
-<h1 id="_installing_in_a_mounted_folder" class="sect0">Installing in a mounted folder</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_installing_in_a_mounted_folder">Installing in a mounted folder</h2>
+<div class="sectionbody">
 <div class="paragraph">
-<p>Your now ready to start DOSBox-X from the command-line, using the newly created win1x.conf config file.
+<p>You&#8217;re now ready to start DOSBox-X from the command-line, using the newly created win1x.conf config file.
 This assumes that the <code>dosbox-x</code> program is in your path and <code>win1x.conf</code> is in your current directory.</p>
 </div>
 <div class="literalblock">
@@ -727,7 +722,7 @@ This assumes that the <code>dosbox-x</code> program is in your path and <code>wi
 </div>
 </div>
 <div class="paragraph">
-<p>You now need to mount your new folder as the C: drive in DOSBox-X, and the INSTALL directory on A: and start the installation.</p>
+<p>You now need to mount your new folder as the C: drive in DOSBox-X, and the "INSTALL" directory on A: and start the installation.</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -757,9 +752,9 @@ If your path has spaces, you need to enclose it in quotes. e.g., <code>MOUNT C "
 </div>
 </div>
 </div>
-<h1 id="_windows_1_0x_setup_program" class="sect0">Windows 1.0x setup program</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_windows_1_0x_setup_program">Windows 1.0x setup program</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>The setup program will ask several question relating to mouse, display and printer.
 If you have v1.02 or newer it will also ask you about the keyboard layout.</p>
@@ -830,7 +825,7 @@ In which case you need to disable the serialmouse option in your DOSBox-X config
 </div>
 </div>
 <div class="paragraph">
-<p>Otherwise select option 2 "<strong>Microsoft Mouse (Bus/Serial)</strong>" and press Enter to continue as prompted.</p>
+<p>Otherwise, select option 2 "<strong>Microsoft Mouse (Bus/Serial)</strong>" and press Enter to continue as prompted.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -850,7 +845,7 @@ In which case you need to disable the serialmouse option in your DOSBox-X config
 </div>
 </div>
 <div class="paragraph">
-<p>Otherwise select option 6 "<strong>EGA (more than 64K) with Enhanced Color Display</strong>" as shown below, and press Enter to continue as prompted.</p>
+<p>Otherwise, select option 6 "<strong>EGA (more than 64K) with Enhanced Color Display</strong>" as shown below, and press Enter to continue as prompted.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -867,10 +862,10 @@ In which case you need to disable the serialmouse option in your DOSBox-X config
 <div class="ulist">
 <ul>
 <li>
-<p>If your following the folder installation method, you can simply press Enter.</p>
+<p>If you&#8217;re following the folder installation method, you can simply press Enter.</p>
 </li>
 <li>
-<p>If your using disk images to install Windows, you need to now swap the disk using the menu item "DOS" followed by "Swap floppy". And then press enter.</p>
+<p>If you&#8217;re using disk images to install Windows, you need to now swap the disk using the menu item "DOS" followed by "Swap floppy". And then press enter.</p>
 </li>
 </ul>
 </div>
@@ -889,10 +884,10 @@ In which case you need to disable the serialmouse option in your DOSBox-X config
 <div class="ulist">
 <ul>
 <li>
-<p>If your following the folder installation method, you can simply press Enter.</p>
+<p>If you&#8217;re following the folder installation method, you can simply press Enter.</p>
 </li>
 <li>
-<p>If your using disk images to install Windows, you need to now swap the disk using the menu item "DOS" followed by "Swap floppy". And then press enter.</p>
+<p>If you&#8217;re using disk images to install Windows, you need to now swap the disk using the menu item "DOS" followed by "Swap floppy". And then press enter.</p>
 </li>
 </ul>
 </div>
@@ -906,7 +901,7 @@ In which case you need to disable the serialmouse option in your DOSBox-X config
 <p><strong>Printer setup</strong></p>
 </div>
 <div class="paragraph">
-<p>SETUP now asks if you want to setup a printer. You can press enter or "<strong>Y</strong>" to confirm, or you can press "<strong>N</strong>" to skip this step.</p>
+<p>SETUP now asks if you want to set up a printer. You can press enter or "<strong>Y</strong>" to confirm, or you can press "<strong>N</strong>" to skip this step.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -918,7 +913,7 @@ In which case you need to disable the serialmouse option in your DOSBox-X config
 <p><strong>Printer setup - select model</strong></p>
 </div>
 <div class="paragraph">
-<p>If you indicated wanting to setup a printer, SETUP now asks you which model.</p>
+<p>If you indicated wanting to set up a printer, SETUP now asks you which model.</p>
 </div>
 <div class="paragraph">
 <p>For this guide we use option 2, the "<strong>Epson LQ-1500</strong>", and press Enter.</p>
@@ -936,7 +931,7 @@ In which case you need to disable the serialmouse option in your DOSBox-X config
 <p><strong>Printer setup - port select</strong></p>
 </div>
 <div class="paragraph">
-<p>If you indicated wanting to setup a printer, SETUP now asks you which port the printer is connected to.</p>
+<p>If you indicated wanting to set up a printer, SETUP now asks you which port the printer is connected to.</p>
 </div>
 <div class="paragraph">
 <p>Select the number for the "<strong>LPT1:</strong>" port and press Enter.</p>
@@ -963,7 +958,7 @@ In the version shown, it is option 1, but in some other releases it is option 2.
 <p><strong>Printer setup - another printer</strong></p>
 </div>
 <div class="paragraph">
-<p>SETUP now asks if you want to setup another printer.</p>
+<p>SETUP now asks if you want to set up another printer.</p>
 </div>
 <div class="paragraph">
 <p>Press Enter to continue without setting up another printer.</p>
@@ -986,10 +981,10 @@ In the version shown, it is option 1, but in some other releases it is option 2.
 <div class="ulist">
 <ul>
 <li>
-<p>If your following the folder installation method, you can simply press Enter.</p>
+<p>If you&#8217;re following the folder installation method, you can simply press Enter.</p>
 </li>
 <li>
-<p>If your using disk images to install Windows, you need to now swap the disk using the menu item "DOS" followed by "Swap floppy". And then press enter.</p>
+<p>If you&#8217;re using disk images to install Windows, you need to now swap the disk using the menu item "DOS" followed by "Swap floppy". And then press enter.</p>
 </li>
 </ul>
 </div>
@@ -1008,10 +1003,10 @@ In the version shown, it is option 1, but in some other releases it is option 2.
 <div class="ulist">
 <ul>
 <li>
-<p>If your following the folder installation method, you can simply press Enter.</p>
+<p>If you&#8217;re following the folder installation method, you can simply press Enter.</p>
 </li>
 <li>
-<p>If your using disk images to install Windows, you need to now swap the disk using the menu item "DOS" followed by "Swap floppy". And then press enter.</p>
+<p>If you&#8217;re using disk images to install Windows, you need to now swap the disk using the menu item "DOS" followed by "Swap floppy". And then press enter.</p>
 </li>
 </ul>
 </div>
@@ -1054,9 +1049,9 @@ If you don&#8217;t want DOSBox-X to close when exiting Windows 1.0x, remove the 
 </div>
 </div>
 </div>
-<h1 id="_starting_windows_1_0x_after_installation" class="sect0">Starting Windows 1.0x after installation</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_starting_windows_1_0x_after_installation">Starting Windows 1.0x after installation</h2>
+<div class="sectionbody">
 <div class="paragraph">
 <p>After the installation is finished, you can start Windows 1.0x from the command-prompt with the following command:</p>
 </div>
@@ -1078,7 +1073,7 @@ If you don&#8217;t want DOSBox-X to close when exiting Windows 1.0x, remove the 
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-01-01 01:51:44 -0500
+Last updated 2022-02-01 14:17:48 -0500
 </div>
 </div>
 </body>

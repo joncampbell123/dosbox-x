@@ -447,12 +447,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 </div>
-<h1 id="_regional_settings_in_dosbox_x" class="sect0">Regional settings in DOSBox-X</h1>
-<div class="openblock partintro">
-<div class="content">
+<div class="sect1">
+<h2 id="_regional_settings_in_dosbox_x">Regional settings in DOSBox-X</h2>
+<div class="sectionbody">
 <div id="toc" class="toc">
 <div id="toctitle" class="title">Table of Contents</div>
-<ul class="sectlevel0">
+<ul class="sectlevel1">
 <li><a href="#_regional_settings_in_dosbox_x">Regional settings in DOSBox-X</a>
 <ul class="sectlevel2">
 <li><a href="#_overview">Overview</a></li>
@@ -466,8 +466,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 </ul>
 </div>
-</div>
-</div>
 <div class="sect2">
 <h3 id="_overview">Overview</h3>
 <div class="paragraph">
@@ -477,7 +475,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_country_specific_datetime_formats">Country-specific date/time formats</h3>
 <div class="paragraph">
-<p>The country code can be set in the [config] section of the DOSBox-X config file by use of the <code>COUNTRY=</code> setting. This defaults to an empty string which means auto-detection (or 81 for PC-98 mode); if auto-detection cannot be done then it will fallback to 1 which is the US. This setting influences date and time format as used by DOSBox-X, such as the <code>DIR</code> command. It may also influence regional settings in other applications.</p>
+<p>The country code can be set in the [config] section of the DOSBox-X config file by use of the <code>COUNTRY=</code> setting. This defaults to an empty string which means auto-detection (or 81 for PC-98 mode); if auto-detection cannot be done then it will fall back to 1 which is the US. This setting influences date and time format as used by DOSBox-X, such as the <code>DIR</code> command. It may also influence regional settings in other applications.</p>
 </div>
 <div class="paragraph">
 <p>For example, the date is displayed in MM-DD-YYYY format with the default US setting:</p>
@@ -750,7 +748,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><code>language=C:\message.txt</code></p>
 </div>
 <div class="paragraph">
-<p>For example, the Chinese (Simplified), Japanese and Spanish language files for DOSBox-X are available from:</p>
+<p>For example, the Chinese (Simplified &amp; Traditional), English (United States), French, Japanese, Portuguese (Brazilian), Spanish, and Turkic language files for DOSBox-X are available from:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -758,10 +756,25 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_CN.lng?raw=true">zh_CN.lng</a></p>
 </li>
 <li>
+<p><a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_TW.lng?raw=true">zh_TW.lng</a></p>
+</li>
+<li>
+<p><a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/en/en_US.lng?raw=true">en_US.lng</a></p>
+</li>
+<li>
+<p><a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/fr/fr_FR.lng?raw=true">fr_FR.lng</a></p>
+</li>
+<li>
 <p><a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ja/ja_JP.lng?raw=true">ja_JP.lng</a></p>
 </li>
 <li>
+<p><a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/pt/pt_BR.lng?raw=true">pt_BR.lng</a></p>
+</li>
+<li>
 <p><a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/es/es_ES.lng?raw=true">es_ES.lng</a></p>
+</li>
+<li>
+<p><a href="https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/tr/tr_TR.lng?raw=true">tr_TR.lng</a></p>
 </li>
 </ul>
 </div>
@@ -836,7 +849,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </colgroup>
 <thead>
 <tr>
-<th class="tableblock halign-left valign-top">Keboard layouts</th>
+<th class="tableblock halign-left valign-top">Keyboard layouts</th>
 <th class="tableblock halign-left valign-top">Country usages</th>
 </tr>
 </thead>
@@ -1138,7 +1151,7 @@ The information in this section applies to DOSBox-X 0.83.4 and later only. It ma
 <p>DOSBox-X by default uses the new codepage with the Euro symbol enabled for the specified keyboard layout (if available), when you do not specify a codepage for it. The Euro symbol will be supported and displayed in the above-mentioned ASCII position.</p>
 </div>
 <div class="paragraph">
-<p>It is also possible to display the Euro symbol instead of the specified ASCII character in any codepage in DOSBox-X, including the default codepage 437 and other codepages without the Euro symbol such as 850. DOSBox-X has an <code>euro</code> config option in the [render] section of the config file (dosbox-x.conf by default), which allows you to specify a ASCII position (between 33 and 255) for the Euro symbol to be rendered in place of the original character if you wish. For example, setting the following will allow DOSBox-X to display the Euro symbol instead of C-cedilla (Ç) in position 128.</p>
+<p>It is also possible to display the Euro symbol instead of the specified ASCII character in any codepage in DOSBox-X, including the default codepage 437 and other codepages without the Euro symbol such as 850. DOSBox-X has an <code>euro</code> config option in the [render] section of the config file (dosbox-x.conf by default), which allows you to specify an ASCII position (between 33 and 255) for the Euro symbol to be rendered in place of the original character if you wish. For example, setting the following will allow DOSBox-X to display the Euro symbol instead of C-cedilla (Ç) in position 128.</p>
 </div>
 <div class="paragraph">
 <p><code>euro=128</code></p>
@@ -1153,25 +1166,25 @@ The information in this section applies to DOSBox-X 0.83.4 and later only. It ma
 <p>DOSBox-X allows the use of external keyboard files for international keyboard layouts in addition to those that are already built into DOSBox-X. A list of supported keyboard layouts in DOSBox-X can be found in the "International keyboard layouts and codepages" section.</p>
 </div>
 <div class="paragraph">
-<p>For using external keyboard files in DOSBox-X, the FreeDOS .kl files are supported (FreeDOS keyb2 keyboard layout files) as well as the FreeDOS keyboard.sys/keybrd2.sys/keybrd3.sys libraries which consist of all available .kl files.</p>
+<p>For using external keyboard files in DOSBox-X, the FreeDOS <code>.kl</code> files are supported (FreeDOS <code>keyb2</code> keyboard layout files) as well as the FreeDOS <code>keyboard.sys</code>/<code>keybrd2.sys</code>/<code>keybrd3.sys</code> libraries which consist of all available <code>.kl</code> files.</p>
 </div>
 <div class="paragraph">
 <p>Check out the FreeDOS website for precompiled keyboard layouts if the DOSBox-X integrated layouts do not work for some reason, or if updated or new layouts become available.</p>
 </div>
 <div class="paragraph">
-<p>Both .CPI (MS-DOS and compatible codepage files) and .CPX (FreeDOS UPX-compressed codepage files) can be used as the codepage files in DOSBox-X. Some codepages are compiled into DOSBox-X, so it is mostly not needed to care about external codepage files. If you need a different (or custom) codepage file, copy it into the DOSBox-X directory so it is accessible for DOSBox-X.</p>
+<p>Both <code>.CPI</code> (MS-DOS and compatible codepage files) and <code>.CPX</code> (FreeDOS UPX-compressed codepage files) can be used as the codepage files in DOSBox-X. Some codepages are compiled into DOSBox-X, so it is mostly not needed to care about external codepage files. If you need a different (or custom) codepage file, copy it into the DOSBox-X directory, such it is accessible for DOSBox-X.</p>
 </div>
 <div class="paragraph">
-<p>If you place all ten ega.cpx files (from FreeDOS) in the DOSBox-X folder, an appropriate codepage file for the requested layout/codepage is chosen automatically.</p>
+<p>If you place all ten <code>ega.cpx</code> files (from FreeDOS) in the DOSBox-X folder, an appropriate codepage file for the requested layout/codepage is chosen automatically.</p>
 </div>
 <div class="paragraph">
-<p>Additional layouts can be added by copying the corresponding .kl file into the directory of the DOSBox-X config file and using the first part of the filename as the language code. For example, for the file UZ.KL (keyboard layout for Uzbekistan) you can specify the following in the DOSBox-X config file:</p>
+<p>Additional layouts can be added by copying the corresponding <code>.kl</code> file into the directory of the DOSBox-X config file and using the first part of the filename as the language code. For example, for the file <code>UZ.KL</code> (keyboard layout for Uzbekistan) you can specify the following in the DOSBox-X config file:</p>
 </div>
 <div class="paragraph">
 <p><code>keyboardlayout=uz</code></p>
 </div>
 <div class="paragraph">
-<p>The integration of keyboard layout packages (like keybrd2.sys) works similar.</p>
+<p>The integration of keyboard layout packages (like <code>keybrd2.sys</code>) works similar.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1202,9 +1215,11 @@ The information in this section applies to DOSBox-X 0.83.4 and later only. Previ
 </div>
 </div>
 </div>
+</div>
+</div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-01-01 01:51:44 -0500
+Last updated 2022-02-01 14:17:48 -0500
 </div>
 </div>
 </body>

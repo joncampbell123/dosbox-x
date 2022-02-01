@@ -5,17 +5,17 @@ ifndef::env-github[:suffixappend:]
 
 Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
 
-# Regional settings in DOSBox-X
+== Regional settings in DOSBox-X
 
 toc::[]
 
-### Overview
+=== Overview
 
 You can customize the regional settings in DOSBox-X, such as changing the country code for country-specific date/time formats, as well as modifying the international keyboard layouts and codepages. If you are a DOSBox-X user living outside the United States, you probably want to do this in order for DOSBox-X to match the regional settings in your country. Such settings can be configured either from the DOSBox-X config file (dosbox-x.conf by default), or from the DOSBox-X command line.
 
-### Country-specific date/time formats
+=== Country-specific date/time formats
 
-The country code can be set in the [config] section of the DOSBox-X config file by use of the ``COUNTRY=`` setting. This defaults to an empty string which means auto-detection (or 81 for PC-98 mode); if auto-detection cannot be done then it will fallback to 1 which is the US. This setting influences date and time format as used by DOSBox-X, such as the ``DIR`` command. It may also influence regional settings in other applications.
+The country code can be set in the [config] section of the DOSBox-X config file by use of the ``COUNTRY=`` setting. This defaults to an empty string which means auto-detection (or 81 for PC-98 mode); if auto-detection cannot be done then it will fall back to 1 which is the US. This setting influences date and time format as used by DOSBox-X, such as the ``DIR`` command. It may also influence regional settings in other applications.
 
 For example, the date is displayed in MM-DD-YYYY format with the default US setting:
 
@@ -80,7 +80,7 @@ With a few exceptions, the above codes are based on the international dialing co
 
 Typing ``COUNTRY`` without parameters from the DOSBox-X command line will display the current country code.
 
-### Using language files for customized or translated display messages
+=== Using language files for customized or translated display messages
 
 DOSBox-X by defaults displays messages in English. It is possible to change the messages displayed by DOSBox-X with the use of language files, which can either be encoded in the DOS code page or in UTF-8 as of DOSBox-X version 0.83.14.
 
@@ -88,13 +88,23 @@ If you already have a DOSBox-X language file available, you can specify its file
 
 ``language=C:\message.txt``
 
-For example, the Chinese (Simplified), Japanese and Spanish language files for DOSBox-X are available from:
+For example, the Chinese (Simplified & Traditional), English (United States), French, Japanese, Portuguese (Brazilian), Spanish, and Turkic language files for DOSBox-X are available from:
 
 * https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_CN.lng?raw=true[zh_CN.lng]
 
+* https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_TW.lng?raw=true[zh_TW.lng]
+
+* https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/en/en_US.lng?raw=true[en_US.lng]
+
+* https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/fr/fr_FR.lng?raw=true[fr_FR.lng]
+
 * https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ja/ja_JP.lng?raw=true[ja_JP.lng]
 
+* https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/pt/pt_BR.lng?raw=true[pt_BR.lng]
+
 * https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/es/es_ES.lng?raw=true[es_ES.lng]
+
+* https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/tr/tr_TR.lng?raw=true[tr_TR.lng]
 
 Alternatively, you can start DOSBox-X with the -lang option to use your language file. For example, to use "C:\message.txt" as the language file:
 
@@ -120,7 +130,7 @@ The language file controls all visible output of the internal commands and the i
 
 Once you finished the customization or translation of the language file, you can save it for use with DOSBox-X, using the instructions mentioned above.
 
-### International keyboard layouts and codepages
+=== International keyboard layouts and codepages
 
 The US keyboard layout is used by default in DOSBox-X with code page 437. These can be customized to use a different keyboard layout or code page for DOSBox-X.
 
@@ -135,7 +145,7 @@ Alternatively, the KEYB command can be used from the DOSBox-X command line to ch
 This command will switch the current keyboard layout to the UK keyboard layout and set code page 858. Below is a list of keyboard layouts that can be used in DOSBox, and by extension DOSBox-X.
 
 |===
-|Keboard layouts|Country usages
+|Keyboard layouts|Country usages
 
 |us103 (us), ux103 (ux)|US, US International
 |dv103 (dv), lh103 (lh), rh103 (rh)|US Dvorak, Left-Hand, Right-Hand
@@ -204,7 +214,7 @@ There is also a ``CHCP`` command to view the current DOS code page, and for the 
 
 The Japanese keyboard layout is also supported and will be used by default in NEC PC-98 mode. You can start DOSBox-X in PC-98 mode directly by setting ``machine=pc98`` in the [dosbox] section of the dosbox-x.conf file. DOSBox-X will use codepage 932 in this mode and support Japanese Shift-JIS characters such as Kana and Kanji in addition to ASCII characters. There is an option which will force the use of U.S. keyboard layout in PC-98 mode. More information about PC-98 support is available from the link:Guide%3APC‐98-emulation-in-DOSBox‐X{suffixappend}[PC‐98 emulation in DOSBox‐X] guide page.
 
-### Support for the Euro symbol
+=== Support for the Euro symbol
 
 NOTE: The information in this section applies to DOSBox-X 0.83.4 and later only. It may not work in previous versions of DOSBox-X.
 
@@ -222,31 +232,31 @@ Below is a table listing the original codepages (without the Euro symbol) and th
 
 DOSBox-X by default uses the new codepage with the Euro symbol enabled for the specified keyboard layout (if available), when you do not specify a codepage for it. The Euro symbol will be supported and displayed in the above-mentioned ASCII position.
 
-It is also possible to display the Euro symbol instead of the specified ASCII character in any codepage in DOSBox-X, including the default codepage 437 and other codepages without the Euro symbol such as 850. DOSBox-X has an ``euro`` config option in the [render] section of the config file (dosbox-x.conf by default), which allows you to specify a ASCII position (between 33 and 255) for the Euro symbol to be rendered in place of the original character if you wish. For example, setting the following will allow DOSBox-X to display the Euro symbol instead of C-cedilla (Ç) in position 128.
+It is also possible to display the Euro symbol instead of the specified ASCII character in any codepage in DOSBox-X, including the default codepage 437 and other codepages without the Euro symbol such as 850. DOSBox-X has an ``euro`` config option in the [render] section of the config file (dosbox-x.conf by default), which allows you to specify an ASCII position (between 33 and 255) for the Euro symbol to be rendered in place of the original character if you wish. For example, setting the following will allow DOSBox-X to display the Euro symbol instead of C-cedilla (Ç) in position 128.
 
 ``euro=128``
 
 It will work even after you use the ``KEYB`` command to change the current codepage of DOSBox-X from the command line. The Euro symbol will be displayed in the specified position instead of the original character in that codepage as long as the ``euro`` setting remains active.
 
-### Support for external keyboard files
+=== Support for external keyboard files
 
 DOSBox-X allows the use of external keyboard files for international keyboard layouts in addition to those that are already built into DOSBox-X. A list of supported keyboard layouts in DOSBox-X can be found in the "International keyboard layouts and codepages" section.
 
-For using external keyboard files in DOSBox-X, the FreeDOS .kl files are supported (FreeDOS keyb2 keyboard layout files) as well as the FreeDOS keyboard.sys/keybrd2.sys/keybrd3.sys libraries which consist of all available .kl files.
+For using external keyboard files in DOSBox-X, the FreeDOS ``.kl`` files are supported (FreeDOS ``keyb2`` keyboard layout files) as well as the FreeDOS ``keyboard.sys``/``keybrd2.sys``/``keybrd3.sys`` libraries which consist of all available ``.kl`` files.
 
 Check out the FreeDOS website for precompiled keyboard layouts if the DOSBox-X integrated layouts do not work for some reason, or if updated or new layouts become available.
 
-Both .CPI (MS-DOS and compatible codepage files) and .CPX (FreeDOS UPX-compressed codepage files) can be used as the codepage files in DOSBox-X. Some codepages are compiled into DOSBox-X, so it is mostly not needed to care about external codepage files. If you need a different (or custom) codepage file, copy it into the DOSBox-X directory so it is accessible for DOSBox-X.
+Both ``.CPI`` (MS-DOS and compatible codepage files) and ``.CPX`` (FreeDOS UPX-compressed codepage files) can be used as the codepage files in DOSBox-X. Some codepages are compiled into DOSBox-X, so it is mostly not needed to care about external codepage files. If you need a different (or custom) codepage file, copy it into the DOSBox-X directory, such it is accessible for DOSBox-X.
 
-If you place all ten ega.cpx files (from FreeDOS) in the DOSBox-X folder, an appropriate codepage file for the requested layout/codepage is chosen automatically.
+If you place all ten ``ega.cpx`` files (from FreeDOS) in the DOSBox-X folder, an appropriate codepage file for the requested layout/codepage is chosen automatically.
 
-Additional layouts can be added by copying the corresponding .kl file into the directory of the DOSBox-X config file and using the first part of the filename as the language code. For example, for the file UZ.KL (keyboard layout for Uzbekistan) you can specify the following in the DOSBox-X config file:
+Additional layouts can be added by copying the corresponding ``.kl`` file into the directory of the DOSBox-X config file and using the first part of the filename as the language code. For example, for the file ``UZ.KL`` (keyboard layout for Uzbekistan) you can specify the following in the DOSBox-X config file:
 
 ``keyboardlayout=uz``
 
-The integration of keyboard layout packages (like keybrd2.sys) works similar.
+The integration of keyboard layout packages (like ``keybrd2.sys``) works similar.
 
-### Use of scancodes for your keyboard layout
+=== Use of scancodes for your keyboard layout
 
 NOTE: The information in this section applies to DOSBox-X 0.83.4 and later only. Previous versions of DOSBox-X did not support the ``usescancodes=auto`` config setting.
 
