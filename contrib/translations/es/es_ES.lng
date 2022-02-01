@@ -1214,19 +1214,19 @@ Página de código (Codepage) %i cargada para la disposición %s
 :PROGRAM_KEYB_SHOWHELP
 Configura un teclado para un lenguaje especifico.
 
-Usage: ←[32;1mKEYB←[0m [keyboard layout ID [codepage number [codepage file]]]
-  layout ID        Name of layout or keyboard file (.kl) to load
-  codepage number  Number of codepage to load
-  codepage file    .cpi/.cpx file including specified codepage information
-  (.kl, .cpi/.cpx files shall be placed under the directory where dosbox-x
-   executable exists.)
+Uso: ←[32;1mKEYB←[0m [ID del layout de teclado [codepage number [codepage file]]]
+  layout ID        Nombre del layout o archivo de teclado (.kl) a cargar
+  codepage number  Número de página de códigos a cargar
+  codepage file    Archivo .cpi/.cpx incluyendo información de página de código
+  (los archivos .kl, .cpi/.cpx deben ubicarse bajo el directorio del ejecutable
+   donde esté DosBox-X.)
 
 Algunos ejemplos:
   ←[32;1mKEYB←[0m                 Muestra la página de código cargada actualmente.
   ←[32;1mKEYB sp←[0m              Carga layout español (SP) con codepage adecuado.
   ←[32;1mKEYB sp 850←[0m          Carga layout español (SP) con codepage 850.
   ←[32;1mKEYB sp 850 mycp.cpi←[0m Lo mismo de arriba pero usando el archivo mycp.cpi.
-  ←[32;1mKEYB sp_mod 850←[0m      Load keyboard layout from sp_mod.kl, use codepage 850.
+  ←[32;1mKEYB sp_mod 850←[0m      Cargar layout de teclado de sp_mod.kl con codepage 850.
 
 .
 :PROGRAM_KEYB_NOERROR
@@ -1234,7 +1234,7 @@ Disposición de teclado (layout) %s cargada para página de código %i
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
-Archivo de teclado %s no encontrado (or not a valid ID)
+Archivo de teclado %s no encontrado (o ID no válido)
 
 
 .
