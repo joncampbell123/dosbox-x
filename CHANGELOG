@@ -1,5 +1,9 @@
 0.83.23
-  - 
+  - Sound Blaster: Fixed DSP command 0x48 (Set DSP block
+    transfer size) to accept block size as BYTES as
+    standardized by Creative and convert to SAMPLES
+    internally. This fixes stuttering voices in Freddy
+    Pharkas when sbtype=sb16. (joncampbell123)
 0.83.22
   - Added Pentium 3 Processor Serial Number emulation.
     Serial number can be set from dosbox-x.conf or not
