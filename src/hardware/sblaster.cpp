@@ -1763,6 +1763,16 @@ static void DSP_DoCommand(void) {
         //      dialogue), and it is needed to stop Freddy Pharkas from stuttering when sbtype=sb16 ref
         //      [https://github.com/joncampbell123/dosbox-x/issues/2960]
         if (sb.dma.mode == DSP_DMA_16) {
+		// NTS: sb.dma.total is the number of individual samples, not paired samples, likely as a side effect of how
+		//      this code was originally written over at DOSBox SVN regarding how block durations are handled with
+		//      the Sound Blaster Pro in which the Pro treats stereo output as just mono that is alternately latched
+		//      to left and right DACs. The SB16 handling here also follows that tradition because Creative's SB16
+		//      playback commands 0xB0-0xCF follow the same tradition: Block size specified in the command is given
+		//      in samples, and by samples, they mean individual samples, and therefore it is stil doubled when
+		//      asked to play stereo audio. I suppose this is why Linux ALSA chose to further clarify the terminology
+		//      by defining audio "samples" vs audio "frames".
+		// NTS: The sb.dma.total as individual sample count has been confirmed with DOSLIB and real hardware, and by
+		//      looking at snd_sb16_capture_prepare() in sound/isa/sb/sb16_main.c in the Linux kernel source.
                 if (sb.dma.total & 1) LOG(LOG_SB,LOG_WARN)("DSP command 0x48: 16-bit PCM and odd number of bytes given for block length");
                 sb.dma.total >>= 1u;
         }
