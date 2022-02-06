@@ -1467,7 +1467,8 @@ public:
 
 		//key = (event->key.keysym.sym ? GetKeyCode(event->key.keysym) : sdlkey_map[(Bitu)(event->key.keysym.scancode)]);
 		key = GetKeyCode(event->key.keysym);
-		assert(key < keys);
+		//assert(key < keys);
+        if(key > keys) key = SDLK_UNKNOWN; // a test to avoid assertion failure (key < keys)
 #endif
 //      LOG_MSG("key type %i is %x [%x %x]",event->type,key,event->key.keysym.sym,event->key.keysym.scancode);
 
