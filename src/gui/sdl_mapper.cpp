@@ -1470,7 +1470,8 @@ public:
 		//assert(key < keys);
         if(key >= keys) {
             key = SDLK_UNKNOWN; // a test to avoid assertion failure (key < keys)
-            LOG_MSG("assertion failed: key: %x [keysym.sym:%x keysym.scancode: %x]", key, event->key.keysym.sym, event->key.keysym.scancode);
+            // LOG_MSG("assertion failed: key: %x [keysym.sym:%x keysym.scancode: %x]", key, event->key.keysym.sym, event->key.keysym.scancode);
+
         }
 #endif
 //      LOG_MSG("key type %i is %x [%x %x]",event->type,key,event->key.keysym.sym,event->key.keysym.scancode);
