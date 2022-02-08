@@ -288,7 +288,7 @@ static char const *second[] = {
   "mov %Rd,%Cd",      "mov %Rd,%Dd",     "mov %Cd,%Rd",    "mov %Dd,%Rd",
   "mov %Rd,%Td",      0,                 "mov %Td,%Rd",    0,
   "%x0",              "%x0",             "%x0",            "%x0",
-  "%x0",              "%x0",             0,                0,
+  "%x0",              "%x0",             "%x0",            "%x0",
 /* 3 */
   0,                  "rdtsc",           0,                0,
   "sysenter",         "sysexit",         0,                0,
@@ -300,15 +300,15 @@ static char const *second[] = {
   "cmovs %Gv,%Ev",    "cmovns %Gv,%Ev",  "cmovp %Gv,%Ev",  "cmovnp %Gv,%Ev",
   "cmovl %Gv,%Ev",    "cmovge %Gv,%Ev",  "cmovle %Gv,%Ev", "cmovg %Gv,%Ev",
 /* 5 */
-  0, "%x0", 0, 0, "%x0", 0, 0, "%x0",
-  0, "%x0", 0, 0, 0, 0, 0, 0,
+  "%x0", "%x0", "%x0", "%x0", "%x0", "%x0", "%x0", "%x0",
+  "%x0", "%x0", 0,     0,     "%x0", "%x0", "%x0", "%x0",
 /* 6 */
   "punpcklbw %GM,%EM","punpcklwd %GM,%EM","punpckldq %GM,%EM","packsswb %GM,%EM",
   "pcmpgtb %GM,%EM",  "pcmpgtw %GM,%EM", "pcmpgtd %GM,%EM","packuswb %GM,%EM",
   "punpckhbw %GM,%EM","punpckhwd %GM,%EM","punpckhdq %GM,%EM","packssdw %GM,%EM",
   0,                  0,                 "movd %GM,%Ed",   "movq %GM,%EM",
 /* 7 */
-  0,                  "%g;",             "%g:",            "%g9",
+  "pshufw %GM,%EM,%Ib","%g;",            "%g:",            "%g9",
   "pcmpeqb %GM,%EM",  "pcmpeqw %GM,%EM", "pcmpeqd %GM,%EM","emms",
   0,                  0,                 0,                0,
   0,                  0,                 "movd %Ed,%GM",   "movq %EM,%GM",
@@ -333,23 +333,23 @@ static char const *second[] = {
   0,                  0,                 "%g7 %Ev,%Ib",    "btc %Ev,%Gv",
   "bsf %Gv,%Ev",      "bsr %Gv,%Ev",     "movsx %Gv,%Eb",  "movsx %Gv,%Ew",
 /* c */
-  "xadd %Eb,%Gb",     "xadd %Ev,%Gv",    0,                0,
-  0,                  0,                 0,                "%g8",
+  "xadd %Eb,%Gb",     "xadd %Ev,%Gv",    "%x0",            0,
+  "%x0",              "%x0",             "%x0",            "%g8",
   "bswap eax",        "bswap ecx",       "bswap edx",      "bswap ebx",
   "bswap esp",        "bswap ebp",       "bswap esi",      "bswap edi",
 /* d */
   0,                  "psrlw %GM,%EM",   "psrld %GM,%EM",  "psrlq %GM,%EM",
-  "paddq %GM,%EM",    "pmullw %GM,%EM",  0,                0,
-  "psubusb %GM,%EM",  "psubusw %GM,%EM", 0,                "pand %GM,%EM",
-  "paddusb %GM,%EM",  "paddusw %GM,%EM", 0,                "pandn %GM,%EM",
+  "paddq %GM,%EM",    "pmullw %GM,%EM",  0,                "%x0",
+  "psubusb %GM,%EM",  "psubusw %GM,%EM", "%x0",            "%x0",
+  "paddusb %GM,%EM",  "paddusw %GM,%EM", "%x0",            "pandn %GM,%EM",
 /* e */
-  0,                  "psraw %GM,%EM",   "psrad %GM,%EM",  0,
-  0,                  "pmulhw %GM,%EM",  0,                0,
-  "psubsb %GM,%EM",   "psubsw %GM,%EM",  0,                "por %GM,%EM",
-  "paddsb %GM,%EM",   "paddsw %GM,%EM",  0,                "pxor %GM,%EM",
+  "%x0",              "psraw %GM,%EM",   "psrad %GM,%EM",  "%x0",
+  "%x0",              "%x0",             0,                "%x0",
+  "%x0",              "%x0",             "%x0",            "%x0",
+  "%x0",              "%x0",             "%x0",            "%x0",
 /* f */
   0,                  "psllw %GM,%EM",   "pslld %GM,%EM",  "psllq %GM,%EM",
-  0,                  "pmaddwd %GM,%EM", 0,                0,
+  0,                  "pmaddwd %GM,%EM", "%x0",            "%x0",
   "psubb %GM,%EM",    "psubw %GM,%EM",   "psubd %GM,%EM",  0,
   "paddb %GM,%EM",    "paddw %GM,%EM",   "paddd %GM,%EM",  0
 };
@@ -381,7 +381,8 @@ static char const *mpgroups[][256][4] = { /* mandatory prefix groups SSE instruc
     /* 0x2B */ { "movntps %EX,%GX", 0,0,0 },
     /* 0x2C */ { "cvttps2pi %GM,%EX", 0, 0, "cvttss2si %Gd,%EX" },
     /* 0x2D */ { "cvtps2pi %GM,%EX", 0, 0, "cvtss2si %Gd,%EX" },
-    /* 0x2E */ { 0,0,0,0 }, /* 0x2F */ { 0,0,0,0 },
+    /* 0x2E */ { "ucomiss %GX,%EX", 0,0,0 },
+    /* 0x2F */ { "comiss %GX,%EX", 0,0,0 },
 
     /* 0x30 */ { 0,0,0,0 }, /* 0x31 */ { 0,0,0,0 }, /* 0x32 */ { 0,0,0,0 }, /* 0x33 */ { 0,0,0,0 },
     /* 0x34 */ { 0,0,0,0 }, /* 0x35 */ { 0,0,0,0 }, /* 0x36 */ { 0,0,0,0 }, /* 0x37 */ { 0,0,0,0 },
@@ -393,17 +394,22 @@ static char const *mpgroups[][256][4] = { /* mandatory prefix groups SSE instruc
     /* 0x48 */ { 0,0,0,0 }, /* 0x49 */ { 0,0,0,0 }, /* 0x4A */ { 0,0,0,0 }, /* 0x4B */ { 0,0,0,0 },
     /* 0x4C */ { 0,0,0,0 }, /* 0x4D */ { 0,0,0,0 }, /* 0x4E */ { 0,0,0,0 }, /* 0x4F */ { 0,0,0,0 },
 
-    /* 0x50 */ { 0,0,0,0 },
+    /* 0x50 */ { "movmskps %Gd,%EX", 0,0,0 },
     /* 0x51 */ { "sqrtps %GX,%EX", "sqrtpd %GX,%EX", "sqrtsd %GX,%EX", "sqrtss %GX,%EX" },
-    /* 0x52 */ { 0,0,0,0 }, /* 0x53 */ { 0,0,0,0 },
+    /* 0x52 */ { "rqsrtps %GX,%EX", 0,0, "rsqrtss %GX,%EX" },
+    /* 0x53 */ { "rcpps %GX,%EX", 0,0, "rcpss %GX,%EX" },
     /* 0x54 */ { "andps %GX,%EX", "andpd %GX,%EX", 0,0 },
-    /* 0x55 */ { 0,0,0,0 },
-    /* 0x56 */ { 0,0,0,0 },
+    /* 0x55 */ { "andnps %GX,%EX", "andnpd %GX,%EX", 0,0 },
+    /* 0x56 */ { "orps %GX,%EX", "orpd %GX,%EX", 0,0 },
     /* 0x57 */ { "xorps %GX,%EX", "xorpd %GX,%EX", 0,0 },
-    /* 0x58 */ { 0,0,0,0 },
+    /* 0x58 */ { "addps %GX,%EX", "addpd %GX,%EX", "addsd %GX,%EX", "addss %GX,%EX" },
     /* 0x59 */ { "mulps %GX,%EX", "mulpd %GX,%EX", "mulsd %GX,%EX", "mulss %GX,%EX" },
-    /* 0x5A */ { 0,0,0,0 }, /* 0x5B */ { 0,0,0,0 },
-    /* 0x5C */ { 0,0,0,0 }, /* 0x5D */ { 0,0,0,0 }, /* 0x5E */ { 0,0,0,0 }, /* 0x5F */ { 0,0,0,0 },
+    /* 0x5A */ { 0,0,0,0 },
+    /* 0x5B */ { 0,0,0,0 },
+    /* 0x5C */ { "subps %GX,%EX", "subpd %GX,%EX", "subsd %GX,%EX", "subss %GX,%EX" },
+    /* 0x5D */ { "minps %GX,%EX", "minpd %GX,%EX", "minsd %GX,%EX", "minss %GX,%EX" },
+    /* 0x5E */ { "divps %GX,%EX", "divpd %GX,%EX", "divsd %GX,%EX", "divss %GX,%EX" },
+    /* 0x5F */ { "maxps %GX,%EX", "maxpd %GX,%EX", "maxsd %GX,%EX", "maxss %GX,%EX" },
 
     /* 0x60 */ { 0,0,0,0 }, /* 0x61 */ { 0,0,0,0 }, /* 0x62 */ { 0,0,0,0 }, /* 0x63 */ { 0,0,0,0 },
     /* 0x64 */ { 0,0,0,0 }, /* 0x65 */ { 0,0,0,0 }, /* 0x66 */ { 0,0,0,0 }, /* 0x67 */ { 0,0,0,0 },
@@ -435,23 +441,56 @@ static char const *mpgroups[][256][4] = { /* mandatory prefix groups SSE instruc
     /* 0xB8 */ { 0,0,0,0 }, /* 0xB9 */ { 0,0,0,0 }, /* 0xBA */ { 0,0,0,0 }, /* 0xBB */ { 0,0,0,0 },
     /* 0xBC */ { 0,0,0,0 }, /* 0xBD */ { 0,0,0,0 }, /* 0xBE */ { 0,0,0,0 }, /* 0xBF */ { 0,0,0,0 },
 
-    /* 0xC0 */ { 0,0,0,0 }, /* 0xC1 */ { 0,0,0,0 }, /* 0xC2 */ { 0,0,0,0 }, /* 0xC3 */ { 0,0,0,0 },
-    /* 0xC4 */ { 0,0,0,0 }, /* 0xC5 */ { 0,0,0,0 }, /* 0xC6 */ { 0,0,0,0 }, /* 0xC7 */ { 0,0,0,0 },
+    /* 0xC0 */ { 0,0,0,0 },
+    /* 0xC1 */ { 0,0,0,0 },
+    /* 0xC2 */ { "cmpps %GX,%EX,%Ib", "cmppd %GX,%EX,%Ib", "cmpsd %GX,%EX,%Ib", "cmpss %GX,%EX,%Ib" }, // FIXME: The immediate byte specifies a comparison operator
+    /* 0xC3 */ { 0,0,0,0 },
+    /* 0xC4 */ { "pinsrw %GM,%Ed,%Ib", "pinsrw %GX,%Ed,%Ib", 0, 0 },
+    /* 0xC5 */ { "pextrw %Ed,%GM,%Ib", "pextrw %Ed,%GX,%Ib", 0, 0 },
+    /* 0xC6 */ { "shufps %GX,%EX,%Ib", "shufpd %GX,%EX,%Ib", 0, 0 },
+    /* 0xC7 */ { 0,0,0,0 },
     /* 0xC8 */ { 0,0,0,0 }, /* 0xC9 */ { 0,0,0,0 }, /* 0xCA */ { 0,0,0,0 }, /* 0xCB */ { 0,0,0,0 },
     /* 0xCC */ { 0,0,0,0 }, /* 0xCD */ { 0,0,0,0 }, /* 0xCE */ { 0,0,0,0 }, /* 0xCF */ { 0,0,0,0 },
 
-    /* 0xD0 */ { 0,0,0,0 }, /* 0xD1 */ { 0,0,0,0 }, /* 0xD2 */ { 0,0,0,0 }, /* 0xD3 */ { 0,0,0,0 },
-    /* 0xD4 */ { 0,0,0,0 }, /* 0xD5 */ { 0,0,0,0 }, /* 0xD6 */ { 0,0,0,0 }, /* 0xD7 */ { 0,0,0,0 },
-    /* 0xD8 */ { 0,0,0,0 }, /* 0xD9 */ { 0,0,0,0 }, /* 0xDA */ { 0,0,0,0 }, /* 0xDB */ { 0,0,0,0 },
-    /* 0xDC */ { 0,0,0,0 }, /* 0xDD */ { 0,0,0,0 }, /* 0xDE */ { 0,0,0,0 }, /* 0xDF */ { 0,0,0,0 },
+    /* 0xD0 */ { 0,0,0,0 },
+    /* 0xD1 */ { 0,0,0,0 },
+    /* 0xD2 */ { 0,0,0,0 },
+    /* 0xD3 */ { 0,0,0,0 },
+    /* 0xD4 */ { 0,0,0,0 },
+    /* 0xD5 */ { 0,0,0,0 },
+    /* 0xD6 */ { 0,0,0,0 },
+    /* 0xD7 */ { "pmovmskb %Gd,%EM", "pmovmskb %Gd,%EX", 0, 0 },
+    /* 0xD8 */ { 0,0,0,0 },
+    /* 0xD9 */ { 0,0,0,0 },
+    /* 0xDA */ { "pminub %GM,%EM", "pminub %GX,%EX", 0, 0 },
+    /* 0xDB */ { "pand %GM,%EM", "pand %GX,%EX", 0, 0 },
+    /* 0xDC */ { 0,0,0,0 },
+    /* 0xDD */ { 0,0,0,0 },
+    /* 0xDE */ { "pmaxub %GM,%EM", "pmaxub %GX,%EX", 0, 0 },
+    /* 0xDF */ { 0,0,0,0 },
 
-    /* 0xE0 */ { 0,0,0,0 }, /* 0xE1 */ { 0,0,0,0 }, /* 0xE2 */ { 0,0,0,0 }, /* 0xE3 */ { 0,0,0,0 },
-    /* 0xE4 */ { 0,0,0,0 }, /* 0xE5 */ { 0,0,0,0 }, /* 0xE6 */ { 0,0,0,0 }, /* 0xE7 */ { 0,0,0,0 },
-    /* 0xE8 */ { 0,0,0,0 }, /* 0xE9 */ { 0,0,0,0 }, /* 0xEA */ { 0,0,0,0 }, /* 0xEB */ { 0,0,0,0 },
-    /* 0xEC */ { 0,0,0,0 }, /* 0xED */ { 0,0,0,0 }, /* 0xEE */ { 0,0,0,0 }, /* 0xEF */ { 0,0,0,0 },
+    /* 0xE0 */ { "pavgb %GM,%EM", "pavgb %GX,%EX", 0, 0 },
+    /* 0xE1 */ { 0,0,0,0 },
+    /* 0xE2 */ { 0,0,0,0 },
+    /* 0xE3 */ { "pavgw %GM,%EM", "pavgw %GX,%EX", 0, 0 },
+    /* 0xE4 */ { "pmulhuw %GM,%EM", "pmulhuw %GX,%EX", 0, 0 },
+    /* 0xE5 */ { "pmulhw %GM,%EM", "pmulhw %GX,%EX", 0, 0 },
+    /* 0xE6 */ { 0,0,0,0 },
+    /* 0xE7 */ { "movntq %EM,%GM", "movntdq %EX,%GX", 0, 0 },
+    /* 0xE8 */ { "psubsb %GM,%EM", "psubsb %GX,%EX", 0, 0 },
+    /* 0xE9 */ { "psubsw %GM,%EM", "psubsw %GX,%EX", 0, 0 },
+    /* 0xEA */ { "pminsw %GM,%EM", "pminsw %GX,%EX", 0, 0 },
+    /* 0xEB */ { "por %GM,%EM", "por %GX,%EX", 0, 0 },
+    /* 0xEC */ { "paddsb %GM,%EM", "paddsb %GX,%EX", 0, 0 },
+    /* 0xED */ { "paddsw %GM,%EM", "paddsw %GX,%EX", 0, 0 },
+    /* 0xEE */ { "pmaxsw %GM,%EM", "pmaxsw %GX,%EX", 0, 0 },
+    /* 0xEF */ { "pxor %GM,%EM", "pxor %GX,%EX", 0, 0 },
 
     /* 0xF0 */ { 0,0,0,0 }, /* 0xF1 */ { 0,0,0,0 }, /* 0xF2 */ { 0,0,0,0 }, /* 0xF3 */ { 0,0,0,0 },
-    /* 0xF4 */ { 0,0,0,0 }, /* 0xF5 */ { 0,0,0,0 }, /* 0xF6 */ { 0,0,0,0 }, /* 0xF7 */ { 0,0,0,0 },
+    /* 0xF4 */ { 0,0,0,0 },
+    /* 0xF5 */ { 0,0,0,0 },
+    /* 0xF6 */ { "psadbw %GM,%EM", "psadbw %GX,%EX", 0, 0 },
+    /* 0xF7 */ { "maskmovq %GM,%EM", "maskmovdqu %GX,%EX", 0, 0 },
     /* 0xF8 */ { 0,0,0,0 }, /* 0xF9 */ { 0,0,0,0 }, /* 0xFA */ { 0,0,0,0 }, /* 0xFB */ { 0,0,0,0 },
     /* 0xFC */ { 0,0,0,0 }, /* 0xFD */ { 0,0,0,0 }, /* 0xFE */ { 0,0,0,0 }, /* 0xFF */ { 0,0,0,0 }
   }
@@ -1097,7 +1136,7 @@ static void percent(char type, char subtype)
        break;
 
   case 'S':                            /* reg(r/m) picks segment reg */
-       uputchar("ecsdfg"[REG(modrm())]);
+       uputchar("ecsdfg??"[REG(modrm())]);
        uputchar('s');
        must_do_size = 0;
        break;

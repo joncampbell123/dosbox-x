@@ -1756,6 +1756,31 @@ static void DSP_DoCommand(void) {
         DSP_SB2_ABOVE;
         //TODO Maybe check limit for new irq?
         sb.dma.total=1u+(unsigned int)sb.dsp.in.data[0]+((unsigned int)sb.dsp.in.data[1] << 8u);
+        // NTS: From Creative documentation: This is the number of BYTES to transfer per IRQ, not SAMPLES!
+        //      sb.dma.total is in SAMPLES (unless 16-bit PCM over 8-bit DMA) because this code inherits that
+        //      design from DOSBox SVN. This check is needed for any DOS game or application that changes
+        //      DSP block size during the game (such as when transitioning from general gameplay to spoken
+        //      dialogue), and it is needed to stop Freddy Pharkas from stuttering when sbtype=sb16 ref
+        //      [https://github.com/joncampbell123/dosbox-x/issues/2960]
+	// NTS: Do NOT divide the byte count by 2 if 16-bit PCM audio but using an 8-bit DMA channel (DSP_DMA_16_ALIASED).
+	//      sb.dma.total in that cause really does contain the byte count of a DSP block. 16-bit PCM over 8-bit DMA
+	//      is possible on real hardware too, likely as a fallback in case 16-bit DMA channels are just not available.
+	//      Note that on one of my ViBRA PnP cards, 8-bit DMA is the only option because 16-bit DMA doesn't work for
+	//      some odd reason. --J.C.
+        if (sb.dma.mode == DSP_DMA_16) {
+		// NTS: sb.dma.total is the number of individual samples, not paired samples, likely as a side effect of how
+		//      this code was originally written over at DOSBox SVN regarding how block durations are handled with
+		//      the Sound Blaster Pro in which the Pro treats stereo output as just mono that is alternately latched
+		//      to left and right DACs. The SB16 handling here also follows that tradition because Creative's SB16
+		//      playback commands 0xB0-0xCF follow the same tradition: Block size specified in the command is given
+		//      in samples, and by samples, they mean individual samples, and therefore it is stil doubled when
+		//      asked to play stereo audio. I suppose this is why Linux ALSA chose to further clarify the terminology
+		//      by defining audio "samples" vs audio "frames".
+		// NTS: The sb.dma.total as individual sample count has been confirmed with DOSLIB and real hardware, and by
+		//      looking at snd_sb16_capture_prepare() in sound/isa/sb/sb16_main.c in the Linux kernel source.
+                if (sb.dma.total & 1) LOG(LOG_SB,LOG_WARN)("DSP command 0x48: 16-bit PCM and odd number of bytes given for block length");
+                sb.dma.total >>= 1u;
+        }
         break;
     case 0x75:  /* 075h : Single Cycle 4-bit ADPCM Reference */
         sb.adpcm.haveref=true;

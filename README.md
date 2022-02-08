@@ -393,6 +393,8 @@ messages in such languages. There are several language files available in the DO
 
 * Japanese language file: [contrib/translations/ja/ja_JP.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ja/ja_JP.lng)
 
+* Portuguese (Brazilian) language file: [contrib/translations/pt/pt_BR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/pt/pt_BR.lng)
+
 * Spanish language file: [contrib/translations/es/es_ES.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/es/es_ES.lng)
 
 * Turkish language file: [contrib/translations/tr/tr_TR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/tr/tr_TR.lng)

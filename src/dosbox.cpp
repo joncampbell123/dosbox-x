@@ -121,7 +121,7 @@ static void CheckX86ExtensionsSupport()
 /*=============================================================================*/
 
 extern void         GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-extern void         AddSaveStateMapper(), JFONT_Init(), J3_SetType(std::string type);
+extern void         AddSaveStateMapper(), AddMessages(), JFONT_Init(), J3_SetType(std::string type);
 extern bool         force_nocachedir;
 extern bool         wpcolon;
 extern bool         lockmount;
@@ -1355,7 +1355,7 @@ void DOSBOX_SetupConfigSections(void) {
     SDLNetInited = false;
 
     secprop=control->AddSection_prop("dosbox",&Null_Init);
-    Pstring = secprop->Add_path("language",Property::Changeable::OnlyAtStart,"");
+    Pstring = secprop->Add_path("language",Property::Changeable::WhenIdle,"");
     Pstring->Set_help("Select a language file for DOSBox-X to use. Encoded with either UTF-8 or a DOS code page.\n"
                       "You can set code page either in the language file or with \"country\" setting in [config] section.");
     Pstring->SetBasic(true);
@@ -2137,7 +2137,7 @@ void DOSBOX_SetupConfigSections(void) {
                     "For Traditional Chinese DOS/V, loading the STDFONT.24 font file from the ETen Chinese DOS system is also supported.");
     Pstring->SetBasic(true);
 
-	Pstring = secprop->Add_string("showdbcsnodosv",Property::Changeable::OnlyAtStart,"auto");
+	Pstring = secprop->Add_string("showdbcsnodosv",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(truefalseautoopt);
 	Pstring->Set_help("Enables rendering of Chinese/Japanese/Korean characters for DBCS code pages in non-DOS/V, non-PC98, and non-TTF mode.\n"
                       "Setting to \"auto\" enables rendering of Chinese/Japanese/Korean characters if a language file is loaded in such cases.");
@@ -2548,6 +2548,12 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("fpu",Property::Changeable::Always,true);
     Pbool->Set_help("Enable FPU emulation");
     Pbool->SetBasic(true);
+
+    Pstring = secprop->Add_string("processor serial number",Property::Changeable::Always,"");
+    Pstring->Set_help("For Pentium III emulation, this sets the 96-bit Processor Serial Number returned by CPUID.\n"
+            "If not set, then emulation will act as if the PSN has been disabled by the BIOS.\n"
+	    "Enter as 4 sets of 16-bit hexadecimal digits XXXX-XXXX-XXXX-XXXX.\n"
+	    "Note that the processor info and feature bits form the topmost 32 bits of the PSN and cannot be changed.");
 
     Pbool = secprop->Add_bool("segment limits",Property::Changeable::Always,true);
     Pbool->Set_help("Enforce checks for segment limits on 80286 and higher CPU types.");
@@ -3985,6 +3991,9 @@ void DOSBOX_SetupConfigSections(void) {
                    "The disk I/O performance as in DOSBox SVN can be achieved by setting this to 0.");
     Pint->SetBasic(true);
 
+    Pstring = secprop->Add_string("special operation file prefix",Property::Changeable::OnlyAtStart,".DB");
+    Pstring->Set_help("The file prefix used by DOSBox-X's special operations on mounted local/overlay drives. It is fixed to \"DB\" in mainline DOSBox.");
+
     Pstring = secprop->Add_string("drive z is remote",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(truefalseautoopt);
     Pstring->Set_help("If set, DOS will report drive Z as remote. If not set, DOS will report drive Z as local.\n"
@@ -3997,7 +4006,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("drive z hide files",Property::Changeable::OnlyAtStart,"/TEXTUTIL\\25.COM /TEXTUTIL\\28.COM /TEXTUTIL\\50.COM");
     Pstring->Set_help("The files or directories listed here (separated by space) will be either hidden or removed from the Z drive.\n"
-                      "Files with leading forward slashs (e.g. \"/DEBUG\\BIOSTEST.COM\") will become hidden files (DIR /A will list them).");
+                      "Files with leading forward slashes (e.g. \"/DEBUG\\BIOSTEST.COM\") will become hidden files (DIR /A will list them).");
 
     Pbool = secprop->Add_bool("hidenonrepresentable",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, DOSBox-X will hide files on local drives that are non-representative in the current DOS code page.\n"
@@ -4230,7 +4239,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("autoloadfix",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set (default), DOSBox-X will automatically re-run the executable with LOADFIX if it failed with the \"Packed file is corrupt\" error.");
 
-    Pstring = secprop->Add_string("autofixwarning",Property::Changeable::WhenIdle,"true");
+    Pstring = secprop->Add_string("autofixwarning",Property::Changeable::WhenIdle,"false");
     Pstring->Set_values(autofix_settings);
     Pstring->Set_help("If set to true or both, DOSBox-X shows messages while trying to automatically fix the \"Packed file is corrupt\" error.\n"
                       "If set to false or none, DOSBox-X will not show such messages on the screen when the error occurred.\n"
@@ -4662,94 +4671,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     //TODO ?
     control->AddSection_line("autoexec",&Null_Init);
-    MSG_Add("AUTOEXEC_CONFIGFILE_HELP",
-        "Lines in this section will be run at startup.\n"
-        "You can put your MOUNT lines here.\n"
-    );
-    MSG_Add("CONFIGFILE_INTRO",
-            "# This is the configuration file for DOSBox-X %s. (Please use the latest version of DOSBox-X)\n"
-            "# Lines starting with a # are comment lines and are ignored by DOSBox-X.\n"
-            "# They are used to (briefly) document the effect of each option.\n"
-        "# To write out ALL options, use command 'config -all' with -wc or -writeconf options.\n");
-    MSG_Add("CONFIG_SUGGESTED_VALUES", "Possible values");
-    MSG_Add("CONFIG_ADVANCED_OPTION", "Advanced options (see full configuration reference file [dosbox-x.reference.full.conf] for more details)");
-    MSG_Add("CONFIG_TOOL","DOSBox-X Configuration Tool");
-    MSG_Add("CONFIG_TOOL_EXIT","Exit configuration tool");
-    MSG_Add("MAPPER_EDITOR_EXIT","Exit mapper editor");
-    MSG_Add("SAVE_MAPPER_FILE","Save mapper file");
-    MSG_Add("WARNING","Warning");
-    MSG_Add("YES","Yes");
-    MSG_Add("NO","No");
-    MSG_Add("OK","OK");
-    MSG_Add("CANCEL","Cancel");
-    MSG_Add("CLOSE","Close");
-    MSG_Add("DEBUGCMD","Enter Debugger Command");
-    MSG_Add("ADD","Add");
-    MSG_Add("DEL","Del");
-    MSG_Add("NEXT","Next");
-    MSG_Add("SAVE","Save");
-    MSG_Add("EXIT","Exit");
-    MSG_Add("CAPTURE","Capture");
-    MSG_Add("SAVE_CONFIGURATION","Save configuration");
-    MSG_Add("SAVE_LANGUAGE","Save language file");
-    MSG_Add("SAVE_RESTART","Save & Restart");
-    MSG_Add("PASTE_CLIPBOARD","Paste Clipboard");
-    MSG_Add("APPEND_HISTORY","Append History");
-    MSG_Add("EXECUTE_NOW","Execute Now");
-    MSG_Add("ADDITION_CONTENT","Additional Content:");
-    MSG_Add("CONTENT","Content:");
-    MSG_Add("EDIT_FOR","Edit %s");
-    MSG_Add("HELP_FOR","Help for %s");
-    MSG_Add("HELP_INFO", "Click the \"Help\" button below to see detailed help information.");
-    MSG_Add("SELECT_VALUE", "Select property value");
-    MSG_Add("CONFIGURATION_FOR","Configuration for %s");
-    MSG_Add("CONFIGURATION","Configuration");
-    MSG_Add("SETTINGS","Settings");
-    MSG_Add("LOGGING_OUTPUT","DOSBox-X logging output");
-    MSG_Add("CODE_OVERVIEW","Code overview");
-    MSG_Add("VISIT_HOMEPAGE","Visit Homepage");
-    MSG_Add("GET_STARTED","Getting Started");
-    MSG_Add("CDROM_SUPPORT","CD-ROM Support");
-    MSG_Add("DRIVE_INFORMATION","Drive information");
-    MSG_Add("MOUNTED_DRIVE_NUMBER","Mounted drive numbers");
-    MSG_Add("IDE_CONTROLLER_ASSIGNMENT","IDE controller assignment");
-    MSG_Add("HELP_COMMAND","Help on DOS command");
-    MSG_Add("CURRENT_VOLUME","Current sound mixer volumes");
-    MSG_Add("CURRENT_SBCONFIG","Sound Blaster configuration");
-    MSG_Add("CURRENT_MIDICONFIG","Current MIDI configuration");
-    MSG_Add("CREATE_IMAGE","Create blank disk image");
-    MSG_Add("NETWORK_LIST","Network interface list");
-    MSG_Add("PRINTER_LIST","Printer device list");
-    MSG_Add("INTRODUCTION","Introduction");
-    MSG_Add("CONFIGURE_GROUP", "Choose a settings group to configure:");
-    MSG_Add("SHOW_ADVOPT", "Show advanced options");
-    MSG_Add("USE_PRIMARYCONFIG", "Use primary config file");
-    MSG_Add("USE_PORTABLECONFIG", "Use portable config file");
-    MSG_Add("USE_USERCONFIG", "Use user config file");
-    MSG_Add("CONFIG_SAVETO", "Enter filename for the configuration file to save to:");
-    MSG_Add("CONFIG_SAVEALL", "Save all (including advanced) config options to the configuration file");
-    MSG_Add("LANG_FILENAME", "Enter filename for language file:");
-    MSG_Add("LANG_LANGNAME", "Language name (optional):");
-    MSG_Add("INTRO_MESSAGE", "Welcome to DOSBox-X, a free and complete DOS emulation package.\nDOSBox-X creates a DOS shell which looks like the plain DOS.\nYou can also run Windows 3.x and 95/98 inside the DOS machine.");
-    MSG_Add("DRIVE","Drive");
-    MSG_Add("TYPE","Type");
-    MSG_Add("LABEL","Label");
-    MSG_Add("DRIVE_NUMBER","Drive number");
-    MSG_Add("DISK_NAME","Disk name");
-    MSG_Add("IDE_POSITION","IDE position");
-    MSG_Add("SWAP_SLOT","Swap slot");
-    MSG_Add("EMPTY_SLOT","Empty slot");
-    MSG_Add("SLOT","Slot");
-    MSG_Add("PREVIOUS_PAGE","< Previous Page");
-    MSG_Add("NEXT_PAGE","    Next Page >");
-    MSG_Add("SELECT_EVENT", "Select an event to change.");
-    MSG_Add("SELECT_DIFFERENT_EVENT", "Select a different event or hit the Add/Del/Next buttons.");
-    MSG_Add("PRESS_JOYSTICK_KEY", "Press a key/joystick button or move the joystick.");
-    MSG_Add("CAPTURE_ENABLED", "Capture enabled. Hit ESC to release capture.");
-    MSG_Add("MAPPER_FILE_SAVED", "Mapper file saved");
-    MSG_Add("AUTO_CYCLE_MAX","Auto cycles [max]");
-    MSG_Add("AUTO_CYCLE_AUTO","Auto cycles [auto]");
-    MSG_Add("AUTO_CYCLE_OFF","Auto cycles [off]");
+    AddMessages();
 }
 
 extern void POD_Save_Sdlmain( std::ostream& stream );

@@ -2076,7 +2076,7 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
     if (vga.draw.panning) blocks++; // if the text is panned part of an 
                                     // additional character becomes visible
 	Bitu background = 0, foreground = 0;
-	Bitu chr, chr_left = 0, attr, bsattr;
+	Bitu chr, chr_left = 0, p3 = 0, attr, bsattr;
 	bool chr_wide = false;
 
     unsigned int row = (vidstart - vga.config.real_start - vga.draw.bytes_skip) / vga.draw.address_add, col = 0;
@@ -2089,7 +2089,9 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
             if (!jtbs.empty()) jtbs.erase(std::remove_if(jtbs.begin(), jtbs.end(), first_equal(row)), jtbs.end());
             if (!dbox.empty()) dbox.erase(std::remove_if(dbox.begin(), dbox.end(), first_equal(row)), dbox.end());
         }
+    VGA_Latch pixeln1, pixeln2, pixeln3, pixelp1, pixelp2, pixelp3;
     while (blocks--) {
+        if (!col) p3 = 0;
         if (isJEGAEnabled() || (isDBCSCP()
 #if defined(USE_TTF)
             && dbcs_sbcs
@@ -2099,13 +2101,12 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
             pixels.d = *vidmem;
             chr = pixels.b[0];
             attr = pixels.b[1];
-            VGA_Latch pixeln1, pixeln2, pixeln3, pixelp1, pixelp2, pixelp3;
             pixeln1.d = *(vidmem + ((uintptr_t)1U << (uintptr_t)vga.config.addr_shift));
             pixeln2.d = *(vidmem + 2 * ((uintptr_t)1U << (uintptr_t)vga.config.addr_shift));
             pixeln3.d = *(vidmem + 3 * ((uintptr_t)1U << (uintptr_t)vga.config.addr_shift));
             pixelp1.d = *(vidmem - ((uintptr_t)1U << (uintptr_t)vga.config.addr_shift));
             pixelp2.d = *(vidmem - 2 * ((uintptr_t)1U << (uintptr_t)vga.config.addr_shift));
-            pixelp3.d = *(vidmem - 3 * ((uintptr_t)1U << (uintptr_t)vga.config.addr_shift));
+            //pixelp3.d = *(vidmem - 3 * ((uintptr_t)1U << (uintptr_t)vga.config.addr_shift));
             if (!chr_wide) {
                 if (!isJEGAEnabled() || !(jega.RMOD2 & 0x80)) {
                     background = attr >> 4;
@@ -2129,7 +2130,7 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
                 ((col < cols-3 && CheckBoxDrawing(chr, pixeln1.b[0], pixeln2.b[0], pixeln3.b[0])) ||
                 (col && col < cols-2 && CheckBoxDrawing(pixelp1.b[0], chr, pixeln1.b[0], pixeln2.b[0])) ||
                 (col > 1 && col < cols-1 && CheckBoxDrawing(pixelp2.b[0], pixelp1.b[0], chr, pixeln1.b[0])) ||
-                (col > 2 && CheckBoxDrawing(pixelp3.b[0], pixelp2.b[0], pixelp1.b[0], chr)) ||
+                (col > 2 && CheckBoxDrawing(p3, pixelp2.b[0], pixelp1.b[0], chr)) ||
                 (cols >= 79 && col == 74 && row < rows && CheckBoxDrawLast(col-3, *(vidmem-6), *(vidmem-4), *(vidmem-2), chr, *(vidmem+2), *(vidmem+4), *(vidmem+6), *(vidmem+8), *(vidmem+10))) ||
                 (cols >= 79 && col == 78 && row < rows && CheckBoxDrawLast(col-7, *(vidmem-14), *(vidmem-12), *(vidmem-10), *(vidmem-8), *(vidmem-6), *(vidmem-4), *(vidmem-2), chr, *(vidmem+2))) ||
                 (row && col>3 && (((uint8_t)*(vidmem-4)==177||(uint8_t)*(vidmem-4)==254)&&(uint8_t)*(vidmem-2)==16&&(uint8_t)chr==196&&(uint8_t)*(vidmem+2)==217)||((uint8_t)*(vidmem-4)==176&&(uint8_t)*(vidmem-2)==176&&(uint8_t)chr==176&&(uint8_t)*(vidmem+2)==179)) ||
@@ -2277,6 +2278,8 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
                 chr_wide=false;
                 blocks--;
             }
+            pixelp2.d = *(vidmem - 2 * ((uintptr_t)1U << (uintptr_t)vga.config.addr_shift));
+            p3 = col>2?pixelp2.b[0]:0;
             col++;
         } else {
             VGA_Latch pixels;

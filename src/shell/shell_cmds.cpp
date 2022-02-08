@@ -49,6 +49,7 @@
 #include <vector>
 #include <string>
 #include "sdlmain.h"
+#include "menudef.h"
 #include "build_timestamp.h"
 
 #if defined(_MSC_VER)
@@ -132,7 +133,7 @@ void GetExpandedPath(std::string &path);
 bool Network_IsNetworkResource(const char * filename), DOS_SetAnsiAttr(uint8_t attr);
 void DOS_SetCountry(uint16_t countryNo), DOSV_FillScreen(void);
 extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), TTF_using(void);
-extern bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4);
+extern bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4), GFX_GetPreventFullscreen(void);
 std::string GetDOSBoxXPath(bool withexe=false);
 
 /* support functions */
@@ -4275,15 +4276,23 @@ void DOS_Shell::CMD_COUNTRY(char * args) {
 }
 
 extern bool jfont_init, isDBCSCP();
-void runRescan(const char *str), MSG_Init(), JFONT_Init(), InitFontHandle(), ShutFontHandle(), DOSBox_SetSysMenu();
+void runRescan(const char *str), MSG_Init(), JFONT_Init(), InitFontHandle(), ShutFontHandle(), initcodepagefont(), DOSBox_SetSysMenu();
 void toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
     if (isSupportedCP(newCP)) {
 		dos.loaded_codepage = newCP;
 #if defined(USE_TTF)
 		int missing = TTF_using() ? setTTFCodePage() : 0;
 #endif
+        if (!TTF_using()) initcodepagefont();
         if (opt==-1) {
             MSG_Init();
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+            mainMenu.unbuild();
+            mainMenu.rebuild();
+            if (!GFX_GetPreventFullscreen()) {
+                if (menu.toggle) DOSBox_SetMenu(); else DOSBox_NoMenu();
+            }
+#endif
             DOSBox_SetSysMenu();
         }
         if (opt<1) {
@@ -4322,6 +4331,11 @@ void DOS_Shell::CMD_CHCP(char * args) {
 	int newCP;
 	char buff[256], *r;
     int n = sscanf(args, "%d%s", &newCP, buff);
+    if (!TTF_using() && n && newCP != 932 && newCP != 936 && newCP != 949 && newCP != 950 && newCP != 951)
+    {
+        WriteOut("Changing to this code page is only supported for the TrueType font output.\n");
+        return;
+    }
 	if (n == 1) toSetCodePage(this, newCP, -1);
     else if (n == 2 && strlen(buff)) {
         altcp = 0;

@@ -749,7 +749,7 @@ Les utilisateurs de Windows doivent ouvrir cmd.exe ou modifier le raccourci de D
 dosbox-x [nom] [-exit] [-version] [-fastlaunch] [-fullscreen].
          [-conf congfigfile] [-lang languagefile] [-machine machinetype].
          [-startmapper] [-noautoexec] [-scaler scaler | -forcescaler scaler]
-         [-noconsole] [-c command] [-set <section property=value>]
+         [-o options] [-c command] [-set <section property=value>]
 
 
 .
@@ -780,9 +780,9 @@ dosbox-x [nom] [-exit] [-version] [-fastlaunch] [-fullscreen].
 ←[33;1m -lang←[0m fichier de langue
 ○Lance DOSBox-X en utilisant la langue choisie dans le fichier de langue.
 
-←[33;1m -noconsole←[0m (Windows uniquement)
-○Lance DOSBox-X sans montrer la fenêtre de la console. La sortie sera
-○être redirigé vers stdout.txt et stderr.txt
+←[33;1m -startmapper←[0m
+○Entrez dans le keymapper directement au démarrage. Utile pour les personnes ayant
+○des problèmes de clavier.
 
 ←[33;1m -machine←[0m machinetype
 ○Configure DOSBox-X pour émuler un type spécifique de machine. Choix valides :
@@ -792,22 +792,24 @@ dosbox-x [nom] [-exit] [-version] [-fastlaunch] [-fullscreen].
 
 .
 :PROGRAM_INTRO_USAGE_3
-←[33;1m -startmapper←[0m
-○Entrez dans le keymapper directement au démarrage. Utile pour les personnes ayant
-○des problèmes de clavier.
-
 ←[33;1m -noautoexec←[0m
 ○Saute la section [autoexec] du fichier de configuration chargé.
 
+←[33;1m -o←[0m options
+○Fournit une ou plusieurs options de ligne de commande pour "name" si un
+○nom d'exécutable est spécifié. Plusieurs -o peuvent être utilisés pour
+○plusieurs noms d'exécutables.
+
 ←[33;1m -c←[0m commande
 ○Exécute la commande spécifiée avant le nom. Des commandes multiples
-○ peut être spécifié. Chaque commande doit cependant commencer par -c.
-○Une commande peut être : un programme interne, une commande DOS ou un programme
-○sur un lecteur monté.
+○peut être spécifié. Chaque commande doit cependant commencer par -c.
+○Une commande peut être : un programme interne, une commande DOS ou un
+○programme sur un lecteur monté.
 
 ←[33;1m -set←[0m <section property=value>
-○Définit l'option de configuration (qui remplace le fichier de configuration). Des options multiples peuvent être spécifiées. Chaque option doit cependant commencer par -set.
-
+○Définit l'option de configuration (qui remplace le fichier de
+○configuration). Des options multiples peuvent être spécifiées.
+○Chaque option doit cependant commencer par -set.
 
 .
 :PROGRAM_INTRO_INFO
@@ -1209,13 +1211,19 @@ La page de code %i a été chargée pour la mise en page %s.
 :PROGRAM_KEYB_SHOWHELP
 Configure un clavier pour une langue spécifique.
 
-KEYB [ID de disposition du clavier [numéro de page de code [fichier de page de code]]]
-
+Usage: ←[32;1mKEYB←[0m [ID de disposition du clavier [numéro de page de code [fichier de page de code]]]
+  layout ID        Name of layout or keyboard file (.kl) to load
+  codepage number  Number of codepage to load
+  codepage file    .cpi/.cpx file including specified codepage information
+  (.kl, .cpi/.cpx files shall be placed under the directory where dosbox-x
+   executable exists.)
+   
 Quelques exemples :
   ←[32;1mKEYB←[0m Afficher la page de code actuellement chargée.
   ←[32;1mKEYB sp←[0m Chargez la disposition espagnole (SP), utilisez une page de code appropriée.
   ←[32;1mKEYB sp 850←[0m Chargez la disposition espagnole (SP), utilisez la page de code 850.
   ←[32;1mKEYB sp 850 mycp.cpi←[0m Même chose que ci-dessus, mais utilisez le fichier mycp.cpi.
+  ←[32;1mKEYB sp_mod 850←[0m      Load keyboard layout from sp_mod.kl, use codepage 850.
 
 .
 :PROGRAM_KEYB_NOERROR
@@ -1223,7 +1231,7 @@ Disposition de clavier %s chargée pour la page de code %i
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
-Fichier clavier %s non trouvé
+Fichier clavier %s non trouvé (or not a valid ID)
 
 
 .
@@ -2147,10 +2155,10 @@ CHCP [nnn [fichier]]
   nnn      Spécifie un numéro de page de code.
   fichier  Spécifie un fichier de page de code
   
-Pages de code prises en charge pour être modifiées dans la sortie 
+Pages de code prises en charge pour être modifiées dans la sortie
 de la police TrueType :
 
-437,737,775,808,850,852,853,855,857,858,860-866,869,872,874
+437,737,775,808,850,852,853,855,857,858,860-866,869,872,874,3021
 
 Pages de codes Windows: 1250,1251,1252,1253,1254,1255,1256,1257,1258
 
@@ -2388,6 +2396,12 @@ AMD K6 200MHz (~130000 cycles)
 .
 :MENU:cpuak6-300
 AMD K6-2 300MHz (~193000 cycles)
+.
+:MENU:cpuath-600
+AMD Athlon 600MHz (~306000 cycles)
+.
+:MENU:cpu686-866
+Pentium III 866MHz EB (~407000 cycles)
 .
 :MENU:VideoMenu
 Vidéo
@@ -3185,6 +3199,9 @@ Pentium Pro
 .
 :MENU:cputype_pentium_ii
 Pentium II
+.
+:MENU:cputype_pentium_iii
+Pentium III
 .
 :MENU:cputype_experimental
 Expérimental

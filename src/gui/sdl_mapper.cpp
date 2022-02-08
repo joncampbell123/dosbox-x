@@ -299,6 +299,7 @@ void                                            resetFontSize(void);
 #endif
 
 Bitu                                            GUI_JoystickCount(void);                // external
+bool                                            OpenGL_using(void);
 bool                                            GFX_GetPreventFullscreen(void);         // external
 void                                            GFX_ForceRedrawScreen(void);            // external
 #if defined(WIN32) && !defined(HX_DOS)
@@ -1055,7 +1056,7 @@ static SDLKey sdlkey_map[MAX_SCANCODES] = {
 	SDLK_F1, SDLK_F2, SDLK_F3, SDLK_F4, SDLK_F5, SDLK_F6, SDLK_F7, SDLK_F8, SDLK_F9, SDLK_F10,
 	/* 0x45: */
 	SDLK_NUMLOCK, //0x45 Keypad Num Lock and Clear
-	SDLK_SCROLLOCK, //0x46 Scroll-lock
+	SDLK_SCROLLOCK, //0x46 Scroll-lock and Break
 	SDLK_KP7, //0x47 Keypad 7 and Home
 	SDLK_KP8, //0x48 Keypad 8 and Up Arrow
 	SDLK_KP9, //0x49 Keypad 9 and PageUp
@@ -1200,7 +1201,13 @@ Bitu GetKeyCode(SDL_keysym keysym) {
         }
         else {
 #if defined (WIN32)
+#if(_WIN32_WINNT >= 0x0500)
+            if(keysym.win32_vk >= 0xa6 && keysym.win32_vk <= 0xb7) return SDLK_UNKNOWN; // Ignore all media keys
+#endif
             switch(keysym.scancode) {
+            case 0x46:  // Scroll Lock
+                // LOG_MSG("Scroll_lock scancode=%x, vk_key=%x", keysym.scancode, keysym.win32_vk);
+                return (keysym.win32_vk == VK_CANCEL ? SDLK_BREAK : SDLK_SCROLLOCK);
             case 0x35:  // SLASH
                 if(keysym.sym != SDLK_KP_DIVIDE) {
                     return SDLK_SLASH; // Various characters are allocated to this key in European keyboards
@@ -1280,12 +1287,16 @@ Bitu GetKeyCode(SDL_keysym keysym) {
     } else {
 #if defined (WIN32)
         /* special handling of 102-key under windows */
-        if ((keysym.sym==SDLK_BACKSLASH) && (keysym.scancode==0x56)) return (Bitu)SDLK_LESS;
+        if((keysym.sym == SDLK_BACKSLASH) && (keysym.scancode == 0x56)) return (Bitu)SDLK_LESS;
         /* special case of the \ _ key on Japanese 106-keyboards. seems to be the same code whether or not you've told Windows it's a 106-key */
         /* NTS: SDL source on Win32 maps this key (VK_OEM_102) to SDLK_LESS */
-        if (isJPkeyboard && (keysym.sym == 0) && (keysym.scancode == 0x73)) return (Bitu)SDLK_WORLD_10; //FIXME: There's no SDLK code for that key! Re-use one of the world keys!
+        else if(isJPkeyboard && (keysym.sym == 0) && (keysym.scancode == 0x73)) return (Bitu)SDLK_WORLD_10; //FIXME: There's no SDLK code for that key! Re-use one of the world keys!
         /* another hack, for the Yen \ pipe key on Japanese 106-keyboards.
            sym == 0 if English layout, sym == 0x5C if Japanese layout */
+        else if(keysym.win32_vk == VK_CANCEL) return (Bitu)SDLK_BREAK;
+#if(_WIN32_WINNT >= 0x0500)
+        else if(keysym.win32_vk >= 0xa6 && keysym.win32_vk <= 0xb7) return (Bitu)SDLK_UNKNOWN; // Ignore all media keys
+#endif
         if (isJPkeyboard && (keysym.sym == 0 || keysym.sym == 0x5C) && (keysym.scancode == 0x7D)) return (Bitu)SDLK_WORLD_11; //FIXME: There's no SDLK code for that key! Re-use one of the world keys!
         /* what is ~ ` on American keyboards is "Hankaku" on Japanese keyboards. Same scan code. */
 		if (keysym.scancode == 0x29) return (Bitu) (isJPkeyboard ? SDLK_WORLD_12 : SDLK_BACKQUOTE); //if JP106 keyboard Hankaku else Backquote(grave)  
@@ -3535,7 +3546,7 @@ CEvent *get_mapper_event_by_name(const std::string &x) {
 }
 
 unsigned char prvmc = 0;
-extern bool font_14_init;
+extern bool font_14_init, loadlang;
 extern uint8_t int10_font_14_init[256 * 14];
 uint8_t *GetDbcs14Font(Bitu code, bool &is14);
 bool isDBCSCP();
@@ -4624,13 +4635,21 @@ void BIND_MappingEvents(void) {
 #endif
 
         switch (event.type) {
-#if !defined(C_SDL2) && defined(_WIN32) && !defined(HX_DOS)
+#if defined(_WIN32) && !defined(HX_DOS)
         case SDL_SYSWMEVENT : {
-            switch ( event.syswm.msg->msg ) {
+            switch ( event.syswm.msg->
+#if defined(C_SDL2)
+            msg.win.
+#endif
+            msg ) {
                 case WM_COMMAND:
 # if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
                     if (GetMenu(GetHWND())) {
+# if defined(C_SDL2)
+                        if (mapperMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(event.syswm.msg->msg.win.wParam))) return;
+# else
                         if (mapperMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(event.syswm.msg->wParam))) return;
+# endif
                     }
 # endif
                     break;
@@ -4959,6 +4978,9 @@ void MAPPER_RunInternal() {
         DOSBoxMenu::item &item = mapperMenu.get_item("SaveMapper");
         item.set_text(MSG_Get("SAVE_MAPPER_FILE"));
     }
+# if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+    if (loadlang) mapperMenu.unbuild();
+# endif
     mapperMenu.rebuild();
 #endif
 
@@ -4988,7 +5010,7 @@ void MAPPER_RunInternal() {
 #if defined(C_SDL2)
     void GFX_SetResizeable(bool enable);
     GFX_SetResizeable(false);
-    mapper.window=GFX_SetSDLSurfaceWindow(640,480);
+    mapper.window = OpenGL_using() ? GFX_SetSDLWindowMode(640,480,SCREEN_OPENGL) : GFX_SetSDLSurfaceWindow(640,480);
     if (mapper.window == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
     mapper.surface=SDL_GetWindowSurface(mapper.window);
     if (mapper.surface == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
@@ -5058,7 +5080,11 @@ void MAPPER_RunInternal() {
     GFX_SetResizeable(true);
 #elif C_DIRECT3D
     bool Direct3D_using(void);
-    if (Direct3D_using() && !IS_VGA_ARCH && !IS_PC98_ARCH) {
+    if (Direct3D_using()
+# if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+        && !IS_VGA_ARCH && !IS_PC98_ARCH
+# endif
+    ) {
         change_output(0);
         change_output(6);
     }
@@ -5068,9 +5094,7 @@ void MAPPER_RunInternal() {
 #endif
     if((mousetoggle && !mouselocked) || (!mousetoggle && mouselocked)) GFX_CaptureMouse();
     SDL_ShowCursor(cursor);
-#if !defined(C_SDL2)
     DOSBox_RefreshMenu();
-#endif
     if(!menu_gui) GFX_RestoreMode();
 #if defined(__WIN32__) && !defined(HX_DOS)
     if(GetAsyncKeyState(0x11)) {
@@ -5113,7 +5137,9 @@ void MAPPER_RunInternal() {
     if (!TTF_using() || ttf.inUse)
 #endif
     {
-        GFX_ForceRedrawScreen();
+        GFX_Stop();
+        if (sdl.draw.callback) (sdl.draw.callback)( GFX_CallBackReset );
+        GFX_Start();
 #if defined(USE_TTF)
         if (ttf.inUse) resetFontSize();
 #endif

@@ -17,13 +17,14 @@
  */
 
 
-#if defined (WIN32) && 0
+#if defined (WIN32)
 
 #include <ctype.h>
 
 #include "dosbox.h"
 #include "cdrom.h"
 #include "support.h"
+#include "logging.h"
 
 //Are actually system includes but leave for now
 #include "wnaspi32.h"

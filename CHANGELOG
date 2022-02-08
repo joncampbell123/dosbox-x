@@ -1,4 +1,31 @@
+0.83.23
+  - Sound Blaster: Fixed DSP command 0x48 (Set DSP block
+    transfer size) to accept block size as BYTES as
+    standardized by Creative and convert to SAMPLES
+    internally. This fixes stuttering voices in Freddy
+    Pharkas when sbtype=sb16. (joncampbell123)
 0.83.22
+  - Added Pentium 3 Processor Serial Number emulation.
+    Serial number can be set from dosbox-x.conf or not
+    set, in which case it will act as if disabled by the
+    BIOS. (joncampbell123).
+  - Added Pentium III cputype, added SSE register set,
+    added SSE instructions to debugger disassembler,
+    added some initial SSE instructions. (joncampbell123)
+  - Added some MSRs expected by Linux, Windows, and
+    tools like CPU-Z to make them happy. (joncampbell123)
+  - Added FXSAVE/FXRSTOR which makes Linux happy with
+    Pentium III emulation. (joncampbell123)
+  - Allow WRMSR to set time stamp counter, as it is known
+    though undocumented a standard since the Pentium
+    (joncampbell123).
+  - Added debugger command to show global and per-voice
+    status of the Gravis Ultrasound emulation. May come
+    in handy for programmers who wish to write their own
+    GUS routines, and for Trixter who brought up the
+    subject of determining whether a program plays music
+    with the GUS or treats it like a dumb sound card.
+    (joncampbell123).
   - Added debugger command to show SSE register file, and
     to set SSE register contents. (joncampbell123)
   - Added debugger command to show MMX register file, and
@@ -34,13 +61,20 @@
     quotes because the parser would confuse the
     first digits with the DF and AF bits of the FLAGS
     register. (joncampbell123)
-  - Added Pentium III cputype, added SSE register set,
-    added SSE instructions to debugger disassembler,
-    added some initial SSE instructions. (joncampbell123)
-  - Added some MSRs expected by Linux, Windows, and
-    tools like CPU-Z to make them happy. (joncampbell123)
-  - Added FXSAVE/FXRSTOR which makes Linux happy with
-    Pentium III emulation. (joncampbell123)
+  - Added menu options "AMD Athlon 600MHz" and "Pentium
+    III 866MHz EB" within the group "Emulate CPU speed"
+    (under "CPU") for CPU speeds to emulate. (Wengier)
+  - Added support for archive, hidden, system attributes
+    on mounted local and overlay drives for non-Windows
+    platforms by using special file(s). (Wengier)
+  - Added config option "special operation file prefix"
+    (in [dos] section) to speciay an alterantive file
+    prefix for DOSBox-X's special operations on mounted
+    local and overlay drives. (Wengier)
+  - Added code page 3021 for the MIK character set used
+    by the Bulgarian language (as in FreeDOS). (Wengier)
+  - Added language file for the Brazilian Portuguese,
+    available from Windows installer. (altiereslima)
   - For piping (|), DOSBox-X will now also try C: drive
     as a temporary piping path if current directory is
     read-only and the environment variable %TEMP% (or
@@ -51,6 +85,16 @@
     (instead of failing) now if the image files are
     read-only and the users do not explicitly specify
     read-only mode for the disk images. (Wengier)
+  - The default value of config option "autofixwarning"
+    (in [dos] section) is now "false", and it is now
+    changeable via CONFIG command. (Wengier)
+  - The default output for Linux SDL1 builds is changed
+    from opengl to surface, unlike Linux SDL2 builds
+    whose default output remains opengl. (Wengier)
+  - Native Windows menus is supported in Windows SDL2
+    builds just like Windows SDL1 builds. It is possible
+    to force SDL-drawn menus for both Windows SDL1 and
+    SDL2 builds at compile time. (Wengier)
   - Setting "windowposition" to "-" in the configuration
     will leave DOSBox-X window position as is instead of
     a specific position or being centered. (Wengier)
@@ -62,9 +106,9 @@
     pages in non-DOS/V, non-PC98, and non-TTF mode.
     Video capturing started from TTF output will enable
     DBCS characters when possible. (Wengier)
-  - Changing code pages is supported for standard modes
-    (i.e. non-DOS/V, non-PC98 and non-TTF modes) using
-    CHCP command. (Wengier)
+  - Changing DBCS code pages is supported for standard
+    modes (i.e. non-DOS/V, non-PC98 and non-TTF modes)
+    using CHCP command. (Wengier)
   - Fixed issues with certain DBCS characters for the
     DOS/V system. (Wengier)
   - Fixed slow blinking text in TTF output. (Wengier)
@@ -76,6 +120,10 @@
     screenshots in TTF CJK mode, or they do not show up
     properly in the Configuration Tool when "autodbcs"
     is set to "false" in the configuration. (Wengier)
+  - Fixed media keys presses by ignoring these keys in
+    Windows SDL1 builds. (maron2000)
+  - Fixed IOCTL & ASPI interfaces for mounting physical
+    CD drives on the Windows platform. (Wengier)
   - Fixed the issue of loading scalers in the previous
     version. A message box will only show up if you
     append "prompt" to the scaler option. (Wengier)

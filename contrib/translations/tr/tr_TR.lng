@@ -749,7 +749,7 @@ Windows kullanıcıları cmd.exe veya DOSBox-X kısayolunu kullanmalıdırlar.
 dosbox-x [ad] [-exit] [-version] [-fastlaunch] [-fullscreen]
          [-conf yapılandırma] [-lang dil-dosyası] [-machine makine-türü]
          [-startmapper] [-noautoexec] [-scaler ölçekleyici | -forcescaler
-         scaler] [-noconsole] [-c komut] [-set <section property=değer>]
+         scaler] [-o seçenekler] [-c komut] [-set <section property=değer>]
 
 
 .
@@ -780,9 +780,9 @@ dosbox-x [ad] [-exit] [-version] [-fastlaunch] [-fullscreen]
 ←[33;1m  -lang←[0m dil-dosyası
 ○DOSBox-X'i dil dosyasında belirtilen dili kullanarak başlatır.
 
-←[33;1m  -noconsole←[0m (Windows Only)
-○DOSBox-X'i konsol penceresini göstermeden başlatır. Çıktı,
-○stdout.txt ve stderr.txt dosyalarına yönlendirilir.
+←[33;1m  -startmapper←[0m
+○Başlangıçta doğrudan eşlemleyiciyi açar. Klavye sorunu yaşayan kişiler
+○için yararlı olabilir.
 
 ←[33;1m  -machine←[0m makine-türü
 ○DOSBox-X'i belirli bir tür makineyi öykünmesi için ayarlar. Seçenekler:
@@ -792,12 +792,12 @@ dosbox-x [ad] [-exit] [-version] [-fastlaunch] [-fullscreen]
 
 .
 :PROGRAM_INTRO_USAGE_3
-←[33;1m  -startmapper←[0m
-○Başlangıçta doğrudan eşlemleyiciyi açar. Klavye sorunu yaşayan kişiler
-○için yararlı olabilir.
-
 ←[33;1m  -noautoexec←[0m
 ○Yüklenen yapılandırma dosyasının [autoexec] bölümünü atlar.
+
+←[33;1m  -o←[0m seçenekler
+○Yürütülebilir bir adla "ad" için komut satırı seçeneği/seçenekleri
+○sağlar. Birden çok yürütülebilir ad için birden çok -o kullanılabilir.
 
 ←[33;1m  -c←[0m komut
 ○Ad'ı çalıştırmadan önce belirtilen komutu çalıştırır. Birden çok komut
@@ -1211,7 +1211,12 @@ Disket okunamıyor.
 :PROGRAM_KEYB_SHOWHELP
 Klavyeyi belirli bir dil için yapılandırır.
 
-KEYB [klavye dizilimi kimliği [kod sayfası numarası [kod sayfası dosyası]]]
+Usage: ←[32;1mKEYB←[0m [klavye dizilimi kimliği [kod sayfası numarası [kod sayfası dosyası]]]
+  layout ID        Name of layout or keyboard file (.kl) to load
+  codepage number  Number of codepage to load
+  codepage file    .cpi/.cpx file including specified codepage information
+  (.kl, .cpi/.cpx files shall be placed under the directory where dosbox-x
+   executable exists.)
 
 Some examples:
   ←[32;1mKEYB←[0m          Şu anda yüklü kod sayfasını görüntüle.
@@ -1219,6 +1224,7 @@ Some examples:
   ←[32;1mKEYB tr440←[0m    Türkçe (TR-F) dizilimini uygun kod sayfası ile yükle.
   ←[32;1mKEYB tr 857←[0m   Türkçe (TR-Q) dizilimin 857 kod sayfası ile yükle.
   ←[32;1mKEYB tr 857 mycp.cpi←[0m Yukarıdakinin aynısı, mycp.cpi dosyası ile.
+  ←[32;1mKEYB tr_mod 857←[0m      Load keyboard layout from tr_mod.kl, use codepage 857.
 
 .
 :PROGRAM_KEYB_NOERROR
@@ -1226,7 +1232,7 @@ Some examples:
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
-Klavye dosyası %s bulunamadı
+Klavye dosyası %s bulunamadı (or not a valid ID)
 
 
 .
@@ -2149,7 +2155,7 @@ CHCP [nnn [dosya]]
 
 TrueType yazıtipi çıktısında desteklenen kod sayfaları aşağıdaki gibidir:
 
-437,737,775,808,850,852,853,855,857,858,860-866,869,872,874
+437,737,775,808,850,852,853,855,857,858,860-866,869,872,874,3021
 
 Windows kod sayfaları: 1250,1251,1252,1253,1254,1255,1256,1257,1258
 
@@ -2386,6 +2392,12 @@ AMD K6 200MHz (~130000 çevrim)
 .
 :MENU:cpuak6-300
 AMD K6-2 300MHz (~193000 çevrim)
+.
+:MENU:cpuath-600
+AMD Athlon 600MHz (~306000 çevrim)
+.
+:MENU:cpu686-866
+Pentium III 866MHz EB (~407000 çevrim)
 .
 :MENU:VideoMenu
 Video
@@ -3181,6 +3193,9 @@ Pentium Pro
 .
 :MENU:cputype_pentium_ii
 Pentium II
+.
+:MENU:cputype_pentium_iii
+Pentium III
 .
 :MENU:cputype_experimental
 Deneysel

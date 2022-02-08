@@ -35,10 +35,20 @@
 #include "shell.h"
 #include "jfont.h"
 #include "sdlmain.h"
+#include "../ints/int10.h"
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
 unsigned int min_sdldraw_menu_width = 500;
 unsigned int min_sdldraw_menu_height = 300;
+#endif
+
+#if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+unsigned int SDLDrawGenFontTextureUnitPerRow = 16;
+unsigned int SDLDrawGenFontTextureRows = 16;
+unsigned int SDLDrawGenFontTextureWidth = SDLDrawGenFontTextureUnitPerRow * 8;
+unsigned int SDLDrawGenFontTextureHeight = SDLDrawGenFontTextureRows * 16;
+bool SDLDrawGenFontTextureInit = false;
+GLuint SDLDrawGenFontTexture = (GLuint)(~0UL), SDLDrawGenDBCSFontTexture = (GLuint)(~0UL);
 #endif
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X menu handle */
@@ -55,12 +65,7 @@ void*                                               sdl_hax_nsMenuItemAlloc(cons
 void                                                sdl_hax_nsMenuItemRelease(void *nsMenuItem);
 #endif
 
-#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-extern "C" void                                     SDL1_hax_SetMenu(HMENU menu);
-#endif
-
 void                                                reflectmenu_INITMENU_cb();
-bool                                                GFX_GetPreventFullscreen(void);
 void                                                RENDER_CallBack( GFX_CallBackFunctions_t function );
 bool                                                OpenGL_using(void);
 
@@ -97,6 +102,16 @@ unsigned int                                        hdd_defsize=16000;
 char                                                hdd_size[20]="";
 
 extern "C" void                                     (*SDL1_hax_INITMENU_cb)();
+
+extern bool showdbcs, loadlang;
+extern bool isDBCSCP(), InitCodePage();
+extern uint8_t int10_font_14[256 * 14];
+extern uint8_t int10_font_16[256 * 16];
+extern bool font_14_init, font_16_init;
+uint8_t *GetDbcsFont(Bitu code);
+bool Direct3D_using(void);
+void UpdateSDLDrawDBCSTexture(Bitu code);
+unsigned char prevc = 0;
 
 /* top level menu ("") */
 static const char *def_menu__toplevel[] =
@@ -243,6 +258,8 @@ static const char *def_menu_cpu_speed[] =
     "cpuak6-166",
     "cpuak6-200",
     "cpuak6-300",
+    "cpuath-600",
+    "cpu686-866",
     NULL
 };
 
@@ -1765,6 +1782,26 @@ void SetVal(const std::string& secname, const std::string& preval, const std::st
     }
 }
 
+#if defined(WIN32) && defined(C_SDL2)
+void SDL1_hax_SetMenu(HMENU menu) {
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+    if (GFX_IsFullscreen()) {
+        SetMenu(GetHWND(), NULL);
+        return;
+    }
+    bool res = SetMenu(GetHWND(), menu);
+    if (!res) {
+        mainMenu.unbuild();
+        mainMenu.rebuild();
+        res = SetMenu(GetHWND(), mainMenu.getWinMenu());
+    }
+    DrawMenuBar(GetHWND());
+#endif
+}
+#elif DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+extern "C" void SDL1_hax_SetMenu(HMENU menu);
+#endif
+
 void DOSBox_SetMenu(DOSBoxMenu &altMenu) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     /* nothing to do */
@@ -1850,8 +1887,6 @@ void DOSBox_NoMenu(void) {
 }
 
 void ToggleMenu(bool pressed) {
-    bool GFX_GetPreventFullscreen(void);
-
     /* prevent removing the menu in 3Dfx mode */
     if (GFX_GetPreventFullscreen())
         return;
@@ -1871,7 +1906,7 @@ void ToggleMenu(bool pressed) {
     DOSBox_SetSysMenu();
 }
 
-#if !(defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS))
+#if !defined(WIN32) || defined(HX_DOS)
 int Reflect_Menu(void) {
     return 0;
 }
@@ -1886,7 +1921,6 @@ void DOSBox_CheckOS(int &id, int &major, int &minor) {
 
 void MSG_WM_COMMAND_handle(SDL_SysWMmsg &Message) {
 #if defined(WIN32) && !defined(HX_DOS)
-    bool GFX_GetPreventFullscreen(void);
     bool MAPPER_IsRunning(void);
     bool GUI_IsRunning(void);
 
@@ -2067,7 +2101,7 @@ void DOSBox_SetSysMenu(void) {
     }
 #endif
 }
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS)
 #include <shlobj.h>
 
 void GetDefaultSize(void) {
@@ -2290,7 +2324,7 @@ void MENU_KeyDelayRate(int delay, int rate) {
 }
 
 int Reflect_Menu(void) {
-#if !defined(HX_DOS)
+#if !defined(HX_DOS) && !defined(C_SDL2)
     SDL1_hax_INITMENU_cb = reflectmenu_INITMENU_cb;
 #endif
     return 1;
@@ -2648,3 +2682,618 @@ void DOSBoxMenu::item::placeItem(DOSBoxMenu &menu,int x,int y,bool isTopLevel) {
 }
 #endif
 
+#if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+void MenuShadeRect(int x,int y,int w,int h) {
+    if (OpenGL_using()) {
+#if C_OPENGL
+        glShadeModel (GL_FLAT);
+        glBlendFunc(GL_ONE, GL_SRC_ALPHA);
+        glDisable (GL_DEPTH_TEST);
+        glDisable (GL_LIGHTING);
+        glEnable(GL_BLEND);
+        glDisable(GL_CULL_FACE);
+        glDisable(GL_ALPHA_TEST);
+        glDisable(GL_FOG);
+        glDisable(GL_SCISSOR_TEST);
+        glDisable(GL_STENCIL_TEST);
+        glDisable(GL_TEXTURE_2D);
+
+        glColor4ub(0, 0, 0, 64);
+        glBegin(GL_QUADS);
+        glVertex2i(x  ,y  );
+        glVertex2i(x+w,y  );
+        glVertex2i(x+w,y+h);
+        glVertex2i(x  ,y+h);
+        glEnd();
+
+        glBlendFunc(GL_ONE, GL_ZERO);
+        glEnable(GL_TEXTURE_2D);
+#endif
+    }
+    else {
+        if (x < 0) {
+            w += x;
+            x = 0;
+        }
+        if (y < 0) {
+            h += y;
+            y = 0;
+        }
+        if ((x+w) > sdl.surface->w)
+            w = sdl.surface->w - x;
+        if ((y+h) > sdl.surface->h)
+            h = sdl.surface->h - y;
+        if (w <= 0 || h <= 0)
+            return;
+
+        if (sdl.surface->format->BitsPerPixel == 32) {
+            unsigned char *scan;
+            uint32_t mask;
+
+            mask = ((sdl.surface->format->Rmask >> 2) & sdl.surface->format->Rmask) |
+                ((sdl.surface->format->Gmask >> 2) & sdl.surface->format->Gmask) |
+                ((sdl.surface->format->Bmask >> 2) & sdl.surface->format->Bmask);
+
+            assert(sdl.surface->pixels != NULL);
+
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += y * sdl.surface->pitch;
+            scan += x * 4;
+            while (h-- > 0) {
+                uint32_t *row = (uint32_t*)scan;
+                scan += sdl.surface->pitch;
+                for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (row[c] >> 2) & mask;
+            }
+        }
+        else if (sdl.surface->format->BitsPerPixel == 16) {
+            unsigned char *scan;
+            uint16_t mask;
+
+            mask = ((sdl.surface->format->Rmask >> 2) & sdl.surface->format->Rmask) |
+                ((sdl.surface->format->Gmask >> 2) & sdl.surface->format->Gmask) |
+                ((sdl.surface->format->Bmask >> 2) & sdl.surface->format->Bmask);
+
+            assert(sdl.surface->pixels != NULL);
+
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += y * sdl.surface->pitch;
+            scan += x * 2;
+            while (h-- > 0) {
+                uint16_t *row = (uint16_t*)scan;
+                scan += sdl.surface->pitch;
+                for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (row[c] >> 2) & mask;
+            }
+        }
+        else {
+            /* TODO */
+        }
+    }
+}
+
+void MenuDrawRect(int x,int y,int w,int h,Bitu color) {
+    if (OpenGL_using()) {
+#if C_OPENGL
+        glShadeModel (GL_FLAT);
+        glBlendFunc(GL_ONE, GL_ZERO);
+        glDisable (GL_DEPTH_TEST);
+        glDisable (GL_LIGHTING);
+        glDisable(GL_BLEND);
+        glDisable(GL_CULL_FACE);
+        glDisable(GL_ALPHA_TEST);
+        glDisable(GL_FOG);
+        glDisable(GL_SCISSOR_TEST);
+        glDisable(GL_STENCIL_TEST);
+        glDisable(GL_TEXTURE_2D);
+
+        glColor3ub((color >> 16UL) & 0xFF,(color >> 8UL) & 0xFF,(color >> 0UL) & 0xFF);
+        glBegin(GL_QUADS);
+        glVertex2i(x  ,y  );
+        glVertex2i(x+w,y  );
+        glVertex2i(x+w,y+h);
+        glVertex2i(x  ,y+h);
+        glEnd();
+
+        glBlendFunc(GL_ONE, GL_ZERO);
+        glEnable(GL_TEXTURE_2D);
+#endif
+    }
+    else {
+        if (x < 0) {
+            w += x;
+            x = 0;
+        }
+        if (y < 0) {
+            h += y;
+            y = 0;
+        }
+        if ((x+w) > sdl.surface->w)
+            w = sdl.surface->w - x;
+        if ((y+h) > sdl.surface->h)
+            h = sdl.surface->h - y;
+        if (w <= 0 || h <= 0)
+            return;
+
+        if (sdl.surface->format->BitsPerPixel == 32) {
+            unsigned char *scan;
+
+            assert(sdl.surface->pixels != NULL);
+
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += y * sdl.surface->pitch;
+            scan += x * 4;
+            while (h-- > 0) {
+                uint32_t *row = (uint32_t*)scan;
+                scan += sdl.surface->pitch;
+                for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (uint32_t)color;
+            }
+        }
+        else if (sdl.surface->format->BitsPerPixel == 16) {
+            unsigned char *scan;
+
+            assert(sdl.surface->pixels != NULL);
+
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += y * sdl.surface->pitch;
+            scan += x * 2;
+            while (h-- > 0) {
+                uint16_t *row = (uint16_t*)scan;
+                scan += sdl.surface->pitch;
+                for (unsigned int c=0;c < (unsigned int)w;c++) row[c] = (uint16_t)color;
+            }
+        }
+        else {
+            /* TODO */
+        }
+    }
+}
+
+void MenuDrawTextChar(int &x,int y,unsigned char c,Bitu color,bool check) {
+    static const unsigned int fontHeight = 16;
+    unsigned char *scan, *bmp = NULL;
+
+    if (x < 0 || y < 0 ||
+        (unsigned int)(x+8) > (unsigned int)sdl.surface->w ||
+        (unsigned int)(y+(int)fontHeight) > (unsigned int)sdl.surface->h)
+        return;
+
+    if (check)
+        prevc = 0;
+    else if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) {
+        if (isKanji1(c) && prevc == 0) {
+            prevc = c;
+            return;
+        } else if (isKanji2(c) && prevc > 1) {
+#if C_OPENGL
+            if (OpenGL_using())
+                UpdateSDLDrawDBCSTexture(prevc*0x100+c);
+            else
+#endif
+                bmp = GetDbcsFont(prevc*0x100+c);
+            prevc = 1;
+        } else if (prevc < 0x81)
+            prevc = 0;
+    } else
+        prevc = 0;
+
+    if (OpenGL_using()) {
+#if C_OPENGL
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
+            glBindTexture(GL_TEXTURE_2D,prevc?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
+            glPushMatrix();
+            glMatrixMode (GL_TEXTURE);
+            glLoadIdentity ();
+            glScaled(1.0 / SDLDrawGenFontTextureWidth, 1.0 / SDLDrawGenFontTextureHeight, 1.0);
+            glColor4ub((color >> 16UL) & 0xFF,(color >> 8UL) & 0xFF,(color >> 0UL) & 0xFF,0xFF);
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glEnable(GL_TEXTURE_2D);
+            glEnable(GL_ALPHA_TEST);
+            glEnable(GL_BLEND);
+        }
+
+        for (int i=0; i<(prevc?2:1); i++) {
+            unsigned int tx = ((prevc?i:c) % 16u) * 8u;
+            unsigned int ty = ((prevc?i:c) / 16u) * 16u;
+
+            /* MenuDrawText() has prepared OpenGL state for us */
+            glBegin(GL_QUADS);
+            // lower left
+            glTexCoord2i((int)tx+0,    (int)ty                ); glVertex2i((int)x,  (int)y                );
+            // lower right
+            glTexCoord2i((int)tx+8,    (int)ty                ); glVertex2i((int)x+8,(int)y                );
+            // upper right
+            glTexCoord2i((int)tx+8,    (int)ty+(int)fontHeight); glVertex2i((int)x+8,(int)y+(int)fontHeight);
+            // upper left
+            glTexCoord2i((int)tx+0,    (int)ty+(int)fontHeight); glVertex2i((int)x,  (int)y+(int)fontHeight);
+            glEnd();
+            x += (int)mainMenu.fontCharWidth;
+        }
+
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
+            glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+            glBlendFunc(GL_ONE, GL_ZERO);
+            glDisable(GL_ALPHA_TEST);
+            glEnable(GL_TEXTURE_2D);
+            glPopMatrix();
+            glBindTexture(GL_TEXTURE_2D,sdl_opengl.texture);
+        }
+#endif
+    }
+    else {
+        assert(sdl.surface->pixels != NULL);
+
+        if (x < 0 || y < 0)
+            return;
+        if ((x + 8) > sdl.surface->w)
+            return;
+        if ((y + (int)fontHeight) > sdl.surface->h)
+            return;
+
+        for (int i=0; i<(prevc?2:1); i++) {
+            if (font_16_init&&dos.loaded_codepage&&dos.loaded_codepage!=437&&!check&&prevc!=1)
+                bmp = (unsigned char*)int10_font_16_init + ((i||!prevc?c:prevc) * fontHeight);
+            else if (prevc!=1)
+                bmp = (unsigned char*)int10_font_16 + ((i||!prevc?c:prevc) * fontHeight);
+
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += (unsigned int)y * (unsigned int)sdl.surface->pitch;
+            scan += (unsigned int)x * (((unsigned int)sdl.surface->format->BitsPerPixel+7u)/8u);
+
+            for (unsigned int row=0;row < fontHeight;row++) {
+                unsigned char rb = bmp[prevc==1?(row*2+i):row];
+
+                if (sdl.surface->format->BitsPerPixel == 32) {
+                    uint32_t *dp = (uint32_t*)scan;
+                    for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                        if (rb & colm) *dp = (uint32_t)color;
+                        dp++;
+                    }
+                }
+                else if (sdl.surface->format->BitsPerPixel == 16) {
+                    uint16_t *dp = (uint16_t*)scan;
+                    for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                        if (rb & colm) *dp = (uint16_t)color;
+                        dp++;
+                    }
+                }
+
+                scan += (size_t)sdl.surface->pitch;
+            }
+            x += (int)mainMenu.fontCharWidth;
+        }
+    }
+    prevc = 0;
+}
+
+void MenuDrawTextChar2x(int &x,int y,unsigned char c,Bitu color,bool check) {
+    static const unsigned int fontHeight = 16;
+    unsigned char *scan, *bmp = NULL;
+
+    if (x < 0 || y < 0 ||
+        (unsigned int)(x+8) > (unsigned int)sdl.surface->w ||
+        (unsigned int)(y+(int)fontHeight) > (unsigned int)sdl.surface->h)
+        return;
+
+    if (check)
+        prevc = 0;
+    else if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) {
+        if (isKanji1(c) && prevc == 0) {
+            prevc = c;
+            return;
+        } else if (isKanji2(c) && prevc > 1) {
+#if C_OPENGL
+            if (OpenGL_using())
+                UpdateSDLDrawDBCSTexture(prevc*0x100+c);
+            else
+#endif
+                bmp = GetDbcsFont(prevc*0x100+c);
+            prevc = 1;
+        } else
+            prevc = 0;
+    } else
+        prevc = 0;
+
+    if (OpenGL_using()) {
+#if C_OPENGL
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
+            glBindTexture(GL_TEXTURE_2D,prevc?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
+            glPushMatrix();
+            glMatrixMode (GL_TEXTURE);
+            glLoadIdentity ();
+            glScaled(1.0 / SDLDrawGenFontTextureWidth, 1.0 / SDLDrawGenFontTextureHeight, 1.0);
+            glColor4ub((color >> 16UL) & 0xFF,(color >> 8UL) & 0xFF,(color >> 0UL) & 0xFF,0xFF);
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+            glEnable(GL_TEXTURE_2D);
+            glEnable(GL_ALPHA_TEST);
+            glEnable(GL_BLEND);
+        }
+
+        for (int i=0; i<(prevc?2:1); i++) {
+            unsigned int tx = ((prevc?i:c) % 16u) * 8u;
+            unsigned int ty = ((prevc?i:c) / 16u) * 16u;
+
+            /* MenuDrawText() has prepared OpenGL state for us */
+            glBegin(GL_QUADS);
+            // lower left
+            glTexCoord2i((int)tx+0,    (int)ty                ); glVertex2i(x,      y                    );
+            // lower right
+            glTexCoord2i((int)tx+8,    (int)ty                ); glVertex2i(x+(8*2),y                    );
+            // upper right
+            glTexCoord2i((int)tx+8,    (int)ty+(int)fontHeight); glVertex2i(x+(8*2),y+((int)fontHeight*2));
+            // upper left
+            glTexCoord2i((int)tx+0,    (int)ty+(int)fontHeight); glVertex2i(x,      y+((int)fontHeight*2));
+            glEnd();
+            x += (int)mainMenu.fontCharWidth;
+        }
+
+        if ((IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) && loadlang && (c || !check)) {
+            glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+            glBlendFunc(GL_ONE, GL_ZERO);
+            glDisable(GL_ALPHA_TEST);
+            glEnable(GL_TEXTURE_2D);
+            glPopMatrix();
+            glBindTexture(GL_TEXTURE_2D,sdl_opengl.texture);
+        }
+#endif
+    }
+    else {
+        assert(sdl.surface->pixels != NULL);
+
+        if (x < 0 || y < 0)
+            return;
+        if ((x + 16) > sdl.surface->w)
+            return;
+        if ((y + ((int)fontHeight * 2)) > sdl.surface->h)
+            return;
+
+        for (int i=0; i<(prevc?2:1); i++) {
+            if (font_16_init&&dos.loaded_codepage&&dos.loaded_codepage!=437&&!check&&!prevc)
+                bmp = (unsigned char*)int10_font_16_init + ((i||!prevc?c:prevc) * fontHeight);
+            else if (prevc!=1)
+                bmp = (unsigned char*)int10_font_16 + ((i||!prevc?c:prevc) * fontHeight);
+
+            scan  = (unsigned char*)sdl.surface->pixels;
+            scan += y * sdl.surface->pitch;
+            scan += x * ((sdl.surface->format->BitsPerPixel+7)/8);
+
+            for (unsigned int row=0;row < (fontHeight*2);row++) {
+                unsigned char rb = bmp[prevc==1?((row>>1U)*2+i):(row>>1U)];
+
+                if (sdl.surface->format->BitsPerPixel == 32) {
+                    uint32_t *dp = (uint32_t*)scan;
+                    for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                        if (rb & colm) {
+                            *dp++ = (uint32_t)color;
+                            *dp++ = (uint32_t)color;
+                        }
+                        else {
+                            dp += 2;
+                        }
+                    }
+                }
+                else if (sdl.surface->format->BitsPerPixel == 16) {
+                    uint16_t *dp = (uint16_t*)scan;
+                    for (unsigned int colm=0x80;colm != 0;colm >>= 1) {
+                        if (rb & colm) {
+                            *dp++ = (uint16_t)color;
+                            *dp++ = (uint16_t)color;
+                        }
+                        else {
+                            dp += 2;
+                        }
+                    }
+                }
+
+                scan += (size_t)sdl.surface->pitch;
+            }
+            x += (int)mainMenu.fontCharWidth;
+        }
+    }
+    prevc = 0;
+}
+
+void MenuDrawText(int x,int y,const char *text,Bitu color,bool check=false) {
+    bool use0 = false;
+#if C_OPENGL
+    if (OpenGL_using()) {
+        if (check&&(text[0]&0xFF)==0xFB) {
+            use0 = true;
+            UpdateSDLDrawDBCSTexture(0);
+        }
+        glBindTexture(GL_TEXTURE_2D,use0?SDLDrawGenDBCSFontTexture:SDLDrawGenFontTexture);
+
+        glPushMatrix();
+
+        glMatrixMode (GL_TEXTURE);
+        glLoadIdentity ();
+        glScaled(1.0 / SDLDrawGenFontTextureWidth, 1.0 / SDLDrawGenFontTextureHeight, 1.0);
+
+        glColor4ub((color >> 16UL) & 0xFF,(color >> 8UL) & 0xFF,(color >> 0UL) & 0xFF,0xFF);
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_ALPHA_TEST);
+        glEnable(GL_BLEND);
+    }
+#endif
+
+    prevc = 0;
+    while (*text != 0) {
+        if (mainMenu.fontCharScale >= 2)
+            MenuDrawTextChar2x(x,y,use0?0:(unsigned char)*text,color,check);
+        else
+            MenuDrawTextChar(x,y,use0?0:(unsigned char)*text,color,check);
+        text++;
+    }
+    if (prevc>1) {
+        if (mainMenu.fontCharScale >= 2)
+            MenuDrawTextChar2x(x,y,prevc,color,true);
+        else
+            MenuDrawTextChar(x,y,prevc,color,true);
+    }
+    prevc = 0;
+#if C_OPENGL
+    if (OpenGL_using()) {
+        glTexEnvi (GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
+        glBlendFunc(GL_ONE, GL_ZERO);
+        glDisable(GL_ALPHA_TEST);
+        glEnable(GL_TEXTURE_2D);
+
+        glPopMatrix();
+
+        glBindTexture(GL_TEXTURE_2D,sdl_opengl.texture);
+    }
+#endif
+}
+
+void DOSBoxMenu::item::drawMenuItem(DOSBoxMenu &menu) {
+    (void)menu;//UNUSED
+
+    force_conversion = showdbcs;
+    int cp = dos.loaded_codepage;
+    if (!cp || force_conversion) InitCodePage();
+    force_conversion = false;
+
+    Bitu bgcolor = GFX_GetRGB(63, 63, 63);
+    Bitu fgcolor = GFX_GetRGB(191, 191, 191);
+    Bitu fgshortcolor = GFX_GetRGB(127, 127, 191);
+    Bitu fgcheckcolor = GFX_GetRGB(191, 191, 127);
+
+    if (type >= separator_type_id) {
+        /* separators never change visual state on hover/select */
+    }
+    else if (!status.enabled) {
+        if (itemHover)
+            bgcolor = GFX_GetRGB(79, 79, 79);
+
+        fgcolor = GFX_GetRGB(144, 144, 144);
+        fgshortcolor = GFX_GetRGB(63, 63, 144);
+        fgcheckcolor = GFX_GetRGB(144, 144, 63);
+    }
+    else if (itemHilight) {
+        bgcolor = GFX_GetRGB(0, 0, 63);
+        fgcolor = GFX_GetRGB(255, 255, 255);
+        fgshortcolor = GFX_GetRGB(191, 191, 255);
+    }
+    else if (itemHover) {
+        bgcolor = GFX_GetRGB(127, 127, 127);
+        fgcolor = GFX_GetRGB(255, 255, 255);
+        fgshortcolor = GFX_GetRGB(191, 191, 255);
+    }
+
+    itemHoverDrawn = itemHover;
+    itemHilightDrawn = itemHilight;
+
+    if (SDL_MUSTLOCK(sdl.surface))
+        SDL_LockSurface(sdl.surface);
+
+    MenuDrawRect(screenBox.x, screenBox.y, screenBox.w, screenBox.h, bgcolor);
+    if (checkBox.w != 0 && checkBox.h != 0) {
+        const char *str = status.checked ? "\xFB" : " ";
+
+        MenuDrawText(screenBox.x+checkBox.x, screenBox.y+checkBox.y, str, fgcheckcolor, true);
+    }
+    if (textBox.w != 0 && textBox.h != 0)
+        MenuDrawText(screenBox.x+textBox.x, screenBox.y+textBox.y, text.c_str(), fgcolor);
+    if (shortBox.w != 0 && shortBox.h != 0)
+        MenuDrawText(screenBox.x+shortBox.x, screenBox.y+shortBox.y, shortcut_text.c_str(), fgshortcolor);
+
+    if (type == submenu_type_id && borderTop/*not toplevel*/)
+        MenuDrawText((int)((int)screenBox.x+(int)screenBox.w - (int)mainMenu.fontCharWidth - 1), (int)((int)screenBox.y+(int)textBox.y), "\x10", fgcheckcolor);
+
+    if (type == separator_type_id)
+        MenuDrawRect((int)screenBox.x, (int)screenBox.y + ((int)screenBox.h/2), (int)screenBox.w, 1, fgcolor);
+    else if (type == vseparator_type_id)
+        MenuDrawRect((int)screenBox.x + ((int)screenBox.w/2), (int)screenBox.y, 1, (int)screenBox.h, fgcolor);
+
+    if (SDL_MUSTLOCK(sdl.surface))
+        SDL_UnlockSurface(sdl.surface);
+    dos.loaded_codepage = cp;
+}
+
+void DOSBoxMenu::displaylist::DrawDisplayList(DOSBoxMenu &menu,bool updateScreen) {
+    for (auto &id : disp_list) {
+        DOSBoxMenu::item &item = menu.get_item(id);
+
+        item.drawMenuItem(menu);
+        if (updateScreen) item.updateScreenFromItem(menu);
+    }
+}
+
+DOSBoxMenu::item_handle_t DOSBoxMenu::displaylist::itemFromPoint(DOSBoxMenu &menu,int x,int y) {
+    for (auto &id : disp_list) {
+        DOSBoxMenu::item &item = menu.get_item(id);
+        if (x >= item.screenBox.x && y >= item.screenBox.y) {
+            int sx = x - item.screenBox.x;
+            int sy = y - item.screenBox.y;
+            int adj = (this != &menu.display_list && item.get_type() == DOSBoxMenu::submenu_type_id) ? 2 : 0;
+            if (sx < (item.screenBox.w+adj) && sy < item.screenBox.h)
+                return id;
+        }
+    }
+
+    return unassigned_item_handle;
+}
+
+bool skipdraw=false;
+void DOSBoxMenu::item::updateScreenFromItem(DOSBoxMenu &menu) {
+    (void)menu;//UNUSED
+    if (!OpenGL_using()) {
+        SDL_Rect uprect = screenBox;
+
+        SDL_rect_cliptoscreen(uprect);
+
+#if defined(C_SDL2)
+        if (!Direct3D_using() || !skipdraw)
+        SDL_UpdateWindowSurfaceRects(sdl.window, &uprect, 1);
+#else
+        SDL_UpdateRects( sdl.surface, 1, &uprect );
+#endif
+    }
+}
+
+void DOSBoxMenu::item::updateScreenFromPopup(DOSBoxMenu &menu) {
+    (void)menu;//UNUSED
+    if (!OpenGL_using()) {
+        SDL_Rect uprect = popupBox;
+
+        uprect.w += DOSBoxMenu::dropshadowX;
+        uprect.h += DOSBoxMenu::dropshadowY;
+        SDL_rect_cliptoscreen(uprect);
+
+#if defined(C_SDL2)
+        SDL_UpdateWindowSurfaceRects(sdl.window, &uprect, 1);
+#else
+        SDL_UpdateRects( sdl.surface, 1, &uprect );
+#endif
+    }
+}
+
+void DOSBoxMenu::item::drawBackground(DOSBoxMenu &menu) {
+    (void)menu;//UNUSED
+    Bitu bordercolor = GFX_GetRGB(31, 31, 31);
+    Bitu bgcolor = GFX_GetRGB(63, 63, 63);
+
+    if (popupBox.w <= 1 || popupBox.h <= 1)
+        return;
+
+    MenuDrawRect(popupBox.x, popupBox.y, popupBox.w, popupBox.h, bgcolor);
+
+    if (borderTop)
+        MenuDrawRect(popupBox.x, popupBox.y, popupBox.w, 1, bordercolor);
+
+    MenuDrawRect(popupBox.x, popupBox.y + popupBox.h - 1, popupBox.w, 1, bordercolor);
+
+    MenuDrawRect(popupBox.x, popupBox.y, 1, popupBox.h, bordercolor);
+    MenuDrawRect(popupBox.x + popupBox.w - 1, popupBox.y, 1, popupBox.h, bordercolor);
+
+    if (type == DOSBoxMenu::submenu_type_id) {
+        MenuShadeRect((int)popupBox.x + (int)popupBox.w, (int)popupBox.y + (int)DOSBoxMenu::dropshadowY,
+                      (int)DOSBoxMenu::dropshadowX, (int)popupBox.h);
+        MenuShadeRect((int)popupBox.x + (int)DOSBoxMenu::dropshadowX, (int)popupBox.y + (int)popupBox.h,
+                      (int)popupBox.w - (int)DOSBoxMenu::dropshadowX, (int)DOSBoxMenu::dropshadowY);
+    }
+}
+#endif

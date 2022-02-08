@@ -29,6 +29,7 @@
 #include "lazyflags.h"
 #include "control.h"
 #include "logging.h"
+#include "pic.h"
 
 // TODO: #ifdef FPU...
 #include "fpu.h"
@@ -87,6 +88,8 @@ extern bool dos_kernel_disabled;
 extern bool use_dynamic_core_with_paging;
 extern bool auto_determine_dynamic_core_paging;
 
+uint64_t rdtsc_adjust = 0;
+
 bool cpu_double_fault_enable;
 bool cpu_triple_fault_reset;
 
@@ -94,6 +97,11 @@ bool cpu_triple_fault_reset;
 uint16_t cpu_sep_cs = 0;		/* MSR 0x174h value of CS */
 uint32_t cpu_sep_esp = 0;		/* MSR 0x175h value of ESP */
 uint32_t cpu_sep_eip = 0;		/* MSR 0x176h value of EIP */
+
+struct P3_PSN {
+	uint32_t	hi,lo;
+	bool		enabled;
+} p3psn;
 
 int cpu_rep_max = 0;
 
@@ -103,6 +111,14 @@ extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused
 CPU_Regs cpu_regs;
 CPUBlock cpu;
 Segments Segs;
+
+int64_t CPU_RDTSC_RAW_internal() {
+	return (int64_t)(PIC_FullIndex()*(double) (CPU_CycleAutoAdjust?70000:CPU_CycleMax));
+}
+
+int64_t CPU_RDTSC() {
+	return (int64_t)(CPU_RDTSC_RAW_internal() + rdtsc_adjust);
+}
 
 /* [cpu] setting realbig16.
  * If set, allow code to switch back to real mode with the B (big) set in the
@@ -3007,8 +3023,20 @@ bool CPU_CPUID(void) {
 			reg_edx=0x03808011;	/* FPU+TimeStamp/RDTSC+SSE+FXSAVE/FXRESTOR */
 			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
 			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+			if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII && p3psn.enabled) reg_edx |= 0x40000;
 			reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT */
 		} else {
+			return false;
+		}
+		break;
+	case 3: /* Processor Serial Number */
+		if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII && p3psn.enabled) {
+			reg_eax = 0;
+			reg_ebx = 0;
+			reg_ecx = p3psn.lo;
+			reg_edx = p3psn.hi;
+		}
+		else {
 			return false;
 		}
 		break;
@@ -3786,6 +3814,37 @@ public:
 		else if (CPU_ArchitectureType>=CPU_ARCHTYPE_486OLD) CPU_extflags_toggle=(FLAG_AC);
 		else CPU_extflags_toggle=0;
 
+		const char *raw_psn = section->Get_string("processor serial number");
+		if (*raw_psn && CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII) {
+			const char *scan = raw_psn;
+			uint16_t w[4];
+			int c=0;
+
+			while (*scan != 0 && c < 4) {
+				if (*scan == ' ') {
+					scan++;
+				}
+				else if (*scan == '-') {
+					scan++;
+				}
+				else if (isxdigit(*scan)) {
+					w[c++] = strtoul(scan,(char**)(&scan),16);
+				}
+				else {
+					break;
+				}
+			}
+
+			while (c < 4) w[c++] = 0;
+
+			p3psn.hi  = (w[0] << 16u) + w[1];
+			p3psn.lo  = (w[2] << 16u) + w[3];
+			p3psn.enabled = true;
+		}
+		else {
+			p3psn.enabled = false;
+		}
+
     // weitek coprocessor emulation?
         if (CPU_ArchitectureType == CPU_ARCHTYPE_386 || CPU_ArchitectureType == CPU_ARCHTYPE_486OLD || CPU_ArchitectureType == CPU_ARCHTYPE_486NEW) {
 	        const Section_prop *dsection = static_cast<Section_prop *>(control->GetSection("dosbox"));
@@ -4289,6 +4348,7 @@ bool CPU_RDMSR() {
 		case 0x00000119: /* MSR_IA32_BBL_CR_CTL */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
 			reg_edx = reg_eax = 0;
+			if (!p3psn.enabled) reg_eax |= 0x200000;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: MSR_IA32_BBL_CR_CTL");
 			return true;
 		case 0x0000011e: /* MSR_IA32_BBL_CR_CTL3 */
@@ -4346,6 +4406,10 @@ bool CPU_WRMSR() {
 //	UNBLOCKED_LOG(LOG_CPU,LOG_DEBUG)("WRMSR ECX=%08x EDX:EAX=%08x:%08x",reg_ecx,reg_edx,reg_eax);
 
 	switch (reg_ecx) {
+		case 0x00000010: /* You can change the time stamp counter by writing this MSR */
+			rdtsc_adjust = ((uint64_t)reg_edx << (uint64_t)32ul) + (uint64_t)reg_eax;
+			rdtsc_adjust -= CPU_RDTSC_RAW_internal();
+			return true;
 		case 0x0000001b: /* Local APIC */
 			/* NTS: Windows ME assumes this MSR is present if we report ourself as a Pentium II,
 			 *      instead of, you know, using CPUID. It will also set the enable bit, even if
@@ -4368,6 +4432,13 @@ bool CPU_WRMSR() {
 		case 0x000000ce: /* MSR_PLATFORM_INFO? */
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) return false;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Attempt to write MSR_PLATFORM_INFO EDX:EAX=%08x:%08x",reg_edx,reg_eax);
+			return true;
+		case 0x00000119: /* MSR_IA32_BBL_CR_CTL */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			if (p3psn.enabled && (reg_eax & 0x200000)) {
+				UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: MSR_IA32_BBL_CR_CTL guest is disabling Processor Serial Number");
+				p3psn.enabled = false;
+			}
 			return true;
 		case 0x00000140: /* IA32_MISC_ENABLE [https://www.geoffchappell.com/studies/windows/km/cpu/msr/misc_enable.htm] */
 			/* Linux kernel assumes this MSR is present if Pentium III and will crash otherwise */

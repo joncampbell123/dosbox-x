@@ -749,7 +749,7 @@ Windows users must open cmd.exe or edit the shortcut to DOSBox-X.exe for this.
 dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
          [-conf congfigfile] [-lang languagefile] [-machine machinetype]
          [-startmapper] [-noautoexec] [-scaler scaler | -forcescaler scaler]
-         [-noconsole] [-c command] [-set <section property=value>]
+         [-o options] [-c command] [-set <section property=value>]
 
 
 .
@@ -780,9 +780,9 @@ dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
 ←[33;1m  -lang←[0m languagefile
 ○Start DOSBox-X using the language specified in languagefile.
 
-←[33;1m  -noconsole←[0m (Windows Only)
-○Start DOSBox-X without showing the console window. Output will
-○be redirected to stdout.txt and stderr.txt
+←[33;1m  -startmapper←[0m
+○Enter the keymapper directly on startup. Useful for people with
+○keyboard problems.
 
 ←[33;1m  -machine←[0m machinetype
 ○Setup DOSBox-X to emulate a specific type of machine. Valid choices:
@@ -792,12 +792,12 @@ dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
 
 .
 :PROGRAM_INTRO_USAGE_3
-←[33;1m  -startmapper←[0m
-○Enter the keymapper directly on startup. Useful for people with
-○keyboard problems.
-
 ←[33;1m  -noautoexec←[0m
 ○Skips the [autoexec] section of the loaded configuration file.
+
+←[33;1m  -o←[0m options
+○Provides command-line option(s) for "name" if an executable name is
+○specified. Multiple -o can be used for multiple executable names.
 
 ←[33;1m  -c←[0m command
 ○Runs the specified command before running name. Multiple commands
@@ -1212,13 +1212,19 @@ Codepage %i has been loaded for layout %s
 :PROGRAM_KEYB_SHOWHELP
 Configures a keyboard for a specific language.
 
-KEYB [keyboard layout ID [codepage number [codepage file]]]
+Usage: ←[32;1mKEYB←[0m [keyboard layout ID [codepage number [codepage file]]]
+  layout ID        Name of layout or keyboard file (.kl) to load
+  codepage number  Number of codepage to load
+  codepage file    .cpi/.cpx file including specified codepage information
+  (.kl, .cpi/.cpx files shall be placed under the directory where dosbox-x
+   executable exists.)
 
 Some examples:
   ←[32;1mKEYB←[0m          Display currently loaded codepage.
   ←[32;1mKEYB sp←[0m       Load the Spanish (SP) layout, use an appropriate codepage.
   ←[32;1mKEYB sp 850←[0m   Load the Spanish (SP) layout, use codepage 850.
   ←[32;1mKEYB sp 850 mycp.cpi←[0m Same as above, but use file mycp.cpi.
+  ←[32;1mKEYB sp_mod 850←[0m      Load keyboard layout from sp_mod.kl, use codepage 850.
 
 .
 :PROGRAM_KEYB_NOERROR
@@ -1226,7 +1232,7 @@ Keyboard layout %s loaded for codepage %i
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
-Keyboard file %s not found
+Keyboard file %s not found (or not a valid ID)
 
 
 .
@@ -2147,11 +2153,11 @@ CHCP [nnn [file]]
 
 Supported code pages for changing in the TrueType font output:
 
-437,737,775,808,850,852,853,855,857,858,860-866,869,872,874
+437,737,775,808,850,852,853,855,857,858,860-866,869,872,874,3021
 
 Windows code pages: 1250,1251,1252,1253,1254,1255,1256,1257,1258
 
-Also double-byte code pages, including 932, 936, 949, and 950.
+Also double-byte code pages including 932, 936, 949, and 950.
 
 Customized code pages are supported by providing code page files.
 
@@ -2384,6 +2390,12 @@ AMD K6 200MHz (~130000 cycles)
 .
 :MENU:cpuak6-300
 AMD K6-2 300MHz (~193000 cycles)
+.
+:MENU:cpuath-600
+AMD Athlon 600MHz (~306000 cycles)
+.
+:MENU:cpu686-866
+Pentium III 866MHz EB (~407000 cycles)
 .
 :MENU:VideoMenu
 Video
@@ -3179,6 +3191,9 @@ Pentium Pro
 .
 :MENU:cputype_pentium_ii
 Pentium II
+.
+:MENU:cputype_pentium_iii
+Pentium III
 .
 :MENU:cputype_experimental
 Experimental

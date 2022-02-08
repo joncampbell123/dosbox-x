@@ -17,7 +17,7 @@
  */
 
 
-#if defined (WIN32) && 0
+#if defined (WIN32)
 
 // *****************************************************************
 // Windows IOCTL functions (not suitable for 95/98/Me)
@@ -28,7 +28,7 @@
 
 #if (defined (_MSC_VER)) || (defined __MINGW64_VERSION_MAJOR)
 #include <winioctl.h>			// Ioctl stuff
-//#include <ntddcdrm.h>			// Ioctl stuff
+#include <ntddcdrm.h>			// Ioctl stuff
 #else 
 #include "ddk/ntddcdrm.h"		// Ioctl stuff
 #endif
@@ -36,6 +36,7 @@
 #include <mmsystem.h>
 
 #include "cdrom.h"
+#include "logging.h"
 
 // for a more sophisticated implementation of the mci cdda functionality
 // see the SDL sources, which the mci_ functions are based on

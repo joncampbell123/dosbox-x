@@ -930,6 +930,12 @@ void InitFontHandle()
 #endif
 }
 
+void clearFontCache() {
+    memset(jfont_cache_dbcs_16, 0, sizeof(jfont_cache_dbcs_16));
+    memset(jfont_cache_dbcs_14, 0, sizeof(jfont_cache_dbcs_14));
+    memset(jfont_cache_dbcs_24, 0, sizeof(jfont_cache_dbcs_24));
+}
+
 void ShutFontHandle() {
 #if defined(LINUX) && C_X11
     font_set16 = font_set14 = font_set24 = NULL;
@@ -937,9 +943,7 @@ void ShutFontHandle() {
 #if defined(WIN32)
     jfont_16 = jfont_14 = jfont_24 = NULL;
 #endif
-    memset(jfont_cache_dbcs_16, 0, sizeof(jfont_cache_dbcs_16));
-    memset(jfont_cache_dbcs_14, 0, sizeof(jfont_cache_dbcs_14));
-    memset(jfont_cache_dbcs_24, 0, sizeof(jfont_cache_dbcs_24));
+    clearFontCache();
 }
 
 bool MakeSbcs16Font() {

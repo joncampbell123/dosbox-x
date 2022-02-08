@@ -35,6 +35,11 @@
 #include "dev_con.h"
 #include <fstream>
 
+#if (!defined(WIN32) && defined(C_SDL2)) || defined(MACOSX)
+typedef char host_cnv_char_t;
+host_cnv_char_t *CodePageGuestToHost(const char *s);
+#endif
+
 DOS_Device * Devices[DOS_DEVICES] = {NULL};
 extern std::map<int, int> lowboxdrawmap;
 extern int dos_clipboard_device_access;
@@ -387,93 +392,11 @@ uint16_t cpMap_PC98[256] = {
     0x0020, 0x0020, 0x0020, 0x0020, 0x005C, 0x0020, 0x0020, 0x0020                  // 0xF8-0xFF   0xFC = Backslash
 };
 
+bool getClipboard();
 bool lastwrite = false;
-uint8_t *clipAscii = NULL;
-uint32_t clipSize = 0, cPointer = 0, fPointer;
-
-#if defined(WIN32)
-bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
-bool Unicode2Ascii(const uint16_t* unicode) {
-    int memNeeded = 0;
-    char temp[4096];
-    bool ret=false;
-    morelen=true;
-    if (CodePageHostToGuestUTF16(temp,unicode) && (clipAscii = (uint8_t *)malloc(strlen(temp)+1))) {
-        morelen=false;
-        ret=true;
-        strcpy((char *)clipAscii, temp);
-        memNeeded = strlen(temp);
-    } else {
-        morelen=false;
-        int memNeeded = WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:(dos.loaded_codepage==951?950:dos.loaded_codepage)), WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, NULL, 0, "\x07", NULL);
-        if (memNeeded <= 1)																// Includes trailing null
-            return false;
-        if (!(clipAscii = (uint8_t *)malloc(memNeeded)))
-            return false;
-        // Untranslated characters will be set to 0x07 (BEL), and later stripped
-        if (WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==872?855:(dos.loaded_codepage==951?950:dos.loaded_codepage)), WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, (LPSTR)clipAscii, memNeeded, "\x07", NULL) != memNeeded) {																			// Can't actually happen of course
-            free(clipAscii);
-            clipAscii = NULL;
-            return false;
-        }
-        memNeeded--;																	// Don't include trailing null
-    }
-	for (int i = 0; i < memNeeded; i++)
-		if (clipAscii[i] > 31 || clipAscii[i] == 9 || clipAscii[i] == 10 || clipAscii[i] == 13 // Space and up, or TAB, CR/LF allowed (others make no sense when pasting)
-            || (dos.loaded_codepage == 932 && (TTF_using() || IS_JEGA_ARCH || showdbcs)
-#if defined(USE_TTF)
-            && halfwidthkana
-#endif
-            && ((IS_JEGA_ARCH && clipAscii[i] && clipAscii[i] < 32) || (!IS_PC98_ARCH && !IS_JEGA_ARCH && lowboxdrawmap.find(clipAscii[i])!=lowboxdrawmap.end()))))
-			clipAscii[clipSize++] = clipAscii[i];
-	return ret;																			// clipAscii dould be downsized, but of no real interest
-}
-#else
-typedef char host_cnv_char_t;
-host_cnv_char_t *CodePageGuestToHost(const char *s);
-#endif
-
-bool swapad=true;
-extern std::string strPasteBuffer;
-void PasteClipboard(bool bPressed);
-bool getClipboard() {
-	if (clipAscii) {
-		free(clipAscii);
-		clipAscii = NULL;
-	}
-#if defined(WIN32)
-    clipSize = 0;
-    if (OpenClipboard(NULL)) {
-        if (HANDLE cbText = GetClipboardData(CF_UNICODETEXT)) {
-            uint16_t *unicode = (uint16_t *)GlobalLock(cbText);
-            Unicode2Ascii(unicode);
-            GlobalUnlock(cbText);
-        }
-        CloseClipboard();
-    }
-#else
-    swapad=false;
-    PasteClipboard(true);
-    swapad=true;
-    clipSize = 0;
-    unsigned int extra = 0;
-    unsigned char head, last=13;
-    for (size_t i=0; i<strPasteBuffer.length(); i++) if (strPasteBuffer[i]==10||strPasteBuffer[i]==13) extra++;
-    clipAscii = (uint8_t*)malloc(strPasteBuffer.length() + extra);
-    if (clipAscii)
-        while (strPasteBuffer.length()) {
-            head = strPasteBuffer[0];
-            if (head == 10 && last != 13) clipAscii[clipSize++] = 13;
-            if (head > 31 || head == 9 || head == 10 || head == 13)
-                clipAscii[clipSize++] = head;
-            if (head == 13 && (strPasteBuffer.length() < 2 || strPasteBuffer[1] != 10)) clipAscii[clipSize++] = 10;
-            strPasteBuffer = strPasteBuffer.substr(1, strPasteBuffer.length());
-            last = head;
-        }
-#endif
-    return clipSize != 0;
-}
-
+uint32_t cPointer = 0, fPointer;
+extern uint32_t clipSize;
+extern uint8_t *clipAscii;
 class device_CLIP : public DOS_Device {
 private:
 	char	tmpAscii[20];

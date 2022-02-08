@@ -83,8 +83,8 @@ extern uint32_t             GFX_Bmask;
 extern unsigned char        GFX_Bshift;
 
 extern int                  statusdrive, swapInDisksSpecificDrive;
-extern bool                 ttfswitch, switch_output_from_ttf, swapad;
-extern bool                 dos_kernel_disabled, confres, font_14_init;
+extern bool                 ttfswitch, switch_output_from_ttf, loadlang;
+extern bool                 dos_kernel_disabled, swapad, confres, font_14_init;
 extern Bitu                 currentWindowWidth, currentWindowHeight;
 extern std::string          strPasteBuffer, langname;
 
@@ -131,7 +131,7 @@ std::string GetDOSBoxXPath(bool withexe);
 static std::map< std::vector<GUI::Char>, GUI::ToplevelWindow* > cfg_windows_active;
 void getlogtext(std::string &str), getcodetext(std::string &text), ApplySetting(std::string pvar, std::string inputline, bool quiet), GUI_Run(bool pressed);
 void ttf_switch_on(bool ss=true), ttf_switch_off(bool ss=true);
-bool CheckQuit(void);
+bool CheckQuit(void), OpenGL_using(void);
 char tmp1[CROSS_LEN*2], tmp2[CROSS_LEN];
 const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ", "
 #if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_IA64) || defined(__ia64__) || defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__) || defined(__powerpc64__)
@@ -375,7 +375,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     void GFX_SetResizeable(bool enable);
     GFX_SetResizeable(false);
 
-    SDL_Window* window = GFX_SetSDLSurfaceWindow(dw, dh);
+    SDL_Window* window = OpenGL_using() ? GFX_SetSDLWindowMode(dw, dh, SCREEN_OPENGL) : GFX_SetSDLSurfaceWindow(dw, dh);
     if (window == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
     SDL_Surface* sdlscreen = SDL_GetWindowSurface(window);
     if (sdlscreen == NULL) E_Exit("Could not initialize video mode for mapper: %s",SDL_GetError());
@@ -453,6 +453,18 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
             guiMenu.displaylist_append(
                     guiMenu.get_item("ConfigGuiMenu").display_list, guiMenu.get_item_id_by_name("ExitGUI"));
         }
+    } else if (!shortcut || shortcutid<16) {
+        {
+            DOSBoxMenu::item &item = guiMenu.get_item("ConfigGuiMenu");
+            item.set_text(mainMenu.get_item("mapper_gui").get_text());
+        }
+        {
+            DOSBoxMenu::item &item = guiMenu.get_item("ExitGUI");
+            item.set_text(MSG_Get("CONFIG_TOOL_EXIT"));
+        }
+# if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+        if (loadlang) guiMenu.unbuild();
+# endif
     }
 
     if (null_menu_init) {
@@ -768,7 +780,7 @@ public:
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
-        int j, k;
+        unsigned int j, k;
         for(k = 0; k < pv.size(); k++) if (pv[k].ToString().size()) {
             if (arg == pv[k].ToString() && opt[k]->isChecked())
                 for(j = 0; j < pv.size(); j++)
@@ -3066,13 +3078,22 @@ static void UI_Execute(GUI::ScreenSDL *screen) {
     while (running) {
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
-#if !defined(C_SDL2) && defined(_WIN32) && !defined(HX_DOS)
+#if defined(_WIN32) && !defined(HX_DOS)
                 case SDL_SYSWMEVENT : {
-                    switch ( event.syswm.msg->msg ) {
+                    switch ( event.syswm.msg->
+#if defined(C_SDL2)
+                    msg.win.
+#endif
+                    msg ) {
                         case WM_COMMAND:
 # if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
                             if (GetMenu(GetHWND())) {
-                                if (guiMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(event.syswm.msg->wParam))) return;
+# if defined(C_SDL2)
+                                if (guiMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(event.syswm.msg->msg.win.wParam)))
+# else
+                                if (guiMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(event.syswm.msg->wParam)))
+# endif
+                                    return;
                             }
 # endif
                             break;
@@ -3312,13 +3333,22 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
     while (running) {
         while (SDL_PollEvent(&event)) {
             switch (event.type) {
-#if !defined(C_SDL2) && defined(_WIN32) && !defined(HX_DOS)
+#if defined(_WIN32) && !defined(HX_DOS)
                 case SDL_SYSWMEVENT : {
-                    switch ( event.syswm.msg->msg ) {
+                    switch ( event.syswm.msg->
+#if defined(C_SDL2)
+                    msg.win.
+#endif
+                    msg ) {
                         case WM_COMMAND:
 # if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
                             if (GetMenu(GetHWND())) {
-                                if (guiMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(event.syswm.msg->wParam))) return;
+# if defined(C_SDL2)
+                                if (guiMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(event.syswm.msg->msg.win.wParam)))
+# else
+                                if (guiMenu.mainMenuWM_COMMAND((unsigned int)LOWORD(event.syswm.msg->wParam)))
+# endif
+                                    return;
                             }
 # endif
                             break;

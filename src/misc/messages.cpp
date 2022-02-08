@@ -105,6 +105,97 @@ bool InitCodePage() {
         return true;
 }
 
+void AddMessages() {
+    MSG_Add("AUTOEXEC_CONFIGFILE_HELP",
+        "Lines in this section will be run at startup.\n"
+        "You can put your MOUNT lines here.\n"
+    );
+    MSG_Add("CONFIGFILE_INTRO",
+            "# This is the configuration file for DOSBox-X %s. (Please use the latest version of DOSBox-X)\n"
+            "# Lines starting with a # are comment lines and are ignored by DOSBox-X.\n"
+            "# They are used to (briefly) document the effect of each option.\n"
+        "# To write out ALL options, use command 'config -all' with -wc or -writeconf options.\n");
+    MSG_Add("CONFIG_SUGGESTED_VALUES", "Possible values");
+    MSG_Add("CONFIG_ADVANCED_OPTION", "Advanced options (see full configuration reference file [dosbox-x.reference.full.conf] for more details)");
+    MSG_Add("CONFIG_TOOL","DOSBox-X Configuration Tool");
+    MSG_Add("CONFIG_TOOL_EXIT","Exit configuration tool");
+    MSG_Add("MAPPER_EDITOR_EXIT","Exit mapper editor");
+    MSG_Add("SAVE_MAPPER_FILE","Save mapper file");
+    MSG_Add("WARNING","Warning");
+    MSG_Add("YES","Yes");
+    MSG_Add("NO","No");
+    MSG_Add("OK","OK");
+    MSG_Add("CANCEL","Cancel");
+    MSG_Add("CLOSE","Close");
+    MSG_Add("DEBUGCMD","Enter Debugger Command");
+    MSG_Add("ADD","Add");
+    MSG_Add("DEL","Del");
+    MSG_Add("NEXT","Next");
+    MSG_Add("SAVE","Save");
+    MSG_Add("EXIT","Exit");
+    MSG_Add("CAPTURE","Capture");
+    MSG_Add("SAVE_CONFIGURATION","Save configuration");
+    MSG_Add("SAVE_LANGUAGE","Save language file");
+    MSG_Add("SAVE_RESTART","Save & Restart");
+    MSG_Add("PASTE_CLIPBOARD","Paste Clipboard");
+    MSG_Add("APPEND_HISTORY","Append History");
+    MSG_Add("EXECUTE_NOW","Execute Now");
+    MSG_Add("ADDITION_CONTENT","Additional Content:");
+    MSG_Add("CONTENT","Content:");
+    MSG_Add("EDIT_FOR","Edit %s");
+    MSG_Add("HELP_FOR","Help for %s");
+    MSG_Add("HELP_INFO", "Click the \"Help\" button below to see detailed help information.");
+    MSG_Add("SELECT_VALUE", "Select property value");
+    MSG_Add("CONFIGURATION_FOR","Configuration for %s");
+    MSG_Add("CONFIGURATION","Configuration");
+    MSG_Add("SETTINGS","Settings");
+    MSG_Add("LOGGING_OUTPUT","DOSBox-X logging output");
+    MSG_Add("CODE_OVERVIEW","Code overview");
+    MSG_Add("VISIT_HOMEPAGE","Visit Homepage");
+    MSG_Add("GET_STARTED","Getting Started");
+    MSG_Add("CDROM_SUPPORT","CD-ROM Support");
+    MSG_Add("DRIVE_INFORMATION","Drive information");
+    MSG_Add("MOUNTED_DRIVE_NUMBER","Mounted drive numbers");
+    MSG_Add("IDE_CONTROLLER_ASSIGNMENT","IDE controller assignment");
+    MSG_Add("HELP_COMMAND","Help on DOS command");
+    MSG_Add("CURRENT_VOLUME","Current sound mixer volumes");
+    MSG_Add("CURRENT_SBCONFIG","Sound Blaster configuration");
+    MSG_Add("CURRENT_MIDICONFIG","Current MIDI configuration");
+    MSG_Add("CREATE_IMAGE","Create blank disk image");
+    MSG_Add("NETWORK_LIST","Network interface list");
+    MSG_Add("PRINTER_LIST","Printer device list");
+    MSG_Add("INTRODUCTION","Introduction");
+    MSG_Add("CONFIGURE_GROUP", "Choose a settings group to configure:");
+    MSG_Add("SHOW_ADVOPT", "Show advanced options");
+    MSG_Add("USE_PRIMARYCONFIG", "Use primary config file");
+    MSG_Add("USE_PORTABLECONFIG", "Use portable config file");
+    MSG_Add("USE_USERCONFIG", "Use user config file");
+    MSG_Add("CONFIG_SAVETO", "Enter filename for the configuration file to save to:");
+    MSG_Add("CONFIG_SAVEALL", "Save all (including advanced) config options to the configuration file");
+    MSG_Add("LANG_FILENAME", "Enter filename for language file:");
+    MSG_Add("LANG_LANGNAME", "Language name (optional):");
+    MSG_Add("INTRO_MESSAGE", "Welcome to DOSBox-X, a free and complete DOS emulation package.\nDOSBox-X creates a DOS shell which looks like the plain DOS.\nYou can also run Windows 3.x and 95/98 inside the DOS machine.");
+    MSG_Add("DRIVE","Drive");
+    MSG_Add("TYPE","Type");
+    MSG_Add("LABEL","Label");
+    MSG_Add("DRIVE_NUMBER","Drive number");
+    MSG_Add("DISK_NAME","Disk name");
+    MSG_Add("IDE_POSITION","IDE position");
+    MSG_Add("SWAP_SLOT","Swap slot");
+    MSG_Add("EMPTY_SLOT","Empty slot");
+    MSG_Add("SLOT","Slot");
+    MSG_Add("PREVIOUS_PAGE","< Previous Page");
+    MSG_Add("NEXT_PAGE","    Next Page >");
+    MSG_Add("SELECT_EVENT", "Select an event to change.");
+    MSG_Add("SELECT_DIFFERENT_EVENT", "Select a different event or hit the Add/Del/Next buttons.");
+    MSG_Add("PRESS_JOYSTICK_KEY", "Press a key/joystick button or move the joystick.");
+    MSG_Add("CAPTURE_ENABLED", "Capture enabled. Hit ESC to release capture.");
+    MSG_Add("MAPPER_FILE_SAVED", "Mapper file saved");
+    MSG_Add("AUTO_CYCLE_MAX","Auto cycles [max]");
+    MSG_Add("AUTO_CYCLE_AUTO","Auto cycles [auto]");
+    MSG_Add("AUTO_CYCLE_OFF","Auto cycles [off]");
+}
+
 void LoadMessageFile(const char * fname) {
 	if (!fname) return;
 	if(*fname=='\0') return;//empty string=no languagefile
