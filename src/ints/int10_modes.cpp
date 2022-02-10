@@ -2011,7 +2011,7 @@ att_text16:
 			}
 			break;
 		case M_DCGA:
-			if (IS_J3100 && J3_GetMachineCode()) {
+			if (IS_J3100) {
 				uint8_t r, g, b;
 				uint8_t vmode = GetTrueVideoMode();
 				J3_GetPalette(0, r, g, b);
@@ -2033,9 +2033,8 @@ att_text16:
 				break;
 			}
 		case M_CGA2:
-			if(IS_J3100 && J3_GetMachineCode()) {
+			if(IS_J3100) {
 				uint8_t r, g, b;
-				uint8_t vmode = GetTrueVideoMode();
 				J3_GetPalette(0, r, g, b);
 				IO_Write(0x3c9, r);
 				IO_Write(0x3c9, g);
@@ -2440,6 +2439,13 @@ bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode)
 		return false;
 	}
 	return true;
+}
+
+void INT10_SetJ3ModeCGA4(uint16_t mode)
+{
+	if(SetCurMode(ModeList_VGA, mode)) {
+		FinishSetMode(true);
+	}
 }
 
 Bitu INT10_WriteVESAModeList(Bitu max_modes);

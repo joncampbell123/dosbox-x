@@ -2199,7 +2199,9 @@ uint16_t J3_GetMachineCode() {
 }
 
 void J3_SetType(std::string type) {
-	j3_machine_code = ConvHexWord((char *)type.c_str());
+	if(type != "default") {
+		j3_machine_code = ConvHexWord((char *)type.c_str());
+	}
 	if(j3_machine_code == 0) j3_machine_code = 0x6a74;
 	enum J3_COLOR j3_color = colorNormal;
 	for(Bitu count = 0 ; j3_machine_list[count].name != NULL ; count++) {
@@ -2251,4 +2253,9 @@ void J3_SetBiosArea(uint16_t mode)
 	} else {
 		real_writeb(BIOSMEM_J3_SEG, BIOSMEM_J3_MODE, 0x00);
 	}
+}
+
+bool J3_IsCga4Dcga()
+{
+	return IS_J3100 && (TrueVideoMode == 0x04 || TrueVideoMode == 0x05);
 }

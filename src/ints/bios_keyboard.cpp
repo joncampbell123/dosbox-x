@@ -1416,7 +1416,7 @@ Bitu INT16_Handler(void) {
             if(reg_ax == size / 2) {
                 reg_ax = 0xffff;
             }
-            reg_bx = J3_GetMachineCode() == 0 ? 0x6a74 : J3_GetMachineCode();
+            reg_bx = J3_GetMachineCode();
         }
         break;
     default:
