@@ -2342,6 +2342,7 @@ bool fatDrive::FindNextInternal(uint32_t dirClustNumber, DOS_DTA &dta, direntry 
 	char srch_pattern[CROSS_LEN];
 	char find_name[DOS_NAMELENGTH_ASCII];
 	char lfind_name[LFN_NAMELENGTH+1];
+    char vol_name[DOS_NAMELENGTH_ASCII];
 	unsigned int lfn_max_ord = 0;
 	unsigned char lfn_checksum = 0;
 	bool lfn_ord_found[0x40];
@@ -2407,25 +2408,24 @@ nextfile:
 		DOS_SetError(DOSERR_NO_MORE_FILES);
 		return false;
 	}
+	memset(vol_name, 0,DOS_NAMELENGTH_ASCII);
 	memset(find_name,0,DOS_NAMELENGTH_ASCII);
 	memset(extension,0,4);
 	memcpy(find_name,&sectbuf[entryoffset].entryname[0],8);
     memcpy(extension,&sectbuf[entryoffset].entryname[8],3);
 
-    if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) {
-        trimString(&find_name[0]);
-        trimString(&extension[0]);
-    }
-
-	if (extension[0]!=0) {
-		if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) {
-			strcat(find_name, ".");
-		}
-		strcat(find_name, extension);
+	if(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME) {
+		memcpy(vol_name, &sectbuf[entryoffset].entryname[0], 11);
+		trimString(&vol_name[0]);
 	}
 
-	if (sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)
-        trimString(find_name);
+	trimString(&find_name[0]);
+	trimString(&extension[0]);
+
+	if (extension[0]!=0) {
+		strcat(find_name, ".");
+		strcat(find_name, extension);
+	}
 
     /* Compare attributes to search attributes */
 
@@ -2438,7 +2438,7 @@ nextfile:
 		}
 
 		if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) goto nextfile;
-		labelCache.SetLabel(find_name, false, true);
+		labelCache.SetLabel(vol_name, false, true);
 	} else if ((dos.version.major >= 7 || uselfn) && (sectbuf[entryoffset].attrib & 0x3F) == 0x0F) { /* long filename piece */
 		struct direntry_lfn *dlfn = (struct direntry_lfn*)(&sectbuf[entryoffset]);
 
@@ -2522,7 +2522,7 @@ nextfile:
 
 	//dta.SetResult(find_name, foundEntry->entrysize, foundEntry->crtDate, foundEntry->crtTime, foundEntry->attrib);
 
-	dta.SetResult(find_name, lfind_name, foundEntry->entrysize, foundEntry->modDate, foundEntry->modTime, foundEntry->attrib);
+	dta.SetResult(!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME) ? find_name : vol_name, lfind_name, foundEntry->entrysize, foundEntry->modDate, foundEntry->modTime, foundEntry->attrib);
 
 	return true;
 }
