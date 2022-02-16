@@ -1311,7 +1311,8 @@ Bitu GetKeyCode(SDL_keysym keysym) {
         if ((keysym.sym == SDLK_BACKSLASH) && (keysym.scancode == 0x61)) return (Bitu)SDLK_JP_RO;
         if ((keysym.sym == SDLK_UNKNOWN) && (keysym.scancode == 0x31)) return (Bitu)SDLK_WORLD_12;
 #endif
-		return (Bitu)(keysym.sym ? keysym.sym : sdlkey_map[(keysym.scancode)]);
+        if (keysym.sym) return (Bitu) (keysym.sym < SDLK_LAST ? keysym.sym : SDLK_UNKNOWN);
+        else return (Bitu)(keysym.scancode < MAX_SCANCODES ? sdlkey_map[(keysym.scancode)] : SDLK_UNKNOWN);
     }
 }
 
@@ -1467,7 +1468,11 @@ public:
 
 		//key = (event->key.keysym.sym ? GetKeyCode(event->key.keysym) : sdlkey_map[(Bitu)(event->key.keysym.scancode)]);
 		key = GetKeyCode(event->key.keysym);
-		assert(key < keys);
+		//assert(key < keys);
+        if(key >= keys) {
+            key = SDLK_UNKNOWN; // a test to avoid assertion failure (key < keys)
+            // LOG_MSG("assertion failed: key: %x [keysym.sym:%x keysym.scancode: %x]", key, event->key.keysym.sym, event->key.keysym.scancode);
+        }
 #endif
 //      LOG_MSG("key type %i is %x [%x %x]",event->type,key,event->key.keysym.sym,event->key.keysym.scancode);
 
