@@ -794,7 +794,7 @@ int CDROM_Interface_Image::GetTrack(unsigned long sector)
     int end = tracks.size() - 1;
     int i = 0;
     while(i < end) {
-        if(tracks[i].pregap <= sector && sector < tracks[i + 1].pregap) {
+        if((tracks[i].pregap ? tracks[i].pregap : tracks[i].start) <= sector && sector < (tracks[i + 1].pregap ? tracks[i+1].pregap : tracks[i+1].start)) {
             //LOG_MSG("CDROM: GetTrack sector=%d start %d next %d number %d", sector, tracks[i].pregap, tracks[i+1].pregap, tracks[i].number);
             return tracks[i].number;
         }
@@ -949,7 +949,7 @@ bool CDROM_Interface_Image::LoadIsoFile(char* filename)
 {
 	tracks.clear();
 	// data track
-	Track track = {0, 0, 0, 0, 0, 0, false, NULL};
+	Track track = {0, 0, 0, 0, 0, 0, 0, false, NULL};
 	bool error;
 	track.file = new BinaryFile(filename, error);
 	if (error) {
@@ -1027,7 +1027,7 @@ static string dirname(char * file) {
 
 bool CDROM_Interface_Image::LoadCueSheet(char *cuefile)
 {
-	Track track = {0, 0, 0, 0, 0, 0, false, NULL};
+	Track track = {0, 0, 0, 0, 0, 0, 0, false, NULL};
 	tracks.clear();
     int curr_track = 0;
     int shift = 0;
@@ -1198,7 +1198,7 @@ bool CDROM_Interface_Image::LoadChdFile(char* chdfile)
     tracks.clear();
     bool     error       = true;
     CHDFile* file        = new CHDFile(chdfile, error);
-    Track    track       = { 0, 0, 0, 0, 0, 0, false, file };
+    Track    track       = { 0, 0, 0, 0, 0, 0, 0, false, file };
     int      shift       = 0;
     int      currPregap  = 0;
     int      totalPregap = 0;
