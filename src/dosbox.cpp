@@ -1064,7 +1064,7 @@ void DOSBOX_RealInit() {
         if(j3100mode != "off" && j3100mode != "0") {
             dos.set_j3100_enabled = true;
             if (j3100mode != "manual") j3100_start = true;
-            if (j3100type != "default") J3_SetType(j3100type);
+            J3_SetType(j3100type);
         }
     }
     if (!strcasecmp(dosvstr, "ko")) dos.set_kdosv_enabled = true;

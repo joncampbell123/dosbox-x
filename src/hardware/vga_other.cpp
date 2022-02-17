@@ -587,8 +587,14 @@ static Bitu read_cga(Bitu port,Bitu /*iolen*/) {
     return ~0UL;
 }
 
+bool J3_IsCga4Dcga();
+
 static void write_cga(Bitu port,Bitu val,Bitu /*iolen*/) {
     Bitu changed;
+
+	if(J3_IsCga4Dcga()) {
+		return;
+	}
 
 	switch (port) {
 	case 0x3d8:

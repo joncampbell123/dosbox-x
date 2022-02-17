@@ -52,6 +52,8 @@ void DOSV_FillScreen();
 void ResolvePath(std::string& in);
 void INT10_ReadString(uint8_t row, uint8_t col, uint8_t flag, uint8_t attr, PhysPt string, uint16_t count,uint8_t page);
 bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode);
+void INT10_SetJ3ModeCGA4(uint16_t mode);
+bool J3_IsCga4Dcga();
 #if defined(USE_TTF)
 extern bool colorChanged, justChanged;
 extern bool ttf_dosv;
@@ -95,9 +97,14 @@ Bitu INT10_Handler(void) {
 			}
 			DOSV_FillScreen();
 		} else {
-			INT10_SetVideoMode(reg_al);
-			if(reg_al == 0x74 && IS_J3100)
-				DOSV_FillScreen();
+			if(J3_IsCga4Dcga()) {
+				INT10_SetVideoMode(0x74);
+				INT10_SetJ3ModeCGA4(reg_al);
+			} else {
+				INT10_SetVideoMode(reg_al);
+				if(reg_al == 0x74 && IS_J3100)
+					DOSV_FillScreen();
+			}
 		}
 		Mouse_AfterNewVideoMode(true);
 		break;
