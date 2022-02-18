@@ -4,6 +4,9 @@
     standardized by Creative and convert to SAMPLES
     internally. This fixes stuttering voices in Freddy
     Pharkas when sbtype=sb16. (joncampbell123)
+  - Avoid crashes due to assertion failure when media 
+    keys are pressed (maron2000)
+
 0.83.22
   - Added Pentium 3 Processor Serial Number emulation.
     Serial number can be set from dosbox-x.conf or not
