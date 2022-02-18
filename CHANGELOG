@@ -1,4 +1,12 @@
 0.83.23
+  - Gravis Ultrasound: Most I/O registers except port 3x4
+    are intended for 8-bit I/O. If 16-bit I/O occurs to
+    such registers, handle as two 8-bit I/O cycles. I
+    found something in the Demoscene (1997 demo "Atlantis,
+    Deep Like A Sea") that uses a 16-bit I/O write to write
+    current channel and register select in one write.
+    Prior to this fix, there was no music other than quiet
+    popping noises in DOSBox-X.
   - Sound Blaster: Fixed DSP command 0x48 (Set DSP block
     transfer size) to accept block size as BYTES as
     standardized by Creative and convert to SAMPLES

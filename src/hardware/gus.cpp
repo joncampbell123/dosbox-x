@@ -1461,6 +1461,14 @@ static Bitu read_gus(Bitu port,Bitu iolen) {
      * More than 10 bits must be decoded in order for GUS MAX extended registers at 7xx to work */
     port &= 0xFFF;
 
+    /* Except for port 3x4 subdivide 16-bit I/O into two 8-bit reads.
+     * See write_gus() for explanation. */
+    if (iolen == 2) {
+        if ((port - GUS_BASE) != 0x304) {
+            return (read_gus(port,1) & 0xFF) + (read_gus(port+1,1) << 8u);
+        }
+    }
+
 	switch(port - GUS_BASE) {
 	case 0x206:
 		if (myGUS.clearTCIfPollingIRQStatus) {
@@ -1564,6 +1572,34 @@ static void write_gus(Bitu port,Bitu val,Bitu iolen) {
      *
      * More than 10 bits must be decoded in order for GUS MAX extended registers at 7xx to work */
     port &= 0xFFF;
+
+    /* Ok, so get this: There's a demoscene entry, 1997 demo "Atlantis, Deep Like A Sea", with code
+     * that does a 16-bit I/O write to port 3x2. Why? Well, if you notice how this switch statement
+     * is done, and how DOSBox SVN registers I/O ports, most of these I/O ports are meant for 8-bit
+     * I/O access. The only exception to that is port 3x4 which allows writing 16 bits to a GF1
+     * register. So what happens if you do a 16-bit write to port 3x2?
+     *
+     * If the demo's behavior is any indication, the 16-bit write is handled like two 8-bit writes.
+     * The lower 8 bits go to port 3x2, the upper to 3x3. If you look at the register map, that's
+     * one 16-bit I/O write that writes both gCurChannel (current channel) and gRegSelect (current
+     * selected register) in one I/O cycle.
+     *
+     * If we do not split the I/O up as described, then the demo makes no sound except for popping
+     * noises because none of the voices are playing anything or moving at all.
+     *
+     * This trick happens to work in DOSBox SVN (and produce audible music) because DOSBox SVN GUS
+     * emulation installs I/O handlers only for bytewise (IO_MB) I/O, which then forces I/O emulation
+     * to subdivide the 16-bit I/O into two 8-bit I/O calls. The only exception is IO_MB|IO_MW for
+     * port 3x4 (gRegData and execute register).
+     *
+     * Demo link: [https://files.scene.org/get/mirrors/hornet/demos/1997/a/atl-mnsn.zip] */
+    if (iolen == 2) {
+        if ((port - GUS_BASE) != 0x304) {
+            write_gus(port,  val&0xFF,1);
+            write_gus(port+1,val>>8,  1);
+            return;
+        }
+    }
 
     switch(port - GUS_BASE) {
 	case 0x200:
