@@ -199,7 +199,7 @@ CDROM_Interface_Image::AudioFile::AudioFile(const char *filename, bool &error)
 		error = false;
 		std::string filename_only(filename);
 		filename_only = filename_only.substr(filename_only.find_last_of("\\/") + 1);
-		LOG_MSG("CDROM: Loaded %s [%d Hz %d-channel]", filename_only.c_str(), this->getRate(), this->getChannels());
+		LOG_MSG("CDROM: Loaded %s [%d Hz %d-channel length %.1f min.]", filename_only.c_str(), this->getRate(), this->getChannels(), this->getLength()/10584000.0);
 	} else
 		error = true;
 }
@@ -524,15 +524,14 @@ bool CDROM_Interface_Image::GetAudioTracks(int& stTrack, int& end, TMSF& leadOut
 	end = (int)(tracks.size() - 1);
 	FRAMES_TO_MSF(tracks[tracks.size() - 1].start + 150, &leadOut.min, &leadOut.sec, &leadOut.fr);
 
-	#ifdef DEBUG
-	LOG_MSG("%s CDROM: GetAudioTracks, stTrack=%d, end=%d, leadOut.min=%d, leadOut.sec=%d, leadOut.fr=%d",
-      get_time(),
+	//#ifdef DEBUG
+	LOG_MSG("CDROM: GetAudioTracks, stTrack=%d, end=%d, leadOut.min=%d, leadOut.sec=%d, leadOut.fr=%d",
 	  stTrack,
 	  end,
 	  leadOut.min,
 	  leadOut.sec,
 	  leadOut.fr);
-	#endif
+	//#endif
 
 	return true;
 }
@@ -615,33 +614,49 @@ bool CDROM_Interface_Image::GetMediaTrayStatus(bool& mediaPresent, bool& mediaCh
 bool CDROM_Interface_Image::PlayAudioSector(unsigned long start, unsigned long len)
 {
 	bool is_playable(false);
-	const int track = GetTrack(start) - 1;
+	int track = GetTrack(start) - 1;
+    int end = (int)(tracks.size() - 1);
 
-	// The CDROM Red Book standard allows up to 99 tracks, which includes the data track
+    // The CDROM Red Book standard allows up to 99 tracks, which includes the data track
 	if ( track < 0 || track > 99 )
-		LOG_MSG("Game tried to load track #%d, which is invalid", track);
+		LOG_MSG("CDROM: Tried to load track #%d, which is invalid", track);
 
 	// Attempting to play zero sectors is a no-op
 	else if (len == 0)
-		LOG_MSG("Game tried to play zero sectors, skipping");
+		LOG_MSG("CDROM: Tried to play zero sectors, skipping");
 
 	// The maximum storage achieved on a CDROM was ~900MB or just under 100 minutes
 	// with overburning, so use this threshold to sanity-check the start sector.
 	else if (start > 450000)
-		LOG_MSG("Game tried to read sector %lu, which is beyond the 100-minute maximum of a CDROM", start);
+		LOG_MSG("CDROM: Tried to read sector %lu, which is beyond the 100-minute maximum of a CDROM", start);
 
 	// We can't play audio from a data track (as it would result in garbage/static)
 	else if(track >= 0 && tracks[track].attr == 0x40)
-		LOG_MSG("Game tries to play the data track. Not doing this");
+		LOG_MSG("CDROM: Tried to play the data track. Not doing this track, attr = [%d, %d, %d]", start, track, tracks[track].attr);
+
+    else if(track > end)
+        LOG_MSG("CDROM: Tried to load track #  % d, which does not exist in cue sheet", track);
+
+    else if (tracks[track].file == NULL)
+        LOG_MSG("CDROM: Tried to load track #  % d, but corresponding audio file not found", track);
 
 	// Checks passed, setup the audio stream
 	else {
-		TrackFile* trackFile = tracks[track].file;
-
+        TrackFile* trackFile = tracks[track].file;
+        uint32_t offset;
 		// Convert the playback start sector to a time offset (milliseconds) relative to the track
-		const uint32_t offset = tracks[track].skip + (start - tracks[track].start) * tracks[track].sectorSize;
-		is_playable = trackFile->seek(offset);
-
+        offset = tracks[track].skip +
+            ((start > tracks[track].start) ? (start - tracks[track].start) * tracks[track].sectorSize : 0);
+            // Hack: sometimes start < tracks[track].start makes offset a negative value, which can result inadequate offset values
+        if(tracks[track].length - start + tracks[track].start < 50) {
+            track++;
+            offset = (uint32_t)tracks[track].skip;
+            LOG_MSG("CDROM: Fall in to track # %d since offset close to next track", track);
+            // Hack: sometimes games points to the sector close to the end of previous track
+            //       rather than the start of target track, so go to the target track in such case.
+        }
+    
+        is_playable = trackFile->seek(offset);
 		// only initialize the player elements if our track is playable
 		if (is_playable) {
             trackFile->setAudioPosition(offset);
@@ -670,10 +685,11 @@ bool CDROM_Interface_Image::PlayAudioSector(unsigned long start, unsigned long l
 			player.playbackTotal = lround(len * tracks[track].sectorSize * bytesPerMs / 176.4);
 			player.playbackRemaining = player.playbackTotal;
 
+            LOG_MSG("CDROM: Playing track # %d %.1f min.-mark", tracks[track].number, tracks[track].skip * (1 / 10584000.0));
+
 			#ifdef DEBUG
-			LOG_MSG(
-			   "%s CDROM: Playing track %d at %.1f KHz %d-channel at start sector %lu (%.1f minute-mark), seek %u (skip=%d,dstart=%d,secsize=%d), for %lu sectors (%.1f seconds)",
-			   get_time(),
+            LOG_MSG(
+			   "CDROM: Playing track %d at %.1f KHz %d-channel at start sector %lu (%.1f minute-mark), seek %u (skip=%d,dstart=%d,secsize=%d), for %lu sectors (%.1f seconds)",
 			   track,
 			   rate/1000.0,
 			   channels,
@@ -763,26 +779,36 @@ bool CDROM_Interface_Image::LoadUnloadMedia(bool unload)
 	return true;
 }
 
-int CDROM_Interface_Image::GetTrack(int sector)
+int CDROM_Interface_Image::GetTrack(unsigned long sector)
 {
-	vector<Track>::iterator i = tracks.begin();
+/*  vector<Track>::iterator i = tracks.begin();
 	vector<Track>::iterator end = tracks.end() - 1;
 
 	while(i != end) {
 		Track &curr = *i;
 		Track &next = *(i + 1);
 		if (curr.start <= sector && sector < next.start) return curr.number;
-		i++;
+        i++;
 	}
-	return -1;
+*/
+    int end = tracks.size() - 1;
+    int i = 0;
+    while(i < end) {
+        if((tracks[i].pregap ? tracks[i].pregap : tracks[i].start) <= sector && sector < (tracks[i + 1].pregap ? tracks[i+1].pregap : tracks[i+1].start)) {
+            //LOG_MSG("CDROM: GetTrack sector=%d start %d next %d number %d", sector, tracks[i].pregap, tracks[i+1].pregap, tracks[i].number);
+            return tracks[i].number;
+        }
+        i++;
+    }
+    return -1;
 }
 
 bool CDROM_Interface_Image::ReadSector(uint8_t *buffer, bool raw, unsigned long sector)
 {
-	int track = GetTrack(sector) - 1;
-	if (track < 0) return false;
-
-	int64_t seek = (int64_t)tracks[track].skip + ((int64_t)(sector - tracks[track].start)) * (int64_t)tracks[track].sectorSize;
+	const int track = GetTrack(sector)-1;
+    // LOG_MSG("CDROM: Readsector sector=%d, track=%d", sector, track);
+    if (track < 0) return false;
+    int64_t seek = (int64_t)(tracks[track].skip + (sector - tracks[track].start) * tracks[track].sectorSize);
 	int length = (raw ? RAW_SECTOR_SIZE : COOKED_SECTOR_SIZE);
 	if (tracks[track].sectorSize != RAW_SECTOR_SIZE && raw) return false;
 	if ((tracks[track].sectorSize == RAW_SECTOR_SIZE || tracks[track].sectorSize == 2448) && !tracks[track].mode2 && !raw) seek += 16;
@@ -923,7 +949,7 @@ bool CDROM_Interface_Image::LoadIsoFile(char* filename)
 {
 	tracks.clear();
 	// data track
-	Track track = {0, 0, 0, 0, 0, 0, false, NULL};
+	Track track = {0, 0, 0, 0, 0, 0, 0, false, NULL};
 	bool error;
 	track.file = new BinaryFile(filename, error);
 	if (error) {
@@ -1001,9 +1027,10 @@ static string dirname(char * file) {
 
 bool CDROM_Interface_Image::LoadCueSheet(char *cuefile)
 {
-	Track track = {0, 0, 0, 0, 0, 0, false, NULL};
+	Track track = {0, 0, 0, 0, 0, 0, 0, false, NULL};
 	tracks.clear();
-	int shift = 0;
+    int curr_track = 0;
+    int shift = 0;
 	int currPregap = 0;
 	int totalPregap = 0;
 	int prestart = -1;
@@ -1030,8 +1057,9 @@ bool CDROM_Interface_Image::LoadCueSheet(char *cuefile)
 			if (canAddTrack) success = AddTrack(track, shift, prestart, totalPregap, currPregap);
 			else success = true;
 
-			track.start = 0;
+            track.start = 0;
 			track.skip = 0;
+            track.pregap = 0;
 			currPregap = 0;
 			prestart = -1;
 
@@ -1073,8 +1101,12 @@ bool CDROM_Interface_Image::LoadCueSheet(char *cuefile)
 			int frame;
 			success = GetCueFrame(frame, line);
 
-			if (index == 1) track.start = frame;
-			else if (index == 0) prestart = frame;
+            if(index == 1) {
+                track.start = frame;
+            }
+            else if(index == 0) {
+                prestart = frame;
+            }
 			// ignore other indices
 		}
 		else if (command == "FILE") {
@@ -1129,6 +1161,15 @@ bool CDROM_Interface_Image::LoadCueSheet(char *cuefile)
 	track.file = NULL;
 	if(!AddTrack(track, shift, -1, totalPregap, 0)) return false;
 
+#ifdef DEBUG
+    int end = tracks.size() - 1;
+    int i = 0;
+    while(i <= end) {
+        LOG_MSG("CDROM: track %d start %d pregap %d length %d", i, tracks[i].start, tracks[i].pregap, tracks[i].length);
+        i++;
+    }
+#endif
+
 	return true;
 }
 
@@ -1157,7 +1198,7 @@ bool CDROM_Interface_Image::LoadChdFile(char* chdfile)
     tracks.clear();
     bool     error       = true;
     CHDFile* file        = new CHDFile(chdfile, error);
-    Track    track       = { 0, 0, 0, 0, 0, 0, false, file };
+    Track    track       = { 0, 0, 0, 0, 0, 0, 0, false, file };
     int      shift       = 0;
     int      currPregap  = 0;
     int      totalPregap = 0;
@@ -1282,12 +1323,14 @@ bool CDROM_Interface_Image::AddTrack(Track &curr, int &shift, int prestart, int 
 	if (prestart >= 0) {
 		if (prestart > curr.start) return false;
 		skip = curr.start - prestart;
+        //LOG_MSG("CDROM Addtrack skip=%d prestart=%d curr.start=%d", skip, prestart, curr.start);
 	} else skip = 0;
 
 	// first track (track number must be 1)
 	if (tracks.empty()) {
 		if (curr.number != 1) return false;
-		curr.skip = skip * curr.sectorSize;
+        curr.pregap = 0; // first track starts from sector zero, right?
+        curr.skip = skip * curr.sectorSize; //
 		curr.start += currPregap;
 		totalPregap = currPregap;
 		tracks.push_back(curr);
@@ -1298,14 +1341,16 @@ bool CDROM_Interface_Image::AddTrack(Track &curr, int &shift, int prestart, int 
 
 	// current track consumes data from the same file as the previous
 	if (prev.file == curr.file) {
-		curr.start += shift;
+        //LOG_MSG("CDROM: curr.number, curr.start, shift %d", curr.number, curr.start, shift);
+        curr.start += shift;
 		if (!prev.length) {
 			prev.length = curr.start + totalPregap - prev.start - skip;
 		}
-		curr.skip += prev.skip + prev.length * prev.sectorSize + skip * curr.sectorSize;
+        curr.pregap = curr.start - skip;
+        curr.skip += prev.skip + prev.length * prev.sectorSize + skip * curr.sectorSize;
 		totalPregap += currPregap;
 		curr.start += totalPregap;
-	// current track uses a different file as the previous track
+        // current track uses a different file as the previous track
 	} else {
 		if (!prev.length) {
 			int64_t tmp = prev.file->getLength() - prev.skip;
@@ -1313,16 +1358,18 @@ bool CDROM_Interface_Image::AddTrack(Track &curr, int &shift, int prestart, int 
 			if (tmp % prev.sectorSize != 0) prev.length++; // padding
 		}
 		curr.start += prev.start + prev.length + currPregap;
-		curr.skip = skip * curr.sectorSize;
+        curr.pregap = curr.start - skip;
+        curr.skip = skip * curr.sectorSize;
 		shift += prev.start + prev.length;
 		totalPregap = currPregap;
 	}
 
 	#ifdef DEBUG
-	LOG_MSG("%s CDROM: AddTrack cur.start=%d cur.len=%d cur.start+len=%d | prev.start=%d prev.len=%d prev.start+len=%d",
-	        get_time(),
-            curr.start, curr.length, curr.start + curr.length,
-	        prev.start, prev.length, prev.start + prev.length);
+    LOG_MSG("CDROM: AddTrack number=%d, attr=%d, start=%d, length=%.1fmin.",
+        curr.number, curr.attr, curr.start, curr.file ? curr.file->getLength() * (1 / 10584000.0) : -1);
+    //LOG_MSG("CDROM: AddTrack cur.start=%d cur.len=%d cur.start+len=%d | prev.start=%d prev.len=%d prev.start+len=%d",
+	//        curr.start, curr.length, curr.start + curr.length,
+	//        prev.start, prev.length, prev.start + prev.length);
 	#endif
 
 	// error checks

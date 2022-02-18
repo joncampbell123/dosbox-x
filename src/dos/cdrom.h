@@ -314,12 +314,13 @@ private:
 public:
 	// Nested struct definition
 	struct Track {
-		int number;
+		int number;      // number of tracks (max 99)
 		int attr;
-		int start;
-		int length;
-		int skip;
+        uint32_t start;  // sector number where track starts
+        uint32_t length;
+        uint32_t skip;
 		int sectorSize;
+        uint32_t pregap; // sector number where pregap starts
 		bool mode2;
 		TrackFile *file;
 	};
@@ -387,7 +388,7 @@ private:
 	void  ClearTracks();
 	bool  LoadIsoFile(char *filename);
 	bool  CanReadPVD(TrackFile *file, int sectorSize, bool mode2);
-	int	GetTrack(int sector);
+	int	  GetTrack(unsigned long sector);
 	static void CDAudioCallBack (Bitu len);
 
 	// Private functions for cue sheet processing
