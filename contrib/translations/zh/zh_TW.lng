@@ -3076,7 +3076,7 @@ Turbo (快轉模式)
 錄製影片到 AVI
 .
 :MENU:mapper_scrshot
-擷取螢幕畫面
+抓取螢幕畫面
 .
 :MENU:mapper_debugger
 啟動 DOSBox-X 偵錯工具
