@@ -604,6 +604,12 @@ const char *ParseMsg(const char *msg) {
                     msg = str_replace((char *)msg, (char*)"\xC8", (char *)std::string(1, 0x18).c_str());
                     msg = str_replace((char *)msg, (char*)"\xBC", (char *)std::string(1, 0x17).c_str());
                     msg = str_replace((char *)msg, (char*)"\xCD", (char *)std::string(1, 0x13).c_str());
+                } else if(J3_IsJapanese()) {
+                    msg = str_replace((char *)msg, (char*)"\xC9", "+");
+                    msg = str_replace((char *)msg, (char*)"\xBB", "+");
+                    msg = str_replace((char *)msg, (char*)"\xC8", "+");
+                    msg = str_replace((char *)msg, (char*)"\xBC", "+");
+                    msg = str_replace((char *)msg, (char*)"\xCD", "-");
                 } else {
                     msg = str_replace((char *)msg, (char*)"\xC9", (char *)std::string(1, 1).c_str());
                     msg = str_replace((char *)msg, (char*)"\xBB", (char *)std::string(1, 2).c_str());
@@ -615,6 +621,9 @@ const char *ParseMsg(const char *msg) {
                 if (IS_JEGA_ARCH) {
                     msg = str_replace((char *)msg, (char*)"\xBA ", (char *)(std::string(1, 0x14)+" ").c_str());
                     msg = str_replace((char *)msg, (char*)" \xBA", (char *)(" "+std::string(1, 0x14)).c_str());
+                } else if(J3_IsJapanese()) {
+                    msg = str_replace((char *)msg, (char*)"\xBA ", "| ");
+                    msg = str_replace((char *)msg, (char*)" \xBA", " |");
                 } else {
                     msg = str_replace((char *)msg, (char*)"\xBA ", (char *)(std::string(1, 5)+" ").c_str());
                     msg = str_replace((char *)msg, (char*)" \xBA", (char *)(" "+std::string(1, 5)).c_str());
