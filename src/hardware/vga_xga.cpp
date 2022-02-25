@@ -189,18 +189,18 @@ void XGAStatus::XGA_VirgeState::reggroup::set__command_set(uint32_t val) {
 }
 
 void XGAStatus::XGA_VirgeState::reggroup::set__rect_width_height_0104(uint32_t val) {
-	rect_width = val & 0x07FF;
-	rect_height = (val >> 16ul) & 0x07FF;
+	rect_height = val & 0x07FF;
+	rect_width = (val >> 16ul) & 0x07FF;
 }
 
 void XGAStatus::XGA_VirgeState::reggroup::set__rect_src_xy_0108(uint32_t val) {
-	rect_src_x = val & 0x07FF;
-	rect_src_y = (val >> 16ul) & 0x07FF;
+	rect_src_y = val & 0x07FF;
+	rect_src_x = (val >> 16ul) & 0x07FF;
 }
 
 void XGAStatus::XGA_VirgeState::reggroup::set__rect_dst_xy_010c(uint32_t val) {
-	rect_dst_x = val & 0x07FF;
-	rect_dst_y = (val >> 16ul) & 0x07FF;
+	rect_dst_y = val & 0x07FF;
+	rect_dst_x = (val >> 16ul) & 0x07FF;
 }
 
 void XGA_Write_Multifunc(Bitu val, Bitu len) {
