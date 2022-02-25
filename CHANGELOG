@@ -1,4 +1,12 @@
 0.83.23
+  - Fixed S3 rectangle XGA accelerated pattern blit, when
+    using display memory as the pattern mask source, to
+    follow S3 Trio32/Trio64 documentation, instead of the
+    DOSBox SVN educated guess, to resolve some edge cases
+    where the wrong color is chosen to draw filled rectangles
+    in Windows 3.1. This fixes the "basement" in Microsoft
+    Creative Writer so that clicking around no longer leaves
+    white boxes on the screen.
   - Extend 256-color foreground/background color behavior
     from S3 86c928 to Vision864 and Vision868 as Windows
     95 behavior suggests they handle the hardware cursor
