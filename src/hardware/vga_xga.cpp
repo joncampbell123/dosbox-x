@@ -91,6 +91,8 @@ struct XGAStatus {
 		uint64_t mono_pat_bitblt;        /* 0xA4E8, 0xA4EC */
 		uint32_t mono_pat_bgcolor_bitblt;/* 0xA4F0 */
 		uint32_t mono_pat_fgcolor_bitblt;/* 0xA4F4 */
+		uint32_t src_bgcolor_bitblt;     /* 0xA4F8 */
+		uint32_t src_fgcolor_bitblt;     /* 0xA4FC */
 		uint32_t src_base_2dline;        /* 0xA8D4 */
 		uint32_t dst_base_2dline;        /* 0xA8D8 */
 		uint32_t src_stride_2dline;      /* 0xA8E4 [LO WORD] */
@@ -1596,6 +1598,12 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			break;
 		case 0xa4f4:
 			if (s3Card >= S3_ViRGE) xga.virge.mono_pat_fgcolor_bitblt = val & 0xFFFFFFul;
+			break;
+		case 0xa4f8:
+			if (s3Card >= S3_ViRGE) xga.virge.src_bgcolor_bitblt = val & 0xFFFFFFul;
+			break;
+		case 0xa4fc:
+			if (s3Card >= S3_ViRGE) xga.virge.src_fgcolor_bitblt = val & 0xFFFFFFul;
 			break;
 		case 0xa8d4:
 			if (s3Card >= S3_ViRGE) xga.virge.src_base_2dline = val & 0x003FFFF8; /* bits [21:3] base address in vmem dest data for 2D operations */
