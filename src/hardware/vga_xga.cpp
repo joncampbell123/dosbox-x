@@ -88,14 +88,21 @@ struct XGAStatus {
 		uint32_t dst_base_bitblt;        /* 0xA4D8 */
 		uint32_t src_stride_bitblt;      /* 0xA4E4 [LO WORD] */
 		uint32_t dst_stride_bitblt;      /* 0xA4E4 [HI WORD] */
+		uint64_t mono_pat_bitblt;        /* 0xA4E8, 0xA4EC */
+		uint32_t mono_pat_bgcolor_bitblt;/* 0xA4F0 */
+		uint32_t mono_pat_fgcolor_bitblt;/* 0xA4F4 */
 		uint32_t src_base_2dline;        /* 0xA8D4 */
 		uint32_t dst_base_2dline;        /* 0xA8D8 */
 		uint32_t src_stride_2dline;      /* 0xA8E4 [LO WORD] */
 		uint32_t dst_stride_2dline;      /* 0xA8E4 [HI WORD] */
+		uint32_t mono_pat_fgcolor_2dline;/* 0xA8F4 */
 		uint32_t src_base_2dpoly;        /* 0xACD4 */
 		uint32_t dst_base_2dpoly;        /* 0xACD8 */
 		uint32_t src_stride_2dpoly;      /* 0xACE4 [LO WORD] */
 		uint32_t dst_stride_2dpoly;      /* 0xACE4 [HI WORD] */
+		uint64_t mono_pat_2dpoly;        /* 0xACE8, 0xACEC */
+		uint32_t mono_pat_bgcolor_2dpoly;/* 0xACF0 */
+		uint32_t mono_pat_fgcolor_2dpoly;/* 0xACF4 */
 	} virge;
 
 } xga;
@@ -1572,6 +1579,24 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 				xga.virge.dst_stride_bitblt = (val >> 16u) & 0x0FF8; /* bits [27:19] (11+16,3+16) byte stride */
 			}
 			break;
+		case 0xa4e8:
+			if (s3Card >= S3_ViRGE) {
+				xga.virge.mono_pat_bitblt &= ~((uint64_t)0xFFFFFFFFull);
+				xga.virge.mono_pat_bitblt |= ((uint64_t)val & (uint64_t)0xFFFFFFFFull);
+			}
+			break;
+		case 0xa4ec:
+			if (s3Card >= S3_ViRGE) {
+				xga.virge.mono_pat_bitblt &= ~((uint64_t)0xFFFFFFFFull << (uint64_t)32ull);
+				xga.virge.mono_pat_bitblt |= ((uint64_t)val & (uint64_t)0xFFFFFFFFull) << (uint64_t)32ull;
+			}
+			break;
+		case 0xa4f0:
+			if (s3Card >= S3_ViRGE) xga.virge.mono_pat_bgcolor_bitblt = val & 0xFFFFFFul;
+			break;
+		case 0xa4f4:
+			if (s3Card >= S3_ViRGE) xga.virge.mono_pat_fgcolor_bitblt = val & 0xFFFFFFul;
+			break;
 		case 0xa8d4:
 			if (s3Card >= S3_ViRGE) xga.virge.src_base_2dline = val & 0x003FFFF8; /* bits [21:3] base address in vmem dest data for 2D operations */
 			break;
@@ -1584,6 +1609,9 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 				xga.virge.dst_stride_2dline = (val >> 16u) & 0x0FF8; /* bits [27:19] (11+16,3+16) byte stride */
 			}
 			break;
+		case 0xa8f4:
+			if (s3Card >= S3_ViRGE) xga.virge.mono_pat_fgcolor_2dline = val & 0xFFFFFFul;
+			break;
 		case 0xacd4:
 			if (s3Card >= S3_ViRGE) xga.virge.src_base_2dpoly = val & 0x003FFFF8; /* bits [21:3] base address in vmem dest data for 2D operations */
 			break;
@@ -1595,6 +1623,24 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 				xga.virge.src_stride_2dpoly = val & 0x0FF8; /* bits [11:3] byte stride */
 				xga.virge.dst_stride_2dpoly = (val >> 16u) & 0x0FF8; /* bits [27:19] (11+16,3+16) byte stride */
 			}
+			break;
+		case 0xace8:
+			if (s3Card >= S3_ViRGE) {
+				xga.virge.mono_pat_2dpoly &= ~((uint64_t)0xFFFFFFFFull);
+				xga.virge.mono_pat_2dpoly |= ((uint64_t)val & (uint64_t)0xFFFFFFFFull);
+			}
+			break;
+		case 0xacec:
+			if (s3Card >= S3_ViRGE) {
+				xga.virge.mono_pat_2dpoly &= ~((uint64_t)0xFFFFFFFFull << (uint64_t)32ull);
+				xga.virge.mono_pat_2dpoly |= ((uint64_t)val & (uint64_t)0xFFFFFFFFull) << (uint64_t)32ull;
+			}
+			break;
+		case 0xacf0:
+			if (s3Card >= S3_ViRGE) xga.virge.mono_pat_bgcolor_2dpoly = val & 0xFFFFFFul;
+			break;
+		case 0xacf4:
+			if (s3Card >= S3_ViRGE) xga.virge.mono_pat_fgcolor_2dpoly = val & 0xFFFFFFul;
 			break;
 		default:
 			if(port <= 0x4000) {
