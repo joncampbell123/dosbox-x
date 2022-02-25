@@ -1,4 +1,8 @@
 0.83.23
+  - Extend 256-color foreground/background color behavior
+    from S3 86c928 to Vision864 and Vision868 as Windows
+    95 behavior suggests they handle the hardware cursor
+    the same way in 256-color mode.
   - Extend "divide cursor X position by bytes per pixel"
     behavior from S3 86c928 to Vision864 and Vision868
     emulation as well, based on Windows 3.1 video driver
