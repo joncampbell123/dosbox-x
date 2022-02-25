@@ -126,6 +126,8 @@ struct XGAStatus {
 			void set__rect_dst_xy_010c(uint32_t val); /* +010C */
 			void set__left_right_clip_00dc(uint32_t val); /* +00DC */
 			void set__top_bottom_clip_00e0(uint32_t val); /* +00E0 */
+
+			uint32_t command_execute_on_register; /* if command set bit 0 set, writing this register will execute command */
 		};
 		struct reggroup                  bitblt; /* 0xA400-0xA7FF */
 		struct reggroup                  line2d; /* 0xA800-0xABFF */
@@ -1343,6 +1345,60 @@ extern Bitu vga_read_p3d4(Bitu port,Bitu iolen);
 extern void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen);
 extern Bitu vga_read_p3d5(Bitu port,Bitu iolen);
 
+void XGA_ViRGE_BitBlt_Execute(void) {
+	auto &rset = xga.virge.bitblt;
+
+	switch ((rset.command_set >> 27u) & 0x1F) { /* bits [31:31] 3D command if set, 2D else. bits [30:27] command */
+		case 0x00: /* 2D BitBlt */
+			// TODO
+			break;
+		case 0x02: /* 2D Rectangle Fill */
+			// TODO
+			break;
+		default:
+			LOG_MSG("BitBlt unhandled command %08x",(unsigned int)rset.command_set);
+			break;
+	}
+}
+
+void XGA_ViRGE_BitBlt_Execute_deferred(void) {
+	auto &rset = xga.virge.bitblt;
+
+	switch ((rset.command_set >> 27u) & 0x1F) { /* bits [31:31] 3D command if set, 2D else. bits [30:27] command */
+		case 0x00: /* 2D BitBlt */
+		case 0x02: /* 2D Rectangle Fill */
+			rset.command_execute_on_register = 0x010C; /* A50C, etc */
+			break;
+		default:
+			rset.command_execute_on_register = 0;
+			break;
+	};
+}
+
+void XGA_ViRGE_Line2D_Execute(void) {
+	auto &rset = xga.virge.line2d;
+
+	if (rset.command_set & (1u << 31u))
+		LOG_MSG("Line2D execute 3D command %08x",(unsigned int)rset.command_set);
+	else
+		LOG_MSG("Line2D execute 2D command %08x",(unsigned int)rset.command_set);
+}
+
+void XGA_ViRGE_Line2D_Execute_deferred(void) {
+}
+
+void XGA_ViRGE_Poly2D_Execute(void) {
+	auto &rset = xga.virge.poly2d;
+
+	if (rset.command_set & (1u << 31u))
+		LOG_MSG("Poly2D execute 3D command %08x",(unsigned int)rset.command_set);
+	else
+		LOG_MSG("Poly2D execute 2D command %08x",(unsigned int)rset.command_set);
+}
+
+void XGA_ViRGE_Poly2D_Execute_deferred(void) {
+}
+
 void XGA_Write(Bitu port, Bitu val, Bitu len) {
 //	LOG_MSG("XGA: Write to port %x, val %8x, len %x", port,val, len);
 
@@ -1793,22 +1849,28 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			break;
 		case 0xa500:
 			if (s3Card >= S3_ViRGE) {
-				xga.virge.bitblt_validate_port(port).set__command_set(val);
-				// TODO: If bit 0 set (autoexecute) then execute the command
+				auto &rg = xga.virge.bitblt_validate_port(port);
+				rg.set__command_set(val);
+				if (rg.command_set & 1) XGA_ViRGE_BitBlt_Execute_deferred();
+				else XGA_ViRGE_BitBlt_Execute();
 			}
 			else goto default_case;
 			break;
 		case 0xa900:
 			if (s3Card >= S3_ViRGE) {
-				xga.virge.line2d_validate_port(port).set__command_set(val);
-				// TODO: If bit 0 set (autoexecute) then execute the command
+				auto &rg = xga.virge.line2d_validate_port(port);
+				rg.set__command_set(val);
+				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
+				else XGA_ViRGE_Line2D_Execute();
 			}
 			else goto default_case;
 			break;
 		case 0xad00:
 			if (s3Card >= S3_ViRGE) {
-				xga.virge.poly2d_validate_port(port).set__command_set(val);
-				// TODO: If bit 0 set (autoexecute) then execute the command
+				auto &rg = xga.virge.poly2d_validate_port(port);
+				rg.set__command_set(val);
+				if (rg.command_set & 1) XGA_ViRGE_Poly2D_Execute_deferred();
+				else XGA_ViRGE_Poly2D_Execute();
 			}
 			else goto default_case;
 			break;
@@ -1858,6 +1920,32 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			}
 			else LOG_MSG("XGA: Wrote to port %x with %x, len %x", (int)port, (int)val, (int)len);
 			break;
+	}
+
+	if (s3Card >= S3_ViRGE) {
+		switch (port&0xFC00) {
+			case 0xA400:
+				{
+					auto &rset = xga.virge.bitblt_validate_port(port);
+					if (rset.command_execute_on_register != 0 && rset.command_execute_on_register == (port&0x3FF))
+						XGA_ViRGE_BitBlt_Execute();
+				}
+				break;
+			case 0xA800:
+				{
+					auto &rset = xga.virge.line2d_validate_port(port);
+					if (rset.command_execute_on_register != 0 && rset.command_execute_on_register == (port&0x3FF))
+						XGA_ViRGE_Line2D_Execute();
+				}
+				break;
+			case 0xAC00:
+				{
+					auto &rset = xga.virge.poly2d_validate_port(port);
+					if (rset.command_execute_on_register != 0 && rset.command_execute_on_register == (port&0x3FF))
+						XGA_ViRGE_Poly2D_Execute();
+				}
+				break;
+		}
 	}
 }
 
