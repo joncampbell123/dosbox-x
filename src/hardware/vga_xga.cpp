@@ -948,16 +948,11 @@ void XGA_BlitRect(Bitu val) {
 			dstdata = XGA_GetPoint((Bitu)tarx, (Bitu)tary);
 
 			if(mixselect == 0x3) {
-				if(srcdata == xga.forecolor) {
+				/* Explanation in XGA_DrawPattern */
+				if ((srcdata&xga.readmask) == xga.readmask)
 					mixmode = xga.foremix;
-				} else {
-					if(srcdata == xga.backcolor) {
-						mixmode = xga.backmix;
-					} else {
-						/* Best guess otherwise */
-						mixmode = 0x67; /* Source is bitmap data, mix mode is src */
-					}
-				}
+				else
+					mixmode = xga.backmix;
 			}
 
 			switch((mixmode >> 5) & 0x03) {
