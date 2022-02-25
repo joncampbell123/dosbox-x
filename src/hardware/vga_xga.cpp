@@ -101,6 +101,12 @@ struct XGAStatus {
 			uint32_t src_bgcolor;            /* +00F8 */
 			uint32_t src_fgcolor;            /* +00FC */
 			uint32_t command_set;            /* +0100 */
+			uint32_t rect_width;             /* +0104 [LO WORD] */
+			uint32_t rect_height;            /* +0104 [HI WORD] */
+			uint32_t rect_src_x;             /* +0108 [LO WORD] */
+			uint32_t rect_src_y;             /* +0108 [HI WORD] */
+			uint32_t rect_dst_x;             /* +010C [LO WORD] */
+			uint32_t rect_dst_y;             /* +010C [HI WORD] */
 
 			void set__src_base(uint32_t val); /* +00D4 */
 			void set__dst_base(uint32_t val); /* +00D8 */
@@ -111,6 +117,9 @@ struct XGAStatus {
 			void set__src_bgcolor(uint32_t val); /* +00F8 */
 			void set__src_fgcolor(uint32_t val); /* +00FC */
 			void set__command_set(uint32_t val); /* +0100 */
+			void set__rect_width_height_0104(uint32_t val); /* +0104 */
+			void set__rect_src_xy_0108(uint32_t val); /* +0108 */
+			void set__rect_dst_xy_010c(uint32_t val); /* +010C */
 		};
 		struct reggroup                  bitblt; /* 0xA400-0xA7FF */
 		struct reggroup                  line2d; /* 0xA800-0xABFF */
@@ -177,6 +186,21 @@ void XGAStatus::XGA_VirgeState::reggroup::set__src_fgcolor(uint32_t val) {
 
 void XGAStatus::XGA_VirgeState::reggroup::set__command_set(uint32_t val) {
 	command_set = val;
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__rect_width_height_0104(uint32_t val) {
+	rect_width = val & 0x07FF;
+	rect_height = (val >> 16ul) & 0x07FF;
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__rect_src_xy_0108(uint32_t val) {
+	rect_src_x = val & 0x07FF;
+	rect_src_y = (val >> 16ul) & 0x07FF;
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__rect_dst_xy_010c(uint32_t val) {
+	rect_dst_x = val & 0x07FF;
+	rect_dst_y = (val >> 16ul) & 0x07FF;
 }
 
 void XGA_Write_Multifunc(Bitu val, Bitu len) {
@@ -1732,6 +1756,42 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 				xga.virge.poly2d_validate_port(port).set__command_set(val);
 				// TODO: If bit 0 set (autoexecute) then execute the command
 			}
+			else goto default_case;
+			break;
+		case 0xa504:
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__rect_width_height_0104(val);
+			else goto default_case;
+			break;
+		case 0xa904:
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__rect_width_height_0104(val);
+			else goto default_case;
+			break;
+		case 0xad04:
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__rect_width_height_0104(val);
+			else goto default_case;
+			break;
+		case 0xa508:
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__rect_src_xy_0108(val);
+			else goto default_case;
+			break;
+		case 0xa908:
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__rect_src_xy_0108(val);
+			else goto default_case;
+			break;
+		case 0xad08:
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__rect_src_xy_0108(val);
+			else goto default_case;
+			break;
+		case 0xa50c:
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__rect_dst_xy_010c(val);
+			else goto default_case;
+			break;
+		case 0xa90c:
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__rect_dst_xy_010c(val);
+			else goto default_case;
+			break;
+		case 0xad0c:
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__rect_dst_xy_010c(val);
 			else goto default_case;
 			break;
 		default:
