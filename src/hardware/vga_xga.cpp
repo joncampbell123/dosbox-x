@@ -1054,11 +1054,30 @@ void XGA_DrawPattern(Bitu val) {
 			dstdata = XGA_GetPoint((Bitu)tarx, (Bitu)tary);
 			
 
-			if(mixselect == 0x3) {
-				// TODO lots of guessing here but best results this way
-				/*if(srcdata == xga.forecolor)*/ mixmode = xga.foremix;
-				// else 
-				if(srcdata == xga.backcolor || srcdata == 0) 
+			if (mixselect == 0x3) {
+				/* S3 Trio32/Trio64 Integrated Graphics Accelerators, section 13.2 Bitmap Access Through The Graphics Engine.
+				 *
+				 * [https://jon.nerdgrounds.com/jmcs/docs/browse/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20Trio32%e2%88%95Trio64%20Integrated%20Graphics%20Accelerators%20%281995%2d03%29%2epdf]
+				 *
+				 * "If bits 7-6 are set to 11b, the current display bit map is selected as the mask bit source. The Read Mask"
+				 * "register (AAE8H) is set up to indicate the active planes. When all bits of the read-enabled planes for a"
+				 * "pixel are a 1, the mask bit 'ONE' is generated. If anyone of the read-enabled planes is a 0, then a mask"
+				 * "bit 'ZERO' is generated. If the mask bit is 'ONE', the Foreground Mix register is used. If the mask bit is"
+				 * "'ZERO', the Background Mix register is used."
+				 *
+				 * Notice that when an application in Windows 3.1 draws a black rectangle, I see foreground=0 background=ff
+				 * and in this loop, srcdata=ff and readmask=ff. While the original DOSBox SVN "guess" code here would
+				 * misattribute that to the background color (and erroneously draw a white rectangle), what should actually
+				 * happen is that we use the foreground color because (srcdata&readmask)==readmask (all bits 1).
+				 *
+				 * This fixes visual bugs when running Windows 3.1 and Microsoft Creative Writer, and navigating to the
+				 * basement and clicking around in the dark to reveal funny random things, leaves white rectangles on the
+				 * screen where the image was when you released the mouse. Creative Writer clears the image by drawing a
+				 * BLACK rectangle, while the DOSBox SVN "guess" mistakenly chose the background color and therefore a
+				 * WHITE rectangle. */
+				if ((srcdata&xga.readmask) == xga.readmask)
+					mixmode = xga.foremix;
+				else
 					mixmode = xga.backmix;
 			}
 
