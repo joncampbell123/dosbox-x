@@ -1614,79 +1614,80 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			break;
 		case 0xa4d4:
 			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__src_base(val);
-			break;
+			else goto default_case;
 		case 0xa8d4:
 			if (s3Card >= S3_ViRGE) xga.virge.line2d.set__src_base(val);
-			break;
+			else goto default_case;
 		case 0xacd4:
 			if (s3Card >= S3_ViRGE) xga.virge.poly2d.set__src_base(val);
-			break;
+			else goto default_case;
 		case 0xa4d8:
 			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__dst_base(val);
-			break;
+			else goto default_case;
 		case 0xa8d8:
 			if (s3Card >= S3_ViRGE) xga.virge.line2d.set__dst_base(val);
-			break;
+			else goto default_case;
 		case 0xacd8:
 			if (s3Card >= S3_ViRGE) xga.virge.poly2d.set__dst_base(val);
-			break;
+			else goto default_case;
 		case 0xa4e4:
 			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__src_dest_stride_00e4(val);
-			break;
+			else goto default_case;
 		case 0xa8e4:
 			if (s3Card >= S3_ViRGE) xga.virge.line2d.set__src_dest_stride_00e4(val);
-			break;
+			else goto default_case;
 		case 0xace4:
 			if (s3Card >= S3_ViRGE) xga.virge.poly2d.set__src_dest_stride_00e4(val);
-			break;
+			else goto default_case;
 		case 0xa4e8:
 		case 0xa4ec:
 			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__mono_pat_dword((port>>2u)&1u,val);
-			break;
+			else goto default_case;
 		case 0xace8:
 		case 0xacec:
 			if (s3Card >= S3_ViRGE) xga.virge.poly2d.set__mono_pat_dword((port>>2u)&1u,val);
-			break;
+			else goto default_case;
 		case 0xa4f0:
 			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__mono_pat_bgcolor(val);
-			break;
+			else goto default_case;
 		case 0xacf0:
 			if (s3Card >= S3_ViRGE) xga.virge.poly2d.set__mono_pat_bgcolor(val);
-			break;
+			else goto default_case;
 		case 0xa4f4:
 			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__mono_pat_fgcolor(val);
-			break;
+			else goto default_case;
 		case 0xa8f4:
 			if (s3Card >= S3_ViRGE) xga.virge.line2d.set__mono_pat_fgcolor(val);
-			break;
+			else goto default_case;
 		case 0xacf4:
 			if (s3Card >= S3_ViRGE) xga.virge.poly2d.set__mono_pat_fgcolor(val);
-			break;
+			else goto default_case;
 		case 0xa4f8:
 			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__src_bgcolor(val);
-			break;
+			else goto default_case;
 		case 0xa4fc:
 			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__src_fgcolor(val);
-			break;
+			else goto default_case;
 		case 0xa500:
 			if (s3Card >= S3_ViRGE) {
 				xga.virge.bitblt.set__command_set(val);
 				// TODO: If bit 0 set (autoexecute) then execute the command
 			}
-			break;
+			else goto default_case;
 		case 0xa900:
 			if (s3Card >= S3_ViRGE) {
 				xga.virge.line2d.set__command_set(val);
 				// TODO: If bit 0 set (autoexecute) then execute the command
 			}
-			break;
+			else goto default_case;
 		case 0xad00:
 			if (s3Card >= S3_ViRGE) {
 				xga.virge.poly2d.set__command_set(val);
 				// TODO: If bit 0 set (autoexecute) then execute the command
 			}
-			break;
+			else goto default_case;
 		default:
+		default_case:
 			if(port <= 0x4000) {
 				//LOG_MSG("XGA: Wrote to port %4x with %08x, len %x", port, val, len);
 				xga.waitcmd.newline = false;
