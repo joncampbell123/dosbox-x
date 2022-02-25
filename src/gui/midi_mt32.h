@@ -278,6 +278,9 @@ public:
         int sampleRate = section->Get_int("mt32.rate");
         service->setStereoOutputSampleRate(sampleRate);
         service->setSamplerateConversionQuality((MT32Emu::SamplerateConversionQuality)section->Get_int("mt32.src.quality"));
+        const uint32_t mt32_samplerate = 32000U;
+        const uint32_t mt32_sampleratemodes[] = { mt32_samplerate, mt32_samplerate, mt32_samplerate / 2 * 3, mt32_samplerate * 3,0 };
+        if(sampleRate != mt32_sampleratemodes[section->Get_int("mt32.analog")]) LOG_MSG("MIDI: Warning sampling rates of \"mt32.rate\" and \"mt32.analog\" settings are different. May result in incorrect pitch.");
 
         if (MT32EMU_RC_OK != (rc = service->openSynth())) {
             delete service;

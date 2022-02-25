@@ -3085,7 +3085,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_values(mt32reverbLevels);
     Pint->Set_help("MT-32 reverb level");
 
-    Pint = secprop->Add_int("mt32.rate", Property::Changeable::WhenIdle, 44100);
+    Pint = secprop->Add_int("mt32.rate", Property::Changeable::WhenIdle, 48000);
     Pint->Set_values(rates);
     Pint->Set_help("Sample rate of MT-32 emulation.");
 
