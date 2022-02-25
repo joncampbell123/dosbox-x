@@ -84,30 +84,21 @@ struct XGAStatus {
 
 	/* S3 Virge state */
 	struct XGA_VirgeState {
-		uint32_t src_base_bitblt;        /* 0xA4D4 */
-		uint32_t dst_base_bitblt;        /* 0xA4D8 */
-		uint32_t src_stride_bitblt;      /* 0xA4E4 [LO WORD] */
-		uint32_t dst_stride_bitblt;      /* 0xA4E4 [HI WORD] */
-		uint64_t mono_pat_bitblt;        /* 0xA4E8, 0xA4EC */
-		uint32_t mono_pat_bgcolor_bitblt;/* 0xA4F0 */
-		uint32_t mono_pat_fgcolor_bitblt;/* 0xA4F4 */
-		uint32_t src_bgcolor_bitblt;     /* 0xA4F8 */
-		uint32_t src_fgcolor_bitblt;     /* 0xA4FC */
-		uint32_t command_set_bitblt;     /* 0xA500 */
-		uint32_t src_base_2dline;        /* 0xA8D4 */
-		uint32_t dst_base_2dline;        /* 0xA8D8 */
-		uint32_t src_stride_2dline;      /* 0xA8E4 [LO WORD] */
-		uint32_t dst_stride_2dline;      /* 0xA8E4 [HI WORD] */
-		uint32_t mono_pat_fgcolor_2dline;/* 0xA8F4 */
-		uint32_t command_set_2dline;     /* 0xA900 */
-		uint32_t src_base_2dpoly;        /* 0xACD4 */
-		uint32_t dst_base_2dpoly;        /* 0xACD8 */
-		uint32_t src_stride_2dpoly;      /* 0xACE4 [LO WORD] */
-		uint32_t dst_stride_2dpoly;      /* 0xACE4 [HI WORD] */
-		uint64_t mono_pat_2dpoly;        /* 0xACE8, 0xACEC */
-		uint32_t mono_pat_bgcolor_2dpoly;/* 0xACF0 */
-		uint32_t mono_pat_fgcolor_2dpoly;/* 0xACF4 */
-		uint32_t command_set_2dpoly;     /* 0xAD00 */
+		struct reggroup {
+			uint32_t src_base;               /* +00D4 */
+			uint32_t dst_base;               /* +00D8 */
+			uint32_t src_stride;             /* +00E4 [LO WORD] */
+			uint32_t dst_stride;             /* +00E4 [HI WORD] */
+			uint64_t mono_pat;               /* +00E8, +00EC */
+			uint32_t mono_pat_bgcolor;       /* +00F0 */
+			uint32_t mono_pat_fgcolor;       /* +00F4 */
+			uint32_t src_bgcolor;            /* +00F8 */
+			uint32_t src_fgcolor;            /* +00FC */
+			uint32_t command_set;            /* +0100 */
+		};
+		struct reggroup                  bitblt; /* 0xA400-0xA7FF */
+		struct reggroup                  line2d; /* 0xA800-0xABFF */
+		struct reggroup                  poly2d; /* 0xAC00-0xAFFF */
 	} virge;
 
 } xga;
@@ -1573,101 +1564,101 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			else E_Exit("unimplemented XGA MMIO");
 			break;
 		case 0xa4d4:
-			if (s3Card >= S3_ViRGE) xga.virge.src_base_bitblt = val & 0x003FFFF8; /* bits [21:3] base address in vmem source data for 2D operations */
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt.src_base = val & 0x003FFFF8; /* bits [21:3] base address in vmem source data for 2D operations */
 			break;
 		case 0xa4d8:
-			if (s3Card >= S3_ViRGE) xga.virge.dst_base_bitblt = val & 0x003FFFF8; /* bits [21:3] base address in vmem dest data for 2D operations */
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt.dst_base = val & 0x003FFFF8; /* bits [21:3] base address in vmem dest data for 2D operations */
 			break;
 		case 0xa4e4:
 			if (s3Card >= S3_ViRGE) {
-				xga.virge.src_stride_bitblt = val & 0x0FF8; /* bits [11:3] byte stride */
-				xga.virge.dst_stride_bitblt = (val >> 16u) & 0x0FF8; /* bits [27:19] (11+16,3+16) byte stride */
+				xga.virge.bitblt.src_stride = val & 0x0FF8; /* bits [11:3] byte stride */
+				xga.virge.bitblt.dst_stride = (val >> 16u) & 0x0FF8; /* bits [27:19] (11+16,3+16) byte stride */
 			}
 			break;
 		case 0xa4e8:
 			if (s3Card >= S3_ViRGE) {
-				xga.virge.mono_pat_bitblt &= ~((uint64_t)0xFFFFFFFFull);
-				xga.virge.mono_pat_bitblt |= ((uint64_t)val & (uint64_t)0xFFFFFFFFull);
+				xga.virge.bitblt.mono_pat &= ~((uint64_t)0xFFFFFFFFull);
+				xga.virge.bitblt.mono_pat |= ((uint64_t)val & (uint64_t)0xFFFFFFFFull);
 			}
 			break;
 		case 0xa4ec:
 			if (s3Card >= S3_ViRGE) {
-				xga.virge.mono_pat_bitblt &= ~((uint64_t)0xFFFFFFFFull << (uint64_t)32ull);
-				xga.virge.mono_pat_bitblt |= ((uint64_t)val & (uint64_t)0xFFFFFFFFull) << (uint64_t)32ull;
+				xga.virge.bitblt.mono_pat &= ~((uint64_t)0xFFFFFFFFull << (uint64_t)32ull);
+				xga.virge.bitblt.mono_pat |= ((uint64_t)val & (uint64_t)0xFFFFFFFFull) << (uint64_t)32ull;
 			}
 			break;
 		case 0xa4f0:
-			if (s3Card >= S3_ViRGE) xga.virge.mono_pat_bgcolor_bitblt = val & 0xFFFFFFul;
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt.mono_pat_bgcolor = val & 0xFFFFFFul;
 			break;
 		case 0xa4f4:
-			if (s3Card >= S3_ViRGE) xga.virge.mono_pat_fgcolor_bitblt = val & 0xFFFFFFul;
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt.mono_pat_fgcolor = val & 0xFFFFFFul;
 			break;
 		case 0xa4f8:
-			if (s3Card >= S3_ViRGE) xga.virge.src_bgcolor_bitblt = val & 0xFFFFFFul;
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt.src_bgcolor = val & 0xFFFFFFul;
 			break;
 		case 0xa4fc:
-			if (s3Card >= S3_ViRGE) xga.virge.src_fgcolor_bitblt = val & 0xFFFFFFul;
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt.src_fgcolor = val & 0xFFFFFFul;
 			break;
 		case 0xa500:
 			if (s3Card >= S3_ViRGE) {
-				xga.virge.command_set_bitblt = val;
+				xga.virge.bitblt.command_set = val;
 				// TODO: If bit 0 set (autoexecute) then execute the command
 			}
 			break;
 		case 0xa8d4:
-			if (s3Card >= S3_ViRGE) xga.virge.src_base_2dline = val & 0x003FFFF8; /* bits [21:3] base address in vmem dest data for 2D operations */
+			if (s3Card >= S3_ViRGE) xga.virge.line2d.src_base = val & 0x003FFFF8; /* bits [21:3] base address in vmem dest data for 2D operations */
 			break;
 		case 0xa8d8:
-			if (s3Card >= S3_ViRGE) xga.virge.dst_base_2dline = val & 0x003FFFF8; /* bits [21:3] base address in vmem dest data for 2D operations */
+			if (s3Card >= S3_ViRGE) xga.virge.line2d.dst_base = val & 0x003FFFF8; /* bits [21:3] base address in vmem dest data for 2D operations */
 			break;
 		case 0xa8e4:
 			if (s3Card >= S3_ViRGE) {
-				xga.virge.src_stride_2dline = val & 0x0FF8; /* bits [11:3] byte stride */
-				xga.virge.dst_stride_2dline = (val >> 16u) & 0x0FF8; /* bits [27:19] (11+16,3+16) byte stride */
+				xga.virge.line2d.src_stride = val & 0x0FF8; /* bits [11:3] byte stride */
+				xga.virge.line2d.dst_stride = (val >> 16u) & 0x0FF8; /* bits [27:19] (11+16,3+16) byte stride */
 			}
 			break;
 		case 0xa8f4:
-			if (s3Card >= S3_ViRGE) xga.virge.mono_pat_fgcolor_2dline = val & 0xFFFFFFul;
+			if (s3Card >= S3_ViRGE) xga.virge.line2d.mono_pat_fgcolor = val & 0xFFFFFFul;
 			break;
 		case 0xa900:
 			if (s3Card >= S3_ViRGE) {
-				xga.virge.command_set_2dline = val;
+				xga.virge.line2d.command_set = val;
 				// TODO: If bit 0 set (autoexecute) then execute the command
 			}
 			break;
 		case 0xacd4:
-			if (s3Card >= S3_ViRGE) xga.virge.src_base_2dpoly = val & 0x003FFFF8; /* bits [21:3] base address in vmem dest data for 2D operations */
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d.src_base = val & 0x003FFFF8; /* bits [21:3] base address in vmem dest data for 2D operations */
 			break;
 		case 0xacd8:
-			if (s3Card >= S3_ViRGE) xga.virge.dst_base_2dpoly = val & 0x003FFFF8; /* bits [21:3] base address in vmem dest data for 2D operations */
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d.dst_base = val & 0x003FFFF8; /* bits [21:3] base address in vmem dest data for 2D operations */
 			break;
 		case 0xace4:
 			if (s3Card >= S3_ViRGE) {
-				xga.virge.src_stride_2dpoly = val & 0x0FF8; /* bits [11:3] byte stride */
-				xga.virge.dst_stride_2dpoly = (val >> 16u) & 0x0FF8; /* bits [27:19] (11+16,3+16) byte stride */
+				xga.virge.poly2d.src_stride = val & 0x0FF8; /* bits [11:3] byte stride */
+				xga.virge.poly2d.dst_stride = (val >> 16u) & 0x0FF8; /* bits [27:19] (11+16,3+16) byte stride */
 			}
 			break;
 		case 0xace8:
 			if (s3Card >= S3_ViRGE) {
-				xga.virge.mono_pat_2dpoly &= ~((uint64_t)0xFFFFFFFFull);
-				xga.virge.mono_pat_2dpoly |= ((uint64_t)val & (uint64_t)0xFFFFFFFFull);
+				xga.virge.poly2d.mono_pat &= ~((uint64_t)0xFFFFFFFFull);
+				xga.virge.poly2d.mono_pat |= ((uint64_t)val & (uint64_t)0xFFFFFFFFull);
 			}
 			break;
 		case 0xacec:
 			if (s3Card >= S3_ViRGE) {
-				xga.virge.mono_pat_2dpoly &= ~((uint64_t)0xFFFFFFFFull << (uint64_t)32ull);
-				xga.virge.mono_pat_2dpoly |= ((uint64_t)val & (uint64_t)0xFFFFFFFFull) << (uint64_t)32ull;
+				xga.virge.poly2d.mono_pat &= ~((uint64_t)0xFFFFFFFFull << (uint64_t)32ull);
+				xga.virge.poly2d.mono_pat |= ((uint64_t)val & (uint64_t)0xFFFFFFFFull) << (uint64_t)32ull;
 			}
 			break;
 		case 0xacf0:
-			if (s3Card >= S3_ViRGE) xga.virge.mono_pat_bgcolor_2dpoly = val & 0xFFFFFFul;
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d.mono_pat_bgcolor = val & 0xFFFFFFul;
 			break;
 		case 0xacf4:
-			if (s3Card >= S3_ViRGE) xga.virge.mono_pat_fgcolor_2dpoly = val & 0xFFFFFFul;
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d.mono_pat_fgcolor = val & 0xFFFFFFul;
 			break;
 		case 0xad00:
 			if (s3Card >= S3_ViRGE) {
-				xga.virge.command_set_2dpoly = val;
+				xga.virge.poly2d.command_set = val;
 				// TODO: If bit 0 set (autoexecute) then execute the command
 			}
 			break;
@@ -1731,24 +1722,6 @@ Bitu XGA_Read(Bitu port, Bitu len) {
 			return XGA_GetDualReg(xga.writemask);
 		case 0xaee8:
 			return XGA_GetDualReg(xga.readmask);
-		case 0xa4d4:
-			if (s3Card >= S3_ViRGE) return xga.virge.src_base_bitblt;
-			break;
-		case 0xa4d8:
-			if (s3Card >= S3_ViRGE) return xga.virge.dst_base_bitblt;
-			break;
-		case 0xa8d4:
-			if (s3Card >= S3_ViRGE) return xga.virge.src_base_2dline;
-			break;
-		case 0xa8d8:
-			if (s3Card >= S3_ViRGE) return xga.virge.dst_base_2dline;
-			break;
-		case 0xacd4:
-			if (s3Card >= S3_ViRGE) return xga.virge.src_base_2dpoly;
-			break;
-		case 0xacd8:
-			if (s3Card >= S3_ViRGE) return xga.virge.dst_base_2dpoly;
-			break;
 		default:
 			//LOG_MSG("XGA: Read from port %x, len %x", port, len);
 			break;
