@@ -1,4 +1,8 @@
 0.83.23
+  - Extend "divide cursor X position by bytes per pixel"
+    behavior from S3 86c928 to Vision864 and Vision868
+    emulation as well, based on Windows 3.1 video driver
+    behavior.
   - Gravis Ultrasound: Most I/O registers except port 3x4
     are intended for 8-bit I/O. If 16-bit I/O occurs to
     such registers, handle as two 8-bit I/O cycles. I
