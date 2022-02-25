@@ -82,6 +82,16 @@ struct XGAStatus {
 		bool bswap16; /* bit 12 of the CMD register (S3 86C928, Trio32/Trio64/Trio64V+): For any 16-bit word, swap hi/lo bytes (including both 16-bit words in 32-bit transfer) */
 	} waitcmd;
 
+	/* S3 Virge state */
+	struct XGA_VirgeState {
+		uint32_t src_base_bitblt; /* 0xA4D4 */
+		uint32_t dst_base_bitblt; /* 0xA4D8 */
+		uint32_t src_base_2dline; /* 0xA8D4 */
+		uint32_t dst_base_2dline; /* 0xA8D8 */
+		uint32_t src_base_2dpoly; /* 0xACD4 */
+		uint32_t dst_base_2dpoly; /* 0xACD8 */
+	} virge;
+
 } xga;
 
 void XGA_Write_Multifunc(Bitu val, Bitu len) {
@@ -1544,6 +1554,24 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			if(len==1) vga_write_p3d5(0,val,1);
 			else E_Exit("unimplemented XGA MMIO");
 			break;
+		case 0xa4d4:
+			if (s3Card >= S3_ViRGE) xga.virge.src_base_bitblt = val & 0x003FFFF8; /* bits [21:3] base address in vmem source data for 2D operations */
+			break;
+		case 0xa4d8:
+			if (s3Card >= S3_ViRGE) xga.virge.dst_base_bitblt = val & 0x003FFFF8; /* bits [21:3] base address in vmem dest data for 2D operations */
+			break;
+		case 0xa8d4:
+			if (s3Card >= S3_ViRGE) xga.virge.src_base_2dline = val & 0x003FFFF8; /* bits [21:3] base address in vmem dest data for 2D operations */
+			break;
+		case 0xa8d8:
+			if (s3Card >= S3_ViRGE) xga.virge.dst_base_2dline = val & 0x003FFFF8; /* bits [21:3] base address in vmem dest data for 2D operations */
+			break;
+		case 0xacd4:
+			if (s3Card >= S3_ViRGE) xga.virge.src_base_2dpoly = val & 0x003FFFF8; /* bits [21:3] base address in vmem dest data for 2D operations */
+			break;
+		case 0xacd8:
+			if (s3Card >= S3_ViRGE) xga.virge.dst_base_2dpoly = val & 0x003FFFF8; /* bits [21:3] base address in vmem dest data for 2D operations */
+			break;
 		default:
 			if(port <= 0x4000) {
 				//LOG_MSG("XGA: Wrote to port %4x with %08x, len %x", port, val, len);
@@ -1604,6 +1632,24 @@ Bitu XGA_Read(Bitu port, Bitu len) {
 			return XGA_GetDualReg(xga.writemask);
 		case 0xaee8:
 			return XGA_GetDualReg(xga.readmask);
+		case 0xa4d4:
+			if (s3Card >= S3_ViRGE) return xga.virge.src_base_bitblt;
+			break;
+		case 0xa4d8:
+			if (s3Card >= S3_ViRGE) return xga.virge.dst_base_bitblt;
+			break;
+		case 0xa8d4:
+			if (s3Card >= S3_ViRGE) return xga.virge.src_base_2dline;
+			break;
+		case 0xa8d8:
+			if (s3Card >= S3_ViRGE) return xga.virge.dst_base_2dline;
+			break;
+		case 0xacd4:
+			if (s3Card >= S3_ViRGE) return xga.virge.src_base_2dpoly;
+			break;
+		case 0xacd8:
+			if (s3Card >= S3_ViRGE) return xga.virge.dst_base_2dpoly;
+			break;
 		default:
 			//LOG_MSG("XGA: Read from port %x, len %x", port, len);
 			break;
