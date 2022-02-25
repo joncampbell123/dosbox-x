@@ -1345,6 +1345,93 @@ extern Bitu vga_read_p3d4(Bitu port,Bitu iolen);
 extern void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen);
 extern Bitu vga_read_p3d5(Bitu port,Bitu iolen);
 
+// FIXME: Windows 3.1 S3 Virge driver "16 million colors" mode sets up M_LIN32, but the dst stride we are given
+//        corresponds to the display width as if 24 bits per pixel (width * 3). As a result, accelerated drawing
+//        here will not render properly. WTF?
+void XGA_DrawVirgePixel(XGAStatus::XGA_VirgeState::reggroup &rset,unsigned int x,unsigned int y,uint32_t c) {
+	uint32_t memaddr;
+
+	if (!(rset.command_set & 0x20)) return; /* bit 5 draw enable == 0 means don't update screen */
+
+	/* Need to zero out all unused bits in modes that have any (15-bit or "32"-bit -- the last
+	   one is actually 24-bit. Without this step there may be some graphics corruption (mainly,
+	   during windows dragging. */
+	switch((rset.command_set >> 2u) & 7u) {
+		case 0: // 8 bit/pixel
+			memaddr = (uint32_t)((y * rset.dst_stride) + x) + rset.dst_base;
+			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
+			vga.mem.linear[memaddr] = (uint8_t)c;
+			break;
+		case 1: // 16 bits/pixel
+			memaddr = (uint32_t)((y * rset.dst_stride) + (x*2)) + rset.dst_base;
+			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
+			*((uint16_t*)(vga.mem.linear+memaddr)) = (uint16_t)(c&0xffff);
+			break;
+		case 2: // 32 bits/pixel:
+			memaddr = (uint32_t)((y * rset.dst_stride) + (x*4)) + rset.dst_base;
+			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
+			*((uint32_t*)(vga.mem.linear+memaddr)) = (uint32_t)c;
+			break;
+		default:
+			break;
+	}
+}
+
+void XGA_ViRGE_DrawRect(XGAStatus::XGA_VirgeState::reggroup &rset) {
+	unsigned int bex,bey,enx,eny;/*inclusive*/
+	unsigned int x,y;
+	unsigned char rb;
+
+	if (rset.rect_width == 0 || rset.rect_height == 0)
+		return;
+
+	bex = rset.rect_dst_x;
+	bey = rset.rect_dst_y;
+	enx = bex + rset.rect_width - 1;
+	eny = bey + rset.rect_height -1;
+
+	if (rset.command_set & 2) { /* hardware clipping enable */
+		if (bex < rset.left_clip)
+			bex = rset.left_clip;
+		if (bey < rset.top_clip)
+			bey = rset.top_clip;
+		if (enx > rset.right_clip)
+			enx = rset.right_clip;
+		if (eny > rset.bottom_clip)
+			eny = rset.bottom_clip;
+	}
+
+	// NTS: I don't know if the monochrome pattern is being drawn properly because I can't get Windows 3.1
+	//      to use this case for anything other than solid color rectangles. I don't know if I am reading
+	//      out the monochrome pattern correctly here. --J.C.
+
+	// NTS: always use mono pattern as documented by S3.
+	//      Command set MP bit must be set anyway.
+	for (y=bey;y <= eny;y++) {
+		rb = ((unsigned char*)(&rset.mono_pat))[(y-rset.rect_dst_y)&7]; /* WARNING: Only works on little Endian CPUs */
+		if (bex != rset.rect_dst_x) {
+			unsigned char r = (bex - rset.rect_dst_x) & 7;
+			if (r != 0) rb = (rb << r) | (rb >> (8 - r));
+		}
+
+		if (rset.command_set & 0x200) { /* TP - Transparent */
+			for (x=bex;x <= enx;x++) {
+				if (rb & 0x80) XGA_DrawVirgePixel(rset,x,y,rset.mono_pat_fgcolor);
+				rb = (rb << 1u) | (rb >> 7u);
+			}
+		}
+		else {
+			for (x=bex;x <= enx;x++) {
+				XGA_DrawVirgePixel(rset,x,y,(rb & 0x80) ? rset.mono_pat_fgcolor : rset.mono_pat_bgcolor);
+				rb = (rb << 1u) | (rb >> 7u);
+			}
+		}
+	}
+
+	rset.rect_dst_x = enx + 1;
+	rset.rect_dst_y = eny + 1;
+}
+
 void XGA_ViRGE_BitBlt_Execute(void) {
 	auto &rset = xga.virge.bitblt;
 
@@ -1353,7 +1440,7 @@ void XGA_ViRGE_BitBlt_Execute(void) {
 			// TODO
 			break;
 		case 0x02: /* 2D Rectangle Fill */
-			// TODO
+			XGA_ViRGE_DrawRect(rset);
 			break;
 		default:
 			LOG_MSG("BitBlt unhandled command %08x",(unsigned int)rset.command_set);
