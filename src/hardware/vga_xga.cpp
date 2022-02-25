@@ -95,13 +95,62 @@ struct XGAStatus {
 			uint32_t src_bgcolor;            /* +00F8 */
 			uint32_t src_fgcolor;            /* +00FC */
 			uint32_t command_set;            /* +0100 */
+
+			void set__src_base(uint32_t val); /* +00D4 */
+			void set__dst_base(uint32_t val); /* +00D8 */
+			void set__src_dest_stride_00e4(uint32_t val); /* +00E4 */
+			void set__mono_pat_dword(unsigned int idx,uint32_t val); /* +00E8, +00EC */
+			void set__mono_pat_bgcolor(uint32_t val); /* +00F0 */
+			void set__mono_pat_fgcolor(uint32_t val); /* +00F4 */
+			void set__src_bgcolor(uint32_t val); /* +00F8 */
+			void set__src_fgcolor(uint32_t val); /* +00FC */
+			void set__command_set(uint32_t val); /* +0100 */
 		};
 		struct reggroup                  bitblt; /* 0xA400-0xA7FF */
 		struct reggroup                  line2d; /* 0xA800-0xABFF */
 		struct reggroup                  poly2d; /* 0xAC00-0xAFFF */
 	} virge;
-
 } xga;
+
+void XGAStatus::XGA_VirgeState::reggroup::set__src_base(uint32_t val) {
+	src_base = val & 0x003FFFF8; /* bits [21:3] base address in vmem source data for 2D operations */
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__dst_base(uint32_t val) {
+	dst_base = val & 0x003FFFF8; /* bits [21:3] base address in vmem source data for 2D operations */
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__src_dest_stride_00e4(uint32_t val) {
+	xga.virge.bitblt.src_stride = val & 0x0FF8; /* bits [11:3] byte stride */
+	xga.virge.bitblt.dst_stride = (val >> 16u) & 0x0FF8; /* bits [27:19] (11+16,3+16) byte stride */
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__mono_pat_dword(unsigned int idx,uint32_t val) {
+	/* idx == 0, low 32 bits.
+	 * idx == 1, high 32 bits.
+	 * This trick only works if the host processor is little Endian */
+	((uint32_t*)(&xga.virge.bitblt.mono_pat))[idx&1] = val;
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__mono_pat_bgcolor(uint32_t val) {
+	mono_pat_bgcolor = val & 0x00FFFFFFul;
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__mono_pat_fgcolor(uint32_t val) {
+	mono_pat_fgcolor = val & 0x00FFFFFFul;
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__src_bgcolor(uint32_t val) {
+	src_bgcolor = val & 0x00FFFFFFul;
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__src_fgcolor(uint32_t val) {
+	src_fgcolor = val & 0x00FFFFFFul;
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__command_set(uint32_t val) {
+	command_set = val;
+}
 
 void XGA_Write_Multifunc(Bitu val, Bitu len) {
     (void)len;//UNUSED
@@ -1564,101 +1613,76 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			else E_Exit("unimplemented XGA MMIO");
 			break;
 		case 0xa4d4:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt.src_base = val & 0x003FFFF8; /* bits [21:3] base address in vmem source data for 2D operations */
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__src_base(val);
+			break;
+		case 0xa8d4:
+			if (s3Card >= S3_ViRGE) xga.virge.line2d.set__src_base(val);
+			break;
+		case 0xacd4:
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d.set__src_base(val);
 			break;
 		case 0xa4d8:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt.dst_base = val & 0x003FFFF8; /* bits [21:3] base address in vmem dest data for 2D operations */
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__dst_base(val);
+			break;
+		case 0xa8d8:
+			if (s3Card >= S3_ViRGE) xga.virge.line2d.set__dst_base(val);
+			break;
+		case 0xacd8:
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d.set__dst_base(val);
 			break;
 		case 0xa4e4:
-			if (s3Card >= S3_ViRGE) {
-				xga.virge.bitblt.src_stride = val & 0x0FF8; /* bits [11:3] byte stride */
-				xga.virge.bitblt.dst_stride = (val >> 16u) & 0x0FF8; /* bits [27:19] (11+16,3+16) byte stride */
-			}
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__src_dest_stride_00e4(val);
+			break;
+		case 0xa8e4:
+			if (s3Card >= S3_ViRGE) xga.virge.line2d.set__src_dest_stride_00e4(val);
+			break;
+		case 0xace4:
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d.set__src_dest_stride_00e4(val);
 			break;
 		case 0xa4e8:
-			if (s3Card >= S3_ViRGE) {
-				xga.virge.bitblt.mono_pat &= ~((uint64_t)0xFFFFFFFFull);
-				xga.virge.bitblt.mono_pat |= ((uint64_t)val & (uint64_t)0xFFFFFFFFull);
-			}
-			break;
 		case 0xa4ec:
-			if (s3Card >= S3_ViRGE) {
-				xga.virge.bitblt.mono_pat &= ~((uint64_t)0xFFFFFFFFull << (uint64_t)32ull);
-				xga.virge.bitblt.mono_pat |= ((uint64_t)val & (uint64_t)0xFFFFFFFFull) << (uint64_t)32ull;
-			}
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__mono_pat_dword((port>>2u)&1u,val);
+			break;
+		case 0xace8:
+		case 0xacec:
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d.set__mono_pat_dword((port>>2u)&1u,val);
 			break;
 		case 0xa4f0:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt.mono_pat_bgcolor = val & 0xFFFFFFul;
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__mono_pat_bgcolor(val);
+			break;
+		case 0xacf0:
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d.set__mono_pat_bgcolor(val);
 			break;
 		case 0xa4f4:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt.mono_pat_fgcolor = val & 0xFFFFFFul;
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__mono_pat_fgcolor(val);
+			break;
+		case 0xa8f4:
+			if (s3Card >= S3_ViRGE) xga.virge.line2d.set__mono_pat_fgcolor(val);
+			break;
+		case 0xacf4:
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d.set__mono_pat_fgcolor(val);
 			break;
 		case 0xa4f8:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt.src_bgcolor = val & 0xFFFFFFul;
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__src_bgcolor(val);
 			break;
 		case 0xa4fc:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt.src_fgcolor = val & 0xFFFFFFul;
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__src_fgcolor(val);
 			break;
 		case 0xa500:
 			if (s3Card >= S3_ViRGE) {
-				xga.virge.bitblt.command_set = val;
+				xga.virge.bitblt.set__command_set(val);
 				// TODO: If bit 0 set (autoexecute) then execute the command
 			}
-			break;
-		case 0xa8d4:
-			if (s3Card >= S3_ViRGE) xga.virge.line2d.src_base = val & 0x003FFFF8; /* bits [21:3] base address in vmem dest data for 2D operations */
-			break;
-		case 0xa8d8:
-			if (s3Card >= S3_ViRGE) xga.virge.line2d.dst_base = val & 0x003FFFF8; /* bits [21:3] base address in vmem dest data for 2D operations */
-			break;
-		case 0xa8e4:
-			if (s3Card >= S3_ViRGE) {
-				xga.virge.line2d.src_stride = val & 0x0FF8; /* bits [11:3] byte stride */
-				xga.virge.line2d.dst_stride = (val >> 16u) & 0x0FF8; /* bits [27:19] (11+16,3+16) byte stride */
-			}
-			break;
-		case 0xa8f4:
-			if (s3Card >= S3_ViRGE) xga.virge.line2d.mono_pat_fgcolor = val & 0xFFFFFFul;
 			break;
 		case 0xa900:
 			if (s3Card >= S3_ViRGE) {
-				xga.virge.line2d.command_set = val;
+				xga.virge.line2d.set__command_set(val);
 				// TODO: If bit 0 set (autoexecute) then execute the command
 			}
 			break;
-		case 0xacd4:
-			if (s3Card >= S3_ViRGE) xga.virge.poly2d.src_base = val & 0x003FFFF8; /* bits [21:3] base address in vmem dest data for 2D operations */
-			break;
-		case 0xacd8:
-			if (s3Card >= S3_ViRGE) xga.virge.poly2d.dst_base = val & 0x003FFFF8; /* bits [21:3] base address in vmem dest data for 2D operations */
-			break;
-		case 0xace4:
-			if (s3Card >= S3_ViRGE) {
-				xga.virge.poly2d.src_stride = val & 0x0FF8; /* bits [11:3] byte stride */
-				xga.virge.poly2d.dst_stride = (val >> 16u) & 0x0FF8; /* bits [27:19] (11+16,3+16) byte stride */
-			}
-			break;
-		case 0xace8:
-			if (s3Card >= S3_ViRGE) {
-				xga.virge.poly2d.mono_pat &= ~((uint64_t)0xFFFFFFFFull);
-				xga.virge.poly2d.mono_pat |= ((uint64_t)val & (uint64_t)0xFFFFFFFFull);
-			}
-			break;
-		case 0xacec:
-			if (s3Card >= S3_ViRGE) {
-				xga.virge.poly2d.mono_pat &= ~((uint64_t)0xFFFFFFFFull << (uint64_t)32ull);
-				xga.virge.poly2d.mono_pat |= ((uint64_t)val & (uint64_t)0xFFFFFFFFull) << (uint64_t)32ull;
-			}
-			break;
-		case 0xacf0:
-			if (s3Card >= S3_ViRGE) xga.virge.poly2d.mono_pat_bgcolor = val & 0xFFFFFFul;
-			break;
-		case 0xacf4:
-			if (s3Card >= S3_ViRGE) xga.virge.poly2d.mono_pat_fgcolor = val & 0xFFFFFFul;
-			break;
 		case 0xad00:
 			if (s3Card >= S3_ViRGE) {
-				xga.virge.poly2d.command_set = val;
+				xga.virge.poly2d.set__command_set(val);
 				// TODO: If bit 0 set (autoexecute) then execute the command
 			}
 			break;
