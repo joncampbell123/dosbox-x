@@ -1274,10 +1274,10 @@ static uint8_t * VGA_Draw_VGA_Line_Xlat32_HWMouse( Bitu vidstart, Bitu /*line*/)
             // to set 256-color cursor colors using the foreground/background stack registers
             // of later cards. Truecolor/highcolor cards still use foreground/background
             // stack on 86C928 cards.
-	    //
-	    // Windows 95 behavior suggests that S3 Vision864 cards behave the same way in
-	    // 256-color mode. Perhaps it was there all along with Windows 3.1, but it happens
-	    // to write all the right values in a way that masks the issue.
+            //
+            // Windows 95 behavior suggests that S3 Vision864/Vision868 cards behave the same way in
+            // 256-color mode. Perhaps it was there all along with Windows 3.1, but it happens
+            // to write all the right values in a way that masks the issue.
             //
             // FIXME: On 86C928 cards, bits 2 & 3 of the Hardware Graphics Cursor Mode Register (CR45)
             //        enable horizontal stretch which also determines how the foreground/background
