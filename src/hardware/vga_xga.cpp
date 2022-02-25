@@ -27,6 +27,12 @@
 #include "callback.h"
 #include "cpu.h"		// for 0x3da delay
 
+#define S3_VALIDATE_VIRGE_PORTS
+
+#ifdef S3_VALIDATE_VIRGE_PORTS
+#include <assert.h>
+#endif
+
 #ifdef _MSC_VER
 # define MIN(a,b) ((a) < (b) ? (a) : (b))
 #else
@@ -109,6 +115,27 @@ struct XGAStatus {
 		struct reggroup                  bitblt; /* 0xA400-0xA7FF */
 		struct reggroup                  line2d; /* 0xA800-0xABFF */
 		struct reggroup                  poly2d; /* 0xAC00-0xAFFF */
+
+		inline struct reggroup &bitblt_validate_port(const uint32_t port) {
+#ifdef S3_VALIDATE_VIRGE_PORTS
+			assert((port&0xFC00) == 0xA400);
+#endif
+			return bitblt;
+		}
+
+		inline struct reggroup &line2d_validate_port(const uint32_t port) {
+#ifdef S3_VALIDATE_VIRGE_PORTS
+			assert((port&0xFC00) == 0xA800);
+#endif
+			return line2d;
+		}
+
+		inline struct reggroup &poly2d_validate_port(const uint32_t port) {
+#ifdef S3_VALIDATE_VIRGE_PORTS
+			assert((port&0xFC00) == 0xAC00);
+#endif
+			return poly2d;
+		}
 	} virge;
 } xga;
 
@@ -1613,79 +1640,100 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			else E_Exit("unimplemented XGA MMIO");
 			break;
 		case 0xa4d4:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__src_base(val);
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__src_base(val);
 			else goto default_case;
+			break;
 		case 0xa8d4:
-			if (s3Card >= S3_ViRGE) xga.virge.line2d.set__src_base(val);
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__src_base(val);
 			else goto default_case;
+			break;
 		case 0xacd4:
-			if (s3Card >= S3_ViRGE) xga.virge.poly2d.set__src_base(val);
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__src_base(val);
 			else goto default_case;
+			break;
 		case 0xa4d8:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__dst_base(val);
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__dst_base(val);
 			else goto default_case;
+			break;
 		case 0xa8d8:
-			if (s3Card >= S3_ViRGE) xga.virge.line2d.set__dst_base(val);
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__dst_base(val);
 			else goto default_case;
+			break;
 		case 0xacd8:
-			if (s3Card >= S3_ViRGE) xga.virge.poly2d.set__dst_base(val);
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__dst_base(val);
 			else goto default_case;
+			break;
 		case 0xa4e4:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__src_dest_stride_00e4(val);
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__src_dest_stride_00e4(val);
 			else goto default_case;
+			break;
 		case 0xa8e4:
-			if (s3Card >= S3_ViRGE) xga.virge.line2d.set__src_dest_stride_00e4(val);
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__src_dest_stride_00e4(val);
 			else goto default_case;
+			break;
 		case 0xace4:
-			if (s3Card >= S3_ViRGE) xga.virge.poly2d.set__src_dest_stride_00e4(val);
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__src_dest_stride_00e4(val);
 			else goto default_case;
+			break;
 		case 0xa4e8:
 		case 0xa4ec:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__mono_pat_dword((port>>2u)&1u,val);
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__mono_pat_dword((port>>2u)&1u,val);
 			else goto default_case;
+			break;
 		case 0xace8:
 		case 0xacec:
-			if (s3Card >= S3_ViRGE) xga.virge.poly2d.set__mono_pat_dword((port>>2u)&1u,val);
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__mono_pat_dword((port>>2u)&1u,val);
 			else goto default_case;
+			break;
 		case 0xa4f0:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__mono_pat_bgcolor(val);
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__mono_pat_bgcolor(val);
 			else goto default_case;
+			break;
 		case 0xacf0:
-			if (s3Card >= S3_ViRGE) xga.virge.poly2d.set__mono_pat_bgcolor(val);
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__mono_pat_bgcolor(val);
 			else goto default_case;
+			break;
 		case 0xa4f4:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__mono_pat_fgcolor(val);
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__mono_pat_fgcolor(val);
 			else goto default_case;
+			break;
 		case 0xa8f4:
-			if (s3Card >= S3_ViRGE) xga.virge.line2d.set__mono_pat_fgcolor(val);
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__mono_pat_fgcolor(val);
 			else goto default_case;
+			break;
 		case 0xacf4:
-			if (s3Card >= S3_ViRGE) xga.virge.poly2d.set__mono_pat_fgcolor(val);
+			if (s3Card >= S3_ViRGE) xga.virge.poly2d_validate_port(port).set__mono_pat_fgcolor(val);
 			else goto default_case;
+			break;
 		case 0xa4f8:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__src_bgcolor(val);
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__src_bgcolor(val);
 			else goto default_case;
+			break;
 		case 0xa4fc:
-			if (s3Card >= S3_ViRGE) xga.virge.bitblt.set__src_fgcolor(val);
+			if (s3Card >= S3_ViRGE) xga.virge.bitblt_validate_port(port).set__src_fgcolor(val);
 			else goto default_case;
+			break;
 		case 0xa500:
 			if (s3Card >= S3_ViRGE) {
-				xga.virge.bitblt.set__command_set(val);
+				xga.virge.bitblt_validate_port(port).set__command_set(val);
 				// TODO: If bit 0 set (autoexecute) then execute the command
 			}
 			else goto default_case;
+			break;
 		case 0xa900:
 			if (s3Card >= S3_ViRGE) {
-				xga.virge.line2d.set__command_set(val);
+				xga.virge.line2d_validate_port(port).set__command_set(val);
 				// TODO: If bit 0 set (autoexecute) then execute the command
 			}
 			else goto default_case;
+			break;
 		case 0xad00:
 			if (s3Card >= S3_ViRGE) {
-				xga.virge.poly2d.set__command_set(val);
+				xga.virge.poly2d_validate_port(port).set__command_set(val);
 				// TODO: If bit 0 set (autoexecute) then execute the command
 			}
 			else goto default_case;
+			break;
 		default:
 		default_case:
 			if(port <= 0x4000) {
