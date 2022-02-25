@@ -1345,6 +1345,48 @@ extern Bitu vga_read_p3d4(Bitu port,Bitu iolen);
 extern void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen);
 extern Bitu vga_read_p3d5(Bitu port,Bitu iolen);
 
+uint32_t XGA_MixVirgePixel(uint32_t srcpixel,uint32_t patpixel,uint32_t dstpixel,uint8_t rop) {
+	switch (rop) {
+		/* S3 ViRGE Integrated 3D Accelerator Appendix A Listing of Raster Operations */
+		case 0x00/*0           */: return 0;
+		case 0xAA/*D           */: return dstpixel;
+		case 0xCC/*S           */: return srcpixel;
+		case 0xF0/*P           */: return patpixel;
+		case 0xFF/*1           */: return 0xFFFFFFFF;
+		default:
+			LOG_MSG("ViRGE ROP %02x unimpl",(unsigned int)rop);
+			break;
+	};
+
+	return srcpixel;
+}
+
+uint32_t XGA_ReadVirgePixel(XGAStatus::XGA_VirgeState::reggroup &rset,unsigned int x,unsigned int y) {
+	uint32_t memaddr;
+
+	switch((rset.command_set >> 2u) & 7u) {
+		case 0: // 8 bit/pixel
+			memaddr = (uint32_t)((y * rset.dst_stride) + x) + rset.dst_base;
+			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
+			return vga.mem.linear[memaddr];
+			break;
+		case 1: // 16 bits/pixel
+			memaddr = (uint32_t)((y * rset.dst_stride) + (x*2)) + rset.dst_base;
+			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
+			return *((uint16_t*)(vga.mem.linear+memaddr));
+			break;
+		case 2: // 32 bits/pixel:
+			memaddr = (uint32_t)((y * rset.dst_stride) + (x*4)) + rset.dst_base;
+			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
+			return *((uint32_t*)(vga.mem.linear+memaddr));
+			break;
+		default:
+			break;
+	}
+
+	return 0;
+}
+
 // FIXME: Windows 3.1 S3 Virge driver "16 million colors" mode sets up M_LIN32, but the dst stride we are given
 //        corresponds to the display width as if 24 bits per pixel (width * 3). As a result, accelerated drawing
 //        here will not render properly. WTF?
@@ -1379,6 +1421,7 @@ void XGA_DrawVirgePixel(XGAStatus::XGA_VirgeState::reggroup &rset,unsigned int x
 
 void XGA_ViRGE_DrawRect(XGAStatus::XGA_VirgeState::reggroup &rset) {
 	unsigned int bex,bey,enx,eny;/*inclusive*/
+	uint32_t srcpixel,mixpixel;
 	unsigned int x,y;
 	unsigned char rb;
 
@@ -1416,17 +1459,30 @@ void XGA_ViRGE_DrawRect(XGAStatus::XGA_VirgeState::reggroup &rset) {
 
 		if (rset.command_set & 0x200) { /* TP - Transparent */
 			for (x=bex;x <= enx;x++) {
-				if (rb & 0x80) XGA_DrawVirgePixel(rset,x,y,rset.mono_pat_fgcolor);
+				if (rb & 0x80) {
+					srcpixel = XGA_ReadVirgePixel(rset,x,y);
+					mixpixel = XGA_MixVirgePixel(srcpixel,rset.mono_pat_fgcolor/*See notes*/,rset.mono_pat_fgcolor,(rset.command_set>>17u)&0xFFu);
+					XGA_DrawVirgePixel(rset,x,y,mixpixel);
+				}
 				rb = (rb << 1u) | (rb >> 7u);
 			}
 		}
 		else {
 			for (x=bex;x <= enx;x++) {
-				XGA_DrawVirgePixel(rset,x,y,(rb & 0x80) ? rset.mono_pat_fgcolor : rset.mono_pat_bgcolor);
+				srcpixel = XGA_ReadVirgePixel(rset,x,y);
+				mixpixel = XGA_MixVirgePixel(srcpixel,rset.mono_pat_fgcolor/*See notes*/,(rb & 0x80) ? rset.mono_pat_fgcolor : rset.mono_pat_bgcolor,(rset.command_set>>17u)&0xFFu);
+				XGA_DrawVirgePixel(rset,x,y,mixpixel);
 				rb = (rb << 1u) | (rb >> 7u);
 			}
 		}
 	}
+
+	/* NTS: From the S3 datasheet "Command Set Register": "The full range of 256 ROPs are available for BitBlt. Other operations like Rectangle, Line, etc.
+	 *      can only use a subset of the ROPs that does not have a source. When a ROP contains a pattern, the pattern must be mono and the hardware forces
+	 *      the pattern value to the pattern foreground color regardless of the values programmed in the Mono Pattern registers."
+	 *
+	 *      True to this statement, Windows 3.1 Virge drivers like to issue XGA rectangle commands with the ROP set to 0xF0 (pattern fill) when drawing
+	 *      solid color rectangles. */
 
 	rset.rect_dst_x = enx + 1;
 	rset.rect_dst_y = eny + 1;
