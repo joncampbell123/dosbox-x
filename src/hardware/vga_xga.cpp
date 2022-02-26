@@ -144,10 +144,20 @@ struct XGAStatus {
 			uint32_t                 stopy;
 			uint32_t                 src_stride;
 			uint32_t                 src_xrem;
+			uint32_t                 src_drem;
 			uint64_t                 itf_buffer; /* we shift in 32 bits at a time, making this 64-bit simplifies code */
 			uint8_t                  itf_buffer_bytecount;
 			uint8_t                  itf_buffer_initskip;
 		} bitbltstate;
+
+		union colorpat_t {
+			uint8_t                  pat8[64];    /* +A100-A13C 8bpp */
+			uint16_t                 pat16[64];   /* +A100-A17C 16bpp */
+			uint8_t                  pat24[64*3]; /* +A100-A1BC 24bpp */
+			uint32_t                 raw[48];     /* raw DWORD access for I/O handler, ((64*3)/4) == 48 */
+		};
+
+		colorpat_t                       colorpat;
 
 		inline struct reggroup &bitblt_validate_port(const uint32_t port) {
 #ifdef S3_VALIDATE_VIRGE_PORTS
@@ -1390,6 +1400,28 @@ uint32_t XGA_MixVirgePixel(uint32_t srcpixel,uint32_t patpixel,uint32_t dstpixel
 	return srcpixel;
 }
 
+uint32_t XGA_VirgePatPixel(unsigned int x,unsigned int y) {
+	switch((xga.virge.bitblt.command_set >> 2u) & 7u) {
+		case 0: // 8 bit/pixel
+			return xga.virge.colorpat.pat8[((y&7u)<<3u)+(x&7u)];
+		case 1: // 16 bits/pixel
+			return xga.virge.colorpat.pat16[((y&7u)<<3u)+(x&7u)];
+		case 2: // 32 bits/pixel
+			{
+				const unsigned int i = (((y&7u)<<3u)+(x&7u))*3u;
+				return
+					((uint32_t)xga.virge.colorpat.pat8[i+0] << (uint32_t)0) +
+					((uint32_t)xga.virge.colorpat.pat8[i+1] << (uint32_t)8) +
+					((uint32_t)xga.virge.colorpat.pat8[i+2] << (uint32_t)16);
+
+			}
+		default:
+			break;
+	}
+
+	return 0;
+}
+
 uint32_t XGA_ReadVirgePixel(XGAStatus::XGA_VirgeState::reggroup &rset,unsigned int x,unsigned int y) {
 	uint32_t memaddr;
 
@@ -1449,8 +1481,13 @@ void XGA_DrawVirgePixel(XGAStatus::XGA_VirgeState::reggroup &rset,unsigned int x
 }
 
 inline void XGA_DrawVirgePixelCR(XGAStatus::XGA_VirgeState::reggroup &rset,unsigned int x,unsigned int y,uint32_t c) {
-	if (x >= rset.left_clip && x <= rset.right_clip && y >= rset.top_clip && y <= rset.bottom_clip)
+	if (rset.command_set & 2) { /* clip enable */
+		if (x >= rset.left_clip && x <= rset.right_clip && y >= rset.top_clip && y <= rset.bottom_clip)
+			XGA_DrawVirgePixel(rset,x,y,c);
+	}
+	else {
 		XGA_DrawVirgePixel(rset,x,y,c);
+	}
 }
 
 void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
@@ -1504,33 +1541,75 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 #endif
 
 			msk = 0x80u;
-			if (xga.virge.imgxferport->command_set & 0x200) { /* transparent */
-				do {
-					if ((uint8_t)xga.virge.bitbltstate.itf_buffer & msk) {
-						srcpixel = xga.virge.bitblt.src_fgcolor;
+			if (xga.virge.imgxferport->command_set & 0x100) { /* mono pattern, mono bitmap */
+				if (xga.virge.imgxferport->command_set & 0x200) { /* transparent */
+					do {
+						if ((uint8_t)xga.virge.bitbltstate.itf_buffer & msk) {
+							srcpixel = xga.virge.bitblt.src_fgcolor;
+							dstpixel = XGA_ReadVirgePixel(xga.virge.bitblt,x,y);
+							patpixel = (pb & 0x80u) ? xga.virge.bitblt.mono_pat_fgcolor : xga.virge.bitblt.mono_pat_bgcolor;
+							mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
+							if (xga.virge.bitbltstate.src_drem > 0) {
+								XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
+								xga.virge.bitbltstate.src_drem--;
+							}
+						}
+
+						pb = (pb << 1u) | (pb >> 7u);
+						msk >>= 1u;
+						x++;
+					} while (msk != 0u);
+				}
+				else {
+					do {
+						srcpixel = ((uint8_t)xga.virge.bitbltstate.itf_buffer & msk) ? xga.virge.bitblt.src_fgcolor : xga.virge.bitblt.src_bgcolor;
 						dstpixel = XGA_ReadVirgePixel(xga.virge.bitblt,x,y);
 						patpixel = (pb & 0x80u) ? xga.virge.bitblt.mono_pat_fgcolor : xga.virge.bitblt.mono_pat_bgcolor;
 						mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
-						XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
-					}
+						if (xga.virge.bitbltstate.src_drem > 0) {
+							XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
+							xga.virge.bitbltstate.src_drem--;
+						}
 
-					pb = (pb << 1u) | (pb >> 7u);
-					msk >>= 1u;
-					x++;
-				} while (msk != 0u);
+						pb = (pb << 1u) | (pb >> 7u);
+						msk >>= 1u;
+						x++;
+					} while (msk != 0u);
+				}
 			}
-			else {
-				do {
-					srcpixel = ((uint8_t)xga.virge.bitbltstate.itf_buffer & msk) ? xga.virge.bitblt.src_fgcolor : xga.virge.bitblt.src_bgcolor;
-					dstpixel = XGA_ReadVirgePixel(xga.virge.bitblt,x,y);
-					patpixel = (pb & 0x80u) ? xga.virge.bitblt.mono_pat_fgcolor : xga.virge.bitblt.mono_pat_bgcolor;
-					mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
-					XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
+			else { /* color pattern, mono bitmap */
+				if (xga.virge.imgxferport->command_set & 0x200) { /* transparent */
+					do {
+						if ((uint8_t)xga.virge.bitbltstate.itf_buffer & msk) {
+							srcpixel = xga.virge.bitblt.src_fgcolor;
+							dstpixel = XGA_ReadVirgePixel(xga.virge.bitblt,x,y);
+							patpixel = XGA_VirgePatPixel(x-xga.virge.bitbltstate.startx,y-xga.virge.bitbltstate.starty);
+							mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
+							if (xga.virge.bitbltstate.src_drem > 0) {
+								XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
+								xga.virge.bitbltstate.src_drem--;
+							}
+						}
 
-					pb = (pb << 1u) | (pb >> 7u);
-					msk >>= 1u;
-					x++;
-				} while (msk != 0u);
+						msk >>= 1u;
+						x++;
+					} while (msk != 0u);
+				}
+				else {
+					do {
+						srcpixel = ((uint8_t)xga.virge.bitbltstate.itf_buffer & msk) ? xga.virge.bitblt.src_fgcolor : xga.virge.bitblt.src_bgcolor;
+						dstpixel = XGA_ReadVirgePixel(xga.virge.bitblt,x,y);
+						patpixel = XGA_VirgePatPixel(x-xga.virge.bitbltstate.startx,y-xga.virge.bitbltstate.starty);
+						mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
+						if (xga.virge.bitbltstate.src_drem > 0) {
+							XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
+							xga.virge.bitbltstate.src_drem--;
+						}
+
+						msk >>= 1u;
+						x++;
+					} while (msk != 0u);
+				}
 			}
 
 			xga.virge.bitbltstate.itf_buffer >>= (uint64_t)8;
@@ -1538,6 +1617,7 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 			xga.virge.bitbltstate.src_xrem--;
 
 			if (xga.virge.bitbltstate.src_xrem == 0) {
+				xga.virge.bitbltstate.src_drem = xga.virge.bitblt.rect_width;
 				xga.virge.bitbltstate.src_xrem = xga.virge.bitbltstate.src_stride;
 				if (xga.virge.bitblt.rect_dst_y == xga.virge.bitbltstate.stopy) {
 					xga.virge.bitbltstate.itf_buffer_bytecount = 0;
@@ -1580,19 +1660,42 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 				xga.virge.bitblt.command_set);
 #endif
 
-			if (xga.virge.imgxferport->command_set & 0x200) { /* transparent */
-				// TODO
-				LOG_MSG("BitBlt Color transparent unimpl");
-			}
-			else {
-				srcpixel = (uint32_t)xga.virge.bitbltstate.itf_buffer & bypmsk;
-				dstpixel = XGA_ReadVirgePixel(xga.virge.bitblt,x,y);
-				patpixel = (pb & 0x80u) ? xga.virge.bitblt.mono_pat_fgcolor : xga.virge.bitblt.mono_pat_bgcolor;
-				mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
-				XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
+			if (xga.virge.imgxferport->command_set & 0x100) { /* mono pattern, color bitmap */
+				if (xga.virge.imgxferport->command_set & 0x200) { /* transparent */
+					// TODO
+					LOG_MSG("BitBlt Color transparent mono pattern unimpl");
+				}
+				else {
+					srcpixel = (uint32_t)xga.virge.bitbltstate.itf_buffer & bypmsk;
+					dstpixel = XGA_ReadVirgePixel(xga.virge.bitblt,x,y);
+					patpixel = (pb & 0x80u) ? xga.virge.bitblt.mono_pat_fgcolor : xga.virge.bitblt.mono_pat_bgcolor;
+					mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
+					if (xga.virge.bitbltstate.src_drem > 0) {
+						XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
+						xga.virge.bitbltstate.src_drem--;
+					}
 
-				pb = (pb << 1u) | (pb >> 7u);
-				x++;
+					pb = (pb << 1u) | (pb >> 7u);
+					x++;
+				}
+			}
+			else { /* color pattern, color bitmap */
+				if (xga.virge.imgxferport->command_set & 0x200) { /* transparent */
+					// TODO
+					LOG_MSG("BitBlt Color transparent color pattern unimpl");
+				}
+				else {
+					srcpixel = (uint32_t)xga.virge.bitbltstate.itf_buffer & bypmsk;
+					dstpixel = XGA_ReadVirgePixel(xga.virge.bitblt,x,y);
+					patpixel = XGA_VirgePatPixel(x-xga.virge.bitbltstate.startx,y-xga.virge.bitbltstate.starty);
+					mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
+					if (xga.virge.bitbltstate.src_drem > 0) {
+						XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
+						xga.virge.bitbltstate.src_drem--;
+					}
+
+					x++;
+				}
 			}
 
 			xga.virge.bitbltstate.itf_buffer >>= (uint64_t)(8u * bypp);
@@ -1619,6 +1722,7 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 						}
 					}
 
+					xga.virge.bitbltstate.src_drem = xga.virge.bitblt.rect_width;
 					xga.virge.bitbltstate.src_xrem = xga.virge.bitbltstate.src_stride;
 					x = xga.virge.bitbltstate.startx;
 					y++;
@@ -1668,6 +1772,7 @@ void XGA_ViRGE_BitBlt(XGAStatus::XGA_VirgeState::reggroup &rset) {
 			default: break;
 		}
 
+		xga.virge.bitbltstate.src_drem = xga.virge.bitblt.rect_width;
 		xga.virge.bitbltstate.src_xrem = xga.virge.bitbltstate.src_stride;
 
 		if (xga.virge.bitbltstate.src_stride == 0) {
@@ -2328,6 +2433,12 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 				xga.waitcmd.newline = false;
 				XGA_DrawWait(val, len);
 				
+			}
+			else if (port >= 0xA100 && port < 0xA1C0 && s3Card >= S3_ViRGE) {
+				/* color pattern registers */
+				const unsigned int i = (port-0xA100u)>>2u;
+				assert(i < 48);
+				xga.virge.colorpat.raw[i] = (uint32_t)val;
 			}
 			else LOG_MSG("XGA: Wrote to port %x with %x, len %x", (int)port, (int)val, (int)len);
 			break;
