@@ -1380,6 +1380,7 @@ uint32_t XGA_MixVirgePixel(uint32_t srcpixel,uint32_t patpixel,uint32_t dstpixel
 	switch (rop) {
 		/* S3 ViRGE Integrated 3D Accelerator Appendix A Listing of Raster Operations */
 		case 0x00/*0           */: return 0;
+		case 0x0A/*DPna        */: return (~patpixel) & dstpixel;
 		case 0x55/*Dn          */: return ~dstpixel;
 		case 0x5A/*DPx         */: return dstpixel ^ patpixel;
 		case 0x66/*DSx         */: return dstpixel ^ srcpixel;
@@ -1388,6 +1389,7 @@ uint32_t XGA_MixVirgePixel(uint32_t srcpixel,uint32_t patpixel,uint32_t dstpixel
 		case 0xA5/*PDxn        */: return ~(patpixel ^ dstpixel);
 		case 0xAA/*D           */: return dstpixel;
 		case 0xB8/*PSDPxax     */: return ((dstpixel ^ patpixel) & srcpixel) ^ patpixel;
+		case 0xBB/*DSno        */: return (~srcpixel) | dstpixel;
 		case 0xCC/*S           */: return srcpixel;
 		case 0xEE/*DSo         */: return dstpixel | srcpixel;
 		case 0xF0/*P           */: return patpixel;
