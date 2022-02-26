@@ -1430,7 +1430,33 @@ uint32_t XGA_VirgePatPixel(unsigned int x,unsigned int y) {
 	return 0;
 }
 
-uint32_t XGA_ReadVirgePixel(XGAStatus::XGA_VirgeState::reggroup &rset,unsigned int x,unsigned int y) {
+uint32_t XGA_ReadSourceVirgePixel(XGAStatus::XGA_VirgeState::reggroup &rset,unsigned int x,unsigned int y) {
+	uint32_t memaddr;
+
+	switch((rset.command_set >> 2u) & 7u) {
+		case 0: // 8 bit/pixel
+			memaddr = (uint32_t)((y * rset.src_stride) + x) + rset.src_base;
+			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
+			return vga.mem.linear[memaddr];
+			break;
+		case 1: // 16 bits/pixel
+			memaddr = (uint32_t)((y * rset.src_stride) + (x*2)) + rset.src_base;
+			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
+			return *((uint16_t*)(vga.mem.linear+memaddr));
+			break;
+		case 2: // 32 bits/pixel:
+			memaddr = (uint32_t)((y * rset.src_stride) + (x*4)) + rset.src_base;
+			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
+			return *((uint32_t*)(vga.mem.linear+memaddr));
+			break;
+		default:
+			break;
+	}
+
+	return 0;
+}
+
+uint32_t XGA_ReadDestVirgePixel(XGAStatus::XGA_VirgeState::reggroup &rset,unsigned int x,unsigned int y) {
 	uint32_t memaddr;
 
 	switch((rset.command_set >> 2u) & 7u) {
@@ -1552,15 +1578,15 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 			if (xga.virge.imgxferport->command_set & 0x100) { /* mono pattern, mono bitmap */
 				if (xga.virge.imgxferport->command_set & 0x200) { /* transparent */
 					do {
-						if ((uint8_t)xga.virge.bitbltstate.itf_buffer & msk) {
-							srcpixel = xga.virge.bitblt.src_fgcolor;
-							dstpixel = XGA_ReadVirgePixel(xga.virge.bitblt,x,y);
-							patpixel = (pb & 0x80u) ? xga.virge.bitblt.mono_pat_fgcolor : xga.virge.bitblt.mono_pat_bgcolor;
-							mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
-							if (xga.virge.bitbltstate.src_drem > 0) {
+						if (xga.virge.bitbltstate.src_drem > 0) {
+							if ((uint8_t)xga.virge.bitbltstate.itf_buffer & msk) {
+								srcpixel = xga.virge.bitblt.src_fgcolor;
+								dstpixel = XGA_ReadDestVirgePixel(xga.virge.bitblt,x,y);
+								patpixel = (pb & 0x80u) ? xga.virge.bitblt.mono_pat_fgcolor : xga.virge.bitblt.mono_pat_bgcolor;
+								mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
 								XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
-								xga.virge.bitbltstate.src_drem--;
 							}
+							xga.virge.bitbltstate.src_drem--;
 						}
 
 						pb = (pb << 1u) | (pb >> 7u);
@@ -1570,11 +1596,11 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 				}
 				else {
 					do {
-						srcpixel = ((uint8_t)xga.virge.bitbltstate.itf_buffer & msk) ? xga.virge.bitblt.src_fgcolor : xga.virge.bitblt.src_bgcolor;
-						dstpixel = XGA_ReadVirgePixel(xga.virge.bitblt,x,y);
-						patpixel = (pb & 0x80u) ? xga.virge.bitblt.mono_pat_fgcolor : xga.virge.bitblt.mono_pat_bgcolor;
-						mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
 						if (xga.virge.bitbltstate.src_drem > 0) {
+							srcpixel = ((uint8_t)xga.virge.bitbltstate.itf_buffer & msk) ? xga.virge.bitblt.src_fgcolor : xga.virge.bitblt.src_bgcolor;
+							dstpixel = XGA_ReadDestVirgePixel(xga.virge.bitblt,x,y);
+							patpixel = (pb & 0x80u) ? xga.virge.bitblt.mono_pat_fgcolor : xga.virge.bitblt.mono_pat_bgcolor;
+							mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
 							XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
 							xga.virge.bitbltstate.src_drem--;
 						}
@@ -1588,15 +1614,15 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 			else { /* color pattern, mono bitmap */
 				if (xga.virge.imgxferport->command_set & 0x200) { /* transparent */
 					do {
-						if ((uint8_t)xga.virge.bitbltstate.itf_buffer & msk) {
-							srcpixel = xga.virge.bitblt.src_fgcolor;
-							dstpixel = XGA_ReadVirgePixel(xga.virge.bitblt,x,y);
-							patpixel = XGA_VirgePatPixel(x,y);
-							mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
-							if (xga.virge.bitbltstate.src_drem > 0) {
+						if (xga.virge.bitbltstate.src_drem > 0) {
+							if ((uint8_t)xga.virge.bitbltstate.itf_buffer & msk) {
+								srcpixel = xga.virge.bitblt.src_fgcolor;
+								dstpixel = XGA_ReadDestVirgePixel(xga.virge.bitblt,x,y);
+								patpixel = XGA_VirgePatPixel(x,y);
+								mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
 								XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
-								xga.virge.bitbltstate.src_drem--;
 							}
+							xga.virge.bitbltstate.src_drem--;
 						}
 
 						msk >>= 1u;
@@ -1605,11 +1631,11 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 				}
 				else {
 					do {
-						srcpixel = ((uint8_t)xga.virge.bitbltstate.itf_buffer & msk) ? xga.virge.bitblt.src_fgcolor : xga.virge.bitblt.src_bgcolor;
-						dstpixel = XGA_ReadVirgePixel(xga.virge.bitblt,x,y);
-						patpixel = XGA_VirgePatPixel(x,y);
-						mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
 						if (xga.virge.bitbltstate.src_drem > 0) {
+							srcpixel = ((uint8_t)xga.virge.bitbltstate.itf_buffer & msk) ? xga.virge.bitblt.src_fgcolor : xga.virge.bitblt.src_bgcolor;
+							dstpixel = XGA_ReadDestVirgePixel(xga.virge.bitblt,x,y);
+							patpixel = XGA_VirgePatPixel(x,y);
+							mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
 							XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
 							xga.virge.bitbltstate.src_drem--;
 						}
@@ -1674,11 +1700,11 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 					LOG_MSG("BitBlt Color transparent mono pattern unimpl");
 				}
 				else {
-					srcpixel = (uint32_t)xga.virge.bitbltstate.itf_buffer & bypmsk;
-					dstpixel = XGA_ReadVirgePixel(xga.virge.bitblt,x,y);
-					patpixel = (pb & 0x80u) ? xga.virge.bitblt.mono_pat_fgcolor : xga.virge.bitblt.mono_pat_bgcolor;
-					mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
 					if (xga.virge.bitbltstate.src_drem > 0) {
+						srcpixel = (uint32_t)xga.virge.bitbltstate.itf_buffer & bypmsk;
+						dstpixel = XGA_ReadDestVirgePixel(xga.virge.bitblt,x,y);
+						patpixel = (pb & 0x80u) ? xga.virge.bitblt.mono_pat_fgcolor : xga.virge.bitblt.mono_pat_bgcolor;
+						mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
 						XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
 						xga.virge.bitbltstate.src_drem--;
 					}
@@ -1693,11 +1719,11 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 					LOG_MSG("BitBlt Color transparent color pattern unimpl");
 				}
 				else {
-					srcpixel = (uint32_t)xga.virge.bitbltstate.itf_buffer & bypmsk;
-					dstpixel = XGA_ReadVirgePixel(xga.virge.bitblt,x,y);
-					patpixel = XGA_VirgePatPixel(x,y);
-					mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
 					if (xga.virge.bitbltstate.src_drem > 0) {
+						srcpixel = (uint32_t)xga.virge.bitbltstate.itf_buffer & bypmsk;
+						dstpixel = XGA_ReadDestVirgePixel(xga.virge.bitblt,x,y);
+						patpixel = XGA_VirgePatPixel(x,y);
+						mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
 						XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
 						xga.virge.bitbltstate.src_drem--;
 					}
@@ -1841,8 +1867,8 @@ void XGA_ViRGE_BitBlt(XGAStatus::XGA_VirgeState::reggroup &rset) {
 					sx = dx + sxa;
 					x = dx;
 					do {
-						srcpixel = XGA_ReadVirgePixel(xga.virge.bitblt,sx,sy);
-						dstpixel = XGA_ReadVirgePixel(xga.virge.bitblt,x,y);
+						srcpixel = XGA_ReadSourceVirgePixel(xga.virge.bitblt,sx,sy);
+						dstpixel = XGA_ReadDestVirgePixel(xga.virge.bitblt,x,y);
 
 						if (xga.virge.bitblt.command_set & 0x100)
 							patpixel = XGA_VirgePatPixelMono(x,y);
@@ -1908,7 +1934,7 @@ void XGA_ViRGE_DrawRect(XGAStatus::XGA_VirgeState::reggroup &rset) {
 			for (x=bex;x <= enx;x++) {
 				if (rb & 0x80) {
 					srcpixel = rset.mono_pat_fgcolor;
-					dstpixel = XGA_ReadVirgePixel(rset,x,y);
+					dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
 					patpixel = rset.mono_pat_fgcolor/*See notes*/;
 					mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
 					XGA_DrawVirgePixel(rset,x,y,mixpixel);
@@ -1919,7 +1945,7 @@ void XGA_ViRGE_DrawRect(XGAStatus::XGA_VirgeState::reggroup &rset) {
 		else {
 			for (x=bex;x <= enx;x++) {
 				srcpixel = (rb & 0x80) ? rset.mono_pat_fgcolor : rset.mono_pat_bgcolor;
-				dstpixel = XGA_ReadVirgePixel(rset,x,y);
+				dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
 				patpixel = rset.mono_pat_fgcolor/*See notes*/;
 				mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
 				XGA_DrawVirgePixel(rset,x,y,mixpixel);
