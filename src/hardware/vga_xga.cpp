@@ -214,7 +214,7 @@ void XGAStatus::XGA_VirgeState::reggroup::set__command_set(uint32_t val) {
 
 void XGAStatus::XGA_VirgeState::reggroup::set__rect_width_height_0104(uint32_t val) {
 	rect_height = val & 0x07FF;
-	rect_width = (val >> 16ul) & 0x07FF;
+	rect_width = ((val >> 16ul) & 0x07FF) + 1; /* <- What? But then the height field is THE number of pixels. Why? */
 }
 
 void XGAStatus::XGA_VirgeState::reggroup::set__rect_src_xy_0108(uint32_t val) {
