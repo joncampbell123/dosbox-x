@@ -1,4 +1,6 @@
 0.83.23
+  - Added basic S3 ViRGE XGA acceleration. It's enough for
+    90% of the GDI functions in Windows 3.1 so far.
   - Fixed S3 rectangle XGA accelerated pattern blit, when
     using display memory as the pattern mask source, to
     follow S3 Trio32/Trio64 documentation, instead of the
