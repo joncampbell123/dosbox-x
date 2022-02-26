@@ -1402,6 +1402,11 @@ uint32_t XGA_MixVirgePixel(uint32_t srcpixel,uint32_t patpixel,uint32_t dstpixel
 	return srcpixel;
 }
 
+uint32_t XGA_VirgePatPixelMono(unsigned int x,unsigned int y) {
+	const uint8_t rb = ((unsigned char*)(&xga.virge.bitblt.mono_pat))[y&7]; /* WARNING: Only works on little Endian CPUs */
+	return (rb & (0x80 >> (x & 7))) ? xga.virge.bitblt.mono_pat_fgcolor : xga.virge.bitblt.mono_pat_bgcolor;
+}
+
 uint32_t XGA_VirgePatPixel(unsigned int x,unsigned int y) {
 	switch((xga.virge.bitblt.command_set >> 2u) & 7u) {
 		case 0: // 8 bit/pixel
@@ -1837,7 +1842,12 @@ void XGA_ViRGE_BitBlt(XGAStatus::XGA_VirgeState::reggroup &rset) {
 					do {
 						srcpixel = XGA_ReadVirgePixel(xga.virge.bitblt,sx,sy);
 						dstpixel = XGA_ReadVirgePixel(xga.virge.bitblt,x,y);
-						patpixel = XGA_VirgePatPixel(x-xga.virge.bitblt.rect_dst_x,y-xga.virge.bitblt.rect_dst_y);
+
+						if (xga.virge.bitblt.command_set & 0x100)
+							patpixel = XGA_VirgePatPixelMono(x-xga.virge.bitblt.rect_dst_x,y-xga.virge.bitblt.rect_dst_y);
+						else
+							patpixel = XGA_VirgePatPixel(x-xga.virge.bitblt.rect_dst_x,y-xga.virge.bitblt.rect_dst_y);
+
 						mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
 						XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
 
