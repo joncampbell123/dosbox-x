@@ -1391,6 +1391,7 @@ uint32_t XGA_MixVirgePixel(uint32_t srcpixel,uint32_t patpixel,uint32_t dstpixel
 		case 0xB8/*PSDPxax     */: return ((dstpixel ^ patpixel) & srcpixel) ^ patpixel;
 		case 0xBB/*DSno        */: return (~srcpixel) | dstpixel;
 		case 0xCC/*S           */: return srcpixel;
+		case 0xE2/*DSPDxax     */: return ((patpixel ^ dstpixel) & srcpixel) ^ dstpixel;
 		case 0xEE/*DSo         */: return dstpixel | srcpixel;
 		case 0xF0/*P           */: return patpixel;
 		case 0xFF/*1           */: return 0xFFFFFFFF;
@@ -1949,6 +1950,8 @@ void XGA_ViRGE_BitBlt_Execute(void) {
 			break;
 		case 0x02: /* 2D Rectangle Fill */
 			XGA_ViRGE_DrawRect(rset);
+			break;
+		case 0x0F: /* NOP */
 			break;
 		default:
 			LOG_MSG("BitBlt unhandled command %08x",(unsigned int)rset.command_set);
