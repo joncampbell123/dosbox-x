@@ -1385,6 +1385,8 @@ uint32_t XGA_MixVirgePixel(uint32_t srcpixel,uint32_t patpixel,uint32_t dstpixel
 	switch (rop) {
 		/* S3 ViRGE Integrated 3D Accelerator Appendix A Listing of Raster Operations */
 		case 0x00/*0           */: return 0;
+		case 0x55/*Dn          */: return ~dstpixel;
+		case 0x5A/*DPx         */: return dstpixel ^ patpixel;
 		case 0x66/*DSx         */: return dstpixel ^ srcpixel;
 		case 0x88/*DSa         */: return dstpixel & srcpixel;
 		case 0xAA/*D           */: return dstpixel;
@@ -1742,6 +1744,8 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 }
 
 void XGA_ViRGE_BitBlt(XGAStatus::XGA_VirgeState::reggroup &rset) {
+	uint32_t srcpixel,mixpixel,dstpixel,patpixel;
+
 	if (rset.command_set & 0x80) { /* data will be coming in from the image transfer port */
 		xga.virge.imgxferport = &rset;
 		xga.virge.imgxferportfunc = XGA_ViRGE_BitBlt_xferport;
@@ -1783,6 +1787,71 @@ void XGA_ViRGE_BitBlt(XGAStatus::XGA_VirgeState::reggroup &rset) {
 	else { /* source data is video memory */
 		xga.virge.imgxferport = NULL;
 		xga.virge.imgxferportfunc = NULL;
+
+		if (xga.virge.bitblt.command_set & 0x200) { /* transparent */
+			LOG_MSG("BitBlt VRAM to VRAM transparent");
+		}
+		else {
+			unsigned int sxa,sya;
+			unsigned int rx,ry;
+			unsigned int dx,dy;
+			unsigned int ex,ey;
+			unsigned int sx,sy;
+			unsigned int x,y;
+
+			if (xga.virge.bitblt.rect_width != 0 && xga.virge.bitblt.rect_height != 0) {
+				if (!(xga.virge.bitblt.command_set & (1u << 25u))) {
+					/* X-negative */
+					rx = -1;
+					dx = xga.virge.bitblt.rect_dst_x;
+					ex = xga.virge.bitblt.rect_dst_x - (xga.virge.bitblt.rect_width - 1);
+					if ((int)ex < 0) ex = 0;
+				}
+				else {
+					rx = 1;
+					dx = xga.virge.bitblt.rect_dst_x;
+					ex = xga.virge.bitblt.rect_dst_x + (xga.virge.bitblt.rect_width - 1);
+				}
+
+				if (!(xga.virge.bitblt.command_set & (1u << 26u))) {
+					/* Y-negative */
+					ry = -1;
+					dy = xga.virge.bitblt.rect_dst_y;
+					ey = xga.virge.bitblt.rect_dst_y - (xga.virge.bitblt.rect_height - 1);
+					if ((int)ey < 0) ey = 0;
+				}
+				else {
+					ry = 1;
+					dy = xga.virge.bitblt.rect_dst_y;
+					ey = xga.virge.bitblt.rect_dst_y + (xga.virge.bitblt.rect_height - 1);
+				}
+
+				sxa = xga.virge.bitblt.rect_src_x - xga.virge.bitblt.rect_dst_x;
+				sya = xga.virge.bitblt.rect_src_y - xga.virge.bitblt.rect_dst_y;
+
+				sy = dy + sya;
+				y = dy;
+				do {
+					sx = dx + sxa;
+					x = dx;
+					do {
+						srcpixel = XGA_ReadVirgePixel(xga.virge.bitblt,sx,sy);
+						dstpixel = XGA_ReadVirgePixel(xga.virge.bitblt,x,y);
+						patpixel = XGA_VirgePatPixel(x-xga.virge.bitblt.rect_dst_x,y-xga.virge.bitblt.rect_dst_y);
+						mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
+						XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
+
+						if (x == ex) break;
+						sx += rx;
+						x += rx;
+					} while (1);
+
+					if (y == ey) break;
+					sy += ry;
+					y += ry;
+				} while (1);
+			}
+		}
 	}
 }
 
