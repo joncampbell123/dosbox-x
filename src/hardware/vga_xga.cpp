@@ -1375,6 +1375,7 @@ uint32_t XGA_MixVirgePixel(uint32_t srcpixel,uint32_t patpixel,uint32_t dstpixel
 	switch (rop) {
 		/* S3 ViRGE Integrated 3D Accelerator Appendix A Listing of Raster Operations */
 		case 0x00/*0           */: return 0;
+		case 0x66/*DSx         */: return dstpixel ^ srcpixel;
 		case 0x88/*DSa         */: return dstpixel & srcpixel;
 		case 0xAA/*D           */: return dstpixel;
 		case 0xB8/*PSDPxax     */: return ((dstpixel ^ patpixel) & srcpixel) ^ patpixel;
@@ -1493,12 +1494,14 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 		/* mono image bitmap */
 		assert(xga.virge.bitbltstate.src_xrem != 0);
 		while (xga.virge.bitbltstate.itf_buffer_bytecount > 0) {
+#if 0
 			LOG_MSG("BitBlt mono t=%u x=%u y=%u srm=%u/%u sw=%u patb=%02x srcb=%02x ctrl=%08x",
 				(xga.virge.imgxferport->command_set & 0x200) ? 1 : 0,
 				x,y,xga.virge.bitbltstate.src_xrem,xga.virge.bitbltstate.src_stride,
 				xga.virge.bitblt.rect_width,
 				pb,(uint8_t)xga.virge.bitbltstate.itf_buffer & 0xFFu,
 				xga.virge.bitblt.command_set);
+#endif
 
 			msk = 0x80u;
 			if (xga.virge.imgxferport->command_set & 0x200) { /* transparent */
@@ -1556,10 +1559,78 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 		}
 	}
 	else {
+		uint32_t bypmsk = 0x000000FF;
+		unsigned char bypp = 1;
+
+		switch((xga.virge.bitblt.command_set >> 2u) & 7u) {
+			case 1: bypp = 2u; bypmsk = 0x0000FFFF; break; // 16 bits/pixel
+			case 2: bypp = 4u; bypmsk = 0xFFFFFFFF; break; // 32 bits/pixel
+			default: break;
+		}
+
 		/* color image bitmap */
-		// TODO
-		xga.virge.bitbltstate.itf_buffer_bytecount = 0;
-		LOG_MSG("BitBlt xfer color bitmap not yet implemented");
+		assert(xga.virge.bitbltstate.src_xrem != 0);
+		while (xga.virge.bitbltstate.itf_buffer_bytecount >= bypp) {
+#if 0
+			LOG_MSG("BitBlt color t=%u x=%u y=%u srm=%u/%u sw=%u patb=%02x srcb=%02x ctrl=%08x",
+				(xga.virge.imgxferport->command_set & 0x200) ? 1 : 0,
+				x,y,xga.virge.bitbltstate.src_xrem,xga.virge.bitbltstate.src_stride,
+				xga.virge.bitblt.rect_width,
+				pb,(uint8_t)xga.virge.bitbltstate.itf_buffer & 0xFFu,
+				xga.virge.bitblt.command_set);
+#endif
+
+			if (xga.virge.imgxferport->command_set & 0x200) { /* transparent */
+				// TODO
+				LOG_MSG("BitBlt Color transparent unimpl");
+			}
+			else {
+				srcpixel = (uint32_t)xga.virge.bitbltstate.itf_buffer & bypmsk;
+				dstpixel = XGA_ReadVirgePixel(xga.virge.bitblt,x,y);
+				patpixel = (pb & 0x80u) ? xga.virge.bitblt.mono_pat_fgcolor : xga.virge.bitblt.mono_pat_bgcolor;
+				mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
+				XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
+
+				pb = (pb << 1u) | (pb >> 7u);
+				x++;
+			}
+
+			xga.virge.bitbltstate.itf_buffer >>= (uint64_t)(8u * bypp);
+			xga.virge.bitbltstate.itf_buffer_bytecount -= bypp;
+			xga.virge.bitbltstate.src_xrem -= bypp;
+
+			if (xga.virge.bitbltstate.src_xrem < bypp) {
+				if (xga.virge.bitblt.rect_dst_y == xga.virge.bitbltstate.stopy) {
+					xga.virge.bitbltstate.itf_buffer_bytecount = 0;
+					xga.virge.imgxferportfunc = NULL;
+					xga.virge.imgxferport = NULL;
+					break;
+				}
+				else {
+					if (xga.virge.bitbltstate.src_xrem > 0) {
+						if (xga.virge.bitbltstate.src_xrem > xga.virge.bitbltstate.itf_buffer_bytecount) {
+							xga.virge.bitbltstate.src_xrem -= xga.virge.bitbltstate.itf_buffer_bytecount;
+							xga.virge.bitbltstate.itf_buffer_initskip = xga.virge.bitbltstate.src_xrem;
+							break;
+						}
+						else {
+							xga.virge.bitbltstate.itf_buffer >>= (uint64_t)(8u * xga.virge.bitbltstate.src_xrem);
+							xga.virge.bitbltstate.itf_buffer_bytecount -= xga.virge.bitbltstate.src_xrem;
+						}
+					}
+
+					xga.virge.bitbltstate.src_xrem = xga.virge.bitbltstate.src_stride;
+					x = xga.virge.bitbltstate.startx;
+					y++;
+
+					pb = ((unsigned char*)(&xga.virge.bitblt.mono_pat))[(y-xga.virge.bitbltstate.starty)&7]; /* WARNING: Only works on little Endian CPUs */
+					if (x != xga.virge.bitbltstate.startx) {
+						unsigned char r = (x - xga.virge.bitbltstate.startx) & 7;
+						if (r != 0) pb = (pb << r) | (pb >> (8 - r));
+					}
+				}
+			}
+		}
 	}
 
 	xga.virge.bitblt.rect_dst_x = x;
