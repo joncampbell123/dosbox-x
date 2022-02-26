@@ -133,6 +133,22 @@ struct XGAStatus {
 		struct reggroup                  line2d; /* 0xA800-0xABFF */
 		struct reggroup                  poly2d; /* 0xAC00-0xAFFF */
 
+		/* ViRGE image transfer register */
+		struct reggroup*                 imgxferport;
+		void                             (*imgxferportfunc)(uint32_t val);
+
+		/* BitBlt state */
+		struct BitBltState {
+			uint32_t                 startx;
+			uint32_t                 starty;
+			uint32_t                 stopy;
+			uint32_t                 src_stride;
+			uint32_t                 src_xrem;
+			uint64_t                 itf_buffer; /* we shift in 32 bits at a time, making this 64-bit simplifies code */
+			uint8_t                  itf_buffer_bytecount;
+			uint8_t                  itf_buffer_initskip;
+		} bitbltstate;
+
 		inline struct reggroup &bitblt_validate_port(const uint32_t port) {
 #ifdef S3_VALIDATE_VIRGE_PORTS
 			assert((port&0xFC00) == 0xA400);
@@ -746,6 +762,11 @@ void XGA_DrawWaitSub(Bitu mixmode, Bitu srcval) {
 }
 
 void XGA_DrawWait(Bitu val, Bitu len) {
+	if (s3Card >= S3_ViRGE) {
+		if (xga.virge.imgxferport != NULL && xga.virge.imgxferportfunc != NULL)
+			xga.virge.imgxferportfunc((uint32_t)val);
+	}
+
 	if(!xga.waitcmd.wait) return;
 	Bitu mixmode = (xga.pix_cntl >> 6) & 0x3;
 	Bitu srcval;
@@ -1345,11 +1366,18 @@ extern Bitu vga_read_p3d4(Bitu port,Bitu iolen);
 extern void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen);
 extern Bitu vga_read_p3d5(Bitu port,Bitu iolen);
 
+/* CHECK: */
+/* PSDPxax */
+/* PS(DxP)ax */
+/* P(Sa(DxP))x */
+/* (Px(Sa(DxP))) */
 uint32_t XGA_MixVirgePixel(uint32_t srcpixel,uint32_t patpixel,uint32_t dstpixel,uint8_t rop) {
 	switch (rop) {
 		/* S3 ViRGE Integrated 3D Accelerator Appendix A Listing of Raster Operations */
 		case 0x00/*0           */: return 0;
+		case 0x88/*DSa         */: return dstpixel & srcpixel;
 		case 0xAA/*D           */: return dstpixel;
+		case 0xB8/*PSDPxax     */: return ((dstpixel ^ patpixel) & srcpixel) ^ patpixel;
 		case 0xCC/*S           */: return srcpixel;
 		case 0xF0/*P           */: return patpixel;
 		case 0xFF/*1           */: return 0xFFFFFFFF;
@@ -1419,9 +1447,172 @@ void XGA_DrawVirgePixel(XGAStatus::XGA_VirgeState::reggroup &rset,unsigned int x
 	}
 }
 
+inline void XGA_DrawVirgePixelCR(XGAStatus::XGA_VirgeState::reggroup &rset,unsigned int x,unsigned int y,uint32_t c) {
+	if (x >= rset.left_clip && x <= rset.right_clip && y >= rset.top_clip && y <= rset.bottom_clip)
+		XGA_DrawVirgePixel(rset,x,y,c);
+}
+
+void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
+	uint32_t srcpixel,mixpixel,dstpixel,patpixel;
+	uint8_t valbytes = 4;
+	unsigned int x,y;
+	unsigned char pb;
+	uint8_t msk;
+
+//	LOG_MSG("BitBlt write %08x",(unsigned int)val);
+
+	if (xga.virge.bitbltstate.itf_buffer_initskip > 0) {
+		assert(valbytes >= xga.virge.bitbltstate.itf_buffer_initskip);
+		valbytes -= xga.virge.bitbltstate.itf_buffer_initskip;
+		val >>= (uint64_t)(8u * xga.virge.bitbltstate.itf_buffer_initskip);
+		xga.virge.bitbltstate.itf_buffer_initskip = 0;
+	}
+
+	assert(xga.virge.bitbltstate.itf_buffer_bytecount <= 4u); /* we should be flushing data */
+
+	if (xga.virge.bitbltstate.itf_buffer_bytecount > 0) {
+		xga.virge.bitbltstate.itf_buffer |= ((uint64_t)val) << (8u * xga.virge.bitbltstate.itf_buffer_bytecount);
+		xga.virge.bitbltstate.itf_buffer_bytecount += valbytes;
+	}
+	else {
+		xga.virge.bitbltstate.itf_buffer = (uint64_t)val;
+		xga.virge.bitbltstate.itf_buffer_bytecount = valbytes;
+	}
+
+	/* shifted in, write it out now */
+	x = xga.virge.bitblt.rect_dst_x;
+	y = xga.virge.bitblt.rect_dst_y;
+
+	pb = ((unsigned char*)(&xga.virge.bitblt.mono_pat))[(y-xga.virge.bitbltstate.starty)&7]; /* WARNING: Only works on little Endian CPUs */
+	if (x != xga.virge.bitbltstate.startx) {
+		unsigned char r = (x - xga.virge.bitbltstate.startx) & 7;
+		if (r != 0) pb = (pb << r) | (pb >> (8 - r));
+	}
+
+	if (xga.virge.imgxferport->command_set & 0x40) {
+		/* mono image bitmap */
+		assert(xga.virge.bitbltstate.src_xrem != 0);
+		while (xga.virge.bitbltstate.itf_buffer_bytecount > 0) {
+			LOG_MSG("BitBlt mono t=%u x=%u y=%u srm=%u/%u sw=%u patb=%02x srcb=%02x ctrl=%08x",
+				(xga.virge.imgxferport->command_set & 0x200) ? 1 : 0,
+				x,y,xga.virge.bitbltstate.src_xrem,xga.virge.bitbltstate.src_stride,
+				xga.virge.bitblt.rect_width,
+				pb,(uint8_t)xga.virge.bitbltstate.itf_buffer & 0xFFu,
+				xga.virge.bitblt.command_set);
+
+			msk = 0x80u;
+			if (xga.virge.imgxferport->command_set & 0x200) { /* transparent */
+				do {
+					if ((uint8_t)xga.virge.bitbltstate.itf_buffer & msk) {
+						srcpixel = xga.virge.bitblt.src_fgcolor;
+						dstpixel = XGA_ReadVirgePixel(xga.virge.bitblt,x,y);
+						patpixel = (pb & 0x80u) ? xga.virge.bitblt.mono_pat_fgcolor : xga.virge.bitblt.mono_pat_bgcolor;
+						mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
+						XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
+					}
+
+					pb = (pb << 1u) | (pb >> 7u);
+					msk >>= 1u;
+					x++;
+				} while (msk != 0u);
+			}
+			else {
+				do {
+					srcpixel = ((uint8_t)xga.virge.bitbltstate.itf_buffer & msk) ? xga.virge.bitblt.src_fgcolor : xga.virge.bitblt.src_bgcolor;
+					dstpixel = XGA_ReadVirgePixel(xga.virge.bitblt,x,y);
+					patpixel = (pb & 0x80u) ? xga.virge.bitblt.mono_pat_fgcolor : xga.virge.bitblt.mono_pat_bgcolor;
+					mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
+					XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
+
+					pb = (pb << 1u) | (pb >> 7u);
+					msk >>= 1u;
+					x++;
+				} while (msk != 0u);
+			}
+
+			xga.virge.bitbltstate.itf_buffer >>= (uint64_t)8;
+			xga.virge.bitbltstate.itf_buffer_bytecount--;
+			xga.virge.bitbltstate.src_xrem--;
+
+			if (xga.virge.bitbltstate.src_xrem == 0) {
+				xga.virge.bitbltstate.src_xrem = xga.virge.bitbltstate.src_stride;
+				if (xga.virge.bitblt.rect_dst_y == xga.virge.bitbltstate.stopy) {
+					xga.virge.bitbltstate.itf_buffer_bytecount = 0;
+					xga.virge.imgxferportfunc = NULL;
+					xga.virge.imgxferport = NULL;
+					break;
+				}
+				else {
+					x = xga.virge.bitbltstate.startx;
+					y++;
+
+					pb = ((unsigned char*)(&xga.virge.bitblt.mono_pat))[(y-xga.virge.bitbltstate.starty)&7]; /* WARNING: Only works on little Endian CPUs */
+					if (x != xga.virge.bitbltstate.startx) {
+						unsigned char r = (x - xga.virge.bitbltstate.startx) & 7;
+						if (r != 0) pb = (pb << r) | (pb >> (8 - r));
+					}
+				}
+			}
+		}
+	}
+	else {
+		/* color image bitmap */
+		// TODO
+		xga.virge.bitbltstate.itf_buffer_bytecount = 0;
+		LOG_MSG("BitBlt xfer color bitmap not yet implemented");
+	}
+
+	xga.virge.bitblt.rect_dst_x = x;
+	xga.virge.bitblt.rect_dst_y = y;
+}
+
+void XGA_ViRGE_BitBlt(XGAStatus::XGA_VirgeState::reggroup &rset) {
+	if (rset.command_set & 0x80) { /* data will be coming in from the image transfer port */
+		xga.virge.imgxferport = &rset;
+		xga.virge.imgxferportfunc = XGA_ViRGE_BitBlt_xferport;
+
+		xga.virge.bitbltstate.itf_buffer = 0;
+		xga.virge.bitbltstate.itf_buffer_bytecount = 0;
+		xga.virge.bitbltstate.itf_buffer_initskip = (rset.command_set >> 12u) & 3u;
+		xga.virge.bitbltstate.startx = rset.rect_dst_x;
+		xga.virge.bitbltstate.starty = rset.rect_dst_y;
+		xga.virge.bitbltstate.stopy = rset.rect_dst_y + rset.rect_height - 1u;
+		if (rset.command_set & 0x40) {
+			/* mono image */
+			xga.virge.bitbltstate.src_stride = (rset.rect_width + 7u) / 8u;
+		}
+		else {
+			/* color image */
+			xga.virge.bitbltstate.src_stride = rset.rect_width;
+			switch((rset.command_set >> 2u) & 7u) {
+				case 1: xga.virge.bitbltstate.src_stride *= 2u; break; // 16 bits/pixel
+				case 2: xga.virge.bitbltstate.src_stride *= 4u; break; // 32 bits/pixel
+				default: break;
+			}
+		}
+
+		switch((rset.command_set >> 10u) & 3u) {
+			case 1: xga.virge.bitbltstate.src_stride = (xga.virge.bitbltstate.src_stride + 1u) & (~1u); break; // WORD align
+			case 2: xga.virge.bitbltstate.src_stride = (xga.virge.bitbltstate.src_stride + 3u) & (~3u); break; // DWORD align
+			default: break;
+		}
+
+		xga.virge.bitbltstate.src_xrem = xga.virge.bitbltstate.src_stride;
+
+		if (xga.virge.bitbltstate.src_stride == 0) {
+			xga.virge.imgxferport = NULL;
+			xga.virge.imgxferportfunc = NULL;
+		}
+	}
+	else { /* source data is video memory */
+		xga.virge.imgxferport = NULL;
+		xga.virge.imgxferportfunc = NULL;
+	}
+}
+
 void XGA_ViRGE_DrawRect(XGAStatus::XGA_VirgeState::reggroup &rset) {
+	uint32_t srcpixel,mixpixel,dstpixel,patpixel;
 	unsigned int bex,bey,enx,eny;/*inclusive*/
-	uint32_t srcpixel,mixpixel;
 	unsigned int x,y;
 	unsigned char rb;
 
@@ -1460,8 +1651,10 @@ void XGA_ViRGE_DrawRect(XGAStatus::XGA_VirgeState::reggroup &rset) {
 		if (rset.command_set & 0x200) { /* TP - Transparent */
 			for (x=bex;x <= enx;x++) {
 				if (rb & 0x80) {
-					srcpixel = XGA_ReadVirgePixel(rset,x,y);
-					mixpixel = XGA_MixVirgePixel(srcpixel,rset.mono_pat_fgcolor/*See notes*/,rset.mono_pat_fgcolor,(rset.command_set>>17u)&0xFFu);
+					srcpixel = rset.mono_pat_fgcolor;
+					dstpixel = XGA_ReadVirgePixel(rset,x,y);
+					patpixel = rset.mono_pat_fgcolor/*See notes*/;
+					mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
 					XGA_DrawVirgePixel(rset,x,y,mixpixel);
 				}
 				rb = (rb << 1u) | (rb >> 7u);
@@ -1469,8 +1662,10 @@ void XGA_ViRGE_DrawRect(XGAStatus::XGA_VirgeState::reggroup &rset) {
 		}
 		else {
 			for (x=bex;x <= enx;x++) {
-				srcpixel = XGA_ReadVirgePixel(rset,x,y);
-				mixpixel = XGA_MixVirgePixel(srcpixel,rset.mono_pat_fgcolor/*See notes*/,(rb & 0x80) ? rset.mono_pat_fgcolor : rset.mono_pat_bgcolor,(rset.command_set>>17u)&0xFFu);
+				srcpixel = (rb & 0x80) ? rset.mono_pat_fgcolor : rset.mono_pat_bgcolor;
+				dstpixel = XGA_ReadVirgePixel(rset,x,y);
+				patpixel = rset.mono_pat_fgcolor/*See notes*/;
+				mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
 				XGA_DrawVirgePixel(rset,x,y,mixpixel);
 				rb = (rb << 1u) | (rb >> 7u);
 			}
@@ -1491,9 +1686,11 @@ void XGA_ViRGE_DrawRect(XGAStatus::XGA_VirgeState::reggroup &rset) {
 void XGA_ViRGE_BitBlt_Execute(void) {
 	auto &rset = xga.virge.bitblt;
 
+	xga.virge.imgxferport = NULL;
+	xga.virge.imgxferportfunc = NULL;
 	switch ((rset.command_set >> 27u) & 0x1F) { /* bits [31:31] 3D command if set, 2D else. bits [30:27] command */
 		case 0x00: /* 2D BitBlt */
-			// TODO
+			XGA_ViRGE_BitBlt(rset);
 			break;
 		case 0x02: /* 2D Rectangle Fill */
 			XGA_ViRGE_DrawRect(rset);
