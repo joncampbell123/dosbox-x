@@ -1966,11 +1966,15 @@ void XGA_ViRGE_DrawRect(XGAStatus::XGA_VirgeState::reggroup &rset) {
 	rset.rect_dst_y = eny + 1;
 }
 
-void XGA_ViRGE_BitBlt_Execute(void) {
+void XGA_ViRGE_BitBlt_Execute(bool commandwrite) {
 	auto &rset = xga.virge.bitblt;
 
 	xga.virge.imgxferport = NULL;
 	xga.virge.imgxferportfunc = NULL;
+
+	if (commandwrite)
+		rset.command_execute_on_register = 0;
+
 	switch ((rset.command_set >> 27u) & 0x1F) { /* bits [31:31] 3D command if set, 2D else. bits [30:27] command */
 		case 0x00: /* 2D BitBlt */
 			XGA_ViRGE_BitBlt(rset);
@@ -1989,6 +1993,8 @@ void XGA_ViRGE_BitBlt_Execute(void) {
 void XGA_ViRGE_BitBlt_Execute_deferred(void) {
 	auto &rset = xga.virge.bitblt;
 
+	xga.virge.imgxferport = NULL;
+	xga.virge.imgxferportfunc = NULL;
 	switch ((rset.command_set >> 27u) & 0x1F) { /* bits [31:31] 3D command if set, 2D else. bits [30:27] command */
 		case 0x00: /* 2D BitBlt */
 		case 0x02: /* 2D Rectangle Fill */
@@ -2477,7 +2483,7 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 				auto &rg = xga.virge.bitblt_validate_port(port);
 				rg.set__command_set(val);
 				if (rg.command_set & 1) XGA_ViRGE_BitBlt_Execute_deferred();
-				else XGA_ViRGE_BitBlt_Execute();
+				else XGA_ViRGE_BitBlt_Execute(true);
 			}
 			else goto default_case;
 			break;
@@ -2559,7 +2565,7 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 				{
 					auto &rset = xga.virge.bitblt_validate_port(port);
 					if (rset.command_execute_on_register != 0 && rset.command_execute_on_register == (port&0x3FF))
-						XGA_ViRGE_BitBlt_Execute();
+						XGA_ViRGE_BitBlt_Execute(false);
 				}
 				break;
 			case 0xA800:
