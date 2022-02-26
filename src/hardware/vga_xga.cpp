@@ -1376,11 +1376,6 @@ extern Bitu vga_read_p3d4(Bitu port,Bitu iolen);
 extern void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen);
 extern Bitu vga_read_p3d5(Bitu port,Bitu iolen);
 
-/* CHECK: */
-/* PSDPxax */
-/* PS(DxP)ax */
-/* P(Sa(DxP))x */
-/* (Px(Sa(DxP))) */
 uint32_t XGA_MixVirgePixel(uint32_t srcpixel,uint32_t patpixel,uint32_t dstpixel,uint8_t rop) {
 	switch (rop) {
 		/* S3 ViRGE Integrated 3D Accelerator Appendix A Listing of Raster Operations */
@@ -1388,10 +1383,13 @@ uint32_t XGA_MixVirgePixel(uint32_t srcpixel,uint32_t patpixel,uint32_t dstpixel
 		case 0x55/*Dn          */: return ~dstpixel;
 		case 0x5A/*DPx         */: return dstpixel ^ patpixel;
 		case 0x66/*DSx         */: return dstpixel ^ srcpixel;
+		case 0x69/*PDSxxn      */: return ~(srcpixel ^ dstpixel ^ patpixel);
 		case 0x88/*DSa         */: return dstpixel & srcpixel;
+		case 0xA5/*PDxn        */: return ~(patpixel ^ dstpixel);
 		case 0xAA/*D           */: return dstpixel;
 		case 0xB8/*PSDPxax     */: return ((dstpixel ^ patpixel) & srcpixel) ^ patpixel;
 		case 0xCC/*S           */: return srcpixel;
+		case 0xEE/*DSo         */: return dstpixel | srcpixel;
 		case 0xF0/*P           */: return patpixel;
 		case 0xFF/*1           */: return 0xFFFFFFFF;
 		default:
