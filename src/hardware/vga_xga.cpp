@@ -1643,7 +1643,7 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 			xga.virge.bitbltstate.src_xrem--;
 
 			if (xga.virge.bitbltstate.src_xrem == 0) {
-				if (xga.virge.bitblt.rect_dst_y == xga.virge.bitbltstate.stopy) {
+				if (y == xga.virge.bitbltstate.stopy) {
 					xga.virge.bitbltstate.itf_buffer_bytecount = 0;
 					xga.virge.bitbltstate.itf_buffer = 0;
 					xga.virge.imgxferportfunc = NULL;
@@ -1723,7 +1723,7 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 			xga.virge.bitbltstate.src_xrem -= bypp;
 
 			if (xga.virge.bitbltstate.src_xrem < bypp) {
-				if (xga.virge.bitblt.rect_dst_y == xga.virge.bitbltstate.stopy) {
+				if (y == xga.virge.bitbltstate.stopy) {
 					xga.virge.bitbltstate.itf_buffer_bytecount = 0;
 					xga.virge.bitbltstate.itf_buffer = 0;
 					xga.virge.imgxferportfunc = NULL;
