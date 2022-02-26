@@ -1529,7 +1529,6 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 	uint32_t srcpixel,mixpixel,dstpixel,patpixel;
 	uint8_t valbytes = 4;
 	unsigned int x,y;
-	unsigned char pb;
 	uint8_t msk;
 
 //	LOG_MSG("BitBlt write %08x",(unsigned int)val);
@@ -1556,12 +1555,6 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 	x = xga.virge.bitblt.rect_dst_x;
 	y = xga.virge.bitblt.rect_dst_y;
 
-	pb = ((unsigned char*)(&xga.virge.bitblt.mono_pat))[(y-xga.virge.bitbltstate.starty)&7]; /* WARNING: Only works on little Endian CPUs */
-	if (x != xga.virge.bitbltstate.startx) {
-		unsigned char r = (x - xga.virge.bitbltstate.startx) & 7;
-		if (r != 0) pb = (pb << r) | (pb >> (8 - r));
-	}
-
 	if (xga.virge.imgxferport->command_set & 0x40) {
 		/* mono image bitmap */
 		assert(xga.virge.bitbltstate.src_xrem != 0);
@@ -1583,14 +1576,13 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 							if ((uint8_t)xga.virge.bitbltstate.itf_buffer & msk) {
 								srcpixel = xga.virge.bitblt.src_fgcolor;
 								dstpixel = XGA_ReadDestVirgePixel(xga.virge.bitblt,x,y);
-								patpixel = (pb & 0x80u) ? xga.virge.bitblt.mono_pat_fgcolor : xga.virge.bitblt.mono_pat_bgcolor;
+								patpixel = XGA_VirgePatPixelMono(x,y);
 								mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
 								XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
 							}
 							xga.virge.bitbltstate.src_drem--;
 						}
 
-						pb = (pb << 1u) | (pb >> 7u);
 						msk >>= 1u;
 						x++;
 					} while (msk != 0u);
@@ -1600,13 +1592,12 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 						if (xga.virge.bitbltstate.src_drem > 0) {
 							srcpixel = ((uint8_t)xga.virge.bitbltstate.itf_buffer & msk) ? xga.virge.bitblt.src_fgcolor : xga.virge.bitblt.src_bgcolor;
 							dstpixel = XGA_ReadDestVirgePixel(xga.virge.bitblt,x,y);
-							patpixel = (pb & 0x80u) ? xga.virge.bitblt.mono_pat_fgcolor : xga.virge.bitblt.mono_pat_bgcolor;
+							patpixel = XGA_VirgePatPixelMono(x,y);
 							mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
 							XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
 							xga.virge.bitbltstate.src_drem--;
 						}
 
-						pb = (pb << 1u) | (pb >> 7u);
 						msk >>= 1u;
 						x++;
 					} while (msk != 0u);
@@ -1652,8 +1643,6 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 			xga.virge.bitbltstate.src_xrem--;
 
 			if (xga.virge.bitbltstate.src_xrem == 0) {
-				xga.virge.bitbltstate.src_drem = xga.virge.bitblt.rect_width;
-				xga.virge.bitbltstate.src_xrem = xga.virge.bitbltstate.src_stride;
 				if (xga.virge.bitblt.rect_dst_y == xga.virge.bitbltstate.stopy) {
 					xga.virge.bitbltstate.itf_buffer_bytecount = 0;
 					xga.virge.bitbltstate.itf_buffer = 0;
@@ -1662,14 +1651,10 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 					break;
 				}
 				else {
+					xga.virge.bitbltstate.src_drem = xga.virge.bitblt.rect_width;
+					xga.virge.bitbltstate.src_xrem = xga.virge.bitbltstate.src_stride;
 					x = xga.virge.bitbltstate.startx;
 					y++;
-
-					pb = ((unsigned char*)(&xga.virge.bitblt.mono_pat))[(y-xga.virge.bitbltstate.starty)&7]; /* WARNING: Only works on little Endian CPUs */
-					if (x != xga.virge.bitbltstate.startx) {
-						unsigned char r = (x - xga.virge.bitbltstate.startx) & 7;
-						if (r != 0) pb = (pb << r) | (pb >> (8 - r));
-					}
 				}
 			}
 		}
@@ -1705,13 +1690,12 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 					if (xga.virge.bitbltstate.src_drem > 0) {
 						srcpixel = (uint32_t)xga.virge.bitbltstate.itf_buffer & bypmsk;
 						dstpixel = XGA_ReadDestVirgePixel(xga.virge.bitblt,x,y);
-						patpixel = (pb & 0x80u) ? xga.virge.bitblt.mono_pat_fgcolor : xga.virge.bitblt.mono_pat_bgcolor;
+						patpixel = XGA_VirgePatPixelMono(x,y);
 						mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(xga.virge.bitblt.command_set>>17u)&0xFFu);
 						XGA_DrawVirgePixelCR(xga.virge.bitblt,x,y,mixpixel);
 						xga.virge.bitbltstate.src_drem--;
 					}
 
-					pb = (pb << 1u) | (pb >> 7u);
 					x++;
 				}
 			}
@@ -1763,12 +1747,6 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 					xga.virge.bitbltstate.src_xrem = xga.virge.bitbltstate.src_stride;
 					x = xga.virge.bitbltstate.startx;
 					y++;
-
-					pb = ((unsigned char*)(&xga.virge.bitblt.mono_pat))[(y-xga.virge.bitbltstate.starty)&7]; /* WARNING: Only works on little Endian CPUs */
-					if (x != xga.virge.bitbltstate.startx) {
-						unsigned char r = (x - xga.virge.bitbltstate.startx) & 7;
-						if (r != 0) pb = (pb << r) | (pb >> (8 - r));
-					}
 				}
 			}
 		}
