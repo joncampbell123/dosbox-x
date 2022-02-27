@@ -151,13 +151,16 @@ struct XGAStatus {
 		} bitbltstate;
 
 		union colorpat_t {
-			uint8_t                  pat8[64];    /* +A100-A13C 8bpp */
-			uint16_t                 pat16[64];   /* +A100-A17C 16bpp */
-			uint8_t                  pat24[64*3]; /* +A100-A1BC 24bpp */
+			/* NTS: extra 4 bytes so a typecast to pat8 to read 24 bits does not overread the buffer */
+			uint8_t                  pat8[68];    /* +A100-A13C 8bpp */
+			uint16_t                 pat16[68];   /* +A100-A17C 16bpp */
+			uint8_t                  pat24[68*3]; /* +A100-A1BC 24bpp */
 			uint32_t                 raw[48];     /* raw DWORD access for I/O handler, ((64*3)/4) == 48 */
 		};
 
 		colorpat_t                       colorpat;
+		unsigned int                     truecolor_bypp; /* ViRGE cards seem to prefer 24bpp? Windows drivers act like it */
+		uint32_t                         truecolor_mask;
 
 		inline struct reggroup &bitblt_validate_port(const uint32_t port) {
 #ifdef S3_VALIDATE_VIRGE_PORTS
@@ -1415,15 +1418,8 @@ uint32_t XGA_VirgePatPixel(unsigned int x,unsigned int y) {
 			return xga.virge.colorpat.pat8[((y&7u)<<3u)+(x&7u)];
 		case 1: // 16 bits/pixel
 			return xga.virge.colorpat.pat16[((y&7u)<<3u)+(x&7u)];
-		case 2: // 32 bits/pixel
-			{
-				const unsigned int i = (((y&7u)<<3u)+(x&7u))*3u;
-				return
-					((uint32_t)xga.virge.colorpat.pat8[i+0] << (uint32_t)0) +
-					((uint32_t)xga.virge.colorpat.pat8[i+1] << (uint32_t)8) +
-					((uint32_t)xga.virge.colorpat.pat8[i+2] << (uint32_t)16);
-
-			}
+		case 2: // 24/32 bits/pixel
+			return *((uint32_t*)(&xga.virge.colorpat.pat8[(((y&7u)<<3u)+(x&7u))*3u])) & 0xFFFFFF;
 		default:
 			break;
 	}
@@ -1445,10 +1441,10 @@ uint32_t XGA_ReadSourceVirgePixel(XGAStatus::XGA_VirgeState::reggroup &rset,unsi
 			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
 			return *((uint16_t*)(vga.mem.linear+memaddr));
 			break;
-		case 2: // 32 bits/pixel:
-			memaddr = (uint32_t)((y * rset.src_stride) + (x*4)) + rset.src_base;
+		case 2: // 24/32 bits/pixel
+			memaddr = (uint32_t)((y * rset.src_stride) + (x*xga.virge.truecolor_bypp)) + rset.src_base;
 			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
-			return *((uint32_t*)(vga.mem.linear+memaddr));
+			return *((uint32_t*)(vga.mem.linear+memaddr)) & xga.virge.truecolor_mask;
 			break;
 		default:
 			break;
@@ -1471,10 +1467,10 @@ uint32_t XGA_ReadDestVirgePixel(XGAStatus::XGA_VirgeState::reggroup &rset,unsign
 			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
 			return *((uint16_t*)(vga.mem.linear+memaddr));
 			break;
-		case 2: // 32 bits/pixel:
-			memaddr = (uint32_t)((y * rset.dst_stride) + (x*4)) + rset.dst_base;
+		case 2: // 24/32 bits/pixel
+			memaddr = (uint32_t)((y * rset.dst_stride) + (x*xga.virge.truecolor_bypp)) + rset.dst_base;
 			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
-			return *((uint32_t*)(vga.mem.linear+memaddr));
+			return *((uint32_t*)(vga.mem.linear+memaddr)) & xga.virge.truecolor_mask;
 			break;
 		default:
 			break;
@@ -1483,9 +1479,6 @@ uint32_t XGA_ReadDestVirgePixel(XGAStatus::XGA_VirgeState::reggroup &rset,unsign
 	return 0;
 }
 
-// FIXME: Windows 3.1 S3 Virge driver "16 million colors" mode sets up M_LIN32, but the dst stride we are given
-//        corresponds to the display width as if 24 bits per pixel (width * 3). As a result, accelerated drawing
-//        here will not render properly. WTF?
 void XGA_DrawVirgePixel(XGAStatus::XGA_VirgeState::reggroup &rset,unsigned int x,unsigned int y,uint32_t c) {
 	uint32_t memaddr;
 
@@ -1505,10 +1498,17 @@ void XGA_DrawVirgePixel(XGAStatus::XGA_VirgeState::reggroup &rset,unsigned int x
 			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
 			*((uint16_t*)(vga.mem.linear+memaddr)) = (uint16_t)(c&0xffff);
 			break;
-		case 2: // 32 bits/pixel:
-			memaddr = (uint32_t)((y * rset.dst_stride) + (x*4)) + rset.dst_base;
+		case 2: // 24/32 bits/pixel
+			memaddr = (uint32_t)((y * rset.dst_stride) + (x*xga.virge.truecolor_bypp)) + rset.dst_base;
 			if (GCC_UNLIKELY(memaddr >= vga.mem.memsize)) break;
-			*((uint32_t*)(vga.mem.linear+memaddr)) = (uint32_t)c;
+			if (xga.virge.truecolor_mask == 0xFFFFFFFFu) {
+				*((uint32_t*)(vga.mem.linear+memaddr)) = (uint32_t)c;
+			}
+			else {
+				vga.mem.linear[memaddr+0] = (uint8_t)c;
+				vga.mem.linear[memaddr+1] = (uint8_t)(c >> 8u);
+				vga.mem.linear[memaddr+2] = (uint8_t)(c >> 16u);
+			}
 			break;
 		default:
 			break;
@@ -1665,7 +1665,7 @@ void XGA_ViRGE_BitBlt_xferport(uint32_t val) {
 
 		switch((xga.virge.bitblt.command_set >> 2u) & 7u) {
 			case 1: bypp = 2u; bypmsk = 0x0000FFFF; break; // 16 bits/pixel
-			case 2: bypp = 4u; bypmsk = 0xFFFFFFFF; break; // 32 bits/pixel
+			case 2: bypp = xga.virge.truecolor_bypp; bypmsk = xga.virge.truecolor_mask; break; // 24/32 bits/pixel
 			default: break;
 		}
 
@@ -1778,7 +1778,7 @@ void XGA_ViRGE_BitBlt(XGAStatus::XGA_VirgeState::reggroup &rset) {
 			xga.virge.bitbltstate.src_stride = rset.rect_width;
 			switch((rset.command_set >> 2u) & 7u) {
 				case 1: xga.virge.bitbltstate.src_stride *= 2u; break; // 16 bits/pixel
-				case 2: xga.virge.bitbltstate.src_stride *= 4u; break; // 32 bits/pixel
+				case 2: xga.virge.bitbltstate.src_stride *= xga.virge.truecolor_bypp; break; // 24/32 bits/pixel
 				default: break;
 			}
 		}
@@ -2625,6 +2625,16 @@ void VGA_SetupXGA(void) {
 	if (!IS_VGA_ARCH) return;
 
 	memset(&xga, 0, sizeof(XGAStatus));
+
+	/* FIXME: ViRGE cards like 24bpp rather than 32bpp? Or is that just Windows driver laziness? Leave the option open for 32bpp ViRGE acceleration. */
+	if (s3Card >= S3_ViRGE && s3Card <= S3_ViRGEVX) {
+		xga.virge.truecolor_bypp = 3;
+		xga.virge.truecolor_mask = 0xFFFFFF;
+	}
+	else {
+		xga.virge.truecolor_bypp = 4;
+		xga.virge.truecolor_mask = 0xFFFFFFFF;
+	}
 
 	xga.scissors.y1 = 0;
 	xga.scissors.x1 = 0;
