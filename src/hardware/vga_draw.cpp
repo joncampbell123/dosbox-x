@@ -612,6 +612,68 @@ static uint8_t * VGA_Draw_Linear_Line_24_to_32(Bitu vidstart, Bitu /*line*/) {
     return TempLine;
 }
 
+static uint8_t * VGA_Draw_Linear_Line_24_to_32_HWMouse(Bitu vidstart, Bitu /*line*/) {
+    VGA_Draw_Linear_Line_24_to_32(vidstart,0/*ignored*/); /* always returns TempLine */
+
+    if (!svga.hardware_cursor_active || !svga.hardware_cursor_active())
+        return TempLine;
+
+    Bitu lineat = ((vidstart-(vga.config.real_start<<2)) / 3) / vga.draw.width;
+    if ((vga.s3.hgc.posx >= vga.draw.width) ||
+        (lineat < vga.s3.hgc.originy) || 
+        (lineat > (vga.s3.hgc.originy + (63U-vga.s3.hgc.posy))) ) {
+        return TempLine;
+    } else {
+        unsigned int hpos;
+
+        // On 86C928 cards, the "horizontal stretch" modes determine how the cursor is formatted
+        // to the DAC. Based on Windows 3.1/95 behavior, it apparently also affects the X coordinate
+        // which must match the BYTE offset when run through the DAC. Without this code, the
+        // cursor will be placed at 2x (in 16bpp) or 4x (in 32bpp) the actual position it should be.
+        if (svgaCard == SVGA_S3Trio && (s3Card >= S3_86C928 && s3Card <= S3_Vision868)) {
+            /* NTS: S3 datasheets document bits 2-3 as follows:
+             *
+             *      bit 2: Hardware cursor horizontal stretch 2 - twice the width (16bpp, apparently)
+             *      bit 3: Hardware cursor horizontal stretch 3 - triple the width (24bpp, apparently)
+             *
+             * Windows 3.1 sets BOTH bits, which apparently means quadruple the width (32bpp)
+             * Windows 95 does the same, which suggests that perhaps the hardware behaves as such.
+             *
+             * I don't know if this is how real hardware behaves but it's what Windows apparently
+             * expects to do with the hardware based on how it's setting the X coordinate of the cursor. -- J.C. */
+            hpos = vga.s3.hgc.originx / (1 + ((vga.s3.hgc.curmode >> 2u) & 3u));
+        }
+        else {
+            hpos = vga.s3.hgc.originx;
+        }
+
+        Bitu sourceStartBit = ((lineat - vga.s3.hgc.originy) + vga.s3.hgc.posy)*64 + vga.s3.hgc.posx; 
+        Bitu cursorMemStart = ((sourceStartBit >> 2) & ~1ul) + (((uint32_t)vga.s3.hgc.startaddr) << 10ul);
+        Bitu cursorStartBit = sourceStartBit & 0x7u;
+        if (cursorMemStart & 0x2) cursorMemStart--;
+        Bitu cursorMemEnd = cursorMemStart + (Bitu)((64 - vga.s3.hgc.posx) >> 2);
+        uint32_t* xat = &((uint32_t*)TempLine)[hpos]; // NTS: 24bpp is converted to 32bpp first, so by this point the line is 32bpp
+        for (Bitu m = cursorMemStart; m < cursorMemEnd; (m&1)?(m+=3):m++) {
+            // for each byte of cursor data
+            uint8_t bitsA = vga.mem.linear[m];
+            uint8_t bitsB = vga.mem.linear[m+2];
+            for (uint8_t bit=(0x80 >> cursorStartBit); bit != 0; bit >>= 1) { // for each bit
+                cursorStartBit=0;
+                if (bitsA&bit) {
+                    if (bitsB&bit) *xat ^= ~0U;
+                    //else Transparent
+                } else if (bitsB&bit) {
+                    *xat = *(uint32_t*)vga.s3.hgc.forestack;
+                } else {
+                    *xat = *(uint32_t*)vga.s3.hgc.backstack;
+                }
+                xat++;
+            }
+        }
+        return TempLine;
+    }
+}
+
 static uint8_t * VGA_Draw_Linear_Line(Bitu vidstart, Bitu /*line*/) {
     Bitu offset = vidstart & vga.draw.linear_mask;
     uint8_t* ret = &vga.draw.linear_base[offset];
@@ -4497,10 +4559,13 @@ void VGA_ActivateHardwareCursor(void) {
     if (svga.hardware_cursor_active) {
         if (svga.hardware_cursor_active()) hwcursor_active=true;
     }
-    if (hwcursor_active && vga.mode != M_LIN24) {
+    if (hwcursor_active) {
         switch(vga.mode) {
         case M_LIN32:
             VGA_DrawLine=VGA_Draw_LIN32_Line_HWMouse;
+            break;
+        case M_LIN24:
+            VGA_DrawLine=VGA_Draw_Linear_Line_24_to_32_HWMouse;
             break;
         case M_LIN15:
         case M_LIN16:
