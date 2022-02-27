@@ -35,6 +35,7 @@
 #include "callback.h"
 #include "control.h"
 #include "sdlmain.h"
+#include "bitop.h"
 
 #define SEQ_REGS 0x05
 #define GFX_REGS 0x09
@@ -219,7 +220,7 @@ VideoModeBlock ModeList_VGA[]={
 { 0x209  ,M_LIN15	,1152,864,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,364 ,948 ,288,864 ,0	},
 { 0x20A  ,M_LIN16	,1152,864,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,364 ,948 ,288,864 ,0	},
 { 0x20B  ,M_LIN32	,1152,864,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,182 ,948 ,144,864 ,0	},
-{ 0x212  ,M_LIN24	,640 ,480,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,512 ,80 ,480 ,0	}, // Windows 3.1 + S386C928 driver expects this AND a stride of 2048 bytes per scanline
+{ 0x212  ,M_LIN24	,640 ,480,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 ,_S3_POW2_STRIDE }, // Windows 3.1 + S386C928 driver expects this AND 2048 bytes per scanline
 { 0x213  ,M_LIN32	,640 ,400,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 ,0	},
 
 // Some custom modes
@@ -1723,6 +1724,12 @@ bool INT10_SetVideoMode(uint16_t mode) {
         offset = CurMode->hdispend/2;
         break;
     }
+
+	if (CurMode->special & _S3_POW2_STRIDE) {
+		if (!bitop::ispowerof2(offset))
+			offset = bitop::bit2mask(bitop::log2(offset) + 1u);
+	}
+
 	IO_Write(crtc_base,0x13);
 	IO_Write(crtc_base + 1u,offset & 0xff);
 

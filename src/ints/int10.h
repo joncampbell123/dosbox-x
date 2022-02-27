@@ -164,6 +164,7 @@ typedef struct {
 #define _S3_PIXEL_DOUBLE		0x0008
 #define _REPEAT1			    0x0010  /* VGA doublescan (bit 0 of max scanline) */
 #define _CGA_SYNCDOUBLE			0x0020
+#define _S3_POW2_STRIDE			0x0040  /* Stride must be a power of 2, round up after offset calculation */
 #define _HIGH_DEFINITION        0x0040
 #define _UNUSUAL_MODE           0x0080
 #define _USER_DISABLED          0x4000  /* disabled (cannot set mode) but still listed in modelist */
