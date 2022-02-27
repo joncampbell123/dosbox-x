@@ -854,7 +854,6 @@ void VGA_Reset(Section*) {
     vga_double_buffered_line_compare = section->Get_bool("double-buffered line compare");
     hack_lfb_yadjust = section->Get_int("vesa lfb base scanline adjust");
     allow_vesa_lowres_modes = section->Get_bool("allow low resolution vesa modes");
-    vesa12_modes_32bpp = section->Get_bool("vesa vbe 1.2 modes are 32bpp");
     allow_vesa_4bpp_packed = section->Get_bool("allow 4bpp packed vesa modes");
     allow_explicit_vesa_24bpp = section->Get_bool("allow explicit 24bpp vesa modes");
     allow_hd_vesa_modes = section->Get_bool("allow high definition vesa modes");
@@ -869,6 +868,44 @@ void VGA_Reset(Section*) {
     enable_vga_resize_delay = section->Get_bool("enable vga resize delay");
     vga_ignore_hdispend_change_if_smaller = section->Get_bool("resize only on vga active display width increase");
     vesa_bios_modelist_in_info = section->Get_bool("vesa vbe put modelist in vesa information");
+
+    /* It turns out various S3 cards and their BIOSes vary their preference for 32bpp or 24bpp.
+     * For example most S3 drivers are perfectly happy with and will prefer 32bpp, but S3 ViRGE drivers
+     * for some reason prefer 24bpp, and they even expect the base VESA BIOS modes to be 24bpp.
+     * The Windows drivers for ViRGE chipsets in fact do not even offer "Truecolor (32-bit)" even
+     * though the chipset documentation says that if you turn on "full streams processor operation"
+     * you can take your pick of either one, but then again, the Windows drivers don't have their
+     * own modesetting code anyway, they just call INT 10h VESA BIOS extensions to change video modes
+     * and make assumptions about video modes and formats. No attempt by the drivers are made to
+     * modify the primary streams processor during modesettings.
+     *
+     * This code does respond to those register writes even if not used yet, so maybe someday if
+     * we get Windows NT to work in DOSBox-X, then assuming the NT drivers do not call INT 10h,
+     * we can see a driver do the modesetting work itself and enhance emulation appropriately.
+     *
+     * Therefore "auto" as added as an option to forestall millions of users complaining about
+     * garbled displays whenever they select "16.7 million colors" in Windows 3.1 or "Truecolor (24-bit)"
+     * in Windows 95 with machine=svga_s3virge. It would be much easier to automatically select on auto
+     * than to answer the same question over and over with "just change this option to false if you're
+     * using machine=svga_s3virge".
+     *
+     * This automatic selection may cause DOS games that assume or require 32bpp to fail with
+     * machine=svga_s3virge, but then again, such games would likely fail the same way if run on
+     * real hardware with a real ViRGE PCI card. If your DOS game assumes things about the mode
+     * without using the "get mode" call that has been there since VBE 1.0, then your game
+     * deserves to misrender on screen and it's your fault. Fortunately by 1996 when the ViRGE
+     * chipset came out, most DOS games by that point were using the "get mode" call, except
+     * for some Demoscene coders who evidently did not have VESA BIOS documentation and had to
+     * guess and assume from what they could figure out. */
+    str = section->Get_string("vesa vbe 1.2 modes are 32bpp");
+    if (str == "true" || str == "1")
+        vesa12_modes_32bpp = true;
+    else if (str == "false" || str == "0")
+        vesa12_modes_32bpp = false;
+    else if (svgaCard == SVGA_S3Trio && s3Card >= S3_ViRGE && s3Card <= S3_ViRGEVX)
+        vesa12_modes_32bpp = false; /* ViRGE Windows drivers only support 24bpp and they expect the base VESA modes to provide 24bpp */
+    else
+        vesa12_modes_32bpp = true;
 
     /* sanity check: "VBE 1.2 modes 32bpp" doesn't make any sense if neither 24bpp or 32bpp is enabled */
     if (!allow_vesa_32bpp && !allow_vesa_24bpp)

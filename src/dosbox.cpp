@@ -2435,10 +2435,11 @@ void DOSBOX_SetupConfigSections(void) {
                     "queries information on the VESA BIOS. Setting this option may help with some games, though it limits\n"
                     "the mode list reported to the DOS application.");
 
-    Pbool = secprop->Add_bool("vesa vbe 1.2 modes are 32bpp",Property::Changeable::Always,true);
-    Pbool->Set_help("If set, truecolor (16M color) VESA BIOS modes in the 0x100-0x11F range are 32bpp. If clear, they are 24bpp.\n"
+    Pstring = secprop->Add_string("vesa vbe 1.2 modes are 32bpp",Property::Changeable::Always,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("If set, truecolor (16M color) VESA BIOS modes in the 0x100-0x11F range are 32bpp. If clear, they are 24bpp.\n"
             "Some DOS games and demos assume one bit depth or the other and do not enumerate VESA BIOS modes, which is why this\n"
-            "option exists.");
+            "option exists. If set to auto, this is determined by the type of SVGA chipset emulated.");
 
     Pbool = secprop->Add_bool("allow low resolution vesa modes",Property::Changeable::Always,true);
     Pbool->Set_help("If set, allow low resolution VESA modes (320x200x16/24/32bpp and so on). You could set this to false to simulate\n"

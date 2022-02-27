@@ -1,4 +1,19 @@
 0.83.23
+  - dosbox.conf option "vesa vbe 1.2 modes are 32bpp" is
+    now "true" "false" or "auto", where "auto" determines
+    this setting based on which S3 chipset is being
+    emulated. It seems the Windows drivers for ViRGE
+    chipsets require 24bpp for truecolor modes, in fact,
+    they do not even offer 32bpp as an option. Since
+    the Windows 3.1/95/98 drivers use VESA BIOS calls to
+    set video modes, this implies that the VESA BIOS on
+    ViRGE cards are also making the base modes 24bpp rather
+    than 32bpp. Note that the Windows drivers for older S3
+    chipsets are perfectly happy to use 32bpp unless you
+    select "16.7 million colors (1 Meg)" in Windows 3.1,
+    which is the only option in those drivers to offer
+    24bpp. To avoid grief with DOSBox-X users, "auto"
+    is the default setting.
   - Added basic S3 ViRGE XGA acceleration. It's enough for
     90% of the GDI functions in Windows 3.1 so far.
   - Fixed S3 rectangle XGA accelerated pattern blit, when
