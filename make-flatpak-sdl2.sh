@@ -7,7 +7,7 @@ fi
 
 if [[ ! $(flatpak list|grep org.freedesktop.Sdk|wc -l) -ge 1 ]]; then 
 	echo Please ensure the necessary SDK and matching runtime are installed by running:
-	echo flatpak install flathub org.freedesktop.Platform//20.08 org.freedesktop.Sdk//20.08
+	echo flatpak install flathub org.freedesktop.Platform//21.08 org.freedesktop.Sdk//21.08
 	exit
 fi
 
