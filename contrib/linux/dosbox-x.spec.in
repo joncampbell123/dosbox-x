@@ -25,7 +25,12 @@ BuildRequires: mesa-libGL-devel
 BuildRequires: ncurses-devel
 BuildRequires: pulseaudio-libs-devel
 BuildRequires: SDL2-devel
+
+# Does not exist on RHEL8 EPEL for some reason
+%if 0%{?fedora} || 0%{?el7}
 BuildRequires: SDL2_net-devel
+%endif
+
 BuildRequires: zlib-devel
 
 Requires:      fluid-soundfont-gm
