@@ -9,7 +9,7 @@ finish-args: # flatpak permissions
   - --device=all # needed for gamepads and serial/parallel
   - --share=ipc	 # needed for X11
   - --share=network # needed for networking (NE2000, IPX)
-  - --socket=x11 # default to X11 due to FS issues
+  - --socket=x11 # default to X11 due to fullscreen issues
   - --socket=pulseaudio
   - --filesystem=home
 
@@ -30,8 +30,8 @@ modules:
       - --disable-static
     sources:
       - type: archive
-        url:  https://mesa.freedesktop.org/archive/glu/glu-9.0.1.tar.xz
-        sha256: fb5a4c2dd6ba6d1c21ab7c05129b0769544e1d68e1e3b0ffecb18e73c93055bc
+        url:  https://mesa.freedesktop.org/archive/glu/glu-9.0.2.tar.xz
+        sha256: 6e7280ff585c6a1d9dfcdf2fca489251634b3377bfc33c29e4002466a38d02d4
     cleanup:
       - /include
       - /lib/*.a
@@ -51,8 +51,8 @@ modules:
       - "*.so"
     sources:
       - type: archive
-        url: https://github.com/FluidSynth/fluidsynth/archive/v2.1.5.tar.gz
-        sha256: b539b7c65a650b56f01cd60a4e83c6125c217c5a63c0c214ef6274894a677d00
+        url: https://github.com/FluidSynth/fluidsynth/archive/v2.2.4.tar.gz
+        sha256: 83cb1dba04c632ede74f0c0717018b062c0e00b639722203b23f77a961afd390
 
 # Build libslirp for networking
 - name: libslirp
