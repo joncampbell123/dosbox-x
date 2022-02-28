@@ -1,3 +1,4 @@
+---
 app-id: com.dosbox_x.DOSBox-X
 runtime: org.freedesktop.Platform
 runtime-version: '21.08'
@@ -5,11 +6,11 @@ sdk: org.freedesktop.Sdk
 
 command: dosbox-x
 
-finish-args: # flatpak permissions
-  - --device=all # needed for gamepads and serial/parallel
-  - --share=ipc	 # needed for X11
-  - --share=network # needed for networking (NE2000, IPX)
-  - --socket=x11 # default to X11 due to fullscreen issues
+finish-args:         # flatpak permissions
+  - --device=all     # needed for gamepads and serial/parallel
+  - --share=ipc      # needed for X11
+  - --share=network  # needed for networking (NE2000, IPX)
+  - --socket=x11     # default to X11 due to fullscreen issues
   - --socket=pulseaudio
   - --filesystem=home
 
@@ -24,21 +25,21 @@ cleanup:
 
 modules:
 
-# Build Mesa GLU
+  # Build Mesa GLU
   - name: GLU
     config-opts:
       - --disable-static
     sources:
       - type: archive
-        url:  https://mesa.freedesktop.org/archive/glu/glu-9.0.2.tar.xz
+        url: https://mesa.freedesktop.org/archive/glu/glu-9.0.2.tar.xz
         sha256: 6e7280ff585c6a1d9dfcdf2fca489251634b3377bfc33c29e4002466a38d02d4
     cleanup:
       - /include
       - /lib/*.a
       - /lib/*.la
       - /lib/pkgconfig
-  
-# Build FluidSynth
+
+  # Build FluidSynth
   - name: FluidSynth
     buildsystem: cmake-ninja
     config-opts:
@@ -54,8 +55,8 @@ modules:
         url: https://github.com/FluidSynth/fluidsynth/archive/v2.2.4.tar.gz
         sha256: 83cb1dba04c632ede74f0c0717018b062c0e00b639722203b23f77a961afd390
 
-# Build libslirp for networking
-- name: libslirp
+  # Build libslirp for networking
+  - name: libslirp
     buildsystem: meson
     cleanup:
       - "/include"
@@ -65,12 +66,12 @@ modules:
         url: https://gitlab.freedesktop.org/slirp/libslirp
         tag: "v4.6.1"
     x-checker-data:
-          type: anitya
-          project-id: 96796
-          stable-only: true
-          tag-template: v$version
+      type: anitya
+      project-id: 96796
+      stable-only: true
+      tag-template: v$version
 
-# Build DOSBox-X SDL2
+  # Build DOSBox-X SDL2
   - name: dosbox-x
     rm-configure: true
     config-opts:
