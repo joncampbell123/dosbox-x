@@ -1,4 +1,4 @@
-app-id: com.dosbox_x.DOSBox-X-sdl2
+app-id: com.dosbox_x.DOSBox-X
 runtime: org.freedesktop.Platform
 runtime-version: '21.08'
 sdk: org.freedesktop.Sdk
@@ -87,6 +87,4 @@ modules:
       - install -Dm644 /app/share/icons/hicolor/scalable/apps/dosbox-x.svg /app/share/icons/hicolor/scalable/apps/${FLATPAK_ID}.svg
       - install -Dm644 /app/share/metainfo/com.dosbox_x.DOSBox-X.metainfo.xml /app/share/metainfo/${FLATPAK_ID}.metainfo.xml
       - desktop-file-edit --set-key=Icon --set-value=${FLATPAK_ID} /app/share/applications/${FLATPAK_ID}.desktop
-      - desktop-file-edit --set-key=Name --set-value="DOSBox-X SDL2" /app/share/applications/${FLATPAK_ID}.desktop
-      - appstream-util modify /app/share/metainfo/${FLATPAK_ID}.metainfo.xml id dosbox-x-sdl2
-      - appstream-util modify /app/share/metainfo/${FLATPAK_ID}.metainfo.xml name "DOSBox-X SDL2"
+      - appstream-util modify /app/share/metainfo/${FLATPAK_ID}.metainfo.xml id dosbox-x
