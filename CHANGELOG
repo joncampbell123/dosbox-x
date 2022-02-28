@@ -55,6 +55,7 @@
     trying to play from pregap sectors. (maron2000)
   - Change default value of mt32.rate to 48kHz to match
     default value of mt32.analog option. (maron2000)
+  - Fix a buffer overflow issue in dos.cpp (maron2000)
 0.83.22
   - Added Pentium 3 Processor Serial Number emulation.
     Serial number can be set from dosbox-x.conf or not
