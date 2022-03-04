@@ -587,10 +587,20 @@ For the IBM PC this will be 330, while for the NEC PC-98 it will be E0D0.</p>
 <p>This is the IRQ of the emulated MPU-401 (intelligent mode only).</p>
 </div>
 <div class="paragraph">
-<p>If set to -1, the default IRQ address for the IBM PC or NEC PC-98 will be used.
-* For the IBM PC XT with a single PIC, this will be IRQ 2
-* For the IBM PC AT (or later) this will be IRQ 9
-* For the NEC PC-98 it will be IRQ 6.</p>
+<p>If set to -1, the default IRQ address for the IBM PC or NEC PC-98 will be used.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>For the IBM PC XT with a single PIC, this will be IRQ 2</p>
+</li>
+<li>
+<p>For the IBM PC AT (or later) this will be IRQ 9</p>
+</li>
+<li>
+<p>For the NEC PC-98 it will be IRQ 6.</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
 <p>The original Roland interfaces for the IBM PC used IRQ2, and as such many software titles default to IRQ2.</p>
@@ -802,6 +812,9 @@ In that case, add 'delaysysex', for example: <code>midiconfig=2 delaysysex</code
 <div class="paragraph">
 <p>Samplerate is a deprecated option for use with "mididevice=synth".
 Please use "mididevice=fluidsynth" instead, with the "fluid.samplerate" option if necessary.</p>
+</div>
+<div class="paragraph">
+<p>You should set this to the same sample rate as the <code>rate=</code> option in the <code>[mixer]</code> section.</p>
 </div>
 </div>
 </div>
@@ -1031,7 +1044,7 @@ Emulation will not work without them.</p>
 </div>
 <div class="paragraph">
 <p>How many milliseconds of data to render ahead.
-Increasing this value may help to avoid underruns but also increases audio lag.
+Increasing this value may help to avoid under-runs but also increases audio lag.
 Cannot be set less than or equal to mt32.chunk value.</p>
 </div>
 <div class="paragraph">
@@ -1067,7 +1080,7 @@ Cannot be set less than or equal to mt32.chunk value.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>MT-32 DAC input emulation mode. 'auto' equates to '0'.</p>
+<p>MT-32 DAC (Digital to Analogue Converter) input emulation mode. 'auto' equates to '0'.</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1156,7 +1169,7 @@ Fastest mode.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Coarse emulation of LPF circuit. High frequencies are boosted, sample rate remains unchanged.
+<p>Coarse emulation of LPF (Low Pass Filter) circuit. High frequencies are boosted, sample rate remains unchanged.
 A bit better sounding but also a bit slower.</p>
 </li>
 </ul>
@@ -1169,7 +1182,7 @@ A bit better sounding but also a bit slower.</p>
 <li>
 <p>Finer emulation of LPF circuit. Output signal is upsampled to 48 kHz to allow emulation of audible mirror spectra above 16 kHz,
 which is passed through the LPF circuit without significant attenuation.
-Sounding is closer to the analog output from real hardware but also slower than the modes 0 and 1.</p>
+Sounding is closer to the analogue output from real hardware but also slower than the modes 0 and 1.</p>
 </li>
 </ul>
 </div>
@@ -1257,7 +1270,7 @@ Even slower than all the other modes but better retains the highest frequencies 
 <div class="ulist">
 <ul>
 <li>
-<p>Default: 44100</p>
+<p>Default: 48000</p>
 </li>
 <li>
 <p>Possible values: 44100, 48000, 32000, 22050, 16000, 11025, 8000, 49716</p>
@@ -1265,7 +1278,7 @@ Even slower than all the other modes but better retains the highest frequencies 
 </ul>
 </div>
 <div class="paragraph">
-<p>Sample rate of MT-32 emulation.</p>
+<p>Sample rate in Hz of the MT-32 emulation.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1496,7 +1509,9 @@ Instead, you need a single soundfont that implements all the sounds you need, wh
 </ul>
 </div>
 <div class="paragraph">
-<p>This effects the sample rate at which FluidSynth outputs audio. Any modern system should support the default 48000 Hz.</p>
+<p>This effects the sample rate at which FluidSynth outputs audio.
+Any modern system should support the default 48000 Hz.
+You should set this to the same sample rate as the <code>rate=</code> option in the <code>[mixer]</code> section.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1903,7 +1918,7 @@ On a modern Windows system, there are no configuration options either.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-02-01 14:17:48 -0500
+Last updated 2022-03-04 15:16:36 -0500
 </div>
 </div>
 </body>

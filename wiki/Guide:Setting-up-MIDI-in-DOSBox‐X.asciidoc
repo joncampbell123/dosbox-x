@@ -52,6 +52,7 @@ For the IBM PC this will be 330, while for the NEC PC-98 it will be E0D0.
 This is the IRQ of the emulated MPU-401 (intelligent mode only).
 
 If set to -1, the default IRQ address for the IBM PC or NEC PC-98 will be used.
+
 * For the IBM PC XT with a single PIC, this will be IRQ 2
 * For the IBM PC AT (or later) this will be IRQ 9
 * For the NEC PC-98 it will be IRQ 6.
@@ -124,6 +125,8 @@ In that case, add 'delaysysex', for example: ``midiconfig=2 delaysysex`` would c
 
 Samplerate is a deprecated option for use with "mididevice=synth".
 Please use "mididevice=fluidsynth" instead, with the "fluid.samplerate" option if necessary.
+
+You should set this to the same sample rate as the `rate=` option in the `[mixer]` section.
 
 == Roland MT-32 Emulation
 
@@ -241,7 +244,7 @@ Valid for rendering in separate thread only.
 * Valid options: 3, 4, 32, 199, 200
 
 How many milliseconds of data to render ahead.
-Increasing this value may help to avoid underruns but also increases audio lag.
+Increasing this value may help to avoid under-runs but also increases audio lag.
 Cannot be set less than or equal to mt32.chunk value.
 
 Valid for rendering in separate thread only.
@@ -256,7 +259,7 @@ The maximum number of partials playing simultaneously.
 * Default: auto
 * Possible values: 0, 1, 2, 3, auto
 
-MT-32 DAC input emulation mode. 'auto' equates to '0'.
+MT-32 DAC (Digital to Analogue Converter) input emulation mode. 'auto' equates to '0'.
 
 * Nice = 0 - default
 ** Produce samples at double the volume, without tricks. Higher quality than the real devices
@@ -290,13 +293,13 @@ MT-32 analogue output emulation mode
 Fastest mode.
 
 * Coarse = 1
-** Coarse emulation of LPF circuit. High frequencies are boosted, sample rate remains unchanged.
+** Coarse emulation of LPF (Low Pass Filter) circuit. High frequencies are boosted, sample rate remains unchanged.
 A bit better sounding but also a bit slower.
 
 * Accurate = 2 (default)
 ** Finer emulation of LPF circuit. Output signal is upsampled to 48 kHz to allow emulation of audible mirror spectra above 16 kHz,
 which is passed through the LPF circuit without significant attenuation.
-Sounding is closer to the analog output from real hardware but also slower than the modes 0 and 1.
+Sounding is closer to the analogue output from real hardware but also slower than the modes 0 and 1.
 
 * Oversampled = 3
 ** Same as the default mode 2 but the output signal is 2x oversampled, i.e. the output sample rate is 96 kHz.
@@ -327,10 +330,10 @@ MT-32 reverb decaying time
 MT-32 reverb level
 
 ==== mt32.rate
-* Default: 44100
+* Default: 48000
 * Possible values: 44100, 48000, 32000, 22050, 16000, 11025, 8000, 49716
 
-Sample rate of MT-32 emulation.
+Sample rate in Hz of the MT-32 emulation.
 
 ==== mt32.src.quality
 * Default: 2
@@ -429,7 +432,9 @@ Instead, you need a single soundfont that implements all the sounds you need, wh
 * Default value: 48000
 * Min - Max: 8000.0 - 96000.0
 
-This effects the sample rate at which FluidSynth outputs audio. Any modern system should support the default 48000 Hz.
+This effects the sample rate at which FluidSynth outputs audio.
+Any modern system should support the default 48000 Hz.
+You should set this to the same sample rate as the `rate=` option in the `[mixer]` section.
 
 ==== fluid.gain
 * Default value: .6

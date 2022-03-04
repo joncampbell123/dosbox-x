@@ -459,18 +459,48 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_supported_pc_video_modes">Supported PC video modes</a>
 <ul class="sectlevel2">
 <li><a href="#_mda">MDA</a></li>
-<li><a href="#_cga">CGA</a></li>
+<li><a href="#_cga">CGA</a>
+<ul class="sectlevel3">
+<li><a href="#_graphics_modes">Graphics modes:</a></li>
+<li><a href="#_text_modes">Text modes:</a></li>
+<li><a href="#_composite_graphics_mode">Composite graphics mode:</a></li>
+<li><a href="#_keyboard_shortcuts">Keyboard shortcuts:</a></li>
+<li><a href="#_cga_machine_options">CGA machine options</a></li>
+<li><a href="#_external_links">External links</a></li>
+<li><a href="#_image_gallery">Image Gallery</a></li>
+</ul>
+</li>
 <li><a href="#_hercules">Hercules</a></li>
-<li><a href="#_ibm_pcjr">IBM PCjr</a></li>
+<li><a href="#_ibm_pcjr">IBM PCjr</a>
+<ul class="sectlevel3">
+<li><a href="#_keyboard_shortcuts_2">Keyboard shortcuts:</a></li>
+</ul>
+</li>
 <li><a href="#_tandy">Tandy</a></li>
-<li><a href="#_ega">EGA</a></li>
+<li><a href="#_ega">EGA</a>
+<ul class="sectlevel3">
+<li><a href="#_graphics_modes_2">Graphics modes:</a></li>
+<li><a href="#_text_modes_2">Text modes:</a></li>
+<li><a href="#_ega_machine_options">EGA machine options</a></li>
+<li><a href="#_external_links_2">External links</a></li>
+<li><a href="#_image_gallery_2">Image Gallery</a></li>
+</ul>
+</li>
 <li><a href="#_amstrad">Amstrad</a></li>
 <li><a href="#_pc_98">PC-98</a></li>
 <li><a href="#_jega">JEGA</a></li>
 <li><a href="#_dcga">DCGA</a></li>
 <li><a href="#_mcga">MCGA</a></li>
 <li><a href="#_vga">VGA</a></li>
-<li><a href="#_svga">SVGA</a></li>
+<li><a href="#_svga">SVGA</a>
+<ul class="sectlevel3">
+<li><a href="#_s3_graphics">S3 Graphics</a></li>
+<li><a href="#_s3_graphics_experimental_support">S3 Graphics - Experimental support</a></li>
+<li><a href="#_tseng_labs">Tseng Labs</a></li>
+<li><a href="#_paradise_systems_pvga1a">Paradise Systems PVGA1A</a></li>
+</ul>
+</li>
+<li><a href="#_vesa_bios_extensions_vbe">VESA BIOS Extensions (VBE)</a></li>
 </ul>
 </li>
 <li><a href="#_dual_monitor">Dual monitor</a></li>
@@ -1431,7 +1461,7 @@ Some clone EGA cards added extra video memory and video modes, typically known a
 <div class="sect2">
 <h3 id="_amstrad">Amstrad</h3>
 <div class="paragraph">
-<p>Amstrad in 1986 introduced the PC1512 which has CGA (RGBI only) graphics but also adds a 640x200 16 colour mode.</p>
+<p>Amstrad in 1986 introduced the PC1512 which has CGA (RGBI only) graphics but also adds a 640x200 16-colour mode.</p>
 </div>
 <div class="paragraph">
 <p>Very little software exists that can use this mode.
@@ -1469,7 +1499,9 @@ Video memory is fixed to 64KiB and cannot be changed.</p>
 <div class="sect2">
 <h3 id="_pc_98">PC-98</h3>
 <div class="paragraph">
-<p>The NEC PC-9800, simply known as the PC-98, were a family of computers made by NEC and sold in Japan throughout 1982 to 2000, which used MS-DOS with modifications to support the PC-98 BIOS and Japanese DBCS (Double Byte Character Set) characters. It&#8217;s supported in DOSBox-X by setting <code>machine=pc98</code> in your DOSBox-X config file. More information about PC-98 support can be found in the PC-98 guide page:</p>
+<p>The NEC PC-9800, simply known as the PC-98, were a family of computers made by NEC and sold in Japan throughout 1982 to 2000, which used MS-DOS with modifications to support the PC-98 BIOS and Japanese DBCS (Double Byte Character Set) characters.
+It&#8217;s supported in DOSBox-X by setting <code>machine=pc98</code> in your DOSBox-X config file.
+More information about PC-98 support can be found in the PC-98 guide page:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1508,13 +1540,15 @@ Video memory defaults to 256KiB.</p>
 <div class="sect2">
 <h3 id="_dcga">DCGA</h3>
 <div class="paragraph">
-<p>DCGA is the video mode used by the Olivetti M24, AT&amp;T 6300 and Toshiba T3100. DOSBox-X emulates the DCGA mode via the VGA mode.</p>
+<p>DCGA is the video mode used by the Olivetti M24, AT&amp;T 6300 and Toshiba T3100.
+DOSBox-X emulates the DCGA mode via the VGA mode.</p>
 </div>
 <div class="paragraph">
 <p>This mode can be enabled by typing <code>DCGA</code> at the DOSBox-X prompt when you&#8217;re in a VGA video mode.</p>
 </div>
 <div class="paragraph">
-<p>If you enable Toshiba J-3100 emulation (by setting <code>dosv=jp</code> and <code>j3100=on</code> in your DOSBox-X config file), then the J-3100 mode will be enabled when DOSBox-X starts. Typing the <code>VGA</code> command you can go to the Japanese DOS/V mode, and then typing <code>DCGA</code> command will return you to the J-3100 emulation mode.</p>
+<p>If you enable Toshiba J-3100 emulation (by setting <code>dosv=jp</code> and <code>j3100=on</code> in your DOSBox-X config file), then the J-3100 mode will be enabled when DOSBox-X starts.
+Typing the <code>VGA</code> command you can go to the Japanese DOS/V mode, and then typing <code>DCGA</code> command will return you to the J-3100 emulation mode.</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1544,7 +1578,8 @@ This is not because the game could not have worked on VGA, but rather because it
 As such as part of the MCGA emulation, DOSBox-X also emulates some PS/2 specific machine settings, just enough to make games like Thexder work in MCGA mode.</p>
 </div>
 <div class="paragraph">
-<p>This mode can be set using <code>machine=mcga</code> in your DOSBox-X config file. Video memory is fixed to 64KiB and cannot be changed.</p>
+<p>This mode can be set using <code>machine=mcga</code> in your DOSBox-X config file.
+Video memory is fixed to 64KiB and cannot be changed.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1618,7 +1653,7 @@ This can cause both video and audio distortion, as in many games the audio is li
 <div class="sect2">
 <h3 id="_svga">SVGA</h3>
 <div class="paragraph">
-<p>Many clones were produced of the VGA adapter, often with enhanced capabilities like more video memory, additional high-res video modes and various types of acceleration which were typically referred to as SuperVGA, or SVGA.</p>
+<p>Many clones were produced of the VGA adapter, often with more memory allowing higher colour depths, resolutions and refresh rates, in addition to various types of acceleration which were typically referred to as SuperVGA, or SVGA.</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1651,8 +1686,6 @@ The default <code>machine=svga_s3</code> option refers to the S3 Trio64.
 </tr>
 </table>
 </div>
-<div class="sect4">
-<h5 id="_s3_trio64">S3 Trio64</h5>
 <div class="admonitionblock note">
 <table>
 <tr>
@@ -1660,14 +1693,75 @@ The default <code>machine=svga_s3</code> option refers to the S3 Trio64.
 <div class="title">Note</div>
 </td>
 <td class="content">
-This is the default video card emulated by DOSBox-X. It currently supports the widest range of video modes of all fully supported cards.
+All the emulated S3 cards have VESA VBE 2.0 support.
 </td>
 </tr>
 </table>
 </div>
+<div class="sect4">
+<h5 id="_s3_vision864">S3 Vision864</h5>
 <div class="paragraph">
-<p>Introduced in 1994. Successor to the Vision864, and has support for VESA VBE.
-The original S3 Trio64 cards would have had VESA VBE 1.2, but the card emulated by DOSBox-X has VESA VBE 2.0.</p>
+<p>Introduced in November 1993.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set using <code>machine=svga_s3vision864</code> in your DOSBox-X config file.</p>
+</div>
+<div class="paragraph">
+<p>Links:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/351-s3-vision864">S3 Vision864 at the VGA Museum</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_s3_vision868">S3 Vision868</h5>
+<div class="paragraph">
+<p>Introduced in 1994.
+Based on the Vision864, with added motion video acceleration.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set using <code>machine=svga_s3vision868</code> in your DOSBox-X config file.</p>
+</div>
+<div class="paragraph">
+<p>Links:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/353-s3-vision868">S3 Vision868 at the VGA Museum</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_s3_trio32">S3 Trio32</h5>
+<div class="paragraph">
+<p>Introduced in 1994.
+Low-cost 32bit version of the Trio64.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set using <code>machine=svga_s3trio32</code> in your DOSBox-X config file.</p>
+</div>
+<div class="paragraph">
+<p>Links:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/356-s3-trio32">S3 Trio32 at the VGA Museum</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_s3_trio64">S3 Trio64</h5>
+<div class="paragraph">
+<p>Introduced in 1994. Successor to the S3 Vision864, and has support for VESA VBE.
+The original S3 Trio64 cards would have had VESA VBE 1.2, but the card emulated by DOSBox-X defaults to VESA VBE 2.0.</p>
 </div>
 <div class="paragraph">
 <p>This mode can be set using either <code>machine=svga_s3</code> or <code>machine=svga_s3trio64</code> in your DOSBox-X config file.
@@ -1700,6 +1794,12 @@ More video memory can however be used in VESA mode.
 </li>
 <li>
 <p><code>machine=vesa_oldvbe10</code> - The same as svga_s3, but with VESA VBE 1.0, which does not provide some optional mode information (mainly for testing)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Links:</p>
+</div>
 <div class="ulist">
 <ul>
 <li>
@@ -1710,17 +1810,35 @@ More video memory can however be used in VESA mode.
 </li>
 </ul>
 </div>
+</div>
+<div class="sect4">
+<h5 id="_s3_trio64v">S3 Trio64V+</h5>
+<div class="paragraph">
+<p>Introduced in June 1995. Successor to the Vision868.
+Similar to the Trio64, but adds partial MPEG-1 decode acceleration.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set using <code>machine=svga_s3trio64v+</code> in your DOSBox-X config file.</p>
+</div>
+<div class="paragraph">
+<p>Links:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/359-s3-trio64v">S3 Trio64V+ at the VGA Museum</a></p>
 </li>
 </ul>
 </div>
 </div>
-<div class="sect4">
-<h5 id="_experimental_s3_models">Experimental S3 models</h5>
-<div class="paragraph">
-<p>The emulation of the following S3 SVGA models should be considered experimental.</p>
 </div>
-<div class="sect5">
-<h6 id="_s3_86c928">S3 86c928</h6>
+<div class="sect3">
+<h4 id="_s3_graphics_experimental_support">S3 Graphics - Experimental support</h4>
+<div class="paragraph">
+<p>The emulation of the following S3 SVGA models should be considered experimental for the time being.</p>
+</div>
+<div class="sect4">
+<h5 id="_s3_86c928">S3 86c928</h5>
 <div class="admonitionblock warning">
 <table>
 <tr>
@@ -1729,6 +1847,7 @@ More video memory can however be used in VESA mode.
 </td>
 <td class="content">
 The emulation of this card is considered experimental. It is not recommended for regular use.
+The only known issue remaining is a display issue with Win95 and highcolor (16-bit) affecting the start menu and window decorations.
 </td>
 </tr>
 </table>
@@ -1743,6 +1862,9 @@ Early Windows accelerator card.</p>
 <div class="paragraph">
 <p>This mode can be set using <code>machine=svga_s386c928</code> in your DOSBox-X config file.</p>
 </div>
+<div class="paragraph">
+<p>Links:</p>
+</div>
 <div class="ulist">
 <ul>
 <li>
@@ -1751,123 +1873,8 @@ Early Windows accelerator card.</p>
 </ul>
 </div>
 </div>
-<div class="sect5">
-<h6 id="_s3_vision864">S3 Vision864</h6>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Warning</div>
-</td>
-<td class="content">
-The emulation of this card is considered experimental. It is not recommended for regular use.
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>Introduced in November 1993.</p>
-</div>
-<div class="paragraph">
-<p>This mode can be set using <code>machine=svga_s3vision864</code> in your DOSBox-X config file.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/351-s3-vision864">S3 Vision864 at the VGA Museum</a></p>
-</li>
-</ul>
-</div>
-</div>
-<div class="sect5">
-<h6 id="_s3_vision868">S3 Vision868</h6>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Warning</div>
-</td>
-<td class="content">
-The emulation of this card is considered experimental. It is not recommended for regular use.
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>Introduced in 1994.
-Based on the Vision864, with added motion video acceleration.</p>
-</div>
-<div class="paragraph">
-<p>This mode can be set using <code>machine=svga_s3vision868</code> in your DOSBox-X config file.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/353-s3-vision868">S3 Vision868 at the VGA Museum</a></p>
-</li>
-</ul>
-</div>
-</div>
-<div class="sect5">
-<h6 id="_s3_trio32">S3 Trio32</h6>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Warning</div>
-</td>
-<td class="content">
-The emulation of this card is considered experimental. It is not recommended for regular use.
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>Introduced in 1994.
-Low-cost 32bit version of the Trio64.</p>
-</div>
-<div class="paragraph">
-<p>This mode can be set using <code>machine=svga_s3trio32</code> in your DOSBox-X config file.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/356-s3-trio32">S3 Trio32 at the VGA Museum</a></p>
-</li>
-</ul>
-</div>
-</div>
-<div class="sect5">
-<h6 id="_s3_trio64v">S3 Trio64V+</h6>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Warning</div>
-</td>
-<td class="content">
-The emulation of this card is considered experimental. It is not recommended for regular use.
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>Introduced in June 1995. Successor to the Vision868.
-Similar to the Trio64, but adds partial MPEG-1 decode acceleration.</p>
-</div>
-<div class="paragraph">
-<p>This mode can be set using <code>machine=svga_s3trio64v+</code> in your DOSBox-X config file.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/359-s3-trio64v">S3 Trio64V+ at the VGA Museum</a></p>
-</li>
-</ul>
-</div>
-</div>
-<div class="sect5">
-<h6 id="_s3_virge">S3 ViRGE</h6>
+<div class="sect4">
+<h5 id="_s3_virge">S3 ViRGE</h5>
 <div class="admonitionblock warning">
 <table>
 <tr>
@@ -1890,6 +1897,9 @@ These cards introduced S3&#8217;s own <strong>S3D</strong> 3D acceleration techn
 <div class="paragraph">
 <p>This mode can be set using <code>machine=svga_s3virge</code> in your DOSBox-X config file.</p>
 </div>
+<div class="paragraph">
+<p>Links:</p>
+</div>
 <div class="ulist">
 <ul>
 <li>
@@ -1904,8 +1914,8 @@ These cards introduced S3&#8217;s own <strong>S3D</strong> 3D acceleration techn
 </ul>
 </div>
 </div>
-<div class="sect5">
-<h6 id="_s3_virgevx">S3 ViRGE/VX</h6>
+<div class="sect4">
+<h5 id="_s3_virgevx">S3 ViRGE/VX</h5>
 <div class="admonitionblock warning">
 <table>
 <tr>
@@ -1925,6 +1935,9 @@ Similar to the S3 ViRGE but with up to 8MB VRAM and higher resolution graphics m
 <div class="paragraph">
 <p>This mode can be set using <code>machine=svga_s3virgevx</code> in your DOSBox-X config file</p>
 </div>
+<div class="paragraph">
+<p>Links:</p>
+</div>
 <div class="ulist">
 <ul>
 <li>
@@ -1934,9 +1947,11 @@ Similar to the S3 ViRGE but with up to 8MB VRAM and higher resolution graphics m
 </div>
 </div>
 </div>
-</div>
 <div class="sect3">
 <h4 id="_tseng_labs">Tseng Labs</h4>
+<div class="paragraph">
+<p>Links:</p>
+</div>
 <div class="ulist">
 <ul>
 <li>
@@ -1975,6 +1990,9 @@ Early VGA clone card.</p>
 <div class="paragraph">
 <p>This mode can be set using <code>machine=svga_et3000</code> in your DOSBox-X config file.
 Video memory defaults to 512KiB and cannot be adjusted.</p>
+</div>
+<div class="paragraph">
+<p>Links:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -2033,6 +2051,9 @@ vmemsize=0
 vmemsizekb=512</pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Links:</p>
+</div>
 <div class="ulist">
 <ul>
 <li>
@@ -2081,6 +2102,9 @@ vmemsize=1
 vmemsizekb=0</pre>
 </div>
 </div>
+<div class="paragraph">
+<p>Links:</p>
+</div>
 <div class="ulist">
 <ul>
 <li>
@@ -2092,10 +2116,12 @@ vmemsizekb=0</pre>
 </ul>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_vesa_bios_extensions_vbe">VESA BIOS Extensions (VBE)</h4>
+</div>
+<div class="sect2">
+<h3 id="_vesa_bios_extensions_vbe">VESA BIOS Extensions (VBE)</h3>
 <div class="paragraph">
-<p>During the late 80&#8217;s and early 90&#8217;s many video card manufacturers existed, and as IBM was no longer leading the market, each manufacturer was doing its own thing in regard to setting the cards SVGA modes. This made it very difficult for software developers as they needed to support a plethora of different cards if they wanted to offer more than basic VGA.</p>
+<p>During the late 80&#8217;s and early 90&#8217;s many video card manufacturers existed, and as IBM was no longer leading the market, each manufacturer was doing its own thing in regard to setting the cards SVGA modes.
+This made it very difficult for software developers as they needed to support a plethora of different cards if they wanted to offer more than basic VGA.</p>
 </div>
 <div class="paragraph">
 <p>As such the Video Electronics Standards Association (VESA) was born, and one of the first standardization efforts they led was the VESA BIOS Extensions (VBE).</p>
@@ -2263,12 +2289,13 @@ Setting this option may help with some games, though it limits the mode list rep
 </div>
 </li>
 <li>
-<p><code>vesa vbe 1.2 modes are 32bpp</code> (default: true)</p>
+<p><code>vesa vbe 1.2 modes are 32bpp</code> (default: auto)</p>
 <div class="ulist">
 <ul>
 <li>
 <p>If set, truecolor (16M color) VESA BIOS modes in the 0x100-0x11F range are 32bpp. If clear, they are 24bpp.
-Some DOS games and demos assume one bit depth or the other and do not enumerate VESA BIOS modes, which is why this option exists.</p>
+Some DOS games and demos assume one bit depth or the other and do not enumerate VESA BIOS modes, which is why this
+option exists. If set to auto, this is determined by the type of SVGA chipset emulated.</p>
 </li>
 </ul>
 </div>
@@ -2420,13 +2447,12 @@ Disabled by default.</p>
 </div>
 </div>
 </div>
-</div>
 <div class="sect1">
 <h2 id="_dual_monitor">Dual monitor</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The original IBM PC could already support dual-monitor by using both MDA and CGA video cards at the same time.
-This also works with MDA+EGA, MDA+VGA and MDA+SVGA. Hercules can be used as a more capable substitute for MDA.</p>
+This also works with MDA+EGA, MDA+VGA and MDA+SVGA. Hercules can also be used as a more capable substitute for MDA.</p>
 </div>
 <div class="paragraph">
 <p>This is possible because MDA (and Hercules) don&#8217;t conflict with the resources needed for CGA/EGA/VGA and SVGA.
@@ -2560,7 +2586,7 @@ Because both the second display code and the integrated debugger uses the termin
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-02-01 14:17:48 -0500
+Last updated 2022-03-04 15:16:36 -0500
 </div>
 </div>
 </body>

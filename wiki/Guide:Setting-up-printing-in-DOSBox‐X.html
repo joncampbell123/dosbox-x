@@ -1556,7 +1556,7 @@ If you want the printer selection to show up every time for printing to LPT1, pl
 <h3 id="_windows_host_method_2">Windows host, method 2</h3>
 <div class="paragraph">
 <p>This assumes you PC still has a parallel printer port integrated on the system board, or a legacy ISA parallel printer adapter.
-It reportedly will not work with USB parallel printer adapters or PCI parallel printer port adapters.</p>
+It reportedly will not work with either USB parallel printer adapters or PCI parallel printer port adapters.</p>
 </div>
 <div class="paragraph">
 <p>Also note that the output is sent verbatim from the DOS application to the printer, without any filtering or conversion.
@@ -1573,7 +1573,9 @@ parallel1=file dev:lpt1</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Alternatively you can try to set it up as follows, but this reportedly only works if your host is running Windows 9x, or with later Windows versions by installing "PortTalk" as direct port access is no longer permitted with modern Windows versions.</p>
+<p>Alternatively you can try to set it up as follows, but this only works if your host is running Windows 9x, or with later Windows versions by installing "PortTalk".
+PortTalk is needed because direct port access is no longer permitted with more modern Windows versions.
+The last Windows version supported by PortTalk is Windows XP (32-bit).</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1619,7 +1621,8 @@ Below is a screenshot of its configuration window.</p>
 <p>First you need to give your Linux user access to the parallel printer port on the Linux host, otherwise you will get permission denied errors.</p>
 </div>
 <div class="paragraph">
-<p>Replace "username" in the example below with your own Linux username.</p>
+<p>Replace "username" in the example below with your own Linux username.
+This will make your user a member of the "lp" group, which is a group that on most (all?) Linux distributions should have the necessary access to the parallel port.</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1646,7 +1649,7 @@ parallel1=file dev:/dev/parport0</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>But while using this method seems to work on Windows, according to one report, it does not seem to work properly on Linux.</p>
+<p>But while using this later method seems to work on Windows, according to one report, it does not seem to work properly on Linux.</p>
 </div>
 <div class="paragraph">
 <p>The output is sent verbatim to the printer, so the printer needs to be able to understand any control codes the DOS application sends.</p>
@@ -1658,7 +1661,7 @@ parallel1=file dev:/dev/parport0</pre>
 <div class="title">Note</div>
 </td>
 <td class="content">
-In the case of a real parallel port, the first port will be <code>/dev/parport0</code>, but in the case of a USB parallel port adapter it will be <code>/dev/usblp0</code>.
+In the case of a real parallel port, the first port will be <code>/dev/parport0</code>, but in the case of a USB parallel port adapter it will be <code>/dev/usblp0</code>, but it is unclear if a USB parallel port adapter will work.
 </td>
 </tr>
 </table>
@@ -1814,7 +1817,7 @@ parallel1=file file:output.ps timeout:2000 squote openps:'open -s "Preview"'</pr
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-02-01 14:17:48 -0500
+Last updated 2022-03-04 15:16:36 -0500
 </div>
 </div>
 </body>

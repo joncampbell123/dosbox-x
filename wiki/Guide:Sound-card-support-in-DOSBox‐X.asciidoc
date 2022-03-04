@@ -231,6 +231,8 @@ The default value of -1 causes it to default depending on the machine type:
 
 Sample rate, in Hz, at which the PC-Speaker generates sound.
 
+You should set this to the same sample rate as the `rate=` option in the `[mixer]` section.
+
 === IBM PCjr
 The PCjr was introduced by IBM in March 1984, and discontinued due to poor sales just over a year later.
 
@@ -275,6 +277,8 @@ It is possible to set ``tandy=on`` for non-Tandy ``machine=`` settings, but quit
 * Valid values: 44100, 48000, 32000, 22050, 16000, 11025, 8000, 49716
 
 Sample rate, in Hz, at which the Tandy emulation generates sound.
+
+You should set this to the same sample rate as the `rate=` option in the `[mixer]` section.
 
 === AdLib Music Synthesizer Card
 The AdLib Music Synthesizer Card was released by Ad Lib in 1987.
@@ -329,6 +333,8 @@ Enable or disable IBM PS/1 audio emulation.
 * Valid values: 44100, 48000, 32000, 22050, 16000, 11025, 8000, 49716
 
 Sample rate, in Hz, of the PS1 audio emulation.
+
+You should set this to the same sample rate as the `rate=` option in the `[mixer]` section.
 
 === Disney Sound Source
 Covox introduced the *Covox Speech Thing* parallel port sound dongle in 1987, while Disney introduced the *Disney Sound Source* in 1990.
@@ -633,6 +639,8 @@ See oplrate as well.
 
 Sample rate in Hz of OPL music emulation.
 Use 49716 for highest quality (set the mixer rate accordingly).
+
+You should set this to the same sample rate as the `rate=` option in the `[mixer]` section.
 
 ===== oplport
 * Default value: <blank>
@@ -957,6 +965,8 @@ Accurate emulation attempts to better reflect how the actual hardware handles pa
 
 Sample rate, in Hz, of the UltraSound emulation.
 
+You should set this to the same sample rate as the `rate=` option in the `[mixer]` section.
+
 ===== gus fixed render rate
 * Default value: false
 * Valid values: true, false
@@ -1052,13 +1062,15 @@ Enable the Innovation SSI-2001 emulation.
 * Default value: 22050
 * Valid values: 44100, 48000, 32000, 22050, 16000, 11025, 8000, 49716
 
-Sample rate in Hz of the Innovation SSI-2001 emulation
+Sample rate in Hz of the Innovation SSI-2001 emulation.
+
+You should set this to the same sample rate as the `rate=` option in the `[mixer]` section.
 
 ===== sidbase
 * Default value: 280
 * Valid values: 240, 220, 260, 280, 2a0, 2c0, 2e0, 300
 
-Base IO address of the Innovation SSI-2001 emulation
+Base IO address of the Innovation SSI-2001 emulation.
 
 ===== quality
 * Default value: 0

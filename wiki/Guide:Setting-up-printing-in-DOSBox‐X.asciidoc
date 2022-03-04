@@ -441,7 +441,7 @@ If you want the printer selection to show up every time for printing to LPT1, pl
 
 === Windows host, method 2
 This assumes you PC still has a parallel printer port integrated on the system board, or a legacy ISA parallel printer adapter.
-It reportedly will not work with USB parallel printer adapters or PCI parallel printer port adapters.
+It reportedly will not work with either USB parallel printer adapters or PCI parallel printer port adapters.
 
 Also note that the output is sent verbatim from the DOS application to the printer, without any filtering or conversion.
 Therefore, it is important that the printer can understand the printer control codes that are being sent by the application.
@@ -453,7 +453,9 @@ Make sure your DOSBox-X config file contains the statements:
 parallel1=file dev:lpt1
 ....
 
-Alternatively you can try to set it up as follows, but this reportedly only works if your host is running Windows 9x, or with later Windows versions by installing "PortTalk" as direct port access is no longer permitted with modern Windows versions.
+Alternatively you can try to set it up as follows, but this only works if your host is running Windows 9x, or with later Windows versions by installing "PortTalk".
+PortTalk is needed because direct port access is no longer permitted with more modern Windows versions.
+The last Windows version supported by PortTalk is Windows XP (32-bit).
 
 ....
 [parallel]
@@ -487,6 +489,7 @@ image::images/Printfil_configuration_window.png[The Printfil configuration windo
 First you need to give your Linux user access to the parallel printer port on the Linux host, otherwise you will get permission denied errors.
 
 Replace "username" in the example below with your own Linux username.
+This will make your user a member of the "lp" group, which is a group that on most (all?) Linux distributions should have the necessary access to the parallel port.
 
 ....
 sudo usermod -a -G lp username
@@ -506,11 +509,11 @@ Alternatively you can try to set it up as follows:
 parallel1=file dev:/dev/parport0
 ....
 
-But while using this method seems to work on Windows, according to one report, it does not seem to work properly on Linux.
+But while using this later method seems to work on Windows, according to one report, it does not seem to work properly on Linux.
 
 The output is sent verbatim to the printer, so the printer needs to be able to understand any control codes the DOS application sends.
 
-NOTE: In the case of a real parallel port, the first port will be ``/dev/parport0``, but in the case of a USB parallel port adapter it will be ``/dev/usblp0``.
+NOTE: In the case of a real parallel port, the first port will be ``/dev/parport0``, but in the case of a USB parallel port adapter it will be ``/dev/usblp0``, but it is unclear if a USB parallel port adapter will work.
 
 == Example: Print to PNG or BMP
 This method prints to a PNG or BMP image file.
