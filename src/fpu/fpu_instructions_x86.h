@@ -1210,7 +1210,7 @@ static inline bool FPUD_286_FCOM_INF(Bitu op1, Bitu op2) {
 	/* TODO: This should eventually become an option, say, a dosbox.conf option named fputype where the user can enter
 	 *       "none" for no FPU, 287 or 387 for cputype=286 and cputype=386, or "auto" to match the CPU (8086 => 8087).
 	 *       If the FPU type is 387 or auto, then skip this hack. Else for 8087 and 287, use this hack. */
-	if (CPU_ArchitectureType<CPU_ARCHTYPE_386) {
+	if (FPU_ArchitectureType<FPU_ARCHTYPE_387) {
 		if (fpu_p_inf(fpu.p_regs[op1]) && fpu_p_inf(fpu.p_regs[op2])) {
 			/* 8087/287 consider -inf == +inf and that's what DOS programs test for to detect 287 vs 387 */
 			FPU_SET_C3(1);FPU_SET_C2(0);FPU_SET_C0(0);return true;
