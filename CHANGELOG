@@ -1,4 +1,11 @@
 0.83.24
+  - Change "fpu" setting in dosbox.conf to an enumeration
+    that still accepts true and false, but now also
+    accepts auto, 287, and 387. It is now possible to
+    specify fpu=287 and cputype=386 to emulate a 386
+    paired with a 287 chip as is said to be how early
+    386 Compaq systems were wired, for example.
+    (joncampbell123)
   - Fix FPU emulation to use 8087 FENI/FDISI behavior
     when cputype=8086 or cputype=80186. (joncampbell123)
   - Fix FPU emulation to correctly emulate 80287 -/+inf
