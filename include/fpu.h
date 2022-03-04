@@ -348,7 +348,7 @@ struct FPUControlWord
 	template<class T>
 	FPUControlWord& operator=(T val)
 	{
-		reg = (val & (CPU_ArchitectureType<=CPU_ARCHTYPE_80186 ? mask8087 : maskNon8087)) | reservedMask;
+		reg = (val & (FPU_ArchitectureType<=FPU_ARCHTYPE_8087 ? mask8087 : maskNon8087)) | reservedMask;
 		return *this;
 	}
 	operator unsigned() const
