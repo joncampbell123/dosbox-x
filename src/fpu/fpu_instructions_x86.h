@@ -1196,7 +1196,32 @@ static inline void FPU_FCMOV(Bitu st, Bitu other){
 	fpu.tags[st] = fpu.tags[other];
 }
 
+/* FPU_P_Reg holds the raw data fed to the host x86 FPU registers.
+ * We can't guarantee that std::isinf() can handle that or that anything
+ * in the host C++ compiler supports long double, so do it ourself */
+static inline bool fpu_p_inf(const FPU_P_Reg &r) {
+	/* Infinity is exponent == 0x7FFF and mantissa bits [63:61] == 100b (4) */
+	return (r.m3 & 0x7FFFu) == 0x7FFFu && (r.m2 & 0xE0000000u) == 0x80000000u;
+}
+
+static inline bool FPUD_286_FCOM_INF(Bitu op1, Bitu op2) {
+	/* HACK: If emulating a 286 processor we want the guest to think it's talking to a 287.
+	 *       For more info, read [http://www.intel-assembler.it/portale/5/cpu-identification/asm-source-to-find-intel-cpu.asp]. */
+	/* TODO: This should eventually become an option, say, a dosbox.conf option named fputype where the user can enter
+	 *       "none" for no FPU, 287 or 387 for cputype=286 and cputype=386, or "auto" to match the CPU (8086 => 8087).
+	 *       If the FPU type is 387 or auto, then skip this hack. Else for 8087 and 287, use this hack. */
+	if (CPU_ArchitectureType<CPU_ARCHTYPE_386) {
+		if (fpu_p_inf(fpu.p_regs[op1]) && fpu_p_inf(fpu.p_regs[op2])) {
+			/* 8087/287 consider -inf == +inf and that's what DOS programs test for to detect 287 vs 387 */
+			FPU_SET_C3(1);FPU_SET_C2(0);FPU_SET_C0(0);return true;
+		}
+	}
+
+	return false;
+}
+
 static void FPU_FCOM(Bitu op1, Bitu op2){
+	if (FPUD_286_FCOM_INF(op1,op2)) return;
 	FPUD_COMPARE(fcompp)
 }
 
@@ -1231,10 +1256,12 @@ static inline void FPU_FCOMI(Bitu st, Bitu other){
 }
 
 static void FPU_FCOM_EA(Bitu op1){
+	if (FPUD_286_FCOM_INF(op1,TOP)) return;
 	FPUD_COMPARE_EA(fcompp)
 }
 
 static void FPU_FUCOM(Bitu op1, Bitu op2){
+	if (FPUD_286_FCOM_INF(op1,op2)) return;
 	FPUD_COMPARE(fucompp)
 }
 
