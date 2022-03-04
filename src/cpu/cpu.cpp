@@ -194,6 +194,7 @@ bool CPU_SkipCycleAutoAdjust = false;
 unsigned char CPU_AutoDetermineMode = 0;
 
 unsigned char CPU_ArchitectureType = CPU_ARCHTYPE_MIXED;
+unsigned char FPU_ArchitectureType = FPU_ARCHTYPE_BEST;
 
 Bitu CPU_extflags_toggle=0;	// ID and AC flags may be toggled depending on emulated CPU architecture
 
@@ -3597,7 +3598,6 @@ public:
 
         menu_update_autocycle();
 
-		enable_fpu=section->Get_bool("fpu");
 		cpu_rep_max=section->Get_int("interruptible rep string op");
 		ignore_undefined_msr=section->Get_bool("ignore undefined msr");
 		enable_msr=section->Get_bool("enable msr");
@@ -3769,6 +3769,51 @@ public:
 		} else if (cputype == "pentium_iii") {
 			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUMIII;
 		}
+
+		const char *fpus = section->Get_string("fpu");
+
+		if (CPU_ArchitectureType >= CPU_ARCHTYPE_486OLD)
+			FPU_ArchitectureType = FPU_ARCHTYPE_BEST;
+		else if (CPU_ArchitectureType >= CPU_ARCHTYPE_386)
+			FPU_ArchitectureType = FPU_ARCHTYPE_387;
+		else if (CPU_ArchitectureType >= CPU_ARCHTYPE_286)
+			FPU_ArchitectureType = FPU_ARCHTYPE_287;
+		else
+			FPU_ArchitectureType = FPU_ARCHTYPE_8087;
+
+		if (!strcmp(fpus,"true") || !strcmp(fpus,"1"))
+			enable_fpu=true;
+		else if (!strcmp(fpus,"false") || !strcmp(fpus,"0"))
+			enable_fpu=false;
+		else if (!strcmp(fpus,"auto"))
+			enable_fpu=(CPU_ArchitectureType >= CPU_ARCHTYPE_486OLD);
+		else if (!strcmp(fpus,"8087"))
+			{ enable_fpu=true; FPU_ArchitectureType = FPU_ARCHTYPE_8087; }
+		else if (!strcmp(fpus,"287"))
+			{ enable_fpu=true; FPU_ArchitectureType = FPU_ARCHTYPE_287; }
+		else if (!strcmp(fpus,"387"))
+			{ enable_fpu=true; FPU_ArchitectureType = FPU_ARCHTYPE_387; }
+		else
+			enable_fpu=true;
+
+		if (enable_fpu) {
+			if (CPU_ArchitectureType >= CPU_ARCHTYPE_486OLD) {
+				if (FPU_ArchitectureType < FPU_ARCHTYPE_BEST) {
+					LOG_MSG("WARNING: 486 or higher with 387 or lower FPU is an unusual combination");
+				}
+			}
+			else if (CPU_ArchitectureType >= CPU_ARCHTYPE_286) {
+				if (FPU_ArchitectureType < FPU_ARCHTYPE_8087 || FPU_ArchitectureType > FPU_ARCHTYPE_387) {
+					LOG_MSG("WARNING: 286/386 with either 8087 or higher than 387 is an unusual combination");
+				}
+			}
+			else { /* 8086/80186 */
+				if (FPU_ArchitectureType >= FPU_ARCHTYPE_287) {
+					LOG_MSG("WARNING: 8086/80186 with anything higher than 8087 is an unusual combination");
+				}
+			}
+		}
+
 		if (!enable_fpu && (cputype == "pentium" || cputype == "pentium_mmx" || cputype == "ppro_slow" || cputype == "pentium_ii"))
 			LOG_MSG("WARNING: Disabling FPU support for this CPU type is unusual, may confuse DOS programs");
 

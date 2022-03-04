@@ -49,6 +49,12 @@
 #define CPU_ARCHTYPE_PENTIUMII			0x65
 #define CPU_ARCHTYPE_PENTIUMIII			0x6A
 
+#define FPU_ARCHTYPE_8087			0x00
+#define FPU_ARCHTYPE_287			0x20
+#define FPU_ARCHTYPE_387			0x30
+#define FPU_ARCHTYPE_BEST			0xfe
+#define FPH_ARCHTYPE_EXPERIMENTAL		0xff
+
 /* CPU Cycle Timing */
 extern cpu_cycles_count_t CPU_Cycles;
 extern cpu_cycles_count_t CPU_CycleLeft;
@@ -67,6 +73,7 @@ extern bool CPU_SkipCycleAutoAdjust;
 extern bool enable_weitek;
 
 extern unsigned char CPU_ArchitectureType;
+extern unsigned char FPU_ArchitectureType;
 
 extern unsigned int CPU_PrefetchQueueSize;
 

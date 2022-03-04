@@ -1274,6 +1274,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* pc98videomodeopt[] = { "", "24khz", "31khz", "15khz", 0};
     const char* aspectmodes[] = { "false", "true", "0", "1", "yes", "no", "nearest", "bilinear", 0};
     const char *vga_ac_mapping_settings[] = { "", "auto", "4x4", "4low", "first16", 0 };
+    const char* fpu_settings[] = { "true", "false", "1", "0", "auto", "8087", "287", "387", 0};
 
     const char* hostkeys[] = {
         "ctrlalt", "ctrlshift", "altshift", "mapper", 0 };
@@ -2546,9 +2547,11 @@ void DOSBOX_SetupConfigSections(void) {
             "Windows 95 or other preemptive multitasking OSes will not work with the dynamic_rec core.");
     Pstring->SetBasic(true);
 
-    Pbool = secprop->Add_bool("fpu",Property::Changeable::Always,true);
-    Pbool->Set_help("Enable FPU emulation");
-    Pbool->SetBasic(true);
+    /* I would like "auto" which is true for >= 486 and false for <= 386, but instead remain compatible with DOSBox SVN dosbox.conf files by defaulting to "true" */
+    Pstring = secprop->Add_string("fpu",Property::Changeable::Always,"true");
+    Pstring->Set_help("Enable FPU emulation");
+    Pstring->Set_values(fpu_settings);
+    Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("processor serial number",Property::Changeable::Always,"");
     Pstring->Set_help("For Pentium III emulation, this sets the 96-bit Processor Serial Number returned by CPUID.\n"
