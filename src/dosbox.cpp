@@ -2547,7 +2547,9 @@ void DOSBOX_SetupConfigSections(void) {
             "Windows 95 or other preemptive multitasking OSes will not work with the dynamic_rec core.");
     Pstring->SetBasic(true);
 
-    /* I would like "auto" which is true for >= 486 and false for <= 386, but instead remain compatible with DOSBox SVN dosbox.conf files by defaulting to "true" */
+    /* I would like "auto" as the default so FPU emulation is enabled for 486 or higher, disabled for 386 and lower.
+     * However it is better to always emulate the FPU (default "true") like DOSBox SVN to remain compatible with
+     * existing dosbox.conf files. */
     Pstring = secprop->Add_string("fpu",Property::Changeable::Always,"true");
     Pstring->Set_help("Enable FPU emulation");
     Pstring->Set_values(fpu_settings);
