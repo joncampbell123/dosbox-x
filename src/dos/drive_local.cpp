@@ -2073,8 +2073,9 @@ bool localDrive::Rename(const char * oldname,const char * newname) {
 	strcpy(newold,basedir);
 	strcat(newold,oldname);
 	CROSS_FILENAME(newold);
-	dirCache.ExpandName(newold);
-	
+    struct stat temp_stat;
+    if(stat(newold,&temp_stat)) dirCache.ExpandName(newold);
+
 	char newnew[CROSS_LEN];
 	strcpy(newnew,basedir);
 	strcat(newnew,newname);
