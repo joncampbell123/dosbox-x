@@ -1,4 +1,6 @@
 0.83.24
+  - Merge code to help preserve long filename when
+    older program writes/overwrites the 8.3 filename.
   - Change "fpu" setting in dosbox.conf to an enumeration
     that still accepts true and false, but now also
     accepts auto, 287, and 387. It is now possible to
