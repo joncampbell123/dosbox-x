@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2021 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -63,11 +63,11 @@ bool PartialManager::shouldReverb(int i) {
 	return partialTable[i]->shouldReverb();
 }
 
-bool PartialManager::produceOutput(int i, IntSample *leftBuf, IntSample *rightBuf, uint32_t bufferLength) {
+bool PartialManager::produceOutput(int i, IntSample *leftBuf, IntSample *rightBuf, Bit32u bufferLength) {
 	return partialTable[i]->produceOutput(leftBuf, rightBuf, bufferLength);
 }
 
-bool PartialManager::produceOutput(int i, FloatSample *leftBuf, FloatSample *rightBuf, uint32_t bufferLength) {
+bool PartialManager::produceOutput(int i, FloatSample *leftBuf, FloatSample *rightBuf, Bit32u bufferLength) {
 	return partialTable[i]->produceOutput(leftBuf, rightBuf, bufferLength);
 }
 
@@ -77,7 +77,7 @@ void PartialManager::deactivateAll() {
 	}
 }
 
-unsigned int PartialManager::setReserve(uint8_t *rset) {
+unsigned int PartialManager::setReserve(Bit8u *rset) {
 	unsigned int pr = 0;
 	for (int x = 0; x <= 8; x++) {
 		numReservedPartialsForPart[x] = rset[x];
@@ -93,7 +93,7 @@ Partial *PartialManager::allocPartial(int partNum) {
 		return partial;
 	}
 	synth->printDebug("PartialManager Error: No inactive partials to allocate for part %d, current partial state:\n", partNum);
-	for (uint32_t i = 0; i < synth->getPartialCount(); i++) {
+	for (Bit32u i = 0; i < synth->getPartialCount(); i++) {
 		const Partial *partial = partialTable[i];
 		synth->printDebug("[Partial %d]: activation=%d, owner part=%d\n", i, partial->isActive(), partial->getOwnerPart());
 	}
@@ -276,9 +276,9 @@ Poly *PartialManager::assignPolyToPart(Part *part) {
 void PartialManager::polyFreed(Poly *poly) {
 	if (0 == firstFreePolyIndex) {
 		synth->printDebug("PartialManager Error: Cannot return freed poly, currently active polys:\n");
-		for (uint32_t partNum = 0; partNum < 9; partNum++) {
+		for (Bit32u partNum = 0; partNum < 9; partNum++) {
 			const Poly *activePoly = synth->getPart(partNum)->getFirstActivePoly();
-			uint32_t polyCount = 0;
+			Bit32u polyCount = 0;
 			while (activePoly != NULL) {
 				activePoly = activePoly->getNext();
 				polyCount++;
@@ -298,7 +298,7 @@ void PartialManager::partialDeactivated(int partialIndex) {
 		return;
 	}
 	synth->printDebug("PartialManager Error: Cannot return deactivated partial %d, current partial state:\n", partialIndex);
-	for (uint32_t i = 0; i < synth->getPartialCount(); i++) {
+	for (Bit32u i = 0; i < synth->getPartialCount(); i++) {
 		const Partial *partial = partialTable[i];
 		synth->printDebug("[Partial %d]: activation=%d, owner part=%d\n", i, partial->isActive(), partial->getOwnerPart());
 	}

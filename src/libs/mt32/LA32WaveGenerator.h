@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2021 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -38,7 +38,7 @@ struct LogSample {
 	// 16-bit fixed point value, includes 12-bit fractional part
 	// 4-bit integer part allows to present any 16-bit sample in the log-space
 	// Obviously, the log value doesn't contain the sign of the resulting sample
-	uint16_t logValue;
+	Bit16u logValue;
 	enum {
 		POSITIVE,
 		NEGATIVE
@@ -47,8 +47,8 @@ struct LogSample {
 
 class LA32Utilites {
 public:
-	static uint16_t interpolateExp(const uint16_t fract);
-	static int16_t unlog(const LogSample &logSample);
+	static Bit16u interpolateExp(const Bit16u fract);
+	static Bit16s unlog(const LogSample &logSample);
 	static void addLogSamples(LogSample &logSample1, const LogSample &logSample2);
 };
 
@@ -71,28 +71,28 @@ class LA32WaveGenerator {
 	bool sawtoothWaveform;
 
 	// Logarithmic amp of the wave generator
-	uint32_t amp;
+	Bit32u amp;
 
 	// Logarithmic frequency of the resulting wave
-	uint16_t pitch;
+	Bit16u pitch;
 
 	// Values in range [1..31]
 	// Value 1 correspong to the minimum resonance
-	uint8_t resonance;
+	Bit8u resonance;
 
 	// Processed value in range [0..255]
 	// Values in range [0..128] have no effect and the resulting wave remains symmetrical
 	// Value 255 corresponds to the maximum possible asymmetric of the resulting wave
-	uint8_t pulseWidth;
+	Bit8u pulseWidth;
 
 	// Composed of the base cutoff in range [78..178] left-shifted by 18 bits and the TVF modifier
-	uint32_t cutoffVal;
+	Bit32u cutoffVal;
 
 	// Logarithmic PCM sample start address
-	const int16_t *pcmWaveAddress;
+	const Bit16s *pcmWaveAddress;
 
 	// Logarithmic PCM sample length
-	uint32_t pcmWaveLength;
+	Bit32u pcmWaveLength;
 
 	// true for looped logarithmic PCM samples
 	bool pcmWaveLooped;
@@ -108,29 +108,29 @@ class LA32WaveGenerator {
 	// 0 - start of the positive rising sine segment of the square wave or start of the PCM sample
 	// 1048576 (2^20) - end of the negative rising sine segment of the square wave
 	// For PCM waves, the address of the currently playing sample equals (wavePosition / 256)
-	uint32_t wavePosition;
+	Bit32u wavePosition;
 
 	// Relative position within a square wave phase:
 	// 0             - start of the phase
 	// 262144 (2^18) - end of a sine phase in the square wave
-	uint32_t squareWavePosition;
+	Bit32u squareWavePosition;
 
 	// Relative position within the positive or negative wave segment:
 	// 0 - start of the corresponding positive or negative segment of the square wave
 	// 262144 (2^18) - corresponds to end of the first sine phase in the square wave
 	// The same increment sampleStep is used to indicate the current position
 	// since the length of the resonance wave is always equal to four square wave sine segments.
-	uint32_t resonanceSinePosition;
+	Bit32u resonanceSinePosition;
 
 	// The amp of the resonance sine wave grows with the resonance value
 	// As the resonance value cannot change while the partial is active, it is initialised once
-	uint32_t resonanceAmpSubtraction;
+	Bit32u resonanceAmpSubtraction;
 
 	// The decay speed of resonance sine wave, depends on the resonance value
-	uint32_t resAmpDecayFactor;
+	Bit32u resAmpDecayFactor;
 
 	// Fractional part of the pcmPosition
-	uint32_t pcmInterpolationFactor;
+	Bit32u pcmInterpolationFactor;
 
 	// Current phase of the square wave
 	enum {
@@ -162,29 +162,29 @@ class LA32WaveGenerator {
 	// Internal methods below
 	//***************************************************************************
 
-	uint32_t getSampleStep();
-	uint32_t getResonanceWaveLengthFactor(uint32_t effectiveCutoffValue);
-	uint32_t getHighLinearLength(uint32_t effectiveCutoffValue);
+	Bit32u getSampleStep();
+	Bit32u getResonanceWaveLengthFactor(Bit32u effectiveCutoffValue);
+	Bit32u getHighLinearLength(Bit32u effectiveCutoffValue);
 
-	void computePositions(uint32_t highLinearLength, uint32_t lowLinearLength, uint32_t resonanceWaveLengthFactor);
+	void computePositions(Bit32u highLinearLength, Bit32u lowLinearLength, Bit32u resonanceWaveLengthFactor);
 	void advancePosition();
 
 	void generateNextSquareWaveLogSample();
 	void generateNextResonanceWaveLogSample();
 	void generateNextSawtoothCosineLogSample(LogSample &logSample) const;
 
-	void pcmSampleToLogSample(LogSample &logSample, const int16_t pcmSample) const;
+	void pcmSampleToLogSample(LogSample &logSample, const Bit16s pcmSample) const;
 	void generateNextPCMWaveLogSamples();
 
 public:
 	// Initialise the WG engine for generation of synth partial samples and set up the invariant parameters
-	void initSynth(const bool sawtoothWaveform, const uint8_t pulseWidth, const uint8_t resonance);
+	void initSynth(const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance);
 
 	// Initialise the WG engine for generation of PCM partial samples and set up the invariant parameters
-	void initPCM(const int16_t * const pcmWaveAddress, const uint32_t pcmWaveLength, const bool pcmWaveLooped, const bool pcmWaveInterpolated);
+	void initPCM(const Bit16s * const pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped, const bool pcmWaveInterpolated);
 
 	// Update parameters with respect to TVP, TVA and TVF, and generate next sample
-	void generateNextSample(const uint32_t amp, const uint16_t pitch, const uint32_t cutoff);
+	void generateNextSample(const Bit32u amp, const Bit16u pitch, const Bit32u cutoff);
 
 	// WG output in the log-space consists of two components which are to be added (or ring modulated) in the linear-space afterwards
 	LogSample getOutputLogSample(const bool first) const;
@@ -199,7 +199,7 @@ public:
 	bool isPCMWave() const;
 
 	// Return current PCM interpolation factor
-	uint32_t getPCMInterpolationFactor() const;
+	Bit32u getPCMInterpolationFactor() const;
 }; // class LA32WaveGenerator
 
 // LA32PartialPair contains a structure of two partials being mixed / ring modulated
@@ -218,10 +218,10 @@ public:
 	virtual void init(const bool ringModulated, const bool mixed) = 0;
 
 	// Initialise the WG engine for generation of synth partial samples and set up the invariant parameters
-	virtual void initSynth(const PairType master, const bool sawtoothWaveform, const uint8_t pulseWidth, const uint8_t resonance) = 0;
+	virtual void initSynth(const PairType master, const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance) = 0;
 
 	// Initialise the WG engine for generation of PCM partial samples and set up the invariant parameters
-	virtual void initPCM(const PairType master, const int16_t * const pcmWaveAddress, const uint32_t pcmWaveLength, const bool pcmWaveLooped) = 0;
+	virtual void initPCM(const PairType master, const Bit16s * const pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped) = 0;
 
 	// Deactivate the WG engine
 	virtual void deactivate(const PairType master) = 0;
@@ -233,7 +233,7 @@ class LA32IntPartialPair : public LA32PartialPair {
 	bool ringModulated;
 	bool mixed;
 
-	static int16_t unlogAndMixWGOutput(const LA32WaveGenerator &wg);
+	static Bit16s unlogAndMixWGOutput(const LA32WaveGenerator &wg);
 
 public:
 	// ringModulated should be set to false for the structures with mixing or stereo output
@@ -242,17 +242,17 @@ public:
 	void init(const bool ringModulated, const bool mixed);
 
 	// Initialise the WG engine for generation of synth partial samples and set up the invariant parameters
-	void initSynth(const PairType master, const bool sawtoothWaveform, const uint8_t pulseWidth, const uint8_t resonance);
+	void initSynth(const PairType master, const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance);
 
 	// Initialise the WG engine for generation of PCM partial samples and set up the invariant parameters
-	void initPCM(const PairType master, const int16_t * const pcmWaveAddress, const uint32_t pcmWaveLength, const bool pcmWaveLooped);
+	void initPCM(const PairType master, const Bit16s * const pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped);
 
 	// Update parameters with respect to TVP, TVA and TVF, and generate next sample
-	void generateNextSample(const PairType master, const uint32_t amp, const uint16_t pitch, const uint32_t cutoff);
+	void generateNextSample(const PairType master, const Bit32u amp, const Bit16u pitch, const Bit32u cutoff);
 
 	// Perform mixing / ring modulation of WG output and return the result
 	// Although, LA32 applies panning itself, we assume it is applied in the mixer, not within a pair
-	int16_t nextOutSample();
+	Bit16s nextOutSample();
 
 	// Deactivate the WG engine
 	void deactivate(const PairType master);

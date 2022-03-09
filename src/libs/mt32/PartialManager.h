@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2021 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -35,10 +35,10 @@ private:
 	Part **parts;
 	Poly **freePolys;
 	Partial **partialTable;
-	uint8_t numReservedPartialsForPart[9];
-	uint32_t firstFreePolyIndex;
+	Bit8u numReservedPartialsForPart[9];
+	Bit32u firstFreePolyIndex;
 	int *inactivePartials; // Holds indices of inactive Partials in the Partial table
-	uint32_t inactivePartialCount;
+	Bit32u inactivePartialCount;
 
 	bool abortFirstReleasingPolyWhereReserveExceeded(int minPart);
 	bool abortFirstPolyPreferHeldWhereReserveExceeded(int minPart);
@@ -50,10 +50,10 @@ public:
 	unsigned int getFreePartialCount();
 	void getPerPartPartialUsage(unsigned int perPartPartialUsage[9]);
 	bool freePartials(unsigned int needed, int partNum);
-	unsigned int setReserve(uint8_t *rset);
+	unsigned int setReserve(Bit8u *rset);
 	void deactivateAll();
-	bool produceOutput(int i, IntSample *leftBuf, IntSample *rightBuf, uint32_t bufferLength);
-	bool produceOutput(int i, FloatSample *leftBuf, FloatSample *rightBuf, uint32_t bufferLength);
+	bool produceOutput(int i, IntSample *leftBuf, IntSample *rightBuf, Bit32u bufferLength);
+	bool produceOutput(int i, FloatSample *leftBuf, FloatSample *rightBuf, Bit32u bufferLength);
 	bool shouldReverb(int i);
 	void clearAlreadyOutputed();
 	const Partial *getPartial(unsigned int partialNum) const;

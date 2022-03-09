@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2021 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -31,21 +31,21 @@
 
 namespace MT32Emu {
 
-static const uint8_t PAN_NUMERATOR_MASTER[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7};
-static const uint8_t PAN_NUMERATOR_SLAVE[]  = {0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7};
+static const Bit8u PAN_NUMERATOR_MASTER[] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 5, 6, 7};
+static const Bit8u PAN_NUMERATOR_SLAVE[]  = {0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7};
 
 // We assume the pan is applied using the same 13-bit multiplier circuit that is also used for ring modulation
 // because of the observed sample overflow, so the panSetting values are likely mapped in a similar way via a LUT.
 // FIXME: Sample analysis suggests that the use of panSetting is linear, but there are some quirks that still need to be resolved.
-static int32_t getPanFactor(int32_t panSetting) {
-	static const uint32_t PAN_FACTORS_COUNT = 15;
-	static int32_t PAN_FACTORS[PAN_FACTORS_COUNT];
+static Bit32s getPanFactor(Bit32s panSetting) {
+	static const Bit32u PAN_FACTORS_COUNT = 15;
+	static Bit32s PAN_FACTORS[PAN_FACTORS_COUNT];
 	static bool firstRun = true;
 
 	if (firstRun) {
 		firstRun = false;
-		for (uint32_t i = 1; i < PAN_FACTORS_COUNT; i++) {
-			PAN_FACTORS[i] = int32_t(0.5 + i * 8192.0 / double(PAN_FACTORS_COUNT - 1));
+		for (Bit32u i = 1; i < PAN_FACTORS_COUNT; i++) {
+			PAN_FACTORS[i] = Bit32s(0.5 + i * 8192.0 / double(PAN_FACTORS_COUNT - 1));
 		}
 	}
 	return PAN_FACTORS[panSetting];
@@ -87,7 +87,7 @@ int Partial::debugGetPartialNum() const {
 }
 
 // Only used for debugging purposes
-uint32_t Partial::debugGetSampleNum() const {
+Bit32u Partial::debugGetSampleNum() const {
 	return sampleNum;
 }
 
@@ -145,7 +145,7 @@ void Partial::startPartial(const Part *part, Poly *usePoly, const PatchCache *us
 	mixType = patchCache->structureMix;
 	structurePosition = patchCache->structurePosition;
 
-	uint8_t panSetting = rhythmTemp != NULL ? rhythmTemp->panpot : part->getPatchTemp()->panpot;
+	Bit8u panSetting = rhythmTemp != NULL ? rhythmTemp->panpot : part->getPatchTemp()->panpot;
 	if (mixType == 3) {
 		if (structurePosition == 0) {
 			panSetting = PAN_NUMERATOR_MASTER[panSetting] << 1;
@@ -234,7 +234,7 @@ void Partial::startPartial(const Part *part, Poly *usePoly, const PatchCache *us
 	}
 }
 
-uint32_t Partial::getAmpValue() {
+Bit32u Partial::getAmpValue() {
 	// SEMI-CONFIRMED: From sample analysis:
 	// (1) Tested with a single partial playing PCM wave 77 with pitchCoarse 36 and no keyfollow, velocity follow, etc.
 	// This gives results within +/- 2 at the output (before any DAC bitshifting)
@@ -245,18 +245,18 @@ uint32_t Partial::getAmpValue() {
 	//
 	// Also still partially unconfirmed is the behaviour when ramping between levels, as well as the timing.
 	// TODO: The tests above were performed using the float model, to be refined
-	uint32_t ampRampVal = 67117056 - ampRamp.nextValue();
+	Bit32u ampRampVal = 67117056 - ampRamp.nextValue();
 	if (ampRamp.checkInterrupt()) {
 		tva->handleInterrupt();
 	}
 	return ampRampVal;
 }
 
-uint32_t Partial::getCutoffValue() {
+Bit32u Partial::getCutoffValue() {
 	if (isPCM()) {
 		return 0;
 	}
-	uint32_t cutoffModifierRampVal = cutoffModifierRamp.nextValue();
+	Bit32u cutoffModifierRampVal = cutoffModifierRamp.nextValue();
 	if (cutoffModifierRamp.checkInterrupt()) {
 		tvf->handleInterrupt();
 	}
@@ -357,7 +357,7 @@ void Partial::produceAndMixSample(FloatSample *&leftBuf, FloatSample *&rightBuf,
 }
 
 template <class Sample, class LA32PairImpl>
-bool Partial::doProduceOutput(Sample *leftBuf, Sample *rightBuf, uint32_t length, LA32PairImpl *la32PairImpl) {
+bool Partial::doProduceOutput(Sample *leftBuf, Sample *rightBuf, Bit32u length, LA32PairImpl *la32PairImpl) {
 	if (!canProduceOutput()) return false;
 	alreadyOutputed = true;
 
@@ -369,7 +369,7 @@ bool Partial::doProduceOutput(Sample *leftBuf, Sample *rightBuf, uint32_t length
 	return true;
 }
 
-bool Partial::produceOutput(IntSample *leftBuf, IntSample *rightBuf, uint32_t length) {
+bool Partial::produceOutput(IntSample *leftBuf, IntSample *rightBuf, Bit32u length) {
 	if (floatMode) {
 		synth->printDebug("Partial: Invalid call to produceOutput()! Renderer = %d\n", synth->getSelectedRendererType());
 		return false;
@@ -377,7 +377,7 @@ bool Partial::produceOutput(IntSample *leftBuf, IntSample *rightBuf, uint32_t le
 	return doProduceOutput(leftBuf, rightBuf, length, static_cast<LA32IntPartialPair *>(la32Pair));
 }
 
-bool Partial::produceOutput(FloatSample *leftBuf, FloatSample *rightBuf, uint32_t length) {
+bool Partial::produceOutput(FloatSample *leftBuf, FloatSample *rightBuf, Bit32u length) {
 	if (!floatMode) {
 		synth->printDebug("Partial: Invalid call to produceOutput()! Renderer = %d\n", synth->getSelectedRendererType());
 		return false;

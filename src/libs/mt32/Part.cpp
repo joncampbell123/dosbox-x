@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2021 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -28,12 +28,12 @@
 
 namespace MT32Emu {
 
-static const uint8_t PartialStruct[13] = {
+static const Bit8u PartialStruct[13] = {
 	0, 0, 2, 2, 1, 3,
 	3, 0, 3, 0, 2, 1, 3
 };
 
-static const uint8_t PartialMixStruct[13] = {
+static const Bit8u PartialMixStruct[13] = {
 	0, 1, 0, 1, 1, 0,
 	1, 3, 3, 2, 2, 2, 2
 };
@@ -59,10 +59,12 @@ Part::Part(Synth *useSynth, unsigned int usePartNum) {
 	}
 	currentInstr[0] = 0;
 	currentInstr[10] = 0;
+	volumeOverride = 255;
 	modulation = 0;
 	expression = 100;
 	pitchBend = 0;
 	activePartialCount = 0;
+	activeNonReleasingPolyCount = 0;
 	memset(patchCache, 0, sizeof(patchCache));
 }
 
@@ -110,7 +112,7 @@ void Part::setHoldPedal(bool pressed) {
 	}
 }
 
-int32_t Part::getPitchBend() const {
+Bit32s Part::getPitchBend() const {
 	return pitchBend;
 }
 
@@ -119,12 +121,12 @@ void Part::setBend(unsigned int midiBend) {
 	pitchBend = ((signed(midiBend) - 8192) * pitchBenderRange) >> 14; // PORTABILITY NOTE: Assumes arithmetic shift
 }
 
-uint8_t Part::getModulation() const {
+Bit8u Part::getModulation() const {
 	return modulation;
 }
 
 void Part::setModulation(unsigned int midiModulation) {
-	modulation = uint8_t(midiModulation);
+	modulation = Bit8u(midiModulation);
 }
 
 void Part::resetAllControllers() {
@@ -166,7 +168,7 @@ void Part::refresh() {
 		patchCache[t].reverb = patchTemp->patch.reverbSwitch > 0;
 	}
 	memcpy(currentInstr, timbreTemp->common.name, 10);
-	synth->newTimbreSet(partNum, patchTemp->patch.timbreGroup, patchTemp->patch.timbreNum, currentInstr);
+	synth->newTimbreSet(partNum);
 	updatePitchBenderRange();
 }
 
@@ -312,21 +314,35 @@ const char *Part::getName() const {
 
 void Part::setVolume(unsigned int midiVolume) {
 	// CONFIRMED: This calculation matches the table used in the control ROM
-	patchTemp->outputLevel = uint8_t(midiVolume * 100 / 127);
+	patchTemp->outputLevel = Bit8u(midiVolume * 100 / 127);
 	//synth->printDebug("%s (%s): Set volume to %d", name, currentInstr, midiVolume);
 }
 
-uint8_t Part::getVolume() const {
-	return patchTemp->outputLevel;
+Bit8u Part::getVolume() const {
+	return volumeOverride <= 100 ? volumeOverride : patchTemp->outputLevel;
 }
 
-uint8_t Part::getExpression() const {
+void Part::setVolumeOverride(Bit8u volume) {
+	volumeOverride = volume;
+	// When volume is 0, we want the part to stop producing any sound at all.
+	// For that to achieve, we have to actually stop processing NoteOn MIDI messages; merely
+	// returning 0 volume is not enough - the output may still be generated at a very low level.
+	// But first, we have to stop all the currently playing polys. This behaviour may also help
+	// with performance issues, because parts muted this way barely consume CPU resources.
+	if (volume == 0) allSoundOff();
+}
+
+Bit8u Part::getVolumeOverride() const {
+	return volumeOverride;
+}
+
+Bit8u Part::getExpression() const {
 	return expression;
 }
 
 void Part::setExpression(unsigned int midiExpression) {
 	// CONFIRMED: This calculation matches the table used in the control ROM
-	expression = uint8_t(midiExpression * 100 / 127);
+	expression = Bit8u(midiExpression * 100 / 127);
 }
 
 void RhythmPart::setPan(unsigned int midiPan) {
@@ -342,10 +358,10 @@ void Part::setPan(unsigned int midiPan) {
 
 	if (synth->controlROMFeatures->quirkPanMult) {
 		// MT-32: Divide by 9
-		patchTemp->panpot = uint8_t(midiPan / 9);
+		patchTemp->panpot = Bit8u(midiPan / 9);
 	} else {
 		// CM-32L: Divide by 8.5
-		patchTemp->panpot = uint8_t((midiPan << 3) / 68);
+		patchTemp->panpot = Bit8u((midiPan << 3) / 68);
 	}
 
 	//synth->printDebug("%s (%s): Set pan to %d", name, currentInstr, panpot);
@@ -380,6 +396,7 @@ void RhythmPart::noteOn(unsigned int midiKey, unsigned int velocity) {
 		synth->printDebug("%s: Attempted to play invalid key %d (velocity %d)", name, midiKey, velocity);
 		return;
 	}
+	synth->rhythmNotePlayed();
 	unsigned int key = midiKey;
 	unsigned int drumNum = key - 24;
 	int drumTimbreNum = rhythmTemp[drumNum].timbre;
@@ -519,7 +536,7 @@ void Part::playPoly(const PatchCache cache[4], const MemParams::RhythmTemp *rhyt
 #if MT32EMU_MONITOR_PARTIALS > 1
 	synth->printPartialUsage();
 #endif
-	synth->reportHandler->onPolyStateChanged(uint8_t(partNum));
+	synth->reportHandler->onPolyStateChanged(Bit8u(partNum));
 }
 
 void Part::allNotesOff() {
@@ -605,8 +622,29 @@ void Part::partialDeactivated(Poly *poly) {
 	if (!poly->isActive()) {
 		activePolys.remove(poly);
 		synth->partialManager->polyFreed(poly);
-		synth->reportHandler->onPolyStateChanged(uint8_t(partNum));
+		synth->reportHandler->onPolyStateChanged(Bit8u(partNum));
 	}
+}
+
+void RhythmPart::polyStateChanged(PolyState, PolyState) {}
+
+void Part::polyStateChanged(PolyState oldState, PolyState newState) {
+	switch (newState) {
+	case POLY_Playing:
+		if (activeNonReleasingPolyCount++ == 0) synth->voicePartStateChanged(partNum, true);
+		break;
+	case POLY_Releasing:
+	case POLY_Inactive:
+		if (oldState == POLY_Playing || oldState == POLY_Held) {
+			if (--activeNonReleasingPolyCount == 0) synth->voicePartStateChanged(partNum, false);
+		}
+		break;
+	default:
+		break;
+	}
+#ifdef MT32EMU_TRACE_POLY_STATE_CHANGES
+	synth->printDebug("Part %d: Changed poly state %d->%d, activeNonReleasingPolyCount=%d", partNum, oldState, newState, activeNonReleasingPolyCount);
+#endif
 }
 
 PolyList::PolyList() : firstPoly(NULL), lastPoly(NULL) {}

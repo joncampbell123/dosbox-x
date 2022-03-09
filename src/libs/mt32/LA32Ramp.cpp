@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2021 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -77,14 +77,14 @@ LA32Ramp::LA32Ramp() :
 	interruptRaised(false) {
 }
 
-void LA32Ramp::startRamp(uint8_t target, uint8_t increment) {
+void LA32Ramp::startRamp(Bit8u target, Bit8u increment) {
 	// CONFIRMED: From sample analysis, this appears to be very accurate.
 	if (increment == 0) {
 		largeIncrement = 0;
 	} else {
 		// Three bits in the fractional part, no need to interpolate
 		// (unsigned int)(EXP2F(((increment & 0x7F) + 24) / 8.0f) + 0.125f)
-		uint32_t expArg = increment & 0x7F;
+		Bit32u expArg = increment & 0x7F;
 		largeIncrement = 8191 - Tables::getInstance().exp9[~(expArg << 6) & 511];
 		largeIncrement <<= expArg >> 3;
 		largeIncrement += 64;
@@ -101,7 +101,7 @@ void LA32Ramp::startRamp(uint8_t target, uint8_t increment) {
 	interruptRaised = false;
 }
 
-uint32_t LA32Ramp::nextValue() {
+Bit32u LA32Ramp::nextValue() {
 	if (interruptCountdown > 0) {
 		if (--interruptCountdown == 0) {
 			interruptRaised = true;
@@ -157,8 +157,8 @@ void LA32Ramp::reset() {
 // However, this is a simple way to work around the specific behaviour of TVA
 // when in sustain phase which one normally wants to avoid.
 // See TVA::recalcSustain() for details.
-bool LA32Ramp::isBelowCurrent(uint8_t target) const {
-	return uint32_t(target << TARGET_SHIFTS) < current;
+bool LA32Ramp::isBelowCurrent(Bit8u target) const {
+	return Bit32u(target << TARGET_SHIFTS) < current;
 }
 
 } // namespace MT32Emu

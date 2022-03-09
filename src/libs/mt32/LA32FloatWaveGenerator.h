@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2021 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -45,18 +45,18 @@ class LA32FloatWaveGenerator {
 
 	// Values in range [1..31]
 	// Value 1 correspong to the minimum resonance
-	uint8_t resonance;
+	Bit8u resonance;
 
 	// Processed value in range [0..255]
 	// Values in range [0..128] have no effect and the resulting wave remains symmetrical
 	// Value 255 corresponds to the maximum possible asymmetric of the resulting wave
-	uint8_t pulseWidth;
+	Bit8u pulseWidth;
 
 	// Logarithmic PCM sample start address
-	const int16_t *pcmWaveAddress;
+	const Bit16s *pcmWaveAddress;
 
 	// Logarithmic PCM sample length
-	uint32_t pcmWaveLength;
+	Bit32u pcmWaveLength;
 
 	// true for looped logarithmic PCM samples
 	bool pcmWaveLooped;
@@ -76,13 +76,13 @@ class LA32FloatWaveGenerator {
 
 public:
 	// Initialise the WG engine for generation of synth partial samples and set up the invariant parameters
-	void initSynth(const bool sawtoothWaveform, const uint8_t pulseWidth, const uint8_t resonance);
+	void initSynth(const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance);
 
 	// Initialise the WG engine for generation of PCM partial samples and set up the invariant parameters
-	void initPCM(const int16_t * const pcmWaveAddress, const uint32_t pcmWaveLength, const bool pcmWaveLooped, const bool pcmWaveInterpolated);
+	void initPCM(const Bit16s * const pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped, const bool pcmWaveInterpolated);
 
 	// Update parameters with respect to TVP, TVA and TVF, and generate next sample
-	float generateNextSample(const uint32_t amp, const uint16_t pitch, const uint32_t cutoff);
+	float generateNextSample(const Bit32u amp, const Bit16u pitch, const Bit32u cutoff);
 
 	// Deactivate the WG engine
 	void deactivate();
@@ -109,13 +109,13 @@ public:
 	void init(const bool ringModulated, const bool mixed);
 
 	// Initialise the WG engine for generation of synth partial samples and set up the invariant parameters
-	void initSynth(const PairType master, const bool sawtoothWaveform, const uint8_t pulseWidth, const uint8_t resonance);
+	void initSynth(const PairType master, const bool sawtoothWaveform, const Bit8u pulseWidth, const Bit8u resonance);
 
 	// Initialise the WG engine for generation of PCM partial samples and set up the invariant parameters
-	void initPCM(const PairType master, const int16_t * const pcmWaveAddress, const uint32_t pcmWaveLength, const bool pcmWaveLooped);
+	void initPCM(const PairType master, const Bit16s * const pcmWaveAddress, const Bit32u pcmWaveLength, const bool pcmWaveLooped);
 
 	// Update parameters with respect to TVP, TVA and TVF, and generate next sample
-	void generateNextSample(const PairType master, const uint32_t amp, const uint16_t pitch, const uint32_t cutoff);
+	void generateNextSample(const PairType master, const Bit32u amp, const Bit16u pitch, const Bit32u cutoff);
 
 	// Perform mixing / ring modulation and return the result
 	float nextOutSample();

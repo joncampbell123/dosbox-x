@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2021 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -36,35 +36,36 @@ private:
 	const TimbreParam::PartialParam *partialParam;
 	const MemParams::PatchTemp *patchTemp;
 
+	const int processTimerTicksPerSampleX16;
 	int processTimerIncrement;
 	int counter;
-	uint32_t timeElapsed;
+	Bit32u timeElapsed;
 
 	int phase;
-	uint32_t basePitch;
-	int32_t targetPitchOffsetWithoutLFO;
-	int32_t currentPitchOffset;
+	Bit32u basePitch;
+	Bit32s targetPitchOffsetWithoutLFO;
+	Bit32s currentPitchOffset;
 
-	int16_t lfoPitchOffset;
+	Bit16s lfoPitchOffset;
 	// In range -12 - 36
-	int8_t timeKeyfollowSubtraction;
+	Bit8s timeKeyfollowSubtraction;
 
-	int16_t pitchOffsetChangePerBigTick;
-	uint16_t targetPitchOffsetReachedBigTick;
+	Bit16s pitchOffsetChangePerBigTick;
+	Bit16u targetPitchOffsetReachedBigTick;
 	unsigned int shifts;
 
-	uint16_t pitch;
+	Bit16u pitch;
 
 	void updatePitch();
-	void setupPitchChange(int targetPitchOffset, uint8_t changeDuration);
+	void setupPitchChange(int targetPitchOffset, Bit8u changeDuration);
 	void targetPitchOffsetReached();
 	void nextPhase();
 	void process();
 public:
 	TVP(const Partial *partial);
 	void reset(const Part *part, const TimbreParam::PartialParam *partialParam);
-	uint32_t getBasePitch() const;
-	uint16_t nextPitch();
+	Bit32u getBasePitch() const;
+	Bit16u nextPitch();
 	void startDecay();
 }; // class TVP
 

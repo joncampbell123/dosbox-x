@@ -1,4 +1,4 @@
-/* Copyright (C) 2015-2021 Sergey V. Mikayev
+/* Copyright (C) 2015-2022 Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -48,7 +48,7 @@ public:
 
 	// Fills the provided output buffer with the results of the sample rate conversion.
 	// The input samples are automatically retrieved from the synth as necessary.
-	void getOutputSamples(MT32Emu::int16_t *buffer, unsigned int length);
+	void getOutputSamples(MT32Emu::Bit16s *buffer, unsigned int length);
 
 	// Fills the provided output buffer with the results of the sample rate conversion.
 	// The input samples are automatically retrieved from the synth as necessary.

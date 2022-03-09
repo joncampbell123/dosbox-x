@@ -1337,6 +1337,7 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClCompile Include="..\src\libs\decoders\internal\speexdsp\smallft.c" />
     <ClCompile Include="..\src\libs\mt32\Analog.cpp" />
     <ClCompile Include="..\src\libs\mt32\c_interface\c_interface.cpp" />
+    <ClCompile Include="..\src\libs\mt32\Display.cpp" />
     <ClCompile Include="..\src\libs\mt32\LA32FloatWaveGenerator.cpp" />
     <ClCompile Include="..\src\libs\mt32\MidiStreamParser.cpp" />
     <ClCompile Include="..\src\libs\mt32\SampleRateConverter.cpp" />
@@ -1818,8 +1819,10 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClInclude Include="..\src\libs\mt32\c_interface\cpp_interface.h" />
     <ClInclude Include="..\src\libs\mt32\c_interface\c_interface.h" />
     <ClInclude Include="..\src\libs\mt32\c_interface\c_types.h" />
+    <ClInclude Include="..\src\libs\mt32\Display.h" />
     <ClInclude Include="..\src\libs\mt32\File.h" />
     <ClInclude Include="..\src\libs\mt32\FileStream.h" />
+    <ClInclude Include="..\src\libs\mt32\globals.h" />
     <ClInclude Include="..\src\libs\mt32\LA32FloatWaveGenerator.h" />
     <ClInclude Include="..\src\libs\mt32\LA32Ramp.h" />
     <ClInclude Include="..\src\libs\mt32\LA32WaveGenerator.h" />
