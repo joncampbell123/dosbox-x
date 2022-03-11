@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2021 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -62,6 +62,32 @@
  * so that the version map file can be generated automatically.
  */
 #define MT32EMU_EXPORT_V(symbol_version_tag) MT32EMU_EXPORT
+
+/* Helpers for compile-time version checks */
+
+#define MT32EMU_VERSION_MAJOR 2
+#define MT32EMU_VERSION_MINOR 6
+#define MT32EMU_VERSION_PATCH 1
+#define MT32EMU_VERSION "2.6.1"
+
+/* Encodes the given version components to a single integer value to simplify further checks. */
+#define MT32EMU_VERSION_INT(major, minor, patch) ((major << 16) | (minor << 8) | patch)
+
+/* The version of this library build, as an integer. */
+#define MT32EMU_CURRENT_VERSION_INT MT32EMU_VERSION_INT(MT32EMU_VERSION_MAJOR, MT32EMU_VERSION_MINOR, MT32EMU_VERSION_PATCH)
+
+/* Compares the current library version with the given version components. Intended for feature checks. */
+#define MT32EMU_VERSION_ATLEAST(major, minor, patch) (MT32EMU_CURRENT_VERSION_INT >= MT32EMU_VERSION_INT(major, minor, patch))
+
+/* Implements a simple version check that ensures full API compatibility of this library build
+ * with the application requirements. The latter can be derived from the versions of used public symbols.
+ *
+ * Note: This macro is intended for a quick compile-time check. To ensure compatibility of an application
+ * linked with a shared library, an automatic version check can be engaged with help of the build option
+ * libmt32emu_WITH_VERSION_TAGGING. For a fine-grained feature checking in run-time, see functions
+ * mt32emu_get_library_version_int and Synth::getLibraryVersionInt.
+ */
+#define MT32EMU_IS_COMPATIBLE(major, minor) (MT32EMU_VERSION_MAJOR == major && MT32EMU_VERSION_MINOR >= minor)
 
 /* Useful constants */
 

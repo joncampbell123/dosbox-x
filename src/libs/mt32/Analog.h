@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2021 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -40,12 +40,12 @@ public:
 
 	virtual ~Analog() {}
 	virtual unsigned int getOutputSampleRate() const = 0;
-	virtual uint32_t getDACStreamsLength(const uint32_t outputLength) const = 0;
+	virtual Bit32u getDACStreamsLength(const Bit32u outputLength) const = 0;
 	virtual void setSynthOutputGain(const float synthGain) = 0;
 	virtual void setReverbOutputGain(const float reverbGain, const bool mt32ReverbCompatibilityMode) = 0;
 
-	virtual bool process(IntSample *outStream, const IntSample *nonReverbLeft, const IntSample *nonReverbRight, const IntSample *reverbDryLeft, const IntSample *reverbDryRight, const IntSample *reverbWetLeft, const IntSample *reverbWetRight, uint32_t outLength) = 0;
-	virtual bool process(FloatSample *outStream, const FloatSample *nonReverbLeft, const FloatSample *nonReverbRight, const FloatSample *reverbDryLeft, const FloatSample *reverbDryRight, const FloatSample *reverbWetLeft, const FloatSample *reverbWetRight, uint32_t outLength) = 0;
+	virtual bool process(IntSample *outStream, const IntSample *nonReverbLeft, const IntSample *nonReverbRight, const IntSample *reverbDryLeft, const IntSample *reverbDryRight, const IntSample *reverbWetLeft, const IntSample *reverbWetRight, Bit32u outLength) = 0;
+	virtual bool process(FloatSample *outStream, const FloatSample *nonReverbLeft, const FloatSample *nonReverbRight, const FloatSample *reverbDryLeft, const FloatSample *reverbDryRight, const FloatSample *reverbWetLeft, const FloatSample *reverbWetRight, Bit32u outLength) = 0;
 };
 
 } // namespace MT32Emu

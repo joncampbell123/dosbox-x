@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2021 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -28,7 +28,7 @@ namespace {
 
 struct ROMInfoList {
 	const ROMInfo * const *romInfos;
-	const uint32_t itemCount;
+	const Bit32u itemCount;
 };
 
 struct ROMInfoLists {
@@ -38,8 +38,11 @@ struct ROMInfoLists {
 	ROMInfoList mt32_1_07;
 	ROMInfoList mt32_bluer;
 	ROMInfoList mt32_2_04;
+	ROMInfoList mt32_2_06;
+	ROMInfoList mt32_2_07;
 	ROMInfoList cm32l_1_00;
 	ROMInfoList cm32l_1_02;
+	ROMInfoList cm32ln_1_00;
 	ROMInfoList fullROMInfos;
 	ROMInfoList partialROMInfos;
 	ROMInfoList allROMInfos;
@@ -47,7 +50,7 @@ struct ROMInfoLists {
 
 }
 
-#define _CALC_ARRAY_LENGTH(x) uint32_t(sizeof (x) / sizeof *(x) - 1)
+#define _CALC_ARRAY_LENGTH(x) Bit32u(sizeof (x) / sizeof *(x) - 1)
 
 static const ROMInfoLists &getROMInfoLists() {
 	static ROMInfo CTRL_MT32_V1_04_A = {32768, "9cd4858014c4e8a9dff96053f784bfaac1092a2e", ROMInfo::Control, "ctrl_mt32_1_04_a", "MT-32 Control v1.04", ROMInfo::Mux0, NULL};
@@ -67,8 +70,11 @@ static const ROMInfoLists &getROMInfoLists() {
 	static ROMInfo CTRL_MT32_BLUER = {65536, "7b8c2a5ddb42fd0732e2f22b3340dcf5360edf92", ROMInfo::Control, "ctrl_mt32_bluer", "MT-32 Control BlueRidge", ROMInfo::Full, NULL};
 
 	static const ROMInfo CTRL_MT32_V2_04 = {131072, "2c16432b6c73dd2a3947cba950a0f4c19d6180eb", ROMInfo::Control, "ctrl_mt32_2_04", "MT-32 Control v2.04", ROMInfo::Full, NULL};
+	static const ROMInfo CTRL_MT32_V2_06 = {131072, "2869cf4c235d671668cfcb62415e2ce8323ad4ed", ROMInfo::Control, "ctrl_mt32_2_06", "MT-32 Control v2.06", ROMInfo::Full, NULL};
+	static const ROMInfo CTRL_MT32_V2_07 = {131072, "47b52adefedaec475c925e54340e37673c11707c", ROMInfo::Control, "ctrl_mt32_2_07", "MT-32 Control v2.07", ROMInfo::Full, NULL};
 	static const ROMInfo CTRL_CM32L_V1_00 = {65536, "73683d585cd6948cc19547942ca0e14a0319456d", ROMInfo::Control, "ctrl_cm32l_1_00", "CM-32L/LAPC-I Control v1.00", ROMInfo::Full, NULL};
 	static const ROMInfo CTRL_CM32L_V1_02 = {65536, "a439fbb390da38cada95a7cbb1d6ca199cd66ef8", ROMInfo::Control, "ctrl_cm32l_1_02", "CM-32L/LAPC-I Control v1.02", ROMInfo::Full, NULL};
+	static const ROMInfo CTRL_CM32LN_V1_00 = {65536, "dc1c5b1b90a4646d00f7daf3679733c7badc7077", ROMInfo::Control, "ctrl_cm32ln_1_00", "CM-32LN/CM-500/LAPC-N Control v1.00", ROMInfo::Full, NULL};
 
 	static ROMInfo PCM_MT32_L = {262144, "3a1e19b0cd4036623fd1d1d11f5f25995585962b", ROMInfo::PCM, "pcm_mt32_l", "MT-32 PCM ROM", ROMInfo::FirstHalf, NULL};
 	static ROMInfo PCM_MT32_H = {262144, "2cadb99d21a6a4a6f5b61b6218d16e9b43f61d01", ROMInfo::PCM, "pcm_mt32_h", "MT-32 PCM ROM", ROMInfo::SecondHalf, &PCM_MT32_L};
@@ -85,8 +91,11 @@ static const ROMInfoLists &getROMInfoLists() {
 		&CTRL_MT32_V1_07,
 		&CTRL_MT32_BLUER,
 		&CTRL_MT32_V2_04,
+		&CTRL_MT32_V2_06,
+		&CTRL_MT32_V2_07,
 		&CTRL_CM32L_V1_00,
 		&CTRL_CM32L_V1_02,
+		&CTRL_CM32LN_V1_00,
 		&PCM_MT32,
 		&PCM_CM32L,
 		NULL
@@ -122,8 +131,11 @@ static const ROMInfoLists &getROMInfoLists() {
 	static const ROMInfo * const MT32_V1_07_ROMS[] = {&CTRL_MT32_V1_07, &PCM_MT32, &CTRL_MT32_V1_07_A, &CTRL_MT32_V1_07_B, &PCM_MT32_L, &PCM_MT32_H, NULL};
 	static const ROMInfo * const MT32_BLUER_ROMS[] = {&CTRL_MT32_BLUER, &PCM_MT32, &CTRL_MT32_BLUER_A, &CTRL_MT32_BLUER_B, &PCM_MT32_L, &PCM_MT32_H, NULL};
 	static const ROMInfo * const MT32_V2_04_ROMS[] = {&CTRL_MT32_V2_04, &PCM_MT32, &PCM_MT32_L, &PCM_MT32_H, NULL};
+	static const ROMInfo * const MT32_V2_06_ROMS[] = {&CTRL_MT32_V2_06, &PCM_MT32, &PCM_MT32_L, &PCM_MT32_H, NULL};
+	static const ROMInfo * const MT32_V2_07_ROMS[] = {&CTRL_MT32_V2_07, &PCM_MT32, &PCM_MT32_L, &PCM_MT32_H, NULL};
 	static const ROMInfo * const CM32L_V1_00_ROMS[] = {&CTRL_CM32L_V1_00, &PCM_CM32L, &PCM_CM32L_L, &PCM_CM32L_H, NULL};
 	static const ROMInfo * const CM32L_V1_02_ROMS[] = {&CTRL_CM32L_V1_02, &PCM_CM32L, &PCM_CM32L_L, &PCM_CM32L_H, NULL};
+	static const ROMInfo * const CM32LN_V1_00_ROMS[] = {&CTRL_CM32LN_V1_00, &PCM_CM32L, NULL};
 
 	static const ROMInfoLists romInfoLists = {
 		{MT32_V1_04_ROMS, _CALC_ARRAY_LENGTH(MT32_V1_04_ROMS)},
@@ -132,8 +144,11 @@ static const ROMInfoLists &getROMInfoLists() {
 		{MT32_V1_07_ROMS, _CALC_ARRAY_LENGTH(MT32_V1_07_ROMS)},
 		{MT32_BLUER_ROMS, _CALC_ARRAY_LENGTH(MT32_BLUER_ROMS)},
 		{MT32_V2_04_ROMS, _CALC_ARRAY_LENGTH(MT32_V2_04_ROMS)},
+		{MT32_V2_06_ROMS, _CALC_ARRAY_LENGTH(MT32_V2_06_ROMS)},
+		{MT32_V2_07_ROMS, _CALC_ARRAY_LENGTH(MT32_V2_07_ROMS)},
 		{CM32L_V1_00_ROMS, _CALC_ARRAY_LENGTH(CM32L_V1_00_ROMS)},
 		{CM32L_V1_02_ROMS, _CALC_ARRAY_LENGTH(CM32L_V1_02_ROMS)},
+		{CM32LN_V1_00_ROMS, _CALC_ARRAY_LENGTH(CM32LN_V1_00_ROMS)},
 		{FULL_ROM_INFOS, _CALC_ARRAY_LENGTH(FULL_ROM_INFOS)},
 		{PARTIAL_ROM_INFOS, _CALC_ARRAY_LENGTH(PARTIAL_ROM_INFOS)},
 		{ALL_ROM_INFOS, _CALC_ARRAY_LENGTH(ALL_ROM_INFOS)}
@@ -145,7 +160,7 @@ static const ROMInfo * const *getKnownROMInfoList() {
 	return getROMInfoLists().allROMInfos.romInfos;
 }
 
-static const ROMInfo *getKnownROMInfoFromList(uint32_t index) {
+static const ROMInfo *getKnownROMInfoFromList(Bit32u index) {
 	return getKnownROMInfoList()[index];
 }
 
@@ -155,7 +170,7 @@ const ROMInfo *ROMInfo::getROMInfo(File *file) {
 
 const ROMInfo *ROMInfo::getROMInfo(File *file, const ROMInfo * const *romInfos) {
 	size_t fileSize = file->getSize();
-	for (uint32_t i = 0; romInfos[i] != NULL; i++) {
+	for (Bit32u i = 0; romInfos[i] != NULL; i++) {
 		const ROMInfo *romInfo = romInfos[i];
 		if (fileSize == romInfo->fileSize && !strcmp(file->getSHA1(), romInfo->sha1Digest)) {
 			return romInfo;
@@ -168,11 +183,11 @@ void ROMInfo::freeROMInfo(const ROMInfo *romInfo) {
 	(void) romInfo;
 }
 
-const ROMInfo **ROMInfo::getROMInfoList(uint32_t types, uint32_t pairTypes) {
-	uint32_t romCount = getROMInfoLists().allROMInfos.itemCount; // Excludes the NULL terminator.
+const ROMInfo **ROMInfo::getROMInfoList(Bit32u types, Bit32u pairTypes) {
+	Bit32u romCount = getROMInfoLists().allROMInfos.itemCount; // Excludes the NULL terminator.
 	const ROMInfo **romInfoList = new const ROMInfo*[romCount + 1];
 	const ROMInfo **currentROMInList = romInfoList;
-	for (uint32_t i = 0; i < romCount; i++) {
+	for (Bit32u i = 0; i < romCount; i++) {
 		const ROMInfo *romInfo = getKnownROMInfoFromList(i);
 		if ((types & (1 << romInfo->type)) && (pairTypes & (1 << romInfo->pairType))) {
 			*currentROMInList++ = romInfo;
@@ -186,30 +201,30 @@ void ROMInfo::freeROMInfoList(const ROMInfo **romInfoList) {
 	delete[] romInfoList;
 }
 
-const ROMInfo * const *ROMInfo::getAllROMInfos(uint32_t *itemCount) {
+const ROMInfo * const *ROMInfo::getAllROMInfos(Bit32u *itemCount) {
 	if (itemCount != NULL) *itemCount = getROMInfoLists().allROMInfos.itemCount;
 	return getROMInfoLists().allROMInfos.romInfos;
 }
 
-const ROMInfo * const *ROMInfo::getFullROMInfos(uint32_t *itemCount) {
+const ROMInfo * const *ROMInfo::getFullROMInfos(Bit32u *itemCount) {
 	if (itemCount != NULL) *itemCount = getROMInfoLists().fullROMInfos.itemCount;
 	return getROMInfoLists().fullROMInfos.romInfos;
 }
 
-const ROMInfo * const *ROMInfo::getPartialROMInfos(uint32_t *itemCount) {
+const ROMInfo * const *ROMInfo::getPartialROMInfos(Bit32u *itemCount) {
 	if (itemCount != NULL) *itemCount = getROMInfoLists().partialROMInfos.itemCount;
 	return getROMInfoLists().partialROMInfos.romInfos;
 }
 
-const ROMImage *ROMImage::makeFullROMImage(uint8_t *data, size_t dataSize) {
+const ROMImage *ROMImage::makeFullROMImage(Bit8u *data, size_t dataSize) {
 	return new ROMImage(new ArrayFile(data, dataSize), true, getKnownROMInfoList());
 }
 
 const ROMImage *ROMImage::appendImages(const ROMImage *romImageLow, const ROMImage *romImageHigh) {
-	const uint8_t *romDataLow = romImageLow->getFile()->getData();
-	const uint8_t *romDataHigh = romImageHigh->getFile()->getData();
+	const Bit8u *romDataLow = romImageLow->getFile()->getData();
+	const Bit8u *romDataHigh = romImageHigh->getFile()->getData();
 	size_t partSize = romImageLow->getFile()->getSize();
-	uint8_t *data = new uint8_t[2 * partSize];
+	Bit8u *data = new Bit8u[2 * partSize];
 	memcpy(data, romDataLow, partSize);
 	memcpy(data + partSize, romDataHigh, partSize);
 	const ROMImage *romImageFull = makeFullROMImage(data, 2 * partSize);
@@ -221,11 +236,11 @@ const ROMImage *ROMImage::appendImages(const ROMImage *romImageLow, const ROMIma
 }
 
 const ROMImage *ROMImage::interleaveImages(const ROMImage *romImageEven, const ROMImage *romImageOdd) {
-	const uint8_t *romDataEven = romImageEven->getFile()->getData();
-	const uint8_t *romDataOdd = romImageOdd->getFile()->getData();
+	const Bit8u *romDataEven = romImageEven->getFile()->getData();
+	const Bit8u *romDataOdd = romImageOdd->getFile()->getData();
 	size_t partSize = romImageEven->getFile()->getSize();
-	uint8_t *data = new uint8_t[2 * partSize];
-	uint8_t *writePtr = data;
+	Bit8u *data = new Bit8u[2 * partSize];
+	Bit8u *writePtr = data;
 	for (size_t romDataIx = 0; romDataIx < partSize; romDataIx++) {
 		*(writePtr++) = romDataEven[romDataIx];
 		*(writePtr++) = romDataOdd[romDataIx];
@@ -245,9 +260,9 @@ ROMImage::ROMImage(File *useFile, bool useOwnFile, const ROMInfo * const *romInf
 ROMImage::~ROMImage() {
 	ROMInfo::freeROMInfo(romInfo);
 	if (ownFile) {
-		const uint8_t *data = file->getData();
+		const Bit8u *data = file->getData();
 		delete file;
-		delete data;
+		delete[] data;
 	}
 }
 
@@ -304,7 +319,7 @@ const ROMInfo *ROMImage::getROMInfo() const {
 	return romInfo;
 }
 
-const MachineConfiguration * const *MachineConfiguration::getAllMachineConfigurations(uint32_t *itemCount) {
+const MachineConfiguration * const *MachineConfiguration::getAllMachineConfigurations(Bit32u *itemCount) {
 	static const ROMInfoLists &romInfoLists = getROMInfoLists();
 	static const MachineConfiguration MT32_1_04 = MachineConfiguration("mt32_1_04", romInfoLists.mt32_1_04.romInfos, romInfoLists.mt32_1_04.itemCount);
 	static const MachineConfiguration MT32_1_05 = MachineConfiguration("mt32_1_05", romInfoLists.mt32_1_05.romInfos, romInfoLists.mt32_1_05.itemCount);
@@ -312,17 +327,20 @@ const MachineConfiguration * const *MachineConfiguration::getAllMachineConfigura
 	static const MachineConfiguration MT32_1_07 = MachineConfiguration("mt32_1_07", romInfoLists.mt32_1_07.romInfos, romInfoLists.mt32_1_07.itemCount);
 	static const MachineConfiguration MT32_BLUER = MachineConfiguration("mt32_bluer", romInfoLists.mt32_bluer.romInfos, romInfoLists.mt32_bluer.itemCount);
 	static const MachineConfiguration MT32_2_04 = MachineConfiguration("mt32_2_04", romInfoLists.mt32_2_04.romInfos, romInfoLists.mt32_2_04.itemCount);
+	static const MachineConfiguration MT32_2_06 = MachineConfiguration("mt32_2_06", romInfoLists.mt32_2_06.romInfos, romInfoLists.mt32_2_06.itemCount);
+	static const MachineConfiguration MT32_2_07 = MachineConfiguration("mt32_2_07", romInfoLists.mt32_2_07.romInfos, romInfoLists.mt32_2_07.itemCount);
 	static const MachineConfiguration CM32L_1_00 = MachineConfiguration("cm32l_1_00", romInfoLists.cm32l_1_00.romInfos, romInfoLists.cm32l_1_00.itemCount);
 	static const MachineConfiguration CM32L_1_02 = MachineConfiguration("cm32l_1_02", romInfoLists.cm32l_1_02.romInfos, romInfoLists.cm32l_1_02.itemCount);
+	static const MachineConfiguration CM32LN_1_00 = MachineConfiguration("cm32ln_1_00", romInfoLists.cm32ln_1_00.romInfos, romInfoLists.cm32ln_1_00.itemCount);
 	static const MachineConfiguration * const MACHINE_CONFIGURATIONS[] = {
-		&MT32_1_04, &MT32_1_05, &MT32_1_06, &MT32_1_07, &MT32_BLUER, &MT32_2_04, &CM32L_1_00, &CM32L_1_02, NULL
+		&MT32_1_04, &MT32_1_05, &MT32_1_06, &MT32_1_07, &MT32_BLUER, &MT32_2_04, &MT32_2_06, &MT32_2_07, &CM32L_1_00, &CM32L_1_02, &CM32LN_1_00, NULL
 	};
 
 	if (itemCount != NULL) *itemCount = _CALC_ARRAY_LENGTH(MACHINE_CONFIGURATIONS);
 	return MACHINE_CONFIGURATIONS;
 }
 
-MachineConfiguration::MachineConfiguration(const char *useMachineID, const ROMInfo * const *useROMInfos, uint32_t useROMInfosCount) :
+MachineConfiguration::MachineConfiguration(const char *useMachineID, const ROMInfo * const *useROMInfos, Bit32u useROMInfosCount) :
 	machineID(useMachineID), romInfos(useROMInfos), romInfosCount(useROMInfosCount)
 {}
 
@@ -330,7 +348,7 @@ const char *MachineConfiguration::getMachineID() const {
 	return machineID;
 }
 
-const ROMInfo * const *MachineConfiguration::getCompatibleROMInfos(uint32_t *itemCount) const {
+const ROMInfo * const *MachineConfiguration::getCompatibleROMInfos(Bit32u *itemCount) const {
 	if (itemCount != NULL) *itemCount = romInfosCount;
 	return romInfos;
 }

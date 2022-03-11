@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2021 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -55,6 +55,7 @@ private:
 	bool holdpedal;
 
 	unsigned int activePartialCount;
+	unsigned int activeNonReleasingPolyCount;
 	PatchCache patchCache[4];
 	PolyList activePolys;
 
@@ -69,12 +70,14 @@ protected:
 	MemParams::PatchTemp *patchTemp;
 	char name[8]; // "Part 1".."Part 8", "Rhythm"
 	char currentInstr[11];
-	uint8_t modulation;
-	uint8_t expression;
-	int32_t pitchBend;
+	// Values outside the valid range 0..100 imply no override.
+	Bit8u volumeOverride;
+	Bit8u modulation;
+	Bit8u expression;
+	Bit32s pitchBend;
 	bool nrpn;
-	uint16_t rpn;
-	uint16_t pitchBenderRange; // (patchTemp->patch.benderRange * 683) at the time of the last MIDI program change or MIDI data entry.
+	Bit16u rpn;
+	Bit16u pitchBenderRange; // (patchTemp->patch.benderRange * 683) at the time of the last MIDI program change or MIDI data entry.
 
 	void backupCacheToPartials(PatchCache cache[4]);
 	void cacheTimbre(PatchCache cache[4], const TimbreParam *timbre);
@@ -95,14 +98,16 @@ public:
 	virtual void noteOff(unsigned int midiKey);
 	void allNotesOff();
 	void allSoundOff();
-	uint8_t getVolume() const; // Internal volume, 0-100, exposed for use by ExternalInterface
-	void setVolume(unsigned int midiVolume);
-	uint8_t getModulation() const;
+	Bit8u getVolume() const; // Effective output level, valid range 0..100.
+	void setVolume(unsigned int midiVolume); // Valid range 0..127, as defined for MIDI controller 7.
+	Bit8u getVolumeOverride() const;
+	void setVolumeOverride(Bit8u volumeOverride);
+	Bit8u getModulation() const;
 	void setModulation(unsigned int midiModulation);
-	uint8_t getExpression() const;
+	Bit8u getExpression() const;
 	void setExpression(unsigned int midiExpression);
 	virtual void setPan(unsigned int midiPan);
-	int32_t getPitchBend() const;
+	Bit32s getPitchBend() const;
 	void setBend(unsigned int midiBend);
 	virtual void setProgram(unsigned int midiProgram);
 	void setHoldPedal(bool pedalval);
@@ -122,6 +127,7 @@ public:
 
 	// This should only be called by Poly
 	void partialDeactivated(Poly *poly);
+	virtual void polyStateChanged(PolyState oldState, PolyState newState);
 
 	// These are rather specialised, and should probably only be used by PartialManager
 	bool abortFirstPoly(PolyState polyState);
@@ -146,6 +152,7 @@ public:
 	unsigned int getAbsTimbreNum() const;
 	void setPan(unsigned int midiPan);
 	void setProgram(unsigned int patchNum);
+	void polyStateChanged(PolyState oldState, PolyState newState);
 };
 
 } // namespace MT32Emu

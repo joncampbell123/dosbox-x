@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2021 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -32,7 +32,7 @@ public:
 
 	virtual ~File() {}
 	virtual size_t getSize() = 0;
-	virtual const uint8_t *getData() = 0;
+	virtual const Bit8u *getData() = 0;
 	virtual const SHA1Digest &getSHA1() = 0;
 
 	virtual void close() = 0;
@@ -56,15 +56,15 @@ private:
 
 class MT32EMU_EXPORT ArrayFile : public AbstractFile {
 public:
-	ArrayFile(const uint8_t *data, size_t size);
-	ArrayFile(const uint8_t *data, size_t size, const SHA1Digest &sha1Digest);
+	ArrayFile(const Bit8u *data, size_t size);
+	ArrayFile(const Bit8u *data, size_t size, const SHA1Digest &sha1Digest);
 
 	size_t getSize();
-	const uint8_t *getData();
+	const Bit8u *getData();
 	void close() {}
 
 private:
-	const uint8_t *data;
+	const Bit8u *data;
 	size_t size;
 };
 

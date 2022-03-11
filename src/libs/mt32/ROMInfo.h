@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2021 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -64,7 +64,7 @@ public:
 	// (specified by bitmasks)
 	// Useful for GUI/console app to output information on what ROMs it supports
 	// The caller must free the returned list with freeROMInfoList when finished.
-	MT32EMU_EXPORT static const ROMInfo **getROMInfoList(uint32_t types, uint32_t pairTypes);
+	MT32EMU_EXPORT static const ROMInfo **getROMInfoList(Bit32u types, Bit32u pairTypes);
 
 	// Frees the list of ROMInfos given that has been created by getROMInfoList.
 	MT32EMU_EXPORT static void freeROMInfoList(const ROMInfo **romInfos);
@@ -72,15 +72,15 @@ public:
 	// Returns an immutable NULL-terminated list of all (full and partial) supported ROMInfos.
 	// For convenience, this method also can fill the number of non-NULL items present in the list
 	// if a non-NULL value is provided in optional argument itemCount.
-	MT32EMU_EXPORT_V(2.5) static const ROMInfo * const *getAllROMInfos(uint32_t *itemCount = NULL);
+	MT32EMU_EXPORT_V(2.5) static const ROMInfo * const *getAllROMInfos(Bit32u *itemCount = NULL);
 	// Returns an immutable NULL-terminated list of all supported full ROMInfos.
 	// For convenience, this method also can fill the number of non-NULL items present in the list
 	// if a non-NULL value is provided in optional argument itemCount.
-	MT32EMU_EXPORT_V(2.5) static const ROMInfo * const *getFullROMInfos(uint32_t *itemCount = NULL);
+	MT32EMU_EXPORT_V(2.5) static const ROMInfo * const *getFullROMInfos(Bit32u *itemCount = NULL);
 	// Returns an immutable NULL-terminated list of all supported partial ROMInfos.
 	// For convenience, this method also can fill the number of non-NULL items present in the list
 	// if a non-NULL value is provided in optional argument itemCount.
-	MT32EMU_EXPORT_V(2.5) static const ROMInfo * const *getPartialROMInfos(uint32_t *itemCount = NULL);
+	MT32EMU_EXPORT_V(2.5) static const ROMInfo * const *getPartialROMInfos(Bit32u *itemCount = NULL);
 };
 
 // Synth::open() requires a full control ROMImage and a compatible full PCM ROMImage to work
@@ -122,7 +122,7 @@ public:
 	MT32EMU_EXPORT const ROMInfo *getROMInfo() const;
 
 private:
-	static const ROMImage *makeFullROMImage(uint8_t *data, size_t dataSize);
+	static const ROMImage *makeFullROMImage(Bit8u *data, size_t dataSize);
 	static const ROMImage *appendImages(const ROMImage *romImageLow, const ROMImage *romImageHigh);
 	static const ROMImage *interleaveImages(const ROMImage *romImageEven, const ROMImage *romImageOdd);
 
@@ -143,7 +143,7 @@ public:
 	// Returns an immutable NULL-terminated list of all supported machine configurations.
 	// For convenience, this method also can fill the number of non-NULL items present in the list
 	// if a non-NULL value is provided in optional argument itemCount.
-	MT32EMU_EXPORT_V(2.5) static const MachineConfiguration * const *getAllMachineConfigurations(uint32_t *itemCount = NULL);
+	MT32EMU_EXPORT_V(2.5) static const MachineConfiguration * const *getAllMachineConfigurations(Bit32u *itemCount = NULL);
 
 	// Returns a string identifier of this MachineConfiguration.
 	MT32EMU_EXPORT_V(2.5) const char *getMachineID() const;
@@ -155,14 +155,14 @@ public:
 	// any incompatible ones.
 	// For convenience, this method also can fill the number of non-NULL items present in the list
 	// if a non-NULL value is provided in optional argument itemCount.
-	MT32EMU_EXPORT_V(2.5) const ROMInfo * const *getCompatibleROMInfos(uint32_t *itemCount = NULL) const;
+	MT32EMU_EXPORT_V(2.5) const ROMInfo * const *getCompatibleROMInfos(Bit32u *itemCount = NULL) const;
 
 private:
 	const char * const machineID;
 	const ROMInfo * const * const romInfos;
-	const uint32_t romInfosCount;
+	const Bit32u romInfosCount;
 
-	MachineConfiguration(const char *machineID, const ROMInfo * const *romInfos, uint32_t romInfosCount);
+	MachineConfiguration(const char *machineID, const ROMInfo * const *romInfos, Bit32u romInfosCount);
 
 	// Make MachineConfiguration an identity class.
 	MachineConfiguration(const MachineConfiguration &);

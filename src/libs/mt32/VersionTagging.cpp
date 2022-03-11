@@ -15,33 +15,17 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MT32EMU_LA32RAMP_H
-#define MT32EMU_LA32RAMP_H
-
 #include "globals.h"
-#include "Types.h"
 
-namespace MT32Emu {
+extern "C" {
+// Here's a list of all tagged minor library versions through global (potentially versioned) symbols.
+// An application that's been linked with an older library version will be able to find a matching tag,
+// while for an application linked with a newer library version there will be no match.
 
-class LA32Ramp {
-private:
-	Bit32u current;
-	unsigned int largeTarget;
-	unsigned int largeIncrement;
-	bool descending;
+MT32EMU_EXPORT_V(2.5) extern const volatile char mt32emu_2_5 = 0;
+MT32EMU_EXPORT_V(2.6) extern const volatile char mt32emu_2_6 = 0;
 
-	int interruptCountdown;
-	bool interruptRaised;
-
-public:
-	LA32Ramp();
-	void startRamp(Bit8u target, Bit8u increment);
-	Bit32u nextValue();
-	bool checkInterrupt();
-	void reset();
-	bool isBelowCurrent(Bit8u target) const;
-};
-
-} // namespace MT32Emu
-
-#endif // #ifndef MT32EMU_LA32RAMP_H
+#if MT32EMU_VERSION_MAJOR > 2 || MT32EMU_VERSION_MINOR > 6
+#error "Missing version tag definition for current library version"
+#endif
+}

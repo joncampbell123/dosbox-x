@@ -15,6 +15,6 @@ libmt32_a_SOURCES += \
 	LA32WaveGenerator.cpp LA32WaveGenerator.h LA32FloatWaveGenerator.cpp LA32FloatWaveGenerator.h \
 	./c_interface/c_interface.cpp ./c_interface/c_interface.h ./c_interface/c_types.h \
 	./c_interface/cpp_interface.h ROMInfo.cpp ROMInfo.h \
-	./sha1/sha1.cpp ./sha1/sha1.h
+	./sha1/sha1.cpp ./sha1/sha1.h Display.cpp Display.h VersionTagging.cpp VersionTagging.h
 endif
 

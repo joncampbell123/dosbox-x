@@ -1,5 +1,5 @@
 /* Copyright (C) 2003, 2004, 2005, 2006, 2008, 2009 Dean Beeler, Jerome Fisher
- * Copyright (C) 2011-2021 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
+ * Copyright (C) 2011-2022 Dean Beeler, Jerome Fisher, Sergey V. Mikayev
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU Lesser General Public License as published by
@@ -38,23 +38,23 @@ public:
 	class SysexDataStorage;
 
 	struct MidiEvent {
-		const uint8_t *sysexData;
+		const Bit8u *sysexData;
 		union {
-			uint32_t sysexLength;
-			uint32_t shortMessageData;
+			Bit32u sysexLength;
+			Bit32u shortMessageData;
 		};
-		uint32_t timestamp;
+		Bit32u timestamp;
 	};
 
 	explicit MidiEventQueue(
 		// Must be a power of 2
-		uint32_t ringBufferSize,
-		uint32_t storageBufferSize
+		Bit32u ringBufferSize,
+		Bit32u storageBufferSize
 	);
 	~MidiEventQueue();
 	void reset();
-	bool pushShortMessage(uint32_t shortMessageData, uint32_t timestamp);
-	bool pushSysex(const uint8_t *sysexData, uint32_t sysexLength, uint32_t timestamp);
+	bool pushShortMessage(Bit32u shortMessageData, Bit32u timestamp);
+	bool pushSysex(const Bit8u *sysexData, Bit32u sysexLength, Bit32u timestamp);
 	const volatile MidiEvent *peekMidiEvent();
 	void dropMidiEvent();
 	inline bool isEmpty() const;
@@ -63,9 +63,9 @@ private:
 	SysexDataStorage &sysexDataStorage;
 
 	MidiEvent * const ringBuffer;
-	const uint32_t ringBufferMask;
-	volatile uint32_t startPosition;
-	volatile uint32_t endPosition;
+	const Bit32u ringBufferMask;
+	volatile Bit32u startPosition;
+	volatile Bit32u endPosition;
 };
 
 } // namespace MT32Emu
