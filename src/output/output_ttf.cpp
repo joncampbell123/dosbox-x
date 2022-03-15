@@ -950,6 +950,7 @@ void processWP(uint8_t *pcolorBG, uint8_t *pcolorFG) {
     *pcolorFG = colorFG;
 }
 
+bool hasfocus = true, lastfocus = true;
 void GFX_EndTextLines(bool force) {
     if (!force&&!IS_PC98_ARCH&&((!CurMode||CurMode->type!=M_TEXT))) return;
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
@@ -1006,13 +1007,22 @@ void GFX_EndTextLines(bool force) {
             curAC[ttf.cursor].chr ^= 0xf0f0;	// force redraw (differs)
         }
 
+	lastfocus = hasfocus;
+	hasfocus =
+#if defined(C_SDL2)
+	SDL_GetWindowFlags(sdl.window) & SDL_WINDOW_INPUT_FOCUS
+#else
+	SDL_GetAppState () & SDL_APPINPUTFOCUS
+#endif
+	? true : false;
+	bool focuschanged = lastfocus != hasfocus, noframe = !menu.toggle || ttf.fullScrn;
 	ttf_textClip.h = ttf.height;
 	ttf_textClip.y = 0;
 	for (unsigned int y = 0; y < ttf.lins; y++) {
 		bool draw = false;
 		ttf_textRect.y = ttf.offY+y*ttf.height;
 		for (unsigned int x = 0; x < ttf.cols; x++) {
-			if ((newAC[x] != curAC[x] || newAC[x].selected != curAC[x].selected || (colorChanged && (justChanged || draw)) || force) && !(newAC[x].skipped)) {
+			if ((newAC[x] != curAC[x] || newAC[x].selected != curAC[x].selected || (colorChanged && (justChanged || draw)) || force) && !(newAC[x].skipped) || (!y && focuschanged && noframe)) {
 				draw = true;
 				xmin = min((int)x, xmin);
 				ymin = min((int)y, ymin);
@@ -1030,12 +1040,12 @@ void GFX_EndTextLines(bool force) {
                 }
                 bool colornul = IS_VGA_ARCH && (altBGR1[colorBG&15].red > 4 || altBGR1[colorBG&15].green > 4 || altBGR1[colorBG&15].blue > 4 || altBGR1[colorFG&15].red > 4 || altBGR1[colorFG&15].green > 4 || altBGR1[colorFG&15].blue > 4) && rgbColors[colorBG].red < 5 && rgbColors[colorBG].green < 5 && rgbColors[colorBG].blue < 5 && rgbColors[colorFG].red < 5 && rgbColors[colorFG].green <5 && rgbColors[colorFG].blue < 5;
 				ttf_textRect.x = ttf.offX+(rtl?(ttf.cols-x-1):x)*ttf.width;
-				ttf_bgColor.r = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorBG&15].red:rgbColors[colorBG].red;
-				ttf_bgColor.g = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorBG&15].green:rgbColors[colorBG].green;
-				ttf_bgColor.b = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorBG&15].blue:rgbColors[colorBG].blue;
-				ttf_fgColor.r = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorFG&15].red:rgbColors[colorFG].red;
-				ttf_fgColor.g = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorFG&15].green:rgbColors[colorFG].green;
-				ttf_fgColor.b = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorFG&15].blue:rgbColors[colorFG].blue;
+				ttf_bgColor.r = !y&&!hasfocus&&noframe?altBGR0[colorBG&15].red:(colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorBG&15].red:rgbColors[colorBG].red);
+				ttf_bgColor.g = !y&&!hasfocus&&noframe?altBGR0[colorBG&15].green:(colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorBG&15].green:rgbColors[colorBG].green);
+				ttf_bgColor.b = !y&&!hasfocus&&noframe?altBGR0[colorBG&15].blue:(colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorBG&15].blue:rgbColors[colorBG].blue);
+				ttf_fgColor.r = !y&&!hasfocus&&noframe?altBGR0[colorFG&15].red:(colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorFG&15].red:rgbColors[colorFG].red);
+				ttf_fgColor.g = !y&&!hasfocus&&noframe?altBGR0[colorFG&15].green:(colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorFG&15].green:rgbColors[colorFG].green);
+				ttf_fgColor.b = !y&&!hasfocus&&noframe?altBGR0[colorFG&15].blue:(colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorFG&15].blue:rgbColors[colorFG].blue);
 
                 if (newAC[x].unicode) {
                     dw = newAC[x].doublewide;
