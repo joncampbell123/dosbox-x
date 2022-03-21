@@ -8,18 +8,24 @@
     paired with a 287 chip as is said to be how early
     386 Compaq systems were wired, for example.
     (joncampbell123)
+  - Fix lockup when printing in dBase IV. (Wengier)
   - Fix FPU emulation to use 8087 FENI/FDISI behavior
     when cputype=8086 or cputype=80186. (joncampbell123)
   - Fix FPU emulation to correctly emulate 80287 -/+inf
     compare behavior even if compiled for x86 targets
     where C_FPU_X86 uses the host FPU. (joncampbell123)
+  - Integrated commits from mainline (Allofich)
+    - Indicate in BIOS memory when keyboard ACK received.
+    Fixes Soko-ban Revenge.
+    - Fix execution of small COM programs on PCjr machine
+    type.
 0.83.23
   - Fixed XGA accelerated rendering for ViRGE emulation
     and 24 bits/pixel display modes. Since Windows drivers
     insist on 24bpp, this is necessary for
     "Truecolor (24-bit)" to display and render correctly.
-  - dosbox.conf option "vesa vbe 1.2 modes are 32bpp" is
-    now "true" "false" or "auto", where "auto" determines
+  - dosbox-x.conf option "vesa vbe 1.2 modes are 32bpp" is
+    now "true", "false" or "auto", where "auto" determines
     this setting based on which S3 chipset is being
     emulated. It seems the Windows drivers for ViRGE
     chipsets require 24bpp for truecolor modes, in fact,
