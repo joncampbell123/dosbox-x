@@ -38,7 +38,7 @@ You can select the one that best matches your Linux system and your needs.
 ### Flatpak
 Flatpak packages are officially released for the Linux operating system (with X11 or Xwayland).
 
-The Linux Fatpak package has the advantage of being supported by most Linux distributions, but it will run in a sandbox on your Linux system so that you may not be able to access some system-wide resources.
+The Linux Flatpak package has the advantage of being supported by most Linux distributions, but it will run in a sandbox on your Linux system so that you may not be able to access some system-wide resources.
 
 For the current DOSBox-X version the Linux Flatpak is available from:
 
@@ -95,8 +95,8 @@ But please note the DOSBox-X Linux packages on this website are built and update
 DOSBox-X is packaged for archlinux, and available in the user contributed AUR Package Repository.
 But please note that this package is not built or updated by the DOSBox-X Team.
 
-- SDL1 built: https://aur.archlinux.org/packages/dosbox-x/
-- SDL2 built: https://aur.archlinux.org/packages/dosbox-x-sdl2/
+- SDL1 build: https://aur.archlinux.org/packages/dosbox-x/
+- SDL2 build: https://aur.archlinux.org/packages/dosbox-x-sdl2/
 
 ## macOS Packages (Portable)
 
