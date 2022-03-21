@@ -134,6 +134,46 @@ private:
 	Bitu devnum;
 };
 
+struct ExtDeviceData {
+    uint16_t attribute;
+    uint16_t segment;
+    uint16_t strategy;
+    uint16_t interrupt;
+};
+
+class DOS_ExtDevice : public DOS_Device {
+public:
+    DOS_ExtDevice(const DOS_ExtDevice& orig) :DOS_Device(orig) {
+        ext = orig.ext;
+    }
+    DOS_ExtDevice(const char* name, uint16_t seg, uint16_t off) {
+        SetName(name);
+        ext.attribute = real_readw(seg, off + 4);
+        ext.segment = seg;
+        ext.strategy = real_readw(seg, off + 6);
+        ext.interrupt = real_readw(seg, off + 8);
+    }
+    DOS_ExtDevice& operator= (const DOS_ExtDevice& orig) {
+        DOS_Device::operator=(orig);
+        ext = orig.ext;
+        return *this;
+    }
+
+    virtual bool	Read(uint8_t* data, uint16_t* size);
+    virtual bool	Write(const uint8_t* data, uint16_t* size);
+    virtual bool	Seek(uint32_t* pos, uint32_t type);
+    virtual bool	Close();
+    virtual uint16_t	GetInformation(void);
+    virtual bool	ReadFromControlChannel(PhysPt bufptr, uint16_t size, uint16_t* retcode);
+    virtual bool	WriteToControlChannel(PhysPt bufptr, uint16_t size, uint16_t* retcode);
+    virtual uint8_t	GetStatus(bool input_flag);
+    bool CheckSameDevice(uint16_t seg, uint16_t s_off, uint16_t i_off);
+    uint16_t CallDeviceFunction(uint8_t command, uint8_t length, uint16_t seg, uint16_t offset, uint16_t size);
+private:
+    struct ExtDeviceData ext;
+
+};
+
 class localFile : public DOS_File {
 public:
 	localFile();

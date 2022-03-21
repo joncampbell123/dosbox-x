@@ -49,36 +49,6 @@ bool isDBCSCP(), shiftjis_lead_byte(int c);
 bool Network_IsNetworkResource(const char * filename), TTF_using(void);
 bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 
-struct ExtDeviceData {
-	uint16_t attribute;
-	uint16_t segment;
-	uint16_t strategy;
-	uint16_t interrupt;
-};
-
-class DOS_ExtDevice : public DOS_Device {
-public:
-	DOS_ExtDevice(const char *name, uint16_t seg, uint16_t off) {
-		SetName(name);
-		ext.attribute = real_readw(seg, off + 4);
-		ext.segment = seg;
-		ext.strategy = real_readw(seg, off + 6);
-		ext.interrupt = real_readw(seg, off + 8);
-	}
-	virtual bool	Read(uint8_t * data,uint16_t * size);
-	virtual bool	Write(const uint8_t * data,uint16_t * size);
-	virtual bool	Seek(uint32_t * pos,uint32_t type);
-	virtual bool	Close();
-	virtual uint16_t	GetInformation(void);
-	virtual bool	ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
-	virtual bool	WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
-	virtual uint8_t	GetStatus(bool input_flag);
-	bool CheckSameDevice(uint16_t seg, uint16_t s_off, uint16_t i_off);
-private:
-	struct ExtDeviceData ext;
-
-	uint16_t CallDeviceFunction(uint8_t command, uint8_t length, PhysPt bufptr, uint16_t size);
-};
 
 bool DOS_ExtDevice::CheckSameDevice(uint16_t seg, uint16_t s_off, uint16_t i_off) {
 	if(seg == ext.segment && s_off == ext.strategy && i_off == ext.interrupt) {
@@ -87,7 +57,7 @@ bool DOS_ExtDevice::CheckSameDevice(uint16_t seg, uint16_t s_off, uint16_t i_off
 	return false;
 }
 
-uint16_t DOS_ExtDevice::CallDeviceFunction(uint8_t command, uint8_t length, PhysPt bufptr, uint16_t size) {
+uint16_t DOS_ExtDevice::CallDeviceFunction(uint8_t command, uint8_t length, uint16_t seg, uint16_t offset, uint16_t size) {
 	uint16_t oldbx = reg_bx;
 	uint16_t oldes = SegValue(es);
 
@@ -98,8 +68,8 @@ uint16_t DOS_ExtDevice::CallDeviceFunction(uint8_t command, uint8_t length, Phys
 	real_writed(dos.dcp, 5, 0);
 	real_writed(dos.dcp, 9, 0);
 	real_writeb(dos.dcp, 13, 0);
-	real_writew(dos.dcp, 14, (uint16_t)(bufptr & 0x000f));
-	real_writew(dos.dcp, 16, (uint16_t)(bufptr >> 4));
+	real_writew(dos.dcp, 14, offset);
+	real_writew(dos.dcp, 16, seg);
 	real_writew(dos.dcp, 18, size);
 
 	reg_bx = 0;
@@ -115,7 +85,7 @@ uint16_t DOS_ExtDevice::CallDeviceFunction(uint8_t command, uint8_t length, Phys
 bool DOS_ExtDevice::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) {
 	if(ext.attribute & 0x4000) {
 		// IOCTL INPUT
-		if((CallDeviceFunction(3, 26, bufptr, size) & 0x8000) == 0) {
+		if((CallDeviceFunction(3, 26, (uint16_t)(bufptr >> 4), (uint16_t)(bufptr & 0x000f), size) & 0x8000) == 0) {
 			*retcode = real_readw(dos.dcp, 18);
 			return true;
 		}
@@ -126,7 +96,7 @@ bool DOS_ExtDevice::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t 
 bool DOS_ExtDevice::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { 
 	if(ext.attribute & 0x4000) {
 		// IOCTL OUTPUT
-		if((CallDeviceFunction(12, 26, bufptr, size) & 0x8000) == 0) {
+		if((CallDeviceFunction(12, 26, (uint16_t)(bufptr >> 4), (uint16_t)(bufptr & 0x000f), size) & 0x8000) == 0) {
 			*retcode = real_readw(dos.dcp, 18);
 			return true;
 		}
@@ -138,7 +108,7 @@ bool DOS_ExtDevice::Read(uint8_t * data,uint16_t * size) {
 	PhysPt bufptr = (dos.dcp << 4) | 32;
 	for(uint16_t no = 0 ; no < *size ; no++) {
 		// INPUT
-		if((CallDeviceFunction(4, 26, bufptr, 1) & 0x8000)) {
+		if((CallDeviceFunction(4, 26, dos.dcp + 2, 0, 1) & 0x8000)) {
 			return false;
 		} else {
 			if(real_readw(dos.dcp, 18) != 1) {
@@ -155,7 +125,7 @@ bool DOS_ExtDevice::Write(const uint8_t * data,uint16_t * size) {
 	for(uint16_t no = 0 ; no < *size ; no++) {
 		mem_writeb(bufptr, *data);
 		// OUTPUT
-		if((CallDeviceFunction(8, 26, bufptr, 1) & 0x8000)) {
+		if((CallDeviceFunction(8, 26, dos.dcp + 2, 0, 1) & 0x8000)) {
 			return false;
 		} else {
 			if(real_readw(dos.dcp, 18) != 1) {
@@ -186,10 +156,10 @@ uint8_t DOS_ExtDevice::GetStatus(bool input_flag) {
 	uint16_t status;
 	if(input_flag) {
 		// NON-DESTRUCTIVE INPUT NO WAIT
-		status = CallDeviceFunction(5, 14, 0, 0);
+		status = CallDeviceFunction(5, 14, 0, 0, 0);
 	} else {
 		// OUTPUT STATUS
-		status = CallDeviceFunction(10, 13, 0, 0);
+		status = CallDeviceFunction(10, 13, 0, 0, 0);
 	}
 	// check NO ERROR & BUSY
 	if((status & 0x8200) == 0) {

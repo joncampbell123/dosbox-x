@@ -1859,6 +1859,8 @@ static Bitu DOS_21Handler(void) {
             /* TODO: If handle is STDIN and not binary do CTRL+C checking */
             { 
                 uint16_t toread=reg_cx;
+                uint32_t handle = RealHandle(reg_bx);
+                bool fRead = false;
 
                 /* if the offset and size exceed the end of the 64KB segment,
                  * truncate the read according to observed MS-DOS 5.0 behavior
@@ -1879,7 +1881,19 @@ static Bitu DOS_21Handler(void) {
                 }
 
                 dos.echo=true;
-                if (DOS_ReadFile(reg_bx,dos_copybuf,&toread)) {
+
+                if(handle >= DOS_FILES) {
+                    DOS_SetError(DOSERR_INVALID_HANDLE);
+                } else 
+                if(!Files[handle] || !Files[handle]->IsOpen())
+                    DOS_SetError(DOSERR_INVALID_HANDLE);
+                else if(Files[handle]->GetInformation() & EXT_DEVICE_BIT)
+                {
+                    fRead = !(((DOS_ExtDevice*)Files[handle])->CallDeviceFunction(4, 26, SegValue(ds), reg_dx, toread) & 0x8000);
+                }
+                else fRead = DOS_ReadFile(reg_bx, dos_copybuf, &toread);
+
+                if (fRead) {
                     MEM_BlockWrite(SegPhys(ds)+reg_dx,dos_copybuf,toread);
                     reg_ax=toread;
 #if defined(USE_TTF)
@@ -1928,6 +1942,7 @@ static Bitu DOS_21Handler(void) {
             unmask_irq0 |= disk_io_unmask_irq0;
             {
                 uint16_t towrite=reg_cx;
+                bool fWritten;
 
                 /* if the offset and size exceed the end of the 64KB segment,
                  * truncate the write according to observed MS-DOS 5.0 READ behavior
@@ -1946,7 +1961,24 @@ static Bitu DOS_21Handler(void) {
 
                 MEM_BlockRead(SegPhys(ds)+reg_dx,dos_copybuf,towrite);
                 packerr=reg_bx==2&&towrite==22&&!strncmp((char *)dos_copybuf,"Packed file is corrupt",towrite);
-                if ((packerr && !(i4dos && !shellrun) && (!autofixwarn || (autofixwarn==2 && infix==0) || (autofixwarn==1 && infix==1))) || DOS_WriteFile(reg_bx,dos_copybuf,&towrite)) {
+                fWritten = (packerr && !(i4dos && !shellrun) && (!autofixwarn || (autofixwarn == 2 && infix == 0) || (autofixwarn == 1 && infix == 1)));
+                if(!fWritten)
+                {
+                    uint32_t handle = RealHandle(reg_bx);
+
+                    if(handle >= DOS_FILES) {
+                        DOS_SetError(DOSERR_INVALID_HANDLE);
+                    }
+                    else
+                        if(!Files[handle] || !Files[handle]->IsOpen())
+                            DOS_SetError(DOSERR_INVALID_HANDLE);
+                        else if(Files[handle]->GetInformation() & EXT_DEVICE_BIT)
+                        {
+                            fWritten = !(((DOS_ExtDevice*)Files[handle])->CallDeviceFunction(8, 26, SegValue(ds), reg_dx, towrite) & 0x8000);
+                        }
+                        else fWritten = DOS_WriteFile(reg_bx, dos_copybuf, &towrite);
+                }
+                if (fWritten) {
                     reg_ax=towrite;
                     CALLBACK_SCF(false);
                 } else {
