@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Simplified Chinese
 :DOSBOX-X:CODEPAGE:936
-:DOSBOX-X:VERSION:0.83.22
+:DOSBOX-X:VERSION:0.83.24
 :DOSBOX-X:REMARK:建议将国家和代码页设为 86,936 并搭配中文字体; 或使用 chs 或 cn 中文 DOS/V 模式以直接支持中文显示和打印
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
@@ -2361,7 +2361,7 @@ AMD K6-2 300MHz (约 193000 周期)
 AMD Athlon 600MHz (约 306000 周期)
 .
 :MENU:cpu686-866
-Pentium III 866MHz EB (约 407000 周期)
+奔腾 III 866MHz EB (约 407000 周期)
 .
 :MENU:VideoMenu
 视频
