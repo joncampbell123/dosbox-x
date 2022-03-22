@@ -877,7 +877,10 @@ bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
 	}
 	bool exists=false;
 	if (device) {
-		Files[handle]=new DOS_Device(*Devices[devnum]);
+        if (Devices[devnum]->GetInformation() & EXT_DEVICE_BIT)
+            Files[handle] = new DOS_ExtDevice(*(DOS_ExtDevice*)Devices[devnum]);
+        else
+		    Files[handle]=new DOS_Device(*Devices[devnum]);
 	} else {
         exists=Drives[drive]->FileOpen(&Files[handle],fullname,flags) || Drives[drive]->FileOpen(&Files[handle],upcase(fullname),flags);
 		if (exists) Files[handle]->SetDrive(drive);
