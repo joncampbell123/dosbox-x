@@ -1072,7 +1072,7 @@ static void DSP_PrepareDMA_Old(DMA_MODES mode,bool autoinit,bool sign,bool hispe
     if (sb.dma.force_autoinit)
         autoinit = true;
 
-    sb.dma.total=1u+(unsigned int)sb.dsp.in.data[0]+(unsigned int)(sb.dsp.in.data[1] << 8u);
+    if (!autoinit) sb.dma.total=1u+(unsigned int)sb.dsp.in.data[0]+(unsigned int)(sb.dsp.in.data[1] << 8u);
     sb.dma.autoinit=autoinit;
     sb.dsp.highspeed=hispeed;
     sb.dma.sign=sign;
