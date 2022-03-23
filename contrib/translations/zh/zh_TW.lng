@@ -192,7 +192,7 @@ MIDI 裝置組態資訊
 :INTRO_MESSAGE
 歡迎使用 DOSBox-X, 自由免費且完整的 DOS 模擬器.
 DOSBox-X 模擬 DOS 命令列介面讓您覺得好像在真正使用 DOS.
-您也可以在 DOS 虛擬機中執行視窗 3.x 和視窗 95/98 作業系統.
+您也可以在 DOS 虛擬機中執行視窗 3.x 和視窗 9x/Me 作業系統.
 .
 :DRIVE
 磁碟機

@@ -1044,7 +1044,7 @@ void GFX_EndTextLines(bool force) {
 				ttf_bgColor.r = !y&&!hasfocus&&noframe?altBGR0[colorBG&15].red:(colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorBG&15].red:rgbColors[colorBG].red);
 				ttf_bgColor.g = !y&&!hasfocus&&noframe?altBGR0[colorBG&15].green:(colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorBG&15].green:rgbColors[colorBG].green);
 				ttf_bgColor.b = !y&&!hasfocus&&noframe?altBGR0[colorBG&15].blue:(colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorBG&15].blue:rgbColors[colorBG].blue);
-				ttf_fgColor.r = !y&&!hasfocus&&noframe?altBGR0[colorFG&15].red:(colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorFG&15].red:rgbColors[colorFG].red);;
+				ttf_fgColor.r = !y&&!hasfocus&&noframe?altBGR0[colorFG&15].red:(colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorFG&15].red:rgbColors[colorFG].red);
 				ttf_fgColor.g = !y&&!hasfocus&&noframe?altBGR0[colorFG&15].green:(colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorFG&15].green:rgbColors[colorFG].green);
 				ttf_fgColor.b = !y&&!hasfocus&&noframe?altBGR0[colorFG&15].blue:(colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorFG&15].blue:rgbColors[colorFG].blue);
 

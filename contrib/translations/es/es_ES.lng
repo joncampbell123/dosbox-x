@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Spanish (Spain)
 :DOSBOX-X:CODEPAGE:858
-:DOSBOX-X:VERSION:0.83.22
+:DOSBOX-X:VERSION:0.83.24
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Las líneas de esta sección se iniciarán al inicio.
@@ -197,7 +197,7 @@ Nombre del lenguaje (opcional):
 :INTRO_MESSAGE
 Bienvenido a DOSBox-X, un emulador de DOS completamente libre.
 DOSBox-X crea una consola DOS que funciona como un DOS real.
-También puedes ejecutar Windows 3.x y 95/98 bajo la máquina DOS.
+También puedes ejecutar Windows 3.x y 9x/Me bajo la máquina DOS.
 .
 :DRIVE
 Disco

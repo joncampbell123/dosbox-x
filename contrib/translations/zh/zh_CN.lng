@@ -192,7 +192,7 @@ MIDI 设备配置信息
 :INTRO_MESSAGE
 欢迎使用 DOSBox-X, 自由免费且完整的 DOS 模拟器.
 DOSBox-X 模拟 DOS 命令行让您觉得好像在真正使用 DOS.
-您也可以在 DOS 虚拟机中运行 Windows 3.x 和 Windows 95/98.
+您也可以在 DOS 虚拟机中运行 Windows 3.x 和 Windows 9x/Me.
 .
 :DRIVE
 驱动器
