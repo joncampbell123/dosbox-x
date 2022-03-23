@@ -50,6 +50,7 @@ public:
         opt_test = false;
         opt_exit = false;
         opt_debug = false;
+        opt_nolog = false;
         opt_nogui = false;
         opt_nomenu = false;
         opt_langcp = false;
@@ -151,6 +152,7 @@ public:
     bool opt_langcp;
     bool opt_debug;
     bool opt_nogui;
+    bool opt_nolog;
     bool opt_exit;
     bool opt_test;
 };

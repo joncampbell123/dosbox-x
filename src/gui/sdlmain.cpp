@@ -6589,6 +6589,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -log-con                                Log CON output to a log file\n");
             fprintf(stderr,"  -log-int21                              Log calls to INT 21h (debug level)\n");
             fprintf(stderr,"  -log-fileio                             Log file I/O through INT 21h (debug level)\n");
+            fprintf(stderr,"  -nolog                                  Do not log anything to log file\n");
             fprintf(stderr,"  -tests                                  Run unit tests to test the DOSBox-X code\n\n");
 
 #if defined(WIN32)
@@ -6615,6 +6616,9 @@ bool DOSBOX_parse_argv() {
         else if (optname == "log-con") {
             control->opt_log_con = true;
         }
+        else if (optname == "nolog") {
+            control->opt_nolog = true;
+        }
         else if (optname == "time-limit") {
             if (!control->cmdline->NextOptArgv(tmp)) return false;
             control->opt_time_limit = atof(tmp.c_str());
@@ -6634,6 +6638,7 @@ bool DOSBOX_parse_argv() {
         else if (optname == "tests" || optname == "gtest_list_tests") {
             putenv(const_cast<char*>("SDL_VIDEODRIVER=dummy"));
             control->opt_test = true;
+            control->opt_nolog = true;
             control->opt_noconsole = false;
             control->opt_console = true;
             control->opt_nomenu = true;
