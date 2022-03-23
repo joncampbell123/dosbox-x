@@ -8,7 +8,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || contains('joncampbell123', github.actor) == false
     runs-on: ubuntu-latest
     steps:
-      - name: Cancel Previous Runs
+      - name: Cancel previous runs
         uses: styfle/cancel-workflow-action@0.9.1
         with:
           access_token: ${{ github.token }}
