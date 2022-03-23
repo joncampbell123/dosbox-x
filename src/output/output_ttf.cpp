@@ -253,7 +253,7 @@ bool setColors(const char *colorArray, int n) {
             altBGR1[i].green=rgbColors[i].green;
             altBGR1[i].blue=rgbColors[i].blue;
         }
-    staycolors = strlen(colorArray) && colorArray[0] == '+';
+    staycolors = strlen(colorArray) && *colorArray == '+';
     const char* nextRGB = colorArray + (staycolors?1:0);
 	uint8_t * altPtr = (uint8_t *)altBGR1;
 	int rgbVal[3] = {-1,-1,-1};
