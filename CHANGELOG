@@ -17,6 +17,10 @@
   - When using TTF output, DOSBox-X will dim the topmost
     line when the window is inactive in full-screen or
     menuless mode as in vDosPlus. (emendelson)
+  - Added CuteMouse wheel mouse extension so that DOS
+    programs such as DOS Navigator can make use of it.
+    It is enabled when mouse wheel movement conversion is
+    currently disabled. (FeralChild & Wengier)
   - Added "-nolog" command-line option to disable logging
     output completely. (Wengier)
   - Fix lockup when printing in dBase IV. (Wengier)

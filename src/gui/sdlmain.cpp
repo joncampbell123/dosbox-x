@@ -4201,6 +4201,11 @@ void MenuFreeScreen(void) {
 }
 #endif
 
+static void HandleMouseWheel(bool normal, int amount) {
+    if (amount != 0)
+        Mouse_WheelMoved(normal ? -amount : amount);
+}
+
 static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEvent * motion) {
 #if !defined(WIN32)
     (void)motion;
@@ -4775,8 +4780,10 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
                     if (wheel_key >= 4 && wheel_key <= 6 && ctrlup) KEYBOARD_AddKey(KBD_leftctrl, false);
                     KEYBOARD_AddKey(wheel_key==2||wheel_key==5?KBD_left:(wheel_key==3||wheel_key==6?KBD_pageup:KBD_up), false);
                 }
-			} else
-				Mouse_ButtonPressed(100-1);
+			} else {
+                Mouse_ButtonPressed(100-1);
+                HandleMouseWheel(true, 1);
+            }
 			break;
         case SDL_BUTTON_WHEELDOWN: /* Ick, really SDL? */
 			if (wheel_key && (wheel_guest || !dos_kernel_disabled)) {
@@ -4806,8 +4813,10 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
                     if (wheel_key >= 4 && wheel_key <= 6 && ctrlup) KEYBOARD_AddKey(KBD_leftctrl, false);
                     KEYBOARD_AddKey(wheel_key==2||wheel_key==5?KBD_right:(wheel_key==3||wheel_key==6?KBD_pagedown:KBD_down), false);
                 }
-			} else
-				Mouse_ButtonPressed(100+1);
+			} else {
+                Mouse_ButtonPressed(100+1);
+                HandleMouseWheel(false, 1);
+            }
             break;
 #endif
         }
@@ -5471,7 +5480,8 @@ void GFX_Events() {
                         KEYBOARD_AddKey(wheel_key==2||wheel_key==5?KBD_right:(wheel_key==3||wheel_key==6?KBD_pagedown:KBD_down), false);
                     }
 				}
-			}
+			} else
+                HandleMouseWheel(event.wheel.direction == SDL_MOUSEWHEEL_NORMAL, event.wheel.y);
 			break;
 #if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11
         case SDL_TEXTEDITING:
