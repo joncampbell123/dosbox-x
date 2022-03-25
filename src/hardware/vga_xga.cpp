@@ -205,15 +205,15 @@ void XGAStatus::XGA_VirgeState::reggroup::set__dst_base(uint32_t val) {
 }
 
 void XGAStatus::XGA_VirgeState::reggroup::set__src_dest_stride_00e4(uint32_t val) {
-	xga.virge.bitblt.src_stride = val & 0x0FF8; /* bits [11:3] byte stride */
-	xga.virge.bitblt.dst_stride = (val >> 16u) & 0x0FF8; /* bits [27:19] (11+16,3+16) byte stride */
+	src_stride = val & 0x0FF8; /* bits [11:3] byte stride */
+	dst_stride = (val >> 16u) & 0x0FF8; /* bits [27:19] (11+16,3+16) byte stride */
 }
 
 void XGAStatus::XGA_VirgeState::reggroup::set__mono_pat_dword(unsigned int idx,uint32_t val) {
 	/* idx == 0, low 32 bits.
 	 * idx == 1, high 32 bits.
 	 * This trick only works if the host processor is little Endian */
-	((uint32_t*)(&xga.virge.bitblt.mono_pat))[idx&1] = val;
+	((uint32_t*)(&mono_pat))[idx&1] = val;
 }
 
 void XGAStatus::XGA_VirgeState::reggroup::set__mono_pat_bgcolor(uint32_t val) {
@@ -2023,6 +2023,7 @@ void XGA_ViRGE_BitBlt_Execute_deferred(void) {
 }
 
 void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
+	uint32_t srcpixel,mixpixel,dstpixel,patpixel;
 	int y,x,ycount,xdir;
 	int32_t xf,xdelta;
 
@@ -2035,7 +2036,10 @@ void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 
 	(void)rset;
 
-	LOG(LOG_VGA,LOG_DEBUG)("TODO: ViRGE Line Draw ycount=%d xdir=%d y=%d xf=%d xdelta=%d x=%d",ycount,xdir,y,xf,xdelta,x);
+	LOG(LOG_VGA,LOG_DEBUG)("TODO: ViRGE Line Draw src_base=%x dst_base=%x ycount=%d xdir=%d y=%d xf=%d xdelta=%d x=%d cmd=%x lc=%d rc=%d tc=%d bc=%d sstr=%d dstr=%d",
+		rset.src_base,rset.dst_base,ycount,xdir,y,xf,xdelta,x,rset.command_set,
+		rset.left_clip,rset.right_clip,rset.top_clip,rset.bottom_clip,
+		rset.src_stride,rset.dst_stride);
 }
 
 void XGA_ViRGE_Line2D_Execute(bool commandwrite) {
@@ -2104,7 +2108,7 @@ void XGA_ViRGE_Poly2D_Execute_deferred(void) {
 }
 
 void XGA_Write(Bitu port, Bitu val, Bitu len) {
-//	LOG_MSG("XGA: Write to port %x, val %8x, len %x", port,val, len);
+//	LOG_MSG("XGA: Write to port %x, val %8x, len %x", (unsigned int)port, (unsigned int)val, (unsigned int)len);
 
 #if 0
 	// streams procesing debug
