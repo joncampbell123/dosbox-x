@@ -2022,23 +2022,36 @@ void XGA_ViRGE_BitBlt_Execute_deferred(void) {
 	};
 }
 
+struct VIRGELineDDA {
+	int32_t		xf,xdelta;	/* 1<<20 X delta and fractional */
+
+	void		adv(void);
+	int		read_x(void);
+};
+
+void VIRGELineDDA::adv(void) {
+	xf += xdelta;
+}
+
+int VIRGELineDDA::read_x(void) {
+	return xf >> 20;
+}
+
 void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 	uint32_t srcpixel,mixpixel,dstpixel,patpixel;
-	int y,x,ycount,xdir,xend,xto;
+	int y,x,ycount,xend,xto;
 	unsigned int safety;
-	int32_t xf,xdelta;
+	VIRGELineDDA ldda;
 
 	ycount = (int)(rset.lindrawcounty & 0x1FFFu); /* bits [10:0] */
-	xdir = (rset.lindrawcounty & 0x80000000) ? 1/*left to right*/ : -1/*right to left*/; /* NTS: This bit doesn't seem to matter at least for how we render at this time */
 	y = (int)(rset.lindrawstarty & 0x1FFFu); /* bits [10:0] */
-	xf = rset.lindrawstartx; /* S11.20 fixed point signed, 1.0 = 1 << 20 */
-	xdelta = rset.lindrawxdelta; /* S11.20 fixed point signed, 1.0 = 1 << 20      -(dX / dY) */
+	ldda.xf = rset.lindrawstartx; /* S11.20 fixed point signed, 1.0 = 1 << 20 */
+	ldda.xdelta = rset.lindrawxdelta; /* S11.20 fixed point signed, 1.0 = 1 << 20      -(dX / dY) */
 	xend = (int)rset.lindrawend1;/*last pixel*/
 	x = (int)rset.lindrawend0;/*first pixel*/
 
 	// unused for now
 	(void)safety;
-	(void)xdir;
 	(void)xend;
 	(void)xto;
 
@@ -2058,20 +2071,20 @@ void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 	 * describe horizontal line segments that extend slightly past the clipping region.
 	 * At least that's how the Windows 3.1 treats this hardware acceleration function. */
 
-	LOG(LOG_VGA,LOG_DEBUG)("TODO: ViRGE Line Draw src_base=%x dst_base=%x ycount=%d xdir=%d y=%d xf=%d xdelta=%d xend=%d x=%d cmd=%x lc=%d rc=%d tc=%d bc=%d sstr=%d dstr=%d",
-		rset.src_base,rset.dst_base,ycount,xdir,y,xf,xdelta,xend,x,rset.command_set,
+	LOG(LOG_VGA,LOG_DEBUG)("TODO: ViRGE Line Draw src_base=%x dst_base=%x ycount=%d y=%d xf=%d(%.3f) xdelta=%d(%.3f) xend=%d x=%d cmd=%x lc=%d rc=%d tc=%d bc=%d sstr=%d dstr=%d",
+		rset.src_base,rset.dst_base,ycount,y,ldda.xf,(double)ldda.xf / (1<<20),ldda.xdelta,(double)ldda.xdelta / (1<<20),xend,x,rset.command_set,
 		rset.left_clip,rset.right_clip,rset.top_clip,rset.bottom_clip,
 		rset.src_stride,rset.dst_stride);
 
 	// TODO: Fill in horizontal spans for X-major lines. This only correctly draws lines that are Y-major at this time.
 	while (ycount > 0) {
-		x = xf >> 20;
+		x = ldda.read_x();
 		srcpixel = 0;
 		dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
 		patpixel = rset.mono_pat_fgcolor/*See notes*/;
 		mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
 		XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
-		xf += xdelta;
+		ldda.adv();
 		y--;
 
 		/* lines are drawn bottom-up */
