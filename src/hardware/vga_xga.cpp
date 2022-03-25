@@ -2039,7 +2039,7 @@ int VIRGELineDDA::read_xtr(void) {
 
 void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 	uint32_t srcpixel,mixpixel,dstpixel,patpixel;
-	int y,x,ycount,xend,xto,xdir;
+	int y,x,ycount,xend,xto,xdir,xstart;
 	unsigned int safety;
 	VIRGELineDDA ldda;
 
@@ -2049,7 +2049,7 @@ void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 	ldda.xf = rset.lindrawstartx; /* S11.20 fixed point signed, 1.0 = 1 << 20 */
 	ldda.xdelta = rset.lindrawxdelta; /* S11.20 fixed point signed, 1.0 = 1 << 20      -(dX / dY) */
 	xend = (int)rset.lindrawend1;/*last pixel*/
-	x = (int)rset.lindrawend0;/*first pixel*/
+	xstart = (int)rset.lindrawend0;/*first pixel*/
 
 	// unused for now
 	(void)safety;
@@ -2073,8 +2073,9 @@ void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 	 * describe horizontal line segments that extend slightly past the clipping region.
 	 * At least that's how the Windows 3.1 treats this hardware acceleration function. */
 
-	LOG(LOG_VGA,LOG_DEBUG)("TODO: ViRGE Line Draw xdir=%d src_base=%x dst_base=%x ycount=%d y=%d xf=%d(%.3f) xdelta=%d(%.3f) xend=%d x=%d cmd=%x lc=%d rc=%d tc=%d bc=%d sstr=%d dstr=%d",
-		xdir,rset.src_base,rset.dst_base,ycount,y,ldda.xf,(double)ldda.xf / (1<<20),ldda.xdelta,(double)ldda.xdelta / (1<<20),xend,x,rset.command_set,
+	x = xstart;
+	LOG(LOG_VGA,LOG_DEBUG)("TODO: ViRGE Line Draw xdir=%d src_base=%x dst_base=%x ycount=%d y=%d xf=%d(%.3f) xdelta=%d(%.3f) xstart=%d xend=%d x=%d cmd=%x lc=%d rc=%d tc=%d bc=%d sstr=%d dstr=%d",
+		xdir,rset.src_base,rset.dst_base,ycount,y,ldda.xf,(double)ldda.xf / (1<<20),ldda.xdelta,(double)ldda.xdelta / (1<<20),xstart,xend,x,rset.command_set,
 		rset.left_clip,rset.right_clip,rset.top_clip,rset.bottom_clip,
 		rset.src_stride,rset.dst_stride);
 
@@ -2097,11 +2098,14 @@ void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 		while (ycount > 0) {
 			xto = ldda.read_xtr();
 			while (x <= xto) {
-				srcpixel = 0;
-				dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
-				patpixel = rset.mono_pat_fgcolor/*See notes*/;
-				mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
-				XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
+				if (x >= xstart && x <= xend) {
+					srcpixel = 0;
+					dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
+					patpixel = rset.mono_pat_fgcolor/*See notes*/;
+					mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
+					XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
+				}
+
 				x++;
 			}
 			ldda.adv();
@@ -2112,14 +2116,18 @@ void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 		}
 	}
 	else { // X-major going to the right, xdelta < 0 (draws bottom up, remember?)
+		std::swap(xstart,xend);
 		while (ycount > 0) {
 			xto = ldda.read_xtr();
 			while (x >= xto) {
-				srcpixel = 0;
-				dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
-				patpixel = rset.mono_pat_fgcolor/*See notes*/;
-				mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
-				XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
+				if (x >= xstart && x <= xend) {
+					srcpixel = 0;
+					dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
+					patpixel = rset.mono_pat_fgcolor/*See notes*/;
+					mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
+					XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
+				}
+
 				x--;
 			}
 			ldda.adv();
