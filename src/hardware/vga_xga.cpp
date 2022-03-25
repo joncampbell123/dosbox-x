@@ -2054,7 +2054,6 @@ void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 
 	// unused for now
 	(void)safety;
-	(void)xend;
 
 	/* S3 ViRGE Integrated 3D Accelerator [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20ViRGE%20Integrated%203D%20Accelerator%20%281996%2d08%29%2epdf]
 	 * PDF page 238 Line Draw X Start Register.
@@ -2075,10 +2074,12 @@ void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 	 * At least that's how the Windows 3.1 treats this hardware acceleration function. */
 
 	x = xstart;
+#if 0//DEBUG
 	LOG(LOG_VGA,LOG_DEBUG)("TODO: ViRGE Line Draw xdir=%d src_base=%x dst_base=%x ycount=%d y=%d xf=%d(%.3f) xdelta=%d(%.3f) xstart=%d xend=%d x=%d cmd=%x lc=%d rc=%d tc=%d bc=%d sstr=%d dstr=%d",
 		xdir,rset.src_base,rset.dst_base,ycount,y,ldda.xf,(double)ldda.xf / (1<<20),ldda.xdelta,(double)ldda.xdelta / (1<<20),xstart,xend,x,rset.command_set,
 		rset.left_clip,rset.right_clip,rset.top_clip,rset.bottom_clip,
 		rset.src_stride,rset.dst_stride);
+#endif
 
 	/* NTS: Drawing completely horizontal lines according to S3 documentation:
 	 *      - Set XDELTA to 0, as if changeInY == 0
