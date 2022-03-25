@@ -1,4 +1,7 @@
 0.83.24
+  - Add S3 ViRGE accelerated XGA line drawing function.
+    Windows 3.1 can now draw lines with hardware
+    acceleration. (joncampbell123)
   - Merge code to help preserve long filename when
     older program writes/overwrites the 8.3 filename.
   - Change "fpu" config setting to an enumeration
