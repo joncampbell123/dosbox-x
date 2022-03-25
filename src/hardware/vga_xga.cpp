@@ -2026,23 +2026,24 @@ struct VIRGELineDDA {
 	int32_t		xf,xdelta;	/* 1<<20 X delta and fractional */
 
 	void		adv(void);
-	int		read_x(void);
+	int		read_xtr(void);
 };
 
 void VIRGELineDDA::adv(void) {
 	xf += xdelta;
 }
 
-int VIRGELineDDA::read_x(void) {
+int VIRGELineDDA::read_xtr(void) {
 	return xf >> 20;
 }
 
 void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 	uint32_t srcpixel,mixpixel,dstpixel,patpixel;
-	int y,x,ycount,xend,xto;
+	int y,x,ycount,xend,xto,xdir;
 	unsigned int safety;
 	VIRGELineDDA ldda;
 
+	xdir = (rset.lindrawcounty & 0x80000000u) ? 1/*left to right*/ : -1/*right to left*/;
 	ycount = (int)(rset.lindrawcounty & 0x1FFFu); /* bits [10:0] */
 	y = (int)(rset.lindrawstarty & 0x1FFFu); /* bits [10:0] */
 	ldda.xf = rset.lindrawstartx; /* S11.20 fixed point signed, 1.0 = 1 << 20 */
@@ -2053,7 +2054,6 @@ void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 	// unused for now
 	(void)safety;
 	(void)xend;
-	(void)xto;
 
 	/* S3 ViRGE Integrated 3D Accelerator [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20ViRGE%20Integrated%203D%20Accelerator%20%281996%2d08%29%2epdf]
 	 * PDF page 238 Line Draw X Start Register.
@@ -2062,33 +2062,72 @@ void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 	 * For X major line, -XDELTA, value = (x1 << 20) + (XDELTA/2) + ((1 << 20) - 1)
 	 * For Y major line, value = x1 << 20
 	 *
+	 * NTS: Windows 3.1 S3 ViRGE drivers use (x1 << 20) + (1 << 19) equiv (x1 + 0.5) for Y major lines.
+	 *
 	 * Line Draw X Delta Register: XDELTA = -(changeInX << 20) / changeInY
 	 *
 	 * Also notice that based on how this line rendering works, is it vital to turn on
 	 * clipping and set the clip region to the area you intend for the line to sit within,
-	 * else when changeInX is large and changeInY is small, the line segment will extent
+	 * else when changeInX is large and changeInY is small, the line segment will extend
 	 * some pixels past the end pixel. So in reality the XDELTA and start X registers
 	 * describe horizontal line segments that extend slightly past the clipping region.
 	 * At least that's how the Windows 3.1 treats this hardware acceleration function. */
 
-	LOG(LOG_VGA,LOG_DEBUG)("TODO: ViRGE Line Draw src_base=%x dst_base=%x ycount=%d y=%d xf=%d(%.3f) xdelta=%d(%.3f) xend=%d x=%d cmd=%x lc=%d rc=%d tc=%d bc=%d sstr=%d dstr=%d",
-		rset.src_base,rset.dst_base,ycount,y,ldda.xf,(double)ldda.xf / (1<<20),ldda.xdelta,(double)ldda.xdelta / (1<<20),xend,x,rset.command_set,
+	LOG(LOG_VGA,LOG_DEBUG)("TODO: ViRGE Line Draw xdir=%d src_base=%x dst_base=%x ycount=%d y=%d xf=%d(%.3f) xdelta=%d(%.3f) xend=%d x=%d cmd=%x lc=%d rc=%d tc=%d bc=%d sstr=%d dstr=%d",
+		xdir,rset.src_base,rset.dst_base,ycount,y,ldda.xf,(double)ldda.xf / (1<<20),ldda.xdelta,(double)ldda.xdelta / (1<<20),xend,x,rset.command_set,
 		rset.left_clip,rset.right_clip,rset.top_clip,rset.bottom_clip,
 		rset.src_stride,rset.dst_stride);
 
-	// TODO: Fill in horizontal spans for X-major lines. This only correctly draws lines that are Y-major at this time.
-	while (ycount > 0) {
-		x = ldda.read_x();
-		srcpixel = 0;
-		dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
-		patpixel = rset.mono_pat_fgcolor/*See notes*/;
-		mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
-		XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
-		ldda.adv();
-		y--;
+	if (ldda.xdelta >= -(1 << 20) && ldda.xdelta <= (1 << 20)) { // Y-major
+		while (ycount > 0) {
+			x = ldda.read_xtr();
+			srcpixel = 0;
+			dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
+			patpixel = rset.mono_pat_fgcolor/*See notes*/;
+			mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
+			XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
+			ldda.adv();
+			y--;
 
-		/* lines are drawn bottom-up */
-		ycount--;
+			/* lines are drawn bottom-up */
+			ycount--;
+		}
+	}
+	else if (ldda.xdelta >= 0) { // X-major going to the left (draws bottom up, remember?)
+		while (ycount > 0) {
+			xto = ldda.read_xtr();
+			while (x <= xto) {
+				srcpixel = 0;
+				dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
+				patpixel = rset.mono_pat_fgcolor/*See notes*/;
+				mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
+				XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
+				x++;
+			}
+			ldda.adv();
+			y--;
+
+			/* lines are drawn bottom-up */
+			ycount--;
+		}
+	}
+	else { // X-major going to the right, xdelta < 0 (draws bottom up, remember?)
+		while (ycount > 0) {
+			xto = ldda.read_xtr();
+			while (x >= xto) {
+				srcpixel = 0;
+				dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
+				patpixel = rset.mono_pat_fgcolor/*See notes*/;
+				mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
+				XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
+				x--;
+			}
+			ldda.adv();
+			y--;
+
+			/* lines are drawn bottom-up */
+			ycount--;
+		}
 	}
 }
 
