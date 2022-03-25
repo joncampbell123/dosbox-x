@@ -2100,7 +2100,7 @@ void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 	if (ldda.xdelta >= -(1 << 20) && ldda.xdelta <= (1 << 20)) { // Y-major
 		if (ycount == 0 || (ycount == 1 && (ldda.xdelta >= -4096 && ldda.xdelta <= 4096) && abs(xstart-xend) > 0)) {
 			/* horizontal line special case */
-			xdir = (ldda.xdelta < 0) ? -1 : 1;
+			xdir = (xstart > xend) ? -1 : 1;
 			do {
 				srcpixel = 0;
 				dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
