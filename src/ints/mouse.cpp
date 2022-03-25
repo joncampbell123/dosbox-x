@@ -242,7 +242,7 @@ double clamp(double d, double min, double max) {
 
 inline uint8_t GetWheel8bit() {
 	/* CuteMouse wheel extension allows for -0x80,0x7F range, but let's keep it symmetric */
-	int8_t tmp=clamp(mouse.wheel, static_cast<Bit16s>(-0x7F), static_cast<Bit16s>(0x7F));
+	int8_t tmp=clamp(mouse.wheel, static_cast<int16_t>(-0x7F), static_cast<int16_t>(0x7F));
 	mouse.wheel=0;
 	return (tmp >= 0) ? tmp : 0x100 + tmp;
 }
@@ -277,7 +277,7 @@ void Mouse_PS2Reset(void) {
 	mouse.ps2_unlock_idx = 0;
 }
 
-bool Mouse_PS2SetPacketSize(Bit8u packet_size) {
+bool Mouse_PS2SetPacketSize(uint8_t packet_size) {
 	if ((packet_size==0x03) ||
 		(packet_size==0x04 && mouse.ps2_type==TYPE_INTELLIMOUSE)) {
 		mouse.ps2_packet_size = packet_size;
@@ -286,7 +286,7 @@ bool Mouse_PS2SetPacketSize(Bit8u packet_size) {
 	return false;
 }
 
-void Mouse_PS2SetSamplingRate(Bit8u rate) {
+void Mouse_PS2SetSamplingRate(uint8_t rate) {
 	mouse.ps2_rate = rate;
 	if (UNLOCK_SEQ_INTELLIMOUSE[mouse.ps2_unlock_idx]!=rate)
 		mouse.ps2_unlock_idx = 0;
@@ -296,7 +296,7 @@ void Mouse_PS2SetSamplingRate(Bit8u rate) {
 	}
 }
 
-Bit8u Mouse_PS2GetType(void) {
+uint8_t Mouse_PS2GetType(void) {
 	return mouse.ps2_type;
 }
 
