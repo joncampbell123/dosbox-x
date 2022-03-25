@@ -111,6 +111,12 @@ struct XGAStatus {
 			uint32_t rect_src_y;             /* +0108 [HI WORD] */
 			uint32_t rect_dst_x;             /* +010C [LO WORD] */
 			uint32_t rect_dst_y;             /* +010C [HI WORD] */
+			int32_t  lindrawend0;            /* +016C [LO WORD] first pixel */
+			int32_t  lindrawend1;            /* +016C [HI WORD] last pixel */
+			int32_t  lindrawxdelta;          /* +0170 */
+			int32_t  lindrawstartx;          /* +0174 */
+			uint32_t lindrawstarty;          /* +0178 */
+			uint32_t lindrawcounty;          /* +017C bit 31 is direction */
 
 			void set__src_base(uint32_t val); /* +00D4 */
 			void set__dst_base(uint32_t val); /* +00D8 */
@@ -126,6 +132,11 @@ struct XGAStatus {
 			void set__rect_dst_xy_010c(uint32_t val); /* +010C */
 			void set__left_right_clip_00dc(uint32_t val); /* +00DC */
 			void set__top_bottom_clip_00e0(uint32_t val); /* +00E0 */
+			void set__lindrawend_016c(uint32_t val); /* +016C */
+			void set__lindrawxdelta_0170(uint32_t val); /* +0170 */
+			void set__lindrawstartx_0174(uint32_t val); /* +0174 */
+			void set__lindrawstartx_0178(uint32_t val); /* +0178 */
+			void set__lindrawcounty_017c(uint32_t val); /* +017C */
 
 			uint32_t command_execute_on_register; /* if command set bit 0 set, writing this register will execute command */
 		};
@@ -248,6 +259,27 @@ void XGAStatus::XGA_VirgeState::reggroup::set__left_right_clip_00dc(uint32_t val
 void XGAStatus::XGA_VirgeState::reggroup::set__top_bottom_clip_00e0(uint32_t val) {
 	bottom_clip = val & 0x07FF;
 	top_clip = (val >> 16ul) & 0x07FF;
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__lindrawend_016c(uint32_t val) {
+	lindrawend0 = (int32_t)((int16_t)((val >> 16lu) & 0xFFFFu));
+	lindrawend1 = (int32_t)((int16_t)(val & 0xFFFFu));
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__lindrawxdelta_0170(uint32_t val) {
+	lindrawxdelta = (int32_t)val;
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__lindrawstartx_0174(uint32_t val) {
+	lindrawstartx = (int32_t)val;
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__lindrawstartx_0178(uint32_t val) {
+	lindrawstarty = val & 0x3FFFu; /* bits [10:0] */
+}
+
+void XGAStatus::XGA_VirgeState::reggroup::set__lindrawcounty_017c(uint32_t val) {
+	lindrawcounty = val & 0x80003FFFu; /* bit [31], bits [10:0] */
 }
 
 void XGA_Write_Multifunc(Bitu val, Bitu len) {
@@ -1965,7 +1997,7 @@ void XGA_ViRGE_BitBlt_Execute(bool commandwrite) {
 		case 0x0F: /* NOP */
 			break;
 		default:
-			LOG_MSG("BitBlt unhandled command %08x",(unsigned int)rset.command_set);
+			LOG(LOG_VGA,LOG_DEBUG)("BitBlt unhandled command %08x",(unsigned int)rset.command_set);
 			break;
 	}
 }
@@ -1981,6 +2013,10 @@ void XGA_ViRGE_BitBlt_Execute_deferred(void) {
 			rset.command_execute_on_register = 0x010C; /* A50C, etc */
 			break;
 		default:
+			if (rset.command_set & (1u << 31u))
+				LOG(LOG_VGA,LOG_DEBUG)("BitBlt execute 3D unhandled command %08x def",(unsigned int)rset.command_set);
+			else
+				LOG(LOG_VGA,LOG_DEBUG)("BitBlt execute 2D unhandled command %08x def",(unsigned int)rset.command_set);
 			rset.command_execute_on_register = 0;
 			break;
 	};
@@ -1990,24 +2026,50 @@ void XGA_ViRGE_Line2D_Execute(void) {
 	auto &rset = xga.virge.line2d;
 
 	if (rset.command_set & (1u << 31u))
-		LOG_MSG("Line2D execute 3D command %08x",(unsigned int)rset.command_set);
+		LOG(LOG_VGA,LOG_DEBUG)("Line2D execute 3D unhandled command %08x",(unsigned int)rset.command_set);
 	else
-		LOG_MSG("Line2D execute 2D command %08x",(unsigned int)rset.command_set);
+		LOG(LOG_VGA,LOG_DEBUG)("Line2D execute 2D unhandled command %08x",(unsigned int)rset.command_set);
 }
 
 void XGA_ViRGE_Line2D_Execute_deferred(void) {
+	auto &rset = xga.virge.line2d;
+
+	xga.virge.imgxferport = NULL;
+	xga.virge.imgxferportfunc = NULL;
+	switch ((rset.command_set >> 27u) & 0x1F) { /* bits [31:31] 3D command if set, 2D else. bits [30:27] command */
+		default:
+			if (rset.command_set & (1u << 31u))
+				LOG(LOG_VGA,LOG_DEBUG)("Line2D execute 3D unhandled command %08x def",(unsigned int)rset.command_set);
+			else
+				LOG(LOG_VGA,LOG_DEBUG)("Line2D execute 2D unhandled command %08x def",(unsigned int)rset.command_set);
+			rset.command_execute_on_register = 0;
+			break;
+	};
 }
 
 void XGA_ViRGE_Poly2D_Execute(void) {
 	auto &rset = xga.virge.poly2d;
 
 	if (rset.command_set & (1u << 31u))
-		LOG_MSG("Poly2D execute 3D command %08x",(unsigned int)rset.command_set);
+		LOG(LOG_VGA,LOG_DEBUG)("Poly2D execute 3D unhandled command %08x",(unsigned int)rset.command_set);
 	else
-		LOG_MSG("Poly2D execute 2D command %08x",(unsigned int)rset.command_set);
+		LOG(LOG_VGA,LOG_DEBUG)("Poly2D execute 2D unhandled command %08x",(unsigned int)rset.command_set);
 }
 
 void XGA_ViRGE_Poly2D_Execute_deferred(void) {
+	auto &rset = xga.virge.poly2d;
+
+	xga.virge.imgxferport = NULL;
+	xga.virge.imgxferportfunc = NULL;
+	switch ((rset.command_set >> 27u) & 0x1F) { /* bits [31:31] 3D command if set, 2D else. bits [30:27] command */
+		default:
+			if (rset.command_set & (1u << 31u))
+				LOG(LOG_VGA,LOG_DEBUG)("Poly2D execute 3D command %08x def",(unsigned int)rset.command_set);
+			else
+				LOG(LOG_VGA,LOG_DEBUG)("Poly2D execute 2D command %08x def",(unsigned int)rset.command_set);
+			rset.command_execute_on_register = 0;
+			break;
+	};
 }
 
 void XGA_Write(Bitu port, Bitu val, Bitu len) {
@@ -2471,6 +2533,51 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			if (s3Card >= S3_ViRGE) {
 				auto &rg = xga.virge.line2d_validate_port(port);
 				rg.set__command_set(val);
+				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
+				else XGA_ViRGE_Line2D_Execute();
+			}
+			else goto default_case;
+			break;
+		case 0xA96C:
+			if (s3Card >= S3_ViRGE) {
+				auto &rg = xga.virge.line2d_validate_port(port);
+				rg.set__lindrawend_016c(val);
+				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
+				else XGA_ViRGE_Line2D_Execute();
+			}
+			else goto default_case;
+			break;
+		case 0xA970:
+			if (s3Card >= S3_ViRGE) {
+				auto &rg = xga.virge.line2d_validate_port(port);
+				rg.set__lindrawxdelta_0170(val);
+				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
+				else XGA_ViRGE_Line2D_Execute();
+			}
+			else goto default_case;
+			break;
+		case 0xA974:
+			if (s3Card >= S3_ViRGE) {
+				auto &rg = xga.virge.line2d_validate_port(port);
+				rg.set__lindrawstartx_0174(val);
+				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
+				else XGA_ViRGE_Line2D_Execute();
+			}
+			else goto default_case;
+			break;
+		case 0xA978:
+			if (s3Card >= S3_ViRGE) {
+				auto &rg = xga.virge.line2d_validate_port(port);
+				rg.set__lindrawstartx_0178(val);
+				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
+				else XGA_ViRGE_Line2D_Execute();
+			}
+			else goto default_case;
+			break;
+		case 0xA97C:
+			if (s3Card >= S3_ViRGE) {
+				auto &rg = xga.virge.line2d_validate_port(port);
+				rg.set__lindrawcounty_017c(val);
 				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
 				else XGA_ViRGE_Line2D_Execute();
 			}
