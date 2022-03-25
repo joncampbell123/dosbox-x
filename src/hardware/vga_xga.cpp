@@ -2024,22 +2024,59 @@ void XGA_ViRGE_BitBlt_Execute_deferred(void) {
 
 void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 	uint32_t srcpixel,mixpixel,dstpixel,patpixel;
-	int y,x,ycount,xdir;
+	int y,x,ycount,xdir,xend,xto;
+	unsigned int safety;
 	int32_t xf,xdelta;
 
 	ycount = (int)(rset.lindrawcounty & 0x1FFFu); /* bits [10:0] */
-	xdir = (rset.lindrawcounty & 0x80000000) ? 1/*left to right*/ : -1/*right to left*/;
+	xdir = (rset.lindrawcounty & 0x80000000) ? 1/*left to right*/ : -1/*right to left*/; /* NTS: This bit doesn't seem to matter at least for how we render at this time */
 	y = (int)(rset.lindrawstarty & 0x1FFFu); /* bits [10:0] */
 	xf = rset.lindrawstartx; /* S11.20 fixed point signed, 1.0 = 1 << 20 */
-	xdelta = rset.lindrawxdelta; /* S11.20 fixed point signed, 1.0 = 1 << 20 */
-	x = (int)rset.lindrawend0;
+	xdelta = rset.lindrawxdelta; /* S11.20 fixed point signed, 1.0 = 1 << 20      -(dX / dY) */
+	xend = (int)rset.lindrawend1;/*last pixel*/
+	x = (int)rset.lindrawend0;/*first pixel*/
 
-	(void)rset;
+	// unused for now
+	(void)safety;
+	(void)xdir;
+	(void)xend;
+	(void)xto;
 
-	LOG(LOG_VGA,LOG_DEBUG)("TODO: ViRGE Line Draw src_base=%x dst_base=%x ycount=%d xdir=%d y=%d xf=%d xdelta=%d x=%d cmd=%x lc=%d rc=%d tc=%d bc=%d sstr=%d dstr=%d",
-		rset.src_base,rset.dst_base,ycount,xdir,y,xf,xdelta,x,rset.command_set,
+	/* S3 ViRGE Integrated 3D Accelerator [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20ViRGE%20Integrated%203D%20Accelerator%20%281996%2d08%29%2epdf]
+	 * PDF page 238 Line Draw X Start Register.
+	 *
+	 * For X major line, +XDELTA, value = (x1 << 20) + (XDELTA/2)
+	 * For X major line, -XDELTA, value = (x1 << 20) + (XDELTA/2) + ((1 << 20) - 1)
+	 * For Y major line, value = x1 << 20
+	 *
+	 * Line Draw X Delta Register: XDELTA = -(changeInX << 20) / changeInY
+	 *
+	 * Also notice that based on how this line rendering works, is it vital to turn on
+	 * clipping and set the clip region to the area you intend for the line to sit within,
+	 * else when changeInX is large and changeInY is small, the line segment will extent
+	 * some pixels past the end pixel. So in reality the XDELTA and start X registers
+	 * describe horizontal line segments that extend slightly past the clipping region.
+	 * At least that's how the Windows 3.1 treats this hardware acceleration function. */
+
+	LOG(LOG_VGA,LOG_DEBUG)("TODO: ViRGE Line Draw src_base=%x dst_base=%x ycount=%d xdir=%d y=%d xf=%d xdelta=%d xend=%d x=%d cmd=%x lc=%d rc=%d tc=%d bc=%d sstr=%d dstr=%d",
+		rset.src_base,rset.dst_base,ycount,xdir,y,xf,xdelta,xend,x,rset.command_set,
 		rset.left_clip,rset.right_clip,rset.top_clip,rset.bottom_clip,
 		rset.src_stride,rset.dst_stride);
+
+	// TODO: Fill in horizontal spans for X-major lines. This only correctly draws lines that are Y-major at this time.
+	while (ycount > 0) {
+		x = xf >> 20;
+		srcpixel = 0;
+		dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
+		patpixel = rset.mono_pat_fgcolor/*See notes*/;
+		mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
+		XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
+		xf += xdelta;
+		y--;
+
+		/* lines are drawn bottom-up */
+		ycount--;
+	}
 }
 
 void XGA_ViRGE_Line2D_Execute(bool commandwrite) {
