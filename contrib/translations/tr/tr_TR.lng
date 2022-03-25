@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Turkish (Turkey)
 :DOSBOX-X:CODEPAGE:857
-:DOSBOX-X:VERSION:0.83.22
+:DOSBOX-X:VERSION:0.83.24
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
@@ -194,7 +194,7 @@ Dil adı (isteğe bağlı):
 :INTRO_MESSAGE
 Ücretsiz ve çok işlevli bir DOS öykünme paketi olan DOSBox-X'e hoş geldiniz.
 DOSBox-X, bildiğiniz DOS istemine benzeyen bir DOS kabuğu oluşturur.
-Bu kabuk içinde aynı zamanda Windows 3.x, 95 ve 98 de çalıştırabilirsiniz.
+Bu kabuk içinde aynı zamanda Windows 3.x, 9x ve Me de çalıştırabilirsiniz.
 .
 :DRIVE
 Sürücü

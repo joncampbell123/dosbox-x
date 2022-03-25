@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Portuguese (Brazil)
 :DOSBOX-X:CODEPAGE:860
-:DOSBOX-X:VERSION:0.83.22
+:DOSBOX-X:VERSION:0.83.24
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 As linhas nesta seção serão sempre executadas ao se iniciar o DOSBox-X.
@@ -194,7 +194,7 @@ Nome do idioma (opcional):
 :INTRO_MESSAGE
 Bem-vindo ao DOSBox-X, um emulador de DOS completo e livre.
 O DOSBox-X cria um console DOS que funciona como um DOS real.
-Você também pode executar o Windows 3.x e 95/98 dentro da máquina DOS.
+Você também pode executar o Windows 3.x e 9x/Me dentro da máquina DOS.
 .
 :DRIVE
 Unidade

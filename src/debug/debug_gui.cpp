@@ -666,7 +666,7 @@ void DEBUG_ShowMsg(char const* format,...) {
 	va_list msg;
 	size_t len;
 
-    if (format==NULL || (log_dev_con == 2 && !logging_con) || control->opt_test) return;
+    if (format==NULL || (log_dev_con == 2 && !logging_con) || control->opt_nolog) return;
     in_debug_showmsg = true;
 
     // in case of runaway error from the CPU core, user responsiveness can be helpful

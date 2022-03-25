@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:English (United States)
 :DOSBOX-X:CODEPAGE:437
-:DOSBOX-X:VERSION:0.83.22
+:DOSBOX-X:VERSION:0.83.24
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
@@ -194,7 +194,7 @@ Language name (optional):
 :INTRO_MESSAGE
 Welcome to DOSBox-X, a free and complete DOS emulation package.
 DOSBox-X creates a DOS shell which looks like the plain DOS.
-You can also run Windows 3.x and 95/98 inside the DOS machine.
+You can also run Windows 3.x and 9x/Me inside the DOS machine.
 .
 :DRIVE
 Drive

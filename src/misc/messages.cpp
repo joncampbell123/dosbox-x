@@ -174,7 +174,7 @@ void AddMessages() {
     MSG_Add("CONFIG_SAVEALL", "Save all (including advanced) config options to the configuration file");
     MSG_Add("LANG_FILENAME", "Enter filename for language file:");
     MSG_Add("LANG_LANGNAME", "Language name (optional):");
-    MSG_Add("INTRO_MESSAGE", "Welcome to DOSBox-X, a free and complete DOS emulation package.\nDOSBox-X creates a DOS shell which looks like the plain DOS.\nYou can also run Windows 3.x and 95/98 inside the DOS machine.");
+    MSG_Add("INTRO_MESSAGE", "Welcome to DOSBox-X, a free and complete DOS emulation package.\nDOSBox-X creates a DOS shell which looks like the plain DOS.\nYou can also run Windows 3.x and 9x/Me inside the DOS machine.");
     MSG_Add("DRIVE","Drive");
     MSG_Add("TYPE","Type");
     MSG_Add("LABEL","Label");

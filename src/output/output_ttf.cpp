@@ -113,7 +113,7 @@ static int prev_sline = -1;
 static int charSet = 0;
 static alt_rgb *rgbColors = (alt_rgb*)render.pal.rgb;
 static bool blinkstate = false;
-bool colorChanged = false, justChanged = false, firstsize = true;
+bool colorChanged = false, justChanged = false, staycolors = false, firstsize = true;
 
 int menuwidth_atleast(int width), FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 void AdjustIMEFontSize(void), initcodepagefont(void), MSG_Init(void), DOSBox_SetSysMenu(void), GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight), resetFontSize(void), RENDER_CallBack( GFX_CallBackFunctions_t function );
@@ -253,7 +253,8 @@ bool setColors(const char *colorArray, int n) {
             altBGR1[i].green=rgbColors[i].green;
             altBGR1[i].blue=rgbColors[i].blue;
         }
-    const char* nextRGB = colorArray;
+    staycolors = strlen(colorArray) && *colorArray == '+';
+    const char* nextRGB = colorArray + (staycolors?1:0);
 	uint8_t * altPtr = (uint8_t *)altBGR1;
 	int rgbVal[3] = {-1,-1,-1};
 	for (int colNo = 0; colNo < (n>-1?1:16); colNo++) {
@@ -1038,7 +1039,7 @@ void GFX_EndTextLines(bool force) {
                     colorBG = colorFG;
                     colorFG = color;
                 }
-                bool colornul = IS_VGA_ARCH && (altBGR1[colorBG&15].red > 4 || altBGR1[colorBG&15].green > 4 || altBGR1[colorBG&15].blue > 4 || altBGR1[colorFG&15].red > 4 || altBGR1[colorFG&15].green > 4 || altBGR1[colorFG&15].blue > 4) && rgbColors[colorBG].red < 5 && rgbColors[colorBG].green < 5 && rgbColors[colorBG].blue < 5 && rgbColors[colorFG].red < 5 && rgbColors[colorFG].green <5 && rgbColors[colorFG].blue < 5;
+                bool colornul = staycolors || (IS_VGA_ARCH && (altBGR1[colorBG&15].red > 4 || altBGR1[colorBG&15].green > 4 || altBGR1[colorBG&15].blue > 4 || altBGR1[colorFG&15].red > 4 || altBGR1[colorFG&15].green > 4 || altBGR1[colorFG&15].blue > 4) && rgbColors[colorBG].red < 5 && rgbColors[colorBG].green < 5 && rgbColors[colorBG].blue < 5 && rgbColors[colorFG].red < 5 && rgbColors[colorFG].green <5 && rgbColors[colorFG].blue < 5);
 				ttf_textRect.x = ttf.offX+(rtl?(ttf.cols-x-1):x)*ttf.width;
 				ttf_bgColor.r = !y&&!hasfocus&&noframe?altBGR0[colorBG&15].red:(colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorBG&15].red:rgbColors[colorBG].red);
 				ttf_bgColor.g = !y&&!hasfocus&&noframe?altBGR0[colorBG&15].green:(colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorBG&15].green:rgbColors[colorBG].green);

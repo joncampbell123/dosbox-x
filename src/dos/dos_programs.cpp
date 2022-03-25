@@ -7575,7 +7575,7 @@ public:
 private:
 	void PrintUsage() {
         constexpr const char *msg =
-            "Views or changes the text-mode color scheme settings.\n\nSETCOLOR [color# [value]]\n\nFor example:\n\n  SETCOLOR 1 (50,50,50)\n\nChange Color #1 to the specified color value\n\n  SETCOLOR 7 -\n\nReturn Color #7 to the default color value\n\n  SETCOLOR MONO\n\nDisplay current MONO mode status\n\nTo change the current background and foreground colors, use COLOR command.\n";
+            "Views or changes the text-mode color scheme settings.\n\nSETCOLOR [color# [value]]\n\nFor example:\n\n  SETCOLOR 1 (50,50,50)\n\nChange Color #1 to the specified color value\n\n  SETCOLOR 7 -\n\nReturn Color #7 to the default color value\n\n  SETCOLOR 3 +\n\nReturn Color #3 to the preset color value\n\n  SETCOLOR MONO\n\nDisplay current MONO mode status\n\nTo change the current background and foreground colors, use COLOR command.\n";
         WriteOut(msg);
 	}
 };
@@ -7626,11 +7626,31 @@ void SETCOLOR::Run()
 			return;
 		} if (p!=NULL&&strcasecmp(args,"MONO")) {
 			char value[128];
-			if (strcmp(trim(p+1),"-")) {
+			if (!strcmp(trim(p+1),"-")) {
+				strcpy(value,i==0?"#000000":i==1?"#0000aa":i==2?"#00aa00":i==3?"#00aaaa":i==4?"#aa0000":i==5?"#aa00aa":i==6?"#aa5500":i==7?"#aaaaaa":i==8?"#555555":i==9?"#5555ff":i==10?"#55ff55":i==11?"#55ffff":i==12?"#ff5555":i==13?"#ff55ff":i==14?"#ffff55":"#ffffff");
+            } else if (!strcmp(trim(p+1),"+")) {
+                Section_prop * ttf_section=static_cast<Section_prop *>(control->GetSection("ttf"));
+                const char * colors = ttf_section->Get_string("colors");
+                const char * nextRGB = *colors ? (colors + (*colors == '+'?1:0)) : "#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff";
+                int rgbVal[3] = {-1,-1,-1};
+                for (int colNo = 0; colNo <= i; colNo++) {
+                    if (sscanf(nextRGB, " ( %d , %d , %d)", &rgbVal[0], &rgbVal[1], &rgbVal[2]) == 3) {
+                        sprintf(value,"(%d,%d,%d)",rgbVal[0],rgbVal[1],rgbVal[2]);
+                        while (*nextRGB != ')')
+                            nextRGB++;
+                        nextRGB++;
+                    } else if (sscanf(nextRGB, " #%6x", &rgbVal[0]) == 1) {
+                        sprintf(value,"#%6x",rgbVal[0]);
+                        nextRGB = strchr(nextRGB, '#') + 7;
+                    } else {
+                        WriteOut("Invalid color value - %s\n",nextRGB);
+                        return;
+                    }
+                }
+            } else {
 				strncpy(value,trim(p+1),127);
 				value[127]=0;
-			} else
-				strcpy(value,i==0?"#000000":i==1?"#0000aa":i==2?"#00aa00":i==3?"#00aaaa":i==4?"#aa0000":i==5?"#aa00aa":i==6?"#aa5500":i==7?"#aaaaaa":i==8?"#555555":i==9?"#5555ff":i==10?"#55ff55":i==11?"#55ffff":i==12?"#ff5555":i==13?"#ff55ff":i==14?"#ffff55":"#ffffff");
+			}
 #if defined(USE_TTF)
 			if (!ttf.inUse) {
 #endif

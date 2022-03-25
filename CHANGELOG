@@ -1,19 +1,44 @@
 0.83.24
   - Merge code to help preserve long filename when
     older program writes/overwrites the 8.3 filename.
-  - Change "fpu" setting in dosbox.conf to an enumeration
+  - Change "fpu" config setting to an enumeration
     that still accepts true and false, but now also
     accepts auto, 287, and 387. It is now possible to
     specify fpu=287 and cputype=386 to emulate a 386
     paired with a 287 chip as is said to be how early
     386 Compaq systems were wired, for example.
     (joncampbell123)
+  - The "colors" config setting now allows a leading
+    "+" character to stay the specified color scheme when
+    switching from another output. (Wengier)
+  - SETCOLOR command allows a syntax like "SETCOLOR 1 +"
+    to return the specified color number to the preset
+    value (as specified by "colors" setting). (Wengier)
+  - When using TTF output, DOSBox-X will dim the topmost
+    line when the window is inactive in full-screen or
+    menuless mode as in vDosPlus. (emendelson)
+  - Added CuteMouse wheel mouse extension so that DOS
+    programs such as DOS Navigator can make use of it.
+    It is enabled when mouse wheel movement conversion is
+    currently disabled. (FeralChild & Wengier)
+  - Added "-nolog" command-line option to disable logging
+    output completely. (Wengier)
   - Fix lockup when printing in dBase IV. (Wengier)
+  - Fix possible buffer overflow issue that may happen
+    in certain conditions. (maron2000)
+  - Fix handling of some DOS file I/O device drivers that
+    expect a pre-filled input-buffer on READ function and
+    also do not like to be called for every single byte
+    in that buffer may not work correctly. (leecher1337)
   - Fix FPU emulation to use 8087 FENI/FDISI behavior
     when cputype=8086 or cputype=80186. (joncampbell123)
   - Fix FPU emulation to correctly emulate 80287 -/+inf
     compare behavior even if compiled for x86 targets
     where C_FPU_X86 uses the host FPU. (joncampbell123)
+  - Fix audio speech stuttering issue in SpaceQuest 4
+    v1.3 using Sound Blaster. (grapeli & rderooy)
+  - Updated MT32emu to version 2.6.1. (maron20000)
+  - Updated DOSMID to version 0.9.6. (Wengier)
   - Integrated commits from mainline (Allofich)
     - Indicate in BIOS memory when keyboard ACK received.
     Fixes Soko-ban Revenge.

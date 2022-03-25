@@ -1137,7 +1137,7 @@ public:
         MessageBox3(parent, x, y, 630, "", "") { // 740
         setTitle(MSG_Get("LOGGING_OUTPUT"));
         getlogtext(str);
-        setText(str);
+        setText(control->opt_nolog?"Logging output has been disabled.":(str.size()?str:"No logging output available."));
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     };
 

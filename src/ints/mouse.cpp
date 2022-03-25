@@ -22,6 +22,7 @@
 
 #include <string.h>
 #include <math.h>
+#include <vector>
 
 #include "dosbox.h"
 #include "callback.h"
@@ -44,6 +45,20 @@
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 #endif
+
+static constexpr uint32_t TYPE_STANDARD     = 0;
+static constexpr uint32_t TYPE_INTELLIMOUSE = 3;
+
+static constexpr uint32_t RATE_10  = 0; // sample rate 10 Hz
+static constexpr uint32_t RATE_20  = 1;
+static constexpr uint32_t RATE_40  = 2;
+static constexpr uint32_t RATE_60  = 3;
+static constexpr uint32_t RATE_80  = 4;
+static constexpr uint32_t RATE_100 = 5;
+static constexpr uint32_t RATE_200 = 6;
+
+// Unlock sequences taken from https://www.scs.stanford.edu/10wi-cs140/pintos/specs/kbd/scancodes-12.html
+static const std::vector<uint32_t> UNLOCK_SEQ_INTELLIMOUSE = { RATE_200, RATE_100, RATE_80 };
 
 /* ints/bios.cpp */
 void bios_enable_ps2();
@@ -158,6 +173,7 @@ static uint16_t userdefCursorMask[CURSORY];
 
 static struct {
     uint8_t buttons;
+    int16_t wheel;
     uint16_t times_pressed[MOUSE_BUTTONS];
     uint16_t times_released[MOUSE_BUTTONS];
     uint16_t last_released_x[MOUSE_BUTTONS];
@@ -165,6 +181,8 @@ static struct {
     uint16_t last_pressed_x[MOUSE_BUTTONS];
     uint16_t last_pressed_y[MOUSE_BUTTONS];
     pic_tickindex_t hidden_at;
+    uint16_t last_scrolled_x;
+    uint16_t last_scrolled_y;
     uint16_t hidden;
     float add_x,add_y;
     int16_t min_x,max_x,min_y,max_y;
@@ -211,7 +229,29 @@ static struct {
     uint8_t mode;
     int16_t gran_x,gran_y;
     int scrollwheel;
+    uint8_t ps2_type;
+    uint8_t ps2_rate; // sampling rate is not really emulated, but needed for switching between protocols
+    uint8_t ps2_packet_size;
+    uint8_t ps2_unlock_idx;
 } mouse;
+
+double clamp(double d, double min, double max) {
+  const double t = d < min ? min : d;
+  return t > max ? max : t;
+}
+
+inline uint8_t GetWheel8bit() {
+	/* CuteMouse wheel extension allows for -0x80,0x7F range, but let's keep it symmetric */
+	int8_t tmp=clamp(mouse.wheel, static_cast<int16_t>(-0x7F), static_cast<int16_t>(0x7F));
+	mouse.wheel=0;
+	return (tmp >= 0) ? tmp : 0x100 + tmp;
+}
+
+inline uint8_t GetWheel16bit() {
+	int16_t tmp=(mouse.wheel >= 0) ? mouse.wheel : 0x10000 + mouse.wheel;
+	mouse.wheel=0;
+	return tmp;
+}
 
 bool Mouse_SetPS2State(bool use) {
     if (use && (!ps2callbackinit)) {
@@ -229,6 +269,35 @@ bool Mouse_SetPS2State(bool use) {
         PIC_SetIRQMask(MOUSE_IRQ,!useps2callback);
 
     return true;
+}
+
+void Mouse_PS2Reset(void) {
+	mouse.ps2_type       = TYPE_STANDARD;
+	mouse.ps2_rate       = RATE_100;
+	mouse.ps2_unlock_idx = 0;
+}
+
+bool Mouse_PS2SetPacketSize(uint8_t packet_size) {
+	if ((packet_size==0x03) ||
+		(packet_size==0x04 && mouse.ps2_type==TYPE_INTELLIMOUSE)) {
+		mouse.ps2_packet_size = packet_size;
+	    return true;
+	}
+	return false;
+}
+
+void Mouse_PS2SetSamplingRate(uint8_t rate) {
+	mouse.ps2_rate = rate;
+	if (UNLOCK_SEQ_INTELLIMOUSE[mouse.ps2_unlock_idx]!=rate)
+		mouse.ps2_unlock_idx = 0;
+	else if (UNLOCK_SEQ_INTELLIMOUSE.size()==++mouse.ps2_unlock_idx) {
+			mouse.ps2_type=TYPE_INTELLIMOUSE;
+			mouse.ps2_unlock_idx=0;
+	}
+}
+
+uint8_t Mouse_PS2GetType(void) {
+	return mouse.ps2_type;
 }
 
 void Mouse_ChangePS2Callback(uint16_t pseg, uint16_t pofs) {
@@ -270,10 +339,18 @@ void DoPS2Callback(uint16_t data, int16_t mouseX, int16_t mouseY) {
             CPU_Push16(reg_bp);CPU_Push16(reg_si);CPU_Push16(reg_di);
             CPU_Push16(SegValue(ds)); CPU_Push16(SegValue(es));
         }
-        CPU_Push16((uint16_t)mdat); 
-        CPU_Push16((uint16_t)(xdiff % 256)); 
-        CPU_Push16((uint16_t)(ydiff % 256)); 
-        CPU_Push16((uint16_t)0); 
+        switch (mouse.ps2_packet_size) {
+            case 0x04: // IntelliMouse protocol
+                CPU_Push16((uint16_t)(mdat + (xdiff % 256) * 256));
+                CPU_Push16((uint16_t)(ydiff % 256));
+                CPU_Push16((uint16_t)GetWheel8bit());
+                CPU_Push16((uint16_t)0);
+            default:   // Standard protocol
+                CPU_Push16((uint16_t)mdat);
+                CPU_Push16((uint16_t)(xdiff % 256));
+                CPU_Push16((uint16_t)(ydiff % 256));
+                CPU_Push16((uint16_t)0);
+        }
         CPU_Push16(RealSeg(ps2_callback));
         CPU_Push16(RealOff(ps2_callback));
         SegSet16(cs, ps2cbseg);
@@ -302,7 +379,8 @@ Bitu PS2_Handler(void) {
 #define MOUSE_RIGHT_RELEASED 16
 #define MOUSE_MIDDLE_PRESSED 32
 #define MOUSE_MIDDLE_RELEASED 64
-#define MOUSE_DUMMY 128
+#define MOUSE_WHEEL_MOVED 128
+#define MOUSE_DUMMY 256
 #define MOUSE_DELAY 5.0
 
 void MOUSE_Limit_Events(Bitu /*val*/) {
@@ -329,7 +407,7 @@ INLINE void Mouse_AddEvent(uint8_t type) {
     if (mouse.events<QUEUE_SIZE) {
         if (mouse.events>0) {
             /* Skip duplicate events */
-            if (type==MOUSE_HAS_MOVED) return;
+            if (type==MOUSE_HAS_MOVED || type==MOUSE_WHEEL_MOVED) return;
             /* Always put the newest element in the front as that the events are 
              * handled backwards (prevents doubleclicks while moving)
              */
@@ -1078,6 +1156,13 @@ void Mouse_ButtonReleased(uint8_t button) {
     on_mouse_event_for_serial(0,0,mouse.buttons);
 }
 
+void Mouse_WheelMoved(int32_t scroll) {
+	mouse.wheel = clamp(scroll + mouse.wheel, -0x7FFF, 0x7FFF); /* limit is -0x8000,0x7FFF, but let's keep it symmetric */
+	Mouse_AddEvent(MOUSE_WHEEL_MOVED);
+	mouse.last_scrolled_x=POS_X;
+	mouse.last_scrolled_y=POS_Y;
+}
+
 static void Mouse_SetMickeyPixelRate(int16_t px, int16_t py){
     if ((px!=0) && (py!=0)) {
         mouse.mickeysPerPixel_x  = (float)px/X_MICKEY;
@@ -1267,6 +1352,10 @@ static void Mouse_Reset(void) {
 
     mouse.buttons = 0;
 
+    mouse.wheel           = 0; /* CuteMouse wheel extension */
+    mouse.last_scrolled_x = 0;
+    mouse.last_scrolled_y = 0;
+
     for (uint16_t but=0; but<MOUSE_BUTTONS; but++) {
         mouse.times_pressed[but] = 0;
         mouse.times_released[but] = 0;
@@ -1323,9 +1412,10 @@ static Bitu INT33_Handler(void) {
         }
         break;
     case 0x03:  /* MS MOUSE v1.0+ - RETURN POSITION AND BUTTON STATUS */
-        reg_bx = mouse.buttons;
-        reg_cx = (uint16_t)POS_X;
-        reg_dx = (uint16_t)POS_Y;
+        reg_bl=mouse.buttons;
+        reg_bh=GetWheel8bit(); /* CuteMouse wheel extension */
+        reg_cx=POS_X;
+        reg_dx=POS_Y;
         mouse.first_range_setx = false;
         mouse.first_range_sety = false;
         if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
@@ -1348,12 +1438,19 @@ static Bitu INT33_Handler(void) {
     case 0x05:  /* MS MOUSE v1.0+ - RETURN BUTTON PRESS DATA */
         {
             uint16_t but = reg_bx;
-            reg_ax = mouse.buttons;
-            if (but >= MOUSE_BUTTONS) but = MOUSE_BUTTONS - 1;
-            reg_cx = mouse.last_pressed_x[but];
-            reg_dx = mouse.last_pressed_y[but];
-            reg_bx = mouse.times_pressed[but];
-            mouse.times_pressed[but] = 0;
+            if (but==0xFFFF){
+			    /* CuteMouse wheel extension */
+			    reg_bx=GetWheel16bit();
+			    reg_cx=mouse.last_scrolled_x;
+			    reg_dx=mouse.last_scrolled_y;
+			} else {
+				reg_ax=mouse.buttons;
+				if (but>=MOUSE_BUTTONS) but = MOUSE_BUTTONS - 1;
+				reg_cx=mouse.last_pressed_x[but];
+				reg_dx=mouse.last_pressed_y[but];
+				reg_bx=mouse.times_pressed[but];
+				mouse.times_pressed[but]=0;
+			}
             if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
         }
         Mouse_Used();
@@ -1361,12 +1458,20 @@ static Bitu INT33_Handler(void) {
     case 0x06:  /* MS MOUSE v1.0+ - RETURN BUTTON RELEASE DATA */
         {
             uint16_t but = reg_bx;
-            reg_ax = mouse.buttons;
-            if (but >= MOUSE_BUTTONS) but = MOUSE_BUTTONS - 1;
-            reg_cx = mouse.last_released_x[but];
-            reg_dx = mouse.last_released_y[but];
-            reg_bx = mouse.times_released[but];
-            mouse.times_released[but] = 0;
+            if (but==0xFFFF){
+			    /* CuteMouse wheel extension */
+			    reg_bx=(mouse.wheel >= 0) ? mouse.wheel : (0x10000 + mouse.wheel);
+			    reg_cx=mouse.last_scrolled_x;
+			    reg_dx=mouse.last_scrolled_y;
+			    mouse.wheel=0;
+			} else {
+				reg_ax=mouse.buttons;
+				if (but>=MOUSE_BUTTONS) but = MOUSE_BUTTONS - 1;
+				reg_cx=mouse.last_released_x[but];
+				reg_dx=mouse.last_released_y[but];
+				reg_bx=mouse.times_released[but];
+				mouse.times_released[but]=0;
+			}
             if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
         }
         Mouse_Used();
@@ -1542,8 +1647,13 @@ static Bitu INT33_Handler(void) {
         DrawCursor();
         break;
     case 0x11:  /* Genius Mouse 9.06 - GET NUMBER OF BUTTONS */
-        reg_ax = 0xffff;
-        reg_bx = MOUSE_BUTTONS;
+        reg_ax = 0x574D; /* Identifier for detection purposes */
+		reg_bx = 0;      /* Reserved capabilities flags */
+		reg_cx = 1;      /* Wheel is supported */
+		/* Previous implementation provided Genius mouse-specific function to get
+		   number of buttons (https://sourceforge.net/p/dosbox/patches/32/), it was
+		   returning 0xffff in reg_ax and number of buttons in reg_bx; I suppose
+		   the CuteMouse extensions are more useful */
         break;
     case 0x12:  /* MS MOUSE - SET LARGE GRAPHICS CURSOR BLOCK */
         LOG(LOG_MOUSE, LOG_ERROR)("Set large graphics cursor block not implemented");
@@ -1840,7 +1950,8 @@ static Bitu INT74_Handler(void) {
         /* Check for an active Interrupt Handler that will get called */
         if (AllowINT33RMAccess() && (mouse.sub_mask & mouse.event_queue[mouse.events].type)) {
             reg_ax=mouse.event_queue[mouse.events].type;
-            reg_bx=mouse.event_queue[mouse.events].buttons;
+            reg_bl=mouse.event_queue[mouse.events].buttons;
+            reg_bh=GetWheel8bit(); /* CuteMouse wheel extension */
             reg_cx=(uint16_t)POS_X;
             reg_dx=(uint16_t)POS_Y;
             reg_si=(uint16_t)static_cast<int16_t>(mouse.mickey_x);

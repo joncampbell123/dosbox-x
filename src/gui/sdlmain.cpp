@@ -4201,6 +4201,11 @@ void MenuFreeScreen(void) {
 }
 #endif
 
+static void HandleMouseWheel(bool normal, int amount) {
+    if (amount != 0)
+        Mouse_WheelMoved(normal ? -amount : amount);
+}
+
 static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEvent * motion) {
 #if !defined(WIN32)
     (void)motion;
@@ -4775,8 +4780,10 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
                     if (wheel_key >= 4 && wheel_key <= 6 && ctrlup) KEYBOARD_AddKey(KBD_leftctrl, false);
                     KEYBOARD_AddKey(wheel_key==2||wheel_key==5?KBD_left:(wheel_key==3||wheel_key==6?KBD_pageup:KBD_up), false);
                 }
-			} else
-				Mouse_ButtonPressed(100-1);
+			} else {
+                Mouse_ButtonPressed(100-1);
+                HandleMouseWheel(true, 1);
+            }
 			break;
         case SDL_BUTTON_WHEELDOWN: /* Ick, really SDL? */
 			if (wheel_key && (wheel_guest || !dos_kernel_disabled)) {
@@ -4806,8 +4813,10 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
                     if (wheel_key >= 4 && wheel_key <= 6 && ctrlup) KEYBOARD_AddKey(KBD_leftctrl, false);
                     KEYBOARD_AddKey(wheel_key==2||wheel_key==5?KBD_right:(wheel_key==3||wheel_key==6?KBD_pagedown:KBD_down), false);
                 }
-			} else
-				Mouse_ButtonPressed(100+1);
+			} else {
+                Mouse_ButtonPressed(100+1);
+                HandleMouseWheel(false, 1);
+            }
             break;
 #endif
         }
@@ -5471,7 +5480,8 @@ void GFX_Events() {
                         KEYBOARD_AddKey(wheel_key==2||wheel_key==5?KBD_right:(wheel_key==3||wheel_key==6?KBD_pagedown:KBD_down), false);
                     }
 				}
-			}
+			} else
+                HandleMouseWheel(event.wheel.direction == SDL_MOUSEWHEEL_NORMAL, event.wheel.y);
 			break;
 #if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11
         case SDL_TEXTEDITING:
@@ -6589,6 +6599,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -log-con                                Log CON output to a log file\n");
             fprintf(stderr,"  -log-int21                              Log calls to INT 21h (debug level)\n");
             fprintf(stderr,"  -log-fileio                             Log file I/O through INT 21h (debug level)\n");
+            fprintf(stderr,"  -nolog                                  Do not log anything to log file\n");
             fprintf(stderr,"  -tests                                  Run unit tests to test the DOSBox-X code\n\n");
 
 #if defined(WIN32)
@@ -6615,6 +6626,9 @@ bool DOSBOX_parse_argv() {
         else if (optname == "log-con") {
             control->opt_log_con = true;
         }
+        else if (optname == "nolog") {
+            control->opt_nolog = true;
+        }
         else if (optname == "time-limit") {
             if (!control->cmdline->NextOptArgv(tmp)) return false;
             control->opt_time_limit = atof(tmp.c_str());
@@ -6631,9 +6645,10 @@ bool DOSBOX_parse_argv() {
             control->opt_fastlaunch = true;
         }
 #if C_DEBUG
-        else if (optname == "tests" || optname == "gtest_list_tests") {
+        else if (optname == "test" || optname == "tests" || optname == "gtest_list_tests") {
             putenv(const_cast<char*>("SDL_VIDEODRIVER=dummy"));
             control->opt_test = true;
+            control->opt_nolog = true;
             control->opt_noconsole = false;
             control->opt_console = true;
             control->opt_nomenu = true;

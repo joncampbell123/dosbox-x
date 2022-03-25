@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:French (France)
 :DOSBOX-X:CODEPAGE:858
-:DOSBOX-X:VERSION:0.83.22
+:DOSBOX-X:VERSION:0.83.24
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Les lignes de cette section seront exécutées au démarrage.
@@ -194,7 +194,7 @@ Nom de la langue (facultatif) :
 :INTRO_MESSAGE
 Bienvenue sur DOSBox-X, un émulateur DOS gratuit et complet.
 DOSBox-X crée un shell DOS qui ressemble au DOS normal.
-Vous pouvez également exécuter Windows 3.x et 95/98 à l'intérieur 
+Vous pouvez également exécuter Windows 3.x et 9x/Me à l'intérieur.
 de la machine DOS.
 .
 :DRIVE
