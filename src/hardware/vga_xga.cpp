@@ -2044,6 +2044,16 @@ void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 	unsigned int safety;
 	VIRGELineDDA ldda;
 
+	/* HACK: Why doesn't the Windows 98 S3 ViRGE driver set the stride for the line2d register set?
+	 *       I'm beginning to wonder if all dest/source offset and stride registers are really just
+	 *       tied together into one set in the back. This hack is needed to make sure lines and
+	 *       curves aren't jumbled up at the top of the screen when drawn. */
+	if (rset.src_stride == 0 && rset.dst_stride == 0 && xga.virge.bitblt.src_stride != 0 && xga.virge.bitblt.dst_stride != 0) {
+		LOG(LOG_MISC,LOG_DEBUG)("XGA ViRGE: Asked to draw line without src/dest stride, borrowing BitBlt strides. Windows 98 hack.");
+		rset.src_stride = xga.virge.bitblt.src_stride;
+		rset.dst_stride = xga.virge.bitblt.dst_stride;
+	}
+
 	xdir = (rset.lindrawcounty & 0x80000000u) ? 1/*left to right*/ : -1/*right to left*/;
 	ycount = (int)(rset.lindrawcounty & 0x1FFFu); /* bits [10:0] */
 	y = (int)(rset.lindrawstarty & 0x1FFFu); /* bits [10:0] */
