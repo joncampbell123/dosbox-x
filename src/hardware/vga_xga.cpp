@@ -2079,19 +2079,50 @@ void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 		rset.left_clip,rset.right_clip,rset.top_clip,rset.bottom_clip,
 		rset.src_stride,rset.dst_stride);
 
-	if (ldda.xdelta >= -(1 << 20) && ldda.xdelta <= (1 << 20)) { // Y-major
-		while (ycount > 0) {
-			x = ldda.read_xtr();
-			srcpixel = 0;
-			dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
-			patpixel = rset.mono_pat_fgcolor/*See notes*/;
-			mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
-			XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
-			ldda.adv();
-			y--;
+	/* NTS: Drawing completely horizontal lines according to S3 documentation:
+	 *      - Set XDELTA to 0, as if changeInY == 0
+	 *
+	 *      Drawing completely horizontal lines, Windows 3.1 style (ViRGE drivers);
+	 *      - Set ycount == 1, XDELTA to (xend + 1 - xstart) without the 20-bit shift, which
+	 *        is then a value that is very close to zero, but not quite you lazy hack of a driver.
+	 *        xstart <= x <= xend are the extents of the horizontal line to draw.
+	 *
+	 *      Note that small to zero XDELTA values ALSO represent a vertical or near vertical line,
+	 *      so that value alone isn't enough to determine if we're being asked to draw horizontal
+	 *      lines, however when Windows 3.1 does it, ycount == 1, XDELTA is some small value,
+	 *      XF is right in the middle of xstart-xend, and xstart-end are far wider than one pixel.
+	 *      Not sure by what logic or special case S3 would have handled horizontal lines here.
+	 *      Based on driver behavior, if the intent was to draw a 1-pixel high vertical line,
+	 *      then the xstart/xend values would equal (xf >> 20) without any additional room. */
 
-			/* lines are drawn bottom-up */
-			ycount--;
+	if (ldda.xdelta >= -(1 << 20) && ldda.xdelta <= (1 << 20)) { // Y-major
+		if (ycount == 0 || (ycount == 1 && (ldda.xdelta >= -4096 && ldda.xdelta <= 4096) && abs(xstart-xend) > 0)) {
+			/* horizontal line special case */
+			xdir = (ldda.xdelta < 0) ? -1 : 1;
+			do {
+				srcpixel = 0;
+				dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
+				patpixel = rset.mono_pat_fgcolor/*See notes*/;
+				mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
+				XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
+				if (x == xend) break;
+				x += xdir;
+			} while (1);
+		}
+		else {
+			while (ycount > 0) {
+				x = ldda.read_xtr();
+				srcpixel = 0;
+				dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
+				patpixel = rset.mono_pat_fgcolor/*See notes*/;
+				mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
+				XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
+				ldda.adv();
+				y--;
+
+				/* lines are drawn bottom-up */
+				ycount--;
+			}
 		}
 	}
 	else if (ldda.xdelta >= 0) { // X-major going to the left (draws bottom up, remember?)
