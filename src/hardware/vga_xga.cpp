@@ -2023,9 +2023,19 @@ void XGA_ViRGE_BitBlt_Execute_deferred(void) {
 }
 
 void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
+	int y,x,ycount,xdir;
+	int32_t xf,xdelta;
+
+	ycount = (int)(rset.lindrawcounty & 0x1FFFu); /* bits [10:0] */
+	xdir = (rset.lindrawcounty & 0x80000000) ? 1/*left to right*/ : -1/*right to left*/;
+	y = (int)(rset.lindrawstarty & 0x1FFFu); /* bits [10:0] */
+	xf = rset.lindrawstartx; /* S11.20 fixed point signed, 1.0 = 1 << 20 */
+	xdelta = rset.lindrawxdelta; /* S11.20 fixed point signed, 1.0 = 1 << 20 */
+	x = (int)rset.lindrawend0;
+
 	(void)rset;
 
-	LOG(LOG_VGA,LOG_DEBUG)("TODO: ViRGE Line Draw");
+	LOG(LOG_VGA,LOG_DEBUG)("TODO: ViRGE Line Draw ycount=%d xdir=%d y=%d xf=%d xdelta=%d x=%d",ycount,xdir,y,xf,xdelta,x);
 }
 
 void XGA_ViRGE_Line2D_Execute(bool commandwrite) {
