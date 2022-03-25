@@ -2022,13 +2022,31 @@ void XGA_ViRGE_BitBlt_Execute_deferred(void) {
 	};
 }
 
-void XGA_ViRGE_Line2D_Execute(void) {
+void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
+	(void)rset;
+
+	LOG(LOG_VGA,LOG_DEBUG)("TODO: ViRGE Line Draw");
+}
+
+void XGA_ViRGE_Line2D_Execute(bool commandwrite) {
 	auto &rset = xga.virge.line2d;
 
-	if (rset.command_set & (1u << 31u))
-		LOG(LOG_VGA,LOG_DEBUG)("Line2D execute 3D unhandled command %08x",(unsigned int)rset.command_set);
-	else
-		LOG(LOG_VGA,LOG_DEBUG)("Line2D execute 2D unhandled command %08x",(unsigned int)rset.command_set);
+	xga.virge.imgxferport = NULL;
+	xga.virge.imgxferportfunc = NULL;
+
+	if (commandwrite)
+		rset.command_execute_on_register = 0;
+
+	switch ((rset.command_set >> 27u) & 0x1F) { /* bits [31:31] 3D command if set, 2D else. bits [30:27] command */
+		case 0x03: /* 2D Line Draw */
+			XGA_ViRGE_DrawLine(rset);
+			break;
+		case 0x0F: /* NOP */
+			break;
+		default:
+			LOG(LOG_VGA,LOG_DEBUG)("Line2D unhandled command %08x",(unsigned int)rset.command_set);
+			break;
+	}
 }
 
 void XGA_ViRGE_Line2D_Execute_deferred(void) {
@@ -2537,7 +2555,7 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 				auto &rg = xga.virge.line2d_validate_port(port);
 				rg.set__command_set(val);
 				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
-				else XGA_ViRGE_Line2D_Execute();
+				else XGA_ViRGE_Line2D_Execute(true);
 			}
 			else goto default_case;
 			break;
@@ -2546,7 +2564,7 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 				auto &rg = xga.virge.line2d_validate_port(port);
 				rg.set__lindrawend_016c(val);
 				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
-				else XGA_ViRGE_Line2D_Execute();
+				else XGA_ViRGE_Line2D_Execute(true);
 			}
 			else goto default_case;
 			break;
@@ -2555,7 +2573,7 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 				auto &rg = xga.virge.line2d_validate_port(port);
 				rg.set__lindrawxdelta_0170(val);
 				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
-				else XGA_ViRGE_Line2D_Execute();
+				else XGA_ViRGE_Line2D_Execute(true);
 			}
 			else goto default_case;
 			break;
@@ -2564,7 +2582,7 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 				auto &rg = xga.virge.line2d_validate_port(port);
 				rg.set__lindrawstartx_0174(val);
 				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
-				else XGA_ViRGE_Line2D_Execute();
+				else XGA_ViRGE_Line2D_Execute(true);
 			}
 			else goto default_case;
 			break;
@@ -2573,7 +2591,7 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 				auto &rg = xga.virge.line2d_validate_port(port);
 				rg.set__lindrawstartx_0178(val);
 				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
-				else XGA_ViRGE_Line2D_Execute();
+				else XGA_ViRGE_Line2D_Execute(true);
 			}
 			else goto default_case;
 			break;
@@ -2582,7 +2600,7 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 				auto &rg = xga.virge.line2d_validate_port(port);
 				rg.set__lindrawcounty_017c(val);
 				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
-				else XGA_ViRGE_Line2D_Execute();
+				else XGA_ViRGE_Line2D_Execute(true);
 			}
 			else goto default_case;
 			break;
@@ -2662,7 +2680,7 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 				{
 					auto &rset = xga.virge.line2d_validate_port(port);
 					if (rset.command_execute_on_register != 0 && rset.command_execute_on_register == (port&0x3FF))
-						XGA_ViRGE_Line2D_Execute();
+						XGA_ViRGE_Line2D_Execute(false);
 				}
 				break;
 			case 0xAC00:
