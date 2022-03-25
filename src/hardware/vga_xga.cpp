@@ -2037,6 +2037,9 @@ void XGA_ViRGE_Line2D_Execute_deferred(void) {
 	xga.virge.imgxferport = NULL;
 	xga.virge.imgxferportfunc = NULL;
 	switch ((rset.command_set >> 27u) & 0x1F) { /* bits [31:31] 3D command if set, 2D else. bits [30:27] command */
+		case 0x03: /* 2D Line Draw */
+			rset.command_execute_on_register = 0x017C; /* A97C, etc */
+			break;
 		default:
 			if (rset.command_set & (1u << 31u))
 				LOG(LOG_VGA,LOG_DEBUG)("Line2D execute 3D unhandled command %08x def",(unsigned int)rset.command_set);
