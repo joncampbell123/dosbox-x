@@ -1270,13 +1270,13 @@ void S3_XGA_SecondaryStreamRender(uint32_t* temp2) {
 
                 if (vga.s3.streams.blendctl_composemode == 5/*color key on primary stream, secondary overlay on primary*/)
                     S3_XGA_RenderYUY2MPEGcolorkeyEVF(temp2+S3SSdraw.startx,S3SSdraw.pscan->yuv,S3SSdraw.cscan->yuv,S3SSdraw.endx - S3SSdraw.startx,a);
-                else
+                else if (vga.s3.streams.blendctl_composemode == 0/*opaque secondary on primary*/)
                     S3_XGA_RenderYUY2MPEGEVF(temp2+S3SSdraw.startx,S3SSdraw.pscan->yuv,S3SSdraw.cscan->yuv,S3SSdraw.endx - S3SSdraw.startx,a);
             }
             else {
                 if (vga.s3.streams.blendctl_composemode == 5/*color key on primary stream, secondary overlay on primary*/)
                     S3_XGA_RenderYUY2MPEGcolorkey(temp2+S3SSdraw.startx,S3SSdraw.cscan->yuv,S3SSdraw.endx - S3SSdraw.startx);
-                else
+                else if (vga.s3.streams.blendctl_composemode == 0/*opaque secondary on primary*/)
                     S3_XGA_RenderYUY2MPEG(temp2+S3SSdraw.startx,S3SSdraw.cscan->yuv,S3SSdraw.endx - S3SSdraw.startx);
             }
 
@@ -3838,7 +3838,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
              *      remains on the desktop (XingMPEG devs probably missed that because they're
              *      using the color key feature to key against bright magenta, and the Windows
              *      desktop usually doesn't have that color). */
-            if (vga.s3.streams.sswnd_height != 0 && vga.s3.streams.sswnd_start_x != 0 && vga.s3.streams.sswnd_start_y != 0 && vga.s3.streams.fifo_alloc_ss != 0) {
+            if (vga.s3.streams.sswnd_height != 0 && vga.s3.streams.sswnd_start_x != 0 && vga.s3.streams.sswnd_start_y != 0 &&
+                    (vga.s3.streams.blendctl_composemode == 0/*opaque secondary overlay*/ || vga.s3.streams.blendctl_composemode == 5/*color key secondary on primary*/)) {
                 unsigned int ssbuf = (vga.s3.streams.ss_bufsel == 1) ? 1 : 0;
                 S3SSdraw.startx = vga.s3.streams.sswnd_start_x-1; /* X coordinate written is X + 1 */
                 S3SSdraw.starty = vga.s3.streams.sswnd_start_y-1; /* Y coordinate written is Y + 1 */
