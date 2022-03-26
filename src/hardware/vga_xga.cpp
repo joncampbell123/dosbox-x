@@ -2136,8 +2136,10 @@ void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 		}
 
 		/* fill last line, xend is the LAST pixel to draw (inclusive) */
-		y++;
 		x += xdir;
+		y++;
+		if (xdir > 0 && x < xstart) x = xstart;
+		else if (xdir < 0 && x > xstart) x = xstart;
 		do {
 			if ((xdir > 0 && x > xend) || (xdir < 0 && x < xend)) break;
 			srcpixel = 0;
@@ -2191,8 +2193,6 @@ void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 			ycount--;
 		}
 	}
-
-	rset.lindrawstartx = ldda.xf;
 }
 
 void XGA_ViRGE_Line2D_Execute(bool commandwrite) {
