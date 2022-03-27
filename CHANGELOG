@@ -27,6 +27,8 @@
   - Added "-nolog" command-line option to disable logging
     output completely. (Wengier)
   - Fix lockup when printing in dBase IV. (Wengier)
+  - Fix crash/restart when running Wing Commander with
+    EMS memory enabled. (grapeli)
   - Fix possible buffer overflow issue that may happen
     in certain conditions. (maron2000)
   - Fix handling of some DOS file I/O device drivers that
