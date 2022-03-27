@@ -2118,8 +2118,30 @@ void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 		} while (1);
 	}
 	else if (ldda.xdelta >= -(1 << 20) && ldda.xdelta <= (1 << 20)) { // Y-major
+		/* NTS: xstart/xend must be considered to render Y-major lines correctly when the guest driver
+		 *      wants to draw a line but omit the last pixel when drawing line segments of a polygon or shape.
+		 *      This is needed to correctly render the shape in progress for example when drawing circles or
+		 *      rounded rectangles in Microsoft Word (uses XOR raster operation), and to render curves in
+		 *      Windows 98 correctly (Curves And Colors screen saver). Without the option to NOT render the
+		 *      last pixel, XOR-based poly lines will be missing pixels, since the overlapping pixels cancel
+		 *      each other out. */
+
+		/* check: xstart skip last pixel, when drawing a line going downard, with XGA hardware that only draws upward */
+		x = ldda.read_xtr();
+		if ((xdir > 0 && x < xstart) || (xdir < 0 && x > xstart)) {
+			ldda.adv();
+			ycount--;
+			y--;
+		}
+
 		while (ycount > 0) {
 			x = ldda.read_xtr();
+			if (ycount == 1) { /* check: xend skip last pixel, when drawing a line going upward */
+				if ((xdir > 0 && x > xend) || (xdir < 0 && x < xend)) {
+					break;
+				}
+			}
+
 			srcpixel = 0;
 			dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
 			patpixel = rset.mono_pat_fgcolor/*See notes*/;
