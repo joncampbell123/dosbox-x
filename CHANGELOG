@@ -20,6 +20,8 @@
   - When using TTF output, DOSBox-X will dim the topmost
     line when the window is inactive in full-screen or
     menuless mode as in vDosPlus. (emendelson)
+  - IMGMOUNT command now accepts wildcards, such as
+    "IMGMOUNT A disk*.img". (Wengier)
   - Added CuteMouse wheel mouse extension so that DOS
     programs such as DOS Navigator can make use of it.
     It is enabled when mouse wheel movement conversion is

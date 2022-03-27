@@ -5185,7 +5185,12 @@ private:
                     // convert dosbox-x filename to system filename
                     uint8_t dummy;
                     if (!DOS_MakeName(tmp, fullname, &dummy) || strncmp(Drives[dummy]->GetInfo(), "local directory", 15)) {
-                        if (!qmount) WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE"));
+                        temp_line = tmp;
+                        if (get_expanded_files(temp_line, paths)) {
+                            temp_line = paths[0];
+                            continue;
+                        } else if (!qmount)
+                            WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE"));
                         return false;
                     }
 
@@ -5200,7 +5205,12 @@ private:
                     commandLine = tmp;
 
                     if (pref_stat(readonly?tmp+1:tmp, &test)) {
-                        if (!qmount) WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
+                        temp_line = readonly?tmp+1:tmp;
+                        if (get_expanded_files(temp_line, paths)) {
+                            temp_line = paths[0];
+                            continue;
+                        } else if (!qmount)
+                            WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
                         return false;
                     }
                 }
