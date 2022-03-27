@@ -2709,48 +2709,23 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			else goto default_case;
 			break;
 		case 0xA96C:
-			if (s3Card >= S3_ViRGE) {
-				auto &rg = xga.virge.line2d_validate_port(port);
-				rg.set__lindrawend_016c(val);
-				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
-				else XGA_ViRGE_Line2D_Execute(true);
-			}
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__lindrawend_016c(val);
 			else goto default_case;
 			break;
 		case 0xA970:
-			if (s3Card >= S3_ViRGE) {
-				auto &rg = xga.virge.line2d_validate_port(port);
-				rg.set__lindrawxdelta_0170(val);
-				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
-				else XGA_ViRGE_Line2D_Execute(true);
-			}
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__lindrawxdelta_0170(val);
 			else goto default_case;
 			break;
 		case 0xA974:
-			if (s3Card >= S3_ViRGE) {
-				auto &rg = xga.virge.line2d_validate_port(port);
-				rg.set__lindrawstartx_0174(val);
-				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
-				else XGA_ViRGE_Line2D_Execute(true);
-			}
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__lindrawstartx_0174(val);
 			else goto default_case;
 			break;
 		case 0xA978:
-			if (s3Card >= S3_ViRGE) {
-				auto &rg = xga.virge.line2d_validate_port(port);
-				rg.set__lindrawstartx_0178(val);
-				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
-				else XGA_ViRGE_Line2D_Execute(true);
-			}
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__lindrawstartx_0178(val);
 			else goto default_case;
 			break;
 		case 0xA97C:
-			if (s3Card >= S3_ViRGE) {
-				auto &rg = xga.virge.line2d_validate_port(port);
-				rg.set__lindrawcounty_017c(val);
-				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
-				else XGA_ViRGE_Line2D_Execute(true);
-			}
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__lindrawcounty_017c(val);
 			else goto default_case;
 			break;
 		case 0xad00:
