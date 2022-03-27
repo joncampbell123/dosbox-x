@@ -5117,9 +5117,10 @@ private:
     bool ParseFiles(std::string &commandLine, std::vector<std::string> &paths, bool nodef) {
 		char drive=commandLine[0];
         bool nocont=false;
-        while (!nocont&&cmd->FindCommand((unsigned int)(paths.size() + 1), commandLine)) {
+        int num = 0;
+        while (!nocont&&cmd->FindCommand((unsigned int)(paths.size() + 1 - num), commandLine)) {
 			bool usedef=false;
-			if (!cmd->FindCommand((unsigned int)(paths.size() + 2), commandLine) || !commandLine.size()) {
+			if (!cmd->FindCommand((unsigned int)(paths.size() + 2 - num), commandLine) || !commandLine.size()) {
 				if (!nodef && !paths.size()) {
 					commandLine="IMGMAKE.IMG";
 					usedef=true;
@@ -5186,7 +5187,9 @@ private:
                     uint8_t dummy;
                     if (!DOS_MakeName(tmp, fullname, &dummy) || strncmp(Drives[dummy]->GetInfo(), "local directory", 15)) {
                         temp_line = tmp;
-                        if (get_expanded_files(temp_line, paths, readonly)) {
+                        int res = get_expanded_files(temp_line, paths, readonly);
+                        if (res) {
+                            num += res - 1;
                             temp_line = paths[0];
                             continue;
                         } else if (!qmount)
@@ -5205,7 +5208,9 @@ private:
 
                     if (pref_stat(readonly?tmp+1:tmp, &test)) {
                         temp_line = readonly?tmp+1:tmp;
-                        if (get_expanded_files(temp_line, paths, readonly)) {
+                        int res = get_expanded_files(temp_line, paths, readonly);
+                        if (res) {
+                            num += res - 1;
                             temp_line = paths[0];
                             continue;
                         } else if (!qmount)

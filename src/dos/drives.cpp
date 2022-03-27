@@ -210,9 +210,9 @@ checkext:
 
 host_cnv_char_t *CodePageGuestToHost(const char *s);
 char *CodePageHostToGuest(const host_cnv_char_t *s);
-bool get_expanded_files(const std::string &path, std::vector<std::string> &paths, bool readonly) {
+int get_expanded_files(const std::string &path, std::vector<std::string> &paths, bool readonly) {
     std::vector<std::string> files, names;
-    if (!path.size()) return false;
+    if (!path.size()) return 0;
     char full[CROSS_LEN], pdir[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r;
     strcpy(full, path.c_str());
     r=strrchr_dbcs(full, CROSS_FILESPLIT);
@@ -225,7 +225,7 @@ bool get_expanded_files(const std::string &path, std::vector<std::string> &paths
         strcpy(pdir, "");
         strcpy(pattern, full);
     }
-    if (!strchr(pattern, '*')&&!strchr(pattern, '?')) return false;
+    if (!strchr(pattern, '*')&&!strchr(pattern, '?')) return 0;
 
 #if defined(WIN32)
     HANDLE hFind;
@@ -273,9 +273,9 @@ bool get_expanded_files(const std::string &path, std::vector<std::string> &paths
 	if (files.size()) {
 		sort(files.begin(), files.end());
 		paths.insert(paths.end(), files.begin(), files.end());
-		return true;
+		return files.size();
 	} else {
-		return false;
+		return 0;
 	}
 }
 
