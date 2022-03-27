@@ -210,7 +210,7 @@ checkext:
 
 host_cnv_char_t *CodePageGuestToHost(const char *s);
 char *CodePageHostToGuest(const host_cnv_char_t *s);
-bool get_expanded_files(const std::string &path, std::vector<std::string> &paths) {
+bool get_expanded_files(const std::string &path, std::vector<std::string> &paths, bool readonly) {
     std::vector<std::string> files, names;
     if (!path.size()) return false;
     char full[CROSS_LEN], pdir[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r;
@@ -266,7 +266,7 @@ bool get_expanded_files(const std::string &path, std::vector<std::string> &paths
 	wildmount = true;
 	for (std::string name: names) {
 		if (LWildFileCmp(name.c_str(), pattern))
-			files.push_back(std::string(pdir) + std::string(1, CROSS_FILESPLIT) + name);
+			files.push_back((readonly ? ":":"") + std::string(pdir) + std::string(1, CROSS_FILESPLIT) + name);
 	}
 	wildmount = false;
 

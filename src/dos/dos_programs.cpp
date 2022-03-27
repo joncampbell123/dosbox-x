@@ -5163,8 +5163,8 @@ private:
 
 			char fullname[CROSS_LEN];
 			char tmp[CROSS_LEN];
-			safe_strncpy(tmp, wpcolon&&commandLine.length()>1&&commandLine[0]==':'?commandLine.c_str()+1:commandLine.c_str(), CROSS_LEN);
-            bool useh = false;
+            bool useh = false, readonly = wpcolon&&commandLine.length()>1&&commandLine[0]==':';
+			safe_strncpy(tmp, readonly?commandLine.c_str()+1:commandLine.c_str(), CROSS_LEN);
             pref_struct_stat test;
 #if defined(WIN32)
             ht_stat_t htest;
@@ -5186,7 +5186,7 @@ private:
                     uint8_t dummy;
                     if (!DOS_MakeName(tmp, fullname, &dummy) || strncmp(Drives[dummy]->GetInfo(), "local directory", 15)) {
                         temp_line = tmp;
-                        if (get_expanded_files(temp_line, paths)) {
+                        if (get_expanded_files(temp_line, paths, readonly)) {
                             temp_line = paths[0];
                             continue;
                         } else if (!qmount)
@@ -5199,14 +5199,13 @@ private:
                         if (!qmount) WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
                         return false;
                     }
-					bool readonly=wpcolon&&commandLine.length()>1&&commandLine[0]==':';
                     ldp->GetSystemFilename(readonly?tmp+1:tmp, fullname);
 					if (readonly) tmp[0]=':';
                     commandLine = tmp;
 
                     if (pref_stat(readonly?tmp+1:tmp, &test)) {
                         temp_line = readonly?tmp+1:tmp;
-                        if (get_expanded_files(temp_line, paths)) {
+                        if (get_expanded_files(temp_line, paths, readonly)) {
                             temp_line = paths[0];
                             continue;
                         } else if (!qmount)
