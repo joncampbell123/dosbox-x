@@ -1426,7 +1426,7 @@ uint32_t XGA_MixVirgePixel(uint32_t srcpixel,uint32_t patpixel,uint32_t dstpixel
 		case 0xAA/*D           */: return dstpixel;
 		case 0xB8/*PSDPxax     */: return ((dstpixel ^ patpixel) & srcpixel) ^ patpixel;
 		case 0xBB/*DSno        */: return (~srcpixel) | dstpixel;
-		case 0xC0/*PSa         */: return patpixel ^ srcpixel;
+		case 0xC0/*PSa         */: return patpixel & srcpixel;
 		case 0xCC/*S           */: return srcpixel;
 		case 0xE2/*DSPDxax     */: return ((patpixel ^ dstpixel) & srcpixel) ^ dstpixel;
 		case 0xEE/*DSo         */: return dstpixel | srcpixel;
@@ -2048,11 +2048,10 @@ void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 	 *       I'm beginning to wonder if all dest/source offset and stride registers are really just
 	 *       tied together into one set in the back. This hack is needed to make sure lines and
 	 *       curves aren't jumbled up at the top of the screen when drawn. */
-	if (rset.src_stride == 0 && rset.dst_stride == 0 && xga.virge.bitblt.src_stride != 0 && xga.virge.bitblt.dst_stride != 0) {
-		LOG(LOG_MISC,LOG_DEBUG)("XGA ViRGE: Asked to draw line without src/dest stride, borrowing BitBlt strides. Windows 98 hack.");
-		rset.src_stride = xga.virge.bitblt.src_stride;
-		rset.dst_stride = xga.virge.bitblt.dst_stride;
-	}
+	rset.src_stride = xga.virge.bitblt.src_stride;
+	rset.dst_stride = xga.virge.bitblt.dst_stride;
+	rset.src_base = xga.virge.bitblt.src_base;
+	rset.dst_base = xga.virge.bitblt.dst_base;
 
 	xdir = (rset.lindrawcounty & 0x80000000u) ? 1/*left to right*/ : -1/*right to left*/;
 	ycount = (int)(rset.lindrawcounty & 0x1FFFu); /* bits [10:0] */
@@ -2107,12 +2106,9 @@ void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 	 *      Based on driver behavior, if the intent was to draw a 1-pixel high vertical line,
 	 *      then the xstart/xend values would equal (xf >> 20) without any additional room. */
 
-	if (ldda.xdelta >= -(1 << 20) && ldda.xdelta <= (1 << 20)) { // Y-major
-		/* fill first line, x is at xstart, fill to where the first pixel of the line will go */
-		xto = ldda.read_xtr();
-		xdir = (xstart > xend) ? -1 : 1;
+	if (ycount <= 1) {
 		do {
-			if ((xdir > 0 && x >= xto) || (xdir < 0 && x <= xto)) break;
+			if ((xdir > 0 && x > xend) || (xdir < 0 && x < xend)) break;
 			srcpixel = 0;
 			dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
 			patpixel = rset.mono_pat_fgcolor/*See notes*/;
@@ -2120,9 +2116,32 @@ void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 			XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
 			x += xdir;
 		} while (1);
+	}
+	else if (ldda.xdelta >= -(1 << 20) && ldda.xdelta <= (1 << 20)) { // Y-major
+		/* NTS: xstart/xend must be considered to render Y-major lines correctly when the guest driver
+		 *      wants to draw a line but omit the last pixel when drawing line segments of a polygon or shape.
+		 *      This is needed to correctly render the shape in progress for example when drawing circles or
+		 *      rounded rectangles in Microsoft Word (uses XOR raster operation), and to render curves in
+		 *      Windows 98 correctly (Curves And Colors screen saver). Without the option to NOT render the
+		 *      last pixel, XOR-based poly lines will be missing pixels, since the overlapping pixels cancel
+		 *      each other out. */
+
+		/* check: xstart skip last pixel, when drawing a line going downard, with XGA hardware that only draws upward */
+		x = ldda.read_xtr();
+		if ((xdir > 0 && x < xstart) || (xdir < 0 && x > xstart)) {
+			ldda.adv();
+			ycount--;
+			y--;
+		}
 
 		while (ycount > 0) {
 			x = ldda.read_xtr();
+			if (ycount == 1) { /* check: xend skip last pixel, when drawing a line going upward */
+				if ((xdir > 0 && x > xend) || (xdir < 0 && x < xend)) {
+					break;
+				}
+			}
+
 			srcpixel = 0;
 			dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
 			patpixel = rset.mono_pat_fgcolor/*See notes*/;
@@ -2134,21 +2153,6 @@ void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 			/* lines are drawn bottom-up */
 			ycount--;
 		}
-
-		/* fill last line, xend is the LAST pixel to draw (inclusive) */
-		x += xdir;
-		y++;
-		if (xdir > 0 && x < xstart) x = xstart;
-		else if (xdir < 0 && x > xstart) x = xstart;
-		do {
-			if ((xdir > 0 && x > xend) || (xdir < 0 && x < xend)) break;
-			srcpixel = 0;
-			dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
-			patpixel = rset.mono_pat_fgcolor/*See notes*/;
-			mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
-			XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
-			x += xdir;
-		} while (1);
 	}
 	else if (ldda.xdelta >= 0) { // X-major going to the left (draws bottom up, remember?)
 		while (ycount > 0) {
@@ -2727,48 +2731,23 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 			else goto default_case;
 			break;
 		case 0xA96C:
-			if (s3Card >= S3_ViRGE) {
-				auto &rg = xga.virge.line2d_validate_port(port);
-				rg.set__lindrawend_016c(val);
-				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
-				else XGA_ViRGE_Line2D_Execute(true);
-			}
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__lindrawend_016c(val);
 			else goto default_case;
 			break;
 		case 0xA970:
-			if (s3Card >= S3_ViRGE) {
-				auto &rg = xga.virge.line2d_validate_port(port);
-				rg.set__lindrawxdelta_0170(val);
-				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
-				else XGA_ViRGE_Line2D_Execute(true);
-			}
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__lindrawxdelta_0170(val);
 			else goto default_case;
 			break;
 		case 0xA974:
-			if (s3Card >= S3_ViRGE) {
-				auto &rg = xga.virge.line2d_validate_port(port);
-				rg.set__lindrawstartx_0174(val);
-				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
-				else XGA_ViRGE_Line2D_Execute(true);
-			}
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__lindrawstartx_0174(val);
 			else goto default_case;
 			break;
 		case 0xA978:
-			if (s3Card >= S3_ViRGE) {
-				auto &rg = xga.virge.line2d_validate_port(port);
-				rg.set__lindrawstartx_0178(val);
-				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
-				else XGA_ViRGE_Line2D_Execute(true);
-			}
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__lindrawstartx_0178(val);
 			else goto default_case;
 			break;
 		case 0xA97C:
-			if (s3Card >= S3_ViRGE) {
-				auto &rg = xga.virge.line2d_validate_port(port);
-				rg.set__lindrawcounty_017c(val);
-				if (rg.command_set & 1) XGA_ViRGE_Line2D_Execute_deferred();
-				else XGA_ViRGE_Line2D_Execute(true);
-			}
+			if (s3Card >= S3_ViRGE) xga.virge.line2d_validate_port(port).set__lindrawcounty_017c(val);
 			else goto default_case;
 			break;
 		case 0xad00:
