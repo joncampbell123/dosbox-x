@@ -469,10 +469,10 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
                 return 0xC0; // Vision864, 0x88C0 or 0x88C1
             case S3_Vision868:
                 return 0x80; // Vision868, 0x8880 or 0x8881. S3 didn't list this in their datasheet, but Windows 95 INF files listed it anyway
-	    case S3_Vision964:
-		return 0xd0; // Vision964, 0x88d0, 0x88d1, 0x88d2 or 0x88d3
-	    case S3_Vision968:
-		return 0xf0; // Vision968, 0x88f0, 0x88f1, 0x88f2 or 0x88f3
+            case S3_Vision964:
+                return 0xd0; // Vision964, 0x88d0, 0x88d1, 0x88d2 or 0x88d3
+            case S3_Vision968:
+                return 0xf0; // Vision968, 0x88f0, 0x88f1, 0x88f2 or 0x88f3
             case S3_Trio32:
                 return 0x10; // Trio32. 0x8810 or 0x8811
             case S3_Trio64:
