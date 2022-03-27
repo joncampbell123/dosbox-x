@@ -1426,7 +1426,7 @@ uint32_t XGA_MixVirgePixel(uint32_t srcpixel,uint32_t patpixel,uint32_t dstpixel
 		case 0xAA/*D           */: return dstpixel;
 		case 0xB8/*PSDPxax     */: return ((dstpixel ^ patpixel) & srcpixel) ^ patpixel;
 		case 0xBB/*DSno        */: return (~srcpixel) | dstpixel;
-		case 0xC0/*PSa         */: return patpixel ^ srcpixel;
+		case 0xC0/*PSa         */: return patpixel & srcpixel;
 		case 0xCC/*S           */: return srcpixel;
 		case 0xE2/*DSPDxax     */: return ((patpixel ^ dstpixel) & srcpixel) ^ dstpixel;
 		case 0xEE/*DSo         */: return dstpixel | srcpixel;
@@ -2048,11 +2048,10 @@ void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 	 *       I'm beginning to wonder if all dest/source offset and stride registers are really just
 	 *       tied together into one set in the back. This hack is needed to make sure lines and
 	 *       curves aren't jumbled up at the top of the screen when drawn. */
-	if (rset.src_stride == 0 && rset.dst_stride == 0 && xga.virge.bitblt.src_stride != 0 && xga.virge.bitblt.dst_stride != 0) {
-		LOG(LOG_MISC,LOG_DEBUG)("XGA ViRGE: Asked to draw line without src/dest stride, borrowing BitBlt strides. Windows 98 hack.");
-		rset.src_stride = xga.virge.bitblt.src_stride;
-		rset.dst_stride = xga.virge.bitblt.dst_stride;
-	}
+	rset.src_stride = xga.virge.bitblt.src_stride;
+	rset.dst_stride = xga.virge.bitblt.dst_stride;
+	rset.src_base = xga.virge.bitblt.src_base;
+	rset.dst_base = xga.virge.bitblt.dst_base;
 
 	xdir = (rset.lindrawcounty & 0x80000000u) ? 1/*left to right*/ : -1/*right to left*/;
 	ycount = (int)(rset.lindrawcounty & 0x1FFFu); /* bits [10:0] */
