@@ -2108,34 +2108,47 @@ void XGA_ViRGE_DrawLine(XGAStatus::XGA_VirgeState::reggroup &rset) {
 	 *      then the xstart/xend values would equal (xf >> 20) without any additional room. */
 
 	if (ldda.xdelta >= -(1 << 20) && ldda.xdelta <= (1 << 20)) { // Y-major
-		if (ycount == 0 || (ycount == 1 && (ldda.xdelta >= -4096 && ldda.xdelta <= 4096) && abs(xstart-xend) > 0)) {
-			/* horizontal line special case */
-			xdir = (xstart > xend) ? -1 : 1;
-			do {
-				srcpixel = 0;
-				dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
-				patpixel = rset.mono_pat_fgcolor/*See notes*/;
-				mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
-				XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
-				if (x == xend) break;
-				x += xdir;
-			} while (1);
-		}
-		else {
-			while (ycount > 0) {
-				x = ldda.read_xtr();
-				srcpixel = 0;
-				dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
-				patpixel = rset.mono_pat_fgcolor/*See notes*/;
-				mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
-				XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
-				ldda.adv();
-				y--;
+		/* fill first line, x is at xstart, fill to where the first pixel of the line will go */
+		xto = ldda.read_xtr();
+		xdir = (xstart > xend) ? -1 : 1;
+		do {
+			if ((xdir > 0 && x >= xto) || (xdir < 0 && x <= xto)) break;
+			srcpixel = 0;
+			dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
+			patpixel = rset.mono_pat_fgcolor/*See notes*/;
+			mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
+			XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
+			x += xdir;
+		} while (1);
 
-				/* lines are drawn bottom-up */
-				ycount--;
-			}
+		while (ycount > 0) {
+			x = ldda.read_xtr();
+			srcpixel = 0;
+			dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
+			patpixel = rset.mono_pat_fgcolor/*See notes*/;
+			mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
+			XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
+			ldda.adv();
+			y--;
+
+			/* lines are drawn bottom-up */
+			ycount--;
 		}
+
+		/* fill last line, xend is the LAST pixel to draw (inclusive) */
+		x += xdir;
+		y++;
+		if (xdir > 0 && x < xstart) x = xstart;
+		else if (xdir < 0 && x > xstart) x = xstart;
+		do {
+			if ((xdir > 0 && x > xend) || (xdir < 0 && x < xend)) break;
+			srcpixel = 0;
+			dstpixel = XGA_ReadDestVirgePixel(rset,x,y);
+			patpixel = rset.mono_pat_fgcolor/*See notes*/;
+			mixpixel = XGA_MixVirgePixel(srcpixel,patpixel,dstpixel,(rset.command_set>>17u)&0xFFu);
+			XGA_DrawVirgePixelCR(rset,x,y,mixpixel);
+			x += xdir;
+		} while (1);
 	}
 	else if (ldda.xdelta >= 0) { // X-major going to the left (draws bottom up, remember?)
 		while (ycount > 0) {
