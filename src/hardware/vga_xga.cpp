@@ -710,12 +710,15 @@ void XGA_DrawLineBresenham(Bitu val) {
 }
 
 void XGA_DrawRectangle(Bitu val) {
-	uint32_t xat, yat;
+	uint32_t xat, yat, xrun;
 	Bitu srcval;
 	Bitu destval;
 	Bitu dstdata;
+	bool skiplast;
 
 	Bits srcx, srcy, dx, dy;
+
+	skiplast = (val >> 2) & 1;
 
 	dx = -1;
 	dy = -1;
@@ -725,9 +728,13 @@ void XGA_DrawRectangle(Bitu val) {
 
 	srcy = xga.cury;
 
+	/* Undocumented, but seen with Windows 3.1 drivers: Horizontal lines are drawn with this XGA command and "skip last pixel" set, else they are one pixel too wide */
+	xrun = xga.MAPcount;
+	if (skiplast && xrun > 0u) xrun--;
+
 	for(yat=0;yat<=xga.MIPcount;yat++) {
 		srcx = xga.curx;
-		for(xat=0;xat<=xga.MAPcount;xat++) {
+		for(xat=0;xat<=xrun;xat++) {
 			Bitu mixmode = (xga.pix_cntl >> 6) & 0x3;
 			switch (mixmode) {
 				case 0x00: /* FOREMIX always used */
