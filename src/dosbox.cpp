@@ -1218,6 +1218,7 @@ void DOSBOX_SetupConfigSections(void) {
 #else
     const char* devices[] = { "default", "win32", "alsa", "oss", "coreaudio", "coremidi", "mt32", "timidity", "none", 0}; // FIXME: add some way to offer the actually available choices.
 #endif
+    const char* apmpowerbuttonevent[] = { "suspend", "standby", 0 };
     const char* apmbiosversions[] = { "auto", "1.0", "1.1", "1.2", 0 };
     const char* driveletters[] = { "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p", "q", "r", "s", "t", "u", "v", "w", "x", "y", "z", 0};
     const char *mt32models[] = {"cm32l", "mt32", "auto",0};
@@ -2685,6 +2686,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("apmbios pnp",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If emulating ISA PnP BIOS, announce APM BIOS in PnP enumeration.\n"
             "Warning: this can cause Windows 95 OSR2 and later to enumerate the APM BIOS twice and cause problems.");
+
+    Pstring = secprop->Add_string("apm power button event",Property::Changeable::WhenIdle,"suspend");
+    Pstring->Set_values(apmpowerbuttonevent);
+    Pstring->Set_help("When the power button event is triggered from the mapper or the menu, and the guest is using the APM BIOS, which APM BIOS event to send");
 
     Pstring = secprop->Add_string("apmbios version",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(apmbiosversions);

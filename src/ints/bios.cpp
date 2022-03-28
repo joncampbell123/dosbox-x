@@ -123,7 +123,9 @@ unsigned long APM_log_cpu_idle = 0;
 
 /* APM events (eventually ACPI as well) */
 unsigned long PowerButtonClicks = 0;
-bool APM_ResumeNotification = false;
+bool APM_ResumeNotificationFromSuspend = false;
+bool APM_ResumeNotificationFromStandby = false;
+bool APM_PowerButtonSendsSuspend = true;
 
 
 bool bochs_port_e9 = false;
@@ -1536,6 +1538,13 @@ void ISAPNP_Cfg_Reset(Section *sec) {
         APMBIOS_allow_prot16,
         APMBIOS_allow_prot32,
         APM_BIOS_minor_version);
+
+    std::string apmbiospwrbtn = section->Get_string("apm power button event");
+    if (apmbiospwrbtn == "standby")
+        APM_PowerButtonSendsSuspend = false;
+    else
+        APM_PowerButtonSendsSuspend = true;
+
 
     if (APMBIOS && (APMBIOS_allow_prot16 || APMBIOS_allow_prot32) && INT15_apm_pmentry == 0) {
         Bitu cb,base;
@@ -6254,7 +6263,8 @@ static Bitu INT15_Handler(void) {
                         CALLBACK_SCF(false);
                         APMBIOS_connect_mode = APMBIOS_CONNECT_REAL;
                         PowerButtonClicks=0; /* BIOSes probably clear whatever hardware register this involves... we'll see */
-                        APM_ResumeNotification = false;
+                        APM_ResumeNotificationFromStandby = false;
+                        APM_ResumeNotificationFromSuspend = false;
                         apm_realmode_connected=true;
                     } else {
                         LOG_MSG("APM BIOS: OS attempted to connect to real-mode interface when already connected\n");
@@ -6288,7 +6298,8 @@ static Bitu INT15_Handler(void) {
                         reg_di = 0xFFFF;            // DI = data segment length
                         APMBIOS_connect_mode = APMBIOS_CONNECT_PROT16;
                         PowerButtonClicks=0; /* BIOSes probably clear whatever hardware register this involves... we'll see */
-                        APM_ResumeNotification = false;
+                        APM_ResumeNotificationFromStandby = false;
+                        APM_ResumeNotificationFromSuspend = false;
                         apm_realmode_connected=true;
                     } else {
                         LOG_MSG("APM BIOS: OS attempted to connect to 16-bit protected mode interface when already connected\n");
@@ -6325,7 +6336,8 @@ static Bitu INT15_Handler(void) {
                         reg_di = 0xFFFF;            // DI = data segment length
                         APMBIOS_connect_mode = APMBIOS_CONNECT_PROT32;
                         PowerButtonClicks=0; /* BIOSes probably clear whatever hardware register this involves... we'll see */
-                        APM_ResumeNotification = false;
+                        APM_ResumeNotificationFromStandby = false;
+                        APM_ResumeNotificationFromSuspend = false;
                         apm_realmode_connected=true;
                     } else {
                         LOG_MSG("APM BIOS: OS attempted to connect to 32-bit protected mode interface when already connected\n");
@@ -6410,13 +6422,13 @@ static Bitu INT15_Handler(void) {
                             LOG(LOG_MISC,LOG_DEBUG)("Guest attempted to set power state to standby");
                             reg_ah = 0x00;//TODO
                             CALLBACK_SCF(false);
-                            APM_ResumeNotification = true;
+                            APM_ResumeNotificationFromStandby = true;
                             break;
                         case 0x2: // suspend
                             LOG(LOG_MISC,LOG_DEBUG)("Guest attempted to set power state to suspend");
                             reg_ah = 0x00;//TODO
                             CALLBACK_SCF(false);
-                            APM_ResumeNotification = true;
+                            APM_ResumeNotificationFromSuspend = true;
                             break;
                         case 0x3: // power off
                             throw(0);
@@ -6474,20 +6486,35 @@ static Bitu INT15_Handler(void) {
                     if (PowerButtonClicks != 0) { // Hardware and BIOSes probably just set a bit somewhere, so act like it
                         LOG(LOG_MISC,LOG_DEBUG)("Returning APM power button event to guest OS");
                         reg_ah = 0x00;  // FIXME: The standard doesn't say anything about AH on success
-                        reg_bx = 0x000A;// system suspend state. I wish the APM BIOS had a "power off" event, but that doesn't seem to be the case.
+
+			if (APM_PowerButtonSendsSuspend)
+                            reg_bx = 0x000A;// user pushed a button, wants to suspend the system
+			else
+                            reg_bx = 0x0009;// user pushed a button, wants to put the system into standby
+
                         reg_cx = 0x0000;
                         CALLBACK_SCF(false);
                         PowerButtonClicks = 0;
                         break;
                     }
+                    // resume from standby? Windows 98 will spin in a loop for 5+ seconds until it gets this APM message after suspend
+                    if (APM_ResumeNotificationFromStandby) {
+                        LOG(LOG_MISC,LOG_DEBUG)("Returning APM resume from standby notification event to guest OS");
+                        reg_ah = 0x00;  // FIXME: The standard doesn't say anything about AH on success
+                        reg_bx = 0x000B;// System Standby Resume Notification
+                        reg_cx = 0x0000;
+                        CALLBACK_SCF(false);
+                        APM_ResumeNotificationFromStandby = false;
+                        break;
+                    }
                     // resume from suspend? Windows 98 will spin in a loop for 5+ seconds until it gets this APM message after suspend
-                    if (APM_ResumeNotification) {
-                        LOG(LOG_MISC,LOG_DEBUG)("Returning APM resume notification event to guest OS");
+                    if (APM_ResumeNotificationFromSuspend) {
+                        LOG(LOG_MISC,LOG_DEBUG)("Returning APM resume from suspend notification event to guest OS");
                         reg_ah = 0x00;  // FIXME: The standard doesn't say anything about AH on success
                         reg_bx = 0x0003;// Normal Resume System Notification
                         reg_cx = 0x0000;
                         CALLBACK_SCF(false);
-                        APM_ResumeNotification = false;
+                        APM_ResumeNotificationFromSuspend = false;
                         break;
                     }
                     // nothing
