@@ -574,7 +574,7 @@ void XGA_DrawLineBresenham(Bitu val) {
 	Bits tmpswap;
 	bool steep;
 
-#define SWAP(a,b) tmpswap = a; a = b; b = tmpswap;
+#define SWAP(a,b) { tmpswap = a; a = b; b = tmpswap; }
 
 	Bits dx, sx, dy, sy, e, dmajor, dminor,destxtmp;
 
@@ -587,102 +587,101 @@ void XGA_DrawLineBresenham(Bitu val) {
 	destxtmp=(Bits)((int16_t)xga.destx);
 	if(xga.destx&0x2000) destxtmp |= ~((Bits)0x1fff);
 
-
 	dmajor = -(destxtmp - (dminor << (Bits)1)) >> (Bits)1;
-	
+
 	dx = dmajor;
-	if((val >> 5) & 0x1) {
-        sx = 1;
-	} else {
+	if ((val >> 5) & 0x1)
+		sx = 1;
+	else
 		sx = -1;
-	}
+
 	dy = dminor;
-	if((val >> 7) & 0x1) {
-        sy = 1;
-	} else {
+	if ((val >> 7) & 0x1)
+		sy = 1;
+	else
 		sy = -1;
-	}
+
 	e = (Bits)((int16_t)xga.ErrTerm);
 	if(xga.ErrTerm&0x2000) e |= ~((Bits)0x1fff); /* sign extend 13-bit error term */
+
 	xat = xga.curx;
 	yat = xga.cury;
 
-	if((val >> 6) & 0x1) {
+	if ((val >> 6) & 0x1) {
 		steep = false;
 		SWAP(xat, yat);
 		SWAP(sx, sy);
 	} else {
 		steep = true;
 	}
-    
+
 //	LOG_MSG("XGA: Bresenham: ASC %ld, LPDSC %ld, sx %ld, sy %ld, err %ld, steep %ld, length %ld, dmajor %ld, dminor %ld, xstart %ld, ystart %ld",
 //		dx, dy, sx, sy, e, (unsigned long)steep, (unsigned long)xga.MAPcount, dmajor, dminor, xat, yat);
 
-	for (i=0;i<=xga.MAPcount;i++) { 
-			Bitu mixmode = (xga.pix_cntl >> 6) & 0x3;
-			switch (mixmode) {
-				case 0x00: /* FOREMIX always used */
-					mixmode = xga.foremix;
-					switch((mixmode >> 5) & 0x03) {
-						case 0x00: /* Src is background color */
-							srcval = xga.backcolor;
-							break;
-						case 0x01: /* Src is foreground color */
-							srcval = xga.forecolor;
-							break;
-						case 0x02: /* Src is pixel data from PIX_TRANS register */
-							//srcval = tmpval;
-							LOG_MSG("XGA: DrawRect: Wants data from PIX_TRANS register");
-							srcval = 0;
-							break;
-						case 0x03: /* Src is bitmap data */
-							LOG_MSG("XGA: DrawRect: Wants data from srcdata");
-							//srcval = srcdata;
-							srcval = 0;
-							break;
-						default:
-							LOG_MSG("XGA: DrawRect: Shouldn't be able to get here!");
-							srcval = 0;
-							break;
-					}
+	for (i=0;i<=xga.MAPcount;i++) {
+		Bitu mixmode = (xga.pix_cntl >> 6) & 0x3;
 
-					if(steep) {
-						dstdata = XGA_GetPoint((Bitu)xat,(Bitu)yat);
-					} else {
-						dstdata = XGA_GetPoint((Bitu)yat,(Bitu)xat);
-					}
+		switch (mixmode) {
+			case 0x00: /* FOREMIX always used */
+				mixmode = xga.foremix;
+				switch((mixmode >> 5) & 0x03) {
+					case 0x00: /* Src is background color */
+						srcval = xga.backcolor;
+						break;
+					case 0x01: /* Src is foreground color */
+						srcval = xga.forecolor;
+						break;
+					case 0x02: /* Src is pixel data from PIX_TRANS register */
+						//srcval = tmpval;
+						LOG_MSG("XGA: DrawRect: Wants data from PIX_TRANS register");
+						srcval = 0;
+						break;
+					case 0x03: /* Src is bitmap data */
+						LOG_MSG("XGA: DrawRect: Wants data from srcdata");
+						//srcval = srcdata;
+						srcval = 0;
+						break;
+					default:
+						LOG_MSG("XGA: DrawRect: Shouldn't be able to get here!");
+						srcval = 0;
+						break;
+				}
 
-					destval = XGA_GetMixResult(mixmode, srcval, dstdata);
+				if (steep)
+					dstdata = XGA_GetPoint((Bitu)xat,(Bitu)yat);
+				else
+					dstdata = XGA_GetPoint((Bitu)yat,(Bitu)xat);
 
-					if(steep) {
-						XGA_DrawPoint((Bitu)xat,(Bitu)yat, destval);
-					} else {
-						XGA_DrawPoint((Bitu)yat,(Bitu)xat, destval);
-					}
+				destval = XGA_GetMixResult(mixmode, srcval, dstdata);
 
-					break;
-				default: 
-					LOG_MSG("XGA: DrawLine: Needs mixmode %x", (int)mixmode);
-					break;
-			}
-			while (e > 0) {
-				yat += sy;
-				e -= (dx << 1);
-			}
-			xat += sx;
-			e += (dy << 1);
+				if (steep)
+					XGA_DrawPoint((Bitu)xat,(Bitu)yat, destval);
+				else
+					XGA_DrawPoint((Bitu)yat,(Bitu)xat, destval);
+
+				break;
+			default: 
+				LOG_MSG("XGA: DrawLine: Needs mixmode %x", (int)mixmode);
+				break;
+		}
+
+		while (e > 0) {
+			yat += sy;
+			e -= (dx << 1);
+		}
+
+		xat += sx;
+		e += (dy << 1);
 	}
 
-	if(steep) {
+	if (steep) {
 		xga.curx = (uint16_t)xat;
 		xga.cury = (uint16_t)yat;
 	} else {
 		xga.curx = (uint16_t)yat;
 		xga.cury = (uint16_t)xat;
 	}
-	//	}
-	//}
-	
+#undef SWAP
 }
 
 void XGA_DrawRectangle(Bitu val) {
