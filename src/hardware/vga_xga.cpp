@@ -473,6 +473,7 @@ void XGA_DrawLineVector(Bitu val) {
 	Bitu srcval;
 	Bitu destval;
 	Bitu dstdata;
+	bool skiplast;
 	Bits i;
 
 	Bits dx, sx, sy;
@@ -518,6 +519,14 @@ void XGA_DrawLineVector(Bitu val) {
 			sx = 0;
 			sy = 0;
 			break;
+	}
+
+	/* Do we skip drawing the last pixel? (bit 2), Trio64 documentation.
+	 * This is needed to correctly draw polylines in Windows */
+	skiplast = (val >> 2) & 1;
+	if (skiplast) {
+		if (dx > 0) dx--;
+		else return;
 	}
 
 	for (i=0;i<=dx;i++) {
@@ -730,7 +739,10 @@ void XGA_DrawRectangle(Bitu val) {
 
 	/* Undocumented, but seen with Windows 3.1 drivers: Horizontal lines are drawn with this XGA command and "skip last pixel" set, else they are one pixel too wide */
 	xrun = xga.MAPcount;
-	if (skiplast && xrun > 0u) xrun--;
+	if (skiplast) {
+		if (xrun > 0u) xrun--;
+		else return;
+	}
 
 	for(yat=0;yat<=xga.MIPcount;yat++) {
 		srcx = xga.curx;
