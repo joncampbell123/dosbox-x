@@ -1,4 +1,7 @@
 0.83.24
+  - APM BIOS: Add dosbox.conf option to control whether
+    the power button triggers a suspend or standby
+    event. (joncampbell123)
   - APM BIOS: Add power button mapper event, tie
     power button to APM BIOS, return power button as
     APM suspend event, add code to APM BIOS to handle
