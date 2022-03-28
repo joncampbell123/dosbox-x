@@ -160,6 +160,8 @@ bool allow_more_than_640kb = false;
 unsigned int APM_BIOS_connected_minor_version = 0;// what version the OS connected to us with. default to 1.0
 unsigned int APM_BIOS_minor_version = 2;    // what version to emulate e.g to emulate 1.2 set this to 2
 
+static bool apm_realmode_connected = false;
+
 /* default bios type/version/date strings */
 const char* const bios_type_string = "IBM COMPATIBLE BIOS for DOSBox-X";
 const char* const bios_version_string = "DOSBox-X BIOS v1.0";
@@ -202,6 +204,54 @@ static Bitu APM_SuspendedLoopFunc(void);
 
 static RealPt APM_SuspendedLoopRptr=0;
 
+/* "wakeup" keys were pressed and released */
+void APM_Suspend_Wakeup_Key(void) {
+        APM_WakeupKeys++;
+}
+
+void APM_SuspendedLoopLeaveState() {
+	APM_WakeupKeys = 0;
+	PowerButtonClicks = 0;
+
+	/* Turn on the VGA display, assuming it was on when suspended */
+	if (IS_VGA_ARCH) {
+		Bitu crtc;
+		Bitu tmp;
+
+		IO_Write(0x3C4,0x01); // clocking mode
+		tmp = IO_Read(0x3C5);
+		IO_Write(0x3C5,tmp & (~0x20)); // turn on screen
+
+		// NTS: vga_crtc.cpp/vga_draw.cpp does not emulate blanking the display upon disabling sync signals
+		crtc = (IO_Read(0x3CC) & 1) ? 0x3D4 : 0x3B4;
+		IO_Write(crtc,0x17); // mode control
+		tmp = IO_Read(crtc+1);
+		IO_Write(crtc+1,tmp | 0x80); // enable sync
+	}
+}
+
+/* callback for APM suspended loop routine in BIOS */
+static Bitu APM_SuspendedLoopFunc(void) {
+        if (APM_WakeupKeys != 0 || PowerButtonClicks != 0) {
+		APM_SuspendedLoopLeaveState();
+                LOG_MSG("APM: leaving suspended state");
+                reg_eip += 3; /* skip over HLT+JMP to get to RET */
+                return CBRET_NONE;
+        }
+
+        return CBRET_NONE;
+}
+
+bool PowerManagementEnabledButton() {
+	if (IS_PC98_ARCH) /* power management not yet known or implemented */
+		return false;
+
+	if (apm_realmode_connected) /* guest has connected to the APM BIOS */
+		return true;
+
+	return false;
+}
+
 void APM_BeginSuspendedMode(void) {
         /* Enable interrupts, dumbass. We use HLT here. */
         CPU_STI();
@@ -219,6 +269,24 @@ void APM_BeginSuspendedMode(void) {
         /* reset counters */
         PowerButtonClicks = 0;
         APM_WakeupKeys = 0;
+
+	/* Turn off the VGA display */
+	if (IS_VGA_ARCH) {
+		Bitu crtc;
+		Bitu tmp;
+
+		IO_Write(0x3C4,0x01); // clocking mode
+		tmp = IO_Read(0x3C5);
+		IO_Write(0x3C5,tmp | 0x20); // turn off screen
+
+		// NTS: vga_crtc.cpp/vga_draw.cpp does not emulate blanking the display upon disabling sync signals
+		crtc = (IO_Read(0x3CC) & 1) ? 0x3D4 : 0x3B4;
+		IO_Write(crtc,0x17); // mode control
+		tmp = IO_Read(crtc+1);
+		IO_Write(crtc+1,tmp & (~0x80)); // disable sync
+	}
+
+        LOG_MSG("System is now in APM suspend mode");
 }
 
 
@@ -993,7 +1061,6 @@ const unsigned char isa_pnp_init_keystring[32] = {
 static RealPt INT15_apm_pmentry=0;
 static unsigned char ISA_PNP_KEYMATCH=0;
 static Bits other_memsystems=0;
-static bool apm_realmode_connected = false;
 void CMOS_SetRegister(Bitu regNr, uint8_t val); //For setting equipment word
 bool enable_integration_device_pnp=false;
 bool enable_integration_device=false;
@@ -1019,35 +1086,6 @@ unsigned int APMBIOS_connected_already_err() {
     }
 
     return 0x00;
-}
-
-/* "wakeup" keys were pressed and released */
-void APM_Suspend_Wakeup_Key(void) {
-        APM_WakeupKeys++;
-}
-
-/* callback for APM suspended loop routine in BIOS */
-static Bitu APM_SuspendedLoopFunc(void) {
-        if (APM_WakeupKeys != 0 || PowerButtonClicks != 0) {
-                APM_WakeupKeys = 0;
-                PowerButtonClicks = 0;
-                LOG_MSG("APM: leaving suspended state");
-                reg_eip += 3; /* skip over HLT+JMP to get to RET */
-                return CBRET_NONE;
-        }
-
-        LOG_MSG("APM suspended");
-        return CBRET_NONE;
-}
-
-bool PowerManagementEnabledButton() {
-	if (IS_PC98_ARCH) /* power management not yet known or implemented */
-		return false;
-
-	if (apm_realmode_connected) /* guest has connected to the APM BIOS */
-		return true;
-
-	return false;
 }
 
 ISAPnPDevice::ISAPnPDevice() {
