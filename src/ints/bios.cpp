@@ -121,6 +121,8 @@ void ttf_switch_on(bool ss), ttf_switch_off(bool ss), ttf_setlines(int cols, int
 pic_tickindex_t APM_log_cpu_idle_next_report = 0;
 unsigned long APM_log_cpu_idle = 0;
 
+unsigned long APM_WakeupKeys = 0;
+
 /* APM events (eventually ACPI as well) */
 unsigned long PowerButtonClicks = 0;
 bool APM_ResumeNotificationFromSuspend = false;
@@ -192,6 +194,30 @@ void bochs_port_e9_write(Bitu port,Bitu val,Bitu /*iolen*/) {
         if (bochs_port_e9_line.length() >= 256)
             bochs_port_e9_flush();
     }
+}
+
+LoopHandler *DOSBOX_GetLoop(void);
+
+static Bitu APM_SuspendedLoopFunc(void);
+
+static RealPt APM_SuspendedLoopRptr=0;
+
+void APM_BeginSuspendedMode(void) {
+        /* Enable interrupts, dumbass. We use HLT here. */
+        CPU_STI();
+
+        /* WARNING: This assumes, like all callbacks, that they reside in the same segment.
+         * The APM BIOS entry point can be called from real mode, 16-bit or 32-bit protected mode,
+         * therefore this code cannot assume any particular segment value and can only safely
+         * change reg_(e)ip to direct CPU execution. The most likely scenario is that the
+         * return address pushed here will point at the IRET in the INT 15 handler. */
+        if (cpu.stack.big) CPU_Push32(reg_eip);
+        else CPU_Push16(reg_ip);
+
+        reg_ip = APM_SuspendedLoopRptr & 0xFFFF; /* offset only */
+
+        /* reset counters */
+        APM_WakeupKeys = 0;
 }
 
 
@@ -994,6 +1020,23 @@ unsigned int APMBIOS_connected_already_err() {
     return 0x00;
 }
 
+/* "wakeup" keys were pressed and released */
+void APM_Suspend_Wakeup_Key(void) {
+        APM_WakeupKeys++;
+}
+
+/* callback for APM suspended loop routine in BIOS */
+static Bitu APM_SuspendedLoopFunc(void) {
+        if (APM_WakeupKeys) {
+                LOG_MSG("APM: leaving suspended state");
+                reg_eip += 3; /* skip over HLT+JMP to get to RET */
+                return CBRET_NONE;
+        }
+
+        LOG_MSG("APM suspended");
+        return CBRET_NONE;
+}
+
 bool PowerManagementEnabledButton() {
 	if (IS_PC98_ARCH) /* power management not yet known or implemented */
 		return false;
@@ -1490,6 +1533,7 @@ Bitu INT1B_Break_Handler(void) {
     return CBRET_NONE;
 }
 
+
 static Bitu INT15_Handler(void);
 
 // FIXME: This initializes both APM BIOS and ISA PNP emulation!
@@ -1602,6 +1646,17 @@ void ISAPNP_Cfg_Reset(Section *sec) {
         phys_writeb(base+0x08,0x5D);                             /* pop (e)bp */
         phys_writeb(base+0x09,0x9D);                             /* popf */
         phys_writeb(base+0x0A,0xCB);                             /* retf */
+
+        /* APM suspended mode execution loop */
+        cb = CALLBACK_Allocate();
+        APM_SuspendedLoopRptr = CALLBACK_RealPointer(cb);
+        CALLBACK_Setup(cb,APM_SuspendedLoopFunc,CB_RETF,"APM BIOS suspend/standby loop");
+
+        base = Real2Phys(APM_SuspendedLoopRptr);
+        LOG_MSG("Writing code to %05x\n",(unsigned int)base);
+        phys_writeb(base+0x04,0xF4);                             /* hlt */
+        phys_writew(base+0x05,0xF9EB);                           /* jmp $-5 (EB xx) */
+        phys_writeb(base+0x07,0xC3);                             /* ret */
     }
 }
 
@@ -6420,12 +6475,14 @@ static Bitu INT15_Handler(void) {
                     switch(reg_cx) {
                         case 0x1: // standby
                             LOG(LOG_MISC,LOG_DEBUG)("Guest attempted to set power state to standby");
+                            APM_BeginSuspendedMode();
                             reg_ah = 0x00;//TODO
                             CALLBACK_SCF(false);
                             APM_ResumeNotificationFromStandby = true;
                             break;
                         case 0x2: // suspend
                             LOG(LOG_MISC,LOG_DEBUG)("Guest attempted to set power state to suspend");
+                            APM_BeginSuspendedMode();
                             reg_ah = 0x00;//TODO
                             CALLBACK_SCF(false);
                             APM_ResumeNotificationFromSuspend = true;
@@ -6434,12 +6491,12 @@ static Bitu INT15_Handler(void) {
                             throw(0);
                         case 0x4: // last request processing notification (used by Windows ME)
                             LOG(LOG_MISC,LOG_DEBUG)("Guest is considering whether to accept the last returned APM event");
-                            reg_ah = 0x00;//TODO
+                            reg_ah = 0x00;
                             CALLBACK_SCF(false);
                             break;
                         case 0x5: // reject last request (used by Windows ME)
                             LOG(LOG_MISC,LOG_DEBUG)("Guest has rejected the last APM event");
-                            reg_ah = 0x00;//TODO
+                            reg_ah = 0x00;
                             CALLBACK_SCF(false);
                             break;
                         default:
