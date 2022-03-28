@@ -6432,6 +6432,16 @@ static Bitu INT15_Handler(void) {
                             break;
                         case 0x3: // power off
                             throw(0);
+                        case 0x4: // last request processing notification (used by Windows ME)
+                            LOG(LOG_MISC,LOG_DEBUG)("Guest is considering whether to accept the last returned APM event");
+                            reg_ah = 0x00;//TODO
+                            CALLBACK_SCF(false);
+                            break;
+                        case 0x5: // reject last request (used by Windows ME)
+                            LOG(LOG_MISC,LOG_DEBUG)("Guest has rejected the last APM event");
+                            reg_ah = 0x00;//TODO
+                            CALLBACK_SCF(false);
+                            break;
                         default:
                             reg_ah = 0x0A; // invalid parameter value in CX
                             CALLBACK_SCF(true);
