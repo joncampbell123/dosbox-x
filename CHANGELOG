@@ -1,4 +1,8 @@
 0.83.24
+  - Revise S3 Trio64 Bresenham line drawing code to
+    add comments, and obey the "skip last pixel" bit
+    so that the Windows drivers can better draw polygon
+    line segments. (joncampbell123)
   - Add S3 ViRGE accelerated XGA line drawing function.
     Windows 3.1 through Windows 98 can now draw lines
     with hardware acceleration. (joncampbell123)
