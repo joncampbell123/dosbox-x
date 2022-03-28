@@ -217,6 +217,7 @@ void APM_BeginSuspendedMode(void) {
         reg_ip = APM_SuspendedLoopRptr & 0xFFFF; /* offset only */
 
         /* reset counters */
+        PowerButtonClicks = 0;
         APM_WakeupKeys = 0;
 }
 
@@ -1027,7 +1028,9 @@ void APM_Suspend_Wakeup_Key(void) {
 
 /* callback for APM suspended loop routine in BIOS */
 static Bitu APM_SuspendedLoopFunc(void) {
-        if (APM_WakeupKeys) {
+        if (APM_WakeupKeys != 0 || PowerButtonClicks != 0) {
+                APM_WakeupKeys = 0;
+                PowerButtonClicks = 0;
                 LOG_MSG("APM: leaving suspended state");
                 reg_eip += 3; /* skip over HLT+JMP to get to RET */
                 return CBRET_NONE;
