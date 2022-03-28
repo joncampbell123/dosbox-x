@@ -306,6 +306,16 @@ static void dyn_reduce_cycles(void) {
 	gen_dop_word_imm(DOP_SUB,true,DREG(CYCLES),decode.cycles);
 }
 
+static void dyn_save_vmware_relevant_regs(void) {
+	// VMware interface uses these registers for bidirectional
+	// communication with guest side tools, they have to be
+	// up to date when reading the magic IO port
+	gen_releasereg(DREG(EAX));
+	gen_releasereg(DREG(ECX));
+	gen_releasereg(DREG(EDX));
+	gen_releasereg(DREG(EBX));
+}
+
 static void dyn_save_noncritical_regs(void) {
 	gen_releasereg(DREG(EAX));
 	gen_releasereg(DREG(ECX));
@@ -3085,11 +3095,13 @@ restart_prefix:
 		case 0xeb:dyn_exit_link((int8_t)decode_fetchb());goto finish_block;
 		/* IN AL/AX,DX*/
 		case 0xec:
+			dyn_save_vmware_relevant_regs();
 			dyn_call_function_pagefault_check((void*)&dyn_io_readB,"%Dw",DREG(EDX));
 			dyn_check_bool_exception_al();
 			gen_mov_host(&core_dyn.readdata,DREG(EAX),1);
 			break;
 		case 0xed:
+			dyn_save_vmware_relevant_regs();
 			if (!decode.big_op) {
 				dyn_call_function_pagefault_check((void*)&dyn_io_readW,"%Dw",DREG(EDX));
 			} else {

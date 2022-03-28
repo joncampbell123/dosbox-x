@@ -46,6 +46,10 @@
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 #endif
 
+#define VMWARE_PORT         0x5658u        // communication port
+#define VMWARE_PORTHB       0x5659u        // communication port, high bandwidth
+static Bitu PortRead(Bitu port, Bitu iolen);
+
 static constexpr uint32_t TYPE_STANDARD     = 0;
 static constexpr uint32_t TYPE_INTELLIMOUSE = 3;
 
@@ -2159,6 +2163,8 @@ void MOUSE_Startup(Section *sec) {
     Mouse_ResetHardware();
     Mouse_Reset();
     Mouse_SetSensitivity(50,50,50);
+
+    IO_RegisterReadHandler(VMWARE_PORT, &PortRead, IO_MD);
 }
 
 void MOUSE_Init() {
@@ -2189,6 +2195,221 @@ bool MOUSE_HasInterruptSub()
         return false;
 
     return (mouse.sub_mask != 0);
+}
+
+// Basic VMware tools support, based on documentation from https://wiki.osdev.org/VMware_tools
+// Mouse support tested using unofficial Windows 3.1 driver from https://github.com/NattyNarwhal/vmwmouse
+
+static constexpr uint32_t VMWARE_MAGIC           = 0x564D5868u;    // magic number for all VMware calls
+
+static constexpr uint16_t CMD_GETVERSION         = 10u;
+static constexpr uint16_t CMD_ABSPOINTER_DATA    = 39u;
+static constexpr uint16_t CMD_ABSPOINTER_STATUS  = 40u;
+static constexpr uint16_t CMD_ABSPOINTER_COMMAND = 41u;
+
+static constexpr uint32_t ABSPOINTER_ENABLE      = 0x45414552u;
+static constexpr uint32_t ABSPOINTER_RELATIVE    = 0xF5u;
+static constexpr uint32_t ABSPOINTER_ABSOLUTE    = 0x53424152u;
+
+static constexpr uint8_t BUTTON_LEFT            = 0x20u;
+static constexpr uint8_t BUTTON_RIGHT           = 0x10u;
+static constexpr uint8_t BUTTON_MIDDLE          = 0x08u;
+
+volatile bool vmware_mouse     = false;  // if true, VMware compatible driver has taken over the mouse
+
+static uint8_t mouse_buttons    = 0;      // state of mouse buttons, in VMware format
+static uint16_t mouse_x          = 0x8000; // mouse position X, in VMware format (scaled from 0 to 0xFFFF)
+static uint16_t mouse_y          = 0x8000; // ditto
+static int8_t mouse_wheel      = 0;
+static bool mouse_updated    = false;
+
+static int16_t mouse_diff_x     = 0;      // difference between host and guest mouse x coordinate (in host pixels)
+static int16_t mouse_diff_y     = 0;      // ditto
+
+static bool video_fullscreen = false;
+static uint16_t video_res_x      = 1;      // resolution to which guest image is scaled, excluding black borders
+static uint16_t video_res_y      = 1;
+static uint16_t video_clip_x     = 0;      // clipping value - size of black border (one side)
+static uint16_t video_clip_y     = 0;
+
+
+class Section;
+
+// Commands (requests) to the VMware hypervisor
+
+static inline void CmdGetVersion() {
+        reg_eax = 0; // FIXME: should we respond with something resembling VMware?
+        reg_ebx = VMWARE_MAGIC;
+}
+
+static inline void CmdAbsPointerData() {
+        reg_eax = mouse_buttons;
+        reg_ebx = mouse_x;
+        reg_ecx = mouse_y;
+        reg_edx = (mouse_wheel >= 0) ? mouse_wheel : 256 + mouse_wheel;
+
+        mouse_wheel = 0;
+}
+
+static inline void CmdAbsPointerStatus() {
+        reg_eax = mouse_updated ? 4 : 0;
+        mouse_updated = false;
+}
+
+static inline void CmdAbsPointerCommand() {
+
+        switch (reg_ebx) {
+        case ABSPOINTER_ENABLE:
+                // can be safely ignored
+                break;
+        case ABSPOINTER_RELATIVE:
+                vmware_mouse = false;
+                if (!MOUSE_IsLocked()) SDL_ShowCursor(SDL_ENABLE);
+                break;
+        case ABSPOINTER_ABSOLUTE:
+                vmware_mouse = true;
+                if (!MOUSE_IsLocked()) SDL_ShowCursor(SDL_DISABLE);
+                break;
+        default:
+                LOG_MSG("VMWARE: unknown mouse subcommand 0x%08x", reg_ebx);
+                break;
+        }
+}
+
+// IO port handling
+
+static Bitu PortRead(Bitu port, Bitu iolen) {
+
+        if (reg_eax != VMWARE_MAGIC)
+                return 0;
+
+        // LOG_MSG("VMWARE: called with EBX 0x%08x, ECX 0x%08x", reg_ebx, reg_ecx);
+
+        switch (reg_cx) {
+        case CMD_GETVERSION:
+                CmdGetVersion();
+                break;
+        case CMD_ABSPOINTER_DATA:
+                CmdAbsPointerData();
+                break;
+        case CMD_ABSPOINTER_STATUS:
+                CmdAbsPointerStatus();
+                break;
+        case CMD_ABSPOINTER_COMMAND:
+                CmdAbsPointerCommand();
+                break;
+        default:
+                LOG_MSG("VMWARE: unknown command 0x%08x", reg_ecx);
+                break;
+        }
+
+        return reg_ax;
+}
+
+// Notifications from external subsystems
+
+void VMWARE_MouseButtonPressed(uint8_t button) {
+
+        switch (button) {
+        case 0:
+                mouse_buttons |= BUTTON_LEFT;
+                mouse_updated = true;
+                break;
+        case 1:
+                mouse_buttons |= BUTTON_RIGHT;
+                mouse_updated = true;
+                break;
+        case 2:
+                mouse_buttons |= BUTTON_MIDDLE;
+                mouse_updated = true;
+                break;
+        default:
+                break;
+        }
+}
+
+void VMWARE_MouseButtonReleased(uint8_t button) {
+
+        switch (button) {
+        case 0:
+                mouse_buttons &= ~BUTTON_LEFT;
+                mouse_updated = true;
+                break;
+        case 1:
+                mouse_buttons &= ~BUTTON_RIGHT;
+                mouse_updated = true;
+                break;
+        case 2:
+                mouse_buttons &= ~BUTTON_MIDDLE;
+                mouse_updated = true;
+                break;
+        default:
+                break;
+        }
+}
+
+void VMWARE_MousePosition(uint16_t pos_x, uint16_t pos_y) {
+
+        float tmp_x;
+        float tmp_y;
+
+        if (video_fullscreen)
+        {
+                // We have to maintain the diffs (offsets) between host and guest
+                // mouse positions; otherwise in case of clipped picture (like
+                // 4:3 screen displayed on 16:9 fullscreen mode) we could have
+                // an effect of 'sticky' borders if the user moves mouse outside
+                // of the guest display area
+
+                if (pos_x + mouse_diff_x < video_clip_x)
+                        mouse_diff_x = video_clip_x - pos_x;
+                else if (pos_x + mouse_diff_x >= video_res_x + video_clip_x)
+                        mouse_diff_x = video_res_x + video_clip_x - pos_x - 1;
+
+                if (pos_y + mouse_diff_y < video_clip_y)
+                        mouse_diff_y = video_clip_y - pos_y;
+                else if (pos_y + mouse_diff_y >= video_res_y + video_clip_y)
+                        mouse_diff_y = video_res_y + video_clip_y - pos_y - 1;
+
+                tmp_x = pos_x + mouse_diff_x - video_clip_x;
+                tmp_y = pos_y + mouse_diff_y - video_clip_y;
+        }
+        else
+        {
+                tmp_x = pos_x > video_clip_x ? pos_x - video_clip_x : 0;
+                tmp_y = pos_y > video_clip_y ? pos_y - video_clip_y : 0;
+        }
+
+        mouse_x = (std::min)(0xFFFFu, static_cast<uint32_t>(tmp_x * 0xFFFF / (video_res_x - 1) + 0.499));
+        mouse_y = (std::min)(0xFFFFu, static_cast<uint32_t>(tmp_y * 0xFFFF / (video_res_y - 1) + 0.499));
+
+        mouse_updated = true;
+}
+
+void VMWARE_MouseWheel(int32_t scroll) {
+        if (scroll >= 255 || scroll + mouse_wheel >= 127)
+                mouse_wheel = 127;
+        else if (scroll <= -255 || scroll + mouse_wheel <= -127)
+                mouse_wheel = -127;
+        else
+                mouse_wheel += scroll;
+
+        mouse_updated = true;
+}
+
+void VMWARE_ScreenParams(uint16_t clip_x, uint16_t clip_y, uint16_t res_x, uint16_t res_y, bool fullscreen) {
+        video_clip_x     = clip_x;
+        video_clip_y     = clip_y;
+        video_res_x      = res_x;
+        video_res_y      = res_y;
+        video_fullscreen = fullscreen;
+
+        // Unfortunately, with seamless driver changing the window size can cause
+        // mouse movement as a side-effect, this is not fun for games. Let's try
+        // to at least minimize the effect.
+
+        mouse_diff_x = clamp(static_cast<int32_t>(mouse_diff_x), -video_clip_x, static_cast<int32_t>(video_clip_x));
+        mouse_diff_y = clamp(static_cast<int32_t>(mouse_diff_y), -video_clip_y, static_cast<int32_t>(video_clip_y));
 }
 
 //save state support
