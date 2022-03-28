@@ -1,4 +1,10 @@
 0.83.24
+  - APM BIOS: Add power button mapper event, tie
+    power button to APM BIOS, return power button as
+    APM suspend event, add code to APM BIOS to handle
+    suspend and resume events. Windows 98 no longer
+    complains about the inability to suspend or go to
+    standby. (joncampbell123)
   - APM BIOS: Limit debug logging of APM BIOS function
     AH=05h (CPU IDLE) because Windows 98 likes to call
     that function way too often. Once a millisecond, in
