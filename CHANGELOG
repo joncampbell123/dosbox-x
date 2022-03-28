@@ -1,4 +1,10 @@
 0.83.24
+  - APM BIOS: Limit debug logging of APM BIOS function
+    AH=05h (CPU IDLE) because Windows 98 likes to call
+    that function way too often. Once a millisecond, in
+    fact! The log spam makes it difficult to see
+    anything important scroll by while debugging.
+    (joncampbell123).
   - Revise S3 Trio64 XGA line drawing code to
     add comments, and obey the "skip last pixel" bit
     so that the Windows drivers can better draw polygon

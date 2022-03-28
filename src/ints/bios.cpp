@@ -117,6 +117,11 @@ Bitu INT6F_Handler(void);
 void ttf_switch_on(bool ss), ttf_switch_off(bool ss), ttf_setlines(int cols, int lins);
 #endif
 
+/* Rate limit log entries regarding APM AH=05h CPU IDLE because Windows 98's APM driver likes to call it way too much per second */
+pic_tickindex_t APM_log_cpu_idle_next_report = 0;
+unsigned long APM_log_cpu_idle = 0;
+
+
 bool bochs_port_e9 = false;
 bool isa_memory_hole_512kb = false;
 bool int15_wait_force_unmask_irq = false;
@@ -6194,7 +6199,20 @@ static Bitu INT15_Handler(void) {
         break;
     case 0x53: // APM BIOS
         if (APMBIOS) {
-            LOG(LOG_BIOS,LOG_DEBUG)("APM BIOS call AX=%04x BX=0x%04x CX=0x%04x\n",reg_ax,reg_bx,reg_cx);
+            /* Windows 98 calls AH=05h CPU IDLE way too much per second, it makes it difficult to see anything important scroll by.
+	     * Rate limit this particular call in the log file. */
+            if (reg_al == 0x05) {
+                APM_log_cpu_idle++;
+                if (PIC_FullIndex() >= APM_log_cpu_idle_next_report) {
+                    LOG(LOG_BIOS,LOG_DEBUG)("APM BIOS, %lu calls to AX=%04x BX=0x%04x CX=0x%04x\n",(unsigned long)APM_log_cpu_idle,reg_ax,reg_bx,reg_cx);
+                    APM_log_cpu_idle_next_report = PIC_FullIndex() + 1000;
+                    APM_log_cpu_idle = 0;
+                }
+            }
+            else {
+                LOG(LOG_BIOS,LOG_DEBUG)("APM BIOS call AX=%04x BX=0x%04x CX=0x%04x\n",reg_ax,reg_bx,reg_cx);
+            }
+
             switch(reg_al) {
                 case 0x00: // installation check
                     reg_ah = 1;             // major
