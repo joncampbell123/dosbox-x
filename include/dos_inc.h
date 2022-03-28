@@ -794,5 +794,200 @@ extern std::list<DOS_GetMemLog_Entry> DOS_GetMemLog;
 extern int customcp, altcp;
 bool isSupportedCP(int cp);
 void SetupDBCSTable(void);
+const char* DOS_GetLoadedLayout(void);
+
+enum COUNTRYNO {
+	United_States = 1,
+	Candian_French = 2,
+	Latin_America = 3,
+	Russia = 7,
+	Greece = 30,
+	Netherlands = 31,
+	Belgium = 32,
+	France = 33,
+	Spain = 34,
+	Hungary = 36,
+	Yugoslavia = 38,
+	Italy = 39,
+	Romania = 40,
+	Switzerland = 41,
+	Czech_Slovak = 42,
+	Austria = 43,
+	United_Kingdom = 44,
+	Denmark = 45,
+	Sweden = 46,
+	Norway = 47,
+	Poland = 48,
+	Germany = 49,
+	Argentina = 54,
+	Brazil = 55,
+	Malaysia = 60,
+	Australia = 61,
+	Philippines = 63,
+	Singapore = 65,
+	Kazakhstan = 77,
+	Japan = 81,
+	South_Korea = 82,
+	Vietnam = 84,
+	China = 86,
+	Turkey = 90,
+	India = 91,
+	Niger = 227,
+	Benin = 229,
+	Nigeria = 234,
+	Faeroe_Islands = 298,
+	Portugal = 351,
+	Iceland = 354,
+	Albania = 355,
+	Malta = 356,
+	Finland = 358,
+	Bulgaria = 359,
+	Lithuania = 370,
+	Latvia = 371,
+	Estonia = 372,
+	Armenia = 374,
+	Belarus = 375,
+	Ukraine = 380,
+	Serbia = 381,
+	Montenegro = 382,
+	Croatia = 384,
+	Slovenia = 386,
+	Bosnia = 387,
+	Macedonia = 389,
+	Taiwan = 886,
+	Arabic = 785,
+	Israel = 972,
+	Mongolia = 976,
+	Tadjikistan = 992,
+	Turkmenistan = 993,
+	Azerbaijan = 994,
+	Georgia = 995,
+	Kyrgyzstan = 996,
+	Uzbekistan = 998,
+};
+
+const std::map<std::string, int> country_code_map {
+	// reference: https://gitlab.com/FreeDOS/base/keyb_lay/-/blob/master/DOC/KEYB/LAYOUTS/LAYOUTS.TXT
+	{"ar462",  COUNTRYNO::Arabic         },
+	{"ar470",  COUNTRYNO::Arabic         },
+	{"az",     COUNTRYNO::Azerbaijan     },
+	{"ba",     COUNTRYNO::Bosnia         },
+	{"be",     COUNTRYNO::Belgium        },
+	{"bg",     COUNTRYNO::Bulgaria       }, // 101-key
+	{"bg103",  COUNTRYNO::Bulgaria       }, // 101-key, Phonetic
+	{"bg241",  COUNTRYNO::Bulgaria       }, // 102-key
+	{"bl",     COUNTRYNO::Belarus        },
+	{"bn",     COUNTRYNO::Benin          },
+	{"br",     COUNTRYNO::Brazil         }, // ABNT layout
+	{"br274",  COUNTRYNO::Brazil         }, // US layout
+	{"bx",     COUNTRYNO::Belgium        }, // International
+	{"by",     COUNTRYNO::Belarus        },
+	{"ca",     COUNTRYNO::Candian_French }, // Standard
+	{"ce",     COUNTRYNO::Russia         }, // Chechnya Standard
+	{"ce443",  COUNTRYNO::Russia         }, // Chechnya Typewriter
+	{"cg",     COUNTRYNO::Montenegro     },
+	{"cf",     COUNTRYNO::Candian_French }, // Standard
+	{"cf445",  COUNTRYNO::Candian_French }, // Dual-layer
+	{"co",     COUNTRYNO::United_States  }, // Colemak
+	{"cz",     COUNTRYNO::Czech_Slovak   }, // Czechia, QWERTY
+	{"cz243",  COUNTRYNO::Czech_Slovak   }, // Czechia, Standard
+	{"cz489",  COUNTRYNO::Czech_Slovak   }, // Czechia, Programmers
+	{"de",     COUNTRYNO::Germany        }, // Standard
+	{"dk",     COUNTRYNO::Denmark        },
+	{"dv",     COUNTRYNO::United_States  }, // Dvorak
+	{"ee",     COUNTRYNO::Estonia        },
+	{"el",     COUNTRYNO::Greece         }, // 319
+	{"es",     COUNTRYNO::Spain          },
+	{"et",     COUNTRYNO::Estonia        },
+	{"fi",     COUNTRYNO::Finland        },
+	{"fo",     COUNTRYNO::Faeroe_Islands },
+	{"fr",     COUNTRYNO::France         }, // Standard
+	{"fx",     COUNTRYNO::France         }, // International
+	{"gk",     COUNTRYNO::Greece         }, // 319
+	{"gk220",  COUNTRYNO::Greece         }, // 220
+	{"gk459",  COUNTRYNO::Greece         }, // 101-key
+	{"gr",     COUNTRYNO::Germany        }, // Standard
+	{"gr453",  COUNTRYNO::Germany        }, // Dual-layer
+	{"hr",     COUNTRYNO::Croatia        },
+	{"hu",     COUNTRYNO::Hungary        }, // 101-key
+	{"hu208",  COUNTRYNO::Hungary        }, // 102-key
+	{"hy",     COUNTRYNO::Armenia        },
+	{"il",     COUNTRYNO::Israel         },
+	{"is",     COUNTRYNO::Iceland        }, // 101-key
+	{"is161",  COUNTRYNO::Iceland        }, // 102-key
+	{"it",     COUNTRYNO::Italy          }, // Standard
+	{"it142",  COUNTRYNO::Italy          }, // Comma on Numeric Pad
+	{"ix",     COUNTRYNO::Italy          }, // International
+	{"jp",     COUNTRYNO::Japan          },
+	{"ka",     COUNTRYNO::Georgia        },
+	{"kk",     COUNTRYNO::Kazakhstan     },
+	{"kk476",  COUNTRYNO::Kazakhstan     },
+	{"kx",     COUNTRYNO::United_Kingdom }, // International
+	{"ky",     COUNTRYNO::Kyrgyzstan     },
+	{"la",     COUNTRYNO::Latin_America  },
+	{"lh",     COUNTRYNO::United_States  }, // Left-Hand Dvorak
+	{"lt",     COUNTRYNO::Lithuania      }, // Baltic
+	{"lt210",  COUNTRYNO::Lithuania      }, // 101-key, Programmers
+	{"lt211",  COUNTRYNO::Lithuania      }, // AZERTY
+	{"lt221",  COUNTRYNO::Lithuania      }, // Standard
+	{"lt456",  COUNTRYNO::Lithuania      }, // Dual-layout
+	{"lv",     COUNTRYNO::Latvia         }, // Standard
+	{"lv455",  COUNTRYNO::Latvia         }, // Dual-layout
+	{"ml",     COUNTRYNO::Malta          }, // UK-based
+	{"mk",     COUNTRYNO::Macedonia      },
+	{"mn",     COUNTRYNO::Mongolia       },
+	{"mo",     COUNTRYNO::Mongolia       },
+	{"mt",     COUNTRYNO::Malta          }, // UK-based
+	{"mt103",  COUNTRYNO::Malta          }, // US-based
+	{"ne",     COUNTRYNO::Niger          },
+	{"ng",     COUNTRYNO::Nigeria        },
+	{"nl",     COUNTRYNO::Netherlands    }, // 102-key
+	{"no",     COUNTRYNO::Norway         },
+	{"ph",     COUNTRYNO::Philippines    },
+	{"pl",     COUNTRYNO::Poland         }, // 101-key, Programmers
+	{"pl214",  COUNTRYNO::Poland         }, // 102-key
+	{"po",     COUNTRYNO::Portugal       },
+	{"px",     COUNTRYNO::Portugal       }, // International
+	{"ro",     COUNTRYNO::Romania        }, // Standard
+	{"ro446",  COUNTRYNO::Romania        }, // QWERTY
+	{"rh",     COUNTRYNO::United_States  }, // Right-Hand Dvorak
+	{"ru",     COUNTRYNO::Russia         }, // Standard
+	{"ru443",  COUNTRYNO::Russia         }, // Typewriter
+	{"rx",     COUNTRYNO::Russia         }, // Extended Standard
+	{"rx443",  COUNTRYNO::Russia         }, // Extended Typewriter
+	{"sd",     COUNTRYNO::Switzerland    }, // German
+	{"sf",     COUNTRYNO::Switzerland    }, // French
+	{"sg",     COUNTRYNO::Switzerland    }, // German
+	{"si",     COUNTRYNO::Slovenia       },
+	{"sk",     COUNTRYNO::Czech_Slovak   }, // Slovakia
+	{"sp",     COUNTRYNO::Spain          },
+	{"sq",     COUNTRYNO::Albania        }, // No-deadkeys
+	{"sq448",  COUNTRYNO::Albania        }, // Deadkeys
+	{"sr",     COUNTRYNO::Serbia         }, // Deadkey
+	{"su",     COUNTRYNO::Finland        },
+	{"sv",     COUNTRYNO::Sweden         },
+	{"sx",     COUNTRYNO::Spain          }, // International
+	{"tj",     COUNTRYNO::Tadjikistan    },
+	{"tm",     COUNTRYNO::Turkmenistan   },
+	{"tr",     COUNTRYNO::Turkey         }, // QWERTY
+	{"tr440",  COUNTRYNO::Turkey         }, // Non-standard
+	{"tt",     COUNTRYNO::Russia         }, // Tatarstan Standard
+	{"tt443",  COUNTRYNO::Russia         }, // Tatarstan Typewriter
+	{"ua",     COUNTRYNO::Ukraine        }, // 101-key
+	{"uk",     COUNTRYNO::United_Kingdom }, // Standard
+	{"uk168",  COUNTRYNO::United_Kingdom }, // Allternate
+	{"ur",     COUNTRYNO::Ukraine        }, // 101-key
+	{"ur465",  COUNTRYNO::Ukraine        }, // 101-key
+	{"ur1996", COUNTRYNO::Ukraine        }, // 101-key
+	{"ur2001", COUNTRYNO::Ukraine        }, // 102-key
+	{"ur2007", COUNTRYNO::Ukraine        }, // 102-key
+	{"us",     COUNTRYNO::United_States  }, // Standard
+	{"ux",     COUNTRYNO::United_States  }, // International
+	{"uz",     COUNTRYNO::Uzbekistan     },
+	{"vi",     COUNTRYNO::Vietnam        },
+	{"yc",     COUNTRYNO::Serbia         }, // Deadkey
+	{"yc450",  COUNTRYNO::Serbia         }, // No-deadkey
+	{"yu",     COUNTRYNO::Yugoslavia     },
+};
 
 #endif

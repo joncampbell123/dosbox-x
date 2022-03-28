@@ -26,6 +26,16 @@
     programs such as DOS Navigator can make use of it.
     It is enabled when mouse wheel movement conversion is
     currently disabled. (FeralChild & Wengier)
+  - Implemented basic support for VMware mouse protocol
+    so that when used together with e.g. the VMware mouse
+    driver for Windows 3.x, the mouse will be seamlessly
+    integrated with the host system, and can enter/exit
+    the DOSBox-X window without having to capture/release
+    the mouse. (FeralChild & Wengier)
+  - When country number is not specified and cannot be
+    obtained from system, DOSBox-X will try to map the
+    keyboard layout to country number. The country list
+    is also extended. (Wengier & FeralChild)
   - Added "-nolog" command-line option to disable logging
     output completely, and "Disable logging output" menu
     option in "Debug" menu to toggle this. (Wengier)
