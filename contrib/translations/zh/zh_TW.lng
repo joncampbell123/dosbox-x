@@ -117,6 +117,9 @@ DOSBox-X 組態工具
 :LOGGING_OUTPUT
 DOSBox-X 記錄輸出
 .
+:MENU:disable_logging
+禁用記錄輸出
+.
 :CODE_OVERVIEW
 代碼概覽
 .

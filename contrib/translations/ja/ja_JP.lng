@@ -2990,6 +2990,9 @@ DOSBox-X について
 :MENU:show_console
 ログ用コンソールを表示
 .
+:MENU:disable_logging
+ロギング出力を無効にする
+.
 :MENU:wait_on_error
 エラー時にコンソールを停止
 .

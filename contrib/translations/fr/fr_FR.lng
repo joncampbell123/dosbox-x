@@ -1231,7 +1231,7 @@ Disposition de clavier %s chargée pour la page de code %i
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
-Fichier clavier %s non trouvé (or not a valid ID)
+Fichier clavier %s non trouvé (ou pas un ID valide)
 
 
 .
@@ -3006,6 +3006,9 @@ A propos de DOSBox-X
 .
 :MENU:show_console
 Afficher la console de journalisation
+.
+:MENU:disable_logging
+Désactiver la sortie de journalisation
 .
 :MENU:wait_on_error
 Attente de la console en cas d'erreur

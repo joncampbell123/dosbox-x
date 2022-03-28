@@ -3005,6 +3005,9 @@ Acerca de DOSBox-X
 :MENU:show_console
 Mostrar consola de registro
 .
+:MENU:disable_logging
+Deshabilitar la salida de registro
+.
 :MENU:wait_on_error
 Pausar consola en caso de error
 .
