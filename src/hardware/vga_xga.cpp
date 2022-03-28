@@ -565,6 +565,7 @@ void XGA_DrawLineVector(Bitu val) {
 	xga.cury = (uint16_t)yat;
 }
 
+/* NTS: The Windows 3.1 driver does not use this XGA command for horizontal and vertical lines */
 void XGA_DrawLineBresenham(Bitu val) {
 	Bits xat, yat;
 	Bitu srcval;
@@ -572,19 +573,30 @@ void XGA_DrawLineBresenham(Bitu val) {
 	Bitu dstdata;
 	Bits i;
 	Bits tmpswap;
+	bool skiplast;
 	bool steep;
 
 #define SWAP(a,b) { tmpswap = a; a = b; b = tmpswap; }
 
-	Bits dx, sx, dy, sy, e, dmajor, dminor,destxtmp;
+	Bits dx, sx, dy, sy, e, dmajor, dminor, destxtmp;
 
 	// Probably a lot easier way to do this, but this works.
 
+	/* S3 Trio64 documentation: The "desty" register is both a destination Y for BitBlt (hence the name)
+	 * and "Line Parameter Axial Step Constant" for line drawing, in case the name of the variable is
+	 * confusing here. The "desty" variable name exists as inherited from DOSBox SVN source code.
+	 *
+	 * lpast = 2 * min(abs(dx),abs(dy)) */
 	dminor = (Bits)((int16_t)xga.desty);
 	if(xga.desty&0x2000) dminor |= ~((Bits)0x1fff);
 	dminor >>= 1;
 
-	destxtmp=(Bits)((int16_t)xga.destx);
+	/* S3 Trio64 documentation: The "destx" register is both a destination X for BitBlt (hence the name)
+	 * and "Line Parameter Diagonal Step Constant" for line drawing, in case the name of the variable is
+	 * confusing here. The "destx" variable name exists as inherited from DOSBox SVN source code.
+	 *
+	 * lpdst = 2 * min(abs(dx),abs(dy)) - max(abs(dx),abs(dy)) */
+	destxtmp = (Bits)((int16_t)xga.destx);
 	if(xga.destx&0x2000) destxtmp |= ~((Bits)0x1fff);
 
 	dmajor = -(destxtmp - (dminor << (Bits)1)) >> (Bits)1;
@@ -601,8 +613,15 @@ void XGA_DrawLineBresenham(Bitu val) {
 	else
 		sy = -1;
 
+	/* Do we skip drawing the last pixel? (bit 2), Trio64 documentation.
+	 * This is needed to correctly draw polylines in Windows */
+	skiplast = (val >> 2) & 1;
+
+	/* S3 Trio64 documentation:
+	 * if x1 < x2: 2 * min(abs(dx),abs(dy)) - max(abs(dx),abs(dy))
+	 * if x1 >= x2: 2 * min(abs(dx),abs(dy)) - max(abs(dx),abs(dy)) - 1 */
 	e = (Bits)((int16_t)xga.ErrTerm);
-	if(xga.ErrTerm&0x2000) e |= ~((Bits)0x1fff); /* sign extend 13-bit error term */
+	if (xga.ErrTerm&0x2000) e |= ~((Bits)0x1fff); /* sign extend 13-bit error term */
 
 	xat = xga.curx;
 	yat = xga.cury;
@@ -615,10 +634,16 @@ void XGA_DrawLineBresenham(Bitu val) {
 		steep = true;
 	}
 
-//	LOG_MSG("XGA: Bresenham: ASC %ld, LPDSC %ld, sx %ld, sy %ld, err %ld, steep %ld, length %ld, dmajor %ld, dminor %ld, xstart %ld, ystart %ld",
-//		dx, dy, sx, sy, e, (unsigned long)steep, (unsigned long)xga.MAPcount, dmajor, dminor, xat, yat);
+#if 0
+	LOG_MSG("XGA: Bresenham: ASC %ld, LPDSC %ld, sx %ld, sy %ld, err %ld, steep %ld, length %ld, dmajor %ld, dminor %ld, xstart %ld, ystart %ld, skiplast %u",
+		(signed long)dx, (signed long)dy, (signed long)sx, (signed long)sy, (signed long)e,
+		(signed long)steep, (signed long)xga.MAPcount, (signed long)dmajor, (signed long)dminor,
+		(signed long)xat, (signed long)yat, skiplast?1:0);
+#endif
 
-	for (i=0;i<=xga.MAPcount;i++) {
+	const Bits run = xga.MAPcount - (skiplast ? 1 : 0);
+
+	for (i=0;i<=run;i++) {
 		Bitu mixmode = (xga.pix_cntl >> 6) & 0x3;
 
 		switch (mixmode) {
