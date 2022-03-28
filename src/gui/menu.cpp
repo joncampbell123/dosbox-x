@@ -154,6 +154,7 @@ static const char *def_menu_main[] =
     "showdetails",
 #if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
     "--",
+    "mapper_pwrbutton", /* APM/ACPI etc */
     "mapper_reset",
     "mapper_reboot",
     "restartinst",

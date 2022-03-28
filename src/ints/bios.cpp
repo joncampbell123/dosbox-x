@@ -117,6 +117,19 @@ Bitu INT6F_Handler(void);
 void ttf_switch_on(bool ss), ttf_switch_off(bool ss), ttf_setlines(int cols, int lins);
 #endif
 
+/* Rate limit log entries regarding APM AH=05h CPU IDLE because Windows 98's APM driver likes to call it way too much per second */
+pic_tickindex_t APM_log_cpu_idle_next_report = 0;
+unsigned long APM_log_cpu_idle = 0;
+
+unsigned long APM_WakeupKeys = 0;
+
+/* APM events (eventually ACPI as well) */
+unsigned long PowerButtonClicks = 0;
+bool APM_ResumeNotificationFromSuspend = false;
+bool APM_ResumeNotificationFromStandby = false;
+bool APM_PowerButtonSendsSuspend = true;
+
+
 bool bochs_port_e9 = false;
 bool isa_memory_hole_512kb = false;
 bool int15_wait_force_unmask_irq = false;
@@ -182,6 +195,32 @@ void bochs_port_e9_write(Bitu port,Bitu val,Bitu /*iolen*/) {
             bochs_port_e9_flush();
     }
 }
+
+LoopHandler *DOSBOX_GetLoop(void);
+
+static Bitu APM_SuspendedLoopFunc(void);
+
+static RealPt APM_SuspendedLoopRptr=0;
+
+void APM_BeginSuspendedMode(void) {
+        /* Enable interrupts, dumbass. We use HLT here. */
+        CPU_STI();
+
+        /* WARNING: This assumes, like all callbacks, that they reside in the same segment.
+         * The APM BIOS entry point can be called from real mode, 16-bit or 32-bit protected mode,
+         * therefore this code cannot assume any particular segment value and can only safely
+         * change reg_(e)ip to direct CPU execution. The most likely scenario is that the
+         * return address pushed here will point at the IRET in the INT 15 handler. */
+        if (cpu.stack.big) CPU_Push32(reg_eip);
+        else CPU_Push16(reg_ip);
+
+        reg_ip = APM_SuspendedLoopRptr & 0xFFFF; /* offset only */
+
+        /* reset counters */
+        PowerButtonClicks = 0;
+        APM_WakeupKeys = 0;
+}
+
 
 void ROMBIOS_DumpMemory() {
     rombios_alloc.logDump();
@@ -982,6 +1021,35 @@ unsigned int APMBIOS_connected_already_err() {
     return 0x00;
 }
 
+/* "wakeup" keys were pressed and released */
+void APM_Suspend_Wakeup_Key(void) {
+        APM_WakeupKeys++;
+}
+
+/* callback for APM suspended loop routine in BIOS */
+static Bitu APM_SuspendedLoopFunc(void) {
+        if (APM_WakeupKeys != 0 || PowerButtonClicks != 0) {
+                APM_WakeupKeys = 0;
+                PowerButtonClicks = 0;
+                LOG_MSG("APM: leaving suspended state");
+                reg_eip += 3; /* skip over HLT+JMP to get to RET */
+                return CBRET_NONE;
+        }
+
+        LOG_MSG("APM suspended");
+        return CBRET_NONE;
+}
+
+bool PowerManagementEnabledButton() {
+	if (IS_PC98_ARCH) /* power management not yet known or implemented */
+		return false;
+
+	if (apm_realmode_connected) /* guest has connected to the APM BIOS */
+		return true;
+
+	return false;
+}
+
 ISAPnPDevice::ISAPnPDevice() {
     memset(ident,0,sizeof(ident));
 }
@@ -1468,6 +1536,7 @@ Bitu INT1B_Break_Handler(void) {
     return CBRET_NONE;
 }
 
+
 static Bitu INT15_Handler(void);
 
 // FIXME: This initializes both APM BIOS and ISA PNP emulation!
@@ -1516,6 +1585,13 @@ void ISAPNP_Cfg_Reset(Section *sec) {
         APMBIOS_allow_prot16,
         APMBIOS_allow_prot32,
         APM_BIOS_minor_version);
+
+    std::string apmbiospwrbtn = section->Get_string("apm power button event");
+    if (apmbiospwrbtn == "standby")
+        APM_PowerButtonSendsSuspend = false;
+    else
+        APM_PowerButtonSendsSuspend = true;
+
 
     if (APMBIOS && (APMBIOS_allow_prot16 || APMBIOS_allow_prot32) && INT15_apm_pmentry == 0) {
         Bitu cb,base;
@@ -1573,6 +1649,17 @@ void ISAPNP_Cfg_Reset(Section *sec) {
         phys_writeb(base+0x08,0x5D);                             /* pop (e)bp */
         phys_writeb(base+0x09,0x9D);                             /* popf */
         phys_writeb(base+0x0A,0xCB);                             /* retf */
+
+        /* APM suspended mode execution loop */
+        cb = CALLBACK_Allocate();
+        APM_SuspendedLoopRptr = CALLBACK_RealPointer(cb);
+        CALLBACK_Setup(cb,APM_SuspendedLoopFunc,CB_RETF,"APM BIOS suspend/standby loop");
+
+        base = Real2Phys(APM_SuspendedLoopRptr);
+        LOG_MSG("Writing code to %05x\n",(unsigned int)base);
+        phys_writeb(base+0x04,0xF4);                             /* hlt */
+        phys_writew(base+0x05,0xF9EB);                           /* jmp $-5 (EB xx) */
+        phys_writeb(base+0x07,0xC3);                             /* ret */
     }
 }
 
@@ -6194,7 +6281,20 @@ static Bitu INT15_Handler(void) {
         break;
     case 0x53: // APM BIOS
         if (APMBIOS) {
-            LOG(LOG_BIOS,LOG_DEBUG)("APM BIOS call AX=%04x BX=0x%04x CX=0x%04x\n",reg_ax,reg_bx,reg_cx);
+            /* Windows 98 calls AH=05h CPU IDLE way too much per second, it makes it difficult to see anything important scroll by.
+	     * Rate limit this particular call in the log file. */
+            if (reg_al == 0x05) {
+                APM_log_cpu_idle++;
+                if (PIC_FullIndex() >= APM_log_cpu_idle_next_report) {
+                    LOG(LOG_BIOS,LOG_DEBUG)("APM BIOS, %lu calls to AX=%04x BX=0x%04x CX=0x%04x\n",(unsigned long)APM_log_cpu_idle,reg_ax,reg_bx,reg_cx);
+                    APM_log_cpu_idle_next_report = PIC_FullIndex() + 1000;
+                    APM_log_cpu_idle = 0;
+                }
+            }
+            else {
+                LOG(LOG_BIOS,LOG_DEBUG)("APM BIOS call AX=%04x BX=0x%04x CX=0x%04x\n",reg_ax,reg_bx,reg_cx);
+            }
+
             switch(reg_al) {
                 case 0x00: // installation check
                     reg_ah = 1;             // major
@@ -6220,6 +6320,9 @@ static Bitu INT15_Handler(void) {
                         LOG_MSG("APM BIOS: Connected to real-mode interface\n");
                         CALLBACK_SCF(false);
                         APMBIOS_connect_mode = APMBIOS_CONNECT_REAL;
+                        PowerButtonClicks=0; /* BIOSes probably clear whatever hardware register this involves... we'll see */
+                        APM_ResumeNotificationFromStandby = false;
+                        APM_ResumeNotificationFromSuspend = false;
                         apm_realmode_connected=true;
                     } else {
                         LOG_MSG("APM BIOS: OS attempted to connect to real-mode interface when already connected\n");
@@ -6252,6 +6355,9 @@ static Bitu INT15_Handler(void) {
                         reg_si = 0xFFFF;            // SI = code segment length
                         reg_di = 0xFFFF;            // DI = data segment length
                         APMBIOS_connect_mode = APMBIOS_CONNECT_PROT16;
+                        PowerButtonClicks=0; /* BIOSes probably clear whatever hardware register this involves... we'll see */
+                        APM_ResumeNotificationFromStandby = false;
+                        APM_ResumeNotificationFromSuspend = false;
                         apm_realmode_connected=true;
                     } else {
                         LOG_MSG("APM BIOS: OS attempted to connect to 16-bit protected mode interface when already connected\n");
@@ -6287,6 +6393,9 @@ static Bitu INT15_Handler(void) {
                         reg_esi = 0xFFFFFFFF;           // ESI = upper word: 16-bit code segment len  lower word: 32-bit code segment length
                         reg_di = 0xFFFF;            // DI = data segment length
                         APMBIOS_connect_mode = APMBIOS_CONNECT_PROT32;
+                        PowerButtonClicks=0; /* BIOSes probably clear whatever hardware register this involves... we'll see */
+                        APM_ResumeNotificationFromStandby = false;
+                        APM_ResumeNotificationFromSuspend = false;
                         apm_realmode_connected=true;
                     } else {
                         LOG_MSG("APM BIOS: OS attempted to connect to 32-bit protected mode interface when already connected\n");
@@ -6367,8 +6476,32 @@ static Bitu INT15_Handler(void) {
                         break;
                     }
                     switch(reg_cx) {
+                        case 0x1: // standby
+                            LOG(LOG_MISC,LOG_DEBUG)("Guest attempted to set power state to standby");
+                            APM_BeginSuspendedMode();
+                            reg_ah = 0x00;//TODO
+                            CALLBACK_SCF(false);
+                            APM_ResumeNotificationFromStandby = true;
+                            break;
+                        case 0x2: // suspend
+                            LOG(LOG_MISC,LOG_DEBUG)("Guest attempted to set power state to suspend");
+                            APM_BeginSuspendedMode();
+                            reg_ah = 0x00;//TODO
+                            CALLBACK_SCF(false);
+                            APM_ResumeNotificationFromSuspend = true;
+                            break;
                         case 0x3: // power off
                             throw(0);
+                        case 0x4: // last request processing notification (used by Windows ME)
+                            LOG(LOG_MISC,LOG_DEBUG)("Guest is considering whether to accept the last returned APM event");
+                            reg_ah = 0x00;
+                            CALLBACK_SCF(false);
+                            break;
+                        case 0x5: // reject last request (used by Windows ME)
+                            LOG(LOG_MISC,LOG_DEBUG)("Guest has rejected the last APM event");
+                            reg_ah = 0x00;
+                            CALLBACK_SCF(false);
+                            break;
                         default:
                             reg_ah = 0x0A; // invalid parameter value in CX
                             CALLBACK_SCF(true);
@@ -6419,6 +6552,42 @@ static Bitu INT15_Handler(void) {
                         CALLBACK_SCF(true);
                         break;
                     }
+                    // power button?
+                    if (PowerButtonClicks != 0) { // Hardware and BIOSes probably just set a bit somewhere, so act like it
+                        LOG(LOG_MISC,LOG_DEBUG)("Returning APM power button event to guest OS");
+                        reg_ah = 0x00;  // FIXME: The standard doesn't say anything about AH on success
+
+			if (APM_PowerButtonSendsSuspend)
+                            reg_bx = 0x000A;// user pushed a button, wants to suspend the system
+			else
+                            reg_bx = 0x0009;// user pushed a button, wants to put the system into standby
+
+                        reg_cx = 0x0000;
+                        CALLBACK_SCF(false);
+                        PowerButtonClicks = 0;
+                        break;
+                    }
+                    // resume from standby? Windows 98 will spin in a loop for 5+ seconds until it gets this APM message after suspend
+                    if (APM_ResumeNotificationFromStandby) {
+                        LOG(LOG_MISC,LOG_DEBUG)("Returning APM resume from standby notification event to guest OS");
+                        reg_ah = 0x00;  // FIXME: The standard doesn't say anything about AH on success
+                        reg_bx = 0x000B;// System Standby Resume Notification
+                        reg_cx = 0x0000;
+                        CALLBACK_SCF(false);
+                        APM_ResumeNotificationFromStandby = false;
+                        break;
+                    }
+                    // resume from suspend? Windows 98 will spin in a loop for 5+ seconds until it gets this APM message after suspend
+                    if (APM_ResumeNotificationFromSuspend) {
+                        LOG(LOG_MISC,LOG_DEBUG)("Returning APM resume from suspend notification event to guest OS");
+                        reg_ah = 0x00;  // FIXME: The standard doesn't say anything about AH on success
+                        reg_bx = 0x0003;// Normal Resume System Notification
+                        reg_cx = 0x0000;
+                        CALLBACK_SCF(false);
+                        APM_ResumeNotificationFromSuspend = false;
+                        break;
+                    }
+                    // nothing
                     reg_ah = 0x80; // no power management events pending
                     CALLBACK_SCF(true);
                     break;
@@ -9441,6 +9610,7 @@ public:
             }
         }
 
+
         /* pick locations */
 	/* IBM PC mode: See [https://github.com/skiselev/8088_bios/blob/master/bios.asm]. Some values also provided by Allofich.
 	 * PCJr: The BIOS jumps to an address much lower in segment F000, low enough that the second byte of the offset is zero.
@@ -10083,12 +10253,45 @@ void write_ID_version_string() {
     }
 }
 
+static void GEN_PowerButton(bool pressed) {
+    if (!pressed)
+        return;
+
+    if (PowerManagementEnabledButton()) {
+        PowerButtonClicks++;
+    }
+    else {
+        LOG(LOG_MISC,LOG_WARN)("Power button: Guest OS is not using power management and is probably ignoring the power button");
+    }
+}
+
+
 extern uint8_t int10_font_08[256 * 8];
 
 /* NTS: Do not use callbacks! This function is called before CALLBACK_Init() */
 void ROMBIOS_Init() {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
     Bitu oi;
+
+    /* This is GENERIC. Right now it only ties into the APM BIOS emulation.
+     * In the future, it will also tie into the ACPI emulation. We'll have
+     * menu items to trigger specific APM/ACPI events of course, but for
+     * the mapper, we'll try not to confuse the user with APM vs ACPI for
+     * the same reason PC manufacturers don't have two power buttons for
+     * each standard on the front.
+     *
+     * Note for PC-98 mode: I'm aware that there are mid to late 1990s
+     * PC-98 laptops that also have a power button to send some kind of
+     * power off event. If how that works becomes known, it can be tied
+     * to this mapper shortcut as well. It's obviously not APM since
+     * the APM standard is tied to the IBM compatible PC world. */
+    {
+        DOSBoxMenu::item *item;
+
+        MAPPER_AddHandler(GEN_PowerButton,MK_nothing,0,"pwrbutton","Power Button", &item);
+        item->set_text("Power Button");
+    }
+
 
     // log
     LOG(LOG_MISC,LOG_DEBUG)("Initializing ROM BIOS");

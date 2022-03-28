@@ -1684,7 +1684,14 @@ static void KEYBOARD_TickHandler(void) {
     }
 }
 
+void APM_Suspend_Wakeup_Key(void);
+
 void KEYBOARD_AddKey(KBD_KEYS keytype,bool pressed) {
+    /* If the BIOS has put the system into APM suspend, let certain keys wake it up again.
+     * Send on RELEASE so that the key isn't also typed into the guest OS. */
+    if (!pressed && (keytype == KBD_space))
+        APM_Suspend_Wakeup_Key();
+
     if (IS_PC98_ARCH) {
         KEYBOARD_PC98_AddKey(keytype,pressed);
     }

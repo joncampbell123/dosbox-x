@@ -1,6 +1,30 @@
 0.83.24
   - Add S3 Vision964 and Vision968, based on existing
     support for the Vision864/868 chips (rderooy).
+  - APM BIOS: When the guest calls the APM BIOS to go
+    into suspend or standby mode, emulate a suspended
+    or standby mode. Spacebar resumes the guest machine.
+    (joncampbell123)
+  - APM BIOS: Add dosbox.conf option to control whether
+    the power button triggers a suspend or standby
+    event. (joncampbell123)
+  - APM BIOS: Add power button mapper event, tie
+    power button to APM BIOS, return power button as
+    APM suspend event, add code to APM BIOS to handle
+    suspend and resume events. Windows 98 no longer
+    complains about the inability to suspend or go to
+    standby. (joncampbell123)
+  - APM BIOS: Limit debug logging of APM BIOS function
+    AH=05h (CPU IDLE) because Windows 98 likes to call
+    that function way too often. Once a millisecond, in
+    fact! The log spam makes it difficult to see
+    anything important scroll by while debugging.
+    (joncampbell123).
+  - Revise S3 Trio64 XGA line drawing code to
+    add comments, and obey the "skip last pixel" bit
+    so that the Windows drivers can better draw polygon
+    line segments. This fixes broken XOR polylines in
+    Windows 3.1 and Microsoft Word 2.0. (joncampbell123)
   - Add S3 ViRGE accelerated XGA line drawing function.
     Windows 3.1 through Windows 98 can now draw lines
     with hardware acceleration. (joncampbell123)
