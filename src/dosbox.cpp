@@ -2799,7 +2799,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("Specifies a color scheme to use for the TTF output by supply all 16 color values in RGB: (r,g,b) or hexadecimal as in HTML: #RRGGBB\n"
                     "The original DOS colors (0-15): #000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff\n"
                     "gray scaled color scheme: (0,0,0)  #0e0e0e  (75,75,75) (89,89,89) (38,38,38) (52,52,52) #717171 #c0c0c0 #808080 (28,28,28) (150,150,150) (178,178,178) (76,76,76) (104,104,104) (226,226,226) (255,255,255)\n"
-                    "An optional leading \"+\" sign allows the preset color scheme to be used when switching from another output.\n");
+                    "An optional leading \"+\" sign allows the preset color scheme to be used when switching from another output.");
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_string("outputswitch", Property::Changeable::Always, "auto");
@@ -4300,7 +4300,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("START command will start these commands (separated by space) in a console and wait for a key press before exiting.");
 
     Pbool = secprop->Add_bool("vmware",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("Enable VMware interface emulation including guest mouse integration.");
+    Pbool->Set_help("Enable VMware interface emulation including guest mouse integration (when used along with e.g. VMware mouse driver for Windows 3.x).");
     Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("int33",Property::Changeable::WhenIdle,true);
