@@ -78,6 +78,7 @@ extern bool MOUSE_IsLocked();
 extern bool usesystemcursor, dbcs_sbcs, showdbcs, del_flag;
 
 bool en_int33=false;
+bool en_vmware=false;
 bool en_bios_ps2mouse=false;
 bool cell_granularity_disable=false;
 bool en_int33_hide_if_polling=false;
@@ -2111,6 +2112,8 @@ void MOUSE_Startup(Section *sec) {
 
     en_int33_pc98_show_graphics=pc98_section->Get_bool("pc-98 show graphics layer on initialize");
 
+    en_vmware=section->Get_bool("vmware");
+
     en_int33=section->Get_bool("int33");
     if (!en_int33) {
         Mouse_Reset();
@@ -2165,7 +2168,10 @@ void MOUSE_Startup(Section *sec) {
     Mouse_Reset();
     Mouse_SetSensitivity(50,50,50);
 
-    IO_RegisterReadHandler(VMWARE_PORT, &PortRead, IO_MD);
+    if (en_vmware) {
+	    LOG(LOG_MISC,LOG_DEBUG)("Enabling VMware integration for mouse interface");
+	    IO_RegisterReadHandler(VMWARE_PORT, &PortRead, IO_MD);
+    }
 }
 
 void MOUSE_Init() {
