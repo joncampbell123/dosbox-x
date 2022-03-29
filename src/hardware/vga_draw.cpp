@@ -630,7 +630,7 @@ static uint8_t * VGA_Draw_Linear_Line_24_to_32_HWMouse(Bitu vidstart, Bitu /*lin
         // to the DAC. Based on Windows 3.1/95 behavior, it apparently also affects the X coordinate
         // which must match the BYTE offset when run through the DAC. Without this code, the
         // cursor will be placed at 2x (in 16bpp) or 4x (in 32bpp) the actual position it should be.
-        if (svgaCard == SVGA_S3Trio && (s3Card >= S3_86C928 && s3Card <= S3_Vision868)) {
+        if (svgaCard == SVGA_S3Trio && (s3Card >= S3_86C928 && s3Card <= S3_Vision968)) {
             /* NTS: S3 datasheets document bits 2-3 as follows:
              *
              *      bit 2: Hardware cursor horizontal stretch 2 - twice the width (16bpp, apparently)
@@ -1344,7 +1344,7 @@ static uint8_t * VGA_Draw_VGA_Line_Xlat32_HWMouse( Bitu vidstart, Bitu /*line*/)
             // FIXME: On 86C928 cards, bits 2 & 3 of the Hardware Graphics Cursor Mode Register (CR45)
             //        enable horizontal stretch which also determines how the foreground/background
             //        stack is used to render the cursor.
-            if (svgaCard == SVGA_S3Trio && (s3Card >= S3_86C928 && s3Card <= S3_Vision868)) {
+            if (svgaCard == SVGA_S3Trio && (s3Card >= S3_86C928 && s3Card <= S3_Vision968)) {
                 fg = (vga.config.cursor_start >> 8u) & 0xFFu; // register 0Eh
                 bg = (vga.config.cursor_start & 0xFFu); // register 0Fh
             }
@@ -1358,7 +1358,7 @@ static uint8_t * VGA_Draw_VGA_Line_Xlat32_HWMouse( Bitu vidstart, Bitu /*line*/)
             // to the DAC. Based on Windows 3.1/95 behavior, it apparently also affects the X coordinate
             // which must match the BYTE offset when run through the DAC. Without this code, the
             // cursor will be placed at 2x (in 16bpp) or 4x (in 32bpp) the actual position it should be.
-            if (svgaCard == SVGA_S3Trio && (s3Card >= S3_86C928 && s3Card <= S3_Vision868)) {
+            if (svgaCard == SVGA_S3Trio && (s3Card >= S3_86C928 && s3Card <= S3_Vision968)) {
                 /* NTS: S3 datasheets document bits 2-3 as follows:
                  *
                  *      bit 2: Hardware cursor horizontal stretch 2 - twice the width (16bpp, apparently)
@@ -1435,7 +1435,7 @@ static uint8_t * VGA_Draw_VGA_Line_HWMouse( Bitu vidstart, Bitu /*line*/) {
         // to the DAC. Based on Windows 3.1/95 behavior, it apparently also affects the X coordinate
         // which must match the BYTE offset when run through the DAC. Without this code, the
         // cursor will be placed at 2x (in 16bpp) or 4x (in 32bpp) the actual position it should be.
-        if (svgaCard == SVGA_S3Trio && (s3Card >= S3_86C928 && s3Card <= S3_Vision868)) {
+        if (svgaCard == SVGA_S3Trio && (s3Card >= S3_86C928 && s3Card <= S3_Vision968)) {
             /* NTS: S3 datasheets document bits 2-3 as follows:
              *
              *      bit 2: Hardware cursor horizontal stretch 2 - twice the width (16bpp, apparently)
@@ -1520,7 +1520,7 @@ static uint8_t * VGA_Draw_LIN16_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
         // to the DAC. Based on Windows 3.1/95 behavior, it apparently also affects the X coordinate
         // which must match the BYTE offset when run through the DAC. Without this code, the
         // cursor will be placed at 2x (in 16bpp) or 4x (in 32bpp) the actual position it should be.
-        if (svgaCard == SVGA_S3Trio && (s3Card >= S3_86C928 && s3Card <= S3_Vision868)) {
+        if (svgaCard == SVGA_S3Trio && (s3Card >= S3_86C928 && s3Card <= S3_Vision968)) {
             /* NTS: S3 datasheets document bits 2-3 as follows:
              *
              *      bit 2: Hardware cursor horizontal stretch 2 - twice the width (16bpp, apparently)
@@ -1594,7 +1594,7 @@ static uint8_t * VGA_Draw_LIN32_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
         // to the DAC. Based on Windows 3.1/95 behavior, it apparently also affects the X coordinate
         // which must match the BYTE offset when run through the DAC. Without this code, the
         // cursor will be placed at 2x (in 16bpp) or 4x (in 32bpp) the actual position it should be.
-        if (svgaCard == SVGA_S3Trio && (s3Card >= S3_86C928 && s3Card <= S3_Vision868)) {
+        if (svgaCard == SVGA_S3Trio && (s3Card >= S3_86C928 && s3Card <= S3_Vision968)) {
             /* NTS: S3 datasheets document bits 2-3 as follows:
              *
              *      bit 2: Hardware cursor horizontal stretch 2 - twice the width (16bpp, apparently)

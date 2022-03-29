@@ -139,6 +139,10 @@ public:
 				return 0x88C0; // Vision864, 0x88C0 or 0x88C1
 			case S3_Vision868:
 				return 0x8880; // Vision868, 0x8880 or 0x8881. S3 didn't list this in their datasheet, but Windows 95 INF files listed it anyway
+			case S3_Vision964:
+				return 0x88d0; // Vision964, 0x88d0, 0x88d1, 0x88d2 or 0x88d3
+			case S3_Vision968:
+				return 0x88f0; // Vision968, 0x88f0, 0x88f1, 0x88f2 or 0x88f3
 			case S3_Trio32:
 				return 0x8810; // Trio32. 0x8810 or 0x8811
 			case S3_Trio64:
@@ -183,11 +187,13 @@ public:
 		switch (s3Card) {
 			case S3_86C928:
 			case S3_Vision864:
+			case S3_Vision964:
 			case S3_Trio32:
 			case S3_Trio64:
 				host_writed(config_writemask+0x10,0xFF800000);	/* BAR0: memory resource 8MB aligned [22:0 reserved] */
 				break;
 			case S3_Vision868:
+			case S3_Vision968:
 			case S3_Trio64V:
 			case S3_ViRGE:
 			case S3_ViRGEVX:
