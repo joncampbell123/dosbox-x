@@ -296,6 +296,8 @@ Bitu keyboard_layout::read_keyboard_file(const char* keyboard_file_name, int32_t
 			tempfile = OpenDosboxFile("keybrd2.sys");
 		} else if ((start_pos=read_kcl_file("keybrd3.sys",keyboard_file_name,true))) {
 			tempfile = OpenDosboxFile("keybrd3.sys");
+		} else if ((start_pos=read_kcl_file("keybrd4.sys",keyboard_file_name,true))) {
+			tempfile = OpenDosboxFile("keybrd4.sys");
 		} else if ((start_pos=read_kcl_file("keyboard.sys",keyboard_file_name,false))) {
 			tempfile = OpenDosboxFile("keyboard.sys");
 		} else if ((start_pos=read_kcl_file("keybrd2.sys",keyboard_file_name,false))) {
@@ -667,6 +669,8 @@ uint16_t keyboard_layout::extract_codepage(const char* keyboard_file_name) {
 			tempfile = OpenDosboxFile("keybrd2.sys");
 		} else if ((start_pos=read_kcl_file("keybrd3.sys",keyboard_file_name,true))) {
 			tempfile = OpenDosboxFile("keybrd3.sys");
+		} else if ((start_pos=read_kcl_file("keybrd4.sys",keyboard_file_name,true))) {
+			tempfile = OpenDosboxFile("keybrd4.sys");
 		} else if ((start_pos=read_kcl_file("keyboard.sys",keyboard_file_name,false))) {
 			tempfile = OpenDosboxFile("keyboard.sys");
 		} else if ((start_pos=read_kcl_file("keybrd2.sys",keyboard_file_name,false))) {
