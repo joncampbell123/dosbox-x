@@ -2966,6 +2966,9 @@ DOSBox-X 支持
 :MENU:show_console
 显示记录控制台
 .
+:MENU:disable_logging
+禁用记录输出
+.
 :MENU:wait_on_error
 控制台遇到错误时等待
 .

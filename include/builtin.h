@@ -76,3 +76,26 @@ extern struct BuiltinFileBlob bfb_FDISK_EXE;	// FDISK.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_FORMAT_EXE;	// FORMAT.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_CHKDSK_EXE;	// CHKDSK.EXE (FreeDOS)
 extern struct BuiltinFileBlob bfb_SYS_COM;	// SYS.COM (FreeDOS)
+
+extern struct BuiltinFileBlob bfb_EGA_CPX;
+extern struct BuiltinFileBlob bfb_EGA2_CPX;
+extern struct BuiltinFileBlob bfb_EGA3_CPX;
+extern struct BuiltinFileBlob bfb_EGA4_CPX;
+extern struct BuiltinFileBlob bfb_EGA5_CPX;
+extern struct BuiltinFileBlob bfb_EGA6_CPX;
+extern struct BuiltinFileBlob bfb_EGA7_CPX;
+extern struct BuiltinFileBlob bfb_EGA8_CPX;
+extern struct BuiltinFileBlob bfb_EGA9_CPX;
+extern struct BuiltinFileBlob bfb_EGA10_CPX;
+extern struct BuiltinFileBlob bfb_EGA11_CPX;
+extern struct BuiltinFileBlob bfb_EGA12_CPX;
+extern struct BuiltinFileBlob bfb_EGA13_CPX;
+extern struct BuiltinFileBlob bfb_EGA14_CPX;
+extern struct BuiltinFileBlob bfb_EGA15_CPX;
+extern struct BuiltinFileBlob bfb_EGA16_CPX;
+extern struct BuiltinFileBlob bfb_EGA17_CPX;
+extern struct BuiltinFileBlob bfb_EGA18_CPX;
+extern struct BuiltinFileBlob bfb_KEYBOARD_SYS;
+extern struct BuiltinFileBlob bfb_KEYBRD2_SYS;
+extern struct BuiltinFileBlob bfb_KEYBRD3_SYS;
+extern struct BuiltinFileBlob bfb_KEYBRD4_SYS;

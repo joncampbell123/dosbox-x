@@ -1240,7 +1240,7 @@ Esquema de teclado %s carregado para página de código %i
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
-Arquivo de teclado %s não encontrado (or not a valid ID)
+Arquivo de teclado %s não encontrado (ou não um ID válido)
 
 
 .
@@ -3024,6 +3024,9 @@ Sobre o DOSBox-X
 .
 :MENU:show_console
 Mostrar console de registro
+.
+:MENU:disable_logging
+Desativar saída de registro
 .
 :MENU:wait_on_error
 Pausar console em caso de erro

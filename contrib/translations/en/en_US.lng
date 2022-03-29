@@ -3000,6 +3000,9 @@ About DOSBox-X
 :MENU:show_console
 Show logging console
 .
+:MENU:disable_logging
+Disable logging output
+.
 :MENU:wait_on_error
 Console wait on error
 .

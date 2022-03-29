@@ -817,6 +817,8 @@ forcenormal:
 #if defined(USE_TTF)
     if (sdl.desktop.want_type == SCREEN_TTF && resetreq) resetFontSize();
 #endif
+    // Ensure VMware mouse support knows the current parameters
+	VMWARE_ScreenParams(sdl.clip.x, sdl.clip.y, sdl.clip.w, sdl.clip.h, sdl.desktop.fullscreen);
 }
 
 void RENDER_CallBack( GFX_CallBackFunctions_t function ) {

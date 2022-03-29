@@ -1032,6 +1032,8 @@ void DOSBOX_RealInit() {
     else if (mtype == "svga_s386c928") { svgaCard = SVGA_S3Trio; s3Card = S3_86C928; }
     else if (mtype == "svga_s3vision864"){svgaCard= SVGA_S3Trio; s3Card = S3_Vision864; }
     else if (mtype == "svga_s3vision868"){svgaCard= SVGA_S3Trio; s3Card = S3_Vision868; }
+    else if (mtype == "svga_s3vision964"){svgaCard= SVGA_S3Trio; s3Card = S3_Vision964; }
+    else if (mtype == "svga_s3vision968"){svgaCard= SVGA_S3Trio; s3Card = S3_Vision968; }
     else if (mtype == "svga_s3trio32") { svgaCard = SVGA_S3Trio; s3Card = S3_Trio32; }
     else if (mtype == "svga_s3trio64") { svgaCard = SVGA_S3Trio; s3Card = S3_Trio64; }
     else if (mtype == "svga_s3trio64v+"){svgaCard = SVGA_S3Trio; s3Card = S3_Trio64V; }
@@ -1288,14 +1290,28 @@ void DOSBOX_SetupConfigSections(void) {
 
     /* Setup all the different modules making up DOSBox-X */
     const char* machines[] = {
-        "hercules", "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2", "tandy", "pcjr", "pcjr_composite", "pcjr_composite2", "ega", "jega",
-        "vgaonly", "svga_s3", "svga_s386c928", "svga_s3vision864", "svga_s3vision868", "svga_s3trio32", "svga_s3trio64", "svga_s3trio64v+", "svga_s3virge", "svga_s3virgevx", "svga_et3000", "svga_et4000",
-        "svga_paradise", "vesa_nolfb", "vesa_oldvbe", "vesa_oldvbe10", "amstrad", "pc98", "pc9801", "pc9821",
-
+        "mda",
+        "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2",
+        "hercules",
+        "tandy",
+        "pcjr", "pcjr_composite", "pcjr_composite2",
+        "amstrad",
+        "ega",
+        "jega",
+        "mcga",
+        "vgaonly",
+       	"svga_s3",
+        "svga_s386c928",
+        "svga_s3vision864", "svga_s3vision868",
+        "svga_s3vision964", "svga_s3vision968",
+        "svga_s3trio32",
+        "svga_s3trio64", "svga_s3trio64v+",
+        "svga_s3virge", "svga_s3virgevx",
+        "svga_et3000", "svga_et4000",
+        "svga_paradise",
+        "vesa_nolfb", "vesa_oldvbe", "vesa_oldvbe10",
+        "pc98", "pc9801", "pc9821",
         "fm_towns", // STUB
-
-        "mcga", "mda",
-
         0 };
 
     const char* backendopts[] = {

@@ -9156,6 +9156,8 @@ startfunction:
                             case S3_86C928:     card = "S3 86C928"; break;
                             case S3_Vision864:  card = "S3 Vision864 SVGA"; break;
                             case S3_Vision868:  card = "S3 Vision868 SVGA"; break;
+                            case S3_Vision964:  card = "S3 Vision964 SVGA"; break;
+                            case S3_Vision968:  card = "S3 Vision968 SVGA"; break;
                             case S3_Trio32:     card = "S3 Trio32 SVGA"; break;
                             case S3_Trio64:     card = "S3 Trio64 SVGA"; break;
                             case S3_Trio64V:    card = "S3 Trio64V+ SVGA"; break;

@@ -2422,7 +2422,7 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 		// Commonly used in Windows 3.1 through ME for the hardware YUV overlay,
 		// such as playing MPEG files in ActiveMovie or XingMPEG.
 		// S3 Trio64V+ and ViRGE cards have this.
-		// Vision868 cards have a different register set for the same.
+		// Vision868 and Vision968 cards have a different register set for the same.
 
 		case 0x8180: // S3 Trio64V+ streams processor, Primary Stream Control (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {

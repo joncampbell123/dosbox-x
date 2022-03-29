@@ -792,6 +792,7 @@ static const char* def_menu_debug[] =
     "save_logas",
     "--",
     "show_console",
+    "disable_logging",
     "wait_on_error",
     "--",
     "debug_logint21",

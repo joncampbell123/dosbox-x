@@ -224,7 +224,8 @@ static uint32_t read_kcl_file(const char* kcl_file_name, const char* layout_id, 
 	return 0;
 }
 
-static uint32_t read_kcl_data(const uint8_t* kcl_data, uint32_t kcl_data_size, const char* layout_id, bool first_id_only) {
+static uint32_t read_kcl_data(struct BuiltinFileBlob bfb, const char* layout_id, bool first_id_only) {
+    const unsigned char *kcl_data = bfb.data;
 	// check ID-bytes
 	if ((kcl_data[0]!=0x4b) || (kcl_data[1]!=0x43) || (kcl_data[2]!=0x46)) {
 		return 0;
@@ -233,7 +234,7 @@ static uint32_t read_kcl_data(const uint8_t* kcl_data, uint32_t kcl_data_size, c
 	uint32_t dpos=7u+kcl_data[6];
 
 	for (;;) {
-		if (dpos+5>kcl_data_size) break;
+		if (dpos+5>bfb.length) break;
 		uint32_t cur_pos=dpos;
 		uint16_t len=host_readw(&kcl_data[dpos]);
 		uint8_t data_len=kcl_data[dpos+2];
@@ -246,7 +247,7 @@ static uint32_t read_kcl_data(const uint8_t* kcl_data, uint32_t kcl_data_size, c
 			i+=2;
 			Bitu lcpos=0;
 			for (;i<data_len;) {
-				if (dpos+1>kcl_data_size) break;
+				if (dpos+1>bfb.length) break;
 				char lc=(char)kcl_data[dpos];
 				dpos++;
 				i++;
@@ -295,30 +296,48 @@ Bitu keyboard_layout::read_keyboard_file(const char* keyboard_file_name, int32_t
 			tempfile = OpenDosboxFile("keybrd2.sys");
 		} else if ((start_pos=read_kcl_file("keybrd3.sys",keyboard_file_name,true))) {
 			tempfile = OpenDosboxFile("keybrd3.sys");
+		} else if ((start_pos=read_kcl_file("keybrd4.sys",keyboard_file_name,true))) {
+			tempfile = OpenDosboxFile("keybrd4.sys");
 		} else if ((start_pos=read_kcl_file("keyboard.sys",keyboard_file_name,false))) {
 			tempfile = OpenDosboxFile("keyboard.sys");
 		} else if ((start_pos=read_kcl_file("keybrd2.sys",keyboard_file_name,false))) {
 			tempfile = OpenDosboxFile("keybrd2.sys");
 		} else if ((start_pos=read_kcl_file("keybrd3.sys",keyboard_file_name,false))) {
 			tempfile = OpenDosboxFile("keybrd3.sys");
-		} else if ((start_pos=read_kcl_data(layout_keyboardsys,33196,keyboard_file_name,true))) {
-			read_buf_size=0;
-			for (Bitu ct=start_pos+2; ct<33196; ct++) read_buf[read_buf_size++]=layout_keyboardsys[ct];
-		} else if ((start_pos=read_kcl_data(layout_keybrd2sys,25431,keyboard_file_name,true))) {
-			read_buf_size=0;
-			for (Bitu ct=start_pos+2; ct<25431; ct++) read_buf[read_buf_size++]=layout_keybrd2sys[ct];
-		} else if ((start_pos=read_kcl_data(layout_keybrd3sys,27122,keyboard_file_name,true))) {
-			read_buf_size=0;
-			for (Bitu ct=start_pos+2; ct<27122; ct++) read_buf[read_buf_size++]=layout_keybrd3sys[ct];
-		} else if ((start_pos=read_kcl_data(layout_keyboardsys,33196,keyboard_file_name,false))) {
-			read_buf_size=0;
-			for (Bitu ct=start_pos+2; ct<33196; ct++) read_buf[read_buf_size++]=layout_keyboardsys[ct];
-		} else if ((start_pos=read_kcl_data(layout_keybrd2sys,25431,keyboard_file_name,false))) {
-			read_buf_size=0;
-			for (Bitu ct=start_pos+2; ct<25431; ct++) read_buf[read_buf_size++]=layout_keybrd2sys[ct];
-		} else if ((start_pos=read_kcl_data(layout_keybrd3sys,27122,keyboard_file_name,false))) {
-			read_buf_size=0;
-			for (Bitu ct=start_pos+2; ct<27122; ct++) read_buf[read_buf_size++]=layout_keybrd3sys[ct];
+		} else if ((start_pos=read_kcl_file("keybrd4.sys",keyboard_file_name,false))) {
+			tempfile = OpenDosboxFile("keybrd4.sys");
+		} else if ((start_pos=read_kcl_data(bfb_KEYBOARD_SYS,keyboard_file_name,true))) {
+			assert(read_buf_size == 0);
+			for (Bitu ct=start_pos+2; ct<bfb_KEYBOARD_SYS.length; ct++)
+				read_buf[read_buf_size++]=bfb_KEYBOARD_SYS.data[ct];
+		} else if ((start_pos=read_kcl_data(bfb_KEYBRD2_SYS,keyboard_file_name,true))) {
+			assert(read_buf_size == 0);
+			for (Bitu ct=start_pos+2; ct<bfb_KEYBRD2_SYS.length; ct++)
+				read_buf[read_buf_size++]=bfb_KEYBRD2_SYS.data[ct];
+		} else if ((start_pos=read_kcl_data(bfb_KEYBRD3_SYS,keyboard_file_name,true))) {
+			assert(read_buf_size == 0);
+			for (Bitu ct=start_pos+2; ct<bfb_KEYBRD3_SYS.length; ct++)
+				read_buf[read_buf_size++]=bfb_KEYBRD3_SYS.data[ct];
+		} else if ((start_pos=read_kcl_data(bfb_KEYBRD4_SYS,keyboard_file_name,true))) {
+			assert(read_buf_size == 0);
+			for (Bitu ct=start_pos+2; ct<bfb_KEYBRD4_SYS.length; ct++)
+				read_buf[read_buf_size++]=bfb_KEYBRD4_SYS.data[ct];
+		} else if ((start_pos=read_kcl_data(bfb_KEYBOARD_SYS,keyboard_file_name,false))) {
+			assert(read_buf_size == 0);
+			for (Bitu ct=start_pos+2; ct<bfb_KEYBOARD_SYS.length; ct++)
+				read_buf[read_buf_size++]=bfb_KEYBOARD_SYS.data[ct];
+		} else if ((start_pos=read_kcl_data(bfb_KEYBRD2_SYS,keyboard_file_name,false))) {
+			assert(read_buf_size == 0);
+			for (Bitu ct=start_pos+2; ct<bfb_KEYBRD2_SYS.length; ct++)
+				read_buf[read_buf_size++]=bfb_KEYBRD2_SYS.data[ct];
+		} else if ((start_pos=read_kcl_data(bfb_KEYBRD3_SYS,keyboard_file_name,false))) {
+			assert(read_buf_size == 0);
+			for (Bitu ct=start_pos+2; ct<bfb_KEYBRD3_SYS.length; ct++)
+				read_buf[read_buf_size++]=bfb_KEYBRD3_SYS.data[ct];
+		} else if ((start_pos=read_kcl_data(bfb_KEYBRD4_SYS,keyboard_file_name,false))) {
+			assert(read_buf_size == 0);
+			for (Bitu ct=start_pos+2; ct<bfb_KEYBRD4_SYS.length; ct++)
+				read_buf[read_buf_size++]=bfb_KEYBRD4_SYS.data[ct];
 		} else {
 			LOG(LOG_BIOS,LOG_ERROR)("Keyboard layout file %s not found",keyboard_file_name);
 			return KEYB_FILENOTFOUND;
@@ -650,30 +669,48 @@ uint16_t keyboard_layout::extract_codepage(const char* keyboard_file_name) {
 			tempfile = OpenDosboxFile("keybrd2.sys");
 		} else if ((start_pos=read_kcl_file("keybrd3.sys",keyboard_file_name,true))) {
 			tempfile = OpenDosboxFile("keybrd3.sys");
+		} else if ((start_pos=read_kcl_file("keybrd4.sys",keyboard_file_name,true))) {
+			tempfile = OpenDosboxFile("keybrd4.sys");
 		} else if ((start_pos=read_kcl_file("keyboard.sys",keyboard_file_name,false))) {
 			tempfile = OpenDosboxFile("keyboard.sys");
 		} else if ((start_pos=read_kcl_file("keybrd2.sys",keyboard_file_name,false))) {
 			tempfile = OpenDosboxFile("keybrd2.sys");
 		} else if ((start_pos=read_kcl_file("keybrd3.sys",keyboard_file_name,false))) {
 			tempfile = OpenDosboxFile("keybrd3.sys");
-		} else if ((start_pos=read_kcl_data(layout_keyboardsys,33196,keyboard_file_name,true))) {
+		} else if ((start_pos=read_kcl_file("keybrd4.sys",keyboard_file_name,false))) {
+			tempfile = OpenDosboxFile("keybrd4.sys");
+		} else if ((start_pos=read_kcl_data(bfb_KEYBOARD_SYS,keyboard_file_name,true))) {
 			read_buf_size=0;
-			for (Bitu ct=start_pos+2; ct<33196; ct++) read_buf[read_buf_size++]=layout_keyboardsys[ct];
-		} else if ((start_pos=read_kcl_data(layout_keybrd2sys,25431,keyboard_file_name,true))) {
+			for (Bitu ct=start_pos+2; ct<bfb_KEYBOARD_SYS.length; ct++)
+				read_buf[read_buf_size++]=bfb_KEYBOARD_SYS.data[ct];
+		} else if ((start_pos=read_kcl_data(bfb_KEYBRD2_SYS,keyboard_file_name,true))) {
 			read_buf_size=0;
-			for (Bitu ct=start_pos+2; ct<25431; ct++) read_buf[read_buf_size++]=layout_keybrd2sys[ct];
-		} else if ((start_pos=read_kcl_data(layout_keybrd3sys,27122,keyboard_file_name,true))) {
+			for (Bitu ct=start_pos+2; ct<bfb_KEYBRD2_SYS.length; ct++)
+				read_buf[read_buf_size++]=bfb_KEYBRD2_SYS.data[ct];
+		} else if ((start_pos=read_kcl_data(bfb_KEYBRD3_SYS,keyboard_file_name,true))) {
 			read_buf_size=0;
-			for (Bitu ct=start_pos+2; ct<27122; ct++) read_buf[read_buf_size++]=layout_keybrd3sys[ct];
-		} else if ((start_pos=read_kcl_data(layout_keyboardsys,33196,keyboard_file_name,false))) {
+			for (Bitu ct=start_pos+2; ct<bfb_KEYBRD3_SYS.length; ct++)
+				read_buf[read_buf_size++]=bfb_KEYBRD3_SYS.data[ct];
+		} else if ((start_pos=read_kcl_data(bfb_KEYBRD4_SYS,keyboard_file_name,true))) {
 			read_buf_size=0;
-			for (Bitu ct=start_pos+2; ct<33196; ct++) read_buf[read_buf_size++]=layout_keyboardsys[ct];
-		} else if ((start_pos=read_kcl_data(layout_keybrd2sys,25431,keyboard_file_name,false))) {
+			for (Bitu ct=start_pos+2; ct<bfb_KEYBRD4_SYS.length; ct++)
+				read_buf[read_buf_size++]=bfb_KEYBRD4_SYS.data[ct];
+		} else if ((start_pos=read_kcl_data(bfb_KEYBOARD_SYS,keyboard_file_name,false))) {
 			read_buf_size=0;
-			for (Bitu ct=start_pos+2; ct<25431; ct++) read_buf[read_buf_size++]=layout_keybrd2sys[ct];
-		} else if ((start_pos=read_kcl_data(layout_keybrd3sys,27122,keyboard_file_name,false))) {
+			for (Bitu ct=start_pos+2; ct<bfb_KEYBOARD_SYS.length; ct++)
+				read_buf[read_buf_size++]=bfb_KEYBOARD_SYS.data[ct];
+		} else if ((start_pos=read_kcl_data(bfb_KEYBRD2_SYS,keyboard_file_name,false))) {
 			read_buf_size=0;
-			for (Bitu ct=start_pos+2; ct<27122; ct++) read_buf[read_buf_size++]=layout_keybrd3sys[ct];
+			for (Bitu ct=start_pos+2; ct<bfb_KEYBRD2_SYS.length; ct++)
+				read_buf[read_buf_size++]=bfb_KEYBRD2_SYS.data[ct];
+		} else if ((start_pos=read_kcl_data(bfb_KEYBRD3_SYS,keyboard_file_name,false))) {
+			read_buf_size=0;
+			for (Bitu ct=start_pos+2; ct<bfb_KEYBRD3_SYS.length; ct++)
+				read_buf[read_buf_size++]=bfb_KEYBRD3_SYS.data[ct];
+		} else if ((start_pos=read_kcl_data(bfb_KEYBRD4_SYS,keyboard_file_name,false))) {
+			read_buf_size=0;
+			for (Bitu ct=start_pos+2; ct<bfb_KEYBRD4_SYS.length; ct++)
+				read_buf[read_buf_size++]=bfb_KEYBRD4_SYS.data[ct];
 		} else {
 			start_pos=0;
 			LOG(LOG_BIOS,LOG_ERROR)("Keyboard layout file %s not found",keyboard_file_name);
@@ -717,6 +754,20 @@ uint16_t keyboard_layout::extract_codepage(const char* keyboard_file_name) {
 	return (IS_PC98_ARCH || IS_JEGA_ARCH || IS_JDOSV ? 932 : (IS_KDOSV ? 949 : (IS_PDOSV ? 936 : (IS_TDOSV ? 950 : 437))));
 }
 
+static uint8_t cpi_buf[65536];
+uint32_t VFILE_GetCPIData(const char *filename, std::vector<uint8_t> &cpibuf);
+uint32_t get_builtin_codepage(struct BuiltinFileBlob bfb) {
+    std::vector<uint8_t> cpibuf = {};
+    uint32_t size = VFILE_GetCPIData(bfb.recommended_file_name, cpibuf);
+    if (size)
+        for (size_t bct=0; bct<size; bct++) cpi_buf[bct]=cpibuf[bct];
+    else {
+        size = bfb.length;
+        for (size_t bct=0; bct<size; bct++) cpi_buf[bct]=bfb.data[bct];
+    }
+    return size;
+}
+
 extern int eurAscii;
 extern uint8_t euro_08[8], euro_14[14], euro_16[16];
 bool font_14_init=false, font_16_init=false;
@@ -728,19 +779,61 @@ void initcodepagefont() {
 	static uint8_t cpi_buf[65536];
 	uint32_t cpi_buf_size=0,size_of_cpxdata=0;
     switch (dos.loaded_codepage) {
-        case 437:	case 850:	case 852:	case 853:	case 857:	case 858:
-                    for (Bitu bct=0; bct<6322; bct++) cpi_buf[bct]=font_ega_cpx[bct];
-                    cpi_buf_size=6322;
-                    break;
-        case 771:	case 772:	case 808:	case 855:	case 866:	case 872:
-                    for (Bitu bct=0; bct<5455; bct++) cpi_buf[bct]=font_ega3_cpx[bct];
-                    cpi_buf_size=5455;
-                    break;
-        case 737:	case 851:	case 869:
-                    for (Bitu bct=0; bct<5720; bct++) cpi_buf[bct]=font_ega5_cpx[bct];
-                    cpi_buf_size=5720;
-                    break;
-        default:
+			case 437:	case 850:	case 852:	case 853:	case 857:	case 858:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA_CPX);
+				break;
+			case 775:	case 859:	case 1116:	case 1117:	case 1118:	case 1119:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA2_CPX);
+				break;
+			case 771:	case 772:	case 808:	case 855:	case 866:	case 872:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA3_CPX);
+				break;
+			case 848:	case 849:	case 1125:	case 1131:	case 3012:	case 30010:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA4_CPX);
+				break;
+			case 113:	case 737:	case 851:	case 869:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA5_CPX);
+				break;
+			case 899:	case 30008:	case 58210:	case 59829:	case 60258:	case 60853:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA6_CPX);
+				break;
+			case 30011:	case 30013:	case 30014:	case 30017:	case 30018:	case 30019:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA7_CPX);
+				break;
+			case 770:	case 773:	case 774:	case 777:	case 778:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA8_CPX);
+				break;
+			case 860:	case 861:	case 863:	case 865:	case 867:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA9_CPX);
+				break;
+			case 667:	case 668:	case 790:	case 991:	case 3845:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA10_CPX);
+				break;
+			case 30000:	case 30001:	case 30004:	case 30007:	case 30009:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA11_CPX);
+				break;
+			case 30003:	case 30029:	case 30030:	case 58335:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA12_CPX);
+				break;
+			case 895:	case 30002:	case 58152:	case 59234:	case 62306:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA13_CPX);
+				break;
+			case 30006:	case 30012:	case 30015:	case 30016:	case 30020:	case 30021:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA14_CPX);
+				break;
+			case 30023:	case 30024:	case 30025:	case 30026:	case 30027:	case 30028:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA15_CPX);
+				break;
+			case 3021:	case 30005:	case 30022:	case 30031:	case 30032:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA16_CPX);
+				break;
+			case 862:	case 864:	case 30034:	case 30033:	case 30039:	case 30040:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA17_CPX);
+				break;
+			case 856:	case 3846:	case 3848:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA18_CPX);
+				break;
+            default:
                     return;
     }
     uint16_t found_at_pos=0x29+19;
@@ -810,26 +903,42 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 	if (!strcmp(cp_filename,"auto")) {
 		// select matching .cpi-file for specified codepage
 		switch (codepage_id) {
-			case 437:	case 850:	case 852:	case 853:	case 857:	case 858:	
+			case 437:	case 850:	case 852:	case 853:	case 857:	case 858:
 						sprintf(cp_filename, "EGA.CPI"); break;
-			case 775:	case 859:	case 1116:	case 1117:
+			case 775:	case 859:	case 1116:	case 1117:	case 1118:	case 1119:
 						sprintf(cp_filename, "EGA2.CPI"); break;
 			case 771:	case 772:	case 808:	case 855:	case 866:	case 872:
 						sprintf(cp_filename, "EGA3.CPI"); break;
-			case 848:	case 849:	case 1125:	case 1131:	case 61282:
+			case 848:	case 849:	case 1125:	case 1131:	case 3012:	case 30010:	case 61282:
 						sprintf(cp_filename, "EGA4.CPI"); break;
-			case 737:	case 851:	case 869:
+			case 113:	case 737:	case 851:	case 868:	case 869:
 						sprintf(cp_filename, "EGA5.CPI"); break;
-			case 113:	case 899:	case 59829:	case 60853:
+			case 899:	case 30008:	case 58210:	case 59829:	case 60853:
 						sprintf(cp_filename, "EGA6.CPI"); break;
-			case 58152:	case 58210:	case 59234:	case 60258:	case 62306:
+			case 30011:	case 30013:	case 30014:	case 30017:	case 30018:	case 30019:
 						sprintf(cp_filename, "EGA7.CPI"); break;
 			case 770:	case 773:	case 774:	case 777:	case 778:
 						sprintf(cp_filename, "EGA8.CPI"); break;
-			case 860:	case 861:	case 863:	case 865:
+			case 860:	case 861:	case 863:	case 865:	case 867:
 						sprintf(cp_filename, "EGA9.CPI"); break;
-			case 667:	case 668:	case 790:	case 867:	case 991:	case 57781:
+			case 667:	case 668:	case 790:	case 991:	case 3845:	case 57781:
 						sprintf(cp_filename, "EGA10.CPI"); break;
+			case 30000:	case 30001:	case 30004:	case 30007:	case 30009:
+						sprintf(cp_filename, "EGA11.CPI"); break;
+			case 30003:	case 30029:	case 30030:	case 58335:
+						sprintf(cp_filename, "EGA12.CPI"); break;
+			case 895:	case 30002:	case 58152:	case 59234:	case 62306:
+						sprintf(cp_filename, "EGA13.CPI"); break;
+			case 30006:	case 30012:	case 30015:	case 30016:	case 30020:	case 30021:
+						sprintf(cp_filename, "EGA14.CPI"); break;
+			case 30023:	case 30024:	case 30025:	case 30026:	case 30027:	case 30028:
+						sprintf(cp_filename, "EGA15.CPI"); break;
+			case 3021:	case 30005:	case 30022:	case 30031:	case 30032:
+						sprintf(cp_filename, "EGA16.CPI"); break;
+			case 862:	case 864:	case 30034:	case 30033:	case 30039:	case 30040:
+						sprintf(cp_filename, "EGA17.CPI"); break;
+			case 856:	case 3846:	case 3848:
+						sprintf(cp_filename, "EGA18.CPI"); break;
 			default:
 				LOG_MSG("No matching cpi file for codepage %i",codepage_id);
 				return KEYB_INVALIDCPFILE;
@@ -858,25 +967,67 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 		}
 	}
 
-	static uint8_t cpi_buf[65536];
 	uint32_t cpi_buf_size=0,size_of_cpxdata=0;
 	bool upxfound=false;
 	uint16_t found_at_pos=5;
 	if (tempfile==NULL) {
 		// check if build-in codepage is available
+		// reference: https://gitlab.com/FreeDOS/base/cpidos/-/blob/master/DOC/CPIDOS/CODEPAGE.TXT
 		switch (codepage_id) {
-			case 437:	case 850:	case 852:	case 853:	case 857:	case 858:	
-						for (Bitu bct=0; bct<6322; bct++) cpi_buf[bct]=font_ega_cpx[bct];
-						cpi_buf_size=6322;
-						break;
+			case 437:	case 850:	case 852:	case 853:	case 857:	case 858:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA_CPX);
+				break;
+			case 775:	case 859:	case 1116:	case 1117:	case 1118:	case 1119:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA2_CPX);
+				break;
 			case 771:	case 772:	case 808:	case 855:	case 866:	case 872:
-						for (Bitu bct=0; bct<5455; bct++) cpi_buf[bct]=font_ega3_cpx[bct];
-						cpi_buf_size=5455;
-						break;
-			case 737:	case 851:	case 869:
-						for (Bitu bct=0; bct<5720; bct++) cpi_buf[bct]=font_ega5_cpx[bct];
-						cpi_buf_size=5720;
-						break;
+				cpi_buf_size = get_builtin_codepage(bfb_EGA3_CPX);
+				break;
+			case 848:	case 849:	case 1125:	case 1131:	case 3012:	case 30010:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA4_CPX);
+				break;
+			case 113:	case 737:	case 851:	case 869:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA5_CPX);
+				break;
+			case 899:	case 30008:	case 58210:	case 59829:	case 60258:	case 60853:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA6_CPX);
+				break;
+			case 30011:	case 30013:	case 30014:	case 30017:	case 30018:	case 30019:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA7_CPX);
+				break;
+			case 770:	case 773:	case 774:	case 777:	case 778:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA8_CPX);
+				break;
+			case 860:	case 861:	case 863:	case 865:	case 867:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA9_CPX);
+				break;
+			case 667:	case 668:	case 790:	case 991:	case 3845:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA10_CPX);
+				break;
+			case 30000:	case 30001:	case 30004:	case 30007:	case 30009:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA11_CPX);
+				break;
+			case 30003:	case 30029:	case 30030:	case 58335:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA12_CPX);
+				break;
+			case 895:	case 30002:	case 58152:	case 59234:	case 62306:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA13_CPX);
+				break;
+			case 30006:	case 30012:	case 30015:	case 30016:	case 30020:	case 30021:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA14_CPX);
+				break;
+			case 30023:	case 30024:	case 30025:	case 30026:	case 30027:	case 30028:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA15_CPX);
+				break;
+			case 3021:	case 30005:	case 30022:	case 30031:	case 30032:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA16_CPX);
+				break;
+			case 862:	case 864:	case 30034:	case 30033:	case 30039:	case 30040:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA17_CPX);
+				break;
+			case 856:	case 3846:	case 3848:
+				cpi_buf_size = get_builtin_codepage(bfb_EGA18_CPX);
+				break;
 			default: 
 				return KEYB_INVALIDCPFILE;
 		}

@@ -739,8 +739,16 @@ void DOS_Shell::Prepare(void) {
 				DOS_SetCountry(countryNo);
 			}
 #endif
-			else
-				countryNo = 1;
+			else {
+                const char *layout = DOS_GetLoadedLayout();
+                if (layout == NULL)
+                    countryNo = COUNTRYNO::United_States;
+                else if (country_code_map.find(layout) != country_code_map.end())
+                    countryNo = country_code_map.find(layout)->second;
+                else
+                    countryNo = COUNTRYNO::United_States;
+                DOS_SetCountry(countryNo);
+			}
 		}
 		section = static_cast<Section_prop *>(control->GetSection("dos"));
 		bool zdirpath = section->Get_bool("drive z expand path");

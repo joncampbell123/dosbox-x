@@ -5117,9 +5117,10 @@ private:
     bool ParseFiles(std::string &commandLine, std::vector<std::string> &paths, bool nodef) {
 		char drive=commandLine[0];
         bool nocont=false;
-        while (!nocont&&cmd->FindCommand((unsigned int)(paths.size() + 1), commandLine)) {
+        int num = 0;
+        while (!nocont&&cmd->FindCommand((unsigned int)(paths.size() + 1 - num), commandLine)) {
 			bool usedef=false;
-			if (!cmd->FindCommand((unsigned int)(paths.size() + 2), commandLine) || !commandLine.size()) {
+			if (!cmd->FindCommand((unsigned int)(paths.size() + 2 - num), commandLine) || !commandLine.size()) {
 				if (!nodef && !paths.size()) {
 					commandLine="IMGMAKE.IMG";
 					usedef=true;
@@ -5163,8 +5164,8 @@ private:
 
 			char fullname[CROSS_LEN];
 			char tmp[CROSS_LEN];
-			safe_strncpy(tmp, wpcolon&&commandLine.length()>1&&commandLine[0]==':'?commandLine.c_str()+1:commandLine.c_str(), CROSS_LEN);
-            bool useh = false;
+            bool useh = false, readonly = wpcolon&&commandLine.length()>1&&commandLine[0]==':';
+			safe_strncpy(tmp, readonly?commandLine.c_str()+1:commandLine.c_str(), CROSS_LEN);
             pref_struct_stat test;
 #if defined(WIN32)
             ht_stat_t htest;
@@ -5185,7 +5186,14 @@ private:
                     // convert dosbox-x filename to system filename
                     uint8_t dummy;
                     if (!DOS_MakeName(tmp, fullname, &dummy) || strncmp(Drives[dummy]->GetInfo(), "local directory", 15)) {
-                        if (!qmount) WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE"));
+                        temp_line = tmp;
+                        int res = get_expanded_files(temp_line, paths, readonly);
+                        if (res) {
+                            num += res - 1;
+                            temp_line = paths[0];
+                            continue;
+                        } else if (!qmount)
+                            WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE"));
                         return false;
                     }
 
@@ -5194,13 +5202,19 @@ private:
                         if (!qmount) WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
                         return false;
                     }
-					bool readonly=wpcolon&&commandLine.length()>1&&commandLine[0]==':';
                     ldp->GetSystemFilename(readonly?tmp+1:tmp, fullname);
 					if (readonly) tmp[0]=':';
                     commandLine = tmp;
 
                     if (pref_stat(readonly?tmp+1:tmp, &test)) {
-                        if (!qmount) WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
+                        temp_line = readonly?tmp+1:tmp;
+                        int res = get_expanded_files(temp_line, paths, readonly);
+                        if (res) {
+                            num += res - 1;
+                            temp_line = paths[0];
+                            continue;
+                        } else if (!qmount)
+                            WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_FILE_NOT_FOUND"));
                         return false;
                     }
                 }
@@ -8191,6 +8205,7 @@ void Add_VFiles(bool usecp) {
     VFILE_Register("SYSTEM", 0, 0, "/");
     VFILE_Register("DEBUG", 0, 0, "/");
     VFILE_Register("DOS", 0, 0, "/");
+    VFILE_Register("CPI", 0, 0, "/");
     VFILE_Register("BIN", 0, 0, "/");
     VFILE_Register("4DOS", 0, 0, "/");
 
@@ -8372,6 +8387,25 @@ void Add_VFiles(bool usecp) {
 	VFILE_RegisterBuiltinFileBlob(bfb_EVAL_EXE, "/BIN/");
     if(!IS_PC98_ARCH)
         VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP, "/BIN/");
+
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA18_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA17_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA16_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA15_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA14_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA13_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA12_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA11_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA10_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA9_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA8_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA7_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA6_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA5_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA4_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA3_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA2_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA_CPX, "/CPI/");
 }
 
 void DOS_SetupPrograms(void) {
