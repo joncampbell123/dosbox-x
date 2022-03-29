@@ -39,6 +39,9 @@
   - Added "-nolog" command-line option to disable logging
     output completely, and "Disable logging output" menu
     option in "Debug" menu to toggle this. (Wengier)
+  - Updated EGA?.CPI and KEYBOARD.SYS/KEYBRD?.SYS to the
+    latest version from FreeDOS. The CPI files now appear
+    in CPI directory of Z drive. (FeralChild & Wengier)
   - Fix lockup when printing in dBase IV. (Wengier)
   - Fix crash/restart when running Wing Commander with
     EMS memory enabled. (grapeli)

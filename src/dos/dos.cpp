@@ -338,8 +338,7 @@ typedef struct CountryInfo {
 
 static const std::vector<CountryInfo> COUNTRY_INFO = {
 	//                           | Date fmt | Date separ | Time fmt | Time separ | 1000 separ | Dec separ  |
-	{ COUNTRYNO::United_States   , DATE_DMY , SEP_PERIOD , TIME_24H , SEP_COLON  , SEP_SPACE  , SEP_PERIOD }, // C
-//	{ COUNTRYNO::United_States   , DATE_MDY , SEP_SLASH  , TIME_12H , SEP_COLON  , SEP_COMMA  , SEP_PERIOD }, // en_US
+	{ COUNTRYNO::United_States   , DATE_MDY , SEP_SLASH  , TIME_12H , SEP_COLON  , SEP_COMMA  , SEP_PERIOD }, // en_US
 	{ COUNTRYNO::Candian_French  , DATE_YMD , SEP_DASH   , TIME_24H , SEP_COLON  , SEP_SPACE  , SEP_COMMA  }, // fr_CA.
 	{ COUNTRYNO::Latin_America   , DATE_DMY , SEP_SLASH  , TIME_24H , SEP_COLON  , SEP_COMMA  , SEP_PERIOD }, // es_419
 	{ COUNTRYNO::Russia          , DATE_DMY , SEP_PERIOD , TIME_24H , SEP_COLON  , SEP_SPACE  , SEP_COMMA  }, // ru_RU
@@ -406,7 +405,7 @@ static const std::vector<CountryInfo> COUNTRY_INFO = {
 	{ COUNTRYNO::Georgia         , DATE_DMY , SEP_PERIOD , TIME_24H , SEP_COLON  , SEP_SPACE  , SEP_COMMA  }, // ka_GE
 	{ COUNTRYNO::Kyrgyzstan      , DATE_DMY , SEP_SLASH  , TIME_24H , SEP_COLON  , SEP_SPACE  , SEP_COMMA  }, // ky_KG
 	{ COUNTRYNO::Uzbekistan      , DATE_DMY , SEP_SLASH  , TIME_24H , SEP_COLON  , SEP_SPACE  , SEP_COMMA  }, // uz_UZ
-	//                         | Date fmt | Date separ | Time fmt | Time separ | 1000 separ | Dec separ  |
+	//                           | Date fmt | Date separ | Time fmt | Time separ | 1000 separ | Dec separ  |
 };
 
 void DOS_SetCountry(uint16_t country_number) // XXX check where this is called, why always sets to US locale (is US country info OK?)

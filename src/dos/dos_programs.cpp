@@ -8205,6 +8205,7 @@ void Add_VFiles(bool usecp) {
     VFILE_Register("SYSTEM", 0, 0, "/");
     VFILE_Register("DEBUG", 0, 0, "/");
     VFILE_Register("DOS", 0, 0, "/");
+    VFILE_Register("CPI", 0, 0, "/");
     VFILE_Register("BIN", 0, 0, "/");
     VFILE_Register("4DOS", 0, 0, "/");
 
@@ -8386,6 +8387,25 @@ void Add_VFiles(bool usecp) {
 	VFILE_RegisterBuiltinFileBlob(bfb_EVAL_EXE, "/BIN/");
     if(!IS_PC98_ARCH)
         VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP, "/BIN/");
+
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA18_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA17_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA16_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA15_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA14_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA13_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA12_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA11_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA10_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA9_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA8_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA7_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA6_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA5_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA4_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA3_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA2_CPX, "/CPI/");
+	VFILE_RegisterBuiltinFileBlob(bfb_EGA_CPX, "/CPI/");
 }
 
 void DOS_SetupPrograms(void) {
