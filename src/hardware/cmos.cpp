@@ -90,10 +90,7 @@ static void cmos_timerevent(Bitu val) {
         double index = PIC_FullIndex();
         double remd = fmod(index, (double)cmos.timer.delay);
         PIC_AddEvent(cmos_timerevent, (float)((double)cmos.timer.delay - remd));
-        if(index >= (cmos.last.timer + cmos.timer.delay)) {
-            cmos.last.timer = index;
-            cmos.regs[0xc] |= 0x40;    // Periodic Interrupt Flag (PF)
-        }
+        cmos.regs[0xc] |= 0x40;    // Periodic Interrupt Flag (PF)
         if(index >= (cmos.last.ended + 1000)) {
             cmos.last.ended = index;
             cmos.regs[0xc] |= 0x10;    // Update-Ended Interrupt Flag (UF)
