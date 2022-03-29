@@ -4121,7 +4121,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         const auto isdown = Mouse_GetButtonState() != 0;
 
 #if defined(C_SDL2)
-        if (!sdl.mouse.locked)
+        if (!vmware_mouse && !sdl.mouse.locked)
 #else
         /* SDL1 has some sort of weird mouse warping bug in fullscreen mode no matter whether the mouse is captured or not (Windows, Linux/X11) */
         if (!vmware_mouse && !sdl.mouse.locked && !sdl.desktop.fullscreen)
@@ -4136,7 +4136,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         /* Show only when DOS app is not using mouse */
 
 #if defined(C_SDL2)
-        if (!sdl.mouse.locked)
+        if (!vmware_mouse && !sdl.mouse.locked)
 #else
         /* SDL1 has some sort of weird mouse warping bug in fullscreen mode no matter whether the mouse is captured or not (Windows, Linux/X11) */
         if (!vmware_mouse && !sdl.mouse.locked && !sdl.desktop.fullscreen)

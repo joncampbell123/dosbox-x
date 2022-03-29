@@ -9,9 +9,9 @@
     Blank the display (if VGA/SVGA machine type) upon
     suspend/standby and unblank upon leaving it.
     (joncampbell123)
-  - APM BIOS: Add dosbox.conf option to control whether
-    the power button triggers a suspend or standby
-    event. (joncampbell123)
+  - APM BIOS: Add dosbox-x.conf option to control
+    whether the power button triggers a suspend or
+    standby event. (joncampbell123)
   - APM BIOS: Add power button mapper event, tie
     power button to APM BIOS, return power button as
     APM suspend event, add code to APM BIOS to handle
@@ -62,7 +62,9 @@
     driver for Windows 3.x, the mouse will be seamlessly
     integrated with the host system, and can enter/exit
     the DOSBox-X window without having to capture/release
-    the mouse. (FeralChild & Wengier)
+    the mouse. Config option "vmware" is added (in [dos]
+    section) which allows to disable VMware mouse guest
+    integration. (FeralChild, Wengier, joncampbell123)
   - When country number is not specified and cannot be
     obtained from system, DOSBox-X will try to map the
     keyboard layout to country number. The country list
@@ -79,6 +81,9 @@
     EMS memory enabled. (grapeli)
   - Fix possible buffer overflow issue that may happen
     in certain conditions. (maron2000)
+  - Fix NewWadTool 1.3 unable to play music by ensuring
+    that periodic timer interrupt is triggered on every
+    cmos_timerevent. (cimarronm)
   - Fix handling of some DOS file I/O device drivers that
     expect a pre-filled input-buffer on READ function and
     also do not like to be called for every single byte
