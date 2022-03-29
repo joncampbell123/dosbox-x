@@ -1,4 +1,6 @@
 0.83.24
+  - PC-98: Search for FONT.ROM in resources directory
+    in addition to the working directory. (bsdf)
   - APM BIOS: When the guest calls the APM BIOS to go
     into suspend or standby mode, emulate a suspended
     or standby mode. Spacebar resumes the guest machine.
