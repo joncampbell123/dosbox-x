@@ -21,7 +21,8 @@
     line when the window is inactive in full-screen or
     menuless mode as in vDosPlus. (emendelson)
   - IMGMOUNT command now accepts wildcards, such as
-    "IMGMOUNT A disk*.img". (Wengier)
+    "IMGMOUNT A disk*.img" to mount image files matching
+    the given pattern. (Wengier)
   - Added CuteMouse wheel mouse extension so that DOS
     programs such as DOS Navigator can make use of it.
     It is enabled when mouse wheel movement conversion is
@@ -39,9 +40,10 @@
   - Added "-nolog" command-line option to disable logging
     output completely, and "Disable logging output" menu
     option in "Debug" menu to toggle this. (Wengier)
-  - Updated EGA?.CPI and KEYBOARD.SYS/KEYBRD?.SYS to the
-    latest version from FreeDOS. The CPI files now appear
-    in CPI directory of Z drive. (FeralChild & Wengier)
+  - Updated EGA?.CPX and KEYBOARD.SYS/KEYBRD?.SYS to the
+    latest version from FreeDOS. The CPX files now appear
+    in CPI directory of Z drive, which can be replaced by
+    files provided by the user. (FeralChild & Wengier)
   - Fix lockup when printing in dBase IV. (Wengier)
   - Fix crash/restart when running Wing Commander with
     EMS memory enabled. (grapeli)
