@@ -913,7 +913,7 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 						sprintf(cp_filename, "EGA4.CPI"); break;
 			case 113:	case 737:	case 851:	case 868:	case 869:
 						sprintf(cp_filename, "EGA5.CPI"); break;
-			case 899:	case 30008:	case 58210:	case 59829:	case 60853:
+			case 899:	case 30008:	case 58210:	case 59829:	case 60258:	case 60853:
 						sprintf(cp_filename, "EGA6.CPI"); break;
 			case 30011:	case 30013:	case 30014:	case 30017:	case 30018:	case 30019:
 						sprintf(cp_filename, "EGA7.CPI"); break;
