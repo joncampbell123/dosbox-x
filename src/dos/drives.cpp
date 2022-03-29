@@ -27,6 +27,8 @@
 #include "control.h"
 #include "ide.h"
 
+bool wildmount = false;
+
 bool wild_match(const char *haystack, char *needle) {
 	size_t max, i;
     for (; *needle != '\0'; ++needle) {
@@ -128,7 +130,7 @@ checkext:
 
 bool LWildFileCmp(const char * file, const char * wild)
 {
-    if (!uselfn||*file == 0) return false;
+    if ((!uselfn&&!wildmount)||*file == 0) return false;
     char file_name[256];
     char file_ext[256];
     char wild_name[256];
@@ -203,6 +205,77 @@ checkext:
 		}
 		if (wild_ext[r]&&wild_ext[r]!='*') return false;
 		return true;
+	}
+}
+
+host_cnv_char_t *CodePageGuestToHost(const char *s);
+char *CodePageHostToGuest(const host_cnv_char_t *s);
+int get_expanded_files(const std::string &path, std::vector<std::string> &paths, bool readonly) {
+    std::vector<std::string> files, names;
+    if (!path.size()) return 0;
+    char full[CROSS_LEN], pdir[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r;
+    strcpy(full, path.c_str());
+    r=strrchr_dbcs(full, CROSS_FILESPLIT);
+    if (r!=NULL) {
+        *r=0;
+        strcpy(pdir, full);
+        strcpy(pattern, r+1);
+        *r=CROSS_FILESPLIT;
+    } else {
+        strcpy(pdir, "");
+        strcpy(pattern, full);
+    }
+    if (!strchr(pattern, '*')&&!strchr(pattern, '?')) return 0;
+
+#if defined(WIN32)
+    HANDLE hFind;
+    WIN32_FIND_DATA fd;
+    WIN32_FIND_DATAW fdw;
+    host_cnv_char_t *host_name = CodePageGuestToHost((std::string(pdir)+"\\*.*").c_str());
+    if (host_name != NULL) hFind = FindFirstFileW(host_name, &fdw);
+    else hFind = FindFirstFile((std::string(pdir)+"\\*.*").c_str(), &fd);
+    if (hFind != INVALID_HANDLE_VALUE) {
+        do {
+            const char* temp_name = NULL;
+            if (host_name != NULL) temp_name = CodePageHostToGuest(fdw.cFileName);
+            if (!((host_name != NULL ? fdw.dwFileAttributes : fd.dwFileAttributes) & FILE_ATTRIBUTE_DIRECTORY)) {
+                if (host_name == NULL)
+                    names.emplace_back(fd.cFileName);
+                else if (temp_name != NULL)
+                    names.emplace_back(temp_name);
+            }
+        } while(host_name != NULL ? FindNextFileW(hFind, &fdw) : FindNextFile(hFind, &fd));
+        FindClose(hFind);
+    }
+#else
+    std::string homedir(pdir);
+    Cross::ResolveHomedir(homedir);
+    strcpy(pdir, homedir.c_str());
+    struct dirent *dir;
+    host_cnv_char_t *host_name = CodePageGuestToHost(pdir);
+    DIR *d = opendir(host_name != NULL ? host_name : pdir);
+    if (d) {
+        while ((dir = readdir(d)) != NULL) {
+            host_cnv_char_t *temp_name = CodePageHostToGuest(dir->d_name);
+            if (dir->d_type == DT_REG)
+                names.push_back(temp_name!=NULL?temp_name:dir->d_name);
+        }
+        closedir(d);
+    }
+#endif
+	wildmount = true;
+	for (std::string name: names) {
+		if (LWildFileCmp(name.c_str(), pattern))
+			files.push_back((readonly ? ":":"") + std::string(pdir) + std::string(1, CROSS_FILESPLIT) + name);
+	}
+	wildmount = false;
+
+	if (files.size()) {
+		sort(files.begin(), files.end());
+		paths.insert(paths.end(), files.begin(), files.end());
+		return files.size();
+	} else {
+		return 0;
 	}
 }
 

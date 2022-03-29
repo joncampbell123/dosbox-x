@@ -1232,7 +1232,7 @@ Some examples:
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
-Klavye dosyası %s bulunamadı (or not a valid ID)
+Klavye dosyası %s bulunamadı (veya geçerli bir kimlik değil)
 
 
 .
@@ -3001,6 +3001,9 @@ DOSBox-X hakkında
 .
 :MENU:show_console
 Günlükleme konsolunu göster
+.
+:MENU:disable_logging
+Günlük çıkışını devre dışı bırak
 .
 :MENU:wait_on_error
 Hatada konsolda bekle

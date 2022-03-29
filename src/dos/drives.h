@@ -803,6 +803,8 @@ private:
 	const std::string special_prefix;
 };
 
+int get_expanded_files(const std::string &path, std::vector<std::string> &paths, bool readonly);
+
 /* No LFN filefind in progress (SFN call). This index is out of range and meant to indicate no LFN call in progress. */
 #define LFN_FILEFIND_NONE           258
 /* FAT image handle */

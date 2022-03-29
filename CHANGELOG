@@ -46,13 +46,33 @@
   - When using TTF output, DOSBox-X will dim the topmost
     line when the window is inactive in full-screen or
     menuless mode as in vDosPlus. (emendelson)
+  - IMGMOUNT command now accepts wildcards, such as
+    "IMGMOUNT A disk*.img" to mount image files matching
+    the given pattern. (Wengier)
   - Added CuteMouse wheel mouse extension so that DOS
     programs such as DOS Navigator can make use of it.
     It is enabled when mouse wheel movement conversion is
     currently disabled. (FeralChild & Wengier)
+  - Implemented basic support for VMware mouse protocol
+    so that when used together with e.g. the VMware mouse
+    driver for Windows 3.x, the mouse will be seamlessly
+    integrated with the host system, and can enter/exit
+    the DOSBox-X window without having to capture/release
+    the mouse. (FeralChild & Wengier)
+  - When country number is not specified and cannot be
+    obtained from system, DOSBox-X will try to map the
+    keyboard layout to country number. The country list
+    is also extended. (Wengier & FeralChild)
   - Added "-nolog" command-line option to disable logging
-    output completely. (Wengier)
+    output completely, and "Disable logging output" menu
+    option in "Debug" menu to toggle this. (Wengier)
+  - Updated EGA?.CPX and KEYBOARD.SYS/KEYBRD?.SYS to the
+    latest version from FreeDOS. The CPX files now appear
+    in CPI directory of Z drive, which can be replaced by
+    files provided by the user. (FeralChild & Wengier)
   - Fix lockup when printing in dBase IV. (Wengier)
+  - Fix crash/restart when running Wing Commander with
+    EMS memory enabled. (grapeli)
   - Fix possible buffer overflow issue that may happen
     in certain conditions. (maron2000)
   - Fix handling of some DOS file I/O device drivers that

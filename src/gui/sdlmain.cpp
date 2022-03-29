@@ -2235,7 +2235,8 @@ void GFX_CaptureMouse(bool capture) {
 #else
         SDL_WM_GrabInput(SDL_GRAB_OFF);
 #endif
-        if (sdl.mouse.autoenable || !sdl.mouse.autolock) SDL_ShowCursor(SDL_ENABLE);
+        if (vmware_mouse) SDL_ShowCursor(SDL_DISABLE);
+        else if (sdl.mouse.autoenable || !sdl.mouse.autolock) SDL_ShowCursor(SDL_ENABLE);
     }
         mouselocked=sdl.mouse.locked;
 
@@ -4021,7 +4022,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     /* limit mouse input to whenever the cursor is on the screen, or near the edge of the screen. */
     if (is_paused)
         inputToScreen = false;
-    else if (sdl.mouse.locked || Mouse_GetButtonState() != 0)
+    else if (vmware_mouse || sdl.mouse.locked || Mouse_GetButtonState() != 0)
         inputToScreen = true;
     else {
         inputToScreen = GFX_CursorInOrNearScreen(motion->x,motion->y);
@@ -4123,7 +4124,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         if (!sdl.mouse.locked)
 #else
         /* SDL1 has some sort of weird mouse warping bug in fullscreen mode no matter whether the mouse is captured or not (Windows, Linux/X11) */
-        if (!sdl.mouse.locked && !sdl.desktop.fullscreen)
+        if (!vmware_mouse && !sdl.mouse.locked && !sdl.desktop.fullscreen)
 #endif
             SDL_ShowCursor((isdown || inside) ? SDL_DISABLE : SDL_ENABLE);
     }
@@ -4138,11 +4139,12 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         if (!sdl.mouse.locked)
 #else
         /* SDL1 has some sort of weird mouse warping bug in fullscreen mode no matter whether the mouse is captured or not (Windows, Linux/X11) */
-        if (!sdl.mouse.locked && !sdl.desktop.fullscreen)
+        if (!vmware_mouse && !sdl.mouse.locked && !sdl.desktop.fullscreen)
 #endif
             SDL_ShowCursor(((!inside) || ((MOUSE_IsHidden()) && !(MOUSE_IsBeingPolled() || MOUSE_HasInterruptSub()))) ? SDL_ENABLE : SDL_DISABLE);
     }
     Mouse_CursorMoved(xrel, yrel, x, y, emu);
+    VMWARE_MousePosition(motion->x, motion->y);
 }
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
@@ -4202,8 +4204,10 @@ void MenuFreeScreen(void) {
 #endif
 
 static void HandleMouseWheel(bool normal, int amount) {
-    if (amount != 0)
+    if (vmware_mouse && amount != 0) {
         Mouse_WheelMoved(normal ? -amount : amount);
+        VMWARE_MouseWheel(normal ? -amount : amount);
+    }
 }
 
 static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEvent * motion) {
@@ -4731,7 +4735,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 			break;
 		} else
 #endif
-        if (sdl.mouse.requestlock && !sdl.mouse.locked && mouse_notify_mode == 0) {
+        if (sdl.mouse.requestlock && !vmware_mouse && !sdl.mouse.locked && mouse_notify_mode == 0) {
             CaptureMouseNotify();
             GFX_CaptureMouse();
             // Don't pass click to mouse handler
@@ -4744,12 +4748,15 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
         switch (button->button) {
         case SDL_BUTTON_LEFT:
             Mouse_ButtonPressed(0);
+            VMWARE_MouseButtonPressed(0);
             break;
         case SDL_BUTTON_RIGHT:
             Mouse_ButtonPressed(1);
+            VMWARE_MouseButtonPressed(1);
             break;
         case SDL_BUTTON_MIDDLE:
             Mouse_ButtonPressed(2);
+            VMWARE_MouseButtonPressed(2);
             break;
 #if !defined(C_SDL2)
         case SDL_BUTTON_WHEELUP: /* Ick, really SDL? */
@@ -4854,12 +4861,15 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
         switch (button->button) {
         case SDL_BUTTON_LEFT:
             Mouse_ButtonReleased(0);
+            VMWARE_MouseButtonReleased(0);
             break;
         case SDL_BUTTON_RIGHT:
             Mouse_ButtonReleased(1);
+            VMWARE_MouseButtonReleased(1);
             break;
         case SDL_BUTTON_MIDDLE:
             Mouse_ButtonReleased(2);
+            VMWARE_MouseButtonReleased(2);
             break;
 #if !defined(C_SDL2)
         case SDL_BUTTON_WHEELUP: /* Ick, really SDL? */

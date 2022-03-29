@@ -272,6 +272,27 @@ void VFILE_Remove(const char *name,const char *dir = "") {
 	}
 }
 
+uint32_t VFILE_GetCPIData(const char *filename, std::vector<uint8_t> &cpibuf) {
+    if (!*filename) return 0;
+    unsigned int onpos=0;
+    for (unsigned int i=1; i<vfpos; i++)
+        if (!strcasecmp(vfsnames[i], "CPI")||!strcasecmp(vfnames[i], "CPI")) {
+            onpos=i;
+            break;
+        }
+    if (onpos==0) return 0;
+	VFILE_Block * chan=first_file;
+	while (chan) {
+		if (onpos==chan->onpos && (strcmp(filename,chan->name) == 0 || strcmp(filename,chan->lname) == 0)) {
+            if (chan->size>65535) return 0;
+            for (size_t bct=0; bct<chan->size; bct++) cpibuf.push_back(chan->data[bct]);
+            return chan->size;
+		}
+		chan=chan->next;
+	}
+    return 0;
+}
+
 class Virtual_File : public DOS_File {
 public:
 	Virtual_File(uint8_t * in_data,uint32_t in_size);
@@ -285,7 +306,6 @@ private:
     uint32_t file_pos = 0;
 	uint8_t * file_data;
 };
-
 
 Virtual_File::Virtual_File(uint8_t* in_data, uint32_t in_size) : file_size(in_size), file_data(in_data) {
 	date=DOS_PackDate(2002,10,1);
