@@ -1323,15 +1323,40 @@ typedef struct tagBITMAPINFOHEADER {
 } BITMAPINFOHEADER, *PBITMAPINFOHEADER;
 #endif
 
+FILE *Try_Load_FontFile(std::string filename) {
+    FILE *fp;
+    std::string resdir,tmpdir;
+
+    /* try to load file from working directory */
+    if ((fp = fopen(filename.c_str(),"rb")))
+        return fp;
+
+    /* try to load file from resources directory */
+    Cross::GetPlatformResDir(resdir);
+    if (!resdir.empty()) {
+        tmpdir = resdir + filename;
+        if ((fp = fopen(tmpdir.c_str(),"rb")))
+            return fp;
+    }
+
+    return nullptr;
+}
+
+FILE *Try_Load_FontFiles(std::vector<std::string> filenames) {
+    FILE *fp;
+    for (auto filename : filenames) {
+        if ((fp = Try_Load_FontFile(filename)))
+            return fp;
+    }
+
+    return nullptr;
+}
+
 bool Load_FONT_ROM(void) {
     unsigned int hibyte,lowbyte,r;
     unsigned char tmp[256*16]; // 8x16 256 cells
-    FILE *fp;
 
-             fp = fopen("font.rom","rb");
-    if (!fp) fp = fopen("FONT.rom","rb");
-    if (!fp) fp = fopen("font.ROM","rb");
-    if (!fp) fp = fopen("FONT.ROM","rb");
+    FILE *fp = Try_Load_FontFiles({"FONT.ROM", "font.rom", "FONT.rom", "font.ROM"});
     if (!fp) {
         LOG_MSG("PC-98 font loading: FONT.ROM not found");
         return false;
@@ -1401,38 +1426,28 @@ bool Load_Anex86_Font(const char *fontname) {
     unsigned int bmp_ofs;
     FILE *fp = NULL;
 
+    /* attempt to load user-specified font file */
     if (fontname&&*fontname) {
         std::string name = fontname;
         ResolvePath(name);
         fp = fopen(name.c_str(),"rb");
     }
-    /* ANEX86.BMP accurate dump of actual font */
-    if (!fp) fp = fopen("anex86.bmp","rb");
-    if (!fp) fp = fopen("ANEX86.bmp","rb");
-    if (!fp) fp = fopen("ANEX86.BMP","rb");
 
-    /* FREECG98.BMP free open source generated copy from system fonts */
-    if (!fp) fp = fopen("freecg98.bmp","rb");
-    if (!fp) fp = fopen("FREECG98.bmp","rb");
-    if (!fp) fp = fopen("FREECG98.BMP","rb");
+    /* attempt to load anex86/freecg98 font files */
+    if (!fp) {
+        fp = Try_Load_FontFiles(
+                {
+                    /* ANEX86.BMP accurate dump of actual font */
+                    "anex86.bmp",
+                    "ANEX86.bmp",
+                    "ANEX86.BMP",
 
-    /* Linux builds allow FREECG98.BMP in /usr/share/dosbox-x */
-    /* Mac OS X builds carry FREECG98.BMP in the Resources subdirectory of the .app bundle */
-    {
-        std::string resdir,tmpdir;
-
-        Cross::GetPlatformResDir(resdir);
-        if (!resdir.empty()) {
-            /* FREECG98.BMP free open source generated copy from system fonts */
-            if (!fp) {
-                tmpdir = resdir + "freecg98.bmp";
-                fp = fopen(tmpdir.c_str(),"rb");
-            }
-            if (!fp) {
-                tmpdir = resdir + "FREECG98.BMP";
-                fp = fopen(tmpdir.c_str(),"rb");
-            }
-        }
+                    /* FREECG98.BMP free open source generated copy from system fonts */
+                    "freecg98.bmp",
+                    "FREECG98.bmp",
+                    "FREECG98.BMP",
+                }
+        );
     }
 
     if (!fp) {
