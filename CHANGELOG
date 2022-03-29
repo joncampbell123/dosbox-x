@@ -1,4 +1,6 @@
 0.83.24
+  - PC-98: Search for FONT.ROM in resources directory
+    in addition to the working directory. (bsdf)
   - Add S3 Vision964 and Vision968, based on existing
     support for the Vision864/868 chips (rderooy).
   - APM BIOS: When the guest calls the APM BIOS to go

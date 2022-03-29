@@ -126,7 +126,7 @@ Bitu INT10_Handler(void) {
 		break;
 	case 0x05:								/* Set Active Page */
 		if ((reg_al & 0x80) && IS_TANDY_ARCH) {
-			uint8_t crtcpu=real_readb(BIOSMEM_SEG, BIOSMEM_CRTCPU_PAGE);		
+			uint8_t crtcpu=real_readb(BIOSMEM_SEG, BIOSMEM_CRTCPU_PAGE);
 			switch (reg_al) {
 			case 0x80:
 				reg_bh=crtcpu & 7;
@@ -151,7 +151,7 @@ Bitu INT10_Handler(void) {
 			real_writeb(BIOSMEM_SEG, BIOSMEM_CRTCPU_PAGE,crtcpu);
 		}
 		else INT10_SetActivePage(reg_al);
-		break;	
+		break;
 	case 0x06:								/* Scroll Up */
 		INT10_ScrollWindow(reg_ch,reg_cl,reg_dh,reg_dl,-(int8_t)reg_al,reg_bh,0xFF);
 		break;
@@ -160,7 +160,7 @@ Bitu INT10_Handler(void) {
 		break;
 	case 0x08:								/* Read character & attribute at cursor */
 		INT10_ReadCharAttr(&reg_ax,reg_bh);
-		break;						
+		break;
 	case 0x09:								/* Write Character & Attribute at cursor CX times */
 		if (real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE)==0x11)
 			INT10_WriteChar(reg_al,(reg_bl&0x80)|0x3f,reg_bh,reg_cx,true);
@@ -199,7 +199,7 @@ Bitu INT10_Handler(void) {
 		reg_al=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE);
 		if (IS_EGAVGA_ARCH) reg_al|=real_readb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL)&0x80;
 		reg_ah=(uint8_t)real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
-		break;					
+		break;
 	case 0x10:								/* Palette functions */
         if (machine==MCH_MCGA) {
             if (!(reg_al == 0x10 || reg_al == 0x12 || reg_al == 0x15 || reg_al == 0x17 || reg_al == 0x18 || reg_al == 0x19))
@@ -404,7 +404,7 @@ graphics_chars:
 				reg_bp=RealOff(int10.rom.font_16_alternate);
 				break;
 			default:
-				LOG(LOG_INT10,LOG_ERROR)("Function 11:30 Request for font %2X",reg_bh);	
+				LOG(LOG_INT10,LOG_ERROR)("Function 11:30 Request for font %2X",reg_bh);
 				break;
 			}
 			if ((reg_bh<=7) || (svgaCard==SVGA_TsengET4K)) {
@@ -419,7 +419,7 @@ graphics_chars:
 		if ((reg_al&0xf0)==0x10) Mouse_AfterNewVideoMode(false);
 		break;
 	case 0x12:								/* alternate function select */
-		if (!IS_EGAVGA_ARCH && machine != MCH_MCGA) 
+		if (!IS_EGAVGA_ARCH && machine != MCH_MCGA)
 			break;
 		switch (reg_bl) {
 		case 0x10:							/* Get EGA Information */
@@ -473,7 +473,7 @@ graphics_chars:
 		case 0x20:							/* Set alternate printscreen */
 			break;
 		case 0x30:							/* Select vertical resolution */
-			{   
+			{
 				if (!IS_VGA_ARCH) break;
 				LOG(LOG_INT10,LOG_WARN)("Function 12:Call %2X (select vertical resolution)",reg_bl);
 				if (svgaCard != SVGA_None) {
@@ -510,7 +510,7 @@ graphics_chars:
 				break;
 			}
 		case 0x31:							/* Palette loading on modeset */
-			{   
+			{
 				if (!IS_VGA_ARCH) break;
 				if (svgaCard==SVGA_TsengET4K) reg_al&=1;
 				if (reg_al>1) {
@@ -521,8 +521,8 @@ graphics_chars:
 				if (reg_al&1) temp|=8;		// enable if al=0
 				real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,temp);
 				reg_al=0x12;
-				break;	
-			}		
+				break;
+			}
 		case 0x32:							/* Video addressing */
 			if (!IS_VGA_ARCH) break;
 			LOG(LOG_INT10,LOG_ERROR)("Function 12:Call %2X not handled",reg_bl);
@@ -531,7 +531,7 @@ graphics_chars:
 			else reg_al=0x12;			//fake a success call
 			break;
 		case 0x33: /* SWITCH GRAY-SCALE SUMMING */
-			{   
+			{
 				if (!IS_VGA_ARCH) break;
 				if (svgaCard==SVGA_TsengET4K) reg_al&=1;
 				if (reg_al>1) {
@@ -542,10 +542,10 @@ graphics_chars:
 				if (!(reg_al&1)) temp|=2;		// enable if al=0
 				real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,temp);
 				reg_al=0x12;
-				break;	
-			}		
+				break;
+			}
 		case 0x34: /* ALTERNATE FUNCTION SELECT (VGA) - CURSOR EMULATION */
-			{   
+			{
 				// bit 0: 0=enable, 1=disable
 				if (!IS_VGA_ARCH) break;
 				if (svgaCard==SVGA_TsengET4K) reg_al&=1;
@@ -556,8 +556,8 @@ graphics_chars:
 				uint8_t temp = real_readb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL) & 0xfe;
 				real_writeb(BIOSMEM_SEG,BIOSMEM_VIDEO_CTL,temp|reg_al);
 				reg_al=0x12;
-				break;	
-			}		
+				break;
+			}
 		case 0x35:
 			if (!IS_VGA_ARCH) break;
 			LOG(LOG_INT10,LOG_ERROR)("Function 12:Call %2X not handled",reg_bl);
@@ -571,10 +571,10 @@ graphics_chars:
 			}
 			IO_Write(0x3c4,0x1);
 			uint8_t clocking = IO_Read(0x3c5);
-			
+
 			if (reg_al==0) clocking &= ~0x20;
 			else clocking |= 0x20;
-			
+
 			IO_Write(0x3c4,0x1);
 			IO_Write(0x3c5,clocking);
 
@@ -770,7 +770,7 @@ CX	640x480	800x600	  1024x768/1280x1024
 					break;
 			}
 			break;
-		case 0x05:							
+		case 0x05:
 			if (reg_bh==0) {				/* Set CPU Window */
 				reg_ah=VESA_SetCPUWindow(reg_bl,reg_dx);
 				reg_al=0x4f;
@@ -1173,7 +1173,7 @@ static void INT10_Seg40Init(void) {
 	// The byte value at 40:87 (BIOSMEM_VIDEO_CTL) only means something if EGA/VGA.
 	// Should be zero for PCjr (which defines it as function key), and Tandy (which does not define it),
 	// and MDA/Hercules/CGA (which also does not define this byte).
-	// 
+	//
 	// Furthermore, some games such as "Road Runner" by Mindscape use that byte as part of it's
 	// detection routines to differentiate between CGA, EGA, and Tandy. For the game to work properly
 	// in Tandy emulation, this byte must be zero.
@@ -1323,15 +1323,40 @@ typedef struct tagBITMAPINFOHEADER {
 } BITMAPINFOHEADER, *PBITMAPINFOHEADER;
 #endif
 
+FILE *Try_Load_FontFile(std::string filename) {
+    FILE *fp;
+    std::string resdir,tmpdir;
+
+    /* try to load file from working directory */
+    if ((fp = fopen(filename.c_str(),"rb")))
+        return fp;
+
+    /* try to load file from resources directory */
+    Cross::GetPlatformResDir(resdir);
+    if (!resdir.empty()) {
+        tmpdir = resdir + filename;
+        if ((fp = fopen(tmpdir.c_str(),"rb")))
+            return fp;
+    }
+
+    return nullptr;
+}
+
+FILE *Try_Load_FontFiles(std::vector<std::string> filenames) {
+    FILE *fp;
+    for (auto filename : filenames) {
+        if ((fp = Try_Load_FontFile(filename)))
+            return fp;
+    }
+
+    return nullptr;
+}
+
 bool Load_FONT_ROM(void) {
     unsigned int hibyte,lowbyte,r;
     unsigned char tmp[256*16]; // 8x16 256 cells
-    FILE *fp;
 
-             fp = fopen("font.rom","rb");
-    if (!fp) fp = fopen("FONT.rom","rb");
-    if (!fp) fp = fopen("font.ROM","rb");
-    if (!fp) fp = fopen("FONT.ROM","rb");
+    FILE *fp = Try_Load_FontFiles({"FONT.ROM", "font.rom", "FONT.rom", "font.ROM"});
     if (!fp) {
         LOG_MSG("PC-98 font loading: FONT.ROM not found");
         return false;
@@ -1401,38 +1426,28 @@ bool Load_Anex86_Font(const char *fontname) {
     unsigned int bmp_ofs;
     FILE *fp = NULL;
 
+    /* attempt to load user-specified font file */
     if (fontname&&*fontname) {
         std::string name = fontname;
         ResolvePath(name);
         fp = fopen(name.c_str(),"rb");
     }
-    /* ANEX86.BMP accurate dump of actual font */
-    if (!fp) fp = fopen("anex86.bmp","rb");
-    if (!fp) fp = fopen("ANEX86.bmp","rb");
-    if (!fp) fp = fopen("ANEX86.BMP","rb");
 
-    /* FREECG98.BMP free open source generated copy from system fonts */
-    if (!fp) fp = fopen("freecg98.bmp","rb");
-    if (!fp) fp = fopen("FREECG98.bmp","rb");
-    if (!fp) fp = fopen("FREECG98.BMP","rb");
+    /* attempt to load anex86/freecg98 font files */
+    if (!fp) {
+        fp = Try_Load_FontFiles(
+                {
+                    /* ANEX86.BMP accurate dump of actual font */
+                    "anex86.bmp",
+                    "ANEX86.bmp",
+                    "ANEX86.BMP",
 
-    /* Linux builds allow FREECG98.BMP in /usr/share/dosbox-x */
-    /* Mac OS X builds carry FREECG98.BMP in the Resources subdirectory of the .app bundle */
-    {
-        std::string resdir,tmpdir;
-
-        Cross::GetPlatformResDir(resdir);
-        if (!resdir.empty()) {
-            /* FREECG98.BMP free open source generated copy from system fonts */
-            if (!fp) {
-                tmpdir = resdir + "freecg98.bmp";
-                fp = fopen(tmpdir.c_str(),"rb");
-            }
-            if (!fp) {
-                tmpdir = resdir + "FREECG98.BMP";
-                fp = fopen(tmpdir.c_str(),"rb");
-            }
-        }
+                    /* FREECG98.BMP free open source generated copy from system fonts */
+                    "freecg98.bmp",
+                    "FREECG98.bmp",
+                    "FREECG98.BMP",
+                }
+        );
     }
 
     if (!fp) {
@@ -1610,7 +1625,7 @@ void INT10_Startup(Section *sec) {
             INT10_InitVGA();
             if (IS_TANDY_ARCH) SetupTandyBios();
             /* Setup the INT 10 vector */
-            call_10=CALLBACK_Allocate();	
+            call_10=CALLBACK_Allocate();
             CALLBACK_Setup(call_10,&INT10_Handler,CB_IRET,"Int 10 video");
             RealSetVec(0x10,CALLBACK_RealPointer(call_10));
             //Init the 0x40 segment and init the datastructures in the the video rom area
