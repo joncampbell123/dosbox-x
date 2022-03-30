@@ -3828,9 +3828,11 @@ void GFX_HandleVideoResize(int width, int height) {
 
     /* don't act if 3Dfx OpenGL emulation is active */
     if (GFX_GetPreventFullscreen()) {
+#if C_OPENGL
         new_width = width;
         new_height = height;
         voodoo_ogl_update_dimensions();
+#endif
         return;
     }
 
@@ -3915,9 +3917,11 @@ static void HandleVideoResize(void * event) {
 
     /* don't act if 3Dfx OpenGL emulation is active */
     if (GFX_GetPreventFullscreen()) {
+#if C_OPENGL
         new_width = ResizeEvent->w;
         new_height = ResizeEvent->h;
         voodoo_ogl_update_dimensions();
+#endif
         return;
     }
 

@@ -41,6 +41,8 @@
     paired with a 287 chip as is said to be how early
     386 Compaq systems were wired, for example.
     (joncampbell123)
+  - 3Dfx Voodoo window is now resizable when using OpenGL
+    mode, in addition to software mode. (kekko & Wengier)
   - The "colors" config setting now allows a leading
     "+" character to stay the specified color scheme when
     switching from another output. (Wengier)
