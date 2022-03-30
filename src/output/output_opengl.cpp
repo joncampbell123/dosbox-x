@@ -157,13 +157,13 @@ static SDL_Surface* SetupSurfaceScaledOpenGL(uint32_t sdl_flags, uint32_t bpp)
 
 retry:
 #if defined(C_SDL2)
-    if (sdl.desktop.prevent_fullscreen) /* 3Dfx openGL do not allow resize */
-        sdl_flags &= ~((unsigned int)SDL_WINDOW_RESIZABLE);
+    if (sdl.desktop.prevent_fullscreen)
+        ;//sdl_flags &= ~((unsigned int)SDL_WINDOW_RESIZABLE);
     if (sdl.desktop.want_type == SCREEN_OPENGL)
         sdl_flags |= (unsigned int)SDL_WINDOW_OPENGL;
 #else
-    if (sdl.desktop.prevent_fullscreen) /* 3Dfx openGL do not allow resize */
-        sdl_flags &= ~((unsigned int)SDL_RESIZABLE);
+    if (sdl.desktop.prevent_fullscreen)
+        ;//sdl_flags &= ~((unsigned int)SDL_RESIZABLE);
     if (sdl.desktop.want_type == SCREEN_OPENGL)
         sdl_flags |= (unsigned int)SDL_OPENGL;
 #endif

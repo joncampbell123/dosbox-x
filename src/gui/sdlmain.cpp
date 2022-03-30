@@ -209,6 +209,13 @@ typedef enum PROCESS_DPI_AWARENESS {
 #include "cross.h"
 #include "keymap.h"
 
+#if C_OPENGL
+#include "voodoo.h"
+#include "../hardware/voodoo_types.h"
+#include "../hardware/voodoo_data.h"
+#include "../hardware/voodoo_opengl.h"
+#endif
+
 #if defined(MACOSX) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 extern "C" void sdl1_hax_macosx_highdpi_set_enable(const bool enable);
 #endif
@@ -3818,6 +3825,15 @@ bool GFX_MustActOnResize() {
 
 #if defined(C_SDL2)
 void GFX_HandleVideoResize(int width, int height) {
+
+    /* don't act if 3Dfx OpenGL emulation is active */
+    if (GFX_GetPreventFullscreen()) {
+        new_width = width;
+        new_height = height;
+        voodoo_ogl_update_dimensions();
+        return;
+    }
+
     /* Maybe a screen rotation has just occurred, so we simply resize.
        There may be a different cause for a forced resized, though.    */
     if (sdl.desktop.full.display_res && IsFullscreen()) {
@@ -3895,10 +3911,15 @@ static void HandleVideoResize(void * event) {
      * especially if 3Dfx voodoo emulation is active. */
     if (!(sdl.surface->flags & SDL_RESIZABLE)) return;
 
-    /* don't act if 3Dfx OpenGL emulation is active */
-    if (GFX_GetPreventFullscreen()) return;
-
     SDL_ResizeEvent* ResizeEvent = (SDL_ResizeEvent*)event;
+
+    /* don't act if 3Dfx OpenGL emulation is active */
+    if (GFX_GetPreventFullscreen()) {
+        new_width = ResizeEvent->w;
+        new_height = ResizeEvent->h;
+        voodoo_ogl_update_dimensions();
+        return;
+    }
 
     /* assume the resize comes from user preference UNLESS the window
      * is fullscreen or maximized */
