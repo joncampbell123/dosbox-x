@@ -43,6 +43,10 @@
     (joncampbell123)
   - 3Dfx Voodoo window is now resizable when using OpenGL
     mode, in addition to software mode. (kekko & Wengier)
+  - Menu options "CJK: Switch between DBCS/SBCS modes",
+    CJK: Auto-detect box-drawing characters", and "Reset
+    color scheme" (in "Video" -> "TTF options") are now
+    assignable in Mapper Editor. (Wengier)
   - The "colors" config setting now allows a leading
     "+" character to stay the specified color scheme when
     switching from another output. (Wengier)

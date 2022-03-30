@@ -1259,6 +1259,40 @@ void TTF_DecreaseSize(bool pressed) {
     return;
 }
 
+void DBCSSBCS_mapper_shortcut(bool pressed) {
+    if (!pressed) return;
+    if (!isDBCSCP()) {
+        systemmessagebox("Warning", "This function is only available for the Chinese/Japanese/Korean code pages.", "ok","warning", 1);
+        return;
+    }
+    dbcs_sbcs=!dbcs_sbcs;
+    SetVal("ttf", "autodbcs", dbcs_sbcs?"true":"false");
+    mainMenu.get_item("mapper_dbcssbcs").check(dbcs_sbcs).refresh_item(mainMenu);
+    if (ttf.inUse) resetFontSize();
+}
+
+void AutoBoxDraw_mapper_shortcut(bool pressed) {
+    if (!pressed) return;
+    if (!isDBCSCP()) {
+        systemmessagebox("Warning", "This function is only available for the Chinese/Japanese/Korean code pages.", "ok","warning", 1);
+        return;
+    }
+    autoboxdraw=!autoboxdraw;
+    SetVal("ttf", "autoboxdraw", autoboxdraw?"true":"false");
+    mainMenu.get_item("mapper_autoboxdraw").check(autoboxdraw).refresh_item(mainMenu);
+    if (ttf.inUse) resetFontSize();
+}
+
+void ttf_reset_colors() {
+    SetVal("ttf", "colors", "");
+    setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
+}
+
+void ResetColors_mapper_shortcut(bool pressed) {
+    if (!pressed||!ttf.inUse) return;
+    ttf_reset_colors();
+}
+
 void ttf_reset() {
     OUTPUT_TTF_Select(2);
     resetFontSize();

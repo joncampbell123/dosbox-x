@@ -2677,7 +2677,7 @@ Tela: 132 colunas x 60 linhas
 :MENU:VideoTTFMenu
 Opções TTF
 .
-:MENU:ttf_resetcolor
+:MENU:mapper_resetcolor
 Restaurar esquema de cor de TTF
 .
 :MENU:ttf_showbold
@@ -2716,10 +2716,10 @@ Exibir texto da direita para a esquerda
 :MENU:ttf_printfont
 Usar fonte TTF atual para imprimir
 .
-:MENU:ttf_dbcs_sbcs
+:MENU:mapper_dbcssbcs
 CJK: Alternar entre modos DBCS/SBCS
 .
-:MENU:ttf_autoboxdraw
+:MENU:mapper_autoboxdraw
 CJK: Detectar automaticamente símbolos de desenho de caixa
 .
 :MENU:ttf_halfwidthkana

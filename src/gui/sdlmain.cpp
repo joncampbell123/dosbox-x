@@ -3482,7 +3482,23 @@ static void GUI_StartUp() {
 
     MAPPER_AddHandler(&TTF_DecreaseSize, MK_downarrow, MMODHOST, "decsize", "Decrease TTF size", &item);
     item->set_text("Decrease TTF font size");
+
+    void DBCSSBCS_mapper_shortcut(bool pressed);
+    MAPPER_AddHandler(&DBCSSBCS_mapper_shortcut, MK_nothing, 0, "dbcssbcs", "CJK: Switch between DBCS/SBCS modes", &item);
+    item->set_text("CJK: Switch between DBCS/SBCS modes");
+
+    void AutoBoxDraw_mapper_shortcut(bool pressed);
+    MAPPER_AddHandler(&AutoBoxDraw_mapper_shortcut, MK_nothing, 0, "autoboxdraw", "CJK: Auto-detect box-drawing characters", &item);
+    item->set_text("CJK: Auto-detect box-drawing characters");
+
+    void ResetColors_mapper_shortcut(bool pressed);
+    MAPPER_AddHandler(&ResetColors_mapper_shortcut, MK_nothing, 0, "resetcolor", "Reset color scheme", &item);
+    item->set_text("Reset TTF color scheme");
 #endif
+
+    void GEN_PowerButton(bool pressed);
+    MAPPER_AddHandler(&GEN_PowerButton,MK_nothing,0,"pwrbutton","APM power button", &item);
+    item->set_text("APM power button");
 
     MAPPER_AddHandler(&HideMenu_mapper_shortcut, MK_escape, MMODHOST, "togmenu", "Toggle menu bar", &item);
     item->set_text("Hide/show menu bar");
@@ -8699,7 +8715,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #if defined(USE_TTF)
         mainMenu.get_item("mapper_incsize").enable(TTF_using());
         mainMenu.get_item("mapper_decsize").enable(TTF_using());
-        mainMenu.get_item("ttf_resetcolor").enable(TTF_using());
+        mainMenu.get_item("mapper_resetcolor").enable(TTF_using());
         mainMenu.get_item("ttf_showbold").enable(TTF_using()).check(showbold);
         mainMenu.get_item("ttf_showital").enable(TTF_using()).check(showital);
         mainMenu.get_item("ttf_showline").enable(TTF_using()).check(showline);
@@ -8714,8 +8730,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #if C_PRINTER
         mainMenu.get_item("ttf_printfont").enable(TTF_using()).check(printfont);
 #endif
-        mainMenu.get_item("ttf_dbcs_sbcs").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dbcs_sbcs||IS_PC98_ARCH||IS_JEGA_ARCH);
-        mainMenu.get_item("ttf_autoboxdraw").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(autoboxdraw||IS_PC98_ARCH||IS_JEGA_ARCH);
+        mainMenu.get_item("mapper_dbcssbcs").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dbcs_sbcs||IS_PC98_ARCH||IS_JEGA_ARCH);
+        mainMenu.get_item("mapper_autoboxdraw").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(autoboxdraw||IS_PC98_ARCH||IS_JEGA_ARCH);
         mainMenu.get_item("ttf_halfwidthkana").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(halfwidthkana||IS_PC98_ARCH||IS_JEGA_ARCH);
         mainMenu.get_item("ttf_extcharset").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dos.loaded_codepage==936?gbk:(dos.loaded_codepage==950||dos.loaded_codepage==951?chinasea:gbk&&chinasea));
 #endif
