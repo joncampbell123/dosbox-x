@@ -4204,9 +4204,9 @@ void MenuFreeScreen(void) {
 #endif
 
 static void HandleMouseWheel(bool normal, int amount) {
-    if (vmware_mouse && amount != 0) {
+    if (amount != 0) {
         Mouse_WheelMoved(normal ? -amount : amount);
-        VMWARE_MouseWheel(normal ? -amount : amount);
+        if (vmware_mouse) VMWARE_MouseWheel(normal ? -amount : amount);
     }
 }
 

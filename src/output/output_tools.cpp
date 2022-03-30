@@ -42,7 +42,7 @@ void resetFontSize();
 void res_init(void), RENDER_Reset(void), UpdateOverscanMenu(void), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 
 extern int initgl, posx, posy;
-extern bool rtl, gbk, chinasea, window_was_maximized, isVirtualBox;
+extern bool rtl, gbk, chinasea, window_was_maximized, dpi_aware_enable, isVirtualBox;
 
 std::string GetDefaultOutput() {
     static std::string output = "surface";
@@ -254,6 +254,10 @@ void OutputSettingMenuUpdate(void) {
 #endif
 }
 
+void SwitchFS(Bitu val) {
+    GFX_SwitchFullScreen();
+}
+
 bool toOutput(const char *what) {
     bool reset=false;
 #if defined(USE_TTF)
@@ -351,6 +355,11 @@ bool toOutput(const char *what) {
         if (!GFX_IsFullscreen() && switchfull) {
             switchfull = false;
             ttf.fullScrn = false;
+#if !defined(C_SDL2)
+            if (!dpi_aware_enable)
+                PIC_AddEvent(SwitchFS, 100);
+            else
+#endif
             GFX_SwitchFullScreen();
         } else if (!GFX_IsFullscreen() && ttf.fullScrn) {
             ttf.fullScrn = false;
