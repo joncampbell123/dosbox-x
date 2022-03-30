@@ -3115,6 +3115,9 @@ Enreg. vidéo en AVI
 :MENU:mapper_scrshot
 Capture d'écran
 .
+:MENU:mapper_pwrbutton
+Bouton d'alimentation APM
+.
 :MENU:mapper_debugger
 Démarrer débogueur DOSBox-X
 .

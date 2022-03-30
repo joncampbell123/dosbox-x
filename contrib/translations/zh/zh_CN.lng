@@ -3074,6 +3074,9 @@ DOS 命令
 :MENU:mapper_scrshot
 捕获屏幕快照
 .
+:MENU:mapper_pwrbutton
+APM 电源按钮
+.
 :MENU:mapper_debugger
 启动 DOSBox-X 调试器
 .

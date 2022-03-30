@@ -3110,6 +3110,9 @@ Videoyu AVI olarak kaydet
 :MENU:mapper_scrshot
 Ekran görüntüsü al
 .
+:MENU:mapper_pwrbutton
+APM güç düğmesi
+.
 :MENU:mapper_debugger
 DOSBox-X hata ayıklayıcısını başlat
 .

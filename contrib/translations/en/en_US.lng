@@ -3108,6 +3108,9 @@ Record video to AVI
 :MENU:mapper_scrshot
 Take screenshot
 .
+:MENU:mapper_pwrbutton
+APM power button
+.
 :MENU:mapper_debugger
 Start DOSBox-X Debugger
 .

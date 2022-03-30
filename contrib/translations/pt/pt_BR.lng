@@ -3133,6 +3133,9 @@ Gravar vídeo em AVI
 :MENU:mapper_scrshot
 Capturar tela
 .
+:MENU:mapper_pwrbutton
+Botão liga/desliga APM
+.
 :MENU:mapper_debugger
 Iniciar depurador do DOSBox-X
 .

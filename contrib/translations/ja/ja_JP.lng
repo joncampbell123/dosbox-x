@@ -3095,6 +3095,9 @@ FM (OPL) 出力を保存
 :MENU:mapper_scrshot
 スクリーンショット
 .
+:MENU:mapper_pwrbutton
+APM電源ボタン
+.
 :MENU:mapper_debugger
 DOSBox-X デバッガの起動
 .

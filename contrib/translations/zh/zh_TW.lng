@@ -3081,6 +3081,9 @@ Turbo (快轉模式)
 :MENU:mapper_scrshot
 抓取螢幕畫面
 .
+:MENU:mapper_pwrbutton
+APM 電源按鈕
+.
 :MENU:mapper_debugger
 啟動 DOSBox-X 偵錯工具
 .
