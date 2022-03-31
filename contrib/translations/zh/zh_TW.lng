@@ -3408,6 +3408,9 @@ CPU: 一般核心
 :MAPPER:reset
 重設 DOSBox-X
 .
+:MAPPER:resetcolor
+重設色彩配置
+.
 :MAPPER:showstate
 顯示狀態資訊
 .

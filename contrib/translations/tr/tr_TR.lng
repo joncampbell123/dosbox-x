@@ -3437,6 +3437,9 @@ Sürücüleri yeniden tara
 :MAPPER:reset
 DOSBox-X'i sıfırla
 .
+:MAPPER:resetcolor
+renk şemasını sıfırla
+.
 :MAPPER:showstate
 Durum bilgisini görüntüle
 .

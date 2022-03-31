@@ -3401,6 +3401,9 @@ CPU: 正常内核
 :MAPPER:reset
 重启 DOSBox-X
 .
+:MAPPER:resetcolor
+重置配色方案
+.
 :MAPPER:showstate
 显示存档信息
 .

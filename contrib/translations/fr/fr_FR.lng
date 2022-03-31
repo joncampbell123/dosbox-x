@@ -3443,6 +3443,9 @@ Réanalyser lecteurs
 :MAPPER:reset
 Réinitialiser DOSBox-X
 .
+:MAPPER:resetcolor
+Réinitialiser le schéma de couleurs
+.
 :MAPPER:showstate
 Afficher infos état
 .

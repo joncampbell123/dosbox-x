@@ -3422,6 +3422,9 @@ DOSシステムの再起動
 :MAPPER:reset
 DOSBox-Xを再起動
 .
+:MAPPER:resetcolor
+カラースキームをリセット
+.
 :MAPPER:showstate
 ステートの情報表示
 .

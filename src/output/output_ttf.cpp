@@ -1283,13 +1283,22 @@ void AutoBoxDraw_mapper_shortcut(bool pressed) {
     if (ttf.inUse) resetFontSize();
 }
 
+bool setVGAColor(const char *colorArray, int i);
 void ttf_reset_colors() {
-    SetVal("ttf", "colors", "");
-    setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
+    if (ttf.inUse) {
+        SetVal("ttf", "colors", "");
+        setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
+    } else {
+        char value[128];
+        for (int i=0; i<16; i++) {
+            strcpy(value,i==0?"#000000":i==1?"#0000aa":i==2?"#00aa00":i==3?"#00aaaa":i==4?"#aa0000":i==5?"#aa00aa":i==6?"#aa5500":i==7?"#aaaaaa":i==8?"#555555":i==9?"#5555ff":i==10?"#55ff55":i==11?"#55ffff":i==12?"#ff5555":i==13?"#ff55ff":i==14?"#ffff55":"#ffffff");
+            setVGAColor(value, i);
+        }
+    }
 }
 
 void ResetColors_mapper_shortcut(bool pressed) {
-    if (!pressed||!ttf.inUse) return;
+    if (!pressed||(!ttf.inUse&&!IS_VGA_ARCH)) return;
     ttf_reset_colors();
 }
 

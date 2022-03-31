@@ -3460,6 +3460,9 @@ Reverificar unidades
 :MAPPER:reset
 Reiniciar o DOSBox-X
 .
+:MAPPER:resetcolor
+Restaurar esquema de cor
+.
 :MAPPER:showstate
 Ver informação do estado
 .
