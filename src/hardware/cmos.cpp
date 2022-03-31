@@ -99,10 +99,10 @@ static void cmos_timerevent(Bitu val) {
         if(index >= (cmos.last.ended + 1000 - 0.001)) { // consider sometimes index is slightly before 1.0sec
             //LOG_MSG("cmos timerevent: index=%f, interval=%f", index, cmos.last.ended - index);
             if(!fired_irq8 && (cmos.regs[0x0b] & 0x10)) PIC_ActivateIRQ(8); // ensure to fire IRQ when UIE flag is set
-            fired_irq8 = false;
             cmos.last.ended = index;
             cmos.regs[0xc] |= 0x10;    // Update-Ended Interrupt Flag (UF)
         }
+        fired_irq8 = false;
     }
 }
 
