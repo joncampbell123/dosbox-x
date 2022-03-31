@@ -1,4 +1,6 @@
 0.83.24
+  - Release notes for this version:
+    https://dosbox-x.com/release-0.83.24.html
   - PC-98: Search for FONT.ROM in resources directory
     in addition to the working directory. (bsdf)
   - Add S3 Vision964 and Vision968, based on existing
@@ -101,6 +103,8 @@
     where C_FPU_X86 uses the host FPU. (joncampbell123)
   - Fix audio speech stuttering issue in SpaceQuest 4
     v1.3 using Sound Blaster. (grapeli & rderooy)
+  - Fix issue with Lemmings palette swapping not working
+    properly. (maron20000 & grapeli)
   - Updated MT32emu to version 2.6.1. (maron20000)
   - Updated DOSMID to version 0.9.6. (Wengier)
   - Integrated commits from mainline (Allofich)
