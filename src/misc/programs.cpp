@@ -1036,13 +1036,13 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
                 } else if (!strcasecmp(inputline.substr(0, 9).c_str(), "autodbcs=")) {
 #if defined(USE_TTF)
                     dbcs_sbcs = section->Get_bool("autodbcs");
-                    mainMenu.get_item("ttf_dbcs_sbcs").check(dbcs_sbcs).refresh_item(mainMenu);
+                    mainMenu.get_item("mapper_dbcssbcs").check(dbcs_sbcs).refresh_item(mainMenu);
                     if (TTF_using()) resetFontSize();
 #endif
                 } else if (!strcasecmp(inputline.substr(0, 12).c_str(), "autoboxdraw=")) {
 #if defined(USE_TTF)
                     autoboxdraw = section->Get_bool("autoboxdraw");
-                    mainMenu.get_item("ttf_autoboxdraw").check(autoboxdraw).refresh_item(mainMenu);
+                    mainMenu.get_item("mapper_autoboxdraw").check(autoboxdraw).refresh_item(mainMenu);
                     if (TTF_using()) resetFontSize();
 #endif
                 } else if (!strcasecmp(inputline.substr(0, 14).c_str(), "halfwidthkana=")) {
