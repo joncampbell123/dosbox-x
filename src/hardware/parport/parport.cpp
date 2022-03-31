@@ -68,8 +68,10 @@ bool device_LPT::Close() {
 }
 
 uint16_t device_LPT::GetInformation(void) {
+#if C_PRINTER
 	if (parallelPortObjects[num] && parallelPortObjects[num]->parallelType == PARALLEL_TYPE_PRINTER)
 		return 0x8040;
+#endif
 	return 0x80A0;
 }
 
