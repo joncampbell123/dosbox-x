@@ -4049,7 +4049,7 @@ static void CreateLayout(void) {
         if ((xpos+columns-1)>6) {
             xpos=3;ypos++;
         }
-        CEventButton *button=new CEventButton(PX(xpos*3)+(xpos==5?BW/2:0),PY(ypos),BW*3*columns+BW/2,BH,(*hit)->ButtonName(),(*hit));
+        CEventButton *button=new CEventButton(PX(xpos*3)+(xpos==5||xpos==6?BW/2:0),PY(ypos),BW*3*columns+BW/(columns==4?1:2),BH,(*hit)->ButtonName(),(*hit));
         ceventbuttons.push_back(button);
         (*hit)->notifybutton(button);
         button->Enable(page==cpage);

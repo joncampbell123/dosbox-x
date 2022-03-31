@@ -1211,7 +1211,7 @@ void ttf_switch_on(bool ss=true) {
         change_output(10);
         SetVal("sdl", "output", "ttf");
         std::string showdbcsstr = static_cast<Section_prop *>(control->GetSection("dosv"))->Get_string("showdbcsnodosv");
-        showdbcs = showdbcsstr=="true"||showdbcsstr=="1"||(showdbcsstr=="auto" && loadlang);
+        showdbcs = showdbcsstr=="true"||showdbcsstr=="1"||(showdbcsstr=="auto" && (loadlang || dbcs_sbcs));
         void OutputSettingMenuUpdate(void);
         OutputSettingMenuUpdate();
         if (ss) ttfswitch = false;
@@ -2763,4 +2763,3 @@ public:
 void VESAMOED_ProgramStart(Program * * make) {
 	*make=new VESAMOED;
 }
-

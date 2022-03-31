@@ -60,7 +60,7 @@
     "IMGMOUNT A disk*.img" to mount image files matching
     the given pattern. (Wengier)
   - Added CuteMouse wheel mouse extension so that DOS
-    programs such as DOS Navigator can make use of it.
+    programs such as DOS Navigator 2 can make use of it.
     It is enabled when mouse wheel movement conversion is
     currently disabled. (FeralChild & Wengier)
   - Implemented basic support for VMware mouse protocol

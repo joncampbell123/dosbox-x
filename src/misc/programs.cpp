@@ -1101,7 +1101,11 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
 #endif
                 ) {
                     std::string showdbcsstr = section->Get_string("showdbcsnodosv");
+#if defined(USE_TTF)
+                    showdbcs = showdbcsstr=="true"||showdbcsstr=="1"||(showdbcsstr=="auto" && (loadlang || dbcs_sbcs));
+#else
                     showdbcs = showdbcsstr=="true"||showdbcsstr=="1"||(showdbcsstr=="auto" && loadlang);
+#endif
                 } else if (!strcasecmp(inputline.substr(0, 11).c_str(), "fepcontrol=")||!strcasecmp(inputline.substr(0, 7).c_str(), "vtext1=")||!strcasecmp(inputline.substr(0, 7).c_str(), "vtext2="))
                     DOSV_SetConfig(section);
             } else if (!strcasecmp(pvar.c_str(), "render")) {
