@@ -10291,7 +10291,7 @@ void write_ID_version_string() {
     }
 }
 
-static void GEN_PowerButton(bool pressed) {
+void GEN_PowerButton(bool pressed) {
     if (!pressed)
         return;
 
@@ -10323,13 +10323,6 @@ void ROMBIOS_Init() {
      * power off event. If how that works becomes known, it can be tied
      * to this mapper shortcut as well. It's obviously not APM since
      * the APM standard is tied to the IBM compatible PC world. */
-    {
-        DOSBoxMenu::item *item;
-
-        MAPPER_AddHandler(GEN_PowerButton,MK_nothing,0,"pwrbutton","Power Button", &item);
-        item->set_text("Power Button");
-    }
-
 
     // log
     LOG(LOG_MISC,LOG_DEBUG)("Initializing ROM BIOS");

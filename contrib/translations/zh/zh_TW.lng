@@ -2628,7 +2628,7 @@ TrueType 字型
 :MENU:VideoTTFMenu
 TTF 選項
 .
-:MENU:ttf_resetcolor
+:MENU:mapper_resetcolor
 重設 TTF 色彩配置
 .
 :MENU:ttf_showbold
@@ -2667,10 +2667,10 @@ TTF 文字處理器: FastEdit
 :MENU:ttf_printfont
 使用目前 TTF 字型進行列印
 .
-:MENU:ttf_dbcs_sbcs
+:MENU:mapper_dbcssbcs
 中日韓文字: 切換雙位元組/單位元組模式
 .
-:MENU:ttf_autoboxdraw
+:MENU:mapper_autoboxdraw
 中日韓文字: 自動檢測製表符號
 .
 :MENU:ttf_halfwidthkana
@@ -3081,6 +3081,9 @@ Turbo (快轉模式)
 :MENU:mapper_scrshot
 抓取螢幕畫面
 .
+:MENU:mapper_pwrbutton
+APM 電源按鈕
+.
 :MENU:mapper_debugger
 啟動 DOSBox-X 偵錯工具
 .
@@ -3404,6 +3407,9 @@ CPU: 一般核心
 .
 :MAPPER:reset
 重設 DOSBox-X
+.
+:MAPPER:resetcolor
+重設色彩配置
 .
 :MAPPER:showstate
 顯示狀態資訊

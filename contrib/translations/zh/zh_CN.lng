@@ -2618,7 +2618,7 @@ TrueType 字体
 :MENU:VideoTTFMenu
 TTF 选项
 .
-:MENU:ttf_resetcolor
+:MENU:mapper_resetcolor
 重置 TTF 配色方案
 .
 :MENU:ttf_showbold
@@ -2657,10 +2657,10 @@ TTF 字处理软件: FastEdit
 :MENU:ttf_printfont
 使用当前 TTF 字体进行打印
 .
-:MENU:ttf_dbcs_sbcs
+:MENU:mapper_dbcssbcs
 中日韩文字: 切换双字节/单字节模式
 .
-:MENU:ttf_autoboxdraw
+:MENU:mapper_autoboxdraw
 中日韩文字: 自动检测制表符
 .
 :MENU:ttf_halfwidthkana
@@ -3074,6 +3074,9 @@ DOS 命令
 :MENU:mapper_scrshot
 捕获屏幕快照
 .
+:MENU:mapper_pwrbutton
+APM 电源按钮
+.
 :MENU:mapper_debugger
 启动 DOSBox-X 调试器
 .
@@ -3397,6 +3400,9 @@ CPU: 正常内核
 .
 :MAPPER:reset
 重启 DOSBox-X
+.
+:MAPPER:resetcolor
+重置配色方案
 .
 :MAPPER:showstate
 显示存档信息

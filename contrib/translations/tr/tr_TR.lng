@@ -2654,7 +2654,7 @@ Ekran: 132 sütun x 60 satır
 :MENU:VideoTTFMenu
 TTF seçenekleri
 .
-:MENU:ttf_resetcolor
+:MENU:mapper_resetcolor
 TTF renk şemasını sıfırla
 .
 :MENU:ttf_showbold
@@ -2693,10 +2693,10 @@ Metni sağdan sola göster
 :MENU:ttf_printfont
 Yazdırma için geçerli TTF yazıtipini kullan
 .
-:MENU:ttf_dbcs_sbcs
+:MENU:mapper_dbcssbcs
 ÇJK: DBCS/SBCS kipleri arasında geçiş yap
 .
-:MENU:ttf_autoboxdraw
+:MENU:mapper_autoboxdraw
 ÇJK: Kutu karakterleri kendiliğinden algıla
 .
 :MENU:ttf_halfwidthkana
@@ -3110,6 +3110,9 @@ Videoyu AVI olarak kaydet
 :MENU:mapper_scrshot
 Ekran görüntüsü al
 .
+:MENU:mapper_pwrbutton
+APM güç düğmesi
+.
 :MENU:mapper_debugger
 DOSBox-X hata ayıklayıcısını başlat
 .
@@ -3433,6 +3436,9 @@ Sürücüleri yeniden tara
 .
 :MAPPER:reset
 DOSBox-X'i sıfırla
+.
+:MAPPER:resetcolor
+renk şemasını sıfırla
 .
 :MAPPER:showstate
 Durum bilgisini görüntüle

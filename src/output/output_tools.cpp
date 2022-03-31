@@ -42,7 +42,7 @@ void resetFontSize();
 void res_init(void), RENDER_Reset(void), UpdateOverscanMenu(void), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 
 extern int initgl, posx, posy;
-extern bool rtl, gbk, chinasea, window_was_maximized, isVirtualBox;
+extern bool rtl, gbk, chinasea, window_was_maximized, dpi_aware_enable, isVirtualBox;
 
 std::string GetDefaultOutput() {
     static std::string output = "surface";
@@ -212,7 +212,7 @@ void change_output(int output) {
 #endif
     mainMenu.get_item("mapper_incsize").enable(TTF_using()).refresh_item(mainMenu);
     mainMenu.get_item("mapper_decsize").enable(TTF_using()).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_resetcolor").enable(TTF_using()).refresh_item(mainMenu);
+    mainMenu.get_item("mapper_resetcolor").enable(TTF_using()).refresh_item(mainMenu);
     mainMenu.get_item("ttf_showbold").enable(TTF_using()).check(showbold).refresh_item(mainMenu);
     mainMenu.get_item("ttf_showital").enable(TTF_using()).check(showital).refresh_item(mainMenu);
     mainMenu.get_item("ttf_showline").enable(TTF_using()).check(showline).refresh_item(mainMenu);
@@ -227,8 +227,8 @@ void change_output(int output) {
 #if C_PRINTER
     mainMenu.get_item("ttf_printfont").enable(TTF_using()).check(printfont).refresh_item(mainMenu);
 #endif
-    mainMenu.get_item("ttf_dbcs_sbcs").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dbcs_sbcs||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
-    mainMenu.get_item("ttf_autoboxdraw").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(autoboxdraw||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
+    mainMenu.get_item("mapper_dbcssbcs").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dbcs_sbcs||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
+    mainMenu.get_item("mapper_autoboxdraw").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(autoboxdraw||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
     mainMenu.get_item("ttf_halfwidthkana").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(halfwidthkana||IS_PC98_ARCH||IS_JEGA_ARCH).refresh_item(mainMenu);
     mainMenu.get_item("ttf_extcharset").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dos.loaded_codepage==936?gbk:(dos.loaded_codepage==950||dos.loaded_codepage==951?chinasea:gbk&&chinasea)).refresh_item(mainMenu);
 #endif
@@ -252,6 +252,10 @@ void OutputSettingMenuUpdate(void) {
 #if defined(USE_TTF)
     mainMenu.get_item("output_ttf").check(sdl.desktop.want_type == SCREEN_TTF).refresh_item(mainMenu);
 #endif
+}
+
+void SwitchFS(Bitu val) {
+    GFX_SwitchFullScreen();
 }
 
 bool toOutput(const char *what) {
@@ -351,6 +355,11 @@ bool toOutput(const char *what) {
         if (!GFX_IsFullscreen() && switchfull) {
             switchfull = false;
             ttf.fullScrn = false;
+#if !defined(C_SDL2)
+            if (!dpi_aware_enable)
+                PIC_AddEvent(SwitchFS, 100);
+            else
+#endif
             GFX_SwitchFullScreen();
         } else if (!GFX_IsFullscreen() && ttf.fullScrn) {
             ttf.fullScrn = false;

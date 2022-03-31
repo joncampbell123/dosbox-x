@@ -2657,7 +2657,7 @@ Pantalla: 132 columnas x 60 líneas
 :MENU:VideoTTFMenu
 Opciones TTF
 .
-:MENU:ttf_resetcolor
+:MENU:mapper_resetcolor
 Resetear esquema de color de TTF
 .
 :MENU:ttf_showbold
@@ -2696,10 +2696,10 @@ Mostrar texto de derecha a izquierda
 :MENU:ttf_printfont
 Usar fuente TTF actual para imprimir
 .
-:MENU:ttf_dbcs_sbcs
+:MENU:mapper_dbcssbcs
 CJK: Cambiar modo DBCS/SBCS
 .
-:MENU:ttf_autoboxdraw
+:MENU:mapper_autoboxdraw
 CJK: Auto-detecta símbolos de dibujo de caja
 .
 :MENU:ttf_halfwidthkana
@@ -3113,6 +3113,9 @@ Grabar video en AVI
 :MENU:mapper_scrshot
 Capturar pantalla
 .
+:MENU:mapper_pwrbutton
+Botón de encendido APM
+.
 :MENU:mapper_debugger
 Iniciar depurador de DOSBox-X
 .
@@ -3436,6 +3439,9 @@ Actualizar unidades
 .
 :MAPPER:reset
 Resetea DOSBox-X
+.
+:MAPPER:resetcolor
+Resetear esquema de color
 .
 :MAPPER:showstate
 Ver info de estado

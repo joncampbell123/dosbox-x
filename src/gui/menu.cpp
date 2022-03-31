@@ -154,11 +154,11 @@ static const char *def_menu_main[] =
     "showdetails",
 #if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
     "--",
-    "mapper_pwrbutton", /* APM/ACPI etc */
     "mapper_reset",
     "mapper_reboot",
-    "restartinst",
+    "mapper_pwrbutton", /* APM/ACPI etc */
     "--",
+    "restartinst",
     "restartconf",
     "restartlang",
     "--",
@@ -402,7 +402,7 @@ static const char *def_menu_video_ttf[] =
 {
     "mapper_incsize",
     "mapper_decsize",
-    "ttf_resetcolor",
+    "mapper_resetcolor",
     "--",
     "ttf_showbold",
     "ttf_showital",
@@ -421,8 +421,8 @@ static const char *def_menu_video_ttf[] =
     "ttf_printfont",
 #endif
     "--",
-    "ttf_dbcs_sbcs",
-    "ttf_autoboxdraw",
+    "mapper_dbcssbcs",
+    "mapper_autoboxdraw",
     "ttf_halfwidthkana",
     "ttf_extcharset",
     NULL

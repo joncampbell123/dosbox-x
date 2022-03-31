@@ -85,6 +85,8 @@ bool isDBCSCP(void), toOutput(const char *what);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 int FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 size_t GetGameState_Run(void);
+void DBCSSBCS_mapper_shortcut(bool pressed);
+void AutoBoxDraw_mapper_shortcut(bool pressed);
 
 void* GetSetSDLValue(int isget, std::string& target, void* setval) {
     if (target == "wait_on_error") {
@@ -1556,34 +1558,6 @@ bool ttf_right_left_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
     return true;
 }
 
-bool ttf_dbcs_sbcs_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    if (!isDBCSCP()) {
-        systemmessagebox("Warning", "This function is only available for the Chinese/Japanese/Korean code pages.", "ok","warning", 1);
-        return true;
-    }
-    dbcs_sbcs=!dbcs_sbcs;
-    SetVal("ttf", "autodbcs", dbcs_sbcs?"true":"false");
-    mainMenu.get_item("ttf_dbcs_sbcs").check(dbcs_sbcs).refresh_item(mainMenu);
-    resetFontSize();
-    return true;
-}
-
-bool ttf_auto_boxdraw_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    if (!isDBCSCP()) {
-        systemmessagebox("Warning", "This function is only available for the Chinese/Japanese/Korean code pages.", "ok","warning", 1);
-        return true;
-    }
-    autoboxdraw=!autoboxdraw;
-    SetVal("ttf", "autoboxdraw", autoboxdraw?"true":"false");
-    mainMenu.get_item("ttf_autoboxdraw").check(autoboxdraw).refresh_item(mainMenu);
-    resetFontSize();
-    return true;
-}
-
 bool ttf_halfwidth_katakana_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -1637,18 +1611,6 @@ bool ttf_print_font_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
     return true;
 }
 #endif
-
-void ttf_reset_colors() {
-    SetVal("ttf", "colors", "");
-    setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
-}
-
-bool ttf_reset_colors_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    ttf_reset_colors();
-    return true;
-}
 
 bool ttf_style_change_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
@@ -3098,8 +3060,6 @@ void AllocCallback1() {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoTTFMenu");
                 item.set_text("TTF options");
 
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_resetcolor").set_text("Reset TTF color scheme").
-                    set_callback_function(ttf_reset_colors_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_showbold").set_text("Display bold text in TTF").
                     set_callback_function(ttf_style_change_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_showital").set_text("Display italic text in TTF").
@@ -3126,10 +3086,6 @@ void AllocCallback1() {
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_printfont").set_text("Use current TTF font for printing").
                     set_callback_function(ttf_print_font_callback);
 #endif
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_dbcs_sbcs").set_text("CJK: Switch between DBCS/SBCS modes").
-                    set_callback_function(ttf_dbcs_sbcs_callback);
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_autoboxdraw").set_text("CJK: Auto-detect box-drawing characters").
-                    set_callback_function(ttf_auto_boxdraw_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_halfwidthkana").set_text("CJK: Allow half-width Japanese Katakana").
                     set_callback_function(ttf_halfwidth_katakana_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"ttf_extcharset").set_text("CJK: Enable extended Chinese character set").

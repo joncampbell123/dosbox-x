@@ -2659,7 +2659,7 @@ Haute intensité : texte clignotant
 :MENU:VideoTTFMenu
 Police TrueType
 .
-:MENU:ttf_resetcolor
+:MENU:mapper_resetcolor
 Réinitialiser le schéma de couleurs TTF
 .
 :MENU:ttf_showbold
@@ -2698,10 +2698,10 @@ Afficher le texte de droite à gauche
 :MENU:ttf_printfont
 Utiliser la police actuelle pour l'impression
 .
-:MENU:ttf_dbcs_sbcs
+:MENU:mapper_dbcssbcs
 CJK : Commutation entre les modes DBCS/SBCS
 .
-:MENU:ttf_autoboxdraw
+:MENU:mapper_autoboxdraw
 CJK : Détection automatique des caractères de type "box-drawing".
 .
 :MENU:ttf_halfwidthkana
@@ -3115,6 +3115,9 @@ Enreg. vidéo en AVI
 :MENU:mapper_scrshot
 Capture d'écran
 .
+:MENU:mapper_pwrbutton
+Bouton d'alimentation APM
+.
 :MENU:mapper_debugger
 Démarrer débogueur DOSBox-X
 .
@@ -3439,6 +3442,9 @@ Réanalyser lecteurs
 .
 :MAPPER:reset
 Réinitialiser DOSBox-X
+.
+:MAPPER:resetcolor
+Réinitialiser le schéma de couleurs
 .
 :MAPPER:showstate
 Afficher infos état

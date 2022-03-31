@@ -2652,7 +2652,7 @@ Screen: 132 columns x 60 lines
 :MENU:VideoTTFMenu
 TTF options
 .
-:MENU:ttf_resetcolor
+:MENU:mapper_resetcolor
 Reset TTF color scheme
 .
 :MENU:ttf_showbold
@@ -2691,10 +2691,10 @@ Display text from right to left
 :MENU:ttf_printfont
 Use current TTF font for printing
 .
-:MENU:ttf_dbcs_sbcs
+:MENU:mapper_dbcssbcs
 CJK: Switch between DBCS/SBCS modes
 .
-:MENU:ttf_autoboxdraw
+:MENU:mapper_autoboxdraw
 CJK: Auto-detect box-drawing characters
 .
 :MENU:ttf_halfwidthkana
@@ -3108,6 +3108,9 @@ Record video to AVI
 :MENU:mapper_scrshot
 Take screenshot
 .
+:MENU:mapper_pwrbutton
+APM power button
+.
 :MENU:mapper_debugger
 Start DOSBox-X Debugger
 .
@@ -3431,6 +3434,9 @@ Rescan drives
 .
 :MAPPER:reset
 Reset DOSBox-X
+.
+:MAPPER:resetcolor
+Reset color scheme
 .
 :MAPPER:showstate
 Display state info

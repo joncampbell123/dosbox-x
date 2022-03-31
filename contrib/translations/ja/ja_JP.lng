@@ -2642,7 +2642,7 @@ TrueTypeフォント
 :MENU:VideoTTFMenu
 TTFオプション
 .
-:MENU:ttf_resetcolor
+:MENU:mapper_resetcolor
 TTFカラースキームをリセット
 .
 :MENU:ttf_showbold
@@ -2678,10 +2678,10 @@ TTFでカーソル点滅を表示
 :MENU:ttf_printfont
 現在のTTFフォントを印刷に使用
 .
-:MENU:ttf_dbcs_sbcs
+:MENU:mapper_dbcssbcs
 CJK: DBCS/SBCS モードを切替
 .
-:MENU:ttf_autoboxdraw
+:MENU:mapper_autoboxdraw
 CJK: 罫線文字を自動検出
 .
 :MENU:ttf_halfwidthkana
@@ -3095,6 +3095,9 @@ FM (OPL) 出力を保存
 :MENU:mapper_scrshot
 スクリーンショット
 .
+:MENU:mapper_pwrbutton
+APM電源ボタン
+.
 :MENU:mapper_debugger
 DOSBox-X デバッガの起動
 .
@@ -3418,6 +3421,9 @@ DOSシステムの再起動
 .
 :MAPPER:reset
 DOSBox-Xを再起動
+.
+:MAPPER:resetcolor
+カラースキームをリセット
 .
 :MAPPER:showstate
 ステートの情報表示

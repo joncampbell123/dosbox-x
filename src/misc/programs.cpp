@@ -1036,13 +1036,13 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
                 } else if (!strcasecmp(inputline.substr(0, 9).c_str(), "autodbcs=")) {
 #if defined(USE_TTF)
                     dbcs_sbcs = section->Get_bool("autodbcs");
-                    mainMenu.get_item("ttf_dbcs_sbcs").check(dbcs_sbcs).refresh_item(mainMenu);
+                    mainMenu.get_item("mapper_dbcssbcs").check(dbcs_sbcs).refresh_item(mainMenu);
                     if (TTF_using()) resetFontSize();
 #endif
                 } else if (!strcasecmp(inputline.substr(0, 12).c_str(), "autoboxdraw=")) {
 #if defined(USE_TTF)
                     autoboxdraw = section->Get_bool("autoboxdraw");
-                    mainMenu.get_item("ttf_autoboxdraw").check(autoboxdraw).refresh_item(mainMenu);
+                    mainMenu.get_item("mapper_autoboxdraw").check(autoboxdraw).refresh_item(mainMenu);
                     if (TTF_using()) resetFontSize();
 #endif
                 } else if (!strcasecmp(inputline.substr(0, 14).c_str(), "halfwidthkana=")) {
@@ -1101,7 +1101,11 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
 #endif
                 ) {
                     std::string showdbcsstr = section->Get_string("showdbcsnodosv");
+#if defined(USE_TTF)
+                    showdbcs = showdbcsstr=="true"||showdbcsstr=="1"||(showdbcsstr=="auto" && (loadlang || dbcs_sbcs));
+#else
                     showdbcs = showdbcsstr=="true"||showdbcsstr=="1"||(showdbcsstr=="auto" && loadlang);
+#endif
                 } else if (!strcasecmp(inputline.substr(0, 11).c_str(), "fepcontrol=")||!strcasecmp(inputline.substr(0, 7).c_str(), "vtext1=")||!strcasecmp(inputline.substr(0, 7).c_str(), "vtext2="))
                     DOSV_SetConfig(section);
             } else if (!strcasecmp(pvar.c_str(), "render")) {
