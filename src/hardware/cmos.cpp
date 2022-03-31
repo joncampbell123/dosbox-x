@@ -80,22 +80,30 @@ static struct {
     struct timeval safetime;    // UTC time of last safe time
 } cmos;
 
+static bool fired_irq8 = false;
 static void cmos_timerevent(Bitu val) {
     (void)val;//UNUSED
     if (cmos.timer.acknowledged) {
         cmos.timer.acknowledged=false;
         PIC_ActivateIRQ(8);
+        fired_irq8 = true;
     }
     if (cmos.timer.enabled) {
         double index = PIC_FullIndex();
-        double remd = fmod(index, (double)cmos.timer.delay);
+        double remd = fma((index/(double)cmos.timer.delay), -(double)cmos.timer.delay, index);
+        //double remd = fmod(index, (double)cmos.timer.delay); // original delay calculation
+        //double remd = index - trunc(index / (double)cmos.timer.delay) * (double)cmos.timer.delay; // alternative fix
         PIC_AddEvent(cmos_timerevent, (float)((double)cmos.timer.delay - remd));
+        //LOG_MSG("cmos timerevent: index=%f, interval=%f", index, cmos.timer.delay - remd);
         cmos.regs[0xc] |= 0x40;    // Periodic Interrupt Flag (PF)
-        if(index >= (cmos.last.ended + 1000)) {
+        if(index >= (cmos.last.ended + 1000 - 0.001)) { // consider sometimes index is slightly before 1.0sec
+            //LOG_MSG("cmos timerevent: index=%f, interval=%f", index, cmos.last.ended - index);
+            if(!fired_irq8 && (cmos.regs[0x0b] & 0x10)) PIC_ActivateIRQ(8); // ensure to fire IRQ when UIE flag is set
             cmos.last.ended = index;
             cmos.regs[0xc] |= 0x10;    // Update-Ended Interrupt Flag (UF)
         }
     }
+    fired_irq8 = false;
 }
 
 static void cmos_checktimer(void) {
@@ -106,7 +114,9 @@ static void cmos_checktimer(void) {
     LOG(LOG_PIT,LOG_NORMAL)("RTC Timer at %.2f hz",1000.0/cmos.timer.delay);
 //  PIC_AddEvent(cmos_timerevent,cmos.timer.delay);
     /* A rtc is always running */
-    double remd=fmod(PIC_FullIndex(),(double)cmos.timer.delay);
+    //double remd=fmod(PIC_FullIndex(),(double)cmos.timer.delay);
+    double index = PIC_FullIndex();
+    double remd = fma((index / (double)cmos.timer.delay), -(double)cmos.timer.delay, index);
     PIC_AddEvent(cmos_timerevent,(float)((double)cmos.timer.delay-remd)); //Should be more like a real pc. Check
 //  status reg A reading with this (and with other delays actually)
 }

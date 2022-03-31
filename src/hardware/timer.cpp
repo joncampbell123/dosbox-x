@@ -275,7 +275,7 @@ struct PIT_Block {
                 break;
             case 3:		/* Square Wave Rate Generator */
                 {
-                    double tmp = fmod(index,(double)delay) * 2;
+                    double tmp = fmod(index,(double)delay * 2);
 
                     if (tmp < 0) {
                         fprintf(stderr,"tmp %.9f index %.9f delay %.9f now %.3f start %.3f\n",tmp,index,delay,now,start);
