@@ -102,8 +102,8 @@ static void cmos_timerevent(Bitu val) {
             cmos.last.ended = index;
             cmos.regs[0xc] |= 0x10;    // Update-Ended Interrupt Flag (UF)
         }
-        fired_irq8 = false;
     }
+    fired_irq8 = false;
 }
 
 static void cmos_checktimer(void) {
