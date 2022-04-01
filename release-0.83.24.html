@@ -49,7 +49,7 @@
 
 <li><div style="font-weight: 600">Support for resizable OpenGL 3Dfx Voodoo window</div>The 3Dfx Voodoo window is now resizable when running in OpenGL mode. Drag the Voodoo window borders or click the maximize window button to adjust the window size. With this you can now play 3Dfx Voodoo games in OpenGL mode with a much larger window than before, including maximized window, although you cannot switch to full-screen in this mode.</li>
 
-<li><div style="font-weight: 600">Support for CuteMouse wheel mouse extension API</div>The CuteMouse wheel mouse extension DOS API is now supported that DOS programs that natively support this function (such as <a href="https://www.dnosp.com/">DOS Navigator 2</a>) can make use of it. The function is enabled when mouse wheel movement conversion is currently disabled (i.e. with "mouse_wheel_key = 0").</li>
+<li><div style="font-weight: 600">Support for CuteMouse wheel mouse extension API</div>The CuteMouse wheel mouse extension DOS API is now supported so that DOS programs that natively support this function (such as <a href="https://www.dnosp.com/">DOS Navigator 2</a>) can make use of it. The function is enabled when the mouse wheel movement conversion is currently disabled (i.e. with "mouse_wheel_key = 0" in config file or "Do not convert to arrow keys" in "Main" menu => "Mouse wheel movements").</li>
 
 <li><div style="font-weight: 600">VMware mouse support for seamless mouse integration in Windows 3.1</div>DOSBox-X now implements basic support for the VMware mouse protocol so that when used together with e.g. <a href="https://github.com/NattyNarwhal/vmwmouse">VMware mouse driver for Windows 3.1</a>, the mouse will be seamlessly integrated with the host system and can enter/exit the DOSBox-X window without having to be captured or released. No VMware emulation software needed. Config option "vmware" is added (in [dos] section) which allows to disable VMware mouse guest integration in DOSBox-X.</li>
 
@@ -68,7 +68,7 @@
 
 <li><div style="font-weight: 600">Allow to mount multiple images files with wildcards</div>IMGMOUNT command now accepts wildcards (* or ?) when mounting disk or CD images, allowing you to mount all images files matching the given pattern, such as <span style="font-weight: 500">IMGMOUNT A disk*.img</span>.</li>
 
-<li><div style="font-weight: 600">Allow to automatically map keyboard layouts to country code</div>DOSBox-X will now try to map the keyboard layout to country number for different date/time/decimal formats when the country number is not specified and cannot be obtained from system.</li>
+<li><div style="font-weight: 600">Allow to automatically map keyboard layouts to country code</div>DOSBox-X will now try to map the keyboard layout to country number for different date/time/decimal formats when the country number is not specified and cannot be obtained from the host system.</li>
 
 <li><div style="font-weight: 600">Allow to search for FONT.ROM in resources directory for PC-98 system</div>For the PC-98 system, DOSBox-X will now search for FONT.ROM in resources directory in addition to the working directory, for more flexible support of font file locations.</li>
 
