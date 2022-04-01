@@ -129,7 +129,8 @@ You can optionally specify base addresses and IRQs for them with ``base:`` and `
 
 When set to true, emulates an Atmel 93c46 based dongle attached to the LPT1 port. Examples of such dongles are the Rainbow Sentinel Cplus and MicroPhar.
 
-Unfortunately this feature is rather incomplete at this time, and requires that dongle.cpp in the source code is edited and the right bytes for the dongle to be emulated are entered in the MEMORY array. After which DOSBox-X needs to be re-compiled.
+Unfortunately this feature is rather incomplete at this time, and requires that dongle.cpp in the source code is edited and the right bytes for the dongle to be emulated are entered in the MEMORY array.
+After which DOSBox-X needs to be re-compiled.
 
 === [printer] section options
 This section lists the available configuration options for the ``[printer]`` section of the DOSBox-X config file.
@@ -165,7 +166,7 @@ Epson itself suggested in some of their literature to look for printers in the f
 NOTE: Starting with DOSBox-X v0.83.21 it is possible to modify emulated printer settings directly from the DOSBox-X DOS prompt with the ``config -set printer`` commands.
 Any settings you modify this way are however lost when you restart DOSBox-X.
 
-NOTE: If your wanting to print in landscape on Letter or A4 paper, or in portrait on A3 paper, select a wide printer as otherwise the software may not give you the possibility to configure the paper properly.
+NOTE: If your wanting to print in landscape on US Letter or A4 paper, or in portrait on A3 paper, select a wide printer in your DOS application, as otherwise the software may not give you the possibility to configure the paper properly.
 
 NOTE: For printing in text mode it should not matter which Epson printer is selected, as DOSBox-X will use TrueType Fonts to render the text at the selected DPI. As such for text mode printing, it does not matter if a 9 or 24-pin printer is selected.
 
@@ -189,51 +190,156 @@ WARNING: Printing to any Epson 24-pin printer in "360 x 180" or "360 x 360" mode
 * Default value: false
 * Possible values: true, false
 
-Enables or disables virtual printer emulation.
+Enables or disables Epson virtual printer emulation.
 
 ==== dpi
 * Default value: 360
 * Possible values: 0-65535
 
-Sets the dots-per-inch of the virtual printer.
+Sets the dots-per-inch of the Epson virtual printer.
 
 ==== width
 * Default value: 85
 * Possible values: 0-65535
 
-Width of paper in 1/10 inch. The default of 85 corresponds to 8.5".
+Width of paper in 1/10 inch for the Epson virtual printer.
+The default of 85 corresponds to 8.5".
 
-Example of some standard paper sizes in portrait orientation:
+Example of the width of some standard paper sizes:
 
-* Letter = 85 (default)
-* Legal = 85
-* A3 = 116 (297mm = 11.69 inches)
-* A4 = 82 (210mm = 8.27 inches)
-* A5 = 58 (148mm = 5.83 inches)
+[cols="1,1,1,1"]
+|===
+|Paper|Orientation|Official size|DOSBox-X width setting
+
+|US Letter
+|Portrait
+|8.5"
+|85
+
+|US Letter
+|Landscape
+|11.0"
+|110
+
+|US Legal
+|Portrait
+|8.5"
+|85
+
+|US Legal
+|Landscape
+|14.0"
+|140
+
+|A3
+|Portrait
+|297mm
+|116
+
+|A3
+|Landscape
+|420mm
+|165
+
+|A4
+|Portrait
+|210mm
+|82
+
+|A4
+|Landscape
+|297mm
+|116
+
+|A5
+|Portrait
+|148mm
+|58
+
+|A5
+|Landscape
+|210mm
+|82
+|===
+
+NOTE: Paper width for real Epson printers is limited to 257mm (10.1") for regular models and 420mm (16.5") for wide carriage models.
 
 ==== height
 * Default value: 110
 * Possible values: 0-65535
 
-Height of paper in 1/10 inch. The default of 110 corresponds to 11.0".
+Height of paper in 1/10 inch for the Epson virtual printer.
+The default of 110 corresponds to 11.0" (US Letter).
 
-Example of some standard paper sizes in portrait orientation:
+Example of the height of some standard paper sizes:
 
-* Letter = 110 (default)
-* Legal = 140
-* A3 = 165 (420mm = 16.53 inches)
-* A4 = 116 (297mm = 11.69 inches)
-* A5 = 82 (210mm = 8.27 inches)
+[cols="1,1,1,1"]
+|===
+|Paper|Orientation|Official size|DOSBox-X height setting
+
+|US Letter
+|Portrait
+|11.0"
+|110
+
+|US Letter
+|Landscape
+|8.5"
+|85
+
+|US Legal
+|Portrait
+|14.0"
+|140
+
+|US Legal
+|Landscape
+|8.5"
+|85
+
+|A3
+|Portrait
+|420mm
+|165
+
+|A3
+|Landscape
+|297mm
+|116
+
+|A4
+|Portrait
+|297mm
+|116
+
+|A4
+|Landscape
+|210mm
+|82
+
+|A5
+|Portrait
+|210mm
+|82
+
+|A5
+|Landscape
+|148mm
+|58
+|===
 
 ==== printoutput
 * Default value: printer (windows host), else png
 * Possible values: png, ps, bmp, printer
 
+Output option for the Epson virtual printer.
+Various output options are available:
+
 **printer**
 
 To send the output to a printer on a Windows host.
-A Windows print dialogue will appear.
-You can specify the target printer with the device option.
+The Windows host print dialogue will appear when you print from a DOS application.
+You can specify the default target printer with the `device=` option.
 
 **png or bmp**
 
@@ -244,8 +350,12 @@ BMP will create larger files, due to lack of compression, while the image qualit
 
 **ps**
 
-Create a PostScript file.
-This is typically the best option for Linux and macOS hosts, as it supports multi-page documents and can easily be converted to PDF.
+Create a PostScript output file, and supports multi-page documents with the `multipage=` option.
+
+This is typically the best option for Linux and macOS hosts, as PostScript is supported by default.
+For Windows hosts it requires installing a link:https://www.ghostscript.com/[PostScript viewer].
+
+This format can be easily be converted to PDF.
 
 ==== multipage
 * Default value: false
@@ -253,8 +363,8 @@ This is typically the best option for Linux and macOS hosts, as it supports mult
 
 Only applicable if ``printoutput=ps``.
 
-Adds all pages printed to one PostScript file until a timeout, or until CTRL-F2 is pressed.
-See also the ``timeout`` option below.
+Adds all pages printed to the virtual Epson printer to one PostScript file until either a timeout, or until CTRL-F2 is pressed.
+See also the ``timeout=`` option below.
 
 ==== device
 * Default value: -
@@ -262,7 +372,7 @@ See also the ``timeout`` option below.
 
 Only applicable on Windows hosts and when ``printoutput=printer``.
 
-The default value will cause you to get asked for the printer the first time you print after starting DOSBox-X.
+The default value will cause you to get asked for the printer the first time you print to the virtual Epson printer after starting DOSBox-X.
 Any subsequent prints will go to the same printer, until DOSBox-X is restarted.
 
 You can use this option to specify the printer device name (or a partial name), or the device number.
@@ -283,20 +393,23 @@ device="Microsoft Print to PDF"
 ==== docpath
 * Default value: .
 
-The path (directory) where the output files are stored.
+The path (directory) where the output files are to be stored.
 Defaults to the current working directory.
 
 ==== fontpath
 * Default value: FONTS
 
-The path (directory) where the TTF fonts (courier.ttf, ocra.ttf, roman.ttf, sansserif.ttf, script.ttf) are stored.
+The path (directory) where the TrueType fonts (courier.ttf, ocra.ttf, roman.ttf, sansserif.ttf, script.ttf) are stored.
 Defaults to the FONTS subdirectory in the current working directory (or where the DOSBox-X executable is located).
+
+TrueType fonts are used when printing text to the virtual Epson printer. They are not used when printing in graphics mode.
 
 ==== printdbcs
 * Default value: auto
 * Possible values: true, false, auto
 
 Allows DOSBox-X to print Chinese/Japanese/Korean DBCS (double-byte) characters when a DBCS code pages (932: Japanese, 936: Simplified Chinese; 949: Korean; 950: Traditional Chinese) is active.
+
 If set to auto (default), this is enabled only for the TrueType font (TTF) output with the DBCS support enabled.
 
 ==== openwith
@@ -304,9 +417,7 @@ If set to auto (default), this is enabled only for the TrueType font (TTF) outpu
 
 Start the specified program to open the output file.
 
-If set, the command window will be hidden for openwith/openerror options on the Windows platform.
-
-e.g. ``openwith=notepad`` will open the file with Notepad on a Windows host.
+e.g. ``openwith=notepad`` will open the output file with Notepad on a Windows host.
 
 Some other examples:
 
@@ -336,7 +447,7 @@ Timeout (in milliseconds). Set to 1000 for a 1-second timeout.
 
 If zero, the page will not be ejected until a form-feed is received.
 
-Since not all software will send one, especially if you're redirecting output, you can force a form-feed (eject page) by specifying a non-zero value.
+Since not all DOS applications will send a form-feed, especially if you're redirecting output, you can force a form-feed (eject page) by specifying a non-zero value.
 
 If non-zero, it specifies the time after which the page will be ejected automatically when no more data arrives at the printer.
 If the printout gets split over multiple files, increase this value.
@@ -350,7 +461,7 @@ If you use the TrueType font output, then the TTF font that is currently active 
 If no TTF font can be found then DOSBox-X will print with the internal (default) TTF font as used by the TrueType font output.
 
 === Windows host
-DOSBox-X will first search for fonts in the FONTS subdirectory in the current working directory or the directory where your dosbox-x.exe is located.
+DOSBox-X will first search for fonts in the FONTS subdirectory in the current working directory or the directory where dosbox-x.exe is located.
 If the fonts cannot be found, then it will search for the system fonts, as follows:
 
 |===
@@ -370,7 +481,7 @@ They are however rarely needed, and can typically be ignored.
 If you need them you may need to find those online.
 
 === Linux host
-DOSBox-X will first search for fonts in the ~/.config/dosbox-x/FONTS directory (or FONTS subdirectory in the current working directory).
+DOSBox-X will first search for fonts in the ~/.config/dosbox-x/FONTS directory (or a FONTS subdirectory in the current working directory).
 If the fonts cannot be found, then it will search for the fonts in the ``/usr/share/fonts`` directory, as follows:
 
 |===
@@ -390,7 +501,7 @@ They are however rarely needed, and can typically be ignored.
 If you need them you may need to find those online.
 
 == Example: Print to file
-In this example the output of a DOS command or application is simply redirected to the virtual LPT port, which in turn will be redirected to a file on the host.
+In this example the output of a DOS command or application is simply redirected to the virtual LPT port in DOSBox-X, which in turn will be redirected to a file on the host.
 
 This is useful if your printing just simple text, as the file on the host will contain the exact text.
 
@@ -408,7 +519,7 @@ parallel1=file
 ....
 No ``[printer]`` section is needed for this example, as we are not emulating a printer.
 
-Now start DOSBox-X, and type the following command:
+Now start DOSBox-X, and on the DOSBox-X command prompt type the following command:
 ....
 DIR > LPT1:
 ....
@@ -440,7 +551,7 @@ The printer dialogue will show up after a printer selection is made.
 If you want the printer selection to show up every time for printing to LPT1, please leave the "device" empty.
 
 === Windows host, method 2
-This assumes you PC still has a parallel printer port integrated on the system board, or a legacy ISA parallel printer adapter.
+This assumes you PC still has a parallel printer port integrated on the system board, or has a legacy ISA parallel printer adapter.
 It reportedly will not work with either USB parallel printer adapters or PCI parallel printer port adapters.
 
 Also note that the output is sent verbatim from the DOS application to the printer, without any filtering or conversion.
@@ -515,6 +626,8 @@ The output is sent verbatim to the printer, so the printer needs to be able to u
 
 NOTE: In the case of a real parallel port, the first port will be ``/dev/parport0``, but in the case of a USB parallel port adapter it will be ``/dev/usblp0``, but it is unclear if a USB parallel port adapter will work.
 
+NOTE: On Linux there has been some success with using a StarTech PEX1P2 PCIe parallel port adapter. But it is necessary to first do a `modprobe parport_pc` which will create the necessary `/dev/parport0` device.
+
 == Example: Print to PNG or BMP
 This method prints to a PNG or BMP image file.
 
@@ -553,7 +666,7 @@ timeout=1000
 
 In DOSBox-X you can now simply redirect output to LPT1, or in DOS applications configure one of the printers listed above.
 
-The output will be saved as ``page1.ps`` in the current directory, and incremented if it already exists.
+The output will be saved as ``page1.ps`` in the current working directory, and incremented if it already exists.
 Alternatively you can specify a different directory using the ``docpath=`` setting as documented above.
 
 The ``multipage=true`` setting is specific to PostScript output, and prevents a separate PostScript file from being generated for each printed page.
@@ -561,7 +674,7 @@ The ``multipage=true`` setting is specific to PostScript output, and prevents a 
 == Example: Redirect print output to a program on the host
 
 In the ``[parallel]`` section for the parallel1-9 config options you can use the ``file`` option to direct the output to a file, which can then optionally be opened by the specified application on the host.
-This application can then be used to view the output, and possibly print it or used to convert the output to something like PDF with a PDF printer.
+This application can then be used to view the output, and possibly print it or be used to convert the output to something like PDF with a PDF printer.
 
 The options available are:
 
@@ -585,7 +698,7 @@ Keep in mind that the output file will be created in your current working direct
 === Linux PostScript printing example
 In this example, it is assumed that you're printing to a PostScript printer in your DOS application.
 This should give you the highest quality output, and depending on the application, you may even get colour by selecting a colour PostScript printer.
-The output is saved to a file on the host, to the directory specified with the ``captures=`` option, and when the file is closed (when no output is received for 2 seconds), the file will be opened using xdg-open such that it can be printed.
+The output is saved to a file on the host, to the directory specified with the ``captures=`` option, and when the file is closed (when no output is received for 2 seconds), the file will be opened using xdg-open such that it can be viewed and printed.
 
 ....
 [dosbox]
@@ -596,7 +709,7 @@ parallel1=file file:output.ps timeout:2000 openps:xdg-open
 ....
 
 === macOS PostScript printing example
-Similar to the Linux example above, but here the macOS Preview application is used to open the PostScript file, from where it can be printed.
+Similar to the Linux example above, but here the macOS Preview application is used to open the PostScript file, from where it can be viewed and printed.
 
 ....
 [dosbox]

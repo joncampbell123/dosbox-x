@@ -590,17 +590,60 @@ Windows 95 or other pre-emptive multitasking OSes will not work with the dynamic
 <p>Default value: true</p>
 </li>
 <li>
-<p>Valid values: true, false</p>
+<p>Valid values: true, false, 8087, 287, 387, auto</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
 <p>Floating Point Unit (FPU).
-Also referred to as the x87, or Math co-processor.
-FPU emulation is enabled by default.</p>
+Also referred to as the x87, or Math Co-Processor.</p>
 </div>
-<div class="paragraph">
-<p>If <code>cputype=</code> is a 486 variation and <code>fpu=true</code>, the CPUID instruction will report a 486DX, while if <code>fpu=false</code>, it will report a 486SX.</p>
+<div class="ulist">
+<ul>
+<li>
+<p><code>fpu=true</code> is the default for compatibility with config files for regular DOSBox. It will emulate a matching FPU type for the <code>cputype=</code> configured.</p>
+</li>
+<li>
+<p><code>fpu=false</code> disables FPU emulation, even on CPUs types that would normally always have an FPU.</p>
+</li>
+<li>
+<p><code>fpu=auto</code> will only enable FPU emulation if the emulated CPU is a 486 or later.</p>
+</li>
+<li>
+<p><code>fpu=8087</code> will emulate a 8087 FPU, regardless of <code>cputype=</code> setting.</p>
+</li>
+<li>
+<p><code>fpu=287</code> will emulate a 287 FPU, regardless of <code>cputype=</code> setting.</p>
+</li>
+<li>
+<p><code>fpu=387</code> will emulate a 387 FPU, regardless of <code>cputype=</code> setting.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+When the 386 CPU first came out, there was no matching 387 FPU initially.
+And some system vendors (e.g. Compaq Deskpro 386), provided a socket which could take a 287 FPU instead.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If <code>cputype=</code> is set to a 486 variation and FPU emulation is enabled, the CPUID instruction will report a 486DX, while if <code>fpu=false</code>, it will report a 486SX.
+</td>
+</tr>
+</table>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -2060,7 +2103,7 @@ Software developers therefore used other timing methods, and therefore cycle acc
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-03-04 15:16:36 -0500
+Last updated 2022-04-01 13:40:06 -0400
 </div>
 </div>
 </body>

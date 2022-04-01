@@ -328,6 +328,17 @@ Once Windows 3.x is installed, here is some additional software you may want to 
 * Adobe Acrobat Reader
 * Adobe Type Manager 3.02
 
+== Mouse support
+By default Windows 3.x will find a PS/2 mouse when installed in DOSBox-X.
+This mouse support has an important limitation, namely you need to lock the mouse to the session to interact with Windows 3.x and need to unlock it to go outside DOSBox-X.
+
+DOSBox-X 0.83.24 or later however also supports the VMware mouse protocol, and there is a 3rd party link:https://github.com/NattyNarwhal/vmwmouse[VMware mouse driver for Windows 3.x] written by NattyNarwhal.
+As such you can install the VMware mouse driver for Windows 3.x and you will be able to move the mouse in and out of DOSBox-X seamlessly.
+
+Simply run the DOS based SETUP.EXE program for Windows 3.x and select "Mouse" followed by "Other". Then type the location where you saved the unpacked VMware mouse driver for Windows 3.x.
+
+NOTE: It seems that although the driver title says it's for Windows 3.x, it only works on Windows 3.1x for now.
+
 == Enabling 32-bit File and Disk access
 * Introduced with Windows 3.1, *32-Bit Disk Access* allows Windows to bypass the 16-Bit BIOS.
 * Introduced with Windows 3.11, *32-Bit File Access* allows Windows to bypass the 16-Bit DOS FAT code.

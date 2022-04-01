@@ -35,6 +35,8 @@ DOSBox-X features a GUI menu bar that does not exist in DOSBox, so you can achie
 
 * **Reboot guest system**: Reboots the kernel of the emulated DOS (integrated DOS or guest DOS) inside DOSBox-X without resetting the virtual machine.
 
+* **APM power button**: Acts like the APM power button for Windows 9x guests.
+
 * **Restart DOSBox-X instance**: Reboots the current DOSBox-X instance with the same configuration.
 
 * **Restart DOSBox-X with config file...**: Restart DOSBox-X automatically with the select config file loaded.

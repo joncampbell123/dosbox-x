@@ -55,6 +55,8 @@ This requires that the host OS has a Glide API library (or Glide wrapper) instal
 NOTE: This only works for games that dynamically link to the external GLIDE2X library.
 It does not work for so-called statically linked games that have the GLIDE library code integrated with the game code.
 
+NOTE: Starting with DOSBox-X 0.83.24, glide is supported in fullscreen mode. Older versions could only run it in windowed mode.
+
 === lfb
 * Default value: full_noaux
 * Possible values: full, full_noaux, read, read_noaux, write, write_noaux, none
@@ -69,13 +71,13 @@ NOTE: OpenGlide does not support locking aux buffer, as such please use _noaux m
 
 Show 3dfx splash screen on game startup
 
-This option only applies when using the high-level Glide API emulation, where the 3dfx splash screen is otherwise not shown.
+This option only applies when using the high-level Glide API emulation, where the 3dfx splash screen is normally not shown.
 This has no effect when using the low-level Voodoo adapter emulation, where the 3dfx splash screen will always be shown when the Voodoo adapter is initialized by the game.
 
-In addition, this option is only supported on Windows hosts, and it requires that the ``3dfxSpl2.dll`` library to be installed.
+In addition, this option is only supported on x86 Windows hosts, and it requires the ``3dfxSpl2.dll`` library to be installed.
 It is enough for ``3dfxSpl2.dll`` to be in the same directory as ``dosbox-x.exe``
 
-NOTE: The CPU type for ``3dfxSpl2.dll`` and DOSBox-X needs to match for this to work. So if you have an x86 32bit ``3dfxSpl2.dll``, you need to use an x86 32bit ``dosbox-x.exe`` executable.
+NOTE: The ``3dfxSpl2.dll`` library only exists for 32bit x86. This means that if you want to see the 3dfx splash screen that you must use the 32bit x86 version of DOSBox-X.
 
 == [cpu] option
 
@@ -318,16 +320,18 @@ The glide library installed on the host needs to be the same CPU architecture as
 === No 3dfx splash screen
 Q: I don't see the 3dfx splash screen when starting a game
 
-A: This is normal when you're running the game in high-level emulation mode (glide=true). This 3dfx splash screen is built into the original Glide library (GLIDE2X.OVL or GLIDE2X.DLL for Windows 9x).
+A: This is normal when you're running the game in high-level emulation mode (`glide=true`).
+This 3dfx splash screen is not part of the game, but rather built into the original Glide library (GLIDE2X.OVL for DOS, or GLIDE2X.DLL for Windows 9x).
 But the special versions used for Glide pass-through to the host do not have this animation.
-If your running Windows, you may want to have a look at the ``splash=true`` setting, mentioned above.
+If your running 32bit Windows on the host, you may want to have a look at the ``splash=true`` setting, mentioned above.
 
 === Slow Glide emulation
 Q: I set ``glide=true`` yet the game is very slow
 
 A: Most likely you're not actually running in glide pass-through mode, even though you set the option in your config file.
 
-One tell-tale way of knowing if the game is running in glide pass-through mode, is the 3dfx splash screen when starting the game. If you see the splash screen, you are probably not running in pass-through mode, but rather in low-level Voodoo emulation mode.
+One tell-tale way of knowing if the game is running in glide pass-through mode, is the 3dfx splash screen when starting the game.
+If you see the splash screen, you are probably not running in pass-through mode, but rather in low-level Voodoo emulation mode.
 
 To run in Glide pass-through mode, the ``GLIDE2X.OVL`` file **must** appear at ``Z:\SYSTEM`` when you start DOSBox-X, and you must be sure no other ``GLIDE2X.OVL`` file is being found by the game.
 For instance, if there is a ``GLIDE2X.OVL`` file in the game directory, rename it, and try again.

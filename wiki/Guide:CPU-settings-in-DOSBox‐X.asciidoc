@@ -35,13 +35,22 @@ NOTE: Windows 95 or other pre-emptive multitasking OSes will not work with the d
 
 === fpu
 * Default value: true
-* Valid values: true, false
+* Valid values: true, false, 8087, 287, 387, auto
 
 Floating Point Unit (FPU).
-Also referred to as the x87, or Math co-processor.
-FPU emulation is enabled by default.
+Also referred to as the x87, or Math Co-Processor.
 
-If ``cputype=`` is a 486 variation and ``fpu=true``, the CPUID instruction will report a 486DX, while if ``fpu=false``, it will report a 486SX.
+- ``fpu=true`` is the default for compatibility with config files for regular DOSBox. It will emulate a matching FPU type for the ``cputype=`` configured.
+- ``fpu=false`` disables FPU emulation, even on CPUs types that would normally always have an FPU.
+- ``fpu=auto`` will only enable FPU emulation if the emulated CPU is a 486 or later.
+- ``fpu=8087`` will emulate a 8087 FPU, regardless of ``cputype=`` setting.
+- ``fpu=287`` will emulate a 287 FPU, regardless of ``cputype=`` setting.
+- ``fpu=387`` will emulate a 387 FPU, regardless of ``cputype=`` setting.
+
+NOTE: When the 386 CPU first came out, there was no matching 387 FPU initially.
+And some system vendors (e.g. Compaq Deskpro 386), provided a socket which could take a 287 FPU instead.
+
+NOTE: If ``cputype=`` is set to a 486 variation and FPU emulation is enabled, the CPUID instruction will report a 486DX, while if ``fpu=false``, it will report a 486SX.
 
 NOTE: On real systems, starting with the Pentium CPU generation, an FPU is always present.
 But DOSBox-X allows disabling of the FPU with any CPU type.
@@ -66,7 +75,7 @@ Emulate double fault exception
 
 === processor serial number
 * Default value: <blank>
-* Valid values: 
+* Valid values:
 
 For Pentium III emulation, this sets the 96-bit Processor Serial Number returned by CPUID.
 

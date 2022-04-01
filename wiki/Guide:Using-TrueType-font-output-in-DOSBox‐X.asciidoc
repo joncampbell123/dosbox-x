@@ -175,6 +175,8 @@ And the following will give a gray-scaled color scheme:
 colors=(0,0,0) #0e0e0e (75,75,75) (89,89,89) (38,38,38) (52,52,52) #717171 #c0c0c0 #808080 (28,28,28) (150,150,150) (178,178,178) (76,76,76)  (104,104,104) (226,226,226) (255,255,255)
 ``
 
+Starting with DOSBox-X version 0.83.24, DOSBox-X will stay with the preset color scheme when switching from another output if there is a leading ``{plus}`` sign for the ``colors`` setting, e.g. ``colors=+(0,0,0) …``
+
 The color schemes can also be changed when DOSBox-X is running. There is a ``SETCOLOR`` command in DOSBox-X which allows to view or change the current color scheme. For example, entering ``SETCOLOR`` without parameters will display the current color scheme.
 
 To change the scheme of a specific color using SETCOLOR command, just provide the color number and its color value, e.g.
@@ -187,6 +189,12 @@ The above command change Color #1 to the specified color value. You can also ret
 
 ``
 SETCOLOR 1 -
+``
+
+Or return it to the color scheme as specified by the ``colors`` config option (if set):
+
+``
+SETCOLOR 1 {plus}
 ``
 
 (Starting with DOSBox-X version 0.83.19, there is also a menu option ``Reset TTF color scheme`` in the ``TTF options`` menu group to return the whole color scheme to the default one)

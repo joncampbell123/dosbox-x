@@ -603,6 +603,18 @@ It does not work for so-called statically linked games that have the GLIDE libra
 </tr>
 </table>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Starting with DOSBox-X 0.83.24, glide is supported in fullscreen mode. Older versions could only run it in windowed mode.
+</td>
+</tr>
+</table>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_lfb">lfb</h3>
@@ -648,11 +660,11 @@ OpenGlide does not support locking aux buffer, as such please use _noaux modes.
 <p>Show 3dfx splash screen on game startup</p>
 </div>
 <div class="paragraph">
-<p>This option only applies when using the high-level Glide API emulation, where the 3dfx splash screen is otherwise not shown.
+<p>This option only applies when using the high-level Glide API emulation, where the 3dfx splash screen is normally not shown.
 This has no effect when using the low-level Voodoo adapter emulation, where the 3dfx splash screen will always be shown when the Voodoo adapter is initialized by the game.</p>
 </div>
 <div class="paragraph">
-<p>In addition, this option is only supported on Windows hosts, and it requires that the <code>3dfxSpl2.dll</code> library to be installed.
+<p>In addition, this option is only supported on x86 Windows hosts, and it requires the <code>3dfxSpl2.dll</code> library to be installed.
 It is enough for <code>3dfxSpl2.dll</code> to be in the same directory as <code>dosbox-x.exe</code></p>
 </div>
 <div class="admonitionblock note">
@@ -662,7 +674,7 @@ It is enough for <code>3dfxSpl2.dll</code> to be in the same directory as <code>
 <div class="title">Note</div>
 </td>
 <td class="content">
-The CPU type for <code>3dfxSpl2.dll</code> and DOSBox-X needs to match for this to work. So if you have an x86 32bit <code>3dfxSpl2.dll</code>, you need to use an x86 32bit <code>dosbox-x.exe</code> executable.
+The <code>3dfxSpl2.dll</code> library only exists for 32bit x86. This means that if you want to see the 3dfx splash screen that you must use the 32bit x86 version of DOSBox-X.
 </td>
 </tr>
 </table>
@@ -1152,9 +1164,10 @@ NoSplash=1</pre>
 <p>Q: I don&#8217;t see the 3dfx splash screen when starting a game</p>
 </div>
 <div class="paragraph">
-<p>A: This is normal when you&#8217;re running the game in high-level emulation mode (glide=true). This 3dfx splash screen is built into the original Glide library (GLIDE2X.OVL or GLIDE2X.DLL for Windows 9x).
+<p>A: This is normal when you&#8217;re running the game in high-level emulation mode (<code>glide=true</code>).
+This 3dfx splash screen is not part of the game, but rather built into the original Glide library (GLIDE2X.OVL for DOS, or GLIDE2X.DLL for Windows 9x).
 But the special versions used for Glide pass-through to the host do not have this animation.
-If your running Windows, you may want to have a look at the <code>splash=true</code> setting, mentioned above.</p>
+If your running 32bit Windows on the host, you may want to have a look at the <code>splash=true</code> setting, mentioned above.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1166,7 +1179,8 @@ If your running Windows, you may want to have a look at the <code>splash=true</c
 <p>A: Most likely you&#8217;re not actually running in glide pass-through mode, even though you set the option in your config file.</p>
 </div>
 <div class="paragraph">
-<p>One tell-tale way of knowing if the game is running in glide pass-through mode, is the 3dfx splash screen when starting the game. If you see the splash screen, you are probably not running in pass-through mode, but rather in low-level Voodoo emulation mode.</p>
+<p>One tell-tale way of knowing if the game is running in glide pass-through mode, is the 3dfx splash screen when starting the game.
+If you see the splash screen, you are probably not running in pass-through mode, but rather in low-level Voodoo emulation mode.</p>
 </div>
 <div class="paragraph">
 <p>To run in Glide pass-through mode, the <code>GLIDE2X.OVL</code> file <strong>must</strong> appear at <code>Z:\SYSTEM</code> when you start DOSBox-X, and you must be sure no other <code>GLIDE2X.OVL</code> file is being found by the game.
@@ -1178,7 +1192,7 @@ For instance, if there is a <code>GLIDE2X.OVL</code> file in the game directory,
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-03-04 15:16:36 -0500
+Last updated 2022-04-01 13:40:06 -0400
 </div>
 </div>
 </body>

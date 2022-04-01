@@ -17,7 +17,7 @@ This document attempts to help the novice user, especially those that never expe
 You can set the audio output option to emulate in your DOSBox-X config file.
 The available audio option can be found in a few sections, such as ``[pcspeaker]``, ``[sblaster]``, ``[gus]`` and ``[innova]``.
 
-By default, DOSBox-X just like regular DOSBox on which is it based, enables emulation of a *PC Speaker* and the *SoundBlaster 16*.
+By default, DOSBox-X just like regular DOSBox on which is it based, enables emulation of a *PC Speaker* and the *Sound Blaster 16*.
 
 NOTE: DOSBox-X does not support microphone and/or line-in for any of the emulated soundcards.
 
@@ -176,7 +176,7 @@ Some early DOS games with MIDI support may only offer you one output option, so 
 Depending on the game, this may mean that you get MIDI background music, but no sound or voice effects if you choose the MT-32.
 Some games however did try to map all or some of the sound effects to MIDI sounds.
 
-Some later DOS games may offer you separate options for Audio and Music, such that you can have the SoundBlaster for Audio like effects and/or speech, and MIDI for music.
+Some later DOS games may offer you separate options for Audio and Music, such that you can have the Sound Blaster for Audio like effects and/or speech, and MIDI for music.
 
 During the early CD-ROM era some games stopped supporting MIDI and replaced the music with CD Audio streamed from the CD during gameplay.
 
@@ -253,7 +253,7 @@ NOTE: Enabling Tandy mode this way, also enables Tandy video emulation
 
 The later Tandy 1000 SL, TL, TLX, RL and RLX models added support for a DAC for digital sample sounds.
 
-NOTE: The Tandy DAC will be disabled if SoundBlaster emulation is enabled, due to resource conflicts.
+NOTE: The Tandy DAC will be disabled if Sound Blaster emulation is enabled, due to resource conflicts.
 So to enable the Tandy DAC, you need to set ``sblaster=none``.
 
 * link:https://en.wikipedia.org/wiki/Tandy_Graphics_Adapter[Wikipedia article on Tandy Graphics]
@@ -292,7 +292,7 @@ sbtype=none
 oplmode=opl2
 ....
 
-However, the above is normally not needed as the later SoundBlaster cards, such as the sb16 that DOSBox-X by default emulates, are all backward compatible with the AdLib.
+However, the above is normally not needed as the later Sound Blaster cards, such as the sb16 that DOSBox-X by default emulates, are all backward compatible with the AdLib.
 
 NOTE: Some programs may require the AdLib ``SOUND.COM`` TSR to be loaded. See the link:https://www.vogons.org/viewtopic.php?f=33&t=76607p[Sound Driver Pack] for details.
 
@@ -300,15 +300,15 @@ NOTE: Some programs may require the AdLib ``SOUND.COM`` TSR to be loaded. See th
 * link:http://www.dosdays.co.uk/topics/Manufacturers/adlib.php[DOS Days: AdLib]
 * link:https://www.mobygames.com/attribute/sheet/attributeId,21/[MobyGames: Games supporting AdLib sound]
 
-=== CMS / GameBlaster
+=== CMS / Game Blaster
 FM synthesizer card, released by Creative Technology in 1987.
-Originally named the *Creative Music System* (CMS), but the year after rebranded as the *GameBlaster*.
+Originally named the *Creative Music System* (CMS), but the year after rebranded as the *Game Blaster*.
 
-CMS/GameBlaster emulation can be enabled by setting ``sbtype=gb`` in the ``[sblaster]`` section of your config file.
+CMS/Game Blaster emulation can be enabled by setting ``sbtype=gb`` in the ``[sblaster]`` section of your config file.
 
 NOTE: Some programs may require the Creative ``CMSDRV.COM`` TSR to be loaded. See the link:https://www.vogons.org/viewtopic.php?f=33&t=76607p[Sound Driver Pack] for details.
 
-* link:https://www.mobygames.com/attribute/sheet/attributeId,42/p,2/[MobyGames: Games supporting the GameBlaster]
+* link:https://www.mobygames.com/attribute/sheet/attributeId,42/p,2/[MobyGames: Games supporting the Game Blaster]
 * link:http://www.dosdays.co.uk/topics/Manufacturers/creative.php[DOS Days: Creative Labs]
 
 === IBM PS/1 Audio Card
@@ -355,44 +355,44 @@ The following option is available in the ``[speaker]`` section of you config fil
 Enables or disables Disney Sound Source emulation on the parallel port.
 This feature is backward compatible with the *Covox Speech Thing* and *Covox Voice Master* parallel port dongles.
 
-=== Creative SoundBlaster
-Creative Technology created a range of SoundBlaster cards, which quickly became the industry standard for PC sound.
+=== Creative Sound Blaster
+Creative Technology created a range of Sound Blaster cards, which quickly became the industry standard for PC sound.
 
 NOTE: The SB cards are backwards compatible with the AdLib cards. As such the AdLib ``sound.com`` TSR works on them, but Creative had to create their own version as they could not distribute the one from AdLib. The Creative TSR is named ``sb-sound.com``, but is not 100% compatible. See the link:https://www.vogons.org/viewtopic.php?f=33&t=76607p[Sound Driver Pack] for details.
 
 NOTE: Some programs may require the Creative ``SBFMDRV.COM`` TSR or ``CT-VOICE.DRV``. See the link:https://www.vogons.org/viewtopic.php?f=33&t=76607p[Sound Driver Pack] for details.
 
-==== SoundBlaster 1.x
-The SoundBlaster 1.0 was released by Creative Technology in 1989, followed a year later by the cost-reduced SoundBlaster 1.5.
+==== Sound Blaster 1.x
+The Sound Blaster 1.0 was released by Creative Technology in 1989, followed a year later by the cost-reduced Sound Blaster 1.5.
 
 Some key features of the SB 1.x cards
 
 - Backward compatible with the AdLib
-- Backward compatible with the CMS/GameBlaster (optional for the SB 1.5)
+- Backward compatible with the CMS/Game Blaster (optional for the SB 1.5)
 - 8bit 22kHz DAC for digital samples
 
-SoundBlaster 1.x emulation can be enabled by setting ``sbtype=sb1`` in the ``[sblaster]`` section of your config file.
+Sound Blaster 1.x emulation can be enabled by setting ``sbtype=sb1`` in the ``[sblaster]`` section of your config file.
 
-==== SoundBlaster 2.0
-The SoundBlaster 2.0 was released by Creative Technology in October 1991.
+==== Sound Blaster 2.0
+The Sound Blaster 2.0 was released by Creative Technology in October 1991.
 
 Some key features of the SB 2.0
 
 - Backward compatible with AdLib
-- Optional backward compatibility with CMS/GameBlaster
-- Backward compatible with the SoundBlaster 1.x
+- Optional backward compatibility with CMS/Game Blaster
+- Backward compatible with the Sound Blaster 1.x
 - 8bit 44kHz DAC for digital samples
 
-SoundBlaster 2.0 emulation can be enabled by setting ``sbtype=sb2`` in the ``[sblaster]`` section of your config file.
+Sound Blaster 2.0 emulation can be enabled by setting ``sbtype=sb2`` in the ``[sblaster]`` section of your config file.
 
-==== SoundBlaster Pro
-The SoundBlaster Pro was released by Creative Technology in May 1991.
+==== Sound Blaster Pro
+The Sound Blaster Pro was released by Creative Technology in May 1991.
 
 Some key features of the SB Pro
 
 - Backward compatible with the AdLib
-- Backward compatible with the SoundBlaster 1.x
-- Backward compatible with the SoundBlaster 2.0
+- Backward compatible with the Sound Blaster 1.x
+- Backward compatible with the Sound Blaster 2.0
 - Dual Yamaha OPL2 for stereo FM sound
 - 8bit 44kHz DAC for digital samples
 
@@ -401,37 +401,37 @@ NOTE: This adapter was retroactively often named the SB Pro 1 or SB Pro 1.0.
 NOTE: Any software making use of the Stereo FM feature will sound wrong if it was coded for the later SB Pro 2 (or vice versa).
 Therefore, it is important that you select the right SB Pro model in DOSBox-X and in the software setup of the game.
 
-SoundBlaster Pro emulation can be enabled by setting ``sbtype=sbpro1`` in the ``[sblaster]`` section of your config file.
+Sound Blaster Pro emulation can be enabled by setting ``sbtype=sbpro1`` in the ``[sblaster]`` section of your config file.
 
-==== SoundBlaster Pro 2
-The SoundBlaster Pro 2 was released by Creative Technology in 1991, and quickly replaced the earlier SB Pro.
+==== Sound Blaster Pro 2
+The Sound Blaster Pro 2 was released by Creative Technology in 1991, and quickly replaced the earlier SB Pro.
 
 Some key features of the SB Pro 2
 
 - Backward compatible with the AdLib
-- Backward compatible with the SoundBlaster 1.x
-- Backward compatible with the SoundBlaster 2.0
+- Backward compatible with the Sound Blaster 1.x
+- Backward compatible with the Sound Blaster 2.0
 - Single Yamaha OPL3 for stereo FM sound
 
 NOTE: Any software making use of the Stereo FM feature will sound wrong if it was coded for the original SB Pro (or vice versa).
 Therefore, it is important that you select the right SB Pro model in DOSBox-X and in the software setup of the game.
 
-SoundBlaster Pro 2 emulation can be enabled by setting ``sbtype=sbpro2`` in the ``[sblaster]`` section of your config file.
+Sound Blaster Pro 2 emulation can be enabled by setting ``sbtype=sbpro2`` in the ``[sblaster]`` section of your config file.
 
-==== SoundBlaster 16
-The SoundBlaster 16 was released by Creative Technology in June 1992.
+==== Sound Blaster 16
+The Sound Blaster 16 was released by Creative Technology in June 1992.
 
 Some key features of the SB 16
 
 - Backward compatible with the AdLib
-- Backward compatible with the SoundBlaster 1.x
-- Backward compatible with the SoundBlaster 2.0
-- Backward compatible with the SoundBlaster Pro 2
+- Backward compatible with the Sound Blaster 1.x
+- Backward compatible with the Sound Blaster 2.0
+- Backward compatible with the Sound Blaster Pro 2
 - 16bit 44kHz DAC for digital samples
 
-SoundBlaster 16 emulation is enabled by default, and can be enabled by setting ``sbtype=sb16`` in the ``[sblaster]`` section of your config file.
+Sound Blaster 16 emulation is enabled by default, and can be enabled by setting ``sbtype=sb16`` in the ``[sblaster]`` section of your config file.
 
-NOTE: DOSBox-X also provides a ``sbtype=sb16vibra`` variation, which emulates the SoundBlaster ViBRA16.
+NOTE: DOSBox-X also provides a ``sbtype=sb16vibra`` variation, which emulates the Sound Blaster ViBRA16.
 There is no advantage for games to use the sb16vibra over the sb16.
 The only advantage it offers is support for PnP (Plug-and-Play), which is to allow later Windows version like Windows 95 to detect it easier.
 
@@ -442,15 +442,15 @@ The only advantage it offers is support for PnP (Plug-and-Play), which is to all
 
 This represents the following variations:
 
-* sb1 = SoundBlaster 1.0 or 1.5
-* sb2 = SoundBlaster 2.0
-* sbpro1 = SoundBlaster Pro
-* sbpro2 = SoundBlaster Pro 2
-* sb16 = SoundBlaster 16
-* sb16vibra = SoundBlaster ViBRA16
-* gb = CMS / GameBlaster
-* ess688 = ESS688 AudioDrive
-* reveal_sc400 = Reveal SC400
+* `sbtype=sb1` - Sound Blaster 1.0 or 1.5
+* `sbtype=sb2` - Sound Blaster 2.0
+* `sbtype=sbpro1` - Sound Blaster Pro
+* `sbtype=sbpro2` - Sound Blaster Pro 2
+* `sbtype=sb16` - Sound Blaster 16
+* `sbtype=sb16vibra` - Sound Blaster ViBRA16
+* `sbtype=gb` - Creative Music System (CMS) / Game Blaster
+* `sbtype=ess688` - ESS688 AudioDrive
+* `sbtype=reveal_sc400` - Reveal SC400
 
 ===== sbbase
 * Default value: 220 (or d2 for PC-98)
@@ -593,7 +593,7 @@ This option is needed for:
 
 Allow the Sound Blaster mixer to modify the DOSBox-X mixer.
 
-Starting with the SoundBlaster Pro, there is a software mixer to change the volume levels and mute certain inputs.
+Starting with the Sound Blaster Pro, there is a software mixer to change the volume levels and mute certain inputs.
 This allows software, such as games, to change the volume levels, which may be undesirable.
 
 When this option is set to false, volume level changes will be ignored.
@@ -605,7 +605,7 @@ When this option is set to false, volume level changes will be ignored.
 Type of Yamaha OPL emulation.
 
 - auto = the mode is determined by the ``sbtype=`` setting
-- cms = Philips SAA1099 as used in the CMS / GameBlaster (not OPL compatible)
+- cms = Philips SAA1099 as used in the CMS / Game Blaster (not OPL compatible)
 - opl2 = Yamaha OPL2
 - dualopl2 = Two Yamaha OPL2 chips for stereo, like the SB Pro.
 - opl3 = Yamaha OPL3
@@ -808,7 +808,7 @@ This option only applies when ``sbtype=`` is set to sb1 or sb2 (not SBPro or SB1
 This is a hack for the Electromotive Force 'Internal Damage' demo which apparently relies on this behaviour for Sound Blaster output and should be enabled for accuracy in emulation.
 
 === AdLib Gold 1000
-The AdLib Gold 1000 was released in 1992. It is backward compatible with the earlier *AdLib Music Synthesizer Card*, but not with the SoundBlaster cards.
+The AdLib Gold 1000 was released in 1992. It is backward compatible with the earlier *AdLib Music Synthesizer Card*, but not with the Sound Blaster cards.
 
 This card is only partly emulated, for instance no DAC emulation, by using the following config settings:
 ....
@@ -831,8 +831,8 @@ This chip was used by a range of sound cards from different manufacturers, and i
 It provides backward compatibility with:
 
 - AdLib
-- SoundBlaster 1.x
-- SoundBlaster Pro 2
+- Sound Blaster 1.x
+- Sound Blaster Pro 2
 - Windows Sound System
 
 NOTE: ESS688 emulation is experimental, it is not meant for regular use.
@@ -846,8 +846,8 @@ It was also offered by Packard Bell as the *Forte 16SBP*.
 It provides backward compatibility with:
 
 - AdLib
-- SoundBlaster 2.0
-- SoundBlaster Pro 2
+- Sound Blaster 2.0
+- Sound Blaster Pro 2
 - Windows Sound System
 
 NOTE: Reveal SC400 emulation is experimental, it is not meant for regular use.
@@ -861,7 +861,7 @@ It was one of the first to introduce 16bit 44.1kHz stereo, a hardware mixer, and
 It was a popular sound card in certain circles, such as the demo scene, but never gained much traction with game developers.
 
 The downside is that it offered no hardware compatibility with other sound cards.
-It did ship with a TSR (SBOS) that needed to be loaded into memory to provide AdLib or SoundBlaster emulation, but this caused many issues.
+It did ship with a TSR (SBOS) that needed to be loaded into memory to provide AdLib or Sound Blaster emulation, but this caused many issues.
 
 In practice, you only want to use this option, if the GUS is specifically supported by the software.
 
@@ -1014,7 +1014,7 @@ The DMA channel of the Gravis UltraSound.
 * Default value: none
 * Valid values: none, cs_equ_ds
 
-irq hack: Specify a hack related to the Gravis UltraSound IRQ to avoid crashes in a handful of games and demos.
+Specify a hack related to the Gravis UltraSound IRQ to avoid crashes in a handful of games and demos.
 
 - none = Emulate IRQs normally
 - cs_equ_ds = Do not fire IRQ unless two CPU segment registers match: CS == DS.
@@ -1027,12 +1027,12 @@ Read DOSBox-X Wiki or source code for details.
 
 Type of Gravis UltraSound to emulate.
 
-- classic = Original Gravis UltraSound chipset
-- classic37 = Original Gravis UltraSound with ICS Mixer (rev 3.7)
-- max = Gravis UltraSound MAX emulation (with CS4231 codec)
-- interwave = Gravis UltraSound Plug & Play (Interwave)
+- `gustype=classic` - Original Gravis UltraSound chipset
+- `gustype=classic37` - Original Gravis UltraSound with ICS Mixer (rev 3.7)
+- `gustype=max` - Gravis UltraSound MAX emulation (with CS4231 codec)
+- `gustype=interwave` - Gravis UltraSound Plug & Play (Interwave)
 
-NOTE: MAX and Interwave emulation is experimental, they are not meant for regular use.
+NOTE: MAX and Interwave emulation is experimental, and meant for developers only. The MAX emulation is mostly complete, except for missing support for the WSS codec chip.
 
 ===== ultradir
 * Default value: C:\ULTRASND

@@ -730,6 +730,9 @@ colors=(0,0,0) #0e0e0e (75,75,75) (89,89,89) (38,38,38) (52,52,52) #717171 #c0c0
 </code></p>
 </div>
 <div class="paragraph">
+<p>Starting with DOSBox-X version 0.83.24, DOSBox-X will stay with the preset color scheme when switching from another output if there is a leading <code>&#43;</code> sign for the <code>colors</code> setting, e.g. <code>colors=+(0,0,0) …</code></p>
+</div>
+<div class="paragraph">
 <p>The color schemes can also be changed when DOSBox-X is running. There is a <code>SETCOLOR</code> command in DOSBox-X which allows to view or change the current color scheme. For example, entering <code>SETCOLOR</code> without parameters will display the current color scheme.</p>
 </div>
 <div class="paragraph">
@@ -749,6 +752,14 @@ SETCOLOR 1 -
 </code></p>
 </div>
 <div class="paragraph">
+<p>Or return it to the color scheme as specified by the <code>colors</code> config option (if set):</p>
+</div>
+<div class="paragraph">
+<p><code>
+SETCOLOR 1 &#43;
+</code></p>
+</div>
+<div class="paragraph">
 <p>(Starting with DOSBox-X version 0.83.19, there is also a menu option <code>Reset TTF color scheme</code> in the <code>TTF options</code> menu group to return the whole color scheme to the default one)</p>
 </div>
 <div class="paragraph">
@@ -762,7 +773,7 @@ SETCOLOR 1 -
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-03-04 15:16:36 -0500
+Last updated 2022-04-01 13:40:06 -0400
 </div>
 </div>
 </body>

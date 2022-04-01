@@ -480,6 +480,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_install_windows_3_x_into_a_dos_hdd_image">Install Windows 3.x into a DOS HDD image</a></li>
 <li><a href="#_starting_windows_3_x_after_installation">Starting Windows 3.x after installation</a></li>
 <li><a href="#_steps_to_take_after_installation">Steps to take after installation</a></li>
+<li><a href="#_mouse_support">Mouse support</a></li>
 <li><a href="#_enabling_32_bit_file_and_disk_access">Enabling 32-bit File and Disk access</a></li>
 <li><a href="#_enabling_networking">Enabling networking</a>
 <ul class="sectlevel2">
@@ -1217,6 +1218,34 @@ SETUP</pre>
 </div>
 </div>
 <div class="sect1">
+<h2 id="_mouse_support">Mouse support</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default Windows 3.x will find a PS/2 mouse when installed in DOSBox-X.
+This mouse support has an important limitation, namely you need to lock the mouse to the session to interact with Windows 3.x and need to unlock it to go outside DOSBox-X.</p>
+</div>
+<div class="paragraph">
+<p>DOSBox-X 0.83.24 or later however also supports the VMware mouse protocol, and there is a 3rd party <a href="https://github.com/NattyNarwhal/vmwmouse">VMware mouse driver for Windows 3.x</a> written by NattyNarwhal.
+As such you can install the VMware mouse driver for Windows 3.x and you will be able to move the mouse in and out of DOSBox-X seamlessly.</p>
+</div>
+<div class="paragraph">
+<p>Simply run the DOS based SETUP.EXE program for Windows 3.x and select "Mouse" followed by "Other". Then type the location where you saved the unpacked VMware mouse driver for Windows 3.x.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+It seems that although the driver title says it&#8217;s for Windows 3.x, it only works on Windows 3.1x for now.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_enabling_32_bit_file_and_disk_access">Enabling 32-bit File and Disk access</h2>
 <div class="sectionbody">
 <div class="ulist">
@@ -1665,7 +1694,7 @@ While DOSBox-X&#8217;s integrated SHARE feature was improved compared to that of
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-03-04 15:16:36 -0500
+Last updated 2022-04-01 13:40:06 -0400
 </div>
 </div>
 </body>

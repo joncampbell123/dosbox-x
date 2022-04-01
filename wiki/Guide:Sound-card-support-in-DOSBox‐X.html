@@ -462,10 +462,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_ibm_pcjr">IBM PCjr</a></li>
 <li><a href="#_tandy_1000">Tandy 1000</a></li>
 <li><a href="#_adlib_music_synthesizer_card">AdLib Music Synthesizer Card</a></li>
-<li><a href="#_cms_gameblaster">CMS / GameBlaster</a></li>
+<li><a href="#_cms_game_blaster">CMS / Game Blaster</a></li>
 <li><a href="#_ibm_ps1_audio_card">IBM PS/1 Audio Card</a></li>
 <li><a href="#_disney_sound_source">Disney Sound Source</a></li>
-<li><a href="#_creative_soundblaster">Creative SoundBlaster</a></li>
+<li><a href="#_creative_sound_blaster">Creative Sound Blaster</a></li>
 <li><a href="#_adlib_gold_1000">AdLib Gold 1000</a></li>
 <li><a href="#_ess688_audiodrive">ESS688 AudioDrive</a></li>
 <li><a href="#_reveal_sc400">Reveal SC400</a></li>
@@ -489,7 +489,7 @@ This document attempts to help the novice user, especially those that never expe
 The available audio option can be found in a few sections, such as <code>[pcspeaker]</code>, <code>[sblaster]</code>, <code>[gus]</code> and <code>[innova]</code>.</p>
 </div>
 <div class="paragraph">
-<p>By default, DOSBox-X just like regular DOSBox on which is it based, enables emulation of a <strong>PC Speaker</strong> and the <strong>SoundBlaster 16</strong>.</p>
+<p>By default, DOSBox-X just like regular DOSBox on which is it based, enables emulation of a <strong>PC Speaker</strong> and the <strong>Sound Blaster 16</strong>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -693,7 +693,7 @@ Depending on the game, this may mean that you get MIDI background music, but no 
 Some games however did try to map all or some of the sound effects to MIDI sounds.</p>
 </div>
 <div class="paragraph">
-<p>Some later DOS games may offer you separate options for Audio and Music, such that you can have the SoundBlaster for Audio like effects and/or speech, and MIDI for music.</p>
+<p>Some later DOS games may offer you separate options for Audio and Music, such that you can have the Sound Blaster for Audio like effects and/or speech, and MIDI for music.</p>
 </div>
 <div class="paragraph">
 <p>During the early CD-ROM era some games stopped supporting MIDI and replaced the music with CD Audio streamed from the CD during gameplay.</p>
@@ -884,7 +884,7 @@ Enabling Tandy mode this way, also enables Tandy video emulation
 <div class="title">Note</div>
 </td>
 <td class="content">
-The Tandy DAC will be disabled if SoundBlaster emulation is enabled, due to resource conflicts.
+The Tandy DAC will be disabled if Sound Blaster emulation is enabled, due to resource conflicts.
 So to enable the Tandy DAC, you need to set <code>sblaster=none</code>.
 </td>
 </tr>
@@ -969,7 +969,7 @@ oplmode=opl2</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>However, the above is normally not needed as the later SoundBlaster cards, such as the sb16 that DOSBox-X by default emulates, are all backward compatible with the AdLib.</p>
+<p>However, the above is normally not needed as the later Sound Blaster cards, such as the sb16 that DOSBox-X by default emulates, are all backward compatible with the AdLib.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -998,13 +998,13 @@ Some programs may require the AdLib <code>SOUND.COM</code> TSR to be loaded. See
 </div>
 </div>
 <div class="sect2">
-<h3 id="_cms_gameblaster">CMS / GameBlaster</h3>
+<h3 id="_cms_game_blaster">CMS / Game Blaster</h3>
 <div class="paragraph">
 <p>FM synthesizer card, released by Creative Technology in 1987.
-Originally named the <strong>Creative Music System</strong> (CMS), but the year after rebranded as the <strong>GameBlaster</strong>.</p>
+Originally named the <strong>Creative Music System</strong> (CMS), but the year after rebranded as the <strong>Game Blaster</strong>.</p>
 </div>
 <div class="paragraph">
-<p>CMS/GameBlaster emulation can be enabled by setting <code>sbtype=gb</code> in the <code>[sblaster]</code> section of your config file.</p>
+<p>CMS/Game Blaster emulation can be enabled by setting <code>sbtype=gb</code> in the <code>[sblaster]</code> section of your config file.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1021,7 +1021,7 @@ Some programs may require the Creative <code>CMSDRV.COM</code> TSR to be loaded.
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://www.mobygames.com/attribute/sheet/attributeId,42/p,2/">MobyGames: Games supporting the GameBlaster</a></p>
+<p><a href="https://www.mobygames.com/attribute/sheet/attributeId,42/p,2/">MobyGames: Games supporting the Game Blaster</a></p>
 </li>
 <li>
 <p><a href="http://www.dosdays.co.uk/topics/Manufacturers/creative.php">DOS Days: Creative Labs</a></p>
@@ -1133,9 +1133,9 @@ This feature is backward compatible with the <strong>Covox Speech Thing</strong>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_creative_soundblaster">Creative SoundBlaster</h3>
+<h3 id="_creative_sound_blaster">Creative Sound Blaster</h3>
 <div class="paragraph">
-<p>Creative Technology created a range of SoundBlaster cards, which quickly became the industry standard for PC sound.</p>
+<p>Creative Technology created a range of Sound Blaster cards, which quickly became the industry standard for PC sound.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1162,9 +1162,9 @@ Some programs may require the Creative <code>SBFMDRV.COM</code> TSR or <code>CT-
 </table>
 </div>
 <div class="sect3">
-<h4 id="_soundblaster_1_x">SoundBlaster 1.x</h4>
+<h4 id="_sound_blaster_1_x">Sound Blaster 1.x</h4>
 <div class="paragraph">
-<p>The SoundBlaster 1.0 was released by Creative Technology in 1989, followed a year later by the cost-reduced SoundBlaster 1.5.</p>
+<p>The Sound Blaster 1.0 was released by Creative Technology in 1989, followed a year later by the cost-reduced Sound Blaster 1.5.</p>
 </div>
 <div class="paragraph">
 <p>Some key features of the SB 1.x cards</p>
@@ -1175,7 +1175,7 @@ Some programs may require the Creative <code>SBFMDRV.COM</code> TSR or <code>CT-
 <p>Backward compatible with the AdLib</p>
 </li>
 <li>
-<p>Backward compatible with the CMS/GameBlaster (optional for the SB 1.5)</p>
+<p>Backward compatible with the CMS/Game Blaster (optional for the SB 1.5)</p>
 </li>
 <li>
 <p>8bit 22kHz DAC for digital samples</p>
@@ -1183,13 +1183,13 @@ Some programs may require the Creative <code>SBFMDRV.COM</code> TSR or <code>CT-
 </ul>
 </div>
 <div class="paragraph">
-<p>SoundBlaster 1.x emulation can be enabled by setting <code>sbtype=sb1</code> in the <code>[sblaster]</code> section of your config file.</p>
+<p>Sound Blaster 1.x emulation can be enabled by setting <code>sbtype=sb1</code> in the <code>[sblaster]</code> section of your config file.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_soundblaster_2_0">SoundBlaster 2.0</h4>
+<h4 id="_sound_blaster_2_0">Sound Blaster 2.0</h4>
 <div class="paragraph">
-<p>The SoundBlaster 2.0 was released by Creative Technology in October 1991.</p>
+<p>The Sound Blaster 2.0 was released by Creative Technology in October 1991.</p>
 </div>
 <div class="paragraph">
 <p>Some key features of the SB 2.0</p>
@@ -1200,10 +1200,10 @@ Some programs may require the Creative <code>SBFMDRV.COM</code> TSR or <code>CT-
 <p>Backward compatible with AdLib</p>
 </li>
 <li>
-<p>Optional backward compatibility with CMS/GameBlaster</p>
+<p>Optional backward compatibility with CMS/Game Blaster</p>
 </li>
 <li>
-<p>Backward compatible with the SoundBlaster 1.x</p>
+<p>Backward compatible with the Sound Blaster 1.x</p>
 </li>
 <li>
 <p>8bit 44kHz DAC for digital samples</p>
@@ -1211,13 +1211,13 @@ Some programs may require the Creative <code>SBFMDRV.COM</code> TSR or <code>CT-
 </ul>
 </div>
 <div class="paragraph">
-<p>SoundBlaster 2.0 emulation can be enabled by setting <code>sbtype=sb2</code> in the <code>[sblaster]</code> section of your config file.</p>
+<p>Sound Blaster 2.0 emulation can be enabled by setting <code>sbtype=sb2</code> in the <code>[sblaster]</code> section of your config file.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_soundblaster_pro">SoundBlaster Pro</h4>
+<h4 id="_sound_blaster_pro">Sound Blaster Pro</h4>
 <div class="paragraph">
-<p>The SoundBlaster Pro was released by Creative Technology in May 1991.</p>
+<p>The Sound Blaster Pro was released by Creative Technology in May 1991.</p>
 </div>
 <div class="paragraph">
 <p>Some key features of the SB Pro</p>
@@ -1228,10 +1228,10 @@ Some programs may require the Creative <code>SBFMDRV.COM</code> TSR or <code>CT-
 <p>Backward compatible with the AdLib</p>
 </li>
 <li>
-<p>Backward compatible with the SoundBlaster 1.x</p>
+<p>Backward compatible with the Sound Blaster 1.x</p>
 </li>
 <li>
-<p>Backward compatible with the SoundBlaster 2.0</p>
+<p>Backward compatible with the Sound Blaster 2.0</p>
 </li>
 <li>
 <p>Dual Yamaha OPL2 for stereo FM sound</p>
@@ -1267,13 +1267,13 @@ Therefore, it is important that you select the right SB Pro model in DOSBox-X an
 </table>
 </div>
 <div class="paragraph">
-<p>SoundBlaster Pro emulation can be enabled by setting <code>sbtype=sbpro1</code> in the <code>[sblaster]</code> section of your config file.</p>
+<p>Sound Blaster Pro emulation can be enabled by setting <code>sbtype=sbpro1</code> in the <code>[sblaster]</code> section of your config file.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_soundblaster_pro_2">SoundBlaster Pro 2</h4>
+<h4 id="_sound_blaster_pro_2">Sound Blaster Pro 2</h4>
 <div class="paragraph">
-<p>The SoundBlaster Pro 2 was released by Creative Technology in 1991, and quickly replaced the earlier SB Pro.</p>
+<p>The Sound Blaster Pro 2 was released by Creative Technology in 1991, and quickly replaced the earlier SB Pro.</p>
 </div>
 <div class="paragraph">
 <p>Some key features of the SB Pro 2</p>
@@ -1284,10 +1284,10 @@ Therefore, it is important that you select the right SB Pro model in DOSBox-X an
 <p>Backward compatible with the AdLib</p>
 </li>
 <li>
-<p>Backward compatible with the SoundBlaster 1.x</p>
+<p>Backward compatible with the Sound Blaster 1.x</p>
 </li>
 <li>
-<p>Backward compatible with the SoundBlaster 2.0</p>
+<p>Backward compatible with the Sound Blaster 2.0</p>
 </li>
 <li>
 <p>Single Yamaha OPL3 for stereo FM sound</p>
@@ -1308,13 +1308,13 @@ Therefore, it is important that you select the right SB Pro model in DOSBox-X an
 </table>
 </div>
 <div class="paragraph">
-<p>SoundBlaster Pro 2 emulation can be enabled by setting <code>sbtype=sbpro2</code> in the <code>[sblaster]</code> section of your config file.</p>
+<p>Sound Blaster Pro 2 emulation can be enabled by setting <code>sbtype=sbpro2</code> in the <code>[sblaster]</code> section of your config file.</p>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_soundblaster_16">SoundBlaster 16</h4>
+<h4 id="_sound_blaster_16">Sound Blaster 16</h4>
 <div class="paragraph">
-<p>The SoundBlaster 16 was released by Creative Technology in June 1992.</p>
+<p>The Sound Blaster 16 was released by Creative Technology in June 1992.</p>
 </div>
 <div class="paragraph">
 <p>Some key features of the SB 16</p>
@@ -1325,13 +1325,13 @@ Therefore, it is important that you select the right SB Pro model in DOSBox-X an
 <p>Backward compatible with the AdLib</p>
 </li>
 <li>
-<p>Backward compatible with the SoundBlaster 1.x</p>
+<p>Backward compatible with the Sound Blaster 1.x</p>
 </li>
 <li>
-<p>Backward compatible with the SoundBlaster 2.0</p>
+<p>Backward compatible with the Sound Blaster 2.0</p>
 </li>
 <li>
-<p>Backward compatible with the SoundBlaster Pro 2</p>
+<p>Backward compatible with the Sound Blaster Pro 2</p>
 </li>
 <li>
 <p>16bit 44kHz DAC for digital samples</p>
@@ -1339,7 +1339,7 @@ Therefore, it is important that you select the right SB Pro model in DOSBox-X an
 </ul>
 </div>
 <div class="paragraph">
-<p>SoundBlaster 16 emulation is enabled by default, and can be enabled by setting <code>sbtype=sb16</code> in the <code>[sblaster]</code> section of your config file.</p>
+<p>Sound Blaster 16 emulation is enabled by default, and can be enabled by setting <code>sbtype=sb16</code> in the <code>[sblaster]</code> section of your config file.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1348,7 +1348,7 @@ Therefore, it is important that you select the right SB Pro model in DOSBox-X an
 <div class="title">Note</div>
 </td>
 <td class="content">
-DOSBox-X also provides a <code>sbtype=sb16vibra</code> variation, which emulates the SoundBlaster ViBRA16.
+DOSBox-X also provides a <code>sbtype=sb16vibra</code> variation, which emulates the Sound Blaster ViBRA16.
 There is no advantage for games to use the sb16vibra over the sb16.
 The only advantage it offers is support for PnP (Plug-and-Play), which is to allow later Windows version like Windows 95 to detect it easier.
 </td>
@@ -1376,31 +1376,31 @@ The only advantage it offers is support for PnP (Plug-and-Play), which is to all
 <div class="ulist">
 <ul>
 <li>
-<p>sb1 = SoundBlaster 1.0 or 1.5</p>
+<p><code>sbtype=sb1</code> - Sound Blaster 1.0 or 1.5</p>
 </li>
 <li>
-<p>sb2 = SoundBlaster 2.0</p>
+<p><code>sbtype=sb2</code> - Sound Blaster 2.0</p>
 </li>
 <li>
-<p>sbpro1 = SoundBlaster Pro</p>
+<p><code>sbtype=sbpro1</code> - Sound Blaster Pro</p>
 </li>
 <li>
-<p>sbpro2 = SoundBlaster Pro 2</p>
+<p><code>sbtype=sbpro2</code> - Sound Blaster Pro 2</p>
 </li>
 <li>
-<p>sb16 = SoundBlaster 16</p>
+<p><code>sbtype=sb16</code> - Sound Blaster 16</p>
 </li>
 <li>
-<p>sb16vibra = SoundBlaster ViBRA16</p>
+<p><code>sbtype=sb16vibra</code> - Sound Blaster ViBRA16</p>
 </li>
 <li>
-<p>gb = CMS / GameBlaster</p>
+<p><code>sbtype=gb</code> - Creative Music System (CMS) / Game Blaster</p>
 </li>
 <li>
-<p>ess688 = ESS688 AudioDrive</p>
+<p><code>sbtype=ess688</code> - ESS688 AudioDrive</p>
 </li>
 <li>
-<p>reveal_sc400 = Reveal SC400</p>
+<p><code>sbtype=reveal_sc400</code> - Reveal SC400</p>
 </li>
 </ul>
 </div>
@@ -1727,7 +1727,7 @@ Set this option for some early DOS demos that make that assumption about port 22
 <p>Allow the Sound Blaster mixer to modify the DOSBox-X mixer.</p>
 </div>
 <div class="paragraph">
-<p>Starting with the SoundBlaster Pro, there is a software mixer to change the volume levels and mute certain inputs.
+<p>Starting with the Sound Blaster Pro, there is a software mixer to change the volume levels and mute certain inputs.
 This allows software, such as games, to change the volume levels, which may be undesirable.</p>
 </div>
 <div class="paragraph">
@@ -1755,7 +1755,7 @@ This allows software, such as games, to change the volume levels, which may be u
 <p>auto = the mode is determined by the <code>sbtype=</code> setting</p>
 </li>
 <li>
-<p>cms = Philips SAA1099 as used in the CMS / GameBlaster (not OPL compatible)</p>
+<p>cms = Philips SAA1099 as used in the CMS / Game Blaster (not OPL compatible)</p>
 </li>
 <li>
 <p>opl2 = Yamaha OPL2</p>
@@ -2235,7 +2235,7 @@ If 0, busy cycle emulation is disabled.</p>
 <div class="sect2">
 <h3 id="_adlib_gold_1000">AdLib Gold 1000</h3>
 <div class="paragraph">
-<p>The AdLib Gold 1000 was released in 1992. It is backward compatible with the earlier <strong>AdLib Music Synthesizer Card</strong>, but not with the SoundBlaster cards.</p>
+<p>The AdLib Gold 1000 was released in 1992. It is backward compatible with the earlier <strong>AdLib Music Synthesizer Card</strong>, but not with the Sound Blaster cards.</p>
 </div>
 <div class="paragraph">
 <p>This card is only partly emulated, for instance no DAC emulation, by using the following config settings:</p>
@@ -2288,10 +2288,10 @@ This chip was used by a range of sound cards from different manufacturers, and i
 <p>AdLib</p>
 </li>
 <li>
-<p>SoundBlaster 1.x</p>
+<p>Sound Blaster 1.x</p>
 </li>
 <li>
-<p>SoundBlaster Pro 2</p>
+<p>Sound Blaster Pro 2</p>
 </li>
 <li>
 <p>Windows Sound System</p>
@@ -2333,10 +2333,10 @@ It was also offered by Packard Bell as the <strong>Forte 16SBP</strong>.</p>
 <p>AdLib</p>
 </li>
 <li>
-<p>SoundBlaster 2.0</p>
+<p>Sound Blaster 2.0</p>
 </li>
 <li>
-<p>SoundBlaster Pro 2</p>
+<p>Sound Blaster Pro 2</p>
 </li>
 <li>
 <p>Windows Sound System</p>
@@ -2374,7 +2374,7 @@ It was a popular sound card in certain circles, such as the demo scene, but neve
 </div>
 <div class="paragraph">
 <p>The downside is that it offered no hardware compatibility with other sound cards.
-It did ship with a TSR (SBOS) that needed to be loaded into memory to provide AdLib or SoundBlaster emulation, but this caused many issues.</p>
+It did ship with a TSR (SBOS) that needed to be loaded into memory to provide AdLib or Sound Blaster emulation, but this caused many issues.</p>
 </div>
 <div class="paragraph">
 <p>In practice, you only want to use this option, if the GUS is specifically supported by the software.</p>
@@ -2753,7 +2753,7 @@ Reducing the master volume can help with games or demoscene productions where th
 </ul>
 </div>
 <div class="paragraph">
-<p>irq hack: Specify a hack related to the Gravis UltraSound IRQ to avoid crashes in a handful of games and demos.</p>
+<p>Specify a hack related to the Gravis UltraSound IRQ to avoid crashes in a handful of games and demos.</p>
 </div>
 <div class="ulist">
 <ul>
@@ -2787,16 +2787,16 @@ Reducing the master volume can help with games or demoscene productions where th
 <div class="ulist">
 <ul>
 <li>
-<p>classic = Original Gravis UltraSound chipset</p>
+<p><code>gustype=classic</code> - Original Gravis UltraSound chipset</p>
 </li>
 <li>
-<p>classic37 = Original Gravis UltraSound with ICS Mixer (rev 3.7)</p>
+<p><code>gustype=classic37</code> - Original Gravis UltraSound with ICS Mixer (rev 3.7)</p>
 </li>
 <li>
-<p>max = Gravis UltraSound MAX emulation (with CS4231 codec)</p>
+<p><code>gustype=max</code> - Gravis UltraSound MAX emulation (with CS4231 codec)</p>
 </li>
 <li>
-<p>interwave = Gravis UltraSound Plug &amp; Play (Interwave)</p>
+<p><code>gustype=interwave</code> - Gravis UltraSound Plug &amp; Play (Interwave)</p>
 </li>
 </ul>
 </div>
@@ -2807,7 +2807,7 @@ Reducing the master volume can help with games or demoscene productions where th
 <div class="title">Note</div>
 </td>
 <td class="content">
-MAX and Interwave emulation is experimental, they are not meant for regular use.
+MAX and Interwave emulation is experimental, and meant for developers only. The MAX emulation is mostly complete, except for missing support for the WSS codec chip.
 </td>
 </tr>
 </table>
@@ -2929,7 +2929,7 @@ Patch sets as used with Timidity should work fine.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-03-04 15:16:36 -0500
+Last updated 2022-04-01 13:40:06 -0400
 </div>
 </div>
 </body>

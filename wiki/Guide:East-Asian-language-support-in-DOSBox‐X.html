@@ -456,8 +456,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_east_asian_language_and_system_support">East Asian language and system support</a>
 <ul class="sectlevel1">
 <li><a href="#_truetype_font_output_with_cjk_support">TrueType font output with CJK support</a></li>
-<li><a href="#_dosv_support">DOS/V support</a></li>
 <li><a href="#_standard_outputs_with_cjk_support">Standard outputs with CJK support</a></li>
+<li><a href="#_dosv_support">DOS/V support</a></li>
 <li><a href="#_j_3100_mode">J-3100 mode</a></li>
 <li><a href="#_pc_98_mode">PC-98 mode</a></li>
 <li><a href="#_ax_jega_mode">AX (JEGA) mode</a></li>
@@ -467,7 +467,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 <div class="paragraph">
-<p>DOSBox-X is designed to be complete DOS emulator and provides official support for East Asian languages and systems, including (Simplified and Traditional) Chinese, Japanese, and Korean languages in different emulation modes. These languages use double-byte character set (DBCS) to render text instead of using standard ASCII characters. All of these languages are well-supported in DOS/V modes or the TrueType font (TTF) output with CJK code pages (932, 936, 949, and 950), with additional support for the Japanese language in the J-3100 DCGA, PC-98, and AX (JEGA) modes. There are also translation files for almost all of these languages available for use with DOSBox-X so that the user interfaces will be displayed in these languages:</p>
+<p>DOSBox-X is designed to be complete DOS emulator and provides official support for East Asian languages and systems, including (Simplified and Traditional) Chinese, Japanese, and Korean languages in different emulation modes. These languages use double-byte character set (DBCS) to render text instead of using standard ASCII characters. All of these languages are well-supported in DOS/V modes and either the TrueType font (TTF) output or a standard (non-TTF) output with CJK code pages (932, 936, 949, and 950), with additional support for the Japanese language in the J-3100 DCGA, PC-98, and AX (JEGA) modes. There are also translation files for almost all of these languages available for use with DOSBox-X so that the user interfaces will be displayed in these languages:</p>
 </div>
 <div class="paragraph">
 <p>Japanese language file: <a href="https://raw.githubusercontent.com/joncampbell123/dosbox-x/master/contrib/translations/ja/ja_JP.lng">ja_JP.lng</a></p>
@@ -487,7 +487,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="_truetype_font_output_with_cjk_support">TrueType font output with CJK support</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>As a general DOS emulation environment, you can enable CJK support using the TrueType font (TTF) output with a CJK code page (932 for Japanese, 936 for Simplified Chinese, 949 for Korean, and 950 for Traditional Chinese). General information about DOSBox-X&#8217;s TrueType font output is available from the <a href="Guide%3AUsing-TrueType-font-output-in-DOSBox‐X">TrueType font output guide page</a>. Set the code page with either the <code>country</code> option in [config] section of the config file, or using <code>CHCP</code> command, such as <code>country=81,932</code> or <code>CHCP 932</code> for Japanese. The default TTF font bundled with DOSBox-X does not support Chinese/Japanese/Korean characters, but there are many TTF fonts (or TTC/OTF fonts) available containing support for CJK characters, and you can load them for the TTF output via the <code>font</code> config option in [ttf] section of the config file. Some of these fonts (such as <a href="https://unifoundry.com/unifont/">GNU Unifont</a> and <a href="https://github.com/be5invis/Sarasa-Gothic">Sarasa Gothic</a>) are intended to cover all CJK languages, whereas other TTF fonts (e.g. MigMix or M+ fonts) are intended to cover only characters of a specific CJK language. TTF or TTC fonts like <code>simkai.ttf</code>, <code>simhei.ttf</code>, and <code>mingliu.ttc</code> are included in some versions of Windows, so you need to only specify a setting like <code>font=simkai</code> or <code>font=mingliu.ttc</code> to load them in such cases. Otherwise you will need to download TTF fonts and load them accordingly. The <code>SarasaGothicFixed.ttf</code> and <code>UnifontFullMediumMono.ttf</code> font files are also available in the DOSBox-X repository for download:</p>
+<p>As a general DOS emulation environment, you can enable CJK support using the TrueType font (TTF) output with a CJK code page (932 for Japanese, 936 for Simplified Chinese, 949 for Korean, and 950/951 for Traditional Chinese). General information about DOSBox-X&#8217;s TrueType font output is available from the <a href="Guide%3AUsing-TrueType-font-output-in-DOSBox‐X">TrueType font output guide page</a>. Set the code page with either the <code>country</code> option in [config] section of the config file, or using <code>CHCP</code> command, such as <code>country=81,932</code> or <code>CHCP 932</code> for Japanese. The default TTF font bundled with DOSBox-X does not support Chinese/Japanese/Korean characters, but there are many TTF fonts (or TTC/OTF fonts) available containing support for CJK characters, and you can load them for the TTF output via the <code>font</code> config option in [ttf] section of the config file. Some of these fonts (such as <a href="https://unifoundry.com/unifont/">GNU Unifont</a> and <a href="https://github.com/be5invis/Sarasa-Gothic">Sarasa Gothic</a>) are intended to cover all CJK languages, whereas other TTF fonts (e.g. MigMix or M+ fonts) are intended to cover only characters of a specific CJK language. TTF or TTC fonts like <code>simkai.ttf</code>, <code>simhei.ttf</code>, and <code>mingliu.ttc</code> are included in some versions of Windows, so you need to only specify a setting like <code>font=simkai</code> or <code>font=mingliu.ttc</code> to load them in such cases. Otherwise you will need to download TTF fonts and load them accordingly. The <code>SarasaGothicFixed.ttf</code> and <code>UnifontFullMediumMono.ttf</code> font files are also available in the DOSBox-X repository for download:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -507,11 +507,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="https://user-images.githubusercontent.com/8216923/125918507-b0b40979-45c2-4fd1-9ee6-187c198a49c9.png" alt="Truetype font output with the Simplified Chinese code page">
+<img src="https://user-images.githubusercontent.com/8216923/161180291-56216529-9ac2-4d2a-93ba-e81cef721dcc.png" alt="Truetype font output with the Simplified Chinese code page">
 </div>
 </div>
 <div class="paragraph">
-<p>For the Simplified Chinese, the GB2312 charset is supported by default, but you can optionally enable the GBK extension with the <code>gbk</code> config option. Similar for the Traditional Chinese, where the ChinaSea (中國海字集) and Big5-2003 extension for the original Big5-1984 charset can be optionally enabled with the <code>chinasea</code> config option. You can also enable either the GBK or ChinaSea extension from the drop-down menu (inside "Video" &#8658; "TTF options" menu group). Below is a screenshot showing the TrueType font output running <a href="http://cndos.fam.cx/dosware/he5.zip">Hyper Editor 5.03</a> (漢書5) with the Traditional Chinese code page (950) and ChinaSea extension enabled:</p>
+<p>For the Simplified Chinese, the GB2312 charset is supported by default, but you can optionally enable the GBK extension with the <code>gbk</code> config option. Similar for the Traditional Chinese, where the ChinaSea (中國海字集) and Big5-2003 extension for the original Big5-1984 charset can be optionally enabled with the <code>chinasea</code> config option. You can also enable either the GBK or ChinaSea extension from the drop-down menu (inside "Video" &#8658; "TTF options" menu group). Below is a screenshot showing the TrueType font output running <a href="http://cndos.rthost.win/dosware/he5.zip">Hyper Editor 5.03</a> (漢書5) with the Traditional Chinese code page (950) and ChinaSea extension enabled:</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -519,7 +519,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="paragraph">
-<p>There are also other config options for the TrueType font relating to CJK support, such as automatic box-drawing recognition and SBCS &lt;&#8658; DBCS mode switch, as found in the [ttf] section of the config file (such as <code>autodbcs</code> and <code>autoboxdraw</code> options). These can also be toggled dynamically from the drop-down menu (inside "Video" ⇒ "TTF options" menu group). Moreover, as of DOSBox-X 0.83.21 there is a <code>UTF8</code> command which allows to convert text encoded in UTF-8 to view in the current code page.</p>
+<p>There are also other config options for the TrueType font relating to CJK support, such as automatic box-drawing recognition and SBCS &lt;&#8658; DBCS mode switch, as found in the [ttf] section of the config file (such as <code>autodbcs</code> and <code>autoboxdraw</code> options). These can also be toggled dynamically from the drop-down menu (inside "Video" ⇒ "TTF options" menu group), or via keyboard shortcuts as of DOSBox-X 0.83.24. Moreover, as of DOSBox-X 0.83.21 there is a <code>UTF8</code> command which allows to convert text encoded in UTF-8 to view in the current code page.</p>
 </div>
 <div class="paragraph">
 <p>Apart from the code page 950 for the Traditional Chinese, there is also a "hidden" code page 951 which enables the Big5-HKSCS charset (or Big5-UAO charset with the option <code>uao</code> set to <code>true</code>) instead of the Big5-1984 or the Big5-2003 charset. They are however not fully compatible with the ChinaSea extension. If you set <code>chinasea</code> to <code>true</code>, then a subset of either the Big5-HKSCS charset or the Big5-UAO charset will be replaced with ChinaSea characters.</p>
@@ -530,32 +530,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect1">
-<h2 id="_dosv_support">DOS/V support</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Native DOS/V services are also supported by DOSBox-X, with options for Simplified and Traditional Chinese, Japanese, and Korean language modes. There is a [dosv] section in the config file, and you can enable different DOS/V modes with the <code>dosv</code> config option, i.e. <code>chs</code> (<code>cn</code>) for Simplified Chinese DOS/V, <code>cht</code> (<code>tw</code>) for Traditional Chinese DOS/V, <code>jp</code> for Japanese DOS/V, and <code>ko</code> for Korean DOS/V. DOSBox-X will try to get or use the fonts for these languages in the DOS/V mode, but you can also specify your own font files (in FONTX2 formats for Japanese, or <a href="https://github.com/aguegu/BitmapFont/blob/master/font/HZK16">HZK16</a> for Simplified Chinese, or STDFONT.15 from ETen Chinese DOS system for Traditional Chinese) via config options starting with <code>fontx</code> (such as <code>fontxsbcs</code> and <code>fontxdbcs</code> options) in the [dosv] section of the config file. Note that this mode is mainly designed to run DOS/V compatible programs or games, along with some normal DOS software; <strong>for a general DOS CJK environment it is recommended to use the TrueType font output with CJK support (described in the previous section) instead</strong>.</p>
-</div>
-<div class="paragraph">
-<p>A screenshot of the Japanese DOS/V mode:</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="https://user-images.githubusercontent.com/8216923/124234430-036ef700-dae2-11eb-9f22-e744a9bf1e2d.png" alt="Japanese DOS/V emulation">
-</div>
-</div>
-<div class="paragraph">
-<p>In addition, there is a <code>fontxdbcs14</code> option which is useful for displaying CJK characters in the Configuration Tool and Mapper Editor (if you use a language file). It is similar to the <code>fontdbcs</code> option, but it accepts 14-pixel DBCS fonts rather than 16-pixel ones. Use <a href="https://github.com/aguegu/BitmapFont/blob/master/font/HZK14">HZK14</a> for Simplified Chinese, and STDFONT.15 (from ETen Chinese DOS system) for Traditional Chinese.</p>
-</div>
-<div class="paragraph">
-<p>24-pixel fonts are also supported as of DOSBox-X version 0.83.19. You need to use the V-text function of DOS/V in order to enable it. There are 2 V-text modes available, namely vtext1 and vtext2. You can use either (or both) of them for different DOS/V screen modes. It is recommended to set <code>machine=svga_et4000</code> in [dosbox] section in order to use all its screen modes. For example, you can set <code>vtext1=xga24</code> (in addition to <code>machine=svga_et4000</code> and the <code>dosv</code> option) in the configuration, and use the command <code>VTEXT 1</code> to enter vtext1. In such case you can set the <code>fontxdbcs24</code> option which is useful for displaying CJK characters in this screen mode. Similar to the above <code>fontxdbcs14</code> and <code>fontxdbcs16</code> options, you can also use any of the HZK24? fonts (<a href="https://github.com/aguegu/BitmapFont/blob/master/font/">available in this link</a>) for Simplified Chinese, and STDFONT.24 from ETen Chinese DOS system for Traditional Chinese for the <code>fontxdbcs24</code> option.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
 <h2 id="_standard_outputs_with_cjk_support">Standard outputs with CJK support</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Starting with DOSBox-X version 0.83.22, rendering of Chinese/Japanese/Korean characters is also supported in output options rather than the TrueType font output, when a DBCS code page is active, but without enabling a DOS/V mode. This is available for the VGA and EGA machine types, but not for CGA or Hercules machine types. 14-pixel and 16-pixel font options for the DOS/V modes as descripted in the previous section are also supported for this mode. The setting of the <code>fontxdbcs</code> option will apply to the VGA mode whereas the <code>fontxdbcs14</code> option will apply to the EGA mode (and interfaces like the Configuration Tool). As with DOS/V modes DOSBox-X will try to get or use the fonts for the active code page, but you can also specify your own font files as described in the previous section.</p>
+<p>Starting with DOSBox-X version 0.83.22, rendering of Chinese/Japanese/Korean characters is also supported in output options rather than the TrueType font output, when a DBCS code page is active (and without enabling DOS/V services as described in the next section). This is available for the VGA and EGA machine types, but not for CGA or Hercules machine types. 14-pixel and 16-pixel font options for the DOS/V modes as described in the next section are also supported for this mode. The setting of the <code>fontxdbcs</code> option will apply to the VGA mode whereas the <code>fontxdbcs14</code> option will apply to the EGA mode (and interfaces like the Configuration Tool). As with DOS/V modes DOSBox-X will try to get or use the fonts for the active code page, but you can also specify your own font files as described in the next section.</p>
 </div>
 <div class="paragraph">
 <p>A screenshot of the Simplified Chinese code page in DirectX output:</p>
@@ -566,7 +544,29 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="paragraph">
-<p>By default DOSBox-X will render Chinese/Japanese/Korean characters in a DBCS code page with a standard (non-TTF) output (e.g. OpenGL, Direct3D, Surface) if a language file is loaded. But you can change this behavior with the <code>showdbcsdosv</code> config option. If it is set to <code>true</code>, then DOSBox-X will enable the Chinese/Japanese/Korean character rendering in a DBCS code page regardless of whether a language file is loaded; if it is set to <code>false</code>, then DOSBox-X will not render Chinese/Japanese/Korean characters in a DBCS code page in non-DOS/V and non-TTF modes. In every case you can also run external programs such as CCDOS 97, PDOS, and ETen so that Chinese/Japanese/Korean characters will be rendered by such programs.</p>
+<p>By default DOSBox-X will render Chinese/Japanese/Korean characters in a DBCS code page with a standard (non-TTF) output (e.g. OpenGL, Direct3D, Surface) if a language file is loaded (or with setting <code>autodbcs=true</code> in [ttf] section as of DOSBox-X 0.83.24). But you can change this behavior with the <code>showdbcsdosv</code> config option. If it is set to <code>true</code>, then DOSBox-X will enable the Chinese/Japanese/Korean character rendering in a DBCS code page regardless of whether a language file is loaded; if it is set to <code>false</code>, then DOSBox-X will not render Chinese/Japanese/Korean characters in a DBCS code page in non-DOS/V and non-TTF modes. In every case you can also run external programs such as CCDOS 97, PDOS, and ETen so that Chinese/Japanese/Korean characters will be rendered by such programs.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_dosv_support">DOS/V support</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Native DOS/V services are also supported by DOSBox-X, with options for Simplified and Traditional Chinese, Japanese, and Korean language modes. There is a [dosv] section in the config file, and you can enable different DOS/V modes with the <code>dosv</code> config option, i.e. <code>chs</code> (<code>cn</code>) for Simplified Chinese DOS/V, <code>cht</code> (<code>tw</code>) for Traditional Chinese DOS/V, <code>jp</code> for Japanese DOS/V, and <code>ko</code> for Korean DOS/V. DOSBox-X will try to get or use the fonts for these languages in the DOS/V mode, but you can also specify your own font files (in FONTX2 formats for Japanese, or <a href="https://github.com/aguegu/BitmapFont/blob/master/font/HZK16">HZK16</a> for Simplified Chinese, or STDFONT.15 from ETen Chinese DOS system for Traditional Chinese) via config options starting with <code>fontx</code> (such as <code>fontxsbcs</code> and <code>fontxdbcs</code> options) in the [dosv] section of the config file. Note that this mode is mainly designed to run DOS/V compatible programs or games, along with some normal DOS software; <strong>for a general DOS CJK environment it is recommended to use either the TrueType font or standard outputs with CJK support (described in the previous sections) instead</strong>.</p>
+</div>
+<div class="paragraph">
+<p>A screenshot of the Japanese DOS/V mode:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="https://user-images.githubusercontent.com/8216923/161180659-dc4a3ce8-7960-49aa-beb6-4845b228ef8e.png" alt="Japanese DOS/V emulation">
+</div>
+</div>
+<div class="paragraph">
+<p>In addition, there is a <code>fontxdbcs14</code> option which is useful for displaying CJK characters in the Configuration Tool and Mapper Editor (if you use a language file). It is similar to the <code>fontdbcs</code> option, but it accepts 14-pixel DBCS fonts rather than 16-pixel ones. Use <a href="https://github.com/aguegu/BitmapFont/blob/master/font/HZK14">HZK14</a> for Simplified Chinese, and STDFONT.15 (from ETen Chinese DOS system) for Traditional Chinese.</p>
+</div>
+<div class="paragraph">
+<p>24-pixel fonts are also supported as of DOSBox-X version 0.83.19. You need to use the V-text function of DOS/V in order to enable it. There are 2 V-text modes available, namely vtext1 and vtext2. You can use either (or both) of them for different DOS/V screen modes. It is recommended to set <code>machine=svga_et4000</code> in [dosbox] section in order to use all its screen modes. For example, you can set <code>vtext1=xga24</code> (in addition to <code>machine=svga_et4000</code> and the <code>dosv</code> option) in the configuration, and use the command <code>VTEXT 1</code> to enter vtext1. In such case you can set the <code>fontxdbcs24</code> option which is useful for displaying CJK characters in this screen mode. Similar to the above <code>fontxdbcs14</code> and <code>fontxdbcs16</code> options, you can also use any of the HZK24? fonts (<a href="https://github.com/aguegu/BitmapFont/blob/master/font/">available in this link</a>) for Simplified Chinese, and STDFONT.24 from ETen Chinese DOS system for Traditional Chinese for the <code>fontxdbcs24</code> option.</p>
 </div>
 </div>
 </div>
@@ -621,7 +621,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-03-04 15:16:36 -0500
+Last updated 2022-04-01 13:40:06 -0400
 </div>
 </div>
 </body>

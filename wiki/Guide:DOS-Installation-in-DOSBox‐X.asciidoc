@@ -18,11 +18,11 @@ And even if you have an application that requires a specific DOS version, you ca
 
 There are three ways to change the DOS version that DOSBox-X reports:
 
-1. In the DOSBox-X config file, there is a "ver" setting under the [dos] section, or from the DOSBox-X Configuration GUI. For example, setting "ver = 7.1" will cause DOSBox-X to set the initial DOS version as 7.1, instead of the default 5.0.
+1. In the DOSBox-X config file, there is a "ver" setting under the [dos] section, or from the DOSBox-X Configuration Tool. For example, setting ``ver = 7.1`` will cause DOSBox-X to set the initial DOS version as 7.1, instead of the default 5.0.
 2. You can also set the reported DOS version with the ``VER`` command in the DOSBox-X command line. For example, ``VER 6.22`` will cause DOSBox-X to claim to be version 6.22, and ``VER 7.1`` will set the reported DOS version to 7.1 (7.10).
 3. Furthermore, you can select a DOS version to report from the “Reported DOS version” menu (under "DOS"), which includes 3.3, 5.0, 6.22, and 7.1, or you can enter another version by selecting "Edit". The new DOS version will take effect immediately after it is selected or entered.
 
-NOTE: LFN (Long FileName) support will be enabled when the reported version is set to 7.0 or higher with the default setting, and FAT32 disk image support will be enabled when the reported version is set to 7.1 or higher.
+NOTE: LFN (Long File Name) support will be enabled when the reported version is set to 7.0 or higher with the default setting, and FAT32 disk image support will be enabled when the reported version is set to 7.1 or higher.
 
 == Disadvantages of booting DOS in DOSBox-X
 Some disadvantages of booting regular DOS in DOSBox-X includes:
@@ -130,6 +130,7 @@ image::images/MS-DOS:PC-DOS_1.0.png[Booting IBM PC DOS 1.00]
 * link:Guide%3AInstalling-MS‐DOS-6[Guide: Installing MS-DOS 6.x in DOSBox-X]
 * link:Guide%3AInstalling-PC-DOS-6[Guide: Installing PC DOS 6.x in DOSBox-X]
 * link:Guide%3AInstalling-PC-DOS-7[Guide: Installing PC DOS 7/2000 in DOSBox-X]
+* link:Guide%3AInstalling-FreeDOS[Guide: Installing FreeDOS in DOSBox-X]
 
 == Hints and Tips
 === DOS disk caching software

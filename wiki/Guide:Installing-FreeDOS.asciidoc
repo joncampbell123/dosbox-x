@@ -1,0 +1,43 @@
+:toc: macro
+
+Back to the link:Guide%3ADOS-Installation-in-DOSBox‐X[PC DOS and MS-DOS Installation Guide]
+
+== Installing FreeDOS in DOSBox-X
+
+toc::[]
+
+== Overview
+FreeDOS is a free and open-source re-implementation of DOS.
+
+This installation method uses the link:https://www.freedos.org/download/[FreeDOS 1.3 LegacyCD download].
+
+== Creating a HDD image file
+
+NOTE: In addition to the below DOSBox-X command line utility, it is possible to create harddisk images from the DOSBox-X menu.
+Go to the "DOS" menu, and select "Create blank disk image…​".
+This option allows for various common harddisk types to be created, for less common types you need to use the command line utility.
+
+From the DOSBox-X command prompt:
+....
+IMGMAKE hdd.img -t hd -size 2048
+IMGMOUNT C hdd.img
+....
+
+The above example creates a 2GiB HDD image. You can obviously use a different size, up to 2TiB.
+
+== Installing FreeDOS
+Next step is to mount and boot the (El-Torito) ISO CD image.
+....
+IMGMOUNT D FD13LGCY.iso
+IMGMOUNT A -bootcd D
+BOOT A:
+....
+
+It will now boot to the setup program. You should be able to follow the on-screen installation prompts.
+
+After it finished the installation, it will reboot DOSBox-X and your again at the ``Z:\>`` prompt. Now type the following to boot FreeDOS normally.
+....
+IMGMOUNT C hdd.img
+BOOT C:
+....
+These last lines can be added to the `[autoexec]` section of your DOSBox-X config file to automatically mount and boot FreeDOS.

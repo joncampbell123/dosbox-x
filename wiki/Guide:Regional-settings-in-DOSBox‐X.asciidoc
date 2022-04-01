@@ -21,7 +21,7 @@ For example, the date is displayed in MM-DD-YYYY format with the default US sett
 
 ``07-30-2020 12:34p``
 
-If you change the ``COUNTRY=`` setting, the date and time will be displayed in the format associated with the specified country code. For example, 44 is the country code for the UK, and setting the following:
+If you change the ``COUNTRY=`` setting, the date and time will be displayed in the format associated with the specified country code. For example, 44 is the country code (based on the international dialling prefix) for the UK, and setting the following:
 
 ``COUNTRY=44``
 
@@ -76,7 +76,8 @@ A list of supported country codes and their corresponding date and time formats:
 |Yugoslavia|38|2020-01-23|17:35
 |===
 
-With a few exceptions, the above codes are based on the international dialing codes of the respective countries. DOSBox-X will accept any other country code not listed above, but in that case will use the date format 23-01-2020 and 24-hour time format 17:35.
+With a few exceptions, the above codes are based on the international dialing prefixes of the respective countries.
+DOSBox-X will accept any other country code not listed above, but in that case will use the date format 23-01-2020 and 24-hour time format 17:35.
 
 Typing ``COUNTRY`` without parameters from the DOSBox-X command line will display the current country code.
 
@@ -118,7 +119,7 @@ To do this using the graphical configuration tool:
 
 1. Open the "Configuration tool" from the "Main" menu.
 2. Select the "Configuration" menu, then click "Save Language File...".
-3. Either use the default file name or enter a new file name for the language file, then click "OK". 
+3. Either use the default file name or enter a new file name for the language file, then click "OK".
 
 Alternatively, you can let DOSBox-X generate the language file with its built-in ``CONFIG`` command, via its "-wl" (or "-writelang") option. Usage:
 
@@ -132,17 +133,23 @@ Once you finished the customization or translation of the language file, you can
 
 === International keyboard layouts and codepages
 
-The US keyboard layout is used by default in DOSBox-X with code page 437. These can be customized to use a different keyboard layout or code page for DOSBox-X.
+The US keyboard layout is used by default in DOSBox-X with code page 437.
+These can be customized to use a different keyboard layout or code page for DOSBox-X.
 
-When starting DOSBox-X on a Windows system with the default ``keyboardlayout=auto`` config setting, it will try to set the keyboard layout automatically, depending on the host OS region, for a wide range of regions. This may not necessarily match your actual keyboard, or your region may not currently be supported. In addition, the ``auto`` setting has no effect on Linux and macOS.
+When starting DOSBox-X on a Windows system with the default ``keyboardlayout=auto`` config setting, it will try to set the keyboard layout automatically, depending on the host OS region, for a wide range of regions.
+This may not necessarily match your actual keyboard, or your region may not currently be supported.
+In addition, the ``auto`` setting has no effect on Linux and macOS.
 
-You can set your keyboard layout manually in the [dos] section of the dosbox-x.conf file. For instance to set a German keyboard layout you can specify ``keyboardlayout=de``. It will also automatically set a suitable codepage. 
+You can set your keyboard layout manually in the [dos] section of the dosbox-x.conf file.
+For instance to set a German keyboard layout you can specify ``keyboardlayout=de``.
+It will also automatically set a suitable codepage.
 
-Alternatively, the KEYB command can be used from the DOSBox-X command line to change the keyboard layout. For example:
+Alternatively, the KEYB command can be used from the DOSBox-X command line to change the keyboard layout on-the-fly. For example:
 
 ``KEYB UK``
 
-This command will switch the current keyboard layout to the UK keyboard layout and set code page 858. Below is a list of keyboard layouts that can be used in DOSBox, and by extension DOSBox-X.
+This command will switch the current keyboard layout to the UK keyboard layout and set code page 858.
+Below is a list of keyboard layouts that can be used in DOSBox, and by extension DOSBox-X.
 
 |===
 |Keyboard layouts|Country usages
@@ -200,43 +207,62 @@ This command will switch the current keyboard layout to the UK keyboard layout a
 |yu234 (yu)|Yugoslavia
 |===
 
-NOTE: For using layouts marked with * you must have ten ega.cpx files (from FreeDOS) in the DOSBox-X directory. See also the "Support for external keyboard files" section below for more information about this.
+NOTE: Starting with DOSBox 0.83.24, for using layouts marked with * the ten ega.cpx files (from FreeDOS) in `Z:\CPI` will be used. See also the "Support for external keyboard files" section below for more information about this.
 
 Alternatively you can also specify a different codepage by adding the codepage number to the end.
 
 ``KEYB UK 850``
 
-Most western European countries would have used codepage 850 back in the day, but DOSBox-X by default uses codepage 858, which is the same as codepage 850 with the addition of the Euro symbol. See the "Support for the Euro symbol" section below for further details.
+Most western European countries would have used codepage 850 back in the day, but DOSBox-X by default uses codepage 858, which is the same as codepage 850 with the addition of the Euro symbol.
+See the "Support for the Euro symbol" section below for further details.
 
-Note that software that uses certain box drawing characters may not look 100% accurate unless codepage 437 (default US codepage) is used. But this codepage lacks many diacritic glyphs that may be needed for regional support. As such a choice may have to be made between support for those box drawing characters or diacritic glyphs.
+Note that software that uses certain box drawing characters may not look 100% accurate unless codepage 437 (default US codepage) is used.
+But this codepage lacks many diacritic glyphs that may be needed for regional support.
+As such a choice may have to be made between support for those box drawing characters or diacritic glyphs.
 
-There is also a ``CHCP`` command to view the current DOS code page, and for the TrueType font (TTF) output it also allows to change the current DOS code page. For example, ``CHCP 857`` will change the current DOS code page to 857 (Turkish) when using the TrueType font output. As of DOSBox-X version 0.83.14, DOSBox-X also supports CJK (Chinese, Japanese, Korean) double-byte code pages (932, 936, 949, 950) for the TTF output, which allow Chinese/Japanese/Korean characters to be displayed correctly. Moreover, it is recommended to specify a TrueType font that has all characters of the language to be used so that these characters will be rendered correctly with the specified font. More information about the TrueType font output is available from the link:Guide%3AUsing-TrueType-font-output-in-DOSBox‐X{suffixappend}[Using TrueType font output in DOSBox‐X] guide page. More information about CJK language support can be found in the link:Guide%3AEast-Asian-language-support-in-DOSBox‐X{suffixappend}[East Asian language support in DOSBox‐X] guide page.
+There is also a ``CHCP`` (CHange CodePage) command to view the current DOS code page, and for the TrueType font (TTF) output it also allows you to change the current DOS code page.
+For example, ``CHCP 857`` will change the current DOS code page to 857 (Turkish) when using the TrueType font output.
+As of DOSBox-X version 0.83.14, DOSBox-X also supports CJK (Chinese, Japanese, Korean) double-byte code pages (932, 936, 949, 950) for the TTF output, which allow Chinese/Japanese/Korean characters to be displayed correctly.
+Moreover, it is recommended to specify a TrueType font that has all characters of the language to be used so that these characters will be rendered correctly with the specified font.
+More information about the TrueType font output is available from the link:Guide%3AUsing-TrueType-font-output-in-DOSBox‐X{suffixappend}[Using TrueType font output in DOSBox‐X] guide page.
+More information about CJK language support can be found in the link:Guide%3AEast-Asian-language-support-in-DOSBox‐X{suffixappend}[East Asian language support in DOSBox‐X] guide page.
 
-The Japanese keyboard layout is also supported and will be used by default in NEC PC-98 mode. You can start DOSBox-X in PC-98 mode directly by setting ``machine=pc98`` in the [dosbox] section of the dosbox-x.conf file. DOSBox-X will use codepage 932 in this mode and support Japanese Shift-JIS characters such as Kana and Kanji in addition to ASCII characters. There is an option which will force the use of U.S. keyboard layout in PC-98 mode. More information about PC-98 support is available from the link:Guide%3APC‐98-emulation-in-DOSBox‐X{suffixappend}[PC‐98 emulation in DOSBox‐X] guide page.
+The Japanese keyboard layout is also supported and will be used by default in NEC PC-98 mode.
+You can start DOSBox-X in PC-98 mode directly by setting ``machine=pc98`` in the [dosbox] section of the dosbox-x.conf file.
+DOSBox-X will use codepage 932 in this mode and support Japanese Shift-JIS characters such as Kana and Kanji in addition to ASCII characters.
+There is an option which will force the use of U.S. keyboard layout in PC-98 mode. More information about PC-98 support is available from the link:Guide%3APC‐98-emulation-in-DOSBox‐X{suffixappend}[PC‐98 emulation in DOSBox‐X] guide page.
 
 === Support for the Euro symbol
 
 NOTE: The information in this section applies to DOSBox-X 0.83.4 and later only. It may not work in previous versions of DOSBox-X.
 
-The Euro symbol (€) is the currency symbol introduced by the European Monetary and Currency Union, and began its use on January 1, 1999. Because the Euro symbol was introduced after Windows 95 was released to the public, most DOS versions (including all versions of MS-DOS and PC DOS up to 7.0) did not support this symbol. Back in the day codepages such as 850 and 855 were used by most European DOS users, and they did not contain the Euro symbol. DOSBox-X did support these codepages, but it also supports modified codepages with the Euro symbol enabled, such as codepage 858, which have been introduced since 1999. The modifications only apply to the Euro symbol position, so everything else remains the same.
+The Euro symbol (€) is the currency symbol introduced by the European Monetary and Currency Union, and began its use on January 1, 1999.
+Because the Euro symbol was introduced after Windows 95 was released to the public, most DOS versions (including all versions of MS-DOS and PC DOS up to 7.0) do not support this symbol.
+Back in the day, codepages such as 850 and 855 were used by most European DOS users, and they did not contain the Euro symbol.
+DOSBox-X does support these codepages, but it also supports modified codepages with the Euro symbol added, such as codepage 858, which have been introduced since 1999.
+The modifications only apply to the Euro symbol position, so everything else remains the same.
 
 Below is a table listing the original codepages (without the Euro symbol) and their counterparts with the Euro symbol enabled that are supported in DOSBox-X.
 
 |===
 |Original codepage|New codepage|Codepage name|Euro symbol position
 
-|850|858|Latin 1|ASCII 213 (0xD5) 
+|850|858|Latin 1|ASCII 213 (0xD5)
 |855|872|Cyrillic|ASCII 207 (0xCF)
 |866|808|Cyrillic Russian|ASCII 253 (0xFD)
 |===
 
-DOSBox-X by default uses the new codepage with the Euro symbol enabled for the specified keyboard layout (if available), when you do not specify a codepage for it. The Euro symbol will be supported and displayed in the above-mentioned ASCII position.
+DOSBox-X by default uses the new codepage with the Euro symbol enabled for the specified keyboard layout (if available), when you do not specify a codepage for it.
+The Euro symbol will be supported and displayed in the above-mentioned ASCII position.
 
-It is also possible to display the Euro symbol instead of the specified ASCII character in any codepage in DOSBox-X, including the default codepage 437 and other codepages without the Euro symbol such as 850. DOSBox-X has an ``euro`` config option in the [render] section of the config file (dosbox-x.conf by default), which allows you to specify an ASCII position (between 33 and 255) for the Euro symbol to be rendered in place of the original character if you wish. For example, setting the following will allow DOSBox-X to display the Euro symbol instead of C-cedilla (Ç) in position 128.
+It is also possible to display the Euro symbol instead of the specified ASCII character in any codepage in DOSBox-X, including the default codepage 437 and other codepages without the Euro symbol such as 850.
+DOSBox-X has an ``euro`` config option in the [render] section of the config file (dosbox-x.conf by default), which allows you to specify an ASCII position (between 33 and 255) for the Euro symbol to be rendered in place of the original character if you wish.
+For example, setting the following will allow DOSBox-X to display the Euro symbol instead of C-cedilla (Ç) in position 128.
 
 ``euro=128``
 
-It will work even after you use the ``KEYB`` command to change the current codepage of DOSBox-X from the command line. The Euro symbol will be displayed in the specified position instead of the original character in that codepage as long as the ``euro`` setting remains active.
+It will work even after you use the ``KEYB`` command to change the current codepage of DOSBox-X from the command line.
+The Euro symbol will be displayed in the specified position instead of the original character in that codepage as long as the ``euro`` setting remains active.
 
 === Support for external keyboard files
 

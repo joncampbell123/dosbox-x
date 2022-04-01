@@ -155,3 +155,7 @@ Logs calls to INT 21h (debug level).
 * **-log-fileio**
 +
 Logs file I/O through INT 21h (debug level).
++
+* **-nolog**
++
+Disables logging output.
