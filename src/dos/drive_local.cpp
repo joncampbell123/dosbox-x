@@ -2735,7 +2735,7 @@ bool localFile::Close() {
 }
 
 uint16_t localFile::GetInformation(void) {
-	return read_only_medium?0x40:0;
+	return read_only_medium ? DeviceInfoFlags::NotWritten : 0;
 }
 	
 

@@ -70,9 +70,9 @@ bool device_LPT::Close() {
 uint16_t device_LPT::GetInformation(void) {
 #if C_PRINTER
 	if (parallelPortObjects[num] && parallelPortObjects[num]->parallelType == PARALLEL_TYPE_PRINTER)
-		return 0x8040;
+		return DeviceInfoFlags::Device | DeviceInfoFlags::EofOnInput | DeviceInfoFlags::Binary;
 #endif
-	return 0x80A0;
+	return DeviceInfoFlags::Device | DeviceInfoFlags::Binary;
 }
 
 const char* lptname[]={"LPT1","LPT2","LPT3","LPT4","LPT5","LPT6","LPT7","LPT8","LPT9"};

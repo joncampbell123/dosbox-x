@@ -1324,8 +1324,11 @@ bool device_CON::Close() {
 extern bool dos_con_use_int16_to_detect_input;
 
 uint16_t device_CON::GetInformation(void) {
+    static constexpr auto deviceWord = DeviceInfoFlags::Device | DeviceInfoFlags::Special | DeviceInfoFlags::StdIn |
+                                       DeviceInfoFlags::StdOut;
+
 	if (dos_con_use_int16_to_detect_input || IS_PC98_ARCH) {
-		uint16_t ret = 0x80D3; /* No Key Available */
+        uint16_t ret = deviceWord | DeviceInfoFlags::EofOnInput;  /* No Key Available */
 
 		/* DOSBox-X behavior: Use INT 16h AH=0x11 Query keyboard status/preview key.
 		 * The reason we do this is some DOS programs actually rely on hooking INT 16h
@@ -1345,9 +1348,9 @@ uint16_t device_CON::GetInformation(void) {
 		 * Since Scandisk is using INT 21h AH=0x0B to query STDIN during this time,
 		 * this implementation is a good "halfway" compromise in that this call
 		 * will trigger the INT 16h AH=0x11 hook it relies on. */
-		if (readcache || dev_con_pos < dev_con_max) return 0x8093; /* key available */
+		if (readcache || dev_con_pos < dev_con_max) return deviceWord; /* key available */
 
-		if (DOS_BreakConioFlag) return 0x8093; /* key available */
+		if (DOS_BreakConioFlag) return deviceWord; /* key available */
 
 		uint16_t saved_ax = reg_ax;
 
@@ -1369,9 +1372,9 @@ uint16_t device_CON::GetInformation(void) {
                  * so that Read() returns it immediately instead of doing this conversion itself.
                  * This way we never block when we SAID a key was available that gets ignored. */
                 if (CommonPC98ExtScanConversionToReadBuf(reg_ah))
-                    ret = 0x8093; /* Key Available */
+                    ret = deviceWord; /* Key Available */
                 else
-                    ret = 0x80D3; /* No Key Available */
+                    ret = deviceWord | DeviceInfoFlags::EofOnInput; /* No Key Available */
 
                 /* need to consume the key. if it generated anything it will be returned to Read()
                  * through dev_con_readbuf[] */
@@ -1384,7 +1387,7 @@ uint16_t device_CON::GetInformation(void) {
                 INT16_Handler_Wrap();
             }
             else {
-                ret = 0x8093; /* Key Available */
+                ret = deviceWord; /* Key Available */
             }
         }
 
@@ -1396,8 +1399,8 @@ uint16_t device_CON::GetInformation(void) {
 		uint16_t head=mem_readw(BIOS_KEYBOARD_BUFFER_HEAD);
 		uint16_t tail=mem_readw(BIOS_KEYBOARD_BUFFER_TAIL);
 
-		if ((head==tail) && !readcache) return 0x80D3;	/* No Key Available */
-		if (readcache || real_readw(0x40,head)) return 0x8093;		/* Key Available */
+		if ((head==tail) && !readcache) return deviceWord | DeviceInfoFlags::EofOnInput;	/* No Key Available */
+		if (readcache || real_readw(0x40,head)) return deviceWord;  /* Key Available */
 
 		/* remove the zero from keyboard buffer */
 		uint16_t start=mem_readw(BIOS_KEYBOARD_BUFFER_START);
@@ -1407,7 +1410,7 @@ uint16_t device_CON::GetInformation(void) {
 		mem_writew(BIOS_KEYBOARD_BUFFER_HEAD,head);
 	}
 
-	return 0x80D3; /* No Key Available */
+	return deviceWord | DeviceInfoFlags::EofOnInput; /* No Key Available */
 }
 
 device_CON::device_CON() {

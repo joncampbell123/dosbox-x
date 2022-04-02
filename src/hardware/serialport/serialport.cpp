@@ -86,7 +86,7 @@ bool device_COM::Close() {
 }
 
 uint16_t device_COM::GetInformation(void) {
-	return 0x80A0;
+	return DeviceInfoFlags::Device | DeviceInfoFlags::Binary;
 }
 
 device_COM::device_COM(class CSerial* sc) {

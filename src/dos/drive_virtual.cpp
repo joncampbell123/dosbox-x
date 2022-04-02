@@ -357,7 +357,7 @@ bool Virtual_File::Close(){
 
 
 uint16_t Virtual_File::GetInformation(void) {
-	return 0x40;	// read-only drive
+	return DeviceInfoFlags::NotWritten;  // read-only drive
 }
 
 

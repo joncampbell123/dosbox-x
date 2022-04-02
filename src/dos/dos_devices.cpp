@@ -83,7 +83,7 @@ uint16_t DOS_ExtDevice::CallDeviceFunction(uint8_t command, uint8_t length, uint
 }
 
 bool DOS_ExtDevice::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) {
-	if(ext.attribute & 0x4000) {
+	if(ext.attribute & DeviceAttributeFlags::SupportsIoctl) {
 		// IOCTL INPUT
 		if((CallDeviceFunction(3, 26, (uint16_t)(bufptr >> 4), (uint16_t)(bufptr & 0x000f), size) & 0x8000) == 0) {
 			*retcode = real_readw(dos.dcp, 18);
@@ -94,7 +94,7 @@ bool DOS_ExtDevice::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t 
 }
 
 bool DOS_ExtDevice::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { 
-	if(ext.attribute & 0x4000) {
+	if(ext.attribute & DeviceAttributeFlags::SupportsIoctl) {
 		// IOCTL OUTPUT
 		if((CallDeviceFunction(12, 26, (uint16_t)(bufptr >> 4), (uint16_t)(bufptr & 0x000f), size) & 0x8000) == 0) {
 			*retcode = real_readw(dos.dcp, 18);
@@ -148,8 +148,12 @@ bool DOS_ExtDevice::Seek(uint32_t * pos,uint32_t type) {
 }
 
 uint16_t DOS_ExtDevice::GetInformation(void) {
-	// bit9=1 .. ExtDevice
-	return (ext.attribute & 0xc07f) | 0x0080 | EXT_DEVICE_BIT;
+	uint16_t ret = EXT_DEVICE_BIT;
+	if (ext.attribute & DeviceAttributeFlags::CharacterDevice)   ret |= DeviceInfoFlags::Device;
+	if (ext.attribute & DeviceAttributeFlags::SupportsIoctl)     ret |= DeviceInfoFlags::IoctlSupport;
+	if (ext.attribute & DeviceAttributeFlags::SupportsRemovable) ret |= DeviceInfoFlags::OpenCloseSupport;
+	ret |= ext.attribute & DeviceAttributeFlags::CoreDevicesMask;
+	return ret;
 }
 
 uint8_t DOS_ExtDevice::GetStatus(bool input_flag) {
@@ -248,7 +252,7 @@ public:
 		return true;
 	}
 	virtual bool Close() { return true; }
-	virtual uint16_t GetInformation(void) { return 0x8084; }
+	virtual uint16_t GetInformation(void) { return DeviceInfoFlags::Device | DeviceInfoFlags::Nul; }
 	virtual bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
 	virtual bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
 };
@@ -283,7 +287,7 @@ public:
 		return true;
 	}
 	uint16_t GetInformation(void) {
-		return 0x80A0;
+		return DeviceInfoFlags::Device | DeviceInfoFlags::Binary;
 	}
 	bool Close() {
 		return false;
@@ -608,7 +612,7 @@ public:
 		return true;
 	}
 	uint16_t GetInformation(void) {
-		return 0x80E0;
+		return DeviceInfoFlags::Device | DeviceInfoFlags::EofOnInput | DeviceInfoFlags::Binary;
 	}
 };
 
@@ -645,7 +649,7 @@ uint8_t DOS_Device::GetStatus(bool input_flag) {
 	if(info & EXT_DEVICE_BIT) {
 		return Devices[devnum]->GetStatus(input_flag);
 	}
-	return (info & 0x40) ? 0x00 : 0xff;
+	return (info & DeviceInfoFlags::EofOnInput) ? 0x00 : 0xff;
 }
 
 DOS_File::DOS_File(const DOS_File& orig) : flags(orig.flags), open(orig.open), attr(orig.attr),
