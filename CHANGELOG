@@ -1,3 +1,9 @@
+0.83.25
+  - Fixed bug where DOS IOCTL would call device control
+    channel on devices which did not advertise support
+    for IOCTL (cimarronm)
+  - Clean up of DOS device and attribute flag usage
+    (cimarronm)
 0.83.24
   - Release notes for this version:
     https://dosbox-x.com/release-0.83.24.html
