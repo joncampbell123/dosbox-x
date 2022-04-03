@@ -202,7 +202,10 @@ public:
 	}
 	bool Seek(uint32_t * /*pos*/,uint32_t /*type*/){return false;}
 	bool Close(){return false;}
-	uint16_t GetInformation(void){return 0xc0c0;}
+	uint16_t GetInformation(void)
+	{
+		return DeviceInfoFlags::Device | DeviceInfoFlags::IoctlSupport;
+	}
 	bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
 	bool WriteToControlChannel(PhysPt /*bufptr*/,uint16_t /*size*/,uint16_t * /*retcode*/){return true;}
 private:

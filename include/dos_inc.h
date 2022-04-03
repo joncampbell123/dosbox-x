@@ -172,6 +172,41 @@ void DOS_SetError(uint16_t code);
 enum { STDIN=0,STDOUT=1,STDERR=2,STDAUX=3,STDPRN=4};
 enum { HAND_NONE=0,HAND_FILE,HAND_DEVICE};
 
+namespace DeviceInfoFlags
+{
+	// Device flags
+	constexpr uint16_t StdIn            = 1<<0;
+	constexpr uint16_t StdOut           = 1<<1;
+	constexpr uint16_t Nul              = 1<<2;
+	constexpr uint16_t Clock            = 1<<3;
+	constexpr uint16_t Special          = 1<<4;
+	constexpr uint16_t Binary           = 1<<5;
+	constexpr uint16_t EofOnInput       = 1<<6;
+	constexpr uint16_t Device           = 1<<7;
+	constexpr uint16_t OpenCloseSupport = 1<<11;
+	constexpr uint16_t OutputUntilBusy  = 1<<13;
+	constexpr uint16_t IoctlSupport     = 1<<14;
+
+	// File flags
+	constexpr uint16_t NotWritten       = 1<<6;
+	constexpr uint16_t NotRemovable     = 1<<11;
+	constexpr uint16_t NoTimeUpdate     = 1<<14;
+	constexpr uint16_t Remote           = 1<<15;
+}
+namespace DeviceAttributeFlags
+{
+	constexpr uint16_t CurrentStdIn      = 1<<0;
+	constexpr uint16_t CurrentStdOut     = 1<<1;
+	constexpr uint16_t CurrentNul        = 1<<2;
+	constexpr uint16_t CurrentClock      = 1<<3;
+	constexpr uint16_t SupportsRemovable = 1<<11;
+	constexpr uint16_t NonIBM            = 1<<13;
+	constexpr uint16_t SupportsIoctl     = 1<<14;
+	constexpr uint16_t CharacterDevice   = 1<<15;
+
+	constexpr uint16_t CoreDevicesMask   = CurrentStdIn | CurrentStdOut | CurrentNul | CurrentClock;
+}
+
 /* Routines for File Class */
 void DOS_SetupFiles (void);
 bool DOS_ReadFile(uint16_t entry,uint8_t * data,uint16_t * amount, bool fcb = false);

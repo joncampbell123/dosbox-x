@@ -624,7 +624,7 @@ bool DOS_IOCTL(void) {
 	}
 	switch(reg_al) {
 	case 0x00:		/* Get Device Information */
-		if (Files[handle]->GetInformation() & 0x8000) {	//Check for device
+		if (Files[handle]->GetInformation() & DeviceInfoFlags::Device) {	//Check for device
 			reg_dx=Files[handle]->GetInformation() & ~EXT_DEVICE_BIT;
 		} else {
 			uint8_t hdrive=Files[handle]->GetDrive();
@@ -633,7 +633,7 @@ bool DOS_IOCTL(void) {
 				hdrive=2;	// defaulting to C:
 			}
 			/* return drive number in lower 5 bits for block devices */
-			reg_dx=(Files[handle]->GetInformation()&0xffe0)|hdrive;
+			reg_dx = (Files[handle]->GetInformation()&0xffe0) | (hdrive&0x1f);
 		}
 		reg_ax=reg_dx; //Destroyed officially
 		return true;
@@ -642,7 +642,7 @@ bool DOS_IOCTL(void) {
 			DOS_SetError(DOSERR_DATA_INVALID);
 			return false;
 		} else {
-			if (Files[handle]->GetInformation() & 0x8000) {	//Check for device
+			if (Files[handle]->GetInformation() & DeviceInfoFlags::Device) {	//Check for device
 				reg_al=(uint8_t)(Files[handle]->GetInformation() & 0xff);
 			} else {
 				DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
@@ -651,7 +651,8 @@ bool DOS_IOCTL(void) {
 		}
 		return true;
 	case 0x02:		/* Read from Device Control Channel */
-		if (Files[handle]->GetInformation() & 0xc000) {
+		if (Files[handle]->GetInformation() & (DeviceInfoFlags::Device | DeviceInfoFlags::IoctlSupport) ==
+                DeviceInfoFlags::Device | DeviceInfoFlags::IoctlSupport) {
 			/* is character device with IOCTL support */
 			PhysPt bufptr=PhysMake(SegValue(ds),reg_dx);
 			uint16_t retcode=0;
@@ -663,7 +664,8 @@ bool DOS_IOCTL(void) {
 		DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
 		return false;
 	case 0x03:		/* Write to Device Control Channel */
-		if (Files[handle]->GetInformation() & 0xc000) {
+		if (Files[handle]->GetInformation() & (DeviceInfoFlags::Device | DeviceInfoFlags::IoctlSupport) ==
+                DeviceInfoFlags::Device | DeviceInfoFlags::IoctlSupport) {
 			/* is character device with IOCTL support */
 			PhysPt bufptr=PhysMake(SegValue(ds),reg_dx);
 			uint16_t retcode=0;
@@ -675,7 +677,7 @@ bool DOS_IOCTL(void) {
 		DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
 		return false;
 	case 0x06:      /* Get Input Status */
-		if (Files[handle]->GetInformation() & 0x8000) {		//Check for device
+		if (Files[handle]->GetInformation() & DeviceInfoFlags::Device) {		//Check for device
 			reg_al = ((DOS_Device*)(Files[handle]))->GetStatus(true);
 		} else { // FILE
 			uint32_t oldlocation=0;
@@ -781,6 +783,6 @@ bool DOS_IOCTL(void) {
 bool DOS_GetSTDINStatus(void) {
 	uint32_t handle=RealHandle(STDIN);
 	if (handle==0xFF) return false;
-	if (Files[handle] && (Files[handle]->GetInformation() & 64)) return false;
+	if (Files[handle] && (Files[handle]->GetInformation() & DeviceInfoFlags::EofOnInput)) return false;
 	return true;
 }
