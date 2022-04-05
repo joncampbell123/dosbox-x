@@ -2205,14 +2205,14 @@ static Bitu DOS_21Handler(void) {
                 DOS_ParamBlock block(SegPhys(es)+reg_bx);
                 block.LoadData();
                 CommandTail ctail;
-                MEM_BlockRead(Real2Phys(block.exec.cmdtail),&ctail,CTBUF+1);
+                MEM_BlockRead(Real2Phys(block.exec.cmdtail),&ctail,sizeof(CommandTail));
                 if (DOS_Execute(name1,SegPhys(es)+reg_bx,reg_al)) {
                     strcpy(appname, name1);
-                    memset(appargs, 0, sizeof(appargs));
-                    strncpy(appargs, ctail.buffer, strlen(ctail.buffer) <= sizeof(appargs) ? strlen(ctail.buffer) : sizeof(appargs));
-                    //FIX_ME (Hack): sometimes ctail.count returns weird value result in buffer overflow
-                    //strncpy(appargs, ctail.buffer, ctail.count);
-                    //*(appargs+ctail.count)=0;
+                    strncpy(appargs, ctail.buffer, sizeof(appargs));
+                    if(ctail.count < sizeof(appargs))
+                        appargs[ctail.count] = 0;
+                    else
+                        appname[sizeof(appargs) - 1] = 0;
                 } else {
                     reg_ax=dos.errorcode;
                     CALLBACK_SCF(true);
