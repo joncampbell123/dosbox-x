@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # Build the Android libraries without needing a project
 # (AndroidManifest.xml, jni/{Application,Android}.mk, etc.)
@@ -17,9 +17,9 @@
 
 
 # Android.mk is in srcdir
-srcdir=`dirname $0`/..
-srcdir=`cd $srcdir && pwd`
-cd $srcdir
+srcdir="$(dirname "$0")/.."
+srcdir=$(cd "$srcdir" && pwd)
+cd "$srcdir" || exit 1
 
 
 #
@@ -33,29 +33,29 @@ lib=
 ndk_args=
 
 # Allow an external caller to specify locations.
-for arg in $*
+for arg in "$@"
 do
-  if [ "${arg:0:8}" == "NDK_OUT=" ]; then
+  if [[ "${arg:0:8}" == "NDK_OUT=" ]]; then
 	obj=${arg#NDK_OUT=}
-  elif [ "${arg:0:13}" == "NDK_LIBS_OUT=" ]; then
+  elif [[ "${arg:0:13}" == "NDK_LIBS_OUT=" ]]; then
 	lib=${arg#NDK_LIBS_OUT=}
   else
     ndk_args="$ndk_args $arg"
   fi
 done
 
-if [ -z $obj ]; then
+if [[ -z "$obj" ]]; then
   obj=$buildandroid/obj
 fi
-if [ -z $lib ]; then
+if [[ -z "$lib" ]]; then
   lib=$buildandroid/lib
 fi
 
 for dir in $build $buildandroid $obj $lib; do
-    if test -d $dir; then
+    if [[ -d "$dir" ]]; then
         :
     else
-        mkdir $dir || exit 1
+        mkdir "$dir" || exit 1
     fi
 done
 
@@ -65,8 +65,8 @@ done
 # For consistency, pass all values on the command line.
 ndk-build \
   NDK_PROJECT_PATH=null \
-  NDK_OUT=$obj \
-  NDK_LIBS_OUT=$lib \
+  NDK_OUT="$obj" \
+  NDK_LIBS_OUT="$lib" \
   APP_BUILD_SCRIPT=Android.mk \
   APP_ABI="armeabi-v7a arm64-v8a x86 x86_64" \
   APP_PLATFORM=android-14 \
