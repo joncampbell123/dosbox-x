@@ -519,6 +519,21 @@ imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint32_t imgSizeK, bool
                             imgName,cylinders,heads,sectors,sector_size);
                     break;
                 }
+                // Supports cases where the size of a 1.2 Mbytes disk image file is 1.44 Mbytes.
+                if(DiskGeometryList[i].ksize == 1200 && (imgSizeK > 1200 && imgSizeK <= 1440)) {
+                    char buff[0x20];
+                    if (fseek(imgFile,0,SEEK_SET) == 0 && ftell(imgFile) == 0 && fread(buff,sizeof(buff),1,imgFile) == 1) {
+                        if(buff[0x18] == DiskGeometryList[i].secttrack) {
+                            founddisk = true;
+                            active = true;
+                            floppytype = i;
+                            heads = DiskGeometryList[i].headscyl;
+                            cylinders = DiskGeometryList[i].cylcount;
+                            sectors = DiskGeometryList[i].secttrack;
+                            break;
+                        }
+                    }
+                }
                 i++;
             }
         }
