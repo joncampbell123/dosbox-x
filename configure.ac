@@ -146,8 +146,32 @@ fi
 
 dnl Allow devs to force compile as C++11 as long as this code supports C++11 as a baseline
 AC_ARG_ENABLE(force-cxx11,AC_HELP_STRING([--enable-force-cxx11],[Force compile as C++11]),force_cxx11=yes)
+AC_ARG_WITH([cxx-version], 
+            AS_HELP_STRING([--with-cxx-version],
+                [Force compile as given C++ version (11, 14, 17, 20, 2a, 23). This option is for testing purposes only and if used will probably break the build. Caveat emptor.]),
+            [custom_cxx_version="$withval"], [])
 
-if test "x${warn_cpp11}" = 'x1'; then
+if test -n "${custom_cxx_version}"; then
+    case "${custom_cxx_version}" in
+        2a|23)
+            CXXFLAGS="$CXXFLAGS -std=gnu++2a"
+            AC_MSG_WARNING([Compiling with C++ version \`-std=gnu++${custom_cxx_version}': this version is known not to work.])
+        17)
+            CXXFLAGS="$CXXFLAGS -std=gnu++17 -Dregister="
+            AC_MSG_RESULT([[Compiling with C++ version \`-std=gnu++${custom_cxx_version}']])
+        11|14)
+            CXXFLAGS="$CXXFLAGS -std=gnu++${custom_cxx_version}"
+            AC_MSG_RESULT([[Compiling with C++ version \`-std=gnu++${custom_cxx_version}']])
+            ;;
+        gnu++*|std++*|-std=*)
+            AC_MSG_ERROR([Please specify only a bare number for the C++ version (e.g. --with-cxx-version=17)])
+            ;;
+        *)
+            AC_MSG_ERROR([Unknown or invalid C++ version given "${custom_cxx_version}."])
+            ;;
+    esac
+    CFLAGS="$CFLAGS -std=gnu11"
+elif test "x${warn_cpp11}" = 'x1'; then
     AC_MSG_WARN([ Your compiler does not support C++14. Currently it is optional. At some point in the future, it will be required ])
     CFLAGS="$CFLAGS -std=gnu11";
     CXXFLAGS="$CXXFLAGS -std=gnu++11";
@@ -179,16 +203,17 @@ dnl Optimize for speed by default
 AC_ARG_ENABLE(optimize,AC_HELP_STRING([--disable-optimize],[Don't enable compiler optimizations]))
 
 dnl FIXME: Remove default "-O2" set by some autotools versions. TODO: check availability of sed.
-CFLAGS=["$(echo $CFLAGS' ' | sed -e 's/-O[^ ]* //g')"]
-CXXFLAGS=["$(echo $CXXFLAGS' ' | sed -e 's/-O[^ ]* //g')"]
+# CFLAGS=["$(echo $CFLAGS' ' | sed -e 's/-O[^ ]* //g')"]
+# CXXFLAGS=["$(echo $CXXFLAGS' ' | sed -e 's/-O[^ ]* //g')"]
 
+dnl Never, EVER override the user's CFLAGS: it's Evil and Wrong.
 if test "x${enable_optimize}" != 'xno'; then
     if test "x${enable_emscripten}" = 'xyes'; then
-	    CFLAGS="$CFLAGS -Os"
-	    CXXFLAGS="$CXXFLAGS -Os"
+	    CFLAGS="-Os $CFLAGS"
+	    CXXFLAGS="-Os $CXXFLAGS"
     else
-	    CFLAGS="$CFLAGS -O2"
-	    CXXFLAGS="$CXXFLAGS -O2"
+	    CFLAGS="-O2 $CFLAGS"
+	    CXXFLAGS="-O2 $CXXFLAGS "
     fi
 fi
 
@@ -619,7 +644,7 @@ AC_CHECK_LIB(slirp, slirp_input, have_slirp_lib=yes, ,-lz)
 dnl LIBRARY TEST: libiconv
 dnl This may be provided by glibc itself, -liconv may not be needed.
 AC_CHECK_HEADER(iconv.h,have_iconv_h=yes,)
-AC_CHECK_LIB(iconv, libiconv_open, have_iconv_lib=yes, ,-liconv)
+AC_CHECK_LIB(iconv, iconv_open, have_iconv_lib=yes, ,-liconv)
 
 dnl LIBRARY TEST: SDLnet
 AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)
@@ -1051,7 +1076,7 @@ if test "x${enable_libslirp}" = 'xyes' ; then
        fi
     ;;
   esac
-  if test "x${have_slirp_lib}" = 'xyes' && "x${have_slirp_h}" = 'xyes' ; then
+  if test "x${have_slirp_lib}" = 'xyes' && test "x${have_slirp_h}" = 'xyes' ; then
     have_slirp=yes
     AC_DEFINE(C_SLIRP,1)
     LIBS="$LIBS $(pkg-config slirp --libs)"
