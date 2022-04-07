@@ -3,7 +3,9 @@
     correctly if the DOSBox-X window was previously in
     full-screen mode in some builds. (Wengier)
   - Fixed crash when switching to dynamic_rec core from
-    menu when dynamic_x86 is also available. (Wengier)
+    menu when dynamic_x86 is also available. Also fixed
+    the dynamic_rec core may not be displayed correctly
+    in the menu when a language file is used. (Wengier)
   - Fixed bug where DOS IOCTL would call device control
     channel on devices which did not advertise support
     for IOCTL (cimarronm)

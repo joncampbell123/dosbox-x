@@ -388,6 +388,24 @@ int GetDynamicType() {
 #endif
 }
 
+void menu_update_dynamic() {
+	const Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
+    std::string core(cpu_section->Get_string("core"));
+    std::string text = mainMenu.get_item("mapper_dynamic").get_text();
+    size_t found = text.find_last_of(" ");
+    if (found != std::string::npos) text = text.substr(0, found);
+#if (C_DYNREC)
+    if ((core == "dynamic" && GetDynamicType()==2) || core == "dynamic_rec" || save_dynamic_rec) {
+        save_dynamic_rec = true;
+        mainMenu.get_item("mapper_dynamic").set_text(text+" (dynamic_rec)");
+    } else
+#endif
+    {
+        save_dynamic_rec = false;
+        mainMenu.get_item("mapper_dynamic").set_text(text+" (dynamic_x86)");
+    }
+}
+
 void menu_update_core(void) {
 	const Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
 	const std::string cpu_sec_type = cpu_section->Get_string("cputype");
@@ -429,7 +447,6 @@ void menu_update_core(void) {
 #if (C_DYNAMIC_X86)
     if (GetDynamicType()==1)
     mainMenu.get_item("mapper_dynamic").
-        set_text("Dynamic core (dynamic_x86)").
         check(cpudecoder == &CPU_Core_Dyn_X86_Run).
         enable(allow_dynamic &&
                (cpudecoder != &CPU_Core_Prefetch_Run) &&
@@ -442,7 +459,6 @@ void menu_update_core(void) {
 #if (C_DYNREC)
     if (GetDynamicType()==2)
     mainMenu.get_item("mapper_dynamic").
-        set_text("Dynamic core (dynamic_rec)").
         check(cpudecoder == &CPU_Core_Dynrec_Run).
         enable(allow_dynamic &&
                (cpudecoder != &CPU_Core_Prefetch_Run) &&
@@ -452,6 +468,7 @@ void menu_update_core(void) {
                (cpudecoder != &CPU_Core8086_Normal_Run)).
         refresh_item(mainMenu);
 #endif
+    menu_update_dynamic();
 }
 
 void menu_update_autocycle(void) {
@@ -3488,13 +3505,7 @@ public:
 
 		CPU::Change_Config(configuration);	
 		CPU_JMP(false,0,0,0);					//Setup the first cpu core
-        std::string core(section->Get_string("core"));
-#if (C_DYNREC)
-        if ((core == "dynamic" && GetDynamicType()==2) || core == "dynamic_rec")
-            save_dynamic_rec = true;
-        else
-#endif
-            save_dynamic_rec = false;
+        menu_update_dynamic();
 	}
 	bool Change_Config(Section* newconfig){
 		const Section_prop * section=static_cast<Section_prop *>(newconfig);
