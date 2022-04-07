@@ -54,16 +54,34 @@ AC_CANONICAL_BUILD
 
 dnl Setup for automake
 AM_INIT_AUTOMAKE([foreign subdir-objects])
-AC_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS([config.h])
 
 dnl Checks for programs.
-AC_PROG_MAKE_SET
+AC_PROG_AWK
 AC_PROG_CC
 AC_PROG_CPP
 AC_PROG_CXX
-AC_PROG_OBJCXX
 AC_PROG_INSTALL
+AC_PROG_MAKE_SET
+AC_PROG_MKDIR_P
+AC_PROG_OBJCXX
 AC_PROG_RANLIB
+
+AC_FUNC_ALLOCA
+AC_TYPE_INT16_T
+AC_TYPE_INT32_T
+AC_TYPE_INT64_T
+AC_TYPE_INT8_T
+AC_TYPE_OFF_T
+AC_TYPE_PID_T
+AC_TYPE_SSIZE_T
+AC_TYPE_UID_T
+AC_TYPE_UINT16_T
+AC_TYPE_UINT32_T
+AC_TYPE_UINT64_T
+AC_TYPE_UINT8_T
+AC_CHECK_TYPES([ptrdiff_t])
+
 AC_PREFIX_DEFAULT([/usr/local])
 
 dnl this code needs large file support on 32-bit systems
@@ -155,13 +173,15 @@ if test -n "${custom_cxx_version}"; then
     case "${custom_cxx_version}" in
         2a|23)
             CXXFLAGS="$CXXFLAGS -std=gnu++2a"
-            AC_MSG_WARNING([Compiling with C++ version \`-std=gnu++${custom_cxx_version}': this version is known not to work.])
+            AC_MSG_WARN([Compiling with C++ version '-std=gnu++${custom_cxx_version}': this version is known not to work.])
+            ;;
         17)
             CXXFLAGS="$CXXFLAGS -std=gnu++17 -Dregister="
-            AC_MSG_RESULT([[Compiling with C++ version \`-std=gnu++${custom_cxx_version}']])
+            AC_MSG_RESULT([[Compiling with C++ version '-std=gnu++${custom_cxx_version}']])
+            ;;
         11|14)
             CXXFLAGS="$CXXFLAGS -std=gnu++${custom_cxx_version}"
-            AC_MSG_RESULT([[Compiling with C++ version \`-std=gnu++${custom_cxx_version}']])
+            AC_MSG_RESULT([[Compiling with C++ version '-std=gnu++${custom_cxx_version}']])
             ;;
         gnu++*|std++*|-std=*)
             AC_MSG_ERROR([Please specify only a bare number for the C++ version (e.g. --with-cxx-version=17)])
