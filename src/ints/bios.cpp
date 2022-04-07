@@ -10305,6 +10305,7 @@ void GEN_PowerButton(bool pressed) {
 
 
 extern uint8_t int10_font_08[256 * 8];
+extern uint16_t j3_font_offset;
 
 /* NTS: Do not use callbacks! This function is called before CALLBACK_Init() */
 void ROMBIOS_Init() {
@@ -10543,6 +10544,10 @@ void ROMBIOS_Init() {
                 LOG_MSG("WARNING: Unable to load user boot hook binary '%s' into ROM BIOS memory",path.c_str());
             }
         }
+    }
+    // J-3100's DOS reads 8x16 font data directly from F000:CA00.
+    if(IS_J3100) {
+        ROMBIOS_GetMemory(256*16, "J-3100 8x16 font data", 1, 0xf0000 + j3_font_offset);
     }
 }
 
