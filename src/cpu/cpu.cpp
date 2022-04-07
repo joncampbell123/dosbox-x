@@ -83,6 +83,8 @@ bool enable_cmpxchg8b = true;
 bool ignore_undefined_msr = true;
 bool report_fdiv_bug = false;
 
+bool save_dynamic_rec = false;
+
 extern bool ignore_opcode_63;
 extern bool dos_kernel_disabled;
 extern bool use_dynamic_core_with_paging;
@@ -373,7 +375,7 @@ int GetDynamicType() {
 #endif
 #if C_TARGETCPU == X86 || C_TARGETCPU == X86_64
 # if (C_DYNAMIC_X86)
-    return 1;
+    return save_dynamic_rec?2:1;
 # elif (C_DYNREC)
     return 2;
 # else
@@ -3242,6 +3244,9 @@ static void CPU_ToggleDynamicCore(bool pressed) {
     Section* sec=control->GetSection("cpu");
     if(sec) {
 	std::string tmp="core=dynamic";
+#if (C_DYNAMIC_X86) && (C_DYNREC)
+	if (save_dynamic_rec) tmp="core=dynamic_rec";
+#endif
 	sec->HandleInputline(tmp);
     }
 }
@@ -3483,6 +3488,13 @@ public:
 
 		CPU::Change_Config(configuration);	
 		CPU_JMP(false,0,0,0);					//Setup the first cpu core
+        std::string core(section->Get_string("core"));
+#if (C_DYNREC)
+        if ((core == "dynamic" && GetDynamicType()==2) || core == "dynamic_rec")
+            save_dynamic_rec = true;
+        else
+#endif
+            save_dynamic_rec = false;
 	}
 	bool Change_Config(Section* newconfig){
 		const Section_prop * section=static_cast<Section_prop *>(newconfig);
