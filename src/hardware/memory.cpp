@@ -1485,9 +1485,15 @@ static void write_pc98_a20(Bitu port,Bitu val,Bitu iolen) {
 void RemoveEMSPageFrame(void) {
     LOG(LOG_MISC,LOG_DEBUG)("Removing EMS page frame");
 
-    /* Setup rom at 0xe0000-0xf0000 */
-    for (Bitu ct=0xe0;ct<0xf0;ct++) {
-        memory.phandlers[ct] = &rom_page_handler;
+    if(IS_PC98_ARCH || IS_J3100) {
+        for (Bitu ct=0xd0;ct<0xe0;ct++) {
+            memory.phandlers[ct] = &rom_page_handler;
+        }
+    } else {
+        /* Setup rom at 0xe0000-0xf0000 */
+        for (Bitu ct=0xe0;ct<0xf0;ct++) {
+            memory.phandlers[ct] = &rom_page_handler;
+        }
     }
 }
 
