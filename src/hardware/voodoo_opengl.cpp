@@ -1683,6 +1683,11 @@ void voodoo_ogl_reset_videomode(void) {
     DOSBox_SetMenu();
 #endif
 
+    bool isfs = false;
+    if (GFX_IsFullscreen()) {
+        isfs = true;
+        GFX_SwitchFullScreen();
+    }
     GFX_PreventFullscreen(true);
 
 	last_clear_color=0;
@@ -1786,6 +1791,14 @@ void voodoo_ogl_reset_videomode(void) {
 		}
 	}
 #endif
+
+    if (isfs) {
+#if defined(C_SDL2)
+        SDL_MaximizeWindow(sdl.window);
+#elif defined(WIN32)
+        ShowWindow(GetHWND(), SW_MAXIMIZE);
+#endif
+    }
 
     v->ogl_dimchange = true;
 

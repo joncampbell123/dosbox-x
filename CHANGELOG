@@ -1,4 +1,7 @@
 0.83.25
+  - Fixed bug that OpenGL Voodoo window may not appear
+    correctly if the DOSBox-X window was previously in
+    full-screen mode in some builds. (Wengier)
   - Fixed bug where DOS IOCTL would call device control
     channel on devices which did not advertise support
     for IOCTL (cimarronm)
