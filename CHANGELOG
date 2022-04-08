@@ -1,4 +1,7 @@
 0.83.25
+  - Added config option "turbo last second" (in [cpu]
+    section) which allows to stop the Turbo function
+    after specified number of seconds. (Wengier)
   - Fixed bug that OpenGL Voodoo window may not appear
     correctly if the DOSBox-X window was previously in
     full-screen mode in some builds. DOSBox-X will now
