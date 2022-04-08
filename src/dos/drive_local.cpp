@@ -2485,7 +2485,7 @@ bool localFile::Write(const uint8_t * data,uint16_t * size) {
 #if defined(WIN32)
     if (file_access_tries>0) {
         HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
-        if (*size == 0)
+        if (*size == 0) {
             if (SetEndOfFile(hFile)) {
                 UpdateLocalDateTime();
                 return true;
@@ -2493,6 +2493,7 @@ bool localFile::Write(const uint8_t * data,uint16_t * size) {
                 DOS_SetError((uint16_t)GetLastError());
                 return false;
             }
+        }
         uint32_t bytesWritten;
         for (int tries = file_access_tries; tries; tries--) {							// Try three times
             if (WriteFile(hFile, data, (uint32_t)*size, (LPDWORD)&bytesWritten, NULL)) {

@@ -297,7 +297,6 @@ void GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight);
 void MAPPER_CheckEvent(SDL_Event * event), MAPPER_CheckKeyboardLayout(), MAPPER_ReleaseAllKeys();
 bool isDBCSCP(), InitCodePage();
 int GetNumScreen();
-extern uint8_t lead[6];
 
 SDL_Block sdl;
 Bitu frames = 0;
@@ -5652,7 +5651,7 @@ void GFX_Events() {
         /* DOSBox SVN revision 4176:4177: For Linux/X11, Xorg 1.20.1
          * will make spurious focus gain and loss events when locking the mouse in windowed mode.
          *
-         * This has not been tested with DOSBox-X yet becaus I do not run Xorg 1.20.1, yet */
+         * This has not been tested with DOSBox-X yet because I do not run Xorg 1.20.1, yet */
 #if SDL_XORG_FIX
         // Special code for broken SDL with Xorg 1.20.1, where pairs of inputfocus gain and loss events are generated
         // when locking the mouse in windowed mode.

@@ -638,10 +638,12 @@ void DOSBOX_RunMachine(void){
     last_callback = p_last_callback;
 }
 
+uint32_t turbolasttick = 0;
 static void DOSBOX_UnlockSpeed( bool pressed ) {
     static bool autoadjust = false;
     if (pressed) {
         LOG_MSG("Fast Forward ON");
+        turbolasttick = GetTicks();
         ticksLocked = true;
         if (CPU_CycleAutoAdjust) {
             autoadjust = true;
@@ -653,6 +655,7 @@ static void DOSBOX_UnlockSpeed( bool pressed ) {
     } else {
         LOG_MSG("Fast Forward OFF");
         ticksLocked = false;
+        turbolasttick = 0;
         if (autoadjust) {
             autoadjust = false;
             CPU_CycleAutoAdjust = true;
@@ -2680,6 +2683,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("turbo",Property::Changeable::Always,false);
     Pbool->Set_help("Enables Turbo (Fast Forward) mode to speed up operations.");
     Pbool->SetBasic(true);
+
+    Pint = secprop->Add_int("turbo last second",Property::Changeable::Always,0);
+    Pint->Set_help("If a positive integer is specified, the Turbo function will last for specific seconds.");
 
     Pbool = secprop->Add_bool("stop turbo on key",Property::Changeable::Always,true);
     Pbool->Set_help("If set, the Turbo mode will be automatically stopped if a keyboard input is detected.");

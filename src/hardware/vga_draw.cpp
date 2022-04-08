@@ -133,12 +133,13 @@ extern bool ignore_vblank_wraparound;
 extern bool vga_double_buffered_line_compare;
 extern bool pc98_crt_mode;      // see port 6Ah command 40h/41h.
 extern bool pc98_31khz_mode;
-extern bool auto_save_state, enable_autosave, enable_dbcs_tables, showdbcs, dbcs_sbcs, autoboxdraw, halfwidthkana;
+extern bool auto_save_state, enable_autosave, enable_dbcs_tables, showdbcs, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked;
 extern int autosave_second, autosave_count, autosave_start[10], autosave_end[10], autosave_last[10];
+extern uint32_t turbolasttick;
 extern std::string failName, autosave_name[10];
 extern std::map<int, int> lowboxdrawmap, pc98boxdrawmap;
 extern bool isemptyhit(uint16_t code), CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
-void SetGameState_Run(int value), SaveGameState_Run(void);
+void SetGameState_Run(int value), SaveGameState_Run(void), DOSBOX_UnlockSpeed2( bool pressed );
 size_t GetGameState_Run(void);
 uint8_t lead[6], ccount = 0, *GetDbcsFont(Bitu code), *GetDbcs14Font(Bitu code, bool &is14);
 uint32_t ticksPrev = 0;
@@ -4099,6 +4100,9 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             ticksPrev=ticksNew;
         }
     }
+
+    int sec = static_cast<Section_prop *>(control->GetSection("CPU"))->Get_int("turbo last second");
+    if (ticksLocked && turbolasttick && sec>0 && GetTicks()-turbolasttick>=1000*sec) DOSBOX_UnlockSpeed2(true);
 
 #if defined(USE_TTF)
     if (ttf.inUse) {
