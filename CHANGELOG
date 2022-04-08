@@ -2,6 +2,9 @@
   - Added config option "turbo last second" (in [cpu]
     section) which allows to stop the Turbo function
     after specified number of seconds. (Wengier)
+  - Updated FLAC & MP3 decoder libraries to the latest
+    versions (v0.12.37 and v0.6.32) respectively; per
+    David Reid). (Wengier)
   - Fixed bug that OpenGL Voodoo window may not appear
     correctly if the DOSBox-X window was previously in
     full-screen mode in some builds. DOSBox-X will now
