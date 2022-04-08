@@ -1,6 +1,8 @@
 0.83.25
-  - Added config option "turbo last second" (in [cpu]
-    section) which allows to stop the Turbo function
+  - Allowed to boot from Toshiba DOS image file for the
+    Toshiba J-3100 emulation. (nanshiki)
+  - Added config option "stop turbo after second" (in
+    [cpu] section) which allows to stop Turbo function
     after specified number of seconds. (Wengier)
   - Updated FLAC & MP3 decoder libraries to the latest
     versions (v0.12.37 and v0.6.32) respectively; per
@@ -8,7 +10,7 @@
   - Fixed bug that OpenGL Voodoo window may not appear
     correctly if the DOSBox-X window was previously in
     full-screen mode in some builds. DOSBox-X will now
-    ensure a switch to window mode (or maxmized window
+    ensure a switch to window mode (or maximized window
     mode) in this case. (Wengier)
   - Fixed crash when switching to dynamic_rec core from
     menu when dynamic_x86 is also available. Also fixed

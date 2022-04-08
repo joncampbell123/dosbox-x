@@ -4101,7 +4101,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         }
     }
 
-    int sec = static_cast<Section_prop *>(control->GetSection("CPU"))->Get_int("turbo last second");
+    int sec = static_cast<Section_prop *>(control->GetSection("cpu"))->Get_int("stop turbo after second");
     if (ticksLocked && turbolasttick && sec>0 && GetTicks()-turbolasttick>=1000*sec) DOSBOX_UnlockSpeed2(true);
 
 #if defined(USE_TTF)

@@ -56,8 +56,6 @@ bool                                    systemmessagebox(char const * aTitle, ch
 
 #if defined(USE_TTF)
 bool resetreq=false;
-ttf_cell curAttrChar[txtMaxLins*txtMaxCols];					// currently displayed textpage
-ttf_cell newAttrChar[txtMaxLins*txtMaxCols];					// to be replaced by
 void resetFontSize();
 #endif
 

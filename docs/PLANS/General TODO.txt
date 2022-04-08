@@ -47,13 +47,6 @@ Some plans for future DOSBox-X developments
     in the EXE (usually when the EXE has finished unpacking and checking it's
     integrity).
 
-* Port to SDL 2.0
-
-  - Doing that would open up some useful 2D blitting functions and support for
-    multiple windows, which would be very useful for multi-monitor emulation
-    or implementing a debugger, or emulating a multi-head DOS setup with both
-    VGA and MDA/Hercules monitors.
-
 * Support for loading BIOS images and mapping them into adapter ROM
 
   - We could test various VGA BIOSes in DOSBox-X that way

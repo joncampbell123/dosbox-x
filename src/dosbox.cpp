@@ -2684,11 +2684,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Enables Turbo (Fast Forward) mode to speed up operations.");
     Pbool->SetBasic(true);
 
-    Pint = secprop->Add_int("turbo last second",Property::Changeable::Always,0);
-    Pint->Set_help("If a positive integer is specified, the Turbo function will last for specific seconds.");
-
     Pbool = secprop->Add_bool("stop turbo on key",Property::Changeable::Always,true);
     Pbool->Set_help("If set, the Turbo mode will be automatically stopped if a keyboard input is detected.");
+
+    Pint = secprop->Add_int("stop turbo after second",Property::Changeable::Always,0);
+    Pint->Set_help("If a positive integer is specified, the Turbo function will last for specific seconds.");
 
     Pstring = secprop->Add_string("use dynamic core with paging on",Property::Changeable::Always,"auto");
     Pstring->Set_values(truefalseautoopt);

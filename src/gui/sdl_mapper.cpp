@@ -312,6 +312,8 @@ void                                            WindowsTaskbarResetPreviewRegion
 void                        macosx_reload_touchbar(void);
 #endif
 
+bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+
 //! \brief Base CEvent class for mapper events
 class CEvent {
 public:
@@ -4992,7 +4994,8 @@ void MAPPER_RunInternal() {
     /* Sorry, the MAPPER screws up 3Dfx OpenGL emulation.
      * Remove this block when fixed. */
     if (GFX_GetPreventFullscreen()) {
-        LOG_MSG("MAPPER ui is not available while 3Dfx OpenGL emulation is running");
+        systemmessagebox("Mapper Editor","Mapper Editor is not currently available.","ok", "info", 1);
+        LOG_MSG("Mapper Editor is not available while 3Dfx OpenGL emulation is running");
         return;
     }
 

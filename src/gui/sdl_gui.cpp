@@ -33,12 +33,20 @@
 #include "mapper.h"
 #include "setup.h"
 #include "control.h"
+#include "paging.h"
 #include "shell.h"
 #include "cpu.h"
 #include "pic.h"
 #include "midi.h"
 #include "bios_disk.h"
 #include "../dos/drives.h"
+
+#if C_OPENGL
+#include "voodoo.h"
+#include "../hardware/voodoo_types.h"
+#include "../hardware/voodoo_data.h"
+#include "../hardware/voodoo_opengl.h"
+#endif
 
 #if defined(WIN32)
 #include "shellapi.h"
@@ -3410,6 +3418,11 @@ void RunCfgTool(Bitu val) {
         GFX_LosingFocus();
         sel = -1;
     }
+    if (GFX_GetPreventFullscreen()) {
+#if C_OPENGL
+        voodoo_ogl_update_dimensions();
+#endif
+    }
 }
 
 void GUI_Shortcut(int select) {
@@ -3417,13 +3430,6 @@ void GUI_Shortcut(int select) {
 
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
-
-    /* Sorry, the UI screws up 3Dfx OpenGL emulation.
-     * Remove this block when fixed. */
-    if (GFX_GetPreventFullscreen()) {
-        LOG_MSG("GUI is not available while 3Dfx OpenGL emulation is running");
-        return;
-    }
 
     shortcutid=select;
     shortcut=true;
@@ -3441,13 +3447,6 @@ void GUI_Shortcut(int select) {
 
 void GUI_Run(bool pressed) {
     if (pressed || running) return;
-
-    /* Sorry, the UI screws up 3Dfx OpenGL emulation.
-     * Remove this block when fixed. */
-    if (GFX_GetPreventFullscreen()) {
-        LOG_MSG("Configuration Tool is not available while 3Dfx OpenGL emulation is running");
-        return;
-    }
 
     sel = -1;
 #if defined(USE_TTF)

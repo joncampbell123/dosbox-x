@@ -101,6 +101,9 @@ static SDL_Color ttf_bgColor = {0, 0, 0, 0};
 static SDL_Rect ttf_textRect = {0, 0, 0, 0};
 static SDL_Rect ttf_textClip = {0, 0, 0, 0};
 
+ttf_cell curAttrChar[txtMaxLins*txtMaxCols];					// currently displayed textpage
+ttf_cell newAttrChar[txtMaxLins*txtMaxCols];					// to be replaced by
+
 typedef struct {
 	uint8_t red;
 	uint8_t green;
@@ -831,7 +834,7 @@ resize:
         E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
     if (ttf.SDL_font && ttf.width) {
         int widthb, widthm, widthx, width0, width1, width9;
-        widthb = widthm = widthx = width1 = width9 = 0;
+        widthb = widthm = widthx = width0 = width1 = width9 = 0;
         TTF_GlyphMetrics(ttf.SDL_font, 'B', NULL, NULL, NULL, NULL, &widthb);
         TTF_GlyphMetrics(ttf.SDL_font, 'M', NULL, NULL, NULL, NULL, &widthm);
         TTF_GlyphMetrics(ttf.SDL_font, 'X', NULL, NULL, NULL, NULL, &widthx);
