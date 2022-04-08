@@ -1751,8 +1751,8 @@ static uint16_t j3_cursor_x;
 static uint16_t j3_cursor_y;
 static Bitu j3_text_color;
 static Bitu j3_back_color;
-static uint16_t j3_font_offset;
 static uint16_t j3_machine_code = 0;
+uint16_t j3_font_offset = 0xca00;
 
 static uint16_t jis2shift(uint16_t jis)
 {
