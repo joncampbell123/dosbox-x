@@ -1,7 +1,22 @@
 0.83.25
+  - Added config option "turbo last second" (in [cpu]
+    section) which allows to stop the Turbo function
+    after specified number of seconds. (Wengier)
+  - Updated FLAC & MP3 decoder libraries to the latest
+    versions (v0.12.37 and v0.6.32) respectively; per
+    David Reid). (Wengier)
+  - Fixed bug that OpenGL Voodoo window may not appear
+    correctly if the DOSBox-X window was previously in
+    full-screen mode in some builds. DOSBox-X will now
+    ensure a switch to window mode (or maxmized window
+    mode) in this case. (Wengier)
+  - Fixed crash when switching to dynamic_rec core from
+    menu when dynamic_x86 is also available. Also fixed
+    the dynamic_rec core may not be displayed correctly
+    in the menu when a language file is used. (Wengier)
   - Fixed bug where DOS IOCTL would call device control
     channel on devices which did not advertise support
-    for IOCTL (cimarronm)
+    for IOCTL. (cimarronm)
   - Clean up of DOS device and attribute flag usage
     (cimarronm)
 0.83.24

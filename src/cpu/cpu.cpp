@@ -83,6 +83,8 @@ bool enable_cmpxchg8b = true;
 bool ignore_undefined_msr = true;
 bool report_fdiv_bug = false;
 
+bool save_dynamic_rec = false;
+
 extern bool ignore_opcode_63;
 extern bool dos_kernel_disabled;
 extern bool use_dynamic_core_with_paging;
@@ -373,7 +375,7 @@ int GetDynamicType() {
 #endif
 #if C_TARGETCPU == X86 || C_TARGETCPU == X86_64
 # if (C_DYNAMIC_X86)
-    return 1;
+    return save_dynamic_rec?2:1;
 # elif (C_DYNREC)
     return 2;
 # else
@@ -384,6 +386,24 @@ int GetDynamicType() {
 #else
     return 0;
 #endif
+}
+
+void menu_update_dynamic() {
+	const Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
+    std::string core(cpu_section->Get_string("core"));
+    std::string text = mainMenu.get_item("mapper_dynamic").get_text();
+    size_t found = text.find_last_of(" ");
+    if (found != std::string::npos) text = text.substr(0, found);
+#if (C_DYNREC)
+    if ((core == "dynamic" && GetDynamicType()==2) || core == "dynamic_rec" || save_dynamic_rec) {
+        save_dynamic_rec = true;
+        mainMenu.get_item("mapper_dynamic").set_text(text+" (dynamic_rec)");
+    } else
+#endif
+    {
+        save_dynamic_rec = false;
+        mainMenu.get_item("mapper_dynamic").set_text(text+" (dynamic_x86)");
+    }
 }
 
 void menu_update_core(void) {
@@ -427,7 +447,6 @@ void menu_update_core(void) {
 #if (C_DYNAMIC_X86)
     if (GetDynamicType()==1)
     mainMenu.get_item("mapper_dynamic").
-        set_text("Dynamic core (dynamic_x86)").
         check(cpudecoder == &CPU_Core_Dyn_X86_Run).
         enable(allow_dynamic &&
                (cpudecoder != &CPU_Core_Prefetch_Run) &&
@@ -440,7 +459,6 @@ void menu_update_core(void) {
 #if (C_DYNREC)
     if (GetDynamicType()==2)
     mainMenu.get_item("mapper_dynamic").
-        set_text("Dynamic core (dynamic_rec)").
         check(cpudecoder == &CPU_Core_Dynrec_Run).
         enable(allow_dynamic &&
                (cpudecoder != &CPU_Core_Prefetch_Run) &&
@@ -450,6 +468,7 @@ void menu_update_core(void) {
                (cpudecoder != &CPU_Core8086_Normal_Run)).
         refresh_item(mainMenu);
 #endif
+    menu_update_dynamic();
 }
 
 void menu_update_autocycle(void) {
@@ -3242,6 +3261,9 @@ static void CPU_ToggleDynamicCore(bool pressed) {
     Section* sec=control->GetSection("cpu");
     if(sec) {
 	std::string tmp="core=dynamic";
+#if (C_DYNAMIC_X86) && (C_DYNREC)
+	if (save_dynamic_rec) tmp="core=dynamic_rec";
+#endif
 	sec->HandleInputline(tmp);
     }
 }
@@ -3483,6 +3505,7 @@ public:
 
 		CPU::Change_Config(configuration);	
 		CPU_JMP(false,0,0,0);					//Setup the first cpu core
+        menu_update_dynamic();
 	}
 	bool Change_Config(Section* newconfig){
 		const Section_prop * section=static_cast<Section_prop *>(newconfig);

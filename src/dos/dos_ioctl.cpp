@@ -651,8 +651,7 @@ bool DOS_IOCTL(void) {
 		}
 		return true;
 	case 0x02:		/* Read from Device Control Channel */
-		if (Files[handle]->GetInformation() & (DeviceInfoFlags::Device | DeviceInfoFlags::IoctlSupport) ==
-                DeviceInfoFlags::Device | DeviceInfoFlags::IoctlSupport) {
+		if ((Files[handle]->GetInformation() & (DeviceInfoFlags::Device | DeviceInfoFlags::IoctlSupport)) == (DeviceInfoFlags::Device | DeviceInfoFlags::IoctlSupport)) {
 			/* is character device with IOCTL support */
 			PhysPt bufptr=PhysMake(SegValue(ds),reg_dx);
 			uint16_t retcode=0;
@@ -664,8 +663,7 @@ bool DOS_IOCTL(void) {
 		DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
 		return false;
 	case 0x03:		/* Write to Device Control Channel */
-		if (Files[handle]->GetInformation() & (DeviceInfoFlags::Device | DeviceInfoFlags::IoctlSupport) ==
-                DeviceInfoFlags::Device | DeviceInfoFlags::IoctlSupport) {
+		if ((Files[handle]->GetInformation() & (DeviceInfoFlags::Device | DeviceInfoFlags::IoctlSupport)) == (DeviceInfoFlags::Device | DeviceInfoFlags::IoctlSupport)) {
 			/* is character device with IOCTL support */
 			PhysPt bufptr=PhysMake(SegValue(ds),reg_dx);
 			uint16_t retcode=0;
