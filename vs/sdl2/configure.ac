@@ -4060,9 +4060,9 @@ fi
 SDLTEST_SOURCES="$srcdir/src/test/*.c"
 
 if test x$video_wayland = xyes; then
-    WAYLAND_PROTOCOLS=`cd $srcdir/wayland-protocols ; for p in *.xml ; do echo -n "\$p" |sed 's,\\.xml\$, ,g' ; done`
-    WAYLAND_PROTOCOLS_SOURCES=`for p in $WAYLAND_PROTOCOLS ; do echo -n "\\$(gen)/\$p-protocol.c " ; done`
-    WAYLAND_PROTOCOLS_HEADERS=`for p in $WAYLAND_PROTOCOLS ; do echo -n "\\$(gen)/\$p-client-protocol.h " ; done`
+    WAYLAND_PROTOCOLS=`cd $srcdir/wayland-protocols ; for p in *.xml ; do printf '%s' "\$p" |sed 's,\\.xml\$, ,g' ; done`
+    WAYLAND_PROTOCOLS_SOURCES=`for p in $WAYLAND_PROTOCOLS ; do printf '%s' "\\$(gen)/\$p-protocol.c " ; done`
+    WAYLAND_PROTOCOLS_HEADERS=`for p in $WAYLAND_PROTOCOLS ; do printf '%s' "\\$(gen)/\$p-client-protocol.h " ; done`
     GEN_SOURCES="$GEN_SOURCES $WAYLAND_PROTOCOLS_SOURCES"
     GEN_HEADERS="$GEN_HEADERS $WAYLAND_PROTOCOLS_HEADERS"
 
@@ -4080,7 +4080,7 @@ if test x$video_wayland = xyes; then
         echo "	\\$(RUN_CMD_CC)\\$(LIBTOOL) --tag=CC --mode=compile \\$(CC) \\$(CFLAGS) \\$(EXTRA_CFLAGS) $DEPENDENCY_TRACKING_OPTIONS -c \\$< -o \\$@" ;\
         done ;\
         echo ;\
-        for s in $WAYLAND_SOURCES ; do echo -n "\$s:" ; for p in $WAYLAND_PROTOCOLS ; do echo -n " \\$(gen)/\$p-client-protocol.h" ; done ; echo ; done ; echo`
+        for s in $WAYLAND_SOURCES ; do printf '%s' "\$s:" ; for p in $WAYLAND_PROTOCOLS ; do printf '%s' " \\$(gen)/\$p-client-protocol.h" ; done ; echo ; done ; echo`
 fi
 
 OBJECTS=`echo $SOURCES`

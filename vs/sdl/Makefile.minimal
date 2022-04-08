@@ -1,9 +1,9 @@
 # Makefile to build the SDL library
 
 INCLUDE = -I./include
-CFLAGS  = -g -O2 $(INCLUDE)
-AR	= ar
-RANLIB	= ranlib
+CFLAGS  = -g -O2 $(INCLUDE) $(CFLAGS)
+AR	?= ar
+RANLIB	?= ranlib
 
 CONFIG_H = include/SDL_config.h
 TARGET  = libSDL.a
