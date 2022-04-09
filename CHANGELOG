@@ -1,6 +1,7 @@
 0.83.25
   - Allowed to boot from Toshiba DOS image file for the
     Toshiba J-3100 emulation. (nanshiki)
+  - Added Korean language option in Windows installer.
   - Added config option "stop turbo after second" (in
     [cpu] section) which allows to stop Turbo function
     after specified number of seconds. (Wengier)
