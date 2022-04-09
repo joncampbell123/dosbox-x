@@ -82,10 +82,18 @@ Bitu INT10_Handler(void) {
 				mode = 0x70;
 				enum DOSV_VTEXT_MODE vtext_mode = DOSV_GetVtextMode((reg_al == 0x70) ? 0 : 1);
 				if(vtext_mode == DOSV_VTEXT_XGA || vtext_mode == DOSV_VTEXT_XGA_24) {
-					INT10_SetVideoMode(0x37);
+					if(svgaCard == SVGA_TsengET4K) {
+						INT10_SetVideoMode(0x37);
+					} else {
+						INT10_SetVideoMode(0x104);
+					}
 					INT10_SetDOSVModeVtext(mode, vtext_mode);
 				} else if(vtext_mode == DOSV_VTEXT_SXGA || vtext_mode == DOSV_VTEXT_SXGA_24) {
-					INT10_SetVideoMode(0x3d);
+					if(svgaCard == SVGA_TsengET4K) {
+						INT10_SetVideoMode(0x3d);
+					} else {
+						INT10_SetVideoMode(0x106);
+					}
 					INT10_SetDOSVModeVtext(mode, vtext_mode);
 				} else if(vtext_mode == DOSV_VTEXT_SVGA) {
 					INT10_SetVideoMode((svgaCard == SVGA_TsengET3K) ? 0x29 : (svgaCard == SVGA_ParadisePVGA1A) ? 0x58 : 0x6a);
