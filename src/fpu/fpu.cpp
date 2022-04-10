@@ -53,11 +53,6 @@ uint16_t FPU_GetTag(void){
 #include "fpu_instructions.h"
 #endif
 
-/* WATCHIT : ALWAYS UPDATE REGISTERS BEFORE AND AFTER USING THEM 
-			STATUS WORD =>	FPU_SET_TOP(TOP) BEFORE a read
-			TOP=FPU_GET_TOP() after a write;
-			*/
-
 static void EATREE(Bitu _rm){
 	Bitu group=(_rm >> 3) & 7;
 	switch(group){
@@ -563,7 +558,6 @@ void FPU_ESC5_EA(Bitu rm,PhysPt addr) {
 		FPU_FSAVE(addr);
 		break;
 	case 0x07:   /*FNSTSW    NG DISAGREES ON THIS*/
-		FPU_SET_TOP(TOP);
 		mem_writew(addr,fpu.sw);
 		//seems to break all dos4gw games :)
 		break;
@@ -748,7 +742,6 @@ void FPU_ESC7_Normal(Bitu rm) {
 	case 0x04:
 		switch(sub){
 			case 0x00:     /* FNSTSW AX*/
-				FPU_SET_TOP(TOP);
 				reg_ax = fpu.sw;
 				break;
 			default:
@@ -1098,8 +1091,6 @@ static INLINE uint8_t fpu_tag_word_abridged(void) {
 void CPU_FXSAVE(PhysPt eaa) {
 	unsigned int i;
 
-	FPU_SET_TOP(TOP);
-
 	/* Ref: [https://www.felixcloutier.com/x86/fxsave] */
 	mem_writew(eaa+0x000,fpu.cw);					/* +0x000 FPU control word */
 	mem_writew(eaa+0x002,fpu.sw);					/* +0x002 FPU status word */
@@ -1149,8 +1140,6 @@ void CPU_FXRSTOR(PhysPt eaa) {
 	fpu.cw = mem_readw(eaa+0x000);					/* +0x000 FPU control word */
 	fpu.sw = mem_readw(eaa+0x002);					/* +0x002 FPU status word */
 	fpu.mxcsr = mem_readd(eaa+0x018);				/* +0x018 MXCSR */
-
-	TOP = FPU_GET_TOP();
 
 	/* NTS: Remember that st(i) TOP pointer is in FPU status word */
 
