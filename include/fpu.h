@@ -420,7 +420,9 @@ struct FPUStatusWord
 		IE = false; DE = false; ZE = false; OE = false; UE = false; PE = false;
 		ES = false;
 	}
+	std::string to_string() const;
 };
+
 
 typedef struct {
 #if defined(HAS_LONG_DOUBLE)//probably shouldn't allow struct to change size based on this

@@ -20,6 +20,7 @@
 #include "dosbox.h"
 #if C_FPU
 
+#include <string>
 #include <math.h>
 #include <float.h>
 #include "paging.h"
@@ -1185,4 +1186,14 @@ public:
         registerPOD(fpu);
     }
 } dummy;
+}
+
+std::string FPUStatusWord::to_string() const
+{
+	return "B=" + std::to_string(B) + " C3-C0=" + std::to_string(C3) + std::to_string(C2) +
+	       std::to_string(C1) + std::to_string(C0) + " ES=" + std::to_string(ES) +
+	       " SF=" + std::to_string(SF) + " PE=" + std::to_string(PE) +
+	       " UE=" + std::to_string(UE) + " OE=" + std::to_string(OE) +
+	       " ZE=" + std::to_string(ZE) + " DE=" + std::to_string(DE) +
+	       " IE=" + std::to_string(IE) + " TOP=" + std::to_string(top);
 }

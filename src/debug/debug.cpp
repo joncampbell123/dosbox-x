@@ -4662,7 +4662,7 @@ const char *FPU_tag(unsigned int i) {
 static void LogFPUInfo(void) {
     DEBUG_BeginPagedContent();
 
-    DEBUG_ShowMsg("FPU TOP=%u",static_cast<unsigned>(fpu.sw.top));
+    DEBUG_ShowMsg("status: %s", fpu.sw.to_string().c_str());
 
     for (unsigned int i=0;i < 8;i++) {
         unsigned int adj = STV(i);
