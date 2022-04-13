@@ -1,6 +1,10 @@
 0.83.25
   - Allowed to boot from Toshiba DOS image file for the
     Toshiba J-3100 emulation. (nanshiki)
+  - Added config option "show recorded filename" (in
+    [dosbox] section) which when set to true (default)
+    will show message boxes with recorded filenames
+    when making audio or video captures. (Wengier)
   - Added config option "allow quit after warning" (in
     [dosbox] section) which when set to false DOSBox-X
     will disallow the quit option after displaying a

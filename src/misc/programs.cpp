@@ -57,7 +57,7 @@ extern const char *modifier;
 extern unsigned int sendkeymap;
 extern std::string langname, configfile, dosbox_title;
 extern int autofixwarn, enablelfn, fat32setver, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor;
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, ttfswitch, loadlang, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, uao, showdbcs, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, outcon, enable_dbcs_tables;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, ttfswitch, loadlang, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, uao, showdbcs, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, outcon, enable_dbcs_tables, show_recorded_filename;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -652,6 +652,8 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
                     force_load_state = section->Get_bool("forceloadstate");
                     mainMenu.get_item("force_loadstate").check(force_load_state).refresh_item(mainMenu);
                 }
+                if (!strcasecmp(inputline.substr(0, 23).c_str(), "show recorded filename="))
+                    show_recorded_filename = section->Get_bool("show recorded filename");
                 if (!strcasecmp(inputline.substr(0, 6).c_str(), "title=")) {
                     dosbox_title=section->Get_string("title");
                     trim(dosbox_title);
