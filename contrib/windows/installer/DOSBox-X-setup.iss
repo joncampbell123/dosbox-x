@@ -298,7 +298,7 @@ begin
 end;
 function ShouldSkipPage(PageID: Integer): Boolean;
 begin
-  Result := ((PageID = PageOutput.ID) or (PageID = PageLang.ID) or (PageID = PageFont.ID) or (PageID = PageCustom.ID) or (PageID = PageVer.ID)) and FileExists(ExpandConstant('{app}\dosbox-x.conf')) or ((PageID = PageLang.ID) and not PageOutput.Values[2]) or ((PageID = PageFont.ID) and (not PageOutput.Values[2] or PageLang.Values[2] or PageLang.Values[3] or PageLang.Values[5] or PageLang.Values[7])) or ((PageID = PageCustom.ID) and (not PageOutput.Values[2] or not PageFont.Values[5]));
+  Result := ((PageID = PageOutput.ID) or (PageID = PageLang.ID) or (PageID = PageFont.ID) or (PageID = PageCustom.ID) or (PageID = PageVer.ID)) and FileExists(ExpandConstant('{app}\dosbox-x.conf')) or ((PageID = PageFont.ID) and (not PageOutput.Values[2] or PageLang.Values[2] or PageLang.Values[3] or PageLang.Values[5] or PageLang.Values[7])) or ((PageID = PageCustom.ID) and (not PageOutput.Values[2] or not PageFont.Values[5]));
 end;
 function NextButtonClick(CurPageID: Integer): Boolean;
 begin
