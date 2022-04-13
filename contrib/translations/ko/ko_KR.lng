@@ -1,7 +1,7 @@
 :DOSBOX-X:LANGUAGE:Korean
 :DOSBOX-X:CODEPAGE:949
 :DOSBOX-X:VERSION:0.83.25
-:DOSBOX-X:REMARK : DOS / V 에뮬레이션 또는 코드 페이지 949의 한국어 글꼴을 사용하여 한국어 표시 및 인쇄를 직접 지원합니다.
+:DOSBOX-X:REMARK:DOS/V 에뮬레이션 또는 코드 페이지 949의 한국어 글꼴을 사용하여 한국어 표시 및 인쇄를 직접 지원합니다.
 :AUTOEXEC_CONFIGFILE_HELP
 이 섹션에 나열된 줄은 시작할 때 실행됩니다.
 MOUNT 하고 싶은 경우는 여기에 기재할 수 있습니다.
@@ -1622,7 +1622,7 @@ DOSBox-X에오신것을환영합니다 !
 [33m내려펼침 차림표[37m를 통해 다양한 설정이 가능합니다.                            
 .
 :SHELL_STARTUP_EXAMPLE
-[32m예[37m: [33mTrueTypefont[37m 또는 [33mOpenGL pixel-perfect[37m 출력 선택사항을 선택하십시오.    
+[32m예[37m: [33mTrueType 글꼴[37m 또는 [33mOpenGL pixel-perfect[37m 출력 선택사항을 선택하십시오.   
 .
 :SHELL_STARTUP_HEAD2
 [36m유용한 기본 단축키:                                                         [37m
@@ -3412,7 +3412,7 @@ CPU:표준 코어
 클립보드 정지
 .
 :MAPPER:pauseints
-일시 정지 (인터럽트 유효)
+일시 정지 인터럽트 유효
 .
 :MAPPER:prevslot
 이전 세이브 슬롯
