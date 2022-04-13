@@ -1,6 +1,10 @@
 0.83.25
   - Allowed to boot from Toshiba DOS image file for the
     Toshiba J-3100 emulation. (nanshiki)
+  - Added config option "allow quit after warning" (in
+    [dosbox] section) which when set to false DOSBox-X
+    will disallow the quit option after displaying a
+    warning message. (Wengier)
   - Added Korean language option in Windows installer.
     Also, language option page will be shown regardless
     of the output option selected. (Wengier)

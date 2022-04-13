@@ -1416,6 +1416,9 @@ void DOSBOX_SetupConfigSections(void) {
             "If set to autofile, DOSBox-X will warn if there are open file handles or a guest system is currently running.");
     Pstring->SetBasic(true);
 
+    Pbool = secprop->Add_bool("allow quit after warning",Property::Changeable::OnlyAtStart,true);
+    Pbool->Set_help("If set to false, DOSBox-X will disallow the quit option after displaying a warning message.");
+
     Pstring = secprop->Add_string("working directory option",Property::Changeable::OnlyAtStart,"default");
     Pstring->Set_values(workdiropts);
     Pstring->Set_help("Select an option for DOSBox-X's working directory when it runs.\n"
