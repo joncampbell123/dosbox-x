@@ -208,9 +208,8 @@ typedef enum PROCESS_DPI_AWARENESS {
 #include "fpu.h"
 #include "cross.h"
 #include "keymap.h"
-
-#if C_OPENGL
 #include "voodoo.h"
+#if C_OPENGL
 #include "../hardware/voodoo_types.h"
 #include "../hardware/voodoo_data.h"
 #include "../hardware/voodoo_opengl.h"

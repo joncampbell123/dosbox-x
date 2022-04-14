@@ -22,8 +22,9 @@
     correctly if the DOSBox-X window was previously in
     full-screen mode in some builds. DOSBox-X will now
     ensure a switch to window mode (or maximized window
-    mode) in this case. Also fixed resetting DOSBox-X
-    while Vooodo emulation is active. (Wengier)
+    mode) in this case. Also fixed some menu options
+    including rebooting DOSBox-X while Voodoo emulation
+    is currently active. (Wengier)
   - Fixed crash when switching to dynamic_rec core from
     menu when dynamic_x86 is also available. Also fixed
     the dynamic_rec core may not be displayed correctly
