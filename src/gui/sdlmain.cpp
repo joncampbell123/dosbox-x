@@ -9044,6 +9044,9 @@ fresh_boot:
                 real_writed(0,0x03*4,(uint32_t)BIOS_DEFAULT_HANDLER_LOCATION);
             }
 
+            if (Voodoo_OGL_Active())
+                Voodoo_Output_Enable(false);
+
             grGlideShutdown();
             /* shutdown DOSBox-X's virtual drive Z */
             VFILE_Shutdown();

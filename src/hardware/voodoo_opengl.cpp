@@ -34,6 +34,10 @@
 #include "voodoo_opengl.h"
 #include "sdlmain.h"
 
+bool Voodoo_OGL_Active() {
+	return (v != NULL && v->clock_enabled && v->output_on);
+}
+
 #if C_OPENGL
 
 #if defined(_MSC_VER)
@@ -94,10 +98,6 @@ int Voodoo_OGL_GetHeight() {
 		return new_height;
 	else
 		return 0;
-}
-
-bool Voodoo_OGL_Active() {
-	return (v != NULL && v->clock_enabled && v->output_on);
 }
 
 static void ogl_get_depth(voodoo_state* VV, INT32 ITERZ, INT64 ITERW, INT32 *depthval, INT32 *out_wfloat)

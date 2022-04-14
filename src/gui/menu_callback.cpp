@@ -673,7 +673,6 @@ bool list_drivenum_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     return true;
 }
 
-std::string GetIDEInfo();
 bool list_ideinfo_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
