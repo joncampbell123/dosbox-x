@@ -626,6 +626,9 @@ bool DOS_IOCTL(void) {
 	case 0x00:		/* Get Device Information */
 		if (Files[handle]->GetInformation() & DeviceInfoFlags::Device) {	//Check for device
 			reg_dx=Files[handle]->GetInformation() & ~EXT_DEVICE_BIT;
+            // DOS copies the upper byte of device attributes in DH resulting in two bits being set
+            // for a device
+            reg_dx |= DeviceAttributeFlags::CharacterDevice;
 		} else {
 			uint8_t hdrive=Files[handle]->GetDrive();
 			if (hdrive==0xff) {
