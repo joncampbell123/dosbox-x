@@ -30,9 +30,7 @@
 #include "programs.h"
 #include "render.h"
 #include "menu.h"
-#include "regs.h"
 #include "jfont.h"
-#include "callback.h"
 #include "control.h"
 #include "sdlmain.h"
 #include "bitop.h"
@@ -42,7 +40,7 @@
 #define ATT_REGS 0x15
 
 void J3_GetPalette(uint8_t no, uint8_t &r, uint8_t &g, uint8_t &b);
-extern bool window_was_maximized;
+void ttf_switch_on(bool ss=true), ttf_switch_off(bool ss=true);
 extern bool enable_vga_8bit_dac;
 extern bool int10_vesa_map_as_128kb;
 extern bool allow_vesa_lowres_modes;
@@ -57,9 +55,7 @@ extern bool allow_vesa_8bpp;
 extern bool allow_vesa_4bpp;
 extern bool allow_vesa_tty;
 extern bool vga_8bit_dac;
-extern bool showdbcs;
 extern bool blinking;
-extern bool loadlang;
 
 /* This list includes non-explicitly 24bpp modes (in the 0x100-0x11F range) that are available
  * when the VBE1.2 setting indicates they should be 24bpp.
@@ -894,7 +890,6 @@ uint8_t TandyGetCRTPage(void) {
 
 extern bool en_int33;
 extern std::string j3type;
-void change_output(int output);
 void SetVal(const std::string& secname, const std::string& preval, const std::string& val);
 bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 	switch (machine) {
@@ -1186,99 +1181,6 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 
 	return true;
 }
-
-#if defined(USE_TTF)
-bool GFX_IsFullscreen(void), Direct3D_using(void);
-void ttf_reset(void), resetFontSize(), setVGADAC(), OUTPUT_TTF_Select(int fsize), RENDER_Reset(void), KEYBOARD_Clear(), GFX_SwitchFullscreenNoReset(void);
-bool ttfswitch=false, switch_output_from_ttf=false;
-extern bool resetreq, colorChanged;
-
-void ttf_switch_on(bool ss=true) {
-    if ((ss&&ttfswitch)||(!ss&&switch_output_from_ttf)) {
-        uint16_t oldax=reg_ax;
-        reg_ax=0x1600;
-        CALLBACK_RunRealInt(0x2F);
-        if (reg_al!=0&&reg_al!=0x80) {reg_ax=oldax;return;}
-        reg_ax=oldax;
-        if (window_was_maximized&&!GFX_IsFullscreen()) {
-#if defined(WIN32)
-            ShowWindow(GetHWND(), SW_RESTORE);
-#elif defined(C_SDL2)
-            SDL_RestoreWindow(sdl.window);
-#endif
-        }
-        bool OpenGL_using(void), gl = OpenGL_using();
-        change_output(10);
-        SetVal("sdl", "output", "ttf");
-        std::string showdbcsstr = static_cast<Section_prop *>(control->GetSection("dosv"))->Get_string("showdbcsnodosv");
-        showdbcs = showdbcsstr=="true"||showdbcsstr=="1"||(showdbcsstr=="auto" && (loadlang || dbcs_sbcs));
-        void OutputSettingMenuUpdate(void);
-        OutputSettingMenuUpdate();
-        if (ss) ttfswitch = false;
-        else switch_output_from_ttf = false;
-        mainMenu.get_item("output_ttf").enable(true).refresh_item(mainMenu);
-        if (ttf.fullScrn) {
-            if (!GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
-            OUTPUT_TTF_Select(3);
-#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-            if (gl && GFX_IsFullscreen()) { // Hack for full-screen switch from OpenGL outputs
-                void GFX_SwitchFullScreen(void);
-                GFX_SwitchFullScreen();
-                GFX_SwitchFullScreen();
-            }
-#endif
-            resetreq = true;
-        }
-        resetFontSize();
-    }
-}
-
-void ttf_switch_off(bool ss=true) {
-    if (!ss&&ttfswitch)
-        ttf_switch_on();
-    if (ttf.inUse) {
-        std::string output="surface";
-        int out=switchoutput;
-        if (switchoutput==0)
-            output = "surface";
-#if C_OPENGL
-        else if (switchoutput==3)
-            output = "opengl";
-        else if (switchoutput==4)
-            output = "openglnb";
-        else if (switchoutput==5)
-            output = "openglpp";
-#endif
-#if C_DIRECT3D
-        else if (switchoutput==6)
-            output = "direct3d";
-#endif
-        else {
-#if C_DIRECT3D
-            out = 6;
-            output = "direct3d";
-#elif C_OPENGL
-            out = 3;
-            output = "opengl";
-#else
-            out = 0;
-            output = "surface";
-#endif
-        }
-        KEYBOARD_Clear();
-        showdbcs = true;
-        change_output(out);
-        SetVal("sdl", "output", output);
-        void OutputSettingMenuUpdate(void);
-        OutputSettingMenuUpdate();
-        if (ss) ttfswitch = true;
-        else switch_output_from_ttf = true;
-        //if (GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
-        mainMenu.get_item("output_ttf").enable(false).refresh_item(mainMenu);
-        RENDER_Reset();
-    }
-}
-#endif
 
 bool unmask_irq0_on_int10_setmode = true;
 bool INT10_SetVideoMode(uint16_t mode) {
