@@ -371,25 +371,28 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
 		         (fpu.sw & ~FPUStatusWord::conditionMask);
 
 // handles fprem,fprem1,fscale
-#define FPUD_REMAINDER(op)			\
-		uint16_t new_sw;				\
-		__asm {						\
-		__asm	mov		eax, TOP	\
-		__asm	mov		ebx, eax	\
-		__asm	inc     ebx			\
-		__asm	and     ebx, 7		\
-		__asm	shl		ebx, 4		\
-		__asm	shl		eax, 4		\
-		__asm	fld		TBYTE PTR fpu.p_regs[ebx].m1	\
-		__asm	fld		TBYTE PTR fpu.p_regs[eax].m1	\
-		__asm	fclex				\
-		__asm	op					\
-		__asm	fnstsw	new_sw		\
-		__asm	fstp	TBYTE PTR fpu.p_regs[eax].m1	\
-		__asm	fstp	st(0)		\
-		}							\
-		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
-		         (fpu.sw & ~FPUStatusWord::conditionMask);
+#define FPUD_REMAINDER(op)                                         \
+    uint16_t new_sw, save_cw, cw_masked = fpu.cw.allMasked();      \
+    __asm {                                                        \
+    __asm   fnstcw  save_cw                                        \
+    __asm   fldcw   cw_masked                                      \
+    __asm   mov     eax, TOP                                       \
+    __asm   mov     ebx, eax                                       \
+    __asm   inc     ebx                                            \
+    __asm   and     ebx, 7                                         \
+    __asm   shl     ebx, 4                                         \
+    __asm   shl     eax, 4                                         \
+    __asm   fld     TBYTE PTR fpu.p_regs[ebx].m1                   \
+    __asm   fld     TBYTE PTR fpu.p_regs[eax].m1                   \
+    __asm   fclex                                                  \
+    __asm   op                                                     \
+    __asm   fnstsw  new_sw                                         \
+    __asm   fstp    TBYTE PTR fpu.p_regs[eax].m1                   \
+    __asm   fstp    st(0)                                          \
+    __asm   fldcw   save_cw                                        \
+    }                                                              \
+    fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+                 (fpu.sw & ~FPUStatusWord::conditionMask);
 
 // handles fcom,fucom
 #define FPUD_COMPARE(op)			\
@@ -838,21 +841,24 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
 		         (fpu.sw & ~FPUStatusWord::conditionMask);
 
 // handles fprem,fprem1,fscale
-#define FPUD_REMAINDER(op)					\
-		uint16_t new_sw;						\
-		__asm__ volatile (					\
-			"fldt		%2				\n"	\
-			"fldt		%1				\n"	\
-			"fclex						\n"	\
-			#op" 						\n"	\
-			"fnstsw		%0				\n"	\
-			"fstpt		%1				\n"	\
-			"fstp		%%st(0)			"	\
-			:	"=&am" (new_sw), "+m" (fpu.p_regs[TOP])	\
-			:	"m" (fpu.p_regs[(TOP+1)&7])				\
-		);									\
-		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
-		         (fpu.sw & ~FPUStatusWord::conditionMask);
+#define FPUD_REMAINDER(op)                                         \
+    uint16_t new_sw, save_cw, cw_masked = fpu.cw.allMasked();      \
+    __asm__ volatile (                                             \
+        "fnstcw     %1              \n"                            \
+        "fldcw      %4              \n"                            \
+        "fldt       %3              \n"                            \
+        "fldt       %2              \n"                            \
+        "fclex                      \n"                            \
+        #op"                        \n"                            \
+        "fnstsw     %0              \n"                            \
+        "fstpt      %2              \n"                            \
+        "fstp       %%st(0)         \n"                            \
+        "fldcw      %1                "                            \
+        : "=&am" (new_sw), "=m" (save_cw), "+m" (fpu.p_regs[TOP])  \
+        : "m" (fpu.p_regs[(TOP+1)&7]), "m" (cw_masked)             \
+    );                                                             \
+    fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+                 (fpu.sw & ~FPUStatusWord::conditionMask);
 
 // handles fcom,fucom
 #define FPUD_COMPARE(op)					\
