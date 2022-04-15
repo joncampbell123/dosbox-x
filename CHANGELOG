@@ -1,4 +1,8 @@
 0.83.25
+  - Fix fscale FPU operation and FPU status word
+    updates (cimarronm)
+  - Fix FPU stack value log messages on x86-based builds
+    (cimarronm)
   - Added config option "turbo last second" (in [cpu]
     section) which allows to stop the Turbo function
     after specified number of seconds. (Wengier)
