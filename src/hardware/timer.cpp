@@ -35,7 +35,6 @@
 // "on". This does not force the PC speaker output on (does not force an audible beep),
 // it only forces the clock gate on and PIT 1 to cycle.
 bool speaker_clock_lock_on = false;
-extern const char* RunningProgram;
 
 static INLINE void BIN2BCD(uint16_t& val) {
 	uint16_t temp=val%10 + (((val/10)%10)<<4)+ (((val/100)%10)<<8) + (((val/1000)%10)<<12);
@@ -276,7 +275,7 @@ struct PIT_Block {
                 break;
             case 3:		/* Square Wave Rate Generator */
                 {
-                    double tmp = strcasecmp(RunningProgram, "JUMPMAN")?fmod(index,(double)delay * 2):(fmod(index,(double)delay) * 2);
+                    double tmp = cycle_base ? fmod(index, (double)delay) * 2 : fmod(index, (double)delay);
 
                     if (tmp < 0) {
                         fprintf(stderr,"tmp %.9f index %.9f delay %.9f now %.3f start %.3f\n",tmp,index,delay,now,start);
