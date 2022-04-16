@@ -59,7 +59,7 @@ extern int enablelfn, msgcodepage;
 extern uint16_t countryNo;
 extern unsigned int dosbox_shell_env_size;
 bool outcon = true, usecon = true;
-bool shellrun = false, prepared = false;
+bool shellrun = false, prepared = false, testerr = false;
 
 uint16_t shell_psp = 0;
 Bitu call_int2e = 0;
@@ -1805,7 +1805,7 @@ void SHELL_Run() {
     }
 #if C_DEBUG
     if (control->opt_test) {
-        RUN_ALL_TESTS();
+        testerr = RUN_ALL_TESTS();
 #if defined(WIN32)
         DOSBox_ConsolePauseWait();
 #endif

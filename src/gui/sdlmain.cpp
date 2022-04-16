@@ -53,6 +53,7 @@ int selerow = -1, selecol = -1;
 int middleunlock = 1;
 bool rtl = false;
 bool selmark = false;
+extern bool testerr;
 extern bool blinking;
 extern bool dpi_aware_enable;
 extern bool log_int21;
@@ -9315,7 +9316,7 @@ fresh_boot:
     snd_config_update_free_global();
 #endif
 
-    return 0;
+    return control->opt_test&&testerr?1:0;
 }
 
 void GFX_GetSizeAndPos(int &x,int &y,int &width, int &height, bool &fullscreen) {
