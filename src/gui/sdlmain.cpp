@@ -6716,7 +6716,6 @@ bool DOSBOX_parse_argv() {
             control->opt_nomenu = true;
             control->opt_fastlaunch = true;
         }
-#if C_DEBUG
         else if (optname == "test" || optname == "tests" || optname == "gtest_list_tests") {
             putenv(const_cast<char*>("SDL_VIDEODRIVER=dummy"));
             control->opt_test = true;
@@ -6726,7 +6725,6 @@ bool DOSBOX_parse_argv() {
             control->opt_nomenu = true;
             control->opt_fastlaunch = true;
         }
-#endif
         else if (optname == "exit") {
             control->opt_exit = true;
         }

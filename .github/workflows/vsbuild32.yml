@@ -26,6 +26,8 @@ jobs:
         run: |
           top=`pwd`
           cd $top/vs
+          $top/bin/Win32/Release/dosbox-x.exe -tests -set waitonerror=false -set logfile=tests.log
+          cat tests.log
           mkdir -p $top/package/bin/Win32/Release/drivez
           mkdir -p $top/package/bin/Win32/Release/scripts
           mkdir -p $top/package/bin/Win32/Release/shaders
@@ -55,6 +57,8 @@ jobs:
         run: |
           top=`pwd`
           cd $top/vs
+          $top/bin/Win32/"Release SDL2"/dosbox-x.exe -tests -set waitonerror=false -set logfile=tests.log
+          cat tests.log
           mkdir -p $top/package/bin/Win32/"Release SDL2"/drivez
           mkdir -p $top/package/bin/Win32/"Release SDL2"/scripts
           mkdir -p $top/package/bin/Win32/"Release SDL2"/shaders

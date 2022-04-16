@@ -74,7 +74,7 @@ void ResolvePath(std::string& in);
 void DOS_SetCountry(uint16_t countryNo);
 void CALLBACK_DeAllocate(Bitu in), DOSBox_ConsolePauseWait();
 void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-bool isDBCSCP(), InitCodePage(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
+bool isDBCSCP(), InitCodePage(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), sdl_wait_on_error();
 
 Bitu call_shellstop = 0;
 /* Larger scope so shell_del autoexec can use it to
@@ -1803,15 +1803,20 @@ void SHELL_Run() {
                 first_shell->WriteOut(MSG_Get("SHELL_MISSING_FILE"), name);
         }
     }
-#if C_DEBUG
     if (control->opt_test) {
+#if C_DEBUG
         testerr = RUN_ALL_TESTS();
+		control->opt_nolog = false;
+		LOG_MSG("Unit test completed: %s\n", testerr?"failure":"success");
+		control->opt_nolog = true;
+#else
+		printf("Unit tests are only available in debug builds\n\n");
+#endif
 #if defined(WIN32)
-        DOSBox_ConsolePauseWait();
+        if (sdl_wait_on_error()) DOSBox_ConsolePauseWait();
 #endif
         return;
     }
-#endif
 	i4dos=false;
 	if (altshell) {
         if (strstr(name, "4DOS.COM")) i4dos=true;
