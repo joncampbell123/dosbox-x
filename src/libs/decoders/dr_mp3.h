@@ -1,6 +1,6 @@
 /*
 MP3 audio decoder. Choice of public domain or MIT-0. See license statements at the end of this file.
-dr_mp3 - v0.6.32 - 2021-12-11
+dr_mp3 - v0.6.33 - 2022-04-10
 
 David Reid - mackron@gmail.com
 
@@ -95,7 +95,7 @@ extern "C" {
 
 #define DRMP3_VERSION_MAJOR     0
 #define DRMP3_VERSION_MINOR     6
-#define DRMP3_VERSION_REVISION  32
+#define DRMP3_VERSION_REVISION  33
 #define DRMP3_VERSION_STRING    DRMP3_XSTRINGIFY(DRMP3_VERSION_MAJOR) "." DRMP3_XSTRINGIFY(DRMP3_VERSION_MINOR) "." DRMP3_XSTRINGIFY(DRMP3_VERSION_REVISION)
 
 #include <stddef.h> /* For size_t. */
@@ -235,9 +235,15 @@ typedef drmp3_int32 drmp3_result;
     I am using "__inline__" only when we're compiling in strict ANSI mode.
     */
     #if defined(__STRICT_ANSI__)
-        #define DRMP3_INLINE __inline__ __attribute__((always_inline))
+        #define DRMP3_GNUC_INLINE_HINT __inline__
     #else
-        #define DRMP3_INLINE inline __attribute__((always_inline))
+        #define DRMP3_GNUC_INLINE_HINT inline
+    #endif
+
+    #if (__GNUC__ > 3 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 2)) || defined(__clang__)
+        #define DRMP3_INLINE DRMP3_GNUC_INLINE_HINT __attribute__((always_inline))
+    #else
+        #define DRMP3_INLINE DRMP3_GNUC_INLINE_HINT
     #endif
 #elif defined(__WATCOMC__)
     #define DRMP3_INLINE __inline
@@ -2103,7 +2109,11 @@ static void drmp3d_synth(float *xl, drmp3d_sample_t *dstl, int nch, float *lins)
             vst1_lane_s16(dstl + (49 + i)*nch, pcmb, 2);
 #endif
 #else
+        #if DRMP3_HAVE_SSE
             static const drmp3_f4 g_scale = { 1.0f/32768.0f, 1.0f/32768.0f, 1.0f/32768.0f, 1.0f/32768.0f };
+        #else
+            const drmp3_f4 g_scale = vdupq_n_f32(1.0f/32768.0f);
+        #endif
             a = DRMP3_VMUL(a, g_scale);
             b = DRMP3_VMUL(b, g_scale);
 #if DRMP3_HAVE_SSE
@@ -2406,8 +2416,6 @@ DRMP3_API void drmp3dec_f32_to_s16(const float *in, drmp3_int16 *out, size_t num
  Main Public API
 
  ************************************************************************************************************************************************************/
-#include <math.h>   /* For sin() and exp(). */
-
 #if defined(SIZE_MAX)
     #define DRMP3_SIZE_MAX  SIZE_MAX
 #else
@@ -2469,24 +2477,6 @@ static DRMP3_INLINE drmp3_uint32 drmp3_gcf_u32(drmp3_uint32 a, drmp3_uint32 b)
     }
 
     return a;
-}
-
-
-static DRMP3_INLINE double drmp3_sin(double x)
-{
-    /* TODO: Implement custom sin(x). */
-    return sin(x);
-}
-
-static DRMP3_INLINE double drmp3_exp(double x)
-{
-    /* TODO: Implement custom exp(x). */
-    return exp(x);
-}
-
-static DRMP3_INLINE double drmp3_cos(double x)
-{
-    return drmp3_sin((DRMP3_PI_D*0.5) - x);
 }
 
 
@@ -4473,6 +4463,11 @@ counts rather than sample counts.
 /*
 REVISION HISTORY
 ================
+v0.6.33 - 2022-04-10
+  - Fix compilation error with the MSVC ARM64 build.
+  - Fix compilation error on older versions of GCC.
+  - Remove some unused functions.
+
 v0.6.32 - 2021-12-11
   - Fix a warning with Clang.
 
