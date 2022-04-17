@@ -25,6 +25,8 @@
     mode) in this case. Also fixed some menu options
     including rebooting DOSBox-X while Voodoo emulation
     is currently active. (Wengier)
+  - DOSBox-X returns 1 instead of 0 when E_Exit occurs
+    or unit tests fail. (Wengier)
   - Fixed built-in IPX and Modem emulation unavailable
     in MinGW builds. (Wengier)
   - Fixed lockup in classic Jumpman. (maron2000)
