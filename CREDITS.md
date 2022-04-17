@@ -37,7 +37,8 @@ A list of features ported from DOSBox Staging (maintainers: dreamer and kcgen):
 
 * AUTOTYPE command for scripted keyboard entry (improved since then by Wengier)
 * LS command (heavily improved since then by Wengier)
-* Modem phonebook support
+* Basic support for VMware mouse protocol and CuteMouse wheel API
+* Support for phonebook and ENET reliable UDP for modem emulation
 * Support for changing key bindings in runtime (improved since then by Wengier)
 
 A list of features ported from DOSVAX (maintainer: akm) and DOSVAXJ3 (maintainer: nanshiki):
