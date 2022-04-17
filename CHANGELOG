@@ -1,6 +1,10 @@
 0.83.25
   - Allowed to boot from Toshiba DOS image file for the
     Toshiba J-3100 emulation. (nanshiki)
+  - Added config option "aspect_ratio" (in [render]
+    section) which when set will force the specified
+    aspect ratio (e.g. 16:9 or 3:2) in the aspect ratio
+    correction mode (i.e. aspect=true). (Wengier)
   - Added config option "show recorded filename" (in
     [dosbox] section) which when set to true (default)
     will show message boxes with recorded filenames

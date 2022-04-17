@@ -45,6 +45,8 @@
 
 Render_t                                render;
 int                                     eurAscii = -1;
+int                                     aspect_ratio_x = 0;
+int                                     aspect_ratio_y = 0;
 Bitu                                    last_gfx_flags = 0;
 ScalerLineHandler_t                     RENDER_DrawLine;
 
@@ -718,8 +720,8 @@ forcenormal:
         }
     }
 /* update the aspect ratio */
-    sdl.srcAspect.x = (int)(render.src.width * (render.src.dblw ? 2 : 1));
-    sdl.srcAspect.y = (int)floor((render.src.height * (render.src.dblh ? 2 : 1) * render.src.ratio) + 0.5);
+    sdl.srcAspect.x = aspect_ratio_x?aspect_ratio_x:(int)(render.src.width * (render.src.dblw ? 2 : 1));
+    sdl.srcAspect.y = aspect_ratio_y?aspect_ratio_y:(int)floor((render.src.height * (render.src.dblh ? 2 : 1) * render.src.ratio) + 0.5);
     sdl.srcAspect.xToY = (double)sdl.srcAspect.x / sdl.srcAspect.y;
     sdl.srcAspect.yToX = (double)sdl.srcAspect.y / sdl.srcAspect.x;
     LOG_MSG("Aspect ratio: %u x %u  xToY=%.3f yToX=%.3f",sdl.srcAspect.x,sdl.srcAspect.y,sdl.srcAspect.xToY,sdl.srcAspect.yToX);
@@ -1179,6 +1181,19 @@ std::string LoadGLShader(Section_prop * section) {
 }
 #endif
 
+void setAspectRatio(Section_prop * section) {
+	char *ratiostr = (char *)section->Get_string("aspect_ratio"), *p = strchr(ratiostr, ':');
+	if (p) {
+		*p = 0;
+		int ratiox = atoi(ratiostr);
+		int ratioy = atoi(p+1);
+		aspect_ratio_x = ratiox>0&&ratioy>0?ratiox:0;
+		aspect_ratio_y = ratiox>0&&ratioy>0?ratioy:0;
+		*p = ':';
+	} else
+		aspect_ratio_x = aspect_ratio_y = 0;
+}
+
 void RENDER_Init() {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));
 
@@ -1193,6 +1208,7 @@ void RENDER_Init() {
 		LOG_MSG("Euro ASCII value has to be between 33 and 255\n");
 		eurAscii = -1;
 	}
+	setAspectRatio(section);
 
 	//Set monochrome mode color and brightness
 	vga.draw.monochrome_pal=MonochromeColor::Green;

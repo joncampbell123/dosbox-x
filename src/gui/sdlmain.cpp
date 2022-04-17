@@ -368,6 +368,7 @@ static BOOL WINAPI ConsoleEventHandler(DWORD event) {
 
 extern int bootdrive, resolveopt;
 extern int dos_clipboard_device_access;
+extern int aspect_ratio_x, aspect_ratio_y;
 extern bool sync_time, loadlang, addovl;
 extern bool bootguest, bootfast, bootvm;
 
@@ -7495,7 +7496,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
 
     // initialize some defaults in SDL structure here
-    sdl.srcAspect.x = 4; sdl.srcAspect.y = 3; 
+    sdl.srcAspect.x = aspect_ratio_x?aspect_ratio_x:4;
+    sdl.srcAspect.y = aspect_ratio_y?aspect_ratio_y:3;
     sdl.srcAspect.xToY = (double)sdl.srcAspect.x / sdl.srcAspect.y;
     sdl.srcAspect.yToX = (double)sdl.srcAspect.y / sdl.srcAspect.x;
 

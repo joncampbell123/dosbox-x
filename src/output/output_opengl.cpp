@@ -90,6 +90,7 @@ extern unsigned int SDLDrawGenFontTextureHeight;
 extern GLuint SDLDrawGenFontTexture, SDLDrawGenDBCSFontTexture;
 extern bool SDLDrawGenFontTextureInit;
 #endif
+extern int aspect_ratio_x, aspect_ratio_y;
 extern int initgl, lastcp;
 extern bool font_16_init;
 extern uint8_t int10_font_16[256 * 16], int10_font_16_init[256 * 16];
@@ -116,7 +117,7 @@ static void PPScale (
     orig_w = min_w = (int)render.src.width;
     orig_h = min_h = (int)render.src.height;
 
-    par = ( double) orig_w / orig_h * 3 / 4;
+    par = (aspect_ratio_x && aspect_ratio_y) ? ((double)orig_w / orig_h * aspect_ratio_y / aspect_ratio_x) : ((double)orig_w / orig_h * 3 / 4);
     /* HACK: because RENDER_SetSize() does not set dblw and dblh correctly: */
     /* E.g. in 360x360 mode DOSBox-X will wrongly allocate a 720x360 area. I  */
     /* therefore calculate square-pixel proportions par_sq myself:          */
