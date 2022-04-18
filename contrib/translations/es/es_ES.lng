@@ -2468,6 +2468,12 @@ Relación de aspecto
 :MENU:video_ratio_16_10
 16:10
 .
+:MENU:video_ratio_18_10
+18:10
+.
+:MENU:video_ratio_original
+relación original
+.
 :MENU:video_ratio_set
 Establecer proporción
 .

@@ -2463,6 +2463,12 @@ Aspect ratio
 :MENU:video_ratio_16_10
 16:10
 .
+:MENU:video_ratio_18_10
+18:10
+.
+:MENU:video_ratio_original
+Original ratio
+.
 :MENU:video_ratio_set
 Set ratio
 .

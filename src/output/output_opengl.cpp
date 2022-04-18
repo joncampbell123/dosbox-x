@@ -117,7 +117,9 @@ static void PPScale (
     orig_w = min_w = (int)render.src.width;
     orig_h = min_h = (int)render.src.height;
 
-    par = (aspect_ratio_x && aspect_ratio_y) ? ((double)orig_w / orig_h * aspect_ratio_y / aspect_ratio_x) : ((double)orig_w / orig_h * 3 / 4);
+    int x = (aspect_ratio_x>0 && aspect_ratio_y>0) ? aspect_ratio_x : ((aspect_ratio_x==-1 && aspect_ratio_y==-1) ? sdl.draw.width : 4);
+    int y = (aspect_ratio_x>0 && aspect_ratio_y>0) ? aspect_ratio_y : ((aspect_ratio_x==-1 && aspect_ratio_y==-1) ? sdl.draw.height : 3);
+    par = (double)orig_w / orig_h * y / x;
     /* HACK: because RENDER_SetSize() does not set dblw and dblh correctly: */
     /* E.g. in 360x360 mode DOSBox-X will wrongly allocate a 720x360 area. I  */
     /* therefore calculate square-pixel proportions par_sq myself:          */

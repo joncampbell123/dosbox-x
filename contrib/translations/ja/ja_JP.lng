@@ -2452,6 +2452,12 @@ Pentium III 866MHz EB (~407000 サイクル)
 :MENU:video_ratio_16_10
 16:10
 .
+:MENU:video_ratio_18_10
+18:10
+.
+:MENU:video_ratio_original
+元の比率
+.
 :MENU:video_ratio_set
 セット比率
 .

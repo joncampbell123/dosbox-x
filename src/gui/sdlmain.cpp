@@ -7496,8 +7496,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
 
     // initialize some defaults in SDL structure here
-    sdl.srcAspect.x = aspect_ratio_x?aspect_ratio_x:4;
-    sdl.srcAspect.y = aspect_ratio_y?aspect_ratio_y:3;
+    sdl.srcAspect.x = aspect_ratio_x>0?aspect_ratio_x:4;
+    sdl.srcAspect.y = aspect_ratio_y>0?aspect_ratio_y:3;
     sdl.srcAspect.xToY = (double)sdl.srcAspect.x / sdl.srcAspect.y;
     sdl.srcAspect.yToX = (double)sdl.srcAspect.y / sdl.srcAspect.x;
 

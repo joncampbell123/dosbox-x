@@ -1868,6 +1868,8 @@ void aspect_ratio_menu() {
     mainMenu.get_item("video_ratio_4_3").check((aspect_ratio_x==4&&aspect_ratio_y==3)||!aspect_ratio_x||!aspect_ratio_y).enable(true).refresh_item(mainMenu);
     mainMenu.get_item("video_ratio_16_9").check(aspect_ratio_x==16&&aspect_ratio_y==9).enable(true).refresh_item(mainMenu);
     mainMenu.get_item("video_ratio_16_10").check(aspect_ratio_x==16&&aspect_ratio_y==10).enable(true).refresh_item(mainMenu);
+    mainMenu.get_item("video_ratio_18_10").check(aspect_ratio_x==18&&aspect_ratio_y==10).enable(true).refresh_item(mainMenu);
+    mainMenu.get_item("video_ratio_original").check(aspect_ratio_x==-1&&aspect_ratio_y==-1).enable(true).refresh_item(mainMenu);
 }
 
 bool aspect_ratio_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
@@ -1889,6 +1891,14 @@ bool aspect_ratio_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
         aspect_ratio_x = 16;
         aspect_ratio_y = 10;
         SetVal("render", "aspect_ratio", "16:10");
+    } else if (!strcmp(mname, "video_ratio_18_10")) {
+        aspect_ratio_x = 18;
+        aspect_ratio_y = 10;
+        SetVal("render", "aspect_ratio", "18:10");
+    } else if (!strcmp(mname, "video_ratio_original")) {
+        aspect_ratio_x = -1;
+        aspect_ratio_y = -1;
+        SetVal("render", "aspect_ratio", "-1:-1");
     }
     aspect_ratio_menu();
     if (render.aspect) GFX_ForceRedrawScreen();
@@ -3006,6 +3016,10 @@ void AllocCallback1() {
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"video_ratio_16_9").set_text("16:9").
                     set_callback_function(aspect_ratio_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"video_ratio_16_10").set_text("16:10").
+                    set_callback_function(aspect_ratio_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"video_ratio_18_10").set_text("18:10").
+                    set_callback_function(aspect_ratio_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"video_ratio_original").set_text("Original ratio").
                     set_callback_function(aspect_ratio_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"video_ratio_set").set_text("Set ratio").
                     set_callback_function(aspect_ratio_edit_menu_callback);

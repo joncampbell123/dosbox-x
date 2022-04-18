@@ -721,8 +721,8 @@ forcenormal:
         }
     }
 /* update the aspect ratio */
-    sdl.srcAspect.x = aspect_ratio_x?aspect_ratio_x:(int)(render.src.width * (render.src.dblw ? 2 : 1));
-    sdl.srcAspect.y = aspect_ratio_y?aspect_ratio_y:(int)floor((render.src.height * (render.src.dblh ? 2 : 1) * render.src.ratio) + 0.5);
+    sdl.srcAspect.x = aspect_ratio_x>0?aspect_ratio_x:(int)(render.src.width * (render.src.dblw ? 2 : 1));
+    sdl.srcAspect.y = aspect_ratio_y>0?aspect_ratio_y:(int)floor((render.src.height * (render.src.dblh ? 2 : 1) * render.src.ratio) + 0.5);
     sdl.srcAspect.xToY = (double)sdl.srcAspect.x / sdl.srcAspect.y;
     sdl.srcAspect.yToX = (double)sdl.srcAspect.y / sdl.srcAspect.x;
     LOG_MSG("Aspect ratio: %u x %u  xToY=%.3f yToX=%.3f",sdl.srcAspect.x,sdl.srcAspect.y,sdl.srcAspect.xToY,sdl.srcAspect.yToX);
@@ -1188,8 +1188,8 @@ void setAspectRatio(Section_prop * section) {
 		*p = 0;
 		int ratiox = atoi(ratiostr);
 		int ratioy = atoi(p+1);
-		aspect_ratio_x = ratiox>0&&ratioy>0?ratiox:0;
-		aspect_ratio_y = ratiox>0&&ratioy>0?ratioy:0;
+		aspect_ratio_x = ratiox>0&&ratioy>0?ratiox:(ratiox==-1&&ratioy==-1?-1:0);
+		aspect_ratio_y = ratiox>0&&ratioy>0?ratioy:(ratiox==-1&&ratioy==-1?-1:0);
 		*p = ':';
 	} else
 		aspect_ratio_x = aspect_ratio_y = 0;

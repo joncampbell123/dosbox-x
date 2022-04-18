@@ -2429,6 +2429,12 @@ AMD Athlon 600MHz (约 306000 周期)
 :MENU:video_ratio_16_10
 16:10
 .
+:MENU:video_ratio_18_10
+18:10
+.
+:MENU:video_ratio_original
+原始长宽比
+.
 :MENU:video_ratio_set
 设置长宽比
 .

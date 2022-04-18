@@ -2466,6 +2466,12 @@ Pentium III 866MHz EB (~407000 주기)
 :MENU:video_ratio_16_10
 16:10
 .
+:MENU:video_ratio_18_10
+18:10
+.
+:MENU:video_ratio_original
+원래 비율
+.
 :MENU:video_ratio_set
 비율 설정
 .

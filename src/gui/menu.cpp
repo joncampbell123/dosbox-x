@@ -349,7 +349,9 @@ static const char *def_menu_video_ratio[] =
     "video_ratio_4_3",
     "video_ratio_16_9",
     "video_ratio_16_10",
+    "video_ratio_18_10",
     "--",
+    "video_ratio_original",
     "video_ratio_set",
     NULL
 };

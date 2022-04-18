@@ -2468,6 +2468,12 @@ Ratio d'aspect
 :MENU:video_ratio_16_10
 16:10
 .
+:MENU:video_ratio_18_10
+18:10
+.
+:MENU:video_ratio_original
+rapport d'origine
+.
 :MENU:video_ratio_set
 Définir le rapport
 .

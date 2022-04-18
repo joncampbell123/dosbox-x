@@ -2464,6 +2464,12 @@ en boy oranı
 :MENU:video_ratio_16_10
 16:10
 .
+:MENU:video_ratio_18_10
+18:10
+.
+:MENU:video_ratio_original
+orijinal oran
+.
 :MENU:video_ratio_set
 Oranı ayarla
 .
