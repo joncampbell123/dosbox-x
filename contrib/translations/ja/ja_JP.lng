@@ -1208,8 +1208,7 @@ IMGMAKE の使用例:
   レイアウトID     読み込むレイアウト名またはキーボードファイル(.kl)
   コードページ番号 読み込むコードページの番号
   コードページファイル 指定したコードページの情報を含む.cpi/.cpxファイル
-  (.kl,.cpi/.cpxファイルはdosbox-xの実行ファイルがあるディレクトリに配置
-  します)
+  (.kl,.cpi/.cpxファイルはdosbox-xの実行ファイルがあるディレクトリに配置します)
 
 使用例:
   [32;1mKEYB[0m          読み込まれたコードページを表示
@@ -2288,6 +2287,18 @@ TTFフォントサイズ: 拡大
 :MENU:mapper_decsize
 TTFフォントサイズ: 縮小
 .
+:MENU:mapper_dbcssbcs
+CJK: DBCS/SBCS モードを切替
+.
+:MENU:mapper_autoboxdraw
+CJK: 罫線文字を自動検出
+.
+:MENU:mapper_resetcolor
+TTFカラースキームをリセット
+.
+:MENU:mapper_pwrbutton
+APM電源ボタン
+.
 :MENU:mapper_togmenu
 メニューバー表示切替
 .
@@ -2425,6 +2436,24 @@ Pentium III 866MHz EB (~407000 サイクル)
 .
 :MENU:frameskip_10
 10フレーム
+.
+:MENU:VideoRatioMenu
+アスペクト比
+.
+:MENU:video_ratio_1_1
+1:1
+.
+:MENU:video_ratio_4_3
+4:3
+.
+:MENU:video_ratio_16_9
+16:9
+.
+:MENU:video_ratio_16_10
+16:10
+.
+:MENU:video_ratio_set
+セット比率
 .
 :MENU:VideoScalerMenu
 スケーラ
@@ -2642,9 +2671,6 @@ TrueTypeフォント
 :MENU:VideoTTFMenu
 TTFオプション
 .
-:MENU:mapper_resetcolor
-TTFカラースキームをリセット
-.
 :MENU:ttf_showbold
 太字をTTFで表示
 .
@@ -2675,14 +2701,11 @@ TTF ワードプロセッサー: FastEdit
 :MENU:ttf_blinkc
 TTFでカーソル点滅を表示
 .
+:MENU:ttf_right_left
+テキストを右から左に表示
+.
 :MENU:ttf_printfont
 現在のTTFフォントを印刷に使用
-.
-:MENU:mapper_dbcssbcs
-CJK: DBCS/SBCS モードを切替
-.
-:MENU:mapper_autoboxdraw
-CJK: 罫線文字を自動検出
 .
 :MENU:ttf_halfwidthkana
 CJK: 日本語半角カナ文字を使用
@@ -3094,9 +3117,6 @@ FM (OPL) 出力を保存
 .
 :MENU:mapper_scrshot
 スクリーンショット
-.
-:MENU:mapper_pwrbutton
-APM電源ボタン
 .
 :MENU:mapper_debugger
 DOSBox-X デバッガの起動

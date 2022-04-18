@@ -2301,6 +2301,18 @@ TTF 글꼴 크기: 확대
 :MENU:mapper_decsize
 TTF 글꼴 크기: 축소
 .
+:MENU:mapper_dbcssbcs
+CJK: DBCS/SBCS 모드 전환
+.
+:MENU:mapper_autoboxdraw
+CJK: 테두리 문자 자동 감지
+.
+:MENU:mapper_resetcolor
+TTF 색 구성표 재설정
+.
+:MENU:mapper_pwrbutton
+APM 전원 버튼
+.
 :MENU:mapper_togmenu
 기본 차림표 막대를 숨김/표시
 .
@@ -2438,6 +2450,24 @@ Pentium III 866MHz EB (~407000 주기)
 .
 :MENU:frameskip_10
 10 프레임
+.
+:MENU:VideoRatioMenu
+종횡비
+.
+:MENU:video_ratio_1_1
+1:1
+.
+:MENU:video_ratio_4_3
+4:3
+.
+:MENU:video_ratio_16_9
+16:9
+.
+:MENU:video_ratio_16_10
+16:10
+.
+:MENU:video_ratio_set
+비율 설정
 .
 :MENU:VideoScalerMenu
 스케일러
@@ -2655,9 +2685,6 @@ TrueType 글꼴
 :MENU:VideoTTFMenu
 TTF 선택사항
 .
-:MENU:mapper_resetcolor
-TTF 색 구성표 재설정
-.
 :MENU:ttf_showbold
 굵게 TTF로 표시
 .
@@ -2693,12 +2720,6 @@ TTF로 커서 깜박임 표시
 .
 :MENU:ttf_printfont
 현재 TTF 글꼴을 인쇄하는 데 사용
-.
-:MENU:mapper_dbcssbcs
-CJK: DBCS/SBCS 모드 전환
-.
-:MENU:mapper_autoboxdraw
-CJK: 테두리 문자 자동 감지
 .
 :MENU:ttf_halfwidthkana
 CJK : 일본어 반각 가나 문자 사용
@@ -3110,9 +3131,6 @@ FM (OPL) 출력 저장
 .
 :MENU:mapper_scrshot
 스크린샷을 찍기
-.
-:MENU:mapper_pwrbutton
-APM 전원 버튼
 .
 :MENU:mapper_debugger
 DOSBox-X 디버거 시작

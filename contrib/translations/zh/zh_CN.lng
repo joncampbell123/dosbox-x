@@ -2264,6 +2264,18 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 :MENU:mapper_decsize
 减少 TTF 字体大小
 .
+:MENU:mapper_dbcssbcs
+中日韩文字: 切换双字节/单字节模式
+.
+:MENU:mapper_autoboxdraw
+中日韩文字: 自动检测制表符
+.
+:MENU:mapper_resetcolor
+重置 TTF 配色方案
+.
+:MENU:mapper_pwrbutton
+APM 电源按钮
+.
 :MENU:mapper_togmenu
 隐藏/显示下拉菜单
 .
@@ -2401,6 +2413,24 @@ AMD Athlon 600MHz (约 306000 周期)
 .
 :MENU:frameskip_10
 10 帧
+.
+:MENU:VideoRatioMenu
+长宽比
+.
+:MENU:video_ratio_1_1
+1:1
+.
+:MENU:video_ratio_4_3
+4:3
+.
+:MENU:video_ratio_16_9
+16:9
+.
+:MENU:video_ratio_16_10
+16:10
+.
+:MENU:video_ratio_set
+设置长宽比
 .
 :MENU:VideoScalerMenu
 缩放器
@@ -2618,9 +2648,6 @@ TrueType 字体
 :MENU:VideoTTFMenu
 TTF 选项
 .
-:MENU:mapper_resetcolor
-重置 TTF 配色方案
-.
 :MENU:ttf_showbold
 使用 TTF 显示粗体文字
 .
@@ -2656,12 +2683,6 @@ TTF 字处理软件: FastEdit
 .
 :MENU:ttf_printfont
 使用当前 TTF 字体进行打印
-.
-:MENU:mapper_dbcssbcs
-中日韩文字: 切换双字节/单字节模式
-.
-:MENU:mapper_autoboxdraw
-中日韩文字: 自动检测制表符
 .
 :MENU:ttf_halfwidthkana
 中日韩文字: 允许半角日文片假名
@@ -3073,9 +3094,6 @@ DOS 命令
 .
 :MENU:mapper_scrshot
 捕获屏幕快照
-.
-:MENU:mapper_pwrbutton
-APM 电源按钮
 .
 :MENU:mapper_debugger
 启动 DOSBox-X 调试器
