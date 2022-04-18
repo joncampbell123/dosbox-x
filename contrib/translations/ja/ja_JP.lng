@@ -1979,10 +1979,14 @@ LOADHIGH        [drive:][path]filename [parameters]
 .
 :SHELL_CMD_CHOICE_HELP_LONG
 CHOICE [/C:choices] [/N] [/S] text
-  /C[:]choices  -  入力可能なキーを指定します (デフォルトは: yn)
-  /N  -  プロンプトの最後に選択肢を表示しない
-  /S  -  選択肢の大文字小文字を区別する
-  text  -  プロンプトに表示するテキスト
+
+  /C[:]choices 入力可能なキーを指定します (デフォルトは: yn)
+  /N           プロンプトの最後に選択肢を表示しない
+  /S           選択肢の大文字小文字を区別する
+  /T[:]c,nn    nn秒後のデフォルトの選択はc.
+  text         プロンプトに表示するテキスト
+
+ERRORLEVELは、ユーザーが選択肢で押すキーの位置に設定されます.
 
 .
 :SHELL_CMD_ATTRIB_HELP

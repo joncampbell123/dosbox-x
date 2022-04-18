@@ -1525,11 +1525,13 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_LOADHIGH_HELP_LONG","LH              [drive:][path]filename [parameters]\n"
 		   "LOADHIGH        [drive:][path]filename [parameters]\n");
 	MSG_Add("SHELL_CMD_CHOICE_HELP","Waits for a keypress and sets ERRORLEVEL.\n");
-	MSG_Add("SHELL_CMD_CHOICE_HELP_LONG","CHOICE [/C:choices] [/N] [/S] text\n"
-	        "  /C[:]choices  -  Specifies allowable keys.  Default is: yn.\n"
-	        "  /N  -  Do not display the choices at end of prompt.\n"
-	        "  /S  -  Enables case-sensitive choices to be selected.\n"
-	        "  text  -  The text to display as a prompt.\n");
+	MSG_Add("SHELL_CMD_CHOICE_HELP_LONG","CHOICE [/C:choices] [/N] [/S] text\n\n"
+	        "  /C[:]choices Specifies allowable keys.  Default is: yn.\n"
+	        "  /N           Do not display the choices at end of prompt.\n"
+	        "  /S           Enables case-sensitive choices to be selected.\n"
+	        "  /T[:]c,nn    Default choice to c after nn seconds.\n"
+	        "  text         The text to display as a prompt.\n\n"
+	        "ERRORLEVEL is set to offset of key user presses in choices.\n");
 	MSG_Add("SHELL_CMD_ATTRIB_HELP","Displays or changes file attributes.\n");
 	MSG_Add("SHELL_CMD_ATTRIB_HELP_LONG","ATTRIB [+R | -R] [+A | -A] [+S | -S] [+H | -H] [drive:][path][filename] [/S]\n\n"
 			"  +   Sets an attribute.\n"

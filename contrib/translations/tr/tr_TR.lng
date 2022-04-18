@@ -1990,10 +1990,14 @@ Bir düğme basımı için bekler ve ERRORLEVEL'i ayarlar.
 .
 :SHELL_CMD_CHOICE_HELP_LONG
 CHOICE [/C:seçimler] [/N] [/S] metin
-  /C[:]seçimler  -  İzin verilebilir düğmeleri belirtir. Öntanımlı: yn.
-  /N             -  İstemin sonunda seçimleri listeleme.
-  /S             -  BÜYÜK/küçük harf duyarlı seçimleri etkinleştirir.
-  metin          -  İstem olarak görüntülenecek metin.
+
+  /C[:]seçimler İzin verilebilir düğmeleri belirtir. Öntanımlı: yn.
+  /N            İstemin sonunda seçimleri listeleme.
+  /S            BÜYÜK/küçük harf duyarlı seçimleri etkinleştirir.
+  /T[:]c,nn     nn saniye sonra varsayılan seçim c.
+  metin         İstem olarak görüntülenecek metin.
+
+ERRORLEVEL, kullanıcının seçimlerde bastığı tuşun konumuna ayarlanır.
 
 .
 :SHELL_CMD_ATTRIB_HELP

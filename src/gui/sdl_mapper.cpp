@@ -183,6 +183,7 @@ Bitu                                            next_handler_ypos = 0;
 bool                                            mapper_addhandler_create_buttons = false;
 
 bool                                            isJPkeyboard = false;
+bool                                            dotype = false;
 
 //! \brief joystick autofire config option
 bool                                            autofire = false;
@@ -713,7 +714,8 @@ class Typer {
 		void Start(std::vector<CEvent*>     *ext_events,
 		           std::vector<std::string> &ext_sequence,
                    const uint32_t           wait_ms,
-                   const uint32_t           pace_ms) {
+                   const uint32_t           pace_ms,
+                   bool                     choice) {
 			// Guard against empty inputs
 			if (!ext_events || ext_sequence.empty())
 				return;
@@ -722,6 +724,7 @@ class Typer {
 			m_sequence = std::move(ext_sequence);
 			m_wait_ms = wait_ms;
 			m_pace_ms = pace_ms;
+			m_choice = choice;
 			m_stop_requested = false;
 			m_instance = std::thread(&Typer::Callback, this);
 		}
@@ -735,13 +738,15 @@ class Typer {
 		}
 	private:
 		void Callback() {
- 			// quit before our initial wait time
- 			if (m_stop_requested)
+			// quit before our initial wait time
+			if (m_stop_requested || (m_choice && !dotype))
 				return;
 			std::this_thread::sleep_for(std::chrono::milliseconds(m_wait_ms));
 			for (const auto &button : m_sequence) {
 				bool found = false;
 				// comma adds an extra pause, similar to the pause used in a phone number
+				if (m_choice && !dotype)
+					return;
 				if (button == ",") {
 					found = true;
 					 // quit before the pause
@@ -763,14 +768,14 @@ class Typer {
 				}
 				/*
 				*  Terminate the sequence for safety reasons if we can't find a button.
-				*  For example, we don't wan't DEAL becoming DEL, or 'rem' becoming 'rm'
+				*  For example, we don't want DEAL becoming DEL, or 'rem' becoming 'rm'
 				*/
 				if (!found) {
 					LOG_MSG("MAPPER: Couldn't find a button named '%s', stopping.",
 							button.c_str());
 					return;
 				}
-				if (m_stop_requested) // quit before the pacing delay
+				if (m_stop_requested || (m_choice && !dotype)) // quit before the pacing delay
 					return;
 				std::this_thread::sleep_for(std::chrono::milliseconds(m_pace_ms));
 			}
@@ -780,6 +785,7 @@ class Typer {
 		std::vector<CEvent*>     *m_events = nullptr;
 		uint32_t                 m_wait_ms = 0;
 		uint32_t                 m_pace_ms = 0;
+		bool                     m_choice = false;
 		bool                     m_stop_requested = false;
 };
 #endif
@@ -5211,11 +5217,9 @@ std::vector<std::string> MAPPER_GetEventNames(const std::string &prefix) {
 	return key_names;
 }
 
-void MAPPER_AutoType(std::vector<std::string> &sequence,
-                     const uint32_t wait_ms,
-                     const uint32_t pace_ms) {
+void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t wait_ms, const uint32_t pace_ms, bool choice) {
 #if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	mapper.typist.Start(&events, sequence, wait_ms, pace_ms);
+	mapper.typist.Start(&events, sequence, wait_ms, pace_ms, choice);
 #endif
 }
 

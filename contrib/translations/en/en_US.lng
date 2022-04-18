@@ -1990,10 +1990,14 @@ Waits for a keypress and sets ERRORLEVEL.
 .
 :SHELL_CMD_CHOICE_HELP_LONG
 CHOICE [/C:choices] [/N] [/S] text
-  /C[:]choices  -  Specifies allowable keys.  Default is: yn.
-  /N  -  Do not display the choices at end of prompt.
-  /S  -  Enables case-sensitive choices to be selected.
-  text  -  The text to display as a prompt.
+
+  /C[:]choices Specifies allowable keys.  Default is: yn.
+  /N           Do not display the choices at end of prompt.
+  /S           Enables case-sensitive choices to be selected.
+  /T[:]c,nn    Default choice to c after nn seconds.
+  text         The text to display as a prompt.
+
+ERRORLEVEL is set to offset of key user presses in choices.
 
 .
 :SHELL_CMD_ATTRIB_HELP

@@ -125,7 +125,7 @@ const char *GetCmdName(int i) {
 }
 
 extern int enablelfn, lfn_filefind_handle, file_access_tries;
-extern bool date_host_forced, usecon, outcon, rsize, autoboxdraw, dbcs_sbcs, sync_time, manualtime, inshell, noassoc;
+extern bool date_host_forced, usecon, outcon, rsize, autoboxdraw, dbcs_sbcs, sync_time, manualtime, inshell, noassoc, dotype;
 extern unsigned long freec;
 extern uint8_t DOS_GetAnsiAttr(void);
 extern uint16_t countryNo, altcp_to_unicode[256];
@@ -134,6 +134,7 @@ bool Network_IsNetworkResource(const char * filename), DOS_SetAnsiAttr(uint8_t a
 void DOS_SetCountry(uint16_t countryNo), DOSV_FillScreen(void);
 extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), TTF_using(void);
 extern bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4), GFX_GetPreventFullscreen(void);
+void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t wait_ms, const uint32_t pace_ms, bool choice);
 std::string GetDOSBoxXPath(bool withexe=false);
 
 /* support functions */
@@ -3272,7 +3273,9 @@ void DOS_Shell::CMD_LOADHIGH(char *args){
 void DOS_Shell::CMD_CHOICE(char * args){
 	HELP("CHOICE");
 	static char defchoice[3] = {'y','n',0};
-	char *rem = NULL, *ptr;
+	char *rem1 = NULL, *rem2 = NULL, *rem = NULL, waitchar = 0, *ptr;
+	int waitsec = 0;
+	bool optC = false;
 	bool optN = ScanCMDBool(args,"N");
 	bool optS = ScanCMDBool(args,"S"); //Case-sensitive matching
 	// ignore /b and /m switches for compatibility
@@ -3282,15 +3285,44 @@ void DOS_Shell::CMD_CHOICE(char * args){
 	if (args) {
 		char *last = strchr(args,0);
 		StripSpaces(args);
-		rem = ScanCMDRemain(args);
-		if (rem && *rem && (tolower(rem[1]) != 'c')) {
-			WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"),rem);
+		rem1 = ScanCMDRemain(args);
+		if (rem1 && *rem1 && (tolower(rem1[1]) != 'c') && (tolower(rem1[1]) != 't')) {
+			WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"),rem1);
 			return;
 		}
-		if (args == rem) args = strchr(rem,0)+1;
-		if (rem) rem += 2;
-		if(rem && rem[0]==':') rem++; /* optional : after /c */
+		optC = tolower(rem1[1]) == 'c';
+		if (args == rem1) args = strchr(rem1,0)+1;
+		if (rem1) rem1 += 2;
+		if(rem1 && rem1[0]==':') rem1++; /* optional : after /c */
+		if (optC) rem = rem1;
+		else {
+			if (*rem1&&*(rem1+1)==',') {
+				waitchar = *rem1;
+				waitsec = atoi(rem1+2);
+			} else
+				waitsec = 0;
+		}
 		if (args > last) args = NULL;
+		if (args) {
+			rem2 = ScanCMDRemain(args);
+			if (rem2 && *rem2 && (tolower(rem2[1]) != 'c') && (tolower(rem2[1]) != 't')) {
+				WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"),rem2);
+				return;
+			}
+			optC = tolower(rem2[1]) == 'c';
+			if (args == rem2) args = strchr(rem2,0)+1;
+			if (rem2) rem2 += 2;
+			if(rem2 && rem2[0]==':') rem2++; /* optional : after /t */
+			if (optC) rem = rem2;
+			else {
+				if (*rem2&&*(rem2+1)==',') {
+					waitchar = *rem2;
+					waitsec = atoi(rem2+2);
+				} else
+					waitsec = 0;
+			}
+			if (args > last) args = NULL;
+		}
 	}
 	if (!rem || !*rem) rem = defchoice; /* No choices specified use YN */
 	ptr = rem;
@@ -3316,9 +3348,16 @@ void DOS_Shell::CMD_CHOICE(char * args){
 		WriteOut("%c]?",rem[len-1]);
 	}
 
+	std::vector<std::string> sequence;
+	if (waitchar && *rem && (strchr(rem, toupper(waitchar)) || strchr(rem, tolower(waitchar))) && waitsec > 0) {
+		sequence.push_back(std::string(1, tolower(waitchar)));
+		MAPPER_AutoType(sequence, waitsec * 1000, 500, true);
+	}
 	uint16_t n=1;
 	do {
+		dotype = true;
 		DOS_ReadFile (STDIN,&c,&n);
+		dotype = false;
 		if (c==3) {dos.return_code=0;return;}
 	} while (!c || !(ptr = strchr(rem,(optS?c:toupper(c)))));
 	c = optS?c:(uint8_t)toupper(c);

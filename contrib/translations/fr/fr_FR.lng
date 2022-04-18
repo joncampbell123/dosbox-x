@@ -1994,11 +1994,15 @@ Attend une pression sur une touche et définit ERRORLEVEL.
 .
 :SHELL_CMD_CHOICE_HELP_LONG
 CHOICE [/C:choix] [/N] [/S] texte
-  /C[:]choix - Spécifie les touches autorisées.  La valeur par défaut est : yn.
-  /N - Ne pas afficher les choix à la fin de l'invite.
-  /S - Permet de sélectionner des choix sensibles à la casse.
-  texte - Le texte à afficher comme invite.
-  
+
+  /C[:]choix Spécifie les touches autorisées.  La valeur par défaut est : yn.
+  /N         Ne pas afficher les choix à la fin de l'invite.
+  /S         Permet de sélectionner des choix sensibles à la casse.
+  /T[:]c,nn  Choix par défaut à c après nn secondes.
+  texte      Le texte à afficher comme invite.
+
+ERRORLEVEL est défini sur la position de la touche sur laquelle l'utilisateur appuie dans les choix.
+
 .
 :SHELL_CMD_ATTRIB_HELP
 Affiche ou modifie les attributs des fichiers.

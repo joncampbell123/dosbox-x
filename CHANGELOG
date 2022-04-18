@@ -15,6 +15,8 @@
     [dosbox] section) which when set to false DOSBox-X
     will disallow the quit option after displaying a
     warning message. (Wengier)
+  - Added /T option for CHOICE command to set a default
+    choice as in DOS, e.g. CHOICE /T:Y,3 (Wengier)
   - Added Korean language option in Windows installer.
     Also, language option page will be shown regardless
     of the output option selected. (Wengier)

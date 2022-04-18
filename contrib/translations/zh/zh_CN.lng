@@ -1928,11 +1928,15 @@ LOADHIGH        [驱动器:][路径]文件名 [参数]
 
 .
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOICE [/C:选择] [/N] [/S] text
+CHOICE [/C:选择] [/N] [/S] 文字
+
   /C[:]选择  指定允许的按键. 默认为: yn.
   /N         不在末尾显示选择.
   /S         启用大小写敏感选择模式.
+  /T[:]c,nn  nn 秒后默认选择为 c.
   文字       作为提示符显示的文字.
+
+ERRORLEVEL 设置为用户在选择中按下的键的位置.
 
 .
 :SHELL_CMD_ATTRIB_HELP

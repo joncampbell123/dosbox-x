@@ -2008,10 +2008,14 @@ Espera o apertar de uma tecla e define o valor de ERRORLEVEL.
 .
 :SHELL_CMD_CHOICE_HELP_LONG
 CHOICE [/C:escolhas] [/N] [/S] texto
-  /C[:]escolhas - Especifica as teclas permitidas. Padrão: yn.
-  /N            - Não mostrar as escolhas no final do prompt.
-  /S            - Ativa opções de escolhas sensíveis a maiúsculas e minúsculas.
-  texto         -   Texto a ser mostrado como prompt.
+
+  /C[:]escolhas Especifica as teclas permitidas. Padrão: yn.
+  /N            Não mostrar as escolhas no final do prompt.
+  /S            Ativa opções de escolhas sensíveis a maiúsculas e minúsculas.
+  /T[:]c,nn     Escolha padrão para c após nn segundos.
+  texto         Texto a ser mostrado como prompt.
+
+ERRORLEVEL é definido para a posição da tecla que o usuário pressiona nas opções.
 
 .
 :SHELL_CMD_ATTRIB_HELP

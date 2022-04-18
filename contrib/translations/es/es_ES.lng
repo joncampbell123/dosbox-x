@@ -1990,10 +1990,14 @@ Espera a una pulsación del teclado y establece un ERRORLEVEL.
 .
 :SHELL_CMD_CHOICE_HELP_LONG
 CHOICE [/C:opciones] [/N] [/S] texto
-  /C[:]opciones - Indica teclas permitidas. Por defecto: yn.
-  /N            - No muestra las opciones disponibles al final de la pregunta.
-  /S            - Activa opciones sensibles a mayúsculas/minuscúlas
-  texto         - El texto a mostrar como pregunta.
+
+  /C[:]opciones Indica teclas permitidas. Por defecto: yn.
+  /N            No muestra las opciones disponibles al final de la pregunta.
+  /S            Activa opciones sensibles a mayúsculas/minuscúlas
+  /T[:]c,nn     Opción predeterminada a c después de nn segundos.
+  texto         El texto a mostrar como pregunta.
+
+ERRORLEVEL se establece en la posición de la tecla que el usuario presiona en las opciones.
 
 .
 :SHELL_CMD_ATTRIB_HELP

@@ -1935,11 +1935,15 @@ LOADHIGH        [磁碟機:][路徑]檔名 [參數]
 
 .
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOICE [/C:選擇] [/N] [/S] text
+CHOICE [/C:選擇] [/N] [/S] 文字
+
   /C[:]選擇  指定允許的按鍵. 預設為: yn.
   /N         不在末尾顯示選擇.
   /S         啟用大小寫相異選擇模式.
+  /T[:]c,nn  nn 秒後預設選擇為 c.
   文字       作為提示的顯示文字.
+
+ERRORLEVEL 設定為使用者在選擇中的按鍵的位置.
 
 .
 :SHELL_CMD_ATTRIB_HELP

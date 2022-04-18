@@ -6653,7 +6653,7 @@ void LABEL_ProgramStart(Program** make)
 }
 
 std::vector<std::string> MAPPER_GetEventNames(const std::string &prefix);
-void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t wait_ms, const uint32_t pacing_ms);
+void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t wait_ms, const uint32_t pacing_ms, bool choice);
 
 class AUTOTYPE : public Program {
 public:
@@ -6841,7 +6841,7 @@ void AUTOTYPE::Run()
 		WriteOut_NoParsing("AUTOTYPE: button sequence is empty\n");
 		return;
 	}
-	MAPPER_AutoType(sequence, wait_ms, pace_ms);
+	MAPPER_AutoType(sequence, wait_ms, pace_ms, false);
 }
 
 void AUTOTYPE_ProgramStart(Program **make)

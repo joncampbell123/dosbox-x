@@ -1993,10 +1993,14 @@ LOADHIGH        [drive:][path]파일이름 [parameters]
 .
 :SHELL_CMD_CHOICE_HELP_LONG
 CHOICE [/C:choices] [/N] [/S] text
-  /C[:]choices - 입력 가능한 키를 지정합니다(기본값은: yn)
-  /N - 프롬프트 끝에 선택사항을 표시하지 않음
-  /S - 선택사항의 대소문자를 구분
-  text - 프롬프트에 표시할 글자
+
+  /C[:]choices 입력 가능한 키를 지정합니다(기본값은: yn)
+  /N           프롬프트 끝에 선택사항을 표시하지 않음
+  /S           선택사항의 대소문자를 구분
+  /T[:]c,nn    nn초 후 기본 선택 c.
+  text         프롬프트에 표시할 글자
+
+ERRORLEVEL은 사용자가 선택 항목에서 누르는 키의 위치로 설정됩니다.
 
 .
 :SHELL_CMD_ATTRIB_HELP
