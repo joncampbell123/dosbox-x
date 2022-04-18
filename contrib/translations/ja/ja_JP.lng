@@ -1605,7 +1605,6 @@ DOSBox-Xへようこそ !
 内部コマンドの一覧を表示するには[32mHELP[37m, 簡単な紹介は[32mINTRO[37m とタイプしてください
 [33mドロップダウンメニュー[37mからも様々な設定が可能です。                          
 .
-
 :SHELL_STARTUP_EXAMPLE
 [32m例[37m: 出力オプション[33mTrueType font[37m または [33mOpenGL pixel-perfect[37m を試してください
 .
@@ -2996,9 +2995,6 @@ Windowsドライブを自動マウント
 :MENU:HelpMenu
 ヘルプ
 .
-:MENU:HelpDebugMenu
-ログ用コンソール
-.
 :MENU:help_intro
 DOSBox-X の紹介
 .
@@ -3052,6 +3048,9 @@ DOS コマンド
 .
 :MENU:DebugMenu
 デバッグ
+.
+:MENU:HelpDebugMenu
+ログ用コンソール
 .
 :MENU:debug_blankrefreshtest
 リフレッシュのテスト (空白の画面)
@@ -3434,11 +3433,11 @@ CPU:標準コア
 :MAPPER:quickrun
 クイック起動
 .
-:MAPPER:recmtwave
-M.T. AVI形式で保存
-.
 :MAPPER:reboot
 DOSシステムの再起動
+.
+:MAPPER:recmtwave
+M.T. AVI形式で保存
 .
 :MAPPER:recvoldown
 録音レベル: 下
@@ -3460,7 +3459,4 @@ DOSBox-Xを再起動
 .
 :MAPPER:simple
 CPU:簡易コア
-.
-:MAPPER:togmenu
-メニューバー表示切替
 .

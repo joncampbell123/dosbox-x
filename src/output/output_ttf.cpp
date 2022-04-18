@@ -845,7 +845,6 @@ resize:
         int cp=dos.loaded_codepage;
         if (!cp) InitCodePage();
         if ((IS_PC98_ARCH || isDBCSCP()) && dbcs_sbcs) {
-            int width = 0, height = 0;
             TTF_GlyphMetrics(ttf.SDL_font, 0x4E00, NULL, NULL, NULL, NULL, &width1);
             TTF_GlyphMetrics(ttf.SDL_font, 0x4E5D, NULL, NULL, NULL, NULL, &width9);
             if (width1 <= ttf.width || width9 <= ttf.width) LOG_MSG("TTF: The loaded font may not support DBCS characters.");
@@ -1029,7 +1028,7 @@ void GFX_EndTextLines(bool force) {
 		bool draw = false;
 		ttf_textRect.y = ttf.offY+y*ttf.height;
 		for (unsigned int x = 0; x < ttf.cols; x++) {
-			if ((newAC[x] != curAC[x] || newAC[x].selected != curAC[x].selected || (colorChanged && (justChanged || draw)) || force) && !(newAC[x].skipped) || (!y && focuschanged && noframe)) {
+			if (((newAC[x] != curAC[x] || newAC[x].selected != curAC[x].selected || (colorChanged && (justChanged || draw)) || force) && (!newAC[x].skipped || force)) || (!y && focuschanged && noframe)) {
 				draw = true;
 				xmin = min((int)x, xmin);
 				ymin = min((int)y, ymin);

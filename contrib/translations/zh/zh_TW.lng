@@ -117,9 +117,6 @@ DOSBox-X 組態工具
 :LOGGING_OUTPUT
 DOSBox-X 記錄輸出
 .
-:MENU:disable_logging
-禁用記錄輸出
-.
 :CODE_OVERVIEW
 代碼概覽
 .
@@ -3007,6 +3004,9 @@ DOSBox-X 支援
 :MENU:show_console
 顯示記錄主控台
 .
+:MENU:disable_logging
+禁用記錄輸出
+.
 :MENU:wait_on_error
 主控台遇到錯誤時等待
 .
@@ -3379,9 +3379,6 @@ Mapper "傳送特殊鍵": Ctrl+Alt+Del
 :MAPPER:debugger
 顯示偵錯工具
 .
-:MAPPER:decsize
-縮小 TTF 字型
-.
 :MAPPER:dynamic
 CPU: 動態核心
 .
@@ -3390,9 +3387,6 @@ CPU: 動態核心
 .
 :MAPPER:full
 CPU: 完全核心
-.
-:MAPPER:incsize
-放大 TTF 字型
 .
 :MAPPER:loadmap
 載入對應表檔案
@@ -3403,15 +3397,6 @@ CPU: 完全核心
 :MAPPER:normal
 CPU: 一般核心
 .
-:MAPPER:paste
-將剪貼簿內容貼上
-.
-:MAPPER:pasteend
-停止將剪貼簿內容貼上
-.
-:MAPPER:pauseints
-暫停並啟用插斷
-.
 :MAPPER:prevslot
 上一個儲存位置
 .
@@ -3421,15 +3406,6 @@ CPU: 一般核心
 :MAPPER:reboot
 重開 DOS 系統
 .
-:MAPPER:recmtwave
-錄製音訊到多軌 AVI
-.
-:MAPPER:recvoldown
-降低錄音音量
-.
-:MAPPER:recvolup
-提高錄音音量
-.
 :MAPPER:rescanall
 重新整理磁碟機
 .
@@ -3438,9 +3414,6 @@ CPU: 一般核心
 .
 :MAPPER:resetcolor
 重設色彩配置
-.
-:MAPPER:showstate
-顯示狀態資訊
 .
 :MAPPER:simple
 CPU: 簡單核心

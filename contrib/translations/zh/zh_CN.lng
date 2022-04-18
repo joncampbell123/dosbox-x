@@ -3399,29 +3399,11 @@ CPU: 正常内核
 :MAPPER:paste
 粘贴剪贴板文字
 .
-:MAPPER:pasteend
-停止剪贴板复制
-.
-:MAPPER:pauseints
-暂停并保持中断
-.
 :MAPPER:prevslot
 上一个存档
 .
 :MAPPER:quickrun
 快速启动程序
-.
-:MAPPER:reboot
-重启 DOS 系统
-.
-:MAPPER:recmtwave
-录制音频到多轨 AVI
-.
-:MAPPER:recvoldown
-降低录音音量
-.
-:MAPPER:recvolup
-提高录音音量
 .
 :MAPPER:rescanall
 刷新驱动器
@@ -3431,9 +3413,6 @@ CPU: 正常内核
 .
 :MAPPER:resetcolor
 重置配色方案
-.
-:MAPPER:showstate
-显示存档信息
 .
 :MAPPER:simple
 CPU: 简单内核
