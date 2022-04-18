@@ -53,6 +53,7 @@ ScalerLineHandler_t                     RENDER_DrawLine;
 uint32_t                                GFX_palette32bpp[256] = {0};
 
 unsigned int                            GFX_GetBShift();
+void                                    aspect_ratio_menu();
 void                                    RENDER_CallBack( GFX_CallBackFunctions_t function );
 bool                                    systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
@@ -1192,6 +1193,7 @@ void setAspectRatio(Section_prop * section) {
 		*p = ':';
 	} else
 		aspect_ratio_x = aspect_ratio_y = 0;
+	aspect_ratio_menu();
 }
 
 void RENDER_Init() {

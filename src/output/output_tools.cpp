@@ -210,6 +210,7 @@ void change_output(int output) {
         EnableMenuItem(sysmenu, ID_WIN_SYSMENU_TTFDECSIZE, MF_BYCOMMAND|(TTF_using()?MF_ENABLED:MF_DISABLED));
     }
 #endif
+    mainMenu.get_item("mapper_aspratio").enable(!TTF_using()).check(render.aspect).refresh_item(mainMenu);
     mainMenu.get_item("mapper_incsize").enable(TTF_using()).refresh_item(mainMenu);
     mainMenu.get_item("mapper_decsize").enable(TTF_using()).refresh_item(mainMenu);
     mainMenu.get_item("mapper_resetcolor").enable(TTF_using()).refresh_item(mainMenu);

@@ -75,7 +75,7 @@ bool usesystemcursor = false, enableime = false;
 bool mountfro[26], mountiro[26];
 bool OpenGL_using(void), Direct3D_using(void);
 void DOSBox_SetSysMenu(void), GFX_OpenGLRedrawScreen(void), InitFontHandle(void), DOSV_FillScreen(void), SetWindowTransparency(int trans);
-void MenuBrowseProgramFile(void), OutputSettingMenuUpdate(void), update_pc98_clock_pit_menu(void), AllocCallback1(void), AllocCallback2(void), ToggleMenu(bool pressed);
+void MenuBrowseProgramFile(void), OutputSettingMenuUpdate(void), aspect_ratio_menu(void), update_pc98_clock_pit_menu(void), AllocCallback1(void), AllocCallback2(void), ToggleMenu(bool pressed);
 int Reflect_Menu(void);
 
 #ifndef _GNU_SOURCE
@@ -8734,6 +8734,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("line_132x50").enable(!IS_PC98_ARCH);
         mainMenu.get_item("line_132x60").enable(!IS_PC98_ARCH);
 #if defined(USE_TTF)
+        mainMenu.get_item("mapper_aspratio").enable(!TTF_using());
         mainMenu.get_item("mapper_incsize").enable(TTF_using());
         mainMenu.get_item("mapper_decsize").enable(TTF_using());
         mainMenu.get_item("mapper_resetcolor").enable(TTF_using());
@@ -8802,6 +8803,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("mapper_speedlock2").check(ticksLocked).refresh_item(mainMenu);
 
         OutputSettingMenuUpdate();
+        aspect_ratio_menu();
         update_pc98_clock_pit_menu();
 #if !defined(C_EMSCRIPTEN)
         update_capture_fmt_menu();
