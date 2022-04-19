@@ -1989,11 +1989,11 @@ LOADHIGH [lecteur:][chemin]nom de fichier [paramètres]
 
 .
 :SHELL_CMD_CHOICE_HELP
-Attend une pression sur une touche et définit ERRORLEVEL.
+Attend qu'un utilisateur appuie sur une touche pour choisir l'un des choix.
 
 .
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOICE [/C:choix] [/N] [/S] texte
+CHOICE [/C:choix] [/N] [/S] /T[:]c,nn texte
 
   /C[:]choix Spécifie les touches autorisées.  La valeur par défaut est : yn.
   /N         Ne pas afficher les choix à la fin de l'invite.

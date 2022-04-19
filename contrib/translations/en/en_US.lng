@@ -1985,11 +1985,11 @@ LOADHIGH        [drive:][path]filename [parameters]
 
 .
 :SHELL_CMD_CHOICE_HELP
-Waits for a keypress and sets ERRORLEVEL.
+Waits for a user keypress to choose one of a set of choices.
 
 .
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOICE [/C:choices] [/N] [/S] text
+CHOICE [/C:choices] [/N] [/S] /T[:]c,nn text
 
   /C[:]choices Specifies allowable keys.  Default is: yn.
   /N           Do not display the choices at end of prompt.

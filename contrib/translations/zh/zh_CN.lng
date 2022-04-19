@@ -1924,11 +1924,11 @@ LOADHIGH        [驱动器:][路径]文件名 [参数]
 
 .
 :SHELL_CMD_CHOICE_HELP
-等待按键并设置 ERRORLEVEL.
+等待用户通过按键选择一组选项之一.
 
 .
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOICE [/C:选择] [/N] [/S] 文字
+CHOICE [/C:选择] [/N] [/S] /T[:]c,nn 文字
 
   /C[:]选择  指定允许的按键. 默认为: yn.
   /N         不在末尾显示选择.

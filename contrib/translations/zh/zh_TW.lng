@@ -1928,11 +1928,11 @@ LOADHIGH        [磁碟機:][路徑]檔名 [參數]
 
 .
 :SHELL_CMD_CHOICE_HELP
-等待按鍵並設定 ERRORLEVEL.
+等待使用者按鍵選擇其中一個選項.
 
 .
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOICE [/C:選擇] [/N] [/S] 文字
+CHOICE [/C:選擇] [/N] [/S] /T[:]c,nn 文字
 
   /C[:]選擇  指定允許的按鍵. 預設為: yn.
   /N         不在末尾顯示選擇.

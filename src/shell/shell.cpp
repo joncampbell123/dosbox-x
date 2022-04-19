@@ -1524,8 +1524,8 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_LOADHIGH_HELP","Loads a program into upper memory (requires XMS and UMB memory).\n");
 	MSG_Add("SHELL_CMD_LOADHIGH_HELP_LONG","LH              [drive:][path]filename [parameters]\n"
 		   "LOADHIGH        [drive:][path]filename [parameters]\n");
-	MSG_Add("SHELL_CMD_CHOICE_HELP","Waits for a keypress and sets ERRORLEVEL.\n");
-	MSG_Add("SHELL_CMD_CHOICE_HELP_LONG","CHOICE [/C:choices] [/N] [/S] text\n\n"
+	MSG_Add("SHELL_CMD_CHOICE_HELP","Waits for a user keypress to choose one of a set of choices.\n");
+	MSG_Add("SHELL_CMD_CHOICE_HELP_LONG","CHOICE [/C:choices] [/N] [/S] /T[:]c,nn text\n\n"
 	        "  /C[:]choices Specifies allowable keys.  Default is: yn.\n"
 	        "  /N           Do not display the choices at end of prompt.\n"
 	        "  /S           Enables case-sensitive choices to be selected.\n"

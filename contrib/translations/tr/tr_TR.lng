@@ -1985,11 +1985,11 @@ LOADHIGH        [sürücü:][yol]dosyaadı [parametreler]
 
 .
 :SHELL_CMD_CHOICE_HELP
-Bir düğme basımı için bekler ve ERRORLEVEL'i ayarlar.
+Seçeneklerden birini seçmek için kullanıcının tuşa basmasını bekler.
 
 .
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOICE [/C:seçimler] [/N] [/S] metin
+CHOICE [/C:seçimler] [/N] [/S] /T[:]c,nn metin
 
   /C[:]seçimler İzin verilebilir düğmeleri belirtir. Öntanımlı: yn.
   /N            İstemin sonunda seçimleri listeleme.

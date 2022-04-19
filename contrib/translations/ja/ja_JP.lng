@@ -1973,11 +1973,11 @@ LOADHIGH        [drive:][path]filename [parameters]
 
 .
 :SHELL_CMD_CHOICE_HELP
-キーの入力を待ち、ERRORLEVEL を返します。
+ユーザーがキーを押して選択肢の1つを選択するのを待ちます。
 
 .
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOICE [/C:choices] [/N] [/S] text
+CHOICE [/C:choices] [/N] [/S] /T[:]c,nn text
 
   /C[:]choices 入力可能なキーを指定します (デフォルトは: yn)
   /N           プロンプトの最後に選択肢を表示しない

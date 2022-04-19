@@ -6,7 +6,8 @@
     aspect ratio (e.g. 16:9 or 3:2) in the aspect ratio
     correction mode (i.e. aspect=true). A menu group
     "Aspect ratio" is added to "Video" menu for users
-    to select or set an aspect ratio. (Wengier)
+    to select or set an aspect ratio, including an
+    original ratio option. (Wengier)
   - Added config option "show recorded filename" (in
     [dosbox] section) which when set to true (default)
     will show message boxes with recorded filenames

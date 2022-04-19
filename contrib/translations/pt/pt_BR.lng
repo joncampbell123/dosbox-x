@@ -2003,11 +2003,11 @@ LOADHIGH        [unidade:][caminho]nome_de_arquivo [parâmetros]
 
 .
 :SHELL_CMD_CHOICE_HELP
-Espera o apertar de uma tecla e define o valor de ERRORLEVEL.
+Aguarda um pressionamento de tecla do usuário para escolher uma das opções.
 
 .
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOICE [/C:escolhas] [/N] [/S] texto
+CHOICE [/C:escolhas] [/N] [/S] /T[:]c,nn texto
 
   /C[:]escolhas Especifica as teclas permitidas. Padrão: yn.
   /N            Não mostrar as escolhas no final do prompt.

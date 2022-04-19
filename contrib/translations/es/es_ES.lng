@@ -1985,11 +1985,11 @@ LOADHIGH        [unidad:][ruta]nombrearchivo [parámetros]
 
 .
 :SHELL_CMD_CHOICE_HELP
-Espera a una pulsación del teclado y establece un ERRORLEVEL.
+Espera a que el usuario presione una tecla para elegir una de las opciones.
 
 .
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOICE [/C:opciones] [/N] [/S] texto
+CHOICE [/C:opciones] [/N] [/S] /T[:]c,nn texto
 
   /C[:]opciones Indica teclas permitidas. Por defecto: yn.
   /N            No muestra las opciones disponibles al final de la pregunta.
