@@ -18,6 +18,10 @@
     menu when dynamic_x86 is also available. Also fixed
     the dynamic_rec core may not be displayed correctly
     in the menu when a language file is used. (Wengier)
+  - Added support for Pentium Pro hinting NOPs and
+    related multi-byte NOPs. (Jookia)
+  - Fixed a buffer overflow when launching a program.
+    (Jookia)
   - Fixed bug where DOS IOCTL would call device control
     channel on devices which did not advertise support
     for IOCTL. (cimarronm)
