@@ -22,8 +22,7 @@ static void FPU_FINIT(void) {
 	unsigned int i;
 
 	fpu.cw.init();
-	fpu.sw = 0;
-	TOP=FPU_GET_TOP();
+	fpu.sw.init();
 	fpu.tags[0] = TAG_Empty;
 	fpu.tags[1] = TAG_Empty;
 	fpu.tags[2] = TAG_Empty;
@@ -37,7 +36,7 @@ static void FPU_FINIT(void) {
 }
 
 static void FPU_FCLEX(void){
-	fpu.sw &= 0x7f00;			//should clear exceptions
+	fpu.sw.clearExceptions();
 }
 
 static void FPU_FNOP(void){
@@ -636,7 +635,6 @@ static void FPU_FSCALE(void){
 }
 
 static void FPU_FSTENV(PhysPt addr){
-	FPU_SET_TOP(TOP);
 	if(!cpu.code.big) {
 		mem_writew(addr+0,static_cast<uint16_t>(fpu.cw));
 		mem_writew(addr+2,static_cast<uint16_t>(fpu.sw));
@@ -664,7 +662,6 @@ static void FPU_FLDENV(PhysPt addr){
 	}
 	FPU_SetTag(tag);
 	fpu.cw = cw;
-	TOP = FPU_GET_TOP();
 }
 
 static void FPU_FSAVE(PhysPt addr){

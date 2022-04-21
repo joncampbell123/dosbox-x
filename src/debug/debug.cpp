@@ -362,7 +362,7 @@ static char* F80ToString(int regIndex, char* dest) {
 }
 
 static bool F80TestUpdate(int regIndex) {
-	if(fpu.top != oldfpu.top) { /* If the top changed then all registers rotated places, thus updated. */
+	if(fpu.sw.top != oldfpu.sw.top) { /* If the top changed then all registers rotated places, thus updated. */
 		return true;
 	}
 	
@@ -4662,12 +4662,14 @@ const char *FPU_tag(unsigned int i) {
 static void LogFPUInfo(void) {
     DEBUG_BeginPagedContent();
 
-    DEBUG_ShowMsg("FPU TOP=%u",fpu.top);
+    DEBUG_ShowMsg("status: %s", fpu.sw.to_string().c_str());
 
     for (unsigned int i=0;i < 8;i++) {
         unsigned int adj = STV(i);
 
-#if defined(HAS_LONG_DOUBLE)//probably shouldn't allow struct to change size based on this
+#if C_FPU_X86
+        DEBUG_ShowMsg(" st(%u): %s val=%.20Lf", i, FPU_tag(fpu.tags[adj]), reinterpret_cast<long double&>(fpu.p_regs[adj]));
+#elif defined(HAS_LONG_DOUBLE)//probably shouldn't allow struct to change size based on this
         DEBUG_ShowMsg(" st(%u): %s val=%.9f",i,FPU_tag(fpu.tags[adj]),(double)fpu.regs_80[adj].v);
 #else
         DEBUG_ShowMsg(" st(%u): %s use80=%u val=%.9f",i,FPU_tag(fpu.tags[adj]),fpu.use80[adj],fpu.regs[adj].d);

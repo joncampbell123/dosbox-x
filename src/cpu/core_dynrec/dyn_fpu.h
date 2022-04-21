@@ -540,8 +540,6 @@ static void dyn_fpu_esc5(){
 			gen_call_function_R(FPU_FSAVE,FC_ADDR);
 			break;
 		case 0x07:   /*FNSTSW */
-			gen_mov_word_to_reg(FC_OP1,(void*)(&TOP),true);
-			gen_call_function_R(FPU_SET_TOP,FC_OP1);
 			dyn_fill_ea(FC_OP1); 
 			gen_mov_word_to_reg(FC_OP2,(void*)(&fpu.sw),false);
 			gen_call_function_RR(mem_writew,FC_OP1,FC_OP2);
@@ -632,8 +630,6 @@ static void dyn_fpu_esc7(){
 		case 0x04:
 			switch(decode.modrm.rm){
 				case 0x00:     /* FNSTSW AX*/
-					gen_mov_word_to_reg(FC_OP1,(void*)(&TOP),true);
-					gen_call_function_R(FPU_SET_TOP,FC_OP1); 
 					gen_mov_word_to_reg(FC_OP1,(void*)(&fpu.sw),false);
 					MOV_REG_WORD16_FROM_HOST_REG(FC_OP1,DRC_REG_EAX);
 					break;

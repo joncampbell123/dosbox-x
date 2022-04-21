@@ -535,8 +535,6 @@ static void dyn_fpu_esc5(){
 			break;
 		case 0x07:   /*FNSTSW */
 			gen_protectflags(); 
-			gen_load_host(&TOP,DREG(TMPB),4); 
-			gen_call_function((void*)&FPU_SET_TOP,"%Dd",DREG(TMPB));
 			gen_load_host(&fpu.sw,DREG(TMPB),4); 
 			dyn_call_function_pagefault_check((void*)&mem_writew,"%Drd%Drd",DREG(EA),DREG(TMPB));
 			break;
@@ -622,8 +620,6 @@ static void dyn_fpu_esc7(){
 		case 0x04:
 			switch(sub){
 				case 0x00:     /* FNSTSW AX*/
-					gen_load_host(&TOP,DREG(TMPB),4);
-					gen_call_function((void*)&FPU_SET_TOP,"%Drd",DREG(TMPB)); 
 					gen_mov_host(&fpu.sw,DREG(EAX),2);
 					break;
 				default:
