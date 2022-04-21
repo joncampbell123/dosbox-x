@@ -9001,7 +9001,7 @@ fresh_boot:
         if (dos_kernel_shutdown) {
 
             inshell = false;
-            if (!IS_PC98_ARCH&&!IS_JEGA_ARCH&&dos.loaded_codepage!=437) dos.loaded_codepage=437;
+            if (!IS_PC98_ARCH&&!IS_JEGA_ARCH&&!IS_J3100&&dos.loaded_codepage!=437) dos.loaded_codepage=437;
 
             /* NTS: we take different paths depending on whether we're just shutting down DOS
              *      or doing a hard reboot. */

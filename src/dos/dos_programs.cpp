@@ -2682,6 +2682,11 @@ public:
                 }
             }
             else {
+                // Toshiba DOS bootloader checks the floppy disk drives running in the BIOS working area.
+                if(IS_J3100) {
+                    mem_writeb(BIOS_DRIVE_RUNNING, 0x01);
+                    mem_writeb(BIOS_DISK_MOTOR_TIMEOUT, 10);
+                }
                 SegSet16(cs, 0);
                 SegSet16(ds, 0);
                 SegSet16(es, 0);

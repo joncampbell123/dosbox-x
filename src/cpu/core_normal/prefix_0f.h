@@ -372,7 +372,9 @@
 #endif
 #if CPU_CORE >= CPU_ARCHTYPE_386
 	CASE_0F_B(0x18)												/* SSE instruction /r group */
-		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII) goto illegal_opcode;
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
+		else if (CPU_ArchitectureType==CPU_ARCHTYPE_PPROSLOW) break; /* hinting NOP */
+		else if (CPU_ArchitectureType>=CPU_ARCHTYPE_PENTIUMIII)
 		{
 			XMM_Reg xmmdst;
 			GetRM;
@@ -419,6 +421,9 @@
 					goto illegal_opcode;
 			};
 		}
+		break;
+	CASE_0F_B(0x19) CASE_0F_B(0x1A) CASE_0F_B(0x1B) CASE_0F_B(0x1C) CASE_0F_B(0x1D) CASE_0F_B(0x1E) CASE_0F_B(0x1F)         /* hinting NOPs */
+		if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegal_opcode;
 		break;
 #endif
 	CASE_0F_B(0x20)												/* MOV Rd.CRx */

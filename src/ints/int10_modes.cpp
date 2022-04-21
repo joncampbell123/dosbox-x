@@ -2305,6 +2305,26 @@ VideoModeBlock ModeList_DOSV_SXGA_24[]={
 { 0x070  ,M_LIN4  ,1280,1024,106  ,42 ,12,24 ,1 ,0xA0000 ,0xA000, 160 ,1152,160  ,1024,0	},
 };
 
+VideoModeBlock ModeList_DOSV_XGA_S3[]={
+/* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
+{ 0x070  ,M_LIN4   ,1024,768 ,128,48 ,8 ,16 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0	},
+};
+
+VideoModeBlock ModeList_DOSV_XGA_24_S3[]={
+/* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
+{ 0x070  ,M_LIN4   ,1024,768 ,85 ,32 ,12,24 ,1 ,0xA0000 ,0x10000,168 ,806 ,128,768 ,0	},
+};
+
+VideoModeBlock ModeList_DOSV_SXGA_S3[]={
+/* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
+{ 0x70  ,M_LIN4   ,1280,1024,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,212 ,1066,160,1024,0	},
+};
+
+VideoModeBlock ModeList_DOSV_SXGA_24_S3[]={
+/* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
+{ 0x70  ,M_LIN4   ,1280,1024,106 ,42 ,12,24 ,1 ,0xA0000 ,0x10000,212 ,1066,160,1024,0	},
+};
+
 static VideoModeBlock *ModeListVtext[] = {
 	ModeList_DOSV,
 	ModeList_DOSV,
@@ -2313,6 +2333,16 @@ static VideoModeBlock *ModeListVtext[] = {
 	ModeList_DOSV_XGA_24,
 	ModeList_DOSV_SXGA,
 	ModeList_DOSV_SXGA_24,
+};
+
+static VideoModeBlock *ModeListVtextS3[] = {
+	ModeList_DOSV,
+	ModeList_DOSV,
+	ModeList_DOSV_SVGA,
+	ModeList_DOSV_XGA_S3,
+	ModeList_DOSV_XGA_24_S3,
+	ModeList_DOSV_SXGA_S3,
+	ModeList_DOSV_SXGA_24_S3,
 };
 
 #if defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
@@ -2339,7 +2369,7 @@ void AdjustIMEFontSize()
 
 bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode)
 {
-	if(SetCurMode(ModeListVtext[vtext_mode], mode)) {
+	if(SetCurMode((svgaCard == SVGA_TsengET4K) ? ModeListVtext[vtext_mode] : ModeListVtextS3[vtext_mode], mode)) {
 		FinishSetMode(true);
 		INT10_SetCursorShape(6, 7);
 		AdjustIMEFontSize();

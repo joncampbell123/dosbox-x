@@ -370,6 +370,65 @@ struct FPUControlWord
 	}
 };
 
+struct FPUStatusWord
+{
+	uint16_t reg;
+	RegBit<FPUStatusWord, 0>     IE;  // Invalid operation
+	RegBit<FPUStatusWord, 1>     DE;  // Denormalized operand
+	RegBit<FPUStatusWord, 2>     ZE;  // Divide-by-zero
+	RegBit<FPUStatusWord, 3>     OE;  // Overflow
+	RegBit<FPUStatusWord, 4>     UE;  // Underflow
+	RegBit<FPUStatusWord, 5>     PE;  // Precision
+	RegBit<FPUStatusWord, 6>     SF;  // Stack Flag (non-8087/802087)
+	RegBit<FPUStatusWord, 7>     IR;  // Interrupt request (8087-only)
+	RegBit<FPUStatusWord, 7>     ES;  // Error summary     (non-8087)
+	RegBit<FPUStatusWord, 8>     C0;  // Condition flag
+	RegBit<FPUStatusWord, 9>     C1;  // Condition flag
+	RegBit<FPUStatusWord, 10>    C2;  // Condition flag
+	RegBit<FPUStatusWord, 11, 3> top; // Top of stack pointer
+	RegBit<FPUStatusWord, 14>    C3;  // Condition flag
+	RegBit<FPUStatusWord, 15>    B;   // Busy flag
+
+	FPUStatusWord() : reg(0), IE(*this), DE(*this), ZE(*this), OE(*this), UE(*this),
+	                  PE(*this), SF(*this), IR(*this), ES(*this), C0(*this), C1(*this),
+	                  C2(*this), top(*this), C3(*this), B(*this) {}
+	FPUStatusWord(const FPUStatusWord& other) = default;
+	FPUStatusWord& operator=(const FPUStatusWord& other)
+	{
+		reg = other.reg;
+		return *this;
+	}
+	template<class T>
+	FPUStatusWord& operator=(T val)
+	{
+		reg = val;
+		return *this;
+	}
+	operator unsigned() const
+	{
+		return reg;
+	}
+	template <class T>
+	FPUStatusWord& operator |=(T val)
+	{
+		*this |= reg | val;
+		return *this;
+	}
+	void init() { reg = 0; }
+	void clearExceptions()
+	{
+		IE = false; DE = false; ZE = false; OE = false; UE = false; PE = false;
+		ES = false;
+	}
+	enum
+	{
+		conditionMask = 0x4700,
+		conditionAndExceptionMask = 0x47bf
+	};
+	std::string to_string() const;
+};
+
+
 typedef struct {
 #if defined(HAS_LONG_DOUBLE)//probably shouldn't allow struct to change size based on this
 	FPU_Reg		_do_not_use__regs[9];
@@ -385,8 +444,7 @@ typedef struct {
 #endif
 	FPU_Tag		tags[9];
 	FPUControlWord  cw;
-	uint16_t		sw;
-	uint32_t		top;
+	FPUStatusWord   sw;
 	XMM_Reg			xmmreg[8]; // SSE emulation
 	uint32_t		mxcsr; // SSE control register
 } FPU_rec;
@@ -401,8 +459,8 @@ typedef struct {
 
 extern FPU_rec fpu;
 
-#define TOP fpu.top
-#define STV(i)  ( (fpu.top+ (i) ) & 7 )
+#define TOP fpu.sw.top
+#define STV(i)  ( (fpu.sw.top + (i) ) & 7 )
 
 
 uint16_t FPU_GetTag(void);
@@ -413,39 +471,24 @@ static INLINE void FPU_SetTag(uint16_t tag){
 		fpu.tags[i] = static_cast<FPU_Tag>((tag >>(2*i))&3);
 }
 
-static INLINE uint8_t FPU_GET_TOP(void) {
-	return (fpu.sw & 0x3800U) >> 11U;
-}
-
-static INLINE void FPU_SET_TOP(Bitu val){
-	fpu.sw &= ~0x3800U;
-	fpu.sw |= (val & 7U) << 11U;
-}
-
-
 static INLINE void FPU_SET_C0(Bitu C){
-	fpu.sw &= ~0x0100U;
-	if(C) fpu.sw |=  0x0100U;
+	fpu.sw.C0 = !!C;
 }
 
 static INLINE void FPU_SET_C1(Bitu C){
-	fpu.sw &= ~0x0200U;
-	if(C) fpu.sw |=  0x0200U;
+	fpu.sw.C1 = !!C;
 }
 
 static INLINE void FPU_SET_C2(Bitu C){
-	fpu.sw &= ~0x0400U;
-	if(C) fpu.sw |=  0x0400U;
+	fpu.sw.C2 = !!C;
 }
 
 static INLINE void FPU_SET_C3(Bitu C){
-	fpu.sw &= ~0x4000U;
-	if(C) fpu.sw |= 0x4000U;
+	fpu.sw.C3 = !!C;
 }
 
 static INLINE void FPU_SET_D(Bitu C){
-	fpu.sw &= ~0x0002U;
-	if(C) fpu.sw |= 0x0002U;
+	fpu.sw.DE = !!C;
 }
 
 static INLINE void FPU_LOG_WARN(Bitu tree, bool ea, Bitu group, Bitu sub) {

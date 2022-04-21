@@ -21,8 +21,12 @@
   - Added Korean language option in Windows installer.
     Also, language option page will be shown regardless
     of the output option selected. (Wengier)
-  - Added config option "stop turbo after second" (in
-    [cpu] section) which allows to stop Turbo function
+  - Fix fscale FPU operation and FPU status word
+    updates (cimarronm)
+  - Fix FPU stack value log messages on x86-based builds
+    (cimarronm)
+  - Added config option "turbo last second" (in [cpu]
+    section) which allows to stop the Turbo function
     after specified number of seconds. (Wengier)
   - Updated FLAC, MP3, and WAV decoder libraries to the
     latest versions (v0.12.38, v0.6.32, and v0.13.6)
@@ -43,6 +47,10 @@
     menu when dynamic_x86 is also available. Also fixed
     the dynamic_rec core may not be displayed correctly
     in the menu when a language file is used. (Wengier)
+  - Added support for Pentium Pro hinting NOPs and
+    related multi-byte NOPs. (Jookia)
+  - Fixed a buffer overflow when launching a program.
+    (Jookia)
   - Fixed bug where DOS IOCTL would call device control
     channel on devices which did not advertise support
     for IOCTL. (cimarronm)

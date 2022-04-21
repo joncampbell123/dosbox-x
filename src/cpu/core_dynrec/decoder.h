@@ -191,6 +191,10 @@ restart_prefix:
 					dyn_larlsl(false);
 					break; */
 
+				// hinting NOPs
+				case 0x18:case 0x19:case 0x1a:case 0x1b:case 0x1c:case 0x1d:case 0x1e:case 0x1f:
+					break;
+
 				case 0x20:dyn_mov_from_crx();break;
 				case 0x22:dyn_mov_to_crx();goto finish_block;
 

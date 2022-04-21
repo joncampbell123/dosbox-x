@@ -23,6 +23,11 @@
 
 // #define WEAK_EXCEPTIONS
 
+#ifdef WEAK_EXCEPTIONS
+static constexpr uint16_t sw_mask = FPUStatusWord::conditionMask;
+#else
+static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
+#endif
 
 #if defined (_MSC_VER)
 
@@ -53,7 +58,8 @@
 		__asm	fnstsw	new_sw			\
 		__asm	fstp	TBYTE PTR fpu.p_regs[ebx].m1	\
 		}								\
-		fpu.sw=(new_sw&0xffbf)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 #endif
 
 #ifdef WEAK_EXCEPTIONS
@@ -71,7 +77,8 @@
 		__asm	op		szI PTR fpu.p_regs[eax].m1		\
 		__asm	fnstsw	new_sw			\
 		}								\
-		fpu.sw=(new_sw&0xffbf)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 #endif
 
 #ifdef WEAK_EXCEPTIONS
@@ -102,7 +109,8 @@
 		__asm	fnstsw	new_sw				\
 		__asm	fldcw	save_cw				\
 		}									\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 #endif
 
 // handles fsin,fcos,f2xm1,fchs,fabs
@@ -117,7 +125,8 @@
 		__asm	fnstsw	new_sw		\
 		__asm	fstp	TBYTE PTR fpu.p_regs[eax].m1	\
 		}							\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & sw_mask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 
 // handles fsincos
 #define FPUD_SINCOS()				\
@@ -142,9 +151,9 @@
 		__asm	argument_too_large1:	\
 		__asm	fstp	st(0)			\
 		__asm	end_sincos:				\
-		}												\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);		\
-		if ((new_sw&0x0400)==0) FPU_PREP_PUSH();
+		}								\
+		fpu.sw = (new_sw & sw_mask) | (fpu.sw & ~FPUStatusWord::conditionMask);		\
+		if (!fpu.sw.C2) FPU_PREP_PUSH();
 
 // handles fptan
 #define FPUD_PTAN()					\
@@ -170,8 +179,9 @@
 		__asm	fstp	st(0)			\
 		__asm	end_ptan:				\
 		}												\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);		\
-		if ((new_sw&0x0400)==0) FPU_PREP_PUSH();
+		fpu.sw = (new_sw & sw_mask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);             \
+		if (!fpu.sw.C2) FPU_PREP_PUSH();
 
 // handles fxtract
 #ifdef WEAK_EXCEPTIONS
@@ -206,7 +216,8 @@
 		__asm	fstp	TBYTE PTR fpu.p_regs[ebx].m1	\
 		__asm	fstp	TBYTE PTR fpu.p_regs[eax].m1	\
 		}												\
-		fpu.sw=(new_sw&0xffbf)|(fpu.sw&0x80ff);			\
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask); \
 		FPU_PREP_PUSH();
 #endif
 
@@ -245,7 +256,8 @@
 		__asm	fstp	TBYTE PTR fpu.p_regs[eax].m1	 \
 		__asm	fldcw	save_cw				\
 		}									\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 #endif
 
 // handles fadd,fmul,fsub,fsubr
@@ -279,7 +291,8 @@
 		__asm	fstp	TBYTE PTR fpu.p_regs[eax].m1	 \
 		__asm	fldcw	save_cw				\
 		}									\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 #endif
 
 // handles fsqrt,frndint
@@ -311,7 +324,8 @@
 		__asm	fstp	TBYTE PTR fpu.p_regs[eax].m1	 \
 		__asm	fldcw	save_cw				\
 		}									\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 #endif
 
 // handles fdiv,fdivr
@@ -333,7 +347,8 @@
 		__asm	fstp	TBYTE PTR fpu.p_regs[eax].m1	 \
 		__asm	fldcw	save_cw				\
 		}									\
-		fpu.sw=(new_sw&0xffbf)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 
 // handles fdiv,fdivr
 // (This is identical to FPUD_ARITH1_EA but without a WEAK_EXCEPTIONS variant)
@@ -352,27 +367,32 @@
 		__asm	fstp	TBYTE PTR fpu.p_regs[eax].m1	 \
 		__asm	fldcw	save_cw				\
 		}									\
-		fpu.sw=(new_sw&0xffbf)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 
 // handles fprem,fprem1,fscale
-#define FPUD_REMAINDER(op)			\
-		uint16_t new_sw;				\
-		__asm {						\
-		__asm	mov		eax, TOP	\
-		__asm	mov		ebx, eax	\
-		__asm	inc     ebx			\
-		__asm	and     ebx, 7		\
-		__asm	shl		ebx, 4		\
-		__asm	shl		eax, 4		\
-		__asm	fld		TBYTE PTR fpu.p_regs[ebx].m1	\
-		__asm	fld		TBYTE PTR fpu.p_regs[eax].m1	\
-		__asm	fclex				\
-		__asm	op					\
-		__asm	fnstsw	new_sw		\
-		__asm	fstp	TBYTE PTR fpu.p_regs[eax].m1	\
-		__asm	fstp	st(0)		\
-		}							\
-		fpu.sw=(new_sw&0xffbf)|(fpu.sw&0x80ff);
+#define FPUD_REMAINDER(op)                                         \
+    uint16_t new_sw, save_cw, cw_masked = fpu.cw.allMasked();      \
+    __asm {                                                        \
+    __asm   fnstcw  save_cw                                        \
+    __asm   fldcw   cw_masked                                      \
+    __asm   mov     eax, TOP                                       \
+    __asm   mov     ebx, eax                                       \
+    __asm   inc     ebx                                            \
+    __asm   and     ebx, 7                                         \
+    __asm   shl     ebx, 4                                         \
+    __asm   shl     eax, 4                                         \
+    __asm   fld     TBYTE PTR fpu.p_regs[ebx].m1                   \
+    __asm   fld     TBYTE PTR fpu.p_regs[eax].m1                   \
+    __asm   fclex                                                  \
+    __asm   op                                                     \
+    __asm   fnstsw  new_sw                                         \
+    __asm   fstp    TBYTE PTR fpu.p_regs[eax].m1                   \
+    __asm   fstp    st(0)                                          \
+    __asm   fldcw   save_cw                                        \
+    }                                                              \
+    fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+                 (fpu.sw & ~FPUStatusWord::conditionMask);
 
 // handles fcom,fucom
 #define FPUD_COMPARE(op)			\
@@ -388,7 +408,8 @@
 		__asm	op					\
 		__asm	fnstsw	new_sw		\
 		}							\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & sw_mask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 
 #define FPUD_COMPARE_EA(op)			\
 		uint16_t new_sw;				\
@@ -400,7 +421,8 @@
 		__asm	op					\
 		__asm	fnstsw	new_sw		\
 		}							\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & sw_mask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 
 // handles fxam,ftst
 #define FPUD_EXAMINE(op)			\
@@ -414,7 +436,8 @@
 		__asm	fnstsw	new_sw		\
 		__asm	fstp	st(0)		\
 		}							\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & sw_mask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 
 // handles fpatan,fyl2xp1
 #ifdef WEAK_EXCEPTIONS
@@ -449,7 +472,8 @@
 		__asm	fnstsw	new_sw		\
 		__asm	fstp	TBYTE PTR fpu.p_regs[ebx].m1	\
 		}								\
-		fpu.sw=(new_sw&0xffbf)|(fpu.sw&0x80ff);	\
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask); \
 		FPU_FPOP();
 #endif
 
@@ -486,7 +510,8 @@
 		__asm	fnstsw	new_sw		\
 		__asm	fstp	TBYTE PTR fpu.p_regs[ebx].m1	\
 		}								\
-		fpu.sw=(new_sw&0xffbf)|(fpu.sw&0x80ff);	\
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask); \
 		FPU_FPOP();
 #endif
 
@@ -530,7 +555,8 @@
 			:	"=&am" (new_sw), "=m" (fpu.p_regs[store_to])		\
 			:	"m" (fpu.p_regs[8])			\
 		);									\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 #endif
 
 #ifdef WEAK_EXCEPTIONS
@@ -551,7 +577,8 @@
 			:	"m" (fpu.p_regs[8])			\
 			:								\
 		);									\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 #endif
 
 #ifdef WEAK_EXCEPTIONS
@@ -580,7 +607,8 @@
 			:	"=&am" (new_sw), "=m" (save_cw), "=m" (fpu.p_regs[8])	\
 			:	"m" (fpu.p_regs[TOP]), "m" (cw_masked)			\
 		);									\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 #endif
 
 // handles fsin,fcos,f2xm1,fchs,fabs
@@ -594,7 +622,8 @@
 			"fstpt		%1				"	\
 			:	"=&am" (new_sw), "+m" (fpu.p_regs[TOP])		\
 		);									\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & sw_mask) |       \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 
 // handles fsincos
 #define FPUD_SINCOS()					\
@@ -615,8 +644,9 @@
 			:								\
 			:	"ax", "cc"					\
 		);									\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);		\
-		if ((new_sw&0x0400)==0) FPU_PREP_PUSH();
+		fpu.sw = (new_sw & sw_mask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask); \
+		if (!fpu.sw.C2) FPU_PREP_PUSH();
 
 // handles fptan
 #define FPUD_PTAN()						\
@@ -637,8 +667,9 @@
 			:								\
 			:	"ax", "cc"					\
 		);									\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);		\
-		if ((new_sw&0x0400)==0) FPU_PREP_PUSH();
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask); \
+		if (!fpu.sw.C2) FPU_PREP_PUSH();
 
 // handles fxtract
 #ifdef WEAK_EXCEPTIONS
@@ -664,7 +695,8 @@
 			:	"=&am" (new_sw), "+m" (fpu.p_regs[TOP]),	\
 				"=m" (fpu.p_regs[(TOP-1)&7])			\
 		);									\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);		\
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);             \
 		FPU_PREP_PUSH();
 #endif
 
@@ -699,7 +731,8 @@
 			:	"=&am" (new_sw), "=m" (save_cw), "+m" (fpu.p_regs[op1])	\
 			:	"m" (fpu.p_regs[op2]), "m" (cw_masked)		\
 		);									\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 #endif
 
 // handles fadd,fmul,fsub,fsubr
@@ -731,7 +764,8 @@
 			:	"=&am" (new_sw), "=m" (save_cw), "+m" (fpu.p_regs[op1])	\
 			:	"m" (cw_masked)		\
 		);									\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 #endif
 
 // handles fsqrt,frndint
@@ -763,7 +797,8 @@
 			:	"=&am" (new_sw), "=m" (save_cw), "+m" (fpu.p_regs[TOP])	\
 			:	"m" (cw_masked)		\
 		);										\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 #endif
 
 // handles fdiv,fdivr
@@ -783,7 +818,8 @@
 			:	"=&am" (new_sw), "=m" (save_cw), "+m" (fpu.p_regs[op1])	\
 			:	"m" (fpu.p_regs[op2]), "m" (cw_masked)		\
 		);									\
-		fpu.sw=(new_sw&0xffbf)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 
 // handles fdiv,fdivr
 // (This is identical to FPUD_ARITH1_EA but without a WEAK_EXCEPTIONS variant)
@@ -801,23 +837,28 @@
 			:	"=&am" (new_sw), "=m" (save_cw), "+m" (fpu.p_regs[op1])	\
 			:	"m" (cw_masked)		\
 		);									\
-		fpu.sw=(new_sw&0xffbf)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 
 // handles fprem,fprem1,fscale
-#define FPUD_REMAINDER(op)					\
-		uint16_t new_sw;						\
-		__asm__ volatile (					\
-			"fldt		%2				\n"	\
-			"fldt		%1				\n"	\
-			"fclex						\n"	\
-			#op" 						\n"	\
-			"fnstsw		%0				\n"	\
-			"fstpt		%1				\n"	\
-			"fstp		%%st(0)			"	\
-			:	"=&am" (new_sw), "+m" (fpu.p_regs[TOP])	\
-			:	"m" (fpu.p_regs[(TOP+1)&7])				\
-		);									\
-		fpu.sw=(new_sw&0xffbf)|(fpu.sw&0x80ff);
+#define FPUD_REMAINDER(op)                                         \
+    uint16_t new_sw, save_cw, cw_masked = fpu.cw.allMasked();      \
+    __asm__ volatile (                                             \
+        "fnstcw     %1              \n"                            \
+        "fldcw      %4              \n"                            \
+        "fldt       %3              \n"                            \
+        "fldt       %2              \n"                            \
+        "fclex                      \n"                            \
+        #op"                        \n"                            \
+        "fnstsw     %0              \n"                            \
+        "fstpt      %2              \n"                            \
+        "fstp       %%st(0)         \n"                            \
+        "fldcw      %1                "                            \
+        : "=&am" (new_sw), "=m" (save_cw), "+m" (fpu.p_regs[TOP])  \
+        : "m" (fpu.p_regs[(TOP+1)&7]), "m" (cw_masked)             \
+    );                                                             \
+    fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+                 (fpu.sw & ~FPUStatusWord::conditionMask);
 
 // handles fcom,fucom
 #define FPUD_COMPARE(op)					\
@@ -831,7 +872,8 @@
 			:	"=&am" (new_sw)				\
 			:	"m" (fpu.p_regs[op1]), "m" (fpu.p_regs[op2])	\
 		);									\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 
 // handles fcom,fucom
 #define FPUD_COMPARE_EA(op)					\
@@ -844,7 +886,8 @@
 			:	"=&am" (new_sw)				\
 			:	"m" (fpu.p_regs[op1])		\
 		);									\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 
 // handles fxam,ftst
 #define FPUD_EXAMINE(op)					\
@@ -858,7 +901,8 @@
 			:	"=&am" (new_sw)				\
 			:	"m" (fpu.p_regs[TOP])		\
 		);									\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);
 
 // handles fpatan,fyl2xp1
 #ifdef WEAK_EXCEPTIONS
@@ -885,7 +929,8 @@
 			:	"=&am" (new_sw), "+m" (fpu.p_regs[(TOP+1)&7])		\
 			:	"m" (fpu.p_regs[TOP])		\
 		);									\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);		\
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);             \
 		FPU_FPOP();
 #endif
 
@@ -914,7 +959,8 @@
 			:	"=&am" (new_sw), "+m" (fpu.p_regs[(TOP+1)&7])		\
 			:	"m" (fpu.p_regs[TOP]) 		\
 		);									\
-		fpu.sw=(new_sw&exc_mask)|(fpu.sw&0x80ff);		\
+		fpu.sw = (new_sw & FPUStatusWord::conditionAndExceptionMask) | \
+		         (fpu.sw & ~FPUStatusWord::conditionMask);             \
 		FPU_FPOP();
 #endif
 
@@ -930,16 +976,9 @@
 
 #endif
 
-#ifdef WEAK_EXCEPTIONS
-const uint16_t exc_mask=0x7f00;
-#else
-const uint16_t exc_mask=0xffbf;
-#endif
-
 static void FPU_FINIT(void) {
 	fpu.cw.init();
-	fpu.sw=0;
-	TOP=FPU_GET_TOP();
+	fpu.sw.init();
 	fpu.tags[0]=TAG_Empty;
 	fpu.tags[1]=TAG_Empty;
 	fpu.tags[2]=TAG_Empty;
@@ -952,7 +991,7 @@ static void FPU_FINIT(void) {
 }
 
 static void FPU_FCLEX(void){
-	fpu.sw&=0x7f00;				//should clear exceptions
+	fpu.sw.clearExceptions();
 }
 
 static void FPU_FNOP(void){
@@ -1304,7 +1343,6 @@ static void FPU_FSCALE(void){
 
 
 static void FPU_FSTENV(PhysPt addr){
-	FPU_SET_TOP(TOP);
 	if(!cpu.code.big) {
 		mem_writew(addr+0,static_cast<uint16_t>(fpu.cw));
 		mem_writew(addr+2,static_cast<uint16_t>(fpu.sw));
@@ -1331,7 +1369,6 @@ static void FPU_FLDENV(PhysPt addr){
 	}
 	FPU_SetTag(tag);
 	fpu.cw = cw;
-	TOP=FPU_GET_TOP();
 }
 
 static void FPU_FSAVE(PhysPt addr){
