@@ -883,6 +883,11 @@ void LOG::Init() {
 		LOG_MSG("Logging: No logfile was given. All further logging will be discarded.");
 		debuglog=0;
 	}
+	if (control->opt_nolog && !control->opt_test) {
+		control->opt_nolog = false;
+		LOG_MSG("Logging output has been disabled.");
+		control->opt_nolog = true;
+	}
 
 	const char* debugstr = sect->Get_string("debuggerrun");
     if (debugstr!=NULL && !strcasecmp(debugstr, "normal"))

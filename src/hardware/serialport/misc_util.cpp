@@ -28,7 +28,7 @@
 
 #define ENET_IMPLEMENTATION
 #include "enet.h"
-
+#include "ipx.h"
 #include "logging.h"
 #include "misc_util.h"
 #include "timer.h"

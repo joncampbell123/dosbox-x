@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Simplified Chinese
 :DOSBOX-X:CODEPAGE:936
-:DOSBOX-X:VERSION:0.83.24
+:DOSBOX-X:VERSION:0.83.25
 :DOSBOX-X:REMARK:建议将国家和代码页设为 86,936 并搭配中文字体; 或使用 chs 或 cn 中文 DOS/V 模式以直接支持中文显示和打印
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
@@ -1924,15 +1924,19 @@ LOADHIGH        [驱动器:][路径]文件名 [参数]
 
 .
 :SHELL_CMD_CHOICE_HELP
-等待按键并设置 ERRORLEVEL.
+等待用户通过按键选择一组选项之一.
 
 .
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOICE [/C:选择] [/N] [/S] text
+CHOICE [/C:选择] [/N] [/S] /T[:]c,nn 文字
+
   /C[:]选择  指定允许的按键. 默认为: yn.
   /N         不在末尾显示选择.
   /S         启用大小写敏感选择模式.
+  /T[:]c,nn  nn 秒后默认选择为 c.
   文字       作为提示符显示的文字.
+
+ERRORLEVEL 设置为用户在选择中按下的键的位置.
 
 .
 :SHELL_CMD_ATTRIB_HELP
@@ -2264,6 +2268,18 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 :MENU:mapper_decsize
 减少 TTF 字体大小
 .
+:MENU:mapper_dbcssbcs
+中日韩文字: 切换双字节/单字节模式
+.
+:MENU:mapper_autoboxdraw
+中日韩文字: 自动检测制表符
+.
+:MENU:mapper_resetcolor
+重置 TTF 配色方案
+.
+:MENU:mapper_pwrbutton
+APM 电源按钮
+.
 :MENU:mapper_togmenu
 隐藏/显示下拉菜单
 .
@@ -2401,6 +2417,30 @@ AMD Athlon 600MHz (约 306000 周期)
 .
 :MENU:frameskip_10
 10 帧
+.
+:MENU:VideoRatioMenu
+长宽比
+.
+:MENU:video_ratio_1_1
+1:1
+.
+:MENU:video_ratio_4_3
+4:3
+.
+:MENU:video_ratio_16_9
+16:9
+.
+:MENU:video_ratio_16_10
+16:10
+.
+:MENU:video_ratio_18_10
+18:10
+.
+:MENU:video_ratio_original
+原始长宽比
+.
+:MENU:video_ratio_set
+设置长宽比
 .
 :MENU:VideoScalerMenu
 缩放器
@@ -2618,9 +2658,6 @@ TrueType 字体
 :MENU:VideoTTFMenu
 TTF 选项
 .
-:MENU:mapper_resetcolor
-重置 TTF 配色方案
-.
 :MENU:ttf_showbold
 使用 TTF 显示粗体文字
 .
@@ -2656,12 +2693,6 @@ TTF 字处理软件: FastEdit
 .
 :MENU:ttf_printfont
 使用当前 TTF 字体进行打印
-.
-:MENU:mapper_dbcssbcs
-中日韩文字: 切换双字节/单字节模式
-.
-:MENU:mapper_autoboxdraw
-中日韩文字: 自动检测制表符
 .
 :MENU:ttf_halfwidthkana
 中日韩文字: 允许半角日文片假名
@@ -3074,9 +3105,6 @@ DOS 命令
 :MENU:mapper_scrshot
 捕获屏幕快照
 .
-:MENU:mapper_pwrbutton
-APM 电源按钮
-.
 :MENU:mapper_debugger
 启动 DOSBox-X 调试器
 .
@@ -3371,29 +3399,11 @@ CPU: 正常内核
 :MAPPER:paste
 粘贴剪贴板文字
 .
-:MAPPER:pasteend
-停止剪贴板复制
-.
-:MAPPER:pauseints
-暂停并保持中断
-.
 :MAPPER:prevslot
 上一个存档
 .
 :MAPPER:quickrun
 快速启动程序
-.
-:MAPPER:reboot
-重启 DOS 系统
-.
-:MAPPER:recmtwave
-录制音频到多轨 AVI
-.
-:MAPPER:recvoldown
-降低录音音量
-.
-:MAPPER:recvolup
-提高录音音量
 .
 :MAPPER:rescanall
 刷新驱动器
@@ -3403,9 +3413,6 @@ CPU: 正常内核
 .
 :MAPPER:resetcolor
 重置配色方案
-.
-:MAPPER:showstate
-显示存档信息
 .
 :MAPPER:simple
 CPU: 简单内核

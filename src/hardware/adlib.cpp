@@ -45,6 +45,7 @@
 
 bool adlib_force_timer_overflow_on_polling = false;
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+extern bool show_recorded_filename;
 extern std::string pathopl;
 
 namespace OPL2 {
@@ -1147,7 +1148,7 @@ void OPL_SaveRawEvent(bool pressed) {
 		delete module->capture;
 		module->capture = 0;
 		LOG_MSG("Stopped Raw OPL capturing.");
-		if (pathopl.size()) systemmessagebox("Recording completed",("Saved Raw OPL output to the file:\n\n"+pathopl).c_str(),"ok", "info", 1);
+		if (show_recorded_filename && pathopl.size()) systemmessagebox("Recording completed",("Saved Raw OPL output to the file:\n\n"+pathopl).c_str(),"ok", "info", 1);
 	} else {
 		LOG_MSG("Preparing to capture Raw OPL, will start with first note played.");
 		module->capture = new Adlib::Capture( &module->cache );

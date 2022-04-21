@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Portuguese (Brazil)
 :DOSBOX-X:CODEPAGE:860
-:DOSBOX-X:VERSION:0.83.24
+:DOSBOX-X:VERSION:0.83.25
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 As linhas nesta seção serão sempre executadas ao se iniciar o DOSBox-X.
@@ -1218,11 +1218,10 @@ Página de código %i carregada para o esquema %s
 Configura um teclado para um idioma específico.
 
 Usage: [32;1mKEYB[0m [keyboard layout ID [codepage number [codepage file]]]
-  layout ID        Name of layout or keyboard file (.kl) to load
-  codepage number  Number of codepage to load
-  codepage file    .cpi/.cpx file including specified codepage information
-  (.kl, .cpi/.cpx files shall be placed under the directory where dosbox-x
-   executable exists.)
+  layout ID        Nome do layout ou arquivo de teclado (.kl) a ser carregado
+  codepage number  Número da página de código a ser carregada
+  codepage file    Arquivo .cpi/.cpx incluindo informações de página de código especificadas
+  (Os arquivos .kl, .cpi/.cpx devem ser colocados no diretório onde dosbox-x executável existe.)
 
 Alguns exemplos:
   [32;1mKEYB[0m                 Exibe a página de código carregada atualmente.
@@ -1231,8 +1230,7 @@ Alguns exemplos:
   [32;1mKEYB sp 850[0m          Carrega o esquema espanhol (SP) com a
                        página de código 850.
   [32;1mKEYB sp 850 mycp.cpi[0m O mesmo de cima, mas usando o arquivo mycp.cpi.
-  [32;1mKEYB sp_mod 850[0m      Load keyboard layout from sp_mod.kl,
-                       use codepage 850.
+  [32;1mKEYB sp_mod 850[0m      Carrega o layout do teclado de sp_mod.kl, usar página de código 850
                        
 .
 :PROGRAM_KEYB_NOERROR
@@ -2005,15 +2003,19 @@ LOADHIGH        [unidade:][caminho]nome_de_arquivo [parâmetros]
 
 .
 :SHELL_CMD_CHOICE_HELP
-Espera o apertar de uma tecla e define o valor de ERRORLEVEL.
+Aguarda um pressionamento de tecla do usuário para escolher uma das opções.
 
 .
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOICE [/C:escolhas] [/N] [/S] texto
-  /C[:]escolhas - Especifica as teclas permitidas. Padrão: yn.
-  /N            - Não mostrar as escolhas no final do prompt.
-  /S            - Ativa opções de escolhas sensíveis a maiúsculas e minúsculas.
-  texto         -   Texto a ser mostrado como prompt.
+CHOICE [/C:escolhas] [/N] [/S] /T[:]c,nn texto
+
+  /C[:]escolhas Especifica as teclas permitidas. Padrão: yn.
+  /N            Não mostrar as escolhas no final do prompt.
+  /S            Ativa opções de escolhas sensíveis a maiúsculas e minúsculas.
+  /T[:]c,nn     Escolha padrão para c após nn segundos.
+  texto         Texto a ser mostrado como prompt.
+
+ERRORLEVEL é definido para a posição da tecla que o usuário pressiona nas opções.
 
 .
 :SHELL_CMD_ATTRIB_HELP
@@ -2323,6 +2325,18 @@ Aumentar tamanho da fonte TTF
 :MENU:mapper_decsize
 Reduzir tamanho de fonte TTF
 .
+:MENU:mapper_dbcssbcs
+CJK: Alternar entre modos DBCS/SBCS
+.
+:MENU:mapper_autoboxdraw
+CJK: Detectar automaticamente símbolos de desenho de caixa
+.
+:MENU:mapper_resetcolor
+Restaurar esquema de cor de TTF
+.
+:MENU:mapper_pwrbutton
+Botão liga/desliga APM
+.
 :MENU:mapper_togmenu
 Ocultar/exibir a barra de menu
 .
@@ -2460,6 +2474,30 @@ Desligado
 .
 :MENU:frameskip_10
 10 quadros
+.
+:MENU:VideoRatioMenu
+proporção da tela
+.
+:MENU:video_ratio_1_1
+1:1
+.
+:MENU:video_ratio_4_3
+4:3
+.
+:MENU:video_ratio_16_9
+16:9
+.
+:MENU:video_ratio_16_10
+16:10
+.
+:MENU:video_ratio_18_10
+18:10
+.
+:MENU:video_ratio_original
+proporção original
+.
+:MENU:video_ratio_set
+Definir proporção
 .
 :MENU:VideoScalerMenu
 Redimensionador
@@ -2677,9 +2715,6 @@ Tela: 132 colunas x 60 linhas
 :MENU:VideoTTFMenu
 Opções TTF
 .
-:MENU:mapper_resetcolor
-Restaurar esquema de cor de TTF
-.
 :MENU:ttf_showbold
 Exibir texto em negrito em TTF
 .
@@ -2715,12 +2750,6 @@ Exibir texto da direita para a esquerda
 .
 :MENU:ttf_printfont
 Usar fonte TTF atual para imprimir
-.
-:MENU:mapper_dbcssbcs
-CJK: Alternar entre modos DBCS/SBCS
-.
-:MENU:mapper_autoboxdraw
-CJK: Detectar automaticamente símbolos de desenho de caixa
 .
 :MENU:ttf_halfwidthkana
 CJK: Permitir katakana japonês de largura média
@@ -3132,9 +3161,6 @@ Gravar vídeo em AVI
 .
 :MENU:mapper_scrshot
 Capturar tela
-.
-:MENU:mapper_pwrbutton
-Botão liga/desliga APM
 .
 :MENU:mapper_debugger
 Iniciar depurador do DOSBox-X

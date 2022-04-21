@@ -20,8 +20,8 @@ jobs:
         with:
           msystem: MINGW32
           update: true
-          install: git mingw-w64-i686-toolchain mingw-w64-i686-libslirp mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake
-      - name: DOSBox-X MinGW32
+          install: git mingw-w64-i686-toolchain mingw-w64-i686-libslirp mingw-w64-i686-libtool mingw-w64-i686-SDL_net mingw-w64-i686-SDL2_net mingw-w64-i686-nasm autoconf automake
+      - name: Build MinGW32 SDL1
         run: |
           top=`pwd`
           ln -s $top/build-scripts/mingw/make.exe /usr/bin/make.exe
@@ -47,6 +47,9 @@ jobs:
           cp $top/contrib/windows/shaders/* $top/package/mingw-build/mingw/shaders/
           cp $top/contrib/glshaders/* $top/package/mingw-build/mingw/glshaders/
           for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/package/mingw-build/mingw/languages/; done
+      - name: Build MinGW32 SDL2
+        run: |
+          top=`pwd`
           ./build-mingw-sdl2
           strip --strip-all $top/src/dosbox-x.exe
           mkdir -p $top/package/mingw-build/mingw-sdl2/drivez

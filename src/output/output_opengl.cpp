@@ -90,6 +90,7 @@ extern unsigned int SDLDrawGenFontTextureHeight;
 extern GLuint SDLDrawGenFontTexture, SDLDrawGenDBCSFontTexture;
 extern bool SDLDrawGenFontTextureInit;
 #endif
+extern int aspect_ratio_x, aspect_ratio_y;
 extern int initgl, lastcp;
 extern bool font_16_init;
 extern uint8_t int10_font_16[256 * 16], int10_font_16_init[256 * 16];
@@ -116,7 +117,9 @@ static void PPScale (
     orig_w = min_w = (int)render.src.width;
     orig_h = min_h = (int)render.src.height;
 
-    par = ( double) orig_w / orig_h * 3 / 4;
+    int x = (aspect_ratio_x>0 && aspect_ratio_y>0) ? aspect_ratio_x : ((aspect_ratio_x==-1 && aspect_ratio_y==-1) ? sdl.draw.width : 4);
+    int y = (aspect_ratio_x>0 && aspect_ratio_y>0) ? aspect_ratio_y : ((aspect_ratio_x==-1 && aspect_ratio_y==-1) ? sdl.draw.height : 3);
+    par = (double)orig_w / orig_h * y / x;
     /* HACK: because RENDER_SetSize() does not set dblw and dblh correctly: */
     /* E.g. in 360x360 mode DOSBox-X will wrongly allocate a 720x360 area. I  */
     /* therefore calculate square-pixel proportions par_sq myself:          */
@@ -157,13 +160,9 @@ static SDL_Surface* SetupSurfaceScaledOpenGL(uint32_t sdl_flags, uint32_t bpp)
 
 retry:
 #if defined(C_SDL2)
-    if (sdl.desktop.prevent_fullscreen)
-        ;//sdl_flags &= ~((unsigned int)SDL_WINDOW_RESIZABLE);
     if (sdl.desktop.want_type == SCREEN_OPENGL)
         sdl_flags |= (unsigned int)SDL_WINDOW_OPENGL;
 #else
-    if (sdl.desktop.prevent_fullscreen)
-        ;//sdl_flags &= ~((unsigned int)SDL_RESIZABLE);
     if (sdl.desktop.want_type == SCREEN_OPENGL)
         sdl_flags |= (unsigned int)SDL_OPENGL;
 #endif

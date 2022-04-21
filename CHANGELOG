@@ -1,4 +1,26 @@
 0.83.25
+  - Allowed to boot from Toshiba DOS image file for the
+    Toshiba J-3100 emulation. (nanshiki)
+  - Added config option "aspect_ratio" (in [render]
+    section) which when set will force the specified
+    aspect ratio (e.g. 16:9 or 3:2) in the aspect ratio
+    correction mode (i.e. aspect=true). A menu group
+    "Aspect ratio" is added to "Video" menu for users
+    to select or set an aspect ratio, including an
+    original ratio option. (Wengier)
+  - Added config option "show recorded filename" (in
+    [dosbox] section) which when set to true (default)
+    will show message boxes with recorded filenames
+    when making audio or video captures. (Wengier)
+  - Added config option "allow quit after warning" (in
+    [dosbox] section) which when set to false DOSBox-X
+    will disallow the quit option after displaying a
+    warning message. (Wengier)
+  - Added /T option for CHOICE command to set a default
+    choice as in DOS, e.g. CHOICE /T:Y,3 (Wengier)
+  - Added Korean language option in Windows installer.
+    Also, language option page will be shown regardless
+    of the output option selected. (Wengier)
   - Fix fscale FPU operation and FPU status word
     updates (cimarronm)
   - Fix FPU stack value log messages on x86-based builds
@@ -6,14 +28,21 @@
   - Added config option "turbo last second" (in [cpu]
     section) which allows to stop the Turbo function
     after specified number of seconds. (Wengier)
-  - Updated FLAC & MP3 decoder libraries to the latest
-    versions (v0.12.37 and v0.6.32) respectively; per
-    David Reid). (Wengier)
+  - Updated FLAC, MP3, and WAV decoder libraries to the
+    latest versions (v0.12.38, v0.6.32, and v0.13.6)
+    respectively; per David Reid). (Wengier)
   - Fixed bug that OpenGL Voodoo window may not appear
     correctly if the DOSBox-X window was previously in
     full-screen mode in some builds. DOSBox-X will now
-    ensure a switch to window mode (or maxmized window
-    mode) in this case. (Wengier)
+    ensure a switch to window mode (or maximized window
+    mode) in this case. Also fixed some menu options
+    including rebooting DOSBox-X while Voodoo emulation
+    is currently active. (Wengier)
+  - DOSBox-X returns 1 instead of 0 when E_Exit occurs
+    or unit tests fail. (Wengier)
+  - Fixed built-in IPX and Modem emulation unavailable
+    in MinGW builds. (Wengier)
+  - Fixed lockup in classic Jumpman. (maron2000)
   - Fixed crash when switching to dynamic_rec core from
     menu when dynamic_x86 is also available. Also fixed
     the dynamic_rec core may not be displayed correctly

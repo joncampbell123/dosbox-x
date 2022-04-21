@@ -53,6 +53,7 @@ int selerow = -1, selecol = -1;
 int middleunlock = 1;
 bool rtl = false;
 bool selmark = false;
+extern bool testerr;
 extern bool blinking;
 extern bool dpi_aware_enable;
 extern bool log_int21;
@@ -74,7 +75,7 @@ bool usesystemcursor = false, enableime = false;
 bool mountfro[26], mountiro[26];
 bool OpenGL_using(void), Direct3D_using(void);
 void DOSBox_SetSysMenu(void), GFX_OpenGLRedrawScreen(void), InitFontHandle(void), DOSV_FillScreen(void), SetWindowTransparency(int trans);
-void MenuBrowseProgramFile(void), OutputSettingMenuUpdate(void), update_pc98_clock_pit_menu(void), AllocCallback1(void), AllocCallback2(void), ToggleMenu(bool pressed);
+void MenuBrowseProgramFile(void), OutputSettingMenuUpdate(void), aspect_ratio_menu(void), update_pc98_clock_pit_menu(void), AllocCallback1(void), AllocCallback2(void), ToggleMenu(bool pressed);
 int Reflect_Menu(void);
 
 #ifndef _GNU_SOURCE
@@ -208,9 +209,8 @@ typedef enum PROCESS_DPI_AWARENESS {
 #include "fpu.h"
 #include "cross.h"
 #include "keymap.h"
-
-#if C_OPENGL
 #include "voodoo.h"
+#if C_OPENGL
 #include "../hardware/voodoo_types.h"
 #include "../hardware/voodoo_data.h"
 #include "../hardware/voodoo_opengl.h"
@@ -368,6 +368,7 @@ static BOOL WINAPI ConsoleEventHandler(DWORD event) {
 
 extern int bootdrive, resolveopt;
 extern int dos_clipboard_device_access;
+extern int aspect_ratio_x, aspect_ratio_y;
 extern bool sync_time, loadlang, addovl;
 extern bool bootguest, bootfast, bootvm;
 
@@ -1033,20 +1034,40 @@ bool CheckQuit(void) {
 #if !defined(HX_DOS)
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     std::string warn = section->Get_string("quit warning");
+    bool quit = section->Get_bool("allow quit after warning");
     if (sdl.desktop.fullscreen) GFX_SwitchFullScreen();
-    if (warn == "true")
-        return systemmessagebox("Quit DOSBox-X warning","This will quit from DOSBox-X.\nAre you sure?","yesno", "question", 1);
-    else if (warn == "false")
+    if (warn == "true") {
+        if (!quit) {
+            systemmessagebox("Quit DOSBox-X warning","Quitting from DOSBox-X with this is currently disabled.","ok", "warning", 1);
+            return false;
+        } else
+            return systemmessagebox("Quit DOSBox-X warning","This will quit from DOSBox-X.\nAre you sure?","yesno", "question", 1);
+    } else if (warn == "false")
         return true;
-    if (dos_kernel_disabled&&strcmp(RunningProgram, "DOSBOX-X"))
-        return systemmessagebox("Quit DOSBox-X warning","You are currently running a guest system.\nAre you sure to quit anyway now?","yesno", "question", 1);
+    if (dos_kernel_disabled&&strcmp(RunningProgram, "DOSBOX-X")) {
+        if (!quit) {
+            systemmessagebox("Quit DOSBox-X warning","You cannot quit DOSBox-X while running a guest system.","ok", "warning", 1);
+            return false;
+        } else
+            return systemmessagebox("Quit DOSBox-X warning","You are currently running a guest system.\nAre you sure to quit anyway now?","yesno", "question", 1);
+    }
     if (warn == "autofile")
         for (uint8_t handle = 0; handle < DOS_FILES; handle++) {
-            if (Files[handle] && (Files[handle]->GetName() == NULL || strcmp(Files[handle]->GetName(), "CON")) && (Files[handle]->GetInformation()&DeviceInfoFlags::Device) == 0)
-                return systemmessagebox("Quit DOSBox-X warning","It may be unsafe to quit from DOSBox-X right now\nbecause one or more files are currently open.\nAre you sure to quit anyway now?","yesno", "question", 1);
+            if (Files[handle] && (Files[handle]->GetName() == NULL || strcmp(Files[handle]->GetName(), "CON")) && (Files[handle]->GetInformation()&DeviceInfoFlags::Device) == 0) {
+                if (!quit) {
+                    systemmessagebox("Quit DOSBox-X warning","You cannot quit DOSBox-X while one or more files are open.","ok", "warning", 1);
+                    return false;
+                } else
+                    return systemmessagebox("Quit DOSBox-X warning","It may be unsafe to quit from DOSBox-X right now\nbecause one or more files are currently open.\nAre you sure to quit anyway now?","yesno", "question", 1);
+            }
         }
-    else if (RunningProgram&&strcmp(RunningProgram, "DOSBOX-X")&&strcmp(RunningProgram, "COMMAND")&&strcmp(RunningProgram, "4DOS"))
-        return systemmessagebox("Quit DOSBox-X warning","You are currently running a program or game.\nAre you sure to quit anyway now?","yesno", "question", 1);
+    else if (RunningProgram&&strcmp(RunningProgram, "DOSBOX-X")&&strcmp(RunningProgram, "COMMAND")&&strcmp(RunningProgram, "4DOS")) {
+        if (!quit) {
+            systemmessagebox("Quit DOSBox-X warning","You cannot quit DOSBox-X while running a program or game.","ok", "warning", 1);
+            return false;
+        } else
+            return systemmessagebox("Quit DOSBox-X warning","You are currently running a program or game.\nAre you sure to quit anyway now?","yesno", "question", 1);
+    }
 #endif
     return true;
 }
@@ -3844,6 +3865,7 @@ void GFX_HandleVideoResize(int width, int height) {
     /* don't act if 3Dfx OpenGL emulation is active */
     if (GFX_GetPreventFullscreen()) {
 #if C_OPENGL
+        if (new_width == width && new_height == height) return;
         new_width = width;
         new_height = height;
         voodoo_ogl_update_dimensions();
@@ -3933,6 +3955,7 @@ static void HandleVideoResize(void * event) {
     /* don't act if 3Dfx OpenGL emulation is active */
     if (GFX_GetPreventFullscreen()) {
 #if C_OPENGL
+        if (new_width == ResizeEvent->w && new_height == ResizeEvent->h) return;
         new_width = ResizeEvent->w;
         new_height = ResizeEvent->h;
         voodoo_ogl_update_dimensions();
@@ -6694,7 +6717,6 @@ bool DOSBOX_parse_argv() {
             control->opt_nomenu = true;
             control->opt_fastlaunch = true;
         }
-#if C_DEBUG
         else if (optname == "test" || optname == "tests" || optname == "gtest_list_tests") {
             putenv(const_cast<char*>("SDL_VIDEODRIVER=dummy"));
             control->opt_test = true;
@@ -6704,7 +6726,6 @@ bool DOSBOX_parse_argv() {
             control->opt_nomenu = true;
             control->opt_fastlaunch = true;
         }
-#endif
         else if (optname == "exit") {
             control->opt_exit = true;
         }
@@ -7475,7 +7496,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
 
     // initialize some defaults in SDL structure here
-    sdl.srcAspect.x = 4; sdl.srcAspect.y = 3; 
+    sdl.srcAspect.x = aspect_ratio_x>0?aspect_ratio_x:4;
+    sdl.srcAspect.y = aspect_ratio_y>0?aspect_ratio_y:3;
     sdl.srcAspect.xToY = (double)sdl.srcAspect.x / sdl.srcAspect.y;
     sdl.srcAspect.yToX = (double)sdl.srcAspect.y / sdl.srcAspect.x;
 
@@ -8712,6 +8734,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("line_132x50").enable(!IS_PC98_ARCH);
         mainMenu.get_item("line_132x60").enable(!IS_PC98_ARCH);
 #if defined(USE_TTF)
+        mainMenu.get_item("mapper_aspratio").enable(!TTF_using());
         mainMenu.get_item("mapper_incsize").enable(TTF_using());
         mainMenu.get_item("mapper_decsize").enable(TTF_using());
         mainMenu.get_item("mapper_resetcolor").enable(TTF_using());
@@ -8780,6 +8803,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("mapper_speedlock2").check(ticksLocked).refresh_item(mainMenu);
 
         OutputSettingMenuUpdate();
+        aspect_ratio_menu();
         update_pc98_clock_pit_menu();
 #if !defined(C_EMSCRIPTEN)
         update_capture_fmt_menu();
@@ -9021,6 +9045,9 @@ fresh_boot:
                 real_writed(0,0x01*4,(uint32_t)BIOS_DEFAULT_HANDLER_LOCATION);
                 real_writed(0,0x03*4,(uint32_t)BIOS_DEFAULT_HANDLER_LOCATION);
             }
+
+            if (Voodoo_OGL_Active())
+                Voodoo_Output_Enable(false);
 
             grGlideShutdown();
             /* shutdown DOSBox-X's virtual drive Z */
@@ -9291,7 +9318,7 @@ fresh_boot:
     snd_config_update_free_global();
 #endif
 
-    return 0;
+    return control->opt_test&&testerr?1:0;
 }
 
 void GFX_GetSizeAndPos(int &x,int &y,int &width, int &height, bool &fullscreen) {

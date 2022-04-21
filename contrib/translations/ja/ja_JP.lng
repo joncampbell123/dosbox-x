@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Japanese
 :DOSBOX-X:CODEPAGE:932
-:DOSBOX-X:VERSION:0.83.24
+:DOSBOX-X:VERSION:0.83.25
 :DOSBOX-X:REMARK:PC-98, JEGA, DOS/V エミュレーション、または とコード ページ 932 の日本語フォントを使用して、日本語の表示と印刷を直接サポートします
 :AUTOEXEC_CONFIGFILE_HELP
 このセクションに記載の行は起動時に実行されます。
@@ -1208,8 +1208,7 @@ IMGMAKE の使用例:
   レイアウトID     読み込むレイアウト名またはキーボードファイル(.kl)
   コードページ番号 読み込むコードページの番号
   コードページファイル 指定したコードページの情報を含む.cpi/.cpxファイル
-  (.kl,.cpi/.cpxファイルはdosbox-xの実行ファイルがあるディレクトリに配置
-  します)
+  (.kl,.cpi/.cpxファイルはdosbox-xの実行ファイルがあるディレクトリに配置します)
 
 使用例:
   [32;1mKEYB[0m          読み込まれたコードページを表示
@@ -1606,7 +1605,6 @@ DOSBox-Xへようこそ !
 内部コマンドの一覧を表示するには[32mHELP[37m, 簡単な紹介は[32mINTRO[37m とタイプしてください
 [33mドロップダウンメニュー[37mからも様々な設定が可能です。                          
 .
-
 :SHELL_STARTUP_EXAMPLE
 [32m例[37m: 出力オプション[33mTrueType font[37m または [33mOpenGL pixel-perfect[37m を試してください
 .
@@ -1975,15 +1973,19 @@ LOADHIGH        [drive:][path]filename [parameters]
 
 .
 :SHELL_CMD_CHOICE_HELP
-キーの入力を待ち、ERRORLEVEL を返します。
+ユーザーがキーを押して選択肢の1つを選択するのを待ちます。
 
 .
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOICE [/C:choices] [/N] [/S] text
-  /C[:]choices  -  入力可能なキーを指定します (デフォルトは: yn)
-  /N  -  プロンプトの最後に選択肢を表示しない
-  /S  -  選択肢の大文字小文字を区別する
-  text  -  プロンプトに表示するテキスト
+CHOICE [/C:choices] [/N] [/S] /T[:]c,nn text
+
+  /C[:]choices 入力可能なキーを指定します (デフォルトは: yn)
+  /N           プロンプトの最後に選択肢を表示しない
+  /S           選択肢の大文字小文字を区別する
+  /T[:]c,nn    nn秒後のデフォルトの選択はc.
+  text         プロンプトに表示するテキスト
+
+ERRORLEVELは、ユーザーが選択肢で押すキーの位置に設定されます.
 
 .
 :SHELL_CMD_ATTRIB_HELP
@@ -2288,6 +2290,18 @@ TTFフォントサイズ: 拡大
 :MENU:mapper_decsize
 TTFフォントサイズ: 縮小
 .
+:MENU:mapper_dbcssbcs
+CJK: DBCS/SBCS モードを切替
+.
+:MENU:mapper_autoboxdraw
+CJK: 罫線文字を自動検出
+.
+:MENU:mapper_resetcolor
+TTFカラースキームをリセット
+.
+:MENU:mapper_pwrbutton
+APM電源ボタン
+.
 :MENU:mapper_togmenu
 メニューバー表示切替
 .
@@ -2425,6 +2439,30 @@ Pentium III 866MHz EB (~407000 サイクル)
 .
 :MENU:frameskip_10
 10フレーム
+.
+:MENU:VideoRatioMenu
+アスペクト比
+.
+:MENU:video_ratio_1_1
+1:1
+.
+:MENU:video_ratio_4_3
+4:3
+.
+:MENU:video_ratio_16_9
+16:9
+.
+:MENU:video_ratio_16_10
+16:10
+.
+:MENU:video_ratio_18_10
+18:10
+.
+:MENU:video_ratio_original
+元の比率
+.
+:MENU:video_ratio_set
+セット比率
 .
 :MENU:VideoScalerMenu
 スケーラ
@@ -2642,9 +2680,6 @@ TrueTypeフォント
 :MENU:VideoTTFMenu
 TTFオプション
 .
-:MENU:mapper_resetcolor
-TTFカラースキームをリセット
-.
 :MENU:ttf_showbold
 太字をTTFで表示
 .
@@ -2675,14 +2710,11 @@ TTF ワードプロセッサー: FastEdit
 :MENU:ttf_blinkc
 TTFでカーソル点滅を表示
 .
+:MENU:ttf_right_left
+テキストを右から左に表示
+.
 :MENU:ttf_printfont
 現在のTTFフォントを印刷に使用
-.
-:MENU:mapper_dbcssbcs
-CJK: DBCS/SBCS モードを切替
-.
-:MENU:mapper_autoboxdraw
-CJK: 罫線文字を自動検出
 .
 :MENU:ttf_halfwidthkana
 CJK: 日本語半角カナ文字を使用
@@ -2963,9 +2995,6 @@ Windowsドライブを自動マウント
 :MENU:HelpMenu
 ヘルプ
 .
-:MENU:HelpDebugMenu
-ログ用コンソール
-.
 :MENU:help_intro
 DOSBox-X の紹介
 .
@@ -3019,6 +3048,9 @@ DOS コマンド
 .
 :MENU:DebugMenu
 デバッグ
+.
+:MENU:HelpDebugMenu
+ログ用コンソール
 .
 :MENU:debug_blankrefreshtest
 リフレッシュのテスト (空白の画面)
@@ -3094,9 +3126,6 @@ FM (OPL) 出力を保存
 .
 :MENU:mapper_scrshot
 スクリーンショット
-.
-:MENU:mapper_pwrbutton
-APM電源ボタン
 .
 :MENU:mapper_debugger
 DOSBox-X デバッガの起動
@@ -3404,11 +3433,11 @@ CPU:標準コア
 :MAPPER:quickrun
 クイック起動
 .
-:MAPPER:recmtwave
-M.T. AVI形式で保存
-.
 :MAPPER:reboot
 DOSシステムの再起動
+.
+:MAPPER:recmtwave
+M.T. AVI形式で保存
 .
 :MAPPER:recvoldown
 録音レベル: 下
@@ -3430,7 +3459,4 @@ DOSBox-Xを再起動
 .
 :MAPPER:simple
 CPU:簡易コア
-.
-:MAPPER:togmenu
-メニューバー表示切替
 .

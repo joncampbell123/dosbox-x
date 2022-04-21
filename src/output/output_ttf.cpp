@@ -29,8 +29,10 @@
 #include "jfont.h"
 #include "inout.h"
 #include "bios.h"
+#include "regs.h"
 #include "control.h"
 #include "menudef.h"
+#include "callback.h"
 #include "../ints/int10.h"
 
 using namespace std;
@@ -92,7 +94,7 @@ int switchoutput = -1;
 static unsigned long ttfSize = sizeof(DOSBoxTTFbi), ttfSizeb = 0, ttfSizei = 0, ttfSizebi = 0;
 static void * ttfFont = DOSBoxTTFbi, * ttfFontb = NULL, * ttfFonti = NULL, * ttfFontbi = NULL;
 extern int posx, posy, eurAscii, NonUserResizeCounter;
-extern bool rtl, gbk, chinasea, switchttf, force_conversion, blinking;
+extern bool rtl, gbk, chinasea, switchttf, force_conversion, blinking, showdbcs, loadlang, window_was_maximized;
 extern uint8_t ccount;
 extern uint16_t cpMap[512], cpMap_PC98[256];
 uint16_t cpMap_copy[256];
@@ -100,6 +102,9 @@ static SDL_Color ttf_fgColor = {0, 0, 0, 0};
 static SDL_Color ttf_bgColor = {0, 0, 0, 0};
 static SDL_Rect ttf_textRect = {0, 0, 0, 0};
 static SDL_Rect ttf_textClip = {0, 0, 0, 0};
+
+ttf_cell curAttrChar[txtMaxLins*txtMaxCols];					// currently displayed textpage
+ttf_cell newAttrChar[txtMaxLins*txtMaxCols];					// to be replaced by
 
 typedef struct {
 	uint8_t red;
@@ -113,10 +118,10 @@ static int prev_sline = -1;
 static int charSet = 0;
 static alt_rgb *rgbColors = (alt_rgb*)render.pal.rgb;
 static bool blinkstate = false;
-bool colorChanged = false, justChanged = false, staycolors = false, firstsize = true;
+bool colorChanged = false, justChanged = false, staycolors = false, firstsize = true, ttfswitch=false, switch_output_from_ttf=false;
 
 int menuwidth_atleast(int width), FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
-void AdjustIMEFontSize(void), initcodepagefont(void), MSG_Init(void), DOSBox_SetSysMenu(void), GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight), resetFontSize(void), RENDER_CallBack( GFX_CallBackFunctions_t function );
+void AdjustIMEFontSize(void), initcodepagefont(void), change_output(int output), MSG_Init(void), KEYBOARD_Clear(void), RENDER_Reset(void), DOSBox_SetSysMenu(void), GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight), resetFontSize(void), RENDER_CallBack( GFX_CallBackFunctions_t function );
 bool isDBCSCP(void), InitCodePage(void), CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 std::string GetDOSBoxXPath(bool withexe=false);
 
@@ -831,7 +836,7 @@ resize:
         E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
     if (ttf.SDL_font && ttf.width) {
         int widthb, widthm, widthx, width0, width1, width9;
-        widthb = widthm = widthx = width1 = width9 = 0;
+        widthb = widthm = widthx = width0 = width1 = width9 = 0;
         TTF_GlyphMetrics(ttf.SDL_font, 'B', NULL, NULL, NULL, NULL, &widthb);
         TTF_GlyphMetrics(ttf.SDL_font, 'M', NULL, NULL, NULL, NULL, &widthm);
         TTF_GlyphMetrics(ttf.SDL_font, 'X', NULL, NULL, NULL, NULL, &widthx);
@@ -840,7 +845,6 @@ resize:
         int cp=dos.loaded_codepage;
         if (!cp) InitCodePage();
         if ((IS_PC98_ARCH || isDBCSCP()) && dbcs_sbcs) {
-            int width = 0, height = 0;
             TTF_GlyphMetrics(ttf.SDL_font, 0x4E00, NULL, NULL, NULL, NULL, &width1);
             TTF_GlyphMetrics(ttf.SDL_font, 0x4E5D, NULL, NULL, NULL, NULL, &width9);
             if (width1 <= ttf.width || width9 <= ttf.width) LOG_MSG("TTF: The loaded font may not support DBCS characters.");
@@ -1024,7 +1028,7 @@ void GFX_EndTextLines(bool force) {
 		bool draw = false;
 		ttf_textRect.y = ttf.offY+y*ttf.height;
 		for (unsigned int x = 0; x < ttf.cols; x++) {
-			if ((newAC[x] != curAC[x] || newAC[x].selected != curAC[x].selected || (colorChanged && (justChanged || draw)) || force) && !(newAC[x].skipped) || (!y && focuschanged && noframe)) {
+			if (((newAC[x] != curAC[x] || newAC[x].selected != curAC[x].selected || (colorChanged && (justChanged || draw)) || force) && (!newAC[x].skipped || force)) || (!y && focuschanged && noframe)) {
 				draw = true;
 				xmin = min((int)x, xmin);
 				ymin = min((int)y, ymin);
@@ -1322,5 +1326,91 @@ void ttf_setlines(int cols, int lins) {
     real_writeb(BIOSMEM_SEG,BIOSMEM_NB_COLS,ttf.cols);
     if (IS_EGAVGA_ARCH) real_writeb(BIOSMEM_SEG,BIOSMEM_NB_ROWS,ttf.lins-1);
     vga.draw.address_add = ttf.cols * 2;
+}
+
+void ttf_switch_on(bool ss=true) {
+    if ((ss&&ttfswitch)||(!ss&&switch_output_from_ttf)) {
+        uint16_t oldax=reg_ax;
+        reg_ax=0x1600;
+        CALLBACK_RunRealInt(0x2F);
+        if (reg_al!=0&&reg_al!=0x80) {reg_ax=oldax;return;}
+        reg_ax=oldax;
+        if (window_was_maximized&&!GFX_IsFullscreen()) {
+#if defined(WIN32)
+            ShowWindow(GetHWND(), SW_RESTORE);
+#elif defined(C_SDL2)
+            SDL_RestoreWindow(sdl.window);
+#endif
+        }
+        bool OpenGL_using(void), gl = OpenGL_using();
+        change_output(10);
+        SetVal("sdl", "output", "ttf");
+        std::string showdbcsstr = static_cast<Section_prop *>(control->GetSection("dosv"))->Get_string("showdbcsnodosv");
+        showdbcs = showdbcsstr=="true"||showdbcsstr=="1"||(showdbcsstr=="auto" && (loadlang || dbcs_sbcs));
+        void OutputSettingMenuUpdate(void);
+        OutputSettingMenuUpdate();
+        if (ss) ttfswitch = false;
+        else switch_output_from_ttf = false;
+        mainMenu.get_item("output_ttf").enable(true).refresh_item(mainMenu);
+        if (ttf.fullScrn) {
+            if (!GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
+            OUTPUT_TTF_Select(3);
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+            if (gl && GFX_IsFullscreen()) { // Hack for full-screen switch from OpenGL outputs
+                void GFX_SwitchFullScreen(void);
+                GFX_SwitchFullScreen();
+                GFX_SwitchFullScreen();
+            }
+#endif
+            resetreq = true;
+        }
+        resetFontSize();
+    }
+}
+
+void ttf_switch_off(bool ss=true) {
+    if (!ss&&ttfswitch)
+        ttf_switch_on();
+    if (ttf.inUse) {
+        std::string output="surface";
+        int out=switchoutput;
+        if (switchoutput==0)
+            output = "surface";
+#if C_OPENGL
+        else if (switchoutput==3)
+            output = "opengl";
+        else if (switchoutput==4)
+            output = "openglnb";
+        else if (switchoutput==5)
+            output = "openglpp";
+#endif
+#if C_DIRECT3D
+        else if (switchoutput==6)
+            output = "direct3d";
+#endif
+        else {
+#if C_DIRECT3D
+            out = 6;
+            output = "direct3d";
+#elif C_OPENGL
+            out = 3;
+            output = "opengl";
+#else
+            out = 0;
+            output = "surface";
+#endif
+        }
+        KEYBOARD_Clear();
+        showdbcs = true;
+        change_output(out);
+        SetVal("sdl", "output", output);
+        void OutputSettingMenuUpdate(void);
+        OutputSettingMenuUpdate();
+        if (ss) ttfswitch = true;
+        else switch_output_from_ttf = true;
+        //if (GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
+        mainMenu.get_item("output_ttf").enable(false).refresh_item(mainMenu);
+        RENDER_Reset();
+    }
 }
 #endif

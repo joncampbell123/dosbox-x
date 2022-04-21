@@ -75,8 +75,10 @@ TEST(WildFileCmp, QuestionMark)
     EXPECT_EQ(true, WildFileCmp("TEST", "???T.???"));
 }
 
-TEST(WildFileCmp, LongCompare)
+TEST(LWildFileCmp, LFNCompare)
 {
+    bool oldlfn = uselfn;
+    uselfn = true;
     EXPECT_EQ(false, LWildFileCmp("TEST", ""));
     EXPECT_EQ(true, LWildFileCmp("TEST.EXE", "*"));
     EXPECT_EQ(true, LWildFileCmp("TEST", "?EST"));
@@ -96,6 +98,7 @@ TEST(WildFileCmp, LongCompare)
     EXPECT_EQ(false, LWildFileCmp("TEST", "Z*"));
     EXPECT_EQ(false, LWildFileCmp("TEST FILE NAME", "*Y*"));
     EXPECT_EQ(false, LWildFileCmp("TEST FILE NAME", "*F*X*"));
+	uselfn = oldlfn;
 }
 
 /**

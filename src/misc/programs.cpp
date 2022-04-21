@@ -57,7 +57,7 @@ extern const char *modifier;
 extern unsigned int sendkeymap;
 extern std::string langname, configfile, dosbox_title;
 extern int autofixwarn, enablelfn, fat32setver, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor;
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, ttfswitch, loadlang, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, uao, showdbcs, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, outcon, enable_dbcs_tables;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, ttfswitch, loadlang, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, uao, showdbcs, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, outcon, enable_dbcs_tables, show_recorded_filename;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -100,7 +100,7 @@ uint8_t DOS_GetAnsiAttr(void);
 char *FormatDate(uint16_t year, uint8_t month, uint8_t day);
 bool isDBCSCP(void), CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4), DOS_SetAnsiAttr(uint8_t attr), GFX_GetPreventFullscreen(void), toOutput(const char *what);
 void EMS_DoShutDown(void), UpdateDefaultPrinterFont(void), GFX_ForceRedrawScreen(void), resetFontSize(void), ttf_reset_colors(void), makestdcp950table(void), makeseacp951table(void), clearFontCache(void), DOSBox_SetSysMenu(void), MSG_Init(void), initRand(void), PRINTER_Init(void);
-void EMS_Startup(Section* sec), DOSV_SetConfig(Section_prop *section), DOSBOX_UnlockSpeed2(bool pressed), RebootLanguage(std::string filename, bool confirm=false), SetWindowTransparency(int trans), SetOutputSwitch(const char *outputstr), runRescan(const char *str), runSerial(const char *str), runParallel(const char *str), DOS_AddDays(uint8_t days), PRINTER_Shutdown(Section* sec);
+void EMS_Startup(Section* sec), DOSV_SetConfig(Section_prop *section), DOSBOX_UnlockSpeed2(bool pressed), RebootLanguage(std::string filename, bool confirm=false), SetWindowTransparency(int trans), SetOutputSwitch(const char *outputstr), runRescan(const char *str), runSerial(const char *str), runParallel(const char *str), DOS_AddDays(uint8_t days), PRINTER_Shutdown(Section* sec), setAspectRatio(Section_prop * section);
 
 void PROGRAMS_Shutdown(void) {
 	LOG(LOG_MISC,LOG_DEBUG)("Shutting down internal programs list");
@@ -652,6 +652,8 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
                     force_load_state = section->Get_bool("forceloadstate");
                     mainMenu.get_item("force_loadstate").check(force_load_state).refresh_item(mainMenu);
                 }
+                if (!strcasecmp(inputline.substr(0, 23).c_str(), "show recorded filename="))
+                    show_recorded_filename = section->Get_bool("show recorded filename");
                 if (!strcasecmp(inputline.substr(0, 6).c_str(), "title=")) {
                     dosbox_title=section->Get_string("title");
                     trim(dosbox_title);
@@ -1117,6 +1119,10 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
 #endif
                 } else if (!strcasecmp(inputline.substr(0, 12).c_str(), "pixelshader="))
                     GFX_ForceRedrawScreen();
+                else if (!strcasecmp(inputline.substr(0, 13).c_str(), "aspect_ratio=")) {
+                    setAspectRatio(section);
+                    if (render.aspect) GFX_ForceRedrawScreen();
+                }
             } else if (!strcasecmp(pvar.c_str(), "serial")) {
                 if (!strcasecmp(inputline.substr(0, 6).c_str(), "serial") && inputline[7]=='=') {
                     std::string val = section->Get_string("serial" + std::string(1, inputline[6])), cmd = std::string(1, inputline[6]) + " " + (val.size()?val:"dummy");

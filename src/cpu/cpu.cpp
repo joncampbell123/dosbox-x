@@ -393,7 +393,7 @@ void menu_update_dynamic() {
     std::string core(cpu_section->Get_string("core"));
     std::string text = mainMenu.get_item("mapper_dynamic").get_text();
     size_t found = text.find_last_of(" ");
-    if (found != std::string::npos) text = text.substr(0, found);
+    if (found != std::string::npos && text.substr(found+1).size() && *text.substr(found+1).c_str() == '(') text = text.substr(0, found);
 #if (C_DYNREC)
     if ((core == "dynamic" && GetDynamicType()==2) || core == "dynamic_rec" || save_dynamic_rec) {
         save_dynamic_rec = true;

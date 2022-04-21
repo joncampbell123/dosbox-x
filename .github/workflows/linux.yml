@@ -16,16 +16,21 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
-      - name: DOSBox-X Linux
+      - name: Install libraries
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y nasm fluidsynth libfluidsynth-dev libpcap-dev libslirp-dev
+          sudo apt-get install -y nasm fluidsynth libfluidsynth-dev libpcap-dev libslirp-dev libsdl-net1.2-dev libsdl2-net-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev
+      - name: Build Linux SDL1
+        run: |
           top=`pwd`
           mkdir $top/src/bin
           ./build-debug
           strip --strip-all $top/src/dosbox-x
           $top/src/dosbox-x -tests
           cp $top/src/dosbox-x $top/src/bin/dosbox-x-sdl1
+      - name: Build Linux SDL2
+        run: |
+          top=`pwd`
           ./build-debug-sdl2
           strip --strip-all $top/src/dosbox-x
           $top/src/dosbox-x -tests

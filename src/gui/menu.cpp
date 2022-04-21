@@ -342,6 +342,20 @@ static const char *def_menu_video_frameskip[] =
     NULL
 };
 
+/* video scaler menu ("VideoRatioMenu") */
+static const char *def_menu_video_ratio[] =
+{
+    "video_ratio_1_1",
+    "video_ratio_4_3",
+    "video_ratio_16_9",
+    "video_ratio_16_10",
+    "video_ratio_18_10",
+    "--",
+    "video_ratio_original",
+    "video_ratio_set",
+    NULL
+};
+
 /* video scaler menu ("VideoScalerMenu") */
 static const char *def_menu_video_scaler[] =
 {
@@ -485,26 +499,26 @@ static const char *def_menu_video_pc98[] =
 /* video menu ("VideoMenu") */
 static const char *def_menu_video[] =
 {
+    "VideoRatioMenu",
     "mapper_aspratio",
-#if !defined(HX_DOS)
-    "mapper_fullscr",
-    "--",
-#endif
-#if !defined(HX_DOS) && (defined(LINUX) || !defined(C_SDL2))
-    "alwaysontop",
-#endif
 #if !defined(C_SDL2) && defined(MACOSX)
     "highdpienable",
 #endif
-#if !defined(C_SDL2)
-    "doublebuf",
+#if !defined(HX_DOS)
+    "mapper_resetsize",
+#endif
     "--",
+#if !defined(HX_DOS) && (defined(LINUX) || !defined(C_SDL2))
+    "alwaysontop",
 #endif
 #ifndef MACOSX
     "mapper_togmenu",
 #endif
 #if !defined(HX_DOS)
-    "mapper_resetsize",
+    "mapper_fullscr",
+#endif
+#if !defined(C_SDL2)
+    "doublebuf",
 #endif
     "--",
     "refresh_rate",
@@ -1560,6 +1574,9 @@ void ConstructMenu(void) {
 
     /* video menu */
     ConstructSubMenu(mainMenu.get_item("VideoMenu").get_master_id(), def_menu_video);
+
+    /* video ratio menu */
+    ConstructSubMenu(mainMenu.get_item("VideoRatioMenu").get_master_id(), def_menu_video_ratio);
 
     /* video frameskip menu */
     ConstructSubMenu(mainMenu.get_item("VideoFrameskipMenu").get_master_id(), def_menu_video_frameskip);

@@ -59,7 +59,7 @@ extern int enablelfn, msgcodepage;
 extern uint16_t countryNo;
 extern unsigned int dosbox_shell_env_size;
 bool outcon = true, usecon = true;
-bool shellrun = false, prepared = false;
+bool shellrun = false, prepared = false, testerr = false;
 
 uint16_t shell_psp = 0;
 Bitu call_int2e = 0;
@@ -74,7 +74,7 @@ void ResolvePath(std::string& in);
 void DOS_SetCountry(uint16_t countryNo);
 void CALLBACK_DeAllocate(Bitu in), DOSBox_ConsolePauseWait();
 void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-bool isDBCSCP(), InitCodePage(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
+bool isDBCSCP(), InitCodePage(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), sdl_wait_on_error();
 
 Bitu call_shellstop = 0;
 /* Larger scope so shell_del autoexec can use it to
@@ -1524,12 +1524,14 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_LOADHIGH_HELP","Loads a program into upper memory (requires XMS and UMB memory).\n");
 	MSG_Add("SHELL_CMD_LOADHIGH_HELP_LONG","LH              [drive:][path]filename [parameters]\n"
 		   "LOADHIGH        [drive:][path]filename [parameters]\n");
-	MSG_Add("SHELL_CMD_CHOICE_HELP","Waits for a keypress and sets ERRORLEVEL.\n");
-	MSG_Add("SHELL_CMD_CHOICE_HELP_LONG","CHOICE [/C:choices] [/N] [/S] text\n"
-	        "  /C[:]choices  -  Specifies allowable keys.  Default is: yn.\n"
-	        "  /N  -  Do not display the choices at end of prompt.\n"
-	        "  /S  -  Enables case-sensitive choices to be selected.\n"
-	        "  text  -  The text to display as a prompt.\n");
+	MSG_Add("SHELL_CMD_CHOICE_HELP","Waits for a user keypress to choose one of a set of choices.\n");
+	MSG_Add("SHELL_CMD_CHOICE_HELP_LONG","CHOICE [/C:choices] [/N] [/S] /T[:]c,nn text\n\n"
+	        "  /C[:]choices Specifies allowable keys.  Default is: yn.\n"
+	        "  /N           Do not display the choices at end of prompt.\n"
+	        "  /S           Enables case-sensitive choices to be selected.\n"
+	        "  /T[:]c,nn    Default choice to c after nn seconds.\n"
+	        "  text         The text to display as a prompt.\n\n"
+	        "ERRORLEVEL is set to offset of key user presses in choices.\n");
 	MSG_Add("SHELL_CMD_ATTRIB_HELP","Displays or changes file attributes.\n");
 	MSG_Add("SHELL_CMD_ATTRIB_HELP_LONG","ATTRIB [+R | -R] [+A | -A] [+S | -S] [+H | -H] [drive:][path][filename] [/S]\n\n"
 			"  +   Sets an attribute.\n"
@@ -1803,15 +1805,20 @@ void SHELL_Run() {
                 first_shell->WriteOut(MSG_Get("SHELL_MISSING_FILE"), name);
         }
     }
-#if C_DEBUG
     if (control->opt_test) {
-        RUN_ALL_TESTS();
+#if C_DEBUG
+        testerr = RUN_ALL_TESTS();
+		control->opt_nolog = false;
+		LOG_MSG("Unit test completed: %s\n", testerr?"failure":"success");
+		control->opt_nolog = true;
+#else
+		printf("Unit tests are only available in debug builds\n\n");
+#endif
 #if defined(WIN32)
-        DOSBox_ConsolePauseWait();
+        if (sdl_wait_on_error()) DOSBox_ConsolePauseWait();
 #endif
         return;
     }
-#endif
 	i4dos=false;
 	if (altshell) {
         if (strstr(name, "4DOS.COM")) i4dos=true;

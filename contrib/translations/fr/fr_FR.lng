@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:French (France)
 :DOSBOX-X:CODEPAGE:858
-:DOSBOX-X:VERSION:0.83.24
+:DOSBOX-X:VERSION:0.83.25
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Les lignes de cette section seront exécutées au démarrage.
@@ -1212,18 +1212,17 @@ La page de code %i a été chargée pour la mise en page %s.
 Configure un clavier pour une langue spécifique.
 
 Usage: ←[32;1mKEYB←[0m [ID de disposition du clavier [numéro de page de code [fichier de page de code]]]
-  layout ID        Name of layout or keyboard file (.kl) to load
-  codepage number  Number of codepage to load
-  codepage file    .cpi/.cpx file including specified codepage information
-  (.kl, .cpi/.cpx files shall be placed under the directory where dosbox-x
-   executable exists.)
+  layout ID        Nom du fichier de disposition ou de clavier (.kl) à charger
+  codepage number  Nombre de page de code à charger
+  codepage file    Fichier .cpi/.cpx comprenant les informations de page de codes spécifiées
+  (Les fichiers .kl, .cpi/.cpx doivent être placés dans le répertoire où dosbox-x exécutable existe.)
    
 Quelques exemples :
   ←[32;1mKEYB←[0m Afficher la page de code actuellement chargée.
   ←[32;1mKEYB sp←[0m Chargez la disposition espagnole (SP), utilisez une page de code appropriée.
   ←[32;1mKEYB sp 850←[0m Chargez la disposition espagnole (SP), utilisez la page de code 850.
   ←[32;1mKEYB sp 850 mycp.cpi←[0m Même chose que ci-dessus, mais utilisez le fichier mycp.cpi.
-  ←[32;1mKEYB sp_mod 850←[0m      Load keyboard layout from sp_mod.kl, use codepage 850.
+  ←[32;1mKEYB sp_mod 850←[0m Charger la disposition du clavier à partir de sp_mod.kl, utiliser la page de codes 850.
 
 .
 :PROGRAM_KEYB_NOERROR
@@ -1990,16 +1989,20 @@ LOADHIGH [lecteur:][chemin]nom de fichier [paramètres]
 
 .
 :SHELL_CMD_CHOICE_HELP
-Attend une pression sur une touche et définit ERRORLEVEL.
+Attend qu'un utilisateur appuie sur une touche pour choisir l'un des choix.
 
 .
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOICE [/C:choix] [/N] [/S] texte
-  /C[:]choix - Spécifie les touches autorisées.  La valeur par défaut est : yn.
-  /N - Ne pas afficher les choix à la fin de l'invite.
-  /S - Permet de sélectionner des choix sensibles à la casse.
-  texte - Le texte à afficher comme invite.
-  
+CHOICE [/C:choix] [/N] [/S] /T[:]c,nn texte
+
+  /C[:]choix Spécifie les touches autorisées.  La valeur par défaut est : yn.
+  /N         Ne pas afficher les choix à la fin de l'invite.
+  /S         Permet de sélectionner des choix sensibles à la casse.
+  /T[:]c,nn  Choix par défaut à c après nn secondes.
+  texte      Le texte à afficher comme invite.
+
+ERRORLEVEL est défini sur la position de la touche sur laquelle l'utilisateur appuie dans les choix.
+
 .
 :SHELL_CMD_ATTRIB_HELP
 Affiche ou modifie les attributs des fichiers.
@@ -2304,6 +2307,18 @@ Augmenter taille police
 :MENU:mapper_decsize
 Diminuer taille police
 .
+:MENU:mapper_dbcssbcs
+CJK : Commutation entre les modes DBCS/SBCS
+.
+:MENU:mapper_autoboxdraw
+CJK : Détection automatique des caractères de type "box-drawing".
+.
+:MENU:mapper_resetcolor
+Réinitialiser le schéma de couleurs TTF
+.
+:MENU:mapper_pwrbutton
+Bouton d'alimentation APM
+.
 :MENU:mapper_togmenu
 Masquer/afficher la barre de menu
 .
@@ -2441,6 +2456,30 @@ Désactivé
 .
 :MENU:frameskip_10
 10 images
+.
+:MENU:VideoRatioMenu
+Ratio d'aspect
+.
+:MENU:video_ratio_1_1
+1:1
+.
+:MENU:video_ratio_4_3
+4:3
+.
+:MENU:video_ratio_16_9
+16:9
+.
+:MENU:video_ratio_16_10
+16:10
+.
+:MENU:video_ratio_18_10
+18:10
+.
+:MENU:video_ratio_original
+rapport d'origine
+.
+:MENU:video_ratio_set
+Définir le rapport
 .
 :MENU:VideoScalerMenu
 Mise à l'échelle
@@ -2659,9 +2698,6 @@ Haute intensité : texte clignotant
 :MENU:VideoTTFMenu
 Police TrueType
 .
-:MENU:mapper_resetcolor
-Réinitialiser le schéma de couleurs TTF
-.
 :MENU:ttf_showbold
 Afficher le texte en gras
 .
@@ -2697,12 +2733,6 @@ Afficher le texte de droite à gauche
 .
 :MENU:ttf_printfont
 Utiliser la police actuelle pour l'impression
-.
-:MENU:mapper_dbcssbcs
-CJK : Commutation entre les modes DBCS/SBCS
-.
-:MENU:mapper_autoboxdraw
-CJK : Détection automatique des caractères de type "box-drawing".
 .
 :MENU:ttf_halfwidthkana
 CJK : Autoriser les Katakana japonais en demi-largeur
@@ -3114,9 +3144,6 @@ Enreg. vidéo en AVI
 .
 :MENU:mapper_scrshot
 Capture d'écran
-.
-:MENU:mapper_pwrbutton
-Bouton d'alimentation APM
 .
 :MENU:mapper_debugger
 Démarrer débogueur DOSBox-X

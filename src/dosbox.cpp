@@ -1416,6 +1416,9 @@ void DOSBOX_SetupConfigSections(void) {
             "If set to autofile, DOSBox-X will warn if there are open file handles or a guest system is currently running.");
     Pstring->SetBasic(true);
 
+    Pbool = secprop->Add_bool("allow quit after warning",Property::Changeable::OnlyAtStart,true);
+    Pbool->Set_help("If set to false, DOSBox-X will disallow the quit option after displaying a warning message.");
+
     Pstring = secprop->Add_string("working directory option",Property::Changeable::OnlyAtStart,"default");
     Pstring->Set_values(workdiropts);
     Pstring->Set_help("Select an option for DOSBox-X's working directory when it runs.\n"
@@ -1516,6 +1519,9 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("compresssaveparts", Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, DOSBox-X will compress components of saved states to save space.");
+
+    Pbool = secprop->Add_bool("show recorded filename", Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, DOSBox-X will show message boxes with recorded filenames when making audio or video captures.");
 
     /* will change to default true unless this causes compatibility issues with other users or their editing software */
     Pbool = secprop->Add_bool("skip encoding unchanged frames",Property::Changeable::WhenIdle,false);
@@ -1882,6 +1888,10 @@ void DOSBOX_SetupConfigSections(void) {
 #endif
 #endif
     );
+    Pstring->SetBasic(true);
+
+    Pstring = secprop->Add_string("aspect_ratio",Property::Changeable::Always,"0:0");
+    Pstring->Set_help("Set the aspect ratio (e.g. 16:9) in the aspect ratio correction mode. 0:0 means the default ratio of 4:3, and -1:-1 means the original image ratio.");
     Pstring->SetBasic(true);
 
     Pbool = secprop->Add_bool("char9",Property::Changeable::Always,true);
@@ -2684,11 +2694,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Enables Turbo (Fast Forward) mode to speed up operations.");
     Pbool->SetBasic(true);
 
-    Pint = secprop->Add_int("turbo last second",Property::Changeable::Always,0);
-    Pint->Set_help("If a positive integer is specified, the Turbo function will last for specific seconds.");
-
     Pbool = secprop->Add_bool("stop turbo on key",Property::Changeable::Always,true);
     Pbool->Set_help("If set, the Turbo mode will be automatically stopped if a keyboard input is detected.");
+
+    Pint = secprop->Add_int("stop turbo after second",Property::Changeable::Always,0);
+    Pint->Set_help("If a positive integer is specified, the Turbo function will last for specific seconds.");
 
     Pstring = secprop->Add_string("use dynamic core with paging on",Property::Changeable::Always,"auto");
     Pstring->Set_values(truefalseautoopt);

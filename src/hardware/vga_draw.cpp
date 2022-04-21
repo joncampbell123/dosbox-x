@@ -2145,6 +2145,41 @@ bool CheckBoxDrawingV(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4, uint8_t c5
     return isBDV(c1, c2, c3, c4, c5, c6, b1, b2, b3, b7, b8, true) || isBDV(c4, c5, c6, c1, c2, c3, b4, b5, b6, b9, b10, false);
 }
 
+#if defined(USE_TTF)
+void checkChar(Bitu col, ttf_cell *draw, uint16_t &last) {
+	(*draw).chr = ' ';
+	if (col && (last == 0x2014 || last == 0x2025 || last == 0x2026 || last == 0x2261 || last == 0x2500 || last == 0x2501 || last == 0x250f || last == 0x2517 || last == 0x250c || last == 0x2514 || last == 0x251c || last == 0x2520 || last == 0x2523 || last == 0x252c || last == 0x252f || last == 0x2533 || last == 0x2534 || last == 0x2537 || last == 0x253b || last == 0x253c || last == 0x2543 || last == 0x2544 || last == 0x2545 || last == 0x2546 || last == 0x2550 || last == 0x2554 || last == 0x255A || last == 0x2560 || last == 0x256C || last == 0x256D || last == 0x2570)) {
+	   (*draw).unicode = 1;
+	   (*draw).chr = last == 0x2554 || last == 0x255A || last == 0x2560 || last == 0x256C ? 0x2550 : (last == 0x250c || last == 0x2514 || last == 0x251c || last == 0x2520 || last == 0x252c || last == 0x2534 || last == 0x253c || last == 0x2543 || last == 0x2545 || last == 0x256D || last == 0x2570 ? 0x2500 : (last >= 0x250f && last != 0x2550 ? 0x2501 : last));
+	}
+	last = 0;
+}
+
+void handleChar(uint16_t *uname, ttf_cell *draw, bool &dbw, bool &dex, uint16_t &last) {
+    if (uname[0]!=0&&uname[1]==0) {
+        int width, height, res;
+        (*draw).chr=uname[0];
+        (*draw).unicode=1;
+        res = width = 0;
+        if (ttf.SDL_font) res = TTF_SizeUNICODE(ttf.SDL_font, uname, &width, &height);
+        if (res >= 0 && width <= ttf.width+1) { // Single wide, yet DBCS encoding
+            if (!width) (*draw).chr=' ';
+            last = (*draw).chr;
+            dbw=false;
+            dex=true;
+        } else {
+            (*draw).doublewide = 1;
+            dbw=true;
+            dex=false;
+        }
+    } else {
+        (*draw).chr=' ';
+        dbw=false;
+        dex=true;
+    }
+}
+#endif
+
 bool isDBCSCP() {
     return !IS_PC98_ARCH && (IS_JEGA_ARCH||IS_DOSV||dos.loaded_codepage==932||dos.loaded_codepage==936||dos.loaded_codepage==949||dos.loaded_codepage==950||dos.loaded_codepage==951) && enable_dbcs_tables;
 }
@@ -4101,7 +4136,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         }
     }
 
-    int sec = static_cast<Section_prop *>(control->GetSection("CPU"))->Get_int("turbo last second");
+    int sec = static_cast<Section_prop *>(control->GetSection("cpu"))->Get_int("stop turbo after second");
     if (ticksLocked && turbolasttick && sec>0 && GetTicks()-turbolasttick>=1000*sec) DOSBOX_UnlockSpeed2(true);
 
 #if defined(USE_TTF)
@@ -4113,7 +4148,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         vidstart *= 2;
         ttf_cell* draw = newAttrChar;
         ttf_cell* drawc = curAttrChar;
-        int width, height, res;
         uint16_t uname[4];
 
         if (IS_PC98_ARCH) {
@@ -4247,12 +4281,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         (*draw).selected = (*drawc).selected;
                         (*draw).chr = *vidmem & 0xFF;
                         if (dex) {
-                            (*draw).chr = ' ';
-                            if (col && (last == 0x2014 || last == 0x2025 || last == 0x2026 || last == 0x2261 || last == 0x2500 || last == 0x2501 || last == 0x250f || last == 0x2517 || last == 0x250c || last == 0x2514 || last == 0x251c || last == 0x2520 || last == 0x2523 || last == 0x252c || last == 0x252f || last == 0x2533 || last == 0x2534 || last == 0x2537 || last == 0x253b || last == 0x253c || last == 0x2543 || last == 0x2544 || last == 0x2545 || last == 0x2546 || last == 0x2550 || last == 0x2554 || last == 0x255A || last == 0x2560 || last == 0x256C || last == 0x256D || last == 0x2570)) {
-                               (*draw).unicode = 1;
-                               (*draw).chr = last == 0x2554 || last == 0x255A || last == 0x2560 || last == 0x256C ? 0x2550 : (last == 0x250c || last == 0x2514 || last == 0x251c || last == 0x2520 || last == 0x252c || last == 0x2534 || last == 0x253c || last == 0x2543 || last == 0x2545 || last == 0x256D || last == 0x2570 ? 0x2500 : (last >= 0x250f && last != 0x2550 ? 0x2501 : last));
-                            }
-                            last = 0;
+							checkChar(col, draw, last);
                             dbw=dex=false;
                         } else if (dbw) {
                             (*draw).skipped = 1;
@@ -4288,26 +4317,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                     if (autoboxdraw&&row&&col>3&&(((uint8_t)*(vidmem-4)==177||(uint8_t)*(vidmem-4)==254)&&(uint8_t)*(vidmem-2)==16&&(uint8_t)text[0]==196&&(uint8_t)text[1]==217)||((uint8_t)*(vidmem-4)==176&&(uint8_t)*(vidmem-2)==176&&(uint8_t)text[0]==176&&(uint8_t)text[1]==179)) {
                                         boxdefault=false;
                                         (*draw).boxdraw = 1;
-                                    } else if (uname[0]!=0&&uname[1]==0) {
-                                        (*draw).chr=uname[0];
-                                        (*draw).unicode=1;
-                                        res = width = 0;
-                                        if (ttf.SDL_font) res = TTF_SizeUNICODE(ttf.SDL_font, uname, &width, &height);
-                                        if (res >= 0 && width <= ttf.width+1) { // Single wide, yet DBCS encoding
-                                            if (!width) (*draw).chr=' ';
-                                            last = (*draw).chr;
-                                            dbw=false;
-                                            dex=true;
-                                        } else {
-                                            (*draw).doublewide = 1;
-                                            dbw=true;
-                                            dex=false;
-                                        }
-                                    } else {
-                                        (*draw).chr=' ';
-                                        dbw=false;
-                                        dex=true;
-                                    }
+                                    } else
+                                        handleChar(uname, draw, dbw, dex, last);
                                 }
                             }
                         } else if (isDBCSCP() && (!dbcs_sbcs||dos.loaded_codepage!=932||(dos.loaded_codepage==932&&!halfwidthkana)) && (*draw).chr>=0x80 && (*draw).chr<=0xFF)
@@ -4338,12 +4349,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         (*draw).selected = (*drawc).selected;
                         (*draw).chr = *vidmem & 0xFF;
                         if (dex) {
-                            (*draw).chr = ' ';
-                            if (col && (last == 0x2014 || last == 0x2025 || last == 0x2026 || last == 0x2261 || last == 0x2500 || last == 0x2501 || last == 0x250f || last == 0x2517 || last == 0x250c || last == 0x2514 || last == 0x251c || last == 0x2520 || last == 0x2523 || last == 0x252c || last == 0x252f || last == 0x2533 || last == 0x2534 || last == 0x2537 || last == 0x253b || last == 0x253c || last == 0x2543 || last == 0x2544 || last == 0x2545 || last == 0x2546 || last == 0x2550 || last == 0x2554 || last == 0x255A || last == 0x2560 || last == 0x256C || last == 0x256D || last == 0x2570)) {
-                               (*draw).unicode = 1;
-                               (*draw).chr = last == 0x2554 || last == 0x255A || last == 0x2560 || last == 0x256C ? 0x2550 : (last == 0x250c || last == 0x2514 || last == 0x251c || last == 0x2520 || last == 0x252c || last == 0x2534 || last == 0x253c || last == 0x2543 || last == 0x2545 || last == 0x256D || last == 0x2570 ? 0x2500 : (last >= 0x250f && last != 0x2550 ? 0x2501 : last));
-                            }
-                            last = 0;
+							checkChar(col, draw, last);
                             dbw=dex=false;
                         } else if (dbw) {
                             (*draw).skipped = 1;
@@ -4379,26 +4385,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                                     if (autoboxdraw&&row&&col>3&&(((uint8_t)*(vidmem-2)==177||(uint8_t)*(vidmem-2)==254)&&(uint8_t)*(vidmem-1)==16&&(uint8_t)text[0]==196&&(uint8_t)text[1]==217)||((uint8_t)*(vidmem-2)==176&&(uint8_t)*(vidmem-1)==176&&(uint8_t)text[0]==176&&(uint8_t)text[1]==179)) {
                                         boxdefault=false;
                                         (*draw).boxdraw = 1;
-                                    } else if (uname[0]!=0&&uname[1]==0) {
-                                        (*draw).chr=uname[0];
-                                        (*draw).unicode=1;
-                                        res = width = 0;
-                                        if (ttf.SDL_font) res = TTF_SizeUNICODE(ttf.SDL_font, uname, &width, &height);
-                                        if (res >= 0 && width <= ttf.width+1) { // Single wide, yet DBCS encoding
-                                            if (!width) (*draw).chr=' ';
-                                            last = (*draw).chr;
-                                            dbw=false;
-                                            dex=true;
-                                        } else {
-                                            (*draw).doublewide = 1;
-                                            dbw=true;
-                                            dex=false;
-                                        }
-                                    } else {
-                                        (*draw).chr=' ';
-                                        dbw=false;
-                                        dex=true;
-                                    }
+                                    } else
+                                        handleChar(uname, draw, dbw, dex, last);
                                 }
                             }
                         } else if (isDBCSCP() && (!dbcs_sbcs||dos.loaded_codepage!=932||(dos.loaded_codepage==932&&!halfwidthkana)) && (*draw).chr>=0x80 && (*draw).chr<=0xFF)

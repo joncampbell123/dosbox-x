@@ -48,7 +48,7 @@ std::string savefilename = "";
 
 extern SHELL_Cmd cmd_list[];
 extern unsigned int page, hostkeyalt, sendkeymap;
-extern int posx, posy, wheel_key, mbutton, enablelfn, dos_clipboard_device_access;
+extern int posx, posy, wheel_key, mbutton, enablelfn, dos_clipboard_device_access, aspect_ratio_x, aspect_ratio_y;
 extern bool addovl, clearline, winrun, window_was_maximized, wheel_guest, clipboard_dosapi, clipboard_biospaste, direct_mouse_clipboard, sync_time, manualtime, pausewithinterrupts_enable, enable_autosave, enable_config_as_shell_commands, noremark_save_state, force_load_state, use_quick_reboot, use_save_file, dpi_aware_enable, pc98_force_ibm_layout, log_int21, log_fileio, x11_on_top, macosx_on_top, rtl, gbk, chinasea;
 extern bool mountfro[26], mountiro[26];
 extern struct BuiltinFileBlob bfb_GLIDE2X_OVL;
@@ -673,7 +673,6 @@ bool list_drivenum_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     return true;
 }
 
-std::string GetIDEInfo();
 bool list_ideinfo_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -851,21 +850,21 @@ bool mixer_mute_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
 bool mixer_info_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    GUI_Shortcut(20);
+    GUI_Shortcut(40);
     return true;
 }
 
 bool sb_device_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    GUI_Shortcut(21);
+    GUI_Shortcut(41);
     return true;
 }
 
 bool midi_device_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    GUI_Shortcut(22);
+    GUI_Shortcut(42);
     return true;
 }
 
@@ -1864,6 +1863,55 @@ void UpdateOverscanMenu(void) {
     }
 }
 
+void aspect_ratio_menu() {
+    mainMenu.get_item("video_ratio_1_1").check(aspect_ratio_x==1&&aspect_ratio_y==1).enable(true).refresh_item(mainMenu);
+    mainMenu.get_item("video_ratio_4_3").check((aspect_ratio_x==4&&aspect_ratio_y==3)||!aspect_ratio_x||!aspect_ratio_y).enable(true).refresh_item(mainMenu);
+    mainMenu.get_item("video_ratio_16_9").check(aspect_ratio_x==16&&aspect_ratio_y==9).enable(true).refresh_item(mainMenu);
+    mainMenu.get_item("video_ratio_16_10").check(aspect_ratio_x==16&&aspect_ratio_y==10).enable(true).refresh_item(mainMenu);
+    mainMenu.get_item("video_ratio_18_10").check(aspect_ratio_x==18&&aspect_ratio_y==10).enable(true).refresh_item(mainMenu);
+    mainMenu.get_item("video_ratio_original").check(aspect_ratio_x==-1&&aspect_ratio_y==-1).enable(true).refresh_item(mainMenu);
+}
+
+bool aspect_ratio_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    const char *mname = menuitem->get_name().c_str();
+    if (!strcmp(mname, "video_ratio_1_1")) {
+        aspect_ratio_x = 1;
+        aspect_ratio_y = 1;
+        SetVal("render", "aspect_ratio", "1:1");
+    } else if (!strcmp(mname, "video_ratio_4_3")) {
+        aspect_ratio_x = 4;
+        aspect_ratio_y = 3;
+        SetVal("render", "aspect_ratio", "4:3");
+    } else if (!strcmp(mname, "video_ratio_16_9")) {
+        aspect_ratio_x = 16;
+        aspect_ratio_y = 9;
+        SetVal("render", "aspect_ratio", "16:9");
+    } else if (!strcmp(mname, "video_ratio_16_10")) {
+        aspect_ratio_x = 16;
+        aspect_ratio_y = 10;
+        SetVal("render", "aspect_ratio", "16:10");
+    } else if (!strcmp(mname, "video_ratio_18_10")) {
+        aspect_ratio_x = 18;
+        aspect_ratio_y = 10;
+        SetVal("render", "aspect_ratio", "18:10");
+    } else if (!strcmp(mname, "video_ratio_original")) {
+        aspect_ratio_x = -1;
+        aspect_ratio_y = -1;
+        SetVal("render", "aspect_ratio", "-1:-1");
+    }
+    aspect_ratio_menu();
+    if (render.aspect) GFX_ForceRedrawScreen();
+    return true;
+}
+
+bool aspect_ratio_edit_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    GUI_Shortcut(20);
+    return true;
+}
+
 bool vsync_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -2224,14 +2272,14 @@ bool save_logas_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
 bool show_logtext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    GUI_Shortcut(40);
+    GUI_Shortcut(21);
     return true;
 }
 
 bool show_codetext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    GUI_Shortcut(41);
+    GUI_Shortcut(22);
     return true;
 }
 
@@ -2956,6 +3004,25 @@ void AllocCallback1() {
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,tmp1).set_text(tmp2).
                         set_callback_function(video_frameskip_common_menu_callback);
                 }
+            }
+            {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoRatioMenu");
+                item.set_text("Aspect ratio");
+
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"video_ratio_1_1").set_text("1:1").
+                    set_callback_function(aspect_ratio_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"video_ratio_4_3").set_text("4:3").
+                    set_callback_function(aspect_ratio_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"video_ratio_16_9").set_text("16:9").
+                    set_callback_function(aspect_ratio_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"video_ratio_16_10").set_text("16:10").
+                    set_callback_function(aspect_ratio_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"video_ratio_18_10").set_text("18:10").
+                    set_callback_function(aspect_ratio_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"video_ratio_original").set_text("Original ratio").
+                    set_callback_function(aspect_ratio_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"video_ratio_set").set_text("Set ratio").
+                    set_callback_function(aspect_ratio_edit_menu_callback);
             }
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoScalerMenu");

@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Spanish (Spain)
 :DOSBOX-X:CODEPAGE:858
-:DOSBOX-X:VERSION:0.83.24
+:DOSBOX-X:VERSION:0.83.25
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Las líneas de esta sección se iniciarán al inicio.
@@ -1985,15 +1985,19 @@ LOADHIGH        [unidad:][ruta]nombrearchivo [parámetros]
 
 .
 :SHELL_CMD_CHOICE_HELP
-Espera a una pulsación del teclado y establece un ERRORLEVEL.
+Espera a que el usuario presione una tecla para elegir una de las opciones.
 
 .
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOICE [/C:opciones] [/N] [/S] texto
-  /C[:]opciones - Indica teclas permitidas. Por defecto: yn.
-  /N            - No muestra las opciones disponibles al final de la pregunta.
-  /S            - Activa opciones sensibles a mayúsculas/minuscúlas
-  texto         - El texto a mostrar como pregunta.
+CHOICE [/C:opciones] [/N] [/S] /T[:]c,nn texto
+
+  /C[:]opciones Indica teclas permitidas. Por defecto: yn.
+  /N            No muestra las opciones disponibles al final de la pregunta.
+  /S            Activa opciones sensibles a mayúsculas/minuscúlas
+  /T[:]c,nn     Opción predeterminada a c después de nn segundos.
+  texto         El texto a mostrar como pregunta.
+
+ERRORLEVEL se establece en la posición de la tecla que el usuario presiona en las opciones.
 
 .
 :SHELL_CMD_ATTRIB_HELP
@@ -2303,6 +2307,18 @@ Aumentar tamaño de fuente TTF
 :MENU:mapper_decsize
 Reducir tamaño de fuente TTF
 .
+:MENU:mapper_dbcssbcs
+CJK: Cambiar modo DBCS/SBCS
+.
+:MENU:mapper_autoboxdraw
+CJK: Auto-detecta símbolos de dibujo de caja
+.
+:MENU:mapper_resetcolor
+Resetear esquema de color de TTF
+.
+:MENU:mapper_pwrbutton
+Botón de encendido APM
+.
 :MENU:mapper_togmenu
 Ocultar/mostrar barra de menú
 .
@@ -2440,6 +2456,30 @@ Desactivado
 .
 :MENU:frameskip_10
 10 fotogramas
+.
+:MENU:VideoRatioMenu
+Relación de aspecto
+.
+:MENU:video_ratio_1_1
+1:1
+.
+:MENU:video_ratio_4_3
+4:3
+.
+:MENU:video_ratio_16_9
+16:9
+.
+:MENU:video_ratio_16_10
+16:10
+.
+:MENU:video_ratio_18_10
+18:10
+.
+:MENU:video_ratio_original
+relación original
+.
+:MENU:video_ratio_set
+Establecer proporción
 .
 :MENU:VideoScalerMenu
 Escalador
@@ -2657,9 +2697,6 @@ Pantalla: 132 columnas x 60 líneas
 :MENU:VideoTTFMenu
 Opciones TTF
 .
-:MENU:mapper_resetcolor
-Resetear esquema de color de TTF
-.
 :MENU:ttf_showbold
 Mostrar texto en negrita en TTF
 .
@@ -2695,12 +2732,6 @@ Mostrar texto de derecha a izquierda
 .
 :MENU:ttf_printfont
 Usar fuente TTF actual para imprimir
-.
-:MENU:mapper_dbcssbcs
-CJK: Cambiar modo DBCS/SBCS
-.
-:MENU:mapper_autoboxdraw
-CJK: Auto-detecta símbolos de dibujo de caja
 .
 :MENU:ttf_halfwidthkana
 CJK: Permitir katakana japonés de ancho medio
@@ -3112,9 +3143,6 @@ Grabar video en AVI
 .
 :MENU:mapper_scrshot
 Capturar pantalla
-.
-:MENU:mapper_pwrbutton
-Botón de encendido APM
 .
 :MENU:mapper_debugger
 Iniciar depurador de DOSBox-X

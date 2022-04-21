@@ -130,9 +130,10 @@ greatly appreciated:
   - Testing
     - Features of DOSBox-X, such as its commands and functions 
     - The normal operation of DOS games and applications
+    - Windows 1.0/2.x/3.x & Windows 95/98/ME guest system support
     - Software or hardware emulation accuracy, helped by for example demoscene software
-    - Windows 1.0/2.x/3.x & Windows 9x/ME guest system support
-    - Developments of new DOS software
+    - Write more unit tests to test various functions (see existing unit tests in [tests/](https://github.com/joncampbell123/dosbox-x/tree/master/tests))
+    - Developments of new DOS software (possibly aided by [DOSLIB](https://github.com/joncampbell123/doslib)/[DOSLIB2](https://github.com/joncampbell123/doslib2))
   - Bug fixes, patches, improvements, refinements
   - Suggestions, ideas, assistance of other users, and/or general conversation
   - Platform support (Windows, Linux, macOS, DOS, but others are welcome)
@@ -166,13 +167,13 @@ This is DOSBox-X’s official release pattern, although it may change later.
 
 ## Future development experiments
 
-Scattered experiments and small projects are in experiments/ as proving grounds for future revisions to DOSBox-X and its codebase.
+Scattered experiments and small projects are in [experiments/](https://github.com/joncampbell123/dosbox-x/tree/master/experiments) as proving grounds for future revisions to DOSBox-X and its codebase.
 
 These experiments may or may not make it into future revisions or the next version.
 
 Comments are welcome on the experiments, to help improve the code overall.
 
-There are also patches in patch-integration/ for possible feature integations in the future. We have already integrated many community-developed patches into DOSBox-X in the past.
+There are also patches in [patch-integration/](https://github.com/joncampbell123/dosbox-x/tree/master/patch-integration) for possible feature integrations in the future. We have already integrated many community-developed patches into DOSBox-X in the past.
 
 See also [General TODO.txt](docs/PLANS/General%20TODO.txt) for some plans of future DOSBox-X developments.
 
@@ -392,6 +393,8 @@ messages in such languages. There are several language files available in the DO
 * French language file: [contrib/translations/fr/fr_FR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/fr/fr_FR.lng)
 
 * Japanese language file: [contrib/translations/ja/ja_JP.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ja/ja_JP.lng)
+
+* Korean language file: [contrib/translations/ko/ko_KR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ko/ko_KR.lng)
 
 * Portuguese (Brazilian) language file: [contrib/translations/pt/pt_BR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/pt/pt_BR.lng)
 

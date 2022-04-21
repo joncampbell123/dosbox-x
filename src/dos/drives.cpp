@@ -57,6 +57,7 @@ bool wild_match(const char *haystack, char *needle) {
 
 bool WildFileCmp(const char * file, const char * wild) 
 {
+	if (!file||!wild) return false;
 	char file_name[9];
 	char file_ext[4];
     char wild_name[10];
@@ -130,7 +131,7 @@ checkext:
 
 bool LWildFileCmp(const char * file, const char * wild)
 {
-    if ((!uselfn&&!wildmount)||*file == 0) return false;
+    if ((!uselfn&&!wildmount)||!file||!wild||(*file&&!*wild)||strlen(wild)>LFN_NAMELENGTH) return false;
     char file_name[256];
     char file_ext[256];
     char wild_name[256];

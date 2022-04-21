@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:English (United States)
 :DOSBOX-X:CODEPAGE:437
-:DOSBOX-X:VERSION:0.83.24
+:DOSBOX-X:VERSION:0.83.25
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
@@ -1985,15 +1985,19 @@ LOADHIGH        [drive:][path]filename [parameters]
 
 .
 :SHELL_CMD_CHOICE_HELP
-Waits for a keypress and sets ERRORLEVEL.
+Waits for a user keypress to choose one of a set of choices.
 
 .
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOICE [/C:choices] [/N] [/S] text
-  /C[:]choices  -  Specifies allowable keys.  Default is: yn.
-  /N  -  Do not display the choices at end of prompt.
-  /S  -  Enables case-sensitive choices to be selected.
-  text  -  The text to display as a prompt.
+CHOICE [/C:choices] [/N] [/S] /T[:]c,nn text
+
+  /C[:]choices Specifies allowable keys.  Default is: yn.
+  /N           Do not display the choices at end of prompt.
+  /S           Enables case-sensitive choices to be selected.
+  /T[:]c,nn    Default choice to c after nn seconds.
+  text         The text to display as a prompt.
+
+ERRORLEVEL is set to offset of key user presses in choices.
 
 .
 :SHELL_CMD_ATTRIB_HELP
@@ -2298,6 +2302,18 @@ Increase TTF font size
 :MENU:mapper_decsize
 Decrease TTF font size
 .
+:MENU:mapper_dbcssbcs
+CJK: Switch between DBCS/SBCS modes
+.
+:MENU:mapper_autoboxdraw
+CJK: Auto-detect box-drawing characters
+.
+:MENU:mapper_resetcolor
+Reset TTF color scheme
+.
+:MENU:mapper_pwrbutton
+APM power button
+.
 :MENU:mapper_togmenu
 Hide/show menu bar
 .
@@ -2435,6 +2451,30 @@ Off
 .
 :MENU:frameskip_10
 10 frame
+.
+:MENU:VideoRatioMenu
+Aspect ratio
+.
+:MENU:video_ratio_1_1
+1:1
+.
+:MENU:video_ratio_4_3
+4:3
+.
+:MENU:video_ratio_16_9
+16:9
+.
+:MENU:video_ratio_16_10
+16:10
+.
+:MENU:video_ratio_18_10
+18:10
+.
+:MENU:video_ratio_original
+Original ratio
+.
+:MENU:video_ratio_set
+Set ratio
 .
 :MENU:VideoScalerMenu
 Scaler
@@ -2652,9 +2692,6 @@ Screen: 132 columns x 60 lines
 :MENU:VideoTTFMenu
 TTF options
 .
-:MENU:mapper_resetcolor
-Reset TTF color scheme
-.
 :MENU:ttf_showbold
 Display bold text in TTF
 .
@@ -2690,12 +2727,6 @@ Display text from right to left
 .
 :MENU:ttf_printfont
 Use current TTF font for printing
-.
-:MENU:mapper_dbcssbcs
-CJK: Switch between DBCS/SBCS modes
-.
-:MENU:mapper_autoboxdraw
-CJK: Auto-detect box-drawing characters
 .
 :MENU:ttf_halfwidthkana
 CJK: Allow half-width Japanese Katakana
@@ -3107,9 +3138,6 @@ Record video to AVI
 .
 :MENU:mapper_scrshot
 Take screenshot
-.
-:MENU:mapper_pwrbutton
-APM power button
 .
 :MENU:mapper_debugger
 Start DOSBox-X Debugger

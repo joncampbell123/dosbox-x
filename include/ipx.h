@@ -67,6 +67,10 @@
 // For Uint8 type
 #include "SDL_net.h"
 
+#ifndef SDLNet_GetError
+#define SDLNet_GetError SDL_GetError
+#endif
+
 struct PackedIP {
 	Uint32 host;
 	Uint16 port;

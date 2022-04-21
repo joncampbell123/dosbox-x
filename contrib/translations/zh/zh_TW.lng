@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Traditional Chinese
 :DOSBOX-X:CODEPAGE:950
-:DOSBOX-X:VERSION:0.83.24
+:DOSBOX-X:VERSION:0.83.25
 :DOSBOX-X:REMARK:建議將國家和字碼頁設為 886,950 並搭配中文字型; 或使用 cht 或 tw 中文 DOS/V 模式以直接支援中文顯示和列印
 :AUTOEXEC_CONFIGFILE_HELP
 段落中的指令行會在啟動時執行.
@@ -116,9 +116,6 @@ DOSBox-X 組態工具
 .
 :LOGGING_OUTPUT
 DOSBox-X 記錄輸出
-.
-:MENU:disable_logging
-禁用記錄輸出
 .
 :CODE_OVERVIEW
 代碼概覽
@@ -1931,15 +1928,19 @@ LOADHIGH        [磁碟機:][路徑]檔名 [參數]
 
 .
 :SHELL_CMD_CHOICE_HELP
-等待按鍵並設定 ERRORLEVEL.
+等待使用者按鍵選擇其中一個選項.
 
 .
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOICE [/C:選擇] [/N] [/S] text
+CHOICE [/C:選擇] [/N] [/S] /T[:]c,nn 文字
+
   /C[:]選擇  指定允許的按鍵. 預設為: yn.
   /N         不在末尾顯示選擇.
   /S         啟用大小寫相異選擇模式.
+  /T[:]c,nn  nn 秒後預設選擇為 c.
   文字       作為提示的顯示文字.
+
+ERRORLEVEL 設定為使用者在選擇中的按鍵的位置.
 
 .
 :SHELL_CMD_ATTRIB_HELP
@@ -2274,6 +2275,18 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 :MENU:mapper_decsize
 縮小 TTF 字型
 .
+:MENU:mapper_dbcssbcs
+中日韓文字: 切換雙位元組/單位元組模式
+.
+:MENU:mapper_autoboxdraw
+中日韓文字: 自動檢測製表符號
+.
+:MENU:mapper_resetcolor
+重設 TTF 色彩配置
+.
+:MENU:mapper_pwrbutton
+APM 電源按鈕
+.
 :MENU:mapper_togmenu
 隱藏/顯示選單列
 .
@@ -2411,6 +2424,30 @@ AMD Athlon 600MHz (約 306000 個週期)
 .
 :MENU:frameskip_10
 10 影格
+.
+:MENU:VideoRatioMenu
+長寬比
+.
+:MENU:video_ratio_1_1
+1:1
+.
+:MENU:video_ratio_4_3
+4:3
+.
+:MENU:video_ratio_16_9
+16:9
+.
+:MENU:video_ratio_16_10
+16:10
+.
+:MENU:video_ratio_18_10
+18:10
+.
+:MENU:video_ratio_original
+原始長寬比
+.
+:MENU:video_ratio_set
+設定長寬比
 .
 :MENU:VideoScalerMenu
 縮放器
@@ -2628,9 +2665,6 @@ TrueType 字型
 :MENU:VideoTTFMenu
 TTF 選項
 .
-:MENU:mapper_resetcolor
-重設 TTF 色彩配置
-.
 :MENU:ttf_showbold
 使用 TTF 顯示粗體文字
 .
@@ -2666,12 +2700,6 @@ TTF 文字處理器: FastEdit
 .
 :MENU:ttf_printfont
 使用目前 TTF 字型進行列印
-.
-:MENU:mapper_dbcssbcs
-中日韓文字: 切換雙位元組/單位元組模式
-.
-:MENU:mapper_autoboxdraw
-中日韓文字: 自動檢測製表符號
 .
 :MENU:ttf_halfwidthkana
 中日韓文字: 允許半形日文片假名
@@ -2976,6 +3004,9 @@ DOSBox-X 支援
 :MENU:show_console
 顯示記錄主控台
 .
+:MENU:disable_logging
+禁用記錄輸出
+.
 :MENU:wait_on_error
 主控台遇到錯誤時等待
 .
@@ -3080,9 +3111,6 @@ Turbo (快轉模式)
 .
 :MENU:mapper_scrshot
 抓取螢幕畫面
-.
-:MENU:mapper_pwrbutton
-APM 電源按鈕
 .
 :MENU:mapper_debugger
 啟動 DOSBox-X 偵錯工具
@@ -3351,9 +3379,6 @@ Mapper "傳送特殊鍵": Ctrl+Alt+Del
 :MAPPER:debugger
 顯示偵錯工具
 .
-:MAPPER:decsize
-縮小 TTF 字型
-.
 :MAPPER:dynamic
 CPU: 動態核心
 .
@@ -3362,9 +3387,6 @@ CPU: 動態核心
 .
 :MAPPER:full
 CPU: 完全核心
-.
-:MAPPER:incsize
-放大 TTF 字型
 .
 :MAPPER:loadmap
 載入對應表檔案
@@ -3375,15 +3397,6 @@ CPU: 完全核心
 :MAPPER:normal
 CPU: 一般核心
 .
-:MAPPER:paste
-將剪貼簿內容貼上
-.
-:MAPPER:pasteend
-停止將剪貼簿內容貼上
-.
-:MAPPER:pauseints
-暫停並啟用插斷
-.
 :MAPPER:prevslot
 上一個儲存位置
 .
@@ -3393,15 +3406,6 @@ CPU: 一般核心
 :MAPPER:reboot
 重開 DOS 系統
 .
-:MAPPER:recmtwave
-錄製音訊到多軌 AVI
-.
-:MAPPER:recvoldown
-降低錄音音量
-.
-:MAPPER:recvolup
-提高錄音音量
-.
 :MAPPER:rescanall
 重新整理磁碟機
 .
@@ -3410,9 +3414,6 @@ CPU: 一般核心
 .
 :MAPPER:resetcolor
 重設色彩配置
-.
-:MAPPER:showstate
-顯示狀態資訊
 .
 :MAPPER:simple
 CPU: 簡單核心

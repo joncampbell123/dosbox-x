@@ -33,12 +33,20 @@
 #include "mapper.h"
 #include "setup.h"
 #include "control.h"
+#include "paging.h"
 #include "shell.h"
 #include "cpu.h"
 #include "pic.h"
 #include "midi.h"
 #include "bios_disk.h"
 #include "../dos/drives.h"
+
+#if C_OPENGL
+#include "voodoo.h"
+#include "../hardware/voodoo_types.h"
+#include "../hardware/voodoo_data.h"
+#include "../hardware/voodoo_opengl.h"
+#endif
 
 #if defined(WIN32)
 #include "shellapi.h"
@@ -82,6 +90,7 @@ extern unsigned char        GFX_Gshift;
 extern uint32_t             GFX_Bmask;
 extern unsigned char        GFX_Bshift;
 
+extern int                  aspect_ratio_x, aspect_ratio_y;
 extern int                  statusdrive, swapInDisksSpecificDrive;
 extern bool                 ttfswitch, switch_output_from_ttf, loadlang;
 extern bool                 dos_kernel_disabled, swapad, confres, font_14_init;
@@ -130,7 +139,7 @@ GUI::Checkbox *advopt, *saveall, *imgfd360, *imgfd400, *imgfd720, *imgfd1200, *i
 std::string GetDOSBoxXPath(bool withexe);
 static std::map< std::vector<GUI::Char>, GUI::ToplevelWindow* > cfg_windows_active;
 void getlogtext(std::string &str), getcodetext(std::string &text), ApplySetting(std::string pvar, std::string inputline, bool quiet), GUI_Run(bool pressed);
-void ttf_switch_on(bool ss=true), ttf_switch_off(bool ss=true);
+void ttf_switch_on(bool ss=true), ttf_switch_off(bool ss=true), setAspectRatio(Section_prop * section), GFX_ForceRedrawScreen(void);
 bool CheckQuit(void), OpenGL_using(void);
 char tmp1[CROSS_LEN*2], tmp2[CROSS_LEN];
 const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ", "
@@ -1137,7 +1146,7 @@ public:
         MessageBox3(parent, x, y, 630, "", "") { // 740
         setTitle(MSG_Get("LOGGING_OUTPUT"));
         getlogtext(str);
-        setText(control->opt_nolog?"Logging output has been disabled.":(str.size()?str:"No logging output available."));
+        setText(str.size()?str:"No logging output available.");
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     };
 
@@ -2230,6 +2239,34 @@ public:
     }
 };
 
+class SetAspectRatio : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+public:
+    SetAspectRatio(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 410, 140, title) {
+            new GUI::Label(this, 5, 10, "Enter aspect ratio:");
+            name = new GUI::Input(this, 5, 30, 390);
+            char buffer[8];
+            sprintf(buffer, "%d:%d", aspect_ratio_x,aspect_ratio_y);
+            name->setText(buffer);
+            (new GUI::Button(this, 100, 70, MSG_Get("OK"), 90))->addActionHandler(this);
+            (new GUI::Button(this, 200, 70, MSG_Get("CANCEL"), 90))->addActionHandler(this);
+            move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == MSG_Get("OK")) {
+            SetVal("render", "aspect_ratio", name->getText());
+            setAspectRatio(static_cast<Section_prop *>(control->GetSection("render")));
+            //if (render.aspect) GFX_ForceRedrawScreen();
+        }
+        close();
+        if (shortcut) running = false;
+    }
+};
+
 class ShowMixerInfo : public GUI::ToplevelWindow {
 protected:
     GUI::Input *name;
@@ -3236,17 +3273,19 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             np4->raise();
             } break;
         case 20: {
-            auto *np5 = new ShowMixerInfo(screen, 90, 70, MSG_Get("CURRENT_VOLUME"));
-            np5->raise();
+            auto *np4 = new SetAspectRatio(screen, 90, 100, "Set aspect ratio...");
+            np4->raise();
             } break;
+#if C_DEBUG
         case 21: {
-            auto *np6 = new ShowSBInfo(screen, 150, 100, MSG_Get("CURRENT_SBCONFIG"));
-            np6->raise();
+            npwin = new LogWindow(screen, 70, 70);
+            npwin->raise();
             } break;
         case 22: {
-            auto *np6 = new ShowMidiDevice(screen, 150, 100, MSG_Get("CURRENT_MIDICONFIG"));
-            np6->raise();
+            npwin = new CodeWindow(screen, 70, 70);
+            npwin->raise();
             } break;
+#endif
         case 23: {
             auto *np7 = new ShowLoadWarning(screen, 150, 120, "DOSBox-X version mismatch. Load the state anyway?");
             np7->raise();
@@ -3315,16 +3354,18 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             auto *np15 = new ShowHelpPRT(screen, 70, 70);
             np15->raise();
             } break;
-#if C_DEBUG
         case 40: {
-            npwin = new LogWindow(screen, 70, 70);
-            npwin->raise();
+            auto *np5 = new ShowMixerInfo(screen, 90, 70, MSG_Get("CURRENT_VOLUME"));
+            np5->raise();
             } break;
         case 41: {
-            npwin = new CodeWindow(screen, 70, 70);
-            npwin->raise();
+            auto *np6 = new ShowSBInfo(screen, 150, 100, MSG_Get("CURRENT_SBCONFIG"));
+            np6->raise();
             } break;
-#endif
+        case 42: {
+            auto *np6 = new ShowMidiDevice(screen, 150, 100, MSG_Get("CURRENT_MIDICONFIG"));
+            np6->raise();
+            } break;
         default:
             break;
     }
@@ -3410,6 +3451,11 @@ void RunCfgTool(Bitu val) {
         GFX_LosingFocus();
         sel = -1;
     }
+    if (GFX_GetPreventFullscreen()) {
+#if C_OPENGL
+        voodoo_ogl_update_dimensions();
+#endif
+    }
 }
 
 void GUI_Shortcut(int select) {
@@ -3417,13 +3463,6 @@ void GUI_Shortcut(int select) {
 
     MAPPER_ReleaseAllKeys();
     GFX_LosingFocus();
-
-    /* Sorry, the UI screws up 3Dfx OpenGL emulation.
-     * Remove this block when fixed. */
-    if (GFX_GetPreventFullscreen()) {
-        LOG_MSG("GUI is not available while 3Dfx OpenGL emulation is running");
-        return;
-    }
 
     shortcutid=select;
     shortcut=true;
@@ -3441,13 +3480,6 @@ void GUI_Shortcut(int select) {
 
 void GUI_Run(bool pressed) {
     if (pressed || running) return;
-
-    /* Sorry, the UI screws up 3Dfx OpenGL emulation.
-     * Remove this block when fixed. */
-    if (GFX_GetPreventFullscreen()) {
-        LOG_MSG("Configuration Tool is not available while 3Dfx OpenGL emulation is running");
-        return;
-    }
 
     sel = -1;
 #if defined(USE_TTF)

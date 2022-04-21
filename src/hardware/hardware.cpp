@@ -65,7 +65,7 @@ extern "C" {
 
 #endif
 
-bool            skip_encoding_unchanged_frames = false;
+bool skip_encoding_unchanged_frames = false, show_recorded_filename = true;
 std::string pathvid = "", pathwav = "", pathmtw = "", pathmid = "", pathopl = "", pathscr = "", pathprt = "";
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
@@ -645,7 +645,7 @@ void CAPTURE_VideoEvent(bool pressed) {
 			avi_writer_finish(capture.video.writer);
 			avi_writer_close_file(capture.video.writer);
 			capture.video.writer = avi_writer_destroy(capture.video.writer);
-			if (pathvid.size()) systemmessagebox("Recording completed",("Saved AVI output to the file:\n\n"+pathvid).c_str(),"ok", "info", 1);
+			if (show_recorded_filename && pathvid.size()) systemmessagebox("Recording completed",("Saved AVI output to the file:\n\n"+pathvid).c_str(),"ok", "info", 1);
 		}
 #if (C_AVCODEC)
 		if (ffmpeg_fmt_ctx != NULL) {
@@ -903,7 +903,7 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 		png_destroy_write_struct(&png_ptr, &info_ptr);
 		/*close file*/
 		fclose(fp);
-		if (pathscr.size()) systemmessagebox("Recording completed",("Saved screenshot to the file:\n\n"+pathscr).c_str(),"ok", "info", 1);
+		if (show_recorded_filename && pathscr.size()) systemmessagebox("Recording completed",("Saved screenshot to the file:\n\n"+pathscr).c_str(),"ok", "info", 1);
 
 	}
 	pathscr = "";
@@ -1769,7 +1769,7 @@ void CAPTURE_MTWaveEvent(bool pressed) {
             avi_writer_close_file(capture.multitrack_wave.writer);
             capture.multitrack_wave.writer = avi_writer_destroy(capture.multitrack_wave.writer);
             CaptureState &= ~((unsigned int)CAPTURE_MULTITRACK_WAVE);
-            if (pathmtw.size()) systemmessagebox("Recording completed",("Saved multi-track AVI output to the file:\n\n"+pathmtw).c_str(),"ok", "info", 1);
+            if (show_recorded_filename && pathmtw.size()) systemmessagebox("Recording completed",("Saved multi-track AVI output to the file:\n\n"+pathmtw).c_str(),"ok", "info", 1);
         }
     }
     else {
@@ -1796,7 +1796,7 @@ void CAPTURE_WaveEvent(bool pressed) {
             riff_wav_writer_end_data(capture.wave.writer);
             capture.wave.writer = riff_wav_writer_destroy(capture.wave.writer);
             CaptureState &= ~((unsigned int)CAPTURE_WAVE);
-            if (pathwav.size()) systemmessagebox("Recording completed",("Saved WAV output to the file:\n\n"+pathwav).c_str(),"ok", "info", 1);
+            if (show_recorded_filename && pathwav.size()) systemmessagebox("Recording completed",("Saved WAV output to the file:\n\n"+pathwav).c_str(),"ok", "info", 1);
         }
     }
     else {
@@ -1881,7 +1881,7 @@ void CAPTURE_MidiEvent(bool pressed) {
 		size[3]=(uint8_t)(capture.midi.done >> 0);
 		fwrite(&size,1,4,capture.midi.handle);
 		fclose(capture.midi.handle);
-		if (pathmid.size()) systemmessagebox("Recording completed",("Saved MIDI output to the file:\n\n"+pathmid).c_str(),"ok", "info", 1);
+		if (show_recorded_filename && pathmid.size()) systemmessagebox("Recording completed",("Saved MIDI output to the file:\n\n"+pathmid).c_str(),"ok", "info", 1);
 		capture.midi.handle=0;
 		CaptureState &= ~((unsigned int)CAPTURE_MIDI);
 		mainMenu.get_item("mapper_caprawmidi").check(false).refresh_item(mainMenu);
@@ -1972,6 +1972,7 @@ void CAPTURE_Init() {
     mainMenu.get_item("noremark_savestate").check(noremark_save_state).refresh_item(mainMenu);
     force_load_state = section->Get_bool("forceloadstate");
     mainMenu.get_item("force_loadstate").check(force_load_state).refresh_item(mainMenu);
+    show_recorded_filename = section->Get_bool("show recorded filename");
     savefilename = section->Get_string("savefile");
     trim(savefilename);
     if (savefilename.size()) {

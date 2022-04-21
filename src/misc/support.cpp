@@ -495,5 +495,5 @@ void E_Exit(const char * format,...) {
         DOSBox_ConsolePauseWait();
 #endif
     }
-	exit(0);
+	exit(1);
 }

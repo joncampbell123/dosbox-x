@@ -8,6 +8,8 @@
 #include "dosbox.h"
 #include "sdlmain.h"
 
+extern int aspect_ratio_x, aspect_ratio_y;
+
 // common headers and static routines reused in different outputs go there
 
 static inline int int_log2(int val)
@@ -20,6 +22,12 @@ static inline int int_log2(int val)
 template <class WH>
 inline void aspectCorrectExtend(volatile WH &width, volatile WH &height)
 {
+    if (aspect_ratio_x == -1 && aspect_ratio_y == -1) {
+        sdl.srcAspect.x = sdl.draw.width;
+        sdl.srcAspect.y = sdl.draw.height;
+        sdl.srcAspect.xToY = (double)sdl.srcAspect.x / sdl.srcAspect.y;
+        sdl.srcAspect.yToX = (double)sdl.srcAspect.y / sdl.srcAspect.x;
+    }
     if (width * sdl.srcAspect.y != height * sdl.srcAspect.x)
     {
         // abnormal aspect ratio detected, apply correction
@@ -39,6 +47,12 @@ inline void aspectCorrectExtend(volatile WH &width, volatile WH &height)
 template <class WH, class XY, class TWH>
 inline void aspectCorrectFitClip(volatile WH &clipW, volatile WH &clipH, volatile XY &clipX, volatile XY &clipY, const TWH fullW, const TWH fullH)
 {
+    if (aspect_ratio_x == -1 && aspect_ratio_y == -1) {
+        sdl.srcAspect.x = sdl.draw.width;
+        sdl.srcAspect.y = sdl.draw.height;
+        sdl.srcAspect.xToY = (double)sdl.srcAspect.x / sdl.srcAspect.y;
+        sdl.srcAspect.yToX = (double)sdl.srcAspect.y / sdl.srcAspect.x;
+    }
     XY ax, ay;
     WH sh = fullH;
     WH sw = (WH)floor((double)fullH * sdl.srcAspect.xToY);

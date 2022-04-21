@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Turkish (Turkey)
 :DOSBOX-X:CODEPAGE:857
-:DOSBOX-X:VERSION:0.83.24
+:DOSBOX-X:VERSION:0.83.25
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
@@ -1212,11 +1212,10 @@ Disket okunamıyor.
 Klavyeyi belirli bir dil için yapılandırır.
 
 Usage: ←[32;1mKEYB←[0m [klavye dizilimi kimliği [kod sayfası numarası [kod sayfası dosyası]]]
-  layout ID        Name of layout or keyboard file (.kl) to load
-  codepage number  Number of codepage to load
-  codepage file    .cpi/.cpx file including specified codepage information
-  (.kl, .cpi/.cpx files shall be placed under the directory where dosbox-x
-   executable exists.)
+  layout ID        Yüklenecek düzen veya klavye dosyasının (.kl) adı
+  codepage number  Yüklenecek kod sayfası sayısı
+  codepage file    Belirtilen kod sayfası bilgilerini içeren .cpi/.cpx dosyası
+  (.kl, .cpi/.cpx dosyaları dosbox-x dizininin altına yerleştirilecektir yürütülebilir dosya var.)
 
 Some examples:
   ←[32;1mKEYB←[0m          Şu anda yüklü kod sayfasını görüntüle.
@@ -1224,7 +1223,7 @@ Some examples:
   ←[32;1mKEYB tr440←[0m    Türkçe (TR-F) dizilimini uygun kod sayfası ile yükle.
   ←[32;1mKEYB tr 857←[0m   Türkçe (TR-Q) dizilimin 857 kod sayfası ile yükle.
   ←[32;1mKEYB tr 857 mycp.cpi←[0m Yukarıdakinin aynısı, mycp.cpi dosyası ile.
-  ←[32;1mKEYB tr_mod 857←[0m      Load keyboard layout from tr_mod.kl, use codepage 857.
+  ←[32;1mKEYB tr_mod 857←[0m      tr_mod.kl'den klavye düzenini yükleyin, kod sayfası 857'yi kullanın.
 
 .
 :PROGRAM_KEYB_NOERROR
@@ -1986,15 +1985,19 @@ LOADHIGH        [sürücü:][yol]dosyaadı [parametreler]
 
 .
 :SHELL_CMD_CHOICE_HELP
-Bir düğme basımı için bekler ve ERRORLEVEL'i ayarlar.
+Seçeneklerden birini seçmek için kullanıcının tuşa basmasını bekler.
 
 .
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOICE [/C:seçimler] [/N] [/S] metin
-  /C[:]seçimler  -  İzin verilebilir düğmeleri belirtir. Öntanımlı: yn.
-  /N             -  İstemin sonunda seçimleri listeleme.
-  /S             -  BÜYÜK/küçük harf duyarlı seçimleri etkinleştirir.
-  metin          -  İstem olarak görüntülenecek metin.
+CHOICE [/C:seçimler] [/N] [/S] /T[:]c,nn metin
+
+  /C[:]seçimler İzin verilebilir düğmeleri belirtir. Öntanımlı: yn.
+  /N            İstemin sonunda seçimleri listeleme.
+  /S            BÜYÜK/küçük harf duyarlı seçimleri etkinleştirir.
+  /T[:]c,nn     nn saniye sonra varsayılan seçim c.
+  metin         İstem olarak görüntülenecek metin.
+
+ERRORLEVEL, kullanıcının seçimlerde bastığı tuşun konumuna ayarlanır.
 
 .
 :SHELL_CMD_ATTRIB_HELP
@@ -2300,6 +2303,18 @@ TTF yazıtipi boyutunu artır
 :MENU:mapper_decsize
 TTF yazıtipi boyutunu azalt
 .
+:MENU:mapper_dbcssbcs
+ÇJK: DBCS/SBCS kipleri arasında geçiş yap
+.
+:MENU:mapper_autoboxdraw
+ÇJK: Kutu karakterleri kendiliğinden algıla
+.
+:MENU:mapper_resetcolor
+TTF renk şemasını sıfırla
+.
+:MENU:mapper_pwrbutton
+APM güç düğmesi
+.
 :MENU:mapper_togmenu
 Menü çubuğunu göster/gizle
 .
@@ -2437,6 +2452,30 @@ Kapalı
 .
 :MENU:frameskip_10
 10 çerçeve
+.
+:MENU:VideoRatioMenu
+en boy oranı
+.
+:MENU:video_ratio_1_1
+1:1
+.
+:MENU:video_ratio_4_3
+4:3
+.
+:MENU:video_ratio_16_9
+16:9
+.
+:MENU:video_ratio_16_10
+16:10
+.
+:MENU:video_ratio_18_10
+18:10
+.
+:MENU:video_ratio_original
+orijinal oran
+.
+:MENU:video_ratio_set
+Oranı ayarla
 .
 :MENU:VideoScalerMenu
 Ölçekleyici
@@ -2654,9 +2693,6 @@ Ekran: 132 sütun x 60 satır
 :MENU:VideoTTFMenu
 TTF seçenekleri
 .
-:MENU:mapper_resetcolor
-TTF renk şemasını sıfırla
-.
 :MENU:ttf_showbold
 TTF'de kalın metni görüntüle
 .
@@ -2692,12 +2728,6 @@ Metni sağdan sola göster
 .
 :MENU:ttf_printfont
 Yazdırma için geçerli TTF yazıtipini kullan
-.
-:MENU:mapper_dbcssbcs
-ÇJK: DBCS/SBCS kipleri arasında geçiş yap
-.
-:MENU:mapper_autoboxdraw
-ÇJK: Kutu karakterleri kendiliğinden algıla
 .
 :MENU:ttf_halfwidthkana
 ÇJK: Yarım genişlikli Japonca Katakana'ya izin ver
@@ -3109,9 +3139,6 @@ Videoyu AVI olarak kaydet
 .
 :MENU:mapper_scrshot
 Ekran görüntüsü al
-.
-:MENU:mapper_pwrbutton
-APM güç düğmesi
 .
 :MENU:mapper_debugger
 DOSBox-X hata ayıklayıcısını başlat
