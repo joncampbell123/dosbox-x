@@ -386,6 +386,7 @@ Bitu PS2_Handler(void) {
 #define MOUSE_MIDDLE_PRESSED 32
 #define MOUSE_MIDDLE_RELEASED 64
 #define MOUSE_WHEEL_MOVED 128
+#define MOUSE_ABSOLUTE 256
 #define MOUSE_DUMMY 256
 #define MOUSE_DELAY 5.0
 
@@ -1955,7 +1956,8 @@ static Bitu INT74_Handler(void) {
 
         /* Check for an active Interrupt Handler that will get called */
         if (AllowINT33RMAccess() && (mouse.sub_mask & mouse.event_queue[mouse.events].type)) {
-            reg_ax=mouse.event_queue[mouse.events].type;
+            reg_ax=mouse.event_queue[mouse.events].type
+                  | (!MOUSE_IsLocked() ? MOUSE_ABSOLUTE & mouse.sub_mask : 0);
             reg_bl=mouse.event_queue[mouse.events].buttons;
             reg_bh=GetWheel8bit(); /* CuteMouse wheel extension */
             reg_cx=(uint16_t)POS_X;
