@@ -2191,12 +2191,12 @@ void DOSBOX_SetupConfigSections(void) {
 	const char* vtext_settings[] = { "xga", "xga24", "sxga", "sxga24", "svga", 0};
 	Pstring = secprop->Add_path("vtext1",Property::Changeable::WhenIdle,"svga");
 	Pstring->Set_values(vtext_settings);
-	Pstring->Set_help("V-text screen mode 1 for the DOS/V emulation. Set \"machine=svga_et4000\" for all available options; enter command \"VTEXT 1\" for this mode.");
+	Pstring->Set_help("V-text screen mode 1 for the DOS/V emulation. Enter command \"VTEXT 1\" for this mode. Note that XGA/SXGA mode is only supported by the svga_s3trio and svga_et4000 machine types.");
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("vtext2",Property::Changeable::WhenIdle,"xga");
 	Pstring->Set_values(vtext_settings);
-	Pstring->Set_help("V-text screen mode 2 for the DOS/V emulation. Set \"machine=svga_et4000\" for all available options; enter command \"VTEXT 2\" for this mode.");
+	Pstring->Set_help("V-text screen mode 2 for the DOS/V emulation. Enter command \"VTEXT 2\" for this mode. Note that XGA/SXGA mode is only supported by the svga_s3trio and svga_et4000 machine types.");
     Pstring->SetBasic(true);
 
 	Pbool = secprop->Add_bool("use20pixelfont",Property::Changeable::OnlyAtStart,false);
@@ -3142,9 +3142,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("mt32.niceampramp", Property::Changeable::WhenIdle, true);
     Pbool->Set_help("Toggles \"Nice Amp Ramp\" mode that improves amplitude ramp for sustaining instruments.\n"
         "Quick changes of volume or expression on a MIDI channel may result in amp jumps on real hardware.\n"
-        "When \"Nice Amp Ramp\" mode is enabled, amp changes gradually instead.\n"
-        "Otherwise, the emulation accuracy is preserved.\n"
-        "Default is true.");
+        "When \"Nice Amp Ramp\" mode is enabled (default), amp changes gradually instead.\n"
+        "Otherwise, the emulation accuracy is preserved.");
 
 #if C_FLUIDSYNTH || defined(WIN32) && !defined(HX_DOS)
 	const char *fluiddrivers[] = {"pulseaudio", "alsa", "oss", "coreaudio", "dsound", "portaudio", "sndman", "jack", "file", "default",0};
@@ -3262,12 +3261,12 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pint = secprop->Add_int("dma",Property::Changeable::WhenIdle,1);
     Pint->Set_values(dmassb);
-    Pint->Set_help("The DMA number of the Sound Blaster. Set to -1 to start DOSBox-X with the DMA unassigned");
+    Pint->Set_help("The DMA number of the Sound Blaster. Set to -1 to start DOSBox-X with the DMA unassigned.");
     Pint->SetBasic(true);
 
     Pint = secprop->Add_int("hdma",Property::Changeable::WhenIdle,5);
     Pint->Set_values(dmassb);
-    Pint->Set_help("The High DMA number of the Sound Blaster. Set to -1 to start DOSBox-X with the High DMA unassigned");
+    Pint->Set_help("The High DMA number of the Sound Blaster. Set to -1 to start DOSBox-X with the High DMA unassigned.");
     Pint->SetBasic(true);
 
     Pbool = secprop->Add_bool("dsp command aliases",Property::Changeable::WhenIdle,true);
@@ -3525,7 +3524,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pdouble = secprop->Add_double("gus master volume",Property::Changeable::WhenIdle,0);
     Pdouble->SetMinMax(-120.0,6.0);
-    Pdouble->Set_help("Master Gravis Ultrasound GF1 volume, in decibels. Reducing the master volume can help with games or demoscene productions where the music is too loud and clipping");
+    Pdouble->Set_help("Master Gravis Ultrasound GF1 volume, in decibels. Reducing the master volume can help with games or demoscene productions where the music is too loud and clipping.");
     Pdouble->SetBasic(true);
 
     Phex = secprop->Add_hex("gusbase",Property::Changeable::WhenIdle,0x240);
