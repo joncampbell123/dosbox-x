@@ -1,6 +1,8 @@
 0.83.25
   - Allowed to boot from Toshiba DOS image file for the
     Toshiba J-3100 emulation. (nanshiki)
+  - Default S3 machine types now support XGA/SXGA VText
+    in DOS/V, in addition to svga_et4000. (nanshiki)
   - Added config option "aspect_ratio" (in [render]
     section) which when set will force the specified
     aspect ratio (e.g. 16:9 or 3:2) in the aspect ratio
@@ -16,21 +18,29 @@
     [dosbox] section) which when set to false DOSBox-X
     will disallow the quit option after displaying a
     warning message. (Wengier)
-  - Added /T option for CHOICE command to set a default
-    choice as in DOS, e.g. CHOICE /T:Y,3 (Wengier)
-  - Added Korean language option in Windows installer.
-    Also, language option page will be shown regardless
-    of the output option selected. (Wengier)
-  - Fix fscale FPU operation and FPU status word
-    updates (cimarronm)
-  - Fix FPU stack value log messages on x86-based builds
-    (cimarronm)
   - Added config option "turbo last second" (in [cpu]
     section) which allows to stop the Turbo function
     after specified number of seconds. (Wengier)
   - Updated FLAC, MP3, and WAV decoder libraries to the
     latest versions (v0.12.38, v0.6.32, and v0.13.6)
     respectively; per David Reid). (Wengier)
+  - Added /T option for CHOICE command to set a default
+    choice as in DOS, e.g. CHOICE /T:Y,3 (Wengier)
+  - Added Korean language option in Windows installer.
+    Also, language option page will be shown regardless
+    of the output option selected. (Wengier)
+  - Set int33 event status bit 8 when passing absolute
+    mouse coordinates, which is useful in emulation or
+    virtualization environments where the mouse may be
+    integrated with the host cursor. (javispedro)
+  - DOSBox-X returns 1 instead of 0 when E_Exit occurs
+    or unit tests fail. (Wengier)
+  - Fixed built-in IPX and Modem emulation unavailable
+    in MinGW builds. (Wengier)
+  - Fixed lockup in classic Jumpman. (maron2000)
+  - Fixed fscale FPU operation and updated FPU status
+    word. Also fixed FPU stack value log messages on
+    x86-based builds. (cimarronm)
   - Fixed bug that OpenGL Voodoo window may not appear
     correctly if the DOSBox-X window was previously in
     full-screen mode in some builds. DOSBox-X will now
@@ -38,11 +48,6 @@
     mode) in this case. Also fixed some menu options
     including rebooting DOSBox-X while Voodoo emulation
     is currently active. (Wengier)
-  - DOSBox-X returns 1 instead of 0 when E_Exit occurs
-    or unit tests fail. (Wengier)
-  - Fixed built-in IPX and Modem emulation unavailable
-    in MinGW builds. (Wengier)
-  - Fixed lockup in classic Jumpman. (maron2000)
   - Fixed crash when switching to dynamic_rec core from
     menu when dynamic_x86 is also available. Also fixed
     the dynamic_rec core may not be displayed correctly
@@ -101,8 +106,9 @@
     paired with a 287 chip as is said to be how early
     386 Compaq systems were wired, for example.
     (joncampbell123)
-  - 3Dfx Voodoo window is now resizable when using OpenGL
-    mode, in addition to software mode. (kekko & Wengier)
+  - 3Dfx Voodoo window is now resizable (inc. maximized
+    window) when using OpenGL mode, in addition to the
+    software mode. (MartyShepard, kekko, Wengier)
   - Menu options "CJK: Switch between DBCS/SBCS modes",
     CJK: Auto-detect box-drawing characters", and "Reset
     color scheme" (in "Video" -> "TTF options") are now
