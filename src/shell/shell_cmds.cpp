@@ -3275,7 +3275,7 @@ void DOS_Shell::CMD_CHOICE(char * args){
 	static char defchoice[3] = {'y','n',0};
 	char *rem1 = NULL, *rem2 = NULL, *rem = NULL, waitchar = 0, *ptr;
 	int waitsec = 0;
-	bool optC = false;
+	bool optC = false, optT = false;
 	bool optN = ScanCMDBool(args,"N");
 	bool optS = ScanCMDBool(args,"S"); //Case-sensitive matching
 	// ignore /b and /m switches for compatibility
@@ -3290,13 +3290,14 @@ void DOS_Shell::CMD_CHOICE(char * args){
 			WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"),rem1);
 			return;
 		}
-		optC = tolower(rem1[1]) == 'c';
+		optC = rem1&&tolower(rem1[1]) == 'c';
+		optT = rem1&&tolower(rem1[1]) == 't';
 		if (args == rem1) args = strchr(rem1,0)+1;
 		if (rem1) rem1 += 2;
 		if(rem1 && rem1[0]==':') rem1++; /* optional : after /c */
 		if (optC) rem = rem1;
-		else {
-			if (*rem1&&*(rem1+1)==',') {
+		else if (optT) {
+			if (rem1&&*rem1&&*(rem1+1)==',') {
 				waitchar = *rem1;
 				waitsec = atoi(rem1+2);
 			} else
@@ -3304,18 +3305,21 @@ void DOS_Shell::CMD_CHOICE(char * args){
 		}
 		if (args > last) args = NULL;
 		if (args) {
+			last = strchr(args,0);
+			StripSpaces(args);
 			rem2 = ScanCMDRemain(args);
 			if (rem2 && *rem2 && (tolower(rem2[1]) != 'c') && (tolower(rem2[1]) != 't')) {
 				WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"),rem2);
 				return;
 			}
-			optC = tolower(rem2[1]) == 'c';
+			optC = rem2&&tolower(rem2[1]) == 'c';
+			optT = rem2&&tolower(rem2[1]) == 't';
 			if (args == rem2) args = strchr(rem2,0)+1;
 			if (rem2) rem2 += 2;
 			if(rem2 && rem2[0]==':') rem2++; /* optional : after /t */
 			if (optC) rem = rem2;
-			else {
-				if (*rem2&&*(rem2+1)==',') {
+			else if (optT) {
+				if (rem2&&*rem2&&*(rem2+1)==',') {
 					waitchar = *rem2;
 					waitsec = atoi(rem2+2);
 				} else
