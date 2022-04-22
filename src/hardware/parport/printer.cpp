@@ -48,6 +48,7 @@ extern FT_Face GetTTFFace();
 extern std::string GetDOSBoxXPath(bool withexe=false);
 extern bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4);
 extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+extern bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 extern bool isDBCSCP(), isKanji1(uint8_t chr);
 extern void GFX_CaptureMouse(void);
 extern std::map<int, int> lowboxdrawmap;
@@ -1959,7 +1960,6 @@ void CPrinter::doAction(const char *fname) {
             fail=system((action+" "+fname).c_str())!=0;
 #endif
         }
-        bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
         if (fail) systemmessagebox("Error", "The requested file handler failed to complete.", "ok","error", 1);
     }
 }
@@ -2419,6 +2419,22 @@ void PrintScreen(const char *text, uint16_t len)
     if (!defaultPrinter) defaultPrinter = new CPrinter(confdpi, confwidth, confheight, confoutputDevice, confmultipageOutput);
     for (int i=0; i<len; i++) defaultPrinter->printChar(text[i]);
     FormFeed(true);
+}
+
+void PrintText(bool pressed) {
+    if (!pressed) return;
+    if (!PRINTER_isInited()) {
+        systemmessagebox("Error","Printer support is not enabled in the configuration.","ok", "error", 1);
+        return;
+    }
+    if (!CurMode||CurMode->type!=M_TEXT) {
+        systemmessagebox("Error","The current DOS screen is not in text mode.","ok", "error", 1);
+        return;
+    }
+    uint16_t len=0;
+    const char* text = Mouse_GetSelected(0,0,(int)(currentWindowWidth-1-sdl.clip.x),(int)(currentWindowHeight-1-sdl.clip.y),(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len);
+    if (len) PrintScreen(text, len);
+    return;
 }
 
 static void PRINTER_EventHandler(Bitu param)

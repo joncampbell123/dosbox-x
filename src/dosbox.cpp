@@ -77,6 +77,7 @@
 #include "render.h"
 #include "pci_bus.h"
 #include "parport.h"
+#include "keyboard.h"
 #include "clockdomain.h"
 
 #if C_EMSCRIPTEN
@@ -931,7 +932,21 @@ void Init_VGABIOS() {
     if (rom_fp) fclose(rom_fp);
 }
 
-void SetCyclesCount_mapper_shortcut(bool pressed);
+void SetCyclesCount_mapper_shortcut_RunInternal(void) {
+    GUI_Shortcut(16);
+}
+
+void SetCyclesCount_mapper_shortcut_RunEvent(Bitu /*val*/) {
+    KEYBOARD_ClrBuffer();   //Clear buffer
+    GFX_LosingFocus();      //Release any keys pressed (buffer gets filled again).
+    SetCyclesCount_mapper_shortcut_RunInternal();
+}
+
+void SetCyclesCount_mapper_shortcut(bool pressed) {
+    if (!pressed) return;
+    PIC_AddEvent(SetCyclesCount_mapper_shortcut_RunEvent, 0.0001f); //In case mapper deletes the key object that ran it
+}
+
 void DOSBOX_RealInit() {
     DOSBoxMenu::item *item;
 

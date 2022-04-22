@@ -4956,41 +4956,13 @@ void DEBUG_ReinitCallback(void) {
 }
 
 void DEBUG_Init() {
-	DOSBoxMenu::item *item;
-
     LOG(LOG_MISC, LOG_DEBUG)("Initializing debug system");
 
-	/* Add some keyhandlers */
-	MAPPER_AddHandler(DEBUG_Enable_Handler,
-	#if defined(MACOSX)
-		// MacOS     NOTE: ALT-F12 to launch debugger. pause maps to F16 on macOS,
-		// which is not easy to input on a modern mac laptop
-		MK_f12
-	#else
-		MK_pause
-	#endif
-        ,MMOD2,"debugger","Show debugger",&item);
-	item->set_text("Start DOSBox-X Debugger");
 	/* Reset code overview and input line */
 	memset((void*)&codeViewData,0,sizeof(codeViewData));
 	/* Setup callback */
 	debugCallback=CALLBACK_Allocate();
 	CALLBACK_Setup(debugCallback,DEBUG_EnableDebugger,CB_RETF,"debugger");
-
-#if defined(MACOSX) || defined(LINUX)
-	/* Mac OS X does not have a console for us to just allocate on a whim like Windows does.
-	   So the debugger interface is useless UNLESS the user has started us from a terminal
-	   (whether over SSH or from the Terminal app).
-       
-       Linux/X11 also does not have a console we can allocate on a whim. You either run
-       this program from XTerm for the debugger, or not. */
-    bool allow = true;
-
-    if (!isatty(0) || !isatty(1) || !isatty(2))
-	    allow = false;
-
-    mainMenu.get_item("mapper_debugger").enable(allow).refresh_item(mainMenu);
-#endif
 
 	/* shutdown function */
 	AddExitFunction(AddExitFunctionFuncPair(DEBUG_ShutDown));
