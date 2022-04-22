@@ -2281,6 +2281,12 @@ DOS 화면의 모든 글자 복사
 :MENU:mapper_pasteend
 클립보드에서 붙여넣기 중지
 .
+:MENU:mapper_ejectpage
+페이지 나누기
+.
+:MENU:mapper_printtext
+DOS 글자 화면 인쇄
+.
 :MENU:mapper_pause
 일시정지
 .
@@ -2481,9 +2487,6 @@ Pentium III 866MHz EB (~407000 주기)
 .
 :MENU:VideoScalerMenu
 스케일러
-.
-:MENU:scaler_forced
-스케일러 강제 사용
 .
 :MENU:scaler_set_none
 등배
@@ -3124,6 +3127,9 @@ INT 21h 호출 기록
 :MENU:mapper_aspratio
 종횡비에 맞추기
 .
+:MENU:mapper_fscaler
+스케일러 강제 사용
+.
 :MENU:mapper_recwave
 오디오를 WAV에 저장
 .
@@ -3141,9 +3147,6 @@ FM (OPL) 출력 저장
 .
 :MENU:mapper_scrshot
 스크린샷을 찍기
-.
-:MENU:mapper_debugger
-DOSBox-X 디버거 시작
 .
 :MENU:mapper_volup
 음량: 올림
@@ -3247,8 +3250,8 @@ DOSBox-X 디버거 시작
 :MENU:mapper_swapcd
 CD 드라이브를 교체
 .
-:MENU:mapper_ejectpage
-페이지 나누기
+:MENU:mapper_debugger
+DOSBox-X 디버거 시작
 .
 :MENU:mapper_rescanall
 모든 드라이브를 다시 검사
@@ -3391,9 +3394,6 @@ Ctrl+W/Z 키로 변환
 :MENU:list_ideinfo
 IDE 디스크 CD의 상태를 표시
 .
-:MENU:print_textscreen
-DOS 글자 화면 인쇄
-.
 :MENU:pc98_use_uskb
 미국 키보드 레이아웃 사용
 .
@@ -3444,6 +3444,9 @@ CPU:표준 코어
 .
 :MAPPER:prevslot
 이전 세이브 슬롯
+.
+:MAPPER:printtext
+글자 화면 인쇄
 .
 :MAPPER:quickrun
 빠른 시작
