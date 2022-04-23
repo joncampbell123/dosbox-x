@@ -2068,7 +2068,7 @@ uint16_t J3_GetMachineCode() {
 	return j3_machine_code;
 }
 
-void J3_SetType(std::string type) {
+void J3_SetType(std::string type, std::string back, std::string text) {
 	if(type != "default") {
 		j3_machine_code = ConvHexWord((char *)type.c_str());
 	}
@@ -2081,8 +2081,16 @@ void J3_SetType(std::string type) {
 			break;
 		}
 	}
-	j3_back_color = back_color_list[j3_color];
-	j3_text_color = text_color_list[j3_color];
+	if(back.empty()) {
+		j3_back_color = back_color_list[j3_color];
+	} else {
+		j3_back_color = ConvHexWord((char *)back.c_str());
+	}
+	if(text.empty()) {
+		j3_text_color = text_color_list[j3_color];
+	} else {
+		j3_text_color = ConvHexWord((char *)text.c_str());
+	}
 }
 
 void J3_GetPalette(uint8_t no, uint8_t &r, uint8_t &g, uint8_t &b)
