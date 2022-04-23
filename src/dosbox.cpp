@@ -121,7 +121,7 @@ static void CheckX86ExtensionsSupport()
 /*=============================================================================*/
 
 extern void         GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-extern void         AddSaveStateMapper(), AddMessages(), JFONT_Init(), J3_SetType(std::string type);
+extern void         AddSaveStateMapper(), AddMessages(), JFONT_Init(), J3_SetType(std::string type, std::string back, std::string text);
 extern bool         force_nocachedir;
 extern bool         wpcolon;
 extern bool         lockmount;
@@ -1069,7 +1069,7 @@ void DOSBOX_RealInit() {
         if(j3100mode != "off" && j3100mode != "0") {
             dos.set_j3100_enabled = true;
             if (j3100mode != "manual") j3100_start = true;
-            J3_SetType(j3100type);
+            J3_SetType(j3100type, dosv_section->Get_string("j3100backcolor"), dosv_section->Get_string("j3100textcolor"));
         }
     }
     if (!strcasecmp(dosvstr, "ko")) dos.set_kdosv_enabled = true;
@@ -2218,6 +2218,13 @@ void DOSBOX_SetupConfigSections(void) {
 	Pbool->Set_help("Specifies that the color display can be used for scrolling, which is currently incompatible with for example the J-3100 version of the SimCity game.\n"
                     "The VGA version of the Toshiba Windows 3.1 works fine with the \"false\" value of this setting, whereas its CGA/EGA version requires a \"true\" value for this.");
     Pbool->SetBasic(true);
+
+    Pstring = secprop->Add_path("j3100backcolor",Property::Changeable::OnlyAtStart,"");
+    Pstring->Set_help("Specifies the background color in J-3100 mode. If not specified, the colors will be those of the display type corresponding to the model specified in j3100type.");
+    Pstring->SetBasic(true);
+    Pstring = secprop->Add_path("j3100textcolor",Property::Changeable::OnlyAtStart,"");
+    Pstring->Set_help("Specifies text color in J-3100 mode. If not specified, the colors will be those of the display type corresponding to the model specified in j3100type.");
+    Pstring->SetBasic(true);
 
     secprop=control->AddSection_prop("video",&Null_Init);
     Pint = secprop->Add_int("vmemdelay", Property::Changeable::WhenIdle,0);
