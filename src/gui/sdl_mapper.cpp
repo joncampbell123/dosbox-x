@@ -737,6 +737,18 @@ class Typer {
 			Wait();
 		}
 	private:
+		CEvent *GetLShiftEvent()
+		{
+			static CEvent *lshift_event = nullptr;
+			for (auto &event : *m_events) {
+				if (std::string("key_lshift") == event->GetName()) {
+					lshift_event = event;
+					break;
+				}
+			}
+			assert(lshift_event);
+			return lshift_event;
+		}
 		void Callback() {
 			// quit before our initial wait time
 			if (m_stop_requested || (m_choice && !dotype))
@@ -755,13 +767,18 @@ class Typer {
 					std::this_thread::sleep_for(std::chrono::milliseconds(m_pace_ms));
 				// Otherwise trigger the matching button if we have one
 				} else {
-					const std::string bind_name = "key_" + button;
+					const auto is_cap = button.length() == 1 && isupper(button[0]);
+					const auto maybe_lshift = is_cap ? GetLShiftEvent() : nullptr;
+					const std::string lbutton = is_cap ? std::string(1, tolower(button[0])) : button;
+					const std::string bind_name = "key_" + lbutton;
 					for (auto &event : *m_events) {
 						if (bind_name == event->GetName()) {
 							found = true;
+							if (maybe_lshift) maybe_lshift->Active(true);
 							event->Active(true);
-						        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+							std::this_thread::sleep_for(std::chrono::milliseconds(50));
 							event->Active(false);
+							if (maybe_lshift) maybe_lshift->Active(false);
 							break;
 						}
 					}
