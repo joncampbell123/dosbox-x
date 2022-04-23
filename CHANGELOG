@@ -27,6 +27,8 @@
   - Updated FLAC, MP3, and WAV decoder libraries to the
     latest versions (v0.12.38, v0.6.32, and v0.13.6)
     respectively; per David Reid). (Wengier)
+  - Added support for upper case characters (A-Z) for
+    AUTOTYPE command. (kcgen)
   - Added /T option for CHOICE command to set a default
     choice as in DOS, e.g. CHOICE /T:Y,3 (Wengier)
   - Added Korean language option in Windows installer.

@@ -6723,7 +6723,7 @@ void AUTOTYPE::PrintKeys()
 	auto name = names.begin();
 	for (size_t row = 0; row < rows; ++row) {
 		for (size_t i = row; i < names.size(); i += rows)
-			WriteOut("  %-*s", static_cast<int>(max_length), name[i].c_str());
+			WriteOut("  %-*s", static_cast<int>(max_length), (name[i].size()==1&&name[i][0]>='a'&&name[i][0]<='z'?name[i]+" ("+std::string(1, toupper(name[i][0]))+")":name[i]).c_str());
 		WriteOut_NoParsing("\n");
 	}
 }
@@ -6816,7 +6816,7 @@ void AUTOTYPE::Run()
 	}
 
 	// Print available keys
-	if (cmd->FindExist("-list", false)) {
+	if (cmd->FindExist("-list", false) || cmd->FindExist("/list", false)) {
 		PrintKeys();
 		return;
 	}
