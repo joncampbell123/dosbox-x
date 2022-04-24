@@ -16,25 +16,31 @@ jobs:
       - uses: actions/setup-node@v2
         with:
           node-version: '14'
+      - name: Build minimal
+        run: |
+          ./build --disable-freetype --disable-libfluidsynth --disable-mt32 --disable-screenshots
       - name: Install libraries
         run: |
           sudo apt-get update -y
-          sudo apt-get install -y nasm fluidsynth libfluidsynth-dev libpcap-dev libslirp-dev libsdl-net1.2-dev libsdl2-net-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev
+          sudo apt-get install -y nasm fluidsynth libfluidsynth-dev fluid-soundfont-gm libpcap-dev libslirp-dev libsdl-net1.2-dev libsdl2-net-dev libglu1-mesa-dev freeglut3-dev mesa-common-dev
+          mkdir src/bin
       - name: Build Linux SDL1
         run: |
           top=`pwd`
-          mkdir $top/src/bin
           ./build-debug
           strip --strip-all $top/src/dosbox-x
-          $top/src/dosbox-x -tests
           cp $top/src/dosbox-x $top/src/bin/dosbox-x-sdl1
       - name: Build Linux SDL2
         run: |
           top=`pwd`
           ./build-debug-sdl2
           strip --strip-all $top/src/dosbox-x
-          $top/src/dosbox-x -tests
           cp $top/src/dosbox-x $top/src/bin/dosbox-x-sdl2
+      - name: Unit testing
+        run: |
+          top=`pwd`
+          $top/src/bin/dosbox-x-sdl1 -tests
+          $top/src/bin/dosbox-x-sdl2 -tests
       - name: Upload release package
         uses: actions/upload-artifact@v2
         with:
