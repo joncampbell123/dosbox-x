@@ -77,6 +77,7 @@ bool printfont = true;
 bool autoboxdraw = true;
 bool halfwidthkana = true;
 bool ttf_dosv = false;
+bool lesssize = false;
 bool lastmenu = true;
 bool initttf = false;
 bool copied = false;
@@ -822,18 +823,32 @@ void OUTPUT_TTF_Select(int fsize) {
             curSize &= ~1;
     }
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-resize:
+resize1:
 #endif
     GFX_SelectFontByPoints(curSize);
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
     if (!ttf.fullScrn && menu_gui && menu.toggle && menuwidth_atleast(ttf.cols*ttf.width+ttf.offX*2+GetSystemMetrics(SM_CXBORDER)*2)>0) {
         if (ttf.cols*ttf.width > maxWidth || ttf.lins*ttf.height > maxHeight) E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
         curSize++;
-        goto resize;
+        goto resize1;
     }
 #endif
-    if (fontSize>=MIN_PTSIZE && 100*ttf.cols*ttf.width/maxWidth*ttf.lins*ttf.height/maxHeight > 100)
+	GetMaxWidthHeight(&maxWidth, &maxHeight);
+#if defined(WIN32)
+	if (!ttf.fullScrn) {
+		maxWidth -= GetSystemMetrics(SM_CXBORDER)*2;
+		maxHeight -= GetSystemMetrics(SM_CYCAPTION) + GetSystemMetrics(SM_CYBORDER)*2;
+	}
+#endif
+resize2:
+    if (fontSize>=MIN_PTSIZE && 100*ttf.cols*ttf.width/maxWidth*ttf.lins*ttf.height/maxHeight > 100 || (lesssize && (ttf.cols*ttf.width>maxWidth || ttf.lins*ttf.height>maxHeight))) {
+        if (lesssize && curSize > MIN_PTSIZE) {
+            curSize--;
+            GFX_SelectFontByPoints(curSize);
+            goto resize2;
+        }
         E_Exit("Cannot accommodate a window for %dx%d", ttf.lins, ttf.cols);
+    }
     if (ttf.SDL_font && ttf.width) {
         int widthb, widthm, widthx, width0, width1, width9;
         widthb = widthm = widthx = width0 = width1 = width9 = 0;
