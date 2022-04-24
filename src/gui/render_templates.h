@@ -123,7 +123,7 @@
 #elif DBPP == 16 // xRRRRRGggggBBBBB -> RRRRRGggggGBBBBB
 #define PMAKE(_VAL) ((_VAL & 31)|((_VAL & ~31)<<1)|((_VAL&0x0200)>>4))
 #elif DBPP == 32 // xRRRrrGGGggBBBbb -> RRRrrRRRGGGggGGGBBBbbBBB
-# if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+# if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) && !defined(C_SDL2) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
 #  define PMAKE(_VAL)  (((_VAL&(31u<<10u))<<1u)|((_VAL&(31u<<5u))<<14u)|((_VAL&31u)<<27u))
 # else
 #  define PMAKE(_VAL)  (((_VAL&(31u<<10u))<<9u)|((_VAL&(31u<<5u))<<6u)|((_VAL&31u)<<3u)|((_VAL&(7<<12))<<4)|((_VAL&(7<<7))<<1)|((_VAL&(7<<2))>>2))
@@ -149,7 +149,7 @@
 #elif DBPP == 16
 #define PMAKE(_VAL) (_VAL)
 #elif DBPP == 32 // RRRrrGGggggBBBbb -> RRRrrRRRGGggggGGBBBbbBBB
-# if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+# if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) && !defined(C_SDL2) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
 #  define PMAKE(_VAL)  (((_VAL&(31u<<11u))<<0u)|((_VAL&(63u<<5u))<<13u)|((_VAL&31u)<<27u))
 # else
 #  define PMAKE(_VAL)  (((_VAL&(31<<11))<<8)|((_VAL&(63<<5))<<5)|((_VAL&0xE01F)<<3)|((_VAL&(3<<9))>>1)|((_VAL&(7<<2))>>2))
