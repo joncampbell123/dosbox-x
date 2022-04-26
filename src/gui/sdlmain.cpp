@@ -6632,9 +6632,9 @@ bool DOSBOX_parse_argv() {
         else if (optname == "?" || optname == "h" || optname == "help") {
             DOSBox_ShowConsole();
 
-            fprintf(stderr,"\ndosbox-x [name] [options]\n");
             fprintf(stderr,"\nDOSBox-X version %s %s, copyright 2011-%s The DOSBox-X Team.\n",VERSION,SDL_STRING,COPYRIGHT_END_YEAR);
             fprintf(stderr,"DOSBox-X project maintainer: joncampbell123 (The Great Codeholio)\n\n");
+            fprintf(stderr,"dosbox-x [name] [options]\n");
             fprintf(stderr,"Options can be started with either \"-\" or \"/\" (e.g. \"-help\" or \"/help\"):\n\n");
             fprintf(stderr,"  -?, -h, -help                           Show this help screen\n");
             fprintf(stderr,"  -v, -ver, -version                      Display DOSBox-X version information\n");
@@ -6668,6 +6668,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -display2 <color>                       Enable standard & monochrome dual-screen mode with <color>\n");
 #endif
             fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
+            fprintf(stderr,"  -machine <type>                         Start DOSBox-X with a specific machine <type>\n");
             fprintf(stderr,"  -nodpiaware                             Ignore (do not signal) Windows DPI awareness\n");
             fprintf(stderr,"  -securemode                             Enable secure mode (no drive mounting etc)\n");
             fprintf(stderr,"  -prerun                                 If [name] is given, run it before AUTOEXEC.BAT config section\n");
@@ -6744,6 +6745,9 @@ bool DOSBOX_parse_argv() {
         }
         else if (optname == "nolog") {
             control->opt_nolog = true;
+        }
+        else if (optname == "machine") {
+            if (!control->cmdline->NextOptArgv(control->opt_machine)) return false;
         }
         else if (optname == "time-limit") {
             if (!control->cmdline->NextOptArgv(tmp)) return false;

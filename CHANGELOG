@@ -42,6 +42,8 @@
     or unit tests fail. (Wengier)
   - Fixed built-in IPX and Modem emulation unavailable
     in MinGW builds. (Wengier)
+  - Fixed -machine command-line option (as listed by
+    "INTRO USAGE" command) not working. (Wengier)
   - Fixed lockup in classic Jumpman. (maron2000)
   - Fixed fscale FPU operation and updated FPU status
     word. Also fixed FPU stack value log messages on

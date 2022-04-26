@@ -1012,9 +1012,9 @@ void DOSBOX_RealInit() {
 
     // TODO: should be parsed by motherboard emulation or lower level equiv..?
     std::string cmd_machine;
-    if (control->cmdline->FindString("-machine",cmd_machine,true)){
+    if (control->opt_machine != ""){
         //update value in config (else no matching against suggested values
-        section->HandleInputline(std::string("machine=") + cmd_machine);
+        section->HandleInputline(std::string("machine=") + control->opt_machine);
     }
 
     // NTS: svga_s3 means S3 Trio64 emulation to match general DOSBox SVN emulation behavior.
