@@ -324,7 +324,7 @@ In addition, the following extra commands are available on the emulated Z: drive
 --
 *PARALLEL*, *SERIAL*, *MIXER*, *CAPMOUSE*, *FLAGSAVE*, *CFGTOOL*, *RESCAN*,
 *RE-DOS*, *COUNTRY*, *CONFIG*, *BOOT*, *MOUNT*, *IMGSWAP*, *IMGMAKE*,
-*IMGMOUNT*, *INTRO*, *HELP*
+*IMGMOUNT*, *INTRO*, *HELP*, *NE2000*
 --
 - *Z:\TEXTUTIL*
 +
