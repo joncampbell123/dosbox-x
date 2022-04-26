@@ -1835,6 +1835,7 @@ void UpdateOverscanMenu(void) {
 
 void aspect_ratio_menu() {
     mainMenu.get_item("video_ratio_1_1").check(aspect_ratio_x==1&&aspect_ratio_y==1).enable(true).refresh_item(mainMenu);
+    mainMenu.get_item("video_ratio_3_2").check(aspect_ratio_x==3&&aspect_ratio_y==2).enable(true).refresh_item(mainMenu);
     mainMenu.get_item("video_ratio_4_3").check((aspect_ratio_x==4&&aspect_ratio_y==3)||!aspect_ratio_x||!aspect_ratio_y).enable(true).refresh_item(mainMenu);
     mainMenu.get_item("video_ratio_16_9").check(aspect_ratio_x==16&&aspect_ratio_y==9).enable(true).refresh_item(mainMenu);
     mainMenu.get_item("video_ratio_16_10").check(aspect_ratio_x==16&&aspect_ratio_y==10).enable(true).refresh_item(mainMenu);
@@ -1849,6 +1850,10 @@ bool aspect_ratio_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
         aspect_ratio_x = 1;
         aspect_ratio_y = 1;
         SetVal("render", "aspect_ratio", "1:1");
+    } else if (!strcmp(mname, "video_ratio_3_2")) {
+        aspect_ratio_x = 3;
+        aspect_ratio_y = 2;
+        SetVal("render", "aspect_ratio", "3:2");
     } else if (!strcmp(mname, "video_ratio_4_3")) {
         aspect_ratio_x = 4;
         aspect_ratio_y = 3;
@@ -2921,6 +2926,8 @@ void AllocCallback1() {
                 item.set_text("Aspect ratio");
 
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"video_ratio_1_1").set_text("1:1").
+                    set_callback_function(aspect_ratio_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"video_ratio_3_2").set_text("3:2").
                     set_callback_function(aspect_ratio_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"video_ratio_4_3").set_text("4:3").
                     set_callback_function(aspect_ratio_menu_callback);

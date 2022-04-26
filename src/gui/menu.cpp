@@ -346,6 +346,7 @@ static const char *def_menu_video_frameskip[] =
 static const char *def_menu_video_ratio[] =
 {
     "video_ratio_1_1",
+    "video_ratio_3_2",
     "video_ratio_4_3",
     "video_ratio_16_9",
     "video_ratio_16_10",
