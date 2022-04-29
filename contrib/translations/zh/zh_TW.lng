@@ -2251,6 +2251,12 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 :MENU:mapper_pasteend
 停止將剪貼簿內容貼上
 .
+:MENU:mapper_ejectpage
+傳送印表機換頁符號
+.
+:MENU:mapper_printtext
+列印 DOS 畫面文字
+.
 :MENU:mapper_pause
 暫停模擬
 .
@@ -2269,17 +2275,17 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 :MENU:mapper_resetsize
 重設視窗大小
 .
-:MENU:mapper_incsize
-放大 TTF 字型
-.
-:MENU:mapper_decsize
-縮小 TTF 字型
-.
 :MENU:mapper_dbcssbcs
 中日韓文字: 切換雙位元組/單位元組模式
 .
 :MENU:mapper_autoboxdraw
 中日韓文字: 自動檢測製表符號
+.
+:MENU:mapper_incsize
+放大 TTF 字型
+.
+:MENU:mapper_decsize
+縮小 TTF 字型
 .
 :MENU:mapper_resetcolor
 重設 TTF 色彩配置
@@ -2431,6 +2437,9 @@ AMD Athlon 600MHz (約 306000 個週期)
 :MENU:video_ratio_1_1
 1:1
 .
+:MENU:video_ratio_3_2
+3:2
+.
 :MENU:video_ratio_4_3
 4:3
 .
@@ -2451,9 +2460,6 @@ AMD Athlon 600MHz (約 306000 個週期)
 .
 :MENU:VideoScalerMenu
 縮放器
-.
-:MENU:scaler_forced
-強制使用縮放器
 .
 :MENU:scaler_set_none
 無
@@ -3094,6 +3100,9 @@ Turbo (快轉模式)
 :MENU:mapper_aspratio
 符合長寬比模式
 .
+:MENU:mapper_fscaler
+強制使用縮放器
+.
 :MENU:mapper_recwave
 錄製音訊到 WAV
 .
@@ -3111,9 +3120,6 @@ Turbo (快轉模式)
 .
 :MENU:mapper_scrshot
 抓取螢幕畫面
-.
-:MENU:mapper_debugger
-啟動 DOSBox-X 偵錯工具
 .
 :MENU:mapper_volup
 提高音量
@@ -3217,8 +3223,8 @@ Turbo (快轉模式)
 :MENU:mapper_swapcd
 切換光碟映像
 .
-:MENU:mapper_ejectpage
-傳送印表機換頁符號
+:MENU:mapper_debugger
+啟動 DOSBox-X 偵錯工具
 .
 :MENU:mapper_rescanall
 重新整理所有磁碟機
@@ -3361,9 +3367,6 @@ Mapper "傳送特殊鍵": Ctrl+Alt+Del
 :MENU:list_ideinfo
 顯示 IDE 磁碟或光碟狀態
 .
-:MENU:print_textscreen
-列印 DOS 畫面文字
-.
 :MENU:pc98_use_uskb
 使用美式鍵盤配置
 .
@@ -3399,6 +3402,9 @@ CPU: 一般核心
 .
 :MAPPER:prevslot
 上一個儲存位置
+.
+:MENU:printtext
+列印畫面文字
 .
 :MAPPER:quickrun
 快速啟動程式

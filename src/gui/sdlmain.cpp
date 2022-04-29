@@ -306,7 +306,8 @@ unsigned int sendkeymap=0;
 std::string configfile = "";
 std::string strPasteBuffer = "";
 ScreenSizeInfo screen_size_info;
-void DOSBOX_UnlockSpeed2(bool pressed), FormFeed(bool pressed);
+void FormFeed(bool pressed), PrintText(bool pressed);
+void DOSBOX_UnlockSpeed2(bool pressed), DEBUG_Enable_Handler(bool pressed);
 int FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 
@@ -1263,7 +1264,41 @@ void HideMenu_mapper_shortcut(bool pressed) {
 #endif
 }
 
-void PauseWithInterrupts_mapper_shortcut(bool pressed);
+void CALLBACK_Idle(void);
+
+void PauseWithInterruptsEnabled(Bitu /*val*/) {
+    /* we can ONLY do this when the CPU is either in real mode or v86 mode.
+     * doing this from protected mode will only crash the game.
+     * also require that interrupts are enabled before pausing. */
+    if (cpu.pmode) {
+        if (!(reg_flags & FLAG_VM)) {
+            PIC_AddEvent(PauseWithInterruptsEnabled,0.001);
+            return;
+        }
+    }
+
+    if (!(reg_flags & FLAG_IF)) {
+        PIC_AddEvent(PauseWithInterruptsEnabled,0.001);
+        return;
+    }
+
+    while (pausewithinterrupts_enable) CALLBACK_Idle();
+}
+
+void PauseWithInterrupts_mapper_shortcut(bool pressed) {
+    if (!pressed) return;
+
+    if (!pausewithinterrupts_enable) {
+        pausewithinterrupts_enable = true;
+        PIC_AddEvent(PauseWithInterruptsEnabled,0.001);
+    }
+    else {
+        pausewithinterrupts_enable = false;
+    }
+
+    mainMenu.get_item("mapper_pauseints").check(pausewithinterrupts_enable).refresh_item(mainMenu);
+}
+
 void PauseDOSBoxLoop(Bitu /*unused*/) {
     bool paused = true;
     SDL_Event event;
@@ -3473,6 +3508,14 @@ static void GUI_StartUp() {
     MAPPER_AddHandler(PasteClipStop,MK_nothing, 0,"pasteend", "Stop clipboard paste", &item);
     item->set_text("Stop clipboard pasting");
 
+#if C_PRINTER
+    MAPPER_AddHandler(&FormFeed, MK_f2 , MMOD1, "ejectpage", "Send form-feed", &item);
+    item->set_text("Send form-feed");
+
+    MAPPER_AddHandler(&PrintText, MK_nothing, 0, "printtext", "Print text screen", &item);
+    item->set_text("Print DOS text screen");
+#endif
+
     MAPPER_AddHandler(&PauseDOSBox, MK_pause, MMODHOST, "pause", "Pause emulation");
 
     MAPPER_AddHandler(&PauseWithInterrupts_mapper_shortcut, MK_nothing, 0, "pauseints", "Pause with interrupt", &item);
@@ -3497,12 +3540,6 @@ static void GUI_StartUp() {
     item->set_text("Reset window size");
 
 #if defined(USE_TTF)
-    MAPPER_AddHandler(&TTF_IncreaseSize, MK_uparrow, MMODHOST, "incsize", "Increase TTF size", &item);
-    item->set_text("Increase TTF font size");
-
-    MAPPER_AddHandler(&TTF_DecreaseSize, MK_downarrow, MMODHOST, "decsize", "Decrease TTF size", &item);
-    item->set_text("Decrease TTF font size");
-
     void DBCSSBCS_mapper_shortcut(bool pressed);
     MAPPER_AddHandler(&DBCSSBCS_mapper_shortcut, MK_nothing, 0, "dbcssbcs", "CJK: Switch between DBCS/SBCS modes", &item);
     item->set_text("CJK: Switch between DBCS/SBCS modes");
@@ -3510,6 +3547,12 @@ static void GUI_StartUp() {
     void AutoBoxDraw_mapper_shortcut(bool pressed);
     MAPPER_AddHandler(&AutoBoxDraw_mapper_shortcut, MK_nothing, 0, "autoboxdraw", "CJK: Auto-detect box-drawing characters", &item);
     item->set_text("CJK: Auto-detect box-drawing characters");
+
+    MAPPER_AddHandler(&TTF_IncreaseSize, MK_uparrow, MMODHOST, "incsize", "Increase TTF size", &item);
+    item->set_text("Increase TTF font size");
+
+    MAPPER_AddHandler(&TTF_DecreaseSize, MK_downarrow, MMODHOST, "decsize", "Decrease TTF size", &item);
+    item->set_text("Decrease TTF font size");
 
     void ResetColors_mapper_shortcut(bool pressed);
     MAPPER_AddHandler(&ResetColors_mapper_shortcut, MK_nothing, 0, "resetcolor", "Reset color scheme", &item);
@@ -6589,9 +6632,9 @@ bool DOSBOX_parse_argv() {
         else if (optname == "?" || optname == "h" || optname == "help") {
             DOSBox_ShowConsole();
 
-            fprintf(stderr,"\ndosbox-x [name] [options]\n");
             fprintf(stderr,"\nDOSBox-X version %s %s, copyright 2011-%s The DOSBox-X Team.\n",VERSION,SDL_STRING,COPYRIGHT_END_YEAR);
             fprintf(stderr,"DOSBox-X project maintainer: joncampbell123 (The Great Codeholio)\n\n");
+            fprintf(stderr,"dosbox-x [name] [options]\n");
             fprintf(stderr,"Options can be started with either \"-\" or \"/\" (e.g. \"-help\" or \"/help\"):\n\n");
             fprintf(stderr,"  -?, -h, -help                           Show this help screen\n");
             fprintf(stderr,"  -v, -ver, -version                      Display DOSBox-X version information\n");
@@ -6625,6 +6668,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -display2 <color>                       Enable standard & monochrome dual-screen mode with <color>\n");
 #endif
             fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
+            fprintf(stderr,"  -machine <type>                         Start DOSBox-X with a specific machine <type>\n");
             fprintf(stderr,"  -nodpiaware                             Ignore (do not signal) Windows DPI awareness\n");
             fprintf(stderr,"  -securemode                             Enable secure mode (no drive mounting etc)\n");
             fprintf(stderr,"  -prerun                                 If [name] is given, run it before AUTOEXEC.BAT config section\n");
@@ -6701,6 +6745,9 @@ bool DOSBOX_parse_argv() {
         }
         else if (optname == "nolog") {
             control->opt_nolog = true;
+        }
+        else if (optname == "machine") {
+            if (!control->cmdline->NextOptArgv(control->opt_machine)) return false;
         }
         else if (optname == "time-limit") {
             if (!control->cmdline->NextOptArgv(tmp)) return false;
@@ -8610,11 +8657,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         DONGLE_Init();
 #if C_PRINTER
         PRINTER_Init();
-        {
-            DOSBoxMenu::item *item;
-            MAPPER_AddHandler(FormFeed, MK_f2 , MMOD1, "ejectpage", "Send form-feed", &item);
-            item->set_text("Send form-feed");
-        }
 #endif
         PARALLEL_Init();
         NE2K_Init();
@@ -8629,6 +8671,38 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         /* let's assume motherboards are sane on boot because A20 gate is ENABLED on first boot */
         MEM_A20_Enable(true);
+
+#if C_DEBUG
+        {
+            DOSBoxMenu::item *item;
+            /* Add some keyhandlers */
+            MAPPER_AddHandler(DEBUG_Enable_Handler,
+#if defined(MACOSX)
+            // MacOS     NOTE: ALT-F12 to launch debugger. pause maps to F16 on macOS,
+            // which is not easy to input on a modern mac laptop
+            MK_f12
+#else
+            MK_pause
+#endif
+            ,MMOD2,"debugger","Show debugger",&item);
+            item->set_text("Start DOSBox-X Debugger");
+
+#if defined(MACOSX) || defined(LINUX)
+            /* Mac OS X does not have a console for us to just allocate on a whim like Windows does.
+               So the debugger interface is useless UNLESS the user has started us from a terminal
+               (whether over SSH or from the Terminal app).
+
+               Linux/X11 also does not have a console we can allocate on a whim. You either run
+               this program from XTerm for the debugger, or not. */
+            bool allow = true;
+
+            if (!isatty(0) || !isatty(1) || !isatty(2))
+                allow = false;
+
+            mainMenu.get_item("mapper_debugger").enable(allow).refresh_item(mainMenu);
+#endif
+        }
+#endif
 
         /* OS init now */
         DOS_Init();
@@ -8711,7 +8785,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         bool MENU_get_mute(void);
         mainMenu.get_item("mixer_mute").check(MENU_get_mute()).refresh_item(mainMenu);
 
-        mainMenu.get_item("scaler_forced").check(render.scale.forced).refresh_item(mainMenu);
+        mainMenu.get_item("mapper_fscaler").check(render.scale.forced).refresh_item(mainMenu);
         mainMenu.get_item("3dfx_voodoo").check(strcasecmp(static_cast<Section_prop *>(control->GetSection("voodoo"))->Get_string("voodoo_card"), "false")).refresh_item(mainMenu);
         mainMenu.get_item("3dfx_glide").check(addovl).refresh_item(mainMenu);
 
@@ -8758,7 +8832,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("ttf_extcharset").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dos.loaded_codepage==936?gbk:(dos.loaded_codepage==950||dos.loaded_codepage==951?chinasea:gbk&&chinasea));
 #endif
 #if C_PRINTER
-        mainMenu.get_item("print_textscreen").enable(!IS_PC98_ARCH);
+        mainMenu.get_item("mapper_printtext").enable(!IS_PC98_ARCH);
 #endif
         mainMenu.get_item("pc98_5mhz_gdc").enable(IS_PC98_ARCH);
         mainMenu.get_item("pc98_allow_200scanline").enable(IS_PC98_ARCH);

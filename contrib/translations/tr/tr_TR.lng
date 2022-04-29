@@ -2279,6 +2279,12 @@ Panodan yapıştırılıyor
 :MENU:mapper_pasteend
 Panodan yapıştırmayı durdur
 .
+:MENU:mapper_ejectpage
+Form beslemesi gönder
+.
+:MENU:mapper_printtext
+DOS metin ekranını yazdır
+.
 :MENU:mapper_pause
 Öykünmeyi duraklat
 .
@@ -2297,17 +2303,17 @@ Tam ekrana gir/çık
 :MENU:mapper_resetsize
 Pencereyi sıfırla
 .
-:MENU:mapper_incsize
-TTF yazıtipi boyutunu artır
-.
-:MENU:mapper_decsize
-TTF yazıtipi boyutunu azalt
-.
 :MENU:mapper_dbcssbcs
 ÇJK: DBCS/SBCS kipleri arasında geçiş yap
 .
 :MENU:mapper_autoboxdraw
 ÇJK: Kutu karakterleri kendiliğinden algıla
+.
+:MENU:mapper_incsize
+TTF yazıtipi boyutunu artır
+.
+:MENU:mapper_decsize
+TTF yazıtipi boyutunu azalt
 .
 :MENU:mapper_resetcolor
 TTF renk şemasını sıfırla
@@ -2459,6 +2465,9 @@ en boy oranı
 :MENU:video_ratio_1_1
 1:1
 .
+:MENU:video_ratio_3_2
+3:2
+.
 :MENU:video_ratio_4_3
 4:3
 .
@@ -2479,9 +2488,6 @@ Oranı ayarla
 .
 :MENU:VideoScalerMenu
 Ölçekleyici
-.
-:MENU:scaler_forced
-Ölçekleyiciyi zorla
 .
 :MENU:scaler_set_none
 Hiçbiri
@@ -3122,6 +3128,9 @@ Bir sonraki slotu seç
 :MENU:mapper_aspratio
 Orana sığdır
 .
+:MENU:mapper_fscaler
+Ölçekleyiciyi zorla
+.
 :MENU:mapper_recwave
 Sesi WAV olarak kaydet
 .
@@ -3139,9 +3148,6 @@ Videoyu AVI olarak kaydet
 .
 :MENU:mapper_scrshot
 Ekran görüntüsü al
-.
-:MENU:mapper_debugger
-DOSBox-X hata ayıklayıcısını başlat
 .
 :MENU:mapper_volup
 Ses düzeyini artır
@@ -3245,8 +3251,8 @@ Disket sürücüleri değiştir
 :MENU:mapper_swapcd
 CD sürücüsünü değiştir
 .
-:MENU:mapper_ejectpage
-Form beslemesi gönder
+:MENU:mapper_debugger
+DOSBox-X hata ayıklayıcısını başlat
 .
 :MENU:mapper_rescanall
 Tüm sürücüleri yeniden tara
@@ -3389,9 +3395,6 @@ Bağlı disk numaralarını göster
 :MENU:list_ideinfo
 IDE disk veya CD durumunu göster
 .
-:MENU:print_textscreen
-DOS metin ekranını yazdır
-.
 :MENU:pc98_use_uskb
 ABD klavye dizilimi kullan
 .
@@ -3442,6 +3445,9 @@ Yarıda keserek durdur
 .
 :MAPPER:prevslot
 Önceki kaydetme slotu
+.
+:MAPPER:printtext
+Metin ekranını yazdır
 .
 :MAPPER:quickrun
 Hızlı program başlat

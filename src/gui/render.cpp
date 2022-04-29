@@ -366,7 +366,15 @@ extern Bitu PIC_Ticks;
 extern bool pause_on_vsync;
 extern bool checkmenuwidth;
 void PauseDOSBox(bool pressed);
-void AspectRatio_mapper_shortcut(bool pressed);
+bool GFX_GetPreventFullscreen(void);
+
+void AspectRatio_mapper_shortcut(bool pressed) {
+    if (!pressed) return;
+
+    if (!GFX_GetPreventFullscreen()) {
+        SetVal("render", "aspect", render.aspect ? "false" : "true");
+    }
+}
 
 void RENDER_EndUpdate( bool abort ) {
     if (GCC_UNLIKELY(!render.updating))
@@ -1053,7 +1061,7 @@ extern const char *scaler_menu_opts[][2];
 void RENDER_UpdateScalerMenu(void) {
     const std::string scaler = RENDER_GetScaler();
 
-    mainMenu.get_item("scaler_forced").check(render.scale.forced).refresh_item(mainMenu);
+    mainMenu.get_item("mapper_fscaler").check(render.scale.forced).refresh_item(mainMenu);
     for (size_t i=0;scaler_menu_opts[i][0] != NULL;i++) {
         const std::string name = std::string("scaler_set_") + scaler_menu_opts[i][0];
         mainMenu.get_item(name).check(scaler == scaler_menu_opts[i][0]).refresh_item(mainMenu);
@@ -1196,6 +1204,13 @@ void setAspectRatio(Section_prop * section) {
 	aspect_ratio_menu();
 }
 
+void SetScaleForced(bool forced);
+void ForceScaler(bool pressed) {
+    if (!pressed) return;
+    SetScaleForced(!render.scale.forced);
+    return;
+}
+
 void RENDER_Init() {
     Section_prop * section=static_cast<Section_prop *>(control->GetSection("render"));
 
@@ -1262,6 +1277,9 @@ void RENDER_Init() {
 
 	MAPPER_AddHandler(&AspectRatio_mapper_shortcut, MK_nothing, 0, "aspratio", "Fit to aspect ratio", &item);
 	item->set_text("Fit to aspect ratio");
+
+	MAPPER_AddHandler(ForceScaler, MK_nothing, 0, "fscaler", "Force scaler", &item);
+	item->set_text("Force scaler");
 
 	if (machine==MCH_HERC || machine==MCH_MDA) {
 		void HercBlend(bool pressed), CycleHercPal(bool pressed);

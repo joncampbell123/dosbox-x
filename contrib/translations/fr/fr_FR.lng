@@ -2283,6 +2283,12 @@ Collage à partir du presse-papiers
 :MENU:mapper_pasteend
 Arrêter le collage du presse-papiers
 .
+:MENU:mapper_ejectpage
+Envoyer sauts de page
+.
+:MENU:mapper_printtext
+Imprimer l'écran de texte DOS
+.
 :MENU:mapper_pause
 Pauser émulation
 .
@@ -2301,17 +2307,17 @@ Basculer plein écran
 :MENU:mapper_resetsize
 Réinit. taille fenêtre
 .
-:MENU:mapper_incsize
-Augmenter taille police
-.
-:MENU:mapper_decsize
-Diminuer taille police
-.
 :MENU:mapper_dbcssbcs
 CJK : Commutation entre les modes DBCS/SBCS
 .
 :MENU:mapper_autoboxdraw
 CJK : Détection automatique des caractères de type "box-drawing".
+.
+:MENU:mapper_incsize
+Augmenter taille police
+.
+:MENU:mapper_decsize
+Diminuer taille police
 .
 :MENU:mapper_resetcolor
 Réinitialiser le schéma de couleurs TTF
@@ -2463,6 +2469,9 @@ Ratio d'aspect
 :MENU:video_ratio_1_1
 1:1
 .
+:MENU:video_ratio_3_2
+3:2
+.
 :MENU:video_ratio_4_3
 4:3
 .
@@ -2483,9 +2492,6 @@ Définir le rapport
 .
 :MENU:VideoScalerMenu
 Mise à l'échelle
-.
-:MENU:scaler_forced
-Forcer la mise à l'échelle
 .
 :MENU:scaler_set_none
 Aucun
@@ -3127,6 +3133,9 @@ Augmenter le frameskip
 :MENU:mapper_aspratio
 Ajuster format image
 .
+:MENU:mapper_fscaler
+Forcer la l'échelle
+.
 :MENU:mapper_recwave
 Enreg. audio WAV
 .
@@ -3144,9 +3153,6 @@ Enreg. vidéo en AVI
 .
 :MENU:mapper_scrshot
 Capture d'écran
-.
-:MENU:mapper_debugger
-Démarrer débogueur DOSBox-X
 .
 :MENU:mapper_volup
 Monter le volume
@@ -3251,8 +3257,8 @@ Remplacer lecteur disquette
 :MENU:mapper_swapcd
 Remplacer lecteur CDs
 .
-:MENU:mapper_ejectpage
-Envoyer sauts de page
+:MENU:mapper_debugger
+Démarrer débogueur DOSBox-X
 .
 :MENU:mapper_rescanall
 Rescanner tous les disques
@@ -3395,9 +3401,6 @@ Afficher les numéros des lecteurs montés
 :MENU:list_ideinfo
 Afficher l'état du disque IDE ou du CD
 .
-:MENU:print_textscreen
-Imprimer l'écran de texte DOS
-.
 :MENU:pc98_use_uskb
 Utiliser la disposition clavier US
 .
@@ -3448,7 +3451,10 @@ Pause avec interrupt.
 .
 :MAPPER:prevslot
 Emplacement svg préc.
-
+.
+:MAPPER:printtext
+Imprimer texte d'écran
+.
 :MAPPER:quickrun
 Lancer prog. rapidement
 .

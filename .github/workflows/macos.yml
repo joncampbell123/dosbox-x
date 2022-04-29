@@ -16,21 +16,24 @@ jobs:
       - name: Install libraries
         run: |
           brew install autoconf automake nasm glfw glew sdl_net sdl2_net
+          mkdir src/bin
       - name: Build macOS SDL1
         run: |
           top=`pwd`
-          mkdir $top/src/bin
           ./build-macosx
           strip $top/src/dosbox-x
-          $top/src/dosbox-x -tests
           cp $top/src/dosbox-x $top/src/bin/dosbox-x-sdl1
       - name: Build macOS SDL2
         run: |
           top=`pwd`
           ./build-macosx-sdl2
           strip $top/src/dosbox-x
-          $top/src/dosbox-x -tests
           cp $top/src/dosbox-x $top/src/bin/dosbox-x-sdl2
+      - name: Unit testing
+        run: |
+          top=`pwd`
+          $top/src/bin/dosbox-x-sdl1 -tests
+          $top/src/bin/dosbox-x-sdl2 -tests
       - name: Upload release package
         uses: actions/upload-artifact@v2
         with:

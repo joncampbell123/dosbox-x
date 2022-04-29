@@ -680,27 +680,6 @@ bool list_ideinfo_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
     return true;
 }
 
-#if C_PRINTER
-bool PRINTER_isInited();
-void PrintScreen(const char *text, uint16_t len);
-bool print_screen_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    if (!PRINTER_isInited()) {
-        systemmessagebox("Error","Printer support is not enabled in the configuration.","ok", "error", 1);
-        return false;
-    }
-    if (!CurMode||CurMode->type!=M_TEXT) {
-        systemmessagebox("Error","The current DOS screen is not in text mode.","ok", "error", 1);
-        return false;
-    }
-    uint16_t len=0;
-    const char* text = Mouse_GetSelected(0,0,(int)(currentWindowWidth-1-sdl.clip.x),(int)(currentWindowHeight-1-sdl.clip.y),(int)(currentWindowWidth-sdl.clip.x),(int)(currentWindowHeight-sdl.clip.y), &len);
-    if (len) PrintScreen(text, len);
-    return true;
-}
-#endif
-
 const char *drive_opts[][2] = {
 #if defined(WIN32)
 	{ "mountauto",              "Auto-mount Windows drive" },
@@ -817,16 +796,7 @@ bool dos_debug_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
     return true;
 }
 
-void SetScaleForced(bool forced);
 void OutputSettingMenuUpdate(void);
-
-bool scaler_forced_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
-    (void)menu;//UNUSED
-    (void)menuitem;//UNUSED
-    SetScaleForced(!render.scale.forced);
-    return true;
-}
-
 void MENU_swapstereo(bool enabled);
 bool MENU_get_swapstereo(void);
 
@@ -1865,6 +1835,7 @@ void UpdateOverscanMenu(void) {
 
 void aspect_ratio_menu() {
     mainMenu.get_item("video_ratio_1_1").check(aspect_ratio_x==1&&aspect_ratio_y==1).enable(true).refresh_item(mainMenu);
+    mainMenu.get_item("video_ratio_3_2").check(aspect_ratio_x==3&&aspect_ratio_y==2).enable(true).refresh_item(mainMenu);
     mainMenu.get_item("video_ratio_4_3").check((aspect_ratio_x==4&&aspect_ratio_y==3)||!aspect_ratio_x||!aspect_ratio_y).enable(true).refresh_item(mainMenu);
     mainMenu.get_item("video_ratio_16_9").check(aspect_ratio_x==16&&aspect_ratio_y==9).enable(true).refresh_item(mainMenu);
     mainMenu.get_item("video_ratio_16_10").check(aspect_ratio_x==16&&aspect_ratio_y==10).enable(true).refresh_item(mainMenu);
@@ -1879,6 +1850,10 @@ bool aspect_ratio_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
         aspect_ratio_x = 1;
         aspect_ratio_y = 1;
         SetVal("render", "aspect_ratio", "1:1");
+    } else if (!strcmp(mname, "video_ratio_3_2")) {
+        aspect_ratio_x = 3;
+        aspect_ratio_y = 2;
+        SetVal("render", "aspect_ratio", "3:2");
     } else if (!strcmp(mname, "video_ratio_4_3")) {
         aspect_ratio_x = 4;
         aspect_ratio_y = 3;
@@ -2169,41 +2144,6 @@ bool scaler_set_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
     RENDER_CallBack(GFX_CallBackReset);
 
     return true;
-}
-
-void CALLBACK_Idle(void);
-
-void PauseWithInterruptsEnabled(Bitu /*val*/) {
-    /* we can ONLY do this when the CPU is either in real mode or v86 mode.
-     * doing this from protected mode will only crash the game.
-     * also require that interrupts are enabled before pausing. */
-    if (cpu.pmode) {
-        if (!(reg_flags & FLAG_VM)) {
-            PIC_AddEvent(PauseWithInterruptsEnabled,0.001);
-            return;
-        }
-    }
-
-    if (!(reg_flags & FLAG_IF)) {
-        PIC_AddEvent(PauseWithInterruptsEnabled,0.001);
-        return;
-    }
-
-    while (pausewithinterrupts_enable) CALLBACK_Idle();
-}
-
-void PauseWithInterrupts_mapper_shortcut(bool pressed) {
-    if (!pressed) return;
-
-    if (!pausewithinterrupts_enable) {
-        pausewithinterrupts_enable = true;
-        PIC_AddEvent(PauseWithInterruptsEnabled,0.001);
-    }
-    else {
-        pausewithinterrupts_enable = false;
-    }
-
-    mainMenu.get_item("mapper_pauseints").check(pausewithinterrupts_enable).refresh_item(mainMenu);
 }
 
 bool video_frameskip_common_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
@@ -2900,30 +2840,6 @@ bool help_prt_callback(DOSBoxMenu * const /*menu*/, DOSBoxMenu::item * const /*m
     return true;
 }
 
-
-void SetCyclesCount_mapper_shortcut_RunInternal(void) {
-    GUI_Shortcut(16);
-}
-
-void SetCyclesCount_mapper_shortcut_RunEvent(Bitu /*val*/) {
-    KEYBOARD_ClrBuffer();   //Clear buffer
-    GFX_LosingFocus();      //Release any keys pressed (buffer gets filled again).
-    SetCyclesCount_mapper_shortcut_RunInternal();
-}
-
-void SetCyclesCount_mapper_shortcut(bool pressed) {
-    if (!pressed) return;
-    PIC_AddEvent(SetCyclesCount_mapper_shortcut_RunEvent, 0.0001f); //In case mapper deletes the key object that ran it
-}
-
-void AspectRatio_mapper_shortcut(bool pressed) {
-    if (!pressed) return;
-
-    if (!GFX_GetPreventFullscreen()) {
-        SetVal("render", "aspect", render.aspect ? "false" : "true");
-    }
-}
-
 void AllocCallback1() {
         /* stock top-level menu items */
         {
@@ -3011,6 +2927,8 @@ void AllocCallback1() {
 
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"video_ratio_1_1").set_text("1:1").
                     set_callback_function(aspect_ratio_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"video_ratio_3_2").set_text("3:2").
+                    set_callback_function(aspect_ratio_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"video_ratio_4_3").set_text("4:3").
                     set_callback_function(aspect_ratio_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"video_ratio_16_9").set_text("16:9").
@@ -3027,9 +2945,6 @@ void AllocCallback1() {
             {
                 DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"VideoScalerMenu");
                 item.set_text("Scaler");
-
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"scaler_forced").set_text("Force scaler").
-                    set_callback_function(scaler_forced_menu_callback);
 
                 for (size_t i=0;scaler_menu_opts[i][0] != NULL;i++) {
                     const std::string name = std::string("scaler_set_") + scaler_menu_opts[i][0];
@@ -3568,8 +3483,5 @@ void AllocCallback2() {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"make_diskimage").set_text("Create blank disk image...").set_callback_function(make_diskimage_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"list_drivenum").set_text("Show mounted drive numbers").set_callback_function(list_drivenum_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"list_ideinfo").set_text("Show IDE disk or CD status").set_callback_function(list_ideinfo_menu_callback);
-#if C_PRINTER
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"print_textscreen").set_text("Print DOS text screen").set_callback_function(print_screen_menu_callback);
-#endif
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"pc98_use_uskb").set_text("Use US keyboard layout").set_callback_function(pc98_force_uskb_menu_callback).check(pc98_force_ibm_layout);
 }

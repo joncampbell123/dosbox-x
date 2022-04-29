@@ -2301,6 +2301,12 @@ Colar da transferência
 :MENU:mapper_pasteend
 Parar a colagem da área de transferência
 .
+:MENU:mapper_ejectpage
+Enviar salto de página
+.
+:MENU:mapper_printtext
+Imprimir tela de texto DOS
+.
 :MENU:mapper_pause
 Pausar emulação
 .
@@ -2319,17 +2325,17 @@ Alternar tela cheia
 :MENU:mapper_resetsize
 Restaurar janela
 .
-:MENU:mapper_incsize
-Aumentar tamanho da fonte TTF
-.
-:MENU:mapper_decsize
-Reduzir tamanho de fonte TTF
-.
 :MENU:mapper_dbcssbcs
 CJK: Alternar entre modos DBCS/SBCS
 .
 :MENU:mapper_autoboxdraw
 CJK: Detectar automaticamente símbolos de desenho de caixa
+.
+:MENU:mapper_incsize
+Aumentar tamanho da fonte TTF
+.
+:MENU:mapper_decsize
+Reduzir tamanho de fonte TTF
 .
 :MENU:mapper_resetcolor
 Restaurar esquema de cor de TTF
@@ -2481,6 +2487,9 @@ proporção da tela
 :MENU:video_ratio_1_1
 1:1
 .
+:MENU:video_ratio_3_2
+3:2
+.
 :MENU:video_ratio_4_3
 4:3
 .
@@ -2501,9 +2510,6 @@ Definir proporção
 .
 :MENU:VideoScalerMenu
 Redimensionador
-.
-:MENU:scaler_forced
-Forçar escala
 .
 :MENU:scaler_set_none
 Nenhum
@@ -3109,7 +3115,7 @@ Alternar bloqueio de velocidade
 Turbo (Avanço rápido)
 .
 :MENU:mapper_speednorm
-Normal
+Velocidade normal
 .
 :MENU:mapper_speedup
 Acelerar
@@ -3144,6 +3150,9 @@ Aumentar salto de quadros
 :MENU:mapper_aspratio
 Ajustar à proporção de tela
 .
+:MENU:mapper_fscaler
+Forçar escala
+.
 :MENU:mapper_recwave
 Gravar áudio em WAV
 .
@@ -3161,9 +3170,6 @@ Gravar vídeo em AVI
 .
 :MENU:mapper_scrshot
 Capturar tela
-.
-:MENU:mapper_debugger
-Iniciar depurador do DOSBox-X
 .
 :MENU:mapper_volup
 Aumentar volume
@@ -3267,8 +3273,8 @@ Trocar unidade de disquete
 :MENU:mapper_swapcd
 Trocar de unidade de CD
 .
-:MENU:mapper_ejectpage
-Enviar salto de página
+:MENU:mapper_debugger
+Iniciar depurador do DOSBox-X
 .
 :MENU:mapper_rescanall
 Reverificar todas as unidades
@@ -3411,9 +3417,6 @@ Mostrar número das unidades montadas
 :MENU:list_ideinfo
 Mostrar estado de disco IDE ou CD
 .
-:MENU:print_textscreen
-Imprimir tela de texto DOS
-.
 :MENU:pc98_use_uskb
 Usar esquema de teclado americano
 .
@@ -3464,6 +3467,9 @@ Pausar com interrupção
 .
 :MAPPER:prevslot
 Compartimento salvo anterior
+.
+:MAPPER:printtext
+Imprimir tela de texto
 .
 :MAPPER:quickrun
 Lançar prog. rápido

@@ -57,7 +57,7 @@ extern const char *modifier;
 extern unsigned int sendkeymap;
 extern std::string langname, configfile, dosbox_title;
 extern int autofixwarn, enablelfn, fat32setver, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor;
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, ttfswitch, loadlang, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, uao, showdbcs, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, outcon, enable_dbcs_tables, show_recorded_filename;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, lesssize, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, ttfswitch, loadlang, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, uao, showdbcs, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, outcon, enable_dbcs_tables, show_recorded_filename;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -934,7 +934,9 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
 #endif
                 } else if (!strcasecmp(inputline.substr(0, 7).c_str(), "ptsize=")||!strcasecmp(inputline.substr(0, 8).c_str(), "winperc=")) {
 #if defined(USE_TTF)
+                     lesssize = true;
                      if (TTF_using()) ttf_reset();
+                     lesssize = false;
 #endif
                 } else if (!strcasecmp(inputline.substr(0, 5).c_str(), "lins=")||!strcasecmp(inputline.substr(0, 5).c_str(), "cols=")) {
 #if defined(USE_TTF)

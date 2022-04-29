@@ -2266,6 +2266,12 @@ DOS画面上のテキストをすべてコピー
 :MENU:mapper_pasteend
 クリップボードからの貼り付けを停止
 .
+:MENU:mapper_printtext
+DOS テキスト画面を印刷
+.
+:MENU:mapper_ejectpage
+改ページ送信
+.
 :MENU:mapper_pause
 一時停止
 .
@@ -2284,17 +2290,17 @@ DOS画面上のテキストをすべてコピー
 :MENU:mapper_resetsize
 ウィンドウサイズ初期化
 .
-:MENU:mapper_incsize
-TTFフォントサイズ: 拡大
-.
-:MENU:mapper_decsize
-TTFフォントサイズ: 縮小
-.
 :MENU:mapper_dbcssbcs
 CJK: DBCS/SBCS モードを切替
 .
 :MENU:mapper_autoboxdraw
 CJK: 罫線文字を自動検出
+.
+:MENU:mapper_incsize
+TTFフォントサイズ: 拡大
+.
+:MENU:mapper_decsize
+TTFフォントサイズ: 縮小
 .
 :MENU:mapper_resetcolor
 TTFカラースキームをリセット
@@ -2446,6 +2452,9 @@ Pentium III 866MHz EB (~407000 サイクル)
 :MENU:video_ratio_1_1
 1:1
 .
+:MENU:video_ratio_3_2
+3:2
+.
 :MENU:video_ratio_4_3
 4:3
 .
@@ -2466,9 +2475,6 @@ Pentium III 866MHz EB (~407000 サイクル)
 .
 :MENU:VideoScalerMenu
 スケーラ
-.
-:MENU:scaler_forced
-スケーラ強制使用
 .
 :MENU:scaler_set_none
 等倍
@@ -3109,6 +3115,9 @@ INT 21h コールを記録
 :MENU:mapper_aspratio
 アスペクト比に合わせる
 .
+:MENU:mapper_fscaler
+スケーラ強制使用
+.
 :MENU:mapper_recwave
 音声を WAV に保存
 .
@@ -3126,9 +3135,6 @@ FM (OPL) 出力を保存
 .
 :MENU:mapper_scrshot
 スクリーンショット
-.
-:MENU:mapper_debugger
-DOSBox-X デバッガの起動
 .
 :MENU:mapper_volup
 ボリューム:上
@@ -3232,8 +3238,8 @@ Pentium III
 :MENU:mapper_swapcd
 CD ドライブを入替
 .
-:MENU:mapper_ejectpage
-改ページ送信
+:MENU:mapper_debugger
+DOSBox-X デバッガの起動
 .
 :MENU:mapper_rescanall
 すべてのドライブを再スキャン
@@ -3376,9 +3382,6 @@ Ctrl+W/Z キーに変換
 :MENU:list_ideinfo
 IDE ディスク・CD の状態を表示
 .
-:MENU:print_textscreen
-DOS テキスト画面を印刷
-.
 :MENU:pc98_use_uskb
 USキーボードレイアウトを使用
 .
@@ -3429,6 +3432,9 @@ CPU:標準コア
 .
 :MAPPER:prevslot
 前のセーブスロット
+.
+:MAPPER:printtext
+テキスト画面を印刷
 .
 :MAPPER:quickrun
 クイック起動

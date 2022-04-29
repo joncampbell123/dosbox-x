@@ -2244,6 +2244,12 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 :MENU:mapper_pasteend
 停止剪贴板复制
 .
+:MENU:mapper_ejectpage
+发送打印机换页符
+.
+:MENU:mapper_printtext
+打印 DOS 屏幕文字
+.
 :MENU:mapper_pause
 暂停模拟
 .
@@ -2262,17 +2268,17 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 :MENU:mapper_resetsize
 重置屏幕大小
 .
-:MENU:mapper_incsize
-增加 TTF 字体大小
-.
-:MENU:mapper_decsize
-减少 TTF 字体大小
-.
 :MENU:mapper_dbcssbcs
 中日韩文字: 切换双字节/单字节模式
 .
 :MENU:mapper_autoboxdraw
 中日韩文字: 自动检测制表符
+.
+:MENU:mapper_incsize
+增加 TTF 字体大小
+.
+:MENU:mapper_decsize
+减少 TTF 字体大小
 .
 :MENU:mapper_resetcolor
 重置 TTF 配色方案
@@ -2424,6 +2430,9 @@ AMD Athlon 600MHz (约 306000 周期)
 :MENU:video_ratio_1_1
 1:1
 .
+:MENU:video_ratio_3_2
+3:2
+.
 :MENU:video_ratio_4_3
 4:3
 .
@@ -2444,9 +2453,6 @@ AMD Athlon 600MHz (约 306000 周期)
 .
 :MENU:VideoScalerMenu
 缩放器
-.
-:MENU:scaler_forced
-强制使用缩放器
 .
 :MENU:scaler_set_none
 无
@@ -3087,6 +3093,9 @@ DOS 命令
 :MENU:mapper_aspratio
 长宽比适合模式
 .
+:MENU:mapper_fscaler
+强制使用缩放器
+.
 :MENU:mapper_recwave
 录制音频到 WAV
 .
@@ -3104,9 +3113,6 @@ DOS 命令
 .
 :MENU:mapper_scrshot
 捕获屏幕快照
-.
-:MENU:mapper_debugger
-启动 DOSBox-X 调试器
 .
 :MENU:mapper_volup
 提高音量
@@ -3210,8 +3216,8 @@ DOS 命令
 :MENU:mapper_swapcd
 交换光盘镜像
 .
-:MENU:mapper_ejectpage
-发送打印机换页符
+:MENU:mapper_debugger
+启动 DOSBox-X 调试器
 .
 :MENU:mapper_rescanall
 刷新所有驱动器
@@ -3354,9 +3360,6 @@ Mapper "输入特殊键": Ctrl+Alt+Del
 :MENU:list_ideinfo
 显示 IDE 驱动器状态
 .
-:MENU:print_textscreen
-打印 DOS 屏幕文字
-.
 :MENU:pc98_use_uskb
 使用美式键盘布局
 .
@@ -3401,6 +3404,9 @@ CPU: 正常内核
 .
 :MAPPER:prevslot
 上一个存档
+.
+:MAPPER:printtext
+打印屏幕文字
 .
 :MAPPER:quickrun
 快速启动程序

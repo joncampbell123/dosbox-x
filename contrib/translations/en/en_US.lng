@@ -2278,6 +2278,12 @@ Pasting from the clipboard
 :MENU:mapper_pasteend
 Stop clipboard pasting
 .
+:MENU:mapper_ejectpage
+Send form-feed
+.
+:MENU:mapper_printtext
+Print DOS text screen
+.
 :MENU:mapper_pause
 Pause emulation
 .
@@ -2296,17 +2302,17 @@ Toggle fullscreen
 :MENU:mapper_resetsize
 Reset window size
 .
-:MENU:mapper_incsize
-Increase TTF font size
-.
-:MENU:mapper_decsize
-Decrease TTF font size
-.
 :MENU:mapper_dbcssbcs
 CJK: Switch between DBCS/SBCS modes
 .
 :MENU:mapper_autoboxdraw
 CJK: Auto-detect box-drawing characters
+.
+:MENU:mapper_incsize
+Increase TTF font size
+.
+:MENU:mapper_decsize
+Decrease TTF font size
 .
 :MENU:mapper_resetcolor
 Reset TTF color scheme
@@ -2458,6 +2464,9 @@ Aspect ratio
 :MENU:video_ratio_1_1
 1:1
 .
+:MENU:video_ratio_3_2
+3:2
+.
 :MENU:video_ratio_4_3
 4:3
 .
@@ -2478,9 +2487,6 @@ Set ratio
 .
 :MENU:VideoScalerMenu
 Scaler
-.
-:MENU:scaler_forced
-Force scaler
 .
 :MENU:scaler_set_none
 None
@@ -3121,6 +3127,9 @@ Increase frameskip
 :MENU:mapper_aspratio
 Fit to aspect ratio
 .
+:MENU:mapper_fscaler
+Force scaler
+.
 :MENU:mapper_recwave
 Record audio to WAV
 .
@@ -3138,9 +3147,6 @@ Record video to AVI
 .
 :MENU:mapper_scrshot
 Take screenshot
-.
-:MENU:mapper_debugger
-Start DOSBox-X Debugger
 .
 :MENU:mapper_volup
 Increase volume
@@ -3244,8 +3250,8 @@ Swap floppy drive
 :MENU:mapper_swapcd
 Swap CD drive
 .
-:MENU:mapper_ejectpage
-Send form-feed
+:MENU:mapper_debugger
+Start DOSBox-X Debugger
 .
 :MENU:mapper_rescanall
 Rescan all drives
@@ -3388,9 +3394,6 @@ Show mounted drive numbers
 :MENU:list_ideinfo
 Show IDE disk or CD status
 .
-:MENU:print_textscreen
-Print DOS text screen
-.
 :MENU:pc98_use_uskb
 Use US keyboard layout
 .
@@ -3441,6 +3444,9 @@ Pause with interrupt
 .
 :MAPPER:prevslot
 Previous save slot
+.
+:MAPPER:printtext
+Print text screen
 .
 :MAPPER:quickrun
 Quick launch program

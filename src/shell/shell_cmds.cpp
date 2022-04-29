@@ -3270,58 +3270,54 @@ void DOS_Shell::CMD_LOADHIGH(char *args){
 	} else this->ParseLine(args);
 }
 
+bool get_param(char *&args, char *&rem, char *&temp, char &wait_char, int &wait_sec)
+{
+	const char *last = strchr(args, 0);
+	StripSpaces(args);
+	temp = ScanCMDRemain(args);
+	const bool optC = temp && tolower(temp[1]) == 'c';
+	const bool optT = temp && tolower(temp[1]) == 't';
+	if (temp && *temp && !optC && !optT)
+		return false;
+	if (temp) {
+		if (args == temp)
+			args = strchr(temp, 0) + 1;
+		temp += 2;
+		if (temp[0] == ':')
+			temp++;
+	}
+	if (optC) {
+		rem = temp;
+	} else if (optT) {
+		if (temp && *temp && *(temp + 1) == ',') {
+			wait_char = *temp;
+			wait_sec = atoi(temp + 2);
+		} else
+			wait_sec = 0;
+	}
+	if (args > last)
+		args = NULL;
+	if (args) args = trim(args);
+	return true;
+}
+
 void DOS_Shell::CMD_CHOICE(char * args){
 	HELP("CHOICE");
 	static char defchoice[3] = {'y','n',0};
-	char *rem1 = NULL, *rem2 = NULL, *rem = NULL, waitchar = 0, *ptr;
+	char *rem1 = NULL, *rem2 = NULL, *rem = NULL, *temp = NULL, waitchar = 0, *ptr;
 	int waitsec = 0;
-	bool optC = false;
+	bool optC = false, optT = false;
 	bool optN = ScanCMDBool(args,"N");
 	bool optS = ScanCMDBool(args,"S"); //Case-sensitive matching
 	// ignore /b and /m switches for compatibility
 	ScanCMDBool(args,"B");
 	ScanCMDBool(args,"M"); // Text
 	ScanCMDBool(args,"T"); //Default Choice after timeout
-	if (args) {
-		char *last = strchr(args,0);
-		StripSpaces(args);
-		rem1 = ScanCMDRemain(args);
-		if (rem1 && *rem1 && (tolower(rem1[1]) != 'c') && (tolower(rem1[1]) != 't')) {
-			WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"),rem1);
+
+	while (args && *args == '/') {
+		if (!get_param(args, rem, temp, waitchar, waitsec)) {
+			WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"), temp);
 			return;
-		}
-		optC = tolower(rem1[1]) == 'c';
-		if (args == rem1) args = strchr(rem1,0)+1;
-		if (rem1) rem1 += 2;
-		if(rem1 && rem1[0]==':') rem1++; /* optional : after /c */
-		if (optC) rem = rem1;
-		else {
-			if (*rem1&&*(rem1+1)==',') {
-				waitchar = *rem1;
-				waitsec = atoi(rem1+2);
-			} else
-				waitsec = 0;
-		}
-		if (args > last) args = NULL;
-		if (args) {
-			rem2 = ScanCMDRemain(args);
-			if (rem2 && *rem2 && (tolower(rem2[1]) != 'c') && (tolower(rem2[1]) != 't')) {
-				WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"),rem2);
-				return;
-			}
-			optC = tolower(rem2[1]) == 'c';
-			if (args == rem2) args = strchr(rem2,0)+1;
-			if (rem2) rem2 += 2;
-			if(rem2 && rem2[0]==':') rem2++; /* optional : after /t */
-			if (optC) rem = rem2;
-			else {
-				if (*rem2&&*(rem2+1)==',') {
-					waitchar = *rem2;
-					waitsec = atoi(rem2+2);
-				} else
-					waitsec = 0;
-			}
-			if (args > last) args = NULL;
 		}
 	}
 	if (!rem || !*rem) rem = defchoice; /* No choices specified use YN */
@@ -3348,9 +3344,11 @@ void DOS_Shell::CMD_CHOICE(char * args){
 		WriteOut("%c]?",rem[len-1]);
 	}
 
+	// TO-DO: Find out how real DOS handles /T option for making a choice after delay; use AUTOTYPE for now
 	std::vector<std::string> sequence;
-	if (waitchar && *rem && (strchr(rem, toupper(waitchar)) || strchr(rem, tolower(waitchar))) && waitsec > 0) {
-		sequence.push_back(std::string(1, tolower(waitchar)));
+	bool in_char = optS ? (strchr(rem, waitchar) != nullptr) : (strchr(rem, toupper(waitchar)) || strchr(rem, tolower(waitchar)));
+	if (waitchar && *rem && in_char && waitsec > 0) {
+		sequence.emplace_back(std::string(1, optS?waitchar:tolower(waitchar)));
 		MAPPER_AutoType(sequence, waitsec * 1000, 500, true);
 	}
 	uint16_t n=1;

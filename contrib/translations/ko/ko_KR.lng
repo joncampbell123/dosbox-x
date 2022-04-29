@@ -11,14 +11,14 @@ MOUNT 하고 싶은 경우는 여기에 기재할 수 있습니다.
 # 이것은 DOSBox-X %s 설정 파일입니다. (최신 버전의 DOSBox-X를 사용하십시오)
 # #으로 시작하는 줄은 주석 줄이며 DOSBox-X는 무시합니다.
 # 각 선택사항의 의미 (의 개요)를 설명하기 위해서 사용합니다.
-# 모든 선택사항을 내보내려면 'config -all' 명령에에 -wc 또는 -writeconf 과 함께 사용하십시오.
+# 모든 선택사항을 내보내려면 'config -all' 명령에 -wc 또는 -writeconf 선택사항을 추가하여 실행하십시오.
 
 .
 :CONFIG_SUGGESTED_VALUES
-가능한 값
+구성 가능한 값
 .
 :CONFIG_ADVANCED_OPTION
-고급 선택사항 (자세한 내용은 전체 구성 참조 파일 [dosbox-x.reference.full.conf]를 참조하십시오.)
+고급 선택사항 (자세한 구성 참조 파일 [dosbox-x.reference.full.conf] 참조하십시오)
 .
 :CONFIG_TOOL
 DOSBox-X 구성 도구
@@ -51,7 +51,7 @@ DOSBox-X 구성 도구
 닫기
 .
 :DEBUGCMD
-디버거 명령을 입력하십시오
+디버거 명령을 입력하십시오.
 .
 :ADD
 추가
@@ -165,7 +165,7 @@ DOS 명령 도움말
 소개
 .
 :CONFIGURE_GROUP
-설정할 그룹을 고름:
+설정할 그룹을 고르십시오:
 .
 :SHOW_ADVOPT
 고급 선택사항 표시
@@ -192,7 +192,7 @@ DOS 명령 도움말
 언어 파일 이름(선택 사항):
 .
 :INTRO_MESSAGE
-DOSBox-X에 오신 것을 환영합니다. 무료로 완전한 DOS 에뮬레이션 패키지입니다.
+완전한 도스 에뮬레이션 꾸러미인 도스박스-X에 오신 것을 환영합니다.
 DOSBox-X는 일반적인 DOS와 비슷한 DOS 쉘을 표시합니다.
 DOS 기계에서 윈도우즈 3.x 또는 9x/Me를 실행할 수도 있습니다.
 .
@@ -332,7 +332,7 @@ DOSBox-X 명령줄 구성 유틸리티 구성 가능한 선택사항:
 -startmapper: DOSBox-X 매퍼 편집기를 시작합니다.
 -gui: 그래픽 구성 도구를 시작합니다.
 -get "section property": 지정한 속성의 값을 돌려준다 (%%CONFIG%%에도).
--set (-setf로 강제) "section property=value": 지정의 프로퍼티의 값을 설정.
+-set (-setf로 강제) "section property=value": 속성 값을 설정합니다.
 
 .
 :PROGRAM_CONFIG_HLP_PROPHLP
@@ -445,7 +445,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_MOUNT_STATUS_ELTORITO
-%c 드라이브가 El Torito 형식의 플로피 드라이브로 탑재었습니다.
+%c 드라이브가 El Torito 형식의 플로피 드라이브로 탑재되었습니다.
 
 .
 :PROGRAM_MOUNT_STATUS_RAMDRIVE
@@ -741,7 +741,7 @@ CD-ROM 지원
 .
 :PROGRAM_INTRO_MENU_QUIT_HELP
 
-[1m   [1m[KDosbox-X 소개 종료합니다.[0m
+[1m   [1m[KDosbox-X 소개를 종료합니다.[0m
 
 .
 :PROGRAM_INTRO_USAGE_TOP
@@ -896,7 +896,7 @@ MSCDEX를 설치하고 파일의 속성을 읽기 전용으로 만듭니다.
 :PROGRAM_BOOT_PRINT_ERROR
 이 명령은 DOSBox-X를 플로피 또는 하드 디스크 이미지에서 시작합니다.
 
-이 명령은 메뉴 명령으로 교체 가능한 플로피 디스크 그룹을 지정할 수 있습니다.
+이 명령은 차림표 명령으로 교체 가능한 플로피 디스크 그룹을 지정할 수 있습니다.
 drive: 는 탑재된 드라이브 중에서 부팅할 드라이브를 지정합니다.
 드라이브 문자를 지정하지 않으면 기본적으로 A 드라이브에서 부팅합니다.
 매개 변수를 지정하지 않으면 현재 드라이브에서 부팅을 시도합니다.
@@ -1128,7 +1128,7 @@ IMGMOUNT 사용 예 :
                                   (부팅 가능하다면 [33;1m BOOT A :[0m으로 부팅)
   [32;1mIMGMOUNT A -ro dos.ima[0m - FD 이미지 dos.ima 를 A: 읽기 전용으로 탑재
   [32;1mIMGMOUNT A :dsk1.img dsk2.img[0m - FD 이미지 dsk1.img and dsk2.img 를 A:
-                                  드라이브로 "디스크 교체"메뉴로 교체 가능
+                                  드라이브로 "디스크 교체"차림표로 교체 가능
                                   그런 다음 dsk1.img 읽기 전용 (dsk2.img는 쓰기 가능)
   [32;1mIMGMOUNT A -bootcd D[0m - CD 드라이브 D: 부팅 FD A로 탑재
   [32;1mIMGMOUNT C -t ram -size 10000[0m - C: 드라이브에 10MB RAM 드라이브를 장착
@@ -1144,9 +1144,9 @@ IMGMOUNT 사용 예 :
  [34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source source] [-retries #][0m
   file: 만들 이미지 이름(없는 경우 [33;1mIMGMAKE.IMG[0m) - [31;1m 호스트의 경로[0m
   -t: 이미지 유형
-    [33;1m 플로피 템플릿[0m (용량을 지정하는 이름 KB or fd=fd_1440):
+    [33;1m 플로피 서식[0m (용량을 지정하는 이름 KB or fd=fd_1440):
      fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880
-    [33;1m 하드 디스크 템플릿:[0m
+    [33;1m 하드 디스크 서식:[0m
      hd_250: 250MB 이미지, hd_520: 520MB 이미지, hd_1gig: 1GB 이미지
      hd_2gig: 2GB 이미지, hd_4gig: 4GB 이미지, hd_8gig: 8GB 이미지
      hd_st251 : 40MB 이미지, hd_st225 : 20MB 이미지 (이전 드라이브의 지오메트리)
@@ -1157,10 +1157,10 @@ IMGMOUNT 사용 예 :
   -force: 기존 이미지 파일을 강제 덮어쓰기
   -bat: 이 이미지를 IMGMOUNT 명령으로 탑재하는 .bat 파일을 생성한다.
   -fat : FAT 파일 시스템 유형 (12, 16, or 32).
-  -spc: 클러스터당 섹터를 강제 지정합니다. 2의 제곱으로 하는 것.
-  -fatcopies: FAT 테이블 수를 강제 지정.
+  -spc: 클러스터당 섹터를 강제 지정합니다. 2의 제곱으로 해야합니다.
+  -fatcopies: FAT 테이블 수를 강제로 지정합니다.
   -rootdir : 루트 디렉토리 항목의 크기 (FAT32에서는 무시됨)
-  -source: 드라이브 문자 - 지정되면 이미지가 플로피에서 로드됩니다.
+  -source: 드라이브 문자 - 지정되면 이미지가 플로피에서 불러오기됩니다.
   -retries : 상태가 좋지 않은 플로피를 다시 읽는 횟수 (1-99).
   [32;1m-examples: 사용 예 보기[0m
 .
@@ -1168,7 +1168,7 @@ IMGMOUNT 사용 예 :
 IMGMAKE의 몇 가지 사용 예:
 
   [32;1mIMGMAKE -t fd[0m                   - 1.44MB FD 이미지 만들기 [33;1mIMGMAKE.IMG[0m
-  [32;1mIMGMAKE -t fd_1440                  -force[0m - FD 이미지를 강제로 생성] [33;1mIMGMAKE.IMG[0m
+  [32;1mIMGMAKE -t fd_1440 -force[0m       - FD 이미지를 강제로 생성] [33;1mIMGMAKE.IMG[0m
   [32;1mIMGMAKE dos.img -t fd_2880[0m      - dos.img라는 이름의 2.88MB FD 이미지 만들기
   [32;1mIMGMAKE c:\disk.img -t hd -size 50[0m      - 50MB HDD 이미지 만들기 c:\disk.img
   [32;1mIMGMAKE c:\disk.img -t hd_520 -nofs[0m     - 공백 520MB HDD 이미지 만들기
@@ -1183,7 +1183,7 @@ IMGMAKE의 몇 가지 사용 예:
 
 .
 :PROGRAM_IMGMAKE_FLREAD2
-%s = 양호, %s = 다시 시도 후 양호, ! =CRC 오류, x = 섹터를 찾을 수 없음, ? = 알 수 없음
+%s =양호, %s =다시 시도 후 양호, ! =CRC 오류, x =섹터를 찾을 수 없음, ? =알 수 없음
 
 
 .
@@ -1209,11 +1209,11 @@ IMGMAKE의 몇 가지 사용 예:
 플로피를 읽을 수 없습니다.
 .
 :PROGRAM_KEYB_INFO
-코드 페이지 %i로 설정했습니다.
+코드 페이지를 %i로 설정했습니다.
 
 .
 :PROGRAM_KEYB_INFO_LAYOUT
-코드 페이지 %i를(를) 키 레이아웃 %s용으로 불러왔습니다.
+코드 페이지를 %i로 키 레이아웃 %s용으로 불러왔습니다.
 
 .
 :PROGRAM_KEYB_SHOWHELP
@@ -1226,11 +1226,11 @@ IMGMAKE의 몇 가지 사용 예:
   (.kl,.cpi/.cpx 파일은 dosbox-x 실행 파일이 있는 디렉토리에 배치합니다.)
 
 사용 예:
-  [32;1mKEYB[0m          불러온 코드 페이지 표시
-  [32;1mKEYB sp[0m       스페인어 (SP) 레이아웃을 읽고, 적절한 코드 페이지를 사용
-  [32;1mKEYB sp 850[0m   스페인어 (SP) 레이아웃을 읽고, 코드 페이지 850을 사용
-  [32;1mKEYB sp 850 mycp.cpi[0m 위와 같은, 그러나 mycp.cpi 파일을 사용
-  [32;1mKEYB sp_mod 850[0m      레이아웃을 sp_mod.kl에서 불러오고, 코드 페이지 850을 사용
+  [32;1mKEYB[0m          불러온 코드 페이지를 표시합니다.
+  [32;1mKEYB sp[0m       스페인어 (SP) 레이아웃을 읽고, 적절한 코드 페이지를 사용합니다.
+  [32;1mKEYB sp 850[0m   스페인어 (SP) 레이아웃을 읽고, 코드 페이지 850을 사용니다.
+  [32;1mKEYB sp 850 mycp.cpi[0m 위와 같은, 그러나 mycp.cpi 파일을 사용합니다.
+  [32;1mKEYB sp_mod 850[0m      레이아웃을 sp_mod.kl에서 불러오고, 코드 페이지 850을 사용합니다.
 
 .
 :PROGRAM_KEYB_NOERROR
@@ -1260,7 +1260,7 @@ IMGMAKE의 몇 가지 사용 예:
 
 [34;1mMODE[0m display-type : 설정 가능한 코드 [1mCO80[0m, [1mBW80[0m, [1mCO40[0m, [1mBW40[0m, 또는 [1mMONO[0m
 [34;1mMODE CON COLS=[0mc[34;1mLINES=[0mn :설정 가능한 컬럼·행 c=80 or 132, n=25, 43, 50, or 60
-[34;1mMODE CON RATE=[0mr [34;1mDELAY=[0md :설정 가능 범위 r=1-32 (32=최속)), d=1-4 (1=최소)
+[34;1mMODE CON RATE=[0mr [34;1mDELAY=[0md :설정 가능 범위 r=1-32 (32=최속), d=1-4 (1=최소)
 
 .
 :PROGRAM_MODE_INVALID_PARAMETERS
@@ -1378,11 +1378,11 @@ ECHO는 <OFF>입니다.
 .
 :SHELL_CMD_DATE_HELP_LONG
 DATE [[/T] [/H] [/S] | date]
-  date: 새로 지정한 날짜
-  /S: 항상 호스트 날짜/시간을 DOS 시간으로 사용
-  /F: DOSBox-X의 내부 시간으로 되돌리기(/S의 반대)
-  /T: 날짜 표시만
-  /H: 호스트와 동기화
+  date:       새로 지정한 날짜
+  /S:         항상 호스트 날짜/시간을 DOS 시간으로 사용
+  /F:         DOSBox-X의 내부 시간으로 되돌리기(/S의 반대)
+  /T:         날짜 표시만
+  /H:         호스트와 동기화
 
 .
 :SHELL_CMD_TIME_HELP
@@ -1402,9 +1402,9 @@ DATE [[/T] [/H] [/S] | date]
 .
 :SHELL_CMD_TIME_HELP_LONG
 TIME [[/T] [/H] | time]
-  time: 새로 지정하는 시간
-  /T: 시간 단순 표시
-  /H: 호스트와 동기화
+  time:       새로 지정하는 시간
+  /T:         시간 단순 표시
+  /H:         호스트와 동기화
 
 .
 :SHELL_CMD_MKDIR_EXIST
@@ -1745,14 +1745,14 @@ DOSBox-X 명령의 도움말을 표시합니다.
 HELP [/A or /ALL]
 HELP [command]
 
-   /A or /ALL 지원되는 내부 명령 목록을 표시합니다.
-   [command] 지정된 command에 대한 도움말을 표시합니다.
+   /A or /ALL   지원되는 내부 명령 목록을 표시합니다.
+   [command]    지정된 command에 대한 도움말을 표시합니다.
 
 [0m예: [37;1mHELP COPY[0m 또는 [37;1mCOPY /?[0m 은 COPY 명령에 대한 도움말 정보를 표시합니다.
 
 참고: [33;1mMOUNT[0m, [33;1mIMGMOUNT[0m 같은 외부 명령은 HELP [/A] 목록에 표시되지 않습니다.
-    이러한 명령은 Z: 드라이브에 프로그램으로 존재합니다 (예: MOUNT.COM).
-    [33;1mcommand /?[0m 또는 [33;1mHELP command[0m로 그 명령의 도움말 정보를 표시 할 수 있습니다.
+      이러한 명령은 Z: 드라이브에 프로그램으로 존재합니다 (예: MOUNT.COM).
+      [33;1mcommand /?[0m 또는 [33;1mHELP command[0m로 그 명령의 도움말 정보를 표시 할 수 있습니다.
 
 .
 :SHELL_CMD_LS_HELP
@@ -1801,7 +1801,7 @@ SET [variable=[string]]
 환경 변수 목록을 보려면 매개 변수 없이 SET을 입력합니다.
 
 .
-:SHELL_CMD_IF_HELP --- 에서냐 으로냐
+:SHELL_CMD_IF_HELP
 배치 프로그램으로 조건 분기합니다.
 
 .
@@ -1810,17 +1810,17 @@ IF [NOT] ERRORLEVEL number command
 IF [NOT] string1==string2 command
 IF [NOT] EXIST filename command
 
-  NOT 조건이 충족되지 않으면 DOS는 명령을 실행합니다.
+  NOT               조건이 충족되지 않으면 DOS는 명령을 실행합니다.
 
   ERRORLEVEL number 마지막으로 실행한 프로그램의 종료 코드가 number와 같거나
                     큰 숫자일 때 true를 돌려줍니다.
 
-  string1==string2 두 문자열이 일치할 때 true를 돌려줍니다.
+  string1==string2  두 문자열이 일치할 때 true를 돌려줍니다.
 
-  EXIST filename 파일 이름이 filename 인 파일이 있을 때 참(true)
+  EXIST filename    파일 이름이 filename 인 파일이 있을 때 참(true)
                     돌려줍니다.
 
-  command 조건이 충족되면 실행할 명령을 지정합니다.
+  command           조건이 충족되면 실행할 명령을 지정합니다.
                     명령 다음에 ELSE 키워드 다음에 조건이 부적합하면
                     실행할 명령을 지정할 수 있습니다.
 
@@ -1863,10 +1863,10 @@ SHIFT
 FOR %%variable IN (set) DO command [command-parameters]
 
   %%variable 대체 가능한 매개 변수 지정
-  (set) 하나 이상의 파일로 구성된 세트 지정 (와일드 카드 사용 가능)
-  command 각 파일에 대해 실행할 명령 지정
+  (set)     하나 이상의 파일로 구성된 집합을 지정합니다. 와일드 카드를 사용할 수 있습니다.
+  command   각 파일에 대해 실행할 명령을 지정합니다.
   command-parameters
-             지정된 명령의 매개 변수 또는 스위치 지정
+            지정된 명령의 매개 변수 또는 스위치 지정
 
 배치 프로그램에서 명령을 사용하는 경우 %%variable을 %%%%variable로 설정
 
@@ -1921,13 +1921,13 @@ REN [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]
 DEL [/P] [/F] [/Q] names
 ERASE [/P] [/F] [/Q] names
 
-  names 하나 이상의 파일 또는 디렉토리를 지정합니다.
+  names         하나 이상의 파일 또는 디렉토리를 지정합니다.
                 와일드카드를 사용하여 여러 파일을 삭제할 수 있습니다.
                 디렉토리를 지정하면 그 안의 모든 파일이 삭제됩니다.
-  /P 각 파일을 삭제하기 전에 확인 메시지를 표시합니다.
-  /F 쓰기 금지 파일을 강제로 삭제합니다.
-  /Q 숨김 모드. 와일드카드로 일괄 삭제할 때 확인
-  　　　　　　메시지를 표시하지 않습니다.
+  /P            각 파일을 삭제하기 전에 확인 메시지를 표시합니다.
+  /F            쓰기 금지 파일을 강제로 삭제합니다.
+  /Q            숨김 모드. 와일드카드로 일괄 삭제할 때 확인 메시지를
+  　　　　　　　표시하지 않습니다.
 
 .
 :SHELL_CMD_COPY_HELP
@@ -1937,19 +1937,18 @@ ERASE [/P] [/F] [/Q] names
 :SHELL_CMD_COPY_HELP_LONG
 COPY [/Y | /-Y] source [+source [+ ...]] [destination]
 
-  source 복사할 파일(하나 이상)을 지정합니다.
-  destination 복사할 디렉토리 파일 이름을 지정합니다.
-  /Y 복사 대상에 같은 이름의 파일이 있으면 덮어쓸 것인지
+  source        복사할 파일(하나 이상)을 지정합니다.
+  destination   복사할 디렉토리 파일 이름을 지정합니다.
+  /Y            복사 대상에 같은 이름의 파일이 있으면 덮어쓸 것인지
                 확인 메시지를 표시하지 않습니다.
-  /-Y 복사 대상에 같은 이름의 파일이 있으면 덮어 쓸 것인지
+  /-Y           복사 대상에 같은 이름의 파일이 있으면 덮어 쓸 것인지
                 확인 메시지를 표시합니다.
 
-스위치 /Y 는 ​​환경 변수 COPYCMD 에 미리 설정해 둘 수가 있습니다.
+스위치 /Y 는 경 변수 COPYCMD 에 미리 설정해 둘 수가 있습니다.
 이 스위치는 명령행에서 /-Y를 지정하여 비활성화할 수 있습니다.
 
 파일을 병합하려면 대상에 단일 파일 이름을 지정하고 소스에
-여러 파일을 지정합니다. (와일드 카드 또는 file1 + file2 + file3
-지정)
+여러 파일을 지정합니다. (와일드 카드 또는 파일1 + 파일2 + 파일3 지정)
 
 .
 :SHELL_CMD_CALL_HELP
@@ -1959,7 +1958,7 @@ COPY [/Y | /-Y] source [+source [+ ...]] [destination]
 :SHELL_CMD_CALL_HELP_LONG
 CALL [drive:][path]filename [batch-parameters]
 
-batch-parameters 배치 파일을 실행하는 데 필요한 스위치 매개 변수를
+batch-parameters   배치 파일을 실행하는 데 필요한 스위치 매개 변수를
                    지정합니다.
 
 .
@@ -1971,9 +1970,9 @@ batch-parameters 배치 파일을 실행하는 데 필요한 스위치 매개 �
 SUBST [drive1: [drive2:]path]
 SUBST drive1: /D
 
-  drive1: 경로를 할당할 가상 드라이브를 지정합니다.
+  drive1:       경로를 할당할 가상 드라이브를 지정합니다.
   [drive2:]path 가상 드라이브에 할당할 로컬 드라이브와 경로를 지정합니다.
-  /D drive1의 할당을 해제합니다.
+  /D            drive1의 할당을 해제합니다.
 
 가상 드라이브의 목록을 보려면 매개 변수 없이 SUBST를 입력합니다.
 
@@ -2001,7 +2000,6 @@ CHOICE [/C:choices] [/N] [/S] text
   text         프롬프트에 표시할 글자
 
 ERRORLEVEL은 사용자가 선택 항목에서 누르는 키의 위치로 설정됩니다.
-
 .
 :SHELL_CMD_ATTRIB_HELP
 파일의 속성을 표시 및 변경합니다.
@@ -2010,15 +2008,15 @@ ERRORLEVEL은 사용자가 선택 항목에서 누르는 키의 위치로 설정
 :SHELL_CMD_ATTRIB_HELP_LONG
 ATTRIB [+R | -R] [+A | -A] [+S | -S] [+H | -H] [드라이브:][경로][파일이름] [/S]
 
-  + 속성을 설정
-  - 속성을 지움
-  R 읽기 전용
-  A 아카이브
-  S 시스템 파일
-  H 숨겨진 파일
+  +   속성을 설정합니다.
+  -   속성을 지웁니다.
+  R   읽기 전용
+  A   압축 파일
+  S   시스템 파일
+  H   숨겨진 파일
   [drive:][path][filename]
       ATTRIB 명령이 속성을 설정하는 파일 디렉토리를 지정
-  /S 지정된 경로의 디렉토리에 있는 모든 파일에 대한 속성을 설정
+  /S  지정된 경로의 디렉토리에 있는 모든 파일에 대한 속성을 설정
 
 .
 :SHELL_CMD_PATH_HELP
@@ -2040,7 +2038,7 @@ POPD로 복귀 할 디렉토리를 저장하고 지정된 디렉토리로 이동
 :SHELL_CMD_PUSHD_HELP_LONG
 PUSHD [path]
 
-path 지정된 디렉토리를 현재 디렉토리로 만듭니다.
+path        지정된 디렉토리를 현재 디렉토리로 만듭니다.
 
 저장된 디렉토리를 보려면 매개 변수없이 PUSHD를 입력하십시오.
 
@@ -2071,9 +2069,9 @@ DOSBox-X 자신과 DOSBox-X가 반환하는 DOS 버전을 표시 및 설정합�
 VER [/R]
 VER [SET] number 또는 VER SET [major minor]
 
-  /R DOSBox-X Git 커밋 버전 및 빌드 날짜 및 시간 표시
-  [SET] number DOSBox-X가 반환하는 DOS 버전을 지정한 number로 지정
-  SET [major minor] DOSBox-X가 반환하는 DOS 버전을 major.minor 형식으로 지정
+  /R                DOSBox-X Git 커밋 버전 및 빌드 날짜 및 시간 표시합니다.
+  [SET] number      DOSBox-X가 반환하는 DOS 버전을 지정한 number로 지정합니다.
+  SET [major minor] DOSBox-X가 반환하는 DOS 버전을 major.minor 형식으로 지정합니다.
 
  [0m예, [37;1mVER 6.0[0m 또는 [37;1mVER 7.1[0m이라고 하면 DOS버전은 각각 6.0과 7.1에,
   반면, [37;1mVER SET 7 1[0m은 DOS 버전이 7.1이 아닌 7.01입니다.
@@ -2226,7 +2224,7 @@ TRUENAME [/H] 파일
 :SHELL_CMD_DXCAPTURE_HELP_LONG
 DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]
 
-비디오 및 오디오 캡처를 시작한 후 프로그램을 실행하고 프로그램 종료시 캡처도 종료됩니다. 
+비디오 및 오디오 갈무리를 시작한 후 프로그램을 실행하고 프로그램 종료시 갈무리도 종료됩니다. 
 * ???비디오 -> 영상 오디오 -> 음성??
 
 .
@@ -2245,9 +2243,9 @@ DOSBox-X 명령 셸 시작
 
 다음 선택사항을 사용할 수 있습니다.
 
-  /C 지정한 명령을 실행하여 셸을 종료합니다.
-  /K 지정한 명령을 실행하고 셸을 종료하지 않습니다.
-  /P 명령 셸을 시작하고 상주합니다. 
+  /C    지정한 명령을 실행하여 셸을 종료합니다.
+  /K    지정한 명령을 실행하고 셸을 종료하지 않습니다.
+  /P    명령 셸을 시작하고 상주합니다. 
   /INIT 명령 셸을 초기화합니다.
 
 .
@@ -2258,7 +2256,7 @@ DOSBox-X 명령 셸 시작
 게스트 시스템을 다시 설정
 .
 :MENU:mapper_loadmap
-매퍼 파일 로드 중...
+매퍼 파일을 불러오고 있음...
 .
 :MENU:mapper_quickrun
 빠른 시작...
@@ -2267,7 +2265,7 @@ DOSBox-X 명령 셸 시작
 DOSBox-X를 종료
 .
 :MENU:mapper_capmouse
-마우스를 캡처
+마우스를 갈무리
 .
 :MENU:mapper_fastedit
 빠른 편집: 선택 시 복사 및 글자 붙여넣기
@@ -2281,6 +2279,12 @@ DOS 화면의 모든 글자 복사
 :MENU:mapper_pasteend
 클립보드에서 붙여넣기 중지
 .
+:MENU:mapper_ejectpage
+페이지 나누기
+.
+:MENU:mapper_printtext
+DOS 글자 화면 인쇄
+.
 :MENU:mapper_pause
 일시정지
 .
@@ -2291,13 +2295,13 @@ DOS 화면의 모든 글자 복사
 구성 도구
 .
 :MENU:mapper_mapper
-매퍼 에디터
+매퍼 편집기
 .
 :MENU:mapper_fullscr
 전체 화면 표시로 전환
 .
 :MENU:mapper_resetsize
-윈도우 크기 초기화
+창 크기 초기화
 .
 :MENU:mapper_incsize
 TTF 글꼴 크기: 확대
@@ -2315,7 +2319,7 @@ CJK: 테두리 문자 자동 감지
 TTF 색 구성표 재설정
 .
 :MENU:mapper_pwrbutton
-APM 전원 버튼
+APM 전원 단추
 .
 :MENU:mapper_togmenu
 기본 차림표 막대를 숨김/표시
@@ -2330,7 +2334,7 @@ APM 전원 버튼
 호스트 키 선택
 .
 :MENU:WheelToArrow
-마우스 휠 동작
+마우스 바퀴 동작
 .
 :MENU:SharedClipboard
 클립보드 공유 설정
@@ -2378,28 +2382,28 @@ CPU 속도 조정
 486DX5 133MHz(~47810 주기)
 .
 :MENU:cpu586-60
-Pentium 60MHz (~31545 주기)
+펜티엄 60MHz (~31545 주기)
 .
 :MENU:cpu586-66
-Pentium 66MHz (~35620 주기)
+펜티엄 66MHz (~35620 주기)
 .
 :MENU:cpu586-75
-Pentium 75MHz (~43500 주기)
+펜티엄 75MHz (~43500 주기)
 .
 :MENU:cpu586-90
-Pentium 90MHz(~52000 주기)
+펜티엄 90MHz(~52000 주기)
 .
 :MENU:cpu586-100
-Pentium 100MHz(~60000 주기)
+펜티엄 100MHz(~60000 주기)
 .
 :MENU:cpu586-120
-Pentium 120MHz(~74000 주기)
+펜티엄 120MHz(~74000 주기)
 .
 :MENU:cpu586-133
-Pentium 133MHz(~80000 주기)
+펜티엄 133MHz(~80000 주기)
 .
 :MENU:cpu586-166
-Pentium 166MHz MMX(~97240 주기)
+펜티엄 166MHz MMX(~97240 주기)
 .
 :MENU:cpuak6-166
 AMD K6 166MHz(~110000 주기)
@@ -2411,19 +2415,19 @@ AMD K6 200MHz(~130000 주기)
 AMD K6-2 300MHz(~193000 주기)
 .
 :MENU:cpuath-600
-AMD Athlon 600MHz (~306000 주기)
+AMD 애슬론 600MHz (~306000 주기)
 .
 :MENU:cpu686-866
-Pentium III 866MHz EB (~407000 주기)
+펜티엄 III 866MHz EB (~407000 주기)
 .
 :MENU:VideoMenu
 비디오
 .
 :MENU:VideoFrameskipMenu
-프레임 스킵
+프레임 건너뛰기
 .
 :MENU:frameskip_0
-끄다
+끄기
 .
 :MENU:frameskip_1
 1 프레임
@@ -2461,6 +2465,9 @@ Pentium III 866MHz EB (~407000 주기)
 :MENU:video_ratio_1_1
 1:1
 .
+:MENU:video_ratio_3_2
+3:2
+.
 :MENU:video_ratio_4_3
 4:3
 .
@@ -2480,10 +2487,7 @@ Pentium III 866MHz EB (~407000 주기)
 비율 설정
 .
 :MENU:VideoScalerMenu
-스케일러
-.
-:MENU:scaler_forced
-스케일러 강제 사용
+확대
 .
 :MENU:scaler_set_none
 등배
@@ -2540,10 +2544,10 @@ RGB 2X
 RGB 3X
 .
 :MENU:scaler_set_advmame2x
-Advanced MAME 2X
+고급 마메 2X
 .
 :MENU:scaler_set_advmame3x
-Advanced MAME 3X
+고급 마메 3X
 .
 :MENU:scaler_set_hq2x
 HQ 2X
@@ -2552,25 +2556,25 @@ HQ 2X
 HQ 3X
 .
 :MENU:scaler_set_advinterp2x
-Advanced Interpolation 2X
+고급 보간 2X
 .
 :MENU:scaler_set_advinterp3x
-Advanced Interpolation 3X
+고급 보간 3X
 .
 :MENU:scaler_set_2xsai
 2xSai
 .
 :MENU:scaler_set_super2xsai
-Super2xSai
+슈퍼2xSai
 .
 :MENU:scaler_set_supereagle
-SuperEagle
+슈퍼이글
 .
 :MENU:scaler_set_xbrz
 xBRZ
 .
 :MENU:scaler_set_xbrz_bilinear
-xBRZ Bilinear
+xBRZ 이선형
 .
 :MENU:refresh_rate
 새로 고침 속도 ...
@@ -2582,16 +2586,16 @@ xBRZ Bilinear
 Surface
 .
 :MENU:output_direct3d
-Direct3D
+다이렉트3D
 .
 :MENU:output_opengl
-OpenGL
+오픈GL
 .
 :MENU:output_openglnb
-OpenGL nearest
+오픈GL nearest
 .
 :MENU:output_openglpp
-OpenGL perfect
+오픈GL perfect
 .
 :MENU:output_ttf
 TrueType 글꼴
@@ -2612,7 +2616,7 @@ TrueType 글꼴
 호스트
 .
 :MENU:vsync_off
-끄다
+끄기
 .
 :MENU:vsync_set_syncrate
 동기화 속도 설정
@@ -2621,7 +2625,7 @@ TrueType 글꼴
 오버스캔
 .
 :MENU:overscan_0
-끄다
+끄기
 .
 :MENU:overscan_1
 1
@@ -2669,28 +2673,28 @@ TrueType 글꼴
 강조: 글자 깜박임
 .
 :MENU:line_80x25
-스크린: 80 컬럼 x 25 라인
+스크린: 80 칸 x 25 줄
 .
 :MENU:line_80x43
-스크린: 80 컬럼 x 43 라인
+스크린: 80 칸 x 43 줄
 .
 :MENU:line_80x50
-스크린: 80 컬럼 x 50 라인
+스크린: 80 칸 x 50 줄
 .
 :MENU:line_80x60
-스크린: 80 컬럼 x 60 라인
+스크린: 80 칸 x 60 줄
 .
 :MENU:line_132x25
-스크린: 132 열 x 25 행
+스크린: 132 칸 x 25 줄
 .
 :MENU:line_132x43
-스크린: 132 열 x 43 행
+스크린: 132 칸 x 43 줄
 .
 :MENU:line_132x50
-스크린: 132 열 x 50 행
+스크린: 132 칸 x 50 줄
 .
 :MENU:line_132x60
-스크린: 132 열 x 60 행
+스크린: 132 칸 x 60 줄
 .
 :MENU:VideoTTFMenu
 TTF 선택사항
@@ -2780,10 +2784,10 @@ GRCG를 사용설정
 Glide를 통과
 .
 :MENU:load_d3d_shader
-Direct3D 픽셀 셰이더 선택...
+다이렉트3D 픽셀 셰이더 선택...
 .
 :MENU:load_glsl_shader
-OpenGL (GLSL) 셰이더 선택...
+오픈GL (GLSL) 셰이더 선택...
 .
 :MENU:load_ttf_font
 TrueType 글꼴 (TTF/OTF)을 선택...
@@ -2795,7 +2799,7 @@ TrueType 글꼴 (TTF/OTF)을 선택...
 음성의 좌우 교환
 .
 :MENU:mixer_mute
-음소거
+소리끔
 .
 :MENU:mixer_info
 소리 믹서 볼륨을 표시
@@ -2912,10 +2916,10 @@ AVI + ZMBV
 MPEG-TS + H.264
 .
 :MENU:saveoptionmenu
-상태 저장/로드 선택사항
+상태 저장/불러오기 선택사항
 .
 :MENU:saveslotmenu
-세이브 슬롯 선택
+저장 슬롯을 선택
 .
 :MENU:enable_autosave
 자동 상태 저장 사용
@@ -2978,7 +2982,7 @@ MPEG-TS + H.264
 선택사항: 쓰기 금지로 탑재
 .
 :MENU:drive_mountarc
-서고(ZIP/7Z)를 탑재
+압축 파일(ZIP/7Z)을 탑재
 .
 :MENU:drive_mountimg
 디스크/CD 이미지를 탑재
@@ -2987,7 +2991,7 @@ MPEG-TS + H.264
 여러 디스크/CD 이미지를 탑재
 .
 :MENU:drive_mountiro
-선택사항: 쓰기 금지로 탑재
+선택사항: 이미지를 읽기 전용으로 탑재
 .
 :MENU:drive_unmount
 드라이브 탑재를 해제
@@ -3035,7 +3039,7 @@ DOSBox-X 정보
 로그용 콘솔을 표시
 .
 :MENU:disable_logging
-로깅 출력 비활성화
+로깅 출력을 사용 안함
 .
 :MENU:wait_on_error
 오류시 콘솔 중지
@@ -3116,34 +3120,34 @@ INT 21h 호출 기록
 다음 슬롯을 선택
 .
 :MENU:mapper_decfskip
-프레임 스킵:감소
+프레임 건너뀌기: 감소
 .
 :MENU:mapper_incfskip
-프레임 스킵:증가
+프레임 건너뛰기: 증가
 .
 :MENU:mapper_aspratio
 종횡비에 맞추기
 .
+:MENU:mapper_fscaler
+확대 강제 사용
+.
 :MENU:mapper_recwave
-오디오를 WAV에 저장
+오디오를 WAV로 저장
 .
 :MENU:mapper_recmtwave
-오디오를 멀티 트랙 AVI에 저장
+오디오를 멀티 트랙 AVI로 저장
 .
 :MENU:mapper_caprawmidi
-MIDI 출력 저장
+MIDI 출력을 저장
 .
 :MENU:mapper_caprawopl
-FM (OPL) 출력 저장
+FM (OPL) 출력을 저장
 .
 :MENU:mapper_video
-동영상을 AVI에 저장
+동영상을 AVI로 저장
 .
 :MENU:mapper_scrshot
 스크린샷을 찍기
-.
-:MENU:mapper_debugger
-DOSBox-X 디버거 시작
 .
 :MENU:mapper_volup
 음량: 올림
@@ -3161,10 +3165,10 @@ DOSBox-X 디버거 시작
 특수 키를 보내기
 .
 :MENU:mapper_cycledown
-주기: 감소
+주기: 낮춤
 .
 :MENU:mapper_cycleup
-주기: 증가
+주기: 올림
 .
 :MENU:mapper_normal
 표준 코어
@@ -3247,8 +3251,8 @@ DOSBox-X 디버거 시작
 :MENU:mapper_swapcd
 CD 드라이브를 교체
 .
-:MENU:mapper_ejectpage
-페이지 나누기
+:MENU:mapper_debugger
+DOSBox-X 디버거 시작
 .
 :MENU:mapper_rescanall
 모든 드라이브를 다시 검사
@@ -3263,10 +3267,10 @@ FPS 및 RT 속도를 제목 표시줄에 표시
 DOSBox-X 인스턴스를 다시 시작
 .
 :MENU:restartconf
-구성 파일을 사용하여 DOSBox-X 재부팅 ...
+구성 파일을 사용하여 DOSBox-X 를 다시 부팅 ...
 .
 :MENU:restartlang
-언어 파일을 사용하여 DOSBox-X 재부팅 ...
+언어 파일을 사용하여 DOSBox-X 를 다시 부팅 ...
 .
 :MENU:auto_lock_mouse
 마우스 자동 잠금
@@ -3338,7 +3342,7 @@ Mapper "특수 키 보내기": Ctrl+Break
 Mapper "특수 키 보내기": Ctrl+Alt+Del
 .
 :MENU:wheel_none
-휠 동작을 키로 변환하지 않음
+바퀴 동작을 키로 변환하지 않음
 .
 :MENU:wheel_updown
 커서 상하로 변환
@@ -3391,9 +3395,6 @@ Ctrl+W/Z 키로 변환
 :MENU:list_ideinfo
 IDE 디스크 CD의 상태를 표시
 .
-:MENU:print_textscreen
-DOS 글자 화면 인쇄
-.
 :MENU:pc98_use_uskb
 미국 키보드 레이아웃 사용
 .
@@ -3407,7 +3408,7 @@ FM/OPL 출력 저장
 주기 자동 설정 전환
 .
 :MAPPER:debugger
-디버거 표시
+디버거 시작
 .
 :MAPPER:decsize
 TTF 크기: 축소
@@ -3428,7 +3429,7 @@ TTF 크기: 확대
 매퍼 파일 읽기
 .
 :MAPPER:nextslot
-다음 세이브 슬롯
+다음 저장 슬롯
 .
 :MAPPER:normal
 CPU:표준 코어
@@ -3443,7 +3444,10 @@ CPU:표준 코어
 일시 정지 인터럽트 유효
 .
 :MAPPER:prevslot
-이전 세이브 슬롯
+이전 저장 슬롯
+.
+:MAPPER:printtext
+글자 화면 인쇄
 .
 :MAPPER:quickrun
 빠른 시작
@@ -3461,13 +3465,13 @@ DOS 시스템을 다시 부팅
 녹음 수준: 위
 .
 :MAPPER:rescanall
-드라이브 재검색
+드라이브 다시 검사
 .
 :MAPPER:reset
-DOSBox-X 재부팅
+DOSBox-X 다시 부팅
 .
 :MAPPER:resetcolor
-색 구성표 재설정
+색 구성표를 다시 설정
 .
 :MAPPER:showstate
 상태 정보 표시
@@ -3476,5 +3480,5 @@ DOSBox-X 재부팅
 CPU: 간단한 코어
 .
 :MAPPER:togmenu
-차림펴 막대 표시를 바꿈
+차림표 막대 표시를 바꿈
 .

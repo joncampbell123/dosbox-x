@@ -2283,6 +2283,12 @@ Pegar desde el portapapeles
 :MENU:mapper_pasteend
 Detener el pegado del portapapeles
 .
+:MENU:mapper_ejectpage
+Enviar salto de página (Form-feed)
+.
+:MENU:mapper_printtext
+Imprimir pantalla de texto DOS
+.
 :MENU:mapper_pause
 Pausar emulación
 .
@@ -2301,17 +2307,17 @@ Pasar a pantalla completa
 :MENU:mapper_resetsize
 Restaurar ventana
 .
-:MENU:mapper_incsize
-Aumentar tamaño de fuente TTF
-.
-:MENU:mapper_decsize
-Reducir tamaño de fuente TTF
-.
 :MENU:mapper_dbcssbcs
 CJK: Cambiar modo DBCS/SBCS
 .
 :MENU:mapper_autoboxdraw
 CJK: Auto-detecta símbolos de dibujo de caja
+.
+:MENU:mapper_incsize
+Aumentar tamaño de fuente TTF
+.
+:MENU:mapper_decsize
+Reducir tamaño de fuente TTF
 .
 :MENU:mapper_resetcolor
 Resetear esquema de color de TTF
@@ -2463,6 +2469,9 @@ Relación de aspecto
 :MENU:video_ratio_1_1
 1:1
 .
+:MENU:video_ratio_3_2
+3:2
+.
 :MENU:video_ratio_4_3
 4:3
 .
@@ -2483,9 +2492,6 @@ Establecer proporción
 .
 :MENU:VideoScalerMenu
 Escalador
-.
-:MENU:scaler_forced
-Forzar escalador
 .
 :MENU:scaler_set_none
 Ninguno
@@ -3126,6 +3132,9 @@ Incrementar salto de fotogramas
 :MENU:mapper_aspratio
 Ajustar a relación de aspecto
 .
+:MENU:mapper_fscaler
+Forzar escalador
+.
 :MENU:mapper_recwave
 Grabar audio en WAV
 .
@@ -3143,9 +3152,6 @@ Grabar video en AVI
 .
 :MENU:mapper_scrshot
 Capturar pantalla
-.
-:MENU:mapper_debugger
-Iniciar depurador de DOSBox-X
 .
 :MENU:mapper_volup
 Subir volumen
@@ -3249,8 +3255,8 @@ Intercambiar disqueteras
 :MENU:mapper_swapcd
 Intercambiar unidad de CD
 .
-:MENU:mapper_ejectpage
-Enviar salto de página (Form-feed)
+:MENU:mapper_debugger
+Iniciar depurador de DOSBox-X
 .
 :MENU:mapper_rescanall
 Volver a escanear todas las unidades
@@ -3393,9 +3399,6 @@ Mostrar número de las unidades montadas
 :MENU:list_ideinfo
 Mostrar estado de disco IDE o CD
 .
-:MENU:print_textscreen
-Imprimir pantalla de texto DOS
-.
 :MENU:pc98_use_uskb
 Usar distribución de teclado US
 .
@@ -3446,6 +3449,9 @@ Pausa con interrupción
 .
 :MAPPER:prevslot
 Slot guardado previo
+.
+:MAPPER:printtext
+Imprimir pantalla d'texto
 .
 :MAPPER:quickrun
 Lanzar prog. rápido

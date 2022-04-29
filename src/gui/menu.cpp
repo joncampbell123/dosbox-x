@@ -346,6 +346,7 @@ static const char *def_menu_video_frameskip[] =
 static const char *def_menu_video_ratio[] =
 {
     "video_ratio_1_1",
+    "video_ratio_3_2",
     "video_ratio_4_3",
     "video_ratio_16_9",
     "video_ratio_16_10",
@@ -522,7 +523,7 @@ static const char *def_menu_video[] =
 #endif
     "--",
     "refresh_rate",
-    "scaler_forced",
+    "mapper_fscaler",
     "VideoScalerMenu",
     "VideoOutputMenu",
 #if !defined(C_SDL2)
@@ -583,7 +584,7 @@ static const char *def_menu_dos[] =
     "mapper_rescanall",
     "--",
 #if C_PRINTER
-    "print_textscreen",
+    "mapper_printtext",
     "mapper_ejectpage",
 #endif
     NULL
@@ -1756,7 +1757,7 @@ void SetScaleForced(bool forced)
     SetVal("render", "scaler", value);
 
     RENDER_CallBack(GFX_CallBackReset);
-    mainMenu.get_item("scaler_forced").check(render.scale.forced).refresh_item(mainMenu);
+    mainMenu.get_item("mapper_fscaler").check(render.scale.forced).refresh_item(mainMenu);
 }
 
 // Sets the scaler to use.
