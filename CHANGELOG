@@ -1,4 +1,9 @@
 0.83.25
+  - Add stub INT 10h handler at F000:F065 if
+    machine=vgaonly and using a VGA ROM BIOS image.
+    The IBM VGA ROM BIOS image points INT 42h at that
+    fixed address and calls it for any function it does
+    not understand. (joncampbell123)
   - Fix extra INT 10h call during BIOS screen. The
     extra call caused crashes when combined with a ROM
     image of the stock IBM VGA BIOS. (joncampbell123)

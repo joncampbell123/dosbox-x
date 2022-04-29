@@ -1203,7 +1203,7 @@ static void INT10_Seg40Init(void) {
 #if C_DEBUG
 	if (control->opt_display2)
 		real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,0x10|(DISP2_Active()?0:1));
-    else
+	else
 #endif
 	if (IS_EGAVGA_ARCH) {
 		real_writeb(BIOSMEM_SEG,BIOSMEM_MODESET_CTL,0x51); // why is display switching enabled (bit 6) ?
@@ -1261,6 +1261,7 @@ extern bool VIDEO_BIOS_disable;
 extern Bitu BIOS_VIDEO_TABLE_LOCATION;
 extern Bitu BIOS_VIDEO_TABLE_SIZE;
 
+Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at);
 bool ROMBIOS_FreeMemory(Bitu phys);
 Bitu RealToPhys(Bitu x);
 
@@ -1645,6 +1646,18 @@ void INT10_Startup(Section *sec) {
             if (int10.rom.used > VGA_BIOS_Size && size_override > -512) /* <- this is fatal, it means the Setup() functions scrozzled over the adjacent ROM or RAM area */
                 E_Exit("VGA BIOS size too small %u > %u",(unsigned int)int10.rom.used,(unsigned int)VGA_BIOS_Size);
         }
+
+	/* If machine=vgaonly, make a dummy stub routine at 0xF000:0xF065 if the user is using the stock IBM VGA ROM BIOS.
+	 * It calls INT 42h for unknown functions. INT 42h is NOT the previous INT 10h handler but is a hardcoded address
+	 * specific to VGA-based IBM PCs of the time period. */
+	if (IS_VGA_ARCH && svgaCard == SVGA_None && VGA_BIOS_use_rom) {
+		LOG(LOG_MISC,LOG_DEBUG)("Creating dummy IBM BIOS INT 10h stub for VGA BIOS ROM image at F000:F065");
+		// TODO: This may have to identify the ROM image by file name in case other ROM images have other
+		//       specific requirements or hardcoded addresses.
+		PhysPt base = ROMBIOS_GetMemory(3,"IBM BIOS dummy INT 10h stub for VGA BIOS",/*align*/1,0xFF065); /* 0xF000:0xF065 */
+		phys_writew(base+0,0xC031);		// XOR AX,AX
+		phys_writeb(base+2,0xCF);		// IRET
+	}
 
         /* NTS: Uh, this does seem bass-ackwards... INT 10h making the VGA BIOS appear. Can we refactor this a bit? */
         if (VGA_BIOS_Size > 0) {
