@@ -579,7 +579,7 @@ static uint8_t * VGA_Draw_4BPP_Line_Double(Bitu vidstart, Bitu line) {
     return TempLine;
 }
 
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) && !defined(C_SDL2) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
 static inline uint32_t guest_bgr_to_macosx_rgba(const uint32_t x) {
     /* guest: XRGB      X   R   G   B
      * host:  RGBX      B   G   R   X */
@@ -602,7 +602,7 @@ static uint8_t * VGA_Draw_Linear_Line_24_to_32(Bitu vidstart, Bitu /*line*/) {
      *          extra byte), then overwrites the extra byte with 0xFF to
      *          produce a valid RGBA 8:8:8:8 value with the original pixel's
      *          RGB plus alpha channel value of 0xFF. */
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) && !defined(C_SDL2) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
     for (i=0;i < vga.draw.width;i++)
         ((uint32_t*)TempLine)[i] = guest_bgr_to_macosx_rgba(*((uint32_t*)(vga.draw.linear_base+offset+(i*3)))) | 0x000000FF;
 #else
@@ -1571,7 +1571,7 @@ static uint8_t * VGA_Draw_LIN16_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
 }
 
 static uint8_t * VGA_Draw_LIN32_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) && !defined(C_SDL2) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
     Bitu offset = vidstart & vga.draw.linear_mask;
     Bitu i;
 
@@ -4582,7 +4582,7 @@ void VGA_ActivateHardwareCursor(void) {
         case M_LIN24:
             VGA_DrawLine=VGA_Draw_Linear_Line_24_to_32;
             break;
-#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
+#if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) && !defined(C_SDL2) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
         case M_LIN32:
             VGA_DrawLine=VGA_Draw_LIN32_Line_HWMouse;
             break;
