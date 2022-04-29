@@ -1,4 +1,6 @@
 0.83.25
+  - XGA: Do not register XGA I/O ports unless emulating
+    the S3 chipset (such as machine=svga_s3) (joncampbell123).
   - Add stub INT 10h handler at F000:F065 if
     machine=vgaonly and using a VGA ROM BIOS image.
     The IBM VGA ROM BIOS image points INT 42h at that

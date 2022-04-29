@@ -2957,7 +2957,9 @@ void VGA_SetupXGA(void) {
 	xga.scissors.x1 = 0;
 	xga.scissors.y2 = 0xFFF;
 	xga.scissors.x2 = 0xFFF;
-	
+
+	if (svgaCard != SVGA_S3Trio) return;
+
 	IO_RegisterWriteHandler(0x42e8,&XGA_Write,IO_MB | IO_MW | IO_MD);
 	IO_RegisterReadHandler(0x42e8,&XGA_Read,IO_MB | IO_MW | IO_MD);
 
