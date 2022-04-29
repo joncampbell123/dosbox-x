@@ -7274,8 +7274,8 @@ static void BIOS_Int10RightJustifiedPrint(const int x,int &y,const char *msg, bo
                 } else {
                     reg_eax = 0x0E00u | ((unsigned char)(*s++));
                     reg_ebx = 0x07u;
+                    CALLBACK_RunRealInt(0x10);
                 }
-                CALLBACK_RunRealInt(0x10);
             }
         }
     }

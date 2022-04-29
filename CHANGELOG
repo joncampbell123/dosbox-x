@@ -1,4 +1,7 @@
 0.83.25
+  - Fix extra INT 10h call during BIOS screen. The
+    extra call caused crashes when combined with a ROM
+    image of the stock IBM VGA BIOS. (joncampbell123)
   - Menu options "Force scaler" and "Print text screen"
     can now be assigned to keyboard shortcuts from the
     Mapper Editor. (Wengier)
