@@ -1112,6 +1112,13 @@ dnl FEATURE: Whether to use Fluidsynth
 AH_TEMPLATE(C_FLUIDSYNTH,[Define to 1 to enable libfluidsynth MIDI synthesis])
 AC_ARG_ENABLE(libfluidsynth,AC_HELP_STRING([--disable-libfluidsynth],[Disable libfluidsynth support]),enable_libfluidsynth=$enableval,enable_libfluidsynth=yes)
 if test x$enable_libfluidsynth = xyes; then
+    case "$host" in
+        *-*-linux*)
+        if test x$have_fluidsynth_h = xyes; then
+          have_fluidsynth_lib=yes
+        fi
+      ;;
+    esac
     if test x$have_fluidsynth_lib = xyes -a x$have_fluidsynth_h = xyes ; then
       LIBS="$LIBS -lfluidsynth"
       AC_DEFINE(C_FLUIDSYNTH,1)
