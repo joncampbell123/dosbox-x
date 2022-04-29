@@ -27,10 +27,10 @@ _dosbox-x()
                     -nogui -nomenu -showcycles -showrt -savedir -defaultdir
                     -defaultconf -defaultmapper -date-host-forced -display2
                     -nodpiaware -securemode -prerun -hostrun -noconfig -silent
-                    -time-limit -fastlaunch -debug -o
+                    -time-limit -fastlaunch -machine -debug -tests
                   )\
      _repeat_opts=(
-                    -conf -c -set
+                    -conf -c -o -set
                   )\
   _exclusive_opts=(
                     -ver -version -printconf -editconf -resetconf
@@ -41,6 +41,25 @@ _dosbox-x()
 
   # setup nameref to point to array
   [[ ${prev:0:1} == - ]] && local -n _sub_opts=${prev//+(-)/_}
+
+  ### Arrays holding sub. options
+  # The name should be the trigger option with leading "-"s replaced with "_"
+  # for example, --machine => _machine
+  # latter parts of the script will reference these arrays via a "nameref"
+  # i.e. The last option dictates the available sub. options
+
+  #
+  # shellcheck disable=SC2034
+  local -a \
+    _machine=(
+               mda hercules cga cga_mono cga_composite cga_composite2
+               pcjr pcjr_composite pcjr_composite2 tandy amstrad ega jega
+               mcga vgaonly svga_s3 svga_s386c928 svga_s3vision864
+               svga_s3vision868 svga_s3vision964 svga_s3vision968 svga_s3trio32
+               svga_s3trio64 svga_s3trio64v+ svga_s3virge svga_s3virgevx
+               svga_et3000 svga_et4000 svga_paradise vesa_nolfb
+               vesa_oldvbe vesa_oldvbe10 pc98 pc9801 pc9821
+             )
 
   local _conf="$HOME/.config/dosbox-x/"
 
@@ -57,6 +76,10 @@ _dosbox-x()
 
       # filter out previously selected confs
       COMPREPLY=( "${COMPREPLY[@]#@(${words_filter})}" )
+      return;;
+    -machine)
+      readarray -t -O 0 COMPREPLY \
+        < <( compgen -W "${_sub_opts[*]}" -- "${cur}" )
       return;;
     -socket)
       readarray -t -O ${#COMPREPLY[@]} COMPREPLY \
@@ -77,7 +100,7 @@ _dosbox-x()
       return;;
     -o)
       readarray -t -O ${#COMPREPLY[@]} COMPREPLY \
-      < <(printf "» -c\nCommand-line option(s) to pass to program (enclose in quotes, if it contains spaces)")
+      < <(printf "» -o\nCommand-line option(s) to pass to program (enclose in quotes, if it contains spaces)")
       return;;
     -set)
       readarray -t -O ${#COMPREPLY[@]} COMPREPLY \

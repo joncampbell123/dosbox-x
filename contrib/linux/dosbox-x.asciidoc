@@ -1,0 +1,399 @@
+= dosbox-x(1)
+DOSBox-X is maintained by the DOSBox-X Team
+:doctype: manpage
+:manmanual: dosbox-x
+:mansource: dosbox-x
+
+== Name
+dosbox-x - a x86/DOS and PC98 emulator
+
+== Synopsis
+*dosbox-x* [_OPTIONS_] [_FILE_]
+
+== Description
+This manual page briefly documents DOSBox-X, an x86/DOS and PC98 emulator.
+
+Options are listed below. Depending on the option, one or more may be specified.
+
+The optional _FILE_ argument should be a DOS executable or a directory.
+If it is a DOS executable (.com .exe .bat), the program will run automatically.
+If it is a directory, the directory specified will be mounted as the C:\ drive.
+If the DOS executable requires parameters, enclose the command and it's parameters in quotes.
+
+For an introduction type _INTRO_ inside dosbox-x.
+
+== Options
+A summary of available options.
+
+*-?*, *-h* or *-help*::
+  Display the help screen and exit.
+*-v*, *-ver* or *-version*::
+  Display the version information and exit.
+*-fullscreen*, *-fs*::
+  Start dosbox-x in fullscreen mode.
+*-machine* _machinetype_::
+  Start dosbox-x with a specific machine type.  Valid choices are:
++
+--
+* *mda*
++
+IBM Monochrome Display Adapter (text only)
++
+* *hercules*
++
+Hercules Graphics Card (monochrome)
++
+* *cga*
++
+IBM Color Graphics Adapter, with automatic RGB/Composite switching.
++
+* *cga_mono*
++
+IBM CGA attached to a monochrome display
++
+* *cga_rgb*
++
+IBM CGA attached to an RGB monitor
++
+* *cga_composite*
++
+IBM CGA (early revision) attached to an NTSC TV
++
+* *cga_composite2*
++
+IBM CGA (late revision) attached to an NTSC TV
++
+* *pcjr*
++
+IBM PCjr
++
+* *pcjr_composite*
++
+IBM PCjr (late revision) attached to NTSC TV
++
+* *pcjr_composite2*
++
+IBM PCjr (late revision) attached to NTSC TV
++
+* *tandy*
++
+Tandy 1000 Graphics Adapter
++
+* *amstrad*
++
+Amstrad PC1512 graphics mode
++
+* *ega*
++
+IBM Enhanced Graphics Adapter
++
+* *jega*
++
+Japanese Enhanced Graphics Adapter (Microsoft AX)
++
+* *mcga*
++
+IBM Multi-Color Graphics Array
++
+* *vgaonly*
++
+IBM Video Graphics Array (see below)
++
+* *svga_paradise*
++
+SVGA - Paradise Systems PVGA1A
++
+* *svga_et3000*
++
+SVGA - Tseng Labs ET3000
++
+* *svga_et4000*
++
+SVGA - Tseng Labs ET4000
++
+* *svga_s3*
++
+VESA SVGA - S3 Trio64 - VBE 2.0
++
+* *svga_s386c928*
++
+VESA SVGA - S3 86c928 - VBE 2.0 (experimental)
++
+* *svga_s3vision864*
++
+VESA SVGA - S3 Vision 864 - VBE 2.0
++
+* *svga_s3vision868*
++
+VESA SVGA - S3 Vision 868 - VBE 2.0
++
+* *svga_s3vision964*
++
+VESA SVGA - S3 Vision 964 - VBE 2.0
++
+* *svga_s3vision968*
++
+VESA SVGA - S3 Vision 968 - VBE 2.0
++
+* *svga_s3trio32*
++
+VESA SVGA - S3 Trio32 - VBE 2.0
++
+* *svga_s3trio64*
++
+VESA SVGA - S3 Trio64 - VBE 2.0 (same as *svga_s3*)
++
+* *svga_s3trio64v+*
++
+VESA SVGA - S3 Trio64V+ - VBE 2.0
++
+* *svga_s3virge*
++
+VESA SVGA - S3 ViRGE - VBE 2.0 (experimental)
++
+* *svga_s3virgevx*
++
+VESA SVGA - S3 ViRGE VX - VBE 2.0 (experimental)
++
+* *vesa_oldvbe*
++
+VESA SVGA - S3 Trio64 with VESA BIOS Extensions (VBE) 1.2
++
+* *vesa_oldvbe10*
++
+VESA SVGA - S3 Trio64 wtih VESA BIOS Extensions (VBE) 1.0
++
+* *vesa_nolfb*
++
+VESA SVGA - S3 Trio64 with VBE 2.0 with Linear Frame Buffer disabled
++
+* *pc98*
++
+Japanese NEC PC-98 emulation
++
+* *pc9801*
++
+same as *pc98*
++
+* *pc9821*
++
+same as *pc98*
++
+* *fm_towns*
++
+Japanese Fujitsu FM Towns (not implemented)
++
+--
+
+The default is *svga_s3*.
+
+For some special VGA effects the machinetype *vgaonly* can be used, note that this disables SVGA capabilities and might be slower due to the higher emulation accuracy.
+
+NOTE: The _machinetype_ affects not only the emulated video card, but may also effect the available sound cards.
+
+*-conf* _configfile_::
+Start dosbox-x with the options specified in _configfile_. This file may also have a section called _[autoexec]_ in which you can put commands you wish to execute on startup.
+Multiple *-conf* options with _configfiles_ can be specified and they will be overlayed on each other.
+*-editconf* [_editor_]::
+Open the default configuration file in a text editor. If no editor name is given, then use the program from the EDITOR environment variable.
+*-userconf*::
+Load the configuration file located in ~/.config/dosbox-x. Can be combined with the *-conf* option.
+*-printconf*::
+Prints the location of the default configuration file and exit.
+*-eraseconf*, *-resetconf*::
+Removes the default configuration file and exit.
+*-erasemapper*, *-resetmapper*::
+Removes the mapperfile configured in the clean default configuration file and exit.
+*-opencaptures* _program_::
+Calls program with as first parameter the location of the captures folder and exit.
+*-opensaves* _program_::
+Calls program with as first parameter the location of the saves folder and exit.
+*-startui*, *-startgui* or *-starttool*::
+Start DOSBox-X with GUI configuration tool.
+*-startmapper*::
+Start the internal keymapper on startup of dosbox-x. You can use it to change the keys dosbox-x uses.
+*-promptfolder*::
+Prompt for the working directory when DOSBox-X starts.
+*-nopromptfolder*::
+Do not prompt for the working directory when DOSBox-X starts.
+*-nogui* or *-nomenu*::
+Do not show the GUI menu bar when in windowed mode.
+*-showcycles*::
+Show cycles count (FPS) in the title.
+*-showrt*::
+Show emulation speed relative to realtime in the title.
+*-socket* _socketnumber_::
+Passes the TCP socket number _socketnumber_ for the nullmodem emulation.
+See the WIKI for details.
+*-savedir* _path_::
+Set path for the save slots.
+*-defaultdir* _path_::
+Set the default working path for DOSBox-X.
+*-defaultconf*::
+Use the default config settings for DOSBox-X.
+*-defaultmapper*::
+Use the default key mappings for DOSBox-X.
+*-data-host-forced*::
+Force synchronization of date and time with the host.
+*-display2* [_color_]::
+Enable both standard & monochrome dual-screen mode. The monochrome display defaults to white, but can optionally be set to _green_ or _amber_.
+*-lang* _message_file_::
+Start dosbox-x with the language specified in _message_file_.
+*-nodpiaware*::
+Ignore (do not signal) Windows DPI awareness.
+*-securemode*::
+Enable  secure mode, which is meant to prevent a DOS program potentially gaining access to files outside directories mounted in the [autoexec] section of the config file.
+It does this by running *Z:\SYSTEM\CONFIG.COM -securemode* after completing the [autoexec] section (which in turn disables any changes to how the drives are mounted "inside" dosbox-x).
+It also disables various other CONFIG.COM options that could be exploited.
+*-prerun*::
+If _FILE_ is given, run it before the AUTOEXEC.BAT config section
+*-hostrun*::
+Enable START command, CLIP$ device and long filename (LFN) support
+*-noconfig*::
+Skips the [config] section of the loaded configuration file. This is equivalent to skipping CONFIG.SYS in DOS.
+*-noautoexec*::
+Skips the [autoexec] section of the loaded configuration file. This is equivalent to skipping AUTOEXEC.BAT in DOS.
+*-exit*::
+dosbox-x will close itself when the DOS program specified by _FILE_ ends.
+*-silent*::
+Run DOSBox-X silently and exit after executing the [autoexec] section of the loaded config file.
+*-o* _option(s)_::
+Provide command-line option(s) for [_FILE_] if specified.
+*-c* _command_::
+Runs the specified command before running [_FILE_].
+Multiple commands can be specified.
+Each command should start with *-c* though.
+A command can be an Internal Program, a DOS command or an executable on a mounted drive.
+If the command requires parameters, enclose the command and its parameters in quotes.
+*-set* _section property=value_::
+Set the config option (override any config file).
+If the property contains spaces, ensure to enclose the string in quotes.
+The section is the name of a dosbox-x config section such as *[video]* without the brackets.
+Multiple *-set* commands may be specified.
+If a property is unique, the section may be omitted.
+e.g. *-set sdl output=ttf* is equivalent to *-set output=ttf*
+*-time-limit* _seconds_::
+Kill the emulator after _seconds_.
+*-fastlaunch*::
+Fast launch mode (skip the BIOS logo and welcome banner).
+*-helpdebug*::
+Show debug-related options and exit.
+
+== INTERNAL INTERPRETER COMMANDS
+*dosbox-x* Supports most of the internal DOS commands found in COMMAND.COM.
+Help text is integrated for these commands in DOSBox-X, and will not be duplicated here.
+An explanation of these commands can also be found on the DOSBox-X wiki on the Supported Commands page.
+
+*ALIAS*, *ATTRIB*, *BREAK*, *CALL*, *CD*/*CDDIR*, *CHCP*, *CHOICE*, *CLS*,
+*COPY*, *COUNTRY*, *CTTY*, *DATE*, *DEL*/*ERASE*, *DELTREE*, *ECHO*, *EXIT*,
+*DIR*, *FOR*, *GOTO*, *HELP*, *IF*, *LFNFOR*, *LH*/*LOADHIGH*, *MD*/*MKDIR*,
+*MORE*, *PATH*, *PAUSE*, *PROMPT*, *RD*/*RMDIR*, *REM*, *REN*/*RENAME*, *SET*,
+*SHIFT*, *SUBST*, *TIME*, *TRUENAME*, *TYPE*, *VER*, *VERIFY*, *VOL*
+
+== OTHER PROVIDED COMMANDS
+In addition, the following extra commands are available on the emulated Z: drive:
+
+NOTE: Some commands (like NE2000) are only present in case the corresponding feature is enabled.
+
+- *Z:\4DOS*
++
+--
+*4DOS*, *4HELP*, *OPTION*, *BATCOMP*
+--
+- *Z:\BIN*
++
+--
+*EVAL*, *SHUTDOWN*, *DSXMENU*, *CWSDPMI*, *EMSMAGIC*, *UNZIP*, *ZIP*, *MPXPLAY*,
+*DOSMID*, *CDPLAY*, *DOS4GW*, *DOS32A*, *DOSIDLE*, *UTF16*, *UTF8*, *AUTOTYPE*,
+*ADDKEY*, *LS*, *TITLE*, *COLOR*, *SETCOLOR*
+--
+- *Z:\DOS*
++
+--
+*MEM*, *EDIT*, *PRINT*, *DISKCOPY*, *DEFRAG*, *FORMAT*, *FDISK*, *SYS*, *FC*,
+*COMP*, *CHKDSK*, *BUFFERS*, *DEVICE*, *APPEND*, *XCOPY*, *SORT*, *REPLACE*,
+*LASTDRIV*, *FILES*, *FCBS*, *FIND*, *MOVE*, *DEBUG*, *EDLIN*, *CHOICE*,
+*DELTREE*, *TREE*, *LABEL*, *LOADFIX*, *MOUSE*, *MODE*, *KEYB*
+--
+- *Z:\DEBUG*
++
+--
+*HEXMEM32*, *HEXMEM16*, *A20GATE*, *BIOSTEST*, *INT2FDBG*, *NMITEST*, *LOADROM*,
+*VESAMOED*, *VFRCRATE*
+--
+- *Z:\SYSTEM*
++
+--
+*PARALLEL*, *SERIAL*, *MIXER*, *CAPMOUSE*, *FLAGSAVE*, *CFGTOOL*, *RESCAN*,
+*RE-DOS*, *COUNTRY*, *CONFIG*, *BOOT*, *MOUNT*, *IMGSWAP*, *IMGMAKE*,
+*IMGMOUNT*, *INTRO*, *HELP*, *NE2000*
+--
+- *Z:\TEXTUTIL*
++
+--
+*CGA*, *CLR*, *EGA*, *SCANRES*, *VGA*, *DCGA*, *132X25*, *132X43*, *132X50*,
+*132X60*, *80X25*, *80X50*, *80X60*
+--
+
+== SPECIAL KEYS
+*CTRL-F7*::       CGA emulation only - Switch between early and late model IBM CGA emulation.
+*CTRL-F8*::       CGA emulation only - Switch between Auto, RGBI and Composite monitor output emulation.
+*CTRL-SHIFT-F7*:: CGA emulation only - Decrease Hue
+*CTRL-SHIFT-F8*:: CGA emulation only - Increase Hue
+*CTRL-F7*::       CGA Mono and Hercules emulation only - Cycle between Green, Amber, White and Grey
+*CTRL-F8*::       CGA Mono and Hercules emulation only - Cycle between low and high brightness
+*F12-F*::         Switch between fullscreen and window mode.
+*F12-R*::         Reset the virtual machine inside DOSBox-X
+*F12-B*::         Reboot the emulated DOS (integrated DOS or guest DOS) inside DOSBox-X.
+*F12-C*::         Start DOSBox-X’s graphical configuration tool.
+*F12-M*::         Start DOSBox-X’s mapper editor.
+*F12-Esc*::       Show/hide DOSBox-X’s drop-down menu bar.
+*F12-Del*::       Send the selected special key combination (Ctrl+Alt+Del by default) to the guest system.
+*F12-{+}*::       Increase the sound volume of DOSBox-X’s emulated DOS.
+*F12-{-}*::       Decrease the sound volume of DOSBox-X’s emulated DOS.
+*F12-]*::         Increase the emulated DOS’s current speed relative to real-time.
+*F12-[*::         Decrease the emulated DOS’s current speed relative to real-time.
+*F12-{=}*::       Increase DOSBox-X’s emulation CPU cycles.
+*F12-{-}*::       Decrease DOSBox-X’s emulation CPU cycles.
+*F12-Up*::        Increase the font size for the TrueType font (TTF) output.
+*F12-Down*::      Decrease the font size for the TrueType font (TTF) output.
+*F12-Left*::      Reset the emulated DOS’s current CPU speed to the normal speed.
+*F12-Right*::     Toggle DOSBox-X’s speed lock.
+*F12-D*::         Swap between mounted CD images.
+*F12-O*::         Swap between mounted floppy images.
+*F12-P*::         Take a screenshot of the current screen in PNG format.
+*F12-I*::         Start/Stop capturing an AVI video of the current session.
+*F12-W*::         Start/Stop recording a WAV audio of the current session.  Alt+Pause Start DOSBox-X’s Debugger.
+*F12-[,]*::       Select the previous save slot to save to or load from.
+*F12-[.]*::       Select the next save slot to save to or load from.
+*F12-S*::         Save current state to the selected save slot.
+*F12-L*::         Load the state from the selected save slot.
+*F12-Pause*::     Pause emulation (press again to continue).
+*Ctrl+F5*::       Copy all text on the DOS screen to the host clipboard.
+*Ctrl+F6*::       Paste the text in the host clipboard to the DOS screen.
+*Ctrl+F9*::       Exit DOSBox-X.
+*Ctrl+F10*::      Capture the mouse for use with the emulated DOS.
+
+These are the default keybindings. They can be changed in the keymapper.
+
+Saved/recorded files can be found in current_directory/capture (can be changed in the configfile).
+The directory has to exist prior to starting dosbox-x else nothing gets saved or recorded!
+
+NOTE:  Once you increase your dosbox-x cycles beyond your computer's maximum capacity, it will produce the same effect as slowing down the emulation.
+This maximum will vary from computer to computer, there is no standard.
+
+== ENVIRONMENT
+Any configuration option can be overridden using an environment variable.
+Environment variables starting with prefix *DOSBOX* are processed and interpreted as follows: *DOSBOX_SECTIONNAME_PROPERTYNAME=value*
+
+For example, you can override the render aspect this way:
+
+*$ DOSBOX_RENDER_ASPECT=false dosbox-x*
+
+== BUGS
+To report a bug, please visit https://github.com/joncampbell123/dosbox-x/issues
+
+== Resources
+*project web site:* https://dosbox-x.com
+
+*Project Wiki:* https://dosbox-x.com/wiki
