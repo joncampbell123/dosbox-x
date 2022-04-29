@@ -6,6 +6,9 @@
     Toshiba J-3100 emulation. (nanshiki)
   - Default S3 machine types now support XGA/SXGA VText
     in DOS/V, in addition to svga_et4000. (nanshiki)
+  - Added "j3100backcolor" and "j300textcolor" config
+    options (in [dosv] section) to specify background
+    and text colors in J-3100 mode. (nanshiki)
   - Added config option "aspect_ratio" (in [render]
     section) which when set will force the specified
     aspect ratio (e.g. 16:9 or 3:2) in the aspect ratio
@@ -38,6 +41,10 @@
     mouse coordinates, which is useful in emulation or
     virtualization environments where the mouse may be
     integrated with the host cursor. (javispedro)
+  - Added support for Pentium Pro hinting NOPs and
+    related multi-byte NOPs. (Jookia)
+  - Updated HX DOS Extender to latest version 2.19 for
+    HX-DOS builds. (Wengier)
   - DOSBox-X returns 1 instead of 0 when E_Exit occurs
     or unit tests fail. (Wengier)
   - Fixed built-in IPX and Modem emulation unavailable
@@ -45,6 +52,8 @@
   - Fixed -machine command-line option (as listed by
     "INTRO USAGE" command) not working. (Wengier)
   - Fixed lockup in classic Jumpman. (maron2000)
+  - Fixed color in some modes under x86-64 macOS SDL2
+    builds. (myon98)
   - Fixed fscale FPU operation and updated FPU status
     word. Also fixed FPU stack value log messages on
     x86-based builds. (cimarronm)
@@ -59,8 +68,6 @@
     menu when dynamic_x86 is also available. Also fixed
     the dynamic_rec core may not be displayed correctly
     in the menu when a language file is used. (Wengier)
-  - Added support for Pentium Pro hinting NOPs and
-    related multi-byte NOPs. (Jookia)
   - Fixed a buffer overflow when launching a program.
     (Jookia)
   - Fixed bug where DOS IOCTL would call device control

@@ -6634,7 +6634,7 @@ bool DOSBOX_parse_argv() {
 
             fprintf(stderr,"\nDOSBox-X version %s %s, copyright 2011-%s The DOSBox-X Team.\n",VERSION,SDL_STRING,COPYRIGHT_END_YEAR);
             fprintf(stderr,"DOSBox-X project maintainer: joncampbell123 (The Great Codeholio)\n\n");
-            fprintf(stderr,"dosbox-x [name] [options]\n");
+            fprintf(stderr,"dosbox-x [name] [options]\n\n");
             fprintf(stderr,"Options can be started with either \"-\" or \"/\" (e.g. \"-help\" or \"/help\"):\n\n");
             fprintf(stderr,"  -?, -h, -help                           Show this help screen\n");
             fprintf(stderr,"  -v, -ver, -version                      Display DOSBox-X version information\n");

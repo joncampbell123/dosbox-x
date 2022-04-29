@@ -2195,7 +2195,6 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("del",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Maps the undefined del symbol (0x7F) to the next character (0x80) for the Japanese DOS/V and other Japanese mode emulations.");
-    Pbool->SetBasic(true);
 
 	const char* fepcontrol_settings[] = { "ias", "mskanji", "both", 0};
 	Pstring = secprop->Add_path("fepcontrol",Property::Changeable::OnlyAtStart,"both");
@@ -2215,7 +2214,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
 	Pbool = secprop->Add_bool("use20pixelfont",Property::Changeable::OnlyAtStart,false);
-	Pbool->Set_help("Enables 20 pixel font will be used instead of the 24 pixel system font for the Japanese DOS/V emulation (with V-text enabled).");
+	Pbool->Set_help("Enables the 20 pixel font to be used instead of the 24 pixel system font for the Japanese DOS/V emulation (with V-text enabled).");
     Pbool->SetBasic(true);
 
 	Pstring = secprop->Add_string("j3100",Property::Changeable::OnlyAtStart,"off");
@@ -2236,10 +2235,9 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_path("j3100backcolor",Property::Changeable::OnlyAtStart,"");
     Pstring->Set_help("Specifies the background color in J-3100 mode. If not specified, the colors will be those of the display type corresponding to the model specified in j3100type.");
-    Pstring->SetBasic(true);
+
     Pstring = secprop->Add_path("j3100textcolor",Property::Changeable::OnlyAtStart,"");
-    Pstring->Set_help("Specifies text color in J-3100 mode. If not specified, the colors will be those of the display type corresponding to the model specified in j3100type.");
-    Pstring->SetBasic(true);
+    Pstring->Set_help("Specifies the text color in J-3100 mode. If not specified, the colors will be those of the display type corresponding to the model specified in j3100type.");
 
     secprop=control->AddSection_prop("video",&Null_Init);
     Pint = secprop->Add_int("vmemdelay", Property::Changeable::WhenIdle,0);
