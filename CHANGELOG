@@ -68,6 +68,10 @@
     for IOCTL. (cimarronm)
   - Clean up of DOS device and attribute flag usage
     (cimarronm)
+  - Integrated commits from mainline (Allofich)
+    - Use real pointer with font data for reading
+    characters. Also ignore page number for modes with
+    only one page.
 0.83.24
   - Release notes for this version:
     https://dosbox-x.com/release-0.83.24.html

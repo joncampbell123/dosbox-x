@@ -1307,13 +1307,13 @@ void ReadCharAttr(uint16_t col,uint16_t row,uint8_t page,uint16_t * result) {
         switch (machine) {
         case MCH_CGA:
         case MCH_HERC:
-            fontdata=PhysMake(0xf000,0xfa6e);
+            fontdata=RealMake(0xf000,0xfa6e);
             break;
         case TANDY_ARCH_CASE:
-            fontdata=Real2Phys(RealGetVec(0x44));
+            fontdata=RealGetVec(0x44);
             break;
         default:
-            fontdata=Real2Phys(RealGetVec(0x43));
+            fontdata=RealGetVec(0x43);
             break;
         }
         break;
@@ -1327,7 +1327,7 @@ void ReadCharAttr(uint16_t col,uint16_t row,uint8_t page,uint16_t * result) {
 			*result = real_readw(GetTextSeg(), (row * real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS) + col) * 2);
 			return;
 		}
-        fontdata=Real2Phys(RealGetVec(0x43));
+        fontdata=RealGetVec(0x43);
         break;
     }
 
@@ -1335,13 +1335,14 @@ void ReadCharAttr(uint16_t col,uint16_t row,uint8_t page,uint16_t * result) {
 
     for (uint16_t chr=0;chr<256;chr++) {
 
-        if (chr==128 && split_chr) fontdata=Real2Phys(RealGetVec(0x1f));
+        if (chr==128 && split_chr) fontdata=RealGetVec(0x1f);
 
         bool error=false;
         uint16_t ty=(uint16_t)y;
         for (uint8_t h=0;h<cheight;h++) {
             uint8_t bitsel=128;
-            uint8_t bitline=mem_readb(fontdata++);
+            uint8_t bitline=mem_readb(Real2Phys(fontdata));
+            fontdata=RealMake(RealSeg(fontdata),RealOff(fontdata)+1);
             uint8_t res=0;
             uint8_t vidline=0;
             uint16_t tx=(uint16_t)x;
@@ -1355,7 +1356,7 @@ void ReadCharAttr(uint16_t col,uint16_t row,uint8_t page,uint16_t * result) {
             ty++;
             if(bitline != vidline){
                 /* It's not character 'chr', move on to the next */
-                fontdata+=(unsigned int)(cheight-(unsigned int)h-1u);
+                fontdata=RealMake(RealSeg(fontdata),RealOff(fontdata)+cheight-h-1);
                 error = true;
                 break;
             }
@@ -1371,6 +1372,7 @@ void ReadCharAttr(uint16_t col,uint16_t row,uint8_t page,uint16_t * result) {
 }
 
 void INT10_ReadCharAttr(uint16_t * result,uint8_t page) {
+    if(CurMode->ptotal==1) page=0;
     if(page==0xFF) page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
     uint8_t cur_row=CURSOR_POS_ROW(page);
     uint8_t cur_col=CURSOR_POS_COL(page);
