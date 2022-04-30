@@ -5091,8 +5091,9 @@ void SetIMPosition() {
             rect.y = y * ttf.height + (ttf.height - TTF_FontAscent(ttf.SDL_font)) / 2;
         } else {
 #endif
-            rect.x = x * width;
-            rect.y = y * height - (J3_IsJapanese()?2:(IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0)));
+            double sx = sdl.clip.w>0&&sdl.draw.width>0?((double)sdl.clip.w/sdl.draw.width):1, sy = sdl.clip.h>0&&sdl.draw.height>0?((double)sdl.clip.h/sdl.draw.height):1;
+            rect.x = x * width * sx;
+            rect.y = y * height * sy - (J3_IsJapanese()?2:(IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0)));
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
             rect.y += mainMenu.menuBarHeight;
 #endif
