@@ -1812,6 +1812,7 @@ void SHELL_Run() {
 		LOG_MSG("Unit test completed: %s\n", testerr?"failure":"success");
 		control->opt_nolog = true;
 #else
+		testerr = true;
 		printf("Unit tests are only available in debug builds\n\n");
 #endif
 #if defined(WIN32)
