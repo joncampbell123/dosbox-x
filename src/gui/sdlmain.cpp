@@ -6674,10 +6674,7 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -securemode                             Enable secure mode (no drive mounting etc)\n");
             fprintf(stderr,"  -prerun                                 If [name] is given, run it before AUTOEXEC.BAT config section\n");
 #if defined(WIN32) && !defined(HX_DOS) || defined(MACOSX) || defined(LINUX)
-            fprintf(stderr,"  -hostrun                                Enable START command, CLIP$ device and long filename support\n");
-#endif
-#if defined(WIN32) && !defined(HX_DOS)
-            fprintf(stderr,"                                          Windows programs can be launched directly to run on the host\n");
+            fprintf(stderr,"  -hostrun                                Enable running host program via START command and LFN support\n");
 #endif
             fprintf(stderr,"  -noconfig                               Do not execute CONFIG.SYS config section\n");
             fprintf(stderr,"  -noautoexec                             Do not execute AUTOEXEC.BAT config section\n");

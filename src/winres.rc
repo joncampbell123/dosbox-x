@@ -1,5 +1,5 @@
 
-#include "winres.h"
+#include "winresrc.h"
 #include "../include/resource.h"
 
 // icon resource
@@ -22,15 +22,15 @@ BEGIN
     BEGIN
 		BLOCK "040904b0"
 		BEGIN
-		    VALUE "Comments", "(C) 2002-2018 TheGreatCodeholio, a fork of the DOSBox project, published under GNU GPL"
-		    VALUE "CompanyName", "DOSBox-X"
+		    VALUE "Comments", "Project maintainer: joncampbell123 (TheGreatCodeholio)"
+		    VALUE "CompanyName", "DOSBox-X Project"
 		    VALUE "FileDescription", "DOSBox-X DOS Emulator"
-		    VALUE "FileVersion", "0, 74, 0, 0"
+		    VALUE "FileVersion", "0, 83, 25, 0"
 		    VALUE "InternalName", "DOSBox-X"
-		    VALUE "LegalCopyright", "Copyright ?2002-2018 TheGreatCodeholio"
+		    VALUE "LegalCopyright", "Copyright 2011-2022 The DOSBox-X Team (joncampbell123), published under GNU GPL"
 		    VALUE "OriginalFilename", "dosbox-x.exe"
 		    VALUE "ProductName", "DOSBox-X DOS Emulator"
-		    VALUE "ProductVersion", "0, 74, 0, 0"
+		    VALUE "ProductVersion", "0, 83, 25, 0"
 		END
     END
     BLOCK "VarFileInfo"
