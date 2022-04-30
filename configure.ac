@@ -1066,6 +1066,12 @@ if test x$enable_libslirp == xyes ; then
        fi
     ;;
   esac
+else
+  case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+      LIBS="$LIBS -liconv"
+    ;;
+  esac
 fi
 
 if test x$enable_x11 != xno; then
