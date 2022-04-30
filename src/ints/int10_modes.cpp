@@ -2025,13 +2025,16 @@ dac_text16:
 	}
 	/* Write palette register data to dynamic save area if pointer is non-zero */
 	RealPt vsavept=real_readd(BIOSMEM_SEG,BIOSMEM_VS_POINTER);
-	RealPt dsapt=real_readd(RealSeg(vsavept),RealOff(vsavept)+4);
-	if (dsapt) {
-		for (uint8_t ct=0;ct<0x10;ct++) {
-			real_writeb(RealSeg(dsapt),RealOff(dsapt)+ct,att_data[ct]);
-		}
-		real_writeb(RealSeg(dsapt),RealOff(dsapt)+0x10,0); // overscan
-	}
+    if (vsavept)
+    {
+        RealPt dsapt=real_readd(RealSeg(vsavept),RealOff(vsavept)+4);
+        if (dsapt) {
+            for (uint8_t ct=0;ct<0x10;ct++) {
+                real_writeb(RealSeg(dsapt),RealOff(dsapt)+ct,att_data[ct]);
+            }
+            real_writeb(RealSeg(dsapt),RealOff(dsapt)+0x10,0); // overscan
+        }
+    }
 	/* Setup some special stuff for different modes */
 	switch (CurMode->type) {
 	case M_DCGA:
