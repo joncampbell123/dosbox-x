@@ -1,6 +1,8 @@
 
 #include "winresrc.h"
 #include "../include/resource.h"
+#define FLUIDINC
+#include "../config.h"
 
 // icon resource
 dosbox_ico ICON "../contrib/icons/dosbox-x.ico"
@@ -8,10 +10,12 @@ IDI_MAPPER ICON "../contrib/icons/mapper.ico"
 IDI_CFG_GUI ICON "../contrib/icons/cfggui.ico"
 IDI_PAUSE ICON "../contrib/icons/pause.ico"
 
+#define VERSION_NUMBER 0,83,25,0
+
 // version resource
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 0,74,0,0
- PRODUCTVERSION 0,74,0,0
+ FILEVERSION VERSION_NUMBER
+ PRODUCTVERSION VERSION_NUMBER
  FILEFLAGSMASK 0x3fL
  FILEFLAGS 0x0L
  FILEOS 0x40004L
@@ -25,12 +29,12 @@ BEGIN
 		    VALUE "Comments", "Project maintainer: joncampbell123 (TheGreatCodeholio)"
 		    VALUE "CompanyName", "DOSBox-X Project"
 		    VALUE "FileDescription", "DOSBox-X DOS Emulator"
-		    VALUE "FileVersion", "0, 83, 25, 0"
+		    VALUE "FileVersion", PACKAGE_VERSION
 		    VALUE "InternalName", "DOSBox-X"
 		    VALUE "LegalCopyright", "Copyright 2011-2022 The DOSBox-X Team (joncampbell123), published under GNU GPL"
 		    VALUE "OriginalFilename", "dosbox-x.exe"
 		    VALUE "ProductName", "DOSBox-X DOS Emulator"
-		    VALUE "ProductVersion", "0, 83, 25, 0"
+		    VALUE "ProductVersion", PACKAGE_VERSION
 		END
     END
     BLOCK "VarFileInfo"
