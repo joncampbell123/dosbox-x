@@ -50,6 +50,10 @@ Once Flatpak support is enabled on your Linux system you can install the DOSBox-
 
 ``flatpak install flathub com.dosbox_x.DOSBox-X``
 
+Alternatively, you can install the DOSBox-X Flatpak locally if you downloaded the ``com.dosbox_x.DOSBox-X.flatpakref`` file to your computer:
+
+``flatpak install --from com.dosbox_x.DOSBox-X.flatpakref``
+
 After it is installed, it can be run with:
 
 ``flatpak run com.dosbox_x.DOSBox-X``

@@ -959,14 +959,14 @@ AH_TEMPLATE(C_SDL_NET,[Indicate whether SDL_net is present])
 AH_TEMPLATE(C_MODEM,[Define to 1 to enable internal modem support, requires SDL_net])
 AH_TEMPLATE(C_IPX,[Define to 1 to enable IPX over Internet networking, requires SDL_net])
 
-dnl enable SDL2 net if SDL2
 case "$host" in
   *-*-cygwin* | *-*-mingw32*)
-     if test x$have_sdl_net_h = xyes; then
-       have_sdl_net_lib=yes
-     fi
+    if test x$have_sdl_net_h = xyes -a x$enable_hx = xno; then
+      have_sdl_net_lib=yes
+    fi
   ;;
 esac
+dnl enable SDL2 net if SDL2
 if test -n "$SDL2_LIBS"; then
  if test x$have_sdl2_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
   LIBS="$LIBS -lSDL2_net"
@@ -1064,6 +1064,12 @@ if test x$enable_libslirp == xyes ; then
        if test x$have_slirp = xyes; then
          LIBS="$LIBS -lintl -liconv"
        fi
+    ;;
+  esac
+else
+  case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+      LIBS="$LIBS -liconv"
     ;;
   esac
 fi

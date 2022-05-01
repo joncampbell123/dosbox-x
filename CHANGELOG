@@ -1,14 +1,6 @@
 0.83.25
   - XGA: Do not register XGA I/O ports unless emulating
-    the S3 chipset (such as machine=svga_s3) (joncampbell123).
-  - Add stub INT 10h handler at F000:F065 if
-    machine=vgaonly and using a VGA ROM BIOS image.
-    The IBM VGA ROM BIOS image points INT 42h at that
-    fixed address and calls it for any function it does
-    not understand. (joncampbell123)
-  - Fix extra INT 10h call during BIOS screen. The
-    extra call caused crashes when combined with a ROM
-    image of the stock IBM VGA BIOS. (joncampbell123)
+    S3 chipset (such as machine=svga_s3) (joncampbell123)
   - Menu options "Force scaler" and "Print text screen"
     can now be assigned to keyboard shortcuts from the
     Mapper Editor. (Wengier)
@@ -47,6 +39,11 @@
   - Added Korean language option in Windows installer.
     Also, language option page will be shown regardless
     of the output option selected. (Wengier)
+  - Add stub INT 10h handler at F000:F065 if
+    machine=vgaonly and using a VGA ROM BIOS image.
+    The IBM VGA ROM BIOS image points INT 42h at that
+    fixed address and calls it for any function it does
+    not understand. (joncampbell123)
   - Set int33 event status bit 8 when passing absolute
     mouse coordinates, which is useful in emulation or
     virtualization environments where the mouse may be
@@ -64,6 +61,9 @@
   - Fixed lockup in classic Jumpman. (maron2000)
   - Fixed color in some modes under x86-64 macOS SDL2
     builds. (myon98)
+  - Fixed extra INT 10h call during BIOS screen. The
+    extra call caused crashes when combined with a ROM
+    image of the stock IBM VGA BIOS. (joncampbell123)
   - Fixed fscale FPU operation and updated FPU status
     word. Also fixed FPU stack value log messages on
     x86-based builds. (cimarronm)
@@ -78,6 +78,7 @@
     menu when dynamic_x86 is also available. Also fixed
     the dynamic_rec core may not be displayed correctly
     in the menu when a language file is used. (Wengier)
+  - Fixed Windows resource information. (Wengier)
   - Fixed a buffer overflow when launching a program.
     (Jookia)
   - Fixed bug where DOS IOCTL would call device control
