@@ -1,6 +1,8 @@
 
 #include "winresrc.h"
 #include "../include/resource.h"
+
+#define VERSION_NUMBER 0,83,25,0
 #define FLUIDINC
 #include "../config.h"
 
@@ -9,8 +11,6 @@ dosbox_ico ICON "../contrib/icons/dosbox-x.ico"
 IDI_MAPPER ICON "../contrib/icons/mapper.ico"
 IDI_CFG_GUI ICON "../contrib/icons/cfggui.ico"
 IDI_PAUSE ICON "../contrib/icons/pause.ico"
-
-#define VERSION_NUMBER 0,83,25,0
 
 // version resource
 VS_VERSION_INFO VERSIONINFO
