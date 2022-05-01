@@ -33,7 +33,7 @@ build="$top/mingw-build"
 rm -Rf "$build"
 mkdir -p "$build" || exit 1
 
-ziptool="$top/dosbox-x-mingw/vs2015/tool/zip.exe"
+ziptool="$top/dosbox-x-mingw/vs/tool/zip.exe"
 
 # do it
 for what in mingw mingw-lowend mingw-sdl2 mingw-sdldraw; do

@@ -41,9 +41,10 @@ fi
 top=`pwd`
 cd "$top" || exit 1
 
-ziptool="$top/dosbox-x-mingw-hx-dos/vs2015/tool/zip.exe"
+hxdosdir="dosbox-x-mingw-hx-dos"
+ziptool="$top/$hxdosdir/vs/tool/zip.exe"
 
-cd "$top/dosbox-x-mingw-hx-dos" || exit 1
+cd "$top/$hxdosdir" || exit 1
 git clean -dfx
 git reset --hard
 git checkout master
@@ -71,10 +72,10 @@ cp $hxdir/README.TXT . || exit 1
 cp $hxdir/WINSPOOL.DRV . || exit 1
 cp $hxdir/*.DLL . || exit 1
 
-cd "$top"/dosbox-x-mingw-hx-dos || exit 1
+cd "$top/$hxdosdir" || exit 1
 echo "Packing up now..."
 
-$ziptool -r -9 ../"$name" {CHANGELOG.txt,dosbox-x.exe,dosbox-x.ref,DPMILD32.EXE,HDPMI32.EXE,HXGUIHLP.INI,README.TXT,*.DLL} || exit 1
+$ziptool -r -9 ../"$name" {CHANGELOG.txt,dosbox-x.exe,dosbox-x.ref,dosbox-x.ref.full,DPMILD32.EXE,HDPMI32.EXE,HXGUIHLP.INI,README.TXT,WINSPOOL.DRV,*.DLL} || exit 1
 cd ..
 
 exit 0
