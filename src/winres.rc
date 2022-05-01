@@ -4,7 +4,7 @@
 
 #define VERSION_NUMBER 0,83,25,0
 #define FLUIDINC
-#include "../config.h"
+#include "./config.h"
 
 // icon resource
 dosbox_ico ICON "../contrib/icons/dosbox-x.ico"
