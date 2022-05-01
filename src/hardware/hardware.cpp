@@ -1517,7 +1517,7 @@ void CAPTURE_ScreenShotEvent(bool pressed) {
 	CaptureState |= CAPTURE_IMAGE;
 #endif
 #if defined(USE_TTF)
-    showdbcs = true;
+    showdbcs = IS_EGAVGA_ARCH;
     ttf_switch_off();
 #endif
 }

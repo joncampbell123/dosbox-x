@@ -428,4 +428,5 @@ void MSG_Init() {
 #else
     showdbcs = showdbcsstr=="true"||showdbcsstr=="1"||(showdbcsstr=="auto" && loadlang);
 #endif
+    if (!IS_EGAVGA_ARCH) showdbcs = false;
 }
