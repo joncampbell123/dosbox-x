@@ -199,7 +199,11 @@ retry:
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     /* scale the menu bar if the window is large enough */
-    {
+    /* SDL drawn menus cannot coexist with 3Dfx emulation. In fact, there is a serious
+     * bug in SDL1 builds that rapidly expands the vertical size of the menu every frame. */
+    if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 && Voodoo_OGL_Active() && sdl.desktop.prevent_fullscreen) {
+    }
+    else {
         int cw = fixedWidth, ch = fixedHeight;
         int scale = 1;
 
@@ -255,8 +259,12 @@ retry:
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     if (mainMenu.isVisible() && !sdl.desktop.fullscreen) 
     {
-        windowHeight += mainMenu.menuBox.h;
-        sdl.clip.y += mainMenu.menuBox.h;
+        if (Voodoo_OGL_GetWidth() != 0 && Voodoo_OGL_GetHeight() != 0 && Voodoo_OGL_Active() && sdl.desktop.prevent_fullscreen) {
+        }
+        else {
+            windowHeight += mainMenu.menuBox.h;
+            sdl.clip.y += mainMenu.menuBox.h;
+        }
     }
 #endif
 
