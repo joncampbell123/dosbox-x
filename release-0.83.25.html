@@ -1,0 +1,214 @@
+
+
+
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="DOSBox-X: Free, cross-platform and complete DOS, Windows 3.x and 9x emulation package">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="css/style.css">
+
+    <script type="text/javascript" src="js/script.js"></script>
+    <title>DOSBox-X - Complete DOS emulation package</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <table width="100%" style="border: hidden">
+        <tr>
+        <td width="25%" style="border: hidden; min-width: 300px; text-align: center">
+          &nbsp;<p />&nbsp;<br/>
+          <img id="dosbox-x-logo" src="images/dosbox-x-logo.svg" title="DOSBox-X" alt="DOSBox-X logo" style="width:90px" />
+        </td><td>&nbsp;<p />
+          <h1 id="project_title">DOSBox-X</h1>
+          <h2 id="project_tagline">Cross-platform DOS emulation package<br />Complete, accurate emulation and more</h2>
+        </td>
+        </tr>
+        </table>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer"; style="background-color: #fafacf">
+        <div style="text-align: center">
+            <h3 style="padding-top: 10px">DOSBox-X 0.83.25 Release Notes</h3>
+            <h4 style="padding-bottom: 15px; font-weight: normal">Release Date: <span style="color: green">May 1, 2022</span></h4>
+            Please report any issues in our <a href="https://github.com/joncampbell123/dosbox-x/issues">issue tracker</a>.</p>
+            <p>Also, make sure to check out our <a href="wiki">Wiki guide</a>.</p>
+            <h4>New in This Version</h4>
+
+            <table width="100%" style="border: hidden">
+            <tr>
+            <td width="20%" style="border: hidden"></td>
+            <td width="60%" style="border: hidden; text-align: left">
+<ul>
+<li>
+    XGA: Do not register XGA I/O ports unless emulating
+    S3 chipset (such as machine=svga_s3) (joncampbell123)
+</li>
+<li>
+    Menu options "Force scaler" and "Print text screen"
+    can now be assigned to keyboard shortcuts from the
+    Mapper Editor. (Wengier)
+</li>
+<li>
+    Allowed to boot from Toshiba DOS image file for the
+    Toshiba J-3100 emulation. (nanshiki)
+</li>
+<li>
+    Default S3 machine types now support XGA/SXGA VText
+    in DOS/V, in addition to svga_et4000. (nanshiki)
+</li>
+<li>
+    Added "j3100backcolor" and "j300textcolor" config
+    options (in [dosv] section) to specify background
+    and text colors in J-3100 mode. (nanshiki)
+</li>
+<li>
+    Added config option "aspect_ratio" (in [render]
+    section) which when set will force the specified
+    aspect ratio (e.g. 16:9 or 3:2) in the aspect ratio
+    correction mode (i.e. aspect=true). A menu group
+    "Aspect ratio" is added to "Video" menu for users
+    to select or set an aspect ratio, including an
+    original ratio option. (Wengier)
+</li>
+<li>
+    Added config option "show recorded filename" (in
+    [dosbox] section) which when set to true (default)
+    will show message boxes with recorded filenames
+    when making audio or video captures. (Wengier)
+</li>
+<li>
+    Added config option "allow quit after warning" (in
+    [dosbox] section) which when set to false DOSBox-X
+    will disallow the quit option after displaying a
+    warning message. (Wengier)
+</li>
+<li>
+    Added config option "turbo last second" (in [cpu]
+    section) which allows to stop the Turbo function
+    after specified number of seconds. (Wengier)
+</li>
+<li>
+    Updated FLAC, MP3, and WAV decoder libraries to the
+    latest versions (v0.12.38, v0.6.32, and v0.13.6)
+    respectively; per David Reid). (Wengier)
+</li>
+<li>
+    Added support for upper case characters (A-Z) for
+    AUTOTYPE command. (kcgen)
+</li>
+<li>
+    Added /T option for CHOICE command to set a default
+    choice as in DOS, e.g. CHOICE /T:Y,3 (Wengier)
+</li>
+<li>
+    Added Korean language option in Windows installer.
+    Also, language option page will be shown regardless
+    of the output option selected. (Wengier)
+</li>
+<li>
+    Add stub INT 10h handler at F000:F065 if
+    machine=vgaonly and using a VGA ROM BIOS image.
+    The IBM VGA ROM BIOS image points INT 42h at that
+    fixed address and calls it for any function it does
+    not understand. (joncampbell123)
+</li>
+<li>
+    Set int33 event status bit 8 when passing absolute
+    mouse coordinates, which is useful in emulation or
+    virtualization environments where the mouse may be
+    integrated with the host cursor. (javispedro)
+</li>
+<li>
+    Added support for Pentium Pro hinting NOPs and
+    related multi-byte NOPs. (Jookia)
+</li>
+<li>
+    Updated HX DOS Extender to latest version 2.19 for
+    HX-DOS builds. (Wengier)
+</li>
+<li>
+    DOSBox-X returns 1 instead of 0 when E_Exit occurs
+    or unit tests fail. (Wengier)
+</li>
+<li>
+    Fixed built-in IPX and Modem emulation unavailable
+    in MinGW builds. (Wengier)
+</li>
+<li>
+    Fixed -machine command-line option (as listed by
+    "INTRO USAGE" command) not working. (Wengier)
+</li>
+<li>
+    Fixed lockup in classic Jumpman. (maron2000)
+</li>
+<li>
+    Fixed color in some modes under x86-64 macOS SDL2
+    builds. (myon98)
+</li>
+<li>
+    Fixed extra INT 10h call during BIOS screen. The
+    extra call caused crashes when combined with a ROM
+    image of the stock IBM VGA BIOS. (joncampbell123)
+</li>
+<li>
+    Fixed fscale FPU operation and updated FPU status
+    word. Also fixed FPU stack value log messages on
+    x86-based builds. (cimarronm)
+</li>
+<li>
+    Fixed bug that OpenGL Voodoo window may not appear
+    correctly if the DOSBox-X window was previously in
+    full-screen mode in some builds. DOSBox-X will now
+    ensure a switch to window mode (or maximized window
+    mode) in this case. Also fixed some menu options
+    including rebooting DOSBox-X while Voodoo emulation
+    is currently active. (Wengier)
+</li>
+<li>
+    Fixed crash when switching to dynamic_rec core from
+    menu when dynamic_x86 is also available. Also fixed
+    the dynamic_rec core may not be displayed correctly
+    in the menu when a language file is used. (Wengier)
+</li>
+<li>
+    Fixed Windows resource information. (Wengier)
+</li>
+<li>
+    Fixed a buffer overflow when launching a program.
+    (Jookia)
+</li>
+<li>
+    Fixed bug where DOS IOCTL would call device control
+    channel on devices which did not advertise support
+    for IOCTL. (cimarronm)
+</li>
+<li>
+    Clean up of DOS device and attribute flag usage
+    (cimarronm)
+</li>
+<li>
+    Integrated commits from mainline (Allofich)
+    - Use real pointer with font data for reading
+    characters. Also ignore page number for modes with
+    only one page.
+</li>
+</ul>
+            </td><td></td></tr>
+            <tr><td></td><td style="border: hidden"><table width="100%" style="text-align: center; font-weight: bold"><tr><td width="50%"><b>Previous release: 0.83.24 (<a href="release-0.83.24.html">release notes</a>)</b></td><td width="50%"><b></b></td></tr></table></td><td style="border: hidden"></td></tr>
+            <tr><td style="border: hidden"></td><td style="border: hidden"><center>Return to <a href="index.html">main page</a></center></td><td style="border: hidden"></td></tr>
+            </table>            
+        </div>
+    </div>
+
+    <!-- FOOTER  -->
+    <iframe src="footer.html" onload="this.before((this.contentDocument.body||this.contentDocument).children[0]);this.remove()"></iframe>
+
+  </body>
+</html>
