@@ -122,9 +122,9 @@ Usage: CHKDSK [drive:] [options]
 Note: It uses the CHKDSK command from FreeDOS.
 * **CHOICE** (external command)
 +
-Waits for a key press and sets ERRORLEVEL. Displays the given prompt followed by [Y,N]? for yes or no response.
+Waits for a user keypress and sets ERRORLEVEL. Displays the given prompt followed by [Y,N]? for yes or no response by default.
 +
-Usage: CHOICE [/C:choices] [/N] [/S] text
+Usage: CHOICE [/C:choices] [/N] [/S] [/T:c,nn] text
 * **CLS** (internal command)
 +
 Clears the screen of all input and returns just the current prompt in the upper left hand corner.

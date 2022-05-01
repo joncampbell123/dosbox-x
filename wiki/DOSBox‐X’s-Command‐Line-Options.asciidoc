@@ -89,6 +89,9 @@ Forces synchronization of date with the host system.
 * **-lang [message file]**
 +
 Uses the specified language file instead of language= setting. For example, ``-lang C:\message.txt`` will use the file "C:\message.txt" as the language file.
+* **-machine [type]**
++
+Starts DOSBox-X with the specified machine type.
 * **-nodpiaware**
 +
 Ignores (don't signal) Windows DPI awareness. May be useful if DOSBox-X starts in a very small window on some computers.

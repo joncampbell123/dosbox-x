@@ -451,7 +451,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="_dosbox_xs_feature_highlights">DOSBox-X’s Feature Highlights</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>As a cross-platform DOS emulator, DOSBox-X has the eventual goal of being a complete DOS emulation package. Apart from having virtually all existing features of DOSBox, DOSBox-X supports much more. Examples of DOSBox-X&#8217;s unique features include (note that these are just examples):</p>
+<p>As a cross-platform DOS emulator, DOSBox-X officially supports different types of DOS software, including DOS applications, Windows 3.x and 9x/Me, in addition to DOS games (which are the focus of original DOSBox). Compared with DOSBox, DOSBox-X focuses more on general emulation and accuracy, supporting more subareas of DOS including East Asian systems and languages (such as DOS/V and NEC PC-98 emulation). While incorporating virtually all existing features of DOSBox, DOSBox-X provides many more for different purposes. Examples of DOSBox-X&#8217;s unique features include (note that these are just examples):</p>
 </div>
 <div class="ulist">
 <ul>
@@ -470,7 +470,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li>
 <p><strong>Save and load state support (with save slots and save files)</strong></p>
 <div class="paragraph">
-<p>DOSBox-X provides a fully-featured system for saving and loading states with support for up to 100 save slots, selectable from the menu, as well as the option to use your own save files.</p>
+<p>DOSBox-X provides a fully-featured system for saving and loading states with support for up to 100 save slots, selectable from the menu, as well as the option to use your own save files. You can also let DOSBox-X save states automatically for specific programs and/or in user-defined intervals.</p>
 </div>
 </li>
 <li>
@@ -488,7 +488,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li>
 <p><strong>Support for native DOS/V service emulations</strong></p>
 <div class="paragraph">
-<p>DOSBox-X implements native DOS/V services for Chinese/Japanese/Korean language support, so that are these languages can be displayed without any external tools. Set "dosv" to "jp", "chs" (or "cn"), "cht" (or "tw"), or "ko" for different CJK languages. Look at the <a href="Guide%3AEast-Asian-language-support-in-DOSBox‐X">East Asian language support in DOSBox‐X</a> guide page for more information about support for East Asian languages and systems.</p>
+<p>DOSBox-X implements native DOS/V services for Chinese/Japanese/Korean language support, so that are these languages can be displayed without any external tools. Set <code>dosv</code> to <code>jp</code>, <code>chs</code> (or <code>cn</code>), <code>cht</code> (or <code>tw</code>), or <code>ko</code> for different CJK languages. Look at the <a href="Guide%3AEast-Asian-language-support-in-DOSBox‐X">East Asian language support in DOSBox‐X</a> guide page for more information about support for East Asian languages and systems.</p>
 </div>
 </li>
 <li>
@@ -506,13 +506,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li>
 <p><strong>More customizable virtual machine</strong></p>
 <div class="paragraph">
-<p>DOSBox-X provides many more config options that are not found in DOSBox, so that users have more options to customize the virtual machine inside DOSBox-X. For example, you can skip the splash screen and the welcome banner, or even starting DOSBox-X in silent mode (-silent), along with a lot more.</p>
+<p>DOSBox-X provides many more config options that are not found in DOSBox, so that users have more options to customize the virtual machine inside DOSBox-X. For example, you can skip the splash screen and the welcome banner, or even starting DOSBox-X in silent mode (<code>-silent</code>), along with a lot more.</p>
 </div>
 </li>
 <li>
 <p><strong>CPU speed optimization and Turbo mode</strong></p>
 <div class="paragraph">
-<p>DOSBox-X can automatically decide the CPU cycles to use for optimized speed, and it provides a Turbo function to increase the speed of the system inside it.</p>
+<p>DOSBox-X can automatically decide the CPU cycles to use for optimized speed, and it provides a Turbo function to increase the speed of the system inside it, which can be toggled at run-time.</p>
 </div>
 </li>
 <li>
@@ -564,6 +564,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
+<p><strong>Support for resizable window and customizable aspect ratios</strong></p>
+<div class="paragraph">
+<p>For most output options DOSBox-X allows you to resize the DOSBox-X window as you wish and will stretch the image to fit the window. You can also specify an aspect ratio (such as 16:10) so that DOSBox-X will enforce such an aspect ratio for the image, or let DOSBox-X use the original image’s aspect ratio in the aspect ratio correction mode.</p>
+</div>
+</li>
+<li>
 <p><strong>Support for transparent DOSBox-X window</strong></p>
 <div class="paragraph">
 <p>DOSBox-X allows you to change the transparency of its window, from 0 (no transparency) to 90 (high transparency), giving you a different feeling when running the DOS emulation. Supported on all Windows builds and SDL2 builds of Linux/macOS platforms.</p>
@@ -590,7 +596,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li>
 <p><strong>Support for more CPU types (e.g. Pentium MMX and Pro/2/3) and emulating CPU speed</strong></p>
 <div class="paragraph">
-<p>DOSBox-X supports virtually all CPU types prior to Pentium 4 at this time, from 8086/8088 to Pentium Pro/2/3, including support for Pentium MMX instructions. DOSBox-X also allow you to emulate the speed of a specific CPU (from 8088 XT 4.77MHz to Pentium 166MHz MMX) in terms of cycles. Select them from the "CPU" menu.</p>
+<p>DOSBox-X supports virtually all CPU types prior to Pentium 4 at this time, from 8086/8088 to Pentium Pro/2/3, including support for Pentium MMX instructions. DOSBox-X also allow you to emulate the speed of a specific CPU (from 8088 XT 4.77MHz to Pentium III) in terms of cycles. Select them from the "CPU" menu.</p>
 </div>
 </li>
 <li>
@@ -620,7 +626,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li>
 <p><strong>Support for file-locking and record-locking functions </strong></p>
 <div class="paragraph">
-<p>DOSBox-X supports the DOS SHARE functions, which provides file-locking and record-locking for networked environments, especially on the Windows platform. This may be very important for usages such as networked DOS database applications. Hint: you probably want to set "nocachedir=true" and "file access tries=3" for this.</p>
+<p>DOSBox-X supports the DOS SHARE functions, which provides file-locking and record-locking for networked environments, especially on the Windows platform. This may be very important for usages such as networked DOS database applications. Hint: you probably want to set <code>nocachedir=true</code> and <code>file access tries=3</code> for this.</p>
 </div>
 </li>
 <li>
@@ -704,7 +710,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li>
 <p><strong>Support for direct browsing for UNC network paths (Windows only)</strong></p>
 <div class="paragraph">
-<p>With this feature you can access or browse UNC network paths in the form \\COMPUTER\FOLDER directly on Windows systems, including listing, opening, writing, copying, and executing files on UNC network paths directly without having to mount them as DOS drives first.</p>
+<p>With this feature you can access or browse UNC network paths in the form <code>\\COMPUTER\FOLDER</code> directly on Windows systems, including listing, opening, writing, copying, and executing files on UNC network paths directly without having to mount them as DOS drives first.</p>
 </div>
 </li>
 <li>
@@ -728,7 +734,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li>
 <p><strong>Support for pixel-perfect scaling video mode</strong></p>
 <div class="paragraph">
-<p>DOSBox-X supports the pixel-perfect scaling as an output option ("output=openglpp"), which improves the video image quality.</p>
+<p>DOSBox-X supports the pixel-perfect scaling as an output option (<code>output=openglpp</code>), which improves the video image quality.</p>
 </div>
 </li>
 <li>
@@ -783,7 +789,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-04-01 13:40:06 -0400
+Last updated 2022-05-01 16:03:34 -0400
 </div>
 </div>
 </body>

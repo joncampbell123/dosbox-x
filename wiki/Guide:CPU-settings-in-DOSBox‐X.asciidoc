@@ -287,9 +287,26 @@ Default is 0 (no adjustment), but you can adjust it (between -25% and 25%) if ne
 
 Enables Turbo (Fast Forward) mode to speed up operations.
 
-Any key press will disengage turbo mode.
+By default, any key press will disengage turbo mode.
+Since DOSBox-X 0.83.25 this can be controlled with the `turbo stop on key` setting.
 
 NOTE: This has no relation to the turbo button found on many retro PCs. Instead, this is more a fast-forward mode.
+
+=== turbo last second
+* Default value: 0
+* Valid values: 0-2147483647
+
+Introduced with DOSBox-X 0.83.25.
+If a positive integer is specified, the Turbo function will last for the specific amount of seconds.
+
+This is useful when starting a program that takes a long time to load.
+
+=== turbo stop on key
+* Default value: true
+* Valid values: true, false
+
+Introduced with DOSBox-X 0.83.25.
+If set, the Turbo mode will be automatically stopped if keyboard input is detected.
 
 === use dynamic core with paging on
 * Default value: auto
@@ -429,7 +446,7 @@ It is not guaranteed to be 100% accurate.
 |CMPXCHG                                               | | |x|x|x|x|x|x|x|x
 |RDTSC                                                 | | | | |x|x|x|x|x|x
 |CMPXCHG8B,RDMSR, WRMSR, RSM                           | | | | | |x|x|x|x|x
-|CMOV, FCMOV, FCOMI/FCOMIP, FUCOMI/FUCOMIP, RDPMC, UD2 | | | | | | |x| |x|x
+|CMOV, FCMOV, FCOMI/FCOMIP, FUCOMI/FUCOMIP, RDPMC, UD2, NOPL | | | | | | |x| |x|x
 |486 specific CR register behaviour                    |x|x|x|x|x| | | | |
 |Pentium specific CR register behaviour                | | | | | |x|x|x|x|x
 |Prefetch queue emulation                              | |x| |x| | | | | |
@@ -486,7 +503,7 @@ For many legacy systems, cycle accurate emulation is desirable.
 But this does not apply to emulating PCs. Due to the vast amount of clone systems and CPU options produced, software developers could not rely on the amount of time it takes to complete a given instruction.
 Software developers therefore used other timing methods, and therefore cycle accurate emulation is simply not needed.
 
-If for some reason cycle accurate emulation is required, we suggest you use the link:https://pcem-emulator.co.uk/[PCem emulator].
+If for some reason cycle accurate emulation is required, we suggest you use the link:https://pcem-emulator.co.uk/[PCem] or link:https://86box.net/[86Box] emulator.
 
 == TODO
 

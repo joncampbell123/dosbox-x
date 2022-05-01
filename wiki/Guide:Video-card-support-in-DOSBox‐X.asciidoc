@@ -735,7 +735,6 @@ Links:
 * link:http://vogonsdrivers.com/index.php?catid=63[VOGONS Vintage Driver Library for Tseng Labs]
 
 ===== Tseng Labs ET3000
-
 Introduced in 1987.
 Early VGA clone card.
 
@@ -753,7 +752,6 @@ Links:
 * link:http://www.vgamuseum.info/index.php/companies/item/460-tseng-et3000ax[Tseng Labs ET3000 at the VGA Museum]
 
 ===== Tseng Labs ET4000
-
 Introduced in 1989.
 Became fairly popular, and supported in SVGA mode by various games.
 
@@ -769,7 +767,7 @@ Known issues with the above modes:
 - (*) Hangs on startup of Windows 3.0 in 16.7M colour mode
 
 This mode can be set using ``machine=svga_et4000`` in your DOSBox-X config file.
-Video memory defaults to 1024KiB, but can be adjusted to 256 or 512KiB as such:
+Video memory defaults to 1024KiB, but can be reduced to 256 or 512KiB as such:
 
 ....
 [dosbox]
@@ -869,6 +867,9 @@ dosbox-x -display2
 The secondary (MDA only) display will output on a terminal window.
 If you started DOSBox-X from a terminal, it will output the second display to that same terminal.
 
+Be sure to keep the focus on the primary DOSBox-X window, even if you're interacting with the secondary display in the terminal.
+If the application focus is on the secondary display in the terminal, keyboard input will not work correctly, and pressing CTRL-C will kill DOSBox-X.
+
 The second display will default to white text, but you can get it to use green with ``-display2 green`` or amber with ``-display2 amber``.
 
 At the DOS prompt you can switch primary display by use of the ``mode`` command.
@@ -881,10 +882,14 @@ To make the CGA/EGA/VGA or SVGA display primary:
 mode co80
 ....
 
-NOTE: The current dual monitor support is limited, in part because it uses the terminal window instead of a real window.
+NOTE: The current dual monitor support is limited, in part because it uses the terminal window instead of a real (SDL) window.
 As such it may not work properly with some programs, and it is limited to MDA only (no Hercules).
 
-NOTE: It is advised that you set your terminal window to 80x25 as to minimize character placement issues.
+NOTE: It is advised that you set your terminal window to 80x25 as to minimize character placement issues (most terminals default to 80x24, which is not ideal).
+
+NOTE: The 2nd display output to the terminal window will be in the DOS codepage that is set in DOSBox-X.
+However, most terminal programs expect Unicode these days, which will result in unicode question marks for a lot of characters.
+This can be minimized by using a terminal program that allows setting an encoding other then unicode, which a lot of Linux terminal programs allow.
 
 NOTE: Because both the second display code and the integrated debugger uses the terminal, they are mutually exclusive. e.g., the "Start DOSBox-X Debugger" option will be greyed out when you start with the ``-display2`` option.
 
@@ -908,7 +913,7 @@ If your game is not sensitive to VGA RAM I/O speed, then turning on this option 
 
 === vmemsize
 * default value: -1
-* possible values: -1, 0, 1, 2, 4, 8
+* possible values: -1, 0, 1, 2, 4, 8, 16
 
 Amount of video memory in megabytes for the emulated SVGA adapter.
 
@@ -920,6 +925,7 @@ The maximum resolution and color depth the emulated SVGA adapter will be able to
 * `vmemsize=2`: 2MB for 1600x1200 at 256 colors or 1024x768 at 64k colors or 640x480 at 16M colors
 * `vmemsize=4`: 4MB for 1600x1200 at 64k colors or 1024x768 at 16M colors
 * `vmemsize=8`: 8MB for up to 1600x1200 at 16M colors
+* `vmemsize=16`: 16MB only supported for VESA modes (regular S3 will be limited to 8MB)
 
 For link:https://en.wikipedia.org/wiki/Build_(game_engine)[build engine games], use more memory than in the list above so it can use triple buffering and thus won't flicker.
 
@@ -1006,7 +1012,7 @@ If set, load the VGA BIOS from the specified file (must be between 1KB to 64KB i
 If left unset, and DOSBox-X is asked to load a VGA BIOS from a file, a file name is chosen automatically based on the machine type.
 For example, Tseng ET4000 emulation (`machine=svga_et4000`) will look for `et4000.bin`.
 
-VGA BIOS ROM images can be dumped from real hardware or downloaded from the PCem ROMs collection.
+VGA BIOS ROM images can be dumped from real hardware or downloaded from the PCem or 86Box ROMs collection.
 
 Default ROM filenames:
 

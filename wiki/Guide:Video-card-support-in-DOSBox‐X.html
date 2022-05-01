@@ -2251,7 +2251,7 @@ Became fairly popular, and supported in SVGA mode by various games.</p>
 </div>
 <div class="paragraph">
 <p>This mode can be set using <code>machine=svga_et4000</code> in your DOSBox-X config file.
-Video memory defaults to 1024KiB, but can be adjusted to 256 or 512KiB as such:</p>
+Video memory defaults to 1024KiB, but can be reduced to 256 or 512KiB as such:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -2441,6 +2441,10 @@ It works by starting DOSBox-X with the <code>-display2</code> option as such:</p
 If you started DOSBox-X from a terminal, it will output the second display to that same terminal.</p>
 </div>
 <div class="paragraph">
+<p>Be sure to keep the focus on the primary DOSBox-X window, even if you&#8217;re interacting with the secondary display in the terminal.
+If the application focus is on the secondary display in the terminal, keyboard input will not work correctly, and pressing CTRL-C will kill DOSBox-X.</p>
+</div>
+<div class="paragraph">
 <p>The second display will default to white text, but you can get it to use green with <code>-display2 green</code> or amber with <code>-display2 amber</code>.</p>
 </div>
 <div class="paragraph">
@@ -2467,7 +2471,7 @@ To make the MDA display primary:</p>
 <div class="title">Note</div>
 </td>
 <td class="content">
-The current dual monitor support is limited, in part because it uses the terminal window instead of a real window.
+The current dual monitor support is limited, in part because it uses the terminal window instead of a real (SDL) window.
 As such it may not work properly with some programs, and it is limited to MDA only (no Hercules).
 </td>
 </tr>
@@ -2480,7 +2484,21 @@ As such it may not work properly with some programs, and it is limited to MDA on
 <div class="title">Note</div>
 </td>
 <td class="content">
-It is advised that you set your terminal window to 80x25 as to minimize character placement issues.
+It is advised that you set your terminal window to 80x25 as to minimize character placement issues (most terminals default to 80x24, which is not ideal).
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The 2nd display output to the terminal window will be in the DOS codepage that is set in DOSBox-X.
+However, most terminal programs expect Unicode these days, which will result in unicode question marks for a lot of characters.
+This can be minimized by using a terminal program that allows setting an encoding other then unicode, which a lot of Linux terminal programs allow.
 </td>
 </tr>
 </table>
@@ -2547,7 +2565,7 @@ If your game is not sensitive to VGA RAM I/O speed, then turning on this option 
 <p>default value: -1</p>
 </li>
 <li>
-<p>possible values: -1, 0, 1, 2, 4, 8</p>
+<p>possible values: -1, 0, 1, 2, 4, 8, 16</p>
 </li>
 </ul>
 </div>
@@ -2576,6 +2594,9 @@ If your game is not sensitive to VGA RAM I/O speed, then turning on this option 
 </li>
 <li>
 <p><code>vmemsize=8</code>: 8MB for up to 1600x1200 at 16M colors</p>
+</li>
+<li>
+<p><code>vmemsize=16</code>: 16MB only supported for VESA modes (regular S3 will be limited to 8MB)</p>
 </li>
 </ul>
 </div>
@@ -2799,7 +2820,7 @@ Demoscene executable 'COPPER.EXE' requires the '4low' behavior in order to displ
 For example, Tseng ET4000 emulation (<code>machine=svga_et4000</code>) will look for <code>et4000.bin</code>.</p>
 </div>
 <div class="paragraph">
-<p>VGA BIOS ROM images can be dumped from real hardware or downloaded from the PCem ROMs collection.</p>
+<p>VGA BIOS ROM images can be dumped from real hardware or downloaded from the PCem or 86Box ROMs collection.</p>
 </div>
 <div class="paragraph">
 <p>Default ROM filenames:</p>
@@ -3967,7 +3988,7 @@ Else, leave it turned off.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-04-01 13:40:06 -0400
+Last updated 2022-05-01 16:03:34 -0400
 </div>
 </div>
 </body>

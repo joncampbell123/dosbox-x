@@ -479,6 +479,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_cycledown">cycledown</a></li>
 <li><a href="#_cycle_emulation_percentage_adjust">cycle emulation percentage adjust</a></li>
 <li><a href="#_turbo">turbo</a></li>
+<li><a href="#_turbo_last_second">turbo last second</a></li>
+<li><a href="#_turbo_stop_on_key">turbo stop on key</a></li>
 <li><a href="#_use_dynamic_core_with_paging_on">use dynamic core with paging on</a></li>
 <li><a href="#_ignore_opcode_63">ignore opcode 63</a></li>
 <li><a href="#_apmbios">apmbios</a></li>
@@ -1315,7 +1317,8 @@ Setting the value lower than 100, and it will be interpreted as a percentage.</p
 <p>Enables Turbo (Fast Forward) mode to speed up operations.</p>
 </div>
 <div class="paragraph">
-<p>Any key press will disengage turbo mode.</p>
+<p>By default, any key press will disengage turbo mode.
+Since DOSBox-X 0.83.25 this can be controlled with the <code>turbo stop on key</code> setting.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1328,6 +1331,43 @@ This has no relation to the turbo button found on many retro PCs. Instead, this 
 </td>
 </tr>
 </table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_turbo_last_second">turbo last second</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: 0</p>
+</li>
+<li>
+<p>Valid values: 0-2147483647</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Introduced with DOSBox-X 0.83.25.
+If a positive integer is specified, the Turbo function will last for the specific amount of seconds.</p>
+</div>
+<div class="paragraph">
+<p>This is useful when starting a program that takes a long time to load.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_turbo_stop_on_key">turbo stop on key</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: true</p>
+</li>
+<li>
+<p>Valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Introduced with DOSBox-X 0.83.25.
+If set, the Turbo mode will be automatically stopped if keyboard input is detected.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1904,7 +1944,7 @@ It is not guaranteed to be 100% accurate.
 <td class="tableblock halign-center valign-top"><p class="tableblock">x</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">CMOV, FCMOV, FCOMI/FCOMIP, FUCOMI/FUCOMIP, RDPMC, UD2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CMOV, FCMOV, FCOMI/FCOMIP, FUCOMI/FUCOMIP, RDPMC, UD2, NOPL</p></td>
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
 <td class="tableblock halign-center valign-top"></td>
@@ -2080,7 +2120,7 @@ But this does not apply to emulating PCs. Due to the vast amount of clone system
 Software developers therefore used other timing methods, and therefore cycle accurate emulation is simply not needed.</p>
 </div>
 <div class="paragraph">
-<p>If for some reason cycle accurate emulation is required, we suggest you use the <a href="https://pcem-emulator.co.uk/">PCem emulator</a>.</p>
+<p>If for some reason cycle accurate emulation is required, we suggest you use the <a href="https://pcem-emulator.co.uk/">PCem</a> or <a href="https://86box.net/">86Box</a> emulator.</p>
 </div>
 </div>
 </div>
@@ -2103,7 +2143,7 @@ Software developers therefore used other timing methods, and therefore cycle acc
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-04-01 13:40:06 -0400
+Last updated 2022-05-01 16:03:34 -0400
 </div>
 </div>
 </body>

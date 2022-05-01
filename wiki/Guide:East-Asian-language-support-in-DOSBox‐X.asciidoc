@@ -9,15 +9,19 @@ Back to the link:Home{suffixappend}[DOSBox-X Wiki Welcome page].
 
 toc::[]
 
-DOSBox-X is designed to be complete DOS emulator and provides official support for East Asian languages and systems, including (Simplified and Traditional) Chinese, Japanese, and Korean languages in different emulation modes. These languages use double-byte character set (DBCS) to render text instead of using standard ASCII characters. All of these languages are well-supported in DOS/V modes and either the TrueType font (TTF) output or a standard (non-TTF) output with CJK code pages (932, 936, 949, and 950), with additional support for the Japanese language in the J-3100 DCGA, PC-98, and AX (JEGA) modes. There are also translation files for almost all of these languages available for use with DOSBox-X so that the user interfaces will be displayed in these languages:
+DOSBox-X is designed to be complete DOS emulator and provides official support for East Asian languages and systems, including (Simplified and Traditional) Chinese, Japanese, and Korean languages in different emulation modes. These languages use double-byte character set (DBCS) to render text instead of using standard ASCII characters. All of these languages are well-supported in DOS/V modes and either the TrueType font (TTF) output or a standard (non-TTF) output with CJK code pages (932, 936, 949, and 950), with additional support for the Japanese language in the J-3100 DCGA, PC-98, and AX (JEGA) modes. There are also translation files for these languages available for use with DOSBox-X so that the user interfaces will be displayed in these languages:
 
 Japanese language file: link:https://raw.githubusercontent.com/joncampbell123/dosbox-x/master/contrib/translations/ja/ja_JP.lng[ja_JP.lng]
+
+Korean language file: link:https://raw.githubusercontent.com/joncampbell123/dosbox-x/master/contrib/translations/ko/ko_KR.lng[ko_KR.lng]
 
 Simplified Chinese language file: link:https://raw.githubusercontent.com/joncampbell123/dosbox-x/master/contrib/translations/zh/zh_CN.lng[zh_CN.lng]
 
 Traditional Chinese language file: link:https://raw.githubusercontent.com/joncampbell123/dosbox-x/master/contrib/translations/zh/zh_TW.lng[zh_TW.lng]
 
 Inputting Chinese/Japanese/Korean characters is also supported via Windows or Linux system IMEs in these code pages, which can be controlled via the ``ime`` option in [dosbox] section of the DOSBox-X configuration (dosbox-x.conf). They are supported on Windows and Linux systems and allow users to enter CJK characters as in other applications (such as Notepad) of these operating systems.
+
+image::https://user-images.githubusercontent.com/8216923/162594781-cee05004-c100-4a39-830c-6f310562d35a.png[PC-98 emulation mode]
 
 == TrueType font output with CJK support ==
 
