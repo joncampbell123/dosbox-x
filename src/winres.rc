@@ -1,15 +1,9 @@
 
 #include "winresrc.h"
 #include "../include/resource.h"
+#include "../vs/config_package.h"
 
 #define VERSION_NUMBER 0,83,25,0
-#define FLUIDINC
-
-#ifdef MINGW
-# include "../config.h"
-#else
-# include "./config.h"
-#endif
 
 // icon resource
 dosbox_ico ICON "../contrib/icons/dosbox-x.ico"
