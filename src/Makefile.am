@@ -17,7 +17,7 @@ ico_stuff = winres.rc
 endif
 
 .rc.o:
-	$(WINDRES) -DMINGW -o $@ $<
+	$(WINDRES) -o $@ $<
 
 dosbox_x_SOURCES = dosbox.cpp $(ico_stuff)
 dosbox_x_LDADD = debug/libdebug.a dos/libdos.a shell/libshell.a builtin/libbuiltin.a \
