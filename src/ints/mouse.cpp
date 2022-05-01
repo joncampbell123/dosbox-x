@@ -861,7 +861,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 		r2=t;
 	}
 	text[0]=0;
-    uint16_t seg = IS_DOSV?GetTextSeg():0;
+    uint16_t seg = IS_DOSV?GetTextSeg():VGAMEM_CTEXT;
     bool ttfuse = false;
     int ttfcols = 0;
 #if defined(USE_TTF)
