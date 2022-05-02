@@ -1362,6 +1362,7 @@ void ttf_switch_on(bool ss=true) {
         SetVal("sdl", "output", "ttf");
         std::string showdbcsstr = static_cast<Section_prop *>(control->GetSection("dosv"))->Get_string("showdbcsnodosv");
         showdbcs = showdbcsstr=="true"||showdbcsstr=="1"||(showdbcsstr=="auto" && (loadlang || dbcs_sbcs));
+        if (!IS_EGAVGA_ARCH) showdbcs = false;
         void OutputSettingMenuUpdate(void);
         OutputSettingMenuUpdate();
         if (ss) ttfswitch = false;
@@ -1416,7 +1417,7 @@ void ttf_switch_off(bool ss=true) {
 #endif
         }
         KEYBOARD_Clear();
-        showdbcs = true;
+        showdbcs = IS_EGAVGA_ARCH;
         change_output(out);
         SetVal("sdl", "output", output);
         void OutputSettingMenuUpdate(void);

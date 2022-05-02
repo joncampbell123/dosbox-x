@@ -359,8 +359,8 @@ void DriveManager::ChangeDisk(int drive, DOS_Drive* disk) {
     if (cdrom) IDE_CDROM_Detach_Ret(index,slave,drive);
     strcpy(disk->curdir,driveInfo.disks[driveInfo.currentDisk]->curdir);
     disk->Activate();
-    disk->UpdateDPB(currentDrive);
-    if (cdrom && dos_kernel_disabled) cdrom->loadImage();
+    if (!dos_kernel_disabled) disk->UpdateDPB(currentDrive);
+    else if (cdrom) cdrom->loadImage();
     driveInfo.disks[driveInfo.currentDisk] = disk;
     fatDrive *old = dynamic_cast<fatDrive*>(Drives[drive]);
     Drives[drive] = disk;
@@ -465,7 +465,7 @@ void DriveManager::CycleDisks(int drive, bool notify, int position) {
 		// copy working directory, acquire system resources and finally switch to next drive		
 		strcpy(newDisk->curdir, oldDisk->curdir);
 		newDisk->Activate();
-        newDisk->UpdateDPB(currentDrive);
+        if (!dos_kernel_disabled) newDisk->UpdateDPB(currentDrive);
 		Drives[drive] = newDisk;
 		if (notify) LOG_MSG("Drive %c: disk %d of %d now active", 'A'+drive, currentDisk+1, numDisks);
 	}
@@ -490,7 +490,7 @@ void DriveManager::CycleAllCDs(void) {
 			// copy working directory, acquire system resources and finally switch to next drive		
 			strcpy(newDisk->curdir, oldDisk->curdir);
 			newDisk->Activate();
-            newDisk->UpdateDPB(currentDrive);
+            if (!dos_kernel_disabled) newDisk->UpdateDPB(currentDrive);
             Drives[idrive] = newDisk;
 			LOG_MSG("Drive %c: disk %d of %d now active", 'A'+idrive, currentDisk+1, numDisks);
 		}

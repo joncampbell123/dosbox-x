@@ -2185,8 +2185,9 @@ void DOSBOX_SetupConfigSections(void) {
 
 	Pstring = secprop->Add_string("showdbcsnodosv",Property::Changeable::WhenIdle,"auto");
     Pstring->Set_values(truefalseautoopt);
-	Pstring->Set_help("Enables rendering of Chinese/Japanese/Korean characters for DBCS code pages in non-DOS/V, non-PC98, and non-TTF mode.\n"
-                      "Setting to \"auto\" enables rendering of Chinese/Japanese/Korean characters if a language file is loaded in such cases.");
+	Pstring->Set_help("Enables rendering of Chinese/Japanese/Korean characters for DBCS code pages in standard VGA and EGA machine types in non-DOS/V and non-TTF mode.\n"
+                      "DOS/V fonts will be used in such cases, which can be adjusted by the above config options (such as fontxdbcs, fontxdbcs14, and fontxdbcs24).\n"
+                      "Setting to \"auto\" enables Chinese/Japanese/Korean character rendering if a language file is loaded (or with \"autodbcs\" option set) in such cases.");
     Pstring->SetBasic(true);
 
 	Pbool = secprop->Add_bool("yen",Property::Changeable::OnlyAtStart,false);
