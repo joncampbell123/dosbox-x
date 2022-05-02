@@ -1,3 +1,5 @@
+0.83.26
+  - 
 0.83.25
   - XGA: Do not register XGA I/O ports unless emulating
     S3 chipset (such as machine=svga_s3) (joncampbell123)
