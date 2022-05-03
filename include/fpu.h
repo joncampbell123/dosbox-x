@@ -449,12 +449,12 @@ typedef struct {
 	uint32_t		mxcsr; // SSE control register
 } FPU_rec;
 
-//get pi from a real library
-#define PI		3.14159265358979323846
-#define L2E		1.4426950408889634
-#define L2T		3.3219280948873623
-#define LN2		0.69314718055994531
-#define LG2		0.3010299956639812
+// Replace with std::numbers when c++20 is available
+#define PI		3.141592653589793238462L
+#define L2E		1.4426950408889634073605L
+#define L2T		3.3219280948873623478693L
+#define LN2		0.69314718055994530941683L
+#define LG2		0.30102999566398119521379L
 
 
 extern FPU_rec fpu;
