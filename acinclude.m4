@@ -8,7 +8,7 @@ AC_ARG_WITH(sdl2-exec-prefix,[  --with-sdl2-exec-prefix=PFX Exec prefix where SD
 AC_ARG_ENABLE(sdl2test, [  --disable-sdl2test      Do not try to compile and run a test SDL program],
 		    enable_sdl2test=no, enable_sdl2test=yes)
 AC_ARG_ENABLE(sdl2,     [  --enable-sdl2           Enable SDL 2.x],
-		    enable_sdl2enable=$enableval, enable_sdl2enable=no)
+		    enable_sdl2enable=$enableval, enable_sdl2enable=yes)
 
   AH_TEMPLATE(C_SDL2,[Set to 1 to enable SDL 2.x support])
 
@@ -63,7 +63,7 @@ AC_ARG_WITH(sdl-exec-prefix,[  --with-sdl-exec-prefix=PFX Exec prefix where SDL 
 AC_ARG_ENABLE(sdltest,      [  --disable-sdltest       Do not try to compile and run a test SDL program],
 		    enable_sdltest=no, enable_sdltest=yes)
 AC_ARG_ENABLE(sdl, [  --enable-sdl            Enable SDL 1.x],
-		    enable_sdlenable=$enableval, enable_sdlenable=yes)
+		    enable_sdlenable=$enableval, enable_sdlenable=no)
 
   AH_TEMPLATE(C_SDL1,[Set to 1 to enable SDL 1.x support])
 
