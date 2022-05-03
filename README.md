@@ -3,7 +3,7 @@
 
 **Be sure to also visit DOSBox-X's website at [https://dosbox-x.com](https://dosbox-x.com) (or [http://dosbox-x.software](http://dosbox-x.software))**
 
-**Discord channel for DOSBox-X: [https://discord.gg/khVZR5UK](https://discord.gg/khVZR5UK)**
+**Discord channel for the DOSBox-X project: [https://discord.gg/khVZR5UK](https://discord.gg/khVZR5UK)**
 
 ## Table of Contents
 
@@ -193,8 +193,10 @@ Do not use DOSBox-X on a secure system.
 
 Do not run DOSBox-X as root or Administrator.
 
-If you need to use DOSBox-X, run it under a lesser privileged user, or in
-a chroot jail or sandbox.
+If you need to use DOSBox-X, run it under a lesser privileged user, in
+a chroot jail or sandbox, or enable DOSBox-X's secure mode with its
+command-line option ``-securemode``, which disables commands that may
+allow access to the host system.
 
 If your Linux distribution has it enabled, consider using the auditing
 system to limit what the DOSBox-X executable is allowed to do.
