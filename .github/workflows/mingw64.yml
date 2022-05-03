@@ -4,7 +4,7 @@ on:
   pull_request:
   workflow_dispatch:
 jobs:
-  build:
+  MinGW64_CI_build:
     if: github.event_name == 'workflow_dispatch' || contains('joncampbell123', github.actor) == false
     runs-on: windows-latest
     defaults:
