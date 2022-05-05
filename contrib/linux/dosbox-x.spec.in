@@ -62,7 +62,7 @@ options and features.
 
 %build
 ./autogen.sh
-%configure --enable-core-inline --enable-debug=heavy --enable-sdl2
+%configure --enable-core-inline --enable-debug=heavy
 %make_build
 
 %install

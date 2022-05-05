@@ -57,6 +57,6 @@ brew list pkg-config &>/dev/null || brew install pkg-config
 # now compile ourself
 echo Compiling DOSBox-X
 chmod +x configure
-./configure --enable-core-inline --enable-debug=heavy --prefix=/usr --enable-sdl2 --disable-avcodec "$@" || exit 1
+./configure --enable-core-inline --enable-debug=heavy --prefix=/usr --disable-avcodec "$@" || exit 1
 make -j3 || exit 1
 

@@ -77,7 +77,6 @@ modules:
     config-opts:
       - --enable-core-inline
       - --enable-debug=heavy
-      - --enable-sdl2
     sources:
       - type: dir
         path: ../..

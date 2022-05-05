@@ -30,7 +30,7 @@ chmod +x configure
 # build command borrowed from Yksoft1 vanilla DOSBox-X port with modifications
 ./configure \
     --host=x86_64-linux --disable-fpu-x86 --disable-dynamic-core \
-    --enable-sdl2 --with-sdl-prefix=$EMSDK/upstream/emscripten/system \
+    --with-sdl-prefix=$EMSDK/upstream/emscripten/system \
     --disable-opengl --disable-mt32 --enable-emscripten --enable-force-menu-sdldraw --disable-x11 \
     --disable-directserial "$@"
 make -j6 || exit 1
