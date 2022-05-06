@@ -523,7 +523,8 @@ int setTTFCodePage() {
             }
         if (eurAscii != -1 && TTF_GlyphIsProvided(ttf.SDL_font, 0x20ac))
             cpMap[eurAscii] = 0x20ac;
-        initcodepagefont();
+        if (!dos_kernel_disabled)
+            initcodepagefont();
 #if defined(WIN32) && !defined(HX_DOS)
         DOSBox_SetSysMenu();
 #endif
