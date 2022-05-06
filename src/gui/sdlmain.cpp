@@ -9151,7 +9151,9 @@ fresh_boot:
             if (!strcmp(RunningProgram, "LOADLIN") && core == "auto") {
                 cpudecoder=&CPU_Core_Normal_Run;
                 mainMenu.get_item("mapper_normal").check(true).refresh_item(mainMenu);
+#if (C_DYNAMIC_X86) || (C_DYNREC)
                 mainMenu.get_item("mapper_dynamic").check(false).refresh_item(mainMenu);
+#endif
             }
 
             /* new code: fire event */

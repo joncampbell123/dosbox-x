@@ -389,6 +389,7 @@ int GetDynamicType() {
 }
 
 void menu_update_dynamic() {
+#if (C_DYNAMIC_X86) || (C_DYNREC)
 	const Section_prop * cpu_section = static_cast<Section_prop *>(control->GetSection("cpu"));
     std::string core(cpu_section->Get_string("core"));
     std::string text = mainMenu.get_item("mapper_dynamic").get_text();
@@ -404,6 +405,7 @@ void menu_update_dynamic() {
         save_dynamic_rec = false;
         mainMenu.get_item("mapper_dynamic").set_text(text+" (dynamic_x86)");
     }
+#endif
 }
 
 void menu_update_core(void) {
