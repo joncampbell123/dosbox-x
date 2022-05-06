@@ -1345,11 +1345,13 @@ void ttf_setlines(int cols, int lins) {
 
 void ttf_switch_on(bool ss=true) {
     if ((ss&&ttfswitch)||(!ss&&switch_output_from_ttf)) {
-        uint16_t oldax=reg_ax;
-        reg_ax=0x1600;
-        CALLBACK_RunRealInt(0x2F);
-        if (reg_al!=0&&reg_al!=0x80) {reg_ax=oldax;return;}
-        reg_ax=oldax;
+        if (!dos_kernel_disabled) {
+            uint16_t oldax=reg_ax;
+            reg_ax=0x1600;
+            CALLBACK_RunRealInt(0x2F);
+            if (reg_al!=0&&reg_al!=0x80) {reg_ax=oldax;return;}
+            reg_ax=oldax;
+        }
         if (window_was_maximized&&!GFX_IsFullscreen()) {
 #if defined(WIN32)
             ShowWindow(GetHWND(), SW_RESTORE);
