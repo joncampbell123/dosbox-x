@@ -106,7 +106,7 @@ static_assert( sizeof(FPU_Reg_32) == 4, "FPU_Reg_32 error" );
 #define FPU_Reg_32_exponent_bias	(127)
 static const uint32_t FPU_Reg_32_implied_bit = ((uint32_t)1UL << (uint32_t)23UL);
 
-typedef union alignas(8) MMX_reg {
+union alignas(8) MMX_reg {
 
 	uint64_t q;
 
@@ -193,7 +193,7 @@ typedef union alignas(8) MMX_reg {
 static_assert(sizeof(MMX_reg) == 8, "MMX packing error");
 
 #pragma pack(push,1)
-typedef union alignas(16) XMM_Reg {
+union alignas(16) XMM_Reg {
 	FPU_Reg_32		f32[4];
 	FPU_Reg_64		f64[2];
 
@@ -298,8 +298,8 @@ struct RegBit
 {
 	enum { basemask = (1 << nbits) - 1 };
 	enum { mask = basemask << bitno };
-	T& data;
-	RegBit(T& reg) : data(reg) {}
+	T data;
+	RegBit(const T& reg) : data(reg) {}
 	template <class T2> RegBit& operator=(T2 val)
 	{
 		data = (data & ~mask) | ((nbits > 1 ? val & basemask : !!val) << bitno);
@@ -310,17 +310,20 @@ struct RegBit
 
 struct FPUControlWord
 {
-	uint16_t reg;
-	RegBit<FPUControlWord, 0>     IM;  // Invalid operation mask
-	RegBit<FPUControlWord, 1>     DM;  // Denormalized operand mask
-	RegBit<FPUControlWord, 2>     ZM;  // Zero divide mask
-	RegBit<FPUControlWord, 3>     OM;  // Overflow mask
-	RegBit<FPUControlWord, 4>     UM;  // Underflow mask
-	RegBit<FPUControlWord, 5>     PM;  // Precision mask
-	RegBit<FPUControlWord, 7>     M;   // Interrupt mask   (8087-only)
-	RegBit<FPUControlWord, 8, 2>  PC;  // Precision control
-	RegBit<FPUControlWord, 10, 2> RC;  // Rounding control
-	RegBit<FPUControlWord, 12>    IC;  // Infinity control (8087/80287-only)
+	union
+	{
+		uint16_t reg;
+		RegBit<decltype(reg), 0>     IM;  // Invalid operation mask
+		RegBit<decltype(reg), 1>     DM;  // Denormalized operand mask
+		RegBit<decltype(reg), 2>     ZM;  // Zero divide mask
+		RegBit<decltype(reg), 3>     OM;  // Overflow mask
+		RegBit<decltype(reg), 4>     UM;  // Underflow mask
+		RegBit<decltype(reg), 5>     PM;  // Precision mask
+		RegBit<decltype(reg), 7>     M;   // Interrupt mask   (8087-only)
+		RegBit<decltype(reg), 8, 2>  PC;  // Precision control
+		RegBit<decltype(reg), 10, 2> RC;  // Rounding control
+		RegBit<decltype(reg), 12>    IC;  // Infinity control (8087/80287-only)
+	};
 
 	enum
 	{
@@ -337,8 +340,7 @@ struct FPUControlWord
 		Chop    = 3
 	};
 
-	FPUControlWord() : reg(initValue), IM(*this), DM(*this), ZM(*this), OM(*this),
-					   UM(*this), PM(*this), M(*this), PC(*this), RC(*this), IC(*this) {}
+	FPUControlWord() : reg(initValue) {}
 	FPUControlWord(const FPUControlWord& other) = default;
 	FPUControlWord& operator=(const FPUControlWord& other)
 	{
@@ -372,26 +374,27 @@ struct FPUControlWord
 
 struct FPUStatusWord
 {
-	uint16_t reg;
-	RegBit<FPUStatusWord, 0>     IE;  // Invalid operation
-	RegBit<FPUStatusWord, 1>     DE;  // Denormalized operand
-	RegBit<FPUStatusWord, 2>     ZE;  // Divide-by-zero
-	RegBit<FPUStatusWord, 3>     OE;  // Overflow
-	RegBit<FPUStatusWord, 4>     UE;  // Underflow
-	RegBit<FPUStatusWord, 5>     PE;  // Precision
-	RegBit<FPUStatusWord, 6>     SF;  // Stack Flag (non-8087/802087)
-	RegBit<FPUStatusWord, 7>     IR;  // Interrupt request (8087-only)
-	RegBit<FPUStatusWord, 7>     ES;  // Error summary     (non-8087)
-	RegBit<FPUStatusWord, 8>     C0;  // Condition flag
-	RegBit<FPUStatusWord, 9>     C1;  // Condition flag
-	RegBit<FPUStatusWord, 10>    C2;  // Condition flag
-	RegBit<FPUStatusWord, 11, 3> top; // Top of stack pointer
-	RegBit<FPUStatusWord, 14>    C3;  // Condition flag
-	RegBit<FPUStatusWord, 15>    B;   // Busy flag
+	union
+	{
+		uint16_t reg;
+		RegBit<decltype(reg), 0>     IE;  // Invalid operation
+		RegBit<decltype(reg), 1>     DE;  // Denormalized operand
+		RegBit<decltype(reg), 2>     ZE;  // Divide-by-zero
+		RegBit<decltype(reg), 3>     OE;  // Overflow
+		RegBit<decltype(reg), 4>     UE;  // Underflow
+		RegBit<decltype(reg), 5>     PE;  // Precision
+		RegBit<decltype(reg), 6>     SF;  // Stack Flag (non-8087/802087)
+		RegBit<decltype(reg), 7>     IR;  // Interrupt request (8087-only)
+		RegBit<decltype(reg), 7>     ES;  // Error summary     (non-8087)
+		RegBit<decltype(reg), 8>     C0;  // Condition flag
+		RegBit<decltype(reg), 9>     C1;  // Condition flag
+		RegBit<decltype(reg), 10>    C2;  // Condition flag
+		RegBit<decltype(reg), 11, 3> top; // Top of stack pointer
+		RegBit<decltype(reg), 14>    C3;  // Condition flag
+		RegBit<decltype(reg), 15>    B;   // Busy flag
+	};
 
-	FPUStatusWord() : reg(0), IE(*this), DE(*this), ZE(*this), OE(*this), UE(*this),
-	                  PE(*this), SF(*this), IR(*this), ES(*this), C0(*this), C1(*this),
-	                  C2(*this), top(*this), C3(*this), B(*this) {}
+	FPUStatusWord() : reg(0) {}
 	FPUStatusWord(const FPUStatusWord& other) = default;
 	FPUStatusWord& operator=(const FPUStatusWord& other)
 	{

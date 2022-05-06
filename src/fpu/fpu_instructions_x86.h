@@ -516,16 +516,22 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
 #endif
 
 // load math constants
-#define FPUD_LOAD_CONST(op)		\
-		FPU_PREP_PUSH();			\
-		__asm {						\
-		__asm	mov		eax, TOP	\
-		__asm	shl		eax, 4		\
-		__asm	clx					\
-		__asm	op					\
-		__asm	fstp	TBYTE PTR fpu.p_regs[eax].m1	\
-		}							\
-
+#define FPUD_LOAD_CONST(op)                             \
+        FPUControlWord save_cw;                         \
+        auto cw = fpu.cw.allMasked();                   \
+        if (FPU_ArchitectureType < FPU_ARCHTYPE_387)    \
+            cw.RC = FPUControlWord::RoundMode::Nearest; \
+        FPU_PREP_PUSH();                                \
+        __asm {                                         \
+        __asm    fnstcw  save_cw                        \
+        __asm    fldcw   cw                             \
+        __asm    mov     eax, TOP                       \
+        __asm    shl     eax, 4                         \
+        __asm    clx                                    \
+        __asm    op                                     \
+        __asm    fstp    TBYTE PTR fpu.p_regs[eax].m1   \
+        __asm    fldcw   save_cw                        \
+        }
 #else
 
 // !defined _MSC_VER
@@ -965,14 +971,22 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
 #endif
 
 // load math constants
-#define FPUD_LOAD_CONST(op)				\
-		FPU_PREP_PUSH();					\
-		__asm__ volatile (					\
-			clx" 						\n"	\
-			#op" 						\n"	\
-			"fstpt		%0				\n"	\
-			:	"=m" (fpu.p_regs[TOP])		\
-		);
+#define FPUD_LOAD_CONST(op)                             \
+        FPUControlWord save_cw;                         \
+        auto cw = fpu.cw.allMasked();                   \
+        if (FPU_ArchitectureType < FPU_ARCHTYPE_387)    \
+            cw.RC = FPUControlWord::RoundMode::Nearest; \
+        FPU_PREP_PUSH();                                \
+        __asm__ volatile (                              \
+            "fnstcw     %1                          \n" \
+            "fldcw      %2                          \n" \
+            clx"                                    \n" \
+            #op"                                    \n" \
+            "fstpt      %0                          \n" \
+            "fldcw      %1                          \n" \
+            : "=m" (fpu.p_regs[TOP]), "+m" (save_cw)    \
+            : "m" (cw)                                  \
+        );
 
 #endif
 
