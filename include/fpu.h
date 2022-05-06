@@ -106,7 +106,7 @@ static_assert( sizeof(FPU_Reg_32) == 4, "FPU_Reg_32 error" );
 #define FPU_Reg_32_exponent_bias	(127)
 static const uint32_t FPU_Reg_32_implied_bit = ((uint32_t)1UL << (uint32_t)23UL);
 
-typedef union alignas(8) MMX_reg {
+union alignas(8) MMX_reg {
 
 	uint64_t q;
 
@@ -193,7 +193,7 @@ typedef union alignas(8) MMX_reg {
 static_assert(sizeof(MMX_reg) == 8, "MMX packing error");
 
 #pragma pack(push,1)
-typedef union alignas(16) XMM_Reg {
+union alignas(16) XMM_Reg {
 	FPU_Reg_32		f32[4];
 	FPU_Reg_64		f64[2];
 
