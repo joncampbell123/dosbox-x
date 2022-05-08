@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         ### Please fill out the form as cleanly as possible.
-        Also, make sure that you have properly filled in the title of the bug report.
+        It's highly recommended for you to fill in all the fields (even optional ones) if possible, so it's easier for us to solve the problem. Also, make sure that you have properly filled in the title of the bug report.
   - type: textarea
     id: issue
     attributes:
