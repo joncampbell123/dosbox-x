@@ -21,11 +21,10 @@ jobs:
         shell: pwsh
         run: |
           msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration=Release -p:Platform=x64
-      - name: Package Visual Studio Win32 SDL1
+      - name: Package Visual Studio Win64 SDL1
         shell: bash
         run: |
           top=`pwd`
-          cd $top/vs
           $top/bin/x64/Release/dosbox-x.exe -tests -set waitonerror=false -set logfile=tests.log
           cat tests.log
           mkdir -p $top/package/bin/x64/Release/drivez
@@ -39,7 +38,7 @@ jobs:
           cp $top/dosbox-x.reference.conf $top/package/bin/x64/Release/dosbox-x.reference.conf
           cp $top/dosbox-x.reference.full.conf $top/package/bin/x64/Release/dosbox-x.reference.full.conf
           cp $top/contrib/windows/installer/readme.txt $top/package/bin/x64/Release/README.txt
-          cp $top/contrib/windows/installer/inpout32.dll $top/package/bin/x64/Release/inpout32.dll
+          cp $top/contrib/windows/installer/inpoutx64.dll $top/package/bin/x64/Release/inpoutx64.dll
           cp $top/contrib/fonts/FREECG98.BMP $top/package/bin/x64/Release/FREECG98.BMP
           cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/bin/x64/Release/Nouveau_IBM.ttf
           cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/bin/x64/Release/SarasaGothicFixed.ttf
@@ -48,15 +47,14 @@ jobs:
           cp $top/contrib/windows/shaders/* $top/package/bin/x64/Release/shaders/
           cp $top/contrib/glshaders/* $top/package/bin/x64/Release/glshaders/
           for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/package/bin/x64/Release/languages/; done
-      - name: Build Visual Studio Win32 SDL1
+      - name: Build Visual Studio Win64 SDL1
         shell: pwsh
         run: |
           msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration="Release SDL2" -p:Platform=x64
-      - name: Package Visual Studio Win32 SDL2
+      - name: Package Visual Studio Win64 SDL2
         shell: bash
         run: |
           top=`pwd`
-          cd $top/vs
           $top/bin/x64/"Release SDL2"/dosbox-x.exe -tests -set waitonerror=false -set logfile=tests.log
           cat tests.log
           mkdir -p $top/package/bin/x64/"Release SDL2"/drivez
@@ -70,7 +68,7 @@ jobs:
           cp $top/dosbox-x.reference.conf $top/package/bin/x64/"Release SDL2"/dosbox-x.reference.conf
           cp $top/dosbox-x.reference.full.conf $top/package/bin/x64/"Release SDL2"/dosbox-x.reference.full.conf
           cp $top/contrib/windows/installer/readme.txt $top/package/bin/x64/"Release SDL2"/README.txt
-          cp $top/contrib/windows/installer/inpout32.dll $top/package/bin/x64/"Release SDL2"/inpout32.dll
+          cp $top/contrib/windows/installer/inpoutx64.dll $top/package/bin/x64/"Release SDL2"/inpoutx64.dll
           cp $top/contrib/fonts/FREECG98.BMP $top/package/bin/x64/"Release SDL2"/FREECG98.BMP
           cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/bin/x64/"Release SDL2"/Nouveau_IBM.ttf
           cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/bin/x64/"Release SDL2"/SarasaGothicFixed.ttf
@@ -84,4 +82,74 @@ jobs:
         uses: actions/upload-artifact@v2.2.4
         with:
           name: dosbox-x-vsbuild-win64
+          path: ${{ github.workspace }}/package/
+
+  MSBuild_ARM64_CI_build:
+    if: github.event_name == 'workflow_dispatch' || contains('joncampbell123', github.actor) == false
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v2
+      - uses: microsoft/setup-msbuild@v1.1
+      - name: Build Visual Studio ARM64 SDL1
+        shell: pwsh
+        run: |
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration=Release -p:Platform=ARM64 -p:PostBuildEventUseInBuild=false
+      - name: Package Visual Studio ARM64 SDL1
+        shell: bash
+        run: |
+          top=`pwd`
+          mkdir -p $top/package/bin/ARM64/Release/drivez
+          mkdir -p $top/package/bin/ARM64/Release/scripts
+          mkdir -p $top/package/bin/ARM64/Release/shaders
+          mkdir -p $top/package/bin/ARM64/Release/languages
+          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/' -e 's/^\(file access tries[ ]*=[ ]*\)0$/\13/' -e 's/^\(printoutput[ ]*=[ ]*\)png$/\1printer/' -e 's/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/bin/ARM64/Release/dosbox-x.conf
+          cp $top/bin/ARM64/Release/dosbox-x.exe $top/package/bin/ARM64/Release/dosbox-x.exe
+          cp $top/CHANGELOG $top/package/bin/ARM64/Release/CHANGELOG.txt
+          cp $top/dosbox-x.reference.conf $top/package/bin/ARM64/Release/dosbox-x.reference.conf
+          cp $top/dosbox-x.reference.full.conf $top/package/bin/ARM64/Release/dosbox-x.reference.full.conf
+          cp $top/contrib/windows/installer/readme.txt $top/package/bin/ARM64/Release/README.txt
+          cp $top/contrib/fonts/FREECG98.BMP $top/package/bin/ARM64/Release/FREECG98.BMP
+          cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/bin/ARM64/Release/Nouveau_IBM.ttf
+          cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/bin/ARM64/Release/SarasaGothicFixed.ttf
+          cp $top/contrib/windows/installer/drivez_readme.txt $top/package/bin/ARM64/Release/drivez/readme.txt
+          cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/bin/ARM64/Release/scripts/
+          cp $top/contrib/windows/shaders/* $top/package/bin/ARM64/Release/shaders/
+          for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/package/bin/ARM64/Release/languages/; done
+      - name: Build Visual Studio ARM64 SDL2
+        shell: pwsh
+        run: |
+          msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration="Release SDL2" -p:Platform=ARM64 -p:PostBuildEventUseInBuild=false
+      - name: Package Visual Studio ARM64 SDL2
+        shell: bash
+        run: |
+          top=`pwd`
+          mkdir -p $top/package/bin/ARM64/"Release SDL2"/drivez
+          mkdir -p $top/package/bin/ARM64/"Release SDL2"/scripts
+          mkdir -p $top/package/bin/ARM64/"Release SDL2"/shaders
+          mkdir -p $top/package/bin/ARM64/"Release SDL2"/languages
+          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/' -e 's/^\(file access tries[ ]*=[ ]*\)0$/\13/' -e 's/^\(printoutput[ ]*=[ ]*\)png$/\1printer/' -e 's/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/bin/ARM64/"Release SDL2"/dosbox-x.conf
+          cp $top/bin/ARM64/"Release SDL2"/dosbox-x.exe $top/package/bin/ARM64/"Release SDL2"/dosbox-x.exe
+          cp $top/CHANGELOG $top/package/bin/ARM64/"Release SDL2"/CHANGELOG.txt
+          cp $top/dosbox-x.reference.conf $top/package/bin/ARM64/"Release SDL2"/dosbox-x.reference.conf
+          cp $top/dosbox-x.reference.full.conf $top/package/bin/ARM64/"Release SDL2"/dosbox-x.reference.full.conf
+          cp $top/contrib/windows/installer/readme.txt $top/package/bin/ARM64/"Release SDL2"/README.txt
+          cp $top/contrib/fonts/FREECG98.BMP $top/package/bin/ARM64/"Release SDL2"/FREECG98.BMP
+          cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/bin/ARM64/"Release SDL2"/Nouveau_IBM.ttf
+          cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/bin/ARM64/"Release SDL2"/SarasaGothicFixed.ttf
+          cp $top/contrib/windows/installer/drivez_readme.txt $top/package/bin/ARM64/"Release SDL2"/drivez/readme.txt
+          cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/bin/ARM64/"Release SDL2"/scripts/
+          cp $top/contrib/windows/shaders/* $top/package/bin/ARM64/"Release SDL2"/shaders/
+          for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/package/bin/ARM64/"Release SDL2"/languages/; done
+          cp $top/COPYING $top/package/COPYING
+      - name: Upload release package
+        uses: actions/upload-artifact@v2.2.4
+        with:
+          name: dosbox-x-vsbuild-arm64
           path: ${{ github.workspace }}/package/
