@@ -45,6 +45,10 @@
 #include "pc98_gdc.h"
 #include "pc98_gdc_const.h"
 
+#pragma GCC diagnostic ignored "-Wparentheses"
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
+
 bool mcga_double_scan = false;
 
 /* S3 streams processor state.
