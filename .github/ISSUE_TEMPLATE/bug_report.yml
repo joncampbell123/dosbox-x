@@ -8,39 +8,6 @@ body:
       value: |
         ### Please fill out the form as cleanly as possible.
         Also, make sure that you have properly filled in the title of the bug report.
-  - type: checkboxes
-    id: alreadyexists
-    attributes:
-      label: Have you checked that no other similar bug report(s) exists?
-      description: Please try to search for this bug in the issues before creating this bug report.
-      options:
-        - label: I have searched and didn't find any similar bug reports.
-          required: true
-  - type: input
-    id: os
-    attributes:
-      label: What operating system(s) this bug have occurred on?
-      description: Put in the release name of the OS (additionally with a extra version number and/or an architecture name) this problem have occurred on.
-      placeholder: "Ex. Windows 10 21H2, Ubuntu 21.04 etc."
-    validations:
-      required: true
-  # This is confusing
-  #- type: input
-  #  id: hardware
-  #  attributes:
-  #    label: Relevant hardware info
-  #    description: If relevant, describe the hardware this bug have occurred on.
-  #    placeholder: "CPU, GPU, device brand/model, installed drivers, etc. Ex. Raspberry Pi 3B+, etc."
-  #  validations:
-  #    required: false
-  - type: input
-    id: version
-    attributes:
-      label: What version(s) of DOSBox-X have this bug?
-      description: Put in the release version or git commit/branch and additionally the flavor of the DOSBox-X build this problem occurred on. Though, please always check if the bug occurs in the latest version/commit.
-      placeholder: "Ex. 0.83.17 SDL1 Visual Studio, commit 88370683291f5c681d2a7d6fff088b947b783bd4 SDL1 etc."
-    validations:
-      required: true
   - type: textarea
     id: issue
     attributes:
@@ -67,6 +34,31 @@ body:
         4. See error
     validations:
       required: true
+  - type: input
+    id: os
+    attributes:
+      label: What operating system(s) this bug have occurred on?
+      description: Put in the release name of the OS (additionally with a extra version number and/or an architecture name) this problem have occurred on.
+      placeholder: "Ex. Windows 10 21H2, Ubuntu 21.04 etc."
+    validations:
+      required: true
+  # This is confusing
+  #- type: input
+  #  id: hardware
+  #  attributes:
+  #    label: Relevant hardware info
+  #    description: If relevant, describe the hardware this bug have occurred on.
+  #    placeholder: "CPU, GPU, device brand/model, installed drivers, etc. Ex. Raspberry Pi 3B+, etc."
+  #  validations:
+  #    required: false
+  - type: input
+    id: version
+    attributes:
+      label: What version(s) of DOSBox-X have this bug?
+      description: Put in the release version or git commit/branch and additionally the flavor of the DOSBox-X build this problem occurred on. Though, please always check if the bug occurs in the latest version/commit.
+      placeholder: "Ex. 0.83.17 SDL1 Visual Studio, commit 88370683291f5c681d2a7d6fff088b947b783bd4 SDL1 etc."
+    validations:
+      required: true
   - type: textarea
     id: config
     attributes:
@@ -90,6 +82,14 @@ body:
       description: Add other context about the problem here.
     validations:
       required: false
+  - type: checkboxes
+    id: alreadyexists
+    attributes:
+      label: Have you checked that no other similar bug report(s) exists?
+      description: Please try to search for this bug in the issues before creating this bug report.
+      options:
+        - label: I have searched and didn't find any similar bug reports.
+          required: true
   - type: checkboxes
     id: terms
     attributes:
