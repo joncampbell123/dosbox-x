@@ -14,13 +14,13 @@ body:
       label: Have you checked that no other similar bug report(s) exists?
       description: Please try to search for this bug in the issues before creating this bug report.
       options:
-        - label: I have searched and didn't find any similar issues.
+        - label: I have searched and didn't find any similar bug reports.
           required: true
   - type: input
     id: os
     attributes:
       label: What operating system(s) this bug have occurred on?
-      description: Put in the release name of the OS (additionally with a extra version number and/or an architecture name) this issue have occurred on.
+      description: Put in the release name of the OS (additionally with a extra version number and/or an architecture name) this problem have occurred on.
       placeholder: "Ex. Windows 10 21H2, Ubuntu 21.04 etc."
     validations:
       required: true
@@ -37,7 +37,7 @@ body:
     id: version
     attributes:
       label: What version(s) of DOSBox-X have this bug?
-      description: Put in the release version or git commit/branch and additionally the flavor of the DOSBox-X build this issue occurred on. Though, please always check if the bug occurs in the latest version/commit.
+      description: Put in the release version or git commit/branch and additionally the flavor of the DOSBox-X build this problem occurred on. Though, please always check if the bug occurs in the latest version/commit.
       placeholder: "Ex. 0.83.17 SDL1 Visual Studio, commit 88370683291f5c681d2a7d6fff088b947b783bd4 SDL1 etc."
     validations:
       required: true
@@ -79,7 +79,7 @@ body:
     id: log
     attributes:
       label: Output log
-      description: The relevant log DOSBox-X outputted when the issue ocurred. If you want to link to a upload of the file, please put the link into the "Additional context" box instead.
+      description: The relevant log DOSBox-X outputted when the problem ocurred. If you want to link to a upload of the file, please put the link into the "Additional context" box instead.
       render: text # Syntax highlighting
     validations:
       required: false
