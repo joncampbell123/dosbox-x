@@ -85,10 +85,10 @@ body:
   - type: checkboxes
     id: alreadyexists
     attributes:
-      label: Have you checked that no other similar bug report(s) exists?
+      label: Have you checked that no other similar bug report(s) exist?
       description: Please try to search for this bug in the issues before creating this bug report.
       options:
-        - label: I have searched and didn't find any similar bug reports.
+        - label: I have searched and didn't find any similar bug report.
           required: true
   - type: checkboxes
     id: terms
