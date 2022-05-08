@@ -9,18 +9,10 @@ body:
         ### Please fill out the form as cleanly as possible.
         Also, make sure that you have properly filled in the title of the bug report.
   - type: checkboxes
-    id: terms
-    attributes:
-      label: Code of Conduct & Contributing Guidelines
-      description: By submitting this issue, you agree to follow our [contributing guidelines](https://github.com/joncampbell123/dosbox-x/blob/master/CONTRIBUTING.md) and [code of conduct](https://github.com/joncampbell123/dosbox-x/blob/master/CODE_OF_CONDUCT.md).
-      options:
-        - label: I agree to follow the code of conduct and the contributing guidelines.
-          required: true
-  - type: checkboxes
     id: alreadyexists
     attributes:
-      label: Have you checked that no other similar bug report(s) already exists?
-      description: Search the issues before creating this bug report.
+      label: Have you checked that no other similar bug report(s) exists?
+      description: Please try to search for this bug in the issues before creating this bug report.
       options:
         - label: I have searched and didn't find any similar issues.
           required: true
@@ -28,7 +20,7 @@ body:
     id: os
     attributes:
       label: What operating system(s) this bug have occurred on?
-      description: Release name of the OS (additionally with a extra version number or a architecture name) this issue have occurred on.
+      description: Release name of the OS (additionally with a extra version number and/or an architecture name) this issue have occurred on.
       placeholder: "Ex. Windows 10 21H2, Ubuntu 21.04 etc."
     validations:
       required: true
@@ -67,7 +59,7 @@ body:
     id: steps
     attributes:
       label: Steps to reproduce the behaviour
-      description: How can we reproduce this bug? For example, doing what in what software causes the bug to occur?
+      description: How can we reproduce this bug? For example, doing what actions in what software causes the bug to occur?
       placeholder: |
         1. Go to '...'
         2. Click on '....'
@@ -79,7 +71,7 @@ body:
     id: config
     attributes:
       label: Used configuration
-      description: Share the configuration (usually from the `dosbox-x.conf` file) that can cause the bug to occur. Leave this area empty if you're using the default configuration. If you want to link to a upload of the file, please put the link into the "Additional context" box instead.
+      description: Share the configuration (usually from the `dosbox-x.conf` file) that caused the bug to occur. Leave this area empty if you're using the default configuration. If you want to link to a upload of the file, please put the link into the "Additional context" box instead.
       render: ini # Syntax highlighting
     validations:
       required: false
@@ -98,3 +90,11 @@ body:
       description: Add other context about the problem here.
     validations:
       required: false
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Code of Conduct & Contributing Guidelines
+      description: By submitting this issue, you agree to follow our [contributing guidelines](https://github.com/joncampbell123/dosbox-x/blob/master/CONTRIBUTING.md) and [code of conduct](https://github.com/joncampbell123/dosbox-x/blob/master/CODE_OF_CONDUCT.md).
+      options:
+        - label: I agree to follow the code of conduct and the contributing guidelines.
+          required: true
