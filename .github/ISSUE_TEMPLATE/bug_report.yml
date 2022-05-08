@@ -37,7 +37,7 @@ body:
     id: version
     attributes:
       label: What version(s) of DOSBox-X have this bug?
-      description: DOSBox-X release version or git commit/branch + flavor this issue have occurred on. Though, please always check if the bug still occurs in the latest version/commit.
+      description: DOSBox-X release version or git commit/branch + flavor this issue have occurred on. Though, please always check if the bug occurs in the latest version/commit.
       placeholder: "Ex. 0.83.17 SDL1 Visual Studio, commit 88370683291f5c681d2a7d6fff088b947b783bd4 SDL1 etc."
     validations:
       required: true
