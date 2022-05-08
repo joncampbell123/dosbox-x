@@ -77,6 +77,10 @@ jobs:
           cp build-scripts/mingw/bin/msys.bat mingw-get/msys/1.0
           cp build-scripts/mingw/bin/runbuild.sh mingw-get/msys/1.0
           cp build-scripts/mingw/bin/gawk.exe mingw-get/msys/1.0/bin
+          vs/tool/unzip.exe $top/build-scripts/mingw/bin/d3d9.zip -d d3d9
+          cp d3d9/*.inl mingw-get/include
+          cp d3d9/*.h mingw-get/include
+          cp d3d9/*.a mingw-get/lib
       - name: Build MinGW lowend
         shell: pwsh
         run: |

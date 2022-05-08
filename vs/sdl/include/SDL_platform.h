@@ -106,8 +106,13 @@
 #if defined(WIN32) || defined(_WIN32)
 #undef __WIN32__
 #define __WIN32__	1
-#if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
+#if !defined(__MINGW32__)
 #define ENABLE_IM_EVENT 1
+#else
+#include <_mingw.h>
+#if defined(__MINGW64_VERSION_MAJOR)
+#define ENABLE_IM_EVENT 1
+#endif
 #endif
 #endif
 
