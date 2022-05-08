@@ -78,8 +78,8 @@ body:
   - type: textarea
     id: log
     attributes:
-      label: Emulator log
-      description: The relevant log DOSBox-X outputted. If you want to link to a upload of the file, please put the link into the "Additional context" box instead.
+      label: Output log
+      description: The relevant log DOSBox-X outputted when the issue ocurred. If you want to link to a upload of the file, please put the link into the "Additional context" box instead.
       render: text # Syntax highlighting
     validations:
       required: false
