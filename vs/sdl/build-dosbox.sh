@@ -45,7 +45,7 @@ mkdir -p linux-build || exit 1
 mkdir -p linux-build/build || exit 1
 mkdir -p linux-build/include || exit 1
 
-make -j || exit 1
+make -j3 || exit 1
 make install || exit 1  # will install into ./linux-host
 
 # STOP DELETING THE FILE!!!!! I need it for Windows builds!

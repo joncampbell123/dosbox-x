@@ -20,11 +20,11 @@ jobs:
         with:
           msystem: MINGW32
           update: true
-          install: git mingw-w64-i686-toolchain mingw-w64-i686-libslirp mingw-w64-i686-libtool mingw-w64-i686-SDL_net mingw-w64-i686-SDL2_net mingw-w64-i686-nasm autoconf automake
+          install: git mingw-w64-i686-toolchain mingw-w64-i686-libslirp mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake
       - name: Build MinGW32 SDL1
         run: |
           top=`pwd`
-          ln -s $top/build-scripts/mingw/make.exe /usr/bin/make.exe
+          ln -s $top/build-scripts/mingw/bin/make.exe /usr/bin/make.exe
           ./build-mingw
           strip --strip-all $top/src/dosbox-x.exe
           mkdir -p $top/package/mingw-build/mingw/drivez

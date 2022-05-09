@@ -1,0 +1,117 @@
+name: HX-DOS / MinGW lowend builds
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+jobs:
+  HX_DOS_CI_build:
+    if: github.event_name == 'workflow_dispatch' || contains('joncampbell123', github.actor) == false
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v2
+      - name: Prepare HX-DOS
+        shell: bash
+        run: |
+          pwd>pwd.txt
+          mkdir package
+          mkdir mingw-get
+      - name: Build HX-DOS
+        shell: pwsh
+        run: |
+          vs\tool\unzip.exe build-scripts\mingw\bin\mingw-get-0.6.2-mingw32-beta-20131004-1-bin.zip -d mingw-get
+          mingw-get\bin\mingw-get.exe install msys-base gcc g++ autoconf automake libiconv libpdcurses libz
+          move pwd.txt mingw-get\msys\1.0
+          copy build-scripts\mingw\bin\msys.bat mingw-get\msys\1.0
+          copy build-scripts\mingw\bin\runbuild.sh mingw-get\msys\1.0
+          copy build-scripts\mingw\bin\gawk.exe mingw-get\msys\1.0\bin
+          mingw-get\msys\1.0\msys.bat /mingw/msys/1.0/runbuild.sh build-mingw-hx-dos
+      - name: Package HX-DOS
+        shell: bash
+        run: |
+          top=`pwd`
+          strip --strip-all $top/src/dosbox-x.exe
+          $top/build-scripts/mingw/hxdos/PESTUB.EXE -n $top/src/dosbox-x.exe
+          cp $top/src/dosbox-x.exe $top/package/dosbox-x.exe
+          cp $top/CHANGELOG $top/package/CHANGELOG.txt
+          cp $top/dosbox-x.reference.conf $top/package/dosbox-x.ref
+          cp $top/dosbox-x.reference.full.conf $top/package/dosbox-x.ref.full
+          cp $top/build-scripts/mingw/hxdos/DPMILD32.EXE $top/package/
+          cp $top/build-scripts/mingw/hxdos/HDPMI32.EXE $top/package/
+          cp $top/build-scripts/mingw/hxdos/HXGUIHLP.INI $top/package/
+          cp $top/build-scripts/mingw/hxdos/README.TXT $top/package/
+          cp $top/build-scripts/mingw/hxdos/WINSPOOL.DRV $top/package/
+          cp $top/build-scripts/mingw/hxdos/*.DLL $top/package/
+      - name: Upload release package
+        uses: actions/upload-artifact@v2.2.4
+        with:
+          name: dosbox-x-mingw-hx-dos
+          path: ${{ github.workspace }}/package/
+
+  MinGW_lowend_CI_build:
+    if: github.event_name == 'workflow_dispatch' || contains('joncampbell123', github.actor) == false
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.9.1
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v2
+      - name: Prepare MinGW lowend
+        run: |
+          top=`pwd`
+          pwd>pwd.txt
+          mkdir mingw-get
+          vs/tool/unzip.exe $top/build-scripts/mingw/bin/mingw-get-0.6.2-mingw32-beta-20131004-1-bin.zip -d mingw-get
+          mingw-get/bin/mingw-get.exe install msys-base gcc g++ autoconf automake libiconv libpdcurses libz
+          mv pwd.txt mingw-get/msys/1.0
+          cp build-scripts/mingw/bin/msys.bat mingw-get/msys/1.0
+          cp build-scripts/mingw/bin/runbuild.sh mingw-get/msys/1.0
+          cp build-scripts/mingw/bin/gawk.exe mingw-get/msys/1.0/bin
+          vs/tool/unzip.exe $top/build-scripts/mingw/bin/d3d9.zip -d d3d9
+          cp d3d9/*.inl mingw-get/include
+          cp d3d9/*.h mingw-get/include
+          cp d3d9/*.a mingw-get/lib
+      - name: Build MinGW lowend
+        shell: pwsh
+        run: |
+          mingw-get\msys\1.0\msys.bat /mingw/msys/1.0/runbuild.sh build-mingw-lowend
+      - name: Package MinGW lowend
+        run: |
+          top=`pwd`
+          strip --strip-all $top/src/dosbox-x.exe
+          mkdir -p $top/package/mingw-build/mingw-lowend/drivez
+          mkdir -p $top/package/mingw-build/mingw-lowend/scripts
+          mkdir -p $top/package/mingw-build/mingw-lowend/shaders
+          mkdir -p $top/package/mingw-build/mingw-lowend/glshaders
+          mkdir -p $top/package/mingw-build/mingw-lowend/languages
+          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/' -e 's/^\(file access tries[ ]*=[ ]*\)0$/\13/' -e 's/^\(printoutput[ ]*=[ ]*\)png$/\1printer/' -e 's/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/mingw-build/mingw-lowend/dosbox-x.conf
+          cp $top/src/dosbox-x.exe $top/package/mingw-build/mingw-lowend/dosbox-x.exe
+          cp $top/CHANGELOG $top/package/mingw-build/mingw-lowend/CHANGELOG.txt
+          cp $top/dosbox-x.reference.conf $top/package/mingw-build/mingw-lowend/dosbox-x.reference.conf
+          cp $top/dosbox-x.reference.full.conf $top/package/mingw-build/mingw-lowend/dosbox-x.reference.full.conf
+          cp $top/contrib/windows/installer/readme.txt $top/package/mingw-build/mingw-lowend/README.txt
+          cp $top/contrib/windows/installer/inpout32.dll $top/package/mingw-build/mingw-lowend/inpout32.dll
+          cp $top/contrib/fonts/FREECG98.BMP $top/package/mingw-build/mingw-lowend/FREECG98.BMP
+          cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/mingw-build/mingw-lowend/Nouveau_IBM.ttf
+          cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/mingw-build/mingw-lowend/SarasaGothicFixed.ttf
+          cp $top/contrib/windows/installer/drivez_readme.txt $top/package/mingw-build/mingw-lowend/drivez/readme.txt
+          cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/mingw-build/mingw-lowend/scripts/
+          cp $top/contrib/windows/shaders/* $top/package/mingw-build/mingw-lowend/shaders/
+          cp $top/contrib/glshaders/* $top/package/mingw-build/mingw-lowend/glshaders/
+          for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/package/mingw-build/mingw-lowend/languages/; done
+          cp $top/COPYING $top/package/COPYING
+      - name: Upload release package
+        uses: actions/upload-artifact@v2.2.4
+        with:
+          name: dosbox-x-mingw-lowend
+          path: ${{ github.workspace }}/package/
