@@ -1,4 +1,6 @@
 0.83.26
+  - Fix DBCS table initialization on reset and
+    restart (cimarronm)
   - Update FLD constant FPU instructions to more
     accurately match FPU implementations (cimarronm)
 0.83.25
