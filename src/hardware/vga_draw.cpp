@@ -105,6 +105,10 @@ const char* const mode_texts[M_MAX] = {
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 # pragma warning(disable:4305) /* truncation from double to float */
+#else
+# pragma GCC diagnostic ignored "-Wparentheses"
+# pragma GCC diagnostic ignored "-Wsign-compare"
+# pragma GCC diagnostic ignored "-Wmaybe-uninitialized"
 #endif
 
 //#undef C_DEBUG
@@ -2212,10 +2216,10 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
                                     // additional character becomes visible
 	Bitu background = 0, foreground = 0;
 	Bitu chr, chr_left = 0, p3 = 0, attr, bsattr;
-	bool chr_wide = false;
+	bool chr_wide = false, usedbcs = strcmp(RunningProgram, "LOADLIN") && !dos_kernel_disabled;
 
     unsigned int row = (vidstart - vga.config.real_start - vga.draw.bytes_skip) / vga.draw.address_add, col = 0;
-    unsigned int rows = real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS), cols = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS) - 1;
+    unsigned int rows = usedbcs ? real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) : 0 , cols = usedbcs ? (real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS) - 1) : 0;
     if ((IS_JEGA_ARCH || (isDBCSCP()
 #if defined(USE_TTF)
         && dbcs_sbcs
@@ -2231,7 +2235,7 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
 #if defined(USE_TTF)
             && dbcs_sbcs
 #endif
-            && showdbcs)) {
+            && showdbcs && usedbcs)) {
             VGA_Latch pixels;
             pixels.d = *vidmem;
             chr = pixels.b[0];

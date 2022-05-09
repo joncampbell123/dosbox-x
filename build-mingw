@@ -12,6 +12,8 @@ if test -z "$top" ; then exit 1; fi
 # fix
 chmod +x vs/sdl/build-scripts/strip_fPIC.sh
 
+sed -i 's/^#define ENABLE_IM_EVENT 1$/\/\/#define ENABLE_IM_EVENT 1/g' vs/sdl/include/SDL_platform.h
+
 # prefer to compile against our own copy of SDL 1.x
 echo Compiling our internal SDL 1.x
 (cd vs/sdl && ./build-dosbox.sh) || exit 1
@@ -20,10 +22,8 @@ echo Compiling our internal SDL 1.x
 echo Compiling our internal SDLnet 1.x
 (cd vs/sdlnet && ./build-dosbox.sh) || exit 1
 
-# MinGW cannot compile SDL_net, configure goes off trying to autogen
-# prefer to compile against our own copy of SDLnet 1.x
-#echo Compiling our internal SDLnet 1.x
-#(cd vs/sdlnet && ./build-dosbox.sh) || exit 1
+sed -i 's/^\/\/#define ENABLE_IM_EVENT 1$/#define ENABLE_IM_EVENT 1/g' vs/sdl/include/SDL_platform.h
+(cd vs/sdl && ./build-dosbox.sh) || exit 1
 
 # NTS: MinGW provides zlib for us
 if false; then
