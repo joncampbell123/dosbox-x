@@ -20,9 +20,6 @@
 /* MinGW32 special defines */
 #if defined(__MINGW32__)
 #include <stdint.h>
-#if !defined(__MINGW64_VERSION_MAJOR)
-#define DSOUND_SUPPORT 0
-#endif
 //#define snprintf _snprintf
 //#define vsnprintf _vsnprintf
 #else

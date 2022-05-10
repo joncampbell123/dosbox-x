@@ -35,6 +35,8 @@
 #define NOBITMAP
 #include <mmreg.h>
 
+#include <winerror.h>
+
 static DWORD WINAPI fluid_dsound_audio_run(LPVOID lpParameter);
 
 static char* fluid_win32_error(HRESULT hr);

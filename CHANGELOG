@@ -3,9 +3,15 @@
     restart (cimarronm)
   - Update FLD constant FPU instructions to more
     accurately match FPU implementations (cimarronm)
-  - Fixed dynamic_dynrec being displayed as dynamic_x86 in menu (Jookia)
-  - Fixed crash if no dynamic cores were available (Jookia)
-  - Fixed TTF mode breaking a guest not running the DOS kernel (Jookia)
+  - Fixed dynamic_dynrec being displayed as dynamic_x86
+    in menu. (Jookia)
+  - Fixed crash if no dynamic cores available (Jookia)
+  - Fixed TTF mode breaking a guest not running the
+    DOS kernel. (Jookia)
+  - Fixed some guest systems may not work as expected
+    in non-TTF outputs. (Wengier)
+  - Fixed IME input not working in MinGW builds, and
+    FluidSynth in MinGW-lowend builds. (Wengier)
   - Integrated commits from mainline (Allofich)
     - Disable leading directory validity check in
     DOS_FindDevice.

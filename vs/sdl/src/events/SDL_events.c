@@ -602,7 +602,7 @@ wchar_t CompositionFontName[LF_FACESIZE];
 int SDL_IM_Composition() {
 #ifdef ENABLE_IM_EVENT
 #define IME_END_CR_WAIT 50
-    return IM_Context.bCompos||end_ticks&&(GetTickCount()-end_ticks<IME_END_CR_WAIT) ? 1 : 0;
+    return IM_Context.bCompos||(end_ticks&&GetTickCount()-end_ticks<IME_END_CR_WAIT) ? 1 : 0;
 #else
     return 0;
 #endif
