@@ -313,7 +313,7 @@ static void dyn_fpu_esc1(){
 			break;
 		case 0x04: /* FLDENV */
 			dyn_fill_ea(FC_ADDR);
-			gen_call_function_R(FPU_FLDENV,FC_ADDR);
+			gen_call_function_RI(FPU_FLDENV, FC_ADDR, !decode.big_op);
 			break;
 		case 0x05: /* FLDCW */
 			dyn_fill_ea(FC_ADDR);
@@ -321,7 +321,7 @@ static void dyn_fpu_esc1(){
 			break;
 		case 0x06: /* FSTENV */
 			dyn_fill_ea(FC_ADDR);
-			gen_call_function_R(FPU_FSTENV,FC_ADDR);
+			gen_call_function_RI(FPU_FSTENV, FC_ADDR, !decode.big_op);
 			break;
 		case 0x07:  /* FNSTCW*/
 			dyn_fill_ea(FC_ADDR);
@@ -533,11 +533,11 @@ static void dyn_fpu_esc5(){
 			break;
 		case 0x04:	/* FRSTOR */
 			dyn_fill_ea(FC_ADDR); 
-			gen_call_function_R(FPU_FRSTOR,FC_ADDR);
+			gen_call_function_RI(FPU_FRSTOR, FC_ADDR, !decode.big_op);
 			break;
 		case 0x06:	/* FSAVE */
 			dyn_fill_ea(FC_ADDR); 
-			gen_call_function_R(FPU_FSAVE,FC_ADDR);
+			gen_call_function_RI(FPU_FSAVE, FC_ADDR, !decode.big_op);
 			break;
 		case 0x07:   /*FNSTSW */
 			dyn_fill_ea(FC_OP1); 
