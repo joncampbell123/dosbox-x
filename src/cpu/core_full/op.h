@@ -627,11 +627,11 @@ switch (inst.code.op) {
 #if C_FPU
 		switch (((inst.rm>=0xc0) << 3) | inst.code.save) {
 		case 0x00:	FPU_ESC0_EA(inst.rm,inst.rm_eaa);break;
-		case 0x01:	FPU_ESC1_EA(inst.rm,inst.rm_eaa);break;
+		case 0x01:	FPU_ESC1_EA(inst.rm,inst.rm_eaa,inst.code.extra);break;
 		case 0x02:	FPU_ESC2_EA(inst.rm,inst.rm_eaa);break;
 		case 0x03:	FPU_ESC3_EA(inst.rm,inst.rm_eaa);break;
 		case 0x04:	FPU_ESC4_EA(inst.rm,inst.rm_eaa);break;
-		case 0x05:	FPU_ESC5_EA(inst.rm,inst.rm_eaa);break;
+		case 0x05:	FPU_ESC5_EA(inst.rm,inst.rm_eaa,inst.code.extra);break;
 		case 0x06:	FPU_ESC6_EA(inst.rm,inst.rm_eaa);break;
 		case 0x07:	FPU_ESC7_EA(inst.rm,inst.rm_eaa);break;
 

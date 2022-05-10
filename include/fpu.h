@@ -28,7 +28,7 @@
 void FPU_ESC0_Normal(Bitu rm);
 void FPU_ESC0_EA(Bitu rm,PhysPt addr);
 void FPU_ESC1_Normal(Bitu rm);
-void FPU_ESC1_EA(Bitu rm,PhysPt addr);
+void FPU_ESC1_EA(Bitu rm,PhysPt addr, bool op16);
 void FPU_ESC2_Normal(Bitu rm);
 void FPU_ESC2_EA(Bitu rm,PhysPt addr);
 void FPU_ESC3_Normal(Bitu rm);
@@ -36,7 +36,7 @@ void FPU_ESC3_EA(Bitu rm,PhysPt addr);
 void FPU_ESC4_Normal(Bitu rm);
 void FPU_ESC4_EA(Bitu rm,PhysPt addr);
 void FPU_ESC5_Normal(Bitu rm);
-void FPU_ESC5_EA(Bitu rm,PhysPt addr);
+void FPU_ESC5_EA(Bitu rm,PhysPt addr, bool op16);
 void FPU_ESC6_Normal(Bitu rm);
 void FPU_ESC6_EA(Bitu rm,PhysPt addr);
 void FPU_ESC7_Normal(Bitu rm);

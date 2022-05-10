@@ -127,7 +127,7 @@ void FPU_ESC0_Normal(Bitu rm) {
 	}
 }
 
-void FPU_ESC1_EA(Bitu rm,PhysPt addr) {
+void FPU_ESC1_EA(Bitu rm,PhysPt addr, bool op16) {
 // floats
 	Bitu group=(rm >> 3) & 7;
 	Bitu sub=(rm & 7);
@@ -158,13 +158,13 @@ void FPU_ESC1_EA(Bitu rm,PhysPt addr) {
 		FPU_FPOP();
 		break;
 	case 0x04: /* FLDENV */
-		FPU_FLDENV(addr);
+		FPU_FLDENV(addr, op16);
 		break;
 	case 0x05: /* FLDCW */
 		FPU_FLDCW(addr);
 		break;
 	case 0x06: /* FSTENV */
-		FPU_FSTENV(addr);
+		FPU_FSTENV(addr, op16);
 		break;
 	case 0x07:  /* FNSTCW*/
 		mem_writew(addr,fpu.cw);
@@ -517,7 +517,7 @@ void FPU_ESC4_Normal(Bitu rm) {
 	}
 }
 
-void FPU_ESC5_EA(Bitu rm,PhysPt addr) {
+void FPU_ESC5_EA(Bitu rm,PhysPt addr, bool op16) {
 	Bitu group=(rm >> 3) & 7;
 	Bitu sub=(rm & 7);
 	switch(group){
@@ -553,10 +553,10 @@ void FPU_ESC5_EA(Bitu rm,PhysPt addr) {
 		FPU_FPOP();
 		break;
 	case 0x04:	/* FRSTOR */
-		FPU_FRSTOR(addr);
+		FPU_FRSTOR(addr, op16);
 		break;
 	case 0x06:	/* FSAVE */
-		FPU_FSAVE(addr);
+		FPU_FSAVE(addr, op16);
 		break;
 	case 0x07:   /*FNSTSW    NG DISAGREES ON THIS*/
 		mem_writew(addr,fpu.sw);
