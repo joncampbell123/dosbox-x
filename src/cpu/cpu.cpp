@@ -4573,6 +4573,7 @@ void CPU_CMPXCHG8B(PhysPt eaa) {
 	/* Compare EDX:EAX with 64-bit DWORD at memaddr 'eaa'.
 	 * if they match, ZF=1 and write ECX:EBX to memaddr 'eaa'.
 	 * else, ZF=0 and load memaddr 'eaa' into EDX:EAX */
+	FillFlags();
 	if (reg_edx == hi && reg_eax == lo) {
 		mem_writed(eaa+(PhysPt)4,reg_ecx);
 		mem_writed(eaa,          reg_ebx);

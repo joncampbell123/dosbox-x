@@ -1,4 +1,10 @@
 0.83.26
+  - Fix CMPXCHG8B to change only the ZF flag, instead of
+    changing ZF with other flags in an undefined state
+    afterwards. This fixes problems with the Windows 2000
+    kernel booting up and cputype=pentium (though I am
+    unable to get past the INACCESSIBLE_BOOT_DEVICE error).
+    (joncampbell123)
   - Updates XADD instruction to set appropriate flags
     (cimarronm)
   - Updates to FPU to handle opcode size prefix (66h)
