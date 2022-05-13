@@ -1709,17 +1709,19 @@
 	CASE_0F_B(0xc0)												/* XADD Gb,Eb */
 		{
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) goto illegal_opcode;
-			GetRMrb;uint8_t oldrmrb=*rmrb;
-			if (rm >= 0xc0 ) {GetEArb;*rmrb=*earb;*earb+=oldrmrb;}
-			else {GetEAa;*rmrb=LoadMb(eaa);SaveMb(eaa,LoadMb(eaa)+oldrmrb);}
+			GetRMrb;auto oldrmrb=lf_var2b=*rmrb;
+			if (rm >= 0xc0 ) {GetEArb;lf_var1b=*rmrb=*earb;*earb+=oldrmrb;lf_resb=*earb;}
+			else {GetEAa;lf_var1b=*rmrb=LoadMb(eaa);SaveMb(eaa,lf_resb=*rmrb+oldrmrb);}
+			lflags.type=t_ADDb;
 			break;
 		}
 	CASE_0F_W(0xc1)												/* XADD Gw,Ew */
 		{
 			if (CPU_ArchitectureType<CPU_ARCHTYPE_486OLD) goto illegal_opcode;
-			GetRMrw;uint16_t oldrmrw=*rmrw;
-			if (rm >= 0xc0 ) {GetEArw;*rmrw=*earw;*earw+=oldrmrw;}
-			else {GetEAa;*rmrw=LoadMw(eaa);SaveMw(eaa,LoadMw(eaa)+oldrmrw);}
+			GetRMrw;auto oldrmrw=lf_var2w=*rmrw;
+			if (rm >= 0xc0 ) {GetEArw;lf_var1w=*rmrw=*earw;*earw+=oldrmrw;lf_resw=*earw;}
+			else {GetEAa;lf_var1w=*rmrw=LoadMw(eaa);SaveMw(eaa,lf_resw=*rmrw+oldrmrw);}
+			lflags.type=t_ADDw;
 			break;
 		}
 
