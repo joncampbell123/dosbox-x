@@ -311,13 +311,13 @@ static void dyn_fpu_esc1(){
 			gen_call_function((void*)&FPU_FPOP,"");
 			break;
 		case 0x04: /* FLDENV */
-			dyn_call_function_pagefault_check((void*)&FPU_FLDENV,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FLDENV,"%Drd%Ib", DREG(EA), !decode.big_op);
 			break;
 		case 0x05: /* FLDCW */
 			dyn_call_function_pagefault_check((void *)&FPU_FLDCW,"%Drd",DREG(EA));
 			break;
 		case 0x06: /* FSTENV */
-			dyn_call_function_pagefault_check((void *)&FPU_FSTENV,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void *)&FPU_FSTENV,"%Drd%Ib", DREG(EA), !decode.big_op);
 			break;
 		case 0x07:  /* FNSTCW*/
 			dyn_call_function_pagefault_check((void *)&FPU_FNSTCW,"%Drd",DREG(EA));
@@ -528,10 +528,10 @@ static void dyn_fpu_esc5(){
 			gen_call_function((void*)&FPU_FPOP,"");
 			break;
 		case 0x04:	/* FRSTOR */
-			dyn_call_function_pagefault_check((void*)&FPU_FRSTOR,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FRSTOR, "%Drd%Ib", DREG(EA), !decode.big_op);
 			break;
 		case 0x06:	/* FSAVE */
-			dyn_call_function_pagefault_check((void*)&FPU_FSAVE,"%Drd",DREG(EA));
+			dyn_call_function_pagefault_check((void*)&FPU_FSAVE, "%Drd%Ib", DREG(EA), !decode.big_op);
 			break;
 		case 0x07:   /*FNSTSW */
 			gen_protectflags(); 

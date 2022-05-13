@@ -1,4 +1,6 @@
 0.83.26
+  - Updates to FPU to handle opcode size prefix (66h)
+    on FSTENV/FLDENV/FSAVE/FRSTOR instructions (cimarronm)
   - Fix DBCS table initialization on reset and
     restart (cimarronm)
   - Update FLD constant FPU instructions to more

@@ -1084,7 +1084,7 @@
 		break;
 	CASE_B(0xd9)												/* FPU ESC 1 */
 		if (enable_fpu) {
-			FPU_ESC(1);
+			FPU_ESC_SIZE(1, !(core.opcode_index&OPCODE_SIZE));
 		}
 		else {
 			uint8_t rm=Fetchb();
@@ -1120,7 +1120,7 @@
 		break;
 	CASE_B(0xdd)												/* FPU ESC 5 */
 		if (enable_fpu) {
-			FPU_ESC(5);
+			FPU_ESC_SIZE(5, !(core.opcode_index&OPCODE_SIZE));
 		}
 		else {
 			uint8_t rm=Fetchb();
