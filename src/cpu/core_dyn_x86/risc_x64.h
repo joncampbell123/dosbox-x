@@ -1162,7 +1162,7 @@ static void gen_fill_branch(uint8_t * data,uint8_t * from=cache.pos) {
 	Bits len=from-data-1;
 	if (len<0) len=~len;
 	if (len>127)
-		LOG_MSG("Big jump %d",len);
+		LOG_MSG("Big jump %ld",len);
 #endif
 	*data=(uint8_t)(from-data-1);
 }
@@ -1198,7 +1198,7 @@ static void gen_fill_short_jump(uint8_t * data, uint8_t * to=cache.pos) {
 	Bits len=to-data-1;
 	if (len<0) len=~len;
 	if (len>127)
-		LOG_MSG("Big jump %d",len);
+		LOG_MSG("Big jump %ld",len);
 #endif
 	data[0] = (uint8_t)(to-data-1);
 }

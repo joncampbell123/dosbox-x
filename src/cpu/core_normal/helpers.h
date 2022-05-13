@@ -140,12 +140,22 @@
 #define EAXId(inst)															\
 	{ inst(reg_eax,Fetchd(),LoadRd,SaveRd);}
 
+
 #define FPU_ESC(code) {														\
 	uint8_t rm=Fetchb();														\
 	if (rm >= 0xc0) {															\
 		FPU_ESC ## code ## _Normal(rm);										\
 	} else {																\
 		GetEAa;FPU_ESC ## code ## _EA(rm,eaa);								\
+	}																		\
+}
+
+#define FPU_ESC_SIZE(code, op16) {														\
+	uint8_t rm=Fetchb();														\
+	if (rm >= 0xc0) {															\
+		FPU_ESC ## code ## _Normal(rm);										\
+	} else {																\
+		GetEAa;FPU_ESC ## code ## _EA(rm,eaa,op16);								\
 	}																		\
 }
 

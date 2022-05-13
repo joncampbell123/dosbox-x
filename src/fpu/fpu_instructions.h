@@ -634,8 +634,8 @@ static void FPU_FSCALE(void){
 	return; //2^x where x is chopped.
 }
 
-static void FPU_FSTENV(PhysPt addr){
-	if(!cpu.code.big) {
+static void FPU_FSTENV(PhysPt addr, bool op16){
+	if (op16) {
 		mem_writew(addr+0,static_cast<uint16_t>(fpu.cw));
 		mem_writew(addr+2,static_cast<uint16_t>(fpu.sw));
 		mem_writew(addr+4,static_cast<uint16_t>(FPU_GetTag()));
@@ -646,27 +646,23 @@ static void FPU_FSTENV(PhysPt addr){
 	}
 }
 
-static void FPU_FLDENV(PhysPt addr){
+static void FPU_FLDENV(PhysPt addr, bool op16){
 	uint16_t tag;
-	uint32_t tagbig;
-	Bitu cw;
-	if(!cpu.code.big) {
-		cw     = mem_readw(addr+0);
+	if (op16) {
+		fpu.cw = mem_readw(addr+0);
 		fpu.sw = mem_readw(addr+2);
 		tag    = mem_readw(addr+4);
 	} else { 
-		cw     = mem_readd(addr+0);
-		fpu.sw = (uint16_t)mem_readd(addr+4);
-		tagbig = mem_readd(addr+8);
-		tag    = static_cast<uint16_t>(tagbig);
+		fpu.cw = static_cast<uint16_t>(mem_readd(addr+0));
+		fpu.sw = static_cast<uint16_t>(mem_readd(addr+4));
+		tag    = static_cast<uint16_t>(mem_readd(addr+8));
 	}
 	FPU_SetTag(tag);
-	fpu.cw = cw;
 }
 
-static void FPU_FSAVE(PhysPt addr){
-	FPU_FSTENV(addr);
-	uint8_t start = (cpu.code.big?28:14);
+static void FPU_FSAVE(PhysPt addr, bool op16){
+	FPU_FSTENV(addr, op16);
+	uint8_t start = op16 ? 14:28;
 	for(uint8_t i = 0;i < 8;i++){
 		FPU_ST80(addr+start,STV(i),/*&*/fpu.regs_80[STV(i)],fpu.use80[STV(i)]);
 		start += 10;
@@ -674,9 +670,9 @@ static void FPU_FSAVE(PhysPt addr){
 	FPU_FINIT();
 }
 
-static void FPU_FRSTOR(PhysPt addr){
-	FPU_FLDENV(addr);
-	uint8_t start = (cpu.code.big?28:14);
+static void FPU_FRSTOR(PhysPt addr, bool op16){
+	FPU_FLDENV(addr, op16);
+	uint8_t start = op16 ? 14:28;
 	for(uint8_t i = 0;i < 8;i++){
 		fpu.regs[STV(i)].d = FPU_FLD80(addr+start,/*&*/fpu.regs_80[STV(i)]);
 		fpu.use80[STV(i)] = true;
