@@ -42,6 +42,9 @@ MixerChannel *pc98_mixer = NULL;
 
 NP2CFG pccore;
 
+static Bitu pcm86_ia460(Bitu port, Bitu iolen);
+static unsigned int baseio;
+
 extern unsigned char pc98_mem_msw_m[8];
 bool pc98_soundbios_rom_load = true;
 bool pc98_soundbios_enabled = false;
@@ -137,6 +140,43 @@ Bitu pc98_fm86_read(Bitu port,Bitu iolen) {
     return ~0ul;
 }
 
+static Bitu pcm86_ia460(Bitu port, Bitu iolen) {
+    (void)port;
+    (void)iolen;
+    return (baseio == 0x288 ? 0x53 : 0x43); // Hack return Sound ID
+    /* Sound ID baseio 0x188: 4 0x288: 5 */
+}
+#if 0
+static Bitu pcm86_ia466(Bitu port, Bitu /*iolen*/) {
+    // Port 0xa466 Read: FIFO status
+    LOG_MSG("read port a466h: Always return 0x80 (FIFO Full)");
+    return 0x80;
+}
+
+static Bitu pcm86_ia468(Bitu port, Bitu /*iolen*/) {
+    // Port 0xa468 Read: FIFO control
+    LOG_MSG("read port a468h: Always return 0");
+    return 0;
+}
+
+static Bitu pcm86_ia46a(Bitu port, Bitu /*iolen*/) {
+    // Port 0xa46a Read: D/A converter control
+    LOG_MSG("read port a468h: Always return 0xB2");
+    return 0xB2;
+}
+
+static Bitu pcm86_ia46c(Bitu port, Bitu /*iolen*/) {
+    // Port 0xa46c Read: Read FIFO
+    LOG_MSG("read port a46ch: Always return 0");
+    return 0;
+}
+
+static Bitu pcm86_ia66e(Bitu port, Bitu /*iolen*/) {
+    // Port 0xa66e Read: Mute control
+    LOG_MSG("read port a66eh: Always return 0");
+    return 0;
+}
+#endif
 // four I/O ports, 2 ports apart
 void cbuscore_attachsndex(UINT port, const IOOUT *out, const IOINP *inp) {
     LOG_MSG("cbuscore_attachsndex(port=0x%x)",port);
@@ -150,6 +190,7 @@ void cbuscore_attachsndex(UINT port, const IOOUT *out, const IOINP *inp) {
         IO_RegisterWriteHandler(port+(i*2),pc98_fm86_write,IO_MB);
         cbusm.out = out[i];
     }
+    IO_RegisterReadHandler(0xa460, pcm86_ia460, IO_MB);
 }
 
 void pic_setirq(REG8 irq) {
@@ -384,7 +425,7 @@ void PC98_FM_OnEnterPC98(Section *sec) {
 
     if (!pc98fm_init) {
         unsigned char fmirqidx;
-        unsigned int baseio;
+        //unsigned int baseio;
         std::string board;
         int irq;
 
