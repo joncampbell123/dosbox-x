@@ -3,6 +3,8 @@
     return a valid installation check for WinOldAp
     (AX=1700h/int2fh) so it doesn't mistakenly believe
     Windows is running (cimarronm)
+  - Add minimal support for IDE SET FEATURES command EFh.
+    (joncampbell123)
   - Fix CMPXCHG8B to change only the ZF flag, instead of
     changing ZF with other flags in an undefined state
     afterwards. This fixes problems with the Windows 2000

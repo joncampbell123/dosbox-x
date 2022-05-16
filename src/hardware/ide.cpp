@@ -3473,6 +3473,20 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
             controller->raise_irq();
             allow_writing = true;
             break;
+        case 0xEF: /* SET FEATURES */
+            if (feature == 0x66/*Disable reverting to power on defaults*/ ||
+                feature == 0xCC/*Enable reverting to power on defaults*/) {
+                /* ignore */
+                status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+                state = IDE_DEV_READY;
+            }
+            else {
+                LOG_MSG("SET FEATURES %02xh SC=%02x SN=%02x CL=%02x CH=%02x",feature,count,lba[0],lba[1],lba[2]);
+                abort_error();
+            }
+            allow_writing = true;
+            controller->raise_irq();
+            break;
         default:
             LOG_MSG("Unknown IDE/ATAPI command %02X\n",cmd);
             abort_error();
@@ -3648,6 +3662,20 @@ void IDEATADevice::writecommand(uint8_t cmd) {
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
             PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : ide_identify_command_delay),controller->interface_index);
+            break;
+        case 0xEF: /* SET FEATURES */
+            if (feature == 0x66/*Disable reverting to power on defaults*/ ||
+                feature == 0xCC/*Enable reverting to power on defaults*/) {
+                /* ignore */
+                status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+                state = IDE_DEV_READY;
+            }
+            else {
+                LOG_MSG("SET FEATURES %02xh SC=%02x SN=%02x CL=%02x CH=%02x",feature,count,lba[0],lba[1],lba[2]);
+                abort_error();
+            }
+            allow_writing = true;
+            controller->raise_irq();
             break;
         default:
             LOG_MSG("Unknown IDE/ATA command %02X\n",cmd);
