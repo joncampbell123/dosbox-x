@@ -27,6 +27,7 @@
 #include "support.h"
 
 #include <array>
+#include <cstring>
 #include <list>
 #include <SDL.h>
 
