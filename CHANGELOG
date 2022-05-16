@@ -1,4 +1,8 @@
 0.83.26
+  - Adds WINCHECK to list of programs which should not
+    return a valid installation check for WinOldAp
+    (AX=1700h/int2fh) so it doesn't mistakenly believe
+    Windows is running (cimarronm)
   - Fix CMPXCHG8B to change only the ZF flag, instead of
     changing ZF with other flags in an undefined state
     afterwards. This fixes problems with the Windows 2000
