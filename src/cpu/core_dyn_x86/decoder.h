@@ -2572,7 +2572,7 @@ restart_prefix:
 			/* LSL */
 			case 0x03: dyn_larlsl(false);break;
 			/* hinting NOPs */
-			case 0x18:case 0x19:case 0x1a:case 0x1b:case 0x1c:case 0x1d:case 0x1e:case 0x1f:
+			case 0x19:case 0x1a:case 0x1b:case 0x1c:case 0x1d:case 0x1e:case 0x1f:
 				if (CPU_ArchitectureType<CPU_ARCHTYPE_PPROSLOW) goto illegalopcode;
 				break;
 			/* Short conditional jumps */

@@ -1,4 +1,5 @@
 0.83.26
+  - Fix PREFETCH instruction breakage in recompilers (Jookia)
   - Add minimal support for IDE SET FEATURES command EFh.
     (joncampbell123)
   - Fix CMPXCHG8B to change only the ZF flag, instead of
