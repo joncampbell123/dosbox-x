@@ -1,4 +1,8 @@
 0.83.26
+  - Adds WINCHECK to list of programs which should not
+    return a valid installation check for WinOldAp
+    (AX=1700h/int2fh) so it doesn't mistakenly believe
+    Windows is running (cimarronm)
   - Fix PREFETCH instruction breakage in recompilers (Jookia)
   - Add minimal support for IDE SET FEATURES command EFh.
     (joncampbell123)

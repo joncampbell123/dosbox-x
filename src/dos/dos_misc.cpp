@@ -25,6 +25,9 @@
 #include "dos_inc.h"
 #include "control.h"
 #include "support.h"
+
+#include <array>
+#include <cstring>
 #include <list>
 #include <SDL.h>
 
@@ -397,12 +400,17 @@ static bool DOS_MultiplexFunctions(void) {
 		return true;
 	case 0x1700:
 		if(control->SecureMode()||!clipboard_dosapi) return false;
-        {// Norton Utilities 8.0 installer checks this before continue
+        {
+			static constexpr std::array<const char*, 7> blacklisted {
+				"DEFRAG", "DISKEDIT", "NDD", "NDIAGS", "UNERASE", "UNFORMAT", "WINCHECK"
+			};
             char psp_name[9];
             DOS_MCB psp_mcb(dos.psp()-1);
             psp_mcb.GetFileName(psp_name);
-	    // NTS: DEFRAG.EXE for MS-DOS 6.22 assumes Windows is running if this call responds affirmatively, because it would mean WINOLDAP is resident.
-            if (((!strcmp(psp_name, "INSTALL") || !strcmp(psp_name, "INSTALLD")) && reg_sp >= 0xD000 && mem_readw(SegPhys(ss)+reg_sp)/0x100 == 0x1E) || !strcmp(psp_name, "DISKEDIT") || !strcmp(psp_name, "NDD") || !strcmp(psp_name, "NDIAGS") || !strcmp(psp_name, "UNERASE") || !strcmp(psp_name, "UNFORMAT") || !strcmp(psp_name,"DEFRAG")) return false;
+	    	// NTS: DEFRAG.EXE for MS-DOS 6.22 assumes Windows is running if this call responds affirmatively, because it would mean WINOLDAP is resident.
+            for (auto prog : blacklisted) if (!std::strcmp(psp_name, prog)) return false;
+            // Special case for INSTALL/INSTALLD
+            if (((!strcmp(psp_name, "INSTALL") || !strcmp(psp_name, "INSTALLD")) && reg_sp >= 0xD000 && mem_readw(SegPhys(ss)+reg_sp)/0x100 == 0x1E)) return false;
         }
 		reg_al = 1;
 		reg_ah = 1;
