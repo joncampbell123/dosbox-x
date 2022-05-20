@@ -1878,7 +1878,7 @@ static uint8_t * MCGA_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
     uint32_t* draw = (uint32_t*)TempLine;
     const uint8_t* vidmem = VGA_Text_Memwrap(vidstart);
     Bitu blocks = vga.draw.blocks;
-    if (vga.draw.panning) blocks++; // if the text is panned part of an 
+    if (vga.draw.panning) blocks++; // if the text is panned part of an
                                     // additional character becomes visible
     while (blocks--) { // for each character in the line
         Bitu chr = *vidmem++;
@@ -2208,6 +2208,101 @@ struct first_equal {
 };
 
 template <const unsigned int card,typename templine_type_t> static inline uint8_t* EGAVGA_TEXT_Combined_Draw_Line(Bitu vidstart,Bitu line) {
+	// keep it aligned:
+	templine_type_t* draw = ((templine_type_t*)TempLine) + 16 - vga.draw.panning;
+	const uint32_t* vidmem = VGA_Planar_Memwrap(vidstart); // pointer to chars+attribs
+	Bitu blocks = vga.draw.blocks;
+	if (vga.draw.panning) blocks++; // if the text is panned part of an
+	// additional character becomes visible
+	VGA_Latch pixels;
+
+	while (blocks--) {
+		pixels.d = *vidmem;
+
+		Bitu chr = pixels.b[0];
+		Bitu attr = pixels.b[1];
+		// the font pattern
+		Bitu font = vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
+		Bitu background = attr >> 4u;
+
+		// if blinking is enabled bit7 is not mapped to attributes
+		if (vga.draw.blinking) background &= ~0x8u;
+
+		// choose foreground color if blinking not set for this cell or blink on
+		Bitu foreground = (vga.draw.blink || (!(attr&0x80)))?
+			(attr&0xf):background;
+
+		// underline: all foreground [freevga: 0x77, previous 0x7]
+		if (GCC_UNLIKELY(((attr&0x77) == 0x01) && (vga.crtc.underline_location&0x1f)==line))
+			background = foreground;
+
+		if (vga.draw.char9dot) {
+			font <<=1; // 9 pixels
+
+			// extend to the 9th pixel if needed
+			if ((font&0x2) && (vga.attr.mode_control&0x04) && (chr>=0xc0) && (chr<=0xdf)) font |= 1;
+
+			for (Bitu n = 0; n < 9; n++) {
+				if (card == MCH_VGA)
+					*draw++ = vga.dac.xlat32[(font&0x100)? foreground:background];
+				else /*MCH_EGA*/
+					*draw++ = vga.attr.palette[(font&0x100)? foreground:background];
+
+				font <<= 1;
+			}
+		} else {
+			for (Bitu n = 0; n < 8; n++) {
+				if (card == MCH_VGA)
+					*draw++ = vga.dac.xlat32[(font&0x80)? foreground:background];
+				else /*MCH_EGA*/
+					*draw++ = vga.attr.palette[(font&0x80)? foreground:background];
+
+				font <<= 1;
+			}
+		}
+
+		vidmem += (uintptr_t)1U << (uintptr_t)vga.config.addr_shift;
+	}
+
+	// draw the text mode cursor if needed
+	if ((vga.draw.cursor.count&0x8) && (line >= vga.draw.cursor.sline) && (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled) {
+		// the address of the attribute that makes up the cell the cursor is in
+		Bits attr_addr = ((Bits)vga.draw.cursor.address - (Bits)vidstart) >> (Bits)vga.config.addr_shift; /* <- FIXME: This right? */
+		if (attr_addr >= 0 && attr_addr < (Bits)vga.draw.blocks) {
+			Bitu index = (Bitu)attr_addr * (vga.draw.char9dot ? 9u : 8u);
+			draw = (((templine_type_t*)TempLine) + index) + 16 - vga.draw.panning;
+
+			Bitu foreground = vga.tandy.draw_base[(vga.draw.cursor.address<<2ul)+1] & 0xf;
+			for (Bitu i = 0; i < 8; i++) {
+				if (card == MCH_VGA)
+					*draw++ = vga.dac.xlat32[foreground];
+				else /*MCH_EGA*/
+					*draw++ = vga.attr.palette[foreground];
+			}
+		}
+	}
+
+	return TempLine+(16*sizeof(templine_type_t));
+}
+
+// Questions: Why does it matter when deciding to handle dbcs if the running program is LOADLIN?
+//            Can you have INT 10h store NB_ROWS and NB_COLS for use here instead of issuing cpu-side real_readb() here?
+//            Or perhaps the rows and columns could be read from the VGA CRTC state instead?
+//            Please do not issue cpu-side real_readb() from VGA rendering code. It can cause page fault exceptions in
+//            protected mode environments especially Linux and Windows NT, and it can cause instability under Windows 3.1.
+//
+// Alternate render functions to call this template have already been provided.
+//
+// All you need to do is add to VGA_SetupDrawing() the case to use the DBCS versions if (IS_JEGA_ARCH || (isDBCSCP() ...)
+// which then assigns these DBCS versions instead of normal EGA/VGA text. That does mean that somehow, perhaps by a
+// standard INT 10h call or register write, the code will have to cause a call to VGA_SetupDrawing() which is typically
+// done using VGA_StartResize(), in order to switch into JEGA or the special DBCS mode. see vga_crtc.cpp code for an example
+// of that.
+//
+// TODO: Once this function no longer uses real_readb(), surround all VGA rendering code with #defines that make CPU-side
+//       memory I/O a compile time error. It's the same trick FFMPEG does internally to discourage printf() and fprintf()
+//       from within the library.
+template <const unsigned int card,typename templine_type_t> static inline uint8_t* EGAVGA_TEXT_DBCS_Combined_Draw_Line(Bitu vidstart,Bitu line) {
     // keep it aligned:
     templine_type_t* draw = ((templine_type_t*)TempLine) + 16 - vga.draw.panning;
     const uint32_t* vidmem = VGA_Planar_Memwrap(vidstart); // pointer to chars+attribs
@@ -2421,47 +2516,7 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
             p3 = col>2?pixelp2.b[0]:0;
             col++;
         } else {
-            VGA_Latch pixels;
-
-            pixels.d = *vidmem;
-
-            Bitu chr = pixels.b[0];
-            Bitu attr = pixels.b[1];
-            // the font pattern
-            Bitu font = vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
-            Bitu background = attr >> 4u;
-            // if blinking is enabled bit7 is not mapped to attributes
-            if (vga.draw.blinking) background &= ~0x8u;
-            // choose foreground color if blinking not set for this cell or blink on
-            Bitu foreground = (vga.draw.blink || (!(attr&0x80)))?
-                (attr&0xf):background;
-            // underline: all foreground [freevga: 0x77, previous 0x7]
-            if (GCC_UNLIKELY(((attr&0x77) == 0x01) &&
-                (vga.crtc.underline_location&0x1f)==line))
-                    background = foreground;
-            if (vga.draw.char9dot) {
-                font <<=1; // 9 pixels
-                // extend to the 9th pixel if needed
-                if ((font&0x2) && (vga.attr.mode_control&0x04) &&
-                    (chr>=0xc0) && (chr<=0xdf)) font |= 1;
-                for (Bitu n = 0; n < 9; n++) {
-                    if (card == MCH_VGA)
-                        *draw++ = vga.dac.xlat32[(font&0x100)? foreground:background];
-                    else /*MCH_EGA*/
-                        *draw++ = vga.attr.palette[(font&0x100)? foreground:background];
-
-                    font <<= 1;
-                }
-            } else {
-                for (Bitu n = 0; n < 8; n++) {
-                    if (card == MCH_VGA)
-                        *draw++ = vga.dac.xlat32[(font&0x80)? foreground:background];
-                    else /*MCH_EGA*/
-                        *draw++ = vga.attr.palette[(font&0x80)? foreground:background];
-
-                    font <<= 1;
-                }
-            }
+		// normal EGA/VGA text---this is the wrong function to draw that!
         }
         vidmem += (uintptr_t)1U << (uintptr_t)vga.config.addr_shift;
     }
@@ -2495,6 +2550,16 @@ static uint8_t* EGA_TEXT_Xlat8_Draw_Line(Bitu vidstart, Bitu line) {
 // combined 8/9-dot wide text mode 16bpp line drawing function
 static uint8_t* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     return EGAVGA_TEXT_Combined_Draw_Line<MCH_VGA,uint32_t>(vidstart,line);
+}
+
+// combined 8/9-dot wide text mode 16bpp line drawing function with JEGA/DBCS
+static uint8_t* EGA_TEXT_DBCS_Xlat8_Draw_Line(Bitu vidstart, Bitu line) {
+    return EGAVGA_TEXT_DBCS_Combined_Draw_Line<MCH_EGA,uint8_t>(vidstart,line);
+}
+
+// combined 8/9-dot wide text mode 16bpp line drawing function with JEGA/DBCS
+static uint8_t* VGA_TEXT_DBCS_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
+    return EGAVGA_TEXT_DBCS_Combined_Draw_Line<MCH_VGA,uint32_t>(vidstart,line);
 }
 
 template <const unsigned int card,typename templine_type_t,const unsigned int pixels> static inline void Alt_EGAVGA_TEXT_Combined_Draw_Line_RenderBMP(templine_type_t* &draw,unsigned int font,const unsigned char foreground,const unsigned char background) {
@@ -5369,7 +5434,13 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             vga.draw.char9dot = true;
         }
 
-        if (IS_EGA_ARCH) {
+        if (IS_JEGA_ARCH/* && ... && usedbcs && ...? FIXME */) {
+            if (true/*? FIXME*/)
+                VGA_DrawLine = VGA_TEXT_DBCS_Xlat32_Draw_Line;
+            else
+                VGA_DrawLine = EGA_TEXT_DBCS_Xlat8_Draw_Line;
+        }
+        else if (IS_EGA_ARCH) {
             if (vga_alt_new_mode)
                 VGA_DrawLine = Alt_EGA_TEXT_Xlat8_Draw_Line;
             else
