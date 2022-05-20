@@ -135,7 +135,7 @@ void DOS_Drive_Cache::SetBaseDir(const char* baseDir, DOS_Drive *drive) {
     if (strlen(baseDir) == 0) return;
 
     uint16_t id;
-    strcpy(basePath,baseDir);
+    if (basePath != baseDir) strcpy(basePath,baseDir); /* NTS: pointer check because Valgrind says this was called with basePath == baseDir */
     this->drive = drive;
     if (OpenDir(baseDir,id)) {
         char* result = 0, *lresult = 0;
