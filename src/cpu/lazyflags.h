@@ -40,8 +40,6 @@ struct LazyFlags {
 	uint8_t oldcf;
 };
 
-extern LazyFlags lfags;
-
 #define lf_var1b lflags.var1.byte[BL_INDEX]
 #define lf_var2b lflags.var2.byte[BL_INDEX]
 #define lf_resb lflags.res.byte[BL_INDEX]
@@ -53,7 +51,6 @@ extern LazyFlags lfags;
 #define lf_var1d lflags.var1.dword[DW_INDEX]
 #define lf_var2d lflags.var2.dword[DW_INDEX]
 #define lf_resd lflags.res.dword[DW_INDEX]
-
 
 extern LazyFlags lflags;
 
