@@ -1232,7 +1232,7 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
         hand = _wfdopen(nHandle, L"wb+");
 #else
         int fd = open(host_name, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-        if (fd<0) {close(fd);return false;}
+        if (fd<0) {return false;}
         hand = fdopen(fd, "wb+");
 #endif
     } else {
@@ -1419,7 +1419,7 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 #else
         uint16_t unix_mode = (flags&0xf)==OPEN_READ||(flags&0xf)==OPEN_READ_NO_MOD?O_RDONLY:((flags&0xf)==OPEN_WRITE?O_WRONLY:O_RDWR);
         int fd = open(host_name, unix_mode);
-        if (fd<0 || !share(fd, unix_mode & O_ACCMODE, flags)) {close(fd);return false;}
+        if (fd<0 || !share(fd, unix_mode & O_ACCMODE, flags)) {if (fd >= 0) close(fd);return false;}
         hand = fdopen(fd, (flags&0xf)==OPEN_WRITE?_HT("wb"):type);
 #endif
     } else {
