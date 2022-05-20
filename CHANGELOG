@@ -1,4 +1,10 @@
 0.83.26
+  - INT 21h AH=31h Terminate And Stay Resident: If the
+    program called INT 21h to free it's own PSP segment,
+    reassign the block back to the program as allocated
+    and then resize as expected. Needed for PC-98 game
+    "Yu No" in which PLAY6.EXE, one of the resident
+    drivers used for music, does just that. (joncampbell123)
   - Adds WINCHECK to list of programs which should not
     return a valid installation check for WinOldAp
     (AX=1700h/int2fh) so it doesn't mistakenly believe

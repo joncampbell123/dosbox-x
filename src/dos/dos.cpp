@@ -1624,6 +1624,28 @@ static Bitu DOS_21Handler(void) {
             break;
         case 0x31:      /* Terminate and stay resident */
             // Important: This service does not set the carry flag!
+            //
+            // Fix for PC-98 game "Yu No". One of the TSRs used by the game, PLAY6.EXE,
+            // frees it's own PSP segment before using this TSR system call to remain
+            // resident in memory. On real PC-98 MS-DOS, INT 21h AH=31h appears to
+            // change the freed segment back into an allocated segment before resizing
+            // as directed by the number of paragraphs in DX. In order for PLAY6.EXE to
+            // do it's job properly without crashing the game we have to do the same.
+            //
+            // [Issue #3452]
+            //
+            // I have not yet verified if IBM PC MS-DOS does the same thing. It probably
+            // does. However I have yet to see anything in the IBM PC world do something
+            // crazy like that. --Jonathan C.
+            {
+                DOS_MCB psp_mcb(dos.psp()-1);
+                if (psp_mcb.GetPSPSeg() == 0/*free block?*/) {
+                    /* say so in the log, and then change it into an allocated block */
+                    LOG(LOG_DOSMISC,LOG_DEBUG)("Calling program asking to terminate and stay resident has apparently freed it's own PSP segment");
+                    psp_mcb.SetPSPSeg(dos.psp());
+                }
+            }
+
             DOS_ResizeMemory(dos.psp(),&reg_dx);
             DOS_Terminate(dos.psp(),true,reg_al);
             if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
