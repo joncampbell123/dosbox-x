@@ -1776,17 +1776,18 @@ bool localDrive::add_special_file_to_disk(const char* dosname, const char* opera
 	const host_cnv_char_t* host_name = CodePageGuestToHost(newname.c_str());
 	FILE* f = fopen_wrap(host_name!=NULL?host_name:newname.c_str(),"wb+");
 	if (!f) return false;
-    size_t len = 0;
-    if (isdir != !(value & DOS_ATTR_ARCHIVE)) len |= 1;
-    if (value & DOS_ATTR_HIDDEN) len |= 2;
-    if (value & DOS_ATTR_SYSTEM) len |= 4;
-    char *buf = new char[len + 1];
+	size_t len = 0;
+	if (isdir != !(value & DOS_ATTR_ARCHIVE)) len |= 1;
+	if (value & DOS_ATTR_HIDDEN) len |= 2;
+	if (value & DOS_ATTR_SYSTEM) len |= 4;
+	char *buf = new char[len + 1];
+	memset(buf,0,len);
 	fwrite(buf,len,1,f);
 	fclose(f);
-    delete[] buf;
-    return true;
+	delete[] buf;
+	return true;
 #else
-    return false;
+	return false;
 #endif
 }
 
