@@ -1706,7 +1706,7 @@ public:
          *    0 = shifter input is VRAM data */
         if (pc98_egc_compare_lead) {
             if (!pc98_egc_shiftinput)
-                return *((AWT*)(pc98_egc_src[pc98_egc_lead_plane&3].b));
+                return *((AWT*)(pc98_egc_src[pc98_egc_lead_plane&3].b+(vramoff&1)));
             else
                 return *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+((pc98_egc_lead_plane&3)*PC98_VRAM_BITPLANE_SIZE)));
         }
