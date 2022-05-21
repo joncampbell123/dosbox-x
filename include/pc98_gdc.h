@@ -50,6 +50,22 @@ struct PC98_GDC_state {
     void take_reset_sync_parameters(void);
     void cursor_advance(void);
 
+    void draw_reset(void);
+    void vectw(unsigned char bi);
+    void exec(uint8_t command);
+    void prepare(void);
+    void draw_dot(uint16_t x, uint16_t y);
+    void pset(void);
+    void line(void);
+    void text(void);
+    void circle(void);
+    void box(void);
+    void set_vectl(int x1, int y1, int x2, int y2);
+    void set_mode(uint8_t mode);
+    void set_csrw(uint32_t ead, uint8_t dad);
+    void set_textw(uint16_t pattern);
+    void set_textw(uint8_t *tile, uint8_t len);
+
     void begin_frame(void);
     void next_line(void);
 
@@ -60,13 +76,50 @@ struct PC98_GDC_state {
     bool fifo_empty(void);
     uint16_t read_fifo(void);
 
+    enum {
+        RT_MULBIT   = 15,
+        RT_TABLEBIT = 12,
+        RT_TABLEMAX = (1 << RT_TABLEBIT)
+    };
+    struct VECTDIR {
+        int16_t x;
+        int16_t y;
+        int16_t x2;
+        int16_t y2;
+    };
+    static const VECTDIR vectdir[16];
+    static const PhysPt gram_base[4];
+    static uint16_t gdc_rt[RT_TABLEMAX + 1];
+
+    struct GDC_DRAW {
+        PhysPt base;
+        uint32_t ead;
+        uint16_t dc;
+        uint16_t d;
+        uint16_t d1;
+        uint16_t d2;
+        uint16_t dm;
+        uint16_t pattern;
+        uint16_t x;
+        uint16_t y;
+        uint8_t tx[8];
+        uint8_t dad;
+        uint8_t ope;
+        uint8_t dir;
+        uint8_t dgd;
+        uint8_t wg;
+        uint8_t dots;
+        uint8_t mode;
+        uint8_t zoom;
+    } draw;
+
     /* NTS:
      *
      * We're following the Neko Project II method of FIFO emulation BUT
      * I wonder if the GDC maintains two FIFOs and allows stacking params
      * in one and commands in another....? */
 
-    uint8_t                 cmd_parm_tmp[8];            /* temp storage before accepting params */
+    uint8_t                 cmd_parm_tmp[11];            /* temp storage before accepting params */
 
     uint8_t                 rfifo[PC98_GDC_FIFO_SIZE];
     uint8_t                 rfifo_read,rfifo_write;
