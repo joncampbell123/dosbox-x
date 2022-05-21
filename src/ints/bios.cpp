@@ -3532,6 +3532,14 @@ static Bitu INT18_PC98_Handler(void) {
                         mem_writeb(i+(r*2u)+1u,vga.draw.font[o+1u]);
                     }
                 }
+                else if(reg_dl < 0x80) { /* 6x8 ascii .. Substitute 8x8 */
+                    i = ((unsigned int)reg_bx << 4u) + reg_cx + 2u;
+                    mem_writew(i-2u,0x0101u);
+                    o = reg_dl * 8;
+                    for (r=0;r < 8u;r++) {
+                        mem_writeb(i+r, int10_font_08[o + r]);
+                    }
+                }
                 else {
                     LOG_MSG("PC-98 INT 18h AH=14h font RAM read ignored, code 0x%04x not supported",reg_dx);
                 }
@@ -3905,9 +3913,6 @@ static Bitu INT18_PC98_Handler(void) {
 #endif
             }
 
-            pc98_gdc_vramop &= ~(1 << VOPBIT_ACCESS);
-            pc98_update_cpu_page_ptr();
-
             GDC_display_plane = GDC_display_plane_pending = (reg_ch & 0x10) ? 1 : 0;
             pc98_update_display_page_ptr();
 
@@ -3938,11 +3943,13 @@ static Bitu INT18_PC98_Handler(void) {
                 pc98_port6A_command_write(0x01);        // enable 16-color
                 pc98_port6A_command_write(0x21);        // enable 256-color
                 PC98_show_cursor(false);                // apparently hides the cursor?
+                mem_writeb(0x54D, mem_readb(0x54D) | 0x80);
             }
             else if (reg_ch == 0) {
                 void pc98_port6A_command_write(unsigned char b);
                 pc98_port6A_command_write(0x20);        // disable 256-color
                 PC98_show_cursor(false);                // apparently hides the cursor?
+                mem_writeb(0x54D, mem_readb(0x54D) & ~0x80);
             }
             else {
                 LOG_MSG("PC-98 INT 18h AH=4Dh unknown CH=%02xh",reg_ch);
@@ -5363,59 +5370,78 @@ static Bitu INTF2_PC98_Handler(void) {
     return CBRET_NONE;
 }
 
+extern void lio_read_parameter();
+extern uint8_t PC98_BIOS_LIO_GINIT();
+extern uint8_t PC98_BIOS_LIO_GSCREEN();
+extern uint8_t PC98_BIOS_LIO_GVIEW();
+extern uint8_t PC98_BIOS_LIO_GCOLOR1();
+extern uint8_t PC98_BIOS_LIO_GCOLOR2();
+extern uint8_t PC98_BIOS_LIO_GCLS();
+extern uint8_t PC98_BIOS_LIO_GPSET();
+extern uint8_t PC98_BIOS_LIO_GLINE();
+extern uint8_t PC98_BIOS_LIO_GCIRCLE();
+extern uint8_t PC98_BIOS_LIO_GPAINT1();
+extern uint8_t PC98_BIOS_LIO_GPAINT2();
+extern uint8_t PC98_BIOS_LIO_GGET();
+extern uint8_t PC98_BIOS_LIO_GPUT1();
+extern uint8_t PC98_BIOS_LIO_GPUT2();
+extern uint8_t PC98_BIOS_LIO_GPOINT2();
+
 // for more information see [https://ia801305.us.archive.org/8/items/PC9800TechnicalDataBookBIOS1992/PC-9800TechnicalDataBook_BIOS_1992_text.pdf]
 static Bitu PC98_BIOS_LIO(void) {
+    uint8_t ret = 0;
     const char *call_name = "?";
 
+    lio_read_parameter();
     switch (reg_al) {
         case 0xA0: // GINIT
-            call_name = "GINIT";
-            goto unknown;
+            ret = PC98_BIOS_LIO_GINIT();
+            break;
         case 0xA1: // GSCREEN
-            call_name = "GSCREEN";
-            goto unknown;
+            ret = PC98_BIOS_LIO_GSCREEN();
+            break;
         case 0xA2: // GVIEW
-            call_name = "GVIEW";
-            goto unknown;
+            ret = PC98_BIOS_LIO_GVIEW();
+            break;
         case 0xA3: // GCOLOR1
-            call_name = "GCOLOR1";
-            goto unknown;
+            ret = PC98_BIOS_LIO_GCOLOR1();
+            break;
         case 0xA4: // GCOLOR2
-            call_name = "GCOLOR2";
-            goto unknown;
+            ret = PC98_BIOS_LIO_GCOLOR2();
+            break;
         case 0xA5: // GCLS
-            call_name = "GCLS";
-            goto unknown;
+            ret = PC98_BIOS_LIO_GCLS();
+            break;
         case 0xA6: // GPSET
-            call_name = "GPSET";
-            goto unknown;
+            ret = PC98_BIOS_LIO_GPSET();
+            break;
         case 0xA7: // GLINE
-            call_name = "GLINE";
-            goto unknown;
+            ret = PC98_BIOS_LIO_GLINE();
+            break;
         case 0xA8: // GCIRCLE
-            call_name = "GCIRCLE";
-            goto unknown;
+            ret = PC98_BIOS_LIO_GCIRCLE();
+            break;
         case 0xA9: // GPAINT1
-            call_name = "GPAINT1";
-            goto unknown;
+            ret = PC98_BIOS_LIO_GPAINT1();
+            break;
         case 0xAA: // GPAINT2
-            call_name = "GPAINT2";
-            goto unknown;
+            ret = PC98_BIOS_LIO_GPAINT2();
+            break;
         case 0xAB: // GGET
-            call_name = "GGET";
-            goto unknown;
+            ret = PC98_BIOS_LIO_GGET();
+            break;
         case 0xAC: // GPUT1
-            call_name = "GPUT1";
-            goto unknown;
+            ret = PC98_BIOS_LIO_GPUT1();
+            break;
         case 0xAD: // GPUT2
-            call_name = "GPUT2";
-            goto unknown;
+            ret = PC98_BIOS_LIO_GPUT2();
+            break;
         case 0xAE: // GROLL
             call_name = "GROLL";
             goto unknown;
         case 0xAF: // GPOINT2
-            call_name = "GPOINT2";
-            goto unknown;
+            ret = PC98_BIOS_LIO_GPOINT2();
+            break;
         case 0xCE: // GCOPY
             call_name = "GCOPY";
             goto unknown;
@@ -5438,9 +5464,8 @@ static Bitu PC98_BIOS_LIO(void) {
                         SegValue(es));
                 break;
     };
-
     // from Yksoft1's patch
-    reg_ah = 0;
+    reg_ah = ret;
 
     return CBRET_NONE;
 }
@@ -7623,8 +7648,8 @@ void gdc_16color_enable_update_vars(void) {
     unsigned char b;
 
     b = mem_readb(0x54C);
-    b &= ~0x04;
-    if (enable_pc98_16color) b |= 0x04;
+    b &= ~0x05;
+    if (enable_pc98_16color) b |= 0x05; // bit0 .. DIPSW 1-8 support GLIO 16-colors
     mem_writeb(0x54C,b);
 
     if(!enable_pc98_256color) {//force switch to 16-colors mode
@@ -7887,11 +7912,11 @@ private:
              * bit[3:3] = Number of user-defined characters         1=188+          0=63
              * bit[2:2] = Extended graphics RAM (for 16-color)      1=present       0=absent
              * bit[1:1] = Graphics Charger is present               1=present       0=absent
-             * bit[0:0] = DIP switch 1-8 at startup                 1=ON            0=OFF (?) */
-            mem_writeb(0x54C,(true/*TODO*/ ? 0x40/*high res*/ : 0x00/*standard*/) | (enable_pc98_grcg ? 0x02 : 0x00) | (enable_pc98_16color ? 0x04 : 0x00) | (pc98_31khz_mode ? 0x20/*31khz*/ : 0x00/*24khz*/) | (enable_pc98_188usermod ? 0x08 : 0x00)); // PRXCRT, 16-color G-VRAM, GRCG
+             * bit[0:0] = DIP switch 1-8 at startup                 1=ON            0=OFF (support GLIO 16-colors) */
+            mem_writeb(0x54C,(true/*TODO*/ ? 0x40/*high res*/ : 0x00/*standard*/) | (enable_pc98_grcg ? 0x02 : 0x00) | (enable_pc98_16color ? 0x05 : 0x00) | (pc98_31khz_mode ? 0x20/*31khz*/ : 0x00/*24khz*/) | (enable_pc98_188usermod ? 0x08 : 0x00)); // PRXCRT, 16-color G-VRAM, GRCG
 
             /* BIOS flags */
-            /* bit[7:7] = 256-color board present (PC-H98)
+            /* bit[7:7] = PC-9821 graphics mode (INT 18h AH=4Dh CH=01h/00h)                 1=extend 0=normal
              * bit[6:6] = Enhanced Graphics Charger (EGC) is present
              * bit[5:5] = GDC at 5.0MHz at boot up (copy of DIP switch 2-8 at startup)      1=yes 0=no
              * bit[4:4] = Always "flickerless" drawing mode
@@ -7903,7 +7928,6 @@ private:
              *              10 = CLEAR
              *              11 = SET */
             mem_writeb(0x54D,
-                    (enable_pc98_256color ? 0x80 : 0x00) |
                     (enable_pc98_egc ? 0x40 : 0x00) |
                     (gdc_5mhz_mode ? 0x20 : 0x00) |
                     (gdc_5mhz_mode ? 0x04 : 0x00)); // EGC
