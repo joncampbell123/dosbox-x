@@ -9965,6 +9965,12 @@ public:
 
                 phys_writeb(bo+0x04,0xEB);                             // JMP $-2
                 phys_writeb(bo+0x05,0xFE);
+
+                // On careful examination of BIOS.ROM, there's a JMP instruction at E800:0000 as well.
+                // I don't have any test cases that jump there, but add a JMP forward just in case.
+                bo = 0xE8000;
+                phys_writeb(bo+0x00,(uint8_t)0xEB);                       // JMP $+2 (to next instruction)
+                phys_writeb(bo+0x01,(uint8_t)0x00);
             }
 	    else {
 		    if (ibm_rom_basic_size == 0) {
