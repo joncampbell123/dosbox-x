@@ -101,7 +101,7 @@ void pc98_crtc_write(Bitu port,Bitu val,Bitu iolen) {
             pc98_text_row_scanline_blank_at = (unsigned char)val & 0x1F;
             break;
         case 0x06:
-            pc98_text_row_scroll_lines = (unsigned char)val & 0x0F;
+            pc98_text_row_scroll_lines = (unsigned char)val & 0x1F;//0x0F; Which does real hardware do? 0x0F or 0x1F? 0x1F seems likely.
             break;
         case 0x08:
             pc98_text_row_scroll_count_start = (unsigned char)val & 0x1F;
