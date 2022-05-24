@@ -9,6 +9,9 @@
 #include "pc98_gdc_const.h"
 #include <math.h>
 
+uint8_t pc98_gdc_vread(const uint32_t addr);
+void pc98_gdc_vwrite(const uint32_t addr,const uint8_t b);
+
 uint16_t PC98_GDC_state::gdc_rt[PC98_GDC_state::RT_TABLEMAX + 1];
 const PhysPt PC98_GDC_state::gram_base[4] = { 0xe0000, 0xa8000, 0xb0000, 0xb8000 };
 const PC98_GDC_state::VECTDIR PC98_GDC_state::vectdir[16] = {
@@ -176,18 +179,18 @@ void PC98_GDC_state::draw_dot(uint16_t x, uint16_t y) {
     if(dot == 0) {
         // REPLACE
         if(draw.mode == 0x00) {
-            mem_writeb(draw.base + addr, mem_readb(draw.base + addr) & ~(0x80 >> bit));
+            pc98_gdc_vwrite(draw.base + addr, pc98_gdc_vread(draw.base + addr) & ~(0x80 >> bit));
         }
     } else {
         // REPLACE or SET
         if(draw.mode == 0x00 || draw.mode == 0x03) {
-            mem_writeb(draw.base + addr, mem_readb(draw.base + addr) | (0x80 >> bit));
+            pc98_gdc_vwrite(draw.base + addr, pc98_gdc_vread(draw.base + addr) | (0x80 >> bit));
         } else if(draw.mode == 0x01) {
             // COMPLEMENT
-            mem_writeb(draw.base + addr, mem_readb(draw.base + addr) ^ (0x80 >> bit));
+            pc98_gdc_vwrite(draw.base + addr, pc98_gdc_vread(draw.base + addr) ^ (0x80 >> bit));
         } else {
             // CLEAR
-            mem_writeb(draw.base + addr, mem_readb(draw.base + addr) & ~(0x80 >> bit));
+            pc98_gdc_vwrite(draw.base + addr, pc98_gdc_vread(draw.base + addr) & ~(0x80 >> bit));
         }
     }
 }
