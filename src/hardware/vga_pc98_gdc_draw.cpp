@@ -335,6 +335,7 @@ void PC98_GDC_state::circle(void) {
     prepare();
     if(gdc_rt[RT_TABLEMAX] == 0) {
         for(int i = 0 ; i <= RT_TABLEMAX ; i++) {
+            /* NTS: 1 / sqrt(2.0) == 0.70710678118654 */
             gdc_rt[i] = (uint16_t)((double)(1 << RT_MULBIT) * (1 - sqrt(1 - pow((0.70710678118654 * i) / RT_TABLEMAX, 2))));
         }
     }
