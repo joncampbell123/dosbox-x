@@ -158,7 +158,8 @@ void PC98_GDC_state::prepare(void) {
 }
 
 void PC98_GDC_state::draw_dot(uint16_t x, uint16_t y) {
-    uint16_t addr;
+    uint32_t dpitch = pc98_gdc[GDC_SLAVE].display_pitch << 1u;
+    uint32_t addr;
     uint16_t dot;
     uint8_t bit;
 
@@ -166,19 +167,12 @@ void PC98_GDC_state::draw_dot(uint16_t x, uint16_t y) {
     draw.pattern = (draw.pattern >> 1) + (dot << 15);
     draw.dots++;
 
-    if(y > 409) {
-        return;
-    } else if(y == 409) {
-        if(x >= 384) {
-            return;
-        }
-    } else{
-        if (x >= 640) {
-            return;
-        }
-    }
-    addr = (y * 80) + (x >> 3);
     bit = x & 7;
+    addr = x >> 3;
+    if(addr >= dpitch) return;
+    addr += y * dpitch;
+    if(addr >= 32768u) return;
+
     if(dot == 0) {
         // REPLACE
         if(draw.mode == 0x00) {
