@@ -2188,6 +2188,7 @@ bool isDBCSCP() {
     return !IS_PC98_ARCH && (IS_JEGA_ARCH||IS_DOSV||dos.loaded_codepage==932||dos.loaded_codepage==936||dos.loaded_codepage==949||dos.loaded_codepage==950||dos.loaded_codepage==951) && enable_dbcs_tables;
 }
 
+#if 0//not used
 bool isDBCSLB(uint8_t chr) {
     for (int i=0; i<6; i++) lead[i] = 0;
     if (isDBCSCP())
@@ -2197,6 +2198,7 @@ bool isDBCSLB(uint8_t chr) {
         }
     return isDBCSCP() && ((lead[0]>=0x80 && lead[1] > lead[0] && chr >= lead[0] && chr <= lead[1]) || (lead[2]>=0x80 && lead[3] > lead[2] && chr >= lead[2] && chr <= lead[3]) || (lead[4]>=0x80 && lead[5] > lead[4] && chr >= lead[4] && chr <= lead[5]));
 }
+#endif
 
 std::vector<std::pair<int,int>> jtbs = {}, dbox = {};
 struct first_equal {
@@ -2285,23 +2287,6 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
 	return TempLine+(16*sizeof(templine_type_t));
 }
 
-// Questions: Why does it matter when deciding to handle dbcs if the running program is LOADLIN?
-//            Can you have INT 10h store NB_ROWS and NB_COLS for use here instead of issuing cpu-side real_readb() here?
-//            Or perhaps the rows and columns could be read from the VGA CRTC state instead?
-//            Please do not issue cpu-side real_readb() from VGA rendering code. It can cause page fault exceptions in
-//            protected mode environments especially Linux and Windows NT, and it can cause instability under Windows 3.1.
-//
-// Alternate render functions to call this template have already been provided.
-//
-// All you need to do is add to VGA_SetupDrawing() the case to use the DBCS versions if (IS_JEGA_ARCH || (isDBCSCP() ...)
-// which then assigns these DBCS versions instead of normal EGA/VGA text. That does mean that somehow, perhaps by a
-// standard INT 10h call or register write, the code will have to cause a call to VGA_SetupDrawing() which is typically
-// done using VGA_StartResize(), in order to switch into JEGA or the special DBCS mode. see vga_crtc.cpp code for an example
-// of that.
-//
-// TODO: Once this function no longer uses real_readb(), surround all VGA rendering code with #defines that make CPU-side
-//       memory I/O a compile time error. It's the same trick FFMPEG does internally to discourage printf() and fprintf()
-//       from within the library.
 template <const unsigned int card,typename templine_type_t> static inline uint8_t* EGAVGA_TEXT_DBCS_Combined_Draw_Line(Bitu vidstart,Bitu line) {
     // keep it aligned:
     templine_type_t* draw = ((templine_type_t*)TempLine) + 16 - vga.draw.panning;
@@ -2309,12 +2294,14 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
     Bitu blocks = vga.draw.blocks;
     if (vga.draw.panning) blocks++; // if the text is panned part of an 
                                     // additional character becomes visible
-	Bitu background = 0, foreground = 0;
-	Bitu chr, chr_left = 0, p3 = 0, attr, bsattr;
-	bool chr_wide = false, usedbcs = strcmp(RunningProgram, "LOADLIN") && !dos_kernel_disabled;
+    Bitu background = 0, foreground = 0;
+    Bitu chr, chr_left = 0, p3 = 0, attr, bsattr;
+    bool chr_wide = false, usedbcs = true;//why would you assign this function if you did not intend to show DBCS?
+
+    if (vga.draw.height < 16u || vga.draw.width < 8u) return TempLine;
 
     unsigned int row = (vidstart - vga.config.real_start - vga.draw.bytes_skip) / vga.draw.address_add, col = 0;
-    unsigned int rows = usedbcs ? real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS) : 0 , cols = usedbcs ? (real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS) - 1) : 0;
+    unsigned int rows = (vga.draw.height / 16u) - 1u, cols = (vga.draw.width / 8u) - 1u;
     if ((IS_JEGA_ARCH || (isDBCSCP()
 #if defined(USE_TTF)
         && dbcs_sbcs
@@ -4663,6 +4650,19 @@ void VGA_ActivateHardwareCursor(void) {
     }
 }
 
+bool DOSUsingDBCSCodePage(void) {
+	if (!dos_kernel_disabled) {
+		switch (dos.loaded_codepage) {
+			case 932:
+				return true;
+			default:
+				break;
+		}
+	}
+
+	return false;
+}
+
 void VGA_SetupDrawing(Bitu /*val*/) {
     if (vga.mode==M_ERROR) {
         PIC_RemoveEvents(VGA_VerticalTimer);
@@ -5446,7 +5446,11 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             bpp = 8;
         }
         else {
-            if (vga_alt_new_mode)
+            /* FIXME: This is still peeking into DOS state, which should be turned into an INT 10h call or some such
+	     *        when KEYB or other utility changes code page, but it does not involve reading guest memory */
+            if (DOSUsingDBCSCodePage())
+                VGA_DrawLine = VGA_TEXT_DBCS_Xlat32_Draw_Line;
+            else if (vga_alt_new_mode)
                 VGA_DrawLine = Alt_VGA_TEXT_Xlat32_Draw_Line;
             else
                 VGA_DrawLine = VGA_TEXT_Xlat32_Draw_Line;
