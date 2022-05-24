@@ -37,6 +37,9 @@
 #include "pc98_gdc_const.h"
 #include "mixer.h"
 
+/* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
+#include "cpu_io_is_forbidden.h"
+
 void pc98_update_page_ptrs(void);
 
 extern bool                 pc98_40col_text;
