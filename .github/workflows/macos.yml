@@ -41,7 +41,7 @@ jobs:
           $top/src/bin/dosbox-x-sdl1 -tests
           $top/src/bin/dosbox-x-sdl2 -tests
       - name: Upload release package
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3.1.0
         with:
           name: dosbox-x-macos
           path: ${{ github.workspace }}/src/bin/
