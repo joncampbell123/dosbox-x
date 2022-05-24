@@ -2292,6 +2292,14 @@ void pc98_gdc_vwrite(const uint32_t addr,const uint8_t b) {
 	return vgaph.pc98.writec<uint8_t>(addr,b);
 }
 
+uint16_t pc98_gdc_vreadw(const uint32_t addr) {
+	return vgaph.pc98.readc<uint16_t>(addr);
+}
+
+void pc98_gdc_vwritew(const uint32_t addr,const uint16_t b) {
+	return vgaph.pc98.writec<uint16_t>(addr,b);
+}
+
 void VGA_ChangedBank(void) {
 	VGA_SetupHandlers();
 }

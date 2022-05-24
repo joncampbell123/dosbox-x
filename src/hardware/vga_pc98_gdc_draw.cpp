@@ -14,6 +14,8 @@
 
 uint8_t pc98_gdc_vread(const uint32_t addr);
 void pc98_gdc_vwrite(const uint32_t addr,const uint8_t b);
+uint16_t pc98_gdc_vreadw(const uint32_t addr);
+void pc98_gdc_vwritew(const uint32_t addr,const uint16_t b);
 
 uint16_t PC98_GDC_state::gdc_rt[PC98_GDC_state::RT_TABLEMAX + 1];
 const PhysPt PC98_GDC_state::gram_base[4] = { 0xe0000, 0xa8000, 0xb0000, 0xb8000 };
@@ -158,7 +160,7 @@ void PC98_GDC_state::prepare(void) {
 }
 
 void PC98_GDC_state::draw_dot(uint16_t x, uint16_t y) {
-    uint32_t dpitch = pc98_gdc[GDC_SLAVE].display_pitch << 1u;
+    uint32_t dpitch = pc98_gdc[GDC_SLAVE].display_pitch;
     uint32_t addr;
     uint16_t dot;
     uint8_t bit;
@@ -167,27 +169,54 @@ void PC98_GDC_state::draw_dot(uint16_t x, uint16_t y) {
     draw.pattern = (draw.pattern >> 1) + (dot << 15);
     draw.dots++;
 
-    bit = x & 7;
-    addr = x >> 3;
+    addr = x >> 4;
+    bit = (x ^ 8) & 15; /* flip bit 3 to set correct bit despite little endian byte order */
     if(addr >= dpitch) return;
     addr += y * dpitch;
-    if(addr >= 32768u) return;
+    if(addr >= 16384u) return;
+    addr *= 2u;
 
-    if(dot == 0) {
-        // REPLACE
-        if(draw.mode == 0x00) {
-            pc98_gdc_vwrite(draw.base + addr, pc98_gdc_vread(draw.base + addr) & ~(0x80 >> bit));
+    // HACK: If EGC enabled, use alternate path that reads and ignores the value.
+    //       This is the only way for GDC drawing commands to draw properly in Windows 3.1,
+    //       and possibly any other game that uses EGC. Read/Modify/Write normally with
+    //       EGC causes drawing artifacts.
+    //
+    //       Perhaps NEC ran into this themselves? Perhaps EGC hardware can identify
+    //       reads coming from the GDC and it returns 0x0000 in that case to avoid
+    //       artifacts?
+    //
+    //       However, the dummy read is required or else stale data stored from previous
+    //       ops ends up in the rendering and artifacts occur.
+    //
+    //       The GDC is documented to issue 16-bit read/modify/write when drawing, so
+    //       that's what this code should do. Additionally, drawing with 8-bit memio
+    //       and EGC causes minor artifacts.
+    if ((pc98_gdc_vramop & 0xE) == 0xA || (pc98_gdc_vramop & 0xE) == 0xE) {
+        if(dot) {
+            // REPLACE. COMPLEMENT or SET
+            if(draw.mode == 0x00 || draw.mode == 0x01 || draw.mode == 0x03) {
+                pc98_gdc_vreadw(draw.base + addr); // read and discard
+                pc98_gdc_vwritew(draw.base + addr, 0x8000 >> bit);
+            }
         }
-    } else {
-        // REPLACE or SET
-        if(draw.mode == 0x00 || draw.mode == 0x03) {
-            pc98_gdc_vwrite(draw.base + addr, pc98_gdc_vread(draw.base + addr) | (0x80 >> bit));
-        } else if(draw.mode == 0x01) {
-            // COMPLEMENT
-            pc98_gdc_vwrite(draw.base + addr, pc98_gdc_vread(draw.base + addr) ^ (0x80 >> bit));
+    }
+    else {
+        if(dot == 0) {
+            // REPLACE
+            if(draw.mode == 0x00) {
+                pc98_gdc_vwritew(draw.base + addr, pc98_gdc_vreadw(draw.base + addr) & ~(0x8000 >> bit));
+            }
         } else {
-            // CLEAR
-            pc98_gdc_vwrite(draw.base + addr, pc98_gdc_vread(draw.base + addr) & ~(0x80 >> bit));
+            // REPLACE or SET
+            if(draw.mode == 0x00 || draw.mode == 0x03) {
+                pc98_gdc_vwritew(draw.base + addr, pc98_gdc_vreadw(draw.base + addr) | (0x8000 >> bit));
+            } else if(draw.mode == 0x01) {
+                // COMPLEMENT
+                pc98_gdc_vwritew(draw.base + addr, pc98_gdc_vreadw(draw.base + addr) ^ (0x8000 >> bit));
+            } else {
+                // CLEAR
+                pc98_gdc_vwritew(draw.base + addr, pc98_gdc_vreadw(draw.base + addr) & ~(0x8000 >> bit));
+            }
         }
     }
 }
