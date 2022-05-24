@@ -55,7 +55,7 @@ jobs:
           cp $top/build-scripts/mingw/hxdos/WINSPOOL.DRV $top/package/
           cp $top/build-scripts/mingw/hxdos/*.DLL $top/package/
       - name: Upload release package
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-artifact@v3.1.0
         with:
           name: dosbox-x-mingw-hx-dos
           path: ${{ github.workspace }}/package/
@@ -120,7 +120,7 @@ jobs:
           for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/package/mingw-build/mingw-lowend/languages/; done
           cp $top/COPYING $top/package/COPYING
       - name: Upload release package
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-artifact@v3.1.0
         with:
           name: dosbox-x-mingw-lowend
           path: ${{ github.workspace }}/package/
