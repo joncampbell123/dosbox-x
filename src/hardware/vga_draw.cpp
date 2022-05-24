@@ -5420,11 +5420,10 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     case M_TEXT:
         vga.draw.blocks=width;
         // if char9_set is true, allow 9-pixel wide fonts
-		if (isJEGAEnabled()) { //if Kanji Text Disable is off
-			vga.draw.char9dot = false;
-			bpp = 16;
-		}
-        if ((vga.seq.clocking_mode&0x01) || !vga.draw.char9_set) {
+        if (isJEGAEnabled()) { //if Kanji Text Disable is off
+            vga.draw.char9dot = false;
+        }
+        else if ((vga.seq.clocking_mode&0x01) || !vga.draw.char9_set) {
             // 8-pixel wide
             pix_per_char = 8;
             vga.draw.char9dot = false;
@@ -5434,11 +5433,10 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             vga.draw.char9dot = true;
         }
 
-        if (IS_JEGA_ARCH/* && ... && usedbcs && ...? FIXME */) {
-            if (true/*? FIXME*/)
-                VGA_DrawLine = VGA_TEXT_DBCS_Xlat32_Draw_Line;
-            else
-                VGA_DrawLine = EGA_TEXT_DBCS_Xlat8_Draw_Line;
+        if (IS_JEGA_ARCH) {
+            /* Wengier connected the JEGA case to EGA emulation, and EGA emulation renders bpp == 8 */
+            VGA_DrawLine = EGA_TEXT_DBCS_Xlat8_Draw_Line;
+            bpp = 8;
         }
         else if (IS_EGA_ARCH) {
             if (vga_alt_new_mode)
