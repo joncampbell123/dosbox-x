@@ -2296,28 +2296,23 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
                                     // additional character becomes visible
     Bitu background = 0, foreground = 0;
     Bitu chr, chr_left = 0, p3 = 0, attr, bsattr;
-    bool chr_wide = false, usedbcs = true;//why would you assign this function if you did not intend to show DBCS?
+    bool chr_wide = false;
 
     if (vga.draw.height < 16u || vga.draw.width < 8u) return TempLine;
 
     unsigned int row = (vidstart - vga.config.real_start - vga.draw.bytes_skip) / vga.draw.address_add, col = 0;
     unsigned int rows = (vga.draw.height / 16u) - 1u, cols = (vga.draw.width / 8u) - 1u;
-    if ((IS_JEGA_ARCH || (isDBCSCP()
-#if defined(USE_TTF)
-        && dbcs_sbcs
-#endif
-        && showdbcs)) && line == 1) {
-            if (!jtbs.empty()) jtbs.erase(std::remove_if(jtbs.begin(), jtbs.end(), first_equal(row)), jtbs.end());
-            if (!dbox.empty()) dbox.erase(std::remove_if(dbox.begin(), dbox.end(), first_equal(row)), dbox.end());
-        }
+
+    if (line == 1) {
+        if (!jtbs.empty()) jtbs.erase(std::remove_if(jtbs.begin(), jtbs.end(), first_equal(row)), jtbs.end());
+        if (!dbox.empty()) dbox.erase(std::remove_if(dbox.begin(), dbox.end(), first_equal(row)), dbox.end());
+    }
+
     VGA_Latch pixeln1, pixeln2, pixeln3, pixelp1, pixelp2, pixelp3;
     while (blocks--) {
         if (!col) p3 = 0;
-        if (isJEGAEnabled() || (isDBCSCP()
-#if defined(USE_TTF)
-            && dbcs_sbcs
-#endif
-            && showdbcs && usedbcs)) {
+
+        {
             VGA_Latch pixels;
             pixels.d = *vidmem;
             chr = pixels.b[0];
@@ -2502,8 +2497,6 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
             pixelp2.d = *(vidmem - 2 * ((uintptr_t)1U << (uintptr_t)vga.config.addr_shift));
             p3 = col>2?pixelp2.b[0]:0;
             col++;
-        } else {
-		// normal EGA/VGA text---this is the wrong function to draw that!
         }
         vidmem += (uintptr_t)1U << (uintptr_t)vga.config.addr_shift;
     }
@@ -5448,7 +5441,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         else {
             /* FIXME: This is still peeking into DOS state, which should be turned into an INT 10h call or some such
 	     *        when KEYB or other utility changes code page, but it does not involve reading guest memory */
-            if (DOSUsingDBCSCodePage())
+            if (showdbcs && DOSUsingDBCSCodePage())
                 VGA_DrawLine = VGA_TEXT_DBCS_Xlat32_Draw_Line;
             else if (vga_alt_new_mode)
                 VGA_DrawLine = Alt_VGA_TEXT_Xlat32_Draw_Line;
