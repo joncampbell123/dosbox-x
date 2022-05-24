@@ -18,6 +18,6 @@ enum {
     GDC_CMD_VECTE = 0x6c,                       // 0   1   1   0   1   1   0   0
     GDC_CMD_VERTICAL_SYNC_MODE = 0x6E,          // 0   1   1   0   1   1   1   M
     GDC_CMD_PARAMETER_RAM_LOAD = 0x70,          // 0   1   1   1   S   S   S   S    S[3:0] = starting address in parameter RAM
-    GDC_CMD_TEXTW = 0x78,                       // 0   1   1   1   1   0   0   0
+    GDC_CMD_TEXTW = 0x78,                       // 0   1   1   1   1   0   0   0    This is the same as GDC_CMD_PARAMETER_RAM_LOAD+8 aka loading at the 8th byte
     GDC_CMD_CURSOR_ADDRESS_READ = 0xE0          // 1   1   1   0   0   0   0   0
 };

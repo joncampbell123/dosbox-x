@@ -400,10 +400,8 @@ void PC98_GDC_state::idle_proc(void) {
             case GDC_CMD_PARAMETER_RAM_LOAD+13:// 0x7D       S=starting byte in parameter RAM
             case GDC_CMD_PARAMETER_RAM_LOAD+14:// 0x7E       S=starting byte in parameter RAM
             case GDC_CMD_PARAMETER_RAM_LOAD+15:// 0x7F       S=starting byte in parameter RAM
-                if(master_sync || current_command != GDC_CMD_TEXTW) {
-                    param_ram_wptr = current_command & 0xF;
-                    current_command = GDC_CMD_PARAMETER_RAM_LOAD;
-                }
+                param_ram_wptr = current_command & 0xF;
+                current_command = GDC_CMD_PARAMETER_RAM_LOAD;
                 break;
             case GDC_CMD_CURSOR_ADDRESS_READ:  // 0xE0       1 1 1 0 0 0 0 0
                 write_rfifo((unsigned char)( vga.config.cursor_start         & 0xFFu));
@@ -452,11 +450,6 @@ void PC98_GDC_state::idle_proc(void) {
                     vectw(proc_step);
                 }
                 break;
-            case GDC_CMD_TEXTW:
-                if(proc_step < 8) {
-                    draw.tx[proc_step++] = (uint8_t)val;
-                }
-                break;
             case GDC_CMD_CURSOR_CHAR_SETUP:
                 if (proc_step < 3) {
                     cmd_parm_tmp[proc_step++] = (uint8_t)val;
@@ -466,6 +459,15 @@ void PC98_GDC_state::idle_proc(void) {
                 }
                 break;
             case GDC_CMD_PARAMETER_RAM_LOAD:
+                /* Parameter bytes 8 and 9 hold the 16-bit pattern for graphics.
+                 * nanshiki's original code seems to imply that somehow the hardware
+                 * supports either a 64-bit pattern across the 8 bytes or 4 16-bit
+                 * patterns across the same. Given that a few PC-9821 games exploit
+                 * a bug in older hardware to get 4 display partitions in graphics,
+                 * that wouldn't surprise me.
+                 *
+                 * PC-98 Windows 3.1 requires us to do this or else lines do not draw properly. */
+                if (param_ram_wptr >= 8 && param_ram_wptr <= 15) draw.tx[param_ram_wptr-8] = (uint8_t)val;
                 param_ram[param_ram_wptr] = (uint8_t)val;
                 if ((++param_ram_wptr) >= 16) param_ram_wptr = 0;
                 break;
