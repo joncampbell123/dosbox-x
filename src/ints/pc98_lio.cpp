@@ -192,17 +192,25 @@ static void lio_pset(short x, short y, uint8_t palette) {
     }
 }
 
+/* The LIO BIOS must update the BIOS data area regarding draw mode.
+ * The GDC maintains the draw mode separately. At no time does the
+ * GDC rewrite system memory itself. */
+static void lio_bda_and_gdc_set_mode(const uint8_t draw_mode) {
+    mem_writeb(0x54D, (mem_readb(0x54D) & 0xfc) | draw_mode);
+    pc98_gdc[GDC_SLAVE].set_mode(draw_mode);
+}
+
 static void lio_gline_sub(int x1, int y1, int x2, int y2, uint16_t ead, uint8_t dad, int palette) {
     if(!(lio_draw.flag & LIODRAW_MONO)) {
         for(uint8_t i = 0 ; i < lio_draw.planes ; i++) {
             pc98_gdc[GDC_SLAVE].set_vectl(x1, y1, x2, y2);
-            pc98_gdc[GDC_SLAVE].set_mode((palette & (1 << i)) ? 0x23 : 0x22);
+            lio_bda_and_gdc_set_mode((palette & (1 << i)) ? 0x23 : 0x22);
             pc98_gdc[GDC_SLAVE].set_csrw(ead + gdc_base[i], dad);
             pc98_gdc[GDC_SLAVE].exec(0x6c);
         }
     } else {
         pc98_gdc[GDC_SLAVE].set_vectl(x1, y1, x2, y2);
-        pc98_gdc[GDC_SLAVE].set_mode(palette ? 0x23 : 0x22);
+        lio_bda_and_gdc_set_mode(palette ? 0x23 : 0x22);
         pc98_gdc[GDC_SLAVE].set_csrw(ead + (((lio_draw.flag + 1) & LIODRAW_PMASK) << 12), dad);
         pc98_gdc[GDC_SLAVE].exec(0x6c);
     }
@@ -355,11 +363,11 @@ static void lio_gbox(int px1, int py1, int px2, int py2, int palette, uint8_t *t
             pc98_gdc[GDC_SLAVE].set_textw(pattern);
             pc98_gdc[GDC_SLAVE].set_vectl(x1, y1, x2, y1);
             if(!(lio_draw.flag & LIODRAW_MONO)) {
-                pc98_gdc[GDC_SLAVE].set_mode((palette & (1 << r)) ? 0x23 : 0x22);
+                lio_bda_and_gdc_set_mode((palette & (1 << r)) ? 0x23 : 0x22);
                 pc98_gdc[GDC_SLAVE].set_csrw(ead + gdc_base[r], dad);
                 pc98_gdc[GDC_SLAVE].exec(0x6c);
             } else {
-                pc98_gdc[GDC_SLAVE].set_mode(palette ? 0x23 : 0x22);
+                lio_bda_and_gdc_set_mode(palette ? 0x23 : 0x22);
                 pc98_gdc[GDC_SLAVE].set_csrw(ead + (((lio_draw.flag + 1) & LIODRAW_PMASK) << 12), dad);
                 pc98_gdc[GDC_SLAVE].exec(0x6c);
                 break;

@@ -85,7 +85,6 @@ void PC98_GDC_state::set_vectl(int x1, int y1, int x2, int y2) {
 
 void PC98_GDC_state::set_mode(uint8_t mode) {
     draw.mode = mode & 0x03;
-    mem_writeb(0x54D, (mem_readb(0x54D) & 0xfc) | draw.mode);
 }
 
 void PC98_GDC_state::set_csrw(uint32_t ead, uint8_t dad) {
