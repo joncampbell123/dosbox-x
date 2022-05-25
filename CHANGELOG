@@ -1,4 +1,8 @@
 0.83.26
+  - Added PC-98 GDC drawing commands, which is
+    based on Neko Project II source code (nanshiki)
+  - Added PC-98 LIO BIOS interface, which is based on
+    Neko Project II source code (nanshiki)
   - INT 21h AH=31h Terminate And Stay Resident: If the
     program called INT 21h to free it's own PSP segment,
     reassign the block back to the program as allocated
