@@ -235,13 +235,21 @@ void pc98_clear_text(void) {
 
 void pc98_clear_graphics(void) {
 	for (unsigned int i = 0; i < 0x8000; i += 2) {
-		*((uint16_t*)(vga.mem.linear + i + 0x08000)) = 0;
-		*((uint16_t*)(vga.mem.linear + i + 0x10000)) = 0;
-		*((uint16_t*)(vga.mem.linear + i + 0x18000)) = 0;
-		*((uint16_t*)(vga.mem.linear + i + 0x20000)) = 0;
-		*((uint16_t*)(vga.mem.linear + i + 0x28000)) = 0;
-		*((uint16_t*)(vga.mem.linear + i + 0x30000)) = 0;
-		*((uint16_t*)(vga.mem.linear + i + 0x38000)) = 0;
-		*((uint16_t*)(vga.mem.linear + i + 0x40000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x00000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x08000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x10000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x18000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x20000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x28000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x30000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x38000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x40000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x48000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x50000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x58000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x60000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x68000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x70000)) = 0;
+		*((uint16_t*)(vga.mem.linear + i + PC98_VRAM_GRAPHICS_OFFSET + 0x78000)) = 0;
 	}
 }
