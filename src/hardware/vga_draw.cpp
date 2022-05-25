@@ -4646,19 +4646,6 @@ void VGA_ActivateHardwareCursor(void) {
     }
 }
 
-bool DOSUsingDBCSCodePage(void) {
-	if (!dos_kernel_disabled) {
-		switch (dos.loaded_codepage) {
-			case 932:
-				return true;
-			default:
-				break;
-		}
-	}
-
-	return false;
-}
-
 void VGA_SetupDrawing(Bitu /*val*/) {
     if (vga.mode==M_ERROR) {
         PIC_RemoveEvents(VGA_VerticalTimer);
@@ -5444,7 +5431,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         else {
             /* FIXME: This is still peeking into DOS state, which should be turned into an INT 10h call or some such
 	     *        when KEYB or other utility changes code page, but it does not involve reading guest memory */
-            if (showdbcs && DOSUsingDBCSCodePage())
+            if (showdbcs && !dos_kernel_disabled && isDBCSCP())
                 VGA_DrawLine = VGA_TEXT_DBCS_Xlat32_Draw_Line;
             else if (vga_alt_new_mode)
                 VGA_DrawLine = Alt_VGA_TEXT_Xlat32_Draw_Line;
