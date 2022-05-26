@@ -2557,13 +2557,9 @@ protected:
 
     void DrawTextAuto(const char* text, bool centered, uint8_t foreground, uint8_t background)
     {
-        if(dx == 0)
-        {
-            return; // BUG/TODO some buttons
-        }
         const auto size = strlen(text);
         const auto wide = dx / 8;
-        const auto data = size > wide ? std::string(text, wide - 3) + std::string("...") : std::string(text);
+        const auto data = dx > 0 && size > wide ? std::string(text, wide - 3) + std::string("...") : std::string(text);
 
         if(centered)
         {
