@@ -28,6 +28,12 @@
 #include <assert.h>
 #include <limits.h>
 
+// for std::max
+#include <algorithm>
+#if defined(WIN32)
+#define NOMINMAX
+#endif
+
 #include "SDL.h"
 
 #include "dosbox.h"
@@ -147,7 +153,7 @@ static struct {
     CCaptionButton*                             selected;
     CCaptionButton*                             action;
     CCaptionButton*                             dbg2;
-    CCaptionButton*                             dbg;
+    CCaptionButton*                             dbg1;
     CBindButton*                                save;
     CBindButton*                                exit;   
     CBindButton*                                cap;
@@ -2464,6 +2470,7 @@ public:
         invert=false;
         press=false;
         page=1;
+        SetCanClick(true);
     }
     virtual void Draw(void) {
         uint8_t bg;
@@ -2498,7 +2505,28 @@ public:
         return ( enabled && (_x>=x) && (_x<x+dx) && (_y>=y) && (_y<y+dy));
     }
     virtual void BindColor(void) {}
-    virtual void Click(void) {}
+
+    virtual void Click(void)
+    {
+        if(clickable)
+        {
+            ClickImpl();
+        }
+    }
+
+    virtual void ClickImpl(void) {}
+
+    bool GetCanClick(void)
+    {
+        return clickable;
+    }
+
+    void SetCanClick(bool value)
+    {
+        clickable = value;
+        SetColor(value ? CLR_WHITE : CLR_GREY); // TODO don't hardcode
+    }
+
     uint8_t Page(uint8_t p) {
         if (p>0) page=p;
         return page;
@@ -2525,6 +2553,7 @@ protected:
     bool press;
     bool invert;
     bool enabled;
+    bool clickable;
 };
 
 static CButton *press_select = NULL;
@@ -2552,7 +2581,11 @@ public:
         }
 
         CButton::Draw();
-        DrawText(x+2,y+2,text,fg,bg);
+
+        const auto size = strlen(text);
+        const auto xPos = x + dx / 2 - size * 8 / 2;
+        const auto yPos = y + dy / 2 - 14 / 2;
+        DrawText(1 + xPos, yPos, text, fg, bg);
 
 #if defined(C_SDL2)
         uint8_t * point=((uint8_t *)mapper.draw_surface->pixels)+(y*mapper.draw_surface->w)+x;
@@ -2606,7 +2639,7 @@ public:
     void BindColor(void) {
         this->SetColor(event->bindlist.begin() == event->bindlist.end() ? CLR_GREY : CLR_WHITE);
     }
-    void Click(void) {
+    void ClickImpl(void) {
         if (last_clicked) last_clicked->BindColor();
         this->SetColor(event->bindlist.begin() == event->bindlist.end() ? CLR_DARKGREEN : CLR_GREEN);
         SetActiveEvent(event);
@@ -2624,18 +2657,35 @@ protected:
 
 class CCaptionButton : public CButton {
 public:
-    CCaptionButton(Bitu _x,Bitu _y,Bitu _dx,Bitu _dy) : CButton(_x,_y,_dx,_dy){
+    CCaptionButton(Bitu _x,Bitu _y,Bitu _dx,Bitu _dy, bool centered) : CButton(_x,_y,_dx,_dy){
         caption[0]=0;
+        center = centered;
     }
     virtual ~CCaptionButton() {}
     void Change(const char * format,...) GCC_ATTRIBUTE(__format__(__printf__,2,3));
 
-    void Draw(void) {
-        if (!enabled) return;
-        DrawText(x+2,y+2,caption,color);
+    void Draw(void) override
+    {
+        if(!enabled)
+            return;
+
+        if(center)
+        {
+            const auto size = strlen(caption);
+            const auto xPos = std::max(x, x + dx / 2 - size * 8 / 2);
+            const auto yPos = std::max(y, y + dy / 2 - 14 / 2);
+            DrawText(1 + xPos, yPos, caption, color);
+        }
+        else
+        {
+            DrawText(x + 2, y + 2, caption, color);
+        }
     }
+
 protected:
     char caption[128];
+private:
+    bool center;
 };
 
 void CCaptionButton::Change(const char * format,...) {
@@ -2654,7 +2704,7 @@ public:
         type=_type;
     }
     virtual ~CBindButton() {}
-    void Click(void) {
+    void ClickImpl(void) {
         switch (type) {
         case BB_Add: 
             mapper.addbind=true;
@@ -2794,7 +2844,7 @@ public:
             }
         }
     }
-    void Click(void) {
+    void ClickImpl(void) {
         switch (type) {
         case BC_Mod1:
             mapper.abind->mods^=BMOD_Mod1;
@@ -3631,9 +3681,9 @@ static void DrawText(Bitu x,Bitu y,const char * text,uint8_t color,uint8_t bkcol
 }
 
 void RedrawMapperEventButtons() {
-    bind_but.prevpage->SetColor(cpage==1?CLR_GREY:CLR_WHITE);
-    bind_but.nextpage->SetColor(cpage==maxpage?CLR_GREY:CLR_WHITE);
-    bind_but.pagestat->Change("%2u/%-2u",cpage,maxpage);
+    bind_but.prevpage->SetCanClick(cpage > 1);
+    bind_but.nextpage->SetCanClick(cpage < maxpage);
+    bind_but.pagestat->Change("%2u / %-2u", cpage, maxpage);
     for (std::vector<CEventButton *>::iterator it = ceventbuttons.begin(); it != ceventbuttons.end(); ++it) {
         CEventButton *button = (CEventButton *)*it;
         button->Enable(button->Page(0)==cpage);
@@ -3702,6 +3752,8 @@ static void SetActiveEvent(CEvent * event) {
         } else SetActiveBind(0);
         bind_but.add->Enable(true);
     }
+
+    bind_but.cap->SetCanClick(event != nullptr);
 }
 
 #if defined(C_SDL2)
@@ -3807,327 +3859,455 @@ static void AddModButton(Bitu x,Bitu y,Bitu dx,Bitu dy,char const * const title,
     mod_event[_mod] = event;
 }
 
+bool SortHandlers(CHandlerEvent* a, CHandlerEvent* b)
+{
+    auto str1 = std::string(a->ButtonName());
+    auto str2 = std::string(b->ButtonName());
+    auto sort = str1.compare(str2) < 0;
+    return sort;
+}
+
 static void CreateLayout(void) {
-    Bitu i;
-    /* Create the buttons for the Keyboard */
-#define BW 28
+
+#define DX 0
+#define DY 10
+#define MX 1
+#define MY 1
+#define BW 27
 #define BH 18
-#define DX 5
-#define PX(_X_) ((_X_)*BW + DX)
-#define PY(_Y_) (10+(_Y_)*BH)
-    AddKeyButtonEvent(PX(0),PY(0),BW,BH,"ESC","esc",KBD_esc);
-    for (i=0;i<12;i++) AddKeyButtonEvent(PX(2+i),PY(0),BW,BH,combo_f[i].title,combo_f[i].entry,combo_f[i].key);
+#define CX (BW / 2)
+#define CY (BH / 2)
+#define BU(_X_) (BW * (_X_) + MX * ((_X_) - 1))
+#define BV(_Y_) (BH * (_Y_) + MY * ((_Y_) - 1))
+#define PX(_X_) (DX + (_X_) * (BW + MX))
+#define PY(_Y_) (DY + (_Y_) * (BH + MY))
 
-    if (IS_PC98_ARCH) {
-        for (i=0;i<14;i++) AddKeyButtonEvent(PX(  i),PY(1),BW,BH,combo_1_pc98[i].title,combo_1_pc98[i].entry,combo_1_pc98[i].key);
-    }
-    else {
-        for (i=0;i<14;i++) AddKeyButtonEvent(PX(  i),PY(1),BW,BH,combo_1[i].title,combo_1[i].entry,combo_1[i].key);
-    }
+    Bitu i;
 
-    AddKeyButtonEvent(PX(0),PY(2),BW*2,BH,"TAB","tab",KBD_tab);
-    for (i=0;i<12;i++) AddKeyButtonEvent(PX(2+i),PY(2),BW,BH,combo_2[i].title,combo_2[i].entry,combo_2[i].key);
+#pragma region Keyboard
 
-    AddKeyButtonEvent(PX(14),PY(2),BW*2,BH*2,"ENTER","enter",KBD_enter);
-    
-    caps_lock_event=AddKeyButtonEvent(PX(0),PY(3),BW*2,BH,"CLCK","capslock",KBD_capslock);
-
-    if (IS_PC98_ARCH) {
-        for (i=0;i<12;i++) AddKeyButtonEvent(PX(2+i),PY(3),BW,BH,combo_3_pc98[i].title,combo_3_pc98[i].entry,combo_3_pc98[i].key);
-    }
-    else {
-        for (i=0;i<12;i++) AddKeyButtonEvent(PX(2+i),PY(3),BW,BH,combo_3[i].title,combo_3[i].entry,combo_3[i].key);
-    }
-
-    AddKeyButtonEvent(PX(0),PY(4),BW*2,BH,"SHIFT","lshift",KBD_leftshift);
-    for (i=0;i<11;i++) AddKeyButtonEvent(PX(2+i),PY(4),BW,BH,combo_4[i].title,combo_4[i].entry,combo_4[i].key);
-    AddKeyButtonEvent(PX(13),PY(4),BW*3,BH,"SHIFT","rshift",KBD_rightshift);
-
-    /* Last Row */
-    AddKeyButtonEvent(PX(0) ,PY(5),BW*2,BH,"CTRL","lctrl",KBD_leftctrl);
-    AddKeyButtonEvent(PX(2) ,PY(5),BW*1,BH,"WIN","lwindows",KBD_lwindows);
-    AddKeyButtonEvent(PX(3) ,PY(5),BW*1,BH,"ALT","lalt",KBD_leftalt);
-    AddKeyButtonEvent(PX(4) ,PY(5),BW*7,BH,"SPACE","space",KBD_space);
-    AddKeyButtonEvent(PX(11),PY(5),BW*1,BH,"ALT","ralt",KBD_rightalt);
-    AddKeyButtonEvent(PX(12),PY(5),BW*1,BH,"WIN","rwindows",KBD_rwindows);
-    AddKeyButtonEvent(PX(13),PY(5),BW*1,BH,"WMN","rwinmenu",KBD_rwinmenu);
-    AddKeyButtonEvent(PX(14),PY(5),BW*2,BH,"CTRL","rctrl",KBD_rightctrl);
-
-    /* Arrow Keys */
-#define XO 19
+#undef XO
+#undef YO
+#define XO 2
 #define YO 0
-    AddKeyButtonEvent(PX(XO+0),PY(YO),BW,BH,"PRT","printscreen",KBD_printscreen);
-    AddKeyButtonEvent(PX(XO+1),PY(YO),BW,BH,"SCL","scrolllock",KBD_scrolllock);
-    AddKeyButtonEvent(PX(XO+2),PY(YO),BW,BH,"PAU","pause",KBD_pause);
-    AddKeyButtonEvent(PX(XO+0),PY(YO+1),BW,BH,"INS","insert",KBD_insert);
-    AddKeyButtonEvent(PX(XO+1),PY(YO+1),BW,BH,"HOM","home",KBD_home);
-    AddKeyButtonEvent(PX(XO+2),PY(YO+1),BW,BH,"PUP","pageup",KBD_pageup);
-    AddKeyButtonEvent(PX(XO+0),PY(YO+2),BW,BH,"DEL","delete",KBD_delete);
-    AddKeyButtonEvent(PX(XO+1),PY(YO+2),BW,BH,"END","end",KBD_end);
-    AddKeyButtonEvent(PX(XO+2),PY(YO+2),BW,BH,"PDN","pagedown",KBD_pagedown);
-    AddKeyButtonEvent(PX(XO-2),PY(YO+3),BW,BH,"NEQ","kp_equals",KBD_kpequals);
-    AddKeyButtonEvent(PX(XO-2),PY(YO),BW,BH,"\x18 U","up",KBD_up);
-    AddKeyButtonEvent(PX(XO-3),PY(YO+1),BW,BH,"\x1B L","left",KBD_left);
-    AddKeyButtonEvent(PX(XO-2),PY(YO+1),BW,BH,"\x19 D","down",KBD_down);
-    AddKeyButtonEvent(PX(XO-1),PY(YO+1),BW,BH,"\x1A R","right",KBD_right);
+
+    if(!IS_PC98_ARCH)
+    {
+        AddKeyButtonEvent(PX(XO + 0), PY(YO), BU(1), BV(1), "F13", "f13", KBD_f13);
+        AddKeyButtonEvent(PX(XO + 1), PY(YO), BU(1), BV(1), "F14", "f14", KBD_f14);
+        AddKeyButtonEvent(PX(XO + 2), PY(YO), BU(1), BV(1), "F15", "f15", KBD_f15);
+        AddKeyButtonEvent(PX(XO + 3), PY(YO), BU(1), BV(1), "F16", "f16", KBD_f16);
+        AddKeyButtonEvent(PX(XO + 4), PY(YO), BU(1), BV(1), "F17", "f17", KBD_f17);
+        AddKeyButtonEvent(PX(XO + 5), PY(YO), BU(1), BV(1), "F18", "f18", KBD_f18);
+        AddKeyButtonEvent(PX(XO + 6), PY(YO), BU(1), BV(1), "F19", "f19", KBD_f19);
+        AddKeyButtonEvent(PX(XO + 7), PY(YO), BU(1), BV(1), "F20", "f20", KBD_f20);
+        AddKeyButtonEvent(PX(XO + 8), PY(YO), BU(1), BV(1), "F21", "f21", KBD_f21);
+        AddKeyButtonEvent(PX(XO + 9), PY(YO), BU(1), BV(1), "F22", "f22", KBD_f22);
+        AddKeyButtonEvent(PX(XO + 10), PY(YO), BU(1), BV(1), "F23", "f23", KBD_f23);
+        AddKeyButtonEvent(PX(XO + 11), PY(YO), BU(1), BV(1), "F24", "f24", KBD_f24);
+    }
+
+#undef XO
 #undef YO
+#define XO 0
+#define YO 1
+    AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "ESC", "esc", KBD_esc);
+
+    for(i = 0; i < 12; i++)
+    {
+        AddKeyButtonEvent(PX(XO + 2 + i), PY(YO), BU(1), BV(1), combo_f[i].title, combo_f[i].entry, combo_f[i].key);
+    }
+
+#undef XO
+#undef YO
+#define XO 0
+#define YO 2
+
+    for(i = 0; i < 14; i++)
+    {
+        const auto block = IS_PC98_ARCH ? combo_1_pc98 : combo_1;
+        const auto width = i == 0 || i == 13 ? 2 : 1;
+        AddKeyButtonEvent(PX(XO + (i > 0 ? i + 1 : i)), PY(YO), BU(width), BV(1), block[i].title, block[i].entry, block[i].key);
+    }
+
+#undef XO
+#undef YO
+#define XO 0
+#define YO 3
+
+    AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "TAB", "tab", KBD_tab);
+
+    for(i = 0; i < 12; i++)
+    {
+        AddKeyButtonEvent(PX(XO + 2 + i), PY(YO), BU(1), BV(1), combo_2[i].title, combo_2[i].entry, combo_2[i].key);
+    }
+
+    AddKeyButtonEvent(PX(XO + 14), PY(YO), BU(2), BV(2), "ENTER", "enter", KBD_enter);
+
+#undef XO
+#undef YO
+#define XO 0
+#define YO 4
+
+    caps_lock_event = AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "CAPS", "capslock", KBD_capslock);
+
+    for(i = 0; i < 12; i++)
+    {
+        const auto block = IS_PC98_ARCH ? combo_3_pc98 : combo_3;
+        AddKeyButtonEvent(PX(XO + 2 + i), PY(YO), BU(1), BV(1), block[i].title, block[i].entry, block[i].key);
+    }
+
+#undef XO
+#undef YO
+#define XO 0
 #define YO 5
-	/* Mouse Buttons */
-	new CTextButton(PX(XO+0),PY(YO-1),3*BW,20,"Mouse keys");
-	AddMouseButtonEvent(PX(XO+0),PY(YO),BW,BH,"L","left",0);
-	AddMouseButtonEvent(PX(XO+1),PY(YO),BW,BH,"M","middle",2);
-	AddMouseButtonEvent(PX(XO+2),PY(YO),BW,BH,"R","right",1);
+
+    AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "SHIFT", "lshift", KBD_leftshift);
+
+    for(i = 0; i < 11; i++)
+    {
+        AddKeyButtonEvent(PX(XO + 2 + i), PY(YO), BU(1), BV(1), combo_4[i].title, combo_4[i].entry, combo_4[i].key);
+    }
+
+    AddKeyButtonEvent(PX(XO + 13), PY(YO), BU(3), BV(1), "SHIFT", "rshift", KBD_rightshift);
+
 #undef XO
 #undef YO
 #define XO 0
-#define YO 7
-    /* Numeric KeyPad */
-    num_lock_event=AddKeyButtonEvent(PX(XO),PY(YO),BW,BH,"NUM","numlock",KBD_numlock);
-    AddKeyButtonEvent(PX(XO+1),PY(YO),BW,BH,"/","kp_divide",KBD_kpdivide);
-    AddKeyButtonEvent(PX(XO+2),PY(YO),BW,BH,"*","kp_multiply",KBD_kpmultiply);
-    AddKeyButtonEvent(PX(XO+3),PY(YO),BW,BH,"-","kp_minus",KBD_kpminus);
-    AddKeyButtonEvent(PX(XO+0),PY(YO+1),BW,BH,"7","kp_7",KBD_kp7);
-    AddKeyButtonEvent(PX(XO+1),PY(YO+1),BW,BH,"8","kp_8",KBD_kp8);
-    AddKeyButtonEvent(PX(XO+2),PY(YO+1),BW,BH,"9","kp_9",KBD_kp9);
-    AddKeyButtonEvent(PX(XO+3),PY(YO+1),BW,BH*2,"+","kp_plus",KBD_kpplus);
-    AddKeyButtonEvent(PX(XO),PY(YO+2),BW,BH,"4","kp_4",KBD_kp4);
-    AddKeyButtonEvent(PX(XO+1),PY(YO+2),BW,BH,"5","kp_5",KBD_kp5);
-    AddKeyButtonEvent(PX(XO+2),PY(YO+2),BW,BH,"6","kp_6",KBD_kp6);
-    AddKeyButtonEvent(PX(XO+0),PY(YO+3),BW,BH,"1","kp_1",KBD_kp1);
-    AddKeyButtonEvent(PX(XO+1),PY(YO+3),BW,BH,"2","kp_2",KBD_kp2);
-    AddKeyButtonEvent(PX(XO+2),PY(YO+3),BW,BH,"3","kp_3",KBD_kp3);
-    AddKeyButtonEvent(PX(XO+3),PY(YO+3),BW,BH*2,"ENT","kp_enter",KBD_kpenter);
-    if (IS_PC98_ARCH) {
-        AddKeyButtonEvent(PX(XO+0),PY(YO+4),BW*1,BH,"0","kp_0",KBD_kp0);
-        AddKeyButtonEvent(PX(XO+1),PY(YO+4),BW*1,BH,",","kp_comma",KBD_kpcomma);
-    }
-    else {
-        AddKeyButtonEvent(PX(XO+0),PY(YO+4),BW*2,BH,"0","kp_0",KBD_kp0);
-    }
-    AddKeyButtonEvent(PX(XO+2),PY(YO+4),BW,BH,".","kp_period",KBD_kpperiod);
+#define YO 6
+
+    AddKeyButtonEvent(PX(XO + 00), PY(YO), BU(2), BV(1), "CTRL", "lctrl", KBD_leftctrl);
+    AddKeyButtonEvent(PX(XO + 02), PY(YO), BU(1), BV(1), "WIN", "lwindows", KBD_lwindows);
+    AddKeyButtonEvent(PX(XO + 03), PY(YO), BU(1), BV(1), "ALT", "lalt", KBD_leftalt);
+    AddKeyButtonEvent(PX(XO + 04), PY(YO), BU(7), BV(1), "SPACE", "space", KBD_space);
+    AddKeyButtonEvent(PX(XO + 11), PY(YO), BU(1), BV(1), "ALT", "ralt", KBD_rightalt);
+    AddKeyButtonEvent(PX(XO + 12), PY(YO), BU(1), BV(1), "WIN", "rwindows", KBD_rwindows);
+    AddKeyButtonEvent(PX(XO + 13), PY(YO), BU(1), BV(1), "MNU", "rwinmenu", KBD_rwinmenu);
+    AddKeyButtonEvent(PX(XO + 14), PY(YO), BU(2), BV(1), "CTRL", "rctrl", KBD_rightctrl);
+
 #undef XO
 #undef YO
-#define XO 5
-#define YO 7
-    if (IS_PC98_ARCH) {
-        /* PC-98 extra keys */
-        AddKeyButtonEvent(PX(XO+0),PY(YO+0),BW*2,BH,"STOP","stop",KBD_stop);
-        AddKeyButtonEvent(PX(XO+2),PY(YO+0),BW*2,BH,"HELP","help",KBD_help);
+#define XO 16
+#define YO 0
 
-        AddKeyButtonEvent(PX(XO+0),PY(YO+1),BW*2,BH,"COPY","copy",KBD_copy);
-        AddKeyButtonEvent(PX(XO+2),PY(YO+1),BW*2,BH,"KANA","kana",KBD_kana);
+    AddKeyButtonEvent(PX(XO + 0), PY(YO + 0), BU(1), BV(1), "PRT", "printscreen", KBD_printscreen);
+    AddKeyButtonEvent(PX(XO + 1), PY(YO + 0), BU(1), BV(1), "SCL", "scrolllock", KBD_scrolllock);
+    AddKeyButtonEvent(PX(XO + 2), PY(YO + 0), BU(1), BV(1), "PAU", "pause", KBD_pause);
 
-        AddKeyButtonEvent(PX(XO+0),PY(YO+2),BW*2,BH,"NFER","nfer",KBD_nfer);
-        AddKeyButtonEvent(PX(XO+2),PY(YO+2),BW*2,BH,"XFER","xfer",KBD_xfer);
+    AddKeyButtonEvent(PX(XO + 0), PY(YO + 2), BU(1), BV(1), "INS", "insert", KBD_insert);
+    AddKeyButtonEvent(PX(XO + 1), PY(YO + 2), BU(1), BV(1), "HOM", "home", KBD_home);
+    AddKeyButtonEvent(PX(XO + 2), PY(YO + 2), BU(1), BV(1), "PUP", "pageup", KBD_pageup);
 
-        AddKeyButtonEvent(PX(XO+2),PY(YO+3),BW*2,BH,"Ro / _","jp_ro",KBD_jp_ro);
+    AddKeyButtonEvent(PX(XO + 0), PY(YO + 3), BU(1), BV(1), "DEL", "delete", KBD_delete);
+    AddKeyButtonEvent(PX(XO + 1), PY(YO + 3), BU(1), BV(1), "END", "end", KBD_end);
+    AddKeyButtonEvent(PX(XO + 2), PY(YO + 3), BU(1), BV(1), "PDN", "pagedown", KBD_pagedown);
 
-        AddKeyButtonEvent(PX(XO+0),PY(YO+3),BW*1,BH,"VF1","vf1",KBD_vf1);
-        AddKeyButtonEvent(PX(XO+1),PY(YO+3),BW*1,BH,"VF2","vf2",KBD_vf2);
-        AddKeyButtonEvent(PX(XO+0),PY(YO+4),BW*1,BH,"VF3","vf3",KBD_vf3);
-        AddKeyButtonEvent(PX(XO+1),PY(YO+4),BW*1,BH,"VF4","vf4",KBD_vf4);
-        AddKeyButtonEvent(PX(XO+2),PY(YO+4),BW*1,BH,"VF5","vf5",KBD_vf5);
+    AddKeyButtonEvent(PX(XO + 1), PY(YO + 5), BU(1), BV(1), "\x18", "up", KBD_up);
+    AddKeyButtonEvent(PX(XO + 0), PY(YO + 6), BU(1), BV(1), "\x1B", "left", KBD_left);
+    AddKeyButtonEvent(PX(XO + 1), PY(YO + 6), BU(1), BV(1), "\x19", "down", KBD_down);
+    AddKeyButtonEvent(PX(XO + 2), PY(YO + 6), BU(1), BV(1), "\x1A", "right", KBD_right);
+
+#undef XO
+#undef YO
+#define XO 19
+#define YO 2
+
+    AddKeyButtonEvent(PX(XO + 3) - 3, PY(YO - 1), BU(1) - 1, BV(1), "NEQ", "kp_equals", KBD_kpequals);
+
+    num_lock_event =
+    AddKeyButtonEvent(PX(XO + 0) - 0, PY(YO + 0), BU(1) - 1, BV(1), "NUM", "numlock", KBD_numlock);
+    AddKeyButtonEvent(PX(XO + 1) - 1, PY(YO + 0), BU(1) - 1, BV(1), "/", "kp_divide", KBD_kpdivide);
+    AddKeyButtonEvent(PX(XO + 2) - 2, PY(YO + 0), BU(1) - 1, BV(1), "*", "kp_multiply", KBD_kpmultiply);
+    AddKeyButtonEvent(PX(XO + 3) - 3, PY(YO + 0), BU(1) - 1, BV(1), "-", "kp_minus", KBD_kpminus);
+
+    AddKeyButtonEvent(PX(XO + 0) - 0, PY(YO + 1), BU(1) - 1, BV(1), "7", "kp_7", KBD_kp7);
+    AddKeyButtonEvent(PX(XO + 1) - 1, PY(YO + 1), BU(1) - 1, BV(1), "8", "kp_8", KBD_kp8);
+    AddKeyButtonEvent(PX(XO + 2) - 2, PY(YO + 1), BU(1) - 1, BV(1), "9", "kp_9", KBD_kp9);
+    AddKeyButtonEvent(PX(XO + 3) - 3, PY(YO + 1), BU(1) - 1, BV(2), "+", "kp_plus", KBD_kpplus);
+                                     
+    AddKeyButtonEvent(PX(XO + 0) - 0, PY(YO + 2), BU(1) - 1, BV(1), "4", "kp_4", KBD_kp4);
+    AddKeyButtonEvent(PX(XO + 1) - 1, PY(YO + 2), BU(1) - 1, BV(1), "5", "kp_5", KBD_kp5);
+    AddKeyButtonEvent(PX(XO + 2) - 2, PY(YO + 2), BU(1) - 1, BV(1), "6", "kp_6", KBD_kp6);
+                                     
+    AddKeyButtonEvent(PX(XO + 0) - 0, PY(YO + 3), BU(1) - 1, BV(1), "1", "kp_1", KBD_kp1);
+    AddKeyButtonEvent(PX(XO + 1) - 1, PY(YO + 3), BU(1) - 1, BV(1), "2", "kp_2", KBD_kp2);
+    AddKeyButtonEvent(PX(XO + 2) - 2, PY(YO + 3), BU(1) - 1, BV(1), "3", "kp_3", KBD_kp3);
+
+    AddKeyButtonEvent(PX(XO + 3) - 3, PY(YO + 3), BU(1) - 1, BV(2), "ENT", "kp_enter", KBD_kpenter);
+
+    if(IS_PC98_ARCH) // TODO
+    {
+        AddKeyButtonEvent(PX(XO + 0) - 0, PY(YO + 4), BU(1) - 1, BV(1), "0", "kp_0", KBD_kp0);
+        AddKeyButtonEvent(PX(XO + 1) - 1, PY(YO + 4), BU(1) - 1, BV(1), ",", "kp_comma", KBD_kpcomma);
     }
-    else {
-        /* F13-F24 block */
-        AddKeyButtonEvent(PX(XO+0),PY(YO+0),BW,BH,"F13","f13",KBD_f13);
-        AddKeyButtonEvent(PX(XO+1),PY(YO+0),BW,BH,"F14","f14",KBD_f14);
-        AddKeyButtonEvent(PX(XO+2),PY(YO+0),BW,BH,"F15","f15",KBD_f15);
-        AddKeyButtonEvent(PX(XO+3),PY(YO+0),BW,BH,"F16","f16",KBD_f16);
-        AddKeyButtonEvent(PX(XO+0),PY(YO+1),BW,BH,"F17","f17",KBD_f17);
-        AddKeyButtonEvent(PX(XO+1),PY(YO+1),BW,BH,"F18","f18",KBD_f18);
-        AddKeyButtonEvent(PX(XO+2),PY(YO+1),BW,BH,"F19","f19",KBD_f19);
-        AddKeyButtonEvent(PX(XO+3),PY(YO+1),BW,BH,"F20","f20",KBD_f20);
-        AddKeyButtonEvent(PX(XO+0),PY(YO+2),BW,BH,"F21","f21",KBD_f21);
-        AddKeyButtonEvent(PX(XO+1),PY(YO+2),BW,BH,"F22","f22",KBD_f22);
-        AddKeyButtonEvent(PX(XO+2),PY(YO+2),BW,BH,"F23","f23",KBD_f23);
-        AddKeyButtonEvent(PX(XO+3),PY(YO+2),BW,BH,"F24","f24",KBD_f24);
+    else
+    {
+        AddKeyButtonEvent(PX(XO + 0) - 0, PY(YO + 4), BU(2) - 2, BV(1), "0", "kp_0", KBD_kp0);
     }
+
+    AddKeyButtonEvent(PX(XO + 2) - 2, PY(YO + 4), BU(1) - 1, BV(1), ".", "kp_period", KBD_kpperiod);
+
+#pragma endregion
+
+#pragma region Mouse
+
 #undef XO
 #undef YO
 #define XO 0
-#define YO 13
-    /* Japanese keys */
-    AddKeyButtonEvent(PX(XO+0),PY(YO+0),BW*3,BH,"HANKAKU", "jp_hankaku", KBD_jp_hankaku);
-    AddKeyButtonEvent(PX(XO+0),PY(YO+1),BW*3,BH,"MUHENKAN","jp_muhenkan",KBD_jp_muhenkan);
-    AddKeyButtonEvent(PX(XO+0),PY(YO+2),BW*3,BH,"HENKAN",  "jp_henkan",  KBD_jp_henkan);
-    AddKeyButtonEvent(PX(XO+3),PY(YO+0),BW*3,BH,"HIRAGANA","jp_hiragana",KBD_jp_hiragana);
-    AddKeyButtonEvent(PX(XO+6),PY(YO+0),BW*1,BH,"YEN",     "jp_yen",     KBD_jp_yen);
-    AddKeyButtonEvent(PX(XO+6),PY(YO+1),BW*1,BH,"\\",      "jp_bckslash",KBD_jp_backslash);
-    AddKeyButtonEvent(PX(XO+6),PY(YO+2),BW*1,BH,":*",      "colon",      KBD_colon);
-    AddKeyButtonEvent(PX(XO+7),PY(YO+0),BW*1,BH,"^`",      "caret",      KBD_caret);
-    AddKeyButtonEvent(PX(XO+7),PY(YO+1),BW*1,BH,"@~",      "atsign",     KBD_atsign);
-    /* Korean */
-    AddKeyButtonEvent(PX(XO+3),PY(YO+1),BW*3,BH,"HANCHA",  "kor_hancha", KBD_kor_hancha);
-    AddKeyButtonEvent(PX(XO+3),PY(YO+2),BW*3,BH,"HANYONG", "kor_hanyong",KBD_kor_hanyong);
+#define YO 9
+    new CTextButton(PX(XO + 0) + CX * 2, PY(YO - 1), BU(3), BV(1), "Mouse");
+    AddMouseButtonEvent(PX(XO + 0) + CX * 2, PY(YO), BU(1), BV(1), "L", "left", 0);
+    AddMouseButtonEvent(PX(XO + 1) + CX * 2, PY(YO), BU(1), BV(1), "M", "middle", 2);
+    AddMouseButtonEvent(PX(XO + 2) + CX * 2, PY(YO), BU(1), BV(1), "R", "right", 1);
+
+#pragma endregion
+
+#pragma region Joysticks
+
 #undef XO
 #undef YO
 #define XO 10
 #define YO 8
-    /* Joystick Buttons/Texts */
-    /* Buttons 1+2 of 1st Joystick */
-    AddJButtonButton(PX(XO),PY(YO),BW,BH,"1" ,0,0);
-    AddJButtonButton(PX(XO+2),PY(YO),BW,BH,"2" ,0,1);
-    /* Axes 1+2 (X+Y) of 1st Joystick */
-    CJAxisEvent * cjaxis=AddJAxisButton(PX(XO+1),PY(YO),BW,BH,"Y-",0,1,false,NULL);
-    AddJAxisButton  (PX(XO+1),PY(YO+1),BW,BH,"Y+",0,1,true,cjaxis);
-    cjaxis=AddJAxisButton  (PX(XO),PY(YO+1),BW,BH,"X-",0,0,false,NULL);
-    AddJAxisButton  (PX(XO+2),PY(YO+1),BW,BH,"X+",0,0,true,cjaxis);
 
-    if (joytype==JOY_2AXIS) {
-        /* Buttons 1+2 of 2nd Joystick */
-        AddJButtonButton(PX(XO+4),PY(YO),BW,BH,"1" ,1,0);
-        AddJButtonButton(PX(XO+4+2),PY(YO),BW,BH,"2" ,1,1);
-        /* Buttons 3+4 of 1st Joystick, not accessible */
-        AddJButtonButton_hidden(0,2);
-        AddJButtonButton_hidden(0,3);
-
-        /* Axes 1+2 (X+Y) of 2nd Joystick */
-        cjaxis= AddJAxisButton(PX(XO+4),PY(YO+1),BW,BH,"X-",1,0,false,NULL);
-                AddJAxisButton(PX(XO+4+2),PY(YO+1),BW,BH,"X+",1,0,true,cjaxis);
-        cjaxis= AddJAxisButton(PX(XO+4+1),PY(YO+0),BW,BH,"Y-",1,1,false,NULL);
-                AddJAxisButton(PX(XO+4+1),PY(YO+1),BW,BH,"Y+",1,1,true,cjaxis);
-        /* Axes 3+4 (X+Y) of 1st Joystick, not accessible */
-        cjaxis= AddJAxisButton_hidden(0,2,false,NULL);
-                AddJAxisButton_hidden(0,2,true,cjaxis);
-        cjaxis= AddJAxisButton_hidden(0,3,false,NULL);
-                AddJAxisButton_hidden(0,3,true,cjaxis);
-    } else {
-        /* Buttons 3+4 of 1st Joystick */
-        AddJButtonButton(PX(XO+4),PY(YO),BW,BH,"3" ,0,2);
-        AddJButtonButton(PX(XO+4+2),PY(YO),BW,BH,"4" ,0,3);
-        /* Buttons 1+2 of 2nd Joystick, not accessible */
-        AddJButtonButton_hidden(1,0);
-        AddJButtonButton_hidden(1,1);
-
-        /* Axes 3+4 (X+Y) of 1st Joystick */
-        cjaxis= AddJAxisButton(PX(XO+4),PY(YO+1),BW,BH,"X-",0,2,false,NULL);
-                AddJAxisButton(PX(XO+4+2),PY(YO+1),BW,BH,"X+",0,2,true,cjaxis);
-        cjaxis= AddJAxisButton(PX(XO+4+1),PY(YO+0),BW,BH,"Y-",0,3,false,NULL);
-                AddJAxisButton(PX(XO+4+1),PY(YO+1),BW,BH,"Y+",0,3,true,cjaxis);
-        /* Axes 1+2 (X+Y) of 2nd Joystick , not accessible*/
-        cjaxis= AddJAxisButton_hidden(1,0,false,NULL);
-                AddJAxisButton_hidden(1,0,true,cjaxis);
-        cjaxis= AddJAxisButton_hidden(1,1,false,NULL);
-                AddJAxisButton_hidden(1,1,true,cjaxis);
+    switch(joytype)
+    {
+    case JOY_NONE:
+        (new CTextButton(PX(XO + 0), PY(YO + 0) - CY, BU(3), BV(1), "Disabled"))->SetCanClick(false);
+        (new CTextButton(PX(XO + 4), PY(YO + 0) - CY, BU(3), BV(1), "Disabled"))->SetCanClick(false);
+        (new CTextButton(PX(XO + 8), PY(YO + 0) - CY, BU(3), BV(1), "Disabled"))->SetCanClick(false);
+        break;
+    case JOY_2AXIS:
+        (new CTextButton(PX(XO + 0), PY(YO + 0) - CY, BU(3), BV(1), "Joystick 1"));
+        (new CTextButton(PX(XO + 4), PY(YO + 0) - CY, BU(3), BV(1), "Joystick 2"));
+        (new CTextButton(PX(XO + 8), PY(YO + 0) - CY, BU(3), BV(1), "Disabled"))->SetCanClick(false);
+        break;
+    case JOY_4AXIS:
+    case JOY_4AXIS_2:
+        (new CTextButton(PX(XO + 0), PY(YO + 0) - CY, BU(3), BV(1), "Axis 1/2"));
+        (new CTextButton(PX(XO + 4), PY(YO + 0) - CY, BU(3), BV(1), "Axis 3/4"));
+        (new CTextButton(PX(XO + 8), PY(YO + 0) - CY, BU(3), BV(1), "Disabled"))->SetCanClick(false);
+        break;
+    case JOY_FCS:
+        (new CTextButton(PX(XO + 0), PY(YO + 0) - CY, BU(3), BV(1), "Axis 1/2"));
+        (new CTextButton(PX(XO + 4), PY(YO + 0) - CY, BU(3), BV(1), "Axis 3"));
+        (new CTextButton(PX(XO + 8), PY(YO + 0) - CY, BU(3), BV(1), "Hat/D-pad"));
+        break;
+    case JOY_CH:
+        (new CTextButton(PX(XO + 0), PY(YO + 0) - CY, BU(3), BV(1), "Axis 1/2"));
+        (new CTextButton(PX(XO + 4), PY(YO + 0) - CY, BU(3), BV(1), "Axis 3/4"));
+        (new CTextButton(PX(XO + 8), PY(YO + 0) - CY, BU(3), BV(1), "Hat/D-pad"));
+        break;
     }
 
-    if (joytype==JOY_CH) {
-        /* Buttons 5+6 of 1st Joystick */
-        AddJButtonButton(PX(XO+8),PY(YO),BW,BH,"5" ,0,4);
-        AddJButtonButton(PX(XO+8+2),PY(YO),BW,BH,"6" ,0,5);
-    } else {
-        /* Buttons 5+6 of 1st Joystick, not accessible */
-        AddJButtonButton_hidden(0,4);
-        AddJButtonButton_hidden(0,5);
+    {
+        AddJButtonButton(PX(XO + 0), PY(YO + 1) - CY, BU(1), BV(1), "1", 0, 0);
+        AddJButtonButton(PX(XO + 2), PY(YO + 1) - CY, BU(1), BV(1), "2", 0, 1);
+
+        auto x1 = AddJAxisButton(PX(XO + 0), PY(YO + 2) - CY, BU(1), BV(1), "X-", 0, 0, false, nullptr);
+        auto x2 = AddJAxisButton(PX(XO + 2), PY(YO + 2) - CY, BU(1), BV(1), "X+", 0, 0, true, x1);
+        auto y1 = AddJAxisButton(PX(XO + 1), PY(YO + 1) - CY, BU(1), BV(1), "Y-", 0, 1, false, nullptr);
+        auto y2 = AddJAxisButton(PX(XO + 1), PY(YO + 2) - CY, BU(1), BV(1), "Y+", 0, 1, true, y1);
     }
 
-    /* Hat directions up, left, down, right */
-    AddJHatButton(PX(XO+8+1),PY(YO),BW,BH,"UP",0,0,0);
-    AddJHatButton(PX(XO+8+0),PY(YO+1),BW,BH,"LFT",0,0,3);
-    AddJHatButton(PX(XO+8+1),PY(YO+1),BW,BH,"DWN",0,0,2);
-    AddJHatButton(PX(XO+8+2),PY(YO+1),BW,BH,"RGT",0,0,1);
+    if(joytype == JOY_2AXIS)
+    {
+        AddJButtonButton(PX(XO + 4), PY(YO + 1) - CY, BU(1), BV(1), "1", 1, 0);
+        AddJButtonButton(PX(XO + 6), PY(YO + 1) - CY, BU(1), BV(1), "2", 1, 1);
+        AddJButtonButton_hidden(0, 2);
+        AddJButtonButton_hidden(0, 3);
 
-    /* Labels for the joystick */
-    CTextButton* btn;
-    if (joytype ==JOY_2AXIS) {
-        new CTextButton(PX(XO+0),PY(YO-1),3*BW,BH,"Joystick 1");
-        new CTextButton(PX(XO+4),PY(YO-1),3*BW,BH,"Joystick 2");
-        btn = new CTextButton(PX(XO + 8), PY(YO - 1), 3 * BW, BH, "Disabled");
-        btn->SetColor(CLR_GREY);
-    } else if(joytype ==JOY_4AXIS || joytype == JOY_4AXIS_2) {
-        new CTextButton(PX(XO+0),PY(YO-1),3*BW,BH,"Axis 1/2");
-        new CTextButton(PX(XO+4),PY(YO-1),3*BW,BH,"Axis 3/4");
-        btn = new CTextButton(PX(XO + 8), PY(YO - 1), 3 * BW, BH, "Disabled");
-        btn->SetColor(CLR_GREY);
-    } else if(joytype == JOY_CH) {
-        new CTextButton(PX(XO+0),PY(YO-1),3*BW,BH,"Axis 1/2");
-        new CTextButton(PX(XO+4),PY(YO-1),3*BW,BH,"Axis 3/4");
-        new CTextButton(PX(XO+8),PY(YO-1),3*BW,BH,"Hat/D-pad");
-    } else if ( joytype==JOY_FCS) {
-        new CTextButton(PX(XO+0),PY(YO-1),3*BW,BH,"Axis 1/2");
-        new CTextButton(PX(XO+4),PY(YO-1),3*BW,BH,"Axis 3");
-        new CTextButton(PX(XO+8),PY(YO-1),3*BW,BH,"Hat/D-pad");
-    } else if(joytype == JOY_NONE) {
-        btn = new CTextButton(PX(XO + 0), PY(YO - 1), 3 * BW, BH, "Disabled");
-        btn->SetColor(CLR_GREY);
-        btn = new CTextButton(PX(XO + 4), PY(YO - 1), 3 * BW, BH, "Disabled");
-        btn->SetColor(CLR_GREY);
-        btn = new CTextButton(PX(XO + 8), PY(YO - 1), 3 * BW, BH, "Disabled");
-        btn->SetColor(CLR_GREY);
+        auto x1 = AddJAxisButton(PX(XO + 4), PY(YO + 2) - CY, BW, BH, "X-", 1, 0, false, nullptr);
+        auto x2 = AddJAxisButton(PX(XO + 6), PY(YO + 2) - CY, BW, BH, "X+", 1, 0, true, x1);
+        auto y1 = AddJAxisButton(PX(XO + 5), PY(YO + 1) - CY, BW, BH, "Y-", 1, 1, false, nullptr);
+        auto y2 = AddJAxisButton(PX(XO + 5), PY(YO + 2) - CY, BW, BH, "Y+", 1, 1, true, y1);
+        auto z1 = AddJAxisButton_hidden(0, 2, false, nullptr);
+        auto z2 = AddJAxisButton_hidden(0, 3, false, nullptr);
+
+        AddJAxisButton_hidden(0, 2, true, z1);
+        AddJAxisButton_hidden(0, 3, true, z2);
     }
+    else
+    {
+        AddJButtonButton(PX(XO + 4), PY(YO + 1) - CY, BU(1), BV(1), "3", 0, 2);
+        AddJButtonButton(PX(XO + 6), PY(YO + 1) - CY, BU(1), BV(1), "4", 0, 3);
+        AddJButtonButton_hidden(1, 0);
+        AddJButtonButton_hidden(1, 1);
+
+        auto x1 = AddJAxisButton(PX(XO + 4), PY(YO + 2) - CY, BU(1), BV(1), "X-", 0, 2, false, nullptr);
+        auto x2 = AddJAxisButton(PX(XO + 6), PY(YO + 2) - CY, BU(1), BV(1), "X+", 0, 2, true, x1);
+        auto y1 = AddJAxisButton(PX(XO + 5), PY(YO + 1) - CY, BU(1), BV(1), "Y-", 0, 3, false, nullptr);
+        auto y2 = AddJAxisButton(PX(XO + 5), PY(YO + 2) - CY, BU(1), BV(1), "Y+", 0, 3, true, y1);
+        auto z1 = AddJAxisButton_hidden(1, 0, false, nullptr);
+        auto z2 = AddJAxisButton_hidden(1, 1, false, nullptr);
+
+        AddJAxisButton_hidden(1, 0, true, z1);
+        AddJAxisButton_hidden(1, 1, true, z2);
+    }
+
+    if(joytype == JOY_CH)
+    {
+        AddJButtonButton(PX(XO +  8), PY(YO + 1) - CY, BU(1), BV(1), "5", 0, 4);
+        AddJButtonButton(PX(XO + 10), PY(YO + 1) - CY, BU(1), BV(1), "6", 0, 5);
+    }
+    else
+    {
+        AddJButtonButton_hidden(0, 4);
+        AddJButtonButton_hidden(0, 5);
+    }
+
+    AddJHatButton(PX(XO +  9), PY(YO + 1) - CY, BU(1), BV(1), "\x18", 0, 0, 0); // U
+    AddJHatButton(PX(XO +  8), PY(YO + 2) - CY, BU(1), BV(1), "\x1B", 0, 0, 3); // L
+    AddJHatButton(PX(XO +  9), PY(YO + 2) - CY, BU(1), BV(1), "\x19", 0, 0, 2); // D
+    AddJHatButton(PX(XO + 10), PY(YO + 2) - CY, BU(1), BV(1), "\x1A", 0, 0, 1); // R
+
+#pragma endregion
+
+#pragma region Japanese, Korean
+
 #undef XO
 #undef YO
-   
-    /* The modifier buttons */
-    AddModButton(PX(0),PY(17),50,BH,"Mod1",1);
-    AddModButton(PX(2),PY(17),50,BH,"Mod2",2);
-    AddModButton(PX(4),PY(17),50,BH,"Mod3",3);
-    AddModButton(PX(6),PY(17),50,BH,"Host",4);
-    /* Create Handler buttons */
-    Bitu xpos=3;Bitu ypos=11;
-    uint8_t page=cpage;
+#define XO 0
+#define YO 11
+
+    AddKeyButtonEvent(PX(XO + 0) + CX * 1, PY(YO + 0), BU(3), BV(1), "HANKAKU", "jp_hankaku", KBD_jp_hankaku);
+    AddKeyButtonEvent(PX(XO + 0) + CX * 1, PY(YO + 1), BU(3), BV(1), "MUHENKAN","jp_muhenkan",KBD_jp_muhenkan);
+    AddKeyButtonEvent(PX(XO + 0) + CX * 1, PY(YO + 2), BU(3), BV(1), "HENKAN",  "jp_henkan",  KBD_jp_henkan);
+    AddKeyButtonEvent(PX(XO + 0) + CX * 1, PY(YO + 3), BU(3), BV(1), "HIRAGANA","jp_hiragana",KBD_jp_hiragana);
+    AddKeyButtonEvent(PX(XO + 0) + CX * 1, PY(YO + 4), BU(3), BV(1), "YEN",     "jp_yen",     KBD_jp_yen);
+    AddKeyButtonEvent(PX(XO + 3) + CX * 1, PY(YO + 1), BU(1), BV(1), "\\",      "jp_bckslash",KBD_jp_backslash);
+    AddKeyButtonEvent(PX(XO + 4) + CX * 1, PY(YO + 1), BU(1), BV(1), ":*",      "colon",      KBD_colon);
+    AddKeyButtonEvent(PX(XO + 5) + CX * 1, PY(YO + 1), BU(1), BV(1), "^`",      "caret",      KBD_caret);
+    AddKeyButtonEvent(PX(XO + 6) + CX * 1, PY(YO + 1), BU(1), BV(1), "@~",      "atsign",     KBD_atsign);
+    AddKeyButtonEvent(PX(XO + 5) + CX * 1, PY(YO + 3), BU(3), BV(1), "HANCHA",  "kor_hancha", KBD_kor_hancha);
+    AddKeyButtonEvent(PX(XO + 5) + CX * 1, PY(YO + 4), BU(3), BV(1), "HANYONG", "kor_hanyong",KBD_kor_hanyong);
+
+#pragma endregion
+
+#pragma region Modifiers & Bindings
+
+    AddModButton(PX(0) + CX, PY(17), BU(2), BV(1), "Mod1", 1);
+    AddModButton(PX(2) + CX, PY(17), BU(2), BV(1), "Mod2", 2);
+    AddModButton(PX(4) + CX, PY(17), BU(2), BV(1), "Mod3", 3);
+    AddModButton(PX(6) + CX, PY(17), BU(2), BV(1), "Host", 4);
+
+    bind_but.event_title = new CCaptionButton(PX(0) + CX, PY(18), 0, 0, false);
+    bind_but.bind_title  = new CCaptionButton(PX(0) + CX, PY(19), 0, 0, false);
+
+    bind_but.add  = new CBindButton(PX(0) + CX, PY(20), BU(2), BV(1), MSG_Get("ADD"), BB_Add);
+    bind_but.del  = new CBindButton(PX(2) + CX, PY(20), BU(2), BV(1), MSG_Get("DEL"), BB_Del);
+    bind_but.next = new CBindButton(PX(4) + CX, PY(20), BU(2), BV(1), MSG_Get("NEXT"), BB_Next);
+
+    bind_but.mod1 = new CCheckButton(PX(0) + CX, PY(21) + CY, BU(3), BV(1), "mod1", BC_Mod1);
+    bind_but.mod2 = new CCheckButton(PX(0) + CX, PY(22) + CY, BU(3), BV(1), "mod2", BC_Mod2);
+    bind_but.mod3 = new CCheckButton(PX(0) + CX, PY(23) + CY, BU(3), BV(1), "mod3", BC_Mod3);
+    bind_but.host = new CCheckButton(PX(3) + CX, PY(21) + CY, BU(3), BV(1), "host", BC_Host);
+    bind_but.hold = new CCheckButton(PX(3) + CX, PY(22) + CY, BU(3), BV(1), "hold", BC_Hold);
+
+#pragma endregion
+
+#pragma region PC-98 extra keys
+
+    if(IS_PC98_ARCH)
+    {
+
+#undef XO
+#undef YO
+#define XO 0
+#define YO 0
+
+        AddKeyButtonEvent(PX(XO +  0), PY(YO), BU(2), BV(1), "STOP", "stop", KBD_stop);
+        AddKeyButtonEvent(PX(XO +  2), PY(YO), BU(2), BV(1), "HELP", "help", KBD_help);
+        AddKeyButtonEvent(PX(XO +  4), PY(YO), BU(2), BV(1), "COPY", "copy", KBD_copy);
+        AddKeyButtonEvent(PX(XO +  6), PY(YO), BU(2), BV(1), "KANA", "kana", KBD_kana);
+        AddKeyButtonEvent(PX(XO +  8), PY(YO), BU(2), BV(1), "NFER", "nfer", KBD_nfer);
+        AddKeyButtonEvent(PX(XO + 10), PY(YO), BU(2), BV(1), "XFER", "xfer", KBD_xfer);
+        AddKeyButtonEvent(PX(XO + 12), PY(YO), BU(2), BV(1), "RO/_", "jp_ro", KBD_jp_ro);
+
+#undef XO
+#undef YO
+#define XO 3
+#define YO 11
+
+        AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO), BU(1), BV(1), "VF1", "vf1", KBD_vf1);
+        AddKeyButtonEvent(PX(XO + 1) + CX, PY(YO), BU(1), BV(1), "VF2", "vf2", KBD_vf2);
+        AddKeyButtonEvent(PX(XO + 2) + CX, PY(YO), BU(1), BV(1), "VF3", "vf3", KBD_vf3);
+        AddKeyButtonEvent(PX(XO + 3) + CX, PY(YO), BU(1), BV(1), "VF4", "vf4", KBD_vf4);
+        AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO), BU(1), BV(1), "VF5", "vf5", KBD_vf5);
+    }
+
+#pragma endregion
+
+#pragma region Bindables
+
+#undef XO
+#undef YO
+
+    Bitu    xpos = 0;
+    Bitu    ypos = 0;
+    uint8_t page = cpage;
+
     ceventbuttons.clear();
-    for (CHandlerEventVector_it hit=handlergroup.begin();hit!=handlergroup.end();++hit) {
-        maxpage=page;
-        unsigned int columns = ((unsigned int)strlen((*hit)->ButtonName()) + 9U) / 10U;
-        if ((xpos+columns-1)>6) {
-            xpos=3;ypos++;
-        }
-        CEventButton *button=new CEventButton(PX(xpos*3)+(xpos==5||xpos==6?BW/2:0),PY(ypos),BW*3*columns+BW/(columns==4?1:2),BH,(*hit)->ButtonName(),(*hit));
+
+    std::sort(handlergroup.begin(), handlergroup.end(), SortHandlers);
+
+    for(CHandlerEventVector_it hit = handlergroup.begin(); hit != handlergroup.end(); ++hit)
+    {
+        maxpage = page;
+
+        auto button = new CEventButton(PX(9), PY(11 + ypos), BU(13), BV(1), (*hit)->ButtonName(), (*hit));
+
         ceventbuttons.push_back(button);
         (*hit)->notifybutton(button);
-        button->Enable(page==cpage);
+        button->Enable(page == cpage);
         button->Page(page);
-        xpos += columns;
-        if (xpos>6) {
-            xpos=3;ypos++;
-        }
-        if (ypos==20) {
-            ypos=11;
+
+        ypos++;
+
+        if(ypos >= 7)
+        {
+            ypos = 0;
             page++;
         }
     }
-    bind_but.prevpage=new CBindButton(280,388,130,BH,MSG_Get("PREVIOUS_PAGE"),BB_Prevpage);
-    bind_but.nextpage=new CBindButton(470,388,130,BH,MSG_Get("NEXT_PAGE"),BB_Nextpage);
-    bind_but.pagestat=new CCaptionButton(418,388,462-418,BH);
-    bind_but.pagestat->Change("%2u/%-2u",cpage,maxpage);
-    if (cpage==1) bind_but.prevpage->SetColor(CLR_GREY);
-    if (cpage==maxpage) bind_but.nextpage->SetColor(CLR_GREY);
-    next_handler_xpos = xpos;
-    next_handler_ypos = ypos;
-    /* Create some text buttons */
-//  new CTextButton(PX(6),0,124,BH,"Keyboard Layout");
-//  new CTextButton(PX(17),0,124,BH,"Joystick Layout");
 
-    bind_but.action=new CCaptionButton(180,426,0,0);
+    bind_but.prevpage =
+        new CBindButton(PX(10), PY(19) - CY - (CY / 2), BU(3), BV(1), MSG_Get("PREVIOUS_PAGE"), BB_Prevpage);
 
-    bind_but.event_title=new CCaptionButton(0,350,0,0);
-    bind_but.bind_title=new CCaptionButton(0,365,0,0);
+    bind_but.pagestat = new CCaptionButton(PX(13), PY(19) - CY - (CY / 2), BU(5), BV(1), true);
 
-    /* Create binding support buttons */
-    
-    bind_but.mod1=new CCheckButton(20,410,60,BH, "mod1",BC_Mod1);
-    bind_but.mod2=new CCheckButton(20,432,60,BH, "mod2",BC_Mod2);
-    bind_but.mod3=new CCheckButton(20,454,60,BH, "mod3",BC_Mod3);
-    bind_but.host=new CCheckButton(100,410,60,BH,"host",BC_Host);
-    bind_but.hold=new CCheckButton(100,432,60,BH,"hold",BC_Hold);
+    bind_but.nextpage =
+        new CBindButton(PX(18), PY(19) - CY - (CY / 2), BU(3), BV(1), MSG_Get("NEXT_PAGE"), BB_Nextpage);
 
-    bind_but.add=new CBindButton(20,384,50,BH,MSG_Get("ADD"),BB_Add);
-    bind_but.del=new CBindButton(70,384,50,BH,MSG_Get("DEL"),BB_Del);
-    bind_but.next=new CBindButton(120,384,50,BH,MSG_Get("NEXT"),BB_Next);
+    bind_but.pagestat->Change("%2u / %-2u", cpage, maxpage);
 
-    bind_but.save=new CBindButton(180,444,60,BH,MSG_Get("SAVE"),BB_Save);
-    bind_but.exit=new CBindButton(240,444,60,BH,MSG_Get("EXIT"),BB_Exit);
-    bind_but.cap=new CBindButton(300,444,85,BH,MSG_Get("CAPTURE"),BB_Capture);
+    bind_but.prevpage->SetCanClick(false);
 
-    bind_but.dbg = new CCaptionButton(180, 462, 460, 20); // right below the Save button
-    bind_but.dbg->Change("(event debug)");
+    next_handler_xpos = xpos; // TODO is this useless, commenting it out changes nothing!?
+    next_handler_ypos = ypos; // TODO is this useless, commenting it out changes nothing!?
 
-    bind_but.dbg2 = new CCaptionButton(390, 444, 250, 20); // right next to the Save button
+#pragma endregion
+
+#pragma region Capture/Save/Exit
+
+    bind_but.cap  = new CBindButton(PX(11), PY(20), BU(3), BV(1), MSG_Get("CAPTURE"), BB_Capture);
+    bind_but.save = new CBindButton(PX(14), PY(20), BU(3), BV(1), MSG_Get("SAVE"), BB_Save);
+    bind_but.exit = new CBindButton(PX(17), PY(20), BU(3), BV(1), MSG_Get("EXIT"), BB_Exit);
+    bind_but.cap->SetCanClick(false);
+
+#pragma endregion
+
+#pragma region Status/Info
+
+    // NOTE: screen budget is really tight down there, more than that and drawing crashes
+
+    bind_but.action = new CCaptionButton(PX(8) - CX, PY(22) - CY, BU(16), BV(1), false);
+    bind_but.dbg1   = new CCaptionButton(PX(8) - CX, PY(23) - CY, BU(16), BV(1), false);
+    bind_but.dbg2   = new CCaptionButton(PX(8) - CX, PY(24) - CY, BU(16), BV(1), false);
+
+    bind_but.dbg1->Change("%s", "");
     bind_but.dbg2->Change("%s", "");
 
-    bind_but.bind_title->Change("Bind Title");
+#pragma endregion
 
     mapper_addhandler_create_buttons = true;
 }
@@ -4542,7 +4722,8 @@ static void MAPPER_SaveBinds(void) {
     char path[PATH_MAX];
     if (realpath(mapper.filename.c_str(), path) != NULL) LOG_MSG("Saved mapper file: %s", path);
 #endif
-    std::string msg = MSG_Get("MAPPER_FILE_SAVED")+std::string(": ")+mapper.filename;
+    std::string str = mapper.filename.substr(mapper.filename.find_last_of("/\\") + 1);
+    std::string msg = MSG_Get("MAPPER_FILE_SAVED")+std::string(": ")+str;
     change_action_text(msg.c_str(),CLR_WHITE);
 }
 
@@ -4731,6 +4912,7 @@ void BIND_MappingEvents(void) {
                     if (mouselocked) {
                         GFX_CaptureMouse();
                         mapper_esc_count = 0;
+                        change_action_text(MSG_Get("SELECT_EVENT"), CLR_WHITE);
                     }
                     else {
                         if (event.type == SDL_KEYUP) {
@@ -4777,7 +4959,7 @@ void BIND_MappingEvents(void) {
                 tmp[tmpl] = 0;
 
                 LOG(LOG_GUI,LOG_DEBUG)("Mapper keyboard event: %s",tmp);
-                bind_but.dbg->Change("%s",tmp);
+                bind_but.dbg1->Change("%s",tmp);
 
                 tmpl = 0;
 #if defined(WIN32)
