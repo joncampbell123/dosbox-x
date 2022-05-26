@@ -89,6 +89,7 @@ extern bool                         egc_enable_enable;
 extern uint8_t                      pc98_gdc_tile_counter;
 extern uint8_t                      pc98_gdc_modereg;
 extern egc_quad                     pc98_gdc_tiles;
+extern bool                         pc98_monochrome_mode;
 
 extern uint16_t                     pc98_egc_raw_values[8];
 
@@ -124,6 +125,12 @@ extern unsigned char        pc98_text_row_scanline_blank_at;     /* port 74h */
 extern unsigned char        pc98_text_row_scroll_lines;          /* port 76h */
 extern unsigned char        pc98_text_row_scroll_count_start;    /* port 78h */
 extern unsigned char        pc98_text_row_scroll_num_lines;      /* port 7Ah */
+
+extern uint8_t                     pc98_16col_analog_rgb_palette_index;
+
+extern uint8_t                     pc98_pal_vga[256*3];    /* G R B    0x0..0xFF */
+extern uint8_t                     pc98_pal_analog[256*3]; /* G R B    0x0..0xF */
+extern uint8_t                     pc98_pal_digital[8];    /* G R B    0x0..0x7 */
 
 extern bool logBuffSuppressConsole;
 extern bool logBuffSuppressConsoleNeedUpdate;
@@ -2924,6 +2931,67 @@ bool ParseCommand(char* str) {
                 mode_texts[vga.mode],1000.0/vga.draw.delay.vtotal,1000.0/vga.draw.delay.htotal,
                 vga.draw.clock,vga.draw.oscclock);
         }
+        else if (command == "DACPAL") {
+            std::string cpptmp;
+            char tmp[64];
+
+            DEBUG_BeginPagedContent();
+
+            cpptmp = "Current analog palette index: ";
+            sprintf(tmp,"%02xh\n",pc98_16col_analog_rgb_palette_index);
+            cpptmp += tmp;
+
+            DEBUG_ShowMsg("Digital 8-color DAC palette (RGB):");
+            for (unsigned int i=0;i < 8;i += 8) {
+                sprintf(tmp,"%02x: ",i);
+                cpptmp = tmp;
+
+                for (unsigned int c=0;c < 8;c++) {
+                    sprintf(tmp,"%01x",pc98_pal_digital[i+c]);
+                    cpptmp += tmp;
+                }
+
+                DEBUG_ShowMsg("%s",cpptmp.c_str());
+            }
+
+            DEBUG_ShowMsg("Analog 16-color DAC palette (RGB):");
+            for (unsigned int i=0;i < 16;i += 8) {
+                sprintf(tmp,"%02x: ",i);
+                cpptmp = tmp;
+
+                for (unsigned int c=0;c < 8;c++) {
+                    sprintf(tmp,"%01x%01x%01x%c",
+                        pc98_pal_analog[((i+c)*3)+1], /* R */
+                        pc98_pal_analog[((i+c)*3)+0], /* G */
+                        pc98_pal_analog[((i+c)*3)+2], /* B */
+                        c == 3 ? '-' : ' '
+                    );
+                    cpptmp += tmp;
+                }
+
+                DEBUG_ShowMsg("%s",cpptmp.c_str());
+            }
+
+            DEBUG_ShowMsg("VGA DAC palette (RGB):");
+            for (unsigned int i=0;i < 256;i += 8) {
+                sprintf(tmp,"%02x: ",i);
+                cpptmp = tmp;
+
+                for (unsigned int c=0;c < 8;c++) {
+                    sprintf(tmp,"%02x%02x%02x%c",
+                        pc98_pal_vga[((i+c)*3)+1], /* R */
+                        pc98_pal_vga[((i+c)*3)+0], /* G */
+                        pc98_pal_vga[((i+c)*3)+2], /* B */
+                        c == 3 ? '-' : ' '
+                    );
+                    cpptmp += tmp;
+                }
+
+                DEBUG_ShowMsg("%s",cpptmp.c_str());
+            }
+
+            DEBUG_EndPagedContent();
+        }
         else if (command == "GRAPHICS") {
             const auto &gdc = pc98_gdc[GDC_SLAVE];
             std::string cpptmp;
@@ -2982,8 +3050,8 @@ bool ParseCommand(char* str) {
                 gdc_5mhz_mode,GDC_vsync_interrupt,gdc.row_height,(unsigned int)vga.draw.lines_done);
             DEBUG_ShowMsg("  cur-row-line=%u cur-scan=0x%x cur-partition=%u/%u part-remline=%u",
                 gdc.row_line,gdc.scan_address,gdc.display_partition,gdc.display_partition_mask+1,gdc.display_partition_rem_lines);
-            DEBUG_ShowMsg("  vram-bound=%uKB",
-                pc98_256kb_boundary?256:128);
+            DEBUG_ShowMsg("  vram-bound=%uKB monomode=%u",
+                pc98_256kb_boundary?256:128,pc98_monochrome_mode);
 
             /*--------------------*/
 
@@ -3007,7 +3075,7 @@ bool ParseCommand(char* str) {
 
             /*---------------------*/
             cpptmp.clear();
-            DEBUG_ShowMsg("PC-98 GRGC tiles: [%02x %02x] [%02x %02x] [%02x %02x] [%02x %02x]",
+            DEBUG_ShowMsg("PC-98 GRCG tiles: [%02x %02x] [%02x %02x] [%02x %02x] [%02x %02x]",
                 pc98_gdc_tiles[0].b[0],
                 pc98_gdc_tiles[0].b[1],
                 pc98_gdc_tiles[1].b[0],
