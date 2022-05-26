@@ -1,4 +1,8 @@
 0.83.26
+  - IDE emulation now handles implementation events per
+    IDE device instead of per IDE controller, which
+    may resolve IDE controller issues with some guests.
+    (joncampbell123)
   - Added PC-98 GDC drawing commands, which is
     based on Neko Project II source code (nanshiki)
   - Added PC-98 LIO BIOS interface, which is based on
