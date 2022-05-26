@@ -3314,7 +3314,7 @@ void DOS_Shell::CMD_CHOICE(char * args){
 	ScanCMDBool(args,"M"); // Text
 	ScanCMDBool(args,"T"); //Default Choice after timeout
 
-	while (args && *args == '/') {
+	while (args && *trim(args) == '/') {
 		if (!get_param(args, rem, temp, waitchar, waitsec)) {
 			WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"), temp);
 			return;

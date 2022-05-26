@@ -1044,7 +1044,7 @@ public:
         if (cmd->FindExist("/NOSHOW"))
             return;
         else if (cmd->FindExist("/GUI"))
-            GUI_Shortcut(20);
+            GUI_Shortcut(40);
         else
             WriteOut(mixerinfo().c_str());
     }
