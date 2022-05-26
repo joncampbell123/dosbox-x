@@ -4197,11 +4197,11 @@ static void CreateLayout(void) {
     bind_but.del  = new CBindButton(PX(2) + CX, PY(20), BU(2), BV(1), MSG_Get("DEL"), BB_Del);
     bind_but.next = new CBindButton(PX(4) + CX, PY(20), BU(2), BV(1), MSG_Get("NEXT"), BB_Next);
 
-    bind_but.mod1 = new CCheckButton(PX(0) + CX, PY(21) + CY, BU(2), BV(1), "mod1", BC_Mod1);
-    bind_but.mod2 = new CCheckButton(PX(0) + CX, PY(22) + CY, BU(2), BV(1), "mod2", BC_Mod2);
-    bind_but.mod3 = new CCheckButton(PX(0) + CX, PY(23) + CY, BU(2), BV(1), "mod3", BC_Mod3);
-    bind_but.host = new CCheckButton(PX(2) + CX, PY(21) + CY, BU(2), BV(1), "host", BC_Host);
-    bind_but.hold = new CCheckButton(PX(2) + CX, PY(22) + CY, BU(2), BV(1), "hold", BC_Hold);
+    bind_but.mod1 = new CCheckButton(PX(0) + CX, PY(21) + CY, BU(3), BV(1), "mod1", BC_Mod1);
+    bind_but.mod2 = new CCheckButton(PX(0) + CX, PY(22) + CY, BU(3), BV(1), "mod2", BC_Mod2);
+    bind_but.mod3 = new CCheckButton(PX(0) + CX, PY(23) + CY, BU(3), BV(1), "mod3", BC_Mod3);
+    bind_but.host = new CCheckButton(PX(3) + CX, PY(21) + CY, BU(3), BV(1), "host", BC_Host);
+    bind_but.hold = new CCheckButton(PX(3) + CX, PY(22) + CY, BU(3), BV(1), "hold", BC_Hold);
 
 #pragma endregion
 
