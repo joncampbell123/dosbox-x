@@ -1,4 +1,8 @@
 0.83.26
+  - Add debug command to show PC-98 color palettes.
+    Corrected typo. (joncampbell123)
+  - Add support for PC-98 monochrome graphics mode.
+    (joncampbell123)
   - IDE emulation now handles implementation events per
     IDE device instead of per IDE controller, which
     may resolve IDE controller issues with some guests.
