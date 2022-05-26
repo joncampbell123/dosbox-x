@@ -185,10 +185,10 @@ void AddMessages() {
     MSG_Add("SWAP_SLOT","Swap slot");
     MSG_Add("EMPTY_SLOT","Empty slot");
     MSG_Add("SLOT","Slot");
-    MSG_Add("PREVIOUS_PAGE","< Previous Page");
-    MSG_Add("NEXT_PAGE","    Next Page >");
+    MSG_Add("PREVIOUS_PAGE","<-");
+    MSG_Add("NEXT_PAGE","->");
     MSG_Add("SELECT_EVENT", "Select an event to change.");
-    MSG_Add("SELECT_DIFFERENT_EVENT", "Select a different event or hit the Add/Del/Next buttons.");
+    MSG_Add("SELECT_DIFFERENT_EVENT", "Select an event or press Add/Del/Next buttons.");
     MSG_Add("PRESS_JOYSTICK_KEY", "Press a key/joystick button or move the joystick.");
     MSG_Add("CAPTURE_ENABLED", "Capture enabled. Hit ESC to release capture.");
     MSG_Add("MAPPER_FILE_SAVED", "Mapper file saved");
