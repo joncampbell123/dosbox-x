@@ -1745,8 +1745,14 @@ void voodoo_ogl_reset_videomode(void) {
     GFX_ReleaseMouse();
     GFX_ForceFullscreenExit();
 
-	/*if (new_height<v->fbi.height) */new_height = v->fbi.height;
-	/*if (new_width < v->fbi.width) */new_width = v->fbi.width;
+#if DOSBOXMENU_TYPE != DOSBOXMENU_SDLDRAW
+	if (new_height<v->fbi.height)
+#endif
+		new_height = v->fbi.height;
+#if DOSBOXMENU_TYPE != DOSBOXMENU_SDLDRAW
+	if (new_width < v->fbi.width)
+#endif
+		new_width = v->fbi.width;
 
 	if (GFX_LazyFullscreenRequested()) GFX_SwitchFullscreenNoReset();
 
