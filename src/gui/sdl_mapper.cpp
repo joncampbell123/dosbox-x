@@ -28,6 +28,12 @@
 #include <assert.h>
 #include <limits.h>
 
+// for std::max
+#include <algorithm>
+#if defined(WIN32)
+#define NOMINMAX
+#endif
+
 #include "SDL.h"
 
 #include "dosbox.h"
@@ -2666,8 +2672,8 @@ public:
         if(center)
         {
             const auto size = strlen(caption);
-            const auto xPos = max(x, x + dx / 2 - size * 8 / 2);
-            const auto yPos = max(y, y + dy / 2 - 14 / 2);
+            const auto xPos = std::max(x, x + dx / 2 - size * 8 / 2);
+            const auto yPos = std::max(y, y + dy / 2 - 14 / 2);
             DrawText(1 + xPos, yPos, caption, color);
         }
         else
