@@ -39,6 +39,35 @@
 # pragma warning(disable:4065) /* switch statement no case labels */
 #endif
 
+struct IDEEventPack {
+	IDEEventPack(const unsigned int interface,const unsigned int device) : v(pack(interface,device)) {
+	}
+	IDEEventPack(const unsigned int nv) : v(nv) {
+	}
+
+	static inline constexpr unsigned int pack(const unsigned int interface,const unsigned int device) {
+		return (interface << 1u) | device;
+	}
+
+	inline constexpr unsigned int get(void) const {
+		return v;
+	}
+
+	inline constexpr unsigned int interface(void) const {
+		return (v >> 1u);
+	}
+
+	inline constexpr unsigned int device(void) const {
+		return (v & 1u);
+	}
+
+	inline void set(const unsigned int pk) {
+		v = pk;
+	}
+private:
+	unsigned int		v;
+};
+
 extern int bootdrive;
 extern bool bootguest, bootvm, use_quick_reboot;
 static unsigned char init_ide = 0;
@@ -127,6 +156,7 @@ public:
     bool allow_writing;
     bool motor_on;
     bool asleep;
+    bool slave;
     IDEDeviceState state;
     /* feature: 0x1F1 (Word 00h in ATA specs)
          count: 0x1F2 (Word 01h in ATA specs)
@@ -154,7 +184,7 @@ public:
     double ide_spindown_delay;  /* time it takes for hard disk motor to spin down */
     double ide_identify_command_delay;
 public:
-    IDEDevice(IDEController *c);
+    IDEDevice(IDEController *c,bool _slave);
     virtual ~IDEDevice();
     virtual void host_reset_begin();    /* IDE controller -> upon setting bit 2 of alt (0x3F6) */
     virtual void host_reset_complete(); /* IDE controller -> upon setting bit 2 of alt (0x3F6) */
@@ -172,7 +202,7 @@ public:
 
 class IDEATADevice:public IDEDevice {
 public:
-    IDEATADevice(IDEController *c,unsigned char disk_index);
+    IDEATADevice(IDEController *c,unsigned char disk_index,bool _slave);
     virtual ~IDEATADevice();
     virtual void writecommand(uint8_t cmd);
 public:
@@ -209,7 +239,7 @@ enum {
 
 class IDEATAPICDROMDevice:public IDEDevice {
 public:
-    IDEATAPICDROMDevice(IDEController *c,unsigned char drive_index);
+    IDEATAPICDROMDevice(IDEController *c,unsigned char drive_index,bool _slave);
     virtual ~IDEATAPICDROMDevice();
     virtual void writecommand(uint8_t cmd);
 public:
@@ -293,10 +323,10 @@ public:
 
 static IDEController* idecontroller[MAX_IDE_CONTROLLERS]={NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/);
+static void IDE_DelayedCommand(Bitu idx/*which IDE device*/);
 static IDEController* GetIDEController(Bitu idx);
 
-static void IDE_ATAPI_SpinDown(Bitu idx/*which IDE controller*/) {
+static void IDE_ATAPI_SpinDown(Bitu idx/*which IDE device*/) {
     IDEController *ctrl = GetIDEController(idx);
     if (ctrl == NULL) return;
 
@@ -320,109 +350,115 @@ static void IDE_ATAPI_SpinDown(Bitu idx/*which IDE controller*/) {
     }
 }
 
-static void IDE_ATAPI_SpinUpComplete(Bitu idx/*which IDE controller*/);
+static void IDE_ATAPI_SpinUpComplete(Bitu idx/*which IDE device*/);
 
-static void IDE_ATAPI_CDInsertion(Bitu idx/*which IDE controller*/) {
-    IDEController *ctrl = GetIDEController(idx);
-    if (ctrl == NULL) return;
+static void IDE_ATAPI_CDInsertion(Bitu pk/*which IDE device*/) {
+	IDEEventPack ep(pk);
+	const unsigned int idx = ep.interface();
+	const unsigned int devidx = ep.device();
 
-    for (unsigned int i=0;i < 2;i++) {
-        IDEDevice *dev = ctrl->device[i];
-        if (dev == NULL) continue;
+	IDEController *ctrl = GetIDEController(idx);
+	if (ctrl == NULL) return;
 
-        if (dev->type == IDE_TYPE_HDD) {
-        }
-        else if (dev->type == IDE_TYPE_CDROM) {
-            IDEATAPICDROMDevice *atapi = (IDEATAPICDROMDevice*)dev;
+	IDEDevice *dev = ctrl->device[devidx];
+	if (dev == NULL) return;
 
-            if (atapi->loading_mode == LOAD_INSERT_CD) {
-                atapi->loading_mode = LOAD_DISC_LOADING;
-                LOG_MSG("ATAPI CD-ROM: insert CD to loading\n");
-                PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,idx);
-                PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,idx);
-                PIC_AddEvent(IDE_ATAPI_SpinUpComplete,atapi->spinup_time/*ms*/,idx);
-            }
-        }
-        else {
-            LOG_MSG("Unknown ATAPI spinup callback\n");
-        }
-    }
+	if (dev->type == IDE_TYPE_HDD) {
+	}
+	else if (dev->type == IDE_TYPE_CDROM) {
+		IDEATAPICDROMDevice *atapi = (IDEATAPICDROMDevice*)dev;
+
+		if (atapi->loading_mode == LOAD_INSERT_CD) {
+			atapi->loading_mode = LOAD_DISC_LOADING;
+			LOG_MSG("ATAPI CD-ROM: insert CD to loading\n");
+			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
+			PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,pk);
+			PIC_AddEvent(IDE_ATAPI_SpinUpComplete,atapi->spinup_time/*ms*/,pk);
+		}
+	}
+	else {
+		LOG_MSG("Unknown ATAPI spinup callback\n");
+	}
 }
 
-static void IDE_ATAPI_SpinUpComplete(Bitu idx/*which IDE controller*/) {
-    IDEController *ctrl = GetIDEController(idx);
-    if (ctrl == NULL) return;
+static void IDE_ATAPI_SpinUpComplete(Bitu pk/*which IDE device*/) {
+	IDEEventPack ep(pk);
+	const unsigned int idx = ep.interface();
+	const unsigned int devidx = ep.device();
 
-    for (unsigned int i=0;i < 2;i++) {
-        IDEDevice *dev = ctrl->device[i];
-        if (dev == NULL) continue;
+	IDEController *ctrl = GetIDEController(idx);
+	if (ctrl == NULL) return;
 
-        if (dev->type == IDE_TYPE_HDD) {
-        }
-        else if (dev->type == IDE_TYPE_CDROM) {
-            IDEATAPICDROMDevice *atapi = (IDEATAPICDROMDevice*)dev;
+	IDEDevice *dev = ctrl->device[devidx];
+	if (dev == NULL) return;
 
-            if (atapi->loading_mode == LOAD_DISC_LOADING) {
-                atapi->loading_mode = LOAD_DISC_READIED;
-                LOG_MSG("ATAPI CD-ROM: spinup complete\n");
-                PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,idx);
-                PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,idx);
-                PIC_AddEvent(IDE_ATAPI_SpinDown,atapi->spindown_timeout/*ms*/,idx);
-            }
-        }
-        else {
-            LOG_MSG("Unknown ATAPI spinup callback\n");
-        }
-    }
+	if (dev->type == IDE_TYPE_HDD) {
+	}
+	else if (dev->type == IDE_TYPE_CDROM) {
+		IDEATAPICDROMDevice *atapi = (IDEATAPICDROMDevice*)dev;
+
+		if (atapi->loading_mode == LOAD_DISC_LOADING) {
+			atapi->loading_mode = LOAD_DISC_READIED;
+			LOG_MSG("ATAPI CD-ROM: spinup complete\n");
+			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
+			PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,pk);
+			PIC_AddEvent(IDE_ATAPI_SpinDown,atapi->spindown_timeout/*ms*/,pk);
+		}
+	}
+	else {
+		LOG_MSG("Unknown ATAPI spinup callback\n");
+	}
 }
 
 /* returns "true" if command should proceed as normal, "false" if sense data was set and command should not proceed.
  * this function helps to enforce virtual "spin up" and "ready" delays. */
 bool IDEATAPICDROMDevice::common_spinup_response(bool trigger,bool wait) {
-    if (loading_mode == LOAD_IDLE) {
-        if (trigger) {
-            LOG_MSG("ATAPI CD-ROM: triggered to spin up from idle\n");
-            loading_mode = LOAD_DISC_LOADING;
-            PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,controller->interface_index);
-            PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,controller->interface_index);
-            PIC_AddEvent(IDE_ATAPI_SpinUpComplete,spinup_time/*ms*/,controller->interface_index);
-        }
-    }
-    else if (loading_mode == LOAD_READY) {
-        if (trigger) {
-            PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,controller->interface_index);
-            PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,controller->interface_index);
-            PIC_AddEvent(IDE_ATAPI_SpinDown,spindown_timeout/*ms*/,controller->interface_index);
-        }
-    }
+	const unsigned int pk = IDEEventPack(controller->interface_index,slave?1u:0u).get();
 
-    switch (loading_mode) {
-        case LOAD_NO_DISC:
-        case LOAD_INSERT_CD:
-            set_sense(/*SK=*/0x02,/*ASC=*/0x3A); /* Medium Not Present */
-            return false;
-        case LOAD_DISC_LOADING:
-            if (has_changed && !wait/*if command will block until LOADING complete*/) {
-                set_sense(/*SK=*/0x02,/*ASC=*/0x04,/*ASCQ=*/0x01); /* Medium is becoming available */
-                return false;
-            }
-            break;
-        case LOAD_DISC_READIED:
-            loading_mode = LOAD_READY;
-            if (has_changed) {
-                if (trigger) has_changed = false;
-                set_sense(/*SK=*/0x02,/*ASC=*/0x28,/*ASCQ=*/0x00); /* Medium is ready (has changed) */
-                return false;
-            }
-            break;
-        case LOAD_IDLE:
-        case LOAD_READY:
-            break;
-        default:
-            abort();
-    }
+	if (loading_mode == LOAD_IDLE) {
+		if (trigger) {
+			LOG_MSG("ATAPI CD-ROM: triggered to spin up from idle\n");
+			loading_mode = LOAD_DISC_LOADING;
+			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
+			PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,pk);
+			PIC_AddEvent(IDE_ATAPI_SpinUpComplete,spinup_time/*ms*/,pk);
+		}
+	}
+	else if (loading_mode == LOAD_READY) {
+		if (trigger) {
+			PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
+			PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,pk);
+			PIC_AddEvent(IDE_ATAPI_SpinDown,spindown_timeout/*ms*/,pk);
+		}
+	}
 
-    return true;
+	switch (loading_mode) {
+		case LOAD_NO_DISC:
+		case LOAD_INSERT_CD:
+			set_sense(/*SK=*/0x02,/*ASC=*/0x3A); /* Medium Not Present */
+			return false;
+		case LOAD_DISC_LOADING:
+			if (has_changed && !wait/*if command will block until LOADING complete*/) {
+				set_sense(/*SK=*/0x02,/*ASC=*/0x04,/*ASCQ=*/0x01); /* Medium is becoming available */
+				return false;
+			}
+			break;
+		case LOAD_DISC_READIED:
+			loading_mode = LOAD_READY;
+			if (has_changed) {
+				if (trigger) has_changed = false;
+				set_sense(/*SK=*/0x02,/*ASC=*/0x28,/*ASCQ=*/0x00); /* Medium is ready (has changed) */
+				return false;
+			}
+			break;
+		case LOAD_IDLE:
+		case LOAD_READY:
+			break;
+		default:
+			abort();
+	}
+
+	return true;
 }
 
 void IDEATAPICDROMDevice::read_subchannel() {
@@ -908,6 +944,8 @@ void IDEATAPICDROMDevice::read_toc() {
 
 /* when the ATAPI command has been accepted, and the timeout has passed */
 void IDEATAPICDROMDevice::on_atapi_busy_time() {
+    const unsigned int pk = IDEEventPack(controller->interface_index,slave?1u:0u).get();
+
     /* if the drive is spinning up, then the command waits */
     if (loading_mode == LOAD_DISC_LOADING) {
         switch (atapi_cmd[0]) {
@@ -916,7 +954,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
                 allow_writing = true;
                 break; /* do not delay */
             default:
-                PIC_AddEvent(IDE_DelayedCommand,100/*ms*/,controller->interface_index);
+                PIC_AddEvent(IDE_DelayedCommand,100/*ms*/,pk);
                 return;
         }
     }
@@ -1232,7 +1270,7 @@ void IDEATAPICDROMDevice::set_sense(unsigned char SK,unsigned char ASC,unsigned 
     sense[13] = ASCQ;
 }
 
-IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_index) : IDEDevice(c) {
+IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_index,bool _slave) : IDEDevice(c,_slave) {
     this->drive_index = drive_index;
     sector_i = sector_total = 0;
     atapi_to_host = false;
@@ -1401,6 +1439,8 @@ bool IDEATADevice::increment_current_address(Bitu count) {
 }
 
 void IDEATADevice::io_completion() {
+    const unsigned int pk = IDEEventPack(controller->interface_index,slave?1u:0u).get();
+
     /* lower DRQ */
     status &= ~IDE_STATUS_DRQ;
 
@@ -1430,13 +1470,13 @@ void IDEATADevice::io_completion() {
             /* cause another delay, another sector read */
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
-            PIC_AddEvent(IDE_DelayedCommand,0.00001/*ms*/,controller->interface_index);
+            PIC_AddEvent(IDE_DelayedCommand,0.00001/*ms*/,pk);
             break;
         case 0x30:/* WRITE SECTOR */
             /* this is where the drive has accepted the sector, lowers DRQ, and begins executing the command */
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
-            PIC_AddEvent(IDE_DelayedCommand,((progress_count == 0 && !faked_command) ? 0.1 : 0.00001)/*ms*/,controller->interface_index);
+            PIC_AddEvent(IDE_DelayedCommand,((progress_count == 0 && !faked_command) ? 0.1 : 0.00001)/*ms*/,pk);
             break;
         case 0xC4:/* READ MULTIPLE */
             /* OK, decrement count, increment address */
@@ -1464,13 +1504,13 @@ void IDEATADevice::io_completion() {
             /* cause another delay, another sector read */
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
-            PIC_AddEvent(IDE_DelayedCommand,0.00001/*ms*/,controller->interface_index);
+            PIC_AddEvent(IDE_DelayedCommand,0.00001/*ms*/,pk);
             break;
         case 0xC5:/* WRITE MULTIPLE */
             /* this is where the drive has accepted the sector, lowers DRQ, and begins executing the command */
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
-            PIC_AddEvent(IDE_DelayedCommand,((progress_count == 0 && !faked_command) ? 0.1 : 0.00001)/*ms*/,controller->interface_index);
+            PIC_AddEvent(IDE_DelayedCommand,((progress_count == 0 && !faked_command) ? 0.1 : 0.00001)/*ms*/,pk);
             break;
         default: /* most commands: signal drive ready, return to ready state */
             /* NTS: Some MS-DOS CD-ROM drivers will loop endlessly if we never set "drive seek complete"
@@ -1523,6 +1563,8 @@ Bitu IDEATAPICDROMDevice::data_read(Bitu iolen) {
 /* TODO: Your code should also be paying attention to the "transfer length" field
          in many of the commands here. Right now it doesn't matter. */
 void IDEATAPICDROMDevice::atapi_cmd_completion() {
+    const unsigned int pk = IDEEventPack(controller->interface_index,slave?1u:0u).get();
+
 #if 0
     LOG_MSG("ATAPI command %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x to_host=%u\n",
         atapi_cmd[ 0],atapi_cmd[ 1],atapi_cmd[ 2],atapi_cmd[ 3],atapi_cmd[ 4],atapi_cmd[ 5],
@@ -1546,19 +1588,19 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
             count = 0x02;
             state = IDE_DEV_ATAPI_BUSY;
             status = IDE_STATUS_BUSY;
-            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
+            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             break;
         case 0x1E: /* PREVENT ALLOW MEDIUM REMOVAL */
             count = 0x02;
             state = IDE_DEV_ATAPI_BUSY;
             status = IDE_STATUS_BUSY;
-            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
+            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             break;
         case 0x25: /* READ CAPACITY */
             count = 0x02;
             state = IDE_DEV_ATAPI_BUSY;
             status = IDE_STATUS_BUSY;
-            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
+            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             break;
         case 0x2B: /* SEEK */
             if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
@@ -1566,7 +1608,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                 count = 0x02;
                 state = IDE_DEV_ATAPI_BUSY;
                 status = IDE_STATUS_BUSY;
-                PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
+                PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             }
             else {
                 count = 0x03;
@@ -1581,7 +1623,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
             count = 0x02;
             state = IDE_DEV_ATAPI_BUSY;
             status = IDE_STATUS_BUSY;
-            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
+            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             break;
         case 0xA8: /* READ(12) */
             if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
@@ -1613,7 +1655,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                 state = IDE_DEV_ATAPI_BUSY;
                 status = IDE_STATUS_BUSY;
                 /* TODO: Emulate CD-ROM spin-up delay, and seek delay */
-                PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,controller->interface_index);
+                PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,pk);
             }
             else {
                 count = 0x03;
@@ -1652,7 +1694,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                 state = IDE_DEV_ATAPI_BUSY;
                 status = IDE_STATUS_BUSY;
                 /* TODO: Emulate CD-ROM spin-up delay, and seek delay */
-                PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,controller->interface_index);
+                PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,pk);
             }
             else {
                 count = 0x03;
@@ -1670,7 +1712,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                 count = 0x02;
                 state = IDE_DEV_ATAPI_BUSY;
                 status = IDE_STATUS_BUSY;
-                PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
+                PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             }
             else {
                 count = 0x03;
@@ -1688,7 +1730,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                 count = 0x02;
                 state = IDE_DEV_ATAPI_BUSY;
                 status = IDE_STATUS_BUSY;
-                PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
+                PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             }
             else {
                 count = 0x03;
@@ -1708,7 +1750,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                 count = 0x02;
                 state = IDE_DEV_ATAPI_BUSY;
                 status = IDE_STATUS_BUSY;
-                PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
+                PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             }
             else {
                 count = 0x03;
@@ -1723,13 +1765,13 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
             count = 0x00;   /* we will be accepting data */
             state = IDE_DEV_ATAPI_BUSY;
             status = IDE_STATUS_BUSY;
-            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
+            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             break;
         case 0x5A: /* MODE SENSE(10) */
             count = 0x02;
             state = IDE_DEV_ATAPI_BUSY;
             status = IDE_STATUS_BUSY;
-            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,controller->interface_index);
+            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             break;
         default:
             /* we don't know the command, immediately return an error */
@@ -2072,8 +2114,8 @@ void IDEATADevice::generate_identify_device() {
     sector[511] = 0 - csum;
 }
 
-IDEATADevice::IDEATADevice(IDEController *c,unsigned char disk_index)
-    : IDEDevice(c), id_serial("8086"), id_firmware_rev("8086"), id_model("DOSBox-X IDE disk"), bios_disk_index(disk_index) {
+IDEATADevice::IDEATADevice(IDEController *c,unsigned char disk_index,bool _slave)
+    : IDEDevice(c,_slave), id_serial("8086"), id_firmware_rev("8086"), id_model("DOSBox-X IDE disk"), bios_disk_index(disk_index) {
     sector_i = sector_total = 0;
 
     headshr = 0;
@@ -2206,6 +2248,7 @@ void IDE_ATAPI_MediaChangeNotify(unsigned char drive_index) {
         IDEController *c = idecontroller[ide];
         if (c == NULL) continue;
         for (unsigned int ms=0;ms < 2;ms++) {
+            const unsigned int pk = IDEEventPack(c->interface_index,ms).get();
             IDEDevice *dev = c->device[ms];
             if (dev == NULL) continue;
             if (dev->type == IDE_TYPE_CDROM) {
@@ -2214,10 +2257,10 @@ void IDE_ATAPI_MediaChangeNotify(unsigned char drive_index) {
                     LOG_MSG("IDE ATAPI acknowledge media change for drive %c\n",drive_index+'A');
                     atapi->has_changed = true;
                     atapi->loading_mode = LOAD_INSERT_CD;
-                    PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,c->interface_index);
-                    PIC_RemoveSpecificEvents(IDE_ATAPI_SpinUpComplete,c->interface_index);
-                    PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,c->interface_index);
-                    PIC_AddEvent(IDE_ATAPI_CDInsertion,atapi->cd_insertion_time/*ms*/,c->interface_index);
+                    PIC_RemoveSpecificEvents(IDE_ATAPI_SpinDown,pk);
+                    PIC_RemoveSpecificEvents(IDE_ATAPI_SpinUpComplete,pk);
+                    PIC_RemoveSpecificEvents(IDE_ATAPI_CDInsertion,pk);
+                    PIC_AddEvent(IDE_ATAPI_CDInsertion,atapi->cd_insertion_time/*ms*/,pk);
                 }
             }
         }
@@ -2243,7 +2286,7 @@ void IDE_CDROM_Attach(signed char index,bool slave,unsigned char drive_index) {
         return;
     }
 
-    dev = new IDEATAPICDROMDevice(c,drive_index);
+    dev = new IDEATAPICDROMDevice(c,drive_index,slave);
     if (dev == NULL) return;
     dev->update_from_cdrom();
     c->device[slave?1:0] = (IDEDevice*)dev;
@@ -2317,7 +2360,7 @@ void IDE_Hard_Disk_Attach(signed char index,bool slave,unsigned char bios_disk_i
         return;
     }
 
-    dev = new IDEATADevice(c,bios_disk_index);
+    dev = new IDEATADevice(c,bios_disk_index,slave);
     if (dev == NULL) return;
     dev->update_from_biosdisk();
     c->device[slave?1:0] = (IDEDevice*)dev;
@@ -2388,10 +2431,12 @@ static IDEController* GetIDEController(Bitu idx) {
     return idecontroller[idx];
 }
 
+#if 0//unused
 static IDEDevice* GetIDESelectedDevice(IDEController *ide) {
     if (ide == NULL) return NULL;
     return ide->device[ide->select];
 }
+#endif
 
 static bool IDE_CPU_Is_Vm86() {
     return (cpu.pmode && ((GETFLAG_IOPL<cpu.cpl) || GETFLAG(VM)));
@@ -2791,8 +2836,15 @@ void IDE_ResetDiskByBIOS(unsigned char disk) {
     }
 }
 
-static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
-    IDEDevice *dev = GetIDESelectedDevice(GetIDEController(idx));
+static void IDE_DelayedCommand(Bitu pk/*which IDE device*/) {
+    IDEEventPack ep(pk);
+    const unsigned int idx = ep.interface();
+    const unsigned int devidx = ep.device();
+
+    IDEController *ctrl = GetIDEController(idx);
+    if (ctrl == NULL) return;
+
+    IDEDevice *dev = ctrl->device[devidx];
     if (dev == NULL) return;
 
     if (dev->type == IDE_TYPE_HDD) {
@@ -3022,7 +3074,7 @@ static void IDE_DelayedCommand(Bitu idx/*which IDE controller*/) {
 
                 ata->state = IDE_DEV_BUSY;
                 ata->status = IDE_STATUS_BUSY;
-                PIC_AddEvent(IDE_DelayedCommand,0.00001/*ms*/,dev->controller->interface_index);
+                PIC_AddEvent(IDE_DelayedCommand,0.00001/*ms*/,pk);
                 break;
 
             case 0xC4:/* READ MULTIPLE */
@@ -3294,8 +3346,9 @@ void IDEDevice::data_write(Bitu v,Bitu iolen) {
     (void)v;//UNUSED
 }
 
-IDEDevice::IDEDevice(IDEController *c) {
+IDEDevice::IDEDevice(IDEController *c,bool _slave) {
     type = IDE_TYPE_NONE;
+    slave = _slave;
     status = 0x00;
     controller = c;
     asleep = false;
@@ -3401,6 +3454,8 @@ void IDEDevice::writecommand(uint8_t cmd) {
 }
 
 void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
+    const unsigned int pk = IDEEventPack(controller->interface_index,slave?1u:0u).get();
+
     if (!command_interruption_ok(cmd))
         return;
 
@@ -3449,13 +3504,13 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
                 atapi_to_host = (feature >> 2) & 1; /* 0=to device 1=to host */
                 host_maximum_byte_count = ((unsigned int)lba[2] << 8) + (unsigned int)lba[1]; /* LBA field bits 23:8 are byte count */
                 if (host_maximum_byte_count == 0) host_maximum_byte_count = 0x10000UL;
-                PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 0.25)/*ms*/,controller->interface_index);
+                PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 0.25)/*ms*/,pk);
             }
             break;
         case 0xA1: /* IDENTIFY PACKET DEVICE */
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
-            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : ide_identify_command_delay),controller->interface_index);
+            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : ide_identify_command_delay),pk);
             break;
         case 0xEC: /* IDENTIFY DEVICE */
             /* "devices that implement the PACKET command set shall post command aborted and place PACKET command feature
@@ -3499,6 +3554,8 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
 }
 
 void IDEATADevice::writecommand(uint8_t cmd) {
+    const unsigned int pk = IDEEventPack(controller->interface_index,slave?1u:0u).get();
+
     if (!command_interruption_ok(cmd))
         return;
 
@@ -3563,7 +3620,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
             progress_count = 0;
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
-            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 0.1)/*ms*/,controller->interface_index);
+            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 0.1)/*ms*/,pk);
             break;
         case 0x30: /* WRITE SECTOR */
             /* the drive does NOT signal an interrupt. it sets DRQ and waits for a sector
@@ -3578,7 +3635,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
             progress_count = 0;
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
-            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 0.1)/*ms*/,controller->interface_index);
+            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 0.1)/*ms*/,pk);
             break;
         case 0x91: /* INITIALIZE DEVICE PARAMETERS */
             if ((unsigned int)count != (unsigned int)sects || (unsigned int)((drivehead&0xF)+1) != (unsigned int)heads) {
@@ -3615,7 +3672,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
             progress_count = 0;
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
-            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 0.1)/*ms*/,controller->interface_index);
+            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 0.1)/*ms*/,pk);
             break;
         case 0xC5: /* WRITE MULTIPLE */
             /* the drive does NOT signal an interrupt. it sets DRQ and waits for a sector
@@ -3663,7 +3720,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
         case 0xEC: /* IDENTIFY DEVICE */
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
-            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : ide_identify_command_delay),controller->interface_index);
+            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : ide_identify_command_delay),pk);
             break;
         case 0xEF: /* SET FEATURES */
             if (feature == 0x66/*Disable reverting to power on defaults*/ ||
