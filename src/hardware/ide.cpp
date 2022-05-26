@@ -127,6 +127,7 @@ public:
     bool allow_writing;
     bool motor_on;
     bool asleep;
+    bool slave;
     IDEDeviceState state;
     /* feature: 0x1F1 (Word 00h in ATA specs)
          count: 0x1F2 (Word 01h in ATA specs)
@@ -154,7 +155,7 @@ public:
     double ide_spindown_delay;  /* time it takes for hard disk motor to spin down */
     double ide_identify_command_delay;
 public:
-    IDEDevice(IDEController *c);
+    IDEDevice(IDEController *c,bool _slave);
     virtual ~IDEDevice();
     virtual void host_reset_begin();    /* IDE controller -> upon setting bit 2 of alt (0x3F6) */
     virtual void host_reset_complete(); /* IDE controller -> upon setting bit 2 of alt (0x3F6) */
@@ -172,7 +173,7 @@ public:
 
 class IDEATADevice:public IDEDevice {
 public:
-    IDEATADevice(IDEController *c,unsigned char disk_index);
+    IDEATADevice(IDEController *c,unsigned char disk_index,bool _slave);
     virtual ~IDEATADevice();
     virtual void writecommand(uint8_t cmd);
 public:
@@ -209,7 +210,7 @@ enum {
 
 class IDEATAPICDROMDevice:public IDEDevice {
 public:
-    IDEATAPICDROMDevice(IDEController *c,unsigned char drive_index);
+    IDEATAPICDROMDevice(IDEController *c,unsigned char drive_index,bool _slave);
     virtual ~IDEATAPICDROMDevice();
     virtual void writecommand(uint8_t cmd);
 public:
@@ -1232,7 +1233,7 @@ void IDEATAPICDROMDevice::set_sense(unsigned char SK,unsigned char ASC,unsigned 
     sense[13] = ASCQ;
 }
 
-IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_index) : IDEDevice(c) {
+IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_index,bool _slave) : IDEDevice(c,_slave) {
     this->drive_index = drive_index;
     sector_i = sector_total = 0;
     atapi_to_host = false;
@@ -2072,8 +2073,8 @@ void IDEATADevice::generate_identify_device() {
     sector[511] = 0 - csum;
 }
 
-IDEATADevice::IDEATADevice(IDEController *c,unsigned char disk_index)
-    : IDEDevice(c), id_serial("8086"), id_firmware_rev("8086"), id_model("DOSBox-X IDE disk"), bios_disk_index(disk_index) {
+IDEATADevice::IDEATADevice(IDEController *c,unsigned char disk_index,bool _slave)
+    : IDEDevice(c,_slave), id_serial("8086"), id_firmware_rev("8086"), id_model("DOSBox-X IDE disk"), bios_disk_index(disk_index) {
     sector_i = sector_total = 0;
 
     headshr = 0;
@@ -2243,7 +2244,7 @@ void IDE_CDROM_Attach(signed char index,bool slave,unsigned char drive_index) {
         return;
     }
 
-    dev = new IDEATAPICDROMDevice(c,drive_index);
+    dev = new IDEATAPICDROMDevice(c,drive_index,slave);
     if (dev == NULL) return;
     dev->update_from_cdrom();
     c->device[slave?1:0] = (IDEDevice*)dev;
@@ -2317,7 +2318,7 @@ void IDE_Hard_Disk_Attach(signed char index,bool slave,unsigned char bios_disk_i
         return;
     }
 
-    dev = new IDEATADevice(c,bios_disk_index);
+    dev = new IDEATADevice(c,bios_disk_index,slave);
     if (dev == NULL) return;
     dev->update_from_biosdisk();
     c->device[slave?1:0] = (IDEDevice*)dev;
@@ -3294,8 +3295,9 @@ void IDEDevice::data_write(Bitu v,Bitu iolen) {
     (void)v;//UNUSED
 }
 
-IDEDevice::IDEDevice(IDEController *c) {
+IDEDevice::IDEDevice(IDEController *c,bool _slave) {
     type = IDE_TYPE_NONE;
+    slave = _slave;
     status = 0x00;
     controller = c;
     asleep = false;
