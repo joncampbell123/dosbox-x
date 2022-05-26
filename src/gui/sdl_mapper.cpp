@@ -4203,26 +4203,23 @@ static void CreateLayout(void) {
 
 #undef XO
 #undef YO
-#define XO 2
-#define YO 0
+#define XO 5
+#define YO 7
 
-    if (IS_PC98_ARCH) {
-        AddKeyButtonEvent(PX(XO+0),PY(YO+0),BW*2,BH,"STOP","stop",KBD_stop);
-        AddKeyButtonEvent(PX(XO+2),PY(YO+0),BW*2,BH,"HELP","help",KBD_help);
-
-        AddKeyButtonEvent(PX(XO+0),PY(YO+1),BW*2,BH,"COPY","copy",KBD_copy);
-        AddKeyButtonEvent(PX(XO+2),PY(YO+1),BW*2,BH,"KANA","kana",KBD_kana);
-
-        AddKeyButtonEvent(PX(XO+0),PY(YO+2),BW*2,BH,"NFER","nfer",KBD_nfer);
-        AddKeyButtonEvent(PX(XO+2),PY(YO+2),BW*2,BH,"XFER","xfer",KBD_xfer);
-
-        AddKeyButtonEvent(PX(XO+2),PY(YO+3),BW*2,BH,"Ro / _","jp_ro",KBD_jp_ro);
-
-        AddKeyButtonEvent(PX(XO+0),PY(YO+3),BW*1,BH,"VF1","vf1",KBD_vf1);
-        AddKeyButtonEvent(PX(XO+1),PY(YO+3),BW*1,BH,"VF2","vf2",KBD_vf2);
-        AddKeyButtonEvent(PX(XO+0),PY(YO+4),BW*1,BH,"VF3","vf3",KBD_vf3);
-        AddKeyButtonEvent(PX(XO+1),PY(YO+4),BW*1,BH,"VF4","vf4",KBD_vf4);
-        AddKeyButtonEvent(PX(XO+2),PY(YO+4),BW*1,BH,"VF5","vf5",KBD_vf5);
+    if(IS_PC98_ARCH)
+    {
+        AddKeyButtonEvent(PX(XO + 0) - CX, PY(YO + 0), BU(2), BV(1), "STOP", "stop", KBD_stop);
+        AddKeyButtonEvent(PX(XO + 2) - CX, PY(YO + 0), BU(2), BV(1), "HELP", "help", KBD_help);
+        AddKeyButtonEvent(PX(XO + 0) - CX, PY(YO + 1), BU(2), BV(1), "COPY", "copy", KBD_copy);
+        AddKeyButtonEvent(PX(XO + 2) - CX, PY(YO + 1), BU(2), BV(1), "KANA", "kana", KBD_kana);
+        AddKeyButtonEvent(PX(XO + 0) - CX, PY(YO + 2), BU(2), BV(1), "NFER", "nfer", KBD_nfer);
+        AddKeyButtonEvent(PX(XO + 2) - CX, PY(YO + 2), BU(2), BV(1), "XFER", "xfer", KBD_xfer);
+        AddKeyButtonEvent(PX(XO + 2) - CX, PY(YO + 3), BU(2), BV(1), "RO/_", "jp_ro", KBD_jp_ro);
+        AddKeyButtonEvent(PX(XO + 0) - CX, PY(YO + 3), BU(1), BV(1), "VF1", "vf1", KBD_vf1);
+        AddKeyButtonEvent(PX(XO + 1) - CX, PY(YO + 3), BU(1), BV(1), "VF2", "vf2", KBD_vf2);
+        AddKeyButtonEvent(PX(XO + 0) - CX, PY(YO + 4), BU(1), BV(1), "VF3", "vf3", KBD_vf3);
+        AddKeyButtonEvent(PX(XO + 1) - CX, PY(YO + 4), BU(1), BV(1), "VF4", "vf4", KBD_vf4);
+        AddKeyButtonEvent(PX(XO + 2) - CX, PY(YO + 4), BU(1), BV(1), "VF5", "vf5", KBD_vf5);
     }
 
 #pragma endregion
