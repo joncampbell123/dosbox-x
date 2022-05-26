@@ -21,7 +21,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.9.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: msys2/setup-msys2@v2
         with:
           msystem: MINGW64
@@ -80,7 +80,7 @@ jobs:
           for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/package/mingw-build/mingw-sdl2/languages/; done
           cp $top/COPYING $top/package/COPYING
       - name: Upload release package
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-artifact@v3.1.0
         with:
           name: dosbox-x-mingw-win64
           path: ${{ github.workspace }}/package/

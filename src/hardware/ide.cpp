@@ -3502,6 +3502,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
     if (!command_interruption_ok(cmd))
         return;
 
+#if 0//TODO: Enable debug
     if (!faked_command) {
         if (drivehead_is_lba(drivehead)) {
             uint64_t n;
@@ -3518,6 +3519,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 
         LOG(LOG_SB,LOG_NORMAL)("IDE ATA command %02x",cmd);
     }
+#endif
 
     /* if the drive is asleep, then writing a command wakes it up */
     interface_wakeup();

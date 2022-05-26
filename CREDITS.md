@@ -92,6 +92,8 @@ HQ2X and HQ3X render scaler (ScummVM, Maxim Stepin; GPLv2+) src/gui/render_templ
 
 PC-98 FM board emulation (Neko Project II; BSD 3-clause) src/hardware/snd_pc98/*
 
+PC-98 GDC and LIO drawing support (Neko Project II; BSD 3-clause) src/hardware/vga_pc98_gdc_draw.cpp src/ints/pc98_lio.cpp
+
 QCOW image support (Michael Greger; GPLv2+) src/ints/qcow2_disk.cpp
 
 JEGA and DOS/V support (nanshiki, Wengier; GPLv2+) include/jfont.h src/ints/int_dosv.cpp

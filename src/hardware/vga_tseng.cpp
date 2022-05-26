@@ -27,6 +27,9 @@
 #include "regs.h"
 #include <cstdlib>
 
+/* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
+#include "cpu_io_is_forbidden.h"
+
 extern bool vga_enable_3C6_ramdac;
 extern bool vga_sierra_lock_565;
 

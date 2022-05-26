@@ -1,4 +1,19 @@
 0.83.26
+  - Added PC-98 GDC drawing commands, which is
+    based on Neko Project II source code (nanshiki)
+  - Added PC-98 LIO BIOS interface, which is based on
+    Neko Project II source code (nanshiki)
+  - INT 21h AH=31h Terminate And Stay Resident: If the
+    program called INT 21h to free it's own PSP segment,
+    reassign the block back to the program as allocated
+    and then resize as expected. Needed for PC-98 game
+    "Yu No" in which PLAY6.EXE, one of the resident
+    drivers used for music, does just that. (joncampbell123)
+  - Adds WINCHECK to list of programs which should not
+    return a valid installation check for WinOldAp
+    (AX=1700h/int2fh) so it doesn't mistakenly believe
+    Windows is running (cimarronm)
+  - Fix PREFETCH instruction breakage in recompilers (Jookia)
   - Add minimal support for IDE SET FEATURES command EFh.
     (joncampbell123)
   - Fix CMPXCHG8B to change only the ZF flag, instead of

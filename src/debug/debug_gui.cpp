@@ -20,6 +20,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stdarg.h>
 #include <stdio.h>
 #include <errno.h>
 #include <fstream>
@@ -665,6 +666,22 @@ void DEBUG_ShowMsg(char const* format,...) {
 	char buf[512];
 	va_list msg;
 	size_t len;
+
+	/* SDLmain() sets control first thing at startup and zeros the pointer at shutdown.
+	 * control == NULL means we're being called outside SDLmain() when everything has
+	 * likely been shut down around us. Don't do it. */
+	if (control == NULL) {
+		fprintf(stderr,"BUG: DEBUG_ShowMsg() called before or after main() with nothing fully initialized.\n");
+		fprintf(stderr,"  Message was: ");
+		{
+			va_list va;
+			va_start(va,format);
+			vfprintf(stderr,format,va);
+			va_end(va);
+		}
+		fprintf(stderr,"\n");
+		return;
+	}
 
     if (format==NULL || (log_dev_con == 2 && !logging_con) || control->opt_nolog) return;
     in_debug_showmsg = true;

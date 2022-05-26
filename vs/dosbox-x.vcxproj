@@ -1177,9 +1177,11 @@ for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath
     <ClCompile Include="..\src\hardware\vga_pc98_dac.cpp" />
     <ClCompile Include="..\src\hardware\vga_pc98_egc.cpp" />
     <ClCompile Include="..\src\hardware\vga_pc98_gdc.cpp" />
+    <ClCompile Include="..\src\hardware\vga_pc98_gdc_draw.cpp" />
     <ClCompile Include="..\src\ints\bios_memdisk.cpp" />
     <ClCompile Include="..\src\ints\bios_vhd.cpp" />
     <ClCompile Include="..\src\ints\int_dosv.cpp" />
+    <ClCompile Include="..\src\ints\pc98_lio.cpp" />
     <ClCompile Include="..\src\libs\decoders\internal\ogg\bitwise.c" />
     <ClCompile Include="..\src\libs\decoders\internal\ogg\framing.c" />
     <ClCompile Include="..\src\libs\decoders\internal\opusfile\http.c" />

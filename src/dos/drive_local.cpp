@@ -1232,7 +1232,7 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
         hand = _wfdopen(nHandle, L"wb+");
 #else
         int fd = open(host_name, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
-        if (fd<0) {close(fd);return false;}
+        if (fd<0) {return false;}
         hand = fdopen(fd, "wb+");
 #endif
     } else {
@@ -1419,7 +1419,7 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 #else
         uint16_t unix_mode = (flags&0xf)==OPEN_READ||(flags&0xf)==OPEN_READ_NO_MOD?O_RDONLY:((flags&0xf)==OPEN_WRITE?O_WRONLY:O_RDWR);
         int fd = open(host_name, unix_mode);
-        if (fd<0 || !share(fd, unix_mode & O_ACCMODE, flags)) {close(fd);return false;}
+        if (fd<0 || !share(fd, unix_mode & O_ACCMODE, flags)) {if (fd >= 0) close(fd);return false;}
         hand = fdopen(fd, (flags&0xf)==OPEN_WRITE?_HT("wb"):type);
 #endif
     } else {
@@ -1776,17 +1776,18 @@ bool localDrive::add_special_file_to_disk(const char* dosname, const char* opera
 	const host_cnv_char_t* host_name = CodePageGuestToHost(newname.c_str());
 	FILE* f = fopen_wrap(host_name!=NULL?host_name:newname.c_str(),"wb+");
 	if (!f) return false;
-    size_t len = 0;
-    if (isdir != !(value & DOS_ATTR_ARCHIVE)) len |= 1;
-    if (value & DOS_ATTR_HIDDEN) len |= 2;
-    if (value & DOS_ATTR_SYSTEM) len |= 4;
-    char *buf = new char[len + 1];
+	size_t len = 0;
+	if (isdir != !(value & DOS_ATTR_ARCHIVE)) len |= 1;
+	if (value & DOS_ATTR_HIDDEN) len |= 2;
+	if (value & DOS_ATTR_SYSTEM) len |= 4;
+	char *buf = new char[len + 1];
+	memset(buf,0,len);
 	fwrite(buf,len,1,f);
 	fclose(f);
-    delete[] buf;
-    return true;
+	delete[] buf;
+	return true;
 #else
-    return false;
+	return false;
 #endif
 }
 

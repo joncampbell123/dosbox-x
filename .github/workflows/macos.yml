@@ -18,7 +18,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.9.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Install libraries
         run: |
           brew install autoconf automake nasm glfw glew sdl_net sdl2_net
@@ -41,7 +41,7 @@ jobs:
           $top/src/bin/dosbox-x-sdl1 -tests
           $top/src/bin/dosbox-x-sdl2 -tests
       - name: Upload release package
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3.1.0
         with:
           name: dosbox-x-macos
           path: ${{ github.workspace }}/src/bin/

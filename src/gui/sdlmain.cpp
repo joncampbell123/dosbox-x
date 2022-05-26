@@ -7405,12 +7405,16 @@ std::wstring win32_prompt_folder(const char *default_folder) {
 }
 #endif
 
+#if C_MODEM
+void NetWrapper_ShutdownSDLNet();
+#endif
 void DISP2_Init(uint8_t color);
 //extern void UI_Init(void);
 void grGlideShutdown(void);
 int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     CommandLine com_line(argc,argv);
     Config myconf(&com_line);
+    bool saved_opt_test;
 
     control=&myconf;
 
@@ -9302,97 +9306,107 @@ fresh_boot:
         CPU_Snap_Back_To_Real_Mode();
         CPU_Snap_Back_Forget();
 
+        void CALLBACK_Dump(void);
+        CALLBACK_Dump();
+
+        /* GUI font registry shutdown */
+#if !defined(C_SDL2)
+        GUI::Font::registry_freeall();
+#endif
+        DOS_ShutdownDrives();
+        DOS_ShutdownFiles();
+        DOS_ShutdownDevices();
+        CALLBACK_Shutdown();
+#if C_DYNAMIC_X86
+        CPU_Core_Dyn_X86_Shutdown();
+#endif
+        FreeBIOSDiskList();
+        MAPPER_Shutdown();
+        VFILE_Shutdown();
+        PROGRAMS_Shutdown();
+        TIMER_ShutdownTickHandlers();
+#if C_DEBUG
+        DEBUG_ShutDown(NULL);
+#endif
+
+        sticky_keys(true); //Might not be needed if the shutdown function switches to windowed mode, but it doesn't hurt
+
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+        if (!control->opt_silent) {
+                SDL_SetIMValues(SDL_IM_ONOFF, 0, NULL);
+                SDL_SetIMValues(SDL_IM_ENABLE, 0, NULL);
+        }
+#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+        if (!control->opt_silent) {
+                SDL_StopTextInput();
+        }
+#endif
+
+        //Force visible mouse to end user. Somehow this sometimes doesn't happen
+#if defined(C_SDL2)
+        SDL_SetRelativeMouseMode(SDL_FALSE);
+#else
+        SDL_WM_GrabInput(SDL_GRAB_OFF);
+#endif
+        SDL_ShowCursor(SDL_ENABLE);
+
+        /* Exit functions */
+        if (machine != MCH_AMSTRAD) // FIXME
+                while (!exitfunctions.empty()) {
+                        Function_wrapper &ent = exitfunctions.front();
+
+                        LOG(LOG_MISC,LOG_DEBUG)("Calling exit function (%p) '%s'",(void*)((uintptr_t)ent.function),ent.name.c_str());
+                        ent.function(NULL);
+                        exitfunctions.pop_front();
+                }
+
+        LOG::Exit();
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU && defined(WIN32) && !defined(HX_DOS) && (!defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL) || defined(C_SDL2))
+        ShowWindow(GetHWND(), SW_HIDE);
+        SDL1_hax_SetMenu(NULL);/* detach menu from window, or else Windows will destroy the menu out from under the C++ class */
+#endif
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
+        void sdl_hax_macosx_setmenu(void *nsMenu);
+        sdl_hax_macosx_setmenu(NULL);
+#endif
+
+#if defined(C_SDL2)
+        SDL_CDROMQuit();
+#endif
+        SDL_Quit();//Let's hope sdl will quit as well when it catches an exception
+
+#if defined(WIN32) && !defined(HX_DOS)
+        if (winTaskbarList != NULL) {
+                winTaskbarList->Release();
+                winTaskbarList = NULL;
+        }
+#endif
+
+        mainMenu.unbuild();
+        mainMenu.clear_all_menu_items();
+
+#if defined(LINUX) && defined(HAVE_ALSA)
+        // force ALSA to release global cache, so that it's one less leak reported by Valgrind
+        snd_config_update_free_global();
+#endif
+
+#if C_MODEM
+	/* SDLNet shutdown must happen here, not after main during glibc C++ library cleanup */
+	NetWrapper_ShutdownSDLNet();
+#endif
+
+	/* the return statement below needs control->opt_test, save it before Config
+	 * goes out of context and is deleted */
+	saved_opt_test = control->opt_test;
+
         /* NTS: The "control" object destructor is called here because the "myconf" object leaves scope.
          * The destructor calls all section destroy functions here. After this point, all sections have
          * freed resources. */
+        control = NULL; /* any deref past this point and you deserve to segfault */
     }
 
-    void CALLBACK_Dump(void);
-    CALLBACK_Dump();
-
-    /* GUI font registry shutdown */
-#if !defined(C_SDL2)
-    GUI::Font::registry_freeall();
-#endif
-    DOS_ShutdownDrives();
-    DOS_ShutdownFiles();
-    DOS_ShutdownDevices();
-    CALLBACK_Shutdown();
-#if C_DYNAMIC_X86
-    CPU_Core_Dyn_X86_Shutdown();
-#endif
-    FreeBIOSDiskList();
-    MAPPER_Shutdown();
-    VFILE_Shutdown();
-    PROGRAMS_Shutdown();
-    TIMER_ShutdownTickHandlers();
-#if C_DEBUG
-    DEBUG_ShutDown(NULL);
-#endif
-
-    sticky_keys(true); //Might not be needed if the shutdown function switches to windowed mode, but it doesn't hurt
-
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
-    if (!control->opt_silent) {
-        SDL_SetIMValues(SDL_IM_ONOFF, 0, NULL);
-        SDL_SetIMValues(SDL_IM_ENABLE, 0, NULL);
-    }
-#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
-    if (!control->opt_silent) {
-        SDL_StopTextInput();
-    }
-#endif
-
-    //Force visible mouse to end user. Somehow this sometimes doesn't happen
-#if defined(C_SDL2)
-    SDL_SetRelativeMouseMode(SDL_FALSE);
-#else
-    SDL_WM_GrabInput(SDL_GRAB_OFF);
-#endif
-    SDL_ShowCursor(SDL_ENABLE);
-
-    /* Exit functions */
-    if (machine != MCH_AMSTRAD) // FIXME
-    while (!exitfunctions.empty()) {
-        Function_wrapper &ent = exitfunctions.front();
-
-        LOG(LOG_MISC,LOG_DEBUG)("Calling exit function (%p) '%s'",(void*)((uintptr_t)ent.function),ent.name.c_str());
-        ent.function(NULL);
-        exitfunctions.pop_front();
-    }
-
-    LOG::Exit();
-
-#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU && defined(WIN32) && !defined(HX_DOS) && (!defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL) || defined(C_SDL2))
-    ShowWindow(GetHWND(), SW_HIDE);
-    SDL1_hax_SetMenu(NULL);/* detach menu from window, or else Windows will destroy the menu out from under the C++ class */
-#endif
-#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
-    void sdl_hax_macosx_setmenu(void *nsMenu);
-    sdl_hax_macosx_setmenu(NULL);
-#endif
-
-#if defined(C_SDL2)
-	SDL_CDROMQuit();
-#endif
-    SDL_Quit();//Let's hope sdl will quit as well when it catches an exception
-
-#if defined(WIN32) && !defined(HX_DOS)
-    if (winTaskbarList != NULL) {
-        winTaskbarList->Release();
-        winTaskbarList = NULL;
-    }
-#endif
-
-    mainMenu.unbuild();
-    mainMenu.clear_all_menu_items();
-
-#if defined(LINUX) && defined(HAVE_ALSA)
-    // force ALSA to release global cache, so that it's one less leak reported by Valgrind
-    snd_config_update_free_global();
-#endif
-
-    return control->opt_test&&testerr?1:0;
+    return saved_opt_test&&testerr?1:0;
 }
 
 void GFX_GetSizeAndPos(int &x,int &y,int &width, int &height, bool &fullscreen) {

@@ -21,7 +21,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.9.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Prepare HX-DOS
         shell: bash
         run: |
@@ -55,7 +55,7 @@ jobs:
           cp $top/build-scripts/mingw/hxdos/WINSPOOL.DRV $top/package/
           cp $top/build-scripts/mingw/hxdos/*.DLL $top/package/
       - name: Upload release package
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-artifact@v3.1.0
         with:
           name: dosbox-x-mingw-hx-dos
           path: ${{ github.workspace }}/package/
@@ -74,7 +74,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.9.1
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Prepare MinGW lowend
         run: |
           top=`pwd`
@@ -120,7 +120,7 @@ jobs:
           for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/package/mingw-build/mingw-lowend/languages/; done
           cp $top/COPYING $top/package/COPYING
       - name: Upload release package
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-artifact@v3.1.0
         with:
           name: dosbox-x-mingw-lowend
           path: ${{ github.workspace }}/package/

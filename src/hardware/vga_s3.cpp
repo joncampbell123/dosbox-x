@@ -24,6 +24,9 @@
 #include "mem.h"
 #include "pci_bus.h"
 
+/* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
+#include "cpu_io_is_forbidden.h"
+
 void SD3_Reset(bool enable);
 bool has_pcibus_enable(void);
 

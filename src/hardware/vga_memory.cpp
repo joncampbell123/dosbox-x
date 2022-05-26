@@ -1706,7 +1706,7 @@ public:
          *    0 = shifter input is VRAM data */
         if (pc98_egc_compare_lead) {
             if (!pc98_egc_shiftinput)
-                return *((AWT*)(pc98_egc_src[pc98_egc_lead_plane&3].b));
+                return *((AWT*)(pc98_egc_src[pc98_egc_lead_plane&3].b+(vramoff&1)));
             else
                 return *((AWT*)(pc98_pgraph_current_cpu_page+vramoff+((pc98_egc_lead_plane&3)*PC98_VRAM_BITPLANE_SIZE)));
         }
@@ -2264,6 +2264,41 @@ static struct vg {
     VGA_PC98_256Planar_PageHandler pc98_256planar;
 	VGA_Empty_Handler			empty;
 } vgaph;
+
+/* backdoor PC-98 memory I/O interface for GDC drawing code in vga_pc98_gdc_draw.cpp.
+ * The GDC drawing code must not access video memory through CPU memory I/O functions
+ * to avoid needless address translation and possible emulation stability issues that
+ * can arise if the CPU is running in 386 protected mode and paging is enabled.
+ *
+ * According to nanshiki, the GDC's read/modify/write I/O may also go through the EGC
+ * circuitry because there are references that mention using EGC functions to enhance
+ * GDC draw commands. Which means just directly reading/writing planar memory will not
+ * emulate things correctly. [https://github.com/joncampbell123/dosbox-x/pull/3508#issuecomment-1135452117]
+ *
+ * The code submitted by nanshiki already adds the drawing base address to the address
+ * when calling these functions (e.g. A8000, B0000, B8000, E0000) so there is no need
+ * to adjust them.
+ *
+ * This code calls readc/writec directly because read/write must translate CPU virtual
+ * addresses to physical due to a design inherited from DOSBox SVN in which the address
+ * is NOT translated to physical by the underlying emulator code before calling this
+ * interface. If I had designed this, read/write would concern themselves only with
+ * physical addresses. --Jonathan C. */
+uint8_t pc98_gdc_vread(const uint32_t addr) {
+	return vgaph.pc98.readc<uint8_t>(addr);
+}
+
+void pc98_gdc_vwrite(const uint32_t addr,const uint8_t b) {
+	return vgaph.pc98.writec<uint8_t>(addr,b);
+}
+
+uint16_t pc98_gdc_vreadw(const uint32_t addr) {
+	return vgaph.pc98.readc<uint16_t>(addr);
+}
+
+void pc98_gdc_vwritew(const uint32_t addr,const uint16_t b) {
+	return vgaph.pc98.writec<uint16_t>(addr,b);
+}
 
 void VGA_ChangedBank(void) {
 	VGA_SetupHandlers();

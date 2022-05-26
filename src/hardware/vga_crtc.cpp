@@ -27,6 +27,9 @@
 #include "video.h"
 #include "pic.h"
 
+/* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
+#include "cpu_io_is_forbidden.h"
+
 #define crtc(blah) vga.crtc.blah
 
 

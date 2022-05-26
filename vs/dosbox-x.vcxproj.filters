@@ -1587,6 +1587,12 @@
     <ClCompile Include="..\src\libs\mt32\Display.cpp">
       <Filter>Sources\libs\mt32</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\ints\pc98_lio.cpp">
+      <Filter>Sources\ints</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_pc98_gdc_draw.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">

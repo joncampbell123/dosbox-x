@@ -41,6 +41,9 @@
 #include <string>
 #include <stdio.h>
 
+/* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
+#include "cpu_io_is_forbidden.h"
+
 /* Character Generator (CG) font access state */
 uint16_t                    a1_font_load_addr = 0;
 uint8_t                     a1_font_char_offset = 0;

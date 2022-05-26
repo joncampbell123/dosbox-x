@@ -24,6 +24,9 @@
 #include "inout.h"
 #include "mem.h"
 
+/* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
+#include "cpu_io_is_forbidden.h"
+
 extern unsigned int vbe_window_granularity;
 extern unsigned int vbe_window_size;
 
