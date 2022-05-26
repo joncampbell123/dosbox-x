@@ -461,11 +461,11 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_IMGMOUNT_STATUS_FORMAT
-%-5s %-41s %-10s %s
+%-5s  %-41s  %-10s  %s
 
 .
 :PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT
-%-12s %-33s %-10s %s
+%-12s  %-36s  %-10s  %s
 
 .
 :PROGRAM_IMGMOUNT_STATUS_2
