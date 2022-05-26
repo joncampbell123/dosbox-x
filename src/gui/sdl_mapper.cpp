@@ -2554,6 +2554,29 @@ protected:
     bool invert;
     bool enabled;
     bool clickable;
+
+    void DrawTextAuto(const char* text, bool centered, uint8_t foreground, uint8_t background)
+    {
+        if(dx == 0)
+        {
+            return; // BUG/TODO some buttons
+        }
+        const auto size = strlen(text);
+        const auto wide = dx / 8;
+        const auto data = size > wide ? std::string(text, wide - 3) + std::string("...") : std::string(text);
+
+        if(centered)
+        {
+            const auto size = data.size();
+            const auto xPos = std::max(x, x + dx / 2 - size * 8 / 2);
+            const auto yPos = std::max(y, y + dy / 2 - 14 / 2);
+            DrawText(1 + xPos, yPos, data.c_str(), foreground, background);
+        }
+        else
+        {
+            DrawText(x + 2, y + 2, data.c_str(), foreground, background);
+        }
+    }
 };
 
 static CButton *press_select = NULL;
@@ -2582,10 +2605,7 @@ public:
 
         CButton::Draw();
 
-        const auto size = strlen(text);
-        const auto xPos = x + dx / 2 - size * 8 / 2;
-        const auto yPos = y + dy / 2 - 14 / 2;
-        DrawText(1 + xPos, yPos, text, fg, bg);
+        DrawTextAuto(text, true, fg, bg); // TODO add the ability to center text for this class
 
 #if defined(C_SDL2)
         uint8_t * point=((uint8_t *)mapper.draw_surface->pixels)+(y*mapper.draw_surface->w)+x;
@@ -2669,17 +2689,7 @@ public:
         if(!enabled)
             return;
 
-        if(center)
-        {
-            const auto size = strlen(caption);
-            const auto xPos = std::max(x, x + dx / 2 - size * 8 / 2);
-            const auto yPos = std::max(y, y + dy / 2 - 14 / 2);
-            DrawText(1 + xPos, yPos, caption, color);
-        }
-        else
-        {
-            DrawText(x + 2, y + 2, caption, color);
-        }
+        DrawTextAuto(caption, center, color, CLR_BLACK);
     }
 
 protected:
@@ -4300,7 +4310,7 @@ static void CreateLayout(void) {
 
     // NOTE: screen budget is really tight down there, more than that and drawing crashes
 
-    bind_but.action = new CCaptionButton(PX(8) - CX, PY(22) - CY, BU(16), BV(1), false);
+    bind_but.action = new CCaptionButton(PX(8) - CX, PY(22) - CY, BU(15), BV(1), false);
     bind_but.dbg1   = new CCaptionButton(PX(8) - CX, PY(23) - CY, BU(16), BV(1), false);
     bind_but.dbg2   = new CCaptionButton(PX(8) - CX, PY(24) - CY, BU(16), BV(1), false);
 
