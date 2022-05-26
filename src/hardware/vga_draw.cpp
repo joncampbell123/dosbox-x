@@ -126,6 +126,7 @@ int vga_mode_frames_since_time_base = 0;
 
 bool showdbcs = false;
 bool pc98_display_enable = true;
+bool pc98_monochrome_mode = false;
 
 extern bool pc98_40col_text;
 extern bool vga_3da_polled;
@@ -2800,6 +2801,7 @@ Text_Draw_State     pc98_text_draw;
  * across other models I have available for testing, or it may not. --J.C.
  */
 
+extern uint8_t              pc98_pal_digital[8];    /* G R B    0x0..0x7 */
 extern bool                 pc98_256kb_boundary;
 extern bool                 gdc_5mhz_mode;
 
@@ -2815,6 +2817,7 @@ static uint8_t* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     unsigned char font,foreground;
     unsigned char fline;
     bool ok_raster = true;
+    bool monoproc = false;
 
     // simulate 1-pixel shift in CRT mode by offsetting everything by 1 then rendering text without the offset
     disp_off = pc98_crt_mode ? 1 : 0;
@@ -2860,6 +2863,56 @@ static uint8_t* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
 
                 vidmem += 8;
             }
+        }
+        else if (pc98_monochrome_mode && (pc98_gdc_vramop & (1 << VOPBIT_ANALOG)) == 0/*8-color digital mode ONLY*/) {
+            /* NTS: According to real hardware, monochrome reads all three bitplanes (8-color mode), maps through
+             *      the digital palette, then uses only bit 2 as a monochrome bitplane.
+             *
+             *      According to Nanshiki, though not yet confirmed (2022/05/26), the monochrome planar graphics
+             *      take on the color attribute of the text layer (test case MONO.C/MONO.EXE).
+             *
+             *      Monochrome mode is said to be a carry-over from PC-88 as a backwards compatible graphics
+             *      display mode, and later removed in later hardware. Likely at a time when Windows 95/98 was
+             *      becoming the dominant mode of operation.
+             *
+             *      As a possibly unsupported/unintended mode, monochrome mode can be enabled in 16-color analog
+             *      graphics mode, in which case it behaves like a 4-bit digital graphics mode, uses the 8-color
+             *      palette, and the pixel is set if the combined 4-bit value is (v & 0xC) == 0x8. Setting the
+             *      corresponding bit in plane 3 cancels out bit 2, apparently. As seen on a 486 PC9821 laptop.
+             *      Perhaps this unintended mode differs on later/earlier hardware.
+             *
+             *      To avoid cluttering this code, DOSBox-X will not render monochrome mode if the 16-color
+             *      analog mode is active. */
+            /* NOTICE: Copy-paste of 8/16-color planar mode below */
+            const unsigned long vmask = 0x7FFFu;
+
+            vidmem = (unsigned int)pc98_gdc[GDC_SLAVE].scan_address << 1u;
+
+            while (blocks--) {
+                /* In monochrome mode, the 3-bit value is read just like color mode, then remapped through the
+                 * digital palette, then only bit 2 (normally green) is used on the display. */
+                uint8_t g8 = pc98_pgraph_current_display_page[(vidmem & vmask) + pc98_pgram_bitplane_offset(2)];      /* B8000-BFFFF */
+                uint8_t r8 = pc98_pgraph_current_display_page[(vidmem & vmask) + pc98_pgram_bitplane_offset(1)];      /* B0000-B7FFF */
+                uint8_t b8 = pc98_pgraph_current_display_page[(vidmem & vmask) + pc98_pgram_bitplane_offset(0)];      /* A8000-AFFFF */
+
+                for (unsigned char i=0;i < 8;i++) {
+                    foreground  = (g8 & 0x80) ? 4 : 0;
+                    foreground += (r8 & 0x80) ? 2 : 0;
+                    foreground += (b8 & 0x80) ? 1 : 0;
+
+                    g8 <<= 1;
+                    r8 <<= 1;
+                    b8 <<= 1;
+
+		    /* bit 2 becomes the pixel, map to black or white and let the text layer below color it */
+                    *draw++ = (pc98_pal_digital[foreground] & 4) ? 0xFFFFFFFF : 0x00000000;
+                }
+
+                vidmem++;
+            }
+
+	    /* the text layer needs to color our output */
+            monoproc = true;
         }
         else {
             /* NTS: According to real hardware, the 128KB/256KB boundary control bit ONLY works in 256-color mode.
@@ -3079,6 +3132,8 @@ interrupted_char_begin:
                 for (Bitu n = 0; n < 8; n++) {
                     if (font & 0x80)
                         *draw++ = pc98_text_palette[foreground];
+                    else if (monoproc && *draw != 0) /* monochrome mode: text attribute colors graphics, therefore color if pixel set */
+                        *draw++ = pc98_text_palette[foreground];
                     else
                         draw++;
 
@@ -3093,6 +3148,10 @@ interrupted_char_begin:
                 for (Bitu n = 0; n < 8; n++) {
                     if (font & 0x80)
                         draw[0] = draw[1] = pc98_text_palette[foreground];
+                    else if (monoproc) {
+                        if (draw[0]) draw[0] = pc98_text_palette[foreground];
+                        if (draw[1]) draw[1] = pc98_text_palette[foreground];
+                    }
 
                     font <<= 1u;
                     draw += 2;

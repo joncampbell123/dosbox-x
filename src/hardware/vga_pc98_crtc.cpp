@@ -46,6 +46,7 @@ extern bool                 pc98_40col_text;
 extern bool                 pc98_31khz_mode;
 extern bool                 pc98_attr4_graphic;
 extern bool                 pc98_display_enable;
+extern bool                 pc98_monochrome_mode;
 extern bool                 pc98_graphics_hide_odd_raster_200line;
 extern bool                 pc98_crt_mode;      // see port 6Ah command 40h/41h.
 
@@ -260,6 +261,10 @@ void pc98_port68_command_write(unsigned char b) {
         case 0x01: //                                       1=simple graphic
             pc98_attr4_graphic = !!(b&1);
             break;
+        case 0x02: // monochrome display mode               0=disable
+        case 0x03: //                                       1=enable
+            pc98_monochrome_mode = !!(b&1);
+            break;
         case 0x04: // 40-column mode  0=80-column
         case 0x05: //                 1=40-column
             pc98_40col_text = !!(b&1);
@@ -294,7 +299,7 @@ Bitu pc98_read_9a0(Bitu /*port*/,Bitu /*iolen*/) {
      * according to undocumented 9821 (not verified), unknown registers and 0x00 will return 0xff here. */
     switch (sel_9a0) {
         case 0x01:      // color/monochrome
-            if (true) retval |= 1u;//FIXME
+            if (pc98_monochrome_mode) retval |= 1u;
             break;
         case 0x02:      // odd raster mask
             if (pc98_graphics_hide_odd_raster_200line) retval |= 1u;
