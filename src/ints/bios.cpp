@@ -3881,6 +3881,9 @@ static Bitu INT18_PC98_Handler(void) {
             //           1 = monochrome
             //   [4:4] = Display bank
 
+            // Color or monochrome mode
+            IO_WriteB(0x68, (reg_ch & 0x20) ? 0x03 : 0x02);
+
             // FIXME: This is a guess. I have no idea as to actual behavior, yet.
             //        This seems to help with clearing the text layer when games start the graphics.
             //        This is ALSO how we will detect games that switch on the 200-line double-scan mode vs 400-line mode.

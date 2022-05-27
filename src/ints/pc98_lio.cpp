@@ -538,6 +538,7 @@ uint8_t PC98_BIOS_LIO_GSCREEN() {
             break;
     }
     mode |= disp << 4;
+    mode |= mono << 5;
     reg_ch = mode;
     reg_ah = 0x42;
     CALLBACK_RunRealInt(0x18);
