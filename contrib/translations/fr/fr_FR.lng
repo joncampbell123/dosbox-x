@@ -2302,10 +2302,10 @@ Basculer plein écran
 Réinit. taille fenêtre
 .
 :MENU:mapper_dbcssbcs
-CJK: Commutation entre les modes DBCS/SBCS
+CJK: Commutation entre les mode DBCS/SBCS
 .
 :MENU:mapper_autoboxdraw
-CJK: Détection auto. des caractères de boîte dessin
+CJK: Détection automatique des caractères de dessin de boîte
 .
 :MENU:mapper_incsize
 Augmenter taille police
@@ -3398,9 +3398,6 @@ Afficher l'état du disque IDE ou du CD
 :MENU:pc98_use_uskb
 Utiliser la disposition clavier US
 .
-:MAPPER:caprawopl
-Enreg. sortie FM/OPL
-.
 :MAPPER:copyall
 Copier presse-papiers
 .
@@ -3440,29 +3437,11 @@ Coller presse-papiers
 :MAPPER:pasteend
 Arrêt presse-papiers
 .
-:MAPPER:pauseints
-Pause avec interrupt.
-.
-:MAPPER:prevslot
-Emplacement svg préc.
-.
-:MAPPER:printtext
-Imprimer texte d'écran
-.
 :MAPPER:quickrun
-Lancer prog. rapidement
+Programme de lancement rapide
 .
 :MAPPER:reboot
 Redémarrer le DOS
-.
-:MAPPER:recmtwave
-Enreg. vers M.T. AVI
-.
-:MAPPER:recvoldown
-Diminuer volume enreg.
-.
-:MAPPER:recvolup
-Augmenter volume enreg.
 .
 :MAPPER:rescanall
 Réanalyser lecteurs

@@ -37,7 +37,8 @@ jobs:
           copy build-scripts\mingw\bin\msys.bat mingw-get\msys\1.0
           copy build-scripts\mingw\bin\runbuild.sh mingw-get\msys\1.0
           copy build-scripts\mingw\bin\gawk.exe mingw-get\msys\1.0\bin
-          mingw-get\msys\1.0\msys.bat /mingw/msys/1.0/runbuild.sh build-mingw-hx-dos
+          rem mingw-get\msys\1.0\msys.bat /mingw/msys/1.0/runbuild.sh build-mingw-hx-dos
+          if (-not(Test-Path -Path $top/src/dosbox-x.exe -PathType Leaf)) {exit 1}
       - name: Package HX-DOS
         shell: bash
         run: |
@@ -93,7 +94,8 @@ jobs:
       - name: Build MinGW lowend
         shell: pwsh
         run: |
-          mingw-get\msys\1.0\msys.bat /mingw/msys/1.0/runbuild.sh build-mingw-lowend
+          rem mingw-get\msys\1.0\msys.bat /mingw/msys/1.0/runbuild.sh build-mingw-lowend
+          if (-not(Test-Path -Path $top/src/dosbox-x.exe -PathType Leaf)) {exit 1}
       - name: Package MinGW lowend
         run: |
           top=`pwd`
