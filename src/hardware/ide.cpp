@@ -284,7 +284,8 @@ public:
     std::string id_mmc_vendor_id;
     std::string id_mmc_product_id;
     std::string id_mmc_product_rev;
-    Bitu LBA,TransferLength;
+    Bitu TransferLengthRemaining;
+    Bitu LBA,LBAnext,TransferLength;
     int loading_mode;
     bool has_changed;
 public:
@@ -1123,7 +1124,9 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
                 bool res = (cdrom != NULL ? cdrom->ReadSectorsHost(/*buffer*/sector,false,LBA,TransferLength) : false);
                 if (res) {
                     prepare_read(0,MIN((unsigned int)(TransferLength*2048),(unsigned int)host_maximum_byte_count));
+                    LBAnext = LBA + TransferLength;
                     feature = 0x00;
+                    count = 0x02; /* data for computer */
                     state = IDE_DEV_DATA_READ;
                     status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
                 }
@@ -1131,6 +1134,8 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
                     feature = 0xF4; /* abort sense=0xF */
                     count = 0x03; /* no more transfer */
                     sector_total = 0;/*nothing to transfer */
+                    TransferLength = 0;
+                    TransferLengthRemaining = 0;
                     state = IDE_DEV_READY;
                     status = IDE_STATUS_DRIVE_READY|IDE_STATUS_ERROR;
                     LOG_MSG("ATAPI: Failed to read %lu sectors at %lu\n",
@@ -1287,7 +1292,9 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
     atapi_to_host = false;
     host_maximum_byte_count = 0;
     LBA = 0;
+    LBAnext = 0;
     TransferLength = 0;
+    TransferLengthRemaining = 0;
     memset(atapi_cmd, 0, sizeof(atapi_cmd));
     atapi_cmd_i = 0;
     atapi_cmd_total = 0;
@@ -1358,11 +1365,53 @@ void IDEATAPICDROMDevice::on_mode_select_io_complete() {
 }
 
 void IDEATAPICDROMDevice::atapi_io_completion() {
+    const unsigned int pk = IDEEventPack(controller->interface_index,slave?1u:0u).get();
+
     /* for most ATAPI PACKET commands, the transfer is done and we need to clear
        all indication of a possible data transfer */
 
-    if (count == 0x00) { /* the command was expecting data. now it can act on it */
+    if (count != 0x03) { /* the command was expecting data. now it can act on it */
         switch (atapi_cmd[0]) {
+            case 0x28:/*READ(10)*/
+            case 0xA8:/*READ(12)*/
+                /* How much does the guest want to transfer? */
+                /* NTS: This is required to work correctly with the ide-cd driver in the Linux kernel.
+                 *      The Linux kernel appears to negotiate a 32KB or 64KB transfer size here even
+                 *      if the total transfer from a CD READ would exceed that size, and it expects
+                 *      the full result in those DRQ block transfer sizes. */
+                sector_total = (lba[1] & 0xFF) | ((lba[2] & 0xFF) << 8);
+
+                /* FIXME: We actually should NOT be capping the transfer length, but instead should
+                   be breaking the larger transfer into smaller DRQ block transfers like
+                   most IDE ATAPI drives do. Writing the test IDE code taught me that if you
+                   go to most drives and request a transfer length of 0xFFFE the drive will
+                   happily set itself up to transfer that many sectors in one IDE command! */
+                /* NTS: In case you're wondering, it's legal to issue READ(10) with transfer length == 0.
+                   MSCDEX.EXE does it when starting up, for example */
+                TransferLength = TransferLengthRemaining;
+                if ((TransferLength*2048) > sizeof(sector))
+                    TransferLength = sizeof(sector)/2048;
+                if ((TransferLength*2048) > sector_total)
+                    TransferLength = sector_total/2048;
+
+                LBA = LBAnext;
+                assert(TransferLengthRemaining >= TransferLength);
+                TransferLengthRemaining -= TransferLength;
+
+                if (TransferLength != 0) {
+//                  LOG_MSG("ATAPI CD READ LBA=%x xfer=%x xferrem=%x continued",(unsigned int)LBA,(unsigned int)TransferLength,(unsigned int)TransferLengthRemaining);
+
+                    count = 0x02;
+                    state = IDE_DEV_ATAPI_BUSY;
+                    status = IDE_STATUS_BUSY;
+                    /* TODO: Emulate CD-ROM spin-up delay, and seek delay */
+                    PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,pk);
+		    return;
+                }
+                else {
+//                  LOG_MSG("ATAPI CD READ LBA=%x xfer=%x xferrem=%x transfer complete",(unsigned int)LBA,(unsigned int)TransferLength,(unsigned int)TransferLengthRemaining);
+                }
+                break;
             case 0x55: /* MODE SELECT(10) */
                 on_mode_select_io_complete();
                 break;
@@ -1395,7 +1444,8 @@ void IDEATAPICDROMDevice::io_completion() {
             status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
             state = IDE_DEV_READY;
             allow_writing = true;
-            break;
+            count = 0x03; /* no more data (command/data=1, input/output=1) */
+	    break;
     }
 }
 
@@ -1640,6 +1690,13 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
             if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
                 set_sense(0); /* <- nothing wrong */
 
+                /* How much does the guest want to transfer? */
+                /* NTS: This is required to work correctly with the ide-cd driver in the Linux kernel.
+                 *      The Linux kernel appears to negotiate a 32KB or 64KB transfer size here even
+                 *      if the total transfer from a CD READ would exceed that size, and it expects
+                 *      the full result in those DRQ block transfer sizes. */
+                sector_total = (lba[1] & 0xFF) | ((lba[2] & 0xFF) << 8);
+
                 /* FIXME: MSCDEX.EXE appears to test the drive by issuing READ(10) with transfer length == 0.
                    This is all well and good but our response seems to cause a temporary 2-3 second
                    pause for each attempt. Why? */
@@ -1652,6 +1709,9 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                     ((Bitu)atapi_cmd[8] << 8UL) |
                     ((Bitu)atapi_cmd[9]);
 
+                /* keep track of the original transfer length */
+                TransferLengthRemaining = TransferLength;
+
                 /* FIXME: We actually should NOT be capping the transfer length, but instead should
                    be breaking the larger transfer into smaller DRQ block transfers like
                    most IDE ATAPI drives do. Writing the test IDE code taught me that if you
@@ -1661,6 +1721,14 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                    MSCDEX.EXE does it when starting up, for example */
                 if ((TransferLength*2048) > sizeof(sector))
                     TransferLength = sizeof(sector)/2048;
+                if ((TransferLength*2048) > sector_total)
+                    TransferLength = sector_total/2048;
+
+                assert(TransferLengthRemaining >= TransferLength);
+                TransferLengthRemaining -= TransferLength;
+                LBAnext = LBA;
+
+//              LOG_MSG("ATAPI CD READ LBA=%x xfer=%x xferrem=%x",(unsigned int)LBA,(unsigned int)TransferLength,(unsigned int)TransferLengthRemaining);
 
                 count = 0x02;
                 state = IDE_DEV_ATAPI_BUSY;
@@ -1681,6 +1749,13 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
             if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
                 set_sense(0); /* <- nothing wrong */
 
+                /* How much does the guest want to transfer? */
+                /* NTS: This is required to work correctly with the ide-cd driver in the Linux kernel.
+                 *      The Linux kernel appears to negotiate a 32KB or 64KB transfer size here even
+                 *      if the total transfer from a CD READ would exceed that size, and it expects
+                 *      the full result in those DRQ block transfer sizes. */
+                sector_total = (lba[1] & 0xFF) | ((lba[2] & 0xFF) << 8);
+
                 /* FIXME: MSCDEX.EXE appears to test the drive by issuing READ(10) with transfer length == 0.
                    This is all well and good but our response seems to cause a temporary 2-3 second
                    pause for each attempt. Why? */
@@ -1691,6 +1766,9 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                 TransferLength = ((Bitu)atapi_cmd[7] << 8) |
                     ((Bitu)atapi_cmd[8]);
 
+                /* keep track of the original transfer length */
+                TransferLengthRemaining = TransferLength;
+
                 /* FIXME: We actually should NOT be capping the transfer length, but instead should
                    be breaking the larger transfer into smaller DRQ block transfers like
                    most IDE ATAPI drives do. Writing the test IDE code taught me that if you
@@ -1700,6 +1778,14 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                    MSCDEX.EXE does it when starting up, for example */
                 if ((TransferLength*2048) > sizeof(sector))
                     TransferLength = sizeof(sector)/2048;
+                if ((TransferLength*2048) > sector_total)
+                    TransferLength = sector_total/2048;
+
+                assert(TransferLengthRemaining >= TransferLength);
+                TransferLengthRemaining -= TransferLength;
+                LBAnext = LBA;
+
+//              LOG_MSG("ATAPI CD READ LBA=%x xfer=%x xferrem=%x",(unsigned int)LBA,(unsigned int)TransferLength,(unsigned int)TransferLengthRemaining);
 
                 count = 0x02;
                 state = IDE_DEV_ATAPI_BUSY;

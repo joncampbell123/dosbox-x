@@ -1,4 +1,10 @@
 0.83.26
+  - Fix IDE ATAPI emulation to correctly handle CD
+    READ across one or more DRQ block transfers.
+    Use block size given by guest in consideration
+    of DRQ block size, which allows ATAPI CD-ROM
+    emulation to work properly with the Linux kernel.
+    (joncampbell123)
   - Add debug command to show PC-98 color palettes.
     Corrected typo. (joncampbell123)
   - Add support for PC-98 monochrome graphics mode.
