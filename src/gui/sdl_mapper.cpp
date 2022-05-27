@@ -4097,6 +4097,8 @@ static void CreateLayout(void) {
         (new CTextButton(PX(XO + 4), PY(YO + 0) - CY, BU(3), BV(1), "Axis 3/4"));
         (new CTextButton(PX(XO + 8), PY(YO + 0) - CY, BU(3), BV(1), "Hat/D-pad"));
         break;
+    default:
+        break;
     }
 
     {
@@ -4104,9 +4106,9 @@ static void CreateLayout(void) {
         AddJButtonButton(PX(XO + 2), PY(YO + 1) - CY, BU(1), BV(1), "2", 0, 1);
 
         auto x1 = AddJAxisButton(PX(XO + 0), PY(YO + 2) - CY, BU(1), BV(1), "X-", 0, 0, false, nullptr);
-        auto x2 = AddJAxisButton(PX(XO + 2), PY(YO + 2) - CY, BU(1), BV(1), "X+", 0, 0, true, x1);
+        auto x2 = AddJAxisButton(PX(XO + 2), PY(YO + 2) - CY, BU(1), BV(1), "X+", 0, 0, true, x1); (void)x2;//unused
         auto y1 = AddJAxisButton(PX(XO + 1), PY(YO + 1) - CY, BU(1), BV(1), "Y-", 0, 1, false, nullptr);
-        auto y2 = AddJAxisButton(PX(XO + 1), PY(YO + 2) - CY, BU(1), BV(1), "Y+", 0, 1, true, y1);
+        auto y2 = AddJAxisButton(PX(XO + 1), PY(YO + 2) - CY, BU(1), BV(1), "Y+", 0, 1, true, y1); (void)y2;//unused
     }
 
     if(joytype == JOY_2AXIS)
@@ -4117,9 +4119,9 @@ static void CreateLayout(void) {
         AddJButtonButton_hidden(0, 3);
 
         auto x1 = AddJAxisButton(PX(XO + 4), PY(YO + 2) - CY, BW, BH, "X-", 1, 0, false, nullptr);
-        auto x2 = AddJAxisButton(PX(XO + 6), PY(YO + 2) - CY, BW, BH, "X+", 1, 0, true, x1);
+        auto x2 = AddJAxisButton(PX(XO + 6), PY(YO + 2) - CY, BW, BH, "X+", 1, 0, true, x1); (void)x2;//unused
         auto y1 = AddJAxisButton(PX(XO + 5), PY(YO + 1) - CY, BW, BH, "Y-", 1, 1, false, nullptr);
-        auto y2 = AddJAxisButton(PX(XO + 5), PY(YO + 2) - CY, BW, BH, "Y+", 1, 1, true, y1);
+        auto y2 = AddJAxisButton(PX(XO + 5), PY(YO + 2) - CY, BW, BH, "Y+", 1, 1, true, y1); (void)y2;//unused
         auto z1 = AddJAxisButton_hidden(0, 2, false, nullptr);
         auto z2 = AddJAxisButton_hidden(0, 3, false, nullptr);
 
@@ -4134,9 +4136,9 @@ static void CreateLayout(void) {
         AddJButtonButton_hidden(1, 1);
 
         auto x1 = AddJAxisButton(PX(XO + 4), PY(YO + 2) - CY, BU(1), BV(1), "X-", 0, 2, false, nullptr);
-        auto x2 = AddJAxisButton(PX(XO + 6), PY(YO + 2) - CY, BU(1), BV(1), "X+", 0, 2, true, x1);
+        auto x2 = AddJAxisButton(PX(XO + 6), PY(YO + 2) - CY, BU(1), BV(1), "X+", 0, 2, true, x1); (void)x2;//unused
         auto y1 = AddJAxisButton(PX(XO + 5), PY(YO + 1) - CY, BU(1), BV(1), "Y-", 0, 3, false, nullptr);
-        auto y2 = AddJAxisButton(PX(XO + 5), PY(YO + 2) - CY, BU(1), BV(1), "Y+", 0, 3, true, y1);
+        auto y2 = AddJAxisButton(PX(XO + 5), PY(YO + 2) - CY, BU(1), BV(1), "Y+", 0, 3, true, y1); (void)y2;//unused
         auto z1 = AddJAxisButton_hidden(1, 0, false, nullptr);
         auto z2 = AddJAxisButton_hidden(1, 1, false, nullptr);
 
