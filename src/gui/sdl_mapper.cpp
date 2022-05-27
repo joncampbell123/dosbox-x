@@ -4181,11 +4181,11 @@ static void CreateLayout(void) {
     AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 3), BU(3), BV(1), "HIRAGANA","jp_hiragana",KBD_jp_hiragana);
     AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 4), BU(3), BV(1), "YEN",     "jp_yen",     KBD_jp_yen);
     AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 0), BU(1), BV(1), "\\",      "jp_bckslash",KBD_jp_backslash);
-    AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 1), BU(1), BV(1), ":*",      "colon",      KBD_colon);
-    AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 2), BU(1), BV(1), "^`",      "caret",      KBD_caret);
-    AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 3), BU(1), BV(1), "@~",      "atsign",     KBD_atsign);
-    AddKeyButtonEvent(PX(XO + 6) + CX, PY(YO + 0), BU(3), BV(1), "HANCHA",  "kor_hancha", KBD_kor_hancha);
-    AddKeyButtonEvent(PX(XO + 6) + CX, PY(YO + 1), BU(3), BV(1), "HANYONG", "kor_hanyong",KBD_kor_hanyong);
+    AddKeyButtonEvent(PX(XO + 5) + CX, PY(YO + 0), BU(1), BV(1), ":*",      "colon",      KBD_colon);
+    AddKeyButtonEvent(PX(XO + 6) + CX, PY(YO + 0), BU(1), BV(1), "^`",      "caret",      KBD_caret);
+    AddKeyButtonEvent(PX(XO + 7) + CX, PY(YO + 0), BU(1), BV(1), "@~",      "atsign",     KBD_atsign);
+    AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 3), BU(3), BV(1), "HANCHA",  "kor_hancha", KBD_kor_hancha);
+    AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 4), BU(3), BV(1), "HANYONG", "kor_hanyong",KBD_kor_hanyong);
 
 #pragma endregion
 
@@ -4234,11 +4234,11 @@ static void CreateLayout(void) {
 #define XO 3
 #define YO 11
 
-        AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO), BU(1), BV(1), "VF1", "vf1", KBD_vf1);
-        AddKeyButtonEvent(PX(XO + 1) + CX, PY(YO), BU(1), BV(1), "VF2", "vf2", KBD_vf2);
-        AddKeyButtonEvent(PX(XO + 2) + CX, PY(YO), BU(1), BV(1), "VF3", "vf3", KBD_vf3);
-        AddKeyButtonEvent(PX(XO + 3) + CX, PY(YO), BU(1), BV(1), "VF4", "vf4", KBD_vf4);
-        AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO), BU(1), BV(1), "VF5", "vf5", KBD_vf5);
+        AddKeyButtonEvent(PX(XO + 1) + CX, PY(YO + 1), BU(1), BV(1), "VF1", "vf1", KBD_vf1);
+        AddKeyButtonEvent(PX(XO + 2) + CX, PY(YO + 1), BU(1), BV(1), "VF2", "vf2", KBD_vf2);
+        AddKeyButtonEvent(PX(XO + 3) + CX, PY(YO + 1), BU(1), BV(1), "VF3", "vf3", KBD_vf3);
+        AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 1), BU(1), BV(1), "VF4", "vf4", KBD_vf4);
+        AddKeyButtonEvent(PX(XO + 5) + CX, PY(YO + 1), BU(1), BV(1), "VF5", "vf5", KBD_vf5);
     }
 
 #pragma endregion
