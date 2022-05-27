@@ -4119,7 +4119,7 @@ static Bitu ide_baseio_r(Bitu port,Bitu iolen) {
             ret = (dev != NULL) ? dev->lba[2] : 0x00;
             break;
         case 6: /* 1F6 */
-            ret = ide->drivehead;
+            ret = (dev != NULL) ? dev->drivehead : ide->drivehead;
             break;
         case 7: /* 1F7 */
             /* reading this port clears the device pending IRQ */
