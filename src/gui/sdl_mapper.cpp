@@ -4078,54 +4078,54 @@ static void CreateLayout(void) {
     switch(joytype)
     {
     case JOY_NONE:
-        (new CTextButton(PX(XO + 0) + CX, PY(YO + 0) - CY, BU(3), BV(1), "Disabled"))->SetCanClick(false);
-        (new CTextButton(PX(XO + 4) + CX, PY(YO + 0) - CY, BU(3), BV(1), "Disabled"))->SetCanClick(false);
-        (new CTextButton(PX(XO + 8) + CX, PY(YO + 0) - CY, BU(3), BV(1), "Disabled"))->SetCanClick(false);
+        (new CTextButton(PX(XO + 0), PY(YO + 0) - CY, BU(3), BV(1), "Disabled"))->SetCanClick(false);
+        (new CTextButton(PX(XO + 4), PY(YO + 0) - CY, BU(3), BV(1), "Disabled"))->SetCanClick(false);
+        (new CTextButton(PX(XO + 8), PY(YO + 0) - CY, BU(3), BV(1), "Disabled"))->SetCanClick(false);
         break;
     case JOY_2AXIS:
-        (new CTextButton(PX(XO + 0) + CX, PY(YO + 0) - CY, BU(3), BV(1), "Joystick 1"));
-        (new CTextButton(PX(XO + 4) + CX, PY(YO + 0) - CY, BU(3), BV(1), "Joystick 2"));
-        (new CTextButton(PX(XO + 8) + CX, PY(YO + 0) - CY, BU(3), BV(1), "Disabled"))->SetCanClick(false);
+        (new CTextButton(PX(XO + 0), PY(YO + 0) - CY, BU(3), BV(1), "Joystick 1"));
+        (new CTextButton(PX(XO + 4), PY(YO + 0) - CY, BU(3), BV(1), "Joystick 2"));
+        (new CTextButton(PX(XO + 8), PY(YO + 0) - CY, BU(3), BV(1), "Disabled"))->SetCanClick(false);
         break;
     case JOY_4AXIS:
     case JOY_4AXIS_2:
-        (new CTextButton(PX(XO + 0) + CX, PY(YO + 0) - CY, BU(3), BV(1), "Axis 1/2"));
-        (new CTextButton(PX(XO + 4) + CX, PY(YO + 0) - CY, BU(3), BV(1), "Axis 3/4"));
-        (new CTextButton(PX(XO + 8) + CX, PY(YO + 0) - CY, BU(3), BV(1), "Disabled"))->SetCanClick(false);
+        (new CTextButton(PX(XO + 0), PY(YO + 0) - CY, BU(3), BV(1), "Axis 1/2"));
+        (new CTextButton(PX(XO + 4), PY(YO + 0) - CY, BU(3), BV(1), "Axis 3/4"));
+        (new CTextButton(PX(XO + 8), PY(YO + 0) - CY, BU(3), BV(1), "Disabled"))->SetCanClick(false);
         break;
     case JOY_FCS:
-        (new CTextButton(PX(XO + 0) + CX, PY(YO + 0) - CY, BU(3), BV(1), "Axis 1/2"));
-        (new CTextButton(PX(XO + 4) + CX, PY(YO + 0) - CY, BU(3), BV(1), "Axis 3"));
-        (new CTextButton(PX(XO + 8) + CX, PY(YO + 0) - CY, BU(3), BV(1), "Hat/D-pad"));
+        (new CTextButton(PX(XO + 0), PY(YO + 0) - CY, BU(3), BV(1), "Axis 1/2"));
+        (new CTextButton(PX(XO + 4), PY(YO + 0) - CY, BU(3), BV(1), "Axis 3"));
+        (new CTextButton(PX(XO + 8), PY(YO + 0) - CY, BU(3), BV(1), "Hat/D-pad"));
         break;
     case JOY_CH:
-        (new CTextButton(PX(XO + 0) + CX, PY(YO + 0) - CY, BU(3), BV(1), "Axis 1/2"));
-        (new CTextButton(PX(XO + 4) + CX, PY(YO + 0) - CY, BU(3), BV(1), "Axis 3/4"));
-        (new CTextButton(PX(XO + 8) + CX, PY(YO + 0) - CY, BU(3), BV(1), "Hat/D-pad"));
+        (new CTextButton(PX(XO + 0), PY(YO + 0) - CY, BU(3), BV(1), "Axis 1/2"));
+        (new CTextButton(PX(XO + 4), PY(YO + 0) - CY, BU(3), BV(1), "Axis 3/4"));
+        (new CTextButton(PX(XO + 8), PY(YO + 0) - CY, BU(3), BV(1), "Hat/D-pad"));
         break;
     }
 
     {
-        AddJButtonButton(PX(XO + 0) + CX, PY(YO + 1) - CY, BU(1), BV(1), "1", 0, 0);
-        AddJButtonButton(PX(XO + 2) + CX, PY(YO + 1) - CY, BU(1), BV(1), "2", 0, 1);
+        AddJButtonButton(PX(XO + 0), PY(YO + 1) - CY, BU(1), BV(1), "1", 0, 0);
+        AddJButtonButton(PX(XO + 2), PY(YO + 1) - CY, BU(1), BV(1), "2", 0, 1);
 
-        auto x1 = AddJAxisButton(PX(XO + 0) + CX, PY(YO + 2) - CY, BU(1), BV(1), "X-", 0, 0, false, nullptr);
-        auto x2 = AddJAxisButton(PX(XO + 2) + CX, PY(YO + 2) - CY, BU(1), BV(1), "X+", 0, 0, true, x1);
-        auto y1 = AddJAxisButton(PX(XO + 1) + CX, PY(YO + 1) - CY, BU(1), BV(1), "Y-", 0, 1, false, nullptr);
-        auto y2 = AddJAxisButton(PX(XO + 1) + CX, PY(YO + 2) - CY, BU(1), BV(1), "Y+", 0, 1, true, y1);
+        auto x1 = AddJAxisButton(PX(XO + 0), PY(YO + 2) - CY, BU(1), BV(1), "X-", 0, 0, false, nullptr);
+        auto x2 = AddJAxisButton(PX(XO + 2), PY(YO + 2) - CY, BU(1), BV(1), "X+", 0, 0, true, x1);
+        auto y1 = AddJAxisButton(PX(XO + 1), PY(YO + 1) - CY, BU(1), BV(1), "Y-", 0, 1, false, nullptr);
+        auto y2 = AddJAxisButton(PX(XO + 1), PY(YO + 2) - CY, BU(1), BV(1), "Y+", 0, 1, true, y1);
     }
 
     if(joytype == JOY_2AXIS)
     {
-        AddJButtonButton(PX(XO + 4) + CX, PY(YO + 1) - CY, BU(1), BV(1), "1", 1, 0);
-        AddJButtonButton(PX(XO + 6) + CX, PY(YO + 1) - CY, BU(1), BV(1), "2", 1, 1);
+        AddJButtonButton(PX(XO + 4), PY(YO + 1) - CY, BU(1), BV(1), "1", 1, 0);
+        AddJButtonButton(PX(XO + 6), PY(YO + 1) - CY, BU(1), BV(1), "2", 1, 1);
         AddJButtonButton_hidden(0, 2);
         AddJButtonButton_hidden(0, 3);
 
-        auto x1 = AddJAxisButton(PX(XO + 4) + CX, PY(YO + 2) - CY, BW, BH, "X-", 1, 0, false, nullptr);
-        auto x2 = AddJAxisButton(PX(XO + 6) + CX, PY(YO + 2) - CY, BW, BH, "X+", 1, 0, true, x1);
-        auto y1 = AddJAxisButton(PX(XO + 5) + CX, PY(YO + 1) - CY, BW, BH, "Y-", 1, 1, false, nullptr);
-        auto y2 = AddJAxisButton(PX(XO + 5) + CX, PY(YO + 2) - CY, BW, BH, "Y+", 1, 1, true, y1);
+        auto x1 = AddJAxisButton(PX(XO + 4), PY(YO + 2) - CY, BW, BH, "X-", 1, 0, false, nullptr);
+        auto x2 = AddJAxisButton(PX(XO + 6), PY(YO + 2) - CY, BW, BH, "X+", 1, 0, true, x1);
+        auto y1 = AddJAxisButton(PX(XO + 5), PY(YO + 1) - CY, BW, BH, "Y-", 1, 1, false, nullptr);
+        auto y2 = AddJAxisButton(PX(XO + 5), PY(YO + 2) - CY, BW, BH, "Y+", 1, 1, true, y1);
         auto z1 = AddJAxisButton_hidden(0, 2, false, nullptr);
         auto z2 = AddJAxisButton_hidden(0, 3, false, nullptr);
 
@@ -4134,15 +4134,15 @@ static void CreateLayout(void) {
     }
     else
     {
-        AddJButtonButton(PX(XO + 4) + CX, PY(YO + 1) - CY, BU(1), BV(1), "3", 0, 2);
-        AddJButtonButton(PX(XO + 6) + CX, PY(YO + 1) - CY, BU(1), BV(1), "4", 0, 3);
+        AddJButtonButton(PX(XO + 4), PY(YO + 1) - CY, BU(1), BV(1), "3", 0, 2);
+        AddJButtonButton(PX(XO + 6), PY(YO + 1) - CY, BU(1), BV(1), "4", 0, 3);
         AddJButtonButton_hidden(1, 0);
         AddJButtonButton_hidden(1, 1);
 
-        auto x1 = AddJAxisButton(PX(XO + 4) + CX, PY(YO + 2) - CY, BU(1), BV(1), "X-", 0, 2, false, nullptr);
-        auto x2 = AddJAxisButton(PX(XO + 6) + CX, PY(YO + 2) - CY, BU(1), BV(1), "X+", 0, 2, true, x1);
-        auto y1 = AddJAxisButton(PX(XO + 5) + CX, PY(YO + 1) - CY, BU(1), BV(1), "Y-", 0, 3, false, nullptr);
-        auto y2 = AddJAxisButton(PX(XO + 5) + CX, PY(YO + 2) - CY, BU(1), BV(1), "Y+", 0, 3, true, y1);
+        auto x1 = AddJAxisButton(PX(XO + 4), PY(YO + 2) - CY, BU(1), BV(1), "X-", 0, 2, false, nullptr);
+        auto x2 = AddJAxisButton(PX(XO + 6), PY(YO + 2) - CY, BU(1), BV(1), "X+", 0, 2, true, x1);
+        auto y1 = AddJAxisButton(PX(XO + 5), PY(YO + 1) - CY, BU(1), BV(1), "Y-", 0, 3, false, nullptr);
+        auto y2 = AddJAxisButton(PX(XO + 5), PY(YO + 2) - CY, BU(1), BV(1), "Y+", 0, 3, true, y1);
         auto z1 = AddJAxisButton_hidden(1, 0, false, nullptr);
         auto z2 = AddJAxisButton_hidden(1, 1, false, nullptr);
 
@@ -4152,8 +4152,8 @@ static void CreateLayout(void) {
 
     if(joytype == JOY_CH)
     {
-        AddJButtonButton(PX(XO +  8) + CX, PY(YO + 1) - CY, BU(1), BV(1), "5", 0, 4);
-        AddJButtonButton(PX(XO + 10) + CX, PY(YO + 1) - CY, BU(1), BV(1), "6", 0, 5);
+        AddJButtonButton(PX(XO +  8), PY(YO + 1) - CY, BU(1), BV(1), "5", 0, 4);
+        AddJButtonButton(PX(XO + 10), PY(YO + 1) - CY, BU(1), BV(1), "6", 0, 5);
     }
     else
     {
@@ -4161,10 +4161,10 @@ static void CreateLayout(void) {
         AddJButtonButton_hidden(0, 5);
     }
 
-    AddJHatButton(PX(XO +  9) + CX, PY(YO + 1) - CY, BU(1), BV(1), "\x18", 0, 0, 0); // U
-    AddJHatButton(PX(XO +  8) + CX, PY(YO + 2) - CY, BU(1), BV(1), "\x1B", 0, 0, 3); // L
-    AddJHatButton(PX(XO +  9) + CX, PY(YO + 2) - CY, BU(1), BV(1), "\x19", 0, 0, 2); // D
-    AddJHatButton(PX(XO + 10) + CX, PY(YO + 2) - CY, BU(1), BV(1), "\x1A", 0, 0, 1); // R
+    AddJHatButton(PX(XO +  9), PY(YO + 1) - CY, BU(1), BV(1), "\x18", 0, 0, 0); // U
+    AddJHatButton(PX(XO +  8), PY(YO + 2) - CY, BU(1), BV(1), "\x1B", 0, 0, 3); // L
+    AddJHatButton(PX(XO +  9), PY(YO + 2) - CY, BU(1), BV(1), "\x19", 0, 0, 2); // D
+    AddJHatButton(PX(XO + 10), PY(YO + 2) - CY, BU(1), BV(1), "\x1A", 0, 0, 1); // R
 
 #pragma endregion
 
@@ -4260,7 +4260,7 @@ static void CreateLayout(void) {
     {
         maxpage = page;
 
-        auto button = new CEventButton(PX(11) + CX, PY(11 + ypos), BU(11), BV(1), (*hit)->ButtonName(), (*hit));
+        auto button = new CEventButton(PX(10) + CX, PY(11 + ypos), BU(12), BV(1), (*hit)->ButtonName(), (*hit));
 
         ceventbuttons.push_back(button);
         (*hit)->notifybutton(button);
@@ -4277,12 +4277,12 @@ static void CreateLayout(void) {
     }
 
     bind_but.prevpage =
-        new CBindButton(PX(11) + CX, PY(19) - CY - (CY / 2), BU(4), BV(1), MSG_Get("PREVIOUS_PAGE"), BB_Prevpage);
+        new CBindButton(PX(11), PY(19) - CY - (CY / 2), BU(4), BV(1), MSG_Get("PREVIOUS_PAGE"), BB_Prevpage);
 
-    bind_but.pagestat = new CCaptionButton(PX(14) + CX, PY(19) - CY - (CY / 2), BU(5), BV(1), true);
+    bind_but.pagestat = new CCaptionButton(PX(14), PY(19) - CY - (CY / 2), BU(5), BV(1), true);
 
     bind_but.nextpage =
-        new CBindButton(PX(18) + CX, PY(19) - CY - (CY / 2), BU(4), BV(1), MSG_Get("NEXT_PAGE"), BB_Nextpage);
+        new CBindButton(PX(18), PY(19) - CY - (CY / 2), BU(4), BV(1), MSG_Get("NEXT_PAGE"), BB_Nextpage);
 
     bind_but.pagestat->Change("%2u / %-2u", cpage, maxpage);
 
@@ -4295,9 +4295,9 @@ static void CreateLayout(void) {
 
 #pragma region Capture/Save/Exit
 
-    bind_but.cap  = new CBindButton(PX(11 + 1) + CX, PY(20), BU(3), BV(1), MSG_Get("CAPTURE"), BB_Capture);
-    bind_but.save = new CBindButton(PX(14 + 1) + CX, PY(20), BU(3), BV(1), MSG_Get("SAVE"), BB_Save);
-    bind_but.exit = new CBindButton(PX(17 + 1) + CX, PY(20), BU(3), BV(1), MSG_Get("EXIT"), BB_Exit);
+    bind_but.cap  = new CBindButton(PX(12), PY(20), BU(3), BV(1), MSG_Get("CAPTURE"), BB_Capture);
+    bind_but.save = new CBindButton(PX(15), PY(20), BU(3), BV(1), MSG_Get("SAVE"), BB_Save);
+    bind_but.exit = new CBindButton(PX(18), PY(20), BU(3), BV(1), MSG_Get("EXIT"), BB_Exit);
     bind_but.cap->SetCanClick(false);
 
 #pragma endregion
