@@ -8,7 +8,9 @@
 #include <streams/file_stream_transforms.h>
 #endif
 
+#ifndef ARRAY_LENGTH
 #define ARRAY_LENGTH(x) (sizeof(x)/sizeof(x[0]))
+#endif
 
 typedef uint64_t UINT64;
 typedef uint32_t UINT32;

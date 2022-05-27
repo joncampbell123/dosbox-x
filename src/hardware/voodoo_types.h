@@ -299,7 +299,9 @@ const endianness_t ENDIANNESS_NATIVE = ENDIANNESS_LITTLE;
 
 
 /* Highly useful macro for compile-time knowledge of an array size */
+#ifndef ARRAY_LENGTH
 #define ARRAY_LENGTH(x)		(sizeof(x) / sizeof(x[0]))
+#endif
 
 INLINE INT32 mul_32x32_shift(INT32 a, INT32 b, INT8 shift)
 {
