@@ -2554,6 +2554,25 @@ protected:
     bool invert;
     bool enabled;
     bool clickable;
+
+    void DrawTextAuto(const char* text, bool centered, uint8_t foreground, uint8_t background)
+    {
+        const auto size = strlen(text);
+        const auto wide = dx / 8;
+        const auto data = dx > 0 && size > wide ? std::string(text, wide - 3) + std::string("...") : std::string(text);
+
+        if(centered)
+        {
+            const auto size = data.size();
+            const auto xPos = std::max(x, x + dx / 2 - size * 8 / 2);
+            const auto yPos = std::max(y, y + dy / 2 - 14 / 2);
+            DrawText(1 + xPos, yPos, data.c_str(), foreground, background);
+        }
+        else
+        {
+            DrawText(x + 2, y + 2, data.c_str(), foreground, background);
+        }
+    }
 };
 
 static CButton *press_select = NULL;
@@ -2582,10 +2601,7 @@ public:
 
         CButton::Draw();
 
-        const auto size = strlen(text);
-        const auto xPos = x + dx / 2 - size * 8 / 2;
-        const auto yPos = y + dy / 2 - 14 / 2;
-        DrawText(1 + xPos, yPos, text, fg, bg);
+        DrawTextAuto(text, true, fg, bg); // TODO add the ability to center text for this class
 
 #if defined(C_SDL2)
         uint8_t * point=((uint8_t *)mapper.draw_surface->pixels)+(y*mapper.draw_surface->w)+x;
@@ -2669,17 +2685,7 @@ public:
         if(!enabled)
             return;
 
-        if(center)
-        {
-            const auto size = strlen(caption);
-            const auto xPos = std::max(x, x + dx / 2 - size * 8 / 2);
-            const auto yPos = std::max(y, y + dy / 2 - 14 / 2);
-            DrawText(1 + xPos, yPos, caption, color);
-        }
-        else
-        {
-            DrawText(x + 2, y + 2, caption, color);
-        }
+        DrawTextAuto(caption, center, color, CLR_BLACK);
     }
 
 protected:
@@ -4066,7 +4072,7 @@ static void CreateLayout(void) {
 
 #undef XO
 #undef YO
-#define XO 10
+#define XO 11
 #define YO 8
 
     switch(joytype)
@@ -4171,17 +4177,17 @@ static void CreateLayout(void) {
 #define XO 0
 #define YO 11
 
-    AddKeyButtonEvent(PX(XO + 0) + CX * 1, PY(YO + 0), BU(3), BV(1), "HANKAKU", "jp_hankaku", KBD_jp_hankaku);
-    AddKeyButtonEvent(PX(XO + 0) + CX * 1, PY(YO + 1), BU(3), BV(1), "MUHENKAN","jp_muhenkan",KBD_jp_muhenkan);
-    AddKeyButtonEvent(PX(XO + 0) + CX * 1, PY(YO + 2), BU(3), BV(1), "HENKAN",  "jp_henkan",  KBD_jp_henkan);
-    AddKeyButtonEvent(PX(XO + 0) + CX * 1, PY(YO + 3), BU(3), BV(1), "HIRAGANA","jp_hiragana",KBD_jp_hiragana);
-    AddKeyButtonEvent(PX(XO + 0) + CX * 1, PY(YO + 4), BU(3), BV(1), "YEN",     "jp_yen",     KBD_jp_yen);
-    AddKeyButtonEvent(PX(XO + 3) + CX * 1, PY(YO + 1), BU(1), BV(1), "\\",      "jp_bckslash",KBD_jp_backslash);
-    AddKeyButtonEvent(PX(XO + 4) + CX * 1, PY(YO + 1), BU(1), BV(1), ":*",      "colon",      KBD_colon);
-    AddKeyButtonEvent(PX(XO + 5) + CX * 1, PY(YO + 1), BU(1), BV(1), "^`",      "caret",      KBD_caret);
-    AddKeyButtonEvent(PX(XO + 6) + CX * 1, PY(YO + 1), BU(1), BV(1), "@~",      "atsign",     KBD_atsign);
-    AddKeyButtonEvent(PX(XO + 5) + CX * 1, PY(YO + 3), BU(3), BV(1), "HANCHA",  "kor_hancha", KBD_kor_hancha);
-    AddKeyButtonEvent(PX(XO + 5) + CX * 1, PY(YO + 4), BU(3), BV(1), "HANYONG", "kor_hanyong",KBD_kor_hanyong);
+    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 0), BU(3), BV(1), "HANKAKU", "jp_hankaku", KBD_jp_hankaku);
+    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 1), BU(3), BV(1), "MUHENKAN","jp_muhenkan",KBD_jp_muhenkan);
+    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 2), BU(3), BV(1), "HENKAN",  "jp_henkan",  KBD_jp_henkan);
+    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 3), BU(3), BV(1), "HIRAGANA","jp_hiragana",KBD_jp_hiragana);
+    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 4), BU(3), BV(1), "YEN",     "jp_yen",     KBD_jp_yen);
+    AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 0), BU(1), BV(1), "\\",      "jp_bckslash",KBD_jp_backslash);
+    AddKeyButtonEvent(PX(XO + 5) + CX, PY(YO + 0), BU(1), BV(1), ":*",      "colon",      KBD_colon);
+    AddKeyButtonEvent(PX(XO + 6) + CX, PY(YO + 0), BU(1), BV(1), "^`",      "caret",      KBD_caret);
+    AddKeyButtonEvent(PX(XO + 7) + CX, PY(YO + 0), BU(1), BV(1), "@~",      "atsign",     KBD_atsign);
+    AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 3), BU(3), BV(1), "HANCHA",  "kor_hancha", KBD_kor_hancha);
+    AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 4), BU(3), BV(1), "HANYONG", "kor_hanyong",KBD_kor_hanyong);
 
 #pragma endregion
 
@@ -4190,14 +4196,14 @@ static void CreateLayout(void) {
     AddModButton(PX(0) + CX, PY(17), BU(2), BV(1), "Mod1", 1);
     AddModButton(PX(2) + CX, PY(17), BU(2), BV(1), "Mod2", 2);
     AddModButton(PX(4) + CX, PY(17), BU(2), BV(1), "Mod3", 3);
-    AddModButton(PX(6) + CX, PY(17), BU(2), BV(1), "Host", 4);
+    AddModButton(PX(6) + CX, PY(17), BU(3), BV(1), "Host", 4);
 
     bind_but.event_title = new CCaptionButton(PX(0) + CX, PY(18), 0, 0, false);
     bind_but.bind_title  = new CCaptionButton(PX(0) + CX, PY(19), 0, 0, false);
 
-    bind_but.add  = new CBindButton(PX(0) + CX, PY(20), BU(2), BV(1), MSG_Get("ADD"), BB_Add);
-    bind_but.del  = new CBindButton(PX(2) + CX, PY(20), BU(2), BV(1), MSG_Get("DEL"), BB_Del);
-    bind_but.next = new CBindButton(PX(4) + CX, PY(20), BU(2), BV(1), MSG_Get("NEXT"), BB_Next);
+    bind_but.add  = new CBindButton(PX(0) + CX, PY(20), BU(3), BV(1), MSG_Get("ADD"), BB_Add);
+    bind_but.del  = new CBindButton(PX(3) + CX, PY(20), BU(3), BV(1), MSG_Get("DEL"), BB_Del);
+    bind_but.next = new CBindButton(PX(6) + CX, PY(20), BU(3), BV(1), MSG_Get("NEXT"), BB_Next);
 
     bind_but.mod1 = new CCheckButton(PX(0) + CX, PY(21) + CY, BU(3), BV(1), "mod1", BC_Mod1);
     bind_but.mod2 = new CCheckButton(PX(0) + CX, PY(22) + CY, BU(3), BV(1), "mod2", BC_Mod2);
@@ -4230,11 +4236,11 @@ static void CreateLayout(void) {
 #define XO 3
 #define YO 11
 
-        AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO), BU(1), BV(1), "VF1", "vf1", KBD_vf1);
-        AddKeyButtonEvent(PX(XO + 1) + CX, PY(YO), BU(1), BV(1), "VF2", "vf2", KBD_vf2);
-        AddKeyButtonEvent(PX(XO + 2) + CX, PY(YO), BU(1), BV(1), "VF3", "vf3", KBD_vf3);
-        AddKeyButtonEvent(PX(XO + 3) + CX, PY(YO), BU(1), BV(1), "VF4", "vf4", KBD_vf4);
-        AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO), BU(1), BV(1), "VF5", "vf5", KBD_vf5);
+        AddKeyButtonEvent(PX(XO + 1) + CX, PY(YO + 1), BU(1), BV(1), "VF1", "vf1", KBD_vf1);
+        AddKeyButtonEvent(PX(XO + 2) + CX, PY(YO + 1), BU(1), BV(1), "VF2", "vf2", KBD_vf2);
+        AddKeyButtonEvent(PX(XO + 3) + CX, PY(YO + 1), BU(1), BV(1), "VF3", "vf3", KBD_vf3);
+        AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 1), BU(1), BV(1), "VF4", "vf4", KBD_vf4);
+        AddKeyButtonEvent(PX(XO + 5) + CX, PY(YO + 1), BU(1), BV(1), "VF5", "vf5", KBD_vf5);
     }
 
 #pragma endregion
@@ -4256,7 +4262,7 @@ static void CreateLayout(void) {
     {
         maxpage = page;
 
-        auto button = new CEventButton(PX(9), PY(11 + ypos), BU(13), BV(1), (*hit)->ButtonName(), (*hit));
+        auto button = new CEventButton(PX(10) + CX, PY(11 + ypos), BU(12), BV(1), (*hit)->ButtonName(), (*hit));
 
         ceventbuttons.push_back(button);
         (*hit)->notifybutton(button);
@@ -4273,12 +4279,12 @@ static void CreateLayout(void) {
     }
 
     bind_but.prevpage =
-        new CBindButton(PX(10), PY(19) - CY - (CY / 2), BU(3), BV(1), MSG_Get("PREVIOUS_PAGE"), BB_Prevpage);
+        new CBindButton(PX(11), PY(19) - CY - (CY / 2), BU(4), BV(1), "<-", BB_Prevpage);
 
-    bind_but.pagestat = new CCaptionButton(PX(13), PY(19) - CY - (CY / 2), BU(5), BV(1), true);
+    bind_but.pagestat = new CCaptionButton(PX(14), PY(19) - CY - (CY / 2), BU(5), BV(1), true);
 
     bind_but.nextpage =
-        new CBindButton(PX(18), PY(19) - CY - (CY / 2), BU(3), BV(1), MSG_Get("NEXT_PAGE"), BB_Nextpage);
+        new CBindButton(PX(18), PY(19) - CY - (CY / 2), BU(4), BV(1), "->", BB_Nextpage);
 
     bind_but.pagestat->Change("%2u / %-2u", cpage, maxpage);
 
@@ -4291,9 +4297,9 @@ static void CreateLayout(void) {
 
 #pragma region Capture/Save/Exit
 
-    bind_but.cap  = new CBindButton(PX(11), PY(20), BU(3), BV(1), MSG_Get("CAPTURE"), BB_Capture);
-    bind_but.save = new CBindButton(PX(14), PY(20), BU(3), BV(1), MSG_Get("SAVE"), BB_Save);
-    bind_but.exit = new CBindButton(PX(17), PY(20), BU(3), BV(1), MSG_Get("EXIT"), BB_Exit);
+    bind_but.cap  = new CBindButton(PX(12), PY(20), BU(3), BV(1), MSG_Get("CAPTURE"), BB_Capture);
+    bind_but.save = new CBindButton(PX(15), PY(20), BU(3), BV(1), MSG_Get("SAVE"), BB_Save);
+    bind_but.exit = new CBindButton(PX(18), PY(20), BU(3), BV(1), MSG_Get("EXIT"), BB_Exit);
     bind_but.cap->SetCanClick(false);
 
 #pragma endregion
@@ -4302,7 +4308,7 @@ static void CreateLayout(void) {
 
     // NOTE: screen budget is really tight down there, more than that and drawing crashes
 
-    bind_but.action = new CCaptionButton(PX(8) - CX, PY(22) - CY, BU(16), BV(1), false);
+    bind_but.action = new CCaptionButton(PX(8) - CX, PY(22) - CY, BU(15), BV(1), false);
     bind_but.dbg1   = new CCaptionButton(PX(8) - CX, PY(23) - CY, BU(16), BV(1), false);
     bind_but.dbg2   = new CCaptionButton(PX(8) - CX, PY(24) - CY, BU(16), BV(1), false);
 
@@ -5788,8 +5794,8 @@ std::map<std::string,std::string> get_event_map() {
 }
 
 void update_bindbutton_text() {
-    if (bind_but.prevpage) bind_but.prevpage->SetText(MSG_Get("PREVIOUS_PAGE"));
-    if (bind_but.nextpage) bind_but.nextpage->SetText(MSG_Get("NEXT_PAGE"));
+    if (bind_but.prevpage) bind_but.prevpage->SetText("<-");
+    if (bind_but.nextpage) bind_but.nextpage->SetText("->");
     if (bind_but.add) bind_but.add->SetText(MSG_Get("ADD"));
     if (bind_but.del) bind_but.del->SetText(MSG_Get("DEL"));
     if (bind_but.next) bind_but.next->SetText(MSG_Get("NEXT"));
