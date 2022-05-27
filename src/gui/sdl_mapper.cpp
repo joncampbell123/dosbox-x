@@ -4277,12 +4277,12 @@ static void CreateLayout(void) {
     }
 
     bind_but.prevpage =
-        new CBindButton(PX(11), PY(19) - CY - (CY / 2), BU(4), BV(1), MSG_Get("PREVIOUS_PAGE"), BB_Prevpage);
+        new CBindButton(PX(11), PY(19) - CY - (CY / 2), BU(4), BV(1), "<-", BB_Prevpage);
 
     bind_but.pagestat = new CCaptionButton(PX(14), PY(19) - CY - (CY / 2), BU(5), BV(1), true);
 
     bind_but.nextpage =
-        new CBindButton(PX(18), PY(19) - CY - (CY / 2), BU(4), BV(1), MSG_Get("NEXT_PAGE"), BB_Nextpage);
+        new CBindButton(PX(18), PY(19) - CY - (CY / 2), BU(4), BV(1), "->", BB_Nextpage);
 
     bind_but.pagestat->Change("%2u / %-2u", cpage, maxpage);
 
@@ -5792,8 +5792,8 @@ std::map<std::string,std::string> get_event_map() {
 }
 
 void update_bindbutton_text() {
-    if (bind_but.prevpage) bind_but.prevpage->SetText(MSG_Get("PREVIOUS_PAGE"));
-    if (bind_but.nextpage) bind_but.nextpage->SetText(MSG_Get("NEXT_PAGE"));
+    if (bind_but.prevpage) bind_but.prevpage->SetText("<-");
+    if (bind_but.nextpage) bind_but.nextpage->SetText("->");
     if (bind_but.add) bind_but.add->SetText(MSG_Get("ADD"));
     if (bind_but.del) bind_but.del->SetText(MSG_Get("DEL"));
     if (bind_but.next) bind_but.next->SetText(MSG_Get("NEXT"));
