@@ -3309,7 +3309,7 @@ void IDEController::check_device_irq() {
     IDEDevice* dev = device[select];
     bool sig = false;
 
-    if (dev) sig = dev->irq_signal;
+    if (dev) sig = dev->irq_signal && interrupt_enable;
 
     if (irq_pending != sig) {
         if (sig) raise_irq();
@@ -3323,7 +3323,7 @@ void IDEController::raise_irq() {
         PC98_IDE_UpdateIRQ();
     }
     else {
-        if (IRQ >= 0 && interrupt_enable) PIC_ActivateIRQ((unsigned int)IRQ);
+        if (IRQ >= 0) PIC_ActivateIRQ((unsigned int)IRQ);
     }
 }
 
@@ -3741,7 +3741,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
              * error message is part of some other error in the emulation. Rather than put up with that, we'll just
              * silently abort the command with an error. */
             abort_normal();
-            status = IDE_STATUS_ERROR|IDE_STATUS_DRIVE_READY;
+            status = IDE_STATUS_ERROR|IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE|0x20/*write fault*/;
             drivehead &= 0x30; controller->drivehead = drivehead;
             count = 0x01;
             lba[0] = 0x01;
@@ -4022,17 +4022,10 @@ static void ide_altio_w(Bitu port,Bitu val,Bitu iolen) {
 
     if (port == 0) {/*3F6*/
         ide->interrupt_enable = (val&2u)?0:1;
-        if (ide->interrupt_enable) {
+        if (IS_PC98_ARCH)
+            PC98_IDE_UpdateIRQ();
+        else
             ide->check_device_irq();
-        }
-        else {
-            if (IS_PC98_ARCH) {
-                PC98_IDE_UpdateIRQ();
-            }
-            else {
-                if (ide->IRQ >= 0) PIC_DeActivateIRQ((unsigned int)ide->IRQ);
-            }
-        }
 
         if ((val&4) && !ide->host_reset) {
             if (ide->device[0]) ide->device[0]->host_reset_begin();
