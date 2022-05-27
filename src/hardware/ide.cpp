@@ -3788,6 +3788,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 
             status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
             allow_writing = true;
+            raise_irq(); // NTS: The Linux kernel will pause for up to 30 seconds waiting for this command to issue an IRQ if we don't do this
             break;
         case 0xC4: /* READ MULTIPLE */
             progress_count = 0;
