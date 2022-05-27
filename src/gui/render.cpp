@@ -1154,7 +1154,6 @@ std::string LoadGLShader(Section_prop * section) {
 	Prop_path *sh = section->Get_path("glshader");
 	std::string f = (std::string)sh->GetValue();
     ResolvePath(f);
-    const char *ssrc=shader_src.c_str();
 	if (f.empty() || f=="none" || f=="default") {
         render.shader_src = NULL;
         render.shader_def = f=="default";
