@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Korean
 :DOSBOX-X:CODEPAGE:949
-:DOSBOX-X:VERSION:0.83.25
+:DOSBOX-X:VERSION:0.83.26
 :DOSBOX-X:REMARK:DOS/V 에뮬레이션 또는 코드 페이지 949의 한국어 글꼴을 사용하여 한국어 표시 및 인쇄를 직접 지원합니다.
 :AUTOEXEC_CONFIGFILE_HELP
 이 섹션에 나열된 줄은 시작할 때 실행됩니다.
@@ -222,12 +222,6 @@ IDE 위치
 .
 :SLOT
 슬롯
-.
-:PREVIOUS_PAGE
-< 앞 페이지
-.
-:NEXT_PAGE
-    다음 페이지 >
 .
 :SELECT_EVENT
 설정 변경할 이벤트를 선택
@@ -461,11 +455,11 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_IMGMOUNT_STATUS_FORMAT
-%-5s %-41s %-10s %s
+%-5s  %-41s  %-10s  %s
 
 .
 :PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT
-%-12s %-33s %-10s %s
+%-12s  %-36s  %-10s  %s
 
 .
 :PROGRAM_IMGMOUNT_STATUS_2

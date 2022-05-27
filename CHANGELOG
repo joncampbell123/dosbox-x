@@ -47,6 +47,8 @@
     in non-TTF outputs. (Wengier)
   - Fixed IME input not working in MinGW builds, and
     FluidSynth in MinGW-lowend builds. (Wengier)
+  - Fixed commands "CHOICE /N /C:123" and "MIXER /GUI"
+    not working properly in previous version. (Wengier)
   - Integrated commits from mainline (Allofich)
     - Disable leading directory validity check in
     DOS_FindDevice.

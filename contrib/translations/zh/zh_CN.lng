@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Simplified Chinese
 :DOSBOX-X:CODEPAGE:936
-:DOSBOX-X:VERSION:0.83.25
+:DOSBOX-X:VERSION:0.83.26
 :DOSBOX-X:REMARK:建议将国家和代码页设为 86,936 并搭配中文字体; 或使用 chs 或 cn 中文 DOS/V 模式以直接支持中文显示和打印
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
@@ -220,12 +220,6 @@ IDE 位置
 .
 :SLOT
 存档
-.
-:PREVIOUS_PAGE
-< 上一页
-.
-:NEXT_PAGE
-       下一页 >
 .
 :SELECT_EVENT
 选择要修改的事件.

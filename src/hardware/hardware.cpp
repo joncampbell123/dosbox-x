@@ -2056,7 +2056,7 @@ void CAPTURE_Init() {
 	MAPPER_AddHandler(CAPTURE_WaveEvent,MK_w,MMODHOST,"recwave","Record audio to WAV", &item);
 	item->set_text("Record audio to WAV");
 
-	MAPPER_AddHandler(CAPTURE_MTWaveEvent,MK_nothing,0,"recmtwave","Record to M.T. AVI", &item);
+	MAPPER_AddHandler(CAPTURE_MTWaveEvent,MK_nothing,0,"recmtwave","Record to multi-track AVI", &item);
 	item->set_text("Record audio to multi-track AVI");
 
 	MAPPER_AddHandler(CAPTURE_MidiEvent,MK_nothing,0,"caprawmidi","Record MIDI output", &item);

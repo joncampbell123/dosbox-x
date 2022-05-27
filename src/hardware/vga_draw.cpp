@@ -2214,84 +2214,6 @@ struct first_equal {
 };
 
 template <const unsigned int card,typename templine_type_t> static inline uint8_t* EGAVGA_TEXT_Combined_Draw_Line(Bitu vidstart,Bitu line) {
-	// keep it aligned:
-	templine_type_t* draw = ((templine_type_t*)TempLine) + 16 - vga.draw.panning;
-	const uint32_t* vidmem = VGA_Planar_Memwrap(vidstart); // pointer to chars+attribs
-	Bitu blocks = vga.draw.blocks;
-	if (vga.draw.panning) blocks++; // if the text is panned part of an
-	// additional character becomes visible
-	VGA_Latch pixels;
-
-	while (blocks--) {
-		pixels.d = *vidmem;
-
-		Bitu chr = pixels.b[0];
-		Bitu attr = pixels.b[1];
-		// the font pattern
-		Bitu font = vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
-		Bitu background = attr >> 4u;
-
-		// if blinking is enabled bit7 is not mapped to attributes
-		if (vga.draw.blinking) background &= ~0x8u;
-
-		// choose foreground color if blinking not set for this cell or blink on
-		Bitu foreground = (vga.draw.blink || (!(attr&0x80)))?
-			(attr&0xf):background;
-
-		// underline: all foreground [freevga: 0x77, previous 0x7]
-		if (GCC_UNLIKELY(((attr&0x77) == 0x01) && (vga.crtc.underline_location&0x1f)==line))
-			background = foreground;
-
-		if (vga.draw.char9dot) {
-			font <<=1; // 9 pixels
-
-			// extend to the 9th pixel if needed
-			if ((font&0x2) && (vga.attr.mode_control&0x04) && (chr>=0xc0) && (chr<=0xdf)) font |= 1;
-
-			for (Bitu n = 0; n < 9; n++) {
-				if (card == MCH_VGA)
-					*draw++ = vga.dac.xlat32[(font&0x100)? foreground:background];
-				else /*MCH_EGA*/
-					*draw++ = vga.attr.palette[(font&0x100)? foreground:background];
-
-				font <<= 1;
-			}
-		} else {
-			for (Bitu n = 0; n < 8; n++) {
-				if (card == MCH_VGA)
-					*draw++ = vga.dac.xlat32[(font&0x80)? foreground:background];
-				else /*MCH_EGA*/
-					*draw++ = vga.attr.palette[(font&0x80)? foreground:background];
-
-				font <<= 1;
-			}
-		}
-
-		vidmem += (uintptr_t)1U << (uintptr_t)vga.config.addr_shift;
-	}
-
-	// draw the text mode cursor if needed
-	if ((vga.draw.cursor.count&0x8) && (line >= vga.draw.cursor.sline) && (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled) {
-		// the address of the attribute that makes up the cell the cursor is in
-		Bits attr_addr = ((Bits)vga.draw.cursor.address - (Bits)vidstart) >> (Bits)vga.config.addr_shift; /* <- FIXME: This right? */
-		if (attr_addr >= 0 && attr_addr < (Bits)vga.draw.blocks) {
-			Bitu index = (Bitu)attr_addr * (vga.draw.char9dot ? 9u : 8u);
-			draw = (((templine_type_t*)TempLine) + index) + 16 - vga.draw.panning;
-
-			Bitu foreground = vga.tandy.draw_base[(vga.draw.cursor.address<<2ul)+1] & 0xf;
-			for (Bitu i = 0; i < 8; i++) {
-				if (card == MCH_VGA)
-					*draw++ = vga.dac.xlat32[foreground];
-				else /*MCH_EGA*/
-					*draw++ = vga.attr.palette[foreground];
-			}
-		}
-	}
-
-	return TempLine+(16*sizeof(templine_type_t));
-}
-
-template <const unsigned int card,typename templine_type_t> static inline uint8_t* EGAVGA_TEXT_DBCS_Combined_Draw_Line(Bitu vidstart,Bitu line) {
     // keep it aligned:
     templine_type_t* draw = ((templine_type_t*)TempLine) + 16 - vga.draw.panning;
     const uint32_t* vidmem = VGA_Planar_Memwrap(vidstart); // pointer to chars+attribs
@@ -2301,13 +2223,18 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
     Bitu background = 0, foreground = 0;
     Bitu chr, chr_left = 0, p3 = 0, attr, bsattr;
     bool chr_wide = false;
+    bool usedbcs = (isJEGAEnabled() || (isDBCSCP()
+#if defined(USE_TTF)
+                   && dbcs_sbcs
+#endif
+                   && showdbcs) && CurMode && CurMode->type == M_TEXT && !dos_kernel_disabled && strcmp(RunningProgram, "LOADLIN"));
 
-    if (vga.draw.height < 16u || vga.draw.width < 8u) return TempLine;
+    if (usedbcs && (vga.draw.height < 16u || vga.draw.width < 8u)) return TempLine;
 
     unsigned int row = (vidstart - vga.config.real_start - vga.draw.bytes_skip) / vga.draw.address_add, col = 0;
-    unsigned int rows = (vga.draw.height / 16u) - 1u, cols = (vga.draw.width / 8u) - 1u;
+    unsigned int rows = (vga.draw.height / 16u) - 1u, cols = (vga.draw.address_add / 2u) - 1u;
 
-    if (line == 1) {
+    if (usedbcs && line == 1) {
         if (!jtbs.empty()) jtbs.erase(std::remove_if(jtbs.begin(), jtbs.end(), first_equal(row)), jtbs.end());
         if (!dbox.empty()) dbox.erase(std::remove_if(dbox.begin(), dbox.end(), first_equal(row)), dbox.end());
     }
@@ -2315,8 +2242,7 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
     VGA_Latch pixeln1, pixeln2, pixeln3, pixelp1, pixelp2, pixelp3;
     while (blocks--) {
         if (!col) p3 = 0;
-
-        {
+        if (usedbcs) { // DBCS case
             VGA_Latch pixels;
             pixels.d = *vidmem;
             chr = pixels.b[0];
@@ -2501,6 +2427,48 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
             pixelp2.d = *(vidmem - 2 * ((uintptr_t)1U << (uintptr_t)vga.config.addr_shift));
             p3 = col>2?pixelp2.b[0]:0;
             col++;
+        } else { // SBCS case
+            VGA_Latch pixels;
+
+            pixels.d = *vidmem;
+
+            Bitu chr = pixels.b[0];
+            Bitu attr = pixels.b[1];
+            // the font pattern
+            Bitu font = vga.draw.font_tables[(attr >> 3)&1][(chr<<5)+line];
+            Bitu background = attr >> 4u;
+            // if blinking is enabled bit7 is not mapped to attributes
+            if (vga.draw.blinking) background &= ~0x8u;
+            // choose foreground color if blinking not set for this cell or blink on
+            Bitu foreground = (vga.draw.blink || (!(attr&0x80)))?
+                (attr&0xf):background;
+            // underline: all foreground [freevga: 0x77, previous 0x7]
+            if (GCC_UNLIKELY(((attr&0x77) == 0x01) &&
+                (vga.crtc.underline_location&0x1f)==line))
+                    background = foreground;
+            if (vga.draw.char9dot) {
+                font <<=1; // 9 pixels
+                // extend to the 9th pixel if needed
+                if ((font&0x2) && (vga.attr.mode_control&0x04) &&
+                    (chr>=0xc0) && (chr<=0xdf)) font |= 1;
+                for (Bitu n = 0; n < 9; n++) {
+                    if (card == MCH_VGA)
+                        *draw++ = vga.dac.xlat32[(font&0x100)? foreground:background];
+                    else /*MCH_EGA*/
+                        *draw++ = vga.attr.palette[(font&0x100)? foreground:background];
+
+                    font <<= 1;
+                }
+            } else {
+                for (Bitu n = 0; n < 8; n++) {
+                    if (card == MCH_VGA)
+                        *draw++ = vga.dac.xlat32[(font&0x80)? foreground:background];
+                    else /*MCH_EGA*/
+                        *draw++ = vga.attr.palette[(font&0x80)? foreground:background];
+
+                    font <<= 1;
+                }
+            }
         }
         vidmem += (uintptr_t)1U << (uintptr_t)vga.config.addr_shift;
     }
@@ -2534,16 +2502,6 @@ static uint8_t* EGA_TEXT_Xlat8_Draw_Line(Bitu vidstart, Bitu line) {
 // combined 8/9-dot wide text mode 16bpp line drawing function
 static uint8_t* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     return EGAVGA_TEXT_Combined_Draw_Line<MCH_VGA,uint32_t>(vidstart,line);
-}
-
-// combined 8/9-dot wide text mode 16bpp line drawing function with JEGA/DBCS
-static uint8_t* EGA_TEXT_DBCS_Xlat8_Draw_Line(Bitu vidstart, Bitu line) {
-    return EGAVGA_TEXT_DBCS_Combined_Draw_Line<MCH_EGA,uint8_t>(vidstart,line);
-}
-
-// combined 8/9-dot wide text mode 16bpp line drawing function with JEGA/DBCS
-static uint8_t* VGA_TEXT_DBCS_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
-    return EGAVGA_TEXT_DBCS_Combined_Draw_Line<MCH_VGA,uint32_t>(vidstart,line);
 }
 
 template <const unsigned int card,typename templine_type_t,const unsigned int pixels> static inline void Alt_EGAVGA_TEXT_Combined_Draw_Line_RenderBMP(templine_type_t* &draw,unsigned int font,const unsigned char foreground,const unsigned char background) {
@@ -5475,24 +5433,17 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             vga.draw.char9dot = true;
         }
 
-        if (IS_JEGA_ARCH) {
-            /* Wengier connected the JEGA case to EGA emulation, and EGA emulation renders bpp == 8 */
-            VGA_DrawLine = EGA_TEXT_DBCS_Xlat8_Draw_Line;
-            bpp = 8;
-        }
-        else if (IS_EGA_ARCH) {
-            if (vga_alt_new_mode)
+        /* FIXME: This is still peeking into DOS state, which should be turned into an INT 10h call or some such
+         *        when KEYB or other utility changes code page, but it does not involve reading guest memory */
+        if (IS_EGA_ARCH) {
+            if (vga_alt_new_mode && !IS_JEGA_ARCH)
                 VGA_DrawLine = Alt_EGA_TEXT_Xlat8_Draw_Line;
             else
                 VGA_DrawLine = EGA_TEXT_Xlat8_Draw_Line;
             bpp = 8;
         }
         else {
-            /* FIXME: This is still peeking into DOS state, which should be turned into an INT 10h call or some such
-	     *        when KEYB or other utility changes code page, but it does not involve reading guest memory */
-            if (showdbcs && !dos_kernel_disabled && isDBCSCP())
-                VGA_DrawLine = VGA_TEXT_DBCS_Xlat32_Draw_Line;
-            else if (vga_alt_new_mode)
+            if (vga_alt_new_mode)
                 VGA_DrawLine = Alt_VGA_TEXT_Xlat32_Draw_Line;
             else
                 VGA_DrawLine = VGA_TEXT_Xlat32_Draw_Line;
