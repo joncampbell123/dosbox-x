@@ -40,6 +40,9 @@
 #endif
 
 struct IDEEventPack {
+#if defined(HX_DOS) || defined(__MINGW32__)
+	IDEEventPack() = default;
+#endif
 	IDEEventPack(const unsigned int interface,const unsigned int device) : v(pack(interface,device)) {
 	}
 	IDEEventPack(const unsigned int nv) : v(nv) {

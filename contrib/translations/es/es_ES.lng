@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Spanish (Spain)
 :DOSBOX-X:CODEPAGE:858
-:DOSBOX-X:VERSION:0.83.25
+:DOSBOX-X:VERSION:0.83.26
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Las líneas de esta sección se iniciarán al inicio.
@@ -225,12 +225,6 @@ Slot vacío
 .
 :SLOT
 Slot
-.
-:PREVIOUS_PAGE
-< Pág anterior
-.
-:NEXT_PAGE
-Pág siguiente >
 .
 :SELECT_EVENT
 Elige evento a cambiar.

@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:English (United States)
 :DOSBOX-X:CODEPAGE:437
-:DOSBOX-X:VERSION:0.83.25
+:DOSBOX-X:VERSION:0.83.26
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
@@ -223,17 +223,11 @@ Empty slot
 :SLOT
 Slot
 .
-:PREVIOUS_PAGE
-< Previous Page
-.
-:NEXT_PAGE
-    Next Page >
-.
 :SELECT_EVENT
 Select an event to change.
 .
 :SELECT_DIFFERENT_EVENT
-Select a different event or hit the Add/Del/Next buttons.
+Select an event or press Add/Del/Next buttons.
 .
 :PRESS_JOYSTICK_KEY
 Press a key/joystick button or move the joystick.
@@ -3453,15 +3447,6 @@ Quick launch program
 .
 :MAPPER:reboot
 Reboot DOS system
-.
-:MAPPER:recmtwave
-Record to M.T. AVI
-.
-:MAPPER:recvoldown
-Decrease rec. volume
-.
-:MAPPER:recvolup
-Increase rec. volume
 .
 :MAPPER:rescanall
 Rescan drives
