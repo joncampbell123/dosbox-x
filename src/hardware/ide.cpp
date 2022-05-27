@@ -3468,7 +3468,6 @@ void IDEDevice::data_write(Bitu v,Bitu iolen) {
 IDEDevice::IDEDevice(IDEController *c,bool _slave) {
     type = IDE_TYPE_NONE;
     slave = _slave;
-    status = 0x00;
     controller = c;
     asleep = false;
     motor_on = true;
@@ -3476,6 +3475,7 @@ IDEDevice::IDEDevice(IDEController *c,bool _slave) {
     allow_writing = true;
     state = IDE_DEV_READY;
     feature = count = lba[0] = lba[1] = lba[2] = command = drivehead = 0;
+    status = IDE_STATUS_DRIVE_READY | IDE_STATUS_DRIVE_SEEK_COMPLETE;
 
     faked_command = false;
     ide_select_delay = 0.5; /* 500us */
@@ -3490,6 +3490,7 @@ void IDEDevice::host_reset_complete() {
     asleep = false;
     allow_writing = true;
     state = IDE_DEV_READY;
+    status = IDE_STATUS_DRIVE_READY | IDE_STATUS_DRIVE_SEEK_COMPLETE;
 }
 
 void IDEDevice::host_reset_begin() {

@@ -1,4 +1,9 @@
 0.83.26
+  - Fix IDE devices to start up with the drive ready
+    bit set for OSes that expect it when probing IDE
+    devices. This allows the Linux kernel to see
+    IDE ATA drives emulated by DOSBox-X.
+    (joncampbell123)
   - Fix IDE ATAPI emulation to correctly handle CD
     READ across one or more DRQ block transfers.
     Use block size given by guest in consideration
