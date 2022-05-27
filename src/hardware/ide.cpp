@@ -329,34 +329,36 @@ private:// Sorry, IDE devices and external code don't get to force IDE IRQs anym
 
 static IDEController* idecontroller[MAX_IDE_CONTROLLERS]={NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
-static void IDE_DelayedCommand(Bitu idx/*which IDE device*/);
+static void IDE_DelayedCommand(Bitu pk/*which IDE device*/);
 static IDEController* GetIDEController(Bitu idx);
 
-static void IDE_ATAPI_SpinDown(Bitu idx/*which IDE device*/) {
-    IDEController *ctrl = GetIDEController(idx);
-    if (ctrl == NULL) return;
+static void IDE_ATAPI_SpinDown(Bitu pk/*which IDE device*/) {
+	IDEEventPack ep(pk);
+	const unsigned int idx = ep.interface();
+	const unsigned int devidx = ep.device();
 
-    for (unsigned int i=0;i < 2;i++) {
-        IDEDevice *dev = ctrl->device[i];
-        if (dev == NULL) continue;
+	IDEController *ctrl = GetIDEController(idx);
+	if (ctrl == NULL) return;
 
-        if (dev->type == IDE_TYPE_HDD) {
-        }
-        else if (dev->type == IDE_TYPE_CDROM) {
-            IDEATAPICDROMDevice *atapi = (IDEATAPICDROMDevice*)dev;
+	IDEDevice *dev = ctrl->device[devidx];
+	if (dev == NULL) return;
 
-            if (atapi->loading_mode == LOAD_DISC_READIED || atapi->loading_mode == LOAD_READY) {
-                atapi->loading_mode = LOAD_IDLE;
-                LOG_MSG("ATAPI CD-ROM: spinning down\n");
-            }
-        }
-        else {
-            LOG_MSG("Unknown ATAPI spinup callback\n");
-        }
-    }
+	if (dev->type == IDE_TYPE_HDD) {
+	}
+	else if (dev->type == IDE_TYPE_CDROM) {
+		IDEATAPICDROMDevice *atapi = (IDEATAPICDROMDevice*)dev;
+
+		if (atapi->loading_mode == LOAD_DISC_READIED || atapi->loading_mode == LOAD_READY) {
+			atapi->loading_mode = LOAD_IDLE;
+			LOG_MSG("ATAPI CD-ROM: spinning down\n");
+		}
+	}
+	else {
+		LOG_MSG("Unknown ATAPI spinup callback\n");
+	}
 }
 
-static void IDE_ATAPI_SpinUpComplete(Bitu idx/*which IDE device*/);
+static void IDE_ATAPI_SpinUpComplete(Bitu pk/*which IDE device*/);
 
 static void IDE_ATAPI_CDInsertion(Bitu pk/*which IDE device*/) {
 	IDEEventPack ep(pk);
