@@ -26,7 +26,8 @@
 #endif
 
 #define GetEAa												\
-	PhysPt eaa=EALookupTable[rm]();					
+	PhysPt eaa=EALookupTable[rm]();									\
+	(void)eaa
 
 #define GetRMEAa											\
 	GetRM;													\

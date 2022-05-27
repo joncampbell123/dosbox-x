@@ -376,7 +376,6 @@
 		else if (CPU_ArchitectureType==CPU_ARCHTYPE_PPROSLOW) break; /* hinting NOP */
 		else if (CPU_ArchitectureType>=CPU_ARCHTYPE_PENTIUMIII)
 		{
-			XMM_Reg xmmdst;
 			GetRM;
 			const unsigned char reg = (rm >> 3) & 7;
 
@@ -814,7 +813,6 @@
 	CASE_0F_B(0x50)												/* SSE instruction group */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
 		{
-			XMM_Reg xmmsrc;
 			GetRM;
 			const unsigned char reg = (rm >> 3) & 7;
 
@@ -1805,7 +1803,6 @@
 		{
 			GetRM;
 			uint8_t imm;
-			uint32_t src;
 			const unsigned char reg = (rm >> 3) & 7;
 
 			switch (last_prefix) {
@@ -1900,9 +1897,7 @@
 	CASE_0F_B(0xd7)												/* SSE instruction group */
 		if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMIII || !CPU_SSE()) goto illegal_opcode;
 		{
-			XMM_Reg xmmsrc;
 			GetRM;
-			uint8_t imm;
 			const unsigned char reg = (rm >> 3) & 7;
 
 			switch (last_prefix) {
