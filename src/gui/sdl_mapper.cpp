@@ -5792,8 +5792,8 @@ std::map<std::string,std::string> get_event_map() {
 }
 
 void update_bindbutton_text() {
-    if (bind_but.prevpage) bind_but.prevpage->SetText(MSG_Get("PREVIOUS_PAGE"));
-    if (bind_but.nextpage) bind_but.nextpage->SetText(MSG_Get("NEXT_PAGE"));
+    if (bind_but.prevpage) bind_but.prevpage->SetText("<-");
+    if (bind_but.nextpage) bind_but.nextpage->SetText("->");
     if (bind_but.add) bind_but.add->SetText(MSG_Get("ADD"));
     if (bind_but.del) bind_but.del->SetText(MSG_Get("DEL"));
     if (bind_but.next) bind_but.next->SetText(MSG_Get("NEXT"));
