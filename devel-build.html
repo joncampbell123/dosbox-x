@@ -8,15 +8,15 @@
     <meta http-equiv="X-UA-Compatible" content="chrome=1">
     <meta name="description" content="DOSBox-X: Free, cross-platform and complete DOS, Windows 3.x and 9x emulation package">
 
-	<link rel="icon" type="image/x-icon" href="images/favicon.ico">
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
     <link rel="stylesheet" type="text/css" media="screen" href="css/style.css">
 
     <script type="text/javascript" src="js/script.js"></script>
     <title>DOSBox-X - Accurate DOS emulation for Windows, Linux, macOS, and DOS</title>
     <script type="text/javascript">
-// Fetch build status using GitHub API and update HTML
-// The function is originally written by the DOSBox Staging Team
-function set_ci_status(workflow_file, os_name, description, page = 1) {
+  // Fetch build status using GitHub API and update HTML
+  // The function is originally written by the DOSBox Staging Team
+  function set_ci_status(workflow_file, os_name, description, page = 1) {
 
     // GitHub has strict rate-limits for anonymous users: 60 requests per hour;
     // We request 100 results per page (max allowed); main builds are very
@@ -73,9 +73,9 @@ function set_ci_status(workflow_file, os_name, description, page = 1) {
         .catch(err => {
             console.log('Fetch Error :-S', err);
         });
-}
+  }
 
-document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("DOMContentLoaded", () => {
     set_ci_status("vsbuild32.yml", "vsbuild32", "32-bit Visual Studio builds");
     set_ci_status("vsbuild64.yml", "vsbuild64", "64-bit Visual Studio builds");
     set_ci_status("mingw32.yml", "mingw32", "32-bit MinGW builds");
@@ -83,9 +83,7 @@ document.addEventListener("DOMContentLoaded", () => {
     set_ci_status("hxdos.yml", "hxdos", "HX-DOS and MinGW-lowend builds");
     set_ci_status("linux.yml", "linux", "Linux (x86_64) builds");
     set_ci_status("macos.yml", "macos", "macOS (x86_64) builds");
-});
-
--->
+  });
     </script>
   </head>
 
