@@ -66,8 +66,8 @@ document.addEventListener("DOMContentLoaded", () => {
     set_ci_status("mingw32.yml", "mingw32", "32-bit MinGW builds");
     set_ci_status("mingw64.yml", "mingw64", "64-bit MinGW builds");
     set_ci_status("hxdos.yml", "hxdos", "HX-DOS and MinGW-lowend builds");
-    set_ci_status("linux.yml", "linux", "Linux builds");
-    set_ci_status("macos.yml", "macos", "macOS builds");
+    set_ci_status("linux.yml", "linux", "Linux (x86-64) builds");
+    set_ci_status("macos.yml", "macos", "macOS (x86-64) builds");
 });
 
 -->
@@ -110,12 +110,12 @@ document.addEventListener("DOMContentLoaded", () => {
         <div style="text-align: center">
             <h3 style="padding-top: 10px">DOSBox-X Development Builds</h3>
     <p>
-        These are unstable development builds intended for testing purposes.
-		If you want to download release builds, go to the <a href="https://www.dosbox-x.com/">DOSBox-X website</a> or <a href="https://github.com/joncampbell123/dosbox-x/releases">Release page</a>.
+        These are unstable development builds intended for testing purposes for the supported platforms.<br />
+		If you instead want to download the release builds, go to the <a href="https://www.dosbox-x.com/">DOSBox-X website</a> or <a href="https://github.com/joncampbell123/dosbox-x/releases">Release page</a>.
     </p>
 
     <p>
-        <em><span style="font-weight: bold">Note:</span> Build artifacts are hosted on GitHub; you need to be logged in to download them.</em>
+        <em><span style="font-weight: bold">Note:</span> Build artifacts are hosted on <a href="https://github.com/">GitHub</a>; you need to be logged in to download them.</em>
     </p>
 	</div>
 
@@ -162,6 +162,7 @@ document.addEventListener("DOMContentLoaded", () => {
           <td id="hxdos-build-date">-</td>
        </tr>
     </table>
+	Return to <a href="index.html">main page</a><p />
 	</center>
     </div>
 
