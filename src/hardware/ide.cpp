@@ -269,6 +269,7 @@ public:
     virtual void io_completion();
     virtual void atapi_cmd_completion();
     virtual void on_atapi_busy_time();
+    virtual void mechanism_status();
     virtual void read_subchannel();
     virtual void play_audio_msf();
     virtual void pause_resume();
@@ -574,6 +575,37 @@ void IDEATAPICDROMDevice::read_subchannel() {
     for (size_t i=0;i < sector_total;i++) LOG_MSG("%02x ",sector[i]);
     LOG_MSG("\n");
 #endif
+}
+
+void IDEATAPICDROMDevice::mechanism_status() {
+    unsigned char *write;
+    unsigned int x;
+
+    write = sector;
+
+    /* MECHANISM STATUS PARAMETER LIST */
+    /* - Status Header */
+    /* - Slot Table(s) */
+
+    /* Status Header */
+    *write++ = 0x00; // fault=0 changerstate=0 currentslot=0
+    *write++ = (0 << 5u)/* mechanism state=idle=0 (TODO) */ | (0x00)/*door open=0*/;
+    *write++ = 0x00; // current LBA (TODO)
+    *write++ = 0x00; // .
+    *write++ = 0x00; // .
+    *write++ = 0x00; // number of slots available = 0
+    *write++ = 0x00; // length of slot table(s)
+    *write++ = 0x00; // .
+
+    /* Slot table(s) */
+    // None, we're not emulating ourselves as a CD changer.
+
+    // TODO: Actually this command might be a neat way to expose the CD-ROM
+    //       "swap chain" the user might have set up with IMGMOUNT before
+    //       booting the guest OS. If enabled, we should report each and
+    //       every ISO image like we're a CD changer. :)
+
+    prepare_read(0,MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count));
 }
 
 void IDEATAPICDROMDevice::mode_sense() {
@@ -1264,6 +1296,20 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
             raise_irq();
             allow_writing = true;
             break;
+        case 0xBD: /* MECHANISM STATUS */
+	    mechanism_status();
+
+            feature = 0x00;
+            state = IDE_DEV_DATA_READ;
+            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+
+            /* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
+            lba[2] = sector_total >> 8;
+            lba[1] = sector_total;
+
+            raise_irq();
+            allow_writing = true;
+	    break;
         default:
             LOG_MSG("Unknown ATAPI command after busy wait. Why?\n");
             abort_error();
@@ -1870,6 +1916,12 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
             status = IDE_STATUS_BUSY;
             PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             break;
+        case 0xBD: /* MECHANISM STATUS */
+            count = 0x02;
+            state = IDE_DEV_ATAPI_BUSY;
+            status = IDE_STATUS_BUSY;
+            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
+	    break;
         default:
             /* we don't know the command, immediately return an error */
             LOG_MSG("Unknown ATAPI command %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
