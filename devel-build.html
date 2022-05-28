@@ -1,0 +1,172 @@
+<script type="text/javascript">
+// Fetch build status using GitHub API and update HTML
+// The function is originally written by the DOSBox Staging Team
+function set_ci_status(workflow_file, os_name, description, page = 1) {
+
+    // GitHub has strict rate-limits for anonymous users: 60 requests per hour;
+    // We request 100 results per page (max allowed); main builds are very
+    // likely to be included in the first page anyway.
+    if (page > 10) {
+        return;
+    }
+
+    let per_page = 100;
+    let gh_api_url = "https://api.github.com/repos/joncampbell123/dosbox-x/";
+    fetch(gh_api_url + "actions/workflows/" + workflow_file + "/runs" +
+          "?page=" + page + "&per_page=" + per_page)
+        .then(response => {
+
+            // Handle HTTP error
+            if (response.status !== 200) {
+                console.log("Looks like there was a problem." +
+                            "Status Code: " + response.status);
+                return;
+            }
+
+            response.json().then(data => {
+
+                // console.log(data.workflow_runs);
+
+                let status = data.workflow_runs
+                    .filter(run => run.head_branch == "master")
+                    .filter(run => (run.event == "push" || run.event == "workflow_dispatch"))
+                    .find(run => run.conclusion == "success");
+
+                // If result not found, query the next page
+                if (status == undefined) {
+                    set_ci_status(workflow_file, os_name, page + 1);
+                    return;
+                }
+				
+                // Update HTML elements
+                let build_link = document.createElement("a");
+                build_link.textContent = description;
+                build_link.setAttribute("href", status.html_url);
+                let build_link_tr_el = document.getElementById(os_name + "-build-link");
+                build_link_tr_el.innerHTML = '';
+                build_link_tr_el.appendChild(build_link);
+
+                let build_commit = status.head_commit.id;
+                let commit_el = document.getElementById(os_name + "-build-commit");
+                commit_el.innerHTML = "<a href='https://github.com/joncampbell123/dosbox-x/commit/" + build_commit + "'>" + build_commit.substring(1, 7) + "</a>";
+
+                let build_date = new Date(status.updated_at);
+                let date_el = document.getElementById(os_name + "-build-date");
+                date_el.textContent = build_date.toUTCString();
+            });
+        })
+        .catch(err => {
+            console.log('Fetch Error :-S', err);
+        });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    set_ci_status("vsbuild32.yml", "vsbuild32", "32-bit Visual Studio builds");
+    set_ci_status("vsbuild64.yml", "vsbuild64", "64-bit Visual Studio builds");
+    set_ci_status("mingw32.yml", "mingw32", "32-bit MinGW builds");
+    set_ci_status("mingw64.yml", "mingw64", "64-bit MinGW builds");
+    set_ci_status("hxdos.yml", "hxdos", "HX-DOS and MinGW-lowend builds");
+    set_ci_status("linux.yml", "linux", "Linux builds");
+    set_ci_status("macos.yml", "macos", "macOS builds");
+});
+
+-->
+</script>
+
+
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="DOSBox-X: Free, cross-platform and complete DOS, Windows 3.x and 9x emulation package">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="css/style.css">
+
+    <script type="text/javascript" src="js/script.js"></script>
+    <title>DOSBox-X - Accurate DOS emulation for Windows, Linux, macOS, and DOS</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <table width="100%" style="border: hidden">
+        <tr>
+        <td width="25%" style="border: hidden; min-width: 300px; text-align: center">
+          &nbsp;<p />&nbsp;<br/>
+          <img id="dosbox-x-logo" src="images/dosbox-x-logo.svg" title="DOSBox-X" alt="DOSBox-X logo" style="width:90px" />
+        </td><td>&nbsp;<p />
+          <h1 id="project_title">DOSBox-X</h1>
+          <h2 id="project_tagline">Cross-platform DOS emulation package<br />Complete, accurate emulation and more</h2>
+        </td>
+        </tr>
+        </table>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer"; style="background-color: #fafacf">
+        <div style="text-align: center">
+            <h3 style="padding-top: 10px">DOSBox-X Development Builds</h3>
+    <p>
+        These are unstable development builds intended for testing purposes.
+		If you want to download release builds, go to the <a href="https://www.dosbox-x.com/">DOSBox-X website</a> or <a href="https://github.com/joncampbell123/dosbox-x/releases">Release page</a>.
+    </p>
+
+    <p>
+        <em><span style="font-weight: bold">Note:</span> Build artifacts are hosted on GitHub; you need to be logged in to download them.</em>
+    </p>
+	</div>
+
+    <center>
+	<table style="width: 50%">
+       <tr>
+          <th style="text-align: center">Download link</th>
+          <th style="text-align: center">Commit</th>
+          <th style="text-align: center">Date</th>
+       </tr>
+       <tr>
+          <td id="vsbuild32-build-link"><img style="margin:auto;margin-left:0.1em;" src="/dots.svg"/></td>
+          <td id="vsbuild32-build-commit">-</td>
+          <td id="vsbuild32-build-date">-</td>
+       </tr>
+       <tr>
+          <td id="vsbuild64-build-link"><img style="margin:auto;margin-left:0.1em;" src="/dots.svg"/></td>
+          <td id="vsbuild64-build-commit">-</td>
+          <td id="vsbuild64-build-date">-</td>
+       </tr>
+       <tr>
+          <td id="mingw32-build-link"><img style="margin:auto;margin-left:0.1em;" src="/dots.svg"/></td>
+          <td id="mingw32-build-commit">-</td>
+          <td id="mingw32-build-date">-</td>
+       </tr>
+       <tr>
+          <td id="mingw64-build-link"><img style="margin:auto;margin-left:0.1em;" src="/dots.svg"/></td>
+          <td id="mingw64-build-commit">-</td>
+          <td id="mingw64-build-date">-</td>
+       </tr>
+       <tr>
+          <td id="linux-build-link"><img style="margin:auto;margin-left:0.1em;" src="/dots.svg"/></td>
+          <td id="linux-build-commit">-</td>
+          <td id="linux-build-date">-</td>
+       </tr>
+		<tr>
+          <td id="macos-build-link"><img style="margin:auto;margin-left:0.1em;" src="/dots.svg"/></td>
+          <td id="macos-build-commit">-</td>
+          <td id="macos-build-date">-</td>
+       </tr>
+       <tr>
+          <td id="hxdos-build-link"><img style="margin:auto;margin-left:0.1em;" src="/dots.svg"/></td>
+          <td id="hxdos-build-commit">-</td>
+          <td id="hxdos-build-date">-</td>
+       </tr>
+    </table>
+	</center>
+    </div>
+
+    <!-- FOOTER  -->
+    <iframe src="footer.html" onload="this.before((this.contentDocument.body||this.contentDocument).children[0]);this.remove()"></iframe>
+
+  </body>
+</html>
