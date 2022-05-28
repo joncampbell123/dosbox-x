@@ -145,7 +145,7 @@ static void lio_updatedraw() {
             // through
         case 2:
             // mono 640x400
-            lio_draw.flag |= (lio_work.pos % lio_draw.planes) | LIODRAW_MONO;
+            lio_draw.flag |= (lio_work.pos % lio_draw.planes);
             break;
         // case 3: color 640x400
     }
@@ -173,21 +173,12 @@ static void lio_pset(short x, short y, uint8_t palette) {
     if(lio_draw.flag & LIODRAW_UPPER) {
         addr += 16000;
     }
-    if(!(lio_draw.flag & LIODRAW_MONO)) {
-        for(uint8_t i = 0 ; i < lio_draw.planes ; i++) {
-            data = mem_readb(lio_base[i] + addr);
-            if(palette & (1 << i)) {
-                mem_writeb(lio_base[i] + addr, data | bit);
-            } else {
-                mem_writeb(lio_base[i] + addr, data & ~bit);
-            }
-        }
-    } else {
-        data = mem_readb(lio_base[lio_draw.flag & LIODRAW_PMASK] + addr);
-        if(palette) {
-            mem_writeb(lio_base[lio_draw.flag & LIODRAW_PMASK] + addr, data | bit);
+    for(uint8_t i = 0 ; i < lio_draw.planes ; i++) {
+        data = mem_readb(lio_base[i] + addr);
+        if(palette & (1 << i)) {
+            mem_writeb(lio_base[i] + addr, data | bit);
         } else {
-            mem_writeb(lio_base[lio_draw.flag & LIODRAW_PMASK] + addr, data & ~bit);
+            mem_writeb(lio_base[i] + addr, data & ~bit);
         }
     }
 }
@@ -201,17 +192,10 @@ static void lio_bda_and_gdc_set_mode(const uint8_t draw_mode) {
 }
 
 static void lio_gline_sub(int x1, int y1, int x2, int y2, uint16_t ead, uint8_t dad, int palette) {
-    if(!(lio_draw.flag & LIODRAW_MONO)) {
-        for(uint8_t i = 0 ; i < lio_draw.planes ; i++) {
-            pc98_gdc[GDC_SLAVE].set_vectl(x1, y1, x2, y2);
-            lio_bda_and_gdc_set_mode((palette & (1 << i)) ? 0x23 : 0x22);
-            pc98_gdc[GDC_SLAVE].set_csrw(ead + gdc_base[i], dad);
-            pc98_gdc[GDC_SLAVE].exec(0x6c);
-        }
-    } else {
+    for(uint8_t i = 0 ; i < lio_draw.planes ; i++) {
         pc98_gdc[GDC_SLAVE].set_vectl(x1, y1, x2, y2);
-        lio_bda_and_gdc_set_mode(palette ? 0x23 : 0x22);
-        pc98_gdc[GDC_SLAVE].set_csrw(ead + (((lio_draw.flag + 1) & LIODRAW_PMASK) << 12), dad);
+        lio_bda_and_gdc_set_mode((palette & (1 << i)) ? 0x23 : 0x22);
+        pc98_gdc[GDC_SLAVE].set_csrw(ead + gdc_base[i], dad);
         pc98_gdc[GDC_SLAVE].exec(0x6c);
     }
 }
@@ -362,16 +346,10 @@ static void lio_gbox(int px1, int py1, int px2, int py2, int palette, uint8_t *t
             }
             pc98_gdc[GDC_SLAVE].set_textw(pattern);
             pc98_gdc[GDC_SLAVE].set_vectl(x1, y1, x2, y1);
-            if(!(lio_draw.flag & LIODRAW_MONO)) {
-                lio_bda_and_gdc_set_mode((palette & (1 << r)) ? 0x23 : 0x22);
-                pc98_gdc[GDC_SLAVE].set_csrw(ead + gdc_base[r], dad);
-                pc98_gdc[GDC_SLAVE].exec(0x6c);
-            } else {
-                lio_bda_and_gdc_set_mode(palette ? 0x23 : 0x22);
-                pc98_gdc[GDC_SLAVE].set_csrw(ead + (((lio_draw.flag + 1) & LIODRAW_PMASK) << 12), dad);
-                pc98_gdc[GDC_SLAVE].exec(0x6c);
-                break;
-            }
+
+            lio_bda_and_gdc_set_mode((palette & (1 << r)) ? 0x23 : 0x22);
+            pc98_gdc[GDC_SLAVE].set_csrw(ead + gdc_base[r], dad);
+            pc98_gdc[GDC_SLAVE].exec(0x6c);
         } while(++r < lio_draw.planes);
         y1++;
     }
@@ -428,6 +406,17 @@ uint8_t PC98_BIOS_LIO_GINIT() {
 
     return LIO_SUCCESS;
 }
+
+static int mono_plane_palette[8][4] = {
+    { 0x00,0x00,0x00,0x00 },
+    { 0x77,0x77,0x00,0x00 },
+    { 0x77,0x00,0x77,0x00 },
+    { 0x77,0x77,0x77,0x00 },
+    { 0x07,0x07,0x07,0x07 },
+    { 0x77,0x77,0x07,0x07 },
+    { 0x77,0x07,0x77,0x07 },
+    { 0x77,0x77,0x77,0x07 },
+};
 
 uint8_t PC98_BIOS_LIO_GSCREEN() {
     uint8_t screen_mode;
@@ -537,8 +526,13 @@ uint8_t PC98_BIOS_LIO_GSCREEN() {
             mode = 0xc0;
             break;
     }
+    if(lio_palette_mode == 0 && (screen_mode == 1 || screen_mode == 2) && plane < 8) {
+        IO_WriteB(0xa8, mono_plane_palette[plane][0]);
+        IO_WriteB(0xaa, mono_plane_palette[plane][1]);
+        IO_WriteB(0xac, mono_plane_palette[plane][2]);
+        IO_WriteB(0xae, mono_plane_palette[plane][3]);
+    }
     mode |= disp << 4;
-    mode |= mono << 5;
     reg_ch = mode;
     reg_ah = 0x42;
     CALLBACK_RunRealInt(0x18);
@@ -809,6 +803,32 @@ static void lio_circle_fill(short cx, short cy, short my, short py, uint8_t flag
     }
 }
 
+static int lio_circle_dir(int cx, int cy, int sx, int sy)
+{
+    if(sy > cy) {
+        if(sx > cx) {
+            return 1;
+        } else if(sx < cx) {
+            return 3;
+        } else {
+            return 2;
+        }
+    } else if(sy < cy) {
+        if(sx > cx) {
+            return 7;
+        } else if(sx < cx) {
+            return 5;
+        } else {
+            return 6;
+        }
+    } else {
+        if(sx > cx) {
+            return 0;
+        }
+    }
+    return 4;
+}
+
 uint8_t PC98_BIOS_LIO_GCIRCLE() {
     uint16_t seg = SegValue(ds);
     uint16_t off = reg_bx;
@@ -819,6 +839,8 @@ uint8_t PC98_BIOS_LIO_GCIRCLE() {
     short cx, cy;
     short rx, ry;
     int x, x1, y, y1, r;
+    int sx, sy, ex, ey;
+    uint8_t draw_flag[8];
 
     lio_updatedraw();
 
@@ -831,8 +853,26 @@ uint8_t PC98_BIOS_LIO_GCIRCLE() {
         palette = lio_work.fore_color;
     }
     flag = real_readb(seg, off + 9);
+    sx = real_readw(seg, off + 0x0a);
+    sy = real_readw(seg, off + 0x0c);
+    ex = real_readw(seg, off + 0x0e);
+    ey = real_readw(seg, off + 0x10);
+    memset(draw_flag, 1, sizeof(draw_flag));
     if(flag & 0x1f) {
         LOG_MSG("LIO GCIRCLE not support flags: %02x", flag);
+        if((flag & 5) == 5) {
+            int sdir, edir;
+            sdir = lio_circle_dir(cx, cy, sx, sy);
+            edir = lio_circle_dir(cx, cy, ex, ey);
+            if(sdir == edir && (flag & 0x10)) {
+                lio_pset(sx, sy, palette);
+                return LIO_SUCCESS;
+            }
+            while(sdir != edir) {
+                draw_flag[sdir++] = 0;
+                if(sdir >= 8) sdir = 0;
+            }
+        }
     }
     count = real_readb(seg, off + 0x12);
     if(lio_draw.paint_work == NULL) {
@@ -858,14 +898,14 @@ uint8_t PC98_BIOS_LIO_GCIRCLE() {
         while(x >= y) {
             x1 = x * ry / rx;
             y1 = y * ry / rx;
-            lio_circle_pset(cx + x, cy + y1, palette);
-            lio_circle_pset(cx + x, cy - y1, palette);
-            lio_circle_pset(cx - x, cy + y1, palette);
-            lio_circle_pset(cx - x, cy - y1, palette);
-            lio_circle_pset(cx + y, cy + x1, palette);
-            lio_circle_pset(cx + y, cy - x1, palette);
-            lio_circle_pset(cx - y, cy + x1, palette);
-            lio_circle_pset(cx - y, cy - x1, palette);
+            if(draw_flag[0]) lio_circle_pset(cx + x, cy + y1, palette);
+            if(draw_flag[1]) lio_circle_pset(cx + y, cy + x1, palette);
+            if(draw_flag[2]) lio_circle_pset(cx - y, cy + x1, palette);
+            if(draw_flag[3]) lio_circle_pset(cx - x, cy + y1, palette);
+            if(draw_flag[4]) lio_circle_pset(cx - x, cy - y1, palette);
+            if(draw_flag[5]) lio_circle_pset(cx - y, cy - x1, palette);
+            if(draw_flag[6]) lio_circle_pset(cx + y, cy - x1, palette);
+            if(draw_flag[7]) lio_circle_pset(cx + x, cy - y1, palette);
             if((r -= y++ * 2 + 1) <= 0) {
                 r += --x * 2;
             }
@@ -876,20 +916,26 @@ uint8_t PC98_BIOS_LIO_GCIRCLE() {
         while(x >= y) {
             x1 = x * rx / ry;
             y1 = y * rx / ry;
-            lio_circle_pset(cx + x1, cy + y, palette);
-            lio_circle_pset(cx + x1, cy - y, palette);
-            lio_circle_pset(cx - x1, cy + y, palette);
-            lio_circle_pset(cx - x1, cy - y, palette);
-            lio_circle_pset(cx + y1, cy + x, palette);
-            lio_circle_pset(cx + y1, cy - x, palette);
-            lio_circle_pset(cx - y1, cy + x, palette);
-            lio_circle_pset(cx - y1, cy - x, palette);
+            if(draw_flag[0]) lio_circle_pset(cx + x1, cy + y, palette);
+            if(draw_flag[1]) lio_circle_pset(cx + y1, cy + x, palette);
+            if(draw_flag[2]) lio_circle_pset(cx - y1, cy + x, palette);
+            if(draw_flag[3]) lio_circle_pset(cx - x1, cy + y, palette);
+            if(draw_flag[4]) lio_circle_pset(cx - x1, cy - y, palette);
+            if(draw_flag[5]) lio_circle_pset(cx - y1, cy - x, palette);
+            if(draw_flag[6]) lio_circle_pset(cx + y1, cy - x, palette);
+            if(draw_flag[7]) lio_circle_pset(cx + x1, cy - y, palette);
             if((r -= y++ * 2 + 1) <= 0) {
                 r += --x * 2;
             }
         }
     }
-    if(flag & 0x60) {
+    if((flag & 0x03) == 0x03) {
+        lio_gline(cx, cy, sx, sy, palette, 0xffff);
+    }
+    if((flag & 0x0c) == 0x0c) {
+        lio_gline(cx, cy, ex, ey, palette, 0xffff);
+    }
+    if((flag & 0x60) && (flag & 0x0f) == 0) {
         lio_circle_fill(cx, cy, cy - ry, -1, flag, count);
         lio_circle_fill(cx, cy + 1, cy + ry, 1, flag, count);
     }
@@ -908,15 +954,11 @@ static uint8_t lio_point(short x, short y) {
         addr += 16000;
     }
     shift = (~x) & 7;
-    if(!(lio_draw.flag & LIODRAW_MONO)) {
-        for(uint16_t plane = 0 ; plane < 3 ; plane++) {
-            ret += (((mem_readb(lio_base[plane] + addr) >> shift) & 1) << plane);
-        }
-        if(lio_draw.flag & LIODRAW_4BPP) {
-            ret += (((mem_readb(lio_base[3] + addr) >> shift) & 1) << 3);
-        }
-    } else {
-        ret = ((mem_readb(lio_base[lio_draw.flag & LIODRAW_PMASK] + addr) >> shift) & 1);
+    for(uint16_t plane = 0 ; plane < 3 ; plane++) {
+        ret += (((mem_readb(lio_base[plane] + addr) >> shift) & 1) << plane);
+    }
+    if(lio_draw.flag & LIODRAW_4BPP) {
+        ret += (((mem_readb(lio_base[3] + addr) >> shift) & 1) << 3);
     }
     return ret;
 }
@@ -1589,16 +1631,12 @@ uint8_t PC98_BIOS_LIO_GGET() {
     data_count = (x2 + 7) >> 3;
     size = data_count * y2;
     length = real_readw(seg, off + 0x0c);
-    if(!(lio_draw.flag & LIODRAW_MONO)) {
-        if(lio_draw.flag & LIODRAW_4BPP) {
-            size *= 4;
-            mask = 0x0f;
-        } else {
-            size *= 3;
-            mask = 0x07;
-        }
+    if(lio_draw.flag & LIODRAW_4BPP) {
+        size *= 4;
+        mask = 0x0f;
     } else {
-        mask = 1 << (lio_draw.flag & LIODRAW_PMASK);
+        size *= 3;
+        mask = 0x07;
     }
     if(length < (size + 4)) {
         return LIO_ILLEGALFUNC;
