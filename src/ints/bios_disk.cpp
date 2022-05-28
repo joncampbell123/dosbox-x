@@ -748,6 +748,7 @@ static void readDAP(uint16_t seg, uint16_t off) {
 
 void IDE_ResetDiskByBIOS(unsigned char disk);
 void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int head,unsigned sect);
+bool IDE_GetPhysGeometry(unsigned char disk,uint32_t &heads,uint32_t &cyl,uint32_t &sect,uint32_t &size);
 void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba);
 
 void diskio_delay(Bits value/*bytes*/, int type = -1);
@@ -1243,7 +1244,9 @@ static Bitu INT13_DiskHandler(void) {
         if (bufsz > 0x1E) bufsz = 0x1E;
         else bufsz = 0x1A;
 
-        imageDiskList[drivenum]->Get_Geometry(&tmpheads, &tmpcyl, &tmpsect, &tmpsize);
+        tmpheads = tmpcyl = tmpsect = tmpsize = 0;
+        if (!IDE_GetPhysGeometry(drivenum,tmpheads,tmpcyl,tmpsect,tmpsize))
+                imageDiskList[drivenum]->Get_Geometry(&tmpheads, &tmpcyl, &tmpsect, &tmpsize);
 
         real_writew(segat,bufptr+0x00,bufsz);
         real_writew(segat,bufptr+0x02,0x0003);  /* C/H/S valid, DMA boundary errors handled */

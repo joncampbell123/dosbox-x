@@ -579,7 +579,6 @@ void IDEATAPICDROMDevice::read_subchannel() {
 
 void IDEATAPICDROMDevice::mechanism_status() {
     unsigned char *write;
-    unsigned int x;
 
     write = sector;
 
@@ -2611,6 +2610,39 @@ static void IDE_SelfIO_Out(IDEController *ide,Bitu port,Bitu val,Bitu len) {
         ide_baseio_w(port,val,len);
     }
 }
+
+/* Get physical (not logical INT 13h) geometry */
+bool IDE_GetPhysGeometry(unsigned char disk,uint32_t &heads,uint32_t &cyl,uint32_t &sect,uint32_t &size) {
+    IDEController *ide;
+    IDEDevice *dev;
+    Bitu idx,ms;
+
+    for (idx=0;idx < MAX_IDE_CONTROLLERS;idx++) {
+        ide = GetIDEController(idx);
+        if (ide == NULL) continue;
+
+        /* for master/slave device... */
+        for (ms=0;ms < 2;ms++) {
+            dev = ide->device[ms];
+            if (dev == NULL) continue;
+
+            if (dev->type == IDE_TYPE_HDD) {
+                IDEATADevice *ata = (IDEATADevice*)dev;
+                if (ata->bios_disk_index == disk && ata->phys_heads != 0 && ata->phys_sects != 0 && ata->phys_cyls != 0) {
+                    heads = ata->phys_heads;
+                    sect = ata->phys_sects;
+                    cyl = ata->phys_cyls;
+                    size = 512;
+                    return true;
+                }
+            }
+        }
+    }
+
+    return false;
+}
+
+
 
 /* INT 13h extensions */
 void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba) {

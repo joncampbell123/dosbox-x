@@ -3291,6 +3291,7 @@ void pc98_update_text_lineheight_from_bda(void) {
     mem_writeb(0x53B,lineheight - 1);
 }
 
+
 /* TODO: The text and graphics code that talks to the GDC will need to be converted
  *       to CPU I/O read and write calls. I think the reason Windows 3.1's 16-color
  *       driver is causing screen distortion when going fullscreen with COMMAND.COM,
