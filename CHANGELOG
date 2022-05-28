@@ -1,4 +1,6 @@
 0.83.26
+  - Fix FPU operations using the top of stack on
+    32-bit VS builds (cimarronm)
   - Add IDE ATAPI command MECHANISM STATUS for
     Windows NT 4.0 because that system seems
     to want to know if your CD-ROM drive is a
