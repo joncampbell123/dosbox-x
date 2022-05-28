@@ -48,7 +48,7 @@ function set_ci_status(workflow_file, os_name, description, page = 1) {
 
                 let build_commit = status.head_commit.id;
                 let commit_el = document.getElementById(os_name + "-build-commit");
-                commit_el.innerHTML = "<a href='https://github.com/joncampbell123/dosbox-x/commit/" + build_commit + "'>" + build_commit.substring(1, 7) + "</a>";
+                commit_el.innerHTML = "<a href='https://github.com/joncampbell123/dosbox-x/commit/" + build_commit + "'>" + build_commit.substring(0, 7) + "</a>";
 
                 let build_date = new Date(status.updated_at);
                 let date_el = document.getElementById(os_name + "-build-date");
@@ -66,8 +66,8 @@ document.addEventListener("DOMContentLoaded", () => {
     set_ci_status("mingw32.yml", "mingw32", "32-bit MinGW builds");
     set_ci_status("mingw64.yml", "mingw64", "64-bit MinGW builds");
     set_ci_status("hxdos.yml", "hxdos", "HX-DOS and MinGW-lowend builds");
-    set_ci_status("linux.yml", "linux", "Linux (x86-64) builds");
-    set_ci_status("macos.yml", "macos", "macOS (x86-64) builds");
+    set_ci_status("linux.yml", "linux", "Linux (x86_64) builds");
+    set_ci_status("macos.yml", "macos", "macOS (x86_64) builds");
 });
 
 -->
