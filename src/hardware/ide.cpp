@@ -52,7 +52,7 @@
 #endif
 
 struct IDEEventPack {
-#if defined(HX_DOS) || defined(__MINGW32__)
+#if defined(HX_DOS) || (defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 	IDEEventPack() = default;
 #endif
 	IDEEventPack(const unsigned int interface,const unsigned int device) : v(pack(interface,device)) {
