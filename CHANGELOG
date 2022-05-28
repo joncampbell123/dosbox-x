@@ -1,4 +1,19 @@
 0.83.26
+  - Add IDE ATAPI command MECHANISM STATUS for
+    Windows NT 4.0 because that system seems
+    to want to know if your CD-ROM drive is a
+    CD changer (joncampbell123)
+  - Fix IDE devices to start up with the drive ready
+    bit set for OSes that expect it when probing IDE
+    devices. This allows the Linux kernel to see
+    IDE ATA drives emulated by DOSBox-X.
+    (joncampbell123)
+  - Fix IDE ATAPI emulation to correctly handle CD
+    READ across one or more DRQ block transfers.
+    Use block size given by guest in consideration
+    of DRQ block size, which allows ATAPI CD-ROM
+    emulation to work properly with the Linux kernel.
+    (joncampbell123)
   - Add debug command to show PC-98 color palettes.
     Corrected typo. (joncampbell123)
   - Add support for PC-98 monochrome graphics mode.

@@ -281,6 +281,7 @@ public:
     virtual void io_completion();
     virtual void atapi_cmd_completion();
     virtual void on_atapi_busy_time();
+    virtual void mechanism_status();
     virtual void read_subchannel();
     virtual void play_audio_msf();
     virtual void pause_resume();
@@ -296,7 +297,8 @@ public:
     std::string id_mmc_vendor_id;
     std::string id_mmc_product_id;
     std::string id_mmc_product_rev;
-    Bitu LBA,TransferLength;
+    Bitu TransferLengthRemaining;
+    Bitu LBA,LBAnext,TransferLength;
     int loading_mode;
     bool has_changed;
 public:
@@ -585,6 +587,37 @@ void IDEATAPICDROMDevice::read_subchannel() {
     for (size_t i=0;i < sector_total;i++) LOG_MSG("%02x ",sector[i]);
     LOG_MSG("\n");
 #endif
+}
+
+void IDEATAPICDROMDevice::mechanism_status() {
+    unsigned char *write;
+    unsigned int x;
+
+    write = sector;
+
+    /* MECHANISM STATUS PARAMETER LIST */
+    /* - Status Header */
+    /* - Slot Table(s) */
+
+    /* Status Header */
+    *write++ = 0x00; // fault=0 changerstate=0 currentslot=0
+    *write++ = (0 << 5u)/* mechanism state=idle=0 (TODO) */ | (0x00)/*door open=0*/;
+    *write++ = 0x00; // current LBA (TODO)
+    *write++ = 0x00; // .
+    *write++ = 0x00; // .
+    *write++ = 0x00; // number of slots available = 0
+    *write++ = 0x00; // length of slot table(s)
+    *write++ = 0x00; // .
+
+    /* Slot table(s) */
+    // None, we're not emulating ourselves as a CD changer.
+
+    // TODO: Actually this command might be a neat way to expose the CD-ROM
+    //       "swap chain" the user might have set up with IMGMOUNT before
+    //       booting the guest OS. If enabled, we should report each and
+    //       every ISO image like we're a CD changer. :)
+
+    prepare_read(0,MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count));
 }
 
 void IDEATAPICDROMDevice::mode_sense() {
@@ -1135,7 +1168,9 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
                 bool res = (cdrom != NULL ? cdrom->ReadSectorsHost(/*buffer*/sector,false,LBA,TransferLength) : false);
                 if (res) {
                     prepare_read(0,MIN((unsigned int)(TransferLength*2048),(unsigned int)host_maximum_byte_count));
+                    LBAnext = LBA + TransferLength;
                     feature = 0x00;
+                    count = 0x02; /* data for computer */
                     state = IDE_DEV_DATA_READ;
                     status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
                 }
@@ -1143,6 +1178,8 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
                     feature = 0xF4; /* abort sense=0xF */
                     count = 0x03; /* no more transfer */
                     sector_total = 0;/*nothing to transfer */
+                    TransferLength = 0;
+                    TransferLengthRemaining = 0;
                     state = IDE_DEV_READY;
                     status = IDE_STATUS_DRIVE_READY|IDE_STATUS_ERROR;
                     LOG_MSG("ATAPI: Failed to read %lu sectors at %lu\n",
@@ -1271,6 +1308,20 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
             raise_irq();
             allow_writing = true;
             break;
+        case 0xBD: /* MECHANISM STATUS */
+	    mechanism_status();
+
+            feature = 0x00;
+            state = IDE_DEV_DATA_READ;
+            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+
+            /* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
+            lba[2] = sector_total >> 8;
+            lba[1] = sector_total;
+
+            raise_irq();
+            allow_writing = true;
+	    break;
         default:
             LOG_MSG("Unknown ATAPI command after busy wait. Why?\n");
             abort_error();
@@ -1299,7 +1350,9 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
     atapi_to_host = false;
     host_maximum_byte_count = 0;
     LBA = 0;
+    LBAnext = 0;
     TransferLength = 0;
+    TransferLengthRemaining = 0;
     memset(atapi_cmd, 0, sizeof(atapi_cmd));
     atapi_cmd_i = 0;
     atapi_cmd_total = 0;
@@ -1370,11 +1423,53 @@ void IDEATAPICDROMDevice::on_mode_select_io_complete() {
 }
 
 void IDEATAPICDROMDevice::atapi_io_completion() {
+    const unsigned int pk = IDEEventPack(controller->interface_index,slave?1u:0u).get();
+
     /* for most ATAPI PACKET commands, the transfer is done and we need to clear
        all indication of a possible data transfer */
 
-    if (count == 0x00) { /* the command was expecting data. now it can act on it */
+    if (count != 0x03) { /* the command was expecting data. now it can act on it */
         switch (atapi_cmd[0]) {
+            case 0x28:/*READ(10)*/
+            case 0xA8:/*READ(12)*/
+                /* How much does the guest want to transfer? */
+                /* NTS: This is required to work correctly with the ide-cd driver in the Linux kernel.
+                 *      The Linux kernel appears to negotiate a 32KB or 64KB transfer size here even
+                 *      if the total transfer from a CD READ would exceed that size, and it expects
+                 *      the full result in those DRQ block transfer sizes. */
+                sector_total = (lba[1] & 0xFF) | ((lba[2] & 0xFF) << 8);
+
+                /* FIXME: We actually should NOT be capping the transfer length, but instead should
+                   be breaking the larger transfer into smaller DRQ block transfers like
+                   most IDE ATAPI drives do. Writing the test IDE code taught me that if you
+                   go to most drives and request a transfer length of 0xFFFE the drive will
+                   happily set itself up to transfer that many sectors in one IDE command! */
+                /* NTS: In case you're wondering, it's legal to issue READ(10) with transfer length == 0.
+                   MSCDEX.EXE does it when starting up, for example */
+                TransferLength = TransferLengthRemaining;
+                if ((TransferLength*2048) > sizeof(sector))
+                    TransferLength = sizeof(sector)/2048;
+                if ((TransferLength*2048) > sector_total)
+                    TransferLength = sector_total/2048;
+
+                LBA = LBAnext;
+                assert(TransferLengthRemaining >= TransferLength);
+                TransferLengthRemaining -= TransferLength;
+
+                if (TransferLength != 0) {
+//                  LOG_MSG("ATAPI CD READ LBA=%x xfer=%x xferrem=%x continued",(unsigned int)LBA,(unsigned int)TransferLength,(unsigned int)TransferLengthRemaining);
+
+                    count = 0x02;
+                    state = IDE_DEV_ATAPI_BUSY;
+                    status = IDE_STATUS_BUSY;
+                    /* TODO: Emulate CD-ROM spin-up delay, and seek delay */
+                    PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,pk);
+		    return;
+                }
+                else {
+//                  LOG_MSG("ATAPI CD READ LBA=%x xfer=%x xferrem=%x transfer complete",(unsigned int)LBA,(unsigned int)TransferLength,(unsigned int)TransferLengthRemaining);
+                }
+                break;
             case 0x55: /* MODE SELECT(10) */
                 on_mode_select_io_complete();
                 break;
@@ -1407,7 +1502,8 @@ void IDEATAPICDROMDevice::io_completion() {
             status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
             state = IDE_DEV_READY;
             allow_writing = true;
-            break;
+            count = 0x03; /* no more data (command/data=1, input/output=1) */
+	    break;
     }
 }
 
@@ -1652,6 +1748,13 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
             if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
                 set_sense(0); /* <- nothing wrong */
 
+                /* How much does the guest want to transfer? */
+                /* NTS: This is required to work correctly with the ide-cd driver in the Linux kernel.
+                 *      The Linux kernel appears to negotiate a 32KB or 64KB transfer size here even
+                 *      if the total transfer from a CD READ would exceed that size, and it expects
+                 *      the full result in those DRQ block transfer sizes. */
+                sector_total = (lba[1] & 0xFF) | ((lba[2] & 0xFF) << 8);
+
                 /* FIXME: MSCDEX.EXE appears to test the drive by issuing READ(10) with transfer length == 0.
                    This is all well and good but our response seems to cause a temporary 2-3 second
                    pause for each attempt. Why? */
@@ -1664,6 +1767,9 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                     ((Bitu)atapi_cmd[8] << 8UL) |
                     ((Bitu)atapi_cmd[9]);
 
+                /* keep track of the original transfer length */
+                TransferLengthRemaining = TransferLength;
+
                 /* FIXME: We actually should NOT be capping the transfer length, but instead should
                    be breaking the larger transfer into smaller DRQ block transfers like
                    most IDE ATAPI drives do. Writing the test IDE code taught me that if you
@@ -1673,6 +1779,14 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                    MSCDEX.EXE does it when starting up, for example */
                 if ((TransferLength*2048) > sizeof(sector))
                     TransferLength = sizeof(sector)/2048;
+                if ((TransferLength*2048) > sector_total)
+                    TransferLength = sector_total/2048;
+
+                assert(TransferLengthRemaining >= TransferLength);
+                TransferLengthRemaining -= TransferLength;
+                LBAnext = LBA;
+
+//              LOG_MSG("ATAPI CD READ LBA=%x xfer=%x xferrem=%x",(unsigned int)LBA,(unsigned int)TransferLength,(unsigned int)TransferLengthRemaining);
 
                 count = 0x02;
                 state = IDE_DEV_ATAPI_BUSY;
@@ -1693,6 +1807,13 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
             if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
                 set_sense(0); /* <- nothing wrong */
 
+                /* How much does the guest want to transfer? */
+                /* NTS: This is required to work correctly with the ide-cd driver in the Linux kernel.
+                 *      The Linux kernel appears to negotiate a 32KB or 64KB transfer size here even
+                 *      if the total transfer from a CD READ would exceed that size, and it expects
+                 *      the full result in those DRQ block transfer sizes. */
+                sector_total = (lba[1] & 0xFF) | ((lba[2] & 0xFF) << 8);
+
                 /* FIXME: MSCDEX.EXE appears to test the drive by issuing READ(10) with transfer length == 0.
                    This is all well and good but our response seems to cause a temporary 2-3 second
                    pause for each attempt. Why? */
@@ -1703,6 +1824,9 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                 TransferLength = ((Bitu)atapi_cmd[7] << 8) |
                     ((Bitu)atapi_cmd[8]);
 
+                /* keep track of the original transfer length */
+                TransferLengthRemaining = TransferLength;
+
                 /* FIXME: We actually should NOT be capping the transfer length, but instead should
                    be breaking the larger transfer into smaller DRQ block transfers like
                    most IDE ATAPI drives do. Writing the test IDE code taught me that if you
@@ -1712,6 +1836,14 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                    MSCDEX.EXE does it when starting up, for example */
                 if ((TransferLength*2048) > sizeof(sector))
                     TransferLength = sizeof(sector)/2048;
+                if ((TransferLength*2048) > sector_total)
+                    TransferLength = sector_total/2048;
+
+                assert(TransferLengthRemaining >= TransferLength);
+                TransferLengthRemaining -= TransferLength;
+                LBAnext = LBA;
+
+//              LOG_MSG("ATAPI CD READ LBA=%x xfer=%x xferrem=%x",(unsigned int)LBA,(unsigned int)TransferLength,(unsigned int)TransferLengthRemaining);
 
                 count = 0x02;
                 state = IDE_DEV_ATAPI_BUSY;
@@ -1796,6 +1928,12 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
             status = IDE_STATUS_BUSY;
             PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             break;
+        case 0xBD: /* MECHANISM STATUS */
+            count = 0x02;
+            state = IDE_DEV_ATAPI_BUSY;
+            status = IDE_STATUS_BUSY;
+            PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
+	    break;
         default:
             /* we don't know the command, immediately return an error */
             LOG_MSG("Unknown ATAPI command %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
@@ -3321,7 +3459,7 @@ void IDEController::check_device_irq() {
     IDEDevice* dev = device[select];
     bool sig = false;
 
-    if (dev) sig = dev->irq_signal;
+    if (dev) sig = dev->irq_signal && interrupt_enable;
 
     if (irq_pending != sig) {
         if (sig) raise_irq();
@@ -3335,7 +3473,7 @@ void IDEController::raise_irq() {
         PC98_IDE_UpdateIRQ();
     }
     else {
-        if (IRQ >= 0 && interrupt_enable) PIC_ActivateIRQ((unsigned int)IRQ);
+        if (IRQ >= 0) PIC_ActivateIRQ((unsigned int)IRQ);
     }
 }
 
@@ -3394,7 +3532,6 @@ void IDEDevice::data_write(Bitu v,Bitu iolen) {
 IDEDevice::IDEDevice(IDEController *c,bool _slave) {
     type = IDE_TYPE_NONE;
     slave = _slave;
-    status = 0x00;
     controller = c;
     asleep = false;
     motor_on = true;
@@ -3402,6 +3539,7 @@ IDEDevice::IDEDevice(IDEController *c,bool _slave) {
     allow_writing = true;
     state = IDE_DEV_READY;
     feature = count = lba[0] = lba[1] = lba[2] = command = drivehead = 0;
+    status = IDE_STATUS_DRIVE_READY | IDE_STATUS_DRIVE_SEEK_COMPLETE;
 
     faked_command = false;
     ide_select_delay = 0.5; /* 500us */
@@ -3416,6 +3554,7 @@ void IDEDevice::host_reset_complete() {
     asleep = false;
     allow_writing = true;
     state = IDE_DEV_READY;
+    status = IDE_STATUS_DRIVE_READY | IDE_STATUS_DRIVE_SEEK_COMPLETE;
 }
 
 void IDEDevice::host_reset_begin() {
@@ -3713,6 +3852,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
 
             status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
             allow_writing = true;
+            raise_irq(); // NTS: The Linux kernel will pause for up to 30 seconds waiting for this command to issue an IRQ if we don't do this
             break;
         case 0xC4: /* READ MULTIPLE */
             progress_count = 0;
@@ -3753,7 +3893,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
              * error message is part of some other error in the emulation. Rather than put up with that, we'll just
              * silently abort the command with an error. */
             abort_normal();
-            status = IDE_STATUS_ERROR|IDE_STATUS_DRIVE_READY;
+            status = IDE_STATUS_ERROR|IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE|0x20/*write fault*/;
             drivehead &= 0x30; controller->drivehead = drivehead;
             count = 0x01;
             lba[0] = 0x01;
@@ -4034,17 +4174,10 @@ static void ide_altio_w(Bitu port,Bitu val,Bitu iolen) {
 
     if (port == 0) {/*3F6*/
         ide->interrupt_enable = (val&2u)?0:1;
-        if (ide->interrupt_enable) {
+        if (IS_PC98_ARCH)
+            PC98_IDE_UpdateIRQ();
+        else
             ide->check_device_irq();
-        }
-        else {
-            if (IS_PC98_ARCH) {
-                PC98_IDE_UpdateIRQ();
-            }
-            else {
-                if (ide->IRQ >= 0) PIC_DeActivateIRQ((unsigned int)ide->IRQ);
-            }
-        }
 
         if ((val&4) && !ide->host_reset) {
             if (ide->device[0]) ide->device[0]->host_reset_begin();
@@ -4131,7 +4264,7 @@ static Bitu ide_baseio_r(Bitu port,Bitu iolen) {
             ret = (dev != NULL) ? dev->lba[2] : 0x00;
             break;
         case 6: /* 1F6 */
-            ret = ide->drivehead;
+            ret = (dev != NULL) ? dev->drivehead : ide->drivehead;
             break;
         case 7: /* 1F7 */
             /* reading this port clears the device pending IRQ */
