@@ -1,4 +1,8 @@
 0.83.26
+  - Add IDE ATAPI command MECHANISM STATUS for
+    Windows NT 4.0 because that system seems
+    to want to know if your CD-ROM drive is a
+    CD changer (joncampbell123)
   - Fix IDE devices to start up with the drive ready
     bit set for OSes that expect it when probing IDE
     devices. This allows the Linux kernel to see
