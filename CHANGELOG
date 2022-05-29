@@ -5,17 +5,20 @@
     Windows NT 4.0 because that system seems
     to want to know if your CD-ROM drive is a
     CD changer (joncampbell123)
+  - Enhanced the Mapper Editor interface. The Mapper UI
+    has been greatly improved. (aybe)
+  - Add IDE ATAPI command MECHANISM STATUS for Windows
+    NT 4.0 because that system seems to want to know if
+    your CD-ROM drive is a CD changer. (joncampbell123)
   - Fix IDE devices to start up with the drive ready
     bit set for OSes that expect it when probing IDE
-    devices. This allows the Linux kernel to see
-    IDE ATA drives emulated by DOSBox-X.
-    (joncampbell123)
+    devices. This allows the Linux kernel to see IDE
+    ATA drives emulated by DOSBox-X. (joncampbell123)
   - Fix IDE ATAPI emulation to correctly handle CD
-    READ across one or more DRQ block transfers.
-    Use block size given by guest in consideration
-    of DRQ block size, which allows ATAPI CD-ROM
-    emulation to work properly with the Linux kernel.
-    (joncampbell123)
+    READ across one or more DRQ block transfers. Use
+    block size given by guest in consideration of DRQ
+    block size, which allows ATAPI CD-ROM emulation to
+    work properly with the Linux kernel. (joncampbell123)
   - Add debug command to show PC-98 color palettes.
     Corrected typo. (joncampbell123)
   - Add support for PC-98 monochrome graphics mode.
@@ -29,16 +32,19 @@
   - Added PC-98 LIO BIOS interface, which is based on
     Neko Project II source code (nanshiki)
   - INT 21h AH=31h Terminate And Stay Resident: If the
-    program called INT 21h to free it's own PSP segment,
+    program called INT 21h to free its own PSP segment,
     reassign the block back to the program as allocated
     and then resize as expected. Needed for PC-98 game
     "Yu No" in which PLAY6.EXE, one of the resident
     drivers used for music, does just that. (joncampbell123)
+  - Add a hack to enable read access to port 0xa460 on PC-98 which 
+    returns Sound ID to detect the sound board available.
+    Note that the current hack returns Sound ID of PC-9801-86 board
+    regardless of the board selected to emulate. (maron2000)
   - Adds WINCHECK to list of programs which should not
     return a valid installation check for WinOldAp
     (AX=1700h/int2fh) so it doesn't mistakenly believe
     Windows is running (cimarronm)
-  - Fix PREFETCH instruction breakage in recompilers (Jookia)
   - Add minimal support for IDE SET FEATURES command EFh.
     (joncampbell123)
   - Fix CMPXCHG8B to change only the ZF flag, instead of
@@ -51,19 +57,22 @@
     (cimarronm)
   - Updates to FPU to handle opcode size prefix (66h)
     on FSTENV/FLDENV/FSAVE/FRSTOR instructions (cimarronm)
-  - Fix DBCS table initialization on reset and
-    restart (cimarronm)
   - Update FLD constant FPU instructions to more
     accurately match FPU implementations (cimarronm)
   - Fixed dynamic_dynrec being displayed as dynamic_x86
-    in menu. (Jookia)
+    in menu, and PREFETCH instruction breakage in the
+    dynamic core. (Jookia)
   - Fixed crash if no dynamic cores available (Jookia)
   - Fixed TTF mode breaking a guest not running the
     DOS kernel. (Jookia)
+  - Fix DBCS table initialization on reset and
+    restart (cimarronm)
   - Fixed some guest systems may not work as expected
     in non-TTF outputs. (Wengier)
   - Fixed IME input not working in MinGW builds, and
     FluidSynth in MinGW-lowend builds. (Wengier)
+  - Fixed resizable OpenGL Voodoo window not working
+    properly on Windows in previous version. (Wengier)
   - Fixed commands "CHOICE /N /C:123" and "MIXER /GUI"
     not working properly in previous version. (Wengier)
   - Integrated commits from mainline (Allofich)

@@ -3471,15 +3471,6 @@ Lançar prog. rápido
 :MAPPER:reboot
 Reinicia sistema DOS
 .
-:MAPPER:recmtwave
-Gravar a M.T. AVI
-.
-:MAPPER:recvoldown
-Baixar vol. gravação
-.
-:MAPPER:recvolup
-Aumentar vol. gravação
-.
 :MAPPER:rescanall
 Reverificar unidades
 .
