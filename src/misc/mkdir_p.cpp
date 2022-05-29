@@ -16,7 +16,6 @@ using namespace std;
 /* Windows uses \\ (though since Windows 7 or so, / is also accepted apparently) */
 # define PSEP '\\'
 
-/* TODO: Maybe this could be combined with C++ templating and an #ifdef WIN32? */
 int _wmkdir_p(const wchar_t *pathname) {
 	const size_t pathlen = wcslen(pathname);
 	wchar_t *pc = new wchar_t[pathlen+1];
@@ -27,7 +26,15 @@ int _wmkdir_p(const wchar_t *pathname) {
 	int result = 0;
 	errno = 0;
 
-	/* copy initial leading / if caller wants absolute paths */
+	/* if there is a drive like letter C: then skip it */
+	if (((ps[0] >= 'A' && ps[0] <= 'Z') || (ps[0] >= 'a' && ps[0] <= 'z')) && ps[1] == ':') {
+		*pw = *ps++;
+		*pw = *ps++;
+		assert(pw <= pwf);
+	}
+
+	/* if the string starts with leading \\ like a UNC path or we're at the first \ after a drive letter, skip it */
+	/* FIXME: Proper UNC path detect and skip? The NT kernel will obviously fail a mkdir() on this part of the path */
 	while (*ps == PSEP) *pw++ = *ps++;
 	assert(pw <= pwf);
 
