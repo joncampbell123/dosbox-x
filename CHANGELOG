@@ -1,4 +1,9 @@
 0.83.26
+  - INT 13h extensions function 48h is supposed to
+    return physical geometry, not the logical geometry
+    normally returned by function 08h. This means for
+    IDE devices, to return the geometry the IDE controller
+    is using. (joncampbell123)
   - Enhanced the Mapper Editor interface. The Mapper UI
     has been greatly improved. (aybe)
   - Add IDE ATAPI command MECHANISM STATUS for Windows
