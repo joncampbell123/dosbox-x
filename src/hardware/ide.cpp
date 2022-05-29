@@ -4073,10 +4073,17 @@ void IDEController::register_isapnp() {
         i += 7+1;
 
         if (IRQ > 0) {
-            tmp[i+0] = (4 << 3) | 3;        /* IRQ resource */
+            /* NTS: Even though the ISA Plug & Play standard documents a 2 byte version (only the IRQ mask)
+	     *      and a 3 byte version (IRQ mask + additional bitmask for IRQ edge/level), Microsoft
+	     *      Windows only supports the 2 byte version.
+	     *
+	     *      Windows 2000 apparently does not like the 3 byte version and it's IDE driver will fail
+	     *      to detect the IDE ATA drive it booted from. Meaning, for some reason it will only
+	     *      probe the ATA drive like a CD-ROM drive and then give up without ever checking for an
+	     *      ATA device. Weird. */
+            tmp[i+0] = (4 << 3) | 2;        /* IRQ resource */
             host_writew(tmp+i+1,1 << IRQ);
-            tmp[i+3] = 0x09;            /* HTE=1 LTL=1 */
-            i += 3+1;
+            i += 2+1;
         }
 
         tmp[i+0] = 0x79;                /* END TAG */
