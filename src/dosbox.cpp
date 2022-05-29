@@ -2772,6 +2772,12 @@ void DOSBOX_SetupConfigSections(void) {
             "Do not disable if Windows 9x is configured around PnP devices, you will likely confuse it.");
     Pbool->SetBasic(true);
 
+    Pstring = secprop->Add_string("isapnpport",Property::Changeable::WhenIdle,"auto");
+    Pstring->Set_help("Emulate ISA Plug & Play I/O ports, which are separate from the PnP BIOS.\n"
+	    "ISA Plug & Play devices provide these I/O ports as the means to determine hardware and configure resources.\n"
+	    "By default, this setting is 'auto' which enables the PnP I/O ports only if you enable the PnP BIOS.");
+    Pstring->Set_values(truefalseautoopt);
+
     Pbool = secprop->Add_bool("realbig16",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("Allow the B (big) bit in real mode. If set, allow the DOS program to set the B bit,\n"
         "then jump to realmode with B still set (aka Huge Unreal mode). Needed for Project Angel.");

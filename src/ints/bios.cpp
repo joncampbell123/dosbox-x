@@ -1065,6 +1065,7 @@ void CMOS_SetRegister(Bitu regNr, uint8_t val); //For setting equipment word
 bool enable_integration_device_pnp=false;
 bool enable_integration_device=false;
 bool ISAPNPBIOS=false;
+bool ISAPNPPORT=false;
 bool APMBIOS=false;
 bool APMBIOS_pnp=false;
 bool APMBIOS_allow_realmode=false;
@@ -1394,7 +1395,7 @@ void ISA_PNP_FreeAllDevs() {
 
 void ISA_PNP_devreg(ISAPnPDevice *x) {
     if (ISA_PNP_devnext < MAX_ISA_PNP_DEVICES) {
-        if (ISA_PNP_WPORT_BIOS == 0) ISA_PNP_WPORT_BIOS = ISA_PNP_WPORT;
+        if (ISA_PNP_WPORT_BIOS == 0 && ISAPNPPORT) ISA_PNP_WPORT_BIOS = ISA_PNP_WPORT;
         ISA_PNP_devs[ISA_PNP_devnext++] = x;
         x->CSN = ISA_PNP_devnext;
     }
@@ -1589,6 +1590,17 @@ void ISAPNP_Cfg_Reset(Section *sec) {
     enable_integration_device = section->Get_bool("integration device");
     enable_integration_device_pnp = section->Get_bool("integration device pnp");
     ISAPNPBIOS = section->Get_bool("isapnpbios");
+    {
+	    /* ISAPNPPORT = off|auto|on */
+	    const char *s = section->Get_string("isapnpport");
+
+	    if (!strcmp(s,"true") || !strcmp(s,"1"))
+		    ISAPNPPORT = true;
+	    else if (!strcmp(s,"false") || !strcmp(s,"0"))
+		    ISAPNPPORT = false;
+	    else /* auto */
+		    ISAPNPPORT = ISAPNPBIOS; /* if the PnP BIOS is enabled, then so is the port */
+    }
     APMBIOS = section->Get_bool("apmbios");
     APMBIOS_pnp = section->Get_bool("apmbios pnp");
     APMBIOS_allow_realmode = section->Get_bool("apmbios allow realmode");
@@ -8597,7 +8609,7 @@ private:
         }
 
         // ISA Plug & Play I/O ports
-        if (!IS_PC98_ARCH) {
+        if (!IS_PC98_ARCH && ISAPNPPORT) {
             ISAPNP_PNP_ADDRESS_PORT = new IO_WriteHandleObject;
             ISAPNP_PNP_ADDRESS_PORT->Install(0x279,isapnp_write_port,IO_MB);
             ISAPNP_PNP_DATA_PORT = new IO_WriteHandleObject;

@@ -1,4 +1,13 @@
 0.83.26
+  - Add "isapnpport" option to dosbox.conf to control
+    whether the ISA Plug & Play I/O port is presented
+    to the guest. Setting is "true", "false", or "auto".
+    "auto" means to enable if PnP BIOS is enabled.
+    Previously this port was always present even if
+    the PnP BIOS was not. Some operating systems,
+    including Windows NT/2000/XP, will enumerate ISA
+    Plug & Play hardware by themselves whether or not
+    the PnP BIOS is present. (joncampbell123)
   - Fix FPU operations using the top of stack on
     32-bit VS builds (cimarronm)
   - Add IDE ATAPI command MECHANISM STATUS for
