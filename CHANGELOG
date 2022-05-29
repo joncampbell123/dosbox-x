@@ -1,4 +1,9 @@
 0.83.26
+  - Add recursive mkdir_p() directory creation so that
+    overlay filesystem support can correctly create
+    a subdirectory of any depth, instead of only one
+    level deep from an existing directory on disk.
+    (joncampbell123)
   - Add "isapnpport" option to dosbox.conf to control
     whether the ISA Plug & Play I/O port is presented
     to the guest. Setting is "true", "false", or "auto".
