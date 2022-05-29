@@ -445,3 +445,10 @@ void readString(std::istream& stream, std::string& data)
     stream.read(&data[0], stringSize * sizeof(std::string::value_type));
 }
 #endif //SAVE_STATE_H_INCLUDED
+
+#if defined (WIN32)
+int _wmkdir_p(const wchar_t *pathname);
+#else
+int mkdir_p(const char *pathname, mode_t mode);
+#endif
+
