@@ -551,16 +551,14 @@ public:
 
 	~sdl_net_manager_t()
 	{
-		/* you should have called shutdown() before this point.
-		 * this code base defines a sdl_net_manager_t instance in such a way
-		 * that this destructor is most likely called during glibc shutdown
-		 * after SDLmain() has returned which is probably not the best way
-		 * to shutdown SDLNet. */
-		assert(!is_initialized);
+		if (!is_initialized)
+			return;
+
 		assert(already_tried_once);
+		is_initialized = false;
+		SDLNet_Quit();
 	}
 
-	void shutdown();
 	bool IsInitialized() const { return is_initialized; }
 
 private:
@@ -568,22 +566,9 @@ private:
 	bool is_initialized = false;
 };
 
-static sdl_net_manager_t sdl_net_manager;
-
-void sdl_net_manager_t::shutdown() {
-	if (is_initialized) {
-		is_initialized = false;
-		SDLNet_Quit();
-		LOG_MSG("SDLNET: Shutdown SDL network subsystem");
-	}
-}
-
-void NetWrapper_ShutdownSDLNet() {
-	sdl_net_manager.shutdown();
-}
-
 bool NetWrapper_InitializeSDLNet()
 {
+	static sdl_net_manager_t sdl_net_manager;
 	return sdl_net_manager.IsInitialized();
 }
 
