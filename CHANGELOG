@@ -31,6 +31,10 @@
     and then resize as expected. Needed for PC-98 game
     "Yu No" in which PLAY6.EXE, one of the resident
     drivers used for music, does just that. (joncampbell123)
+  - Add a hack to enable read access to port 0xa460 on PC-98 which 
+    returns Sound ID to detect the sound board available.
+    Note that the current hack returns Sound ID of PC-9801-86 board
+    regardless of the board selected to emulate. (maron2000)
   - Adds WINCHECK to list of programs which should not
     return a valid installation check for WinOldAp
     (AX=1700h/int2fh) so it doesn't mistakenly believe
