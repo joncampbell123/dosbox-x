@@ -4736,9 +4736,9 @@ static void LogFPUInfo(void) {
         unsigned int adj = STV(i);
 
 #if C_FPU_X86
-        DEBUG_ShowMsg(" st(%u): %s val=%.20Lf", i, FPU_tag(fpu.tags[adj]), reinterpret_cast<long double&>(fpu.p_regs[adj]));
+        DEBUG_ShowMsg(" st(%u): %s val=%.20Lg", i, FPU_tag(fpu.tags[adj]), reinterpret_cast<long double&>(fpu.p_regs[adj]));
 #elif defined(HAS_LONG_DOUBLE)//probably shouldn't allow struct to change size based on this
-        DEBUG_ShowMsg(" st(%u): %s val=%.9f",i,FPU_tag(fpu.tags[adj]),(double)fpu.regs_80[adj].v);
+        DEBUG_ShowMsg(" st(%u): %s val=%.20Lg",i,FPU_tag(fpu.tags[adj]), fpu.regs_80[adj].v);
 #else
         DEBUG_ShowMsg(" st(%u): %s use80=%u val=%.9f",i,FPU_tag(fpu.tags[adj]),fpu.use80[adj],fpu.regs[adj].d);
 #endif
