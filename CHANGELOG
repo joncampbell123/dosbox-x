@@ -5,6 +5,17 @@
     Windows NT 4.0 because that system seems
     to want to know if your CD-ROM drive is a
     CD changer (joncampbell123)
+  - IDE Plug & Play resource descriptor changed to use
+    2-byte structure for listing IRQ resource instead of
+    3 bytes. This (for some reason) fixes problems with
+    the IDE driver in Windows NT 4.0, Windows 2000, and
+    Windows XP and allows them to boot properly.
+    (joncampbell123)
+  - INT 13h extensions function 48h is supposed to
+    return physical geometry, not the logical geometry
+    normally returned by function 08h. This means for
+    IDE devices, to return the geometry the IDE controller
+    is using. (joncampbell123)
   - Enhanced the Mapper Editor interface. The Mapper UI
     has been greatly improved. (aybe)
   - Add IDE ATAPI command MECHANISM STATUS for Windows

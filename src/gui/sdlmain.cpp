@@ -7405,9 +7405,6 @@ std::wstring win32_prompt_folder(const char *default_folder) {
 }
 #endif
 
-#if C_MODEM
-void NetWrapper_ShutdownSDLNet();
-#endif
 void DISP2_Init(uint8_t color);
 //extern void UI_Init(void);
 void grGlideShutdown(void);
@@ -9389,11 +9386,6 @@ fresh_boot:
 #if defined(LINUX) && defined(HAVE_ALSA)
         // force ALSA to release global cache, so that it's one less leak reported by Valgrind
         snd_config_update_free_global();
-#endif
-
-#if C_MODEM
-	/* SDLNet shutdown must happen here, not after main during glibc C++ library cleanup */
-	NetWrapper_ShutdownSDLNet();
 #endif
 
 	/* the return statement below needs control->opt_test, save it before Config
