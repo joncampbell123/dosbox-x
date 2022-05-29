@@ -12,6 +12,11 @@
 using namespace std;
 
 #if defined (WIN32)
+# include <direct.h>
+
+# ifndef S_ISDIR
+#  define S_ISDIR(x) (x & _S_IFDIR)
+# endif
 
 /* Windows uses \\ (though since Windows 7 or so, / is also accepted apparently) */
 # define PSEP '\\'
@@ -22,7 +27,7 @@ int _wmkdir_p(const wchar_t *pathname) {
 	const wchar_t *ps = pathname;
 	wchar_t *pwf = pc + pathlen;
 	wchar_t *pw = pc;
-	struct stat st;
+	struct _stat st;
 	int result = 0;
 	errno = 0;
 
@@ -66,7 +71,7 @@ int _wmkdir_p(const wchar_t *pathname) {
 				else {
 					if (errno == ENOENT) {
 						/* expected, create directory */
-						if (_wmkdir(pc,mode)/*failed*/) {
+						if (_wmkdir(pc)/*failed*/) {
 							/* create failed, stop and do not continue. */
 							result = -1;
 							/* errno already set by mkdir() */

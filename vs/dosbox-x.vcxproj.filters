@@ -1593,6 +1593,9 @@
     <ClCompile Include="..\src\hardware\vga_pc98_gdc_draw.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\misc\mkdir_p.cpp">
+      <Filter>Sources\misc</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
