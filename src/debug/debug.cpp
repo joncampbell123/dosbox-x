@@ -4735,12 +4735,19 @@ static void LogFPUInfo(void) {
     for (unsigned int i=0;i < 8;i++) {
         unsigned int adj = STV(i);
 
-#if C_FPU_X86
-        DEBUG_ShowMsg(" st(%u): %s val=%.20Lf", i, FPU_tag(fpu.tags[adj]), reinterpret_cast<long double&>(fpu.p_regs[adj]));
-#elif defined(HAS_LONG_DOUBLE)//probably shouldn't allow struct to change size based on this
-        DEBUG_ShowMsg(" st(%u): %s val=%.9f",i,FPU_tag(fpu.tags[adj]),(double)fpu.regs_80[adj].v);
+#if C_FPU_X86 && HAS_LONG_DOUBLE
+        DEBUG_ShowMsg(" st(%u): %s val=%.20Lg (0x%04x%08x%08x)", i, FPU_tag(fpu.tags[adj]),
+                      reinterpret_cast<long double&>(fpu.p_regs[adj]), fpu.p_regs[adj].m3,
+                      fpu.p_regs[adj].m2, fpu.p_regs[adj].m1);
+#elif C_FPU_X86
+        DEBUG_ShowMsg(" st(%u): %s val=0x%04x%08x%08x", i, FPU_tag(fpu.tags[adj]),
+                      fpu.p_regs[adj].m3, fpu.p_regs[adj].m2, fpu.p_regs[adj].m1);
+#elif HAS_LONG_DOUBLE
+        DEBUG_ShowMsg(" st(%u): %s val=%.20Lg (0x%04x%016llx)", i, FPU_tag(fpu.tags[adj]),
+                      fpu.regs_80[adj].v, fpu.regs_80[adj].raw.h, fpu.regs_80[adj].raw.l);
 #else
-        DEBUG_ShowMsg(" st(%u): %s use80=%u val=%.9f",i,FPU_tag(fpu.tags[adj]),fpu.use80[adj],fpu.regs[adj].d);
+        DEBUG_ShowMsg(" st(%u): %s use80=%u val=%.16g (0x%016llx)", i, FPU_tag(fpu.tags[adj]),
+                      fpu.use80[adj], fpu.regs[adj].d, fpu.regs[adj].ll);
 #endif
     }
 
