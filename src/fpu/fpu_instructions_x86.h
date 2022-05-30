@@ -536,8 +536,8 @@ static constexpr uint16_t sw_mask = FPUStatusWord::conditionAndExceptionMask;
         auto cw = fpu.cw.allMasked();                    \
         if (FPU_ArchitectureType < FPU_ARCHTYPE_387)     \
             cw.RC = FPUControlWord::RoundMode::Nearest;  \
-        uint32_t top = TOP;                              \
         FPU_PREP_PUSH();                                 \
+        uint32_t top = TOP;                              \
         __asm {                                          \
         __asm    fnstcw  save_cw                         \
         __asm    fldcw   cw                              \
