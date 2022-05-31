@@ -1,4 +1,5 @@
 0.83.26
+  - Fix FPU implementation for aarch64 cores (cimarronm)
   - Add recursive mkdir_p() directory creation so that
     overlay filesystem support can correctly create
     a subdirectory of any depth, instead of only one

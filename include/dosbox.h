@@ -71,11 +71,14 @@
 // TODO: The autoconf script should test the size of long double
 #if defined(_MSC_VER)
 // Microsoft C++ sizeof(long double) == sizeof(double)
-#elif defined(__arm__)
+#undef HAS_LONG_DOUBLE
+#elif defined(__arm__) || defined(__aarch64__)
 // ARMv7 (Raspberry Pi) does not have long double, sizeof(long double) == sizeof(double)
+// ARM 64 has a quadruple-precision float instead of the 80-bit extended precision one used by x87
+#undef HAS_LONG_DOUBLE
 #else
 // GCC, other compilers, have sizeof(long double) == 10 80-bit IEEE
-# define HAS_LONG_DOUBLE		1
+#define HAS_LONG_DOUBLE		1
 #endif
 
 GCC_ATTRIBUTE(noreturn) void		E_Exit(const char * format,...) GCC_ATTRIBUTE( __format__(__printf__, 1, 2));
