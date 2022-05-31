@@ -131,6 +131,13 @@ void VGA_DAC_UpdateColor( Bitu index ) {
 
         VGA_DAC_SendColor( index, maskIndex );
     }
+    else if (machine == MCH_MDA || machine == MCH_HERC) {
+        /* the DAC mapping for MDA/Herc must be maintained or colors will not come out right */
+        if (index != 0)
+            VGA_DAC_SendColor(index,(index & 1) ? 0x7 : 0xF); /* 1=>7, 2=>F Ref. vga_other.cpp function Herc_Palette() */
+        else
+            VGA_DAC_SendColor(0,0);
+    }
     else {
         VGA_DAC_SendColor( index, index );
     }

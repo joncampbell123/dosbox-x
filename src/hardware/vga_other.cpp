@@ -965,7 +965,7 @@ void HercBlend(bool pressed) {
 	VGA_SetupDrawing(0);
 }
 
-void Herc_Palette(void) {	
+void Herc_Palette(void) {
 	switch (herc_pal) {
 	case MonochromeColor::White:
 		VGA_DAC_SetEntry(0x7,0x2a,0x2a,0x2a);

@@ -1,5 +1,10 @@
 0.83.26
   - Fix FPU implementation for aarch64 cores (cimarronm)
+  - Fixed INT 10h and DAC palette mapping to resolve
+    incorrect colors with Hercules graphics mode when
+    a game calls INT 10h to set video mode after setting
+    it up. This resolves the incorrect blue on black
+    color map for Grand Prix by Accolade (joncampbell123).
   - Add recursive mkdir_p() directory creation so that
     overlay filesystem support can correctly create
     a subdirectory of any depth, instead of only one
