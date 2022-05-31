@@ -9054,6 +9054,12 @@ fresh_boot:
                 reboot_machine = true;
                 dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
             }
+            else if (x == 9) { /* BIOS caught a JMP to F000:FFF0 without any other hardware reset signal */
+                LOG(LOG_MISC,LOG_DEBUG)("Emulation detected JMP to BIOS POST routine");
+
+                reboot_machine = true;
+                dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
+            }
             else {
                 LOG(LOG_MISC,LOG_DEBUG)("Emulation threw DOSBox-X kill switch signal");
 

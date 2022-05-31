@@ -7744,6 +7744,15 @@ private:
 # endif
 #endif
 
+        /* If we're here because of a JMP to F000:FFF0 from a DOS program, then
+         * an actual reset is needed to prevent reentrancy problems with the DOS
+         * kernel shell. The WINNT.EXE install program for Windows NT/2000/XP
+         * likes to restart the program by JMPing to F000:FFF0 */
+        if (!dos_kernel_disabled && first_shell != NULL) {
+		LOG(LOG_MISC,LOG_DEBUG)("BIOS POST: JMP to F000:FFF0 detected, initiating proper reset");
+		throw int(9);
+        }
+
         {
             Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
             int val = section->Get_int("reboot delay");

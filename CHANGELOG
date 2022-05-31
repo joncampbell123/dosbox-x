@@ -1,4 +1,12 @@
 0.83.26
+  - BIOS: At post, if DOS kernel was active and the
+    DOS Shell was still running, initiate a proper
+    system reset event. Some software, including the
+    WINNT.EXE install program for Windows NT, like to
+    restart the system by JMPing to the BIOS POST
+    entry point. Prior to this fix, doing that from a
+    DOS program caused instability with mounted images
+    and the DOS shell due to recursion. (joncampbell123).
   - Fix FPU implementation for aarch64 cores (cimarronm)
   - Fixed INT 10h and DAC palette mapping to resolve
     incorrect colors with Hercules graphics mode when
