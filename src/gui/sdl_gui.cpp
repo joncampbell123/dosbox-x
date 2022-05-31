@@ -3424,6 +3424,7 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
 int sel = -1;
 bool switchttf = false, gofs = false;
 void RunCfgTool(Bitu val) {
+    (void)val;//unused
     gofs=false;
 #if defined(USE_TTF)
     if (!ttf.inUse && switchttf) {

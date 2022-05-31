@@ -1943,7 +1943,7 @@ static Bitu DOS_21Handler(void) {
                 }
                 else
                 {
-                    if(fRead = DOS_ReadFile(reg_bx, dos_copybuf, &toread))
+                    if((fRead = DOS_ReadFile(reg_bx, dos_copybuf, &toread)))
                         MEM_BlockWrite(SegPhys(ds) + reg_dx, dos_copybuf, toread);
                 }
 

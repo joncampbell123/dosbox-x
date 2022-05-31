@@ -386,7 +386,7 @@ template <class MT> bool String_HOST_TO_DBCS_UTF16(char *d/*CROSS_LEN*/,const ui
             int wc = SBCS_From_Host_Find<MT>(ic,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
             auto it = pc98boxdrawmap.find(wc);
             if (it != pc98boxdrawmap.end()) {
-                *d++ = 0x86;
+                *d++ = (char)0x86;
                 *d++ = it->second;
                 continue;
             }
@@ -456,7 +456,7 @@ template <class MT> bool String_HOST_TO_DBCS_UTF8(char *d/*CROSS_LEN*/,const cha
             int wc = SBCS_From_Host_Find<MT>(ic,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
             auto it = pc98boxdrawmap.find(wc);
             if (it != pc98boxdrawmap.end()) {
-                *d++ = 0x86;
+                *d++ = (char)0x86;
                 *d++ = it->second;
                 continue;
             }

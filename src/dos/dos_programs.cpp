@@ -7560,7 +7560,7 @@ bool setVGAColor(const char *colorArray, int i) {
             if (rgbVal[i] < 0 || rgbVal[i] > 255)
                 return false;
         }
-    } else if (sscanf(nextRGB, " #%6x", &rgbVal[3]) == 1) {
+    } else if (sscanf(nextRGB, " #%6x", (int*)(&rgbVal[3])) == 1) {
         if (rgbVal[3] < 0)
             return false;
         for (int i = 0; i < 3; i++) {
@@ -7658,7 +7658,7 @@ void SETCOLOR::Run()
                         while (*nextRGB != ')')
                             nextRGB++;
                         nextRGB++;
-                    } else if (sscanf(nextRGB, " #%6x", &rgbVal[0]) == 1) {
+                    } else if (sscanf(nextRGB, " #%6x", (int*)(&rgbVal[0])) == 1) {
                         sprintf(value,"#%6x",rgbVal[0]);
                         nextRGB = strchr(nextRGB, '#') + 7;
                     } else {

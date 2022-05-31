@@ -632,7 +632,7 @@ bool CDROM_Interface_Image::PlayAudioSector(unsigned long start, unsigned long l
 
 	// We can't play audio from a data track (as it would result in garbage/static)
 	else if(track >= 0 && tracks[track].attr == 0x40)
-		LOG_MSG("CDROM: Tried to play the data track. Not doing this track, attr = [%d, %d, %d]", start, track, tracks[track].attr);
+		LOG_MSG("CDROM: Tried to play the data track. Not doing this track, attr = [%d, %d, %d]", (int)start, (int)track, (int)tracks[track].attr);
 
     else if(track > end)
         LOG_MSG("CDROM: Tried to load track #  % d, which does not exist in cue sheet", track);
@@ -1029,8 +1029,8 @@ bool CDROM_Interface_Image::LoadCueSheet(char *cuefile)
 {
 	Track track = {0, 0, 0, 0, 0, 0, 0, false, NULL};
 	tracks.clear();
-    int curr_track = 0;
-    int shift = 0;
+//	int curr_track = 0; // unused
+	int shift = 0;
 	int currPregap = 0;
 	int totalPregap = 0;
 	int prestart = -1;

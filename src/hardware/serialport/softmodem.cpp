@@ -480,7 +480,7 @@ void CSerialModem::DoCommand() {
 				if (telnetmode != static_cast<bool>(requested_mode)) {
 					telnetmode = requested_mode;
 					LOG_MSG("SERIAL: Port %u telnet-mode %s",
-					        idnumber + 1,
+					        (int)idnumber + 1,
 					        telnetmode ? "enabled" : "disabled");
 				}
 				break;
@@ -497,7 +497,7 @@ void CSerialModem::DoCommand() {
 				// This will break when there's more than two
 				// socket types.
 				LOG_MSG("SERIAL: Port %u socket type %s",
-				        idnumber + 1,
+				        (int)idnumber + 1,
 				        socketType ? "ENet" : "TCP");
 				// Reset port state.
 				EnterIdleState();

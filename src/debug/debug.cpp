@@ -3370,7 +3370,7 @@ bool ParseCommand(char* str) {
             dos.date.month=month;
             dos.date.day=day;
         }
-        uint32_t ticks=mem_readd(BIOS_TIMER);
+//      uint32_t ticks=mem_readd(BIOS_TIMER); // unused
         uint8_t add=mem_readb(BIOS_24_HOURS_FLAG);
         mem_writeb(BIOS_24_HOURS_FLAG,0); // reset the "flag"
         if (add) DOS_AddDays(add);
