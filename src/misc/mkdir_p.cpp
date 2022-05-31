@@ -11,6 +11,11 @@
 
 using namespace std;
 
+/* HX-DOS / some MinGW targets do not have ENOTSUP */
+#ifndef ENOTSUP
+# define ENOTSUP EINVAL
+#endif
+
 #if defined (WIN32)
 # include <direct.h>
 
