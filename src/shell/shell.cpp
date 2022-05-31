@@ -907,29 +907,29 @@ void DOS_Shell::Run(void) {
 		temp.RunInternal();				// exits when no bf is found.
 		temp.exec=false;
 		if (!optK||(!perm&&temp.exit)) {
-            shellrun=false;
-            return;
-        }
+			shellrun=false;
+			return;
+		}
 	} else if (cmd->FindStringRemain("/?",line)) {
 		WriteOut(MSG_Get("SHELL_CMD_COMMAND_HELP"));
 		shellrun=false;
 		return;
 	}
 
-    bool optInit=cmd->FindString("/INIT",line,true);
-    if (this != first_shell && !optInit)
-        WriteOut(optK?"\n":"DOSBox-X command shell [Version %s %s]\nCopyright DOSBox-X Team. All rights reserved.\n\n",VERSION,SDL_STRING);
+	bool optInit=cmd->FindString("/INIT",line,true);
+	if (this != first_shell && !optInit)
+		WriteOut(optK?"\n":"DOSBox-X command shell [Version %s %s]\nCopyright DOSBox-X Team. All rights reserved.\n\n",VERSION,SDL_STRING);
 
-    if(optInit) {
-        input_line[CMD_MAXLINE - 1u] = 0;
-        strncpy(input_line, line.c_str(), CMD_MAXLINE - 1u);
-        line.erase();
-        ParseLine(input_line);
-    }
-    if (!exit) {
-        RunningProgram = "COMMAND";
-        GFX_SetTitle(-1,-1,-1,false);
-    }
+	if(optInit) {
+		input_line[CMD_MAXLINE - 1u] = 0;
+		strncpy(input_line, line.c_str(), CMD_MAXLINE - 1u);
+		line.erase();
+		ParseLine(input_line);
+	}
+	if (!exit) {
+		RunningProgram = "COMMAND";
+		GFX_SetTitle(-1,-1,-1,false);
+	}
 	do {
 		/* Get command once a line */
 		if (bf) {
@@ -948,10 +948,10 @@ void DOS_Shell::Run(void) {
 			InputCommand(input_line);
 			if (echo && !input_eof) WriteOut("\n");
 
-            /* Bugfix: CTTY NUL will return immediately, the shell input will return
-             *         immediately, and if we don't consume CPU cycles to compensate,
-             *         will leave DOSBox-X running in an endless loop, hung. */
-            if (input_eof) CALLBACK_Idle();
+			/* Bugfix: CTTY NUL will return immediately, the shell input will return
+			 *         immediately, and if we don't consume CPU cycles to compensate,
+			 *         will leave DOSBox-X running in an endless loop, hung. */
+			if (input_eof) CALLBACK_Idle();
 		}
 
 		/* do it */
@@ -1786,28 +1786,28 @@ void SHELL_Run() {
 	LOG(LOG_MISC,LOG_DEBUG)("Running DOS shell now");
 
 	if (first_shell != NULL) E_Exit("Attempt to start shell when shell already running");
-    Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
-    bool altshell=false;
-    char namestr[CROSS_LEN], tmpstr[CROSS_LEN], *name=namestr, *tmp=tmpstr;
-    SHELL_ProgramStart_First_shell(&first_shell);
-    first_shell->Prepare();
-    prepared = true;
-    if (section!=NULL&&!control->opt_noconfig&&!control->opt_securemode&&!control->SecureMode()) {
-        char *shell = (char *)section->Get_string("shell");
-        if (strlen(shell)) {
-            tmp=trim(shell);
-            name=StripArg(tmp);
-            upcase(name);
-            if (*name&&(DOS_FileExists(name)||DOS_FileExists((std::string("Z:\\SYSTEM\\")+name).c_str())||DOS_FileExists((std::string("Z:\\BIN\\")+name).c_str())||DOS_FileExists((std::string("Z:\\DOS\\")+name).c_str())||DOS_FileExists((std::string("Z:\\4DOS\\")+name).c_str())||DOS_FileExists((std::string("Z:\\DEBUG\\")+name).c_str())||DOS_FileExists((std::string("Z:\\TEXTUTIL\\")+name).c_str()))) {
-                strreplace(name,'/','\\');
-                altshell=true;
-            } else if (*name)
-                first_shell->WriteOut(MSG_Get("SHELL_MISSING_FILE"), name);
-        }
-    }
-    if (control->opt_test) {
+	Section_prop *section = static_cast<Section_prop *>(control->GetSection("config"));
+	bool altshell=false;
+	char namestr[CROSS_LEN], tmpstr[CROSS_LEN], *name=namestr, *tmp=tmpstr;
+	SHELL_ProgramStart_First_shell(&first_shell);
+	first_shell->Prepare();
+	prepared = true;
+	if (section!=NULL&&!control->opt_noconfig&&!control->opt_securemode&&!control->SecureMode()) {
+		char *shell = (char *)section->Get_string("shell");
+		if (strlen(shell)) {
+			tmp=trim(shell);
+			name=StripArg(tmp);
+			upcase(name);
+			if (*name&&(DOS_FileExists(name)||DOS_FileExists((std::string("Z:\\SYSTEM\\")+name).c_str())||DOS_FileExists((std::string("Z:\\BIN\\")+name).c_str())||DOS_FileExists((std::string("Z:\\DOS\\")+name).c_str())||DOS_FileExists((std::string("Z:\\4DOS\\")+name).c_str())||DOS_FileExists((std::string("Z:\\DEBUG\\")+name).c_str())||DOS_FileExists((std::string("Z:\\TEXTUTIL\\")+name).c_str()))) {
+				strreplace(name,'/','\\');
+				altshell=true;
+			} else if (*name)
+				first_shell->WriteOut(MSG_Get("SHELL_MISSING_FILE"), name);
+		}
+	}
+	if (control->opt_test) {
 #if C_DEBUG
-        testerr = RUN_ALL_TESTS();
+		testerr = RUN_ALL_TESTS();
 		control->opt_nolog = false;
 		LOG_MSG("Unit test completed: %s\n", testerr?"failure":"success");
 		control->opt_nolog = true;
@@ -1816,19 +1816,19 @@ void SHELL_Run() {
 		printf("Unit tests are only available in debug builds\n\n");
 #endif
 #if defined(WIN32)
-        if (sdl_wait_on_error()) DOSBox_ConsolePauseWait();
+		if (sdl_wait_on_error()) DOSBox_ConsolePauseWait();
 #endif
-        return;
-    }
+		return;
+	}
 	i4dos=false;
 	if (altshell) {
-        if (strstr(name, "4DOS.COM")) i4dos=true;
-        first_shell->SetEnv("COMSPEC",name);
-        if (!strlen(tmp)) {
-            char *p=strrchr(name, '\\');
-            if (!strcasecmp(p==NULL?name:p+1, "COMMAND.COM") || !strcasecmp(name, "Z:COMMAND.COM")) {strcpy(tmpstr, init_line);tmp=tmpstr;}
-            else if (!strcasecmp(p==NULL?name:p+1, "4DOS.COM") || !strcasecmp(name, "Z:4DOS.COM")) {strcpy(tmpstr, "AUTOEXEC.BAT");tmp=tmpstr;}
-        }
+		if (strstr(name, "4DOS.COM")) i4dos=true;
+		first_shell->SetEnv("COMSPEC",name);
+		if (!strlen(tmp)) {
+			char *p=strrchr(name, '\\');
+			if (!strcasecmp(p==NULL?name:p+1, "COMMAND.COM") || !strcasecmp(name, "Z:COMMAND.COM")) {strcpy(tmpstr, init_line);tmp=tmpstr;}
+			else if (!strcasecmp(p==NULL?name:p+1, "4DOS.COM") || !strcasecmp(name, "Z:4DOS.COM")) {strcpy(tmpstr, "AUTOEXEC.BAT");tmp=tmpstr;}
+		}
 		first_shell->Execute(name, tmp);
 		return;
 	}
