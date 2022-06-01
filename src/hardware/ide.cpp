@@ -325,7 +325,7 @@ public:
     IO_WriteHandleObject WriteHandler[8],WriteHandlerAlt[2];
 public:
     IDEDevice* device[2];       /* IDE devices (master, slave) */
-    Bitu select,status,drivehead;   /* which is selected, status register (0x1F7) but ONLY if no device exists at selection, drive/head register (0x1F6) */
+    Bitu select;   /* which is selected */
     bool interrupt_enable;      /* bit 1 of alt (0x3F6) */
     bool host_reset;        /* bit 2 of alt */
     bool irq_pending;
@@ -2761,7 +2761,7 @@ void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba) {
                         dev->lba[0] = lba&0xFF;     /* leave sector number the same (WDCTRL test phase 7/E/15) */
                         dev->lba[1] = (lba>>8u)&0xFF;    /* leave cylinder the same (WDCTRL test phase 8/F/16) */
                         dev->lba[2] = (lba>>16u)&0xFF;   /* ...ditto */
-                        ide->drivehead = dev->drivehead = 0xE0u | (ms<<4u) | (lba>>24u); /* drive head and master/slave (WDCTRL test phase 9/10/17) */
+                        dev->drivehead = 0xE0u | (ms<<4u) | (lba>>24u); /* drive head and master/slave (WDCTRL test phase 9/10/17) */
                         dev->status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE; /* status (WDCTRL test phase A/11/18) */
                         dev->allow_writing = true;
                         static bool vm86_warned = false;
@@ -2932,7 +2932,7 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
                         dev->lba[0] = sect;     /* leave sector number the same (WDCTRL test phase 7/E/15) */
                         dev->lba[1] = cyl;      /* leave cylinder the same (WDCTRL test phase 8/F/16) */
                         dev->lba[2] = cyl >> 8u;     /* ...ditto */
-                        ide->drivehead = dev->drivehead = 0xA0u | (ms<<4u) | head; /* drive head and master/slave (WDCTRL test phase 9/10/17) */
+                        dev->drivehead = 0xA0u | (ms<<4u) | head; /* drive head and master/slave (WDCTRL test phase 9/10/17) */
                         dev->status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE; /* status (WDCTRL test phase A/11/18) */
                         dev->allow_writing = true;
                         static bool vm86_warned = false;
@@ -3684,7 +3684,7 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
     switch (cmd) {
         case 0x08: /* DEVICE RESET */
             status = 0x00;
-            drivehead &= 0x10; controller->drivehead = drivehead;
+            drivehead &= 0x10;
             count = 0x01;
             lba[0] = 0x01;
             feature = 0x01;
@@ -3696,7 +3696,7 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
         case 0x20: /* READ SECTOR */
             abort_normal();
             status = IDE_STATUS_ERROR|IDE_STATUS_DRIVE_READY;
-            drivehead &= 0x30; controller->drivehead = drivehead;
+            drivehead &= 0x30;
             count = 0x01;
             lba[0] = 0x01;
             feature = 0x04; /* abort */
@@ -3735,7 +3735,7 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
                IDE drivers to use command 0x08 DEVICE RESET. */
             abort_normal();
             status = IDE_STATUS_ERROR|IDE_STATUS_DRIVE_READY;
-            drivehead &= 0x30; controller->drivehead = drivehead;
+            drivehead &= 0x30;
             count = 0x01;
             lba[0] = 0x01;
             feature = 0x04; /* abort */
@@ -3811,7 +3811,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
             break;
         case 0x08: /* DEVICE RESET */
             status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
-            drivehead &= 0x10; controller->drivehead = drivehead;
+            drivehead &= 0x10;
             count = 0x01; lba[0] = 0x01; feature = 0x00;
             lba[1] = lba[2] = 0;
             /* NTS: Testing suggests that ATA hard drives DO fire an IRQ at this stage.
@@ -3826,7 +3826,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
              *  if executed in LAB mode, then ... sector number register shall be 0" */
             if (drivehead_is_lba(drivehead)) lba[0] = 0x00;
             else lba[0] = 0x01;
-            drivehead &= 0x10; controller->drivehead = drivehead;
+            drivehead &= 0x10;
             lba[1] = lba[2] = 0;
             feature = 0x00;
             raise_irq();
@@ -3925,7 +3925,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
              * silently abort the command with an error. */
             abort_normal();
             status = IDE_STATUS_ERROR|IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE|0x20/*write fault*/;
-            drivehead &= 0x30; controller->drivehead = drivehead;
+            drivehead &= 0x30;
             count = 0x01;
             lba[0] = 0x01;
             feature = 0x04; /* abort */
@@ -4001,7 +4001,6 @@ IDEController::IDEController(Section* configuration,unsigned char index):Module_
     spindown_timeout = section->Get_int("cd-rom spindown timeout");
     cd_insertion_time = section->Get_int("cd-rom insertion delay");
 
-    status = 0x00;
     host_reset = false;
     irq_pending = false;
     interrupt_enable = true;
@@ -4012,7 +4011,6 @@ IDEController::IDEController(Section* configuration,unsigned char index):Module_
     select = 0;
     alt_io = 0;
     IRQ = -1;
-    drivehead = 0;
 
     i = section->Get_int("irq");
     if (i > 0 && i <= 15) IRQ = i;
@@ -4262,7 +4260,7 @@ static Bitu ide_altio_r(Bitu port,Bitu iolen) {
         port &= 1;
 
     if (port == 0)/*3F6(R) status, does NOT clear interrupt*/
-        return (dev != NULL) ? dev->status : ide->status;
+        return (dev != NULL) ? dev->status : 0x00;
     else /*3F7(R) Drive Address Register*/
         return 0x80u|(ide->select==0?0u:1u)|(ide->select==1?0u:2u)|
             ((dev != NULL) ? (((dev->drivehead&0xFu)^0xFu) << 2u) : 0x3Cu);
@@ -4321,16 +4319,14 @@ static Bitu ide_baseio_r(Bitu port,Bitu iolen) {
             ret = (dev != NULL) ? dev->lba[2] : 0x00;
             break;
         case 6: /* 1F6 */
-            ret = (dev != NULL) ? dev->drivehead : ide->drivehead;
+            ret = (dev != NULL) ? dev->drivehead : 0x00;
             break;
         case 7: /* 1F7 */
             /* reading this port clears the device pending IRQ */
-            if (dev) {
-                if (!(dev->status & IDE_STATUS_BUSY))
-                    dev->lower_irq();
-	    }
+            if (dev && !(dev->status & IDE_STATUS_BUSY))
+                dev->lower_irq();
 
-            ret = (dev != NULL) ? dev->status : ide->status;
+            ret = (dev != NULL) ? dev->status : 0x00;
             ide->check_device_irq();
             break;
     }
@@ -4373,16 +4369,6 @@ static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen) {
                 LOG_MSG("W-%03X %02X BUSY DROP [DEV]\n",(int)(port+ide->base_io),(int)val);
                 return;
             }
-        }
-    }
-    else if (ide->status & IDE_STATUS_BUSY) {
-        if (port == 6 && ((val>>4)&1) == ide->select) {
-            /* some MS-DOS drivers like ATAPICD.SYS are just very pedantic about writing to port +6 to ensure the right drive is selected */
-            return;
-        }
-        else {
-            LOG_MSG("W-%03X %02X BUSY DROP [IDE]\n",(int)(port+ide->base_io),(int)val);
-            return;
         }
     }
 
@@ -4428,16 +4414,11 @@ static void ide_baseio_w(Bitu port,Bitu val,Bitu iolen) {
                 ide->select = (val>>4)&1;
                 dev = ide->device[ide->select];
                 if (dev) dev->select(val,1);
-                else ide->status = 0; /* NTS: if there is no drive there you're supposed to not have anything set */
             }
             else if (dev) {
                 dev->select(val,0);
             }
-            else {
-                ide->status = 0; /* NTS: if there is no drive there you're supposed to not have anything set */
-            }
 
-            ide->drivehead = val;
             ide->check_device_irq();
             break;
         case 7: /* 1F7 */
