@@ -736,6 +736,7 @@ void IDEATAPICDROMDevice::mode_sense() {
     sector[8+1] = (unsigned int)(write-sector) - 2 - 8;
 
     prepare_read(0,MIN((unsigned int)(write-sector),(unsigned int)host_maximum_byte_count));
+
 #if 0
     printf("SENSE ");
     for (size_t i=0;i < sector_total;i++) printf("%02x ",sector[i]);
@@ -1223,6 +1224,10 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
                         LOG(LOG_MISC,LOG_DEBUG)("ATAPI READ CD warning: Unsupported sector type %u byte9 %x size %u",
                             (unsigned int)TransferSectorType,(unsigned int)TransferReadCD9,(unsigned int)TransferSectorSize);
                     }
+                }
+                else {
+                    LOG(LOG_MISC,LOG_DEBUG)("ATAPI READ CD warning: Unsupported sector type %u byte9 %x size %u",
+                        (unsigned int)TransferSectorType,(unsigned int)TransferReadCD9,(unsigned int)TransferSectorSize);
                 }
 
                 if (res) {
