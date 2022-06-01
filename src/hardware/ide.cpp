@@ -299,6 +299,9 @@ public:
     std::string id_mmc_product_rev;
     Bitu TransferLengthRemaining;
     Bitu LBA,LBAnext,TransferLength;
+    uint8_t TransferSectorType;
+    uint8_t TransferReadCD9;
+    Bitu TransferSectorSize;
     int loading_mode;
     bool has_changed;
 public:
@@ -1194,6 +1197,63 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
             raise_irq();
             allow_writing = true;
             break;
+        case 0xBE: /* READ CD */
+            if (TransferLength == 0 || TransferSectorSize == 0) {
+                /* this is legal. the SCSI MMC standards say so.
+                   and apparently, MSCDEX.EXE issues READ(10) commands with transfer length == 0
+                   to test the drive, so we have to emulate this */
+                feature = 0x00;
+                count = 0x03; /* no more transfer */
+                sector_total = 0;/*nothing to transfer */
+                state = IDE_DEV_READY;
+                status = IDE_STATUS_DRIVE_READY;
+            }
+            else {
+                /* OK, try to read */
+                CDROM_Interface *cdrom = getMSCDEXDrive();
+                bool res = false;
+
+                /* NTS: Sorry, we don't support anything other than straight data sector reads.
+                 *      No CDDA extraction here. Not yet anyway. */
+                if (TransferSectorType == 2/*Mode 1*/ || TransferSectorType == 4/*Mode 2 form 1*/) {
+                    if (TransferSectorSize == 2048) {
+                        res = (cdrom != NULL ? cdrom->ReadSectorsHost(/*buffer*/sector,false,LBA,TransferLength) : false);
+                    }
+                    else {
+                        LOG(LOG_MISC,LOG_DEBUG)("ATAPI READ CD warning: Unsupported sector type %u byte9 %x size %u",
+                            (unsigned int)TransferSectorType,(unsigned int)TransferReadCD9,(unsigned int)TransferSectorSize);
+                    }
+                }
+
+                if (res) {
+                    prepare_read(0,MIN((unsigned int)(TransferLength*2048),(unsigned int)host_maximum_byte_count));
+                    LBAnext = LBA + TransferLength;
+                    feature = 0x00;
+                    count = 0x02; /* data for computer */
+                    state = IDE_DEV_DATA_READ;
+                    status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+                }
+                else {
+                    feature = 0xF4; /* abort sense=0xF */
+                    count = 0x03; /* no more transfer */
+                    sector_total = 0;/*nothing to transfer */
+                    TransferLength = 0;
+                    TransferLengthRemaining = 0;
+                    state = IDE_DEV_READY;
+                    status = IDE_STATUS_DRIVE_READY|IDE_STATUS_ERROR;
+                    LOG_MSG("ATAPI: Failed to read %lu sectors at %lu\n",
+                        (unsigned long)TransferLength,(unsigned long)LBA);
+                    /* TODO: write sense data */
+                }
+            }
+
+            /* ATAPI protocol also says we write back into LBA 23:8 what we're going to transfer in the block */
+            lba[2] = sector_total >> 8;
+            lba[1] = sector_total;
+
+            raise_irq();
+            allow_writing = true;
+            break;
         case 0x42: /* READ SUB-CHANNEL */
             read_subchannel();
 
@@ -1469,6 +1529,44 @@ void IDEATAPICDROMDevice::atapi_io_completion() {
 //                  LOG_MSG("ATAPI CD READ LBA=%x xfer=%x xferrem=%x transfer complete",(unsigned int)LBA,(unsigned int)TransferLength,(unsigned int)TransferLengthRemaining);
                 }
                 break;
+            case 0xBE:/*READ CD*/
+                /* How much does the guest want to transfer? */
+                sector_total = (lba[1] & 0xFF) | ((lba[2] & 0xFF) << 8);
+
+                TransferLength = TransferLengthRemaining;
+                if (TransferSectorSize > 0) {
+                    if ((TransferLength*TransferSectorSize) > sizeof(sector))
+                        TransferLength = sizeof(sector)/TransferSectorSize;
+                    if ((TransferLength*TransferSectorSize) > sector_total)
+                        TransferLength = sector_total/TransferSectorSize;
+
+                    assert(TransferLengthRemaining >= TransferLength);
+                    TransferLengthRemaining -= TransferLength;
+                }
+                else {
+                    TransferLengthRemaining = 0;
+                    TransferLength = 0;
+                }
+
+                LBA = LBAnext;
+                assert(TransferLengthRemaining >= TransferLength);
+                TransferLengthRemaining -= TransferLength;
+
+                if (TransferLength != 0) {
+//                  LOG_MSG("ATAPI CD READ LBA=%x xfer=%x xferrem=%x continued",(unsigned int)LBA,(unsigned int)TransferLength,(unsigned int)TransferLengthRemaining);
+
+                    count = 0x02;
+                    state = IDE_DEV_ATAPI_BUSY;
+                    status = IDE_STATUS_BUSY;
+                    /* TODO: Emulate CD-ROM spin-up delay, and seek delay */
+                    PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,pk);
+		    return;
+                }
+                else {
+//                  LOG_MSG("ATAPI CD READ LBA=%x xfer=%x xferrem=%x transfer complete",(unsigned int)LBA,(unsigned int)TransferLength,(unsigned int)TransferLengthRemaining);
+                }
+                break;
+
             case 0x55: /* MODE SELECT(10) */
                 on_mode_select_io_complete();
                 break;
@@ -1678,6 +1776,65 @@ Bitu IDEATAPICDROMDevice::data_read(Bitu iolen) {
     return w;
 }
 
+static const uint16_t ReadCDTransferSectorSizeTable[5/*SectorType-1*/][0x20/*READ CD byte 9 >> 3*/] = {
+        /* Sector type 0: Any
+         * Sector type 1: CDDA */
+        {
+                0,    /* 00h */ 0,    /* 08h */ 2352, /* 10h */ 2352, /* 18h */
+                2352, /* 20h */ 2352, /* 28h */ 2352, /* 30h */ 2352, /* 38h */
+                2352, /* 40h */ 2352, /* 48h */ 2352, /* 50h */ 2352, /* 58h */
+                2352, /* 60h */ 2352, /* 68h */ 2352, /* 70h */ 2352, /* 78h */
+                0,    /* 80h */ 0,    /* 88h */ 2352, /* 90h */ 2352, /* 98h */
+                2352, /* A0h */ 2352, /* A8h */ 2352, /* B0h */ 2352, /* B8h */
+                2352, /* C0h */ 2352, /* C8h */ 2352, /* D0h */ 2352, /* D8h */
+                2352, /* E0h */ 2352, /* E8h */ 2352, /* F0h */ 2352  /* F8h */
+        },
+        /* Sector type 2: Mode 1 */
+        {
+                0,    /* 00h */ 0,    /* 08h */ 2048, /* 10h */ 2336, /* 18h */
+                4,    /* 20h */ 0,    /* 28h */ 2052, /* 30h */ 2340, /* 38h */
+                0,    /* 40h */ 0,    /* 48h */ 2048, /* 50h */ 2336, /* 58h */
+                4,    /* 60h */ 0,    /* 68h */ 2052, /* 70h */ 2340, /* 78h */
+                0,    /* 80h */ 0,    /* 88h */ 0,    /* 90h */ 0,    /* 98h */
+                16,   /* A0h */ 0,    /* A8h */ 2064, /* B0h */ 2352, /* B8h */
+                0,    /* C0h */ 0,    /* C8h */ 0,    /* D0h */ 0,    /* D8h */
+                16,   /* E0h */ 0,    /* E8h */ 2064, /* F0h */ 2352  /* F8h */
+        },
+        /* Sector type 3: Mode 2 formless */
+        {
+                0,    /* 00h */ 0,    /* 08h */ 2336, /* 10h */ 2336, /* 18h */
+                4,    /* 20h */ 0,    /* 28h */ 2340, /* 30h */ 2340, /* 38h */
+                0,    /* 40h */ 0,    /* 48h */ 2336, /* 50h */ 2336, /* 58h */
+                4,    /* 60h */ 4,    /* 68h */ 12,   /* 70h */ 12,   /* 78h */
+                0,    /* 80h */ 0,    /* 88h */ 0,    /* 90h */ 0,    /* 98h */
+                16,   /* A0h */ 0,    /* A8h */ 2352, /* B0h */ 2352, /* B8h */
+                0,    /* C0h */ 0,    /* C8h */ 0,    /* D0h */ 0,    /* D8h */
+                16,   /* E0h */ 0,    /* E8h */ 2352, /* F0h */ 2352  /* F8h */
+        },
+        /* Sector type 4: Mode 2 form 1 */
+        {
+                0,    /* 00h */ 0,    /* 08h */ 2048, /* 10h */ 2328, /* 18h */
+                4,    /* 20h */ 0,    /* 28h */ 0,    /* 30h */ 0,    /* 38h */
+                8,    /* 40h */ 0,    /* 48h */ 2056, /* 50h */ 2336, /* 58h */
+                12,   /* 60h */ 0,    /* 68h */ 2060, /* 70h */ 2340, /* 78h */
+                0,    /* 80h */ 0,    /* 88h */ 0,    /* 90h */ 0,    /* 98h */
+                16,   /* A0h */ 0,    /* A8h */ 0,    /* B0h */ 0,    /* B8h */
+                0,    /* C0h */ 0,    /* C8h */ 0,    /* D0h */ 0,    /* D8h */
+                24,   /* E0h */ 0,    /* E8h */ 2072, /* F0h */ 2352  /* F8h */
+        },
+        /* Sector type 5: Mode 2 form 2 */
+        {
+                0,    /* 00h */ 0,    /* 08h */ 2328, /* 10h */ 2328, /* 18h */
+                4,    /* 20h */ 0,    /* 28h */ 0,    /* 30h */ 0,    /* 38h */
+                8,    /* 40h */ 0,    /* 48h */ 2336, /* 50h */ 2336, /* 58h */
+                12,   /* 60h */ 0,    /* 68h */ 2340, /* 70h */ 2340, /* 78h */
+                0,    /* 80h */ 0,    /* 88h */ 0,    /* 90h */ 0,    /* 98h */
+                16,   /* A0h */ 0,    /* A8h */ 0,    /* B0h */ 0,    /* B8h */
+                0,    /* C0h */ 0,    /* C8h */ 0,    /* D0h */ 0,    /* D8h */
+                24,   /* E0h */ 0,    /* E8h */ 2352, /* F0h */ 2352  /* F8h */
+        }
+};
+
 /* TODO: Your code should also be paying attention to the "transfer length" field
          in many of the commands here. Right now it doesn't matter. */
 void IDEATAPICDROMDevice::atapi_cmd_completion() {
@@ -1743,6 +1900,69 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
             status = IDE_STATUS_BUSY;
             PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             break;
+        case 0xBE: /* READ CD */
+            if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
+                set_sense(0); /* <- nothing wrong */
+
+                /* How much does the guest want to transfer? */
+                /* NTS: This is required to work correctly with Windows NT 4.0. Windows NT will emit a READ CD
+                 *      command at startup with transfer length == 0. If an error is returned, NT ignores the
+                 *      CD-ROM drive entirely and acts like it's in a perpetual error state. */
+                sector_total = (lba[1] & 0xFF) | ((lba[2] & 0xFF) << 8);
+                LBA = ((Bitu)atapi_cmd[2] << 24UL) |
+                    ((Bitu)atapi_cmd[3] << 16UL) |
+                    ((Bitu)atapi_cmd[4] << 8UL) |
+                    ((Bitu)atapi_cmd[5] << 0UL);
+                TransferLength = ((Bitu)atapi_cmd[6] << 16UL) |
+                    ((Bitu)atapi_cmd[7] << 8UL) |
+                    ((Bitu)atapi_cmd[8]);
+
+                /* Sector size? */
+                TransferSectorType = (atapi_cmd[1] >> 2) & 7u; /* RESERVED=[7:5] ExpectedSectorType=[4:2] RESERVED=[1:1] RELOAD=[0:0] */
+                TransferReadCD9 = atapi_cmd[9]; /* SYNC=[7:7] HeaderCodes=[6:5] UserData=[4:4] EDCECC=[3:3] ErrorField=[2:1] RESERVED=[0:0] */
+
+                if (TransferSectorType <= 5) /* Treat unspecified sector type == 0 the same as CDDA with regard to sector size */
+                    TransferSectorSize = ReadCDTransferSectorSizeTable[(TransferSectorType>0)?(TransferSectorType-1):0][TransferReadCD9>>3u];
+                else
+                    TransferSectorSize = 0;
+
+                if (TransferReadCD9 & 4) /* include block and error bits */
+                    TransferSectorSize += 296;
+                else if (TransferReadCD9 & 2) /* include error bits */
+                    TransferSectorSize += 294;
+
+                /* keep track of the original transfer length */
+                TransferLengthRemaining = TransferLength;
+
+                if (TransferSectorSize > 0) {
+                    if ((TransferLength*TransferSectorSize) > sizeof(sector))
+                        TransferLength = sizeof(sector)/TransferSectorSize;
+                    if ((TransferLength*TransferSectorSize) > sector_total)
+                        TransferLength = sector_total/TransferSectorSize;
+
+                    assert(TransferLengthRemaining >= TransferLength);
+                    TransferLengthRemaining -= TransferLength;
+                }
+                else {
+                    TransferLengthRemaining = 0;
+                    TransferLength = 0;
+                }
+
+                count = 0x02;
+                LBAnext = LBA;
+                state = IDE_DEV_ATAPI_BUSY;
+                status = IDE_STATUS_BUSY;
+                /* TODO: Emulate CD-ROM spin-up delay, and seek delay */
+                PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,pk);
+            }
+            else {
+                count = 0x03;
+                state = IDE_DEV_READY;
+                feature = ((sense[2]&0xF) << 4) | ((sense[2]&0xF) ? 0x04/*abort*/ : 0x00);
+                status = IDE_STATUS_DRIVE_READY|((sense[2]&0xF) ? IDE_STATUS_ERROR:IDE_STATUS_DRIVE_SEEK_COMPLETE);
+                raise_irq();
+                allow_writing = true;
+            }
         case 0xA8: /* READ(12) */
             if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
                 set_sense(0); /* <- nothing wrong */

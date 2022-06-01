@@ -1,5 +1,19 @@
 0.84.1
-  - 
+  - IDE: Remove extra state from IDE controller that
+    is managed by the drive. The ATA-1 standard seems
+    to say that status and drive/head registers on
+    read back always come from the ATA device.
+    (joncampbell123).
+  - IDE: If ATA device is busy, all IDE registers
+    return the status register and BSY bit according
+    to ATA-1 standard (joncampbell123).
+  - IDE ATAPI CD-ROM: Add ATAPI command BEh READ CD.
+    This command is like the 28h/A8h READ command but
+    specific to the CD/CD-ROM format and allows reading
+    the various sector types including data sectors and
+    CD audio. Windows NT 4.0 requires this, or else it
+    treats the CD-ROM drive like a non-working device.
+    (joncampbell123).
 0.84.0
   - CMOS century register now aliased to register
     32h and 37h to appease Windows 2000, which assumes
