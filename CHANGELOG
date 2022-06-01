@@ -1,4 +1,8 @@
 0.83.26
+  - CMOS century register now aliased to register
+    32h and 37h to appease Windows 2000, which assumes
+    the century is stored there and will complain
+    about invalid date/time otherwise (joncampbell123).
   - Treat IDE command E7h (FLUSH CACHE) as a no-op
     so that the common use of it from Windows 2000
     doesn't spam your log file (joncampbell123).

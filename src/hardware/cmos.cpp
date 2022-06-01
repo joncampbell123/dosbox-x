@@ -212,6 +212,7 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
             break;
 
         case 0x32:      /* Century */
+        case 0x37:      /* Century (alternate used by Windows NT/2000/XP) */
             if (val < 19) return;               // invalid century value?
             loctime->tm_year += (int)((val * 100) - 1900);
             break;
@@ -251,6 +252,7 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
     case 0x08:      /* Month */
     case 0x09:      /* Year */
     case 0x32:      /* Century */
+    case 0x37:      /* Century (alternate used by Windows NT/2000/XP) */
         /* Ignore writes to change alarm */
         break;
     case 0x01:      /* Seconds Alarm */
@@ -374,6 +376,7 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
         case 0x09:      /* Year */
             return MAKE_RETURN(loctime->tm_year % 100);
         case 0x32:      /* Century */
+        case 0x37:      /* Century (alternate used by Windows NT/2000/XP) */
             return MAKE_RETURN(loctime->tm_year / 100 + 19);
 
         case 0x01:      /* Seconds Alarm */
@@ -409,6 +412,7 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
     case 0x09:      /* Year */
         return    MAKE_RETURN(loctime->tm_year % 100);
     case 0x32:      /* Century */
+    case 0x37:      /* Century (alternate used by Windows NT/2000/XP) */
         return    MAKE_RETURN(loctime->tm_year / 100 + 19);
     case 0x01:      /* Seconds Alarm */
     case 0x03:      /* Minutes Alarm */
