@@ -102,6 +102,8 @@ Windows binaries (both 32-bit and 64-bit), Linux Flatpak or RPM packages (64-bit
 
 For running DOSBox-X in a real DOS system (MS-DOS or compatible), you can find the HX-DOS package that makes use of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX). Type DOSBOX-X to run it from a DOS system. There is also the DOS LOADLIN package which can run from within DOSBox-X itself in addition to a DOS system. Note, however, that not all features of DOSBox-X that are supported in other platforms can be supported in the real DOS environment.
 
+Development (preview) builds intended for testing purposes are also available from the [DOSBox-X Development Builds](https://dosbox-x.com/devel-build.html) page.
+
 The full source code is officially provided with each DOSBox-X release, which may be compiled to run on the above and possbily other operating systems too. You can also get the latest development source code from the repository directly. See also the [BUILD](BUILD.md) page for information on building/compiling the DOSBox-X source code.
 
 
