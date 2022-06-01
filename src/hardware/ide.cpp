@@ -4292,6 +4292,15 @@ static Bitu ide_baseio_r(Bitu port,Bitu iolen) {
     else
         port &= 7;
 
+    /* ATA-1 Section 7.2.13 Status Register: BSY (Busy) bit.
+     *
+     * BSY(Busy) is set whenever the drive has access to the Command Block Registers.
+     * The host should not access the Command Block Register when BSY=1. When BSY=1,
+     * a read of any Command Block Register shall return the contents of the Status
+     * Register. */
+    if (dev != NULL && (dev->status & IDE_STATUS_BUSY))
+        port = 7;
+
     switch (port) {
         case 0: /* 1F0 */
             ret = (dev != NULL) ? dev->data_read(iolen) : 0xFFFFFFFFUL;
