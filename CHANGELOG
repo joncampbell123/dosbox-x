@@ -1,4 +1,7 @@
 0.83.26
+  - Treat IDE command E7h (FLUSH CACHE) as a no-op
+    so that the common use of it from Windows 2000
+    doesn't spam your log file (joncampbell123).
   - BIOS: At post, if DOS kernel was active and the
     DOS Shell was still running, initiate a proper
     system reset event. Some software, including the
