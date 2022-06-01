@@ -1,0 +1,260 @@
+
+
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="DOSBox-X: Free, cross-platform and complete DOS, Windows 3.x and 9x emulation package">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="css/style.css">
+
+    <script type="text/javascript" src="js/script.js"></script>
+    <title>DOSBox-X - Accurate DOS emulation for Windows, Linux, macOS, and DOS</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <table width="100%" style="border: hidden">
+        <tr>
+        <td width="25%" style="border: hidden; min-width: 300px; text-align: center">
+          &nbsp;<p />&nbsp;<br/>
+          <img id="dosbox-x-logo" src="images/dosbox-x-logo.svg" title="DOSBox-X" alt="DOSBox-X logo" style="width:90px" />
+        </td><td>&nbsp;<p />
+          <h1 id="project_title">DOSBox-X</h1>
+          <h2 id="project_tagline">Cross-platform DOS emulation package<br />Complete, accurate emulation and more</h2>
+        </td>
+        </tr>
+        </table>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer"; style="background-color: #fafacf">
+        <div style="text-align: center">
+            <h3 style="padding-top: 10px">DOSBox-X 0.84.0 Release Notes</h3>
+            <h4 style="padding-bottom: 15px; font-weight: normal">Release Date: <span style="color: green">May 31, 2022</span></h4>
+            Please report any issues in our <a href="https://github.com/joncampbell123/dosbox-x/issues">issue tracker</a>.</p>
+            <p>Also, make sure to check out our <a href="wiki">Wiki guide</a>.</p>
+            <h4>New in This Version</h4>
+
+            <table width="100%" style="border: hidden">
+            <tr>
+            <td width="20%" style="border: hidden"></td>
+            <td width="60%" style="border: hidden; text-align: left">
+<ul>
+<li>
+    CMOS century register now aliased to register
+    32h and 37h to appease Windows 2000, which assumes
+    the century is stored there and will complain
+    about invalid date/time otherwise (joncampbell123).
+</li>
+<li>
+    Treat IDE command E7h (FLUSH CACHE) as a no-op
+    so that the common use of it from Windows 2000
+    doesn't spam your log file (joncampbell123).
+</li>
+<li>
+    BIOS: At post, if DOS kernel was active and the
+    DOS Shell was still running, initiate a proper
+    system reset event. Some software, including the
+    WINNT.EXE install program for Windows NT, like to
+    restart the system by JMPing to the BIOS POST
+    entry point. Prior to this fix, doing that from a
+    DOS program caused instability with mounted images
+    and the DOS shell due to recursion. (joncampbell123).
+</li>
+<li>
+    Fix FPU implementation for aarch64 cores (cimarronm)
+</li>
+<li>
+    Fixed INT 10h and DAC palette mapping to resolve
+    incorrect colors with Hercules graphics mode when
+    a game calls INT 10h to set video mode after setting
+    it up. This resolves the incorrect blue on black
+    color map for Grand Prix by Accolade (joncampbell123).
+</li>
+<li>
+    Add recursive mkdir_p() directory creation so that
+    overlay filesystem support can correctly create
+    a subdirectory of any depth, instead of only one
+    level deep from an existing directory on disk.
+    (joncampbell123)
+</li>
+<li>
+    Add "isapnpport" option to dosbox.conf to control
+    whether the ISA Plug & Play I/O port is presented
+    to the guest. Setting is "true", "false", or "auto".
+    "auto" means to enable if PnP BIOS is enabled.
+    Previously this port was always present even if
+    the PnP BIOS was not. Some operating systems,
+    including Windows NT/2000/XP, will enumerate ISA
+    Plug & Play hardware by themselves whether or not
+    the PnP BIOS is present. (joncampbell123)
+</li>
+<li>
+    Fix FPU operations using the top of stack on
+    32-bit VS builds (cimarronm)
+</li>
+<li>
+    Add IDE ATAPI command MECHANISM STATUS for
+    Windows NT 4.0 because that system seems
+    to want to know if your CD-ROM drive is a
+    CD changer (joncampbell123)
+</li>
+<li>
+    IDE Plug & Play resource descriptor changed to use
+    2-byte structure for listing IRQ resource instead of
+    3 bytes. This (for some reason) fixes problems with
+    the IDE driver in Windows NT 4.0, Windows 2000, and
+    Windows XP and allows them to boot properly.
+    (joncampbell123)
+</li>
+<li>
+    INT 13h extensions function 48h is supposed to
+    return physical geometry, not the logical geometry
+    normally returned by function 08h. This means for
+    IDE devices, to return the geometry the IDE controller
+    is using. (joncampbell123)
+</li>
+<li>
+    Enhanced the Mapper Editor interface. The Mapper UI
+    has been greatly improved. (aybe)
+</li>
+<li>
+    Add IDE ATAPI command MECHANISM STATUS for Windows
+    NT 4.0 because that system seems to want to know if
+    your CD-ROM drive is a CD changer. (joncampbell123)
+</li>
+<li>
+    Fix IDE devices to start up with the drive ready
+    bit set for OSes that expect it when probing IDE
+    devices. This allows the Linux kernel to see IDE
+    ATA drives emulated by DOSBox-X. (joncampbell123)
+</li>
+<li>
+    Fix IDE ATAPI emulation to correctly handle CD
+    READ across one or more DRQ block transfers. Use
+    block size given by guest in consideration of DRQ
+    block size, which allows ATAPI CD-ROM emulation to
+    work properly with the Linux kernel. (joncampbell123)
+</li>
+<li>
+    Add debug command to show PC-98 color palettes.
+    Corrected typo. (joncampbell123)
+</li>
+<li>
+    Add support for PC-98 monochrome graphics mode.
+    (joncampbell123)
+</li>
+<li>
+    IDE emulation now handles implementation events per
+    IDE device instead of per IDE controller, which
+    may resolve IDE controller issues with some guests.
+    (joncampbell123)
+</li>
+<li>
+    Added PC-98 GDC drawing commands, which is
+    based on Neko Project II source code (nanshiki)
+</li>
+<li>
+    Added PC-98 LIO BIOS interface, which is based on
+    Neko Project II source code (nanshiki)
+</li>
+<li>
+    INT 21h AH=31h Terminate And Stay Resident: If the
+    program called INT 21h to free its own PSP segment,
+    reassign the block back to the program as allocated
+    and then resize as expected. Needed for PC-98 game
+    "Yu No" in which PLAY6.EXE, one of the resident
+    drivers used for music, does just that. (joncampbell123)
+</li>
+<li>
+    Add a hack to enable read access to port 0xa460 on PC-98 which 
+    returns Sound ID to detect the sound board available.
+    Note that the current hack returns Sound ID of PC-9801-86 board
+    regardless of the board selected to emulate. (maron2000)
+</li>
+<li>
+    Adds WINCHECK to list of programs which should not
+    return a valid installation check for WinOldAp
+    (AX=1700h/int2fh) so it doesn't mistakenly believe
+    Windows is running (cimarronm)
+</li>
+<li>
+    Add minimal support for IDE SET FEATURES command EFh.
+    (joncampbell123)
+</li>
+<li>
+    Fix CMPXCHG8B to change only the ZF flag, instead of
+    changing ZF with other flags in an undefined state
+    afterwards. This fixes problems with the Windows 2000
+    kernel booting up and cputype=pentium (though I am
+    unable to get past the INACCESSIBLE_BOOT_DEVICE error).
+    (joncampbell123)
+</li>
+<li>
+    Updates XADD instruction to set appropriate flags
+    (cimarronm)
+</li>
+<li>
+    Updates to FPU to handle opcode size prefix (66h)
+    on FSTENV/FLDENV/FSAVE/FRSTOR instructions (cimarronm)
+</li>
+<li>
+    Update FLD constant FPU instructions to more
+    accurately match FPU implementations (cimarronm)
+</li>
+<li>
+    Fixed dynamic_dynrec being displayed as dynamic_x86
+    in menu, and PREFETCH instruction breakage in the
+    dynamic core. (Jookia)
+</li>
+<li>
+    Fixed crash if no dynamic cores available (Jookia)
+</li>
+<li>
+    Fixed TTF mode breaking a guest not running the
+    DOS kernel. (Jookia)
+</li>
+<li>
+    Fix DBCS table initialization on reset and
+    restart (cimarronm)
+</li>
+<li>
+    Fixed some guest systems may not work as expected
+    in non-TTF outputs. (Wengier)
+</li>
+<li>
+    Fixed IME input not working in MinGW builds, and
+    FluidSynth in MinGW-lowend builds. (Wengier)
+</li>
+<li>
+    Fixed resizable OpenGL Voodoo window not working
+    properly on Windows in previous version. (Wengier)
+</li>
+<li>
+    Fixed commands "CHOICE /N /C:123" and "MIXER /GUI"
+    not working properly in previous version. (Wengier)
+</li>
+<li>
+    Integrated commits from mainline (Allofich)
+<br />
+    - Disable leading directory validity check in
+    DOS_FindDevice.
+</li>
+</ul>
+            </td><td></td></tr>
+            <tr><td></td><td style="border: hidden"><table width="100%" style="text-align: center; font-weight: bold"><tr><td width="50%">Previous release: 0.83.25 (<a href="release-0.83.25.html">release notes</a>)</td><td width="50%"></td></tr></table></td><td style="border: hidden"></td></tr>
+            <tr><td style="border: hidden"></td><td style="border: hidden"><center>Return to <a href="index.html">main page</a></center></td><td style="border: hidden"></td></tr>
+            </table>            
+        </div>
+    </div>
+
+    <!-- FOOTER  -->
+    <iframe src="footer.html" onload="this.before((this.contentDocument.body||this.contentDocument).children[0]);this.remove()"></iframe>
+
+  </body>
+</html>
