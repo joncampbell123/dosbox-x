@@ -3419,7 +3419,6 @@ static void IDE_DelayedCommand(Bitu pk/*which IDE device*/) {
                 ata->prepare_write(0,512*MIN((Bitu)ata->multiple_sector_count,(Bitu)sectcount));
                 dev->raise_irq();
                 break;
-
             case 0xEC:/*IDENTIFY DEVICE (CONTINUED) */
                 dev->state = IDE_DEV_DATA_READ;
                 dev->status = IDE_STATUS_DRQ|IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
@@ -3934,6 +3933,16 @@ void IDEATADevice::writecommand(uint8_t cmd) {
             lba[2] = 0x00;
             raise_irq();
             allow_writing = true;
+            break;
+        case 0xE7: /* FLUSH CACHE */
+            /* NTS: Windows 2000 and Windows XP like this command a lot. They REALLY REALLY like
+             *      to issue this command a lot, especially during the install phase. This is
+             *      here to avoid filling your log file with many repetitions of
+             *      "Unknown IDE/ATA command E7" */
+            status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRIVE_SEEK_COMPLETE;
+            state = IDE_DEV_READY;
+            allow_writing = true;
+            raise_irq();
             break;
         case 0xEC: /* IDENTIFY DEVICE */
             state = IDE_DEV_BUSY;
