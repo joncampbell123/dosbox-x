@@ -1,4 +1,4 @@
-0.83.26
+0.84.0
   - CMOS century register now aliased to register
     32h and 37h to appease Windows 2000, which assumes
     the century is stored there and will complain
