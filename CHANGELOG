@@ -1,4 +1,9 @@
 0.84.1
+  - DOS SHELL: Change shell command parsing to make
+    unusual combinations of command plus trailing
+    command possible such as ECHO. ECHO; ECHO: ECHO[
+    ECHO] ECHO\ ECHO/ ECHO" ECHO+ (issue #3503).
+    (joncampbell123).
   - EGA: Add machine type to emulate 200-line (CGA
     compatible) EGA display mode, machine=ega200.
     All text modes have 8x8 character cells, use CGA

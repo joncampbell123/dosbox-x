@@ -219,28 +219,33 @@ bool DOS_Shell::execute_shell_cmd(char *name, char *arguments) {
 }
 
 void DOS_Shell::DoCommand(char * line) {
-/* First split the line into command and arguments */
-    std::string origin_cmd_line = line;
-    std::string last_alias_cmd;
-    std::string altered_cmd_line;
-    int alias_counter = 0;
+	/* First split the line into command and arguments */
+	std::string origin_cmd_line = line;
+	std::string last_alias_cmd;
+	std::string altered_cmd_line;
+	int alias_counter = 0;
 __do_command_begin:
-    if (alias_counter > 64) {
-        WriteOut(MSG_Get("SHELL_EXECUTE_ALIAS_EXPAND_OVERFLOW"), origin_cmd_line.c_str());
-    }
+	if (alias_counter > 64) {
+		WriteOut(MSG_Get("SHELL_EXECUTE_ALIAS_EXPAND_OVERFLOW"), origin_cmd_line.c_str());
+	}
 	line=trim(line);
 	char cmd_buffer[CMD_MAXLINE];
 	char * cmd_write=cmd_buffer;
 	int q=0;
 	while (*line) {
-        if (strchr("/\t", *line) || (q / 2 * 2 == q && strchr(" =", *line)))
-			break;
-		if (*line == '"') q++;
-//		if (*line == ':') break; //This breaks drive switching as that is handled at a later stage. 
-		if ((*line == '.') ||(*line == '\\')) {  //allow stuff like cd.. and dir.exe cd\kees
-			*cmd_write=0;
-			if (execute_shell_cmd(cmd_buffer,line)) return;
+		if (*line == '/' || *line == '\t') break;
+
+		if ((q & 1) == 0) {
+			if (*line == ' ' || *line == '=') break;
+
+			if (*line == '.' || *line == ';' || *line == ':' || *line == '[' || *line == ']' ||
+					*line == '\\' || *line == '/' || *line == '\"' || *line == '+') {  //allow stuff like cd.. and dir.exe cd\kees
+				*cmd_write=0;
+				if (execute_shell_cmd(cmd_buffer,line)) return;
+			}
 		}
+
+		if (*line == '"') q++;
 		*cmd_write++=*line++;
 	}
 	*cmd_write=0;
@@ -248,19 +253,19 @@ __do_command_begin:
 		if (strlen(line)&&line[0]=='/') WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),line);
 		return;
 	}
-    cmd_alias_map_t::iterator iter = cmd_alias.find(cmd_buffer);
-    if (iter != cmd_alias.end() && last_alias_cmd != cmd_buffer) {
-        alias_counter++;
-        altered_cmd_line = iter->second + " " + line;
-        line = (char*)altered_cmd_line.c_str();
-        last_alias_cmd = iter->first;
-        goto __do_command_begin;
-    }
+	cmd_alias_map_t::iterator iter = cmd_alias.find(cmd_buffer);
+	if (iter != cmd_alias.end() && last_alias_cmd != cmd_buffer) {
+		alias_counter++;
+		altered_cmd_line = iter->second + " " + line;
+		line = (char*)altered_cmd_line.c_str();
+		last_alias_cmd = iter->first;
+		goto __do_command_begin;
+	}
 
-/* Check the internal list */
+	/* Check the internal list */
 	if (execute_shell_cmd(cmd_buffer,line)) return;
 
-/* This isn't an internal command execute it */
+	/* This isn't an internal command execute it */
 	char ldir[CROSS_LEN], *p=ldir;
 	if (strchr(cmd_buffer,'\"')&&DOS_GetSFNPath(cmd_buffer,ldir,false)) {
 		if (!strchr_dbcs(cmd_buffer, '\\') && strrchr_dbcs(ldir, '\\'))
@@ -276,14 +281,14 @@ __do_command_begin:
 	} else
 		if(Execute(cmd_buffer,line)) return;
 	if(enable_config_as_shell_commands && CheckConfig(cmd_buffer,line)) return;
-    std::string errhandler = static_cast<Section_prop *>(control->GetSection("dos"))->Get_string("badcommandhandler");
-    if (errhandler.size()&&!noassoc) {
-        noassoc=true;
-        LOG_MSG("errhandler %s line %s\n", errhandler.c_str(), origin_cmd_line.c_str());
-        DoCommand((char *)(errhandler+" "+origin_cmd_line).c_str());
-        noassoc=false;
-    } else
-        WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),cmd_buffer);
+	std::string errhandler = static_cast<Section_prop *>(control->GetSection("dos"))->Get_string("badcommandhandler");
+	if (errhandler.size()&&!noassoc) {
+		noassoc=true;
+		LOG_MSG("errhandler %s line %s\n", errhandler.c_str(), origin_cmd_line.c_str());
+		DoCommand((char *)(errhandler+" "+origin_cmd_line).c_str());
+		noassoc=false;
+	} else
+		WriteOut(MSG_Get("SHELL_EXECUTE_ILLEGAL_COMMAND"),cmd_buffer);
 }
 
 #define HELP(command) \
