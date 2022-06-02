@@ -56,6 +56,7 @@ extern bool allow_vesa_4bpp;
 extern bool allow_vesa_tty;
 extern bool vga_8bit_dac;
 extern bool blinking;
+extern bool ega200;
 
 /* This list includes non-explicitly 24bpp modes (in the 0x100-0x11F range) that are available
  * when the VBE1.2 setting indicates they should be 24bpp.
@@ -437,6 +438,22 @@ VideoModeBlock ModeList_VGA_Paradise[]={
 {0xFFFF  ,M_ERROR  ,0   ,0   ,0  ,0  ,0 ,0  ,0 ,0x00000 ,0x0000 ,0   ,0   ,0  ,0   ,0 	},
 };
 
+VideoModeBlock ModeList_EGA_200[]={
+/* mode  ,type     ,sw  ,sh  ,tw ,th ,cw,ch ,pt,pstart  ,plength,htot,vtot,hde,vde special flags */
+{ 0x000  ,M_TEXT   ,320 ,400 ,40 ,25 ,8 ,8  ,8 ,0xB8000 ,0x0800 ,56  ,262 ,40 ,200 ,_EGA_HALF_CLOCK   },
+{ 0x001  ,M_TEXT   ,320 ,400 ,40 ,25 ,8 ,8  ,8 ,0xB8000 ,0x0800 ,56  ,262 ,40 ,200 ,_EGA_HALF_CLOCK	},
+{ 0x002  ,M_TEXT   ,640 ,400 ,80 ,25 ,8 ,8  ,4 ,0xB8000 ,0x1000 ,113 ,262 ,80 ,200 ,0	},
+{ 0x003  ,M_TEXT   ,640 ,400 ,80 ,25 ,8 ,8  ,4 ,0xB8000 ,0x1000 ,113 ,262 ,80 ,200 ,0	},
+{ 0x004  ,M_CGA4   ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xB8000 ,0x4000 ,56  ,262 ,40 ,200 ,_EGA_HALF_CLOCK	| _REPEAT1},
+{ 0x005  ,M_CGA4   ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xB8000 ,0x4000 ,56  ,262 ,40 ,200 ,_EGA_HALF_CLOCK	| _REPEAT1},
+{ 0x006  ,M_CGA2   ,640 ,200 ,80 ,25 ,8 ,8  ,1 ,0xB8000 ,0x4000 ,113 ,262 ,40 ,200 ,0   },
+{ 0x007  ,M_TEXT   ,640 ,200 ,80 ,25 ,8 ,8  ,8 ,0xB0000 ,0x1000 ,113 ,262 ,80 ,200 ,0	},
+{ 0x00D  ,M_EGA    ,320 ,200 ,40 ,25 ,8 ,8  ,8 ,0xA0000 ,0x2000 ,56  ,262 ,40 ,200 ,_EGA_HALF_CLOCK	},
+{ 0x00E  ,M_EGA    ,640 ,200 ,80 ,25 ,8 ,8  ,4 ,0xA0000 ,0x4000 ,113 ,262 ,80 ,200 ,0 },
+
+{0xFFFF  ,M_ERROR  ,0   ,0   ,0  ,0  ,0 ,0  ,0 ,0x00000 ,0x0000 ,0   ,0   ,0  ,0   ,0 	},
+};
+
 /* NTS: I will *NOT* set the double scanline flag for 200 line modes.
  *      The modes listed here are intended to reflect the actual raster sent to the EGA monitor,
  *      not what you think looks better. EGA as far as I know, is either sent a 200-line mode,
@@ -726,7 +743,7 @@ bool INT10_SetCurMode(void) {
 		case MCH_HERC:
 			break;
 		case MCH_EGA:
-			mode_changed=SetCurMode(ModeList_EGA,bios_mode);
+			mode_changed=SetCurMode(ega200?ModeList_EGA_200:ModeList_EGA,bios_mode);
 			break;
 		case VGA_ARCH_CASE:
 			switch (svgaCard) {
@@ -1185,7 +1202,7 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 bool unmask_irq0_on_int10_setmode = true;
 bool INT10_SetVideoMode(uint16_t mode) {
 	if (CurMode&&CurMode->mode==7&&!IS_PC98_ARCH) {
-		VideoModeBlock *modelist=svgaCard==SVGA_TsengET4K||svgaCard==SVGA_TsengET3K?ModeList_VGA:(svgaCard==SVGA_ParadisePVGA1A?ModeList_VGA_Paradise:(IS_VGA_ARCH?ModeList_VGA:ModeList_EGA));
+		VideoModeBlock *modelist=svgaCard==SVGA_TsengET4K||svgaCard==SVGA_TsengET3K?ModeList_VGA:(svgaCard==SVGA_ParadisePVGA1A?ModeList_VGA_Paradise:(IS_VGA_ARCH?ModeList_VGA:(ega200?ModeList_EGA_200:ModeList_EGA)));
 		for (Bitu i = 0; modelist[i].mode != 0xffff; i++) {
 			if (modelist[i].mode == mode) {
 				if (modelist[i].type != M_TEXT) {
@@ -1288,7 +1305,7 @@ bool INT10_SetVideoMode(uint16_t mode) {
 		vga_8bit_dac = false;
 		VGA_DAC_UpdateColorPalette();
 	} else {
-		if (!SetCurMode(ModeList_EGA,mode)){
+		if (!SetCurMode(ega200?ModeList_EGA_200:ModeList_EGA,mode)){
 			LOG(LOG_INT10,LOG_ERROR)("EGA:Trying to set illegal mode %X",mode);
 			return false;
 		}

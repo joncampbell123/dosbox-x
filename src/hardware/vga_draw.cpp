@@ -48,6 +48,7 @@
 /* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
 #include "cpu_io_is_forbidden.h"
 
+bool ega200 = false;
 bool mcga_double_scan = false;
 
 /* S3 streams processor state.
@@ -4117,11 +4118,14 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                 vga.draw.linear_mask = vga.mem.memmask; // SVGA text mode
         }
         else vga.draw.linear_mask = 0x3fff; // CGA, Tandy 4 pages
-        if (IS_EGAVGA_ARCH)
+        if (IS_EGAVGA_ARCH) {
             vga.draw.cursor.address=vga.config.cursor_start<<vga.config.addr_shift;
-        else
+            vga.draw.address <<= vga.config.addr_shift;
+        }
+        else {
             vga.draw.cursor.address=vga.config.cursor_start*2;
-        vga.draw.address *= 2;
+            vga.draw.address *= 2;
+        }
 
         /* check for blinking and blinking change delay */
         FontMask[1]=(vga.draw.blinking & (unsigned int)(vga.draw.cursor.count >> 4u)) ?

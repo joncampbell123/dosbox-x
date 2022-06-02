@@ -771,6 +771,7 @@ void Null_Init(Section *sec) {
 
 extern uint8_t cga_comp;
 extern bool new_cga;
+extern bool ega200;
 
 bool dpi_aware_enable = true;
 
@@ -1044,7 +1045,8 @@ void DOSBOX_RealInit() {
     else if (mtype == "pcjr_composite2"){ machine = MCH_PCJR; cga_comp = 1; new_cga = true; }
     else if (mtype == "hercules")      { machine = MCH_HERC; }
     else if (mtype == "mda")           { machine = MCH_MDA; }
-    else if (mtype == "ega")           { machine = MCH_EGA; }
+    else if (mtype == "ega")           { machine = MCH_EGA; ega200 = false; }
+    else if (mtype == "ega200")        { machine = MCH_EGA; ega200 = true; }
     else if (mtype == "jega")          { machine = MCH_EGA; jp_ega = true;}
     else if (mtype == "svga_s3")       { svgaCard = SVGA_S3Trio; s3Card = S3_Trio64; } /* DOSBox SVN behavior */
     else if (mtype == "svga_s386c928") { svgaCard = SVGA_S3Trio; s3Card = S3_86C928; }
@@ -1315,6 +1317,7 @@ void DOSBOX_SetupConfigSections(void) {
         "pcjr", "pcjr_composite", "pcjr_composite2",
         "amstrad",
         "ega",
+        "ega200",
         "jega",
         "mcga",
         "vgaonly",

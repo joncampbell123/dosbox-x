@@ -1,4 +1,13 @@
 0.84.1
+  - EGA: Add machine type to emulate 200-line (CGA
+    compatible) EGA display mode, machine=ega200.
+    All text modes have 8x8 character cells, use CGA
+    compatible video timing, and the 640x350 modes
+    are not available. Fix EGA display offset register
+    usage to properly work with alphanumeric text
+    mode when "word mode" is turned off. This fixes
+    IBM demonstration program "Fantasy Land".
+    (joncampbell123).
   - IDE: Remove extra state from IDE controller that
     is managed by the drive. The ATA-1 standard seems
     to say that status and drive/head registers on
