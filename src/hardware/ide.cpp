@@ -1013,6 +1013,7 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
                 allow_writing = true;
                 break; /* do not delay */
             default:
+                PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
                 PIC_AddEvent(IDE_DelayedCommand,100/*ms*/,pk);
                 return;
         }
@@ -1527,6 +1528,7 @@ void IDEATAPICDROMDevice::atapi_io_completion() {
                     state = IDE_DEV_ATAPI_BUSY;
                     status = IDE_STATUS_BUSY;
                     /* TODO: Emulate CD-ROM spin-up delay, and seek delay */
+                    PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
                     PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,pk);
 		    return;
                 }
@@ -1558,17 +1560,18 @@ void IDEATAPICDROMDevice::atapi_io_completion() {
                 TransferLengthRemaining -= TransferLength;
 
                 if (TransferLength != 0) {
-//                  LOG_MSG("ATAPI CD READ LBA=%x xfer=%x xferrem=%x continued",(unsigned int)LBA,(unsigned int)TransferLength,(unsigned int)TransferLengthRemaining);
+                    LOG_MSG("ATAPI CD READ CD LBA=%x xfer=%x xferrem=%x continued",(unsigned int)LBA,(unsigned int)TransferLength,(unsigned int)TransferLengthRemaining);
 
                     count = 0x02;
                     state = IDE_DEV_ATAPI_BUSY;
                     status = IDE_STATUS_BUSY;
                     /* TODO: Emulate CD-ROM spin-up delay, and seek delay */
+                    PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
                     PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,pk);
 		    return;
                 }
                 else {
-//                  LOG_MSG("ATAPI CD READ LBA=%x xfer=%x xferrem=%x transfer complete",(unsigned int)LBA,(unsigned int)TransferLength,(unsigned int)TransferLengthRemaining);
+                    LOG_MSG("ATAPI CD READ CD LBA=%x xfer=%x xferrem=%x transfer complete",(unsigned int)LBA,(unsigned int)TransferLength,(unsigned int)TransferLengthRemaining);
                 }
                 break;
 
@@ -1691,12 +1694,14 @@ void IDEATADevice::io_completion() {
             /* cause another delay, another sector read */
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
+            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
             PIC_AddEvent(IDE_DelayedCommand,0.00001/*ms*/,pk);
             break;
         case 0x30:/* WRITE SECTOR */
             /* this is where the drive has accepted the sector, lowers DRQ, and begins executing the command */
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
+            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
             PIC_AddEvent(IDE_DelayedCommand,((progress_count == 0 && !faked_command) ? 0.1 : 0.00001)/*ms*/,pk);
             break;
         case 0xC4:/* READ MULTIPLE */
@@ -1725,12 +1730,14 @@ void IDEATADevice::io_completion() {
             /* cause another delay, another sector read */
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
+            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
             PIC_AddEvent(IDE_DelayedCommand,0.00001/*ms*/,pk);
             break;
         case 0xC5:/* WRITE MULTIPLE */
             /* this is where the drive has accepted the sector, lowers DRQ, and begins executing the command */
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
+            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
             PIC_AddEvent(IDE_DelayedCommand,((progress_count == 0 && !faked_command) ? 0.1 : 0.00001)/*ms*/,pk);
             break;
         default: /* most commands: signal drive ready, return to ready state */
@@ -1868,18 +1875,21 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
             count = 0x02;
             state = IDE_DEV_ATAPI_BUSY;
             status = IDE_STATUS_BUSY;
+            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
             PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             break;
         case 0x1E: /* PREVENT ALLOW MEDIUM REMOVAL */
             count = 0x02;
             state = IDE_DEV_ATAPI_BUSY;
             status = IDE_STATUS_BUSY;
+            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
             PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             break;
         case 0x25: /* READ CAPACITY */
             count = 0x02;
             state = IDE_DEV_ATAPI_BUSY;
             status = IDE_STATUS_BUSY;
+            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
             PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             break;
         case 0x2B: /* SEEK */
@@ -1888,6 +1898,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                 count = 0x02;
                 state = IDE_DEV_ATAPI_BUSY;
                 status = IDE_STATUS_BUSY;
+                PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
                 PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             }
             else {
@@ -1903,6 +1914,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
             count = 0x02;
             state = IDE_DEV_ATAPI_BUSY;
             status = IDE_STATUS_BUSY;
+            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
             PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             break;
         case 0xBE: /* READ CD */
@@ -1958,6 +1970,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                 state = IDE_DEV_ATAPI_BUSY;
                 status = IDE_STATUS_BUSY;
                 /* TODO: Emulate CD-ROM spin-up delay, and seek delay */
+                PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
                 PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,pk);
             }
             else {
@@ -2016,6 +2029,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                 state = IDE_DEV_ATAPI_BUSY;
                 status = IDE_STATUS_BUSY;
                 /* TODO: Emulate CD-ROM spin-up delay, and seek delay */
+                PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
                 PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,pk);
             }
             else {
@@ -2073,6 +2087,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                 state = IDE_DEV_ATAPI_BUSY;
                 status = IDE_STATUS_BUSY;
                 /* TODO: Emulate CD-ROM spin-up delay, and seek delay */
+                PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
                 PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 3)/*ms*/,pk);
             }
             else {
@@ -2091,6 +2106,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                 count = 0x02;
                 state = IDE_DEV_ATAPI_BUSY;
                 status = IDE_STATUS_BUSY;
+                PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
                 PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             }
             else {
@@ -2109,6 +2125,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                 count = 0x02;
                 state = IDE_DEV_ATAPI_BUSY;
                 status = IDE_STATUS_BUSY;
+                PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
                 PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             }
             else {
@@ -2129,6 +2146,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                 count = 0x02;
                 state = IDE_DEV_ATAPI_BUSY;
                 status = IDE_STATUS_BUSY;
+                PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
                 PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             }
             else {
@@ -2144,18 +2162,21 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
             count = 0x00;   /* we will be accepting data */
             state = IDE_DEV_ATAPI_BUSY;
             status = IDE_STATUS_BUSY;
+            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
             PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             break;
         case 0x5A: /* MODE SENSE(10) */
             count = 0x02;
             state = IDE_DEV_ATAPI_BUSY;
             status = IDE_STATUS_BUSY;
+            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
             PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
             break;
         case 0xBD: /* MECHANISM STATUS */
             count = 0x02;
             state = IDE_DEV_ATAPI_BUSY;
             status = IDE_STATUS_BUSY;
+            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
             PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 1)/*ms*/,pk);
 	    break;
         default:
@@ -3488,6 +3509,7 @@ static void IDE_DelayedCommand(Bitu pk/*which IDE device*/) {
 
                 ata->state = IDE_DEV_BUSY;
                 ata->status = IDE_STATUS_BUSY;
+                PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
                 PIC_AddEvent(IDE_DelayedCommand,0.00001/*ms*/,pk);
                 break;
 
@@ -3945,12 +3967,14 @@ void IDEATAPICDROMDevice::writecommand(uint8_t cmd) {
                 atapi_to_host = (feature >> 2) & 1; /* 0=to device 1=to host */
                 host_maximum_byte_count = ((unsigned int)lba[2] << 8) + (unsigned int)lba[1]; /* LBA field bits 23:8 are byte count */
                 if (host_maximum_byte_count == 0) host_maximum_byte_count = 0x10000UL;
+                PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
                 PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 0.25)/*ms*/,pk);
             }
             break;
         case 0xA1: /* IDENTIFY PACKET DEVICE */
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
+            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
             PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : ide_identify_command_delay),pk);
             break;
         case 0xEC: /* IDENTIFY DEVICE */
@@ -4061,6 +4085,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
             progress_count = 0;
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
+            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
             PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 0.1)/*ms*/,pk);
             break;
         case 0x30: /* WRITE SECTOR */
@@ -4076,6 +4101,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
             progress_count = 0;
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
+            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
             PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 0.1)/*ms*/,pk);
             break;
         case 0x91: /* INITIALIZE DEVICE PARAMETERS */
@@ -4114,6 +4140,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
             progress_count = 0;
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
+            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
             PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : 0.1)/*ms*/,pk);
             break;
         case 0xC5: /* WRITE MULTIPLE */
@@ -4172,6 +4199,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
         case 0xEC: /* IDENTIFY DEVICE */
             state = IDE_DEV_BUSY;
             status = IDE_STATUS_BUSY;
+            PIC_RemoveSpecificEvents(IDE_DelayedCommand,pk);
             PIC_AddEvent(IDE_DelayedCommand,(faked_command ? 0.000001 : ide_identify_command_delay),pk);
             break;
         case 0xEF: /* SET FEATURES */
@@ -4555,6 +4583,11 @@ static Bitu ide_baseio_r(Bitu port,Bitu iolen) {
             ide->check_device_irq();
             break;
     }
+
+#if 0
+    if (ide == idecontroller[1])
+        LOG_MSG("IDE: baseio read port %u ret %02x\n",(unsigned int)port,(unsigned int)ret);
+#endif
 
     return ret;
 }
