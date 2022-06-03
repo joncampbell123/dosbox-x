@@ -1,4 +1,7 @@
 0.84.1
+  - Fixed INT 10h failing to fully clear Tandy video
+    memory when entering 16-color graphics modes.
+    (joncampbell123).
   - Fixed missing/NULL INT 1Fh interrupt vector with
     CGA/PCjr/Tandy machine types. DOS games that print
     to screen using INT 10h in graphics modes can now
