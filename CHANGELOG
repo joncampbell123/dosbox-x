@@ -6,7 +6,9 @@
     CGA/PCjr/Tandy machine types. DOS games that print
     to screen using INT 10h in graphics modes can now
     print extended (>=128) character codes correctly.
-    (joncampbell123).
+    This fixes "BushBuck: A Treasure Hunt" and enables
+    it's rather odd Tandy detection routine to work
+    with machine=tandy. (joncampbell123).
   - Disney Sound Source: Fix problems between Disney
     sound source and parallel port emulation. Fix the
     code to enable Disney Sound System emulation either
