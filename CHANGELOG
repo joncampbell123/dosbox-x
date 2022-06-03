@@ -1,4 +1,9 @@
 0.84.1
+  - Fixed missing/NULL INT 1Fh interrupt vector with
+    CGA/PCjr/Tandy machine types. DOS games that print
+    to screen using INT 10h in graphics modes can now
+    print extended (>=128) character codes correctly.
+    (joncampbell123).
   - Disney Sound Source: Fix problems between Disney
     sound source and parallel port emulation. Fix the
     code to enable Disney Sound System emulation either
