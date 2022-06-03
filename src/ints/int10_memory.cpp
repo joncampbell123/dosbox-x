@@ -189,6 +189,7 @@ void INT10_RemoveVGABIOS(void) { /* PC-98 does not have VGA BIOS */
 }
 
 RealPt GetSystemBiosINT10Vector(void);
+Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at);
 
 extern bool VGA_BIOS_use_rom;
 
@@ -201,17 +202,24 @@ void INT10_SetupRomMemory(void) {
 		int10.rom.font_14=0;
 		int10.rom.font_16=0;
 
-        /* ref: [http://www.ctyme.com/intr/rb-6173.htm] */
-        if (IS_TANDY_ARCH)
-            RealSetVec(0x44,int10.rom.font_8_first);
-        else
-            RealSetVec(0x43,int10.rom.font_8_first);
+		/* ref: [http://www.ctyme.com/intr/rb-6173.htm] */
+		if (IS_TANDY_ARCH)
+			RealSetVec(0x44,int10.rom.font_8_first);
+		else
+			RealSetVec(0x43,int10.rom.font_8_first);
+
+		if (IS_EGAVGA_ARCH || VIDEO_BIOS_enable_CGA_8x8_second_half) {
+			Bitu rom = ROMBIOS_GetMemory((8*128),"CGA 8x8 second half",1,0u);
+			if (rom == 0) E_Exit("Unable to alloc CGA 8x8 second half");
+			int10.rom.font_8_second = RealMake((unsigned int)rom >> 4u,(unsigned int)rom & 0xFu);
+			for (unsigned i=0;i<128*8;i++) {
+				phys_writeb(rom+i,int10_font_08[i+128*8]);
+			}
+		}
 
 		RealSetVec(0x1F,int10.rom.font_8_second);
 
         if (machine == MCH_MCGA) {
-            Bitu ROMBIOS_GetMemory(Bitu bytes,const char *who,Bitu alignment,Bitu must_be_at);
-
             Bitu base = ROMBIOS_GetMemory((Bitu)(256*16),"MCGA 16-line font",1,0u);
             if (base == 0) E_Exit("Unable to alloc MCGA 16x font");
 
