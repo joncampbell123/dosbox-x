@@ -791,7 +791,7 @@ void CALLBACK_RemoveSetup(Bitu callback) {
 void CALLBACK_HandlerObject::Uninstall(){
 	if(!installed) return;
 	if(m_type == CALLBACK_HandlerObject::SETUP) {
-		if(vectorhandler.installed && MemBase != NULL){
+		if(vectorhandler.installed && MemBase != NULL && !cpu.pmode){
 			//See if we are the current handler. if so restore the old one
 			if(RealGetVec(vectorhandler.interrupt) == Get_RealPointer()) {
 				RealSetVec(vectorhandler.interrupt,vectorhandler.old_vector);
