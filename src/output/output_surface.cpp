@@ -200,9 +200,13 @@ Bitu OUTPUT_SURFACE_SetSize()
 #endif
 
     /* WARNING: If the user is resizing our window to smaller than what we want, SDL2 will give us a
-     *          window surface according to the smaller size, and then we crash! */
-    assert(sdl.surface->w >= (sdl.clip.x+sdl.clip.w));
-    assert(sdl.surface->h >= (sdl.clip.y+sdl.clip.h));
+     *          window surface according to the smaller size, and then we crash!
+     *
+     *          To avoid this crash, disable rendering until the window is big enough again. */
+    if (sdl.surface->w < (sdl.clip.x+sdl.clip.w) || sdl.surface->h < (sdl.clip.y+sdl.clip.h))
+        sdl.window_too_small = true;
+    else
+        sdl.window_too_small = false;
 
     sdl.deferred_resize = false;
     sdl.must_redraw_all = true;

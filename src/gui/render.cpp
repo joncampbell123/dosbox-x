@@ -820,7 +820,9 @@ forcenormal:
     render.scale.outWrite = 0;
     /* Signal the next frame to first reinit the cache */
     render.scale.clearCache = true;
-    render.active=true;
+
+    if (!sdl.window_too_small)
+        render.active=true;
 
     last_gfx_flags = gfx_flags;
 #if defined(USE_TTF)

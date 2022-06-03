@@ -172,6 +172,7 @@ struct SDL_Block {
     uint16_t lshiftstate = 0, rshiftstate = 0;
     bool must_redraw_all = false;
     bool deferred_resize = false;
+    bool window_too_small = false;
     bool init_ignore = false;
     unsigned int gfx_force_redraw_count = 0;
     struct {
