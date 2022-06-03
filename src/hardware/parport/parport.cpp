@@ -371,6 +371,11 @@ class PARPORTS:public Module_base {
 				if(cmd.FindStringBegin("irq:",str,true))
 					defaultirq[i] = (uint8_t)strtol(str.c_str(), NULL, 10);
 				cmd.FindCommand(1,str);
+
+				/* DOSBox SVN disney=true compatability: Reserve LPT1 for Disney Sound Source */
+				if (i == 0 && DISNEY_ShouldInit())
+					continue;
+
 #if C_DIRECTLPT
 				if(str=="reallpt") {
 					CDirectLPT* cdlpt= new CDirectLPT(i, defaultirq[i],&cmd);
@@ -421,6 +426,7 @@ class PARPORTS:public Module_base {
 							if(str=="disabled") {
 								parallelPortObjects[i] = 0;
 							} else if (str == "disney") {
+								parallelPortObjects[i] = 0;
 								if (!DISNEY_HasInit()) {
 									LOG_MSG("LPT%d: User explicitly assigned Disney Sound Source to this port",(int)i+1);
 									DISNEY_Init(parallel_baseaddr[i]);
@@ -675,10 +681,10 @@ void PARALLEL_OnPowerOn (Section * sec) {
 	if (testParallelPortsBaseclass) delete testParallelPortsBaseclass;
 	testParallelPortsBaseclass = new PARPORTS (control->GetSection("parallel"));
 
-	/* Mainline DOSBox 0.74 compatible support for "disney=true" setting.
-	 * But, don't allocate the Disney Sound Source if LPT1 is already taken. */
+	/* DOSBox SVN compatability: LPT1 should be reserved for Disney Sound Source if disney=true, now init it */
 	if (!DISNEY_HasInit() && DISNEY_ShouldInit() && parallelPortObjects[0] == NULL) {
-		LOG_MSG("LPT: LPT1 not taken, and dosbox-x.conf says to emulate Disney Sound Source");
+		LOG_MSG("disney=true. For compatability with other DOSBox forks and SVN, LPT1 has been reserved for Disney Sound Source. Initializing it now.");
+		LOG_MSG("DOSBox-X also supports disney=false and parallel1=disney");
 		DISNEY_Init(parallel_baseaddr[0]);
 	}
 }

@@ -386,7 +386,10 @@ private:
 public:
 	DISNEY(Section* configuration):Module_base(configuration) {
 		Section_prop * section=static_cast<Section_prop *>(configuration);
-		if(!section->Get_bool("disney")) return;
+
+// This is determined by DISNEY_Init() and DISNEY_ShoudldInit() now.
+// We may be initialized by the parallel port emulation if the user has "parallel1=disney" in their dosbox.conf
+//		if(!section->Get_bool("disney")) return;
 
 		for(int i = 0; i < 2; i++) {
 			disney.da[i].used = 0;

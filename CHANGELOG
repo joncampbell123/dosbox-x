@@ -1,4 +1,9 @@
 0.84.1
+  - Disney Sound Source: Fix problems between Disney
+    sound source and parallel port emulation. Fix the
+    code to enable Disney Sound System emulation either
+    by disney=true (DOSBox SVN compatible) or
+    parallel1=disney (The DOSBox-X way). (joncampbell123).
   - DOS SHELL: Change shell command parsing to make
     unusual combinations of command plus trailing
     command possible such as ECHO. ECHO; ECHO: ECHO[
