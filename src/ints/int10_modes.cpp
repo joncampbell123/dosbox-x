@@ -805,7 +805,7 @@ static void FinishSetMode(bool clearmem) {
                 }
             }
             else {
-                for (uint16_t ct=0;ct<((CurMode->type == M_DCGA)?32:16)*1024;ct+=2) {
+                for (uint16_t ct=0;ct<((CurMode->type == M_DCGA || CurMode->type == M_TANDY16)?32:16)*1024;ct+=2) {
                     real_writew( 0xb800,ct,0x0000);
                 }
             }
