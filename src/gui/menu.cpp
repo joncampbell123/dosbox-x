@@ -1839,8 +1839,12 @@ void DOSBox_SetMenu(DOSBoxMenu &altMenu) {
 
     LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching custom menu resource to DOSBox-X's window");
 
-    NonUserResizeCounter=1;
+    HMENU pMenu = GetMenu(GetHWND());
+
     SDL1_hax_SetMenu(altMenu.getWinMenu());
+
+    if((GetMenu(GetHWND()) != NULL) != (pMenu != NULL))
+        NonUserResizeCounter = 1;
 #endif
 }
 
@@ -1862,8 +1866,9 @@ void DOSBox_SetMenu(void) {
 
     LOG(LOG_MISC,LOG_DEBUG)("Win32: loading and attaching menu resource to DOSBox-X's window");
 
+    HMENU pMenu = GetMenu(GetHWND());
+
     menu.toggle=true;
-    NonUserResizeCounter=1;
     SDL1_hax_SetMenu(mainMenu.getWinMenu());
     mainMenu.get_item("mapper_togmenu").check(!menu.toggle).refresh_item(mainMenu);
 
@@ -1872,6 +1877,9 @@ void DOSBox_SetMenu(void) {
     if(menu.startup) {
         RENDER_CallBack( GFX_CallBackReset );
     }
+
+    if((GetMenu(GetHWND()) != NULL) != (pMenu != NULL))
+        NonUserResizeCounter = 1;
 #endif
 #if defined(USE_TTF)
     if (ttf.inUse) resetFontSize();
