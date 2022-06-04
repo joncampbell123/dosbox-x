@@ -93,7 +93,7 @@ new_fluid_cond (void)
 {
   fluid_cond_t* cond = FLUID_NEW(fluid_cond_t);
   fluid_mwinapi_call(CreateSemaphore, NULL,
-                     CreateSemaphore(NULL, 0, LONG_MAX, NULL));
+    (*cond = CreateSemaphore(NULL, 0, LONG_MAX, NULL)));
   return (cond);
 }
 
