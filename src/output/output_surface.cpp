@@ -15,9 +15,15 @@ bool setSizeButNotResize();
 
 // output API below
 
+void X11_ErrorHandlerInstall(void);
+
 void OUTPUT_SURFACE_Initialize()
 {
-    // nothing to initialize (yet?)
+    // Apparently if the window size changes rapidly enough, SDL2 can be tricked into
+    // blitting the wrong dimensions to the window and trigger an X11 BadValue error.
+    // Set up an error handler that prints the error to STDERR and then returns,
+    // instead of the default handler which prints an error and exit()s this program.
+    X11_ErrorHandlerInstall();
 }
 
 void OUTPUT_SURFACE_Select()
@@ -165,6 +171,8 @@ Bitu OUTPUT_SURFACE_SetSize()
              * This is a way to prevent that! */
             SDL_SetWindowMinimumSize(sdl.window, sdl.clip.x+sdl.clip.w, sdl.clip.y+sdl.clip.h);
             sdl.window = GFX_SetSDLWindowMode(sdl.clip.x+sdl.clip.w, sdl.clip.y+sdl.clip.h, SCREEN_SURFACE);
+            if (sdl.window == NULL)
+                E_Exit("Could not set windowed video mode %ix%i: %s", (int)sdl.draw.width, (int)sdl.draw.height, SDL_GetError());
         }
     }
     sdl.surface = SDL_GetWindowSurface(sdl.window);

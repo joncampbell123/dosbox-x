@@ -21,6 +21,35 @@
 void UpdateWindowDimensions(Bitu width, Bitu height);
 void UpdateWindowMaximized(bool flag);
 
+/* X11 Error handler.
+ * Apparently it is possible with SDL2 to resize the window in such a way that
+ * SDL2 doesn't yet pick up on it, and then SDL2 blits too much to the window
+ * and causes an X11 BadValue error. This is very unlikely but the more the
+ * window resizes, or is resized by the user, the more likely it can occur.
+ *
+ * This can happen at any time. */
+int X11_ErrorHandler(Display *disp,XErrorEvent *xev) {
+	char errmsg[512];
+
+	errmsg[0] = 0;
+	XGetErrorText(disp,xev->error_code,errmsg,sizeof(errmsg));
+
+	fprintf(stderr,"WARNING: X11 error event: '%s'\n",errmsg);
+	fprintf(stderr,"type=%u resid=%lxh serial=%lxh error_code=%lu request_code=%lu minor_code=%lu\n",
+		(unsigned int)xev->type,
+		(unsigned long)xev->resourceid,
+		(unsigned long)xev->serial,
+		(unsigned long)xev->error_code,
+		(unsigned long)xev->request_code,
+		(unsigned long)xev->minor_code);
+
+	return 0; // ignored anyway
+}
+
+void X11_ErrorHandlerInstall(void) {
+	XSetErrorHandler(X11_ErrorHandler);
+}
+
 #if C_X11_XRANDR
 #include <X11/extensions/Xrandr.h>
 #endif

@@ -1,4 +1,11 @@
 0.84.1
+  - Linux/X11: Add an X11 error handler function to
+    handle the occasional X11 error that can happen
+    within the SDL2 library if certain events, like
+    window resize, occur too frequently. The custom
+    error handler logs the error but does not abort
+    the emulator like the default one would.
+    (joncampbell123).
   - Fix SDL2 builds with output=surface not to render
     if the window at any point is too small. Resizing
     the window below the minimum supported by the
