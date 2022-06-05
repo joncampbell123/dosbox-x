@@ -3737,9 +3737,17 @@ restart_int:
             // boot sector signature
             host_writew(&sbuf[0x1fe],0xAA55);
 
-	    // if anything should try to boot this partition, add code to print an error message instead of
-	    // letting the CPU run wild through not executable code.
-	    if (sbuf[0x3E] == 0) memcpy(sbuf+0x3E,this_is_not_a_bootable_partition+0x3E,0x1FE - 0x3E); // 0x1FE-0x3E triggers C++ error about operator"" WTF GCC 9.3?
+            // if anything should try to boot this partition, add code to print an error message instead of
+            // letting the CPU run wild through not executable code.
+            if (FAT >= 32) {
+                // the code expects to load a string from a fixed address.
+                // we're relocating it to make room for FAT32 structures so some patching is required.
+                memcpy(sbuf+0x5A,this_is_not_a_bootable_partition+0x3E,0x1FE - 0x5A);
+                host_writew(sbuf+0x5D,0x7C77); // 0x7C5D: MOV SI,<stringaddr> we are patching the <stringaddr>
+            }
+            else {
+                memcpy(sbuf+0x3E,this_is_not_a_bootable_partition+0x3E,0x1FE - 0x3E);
+            }
 
             // write the boot sector
             fseeko64(f,bootsect_pos*512,SEEK_SET);
