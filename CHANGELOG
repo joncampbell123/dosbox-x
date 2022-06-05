@@ -1,4 +1,10 @@
 0.84.1
+  - Fix IMGMAKE to provide executable code in MS-DOS
+    partition or floppy disk boot sector following
+    the BPB, that prints "This is not a bootable disk"
+    instead of leaving zeros that lead the CPU astray
+    and possibly hang the system in the event anything
+    tries to boot the partition (joncampbell123).
   - Fix emulator segfault on invalid encoding of
     BOUND instruction (joncampbell123).
   - Address auto-centering on mode change complaints
