@@ -1,4 +1,8 @@
 0.84.1
+  - Add workarounds for SDL2 builds to avoid problems
+    with window resize, menu update, and restore
+    events that sometimes caused the emulator to hang
+    on startup in Windows. (joncampbell123).
   - Fix IMGMAKE to provide executable code in MS-DOS
     partition or floppy disk boot sector following
     the BPB, that prints "This is not a bootable disk"
