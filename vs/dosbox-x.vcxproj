@@ -1003,7 +1003,7 @@ copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*
 if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
 copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
 if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
-for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath)\languages\"</Command>
+for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(OutputPath)\languages\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
@@ -1045,7 +1045,7 @@ copy "$(SolutionDir)\..\contrib\windows\installer\windows_explorer_context_menu*
 if not exist "$(OutputPath)\shaders\" mkdir "$(OutputPath)\shaders"
 copy "$(SolutionDir)\..\contrib\windows\shaders\*.*" "$(OutputPath)\shaders\"
 if not exist "$(OutputPath)\languages\" mkdir "$(OutputPath)\languages"
-for /d %i in ($(SolutionDir)\..\contrib\translations\*) do copy %i "$(OutputPath)\languages\"</Command>
+for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(OutputPath)\languages\"</Command>
       <Message>
       </Message>
     </PostBuildEvent>
