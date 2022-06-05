@@ -1809,13 +1809,15 @@ void SDL1_hax_SetMenu(HMENU menu) {
         SetMenu(GetHWND(), NULL);
         return;
     }
-    bool res = SetMenu(GetHWND(), menu);
-    if (!res) {
-        mainMenu.unbuild();
-        mainMenu.rebuild();
-        res = SetMenu(GetHWND(), mainMenu.getWinMenu());
+    if(GetMenu(GetHWND()) != menu) {
+        bool res = SetMenu(GetHWND(), menu);
+        if(!res) {
+            mainMenu.unbuild();
+            mainMenu.rebuild();
+            res = SetMenu(GetHWND(), mainMenu.getWinMenu());
+        }
+        DrawMenuBar(GetHWND());
     }
-    DrawMenuBar(GetHWND());
 #endif
 }
 #elif DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
