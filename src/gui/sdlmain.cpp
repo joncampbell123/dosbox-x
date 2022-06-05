@@ -6103,7 +6103,7 @@ void SDL_SetupConfigSection() {
                       "  (output=surface does not!)");
     Pstring->SetBasic(true);
 
-    Pstring = sdl_sec->Add_string("windowposition", Property::Changeable::Always, "");
+    Pstring = sdl_sec->Add_string("windowposition", Property::Changeable::Always, "-");
     Pstring->Set_help("Set the window position at startup in the positionX,positionY format (e.g.: 1300,200).\n"
                       "The window will be centered if empty, and will be in the original position with \"-\".");
     Pstring->SetBasic(true);

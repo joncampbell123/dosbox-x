@@ -1,4 +1,7 @@
 0.84.1
+  - Address auto-centering on mode change complaints
+    by making the "-" setting of windowposition the
+    default. (joncampbell123).
   - Fix SDL2 Windows builds to flag a resize as not
     user initiated only if the presence of the menu
     bar changes. This fixes a problem where SDL2
