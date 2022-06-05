@@ -275,11 +275,17 @@
 #else
 		{
 			int16_t bound_min, bound_max;
-			GetRMrw;GetEAa;
-			bound_min=(int16_t)LoadMw(eaa);
-			bound_max=(int16_t)LoadMw(eaa+2u);
-			if ( (((int16_t)*rmrw) < bound_min) || (((int16_t)*rmrw) > bound_max) ) {
-				EXCEPTION(5);
+			GetRMrw;
+			if (rm < 0xc0) { // r/m = memory
+				GetEAa;
+				bound_min=(int16_t)LoadMw(eaa);
+				bound_max=(int16_t)LoadMw(eaa+2u);
+				if ( (((int16_t)*rmrw) < bound_min) || (((int16_t)*rmrw) > bound_max) ) {
+					EXCEPTION(5);
+				}
+			}
+			else { // r/m = register, which is an illegal encoding
+				goto illegal_opcode;
 			}
 		}
 		break;

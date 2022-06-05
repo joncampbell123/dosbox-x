@@ -1,4 +1,6 @@
 0.84.1
+  - Fix emulator segfault on invalid encoding of
+    BOUND instruction (joncampbell123).
   - Address auto-centering on mode change complaints
     by making the "-" setting of windowposition the
     default. (joncampbell123).
