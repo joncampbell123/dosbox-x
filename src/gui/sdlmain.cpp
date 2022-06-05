@@ -5259,6 +5259,8 @@ void GFX_EventsMouse()
 #endif
 }
 
+bool eatRestoredWindow = false;
+
 /* DOSBox SVN revision 4176:4177: For Linux/X11, Xorg 1.20.1
  * will make spurious focus gain and loss events when locking the mouse in windowed mode.
  *
@@ -5324,6 +5326,18 @@ void GFX_Events() {
 #endif
 
     while (SDL_PollEvent(&event)) {
+#if defined(C_SDL2)
+        /* SDL2 hack: There seems to be a problem where calling the SetWindowSize function,
+           even for the same size, still causes a resize event, and sometimes for no apparent
+           reason, will cause an endless feed of Windows Restored events. */
+        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESTORED) {
+            if (eatRestoredWindow) continue;
+        }
+        else {
+            eatRestoredWindow = false;
+        }
+#endif
+
         switch (event.type) {
 #if defined(WIN32) && !defined(HX_DOS)
         case SDL_SYSWMEVENT:
@@ -5396,6 +5410,7 @@ void GFX_Events() {
                 continue;
             case SDL_WINDOWEVENT_RESTORED:
                 GFX_ResetScreen();
+                eatRestoredWindow = true;
                 continue;
             case SDL_WINDOWEVENT_RESIZED:
                 GFX_HandleVideoResize(event.window.data1, event.window.data2);
