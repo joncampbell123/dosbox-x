@@ -1,4 +1,7 @@
 0.84.1
+  - Fix remaining SDL2 Windows problems by adding
+    missing break statement above window event
+    handler. (joncampbell123).
   - Add workarounds for SDL2 builds to avoid problems
     with window resize, menu update, and restore
     events that sometimes caused the emulator to hang
