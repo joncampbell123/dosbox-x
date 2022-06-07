@@ -5399,6 +5399,7 @@ void GFX_Events() {
                 default:
                     break;
             }
+            break;
 #endif
         case SDL_WINDOWEVENT:
             switch (event.window.event) {
