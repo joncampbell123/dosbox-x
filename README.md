@@ -30,7 +30,7 @@ Compared with DOSBox, DOSBox-X focuses more on general emulation and accuracy. I
 
 Please check out the [DOSBox-X homepage](https://dosbox-x.com) for common packages of the latest release for the supported platforms, as well as screenshots of some DOS programs and games running in DOSBox-X. Also see the [INSTALL](INSTALL.md) page for DOSBox-X installation instructions and other packages, and the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page for archives of all released DOSBox-X versions. For more information about DOSBox-X, such as setting up and running DOSBox-X including its usage tips, please read the user guide in the [DOSBox-X Wiki](https://dosbox-x.com/wiki). Steps for building the source code can be found in the [BUILD](BUILD.md) page.
 
-DOSBox-X is completely open-source and free of charge to use and distribute. It is released under the [GNU General Public License, version 2](COPYING).
+DOSBox-X is completely open-source and free of charge to use and distribute. It is released under the [GNU General Public License, version 2](COPYING). See also the [About DOSBox-X](https://dosbox-x.com/about.html) page for more information about DOSBox-X's goals and non-goals, along with some links to other projects.
 
 This project has a [Code of Conduct](CODE_OF_CONDUCT.md), please read it for general information on contributing to or getting support from the project.
 
@@ -102,7 +102,7 @@ Windows binaries (both 32-bit and 64-bit), Linux Flatpak or RPM packages (64-bit
 
 For running DOSBox-X in a real DOS system (MS-DOS or compatible), you can find the HX-DOS package that makes use of the freely-available [HX DOS Extender](https://github.com/Baron-von-Riedesel/HX). Type DOSBOX-X to run it from a DOS system. There is also the DOS LOADLIN package which can run from within DOSBox-X itself in addition to a DOS system. Note, however, that not all features of DOSBox-X that are supported in other platforms can be supported in the real DOS environment.
 
-Development (preview) builds intended for testing purposes are also available from the [DOSBox-X Development Builds](https://dosbox-x.com/devel-build.html) page.
+Development (preview) builds intended for testing purposes for various platforms are also available from the [DOSBox-X Development Builds](https://dosbox-x.com/devel-build.html) page.
 
 The full source code is officially provided with each DOSBox-X release, which may be compiled to run on the above and possbily other operating systems too. You can also get the latest development source code from the repository directly. See also the [BUILD](BUILD.md) page for information on building/compiling the DOSBox-X source code.
 
@@ -139,7 +139,7 @@ greatly appreciated:
   - Bug fixes, patches, improvements, refinements
   - Suggestions, ideas, assistance of other users, and/or general conversation
   - Platform support (Windows, Linux, macOS, DOS, but others are welcome)
-  - Documentation, language file translation, and software promotion
+  - Documentation, language file translation, and software packaging
   - Notes regarding DOS and Win3.x/9x games, applications, hacks or weird tricks, etc.
 
 See the [CONTRIBUTING](CONTRIBUTING.md) page for more contribution guidelines.
