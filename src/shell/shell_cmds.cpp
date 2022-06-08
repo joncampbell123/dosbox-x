@@ -231,20 +231,19 @@ __do_command_begin:
 	line=trim(line);
 	char cmd_buffer[CMD_MAXLINE];
 	char * cmd_write=cmd_buffer;
-	int q=0;
+	int c=0,q=0;
 	while (*line) {
 		if (*line == '/' || *line == '\t') break;
 
 		if ((q & 1) == 0) {
 			if (*line == ' ' || *line == '=') break;
 
-			if (*line == '.' || *line == ';' || *line == ':' || *line == '[' || *line == ']' ||
-					*line == '\\' || *line == '/' || *line == '\"' || *line == '+') {  //allow stuff like cd.. and dir.exe cd\kees
+			if (*line == '.' || *line == ';' || (*line == ':' && !(c == 1 && tolower(*(line-1)) >= 'a' && tolower(*(line-1)) <= 'z')) || *line == '[' || *line == ']' ||	*line == '\\' || *line == '/' || *line == '\"' || *line == '+') {  //allow stuff like cd.. and dir.exe cd\kees
 				*cmd_write=0;
 				if (execute_shell_cmd(cmd_buffer,line)) return;
 			}
 		}
-
+		c++;
 		if (*line == '"') q++;
 		*cmd_write++=*line++;
 	}
