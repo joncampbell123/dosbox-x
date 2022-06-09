@@ -1,4 +1,6 @@
 0.84.1
+  - Use long double for internal event scheduling
+    if available, to improve accuracy (joncampbell123).
   - Fix remaining SDL2 Windows problems by adding
     missing break statement above window event
     handler. (joncampbell123).
