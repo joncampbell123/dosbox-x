@@ -31,7 +31,7 @@ jobs:
         shell: bash
         run: |
           top=`pwd`
-          $top/bin/x64/Release/dosbox-x.exe -tests -set waitonerror=false -set logfile=tests.log
+          $top/bin/x64/Release/dosbox-x.exe -tests -set waitonerror=false -set logfile=tests.log || (echo Unit test completed: failure && exit 1)
           cat tests.log
           mkdir -p $top/package/bin/x64/Release/drivez
           mkdir -p $top/package/bin/x64/Release/scripts
@@ -61,7 +61,7 @@ jobs:
         shell: bash
         run: |
           top=`pwd`
-          $top/bin/x64/"Release SDL2"/dosbox-x.exe -tests -set waitonerror=false -set logfile=tests.log
+          $top/bin/x64/"Release SDL2"/dosbox-x.exe -tests -set waitonerror=false -set logfile=tests.log || (echo Unit test completed: failure && exit 1)
           cat tests.log
           mkdir -p $top/package/bin/x64/"Release SDL2"/drivez
           mkdir -p $top/package/bin/x64/"Release SDL2"/scripts
