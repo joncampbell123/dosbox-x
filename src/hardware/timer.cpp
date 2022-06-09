@@ -54,9 +54,9 @@ struct PIT_Block {
 
     Bitu cntr = 0;          /* counter value written to 40h-42h as the interval. may take effect immediately (after port 43h) or after count expires */
     Bitu cntr_cur = 0;      /* current counter value in effect */
-    double delay = 0;       /* interval (in ms) between one full count cycle */
-    double start = 0;       /* time base (in ms) that cycle started at */
-    double now = 0;         /* current time (in ms) */
+    pic_tickindex_t delay = 0;       /* interval (in ms) between one full count cycle */
+    pic_tickindex_t start = 0;       /* time base (in ms) that cycle started at */
+    pic_tickindex_t now = 0;         /* current time (in ms) */
 
     uint16_t read_latch = 0;  /* counter value, latched for read back */
     uint16_t write_latch = 0; /* counter value, written by host */
@@ -91,7 +91,7 @@ struct PIT_Block {
         assert(new_cntr != 0);
 
         cntr_cur = new_cntr;
-        delay = ((double)(1000ul * cntr_cur)) / PIT_TICK_RATE;
+        delay = ((pic_tickindex_t)(1000ul * cntr_cur)) / PIT_TICK_RATE;
     }
     void latch_next_counter(void) {
         set_active_counter(cntr);
@@ -101,12 +101,12 @@ struct PIT_Block {
         cycle_base = 0;
     }
     void restart_counter_at(pic_tickindex_t t,uint16_t counter) {
-        double c_delay;
+        pic_tickindex_t c_delay;
 
         if (counter == 0)
-            c_delay = ((double)(1000ull * 0x10000)) / PIT_TICK_RATE;
+            c_delay = ((pic_tickindex_t)(1000ull * 0x10000)) / PIT_TICK_RATE;
         else
-            c_delay = ((double)(1000ull * counter)) / PIT_TICK_RATE;
+            c_delay = ((pic_tickindex_t)(1000ull * counter)) / PIT_TICK_RATE;
 
         start = (t - c_delay);
     }
@@ -117,7 +117,7 @@ struct PIT_Block {
          * Mode 1 will count down and stop. TODO: Writing a new counter without "new mode" starts another countdown? */
         /* if any periodic mode (Mode 2, 3, 4, 5), then process fully. */
         if (mode == 3) {
-            const double half = delay / 2;
+            const pic_tickindex_t half = delay / 2;
 
             if (now >= (start+half)) {
                 cycle_base = (cycle_base + 1u) & 1u;
@@ -152,7 +152,7 @@ struct PIT_Block {
         if (now < start)
             now = start;
     }
-    double reltime(void) const {
+    pic_tickindex_t reltime(void) const {
         return now - start;
     }
 
@@ -239,21 +239,21 @@ struct PIT_Block {
         if (!gate)
             return last_counter;
 
-        const double index = reltime();
+        const pic_tickindex_t index = reltime();
         read_counter_result ret;
 
         switch (mode) {
             case 4:		/* Software Triggered Strobe */
             case 0:		/* Interrupt on Terminal Count */
                 {
-                    double tmp;
+                    pic_tickindex_t tmp;
 
                     /* Counter keeps on counting after passing terminal count */
                     if (bcd) {
-                        tmp = fmod(index,((double)(1000ul *   10000ul)) / PIT_TICK_RATE);
+                        tmp = pic_tickfmod(index,((pic_tickindex_t)(1000ul *   10000ul)) / PIT_TICK_RATE);
                         ret.counter = (uint16_t)(((unsigned long)(cntr_cur - ((tmp * PIT_TICK_RATE) / 1000.0))) %   10000ul);
                     } else {
-                        tmp = fmod(index,((double)(1000ul * 0x10000ul)) / PIT_TICK_RATE);
+                        tmp = pic_tickfmod(index,((pic_tickindex_t)(1000ul * 0x10000ul)) / PIT_TICK_RATE);
                         ret.counter = (uint16_t)(((unsigned long)(cntr_cur - ((tmp * PIT_TICK_RATE) / 1000.0))) % 0x10000ul);
                     }
 
@@ -271,14 +271,14 @@ struct PIT_Block {
                     ret.counter = (uint16_t)(cntr_cur - (index * (PIT_TICK_RATE / 1000.0)));
                 break;
             case 2:		/* Rate Generator */
-                ret.counter = (uint16_t)(cntr_cur - ((fmod(index,delay) / delay) * cntr_cur));
+                ret.counter = (uint16_t)(cntr_cur - ((pic_tickfmod(index,delay) / delay) * cntr_cur));
                 break;
             case 3:		/* Square Wave Rate Generator */
                 {
-                    double tmp = fmod(index,delay) * 2;
+                    pic_tickindex_t tmp = pic_tickfmod(index,delay) * 2;
 
                     if (tmp < 0) {
-                        fprintf(stderr,"tmp %.9f index %.9f delay %.9f now %.3f start %.3f\n",tmp,index,delay,now,start);
+                        fprintf(stderr,"tmp %.9f index %.9f delay %.9f now %.3f start %.3f\n",(double)tmp,(double)index,(double)delay,(double)now,(double)start);
                         abort();
                     }
 
@@ -313,18 +313,18 @@ static void PIT0_Event(Bitu /*val*/) {
 	if (pit[0].mode != 0) {
 		pit[0].track_time(PIC_FullIndex());
 
-        /* event timing error checking */
-        double err = PIC_GetCurrentEventTime() - pit[0].start;
+		/* event timing error checking */
+		pic_tickindex_t err = PIC_GetCurrentEventTime() - pit[0].start;
 
-        if (err >= (pit[0].delay/2))
-            err -=  pit[0].delay;
+		if (err >= (pit[0].delay/2))
+			err -=  pit[0].delay;
 
 #if 0//change if debug information wanted
-        if (fabs(err) >= (0.5 / CPU_CycleMax))
-            LOG_MSG("PIT0_Event timing error %.6fms",err);
+		if (fabs(err) >= (0.5 / CPU_CycleMax))
+			LOG_MSG("PIT0_Event timing error %.6fms",err);
 #endif
 
-        PIC_AddEvent(PIT0_Event,pit[0].delay - (err * 0.05));
+		PIC_AddEvent(PIT0_Event,pit[0].delay - (err * 0.05));
 	}
 }
 
@@ -393,7 +393,7 @@ void TIMER_IRQ0Poll(void) {
 
 pic_tickindex_t speaker_pit_delta(void) {
     unsigned int speaker_pit = IS_PC98_ARCH ? 1 : 2;
-    return fmod(pit[speaker_pit].now - pit[speaker_pit].start, pit[speaker_pit].delay);
+    return pic_tickfmod(pit[speaker_pit].now - pit[speaker_pit].start, pit[speaker_pit].delay);
 }
 
 void speaker_pit_update(void) {
@@ -527,7 +527,7 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 				//please do not spam the log and console if a game is writing the SAME counter value constantly,
 				//and do not spam the console if Mode 0 is used because events are not consistent.
 				if (p->cntr != old_cntr && p->mode != 0)
-					LOG(LOG_PIT,LOG_NORMAL)("PIT 0 Timer at %.4f Hz mode %d",1000.0/p->delay,p->mode);
+					LOG(LOG_PIT,LOG_NORMAL)("PIT 0 Timer at %.4f Hz mode %d",(double)(1000.0/p->delay),p->mode);
 
 				break;
 			case 0x01:          /* Timer hooked to PC-Speaker (NEC-PC98) */
