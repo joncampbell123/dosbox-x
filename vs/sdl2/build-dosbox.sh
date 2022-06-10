@@ -46,6 +46,6 @@ cat >>include/SDL_config.h <<_EOF
 _EOF
 fi
 
-make -j || exit 1
+make -j3 || exit 1
 make install || exit 1  # will install into ./linux-host
 

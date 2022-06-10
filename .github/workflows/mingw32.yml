@@ -153,6 +153,7 @@ jobs:
           cp $top/contrib/glshaders/* $top/package/mingw-build/mingw-lowend/glshaders/
           for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/package/mingw-build/mingw-lowend/languages/; done
           cp $top/COPYING $top/package/COPYING
+          rm $top/src/dosbox-x.exe
       - name: Build MinGW32 lowend SDL2
         shell: pwsh
         run: |

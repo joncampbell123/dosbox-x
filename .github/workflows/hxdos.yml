@@ -1,4 +1,4 @@
-name: HX-DOS / MinGW lowend builds
+name: HX-DOS build
 on:
   push:
   pull_request:
