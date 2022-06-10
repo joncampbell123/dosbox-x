@@ -29,15 +29,15 @@ jobs:
           pwd>pwd.txt
           mkdir package
           mkdir mingw-get
+          vs/tool/unzip.exe build-scripts/mingw/bin/mingw-get-0.6.2-mingw32-beta-20131004-1-bin.zip -d mingw-get
+          mingw-get/bin/mingw-get.exe install msys-base gcc g++ autoconf automake libiconv libpdcurses libz
+          mv pwd.txt mingw-get/msys/1.0
+          cp build-scripts/mingw/bin/msys.bat mingw-get/msys/1.0
+          cp build-scripts/mingw/bin/runbuild.sh mingw-get/msys/1.0
+          cp build-scripts/mingw/bin/gawk.exe mingw-get/msys/1.0/bin
       - name: Build HX-DOS
         shell: pwsh
         run: |
-          vs\tool\unzip.exe build-scripts\mingw\bin\mingw-get-0.6.2-mingw32-beta-20131004-1-bin.zip -d mingw-get
-          mingw-get\bin\mingw-get.exe install msys-base gcc g++ autoconf automake libiconv libpdcurses libz
-          move pwd.txt mingw-get\msys\1.0
-          copy build-scripts\mingw\bin\msys.bat mingw-get\msys\1.0
-          copy build-scripts\mingw\bin\runbuild.sh mingw-get\msys\1.0
-          copy build-scripts\mingw\bin\gawk.exe mingw-get\msys\1.0\bin
           mingw-get\msys\1.0\msys.bat /mingw/msys/1.0/runbuild.sh build-mingw-hx-dos
           if (-not(Test-Path -Path src\dosbox-x.exe -PathType Leaf)) {exit 1}
       - name: Package HX-DOS

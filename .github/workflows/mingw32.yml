@@ -34,6 +34,9 @@ jobs:
           ln -s $top/build-scripts/mingw/bin/make.exe /usr/bin/make.exe
           ./build-mingw
           strip --strip-all $top/src/dosbox-x.exe
+      - name: Package MinGW32 SDL1
+        run: |
+          top=`pwd`
           mkdir -p $top/package/mingw-build/mingw/drivez
           mkdir -p $top/package/mingw-build/mingw/scripts
           mkdir -p $top/package/mingw-build/mingw/shaders
@@ -59,6 +62,9 @@ jobs:
           top=`pwd`
           ./build-mingw-sdl2
           strip --strip-all $top/src/dosbox-x.exe
+      - name: Package MinGW32 SDL2
+        run: |
+          top=`pwd`
           mkdir -p $top/package/mingw-build/mingw-sdl2/drivez
           mkdir -p $top/package/mingw-build/mingw-sdl2/scripts
           mkdir -p $top/package/mingw-build/mingw-sdl2/shaders
