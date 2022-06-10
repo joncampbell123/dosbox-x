@@ -58,6 +58,7 @@ set vwin32zip=
 set vwin64zip=
 set varm32zip=
 set varm64zip=
+set mlezip=
 set m32zip=
 set m64zip=
 
@@ -65,6 +66,7 @@ for %%i in (%binpath%\dosbox-x-vsbuild-win32-%datestr%*.zip) do set vwin32zip=%%
 for %%i in (%binpath%\dosbox-x-vsbuild-win64-%datestr%*.zip) do set vwin64zip=%%i
 for %%i in (%binpath%\dosbox-x-vsbuild-arm32-%datestr%*.zip) do set varm32zip=%%i
 for %%i in (%binpath%\dosbox-x-vsbuild-arm64-%datestr%*.zip) do set varm64zip=%%i
+for %%i in (%binpath%\dosbox-x-mingw-win32-lowend-%datestr%*.zip) do set mlezip=%%i
 for %%i in (%binpath%\dosbox-x-mingw-win32-%datestr%*.zip) do set m32zip=%%i
 for %%i in (%binpath%\dosbox-x-mingw-win64-%datestr%*.zip) do set m64zip=%%i
 
@@ -85,6 +87,11 @@ if not exist "%varm32zip%" (
 
 if not exist "%varm64zip%" (
 	echo Couldn't find dosbox-x-vsbuild-arm64-%datestr%*.zip at %binpath%
+	goto error
+)
+
+if not exist "%mlezip%" (
+	echo Couldn't find dosbox-x-mingw-win32-lowend-%datestr%*.zip at %binpath%
 	goto error
 )
 
@@ -112,9 +119,10 @@ if exist %isspath%\Win64_builds\nul rd %isspath%\Win64_builds /s /q
 %isspath%\7za.exe e -y -o%isspath%\Win64_builds\x64_Release_SDL2 %vwin64zip% "bin\x64\Release SDL2\dosbox-x.exe"
 %isspath%\7za.exe e -y -o%isspath%\Win64_builds\ARM64_Release %varm64zip% "bin\ARM64\Release\dosbox-x.exe"
 %isspath%\7za.exe e -y -o%isspath%\Win64_builds\ARM64_Release_SDL2 %varm64zip% "bin\ARM64\Release SDL2\dosbox-x.exe"
+%isspath%\7za.exe e -y -o%isspath%\Win32_builds\mingw-lowend %m32zip% "mingw-build\mingw-lowend\dosbox-x.exe"
+%isspath%\7za.exe e -y -o%isspath%\Win32_builds\mingw-lowend-sdl2 %m32zip% "mingw-build\mingw-lowend-sdl2\dosbox-x.exe"
 %isspath%\7za.exe e -y -o%isspath%\Win32_builds\mingw %m32zip% "mingw-build\mingw\dosbox-x.exe"
 %isspath%\7za.exe e -y -o%isspath%\Win32_builds\mingw-sdl2 %m32zip% "mingw-build\mingw-sdl2\dosbox-x.exe"
-%isspath%\7za.exe e -y -o%isspath%\Win32_builds\mingw-lowend %m32zip% "mingw-build\mingw-lowend\dosbox-x.exe"
 %isspath%\7za.exe e -y -o%isspath%\Win64_builds\mingw %m64zip% "mingw-build\mingw\dosbox-x.exe"
 %isspath%\7za.exe e -y -o%isspath%\Win64_builds\mingw-sdl2 %m64zip% "mingw-build\mingw-sdl2\dosbox-x.exe"
 for %%i in (dosbox-x.reference.conf dosbox-x.reference.full.conf) do (
@@ -128,9 +136,10 @@ for %%i in (dosbox-x.reference.conf dosbox-x.reference.full.conf) do (
 	copy /y %isspath%\%%i %isspath%\Win64_builds\x64_Release_SDL2
 	copy /y %isspath%\%%i %isspath%\Win64_builds\ARM64_Release
 	copy /y %isspath%\%%i %isspath%\Win64_builds\ARM64_Release_SDL2
+	copy /y %isspath%\%%i %isspath%\Win32_builds\mingw-lowend
+	copy /y %isspath%\%%i %isspath%\Win32_builds\mingw-lowend-sdl2
 	copy /y %isspath%\%%i %isspath%\Win32_builds\mingw
 	copy /y %isspath%\%%i %isspath%\Win32_builds\mingw-sdl2
-	copy /y %isspath%\%%i %isspath%\Win32_builds\mingw-lowend
 	copy /y %isspath%\%%i %isspath%\Win64_builds\mingw
 	copy /y %isspath%\%%i %isspath%\Win64_builds\mingw-sdl2
 )
@@ -203,5 +212,6 @@ set vwin32zip=
 set vwin64zip=
 set varm32zip=
 set varm64zip=
+set mlezip=
 set m32zip=
 set m64zip=

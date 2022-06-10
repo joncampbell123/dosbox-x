@@ -99,6 +99,7 @@ Source: "Win32_builds\ARM_Release_SDL2\dosbox-x.exe"; DestDir: "{app}"; Flags: i
 Source: "Win32_builds\mingw\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\mingw'); Components: full typical compact
 Source: "Win32_builds\mingw-sdl2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\mingw-sdl2'); Components: full typical compact
 Source: "Win32_builds\mingw-lowend\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\mingw-lowend'); Components: full typical compact
+Source: "Win32_builds\mingw-lowend-sdl2\dosbox-x.exe"; DestDir: "{app}"; Flags: ignoreversion; Check: CheckDirName('Win32_builds\mingw-lowend-sdl2'); Components: full typical compact
 Source: "Win32_builds\*"; DestDir: "{app}\Win32_builds"; Flags: ignoreversion recursesubdirs createallsubdirs; Components: full
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
@@ -116,6 +117,7 @@ Name: "{group}\All DOSBox-X builds\ARM Release SDL2"; Filename: "{app}\Win32_bui
 Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL1"; Filename: "{app}\Win32_builds\mingw\dosbox-x.exe"; WorkingDir: "{app}"; Check: IsWindowsVersionOrNewer(6, 0); Components: full
 Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL2"; Filename: "{app}\Win32_builds\mingw-sdl2\dosbox-x.exe"; WorkingDir: "{app}"; check: IsWindowsVersionOrNewer(6, 0); Components: full
 Name: "{group}\All DOSBox-X builds\32-bit MinGW lowend"; Filename: "{app}\Win32_builds\mingw-lowend\dosbox-x.exe"; WorkingDir: "{app}"; check: Is32BitInstaller(); Components: full
+Name: "{group}\All DOSBox-X builds\32-bit MinGW lowend SDL2"; Filename: "{app}\Win32_builds\mingw-lowend-sdl2\dosbox-x.exe"; WorkingDir: "{app}"; check: Is32BitInstaller(); Components: full
 Name: "{code:GetDesktopFolder}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: quicklaunchicon
 
@@ -126,9 +128,10 @@ Type: files; Name: "{group}\All DOSBox-X builds\x86 Release SDL2.lnk"; Component
 Type: files; Name: "{group}\All DOSBox-X builds\ARM Release SDL1.lnk"; Components: typical compact
 Type: files; Name: "{group}\All DOSBox-X builds\ARM Release SDL2.lnk"; Components: typical compact
 Type: files; Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL1.lnk"; Components: typical compact
-Type: files; Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL1 lowend.lnk"; Components: typical compact
-Type: files; Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL1 drawn.lnk"; Components: typical compact
 Type: files; Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL2.lnk"; Components: typical compact
+Type: files; Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL1 lowend.lnk"; Components: typical compact
+Type: files; Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL2 lowend.lnk"; Components: typical compact
+Type: files; Name: "{group}\All DOSBox-X builds\32-bit MinGW SDL1 drawn.lnk"; Components: typical compact
 
 [Registry]
 Root: HKCU; Subkey: "Software\DOSBox-X"; Flags: uninsdeletekeyifempty
@@ -238,7 +241,10 @@ begin
     PageBuild.Add('MinGW build SDL1 (Default MinGW build)');
     PageBuild.Add('MinGW build SDL2 (Alternative MinGW build)');
     if Is32BitInstaller() then
-      PageBuild.Add('MinGW lowend build (SDL1 build on low-end systems)');
+	begin
+      PageBuild.Add('MinGW lowend build SDL1 (SDL1 build on low-end systems)');
+      PageBuild.Add('MinGW lowend build SDL2 (SDL2 build on low-end systems)');
+	end;
     if IsX86 or IsX64 then
     begin
       PageBuild.CheckListBox.ItemEnabled[2] := False;
@@ -344,7 +350,9 @@ begin
     if (PageBuild.Values[5]) then
       msg:=msg+'MinGW build SDL2';
     if Is32BitInstaller() and (PageBuild.Values[6]) then
-      msg:=msg+'MinGW lowend build';
+      msg:=msg+'MinGW lowend build SDL1';
+    if Is32BitInstaller() and (PageBuild.Values[7]) then
+      msg:=msg+'MinGW lowend build SDL2';
     Wizardform.ReadyMemo.Lines.Add('      '+msg);
     if not FileExists(ExpandConstant('{app}\dosbox-x.conf')) then
     begin
@@ -970,6 +978,8 @@ begin
       dir:=dir+'mingw-sdl2';
     if Is32BitInstaller() and (PageBuild.Values[6]) then
       dir:=dir+'mingw-lowend';
+    if Is32BitInstaller() and (PageBuild.Values[7]) then
+      dir:=dir+'mingw-lowend-sdl2';
     Result := False;
     if (dir=name) then
       Result := True;
