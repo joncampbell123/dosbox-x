@@ -23,6 +23,10 @@ jobs:
           access_token: ${{ github.token }}
       - uses: actions/checkout@v3
       - uses: microsoft/setup-msbuild@v1.1
+      - name: Prepare Visual Studio Win32
+        shell: bash
+        run: |
+          echo "timestamp=`date +%F-%T | sed -e 's/:/-/g' | sed -e 's/-//g'`" >> $GITHUB_ENV
       - name: Build Visual Studio Win32 SDL1
         shell: pwsh
         run: |
@@ -87,7 +91,7 @@ jobs:
       - name: Upload release package
         uses: actions/upload-artifact@v3.1.0
         with:
-          name: dosbox-x-vsbuild-win32
+          name: dosbox-x-vsbuild-win32-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
 
   MSBuild_ARM32_CI_build:
@@ -106,6 +110,10 @@ jobs:
           access_token: ${{ github.token }}
       - uses: actions/checkout@v3
       - uses: microsoft/setup-msbuild@v1.1
+      - name: Prepare Visual Studio ARM32
+        shell: bash
+        run: |
+          echo "timestamp=`date +%F-%T | sed -e 's/:/-/g' | sed -e 's/-//g'`" >> $GITHUB_ENV
       - name: Build Visual Studio ARM32 SDL1
         shell: pwsh
         run: |
@@ -160,5 +168,5 @@ jobs:
       - name: Upload release package
         uses: actions/upload-artifact@v3.1.0
         with:
-          name: dosbox-x-vsbuild-arm32
+          name: dosbox-x-vsbuild-arm32-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/

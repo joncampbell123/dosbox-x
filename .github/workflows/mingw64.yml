@@ -29,6 +29,7 @@ jobs:
           install: git mingw-w64-x86_64-toolchain mingw-w64-x86_64-libslirp mingw-w64-x86_64-libtool mingw-w64-x86_64-nasm autoconf automake
       - name: Build MinGW64 SDL1
         run: |
+          echo "timestamp=`date +%F-%T | sed -e 's/:/-/g' | sed -e 's/-//g'`" >> $GITHUB_ENV
           top=`pwd`
           ln -s $top/build-scripts/mingw/bin/make.exe /usr/bin/make.exe
           ./build-mingw
@@ -82,5 +83,5 @@ jobs:
       - name: Upload release package
         uses: actions/upload-artifact@v3.1.0
         with:
-          name: dosbox-x-mingw-win64
+          name: dosbox-x-mingw-win64-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/

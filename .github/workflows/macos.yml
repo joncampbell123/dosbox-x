@@ -21,6 +21,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install libraries
         run: |
+          echo "timestamp=`date +%F-%T | sed -e 's/:/-/g' | sed -e 's/-//g'`" >> $GITHUB_ENV
           brew install autoconf automake nasm glfw glew sdl_net sdl2_net
           mkdir src/bin
       - name: Build macOS SDL1
@@ -43,5 +44,5 @@ jobs:
       - name: Upload release package
         uses: actions/upload-artifact@v3.1.0
         with:
-          name: dosbox-x-macos
+          name: dosbox-x-macos-${{ env.timestamp }}
           path: ${{ github.workspace }}/src/bin/

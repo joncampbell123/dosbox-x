@@ -24,6 +24,7 @@ jobs:
           node-version: '14'
       - name: Build minimal
         run: |
+          echo "timestamp=`date +%F-%T | sed -e 's/:/-/g' | sed -e 's/-//g'`" >> $GITHUB_ENV
           ./build --disable-freetype --disable-libfluidsynth --disable-mt32 --disable-screenshots
       - name: Install libraries
         run: |
@@ -50,5 +51,5 @@ jobs:
       - name: Upload release package
         uses: actions/upload-artifact@v3.1.0
         with:
-          name: dosbox-x-linux
+          name: dosbox-x-linux-${{ env.timestamp }}
           path: ${{ github.workspace }}/src/bin/
