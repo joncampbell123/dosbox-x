@@ -1237,7 +1237,11 @@ public:
                 if (!found) return;
             }
 
-            temp_line.erase(std::find_if(temp_line.rbegin(), temp_line.rend(), [](unsigned char ch) {return !std::isspace(ch);}).base(), temp_line.end());
+            temp_line.erase(std::find_if(temp_line.rbegin(), temp_line.rend(), [](unsigned char ch) {return !
+#if !(defined(_MSC_VER) && _MSC_VER < 1920)
+            std::
+#endif
+			isspace(ch);}).base(), temp_line.end());
             if(path_relative_to_last_config && control->configfiles.size() && !Cross::IsPathAbsolute(temp_line)) {
 		        std::string lastconfigdir(control->configfiles[control->configfiles.size()-1]);
                 std::string::size_type pos = lastconfigdir.rfind(CROSS_FILESPLIT);

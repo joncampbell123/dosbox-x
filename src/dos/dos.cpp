@@ -52,8 +52,11 @@
 #include "sdlmain.h"
 #if defined(WIN32)
 #include "../dos/cdrom.h"
+#if !defined(HX_DOS)
+#include <process.h>
 #include <shellapi.h>
 #include <shlwapi.h>
+#endif
 #include <winsock.h>
 #else
 #include <unistd.h>
