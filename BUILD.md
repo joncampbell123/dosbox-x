@@ -1,15 +1,20 @@
 Building DOSBox-X
 =================
 
-The page is about building the DOSBox-X source code. For instructions on installing
-and using DOSBox-X, please look at the [INSTALL](INSTALL.md) page and the [DOSBox-X Wiki](https://dosbox-x.com/wiki).
+The page is about manually building the DOSBox-X source code. Automated
+development (preview) builds intended for testing purposes for various
+platforms are also available from the [DOSBox-X Development Builds](https://dosbox-x.com/devel-build.html) page.
+Released builds are available from the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page.
+
+For instructions on installing and using DOSBox-X, please look at the
+[INSTALL](INSTALL.md) page and the [DOSBox-X Wiki](https://dosbox-x.com/wiki).
 
 General information on source code compilation
 ----------------------------------------------
 
 The four major operating systems and platforms of DOSBox-X are:
 
-1. Windows 10, 8, 7, Vista and XP for 32-bit and 64-bit x86/x64 and ARM
+1. Windows 11, 10, 8, 7, Vista and XP for 32-bit and 64-bit x86/x64 and ARM
 
 2. Linux (with X11) 64-bit x86/x64, and on a Raspberry Pi 3/4
 
@@ -28,7 +33,7 @@ the LLVM/Clang compiler provided by XCode.
 In all cases, the code requires a C++ compiler that can support the C++11
 standard.
 
-Note that DOSBox-X suports both SDL 1.x and 2.x, and it is written to compile
+Note that DOSBox-X supports both SDL 1.x and 2.x, and it is written to compile
 against the in-tree copy of the SDL 1.x (Simple Directmedia Libary), or against
 the SDL 2.x library provided by your Linux distribution.
 
@@ -77,28 +82,33 @@ sudo make install
 ./build-macosx-sdl2
 ```
 
-* MinGW compile (using MinGW32 or MinGW64) for Windows XP or later (SDL1)
+* MinGW compile (using MinGW-w64) for Windows Vista/7 or later (SDL1)
 ```
 ./build-mingw
 ```
 
-* MinGW compile (using MinGW32 or MinGW64) for Windows XP or later (SDL1), lower-end systems that lack MMX/SSE
-```
-./build-mingw-lowend
-```
-
-* MinGW compile (using MinGW32 or MinGW64) for Windows XP or later (SDL2)
+* MinGW compile (using MinGW-w64) for Windows Vista/7 or later (SDL2)
 ```
 ./build-mingw-sdl2
 ```
 
-* MinGW compile (on Windows, using MinGW, not MinGW64) to target the DOS platform (MS-DOS or compatible with HX DOS Extender)
+* MinGW compile (using MinGW32, not MinGW-w64) for lower-end systems including Windows XP or later (SDL1)
+```
+./build-mingw-lowend
+```
+
+* MinGW compile (using MinGW32, not MinGW-w64) for lower-end systems including Windows XP or later (SDL2)
+```
+./build-mingw-lowend-sdl2
+```
+
+* MinGW compile (using MinGW32, not MinGW-w64) on Windows to target the DOS platform (MS-DOS or compatible with HX DOS Extender)
 ```
 ./build-mingw-hx-dos
 ```
 
-NOTICE: Use the 32-bit toolchain from the original MinGW project for this build, not the MinGW64 project.
-        Binaries compiled with MinGW64 have extra dependencies not provided by the HX DOS Extender.
+NOTICE: Use the 32-bit toolchain from the original MinGW project for the lowend and HX-DOS builds, not the MinGW-w64 project.
+        Binaries compiled with MinGW-w64 have extra dependencies which are not supported by Windows XP or the HX DOS Extender.
 
 macOS: If you want to make an .app bundle you can run from the Finder, compile the program as instructed then run ``make dosbox-x.app``.
 
