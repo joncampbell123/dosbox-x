@@ -1,4 +1,4 @@
-Welcome to DOSBox-X, a cross-platform DOS emulator with the goal of being a complete DOS emulation package that is both fully-featured and easy to use.
+Welcome to DOSBox-X, a cross-platform DOS emulator with the goal of being a complete emulation package that covers all pre-2000 DOS and Windows 9x based hardware scenarios, and give you all the options to configure the DOS virtual machine.
 
 Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applications that simply cannot be run on modern PCs and operating systems. However, while the main focus of DOSBox is for running DOS games, DOSBox-X goes much further than this. Started as a fork of the DOSBox project, it retains compatibility with the wide base of DOS games and DOS gaming DOSBox was designed for. But it is also a platform for running DOS applications, including emulating the environments to run Windows 3.x, 9x and ME and software written for those versions of Windows.
 
