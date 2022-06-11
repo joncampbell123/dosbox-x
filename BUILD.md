@@ -18,7 +18,7 @@ The four major operating systems and platforms of DOSBox-X are:
 4. DOS (MS-DOS 5.0+ or compatible)
 
 Straight Windows builds are expected to compile using the free community edition
-of Visual Studio 2015 to Visual Studio 2019 and the DirectX 2010 SDK.
+of Visual Studio 2015 to Visual Studio 2022 and the DirectX 2010 SDK.
 
 Linux and MinGW Windows builds are expected to compile with the GNU autotools.
 
@@ -158,7 +158,7 @@ After a successful compile, the RPM can be found in the releases directory.
 Compiling the source code using Visual Studio (Windows)
 -------------------------------------------------------
 
-You can build the source code with Visual Studio (2015, 2017, 2019).
+You can build the source code with Visual Studio (2015, 2017, 2019, 2022).
 The executables will work on 32-bit and 64-bit Windows Vista or higher.
 
 Use the ```./vs/dosbox-x.sln``` "solution" file and build the source code.
