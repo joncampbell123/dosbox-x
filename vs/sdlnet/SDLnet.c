@@ -31,6 +31,18 @@
 #include "winerror.h"
 #endif
 
+#if defined(__MINGW32__)
+#ifndef SDL_malloc
+#define SDL_malloc malloc
+#endif
+#ifndef SDL_free
+#define SDL_free free
+#endif
+#ifndef SDL_realloc
+#define SDL_realloc realloc
+#endif
+#endif
+
 const SDL_version *SDLNet_Linked_Version(void)
 {
 	static SDL_version linked_version;

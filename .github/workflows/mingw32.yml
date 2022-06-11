@@ -107,7 +107,7 @@ jobs:
         with:
           access_token: ${{ github.token }}
       - uses: actions/checkout@v3
-      - name: Prepare MinGW32 lowend
+      - name: Prepare MinGW32 lowend SDL2
         run: |
           echo "timestamp=`date +%F-%T | sed -e 's/:/-/g' | sed -e 's/-//g'`" >> $GITHUB_ENV
           top=`pwd`
@@ -123,6 +123,39 @@ jobs:
           cp d3d9/*.inl mingw-get/include
           cp d3d9/*.h mingw-get/include
           cp d3d9/*.a mingw-get/lib
+      - name: Build MinGW32 lowend SDL2
+        shell: pwsh
+        run: |
+          mingw-get\msys\1.0\msys.bat /mingw/msys/1.0/runbuild.sh build-mingw-lowend-sdl2 nodup
+          if (-not(Test-Path -Path src\dosbox-x.exe -PathType Leaf)) {exit 1}
+      - name: Package MinGW32 lowend SDL2
+        run: |
+          top=`pwd`
+          strip --strip-all $top/src/dosbox-x.exe
+          mkdir -p $top/package/mingw-build/mingw-lowend-sdl2/drivez
+          mkdir -p $top/package/mingw-build/mingw-lowend-sdl2/scripts
+          mkdir -p $top/package/mingw-build/mingw-lowend-sdl2/shaders
+          mkdir -p $top/package/mingw-build/mingw-lowend-sdl2/glshaders
+          mkdir -p $top/package/mingw-build/mingw-lowend-sdl2/languages
+          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/' -e 's/^\(file access tries[ ]*=[ ]*\)0$/\13/' -e 's/^\(printoutput[ ]*=[ ]*\)png$/\1printer/' -e 's/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/mingw-build/mingw-lowend-sdl2/dosbox-x.conf
+          cp $top/src/dosbox-x.exe $top/package/mingw-build/mingw-lowend-sdl2/dosbox-x.exe
+          cp $top/CHANGELOG $top/package/mingw-build/mingw-lowend-sdl2/CHANGELOG.txt
+          cp $top/dosbox-x.reference.conf $top/package/mingw-build/mingw-lowend-sdl2/dosbox-x.reference.conf
+          cp $top/dosbox-x.reference.full.conf $top/package/mingw-build/mingw-lowend-sdl2/dosbox-x.reference.full.conf
+          cp $top/contrib/windows/installer/readme.txt $top/package/mingw-build/mingw-lowend-sdl2/README.txt
+          cp $top/contrib/windows/installer/inpout32.dll $top/package/mingw-build/mingw-lowend-sdl2/inpout32.dll
+          cp $top/contrib/fonts/FREECG98.BMP $top/package/mingw-build/mingw-lowend-sdl2/FREECG98.BMP
+          cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/mingw-build/mingw-lowend-sdl2/Nouveau_IBM.ttf
+          cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/mingw-build/mingw-lowend-sdl2/SarasaGothicFixed.ttf
+          cp $top/contrib/windows/installer/drivez_readme.txt $top/package/mingw-build/mingw-lowend-sdl2/drivez/readme.txt
+          cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/mingw-build/mingw-lowend-sdl2/scripts/
+          cp $top/contrib/windows/shaders/* $top/package/mingw-build/mingw-lowend-sdl2/shaders/
+          cp $top/contrib/glshaders/* $top/package/mingw-build/mingw-lowend-sdl2/glshaders/
+          for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/package/mingw-build/mingw-lowend-sdl2/languages/; done
+          cp $top/COPYING $top/package/COPYING
+      - name: Prepare MinGW32 lowend SDL1
+        run: |
+          make clean
       - name: Build MinGW32 lowend SDL1
         shell: pwsh
         run: |
@@ -152,37 +185,6 @@ jobs:
           cp $top/contrib/windows/shaders/* $top/package/mingw-build/mingw-lowend/shaders/
           cp $top/contrib/glshaders/* $top/package/mingw-build/mingw-lowend/glshaders/
           for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/package/mingw-build/mingw-lowend/languages/; done
-          cp $top/COPYING $top/package/COPYING
-          rm $top/src/dosbox-x.exe
-      - name: Build MinGW32 lowend SDL2
-        shell: pwsh
-        run: |
-          mingw-get\msys\1.0\msys.bat /mingw/msys/1.0/runbuild.sh build-mingw-lowend-sdl2
-          if (-not(Test-Path -Path src\dosbox-x.exe -PathType Leaf)) {exit 1}
-      - name: Package MinGW32 lowend SDL2
-        run: |
-          top=`pwd`
-          strip --strip-all $top/src/dosbox-x.exe
-          mkdir -p $top/package/mingw-build/mingw-lowend-sdl2/drivez
-          mkdir -p $top/package/mingw-build/mingw-lowend-sdl2/scripts
-          mkdir -p $top/package/mingw-build/mingw-lowend-sdl2/shaders
-          mkdir -p $top/package/mingw-build/mingw-lowend-sdl2/glshaders
-          mkdir -p $top/package/mingw-build/mingw-lowend-sdl2/languages
-          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/' -e 's/^\(file access tries[ ]*=[ ]*\)0$/\13/' -e 's/^\(printoutput[ ]*=[ ]*\)png$/\1printer/' -e 's/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/mingw-build/mingw-lowend-sdl2/dosbox-x.conf
-          cp $top/src/dosbox-x.exe $top/package/mingw-build/mingw-lowend-sdl2/dosbox-x.exe
-          cp $top/CHANGELOG $top/package/mingw-build/mingw-lowend-sdl2/CHANGELOG.txt
-          cp $top/dosbox-x.reference.conf $top/package/mingw-build/mingw-lowend-sdl2/dosbox-x.reference.conf
-          cp $top/dosbox-x.reference.full.conf $top/package/mingw-build/mingw-lowend-sdl2/dosbox-x.reference.full.conf
-          cp $top/contrib/windows/installer/readme.txt $top/package/mingw-build/mingw-lowend-sdl2/README.txt
-          cp $top/contrib/windows/installer/inpout32.dll $top/package/mingw-build/mingw-lowend-sdl2/inpout32.dll
-          cp $top/contrib/fonts/FREECG98.BMP $top/package/mingw-build/mingw-lowend-sdl2/FREECG98.BMP
-          cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/mingw-build/mingw-lowend-sdl2/Nouveau_IBM.ttf
-          cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/mingw-build/mingw-lowend-sdl2/SarasaGothicFixed.ttf
-          cp $top/contrib/windows/installer/drivez_readme.txt $top/package/mingw-build/mingw-lowend-sdl2/drivez/readme.txt
-          cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/mingw-build/mingw-lowend-sdl2/scripts/
-          cp $top/contrib/windows/shaders/* $top/package/mingw-build/mingw-lowend-sdl2/shaders/
-          cp $top/contrib/glshaders/* $top/package/mingw-build/mingw-lowend-sdl2/glshaders/
-          for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/package/mingw-build/mingw-lowend-sdl2/languages/; done
           cp $top/COPYING $top/package/COPYING
       - name: Upload release package
         uses: actions/upload-artifact@v3.1.0
