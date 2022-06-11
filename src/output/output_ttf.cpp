@@ -94,7 +94,7 @@ int switchoutput = -1;
 
 static unsigned long ttfSize = sizeof(DOSBoxTTFbi), ttfSizeb = 0, ttfSizei = 0, ttfSizebi = 0;
 static void * ttfFont = DOSBoxTTFbi, * ttfFontb = NULL, * ttfFonti = NULL, * ttfFontbi = NULL;
-extern int posx, posy, eurAscii, NonUserResizeCounter;
+extern int posx, posy, eurAscii, transparency, NonUserResizeCounter;
 extern bool rtl, gbk, chinasea, switchttf, force_conversion, blinking, showdbcs, loadlang, window_was_maximized;
 extern const char* RunningProgram;
 extern uint8_t ccount;
@@ -123,7 +123,7 @@ static bool blinkstate = false;
 bool colorChanged = false, justChanged = false, staycolors = false, firstsize = true, ttfswitch=false, switch_output_from_ttf=false;
 
 int menuwidth_atleast(int width), FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
-void AdjustIMEFontSize(void), initcodepagefont(void), change_output(int output), MSG_Init(void), KEYBOARD_Clear(void), RENDER_Reset(void), DOSBox_SetSysMenu(void), GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight), resetFontSize(void), RENDER_CallBack( GFX_CallBackFunctions_t function );
+void AdjustIMEFontSize(void), initcodepagefont(void), change_output(int output), MSG_Init(void), KEYBOARD_Clear(void), RENDER_Reset(void), DOSBox_SetSysMenu(void), GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight), SetWindowTransparency(int trans), resetFontSize(void), RENDER_CallBack( GFX_CallBackFunctions_t function );
 bool isDBCSCP(void), InitCodePage(void), CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 std::string GetDOSBoxXPath(bool withexe=false);
 
@@ -1377,7 +1377,6 @@ void ttf_switch_on(bool ss=true) {
             OUTPUT_TTF_Select(3);
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
             if (gl && GFX_IsFullscreen()) { // Hack for full-screen switch from OpenGL outputs
-                void GFX_SwitchFullScreen(void);
                 GFX_SwitchFullScreen();
                 GFX_SwitchFullScreen();
             }
@@ -1385,6 +1384,10 @@ void ttf_switch_on(bool ss=true) {
             resetreq = true;
         }
         resetFontSize();
+#ifdef C_SDL2
+        transparency = 0;
+        SetWindowTransparency(static_cast<Section_prop *>(control->GetSection("sdl"))->Get_int("transparency"));
+#endif
     }
 }
 
@@ -1431,6 +1434,10 @@ void ttf_switch_off(bool ss=true) {
         //if (GFX_IsFullscreen()) GFX_SwitchFullscreenNoReset();
         mainMenu.get_item("output_ttf").enable(false).refresh_item(mainMenu);
         RENDER_Reset();
+#ifdef C_SDL2
+        transparency = 0;
+        SetWindowTransparency(static_cast<Section_prop *>(control->GetSection("sdl"))->Get_int("transparency"));
+#endif
     }
 }
 #endif
