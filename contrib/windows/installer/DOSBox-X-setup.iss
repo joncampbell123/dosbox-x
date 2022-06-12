@@ -211,7 +211,7 @@ begin
 end;
 procedure HelpButtonOnClick(Sender: TObject);
 begin
-  MsgBox('The Setup pre-selects a Windows build for you according to your platform automatically, but you can change the default build to run if you encounter specific problem(s) with the pre-selected one.' #13#13 'For example, while the SDL1 version is the default version to run, the SDL2 version may be preferred over the SDL1 version for certain features such as improved keyboard and touchscreen support. Also, MinGW builds may work better with certain features (such as the Slirp backend for the NE2000 networking in most MinGW builds) than Visual Studio builds even though they do not come with the debugger.' #13#13 'If you are not sure about which build to use, then you can just leave it unmodified and use the pre-selected one as the default build.', mbConfirmation, MB_OK);
+  MsgBox('The Setup pre-selects a Windows build for you according to your platform automatically, but you can change the default build to run if you encounter specific problem(s) with the pre-selected one.' #13#13 'For example, while the SDL1 version is the default version to run, the SDL2 version may be preferred over the SDL1 version for certain features such as improved keyboard and touchscreen support. Also, MinGW builds may work better with certain features (such as the Slirp backend for the NE2000 networking in standard MinGW builds) than Visual Studio builds even though they do not come with the debugger.' #13#13 'If you are not sure about which build to use, then you can just leave it unmodified and use the pre-selected one as the default build.', mbConfirmation, MB_OK);
 end;
 procedure CreateHelpButton(X: integer; Y: integer; W: integer; H: integer);
 begin
@@ -234,33 +234,33 @@ begin
     end;
     msg:='The selected build will be the default build when you run DOSBox-X from the Windows Start Menu or the desktop. DOSBox-X provides both SDL1 and SDL2 builds, and while SDL1 builds are preselected, you may prefer SDL2 builds if for example you encounter some issues with a non-U.S. keyboard layout in SDL1 builds. Please click the "Help" button below for more information about the DOSBox-X build selection.';
     PageBuild:=CreateInputOptionPage(wpSelectDir, 'Default DOSBox-X build (32-bit)', 'Select the default DOSBox-X build to run', msg, True, False);
-    PageBuild.Add('Release SDL1 (Default Visual Studio build)');
-    PageBuild.Add('Release SDL2 (Alternative Visual Studio build)');
-    PageBuild.Add('ARM Release SDL1 (ARM platform only)');
-    PageBuild.Add('ARM Release SDL2 (ARM platform only)');
-    PageBuild.Add('MinGW build SDL1 (Default MinGW build)');
-    PageBuild.Add('MinGW build SDL2 (Alternative MinGW build)');
+    PageBuild.AddEx('Visual Studio build (default release)', 0, True);
+    PageBuild.AddEx('Visual Studio build for ARM platform', 0, True);
     if Is32BitInstaller() then
-	begin
-      PageBuild.Add('MinGW lowend build SDL1 (SDL1 build on low-end systems)');
-      PageBuild.Add('MinGW lowend build SDL2 (SDL2 build on low-end systems)');
-	end;
-    if IsX86 or IsX64 then
     begin
-      PageBuild.CheckListBox.ItemEnabled[2] := False;
+      PageBuild.AddEx('MinGW standard build (for newer systems)', 0, True);
+      PageBuild.AddEx('MinGW low-end build (for older systems)', 0, True);
+    end
+    else
+    begin
+      PageBuild.AddEx('MinGW standard build (alternative release)', 0, True);
+      PageBuild.AddEx('MinGW low-end build (32-bit only)', 0, True);
       PageBuild.CheckListBox.ItemEnabled[3] := False;
     end;
-    if not IsWindowsVersionOrNewer(6, 0) then
+    if IsX86 or IsX64 then
     begin
-      PageBuild.CheckListBox.ItemEnabled[4] := False;
-      PageBuild.CheckListBox.ItemEnabled[5] := False;
+      PageBuild.CheckListBox.ItemEnabled[1] := False;
     end;
+    if not IsWindowsVersionOrNewer(6, 0) then
+      PageBuild.CheckListBox.ItemEnabled[2] := False;
     if IsARM64 then
       begin
-        PageBuild.Values[2] := True;
+        PageBuild.Values[1] := True;
       end
     else
       PageBuild.Values[0] := True;
+    PageBuild.CheckListBox.AddGroup('Check the following box to select the SDL2 build as the default DOSBox-X build.', '', 0, nil);
+    PageBuild.CheckListBox.AddCheckBox('Default to SDL2 build (instead of SDL1 build) ', '', 0, False, True, False, True, nil);
     CreateHelpButton(ScaleX(20), WizardForm.CancelButton.Top, WizardForm.CancelButton.Width, WizardForm.CancelButton.Height);
     msg:='DOSBox-X supports different video output systems for different purposes.' #13#13 'By default it uses the Direct3D output, but you may want to select the OpenGL pixel-perfect scaling output for improved image quality (not available if you had selected an ARM build). Also, if you use text-mode DOS applications and/or the DOS shell frequently you probably want to select the TrueType font (TTF) output to make the text screen look much better by using scalable TrueType fonts.' #13#13 'This setting can be later modified in the DOSBox-X''s configuration file (dosbox-x.conf), or from DOSBox-X''s Video menu.';
     PageOutput:=CreateInputOptionPage(PageBuild.ID, 'Video output for DOSBox-X', 'Specify the DOSBox-X video output system', msg, True, False);
@@ -337,22 +337,22 @@ begin
     Wizardform.ReadyMemo.Lines.Add('');
     Wizardform.ReadyMemo.Lines.Add('Default DOSBox-X build:');
     msg:='32-bit ';
-    if (PageBuild.Values[0]) then
-      msg:=msg+'Release SDL1';
-    if (PageBuild.Values[1]) then
-      msg:=msg+'Release SDL2';
-    if (PageBuild.Values[2]) then
-      msg:=msg+'ARM Release SDL1';
-    if (PageBuild.Values[3]) then
-      msg:=msg+'ARM Release SDL2';
-    if (PageBuild.Values[4]) then
-      msg:=msg+'MinGW build SDL1';
-    if (PageBuild.Values[5]) then
-      msg:=msg+'MinGW build SDL2';
-    if Is32BitInstaller() and (PageBuild.Values[6]) then
-      msg:=msg+'MinGW lowend build SDL1';
-    if Is32BitInstaller() and (PageBuild.Values[7]) then
-      msg:=msg+'MinGW lowend build SDL2';
+    if (PageBuild.Values[0]) and (not PageBuild.Values[5]) then
+      msg:=msg+'Visual Studio build SDL1';
+    if (PageBuild.Values[0]) and (PageBuild.Values[5]) then
+      msg:=msg+'Visual Studio build SDL2';
+    if (PageBuild.Values[1]) and (not PageBuild.Values[5]) then
+      msg:=msg+'Visual Studio ARM build SDL1';
+    if (PageBuild.Values[1]) and (PageBuild.Values[5]) then
+      msg:=msg+'Visual Studio ARM build SDL2';
+    if (PageBuild.Values[2]) and (not PageBuild.Values[5]) then
+      msg:=msg+'MinGW standard build SDL1';
+    if (PageBuild.Values[2]) and (PageBuild.Values[5]) then
+      msg:=msg+'MinGW standard build SDL2';
+    if Is32BitInstaller() and (PageBuild.Values[3]) and (not PageBuild.Values[5]) then
+      msg:=msg+'MinGW low-end build SDL1';
+    if Is32BitInstaller() and (PageBuild.Values[3]) and (PageBuild.Values[5]) then
+      msg:=msg+'MinGW low-end build SDL2';
     Wizardform.ReadyMemo.Lines.Add('      '+msg);
     if not FileExists(ExpandConstant('{app}\dosbox-x.conf')) then
     begin
@@ -964,21 +964,21 @@ var
   dir: string;
 begin
     dir:='Win32_builds\';
-    if (PageBuild.Values[0]) then
+    if (PageBuild.Values[0]) and (not PageBuild.Values[5]) then
       dir:=dir+'x86_Release';
-    if (PageBuild.Values[1]) then
+    if (PageBuild.Values[0]) and (PageBuild.Values[5]) then
       dir:=dir+'x86_Release_SDL2';
-    if (PageBuild.Values[2]) then
+    if (PageBuild.Values[1]) and (not PageBuild.Values[5]) then
       dir:=dir+'ARM_Release';
-    if (PageBuild.Values[3]) then
+    if (PageBuild.Values[1]) and (PageBuild.Values[5]) then
       dir:=dir+'ARM_Release_SDL2';
-    if (PageBuild.Values[4]) then
+    if (PageBuild.Values[2]) and (not PageBuild.Values[5]) then
       dir:=dir+'mingw';
-    if (PageBuild.Values[5]) then
+    if (PageBuild.Values[2]) and (PageBuild.Values[5]) then
       dir:=dir+'mingw-sdl2';
-    if Is32BitInstaller() and (PageBuild.Values[6]) then
+    if Is32BitInstaller() and (PageBuild.Values[3]) and (not PageBuild.Values[5]) then
       dir:=dir+'mingw-lowend';
-    if Is32BitInstaller() and (PageBuild.Values[7]) then
+    if Is32BitInstaller() and (PageBuild.Values[3]) and (PageBuild.Values[5]) then
       dir:=dir+'mingw-lowend-sdl2';
     Result := False;
     if (dir=name) then
