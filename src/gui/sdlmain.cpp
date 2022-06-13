@@ -3679,7 +3679,7 @@ static void GUI_StartUp() {
     LOG_MSG("Configured windowposition: %s", windowposition);
     if (windowposition && !strcmp(windowposition, "-"))
         posx = posy = -2;
-    else if (windowposition && *windowposition) {
+    else if (windowposition && *windowposition && strcmp(windowposition, ",")) {
         char result[100];
         safe_strncpy(result, windowposition, sizeof(result));
         char* y = strchr(result, ',');
@@ -6121,7 +6121,7 @@ void SDL_SetupConfigSection() {
 
     Pstring = sdl_sec->Add_string("windowposition", Property::Changeable::Always, "-");
     Pstring->Set_help("Set the window position at startup in the positionX,positionY format (e.g.: 1300,200).\n"
-                      "The window will be centered if empty, and will be in the original position with \"-\".");
+                      "The window will be centered with \",\" (or empty), and will be in the original position with \"-\".");
     Pstring->SetBasic(true);
 
     const char* outputs[] = {

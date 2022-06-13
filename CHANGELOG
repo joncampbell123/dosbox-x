@@ -19,11 +19,18 @@
   - Address auto-centering on mode change complaints
     by making the "-" setting of windowposition the
     default. (joncampbell123).
+  - Added MinGW-lowend SDL2 build, which is compatible
+    with Windows XP. Also updated the build selection
+    page for Windows installers. (Wengier)
+  - Fix windows transparency during TTF output switch
+    in Windows SDL2 builds. (Wengier)
   - Fix SDL2 Windows builds to flag a resize as not
     user initiated only if the presence of the menu
     bar changes. This fixes a problem where SDL2
     builds did not acknowledge window resize events
     at all. (joncampbell123).
+  - Fix FluidSynth weird sound issue in 32-bit Visual
+    Studio SDL2 build. (Wengier)
   - Fluidsynth: Fix uninitialized conditional object
     init in Windows builds (joncampbell123).
   - Linux/X11: Add an X11 error handler function to
