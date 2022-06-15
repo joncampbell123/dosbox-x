@@ -292,6 +292,11 @@ static void convToDirFile(const char *filename, char *filearray) {
                 if(charidx >= 11) break;
                 if(filename[i] != '.') {
                         filearray[charidx] = filename[i];
+                        if (charidx == 0 && filearray[0] == (char)0xe5) {
+                                // SFNs beginning with E5 gets stored as 05
+                                // to distinguish with a free directory entry
+                                filearray[0] = 0x05;
+                        }
                         charidx++;
                 } else {
                         charidx = 8;
@@ -2410,6 +2415,9 @@ nextfile:
 	memset(find_name,0,DOS_NAMELENGTH_ASCII);
 	memset(extension,0,4);
 	memcpy(find_name,&sectbuf[entryoffset].entryname[0],8);
+	// recover the SFN initial E5, which was converted to 05
+	// to distinguish with a free directory entry
+	if (find_name[0] == 0x05) find_name[0] = 0xe5;
     memcpy(extension,&sectbuf[entryoffset].entryname[8],3);
 
     if (!(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)) {
