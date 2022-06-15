@@ -772,11 +772,18 @@ void fatDrive::UpdateBootVolumeLabel(const char *label) {
 
     if (BPB.v.BPB_BootSig == 0x28 || BPB.v.BPB_BootSig == 0x29) {
         unsigned int i = 0;
+        char upcasebuf[12] = {0};
+        const char *upcaseptr = upcasebuf;
 
         loadedDisk->Read_AbsoluteSector(0+partSectOff,&bootbuffer);
 
-        while (i < 11 && *label != 0) bootbuffer.bpb.v.BPB_VolLab[i++] = toupper(*label++);
-        while (i < 11)                bootbuffer.bpb.v.BPB_VolLab[i++] = ' ';
+        strncpy(upcasebuf, label, 11);
+        DBCS_upcase(upcasebuf);
+        // initial 0xe5 substituted to 0x05 in the same way as other SFN
+        // even though this is in BPB and 0xe5 shouldn't matter
+        if (upcasebuf[0] == (char)0xe5) upcasebuf[0] = 0x05;
+        while (i < 11 && *upcaseptr != 0) bootbuffer.bpb.v.BPB_VolLab[i++] = *upcaseptr++;
+        while (i < 11)                    bootbuffer.bpb.v.BPB_VolLab[i++] = ' ';
 
         loadedDisk->Write_AbsoluteSector(0+partSectOff,&bootbuffer);
     }
@@ -838,8 +845,14 @@ nextfile:
 			sectbuf[entryoffset].attrib = DOS_ATTR_VOLUME;
 			{
 				unsigned int j = 0;
-				const char *s = label;
-				while (j < 11 && *s != 0) sectbuf[entryoffset].entryname[j++] = toupper(*s++);
+				const char *s;
+				char upcasebuf[12] = {0};
+				strncpy(upcasebuf, label, 11);
+				DBCS_upcase(upcasebuf);
+				// initial 0xe5 substituted to 0x05 in the same way as other SFN
+				if (upcasebuf[0] == (char)0xe5) upcasebuf[0] = 0x05;
+				s = upcasebuf;
+				while (j < 11 && *s != 0) sectbuf[entryoffset].entryname[j++] = *s++;
 				while (j < 11)            sectbuf[entryoffset].entryname[j++] = ' ';
 			}
 			writeSector(tmpsector,sectbuf);

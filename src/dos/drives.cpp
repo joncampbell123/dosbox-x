@@ -27,6 +27,8 @@
 #include "control.h"
 #include "ide.h"
 
+char *DBCS_upcase(char *);
+
 bool wildmount = false;
 
 bool wild_match(const char *haystack, char *needle) {
@@ -286,11 +288,14 @@ void Set_Label(char const * const input, char * const output, bool cdrom) {
         Bitu togo     = 11;
         Bitu vnamePos = 0;
         Bitu labelPos = 0;
+        char upcasebuf[12] = {0};
+        strncpy(upcasebuf, input, 11);
+        DBCS_upcase(upcasebuf);
 
         while (togo > 0) {
-            if (input[vnamePos]==0) break;
+            if (upcasebuf[vnamePos]==0) break;
             //Another mscdex quirk. Label is not always uppercase. (Daggerfall)
-            output[labelPos] = toupper(input[vnamePos]);
+            output[labelPos] = upcasebuf[vnamePos];
             labelPos++;
             vnamePos++;
             togo--;
