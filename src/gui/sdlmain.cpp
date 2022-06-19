@@ -5659,7 +5659,7 @@ void GFX_Events() {
             if (event.type == SDL_KEYDOWN && isModifierApplied())
                 ClipKeySelect(event.key.keysym.sym);
             if(dos.im_enable_flag) {
-#if defined (WIN32)
+#if defined (WIN32) && !defined(HX_DOS)
                 if(event.type == SDL_KEYDOWN && IME_GetEnable()) {
                     // Enter, BS, TAB, <-, ->
                     if(event.key.keysym.sym == 0x0d || event.key.keysym.sym == 0x08 || event.key.keysym.sym == 0x09 || event.key.keysym.scancode == 0x4f || event.key.keysym.scancode == 0x50) {
