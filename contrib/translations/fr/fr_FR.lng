@@ -2574,6 +2574,9 @@ xBRZ
 :MENU:scaler_set_xbrz_bilinear
 xBRZ bilinéaire
 .
+:MENU:set_transparency
+Définir la transparence...
+.
 :MENU:refresh_rate
 Taux de rafraîchissement...
 .

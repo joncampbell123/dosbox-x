@@ -9,7 +9,7 @@ MOUNT 하고 싶은 경우는 여기에 기재할 수 있습니다.
 .
 :CONFIGFILE_INTRO
 # 이것은 DOSBox-X %s 설정 파일입니다. (최신 버전의 DOSBox-X를 사용하십시오)
-# #으로 시작하는 줄은 주석 줄이며 DOSBox-X는 무시합니다.
+# #으로 시작하는 줄은 주석 줄이며 DOSBox-X는 이 줄을 처리하지 않습니다.
 # 각 선택사항의 의미 (의 개요)를 설명하기 위해서 사용합니다.
 # 모든 선택사항을 내보내려면 'config -all' 명령에 -wc 또는 -writeconf 선택사항을 추가하여 실행하십시오.
 
@@ -51,7 +51,7 @@ DOSBox-X 구성 도구
 닫기
 .
 :DEBUGCMD
-디버거 명령을 입력하십시오.
+디버거 명령을 입력하십시오
 .
 :ADD
 추가
@@ -260,7 +260,7 @@ IDE 위치
 
 .
 :PROGRAM_CONFIG_NOCONFIGFILE
-Config 파일이 불러오지 못했습니다!
+Config 파일을 불러오지 못했습니다!
 
 .
 :PROGRAM_CONFIG_PRIMARY_CONF
@@ -311,10 +311,10 @@ DOSBox-X 명령줄 구성 유틸리티 구성 가능한 선택사항:
 -ln (or -langname) : 언어 이름을 표시 (매개 변수가없는 경우) 또는 지정합니다.
 -wcp [파일 이름] : 프로그램 디렉토리에 내보내기 (dosbox-x.conf / 파일 이름)
 -wcd: 설정 디렉토리에 기본 설정 파일을 내보냅니다.
--all, -mod -wc/-wcp/-wcd 와 조합해, 모두/변경된 선택사항을 써낸다.
+-all, -mod -wc, -wcp, -wcd와 함께 쓰면, 모두 또는 수정된 선택사항만 씁니다.
 -wcboot, -wcpboot, -wcdboot: 파일 내보내기 후 DOSBox-X를 다시 시작합니다.
 -bootconf (or -bc) : 지정된 설정 파일 (또는 primary loaded file)을 사용하여 다시 시작
--norem -wc,-wcp,-wcd 와 조합해, 선택사항의 코멘트를 써내지 않는다.
+-norem -wc,-wcp,-wcd 와 함께 쓰면, 구성 선택사항의 주석을 작성하지 않습니다.
 -l DOSBox-X 의 구성 매개 변수 목록을 표시합니다.
 -h, -help, -?: 이 도움말을 표시합니다. "sections"를 추가하면 섹션 목록입니다.
 -h, -help, -?: 섹션/속성 지정된 섹션, 속성 정보를 표시합니다.
@@ -471,15 +471,15 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_IMGMOUNT_STATUS_NONE
-탑재된 드라이브가 없습니다.
+탑재된 드라이브가 없음
 
 .
 :PROGRAM_IMGSWAP_STATUS
-현재 교체 가능한 드라이브는 다음과 같습니다.
+현재 교체 가능한 드라이브는 다음과 같습니다:
 
 .
 :PROGRAM_IMGSWAP_ERROR
-이 드라이브의 위치는 1-%d이어야 합니다.
+이 드라이브의 위치는 1 ~ %d 사이 이어야 합니다.
 
 .
 :PROGRAM_MOUNT_ERROR_1
@@ -511,20 +511,20 @@ MOUSE [/?] [/U] [/V]
  -t               탑재할 드라이브 유형을 지정합니다.
                   구성 가능한 유형: dir, floppy, cdrom, overlay
  ( 'overlay'를 지정하면 탑재된 드라이브에 쓰기를 다른 디렉토리로 리디렉션됨)
- -label [이름]     드라이브의 볼륨 레이블(모두 대문자).
+ -label [이름]    드라이브의 볼륨 레이블(모두 대문자).
  -nl              드라이브가 탑재된 경우 다음 드라이브를 사용하십시오.
  -ro              드라이브를 쓰기 금지로 탑재합니다.
  -pr              경로가 설정 파일의 위치로부터의 상대 위치라고 가정합니다.
  -cd              호스트 시스템 CD 드라이브의 "drive #"값 목록을 표시합니다.
  -usecd [드라이브 #] 오디오 재생같은 직접 굳은모 에뮬레이션시 지정합니다.
- -ioctl 가장 낮은 수준의 하드웨어 액세스 사용 (-usecd 다음에 지정)
- -aspi 설치된 ASPI 레이어 사용(-usecd 뒤에 지정)
+ -ioctl           가장 낮은 수준의 하드웨어 액세스 사용 (-usecd 다음에 지정)
+ -aspi            설치된 ASPI 레이어 사용(-usecd 뒤에 지정)
  -freesize [size] 드라이브의 공용량을 MB(플로피일 때는 KB)로 지정.
- -nocachedir 실시간 업데이트를 활성화하고 드라이브를 캐시하지 않습니다.
- -z drive 가상 드라이브 Z: 의 드라이브 문자를 다른 문자로 변경.
- -o 드라이브의 local, remote 유형을 표시합니다.
- -q 표시를 억제합니다 (메시지 숨김).
- -u 드라이브의 탑재를 해제합니다.
+ -nocachedir      실시간 업데이트를 활성화하고 드라이브를 캐시하지 않습니다.
+ -z drive         가상 드라이브 Z: 의 드라이브 문자를 다른 문자로 변경.
+ -o               드라이브의 local, remote 유형을 표시합니다.
+ -q               표시를 억제합니다 (메시지 숨김).
+ -u               드라이브의 탑재를 해제합니다.
  [32;1m-examples        사용 예 보기[0m
 탑재된 드라이브 목록을 보려면 선택사항 없이 MOUNT를 입력합니다.
 .
@@ -548,7 +548,7 @@ MOUNT의 다른 사용 예 :
 [32;1mMOUNT c %s -label TEST[0m   - C: 드라이브를 볼륨 딱지 TEST로 탑재
 [32;1mMOUNT c %s -nocachedir [0m  - C: 드라이브를 캐시 무효로 탑재
 [32;1mMOUNT c %s -freesize 128[0m - C: 드라이브 공간 128MB 확보 및 탑재
-[32;1mMOUNT c %s -u[0m            - C: 드라이브가 이미 탑재되어 있어도 강제 탑재
+[32;1mMOUNT c %s -u[0m            - C: 드라이브가 이미 탑재되어 있어도 강제탑재
 [32;1mMOUNT c %s -t overlay[0m  - C: 위에 오버레이 디렉토리 포함을 탑재
 [32;1mMOUNT c -u[0m                        - C: 드라이브 탑재 해제
 
@@ -686,7 +686,7 @@ MSCDEX: 오류: 알 수 없는 오류.
 .
 :PROGRAM_INTRO
 [2J[32;1mDOSBox-X에 오신 것을 환영합니다[0m, 
-소리 및 그래픽을 지원하는 오픈 소스 x86 에뮬레이터입니다. 
+이것은 소리 및 그래픽을 지원하는 오픈 소스 x86 에뮬레이터입니다. 
 DOSBox-X는 DOS처럼 보이는 쉘을 만듭니다.
 
 [31;1mDOSBox-X는 오류가 발생하면 경고 없이 중지/종료됩니다![0m
@@ -1095,9 +1095,9 @@ PhysFS 드라이브를 만들 수 없습니다.
  -t hdd|floppy|ram   하드 디스크|플로피|렘 드라이브 이미지 형식
  -fs iso             ISO 9660 파일 시스템 (.iso/.cue일 때, 자동 지정)
  -fs fat             FAT 파일 시스템 (FAT12, FAT16, FAT32)
- -fs none            파일 시스템을 검출하지 않는다 (드라이브 번호 지정시, 자동 지정)
+ -fs none            파일 시스템을 감지안함 (드라이브 번호 지정시, 자동 지정)
  -reservecyl #       BIOS에 실린더 수를 실제보다 # 작은 숫자로 인식시킨다
- -ide controller     드라이브를 탑재하는 IDE 컨트롤러 (1m, 1s, 2m, 2s)를 지정합니다.
+ -ide controller     드라이브를 탑재하는 IDE 컨트롤러 (1m, 1s, 2m, 2s) 를 지정합니다.
  -size size|ss,s,h,c 크기를 KB or 섹터 크기 or CHS 지오메트리로 지정
  -bootcd cdDrive     부팅 플로피를 읽을 CD 드라이브 지정
  -o partidx=#        탑재할 하드 디스크의 파티션 번호를 지정합니다.
@@ -1108,7 +1108,7 @@ PhysFS 드라이브를 만들 수 없습니다.
 :PROGRAM_IMGMOUNT_EXAMPLE
 IMGMOUNT 사용 예 :
 
-  [32;1mIMGMOUNT[0m - 탑재된 FAT/ISO 드라이브 및 드라이브 번호
+  [32;1mIMGMOUNT[0m                        탑재된 FAT/ISO 드라이브 및 드라이브 번호
                                   호의 일람 표시
   [32;1mIMGMOUNT C[0m - HDD 이미지 [33;1mIMGMAKE.IMG[0m ~ C: 드라이브
                                   탑재
@@ -1281,7 +1281,7 @@ IMGMAKE의 몇 가지 사용 예:
  볼륨 일련 번호는
 .
 :SHELL_CMD_VOL_SERIAL_NOLABEL
-볼륨 딱지가 없습니다.
+볼륨 딱지가 없습니다
 
 .
 :SHELL_CMD_VOL_SERIAL_LABEL
@@ -1605,7 +1605,7 @@ DOSBox-X에오신것을환영합니다 !
 .
 :SHELL_STARTUP_TEXT3_PC98
 [32mDOSBox-X 프로젝트 [33mhttps://dosbox-x.com/     [36m완전한 DOS 에뮬레이션[37m
-[32mDOSBox-X 안내     [33mhttps://dosbox-x.com/wiki[37m [36mDOS,윈도우즈 3.x 및 9x[37m
+[32mDOSBox-X 안내     [33mhttps://dosbox-x.com/wiki[37m [36mDOS,윈도우즈 3.x, 9x[37m
 [32mDOSBox-X 지원     [33mhttps://github.com/joncampbell123/dosbox-x/issues[37m
 .
 :SHELL_STARTUP_HEAD1
@@ -1622,7 +1622,7 @@ DOSBox-X에오신것을환영합니다 !
 [36m유용한 기본 단축키:                                                         [37m
 .
 :SHELL_STARTUP_TEXT2
-- 키 조합으로 창 모드와 전체 화면 모드간 전환 [31mF11[37m + [31mF[37m                       [37m
+- 키 조합으로 창 모드와 전체 화면 모드간 바꿈 [31mF11 [37m+ [31mF [37m                      [37m
 - [33m구성 도구[37m를 시작 [31mF11 [37m+ [31mC[37m[37m, [33m매퍼 편집기[37m를 시작 [31mF11 [37m+ [31mM[37m                      [37m
 - 에뮬레이션 속도 조정 [31mF11 [37m+ [31m플러스[37m[37m 또는 [31mF11 [37m+ [31m마이너스[37m                     [37m
 .
@@ -1630,16 +1630,16 @@ DOSBox-X에오신것을환영합니다 !
 [32mDOS/V 모드[37m가 실행 되고 있음. 일반 DOS 환경에는 [32mTTF CJK 모드[37m를 사용하십시오. 
 .
 :SHELL_STARTUP_CGA
-컴포지트 CGA 모드 [31mCtrl+F8[37m에서 컴포지트 출력 ON/OFF를 바꿉니다.
-[31mCtrl+Shift+[F7/F8][37m에서 색상을 바꿉니다. [31mCtrl+F7[37m early/late CGA 모델을 바꿉니다.
+복합CGA모드가 지원됩니다. [31mCtrl+F8[37m을 사용하여 복합 출력 ON/OFF를 설정합니다. 
+[31mCtrl+Shift+[F7/F8][37m에서 색상을 바꿉니다. [31mCtrl+F7[37m 이른/늦은CGA모델을 바꿉니다.
 .
 :SHELL_STARTUP_CGA_MONO
-[31mCtrl + F7[37m에서 색상을 녹색, 호박색, 흑백으로 바꾸고,
-[31mCtrl+F8[37m 에서 대비 및 밝기를 설정합니다.
+[31mCtrl+F7[37m에서 색상을 녹색, 호박색, 흑백으로 바꾸고,                           
+[31mCtrl+F8[37m에서 대비 및 밝기를 설정합니다.                                      
 .
 :SHELL_STARTUP_HERC
-[31mCtrl+F7[37m에서 색상을 녹색, 호박색, 흑백으로 바꿉니다.
-Use [31mCtrl+F8[37m to toggle horizontal blending (only in graphics mode).          
+[31mCtrl+F7[37m에서 색상을 녹색, 호박색, 흑백으로 바꿉니다.                         
+[31mCtrl+F8[37m에서 수평 혼합을 전환합니다 (그래픽 모드에서만).                     
 .
 :SHELL_STARTUP_HEAD3
 [36m웹에 있는 DOSBox-X 프로젝트                                                 [37m
@@ -1938,8 +1938,8 @@ COPY [/Y | /-Y] source [+source [+ ...]] [destination]
   /-Y           복사 대상에 같은 이름의 파일이 있으면 덮어 쓸 것인지
                 확인 메시지를 표시합니다.
 
-스위치 /Y 는 경 변수 COPYCMD 에 미리 설정해 둘 수가 있습니다.
-이 스위치는 명령행에서 /-Y를 지정하여 비활성화할 수 있습니다.
+스위치 /Y 는 환경 변수 COPYCMD 에 미리 설정해 둘 수가 있습니다.
+이 스위치는 명령줄에서 /-Y를 지정하여 비활성화할 수 있습니다.
 
 파일을 병합하려면 대상에 단일 파일 이름을 지정하고 소스에
 여러 파일을 지정합니다. (와일드 카드 또는 파일1 + 파일2 + 파일3 지정)
@@ -1994,6 +1994,7 @@ CHOICE [/C:choices] [/N] [/S] text
   text         프롬프트에 표시할 글자
 
 ERRORLEVEL은 사용자가 선택 항목에서 누르는 키의 위치로 설정됩니다.
+
 .
 :SHELL_CMD_ATTRIB_HELP
 파일의 속성을 표시 및 변경합니다.
@@ -2218,8 +2219,7 @@ TRUENAME [/H] 파일
 :SHELL_CMD_DXCAPTURE_HELP_LONG
 DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]
 
-비디오 및 오디오 갈무리를 시작한 후 프로그램을 실행하고 프로그램 종료시 갈무리도 종료됩니다. 
-* ???비디오 -> 영상 오디오 -> 음성??
+영상과 소리 갈무리를 시작한 후 프로그램을 실행하고 프로그램 종료시 갈무리도 종료됩니다. 
 
 .
 :SHELL_CMD_DEBUGBOX_HELP
@@ -2232,15 +2232,15 @@ DEBUGBOX [command] [options]
 매개 변수없이 DEBUGBOX를 입력하면 디버거가 시작됩니다.
 
 .
-:SHELL_CMD_COMMAND_HELP --- 셸 -> 쉘
-DOSBox-X 명령 셸 시작
+:SHELL_CMD_COMMAND_HELP
+DOSBox-X 명령 쉘을 시작합니다.
 
 다음 선택사항을 사용할 수 있습니다.
 
-  /C    지정한 명령을 실행하여 셸을 종료합니다.
-  /K    지정한 명령을 실행하고 셸을 종료하지 않습니다.
-  /P    명령 셸을 시작하고 상주합니다. 
-  /INIT 명령 셸을 초기화합니다.
+  /C    지정한 명령을 실행하여 쉘을 종료합니다.
+  /K    지정한 명령을 실행하고 쉘을 종료하지 않습니다.
+  /P    명령 쉘을 시작하고 상주합니다.
+  /INIT 명령 쉘을 초기화합니다.
 
 .
 :MENU:mapper_reset
@@ -2304,13 +2304,13 @@ TTF 글꼴 크기: 확대
 TTF 글꼴 크기: 축소
 .
 :MENU:mapper_dbcssbcs
-CJK: DBCS/SBCS 모드 전환
+CJK: DBCS/SBCS 모드를 켜기/끄기
 .
 :MENU:mapper_autoboxdraw
-CJK: 테두리 문자 자동 감지
+CJK: 테두리 문자를 자동 감지
 .
 :MENU:mapper_resetcolor
-TTF 색 구성표 재설정
+TTF 색 구성표를 다시 설정
 .
 :MENU:mapper_pwrbutton
 APM 전원 단추
@@ -2570,6 +2570,9 @@ xBRZ
 :MENU:scaler_set_xbrz_bilinear
 xBRZ 이선형
 .
+:MENU:set_transparency
+투명도 설정...
+.
 :MENU:refresh_rate
 새로 고침 속도 ...
 .
@@ -2667,28 +2670,28 @@ TrueType 글꼴
 강조: 글자 깜박임
 .
 :MENU:line_80x25
-스크린: 80 칸 x 25 줄
+화면: 80 칸 x 25 줄
 .
 :MENU:line_80x43
-스크린: 80 칸 x 43 줄
+화면: 80 칸 x 43 줄
 .
 :MENU:line_80x50
-스크린: 80 칸 x 50 줄
+화면: 80 칸 x 50 줄
 .
 :MENU:line_80x60
-스크린: 80 칸 x 60 줄
+화면: 80 칸 x 60 줄
 .
 :MENU:line_132x25
-스크린: 132 칸 x 25 줄
+화면: 132 칸 x 25 줄
 .
 :MENU:line_132x43
-스크린: 132 칸 x 43 줄
+화면: 132 칸 x 43 줄
 .
 :MENU:line_132x50
-스크린: 132 칸 x 50 줄
+화면: 132 칸 x 50 줄
 .
 :MENU:line_132x60
-스크린: 132 칸 x 60 줄
+화면: 132 칸 x 60 줄
 .
 :MENU:VideoTTFMenu
 TTF 선택사항
@@ -2730,10 +2733,10 @@ TTF로 커서 깜박임 표시
 현재 TTF 글꼴을 인쇄하는 데 사용
 .
 :MENU:ttf_halfwidthkana
-CJK : 일본어 반각 가나 문자 사용
+CJK : 일본어 반각 카타카나 문자를 사용
 .
 :MENU:ttf_extcharset
-CJK: 확장 한자 세트 사용
+CJK: 확장 한자 집합을 사용 설정
 .
 :MENU:VideoPC98Menu
 PC-98 선택사항
@@ -3030,22 +3033,22 @@ DOSBox-X 지원
 DOSBox-X 정보
 .
 :MENU:show_console
-로그용 콘솔을 표시
+수행 기록용 콘솔을 표시
 .
 :MENU:disable_logging
-로깅 출력을 사용 안함
+수행 기록 출력을 사용 안함
 .
 :MENU:wait_on_error
-오류시 콘솔 중지
+오류시 콘솔을 중지
 .
 :MENU:show_codetext
 코드 개요를 표시
 .
 :MENU:show_logtext
-로그 글자를 표시
+수행 기록 글자를 표시
 .
 :MENU:save_logas
-다른 이름으로 로그 저장...
+다른 이름으로 수행 기록을 저장...
 .
 :MENU:debugger_rundebug
 디버거 선택사항: 디버거 실행
@@ -3063,7 +3066,7 @@ DOS 명령
 디버그
 .
 :MENU:HelpDebugMenu
-수행기록 콘솔
+수행 기록 콘솔
 .
 :MENU:debug_blankrefreshtest
 새로 고침 테스트 (빈 화면)
@@ -3435,7 +3438,7 @@ CPU:표준 코어
 클립보드 정지
 .
 :MAPPER:pauseints
-일시 정지 인터럽트 유효
+인터럽트로 일시 중지
 .
 :MAPPER:prevslot
 이전 저장 슬롯
@@ -3446,11 +3449,11 @@ CPU:표준 코어
 :MAPPER:quickrun
 빠른 시작
 .
-:MAPPER:recmtwave
-M.T. AVI 형식으로 저장
-.
 :MAPPER:reboot
 DOS 시스템을 다시 부팅
+.
+:MAPPER:recmtwave
+M.T. AVI 형식으로 저장
 .
 :MAPPER:recvoldown
 녹음 수준: 아래
@@ -3462,7 +3465,7 @@ DOS 시스템을 다시 부팅
 드라이브 다시 검사
 .
 :MAPPER:reset
-DOSBox-X 다시 부팅
+DOSBox-X를 다시 부팅
 .
 :MAPPER:resetcolor
 색 구성표를 다시 설정

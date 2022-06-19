@@ -2542,6 +2542,9 @@ xBRZ
 :MENU:scaler_set_xbrz_bilinear
 xBRZ Bilinear
 .
+:MENU:set_transparency
+設定透明度...
+.
 :MENU:refresh_rate
 調整更新率...
 .

@@ -2570,6 +2570,9 @@ xBRZ
 :MENU:scaler_set_xbrz_bilinear
 xBRZ İkidoğrulu
 .
+:MENU:set_transparency
+Şeffaflığı ayarla...
+.
 :MENU:refresh_rate
 Yenileme oranı...
 .

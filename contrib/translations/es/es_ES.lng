@@ -2574,6 +2574,9 @@ xBRZ
 :MENU:scaler_set_xbrz_bilinear
 xBRZ Bilineal
 .
+:MENU:set_transparency
+Establecer transparencia...
+.
 :MENU:refresh_rate
 Tasa de refresco...
 .

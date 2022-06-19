@@ -2569,6 +2569,9 @@ xBRZ
 :MENU:scaler_set_xbrz_bilinear
 xBRZ Bilinear
 .
+:MENU:set_transparency
+Set transparency...
+.
 :MENU:refresh_rate
 Refresh rate...
 .
