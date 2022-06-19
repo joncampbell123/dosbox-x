@@ -4473,7 +4473,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                         Bitu foreground = (vga.draw.blink || (!(attr&0x80))) ? (attr&0xf) : background;
                         // How about underline?
                         (*draw).fg = foreground;
-                        (*draw).bg = background;
+                        (*draw).bg = machine == MCH_MDA || machine == MCH_HERC ? 0 : background;
                         draw++;
                         drawc++;
                     }

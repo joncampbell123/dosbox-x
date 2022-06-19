@@ -1924,6 +1924,13 @@ bool refresh_rate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
     return true;
 }
 
+bool set_transparency_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    GUI_Shortcut(21);
+    return true;
+}
+
 bool output_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
 
@@ -2212,14 +2219,14 @@ bool save_logas_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
 bool show_logtext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    GUI_Shortcut(21);
+    GUI_Shortcut(43);
     return true;
 }
 
 bool show_codetext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    GUI_Shortcut(22);
+    GUI_Shortcut(44);
     return true;
 }
 
@@ -2952,6 +2959,9 @@ void AllocCallback1() {
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,name).set_text(scaler_menu_opts[i][1]).
                         set_callback_function(scaler_set_menu_callback);
                 }
+
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"set_transparency").set_text("Set transparency...").
+                    set_callback_function(set_transparency_menu_callback);
 
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refresh_rate").set_text("Refresh rate...").
                     set_callback_function(refresh_rate_menu_callback);

@@ -522,6 +522,9 @@ static const char *def_menu_video[] =
     "doublebuf",
 #endif
     "--",
+#if !(defined(MACOSX) && !defined(C_SDL2))
+	"set_transparency",
+#endif
     "refresh_rate",
     "mapper_fscaler",
     "VideoScalerMenu",

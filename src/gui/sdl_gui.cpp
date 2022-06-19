@@ -139,7 +139,7 @@ GUI::Checkbox *advopt, *saveall, *imgfd360, *imgfd400, *imgfd720, *imgfd1200, *i
 std::string GetDOSBoxXPath(bool withexe);
 static std::map< std::vector<GUI::Char>, GUI::ToplevelWindow* > cfg_windows_active;
 void getlogtext(std::string &str), getcodetext(std::string &text), ApplySetting(std::string pvar, std::string inputline, bool quiet), GUI_Run(bool pressed);
-void ttf_switch_on(bool ss=true), ttf_switch_off(bool ss=true), setAspectRatio(Section_prop * section), GFX_ForceRedrawScreen(void);
+void ttf_switch_on(bool ss=true), ttf_switch_off(bool ss=true), setAspectRatio(Section_prop * section), GFX_ForceRedrawScreen(void), SetWindowTransparency(int trans);
 bool CheckQuit(void), OpenGL_using(void);
 char tmp1[CROSS_LEN*2], tmp2[CROSS_LEN];
 const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ", "
@@ -2267,6 +2267,37 @@ public:
     }
 };
 
+class SetTransparency : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *name;
+	Section_prop * sec;
+public:
+    SetTransparency(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 410, 140, title) {
+			sec = static_cast<Section_prop *>(control->GetSection("sdl"));
+            new GUI::Label(this, 5, 10, "Enter transparency (0-90):");
+            name = new GUI::Input(this, 5, 30, 390);
+			std::ostringstream str;
+			str << sec->Get_int("transparency");
+			std::string transtr=str.str();
+            name->setText(transtr.c_str());
+            (new GUI::Button(this, 100, 70, MSG_Get("OK"), 90))->addActionHandler(this);
+            (new GUI::Button(this, 200, 70, MSG_Get("CANCEL"), 90))->addActionHandler(this);
+            move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == MSG_Get("OK")) {
+            SetVal("sdl", "transparency", name->getText());
+			sec = static_cast<Section_prop *>(control->GetSection("sdl"));
+            SetWindowTransparency(sec->Get_int("transparency"));
+        }
+        close();
+        if (shortcut) running = false;
+    }
+};
+
 class ShowMixerInfo : public GUI::ToplevelWindow {
 protected:
     GUI::Input *name;
@@ -3276,16 +3307,12 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             auto *np4 = new SetAspectRatio(screen, 90, 100, "Set aspect ratio...");
             np4->raise();
             } break;
-#if C_DEBUG
         case 21: {
-            npwin = new LogWindow(screen, 70, 70);
-            npwin->raise();
+            auto *np4 = new SetTransparency(screen, 90, 100, "Set transparency...");
+            np4->raise();
             } break;
         case 22: {
-            npwin = new CodeWindow(screen, 70, 70);
-            npwin->raise();
             } break;
-#endif
         case 23: {
             auto *np7 = new ShowLoadWarning(screen, 150, 120, "DOSBox-X version mismatch. Load the state anyway?");
             np7->raise();
@@ -3355,17 +3382,27 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             np15->raise();
             } break;
         case 40: {
-            auto *np5 = new ShowMixerInfo(screen, 90, 70, MSG_Get("CURRENT_VOLUME"));
-            np5->raise();
+            auto *np16 = new ShowMixerInfo(screen, 90, 70, MSG_Get("CURRENT_VOLUME"));
+            np16->raise();
             } break;
         case 41: {
-            auto *np6 = new ShowSBInfo(screen, 150, 100, MSG_Get("CURRENT_SBCONFIG"));
-            np6->raise();
+            auto *np16 = new ShowSBInfo(screen, 150, 100, MSG_Get("CURRENT_SBCONFIG"));
+            np16->raise();
             } break;
         case 42: {
-            auto *np6 = new ShowMidiDevice(screen, 150, 100, MSG_Get("CURRENT_MIDICONFIG"));
-            np6->raise();
+            auto *np16 = new ShowMidiDevice(screen, 150, 100, MSG_Get("CURRENT_MIDICONFIG"));
+            np16->raise();
             } break;
+#if C_DEBUG
+        case 43: {
+            npwin = new LogWindow(screen, 70, 70);
+            npwin->raise();
+            } break;
+        case 44: {
+            npwin = new CodeWindow(screen, 70, 70);
+            npwin->raise();
+            } break;
+#endif
         default:
             break;
     }
