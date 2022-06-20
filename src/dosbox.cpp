@@ -2765,7 +2765,9 @@ void DOSBOX_SetupConfigSections(void) {
             "Please note at this time that 32-bit APM is unstable under Windows ME.");
 
     Pbool = secprop->Add_bool("integration device",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("Enable DOSBox-X integration I/O device. This can be used by the guest OS to match mouse pointer position, for example. EXPERIMENTAL!");
+    Pbool->Set_help("Enable DOSBox-X's integration I/O device, a way for additional software to talk to DOSBox-X. It is currently experimental.\n"
+	    "This can for example be used to return the DOSBox-X version number and by the guest OS to match mouse pointer position.");
+    Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("integration device pnp",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("List DOSBox-X integration I/O device as part of ISA PnP enumeration. This has no purpose yet.");
