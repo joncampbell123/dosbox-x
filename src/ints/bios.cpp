@@ -341,7 +341,18 @@ static unsigned char dosbox_int_regsel_shf = 0;
 static uint32_t dosbox_int_regsel = 0;
 static bool dosbox_int_error = false;
 static bool dosbox_int_busy = false;
-static const char *dosbox_int_version = "DOSBox-X integration device v1.0";
+
+#define STRINGIZE_HELPER(A) #A
+#define STRINGIZE(A) STRINGIZE_HELPER(A)
+#define PPCAT_HELPER(A, B, C) A ## . ## B ## . ## C
+#define PPCAT(A, B, C) PPCAT_HELPER(A, B, C)
+
+#define INTDEV_VERSION_BUMP 2
+#define INTDEV_VERSION_MAJOR 1
+#define INTDEV_VERSION_MINOR 0
+#define INTDEV_VERSION_SUB 1
+
+static const char *dosbox_int_version = "DOSBox-X integration device v" STRINGIZE(PPCAT(INTDEV_VERSION_MAJOR, INTDEV_VERSION_MINOR, INTDEV_VERSION_SUB));
 static const char *dosbox_int_ver_read = NULL;
 
 struct dosbox_int_saved_state {
@@ -407,6 +418,7 @@ extern int user_cursor_sw,user_cursor_sh;
 extern int master_cascade_irq,bootdrive;
 extern bool enable_slave_pic;
 extern bool bootguest, use_quick_reboot;
+extern uint16_t countryNo;
 bool bootvm = false, bootfast = false;
 static std::string dosbox_int_debug_out;
 
@@ -452,10 +464,87 @@ void dosbox_integration_trigger_read() {
             }
             break;
         case 3: /* version number */
-            dosbox_int_register = (0x01U/*major*/) + (0x00U/*minor*/ << 8U) + (0x00U/*subver*/ << 16U) + (0x01U/*bump*/ << 24U);
+            dosbox_int_register = (INTDEV_VERSION_MAJOR) + (INTDEV_VERSION_MINOR << 8U) + (INTDEV_VERSION_SUB << 16U) + (INTDEV_VERSION_BUMP << 24U);
             break;
         case 4: /* current emulator time as 16.16 fixed point */
             dosbox_int_register = (uint32_t)(PIC_FullIndex() * 0x10000);
+            break;
+        case 5: // DOSBox-X version number major (e.g. 0)
+        {
+            const char * ver = strchr(VERSION, '.');
+            dosbox_int_register = ver == NULL ? 0 : atoi(std::string(ver).substr(0, strlen(ver) - strlen(VERSION)).c_str());
+            break;
+        }
+        case 6: // DOSBox-X version number minor (e.g. 84)
+        {
+            const char * ver = strchr(VERSION, '.');
+            dosbox_int_register = ver == NULL ? 0 : atoi(ver + 1);
+            break;
+        }
+        case 7: // DOSBox-X version number sub (e.g. 1)
+        {
+            const char * ver = strchr(VERSION, '.');
+            ver = strchr(ver + 1, '.');
+            dosbox_int_register = ver == NULL ? 0 : atoi(ver + 1);
+            break;
+        }
+        case 8: // DOSBox-X platform type
+            dosbox_int_register = 0;
+#if defined(HX_DOS)
+            dosbox_int_register = 4;
+#elif defined(WIN32)
+            dosbox_int_register = 1;
+#elif defined(LINUX)
+            dosbox_int_register = 2;
+#elif defined(MACOSX)
+            dosbox_int_register = 3;
+#elif defined(OS2)
+            dosbox_int_register = 5;
+#else
+            dosbox_int_register = 0;
+#endif
+            if (control->opt_securemode || control->SecureMode()) dosbox_int_register = 0;
+#if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_IA64) || defined(__ia64__) || defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__) || defined(__powerpc64__)
+            dosbox_int_register += 0x20; // 64-bit
+#else
+            dosbox_int_register += 0x10; // 32-bit
+#endif
+#if defined(C_SDL2)
+            dosbox_int_register += 0x200; // SDL2
+#elif defined(SDL_DOSBOX_X_SPECIAL)
+            dosbox_int_register += 0x100; // SDL1 (modified)
+#endif
+            break;
+        case 9: // DOSBox-X machine type
+            dosbox_int_register = machine;
+            break;
+
+        case 0x4B6F4400: // DOS kernel status
+            dosbox_int_register = dos_kernel_disabled ? 0: 1;
+            break;
+        case 0x4B6F4401: // DOS codepage number
+            dosbox_int_register = dos_kernel_disabled ? 0: dos.loaded_codepage;
+            break;
+        case 0x4B6F4402: // DOS country number
+            dosbox_int_register = dos_kernel_disabled ? 0: countryNo;
+            break;
+        case 0x4B6F4403: // DOS version major
+            dosbox_int_register = dos_kernel_disabled ? 0: dos.version.major;
+            break;
+        case 0x4B6F4404: // DOS version minor
+            dosbox_int_register = dos_kernel_disabled ? 0: dos.version.minor;
+            break;
+        case 0x4B6F4405: // DOS error code
+            dosbox_int_register = dos_kernel_disabled ? 0 : dos.errorcode;
+            break;
+        case 0x4B6F4406: // DOS boot drive
+            dosbox_int_register = bootdrive;
+            break;
+        case 0x4B6F4407: // DOS current drive
+            dosbox_int_register = dos_kernel_disabled ? 0 : DOS_GetDefaultDrive();
+            break;
+        case 0x4B6F4408: // DOS LFN status
+            dosbox_int_register = dos_kernel_disabled || !uselfn ? 0: 1;
             break;
 
         case 0x5158494D: /* query mixer output 'MIXQ' */
@@ -4961,7 +5050,6 @@ static Bitu INTGEN_PC98_Handler(void) {
  * CL = major function call number
  * AH = minor function call number
  * DX = data?? */
-extern bool dos_kernel_disabled;
 
 void PC98_INTDC_WriteChar(unsigned char b);
 
@@ -4998,8 +5086,6 @@ void INTDC_STORE_EDITDEC(const Bitu ofs,const pc98_func_key_shortcut_def &def) {
 bool inhibited_ControlFn(void) {
     return real_readb(0x60,0x10C) & 0x01;
 }
-
-extern bool dos_kernel_disabled;
 
 static const char *fneditkeys[11] = {
     "ROLLUP",

@@ -1609,6 +1609,7 @@ void CONFIG::Run(void) {
                             first_shell->SetEnv("CONFIG",std::to_string(rect.bottom-rect.top).c_str());
 #endif
                         } else if (!strcasecmp(pvars[0].c_str(), "hostos")) {
+                            if (securemode_check()) return;
                             const char *hostos =
 #if defined(HX_DOS)
                             "DOS"
