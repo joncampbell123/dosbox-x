@@ -2797,7 +2797,7 @@ public:
                 char const * lTheSaveFileName = tinyfd_saveFileDialog("Select a disk image file","IMGMAKE.IMG",2,lFilterPatterns,lFilterDescription);
 #endif
                 if (lTheSaveFileName!=NULL) {
-                    temp="-force -t "+temp+" "+std::string(lTheSaveFileName);
+                    temp="-force -t "+temp+" \""+std::string(lTheSaveFileName)+"\"";
                     void runImgmake(const char *str);
                     runImgmake(temp.c_str());
                     if (!dos_kernel_disabled) {

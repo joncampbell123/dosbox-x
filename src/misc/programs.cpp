@@ -1608,6 +1608,12 @@ void CONFIG::Run(void) {
                             WriteOut("%d\n",rect.bottom-rect.top);
                             first_shell->SetEnv("CONFIG",std::to_string(rect.bottom-rect.top).c_str());
 #endif
+                        } else if (!strcasecmp(pvars[0].c_str(), "system")) {
+                            WriteOut("%s\n",PACKAGE);
+                            first_shell->SetEnv("CONFIG",PACKAGE);
+                        } else if (!strcasecmp(pvars[0].c_str(), "version")) {
+                            WriteOut("%s\n",VERSION);
+                            first_shell->SetEnv("CONFIG",VERSION);
                         } else if (!strcasecmp(pvars[0].c_str(), "hostos")) {
                             if (securemode_check()) return;
                             const char *hostos =
