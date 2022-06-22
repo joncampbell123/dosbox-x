@@ -5243,15 +5243,14 @@ private:
                 else {
                     // convert dosbox-x filename to system filename
                     uint8_t dummy;
-                    if (!DOS_MakeName(tmp, fullname, &dummy) || strncmp(Drives[dummy]->GetInfo(), "local directory", 15)) {
-                        temp_line = tmp;
-                        int res = get_expanded_files(temp_line, paths, readonly);
-                        if (res) {
-                            num += res - 1;
-                            temp_line = paths[0];
-                            continue;
-                        } else if (!qmount)
-                            WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE"));
+                    temp_line = tmp;
+                    int res = get_expanded_files(temp_line, paths, readonly);
+                    if (res) {
+                        num += res - 1;
+                        temp_line = paths[0];
+                        continue;
+                    } else if ((!DOS_MakeName(tmp, fullname, &dummy) || strncmp(Drives[dummy]->GetInfo(), "local directory", 15)) && !qmount) {
+                        WriteOut(MSG_Get(usedef?"PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND":"PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE"));
                         return false;
                     }
 
@@ -5261,7 +5260,7 @@ private:
                         return false;
                     }
                     ldp->GetSystemFilename(readonly?tmp+1:tmp, fullname);
-					if (readonly) tmp[0]=':';
+                    if (readonly) tmp[0]=':';
                     commandLine = tmp;
 
                     if (pref_stat(readonly?tmp+1:tmp, &test)) {

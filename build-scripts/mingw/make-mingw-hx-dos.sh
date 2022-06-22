@@ -42,7 +42,7 @@ top=`pwd`
 cd "$top" || exit 1
 
 hxdosdir="dosbox-x-mingw-hx-dos"
-ziptool="$top/$hxdosdir/vs/tool/zip.exe"
+tooldir="$top/$hxdosdir/vs/tool"
 
 cd "$top/$hxdosdir" || exit 1
 git clean -dfx
@@ -62,6 +62,7 @@ hxdir="build-scripts/mingw/hxdos"
 strip src/dosbox-x.exe || exit 1
 cp src/dosbox-x.exe dosbox-x.exe || exit 1
 $hxdir/pestub.exe -n dosbox-x.exe
+$tooldir/upx.exe --lzma -9 dosbox-x.exe
 cp CHANGELOG CHANGELOG.txt || exit 1
 cp dosbox-x.reference.conf dosbox-x.ref || exit 1
 cp dosbox-x.reference.full.conf dosbox-x.ref.full || exit 1
@@ -75,7 +76,7 @@ cp $hxdir/*.DLL . || exit 1
 cd "$top/$hxdosdir" || exit 1
 echo "Packing up now..."
 
-$ziptool -r -9 ../"$name" {CHANGELOG.txt,dosbox-x.exe,dosbox-x.ref,dosbox-x.ref.full,DPMILD32.EXE,HDPMI32.EXE,HXGUIHLP.INI,README.TXT,WINSPOOL.DRV,*.DLL} || exit 1
+$tooldir/zip.exe -r -9 ../"$name" {CHANGELOG.txt,dosbox-x.exe,dosbox-x.ref,dosbox-x.ref.full,DPMILD32.EXE,HDPMI32.EXE,HXGUIHLP.INI,README.TXT,WINSPOOL.DRV,*.DLL} || exit 1
 cd ..
 
 exit 0
