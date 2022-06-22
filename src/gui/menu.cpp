@@ -147,11 +147,13 @@ static const char *def_menu_main[] =
     "auto_lock_mouse",
     "WheelToArrow",
     "--",
+#if !(defined(MACOSX) && defined(C_SDL2) && !SDL_VERSION_ATLEAST(2, 0, 16))
+    "alwaysontop",
+#endif
 #if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
     "mapper_pause",
     "mapper_pauseints",
 #endif
-    "showdetails",
 #if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
     "--",
     "mapper_reset",
@@ -380,6 +382,9 @@ static const char *def_menu_video_output[] =
 #endif
     "--",
     "doublescan",
+#if !defined(C_SDL2)
+    "doublebuf",
+#endif
     NULL
 };
 
@@ -509,23 +514,20 @@ static const char *def_menu_video[] =
     "mapper_resetsize",
 #endif
     "--",
-#if !defined(HX_DOS) && (defined(LINUX) || !defined(C_SDL2))
-    "alwaysontop",
+#if !defined(HX_DOS)
+    "mapper_fullscr",
 #endif
 #ifndef MACOSX
     "mapper_togmenu",
 #endif
-#if !defined(HX_DOS)
-    "mapper_fullscr",
-#endif
-#if !defined(C_SDL2)
-    "doublebuf",
-#endif
+    "showdetails",
     "--",
+    "set_titletext",
 #if !(defined(MACOSX) && !defined(C_SDL2))
-	"set_transparency",
+    "set_transparency",
 #endif
     "refresh_rate",
+    "--",
     "mapper_fscaler",
     "VideoScalerMenu",
     "VideoOutputMenu",

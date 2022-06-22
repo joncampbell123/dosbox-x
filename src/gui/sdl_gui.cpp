@@ -2153,6 +2153,9 @@ public:
         (new GUI::Button(this, 100, 60, MSG_Get("OK"), 90))->addActionHandler(this);
         (new GUI::Button(this, 200, 60, MSG_Get("CANCEL"), 90))->addActionHandler(this);
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
+
+        name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
+        name->posToEnd(); /* position the cursor at the end where the user is most likely going to edit */
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -2190,6 +2193,9 @@ public:
             (new GUI::Button(this, 100, 70, MSG_Get("OK"), 90))->addActionHandler(this);
             (new GUI::Button(this, 200, 70, MSG_Get("CANCEL"), 90))->addActionHandler(this);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
+
+            name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
+            name->posToEnd(); /* position the cursor at the end where the user is most likely going to edit */
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -2226,6 +2232,9 @@ public:
             (new GUI::Button(this, 100, 70, MSG_Get("OK"), 90))->addActionHandler(this);
             (new GUI::Button(this, 200, 70, MSG_Get("CANCEL"), 90))->addActionHandler(this);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
+
+            name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
+            name->posToEnd(); /* position the cursor at the end where the user is most likely going to edit */
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -2245,7 +2254,7 @@ protected:
 public:
     SetAspectRatio(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, 410, 140, title) {
-            new GUI::Label(this, 5, 10, "Enter aspect ratio:");
+            new GUI::Label(this, 5, 10, "Enter aspect ratio (w:h, -1:-1 = original ratio):");
             name = new GUI::Input(this, 5, 30, 390);
             char buffer[8];
             sprintf(buffer, "%d:%d", aspect_ratio_x,aspect_ratio_y);
@@ -2253,6 +2262,9 @@ public:
             (new GUI::Button(this, 100, 70, MSG_Get("OK"), 90))->addActionHandler(this);
             (new GUI::Button(this, 200, 70, MSG_Get("CANCEL"), 90))->addActionHandler(this);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
+
+            name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
+            name->posToEnd(); /* position the cursor at the end where the user is most likely going to edit */
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -2267,6 +2279,48 @@ public:
     }
 };
 
+extern std::string dosbox_title;
+class SetTitleText : public GUI::ToplevelWindow {
+protected:
+    GUI::Input *title1, *title2;
+    Section_prop *sec1, *sec2;
+    std::string t1, t2;
+public:
+    SetTitleText(GUI::Screen *parent, int x, int y, const char *title) :
+        ToplevelWindow(parent, x, y, 410, 180, title) {
+            sec1 = static_cast<Section_prop *>(control->GetSection("dosbox"));
+            sec2 = static_cast<Section_prop *>(control->GetSection("sdl"));
+            t1 = sec1->Get_string("title");
+            t2 = sec2->Get_string("titlebar");
+            trim(t1);
+            trim(t2);
+            new GUI::Label(this, 5, 10, "Prepend text in title bar:");
+            title1 = new GUI::Input(this, 5, 30, 390);
+            title1->setText(t1);
+            new GUI::Label(this, 5, 60, "Append text in title bar:");
+            title2 = new GUI::Input(this, 5, 80, 390);
+            title2->setText(t2);
+            (new GUI::Button(this, 100, 110, MSG_Get("OK"), 90))->addActionHandler(this);
+            (new GUI::Button(this, 200, 110, MSG_Get("CANCEL"), 90))->addActionHandler(this);
+            move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
+
+            title1->raise(); /* make sure keyboard focus is on the text field, ready for the user */
+            title1->posToEnd(); /* position the cursor at the end where the user is most likely going to edit */
+    }
+
+    void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
+        (void)b;//UNUSED
+        if (arg == MSG_Get("OK")) {
+            dosbox_title = trim(title1->getText());
+            SetVal("dosbox", "title", dosbox_title);
+            SetVal("sdl", "titlebar", trim(title2->getText()));
+            GFX_SetTitle(-1,-1,-1,false);
+        }
+        close();
+        if (shortcut) running = false;
+    }
+};
+
 class SetTransparency : public GUI::ToplevelWindow {
 protected:
     GUI::Input *name;
@@ -2275,7 +2329,7 @@ public:
     SetTransparency(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, 410, 140, title) {
 			sec = static_cast<Section_prop *>(control->GetSection("sdl"));
-            new GUI::Label(this, 5, 10, "Enter transparency (0-90):");
+            new GUI::Label(this, 5, 10, "Enter transparency (0-90; from low to high):");
             name = new GUI::Input(this, 5, 30, 390);
 			std::ostringstream str;
 			str << sec->Get_int("transparency");
@@ -2284,6 +2338,9 @@ public:
             (new GUI::Button(this, 100, 70, MSG_Get("OK"), 90))->addActionHandler(this);
             (new GUI::Button(this, 200, 70, MSG_Get("CANCEL"), 90))->addActionHandler(this);
             move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
+
+            name->raise(); /* make sure keyboard focus is on the text field, ready for the user */
+            name->posToEnd(); /* position the cursor at the end where the user is most likely going to edit */
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -3304,14 +3361,16 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             np4->raise();
             } break;
         case 20: {
-            auto *np4 = new SetAspectRatio(screen, 90, 100, "Set aspect ratio...");
-            np4->raise();
+            auto *np5 = new SetAspectRatio(screen, 90, 100, "Set aspect ratio...");
+            np5->raise();
             } break;
         case 21: {
-            auto *np4 = new SetTransparency(screen, 90, 100, "Set transparency...");
-            np4->raise();
+            auto *np6 = new SetTitleText(screen, 90, 130, mainMenu.get_item("set_titletext").get_text().c_str());
+            np6->raise();
             } break;
         case 22: {
+            auto *np6 = new SetTransparency(screen, 90, 100, mainMenu.get_item("set_transparency").get_text().c_str());
+            np6->raise();
             } break;
         case 23: {
             auto *np7 = new ShowLoadWarning(screen, 150, 120, "DOSBox-X version mismatch. Load the state anyway?");
@@ -3342,7 +3401,7 @@ static void UI_Select(GUI::ScreenSDL *screen, int select) {
             np7->raise();
             } break;
         case 30: {
-            auto *np7 = new SetRefreshRate(screen, 0, 0, "Set video refresh rate...");
+            auto *np7 = new SetRefreshRate(screen, 0, 0, mainMenu.get_item("refresh_rate").get_text().c_str());
             np7->raise();
             } break;
         case 31: if (statusdrive>-1 && statusdrive<DOS_DRIVES && Drives[statusdrive]) {

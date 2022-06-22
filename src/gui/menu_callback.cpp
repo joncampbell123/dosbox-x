@@ -1917,17 +1917,24 @@ bool vsync_set_syncrate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item *
     return true;
 }
 
-bool refresh_rate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+bool set_titletext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    GUI_Shortcut(30);
+    GUI_Shortcut(21);
     return true;
 }
 
 bool set_transparency_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-    GUI_Shortcut(21);
+    GUI_Shortcut(22);
+    return true;
+}
+
+bool refresh_rate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    GUI_Shortcut(30);
     return true;
 }
 
@@ -2688,8 +2695,13 @@ void toggle_always_on_top(void) {
     bool cur = is_always_on_top();
 #if defined(_WIN32) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
     sdl1_hax_set_topmost(!cur);
+#elif defined(_WIN32)
+    SetWindowPos(GetHWND(), cur?HWND_NOTOPMOST:HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 #elif defined(MACOSX) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
     sdl1_hax_set_topmost(macosx_on_top = (!cur));
+#elif defined(MACOSX) && defined(C_SDL2) && SDL_VERSION_ATLEAST(2, 0, 16)
+    SDL_Window* GFX_GetSDLWindow(void);
+    SDL_SetWindowAlwaysOnTop(GFX_GetSDLWindow(), cur?SDL_FALSE:SDL_TRUE);
 #elif defined(LINUX)
     void LinuxX11_OnTop(bool f);
     LinuxX11_OnTop(x11_on_top = (!cur));
@@ -2960,10 +2972,13 @@ void AllocCallback1() {
                         set_callback_function(scaler_set_menu_callback);
                 }
 
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"set_titletext").set_text("Set title bar text...").
+                    set_callback_function(set_titletext_menu_callback);
+
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"set_transparency").set_text("Set transparency...").
                     set_callback_function(set_transparency_menu_callback);
 
-                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refresh_rate").set_text("Refresh rate...").
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"refresh_rate").set_text("Adjust refresh rate...").
                     set_callback_function(refresh_rate_menu_callback);
             }
             {
@@ -3484,7 +3499,7 @@ void AllocCallback2() {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_ctrlpageupdown").set_text("Convert to Ctrl+PgUp/PgDn keys").set_callback_function(wheel_move_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_ctrlwz").set_text("Convert to Ctrl+W/Z keys").set_callback_function(wheel_move_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wheel_guest").set_text("Enable for guest systems also").set_callback_function(wheel_guest_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublebuf").set_text("Double Buffering (Fullscreen)").set_callback_function(doublebuf_menu_callback).check(!!GetSetSDLValue(1, doubleBufString, 0));
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublebuf").set_text("Double buffering (fullscreen)").set_callback_function(doublebuf_menu_callback).check(!!GetSetSDLValue(1, doubleBufString, 0));
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"alwaysontop").set_text("Always on top").set_callback_function(alwaysontop_menu_callback).check(is_always_on_top());
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"highdpienable").set_text("High DPI enable").set_callback_function(highdpienable_menu_callback).check(dpi_aware_enable);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"sync_host_datetime").set_text("Synchronize host date/time").set_callback_function(sync_host_datetime_menu_callback).check(sync_time);

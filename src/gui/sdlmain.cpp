@@ -960,28 +960,22 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
 
     bool showbasic = section->Get_bool("showbasic");
     if (showbasic) {
-        if (CPU_CycleAutoAdjust && menu.hidecycles && !menu.showrt) {
-            sprintf(title,"%s%sDOSBox-X %s: %d%%",
-                dosbox_title.c_str(),dosbox_title.empty()?"":" - ",
-                VERSION,(int)internal_cycles);
-        }
-        else {
-            sprintf(title,"%s%sDOSBox-X %s: %d cycles/ms",
-                dosbox_title.c_str(),dosbox_title.empty()?"":" - ",
-                VERSION,(int)internal_cycles);
-        }
-    } else
-        sprintf(title,"%s%sDOSBox-X", dosbox_title.c_str(),dosbox_title.empty()?"":" - ");
+        sprintf(title,"%s%sDOSBox-X %s", dosbox_title.c_str(),dosbox_title.empty()?"":" - ", VERSION);
 
-    {
-        const char *what = (titlebar != NULL && *titlebar != 0) ? titlebar : RunningProgram;
-
+        const char *what = RunningProgram;
         if (what != NULL && *what != 0) {
             char *p = title + strlen(title); // append to end of string
 
-            sprintf(p,"%c %s",showbasic?',':':', what);
+            sprintf(p,": %s - ", what);
         }
-    }
+
+        char *p = title + strlen(title); // append to end of string
+        if (CPU_CycleAutoAdjust && menu.hidecycles && !menu.showrt)
+            sprintf(p,"%d%%", (int)internal_cycles);
+        else
+            sprintf(p,"%d cycles/ms", (int)internal_cycles);
+    } else
+        sprintf(title,"%s%sDOSBox-X", dosbox_title.c_str(),dosbox_title.empty()?"":" - ");
 
     if (!menu.hidecycles) {
         char *p = title + strlen(title); // append to end of string
@@ -993,6 +987,12 @@ void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
         char *p = title + strlen(title); // append to end of string
 
         sprintf(p,", %2d%%/RT",(int)floor((rtdelta / 10) + 0.5));
+    }
+
+    if (titlebar != NULL && *titlebar != 0) {
+        char *p = title + strlen(title); // append to end of string
+
+        sprintf(p,": %s",titlebar);
     }
 
     if (sdl.mouse.locked) {
@@ -7291,11 +7291,13 @@ bool macosx_on_top = false;
 #endif
 
 bool is_always_on_top(void) {
-#if defined(_WIN32) && !defined(C_SDL2)
+#if defined(_WIN32)
     DWORD dwExStyle = ::GetWindowLong(GetHWND(), GWL_EXSTYLE);
     return !!(dwExStyle & WS_EX_TOPMOST);
 #elif defined(MACOSX) && !defined(C_SDL2)
     return macosx_on_top;
+#elif defined(MACOSX) && defined(C_SDL2) && SDL_VERSION_ATLEAST(2, 0, 16)
+    return SDL_GetWindowFlags(GFX_GetSDLWindow()) & SDL_WINDOW_ALWAYS_ON_TOP;
 #elif defined(LINUX)
     return x11_on_top;
 #else
@@ -8824,6 +8826,14 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("line_132x60").enable(!IS_PC98_ARCH);
 #if defined(USE_TTF)
         mainMenu.get_item("mapper_aspratio").enable(!TTF_using());
+        mainMenu.get_item("video_ratio_1_1").enable(!TTF_using());
+        mainMenu.get_item("video_ratio_3_2").enable(!TTF_using());
+        mainMenu.get_item("video_ratio_4_3").enable(!TTF_using());
+        mainMenu.get_item("video_ratio_16_9").enable(!TTF_using());
+        mainMenu.get_item("video_ratio_16_10").enable(!TTF_using());
+        mainMenu.get_item("video_ratio_18_10").enable(!TTF_using());
+        mainMenu.get_item("video_ratio_original").enable(!TTF_using());
+        mainMenu.get_item("video_ratio_set").enable(!TTF_using());
         mainMenu.get_item("mapper_incsize").enable(TTF_using());
         mainMenu.get_item("mapper_decsize").enable(TTF_using());
         mainMenu.get_item("mapper_resetcolor").enable(TTF_using());
