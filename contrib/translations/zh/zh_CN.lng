@@ -2535,6 +2535,9 @@ xBRZ
 :MENU:scaler_set_xbrz_bilinear
 xBRZ Bilinear
 .
+:MENU:set_titletext
+设置标题栏文字...
+.
 :MENU:set_transparency
 设置透明度...
 .

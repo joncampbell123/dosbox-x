@@ -2574,11 +2574,14 @@ xBRZ
 :MENU:scaler_set_xbrz_bilinear
 xBRZ bilinéaire
 .
+:MENU:set_titletext
+Définir le texte de la barre de titre...
+.
 :MENU:set_transparency
 Définir la transparence...
 .
 :MENU:refresh_rate
-Taux de rafraîchissement...
+Définir la taux de rafraîchissement...
 .
 :MENU:VideoOutputMenu
 Sortie Vidéo

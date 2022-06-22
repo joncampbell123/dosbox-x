@@ -2569,11 +2569,14 @@ xBRZ
 :MENU:scaler_set_xbrz_bilinear
 xBRZ Bilinear
 .
+:MENU:set_titletext
+Set title bar text...
+.
 :MENU:set_transparency
 Set transparency...
 .
 :MENU:refresh_rate
-Refresh rate...
+Adjust refresh rate...
 .
 :MENU:VideoOutputMenu
 Output
@@ -3365,7 +3368,7 @@ Convert to Ctrl+W/Z keys
 Enable for guest systems also
 .
 :MENU:doublebuf
-Double Buffering (Fullscreen)
+Double buffering (fullscreen)
 .
 :MENU:alwaysontop
 Always on top

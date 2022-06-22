@@ -2557,11 +2557,14 @@ xBRZ
 :MENU:scaler_set_xbrz_bilinear
 xBRZ Bilinear
 .
+:MENU:set_titletext
+タイトルバーのテキストを設定する...
+.
 :MENU:set_transparency
 透明度を設定する...
 .
 :MENU:refresh_rate
-リフレッシュレート...
+リフレッシュレートを調整する...
 .
 :MENU:VideoOutputMenu
 出力

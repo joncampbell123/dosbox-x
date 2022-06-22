@@ -211,6 +211,14 @@ void change_output(int output) {
     }
 #endif
     mainMenu.get_item("mapper_aspratio").enable(!TTF_using()).check(render.aspect).refresh_item(mainMenu);
+    mainMenu.get_item("video_ratio_1_1").enable(!TTF_using()).refresh_item(mainMenu);
+    mainMenu.get_item("video_ratio_3_2").enable(!TTF_using()).refresh_item(mainMenu);
+    mainMenu.get_item("video_ratio_4_3").enable(!TTF_using()).refresh_item(mainMenu);
+    mainMenu.get_item("video_ratio_16_9").enable(!TTF_using()).refresh_item(mainMenu);
+    mainMenu.get_item("video_ratio_16_10").enable(!TTF_using()).refresh_item(mainMenu);
+    mainMenu.get_item("video_ratio_18_10").enable(!TTF_using()).refresh_item(mainMenu);
+    mainMenu.get_item("video_ratio_original").enable(!TTF_using()).refresh_item(mainMenu);
+    mainMenu.get_item("video_ratio_set").enable(!TTF_using()).refresh_item(mainMenu);
     mainMenu.get_item("mapper_incsize").enable(TTF_using()).refresh_item(mainMenu);
     mainMenu.get_item("mapper_decsize").enable(TTF_using()).refresh_item(mainMenu);
     mainMenu.get_item("mapper_resetcolor").enable(TTF_using()).refresh_item(mainMenu);

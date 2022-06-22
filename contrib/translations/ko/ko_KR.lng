@@ -2570,11 +2570,14 @@ xBRZ
 :MENU:scaler_set_xbrz_bilinear
 xBRZ 이선형
 .
+:MENU:set_titletext
+제목 표시줄 텍스트 설정...
+.
 :MENU:set_transparency
 투명도 설정...
 .
 :MENU:refresh_rate
-새로 고침 속도 ...
+새로 고침 빈도 조정...
 .
 :MENU:VideoOutputMenu
 출력
