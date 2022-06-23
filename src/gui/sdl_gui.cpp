@@ -2163,12 +2163,11 @@ public:
         Section_prop * sec = static_cast<Section_prop *>(control->GetSection("vsync"));
         if (arg == MSG_Get("OK")) {
             if (sec) {
-                const char* well = name->getText();
-                std::string s(well, 20);
+                std::string s((const char *)name->getText());
+                if (s.size()>20) s=s.substr(0,20);
                 std::string tmp("vsyncrate=");
                 tmp.append(s);
                 sec->HandleInputline(tmp);
-                delete well;
             }
         }
         if (sec) LOG_MSG("GUI: Current Vertical Sync Rate: %s Hz", sec->Get_string("vsyncrate"));

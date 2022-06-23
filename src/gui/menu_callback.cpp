@@ -1890,7 +1890,6 @@ bool aspect_ratio_edit_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * 
 bool vsync_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-#if !defined(C_SDL2)
     const char *val = menuitem->get_name().c_str();
     if (!strncmp(val,"vsync_",6))
         val += 6;
@@ -1904,16 +1903,13 @@ bool vsync_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuit
     VGA_Vsync VGA_Vsync_Decode(const char *vsyncmodestr);
     void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode);
     VGA_VsyncUpdateMode(VGA_Vsync_Decode(val));
-#endif
     return true;
 }
 
 bool vsync_set_syncrate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-#if !defined(C_SDL2)
     GUI_Shortcut(17);
-#endif
     return true;
 }
 

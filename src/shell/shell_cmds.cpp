@@ -1859,6 +1859,8 @@ void DOS_Shell::CMD_DIR(char * args) {
 		optOS = false;
 		reverseSort = false;
 	}
+	const char *valid[] = {"4","W","P","-W","-P","WP","PW","Z","-Z","S","-S","B","-B","A","-A","AD","A:D","A-D","AS","A:S","A-S","AH","A:H","A-H","AR","A:R","A-R","AA","A:A","A-A","O","-O","ON","O:N","O-N","OD","O:D","O-D","OE","O:E","O-E","OS","O:S","O-S","OG","O:G","O-G","OGN",NULL};
+	if (args && strlen(args)>1) for (int i=0; valid[i] && *args && strchr(args,'/'); i++) while (ScanCMDBool(args,valid[i]));
 	char * rem=ScanCMDRemain(args);
 	if (rem) {
 		WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"),rem);

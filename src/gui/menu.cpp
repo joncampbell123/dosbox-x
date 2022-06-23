@@ -452,14 +452,12 @@ static const char *def_menu_video_ttf[] =
 /* video vsync menu ("VideoVsyncMenu") */
 static const char *def_menu_video_vsync[] =
 {
-#if !defined(C_SDL2)
     "vsync_on",
     "vsync_force",
     "vsync_host",
     "vsync_off",
     "--",
     "vsync_set_syncrate",
-#endif
     NULL
 };
 
@@ -531,9 +529,7 @@ static const char *def_menu_video[] =
     "mapper_fscaler",
     "VideoScalerMenu",
     "VideoOutputMenu",
-#if !defined(C_SDL2)
     "VideoVsyncMenu",
-#endif
     "--",
     "VideoOverscanMenu",
     "VideoFrameskipMenu",
