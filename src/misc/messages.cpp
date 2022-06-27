@@ -215,6 +215,12 @@ void LoadMessageFile(const char * fname) {
 	if (!mfile && exepath.size()) mfile=fopen((exepath + "languages/" + fname + ".lng").c_str(),"rt");
 	if (!mfile && config_path.size()) mfile=fopen((config_path + "languages/" + fname).c_str(),"rt");
 	if (!mfile && config_path.size()) mfile=fopen((config_path + "languages/" + fname + ".lng").c_str(),"rt");
+	if (!mfile) mfile=fopen((std::string("language/") + fname).c_str(),"rt");
+	if (!mfile) mfile=fopen((std::string("language/") + fname + ".lng").c_str(),"rt");
+	if (!mfile && exepath.size()) mfile=fopen((exepath + "language/" + fname).c_str(),"rt");
+	if (!mfile && exepath.size()) mfile=fopen((exepath + "language/" + fname + ".lng").c_str(),"rt");
+	if (!mfile && config_path.size()) mfile=fopen((config_path + "language/" + fname).c_str(),"rt");
+	if (!mfile && config_path.size()) mfile=fopen((config_path + "language/" + fname + ".lng").c_str(),"rt");
 #if defined(WIN32) && defined(C_SDL2)
     std::string localname = fname;
     if (!mfile && FileDirExistUTF8(localname, fname) == 1) mfile=fopen(localname.c_str(),"rt");

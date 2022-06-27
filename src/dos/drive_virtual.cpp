@@ -29,7 +29,7 @@
 #include "cross.h"
 #include "regs.h"
 
-extern bool gbk, isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
+extern bool gbk, isDBCSCP(), isKanji1_gbk(uint8_t chr), shiftjis_lead_byte(int c);
 
 struct VFILE_Block {
 	const char * name;
@@ -56,23 +56,23 @@ extern void Add_VFiles(bool usecp), PROGRAMS_Shutdown(void);
 extern char * DBCS_upcase(char * str);
 std::string hidefiles="";
 
-/* Generate 8.3 names from LFNs, with tilde usage (from ~1 to ~9999). */
+/* Generate 8.3 names from LFNs, with tilde usage (from ~1 to ~999999). */
 void GenerateSFN(char *lfn, unsigned int k, unsigned int &i, unsigned int &t) {
     char *n=lfn;
-    if (t>strlen(n)||k==1||k==10||k==100||k==1000) {
+    if (t>strlen(n)||k==1||k==10||k==100||k==1000||k==10000||k==100000) {
         i=0;
         *sfn=0;
         while (*n == '.'||*n == ' ') n++;
         while (strlen(n)&&(*(n+strlen(n)-1)=='.'||*(n+strlen(n)-1)==' ')) *(n+strlen(n)-1)=0;
         bool lead = false;
-        unsigned int m = k<10?6u:(k<100?5u:(k<1000?4:3u));
+        unsigned int m = k<10?6u:(k<100?5u:(k<1000?4u:(k<10000?3u:(k<100000?2u:1u))));
         while (*n != 0 && *n != '.' && i < m) {
             if (*n == ' ') {
                 n++;
                 lead = false;
                 continue;
             }
-            if (!lead && ((IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1(*n & 0xFF)))) {
+            if (!lead && ((IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1_gbk(*n & 0xFF)))) {
                 if (i==m-1) break;
                 sfn[i++]=*(n++);
                 lead = true;
@@ -99,13 +99,26 @@ void GenerateSFN(char *lfn, unsigned int k, unsigned int &i, unsigned int &t) {
         sfn[i++]='0'+(k/100);
         sfn[i++]='0'+((k%100)/10);
         sfn[i++]='0'+(k%10);
-    } else {
+    } else if (k<10000) {
         sfn[i++]='0'+(k/1000);
         sfn[i++]='0'+((k%1000)/100);
         sfn[i++]='0'+((k%100)/10);
         sfn[i++]='0'+(k%10);
+    } else if (k<100000) {
+        sfn[i++]='0'+(k/10000);
+        sfn[i++]='0'+((k%10000)/1000);
+        sfn[i++]='0'+((k%1000)/100);
+        sfn[i++]='0'+((k%100)/10);
+        sfn[i++]='0'+(k%10);
+    } else {
+        sfn[i++]='0'+(k/100000);
+        sfn[i++]='0'+((k%100000)/10000);
+        sfn[i++]='0'+((k%10000)/1000);
+        sfn[i++]='0'+((k%1000)/100);
+        sfn[i++]='0'+((k%100)/10);
+        sfn[i++]='0'+(k%10);
     }
-    if (t>strlen(n)||k==1||k==10||k==100||k==1000) {
+    if (t>strlen(n)||k==1||k==10||k==100||k==1000||k==10000||k==100000) {
         char *p=strrchr(n, '.');
         if (p!=NULL) {
             sfn[i++]='.';
@@ -119,7 +132,7 @@ void GenerateSFN(char *lfn, unsigned int k, unsigned int &i, unsigned int &t) {
                     lead = false;
                     continue;
                 }
-                if (!lead && ((IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1(*n & 0xFF)))) {
+                if (!lead && ((IS_PC98_ARCH && shiftjis_lead_byte(*n & 0xFF)) || (isDBCSCP() && isKanji1_gbk(*n & 0xFF)))) {
                     if (j==3) break;
                     sfn[i++]=*(n++);
                     lead = true;
@@ -152,9 +165,9 @@ char* VFILE_Generate_SFN(const char *name, unsigned int onpos) {
 	} else
 		strcpy(lfn, name);
 	if (!strlen(lfn)) return NULL;
-	unsigned int k=1, i, t=10000;
+	unsigned int k=1, i, t=1000000;
 	const VFILE_Block* cur_file;
-	while (k<10000) {
+	while (k<1000000) {
         GenerateSFN(lfn, k, i, t);
         cur_file = first_file;
         bool found=false;

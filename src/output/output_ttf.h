@@ -13,6 +13,7 @@ void ttf_setlines(int cols, int lins);
 void GFX_EndTextLines(bool force=false);
 void UpdateDefaultPrinterFont(void);
 void ttf_reset(void);
+void ttfreset(Bitu val);
 int setTTFCodePage(void);
 bool TTF_using(void);
 bool setColors(const char *colorArray, int n);

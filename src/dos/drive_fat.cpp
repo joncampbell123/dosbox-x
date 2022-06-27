@@ -53,7 +53,7 @@ extern bool wpcolon, force_sfn;
 extern int lfn_filefind_handle, fat32setver;
 extern void dos_ver_menu(bool start);
 extern char * DBCS_upcase(char * str), sfn[DOS_NAMELENGTH_ASCII];
-extern bool gbk, isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c);
+extern bool gbk, isDBCSCP(), isKanji1_gbk(uint8_t chr), shiftjis_lead_byte(int c);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
 int PC98AutoChoose_FAT(const std::vector<_PC98RawPartition> &parts,imageDisk *loadedDisk) {
@@ -152,7 +152,7 @@ bool filename_not_8x3(const char *n) {
                 if (*n == '.') break;
                 if ((*n&0xFF)<=32||*n==127||*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') return true;
                 if (lead) lead = false;
-                else if ((IS_PC98_ARCH && shiftjis_lead_byte(*n&0xFF)) || (isDBCSCP() && isKanji1(*n&0xFF))) lead = true;
+                else if ((IS_PC98_ARCH && shiftjis_lead_byte(*n&0xFF)) || (isDBCSCP() && isKanji1_gbk(*n&0xFF))) lead = true;
                 i++;
                 n++;
         }
@@ -169,7 +169,7 @@ bool filename_not_8x3(const char *n) {
                 if (*n == '.') return true; /* another '.' means LFN */
                 if ((*n&0xFF)<=32||*n==127||*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') return true;
                 if (lead) lead = false;
-                else if ((IS_PC98_ARCH && shiftjis_lead_byte(*n&0xFF)) || (isDBCSCP() && isKanji1(*n&0xFF))) lead = true;
+                else if ((IS_PC98_ARCH && shiftjis_lead_byte(*n&0xFF)) || (isDBCSCP() && isKanji1_gbk(*n&0xFF))) lead = true;
                 i++;
                 n++;
         }
@@ -185,14 +185,14 @@ bool filename_not_strict_8x3(const char *n) {
         bool lead = false;
         for (unsigned int i=0; i<strlen(n); i++) {
                 if (lead) lead = false;
-                else if ((IS_PC98_ARCH && shiftjis_lead_byte(n[i]&0xFF)) || (isDBCSCP() && isKanji1(n[i]&0xFF))) lead = true;
+                else if ((IS_PC98_ARCH && shiftjis_lead_byte(n[i]&0xFF)) || (isDBCSCP() && isKanji1_gbk(n[i]&0xFF))) lead = true;
                 else if (n[i]>='a' && n[i]<='z') return true;
         }
         return false; /* it is strict 8.3 upper case */
 }
 
 void GenerateSFN(char *lfn, unsigned int k, unsigned int &i, unsigned int &t);
-/* Generate 8.3 names from LFNs, with tilde usage (from ~1 to ~9999). */
+/* Generate 8.3 names from LFNs, with tilde usage (from ~1 to ~999999). */
 char* fatDrive::Generate_SFN(const char *path, const char *name) {
         if (!filename_not_8x3(name)) {
                 strcpy(sfn, name);
@@ -209,8 +209,8 @@ char* fatDrive::Generate_SFN(const char *path, const char *name) {
         if (!strlen(lfn)) return NULL;
         direntry fileEntry = {};
         uint32_t dirClust, subEntry;
-        unsigned int k=1, i, t=10000;
-        while (k<10000) {
+        unsigned int k=1, i, t=1000000;
+        while (k<1000000) {
                 GenerateSFN(lfn, k, i, t);
                 strcpy(fullname, path);
                 strcat(fullname, sfn);
@@ -757,7 +757,7 @@ bool fatDrive::getEntryName(const char *fullname, char *entname) {
 	for (int i=0; i<(int)strlen(findFile); i++) {
 		if (findFile[i]!=' '&&findFile[i]!='"'&&findFile[i]!='+'&&findFile[i]!='='&&findFile[i]!=','&&findFile[i]!=';'&&findFile[i]!=':'&&findFile[i]!='<'&&findFile[i]!='>'&&!((findFile[i]=='['||findFile[i]==']'||findFile[i]=='|')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))&&findFile[i]!='?'&&findFile[i]!='*') findFile[j++]=findFile[i];
 		if (lead) lead = false;
-		else if ((IS_PC98_ARCH && shiftjis_lead_byte(findFile[i]&0xFF)) || (isDBCSCP() && isKanji1(findFile[i]&0xFF))) lead = true;
+		else if ((IS_PC98_ARCH && shiftjis_lead_byte(findFile[i]&0xFF)) || (isDBCSCP() && isKanji1_gbk(findFile[i]&0xFF))) lead = true;
 	}
 	findFile[j]=0;
 	if (strlen(findFile)>12)

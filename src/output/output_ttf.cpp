@@ -123,7 +123,7 @@ static bool blinkstate = false;
 bool colorChanged = false, justChanged = false, staycolors = false, firstsize = true, ttfswitch=false, switch_output_from_ttf=false;
 
 int menuwidth_atleast(int width), FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
-void AdjustIMEFontSize(void), initcodepagefont(void), change_output(int output), MSG_Init(void), KEYBOARD_Clear(void), RENDER_Reset(void), DOSBox_SetSysMenu(void), GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight), SetWindowTransparency(int trans), resetFontSize(void), RENDER_CallBack( GFX_CallBackFunctions_t function );
+void AdjustIMEFontSize(void), initcodepagefont(void), change_output(int output), drawmenu(Bitu val), MSG_Init(void), KEYBOARD_Clear(void), RENDER_Reset(void), DOSBox_SetSysMenu(void), GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight), SetWindowTransparency(int trans), resetFontSize(void), RENDER_CallBack( GFX_CallBackFunctions_t function );
 bool isDBCSCP(void), InitCodePage(void), CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 std::string GetDOSBoxXPath(bool withexe=false);
 
@@ -697,10 +697,14 @@ void OUTPUT_TTF_Select(int fsize) {
         winPerc = ttf_section->Get_int("winperc");
         if (winPerc>100||(fsize==2&&GFX_IsFullscreen())||(fsize!=1&&fsize!=2&&(control->opt_fullscreen||static_cast<Section_prop *>(control->GetSection("sdl"))->Get_bool("fullscreen")))) winPerc=100;
         else if (winPerc<25) winPerc=25;
+#if defined(HX_DOS)
+        winPerc=100;
+#else
         if ((fsize==1||switchttf)&&winPerc==100) {
             winPerc=60;
             if (switchttf&&GFX_IsFullscreen()) GFX_SwitchFullScreen();
         }
+#endif
         fontSize = ttf_section->Get_int("ptsize");
         char512 = ttf_section->Get_bool("char512");
         showbold = ttf_section->Get_bool("bold");
@@ -1227,6 +1231,9 @@ void resetFontSize() {
 #endif
 		}
 		GFX_EndTextLines(true);
+#if defined(HX_DOS)
+		PIC_AddEvent(drawmenu, 200);
+#endif
 	}
 }
 
@@ -1333,6 +1340,10 @@ void ttf_reset() {
         increaseFontSize();
     }
 #endif
+}
+
+void ttfreset(Bitu val) {
+    ttf_reset();
 }
 
 void ttf_setlines(int cols, int lins) {

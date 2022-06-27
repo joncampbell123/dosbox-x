@@ -1717,6 +1717,8 @@ void DOSBOX_SetupConfigSections(void) {
 
 #if defined(C_EMSCRIPTEN)
     Pint = secprop->Add_int("memsize", Property::Changeable::OnlyAtStart,4);
+#elif defined(HX_DOS)
+    Pint = secprop->Add_int("memsize", Property::Changeable::OnlyAtStart,8);
 #else
     Pint = secprop->Add_int("memsize", Property::Changeable::OnlyAtStart,16);
 #endif
@@ -2169,19 +2171,21 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("fontxdbcs",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering DBCS characters (16x16) in DOS/V or JEGA mode. If not specified, the default one will be used.\n"
+	Pstring->Set_help("FONTX2 file used to rendering DBCS characters (16x16) in DOS/V or VGA/JEGA mode. If not specified, the default one will be used.\n"
+                    "Alternatively, you can load a BDF font file (16x16 or 15x15), such as the free bitmap fonts from WenQuanYi (https://wenq.org/).\n"
                     "For Simplified Chinese DOS/V, loading the HZK16 font file (https://github.com/aguegu/BitmapFont/tree/master/font) is also supported.\n"
                     "For Traditional Chinese DOS/V, loading the STDFONT.15 font file from the ETen Chinese DOS system is also supported.");
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("fontxdbcs14",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (14x14) for Configuration Tool and Mapper Editor. If not specified, the default one will be used.\n"
+	Pstring->Set_help("FONTX2 file used to rendering DBCS characters (14x14) for Configuration Tool or EGA mode. If not specified, the default one will be used.\n"
+                    "Alternatively, you can load a BDF font file (14x14 or 15x15), such as the free bitmap fonts from WenQuanYi (https://wenq.org/).\n"
                     "For Simplified Chinese DOS/V, loading the HZK14 font file (https://github.com/aguegu/BitmapFont/tree/master/font) is also supported.\n"
                     "For Traditional Chinese DOS/V, loading the STDFONT.15 font file from the ETen Chinese DOS system is also supported.");
     Pstring->SetBasic(true);
 
 	Pstring = secprop->Add_path("fontxdbcs24",Property::Changeable::OnlyAtStart,"");
-	Pstring->Set_help("FONTX2 file used to rendering SBCS characters (24x24) in DOS/V mode (with V-text and 24-pixel fonts enabled).\n"
+	Pstring->Set_help("FONTX2 file used to rendering DBCS characters (24x24) in DOS/V mode (with V-text and 24-pixel fonts enabled).\n"
                     "For Simplified Chinese DOS/V, loading the HZK24? font file (https://github.com/aguegu/BitmapFont/tree/master/font) is also supported.\n"
                     "For Traditional Chinese DOS/V, loading the STDFONT.24 font file from the ETen Chinese DOS system is also supported.");
     Pstring->SetBasic(true);

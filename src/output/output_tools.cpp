@@ -199,9 +199,13 @@ void change_output(int output) {
         mainMenu.get_item("load_ttf_font").enable(sdl.desktop.want_type==SCREEN_TTF).refresh_item(mainMenu);
 #endif
 #if defined(USE_TTF)
-    if ((output==9||output==10)&&ttf.inUse) {
+    if ((output==10||output==11)&&ttf.inUse) {
         resetFontSize();
         resetreq = true;
+#if defined(HX_DOS)
+        PIC_AddEvent(ttfreset, 100);
+        mainMenu.setScale(1);
+#endif
     }
 #if defined(WIN32) && !defined(HX_DOS)
     HMENU sysmenu = GetSystemMenu(GetHWND(), TRUE);

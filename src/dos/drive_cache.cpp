@@ -40,6 +40,9 @@
 #endif
 
 int fileInfoCounter = 0;
+extern bool gbk;
+char * DBCS_upcase(char * str);
+bool isDBCSCP(), shiftjis_lead_byte(int c), isKanji1_gbk(uint8_t chr), filename_not_8x3(const char *n), filename_not_strict_8x3(const char *n);
 
 bool SortByName(DOS_Drive_Cache::CFileInfo* const &a, DOS_Drive_Cache::CFileInfo* const &b) {
     return strcmp(a->shortname,b->shortname)<0;
@@ -238,7 +241,6 @@ void DOS_Drive_Cache::AddEntry(const char* path, bool checkExists) {
     }
 }
 
-bool filename_not_strict_8x3(const char *n);
 void DOS_Drive_Cache::AddEntryDirOverlay(const char* path, char *sfile, bool checkExists) {
   // Get Last part...
   char file   [CROSS_LEN];
@@ -583,9 +585,6 @@ bool DOS_Drive_Cache::RemoveSpaces(char* str) {
     return (curpos!=chkpos);
 }
 
-bool isDBCSCP();
-char * DBCS_upcase(char * str);
-
 void DOS_Drive_Cache::CreateShortName(CFileInfo* curDir, CFileInfo* info) {
     Bits    len         = 0;
     bool    createShort = false;
@@ -607,7 +606,7 @@ void DOS_Drive_Cache::CreateShortName(CFileInfo* curDir, CFileInfo* info) {
     char* pos = strchr(tmpName,'.');
     if (pos) {
         // ignore preceding '.' if extension is longer than "3"
-        if (strlen(pos)>4) {
+        if (strlen(pos)>4 || (strlen(pos) == strlen(tmpName) && strcmp(tmpName, ".") && strcmp(tmpName, ".."))) {
             while (*tmpName=='.') tmpName++;
             createShort = true;
         }
@@ -616,6 +615,18 @@ void DOS_Drive_Cache::CreateShortName(CFileInfo* curDir, CFileInfo* info) {
         else        len = (Bits)strlen(tmpName);
     } else {
         len = (Bits)strlen(tmpName);
+    }
+
+    if (strcmp(tmpName, ".") && strcmp(tmpName, "..") && filename_not_8x3(tmpName)) {
+        createShort = true;
+        unsigned int i = 0;
+        bool lead = false;
+        while (tmpName[i] != 0) {
+                if ((tmpName[i]&0xFF)<=32||tmpName[i]==127||tmpName[i]=='"'||tmpName[i]=='+'||tmpName[i]=='='||tmpName[i]==','||tmpName[i]==';'||tmpName[i]==':'||tmpName[i]=='<'||tmpName[i]=='>'||((tmpName[i]=='['||tmpName[i]==']'||tmpName[i]=='|')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||tmpName[i]=='?'||tmpName[i]=='*') tmpName[i]='_';
+                if (lead) lead = false;
+                else if ((IS_PC98_ARCH && shiftjis_lead_byte(tmpName[i]&0xFF)) || (isDBCSCP() && isKanji1_gbk(tmpName[i]&0xFF))) lead = true;
+                i++;
+        }
     }
 
     // Should shortname version be created ?
@@ -635,7 +646,16 @@ void DOS_Drive_Cache::CreateShortName(CFileInfo* curDir, CFileInfo* info) {
         // Copy first letters
         Bits tocopy = 0;
         size_t buflen = strlen(buffer);
-        if ((size_t)len+buflen+1u>8u) tocopy = (Bits)(8u - buflen - 1u);
+        if ((size_t)len+buflen+1u>8u) {
+            tocopy = (Bits)(8u - buflen - 1u);
+            bool lead = false;
+            if (IS_PC98_ARCH || isDBCSCP())
+                for (int i=0; i<tocopy; i++) {
+                    if (lead) lead = false;
+                    else if ((IS_PC98_ARCH && shiftjis_lead_byte(tmpName[i]&0xFF)) || (isDBCSCP() && isKanji1_gbk(tmpName[i]&0xFF))) lead = true;
+                }
+            if (lead) tocopy--;
+        }
         else                          tocopy = len;
         safe_strncpy(info->shortname,tmpName,tocopy+1);
         // Copy number

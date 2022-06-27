@@ -101,7 +101,7 @@ bool shiftjis_lead_byte(int c) {
 
 char * DBCS_upcase(char * str) {
     for (char* idx = str; *idx ; ) {
-        if ((IS_PC98_ARCH && shiftjis_lead_byte(*idx)) || (isDBCSCP() && isKanji1(*idx))) {
+        if ((IS_PC98_ARCH && shiftjis_lead_byte(*idx)) || (isDBCSCP() && isKanji1_gbk(*idx))) {
             /* Shift-JIS is NOT ASCII and should not be converted to uppercase like ASCII.
              * The trailing byte can be mistaken for ASCII */
             idx++;

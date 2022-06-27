@@ -30,6 +30,8 @@
 #include "setup.h"
 #include "control.h"
 #include "mapper.h"
+#include "menudef.h"
+#include "pic.h"
 #include "cross.h"
 #include "hardware.h"
 #include "support.h"
@@ -59,7 +61,7 @@ bool                                    systemmessagebox(char const * aTitle, ch
 
 #if defined(USE_TTF)
 bool resetreq=false;
-void resetFontSize();
+void resetFontSize(), drawmenu(Bitu val);
 #endif
 
 static void Check_Palette(void) {
@@ -826,7 +828,12 @@ forcenormal:
 
     last_gfx_flags = gfx_flags;
 #if defined(USE_TTF)
-    if (sdl.desktop.want_type == SCREEN_TTF && resetreq) resetFontSize();
+    if (sdl.desktop.want_type == SCREEN_TTF) {
+        if (resetreq) resetFontSize();
+#if defined(HX_DOS)
+        else PIC_AddEvent(drawmenu, 200);
+#endif
+    }
 #endif
     // Ensure VMware mouse support knows the current parameters
 	VMWARE_ScreenParams(sdl.clip.x, sdl.clip.y, sdl.clip.w, sdl.clip.h, sdl.desktop.fullscreen);

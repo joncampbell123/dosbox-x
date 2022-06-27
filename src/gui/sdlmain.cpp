@@ -1845,6 +1845,10 @@ void GFX_DrawSDLMenu(DOSBoxMenu &menu, DOSBoxMenu::displaylist &dl) {
 #endif
     }
 }
+
+void drawmenu(Bitu val) {
+    if (menu_gui && menu.toggle) GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
+}
 #endif
 
 void RENDER_Reset(void);

@@ -508,9 +508,7 @@ static const char *def_menu_video[] =
 #if !defined(C_SDL2) && defined(MACOSX)
     "highdpienable",
 #endif
-#if !defined(HX_DOS)
     "mapper_resetsize",
-#endif
     "--",
 #if !defined(HX_DOS)
     "mapper_fullscr",
