@@ -50,7 +50,7 @@ jobs:
           cp $top/contrib/windows/installer/readme.txt $top/package/mingw-build/mingw/README.txt
           cp $top/contrib/windows/installer/inpoutx64.dll $top/package/mingw-build/mingw/inpoutx64.dll
           cp $top/contrib/fonts/FREECG98.BMP $top/package/mingw-build/mingw/FREECG98.BMP
-          cp $top/contrib/fonts/wqy_12pt.bdf $top/package/mingw-build/mingw/wqy_12pt.bdf
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/package/mingw-build/mingw/
           cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/mingw-build/mingw/Nouveau_IBM.ttf
           cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/mingw-build/mingw/SarasaGothicFixed.ttf
           cp $top/contrib/windows/installer/drivez_readme.txt $top/package/mingw-build/mingw/drivez/readme.txt
@@ -79,7 +79,7 @@ jobs:
           cp $top/contrib/windows/installer/readme.txt $top/package/mingw-build/mingw-sdl2/README.txt
           cp $top/contrib/windows/installer/inpoutx64.dll $top/package/mingw-build/mingw-sdl2/inpoutx64.dll
           cp $top/contrib/fonts/FREECG98.BMP $top/package/mingw-build/mingw-sdl2/FREECG98.BMP
-          cp $top/contrib/fonts/wqy_12pt.bdf $top/package/mingw-build/mingw-sdl2/wqy_12pt.bdf
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/package/mingw-build/mingw-sdl2/
           cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/mingw-build/mingw-sdl2/Nouveau_IBM.ttf
           cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/mingw-build/mingw-sdl2/SarasaGothicFixed.ttf
           cp $top/contrib/windows/installer/drivez_readme.txt $top/package/mingw-build/mingw-sdl2/drivez/readme.txt

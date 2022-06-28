@@ -68,7 +68,7 @@ cp dosbox-x.reference.conf dosbox-x.ref || exit 1
 cp dosbox-x.reference.full.conf dosbox-x.ref.full || exit 1
 cp contrib/windows/installer/inpout32.dll INPOUT32.DLL || exit 1
 cp contrib/fonts/FREECG98.BMP . || exit 1
-cp contrib/fonts/wqy_12pt.bdf . || exit 1
+cp contrib/fonts/wqy_1?pt.bdf . || exit 1
 cp contrib/fonts/Nouveau_IBM.ttf . || exit 1
 cp $hxdir/DPMILD32.EXE . || exit 1
 cp $hxdir/HDPMI32.EXE . || exit 1

@@ -372,7 +372,7 @@
     </CustomBuildStep>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\contrib\fonts\wqy_12pt.bdf" "$(OutputPath)\wqy_12pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -420,7 +420,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </CustomBuildStep>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\contrib\fonts\wqy_12pt.bdf" "$(OutputPath)\wqy_12pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -464,7 +464,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\contrib\fonts\wqy_12pt.bdf" "$(OutputPath)\wqy_12pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -509,7 +509,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\contrib\fonts\wqy_12pt.bdf" "$(OutputPath)\wqy_12pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -551,7 +551,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\contrib\fonts\wqy_12pt.bdf" "$(OutputPath)\wqy_12pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -595,7 +595,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\contrib\fonts\wqy_12pt.bdf" "$(OutputPath)\wqy_12pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -640,7 +640,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\contrib\fonts\wqy_12pt.bdf" "$(OutputPath)\wqy_12pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -682,7 +682,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\contrib\fonts\wqy_12pt.bdf" "$(OutputPath)\wqy_12pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -730,7 +730,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </CustomBuildStep>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\contrib\fonts\wqy_12pt.bdf" "$(OutputPath)\wqy_12pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -779,7 +779,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </CustomBuildStep>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\contrib\fonts\wqy_12pt.bdf" "$(OutputPath)\wqy_12pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -824,7 +824,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\contrib\fonts\wqy_12pt.bdf" "$(OutputPath)\wqy_12pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -870,7 +870,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\contrib\fonts\wqy_12pt.bdf" "$(OutputPath)\wqy_12pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -913,7 +913,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\contrib\fonts\wqy_12pt.bdf" "$(OutputPath)\wqy_12pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -958,7 +958,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\contrib\fonts\wqy_12pt.bdf" "$(OutputPath)\wqy_12pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -1004,7 +1004,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\contrib\fonts\wqy_12pt.bdf" "$(OutputPath)\wqy_12pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"
@@ -1047,7 +1047,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     </Link>
     <PostBuildEvent>
       <Command>copy "$(SolutionDir)\..\contrib\fonts\FREECG98.BMP" "$(OutputPath)\FREECG98.BMP"
-copy "$(SolutionDir)\..\contrib\fonts\wqy_12pt.bdf" "$(OutputPath)\wqy_12pt.bdf"
+copy "$(SolutionDir)\..\contrib\fonts\wqy_1?pt.bdf" "$(OutputPath)\wqy_1?pt.bdf"
 copy "$(SolutionDir)\..\contrib\fonts\Nouveau_IBM.ttf" "$(OutputPath)\Nouveau_IBM.ttf"
 copy "$(SolutionDir)\..\contrib\fonts\SarasaGothicFixed.ttf" "$(OutputPath)\SarasaGothicFixed.ttf"
 copy "$(SolutionDir)\..\dosbox-x.reference.conf" "$(OutputPath)\dosbox-x.reference.conf"

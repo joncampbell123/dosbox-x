@@ -119,7 +119,8 @@ bool del_flag = true;
 bool yen_flag = false;
 bool jfont_init = false;
 bool getsysfont = true;
-bool getunibit = false;
+bool getwqy14 = false;
+bool getwqy16 = false;
 uint8_t TrueVideoMode;
 void ResolvePath(std::string& in);
 void SetIMPosition();
@@ -128,6 +129,7 @@ bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode);
 bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
+std::string GetDOSBoxXPath(bool withexe=false);
 
 bool isKanji1(uint8_t chr) {
     if (dos.loaded_codepage == 936 || IS_PDOSV)
@@ -304,8 +306,7 @@ void bit_order_invert(uint8_t *data, int size) {
 
 void two_byte_swap(uint8_t *data, int size) {
   size &= ~1;
-  for (int i = 0; i < size; i += 2)
-  {
+  for (int i = 0; i < size; i += 2) {
     uint8_t tmp = data[i];
     data[i] = data[i + 1];
     data[i + 1] = tmp;
@@ -314,8 +315,7 @@ void two_byte_swap(uint8_t *data, int size) {
 
 void four_byte_swap(uint8_t *data, int size) {
   size &= ~3;
-  for (int i = 0; i < size; i += 4)
-  {
+  for (int i = 0; i < size; i += 4) {
     uint8_t tmp = data[i];
     data[i] = data[i + 3];
     data[i + 3] = tmp;
@@ -327,8 +327,7 @@ void four_byte_swap(uint8_t *data, int size) {
 
 bool seek(FILE *file, type32 type) {
   for (int i = 0; i < nTables; i++)
-    if (tables[i].type == type)
-    {
+    if (tables[i].type == type) {
       int s = tables[i].offset - read_bytes;
       if (s < 0)
           return false;
@@ -1171,9 +1170,9 @@ uint8_t *GetDbcsFont(Bitu code)
 				Bitu oldcode = code;
 				code = GetConvertedCode(code, 932);
 				if (!code) {
-                    if (!getunibit) {
-                        getunibit=true;
-                        std::string config_path, GetDOSBoxXPath(bool withexe=false), exepath=GetDOSBoxXPath(), fname="wqy_12pt.bdf";
+                    if (!getwqy16) {
+                        getwqy16=true;
+                        std::string config_path, exepath=GetDOSBoxXPath(), fname="wqy_12pt.bdf";
                         Cross::GetPlatformConfigDir(config_path);
                         FILE * mfile=fopen(fname.c_str(),"rb");
                         if (!mfile && exepath.size()) mfile=fopen((exepath + fname).c_str(),"rb");
@@ -1267,6 +1266,24 @@ uint8_t *GetDbcs14Font(Bitu code, bool &is14)
                 Bitu oldcode = code;
                 code = GetConvertedCode(code, 932);
                 if (!code) {
+                    if (!getwqy14) {
+                        getwqy14=true;
+                        std::string config_path, exepath=GetDOSBoxXPath(), fname="wqy_11pt.bdf";
+                        Cross::GetPlatformConfigDir(config_path);
+                        FILE * mfile=fopen(fname.c_str(),"rb");
+                        if (!mfile && exepath.size()) mfile=fopen((exepath + fname).c_str(),"rb");
+                        if (!mfile && config_path.size()) mfile=fopen((config_path + fname).c_str(),"rb");
+                        fname="wqy_11pt.pcf";
+                        if (!mfile) mfile=fopen(fname.c_str(),"rb");
+                        if (!mfile && exepath.size()) mfile=fopen((exepath + fname).c_str(),"rb");
+                        if (!mfile && config_path.size()) mfile=fopen((config_path + fname).c_str(),"rb");
+                        if (!mfile) return jfont_dbcs;
+                        if (readBDF(mfile, 14) || readPCF(mfile, 14)) {
+                           fclose(mfile);
+                           if (jfont_cache_dbcs_14[oldcode] != 0) return &jfont_dbcs_14[oldcode * 28];
+                        } else
+                           fclose(mfile);
+                    }
                     is14 = false;
                     return GetDbcsFont(oldcode);
                 }
@@ -1433,6 +1450,7 @@ void InitFontHandle()
 }
 
 void clearFontCache() {
+    getwqy14 = getwqy16 = false;
     memset(jfont_cache_dbcs_16, 0, sizeof(jfont_cache_dbcs_16));
     memset(jfont_cache_dbcs_14, 0, sizeof(jfont_cache_dbcs_14));
     memset(jfont_cache_dbcs_24, 0, sizeof(jfont_cache_dbcs_24));

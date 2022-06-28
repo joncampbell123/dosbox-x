@@ -76,7 +76,7 @@ Source: ".\dosbox-x.reference.setup.conf"; DestDir: "{app}"; Flags: ignoreversio
 Source: "..\..\..\CHANGELOG"; DestDir: "{app}"; DestName: "changelog.txt"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\..\COPYING"; DestDir: "{app}"; DestName: "COPYING.txt"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\fonts\FREECG98.BMP"; DestDir: "{app}"; Flags: ignoreversion; Components: full typical
-Source: "..\..\fonts\wqy_12pt.bdf"; DestDir: "{app}"; Flags: ignoreversion; Components: full typical
+Source: "..\..\fonts\wqy_1?pt.bdf"; DestDir: "{app}"; Flags: ignoreversion; Components: full typical
 Source: "..\..\fonts\Nouveau_IBM.ttf"; DestDir: "{app}"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\fonts\SarasaGothicFixed.ttf"; DestDir: "{app}"; Flags: ignoreversion; Components: full typical compact
 Source: "..\..\translations\en\en_US.lng"; DestDir: "{app}\languages"; Flags: ignoreversion; Components: full typical compact

@@ -52,7 +52,7 @@ jobs:
           cp $top/contrib/windows/installer/readme.txt $top/package/bin/Win32/Release/README.txt
           cp $top/contrib/windows/installer/inpout32.dll $top/package/bin/Win32/Release/inpout32.dll
           cp $top/contrib/fonts/FREECG98.BMP $top/package/bin/Win32/Release/FREECG98.BMP
-          cp $top/contrib/fonts/wqy_12pt.bdf $top/package/bin/Win32/Release/wqy_12pt.bdf
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/package/bin/Win32/Release/
           cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/bin/Win32/Release/Nouveau_IBM.ttf
           cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/bin/Win32/Release/SarasaGothicFixed.ttf
           cp $top/contrib/windows/installer/drivez_readme.txt $top/package/bin/Win32/Release/drivez/readme.txt
@@ -84,7 +84,7 @@ jobs:
           cp $top/contrib/windows/installer/readme.txt $top/package/bin/Win32/"Release SDL2"/README.txt
           cp $top/contrib/windows/installer/inpout32.dll $top/package/bin/Win32/"Release SDL2"/inpout32.dll
           cp $top/contrib/fonts/FREECG98.BMP $top/package/bin/Win32/"Release SDL2"/FREECG98.BMP
-          cp $top/contrib/fonts/wqy_12pt.bdf $top/package/bin/Win32/"Release SDL2"/wqy_12pt.bdf
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/package/bin/Win32/"Release SDL2"/
           cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/bin/Win32/"Release SDL2"/Nouveau_IBM.ttf
           cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/bin/Win32/"Release SDL2"/SarasaGothicFixed.ttf
           cp $top/contrib/windows/installer/drivez_readme.txt $top/package/bin/Win32/"Release SDL2"/drivez/readme.txt
@@ -138,7 +138,7 @@ jobs:
           cp $top/dosbox-x.reference.full.conf $top/package/bin/ARM/Release/dosbox-x.reference.full.conf
           cp $top/contrib/windows/installer/readme.txt $top/package/bin/ARM/Release/README.txt
           cp $top/contrib/fonts/FREECG98.BMP $top/package/bin/ARM/Release/FREECG98.BMP
-          cp $top/contrib/fonts/wqy_12pt.bdf $top/package/bin/ARM/Release/wqy_12pt.bdf
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/package/bin/ARM/Release/
           cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/bin/ARM/Release/Nouveau_IBM.ttf
           cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/bin/ARM/Release/SarasaGothicFixed.ttf
           cp $top/contrib/windows/installer/drivez_readme.txt $top/package/bin/ARM/Release/drivez/readme.txt
@@ -164,7 +164,7 @@ jobs:
           cp $top/dosbox-x.reference.full.conf $top/package/bin/ARM/"Release SDL2"/dosbox-x.reference.full.conf
           cp $top/contrib/windows/installer/readme.txt $top/package/bin/ARM/"Release SDL2"/README.txt
           cp $top/contrib/fonts/FREECG98.BMP $top/package/bin/ARM/"Release SDL2"/FREECG98.BMP
-          cp $top/contrib/fonts/wqy_12pt.bdf $top/package/bin/ARM/"Release SDL2"/wqy_12pt.bdf
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/package/bin/ARM/"Release SDL2"/
           cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/bin/ARM/"Release SDL2"/Nouveau_IBM.ttf
           cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/bin/ARM/"Release SDL2"/SarasaGothicFixed.ttf
           cp $top/contrib/windows/installer/drivez_readme.txt $top/package/bin/ARM/"Release SDL2"/drivez/readme.txt

@@ -37,7 +37,7 @@ print "$zipname\n";
 
 my @platforms = ('ARM', 'ARM64', 'Win32', 'x64');
 my @builds = ('Release', 'Release SDL2');
-my @files = ('dosbox-x.reference.conf', 'dosbox-x.reference.full.conf', 'readme.txt', 'dosbox-x.exe', 'FREECG98.bmp', 'wqy_12pt.bdf', 'Nouveau_IBM.ttf', 'SarasaGothicFixed.ttf', 'changelog.txt', 'drivez', 'scripts', 'shaders', 'languages');
+my @files = ('dosbox-x.reference.conf', 'dosbox-x.reference.full.conf', 'readme.txt', 'dosbox-x.exe', 'FREECG98.bmp', 'wqy_11pt.bdf', 'wqy_12pt.bdf', 'Nouveau_IBM.ttf', 'SarasaGothicFixed.ttf', 'changelog.txt', 'drivez', 'scripts', 'shaders', 'languages');
 
 foreach $platform (@platforms) {
 	$plat = $platform;

@@ -6688,7 +6688,7 @@ bool DOSBOX_parse_argv() {
 #if C_DEBUG
             fprintf(stderr,"  -display2 <color>                       Enable standard & monochrome dual-screen mode with <color>\n");
 #endif
-            fprintf(stderr,"  -lang <message file>                    Use specific message file instead of language= setting\n");
+            fprintf(stderr,"  -lang (or -langcp) <message file>       Use specific message file instead of language= setting\n");
             fprintf(stderr,"  -machine <type>                         Start DOSBox-X with a specific machine <type>\n");
             fprintf(stderr,"  -nodpiaware                             Ignore (do not signal) Windows DPI awareness\n");
             fprintf(stderr,"  -securemode                             Enable secure mode (no drive mounting etc)\n");

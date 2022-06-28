@@ -41,6 +41,22 @@ jobs:
           top=`pwd`
           $top/src/bin/dosbox-x-sdl1 -tests
           $top/src/bin/dosbox-x-sdl2 -tests
+      - name: Package build
+        run: |
+          top=`pwd`
+          mkdir -p $top/src/bin/drivez
+          mkdir -p $top/src/bin/glshaders
+          mkdir -p $top/src/bin/languages
+          cp $top/CHANGELOG $top/src/bin/CHANGELOG.txt
+          cp $top/dosbox-x.reference.conf $top/src/bin/dosbox-x.reference.conf
+          cp $top/dosbox-x.reference.full.conf $top/src/bin/dosbox-x.reference.full.conf
+          cp $top/contrib/fonts/FREECG98.BMP $top/src/bin/FREECG98.BMP
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/src/bin/
+          cp $top/contrib/fonts/Nouveau_IBM.ttf $top/src/bin/Nouveau_IBM.ttf
+          cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/src/bin/SarasaGothicFixed.ttf
+          cp $top/contrib/windows/installer/drivez_readme.txt $top/src/bin/drivez/readme.txt
+          cp $top/contrib/glshaders/* $top/src/bin/glshaders/
+          for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/src/bin/languages/; done
       - name: Upload release package
         uses: actions/upload-artifact@v3.1.0
         with:

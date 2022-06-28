@@ -22,7 +22,7 @@ _dosbox-x()
   local -a \
        _main_opts=(
                     -fs -fullscreen -startmapper -noautoexec -securemode
-                    -scaler -forcescaler -lang -socket -exit -userconf
+                    -scaler -forcescaler -lang -langcp -socket -exit -userconf
                     -startui -startgui -starttool -promptfolder -nopromptfolder
                     -nogui -nomenu -showcycles -showrt -savedir -defaultdir
                     -defaultconf -defaultmapper -date-host-forced -display2

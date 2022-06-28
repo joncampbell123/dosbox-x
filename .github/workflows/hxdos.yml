@@ -53,7 +53,7 @@ jobs:
           cp $top/dosbox-x.reference.full.conf $top/package/dosbox-x.ref.full
           cp $top/contrib/windows/installer/inpout32.dll $top/package/INPOUT32.DLL
           cp $top/contrib/fonts/FREECG98.BMP $top/package/
-          cp $top/contrib/fonts/wqy_12pt.bdf $top/package/
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/package/
           cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/
           cp $top/build-scripts/mingw/hxdos/DPMILD32.EXE $top/package/
           cp $top/build-scripts/mingw/hxdos/HDPMI32.EXE $top/package/
