@@ -150,13 +150,13 @@ static void StripSpaces(char*&args,char also) {
 		args++;
 }
 
-static char* ExpandDot(char*args, char* buffer , size_t bufsize) {
+static char* ExpandDot(char*args, char* buffer , size_t bufsize, bool expand) {
 	if(*args == '.') {
 		if(*(args+1) == 0){
 			safe_strncpy(buffer, "*.*", bufsize);
 			return buffer;
 		}
-		if( (*(args+1) != '.') && (*(args+1) != '\\') ) {
+		if( (*(args+1) != '.') && (*(args+1) != '\\') && expand) {
 			buffer[0] = '*';
 			buffer[1] = 0;
 			if (bufsize > 2) strncat(buffer,args,bufsize - 1 /*used buffer portion*/ - 1 /*trailing zero*/  );
@@ -165,6 +165,32 @@ static char* ExpandDot(char*args, char* buffer , size_t bufsize) {
 			safe_strncpy (buffer, args, bufsize);
 	}
 	else safe_strncpy(buffer,args, bufsize);
+	return buffer;
+}
+
+static char* ExpandDotMore(char*args, char* buffer , size_t bufsize) {
+	char * find_last;
+	find_last=strrchr_dbcs(args,'\\');
+	if (find_last!=NULL) find_last++;
+	if (find_last!=NULL && *find_last == '.') {
+		if(*(find_last+1) == 0){
+			safe_strncpy(buffer, args, bufsize);
+			return buffer;
+		}
+		if( (*(find_last+1) != '.')) {
+			*find_last = 0;
+			strcpy(buffer, args);
+			*find_last = '.';
+			size_t len = strlen(buffer);
+			buffer[len] = '*';
+			buffer[len+1] = 0;
+			if (bufsize > len + 2) strncat(buffer,find_last,bufsize - len - 1 /*used buffer portion*/ - 1 /*trailing zero*/  );
+			else safe_strncpy(buffer, args, bufsize);
+			return buffer;
+		} else
+			safe_strncpy(buffer, args, bufsize);
+	}
+	else safe_strncpy(buffer, args, bufsize);
 	return buffer;
 }
 
@@ -493,7 +519,7 @@ void DOS_Shell::CMD_DELETE(char * args) {
 	char buffer[CROSS_LEN];
     char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
     uint32_t size;uint16_t time,date;uint8_t attr;
-	args = ExpandDot(args,buffer, CROSS_LEN);
+	args = ExpandDot(args,buffer, CROSS_LEN, false);
 	StripSpaces(args);
 	if (!DOS_Canonicalize(args,full)) { WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));dos.dta(save_dta);return; }
 	if (strlen(args)&&args[strlen(args)-1]!='\\') {
@@ -658,6 +684,13 @@ struct DtaResult {
 	uint8_t attr;
 
 	static bool groupDef(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:((((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY)) || (!(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY))) && strcmp(lhs.name, rhs.name) < 0); }
+	static bool groupExt(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:((((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY)) || (!(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY))) && strcmp(lhs.getExtension(), rhs.getExtension()) < 0); }
+	static bool groupSize(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:((((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY)) || (!(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY))) && lhs.size < rhs.size); }
+	static bool groupDate(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:((((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY)) || (!(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY))) && (lhs.date < rhs.date || (lhs.date == rhs.date && lhs.time < rhs.time))); }
+	static bool groupRevDef(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:((((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY)) || (!(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY))) && strcmp(lhs.name, rhs.name) > 0); }
+	static bool groupRevExt(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:((((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY)) || (!(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY))) && strcmp(lhs.getExtension(), rhs.getExtension()) > 0); }
+	static bool groupRevSize(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:((((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY)) || (!(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY))) && lhs.size > rhs.size); }
+	static bool groupRevDate(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:((((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY)) || (!(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY))) && (lhs.date > rhs.date || (lhs.date == rhs.date && lhs.time > rhs.time))); }
 	static bool groupDirs(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY); }
 	static bool compareName(const DtaResult &lhs, const DtaResult &rhs) { return strcmp(lhs.name, rhs.name) < 0; }
 	static bool compareExt(const DtaResult &lhs, const DtaResult &rhs) { return strcmp(lhs.getExtension(), rhs.getExtension()) < 0; }
@@ -809,7 +842,7 @@ void DOS_Shell::CMD_DELTREE(char * args) {
 		if (strlen(find_last)>0&&args[strlen(args)-1]=='*'&&strchr(find_last, '.')==NULL) strcat(args, ".*");
 	}
 	char buffer[CROSS_LEN];
-	args = ExpandDot(args,buffer, CROSS_LEN);
+	args = ExpandDot(args,buffer, CROSS_LEN, true);
 	StripSpaces(args);
 	RealPt save_dta=dos.dta();
 	dos.dta(dos.tables.tempdta);
@@ -1517,9 +1550,9 @@ static bool dirPaused(DOS_Shell * shell, Bitu w_size, bool optP, bool optW, bool
 	return true;
 }
 
-static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat, Bitu w_size, bool optW, bool optZ, bool optS, bool optP, bool optB, bool optA, bool optAD, bool optAminusD, bool optAS, bool optAminusS, bool optAH, bool optAminusH, bool optAR, bool optAminusR, bool optAA, bool optAminusA, bool optO, bool optOG, bool optON, bool optOD, bool optOE, bool optOS, bool reverseSort) {
+static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat, Bitu w_size, bool optW, bool optZ, bool optS, bool optP, bool optB, bool optA, bool optAD, bool optAminusD, bool optAS, bool optAminusS, bool optAH, bool optAminusH, bool optAR, bool optAminusR, bool optAA, bool optAminusA, bool optOGN, bool optOGD, bool optOGE, bool optOGS, bool optOG, bool optON, bool optOD, bool optOE, bool optOS, bool reverseSort, bool rev2Sort) {
 	char path[DOS_PATHLENGTH];
-	char sargs[CROSS_LEN], largs[CROSS_LEN];
+	char sargs[CROSS_LEN], largs[CROSS_LEN], buffer[CROSS_LEN];
     unsigned int tcols=IS_PC98_ARCH?80:real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
     if (!tcols) tcols=80;
 
@@ -1552,6 +1585,11 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 	int fbak=lfn_filefind_handle;
 	lfn_filefind_handle=uselfn&&!optZ?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 	bool ret=DOS_FindFirst(args,0xffff & ~DOS_ATTR_VOLUME), found=true, first=true;
+	if (!ret) {
+		size_t len = strlen(args);
+		args = ExpandDotMore(args,buffer,CROSS_LEN);
+		if (strlen(args)!=len) ret=DOS_FindFirst(args,0xffff & ~DOS_ATTR_VOLUME);
+	}
 	lfn_filefind_handle=fbak;
 	if (ret) {
 		std::vector<DtaResult> results;
@@ -1579,6 +1617,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 		} while ( (ret=DOS_FindNext()) );
 		lfn_filefind_handle=fbak;
 
+		bool oneRev = (reverseSort||rev2Sort)&&reverseSort!=rev2Sort;
 		if (optON) {
 			// Sort by name
 			std::sort(results.begin(), results.end(), DtaResult::compareName);
@@ -1594,13 +1633,20 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 		} else if (optOG) {
 			// Directories first, then files
 			std::sort(results.begin(), results.end(), DtaResult::groupDirs);
-		} else if (optO) {
+		} else if (optOGN) {
 			// Directories first, then files, both sort by name
-			std::sort(results.begin(), results.end(), DtaResult::groupDef);
+			std::sort(results.begin(), results.end(), oneRev?DtaResult::groupRevDef:DtaResult::groupDef);
+		} else if (optOGE) {
+			// Directories first, then files, both sort by extension
+			std::sort(results.begin(), results.end(), oneRev?DtaResult::groupRevExt:DtaResult::groupExt);
+		} else if (optOGS) {
+			// Directories first, then files, both sort by size
+			std::sort(results.begin(), results.end(), oneRev?DtaResult::groupRevSize:DtaResult::groupSize);
+		} else if (optOGD) {
+			// Directories first, then files, both sort by date
+			std::sort(results.begin(), results.end(), oneRev?DtaResult::groupRevDate:DtaResult::groupDate);
 		}
-		if (reverseSort) {
-			std::reverse(results.begin(), results.end());
-		}
+		if (reverseSort) std::reverse(results.begin(), results.end());
 
 		for (std::vector<DtaResult>::iterator iter = results.begin(); iter != results.end(); ++iter) {
 			if (CheckBreak(shell)) return false;
@@ -1799,15 +1845,15 @@ void DOS_Shell::CMD_DIR(char * args) {
 	if (ScanCMDBool(args,"-B")) optB=false;
 	bool optA=ScanCMDBool(args,"A");
 	bool optAD=ScanCMDBool(args,"AD")||ScanCMDBool(args,"A:D");
-	bool optAminusD=ScanCMDBool(args,"A-D");
+	bool optAminusD=ScanCMDBool(args,"A-D")||ScanCMDBool(args,"A:-D");
 	bool optAS=ScanCMDBool(args,"AS")||ScanCMDBool(args,"A:S");
-	bool optAminusS=ScanCMDBool(args,"A-S");
+	bool optAminusS=ScanCMDBool(args,"A-S")||ScanCMDBool(args,"A:-S");
 	bool optAH=ScanCMDBool(args,"AH")||ScanCMDBool(args,"A:H");
-	bool optAminusH=ScanCMDBool(args,"A-H");
+	bool optAminusH=ScanCMDBool(args,"A-H")||ScanCMDBool(args,"A:-H");
 	bool optAR=ScanCMDBool(args,"AR")||ScanCMDBool(args,"A:R");
-	bool optAminusR=ScanCMDBool(args,"A-R");
+	bool optAminusR=ScanCMDBool(args,"A-R")||ScanCMDBool(args,"A:-R");
 	bool optAA=ScanCMDBool(args,"AA")||ScanCMDBool(args,"A:A");
-	bool optAminusA=ScanCMDBool(args,"A-A");
+	bool optAminusA=ScanCMDBool(args,"A-A")||ScanCMDBool(args,"A:-A");
 	if (ScanCMDBool(args,"-A")) {
 		optA = false;
 		optAD = false;
@@ -1822,44 +1868,81 @@ void DOS_Shell::CMD_DIR(char * args) {
 		optAminusA = false;
 	}
 	// Sorting flags
-	bool reverseSort = false;
+	bool reverseSort = false, rev2Sort = false;
 	bool optON=ScanCMDBool(args,"ON")||ScanCMDBool(args,"O:N");
-	if (ScanCMDBool(args,"O-N")) {
+	if (ScanCMDBool(args,"O-N")||ScanCMDBool(args,"O:-N")) {
 		optON = true;
 		reverseSort = true;
 	}
 	bool optOD=ScanCMDBool(args,"OD")||ScanCMDBool(args,"O:D");
-	if (ScanCMDBool(args,"O-D")) {
+	if (ScanCMDBool(args,"O-D")||ScanCMDBool(args,"O:-D")) {
 		optOD = true;
 		reverseSort = true;
 	}
 	bool optOE=ScanCMDBool(args,"OE")||ScanCMDBool(args,"O:E");
-	if (ScanCMDBool(args,"O-E")) {
+	if (ScanCMDBool(args,"O-E")||ScanCMDBool(args,"O:-E")) {
 		optOE = true;
 		reverseSort = true;
 	}
 	bool optOS=ScanCMDBool(args,"OS")||ScanCMDBool(args,"O:S");
-	if (ScanCMDBool(args,"O-S")) {
+	if (ScanCMDBool(args,"O-S")||ScanCMDBool(args,"O:-S")) {
 		optOS = true;
 		reverseSort = true;
 	}
 	bool optOG=ScanCMDBool(args,"OG")||ScanCMDBool(args,"O:G");
-	if (ScanCMDBool(args,"O-G")) {
+	if (ScanCMDBool(args,"O-G")||ScanCMDBool(args,"O:-G")) {
 		optOG = true;
 		reverseSort = true;
 	}
-	bool optO=ScanCMDBool(args,"O");
-	if (ScanCMDBool(args,"OGN")) optO=true;
+	bool b0 = false, b1 = false, b2 = false, b3 = false;
+	bool optOGN = false, optOGD = false, optOGE = false, optOGS = false;
+	b0=ScanCMDBool(args,"O")||ScanCMDBool(args,"OGN")||ScanCMDBool(args,"O:GN");b1=ScanCMDBool(args,"O-GN")||ScanCMDBool(args,"O:-GN");
+	b2=ScanCMDBool(args,"O-G-N")||ScanCMDBool(args,"O:-G-N"),b3=ScanCMDBool(args,"OG-N")||ScanCMDBool(args,"O:G-N");
+	if (b0||b1||b2||b3) {
+		optOGN = true;
+		reverseSort = b1||b2;
+		rev2Sort = b2||b3;
+	}
+	b0=ScanCMDBool(args,"OGD")||ScanCMDBool(args,"O:GD");b1=ScanCMDBool(args,"O-GD")||ScanCMDBool(args,"O:-GD");
+	b2=ScanCMDBool(args,"O-G-D")||ScanCMDBool(args,"O:-G-D");b3=ScanCMDBool(args,"OG-D")||ScanCMDBool(args,"O:G-D");
+	if (b0||b1||b2||b3) {
+		optOGD = true;
+		reverseSort = b1||b2;
+		rev2Sort = b2||b3;
+	}
+	b0=ScanCMDBool(args,"OGE")||ScanCMDBool(args,"O:GE");b1=ScanCMDBool(args,"O-GE")||ScanCMDBool(args,"O:-GE");
+	b2=ScanCMDBool(args,"O-G-E")||ScanCMDBool(args,"O:-G-E");b3=ScanCMDBool(args,"OG-E")||ScanCMDBool(args,"O:G-E");
+	if (b0||b1||b2||b3) {
+		optOGE = true;
+		reverseSort = b1||b2;
+		rev2Sort = b2||b3;
+	}
+	b0=ScanCMDBool(args,"OGS")||ScanCMDBool(args,"O:GS");b1=ScanCMDBool(args,"O-GS")||ScanCMDBool(args,"O:-GS");
+	b2=ScanCMDBool(args,"O-G-S")||ScanCMDBool(args,"O:-G-S");b3=ScanCMDBool(args,"OG-S")||ScanCMDBool(args,"O:G-S");
+	if (b0||b1||b2||b3) {
+		optOGS = true;
+		reverseSort = b1||b2;
+		rev2Sort = b2||b3;
+	}
+	if (optOGN||optOGD||optOGE||optOGS) optOG = false;
 	if (ScanCMDBool(args,"-O")) {
-		optO = false;
 		optOG = false;
 		optON = false;
 		optOD = false;
 		optOE = false;
 		optOS = false;
+		optOGN = false;
+		optOGD = false;
+		optOGE = false;
+		optOGS = false;
 		reverseSort = false;
 	}
-	const char *valid[] = {"4","W","P","-W","-P","WP","PW","Z","-Z","S","-S","B","-B","A","-A","AD","A:D","A-D","AS","A:S","A-S","AH","A:H","A-H","AR","A:R","A-R","AA","A:A","A-A","O","-O","ON","O:N","O-N","OD","O:D","O-D","OE","O:E","O-E","OS","O:S","O-S","OG","O:G","O-G","OGN",NULL};
+	const char *valid[] = {"4","W","P","-W","-P","WP","PW","Z","-Z","S","-S","B","-B",
+	"A","-A","AD","A:D","A-D","A:-D","AS","A:S","A-S","A:-S","AH","A:H","A-H","A:-H","AR","A:R","A-R","A:-R","AA","A:A","A-A","A:-A",
+	"O","-O","ON","O:N","O-N","O:-N","OD","O:D","O-D","O:-D","OE","O:E","O-E","O:-E","OS","O:S","O-S","O:-S","OG","O:G","O-G","O:-G",
+	"OGN","O:GN","O-GN","O:-GN","OG-N","O:G-N","O-G-N","O:-G-N","OGD","O:GD","O-GD","O:-GD","OG-D","O:G-D","O-G-D","O:-G-D",
+	"OGE","O:GE","O-GE","O:-GE","OG-E","O:G-E","O-G-E","O:-G-E","OGS","O:GS","O-GS","O:-GS","OG-S","O:G-S","O-G-S","O:-G-S",
+	NULL};
 	if (args && strlen(args)>1) for (int i=0; valid[i] && *args && strchr(args,'/'); i++) while (ScanCMDBool(args,valid[i]));
 	char * rem=ScanCMDRemain(args);
 	if (rem) {
@@ -1885,7 +1968,7 @@ void DOS_Shell::CMD_DIR(char * args) {
 			break;
 		}
 	}
-	args = ExpandDot(args,buffer,CROSS_LEN);
+	args = ExpandDot(args,buffer,CROSS_LEN,!uselfn);
 
 	if (DOS_FindDevice(args) != DOS_DEVICES) {
 		WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),args);
@@ -1956,7 +2039,7 @@ void DOS_Shell::CMD_DIR(char * args) {
 	inshell=true;
 	while (!dirs.empty()) {
 		ctrlbrk=false;
-		if (!doDir(this, (char *)dirs.begin()->c_str(), dta, numformat, w_size, optW, optZ, optS, optP, optB, optA, optAD, optAminusD, optAS, optAminusS, optAH, optAminusH, optAR, optAminusR, optAA, optAminusA, optO, optOG, optON, optOD, optOE, optOS, reverseSort)) {dos.dta(save_dta);inshell=false;return;}
+		if (!doDir(this, (char *)dirs.begin()->c_str(), dta, numformat, w_size, optW, optZ, optS, optP, optB, optA, optAD, optAminusD, optAS, optAminusS, optAH, optAminusH, optAR, optAminusR, optAA, optAminusA, optOGN, optOGD, optOGE, optOGS, optOG, optON, optOD, optOE, optOS, reverseSort, rev2Sort)) {dos.dta(save_dta);inshell=false;return;}
 		dirs.erase(dirs.begin());
 	}
 	inshell=false;
@@ -2045,7 +2128,7 @@ void DOS_Shell::CMD_LS(char *args) {
 
 	// Handle patterns starting with a dot.
 	char buffer[CROSS_LEN];
-	pattern = ExpandDot((char *)pattern.c_str(), buffer, sizeof(buffer));
+	pattern = ExpandDot((char *)pattern.c_str(), buffer, sizeof(buffer), true);
 
 	// When there's no wildcard and target is a directory then search files
 	// inside the directory.
@@ -3500,7 +3583,7 @@ void DOS_Shell::CMD_ATTRIB(char *args){
 	} while (*args);
 
 	char buffer[CROSS_LEN];
-	args = ExpandDot(sfull,buffer, CROSS_LEN);
+	args = ExpandDot(sfull,buffer, CROSS_LEN, false);
 	StripSpaces(args);
 	RealPt save_dta=dos.dta();
 	dos.dta(dos.tables.tempdta);
