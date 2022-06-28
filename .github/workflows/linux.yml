@@ -35,13 +35,13 @@ jobs:
         run: |
           top=`pwd`
           ./build-debug
-          strip --strip-all $top/src/dosbox-x
+          strip -s $top/src/dosbox-x
           cp $top/src/dosbox-x $top/src/bin/dosbox-x-sdl1
       - name: Build Linux SDL2
         run: |
           top=`pwd`
           ./build-debug-sdl2
-          strip --strip-all $top/src/dosbox-x
+          strip -s $top/src/dosbox-x
           cp $top/src/dosbox-x $top/src/bin/dosbox-x-sdl2
       - name: Unit testing
         run: |

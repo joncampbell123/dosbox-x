@@ -44,19 +44,27 @@ jobs:
         shell: bash
         run: |
           top=`pwd`
-          strip --strip-all $top/src/dosbox-x.exe
+          strip -s $top/src/dosbox-x.exe
           $top/build-scripts/mingw/hxdos/PESTUB.EXE -n $top/src/dosbox-x.exe
           $top/vs/tool/upx.exe --lzma -9 $top/src/dosbox-x.exe
           cp $top/src/dosbox-x.exe $top/package/dosbox-x.exe
           cp $top/CHANGELOG $top/package/CHANGELOG.txt
           cp $top/dosbox-x.reference.conf $top/package/dosbox-x.ref
           cp $top/dosbox-x.reference.full.conf $top/package/dosbox-x.ref.full
+          cp $top/contrib/windows/installer/inpout32.dll $top/package/INPOUT32.DLL
+          cp $top/contrib/fonts/FREECG98.BMP $top/package/
+          cp $top/contrib/fonts/wqy_12pt.bdf $top/package/
+          cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/
           cp $top/build-scripts/mingw/hxdos/DPMILD32.EXE $top/package/
           cp $top/build-scripts/mingw/hxdos/HDPMI32.EXE $top/package/
           cp $top/build-scripts/mingw/hxdos/HXGUIHLP.INI $top/package/
           cp $top/build-scripts/mingw/hxdos/README.TXT $top/package/
           cp $top/build-scripts/mingw/hxdos/WINSPOOL.DRV $top/package/
           cp $top/build-scripts/mingw/hxdos/*.DLL $top/package/
+          mkdir -p $top/package/drivez
+          cp $top/contrib/windows/installer/drivez_readme.txt $top/package/drivez/readme.txt
+          mkdir -p $top/package/language
+          for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/package/language/; done
       - name: Upload release package
         uses: actions/upload-artifact@v3.1.0
         with:

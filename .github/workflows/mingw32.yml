@@ -33,7 +33,7 @@ jobs:
           top=`pwd`
           ln -s $top/build-scripts/mingw/bin/make.exe /usr/bin/make.exe
           ./build-mingw
-          strip --strip-all $top/src/dosbox-x.exe
+          strip -s $top/src/dosbox-x.exe
       - name: Package MinGW32 SDL1
         run: |
           top=`pwd`
@@ -50,6 +50,7 @@ jobs:
           cp $top/contrib/windows/installer/readme.txt $top/package/mingw-build/mingw/README.txt
           cp $top/contrib/windows/installer/inpout32.dll $top/package/mingw-build/mingw/inpout32.dll
           cp $top/contrib/fonts/FREECG98.BMP $top/package/mingw-build/mingw/FREECG98.BMP
+          cp $top/contrib/fonts/wqy_12pt.bdf $top/package/mingw-build/mingw/wqy_12pt.bdf
           cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/mingw-build/mingw/Nouveau_IBM.ttf
           cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/mingw-build/mingw/SarasaGothicFixed.ttf
           cp $top/contrib/windows/installer/drivez_readme.txt $top/package/mingw-build/mingw/drivez/readme.txt
@@ -61,7 +62,7 @@ jobs:
         run: |
           top=`pwd`
           ./build-mingw-sdl2
-          strip --strip-all $top/src/dosbox-x.exe
+          strip -s $top/src/dosbox-x.exe
       - name: Package MinGW32 SDL2
         run: |
           top=`pwd`
@@ -78,6 +79,7 @@ jobs:
           cp $top/contrib/windows/installer/readme.txt $top/package/mingw-build/mingw-sdl2/README.txt
           cp $top/contrib/windows/installer/inpout32.dll $top/package/mingw-build/mingw-sdl2/inpout32.dll
           cp $top/contrib/fonts/FREECG98.BMP $top/package/mingw-build/mingw-sdl2/FREECG98.BMP
+          cp $top/contrib/fonts/wqy_12pt.bdf $top/package/mingw-build/mingw-sdl2/wqy_12pt.bdf
           cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/mingw-build/mingw-sdl2/Nouveau_IBM.ttf
           cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/mingw-build/mingw-sdl2/SarasaGothicFixed.ttf
           cp $top/contrib/windows/installer/drivez_readme.txt $top/package/mingw-build/mingw-sdl2/drivez/readme.txt
@@ -131,7 +133,7 @@ jobs:
       - name: Package MinGW32 lowend SDL2
         run: |
           top=`pwd`
-          strip --strip-all $top/src/dosbox-x.exe
+          strip -s $top/src/dosbox-x.exe
           mkdir -p $top/package/mingw-build/mingw-lowend-sdl2/drivez
           mkdir -p $top/package/mingw-build/mingw-lowend-sdl2/scripts
           mkdir -p $top/package/mingw-build/mingw-lowend-sdl2/shaders
@@ -145,6 +147,7 @@ jobs:
           cp $top/contrib/windows/installer/readme.txt $top/package/mingw-build/mingw-lowend-sdl2/README.txt
           cp $top/contrib/windows/installer/inpout32.dll $top/package/mingw-build/mingw-lowend-sdl2/inpout32.dll
           cp $top/contrib/fonts/FREECG98.BMP $top/package/mingw-build/mingw-lowend-sdl2/FREECG98.BMP
+          cp $top/contrib/fonts/wqy_12pt.bdf $top/package/mingw-build/mingw-lowend-sdl2/wqy_12pt.bdf
           cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/mingw-build/mingw-lowend-sdl2/Nouveau_IBM.ttf
           cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/mingw-build/mingw-lowend-sdl2/SarasaGothicFixed.ttf
           cp $top/contrib/windows/installer/drivez_readme.txt $top/package/mingw-build/mingw-lowend-sdl2/drivez/readme.txt
@@ -164,7 +167,7 @@ jobs:
       - name: Package MinGW32 lowend SDL1
         run: |
           top=`pwd`
-          strip --strip-all $top/src/dosbox-x.exe
+          strip -s $top/src/dosbox-x.exe
           mkdir -p $top/package/mingw-build/mingw-lowend/drivez
           mkdir -p $top/package/mingw-build/mingw-lowend/scripts
           mkdir -p $top/package/mingw-build/mingw-lowend/shaders
@@ -178,6 +181,7 @@ jobs:
           cp $top/contrib/windows/installer/readme.txt $top/package/mingw-build/mingw-lowend/README.txt
           cp $top/contrib/windows/installer/inpout32.dll $top/package/mingw-build/mingw-lowend/inpout32.dll
           cp $top/contrib/fonts/FREECG98.BMP $top/package/mingw-build/mingw-lowend/FREECG98.BMP
+          cp $top/contrib/fonts/wqy_12pt.bdf $top/package/mingw-build/mingw-lowend/wqy_12pt.bdf
           cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/mingw-build/mingw-lowend/Nouveau_IBM.ttf
           cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/mingw-build/mingw-lowend/SarasaGothicFixed.ttf
           cp $top/contrib/windows/installer/drivez_readme.txt $top/package/mingw-build/mingw-lowend/drivez/readme.txt
