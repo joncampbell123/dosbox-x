@@ -3,6 +3,8 @@
     1.0.1, adding API calls such as DOSBox-X's version
     number and platform, and some DOS-related status
     such as DOS version number. (Wengier)
+  - Improve the HX-DOS build package, including the
+    TTF output support and accessory files. (Wengier)
   - Use long double for internal event scheduling
     if available, to improve accuracy (joncampbell123).
   - Fix remaining SDL2 Windows problems by adding
@@ -20,6 +22,8 @@
     transparency and title bar text. (Wengier)
   - Add special properties to CONFIG command including
     "system" and "version". (Wengier)
+  - Fix DOS 8.3 filename generations when there are
+    special characters in the filenames. (Wengier)
   - Fix creation of disk images with spaces using the
     "Create blank disk image..." menu option. (Wengier)
   - Fix IMGMAKE to provide executable code in MS-DOS
@@ -79,6 +83,11 @@
     command possible such as ECHO. ECHO; ECHO: ECHO[
     ECHO] ECHO\ ECHO/ ECHO" ECHO+ (issue #3503).
     (joncampbell123).
+  - DIR command supports more sorting methods including
+    "DIR /OGD", "DIR /OGE", and "DIR /OGS". (Wengier)
+  - Support for BDF and PCF bitmap fonts for DOS/V
+    functions, such as the free WenQuanYi bitmap font
+    (bundled for displaying CJK characters). (Wengier)
   - EGA: Add machine type to emulate 200-line (CGA
     compatible) EGA display mode, machine=ega200.
     All text modes have 8x8 character cells, use CGA
