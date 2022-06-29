@@ -57,7 +57,7 @@ jobs:
           cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/bin/x64/Release/scripts/
           cp $top/contrib/windows/shaders/* $top/package/bin/x64/Release/shaders/
           cp $top/contrib/glshaders/* $top/package/bin/x64/Release/glshaders/
-          for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/package/bin/x64/Release/languages/; done
+          cp $top/contrib/translations/*/*.lng $top/package/bin/x64/Release/languages/
       - name: Build Visual Studio Win64 SDL1
         shell: pwsh
         run: |
@@ -88,7 +88,7 @@ jobs:
           cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/bin/x64/"Release SDL2"/scripts/
           cp $top/contrib/windows/shaders/* $top/package/bin/x64/"Release SDL2"/shaders/
           cp $top/contrib/glshaders/* $top/package/bin/x64/"Release SDL2"/glshaders/
-          for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/package/bin/x64/"Release SDL2"/languages/; done
+          cp $top/contrib/translations/*/*.lng $top/package/bin/x64/"Release SDL2"/languages/
           cp $top/COPYING $top/package/COPYING
       - name: Upload release package
         uses: actions/upload-artifact@v3.1.0
@@ -141,7 +141,7 @@ jobs:
           cp $top/contrib/windows/installer/drivez_readme.txt $top/package/bin/ARM64/Release/drivez/readme.txt
           cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/bin/ARM64/Release/scripts/
           cp $top/contrib/windows/shaders/* $top/package/bin/ARM64/Release/shaders/
-          for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/package/bin/ARM64/Release/languages/; done
+          cp $top/contrib/translations/*/*.lng $top/package/bin/ARM64/Release/languages/
       - name: Build Visual Studio ARM64 SDL2
         shell: pwsh
         run: |
@@ -167,7 +167,7 @@ jobs:
           cp $top/contrib/windows/installer/drivez_readme.txt $top/package/bin/ARM64/"Release SDL2"/drivez/readme.txt
           cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/bin/ARM64/"Release SDL2"/scripts/
           cp $top/contrib/windows/shaders/* $top/package/bin/ARM64/"Release SDL2"/shaders/
-          for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/package/bin/ARM64/"Release SDL2"/languages/; done
+          cp $top/contrib/translations/*/*.lng $top/package/bin/ARM64/"Release SDL2"/languages/
           cp $top/COPYING $top/package/COPYING
       - name: Upload release package
         uses: actions/upload-artifact@v3.1.0

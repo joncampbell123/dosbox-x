@@ -7620,6 +7620,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         config_combined = config_path + tmp;
         if (!control->configfiles.size() && stat(config_combined.c_str(),&st) == 0 && S_ISREG(st.st_mode))
             control->ParseConfigFile(config_combined.c_str());
+
         if (control->configfiles.size()) configfile = control->configfiles.front();
 
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
@@ -7679,8 +7680,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             LOG(LOG_GUI, LOG_ERROR)("sdlmain.cpp main() failed to get the current working directory.");
         }
 
-#if !defined(MACOSX)
         if(control->opt_promptfolder < 0) {
+#if !defined(MACOSX)
             struct stat st;
 
             /* if dosbox.conf or dosbox-x.conf already exists in the current working directory, then skip folder prompt */
@@ -7689,8 +7690,15 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                     control->opt_promptfolder = 0;
                 }
             }
-        }
 #endif
+            std::string res_path;
+            Cross::GetPlatformResDir(res_path);
+            if(stat((res_path + "dosbox-x.conf").c_str(), &st) == 0) {
+                if(S_ISREG(st.st_mode)) {
+                    control->opt_promptfolder = 0;
+                }
+            }
+        }
 
 #if defined(WIN32)
         /* A Windows application cannot detect with isatty() if run from the command prompt.
@@ -7817,7 +7825,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
 
     {
-        std::string tmp,config_path,config_combined;
+        std::string tmp,config_path,res_path,config_combined;
 
 #if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
         {
@@ -7856,6 +7864,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         /* -- Parse configuration files */
         Cross::GetPlatformConfigDir(config_path);
+        Cross::GetPlatformResDir(res_path);
 
         /* -- -- first the user config file */
         if (control->opt_userconf || workdirsave>0) {
@@ -7926,6 +7935,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 if (!control->configfiles.size()) control->ParseConfigFile((exepath + "dosbox.conf").c_str());
             }
         }
+
+        /* -- -- if none found, use resource level conf */
+        if (!control->configfiles.size()) control->ParseConfigFile((res_path + "dosbox-x.conf").c_str());
 
         /* -- -- if none found, use userlevel conf */
         if (!control->configfiles.size()) control->ParseConfigFile((config_path + "dosbox-x.conf").c_str());

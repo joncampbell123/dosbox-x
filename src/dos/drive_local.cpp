@@ -1026,21 +1026,32 @@ void getdrivezpath(std::string &path, std::string dirname) {
     struct stat cstat;
     ht_stat_t hstat;
     int res=host_name == NULL?stat(path.c_str(),&cstat):ht_stat(host_name,&hstat);
-    if(res==-1 || !((host_name == NULL?cstat.st_mode:hstat.st_mode) & S_IFDIR)) {
+    bool ret=res==-1?false:((host_name == NULL?cstat.st_mode:hstat.st_mode) & S_IFDIR);
+    if (!ret) {
         path = GetDOSBoxXPath();
         if (path.size()) {
             path += dirname;
             host_name = CodePageGuestToHost(path.c_str());
             res=host_name == NULL?stat(path.c_str(),&cstat):ht_stat(host_name,&hstat);
+            ret=res==-1?false:((host_name == NULL?cstat.st_mode:hstat.st_mode) & S_IFDIR);
         }
-        if(!path.size() || res==-1 || ((host_name == NULL?cstat.st_mode:hstat.st_mode) & S_IFDIR) == 0) {
+        if (!path.size() || !ret) {
             path = "";
-            Cross::CreatePlatformConfigDir(path);
+            Cross::GetPlatformConfigDir(path);
             path += dirname;
             host_name = CodePageGuestToHost(path.c_str());
             res=host_name == NULL?stat(path.c_str(),&cstat):ht_stat(host_name,&hstat);
-            if(res==-1 || ((host_name == NULL?cstat.st_mode:hstat.st_mode) & S_IFDIR) == 0)
+            ret=res==-1?false:((host_name == NULL?cstat.st_mode:hstat.st_mode) & S_IFDIR);
+            if (!ret) {
                 path = "";
+                Cross::GetPlatformResDir(path);
+                path += dirname;
+                host_name = CodePageGuestToHost(path.c_str());
+                res=host_name == NULL?stat(path.c_str(),&cstat):ht_stat(host_name,&hstat);
+                ret=res==-1?false:((host_name == NULL?cstat.st_mode:hstat.st_mode) & S_IFDIR);
+                if (!ret)
+                    path = "";
+            }
         }
     }
 }

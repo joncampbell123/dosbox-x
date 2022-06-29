@@ -64,7 +64,7 @@ jobs:
           mkdir -p $top/package/drivez
           cp $top/contrib/windows/installer/drivez_readme.txt $top/package/drivez/readme.txt
           mkdir -p $top/package/language
-          for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/package/language/; done
+          cp $top/contrib/translations/*/*.lng $top/package/language/
       - name: Upload release package
         uses: actions/upload-artifact@v3.1.0
         with:

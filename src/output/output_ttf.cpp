@@ -352,6 +352,22 @@ bool readTTF(const char *fName, bool bold, bool ital) {
         }
     }
     if (!ttf_fh) {
+        std::string res_path;
+        Cross::GetPlatformResDir(res_path);
+        struct stat info;
+        if (!stat(res_path.c_str(), &info) && (info.st_mode & S_IFDIR)) {
+            strcpy(ttfPath, res_path.c_str());
+            strcat(ttfPath, fName);
+            strcat(ttfPath, ".ttf");
+            ttf_fh = fopen(ttfPath, "rb");
+            if (!ttf_fh) {
+                strcpy(ttfPath, res_path.c_str());
+                strcat(ttfPath, fName);
+                ttf_fh = fopen(ttfPath, "rb");
+            }
+        }
+    }
+    if (!ttf_fh) {
         std::string basedir = static_cast<Section_prop *>(control->GetSection("printer"))->Get_string("fontpath");
         if (basedir.back()!='\\' && basedir.back()!='/') basedir += CROSS_FILESPLIT;
         strcpy(ttfPath, basedir.c_str());
