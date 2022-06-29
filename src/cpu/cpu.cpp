@@ -2161,24 +2161,30 @@ void CPU_RET(bool use32,Bitu bytes,uint32_t oldeip) {
 
 	if (!cpu.pmode || (reg_flags & FLAG_VM)) {
 		try {
-		uint32_t new_ip;
-        uint16_t new_cs;
-		if (!use32) {
-			new_ip=CPU_Pop16();
-			new_cs=CPU_Pop16();
-		} else {
-			new_ip=CPU_Pop32();
-			new_cs=CPU_Pop32() & 0xffff;
-		}
-		reg_esp+=(uint32_t)bytes;
-		SegSet16(cs,new_cs);
-		reg_eip=new_ip;
-		if (!cpu_allow_big16) cpu.code.big=false;
-		return;
+			uint32_t new_ip;
+			uint16_t new_cs;
+			if (!use32) {
+				new_ip=CPU_Pop16();
+				new_cs=CPU_Pop16();
+			} else {
+				new_ip=CPU_Pop32();
+				new_cs=CPU_Pop32() & 0xffff;
+			}
+
+			/* NTS: It is very important not to modify the full 32 bits in real mode.
+			 *      Finster by Mad Scientists (1996) likes to execute "RETF FFFEh" but
+			 *      will break if the upper 16 bits of ESP are made nonzero. I'm guessing
+			 *      the RETF used in that way is an elaborate way of adding 2 to the stack
+			 *      pointer instead of subtracting. --Jonathan C. */
+			reg_esp=(reg_esp&cpu.stack.notmask)|((reg_esp+(uint32_t)bytes)&cpu.stack.mask);
+			SegSet16(cs,new_cs);
+			reg_eip=new_ip;
+			if (!cpu_allow_big16) cpu.code.big=false;
+			return;
 		}
 		catch (const GuestPageFaultException &pf) {
-            (void)pf;//UNUSED
-            LOG_MSG("CPU_RET() interrupted real/vm86");
+			(void)pf;//UNUSED
+			LOG_MSG("CPU_RET() interrupted real/vm86");
 			reg_esp = orig_esp;
 			throw;
 		}
@@ -3129,7 +3135,7 @@ void CPU_ENTER(bool use32,Bitu bytes,Bitu level) {
 		/* If 16-bit real mode or stack is 16-bit, even with 66h prefix, mask EBP by 0xFFFF (Fix for Finster by Mad Scientists, 1996).
 		 * This is not how Intel processors work, as verified on real 486 hardware. Unsurprisingly, Finster does not appear to run
 		 * properly on real hardware either, though I can't get the game to get that far. --Jonathan C. */
-		reg_ebp=(reg_esp-4)&(mask_stack_ptr_on_enter?cpu.stack.mask:0);
+		reg_ebp=(reg_esp-4)&(mask_stack_ptr_on_enter?cpu.stack.mask:0xFFFFFFFF);
 
 		if (level) {
 			for (Bitu i=1;i<level;i++) {	

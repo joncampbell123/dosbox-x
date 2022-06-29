@@ -1,4 +1,14 @@
 0.84.1
+  - Fix RETF instruction handling to only modify the
+    low 16 bits of ESP in real mode, even if the
+    immediate value for RETF is a large value like
+    FFFEh (fix for Finster by Mad Scientists). Prior
+    to this fix, it was possible to increment the
+    upper 32 bits of ESP from real mode using a
+    normal 16-bit RETF with a very large immediate
+    value. This fix removes the need for the ENTER
+    masking dosbox.conf option entirely and allows
+    Finster to run without it. (joncampbell123).
   - Added dosbox.conf option to control whether the
     ENTER instruction masks the stack pointer to 64KB
     if the stack segment is 16-bit, which is off by
