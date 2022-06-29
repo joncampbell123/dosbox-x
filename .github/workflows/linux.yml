@@ -46,6 +46,7 @@ jobs:
       - name: Unit testing
         run: |
           top=`pwd`
+          chmod +x $top/src/bin/dosbox-x-sdl1 $top/src/bin/dosbox-x-sdl2
           $top/src/bin/dosbox-x-sdl1 -tests
           $top/src/bin/dosbox-x-sdl2 -tests
       - name: Package build

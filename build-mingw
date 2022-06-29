@@ -27,7 +27,7 @@ sed -i 's/^\/\/#define ENABLE_IM_EVENT 1$/#define ENABLE_IM_EVENT 1/g' vs/sdl/in
 
 # NTS: MinGW provides zlib for us
 if false; then
-	# perfer to compile against our own zlib
+	# prefer to compile against our own zlib
 	echo Compiling our internal zlib
 	(cd vs/zlib && ./build-dosbox.sh) || exit 1
 	new="-I$top/vs/zlib/linux-host/include "
@@ -38,7 +38,7 @@ if false; then
 	export CXXFLAGS="$new$CXXFLAGS"
 fi
 
-# perfer to compile against our own libpng (comment this out to disable)
+# prefer to compile against our own libpng (comment this out to disable)
 echo Compiling our internal libpng
 (cd vs/libpng && ./build-dosbox.sh) || exit 1
 new="-I$top/vs/libpng/linux-host/include "
@@ -48,7 +48,7 @@ export LDFLAGS="$nld$LDFLAGS"
 export CPPFLAGS="$new$CPPFLAGS"
 export CXXFLAGS="$new$CXXFLAGS"
 
-# perfer to compile against our own freetype
+# prefer to compile against our own freetype
 echo Compiling our internal freetype
 (cd vs/freetype && ./build-dosbox.sh) || exit 1
 new="-I$top/vs/freetype/linux-host/include/freetype2 "
