@@ -11,10 +11,21 @@ dosbox-x.app: src/dosbox-x contrib/macos/dosbox.icns src/tool/mach-o-matic
 	mkdir dosbox-x.app/Contents
 	mkdir dosbox-x.app/Contents/MacOS
 	mkdir dosbox-x.app/Contents/Resources
+	mkdir dosbox-x.app/Contents/Resources/drivez
+	mkdir dosbox-x.app/Contents/Resources/glshaders
+	mkdir dosbox-x.app/Contents/Resources/languages
 	cp -v contrib/macos/dosbox-x.plist dosbox-x.app/Contents/Info.plist
 	cp -v contrib/macos/dosbox-x.pkginfo dosbox-x.app/Contents/PkgInfo
 	cp -v contrib/macos/dosbox.icns dosbox-x.app/Contents/Resources/DosBox.icns
 	cp -v contrib/fonts/FREECG98.BMP dosbox-x.app/Contents/Resources/freecg98.bmp
+	cp -v contrib/fonts/wqy_1?pt.bdf dosbox-x.app/Contents/Resources/
+	cp -v contrib/fonts/Nouveau_IBM.ttf dosbox-x.app/Contents/Resources/Nouveau_IBM.ttf
+	cp -v contrib/fonts/SarasaGothicFixed.ttf dosbox-x.app/Contents/Resources/SarasaGothicFixed.ttf
+	cp -v contrib/windows/installer/drivez_readme.txt dosbox-x.app/Contents/Resources/drivez/readme.txt
+	cp -v contrib/glshaders/* dosbox-x.app/Contents/Resources/glshaders/
+	cp -v contrib/translations/*/*.lng dosbox-x.app/Contents/Resources/languages/
+	cp -v dosbox-x.reference.conf dosbox-x.app/Contents/Resources/
+	cp -v dosbox-x.reference.full.conf dosbox-x.app/Contents/Resources/
 	cp -v src/dosbox-x dosbox-x.app/Contents/MacOS/DosBox
 # this is where it gets ugly
 	codesign --remove-signature dosbox-x.app/Contents/MacOS/DosBox
@@ -98,14 +109,19 @@ compat-site-update:
 install: src/dosbox-x
 	mkdir -p $(DESTDIR)$(bindir)
 	install -m 755 src/dosbox-x $(DESTDIR)$(bindir)
+	mkdir -p $(DESTDIR)$(prefix)/share/dosbox-x/drivez
 	mkdir -p $(DESTDIR)$(prefix)/share/dosbox-x/glshaders
-	mkdir -p $(DESTDIR)$(prefix)/share/dosbox-x/translations
+	mkdir -p $(DESTDIR)$(prefix)/share/dosbox-x/languages
 	install -m 644 $(srcdir)/CHANGELOG $(DESTDIR)$(prefix)/share/dosbox-x
 	install -m 644 $(srcdir)/contrib/fonts/FREECG98.BMP $(DESTDIR)$(prefix)/share/dosbox-x
 	install -m 644 $(srcdir)/dosbox-x.reference.conf $(DESTDIR)$(prefix)/share/dosbox-x
 	install -m 644 $(srcdir)/dosbox-x.reference.full.conf $(DESTDIR)$(prefix)/share/dosbox-x
+	install -m 644 $(srcdir)/contrib/fonts/wqy_1?pt.bdf $(DESTDIR)$(prefix)/share/dosbox-x
+	install -m 644 $(srcdir)/contrib/fonts/Nouveau_IBM.ttf $(DESTDIR)$(prefix)/share/dosbox-x
+	install -m 644 $(srcdir)/contrib/fonts/SarasaGothicFixed.ttf $(DESTDIR)$(prefix)/share/dosbox-x
+	install -m 644 $(srcdir)/contrib/windows/installer/drivez_readme.txt $(DESTDIR)$(prefix)/share/dosbox-x/drivez/readme.txt
 	install -m 644 $(srcdir)/contrib/glshaders/*.glsl $(DESTDIR)$(prefix)/share/dosbox-x/glshaders
-	install -m 644 $(srcdir)/contrib/translations/*/*.lng $(DESTDIR)$(prefix)/share/dosbox-x/translations
+	install -m 644 $(srcdir)/contrib/translations/*/*.lng $(DESTDIR)$(prefix)/share/dosbox-x/languages
 	mkdir -p $(DESTDIR)$(prefix)/share/icons/hicolor/scalable/apps
 	install -m 644 $(srcdir)/contrib/icons/dosbox-x.svg $(DESTDIR)$(prefix)/share/icons/hicolor/scalable/apps/dosbox-x.svg
 	mkdir -p $(DESTDIR)$(prefix)/share/applications
@@ -124,10 +140,12 @@ install_strip: src/dosbox-x install
 
 uninstall:
 	rm -f $(DESTDIR)$(bindir)/dosbox-x
+	rm -f $(DESTDIR)$(prefix)/share/dosbox-x/drivez/*
+	rmdir $(DESTDIR)$(prefix)/share/dosbox-x/drivez
 	rm -f $(DESTDIR)$(prefix)/share/dosbox-x/glshaders/*
 	rmdir $(DESTDIR)$(prefix)/share/dosbox-x/glshaders
-	rm -f $(DESTDIR)$(prefix)/share/dosbox-x/translations/*
-	rmdir $(DESTDIR)$(prefix)/share/dosbox-x/translations
+	rm -f $(DESTDIR)$(prefix)/share/dosbox-x/languages/*
+	rmdir $(DESTDIR)$(prefix)/share/dosbox-x/languages
 	rm -f $(DESTDIR)$(prefix)/share/dosbox-x/*
 	rmdir $(DESTDIR)$(prefix)/share/dosbox-x
 	rm -f $(DESTDIR)$(prefix)/share/icons/hicolor/48x48/apps/dosbox-x.png

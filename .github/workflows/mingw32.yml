@@ -57,7 +57,7 @@ jobs:
           cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/mingw-build/mingw/scripts/
           cp $top/contrib/windows/shaders/* $top/package/mingw-build/mingw/shaders/
           cp $top/contrib/glshaders/* $top/package/mingw-build/mingw/glshaders/
-          for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/package/mingw-build/mingw/languages/; done
+          cp $top/contrib/translations/*/*.lng $top/package/mingw-build/mingw/languages/
       - name: Build MinGW32 SDL2
         run: |
           top=`pwd`
@@ -86,7 +86,7 @@ jobs:
           cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/mingw-build/mingw-sdl2/scripts/
           cp $top/contrib/windows/shaders/* $top/package/mingw-build/mingw-sdl2/shaders/
           cp $top/contrib/glshaders/* $top/package/mingw-build/mingw-sdl2/glshaders/
-          for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/package/mingw-build/mingw-sdl2/languages/; done
+          cp $top/contrib/translations/*/*.lng $top/package/mingw-build/mingw-sdl2/languages/
           cp $top/COPYING $top/package/COPYING
       - name: Upload release package
         uses: actions/upload-artifact@v3.1.0
@@ -154,8 +154,7 @@ jobs:
           cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/mingw-build/mingw-lowend-sdl2/scripts/
           cp $top/contrib/windows/shaders/* $top/package/mingw-build/mingw-lowend-sdl2/shaders/
           cp $top/contrib/glshaders/* $top/package/mingw-build/mingw-lowend-sdl2/glshaders/
-          for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/package/mingw-build/mingw-lowend-sdl2/languages/; done
-          cp $top/COPYING $top/package/COPYING
+          cp $top/contrib/translations/*/*.lng $top/package/mingw-build/mingw-lowend-sdl2/languages/
       - name: Prepare MinGW32 lowend SDL1
         run: |
           make clean
@@ -188,7 +187,7 @@ jobs:
           cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/mingw-build/mingw-lowend/scripts/
           cp $top/contrib/windows/shaders/* $top/package/mingw-build/mingw-lowend/shaders/
           cp $top/contrib/glshaders/* $top/package/mingw-build/mingw-lowend/glshaders/
-          for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/package/mingw-build/mingw-lowend/languages/; done
+          cp $top/contrib/translations/*/*.lng $top/package/mingw-build/mingw-lowend/languages/
           cp $top/COPYING $top/package/COPYING
       - name: Upload release package
         uses: actions/upload-artifact@v3.1.0

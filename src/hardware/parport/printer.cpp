@@ -338,11 +338,17 @@ void CPrinter::updateFont()
     std::string exepath=GetDOSBoxXPath();
     struct stat wstat;
     if (stat(fontName.c_str(),&wstat)) {
-        std::string configfont, name = fontName;
+        std::string configfont, resfont, name = fontName;
         Cross::GetPlatformConfigDir(configfont);
         configfont += fontName;
         fontName = configfont;
-        if (stat(fontName.c_str(),&wstat) && exepath.size()) fontName = exepath + CROSS_FILESPLIT + name;
+        if (stat(fontName.c_str(),&wstat)) {
+            fontName = name;
+            Cross::GetPlatformResDir(resfont);
+            resfont += fontName;
+            fontName = resfont;
+            if (stat(fontName.c_str(),&wstat) && exepath.size()) fontName = exepath + CROSS_FILESPLIT + name;
+        }
     }
     if ((printdbcs==1 || (printdbcs==-1 && (isJEGAEnabled() || IS_DOSV || ((TTF_using() || showdbcs)
 #if defined(USE_TTF)
@@ -351,19 +357,31 @@ void CPrinter::updateFont()
     )))) && (IS_PC98_ARCH || isDBCSCP()) && stat(fontName.c_str(),&wstat)) {
         fontName = basedir + "SarasaGothicFixed.ttf";
         if (stat(fontName.c_str(),&wstat)) {
-            std::string configfont, name = fontName;
+            std::string configfont, resfont, name = fontName;
             Cross::GetPlatformConfigDir(configfont);
             configfont += fontName;
             fontName = configfont;
-            if (stat(fontName.c_str(),&wstat) && exepath.size()) fontName = exepath + CROSS_FILESPLIT + name;
             if (stat(fontName.c_str(),&wstat)) {
-                fontName = "SarasaGothicFixed.ttf";
+                fontName = name;
+                Cross::GetPlatformResDir(resfont);
+                resfont += fontName;
+                fontName = resfont;
+                if (stat(fontName.c_str(),&wstat) && exepath.size()) fontName = exepath + CROSS_FILESPLIT + name;
                 if (stat(fontName.c_str(),&wstat)) {
-                    std::string configfont, name = fontName;
-                    Cross::GetPlatformConfigDir(configfont);
-                    configfont += fontName;
-                    fontName = configfont;
-                    if (stat(fontName.c_str(),&wstat) && exepath.size()) fontName = exepath + CROSS_FILESPLIT + name;
+                    fontName = "SarasaGothicFixed.ttf";
+                    if (stat(fontName.c_str(),&wstat)) {
+                        std::string configfont, resfont, name = fontName;
+                        Cross::GetPlatformConfigDir(configfont);
+                        configfont += fontName;
+                        fontName = configfont;
+                        if (stat(fontName.c_str(),&wstat)) {
+                            fontName = name;
+                            Cross::GetPlatformResDir(resfont);
+                            resfont += fontName;
+                            fontName = resfont;
+                            if (stat(fontName.c_str(),&wstat) && exepath.size()) fontName = exepath + CROSS_FILESPLIT + name;
+                        }
+                    }
                 }
             }
         }

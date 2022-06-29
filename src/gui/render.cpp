@@ -1168,7 +1168,7 @@ std::string LoadGLShader(Section_prop * section) {
         render.shader_def = f=="default";
         if (initgl==2) sdl_opengl.use_shader=true;
     } else if (!RENDER_GetShader(sh->realpath,(char *)shader_src.c_str())) {
-        std::string path = std::string("glshaders") + CROSS_FILESPLIT + f;
+        std::string path = std::string("glshaders") + CROSS_FILESPLIT + f, pathcfg, pathres;
         if (!RENDER_GetShader(path,(char *)shader_src.c_str())) {
             std::string exePath = GetDOSBoxXPath();
             if (exePath.size()) path = exePath + std::string("glshaders") + CROSS_FILESPLIT + f;
@@ -1180,8 +1180,10 @@ std::string LoadGLShader(Section_prop * section) {
         }
         if (path.size() && !RENDER_GetShader(path,(char *)shader_src.c_str())) {
             Cross::GetPlatformConfigDir(path);
-            path = path + "glshaders" + CROSS_FILESPLIT + f;
-            if (!RENDER_GetShader(path,(char *)shader_src.c_str()) && (sh->realpath==f || !RENDER_GetShader(f,(char *)shader_src.c_str()))) {
+            pathcfg = path + "glshaders" + CROSS_FILESPLIT + f;
+            Cross::GetPlatformResDir(path);
+            pathres = path + "glshaders" + CROSS_FILESPLIT + f;
+            if (!RENDER_GetShader(pathcfg,(char *)shader_src.c_str()) && !RENDER_GetShader(pathres,(char *)shader_src.c_str()) && (sh->realpath==f || !RENDER_GetShader(f,(char *)shader_src.c_str()))) {
                 sh->SetValue("none");
                 LOG_MSG("Shader file \"%s\" not found", f.c_str());
             } else {

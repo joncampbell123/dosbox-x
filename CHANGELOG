@@ -1,4 +1,7 @@
 0.84.1
+  - DOSBox-X will now search for resource files such as
+    fonts and translations in the resource directory in
+    addition to other locations. (Wengier)
   - Fix RETF instruction handling to only modify the
     low 16 bits of ESP in real mode, even if the
     immediate value for RETF is a large value like

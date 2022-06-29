@@ -1172,15 +1172,17 @@ uint8_t *GetDbcsFont(Bitu code)
 				if (!code) {
                     if (!getwqy16) {
                         getwqy16=true;
-                        std::string config_path, exepath=GetDOSBoxXPath(), fname="wqy_12pt.bdf";
-                        Cross::GetPlatformConfigDir(config_path);
+                        std::string config_path, res_path, exepath=GetDOSBoxXPath(), fname="wqy_12pt.bdf";
+                        Cross::GetPlatformConfigDir(config_path), Cross::GetPlatformResDir(res_path);
                         FILE * mfile=fopen(fname.c_str(),"rb");
                         if (!mfile && exepath.size()) mfile=fopen((exepath + fname).c_str(),"rb");
                         if (!mfile && config_path.size()) mfile=fopen((config_path + fname).c_str(),"rb");
+                        if (!mfile && res_path.size()) mfile=fopen((res_path + fname).c_str(),"rb");
                         fname="wqy_12pt.pcf";
                         if (!mfile) mfile=fopen(fname.c_str(),"rb");
                         if (!mfile && exepath.size()) mfile=fopen((exepath + fname).c_str(),"rb");
                         if (!mfile && config_path.size()) mfile=fopen((config_path + fname).c_str(),"rb");
+                        if (!mfile && res_path.size()) mfile=fopen((res_path + fname).c_str(),"rb");
                         if (!mfile) return jfont_dbcs;
                         if (readBDF(mfile, 16) || readPCF(mfile, 16)) {
                            fclose(mfile);
@@ -1268,15 +1270,17 @@ uint8_t *GetDbcs14Font(Bitu code, bool &is14)
                 if (!code) {
                     if (!getwqy14) {
                         getwqy14=true;
-                        std::string config_path, exepath=GetDOSBoxXPath(), fname="wqy_11pt.bdf";
-                        Cross::GetPlatformConfigDir(config_path);
+                        std::string config_path, res_path, exepath=GetDOSBoxXPath(), fname="wqy_11pt.bdf";
+                        Cross::GetPlatformConfigDir(config_path), Cross::GetPlatformResDir(res_path);
                         FILE * mfile=fopen(fname.c_str(),"rb");
                         if (!mfile && exepath.size()) mfile=fopen((exepath + fname).c_str(),"rb");
                         if (!mfile && config_path.size()) mfile=fopen((config_path + fname).c_str(),"rb");
+                        if (!mfile && res_path.size()) mfile=fopen((res_path + fname).c_str(),"rb");
                         fname="wqy_11pt.pcf";
                         if (!mfile) mfile=fopen(fname.c_str(),"rb");
                         if (!mfile && exepath.size()) mfile=fopen((exepath + fname).c_str(),"rb");
                         if (!mfile && config_path.size()) mfile=fopen((config_path + fname).c_str(),"rb");
+                        if (!mfile && res_path.size()) mfile=fopen((res_path + fname).c_str(),"rb");
                         if (!mfile) return jfont_dbcs;
                         if (readBDF(mfile, 14) || readPCF(mfile, 14)) {
                            fclose(mfile);

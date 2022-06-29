@@ -64,9 +64,9 @@ jobs:
           cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/src/bin/SarasaGothicFixed.ttf
           cp $top/contrib/windows/installer/drivez_readme.txt $top/src/bin/drivez/readme.txt
           cp $top/contrib/glshaders/* $top/src/bin/glshaders/
-          for i in `ls $top/contrib/translations/` ; do cp $top/contrib/translations/$i/*.lng $top/src/bin/languages/; done
+          cp $top/contrib/translations/*/*.lng $top/src/bin/languages/
       - name: Upload release package
         uses: actions/upload-artifact@v3.1.0
         with:
-          name: dosbox-x-linux-${{ env.timestamp }}
+          name: dosbox-x-linux-x86_64-${{ env.timestamp }}
           path: ${{ github.workspace }}/src/bin/

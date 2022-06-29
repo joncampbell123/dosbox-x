@@ -128,6 +128,8 @@ void Cross::GetPlatformResDir(std::string& in) {
 	}
 #elif defined(RESDIR)
 	in = RESDIR;
+#elif defined(WIN32)
+	in = "C:\\DOSBox-X";
 #endif
 	if (!in.empty())
 		in += CROSS_FILESPLIT;

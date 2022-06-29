@@ -65,10 +65,10 @@ if [[ -d "$brew" && -d "$brew/include" && -d "$brew/lib" ]]; then
     echo "Brew is installed, I'm going to use it's libraries too"
     new=" -I$brew/include"
     nld=" -L$brew/lib"
-    export CFLAGS="$CFLAGS$new"
-    export LDFLAGS="$LDFLAGS$nld"
-    export CPPFLAGS="$CPPFLAGS$new"
-    export CXXFLAGS="$CXXFLAGS$new"
+    export CFLAGS="$CFLAGS$new -g3"
+    export LDFLAGS="$LDFLAGS$nld -g3"
+    export CPPFLAGS="$CPPFLAGS$new -g3"
+    export CXXFLAGS="$CXXFLAGS$new -g3"
     export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$brew/lib/pkgconfig"
 fi
 
