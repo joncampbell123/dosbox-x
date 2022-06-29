@@ -3123,8 +3123,9 @@ void CPU_ENTER(bool use32,Bitu bytes,Bitu level) {
 		}
 	} else {
 		sp_index-=4;
-        mem_writed(SegPhys(ss)+sp_index,reg_ebp);
-		reg_ebp=(reg_esp-4);
+		mem_writed(SegPhys(ss)+sp_index,reg_ebp);
+		// FIXME: Does ENTER behave this way on real hardware? 16-bit stack or real mode masks EBP by 0xFFFF? This is untested.
+		reg_ebp=(reg_esp-4)&cpu.stack.mask; /* If 16-bit real mode or stack is 16-bit, even with 66h prefix, mask EBP by 0xFFFF (Fix for Finster by Mad Scientists, 1996) */
 		if (level) {
 			for (Bitu i=1;i<level;i++) {	
 				sp_index-=4;bp_index-=4;

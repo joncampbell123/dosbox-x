@@ -1,4 +1,9 @@
 0.84.1
+  - If guest uses ENTER instruction from 16-bit code
+    with 66h (32-bit operand) prefix, and the CPU is
+    in real mode or the stack segment is 16-bit, mask
+    stack pointer with 0xFFFF. This fixes 1996 game
+    "Finster" by Mad Scientists (joncampbell123).
   - Updated DOSBox-X's integration device to version
     1.0.1, adding API calls such as DOSBox-X's version
     number and platform, and some DOS-related status
