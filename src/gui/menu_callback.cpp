@@ -1389,8 +1389,17 @@ bool vid_select_glsl_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::it
     }
     struct stat st;
     std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT+"glshaders"+CROSS_FILESPLIT;
+# if defined(MACOSX)
+    /* Hey, Mac OS! When I ask for files that end in *.glsl I expect your finder
+       to actually let users select files that end in *.glsl! What gives? 2022/06/29 */
+    int nFilterPatterns = 0;
+    const char **lFilterPatterns = NULL;
+    const char *lFilterDescription = NULL;
+# else
+    int nFilterPatterns = 2;
     const char *lFilterPatterns[] = {"*.glsl","*.GLSL"};
     const char *lFilterDescription = "OpenGL shader files (*.glsl)";
+# endif
 
     /* Mac OS Monterey: osascript will refuse to present any dialog box if the path does not exist.
        Make sure we give it something that exists */
@@ -1399,7 +1408,7 @@ bool vid_select_glsl_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::it
     if (stat(cwd.c_str(),&st) != 0)
         cwd = std::string(Temp_CurrentDir);
 
-    char const * lTheOpenFileName = tinyfd_openFileDialog("Select OpenGL shader",cwd.c_str(),2,lFilterPatterns,lFilterDescription,0);
+    char const * lTheOpenFileName = tinyfd_openFileDialog("Select OpenGL shader",cwd.c_str(),nFilterPatterns,lFilterPatterns,lFilterDescription,0);
 
     if (lTheOpenFileName) {
         /* Windows will fill lpstrFile with the FULL PATH.
