@@ -2586,6 +2586,10 @@ void DOSBOX_SetupConfigSections(void) {
                     "Setting this option can correct for that and render the demo properly.\n"
                     "This option forces VGA emulation to ignore odd/even mode except in text and CGA modes.");
 
+    Pbool = secprop->Add_bool("ignore sequencer blanking",Property::Changeable::Always,false);
+    Pbool->Set_help("If set, ignore attempts to blank the display using the EGA/VGA sequencer registers.\n"
+		    "This should not be set except for DOS games with bugs in their display handling code.");
+
     secprop=control->AddSection_prop("vsync",&Null_Init,true);//done
 
     Pstring = secprop->Add_string("vsyncmode",Property::Changeable::WhenIdle,"off");

@@ -22,6 +22,8 @@
 #include "logging.h"
 #include "vga.h"
 
+extern bool ignore_sequencer_blanking;
+
 #define seq(blah) vga.seq.blah
 
 Bitu read_p3c4(Bitu /*port*/,Bitu /*iolen*/) {
@@ -100,7 +102,7 @@ void write_p3c5(Bitu /*port*/,Bitu val,Bitu iolen) {
 			} else {
 				seq(clocking_mode)=(uint8_t)val;
 			}
-			if (val & 0x20) vga.attr.disabled |= 0x2u;
+			if ((val & 0x20) && !ignore_sequencer_blanking) vga.attr.disabled |= 0x2u;
 			else vga.attr.disabled &= ~0x2u;
 		}
 		/* TODO Figure this out :)

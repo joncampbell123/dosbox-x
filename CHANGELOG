@@ -1,4 +1,21 @@
 0.84.1
+  - Added dosbox.conf option that can instruct EGA/VGA
+    emulation to ignore the display blanking bit in
+    the sequencer registers. Some games appear to have
+    bugs in their VGA programming code that can
+    accidentally set that bit and therefore show
+    nothing on screen. Fix for 1996 game "Finster" by
+    Mad Scientists. The game appears to make this
+    programming mistake on any fork of DOSBox
+    including DOSBox-X, and is reported to also make
+    the same mistake on other emulators like 86box.
+    However most forks of DOSBox have a matching bug
+    in their VGA emulation that allows the blanked
+    display to appear normally regardless of that
+    register bit unless run with machine=vgaonly.
+    It's unclear if there is anything about DOSBox
+    or DOSBox-X emulation that causes the game to
+    misprogram the registers. (joncampbell123).
   - If guest uses ENTER instruction from 16-bit code
     with 66h (32-bit operand) prefix, and the CPU is
     in real mode or the stack segment is 16-bit, mask

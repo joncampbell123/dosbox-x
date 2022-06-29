@@ -178,6 +178,7 @@ unsigned char*                      pc98_pgraph_current_cpu_page;
 bool                                vga_8bit_dac = false;
 bool                                vga_alt_new_mode = false;
 bool                                enable_vga_8bit_dac = true;
+bool                                ignore_sequencer_blanking = false;
 
 bool                                pc98_crt_mode = false;      // see port 6Ah command 40h/41h.
                                                                 // this boolean is the INVERSE of the bit.
@@ -924,6 +925,7 @@ void VGA_Reset(Section*) {
 
     vga_8bit_dac = false;
     enable_vga_8bit_dac = section->Get_bool("enable 8-bit dac");
+    ignore_sequencer_blanking = section->Get_bool("ignore sequencer blanking");
 
     vga_memio_delay_ns = section->Get_int("vmemdelay");
     if (vga_memio_delay_ns < 0) {
