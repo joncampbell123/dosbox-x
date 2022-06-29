@@ -2639,6 +2639,11 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("always report triple fault",Property::Changeable::Always,false);
     Pbool->Set_help("Always report (to log file) triple faults if set. Else, a triple fault is reported only once. Set this option for debugging purposes.");
 
+    Pstring = secprop->Add_string("mask stack pointer for enter leave instructions",Property::Changeable::Always,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("If set, ENTER will mask the stack pointer by 64KB if the stack segment is 16-bit, even if used in a 32-bit form.\n"
+		      "This is not how real Intel processors work, and is intended as a bug fix for certain games");
+
     Pstring = secprop->Add_string("allow lmsw to exit protected mode",Property::Changeable::Always,"auto");
     Pstring->Set_values(truefalseautoopt);
     Pstring->Set_help("Controls whether the processor will allow the guest to exit protected mode using the 286 LMSW instruction (clear the PE bit)");
