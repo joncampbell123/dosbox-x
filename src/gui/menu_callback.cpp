@@ -42,6 +42,8 @@
 #ifdef MACOSX
 #include <CoreGraphics/CoreGraphics.h>
 #endif
+#include <sys/types.h>
+#include <sys/stat.h>
 
 int oldblinkc = -1;
 std::string savefilename = "";
@@ -1385,9 +1387,18 @@ bool vid_select_glsl_shader_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::it
         LOG(LOG_GUI, LOG_ERROR)("vid_select_glsl_shader_menu_callback failed to get the current working directory.");
         return false;
     }
+    struct stat st;
     std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT+"glshaders"+CROSS_FILESPLIT;
     const char *lFilterPatterns[] = {"*.glsl","*.GLSL"};
     const char *lFilterDescription = "OpenGL shader files (*.glsl)";
+
+    /* Mac OS Monterey: osascript will refuse to present any dialog box if the path does not exist.
+       Make sure we give it something that exists */
+    if (stat(cwd.c_str(),&st) != 0)
+        cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT+"contrib/glshaders"+CROSS_FILESPLIT;
+    if (stat(cwd.c_str(),&st) != 0)
+        cwd = std::string(Temp_CurrentDir);
+
     char const * lTheOpenFileName = tinyfd_openFileDialog("Select OpenGL shader",cwd.c_str(),2,lFilterPatterns,lFilterDescription,0);
 
     if (lTheOpenFileName) {
