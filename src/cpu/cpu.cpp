@@ -179,6 +179,7 @@ int64_t CPU_RDTSC() {
  *
  *             --J.C. */
 bool cpu_allow_big16 = false;
+bool dos_clear_tf_on_int01 = false;
 
 cpu_cycles_count_t CPU_Cycles = 0;
 cpu_cycles_count_t CPU_CycleLeft = 3000;
@@ -3538,6 +3539,7 @@ public:
 		ignore_opcode_63 = section->Get_bool("ignore opcode 63");
 		cpu_double_fault_enable = section->Get_bool("double fault");
 		cpu_triple_fault_reset = section->Get_bool("reset on triple fault");
+		dos_clear_tf_on_int01 = section->Get_bool("clear trap flag on unhandled int 1");
 		cpu_allow_big16 = section->Get_bool("realbig16");
 
 		const char *dynamic_core_paging = section->Get_string("use dynamic core with paging on");

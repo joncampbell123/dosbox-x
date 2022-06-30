@@ -539,6 +539,7 @@ bool DOS_LinkUMBsToMemChain(uint16_t linkstate) {
 extern uint16_t DOS_IHSEG;
 
 extern bool enable_dummy_device_mcb;
+extern bool dos_clear_tf_on_int01;
 
 void DOS_SetupMemory(void) {
 	unsigned int max_conv;
@@ -575,7 +576,7 @@ void DOS_SetupMemory(void) {
 	//
 	// FIXME: What do real Intel processors do in real mode if a nonzero base address is given in
 	//        LIDT? Does it change the memory address of the real mode interrupt vector table?
-	if (true/*TODO: Option*/) {
+	if (dos_clear_tf_on_int01) {
 		real_writeb(ihseg,ihofs-9,0x55);		// 55             PUSH BP
 		real_writew(ihseg,ihofs-8,0xE589);		// 89 E5          MOV BP,SP
 		real_writew(ihseg,ihofs-6,0x6681);		// 81 66 06 FEFF  AND WORD PTR [BP+6],FEFF   clear the TF bit

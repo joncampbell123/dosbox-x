@@ -2634,6 +2634,13 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("double fault",Property::Changeable::Always,true);
     Pbool->Set_help("Emulate double fault exception");
 
+    Pbool = secprop->Add_bool("clear trap flag on unhandled int 1",Property::Changeable::Always,false);
+    Pbool->Set_help("If set, the DOS kernel INT 01h handler will clear the trap flag when called.\n"
+		    "Normally a DOS program using INT 01h and the trap flag (usually for debugging)\n"
+		    "will provide it's own INT 01h handler. Some programs need this option set in\n"
+		    "order to not crash during startup due to possible bugs or anti debugger tricks\n"
+		    "that went terribly wrong.");
+
     Pbool = secprop->Add_bool("reset on triple fault",Property::Changeable::Always,true);
     Pbool->Set_help("Reset CPU on triple fault condition (failure to handle double fault)");
 
