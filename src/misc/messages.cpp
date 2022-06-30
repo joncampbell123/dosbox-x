@@ -32,6 +32,9 @@
 #include <map>
 #include <list>
 #include <string>
+#if defined(__MINGW32__) && !defined(HX_DOS)
+#include <imm.h>
+#endif
 using namespace std;
 
 extern bool dos_kernel_disabled, force_conversion, showdbcs, dbcs_sbcs, enableime, tonoime;

@@ -50,7 +50,7 @@ jobs:
           cp $top/contrib/windows/installer/readme.txt $top/package/bin/x64/Release/README.txt
           cp $top/contrib/windows/installer/inpoutx64.dll $top/package/bin/x64/Release/inpoutx64.dll
           cp $top/contrib/fonts/FREECG98.BMP $top/package/bin/x64/Release/FREECG98.BMP
-          cp $top/contrib/fonts/wqy_12pt.bdf $top/package/bin/x64/Release/wqy_12pt.bdf
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/package/bin/x64/Release/
           cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/bin/x64/Release/Nouveau_IBM.ttf
           cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/bin/x64/Release/SarasaGothicFixed.ttf
           cp $top/contrib/windows/installer/drivez_readme.txt $top/package/bin/x64/Release/drivez/readme.txt
@@ -81,7 +81,7 @@ jobs:
           cp $top/contrib/windows/installer/readme.txt $top/package/bin/x64/"Release SDL2"/README.txt
           cp $top/contrib/windows/installer/inpoutx64.dll $top/package/bin/x64/"Release SDL2"/inpoutx64.dll
           cp $top/contrib/fonts/FREECG98.BMP $top/package/bin/x64/"Release SDL2"/FREECG98.BMP
-          cp $top/contrib/fonts/wqy_12pt.bdf $top/package/bin/x64/"Release SDL2"/wqy_12pt.bdf
+          cp $top/contrib/fonts/wqy_1?pt.bdf $top/package/bin/x64/"Release SDL2"/
           cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/bin/x64/"Release SDL2"/Nouveau_IBM.ttf
           cp $top/contrib/fonts/SarasaGothicFixed.ttf $top/package/bin/x64/"Release SDL2"/SarasaGothicFixed.ttf
           cp $top/contrib/windows/installer/drivez_readme.txt $top/package/bin/x64/"Release SDL2"/drivez/readme.txt

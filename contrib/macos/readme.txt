@@ -3,7 +3,7 @@ README for DOSBox-X macOS version
 
 Welcome to DOSBox-X, a cross-platform DOS emulator based on the DOSBox project.
 
-This is an official DOSBox-X macOS package, which should run natively on the recent versions of macOS such as macOS Catalina (10.15) and Big Sur (11.0). Both SDL1 and SDL2 binaries (in .app format) are provided in the macOS package, in the directories named "dosbox-x" and "dosbox-x-sdl2" respectively inside the zip file. While the SDL1 version is the default version, the SDL2 version may be preferred over the SDL1 version for certain features (particularly related to input handling) such as touchscreen input support. You can select either SDL1 or SDL2 version according to your preference, or just run the SDL1 version if you are not sure.
+This is an official DOSBox-X macOS package, which should run natively on the recent versions of macOS such as macOS Monterey (12), Big Sur (11.0), and Catalina (10.15). Both SDL1 and SDL2 binaries (in .app format) are provided in the macOS package, in the directories named "dosbox-x" and "dosbox-x-sdl2" respectively inside the zip file. While the SDL1 version is the default version, the SDL2 version may be preferred over the SDL1 version for certain features (particularly related to input handling) such as touchscreen input support. You can select either SDL1 or SDL2 version according to your preference, or just run the SDL1 version if you are not sure.
 
 There are two ways to run DOSBox-X in macOS, either from the Finder or from the command-line (Terminal):
 

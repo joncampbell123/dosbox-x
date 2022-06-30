@@ -29,12 +29,12 @@ jobs:
           pwd>pwd.txt
           mkdir package
           mkdir mingw-get
-          vs/tool/unzip.exe build-scripts/mingw/bin/mingw-get-0.6.2-mingw32-beta-20131004-1-bin.zip -d mingw-get
+          vs/tool/unzip.exe build-scripts/mingw/lowend-bin/mingw-get-0.6.2-mingw32-beta-20131004-1-bin.zip -d mingw-get
           mingw-get/bin/mingw-get.exe install msys-base gcc g++ autoconf automake libiconv libpdcurses libz
           mv pwd.txt mingw-get/msys/1.0
-          cp build-scripts/mingw/bin/msys.bat mingw-get/msys/1.0
-          cp build-scripts/mingw/bin/runbuild.sh mingw-get/msys/1.0
-          cp build-scripts/mingw/bin/gawk.exe mingw-get/msys/1.0/bin
+          cp build-scripts/mingw/lowend-bin/msys.bat mingw-get/msys/1.0
+          cp build-scripts/mingw/lowend-bin/runbuild.sh mingw-get/msys/1.0
+          cp build-scripts/mingw/lowend-bin/gawk.exe mingw-get/msys/1.0/bin
       - name: Build HX-DOS
         shell: pwsh
         run: |
@@ -45,22 +45,23 @@ jobs:
         run: |
           top=`pwd`
           strip -s $top/src/dosbox-x.exe
-          $top/build-scripts/mingw/hxdos/PESTUB.EXE -n $top/src/dosbox-x.exe
+          $top/build-scripts/mingw/hxdos-bin/PESTUB.EXE -n $top/src/dosbox-x.exe
           $top/vs/tool/upx.exe --lzma -9 $top/src/dosbox-x.exe
           cp $top/src/dosbox-x.exe $top/package/dosbox-x.exe
           cp $top/CHANGELOG $top/package/CHANGELOG.txt
+          cp $top/COPYING $top/package/COPYING.txt
           cp $top/dosbox-x.reference.conf $top/package/dosbox-x.ref
           cp $top/dosbox-x.reference.full.conf $top/package/dosbox-x.ref.full
           cp $top/contrib/windows/installer/inpout32.dll $top/package/INPOUT32.DLL
           cp $top/contrib/fonts/FREECG98.BMP $top/package/
           cp $top/contrib/fonts/wqy_1?pt.bdf $top/package/
           cp $top/contrib/fonts/Nouveau_IBM.ttf $top/package/
-          cp $top/build-scripts/mingw/hxdos/DPMILD32.EXE $top/package/
-          cp $top/build-scripts/mingw/hxdos/HDPMI32.EXE $top/package/
-          cp $top/build-scripts/mingw/hxdos/HXGUIHLP.INI $top/package/
-          cp $top/build-scripts/mingw/hxdos/README.TXT $top/package/
-          cp $top/build-scripts/mingw/hxdos/WINSPOOL.DRV $top/package/
-          cp $top/build-scripts/mingw/hxdos/*.DLL $top/package/
+          cp $top/build-scripts/mingw/hxdos-bin/DPMILD32.EXE $top/package/
+          cp $top/build-scripts/mingw/hxdos-bin/HDPMI32.EXE $top/package/
+          cp $top/build-scripts/mingw/hxdos-bin/HXGUIHLP.INI $top/package/
+          cp $top/build-scripts/mingw/hxdos-bin/README.TXT $top/package/
+          cp $top/build-scripts/mingw/hxdos-bin/WINSPOOL.DRV $top/package/
+          cp $top/build-scripts/mingw/hxdos-bin/*.DLL $top/package/
           mkdir -p $top/package/drivez
           cp $top/contrib/windows/installer/drivez_readme.txt $top/package/drivez/readme.txt
           mkdir -p $top/package/language

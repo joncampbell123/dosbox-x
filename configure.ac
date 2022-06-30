@@ -661,7 +661,7 @@ AM_CONDITIONAL(C_FREETYPE, test "x$enable_freetype" = "xyes")
 if test x$enable_freetype = xyes; then
   AC_MSG_CHECKING(for freetype)
   if test x$INTERNAL_FREETYPE = x1; then
-    # CFLAGS and LDFLAGS were already updated by build-macosx
+    # CFLAGS and LDFLAGS were already updated by build-macos
     AC_DEFINE(C_FREETYPE,1)
     AC_MSG_RESULT(yes)
   else

@@ -56,7 +56,6 @@ dosbox-x.app: src/dosbox-x contrib/macos/dosbox.icns src/tool/mach-o-matic
 	done; \
 	src/tool/mach-o-matic dosbox-x.app/Contents/MacOS/dosbox-x || exit 1; \
 	codesign --deep -s - dosbox-x.app/Contents/MacOS/dosbox-x || exit 1
-	cp -v contrib/macos/readme.txt dosbox-x.app/README.txt
 
 debug-dosbox-x-app:
 	(cd dosbox-x.app/Contents/MacOS && (DYLD_PRINT_LIBRARIES=1 ./dosbox-x -defaultconf -defaultdir . -silent -c 'echo hello' -c 'exit')) 2>mac-os-x-dylib-report.txt

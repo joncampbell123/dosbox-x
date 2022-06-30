@@ -43,7 +43,7 @@ the original SDL 1.x source code and is thus somewhat incompatible with the
 stock library.
 
 The modifications provide additional functions needed to improve DOSBox-X
-and fix many issues with keyboard input, window mangement, and display
+and fix many issues with keyboard input, window management, and display
 management that previously required terrible kludges within the DOSBox
 and DOSBox-X source code.
 
@@ -74,12 +74,12 @@ sudo make install
 
 * macOS compile (SDL1)
 ```
-./build-macosx
+./build-macos
 ```
 
 * macOS compile (SDL2)
 ```
-./build-macosx-sdl2
+./build-macos-sdl2
 ```
 
 * MinGW compile (using MinGW-w64) for Windows Vista/7 or later (SDL1)

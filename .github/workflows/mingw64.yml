@@ -31,7 +31,7 @@ jobs:
         run: |
           echo "timestamp=`date +%F-%T | sed -e 's/:/-/g' | sed -e 's/-//g'`" >> $GITHUB_ENV
           top=`pwd`
-          ln -s $top/build-scripts/mingw/bin/make.exe /usr/bin/make.exe
+          ln -s $top/build-scripts/mingw/lowend-bin/make.exe /usr/bin/make.exe
           ./build-mingw
           strip -s $top/src/dosbox-x.exe
       - name: Package MinGW64 SDL1

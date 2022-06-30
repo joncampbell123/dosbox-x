@@ -29,20 +29,24 @@ jobs:
       - name: Build macOS SDL1
         run: |
           top=`pwd`
-          ./build-macosx
+          ./build-macos
           strip $top/src/dosbox-x
           make dosbox-x.app
           mv dosbox-x.app $top/src/bin/dosbox-x
           cp $top/CHANGELOG $top/src/bin/dosbox-x/CHANGELOG.txt
+          cp $top/COPYING $top/src/bin/dosbox-x/COPYING.txt
+          cp $top/contrib/macos/readme.txt $top/src/bin/dosbox-x/README.txt
       - name: Build macOS SDL2
         run: |
           top=`pwd`
-          ./build-macosx-sdl2
+          ./build-macos-sdl2
           strip $top/src/dosbox-x
           make dosbox-x.app
           rm dosbox-x.app/Contents/MacOS/libSDL2-2*.dylib
           mv dosbox-x.app $top/src/bin/dosbox-x-sdl2
           cp $top/CHANGELOG $top/src/bin/dosbox-x-sdl2/CHANGELOG.txt
+          cp $top/COPYING $top/src/bin/dosbox-x-sdl2/COPYING.txt
+          cp $top/contrib/macos/readme.txt $top/src/bin/dosbox-x-sdl2/README.txt
       - name: Unit testing
         run: |
           top=`pwd`

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # If an error occurs, quit the script and inform the user. This ensures scripts
-# like ./build-macosx etc. don't continue on if Autotools isn't installed.
+# like ./build-macos and ./build-macos-sdl2 etc. Don't continue on if Autotools isn't installed.
 function finish {
   if [ $success -eq 0 ]; then
     echo 'autogen.sh failed to complete: verify that GNU Autotools is installed on the system and try again'
