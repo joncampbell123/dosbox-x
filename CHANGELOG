@@ -1,4 +1,11 @@
 0.84.1
+  - Added dosbox.conf option to enable workaround for
+    errant DOS programs that set the TF (trap flag)
+    and then crash. Added code to DOS kernel INT 01h
+    handler to clear TF flag if instructed to by the
+    dosbox.conf setting which can prevent such errant
+    programs from crashing. Needed for 1996 demo
+    "Dyslexia" by Threesome. (joncampbell123)
   - DOSBox-X will now search for resource files such as
     fonts and translations in the resource directory in
     addition to other locations. (Wengier)
