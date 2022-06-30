@@ -112,6 +112,14 @@ static void W32_ConfDir(std::string& in,bool create) {
 void Cross::GetPlatformResDir(std::string& in) {
 #if defined(MACOSX)
 	in = MacOSXResPath;
+	if (in.empty()) {
+		in = "/usr/local/share/dosbox-x";
+		struct stat info;
+		if ((stat(in.c_str(), &info) != 0) || (!(info.st_mode & S_IFDIR)))
+			in = "/usr/share/dosbox-x";
+		if ((stat(in.c_str(), &info) != 0) || (!(info.st_mode & S_IFDIR)))
+			in = RESDIR;
+	}
 #elif defined(RISCOS)
 	in = "/<DosBox-X$Dir>/resources";
 #elif defined(LINUX)
@@ -122,14 +130,23 @@ void Cross::GetPlatformResDir(std::string& in) {
 
 	// Let's check if the above exists, otherwise use RESDIR
 	struct stat info;
+	if ((stat(in.c_str(), &info) != 0) || (!(info.st_mode & S_IFDIR)))
+		in = "/usr/local/share/dosbox-x";
+	if ((stat(in.c_str(), &info) != 0) || (!(info.st_mode & S_IFDIR)))
+		in = "/usr/share/dosbox-x";
 	if ((stat(in.c_str(), &info) != 0) || (!(info.st_mode & S_IFDIR))) {
 		//LOG_MSG("XDG_DATA_HOME (%s) does not exist. Using %s", in.c_str(), RESDIR);
 	        in = RESDIR;
 	}
-#elif defined(RESDIR)
-	in = RESDIR;
 #elif defined(WIN32)
 	in = "C:\\DOSBox-X";
+#if defined(RESDIR)
+	struct stat info;
+	if ((stat(in.c_str(), &info) != 0) || (!(info.st_mode & S_IFDIR)))
+		in = RESDIR;
+#endif
+#elif defined(RESDIR)
+	in = RESDIR;
 #endif
 	if (!in.empty())
 		in += CROSS_FILESPLIT;

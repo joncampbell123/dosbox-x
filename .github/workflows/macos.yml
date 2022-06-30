@@ -40,14 +40,15 @@ jobs:
           ./build-macosx-sdl2
           strip $top/src/dosbox-x
           make dosbox-x.app
+          rm dosbox-x.app/Contents/MacOS/libSDL2-2*.dylib
           mv dosbox-x.app $top/src/bin/dosbox-x-sdl2
           cp $top/CHANGELOG $top/src/bin/dosbox-x-sdl2/CHANGELOG.txt
       - name: Unit testing
         run: |
           top=`pwd`
-          chmod +x $top/src/bin/dosbox-x/dosbox-x.app/Contents/MacOS/DosBox $top/src/bin/dosbox-x-sdl2/dosbox-x.app/Contents/MacOS/DosBox
-          $top/src/bin/dosbox-x/dosbox-x.app/Contents/MacOS/DosBox -tests
-          $top/src/bin/dosbox-x-sdl2/dosbox-x.app/Contents/MacOS/DosBox -tests
+          chmod +x $top/src/bin/dosbox-x/dosbox-x.app/Contents/MacOS/dosbox-x $top/src/bin/dosbox-x-sdl2/dosbox-x.app/Contents/MacOS/dosbox-x
+          $top/src/bin/dosbox-x/dosbox-x.app/Contents/MacOS/dosbox-x -tests
+          $top/src/bin/dosbox-x-sdl2/dosbox-x.app/Contents/MacOS/dosbox-x -tests
       - name: Upload release package
         uses: actions/upload-artifact@v3.1.0
         with:

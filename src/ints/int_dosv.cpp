@@ -641,6 +641,11 @@ static bool LoadFontxFile(const char *fname, int height, bool dbcs) {
 	if (!fname) return false;
 	if(*fname=='\0') return false;
 	FILE * mfile=fopen(fname,"rb");
+	std::string config_path, res_path, exepath=GetDOSBoxXPath();
+	Cross::GetPlatformConfigDir(config_path), Cross::GetPlatformResDir(res_path);
+	if (!mfile && exepath.size()) mfile=fopen((exepath + fname).c_str(),"rb");
+	if (!mfile && config_path.size()) mfile=fopen((config_path + fname).c_str(),"rb");
+	if (!mfile && res_path.size()) mfile=fopen((res_path + fname).c_str(),"rb");
 	if (!mfile) {
 #if defined(LINUX)
 		char *start = strrchr((char *)fname, '/');

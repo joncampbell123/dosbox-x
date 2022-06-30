@@ -1,4 +1,4 @@
-# Main Makefile for DOSBox
+# Main Makefile for DOSBox-X
 
 EXTRA_DIST = autogen.sh
 SUBDIRS = src include
@@ -16,7 +16,7 @@ dosbox-x.app: src/dosbox-x contrib/macos/dosbox.icns src/tool/mach-o-matic
 	mkdir dosbox-x.app/Contents/Resources/languages
 	cp -v contrib/macos/dosbox-x.plist dosbox-x.app/Contents/Info.plist
 	cp -v contrib/macos/dosbox-x.pkginfo dosbox-x.app/Contents/PkgInfo
-	cp -v contrib/macos/dosbox.icns dosbox-x.app/Contents/Resources/DosBox.icns
+	cp -v contrib/macos/dosbox.icns dosbox-x.app/Contents/Resources/dosbox-x.icns
 	cp -v contrib/fonts/FREECG98.BMP dosbox-x.app/Contents/Resources/freecg98.bmp
 	cp -v contrib/fonts/wqy_1?pt.bdf dosbox-x.app/Contents/Resources/
 	cp -v contrib/fonts/Nouveau_IBM.ttf dosbox-x.app/Contents/Resources/Nouveau_IBM.ttf
@@ -26,10 +26,10 @@ dosbox-x.app: src/dosbox-x contrib/macos/dosbox.icns src/tool/mach-o-matic
 	cp -v contrib/translations/*/*.lng dosbox-x.app/Contents/Resources/languages/
 	cp -v dosbox-x.reference.conf dosbox-x.app/Contents/Resources/
 	cp -v dosbox-x.reference.full.conf dosbox-x.app/Contents/Resources/
-	cp -v src/dosbox-x dosbox-x.app/Contents/MacOS/DosBox
+	cp -v src/dosbox-x dosbox-x.app/Contents/MacOS/dosbox-x
 # this is where it gets ugly
-	codesign --remove-signature dosbox-x.app/Contents/MacOS/DosBox
-	otool -L dosbox-x.app/Contents/MacOS/DosBox | grep -E '/usr/local/lib|/usr/local/opt|/usr/local/Cellar|/opt/homebrew/' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
+	codesign --remove-signature dosbox-x.app/Contents/MacOS/dosbox-x
+	otool -L dosbox-x.app/Contents/MacOS/dosbox-x | grep -E '/usr/local/lib|/usr/local/opt|/usr/local/Cellar|/opt/homebrew/' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
 		dylib=`basename $$Y`; \
 		cp -v $$Y dosbox-x.app/Contents/MacOS/; \
 		codesign --remove-signature "dosbox-x.app/Contents/MacOS/$$dylib" || exit 1; \
@@ -54,11 +54,12 @@ dosbox-x.app: src/dosbox-x contrib/macos/dosbox.icns src/tool/mach-o-matic
 	        src/tool/mach-o-matic "$$dylib" || exit 1; \
 		fi; \
 	done; \
-	src/tool/mach-o-matic dosbox-x.app/Contents/MacOS/DosBox || exit 1; \
-	codesign --deep -s - dosbox-x.app/Contents/MacOS/DosBox || exit 1
+	src/tool/mach-o-matic dosbox-x.app/Contents/MacOS/dosbox-x || exit 1; \
+	codesign --deep -s - dosbox-x.app/Contents/MacOS/dosbox-x || exit 1
+	cp -v contrib/macos/readme.txt README.txt
 
 debug-dosbox-x-app:
-	(cd dosbox-x.app/Contents/MacOS && (DYLD_PRINT_LIBRARIES=1 ./DosBox -defaultconf -defaultdir . -silent -c 'echo hello' -c 'exit')) 2>mac-os-x-dylib-report.txt
+	(cd dosbox-x.app/Contents/MacOS && (DYLD_PRINT_LIBRARIES=1 ./dosbox-x -defaultconf -defaultdir . -silent -c 'echo hello' -c 'exit')) 2>mac-os-x-dylib-report.txt
 	@echo 'Please review mac-os-x-dylib-report.txt to make sure the .app bundle loaded only from the executable path and not any external Brew libraries.'
 	@echo 'This is crucial to maintain the ability to distribute this application in the Mac OS X world.'
 

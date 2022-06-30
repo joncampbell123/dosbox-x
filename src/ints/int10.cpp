@@ -49,6 +49,7 @@ uint8_t *GetSbcs24Font(Bitu code);
 uint8_t *GetDbcsFont(Bitu code);
 uint8_t *GetDbcs24Font(Bitu code);
 void DOSV_FillScreen();
+std::string GetDOSBoxXPath(bool withexe=false);
 void ResolvePath(std::string& in);
 void INT10_ReadString(uint8_t row, uint8_t col, uint8_t flag, uint8_t attr, PhysPt string, uint16_t count,uint8_t page);
 bool INT10_SetDOSVModeVtext(uint16_t mode, enum DOSV_VTEXT_MODE vtext_mode);
@@ -1334,11 +1335,27 @@ typedef struct tagBITMAPINFOHEADER {
 
 FILE *Try_Load_FontFile(std::string filename) {
     FILE *fp;
-    std::string resdir,tmpdir;
+    std::string confdir,resdir,tmpdir,exepath;
 
     /* try to load file from working directory */
     if ((fp = fopen(filename.c_str(),"rb")))
         return fp;
+
+    /* try to load file from program directory */
+    exepath=GetDOSBoxXPath();
+    if (!exepath.empty()) {
+        tmpdir = exepath + filename;
+        if ((fp = fopen(tmpdir.c_str(),"rb")))
+            return fp;
+    }
+
+    /* try to load file from user config directory */
+    Cross::GetPlatformConfigDir(confdir);
+    if (!confdir.empty()) {
+        tmpdir = confdir + filename;
+        if ((fp = fopen(tmpdir.c_str(),"rb")))
+            return fp;
+    }
 
     /* try to load file from resources directory */
     Cross::GetPlatformResDir(resdir);

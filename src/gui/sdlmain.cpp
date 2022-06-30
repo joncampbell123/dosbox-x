@@ -7569,6 +7569,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     sdl.srcAspect.xToY = (double)sdl.srcAspect.x / sdl.srcAspect.y;
     sdl.srcAspect.yToX = (double)sdl.srcAspect.y / sdl.srcAspect.x;
 
+    std::string exepath = GetDOSBoxXPath(true);
+
 #if defined(MACOSX)
     /* The resource system of DOSBox-X relies on being able to locate the Resources subdirectory
        within the DOSBox-X .app bundle. To do this, we have to first know where our own executable
@@ -7592,13 +7594,30 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 MacOSXResPath = std::string(ref,(size_t)(s-ref)) + "/Resources";
             }
         }
+        if (!MacOSXResPath.size() && exepath.size()) {
+            char *path = (char*)malloc(exepath.size() + 1);
+            if (path) {
+                strcpy(path, exepath.c_str());
+                const char *s = strrchr(path,'/');
+                if (s != NULL) {
+                    if (s > path) s--;
+                    while (s > path && *s != '/') s--;
+                    if (!strncasecmp(s,"/MacOS/",7)) {
+                        MacOSXResPath = std::string(path,(size_t)(s-path)) + "/Resources";
+                        struct stat st;
+                        if (stat(MacOSXResPath.c_str(), &st)) MacOSXResPath = "";
+                    }
+                }
+                free(path);
+            }
+        }
     }
 #endif
 
     configfile = "";
+    exepath = GetDOSBoxXPath();
     std::string workdiropt = "default";
     std::string workdirdef = "";
-    std::string exepath=GetDOSBoxXPath();
     struct stat st;
     if (!control->opt_defaultconf && control->config_file_list.empty() && stat("dosbox-x.conf", &st) && stat("dosbox.conf", &st)) {
         /* load the global config file first */

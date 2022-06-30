@@ -5488,21 +5488,62 @@ void ReloadMapper(Section_prop *section, bool init) {
 	if (mapper.filename=="") pp = section->Get_path("mapperfile");
     mapper.filename = pp->realpath;
     ResolvePath(mapper.filename);
+    bool appendmap=false;
     FILE * loadfile=fopen(mapper.filename.c_str(),"rt");
     if (!loadfile) {
-        std::string exepath=GetDOSBoxXPath();
-        if (exepath.size()) {
+        loadfile=fopen((mapper.filename+".map").c_str(),"rt");
+        if (loadfile) appendmap=true;
+    }
+    if (!loadfile) {
+        std::string exepath=GetDOSBoxXPath(), config_path, res_path;
+        Cross::GetPlatformConfigDir(config_path), Cross::GetPlatformResDir(res_path);
+        if (mapper.filename.size() && exepath.size()) {
             loadfile=fopen((exepath+mapper.filename).c_str(),"rt");
-            if (loadfile) {
-                mapper.filename = exepath+mapper.filename;
-                fclose(loadfile);
+            if (!loadfile) {
+                loadfile=fopen((exepath+mapper.filename+".map").c_str(),"rt");
+                if (loadfile) appendmap=true;
             }
-            if (control->opt_erasemapper) {
-                LOG_MSG("Erase mapper file: %s\n", (exepath+mapper.filename).c_str());
-                unlink((exepath+mapper.filename).c_str());
+            if (loadfile) {
+                mapper.filename = exepath+mapper.filename+(appendmap?".map":"");
+                fclose(loadfile);
+                if (control->opt_erasemapper) {
+                    LOG_MSG("Erase mapper file: %s\n", mapper.filename.c_str());
+                    unlink(mapper.filename.c_str());
+                }
+            }
+        }
+        if (!loadfile && mapper.filename.size() && config_path.size()) {
+            loadfile=fopen((config_path+mapper.filename).c_str(),"rt");
+            if (!loadfile) {
+                loadfile=fopen((config_path+mapper.filename+".map").c_str(),"rt");
+                if (loadfile) appendmap=true;
+            }
+            if (loadfile) {
+                mapper.filename = config_path+mapper.filename+(appendmap?".map":"");
+                fclose(loadfile);
+                if (control->opt_erasemapper) {
+                    LOG_MSG("Erase mapper file: %s\n", mapper.filename.c_str());
+                    unlink(mapper.filename.c_str());
+                }
+            }
+        }
+        if (!loadfile && mapper.filename.size() && res_path.size()) {
+            loadfile=fopen((res_path+mapper.filename).c_str(),"rt");
+            if (!loadfile) {
+                loadfile=fopen((res_path+mapper.filename+".map").c_str(),"rt");
+                if (loadfile) appendmap=true;
+            }
+            if (loadfile) {
+                mapper.filename = res_path+mapper.filename+(appendmap?".map":"");
+                fclose(loadfile);
+                if (control->opt_erasemapper) {
+                    LOG_MSG("Erase mapper file: %s\n", mapper.filename.c_str());
+                    unlink(mapper.filename.c_str());
+                }
             }
         }
     } else {
+        mapper.filename = mapper.filename+(appendmap?".map":"");
         fclose(loadfile);
         if (control->opt_erasemapper) {
             LOG_MSG("Erase mapper file: %s\n", mapper.filename.c_str());
