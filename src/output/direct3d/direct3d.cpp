@@ -26,6 +26,7 @@ bool informd3d = false;
 #if (HAVE_D3D9_H) && defined(WIN32)
 
 int FileDirExistCP(const char *name);
+std::string GetDOSBoxXPath(bool withexe=false);
 extern Bitu currentWindowWidth, currentWindowHeight;
 
 #include "direct3d.h"
@@ -63,16 +64,45 @@ std::string shader_translate_directory(const std::string& path) {
 
        DOSBox-X's variation is to NOT prefix shaders\ to it if it looks like a
        full path, with or without a drive letter. */
-    if (path.length() >= 2 && isalpha(path[0]) && path[1] == ':') /* drive letter ex. C:, D:, etc. */
-        return path;
-    if (path.length() >= 1 && path.find('\\') != std::string::npos) /* perhaps a path with "\" */
-        return path;
+
     if (FileDirExistCP(path.c_str())==1)
         return path;
     if (FileDirExistCP((path+".fx").c_str())==1)
         return path+".fx";
     if (FileDirExistCP(("shaders\\"+path+".fx").c_str())==1)
         return "shaders\\"+path+".fx";
+    std::string confpath, respath, exepath=GetDOSBoxXPath();
+    Cross::GetPlatformConfigDir(confpath), Cross::GetPlatformResDir(respath);
+    if (exepath.size()) {
+        if (FileDirExistCP((exepath+path).c_str())==1)
+            return exepath+path;
+        if (FileDirExistCP((exepath+path+".fx").c_str())==1)
+            return exepath+path+".fx";
+        if (FileDirExistCP((exepath+"shaders\\"+path).c_str())==1)
+            return exepath+"shaders\\"+path;
+        if (FileDirExistCP((exepath+"shaders\\"+path+".fx").c_str())==1)
+            return exepath+"shaders\\"+path+".fx";
+    }
+    if (confpath.size()) {
+        if (FileDirExistCP((confpath+path).c_str())==1)
+            return confpath+path;
+        if (FileDirExistCP((confpath+path+".fx").c_str())==1)
+            return confpath+path+".fx";
+        if (FileDirExistCP((confpath+"shaders\\"+path).c_str())==1)
+            return confpath+"shaders\\"+path;
+        if (FileDirExistCP((confpath+"shaders\\"+path+".fx").c_str())==1)
+            return confpath+"shaders\\"+path+".fx";
+    }
+    if (respath.size()) {
+        if (FileDirExistCP((respath+path).c_str())==1)
+            return respath+path;
+        if (FileDirExistCP((respath+path+".fx").c_str())==1)
+            return respath+path+".fx";
+        if (FileDirExistCP((respath+"shaders\\"+path).c_str())==1)
+            return respath+"shaders\\"+path;
+        if (FileDirExistCP((respath+"shaders\\"+path+".fx").c_str())==1)
+            return respath+"shaders\\"+path+".fx";
+    }
 
     return std::string("shaders\\") + path;
 }
@@ -1049,7 +1079,7 @@ HRESULT CDirect3D::LoadPixelShader(void)
     }
 
 #if LOG_D3D
-    LOG_MSG("D3D:Loading pixel shader from %s", pshader);
+    LOG_MSG("D3D:Loading pixel shader from %s", pshader.c_str());
 #endif
 
     psEffect->setinputDim((float)dwWidth, (float)dwHeight);

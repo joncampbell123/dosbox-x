@@ -140,7 +140,7 @@ extern bool         VIDEO_BIOS_always_carry_14_high_font;
 extern bool         VIDEO_BIOS_always_carry_16_high_font;
 extern bool         VIDEO_BIOS_enable_CGA_8x8_second_half;
 extern bool         allow_more_than_640kb, del_flag;
-extern bool         sync_time, enableime;
+extern bool         sync_time, enableime, tonoime;
 extern int          freesizecap;
 extern unsigned int page;
 
@@ -948,6 +948,35 @@ void SetCyclesCount_mapper_shortcut(bool pressed) {
     PIC_AddEvent(SetCyclesCount_mapper_shortcut_RunEvent, 0.0001f); //In case mapper deletes the key object that ran it
 }
 
+void SetIME() {
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+    if (enableime && !control->opt_silent) {
+        dos.im_enable_flag = true;
+        SDL_SetIMValues(SDL_IM_ENABLE, 1, NULL);
+#if defined(WIN32)
+        SDL_EnableUNICODE(1);
+#endif
+    } else if (!control->opt_silent) {
+        dos.im_enable_flag = false;
+        SDL_SetIMValues(SDL_IM_ENABLE, 0, NULL);
+    }
+#elif (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && defined(C_SDL2)
+    if (enableime && !control->opt_silent) {
+#if !defined(SDL_DOSBOX_X_IME)
+        LOG_MSG("Note: The linked SDL 2.x library is not compiled with enhanced IME functions.");
+#endif
+        dos.im_enable_flag = true;
+        SDL_StartTextInput();
+#if defined(LINUX)
+        SDL_SetHint(SDL_HINT_IME_INTERNAL_EDITING, "1");
+#endif
+    } else if (!control->opt_silent) {
+        dos.im_enable_flag = false;
+        SDL_StopTextInput();
+    }
+#endif
+}
+
 void DOSBOX_RealInit() {
     DOSBoxMenu::item *item;
 
@@ -1118,32 +1147,7 @@ void DOSBOX_RealInit() {
         makeseacp951table();
     }
     dos.loaded_codepage = cp;
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
-    if (enableime && !control->opt_silent) {
-        dos.im_enable_flag = true;
-        SDL_SetIMValues(SDL_IM_ENABLE, 1, NULL);
-#if defined(WIN32)
-        SDL_EnableUNICODE(1);
-#endif
-    } else if (!control->opt_silent) {
-        dos.im_enable_flag = false;
-        SDL_SetIMValues(SDL_IM_ENABLE, 0, NULL);
-    }
-#elif (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && defined(C_SDL2)
-    if (enableime && !control->opt_silent) {
-#if !defined(SDL_DOSBOX_X_IME)
-        LOG_MSG("Note: The linked SDL 2.x library is not compiled with enhanced IME functions.");
-#endif
-        dos.im_enable_flag = true;
-        SDL_StartTextInput();
-#if defined(LINUX)
-        SDL_SetHint(SDL_HINT_IME_INTERNAL_EDITING, "1");
-#endif
-    } else if (!control->opt_silent) {
-        dos.im_enable_flag = false;
-        SDL_StopTextInput();
-    }
-#endif
+    if (!tonoime) SetIME();
 #if defined(USE_TTF)
     if (IS_PC98_ARCH) ttf.cols = 80; // The number of columns on the screen is apparently fixed to 80 in PC-98 mode at this time
 #endif

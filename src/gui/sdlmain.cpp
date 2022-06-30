@@ -51,8 +51,6 @@ int transparency=0;
 int selsrow = -1, selscol = -1;
 int selerow = -1, selecol = -1;
 int middleunlock = 1;
-bool rtl = false;
-bool selmark = false;
 extern bool testerr;
 extern bool blinking;
 extern bool dpi_aware_enable;
@@ -71,7 +69,8 @@ bool checkmenuwidth = false;
 bool dos_kernel_disabled = true;
 bool winrun=false, use_save_file=false;
 bool maximize = false, tooutttf = false;
-bool usesystemcursor = false, enableime = false;
+bool tonoime = false, enableime = false;
+bool usesystemcursor = false, rtl = false, selmark = false;
 bool mountfro[26], mountiro[26];
 bool OpenGL_using(void), Direct3D_using(void);
 void DOSBox_SetSysMenu(void), GFX_OpenGLRedrawScreen(void), InitFontHandle(void), DOSV_FillScreen(void), SetWindowTransparency(int trans);
@@ -8292,12 +8291,13 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             force_conversion = true;
             int cp=dos.loaded_codepage;
             if (InitCodePage() && isDBCSCP()) enableime = true;
+            else if (control->opt_langcp) tonoime = true;
             force_conversion = false;
             dos.loaded_codepage=cp;
         }
     }
 #if defined(WIN32) && !defined(HX_DOS)
-        if (!enableime) ImmDisableIME((DWORD)(-1));
+        if (!enableime&&!tonoime) ImmDisableIME((DWORD)(-1));
 #endif
     }
 

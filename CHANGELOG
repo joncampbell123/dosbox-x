@@ -103,6 +103,8 @@
     the window below the minimum supported by the
     DOS screen will not longer trigger segfaults or
     assertion failures. Issue #3348. (joncampbell123).
+  - Fix IME not working on Windows when -langcp option
+    is used to load a language with codepage. (Wengier)
   - Fixed INT 10h failing to fully clear Tandy video
     memory when entering 16-color graphics modes.
     (joncampbell123).
