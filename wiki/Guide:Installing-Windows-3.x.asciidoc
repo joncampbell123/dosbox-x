@@ -94,7 +94,7 @@ Starting with DOSBox-X 0.83.21 the turbo mode is automatically disabled the mome
 * Unless noted otherwise, Windows 3.1 drivers are not backward compatible with Windows 3.0.
 
 === Windows 3.0a with Multimedia Extensions specific notes
-* This edition was available only to OEMs (Original Equipment Manufacturers), as such Windows will be customized to the systems it was shipped with.
+* This edition was available only to OEMs (Original Equipment Manufacturers) for bundling with a multimedia PC or multimedia upgrade set, as such Windows will be customized to that multimedia system or upgrade set.
 Examples of such customization, are an OEM specific launcher, OEM specific applications, but also that the installer may default to custom audio and video options.
 * For versions distributed on CD, the installation can be started by going into the ``MWIN`` directory on the CD and running ``SETUP.EXE``.
 * Unlike regular Windows which installs by default to ``C:\WINDOWS`` this edition installs by default to ``C:\MWINDOWS``.
@@ -136,7 +136,7 @@ Copy the above config and save it as ``win3x.conf``
 
 *Notes*
 
-* The above config uses 16MB RAM as that is the maximum supported by Windows 3.0, but for Windows 3.1 and 3.11 you can go up to 256MB, as such for these Windows versions ``memsize=256`` is the largest safe value.
+* The above config uses 16MB RAM as that is the maximum supported by Windows 3.0, and should be more then enough for most Windows 3.x applications. But for Windows 3.1 and 3.11 you can go up to 256MB, as such for these Windows versions ``memsize=256`` is the largest safe value.
 * There are Windows 3.0 and 3.1 drivers for the Tseng Labs ET3000 and ET4000 (``machine=svga_et3000`` and ``machine=svga_et4000`` respectively), but for the default ``machine=svga_s3`` (S3 Trio64) there are apparently only Windows 3.1 drivers.
 * The default S3 video option will offer the broadest range of resolutions and colour depths but do require you to install the correct drivers.
 
@@ -182,10 +182,7 @@ SETUP.EXE
 The installer is normally found on the CD as ``\MWIN\SETUP.EXE``.
 
 == Installing in a mounted folder
-*Notes*
-
-* This method is the easiest, but has a few limitations:
-** Will not allow for 32-bit disk IO with Windows 3.1x.
+NOTE: This method is the easiest, but has a limitation in that it will not allow for 32-bit disk IO with Windows 3.1x. However, no software needs this, and it does not provide a real performance benefit in DOSBox-X.
 
 Create a directory on your system that you're going to use (mount) as your Windows 3.x C: drive.
 Valid examples:
@@ -266,7 +263,7 @@ Adjust the ``MOUNT`` path above for mounting the C: drive as needed.
 == Install Windows 3.x into a DOS HDD image
 This method brings with it a bit of added inconvenience.
 For instance, you will need to do your own DOS memory management and load DOS drivers for CD-ROM access.
-You can also not mount a host directory in DOSBox-X when you boot a disk image.
+You can also not mount a host directory (folder mount) in DOSBox-X when you boot a disk image.
 Even host directories that you mounted prior to booting the disk image will become unavailable.
 Everything needs to be done using IMAGE files.
 
@@ -329,10 +326,41 @@ Once Windows 3.x is installed, here is some additional software you may want to 
 * Adobe Type Manager 3.02
 
 == Mouse support
-By default Windows 3.x will find a PS/2 mouse when installed in DOSBox-X.
-This mouse support has an important limitation, namely you need to lock the mouse to the session to interact with Windows 3.x and need to unlock it to go outside DOSBox-X.
+When running Windows in DOSBox-X the integration is not seamless.
+You need to capture the mouse and again release it when you want to leave the DOSBox-X window.
+This is because Windows uses it's own driver instead of using the integrated mouse support that DOSBox-X provides.
 
-DOSBox-X 0.83.24 or later however also supports the VMware mouse protocol, and there is a 3rd party link:https://github.com/NattyNarwhal/vmwmouse[VMware mouse driver for Windows 3.x] written by NattyNarwhal.
+There are two possible solutions to this.
+
+== DOSBox-X mouse integration driver
+There is experimental support in DOSBox-X for seamless integration.
+To get this working take the following steps:
+
+Go to link:https://github.com/joncampbell123/doslib/releases[doslib releases] and download the latest binary release of doslib.
+Unpack the archive, and you will find a Windows 3.0 or 3.1 mouse driver in respectively the `windrv/dosboxpi/bin/win30` or `windrv/dosboxpi/bin/win31` directory.
+
+- Copy the `DBOXMPI.DRV` and `OEMSETUP.INF` files for your windows version to a place where the Windows SETUP.EXE program will be able to find it
+- When you run SETUP.EXE, select to change the mouse and then select the "Other (requires disk provided by a hardware manufacturer)" option
+- Enter the path where you saved the `DBOXMPI.DRV` and `OEMSETUP.INF` files
+- Select the "DOSBox-X Mouse Pointer Integration" option
+- If SETUP asks for the "DOSBox-X Guest Additions" disk, give it the same path as before.
+- Continue the setup as normal
+
+In addition, set the following options in your DOSBox-X config file:
+```
+[sdl]
+mouse emulation=integration
+
+[cpu]
+integration device=true
+```
+Now when you run Windows 3.x, you should have seamless mouse support.
+
+NOTE: These old windows versions had no support for mice with scroll wheels. By default DOSBox-X will simulate cursor up/down keypresses when you use the scroll wheel.
+This can be controlled by the `mouse_wheel_key=` setting in the `[sdl]` section of your DOSBox-X config file.
+
+=== VMWare mouse driver
+DOSBox-X 0.83.24 or later also supports the VMware mouse protocol, and there is a 3rd party link:https://github.com/NattyNarwhal/vmwmouse[VMware mouse driver for Windows 3.x] written by NattyNarwhal.
 As such you can install the VMware mouse driver for Windows 3.x and you will be able to move the mouse in and out of DOSBox-X seamlessly.
 
 Simply run the DOS based SETUP.EXE program for Windows 3.x and select "Mouse" followed by "Other". Then type the location where you saved the unpacked VMware mouse driver for Windows 3.x.
@@ -566,6 +594,19 @@ The second step you may want to take, is that when you exit the game, you also e
 WIN RUNEXIT \path\to\game.exe
 ....
 Like before it will start the game without the Windows splash screen, but now when you Exit the game it will also Exit Windows. This way you can launch Windows games from a DOS batch file, or from a DOSBox launcher such as link:http://members.quicknet.nl/blankendaalr/dbgl/[DBGL].
+
+== Known limitations
+- When booting a guest OS, such a MS-DOS with Windows 3.x in DOSBox-X, so-called folder mounts are not supported.
+Any folders of the host you mount before starting MS-DOS will **NOT** be available in DOS and Windows 3.x.
+Only image mounts (HDD, Floppy or CD) using `imgmount` are possible in combination with booting a guest OS.
+
+- If you intend at any point to use a Floppy during your usage of Windows 3.x, you must mount a floppy **before** starting Windows 3.x.
+You can load a different Floppy, once you started Windows 3.x this way from the DOSBox-X menus.
+If you don't load a floppy before and attach it afterwards, it may appear to work in Windows 3.x but it will not work properly and you get strange errors.
+
+- If you intend at any point to use a CD during your usage of Windows 3.x, you must mount a CD **before** starting Windows 3.x.
+You can load a different CD from the DOSBox-X menus, once you started Windows 3.x.
+But if a CD is not present when starting Windows 3.x the drive is simply missing, and you cannot add it without quitting and restarting Windows 3.x.
 
 == Outstanding issues
 ** Using 32Bit Disk and File lowers performance.

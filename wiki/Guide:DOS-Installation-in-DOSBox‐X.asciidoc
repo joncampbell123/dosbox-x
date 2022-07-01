@@ -158,7 +158,7 @@ With this example, it will start Windows automatically on startup, and when you 
 
 === Long wait on HIMEM.SYS
 If HIMEM is being loaded on startup, you may get a message "HIMEM is testing extended memory...", which can take a considerable amount of time and is pointless in an emulated environment.
-You can bypass it by editing CONFIG.SYS and changing ``DEVICE=C:\DOS\HIMEM.SYS`` to ``DEVICE=C:\DOS\HIMEM.SYS /TESTMEM:OFF``.
+For MS-DOS, you can bypass it by editing CONFIG.SYS and changing ``DEVICE=C:\DOS\HIMEM.SYS`` to ``DEVICE=C:\DOS\HIMEM.SYS /TESTMEM:OFF``.
 
 === Reboot DOS
 You can reboot (restart) DOS by selecting the "Reboot guest system" menu item (under "Main").

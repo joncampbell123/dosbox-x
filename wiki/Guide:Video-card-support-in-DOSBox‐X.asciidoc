@@ -401,9 +401,9 @@ image::images/Game:Monkey_Island_Tandy.png[,640,float="left"]
 
 === EGA
 EGA stands for *Enhanced Graphics Adapter* and was introduced by IBM in 1984, as the official follow-on to CGA.
-It still only supports up to 16 colours on-screen, but out of a gamut of 64 colours and at higher resolution.
+It still only supports up to 16 colours on-screen, but out of a gamut of 64 colours and at a higher resolution.
 
-The original adapters came with 64KiB video RAM, but could be upgraded to 128 or 192KiB.
+The original IBM adapters came with just 64KiB video RAM, but could be upgraded to 128 or 192KiB.
 Some EGA clones even provided 256KiB, and additional high-res video modes.
 
 One feature it dropped however, was the composite output support.
@@ -425,23 +425,18 @@ NOTE: Emulating 64KiB of video memory with EGA is not recommended, as the code f
 
 NOTE: Some clone EGA cards added extra video memory and video modes, typically known as SuperEGA cards. The emulation of such cards is not supported by DOSBox-X.
 
-==== Graphics modes:
-In addition to being backward compatible with CGA, EGA supports:
+==== EGA with an MDA or CGA monitor
+It is possible to use an MDA, CGA or EGA monitor with an IBM EGA card.
 
-- 640×350 w/16 colours (from a 6 bit palette of 64 colours), pixel aspect ratio of 1:1.37.
-- 640×350 w/2 colours, pixel aspect ratio of 1:1.37.
-- 640×200 w/16 colours, pixel aspect ratio of 1:2.4.
-- 320×200 w/16 colours, pixel aspect ratio of 1:1.2.
+Some software such as the link:https://www.os2museum.com/wp/fantasyland-on-vga/[IBM Fantasy Land Demo] expects a CGA monitor with 200-line text mode and 8x8 characters, and will not work properly with a regular EGA monitor with 350-line text mode and 8x14 characters.
 
-==== Text modes:
+Starting with DOSBox-X 0.84.1 an EGA adapter attached to a 200-line CGA monitor can be emulated by setting ``machine=ega200``.
+When using this reduced mode, the regular 350-line EGA modes will not be be available.
 
-- 40×25 with 8×8 pixel font (effective resolution of 320×200)
-- 80×25 with 8×8 pixel font (effective resolution of 640×200)
-- 80×25 with 8×14 pixel font (effective resolution of 640×350)
-- 80×43 with 8×8 pixel font (effective resolution of 640×344)
+NOTE: There is no support for emulating an EGA adapter with monochrome MDA monitor at this time.
 
 ==== EGA machine options
-This mode can be set using ``machine=ega`` in your DOSBox-X config file
+Regular EGA mode can be set using ``machine=ega``, or the reduced 200-line mode with ``machine=ega200`` in your DOSBox-X config file.
 
 ==== External links
 * link:https://en.wikipedia.org/wiki/Enhanced_Graphics_Adapter[Wikipedia article on EGA Graphics]
@@ -700,6 +695,7 @@ Links:
 
 ===== S3 ViRGE
 WARNING: The emulation of this card is considered experimental. It is not recommended for normal use at this time.
+It seems to work well enough for regular use, but the S3D functionality still needs to be implemented.
 
 The S3 Video and Rendering Graphics Engine (ViRGE) was introduced in November 1995. Available in 2 or 4MB video RAM configurations.
 
@@ -716,7 +712,7 @@ Links:
 * link:https://www.vogons.org/viewtopic.php?t=33483[List of games supporting S3D mode]
 
 ===== S3 ViRGE/VX
-WARNING: The emulation of this card is considered experimental. It is not recommended for normal use at this time.
+WARNING: Like the regular S3 ViRGE, the emulation of this card is considered experimental. It is not recommended for normal use at this time.
 
 Introduced in November 1995.
 Similar to the regular S3 ViRGE but available with 2, 4 or 8MB VRAM, allowing higher resolution and higher colour depths graphics modes.
@@ -1267,7 +1263,7 @@ Not very many VGA chipsets allow this, so far, only ATI chipsets are known to su
 * default value: false
 * valid values: true, false
 
-If true, allow the DOS demo or program to make the picture wavy by playing with the 'start horizontalretrace' register of the CRTC during the active picture.
+If true, allow the DOS demo or program to make the picture wavy by playing with the 'start horizontal retrace' register of the CRTC during the active picture.
 
 Some early DOS demos (Copper by Surprise!productions) need this option set for some demo effects to work.
 

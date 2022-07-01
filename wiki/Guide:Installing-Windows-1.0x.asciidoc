@@ -312,3 +312,27 @@ dosbox-x -conf win1x.conf
 You can optionally create a shortcut on your desktop to start Windows 1.0x directly.
 
 image::images/Windows:Windows_1.01.png[Windows 1.01 MS-DOS Executive]
+
+== Mouse integration
+When running Windows in DOSBox-X the integration is not seamless.
+You need to capture the mouse and again release it when you want to leave the DOSBox-X window.
+This is because Windows uses it's own driver instead of using the integrated mouse support that DOSBox-X provides.
+
+There is however experimental support in DOSBox-X for such seamless integration.
+To get this working take the following steps:
+
+Go to link:https://github.com/joncampbell123/doslib/releases[doslib releases] and download the latest binary release of doslib.
+Unpack the archive, and you will find a Windows 1.0 mouse driver with installation instructions in the `windrv/dosboxpi/bin/win10` directory.
+
+Follow the installation instructions, and in addition, set the following options in your DOSBox-X config file:
+```
+[sdl]
+mouse emulation=integration
+
+[cpu]
+integration device=true
+```
+Now when you run Windows 1.0, you should have seamless mouse support.
+
+NOTE: These old windows versions had no support for mice with scroll wheels. By default DOSBox-X will simulate cursor up/down keypresses when you use the scroll wheel.
+This can be controlled by the `mouse_wheel_key=` setting in the `[sdl]` section of your DOSBox-X config file.

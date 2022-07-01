@@ -25,11 +25,11 @@ DOSBox-X features a GUI menu bar that does not exist in DOSBox, so you can achie
 
 * **Mouse wheel movements**: Select whether to auto-convert mouse wheel movements to arrow keys (Up & Down arrows etc).
 
+* **Always on top**: Select whether the DOSBox-X window will always be the topmost one.
+
 * **Pause emulation**: Check to pause the emulated DOS inside DOSBox-X completely. The emulated DOS will resume when it is unchecked.
 
 * **Pause with interrupts enabled**: Pauses the emulated DOS inside DOSBox-X without disabling the DOS interrupts. This allows certain DOS functions to continue to work, such as pausing some Demoscene games while allowing the game music to continue to play, or hearing the entire music when the demo exits long before the music has time to loop.
-
-* **Show FPS and RT speed in title bar**: Select this if you want to show cycles count (FPS) and emulation speed on the DOSBox-X title bar. Equivalent to -showcycles and -showrt command-line options combined.
 
 * **Reset virtual machine**: Restarts the virtual machine inside DOSBox-X.
 
@@ -69,25 +69,29 @@ DOSBox-X features a GUI menu bar that does not exist in DOSBox, so you can achie
 
 **3. The "Video" menu**
 
+* **Aspect ratio**: Select an aspect ratio (including preset or original ratios) for the image inside the DOSBox-X screen, when the aspect ratio correction mode is enabled.
+
 * **Fit to aspect ratio**: Select whether to fit DOSBox-X's emulated DOS screen to the aspect ratio (width-to-height ratio) correction mode.
+
+* **Reset window size**: Resets the DOSBox-X window to the default size, and (for the TrueType font output) refreshes the TTF screen.
 
 * **Toggle fullscreen**: Toggles the full-screen mode of DOSBox-X's emulated DOS screen.
 
-* **Always on top**: Select whether the DOSBox-X window will always be the topmost one.
-
-* **Double Buffering (Fullscreen)**: Toggles the double-buffering feature in the fullscreen mode. It can reduce screen flickering, but it can also result in a slower speed.
-
 * **Hide/show menu bar**: Select whether to show DOSBox-X's drop-down menu bar where supported.
 
-* **Reset window size**: Resets the DOSBox-X window to the default size.
+* **Show FPS and RT speed in title bar**: Select this if you want to show cycles count (FPS) and emulation speed on the DOSBox-X title bar. Equivalent to -showcycles and -showrt command-line options combined.
 
-* **Refresh rate...**: Sets the video refresh rate (0 for unlocking the refresh rate).
+* **Set title bar text...**: Prepends/appends text in the DOSBox-X title bar.
+
+* **Set transparency...**: Sets the transparency of the DOSBox-X screen (0 to 90, from low to high transparency).
+
+* **Adjust refresh rate...**: Sets the video refresh rate (0 for unlocking the refresh rate).
 
 * **Force scaler**: Forces the use of a scaler even if the result might not be desired. To fit a scaler in the resolution used at full screen may require a border or side bars. To fill the screen entirely, depending on your hardware, a different scaler/fullresolution might work.
 
 * **Scaler**: Selects a scaler used to enlarge/enhance low resolution modes.
 
-* **Output**: Selects the video system to use for output, such as Surface, OpenGL, Direct3D and TrueType font, and to enable double-scan mode (double-scanned output emits two scanlines for each source line).
+* **Output**: Selects the video system to use for output, such as Surface, OpenGL, Direct3D and TrueType font, and to enable double-scan mode (double-scanned output emits two scanlines for each source line) and/or double-buffering feature (for fullscreen mode, which can reduce screen flickering, but it can also result in a slower speed).
 
 * **V-Sync**: Synchronizes V-Sync timing to the host display. This requires calibration within DOSBox-X.
 
@@ -206,7 +210,11 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 
 * **A**-**Z**: For each DOS drive, mounts, un-mounts, re-scans (refreshes the cache), or show the information for this drive. For Drive A:, C: and D: there is also an option to boot from the drive. Various mounting options (either host drives/directories or disk/CD image files) are available for each drive.
 
-**8. The "Help" menu**
+**8. The "Debug" menu**
+
+* Previously the "Debugging options" under “Help” menu, it is now a separate top-level menu appearing in debugging builds for debugging-related functions, such as showing the debugger and the logging console as well as other debugging-related functions like the blank screen refresh tests.
+
+**9. The "Help" menu**
 
 * **Introduction**: Shows a dialog box with a short introduction to DOSBox-X.
 
@@ -225,10 +233,6 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 * **Logging console**: Functions related to the logging console on Windows systems. Non-debugging builds only.
 
 * **About DOSBox-X**: Shows the about information for DOSBox-X.
-
-**9. The "Debug" menu**
-
-* Previously the "Debugging options" under “Help” menu, it is now a separate top-level menu appearing in debugging builds for debugging-related functions, such as showing the debugger and the logging console as well as other debugging-related functions like the blank screen refresh tests.
 
 DOSBox-X will show the drop-down menus in the windowed mode by default, but you can also hide it if you prefer, using any of the following methods:
 

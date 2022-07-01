@@ -63,7 +63,7 @@ NOTE: Starting with DOSBox-X 0.83.24, glide is supported in fullscreen mode. Old
 
 Enable LFB (Line-Fill-Buffer) CPU Cache access for Glide.
 
-NOTE: OpenGlide does not support locking aux buffer, as such please use _noaux modes.
+NOTE: OpenGlide does not support locking the aux buffer, as such please use _noaux modes.
 
 === splash
 * Default value: true
@@ -164,9 +164,8 @@ The zip packages are available from: http://dege.freeweb.hu/dgVoodoo2/dgVoodoo2/
 OpenGlide is an open-source Glide API wrapper to OpenGL implementation that is not actively maintained.
 You will need to compile it yourself using Visual Studio or MinGW, and should therefore only be considered by advanced users.
 
-The OpenGlide GitHub site is located at: https://github.com/voyageur/openglide
-
-WARNING: OpenGlide is currently not compatible with SDL2, as such you can only use it with the DOSBox-X SDL1 version.
+The original OpenGlide repository on Sourceforge has been unmaintained for a long time and does not work for our purposes.
+Some forks exists, such as: https://github.com/voyageur/openglide which works for DOSBox-X SDL1, or the fork available here: https://github.com/kjliew/qemu-xtra which seems to work for DOSBox-X SDL2.
 
 === Linux host: Installing libglide2x.so
 NOTE: Although this library has the same filename as the old Linux Glide library for real 3dfx Voodoo adapters, it is in fact not the same.
@@ -178,7 +177,7 @@ If you do try to use it with the DOSBox-X SDL2 version, OpenGlide will segfault 
 Unfortunately this library is not included with any Linux distributions, as such you need to compile it yourself.
 The following steps assume that you have the necessary compiler, developer tools and header files already installed.
 
-Run the following commands from a Linux terminal:
+Run the following commands from a Linux terminal to compile the OpenGlide fork from Voyageur:
 
 ....
 git clone https://github.com/voyageur/openglide.git
