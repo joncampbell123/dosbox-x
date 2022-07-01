@@ -16,10 +16,6 @@
 # if C_X11_EXT_XKBRULES
 #  include <X11/extensions/XKBrules.h>
 # endif
-#endif
-
-void UpdateWindowDimensions(Bitu width, Bitu height);
-void UpdateWindowMaximized(bool flag);
 
 /* X11 Error handler.
  * Apparently it is possible with SDL2 to resize the window in such a way that
@@ -49,6 +45,10 @@ int X11_ErrorHandler(Display *disp,XErrorEvent *xev) {
 void X11_ErrorHandlerInstall(void) {
 	XSetErrorHandler(X11_ErrorHandler);
 }
+#endif
+
+void UpdateWindowDimensions(Bitu width, Bitu height);
+void UpdateWindowMaximized(bool flag);
 
 #if C_X11_XRANDR
 #include <X11/extensions/Xrandr.h>
