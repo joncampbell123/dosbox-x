@@ -1,9 +1,4 @@
 0.84.1
-  - DOSBox-X will now search for resource files such as
-    fonts and translations in the resource directory (
-    C:/DOSBox-X in Windows, /usr/(local/)share/dosbox-x
-    in Linux, and dosbox-x.app/Contents/Resources in
-    macOS) in addition to other locations. (Wengier)
   - Added dosbox(-x).conf option to enable workaround
     for errant DOS programs that set the TF (trap flag)
     and then crash. Added code to DOS kernel INT 01h
@@ -19,15 +14,15 @@
     upper 32 bits of ESP from real mode using a
     normal 16-bit RETF with a very large immediate
     value. This fix removes the need for the ENTER
-    masking dosbox.conf option entirely and allows
+    masking dosbox(-x).conf option entirely and allows
     Finster to run without it. (joncampbell123).
-  - Added dosbox.conf option to control whether the
+  - Added dosbox(-x).conf option to control whether the
     ENTER instruction masks the stack pointer to 64KB
     if the stack segment is 16-bit, which is off by
     default because real Intel processors do not do
     that. (joncampbell123).
-  - Added dosbox.conf option that can instruct EGA/VGA
-    emulation to ignore the display blanking bit in
+  - Added dosbox(-x).conf option that can instruct EGA/
+    VGA emulation to ignore the display blanking bit in
     the sequencer registers. Some games appear to have
     bugs in their VGA programming code that can
     accidentally set that bit and therefore show
@@ -48,6 +43,11 @@
     in real mode or the stack segment is 16-bit, mask
     stack pointer with 0xFFFF. This fixes 1996 game
     "Finster" by Mad Scientists (joncampbell123).
+  - DOSBox-X will now search for resource files such as
+    fonts and translations in the resource directory (
+    C:/DOSBox-X in Windows, /usr/(local/)share/dosbox-x
+    in Linux, and dosbox-x.app/Contents/Resources in
+    macOS) in addition to other locations. (Wengier)
   - Updated DOSBox-X's integration device to version
     1.0.1, adding API calls such as DOSBox-X's version
     number and platform, and some DOS-related status
@@ -191,7 +191,7 @@
     a subdirectory of any depth, instead of only one
     level deep from an existing directory on disk.
     (joncampbell123)
-  - Add "isapnpport" option to dosbox.conf to control
+  - Add dosbox(-x).conf option "isapnpport" to control
     whether the ISA Plug & Play I/O port is presented
     to the guest. Setting is "true", "false", or "auto".
     "auto" means to enable if PnP BIOS is enabled.
