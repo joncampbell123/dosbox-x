@@ -53,6 +53,7 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Tasks]
 Name: "contextmenu"; Description: "Add ""Run/Open with DOSBox-X"" context menu for Windows Explorer"
 Name: "commonoption"; Description: "Write common config options (instead of all) to the configuration file"
+Name: "centerwindow"; Description: "Automatically center the window on the screen when DOSBox-X starts"
 Name: "drivedelay"; Description: "Emulate the slowness of floppy drive and hard drive data transfers"; Flags: unchecked
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"
 Name: "quicklaunchicon"; Description: "{cm:CreateQuickLaunchIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
@@ -429,7 +430,7 @@ end;
 procedure CurStepChanged(CurrentStep: TSetupStep);
 var
   i, j, k, adv, res: Integer;
-  tsection, vsection, addcp, dosvcn, dosvtw, dosvset, found1, found2, found3, found4: Boolean;
+  tsection, vsection, addcp, dosvcn, dosvtw, dosvset, found1, found2, found3, found4, found5: Boolean;
   refname, section, line, linetmp, lineold, linenew, SetupType: String;
   FileLines, FileLinesold, FileLinesnew, FileLinesave: TStringList;
 begin
@@ -480,19 +481,25 @@ begin
             FileLines[i] := linetmp+' 3';
             found2 := True;
           end;
-          if not IsTaskSelected('drivedelay') and (CompareText(linetmp, 'hard drive data rate limit') = 0) and (CompareText(section, 'dos') = 0) then
+          if IsTaskSelected('centerwindow') and (CompareText(linetmp, 'windowposition') = 0) and (CompareText(section, 'sdl') = 0) then
           begin
             linetmp := Trim(Copy(line, 1, Pos('=', line)));
-            FileLines[i] := linetmp+' 0';
+            FileLines[i] := linetmp+' ';
             found3 := True;
           end;
-          if not IsTaskSelected('drivedelay') and (CompareText(linetmp, 'floppy drive data rate limit') = 0) and (CompareText(section, 'dos') = 0) then
+          if not IsTaskSelected('drivedelay') and (CompareText(linetmp, 'hard drive data rate limit') = 0) and (CompareText(section, 'dos') = 0) then
           begin
             linetmp := Trim(Copy(line, 1, Pos('=', line)));
             FileLines[i] := linetmp+' 0';
             found4 := True;
           end;
-          if found1 and found2 and ((found3 and found4) or IsTaskSelected('drivedelay')) then
+          if not IsTaskSelected('drivedelay') and (CompareText(linetmp, 'floppy drive data rate limit') = 0) and (CompareText(section, 'dos') = 0) then
+          begin
+            linetmp := Trim(Copy(line, 1, Pos('=', line)));
+            FileLines[i] := linetmp+' 0';
+            found5 := True;
+          end;
+          if found1 and found2 and (found3 or not IsTaskSelected('centerwindow')) and ((found4 and found5) or IsTaskSelected('drivedelay')) then
             break;
         end
       end;
@@ -889,6 +896,19 @@ begin
                     continue;
                   end;
                 end;
+                if (CompareText(section, 'sdl') = 0) and (CompareText(Trim(linetmp), 'windowposition') = 0) then
+                begin
+                  if IsTaskSelected('centerwindow') and (Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))) = '-') then
+                  begin
+                    FileLinesave.add(linetmp + '= ');
+                    continue;
+                  end;
+                  if not IsTaskSelected('centerwindow') and ((Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))) = '') or (Trim(Copy(lineold, Pos('=', lineold) + 1, Length(lineold))) = ',')) then
+                  begin
+                    FileLinesave.add(linetmp + '= -');
+                    continue;
+                  end;
+                end;
                 if (CompareText(section, 'sdl') = 0) and (CompareText(Trim(linetmp), 'output') = 0) and (dosvcn or dosvtw) then
                 begin
                   FileLinesave.add(linetmp + '= ttf');
@@ -932,6 +952,8 @@ begin
                 linenew := linetmp + '= 886,950';
               if (CompareText(Trim(linetmp), 'file access tries') = 0) then
                 linenew := Copy(Trim(linenew), 1, Length(Trim(linenew)) - 1) + '3';
+              if IsTaskSelected('centerwindow') and (CompareText(Trim(linetmp), 'windowposition') = 0) then
+                linenew := Copy(Trim(linenew), 1, Length(Trim(linenew)) - 2) + '';
               if not IsTaskSelected('drivedelay') and ((CompareText(Trim(linetmp), 'hard drive data rate limit') = 0) or (CompareText(Trim(linetmp), 'floppy drive data rate limit') = 0)) then
                 linenew := Copy(Trim(linenew), 1, Length(Trim(linenew)) - 2) + '0';
               FileLinesave.add(linenew);

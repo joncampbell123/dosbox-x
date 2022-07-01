@@ -42,7 +42,7 @@ jobs:
           mkdir -p $top/package/bin/x64/Release/shaders
           mkdir -p $top/package/bin/x64/Release/glshaders
           mkdir -p $top/package/bin/x64/Release/languages
-          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/' -e 's/^\(file access tries[ ]*=[ ]*\)0$/\13/' -e 's/^\(printoutput[ ]*=[ ]*\)png$/\1printer/' -e 's/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/bin/x64/Release/dosbox-x.conf
+          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/;s/^\(windowposition[ ]*=\)[ ]*-/\1 /;s/^\(file access tries[ ]*=[ ]*\)0$/\13/;s/^\(printoutput[ ]*=[ ]*\)png$/\1printer/;s/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/bin/x64/Release/dosbox-x.conf
           cp $top/bin/x64/Release/dosbox-x.exe $top/package/bin/x64/Release/dosbox-x.exe
           cp $top/CHANGELOG $top/package/bin/x64/Release/CHANGELOG.txt
           cp $top/dosbox-x.reference.conf $top/package/bin/x64/Release/dosbox-x.reference.conf
@@ -73,7 +73,7 @@ jobs:
           mkdir -p $top/package/bin/x64/"Release SDL2"/shaders
           mkdir -p $top/package/bin/x64/"Release SDL2"/glshaders
           mkdir -p $top/package/bin/x64/"Release SDL2"/languages
-          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/' -e 's/^\(file access tries[ ]*=[ ]*\)0$/\13/' -e 's/^\(printoutput[ ]*=[ ]*\)png$/\1printer/' -e 's/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/bin/x64/"Release SDL2"/dosbox-x.conf
+          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/;s/^\(windowposition[ ]*=\)[ ]*-/\1 /;s/^\(file access tries[ ]*=[ ]*\)0$/\13/;s/^\(printoutput[ ]*=[ ]*\)png$/\1printer/;s/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/bin/x64/"Release SDL2"/dosbox-x.conf
           cp $top/bin/x64/"Release SDL2"/dosbox-x.exe $top/package/bin/x64/"Release SDL2"/dosbox-x.exe
           cp $top/CHANGELOG $top/package/bin/x64/"Release SDL2"/CHANGELOG.txt
           cp $top/dosbox-x.reference.conf $top/package/bin/x64/"Release SDL2"/dosbox-x.reference.conf
@@ -128,7 +128,7 @@ jobs:
           mkdir -p $top/package/bin/ARM64/Release/scripts
           mkdir -p $top/package/bin/ARM64/Release/shaders
           mkdir -p $top/package/bin/ARM64/Release/languages
-          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/' -e 's/^\(file access tries[ ]*=[ ]*\)0$/\13/' -e 's/^\(printoutput[ ]*=[ ]*\)png$/\1printer/' -e 's/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/bin/ARM64/Release/dosbox-x.conf
+          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/;s/^\(windowposition[ ]*=\)[ ]*-/\1 /;s/^\(file access tries[ ]*=[ ]*\)0$/\13/;s/^\(printoutput[ ]*=[ ]*\)png$/\1printer/;s/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/bin/ARM64/Release/dosbox-x.conf
           cp $top/bin/ARM64/Release/dosbox-x.exe $top/package/bin/ARM64/Release/dosbox-x.exe
           cp $top/CHANGELOG $top/package/bin/ARM64/Release/CHANGELOG.txt
           cp $top/dosbox-x.reference.conf $top/package/bin/ARM64/Release/dosbox-x.reference.conf
@@ -154,7 +154,7 @@ jobs:
           mkdir -p $top/package/bin/ARM64/"Release SDL2"/scripts
           mkdir -p $top/package/bin/ARM64/"Release SDL2"/shaders
           mkdir -p $top/package/bin/ARM64/"Release SDL2"/languages
-          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/' -e 's/^\(file access tries[ ]*=[ ]*\)0$/\13/' -e 's/^\(printoutput[ ]*=[ ]*\)png$/\1printer/' -e 's/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/bin/ARM64/"Release SDL2"/dosbox-x.conf
+          sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/;s/^\(windowposition[ ]*=\)[ ]*-/\1 /;s/^\(file access tries[ ]*=[ ]*\)0$/\13/;s/^\(printoutput[ ]*=[ ]*\)png$/\1printer/;s/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/bin/ARM64/"Release SDL2"/dosbox-x.conf
           cp $top/bin/ARM64/"Release SDL2"/dosbox-x.exe $top/package/bin/ARM64/"Release SDL2"/dosbox-x.exe
           cp $top/CHANGELOG $top/package/bin/ARM64/"Release SDL2"/CHANGELOG.txt
           cp $top/dosbox-x.reference.conf $top/package/bin/ARM64/"Release SDL2"/dosbox-x.reference.conf
