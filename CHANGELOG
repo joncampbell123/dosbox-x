@@ -1,14 +1,16 @@
 0.84.1
-  - Added dosbox.conf option to enable workaround for
-    errant DOS programs that set the TF (trap flag)
+  - DOSBox-X will now search for resource files such as
+    fonts and translations in the resource directory (
+    C:/DOSBox-X in Windows, /usr/(local/)share/dosbox-x
+    in Linux, and dosbox-x.app/Contents/Resources in
+    macOS) in addition to other locations. (Wengier)
+  - Added dosbox(-x).conf option to enable workaround
+    for errant DOS programs that set the TF (trap flag)
     and then crash. Added code to DOS kernel INT 01h
     handler to clear TF flag if instructed to by the
-    dosbox.conf setting which can prevent such errant
-    programs from crashing. Needed for 1996 demo
+    dosbox(-x).conf setting which can prevent such
+    errant programs from crashing. Needed for 1996 demo
     "Dyslexia" by Threesome. (joncampbell123)
-  - DOSBox-X will now search for resource files such as
-    fonts and translations in the resource directory in
-    addition to other locations. (Wengier)
   - Fix RETF instruction handling to only modify the
     low 16 bits of ESP in real mode, even if the
     immediate value for RETF is a large value like
@@ -111,7 +113,8 @@
     DOS screen will not longer trigger segfaults or
     assertion failures. Issue #3348. (joncampbell123).
   - Fix IME not working on Windows when -langcp option
-    is used to load a language with codepage. (Wengier)
+    is used to load a language with DBCS codepage, or
+    in 32-bit MinGW lowend SDL1 build. (Wengier)
   - Fixed INT 10h failing to fully clear Tandy video
     memory when entering 16-color graphics modes.
     (joncampbell123).

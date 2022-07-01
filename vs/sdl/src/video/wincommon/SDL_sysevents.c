@@ -96,7 +96,7 @@ DEVMODE SDL_fullscreen_mode;
 #endif
 WORD *gamma_saved = NULL;
 
-#if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
+#if !defined(SDL_WIN32_HX_DOS)
 _IM_Context IM_Context; /* patched */
 #endif
 

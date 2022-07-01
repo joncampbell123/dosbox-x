@@ -78,6 +78,10 @@
 
 #define DINPUT() (strcmp(this->name, "directx") == 0)
 
+#if defined(__MINGW32__) && !defined(SDL_WIN32_HX_DOS)
+#include <imm.h>
+#endif
+
 /* The main window -- and a function to set it for the audio */
 #ifdef _WIN32_WCE
 extern LPWSTR SDL_Appname;
@@ -88,7 +92,7 @@ extern HINSTANCE SDL_Instance;
 extern HWND SDL_Window;
 extern BOOL SDL_windowid;
 
-#if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
+#if !defined(SDL_WIN32_HX_DOS)
 typedef struct {
 	HIMC SDL_IMC;
 	union {

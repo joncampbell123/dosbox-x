@@ -37,6 +37,11 @@
 extern "C" {
 #endif
 
+#if defined(__MINGW32__) && !defined(SDL_WIN32_HX_DOS)
+#include <windows.h>
+#include <imm.h>
+#endif
+
 /** @file SDL_syswm.h
  *  Your application has access to a special type of event 'SDL_SYSWMEVENT',
  *  which contains window-manager specific information and arrives whenever
@@ -159,7 +164,7 @@ typedef struct SDL_SysWMinfo {
 	HGLRC hglrc;			/**< The OpenGL context, if any */
 } SDL_SysWMinfo;
 
-#if !defined(__MINGW32__) || defined(__MINGW64_VERSION_MAJOR)
+#if !defined(SDL_WIN32_HX_DOS)
 /* The windows custom input method information structure */
 typedef struct SDL_SysIMinfo {
 	SDL_version version;

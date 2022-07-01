@@ -63,7 +63,7 @@ body:
     id: config
     attributes:
       label: Used configuration
-      description: Share the configuration (usually from the `dosbox-x.conf` file) that caused the bug to occur. Leave this area empty if you're using the default configuration. If you want to link to a upload of the file, please put the link into the "Additional information" box instead.
+      description: Share the configuration (usually from the `dosbox-x.conf` or `dosbox.conf` file) that caused the bug to occur. Leave this area empty if you're using the default configuration. If you want to link to a upload of the file, please put the link into the "Additional information" box instead.
       render: ini # Syntax highlighting
     validations:
       required: false
@@ -71,7 +71,7 @@ body:
     id: log
     attributes:
       label: Output log
-      description: The relevant log DOSBox-X outputted when the problem ocurred. If you want to link to a upload of the file, please put the link into the "Additional information" box instead.
+      description: The relevant log DOSBox-X outputted when the problem occurred. If you want to link to a upload of the file, please put the link into the "Additional information" box instead.
       render: text # Syntax highlighting
     validations:
       required: false
