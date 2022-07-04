@@ -643,7 +643,7 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
                 if (freesizestr == "fixed" || freesizestr == "false" || freesizestr == "0") freesizecap = 0;
                 else if (freesizestr == "relative" || freesizestr == "2") freesizecap = 2;
                 else freesizecap = 1;
-                convertimg = section->Get_bool("convertimagegdrive");
+                convertimg = section->Get_bool("convertdrivefat");
                 wpcolon = section->Get_bool("leading colon write protect image");
                 lockmount = section->Get_bool("locking disk image mount");
                 if (!strcasecmp(inputline.substr(0, 9).c_str(), "saveslot=")) SetGameState_Run(section->Get_int("saveslot")-1);

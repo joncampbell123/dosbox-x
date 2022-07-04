@@ -65,10 +65,10 @@ class imageDisk {
 		virtual void Get_Geometry(uint32_t * getHeads, uint32_t *getCyl, uint32_t *getSect, uint32_t *getSectSize);
 		virtual uint8_t GetBiosType(void);
 		virtual uint32_t getSectSize(void);
+		imageDisk(class DOS_Drive *useDrive);
 		imageDisk(FILE *imgFile, const char *imgName, uint32_t imgSizeK, bool isHardDisk);
 		imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, uint32_t heads, uint32_t sectors, uint32_t sector_size, bool hardDrive);
 		virtual ~imageDisk();
-		imageDisk(class DOS_Drive *useDrive, uint32_t freeSpaceMB = 0);
 		void Set_GeometryForHardDisk();
 		struct fatFromDOSDrive* ffdd = NULL;
 

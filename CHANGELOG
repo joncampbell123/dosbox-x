@@ -2,13 +2,15 @@
   - Added support for auto-converting non-image drives
     (such as mounted local drives) to disk images, so
      that they will be visible when booting into guest
-    systems. Config option "convertimagedrive" (in
+    systems. A config option "convertdrivefat" (in
     [dosbox] section) is added to toggle this setting,
-    or you can toggle via BOOT command's -convertimg
-    and -noconvertimg options. There is also a config
+    or you can toggle via BOOT command's -convertfat
+    and -noconvertfat options. There is also a config
     option "drive z convert image" (in [dos] section)
     to control if to convert virtual drive Z:. Much of
     the code is imported from DOSBox Pure. (Wengier)
+  - Fixed display of total file size in DIR command
+    when the file sizes are very large. (Wengier)
 0.84.1
   - Added dosbox(-x).conf option to enable workaround
     for errant DOS programs that set the TF (trap flag)

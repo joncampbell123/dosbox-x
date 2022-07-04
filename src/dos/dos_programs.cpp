@@ -1876,10 +1876,10 @@ public:
         if (cmd->FindExist("-force",true))
             force = true;
 
-        if (cmd->FindExist("-convertimg",true))
+        if (cmd->FindExist("-convertfat",true))
             convimg = 1;
 
-        if (cmd->FindExist("-noconvertimg",true))
+        if (cmd->FindExist("-noconvertfat",true))
             convimg = 0;
 
         if (cmd->FindString("-bios",bios,true))
@@ -2499,29 +2499,31 @@ public:
             }
 
             char msg[512] = {0};
-            if (convimg == 1 || (convertimg && convimg == -1)) {
+            const uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+            if ((convimg == 1 || (convertimg && convimg == -1 && !IS_PC98_ARCH))) { // PC-98 image not supported yet
                 unsigned int drv = 2, nextdrv = 2;
                 for (unsigned int d=2;d<DOS_DRIVES+2;d++) {
                     if (d==DOS_DRIVES) drv=0;
                     else if (d==DOS_DRIVES+1) drv=1;
                     else drv=d;
                     if (Drives[drv] && strncmp(Drives[drv]->GetInfo(), "fatDrive ", 9) && strncmp(Drives[drv]->GetInfo(), "isoDrive ", 9)) {
-                        if (drv==ZDRIVE_NUM && !static_cast<Section_prop *>(control->GetSection("dos"))->Get_bool("drive z convert image")) continue;
+                        if (drv==ZDRIVE_NUM && !static_cast<Section_prop *>(control->GetSection("dos"))->Get_bool("drive z convert fat")) continue;
                         while (imageDiskList[nextdrv]) nextdrv++;
                         if (nextdrv>=MAX_DISK_IMAGES) break;
                         if (quiet<2) {
-                            const uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-                            strcat(msg, CURSOR_POS_COL(page)>0?"\r\n":"");
+                            size_t len = strlen(msg);
+                            if (!len) strcat(msg, CURSOR_POS_COL(page)>0?"\r\n":"");
                             strcat(msg, "Converting drive ");
                             strcat(msg, std::string(1, 'A'+drv).c_str());
-                            strcat(msg, ": to disk image...\r\n");
+                            strcat(msg, ": to FAT...\r\n");
+                            LOG_MSG("%s", msg+len);
                             if (!quiet) {
                                 uint16_t s = (uint16_t)strlen(msg);
                                 DOS_WriteFile(STDERR,(uint8_t*)msg,&s);
                                 *msg = 0;
                             }
                         }
-                        imageDiskList[nextdrv] = new imageDisk(Drives[drv], 0);
+                        imageDiskList[nextdrv] = new imageDisk(Drives[drv]);
                         if (imageDiskList[nextdrv]) {
                             bool ide_slave = false;
                             signed char ide_index = -1;
@@ -2533,8 +2535,7 @@ public:
             }
 
 			if (quiet<2) {
-				const uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-				strcat(msg, CURSOR_POS_COL(page)>0?"\r\n":"");
+				if (!strlen(msg)) strcat(msg, CURSOR_POS_COL(page)>0?"\r\n":"");
 				strcat(msg, "Booting from drive ");
 				strcat(msg, std::string(1, drive).c_str());
 				strcat(msg, "...\r\n");

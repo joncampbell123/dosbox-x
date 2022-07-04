@@ -48,8 +48,7 @@ struct VFILE_Block {
 #define MAX_VFILES 500
 unsigned int vfpos=1, lfn_id[256];
 bool internal_program = false, skipintprog = false;
-char ondirs[MAX_VFILES][CROSS_LEN],sfn[DOS_NAMELENGTH_ASCII];
-char vfnames[MAX_VFILES][CROSS_LEN],vfsnames[MAX_VFILES][DOS_NAMELENGTH_ASCII];
+char sfn[DOS_NAMELENGTH_ASCII],vfnames[MAX_VFILES][CROSS_LEN],vfsnames[MAX_VFILES][DOS_NAMELENGTH_ASCII];
 static VFILE_Block * first_file, * lfn_search[256], * parent_dir = NULL;
 
 extern int lfn_filefind_handle;
@@ -652,21 +651,6 @@ bool Virtual_Drive::Rename(const char * oldname,const char * newname) {
             strcasecmp(oldname,(std::string(onpos?vfnames[onpos]+std::string(1, '\\'):"")+cur_file->lname).c_str())==0))) {
 			DOS_SetError(DOSERR_ACCESS_DENIED);
 			return false;
-		}
-		cur_file=cur_file->next;
-	}
-	return false;
-}
-
-bool Virtual_Drive::GetLongName(const char* ident, char* lfindName) {
-	if (*ident == 0)
-		return false;
-	const VFILE_Block* cur_file = first_file;
-	while (cur_file) {
-		unsigned int onpos=cur_file->onpos;
-		if (strcasecmp(ident,(std::string(onpos?vfsnames[onpos]+std::string(1, '\\'):"")+cur_file->name).c_str())==0) {
-			strcpy(lfindName, cur_file->lname);
-			return true;
 		}
 		cur_file=cur_file->next;
 	}
