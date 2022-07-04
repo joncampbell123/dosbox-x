@@ -99,7 +99,7 @@ public:
 	virtual void remove_special_file_from_disk(const char* dosname, const char* operation);
 	virtual std::string create_filename_of_special_operation(const char* dosname, const char* operation, bool expand);
 	virtual bool add_special_file_to_disk(const char* dosname, const char* operation, uint16_t value, bool isdir);
-
+	virtual bool GetLongName(const char* ident, char* lfindName);
 	virtual void EmptyCache(void) { dirCache.EmptyCache(); };
 	virtual void MediaChange() {};
 	const char* getBasedir() {return basedir;};
@@ -681,7 +681,7 @@ private:
 	bool GetNextDirEntry(const int dirIteratorHandle, isoDirEntry* de);
 	void FreeDirIterator(const int dirIterator);
 	bool ReadCachedSector(uint8_t** buffer, const uint32_t sector);
-    void GetLongName(const char* ident, char* lfindName);
+	bool GetLongName(const char* ident, char* lfindName);
 	
 	struct DirIterator {
 		bool valid;
@@ -730,6 +730,7 @@ public:
 	HANDLE CreateOpenFile(char const* const name);
 #endif
 	bool Rename(const char * oldname,const char * newname);
+	bool GetLongName(const char* ident, char* lfindName);
 	bool AllocationInfo(uint16_t * _bytes_sector,uint8_t * _sectors_cluster,uint16_t * _total_clusters,uint16_t * _free_clusters);
 	bool FileExists(const char* name);
 	bool FileStat(const char* name, FileStat_Block* const stat_block);

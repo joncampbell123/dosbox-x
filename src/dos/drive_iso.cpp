@@ -619,7 +619,7 @@ void isoDrive :: MediaChange() {
 	IDE_ATAPI_MediaChangeNotify(toupper(driveLetter) - 'A'); /* ewwww */
 }
 
-void isoDrive::GetLongName(const char* ident, char* lfindName) {
+bool isoDrive::GetLongName(const char* ident, char* lfindName) {
     const char* c = ident + strlen(ident);
     int i,j=(int)(222-strlen(ident)-6);
     for (i=5;i<j;i++) {
@@ -631,6 +631,7 @@ void isoDrive::GetLongName(const char* ident, char* lfindName) {
         lfindName[*(c+i+2)-5]=0;
     } else
         strcpy(lfindName,ident);
+    return true;
 }
 
 

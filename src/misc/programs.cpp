@@ -57,7 +57,7 @@ extern const char *modifier;
 extern unsigned int sendkeymap;
 extern std::string langname, configfile, dosbox_title;
 extern int autofixwarn, enablelfn, fat32setver, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor;
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon, lockmount, enable_config_as_shell_commands, lesssize, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, ttfswitch, loadlang, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, uao, showdbcs, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, outcon, enable_dbcs_tables, show_recorded_filename;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, convertimg, lockmount, enable_config_as_shell_commands, lesssize, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, ttfswitch, loadlang, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, uao, showdbcs, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, outcon, enable_dbcs_tables, show_recorded_filename, internal_program;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -136,7 +136,9 @@ void PROGRAMS_MakeFile(char const * const name,PROGRAMS_Main * main,const char *
 	ipe->comsize = size;
 	ipe->comdata = comdata;
 	internal_progs.push_back(ipe);
+	internal_program = true;
 	VFILE_Register(name,ipe->comdata,ipe->comsize,dir);
+	internal_program = false;
 }
 
 static Bitu PROGRAMS_Handler(void) {
@@ -641,6 +643,7 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
                 if (freesizestr == "fixed" || freesizestr == "false" || freesizestr == "0") freesizecap = 0;
                 else if (freesizestr == "relative" || freesizestr == "2") freesizecap = 2;
                 else freesizecap = 1;
+                convertimg = section->Get_bool("convertimagegdrive");
                 wpcolon = section->Get_bool("leading colon write protect image");
                 lockmount = section->Get_bool("locking disk image mount");
                 if (!strcasecmp(inputline.substr(0, 9).c_str(), "saveslot=")) SetGameState_Run(section->Get_int("saveslot")-1);

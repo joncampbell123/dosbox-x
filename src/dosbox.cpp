@@ -124,6 +124,7 @@ static void CheckX86ExtensionsSupport()
 extern void         GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 extern void         AddSaveStateMapper(), AddMessages(), JFONT_Init(), J3_SetType(std::string type, std::string back, std::string text);
 extern bool         force_nocachedir;
+extern bool         convertimg;
 extern bool         wpcolon;
 extern bool         lockmount;
 extern bool         clearline;
@@ -817,6 +818,7 @@ void Init_VGABIOS() {
     if (freesizestr == "fixed" || freesizestr == "false" || freesizestr == "0") freesizecap = 0;
     else if (freesizestr == "relative" || freesizestr == "2") freesizecap = 2;
     else freesizecap = 1;
+    convertimg = section->Get_bool("convertimagedrive");
     wpcolon = section->Get_bool("leading colon write protect image");
     lockmount = section->Get_bool("locking disk image mount");
 
@@ -1790,6 +1792,10 @@ void DOSBOX_SetupConfigSections(void) {
                     "If set to \"relative\", the value of MOUNT -freesize will change relative to the specified value.\n"
                     "If set to \"fixed\" (=\"false\"), the value of MOUNT -freesize will be a fixed one to be reported all the time.");
     Pstring->SetBasic(true);
+
+    Pbool = secprop->Add_bool("convertimagedrive",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, DOSBox-X will auto-convert mounted non-image drives (such as local drives) to disk images for use with guest systems.");
+    Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("leading colon write protect image",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, BOOT and IMGMOUNT commands will put an image file name with a leading colon (:) in write-protect mode.");
@@ -4099,6 +4105,9 @@ void DOSBOX_SetupConfigSections(void) {
                       "If auto (default), DOS will report drive Z as remote or local depending on the program.\n"
                       "Set this option to true to prevent SCANDISK.EXE from attempting scan and repair drive Z:\n"
                       "which is impossible since Z: is a virtual drive not backed by a disk filesystem.");
+
+    Pbool = secprop->Add_bool("drive z convert image",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, DOSBox-X will automatically convert the Z drive into disk image as well when \"convertimagedrive\" is set.");
 
     Pbool = secprop->Add_bool("drive z expand path",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, DOSBox-X will automatically expand the %PATH% environment variable to include the subdirectories on the Z drive.");

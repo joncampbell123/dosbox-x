@@ -593,6 +593,7 @@ bool Overlay_Drive::FileOpen(DOS_File * * file,const char * name,uint32_t flags)
 			break;
 		}
 	}
+	if (!dos_kernel_disabled)
 	for (i=0;i<DOS_FILES;i++) {
 		if (Files[i] && Files[i]->IsOpen() && Files[i]->GetDrive()==drive && Files[i]->IsName(name)) {
 			lfp=dynamic_cast<localFile*>(Files[i]);

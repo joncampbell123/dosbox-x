@@ -73,7 +73,7 @@ bool tonoime = false, enableime = false;
 bool usesystemcursor = false, rtl = false, selmark = false;
 bool mountfro[26], mountiro[26];
 bool OpenGL_using(void), Direct3D_using(void);
-void DOSBox_SetSysMenu(void), GFX_OpenGLRedrawScreen(void), InitFontHandle(void), DOSV_FillScreen(void), SetWindowTransparency(int trans);
+void DOSBox_SetSysMenu(void), GFX_OpenGLRedrawScreen(void), InitFontHandle(void), DOSV_FillScreen(void), Add_VFiles(bool usecp), SetWindowTransparency(int trans);
 void MenuBrowseProgramFile(void), OutputSettingMenuUpdate(void), aspect_ratio_menu(void), update_pc98_clock_pit_menu(void), AllocCallback1(void), AllocCallback2(void), ToggleMenu(bool pressed);
 int Reflect_Menu(void);
 
@@ -9190,11 +9190,13 @@ fresh_boot:
                 Voodoo_Output_Enable(false);
 
             grGlideShutdown();
+
             /* shutdown DOSBox-X's virtual drive Z */
             VFILE_Shutdown();
-
             /* shutdown the programs */
             PROGRAMS_Shutdown();        /* FIXME: Is this safe? Or will this cause use-after-free bug? */
+
+            Add_VFiles(false);
 
             /* remove environment variables for some components */
             DOS_UninstallMisc();

@@ -50,9 +50,9 @@
 #endif
 #include "build_timestamp.h"
 
-extern bool startcmd, startwait, startquiet, winautorun;
+extern bool dos_shell_running_program, mountwarning, winautorun;
+extern bool startcmd, startwait, startquiet, internal_program;
 extern bool halfwidthkana, force_conversion, showdbcs;
-extern bool dos_shell_running_program, mountwarning;
 extern bool addovl, addipx, addne2k, enableime, gbk;
 extern const char* RunningProgram;
 extern int enablelfn, msgcodepage;
@@ -212,7 +212,11 @@ void AutoexecObject::CreateAutoexec(void) {
 		}
 		sprintf((autoexec_data + auto_len),"%s\r\n",linecopy.c_str());
 	}
-	if (first_shell) VFILE_Register("AUTOEXEC.BAT",(uint8_t *)autoexec_data,(uint32_t)strlen(autoexec_data));
+	if (first_shell) {
+        internal_program = true;
+        VFILE_Register("AUTOEXEC.BAT",(uint8_t *)autoexec_data,(uint32_t)strlen(autoexec_data));
+        internal_program = false;
+    }
 }
 
 void AutoexecObject::Uninstall() {
@@ -854,7 +858,9 @@ void DOS_Shell::Prepare(void) {
 			strcat(config_data, section->Get_string("rem"));
 			strcat(config_data, "\r\n");
 		}
+        internal_program = true;
 		VFILE_Register("CONFIG.SYS",(uint8_t *)config_data,(uint32_t)strlen(config_data));
+        internal_program = false;
 #if defined(WIN32)
 		if (!control->opt_securemode&&!control->SecureMode())
 		{

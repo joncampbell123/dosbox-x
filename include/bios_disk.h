@@ -67,7 +67,10 @@ class imageDisk {
 		virtual uint32_t getSectSize(void);
 		imageDisk(FILE *imgFile, const char *imgName, uint32_t imgSizeK, bool isHardDisk);
 		imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, uint32_t heads, uint32_t sectors, uint32_t sector_size, bool hardDrive);
-		virtual ~imageDisk() { if(diskimg != NULL) { fclose(diskimg); diskimg=NULL; } };
+		virtual ~imageDisk();
+		imageDisk(class DOS_Drive *useDrive, uint32_t freeSpaceMB = 0);
+		void Set_GeometryForHardDisk();
+		struct fatFromDOSDrive* ffdd = NULL;
 
 		IMAGE_TYPE class_id = ID_BASE;
 		std::string diskname;
@@ -91,6 +94,7 @@ class imageDisk {
 	private:
 		volatile int refcount = 0;
 		std::vector<bool> partition_in_use; /* used by FAT driver to prevent mounting a partition twice */
+		uint64_t current_fpos;
 
 	public:
 		int Addref() {

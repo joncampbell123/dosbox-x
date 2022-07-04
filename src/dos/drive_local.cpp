@@ -1402,6 +1402,7 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 			break;
 		}
 	}
+	if (!dos_kernel_disabled)
 	for (i=0;i<DOS_FILES;i++) {
 		if (Files[i] && Files[i]->IsOpen() && Files[i]->GetDrive()==drive && Files[i]->IsName(name)) {
 			lfp=dynamic_cast<localFile*>(Files[i]);
@@ -2283,6 +2284,25 @@ bool localDrive::FileStat(const char* name, FileStat_Block * const stat_block) {
 	return true;
 }
 
+bool localDrive::GetLongName(const char* ident, char* lfindName) {
+	char newname[CROSS_LEN];
+	strcpy(newname,basedir);
+	strcat(newname,ident);
+	CROSS_FILENAME(newname);
+	dirCache.ExpandName(newname);
+
+	const char *name_end = ident + strlen(ident), *fname = ident;
+	for (const char *p = ident; p < name_end - 1; p++) if (*p == '/' || *p == '\\') fname = p + 1;
+	char *newname_end = newname + strlen(newname), *newfname = newname;
+	for (char *p = newname; p < newname_end - 1; p++) if (*p == '/' || *p == '\\') newfname = p + 1;
+
+	size_t fname_len = name_end - fname, newfname_len = newname_end - newfname;
+	if (newfname_len > (256 - 1) || (newfname_len == fname_len && !memcmp(fname, newfname, fname_len))) return false;
+
+	memcpy(lfindName, newfname, newfname_len);
+	lfindName[newfname_len] = '\0';
+	return true;
+}
 
 uint8_t localDrive::GetMediaByte(void) {
 	return allocation.mediaid;
