@@ -2498,25 +2498,28 @@ public:
                 return;
             }
 
+            char msg[512] = {0};
             if (convimg == 1 || (convertimg && convimg == -1)) {
                 unsigned int drv = 2, nextdrv = 2;
                 for (unsigned int d=2;d<DOS_DRIVES+2;d++) {
                     if (d==DOS_DRIVES) drv=0;
-                    else if (d==DOS_DRIVES) drv=1;
+                    else if (d==DOS_DRIVES+1) drv=1;
                     else drv=d;
                     if (Drives[drv] && strncmp(Drives[drv]->GetInfo(), "fatDrive ", 9) && strncmp(Drives[drv]->GetInfo(), "isoDrive ", 9)) {
                         if (drv==ZDRIVE_NUM && !static_cast<Section_prop *>(control->GetSection("dos"))->Get_bool("drive z convert image")) continue;
                         while (imageDiskList[nextdrv]) nextdrv++;
                         if (nextdrv>=MAX_DISK_IMAGES) break;
                         if (quiet<2) {
-                            char msg[40];
                             const uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-                            strcpy(msg, CURSOR_POS_COL(page)>0?"\r\n":"");
+                            strcat(msg, CURSOR_POS_COL(page)>0?"\r\n":"");
                             strcat(msg, "Converting drive ");
                             strcat(msg, std::string(1, 'A'+drv).c_str());
                             strcat(msg, ": to disk image...\r\n");
-                            uint16_t s = (uint16_t)strlen(msg);
-                            DOS_WriteFile(STDERR,(uint8_t*)msg,&s);
+                            if (!quiet) {
+                                uint16_t s = (uint16_t)strlen(msg);
+                                DOS_WriteFile(STDERR,(uint8_t*)msg,&s);
+                                *msg = 0;
+                            }
                         }
                         imageDiskList[nextdrv] = new imageDisk(Drives[drv], 0);
                         if (imageDiskList[nextdrv]) {
@@ -2530,9 +2533,8 @@ public:
             }
 
 			if (quiet<2) {
-				char msg[30];
 				const uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-				strcpy(msg, CURSOR_POS_COL(page)>0?"\r\n":"");
+				strcat(msg, CURSOR_POS_COL(page)>0?"\r\n":"");
 				strcat(msg, "Booting from drive ");
 				strcat(msg, std::string(1, drive).c_str());
 				strcat(msg, "...\r\n");
