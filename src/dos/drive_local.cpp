@@ -1402,6 +1402,7 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 			break;
 		}
 	}
+	if (!dos_kernel_disabled)
 	for (i=0;i<DOS_FILES;i++) {
 		if (Files[i] && Files[i]->IsOpen() && Files[i]->GetDrive()==drive && Files[i]->IsName(name)) {
 			lfp=dynamic_cast<localFile*>(Files[i]);
@@ -2282,7 +2283,6 @@ bool localDrive::FileStat(const char* name, FileStat_Block * const stat_block) {
 	stat_block->size=(uint32_t)temp_stat.st_size;
 	return true;
 }
-
 
 uint8_t localDrive::GetMediaByte(void) {
 	return allocation.mediaid;

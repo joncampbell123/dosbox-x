@@ -124,6 +124,7 @@ static void CheckX86ExtensionsSupport()
 extern void         GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 extern void         AddSaveStateMapper(), AddMessages(), JFONT_Init(), J3_SetType(std::string type, std::string back, std::string text);
 extern bool         force_nocachedir;
+extern bool         convertimg;
 extern bool         wpcolon;
 extern bool         lockmount;
 extern bool         clearline;
@@ -793,9 +794,8 @@ void DOSBOX_InitTickLoop() {
 void Init_VGABIOS() {
     long rom_sz = 0;
     FILE *rom_fp = NULL;
-    Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     Section_prop *video_section = static_cast<Section_prop *>(control->GetSection("video"));
-    assert(section != NULL && video_section != NULL);
+    assert(video_section != NULL);
 
     if (IS_PC98_ARCH) {
         // There IS no VGA BIOS, this is PC-98 mode!
@@ -811,14 +811,6 @@ void Init_VGABIOS() {
     // mem init must have already happened.
     // We can remove this once the device callout system is in place.
     assert(MemBase != NULL);
-
-    force_nocachedir = section->Get_bool("nocachedir");
-    std::string freesizestr = section->Get_string("freesizecap");
-    if (freesizestr == "fixed" || freesizestr == "false" || freesizestr == "0") freesizecap = 0;
-    else if (freesizestr == "relative" || freesizestr == "2") freesizecap = 2;
-    else freesizecap = 1;
-    wpcolon = section->Get_bool("leading colon write protect image");
-    lockmount = section->Get_bool("locking disk image mount");
 
     VGA_BIOS_use_rom = video_section->Get_bool("vga bios use rom image");
     VGA_BIOS_rom = video_section->Get_string("vga bios rom image");
@@ -1035,6 +1027,15 @@ void DOSBOX_RealInit() {
 
     // TODO: should be parsed by motherboard emulation
     allow_port_92_reset = section->Get_bool("allow port 92 reset");
+
+    force_nocachedir = section->Get_bool("nocachedir");
+    std::string freesizestr = section->Get_string("freesizecap");
+    if (freesizestr == "fixed" || freesizestr == "false" || freesizestr == "0") freesizecap = 0;
+    else if (freesizestr == "relative" || freesizestr == "2") freesizecap = 2;
+    else freesizecap = 1;
+    convertimg = section->Get_bool("convertdrivefat");
+    wpcolon = section->Get_bool("leading colon write protect image");
+    lockmount = section->Get_bool("locking disk image mount");
 
     // CGA/EGA/VGA-specific
     extern unsigned char vga_p3da_undefined_bits;
@@ -1790,6 +1791,10 @@ void DOSBOX_SetupConfigSections(void) {
                     "If set to \"relative\", the value of MOUNT -freesize will change relative to the specified value.\n"
                     "If set to \"fixed\" (=\"false\"), the value of MOUNT -freesize will be a fixed one to be reported all the time.");
     Pstring->SetBasic(true);
+
+    Pbool = secprop->Add_bool("convertdrivefat",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, DOSBox-X will auto-convert mounted non-FAT drives (such as local drives) to FAT format for use with guest systems.");
+    Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("leading colon write protect image",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, BOOT and IMGMOUNT commands will put an image file name with a leading colon (:) in write-protect mode.");
@@ -4099,6 +4104,9 @@ void DOSBOX_SetupConfigSections(void) {
                       "If auto (default), DOS will report drive Z as remote or local depending on the program.\n"
                       "Set this option to true to prevent SCANDISK.EXE from attempting scan and repair drive Z:\n"
                       "which is impossible since Z: is a virtual drive not backed by a disk filesystem.");
+
+    Pbool = secprop->Add_bool("drive z convert fat",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, DOSBox-X will automatically convert the Z drive into disk image as well when \"convertdrivefat\" is set.");
 
     Pbool = secprop->Add_bool("drive z expand path",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, DOSBox-X will automatically expand the %PATH% environment variable to include the subdirectories on the Z drive.");

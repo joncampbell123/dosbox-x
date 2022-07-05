@@ -99,6 +99,7 @@ bool Mouse_Vertical = false;
 bool force_nocachedir = false;
 bool lockmount = true;
 bool wpcolon = true;
+bool convertimg = true;
 bool startcmd = false;
 bool startwait = true;
 bool startquiet = false;
@@ -107,7 +108,7 @@ bool mountwarning = true;
 bool qmount = false;
 bool nowarn = false;
 bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
-extern bool addovl, addipx, addne2k, prepared, inshell, usecon, uao, morelen, mountfro[26], mountiro[26], resetcolor, staycolors;
+extern bool addovl, addipx, addne2k, prepared, inshell, usecon, uao, morelen, mountfro[26], mountiro[26], resetcolor, staycolors, internal_program;
 extern bool clear_screen(), OpenGL_using(void), DOS_SetAnsiAttr(uint8_t attr);
 extern int lastcp, FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 extern uint8_t DOS_GetAnsiAttr(void);
@@ -1846,6 +1847,7 @@ public:
         bool bios_boot = false;
         bool swaponedrive = false;
         bool force = false;
+        int convimg = -1;
         int quiet = 0;
 
         //Hack To allow long commandlines
@@ -1873,6 +1875,12 @@ public:
 
         if (cmd->FindExist("-force",true))
             force = true;
+
+        if (cmd->FindExist("-convertfat",true))
+            convimg = 1;
+
+        if (cmd->FindExist("-noconvertfat",true))
+            convimg = 0;
 
         if (cmd->FindString("-bios",bios,true))
             bios_boot = true;
@@ -2490,10 +2498,44 @@ public:
                 return;
             }
 
+            char msg[512] = {0};
+            const uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+            if ((convimg == 1 || (convertimg && convimg == -1 && !IS_PC98_ARCH))) { // PC-98 image not supported yet
+                unsigned int drv = 2, nextdrv = 2;
+                for (unsigned int d=2;d<DOS_DRIVES+2;d++) {
+                    if (d==DOS_DRIVES) drv=0;
+                    else if (d==DOS_DRIVES+1) drv=1;
+                    else drv=d;
+                    if (Drives[drv] && strncmp(Drives[drv]->GetInfo(), "fatDrive ", 9) && strncmp(Drives[drv]->GetInfo(), "isoDrive ", 9)) {
+                        if (drv==ZDRIVE_NUM && !static_cast<Section_prop *>(control->GetSection("dos"))->Get_bool("drive z convert fat")) continue;
+                        while (imageDiskList[nextdrv]) nextdrv++;
+                        if (nextdrv>=MAX_DISK_IMAGES) break;
+                        if (quiet<2) {
+                            size_t len = strlen(msg);
+                            if (!len) strcat(msg, CURSOR_POS_COL(page)>0?"\r\n":"");
+                            strcat(msg, "Converting drive ");
+                            strcat(msg, std::string(1, 'A'+drv).c_str());
+                            strcat(msg, ": to FAT...\r\n");
+                            LOG_MSG("%s", msg+len);
+                            if (!quiet) {
+                                uint16_t s = (uint16_t)strlen(msg);
+                                DOS_WriteFile(STDERR,(uint8_t*)msg,&s);
+                                *msg = 0;
+                            }
+                        }
+                        imageDiskList[nextdrv] = new imageDisk(Drives[drv]);
+                        if (imageDiskList[nextdrv]) {
+                            bool ide_slave = false;
+                            signed char ide_index = -1;
+                            IDE_Auto(ide_index,ide_slave);
+                            IDE_Hard_Disk_Attach((signed char)ide_index, ide_slave, nextdrv);
+                        }
+                    }
+                }
+            }
+
 			if (quiet<2) {
-				char msg[30];
-				const uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-				strcpy(msg, CURSOR_POS_COL(page)>0?"\r\n":"");
+				if (!strlen(msg)) strcat(msg, CURSOR_POS_COL(page)>0?"\r\n":"");
 				strcat(msg, "Booting from drive ");
 				strcat(msg, std::string(1, drive).c_str());
 				strcat(msg, "...\r\n");
@@ -8283,8 +8325,10 @@ void Add_VFiles(bool usecp) {
 	PROGRAMS_MakeFile("CONFIG.COM",CONFIG_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("COUNTRY.COM",COUNTRY_ProgramStart,"/SYSTEM/");
 	PROGRAMS_MakeFile("COMMAND.COM",SHELL_ProgramStart);
+    internal_program = true;
     if (usecp) VFILE_Register("AUTOEXEC.BAT",(uint8_t *)autoexec_data,(uint32_t)strlen(autoexec_data));
     if (prepared) VFILE_Register("CONFIG.SYS",(uint8_t *)config_data,(uint32_t)strlen(config_data));
+    internal_program = false;
     PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart,"/SYSTEM/");
     PROGRAMS_MakeFile("RESCAN.COM",RESCAN_ProgramStart,"/SYSTEM/");
 #if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) || defined(MACOSX)

@@ -34,8 +34,849 @@
 #endif
 
 extern int bootdrive;
-extern bool int13_disk_change_detect_enable;
+extern unsigned long freec;
+extern bool int13_disk_change_detect_enable, skipintprog, rsize;
 extern bool int13_extensions_enable, bootguest, bootvm, use_quick_reboot;
+
+#define STATIC_ASSERTM(A,B) static_assertion_##A##_##B
+#define STATIC_ASSERTN(A,B) STATIC_ASSERTM(A,B)
+#define STATIC_ASSERT(cond) typedef char STATIC_ASSERTN(__LINE__,__COUNTER__)[(cond)?1:-1]
+
+uint32_t DriveCalculateCRC32(const uint8_t *ptr, size_t len, uint32_t crc)
+{
+	// Karl Malbrain's compact CRC-32. See "A compact CCITT crc16 and crc32 C implementation that balances processor cache usage against speed": http://www.geocities.com/malbrain/
+	static const uint32_t s_crc32[16] = { 0, 0x1db71064, 0x3b6e20c8, 0x26d930ac, 0x76dc4190, 0x6b6b51f4, 0x4db26158, 0x5005713c, 0xedb88320, 0xf00f9344, 0xd6d6a3e8, 0xcb61b38c, 0x9b64c2b0, 0x86d3d2d4, 0xa00ae278, 0xbdbdf21c };
+	uint32_t crcu32 = (uint32_t)~crc;
+	while (len--) { uint8_t b = *ptr++; crcu32 = (crcu32 >> 4) ^ s_crc32[(crcu32 & 0xF) ^ (b & 0xF)]; crcu32 = (crcu32 >> 4) ^ s_crc32[(crcu32 & 0xF) ^ (b >> 4)]; }
+	return ~crcu32;
+}
+
+void DriveFileIterator(DOS_Drive* drv, void(*func)(const char* path, bool is_dir, uint32_t size, uint16_t date, uint16_t time, uint8_t attr, Bitu data), Bitu data)
+{
+	if (!drv) return;
+	struct Iter
+	{
+		static void ParseDir(DOS_Drive* drv, const std::string& dir, std::vector<std::string>& dirs, void(*func)(const char* path, bool is_dir, uint32_t size, uint16_t date, uint16_t time, uint8_t attr, Bitu data), Bitu data)
+		{
+			size_t dirlen = dir.length();
+			if (dirlen + DOS_NAMELENGTH >= DOS_PATHLENGTH) return;
+			char full_path[DOS_PATHLENGTH+4];
+			if (dirlen)
+			{
+				memcpy(full_path, &dir[0], dirlen);
+				full_path[dirlen++] = '\\';
+			}
+			full_path[dirlen] = '\0';
+
+			RealPt save_dta = dos.dta();
+			dos.dta(dos.tables.tempdta);
+			DOS_DTA dta(dos.dta());
+			dta.SetupSearch(255, (uint8_t)(0xffff & ~DOS_ATTR_VOLUME), (char*)"*.*");
+			for (bool more = drv->FindFirst((char*)dir.c_str(), dta); more; more = drv->FindNext(dta))
+			{
+				char dta_name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH+1]; uint32_t dta_size; uint16_t dta_date, dta_time; uint8_t dta_attr;
+				dta.GetResult(dta_name, lname, dta_size, dta_date, dta_time, dta_attr);
+				strcpy(full_path + dirlen, dta_name);
+				bool is_dir = !!(dta_attr & DOS_ATTR_DIRECTORY);
+				//if (is_dir) printf("[%s] [%s] %s (size: %u - date: %u - time: %u - attr: %u)\n", (const char*)data, (dta_attr == 8 ? "V" : (is_dir ? "D" : "F")), full_path, dta_size, dta_date, dta_time, dta_attr);
+				if (dta_name[0] == '.' && dta_name[dta_name[1] == '.' ? 2 : 1] == '\0') continue;
+				if (is_dir) dirs.emplace_back(full_path);
+				func(full_path, is_dir, dta_size, dta_date, dta_time, dta_attr, data);
+			}
+			dos.dta(save_dta);
+		}
+	};
+	std::vector<std::string> dirs;
+	dirs.emplace_back("");
+	std::string dir;
+	while (dirs.size())
+	{
+		std::swap(dirs.back(), dir);
+		dirs.pop_back();
+		Iter::ParseDir(drv, dir.c_str(), dirs, func, data);
+	}
+}
+
+template <typename TVal> struct StringToPointerHashMap
+{
+	StringToPointerHashMap() : len(0), maxlen(0), keys(NULL), vals(NULL) { }
+	~StringToPointerHashMap() { free(keys); free(vals); }
+
+	static uint32_t Hash(const char* str, uint32_t str_limit = 0xFFFF, uint32_t hash_init = (uint32_t)0x811c9dc5)
+	{
+		for (const char* e = str + str_limit; *str && str != e;)
+			hash_init = ((hash_init * (uint32_t)0x01000193) ^ (uint32_t)*(str++));
+		return hash_init;
+	}
+
+	TVal* Get(const char* str, uint32_t str_limit = 0xFFFF, uint32_t hash_init = (uint32_t)0x811c9dc5) const
+	{
+		if (len == 0) return NULL;
+		for (uint32_t key0 = Hash(str, str_limit, hash_init), key = (key0 ? key0 : 1), i = key;; i++)
+		{
+			if (keys[i &= maxlen] == key) return vals[i];
+			if (!keys[i]) return NULL;
+		}
+	}
+
+	void Put(const char* str, TVal* val, uint32_t str_limit = 0xFFFF, uint32_t hash_init = (uint32_t)0x811c9dc5)
+	{
+		if (len * 2 >= maxlen) Grow();
+		for (uint32_t key0 = Hash(str, str_limit, hash_init), key = (key0 ? key0 : 1), i = key;; i++)
+		{
+			if (!keys[i &= maxlen]) { len++; keys[i] = key; vals[i] = val; return; }
+			if (keys[i] == key) { vals[i] = val; return; }
+		}
+	}
+
+	bool Remove(const char* str, uint32_t str_limit = 0xFFFF, uint32_t hash_init = (uint32_t)0x811c9dc5)
+	{
+		if (len == 0) return false;
+		for (uint32_t key0 = Hash(str, str_limit, hash_init), key = (key0 ? key0 : 1), i = key;; i++)
+		{
+			if (keys[i &= maxlen] == key)
+			{
+				keys[i] = 0;
+				len--;
+				while ((key = keys[i = (i + 1) & maxlen]) != 0)
+				{
+					for (uint32_t j = key;; j++)
+					{
+						if (keys[j &= maxlen] == key) break;
+						if (!keys[j]) { keys[i] = 0; keys[j] = key; vals[j] = vals[i]; break; }
+					}
+				}
+				return true;
+			}
+			if (!keys[i]) return false;
+		}
+	}
+
+	void Clear() { memset(keys, len = 0, (maxlen + 1) * sizeof(uint32_t)); }
+
+	uint32_t Len() const { return len; }
+	uint32_t Capacity() const { return (maxlen ? maxlen + 1 : 0); }
+	TVal* GetAtIndex(uint32_t idx) const { return (keys[idx] ? vals[idx] : NULL); }
+
+	struct Iterator
+	{
+		Iterator(StringToPointerHashMap<TVal>& _map, uint32_t _index) : map(_map), index(_index - 1) { this->operator++(); }
+		StringToPointerHashMap<TVal>& map;
+		uint32_t index;
+		TVal* operator *() const { return map.vals[index]; }
+		bool operator ==(const Iterator &other) const { return index == other.index; }
+		bool operator !=(const Iterator &other) const { return index != other.index; }
+		Iterator& operator ++()
+		{
+			if (!map.maxlen) { index = 0; return *this; }
+			if (++index > map.maxlen) index = map.maxlen + 1;
+			while (index <= map.maxlen && !map.keys[index]) index++;
+			return *this;
+		}
+	};
+
+	Iterator begin() { return Iterator(*this, 0); }
+	Iterator end() { return Iterator(*this, (maxlen ? maxlen + 1 : 0)); }
+
+private:
+	uint32_t len, maxlen, *keys;
+	TVal** vals;
+
+	void Grow()
+	{
+		uint32_t oldMax = maxlen, oldCap = (maxlen ? oldMax + 1 : 0), *oldKeys = keys;
+		TVal **oldVals = vals;
+		maxlen  = (maxlen ? maxlen * 2 + 1 : 15);
+		keys = (uint32_t*)calloc(maxlen + 1, sizeof(uint32_t));
+		vals = (TVal**)malloc((maxlen + 1) * sizeof(TVal*));
+		for (uint32_t i = 0; i != oldCap; i++)
+		{
+			if (!oldKeys[i]) continue;
+			for (uint32_t key = oldKeys[i], j = key;; j++)
+			{
+				if (!keys[j &= maxlen]) { keys[j] = key; vals[j] = oldVals[i]; break; }
+			}
+		}
+		free(oldKeys);
+		free(oldVals);
+	}
+
+	// not copyable
+	StringToPointerHashMap(const StringToPointerHashMap&);
+	StringToPointerHashMap& operator=(const StringToPointerHashMap&);
+};
+
+#ifdef _MSC_VER
+#pragma pack (1)
+#endif
+struct bootstrap {
+	uint8_t  nearjmp[3];
+	uint8_t  oemname[8];
+	uint8_t  bytespersector[2];
+	uint8_t  sectorspercluster;
+	uint16_t reservedsectors;
+	uint8_t  fatcopies;
+	uint16_t rootdirentries;
+	uint16_t totalsectorcount;
+	uint8_t  mediadescriptor;
+	uint16_t sectorsperfat;
+	uint16_t sectorspertrack;
+	uint16_t headcount;
+	uint32_t hiddensectorcount;
+	uint32_t totalsecdword;
+	uint8_t  bootcode[474];
+	uint8_t  magic1; /* 0x55 */
+	uint8_t  magic2; /* 0xaa */
+} GCC_ATTRIBUTE(packed);
+
+struct lfndirentry {
+	uint8_t ord;
+	uint8_t name1[10];
+	uint8_t attrib;
+	uint8_t type;
+	uint8_t chksum;
+	uint8_t name2[12];
+	uint16_t loFirstClust;
+	uint8_t name3[4];
+	char* Name(int j) { return (char*)(j < 5 ? name1 + j*2 : j < 11 ? name2 + (j-5)*2 : name3 + (j-11)*2); }
+} GCC_ATTRIBUTE(packed);
+#ifdef _MSC_VER
+#pragma pack ()
+#endif
+STATIC_ASSERT(sizeof(direntry) == sizeof(lfndirentry));
+enum
+{
+	DOS_ATTR_LONG_NAME = (DOS_ATTR_READ_ONLY | DOS_ATTR_HIDDEN | DOS_ATTR_SYSTEM | DOS_ATTR_VOLUME),
+	DOS_ATTR_LONG_NAME_MASK = (DOS_ATTR_READ_ONLY | DOS_ATTR_HIDDEN | DOS_ATTR_SYSTEM | DOS_ATTR_VOLUME | DOS_ATTR_DIRECTORY | DOS_ATTR_ARCHIVE),
+	DOS_ATTR_PENDING_SHORT_NAME = 0x80,
+};
+
+struct fatFromDOSDrive
+{
+	DOS_Drive* drive;
+
+	enum ffddDefs : uint32_t
+	{
+		BYTESPERSECTOR    = 512,
+		HEADCOUNT         = 240, // needs to be >128 to fit 4GB into CHS
+		SECTORSPERTRACK   = 63,
+		SECT_MBR          = 0,
+		SECT_BOOT         = 32,
+		CACHECOUNT        = 256,
+		KEEPOPENCOUNT     = 8,
+		NULL_CURSOR       = (uint32_t)-1,
+	};
+
+	partTable  mbr;
+	bootstrap  bootsec;
+	uint8_t      fsinfosec[BYTESPERSECTOR];
+	uint32_t     sectorsPerCluster;
+	bool       isFAT32, readOnly, tomany = false;
+
+	struct ffddFile { char path[DOS_PATHLENGTH+1]; uint32_t firstSect; };
+	std::vector<direntry> root, dirs;
+	std::vector<ffddFile> files;
+	std::vector<uint32_t>   fileAtSector;
+	std::vector<uint8_t>    fat;
+	uint32_t sect_disk_end, sect_files_end, sect_files_start, sect_dirs_start, sect_root_start, sect_fat2_start, sect_fat1_start;
+
+	struct ffddBuf { uint8_t data[BYTESPERSECTOR]; };
+	struct ffddSec { uint32_t cursor = NULL_CURSOR; };
+	std::vector<ffddBuf>  diffSectorBufs;
+	std::vector<ffddSec>  diffSectors;
+	std::vector<uint32_t>   diffFreeCursors;
+	std::string           savePath;
+	FILE*                 saveFile = NULL;
+	uint32_t                saveEndCursor = 0;
+	uint8_t                 cacheSectorData[CACHECOUNT][BYTESPERSECTOR];
+	uint32_t                cacheSectorNumber[CACHECOUNT];
+	DOS_File*             openFiles[KEEPOPENCOUNT];
+	uint32_t                openIndex[KEEPOPENCOUNT];
+	uint32_t                openCursor = 0;
+
+	~fatFromDOSDrive()
+	{
+		if (saveFile)
+			fclose(saveFile);
+		for (DOS_File* df : openFiles)
+			if (df) { df->Close(); delete df; }
+	}
+
+	fatFromDOSDrive(DOS_Drive* drv) : drive(drv)
+	{
+		cacheSectorNumber[0] = 1; // must not state that sector 0 is already cached
+		memset(&cacheSectorNumber[1], 0, sizeof(cacheSectorNumber) - sizeof(cacheSectorNumber[0]));
+		memset(openFiles, 0, sizeof(openFiles));
+
+		struct Iter
+		{
+			static void SetFAT(fatFromDOSDrive& ffdd, size_t idx, uint32_t val)
+			{
+				while (idx >= ffdd.fat.size() / (ffdd.isFAT32 ? 4 : 2))
+				{
+					ffdd.fat.resize(ffdd.fat.size() + BYTESPERSECTOR);
+					memset(&ffdd.fat[ffdd.fat.size() - BYTESPERSECTOR], 0, BYTESPERSECTOR);
+				}
+				if (ffdd.isFAT32)
+					var_write((uint32_t * const)&ffdd.fat[idx * 4], (const uint32_t)val);
+				else
+					var_write((uint16_t * const)&ffdd.fat[idx * 2], (const uint16_t)val);
+			}
+
+			static direntry* AddDirEntry(fatFromDOSDrive& ffdd, bool useFAT16Root, size_t& diridx)
+			{
+				const uint32_t entriesPerCluster = ffdd.sectorsPerCluster * BYTESPERSECTOR / sizeof(direntry);
+				if (!useFAT16Root && (diridx % entriesPerCluster) == 0)
+				{
+					// link fat (was set to 0xFFFF before but now we knew the chain continues)
+					if (diridx) SetFAT(ffdd, 2 + (diridx - 1) / entriesPerCluster, (uint32_t)(2 + ffdd.dirs.size() / entriesPerCluster));
+					diridx = ffdd.dirs.size();
+					ffdd.dirs.resize(diridx + entriesPerCluster);
+					memset(&ffdd.dirs[diridx], 0, sizeof(direntry) * entriesPerCluster);
+					SetFAT(ffdd, 2 + diridx / entriesPerCluster, (uint32_t)0xFFFFFFFF); // set as last cluster in chain for now
+				}
+				else if (useFAT16Root && diridx && (diridx % 512) == 0)
+				{
+					// this actually should never be larger than 512 for some FAT16 drivers
+					ffdd.root.resize(diridx + 512);
+					memset(&ffdd.root[diridx], 0, sizeof(direntry) * 512);
+				}
+				return &(!useFAT16Root ? ffdd.dirs : ffdd.root)[diridx++];
+			}
+
+			static void ParseDir(fatFromDOSDrive& ffdd, char* dir, const StringToPointerHashMap<void>* filter, int dirlen = 0, uint16_t parentFirstCluster = 0)
+			{
+				if (ffdd.tomany) return;
+				const bool useFAT16Root = (!dirlen && !ffdd.isFAT32), readOnly = ffdd.readOnly;
+				const size_t firstidx = (!useFAT16Root ? ffdd.dirs.size() : 0);
+				const uint32_t sectorsPerCluster = ffdd.sectorsPerCluster, bytesPerCluster = sectorsPerCluster * BYTESPERSECTOR, entriesPerCluster = bytesPerCluster / sizeof(direntry);
+				const uint16_t myFirstCluster = (dirlen ? (uint16_t)(2 + firstidx / entriesPerCluster) : (uint16_t)0) ;
+
+				char finddir[DOS_PATHLENGTH+4];
+				memcpy(finddir, dir, dirlen); // because FindFirst can modify this...
+				finddir[dirlen] = '\0';
+				if (dirlen) dir[dirlen++] = '\\';
+
+				size_t diridx = 0;
+				RealPt save_dta = dos.dta();
+				dos.dta(dos.tables.tempdta);
+				DOS_DTA dta(dos.dta());
+				dta.SetupSearch(255, 0xFF, (char*)"*.*");
+				skipintprog = true;
+				for (bool more = ffdd.drive->FindFirst(finddir, dta); more; more = ffdd.drive->FindNext(dta))
+				{
+					char dta_name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH+1]; uint32_t dta_size; uint16_t dta_date, dta_time; uint8_t dta_attr;
+					dta.GetResult(dta_name, lname, dta_size, dta_date, dta_time, dta_attr);
+                    //LOG_MSG("dta_name %s lname %s\n", dta_name, lname);
+					const char *fend = dta_name + strlen(dta_name);
+					const bool dot = (dta_name[0] == '.' && dta_name[1] == '\0'), dotdot = (dta_name[0] == '.' && dta_name[1] == '.' && dta_name[2] == '\0');
+					if (!dirlen && (dot || dotdot)) continue; // root shouldn't have dot entries (yet localDrive does...)
+
+					ffddFile f;
+					memcpy(f.path, dir, dirlen);
+					memcpy(f.path + dirlen, dta_name, fend - dta_name + 1);
+					if (filter && filter->Get(f.path)) continue;
+
+					const bool isLongFileName = (!dot && !dotdot && !(dta_attr & DOS_ATTR_VOLUME));
+					if (isLongFileName)
+					{
+						size_t lfnlen = strlen(lname);
+						const char *lfn_end = lname + lfnlen;
+						for (size_t i = 0, lfnblocks = (lfnlen + 12) / 13; i != lfnblocks; i++)
+						{
+							lfndirentry* le = (lfndirentry*)AddDirEntry(ffdd, useFAT16Root, diridx);
+							le->ord = (uint8_t)((lfnblocks - i)|(i == 0 ? 0x40 : 0x0));
+							le->attrib = DOS_ATTR_LONG_NAME;
+							le->type = 0;
+							le->loFirstClust = 0;
+							const char* plfn = lname + (lfnblocks - i - 1) * 13;
+							for (int j = 0; j != 13; j++, plfn++)
+							{
+								char* p = le->Name(j);
+								if (plfn > lfn_end) { p[0] = p[1] = (char)0xFF; }
+								else if (plfn == lfn_end) { p[0] = p[1] = 0; }
+								else { p[0] = *plfn; p[1] = 0; }
+							}
+						}
+					}
+
+					const char *fext = (dot || dotdot ? NULL : strrchr(dta_name, '.'));
+					direntry* e = AddDirEntry(ffdd, useFAT16Root, diridx);
+					memset(e->entryname, ' ', sizeof(e->entryname));
+					memcpy(e->entryname, dta_name, (fext ? fext : fend) - dta_name);
+					if (fext++) memcpy(e->entryname + 8, fext, fend - fext);
+
+					e->attrib = dta_attr | (readOnly ? DOS_ATTR_READ_ONLY : 0) | (isLongFileName ? DOS_ATTR_PENDING_SHORT_NAME : 0);
+                    if (dos.version.major >= 7) {
+                        var_write(&e->crtTime,    dta_time); // create date/time is DOS 7.0 and up only
+                        var_write(&e->crtDate,    dta_date); // create date/time is DOS 7.0 and up only
+                    }
+					var_write(&e->accessDate, dta_date);
+					var_write(&e->modTime,    dta_time);
+					var_write(&e->modDate,    dta_date);
+
+					if (dot)
+					{
+						e->attrib |= DOS_ATTR_DIRECTORY; // make sure
+						var_write(&e->loFirstClust, myFirstCluster);
+					}
+					else if (dotdot)
+					{
+						e->attrib |= DOS_ATTR_DIRECTORY; // make sure
+						var_write(&e->loFirstClust, parentFirstCluster);
+					}
+					else if (dta_attr & DOS_ATTR_VOLUME)
+					{
+						if ((dirlen || (e->attrib & DOS_ATTR_DIRECTORY) || dta_size)) {
+                            if (!strcmp(trim((char *)e->entryname), "DOSBOX-X")) continue;
+							LOG_MSG("Invalid volume entry - %s\n", e->entryname);
+                        }
+					}
+					else if (!(dta_attr & DOS_ATTR_DIRECTORY))
+					{
+						var_write(&e->entrysize, dta_size);
+
+						uint32_t fileIdx = (uint32_t)ffdd.files.size();
+						ffdd.files.push_back(f);
+
+						uint32_t numSects = (dta_size + bytesPerCluster - 1) / bytesPerCluster * sectorsPerCluster;
+                        try {
+                            ffdd.fileAtSector.resize(ffdd.fileAtSector.size() + numSects, fileIdx);
+                        } catch (...) {
+                            LOG_MSG("Too many sectors needed, will discard remaining files (from %s)", lname);
+                            ffdd.tomany = ffdd.readOnly = true;
+                            var_write((uint32_t *const)&ffdd.fsinfosec[488], (const uint32_t)0x0);
+                            break;
+                        }
+					}
+				}
+				skipintprog = false;
+				dos.dta(save_dta);
+				if (dirlen && diridx < firstidx + 2) {
+					LOG_MSG("Directory need at least . and .. entries - %s\n", finddir);
+					return;
+				}
+
+				// Now fill out the subdirectories (can't be done above because only one dos.dta can run simultaneously
+				std::vector<direntry>& entries = (!useFAT16Root ? ffdd.dirs : ffdd.root);
+				for (size_t ei = firstidx; ei != diridx; ei++)
+				{
+					direntry& e = entries[ei];
+					uint8_t* entryname = e.entryname;
+					int totlen = dirlen;
+					if (e.attrib & DOS_ATTR_DIRECTORY) // copy name before modifying SFN
+					{
+						if (entryname[0] == '.' && entryname[entryname[1] == '.' ? 2 : 1] == ' ') continue;
+						for (int i = 0; i != 8 && entryname[i] != ' '; i++) dir[totlen++] = entryname[i];
+						if (entryname[8] != ' ') dir[totlen++] = '.';
+						for (int i = 8; i != 11 && entryname[i] != ' '; i++) dir[totlen++] = entryname[i];
+					}
+					if (e.attrib & DOS_ATTR_PENDING_SHORT_NAME) // convert LFN to SFN
+					{
+						memset(entryname, ' ', sizeof(e.entryname));
+						int ni = 0, niext = 0, lossy = 0;
+						for (lfndirentry* le = (lfndirentry*)&e; le-- == (lfndirentry*)&e || !(le[1].ord & 0x40);)
+						{
+							for (int j = 0; j != 13; j++)
+							{
+								char c = *le->Name(j);
+								if (c == '\0') { lossy |= (niext && ni - niext > 3); break; }
+								if (c == '.') { if (ni > 8) { memset(entryname+8, ' ', 3); ni = 8; } if (!ni || niext) { lossy = 1; } niext = ni; continue; }
+								if (c == ' ' || ni == 11 || (ni == 8 && !niext)) { lossy = 1; continue; }
+								if ((c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9')) { }
+								else if (c >= 'a' && c <= 'z') { c ^= 0x20; }
+								else if (strchr("$%'-_@~`!(){}^#&", c)) { }
+								else { lossy = 1; c = '_'; }
+								entryname[ni++] = (uint8_t)c;
+							}
+						}
+
+						if (niext && niext != 8)
+							for (int i = 2; i >= 0; i--)
+								entryname[8+i] = entryname[niext+i], entryname[niext+i] = ' ';
+						if (niext && niext <= 4 && ni - niext > 3)
+							for (int i = niext + 3; i != 8; i++)
+								entryname[i] = ' ';
+
+						if (lossy)
+						{
+							if (!niext) niext = ni;
+							for (int i = 1; i <= 999999; i++)
+							{
+								int taillen = (i<=9?2:i<=99?3:i<=999?4:i<=9999?5:i<=99999?6:7);
+								char* ptr = (char*)&entryname[niext + taillen > 8 ? 8 : niext + taillen];
+								for (int j = i; j; j /= 10) *--ptr = '0'+(j%10);
+								*--ptr = '~';
+
+								bool conflict = false;
+								for (size_t e2 = firstidx; e2 != diridx; e2++)
+									if (!(entries[e2].attrib & (DOS_ATTR_VOLUME|DOS_ATTR_PENDING_SHORT_NAME)) && !memcmp(entryname, entries[e2].entryname, sizeof(e.entryname)))
+										{ conflict = true; break; }
+								if (!conflict) break;
+							}
+						}
+
+						uint8_t chksum = 0;
+						for (int i = 0; i != 11;) chksum = (chksum >> 1) + (chksum << 7) + entryname[i++];
+						for (lfndirentry* le = (lfndirentry*)&e; le-- == (lfndirentry*)&e || !(le[1].ord & 0x40);) le->chksum = chksum;
+						e.attrib &= ~DOS_ATTR_PENDING_SHORT_NAME;
+					}
+					if (e.attrib & DOS_ATTR_DIRECTORY) // this reallocates ffdd.dirs so do this last
+					{
+						var_write(&e.loFirstClust, (const uint16_t)(2 + ffdd.dirs.size() / entriesPerCluster));
+						ParseDir(ffdd, dir, filter, totlen, myFirstCluster);
+					}
+				}
+			}
+
+			struct SumInfo { uint64_t used_bytes; const StringToPointerHashMap<void>* filter; };
+			static void SumFileSize(const char* path, bool is_dir, uint32_t size, uint16_t, uint16_t, uint8_t, Bitu data)
+			{
+				if (!((SumInfo*)data)->filter || !((SumInfo*)data)->filter->Get(path))
+					((SumInfo*)data)->used_bytes += (size + (32*1024-1)) / (32*1024) * (32*1024); // count as 32 kb clusters
+			}
+		};
+
+		Iter::SumInfo sum = { 0, NULL };
+		Bitu freeSpace = 0, freeSpaceMB = 0;
+        uint32_t free_clusters = 0;
+        uint16_t drv_bytes_sector; uint8_t drv_sectors_cluster;  uint16_t drv_total_clusters, drv_free_clusters;
+        rsize=true;
+        freec=0;
+        drv->AllocationInfo(&drv_bytes_sector, &drv_sectors_cluster, &drv_total_clusters, &drv_free_clusters);
+        free_clusters = freec?freec:drv_free_clusters;
+        freeSpace = (Bitu)drv_bytes_sector * (Bitu)drv_sectors_cluster * (Bitu)(freec?freec:free_clusters);
+        freeSpaceMB = freeSpace / (1024*1024);
+        rsize=false;
+		DriveFileIterator(drv, Iter::SumFileSize, (Bitu)&sum);
+		readOnly = (free_clusters == 0);
+		tomany = false;
+
+		const uint32_t addFreeMB = (readOnly ? 0 : freeSpaceMB), totalMB = (uint32_t)(sum.used_bytes / (1024*1024)) + addFreeMB + 1;
+		if      (totalMB >= 3072) { isFAT32 = true;  sectorsPerCluster = 64; } // 32 kb clusters ( 98304 ~        FAT entries)
+		else if (totalMB >= 2048) { isFAT32 = true;  sectorsPerCluster = 32; } // 16 kb clusters (131072 ~ 196608 FAT entries)
+		else if (totalMB >=  384) { isFAT32 = false; sectorsPerCluster = 64; } // 32 kb clusters ( 12288 ~  65504 FAT entries)
+		else if (totalMB >=  192) { isFAT32 = false; sectorsPerCluster = 32; } // 16 kb clusters ( 12288 ~  24576 FAT entries)
+		else if (totalMB >=   96) { isFAT32 = false; sectorsPerCluster = 16; } //  8 kb clusters ( 12288 ~  24576 FAT entries)
+		else if (totalMB >=   48) { isFAT32 = false; sectorsPerCluster =  8; } //  4 kb clusters ( 12288 ~  24576 FAT entries)
+		else if (totalMB >=    8) { isFAT32 = false; sectorsPerCluster =  4; } //  4 kb clusters (  4096 ~  24576 FAT entries)
+		else                      { isFAT32 = false; sectorsPerCluster =  1; } //  2 kb clusters (       ~  16383 FAT entries)
+
+		// mediadescriptor in very first byte of FAT table
+		Iter::SetFAT(*this, 0, (uint32_t)0xFFFFFF8);
+		Iter::SetFAT(*this, 1, (uint32_t)0xFFFFFFF);
+        
+		if (!isFAT32)
+		{
+			// this actually should never be anything but 512 for some FAT16 drivers
+			root.resize(512);
+			memset(&root[0], 0, sizeof(direntry) * 512);
+		}
+
+		char dirbuf[DOS_PATHLENGTH+4];
+		Iter::ParseDir(*this, dirbuf, NULL);
+
+		const uint32_t bytesPerCluster = sectorsPerCluster * BYTESPERSECTOR;
+		const uint32_t entriesPerCluster = bytesPerCluster / sizeof(direntry);
+		uint32_t fileCluster = (uint32_t)(2 + dirs.size() / entriesPerCluster);
+		for (uint32_t fileSect = 0, rootOrDir = 0; rootOrDir != 2; rootOrDir++)
+		{
+			for (direntry& e : (rootOrDir ? dirs : root))
+			{
+				if (!e.entrysize || (e.attrib & DOS_ATTR_LONG_NAME_MASK) == DOS_ATTR_LONG_NAME) continue;
+				var_write(&e.hiFirstClust, (const uint16_t)(fileCluster >> 16));
+				var_write(&e.loFirstClust, (const uint16_t)(fileCluster));
+
+				// Write FAT link chain
+				uint32_t numClusters = (var_read(&e.entrysize) + bytesPerCluster - 1) / bytesPerCluster;
+				for (uint32_t i = fileCluster, iEnd = i + numClusters - 1; i != iEnd; i++) Iter::SetFAT(*this, i, i + 1);
+				Iter::SetFAT(*this, fileCluster + numClusters - 1, (uint32_t)0xFFFFFFF);
+
+				files[fileAtSector[fileSect]].firstSect = fileSect;
+
+				fileCluster += numClusters;
+				fileSect += numClusters * sectorsPerCluster;
+			}
+		}
+
+		// Add at least one page after the last file or FAT spec minimume to make ScanDisk happy (even on read-only disks)
+		const uint32_t FATWidth = (isFAT32 ? 4 : 2), FATPageClusters = BYTESPERSECTOR / FATWidth, FATMinCluster = (isFAT32 ? 65525 : 4085) + FATPageClusters;
+		const uint32_t addFreeClusters = ((addFreeMB * (1024*1024/BYTESPERSECTOR)) + sectorsPerCluster - 1) / sectorsPerCluster;
+		const uint32_t targetClusters = fileCluster + (addFreeClusters < FATPageClusters ? FATPageClusters : addFreeClusters);
+		Iter::SetFAT(*this, (targetClusters < FATMinCluster ? FATMinCluster : targetClusters) - 1, 0);
+		const uint32_t totalClusters = (uint32_t)(fat.size() / FATWidth); // as set by Iter::SetFAT
+
+		// on read-only disks, fill up the end of the FAT table with "Bad sector in cluster or reserved cluster" markers
+		if (readOnly)
+			for (uint32_t cluster = fileCluster; cluster != totalClusters; cluster++)
+				Iter::SetFAT(*this, cluster, 0xFFFFFF7);
+
+		const uint32_t sectorsPerFat = (uint32_t)(fat.size() / BYTESPERSECTOR);
+		const uint16_t reservedSectors = (isFAT32 ? 32 : 1);
+		const uint32_t partSize = totalClusters * sectorsPerCluster + reservedSectors;
+		sect_fat1_start = SECT_BOOT + reservedSectors;
+		sect_fat2_start = sect_fat1_start + sectorsPerFat;
+		sect_root_start = sect_fat2_start + sectorsPerFat;
+		sect_dirs_start = sect_root_start + ((root.size() * sizeof(direntry) + BYTESPERSECTOR - 1) / BYTESPERSECTOR);
+		sect_files_start = sect_dirs_start + ((dirs.size() * sizeof(direntry) + BYTESPERSECTOR - 1) / BYTESPERSECTOR);
+		sect_files_end = sect_files_start + fileAtSector.size();
+		sect_disk_end = SECT_BOOT + partSize;
+		assert(sect_disk_end >= sect_files_end);
+
+		for (ffddFile& f : files)
+			f.firstSect += sect_files_start;
+
+		uint32_t serial = 0;
+		if (!serial)
+		{
+			serial = DriveCalculateCRC32(&fat[0], fat.size(), 0);
+			if (root.size()) serial = DriveCalculateCRC32((uint8_t*)&root[0], root.size() * sizeof(direntry), serial);
+			if (dirs.size()) serial = DriveCalculateCRC32((uint8_t*)&dirs[0], dirs.size() * sizeof(direntry), serial);
+		}
+
+		memset(&mbr, 0, sizeof(mbr));
+		var_write((uint32_t *)&mbr.booter[440], serial); //4 byte disk serial number
+		var_write(&mbr.pentry[0].bootflag, 0x80); //Active bootable
+		if ((sect_disk_end - 1) / (HEADCOUNT * SECTORSPERTRACK) > 0x3FF)
+		{
+			mbr.pentry[0].beginchs[0] = mbr.pentry[0].beginchs[1] = mbr.pentry[0].beginchs[2] = 0;
+			mbr.pentry[0].endchs[0] = mbr.pentry[0].endchs[1] = mbr.pentry[0].endchs[2] = 0;
+		}
+		else
+		{
+			chs_write(mbr.pentry[0].beginchs, SECT_BOOT);
+			chs_write(mbr.pentry[0].endchs, sect_disk_end - 1);
+		}
+		var_write(&mbr.pentry[0].absSectStart, SECT_BOOT);
+		var_write(&mbr.pentry[0].partSize, partSize);
+		mbr.magic1 = 0x55; mbr.magic2 = 0xaa;
+
+		memset(&bootsec, 0, sizeof(bootsec));
+		memcpy(bootsec.nearjmp, "\xEB\x3C\x90", sizeof(bootsec.nearjmp));
+		memcpy(bootsec.oemname, "MSWIN4.1", sizeof(bootsec.oemname));
+		var_write((uint16_t *const)&bootsec.bytespersector, (const uint16_t)BYTESPERSECTOR);
+		var_write(&bootsec.sectorspercluster, sectorsPerCluster);
+		var_write(&bootsec.reservedsectors, reservedSectors);
+		var_write(&bootsec.fatcopies, 2);
+		var_write(&bootsec.totalsectorcount, 0); // 16 bit field is 0, actual value is in totalsecdword
+		var_write(&bootsec.mediadescriptor, 0xF8); //also in FAT[0]
+		var_write(&bootsec.sectorspertrack, SECTORSPERTRACK);
+		var_write(&bootsec.headcount, HEADCOUNT);
+		var_write(&bootsec.hiddensectorcount, SECT_BOOT);
+		var_write(&bootsec.totalsecdword, partSize);
+		bootsec.magic1 = 0x55; bootsec.magic2 = 0xaa;
+		if (!isFAT32) // FAT16
+		{
+			var_write(&mbr.pentry[0].parttype, 0x04); //FAT16
+			var_write((uint16_t *const)&bootsec.rootdirentries, (const uint16_t)root.size());
+			var_write((uint16_t *const)&bootsec.sectorsperfat, (const uint16_t)sectorsPerFat);
+			bootsec.bootcode[0] = 0x80; //Physical drive (harddisk) flag
+			bootsec.bootcode[2] = 0x29; //Extended boot signature
+			var_write((uint32_t *const)&bootsec.bootcode[3], (const uint32_t)(serial + 1)); //4 byte partition serial number
+			memcpy(&bootsec.bootcode[7], "NO NAME    ", 11); // volume label
+			memcpy(&bootsec.bootcode[18], "FAT16   ", 8); // file system string name
+		}
+		else // FAT32
+		{
+			var_write(&mbr.pentry[0].parttype, 0x0C); //FAT32
+			var_write((uint32_t *const)&bootsec.bootcode[0], sectorsPerFat);
+			var_write((uint32_t *const)&bootsec.bootcode[8], (const uint32_t)2); // First cluster number of the root directory
+			var_write((uint16_t *const)&bootsec.bootcode[12], (const uint16_t)1); // Sector of FSInfo structure in offset from top of the FAT32 volume
+			var_write((uint16_t *const)&bootsec.bootcode[14], (const uint16_t)6); // Sector of backup boot sector in offset from top of the FAT32 volume
+			bootsec.bootcode[28] = 0x80; //Physical drive (harddisk) flag
+			bootsec.bootcode[30] = 0x29; //Extended boot signature
+			var_write((uint32_t *const)&bootsec.bootcode[31], (const uint32_t)(serial + 1)); //4 byte partition serial number
+			memcpy(&bootsec.bootcode[35], "NO NAME    ", 11); // volume label
+			memcpy(&bootsec.bootcode[46], "FAT32   ", 8); // file system string name
+
+			memset(fsinfosec, 0, sizeof(fsinfosec));
+			var_write((uint32_t *const)&fsinfosec[0], (const uint32_t)0x41615252); //lead signature
+			var_write((uint32_t *const)&fsinfosec[484], (const uint32_t)0x61417272); //Another signature
+			Bitu freeclusters = (Bitu)freeSpace / (BYTESPERSECTOR * sectorsPerCluster);
+			var_write((uint32_t *const)&fsinfosec[488], (const uint32_t)(readOnly ? 0x0 : (freeclusters < 0xFFFFFFFF ? freeclusters : 0xFFFFFFFF))); //last known free cluster count (all FF is unknown)
+			var_write((uint32_t *const)&fsinfosec[492], (const uint32_t)0xFFFFFFFF); //the cluster number at which the driver should start looking for free clusters (all FF is unknown)
+			var_write((uint32_t *const)&fsinfosec[508], (const uint32_t)0xAA550000); //ending signature
+		}
+	}
+
+	static void chs_write(uint8_t* chs, uint32_t lba)
+	{
+		uint32_t cylinder = lba / (HEADCOUNT * SECTORSPERTRACK);
+		uint32_t head = (lba / SECTORSPERTRACK) % HEADCOUNT;
+		uint32_t sector = (lba % SECTORSPERTRACK) + 1;
+		if (head > 0xFF || sector > 0x3F || cylinder > 0x3FF)
+            LOG_MSG("Warning: Invalid CHS data - %X, %X, %X\n", head, sector, cylinder);
+		chs[0] = (uint8_t)(head & 0xFF);
+		chs[1] = (uint8_t)((sector & 0x3F) | ((cylinder >> 8) & 0x3));
+		chs[2] = (uint8_t)(cylinder & 0xFF);
+	}
+
+	uint8_t WriteSector(uint32_t sectnum, const void* data)
+	{
+		if (sectnum >= sect_disk_end) return 1;
+		if (sectnum == SECT_MBR)
+		{
+			// Windows 9x writes the disk timestamp into the booter area on startup.
+			// Just copy that part over so it doesn't get treated as a difference that needs to be stored.
+			memcpy(mbr.booter, data, sizeof(mbr.booter));
+		}
+
+		if (readOnly) return 0; // just return without error to avoid bluescreens in Windows 9x
+
+		if (sectnum >= diffSectors.size()) diffSectors.resize(sectnum + 128);
+		uint32_t *cursor_ptr = &diffSectors[sectnum].cursor, cursor_val = *cursor_ptr;
+
+		int is_different;
+		uint8_t filebuf[BYTESPERSECTOR];
+		void* unmodified = GetUnmodifiedSector(sectnum, filebuf);
+		if (!unmodified)
+		{
+			is_different = false; // to be equal it must be filled with zeroes
+			for (uint64_t* p = (uint64_t*)data, *pEnd = p + (BYTESPERSECTOR / sizeof(uint64_t)); p != pEnd; p++)
+				if (*p) { is_different = true; break; }
+		}
+		else is_different = memcmp(unmodified, data, BYTESPERSECTOR);
+
+		if (is_different)
+		{
+			if (!saveFile && !savePath.empty())
+			{
+				saveFile = fopen(savePath.c_str(), "wb+");
+				if (saveFile) { fwrite("FFDD\x1", 5, 1, saveFile); saveEndCursor = 5; };
+				savePath.clear();
+			}
+			if (cursor_val == NULL_CURSOR && diffFreeCursors.size())
+			{
+				*cursor_ptr = cursor_val = diffFreeCursors.back();
+				diffFreeCursors.pop_back();
+			}
+			if (saveFile)
+			{
+				if (cursor_val == NULL_CURSOR)
+				{
+					uint32_t sectnumval;
+					var_write(&sectnumval, sectnum);
+					*cursor_ptr = cursor_val = saveEndCursor;
+					saveEndCursor += sizeof(sectnumval) + BYTESPERSECTOR;
+					fseeko64(saveFile, cursor_val, SEEK_SET);
+					fwrite(&sectnumval, sizeof(sectnumval), 1, saveFile);
+				}
+				else
+					fseeko64(saveFile, cursor_val + sizeof(sectnum), SEEK_SET);
+				fwrite(data, BYTESPERSECTOR, 1, saveFile);
+			}
+			else
+			{
+				if (cursor_val == NULL_CURSOR)
+				{
+					*cursor_ptr = cursor_val = (uint32_t)diffSectorBufs.size();
+					diffSectorBufs.resize(cursor_val + 1);
+				}
+				memcpy(diffSectorBufs[cursor_val].data, data, BYTESPERSECTOR);
+			}
+			cacheSectorNumber[sectnum % CACHECOUNT] = (uint32_t)-1; // invalidate cache
+		}
+		else if (cursor_val != NULL_CURSOR)
+		{
+			if (saveFile)
+			{
+				// mark sector in diff file as free
+				uint32_t sectnumval = 0xFFFFFFFF;
+				fseeko64(saveFile, cursor_val, SEEK_SET);
+				fwrite(&sectnumval, sizeof(sectnumval), 1, saveFile);
+			}
+			diffFreeCursors.push_back(cursor_val);
+			*cursor_ptr = NULL_CURSOR;
+			cacheSectorNumber[sectnum % CACHECOUNT] = (uint32_t)-1; // invalidate cache
+		}
+		return 0;
+	}
+
+	void* GetUnmodifiedSector(uint32_t sectnum, void* filebuf)
+	{
+		if (sectnum >= sect_files_end) {}
+		else if (sectnum >= sect_files_start)
+		{
+			uint32_t idx = fileAtSector[sectnum - sect_files_start];
+			ffddFile& f = files[idx];
+			DOS_File* df = NULL;
+			for (uint32_t i = 0; i != KEEPOPENCOUNT; i++)
+				if (openIndex[i] == idx && openFiles[i])
+					{ df = openFiles[i]; break; }
+			if (!df)
+			{
+				openCursor = (openCursor + 1) % KEEPOPENCOUNT;
+				DOS_File*& cachedf = openFiles[openCursor];
+				if (cachedf)
+				{
+					cachedf->Close();
+					delete cachedf;
+					cachedf = NULL;
+				}
+                bool res = drive->FileOpen(&df, f.path, OPEN_READ) ;
+				if (res)
+				{
+					df->AddRef();
+					cachedf = df;
+					openIndex[openCursor] = idx;
+				}
+				else return NULL;
+			}
+			if (df)
+			{
+				uint32_t pos = (sectnum - f.firstSect) * BYTESPERSECTOR;
+				uint16_t read = (uint16_t)BYTESPERSECTOR;
+				df->Seek(&pos, DOS_SEEK_SET);
+				if (!df->Read((uint8_t*)filebuf, &read)) { read = 0; assert(0); }
+				if (read != BYTESPERSECTOR)
+					memset((uint8_t*)filebuf + read, 0, BYTESPERSECTOR - read);
+				return filebuf;
+			}
+		}
+		else if (sectnum >= sect_dirs_start) return &dirs[(sectnum - sect_dirs_start) * (BYTESPERSECTOR / sizeof(direntry))];
+		else if (sectnum >= sect_root_start) return &root[(sectnum - sect_root_start) * (BYTESPERSECTOR / sizeof(direntry))];
+		else if (sectnum >= sect_fat2_start) return &fat[(sectnum - sect_fat2_start) * BYTESPERSECTOR];
+		else if (sectnum >= sect_fat1_start) return &fat[(sectnum - sect_fat1_start) * BYTESPERSECTOR];
+		else if (sectnum == SECT_BOOT) return &bootsec;
+		else if (sectnum == SECT_MBR) return &mbr;
+		else if (sectnum == SECT_BOOT+1) return fsinfosec;
+		else if (sectnum == SECT_BOOT+2) return fsinfosec; // additional boot loader code (anything is ok for us but needs 0x55AA footer signature)
+		else if (sectnum == SECT_BOOT+6) return &bootsec; // boot sector copy
+		else if (sectnum == SECT_BOOT+7) return fsinfosec; // boot sector copy
+		else if (sectnum == SECT_BOOT+8) return fsinfosec; // boot sector copy
+		return NULL;
+	}
+
+	uint8_t ReadSector(uint32_t sectnum, void* data)
+	{
+		uint32_t sectorHash = sectnum % CACHECOUNT;
+		void *cachedata = cacheSectorData[sectorHash];
+		if (cacheSectorNumber[sectorHash] == sectnum)
+		{
+			memcpy(data, cachedata, BYTESPERSECTOR);
+			return 0;
+		}
+		cacheSectorNumber[sectorHash] = sectnum;
+
+		void *src;
+		uint32_t cursor = (sectnum >= diffSectors.size() ? NULL_CURSOR : diffSectors[sectnum].cursor);
+		if (cursor != NULL_CURSOR)
+		{
+			if (saveFile)
+			{
+				fseeko64(saveFile, cursor + sizeof(sectnum), SEEK_SET);
+				src = (fread(cachedata, BYTESPERSECTOR, 1, saveFile) ? cachedata : NULL);
+			}
+			else src = diffSectorBufs[cursor].data;
+		}
+		else src = GetUnmodifiedSector(sectnum, cachedata);
+	
+		if (src) memcpy(data, src, BYTESPERSECTOR);
+		else memset(data, 0, BYTESPERSECTOR);
+		if (src != cachedata) memcpy(cachedata, data, BYTESPERSECTOR);
+		return 0;
+	}
+};
 
 diskGeo DiskGeometryList[] = {
     { 160,  8, 1, 40, 0, 512,  64, 1, 0xFE},      // IBM PC double density 5.25" single-sided 160KB
@@ -91,7 +932,7 @@ void FreeBIOSDiskList() {
     for (int i=0;i < MAX_DISK_IMAGES;i++) {
         if (imageDiskList[i] != NULL) {
             if (i >= 2) IDE_Hard_Disk_Detach(i);
-            imageDiskList[i]->Release();
+            if (!imageDiskList[i]->ffdd) imageDiskList[i]->Release();
             imageDiskList[i] = NULL;
         }
     }
@@ -269,6 +1110,8 @@ uint8_t imageDisk::Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,v
 }
 
 uint8_t imageDisk::Read_AbsoluteSector(uint32_t sectnum, void * data) {
+	if (ffdd) return ffdd->ReadSector(sectnum, data);
+
     uint64_t bytenum,res;
     int got;
 
@@ -314,6 +1157,8 @@ uint8_t imageDisk::Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,
 
 
 uint8_t imageDisk::Write_AbsoluteSector(uint32_t sectnum, const void *data) {
+	if (ffdd) return ffdd->WriteSector(sectnum, data);
+
     uint64_t bytenum;
 
     bytenum = (uint64_t)sectnum * sector_size;
@@ -346,7 +1191,8 @@ uint32_t imageDisk::Get_Reserved_Cylinders() {
 imageDisk::imageDisk(IMAGE_TYPE class_id) : class_id(class_id) {
 }
 
-imageDisk::imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, uint32_t heads, uint32_t sectors, uint32_t sector_size, bool hardDrive) {
+imageDisk::imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, uint32_t heads, uint32_t sectors, uint32_t sector_size, bool hardDrive) : ffdd(NULL)
+{
     if (diskName) this->diskname = diskName;
     this->cylinders = cylinders;
     this->heads = heads;
@@ -640,6 +1486,50 @@ imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint32_t imgSizeK, bool
         if (sectors == 0 || heads == 0 || cylinders == 0)
             active = false;
     }
+}
+
+imageDisk::imageDisk(class DOS_Drive *useDrive)
+{
+	ffdd = new fatFromDOSDrive(useDrive);
+	diskimg = NULL;
+	diskname[0] = '\0';
+	hardDrive = true;
+	Set_GeometryForHardDisk();
+}
+
+imageDisk::~imageDisk()
+{
+    if(diskimg != NULL) {
+        fclose(diskimg);
+        diskimg=NULL;
+    }
+    if (ffdd)
+        delete ffdd;
+}
+
+void imageDisk::Set_GeometryForHardDisk()
+{
+	sector_size = 512;
+	partTable mbrData;
+	for (int m = (Read_AbsoluteSector(0, &mbrData) ? 0 : 4); m--;)
+	{
+		if(!mbrData.pentry[m].partSize) continue;
+		bootstrap bootbuffer;
+		if (Read_AbsoluteSector(mbrData.pentry[m].absSectStart, &bootbuffer)) continue;
+		bootbuffer.sectorspertrack = var_read(&bootbuffer.sectorspertrack);
+		bootbuffer.headcount = var_read(&bootbuffer.headcount);
+		uint32_t setSect = bootbuffer.sectorspertrack;
+		uint32_t setHeads = bootbuffer.headcount;
+		uint32_t setCyl = (mbrData.pentry[m].absSectStart + mbrData.pentry[m].partSize) / (setSect * setHeads);
+		Set_Geometry(setHeads, setCyl, setSect, 512);
+		return;
+	}
+	if (!diskimg) return;
+	uint32_t diskimgsize;
+	fseek(diskimg,0,SEEK_END);
+	diskimgsize = (uint32_t)ftell(diskimg);
+	fseek(diskimg,current_fpos,SEEK_SET);
+	Set_Geometry(16, (uint32_t)(diskimgsize / (512 * 63 * 16)), 63, 512);
 }
 
 void imageDisk::Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint32_t setSect, uint32_t setSectSize) {

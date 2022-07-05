@@ -633,4 +633,3 @@ void isoDrive::GetLongName(const char* ident, char* lfindName) {
         strcpy(lfindName,ident);
 }
 
-

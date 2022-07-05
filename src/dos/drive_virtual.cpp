@@ -41,13 +41,14 @@ struct VFILE_Block {
 	unsigned int onpos;
 	bool isdir;
 	bool hidden;
+	bool intprog;
 	VFILE_Block * next;
 };
 
 #define MAX_VFILES 500
 unsigned int vfpos=1, lfn_id[256];
-char ondirs[MAX_VFILES][CROSS_LEN],sfn[DOS_NAMELENGTH_ASCII];
-char vfnames[MAX_VFILES][CROSS_LEN],vfsnames[MAX_VFILES][DOS_NAMELENGTH_ASCII];
+bool internal_program = false, skipintprog = false;
+char sfn[DOS_NAMELENGTH_ASCII],vfnames[MAX_VFILES][CROSS_LEN],vfsnames[MAX_VFILES][DOS_NAMELENGTH_ASCII];
 static VFILE_Block * first_file, * lfn_search[256], * parent_dir = NULL;
 
 extern int lfn_filefind_handle;
@@ -249,7 +250,8 @@ void VFILE_Register(const char * name,uint8_t * data,uint32_t size,const char *d
 	VFILE_Block * new_file=new VFILE_Block;
 	new_file->name=vfsnames[vfpos];
 	new_file->lname=vfnames[vfpos];
-    vfpos++;
+	vfpos++;
+	new_file->intprog = internal_program;
 	new_file->data=data;
 	new_file->size=size;
 	new_file->date=fztime||fzdate?fzdate:DOS_PackDate(2002,10,1);
@@ -550,7 +552,7 @@ bool Virtual_Drive::FindNext(DOS_DTA & dta) {
 
 	if (lfn_filefind_handle>=LFN_FILEFIND_MAX)
 		while (search_file) {
-			if (pos==search_file->onpos&&((attr & DOS_ATTR_DIRECTORY)||!search_file->isdir)&&(WildFileCmp(search_file->name,pattern)||LWildFileCmp(search_file->lname,pattern))) {
+			if (!(skipintprog && search_file->intprog) && pos==search_file->onpos&&((attr & DOS_ATTR_DIRECTORY)||!search_file->isdir)&&(WildFileCmp(search_file->name,pattern)||LWildFileCmp(search_file->lname,pattern))) {
 				dta.SetResult(search_file->name,search_file->lname,search_file->size,search_file->date,search_file->time,search_file->isdir?(search_file->hidden?DOS_ATTR_DIRECTORY|DOS_ATTR_HIDDEN:DOS_ATTR_DIRECTORY):(search_file->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE));
 				search_file=search_file->next;
 				return true;
@@ -559,7 +561,7 @@ bool Virtual_Drive::FindNext(DOS_DTA & dta) {
 		}
 	else
 		while (lfn_search[lfn_filefind_handle]) {
-			if (pos==lfn_search[lfn_filefind_handle]->onpos&&((attr & DOS_ATTR_DIRECTORY)||!lfn_search[lfn_filefind_handle]->isdir)&&(WildFileCmp(lfn_search[lfn_filefind_handle]->name,pattern)||LWildFileCmp(lfn_search[lfn_filefind_handle]->lname,pattern))) {
+			if (!(skipintprog && search_file->intprog) && pos==lfn_search[lfn_filefind_handle]->onpos&&((attr & DOS_ATTR_DIRECTORY)||!lfn_search[lfn_filefind_handle]->isdir)&&(WildFileCmp(lfn_search[lfn_filefind_handle]->name,pattern)||LWildFileCmp(lfn_search[lfn_filefind_handle]->lname,pattern))) {
 				dta.SetResult(lfn_search[lfn_filefind_handle]->name,lfn_search[lfn_filefind_handle]->lname,lfn_search[lfn_filefind_handle]->size,lfn_search[lfn_filefind_handle]->date,lfn_search[lfn_filefind_handle]->time,lfn_search[lfn_filefind_handle]->isdir?(lfn_search[lfn_filefind_handle]->hidden?DOS_ATTR_DIRECTORY|DOS_ATTR_HIDDEN:DOS_ATTR_DIRECTORY):(lfn_search[lfn_filefind_handle]->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE));
 				lfn_search[lfn_filefind_handle]=lfn_search[lfn_filefind_handle]->next;
 				return true;
