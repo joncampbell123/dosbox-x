@@ -2523,13 +2523,15 @@ public:
                                 *msg = 0;
                             }
                         }
-                        imageDiskList[nextdrv] = new imageDisk(Drives[drv]);
-                        if (imageDiskList[nextdrv]) {
+                        imageDisk *imagedrv = new imageDisk(Drives[drv]);
+                        if (imagedrv && imagedrv->ffdd) {
+                            imageDiskList[nextdrv] = imagedrv;
                             bool ide_slave = false;
                             signed char ide_index = -1;
                             IDE_Auto(ide_index,ide_slave);
                             IDE_Hard_Disk_Attach((signed char)ide_index, ide_slave, nextdrv);
-                        }
+                        } else if (imagedrv)
+                            delete imagedrv;
                     }
                 }
             }

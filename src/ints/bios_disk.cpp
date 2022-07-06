@@ -22,6 +22,7 @@
 #include "callback.h"
 #include "bios.h"
 #include "bios_disk.h"
+#include "timer.h"
 #include "regs.h"
 #include "mem.h"
 #include "dos_inc.h" /* for Drives[] */
@@ -38,6 +39,9 @@ extern unsigned long freec;
 extern bool int13_disk_change_detect_enable, skipintprog, rsize;
 extern bool int13_extensions_enable, bootguest, bootvm, use_quick_reboot;
 
+uint32_t starttick;
+
+#define TOFAT_TIMEOUT 3000
 #define STATIC_ASSERTM(A,B) static_assertion_##A##_##B
 #define STATIC_ASSERTN(A,B) STATIC_ASSERTM(A,B)
 #define STATIC_ASSERT(cond) typedef char STATIC_ASSERTN(__LINE__,__COUNTER__)[(cond)?1:-1]
@@ -51,15 +55,15 @@ uint32_t DriveCalculateCRC32(const uint8_t *ptr, size_t len, uint32_t crc)
 	return ~crcu32;
 }
 
-void DriveFileIterator(DOS_Drive* drv, void(*func)(const char* path, bool is_dir, uint32_t size, uint16_t date, uint16_t time, uint8_t attr, Bitu data), Bitu data)
+bool DriveFileIterator(DOS_Drive* drv, void(*func)(const char* path, bool is_dir, uint32_t size, uint16_t date, uint16_t time, uint8_t attr, Bitu data), Bitu data)
 {
-	if (!drv) return;
+	if (!drv) return true;
 	struct Iter
 	{
-		static void ParseDir(DOS_Drive* drv, const std::string& dir, std::vector<std::string>& dirs, void(*func)(const char* path, bool is_dir, uint32_t size, uint16_t date, uint16_t time, uint8_t attr, Bitu data), Bitu data)
+		static bool ParseDir(DOS_Drive* drv, const std::string& dir, std::vector<std::string>& dirs, void(*func)(const char* path, bool is_dir, uint32_t size, uint16_t date, uint16_t time, uint8_t attr, Bitu data), Bitu data)
 		{
 			size_t dirlen = dir.length();
-			if (dirlen + DOS_NAMELENGTH >= DOS_PATHLENGTH) return;
+			if (dirlen + DOS_NAMELENGTH >= DOS_PATHLENGTH) return true;
 			char full_path[DOS_PATHLENGTH+4];
 			if (dirlen)
 			{
@@ -76,6 +80,11 @@ void DriveFileIterator(DOS_Drive* drv, void(*func)(const char* path, bool is_dir
 			{
 				char dta_name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH+1]; uint32_t dta_size; uint16_t dta_date, dta_time; uint8_t dta_attr;
 				dta.GetResult(dta_name, lname, dta_size, dta_date, dta_time, dta_attr);
+                if (starttick && GetTicks()-starttick > TOFAT_TIMEOUT) {
+                    LOG_MSG("Timeout iterating directories");
+                    dos.dta(save_dta);
+                    return false;
+                }
 				strcpy(full_path + dirlen, dta_name);
 				bool is_dir = !!(dta_attr & DOS_ATTR_DIRECTORY);
 				//if (is_dir) printf("[%s] [%s] %s (size: %u - date: %u - time: %u - attr: %u)\n", (const char*)data, (dta_attr == 8 ? "V" : (is_dir ? "D" : "F")), full_path, dta_size, dta_date, dta_time, dta_attr);
@@ -84,6 +93,7 @@ void DriveFileIterator(DOS_Drive* drv, void(*func)(const char* path, bool is_dir
 				func(full_path, is_dir, dta_size, dta_date, dta_time, dta_attr, data);
 			}
 			dos.dta(save_dta);
+            return true;
 		}
 	};
 	std::vector<std::string> dirs;
@@ -93,8 +103,9 @@ void DriveFileIterator(DOS_Drive* drv, void(*func)(const char* path, bool is_dir
 	{
 		std::swap(dirs.back(), dir);
 		dirs.pop_back();
-		Iter::ParseDir(drv, dir.c_str(), dirs, func, data);
+		if (!Iter::ParseDir(drv, dir.c_str(), dirs, func, data)) return false;
 	}
+	return true;
 }
 
 template <typename TVal> struct StringToPointerHashMap
@@ -271,7 +282,7 @@ struct fatFromDOSDrive
 	bootstrap  bootsec;
 	uint8_t      fsinfosec[BYTESPERSECTOR];
 	uint32_t     sectorsPerCluster;
-	bool       isFAT32, readOnly, tomany = false;
+	bool       isFAT32, readOnly, success = false, tomany = false;
 
 	struct ffddFile { char path[DOS_PATHLENGTH+1]; uint32_t firstSect; };
 	std::vector<direntry> root, dirs;
@@ -548,9 +559,8 @@ struct fatFromDOSDrive
         freeSpace = (Bitu)drv_bytes_sector * (Bitu)drv_sectors_cluster * (Bitu)(freec?freec:free_clusters);
         freeSpaceMB = freeSpace / (1024*1024);
         rsize=false;
-		DriveFileIterator(drv, Iter::SumFileSize, (Bitu)&sum);
-		readOnly = (free_clusters == 0);
-		tomany = false;
+        tomany=false;
+        readOnly = !DriveFileIterator(drv, Iter::SumFileSize, (Bitu)&sum) || free_clusters == 0;
 
 		const uint32_t addFreeMB = (readOnly ? 0 : freeSpaceMB), totalMB = (uint32_t)(sum.used_bytes / (1024*1024)) + addFreeMB + 1;
 		if      (totalMB >= 3072) { isFAT32 = true;  sectorsPerCluster = 64; } // 32 kb clusters ( 98304 ~        FAT entries)
@@ -621,7 +631,7 @@ struct fatFromDOSDrive
 		sect_files_start = sect_dirs_start + ((dirs.size() * sizeof(direntry) + BYTESPERSECTOR - 1) / BYTESPERSECTOR);
 		sect_files_end = sect_files_start + fileAtSector.size();
 		sect_disk_end = SECT_BOOT + partSize;
-		assert(sect_disk_end >= sect_files_end);
+		if (sect_disk_end < sect_files_end) return;
 
 		for (ffddFile& f : files)
 			f.firstSect += sect_files_start;
@@ -692,11 +702,14 @@ struct fatFromDOSDrive
 			memset(fsinfosec, 0, sizeof(fsinfosec));
 			var_write((uint32_t *const)&fsinfosec[0], (const uint32_t)0x41615252); //lead signature
 			var_write((uint32_t *const)&fsinfosec[484], (const uint32_t)0x61417272); //Another signature
-			Bitu freeclusters = (Bitu)freeSpace / (BYTESPERSECTOR * sectorsPerCluster);
-			var_write((uint32_t *const)&fsinfosec[488], (const uint32_t)(readOnly ? 0x0 : (freeclusters < 0xFFFFFFFF ? freeclusters : 0xFFFFFFFF))); //last known free cluster count (all FF is unknown)
-			var_write((uint32_t *const)&fsinfosec[492], (const uint32_t)0xFFFFFFFF); //the cluster number at which the driver should start looking for free clusters (all FF is unknown)
+			bool ver71 = dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10);
+			//Bitu freeclusters = readOnly ? 0x0 : (ver71 ? (Bitu)freeSpace / (BYTESPERSECTOR * sectorsPerCluster) : 0xFFFFFFFF);
+			Bitu freeclusters = readOnly ? 0x0 : (ver71 ? (Bitu)((sect_disk_end - sect_files_end) / sectorsPerCluster): 0xFFFFFFFF);
+			var_write((uint32_t *const)&fsinfosec[488], (const uint32_t)(freeclusters < 0xFFFFFFFF ? freeclusters : 0xFFFFFFFF)); //last known free cluster count (all FF is unknown)
+			var_write((uint32_t *const)&fsinfosec[492], (const uint32_t)(ver71 ? (sect_files_end / sectorsPerCluster): 0xFFFFFFFF)); //the cluster number at which the driver should start looking for free clusters (all FF is unknown)
 			var_write((uint32_t *const)&fsinfosec[508], (const uint32_t)0xAA550000); //ending signature
 		}
+        success = true;
 	}
 
 	static void chs_write(uint8_t* chs, uint32_t lba)
@@ -1490,7 +1503,15 @@ imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint32_t imgSizeK, bool
 
 imageDisk::imageDisk(class DOS_Drive *useDrive)
 {
+	starttick = GetTicks();
 	ffdd = new fatFromDOSDrive(useDrive);
+	starttick = 0;
+	if (!ffdd->success) {
+		LOG_MSG("FAT conversion failed");
+		delete ffdd;
+		ffdd = NULL;
+		return;
+	}
 	diskimg = NULL;
 	diskname[0] = '\0';
 	hardDrive = true;
@@ -1539,7 +1560,7 @@ void imageDisk::Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint32_t setSec
         /* TODO: PC-98 has it's own 4096 cylinder limit */
     }
     else {
-        if(setCyl > 16384) LOG_MSG("This disk image is too big.");
+        if(setCyl > 16384) LOG_MSG("Warning: This disk image is too big.");
         else if(setCyl > 8192) bigdisk_shift = 4;
         else if(setCyl > 4096) bigdisk_shift = 3;
         else if(setCyl > 2048) bigdisk_shift = 2;
