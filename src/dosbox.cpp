@@ -1722,8 +1722,6 @@ void DOSBOX_SetupConfigSections(void) {
 
 #if defined(C_EMSCRIPTEN)
     Pint = secprop->Add_int("memsize", Property::Changeable::OnlyAtStart,4);
-#elif defined(HX_DOS)
-    Pint = secprop->Add_int("memsize", Property::Changeable::OnlyAtStart,8);
 #else
     Pint = secprop->Add_int("memsize", Property::Changeable::OnlyAtStart,16);
 #endif

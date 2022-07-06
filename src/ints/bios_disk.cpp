@@ -438,10 +438,8 @@ struct fatFromDOSDrive
 					}
 					else if (dta_attr & DOS_ATTR_VOLUME)
 					{
-						if ((dirlen || (e->attrib & DOS_ATTR_DIRECTORY) || dta_size)) {
-                            if (!strcmp(trim((char *)e->entryname), "DOSBOX-X")) continue;
+						if ((dirlen || (e->attrib & DOS_ATTR_DIRECTORY) || dta_size))
 							LOG_MSG("Invalid volume entry - %s\n", e->entryname);
-                        }
 					}
 					else if (!(dta_attr & DOS_ATTR_DIRECTORY))
 					{
@@ -548,6 +546,7 @@ struct fatFromDOSDrive
 			}
 		};
 
+		drv->EmptyCache();
 		Iter::SumInfo sum = { 0, NULL };
 		Bitu freeSpace = 0, freeSpaceMB = 0;
         uint32_t free_clusters = 0;

@@ -6,7 +6,7 @@
     [dosbox] section) is added to toggle this setting,
     or you can toggle via BOOT command's -convertfat
     and -noconvertfat options. There is also a config
-    option "drive z convert image" (in [dos] section)
+    option "drive z convert fat" (in [dos] section)
     to control if to convert virtual drive Z:. Much of
     the code is imported from DOSBox Pure. (Wengier)
   - Fixed display of total file size in DIR command

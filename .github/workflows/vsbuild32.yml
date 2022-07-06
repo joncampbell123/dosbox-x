@@ -10,7 +10,7 @@ jobs:
   MSBuild32_CI_build:
     permissions:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
-      contents: read  # for actions/checkout to fetch code
+      contents: write # for actions/checkout to fetch code and softprops/action-gh-release
     if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: windows-2019
     defaults:
@@ -93,16 +93,24 @@ jobs:
           cp $top/contrib/glshaders/* $top/package/bin/Win32/"Release SDL2"/glshaders/
           cp $top/contrib/translations/*/*.lng $top/package/bin/Win32/"Release SDL2"/languages/
           cp $top/COPYING $top/package/COPYING
-      - name: Upload release package
+          cd $top/package/
+          $top/vs/tool/zip.exe -r -9 $top/dosbox-x-vsbuild-win32-${{ env.timestamp }}.zip *
+          cd $top
+      - name: Upload preview package
         uses: actions/upload-artifact@v3.1.0
         with:
           name: dosbox-x-vsbuild-win32-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
+      - name: Upload release package
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dosbox-x-vsbuild-win32-${{ env.timestamp }}.zip
 
   MSBuild_ARM32_CI_build:
     permissions:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
-      contents: read  # for actions/checkout to fetch code
+      contents: write # for actions/checkout to fetch code and softprops/action-gh-release
     if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: windows-2019
     defaults:
@@ -172,8 +180,16 @@ jobs:
           cp $top/contrib/windows/shaders/* $top/package/bin/ARM/"Release SDL2"/shaders/
           cp $top/contrib/translations/*/*.lng $top/package/bin/ARM/"Release SDL2"/languages/
           cp $top/COPYING $top/package/COPYING
-      - name: Upload release package
+          cd $top/package/
+          $top/vs/tool/zip.exe -r -9 $top/dosbox-x-vsbuild-arm32-${{ env.timestamp }}.zip *
+          cd $top
+      - name: Upload preview package
         uses: actions/upload-artifact@v3.1.0
         with:
           name: dosbox-x-vsbuild-arm32-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
+      - name: Upload release package
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dosbox-x-vsbuild-arm32-${{ env.timestamp }}.zip

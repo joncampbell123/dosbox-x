@@ -521,14 +521,14 @@ bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst
 	if (attr == DOS_ATTR_VOLUME) {
 		dta.SetResult(GetLabel(),GetLabel(),0,0,0,DOS_ATTR_VOLUME);
 		return true;
-	} else if ((attr & DOS_ATTR_VOLUME) && !fcb_findfirst) {
-		if (WildFileCmp(GetLabel(),pattern)) {
-			dta.SetResult(GetLabel(),GetLabel(),0,0,0,DOS_ATTR_VOLUME);
-			return true;
-		}
 	} else if ((attr & DOS_ATTR_DIRECTORY) && onpos>0) {
 		if (WildFileCmp(".",pattern)) {
 			dta.SetResult(".",".",0,DOS_PackDate(2002,10,1),DOS_PackTime(12,34,56),DOS_ATTR_DIRECTORY);
+			return true;
+		}
+	} else if ((attr & DOS_ATTR_VOLUME) && !fcb_findfirst) {
+		if (WildFileCmp(GetLabel(),pattern)) {
+			dta.SetResult(GetLabel(),GetLabel(),0,0,0,DOS_ATTR_VOLUME);
 			return true;
 		}
 	}

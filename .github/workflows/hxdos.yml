@@ -10,7 +10,7 @@ jobs:
   HX_DOS_CI_build:
     permissions:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
-      contents: read  # for actions/checkout to fetch code
+      contents: write # for actions/checkout to fetch code and softprops/action-gh-release
     if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
     runs-on: windows-latest
     defaults:
@@ -66,8 +66,16 @@ jobs:
           cp $top/contrib/windows/installer/drivez_readme.txt $top/package/drivez/readme.txt
           mkdir -p $top/package/language
           cp $top/contrib/translations/*/*.lng $top/package/language/
-      - name: Upload release package
+          cd $top/package/
+          $top/vs/tool/zip.exe -r -9 $top/dosbox-x-mingw-hx-dos-${{ env.timestamp }}.zip *
+          cd $top
+      - name: Upload preview package
         uses: actions/upload-artifact@v3.1.0
         with:
           name: dosbox-x-mingw-hx-dos-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
+      - name: Upload release package
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dosbox-x-mingw-hx-dos-${{ env.timestamp }}.zip

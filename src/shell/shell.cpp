@@ -883,7 +883,9 @@ void DOS_Shell::Prepare(void) {
 				}
 			}
 		}
+        internal_program = true;
 		VFILE_Register("4DOS.INI",(uint8_t *)i4dos_data,(uint32_t)strlen(i4dos_data), "/4DOS/");
+        internal_program = false;
         int cp=dos.loaded_codepage;
         if (!dos.loaded_codepage) InitCodePage();
         initcodepagefont();
@@ -1172,7 +1174,10 @@ public:
 
 		assert(i <= 17); /* FIXME: autoexec[] should not be fixed size */
 
+        internal_program = true;
 		VFILE_Register("AUTOEXEC.BAT",(uint8_t *)autoexec_data,(uint32_t)strlen(autoexec_data));
+        internal_program = true;
+
 	}
 };
 
