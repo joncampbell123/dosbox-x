@@ -35,6 +35,8 @@ August 8 2005		cyberwalker
 extern unsigned int lfn_id[256];
 extern bool enable_network_redirector;
 extern uint16_t	NetworkHandleList[127];	/*in dos_files.cpp*/
+extern char * DBCS_upcase(char * str);
+extern bool filename_not_8x3(const char *n), filename_not_strict_8x3(const char *n);
 extern bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 
@@ -62,7 +64,7 @@ bool usefdw = false;
 HANDLE hFind = INVALID_HANDLE_VALUE;
  bool Network_FindNext(DOS_DTA & dta)
  {
-	uint8_t fattr;char pattern[CROSS_LEN];
+	uint8_t fattr;char pattern[CROSS_LEN],sfn[DOS_NAMELENGTH_ASCII];
 	uint16_t date, time, attr;
 	std::string name,lname;
 	SYSTEMTIME lt, local;
@@ -78,12 +80,21 @@ HANDLE hFind = INVALID_HANDLE_VALUE;
                     name = fda.cAlternateFileName;
                 else {
                     name = !usefdw ? fda.cFileName : (CodePageHostToGuestUTF16(pattern,(uint16_t *)fdw.cFileName) ? pattern : "");
-                    std::transform(name.begin(), name.end(), name.begin(), ::toupper);
+                    if (name == "." || name == "..")
+                        ;
+                    else if (filename_not_8x3(name.c_str()))
+                        name = "";
+                    else if (filename_not_strict_8x3(name.c_str())) {
+                        strcpy(sfn, name.c_str());
+                        DBCS_upcase(sfn);
+                        name = sfn;
+                    }
+                    if (name.empty() && !uselfn) continue;
                 }
                 date = DOS_PackDate(lt.wYear,lt.wMonth,lt.wDay);
                 time = DOS_PackTime(lt.wHour,lt.wMinute,lt.wSecond);
                 attr = ((usefdw?fdw.dwFileAttributes:fda.dwFileAttributes) & FILE_ATTRIBUTE_DIRECTORY ? DOS_ATTR_DIRECTORY : 0) | ((usefdw?fdw.dwFileAttributes:fda.dwFileAttributes) & 0x3f);
-                dta.SetResult(name.c_str(),!usefdw ? fda.cFileName : (CodePageHostToGuestUTF16(pattern,(uint16_t *)fdw.cFileName) ? pattern : name.c_str()),usefdw?fdw.nFileSizeLow:fda.nFileSizeLow,date,time,attr);
+                dta.SetResult(name.c_str(),!usefdw ? fda.cFileName : (CodePageHostToGuestUTF16(pattern,(uint16_t *)fdw.cFileName) ? pattern : name.c_str()),usefdw?fdw.nFileSizeLow:fda.nFileSizeLow,usefdw?fdw.nFileSizeHigh:fda.nFileSizeHigh,date,time,attr);
                 return true;
             }
         }
@@ -98,7 +109,7 @@ HANDLE hFind = INVALID_HANDLE_VALUE;
 
  bool Network_FindFirst(const char * _dir,DOS_DTA & dta)
 {
-	uint8_t fattr;char pattern[CROSS_LEN];
+	uint8_t fattr;char pattern[CROSS_LEN],sfn[DOS_NAMELENGTH_ASCII];
 	uint16_t date, time, attr;
 	std::string name;
 	SYSTEMTIME lt, local;
@@ -123,12 +134,21 @@ HANDLE hFind = INVALID_HANDLE_VALUE;
                     name = fda.cAlternateFileName;
                 else {
                     name = !usefdw ? fda.cFileName : (CodePageHostToGuestUTF16(pattern,(uint16_t *)fdw.cFileName) ? pattern : "");
-                    std::transform(name.begin(), name.end(), name.begin(), ::toupper);
+                    if (name == "." || name == "..")
+                        ;
+                    else if (filename_not_8x3(name.c_str()))
+                        name = "";
+                    else if (filename_not_strict_8x3(name.c_str())) {
+                        strcpy(sfn, name.c_str());
+                        DBCS_upcase(sfn);
+                        name = sfn;
+                    }
+                    if (name.empty() && !uselfn) continue;
                 }
                 date = DOS_PackDate(lt.wYear,lt.wMonth,lt.wDay);
                 time = DOS_PackTime(lt.wHour,lt.wMinute,lt.wSecond);
                 attr = ((usefdw?fdw.dwFileAttributes:fda.dwFileAttributes) & FILE_ATTRIBUTE_DIRECTORY ? DOS_ATTR_DIRECTORY : 0) | ((usefdw?fdw.dwFileAttributes:fda.dwFileAttributes) & 0x3f);
-                dta.SetResult(name.c_str(),!usefdw ? fda.cFileName : (CodePageHostToGuestUTF16(pattern,(uint16_t *)fdw.cFileName) ? pattern : name.c_str()),usefdw?fdw.nFileSizeLow:fda.nFileSizeLow,date,time,attr);
+                dta.SetResult(name.c_str(),!usefdw ? fda.cFileName : (CodePageHostToGuestUTF16(pattern,(uint16_t *)fdw.cFileName) ? pattern : name.c_str()),usefdw?fdw.nFileSizeLow:fda.nFileSizeLow,usefdw?fdw.nFileSizeHigh:fda.nFileSizeHigh,date,time,attr);
                 return true;
             }
         } while (usefdw?FindNextFileW(hFind, &fdw):FindNextFile(hFind, &fda));

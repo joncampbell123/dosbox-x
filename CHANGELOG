@@ -9,8 +9,10 @@
     option "drive z convert fat" (in [dos] section)
     to control if to convert virtual drive Z:. Much of
     the code is imported from DOSBox Pure. (Wengier)
-  - Fixed display of total file size in DIR command
-    when the file sizes are very large. (Wengier)
+  - Fixed display of individual/total file sizes with
+    DIR command when they are very large. (Wengier)
+  - Fixed DBCS code page conversions for mounted FAT
+    drives. (Wengier)
 0.84.1
   - Added dosbox(-x).conf option to enable workaround
     for errant DOS programs that set the TF (trap flag)

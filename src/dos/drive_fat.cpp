@@ -54,6 +54,8 @@ extern int lfn_filefind_handle, fat32setver;
 extern void dos_ver_menu(bool start);
 extern char * DBCS_upcase(char * str), sfn[DOS_NAMELENGTH_ASCII];
 extern bool gbk, isDBCSCP(), isKanji1_gbk(uint8_t chr), shiftjis_lead_byte(int c);
+extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+extern bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
 int PC98AutoChoose_FAT(const std::vector<_PC98RawPartition> &parts,imageDisk *loadedDisk) {
@@ -150,7 +152,7 @@ bool filename_not_8x3(const char *n) {
         lead = false;
         while (*n != 0) {
                 if (*n == '.') break;
-                if ((*n&0xFF)<=32||*n==127||*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') return true;
+                if ((*n&0xFF)<=32||*n==127||*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|'||*n=='\\')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') return true;
                 if (lead) lead = false;
                 else if ((IS_PC98_ARCH && shiftjis_lead_byte(*n&0xFF)) || (isDBCSCP() && isKanji1_gbk(*n&0xFF))) lead = true;
                 i++;
@@ -167,7 +169,7 @@ bool filename_not_8x3(const char *n) {
         lead = false;
         while (*n != 0) {
                 if (*n == '.') return true; /* another '.' means LFN */
-                if ((*n&0xFF)<=32||*n==127||*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') return true;
+                if ((*n&0xFF)<=32||*n==127||*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|'||*n=='\\')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') return true;
                 if (lead) lead = false;
                 else if ((IS_PC98_ARCH && shiftjis_lead_byte(*n&0xFF)) || (isDBCSCP() && isKanji1_gbk(*n&0xFF))) lead = true;
                 i++;
@@ -755,7 +757,7 @@ bool fatDrive::getEntryName(const char *fullname, char *entname) {
 	int j=0;
 	bool lead = false;
 	for (int i=0; i<(int)strlen(findFile); i++) {
-		if (findFile[i]!=' '&&findFile[i]!='"'&&findFile[i]!='+'&&findFile[i]!='='&&findFile[i]!=','&&findFile[i]!=';'&&findFile[i]!=':'&&findFile[i]!='<'&&findFile[i]!='>'&&!((findFile[i]=='['||findFile[i]==']'||findFile[i]=='|')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))&&findFile[i]!='?'&&findFile[i]!='*') findFile[j++]=findFile[i];
+		if (findFile[i]!=' '&&findFile[i]!='"'&&findFile[i]!='+'&&findFile[i]!='='&&findFile[i]!=','&&findFile[i]!=';'&&findFile[i]!=':'&&findFile[i]!='<'&&findFile[i]!='>'&&!((findFile[i]=='['||findFile[i]==']'||findFile[i]=='|'||findFile[i]=='\\')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))&&findFile[i]!='?'&&findFile[i]!='*') findFile[j++]=findFile[i];
 		if (lead) lead = false;
 		else if ((IS_PC98_ARCH && shiftjis_lead_byte(findFile[i]&0xFF)) || (isDBCSCP() && isKanji1_gbk(findFile[i]&0xFF))) lead = true;
 	}
@@ -930,8 +932,8 @@ bool fatDrive::getFileDirEntry(char const * const filename, direntry * useEntry,
 			else {
 				//Found something. See if it's a directory (findfirst always finds regular files)
                 char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH];
-                uint16_t find_date,find_time;uint32_t find_size;uint8_t find_attr;
-                imgDTA->GetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
+                uint16_t find_date,find_time;uint32_t find_size,find_hsize;uint8_t find_attr;
+                imgDTA->GetResult(find_name,lfind_name,find_size,find_hsize,find_date,find_time,find_attr);
 				if(!(find_attr & DOS_ATTR_DIRECTORY)) break;
 
 				char * findNext;
@@ -991,8 +993,8 @@ bool fatDrive::getDirClustNum(const char *dir, uint32_t *clustNum, bool parDir) 
 				return false;
 			} else {
                 char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH];
-                uint16_t find_date,find_time;uint32_t find_size;uint8_t find_attr;
-				imgDTA->GetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
+                uint16_t find_date,find_time;uint32_t find_size,find_hsize;uint8_t find_attr;
+				imgDTA->GetResult(find_name,lfind_name,find_size,find_hsize,find_date,find_time,find_attr);
 				lfn_filefind_handle=fbak;
 				if(!(find_attr &DOS_ATTR_DIRECTORY)) return false;
 			}
@@ -2475,18 +2477,73 @@ nextfile:
 
 		if (lfn_max_ord != 0 && (dlfn->LDIR_Ord & 0x3F) > 0 && (dlfn->LDIR_Ord & 0x3Fu) <= lfn_max_ord && dlfn->LDIR_Chksum == lfn_checksum) {
 			unsigned int oidx = (dlfn->LDIR_Ord & 0x3Fu) - 1u;
-			unsigned int stridx = oidx * 13u;
+			unsigned int stridx = oidx * 13u, len = 0;
+			uint16_t lchar = 0;
+			char lname[27] = {0};
 
-			if ((stridx+13u) <= LFN_NAMELENGTH) {
-				for (unsigned int i=0;i < 5;i++)
-					lfind_name[stridx+i+0] = (char)(dlfn->LDIR_Name1[i] & 0xFF);
-				for (unsigned int i=0;i < 6;i++)
-					lfind_name[stridx+i+5] = (char)(dlfn->LDIR_Name2[i] & 0xFF);
-				for (unsigned int i=0;i < 2;i++)
-					lfind_name[stridx+i+11] = (char)(dlfn->LDIR_Name3[i] & 0xFF);
-
-				lfn_ord_found[oidx] = true;
-			}
+            for (unsigned int i=0;i < 5;i++) {
+                lchar = (uint16_t)(dlfn->LDIR_Name1[i]);
+                if (lchar < 0x100 || lchar == 0xFFFF)
+                    lname[len++] = (char)(lchar & 0xFF);
+                else {
+                    char text[10];
+                    uint16_t uname[4];
+                    uname[0]=lchar;
+                    uname[1]=0;
+                    text[0] = 0;
+                    text[1] = 0;
+                    text[2] = 0;
+                    if (CodePageHostToGuestUTF16(text,uname)) {
+                        lname[len++] = (char)(text[0] & 0xFF);
+                        lname[len++] = (char)(text[1] & 0xFF);
+                    }
+                }
+            }
+            for (unsigned int i=0;i < 6;i++) {
+                lchar = (uint16_t)(dlfn->LDIR_Name2[i]);
+                if (lchar < 0x100 || lchar == 0xFFFF)
+                    lname[len++] = (char)(lchar & 0xFF);
+                else {
+                    char text[10];
+                    uint16_t uname[4];
+                    uname[0]=lchar;
+                    uname[1]=0;
+                    text[0] = 0;
+                    text[1] = 0;
+                    text[2] = 0;
+                    if (CodePageHostToGuestUTF16(text,uname)) {
+                        lname[len++] = (char)(text[0] & 0xFF);
+                        lname[len++] = (char)(text[1] & 0xFF);
+                    }
+                }
+            }
+            for (unsigned int i=0;i < 2;i++) {
+                lchar = (uint16_t)(dlfn->LDIR_Name3[i]);
+                if (lchar < 0x100 || lchar == 0xFFFF)
+                    lname[len++] = (char)(lchar & 0xFF);
+                else {
+                    char text[10];
+                    uint16_t uname[4];
+                    uname[0]=lchar;
+                    uname[1]=0;
+                    text[0] = 0;
+                    text[1] = 0;
+                    text[2] = 0;
+                    if (CodePageHostToGuestUTF16(text,uname)) {
+                        lname[len++] = (char)(text[0] & 0xFF);
+                        lname[len++] = (char)(text[1] & 0xFF);
+                    } else {
+                        lname[len++] = (char)(lchar / 0x100);
+                        lname[len++] = (char)(lchar % 0x100);
+                    }
+                }
+            }
+            lname[len] = 0;
+            if ((stridx+len) <= LFN_NAMELENGTH) {
+                std::string full = std::string(lname) + std::string(lfind_name);
+                strcpy(lfind_name, full.c_str());
+                lfn_ord_found[oidx] = true;
+            }
 		}
 
 		goto nextfile;
@@ -2543,7 +2600,7 @@ nextfile:
 
 	//dta.SetResult(find_name, foundEntry->entrysize, foundEntry->crtDate, foundEntry->crtTime, foundEntry->attrib);
 
-	dta.SetResult(find_name, lfind_name, foundEntry->entrysize, foundEntry->modDate, foundEntry->modTime, foundEntry->attrib);
+	dta.SetResult(find_name, lfind_name, foundEntry->entrysize, 0, foundEntry->modDate, foundEntry->modTime, foundEntry->attrib);
 
 	return true;
 }
@@ -2708,11 +2765,32 @@ bool fatDrive::addDirectoryEntry(uint32_t dirClustNumber, const direntry& useEnt
 	unsigned int found = 0;
 	uint16_t dirPosFound = 0;
 
+	unsigned int len = 0;
+	uint16_t lfnw[LFN_NAMELENGTH+13] = {0};
 	if (lfn != NULL && *lfn != 0) {
-		/* 13 characters per LFN entry.
-		 * FIXME: When we convert the LFN to wchar using code page, strlen() prior to conversion will not work,
-		 *        convert first then count wchar_t characters. */
-		need = (unsigned int)(1 + ((strlen(lfn) + 12) / 13))/*round up*/;
+		/* 13 characters per LFN entry */
+		bool lead = false;
+        for (const char *scan = lfn; *scan; scan++) {
+            if (lead) {
+                lead = false;
+                char text[3];
+                uint16_t uname[4];
+                text[0]=*(scan-1)&0xFF;
+                text[1]=*scan&0xFF;
+                text[2]=0;
+                uname[0]=0;
+                uname[1]=0;
+                if (CodePageGuestToHostUTF16(uname,text)&&uname[0]!=0&&uname[1]==0) {
+                    lfnw[len++] = uname[0];
+                } else {
+                    lfnw[len++] = *(scan-1)&0xFF;
+                    if (len < LFN_NAMELENGTH) lfnw[len++] = *scan&0xFF;
+                }
+            } else if (*(scan+1) && ((IS_PC98_ARCH && shiftjis_lead_byte(*scan&0xFF)) || (isDBCSCP() && isKanji1_gbk(*scan&0xFF)))) lead = true;
+            else lfnw[len++] = (uint16_t)((unsigned char)(*scan));
+        }
+        lfnw[len] = 0;
+        need = (unsigned int)(1 + (len + 12) / 13); /*round up*/;
 	}
 
 	size_t dirent_per_sector = getSectSize() / sizeof(direntry);
@@ -2754,17 +2832,14 @@ bool fatDrive::addDirectoryEntry(uint32_t dirClustNumber, const direntry& useEnt
 				if (need != 1/*LFN*/) {
 					uint16_t lfnbuf[LFN_NAMELENGTH+13]; /* on disk, LFNs are WCHAR unicode (UCS-16) */
 
-					assert(lfn != NULL);
-					assert(*lfn != 0);
-
-					/* TODO: ANSI LFN convert to wchar here according to code page */
+					assert(lfn != NULL && len != 0);
 
 					unsigned int o = 0;
-					const char *scan = lfn;
+					const uint16_t *scan = lfnw;
 
 					while (*scan) {
 						if (o >= LFN_NAMELENGTH) return false; /* Nope! */
-						lfnbuf[o++] = (uint16_t)((unsigned char)(*scan++));
+						lfnbuf[o++] = (uint16_t)(*scan++);
 					}
 
 					/* on disk, LFNs are padded with 0x0000 followed by a run of 0xFFFF to fill the dirent */

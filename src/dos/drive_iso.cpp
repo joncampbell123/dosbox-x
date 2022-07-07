@@ -288,12 +288,12 @@ bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
     dta.GetSearchParams(attr, pattern, false);
    
 	if (attr == DOS_ATTR_VOLUME) {
-		dta.SetResult(discLabel, discLabel, 0, 0, 0, DOS_ATTR_VOLUME);
+		dta.SetResult(discLabel, discLabel, 0, 0, 0, 0, DOS_ATTR_VOLUME);
 		return true;
 	} else if ((attr & DOS_ATTR_VOLUME) && isRoot && !fcb_findfirst) {
 		if (WildFileCmp(discLabel,pattern)) {
 			// Get Volume Label (DOS_ATTR_VOLUME) and only in basedir and if it matches the searchstring
-			dta.SetResult(discLabel, discLabel, 0, 0, 0, DOS_ATTR_VOLUME);
+			dta.SetResult(discLabel, discLabel, 0, 0, 0, 0, DOS_ATTR_VOLUME);
 			return true;
 		}
 	}
@@ -332,7 +332,7 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 			uint32_t findSize = DATA_LENGTH(de);
 			uint16_t findDate = DOS_PackDate(1900 + de.dateYear, de.dateMonth, de.dateDay);
 			uint16_t findTime = DOS_PackTime(de.timeHour, de.timeMin, de.timeSec);
-            dta.SetResult(findName, lfindName, findSize, findDate, findTime, findAttr);
+            dta.SetResult(findName, lfindName, findSize, 0, findDate, findTime, findAttr);
 			return true;
 		}
 	}

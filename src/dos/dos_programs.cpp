@@ -64,13 +64,6 @@
 #include "../libs/tinyfiledialogs/tinyfiledialogs.c"
 #endif
 #if defined(WIN32)
-# if defined(__MINGW32__)
-#  define ht_stat_t struct _stat
-#  define ht_stat(x,y) _wstat(x,y)
-# else
-#  define ht_stat_t struct _stat64
-#  define ht_stat(x,y) _wstat64(x,y)
-# endif
 #ifndef C_ICONV
 # define C_ICONV
 # include "../misc/winiconv.c"
@@ -983,7 +976,7 @@ public:
     }
     void ListMounts(bool quiet, bool local) {
         char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
-        uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
+        uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
         /* Command uses dta so set it to our internal dta */
         RealPt save_dta = dos.dta();
         dos.dta(dos.tables.tempdta);
@@ -1010,7 +1003,7 @@ public:
             char root[7] = {(char)('A'+d),':','\\','*','.','*',0};
             bool ret = DOS_FindFirst(root,DOS_ATTR_VOLUME);
             if (ret) {
-                dta.GetResult(name,lname,size,date,time,attr);
+                dta.GetResult(name,lname,size,hsize,date,time,attr);
                 DOS_FindNext(); //Mark entry as invalid
             } else name[0] = 0;
 
@@ -2512,11 +2505,15 @@ public:
                         if (nextdrv>=MAX_DISK_IMAGES) break;
                         if (quiet<2) {
                             size_t len = strlen(msg);
-                            if (!len) strcat(msg, CURSOR_POS_COL(page)>0?"\r\n":"");
+                            if (!len) {
+                                strcat(msg, CURSOR_POS_COL(page)>0?"\r\n":"");
+                                len = strlen(msg);
+                            }
                             strcat(msg, "Converting drive ");
                             strcat(msg, std::string(1, 'A'+drv).c_str());
-                            strcat(msg, ": to FAT...\r\n");
+                            strcat(msg, ": to FAT...");
                             LOG_MSG("%s", msg+len);
+                            strcat(msg, "\r\n");
                             if (!quiet) {
                                 uint16_t s = (uint16_t)strlen(msg);
                                 DOS_WriteFile(STDERR,(uint8_t*)msg,&s);
@@ -3939,7 +3936,7 @@ class IMGSWAP : public Program
 public:
     void ListImgSwaps(void) {
         char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
-        uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
+        uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
         /* Command uses dta so set it to our internal dta */
         RealPt save_dta = dos.dta();
         dos.dta(dos.tables.tempdta);
@@ -3956,7 +3953,7 @@ public:
             char root[7] = {(char)('A'+d),':','\\','*','.','*',0};
             bool ret = DOS_FindFirst(root,DOS_ATTR_VOLUME);
             if (ret) {
-                dta.GetResult(name,lname,size,date,time,attr);
+                dta.GetResult(name,lname,size,hsize,date,time,attr);
                 DOS_FindNext(); //Mark entry as invalid
             } else name[0] = 0;
 
@@ -4009,7 +4006,7 @@ public:
         } else
             swapInDrive(d);
         char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
-        uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
+        uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
         /* Command uses dta so set it to our internal dta */
         RealPt save_dta = dos.dta();
         dos.dta(dos.tables.tempdta);
@@ -4022,7 +4019,7 @@ public:
         char root[7] = {(char)('A'+d),':','\\','*','.','*',0};
         bool ret = DOS_FindFirst(root,DOS_ATTR_VOLUME);
         if (ret) {
-            dta.GetResult(name,lname,size,date,time,attr);
+            dta.GetResult(name,lname,size,hsize,date,time,attr);
             DOS_FindNext(); //Mark entry as invalid
         } else name[0] = 0;
 
@@ -4736,7 +4733,7 @@ public:
     std::vector<std::string> options;
     void ListImgMounts(void) {
         char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
-        uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
+        uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
         /* Command uses dta so set it to our internal dta */
         RealPt save_dta = dos.dta();
         dos.dta(dos.tables.tempdta);
@@ -4755,7 +4752,7 @@ public:
             char root[7] = {(char)('A'+d),':','\\','*','.','*',0};
             bool ret = DOS_FindFirst(root,DOS_ATTR_VOLUME);
             if (ret) {
-                dta.GetResult(name,lname,size,date,time,attr);
+                dta.GetResult(name,lname,size,hsize,date,time,attr);
                 DOS_FindNext(); //Mark entry as invalid
             } else name[0] = 0;
 

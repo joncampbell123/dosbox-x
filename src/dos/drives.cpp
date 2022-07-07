@@ -391,14 +391,14 @@ void DriveManager::ChangeDisk(int drive, DOS_Drive* disk) {
         }
         if (!dos_kernel_disabled) {
             char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
-            uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
+            uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
             RealPt save_dta = dos.dta();
             dos.dta(dos.tables.tempdta);
             DOS_DTA dta(dos.dta());
             char root[7] = {(char)('A'+drive),':','\\','*','.','*',0};
             bool ret = DOS_FindFirst(root,DOS_ATTR_VOLUME);
             if (ret) {
-                dta.GetResult(name,lname,size,date,time,attr);
+                dta.GetResult(name,lname,size,hsize,date,time,attr);
                 DOS_FindNext();
             } else name[0] = 0;
             dos.dta(save_dta);

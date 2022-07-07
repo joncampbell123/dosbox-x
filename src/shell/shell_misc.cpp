@@ -256,7 +256,7 @@ bool DOS_Shell::BuildCompletions(char * line, uint16_t str_len) {
 
     DOS_DTA dta(dos.dta());
     char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH], qlname[LFN_NAMELENGTH+2];
-    uint32_t sz;uint16_t date;uint16_t time;uint8_t att;
+    uint32_t sz,hsz;uint16_t date;uint16_t time;uint8_t att;
 
     std::list<std::string> executable;
     q=0;r=0;
@@ -272,7 +272,7 @@ bool DOS_Shell::BuildCompletions(char * line, uint16_t str_len) {
     int fbak=lfn_filefind_handle;
     lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
     while (res) {
-        dta.GetResult(name,lname,sz,date,time,att);
+        dta.GetResult(name,lname,sz,hsz,date,time,att);
         if ((strchr(uselfn?lname:name,' ')!=NULL&&q/2*2==q)||r)
             sprintf(qlname,q/2*2!=q?"%s\"":"\"%s\"",uselfn?lname:name);
         else

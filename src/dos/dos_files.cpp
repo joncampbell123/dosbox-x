@@ -282,7 +282,7 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
     char pdir[LFN_NAMELENGTH+4], *p;
     uint8_t drive;char fulldir[DOS_PATHLENGTH],LFNPath[CROSS_LEN];
     char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH];
-    uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
+    uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
     if (!DOS_MakeName(path,fulldir,&drive)) return false;
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 	if (Network_IsNetworkResource(fulldir)) {
@@ -310,7 +310,7 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
 			lfn_filefind_handle=LFN_FILEFIND_INTERNAL;
 			if (DOS_FindFirst(pdir,0xffff & DOS_ATTR_DIRECTORY & ~DOS_ATTR_VOLUME,false)) {
 				lfn_filefind_handle=fbak;
-				dta.GetResult(name,lname,size,date,time,attr);
+				dta.GetResult(name,lname,size,hsize,date,time,attr);
 				strcat(SFNPath,name);
 				strcat(LFNPath,lname);
 				strcat(SFNPath,"\\");
@@ -335,7 +335,7 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
 		sprintf(pdir,"\"%s%s\"",SFNPath,p);
 		lfn_filefind_handle=LFN_FILEFIND_INTERNAL;
 		if (!strrchr(p,'*')&&!strrchr(p,'?')&&DOS_FindFirst(pdir,0xffff & ~DOS_ATTR_VOLUME,false)) {
-			dta.GetResult(name,lname,size,date,time,attr);
+			dta.GetResult(name,lname,size,hsize,date,time,attr);
 			strcat(SFNPath,name);
 			strcat(LFNPath,lname);
         } else if (checkwat) {
@@ -598,7 +598,7 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 		find_last = strrchr(pattern,'.');
 		if(find_last) *find_last = 0;
 		//TODO use current date and time
-        dta.SetResult(pattern,pattern,0,0,0,DOS_ATTR_DEVICE);
+        dta.SetResult(pattern,pattern,0,0,0,0,DOS_ATTR_DEVICE);
 		LOG(LOG_DOSMISC,LOG_WARN)("finding device %s",pattern);
 		return true;
 	}
@@ -1006,8 +1006,8 @@ bool DOS_UnlinkFile(char const * const name) {
 		bool ret=DOS_FindFirst(((pfull.length()&&pfull[0]=='"'?"":"\"")+pfull+(pfull.length()&&pfull[pfull.length()-1]=='"'?"":"\"")).c_str(),0xffu & ~DOS_ATTR_VOLUME & ~DOS_ATTR_DIRECTORY);
 		if (ret) do {
 			char find_name[DOS_NAMELENGTH_ASCII],lfind_name[LFN_NAMELENGTH];
-			uint16_t find_date,find_time;uint32_t find_size;uint8_t find_attr;
-			dta.GetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
+			uint16_t find_date,find_time;uint32_t find_size,find_hsize;uint8_t find_attr;
+			dta.GetResult(find_name,lfind_name,find_size,find_hsize,find_date,find_time,find_attr);
 			if (!(find_attr & DOS_ATTR_DIRECTORY)&&strlen(find_name)&&!strchr(find_name, '*')&&!strchr(find_name, '?')) {
 				strcpy(temp, dir);
 				if (strlen(temp)&&temp[strlen(temp)-1]!='\\') strcat(temp, "\\");
@@ -1534,9 +1534,9 @@ void DTAExtendName(char * const name,char * const filename,char * const ext) {
 static void SaveFindResult(DOS_FCB & find_fcb) {
 	DOS_DTA find_dta(dos.tables.tempdta);
     char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
-    uint32_t size;uint16_t date;uint16_t time;uint8_t attr;uint8_t drive;
+    uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;uint8_t drive;
 	char file_name[9];char ext[4];
-	find_dta.GetResult(name,lname,size,date,time,attr);
+	find_dta.GetResult(name,lname,size,hsize,date,time,attr);
 	drive=find_fcb.GetDrive()+1;
 	uint8_t find_attr = DOS_ATTR_ARCHIVE;
 	find_fcb.GetAttr(find_attr); /* Gets search attributes if extended */
@@ -1583,8 +1583,8 @@ bool DOS_FCBOpen(uint16_t seg,uint16_t offset) {
 		DOS_DTA find_dta(dos.tables.tempdta);
 		DOS_FCB find_fcb(RealSeg(dos.tables.tempdta),RealOff(dos.tables.tempdta));
 		char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH],file_name[9],ext[4];
-		uint32_t size;uint16_t date,time;uint8_t attr;
-		find_dta.GetResult(name,lname,size,date,time,attr);
+		uint32_t size,hsize;uint16_t date,time;uint8_t attr;
+		find_dta.GetResult(name,lname,size,hsize,date,time,attr);
 		DTAExtendName(name,file_name,ext);
 		find_fcb.SetName(fcb.GetDrive()+1,file_name,ext);
 		find_fcb.GetName(shortname);

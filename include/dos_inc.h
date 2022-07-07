@@ -606,11 +606,11 @@ public:
     int GetFindData(int fmt,char * finddata,int *c);
 	
 	void SetupSearch(uint8_t _sdrive,uint8_t _sattr,char * pattern);
-	void SetResult(const char * _name,const char * _lname,uint32_t _size,uint16_t _date,uint16_t _time,uint8_t _attr);
+	void SetResult(const char * _name,const char * _lname,uint32_t _size,uint32_t _hsize,uint16_t _date,uint16_t _time,uint8_t _attr);
 	
 	uint8_t GetSearchDrive(void);
 	void GetSearchParams(uint8_t & _sattr,char * _spattern,bool lfn);
-    void GetResult(char * _name,char * _lname,uint32_t & _size,uint16_t & _date,uint16_t & _time,uint8_t & _attr);
+    void GetResult(char * _name,char * _lname,uint32_t & _size,uint32_t & _hsize,uint16_t & _date,uint16_t & _time,uint8_t & _attr);
 
 	void	SetDirID(uint16_t entry)			{ sSave(sDTA,dirID,entry); };
 	void	SetDirIDCluster(uint32_t entry)	{ sSave(sDTA,dirCluster,entry); };

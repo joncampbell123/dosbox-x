@@ -2448,7 +2448,7 @@ public:
     ShowDriveInfo(GUI::Screen *parent, int x, int y, const char *title) :
         ToplevelWindow(parent, x, y, 400, 280, title) {
             char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
-            uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
+            uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
             /* Command uses dta so set it to our internal dta */
             RealPt save_dta = dos.dta();
             dos.dta(dos.tables.tempdta);
@@ -2457,7 +2457,7 @@ public:
                 char root[7] = {(char)('A'+statusdrive),':','\\','*','.','*',0};
                 bool ret = DOS_FindFirst(root,DOS_ATTR_VOLUME);
                 if (ret) {
-                    dta.GetResult(name,lname,size,date,time,attr);
+                    dta.GetResult(name,lname,size,hsize,date,time,attr);
                     DOS_FindNext(); //Mark entry as invalid
                 } else name[0] = 0;
 

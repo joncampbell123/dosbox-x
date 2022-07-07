@@ -429,9 +429,9 @@ void DOS_DTA::SetupSearch(uint8_t _sdrive,uint8_t _sattr,char * pattern) {
 	}
 }
 
-void DOS_DTA::SetResult(const char * _name, const char * _lname, uint32_t _size,uint16_t _date,uint16_t _time,uint8_t _attr) {
-	fd.hsize=0;
+void DOS_DTA::SetResult(const char * _name, const char * _lname, uint32_t _size,uint32_t _hsize,uint16_t _date,uint16_t _time,uint8_t _attr) {
 	fd.size=_size;
+	fd.hsize=_hsize;
 	fd.mdate=_date;
 	fd.mtime=_time;
 	fd.attr=_attr;
@@ -448,11 +448,12 @@ void DOS_DTA::SetResult(const char * _name, const char * _lname, uint32_t _size,
 }
 
 
-void DOS_DTA::GetResult(char * _name, char * _lname,uint32_t & _size,uint16_t & _date,uint16_t & _time,uint8_t & _attr) {
+void DOS_DTA::GetResult(char * _name, char * _lname,uint32_t & _size,uint32_t & _hsize,uint16_t & _date,uint16_t & _time,uint8_t & _attr) {
 	strcpy(_lname,fd.lname);
 	if (fd.sname[0]!=0) strcpy(_name,fd.sname);
 	else if (strlen(fd.lname)<DOS_NAMELENGTH_ASCII) strcpy(_name,fd.lname);
 	_size = fd.size;
+	_hsize = fd.hsize;
 	_date = fd.mdate;
 	_time = fd.mtime;
 	_attr = fd.attr;
@@ -470,7 +471,10 @@ int DOS_DTA::GetFindData(int fmt, char * fdstr, int *c) {
 		sprintf(fdstr,"%-1s%-19s%-2s%-2s%-4s%-4s%-4s%-8s%-260s%-14s",(char*)&fd.attr,(char*)&fd.fres1,(char*)&fd.mtime,(char*)&fd.mdate,(char*)&fd.mtime,(char*)&fd.hsize,(char*)&fd.size,(char*)&fd.fres2,(char*)&fd.lname,(char*)&fd.sname);
 	else
 		sprintf(fdstr,"%-1s%-19s%-4s%-4s%-4s%-4s%-8s%-260s%-14s",(char*)&fd.attr,(char*)&fd.fres1,(char*)&fd.mtime,(char*)&fd.mdate,(char*)&fd.hsize,(char*)&fd.size,(char*)&fd.fres2,(char*)&fd.lname,(char*)&fd.sname);
-	for (int i=0;i<4;i++) fdstr[28+i]=0;
+    fdstr[28]=(char)fd.hsize%256;
+    fdstr[29]=(char)((fd.hsize%65536)/256);
+    fdstr[30]=(char)((fd.hsize%16777216)/65536);
+    fdstr[31]=(char)(fd.hsize/16777216);
     fdstr[32]=(char)fd.size%256;
     fdstr[33]=(char)((fd.size%65536)/256);
     fdstr[34]=(char)((fd.size%16777216)/65536);

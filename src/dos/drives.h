@@ -821,9 +821,12 @@ int get_expanded_files(const std::string &path, std::vector<std::string> &paths,
 typedef wchar_t host_cnv_char_t;
 # define host_cnv_use_wchar
 # define _HT(x) L##x
-# if defined(__MINGW32__) /* TODO: Get MinGW to support 64-bit file offsets, at least targeting Windows XP! */
+# if defined(HX_DOS)
 #  define ht_stat_t struct _stat
 #  define ht_stat(x,y) _wstat(x,y)
+# elif defined(__MINGW32__)
+#  define ht_stat_t struct __stat64
+#  define ht_stat(x,y) _wstat64(x,y)
 # else
 #  define ht_stat_t struct _stat64 /* WTF Microsoft?? Why aren't _stat and _wstat() consistent on stat struct type? */
 #  define ht_stat(x,y) _wstat64(x,y)

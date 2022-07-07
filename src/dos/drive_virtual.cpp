@@ -77,7 +77,7 @@ void GenerateSFN(char *lfn, unsigned int k, unsigned int &i, unsigned int &t) {
                 if (i==m-1) break;
                 sfn[i++]=*(n++);
                 lead = true;
-            } else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') {
+            } else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|'||*n=='\\')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') {
                 sfn[i++]='_';
                 n++;
                 lead = false;
@@ -137,7 +137,7 @@ void GenerateSFN(char *lfn, unsigned int k, unsigned int &i, unsigned int &t) {
                     if (j==3) break;
                     sfn[i++]=*(n++);
                     lead = true;
-                } else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') {
+                } else if (*n=='"'||*n=='+'||*n=='='||*n==','||*n==';'||*n==':'||*n=='<'||*n=='>'||((*n=='['||*n==']'||*n=='|'||*n=='\\')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*n=='?'||*n=='*') {
                     sfn[i++]='_';
                     n++;
                     lead = false;
@@ -519,16 +519,16 @@ bool Virtual_Drive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst
 		lfn_search[lfn_filefind_handle]=(attr & DOS_ATTR_DIRECTORY) && onpos>0?parent_dir:first_file;
 	}
 	if (attr == DOS_ATTR_VOLUME) {
-		dta.SetResult(GetLabel(),GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+		dta.SetResult(GetLabel(),GetLabel(),0,0,0,0,DOS_ATTR_VOLUME);
 		return true;
 	} else if ((attr & DOS_ATTR_DIRECTORY) && onpos>0) {
 		if (WildFileCmp(".",pattern)) {
-			dta.SetResult(".",".",0,DOS_PackDate(2002,10,1),DOS_PackTime(12,34,56),DOS_ATTR_DIRECTORY);
+			dta.SetResult(".",".",0,0,DOS_PackDate(2002,10,1),DOS_PackTime(12,34,56),DOS_ATTR_DIRECTORY);
 			return true;
 		}
 	} else if ((attr & DOS_ATTR_VOLUME) && !fcb_findfirst) {
 		if (WildFileCmp(GetLabel(),pattern)) {
-			dta.SetResult(GetLabel(),GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+			dta.SetResult(GetLabel(),GetLabel(),0,0,0,0,DOS_ATTR_VOLUME);
 			return true;
 		}
 	}
@@ -542,7 +542,7 @@ bool Virtual_Drive::FindNext(DOS_DTA & dta) {
 
     if ((lfn_filefind_handle>=LFN_FILEFIND_MAX&&search_file==parent_dir) || (lfn_filefind_handle<LFN_FILEFIND_MAX&&lfn_search[lfn_filefind_handle]==parent_dir)) {
         bool cmp=WildFileCmp("..",pattern);
-        if (cmp) dta.SetResult("..","..",0,DOS_PackDate(2002,10,1),DOS_PackTime(12,34,56),DOS_ATTR_DIRECTORY);
+        if (cmp) dta.SetResult("..","..",0,0,DOS_PackDate(2002,10,1),DOS_PackTime(12,34,56),DOS_ATTR_DIRECTORY);
         if (lfn_filefind_handle>=LFN_FILEFIND_MAX)
             search_file=first_file;
         else
@@ -553,7 +553,7 @@ bool Virtual_Drive::FindNext(DOS_DTA & dta) {
 	if (lfn_filefind_handle>=LFN_FILEFIND_MAX)
 		while (search_file) {
 			if (!(skipintprog && search_file->intprog) && pos==search_file->onpos&&((attr & DOS_ATTR_DIRECTORY)||!search_file->isdir)&&(WildFileCmp(search_file->name,pattern)||LWildFileCmp(search_file->lname,pattern))) {
-				dta.SetResult(search_file->name,search_file->lname,search_file->size,search_file->date,search_file->time,search_file->isdir?(search_file->hidden?DOS_ATTR_DIRECTORY|DOS_ATTR_HIDDEN:DOS_ATTR_DIRECTORY):(search_file->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE));
+				dta.SetResult(search_file->name,search_file->lname,search_file->size,0,search_file->date,search_file->time,search_file->isdir?(search_file->hidden?DOS_ATTR_DIRECTORY|DOS_ATTR_HIDDEN:DOS_ATTR_DIRECTORY):(search_file->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE));
 				search_file=search_file->next;
 				return true;
 			}
@@ -562,7 +562,7 @@ bool Virtual_Drive::FindNext(DOS_DTA & dta) {
 	else
 		while (lfn_search[lfn_filefind_handle]) {
 			if (!(skipintprog && search_file->intprog) && pos==lfn_search[lfn_filefind_handle]->onpos&&((attr & DOS_ATTR_DIRECTORY)||!lfn_search[lfn_filefind_handle]->isdir)&&(WildFileCmp(lfn_search[lfn_filefind_handle]->name,pattern)||LWildFileCmp(lfn_search[lfn_filefind_handle]->lname,pattern))) {
-				dta.SetResult(lfn_search[lfn_filefind_handle]->name,lfn_search[lfn_filefind_handle]->lname,lfn_search[lfn_filefind_handle]->size,lfn_search[lfn_filefind_handle]->date,lfn_search[lfn_filefind_handle]->time,lfn_search[lfn_filefind_handle]->isdir?(lfn_search[lfn_filefind_handle]->hidden?DOS_ATTR_DIRECTORY|DOS_ATTR_HIDDEN:DOS_ATTR_DIRECTORY):(lfn_search[lfn_filefind_handle]->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE));
+				dta.SetResult(lfn_search[lfn_filefind_handle]->name,lfn_search[lfn_filefind_handle]->lname,lfn_search[lfn_filefind_handle]->size,0,lfn_search[lfn_filefind_handle]->date,lfn_search[lfn_filefind_handle]->time,lfn_search[lfn_filefind_handle]->isdir?(lfn_search[lfn_filefind_handle]->hidden?DOS_ATTR_DIRECTORY|DOS_ATTR_HIDDEN:DOS_ATTR_DIRECTORY):(lfn_search[lfn_filefind_handle]->hidden?DOS_ATTR_ARCHIVE|DOS_ATTR_HIDDEN:DOS_ATTR_ARCHIVE));
 				lfn_search[lfn_filefind_handle]=lfn_search[lfn_filefind_handle]->next;
 				return true;
 			}

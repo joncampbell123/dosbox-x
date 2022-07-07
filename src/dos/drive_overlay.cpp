@@ -151,8 +151,8 @@ bool Overlay_Drive::RemoveDir(const char * dir) {
 		}
 		bool empty = true;
 		do {
-			char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
-			dta.GetResult(name,lname,size,date,time,attr);
+			char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
+			dta.GetResult(name,lname,size,hsize,date,time,attr);
 			if (logoverlay) LOG_MSG("RemoveDir found %s",name);
 			if (empty && strcmp(".",name ) && strcmp("..",name)) 
 				empty = false; //Neither . or .. so directory not empty.
@@ -1107,7 +1107,7 @@ again:
 	
 	/* file is okay, setup everything to be copied in DTA Block */
 	char find_name[DOS_NAMELENGTH_ASCII], lfind_name[LFN_NAMELENGTH+1];
-	uint16_t find_date,find_time;uint32_t find_size;
+	uint16_t find_date,find_time;uint32_t find_size, find_hsize;
 
 	if(strlen(dir_entcopy)<DOS_NAMELENGTH_ASCII){
 		strcpy(find_name,dir_entcopy);
@@ -1116,16 +1116,23 @@ again:
 	strcpy(lfind_name,ldir_entcopy);
     lfind_name[LFN_NAMELENGTH]=0;
 
-	find_size=(uint32_t) stat_block.st_size;
+	find_hsize=(uint32_t) (stat_block.st_size / 0x100000000);
+	find_size=(uint32_t) (stat_block.st_size % 0x100000000);
 	struct tm *time;
-	if((time=localtime(&stat_block.st_mtime))!=0){
+	if((time=
+#if defined(__MINGW32__) && !defined(HX_DOS)
+    _localtime64
+#else
+    localtime
+#endif
+    (&stat_block.st_mtime))!=0){
 		find_date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
 		find_time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
 	} else {
 		find_time=6; 
 		find_date=4;
 	}
-	dta.SetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
+	dta.SetResult(find_name,lfind_name,find_size,find_hsize,find_date,find_time,find_attr);
 	return true;
 }
 
@@ -2063,7 +2070,13 @@ bool Overlay_Drive::FileStat(const char* name, FileStat_Block * const stat_block
 	
 	/* Convert the stat to a FileStat */
 	struct tm *time;
-	if((time=localtime(&temp_stat.st_mtime))!=0) {
+	if((time=
+#if defined(__MINGW32__) && !defined(HX_DOS)
+    _localtime64
+#else
+    localtime
+#endif
+    (&temp_stat.st_mtime))!=0) {
 		stat_block->time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
 		stat_block->date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
 	} else {

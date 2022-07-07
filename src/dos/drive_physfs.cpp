@@ -651,7 +651,7 @@ again:
 
 	/*file is okay, setup everything to be copied in DTA Block */
 	char find_name[DOS_NAMELENGTH_ASCII], lfind_name[LFN_NAMELENGTH+1];
-	uint16_t find_date,find_time;uint32_t find_size;
+	uint16_t find_date,find_time;uint32_t find_size,find_hsize=0;
 	find_size=(uint32_t)PHYSFS_fileLength(lfull_name);
     time_t mytime = statbuf.modtime;
 	struct tm *time;
@@ -669,7 +669,7 @@ again:
 	strcpy(lfind_name,ldir_ent);
 	lfind_name[LFN_NAMELENGTH]=0;
 
-	dta.SetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
+	dta.SetResult(find_name,lfind_name,find_size,find_hsize,find_date,find_time,find_attr);
 	return true;
 }
 

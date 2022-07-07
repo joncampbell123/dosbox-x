@@ -622,7 +622,7 @@ void DOS_Drive_Cache::CreateShortName(CFileInfo* curDir, CFileInfo* info) {
         unsigned int i = 0;
         bool lead = false;
         while (tmpName[i] != 0) {
-                if ((tmpName[i]&0xFF)<=32||tmpName[i]==127||tmpName[i]=='"'||tmpName[i]=='+'||tmpName[i]=='='||tmpName[i]==','||tmpName[i]==';'||tmpName[i]==':'||tmpName[i]=='<'||tmpName[i]=='>'||((tmpName[i]=='['||tmpName[i]==']'||tmpName[i]=='|')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||tmpName[i]=='?'||tmpName[i]=='*') tmpName[i]='_';
+                if ((tmpName[i]&0xFF)<=32||tmpName[i]==127||tmpName[i]=='"'||tmpName[i]=='+'||tmpName[i]=='='||tmpName[i]==','||tmpName[i]==';'||tmpName[i]==':'||tmpName[i]=='<'||tmpName[i]=='>'||((tmpName[i]=='['||tmpName[i]==']'||tmpName[i]=='|'||tmpName[i]=='\\')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||tmpName[i]=='?'||tmpName[i]=='*') tmpName[i]='_';
                 if (lead) lead = false;
                 else if ((IS_PC98_ARCH && shiftjis_lead_byte(tmpName[i]&0xFF)) || (isDBCSCP() && isKanji1_gbk(tmpName[i]&0xFF))) lead = true;
                 i++;

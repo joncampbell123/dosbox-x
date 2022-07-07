@@ -1120,7 +1120,13 @@ void drivezRegister(std::string path, std::string dir, bool usecp) {
                 host_name = CodePageGuestToHost((GetDOSBoxXPath()+path+CROSS_FILESPLIT+name).c_str());
                 res = ht_stat(host_name,&temp_stat);
             }
-            if (res==0&&(ltime=localtime(&temp_stat.st_mtime))!=0) {
+            if (res==0&&(ltime=
+#if defined(__MINGW32__) && !defined(HX_DOS)
+            _localtime64
+#else
+            localtime
+#endif
+            (&temp_stat.st_mtime))!=0) {
                 fztime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
                 fzdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
             }
@@ -1162,7 +1168,7 @@ void drivezRegister(std::string path, std::string dir, bool usecp) {
             f_size=ftell(f);
             f_data=(uint8_t*)malloc(f_size);
             fseek(f, 0, SEEK_SET);
-            fread(f_data, sizeof(char), f_size, f);
+            if (f_data) fread(f_data, sizeof(char), f_size, f);
             fclose(f);
         }
         if (f_data) VFILE_Register(name.c_str(), f_data, f_size, dir=="/"?"":dir.c_str());
@@ -1628,7 +1634,7 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 	if (this->isRemote() && this->isRemovable()) {
 		// cdroms behave a bit different than regular drives
 		if (sAttr == DOS_ATTR_VOLUME) {
-			dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+			dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,0,DOS_ATTR_VOLUME);
 			return true;
 		}
 	} else {
@@ -1640,13 +1646,13 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 				DOS_SetError(DOSERR_NO_MORE_FILES);
 				return false;
 			}
-            dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+            dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,0,DOS_ATTR_VOLUME);
 			return true;
 		} else if ((sAttr & DOS_ATTR_VOLUME)  && (*_dir == 0) && !fcb_findfirst) { 
 		//should check for a valid leading directory instead of 0
 		//exists==true if the volume label matches the searchmask and the path is valid
 			if (WildFileCmp(dirCache.GetLabel(),tempDir)) {
-                dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,DOS_ATTR_VOLUME);
+                dta.SetResult(dirCache.GetLabel(),dirCache.GetLabel(),0,0,0,0,DOS_ATTR_VOLUME);
 				return true;
 			}
 		}
@@ -1731,7 +1737,7 @@ again:
 	
 	/*file is okay, setup everything to be copied in DTA Block */
 	char find_name[DOS_NAMELENGTH_ASCII], lfind_name[LFN_NAMELENGTH+1];
-    uint16_t find_date,find_time;uint32_t find_size;
+    uint16_t find_date,find_time;uint32_t find_size,find_hsize;
 
 	if(strlen(dir_entcopy)<DOS_NAMELENGTH_ASCII){
 		strcpy(find_name,dir_entcopy);
@@ -1743,16 +1749,23 @@ again:
 	strcpy(lfind_name,ldir_entcopy);
     lfind_name[LFN_NAMELENGTH]=0;
 
-	find_size=(uint32_t) stat_block.st_size;
+	find_hsize=(uint32_t) (stat_block.st_size / 0x100000000);
+	find_size=(uint32_t) (stat_block.st_size % 0x100000000);
     const struct tm* time;
-	if((time=localtime(&stat_block.st_mtime))!=0){
+	if((time=
+#if defined(__MINGW32__) && !defined(HX_DOS)
+    _localtime64
+#else
+    localtime
+#endif
+    (&stat_block.st_mtime))!=0){
 		find_date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
 		find_time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
 	} else {
 		find_time=6; 
 		find_date=4;
 	}
-	dta.SetResult(find_name,lfind_name,find_size,find_date,find_time,find_attr);
+	dta.SetResult(find_name,lfind_name,find_size,find_hsize,find_date,find_time,find_attr);
 	return true;
 }
 
@@ -2276,7 +2289,13 @@ bool localDrive::FileStat(const char* name, FileStat_Block * const stat_block) {
 
 	/* Convert the stat to a FileStat */
     const struct tm* time;
-	if((time=localtime(&temp_stat.st_mtime))!=0) {
+	if((time=
+#if defined(__MINGW32__) && !defined(HX_DOS)
+    _localtime64
+#else
+    localtime
+#endif
+    (&temp_stat.st_mtime))!=0) {
 		stat_block->time=DOS_PackTime((uint16_t)time->tm_hour,(uint16_t)time->tm_min,(uint16_t)time->tm_sec);
 		stat_block->date=DOS_PackDate((uint16_t)(time->tm_year+1900),(uint16_t)(time->tm_mon+1),(uint16_t)time->tm_mday);
 	}

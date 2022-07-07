@@ -518,7 +518,7 @@ void DOS_Shell::CMD_DELETE(char * args) {
 	char full[DOS_PATHLENGTH],sfull[DOS_PATHLENGTH+2];
 	char buffer[CROSS_LEN];
     char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
-    uint32_t size;uint16_t time,date;uint8_t attr;
+    uint32_t size,hsize;uint16_t time,date;uint8_t attr;
 	args = ExpandDot(args,buffer, CROSS_LEN, false);
 	StripSpaces(args);
 	if (!DOS_Canonicalize(args,full)) { WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));dos.dta(save_dta);return; }
@@ -629,7 +629,7 @@ continue_1:
 	bool exist=false;
 	lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 	while (res) {
-		dta.GetResult(name,lname,size,date,time,attr);
+		dta.GetResult(name,lname,size,hsize,date,time,attr);
 		if (!optF && (attr & DOS_ATTR_READ_ONLY) && !(attr & DOS_ATTR_DIRECTORY)) {
 			exist=true;
 			strcpy(end,name);
@@ -679,22 +679,23 @@ struct DtaResult {
 	char name[DOS_NAMELENGTH_ASCII];
 	char lname[LFN_NAMELENGTH+1];
 	uint32_t size;
+	uint32_t hsize;
 	uint16_t date;
 	uint16_t time;
 	uint8_t attr;
 
 	static bool groupDef(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:((((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY)) || (!(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY))) && strcmp(lhs.name, rhs.name) < 0); }
 	static bool groupExt(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:((((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY)) || (!(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY))) && strcmp(lhs.getExtension(), rhs.getExtension()) < 0); }
-	static bool groupSize(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:((((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY)) || (!(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY))) && lhs.size < rhs.size); }
+	static bool groupSize(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:((((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY)) || (!(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY))) && lhs.size+lhs.hsize*0x100000000 < rhs.size+rhs.hsize*0x100000000); }
 	static bool groupDate(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:((((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY)) || (!(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY))) && (lhs.date < rhs.date || (lhs.date == rhs.date && lhs.time < rhs.time))); }
 	static bool groupRevDef(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:((((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY)) || (!(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY))) && strcmp(lhs.name, rhs.name) > 0); }
 	static bool groupRevExt(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:((((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY)) || (!(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY))) && strcmp(lhs.getExtension(), rhs.getExtension()) > 0); }
-	static bool groupRevSize(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:((((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY)) || (!(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY))) && lhs.size > rhs.size); }
+	static bool groupRevSize(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:((((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY)) || (!(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY))) && lhs.size+lhs.hsize*0x100000000 > rhs.size+rhs.hsize*0x100000000); }
 	static bool groupRevDate(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY)?true:((((lhs.attr & DOS_ATTR_DIRECTORY) && (rhs.attr & DOS_ATTR_DIRECTORY)) || (!(lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY))) && (lhs.date > rhs.date || (lhs.date == rhs.date && lhs.time > rhs.time))); }
 	static bool groupDirs(const DtaResult &lhs, const DtaResult &rhs) { return (lhs.attr & DOS_ATTR_DIRECTORY) && !(rhs.attr & DOS_ATTR_DIRECTORY); }
 	static bool compareName(const DtaResult &lhs, const DtaResult &rhs) { return strcmp(lhs.name, rhs.name) < 0; }
 	static bool compareExt(const DtaResult &lhs, const DtaResult &rhs) { return strcmp(lhs.getExtension(), rhs.getExtension()) < 0; }
-	static bool compareSize(const DtaResult &lhs, const DtaResult &rhs) { return lhs.size < rhs.size; }
+	static bool compareSize(const DtaResult &lhs, const DtaResult &rhs) { return lhs.size+lhs.hsize*0x100000000 < rhs.size+rhs.hsize*0x100000000; }
 	static bool compareDate(const DtaResult &lhs, const DtaResult &rhs) { return lhs.date < rhs.date || (lhs.date == rhs.date && lhs.time < rhs.time); }
 
 	const char * getExtension() const {
@@ -741,14 +742,14 @@ static bool doDeltree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optY, bo
 	char * end=strrchr_dbcs(full,'\\')+1;*end=0;
 	char * lend=strrchr_dbcs(sfull,'\\')+1;*lend=0;
     char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
-    uint32_t size;uint16_t time,date;uint8_t attr;uint16_t fattr;
+    uint32_t size,hsize;uint16_t time,date;uint8_t attr;uint16_t fattr;
     std::vector<std::string> cdirs, cfiles;
     cdirs.clear();
 	cfiles.clear();
     std::string pfull;
 	while (res) {
         strcpy(spath, path);
-		dta.GetResult(name,lname,size,date,time,attr);
+		dta.GetResult(name,lname,size,hsize,date,time,attr);
 		if (!((!strcmp(name, ".") || !strcmp(name, "..")) && attr & DOS_ATTR_DIRECTORY)) {
 			found=true;
 			strcpy(end,name);
@@ -932,14 +933,14 @@ static bool doTree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optA, bool 
 	char * end=strrchr_dbcs(full,'\\')+1;*end=0;
 	char * lend=strrchr_dbcs(sfull,'\\')+1;*lend=0;
     char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
-    uint32_t size;uint16_t time,date;uint8_t attr;uint16_t fattr;
+    uint32_t size,hsize;uint16_t time,date;uint8_t attr;uint16_t fattr;
     std::vector<std::string> cdirs;
     cdirs.clear();
 	while (res) {
         if (CheckBreak(shell)) return false;
         strcpy(spath,((plast||(level==1&&last)?"-":"")+std::to_string(level+1)+":").c_str());
         strcat(spath, path);
-		dta.GetResult(name,lname,size,date,time,attr);
+		dta.GetResult(name,lname,size,hsize,date,time,attr);
 		if (!((!strcmp(name, ".") || !strcmp(name, "..")) && attr & DOS_ATTR_DIRECTORY)) {
 			strcpy(end,name);
 			strcpy(lend,lname);
@@ -1091,7 +1092,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 	StripSpaces(args);
 	if (*args) {SyntaxError();return;}
 	char* slash = strrchr_dbcs(arg1,'\\');
-	uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
+	uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
 	char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH+1], tname1[LFN_NAMELENGTH+1], tname2[LFN_NAMELENGTH+1], text1[LFN_NAMELENGTH+1], text2[LFN_NAMELENGTH+1], tfull[CROSS_LEN+2];
 	//dir_source and target are introduced for when we support multiple files being renamed.
 	char sargs[CROSS_LEN], targs[CROSS_LEN], dir_source[DOS_PATHLENGTH + 4] = {0}, dir_target[CROSS_LEN + 4] = {0}, target[CROSS_LEN + 4] = {0}; //not sure if drive portion is included in pathlength
@@ -1173,7 +1174,7 @@ void DOS_Shell::CMD_RENAME(char * args){
 		sources.clear();
 	
 		do {    /* File name and extension */
-			dta.GetResult(name,lname,size,date,time,attr);
+			dta.GetResult(name,lname,size,hsize,date,time,attr);
 			lfn_filefind_handle=fbak;
 
 			if(!(attr&DOS_ATTR_DIRECTORY && (!strcmp(name, ".") || !strcmp(name, "..")))) {
@@ -1598,7 +1599,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 		lfn_filefind_handle=uselfn&&!optZ?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 		do {    /* File name and extension */
 			DtaResult result;
-			dta.GetResult(result.name,result.lname,result.size,result.date,result.time,result.attr);
+			dta.GetResult(result.name,result.lname,result.size,result.hsize,result.date,result.time,result.attr);
 
 			/* Skip non-directories if option AD is present, or skip dirs in case of A-D */
 			if(optAD && !(result.attr&DOS_ATTR_DIRECTORY) ) continue;
@@ -1654,6 +1655,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 			char * name = iter->name;
 			char *lname = iter->lname;
 			uint32_t size = iter->size;
+			uint32_t hsize = iter->hsize;
 			uint16_t date = iter->date;
 			uint16_t time = iter->time;
 			uint8_t attr = iter->attr;
@@ -1735,7 +1737,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 					if (optW) {
 						shell->WriteOut("%-16s",name);
 					} else {
-						FormatNumber(size,numformat);
+						FormatNumber(size+hsize*0x100000000,numformat);
 						shell->WriteOut("%-8s %-3s   %16s %s %s",name,ext,numformat,FormatDate(year,month,day),FormatTime(hour,minute,100,100));
                         if (uselfn&&!optZ) {
                             shell->WriteOut(" ");
@@ -1756,10 +1758,10 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 					}
 					if (optS) {
 						cfile_count++;
-						cbyte_count+=size;
+						cbyte_count+=size+hsize*0x100000000;
 					}
 					file_count++;
-					byte_count+=size;
+					byte_count+=size+hsize*0x100000000;
 				}
 				if (optW) w_count++;
 			}
@@ -1794,7 +1796,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 			cdirs.clear();
 			do {    /* File name and extension */
 				DtaResult result;
-				dta.GetResult(result.name,result.lname,result.size,result.date,result.time,result.attr);
+				dta.GetResult(result.name,result.lname,result.size,result.hsize,result.date,result.time,result.attr);
 
 				if(result.attr&DOS_ATTR_DIRECTORY && strcmp(result.name, ".")&&strcmp(result.name, "..")) {
 					strcat(sargs, result.name);
@@ -2059,19 +2061,19 @@ void DOS_Shell::CMD_DIR(char * args) {
 		WriteOut(MSG_Get("SHELL_CMD_DIR_BYTES_USED"),file_count,numformat);
 		if (!dirPaused(this, w_size, optP, optW)) {dos.dta(save_dta);return;}
 		uint8_t drive=dta.GetSearchDrive();
-		Bitu free_space=1024u*1024u*100u;
+		uint64_t free_space=1024u*1024u*100u;
 		if (Drives[drive]) {
 			uint32_t bytes_sector32;uint32_t sectors_cluster32;uint32_t total_clusters32;uint32_t free_clusters32;
 			if ((dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10)) &&
 				Drives[drive]->AllocationInfo32(&bytes_sector32,&sectors_cluster32,&total_clusters32,&free_clusters32)) { /* FAT32 aware extended API */
 				freec=0;
-				free_space=(Bitu)bytes_sector32 * (Bitu)sectors_cluster32 * (Bitu)free_clusters32;
+				free_space=(uint64_t)bytes_sector32 * (Bitu)sectors_cluster32 * (Bitu)free_clusters32;
 			} else {
 				uint16_t bytes_sector;uint8_t sectors_cluster;uint16_t total_clusters;uint16_t free_clusters;
 				rsize=true;
 				freec=0;
 				Drives[drive]->AllocationInfo(&bytes_sector,&sectors_cluster,&total_clusters,&free_clusters);
-				free_space=(Bitu)bytes_sector * (Bitu)sectors_cluster * (Bitu)(freec?freec:free_clusters);
+				free_space=(uint64_t)bytes_sector * (Bitu)sectors_cluster * (Bitu)(freec?freec:free_clusters);
 				rsize=false;
 			}
 		}
@@ -2170,7 +2172,7 @@ void DOS_Shell::CMD_LS(char *args) {
 
 	do {
 		DtaResult result;
-		dta.GetResult(result.name, result.lname, result.size, result.date, result.time, result.attr);
+		dta.GetResult(result.name, result.lname, result.size, result.hsize, result.date, result.time, result.attr);
 		results.push_back(result);
 	} while ((ret = DOS_FindNext()) == true);
 	lfn_filefind_handle=fbak;
@@ -2263,7 +2265,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 	RealPt save_dta=dos.dta();
 	dos.dta(dos.tables.tempdta);
 	DOS_DTA dta(dos.dta());
-	uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
+	uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
 	char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH+1];
 	std::vector<copysource> sources;
 	// ignore /b and /t switches: always copy binary
@@ -2340,7 +2342,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 						strcat(spath, "*.*");
 					}
 					if (DOS_FindFirst(spath,0xffff & ~DOS_ATTR_VOLUME)) {
-                    dta.GetResult(name,lname,size,date,time,attr);
+                    dta.GetResult(name,lname,size,hsize,date,time,attr);
 					if (attr & DOS_ATTR_DIRECTORY || root)
 						strcat(source_x,"\\*.*");
 					}
@@ -2410,7 +2412,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 		bool target_is_file = true;
 		if (pathTarget[strlen(pathTarget)-1]!='\\') {
 			if (DOS_FindFirst(pathTarget,0xffff & ~DOS_ATTR_VOLUME)) {
-				dta.GetResult(name,lname,size,date,time,attr);
+				dta.GetResult(name,lname,size,hsize,date,time,attr);
 				if (attr & DOS_ATTR_DIRECTORY) {
 					strcat(pathTarget,"\\");
 					target_is_file = false;
@@ -2492,7 +2494,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 					DOS_CloseFile(targetHandle);
 				return;
 			}
-			dta.GetResult(name,lname,size,date,time,attr);
+			dta.GetResult(name,lname,size,hsize,date,time,attr);
 
 			if ((attr & DOS_ATTR_DIRECTORY)==0) {
                 uint16_t ftime,fdate;
@@ -3245,7 +3247,7 @@ void DOS_Shell::CMD_SUBST(char * args) {
 		CommandLine command(0,args);
 		if (!command.GetCount()) {
 			char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
-			uint32_t size;uint16_t date;uint16_t time;uint8_t attr;
+			uint32_t size,hsize;uint16_t date;uint16_t time;uint8_t attr;
 			/* Command uses dta so set it to our internal dta */
 			RealPt save_dta = dos.dta();
 			dos.dta(dos.tables.tempdta);
@@ -3263,7 +3265,7 @@ void DOS_Shell::CMD_SUBST(char * args) {
 				char root[7] = {(char)('A'+d),':','\\','*','.','*',0};
 				bool ret = DOS_FindFirst(root,DOS_ATTR_VOLUME);
 				if (ret) {
-					dta.GetResult(name,lname,size,date,time,attr);
+					dta.GetResult(name,lname,size,hsize,date,time,attr);
 					DOS_FindNext(); //Mark entry as invalid
 				} else name[0] = 0;
 
@@ -3476,10 +3478,10 @@ static bool doAttrib(DOS_Shell * shell, char * args, DOS_DTA dta, bool optS, boo
 	char * end=strrchr_dbcs(full,'\\')+1;*end=0;
 	char * lend=strrchr_dbcs(sfull,'\\')+1;*lend=0;
     char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
-    uint32_t size;uint16_t time,date;uint8_t attr;uint16_t fattr;
+    uint32_t size,hsize;uint16_t time,date;uint8_t attr;uint16_t fattr;
 	while (res) {
 		if (CheckBreak(shell)) {ctrlbrk=true;return false;}
-		dta.GetResult(name,lname,size,date,time,attr);
+		dta.GetResult(name,lname,size,hsize,date,time,attr);
 		if (!((!strcmp(name, ".") || !strcmp(name, "..") || strchr(sargs, '*')!=NULL || strchr(sargs, '?')!=NULL) && attr & DOS_ATTR_DIRECTORY)) {
 			found=true;
 			strcpy(end,name);
@@ -3523,7 +3525,7 @@ static bool doAttrib(DOS_Shell * shell, char * args, DOS_DTA dta, bool optS, boo
 			cdirs.clear();
 			do {    /* File name and extension */
 				DtaResult result;
-				dta.GetResult(result.name,result.lname,result.size,result.date,result.time,result.attr);
+				dta.GetResult(result.name,result.lname,result.size,result.hsize,result.date,result.time,result.attr);
 
 				if((result.attr&DOS_ATTR_DIRECTORY) && strcmp(result.name, ".")&&strcmp(result.name, "..")) {
 					strcat(path, result.name);
@@ -4117,7 +4119,7 @@ void DOS_Shell::CMD_FOR(char *args) {
 						path[k++]=path[i];
 				path[k]=0;
 			}
-			uint32_t size;
+			uint32_t size, hsize;
 			uint16_t date, time;
 			uint8_t attr;
 			DOS_DTA dta(dos.dta());
@@ -4127,12 +4129,12 @@ void DOS_Shell::CMD_FOR(char *args) {
 			lfn_filefind_handle=lfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
 			if (DOS_FindFirst((std::string(spath)+std::string(pattern)).c_str(), ~(DOS_ATTR_VOLUME|DOS_ATTR_DIRECTORY|DOS_ATTR_DEVICE|DOS_ATTR_HIDDEN|DOS_ATTR_SYSTEM)))
 				{
-				dta.GetResult(name, lname, size, date, time, attr);
+				dta.GetResult(name, lname, size, hsize, date, time, attr);
 				tmp=std::string(path)+std::string(lfn?lname:name);
 				sources.push_back(tmp);
 				while (DOS_FindNext())
 					{
-					dta.GetResult(name, lname, size, date, time, attr);
+					dta.GetResult(name, lname, size, hsize, date, time, attr);
 					tmp=std::string(path)+std::string(lfn?lname:name);
 					sources.push_back(tmp);
 					}
