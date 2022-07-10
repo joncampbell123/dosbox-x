@@ -101,13 +101,14 @@ bool mountwarning = true;
 bool qmount = false;
 bool nowarn = false;
 bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
-extern bool addovl, addipx, addne2k, prepared, inshell, usecon, uao, morelen, mountfro[26], mountiro[26], resetcolor, staycolors, internal_program;
+extern bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+extern bool addovl, addipx, addne2k, prepared, inshell, usecon, uao, morelen, mountfro[26], mountiro[26], resetcolor, staycolors, printfont, internal_program;
 extern bool clear_screen(), OpenGL_using(void), DOS_SetAnsiAttr(uint8_t attr);
 extern int lastcp, FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 extern uint8_t DOS_GetAnsiAttr(void);
 void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused), UpdateSDLDrawTexture();
-void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str), show_prompt();
-void getdrivezpath(std::string &path, std::string dirname), drivezRegister(std::string path, std::string dir, bool usecp);
+void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str), show_prompt(), ttf_reset(void);
+void getdrivezpath(std::string &path, std::string dirname), drivezRegister(std::string path, std::string dir, bool usecp), UpdateDefaultPrinterFont(void);
 std::string GetDOSBoxXPath(bool withexe=false);
 
 #if defined(OS2)
@@ -330,9 +331,7 @@ void MountHelper(char drive, const char drive2[DOS_PATHLENGTH], std::string driv
 			default :   errmsg=MSG_Get("MSCDEX_UNKNOWN_ERROR");          break;
 		}
 		if (error) {
-#if !defined(HX_DOS)
-            tinyfd_messageBox(error==5?"Warning":"Error",errmsg.c_str(),"ok","error", 1);
-#endif
+			systemmessagebox(error==5?"Warning":"Error",errmsg.c_str(),"ok","error", 1);
 			if (error!=5) {
 				delete newdrive;
 				return;
@@ -372,11 +371,11 @@ void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
 	std::string drive_warn;
 	if (Drives[drive-'A']) {
 		drive_warn="Drive "+str+": is already mounted. Unmount it first, and then try again.";
-		MessageBox(GetHWND(),drive_warn.c_str(),"Error",MB_OK);
+		systemmessagebox("Error",drive_warn.c_str(),"ok","error", 1);
 		return;
 	}
 	if(control->SecureMode()) {
-		MessageBox(GetHWND(),MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"Error",MB_OK);
+		systemmessagebox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
 		return;
 	}
 	DOS_Drive * newdrive;
@@ -387,7 +386,7 @@ void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
 	drive_warn="Do you really want to give DOSBox-X access to";
 	int type=GetDriveType(drive2);
 	if(type==DRIVE_NO_ROOT_DIR) {
-		MessageBox(GetHWND(),("Drive "+str+": does not exist in the system.").c_str(),"Error",MB_OK);
+		systemmessagebox("Error",("Drive "+str+": does not exist in the system.").c_str(),"ok","error", 1);
 		return;
 	} else if(type==DRIVE_CDROM)
 		drive_warn += " your real CD-ROM drive ";
@@ -398,7 +397,7 @@ void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
 	else
 		drive_warn += " your real hard drive ";
 
-	if (mountwarning && MessageBox(GetHWND(),(drive_warn+str+"?").c_str(),"Warning",MB_YESNO)==IDNO) return;
+	if (mountwarning && !systemmessagebox("Warning",(drive_warn+str+"?").c_str(),"yesno","warning",1)) return;
 
 	if(type==DRIVE_CDROM) {
 		mediaid=0xF8;		/* Hard Disk */
@@ -446,7 +445,7 @@ void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
 			default :   errmsg=MSG_Get("MSCDEX_UNKNOWN_ERROR");          break;
 		}
 		if (error) {
-			MessageBox(GetHWND(),errmsg.c_str(),error==5?"Warning":"Error",MB_OK);
+			systemmessagebox(error==5?"Warning":"Error",errmsg.c_str(),"ok",error==5?"warning":"error", 1);
 			if (error!=5) {
 				delete newdrive;
 				return;
@@ -499,16 +498,14 @@ std::string GetNewStr(const char *str) {
 
 void MenuBrowseCDImage(char drive, int num) {
 	if(control->SecureMode()) {
-#if !defined(HX_DOS)
-        tinyfd_messageBox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
-#endif
+		systemmessagebox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
 		return;
 	}
 
     if (Drives[drive-'A']&&!strncmp(Drives[drive-'A']->GetInfo(), "isoDrive ", 9)) {
 #if !defined(HX_DOS)
         std::string drive_warn = "CD drive "+(dos_kernel_disabled?std::to_string(num):std::string(1, drive)+":")+" is currently mounted with the image:\n\n"+std::string(Drives[drive-'A']->GetInfo()+9)+"\n\nDo you want to change the CD image now?";
-        if (!tinyfd_messageBox("Change CD image",drive_warn.c_str(),"yesno","question", 1)) return;
+        if (!systemmessagebox("Change CD image",drive_warn.c_str(),"yesno","question", 1)) return;
 #endif
     } else
         return;
@@ -532,7 +529,7 @@ void MenuBrowseCDImage(char drive, int num) {
             int error = -1;
             newDrive = new isoDrive(drive, lTheOpenFileName, mediaid, error);
             if (error) {
-                tinyfd_messageBox("Error","Could not mount the selected CD image.","ok","error", 1);
+                systemmessagebox("Error","Could not mount the selected CD image.","ok","error", 1);
                 chdir( Temp_CurrentDir );
                 return;
             }
@@ -546,9 +543,7 @@ void MenuBrowseCDImage(char drive, int num) {
 
 void MenuBrowseFDImage(char drive, int num, int type) {
 	if(control->SecureMode()) {
-#if !defined(HX_DOS)
-        tinyfd_messageBox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
-#endif
+		systemmessagebox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
 		return;
 	}
 
@@ -556,7 +551,7 @@ void MenuBrowseFDImage(char drive, int num, int type) {
 #if !defined(HX_DOS)
         std::string image = type==1||type==-1&&dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[drive-'A'])!=NULL?"El Torito floppy image":(type==2||type==-1&&dynamic_cast<imageDiskMemory *>(imageDiskList[drive-'A'])!=NULL?"RAM floppy image":(type==-1?imageDiskList[drive-'A']->diskname.c_str():Drives[drive-'A']->GetInfo()+9));
         std::string drive_warn = "Floppy drive "+(type==-1?std::string(1, drive-'A'+'0'):(dos_kernel_disabled?std::to_string(num):std::string(1, drive)+":"))+" is currently mounted with the image:\n\n"+image+"\n\nDo you want to change the floppy disk image now?";
-        if (!tinyfd_messageBox("Change floppy disk image",drive_warn.c_str(),"yesno","question", 1)) return;
+        if (!systemmessagebox("Change floppy disk image",drive_warn.c_str(),"yesno","question", 1)) return;
 #endif
     } else
         return;
@@ -576,7 +571,7 @@ void MenuBrowseFDImage(char drive, int num, int type) {
         if (mountiro[drive-'A']) options.emplace_back("readonly");
         fatDrive *newDrive = new fatDrive(lTheOpenFileName, 0, 0, 0, 0, options);
         if (!newDrive->created_successfully) {
-            tinyfd_messageBox("Error","Could not mount the selected floppy disk image.","ok","error", 1);
+            systemmessagebox("Error","Could not mount the selected floppy disk image.","ok","error", 1);
             chdir( Temp_CurrentDir );
             return;
         }
@@ -607,15 +602,11 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 	std::string drive_warn;
 	if (Drives[drive-'A']&&!boot) {
 		drive_warn="Drive "+str+": is already mounted. Unmount it first, and then try again.";
-#if !defined(HX_DOS)
-        tinyfd_messageBox("Error",drive_warn.c_str(),"ok","error", 1);
-#endif
+		systemmessagebox("Error",drive_warn.c_str(),"ok","error", 1);
 		return;
 	}
 	if(control->SecureMode()) {
-#if !defined(HX_DOS)
-        tinyfd_messageBox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
-#endif
+		systemmessagebox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
 		return;
 	}
 	if (dos_kernel_disabled)
@@ -642,7 +633,7 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
                 files += fname[i]=='|'?"\" \"":std::string(1,fname[i]);
             files += "\" ";
         }
-        while (multiple&&lTheOpenFileName&&tinyfd_messageBox("Mount image files","Do you want to mount more image file(s)?","yesno", "question", 1)) {
+        while (multiple&&lTheOpenFileName&&systemmessagebox("Mount image files","Do you want to mount more image file(s)?","yesno", "question", 1)) {
             lTheOpenFileName = tinyfd_openFileDialog(("Select image file(s) for Drive "+str+":").c_str(),"",20,lFilterPatterns,lFilterDescription,multiple?1:0);
             if (lTheOpenFileName) {
                 fname = GetNewStr(lTheOpenFileName);
@@ -670,7 +661,7 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
             *type=0;
 		char mountstring[CROSS_LEN*4+20];
         if (files.size()>CROSS_LEN*4) {
-            tinyfd_messageBox("Error","The path for the file(s) to mount is too long.","ok","error", 1);
+            systemmessagebox("Error","The path for the file(s) to mount is too long.","ok","error", 1);
             return;
         }
 		strcpy(mountstring,type);
@@ -694,18 +685,18 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 		chdir( Temp_CurrentDir );
 		if (!Drives[drive-'A']) {
 			drive_warn="Drive "+str+": failed to mount.";
-			tinyfd_messageBox("Error",drive_warn.c_str(),"ok","error", 1);
+			systemmessagebox("Error",drive_warn.c_str(),"ok","error", 1);
 			return;
 		} else if (boot) {
 			char str[] = "-Q A:";
 			str[3]=drive;
 			runBoot(str);
 			std::string drive_warn="Drive "+std::string(1, drive)+": failed to boot.";
-			tinyfd_messageBox("Error",drive_warn.c_str(),"ok","error", 1);
+			systemmessagebox("Error",drive_warn.c_str(),"ok","error", 1);
 		} else if (multiple) {
-			tinyfd_messageBox("Information",("Mounted disk images to Drive "+std::string(1,drive)+(dos.loaded_codepage==437?":\n"+files:".")+(mountiro[drive-'A']?"\n(Read-only mode)":"")).c_str(),"ok","info", 1);
+			systemmessagebox("Information",("Mounted disk images to Drive "+std::string(1,drive)+(dos.loaded_codepage==437?":\n"+files:".")+(mountiro[drive-'A']?"\n(Read-only mode)":"")).c_str(),"ok","info", 1);
 		} else if (lTheOpenFileName) {
-			tinyfd_messageBox("Information",(std::string(arc?"Mounted archive":"Mounted disk image")+" to Drive "+std::string(1,drive)+":\n"+std::string(lTheOpenFileName)+(arc||mountiro[drive-'A']?"\n(Read-only mode)":"")).c_str(),"ok","info", 1);
+			systemmessagebox("Information",(std::string(arc?"Mounted archive":"Mounted disk image")+" to Drive "+std::string(1,drive)+":\n"+std::string(lTheOpenFileName)+(arc||mountiro[drive-'A']?"\n(Read-only mode)":"")).c_str(),"ok","info", 1);
 		}
 	}
 	chdir( Temp_CurrentDir );
@@ -716,15 +707,11 @@ void MenuBrowseFolder(char drive, std::string drive_type) {
     std::string str(1, drive);
 	if (Drives[drive-'A']) {
 		std::string drive_warn="Drive "+str+": is already mounted. Unmount it first, and then try again.";
-#if !defined(HX_DOS)
-        tinyfd_messageBox("Error",drive_warn.c_str(),"ok","error", 1);
-#endif
+		systemmessagebox("Error",drive_warn.c_str(),"ok","error", 1);
 		return;
 	}
 	if(control->SecureMode()) {
-#if !defined(HX_DOS)
-        tinyfd_messageBox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
-#endif
+		systemmessagebox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
 		return;
 	}
 #if !defined(HX_DOS)
@@ -738,7 +725,7 @@ void MenuBrowseFolder(char drive, std::string drive_type) {
     char const * lTheSelectFolderName = tinyfd_selectFolderDialog(title.c_str(), NULL);
     if (lTheSelectFolderName) {
         MountHelper(drive,GetNewStr(lTheSelectFolderName).c_str(),drive_type);
-        if (Drives[drive-'A']) tinyfd_messageBox("Information",("Drive "+std::string(1,drive)+" is now mounted to:\n"+std::string(lTheSelectFolderName)).c_str(),"ok","info", 1);
+        if (Drives[drive-'A']) systemmessagebox("Information",("Drive "+std::string(1,drive)+" is now mounted to:\n"+std::string(lTheSelectFolderName)).c_str(),"ok","info", 1);
     }
 #endif
 }
@@ -746,9 +733,7 @@ void MenuBrowseFolder(char drive, std::string drive_type) {
 void MenuUnmountDrive(char drive) {
 	if (!Drives[drive-'A']) {
 		std::string drive_warn="Drive "+std::string(1, drive)+": is not yet mounted.";
-#if !defined(HX_DOS)
-        tinyfd_messageBox("Error",drive_warn.c_str(),"ok","error", 1);
-#endif
+		systemmessagebox("Error",drive_warn.c_str(),"ok","error", 1);
 		return;
 	}
     UnmountHelper(drive);
@@ -756,25 +741,19 @@ void MenuUnmountDrive(char drive) {
 
 void MenuBootDrive(char drive) {
 	if(control->SecureMode()) {
-#if !defined(HX_DOS)
-        tinyfd_messageBox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
-#endif
+		systemmessagebox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
 		return;
 	}
 	char str[] = "-Q A:";
 	str[3]=drive;
 	runBoot(str);
 	std::string drive_warn="Drive "+std::string(1, drive)+": failed to boot.";
-#if !defined(HX_DOS)
-    tinyfd_messageBox("Error",drive_warn.c_str(),"ok","error", 1);
-#endif
+	systemmessagebox("Error",drive_warn.c_str(),"ok","error", 1);
 }
 
 void MenuBrowseProgramFile() {
 	if(control->SecureMode()) {
-#if !defined(HX_DOS)
-        tinyfd_messageBox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
-#endif
+		systemmessagebox("Error",MSG_Get("PROGRAM_CONFIG_SECURE_DISALLOW"),"ok","error", 1);
 		return;
 	}
 	if (dos_kernel_disabled)
@@ -785,9 +764,7 @@ void MenuBrowseProgramFile() {
 	mcb.GetFileName(psp_name);
 	if(strlen(psp_name)&&strcmp(psp_name, "COMMAND")) {
         drive_warn=strcmp(psp_name, "4DOS")?"Another program is already running.":"Another shell is currently running.";
-#if !defined(HX_DOS)
-        tinyfd_messageBox("Error",drive_warn.c_str(),"ok","error", 1);
-#endif
+		systemmessagebox("Error",drive_warn.c_str(),"ok","error", 1);
         return;
     }
 
@@ -809,7 +786,7 @@ void MenuBrowseProgramFile() {
     }
     if (drv==' ') { // Fallback to C: if no free drive found
         drive_warn="Quick launch automatically mounts drive C in DOSBox-X.\nDrive C has already been mounted. Do you want to continue?";
-        if (!tinyfd_messageBox("Warning",drive_warn.c_str(),"yesno", "question", 1)) {return;}
+        if (!systemmessagebox("Warning",drive_warn.c_str(),"yesno", "question", 1)) {return;}
         drv='C';
     }
     mainMenu.get_item("mapper_quickrun").enable(false).refresh_item(mainMenu);
@@ -829,7 +806,7 @@ void MenuBrowseProgramFile() {
         std::string full = base;
         if (stat(full.c_str(), &st) || !S_ISREG(st.st_mode)) {
             if(ext!=NULL) {
-                tinyfd_messageBox("Error","Executable file not found.","ok","error", 1);
+                systemmessagebox("Error","Executable file not found.","ok","error", 1);
                 return;
             }
             full=base+".com";
@@ -838,14 +815,14 @@ void MenuBrowseProgramFile() {
                 if (stat(full.c_str(), &st) || !S_ISREG(st.st_mode)) {
                     full=base+".bat";
                     if (stat(full.c_str(), &st) || !S_ISREG(st.st_mode)) {
-                        tinyfd_messageBox("Error","Executable file not found.","ok","error", 1);
+                        systemmessagebox("Error","Executable file not found.","ok","error", 1);
                         return;
                     }
                 }
             }
         }
         if(ext==NULL) {
-            tinyfd_messageBox("Error","Executable file not found.","ok","error", 1);
+            systemmessagebox("Error","Executable file not found.","ok","error", 1);
             return;
         }
         std::size_t found = full.find_last_of("/\\");
@@ -867,7 +844,7 @@ void MenuBrowseProgramFile() {
 		runMount(mountstring);
 		if (!Drives[drv-'A']) {
 			drive_warn="Drive "+std::string(1, drv)+": failed to mount.";
-            tinyfd_messageBox("Error",drive_warn.c_str(),"ok","error", 1);
+            systemmessagebox("Error",drive_warn.c_str(),"ok","error", 1);
             if (!dos_kernel_disabled) mainMenu.get_item("mapper_quickrun").enable(true).refresh_item(mainMenu);
 			return;
         }
@@ -905,7 +882,7 @@ void MenuBrowseProgramFile() {
         if (!exist) {
             for (int i=0; i<1000; i++) CALLBACK_Idle();
             drive_warn="Program has finished execution. Do you want to unmount Drive "+std::string(1, drv)+" now?";
-            if (tinyfd_messageBox("Warning",drive_warn.c_str(),"yesno", "question", 1)) {
+            if (systemmessagebox("Warning",drive_warn.c_str(),"yesno", "question", 1)) {
                 if (Drives[olddrv]) DOS_SetDefaultDrive(olddrv);
                 char temp_str[3] = { 0,0,0 };
                 temp_str[0]=drv;
@@ -1301,12 +1278,43 @@ public:
             if(temp_line.size() > 3 && temp_line[temp_line.size()-1]=='\\') temp_line.erase(temp_line.size()-1,1);
             if(temp_line.size() == 2 && toupper(temp_line[0])>='A' && toupper(temp_line[0])<='Z' && temp_line[1]==':') temp_line.append("\\");
 			if(temp_line.size() > 4 && temp_line[0]=='\\' && temp_line[1]=='\\' && temp_line[2]!='\\' && std::count(temp_line.begin()+3, temp_line.end(), '\\')==1) temp_line.append("\\");
+            const host_cnv_char_t* host_name = CodePageGuestToHost(temp_line.c_str());
+            Section_prop * section = static_cast<Section_prop *>(control->GetSection("config"));
+            const char *countrystr = (control->opt_noconfig || !section) ? "" : (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
             if (!is_physfs && stat(temp_line.c_str(),&test)) {
 #endif
 #if defined(WIN32)
-                const host_cnv_char_t* host_name = CodePageGuestToHost(temp_line.c_str());
                 if (host_name == NULL || ht_stat(host_name, &htest)) failed = true;
                 useh = true;
+            } else if (!is_physfs && _waccess(host_name,0) && (r==NULL || !*(r+1)) && !control->opt_langcp && dos.loaded_codepage == 437) {
+                uint16_t cp = GetACP(), cpbak = dos.loaded_codepage;
+#if defined(USE_TTF)
+                if ((ttf.inUse&&(cp<1250||cp>1259)&&cp!=437&&isSupportedCP(cp))||(!ttf.inUse&&(cp==932||cp==936||cp==949||cp==950||cp==951)))
+#else
+                if (cp==932||cp==936||cp==949||cp==950||cp==951)
+#endif
+                {
+                    cpbak = dos.loaded_codepage;
+                    dos.loaded_codepage = cp;
+                    host_name = CodePageGuestToHost(temp_line.c_str());
+                    char str[150];
+
+                    sprintf(str, "Drive %c: appears to require code page %d in order to be accessed.\n\nDo you want to change the current code page to %d now?\n", drive, cp, cp);
+                    if (!host_name || ht_stat(host_name, &htest) || _waccess(host_name,0) || !systemmessagebox("Changing code page",str,"yesno","question",1))
+                        dos.loaded_codepage = cpbak;
+#if defined(USE_TTF)
+                    else if (ttf.inUse&&(cp==932||cp==936||cp==949||cp==950||cp==951)) {
+                        Section_prop * ttf_section = static_cast<Section_prop *>(control->GetSection("ttf"));
+                        const char *font = ttf_section->Get_string("font");
+                        if (!font || !*font) {
+                            ttf_reset();
+#if C_PRINTER
+                            if (printfont) UpdateDefaultPrinterFont();
+#endif
+                        }
+                    }
+#endif
+                }
             }
 #elif defined (OS2)
                 if (temp_line.size() <= 2) // Seems to be a drive.
@@ -1839,6 +1847,7 @@ public:
         bool pc98_show_graphics = false;
         bool bios_boot = false;
         bool swaponedrive = false;
+        bool convertro = false;
         bool force = false;
         int convimg = -1;
         int quiet = 0;
@@ -1868,6 +1877,11 @@ public:
 
         if (cmd->FindExist("-force",true))
             force = true;
+
+        if (cmd->FindExist("-convertfatro",true)) {
+            convimg = 1;
+            convertro = true;
+        }
 
         if (cmd->FindExist("-convertfat",true))
             convimg = 1;
@@ -2520,7 +2534,8 @@ public:
                                 *msg = 0;
                             }
                         }
-                        imageDisk *imagedrv = new imageDisk(Drives[drv]);
+                        Overlay_Drive *od = dynamic_cast<Overlay_Drive*>(Drives[drv]);
+                        imageDisk *imagedrv = new imageDisk(Drives[drv], convertro || Drives[drv]->readonly || (od && od->ovlreadonly));
                         if (imagedrv && imagedrv->ffdd) {
                             imageDiskList[nextdrv] = imagedrv;
                             bool ide_slave = false;

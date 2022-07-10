@@ -1002,7 +1002,7 @@ int FileDirExistCP(const char *name) {
 int FileDirExistUTF8(std::string &localname, const char *name) {
     int cp = dos.loaded_codepage;
 #ifdef WIN32
-    dos.loaded_codepage = GetOEMCP();
+    dos.loaded_codepage = GetACP();
 #else
     return 0;
 #endif

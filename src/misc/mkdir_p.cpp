@@ -29,15 +29,20 @@ using namespace std;
 int _wmkdir_p(const wchar_t *pathname) {
 	const size_t pathlen = wcslen(pathname);
 	wchar_t *pc = new wchar_t[pathlen+1];
+	wchar_t *pcl = new wchar_t[pathlen+1];
 	const wchar_t *ps = pathname;
 	wchar_t *pwf = pc + pathlen;
 	wchar_t *pw = pc;
+	wchar_t lt = 0;
+	bool bs = false;
 	struct _stat st;
 	int result = 0;
 	errno = 0;
 
 	/* if there is a drive like letter C: then skip it */
 	if (((ps[0] >= 'A' && ps[0] <= 'Z') || (ps[0] >= 'a' && ps[0] <= 'z')) && ps[1] == ':') {
+		lt = ps[0];
+		if (ps[2] == '\\') bs = true;
 		*pw = *ps++;
 		*pw = *ps++;
 		assert(pw <= pwf);
@@ -62,7 +67,18 @@ int _wmkdir_p(const wchar_t *pathname) {
 
 				/* and mkdir() with it if needed */
 				*pw = 0; /* NUL terminate pc we copied so far */
-				if (_wstat(pc,&st) == 0) {
+                if (lt) {
+                    pcl[0] = lt;
+                    pcl[1] = ':';
+                    if (bs) {
+                        pcl[2] = '\\';
+                        pcl[3] = 0;
+                    } else
+                        pcl[2] = 0;
+                } else
+                    pcl[0] = 0;
+                wcscat(pcl, pc);
+				if (_wstat(pcl,&st) == 0) {
 					if (S_ISDIR(st.st_mode)) {
 						/* expected, do nothing */
 					}
@@ -76,7 +92,7 @@ int _wmkdir_p(const wchar_t *pathname) {
 				else {
 					if (errno == ENOENT) {
 						/* expected, create directory */
-						if (_wmkdir(pc)/*failed*/) {
+						if (_wmkdir(pcl)/*failed*/) {
 							/* create failed, stop and do not continue. */
 							result = -1;
 							/* errno already set by mkdir() */

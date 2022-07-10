@@ -414,8 +414,6 @@ public:
 	virtual bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
 };
 
-bool intmpdev = false;
-DOS_Device * tmpdev = NULL;
 void DOS_Shell::ParseLine(char * line) {
 	LOG(LOG_EXEC,LOG_DEBUG)("Parsing command line: %s",line);
 	/* Check for a leading @ */
@@ -468,7 +466,7 @@ void DOS_Shell::ParseLine(char * line) {
 				sprintf(pipetmp, "pipe%d.tmp", rand()%10000);
 		}
 	}
-	tmpdev = NULL;
+	DOS_Device *tmpdev = NULL;
 	if (out||toc) {
 		if (out&&toc)
 			WriteOut(!*out?"Duplicate redirection\n":"Duplicate redirection - %s\n", out);
@@ -495,7 +493,8 @@ void DOS_Shell::ParseLine(char * line) {
 				fail=true;
 			status = device?false:DOS_OpenFileExtended(toc&&!fail?pipetmp:out,OPEN_READWRITE,DOS_ATTR_ARCHIVE,0x12,&dummy,&dummy2);
 			if (toc&&(fail||!status)&&!strchr(pipetmp,'\\')) {
-                if (Drives[0]||Drives[2]) {
+                Overlay_Drive *da = Drives[0] ? (Overlay_Drive *)Drives[0] : NULL, *dc = Drives[2] ? (Overlay_Drive *)Drives[2] : NULL;
+                if ((Drives[0]&&!Drives[0]->readonly&&!(da&&da->ovlreadonly))||(Drives[2]&&!Drives[2]->readonly&&!(dc&&dc->ovlreadonly))) {
                     int len = (int)strlen(pipetmp);
                     if (len > 266) {
                         len = 266;
