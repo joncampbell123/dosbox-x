@@ -27,14 +27,14 @@
 #include "render.h"
 #include <assert.h>
 
-extern bool gbk;
 extern int maxfcb;
+extern bool gbk, chinasea;
 extern Bitu DOS_PRIVATE_SEGMENT_Size;
 #if defined(USE_TTF)
 extern bool ttf_dosv;
 #endif
 
-void CALLBACK_DeAllocate(Bitu in);
+void CALLBACK_DeAllocate(Bitu in), makestdcp950table(), makeseacp951table();
 
 std::list<DOS_GetMemLog_Entry> DOS_GetMemLog;
 
@@ -216,6 +216,8 @@ PhysPt DOS_Get_DPB(unsigned int dos_drive) {
 }
 
 void SetupDBCSTable() {
+    if (dos.loaded_codepage==950&&!chinasea) makestdcp950table();
+    else if (dos.loaded_codepage==951&&chinasea) makeseacp951table();
     if (enable_dbcs_tables) {
         if (!dos.tables.dbcs) dos.tables.dbcs=RealMake(DOS_GetMemory(12,"dos.tables.dbcs"),0);
 

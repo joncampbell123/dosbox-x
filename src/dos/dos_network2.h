@@ -89,7 +89,7 @@ HANDLE hFind = INVALID_HANDLE_VALUE;
                         DBCS_upcase(sfn);
                         name = sfn;
                     }
-                    if (name.empty() && !uselfn) continue;
+                    if (name.empty()) name = "?";
                 }
                 date = DOS_PackDate(lt.wYear,lt.wMonth,lt.wDay);
                 time = DOS_PackTime(lt.wHour,lt.wMinute,lt.wSecond);
@@ -143,7 +143,7 @@ HANDLE hFind = INVALID_HANDLE_VALUE;
                         DBCS_upcase(sfn);
                         name = sfn;
                     }
-                    if (name.empty() && !uselfn) continue;
+                    if (name.empty()) name = "?";
                 }
                 date = DOS_PackDate(lt.wYear,lt.wMonth,lt.wDay);
                 time = DOS_PackTime(lt.wHour,lt.wMinute,lt.wSecond);

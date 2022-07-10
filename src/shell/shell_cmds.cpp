@@ -4424,7 +4424,7 @@ void toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
 #endif
             DOSBox_SetSysMenu();
         }
-        if (opt<1) {
+        if (opt<1 && shell) {
             shell->WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
 #if defined(USE_TTF)
             if (missing > 0) shell->WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
@@ -4437,7 +4437,19 @@ void toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
         }
         SetupDBCSTable();
         runRescan("-A -Q");
-    } else if (opt<1)
+#if defined(USE_TTF)
+        if (opt==-1&&(newCP==932||newCP==936||newCP==949||newCP==950||newCP==951)) {
+            Section_prop * ttf_section = static_cast<Section_prop *>(control->GetSection("ttf"));
+            const char *font = ttf_section->Get_string("font");
+            if (!font || !*font) {
+                ttf_reset();
+#if C_PRINTER
+                if (printfont) UpdateDefaultPrinterFont();
+#endif
+            }
+        }
+#endif
+    } else if (opt<1 && shell)
        shell->WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), std::to_string(newCP).c_str());
 }
 

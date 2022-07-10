@@ -5,17 +5,32 @@
     systems. A config option "convertdrivefat" (in
     [dosbox] section) is added to toggle this setting,
     or you can toggle via BOOT command's -convertfat
-    and -noconvertfat options. There is also a config
-    option "drive z convert fat" (in [dos] section)
-    to control if to convert virtual drive Z:. Much of
-    the code is imported from DOSBox Pure. (Wengier)
+    (or -convertfatro option for read-only access) and
+    -noconvertfat options. There is also a config
+    option "drive z convert fat" (in [dos] section) to
+    control whether to convert virtual drive Z:. Much
+    of the code is imported from DOSBox Pure. (Wengier)
   - Added config option to allow create of temporary
     devices for piping operations when a temporary DOS
     path is not available. (Wengier)
+  - Added support for ATAPI raw sector reading with
+    READ CD command. (schellingb)
+  - Report bad sectors recorded in raw CD images as
+    ATAPI read errors. (schellingb)
   - Fixed display of individual/total file sizes with
     DIR command when they are very large. (Wengier)
-  - Fixed DBCS code page conversions for mounted FAT
+  - Fixed non-US code page conversions for mounted FAT
     drives. (Wengier)
+  - Fixed possible "Path not found" bug when switching
+    to code page 950 from another code page. (Wengier)
+  - Fixed creating directories may not work properly
+    for overlay drives on Windows systems. (Wengier)
+  - Fixed -set and -get options of CONFIG command when
+    there are spaces in property names, without having
+    to prepend the section names. For example, command
+    CONFIG -get "synchronize time" is supported just
+    as CONFIG -get "dosbox synchronize time". Similar
+    for -SET option when launching DOSBox-X. (Wengier)
 0.84.1
   - Added dosbox(-x).conf option to enable workaround
     for errant DOS programs that set the TF (trap flag)

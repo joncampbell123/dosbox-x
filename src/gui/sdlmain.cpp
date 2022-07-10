@@ -8152,21 +8152,26 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			if (!strlen(pvars[0].c_str())) continue;
 			if (pvars[0][0]=='%'||pvars[0][0]=='\0'||pvars[0][0]=='#'||pvars[0][0]=='\n') continue;
 
-
+			Section* sec = control->GetSectionFromProperty(pvars[0].c_str());
 			// attempt to split off the first word
 			std::string::size_type spcpos = pvars[0].find_first_of(' ');
 			if (spcpos>1&&pvars[0].c_str()[spcpos-1]==',')
 				spcpos=pvars[0].find_first_of(' ', spcpos+1);
 
 			std::string::size_type equpos = pvars[0].find_first_of('=');
+            if (equpos != std::string::npos) {
+                std::string p = pvars[0];
+                p.erase(equpos);
+                sec = control->GetSectionFromProperty(p.c_str());
+            }
 
 			if ((equpos != std::string::npos) && 
-				((spcpos == std::string::npos) || (equpos < spcpos))) {
+				((spcpos == std::string::npos) || (equpos < spcpos) || sec)) {
 				// If we have a '=' possibly before a ' ' split on the =
 				pvars.insert(pvars.begin()+1,pvars[0].substr(equpos+1));
 				pvars[0].erase(equpos);
 				// As we had a = the first thing must be a property now
-				Section* sec=control->GetSectionFromProperty(pvars[0].c_str());
+				sec=control->GetSectionFromProperty(pvars[0].c_str());
 				if (!sec&&pvars[0].size()>4&&!strcasecmp(pvars[0].substr(0, 4).c_str(), "ttf.")) {
 					pvars[0].erase(0,4);
 					sec = control->GetSectionFromProperty(pvars[0].c_str());
@@ -8184,7 +8189,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					pvars[0].erase(spcpos);
 				}
 				// check if the first parameter is a section or property
-				Section* sec = control->GetSection(pvars[0].c_str());
+				sec = control->GetSection(pvars[0].c_str());
 				if (!sec) {
 					// not a section: little duplicate from above
 					sec=control->GetSectionFromProperty(pvars[0].c_str());
@@ -8211,7 +8216,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					if (!sec2) {
 						// not a property, 
 						Section* sec3 = control->GetSectionFromProperty(pvars[0].c_str());
-						if (sec3) {
+						if (sec3 && !(equpos != std::string::npos && spcpos != std::string::npos && equpos > spcpos)) {
 							// section and property name are identical
 							pvars.insert(pvars.begin(),pvars[0]);
 						} // else has been checked above already

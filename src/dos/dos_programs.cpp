@@ -102,11 +102,12 @@ bool qmount = false;
 bool nowarn = false;
 bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 extern bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
-extern bool addovl, addipx, addne2k, prepared, inshell, usecon, uao, morelen, mountfro[26], mountiro[26], resetcolor, staycolors, printfont, internal_program;
-extern bool clear_screen(), OpenGL_using(void), DOS_SetAnsiAttr(uint8_t attr);
+extern bool addovl, addipx, addne2k, prepared, inshell, usecon, chinasea, uao, morelen, mountfro[26], mountiro[26], resetcolor, staycolors, printfont, internal_program;
+extern bool clear_screen(), OpenGL_using(void), DOS_SetAnsiAttr(uint8_t attr), isDBCSCP();
 extern int lastcp, FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 extern uint8_t DOS_GetAnsiAttr(void);
-void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused), UpdateSDLDrawTexture();
+void MSG_Init(), JFONT_Init(), InitFontHandle(), ShutFontHandle(), DOSBox_SetSysMenu(), makestdcp950table(), makeseacp951table();
+void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused), UpdateSDLDrawTexture(), toSetCodePage(DOS_Shell *shell, int newCP, int opt);
 void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str), show_prompt(), ttf_reset(void);
 void getdrivezpath(std::string &path, std::string dirname), drivezRegister(std::string path, std::string dir, bool usecp), UpdateDefaultPrinterFont(void);
 std::string GetDOSBoxXPath(bool withexe=false);
@@ -1294,26 +1295,37 @@ public:
                 if (cp==932||cp==936||cp==949||cp==950||cp==951)
 #endif
                 {
+                    if (cp == 950 && !chinasea) makestdcp950table();
+                    if (cp == 951 && chinasea) makeseacp951table();
                     cpbak = dos.loaded_codepage;
                     dos.loaded_codepage = cp;
                     host_name = CodePageGuestToHost(temp_line.c_str());
                     char str[150];
 
-                    sprintf(str, "Drive %c: appears to require code page %d in order to be accessed.\n\nDo you want to change the current code page to %d now?\n", drive, cp, cp);
+                    sprintf(str, "Drive %c: appears to require code page %d to be accessed.\n\nDo you want to change the current code page to %d now?\n", drive, cp, cp);
                     if (!host_name || ht_stat(host_name, &htest) || _waccess(host_name,0) || !systemmessagebox("Changing code page",str,"yesno","question",1))
                         dos.loaded_codepage = cpbak;
 #if defined(USE_TTF)
-                    else if (ttf.inUse&&(cp==932||cp==936||cp==949||cp==950||cp==951)) {
-                        Section_prop * ttf_section = static_cast<Section_prop *>(control->GetSection("ttf"));
-                        const char *font = ttf_section->Get_string("font");
-                        if (!font || !*font) {
-                            ttf_reset();
-#if C_PRINTER
-                            if (printfont) UpdateDefaultPrinterFont();
-#endif
-                        }
+                    else if (ttf.inUse) {
+                        dos.loaded_codepage = cpbak;
+                        toSetCodePage(NULL, cp, -1);
                     }
 #endif
+                    else {
+                        MSG_Init();
+                        DOSBox_SetSysMenu();
+                        if (isDBCSCP()) {
+                            ShutFontHandle();
+                            InitFontHandle();
+                            JFONT_Init();
+                        }
+                        SetupDBCSTable();
+                        runRescan("-A -Q");
+#if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+                        if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
+                            UpdateSDLDrawTexture();
+#endif
+                    }
                 }
             }
 #elif defined (OS2)
@@ -2507,7 +2519,7 @@ public:
 
             char msg[512] = {0};
             const uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-            if ((convimg == 1 || (convertimg && convimg == -1 && !IS_PC98_ARCH))) { // PC-98 image not supported yet
+            if (!dos_kernel_disabled && (convimg == 1 || (convertimg && convimg == -1 && !IS_PC98_ARCH))) { // PC-98 image not supported yet
                 unsigned int drv = 2, nextdrv = 2;
                 for (unsigned int d=2;d<DOS_DRIVES+2;d++) {
                     if (d==DOS_DRIVES) drv=0;
@@ -6359,8 +6371,6 @@ void runImgmount(const char *str) {
 
 Bitu DOS_SwitchKeyboardLayout(const char* new_layout, int32_t& tried_cp);
 Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const char * codepagefile);
-void MSG_Init(), JFONT_Init(), InitFontHandle(), ShutFontHandle(), DOSBox_SetSysMenu();
-bool isDBCSCP();
 const char* DOS_GetLoadedLayout(void);
 
 class KEYB : public Program {
@@ -6381,25 +6391,34 @@ void KEYB::Run(void) {
             cmd->FindCommand(2,cp_string);
             int tocp=!strcmp(temp_line.c_str(), "jp")?932:(!strcmp(temp_line.c_str(), "ko")?949:(!strcmp(temp_line.c_str(), "tw")||!strcmp(temp_line.c_str(), "hk")||!strcmp(temp_line.c_str(), "zht")||(!strcmp(temp_line.c_str(), "zh")&&((cp_string.size()&&(atoi(cp_string.c_str())==950||atoi(cp_string.c_str())==951))||(!cp_string.size()&&(dos.loaded_codepage==950||dos.loaded_codepage==951))))?((cp_string.size()&&atoi(cp_string.c_str())==951)||(!cp_string.size()&&dos.loaded_codepage==951)?951:950):(!strcmp(temp_line.c_str(), "cn")||!strcmp(temp_line.c_str(), "zhs")||!strcmp(temp_line.c_str(), "zh")?936:0)));
             if (tocp && !IS_PC98_ARCH) {
+                uint16_t cpbak = dos.loaded_codepage;
                 dos.loaded_codepage=tocp;
                 const char* layout_name = DOS_GetLoadedLayout();
                 if (layout_name==NULL)
                     WriteOut(MSG_Get("PROGRAM_KEYB_INFO"),dos.loaded_codepage);
                 else
                     WriteOut(MSG_Get("PROGRAM_KEYB_INFO_LAYOUT"),dos.loaded_codepage,layout_name);
-                MSG_Init();
-                DOSBox_SetSysMenu();
-                if (isDBCSCP()) {
-                    ShutFontHandle();
-                    InitFontHandle();
-                    JFONT_Init();
-                }
-                SetupDBCSTable();
-                runRescan("-A -Q");
-#if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-            if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
-                UpdateSDLDrawTexture();
+#if defined(USE_TTF)
+                if (ttf.inUse) {
+                    dos.loaded_codepage = cpbak;
+                    toSetCodePage(NULL, tocp, -1);
+                } else
 #endif
+                {
+                    MSG_Init();
+                    DOSBox_SetSysMenu();
+                    if (isDBCSCP()) {
+                        ShutFontHandle();
+                        InitFontHandle();
+                        JFONT_Init();
+                    }
+                    SetupDBCSTable();
+                    runRescan("-A -Q");
+#if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+                    if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
+                        UpdateSDLDrawTexture();
+#endif
+                }
                 return;
             }
             if (cp_string.size()) {

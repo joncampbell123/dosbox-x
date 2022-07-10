@@ -397,11 +397,11 @@ struct fatFromDOSDrive
 						size_t len = 0, lfnlen = strlen(lname);
                         uint16_t *lfnw = (uint16_t *)malloc((lfnlen + 1) * sizeof(uint16_t));
                         if (lfnw == NULL) continue;
+                        char text[3];
+                        uint16_t uname[4];
                         for (size_t i=0; i < lfnlen; i++) {
                             if (lead) {
                                 lead = false;
-                                char text[3];
-                                uint16_t uname[4];
                                 text[0]=lname[i-1]&0xFF;
                                 text[1]=lname[i]&0xFF;
                                 text[2]=0;
@@ -414,7 +414,12 @@ struct fatFromDOSDrive
                                     lfnw[len++] = lname[i];
                                 }
                             } else if (i+1<lfnlen && ((IS_PC98_ARCH && shiftjis_lead_byte(lname[i]&0xFF)) || (isDBCSCP() && isKanji1_gbk(lname[i]&0xFF)))) lead = true;
-                            else lfnw[len++] = lname[i];
+                            else if (dos.loaded_codepage != 437) {
+                                text[0]=lname[i]&0xFF;
+                                text[1]=0;
+                                lfnw[len++] = CodePageGuestToHostUTF16(uname,text)&&uname[0]!=0&&uname[1]==0 ? uname[0] : lname[i];
+                            } else
+                                lfnw[len++] = lname[i];
                         }
 						uint16_t *lfn_end = lfnw + len;
 						for (size_t i = 0, lfnblocks = (len + 12) / 13; i != lfnblocks; i++)

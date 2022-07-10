@@ -2480,29 +2480,29 @@ nextfile:
 			unsigned int stridx = oidx * 13u, len = 0;
 			uint16_t lchar = 0;
 			char lname[27] = {0};
+            char text[10];
+            uint16_t uname[4];
 
             for (unsigned int i=0;i < 5;i++) {
+                text[0] = text[1] = text[2] = 0;
                 lchar = (uint16_t)(dlfn->LDIR_Name1[i]);
                 if (lchar < 0x100 || lchar == 0xFFFF)
-                    lname[len++] = (char)(lchar & 0xFF);
+                    lname[len++] = lchar != 0xFFFF && CodePageHostToGuestUTF16(text,&lchar) && text[0] && !text[1] ? text[0] : (char)(lchar & 0xFF);
                 else {
-                    char text[10];
-                    uint16_t uname[4];
                     uname[0]=lchar;
                     uname[1]=0;
-                    text[0] = 0;
-                    text[1] = 0;
-                    text[2] = 0;
                     if (CodePageHostToGuestUTF16(text,uname)) {
                         lname[len++] = (char)(text[0] & 0xFF);
                         lname[len++] = (char)(text[1] & 0xFF);
-                    }
+                    } else
+                        lname[len++] = '_';
                 }
             }
             for (unsigned int i=0;i < 6;i++) {
+                text[0] = text[1] = text[2] = 0;
                 lchar = (uint16_t)(dlfn->LDIR_Name2[i]);
                 if (lchar < 0x100 || lchar == 0xFFFF)
-                    lname[len++] = (char)(lchar & 0xFF);
+                    lname[len++] = lchar != 0xFFFF && CodePageHostToGuestUTF16(text,&lchar) && text[0] && !text[1] ? text[0] : (char)(lchar & 0xFF);
                 else {
                     char text[10];
                     uint16_t uname[4];
@@ -2514,13 +2514,15 @@ nextfile:
                     if (CodePageHostToGuestUTF16(text,uname)) {
                         lname[len++] = (char)(text[0] & 0xFF);
                         lname[len++] = (char)(text[1] & 0xFF);
-                    }
+                    } else
+                        lname[len++] = '_';
                 }
             }
             for (unsigned int i=0;i < 2;i++) {
+                text[0] = text[1] = text[2] = 0;
                 lchar = (uint16_t)(dlfn->LDIR_Name3[i]);
                 if (lchar < 0x100 || lchar == 0xFFFF)
-                    lname[len++] = (char)(lchar & 0xFF);
+                    lname[len++] = lchar != 0xFFFF && CodePageHostToGuestUTF16(text,&lchar) && text[0] && !text[1] ? text[0] : (char)(lchar & 0xFF);
                 else {
                     char text[10];
                     uint16_t uname[4];
@@ -2532,10 +2534,8 @@ nextfile:
                     if (CodePageHostToGuestUTF16(text,uname)) {
                         lname[len++] = (char)(text[0] & 0xFF);
                         lname[len++] = (char)(text[1] & 0xFF);
-                    } else {
-                        lname[len++] = (char)(lchar / 0x100);
-                        lname[len++] = (char)(lchar % 0x100);
-                    }
+                    } else
+                        lname[len++] = '_';
                 }
             }
             lname[len] = 0;
@@ -2770,11 +2770,11 @@ bool fatDrive::addDirectoryEntry(uint32_t dirClustNumber, const direntry& useEnt
 	if (lfn != NULL && *lfn != 0) {
 		/* 13 characters per LFN entry */
 		bool lead = false;
+        char text[3];
+        uint16_t uname[4];
         for (const char *scan = lfn; *scan; scan++) {
             if (lead) {
                 lead = false;
-                char text[3];
-                uint16_t uname[4];
                 text[0]=*(scan-1)&0xFF;
                 text[1]=*scan&0xFF;
                 text[2]=0;
@@ -2787,7 +2787,12 @@ bool fatDrive::addDirectoryEntry(uint32_t dirClustNumber, const direntry& useEnt
                     if (len < LFN_NAMELENGTH) lfnw[len++] = *scan&0xFF;
                 }
             } else if (*(scan+1) && ((IS_PC98_ARCH && shiftjis_lead_byte(*scan&0xFF)) || (isDBCSCP() && isKanji1_gbk(*scan&0xFF)))) lead = true;
-            else lfnw[len++] = (uint16_t)((unsigned char)(*scan));
+            else if (dos.loaded_codepage != 437) {
+                text[0]=*scan&0xFF;
+                text[1]=0;
+                lfnw[len++] = CodePageGuestToHostUTF16(uname,text)&&uname[0]!=0&&uname[1]==0 ? uname[0] : (uint16_t)((unsigned char)(*scan));
+            } else
+                lfnw[len++] = (uint16_t)((unsigned char)(*scan));
         }
         lfnw[len] = 0;
         need = (unsigned int)(1 + (len + 12) / 13); /*round up*/;
