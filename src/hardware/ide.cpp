@@ -1179,6 +1179,9 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
                     status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
                 }
                 else {
+                    LOG_MSG("ATAPI: Failed to read %lu sectors at %lu\n",
+                        (unsigned long)TransferLength,(unsigned long)LBA);
+                    set_sense(/*SK=*/0x03,/*ASC=*/0x11); /* Medium Error: Unrecovered Read Error */
                     feature = 0xF4; /* abort sense=0xF */
                     count = 0x03; /* no more transfer */
                     sector_total = 0;/*nothing to transfer */
@@ -1186,9 +1189,6 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
                     TransferLengthRemaining = 0;
                     state = IDE_DEV_READY;
                     status = IDE_STATUS_DRIVE_READY|IDE_STATUS_ERROR;
-                    LOG_MSG("ATAPI: Failed to read %lu sectors at %lu\n",
-                        (unsigned long)TransferLength,(unsigned long)LBA);
-                    /* TODO: write sense data */
                 }
             }
 
@@ -1215,11 +1215,25 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
                 CDROM_Interface *cdrom = getMSCDEXDrive();
                 bool res = false;
 
-                /* NTS: Sorry, we don't support anything other than straight data sector reads.
-                 *      No CDDA extraction here. Not yet anyway. */
+                /* TODO: Implement remaining types and better comply with the standard (i.e. validate track type, don't allow reading across data and CDDA tracks) */
                 if (TransferSectorType == 2/*Mode 1*/ || TransferSectorType == 4/*Mode 2 form 1*/) {
                     if (TransferSectorSize == 2048) {
-                        res = (cdrom != NULL ? cdrom->ReadSectorsHost(/*buffer*/sector,false,LBA,TransferLength) : false);
+                        if (cdrom && cdrom->ReadSectorsHost(/*buffer*/sector,false,(unsigned long)LBA,(unsigned long)TransferLength)) {
+                            res = true;
+                            prepare_read(0,MIN((unsigned int)(TransferLength*2048),(unsigned int)host_maximum_byte_count));
+                        }
+                    }
+                    else {
+                        LOG(LOG_MISC,LOG_DEBUG)("ATAPI READ CD warning: Unsupported sector type %u byte9 %x size %u",
+                            (unsigned int)TransferSectorType,(unsigned int)TransferReadCD9,(unsigned int)TransferSectorSize);
+                    }
+                }
+                else if (TransferSectorType == 0/*raw*/ || TransferSectorType == 1/*CDDA*/) {
+                    if (TransferSectorSize == 2352) {
+                        if (cdrom && cdrom->ReadSectorsHost(/*buffer*/sector,true,(unsigned long)LBA,(unsigned long)TransferLength)) {
+                            res = true;
+                            prepare_read(0,MIN((unsigned int)(TransferLength*2352),(unsigned int)host_maximum_byte_count));
+                        }
                     }
                     else {
                         LOG(LOG_MISC,LOG_DEBUG)("ATAPI READ CD warning: Unsupported sector type %u byte9 %x size %u",
@@ -1232,7 +1246,6 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
                 }
 
                 if (res) {
-                    prepare_read(0,MIN((unsigned int)(TransferLength*2048),(unsigned int)host_maximum_byte_count));
                     LBAnext = LBA + TransferLength;
                     feature = 0x00;
                     count = 0x02; /* data for computer */
@@ -1240,6 +1253,9 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
                     status = IDE_STATUS_DRIVE_READY|IDE_STATUS_DRQ|IDE_STATUS_DRIVE_SEEK_COMPLETE;
                 }
                 else {
+                    LOG_MSG("ATAPI: Failed to read %lu sectors at %lu\n",
+                        (unsigned long)TransferLength,(unsigned long)LBA);
+                    set_sense(/*SK=*/0x03,/*ASC=*/0x11); /* Medium Error: Unrecovered Read Error */
                     feature = 0xF4; /* abort sense=0xF */
                     count = 0x03; /* no more transfer */
                     sector_total = 0;/*nothing to transfer */
@@ -1247,9 +1263,6 @@ void IDEATAPICDROMDevice::on_atapi_busy_time() {
                     TransferLengthRemaining = 0;
                     state = IDE_DEV_READY;
                     status = IDE_STATUS_DRIVE_READY|IDE_STATUS_ERROR;
-                    LOG_MSG("ATAPI: Failed to read %lu sectors at %lu\n",
-                        (unsigned long)TransferLength,(unsigned long)LBA);
-                    /* TODO: write sense data */
                 }
             }
 
@@ -1981,6 +1994,7 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                 raise_irq();
                 allow_writing = true;
             }
+            break;
         case 0xA8: /* READ(12) */
             if (common_spinup_response(/*spin up*/true,/*wait*/true)) {
                 set_sense(0); /* <- nothing wrong */
