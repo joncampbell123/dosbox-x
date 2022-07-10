@@ -241,9 +241,11 @@ bool Overlay_Drive::MakeDir(const char * dir) {
 				host_name = CodePageGuestToHost(pdir);
 				if (host_name!=NULL) {
 #if defined (WIN32)
-					temp=_wmkdir_p(host_name);
+					temp=_wmkdir(host_name);
+					if (temp) temp=_wmkdir_p(host_name);
 #else
-					temp=mkdir_p(host_name,0775);
+					temp=mkdir(host_name,0775);
+					if (temp) temp=mkdir_p(host_name,0775);
 #endif
 					if (temp==0) madepdir=true;
 				}
@@ -254,9 +256,11 @@ bool Overlay_Drive::MakeDir(const char * dir) {
 	host_name = CodePageGuestToHost(newdir);
 	if (host_name!=NULL) {
 #if defined (WIN32)
-		temp=_wmkdir_p(host_name);
+		temp=_wmkdir(host_name);
+		if (temp) temp=_wmkdir_p(host_name);
 #else
-		temp=mkdir_p(host_name,0775);
+		temp=mkdir(host_name,0775);
+		if (temp) temp=mkdir_p(host_name,0775);
 #endif
 	}
 	if (temp==0) {

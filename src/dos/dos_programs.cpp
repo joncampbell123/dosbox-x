@@ -1839,6 +1839,7 @@ public:
         bool pc98_show_graphics = false;
         bool bios_boot = false;
         bool swaponedrive = false;
+        bool convertro = false;
         bool force = false;
         int convimg = -1;
         int quiet = 0;
@@ -1868,6 +1869,11 @@ public:
 
         if (cmd->FindExist("-force",true))
             force = true;
+
+        if (cmd->FindExist("-convertfatro",true)) {
+            convimg = 1;
+            convertro = true;
+        }
 
         if (cmd->FindExist("-convertfat",true))
             convimg = 1;
@@ -2520,7 +2526,8 @@ public:
                                 *msg = 0;
                             }
                         }
-                        imageDisk *imagedrv = new imageDisk(Drives[drv]);
+                        Overlay_Drive *od = dynamic_cast<Overlay_Drive*>(Drives[drv]);
+                        imageDisk *imagedrv = new imageDisk(Drives[drv], convertro || Drives[drv]->readonly || (od && od->ovlreadonly));
                         if (imagedrv && imagedrv->ffdd) {
                             imageDiskList[nextdrv] = imagedrv;
                             bool ide_slave = false;
