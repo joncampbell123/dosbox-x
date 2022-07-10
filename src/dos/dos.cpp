@@ -66,9 +66,9 @@ static bool first_run=true;
 bool sync_time = false, manualtime = false;
 extern std::string log_dev_con_str;
 extern const char* RunningProgram;
-extern bool log_int21, log_fileio;
 extern bool use_quick_reboot, j3100_start;
 extern bool enable_config_as_shell_commands;
+extern bool log_int21, log_fileio, pipetmpdev;
 #if defined(USE_TTF)
 extern bool ttf_dosv;
 #endif
@@ -3925,6 +3925,7 @@ public:
 		dos_clipboard_device_name = section->Get_string("dos clipboard device name");
         clipboard_dosapi = section->Get_bool("dos clipboard api");
         if (control->SecureMode()) clipboard_dosapi = false;
+        pipetmpdev = section->Get_bool("pipe temporary device");
         force_conversion=true;
         mainMenu.get_item("clipboard_dosapi").check(clipboard_dosapi).enable(true).refresh_item(mainMenu);
         force_conversion=false;

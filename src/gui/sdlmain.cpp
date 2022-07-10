@@ -53,13 +53,13 @@ int selerow = -1, selecol = -1;
 int middleunlock = 1;
 extern bool testerr;
 extern bool blinking;
-extern bool dpi_aware_enable;
 extern bool log_int21;
 extern bool log_fileio;
 extern bool ticksLocked;
 extern bool isJPkeyboard;
 extern bool enable_autosave;
 extern bool noremark_save_state;
+extern bool ctrlbrk, dpi_aware_enable;
 extern bool use_quick_reboot, skipdraw;
 extern bool force_load_state, force_conversion;
 extern bool pc98_force_ibm_layout, gbk, chinasea;
@@ -9137,7 +9137,7 @@ fresh_boot:
         Reflect_Menu();
 #endif
 
-        checkmenuwidth = false;
+        checkmenuwidth = ctrlbrk = false;
         if (dos_kernel_shutdown) {
 
             inshell = false;

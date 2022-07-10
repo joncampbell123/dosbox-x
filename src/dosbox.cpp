@@ -4456,6 +4456,9 @@ void DOSBOX_SetupConfigSections(void) {
             "game or demo known to have this problem (Second Unreal, for example), set to true, else\n"
             "set to false. When enabled this option may incur a slight to moderate performance penalty.");
 
+    Pbool = secprop->Add_bool("pipe temporary device",Property::Changeable::WhenIdle, true);
+    Pbool->Set_help("Allows temporary devices to be created for piping operations when a temporary path is unavailable.");
+
     Pstring = secprop->Add_string("dos clipboard device enable",Property::Changeable::WhenIdle, "false");
     Pstring->Set_help("If enabled, a DOS device will be added for bidirectional communications with the shared clipboard.\n"
 			"Setting to \"read\" will only allow read access, and setting to \"write\" will only allow write access.\n"

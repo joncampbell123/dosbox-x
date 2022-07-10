@@ -9,6 +9,9 @@
     option "drive z convert fat" (in [dos] section)
     to control if to convert virtual drive Z:. Much of
     the code is imported from DOSBox Pure. (Wengier)
+  - Added config option to allow create of temporary
+    devices for piping operations when a temporary DOS
+    path is not available. (Wengier)
   - Fixed display of individual/total file sizes with
     DIR command when they are very large. (Wengier)
   - Fixed DBCS code page conversions for mounted FAT

@@ -58,7 +58,7 @@ extern const char* RunningProgram;
 extern int enablelfn, msgcodepage;
 extern uint16_t countryNo;
 extern unsigned int dosbox_shell_env_size;
-bool outcon = true, usecon = true;
+bool outcon = true, usecon = true, pipetmpdev = true;
 bool shellrun = false, prepared = false, testerr = false;
 
 uint16_t shell_psp = 0;
@@ -371,6 +371,51 @@ Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn, char **toc,bool 
 	return num;
 }	
 
+class device_TMP : public DOS_Device {
+public:
+    std::string str = "";
+    unsigned long long curpos = 0;
+	device_TMP(char *name) { SetName(name); };
+	virtual bool Read(uint8_t * data,uint16_t * size) {
+        int i;
+        for (i=0; i<*size; i++) {
+            if (curpos+i>=str.size()) break;
+            *data++ = str.substr(curpos++, 1)[0];
+        }
+		*size = i;
+		return true;
+	}
+	virtual bool Write(const uint8_t * data,uint16_t * size) {
+        for (int i=0; i<*size; i++) str += std::string(1, data[i]);
+		return true;
+	}
+	virtual bool Seek(uint32_t * pos,uint32_t type) {
+		switch (type) {
+            case 0:
+                curpos = *pos;
+                break;
+            case 1:
+                curpos = curpos+*pos;
+                break;
+            case 2:
+                curpos = str.size()+*pos;
+                break;
+            default:
+                DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
+                return false;
+		}
+		if (curpos > str.size()) curpos = str.size();
+		else if (curpos < 0) curpos = 0;
+		return true;
+	}
+	virtual bool Close() { return true; }
+	virtual uint16_t GetInformation(void) { return DeviceInfoFlags::Device | DeviceInfoFlags::Nul; }
+	virtual bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
+	virtual bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
+};
+
+bool intmpdev = false;
+DOS_Device * tmpdev = NULL;
 void DOS_Shell::ParseLine(char * line) {
 	LOG(LOG_EXEC,LOG_DEBUG)("Parsing command line: %s",line);
 	/* Check for a leading @ */
@@ -423,6 +468,7 @@ void DOS_Shell::ParseLine(char * line) {
 				sprintf(pipetmp, "pipe%d.tmp", rand()%10000);
 		}
 	}
+	tmpdev = NULL;
 	if (out||toc) {
 		if (out&&toc)
 			WriteOut(!*out?"Duplicate redirection\n":"Duplicate redirection - %s\n", out);
@@ -444,22 +490,35 @@ void DOS_Shell::ParseLine(char * line) {
 			DOS_SetError(DOSERR_ACCESS_DENIED);
 			status = false;
 		} else {
-			if (toc&&DOS_FindFirst(pipetmp, ~DOS_ATTR_VOLUME)&&!DOS_UnlinkFile(pipetmp))
+            bool device=DOS_FindDevice(pipetmp)!=DOS_DEVICES;
+			if (toc&&!device&&DOS_FindFirst(pipetmp, ~DOS_ATTR_VOLUME)&&!DOS_UnlinkFile(pipetmp))
 				fail=true;
-			status = DOS_OpenFileExtended(toc&&!fail?pipetmp:out,OPEN_READWRITE,DOS_ATTR_ARCHIVE,0x12,&dummy,&dummy2);
-			if (toc&&(fail||!status)&&!strchr(pipetmp,'\\')&&(Drives[0]||Drives[2])) {
-				int len = (int)strlen(pipetmp);
-				if (len > 266) {
-					len = 266;
-					pipetmp[len] = 0;
-				}
-                for (int i = len; i >= 0; i--)
-                    pipetmp[i + 3] = pipetmp[i];
-                pipetmp[0] = Drives[2]?'c':'a';
-                pipetmp[1] = ':';
-                pipetmp[2] = '\\';
-                fail=false;
-                if (DOS_FindFirst(pipetmp, ~DOS_ATTR_VOLUME) && !DOS_UnlinkFile(pipetmp))
+			status = device?false:DOS_OpenFileExtended(toc&&!fail?pipetmp:out,OPEN_READWRITE,DOS_ATTR_ARCHIVE,0x12,&dummy,&dummy2);
+			if (toc&&(fail||!status)&&!strchr(pipetmp,'\\')) {
+                if (Drives[0]||Drives[2]) {
+                    int len = (int)strlen(pipetmp);
+                    if (len > 266) {
+                        len = 266;
+                        pipetmp[len] = 0;
+                    }
+                    for (int i = len; i >= 0; i--)
+                        pipetmp[i + 3] = pipetmp[i];
+                    pipetmp[0] = Drives[2]?'c':'a';
+                    pipetmp[1] = ':';
+                    pipetmp[2] = '\\';
+                    fail=false;
+                } else if (!tmpdev && pipetmpdev) {
+                    char *p=strchr(pipetmp, '.');
+                    if (p) *p = 0;
+                    tmpdev = new device_TMP(pipetmp);
+                    if (p) *p = '.';
+                    if (tmpdev) {
+                        DOS_AddDevice(tmpdev);
+                        fail = false;
+                    }
+                } else
+                    fail=true;
+                if (!tmpdev && DOS_FindFirst(pipetmp, ~DOS_ATTR_VOLUME) && !DOS_UnlinkFile(pipetmp))
                     fail=true;
                 else
                     status = DOS_OpenFileExtended(pipetmp, OPEN_READWRITE, DOS_ATTR_ARCHIVE, 0x12, &dummy, &dummy2);
@@ -504,8 +563,7 @@ void DOS_Shell::ParseLine(char * line) {
 		if(!normalstdin) DOS_CloseFile(0);
 		if (out) free(out);
 	}
-	if (toc)
-		{
+	if (toc) {
 		if (!fail&&DOS_OpenFile(pipetmp, OPEN_READ, &dummy))					// Test if file can be opened for reading
 			{
 			DOS_CloseFile(dummy);
@@ -520,12 +578,13 @@ void DOS_Shell::ParseLine(char * line) {
 		else
 			WriteOut("\nFailed to create/open a temporary file for piping. Check the %%TEMP%% variable.\n");
 		free(toc);
-		if (DOS_FindFirst(pipetmp, ~DOS_ATTR_VOLUME)) DOS_UnlinkFile(pipetmp);
-		}
+		if (tmpdev) {
+			DOS_DelDevice(tmpdev);
+			tmpdev = NULL;
+		} else if (DOS_FindFirst(pipetmp, ~DOS_ATTR_VOLUME)) DOS_UnlinkFile(pipetmp);
+	}
 	outcon=usecon=true;
 }
-
-
 
 void DOS_Shell::RunInternal(void) {
 	char input_line[CMD_MAXLINE] = {0};
