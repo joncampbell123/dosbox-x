@@ -3917,6 +3917,9 @@ static Bitu INT18_PC98_Handler(void) {
         case 0x40: /* Start displaying the graphics screen (グラフィック画面の表示開始) */
             pc98_gdc[GDC_SLAVE].force_fifo_complete();
             pc98_gdc[GDC_SLAVE].display_enable = true;
+#if defined(USE_TTF)
+            if (!pc98_gdc[GDC_MASTER].display_enable) ttf_switch_off(false);
+#endif
  
             {
                 unsigned char b = mem_readb(0x54C/*MEMB_PRXCRT*/);
@@ -3926,6 +3929,9 @@ static Bitu INT18_PC98_Handler(void) {
         case 0x41: /* Stop displaying the graphics screen (グラフィック画面の表示終了) */
             pc98_gdc[GDC_SLAVE].force_fifo_complete();
             pc98_gdc[GDC_SLAVE].display_enable = false;
+#if defined(USE_TTF)
+            if (pc98_gdc[GDC_MASTER].display_enable) ttf_switch_on(false);
+#endif
 
             {
                 unsigned char b = mem_readb(0x54C/*MEMB_PRXCRT*/);
@@ -4014,7 +4020,10 @@ static Bitu INT18_PC98_Handler(void) {
                 // Real hardware behavior: graphics selection updated by BIOS to reflect MEMB_PRXCRT state
                 pc98_gdc[GDC_SLAVE].display_enable = !!(b & 0x80);
 #if defined(USE_TTF)
-                pc98_gdc[GDC_SLAVE].display_enable?ttf_switch_off(false):ttf_switch_on(false);
+                if (pc98_gdc[GDC_SLAVE].display_enable)
+                    ttf_switch_off(false);
+                else if (pc98_gdc[GDC_MASTER].display_enable)
+                    ttf_switch_on(false);
 #endif
             }
 

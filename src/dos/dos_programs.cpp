@@ -102,11 +102,11 @@ bool qmount = false;
 bool nowarn = false;
 bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 extern bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
-extern bool addovl, addipx, addne2k, prepared, inshell, usecon, chinasea, uao, morelen, mountfro[26], mountiro[26], resetcolor, staycolors, printfont, internal_program;
+extern bool addovl, addipx, addne2k, prepared, inshell, usecon, uao, morelen, mountfro[26], mountiro[26], resetcolor, staycolors, printfont, tryconvertcp, askcp, internal_program;
 extern bool clear_screen(), OpenGL_using(void), DOS_SetAnsiAttr(uint8_t attr), isDBCSCP();
 extern int lastcp, FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 extern uint8_t DOS_GetAnsiAttr(void);
-void MSG_Init(), JFONT_Init(), InitFontHandle(), ShutFontHandle(), DOSBox_SetSysMenu(), makestdcp950table(), makeseacp951table();
+void MSG_Init(), JFONT_Init(), InitFontHandle(), ShutFontHandle(), DOSBox_SetSysMenu();
 void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused), UpdateSDLDrawTexture(), toSetCodePage(DOS_Shell *shell, int newCP, int opt);
 void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str), show_prompt(), ttf_reset(void);
 void getdrivezpath(std::string &path, std::string dirname), drivezRegister(std::string path, std::string dir, bool usecp), UpdateDefaultPrinterFont(void);
@@ -1279,15 +1279,15 @@ public:
             if(temp_line.size() > 3 && temp_line[temp_line.size()-1]=='\\') temp_line.erase(temp_line.size()-1,1);
             if(temp_line.size() == 2 && toupper(temp_line[0])>='A' && toupper(temp_line[0])<='Z' && temp_line[1]==':') temp_line.append("\\");
 			if(temp_line.size() > 4 && temp_line[0]=='\\' && temp_line[1]=='\\' && temp_line[2]!='\\' && std::count(temp_line.begin()+3, temp_line.end(), '\\')==1) temp_line.append("\\");
+            askcp = true;
             const host_cnv_char_t* host_name = CodePageGuestToHost(temp_line.c_str());
-            Section_prop * section = static_cast<Section_prop *>(control->GetSection("config"));
-            const char *countrystr = (control->opt_noconfig || !section) ? "" : (char *)section->Get_string("country"), *r=strchr(countrystr, ',');
+            askcp = false;
             if (!is_physfs && stat(temp_line.c_str(),&test)) {
 #endif
 #if defined(WIN32)
                 if (host_name == NULL || ht_stat(host_name, &htest)) failed = true;
                 useh = true;
-            } else if (!is_physfs && _waccess(host_name,0) && (r==NULL || !*(r+1)) && !control->opt_langcp && dos.loaded_codepage == 437) {
+            } else if (!is_physfs && tryconvertcp && _waccess(host_name,0) && dos.loaded_codepage == 437) {
                 uint16_t cp = GetACP(), cpbak = dos.loaded_codepage;
 #if defined(USE_TTF)
                 if ((ttf.inUse&&(cp<1250||cp>1259)&&cp!=437&&isSupportedCP(cp))||(!ttf.inUse&&(cp==932||cp==936||cp==949||cp==950||cp==951)))
@@ -1295,14 +1295,12 @@ public:
                 if (cp==932||cp==936||cp==949||cp==950||cp==951)
 #endif
                 {
-                    if (cp == 950 && !chinasea) makestdcp950table();
-                    if (cp == 951 && chinasea) makeseacp951table();
                     cpbak = dos.loaded_codepage;
                     dos.loaded_codepage = cp;
                     host_name = CodePageGuestToHost(temp_line.c_str());
                     char str[150];
 
-                    sprintf(str, "Drive %c: appears to require code page %d to be accessed.\n\nDo you want to change the current code page to %d now?\n", drive, cp, cp);
+                    sprintf(str, "Drive %c: may require code page %d to be properly accessed.\n\nDo you want to change the current code page to %d now?\n", drive, cp, cp);
                     if (!host_name || ht_stat(host_name, &htest) || _waccess(host_name,0) || !systemmessagebox("Changing code page",str,"yesno","question",1))
                         dos.loaded_codepage = cpbak;
 #if defined(USE_TTF)

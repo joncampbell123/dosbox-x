@@ -143,12 +143,12 @@ extern bool vga_double_buffered_line_compare;
 extern bool pc98_crt_mode;      // see port 6Ah command 40h/41h.
 extern bool pc98_31khz_mode;
 extern bool auto_save_state, enable_autosave, enable_dbcs_tables, showdbcs, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked;
-extern int autosave_second, autosave_count, autosave_start[10], autosave_end[10], autosave_last[10];
+extern int checkcol, autosave_second, autosave_count, autosave_start[10], autosave_end[10], autosave_last[10];
 extern uint32_t turbolasttick;
 extern std::string failName, autosave_name[10];
 extern std::map<int, int> lowboxdrawmap, pc98boxdrawmap;
 extern bool isemptyhit(uint16_t code), CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
-void SetGameState_Run(int value), SaveGameState_Run(void), DOSBOX_UnlockSpeed2( bool pressed );
+void SetGameState_Run(int value), SaveGameState_Run(void), DOSBOX_UnlockSpeed2( bool pressed ), ttf_switch_off(bool ss=true);
 size_t GetGameState_Run(void);
 uint8_t lead[6], ccount = 0, *GetDbcsFont(Bitu code), *GetDbcs14Font(Bitu code, bool &is14);
 uint32_t ticksPrev = 0;
@@ -4213,7 +4213,9 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
     if (ticksLocked && turbolasttick && sec>0 && GetTicks()-turbolasttick>=1000*sec) DOSBOX_UnlockSpeed2(true);
 
 #if defined(USE_TTF)
+    if (ttf.inUse && checkcol && vga.draw.address_add != ttf.cols * 2) ttf_switch_off(checkcol==2);
     if (ttf.inUse) {
+        checkcol = 0;
         GFX_StartUpdate(render.scale.outWrite, render.scale.outPitch);
         vga.draw.blink = ((vga.draw.blinking & (GetTicks()/300)) || !vga.draw.blinking) ? true : false;	// eventually blink about thrice per second
         vga.draw.cursor.address = vga.config.cursor_start*2;
@@ -4231,6 +4233,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             // which PC-98 mode does not update.
             vga.draw.cursor.enabled = pc98_gdc[GDC_MASTER].cursor_enable;
 
+            bool null = true;
             for (Bitu blocks = ttf.cols * ttf.lins; blocks; blocks--) {
                 bool dbw=false;
 
@@ -4293,6 +4296,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                     }
                 } else
                     (*draw).chr = *charram & 0xFF;
+                if ((*draw).chr && (*draw).chr != 0x20) null = false;
                 charram++;
 
                 Bitu attr = *attrram;
@@ -4339,6 +4343,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                     if (blocks != 0) blocks--; /* careful! The for loop is written to stop when blocks == 0 */
                 }
             }
+            if (null && pc98_gdc[GDC_SLAVE].display_enable) ttf_switch_off(false);
         } else if (CurMode&&CurMode->type==M_TEXT) {
             bool dbw, dex, bd[txtMaxCols];
             if (IS_EGAVGA_ARCH) {
@@ -4481,8 +4486,10 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
                 }
             }
         }
-        RENDER_EndUpdate(false);
-        return;
+        if (ttf.inUse) {
+            RENDER_EndUpdate(false);
+            return;
+        }
     }
 #endif
 

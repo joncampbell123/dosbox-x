@@ -59,12 +59,13 @@ extern bool ticksLocked;
 extern bool isJPkeyboard;
 extern bool enable_autosave;
 extern bool noremark_save_state;
+extern bool showdbcs, tryconvertcp;
 extern bool ctrlbrk, dpi_aware_enable;
 extern bool use_quick_reboot, skipdraw;
 extern bool force_load_state, force_conversion;
 extern bool pc98_force_ibm_layout, gbk, chinasea;
 extern bool inshell, enable_config_as_shell_commands;
-extern bool showdbcs, switchttf, ttfswitch, switch_output_from_ttf;
+extern bool switchttf, ttfswitch, switch_output_from_ttf;
 bool checkmenuwidth = false;
 bool dos_kernel_disabled = true;
 bool winrun=false, use_save_file=false;
@@ -9145,7 +9146,7 @@ fresh_boot:
         checkmenuwidth = ctrlbrk = false;
         if (dos_kernel_shutdown) {
 
-            inshell = false;
+            inshell = tryconvertcp = false;
             uint16_t cp = dos.loaded_codepage;
             if (!IS_PC98_ARCH&&!IS_JEGA_ARCH&&!IS_J3100&&dos.loaded_codepage!=437) dos.loaded_codepage=437;
 

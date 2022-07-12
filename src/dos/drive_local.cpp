@@ -105,7 +105,7 @@ uint16_t customcp_to_unicode[256], altcp_to_unicode[256];
 extern uint16_t cpMap_AX[32];
 extern uint16_t cpMap_PC98[256];
 extern std::map<int, int> lowboxdrawmap, pc98boxdrawmap;
-bool cpwarn_once = false, ignorespecial = false;
+bool cpwarn_once = false, ignorespecial = false, tryconvertcp = false, askcp = false;
 std::string prefix_local = ".DBLOCALFILE";
 
 char* GetCrossedName(const char *basedir, const char *dir) {
@@ -960,6 +960,15 @@ bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
 
 host_cnv_char_t *CodePageGuestToHost(const char *s) {
 #if defined(host_cnv_use_wchar)
+    uint16_t cp = GetACP(), cpbak = dos.loaded_codepage;
+    if (tryconvertcp && !askcp && cpbak == 437 && (cp == 932 || cp == 936 || cp == 949 || cp == 950 || cp == 951)) {
+        dos.loaded_codepage = cp;
+        if (CodePageGuestToHostUTF16((uint16_t *)cpcnv_temp,s)) {
+            dos.loaded_codepage = cpbak;
+            return cpcnv_temp;
+        } else
+            dos.loaded_codepage = cpbak;
+    }
     if (!CodePageGuestToHostUTF16((uint16_t *)cpcnv_temp,s))
 #else
     if (!CodePageGuestToHostUTF8((char *)cpcnv_temp,s))
@@ -971,6 +980,15 @@ host_cnv_char_t *CodePageGuestToHost(const char *s) {
 
 char *CodePageHostToGuest(const host_cnv_char_t *s) {
 #if defined(host_cnv_use_wchar)
+    uint16_t cp = GetACP(), cpbak = dos.loaded_codepage;
+    if (tryconvertcp && !askcp && cpbak == 437 && (cp == 932 || cp == 936 || cp == 949 || cp == 950 || cp == 951)) {
+        dos.loaded_codepage = cp;
+        if (CodePageHostToGuestUTF16((char *)cpcnv_temp,(const uint16_t *)s)) {
+            dos.loaded_codepage = cpbak;
+            return (char *)cpcnv_temp;
+        } else
+            dos.loaded_codepage = cpbak;
+    }
     if (!CodePageHostToGuestUTF16((char *)cpcnv_temp,(const uint16_t *)s))
 #else
     if (!CodePageHostToGuestUTF8((char *)cpcnv_temp,(char *)s))
@@ -982,6 +1000,15 @@ char *CodePageHostToGuest(const host_cnv_char_t *s) {
 
 char *CodePageHostToGuestL(const host_cnv_char_t *s) {
 #if defined(host_cnv_use_wchar)
+    uint16_t cp = GetACP(), cpbak = dos.loaded_codepage;
+    if (tryconvertcp && !askcp && cpbak == 437 && (cp == 932 || cp == 936 || cp == 949 || cp == 950 || cp == 951)) {
+        dos.loaded_codepage = cp;
+        if (CodePageHostToGuestUTF16((char *)cpcnv_ltemp,(const uint16_t *)s)) {
+            dos.loaded_codepage = cpbak;
+            return (char *)cpcnv_ltemp;
+        } else
+            dos.loaded_codepage = cpbak;
+    }
     if (!CodePageHostToGuestUTF16((char *)cpcnv_ltemp,(const uint16_t *)s))
 #else
     if (!CodePageHostToGuestUTF8((char *)cpcnv_ltemp,(char *)s))

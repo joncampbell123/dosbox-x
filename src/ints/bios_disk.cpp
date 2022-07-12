@@ -36,7 +36,7 @@
 
 extern int bootdrive;
 extern unsigned long freec;
-extern bool int13_disk_change_detect_enable, skipintprog, rsize;
+extern bool int13_disk_change_detect_enable, skipintprog, rsize, tryconvertcp;
 extern bool int13_extensions_enable, bootguest, bootvm, use_quick_reboot;
 extern bool isDBCSCP(), isKanji1_gbk(uint8_t chr), shiftjis_lead_byte(int c);
 extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
@@ -406,6 +406,11 @@ struct fatFromDOSDrive
                         if (lfnw == NULL) continue;
                         char text[3];
                         uint16_t uname[4];
+#if defined(WIN32)
+                        uint16_t cp = GetACP(), cpbak = dos.loaded_codepage;
+                        if (tryconvertcp && cpbak == 437 && (cp == 932 || cp == 936 || cp == 949 || cp == 950 || cp == 951))
+                            dos.loaded_codepage = cp;
+#endif
                         for (size_t i=0; i < lfnlen; i++) {
                             if (lead) {
                                 lead = false;
@@ -428,6 +433,9 @@ struct fatFromDOSDrive
                             } else
                                 lfnw[len++] = lname[i];
                         }
+#if defined(WIN32)
+                        dos.loaded_codepage = cpbak;
+#endif
 						uint16_t *lfn_end = lfnw + len;
 						for (size_t i = 0, lfnblocks = (len + 12) / 13; i != lfnblocks; i++)
 						{

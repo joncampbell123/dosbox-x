@@ -91,6 +91,7 @@ int wpFG = 7;
 int lastset = 0;
 int lastfontsize = 0;
 int switchoutput = -1;
+int checkcol = 0;
 
 static unsigned long ttfSize = sizeof(DOSBoxTTFbi), ttfSizeb = 0, ttfSizei = 0, ttfSizebi = 0;
 static void * ttfFont = DOSBoxTTFbi, * ttfFontb = NULL, * ttfFonti = NULL, * ttfFontbi = NULL;
@@ -1374,7 +1375,8 @@ void ttf_setlines(int cols, int lins) {
 
 void ttf_switch_on(bool ss=true) {
     if ((ss&&ttfswitch)||(!ss&&switch_output_from_ttf)) {
-        if (strcmp(RunningProgram, "LOADLIN") && !dos_kernel_disabled) {
+        checkcol = 0;
+        if (strcmp(RunningProgram, "LOADLIN")) {
             uint16_t oldax=reg_ax;
             reg_ax=0x1600;
             CALLBACK_RunRealInt(0x2F);
@@ -1415,10 +1417,12 @@ void ttf_switch_on(bool ss=true) {
         transparency = 0;
         SetWindowTransparency(static_cast<Section_prop *>(control->GetSection("sdl"))->Get_int("transparency"));
 #endif
+        if (!IS_PC98_ARCH && vga.draw.address_add != ttf.cols * 2) checkcol = ss?2:1;
     }
 }
 
 void ttf_switch_off(bool ss=true) {
+    checkcol = 0;
     if (!ss&&ttfswitch)
         ttf_switch_on();
     if (ttf.inUse) {
@@ -1465,6 +1469,7 @@ void ttf_switch_off(bool ss=true) {
         transparency = 0;
         SetWindowTransparency(static_cast<Section_prop *>(control->GetSection("sdl"))->Get_int("transparency"));
 #endif
+        if (Mouse_IsLocked()) GFX_CaptureMouse(true);
     }
 }
 #endif

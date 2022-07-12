@@ -52,8 +52,8 @@
 
 extern bool dos_shell_running_program, mountwarning, winautorun;
 extern bool startcmd, startwait, startquiet, internal_program;
-extern bool halfwidthkana, force_conversion, showdbcs;
-extern bool addovl, addipx, addne2k, enableime, gbk;
+extern bool addovl, addipx, addne2k, enableime, tryconvertcp;
+extern bool halfwidthkana, force_conversion, showdbcs, gbk, chinasea;
 extern const char* RunningProgram;
 extern int enablelfn, msgcodepage;
 extern uint16_t countryNo;
@@ -71,9 +71,9 @@ void initRand();
 void initcodepagefont(void);
 void runMount(const char *str);
 void ResolvePath(std::string& in);
-void DOS_SetCountry(uint16_t countryNo);
 void CALLBACK_DeAllocate(Bitu in), DOSBox_ConsolePauseWait();
 void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
+void DOS_SetCountry(uint16_t countryNo), makestdcp950table(), makeseacp951table();
 bool isDBCSCP(), InitCodePage(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), sdl_wait_on_error();
 
 Bitu call_shellstop = 0;
@@ -909,6 +909,16 @@ void DOS_Shell::Prepare(void) {
 				}
 			}
 		}
+        unsigned int cp;
+#if defined(WIN32)
+        cp = GetACP();
+        const char *cstr = (control->opt_noconfig || !section) ? "" : (char *)section->Get_string("country"), *r=strchr(cstr, ',');
+        if ((r==NULL || !*(r+1)) && !control->opt_langcp && cp != dos.loaded_codepage && dos.loaded_codepage == 437) {
+            if (cp == 950 && !chinasea) makestdcp950table();
+            if (cp == 951 && chinasea) makeseacp951table();
+            tryconvertcp = true;
+        }
+#endif
         std::string line;
         GetEnvStr("PATH",line);
 		if (!strlen(config_data)) {
@@ -944,7 +954,7 @@ void DOS_Shell::Prepare(void) {
         internal_program = true;
 		VFILE_Register("4DOS.INI",(uint8_t *)i4dos_data,(uint32_t)strlen(i4dos_data), "/4DOS/");
         internal_program = false;
-        int cp=dos.loaded_codepage;
+        cp=dos.loaded_codepage;
         if (!dos.loaded_codepage) InitCodePage();
         initcodepagefont();
         dos.loaded_codepage=cp;
