@@ -281,10 +281,11 @@ struct fatFromDOSDrive
 
 	partTable  mbr;
 	bootstrap  bootsec;
-	uint8_t      fsinfosec[BYTESPERSECTOR];
-	uint32_t     sectorsPerCluster;
-	uint16_t     codepage = 0;
-	bool       isFAT32, readOnly, success = false, tomany = false;
+	uint8_t    fatSz;
+	uint8_t    fsinfosec[BYTESPERSECTOR];
+	uint32_t   sectorsPerCluster;
+	uint16_t   codepage = 0;
+	bool       readOnly = false, success = false, tomany = false;
 
 	struct ffddFile { char path[DOS_PATHLENGTH+1]; uint32_t firstSect; };
 	std::vector<direntry> root, dirs;
@@ -325,15 +326,21 @@ struct fatFromDOSDrive
 		{
 			static void SetFAT(fatFromDOSDrive& ffdd, size_t idx, uint32_t val)
 			{
-				while (idx >= ffdd.fat.size() / (ffdd.isFAT32 ? 4 : 2))
+				while (idx >= (uint64_t)ffdd.fat.size() * 8 / ffdd.fatSz)
 				{
-					ffdd.fat.resize(ffdd.fat.size() + BYTESPERSECTOR);
-					memset(&ffdd.fat[ffdd.fat.size() - BYTESPERSECTOR], 0, BYTESPERSECTOR);
+					// FAT12 table grows in steps of 3 sectors otherwise the table doesn't align
+					size_t addSz = (ffdd.fatSz != 12 ? BYTESPERSECTOR : (BYTESPERSECTOR * 3));
+					ffdd.fat.resize(ffdd.fat.size() + addSz);
+					memset(&ffdd.fat[ffdd.fat.size() - addSz], 0, addSz);
 				}
-				if (ffdd.isFAT32)
+				if (ffdd.fatSz == 32) // FAT32
 					var_write((uint32_t * const)&ffdd.fat[idx * 4], (const uint32_t)val);
-				else
+				else if (ffdd.fatSz == 16) // FAT 16
 					var_write((uint16_t * const)&ffdd.fat[idx * 2], (const uint16_t)val);
+				else if (idx & 1) // FAT12 odd cluster
+					var_write((uint16_t * const)&ffdd.fat[idx + idx / 2], (const uint16_t)((var_read((uint16_t *)&ffdd.fat[idx + idx / 2]) & 0xF) | ((val & 0xFFF) << 4)));
+				else // FAT12 even cluster
+					var_write((uint16_t * const)&ffdd.fat[idx + idx / 2], (const uint16_t)((var_read((uint16_t *)&ffdd.fat[idx + idx / 2]) & 0xF000) | (val & 0xFFF)));
 			}
 
 			static direntry* AddDirEntry(fatFromDOSDrive& ffdd, bool useFAT16Root, size_t& diridx)
@@ -360,7 +367,7 @@ struct fatFromDOSDrive
 			static void ParseDir(fatFromDOSDrive& ffdd, char* dir, const StringToPointerHashMap<void>* filter, int dirlen = 0, uint16_t parentFirstCluster = 0)
 			{
 				if (ffdd.tomany) return;
-				const bool useFAT16Root = (!dirlen && !ffdd.isFAT32), readOnly = ffdd.readOnly;
+				const bool useFAT16Root = (!dirlen && ffdd.fatSz != 32), readOnly = ffdd.readOnly;
 				const size_t firstidx = (!useFAT16Root ? ffdd.dirs.size() : 0);
 				const uint32_t sectorsPerCluster = ffdd.sectorsPerCluster, bytesPerCluster = sectorsPerCluster * BYTESPERSECTOR, entriesPerCluster = bytesPerCluster / sizeof(direntry);
 				const uint16_t myFirstCluster = (dirlen ? (uint16_t)(2 + firstidx / entriesPerCluster) : (uint16_t)0) ;
@@ -557,21 +564,24 @@ struct fatFromDOSDrive
         readOnly = ro || free_clusters == 0;
         if (!DriveFileIterator(drv, Iter::SumFileSize, (Bitu)&sum)) return;
 
-		const uint32_t addFreeMB = (readOnly ? 0 : freeSpaceMB), totalMB = (uint32_t)(sum.used_bytes / (1024*1024)) + addFreeMB + 1;
-		if      (totalMB >= 3072) { isFAT32 = true;  sectorsPerCluster = 64; } // 32 kb clusters ( 98304 ~        FAT entries)
-		else if (totalMB >= 2048) { isFAT32 = true;  sectorsPerCluster = 32; } // 16 kb clusters (131072 ~ 196608 FAT entries)
-		else if (totalMB >=  384) { isFAT32 = false; sectorsPerCluster = 64; } // 32 kb clusters ( 12288 ~  65504 FAT entries)
-		else if (totalMB >=  192) { isFAT32 = false; sectorsPerCluster = 32; } // 16 kb clusters ( 12288 ~  24576 FAT entries)
-		else if (totalMB >=   96) { isFAT32 = false; sectorsPerCluster = 16; } //  8 kb clusters ( 12288 ~  24576 FAT entries)
-		else if (totalMB >=   48) { isFAT32 = false; sectorsPerCluster =  8; } //  4 kb clusters ( 12288 ~  24576 FAT entries)
-		else if (totalMB >=    8) { isFAT32 = false; sectorsPerCluster =  4; } //  4 kb clusters (  4096 ~  24576 FAT entries)
-		else                      { isFAT32 = false; sectorsPerCluster =  1; } //  2 kb clusters (       ~  16383 FAT entries)
+		const uint32_t addFreeMB = (readOnly ? 0 : freeSpaceMB), totalMB = (uint32_t)(sum.used_bytes / (1024*1024)) + (addFreeMB ? (1 + addFreeMB) : 0);
+		if      (totalMB >= 3072) { fatSz = 32; sectorsPerCluster = 64; } // 32 kb clusters ( 98304 ~        FAT entries)
+		else if (totalMB >= 2048) { fatSz = 32; sectorsPerCluster = 32; } // 16 kb clusters (131072 ~ 196608 FAT entries)
+		else if (totalMB >=  384) { fatSz = 16; sectorsPerCluster = 64; } // 32 kb clusters ( 12288 ~  65504 FAT entries)
+		else if (totalMB >=  192) { fatSz = 16; sectorsPerCluster = 32; } // 16 kb clusters ( 12288 ~  24576 FAT entries)
+		else if (totalMB >=   96) { fatSz = 16; sectorsPerCluster = 16; } //  8 kb clusters ( 12288 ~  24576 FAT entries)
+		else if (totalMB >=   48) { fatSz = 16; sectorsPerCluster =  8; } //  4 kb clusters ( 12288 ~  24576 FAT entries)
+		else if (totalMB >=   12) { fatSz = 16; sectorsPerCluster =  4; } //  2 kb clusters (  6144 ~  24576 FAT entries)
+		else if (totalMB >=    4) { fatSz = 16; sectorsPerCluster =  1; } // .5 kb clusters (  8192 ~  24576 FAT entries)
+		else if (totalMB >=    2) { fatSz = 12; sectorsPerCluster =  4; } //  2 kb clusters (  1024 ~   2048 FAT entries)
+		else if (totalMB >=    1) { fatSz = 12; sectorsPerCluster =  2; } //  1 kb clusters (  1024 ~   2048 FAT entries)
+		else                      { fatSz = 12; sectorsPerCluster =  1; } // .5 kb clusters (       ~   2048 FAT entries)
 
 		// mediadescriptor in very first byte of FAT table
 		Iter::SetFAT(*this, 0, (uint32_t)0xFFFFFF8);
 		Iter::SetFAT(*this, 1, (uint32_t)0xFFFFFFF);
         
-		if (!isFAT32)
+		if (fatSz != 32)
 		{
 			// this actually should never be anything but 512 for some FAT16 drivers
 			root.resize(512);
@@ -605,11 +615,11 @@ struct fatFromDOSDrive
 		}
 
 		// Add at least one page after the last file or FAT spec minimume to make ScanDisk happy (even on read-only disks)
-		const uint32_t FATWidth = (isFAT32 ? 4 : 2), FATPageClusters = BYTESPERSECTOR / FATWidth, FATMinCluster = (isFAT32 ? 65525 : 4085) + FATPageClusters;
+		const uint32_t FATPageClusters = BYTESPERSECTOR * 8 / fatSz, FATMinCluster = (fatSz == 32 ? 65525 : (fatSz == 16 ? 4085 : 0)) + FATPageClusters;
 		const uint32_t addFreeClusters = ((addFreeMB * (1024*1024/BYTESPERSECTOR)) + sectorsPerCluster - 1) / sectorsPerCluster;
 		const uint32_t targetClusters = fileCluster + (addFreeClusters < FATPageClusters ? FATPageClusters : addFreeClusters);
 		Iter::SetFAT(*this, (targetClusters < FATMinCluster ? FATMinCluster : targetClusters) - 1, 0);
-		const uint32_t totalClusters = (uint32_t)(fat.size() / FATWidth); // as set by Iter::SetFAT
+		const uint32_t totalClusters = (uint32_t)((uint64_t)fat.size() * 8 / fatSz); // as set by Iter::SetFAT
 
 		// on read-only disks, fill up the end of the FAT table with "Bad sector in cluster or reserved cluster" markers
 		if (readOnly)
@@ -617,7 +627,7 @@ struct fatFromDOSDrive
 				Iter::SetFAT(*this, cluster, 0xFFFFFF7);
 
 		const uint32_t sectorsPerFat = (uint32_t)(fat.size() / BYTESPERSECTOR);
-		const uint16_t reservedSectors = (isFAT32 ? 32 : 1);
+		const uint16_t reservedSectors = (fatSz == 32 ? 32 : 1);
 		const uint32_t partSize = totalClusters * sectorsPerCluster + reservedSectors;
 		sect_fat1_start = SECT_BOOT + reservedSectors;
 		sect_fat2_start = sect_fat1_start + sectorsPerFat;
@@ -670,16 +680,17 @@ struct fatFromDOSDrive
 		var_write(&bootsec.hiddensectorcount, SECT_BOOT);
 		var_write(&bootsec.totalsecdword, partSize);
 		bootsec.magic1 = 0x55; bootsec.magic2 = 0xaa;
-		if (!isFAT32) // FAT16
+		if (fatSz != 32) // FAT12/FAT16
 		{
-			var_write(&mbr.pentry[0].parttype, 0x04); //FAT16
+			var_write(&mbr.pentry[0].parttype, (fatSz == 12 ? 0x01 : (sect_disk_end < 65536 ? 0x04 : 0x06))); // FAT12/16
 			var_write((uint16_t *const)&bootsec.rootdirentries, (const uint16_t)root.size());
 			var_write((uint16_t *const)&bootsec.sectorsperfat, (const uint16_t)sectorsPerFat);
 			bootsec.bootcode[0] = 0x80; //Physical drive (harddisk) flag
 			bootsec.bootcode[2] = 0x29; //Extended boot signature
 			var_write((uint32_t *const)&bootsec.bootcode[3], (const uint32_t)(serial + 1)); //4 byte partition serial number
 			memcpy(&bootsec.bootcode[7], "NO NAME    ", 11); // volume label
-			memcpy(&bootsec.bootcode[18], "FAT16   ", 8); // file system string name
+			memcpy(&bootsec.bootcode[18], "FAT1    ", 8); // file system string name
+			bootsec.bootcode[22] = (char)('0' + (fatSz % 10)); // '2' or '6'
 		}
 		else // FAT32
 		{
