@@ -65,8 +65,10 @@ uint16_t shell_psp = 0;
 Bitu call_int2e = 0;
 
 std::string GetDOSBoxXPath(bool withexe=false);
+const char* DOS_GetLoadedLayout(void);
 int Reflect_Menu(void);
 void SetIMPosition(void);
+void SetKEYBCP();
 void initRand();
 void initcodepagefont(void);
 void runMount(const char *str);
@@ -814,6 +816,7 @@ void DOS_Shell::Prepare(void) {
 		}
 		section = static_cast<Section_prop *>(control->GetSection("dos"));
 		bool zdirpath = section->Get_bool("drive z expand path");
+		std::string layout = section->Get_string("keyboardlayout");
 		strcpy(config_data, "");
 		section = static_cast<Section_prop *>(control->GetSection("config"));
 		if ((section!=NULL&&!control->opt_noconfig)||control->opt_langcp) {
@@ -824,7 +827,7 @@ void DOS_Shell::Prepare(void) {
 			else {
 				if (r!=NULL) *r=0;
 				country = atoi(trim(countrystr));
-				int newCP = r==NULL||IS_PC98_ARCH||IS_JEGA_ARCH||IS_DOSV?dos.loaded_codepage:atoi(trim(r+1));
+				int32_t newCP = r==NULL||IS_PC98_ARCH||IS_JEGA_ARCH||IS_DOSV?dos.loaded_codepage:atoi(trim(r+1));
                 if (control->opt_langcp && msgcodepage>0 && isSupportedCP(msgcodepage) && msgcodepage != newCP)
                     newCP = msgcodepage;
 				if (r!=NULL) *r=',';
@@ -841,12 +844,14 @@ void DOS_Shell::Prepare(void) {
                         else if (IS_KDOSV) newCP=949;
                         else if (IS_TDOSV) newCP=950;
                     }
+                    const char* name = DOS_GetLoadedLayout();
                     if (newCP==932||newCP==936||newCP==949||newCP==950||newCP==951) {
                         dos.loaded_codepage=newCP;
                         SetupDBCSTable();
                         runRescan("-A -Q");
                         DOSBox_SetSysMenu();
-                    }
+                    } else if (control->opt_langcp && !name && (layout.empty() || layout=="auto"))
+                        SetKEYBCP();
                 }
             }
 			if (country>0&&!control->opt_noconfig) {
@@ -1674,7 +1679,7 @@ void SHELL_Init() {
     MSG_Add("SHELL_CMD_ASSOC_HELP", "Displays or changes file extension associations.\n");
     MSG_Add("SHELL_CMD_ASSOC_HELP_LONG", "ASSOC [.ext[=command] ... ]\n\nType ASSOC without parameters to display the current file associations.\nFile extensions must start with a dot (.); wildcards (* and ?) are allowed.\n");
 	MSG_Add("SHELL_CMD_CHCP_HELP", "Displays or changes the current DOS code page.\n");
-	MSG_Add("SHELL_CMD_CHCP_HELP_LONG", "CHCP [nnn [file]]\n\n  nnn   Specifies a code page number.\n  file  Specifies a code page file.\n\nSupported code pages for changing in the TrueType font output:\n\n437,737,775,808,850,852,853,855,857,858,860-866,869,872,874,3021\n\nWindows code pages: 1250,1251,1252,1253,1254,1255,1256,1257,1258\n\nAlso double-byte code pages including 932, 936, 949, and 950.\n\nCustomized code pages are supported by providing code page files.\n");
+	MSG_Add("SHELL_CMD_CHCP_HELP_LONG", "CHCP [nnn [file]]\n\n  nnn   Specifies a code page number.\n  file  Specifies a code page file.\n\nSupported code pages for changing in the TrueType font output:\n\n437, 737, 775, 808, 850, 852, 853, 855-866, 869, 872, 874, 3021\n\nWindows code pages: 1250,1251,1252,1253,1254,1255,1256,1257,1258\n\nAlso double-byte code pages including 932, 936, 949, and 950/951.\n\nCustomized code pages are supported by providing code page files.\n");
 	MSG_Add("SHELL_CMD_CHCP_ACTIVE", "Active code page: %d\n");
 	MSG_Add("SHELL_CMD_CHCP_MISSING", "ASCII characters not defined in TTF font: %d\n");
 	MSG_Add("SHELL_CMD_CHCP_INVALID", "Invalid code page number - %s\n");

@@ -38,6 +38,7 @@
 #include "regs.h"
 #include "timer.h"
 #include "menu.h"
+#include "menudef.h"
 #include "mapper.h"
 #include "drives.h"
 #include "setup.h"
@@ -68,6 +69,7 @@ extern std::string log_dev_con_str;
 extern const char* RunningProgram;
 extern bool use_quick_reboot, j3100_start;
 extern bool enable_config_as_shell_commands;
+extern bool checkwat, loadlang, pcibus_enable;
 extern bool log_int21, log_fileio, pipetmpdev;
 #if defined(USE_TTF)
 extern bool ttf_dosv;
@@ -158,7 +160,14 @@ Bitu XMS_EnableA20(bool enable);
 Bitu XMS_GetEnabledA20(void);
 bool XMS_IS_ACTIVE();
 bool XMS_HMA_EXISTS();
+void MSG_Init(void);
+void JFONT_Init(void);
 void SetNumLock(void);
+void InitFontHandle(void);
+void ShutFontHandle(void);
+void DOSBox_SetSysMenu(void);
+void runRescan(const char *str);
+bool GFX_GetPreventFullscreen(void);
 
 bool DOS_IS_IN_HMA() {
 	if (dos_in_hma && XMS_IS_ACTIVE() && XMS_HMA_EXISTS())
@@ -2711,7 +2720,7 @@ static Bitu DOS_21Handler(void) {
                         reg_ax = dos.errorcode;
                         break;
                     }
-                    if (!isSupportedCP(reg_bx))
+                    if (!isSupportedCP(reg_bx) || IS_PC98_ARCH || IS_JEGA_ARCH || IS_DOSV)
                     {
                         LOG(LOG_DOSMISC,LOG_ERROR)("DOS:Invalid codepage %d", reg_bx);
                         CALLBACK_SCF(true);
@@ -2723,7 +2732,32 @@ static Bitu DOS_21Handler(void) {
 #if defined(USE_TTF)
                     setTTFCodePage();
 #endif
+                    if (loadlang) {
+                        MSG_Init();
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+                        mainMenu.unbuild();
+                        mainMenu.rebuild();
+                        if (!GFX_GetPreventFullscreen()) {
+                            if (menu.toggle) DOSBox_SetMenu(); else DOSBox_NoMenu();
+                        }
+#endif
+                        DOSBox_SetSysMenu();
+                    }
+                    if (isDBCSCP()) {
+                        ShutFontHandle();
+                        InitFontHandle();
+                        JFONT_Init();
+                        Section_prop * ttf_section = static_cast<Section_prop *>(control->GetSection("ttf"));
+                        const char *font = ttf_section->Get_string("font");
+                        if (!font || !*font) {
+                            ttf_reset();
+#if C_PRINTER
+                            if (printfont) UpdateDefaultPrinterFont();
+#endif
+                        }
+                    }
                     SetupDBCSTable();
+                    runRescan("-A -Q");
                     CALLBACK_SCF(false);
                     break;
                 default:
@@ -3839,8 +3873,6 @@ public:
         ::disk_data_rate = section->Get_int("hard drive data rate limit");
         ::floppy_data_rate = section->Get_int("floppy drive data rate limit");
         if (::disk_data_rate < 0) {
-            extern bool pcibus_enable;
-
             if (pcibus_enable)
                 ::disk_data_rate = 8333333; /* Probably an average IDE data rate for mid 1990s PCI IDE controllers in PIO mode */
             else
@@ -4404,6 +4436,8 @@ public:
         mainMenu.get_item("enable_a20gate").enable(true).refresh_item(mainMenu);
         mainMenu.get_item("quick_reboot").check(use_quick_reboot).refresh_item(mainMenu);
         mainMenu.get_item("shell_config_commands").check(enable_config_as_shell_commands).enable(true).refresh_item(mainMenu);
+        mainMenu.get_item("limit_hdd_rate").check(::disk_data_rate).enable(true).refresh_item(mainMenu);
+        mainMenu.get_item("limit_floppy_rate").check(::floppy_data_rate).enable(true).refresh_item(mainMenu);
 #if defined(WIN32) && !defined(HX_DOS)
         mainMenu.get_item("dos_win_autorun").check(winautorun).enable(true).refresh_item(mainMenu);
 #endif
@@ -4976,7 +5010,6 @@ void DOS_Int21_7156(char *name1, char *name2) {
 		}
 }
 
-extern bool checkwat;
 void DOS_Int21_7160(char *name1, char *name2) {
         MEM_StrCopy(SegPhys(ds)+reg_si,name1+1,DOSNAMEBUF);
         if (*(name1+1)>=0 && *(name1+1)<32) {

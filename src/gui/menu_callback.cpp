@@ -50,8 +50,8 @@ std::string savefilename = "";
 
 extern SHELL_Cmd cmd_list[];
 extern unsigned int page, hostkeyalt, sendkeymap;
-extern int posx, posy, wheel_key, mbutton, enablelfn, dos_clipboard_device_access, aspect_ratio_x, aspect_ratio_y;
-extern bool addovl, clearline, winrun, window_was_maximized, wheel_guest, clipboard_dosapi, clipboard_biospaste, direct_mouse_clipboard, sync_time, manualtime, pausewithinterrupts_enable, enable_autosave, enable_config_as_shell_commands, noremark_save_state, force_load_state, use_quick_reboot, use_save_file, dpi_aware_enable, pc98_force_ibm_layout, log_int21, log_fileio, x11_on_top, macosx_on_top, rtl, gbk, chinasea;
+extern int posx, posy, wheel_key, mbutton, enablelfn, dos_clipboard_device_access, aspect_ratio_x, aspect_ratio_y, disk_data_rate, floppy_data_rate;
+extern bool addovl, clearline, pcibus_enable, winrun, window_was_maximized, wheel_guest, clipboard_dosapi, clipboard_biospaste, direct_mouse_clipboard, sync_time, manualtime, pausewithinterrupts_enable, enable_autosave, enable_config_as_shell_commands, noremark_save_state, force_load_state, use_quick_reboot, use_save_file, dpi_aware_enable, pc98_force_ibm_layout, log_int21, log_fileio, x11_on_top, macosx_on_top, rtl, gbk, chinasea;
 extern bool mountfro[26], mountiro[26];
 extern struct BuiltinFileBlob bfb_GLIDE2X_OVL;
 extern const char* RunningProgram;
@@ -85,7 +85,7 @@ void GFX_ForceRedrawScreen(void);
 bool GFX_GetPreventFullscreen(void);
 bool isDBCSCP(void), toOutput(const char *what);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
-int FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
+int setTTFMap(bool changecp), FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 size_t GetGameState_Run(void);
 void DBCSSBCS_mapper_shortcut(bool pressed);
 void AutoBoxDraw_mapper_shortcut(bool pressed);
@@ -777,6 +777,39 @@ bool dos_ems_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menu
         EMS_Startup(NULL);
         update_dos_ems_menu();
     }
+    return true;
+}
+
+bool dos_hdd_rate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    Section_prop * section = static_cast<Section_prop *>(control->GetSection("dos"));
+    if (disk_data_rate == 0) {
+        if (pcibus_enable)
+            disk_data_rate = 8333333; /* Probably an average IDE data rate for mid 1990s PCI IDE controllers in PIO mode */
+        else
+            disk_data_rate = 3500000; /* Probably an average IDE data rate for early 1990s ISA IDE controllers in PIO mode */
+    } else
+        disk_data_rate = 0;
+    std::string tmp = std::to_string(disk_data_rate);
+    SetVal("dos", "hard drive data rate limit", tmp);
+    mainMenu.get_item("limit_hdd_rate").check(disk_data_rate).refresh_item(mainMenu);
+    return true;
+}
+
+bool dos_floppy_rate_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    Section_prop * section = static_cast<Section_prop *>(control->GetSection("dos"));
+    if(floppy_data_rate == 0)
+        floppy_data_rate = 22400; // 175 kbps
+    else
+        floppy_data_rate = 0;
+    std::string tmp = std::to_string(floppy_data_rate);
+    SetVal("dos", "floppy drive data rate limit", tmp);
+    mainMenu.get_item("limit_floppy_rate").check(floppy_data_rate).refresh_item(mainMenu);
     return true;
 }
 
@@ -1506,6 +1539,7 @@ bool vid_select_ttf_font_menu_callback(DOSBoxMenu* const menu, DOSBoxMenu::item*
             else
                 SetVal("ttf", "font", name);
             ttf_reset();
+            if (!IS_PC98_ARCH) setTTFMap(false);
 #if C_PRINTER
             if (TTF_using() && printfont) UpdateDefaultPrinterFont();
 #endif
@@ -3269,6 +3303,18 @@ void AllocCallback1() {
                         set_callback_function(dos_ems_menu_callback);
                     mainMenu.alloc_item(DOSBoxMenu::item_type_id,"dos_ems_false").set_text("Disable EMS emulation").
                         set_callback_function(dos_ems_menu_callback);
+                }
+            }
+
+            {
+                DOSBoxMenu::item &item = mainMenu.alloc_item(DOSBoxMenu::submenu_type_id,"DOSDiskRateMenu");
+                item.set_text("Limit disk transfer speed");
+
+                {
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"limit_hdd_rate").set_text("Limit hard disk data rate").
+                        set_callback_function(dos_hdd_rate_menu_callback);
+                    mainMenu.alloc_item(DOSBoxMenu::item_type_id,"limit_floppy_rate").set_text("Limit floppy disk data rate").
+                        set_callback_function(dos_floppy_rate_menu_callback);
                 }
             }
 

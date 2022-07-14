@@ -194,7 +194,7 @@ Dil adı (isteğe bağlı):
 :INTRO_MESSAGE
 Ücretsiz ve çok işlevli bir DOS öykünme paketi olan DOSBox-X'e hoş geldiniz.
 DOSBox-X, bildiğiniz DOS istemine benzeyen bir DOS kabuğu oluşturur.
-Bu kabuk içinde aynı zamanda Windows 3.x, 9x ve Me de çalıştırabilirsiniz.
+Bu kabuk içinde aynı zamanda Windows 3.x/9x/Me de çalıştırabilirsiniz.
 .
 :DRIVE
 Sürücü
@@ -2152,11 +2152,11 @@ CHCP [nnn [dosya]]
 
 TrueType yazıtipi çıktısında desteklenen kod sayfaları aşağıdaki gibidir:
 
-437,737,775,808,850,852,853,855,857,858,860-866,869,872,874,3021
+437, 737, 775, 808, 850, 852, 853, 855-866, 869, 872, 874, 3021
 
 Windows kod sayfaları: 1250,1251,1252,1253,1254,1255,1256,1257,1258
 
-Ek olarak 932, 936, 949 ve 950 numaralı çoklu bit kod sayfaları da desteklenir.
+Ek olarak 932, 936, 949 ve 950/951 numaralı çoklu bit kod sayfaları da desteklenir.
 
 Özel kod sayfaları, kod sayfası dosyaları sağlanarak desteklenir.
 
@@ -2887,6 +2887,15 @@ EMM386 öykünmesi
 .
 :MENU:dos_ems_false
 Genişletilmiş bellek öykünmesini devre dışı bırak
+.
+:MENU:DOSDiskRateMenu
+Disk aktarım hızını sınırlayın
+.
+:MENU:limit_hdd_rate
+Sabit disk veri hızını sınırlayın
+.
+:MENU:limit_floppy_rate
+Disket veri hızını sınırla
 .
 :MENU:DOSWinMenu
 Ana sistem uygulamaları

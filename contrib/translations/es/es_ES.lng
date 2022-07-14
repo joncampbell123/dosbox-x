@@ -2148,11 +2148,11 @@ CHCP [nnn]
 
 Códigos de página compatibles para la salida de fuente TrueType:
 
-437,737,775,808,850,852,853,855,857,858,860-866,869,872,874,3021
+437, 737, 775, 808, 850, 852, 853, 855-866, 869, 872, 874, 3021
 
 Páginas de códigos de Windows: 1250,1251,1252,1253,1254,1255,1256,1257,1258
 
-También páginas de códigos de doble byte incluyendo 932,936,949,950.
+También páginas de códigos de doble byte incluyendo 932,936,949,950/951.
 
 Las páginas de códigos personalizadas son compatibles al proporcionar archivos de páginas de códigos.
 
@@ -2891,6 +2891,15 @@ Emulación de EMM386
 .
 :MENU:dos_ems_false
 Desactivar emulación de EMS
+.
+:MENU:DOSDiskRateMenu
+Limitar la velocidad de transferencia del disco
+.
+:MENU:limit_hdd_rate
+Limite la tasa de datos del disco duro
+.
+:MENU:limit_floppy_rate
+Limite la velocidad de datos del disquete
 .
 :MENU:DOSWinMenu
 Aplicaciones de host

@@ -57,7 +57,7 @@ extern const char *modifier;
 extern unsigned int sendkeymap;
 extern std::string langname, configfile, dosbox_title;
 extern int autofixwarn, enablelfn, fat32setver, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor;
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon, convertimg, lockmount, enable_config_as_shell_commands, lesssize, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, ttfswitch, loadlang, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, uao, showdbcs, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, outcon, enable_dbcs_tables, show_recorded_filename, internal_program, pipetmpdev;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, convertimg, lockmount, enable_config_as_shell_commands, lesssize, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, ttfswitch, loadlang, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, uao, showdbcs, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, outcon, enable_dbcs_tables, show_recorded_filename, internal_program, pipetmpdev, notrysgf, uselangcp;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -97,6 +97,7 @@ public:
 
 static std::vector<InternalProgramEntry*> internal_progs;
 uint8_t DOS_GetAnsiAttr(void);
+int setTTFMap(bool changecp);
 char *FormatDate(uint16_t year, uint8_t month, uint8_t day);
 bool isDBCSCP(void), CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4), DOS_SetAnsiAttr(uint8_t attr), GFX_GetPreventFullscreen(void), toOutput(const char *what);
 void EMS_DoShutDown(void), UpdateDefaultPrinterFont(void), GFX_ForceRedrawScreen(void), resetFontSize(void), ttf_reset_colors(void), makestdcp950table(void), makeseacp951table(void), clearFontCache(void), DOSBox_SetSysMenu(void), MSG_Init(void), initRand(void), PRINTER_Init(void);
@@ -667,10 +668,10 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
                     mainMenu.unbuild();
                     mainMenu.rebuild();
+#endif
                     if (!GFX_GetPreventFullscreen()) {
                         if (menu.toggle) DOSBox_SetMenu(); else DOSBox_NoMenu();
                     }
-#endif
 #if defined(USE_TTF)
                     if (TTF_using()) resetFontSize();
 #endif
@@ -931,7 +932,13 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
                 if (!strcasecmp(inputline.substr(0, 5).c_str(), "font=")) {
 #if defined(USE_TTF)
                     if (TTF_using()) {
+                        std::string font = section->Get_string("font");
+                        if (font.empty() && !IS_PC98_ARCH && !isDBCSCP()) notrysgf = true;
                         ttf_reset();
+                        notrysgf = false;
+                        int missing = IS_PC98_ARCH ? 0 : setTTFMap(false);
+                        if (missing > 0 && first_shell) first_shell->WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
+
 #if C_PRINTER
                         if (printfont) UpdateDefaultPrinterFont();
 #endif
@@ -1557,6 +1564,9 @@ void CONFIG::Run(void) {
 					if (!sec&&pvars[0].size()>4&&!strcasecmp(pvars[0].substr(0, 4).c_str(), "ttf.")) {
 						pvars[0].erase(0,4);
 						sec = control->GetSectionFromProperty(pvars[0].c_str());
+					} else if (!sec && pvars[0].size() && !strcasecmp(pvars[0].c_str(), "langcp")) {
+						pvars[0] = "language";
+						sec = control->GetSectionFromProperty(pvars[0].c_str());
 					}
 					if (!sec) {
                         unsigned int maxWidth, maxHeight;
@@ -1811,6 +1821,7 @@ void CONFIG::Run(void) {
                 sec = control->GetSectionFromProperty(p.c_str());
             }
 
+            uselangcp = false;
 			if ((equpos != std::string::npos) && 
 				((spcpos == std::string::npos) || (equpos < spcpos) || sec)) {
 				// If we have a '=' possibly before a ' ' split on the =
@@ -1821,10 +1832,15 @@ void CONFIG::Run(void) {
 				if (!sec&&pvars[0].size()>4&&!strcasecmp(pvars[0].substr(0, 4).c_str(), "ttf.")) {
 					pvars[0].erase(0,4);
 					sec = control->GetSectionFromProperty(pvars[0].c_str());
+				} else if (!sec && pvars[0].size() && !strcasecmp(pvars[0].c_str(), "langcp")) {
+					pvars[0] = "language";
+					sec = control->GetSectionFromProperty(pvars[0].c_str());
+					if (sec) uselangcp = true;
 				}
 				if (sec) pvars.insert(pvars.begin(),std::string(sec->GetName()));
 				else {
 					WriteOut(MSG_Get("PROGRAM_CONFIG_PROPERTY_ERROR"));
+					uselangcp = false;
 					return;
 				}
 				// order in the vector should be ok now
@@ -1871,6 +1887,7 @@ void CONFIG::Run(void) {
 			}
 			if(pvars.size() < 3) {
 				WriteOut(MSG_Get("PROGRAM_CONFIG_SET_SYNTAX"));
+				uselangcp = false;
 				return;
 			}
 			// check if the property actually exists in the section
@@ -1880,6 +1897,7 @@ void CONFIG::Run(void) {
 					WriteOut("Cannot set property %s in section %s.\n", pvars[1].c_str(),pvars[0].c_str());
 				else
 					WriteOut(MSG_Get("PROGRAM_CONFIG_NO_PROPERTY"), pvars[1].c_str(),pvars[0].c_str());
+				uselangcp = false;
 				return;
 			}
             bool applynew=false;
@@ -1945,6 +1963,7 @@ next:
 				else ApplySetting(pvars[0], inputline, false);
 			} else WriteOut(MSG_Get("PROGRAM_CONFIG_VALUE_ERROR"),
 				value.c_str(),pvars[1].c_str());
+			uselangcp = false;
 			return;
 		}
 		case P_WRITELANG: case P_WRITELANG2:

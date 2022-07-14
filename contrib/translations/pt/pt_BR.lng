@@ -194,7 +194,7 @@ Nome do idioma (opcional):
 :INTRO_MESSAGE
 Bem-vindo ao DOSBox-X, um emulador de DOS completo e livre.
 O DOSBox-X cria um console DOS que funciona como um DOS real.
-Você também pode executar o Windows 3.x e 9x/Me dentro da máquina DOS.
+Você também pode executar o Windows 3.x/9x/Me dentro da máquina DOS.
 .
 :DRIVE
 Unidade
@@ -2172,11 +2172,11 @@ CHCP [nnn [arquivo]]
 
 Páginas de código compatíveis para a saída de fonte TrueType:
 
-437,737,775,808,850,852,853,855,857,858,860-866,869,872,874,3021
+437, 737, 775, 808, 850, 852, 853, 855-866, 869, 872, 874, 3021
 
 Páginas de códigos do Windows: 1250,1251,1252,1253,1254,1255,1256,1257,1258
 
-Também páginas de códigos de duplo byte includindo 932,936,949,950.
+Também páginas de códigos de duplo byte includindo 932,936,949,950/951.
 
 As páginas de códigos personalizadas são compatíveis ao proporcionar
 arquivos de páginas de códigos.
@@ -2909,6 +2909,15 @@ Emulação de EMM386
 .
 :MENU:dos_ems_false
 Desativar emulação de EMS
+.
+:MENU:DOSDiskRateMenu
+Limitar a velocidade de transferência do disco
+.
+:MENU:limit_hdd_rate
+Limitar a taxa de dados do disco rígido
+.
+:MENU:limit_floppy_rate
+Limitar a taxa de dados do disquete
 .
 :MENU:DOSWinMenu
 Aplicativos do sistema anfitrião

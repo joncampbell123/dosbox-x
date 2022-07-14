@@ -83,6 +83,7 @@ bool initttf = false;
 bool copied = false;
 bool firstset = true;
 bool forceswk = false;
+bool notrysgf = false;
 bool wpExtChar = false;
 int wpType = 0;
 int wpVersion = 0;
@@ -494,6 +495,43 @@ void CheckTTFLimit() {
     }
 }
 
+int setTTFMap(bool changecp) {
+    char text[2];
+    uint16_t uname[4], wcTest[256];
+    int cp = dos.loaded_codepage;
+    for (int i = 0; i < 256; i++) {
+        text[0]=i;
+        text[1]=0;
+        uname[0]=0;
+        uname[1]=0;
+        if (cp == 932 && (halfwidthkana || IS_JEGA_ARCH)) forceswk=true;
+        if (cp == 932 || cp == 936 || cp == 949 || cp == 950 || cp == 951) dos.loaded_codepage = 437;
+        if (CodePageGuestToHostUTF16(uname,text)) {
+            wcTest[i] = uname[1]==0?uname[0]:i;
+            if (cp == 932 && lowboxdrawmap.find(i)!=lowboxdrawmap.end() && TTF_GlyphIsProvided(ttf.SDL_font, wcTest[i]))
+                cpMap[i] = wcTest[i];
+        }
+        forceswk=false;
+        if (cp == 932 || cp == 936 || cp == 949 || cp == 950 || cp == 951) dos.loaded_codepage = cp;
+    }
+    uint16_t unimap;
+    int notMapped = 0;
+    for (int y = ((customcp&&(dos.loaded_codepage==customcp||changecp))||(altcp&&(dos.loaded_codepage==altcp||changecp))?0:8); y < 16; y++)
+        for (int x = 0; x < 16; x++) {
+            if (y<8 && (wcTest[y*16+x] == y*16+x || wcTest[y*16+x] == cp437_to_unicode[y*16+x])) unimap = cpMap_copy[y*16+x];
+            else unimap = wcTest[y*16+x];
+            if (!TTF_GlyphIsProvided(ttf.SDL_font, unimap)) {
+                cpMap[y*16+x] = 0;
+                notMapped++;
+                LOG_MSG("Unmapped character: %3d - %4x", y*16+x, unimap);
+            } else
+                cpMap[y*16+x] = unimap;
+        }
+    if (eurAscii != -1 && TTF_GlyphIsProvided(ttf.SDL_font, 0x20ac))
+        cpMap[eurAscii] = 0x20ac;
+    return notMapped;
+}
+
 int setTTFCodePage() {
     if (!copied) {
         memcpy(cpMap_copy,cpMap,sizeof(cpMap[0])*256);
@@ -509,38 +547,7 @@ int setTTFCodePage() {
 
     if (cp) {
         LOG_MSG("Loaded system codepage: %d\n", cp);
-        char text[2];
-        uint16_t uname[4], wcTest[256];
-        for (int i = 0; i < 256; i++) {
-            text[0]=i;
-            text[1]=0;
-            uname[0]=0;
-            uname[1]=0;
-            if (cp == 932 && (halfwidthkana || IS_JEGA_ARCH)) forceswk=true;
-            if (cp == 932 || cp == 936 || cp == 949 || cp == 950 || cp == 951) dos.loaded_codepage = 437;
-            if (CodePageGuestToHostUTF16(uname,text)) {
-                wcTest[i] = uname[1]==0?uname[0]:i;
-                if (cp == 932 && lowboxdrawmap.find(i)!=lowboxdrawmap.end() && TTF_GlyphIsProvided(ttf.SDL_font, wcTest[i]))
-                    cpMap[i] = wcTest[i];
-            }
-            forceswk=false;
-            if (cp == 932 || cp == 936 || cp == 949 || cp == 950 || cp == 951) dos.loaded_codepage = cp;
-        }
-        uint16_t unimap;
-        int notMapped = 0;
-        for (int y = ((customcp&&dos.loaded_codepage==customcp)||(altcp&&dos.loaded_codepage==altcp)?0:8); y < 16; y++)
-            for (int x = 0; x < 16; x++) {
-                if (y<8 && (wcTest[y*16+x] == y*16+x || wcTest[y*16+x] == cp437_to_unicode[y*16+x])) unimap = cpMap_copy[y*16+x];
-                else unimap = wcTest[y*16+x];
-                if (!TTF_GlyphIsProvided(ttf.SDL_font, unimap)) {
-                    cpMap[y*16+x] = 0;
-                    notMapped++;
-                    LOG_MSG("Unmapped character: %3d - %4x", y*16+x, unimap);
-                } else
-                    cpMap[y*16+x] = unimap;
-            }
-        if (eurAscii != -1 && TTF_GlyphIsProvided(ttf.SDL_font, 0x20ac))
-            cpMap[eurAscii] = 0x20ac;
+        int notMapped = setTTFMap(true);
         if (strcmp(RunningProgram, "LOADLIN") && !dos_kernel_disabled)
             initcodepagefont();
 #if defined(WIN32) && !defined(HX_DOS)
@@ -642,7 +649,7 @@ void OUTPUT_TTF_Select(int fsize) {
         bool trysgf = false;
         if (!*fName) {
             std::string mtype(static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_string("machine"));
-            if (IS_PC98_ARCH||mtype.substr(0, 4)=="pc98"||(InitCodePage()&&isDBCSCP())) trysgf = true;
+            if (IS_PC98_ARCH||mtype.substr(0, 4)=="pc98"||(!notrysgf&&InitCodePage()&&isDBCSCP())) trysgf = true;
         }
         force_conversion = false;
         dos.loaded_codepage = cp;

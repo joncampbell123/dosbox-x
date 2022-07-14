@@ -27,6 +27,7 @@
 #include "setup.h"
 #include "render.h"
 #include "control.h"
+#include "shell.h"
 #include "menu.h"
 #include "jfont.h"
 #include <map>
@@ -37,12 +38,15 @@
 #endif
 using namespace std;
 
-extern bool dos_kernel_disabled, force_conversion, showdbcs, dbcs_sbcs, enableime, tonoime;
 int msgcodepage = 0, FileDirExistUTF8(std::string &localname, const char *name);
-bool morelen = false, inmsg = false, loadlang = false, systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const char * codepagefile);
+bool morelen = false, inmsg = false, loadlang = false, uselangcp = false, systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton), OpenGL_using(void);
 bool isSupportedCP(int newCP), CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
-void InitFontHandle(void), ShutFontHandle(void), SetIME(void), menu_update_dynamic(void), menu_update_autocycle(void), update_bindbutton_text(void), set_eventbutton_text(const char *eventname, const char *buttonname), JFONT_Init();
+void InitFontHandle(void), ShutFontHandle(void), SetIME(void), menu_update_dynamic(void), menu_update_autocycle(void), update_bindbutton_text(void), set_eventbutton_text(const char *eventname, const char *buttonname), JFONT_Init(), DOSBox_SetSysMenu(), toSetCodePage(DOS_Shell *shell, int newCP, int opt), UpdateSDLDrawTexture(), makestdcp950table(), makeseacp951table();
 std::string langname = "", langnote = "", GetDOSBoxXPath(bool withexe=false);
+const char *DOS_GetLoadedLayout();
+extern int lastcp;
+extern bool dos_kernel_disabled, force_conversion, showdbcs, dbcs_sbcs, enableime, tonoime, chinasea;
 
 #define LINE_IN_MAXLEN 2048
 
@@ -82,7 +86,7 @@ void MSG_Replace(const char * _name, const char* _val) {
 
 bool InitCodePage() {
     if (!dos.loaded_codepage || dos_kernel_disabled || force_conversion) {
-        if (control->opt_langcp && msgcodepage>0 && isSupportedCP(msgcodepage) && msgcodepage != dos.loaded_codepage) {
+        if (((control->opt_langcp && msgcodepage != dos.loaded_codepage) || uselangcp) && msgcodepage>0 && isSupportedCP(msgcodepage)) {
             dos.loaded_codepage = msgcodepage;
             return true;
         }
@@ -198,6 +202,19 @@ void AddMessages() {
     MSG_Add("AUTO_CYCLE_OFF","Auto cycles [off]");
 }
 
+void SetKEYBCP() {
+    if (msgcodepage == 437) {dos.loaded_codepage=0;DOS_LoadKeyboardLayout("us", 437, "auto");dos.loaded_codepage=437;}
+    else if (msgcodepage == 857) {dos.loaded_codepage=437;DOS_LoadKeyboardLayout("tr", 857, "auto");dos.loaded_codepage=857;}
+    else if (msgcodepage == 858) {dos.loaded_codepage=437;DOS_LoadKeyboardLayout("es", 858, "auto");dos.loaded_codepage=858;}
+    else if (msgcodepage == 859) {dos.loaded_codepage=437;DOS_LoadKeyboardLayout("fr", 859, "auto");dos.loaded_codepage=859;}
+    else if (msgcodepage == 860) {dos.loaded_codepage=437;DOS_LoadKeyboardLayout("br", 860, "auto");dos.loaded_codepage=860;}
+    else if (msgcodepage == 932) {dos.loaded_codepage=437;DOS_LoadKeyboardLayout("jp", 932, "auto");dos.loaded_codepage=932;}
+    else if (msgcodepage == 936) {dos.loaded_codepage=0;DOS_LoadKeyboardLayout("us", 437, "auto");DOS_LoadKeyboardLayout("cn", 936, "auto");dos.loaded_codepage=936;}
+    else if (msgcodepage == 949) {dos.loaded_codepage=0;DOS_LoadKeyboardLayout("us", 437, "auto");DOS_LoadKeyboardLayout("ko", 949, "auto");dos.loaded_codepage=949;}
+    else if (msgcodepage == 950) {dos.loaded_codepage=0;DOS_LoadKeyboardLayout("us", 437, "auto");DOS_LoadKeyboardLayout("tw", 950, "auto");dos.loaded_codepage=950;}
+    else if (msgcodepage == 951) {dos.loaded_codepage=0;DOS_LoadKeyboardLayout("us", 437, "auto");DOS_LoadKeyboardLayout("hk", 951, "auto");dos.loaded_codepage=951;}
+}
+
 void LoadMessageFile(const char * fname) {
 	if (!fname) return;
 	if(*fname=='\0') return;//empty string=no languagefile
@@ -277,7 +294,7 @@ void LoadMessageFile(const char * fname) {
                     *r=0;
                     if (!strcmp(p, "CODEPAGE")) {
                         int c = atoi(r+1);
-                        if ((!res || control->opt_langcp) && c>0 && isSupportedCP(c)) {
+                        if ((!res || control->opt_langcp || uselangcp) && c>0 && isSupportedCP(c)) {
                             if (((IS_PC98_ARCH||IS_JEGA_ARCH) && c!=437 && c!=932 && !systemmessagebox("DOSBox-X language file", "You have specified a language file which uses a code page incompatible with the Japanese PC-98 or JEGA/AX system.\n\nAre you sure to use the language file for this machine type?", "yesno","question", 2)) || (((IS_JDOSV && c!=932) || (IS_PDOSV && c!=936) || (IS_KDOSV && c!=949) || (IS_TDOSV && c!=950 && c!=951)) && c!=437 && !systemmessagebox("DOSBox-X language file", "You have specified a language file which uses a code page incompatible with the current DOS/V system.\n\nAre you sure to use the language file for this system type?", "yesno","question", 2))) {
                                 fclose(mfile);
                                 dos.loaded_codepage = cp;
@@ -285,6 +302,8 @@ void LoadMessageFile(const char * fname) {
                             }
                             msgcodepage = c;
                             dos.loaded_codepage = c;
+                            if (c == 950 && !chinasea) makestdcp950table();
+                            if (c == 951 && chinasea) makeseacp951table();
                         }
                     } else if (!strcmp(p, "LANGUAGE"))
                         langname = r+1;
@@ -339,13 +358,28 @@ void LoadMessageFile(const char * fname) {
     menu_update_autocycle();
     update_bindbutton_text();
     dos.loaded_codepage=cp;
-    if (control->opt_langcp && msgcodepage>0 && isSupportedCP(msgcodepage) && msgcodepage != dos.loaded_codepage) {
+    if ((control->opt_langcp || uselangcp) && msgcodepage>0 && isSupportedCP(msgcodepage) && msgcodepage != dos.loaded_codepage) {
         ShutFontHandle();
         if (msgcodepage == 932 || msgcodepage == 936 || msgcodepage == 949 || msgcodepage == 950 || msgcodepage == 951) {
             dos.loaded_codepage = msgcodepage;
             InitFontHandle();
             JFONT_Init();
             dos.loaded_codepage = cp;
+        }
+        if (uselangcp) {
+#if defined(USE_TTF)
+            if (ttf.inUse) toSetCodePage(NULL, msgcodepage, -1); else
+#endif
+            {
+                dos.loaded_codepage = msgcodepage;
+                DOSBox_SetSysMenu();
+#if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+                if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
+                    UpdateSDLDrawTexture();
+#endif
+            }
+
+            SetKEYBCP();
         }
     }
 

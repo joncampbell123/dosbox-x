@@ -43,7 +43,7 @@ typedef wchar_t host_cnv_char_t;
 typedef char host_cnv_char_t;
 #endif
 extern std::string prefix_local;
-extern bool gbk, hidenonrep, ignorespecial;
+extern bool gbk, notrycp, hidenonrep, ignorespecial;
 extern char *CodePageHostToGuest(const host_cnv_char_t *s);
 bool isKanji1_gbk(uint8_t chr), CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 
@@ -267,7 +267,9 @@ static bool isDBCSlead(const wchar_t fchar) {
 
 /* does the filename fit the 8.3 format? */
 static bool is_filename_8by3w(const wchar_t* fname) {
-	if (CodePageHostToGuest(fname)==NULL) return false;
+    notrycp = true;
+    if (CodePageHostToGuest(fname)==NULL) {notrycp = false;return false;}
+    notrycp = false;
     int i;
 
     /* Is the first part 8 chars or less? */

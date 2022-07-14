@@ -90,6 +90,7 @@ extern unsigned char        GFX_Gshift;
 extern uint32_t             GFX_Bmask;
 extern unsigned char        GFX_Bshift;
 
+extern unsigned int         maincp;
 extern int                  aspect_ratio_x, aspect_ratio_y;
 extern int                  statusdrive, swapInDisksSpecificDrive;
 extern bool                 ttfswitch, switch_output_from_ttf, loadlang;
@@ -242,9 +243,12 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     GFX_LosingFocus();//Release any keys pressed (buffer gets filled again). (could be in above if, but clearing the mapper input when exiting the mapper is sensible as well
     SDL_Delay(20);
 
+    unsigned int cpbak = dos.loaded_codepage;
+    if (dos_kernel_disabled&&maincp) dos.loaded_codepage = maincp;
     Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
     LoadMessageFile(section->Get_string("language"));
     if (font_14_init) GUI_LoadFonts();
+    dos.loaded_codepage = cpbak;
 
     // Comparable to the code of intro.com, but not the same! (the code of intro.com is called from within a com file)
     shell_idle = !dos_kernel_disabled && strcmp(RunningProgram, "LOADLIN") && first_shell && (DOS_PSP(dos.psp()).GetSegment() == DOS_PSP(dos.psp()).GetParent());
@@ -2879,7 +2883,7 @@ protected:
     GUI::Input *name;
 public:
     ShowHelpIntro(GUI::Screen *parent, int x, int y, const char *title) :
-        ToplevelWindow(parent, x, y, 580, 190, title) {
+        ToplevelWindow(parent, x, y, 610, 190, title) {
             std::istringstream in(MSG_Get("INTRO_MESSAGE"));
             int r=0;
             if (in)	for (std::string line; std::getline(in, line); ) {

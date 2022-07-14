@@ -2151,11 +2151,11 @@ CHCP [nnn [file]]
 
 Supported code pages for changing in the TrueType font output:
 
-437,737,775,808,850,852,853,855,857,858,860-866,869,872,874,3021
+437, 737, 775, 808, 850, 852, 853, 855-866, 869, 872, 874, 3021
 
 Windows code pages: 1250,1251,1252,1253,1254,1255,1256,1257,1258
 
-Also double-byte code pages including 932, 936, 949, and 950.
+Also double-byte code pages including 932, 936, 949, and 950/951.
 
 Customized code pages are supported by providing code page files.
 
@@ -2886,6 +2886,15 @@ EMM386 emulation
 .
 :MENU:dos_ems_false
 Disable EMS emulation
+.
+:MENU:DOSDiskRateMenu
+Limit disk transfer speed
+.
+:MENU:limit_hdd_rate
+Limit hard disk data rate
+.
+:MENU:limit_floppy_rate
+Limit floppy disk data rate
 .
 :MENU:DOSWinMenu
 Host system applications

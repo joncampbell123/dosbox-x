@@ -41,7 +41,7 @@ extern bool int13_extensions_enable, bootguest, bootvm, use_quick_reboot;
 extern bool isDBCSCP(), isKanji1_gbk(uint8_t chr), shiftjis_lead_byte(int c);
 extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 
-#define TOFAT_TIMEOUT 5000
+#define TOFAT_TIMEOUT 4000
 #define STATIC_ASSERTM(A,B) static_assertion_##A##_##B
 #define STATIC_ASSERTN(A,B) STATIC_ASSERTM(A,B)
 #define STATIC_ASSERT(cond) typedef char STATIC_ASSERTN(__LINE__,__COUNTER__)[(cond)?1:-1]
@@ -283,9 +283,8 @@ struct fatFromDOSDrive
 	bootstrap  bootsec;
 	uint8_t    fatSz;
 	uint8_t    fsinfosec[BYTESPERSECTOR];
-	uint32_t   sectorsPerCluster;
-	uint16_t   codepage = 0;
-	bool       readOnly = false, success = false, tomany = false;
+	uint32_t   sectorsPerCluster, codepage = 0;
+	bool       tryconvcp = false, readOnly = false, success = false, tomany = false;
 
 	struct ffddFile { char path[DOS_PATHLENGTH+1]; uint32_t firstSect; };
 	std::vector<direntry> root, dirs;
@@ -724,6 +723,7 @@ struct fatFromDOSDrive
 			var_write((uint32_t *const)&fsinfosec[508], (const uint32_t)0xAA550000); //ending signature
 		}
 		codepage = dos.loaded_codepage;
+		tryconvcp = tryconvertcp;
 		success = true;
 	}
 
@@ -842,9 +842,12 @@ struct fatFromDOSDrive
 					cachedf = NULL;
 				}
                 bool res = drive->FileOpen(&df, f.path, OPEN_READ);
-                if (!res && codepage && codepage != dos.loaded_codepage) {
-                    uint16_t cp = dos.loaded_codepage;
+                if (!res && codepage && (codepage != dos.loaded_codepage || (tryconvcp && codepage == 437))) {
+                    uint32_t cp = dos.loaded_codepage;
                     dos.loaded_codepage = codepage;
+#if defined(WIN32)
+                    if (tryconvcp && dos.loaded_codepage == 437) dos.loaded_codepage = GetACP();
+#endif
                     res = drive->FileOpen(&df, f.path, OPEN_READ);
                     dos.loaded_codepage = cp;
                 }

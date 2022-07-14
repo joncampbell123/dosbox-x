@@ -60,8 +60,10 @@
 #include "cp852_uni.h"
 #include "cp853_uni.h"
 #include "cp855_uni.h"
+#include "cp856_uni.h"
 #include "cp857_uni.h"
 #include "cp858_uni.h"
+#include "cp859_uni.h"
 #include "cp860_uni.h"
 #include "cp861_uni.h"
 #include "cp862_uni.h"
@@ -105,7 +107,7 @@ uint16_t customcp_to_unicode[256], altcp_to_unicode[256];
 extern uint16_t cpMap_AX[32];
 extern uint16_t cpMap_PC98[256];
 extern std::map<int, int> lowboxdrawmap, pc98boxdrawmap;
-bool cpwarn_once = false, ignorespecial = false, tryconvertcp = false, askcp = false;
+bool cpwarn_once = false, ignorespecial = false, tryconvertcp = false, notrycp = false;
 std::string prefix_local = ".DBLOCALFILE";
 
 char* GetCrossedName(const char *basedir, const char *dir) {
@@ -618,10 +620,14 @@ bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
         case 855:
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
+        case 856:
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp856_to_unicode,sizeof(cp856_to_unicode)/sizeof(cp856_to_unicode[0]));
         case 857:
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+        case 859:
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp859_to_unicode,sizeof(cp859_to_unicode)/sizeof(cp859_to_unicode[0]));
         case 860:
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
         case 861:
@@ -708,10 +714,14 @@ bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
         case 855:
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
+        case 856:
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp856_to_unicode,sizeof(cp856_to_unicode)/sizeof(cp856_to_unicode[0]));
         case 857:
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+        case 859:
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp859_to_unicode,sizeof(cp859_to_unicode)/sizeof(cp859_to_unicode[0]));
         case 860:
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
         case 861:
@@ -798,10 +808,14 @@ bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
         case 855:
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
+        case 856:
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp856_to_unicode,sizeof(cp856_to_unicode)/sizeof(cp856_to_unicode[0]));
         case 857:
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+        case 859:
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp859_to_unicode,sizeof(cp859_to_unicode)/sizeof(cp859_to_unicode[0]));
         case 860:
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
         case 861:
@@ -888,10 +902,14 @@ bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp853_to_unicode,sizeof(cp853_to_unicode)/sizeof(cp853_to_unicode[0]));
         case 855:
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp855_to_unicode,sizeof(cp855_to_unicode)/sizeof(cp855_to_unicode[0]));
+        case 856:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp856_to_unicode,sizeof(cp856_to_unicode)/sizeof(cp856_to_unicode[0]));
         case 857:
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp857_to_unicode,sizeof(cp857_to_unicode)/sizeof(cp857_to_unicode[0]));
         case 858:
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp858_to_unicode,sizeof(cp858_to_unicode)/sizeof(cp858_to_unicode[0]));
+        case 859:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp859_to_unicode,sizeof(cp859_to_unicode)/sizeof(cp859_to_unicode[0]));
         case 860:
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp860_to_unicode,sizeof(cp860_to_unicode)/sizeof(cp860_to_unicode[0]));
         case 861:
@@ -961,7 +979,7 @@ bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
 host_cnv_char_t *CodePageGuestToHost(const char *s) {
 #if defined(host_cnv_use_wchar)
     uint16_t cp = GetACP(), cpbak = dos.loaded_codepage;
-    if (tryconvertcp && !askcp && cpbak == 437 && (cp == 932 || cp == 936 || cp == 949 || cp == 950 || cp == 951)) {
+    if (tryconvertcp && !notrycp && cpbak == 437 && (cp == 932 || cp == 936 || cp == 949 || cp == 950 || cp == 951)) {
         dos.loaded_codepage = cp;
         if (CodePageGuestToHostUTF16((uint16_t *)cpcnv_temp,s)) {
             dos.loaded_codepage = cpbak;
@@ -981,7 +999,7 @@ host_cnv_char_t *CodePageGuestToHost(const char *s) {
 char *CodePageHostToGuest(const host_cnv_char_t *s) {
 #if defined(host_cnv_use_wchar)
     uint16_t cp = GetACP(), cpbak = dos.loaded_codepage;
-    if (tryconvertcp && !askcp && cpbak == 437 && (cp == 932 || cp == 936 || cp == 949 || cp == 950 || cp == 951)) {
+    if (tryconvertcp && !notrycp && cpbak == 437 && (cp == 932 || cp == 936 || cp == 949 || cp == 950 || cp == 951)) {
         dos.loaded_codepage = cp;
         if (CodePageHostToGuestUTF16((char *)cpcnv_temp,(const uint16_t *)s)) {
             dos.loaded_codepage = cpbak;
@@ -1001,7 +1019,7 @@ char *CodePageHostToGuest(const host_cnv_char_t *s) {
 char *CodePageHostToGuestL(const host_cnv_char_t *s) {
 #if defined(host_cnv_use_wchar)
     uint16_t cp = GetACP(), cpbak = dos.loaded_codepage;
-    if (tryconvertcp && !askcp && cpbak == 437 && (cp == 932 || cp == 936 || cp == 949 || cp == 950 || cp == 951)) {
+    if (tryconvertcp && !notrycp && cpbak == 437 && (cp == 932 || cp == 936 || cp == 949 || cp == 950 || cp == 951)) {
         dos.loaded_codepage = cp;
         if (CodePageHostToGuestUTF16((char *)cpcnv_ltemp,(const uint16_t *)s)) {
             dos.loaded_codepage = cpbak;

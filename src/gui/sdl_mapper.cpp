@@ -176,7 +176,7 @@ struct KeyBlock {
 static DOSBoxMenu                               mapperMenu;
 #endif
 
-extern unsigned int                             hostkeyalt;
+extern unsigned int                             hostkeyalt, maincp;
 extern uint8_t                                  int10_font_14[256 * 14];
 
 std::map<std::string,std::string>               pending_string_binds;
@@ -3642,6 +3642,8 @@ static void DrawText(Bitu x,Bitu y,const char * text,uint8_t color,uint8_t bkcol
 #else
     uint8_t * draw=((uint8_t *)mapper.surface->pixels)+(y*mapper.surface->pitch)+x;
 #endif
+    unsigned int cpbak = dos.loaded_codepage;
+    if (dos_kernel_disabled&&maincp) dos.loaded_codepage = maincp;
     while (*text) {
         unsigned char c = *text;
         uint8_t * font;
@@ -3683,6 +3685,7 @@ static void DrawText(Bitu x,Bitu y,const char * text,uint8_t color,uint8_t bkcol
         text++;
         prvmc = 0;
     }
+    dos.loaded_codepage = cpbak;
     prvmc = 0;
 }
 

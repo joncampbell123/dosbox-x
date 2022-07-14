@@ -1588,8 +1588,10 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     <ClInclude Include="..\include\cp852_uni.h" />
     <ClInclude Include="..\include\cp853_uni.h" />
     <ClInclude Include="..\include\cp855_uni.h" />
+    <ClInclude Include="..\include\cp856_uni.h" />
     <ClInclude Include="..\include\cp857_uni.h" />
     <ClInclude Include="..\include\cp858_uni.h" />
+    <ClInclude Include="..\include\cp859_uni.h" />
     <ClInclude Include="..\include\cp860_uni.h" />
     <ClInclude Include="..\include\cp861_uni.h" />
     <ClInclude Include="..\include\cp862_uni.h" />

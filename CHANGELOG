@@ -10,6 +10,12 @@
     option "drive z convert fat" (in [dos] section) to
     control whether to convert virtual drive Z:. Much
     of the code is imported from DOSBox Pure. (Wengier)
+  - Added code pages 856 (Hebrew) and 859 (Latin 9) for
+    the guest-to-host code page conversions. (Wengier)
+  - Added the "Limit disk transfer speed" menu group
+    (under "DOS") to toggle the hard & floppy disk data
+    rate function. Also moved "Quick launch program..."
+    menu from "DOS" menu to "Main" menu. (Wengier)
   - Added config option to allow create of temporary
     devices for piping operations when a temporary DOS
     path is not available. (Wengier)
@@ -17,10 +23,21 @@
     READ CD command. (schellingb)
   - Report bad sectors recorded in raw CD images as
     ATAPI read errors. (schellingb)
+  - You can use CONFIG -set langcp=... to change the
+    current language along with the embedded code page.
+    Also improved -langcp option for SBCS code pages,
+    and the Windows installer will also set keyboard
+    layouts for the selected languages. (Wengier)
+  - When changing TTF font, DOSBox-X will try to show
+    the number of missing characters in the new TTF
+    font (if any). (Wengier)
   - Fixed display of individual/total file sizes with
     DIR command when they are very large. (Wengier)
   - Fixed non-US code page conversions for mounted FAT
     drives. (Wengier)
+  - Fixed incorrect message displays in Configuration
+    Tool and Mapper Editor when booting into guest
+    systems with language files. (Wengier)
   - Fixed possible "Path not found" bug when switching
     to code page 950 from another code page. (Wengier)
   - Fixed creating directories may not work properly

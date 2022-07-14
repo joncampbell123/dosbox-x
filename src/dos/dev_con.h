@@ -56,6 +56,9 @@ static size_t dev_con_pos=0,dev_con_max=0;
 static unsigned char dev_con_readbuf[64];
 extern bool CheckHat(uint8_t code);
 extern bool inshell;
+#if defined(USE_TTF)
+extern bool ttf_dosv;
+#endif
 
 uint8_t DefaultANSIAttr() {
 	return IS_PC98_ARCH ? 0xE1 : 0x07;
@@ -691,10 +694,6 @@ public:
 // Section 4-8.
 //
 // The PDF documents ANSI codes defined on PC-98, which may or may not be a complete listing.
-#if defined(USE_TTF)
-extern bool ttf_dosv;
-#endif
-
 bool device_CON::Read(uint8_t * data,uint16_t * size) {
 	uint16_t oldax=reg_ax;
 	uint16_t count=0;

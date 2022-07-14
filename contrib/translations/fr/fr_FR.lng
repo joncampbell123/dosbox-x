@@ -1,5 +1,5 @@
 :DOSBOX-X:LANGUAGE:French (France)
-:DOSBOX-X:CODEPAGE:858
+:DOSBOX-X:CODEPAGE:859
 :DOSBOX-X:VERSION:0.84.2
 :DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
@@ -2155,11 +2155,11 @@ CHCP [nnn [fichier]]
 Pages de code prises en charge pour être modifiées dans la sortie
 de la police TrueType :
 
-437,737,775,808,850,852,853,855,857,858,860-866,869,872,874,3021
+437, 737, 775, 808, 850, 852, 853, 855-866, 869, 872, 874, 3021
 
 Pages de codes Windows: 1250,1251,1252,1253,1254,1255,1256,1257,1258
 
-Également des pages de code à double octet, notamment 932, 936, 949 et 950.
+Également des pages de code à double octet, notamment 932, 936, 949 et 950/951.
 
 Les pages de codes personnalisées sont prises en charge en fournissant des fichiers de pages de codes.
 
@@ -2892,6 +2892,15 @@ Activer l'émulation EMS
 .
 :MENU:dos_ems_false
 Désactiver l'émulation EMS
+.
+:MENU:DOSDiskRateMenu
+Limiter la vitesse de transfert du disque
+.
+:MENU:limit_hdd_rate
+Limiter le débit de données du disque dur
+.
+:MENU:limit_floppy_rate
+Limiter le débit de données des disquettes
 .
 :MENU:DOSWinMenu
 Applications du système hôte

@@ -7,8 +7,10 @@
 ./sb2u.pl cp852_to_unicode <CP852.TXT >../../include/cp852_uni.h || exit 1
 ./sb2u.pl cp853_to_unicode <CP853.TXT >../../include/cp853_uni.h || exit 1
 ./sb2u.pl cp855_to_unicode <CP855.TXT >../../include/cp855_uni.h || exit 1
+./sb2u.pl cp856_to_unicode <CP856.TXT >../../include/cp856_uni.h || exit 1
 ./sb2u.pl cp857_to_unicode <CP857.TXT >../../include/cp857_uni.h || exit 1
 ./sb2u.pl cp858_to_unicode <CP858.TXT >../../include/cp858_uni.h || exit 1
+./sb2u.pl cp859_to_unicode <CP859.TXT >../../include/cp859_uni.h || exit 1
 ./sb2u.pl cp860_to_unicode <CP860.TXT >../../include/cp860_uni.h || exit 1
 ./sb2u.pl cp861_to_unicode <CP861.TXT >../../include/cp861_uni.h || exit 1
 ./sb2u.pl cp862_to_unicode <CP862.TXT >../../include/cp862_uni.h || exit 1

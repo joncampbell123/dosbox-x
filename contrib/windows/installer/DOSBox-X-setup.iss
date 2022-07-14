@@ -597,11 +597,32 @@ begin
               if (PageLang.Values[8]) and FileExists(ExpandConstant('{app}\languages\tr_TR.lng')) then
                 FileLines[i] := linetmp+' tr_TR';
             end;
+            if (CompareText(linetmp, 'keyboardlayout') = 0) and (CompareText(section, 'dos') = 0) then
+            begin
+              linetmp := Trim(Copy(line, 1, Pos('=', line)));
+              if (PageLang.Values[1]) then
+                FileLines[i] := linetmp+' fr';
+              if (PageLang.Values[2]) then
+                FileLines[i] := linetmp+' jp';
+              if (PageLang.Values[3]) then
+                FileLines[i] := linetmp+' ko';
+              if (PageLang.Values[4]) then
+                FileLines[i] := linetmp+' br';
+              if (PageLang.Values[5]) then
+                FileLines[i] := linetmp+' cn';
+              if (PageLang.Values[6]) then
+                FileLines[i] := linetmp+' sp';
+              if (PageLang.Values[7]) then
+                FileLines[i] := linetmp+' tw';
+              if (PageLang.Values[8]) then
+                FileLines[i] := linetmp+' tr';
+              break;
+            end;
             if (CompareText(linetmp, 'country') = 0) and (CompareText(section, 'config') = 0) then
             begin
               linetmp := Trim(Copy(line, 1, Pos('=', line)));
               if (PageLang.Values[1]) then
-                FileLines[i] := linetmp+' 33,858';
+                FileLines[i] := linetmp+' 33,859';
               if (PageLang.Values[2]) then
                 FileLines[i] := linetmp+' 81,932';
               if (PageLang.Values[3]) then

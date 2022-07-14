@@ -310,7 +310,7 @@ error_recovery:
 int delete_fluid_dsound_audio_driver(fluid_audio_driver_t* d)
 {
 	fluid_dsound_audio_driver_t* dev = (fluid_dsound_audio_driver_t*)d;
-	fluid_return_if_fail(dev != NULL);
+	if (dev == NULL) return 0;
 
 	/* wait till the audio thread exits */
 	if (dev->thread != NULL)

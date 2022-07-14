@@ -33,12 +33,14 @@
 #include "dosbox.h"
 #include "setup.h"
 #include "jfont.h"
+#include "dos_inc.h"
 
 #include <SDL.h>
 #include "gui_tk.h"
 
 #include <math.h> /* floor */
-bool isDBCSCP();
+extern unsigned int maincp;
+extern bool dos_kernel_disabled, isDBCSCP();
 uint8_t *GetDbcs14Font(Bitu code, bool &is14);
 
 namespace GUI {
@@ -491,9 +493,12 @@ void BitmapFont::drawChar(Drawable *d, const Char c) const {
 	int bit = 0, i = 0, w = 0, h = 0;
 	bool is14 = false;
 	if (c > last) {prvc = 0;return;}
+	unsigned int cpbak = dos.loaded_codepage;
+	if (dos_kernel_disabled&&maincp) dos.loaded_codepage = maincp;
     if (IS_PC98_ARCH || IS_JEGA_ARCH || isDBCSCP()) {
         if (isKanji1(c) && prvc == 0) {
             prvc = c;
+            dos.loaded_codepage = cpbak;
             return;
         } else if (isKanji2(c) && prvc > 2) {
             optr = GetDbcs14Font(prvc*0x100+c, is14);
@@ -502,6 +507,7 @@ void BitmapFont::drawChar(Drawable *d, const Char c) const {
             prvc = 0;
     } else
         prvc = 0;
+    dos.loaded_codepage = cpbak;
 #define move(x) (ptr += (((x)+bit)/8-(((x)+bit)<0))*(prvc==1||prvc==2?2:1), bit = ((x)+bit+(((x)+bit)<0?8:0))%8)
 	int ht = prvc==1?16:height, at = prvc==1?11:ascent;
 	int rs = row_step;

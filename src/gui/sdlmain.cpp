@@ -51,6 +51,7 @@ int transparency=0;
 int selsrow = -1, selscol = -1;
 int selerow = -1, selecol = -1;
 int middleunlock = 1;
+unsigned int maincp = 0;
 extern bool testerr;
 extern bool blinking;
 extern bool log_int21;
@@ -7158,6 +7159,7 @@ bool VM_Boot_DOSBox_Kernel() {
         dos_kernel_disabled = false; // FIXME: DOS_Init should install VM callback handler to set this
         void DOS_Startup(Section* sec);
         DOS_Startup(NULL);
+        maincp = 0;
 
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
         Reflect_Menu();
@@ -9147,7 +9149,7 @@ fresh_boot:
         if (dos_kernel_shutdown) {
 
             inshell = tryconvertcp = false;
-            uint16_t cp = dos.loaded_codepage;
+            maincp = dos.loaded_codepage;
             if (!IS_PC98_ARCH&&!IS_JEGA_ARCH&&!IS_J3100&&dos.loaded_codepage!=437) dos.loaded_codepage=437;
 
             /* NTS: we take different paths depending on whether we're just shutting down DOS
@@ -9203,8 +9205,8 @@ fresh_boot:
             /* shutdown the programs */
             PROGRAMS_Shutdown();        /* FIXME: Is this safe? Or will this cause use-after-free bug? */
 
-            uint16_t cpbak = dos.loaded_codepage;
-            dos.loaded_codepage = cp;
+            unsigned int cpbak = dos.loaded_codepage;
+            dos.loaded_codepage = maincp;
             Add_VFiles(false);
             dos.loaded_codepage = cpbak;
 
