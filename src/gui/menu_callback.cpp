@@ -50,8 +50,8 @@ std::string savefilename = "";
 
 extern SHELL_Cmd cmd_list[];
 extern unsigned int page, hostkeyalt, sendkeymap;
-extern int posx, posy, wheel_key, mbutton, enablelfn, dos_clipboard_device_access, aspect_ratio_x, aspect_ratio_y, disk_data_rate, floppy_data_rate;
-extern bool addovl, clearline, pcibus_enable, winrun, window_was_maximized, wheel_guest, clipboard_dosapi, clipboard_biospaste, direct_mouse_clipboard, sync_time, manualtime, pausewithinterrupts_enable, enable_autosave, enable_config_as_shell_commands, noremark_save_state, force_load_state, use_quick_reboot, use_save_file, dpi_aware_enable, pc98_force_ibm_layout, log_int21, log_fileio, x11_on_top, macosx_on_top, rtl, gbk, chinasea;
+extern int posx, posy, wheel_key, mbutton, enablelfn, dos_clipboard_device_access, aspect_ratio_x, aspect_ratio_y, disk_data_rate, floppy_data_rate, lastmsgcp;
+extern bool addovl, clearline, pcibus_enable, winrun, window_was_maximized, wheel_guest, clipboard_dosapi, clipboard_biospaste, direct_mouse_clipboard, sync_time, manualtime, pausewithinterrupts_enable, enable_autosave, enable_config_as_shell_commands, noremark_save_state, force_load_state, use_quick_reboot, use_save_file, dpi_aware_enable, pc98_force_ibm_layout, log_int21, log_fileio, x11_on_top, macosx_on_top, rtl, gbk, chinasea, uselangcp;
 extern bool mountfro[26], mountiro[26];
 extern struct BuiltinFileBlob bfb_GLIDE2X_OVL;
 extern const char* RunningProgram;
@@ -69,6 +69,7 @@ void VFILE_Remove(const char *name,const char *dir = "");
 void VOODOO_Destroy(Section* /*sec*/), VOODOO_OnPowerOn(Section* /*sec*/);
 void GLIDE_ShutDown(Section* sec), GLIDE_PowerOn(Section* sec);
 void DOSBox_ShowConsole(void);
+void Load_Language(std::string name);
 void RebootLanguage(std::string filename, bool confirm=false);
 void MenuBrowseFolder(char drive, std::string drive_type);
 void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple);
@@ -89,6 +90,7 @@ int setTTFMap(bool changecp), FileDirExistCP(const char *name), FileDirExistUTF8
 size_t GetGameState_Run(void);
 void DBCSSBCS_mapper_shortcut(bool pressed);
 void AutoBoxDraw_mapper_shortcut(bool pressed);
+extern std::string langname, GetDOSBoxXPath(bool withexe=false);
 
 void* GetSetSDLValue(int isget, std::string& target, void* setval) {
     if (target == "wait_on_error") {
@@ -600,7 +602,7 @@ bool a20gate_on_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
         mainMenu.get_item("enable_a20gate").check(MEM_A20_Enabled()).refresh_item(mainMenu);
     else {
         std::string msg = "The A20 gate may be locked and cannot be "+std::string(bef?"disabled":"enabled")+".";
-        systemmessagebox("Warning",msg.c_str(),"ok", "info", 1);
+        systemmessagebox("Warning",msg.c_str(),"ok", "warning", 1);
     }
     return true;
 }
@@ -1787,15 +1789,24 @@ void Restart_config_file() {
 #endif
 }
 
-void Restart_language_file() {
+void Load_language_file() {
 #if !defined(HX_DOS)
     char CurrentDir[512];
     char * Temp_CurrentDir = CurrentDir;
     if(getcwd(Temp_CurrentDir, 512) == NULL) {
-        LOG(LOG_GUI, LOG_ERROR)("Restart_language_file failed to get the current working directory.");
+        LOG(LOG_GUI, LOG_ERROR)("Load_language_file failed to get the current working directory.");
         return;
     }
-    std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
+    struct stat st;
+    std::string res_path, exepath = GetDOSBoxXPath();
+    std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT+"languages"+CROSS_FILESPLIT;
+    Cross::GetPlatformResDir(res_path);
+    if (stat(cwd.c_str(),&st) != 0 && exepath.size())
+        cwd = exepath+(exepath.back()==CROSS_FILESPLIT?"":std::string(1, CROSS_FILESPLIT))+"languages"+CROSS_FILESPLIT;
+    if (stat(cwd.c_str(),&st) != 0 && res_path.size())
+        cwd = res_path+(res_path.back()==CROSS_FILESPLIT?"":std::string(1, CROSS_FILESPLIT))+"languages"+CROSS_FILESPLIT;
+    if (stat(cwd.c_str(),&st) != 0)
+        cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
     const char *lFilterPatterns[] = {"*.lng","*.LNG","*.txt","*.TXT"};
     const char *lFilterDescription = "DOSBox-X language files (*.lng, *.txt)";
     char const * lTheOpenFileName = tinyfd_openFileDialog("Select language file",cwd.c_str(),4,lFilterPatterns,lFilterDescription,0);
@@ -1814,15 +1825,23 @@ void Restart_language_file() {
         }
 
         if (*name) {
-            std::string localname = name;
-            if (!FileDirExistCP(name) && FileDirExistUTF8(localname, name))
-                RebootLanguage(localname.c_str(), true);
-            else
-                RebootLanguage(name, true);
+            std::string localname = name, newname = !FileDirExistCP(name) && FileDirExistUTF8(localname, name) ? localname : name;
+            if (dos_kernel_disabled)
+                RebootLanguage(newname.c_str(), true);
+            else {
+                uselangcp = true;
+                SetVal("dosbox", "language", newname);
+                Load_Language(newname);
+                uselangcp = false;
+                if (lastmsgcp == dos.loaded_codepage && langname.size()) {
+                    std::string msg = "DOSBox-X has successfully loaded the following language:\n\n" + langname + " [code page " + std::to_string(lastmsgcp) + "]\n\nMessages from this language will be applied from this point.";
+                    systemmessagebox("DOSBox-X language file", msg.c_str(), "ok","info", 2);
+                }
+            }
         }
     }
     if(chdir(Temp_CurrentDir) == -1) {
-        LOG(LOG_GUI, LOG_ERROR)("Restart_language_file failed to change directories.");
+        LOG(LOG_GUI, LOG_ERROR)("Load_language_file failed to change directories.");
     }
 #endif
 }
@@ -2722,10 +2741,10 @@ bool restartconf_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * cons
     return true;
 }
 
-bool restartlang_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
+bool loadlang_menu_callback(DOSBoxMenu * const xmenu, DOSBoxMenu::item * const menuitem) {
     (void)xmenu;//UNUSED
     (void)menuitem;//UNUSED
-    Restart_language_file();
+    Load_language_file();
     return true;
 }
 
@@ -3524,7 +3543,7 @@ void AllocCallback2() {
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"showdetails").set_text("Show FPS and RT speed in title bar").set_callback_function(showdetails_menu_callback).check(!menu.hidecycles && menu.showrt);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"restartinst").set_text("Restart DOSBox-X instance").set_callback_function(restartinst_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"restartconf").set_text("Restart DOSBox-X with config file...").set_callback_function(restartconf_menu_callback);
-        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"restartlang").set_text("Restart DOSBox-X with language file...").set_callback_function(restartlang_menu_callback);
+        mainMenu.alloc_item(DOSBoxMenu::item_type_id,"loadlang").set_text("Load language file...").set_callback_function(loadlang_menu_callback);
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"auto_lock_mouse").set_text("Autolock mouse").set_callback_function(autolock_mouse_menu_callback).check(sdl.mouse.autoenable);
 #if defined (WIN32) || defined(MACOSX) || defined(C_SDL2)
         mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clipboard_right").set_text("Via right mouse button").set_callback_function(right_mouse_clipboard_menu_callback).check(mbutton==3);

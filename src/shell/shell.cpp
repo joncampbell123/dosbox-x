@@ -105,7 +105,7 @@ typedef std::list<std::string>::iterator auto_it;
 
 void VFILE_Remove(const char *name,const char *dir="");
 void runRescan(const char *str), DOSBox_SetSysMenu(void);
-void toSetCodePage(DOS_Shell *shell, int newCP, int opt);
+int toSetCodePage(DOS_Shell *shell, int newCP, int opt);
 
 #if defined(WIN32)
 void MountAllDrives(bool quiet) {
@@ -834,7 +834,11 @@ void DOS_Shell::Prepare(void) {
                 if (!IS_PC98_ARCH&&!IS_JEGA_ARCH) {
 #if defined(USE_TTF)
                     if (ttf.inUse) {
-                        if (newCP) toSetCodePage(this, newCP, control->opt_fastlaunch?1:0);
+                        if (newCP) {
+                            int missing = toSetCodePage(this, newCP, control->opt_fastlaunch?1:0);
+                            WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
+                            if (missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
+                        }
                         else if (r!=NULL) WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), trim(r+1));
                     } else
 #endif
@@ -1679,7 +1683,7 @@ void SHELL_Init() {
     MSG_Add("SHELL_CMD_ASSOC_HELP", "Displays or changes file extension associations.\n");
     MSG_Add("SHELL_CMD_ASSOC_HELP_LONG", "ASSOC [.ext[=command] ... ]\n\nType ASSOC without parameters to display the current file associations.\nFile extensions must start with a dot (.); wildcards (* and ?) are allowed.\n");
 	MSG_Add("SHELL_CMD_CHCP_HELP", "Displays or changes the current DOS code page.\n");
-	MSG_Add("SHELL_CMD_CHCP_HELP_LONG", "CHCP [nnn [file]]\n\n  nnn   Specifies a code page number.\n  file  Specifies a code page file.\n\nSupported code pages for changing in the TrueType font output:\n\n437, 737, 775, 808, 850, 852, 853, 855-866, 869, 872, 874, 3021\n\nWindows code pages: 1250,1251,1252,1253,1254,1255,1256,1257,1258\n\nAlso double-byte code pages including 932, 936, 949, and 950/951.\n\nCustomized code pages are supported by providing code page files.\n");
+	MSG_Add("SHELL_CMD_CHCP_HELP_LONG", "CHCP [nnn [file]]\nCHCP nnn[:[language]]\n\n  nnn      Specifies a code page number.\n  file     Specifies a code page file.\n  language Specifies a corresponding language.\n\nSupported code pages for changing in the TrueType font output:\n\n437,737,775,808,850,852,853,855-866,869,872,874,1250-1258,3021\n\nAlso double-byte code pages including 932, 936, 949, and 950/951.\n\nCustomized code pages are supported by providing code page files.\n");
 	MSG_Add("SHELL_CMD_CHCP_ACTIVE", "Active code page: %d\n");
 	MSG_Add("SHELL_CMD_CHCP_MISSING", "ASCII characters not defined in TTF font: %d\n");
 	MSG_Add("SHELL_CMD_CHCP_INVALID", "Invalid code page number - %s\n");

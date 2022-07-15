@@ -2166,15 +2166,15 @@ Exibe ou define o número da página de código ativa.
 .
 :SHELL_CMD_CHCP_HELP_LONG
 CHCP [nnn [arquivo]]
+CHCP nnn[:[idioma]]
 
-  nnn   Define um número da página de código.
+  nnn      Define um número da página de código.
   arquivo  Especifica um arquivo de página de código.
+  idioma   Especifica um idioma correspondente.
 
 Páginas de código compatíveis para a saída de fonte TrueType:
 
-437, 737, 775, 808, 850, 852, 853, 855-866, 869, 872, 874, 3021
-
-Páginas de códigos do Windows: 1250,1251,1252,1253,1254,1255,1256,1257,1258
+437,737,775,808,850,852,853,855-866,869,872,874,1250-1258,3021
 
 Também páginas de códigos de duplo byte includindo 932,936,949,950/951.
 
@@ -3300,8 +3300,8 @@ Reiniciar instância do DOSBox-X
 :MENU:restartconf
 Reiniciar o DOSBox-X com arquivo config...
 .
-:MENU:restartlang
-Reiniciar o DOSBox-X com arquivo de idioma...
+:MENU:loadlang
+Carregar arquivo de idioma...
 .
 :MENU:auto_lock_mouse
 Travar automaticamente mouse

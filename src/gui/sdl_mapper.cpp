@@ -5201,7 +5201,7 @@ void MAPPER_RunInternal() {
         DOSBoxMenu::item &item = mapperMenu.get_item("SaveMapper");
         item.set_text(MSG_Get("SAVE_MAPPER_FILE"));
     }
-# if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+# if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU || DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
     if (loadlang) mapperMenu.unbuild();
 # endif
     mapperMenu.rebuild();

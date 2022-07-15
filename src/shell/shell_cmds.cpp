@@ -124,8 +124,8 @@ const char *GetCmdName(int i) {
     return i>n?NULL:cmd_list[i].name;
 }
 
-extern int enablelfn, lfn_filefind_handle, file_access_tries;
-extern bool date_host_forced, usecon, outcon, rsize, autoboxdraw, dbcs_sbcs, sync_time, manualtime, inshell, noassoc, dotype;
+extern int enablelfn, lfn_filefind_handle, file_access_tries, lastmsgcp;
+extern bool date_host_forced, usecon, outcon, rsize, autoboxdraw, dbcs_sbcs, sync_time, manualtime, inshell, noassoc, dotype, loadlang;
 extern unsigned long freec;
 extern uint8_t DOS_GetAnsiAttr(void);
 extern uint16_t countryNo, altcp_to_unicode[256];
@@ -134,8 +134,11 @@ bool Network_IsNetworkResource(const char * filename), DOS_SetAnsiAttr(uint8_t a
 void DOS_SetCountry(uint16_t countryNo), DOSV_FillScreen(void);
 extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), TTF_using(void);
 extern bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4), GFX_GetPreventFullscreen(void);
-void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t wait_ms, const uint32_t pace_ms, bool choice);
+extern bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+extern void Load_Language(std::string name), SwitchLanguage(int oldcp, int newcp, bool confirm);
+extern void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t wait_ms, const uint32_t pace_ms, bool choice);
 std::string GetDOSBoxXPath(bool withexe=false);
+FILE *testLoadLangFile(const char *fname);
 
 /* support functions */
 static char empty_char = 0;
@@ -4406,11 +4409,12 @@ void DOS_Shell::CMD_COUNTRY(char * args) {
 
 extern bool jfont_init, isDBCSCP();
 void runRescan(const char *str), MSG_Init(), JFONT_Init(), InitFontHandle(), ShutFontHandle(), initcodepagefont(), DOSBox_SetSysMenu();
-void toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
+int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
     if (isSupportedCP(newCP)) {
 		dos.loaded_codepage = newCP;
+        int missing = 0;
 #if defined(USE_TTF)
-		int missing = TTF_using() ? setTTFCodePage() : 0;
+		missing = TTF_using() ? setTTFCodePage() : 0;
 #endif
         if (!TTF_using()) initcodepagefont();
         if (opt==-1) {
@@ -4424,12 +4428,6 @@ void toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
 #endif
             DOSBox_SetSysMenu();
         }
-        if (opt<1 && shell) {
-            shell->WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
-#if defined(USE_TTF)
-            if (missing > 0) shell->WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
-#endif
-        }
         if (isDBCSCP()) {
             ShutFontHandle();
             InitFontHandle();
@@ -4438,7 +4436,7 @@ void toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
         SetupDBCSTable();
         runRescan("-A -Q");
 #if defined(USE_TTF)
-        if (opt==-1&&(newCP==932||newCP==936||newCP==949||newCP==950||newCP==951)) {
+        if (opt==-1&&TTF_using()&&(newCP==932||newCP==936||newCP==949||newCP==950||newCP==951)) {
             Section_prop * ttf_section = static_cast<Section_prop *>(control->GetSection("ttf"));
             const char *font = ttf_section->Get_string("font");
             if (!font || !*font) {
@@ -4449,8 +4447,11 @@ void toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
             }
         }
 #endif
-    } else if (opt<1 && shell)
+        return missing;
+    } else if (opt<1 && shell) {
        shell->WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), std::to_string(newCP).c_str());
+       return -1;
+    }
 }
 
 void DOS_Shell::CMD_CHCP(char * args) {
@@ -4471,14 +4472,36 @@ void DOS_Shell::CMD_CHCP(char * args) {
     }
 	int newCP;
 	char buff[256], *r;
-    int n = sscanf(args, "%d%s", &newCP, buff);
+    int missing = 0, n = sscanf(args, "%d%s", &newCP, buff);
     if (!TTF_using() && n && newCP != 932 && newCP != 936 && newCP != 949 && newCP != 950 && newCP != 951)
     {
         WriteOut("Changing to this code page is only supported for the TrueType font output.\n");
         return;
     }
-	if (n == 1) toSetCodePage(this, newCP, -1);
-    else if (n == 2 && strlen(buff)) {
+    auto iter = langcp_map.find(newCP);
+	if (n == 1) {
+        int cp = dos.loaded_codepage;
+        missing = toSetCodePage(this, newCP, -1);
+        if (missing > -1) SwitchLanguage(cp, newCP, true);
+        WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
+#if defined(USE_TTF)
+        if (missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
+#endif
+    } else if (n == 2 && strlen(buff)) {
+        if (*buff == ':' && strchr(StripArg(args), ':')) {
+            std::string name = buff+1;
+            if (name.empty() && iter != langcp_map.end()) name = iter->second;
+            missing = toSetCodePage(this, newCP, -1);
+            if (missing > -1 && name.size() && dos.loaded_codepage == newCP) {
+                SetVal("dosbox", "language", name);
+                Load_Language(name);
+            }
+            WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
+#if defined(USE_TTF)
+            if (missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
+#endif
+            return;
+        }
         altcp = 0;
         for (int i=0; i<256; i++) altcp_to_unicode[i] = 0;
         std::string cpfile = buff;
@@ -4505,7 +4528,11 @@ void DOS_Shell::CMD_CHCP(char * args) {
                 int map = (int)strtol(r+2, NULL, 16);
                 altcp_to_unicode[ind] = map;
             }
-            toSetCodePage(this, newCP, -1);
+            missing = toSetCodePage(this, newCP, -1);
+            WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
+#if defined(USE_TTF)
+            if (missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
+#endif
         } else
             WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
         if (file) fclose(file);

@@ -43,6 +43,18 @@ class DOS_Shell;
  * by "external" programs. (config) */
 extern DOS_Shell * first_shell;
 
+const std::map<int, std::string> langcp_map {
+	{437, "en_US"},
+	{857, "tr_TR"},
+	{858, "es_ES"},
+	{859, "fr_FR"},
+	{860, "pt_BR"},
+	{932, "ja_JP"},
+	{936, "zh_CN"},
+	{949, "ko_KR"},
+	{950, "zh_TW"},
+	{951, "zh_TW"},
+};
 
 class BatchFile {
 public:

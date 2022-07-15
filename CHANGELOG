@@ -24,10 +24,15 @@
   - Report bad sectors recorded in raw CD images as
     ATAPI read errors. (schellingb)
   - You can use CONFIG -set langcp=... to change the
-    current language along with the embedded code page.
+    current language along with the embedded code page,
+    or CHCP nnn:... to specify a language file as well.
     Also improved -langcp option for SBCS code pages,
     and the Windows installer will also set keyboard
     layouts for the selected languages. (Wengier)
+  - Changed menu option "Restart DOSBox-X with language
+    file..." to "Load language file..." for loading
+    language files without rebooting DOSBox-X, unless
+    a guest system is currently running. (Wengier)
   - When changing TTF font, DOSBox-X will try to show
     the number of missing characters in the new TTF
     font (if any). (Wengier)

@@ -137,11 +137,12 @@ static const char *def_menu_main[] =
 {
     "mapper_gui",
     "mapper_mapper",
-    "--",
 #if !defined(HX_DOS)
+    "--",
     "mapper_quickrun",
-#endif
+    "loadlang",
     "mapper_loadmap",
+#endif
     "--",
     "MainSendKey",
     "MainHostKey",
@@ -166,7 +167,6 @@ static const char *def_menu_main[] =
     "--",
     "restartinst",
     "restartconf",
-    "restartlang",
     "--",
     "mapper_shutdown",
 #endif
@@ -1873,6 +1873,8 @@ void DOSBox_SetMenu(void) {
     }
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* TODO: Move to menu.cpp DOSBox_SetMenu() and add setmenu(NULL) to DOSBox_NoMenu() @emendelson request showmenu=false */
+    if(!menu.gui) return;
+    menu.toggle=true;
     void sdl_hax_macosx_setmenu(void *nsMenu);
     sdl_hax_macosx_setmenu(mainMenu.getNsMenu());
 #endif
@@ -1912,6 +1914,8 @@ void DOSBox_NoMenu(void) {
     }
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
+    if(!menu.gui) return;
+    menu.toggle=false;
     void sdl_hax_macosx_setmenu(void *nsMenu);
     sdl_hax_macosx_setmenu(NULL);
 #endif

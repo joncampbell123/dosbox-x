@@ -2142,15 +2142,16 @@ Muestra o cambia el código de página DOS actual.
 
 .
 :SHELL_CMD_CHCP_HELP_LONG
-CHCP [nnn]
+CHCP [nnn [archivo]]
+CHCP nnn[:[idioma]]
 
-  nnn   Especifica un nº de código de página.
+  nnn     Especifica un nº de código de página.
+  archivo Especifica un archivo de página de códigos.
+  idioma  Especifica un idioma correspondiente.
 
 Códigos de página compatibles para la salida de fuente TrueType:
 
-437, 737, 775, 808, 850, 852, 853, 855-866, 869, 872, 874, 3021
-
-Páginas de códigos de Windows: 1250,1251,1252,1253,1254,1255,1256,1257,1258
+437,737,775,808,850,852,853,855-866,869,872,874,1250-1258,3021
 
 También páginas de códigos de doble byte incluyendo 932,936,949,950/951.
 
@@ -3282,8 +3283,8 @@ Reiniciar instancia de DOSBox-X
 :MENU:restartconf
 Reiniciar DOSBox-X con archivo config...
 .
-:MENU:restartlang
-Reiniciar DOSBox-X con archivo de idioma...
+:MENU:loadlang
+Cargar archivo de idioma...
 .
 :MENU:auto_lock_mouse
 Autobloqueo de ratón

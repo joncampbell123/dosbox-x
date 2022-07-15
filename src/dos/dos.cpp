@@ -74,7 +74,7 @@ extern bool log_int21, log_fileio, pipetmpdev;
 #if defined(USE_TTF)
 extern bool ttf_dosv;
 #endif
-extern int lfn_filefind_handle, autofixwarn, result_errorcode;
+extern int autofixwarn, lfn_filefind_handle, result_errorcode;
 extern uint16_t customcp_to_unicode[256];
 int customcp = 0, altcp = 0;
 unsigned long totalc, freec;
@@ -83,6 +83,7 @@ Bitu INT29_HANDLER(void);
 bool isDBCSCP();
 uint32_t BIOS_get_PC98_INT_STUB(void);
 void ResolvePath(std::string& in);
+void SwitchLanguage(int oldcp, int newcp, bool confirm);
 std::string GetDOSBoxXPath(bool withexe=false);
 extern std::string prefix_local, prefix_overlay;
 
@@ -136,6 +137,7 @@ bool hidenonrep = true;
 bool rsize = false;
 bool reqwin = false;
 bool packerr = false;
+bool incall = false;
 int file_access_tries = 0;
 int dos_initial_hma_free = 34*1024;
 int dos_sda_size = 0x560;
@@ -2710,6 +2712,7 @@ static Bitu DOS_21Handler(void) {
                     CALLBACK_SCF(false);
                     break;
                 case 2:
+                {
 #if defined(USE_TTF)
                     if (!ttf.inUse)
 #endif
@@ -2728,6 +2731,7 @@ static Bitu DOS_21Handler(void) {
                         reg_ax = dos.errorcode;
                         break;
                     }
+                    int cpbak = dos.loaded_codepage;
                     dos.loaded_codepage = reg_bx;
 #if defined(USE_TTF)
                     setTTFCodePage();
@@ -2758,8 +2762,12 @@ static Bitu DOS_21Handler(void) {
                     }
                     SetupDBCSTable();
                     runRescan("-A -Q");
+                    incall = true;
+                    SwitchLanguage(cpbak, dos.loaded_codepage, false);
+                    incall = false;
                     CALLBACK_SCF(false);
                     break;
+                }
                 default:
                     dos.errorcode = 1;
                     reg_ax = dos.errorcode;

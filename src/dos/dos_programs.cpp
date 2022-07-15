@@ -102,15 +102,17 @@ bool qmount = false;
 bool nowarn = false;
 bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 extern bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
-extern bool addovl, addipx, addne2k, prepared, inshell, usecon, uao, morelen, mountfro[26], mountiro[26], resetcolor, staycolors, printfont, tryconvertcp, notrycp, internal_program;
+extern bool addovl, addipx, addne2k, prepared, inshell, usecon, uao, loadlang, morelen, mountfro[26], mountiro[26], resetcolor, staycolors, printfont, tryconvertcp, notrycp, internal_program;
 extern bool clear_screen(), OpenGL_using(void), DOS_SetAnsiAttr(uint8_t attr), isDBCSCP();
-extern int lastcp, FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
+extern int lastcp, lastmsgcp, FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 extern uint8_t DOS_GetAnsiAttr(void);
-void MSG_Init(), JFONT_Init(), InitFontHandle(), ShutFontHandle(), DOSBox_SetSysMenu();
-void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused), UpdateSDLDrawTexture(), toSetCodePage(DOS_Shell *shell, int newCP, int opt);
+extern int toSetCodePage(DOS_Shell *shell, int newCP, int opt);
+void MSG_Init(), JFONT_Init(), InitFontHandle(), ShutFontHandle(), DOSBox_SetSysMenu(), Load_Language(std::string name);
+void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused), UpdateSDLDrawTexture();
 void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str), show_prompt(), ttf_reset(void);
 void getdrivezpath(std::string &path, std::string dirname), drivezRegister(std::string path, std::string dir, bool usecp), UpdateDefaultPrinterFont(void);
 std::string GetDOSBoxXPath(bool withexe=false);
+FILE *testLoadLangFile(const char *fname);
 
 #if defined(OS2)
 #define INCL DOSFILEMGR
@@ -191,6 +193,22 @@ void DetachFromBios(imageDisk* image) {
                 imageDiskList[index]->Release();
                 imageDiskChange[index] = true;
                 imageDiskList[index] = NULL;
+            }
+        }
+    }
+}
+
+void SwitchLanguage(int oldcp, int newcp, bool confirm) {
+    auto iterold = langcp_map.find(oldcp), iternew = langcp_map.find(newcp);
+    std::string langold = iterold != langcp_map.end() ? iterold->second : "", langnew = iternew != langcp_map.end() ? iternew->second : "";
+    if (loadlang && (oldcp == lastmsgcp || (oldcp == 951 && lastmsgcp == 950)) && oldcp != newcp && newcp == dos.loaded_codepage && langnew.size() && !(langold.size() && langold == langnew)) {
+        FILE *file = testLoadLangFile(langnew.c_str());
+        if (file) {
+            fclose(file);
+            std::string msg = "You have changed the active code page to " + std::to_string(newcp) + ". Do you want to load language file " + langnew + " for this code page?";
+            if (!confirm || systemmessagebox("DOSBox-X language file", msg.c_str(), "yesno","question", 2)) {
+                SetVal("dosbox", "language", langnew);
+                Load_Language(langnew);
             }
         }
     }
@@ -1324,6 +1342,7 @@ public:
                             UpdateSDLDrawTexture();
 #endif
                     }
+                    SwitchLanguage(cpbak, cp, false);
                 }
             }
 #elif defined (OS2)
@@ -6388,6 +6407,7 @@ void KEYB::Run(void) {
             int32_t tried_cp = -1;
             cmd->FindCommand(2,cp_string);
             int tocp=!strcmp(temp_line.c_str(), "jp")?932:(!strcmp(temp_line.c_str(), "ko")?949:(!strcmp(temp_line.c_str(), "tw")||!strcmp(temp_line.c_str(), "hk")||!strcmp(temp_line.c_str(), "zht")||(!strcmp(temp_line.c_str(), "zh")&&((cp_string.size()&&(atoi(cp_string.c_str())==950||atoi(cp_string.c_str())==951))||(!cp_string.size()&&(dos.loaded_codepage==950||dos.loaded_codepage==951))))?((cp_string.size()&&atoi(cp_string.c_str())==951)||(!cp_string.size()&&dos.loaded_codepage==951)?951:950):(!strcmp(temp_line.c_str(), "cn")||!strcmp(temp_line.c_str(), "zhs")||!strcmp(temp_line.c_str(), "zh")?936:0)));
+            int cp = dos.loaded_codepage;
             if (tocp && !IS_PC98_ARCH) {
                 uint16_t cpbak = dos.loaded_codepage;
                 dos.loaded_codepage=tocp;
@@ -6417,6 +6437,7 @@ void KEYB::Run(void) {
                         UpdateSDLDrawTexture();
 #endif
                 }
+                SwitchLanguage(cp, tocp, true);
                 return;
             }
             if (cp_string.size()) {
@@ -6437,9 +6458,16 @@ void KEYB::Run(void) {
             }
             switch (keyb_error) {
                 case KEYB_NOERROR:
+                {
                     WriteOut(MSG_Get("PROGRAM_KEYB_NOERROR"),temp_line.c_str(),dos.loaded_codepage);
                     runRescan("-A -Q");
+#if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
+                    if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
+                        UpdateSDLDrawTexture();
+#endif
+                    SwitchLanguage(cp, dos.loaded_codepage, true);
                     break;
+                }
                 case KEYB_FILENOTFOUND:
                     if (temp_line!="/?"&&temp_line!="-?") WriteOut(MSG_Get("PROGRAM_KEYB_FILENOTFOUND"),temp_line.c_str());
                     WriteOut(MSG_Get("PROGRAM_KEYB_SHOWHELP"));

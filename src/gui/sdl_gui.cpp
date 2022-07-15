@@ -475,7 +475,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
             DOSBoxMenu::item &item = guiMenu.get_item("ExitGUI");
             item.set_text(MSG_Get("CONFIG_TOOL_EXIT"));
         }
-# if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
+# if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU || DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
         if (loadlang) guiMenu.unbuild();
 # endif
     }

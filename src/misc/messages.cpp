@@ -38,14 +38,14 @@
 #endif
 using namespace std;
 
-int msgcodepage = 0, FileDirExistUTF8(std::string &localname, const char *name);
 Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const char * codepagefile);
+int msgcodepage = 0, lastmsgcp = 0, FileDirExistUTF8(std::string &localname, const char *name), toSetCodePage(DOS_Shell *shell, int newCP, int opt);
 bool morelen = false, inmsg = false, loadlang = false, uselangcp = false, systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton), OpenGL_using(void);
 bool isSupportedCP(int newCP), CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
-void InitFontHandle(void), ShutFontHandle(void), SetIME(void), menu_update_dynamic(void), menu_update_autocycle(void), update_bindbutton_text(void), set_eventbutton_text(const char *eventname, const char *buttonname), JFONT_Init(), DOSBox_SetSysMenu(), toSetCodePage(DOS_Shell *shell, int newCP, int opt), UpdateSDLDrawTexture(), makestdcp950table(), makeseacp951table();
+void InitFontHandle(void), ShutFontHandle(void), SetIME(void), menu_update_dynamic(void), menu_update_autocycle(void), update_bindbutton_text(void), set_eventbutton_text(const char *eventname, const char *buttonname), JFONT_Init(), DOSBox_SetSysMenu(), UpdateSDLDrawTexture(), makestdcp950table(), makeseacp951table();
 std::string langname = "", langnote = "", GetDOSBoxXPath(bool withexe=false);
-const char *DOS_GetLoadedLayout();
 extern int lastcp;
+extern const char * RunningProgram;
 extern bool dos_kernel_disabled, force_conversion, showdbcs, dbcs_sbcs, enableime, tonoime, chinasea;
 
 #define LINE_IN_MAXLEN 2048
@@ -203,6 +203,7 @@ void AddMessages() {
 }
 
 void SetKEYBCP() {
+    if (IS_PC98_ARCH || dos_kernel_disabled || !strcmp(RunningProgram, "LOADLIN")) return;
     if (msgcodepage == 437) {dos.loaded_codepage=0;DOS_LoadKeyboardLayout("us", 437, "auto");dos.loaded_codepage=437;}
     else if (msgcodepage == 857) {dos.loaded_codepage=437;DOS_LoadKeyboardLayout("tr", 857, "auto");dos.loaded_codepage=857;}
     else if (msgcodepage == 858) {dos.loaded_codepage=437;DOS_LoadKeyboardLayout("es", 858, "auto");dos.loaded_codepage=858;}
@@ -215,14 +216,9 @@ void SetKEYBCP() {
     else if (msgcodepage == 951) {dos.loaded_codepage=0;DOS_LoadKeyboardLayout("us", 437, "auto");DOS_LoadKeyboardLayout("hk", 951, "auto");dos.loaded_codepage=951;}
 }
 
-void LoadMessageFile(const char * fname) {
-	if (!fname) return;
-	if(*fname=='\0') return;//empty string=no languagefile
-
-	LOG(LOG_MISC,LOG_DEBUG)("Loading message file %s",fname);
+FILE *testLoadLangFile(const char *fname) {
     std::string config_path, res_path, exepath=GetDOSBoxXPath();
     Cross::GetPlatformConfigDir(config_path), Cross::GetPlatformResDir(res_path);
-
 	FILE * mfile=fopen(fname,"rt");
 	if (!mfile) mfile=fopen((fname + std::string(".lng")).c_str(),"rt");
 	if (!mfile && exepath.size()) mfile=fopen((exepath + fname).c_str(),"rt");
@@ -251,11 +247,22 @@ void LoadMessageFile(const char * fname) {
     std::string localname = fname;
     if (!mfile && FileDirExistUTF8(localname, fname) == 1) mfile=fopen(localname.c_str(),"rt");
 #endif
+    return mfile;
+}
 
+void LoadMessageFile(const char * fname) {
+	if (!fname) return;
+	if(*fname=='\0') return;//empty string=no languagefile
+
+	LOG(LOG_MISC,LOG_DEBUG)("Loading message file %s",fname);
+
+	lastmsgcp = 0;
+	FILE * mfile=testLoadLangFile(fname);
 	/* This should never happen and since other modules depend on this use a normal printf */
 	if (!mfile) {
 		std::string message="Could not load language message file '"+std::string(fname)+"'. The default language will be used.";
 		systemmessagebox("Warning", message.c_str(), "ok","warning", 1);
+		SetVal("dosbox", "language", "");
 		LOG_MSG("MSG:Cannot load language file: %s",fname);
 		return;
 	}
@@ -305,6 +312,7 @@ void LoadMessageFile(const char * fname) {
                             if (c == 950 && !chinasea) makestdcp950table();
                             if (c == 951 && chinasea) makeseacp951table();
                         }
+                        lastmsgcp = c;
                     } else if (!strcmp(p, "LANGUAGE"))
                         langname = r+1;
                     else if (!strcmp(p, "REMARK"))

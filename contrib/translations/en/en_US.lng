@@ -2145,15 +2145,15 @@ Displays or changes the current DOS code page.
 .
 :SHELL_CMD_CHCP_HELP_LONG
 CHCP [nnn [file]]
+CHCP nnn[:[language]]
 
-  nnn   Specifies a code page number.
-  file  Specifies a code page file.
+  nnn      Specifies a code page number.
+  file     Specifies a code page file.
+  language Specifies a corresponding language.
 
 Supported code pages for changing in the TrueType font output:
 
-437, 737, 775, 808, 850, 852, 853, 855-866, 869, 872, 874, 3021
-
-Windows code pages: 1250,1251,1252,1253,1254,1255,1256,1257,1258
+437,737,775,808,850,852,853,855-866,869,872,874,1250-1258,3021
 
 Also double-byte code pages including 932, 936, 949, and 950/951.
 
@@ -3277,8 +3277,8 @@ Restart DOSBox-X instance
 :MENU:restartconf
 Restart DOSBox-X with config file...
 .
-:MENU:restartlang
-Restart DOSBox-X with language file...
+:MENU:loadlang
+Load language file...
 .
 :MENU:auto_lock_mouse
 Autolock mouse

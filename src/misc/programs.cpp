@@ -56,8 +56,8 @@ extern char lastmount;
 extern const char *modifier;
 extern unsigned int sendkeymap;
 extern std::string langname, configfile, dosbox_title;
-extern int autofixwarn, enablelfn, fat32setver, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor;
-extern bool dos_kernel_disabled, force_nocachedir, wpcolon, convertimg, lockmount, enable_config_as_shell_commands, lesssize, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, ttfswitch, loadlang, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, uao, showdbcs, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, outcon, enable_dbcs_tables, show_recorded_filename, internal_program, pipetmpdev, notrysgf, uselangcp;
+extern int autofixwarn, enablelfn, fat32setver, paste_speed, wheel_key, freesizecap, wpType, wpVersion, wpBG, wpFG, lastset, blinkCursor, msgcodepage;
+extern bool dos_kernel_disabled, force_nocachedir, wpcolon, convertimg, lockmount, enable_config_as_shell_commands, lesssize, load, winrun, winautorun, startcmd, startwait, startquiet, starttranspath, mountwarning, wheel_guest, clipboard_dosapi, noremark_save_state, force_load_state, sync_time, manualtime, ttfswitch, loadlang, showbold, showital, showline, showsout, char512, printfont, rtl, gbk, chinasea, uao, showdbcs, dbcs_sbcs, autoboxdraw, halfwidthkana, ticksLocked, outcon, enable_dbcs_tables, show_recorded_filename, internal_program, pipetmpdev, notrysgf, uselangcp, incall;
 
 /* This registers a file on the virtual drive and creates the correct structure for it*/
 
@@ -100,7 +100,7 @@ uint8_t DOS_GetAnsiAttr(void);
 int setTTFMap(bool changecp);
 char *FormatDate(uint16_t year, uint8_t month, uint8_t day);
 bool isDBCSCP(void), CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4), DOS_SetAnsiAttr(uint8_t attr), GFX_GetPreventFullscreen(void), toOutput(const char *what);
-void EMS_DoShutDown(void), UpdateDefaultPrinterFont(void), GFX_ForceRedrawScreen(void), resetFontSize(void), ttf_reset_colors(void), makestdcp950table(void), makeseacp951table(void), clearFontCache(void), DOSBox_SetSysMenu(void), MSG_Init(void), initRand(void), PRINTER_Init(void);
+void EMS_DoShutDown(void), UpdateDefaultPrinterFont(void), GFX_ForceRedrawScreen(void), resetFontSize(void), ttf_reset_colors(void), makestdcp950table(void), makeseacp951table(void), clearFontCache(void), DOSBox_SetSysMenu(void), MSG_Init(void), initRand(void), PRINTER_Init(void), SetKEYBCP(void);
 void EMS_Startup(Section* sec), DOSV_SetConfig(Section_prop *section), DOSBOX_UnlockSpeed2(bool pressed), RebootLanguage(std::string filename, bool confirm=false), SetWindowTransparency(int trans), SetOutputSwitch(const char *outputstr), runRescan(const char *str), runSerial(const char *str), runParallel(const char *str), DOS_AddDays(uint8_t days), PRINTER_Shutdown(Section* sec), setAspectRatio(Section_prop * section);
 
 void PROGRAMS_Shutdown(void) {
@@ -629,6 +629,27 @@ private:
 void dos_ver_menu(bool start), ReloadMapper(Section_prop *sec, bool init), SetGameState_Run(int value), update_dos_ems_menu(void), MountAllDrives(bool quiet), GFX_SwitchFullScreen(void), RebootConfig(std::string filename, bool confirm=false);
 bool set_ver(char *s), GFX_IsFullscreen(void);
 
+void Load_Language(std::string name) {
+    if (control->opt_lang != "") control->opt_lang = name;
+    MSG_Init();
+#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU || DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
+    mainMenu.unbuild();
+    mainMenu.rebuild();
+#endif
+    if (!GFX_GetPreventFullscreen()) {
+        if (menu.toggle) DOSBox_SetMenu(); else DOSBox_NoMenu();
+    }
+#if defined(USE_TTF)
+    if (TTF_using()) resetFontSize();
+#endif
+    if (!uselangcp && !incall) {
+        int oldmsgcp = msgcodepage;
+        msgcodepage = dos.loaded_codepage;
+        SetKEYBCP();
+        msgcodepage = oldmsgcp;
+    }
+}
+
 void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
     if (!strcasecmp(pvar.c_str(), "dosbox")||!strcasecmp(pvar.c_str(), "dos")||!strcasecmp(pvar.c_str(), "dosv")||!strcasecmp(pvar.c_str(), "cpu")||!strcasecmp(pvar.c_str(), "sdl")||!strcasecmp(pvar.c_str(), "ttf")||!strcasecmp(pvar.c_str(), "render")||!strcasecmp(pvar.c_str(), "serial")||!strcasecmp(pvar.c_str(), "parallel")||!strcasecmp(pvar.c_str(), "printer")) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection(pvar.c_str()));
@@ -662,20 +683,8 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
                     dosbox_title=section->Get_string("title");
                     trim(dosbox_title);
                 }
-                if (!strcasecmp(inputline.substr(0, 9).c_str(), "language=")) {
-                    if (control->opt_lang != "") control->opt_lang = section->Get_string("language");
-                    MSG_Init();
-#if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-                    mainMenu.unbuild();
-                    mainMenu.rebuild();
-#endif
-                    if (!GFX_GetPreventFullscreen()) {
-                        if (menu.toggle) DOSBox_SetMenu(); else DOSBox_NoMenu();
-                    }
-#if defined(USE_TTF)
-                    if (TTF_using()) resetFontSize();
-#endif
-                }
+                if (!strcasecmp(inputline.substr(0, 9).c_str(), "language="))
+                    Load_Language(section->Get_string("language"));
                 if (!strcasecmp(inputline.substr(0, 16).c_str(), "mapper send key=")) {
                     std::string mapsendkey = section->Get_string("mapper send key");
                     if (mapsendkey=="winlogo") sendkeymap=1;
