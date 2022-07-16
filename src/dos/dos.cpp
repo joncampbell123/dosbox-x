@@ -4621,6 +4621,8 @@ void DOS_EnableDriveMenu(char drv) {
 			name = std::string("drive_") + drv + "_bootimg";
 			mainMenu.get_item(name).enable(!dos_kernel_disabled).refresh_item(mainMenu);
 		}
+		name = std::string("drive_") + drv + "_saveimg";
+		mainMenu.get_item(name).enable(Drives[drv-'A'] != NULL && !dynamic_cast<fatDrive*>(Drives[drv-'A'])).refresh_item(mainMenu);
     }
 }
 

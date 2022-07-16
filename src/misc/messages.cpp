@@ -38,15 +38,16 @@
 #endif
 using namespace std;
 
-Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const char * codepagefile);
-int msgcodepage = 0, lastmsgcp = 0, FileDirExistUTF8(std::string &localname, const char *name), toSetCodePage(DOS_Shell *shell, int newCP, int opt);
-bool morelen = false, inmsg = false, loadlang = false, uselangcp = false, systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton), OpenGL_using(void);
-bool isSupportedCP(int newCP), CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
-void InitFontHandle(void), ShutFontHandle(void), SetIME(void), menu_update_dynamic(void), menu_update_autocycle(void), update_bindbutton_text(void), set_eventbutton_text(const char *eventname, const char *buttonname), JFONT_Init(), DOSBox_SetSysMenu(), UpdateSDLDrawTexture(), makestdcp950table(), makeseacp951table();
+int msgcodepage = 0, lastmsgcp = 0;
+bool morelen = false, inmsg = false, loadlang = false, uselangcp = false;
+bool isSupportedCP(int newCP), CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton), OpenGL_using(void);
+void InitFontHandle(void), ShutFontHandle(void), SetIME(void), runRescan(const char *str), menu_update_dynamic(void), menu_update_autocycle(void), update_bindbutton_text(void), set_eventbutton_text(const char *eventname, const char *buttonname), JFONT_Init(), DOSBox_SetSysMenu(), UpdateSDLDrawTexture(), makestdcp950table(), makeseacp951table();
 std::string langname = "", langnote = "", GetDOSBoxXPath(bool withexe=false);
-extern int lastcp;
-extern const char * RunningProgram;
+extern Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const char * codepagefile);
+extern int lastcp, FileDirExistUTF8(std::string &localname, const char *name), toSetCodePage(DOS_Shell *shell, int newCP, int opt);
 extern bool dos_kernel_disabled, force_conversion, showdbcs, dbcs_sbcs, enableime, tonoime, chinasea;
+extern uint16_t GetDefaultCP();
+extern const char * RunningProgram;
 
 #define LINE_IN_MAXLEN 2048
 
@@ -107,7 +108,7 @@ bool InitCodePage() {
         }
     }
     if (!dos.loaded_codepage) {
-        dos.loaded_codepage = IS_PC98_ARCH||IS_JEGA_ARCH||IS_JDOSV?932:(IS_PDOSV?936:(IS_KDOSV?949:(IS_TDOSV?950:437)));
+        dos.loaded_codepage = GetDefaultCP();
         return false;
     } else
         return true;
@@ -203,7 +204,7 @@ void AddMessages() {
 }
 
 void SetKEYBCP() {
-    if (IS_PC98_ARCH || dos_kernel_disabled || !strcmp(RunningProgram, "LOADLIN")) return;
+    if (IS_PC98_ARCH || IS_JEGA_ARCH || IS_DOSV || dos_kernel_disabled || !strcmp(RunningProgram, "LOADLIN")) return;
     if (msgcodepage == 437) {dos.loaded_codepage=0;DOS_LoadKeyboardLayout("us", 437, "auto");dos.loaded_codepage=437;}
     else if (msgcodepage == 857) {dos.loaded_codepage=437;DOS_LoadKeyboardLayout("tr", 857, "auto");dos.loaded_codepage=857;}
     else if (msgcodepage == 858) {dos.loaded_codepage=437;DOS_LoadKeyboardLayout("es", 858, "auto");dos.loaded_codepage=858;}
@@ -214,6 +215,7 @@ void SetKEYBCP() {
     else if (msgcodepage == 949) {dos.loaded_codepage=0;DOS_LoadKeyboardLayout("us", 437, "auto");DOS_LoadKeyboardLayout("ko", 949, "auto");dos.loaded_codepage=949;}
     else if (msgcodepage == 950) {dos.loaded_codepage=0;DOS_LoadKeyboardLayout("us", 437, "auto");DOS_LoadKeyboardLayout("tw", 950, "auto");dos.loaded_codepage=950;}
     else if (msgcodepage == 951) {dos.loaded_codepage=0;DOS_LoadKeyboardLayout("us", 437, "auto");DOS_LoadKeyboardLayout("hk", 951, "auto");dos.loaded_codepage=951;}
+    runRescan("-A -Q");
 }
 
 FILE *testLoadLangFile(const char *fname) {
@@ -307,6 +309,8 @@ void LoadMessageFile(const char * fname) {
                                 dos.loaded_codepage = cp;
                                 return;
                             }
+                            std::string msg = "The specified language file uses code page " + std::to_string(c) + ". Do you want to change to this code page accordingly?";
+                            if (!control->opt_langcp && !uselangcp && c != 437 && GetDefaultCP() == 437 && systemmessagebox("DOSBox-X language file", msg.c_str(), "yesno", "question", 1)) control->opt_langcp = true;
                             msgcodepage = c;
                             dos.loaded_codepage = c;
                             if (c == 950 && !chinasea) makestdcp950table();
@@ -374,9 +378,9 @@ void LoadMessageFile(const char * fname) {
             JFONT_Init();
             dos.loaded_codepage = cp;
         }
-        if (uselangcp) {
+        if (uselangcp && !IS_DOSV && !IS_JEGA_ARCH) {
 #if defined(USE_TTF)
-            if (ttf.inUse) toSetCodePage(NULL, msgcodepage, -1); else
+            if (ttf.inUse) toSetCodePage(NULL, msgcodepage, -2); else
 #endif
             {
                 dos.loaded_codepage = msgcodepage;
@@ -386,7 +390,6 @@ void LoadMessageFile(const char * fname) {
                     UpdateSDLDrawTexture();
 #endif
             }
-
             SetKEYBCP();
         }
     }

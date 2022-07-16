@@ -129,14 +129,12 @@ extern bool date_host_forced, usecon, outcon, rsize, autoboxdraw, dbcs_sbcs, syn
 extern unsigned long freec;
 extern uint8_t DOS_GetAnsiAttr(void);
 extern uint16_t countryNo, altcp_to_unicode[256];
-void GetExpandedPath(std::string &path);
-bool Network_IsNetworkResource(const char * filename), DOS_SetAnsiAttr(uint8_t attr);
-void DOS_SetCountry(uint16_t countryNo), DOSV_FillScreen(void);
-extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), TTF_using(void);
-extern bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4), GFX_GetPreventFullscreen(void);
+extern bool isDBCSCP(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), TTF_using(void), Network_IsNetworkResource(const char * filename);
+extern bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4), GFX_GetPreventFullscreen(void), DOS_SetAnsiAttr(uint8_t attr);
 extern bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
-extern void Load_Language(std::string name), SwitchLanguage(int oldcp, int newcp, bool confirm);
+extern void Load_Language(std::string name), SwitchLanguage(int oldcp, int newcp, bool confirm), GetExpandedPath(std::string &path);
 extern void MAPPER_AutoType(std::vector<std::string> &sequence, const uint32_t wait_ms, const uint32_t pace_ms, bool choice);
+extern void DOS_SetCountry(uint16_t countryNo), DOSV_FillScreen(void);
 std::string GetDOSBoxXPath(bool withexe=false);
 FILE *testLoadLangFile(const char *fname);
 
@@ -4436,7 +4434,7 @@ int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
         SetupDBCSTable();
         runRescan("-A -Q");
 #if defined(USE_TTF)
-        if (opt==-1&&TTF_using()&&(newCP==932||newCP==936||newCP==949||newCP==950||newCP==951)) {
+        if ((opt==-1||opt==-2)&&TTF_using()&&(newCP==932||newCP==936||newCP==949||newCP==950||newCP==951)) {
             Section_prop * ttf_section = static_cast<Section_prop *>(control->GetSection("ttf"));
             const char *font = ttf_section->Get_string("font");
             if (!font || !*font) {
@@ -4450,8 +4448,8 @@ int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
         return missing;
     } else if (opt<1 && shell) {
        shell->WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), std::to_string(newCP).c_str());
-       return -1;
     }
+    return -1;
 }
 
 void DOS_Shell::CMD_CHCP(char * args) {

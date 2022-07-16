@@ -65,12 +65,13 @@ class imageDisk {
 		virtual void Get_Geometry(uint32_t * getHeads, uint32_t *getCyl, uint32_t *getSect, uint32_t *getSectSize);
 		virtual uint8_t GetBiosType(void);
 		virtual uint32_t getSectSize(void);
-		imageDisk(class DOS_Drive *useDrive, bool readonly);
+		imageDisk(class DOS_Drive *useDrive, unsigned int letter, int freeMB);
 		imageDisk(FILE *imgFile, const char *imgName, uint32_t imgSizeK, bool isHardDisk);
 		imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, uint32_t heads, uint32_t sectors, uint32_t sector_size, bool hardDrive);
 		virtual ~imageDisk();
 		void Set_GeometryForHardDisk();
 		struct fatFromDOSDrive* ffdd = NULL;
+		unsigned int drvnum = DOS_DRIVES;
 
 		IMAGE_TYPE class_id = ID_BASE;
 		std::string diskname;

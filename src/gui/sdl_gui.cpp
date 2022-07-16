@@ -2860,7 +2860,7 @@ public:
                     temp="-force -t "+temp+" \""+std::string(lTheSaveFileName)+"\"";
                     void runImgmake(const char *str);
                     runImgmake(temp.c_str());
-                    if (!dos_kernel_disabled) {
+                    if (!dos_kernel_disabled && strcmp(RunningProgram, "LOADLIN")) {
                         DOS_Shell shell;
                         shell.ShowPrompt();
                     }

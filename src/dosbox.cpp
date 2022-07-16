@@ -1794,6 +1794,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, DOSBox-X will auto-convert mounted non-FAT drives (such as local drives) to FAT format for use with guest systems.");
     Pbool->SetBasic(true);
 
+    Pint = secprop->Add_int("convert fat free space", Property::Changeable::WhenIdle,250);
+    Pint->Set_help("If set, automatically converted FAT images will have the specified free space (in MB) if less than the actual free space.\n"
+                   "If set to 0, the converted disk will be read-only; if set to -1, the actual free space will be used for the converted disk.");
+
     Pbool = secprop->Add_bool("leading colon write protect image",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, BOOT and IMGMOUNT commands will put an image file name with a leading colon (:) in write-protect mode.");
 

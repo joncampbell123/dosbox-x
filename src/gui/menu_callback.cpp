@@ -449,6 +449,56 @@ bool drive_bootimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     return true;
 }
 
+bool saveDiskImage(imageDisk *image, const char *name);
+bool drive_saveimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+
+    int drive;
+    const char *mname = menuitem->get_name().c_str();
+    if (!strncmp(mname,"drive_",6))
+        drive = mname[6] - 'A';
+    else
+        return false;
+    if (drive < 0 || drive>=DOS_DRIVES) return false;
+    if (!Drives[drive] || dynamic_cast<fatDrive*>(Drives[drive])) {
+        systemmessagebox("Error", "Drive does not exist or is mounted from disk image.", "ok","error", 1);
+        return false;
+    }
+
+#if !defined(HX_DOS)
+    char CurrentDir[512];
+    char * Temp_CurrentDir = CurrentDir;
+    if(getcwd(Temp_CurrentDir, 512) == NULL) {
+        LOG(LOG_GUI, LOG_ERROR)("drive_saveimg_menu_callback failed to get the current working directory.");
+        return false;
+    }
+    std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
+    const char *lFilterPatterns[] = {"*.img","*.IMG"};
+    const char *lFilterDescription = "Disk image (*.img)";
+    char const * lTheSaveFileName = tinyfd_saveFileDialog("Save image file...","",2,lFilterPatterns,lFilterDescription);
+    if (lTheSaveFileName==NULL) return false;
+
+    for (int i=0; i<MAX_DISK_IMAGES; i++)
+        if (imageDiskList[i] && imageDiskList[i]->ffdd && imageDiskList[i]->drvnum == drive) {
+            if (!saveDiskImage(imageDiskList[i], lTheSaveFileName)) systemmessagebox("Error", "Failed to save disk image.", "ok","error", 1);
+            chdir(Temp_CurrentDir);
+            return true;
+        }
+    int freeMB = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_int("convert fat free space");
+    imageDisk *imagedrv = new imageDisk(Drives[drive], drive, freeMB);
+    if (!saveDiskImage(imagedrv, lTheSaveFileName)) systemmessagebox("Error", "Failed to save disk image.", "ok","error", 1);
+    if (imagedrv) delete imagedrv;
+
+    if(chdir(Temp_CurrentDir) == -1) {
+        LOG(LOG_GUI, LOG_ERROR)("drive_saveimg_menu_callback failed to change directories.");
+        return false;
+    }
+#endif
+
+    return true;
+}
+
 bool drive_unmount_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -587,6 +637,7 @@ const DOSBoxMenu::callback_t drive_callbacks[] = {
     NULL,
     drive_boot_menu_callback,
     drive_bootimg_menu_callback,
+    drive_saveimg_menu_callback,
     NULL
 };
 
@@ -705,6 +756,7 @@ const char *drive_opts[][2] = {
     { "div3",                   "--" },
     { "boot",                   "Boot from drive" },
     { "bootimg",                "Boot from disk image" },
+    { "saveimg",                "Save to disk image" },
     { NULL, NULL }
 };
 
@@ -2272,7 +2324,7 @@ bool save_logas_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const m
     char CurrentDir[512];
     char * Temp_CurrentDir = CurrentDir;
     if(getcwd(Temp_CurrentDir, 512) == NULL) {
-        LOG(LOG_GUI, LOG_ERROR)("Restart_config_file failed to get the current working directory.");
+        LOG(LOG_GUI, LOG_ERROR)("save_logas_menu_callback failed to get the current working directory.");
         return false;
     }
     std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;

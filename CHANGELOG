@@ -6,16 +6,21 @@
     [dosbox] section) is added to toggle this setting,
     or you can toggle via BOOT command's -convertfat
     (or -convertfatro option for read-only access) and
-    -noconvertfat options. There is also a config
-    option "drive z convert fat" (in [dos] section) to
-    control whether to convert virtual drive Z:. Much
-    of the code is imported from DOSBox Pure. (Wengier)
-  - Added code pages 856 (Hebrew) and 859 (Latin 9) for
-    the guest-to-host code page conversions. (Wengier)
+    -noconvertfat options. There're also config options
+    "convert fat free space" (in [dosbox] section) and
+    "drive z convert fat" (in [dos] section) to control
+    free space (in MB; 0 means read-only) and whether
+    to also convert virtual drive Z:. Much of the code
+    is imported from DOSBox Pure. (Wengier)
+  - Added menu option "Save to disk image" (under drive
+    letter in "Drive" menu) to save a mounted non-FAT
+    drive to selected disk image. (Wengier)
   - Added the "Limit disk transfer speed" menu group
     (under "DOS") to toggle the hard & floppy disk data
     rate function. Also moved "Quick launch program..."
     menu from "DOS" menu to "Main" menu. (Wengier)
+  - Added code pages 856 (Hebrew) and 859 (Latin 9) for
+    the guest-to-host code page conversions. (Wengier)
   - Added config option to allow create of temporary
     devices for piping operations when a temporary DOS
     path is not available. (Wengier)
@@ -25,14 +30,18 @@
     ATAPI read errors. (schellingb)
   - You can use CONFIG -set langcp=... to change the
     current language along with the embedded code page,
-    or CHCP nnn:... to specify a language file as well.
-    Also improved -langcp option for SBCS code pages,
-    and the Windows installer will also set keyboard
-    layouts for the selected languages. (Wengier)
+    or CHCP nnn:... to specify a language file as well,
+    e.g. "CHCP 932:" or "CHCP 932:ja_JP" for Japanese
+    code page and language file. Also improved -langcp
+    option for SBCS code pages, and Windows installer
+    will additionally set keyboard layouts for the
+    selected languages. (Wengier)
   - Changed menu option "Restart DOSBox-X with language
     file..." to "Load language file..." for loading
     language files without rebooting DOSBox-X, unless
     a guest system is currently running. (Wengier)
+  - Imported the more recent MBR code from FreeDOS to
+    avoid the "boot menu" as in older code. (Wengier)
   - When changing TTF font, DOSBox-X will try to show
     the number of missing characters in the new TTF
     font (if any). (Wengier)
