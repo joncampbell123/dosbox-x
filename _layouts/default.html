@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    {% include head_common.html %}
+
+    <meta name="description" content="{{ site.description }}">
+
+    <title>
+      {%- if page.layout == "release_notes" -%}
+        {%- comment -%} FIXME: Hardcoding this because I don't know how to implement this otherwise {%- endcomment -%}
+        DOSBox-X {{ page.slug }}{% if page.version_secondary %} ({{ page.version_secondary }}{% endif %} Release Notes - {{ site.title }}
+      {%- else if page.title == blank -%}
+        {{ site.title_verbose }}
+      {%- else -%}
+        {{ page.title }} - {{ site.title }}
+      {%- endif -%}
+    </title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        {% include header.html %}
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer" style="background-color: #fafacf">
+        {{ content }}
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+        {% include footer.html %}
+    </div>
+
+  </body>
+</html>
