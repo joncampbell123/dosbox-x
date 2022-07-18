@@ -1,4 +1,12 @@
 0.84.2
+  - Fixed problems with SDL1 Windows builds in which
+    the user had to type the Fullscreen mapper shortcut
+    twice. It seems a SDL1 library function that is
+    used to indicate ignoring or adding a class of
+    events also liked to flush the event queue. This
+    is called on mode change. This caused lost
+    keystrokes, leaving the mapper the impression that
+    those keys were still held down. (joncampbell123).
   - Added support for auto-converting non-image drives
     (such as mounted local drives) to disk images, so
      that they will be visible when booting into guest
