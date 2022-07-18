@@ -409,8 +409,6 @@ struct fatFromDOSDrive
 	std::vector<ffddBuf>  diffSectorBufs;
 	std::vector<ffddSec>  diffSectors;
 	std::vector<uint32_t>   diffFreeCursors;
-	std::string           savePath;
-	FILE*                 saveFile = NULL;
 	uint32_t                saveEndCursor = 0;
 	uint8_t                 cacheSectorData[CACHECOUNT][BYTESPERSECTOR];
 	uint32_t                cacheSectorNumber[CACHECOUNT];
@@ -420,8 +418,6 @@ struct fatFromDOSDrive
 
 	~fatFromDOSDrive()
 	{
-		if (saveFile)
-			fclose(saveFile);
 		for (DOS_File* df : openFiles)
 			if (df) { df->Close(); delete df; }
 	}
@@ -814,7 +810,7 @@ struct fatFromDOSDrive
 		sect_files_start = sect_dirs_start + ((dirs.size() * sizeof(direntry) + BYTESPERSECTOR - 1) / BYTESPERSECTOR);
 		sect_files_end = sect_files_start + fileAtSector.size();
 		sect_disk_end = (IS_PC98_ARCH ? sect_boot_pc98 : SECT_BOOT) + partSize;
-		if (IS_PC98_ARCH && tsize/512 > sect_disk_end) sect_disk_end = tsize/512;
+		if (IS_PC98_ARCH && tsize/BYTESPERSECTOR-8 > sect_disk_end) sect_disk_end = tsize/BYTESPERSECTOR-8;
 		if (sect_disk_end < sect_files_end) return;
 
 		for (ffddFile& f : files)
@@ -941,52 +937,21 @@ struct fatFromDOSDrive
 
 		if (is_different)
 		{
-			if (!saveFile && !savePath.empty())
-			{
-				saveFile = fopen(savePath.c_str(), "wb+");
-				if (saveFile) { fwrite("FFDD\x1", 5, 1, saveFile); saveEndCursor = 5; };
-				savePath.clear();
-			}
 			if (cursor_val == NULL_CURSOR && diffFreeCursors.size())
 			{
 				*cursor_ptr = cursor_val = diffFreeCursors.back();
 				diffFreeCursors.pop_back();
 			}
-			if (saveFile)
-			{
-				if (cursor_val == NULL_CURSOR)
-				{
-					uint32_t sectnumval;
-					var_write(&sectnumval, sectnum);
-					*cursor_ptr = cursor_val = saveEndCursor;
-					saveEndCursor += sizeof(sectnumval) + BYTESPERSECTOR;
-					fseeko64(saveFile, cursor_val, SEEK_SET);
-					fwrite(&sectnumval, sizeof(sectnumval), 1, saveFile);
-				}
-				else
-					fseeko64(saveFile, cursor_val + sizeof(sectnum), SEEK_SET);
-				fwrite(data, BYTESPERSECTOR, 1, saveFile);
-			}
-			else
-			{
-				if (cursor_val == NULL_CURSOR)
-				{
-					*cursor_ptr = cursor_val = (uint32_t)diffSectorBufs.size();
-					diffSectorBufs.resize(cursor_val + 1);
-				}
-				memcpy(diffSectorBufs[cursor_val].data, data, BYTESPERSECTOR);
-			}
+            if (cursor_val == NULL_CURSOR)
+            {
+                *cursor_ptr = cursor_val = (uint32_t)diffSectorBufs.size();
+                diffSectorBufs.resize(cursor_val + 1);
+            }
+            memcpy(diffSectorBufs[cursor_val].data, data, BYTESPERSECTOR);
 			cacheSectorNumber[sectnum % CACHECOUNT] = (uint32_t)-1; // invalidate cache
 		}
 		else if (cursor_val != NULL_CURSOR)
 		{
-			if (saveFile)
-			{
-				// mark sector in diff file as free
-				uint32_t sectnumval = 0xFFFFFFFF;
-				fseeko64(saveFile, cursor_val, SEEK_SET);
-				fwrite(&sectnumval, sizeof(sectnumval), 1, saveFile);
-			}
 			diffFreeCursors.push_back(cursor_val);
 			*cursor_ptr = NULL_CURSOR;
 			cacheSectorNumber[sectnum % CACHECOUNT] = (uint32_t)-1; // invalidate cache
@@ -1083,16 +1048,10 @@ struct fatFromDOSDrive
 		void *src;
 		uint32_t cursor = (sectnum >= diffSectors.size() ? NULL_CURSOR : diffSectors[sectnum].cursor);
 		if (cursor != NULL_CURSOR)
-		{
-			if (saveFile)
-			{
-				fseeko64(saveFile, cursor + sizeof(sectnum), SEEK_SET);
-				src = (fread(cachedata, BYTESPERSECTOR, 1, saveFile) ? cachedata : NULL);
-			}
-			else src = diffSectorBufs[cursor].data;
-		}
-		else src = GetUnmodifiedSector(sectnum, cachedata);
-	
+			src = diffSectorBufs[cursor].data;
+		else
+			src = GetUnmodifiedSector(sectnum, cachedata);
+
 		if (src) memcpy(data, src, BYTESPERSECTOR);
 		else memset(data, 0, BYTESPERSECTOR);
 		if (src != cachedata) memcpy(cachedata, data, BYTESPERSECTOR);
