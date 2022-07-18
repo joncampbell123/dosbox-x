@@ -4623,6 +4623,15 @@ void DOS_EnableDriveMenu(char drv) {
 		}
 		name = std::string("drive_") + drv + "_saveimg";
 		mainMenu.get_item(name).enable(Drives[drv-'A'] != NULL && !dynamic_cast<fatDrive*>(Drives[drv-'A'])).refresh_item(mainMenu);
+        if (dos_kernel_disabled || !strcmp(RunningProgram, "LOADLIN")) {
+            bool found = false;
+            for (int i=0; i<MAX_DISK_IMAGES; i++)
+                if (imageDiskList[i] && imageDiskList[i]->ffdd && imageDiskList[i]->drvnum == drv-'A') {
+                    found = true;
+                    break;
+                }
+            if (!found) mainMenu.get_item(name).enable(false).refresh_item(mainMenu);
+        }
     }
 }
 

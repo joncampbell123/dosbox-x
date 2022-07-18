@@ -11,10 +11,11 @@
     "drive z convert fat" (in [dos] section) to control
     free space (in MB; 0 means read-only) and whether
     to also convert virtual drive Z:. Much of the code
-    is imported from DOSBox Pure. (Wengier)
+    is imported from DOSBox Pure, with added support
+    for PC-98 HDI and code page conversions. (Wengier)
   - Added menu option "Save to disk image" (under drive
     letter in "Drive" menu) to save a mounted non-FAT
-    drive to selected disk image. (Wengier)
+    drive to selected disk image (IMG/HDI). (Wengier)
   - Added the "Limit disk transfer speed" menu group
     (under "DOS") to toggle the hard & floppy disk data
     rate function. Also moved "Quick launch program..."

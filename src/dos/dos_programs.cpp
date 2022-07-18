@@ -2536,7 +2536,7 @@ public:
 
             char msg[512] = {0};
             const uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
-            if (!dos_kernel_disabled && (convimg == 1 || (convertimg && convimg == -1 && !IS_PC98_ARCH))) { // PC-98 image not supported yet
+            if (!dos_kernel_disabled && (convimg == 1 || (convertimg && convimg == -1))) {
                 unsigned int drv = 2, nextdrv = 2;
                 int freeMB = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_int("convert fat free space");
                 for (unsigned int d=2;d<DOS_DRIVES+2;d++) {
@@ -8838,7 +8838,7 @@ void DOS_SetupPrograms(void) {
         "The only bootable drive letters are A, C, and D.  For booting from a hard\n"
         "drive (C or D), ensure the image is already mounted by \033[34;1mIMGMOUNT\033[0m command.\n\n"
         "The syntax of this command is one of the following:\n\n"
-        "\033[34;1mBOOT [driveletter:]\033[0m\n\n"
+        "\033[34;1mBOOT [driveletter:] [-convertfat|-convertfatro|-noconvertfat]\033[0m\n\n"
         "\033[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L driveletter]\033[0m\n\n"
         "Note: An image file with a leading colon (:) will be booted in write-protected\n"
 		"mode if the \"leading colon write protect image\" option is enabled.\n\n"

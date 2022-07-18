@@ -885,7 +885,7 @@ DOSBox-X 提供多程度的光碟機模擬.
 
 此命令的語法為如下之一:
 
-[34;1mBOOT [磁碟機代號:][0m
+[34;1mBOOT [磁碟機代號:] [-convertfat|-convertfatro|-noconvertfat][0m
 
 [34;1mBOOT diskimg1.img [diskimg2.img ...] [-L 磁碟機代號][0m
 
@@ -2991,6 +2991,9 @@ MPEG-TS + H.264
 .
 :MENU:drive_bootimg
 從磁碟映像開機
+.
+:MENU:drive_saveimg
+另存磁碟映像
 .
 :MENU:HelpMenu
 說明

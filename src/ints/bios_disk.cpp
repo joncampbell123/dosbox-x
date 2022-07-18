@@ -17,6 +17,7 @@
  */
 
 #include <assert.h>
+#include <cmath>
 
 #include "dosbox.h"
 #include "callback.h"
@@ -222,6 +223,16 @@ private:
 #ifdef _MSC_VER
 #pragma pack (1)
 #endif
+struct sector {
+	uint8_t  content[512];
+} GCC_ATTRIBUTE(packed);
+
+typedef struct {
+	uint8_t sectors;
+	uint8_t surfaces;
+	uint16_t cylinders;
+} SASIHDD;
+
 struct bootstrap {
 	uint8_t  nearjmp[3];
 	uint8_t  oemname[8];
@@ -257,12 +268,106 @@ struct lfndirentry {
 #pragma pack ()
 #endif
 
+/* .HDI and .FDI header (NP2) */
+#pragma pack(push,1)
+typedef struct {
+    uint8_t dummy[4];           // +0x00
+    uint8_t hddtype[4];         // +0x04
+    uint8_t headersize[4];      // +0x08
+    uint8_t hddsize[4];         // +0x0C
+    uint8_t sectorsize[4];      // +0x10
+    uint8_t sectors[4];         // +0x14
+    uint8_t surfaces[4];        // +0x18
+    uint8_t cylinders[4];       // +0x1C
+} HDIHDR;                       // =0x20
+
+typedef struct {
+	uint8_t	dummy[4];           // +0x00
+	uint8_t	fddtype[4];         // +0x04
+	uint8_t	headersize[4];      // +0x08
+	uint8_t	fddsize[4];         // +0x0C
+	uint8_t	sectorsize[4];      // +0x10
+	uint8_t	sectors[4];         // +0x14
+	uint8_t	surfaces[4];        // +0x18
+	uint8_t	cylinders[4];       // +0x1C
+} FDIHDR;                       // =0x20
+
+typedef struct {
+	char	sig[16];            // +0x000
+	char	comment[0x100];     // +0x010
+	UINT8	headersize[4];      // +0x110
+    uint8_t prot;               // +0x114
+    uint8_t nhead;              // +0x115
+    uint8_t _unknown_[10];      // +0x116
+} NFDHDR;                       // =0x120
+
+typedef struct {
+	char	sig[16];            // +0x000
+	char	comment[0x100];     // +0x010
+	UINT8	headersize[4];      // +0x110
+    uint8_t prot;               // +0x114
+    uint8_t nhead;              // +0x115
+    uint8_t _unknown_[10];      // +0x116
+    uint32_t trackheads[164];   // +0x120
+    uint32_t addinfo;           // +0x3b0
+    uint8_t _unknown2_[12];     // +0x3b4
+} NFDHDRR1;                     // =0x3c0
+
+typedef struct {
+    uint8_t log_cyl;            // +0x0
+    uint8_t log_head;           // +0x1
+    uint8_t log_rec;            // +0x2
+    uint8_t sec_len_pow2;       // +0x3         sz = 128 << len_pow2
+    uint8_t flMFM;              // +0x4
+    uint8_t flDDAM;             // +0x5
+    uint8_t byStatus;           // +0x6
+    uint8_t bySTS0;             // +0x7
+    uint8_t bySTS1;             // +0x8
+    uint8_t bySTS2;             // +0x9
+    uint8_t byRetry;            // +0xA
+    uint8_t byPDA;              // +0xB
+    uint8_t _unknown_[4];       // +0xC
+} NFDHDR_ENTRY;                 // =0x10
+
+typedef struct {
+    char        szFileID[15];                 // 識別ID "T98HDDIMAGE.R0"
+    char        Reserve1[1];                  // 予約
+    char        szComment[0x100];             // イメージコメント(ASCIIz)
+    uint32_t    dwHeadSize;                   // ヘッダ部のサイズ
+    uint32_t    dwCylinder;                   // シリンダ数
+    uint16_t    wHead;                        // ヘッド数
+    uint16_t    wSect;                        // １トラックあたりのセクタ数
+    uint16_t    wSectLen;                     // セクタ長
+    char        Reserve2[2];                  // 予約
+    char        Reserve3[0xe0];               // 予約
+}NHD_FILE_HEAD,*LP_NHD_FILE_HEAD;
+#pragma pack(pop)
+
+#define	STOREINTELDWORD(a, b) *((a)+0) = (uint8_t)((b)); *((a)+1) = (uint8_t)((b)>>8); *((a)+2) = (uint8_t)((b)>>16); *((a)+3) = (uint8_t)((b)>>24)
+
 STATIC_ASSERT(sizeof(direntry) == sizeof(lfndirentry));
 enum
 {
 	DOS_ATTR_LONG_NAME = (DOS_ATTR_READ_ONLY | DOS_ATTR_HIDDEN | DOS_ATTR_SYSTEM | DOS_ATTR_VOLUME),
 	DOS_ATTR_LONG_NAME_MASK = (DOS_ATTR_READ_ONLY | DOS_ATTR_HIDDEN | DOS_ATTR_SYSTEM | DOS_ATTR_VOLUME | DOS_ATTR_DIRECTORY | DOS_ATTR_ARCHIVE),
 	DOS_ATTR_PENDING_SHORT_NAME = 0x80,
+};
+
+static const uint8_t hdddiskboot[] = {
+    0xeb,0x0a,0x90,0x90,0x49,0x50,0x4c,0x31,0x00,0x00,0x00,0x1e,
+    0xb8,0x04,0x0a,0xcd,0x18,0xb4,0x16,0xba,0x20,0xe1,0xcd,0x18,
+    0xfa,0xfc,0xb8,0x00,0xa0,0x8e,0xc0,0xbe,0x3c,0x00,0x31,0xff,
+    0xe8,0x09,0x00,0xbf,0xa0,0x00,0xe8,0x03,0x00,0xf4,0xeb,0xfd,
+    0x2e,0xad,0x85,0xc0,0x74,0x05,0xab,0x47,0x47,0xeb,0xf5,0xc3,
+    0x04,0x33,0x04,0x4e,0x05,0x4f,0x01,0x3c,0x05,0x49,0x05,0x47,
+    0x05,0x23,0x05,0x39,0x05,0x2f,0x05,0x24,0x05,0x61,0x01,0x3c,
+    0x05,0x38,0x04,0x4f,0x05,0x55,0x05,0x29,0x01,0x3c,0x05,0x5e,
+    0x05,0x43,0x05,0x48,0x04,0x35,0x04,0x6c,0x04,0x46,0x04,0x24,
+    0x04,0x5e,0x04,0x3b,0x04,0x73,0x01,0x25,0x00,0x00,0x05,0x47,
+    0x05,0x23,0x05,0x39,0x05,0x2f,0x05,0x24,0x05,0x61,0x01,0x3c,
+    0x05,0x38,0x04,0x72,0x21,0x5e,0x26,0x7e,0x18,0x65,0x01,0x24,
+    0x05,0x6a,0x05,0x3b,0x05,0x43,0x05,0x48,0x04,0x37,0x04,0x46,
+    0x12,0x3c,0x04,0x35,0x04,0x24,0x01,0x25,0x00,0x00,
 };
 
 struct fatFromDOSDrive
@@ -283,6 +388,10 @@ struct fatFromDOSDrive
 
 	partTable  mbr;
 	bootstrap  bootsec;
+	sector     header;
+	sector     ipl;
+	sector     pt;
+	SASIHDD    sasi;
 	uint8_t    fatSz;
 	uint8_t    fsinfosec[BYTESPERSECTOR];
 	uint32_t   sectorsPerCluster, codepage = 0;
@@ -293,7 +402,7 @@ struct fatFromDOSDrive
 	std::vector<ffddFile> files;
 	std::vector<uint32_t>   fileAtSector;
 	std::vector<uint8_t>    fat;
-	uint32_t sect_disk_end, sect_files_end, sect_files_start, sect_dirs_start, sect_root_start, sect_fat2_start, sect_fat1_start;
+	uint32_t sect_boot_pc98, sect_disk_end, sect_files_end, sect_files_start, sect_dirs_start, sect_root_start, sect_fat2_start, sect_fat1_start;
 
 	struct ffddBuf { uint8_t data[BYTESPERSECTOR]; };
 	struct ffddSec { uint32_t cursor = NULL_CURSOR; };
@@ -574,7 +683,34 @@ struct fatFromDOSDrive
         readOnly = free_clusters == 0 || freeSpaceMB == 0;
         if (!DriveFileIterator(drv, Iter::SumFileSize, (Bitu)&sum)) return;
 
-		const uint32_t addFreeMB = (readOnly ? 0 : freeSpaceMB), totalMB = (uint32_t)(sum.used_bytes / (1024*1024)) + (addFreeMB ? (1 + addFreeMB) : 0);
+        uint32_t usedMB = (uint32_t)sum.used_bytes / (1024*1024), addFreeMB, totalMB, tsize = 0;
+        if (IS_PC98_ARCH) {
+            if (usedMB < 6) {
+                sasi.sectors = 33;
+                sasi.surfaces = 4;
+                sasi.cylinders = 153;
+            } else if (usedMB < 16) {
+                sasi.sectors = 33;
+                sasi.surfaces = 4;
+                sasi.cylinders = 310;
+            } else if (usedMB < 26) {
+                sasi.sectors = 33;
+                sasi.surfaces = 6;
+                sasi.cylinders = 310;
+            } else if (usedMB < 36) {
+                sasi.sectors = 33;
+                sasi.surfaces = 8;
+                sasi.cylinders = 310;
+            } else {
+                sasi.sectors = 33;
+                sasi.surfaces = (std::ceil)((double)(usedMB+(readOnly?0:5))/10);
+                sasi.cylinders = 615;
+            }
+            tsize = BYTESPERSECTOR * sasi.sectors * sasi.surfaces * sasi.cylinders;
+            addFreeMB = readOnly ? 0 :((std::ceil)((double)tsize - sum.used_bytes) / (1024 * 1024) + 1);
+        } else
+            addFreeMB = (readOnly ? 0 : freeSpaceMB);
+        totalMB = usedMB + (addFreeMB ? (1 + addFreeMB) : 0);
 		if      (totalMB >= 3072) { fatSz = 32; sectorsPerCluster = 64; } // 32 kb clusters ( 98304 ~        FAT entries)
 		else if (totalMB >= 2048) { fatSz = 32; sectorsPerCluster = 32; } // 16 kb clusters (131072 ~ 196608 FAT entries)
 		else if (totalMB >=  384) { fatSz = 16; sectorsPerCluster = 64; } // 32 kb clusters ( 12288 ~  65504 FAT entries)
@@ -624,7 +760,37 @@ struct fatFromDOSDrive
 			}
 		}
 
-		// Add at least one page after the last file or FAT spec minimume to make ScanDisk happy (even on read-only disks)
+        if (IS_PC98_ARCH) {
+            HDIHDR hdi;
+            memset(&hdi, 0, sizeof(hdi));
+        //	STOREINTELDWORD(hdi.hddtype, 0);
+            STOREINTELDWORD(hdi.headersize, 4096);
+            STOREINTELDWORD(hdi.hddsize, tsize);
+            STOREINTELDWORD(hdi.sectorsize, BYTESPERSECTOR);
+            STOREINTELDWORD(hdi.sectors, sasi.sectors);
+            STOREINTELDWORD(hdi.surfaces, sasi.surfaces);
+            STOREINTELDWORD(hdi.cylinders, sasi.cylinders);
+            memset(&header, 0, sizeof(header));
+            memcpy(&header,&hdi,sizeof(hdi));
+            memset(&ipl, 0, sizeof(ipl));
+            memcpy(&ipl,&hdddiskboot,sizeof(hdddiskboot));
+            ipl.content[0xFE] = 0x55;
+            ipl.content[0xFF] = 0xaa;
+            ipl.content[0x1FE] = 0x55;
+            ipl.content[0x1FF] = 0xaa;
+            struct _PC98RawPartition pe;
+            memset(&pe, 0, sizeof(pe));
+            STOREINTELDWORD(&pe.mid, 0xa0);
+            STOREINTELDWORD(&pe.sid, 0xa1);
+            STOREINTELDWORD(&pe.ipl_cyl, 1);
+            STOREINTELDWORD(&pe.cyl, 1);
+            STOREINTELDWORD(&pe.end_cyl, sasi.cylinders);
+            strncpy(pe.name, "MS-DOS          ", 16);
+            memset(&pt, 0, sizeof(pt));
+            memcpy(&pt,&pe,sizeof(pe));
+        }
+
+		// Add at least one page after the last file or FAT spec minimum to make ScanDisk happy (even on read-only disks)
 		const uint32_t FATPageClusters = BYTESPERSECTOR * 8 / fatSz, FATMinCluster = (fatSz == 32 ? 65525 : (fatSz == 16 ? 4085 : 0)) + FATPageClusters;
 		const uint32_t addFreeClusters = ((addFreeMB * (1024*1024/BYTESPERSECTOR)) + sectorsPerCluster - 1) / sectorsPerCluster;
 		const uint32_t targetClusters = fileCluster + (addFreeClusters < FATPageClusters ? FATPageClusters : addFreeClusters);
@@ -639,13 +805,16 @@ struct fatFromDOSDrive
 		const uint32_t sectorsPerFat = (uint32_t)(fat.size() / BYTESPERSECTOR);
 		const uint16_t reservedSectors = (fatSz == 32 ? 32 : 1);
 		const uint32_t partSize = totalClusters * sectorsPerCluster + reservedSectors;
-		sect_fat1_start = SECT_BOOT + reservedSectors;
+
+		sect_boot_pc98 = sasi.surfaces * sasi.sectors;
+		sect_fat1_start = (IS_PC98_ARCH ? sect_boot_pc98 : SECT_BOOT) + reservedSectors;
 		sect_fat2_start = sect_fat1_start + sectorsPerFat;
 		sect_root_start = sect_fat2_start + sectorsPerFat;
 		sect_dirs_start = sect_root_start + ((root.size() * sizeof(direntry) + BYTESPERSECTOR - 1) / BYTESPERSECTOR);
 		sect_files_start = sect_dirs_start + ((dirs.size() * sizeof(direntry) + BYTESPERSECTOR - 1) / BYTESPERSECTOR);
 		sect_files_end = sect_files_start + fileAtSector.size();
-		sect_disk_end = SECT_BOOT + partSize;
+		sect_disk_end = (IS_PC98_ARCH ? sect_boot_pc98 : SECT_BOOT) + partSize;
+		if (IS_PC98_ARCH && tsize/512 > sect_disk_end) sect_disk_end = tsize/512;
 		if (sect_disk_end < sect_files_end) return;
 
 		for (ffddFile& f : files)
@@ -670,25 +839,25 @@ struct fatFromDOSDrive
 		}
 		else
 		{
-			chs_write(mbr.pentry[0].beginchs, SECT_BOOT);
+			chs_write(mbr.pentry[0].beginchs, IS_PC98_ARCH ? sect_boot_pc98 : SECT_BOOT);
 			chs_write(mbr.pentry[0].endchs, sect_disk_end - 1);
 		}
-		var_write(&mbr.pentry[0].absSectStart, SECT_BOOT);
+		var_write(&mbr.pentry[0].absSectStart, IS_PC98_ARCH ? sect_boot_pc98 : SECT_BOOT);
 		var_write(&mbr.pentry[0].partSize, partSize);
 		mbr.magic1 = 0x55; mbr.magic2 = 0xaa;
 
 		memset(&bootsec, 0, sizeof(bootsec));
 		memcpy(bootsec.nearjmp, "\xEB\x3C\x90", sizeof(bootsec.nearjmp));
-		memcpy(bootsec.oemname, "MSWIN4.1", sizeof(bootsec.oemname));
+		memcpy(bootsec.oemname, fatSz == 32 ? "MSWIN4.1" : "MSDOS5.0", sizeof(bootsec.oemname));
 		var_write((uint16_t *const)&bootsec.bytespersector, (const uint16_t)BYTESPERSECTOR);
 		var_write(&bootsec.sectorspercluster, sectorsPerCluster);
 		var_write(&bootsec.reservedsectors, reservedSectors);
 		var_write(&bootsec.fatcopies, 2);
 		var_write(&bootsec.totalsectorcount, 0); // 16 bit field is 0, actual value is in totalsecdword
 		var_write(&bootsec.mediadescriptor, 0xF8); //also in FAT[0]
-		var_write(&bootsec.sectorspertrack, SECTORSPERTRACK);
-		var_write(&bootsec.headcount, HEADCOUNT);
-		var_write(&bootsec.hiddensectorcount, SECT_BOOT);
+		var_write(&bootsec.sectorspertrack, IS_PC98_ARCH ? sasi.sectors : SECTORSPERTRACK);
+		var_write(&bootsec.headcount, IS_PC98_ARCH ? sasi.surfaces : HEADCOUNT);
+		var_write(&bootsec.hiddensectorcount, IS_PC98_ARCH ? sect_boot_pc98 : SECT_BOOT);
 		var_write(&bootsec.totalsecdword, partSize);
 		bootsec.magic1 = 0x55; bootsec.magic2 = 0xaa;
 		if (fatSz != 32) // FAT12/FAT16
@@ -879,6 +1048,17 @@ struct fatFromDOSDrive
 		else if (sectnum >= sect_root_start) return &root[(sectnum - sect_root_start) * (BYTESPERSECTOR / sizeof(direntry))];
 		else if (sectnum >= sect_fat2_start) return &fat[(sectnum - sect_fat2_start) * BYTESPERSECTOR];
 		else if (sectnum >= sect_fat1_start) return &fat[(sectnum - sect_fat1_start) * BYTESPERSECTOR];
+		else if (IS_PC98_ARCH) {
+            if (sectnum == 0) return &ipl;
+            else if (sectnum == 1) return &pt;
+            else if (sectnum == sect_boot_pc98) return &bootsec;
+            else if (sectnum == sect_boot_pc98+1) return fsinfosec;
+            else if (sectnum == sect_boot_pc98+2) return fsinfosec; // additional boot loader code (anything is ok for us but needs 0x55AA footer signature)
+            else if (sectnum == sect_boot_pc98+6) return &bootsec; // boot sector copy
+            else if (sectnum == sect_boot_pc98+7) return fsinfosec; // boot sector copy
+            else if (sectnum == sect_boot_pc98+8) return fsinfosec; // boot sector copy
+            return NULL;
+        }
 		else if (sectnum == SECT_BOOT) return &bootsec;
 		else if (sectnum == SECT_MBR) return &mbr;
 		else if (sectnum == SECT_BOOT+1) return fsinfosec;
@@ -924,6 +1104,13 @@ struct fatFromDOSDrive
         FILE* f = fopen_wrap(name, "wb");
         if (f) {
             uint8_t filebuf[BYTESPERSECTOR];
+            if (IS_PC98_ARCH) {
+                memcpy(filebuf, &header, BYTESPERSECTOR);
+                if (fwrite(filebuf, 1, BYTESPERSECTOR, f) != BYTESPERSECTOR) {fclose(f);return false;}
+                memset(filebuf, 0, BYTESPERSECTOR);
+                for (int i = 0; i < 7; i++)
+                    if (fwrite(filebuf, 1, BYTESPERSECTOR, f) != BYTESPERSECTOR) {fclose(f);return false;}
+            }
             for (int i = 0; i < sect_disk_end; i++) {
                 ReadSector(i, filebuf);
                 if (fwrite(filebuf, 1, BYTESPERSECTOR, f) != BYTESPERSECTOR) {
@@ -1274,81 +1461,6 @@ imageDisk::imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, ui
     floppytype = 0;
 }
 
-/* .HDI and .FDI header (NP2) */
-#pragma pack(push,1)
-typedef struct {
-    uint8_t dummy[4];           // +0x00
-    uint8_t hddtype[4];         // +0x04
-    uint8_t headersize[4];      // +0x08
-    uint8_t hddsize[4];         // +0x0C
-    uint8_t sectorsize[4];      // +0x10
-    uint8_t sectors[4];         // +0x14
-    uint8_t surfaces[4];        // +0x18
-    uint8_t cylinders[4];       // +0x1C
-} HDIHDR;                       // =0x20
-
-typedef struct {
-	uint8_t	dummy[4];           // +0x00
-	uint8_t	fddtype[4];         // +0x04
-	uint8_t	headersize[4];      // +0x08
-	uint8_t	fddsize[4];         // +0x0C
-	uint8_t	sectorsize[4];      // +0x10
-	uint8_t	sectors[4];         // +0x14
-	uint8_t	surfaces[4];        // +0x18
-	uint8_t	cylinders[4];       // +0x1C
-} FDIHDR;                       // =0x20
-
-typedef struct {
-	char	sig[16];            // +0x000
-	char	comment[0x100];     // +0x010
-	UINT8	headersize[4];      // +0x110
-    uint8_t prot;               // +0x114
-    uint8_t nhead;              // +0x115
-    uint8_t _unknown_[10];      // +0x116
-} NFDHDR;                       // =0x120
-
-typedef struct {
-	char	sig[16];            // +0x000
-	char	comment[0x100];     // +0x010
-	UINT8	headersize[4];      // +0x110
-    uint8_t prot;               // +0x114
-    uint8_t nhead;              // +0x115
-    uint8_t _unknown_[10];      // +0x116
-    uint32_t trackheads[164];   // +0x120
-    uint32_t addinfo;           // +0x3b0
-    uint8_t _unknown2_[12];     // +0x3b4
-} NFDHDRR1;                     // =0x3c0
-
-typedef struct {
-    uint8_t log_cyl;            // +0x0
-    uint8_t log_head;           // +0x1
-    uint8_t log_rec;            // +0x2
-    uint8_t sec_len_pow2;       // +0x3         sz = 128 << len_pow2
-    uint8_t flMFM;              // +0x4
-    uint8_t flDDAM;             // +0x5
-    uint8_t byStatus;           // +0x6
-    uint8_t bySTS0;             // +0x7
-    uint8_t bySTS1;             // +0x8
-    uint8_t bySTS2;             // +0x9
-    uint8_t byRetry;            // +0xA
-    uint8_t byPDA;              // +0xB
-    uint8_t _unknown_[4];       // +0xC
-} NFDHDR_ENTRY;                 // =0x10
-
-typedef struct {
-    char        szFileID[15];                 // 識別ID "T98HDDIMAGE.R0"
-    char        Reserve1[1];                  // 予約
-    char        szComment[0x100];             // イメージコメント(ASCIIz)
-    uint32_t    dwHeadSize;                   // ヘッダ部のサイズ
-    uint32_t    dwCylinder;                   // シリンダ数
-    uint16_t    wHead;                        // ヘッド数
-    uint16_t    wSect;                        // １トラックあたりのセクタ数
-    uint16_t    wSectLen;                     // セクタ長
-    char        Reserve2[2];                  // 予約
-    char        Reserve3[0xe0];               // 予約
-}NHD_FILE_HEAD,*LP_NHD_FILE_HEAD;
-#pragma pack(pop)
-
 imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint32_t imgSizeK, bool isHardDisk) : diskSizeK(imgSizeK), diskimg(imgFile), image_length((uint64_t)imgSizeK * 1024) {
     if (imgName != NULL)
         diskname = (const char*)imgName;
@@ -1561,6 +1673,11 @@ imageDisk::imageDisk(class DOS_Drive *useDrive, unsigned int letter, int freeMB)
 		ffdd = NULL;
 		return;
 	}
+    if (IS_PC98_ARCH) {
+        cylinders = ffdd->sasi.cylinders;
+        heads = ffdd->sasi.surfaces;
+        sectors = ffdd->sasi.sectors;
+    }
 	drvnum = letter;
 	diskimg = NULL;
 	diskname[0] = '\0';

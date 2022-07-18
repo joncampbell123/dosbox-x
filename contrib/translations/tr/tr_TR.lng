@@ -898,7 +898,7 @@ olduğundan emin olun.
 
 Bu komutun sözdizimi aşağıdaki gibidir:
 
-←[34;1mBOOT [sürücüharfi:]←[0m
+←[34;1mBOOT [sürücüharfi:] [-convertfat|-convertfatro|-noconvertfat]←[0m
 
 ←[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L driveletter]←[0m
 
@@ -3019,6 +3019,9 @@ Sürücüden önyükle
 .
 :MENU:drive_bootimg
 Disk kalıbından önyükle
+.
+:MENU:drive_saveimg
+Disk görüntüsüne kaydet
 .
 :MENU:HelpMenu
 Yardım

@@ -899,7 +899,7 @@ drive: 는 탑재된 드라이브 중에서 부팅할 드라이브를 지정합�
 
 이 명령의 사용법은 다음 중 하나입니다.
 
-[34;1mBOOT [driveletter:][0m
+[34;1mBOOT [driveletter:] [-convertfat|-convertfatro|-noconvertfat][0m
 
 [34;1mBOOT diskimg1.img [diskimg2.img ...] [-L driveletter][0m
 
@@ -3019,6 +3019,9 @@ MPEG-TS + H.264
 .
 :MENU:drive_bootimg
 디스크 이미지에서 부팅
+.
+:MENU:drive_saveimg
+디스크 이미지에 저장
 .
 :MENU:HelpMenu
 도움말

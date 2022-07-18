@@ -885,7 +885,7 @@ DOSBox-X 提供多层次的光驱模拟.
 
 此命令的语法为如下之一:
 
-[34;1mBOOT [驱动器盘符:][0m
+[34;1mBOOT [驱动器盘符:] [-convertfat|-convertfatro|-noconvertfat][0m
 
 [34;1mBOOT diskimg1.img [diskimg2.img ...] [-L 驱动器盘符][0m
 
@@ -2984,6 +2984,9 @@ MPEG-TS + H.264
 .
 :MENU:drive_bootimg
 从磁盘镜像启动
+.
+:MENU:drive_saveimg
+保存到磁盘镜像
 .
 :MENU:HelpMenu
 帮助

@@ -899,7 +899,7 @@ Les seules lettres de lecteur amorçables sont A, C et D. Pour le démarrage à 
 
 La syntaxe de cette commande est l'une des suivantes :
 
-←[34;1mBOOT [lettre du lecteur:]←[0m
+←[34;1mBOOT [lettre du lecteur:] [-convertfat|-convertfatro|-noconvertfat]←[0m
 
 ←[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L lettre du lecteur]←[0m
 
@@ -3024,6 +3024,9 @@ Démarrage à partir du disque
 .
 :MENU:drive_bootimg
 Démarrage à partir d'une image disque
+.
+:MENU:drive_saveimg
+Enregistrer sur l'image disque
 .
 :MENU:HelpMenu
 Aide

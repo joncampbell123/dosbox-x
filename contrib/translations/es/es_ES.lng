@@ -902,7 +902,7 @@ La sintaxis de este comando es una de las siguientes:
 
 ←[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L letradeunidad]←[0m
 
-←[34;1mBOOT letradeunidad:←[0m
+←[34;1mBOOT letradeunidad: [-convertfat|-convertfatro|-noconvertfat]←[0m
 
 Nota: 
 Un archivo imagen con dos puntos a la izquierda (:) inicia en modo solo lectura si la opcion "proteger contra escritura con dos puntos iniciales" esta activada.
@@ -3024,6 +3024,9 @@ Arrancar desde unidad
 .
 :MENU:drive_bootimg
 Arrancar desde imagen de disco
+.
+:MENU:drive_saveimg
+Guardar en imagen de disco
 .
 :MENU:HelpMenu
 Ayuda

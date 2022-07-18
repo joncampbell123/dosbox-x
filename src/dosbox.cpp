@@ -1795,7 +1795,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->SetBasic(true);
 
     Pint = secprop->Add_int("convert fat free space", Property::Changeable::WhenIdle,250);
-    Pint->Set_help("If set, automatically converted FAT images will have the specified free space (in MB) if less than the actual free space.\n"
+    Pint->Set_help("If set, auto-converted FAT images will have the specified free space in MB (except PC-98) if less than the actual free space.\n"
                    "If set to 0, the converted disk will be read-only; if set to -1, the actual free space will be used for the converted disk.");
 
     Pbool = secprop->Add_bool("leading colon write protect image",Property::Changeable::WhenIdle,true);

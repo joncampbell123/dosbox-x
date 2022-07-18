@@ -84,7 +84,7 @@ void GFX_LosingFocus(void);
 void GFX_ReleaseMouse(void);
 void GFX_ForceRedrawScreen(void);
 bool GFX_GetPreventFullscreen(void);
-bool isDBCSCP(void), toOutput(const char *what);
+bool isDBCSCP(void), toOutput(const char *what), saveDiskImage(imageDisk *image, const char *name);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 int setTTFMap(bool changecp), FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 size_t GetGameState_Run(void);
@@ -449,7 +449,6 @@ bool drive_bootimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     return true;
 }
 
-bool saveDiskImage(imageDisk *image, const char *name);
 bool drive_saveimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -474,8 +473,8 @@ bool drive_saveimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
         return false;
     }
     std::string cwd = std::string(Temp_CurrentDir)+CROSS_FILESPLIT;
-    const char *lFilterPatterns[] = {"*.img","*.IMG"};
-    const char *lFilterDescription = "Disk image (*.img)";
+    const char *lFilterPatterns[] =  {IS_PC98_ARCH?"*.hdi":"*.img",IS_PC98_ARCH?"*.HDI":"*.hdi"};
+    const char *lFilterDescription = IS_PC98_ARCH ? "Disk image (*.hdi)" : "Disk image (*.img)";
     char const * lTheSaveFileName = tinyfd_saveFileDialog("Save image file...","",2,lFilterPatterns,lFilterDescription);
     if (lTheSaveFileName==NULL) return false;
 
@@ -485,6 +484,7 @@ bool drive_saveimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
             chdir(Temp_CurrentDir);
             return true;
         }
+    if (dos_kernel_disabled || !strcmp(RunningProgram, "LOADLIN")) return false;
     int freeMB = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_int("convert fat free space");
     imageDisk *imagedrv = new imageDisk(Drives[drive], drive, freeMB);
     if (!saveDiskImage(imagedrv, lTheSaveFileName)) systemmessagebox("Error", "Failed to save disk image.", "ok","error", 1);

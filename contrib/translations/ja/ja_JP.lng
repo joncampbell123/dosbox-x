@@ -887,7 +887,7 @@ drive: はマウントされているもののうち、起動するドライブ�
 
 このコマンドの用法は以下のいずれかです:
 
-[34;1mBOOT [driveletter:][0m
+[34;1mBOOT [driveletter:] [-convertfat|-convertfatro|-noconvertfat][0m
 
 [34;1mBOOT diskimg1.img [diskimg2.img ...] [-L driveletter][0m
 
@@ -3006,6 +3006,9 @@ Windowsドライブを自動マウント
 .
 :MENU:drive_bootimg
 ディスクイメージからブート
+.
+:MENU:drive_saveimg
+ディスクイメージに保存
 .
 :MENU:HelpMenu
 ヘルプ

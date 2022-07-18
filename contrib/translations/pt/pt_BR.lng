@@ -899,7 +899,7 @@ imagem deve estar previamente montada usando o comando [34;1mIMGMOUNT[0m.
 
 A sintaxe deste comando é uma das seguintes:
 
-[34;1mBOOT [letra_da_unidade:][0m
+[34;1mBOOT [letra_da_unidade:] [-convertfat|-convertfatro|-noconvertfat][0m
 [34;1mBOOT diskimg1.img [diskimg2.img ...] [-L letra_da_unidade][0m
 
 Nota: Um arquivo de imagem com dois pontos à esquerda (:) será inicializada com
@@ -3041,6 +3041,9 @@ Inicializar da unidade
 .
 :MENU:drive_bootimg
 Inicializar da imagem de disco
+.
+:MENU:drive_saveimg
+Salvar na imagem do disco
 .
 :MENU:HelpMenu
 Ajuda

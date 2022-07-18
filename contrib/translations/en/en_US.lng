@@ -897,7 +897,7 @@ drive (C or D), ensure the image is already mounted by ←[34;1mIMGMOUNT←[0m c
 
 The syntax of this command is one of the following:
 
-←[34;1mBOOT [driveletter:]←[0m
+←[34;1mBOOT [driveletter:] [-convertfat|-convertfatro|-noconvertfat]←[0m
 
 ←[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L driveletter]←[0m
 
@@ -3018,6 +3018,9 @@ Boot from drive
 .
 :MENU:drive_bootimg
 Boot from disk image
+.
+:MENU:drive_saveimg
+Save to disk image
 .
 :MENU:HelpMenu
 Help
