@@ -66,6 +66,7 @@ Bitu call_int2e = 0;
 
 std::string GetDOSBoxXPath(bool withexe=false);
 const char* DOS_GetLoadedLayout(void);
+uint16_t GetDefaultCP(void);
 int Reflect_Menu(void);
 void SetIMPosition(void);
 void SetKEYBCP();
@@ -921,8 +922,9 @@ void DOS_Shell::Prepare(void) {
         unsigned int cp;
 #if defined(WIN32)
         cp = GetACP();
-        const char *cstr = (control->opt_noconfig || !section) ? "" : (char *)section->Get_string("country"), *r=strchr(cstr, ',');
-        if ((r==NULL || !*(r+1)) && !control->opt_langcp && cp != dos.loaded_codepage && dos.loaded_codepage == 437) {
+        const char *cstr = (control->opt_noconfig || !section) ? "" : (char *)section->Get_string("country");
+        char *r = (char *)strchr(cstr, ',');
+        if ((r==NULL || !*(r+1) || atoi(trim(r+1)) == cp || (atoi(trim(r+1)) == 951 && cp == 950)) && GetDefaultCP() == 437) {
             if (cp == 950 && !chinasea) makestdcp950table();
             if (cp == 951 && chinasea) makeseacp951table();
             tryconvertcp = true;
