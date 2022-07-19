@@ -700,6 +700,7 @@ private:
 
     bool iso = false;
     bool dataCD = false;
+    bool enable_rock_ridge = false; // NTS: Windows 95/98 are unlikely to support Rock Ridge, therefore this is off by default. If they do support RR, let me know --J.C.
 	isoDirEntry rootEntry;
     uint8_t mediaid = 0;
 	char fileName[CROSS_LEN];

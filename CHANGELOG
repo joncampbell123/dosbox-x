@@ -1,4 +1,10 @@
 0.84.2
+  - Add IMGMOUNT -o option for ISO filesystem support
+    to enable/disable Rock Ridge long filename support.
+    The option is -o rr=1 to enable and -o rr=0 to
+    disable. (joncampbell123).
+  - Add support for IMGMOUNT -o options and the ISO
+    filesystem. (joncampbell123)
   - Fixed problems with SDL1 Windows builds in which
     the user had to type the Fullscreen mapper shortcut
     twice. It seems a SDL1 library function that is

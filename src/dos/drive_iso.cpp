@@ -150,6 +150,26 @@ uint8_t MSCDEX_GetSubUnit(char driveLetter);
 bool CDROM_Interface_Image::images_init = false;
 
 isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int& error, std::vector<std::string>& options) {
+    enable_rock_ridge = true;
+    for (const auto &opt : options) {
+        size_t equ = opt.find_first_of('=');
+        std::string name,value;
+
+        if (equ != std::string::npos) {
+            name = opt.substr(0,equ);
+            value = opt.substr(equ+1);
+        }
+        else {
+            name = opt;
+            value.clear();
+        }
+
+	if (name == "rr") { // Enable/disable Rock Ridge extensions
+	    if (value == "1") enable_rock_ridge = true;
+	    else if (value == "0") enable_rock_ridge = false;
+	    else enable_rock_ridge = true;//default
+	}
+    }
 
     if (!CDROM_Interface_Image::images_init) {
         CDROM_Interface_Image::images_init = true;
@@ -620,16 +640,23 @@ void isoDrive :: MediaChange() {
 }
 
 void isoDrive::GetLongName(const char* ident, char* lfindName) {
-    const char* c = ident + strlen(ident);
-    int i,j=(int)(222-strlen(ident)-6);
-    for (i=5;i<j;i++) {
-        if (*(c+i)=='N'&&*(c+i+1)=='M'&&*(c+i+2)>0&&*(c+i+3)==1&&*(c+i+4)==0&&*(c+i+5)>0)
-            break;
+    if (enable_rock_ridge) {
+        const char* c = ident + strlen(ident);
+        int i,j=(int)(222-strlen(ident)-6);
+        for (i=5;i<j;i++) {
+            if (*(c+i)=='N'&&*(c+i+1)=='M'&&*(c+i+2)>0&&*(c+i+3)==1&&*(c+i+4)==0&&*(c+i+5)>0)
+                break;
         }
-    if (i<j&&strcmp(ident,".")&&strcmp(ident,"..")) {
-        strncpy(lfindName,c+i+5,*(c+i+2)-5);
-        lfindName[*(c+i+2)-5]=0;
-    } else
+
+        if (i<j&&strcmp(ident,".")&&strcmp(ident,"..")) {
+            strncpy(lfindName,c+i+5,*(c+i+2)-5);
+            lfindName[*(c+i+2)-5]=0;
+        } else {
+            strcpy(lfindName,ident);
+        }
+    }
+    else {
         strcpy(lfindName,ident);
+    }
 }
 
