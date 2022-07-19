@@ -2422,7 +2422,7 @@ void POD_Load_DOS_Files( std::istream& stream )
                     MSCDEX_SetCDInterface(CDROM_USE_SDL, -1);
                     uint8_t mediaid = 0xF8;
                     int error = -1;
-                    isoDrive* newDrive = new isoDrive('A'+lcv, dinfo+9, mediaid, error);
+                    isoDrive* newDrive = new isoDrive('A'+lcv, dinfo+9, mediaid, error, options);
                     if (!error) {
                         Drives[lcv] = newDrive;
                         DriveManager::AppendDisk(lcv, newDrive);
@@ -2556,10 +2556,11 @@ void POD_Load_DOS_Files( std::istream& stream )
             if( Drives[lcv] && strcasecmp(Drives[lcv]->info, dinfo))
                 unmount(lcv);
             if (!Drives[lcv] && !strncmp(dinfo,"isoDrive ",9)) {
+                std::vector<std::string> options;
                 MSCDEX_SetCDInterface(CDROM_USE_SDL, -1);
                 uint8_t mediaid = 0xF8;
                 int error = -1;
-                isoDrive* newDrive = new isoDrive('A'+lcv, dinfo+9, mediaid, error);
+                isoDrive* newDrive = new isoDrive('A'+lcv, dinfo+9, mediaid, error, options);
                 if (!error) {
                     Drives[lcv] = newDrive;
                     DriveManager::AppendDisk(lcv, newDrive);

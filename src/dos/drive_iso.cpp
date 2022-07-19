@@ -149,7 +149,7 @@ uint8_t MSCDEX_GetSubUnit(char driveLetter);
 
 bool CDROM_Interface_Image::images_init = false;
 
-isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int& error) {
+isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int& error, std::vector<std::string>& options) {
 
     if (!CDROM_Interface_Image::images_init) {
         CDROM_Interface_Image::images_init = true;

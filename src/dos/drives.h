@@ -639,7 +639,7 @@ struct isoDirEntry {
 
 class isoDrive : public DOS_Drive {
 public:
-	isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int &error);
+	isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int &error, std::vector<std::string>& options);
 	~isoDrive();
 	virtual bool FileOpen(DOS_File **file, const char *name, uint32_t flags);
 	virtual bool FileCreate(DOS_File **file, const char *name, uint16_t attributes);

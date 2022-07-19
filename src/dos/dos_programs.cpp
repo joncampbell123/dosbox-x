@@ -530,6 +530,7 @@ void MenuBrowseCDImage(char drive, int num) {
         return;
 #if !defined(HX_DOS)
     char CurrentDir[512];
+    std::vector<std::string> options;
     char * Temp_CurrentDir = CurrentDir;
     getcwd(Temp_CurrentDir, 512);
     char const * lTheOpenFileName;
@@ -546,7 +547,7 @@ void MenuBrowseCDImage(char drive, int num) {
         } else {
             uint8_t mediaid = 0xF8;
             int error = -1;
-            newDrive = new isoDrive(drive, lTheOpenFileName, mediaid, error);
+            newDrive = new isoDrive(drive, lTheOpenFileName, mediaid, error, options);
             if (error) {
                 systemmessagebox("Error","Could not mount the selected CD image.","ok","error", 1);
                 chdir( Temp_CurrentDir );
@@ -6173,7 +6174,7 @@ private:
         std::vector<DOS_Drive*>::size_type ct;
         for (i = 0; i < paths.size(); i++) {
             int error = -1;
-            DOS_Drive* newDrive = new isoDrive(drive, wpcolon&&paths[i].length()>1&&paths[i].c_str()[0]==':'?paths[i].c_str()+1:paths[i].c_str(), mediaid, error);
+            DOS_Drive* newDrive = new isoDrive(drive, wpcolon&&paths[i].length()>1&&paths[i].c_str()[0]==':'?paths[i].c_str()+1:paths[i].c_str(), mediaid, error, options);
             isoDisks.push_back(newDrive);
             if (!qmount)
             switch (error) {
