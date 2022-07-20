@@ -152,8 +152,8 @@ uint8_t MSCDEX_GetSubUnit(char driveLetter);
 bool CDROM_Interface_Image::images_init = false;
 
 isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int& error, std::vector<std::string>& options) {
-    enable_rock_ridge = true;
-    enable_joliet = true;
+    enable_rock_ridge = (dos.version.major >= 7);//default
+    enable_joliet = (dos.version.major >= 7);//default
     is_joliet = false;
     for (const auto &opt : options) {
         size_t equ = opt.find_first_of('=');
@@ -171,12 +171,10 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
         if (name == "rr") { // Enable/disable Rock Ridge extensions
             if (value == "1") enable_rock_ridge = true;
             else if (value == "0") enable_rock_ridge = false;
-            else enable_rock_ridge = (dos.version.major >= 7);//default
         }
         else if (name == "joliet") { // Enable/disable Joliet extensions
             if (value == "1") enable_joliet = true;
             else if (value == "0") enable_joliet = false;
-            else enable_joliet = (dos.version.major >= 7);//default
 	}
     }
 
