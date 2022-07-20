@@ -25,6 +25,7 @@
 #endif
 #include "cdrom.h"
 #include "dosbox.h"
+#include "byteorder.h"
 #include "dos_system.h"
 #include "logging.h"
 #include "support.h"
