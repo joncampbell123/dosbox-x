@@ -1,4 +1,18 @@
 0.84.2
+  - Updated ISO MSCDEX drive emulation to scan the
+    available volumes in the ISO image rather than
+    assume the first volume, which makes Joilet
+    support possible if long filenames are enabled
+    and the DOS version is 7.0 or higher. (joncampbell123).
+  - Add IMGMOUNT -o option for ISO filesystem support
+    to enable/disable Joliet extensions, which is a
+    Microsoft extension to ISO 9660 where long names
+    encoded using Unicode UCS-16 exist as a supplementary
+    volume in the ISO image and are used by Windows 95
+    and higher to support long filenames on CD-ROM.
+    Added support for reading the Joliet volume and
+    providing them for both the 8.3 and long filename
+    APIs in DOS. (joncampbell123).
   - Add IMGMOUNT -o option for ISO filesystem support
     to enable/disable Rock Ridge long filename support.
     The option is -o rr=1 to enable and -o rr=0 to

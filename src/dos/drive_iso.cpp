@@ -19,9 +19,11 @@
 
 #include <cctype>
 #include <cstring>
+#include <assert.h>
 #include "cdrom.h"
 #include "dosbox.h"
 #include "dos_system.h"
+#include "logging.h"
 #include "support.h"
 #include "drives.h"
 
@@ -151,6 +153,8 @@ bool CDROM_Interface_Image::images_init = false;
 
 isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int& error, std::vector<std::string>& options) {
     enable_rock_ridge = true;
+    enable_joliet = true;
+    is_joliet = false;
     for (const auto &opt : options) {
         size_t equ = opt.find_first_of('=');
         std::string name,value;
@@ -164,10 +168,15 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
             value.clear();
         }
 
-	if (name == "rr") { // Enable/disable Rock Ridge extensions
-	    if (value == "1") enable_rock_ridge = true;
-	    else if (value == "0") enable_rock_ridge = false;
-	    else enable_rock_ridge = true;//default
+        if (name == "rr") { // Enable/disable Rock Ridge extensions
+            if (value == "1") enable_rock_ridge = true;
+            else if (value == "0") enable_rock_ridge = false;
+            else enable_rock_ridge = (dos.version.major >= 7);//default
+        }
+        else if (name == "joliet") { // Enable/disable Joliet extensions
+            if (value == "1") enable_joliet = true;
+            else if (value == "0") enable_joliet = false;
+            else enable_joliet = (dos.version.major >= 7);//default
 	}
     }
 
@@ -466,6 +475,7 @@ int isoDrive::GetDirIterator(const isoDirEntry* de) {
 	
 	// reset position and mark as valid
 	dirIterators[dirIterator].pos = 0;
+	dirIterators[dirIterator].index = 0;
 	dirIterators[dirIterator].valid = true;
 
 	// advance to next directory iterator (wrap around if necessary)
@@ -498,7 +508,8 @@ bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, isoDirEntry* de) {
 		 	}
 		 }
 		 // read sector and advance sector pointer
-		 int length = readDirEntry(de, &buffer[dirIterator.pos]);
+		 ++dirIterator.index;
+		 int length = readDirEntry(de, &buffer[dirIterator.pos], dirIterator.index);
 		 result = length >= 0;
          if (length > 0) dirIterator.pos += (unsigned int)length;
 	}
@@ -540,7 +551,10 @@ inline bool isoDrive :: readSector(uint8_t *buffer, uint32_t sector) {
 	return CDROM_Interface_Image::images[subUnit]->ReadSector(buffer, false, sector);
 }
 
-int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data) {
+// from drive_local.cpp
+bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
+
+int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dirIteratorIndex) {
 	// copy data into isoDirEntry struct, data[0] = length of DirEntry
 //	if (data[0] > sizeof(isoDirEntry)) return -1;//check disabled as isoDirentry is currently 258 bytes large. So it always fits
 	memcpy(de, data, data[0]);//Perharps care about a zero at the end.
@@ -558,38 +572,212 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data) {
 		else {
 			if (de->fileIdentLength > 200) return -1;
 			de->ident[de->fileIdentLength] = 0;
+			if (is_joliet) {
+				de->ident[de->fileIdentLength+1] = 0; // for Joliet UCS-16
+				// The string is big Endian UCS-16, convert to host Endian UCS-16
+				for (size_t i=0;((const uint16_t*)de->ident)[i] != 0;i++) ((uint16_t*)de->ident)[i] = be16toh(((uint16_t*)de->ident)[i]);
+				// finally, convert from UCS-16 to local code page, using C++ string construction to make a copy first
+				CodePageHostToGuestUTF16((char*)de->ident,std::basic_string<uint16_t>((const uint16_t*)de->ident).c_str());
+			}
 		}
 	} else {
 		if (de->fileIdentLength > 200) return -1;
 		de->ident[de->fileIdentLength] = 0;	
-		// remove any file version identifiers as there are some cdroms that don't have them
-		strreplace((char*)de->ident, ';', 0);	
-		// if file has no extension remove the trailing dot
-		size_t tmp = strlen((char*)de->ident);
-		if (tmp > 0) {
-			if (de->ident[tmp - 1] == '.') de->ident[tmp - 1] = 0;
+		if (is_joliet) {
+			de->ident[de->fileIdentLength+1] = 0; // for Joliet UCS-16
+			// remove any file version identifiers as there are some cdroms that don't have them
+			uint16_t *w = (uint16_t*)(de->ident); // remember two NULs were written to make a UCS-16 NUL
+			while (*w != 0) {
+				if (be16toh(*w) == (uint16_t)(';')) *w = 0;
+				w++;
+			}
+			// w happens to be at the end of the string now, step back one char and remove trailing period
+			if (w != (uint16_t*)(de->ident)) {
+				w--;
+				if (be16toh(*w) == (uint16_t)('.')) *w = 0;
+			}
+			// The string is big Endian UCS-16, convert to host Endian UCS-16
+			for (size_t i=0;((const uint16_t*)de->ident)[i] != 0;i++) ((uint16_t*)de->ident)[i] = be16toh(((uint16_t*)de->ident)[i]);
+			// finally, convert from UCS-16 to local code page, using C++ string construction to make a copy first
+			CodePageHostToGuestUTF16((char*)de->ident,std::basic_string<uint16_t>((const uint16_t*)de->ident).c_str());
+		}
+		else {
+			// remove any file version identifiers as there are some cdroms that don't have them
+			strreplace((char*)de->ident, ';', 0);	
+			// if file has no extension remove the trailing dot
+			size_t tmp = strlen((char*)de->ident);
+			if (tmp > 0) {
+				if (de->ident[tmp - 1] == '.') de->ident[tmp - 1] = 0;
+			}
 		}
 	}
+
 	strcpy((char*)fullname,(char*)de->ident);
-	char* dotpos = strchr((char*)de->ident, '.');
-	if (dotpos!=NULL) {
-		if (strlen(dotpos)>4) dotpos[4]=0;
-		if (dotpos-(char*)de->ident>8) {
-			strcpy((char*)(&de->ident[8]),dotpos);
+	if (is_joliet) {
+		const char *ext = NULL;
+		size_t tailsize = 0;
+		bool lfn = false;
+		char tail[128];
+
+		if (strcmp((char*)fullname,".") != 0 && strcmp((char*)fullname,"..")) {
+			size_t nl = 0,el = 0,periods = 0;
+			const char *s = (const char*)fullname;
+			while (*s != 0) {
+				if (*s == '.') break;
+				if (*s == ' ' || *s == '\'' || *s == '\"') lfn = true;
+				nl++;
+				s++;
+			}
+			if (nl > 8) lfn = true;
+			if (*s == '.') {
+				periods++;
+				ext = s+1;
+				s++;
+			}
+			while (*s != 0) {
+				if (*s == '.') {
+					periods++;
+					ext = s+1;
+				}
+				if (*s == ' ' || *s == '\'' || *s == '\"') lfn = true;
+				el++;
+				s++;
+			}
+			if (periods > 1 || el > 3) lfn = true;
 		}
-	} else if (strlen((char*)de->ident)>8) de->ident[8]=0;
+
+		/* Windows 95 adds a ~number to the 8.3 name if effectively an LFN.
+		 * I'm not 100% certain but the index appears to be related to the index of the ISO 9660 dirent.
+		 * This is a guess as to how it works. */
+		if (lfn) {
+			tailsize = sprintf(tail,"~%u",dirIteratorIndex);
+			const char *s = (const char*)fullname;
+			char *d = (char*)de->ident;
+			size_t c;
+
+			c = 0;
+			while (*s != 0) {
+				if (s == ext) break; // doesn't match if ext == NULL, so no harm in that case
+				if ((unsigned char)*s > 32 && (unsigned char)*s < 127 && *s != '.' && *s != '\'' && *s != '\"' && c < (8-tailsize)) {
+					*d++ = *s;
+					c++;
+				}
+				s++;
+			}
+			if (tailsize != 0) {
+				for (c=0;c < tailsize;c++) *d++ = tail[c];
+			}
+			if (s == ext) { /* ext points to char after '.' */
+				if (*s != 0) { /* anything after? */
+					*d++ = '.';
+					c = 0;
+					while (*s != 0) {
+						if (*s > 32 && *s < 127 && *s != '.' && *s != '\'' && *s != '\"' && c < 3) {
+							*d++ = *s;
+							c++;
+						}
+						s++;
+					}
+				}
+			}
+			*d = 0;
+		}
+	}
+	else {
+		char* dotpos = strchr((char*)de->ident, '.');
+		if (dotpos!=NULL) {
+			if (strlen(dotpos)>4) dotpos[4]=0;
+			if (dotpos-(char*)de->ident>8) {
+				strcpy((char*)(&de->ident[8]),dotpos);
+			}
+		} else if (strlen((char*)de->ident)>8) de->ident[8]=0;
+	}
 	return de->length;
+}
+
+static bool escape_is_joliet(const unsigned char *esc) {
+	if (    !memcmp(esc,"\x25\x2f\x40",3) ||
+		!memcmp(esc,"\x25\x2f\x43",3) ||
+		!memcmp(esc,"\x25\x2f\x45",3)) {
+		return true;
+	}
+
+	return false;
 }
 
 bool isoDrive :: loadImage() {
 	uint8_t pvd[COOKED_SECTOR_SIZE];
+	unsigned int choose_iso9660 = 0;
+	unsigned int choose_joliet = 0;
+	unsigned int sector = 16;
 	dataCD = false;
-	readSector(pvd, ISO_FIRST_VD);
-	if (pvd[0] == 1 && !strncmp((char*)(&pvd[1]), "CD001", 5) && pvd[6] == 1) iso = true;
-	else if (pvd[8] == 1 && !strncmp((char*)(&pvd[9]), "CDROM", 5) && pvd[14] == 1) iso = false;
-	else return false;
+
+	/* scan the volume descriptors */
+	while (sector < 256) {
+		pvd[0] = 0xFF;
+		readSector(pvd,sector);
+
+		if (pvd[0] == 1) { // primary volume
+			if (!strncmp((char*)(&pvd[1]), "CD001", 5) && pvd[6] == 1) {
+				if (choose_iso9660 == 0) {
+					choose_iso9660 = sector;
+					iso = true;
+				}
+			}
+		}
+		else if (pvd[0] == 2) { // supplementary volume (usually Joliet, but not necessarily)
+			if (!strncmp((char*)(&pvd[1]), "CD001", 5) && pvd[6] == 1) {
+				bool joliet = escape_is_joliet(&pvd[88]);
+
+				if (joliet) {
+					if (choose_joliet == 0) {
+						choose_joliet = sector;
+					}
+				}
+				else {
+					if (choose_iso9660 == 0) {
+						choose_iso9660 = sector;
+						iso = true;
+					}
+				}
+			}
+		}
+		else if (pvd[0] == 0xFF) { // terminating descriptor
+			break;
+		}
+		else if (pvd[0] >= 0x20) { // oddly out of range, maybe we're lost
+			break;
+		}
+
+		// unknown check inherited from existing code
+		if (pvd[8] == 1 && !strncmp((char*)(&pvd[9]), "CDROM", 5) && pvd[14] == 1) {
+			if (choose_iso9660 == 0) {
+				choose_iso9660 = sector;
+				iso = false;
+			}
+		}
+
+		sector++;
+	}
+
+	if (choose_joliet && enable_joliet) {
+		sector = choose_joliet;
+		LOG(LOG_MISC,LOG_DEBUG)("ISO 9660: Choosing Joliet (unicode) volume at sector %u",sector);
+		is_joliet = true;
+		iso = true;
+	}
+	else if (choose_iso9660) {
+		sector = choose_iso9660;
+		LOG(LOG_MISC,LOG_DEBUG)("ISO 9660: Choosing ISO 9660 volume at sector %u",sector);
+		is_joliet = false;
+	}
+	else {
+		return false;
+	}
+
+	readSector(pvd, sector);
 	uint16_t offset = iso ? 156 : 180;
-	if (readDirEntry(&this->rootEntry, &pvd[offset])>0) {
+	if (readDirEntry(&this->rootEntry, &pvd[offset], 0)>0) {
 		dataCD = true;
 		return true;
 	}
@@ -640,7 +828,11 @@ void isoDrive :: MediaChange() {
 }
 
 void isoDrive::GetLongName(const char* ident, char* lfindName) {
-    if (enable_rock_ridge) {
+    if (is_joliet) {
+	// WARNING: This only works because GetLongName is always called once after GetNextDirEntry
+        strcpy(lfindName,fullname);
+    }
+    else if (enable_rock_ridge) {
         const char* c = ident + strlen(ident);
         int i,j=(int)(222-strlen(ident)-6);
         for (i=5;i<j;i++) {

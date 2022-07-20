@@ -672,7 +672,7 @@ public:
 	virtual char const* GetLabel(void) {return discLabel;};
 	virtual void Activate(void);
 private:
-    int  readDirEntry(isoDirEntry* de, const uint8_t* data);
+    int  readDirEntry(isoDirEntry* de, const uint8_t* data, unsigned int direntindex);
 	bool lookupSingle(isoDirEntry *de, const char *name, uint32_t sectorStart, uint32_t length);
 	bool lookup(isoDirEntry *de, const char *path);
 	int  UpdateMscdex(char driveLetter, const char* path, uint8_t& subUnit);
@@ -687,6 +687,7 @@ private:
 		bool root;
 		uint32_t currentSector;
 		uint32_t endSector;
+		uint32_t index;
 		uint32_t pos;
 	} dirIterators[MAX_OPENDIRS];
 	
@@ -700,6 +701,8 @@ private:
 
     bool iso = false;
     bool dataCD = false;
+    bool is_joliet = false;
+    bool enable_joliet = false; // NTS: "Joliet" is just ISO 9660 with filenames encoded as UTF-16 Unicode. One of the few times Microsoft extended something yet kept it simple --J.C.
     bool enable_rock_ridge = false; // NTS: Windows 95/98 are unlikely to support Rock Ridge, therefore this is off by default. If they do support RR, let me know --J.C.
 	isoDirEntry rootEntry;
     uint8_t mediaid = 0;
