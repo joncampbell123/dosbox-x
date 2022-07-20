@@ -169,11 +169,11 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
         }
 
         if (name == "rr") { // Enable/disable Rock Ridge extensions
-            if (value == "1") enable_rock_ridge = true;
+            if (value == "1" || value == "") enable_rock_ridge = true; // "-o rr" or "-o rr=1"
             else if (value == "0") enable_rock_ridge = false;
         }
         else if (name == "joliet") { // Enable/disable Joliet extensions
-            if (value == "1") enable_joliet = true;
+            if (value == "1" || value == "") enable_joliet = true; // "-o joliet" or "-o joliet=1"
             else if (value == "0") enable_joliet = false;
 	}
     }
