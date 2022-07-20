@@ -20,6 +20,9 @@
 #include <cctype>
 #include <cstring>
 #include <assert.h>
+#if defined(WIN32)
+#include <winsock2.h>
+#endif
 #include "cdrom.h"
 #include "dosbox.h"
 #include "dos_system.h"
@@ -33,6 +36,7 @@
 char fullname[LFN_NAMELENGTH];
 static uint16_t sdid[256];
 extern int lfn_filefind_handle;
+extern bool gbk, isDBCSCP(), isKanji1_gbk(uint8_t chr), shiftjis_lead_byte(int c);
 
 using namespace std;
 
@@ -141,7 +145,6 @@ uint32_t isoFile::GetSeekPos() {
 	return filePos - fileBegin;
 }
 
-
 int   MSCDEX_RemoveDrive(char driveLetter);
 int   MSCDEX_AddDrive(char driveLetter, const char* physicalPath, uint8_t& subUnit);
 void  MSCDEX_ReplaceDrive(CDROM_Interface* cdrom, uint8_t subUnit);
@@ -152,8 +155,8 @@ uint8_t MSCDEX_GetSubUnit(char driveLetter);
 bool CDROM_Interface_Image::images_init = false;
 
 isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int& error, std::vector<std::string>& options) {
-    enable_rock_ridge = (dos.version.major >= 7);//default
-    enable_joliet = (dos.version.major >= 7);//default
+    enable_rock_ridge = (dos.version.major >= 7 || uselfn);//default
+    enable_joliet = (dos.version.major >= 7 || uselfn);//default
     is_joliet = false;
     for (const auto &opt : options) {
         size_t equ = opt.find_first_of('=');
@@ -626,10 +629,10 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 				nl++;
 				s++;
 			}
-			if (nl > 8) lfn = true;
+			if (!nl || nl > 8) lfn = true;
 			if (*s == '.') {
 				periods++;
-				ext = s+1;
+				if (nl) ext = s+1;
 				s++;
 			}
 			while (*s != 0) {
@@ -654,9 +657,20 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 			size_t c;
 
 			c = 0;
+			while (*s == '.'||*s == ' ') s++;
+			bool lead = false;
 			while (*s != 0) {
 				if (s == ext) break; // doesn't match if ext == NULL, so no harm in that case
-				if ((unsigned char)*s > 32 && (unsigned char)*s < 127 && *s != '.' && *s != '\'' && *s != '\"' && c < (8-tailsize)) {
+                if (!lead && ((IS_PC98_ARCH && shiftjis_lead_byte(*s & 0xFF)) || (isDBCSCP() && isKanji1_gbk(*s & 0xFF)))) {
+                    if (c >= (7-tailsize)) break;
+                    lead = true;
+                    *d++ = *s;
+                    c++;
+				} else if ((unsigned char)*s <= 32 || (unsigned char)*s == 127 || *s == '.' || *s == '\"' || *s == '+' || *s == '=' || *s == ',' || *s == ';' || *s == ':' || *s == '<' || *s == '>' || ((*s == '[' || *s == ']' || *s == '|' || *s == '\\')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*s=='?'||*s=='*') {
+                    lead = false;
+                } else if (c >= (8-tailsize)) break;
+                else {
+                    lead = false;
 					*d++ = *s;
 					c++;
 				}
@@ -665,12 +679,21 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 			if (tailsize != 0) {
 				for (c=0;c < tailsize;c++) *d++ = tail[c];
 			}
+			lead = false;
 			if (s == ext) { /* ext points to char after '.' */
 				if (*s != 0) { /* anything after? */
 					*d++ = '.';
 					c = 0;
 					while (*s != 0) {
-						if (*s > 32 && *s < 127 && *s != '.' && *s != '\'' && *s != '\"' && c < 3) {
+						if (!lead && ((IS_PC98_ARCH && shiftjis_lead_byte(*s & 0xFF)) || (isDBCSCP() && isKanji1_gbk(*s & 0xFF)))) {
+                            if (c >= 2) break;
+                            lead = true;
+                            *d++ = *s;
+                            c++;
+						} else if ((unsigned char)*s <= 32 || (unsigned char)*s == 127 || *s == '.' || *s == '\"' || *s == '+' || *s == '=' || *s == ',' || *s == ';' || *s == ':' || *s == '<' || *s == '>' || ((*s == '[' || *s == ']' || *s == '|' || *s == '\\')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*s=='?'||*s=='*') {
+                            lead = false;
+                        } else if (c >= 3) break;
+                        else {
 							*d++ = *s;
 							c++;
 						}
@@ -681,7 +704,7 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 			*d = 0;
 		}
 	}
-	else {
+	else { // TODO: Normalize the SFN generation
 		char* dotpos = strchr((char*)de->ident, '.');
 		if (dotpos!=NULL) {
 			if (strlen(dotpos)>4) dotpos[4]=0;
