@@ -19,6 +19,9 @@
     disable. (joncampbell123).
   - Add support for IMGMOUNT -o options and the ISO
     filesystem. (joncampbell123)
+  - SDL_Net support is available for HX-DOS builds,
+    similar to other builds. Packet driver is needed
+    for network capability in DOS. (Wengier)
   - Fixed problems with SDL1 Windows builds in which
     the user had to type the Fullscreen mapper shortcut
     twice. It seems a SDL1 library function that is

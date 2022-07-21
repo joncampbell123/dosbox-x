@@ -949,7 +949,7 @@ AH_TEMPLATE(C_IPX,[Define to 1 to enable IPX over Internet networking, requires 
 
 case "$host" in
   *-*-cygwin* | *-*-mingw32*)
-    if test x$have_sdl_net_h = xyes -a x$enable_hx != xyes; then
+    if test x$have_sdl_net_h = xyes; then
       have_sdl_net_lib=yes
     fi
   ;;

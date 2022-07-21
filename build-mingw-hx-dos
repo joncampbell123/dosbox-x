@@ -16,6 +16,10 @@ chmod +x vs/sdl/build-scripts/strip_fPIC.sh
 echo Compiling our internal SDL 1.x
 (cd vs/sdl && ./build-dosbox.sh hx-dos) || exit 1
 
+# prefer to compile against our own copy of SDLnet 1.x
+echo Compiling our internal SDLnet 1.x
+(cd vs/sdlnet && ./build-dosbox.sh hx-dos) || exit 1
+
 # NTS: MinGW provides zlib for us
 if false; then
 	# prefer to compile against our own zlib
