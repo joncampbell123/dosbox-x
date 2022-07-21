@@ -661,8 +661,8 @@ public:
 	virtual bool FileExists(const char *name);
    	virtual bool FileStat(const char *name, FileStat_Block *const stat_block);
 	virtual uint8_t GetMediaByte(void);
-	virtual void EmptyCache(void){}
-	virtual void MediaChange();
+	virtual void EmptyCache(void);
+	virtual void MediaChange(void);
 	virtual bool isRemote(void);
 	virtual bool isRemovable(void);
 	virtual Bits UnMount(void);
@@ -680,7 +680,6 @@ private:
 	bool GetNextDirEntry(const int dirIteratorHandle, isoDirEntry* de);
 	void FreeDirIterator(const int dirIterator);
 	bool ReadCachedSector(uint8_t** buffer, const uint32_t sector);
-	void GetLongName(const char* ident, char* lfindName);
 	
 	struct DirIterator {
 		bool valid;

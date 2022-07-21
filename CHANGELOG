@@ -17,8 +17,9 @@
     to enable/disable Rock Ridge long filename support.
     The option is -o rr=1 to enable and -o rr=0 to
     disable. (joncampbell123).
-  - Add support for IMGMOUNT -o options and the ISO
-    filesystem. (joncampbell123)
+  - Fixed 8.3 name generations on ISO drives with Rock
+    Ridge extension. The ISO drives can be refreshed
+    via RESCAN command like other drives. (Wengier)
   - SDL_Net support is available for HX-DOS builds,
     similar to other builds. Packet driver is needed
     for network capability in DOS. (Wengier)

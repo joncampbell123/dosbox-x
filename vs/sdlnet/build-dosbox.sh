@@ -50,3 +50,4 @@ cd "$srcdir" || exit 1
 if [ "$1" == "hx-dos" ]; then
     cp SDLnet.c.default SDLnet.c || exit 1
 fi
+

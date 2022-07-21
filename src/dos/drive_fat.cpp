@@ -158,7 +158,7 @@ bool filename_not_8x3(const char *n) {
                 i++;
                 n++;
         }
-        if (i > 8) return true;
+        if (!i || i > 8) return true;
         if (*n == 0) return false; /* made it past 8 or less normal chars and end of string: normal */
 
         /* skip dot */

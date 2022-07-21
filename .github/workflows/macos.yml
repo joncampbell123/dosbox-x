@@ -12,7 +12,7 @@ jobs:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
       contents: read  # for actions/checkout to fetch code
     if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
-    runs-on: macos-10.15
+    runs-on: macos-latest
     steps:
       - name: Cancel previous runs
         uses: styfle/cancel-workflow-action@0.10.0

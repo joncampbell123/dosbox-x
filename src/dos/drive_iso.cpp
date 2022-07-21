@@ -38,6 +38,8 @@ char fullname[LFN_NAMELENGTH];
 static uint16_t sdid[256];
 extern int lfn_filefind_handle;
 extern bool gbk, isDBCSCP(), isKanji1_gbk(uint8_t chr), shiftjis_lead_byte(int c);
+extern bool filename_not_8x3(const char *n), filename_not_strict_8x3(const char *n);
+extern bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 
 using namespace std;
 
@@ -345,12 +347,7 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 		uint8_t findAttr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
 		if (IS_DIR(FLAGS1)) findAttr |= DOS_ATTR_DIRECTORY;
 		if (IS_HIDDEN(FLAGS1)) findAttr |= DOS_ATTR_HIDDEN;
-
-		if (strcmp((char*)de.ident,(char*)fullname))
-			strcpy(lfindName,fullname);
-		else
-			GetLongName((char*)de.ident,lfindName);
-
+		strcpy(lfindName,fullname);
         if (!IS_ASSOC(FLAGS1) && !(isRoot && de.ident[0]=='.') && (WildFileCmp((char*)de.ident, pattern) || LWildFileCmp(lfindName, pattern))
 			&& !(~attr & findAttr & (DOS_ATTR_DIRECTORY | DOS_ATTR_HIDDEN | DOS_ATTR_SYSTEM))) {
 			
@@ -553,9 +550,6 @@ inline bool isoDrive :: readSector(uint8_t *buffer, uint32_t sector) {
 	return CDROM_Interface_Image::images[subUnit]->ReadSector(buffer, false, sector);
 }
 
-// from drive_local.cpp
-bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
-
 int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dirIteratorIndex) {
 	// copy data into isoDirEntry struct, data[0] = length of DirEntry
 //	if (data[0] > sizeof(isoDirEntry)) return -1;//check disabled as isoDirentry is currently 258 bytes large. So it always fits
@@ -614,8 +608,25 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 		}
 	}
 
-	strcpy((char*)fullname,(char*)de->ident);
-	if (is_joliet) {
+    bool is_rock_ridge = false;
+    if (is_joliet || !enable_rock_ridge)
+        strcpy((char*)fullname,(char*)de->ident);
+    else {
+        const char* c = (const char *)de->ident + strlen((const char *)de->ident);
+        int i,j=(int)(222-strlen((const char *)de->ident)-6);
+        for (i=5;i<j;i++)
+            if (*(c+i)=='N'&&*(c+i+1)=='M'&&*(c+i+2)>0&&*(c+i+3)==1&&*(c+i+4)==0&&*(c+i+5)>0) {
+                is_rock_ridge = true;
+                break;
+            }
+        if (i<j&&strcmp((const char *)de->ident,".")&&strcmp((const char *)de->ident,"..")) {
+            strncpy(fullname,c+i+5,*(c+i+2)-5);
+            fullname[*(c+i+2)-5]=0;
+        } else {
+            strcpy(fullname,(const char *)de->ident);
+        }
+    }
+	if (is_joliet || (is_rock_ridge && filename_not_strict_8x3((char*)de->ident)) || filename_not_8x3((char*)de->ident)) {
 		const char *ext = NULL;
 		size_t tailsize = 0;
 		bool lfn = false;
@@ -704,8 +715,7 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 			}
 			*d = 0;
 		}
-	}
-	else { // TODO: Normalize the SFN generation
+	} else {
 		char* dotpos = strchr((char*)de->ident, '.');
 		if (dotpos!=NULL) {
 			if (strlen(dotpos)>4) dotpos[4]=0;
@@ -811,7 +821,7 @@ bool isoDrive :: lookup(isoDirEntry *de, const char *path) {
 	*de = this->rootEntry;
 	if (!strcmp(path, "")) return true;
 	
-	char isoPath[ISO_MAXPATHNAME], longname[ISO_MAXPATHNAME];
+	char isoPath[ISO_MAXPATHNAME];
 	safe_strncpy(isoPath, path, ISO_MAXPATHNAME);
 	strreplace_dbcs(isoPath, '\\', '/');
 	
@@ -831,8 +841,7 @@ bool isoDrive :: lookup(isoDirEntry *de, const char *path) {
 			// look for the current path element
 			int dirIterator = GetDirIterator(de);
 			while (!found && GetNextDirEntry(dirIterator, de)) {
-				GetLongName((char*)de->ident,longname);
-				if (!IS_ASSOC(FLAGS2) && ((0 == strncasecmp((char*) de->ident, name, ISO_MAX_FILENAME_LENGTH)) || 0 == strncasecmp((char*) longname, name, ISO_MAXPATHNAME))) {
+				if (!IS_ASSOC(FLAGS2) && ((0 == strncasecmp((char*) de->ident, name, ISO_MAX_FILENAME_LENGTH)) || 0 == strncasecmp((char*) fullname, name, ISO_MAXPATHNAME))) {
 					found = true;
 				}
 			}
@@ -849,28 +858,16 @@ void isoDrive :: MediaChange() {
 	IDE_ATAPI_MediaChangeNotify(toupper(driveLetter) - 'A'); /* ewwww */
 }
 
-void isoDrive::GetLongName(const char* ident, char* lfindName) {
-    if (is_joliet) {
-	// WARNING: This only works because GetLongName is always called once after GetNextDirEntry
-        strcpy(lfindName,fullname);
-    }
-    else if (enable_rock_ridge) {
-        const char* c = ident + strlen(ident);
-        int i,j=(int)(222-strlen(ident)-6);
-        for (i=5;i<j;i++) {
-            if (*(c+i)=='N'&&*(c+i+1)=='M'&&*(c+i+2)>0&&*(c+i+3)==1&&*(c+i+4)==0&&*(c+i+5)>0)
-                break;
-        }
-
-        if (i<j&&strcmp(ident,".")&&strcmp(ident,"..")) {
-            strncpy(lfindName,c+i+5,*(c+i+2)-5);
-            lfindName[*(c+i+2)-5]=0;
-        } else {
-            strcpy(lfindName,ident);
-        }
-    }
-    else {
-        strcpy(lfindName,ident);
-    }
+void isoDrive :: EmptyCache(void) {
+	enable_rock_ridge = dos.version.major >= 7 || uselfn;
+	enable_joliet = dos.version.major >= 7 || uselfn;
+	is_joliet = false;
+	this->fileName[0]  = '\0';
+	this->discLabel[0] = '\0';
+	nextFreeDirIterator = 0;
+	memset(dirIterators, 0, sizeof(dirIterators));
+	memset(sectorHashEntries, 0, sizeof(sectorHashEntries));
+	memset(&rootEntry, 0, sizeof(isoDirEntry));
+	safe_strncpy(this->fileName, fileName, CROSS_LEN);
+	loadImage();
 }
-
