@@ -651,6 +651,29 @@ static inline uint16_t UDF_crc_itu_t_byte(uint16_t crc, const uint8_t data)
 
 ////////////////////////////////////
 
+using UDF_blob_base = std::vector<uint8_t>;
+
+class UDF_blob : public UDF_blob_base {
+        public:
+                UDF_blob() : UDF_blob_base() { }
+                ~UDF_blob() { }
+	public:
+                UDF_blob(const std::string &x) : UDF_blob_base() {
+                        resize(x.size());
+                        uint8_t *p = &UDF_blob_base::operator[](0);
+                        for (size_t i=0;i < x.size();i++) p[i] = x[i]; /* Not the NUL at the end, though */
+                }
+                std::string string_value(void) const {
+                        return std::string((char*)(&UDF_blob_base::operator[](0)),UDF_blob_base::size());
+                }
+                UDF_blob& operator=(const std::vector<uint8_t> &s) {
+                        *((UDF_blob_base*)this) = s;
+                        return *this;
+                }
+};
+
+////////////////////////////////////
+
 struct UDFTagId { /* ECMA-167 7.2.1 */
 	uint16_t				TagIdentifier = 0;					/*   @0 +   2 uint16_t */
 	uint16_t				DescriptorVersion = 0;					/*   @2 +   2 uint16_t */
@@ -692,6 +715,285 @@ struct UDFAnchorVolumeDescriptorPointer {
 						UDFAnchorVolumeDescriptorPointer(UDFTagId &tag/*already parsed, why parse again?*/,const unsigned int sz,const unsigned char *b);
 						UDFAnchorVolumeDescriptorPointer();
 };													/*  =32 */
+
+////////////////////////////////////
+
+struct UDFdstring : public UDF_blob {
+	void					get(const unsigned int sz,const unsigned char *b);
+						UDFdstring(const unsigned int sz,const unsigned char *b);
+						UDFdstring();
+};
+
+////////////////////////////////////
+
+/* NTS: The structure is the same, what the location/position is relative to is different. It's relative to the partition */
+struct UDFshort_ad { /* ECMA-167 4/14.14.1 */
+	uint32_t				ExtentLength = 0;					/*   @0 +   4 uint32_t */
+	uint32_t				ExtentPosition = 0;					/*   @4 +   4 uint32_t */
+
+	void					get(const unsigned int sz,const unsigned char *b);
+						UDFshort_ad(const unsigned int sz,const unsigned char *b);
+						UDFshort_ad();
+};													/*   =8 */
+
+////////////////////////////////////
+
+struct UDFlb_addr { /* ECMA-167 4/7.1 */
+	uint32_t				LogicalBlockNumber = 0;					/*   @0 +   4 uint32_t */
+	uint16_t				PartitionReferenceNumber = 0;				/*   @4 +   2 uint16_t */
+
+	void					get(const unsigned int sz,const unsigned char *b);
+						UDFlb_addr(const unsigned int sz,const unsigned char *b);
+						UDFlb_addr();
+};													/*   =6 */
+
+////////////////////////////////////
+
+struct UDFlong_ad { /* ECMA-167 4/14.14.2 */
+	uint32_t				ExtentLength = 0;					/*   @0 +   4 uint32_t */
+	UDFlb_addr				ExtentLocation;						/*   @4 +   6 lb_addr */
+	uint8_t					ImplementationUse[6];					/*  @10 +   6 uint8_t */
+
+	/* NTS: In the UDF 1.02 standard, ImplementationUse is:
+	 *
+	 * uint16_t flags
+	 * uint8_t  impUse[4];
+	 *
+	 * This is used to define if an extent is erased. We don't care right now */
+
+	void					get(const unsigned int sz,const unsigned char *b);
+						UDFlong_ad(const unsigned int sz,const unsigned char *b);
+						UDFlong_ad();
+};													/*  =16 */
+
+////////////////////////////////////
+
+struct UDFcharspec { /* ECMA-167 7.2.1 */
+	uint8_t					CharacterSetType;					/*   @0 +   1 uint8_t */
+	uint8_t					CharacterSetInformation[63];				/*   @1 +  63 uint8_t */
+
+	void					get(const unsigned int sz,const unsigned char *b);
+						UDFcharspec(const unsigned int sz,const unsigned char *b);
+						UDFcharspec();
+};													/*  =64 */
+
+////////////////////////////////////
+
+struct UDFregid { /* ECMA-167 7.4 */
+	uint8_t					Flags = 0;						/*   @0 +   0 uint8_t */
+	uint8_t					Identifier[23];						/*   @1 +  23 uint8_t */
+	uint8_t					IdentifierSuffix[8];					/*  @24 +   8 uint8_t */
+
+	void					get(const unsigned int sz,const unsigned char *b);
+						UDFregid(const unsigned int sz,const unsigned char *b);
+						UDFregid();
+};													/*  =32 */
+
+////////////////////////////////////
+
+struct UDFtimestamp { /* ECMA-167 7.3 */
+	uint16_t				TypeAndTimeZone = 0;					/*   @0 +   2 uint16_t */
+	int16_t					Year = 0;						/*   @2 +   2 int16_t */
+	uint8_t					Month = 0;						/*   @4 +   1 uint8_t */
+	uint8_t					Day = 0;						/*   @5 +   1 uint8_t */
+	uint8_t					Hour = 0;						/*   @6 +   1 uint8_t */
+	uint8_t					Minute = 0;						/*   @7 +   1 uint8_t */
+	uint8_t					Second = 0;						/*   @8 +   1 uint8_t */
+	uint8_t					Centiseconds = 0;					/*   @9 +   1 uint8_t */
+	uint8_t					HundredsOfMicroseconds = 0;				/*  @10 +   1 uint8_t */
+	uint8_t					Microseconds = 0;					/*  @11 +   1 uint8_t */
+
+	void					get(const unsigned int sz,const unsigned char *b);
+						UDFtimestamp(const unsigned int sz,const unsigned char *b);
+						UDFtimestamp();
+};													/*  =12 */
+
+////////////////////////////////////
+
+struct UDFPrimaryVolumeDescriptor {
+	UDFTagId				DescriptorTag;						/*   @0 +  16 tag ID=1 */
+	uint32_t				VolumeDescriptorSequenceNumber = 0;			/*  @16 +   4 uint32_t */
+	uint32_t				PrimaryVolumeDescriptorNumber = 0;			/*  @20 +   4 uint32_t */
+	UDFdstring				VolumeIdentifier;					/*  @24 +  32 dstring */
+	uint16_t				VolumeSequenceNumber = 0;				/*  @56 +   2 uint16_t */
+	uint16_t				MaximumVolumeSequenceNumber = 0;			/*  @58 +   2 uint16_t */
+	uint16_t				InterchangeLevel = 0;					/*  @60 +   2 uint16_t */
+	uint16_t				MaximumInterchangeLevel = 0;				/*  @62 +   2 uint16_t */
+	uint32_t				CharacterSetList = 0;					/*  @64 +   4 uint32_t */
+	uint32_t				MaximumCharacterSetList = 0;				/*  @68 +   4 uint32_t */
+	UDFdstring				VolumeSetIdentifier;					/*  @72 + 128 dstring */
+	UDFcharspec				DescriptorCharacterSet;					/* @200 +  64 charspec */
+	UDFcharspec				ExplanatoryCharacterSet;				/* @264 +  64 charspec */
+	UDFextent_ad				VolumeAbstract;						/* @328 +   8 extent_ad */
+	UDFextent_ad				VolumeCopyrightNotice;					/* @336 +   8 extent_ad */
+	UDFregid				ApplicationIdentifier;					/* @344 +  32 regid */
+	UDFtimestamp				RecordingDateAndTime;					/* @376 +  12 timestamp */
+	UDFregid				ImplementationIdentifier;				/* @388 +  32 regid */
+	uint8_t					ImplementationUse[64];					/* @420 +  64 bytes */
+	uint32_t				PredecessorVolumeDescriptorSequenceLocation = 0;	/* @484 +   4 uint32_t */
+	uint16_t				Flags = 0;						/* @488 +   2 uint16_t */
+
+	void					get(UDFTagId &tag/*already parsed, why parse again?*/,const unsigned int sz,const unsigned char *b);
+						UDFPrimaryVolumeDescriptor(UDFTagId &tag/*already parsed, why parse again?*/,const unsigned int sz,const unsigned char *b);
+						UDFPrimaryVolumeDescriptor();
+};													/* =490 */
+
+////////////////////////////////////
+
+struct UDFPartitionDescriptor {
+	UDFTagId				DescriptorTag;						/*   @0 +  16 tag ID=5 */
+	uint32_t				VolumeDescriptorSequenceNumber = 0;			/*  @16 +   4 uint32_t */
+	uint16_t				PartitionFlags = 0;					/*  @20 +   2 uint16_t */
+	uint16_t				PartitionNumber = 0;					/*  @22 +   2 uint16_t */
+	UDFregid				PartitionContents;					/*  @24 +  32 regid */
+	uint8_t					PartitionContentsUse[128];				/*  @56 + 128 uint8_t */
+	uint32_t				AccessType = 0;						/* @184 +   4 uint32_t */
+	uint32_t				PartitionStartingLocation = 0;				/* @188 +   4 uint32_t */
+	uint32_t				PartitionLength = 0;					/* @192 +   4 uint32_t */
+	UDFregid				ImplementationIdentifier;				/* @196 +  32 regid */
+	uint8_t					ImplementationUse[128];					/* @228 + 128 uint8_t */
+
+	void					get(UDFTagId &tag/*already parsed, why parse again?*/,const unsigned int sz,const unsigned char *b);
+						UDFPartitionDescriptor(UDFTagId &tag/*already parsed, why parse again?*/,const unsigned int sz,const unsigned char *b);
+						UDFPartitionDescriptor();
+};													/* =356 */
+
+////////////////////////////////////
+
+struct UDFLogicalVolumeDescriptor {
+	UDFTagId				DescriptorTag;						/*   @0 +  16 tag ID=6 */
+	uint32_t				VolumeDescriptorSequenceNumber = 0;			/*  @16 +   4 uint32_t */
+	UDFcharspec				DescriptorCharacterSet;					/*  @20 +  64 charspec */
+	UDFdstring				LogicalVolumeIdentifier;				/*  @84 + 128 dstring */
+	uint32_t				LogicalBlockSize = 0;					/* @212 +   4 uint32_t */
+	UDFregid				DomainIdentifier;					/* @216 +  32 regid */
+	uint8_t					LogicalVolumeContentsUse[16];				/* @248 +  16 uint8_t */
+	uint32_t				MapTableLength = 0;					/* @264 +   4 uint32_t */
+	uint32_t				NumberOfPartitionMaps = 0;				/* @268 +   4 uint32_t */
+	UDFregid				ImplementationIdentifier;				/* @272 +  32 regid */
+	uint8_t					ImplementationUse[128];					/* @304 + 128 uint8_t */
+	UDFextent_ad				IntegritySequenceExtent;				/* @432 +   8 extent_ad */
+	std::vector<uint8_t>			PartitionMaps;						/* @440 + MapTableLength */
+
+	void					get(UDFTagId &tag/*already parsed, why parse again?*/,const unsigned int sz,const unsigned char *b);
+						UDFLogicalVolumeDescriptor(UDFTagId &tag/*already parsed, why parse again?*/,const unsigned int sz,const unsigned char *b);
+						UDFLogicalVolumeDescriptor();
+};													/* =440 + MapTableLength */
+
+////////////////////////////////////
+
+struct UDFFileSetDescriptor { /* ECMA-167 4/14.1 */
+	UDFTagId				DescriptorTag;						/*   @0 +  16 tag ID=256 */
+	UDFtimestamp				RecordingDateAndType;					/*  @16 +  12 timestamp */
+	uint16_t				InterchangeLevel = 0;					/*  @28 +   2 uint16_t */
+	uint16_t				MaximumInterchangeLevel = 0;				/*  @30 +   2 uint16_t */
+	uint32_t				CharacterSetList = 0;					/*  @32 +   4 uint32_t */
+	uint32_t				MaximumCharacterSetList = 0;				/*  @36 +   4 uint32_t */
+	uint32_t				FileSetNumber = 0;					/*  @40 +   4 uint32_t */
+	uint32_t				FileSetDescriptorNumber = 0;				/*  @44 +   4 uint32_t */
+	UDFcharspec				LogicalVolumeIdentifierCharacterSet;			/*  @48 +  64 charspec */
+	UDFdstring				LogicalVolumeIdentifier;				/* @112 + 128 dstring */
+	UDFcharspec				FileSetCharacterSet;					/* @240 +  64 charspec */
+	UDFdstring				FileSetIdentifier;					/* @304 +  32 dstring */
+	UDFdstring				CopyrightFileIdentifier;				/* @336 +  32 dstring */
+	UDFdstring				AbstractFileIdentifier;					/* @368 +  32 dstring */
+	UDFlong_ad				RootDirectoryICB;					/* @400 +  16 long_ad */
+	UDFregid				DomainIdentifier;					/* @416 +  32 regid */
+	UDFlong_ad				NextExtent;						/* @448 +  16 long_ad */
+	UDFlong_ad				SystemStreamDirectoryICB;				/* @464 +  16 long_ad */
+
+	void					get(UDFTagId &tag/*already parsed, why parse again?*/,const unsigned int sz,const unsigned char *b);
+						UDFFileSetDescriptor(UDFTagId &tag/*already parsed, why parse again?*/,const unsigned int sz,const unsigned char *b);
+						UDFFileSetDescriptor();
+};													/* =480 */
+
+////////////////////////////////////
+
+struct UDFext_ad { /* ECMA-167 4/14.14.3 */
+	uint32_t				ExtentLength = 0;					/*   @0 +   4 uint32_t */
+	uint32_t				RecordedLength = 0;					/*   @4 +   4 uint32_t */
+	uint32_t				InformationLength = 0;					/*   @8 +   4 uint32_t */
+	UDFlb_addr				ExtentLocation;						/*  @12 +   6 lb_addr */
+	uint8_t					ImplementationUse[2];					/*  @18 +   2 uint8_t */
+
+	void					get(const unsigned int sz,const unsigned char *b);
+						UDFext_ad(const unsigned int sz,const unsigned char *b);
+						UDFext_ad();
+};													/*  =20 */
+
+////////////////////////////////////
+
+struct UDFicbtag { /* ECMA-167 4/14.6 */
+	uint32_t				PriorRecordedNumberOfDirectEntries = 0;			/*   @0 +   4 uint32_t */
+	uint16_t				StrategyType = 0;					/*   @4 +   2 uint16_t */
+	uint8_t					StrategyParameter[2];					/*   @6 +   2 uint8_t */
+	uint16_t				MaximumNumberOfEntries = 0;				/*   @8 +   2 uint16_t */
+	uint8_t					Reserved = 0;						/*  @10 +   1 uint8_t */
+	uint8_t					FileType = 0;						/*  @11 +   1 uint8_t */
+	UDFlb_addr				ParentICBLocation;					/*  @12 +   6 lb_addr */
+	uint16_t				Flags = 0;						/*  @18 +   2 uint16 */
+
+	uint8_t					AllocationDescriptorType(void) const;
+	void					get(const unsigned int sz,const unsigned char *b);
+						UDFicbtag(const unsigned int sz,const unsigned char *b);
+						UDFicbtag();
+};													/*  =20 */
+
+////////////////////////////////////
+
+struct UDFFileEntry { /* ECMA-167 4/14.9 */
+	UDFTagId				DescriptorTag;						/*   @0 +  16 tag ID=261 */
+	UDFicbtag				ICBTag;							/*  @16 +  20 icbtag */
+	uint32_t				Uid = 0;						/*  @36 +   4 uint32_t */
+	uint32_t				Gid = 0;						/*  @40 +   4 uint32_t */
+	uint32_t				Permissions = 0;					/*  @44 +   4 uint32_t */
+	uint16_t				FileLinkCount = 0;					/*  @48 +   2 uint16_t */
+	uint8_t					RecordFormat = 0;					/*  @50 +   1 uint8_t */
+	uint8_t					RecordDisplayAttributes = 0;				/*  @51 +   1 uint8_t */
+	uint32_t				RecordLength = 0;					/*  @52 +   4 uint32_t */
+	uint64_t				InformationLength = 0;					/*  @56 +   8 uint64_t */
+	uint64_t				LogicalBlocksRecorded = 0;				/*  @64 +   8 uint64_t */
+	UDFtimestamp				AccessDateAndTime;					/*  @72 +  12 timestamp */
+	UDFtimestamp				ModificationDateAndTime;				/*  @84 +  12 timestamp */
+	UDFtimestamp				AttributeDateAndTime;					/*  @96 +  12 timestamp */
+	uint32_t				Checkpoint = 0;						/* @108 +   4 uint32_t */
+	UDFlong_ad				ExtendedAttributeICB;					/* @112 +  16 long_ad */
+	UDFregid				ImplementationIdentifier;				/* @128 +  32 regid */
+	uint64_t				UniqueId = 0;						/* @160 +   8 uint64_t */
+	uint32_t				LengthOfExtendedAttributes = 0;				/* @168 +   4 uint32_t */
+	uint32_t				LengthOfAllocationDescriptors = 0;			/* @172 +   4 uint32_t */
+
+	// TODO: Extended Attributes @176
+
+	/* NTS: ECMA-167 describes this section as clear as mud, until you finally read the icbtag Flags and realize that
+	 *      the low 3 bits define it as an array of 0=short_ad 1=long_ad 2=ext_ad 3=the file contents take place of
+	 *      the allocation descriptors. */
+	std::vector<UDFshort_ad>		AllocationDescriptors_short_ad;				/* @172+L_EA (ICBTag.Flags&7) == 0 */
+	std::vector<UDFlong_ad>			AllocationDescriptors_long_ad;				/* @172+L_EA (ICBTag.Flags&7) == 1 */
+	std::vector<UDFext_ad>			AllocationDescriptors_ext_ad;				/* @172+L_EA (ICBTag.Flags&7) == 2 */
+	std::vector<uint8_t>			AllocationDescriptors_file;				/* @172+L_EA (ICBTag.Flags&7) == 3 */
+
+	void					get(UDFTagId &tag/*already parsed, why parse again?*/,const unsigned int sz,const unsigned char *b);
+						UDFFileEntry(UDFTagId &tag/*already parsed, why parse again?*/,const unsigned int sz,const unsigned char *b);
+						UDFFileEntry();
+};
+
+////////////////////////////////////
+
+struct UDFFileIdentifierDescriptor { /* ECMA-167 4/14.4 */
+	UDFTagId				DescriptorTag;						/*   @0 +  16 tag ID=257 */
+	uint16_t				FileVersionNumber = 0;					/*  @16 +   2 uint16_t */
+	uint8_t					FileCharacteristics = 0;				/*  @18 +   1 uint8_t */
+	uint8_t					LengthOfFileIdentifier = 0;				/*  @19 +   1 uint8_t */
+	UDFlong_ad				ICB;							/*  @20 +  16 long_ad */
+	uint16_t				LengthOfImplementationUse = 0;				/*  @36 +   2 uint16_t */
+	std::vector<uint8_t>			ImplementationUse;					/*  @38 + L_IU bytes */
+	UDF_blob				FileIdentifier;						/*  @38+L_IU + L_FI bytes */
+
+	void					get(UDFTagId &tag/*already parsed, why parse again?*/,const unsigned int sz,const unsigned char *b);
+						UDFFileIdentifierDescriptor(UDFTagId &tag/*already parsed, why parse again?*/,const unsigned int sz,const unsigned char *b);
+						UDFFileIdentifierDescriptor();
+};													/*  =38+L_IU+L_FI */
 
 ////////////////////////////////////
 
@@ -773,6 +1075,21 @@ private:
     uint8_t subUnit = 0;
     char driveLetter = '\0';
 	char discLabel[32];
+private:
+	UDFextent_ad convertToUDFextent_ad(const UDFshort_ad &s,const uint32_t partition_ref_id=0xFFFFFFFFu) const;
+	UDFextent_ad convertToUDFextent_ad(const UDFextent_ad &s) const;
+	UDFextent_ad convertToUDFextent_ad(const UDFlong_ad &s) const;
+	UDFextent_ad convertToUDFextent_ad(const UDFext_ad &s) const;
+private:
+	bool convertToUDFextent_ad(UDFextent_ad &d,const UDFshort_ad &s,const uint32_t partition_ref_id=0xFFFFFFFFu) const;
+	bool convertToUDFextent_ad(UDFextent_ad &d,const UDFextent_ad &s) const;
+	bool convertToUDFextent_ad(UDFextent_ad &d,const UDFlong_ad &s) const;
+	bool convertToUDFextent_ad(UDFextent_ad &d,const UDFext_ad &s) const;
+private:
+	UDFLogicalVolumeDescriptor					lvold;
+	UDFPrimaryVolumeDescriptor					pvold;
+	UDFFileSetDescriptor						fsetd;
+	UDFPartitionDescriptor						partd;
 };
 
 struct VFILE_Block;
