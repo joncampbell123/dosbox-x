@@ -898,6 +898,11 @@ bool isoDrive :: loadImage() {
 		}
 	}
 
+	/* Sanity check: This code does NOT support Rock Ridge extensions when reading the Joliet supplementary volume! */
+	if (is_joliet) {
+		assert(!is_rock_ridge);
+	}
+
 	dataCD = true;
 	return true;
 }
