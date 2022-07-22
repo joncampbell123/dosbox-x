@@ -1,4 +1,8 @@
 0.84.2
+  - Added code to detect Rock Ridge according to the
+    System Use Sharing Protocol standard, and to
+    read the SUSP entries correctly for the alternate
+    name, if enabled. (joncampbell123)
   - Updated ISO MSCDEX drive emulation to scan the
     available volumes in the ISO image rather than
     assume the first volume, which makes Joilet

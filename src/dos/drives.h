@@ -701,11 +701,13 @@ private:
     bool iso = false;
     bool dataCD = false;
     bool is_joliet = false;
+    bool is_rock_ridge = false; // NTS: Rock Ridge and System Use Sharing Protocol was detected in the root directory
     bool enable_joliet = false; // NTS: "Joliet" is just ISO 9660 with filenames encoded as UTF-16 Unicode. One of the few times Microsoft extended something yet kept it simple --J.C.
     bool enable_rock_ridge = false; // NTS: Windows 95/98 are unlikely to support Rock Ridge, therefore this is off by default. If they do support RR, let me know --J.C.
 	isoDirEntry rootEntry;
     uint8_t mediaid = 0;
 	char fileName[CROSS_LEN];
+	uint8_t rr_susp_skip = 0;
     uint8_t subUnit = 0;
     char driveLetter = '\0';
 	char discLabel[32];

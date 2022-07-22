@@ -160,6 +160,7 @@ bool CDROM_Interface_Image::images_init = false;
 isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int& error, std::vector<std::string>& options) {
     enable_rock_ridge = (dos.version.major >= 7 || uselfn);//default
     enable_joliet = (dos.version.major >= 7 || uselfn);//default
+    is_rock_ridge = false;
     is_joliet = false;
     for (const auto &opt : options) {
         size_t equ = opt.find_first_of('=');
@@ -608,25 +609,63 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 		}
 	}
 
-    bool is_rock_ridge = false;
-    if (is_joliet || !enable_rock_ridge)
-        strcpy((char*)fullname,(char*)de->ident);
-    else {
-        const char* c = (const char *)de->ident + strlen((const char *)de->ident);
-        int i,j=(int)(222-strlen((const char *)de->ident)-6);
-        for (i=5;i<j;i++)
-            if (*(c+i)=='N'&&*(c+i+1)=='M'&&*(c+i+2)>0&&*(c+i+3)==1&&*(c+i+4)==0&&*(c+i+5)>0) {
-                is_rock_ridge = true;
-                break;
-            }
-        if (i<j&&strcmp((const char *)de->ident,".")&&strcmp((const char *)de->ident,"..")) {
-            strncpy(fullname,c+i+5,*(c+i+2)-5);
-            fullname[*(c+i+2)-5]=0;
-        } else {
-            strcpy(fullname,(const char *)de->ident);
-        }
-    }
-	if (is_joliet || (is_rock_ridge && filename_not_strict_8x3((char*)de->ident)) || filename_not_8x3((char*)de->ident)) {
+	bool is_rock_ridge_name = false;
+	if (is_joliet) {
+		strcpy((char*)fullname,(char*)de->ident);
+	}
+	else {
+		strcpy((char*)fullname,(char*)de->ident);
+		if (is_rock_ridge) {
+			/* LEN_SKP bytes into the System Use Field (bytes after the final NUL byte of the identifier) */
+			/* NTS: This code could never work with Joliet extensions because the code above (currently)
+			 *      overwrites the first byte of the SUSP entries in order to make a NUL-terminated UCS-16
+			 *      string */
+			unsigned char *p = (unsigned char*)de->ident + de->fileIdentLength + 1/*NUL*/ + rr_susp_skip;
+			unsigned char *f = (unsigned char*)de + de->length;
+
+			/* SUSP basic structure:
+			 *
+			 * BP1/BP2   +0    <2 char signature>
+			 * BP3       +2    <length including header>
+			 * BP4       +3    <SUSP version>
+			 * [payload] */
+			while ((p+4) <= f) {
+				unsigned char *entry = p;
+				uint8_t len = entry[2];
+				uint8_t ver = entry[3];
+
+				if (len < 4) break;
+				if ((p+len) > f) break;
+				p += len;
+
+				if (!memcmp(entry,"NM",2)) {
+					/* BP5       +4         flags
+					 *                         bit 0 = CONTINUE
+					 *                         bit 1 = CURRENT
+					 *                         bit 2 = PARENT
+					 *                         bit [7:3] = RESERVED */
+					if (len >= 5/*flags and at least one char*/ && ver == 1) {
+						uint8_t flags = entry[4];
+
+						if (flags & 0x7) {
+							/* CONTINUE (bit 0) not supported yet, or CURRENT directory (bit 1), or PARENT directory (bit 2) */
+						}
+						else {
+							/* BP6-payload end is the alternate name */
+							size_t altnl = len - 5;
+
+							if (altnl > 0) memcpy(fullname,entry+5,altnl);
+							fullname[altnl] = 0;
+
+							is_rock_ridge_name = true;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if (is_joliet || (is_rock_ridge_name && filename_not_strict_8x3((char*)de->ident)) || filename_not_8x3((char*)de->ident)) {
 		const char *ext = NULL;
 		size_t tailsize = 0;
 		bool lfn = false;
@@ -742,6 +781,8 @@ bool isoDrive :: loadImage() {
 	unsigned int choose_iso9660 = 0;
 	unsigned int choose_joliet = 0;
 	unsigned int sector = 16;
+
+	is_rock_ridge = false;
 	dataCD = false;
 
 	/* scan the volume descriptors */
@@ -809,11 +850,56 @@ bool isoDrive :: loadImage() {
 
 	readSector(pvd, sector);
 	uint16_t offset = iso ? 156 : 180;
-	if (readDirEntry(&this->rootEntry, &pvd[offset], 0)>0) {
-		dataCD = true;
-		return true;
+	if (readDirEntry(&this->rootEntry, &pvd[offset], 0) <= 0)
+		return false;
+
+	/* read the first root directory entry, look for Rock Ridge and/or System Use Sharing Protocol extensions.
+	 * It is rare for Rock Ridge extensions to exist on the Joliet supplementary volume as far as I know.
+	 * Furthermore the way this code is currently written, Rock Ridge extensions would be ignored anyway for
+	 * Joliet extensions. */
+	if (!is_joliet && enable_rock_ridge) {
+		if (DATA_LENGTH(this->rootEntry) >= 33 && EXTENT_LOCATION(this->rootEntry) != 0) {
+			readSector(pvd, EXTENT_LOCATION(this->rootEntry));
+
+			isoDirEntry rde;
+			static_assert(sizeof(rde) >= 255, "isoDirEntry less than 255 bytes");
+			if (pvd[0] >= 33) {
+				memcpy(&rde,pvd,pvd[0]);
+				if (IS_DIR(rde.fileFlags) && (rde.fileIdentLength == 1 && rde.ident[0] == 0x00)/*The "." directory*/) {
+					/* Good. Is there a SUSP "SP" signature following the 1-byte file identifier? */
+					/* @Wengier: If your RR-based ISO images put the "SP" signature somewhere else, feel free to adapt this code.
+					 *           The SUSP protocol says it's supposed to be at byte position 1 of the System User Field
+					 *           of the First Directory Record of the root directory. */
+					unsigned char *p = &rde.ident[1];/*first byte following file ident */
+					unsigned char *f = &pvd[pvd[0]];
+
+					if ((p+7/*SP minimum*/) <= f && p[2] >= 7/*length*/ && p[3] == 1/*version*/ &&
+						p[4] == 0xBE && p[5] == 0xEF && !memcmp(p,"SP",2)) {
+						/* NTS: The spec counts from 1. We count from zero. Both are provided.
+						 *
+						 * BP1/BP2  +0   "SP"
+						 * BP3      +2   7
+						 * BP4      +3   1
+						 * BP5/BP6  +4   0xBE 0xEF
+						 * BP7      +6   LEN_SKP
+						 *
+						 * LEN_SKP = number of bytes to skip in System Use field of each directory record
+						 *           to get to SUSP entries.
+						 *
+						 *           @Wengier This is the value you should use when searching for "NM"
+						 *           entries, rather than byte by byte scanning.
+						 */
+						LOG_MSG("ISO 9660: Rock Ridge extensions detected");
+						is_rock_ridge = true;
+						rr_susp_skip = p[6];
+					}
+				}
+			}
+		}
 	}
-	return false;
+
+	dataCD = true;
+	return true;
 }
 
 bool isoDrive :: lookup(isoDirEntry *de, const char *path) {
