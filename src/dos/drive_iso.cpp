@@ -912,20 +912,27 @@ bool isoDrive::FileOpen(DOS_File **file, const char *name, uint32_t flags) {
 		DOS_SetError(DOSERR_ACCESS_DENIED);
 		return false;
 	}
-	
-	isoDirEntry de;
-	bool success = lookup(&de, name) && !IS_DIR(FLAGS1);
 
-	if (success) {
-		FileStat_Block file_stat;
-		file_stat.size = DATA_LENGTH(de);
-		file_stat.attr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
-		file_stat.date = DOS_PackDate(1900 + de.dateYear, de.dateMonth, de.dateDay);
-		file_stat.time = DOS_PackTime(de.timeHour, de.timeMin, de.timeSec);
-		*file = new isoFile(this, name, &file_stat, EXTENT_LOCATION(de) * ISO_FRAMESIZE);
-		(*file)->flags = flags;
+	if (is_udf) {
+		// TODO
+		return false;
 	}
-	return success;
+	else {
+		isoDirEntry de;
+		bool success = lookup(&de, name) && !IS_DIR(FLAGS1);
+
+		if (success) {
+			FileStat_Block file_stat;
+			file_stat.size = DATA_LENGTH(de);
+			file_stat.attr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
+			file_stat.date = DOS_PackDate(1900 + de.dateYear, de.dateMonth, de.dateDay);
+			file_stat.time = DOS_PackTime(de.timeHour, de.timeMin, de.timeSec);
+			*file = new isoFile(this, name, &file_stat, EXTENT_LOCATION(de) * ISO_FRAMESIZE);
+			(*file)->flags = flags;
+		}
+
+		return success;
+	}
 }
 
 bool isoDrive::FileCreate(DOS_File** /*file*/, const char* /*name*/, uint16_t /*attributes*/) {
@@ -949,77 +956,95 @@ bool isoDrive::MakeDir(const char* /*dir*/) {
 }
 
 bool isoDrive::TestDir(const char *dir) {
-	isoDirEntry de;	
-	return (lookup(&de, dir) && IS_DIR(FLAGS1));
+	if (is_udf) {
+		// TODO
+		return false;
+	}
+	else {
+		isoDirEntry de;	
+		return (lookup(&de, dir) && IS_DIR(FLAGS1));
+	}
 }
 
 bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
-	isoDirEntry de;
-	if (!lookup(&de, dir)) {
-		DOS_SetError(DOSERR_PATH_NOT_FOUND);
+	if (is_udf) {
+		// TODO
 		return false;
 	}
-	
-	// get a directory iterator and save its id in the dta
-	int dirIterator = GetDirIterator(&de);
-	bool isRoot = (*dir == 0);
-	dirIterators[dirIterator].root = isRoot;
-	if (lfn_filefind_handle>=LFN_FILEFIND_MAX)
-		dta.SetDirID((uint16_t)dirIterator);
-	else
-		sdid[lfn_filefind_handle]=dirIterator;
+	else {
+		isoDirEntry de;
+		if (!lookup(&de, dir)) {
+			DOS_SetError(DOSERR_PATH_NOT_FOUND);
+			return false;
+		}
 
-	uint8_t attr;
-	char pattern[CROSS_LEN];
-    dta.GetSearchParams(attr, pattern, false);
-   
-	if (attr == DOS_ATTR_VOLUME) {
-		dta.SetResult(discLabel, discLabel, 0, 0, 0, 0, DOS_ATTR_VOLUME);
-		return true;
-	} else if ((attr & DOS_ATTR_VOLUME) && isRoot && !fcb_findfirst) {
-		if (WildFileCmp(discLabel,pattern)) {
-			// Get Volume Label (DOS_ATTR_VOLUME) and only in basedir and if it matches the searchstring
+		// get a directory iterator and save its id in the dta
+		int dirIterator = GetDirIterator(&de);
+		bool isRoot = (*dir == 0);
+		dirIterators[dirIterator].root = isRoot;
+		if (lfn_filefind_handle>=LFN_FILEFIND_MAX)
+			dta.SetDirID((uint16_t)dirIterator);
+		else
+			sdid[lfn_filefind_handle]=dirIterator;
+
+		uint8_t attr;
+		char pattern[CROSS_LEN];
+		dta.GetSearchParams(attr, pattern, false);
+
+		if (attr == DOS_ATTR_VOLUME) {
 			dta.SetResult(discLabel, discLabel, 0, 0, 0, 0, DOS_ATTR_VOLUME);
 			return true;
+		} else if ((attr & DOS_ATTR_VOLUME) && isRoot && !fcb_findfirst) {
+			if (WildFileCmp(discLabel,pattern)) {
+				// Get Volume Label (DOS_ATTR_VOLUME) and only in basedir and if it matches the searchstring
+				dta.SetResult(discLabel, discLabel, 0, 0, 0, 0, DOS_ATTR_VOLUME);
+				return true;
+			}
 		}
-	}
 
-	return FindNext(dta);
+		return FindNext(dta);
+	}
 }
 
 bool isoDrive::FindNext(DOS_DTA &dta) {
 	uint8_t attr;
 	char pattern[CROSS_LEN], findName[DOS_NAMELENGTH_ASCII], lfindName[ISO_MAXPATHNAME];
-    dta.GetSearchParams(attr, pattern, false);
-	
+	dta.GetSearchParams(attr, pattern, false);
+
 	int dirIterator = lfn_filefind_handle>=LFN_FILEFIND_MAX?dta.GetDirID():sdid[lfn_filefind_handle];
 	bool isRoot = dirIterators[dirIterator].root;
-	
-    isoDirEntry de = {};
-	while (GetNextDirEntry(dirIterator, &de)) {
-		uint8_t findAttr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
-		if (IS_DIR(FLAGS1)) findAttr |= DOS_ATTR_DIRECTORY;
-		if (IS_HIDDEN(FLAGS1)) findAttr |= DOS_ATTR_HIDDEN;
-		strcpy(lfindName,fullname);
-        if (!IS_ASSOC(FLAGS1) && !(isRoot && de.ident[0]=='.') && (WildFileCmp((char*)de.ident, pattern) || LWildFileCmp(lfindName, pattern))
-			&& !(~attr & findAttr & (DOS_ATTR_DIRECTORY | DOS_ATTR_HIDDEN | DOS_ATTR_SYSTEM))) {
-			
-			/* file is okay, setup everything to be copied in DTA Block */
-			findName[0] = 0;
-			if(strlen((char*)de.ident) < DOS_NAMELENGTH_ASCII) {
-				strcpy(findName, (char*)de.ident);
-				upcase(findName);
+
+	if (is_udf) {
+		// TODO
+	}
+	else {
+		isoDirEntry de = {};
+		while (GetNextDirEntry(dirIterator, &de)) {
+			uint8_t findAttr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
+			if (IS_DIR(FLAGS1)) findAttr |= DOS_ATTR_DIRECTORY;
+			if (IS_HIDDEN(FLAGS1)) findAttr |= DOS_ATTR_HIDDEN;
+			strcpy(lfindName,fullname);
+			if (!IS_ASSOC(FLAGS1) && !(isRoot && de.ident[0]=='.') && (WildFileCmp((char*)de.ident, pattern) || LWildFileCmp(lfindName, pattern))
+					&& !(~attr & findAttr & (DOS_ATTR_DIRECTORY | DOS_ATTR_HIDDEN | DOS_ATTR_SYSTEM))) {
+
+				/* file is okay, setup everything to be copied in DTA Block */
+				findName[0] = 0;
+				if(strlen((char*)de.ident) < DOS_NAMELENGTH_ASCII) {
+					strcpy(findName, (char*)de.ident);
+					upcase(findName);
+				}
+				uint32_t findSize = DATA_LENGTH(de);
+				uint16_t findDate = DOS_PackDate(1900 + de.dateYear, de.dateMonth, de.dateDay);
+				uint16_t findTime = DOS_PackTime(de.timeHour, de.timeMin, de.timeSec);
+				dta.SetResult(findName, lfindName, findSize, 0, findDate, findTime, findAttr);
+				return true;
 			}
-			uint32_t findSize = DATA_LENGTH(de);
-			uint16_t findDate = DOS_PackDate(1900 + de.dateYear, de.dateMonth, de.dateDay);
-			uint16_t findTime = DOS_PackTime(de.timeHour, de.timeMin, de.timeSec);
-            dta.SetResult(findName, lfindName, findSize, 0, findDate, findTime, findAttr);
-			return true;
 		}
 	}
+
 	// after searching the directory, free the iterator
 	FreeDirIterator(dirIterator);
-	
+
 	DOS_SetError(DOSERR_NO_MORE_FILES);
 	return false;
 }
@@ -1030,38 +1055,52 @@ bool isoDrive::Rename(const char* /*oldname*/, const char* /*newname*/) {
 }
 
 bool isoDrive::SetFileAttr(const char * name,uint16_t attr) {
-    (void)attr;
-	isoDirEntry de;
-	DOS_SetError(lookup(&de, name) ? DOSERR_ACCESS_DENIED : DOSERR_FILE_NOT_FOUND);
-	return false;
+	(void)attr;
+
+	if (is_udf) {
+		// TODO
+		return false;
+	}
+	else {
+		isoDirEntry de;
+		DOS_SetError(lookup(&de, name) ? DOSERR_ACCESS_DENIED : DOSERR_FILE_NOT_FOUND);
+		return false;
+	}
 }
 
 bool isoDrive::GetFileAttr(const char *name, uint16_t *attr) {
 	*attr = 0;
-	isoDirEntry de;
-	bool success = lookup(&de, name);
-	if (success) {
-		*attr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
-		if (IS_HIDDEN(FLAGS1)) *attr |= DOS_ATTR_HIDDEN;
-		if (IS_DIR(FLAGS1)) *attr |= DOS_ATTR_DIRECTORY;
+
+	if (is_udf) {
+		// TODO
+		return false;
 	}
-	return success;
+	else {
+		isoDirEntry de;
+		bool success = lookup(&de, name);
+		if (success) {
+			*attr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
+			if (IS_HIDDEN(FLAGS1)) *attr |= DOS_ATTR_HIDDEN;
+			if (IS_DIR(FLAGS1)) *attr |= DOS_ATTR_DIRECTORY;
+		}
+		return success;
+	}
 }
 
 bool isoDrive::GetFileAttrEx(char* name, struct stat *status) {
-    (void)name;
-    (void)status;
+	(void)name;
+	(void)status;
 	return false;
 }
 
 unsigned long isoDrive::GetCompressedSize(char* name) {
-    (void)name;
+	(void)name;
 	return 0;
 }
 
 #if defined (WIN32)
 HANDLE isoDrive::CreateOpenFile(const char* name) {
-    (void)name;
+	(void)name;
 	DOS_SetError(1);
 	return INVALID_HANDLE_VALUE;
 }
@@ -1076,23 +1115,35 @@ bool isoDrive::AllocationInfo(uint16_t *bytes_sector, uint8_t *sectors_cluster, 
 }
 
 bool isoDrive::FileExists(const char *name) {
-	isoDirEntry de;
-	return (lookup(&de, name) && !IS_DIR(FLAGS1));
+	if (is_udf) {
+		// TODO
+		return false;
+	}
+	else {
+		isoDirEntry de;
+		return (lookup(&de, name) && !IS_DIR(FLAGS1));
+	}
 }
 
 bool isoDrive::FileStat(const char *name, FileStat_Block *const stat_block) {
-	isoDirEntry de;
-	bool success = lookup(&de, name);
-	
-	if (success) {
-		stat_block->date = DOS_PackDate(1900 + de.dateYear, de.dateMonth, de.dateDay);
-		stat_block->time = DOS_PackTime(de.timeHour, de.timeMin, de.timeSec);
-		stat_block->size = DATA_LENGTH(de);
-		stat_block->attr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
-		if (IS_DIR(FLAGS1)) stat_block->attr |= DOS_ATTR_DIRECTORY;
+	if (is_udf) {
+		// TODO
+		return false;
 	}
-	
-	return success;
+	else {
+		isoDirEntry de;
+		bool success = lookup(&de, name);
+
+		if (success) {
+			stat_block->date = DOS_PackDate(1900 + de.dateYear, de.dateMonth, de.dateDay);
+			stat_block->time = DOS_PackTime(de.timeHour, de.timeMin, de.timeSec);
+			stat_block->size = DATA_LENGTH(de);
+			stat_block->attr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
+			if (IS_DIR(FLAGS1)) stat_block->attr |= DOS_ATTR_DIRECTORY;
+		}
+
+		return success;
+	}
 }
 
 uint8_t isoDrive::GetMediaByte(void) {
@@ -1116,15 +1167,18 @@ Bits isoDrive::UnMount(void) {
 }
 
 int isoDrive::GetDirIterator(const isoDirEntry* de) {
+	// Not for UDF filesystem use!
+	if (is_udf) return 0;
+
 	int dirIterator = nextFreeDirIterator;
-	
+
 	// get start and end sector of the directory entry (pad end sector if necessary)
 	dirIterators[dirIterator].currentSector = EXTENT_LOCATION(*de);
 	dirIterators[dirIterator].endSector =
 		EXTENT_LOCATION(*de) + DATA_LENGTH(*de) / ISO_FRAMESIZE - 1;
 	if (DATA_LENGTH(*de) % ISO_FRAMESIZE != 0)
 		dirIterators[dirIterator].endSector++;
-	
+
 	// reset position and mark as valid
 	dirIterators[dirIterator].pos = 0;
 	dirIterators[dirIterator].index = 0;
@@ -1132,39 +1186,43 @@ int isoDrive::GetDirIterator(const isoDirEntry* de) {
 
 	// advance to next directory iterator (wrap around if necessary)
 	nextFreeDirIterator = (nextFreeDirIterator + 1) % MAX_OPENDIRS;
-	
+
 	return dirIterator;
 }
 
 bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, isoDirEntry* de) {
+	// Not for UDF filesystem use!
+	if (is_udf) return 0;
+
 	bool result = false;
 	uint8_t* buffer = NULL;
 	DirIterator& dirIterator = dirIterators[dirIteratorHandle];
-	
+
 	// check if the directory entry is valid
 	if (dirIterator.valid && ReadCachedSector(&buffer, dirIterator.currentSector)) {
 		// check if the next sector has to be read
 		if ((dirIterator.pos >= ISO_FRAMESIZE)
-		 || (buffer[dirIterator.pos] == 0)
-		 || (dirIterator.pos + buffer[dirIterator.pos] > ISO_FRAMESIZE)) {
-		 	
+			|| (buffer[dirIterator.pos] == 0)
+			|| (dirIterator.pos + buffer[dirIterator.pos] > ISO_FRAMESIZE)) {
+
 			// check if there is another sector available
-		 	if (dirIterator.currentSector < dirIterator.endSector) {
-			 	dirIterator.pos = 0;
-			 	dirIterator.currentSector++;
-			 	if (!ReadCachedSector(&buffer, dirIterator.currentSector)) {
-			 		return false;
-			 	}
-		 	} else {
-		 		return false;
-		 	}
-		 }
-		 // read sector and advance sector pointer
-		 ++dirIterator.index;
-		 int length = readDirEntry(de, &buffer[dirIterator.pos], dirIterator.index);
-		 result = length >= 0;
-         if (length > 0) dirIterator.pos += (unsigned int)length;
+			if (dirIterator.currentSector < dirIterator.endSector) {
+				dirIterator.pos = 0;
+				dirIterator.currentSector++;
+				if (!ReadCachedSector(&buffer, dirIterator.currentSector)) {
+					return false;
+				}
+			} else {
+				return false;
+			}
+		}
+		// read sector and advance sector pointer
+		++dirIterator.index;
+		int length = readDirEntry(de, &buffer[dirIterator.pos], dirIterator.index);
+		result = length >= 0;
+		if (length > 0) dirIterator.pos += (unsigned int)length;
 	}
+
 	return result;
 }
 
@@ -1204,6 +1262,9 @@ inline bool isoDrive :: readSector(uint8_t *buffer, uint32_t sector) {
 }
 
 int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dirIteratorIndex) {
+	// This code is NOT for UDF filesystem access!
+	if (is_udf) return -1;
+
 	// copy data into isoDirEntry struct, data[0] = length of DirEntry
 //	if (data[0] > sizeof(isoDirEntry)) return -1;//check disabled as isoDirentry is currently 258 bytes large. So it always fits
 	memcpy(de, data, data[0]);//Perharps care about a zero at the end.
@@ -1538,9 +1599,6 @@ bool isoDrive :: loadImageUDF() {
 		return false;
 	}
 
-	// TODO
-	return false;
-
 	return true;
 }
 
@@ -1684,27 +1742,29 @@ bool isoDrive :: loadImage() {
 }
 
 bool isoDrive :: lookup(isoDirEntry *de, const char *path) {
+	// This code is not for UDF
+	if (is_udf) return false;
+
 	if (!dataCD) return false;
 	*de = this->rootEntry;
 	if (!strcmp(path, "")) return true;
-	
+
 	char isoPath[ISO_MAXPATHNAME];
 	safe_strncpy(isoPath, path, ISO_MAXPATHNAME);
 	strreplace_dbcs(isoPath, '\\', '/');
 	
 	// iterate over all path elements (name), and search each of them in the current de
 	for(char* name = strtok(isoPath, "/"); NULL != name; name = strtok(NULL, "/")) {
+		bool found = false;
 
-		bool found = false;	
 		// current entry must be a directory, abort otherwise
 		if (IS_DIR(FLAGS2)) {
-			
 			// remove the trailing dot if present
 			size_t nameLength = strlen(name);
 			if (nameLength > 0) {
 				if (name[nameLength - 1] == '.') name[nameLength - 1] = 0;
 			}
-			
+
 			// look for the current path element
 			int dirIterator = GetDirIterator(de);
 			while (!found && GetNextDirEntry(dirIterator, de)) {
@@ -1714,8 +1774,10 @@ bool isoDrive :: lookup(isoDirEntry *de, const char *path) {
 			}
 			FreeDirIterator(dirIterator);
 		}
+
 		if (!found) return false;
 	}
+
 	return true;
 }
 
