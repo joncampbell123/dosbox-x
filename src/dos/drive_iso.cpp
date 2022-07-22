@@ -931,6 +931,15 @@ static bool escape_is_joliet(const unsigned char *esc) {
 	return false;
 }
 
+bool isoDrive :: loadImageUDFAnchorVolumePointer(UDFAnchorVolumeDescriptorPointer &avdp,uint8_t pvd[COOKED_SECTOR_SIZE],uint32_t sector) {
+	UDFTagId aid;
+
+	if (!aid.get(COOKED_SECTOR_SIZE,pvd)) return false;
+	if (aid.TagIdentifier != 2/*Anchor volume descriptor*/ || aid.TagLocation != sector) return false;
+	avdp.get(aid,COOKED_SECTOR_SIZE,pvd);
+	return true;
+}
+
 bool isoDrive :: loadImageUDF() {
 	uint8_t pvd[COOKED_SECTOR_SIZE];
 	UDFextent_ad avdex;
@@ -938,12 +947,17 @@ bool isoDrive :: loadImageUDF() {
 	/* look for the anchor volume descriptor */
 	{
 		UDFAnchorVolumeDescriptorPointer avdp;
-		UDFTagId aid;
+
+		// Try 1: Read the anchor descriptor at sector 256
 		memset(pvd,0,16);
 		readSector(pvd,256);
-		if (!aid.get(COOKED_SECTOR_SIZE,pvd)) return false;
-		if (aid.TagIdentifier != 2/*Anchor volume descriptor*/ || aid.TagLocation != 256) return false;
-		avdp.get(aid,COOKED_SECTOR_SIZE,pvd);
+		if (!loadImageUDFAnchorVolumePointer(avdp,pvd,256)) {
+			// TODO: If there is another one at sector N - 256.
+			//       Figure out how to determine the number of
+			//       sectors in the ISO.
+			return false;
+		}
+
 		avdex = avdp.MainVolumeDescriptorSequenceExtent;
 		if (avdex.ExtentLocation == 0 || avdex.ExtentLength == 0) return false;
 	}

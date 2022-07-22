@@ -726,6 +726,7 @@ public:
 	virtual Bits UnMount(void);
 	bool loadImage();
 	bool loadImageUDF();
+	bool loadImageUDFAnchorVolumePointer(UDFAnchorVolumeDescriptorPointer &avdp,uint8_t *pvd/*COOKED_SECTOR_SIZE*/,uint32_t sector);
 	bool readSector(uint8_t *buffer, uint32_t sector);
 	void setFileName(const char* fileName);
 	virtual char const* GetLabel(void) {return discLabel;};
