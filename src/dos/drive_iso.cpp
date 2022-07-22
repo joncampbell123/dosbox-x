@@ -889,7 +889,7 @@ bool isoDrive :: loadImage() {
 						 *           @Wengier This is the value you should use when searching for "NM"
 						 *           entries, rather than byte by byte scanning.
 						 */
-						LOG_MSG("ISO 9660: Rock Ridge extensions detected");
+						LOG(LOG_MISC,LOG_DEBUG)("ISO 9660: Rock Ridge extensions detected");
 						is_rock_ridge = true;
 						rr_susp_skip = p[6];
 					}
