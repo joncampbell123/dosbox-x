@@ -637,6 +637,64 @@ struct isoDirEntry {
 #define IS_HIDDEN(fileFlags)	(fileFlags & ISO_HIDDEN)
 #define ISO_MAX_HASH_TABLE_SIZE 	100u
 
+////////////////////////////////////
+
+/* UDF checksum function */
+uint16_t UDF_crc_itu_t(uint16_t crc, const uint8_t *buffer, size_t len);
+
+extern const uint16_t UDF_crc_itu_t_table[256];
+
+static inline uint16_t UDF_crc_itu_t_byte(uint16_t crc, const uint8_t data)
+{
+        return (crc << 8) ^ UDF_crc_itu_t_table[((crc >> 8) ^ data) & 0xff];
+}
+
+////////////////////////////////////
+
+struct UDFTagId { /* ECMA-167 7.2.1 */
+	uint16_t				TagIdentifier = 0;					/*   @0 +   2 uint16_t */
+	uint16_t				DescriptorVersion = 0;					/*   @2 +   2 uint16_t */
+	uint8_t					TagChecksum = 0;					/*   @4 +   1 uint8_t */
+	uint8_t					Reserved = 0;						/*   @5 +   1 uint8_t */
+	uint16_t				TagSerialNumber = 0;					/*   @6 +   2 uint16_t */
+	uint16_t				DescriptorCRC = 0;					/*   @8 +   2 uint16_t */
+	uint16_t				DescriptorCRCLength = 0;				/*  @10 +   2 uint16_t */
+	uint32_t				TagLocation = 0;					/*  @12 +   4 uint32_t */
+
+	bool					get(const unsigned int sz,const unsigned char *b);
+	void					parse(const unsigned int sz,const unsigned char *b);
+	bool					tagChecksumOK(const unsigned int sz,const unsigned char *b);
+	bool					dataChecksumOK(const unsigned int sz,const unsigned char *b);
+	bool					checksumOK(const unsigned int sz,const unsigned char *b);
+						UDFTagId(const unsigned int sz,const unsigned char *b);
+						UDFTagId();
+};													/*  =16 */
+
+////////////////////////////////////
+
+struct UDFextent_ad { /* ECMA-167 3/7.1 */
+	uint32_t				ExtentLength = 0;					/*   @0 +   4 uint32_t */
+	uint32_t				ExtentLocation = 0;					/*   @4 +   4 uint32_t */
+
+	void					get(const unsigned int sz,const unsigned char *b);
+						UDFextent_ad(const unsigned int sz,const unsigned char *b);
+						UDFextent_ad();
+};													/*   =8 */
+
+////////////////////////////////////
+
+struct UDFAnchorVolumeDescriptorPointer {
+	UDFTagId				DescriptorTag;						/*   @0 +  16 tag ID=2 */
+	UDFextent_ad				MainVolumeDescriptorSequenceExtent;			/*  @16 +   8 extent_ad */
+	UDFextent_ad				ReserveVolumeDescriptorSequenceExtent;			/*  @24 +   8 extent_ad */
+
+	void					get(UDFTagId &tag/*already parsed, why parse again?*/,const unsigned int sz,const unsigned char *b);
+						UDFAnchorVolumeDescriptorPointer(UDFTagId &tag/*already parsed, why parse again?*/,const unsigned int sz,const unsigned char *b);
+						UDFAnchorVolumeDescriptorPointer();
+};													/*  =32 */
+
+////////////////////////////////////
+
 class isoDrive : public DOS_Drive {
 public:
 	isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int &error, std::vector<std::string>& options);
@@ -667,6 +725,7 @@ public:
 	virtual bool isRemovable(void);
 	virtual Bits UnMount(void);
 	bool loadImage();
+	bool loadImageUDF();
 	bool readSector(uint8_t *buffer, uint32_t sector);
 	void setFileName(const char* fileName);
 	virtual char const* GetLabel(void) {return discLabel;};
@@ -700,10 +759,12 @@ private:
 
     bool iso = false;
     bool dataCD = false;
+    bool is_udf = false;
     bool is_joliet = false;
     bool is_rock_ridge = false; // NTS: Rock Ridge and System Use Sharing Protocol was detected in the root directory
     bool enable_joliet = false; // NTS: "Joliet" is just ISO 9660 with filenames encoded as UTF-16 Unicode. One of the few times Microsoft extended something yet kept it simple --J.C.
     bool enable_rock_ridge = false; // NTS: Windows 95/98 are unlikely to support Rock Ridge, therefore this is off by default. If they do support RR, let me know --J.C.
+    bool enable_udf = false; // NTS: Windows 98 is said to have added UDF support
 	isoDirEntry rootEntry;
     uint8_t mediaid = 0;
 	char fileName[CROSS_LEN];

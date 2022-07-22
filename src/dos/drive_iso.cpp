@@ -43,6 +43,153 @@ extern bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CRO
 
 using namespace std;
 
+////////////////////////////////////
+
+/*From Linux kernel source*/
+/** CRC table for the CRC ITU-T V.41 0x1021 (x^16 + x^12 + x^15 + 1) */
+const uint16_t UDF_crc_itu_t_table[256] = {
+	0x0000, 0x1021, 0x2042, 0x3063, 0x4084, 0x50a5, 0x60c6, 0x70e7,
+	0x8108, 0x9129, 0xa14a, 0xb16b, 0xc18c, 0xd1ad, 0xe1ce, 0xf1ef,
+	0x1231, 0x0210, 0x3273, 0x2252, 0x52b5, 0x4294, 0x72f7, 0x62d6,
+	0x9339, 0x8318, 0xb37b, 0xa35a, 0xd3bd, 0xc39c, 0xf3ff, 0xe3de,
+	0x2462, 0x3443, 0x0420, 0x1401, 0x64e6, 0x74c7, 0x44a4, 0x5485,
+	0xa56a, 0xb54b, 0x8528, 0x9509, 0xe5ee, 0xf5cf, 0xc5ac, 0xd58d,
+	0x3653, 0x2672, 0x1611, 0x0630, 0x76d7, 0x66f6, 0x5695, 0x46b4,
+	0xb75b, 0xa77a, 0x9719, 0x8738, 0xf7df, 0xe7fe, 0xd79d, 0xc7bc,
+	0x48c4, 0x58e5, 0x6886, 0x78a7, 0x0840, 0x1861, 0x2802, 0x3823,
+	0xc9cc, 0xd9ed, 0xe98e, 0xf9af, 0x8948, 0x9969, 0xa90a, 0xb92b,
+	0x5af5, 0x4ad4, 0x7ab7, 0x6a96, 0x1a71, 0x0a50, 0x3a33, 0x2a12,
+	0xdbfd, 0xcbdc, 0xfbbf, 0xeb9e, 0x9b79, 0x8b58, 0xbb3b, 0xab1a,
+	0x6ca6, 0x7c87, 0x4ce4, 0x5cc5, 0x2c22, 0x3c03, 0x0c60, 0x1c41,
+	0xedae, 0xfd8f, 0xcdec, 0xddcd, 0xad2a, 0xbd0b, 0x8d68, 0x9d49,
+	0x7e97, 0x6eb6, 0x5ed5, 0x4ef4, 0x3e13, 0x2e32, 0x1e51, 0x0e70,
+	0xff9f, 0xefbe, 0xdfdd, 0xcffc, 0xbf1b, 0xaf3a, 0x9f59, 0x8f78,
+	0x9188, 0x81a9, 0xb1ca, 0xa1eb, 0xd10c, 0xc12d, 0xf14e, 0xe16f,
+	0x1080, 0x00a1, 0x30c2, 0x20e3, 0x5004, 0x4025, 0x7046, 0x6067,
+	0x83b9, 0x9398, 0xa3fb, 0xb3da, 0xc33d, 0xd31c, 0xe37f, 0xf35e,
+	0x02b1, 0x1290, 0x22f3, 0x32d2, 0x4235, 0x5214, 0x6277, 0x7256,
+	0xb5ea, 0xa5cb, 0x95a8, 0x8589, 0xf56e, 0xe54f, 0xd52c, 0xc50d,
+	0x34e2, 0x24c3, 0x14a0, 0x0481, 0x7466, 0x6447, 0x5424, 0x4405,
+	0xa7db, 0xb7fa, 0x8799, 0x97b8, 0xe75f, 0xf77e, 0xc71d, 0xd73c,
+	0x26d3, 0x36f2, 0x0691, 0x16b0, 0x6657, 0x7676, 0x4615, 0x5634,
+	0xd94c, 0xc96d, 0xf90e, 0xe92f, 0x99c8, 0x89e9, 0xb98a, 0xa9ab,
+	0x5844, 0x4865, 0x7806, 0x6827, 0x18c0, 0x08e1, 0x3882, 0x28a3,
+	0xcb7d, 0xdb5c, 0xeb3f, 0xfb1e, 0x8bf9, 0x9bd8, 0xabbb, 0xbb9a,
+	0x4a75, 0x5a54, 0x6a37, 0x7a16, 0x0af1, 0x1ad0, 0x2ab3, 0x3a92,
+	0xfd2e, 0xed0f, 0xdd6c, 0xcd4d, 0xbdaa, 0xad8b, 0x9de8, 0x8dc9,
+	0x7c26, 0x6c07, 0x5c64, 0x4c45, 0x3ca2, 0x2c83, 0x1ce0, 0x0cc1,
+	0xef1f, 0xff3e, 0xcf5d, 0xdf7c, 0xaf9b, 0xbfba, 0x8fd9, 0x9ff8,
+	0x6e17, 0x7e36, 0x4e55, 0x5e74, 0x2e93, 0x3eb2, 0x0ed1, 0x1ef0
+};
+
+uint16_t UDF_crc_itu_t(uint16_t crc, const uint8_t *buffer, size_t len)
+{
+	while (len--)
+		crc = UDF_crc_itu_t_byte(crc, *buffer++);
+
+	return crc;
+}
+
+////////////////////////////////////
+
+void UDFTagId::parse(const unsigned int sz,const unsigned char *b) {
+	if (sz >= 16) {
+		TagIdentifier = le16toh( *((uint16_t*)(&b[0])) );
+		DescriptorVersion = le16toh( *((uint16_t*)(&b[2])) );
+		TagChecksum = b[4];
+		Reserved = b[5];
+		TagSerialNumber = le16toh( *((uint16_t*)(&b[6])) );
+		DescriptorCRC = le16toh( *((uint16_t*)(&b[8])) );
+		DescriptorCRCLength = le16toh( *((uint16_t*)(&b[10])) );
+		TagLocation = le32toh( *((uint32_t*)(&b[12])) );
+	}
+	else {
+		TagIdentifier = 0;
+		TagChecksum = 0;
+		Reserved = 0;
+		TagLocation = 0;
+	}
+}
+
+bool UDFTagId::tagChecksumOK(const unsigned int sz,const unsigned char *b) {
+	uint8_t chksum = 0;
+
+	if (sz < 16)
+		return false;
+
+	for (unsigned int i=0;i <= 3;i++)
+		chksum += b[i];
+	for (unsigned int i=5;i <= 15;i++)
+		chksum += b[i];
+
+	if (chksum != TagChecksum)
+		return false;
+
+	return true;
+}
+
+bool UDFTagId::dataChecksumOK(const unsigned int sz,const unsigned char *b) {
+	if (DescriptorCRCLength != 0) {
+		if ((DescriptorCRCLength+16u) > sz)
+			return false;
+		if (DescriptorCRC != UDF_crc_itu_t(0,b+16,DescriptorCRCLength))
+			return false;
+	}
+
+	return true;
+}
+
+bool UDFTagId::get(const unsigned int sz,const unsigned char *b) {
+	parse(sz,b);
+
+	if (TagLocation == 0 && TagIdentifier == 0)
+		return false;
+
+	return tagChecksumOK(sz,b) && dataChecksumOK(sz,b);
+}
+
+UDFTagId::UDFTagId(const unsigned int sz,const unsigned char *b) {
+	parse(sz,b);
+}
+
+UDFTagId::UDFTagId() {
+}
+
+////////////////////////////////////
+
+void UDFextent_ad::get(const unsigned int sz,const unsigned char *b) {
+	if (sz >= 8u) {
+		ExtentLength = le32toh( *((uint32_t*)(&b[0])) );
+		ExtentLocation = le32toh( *((uint32_t*)(&b[4])) );
+	}
+}
+
+UDFextent_ad::UDFextent_ad(const unsigned int sz,const unsigned char *b) {
+	get(sz,b);
+}
+
+UDFextent_ad::UDFextent_ad() {
+}
+
+////////////////////////////////////
+
+void UDFAnchorVolumeDescriptorPointer::get(UDFTagId &tag,const unsigned int sz,const unsigned char *b) {
+	if (sz >= 32u) {
+		DescriptorTag = tag;
+		MainVolumeDescriptorSequenceExtent.get(8,b+16);
+		ReserveVolumeDescriptorSequenceExtent.get(8,b+24);
+	}
+}
+
+UDFAnchorVolumeDescriptorPointer::UDFAnchorVolumeDescriptorPointer(UDFTagId &tag,const unsigned int sz,const unsigned char *b) {
+	get(tag,sz,b);
+}
+
+UDFAnchorVolumeDescriptorPointer::UDFAnchorVolumeDescriptorPointer() {
+}
+
+////////////////////////////////////
+
 class isoFile : public DOS_File {
 public:
     isoFile(isoDrive* drive, const char* name, const FileStat_Block* stat, uint32_t offset);
@@ -158,10 +305,12 @@ uint8_t MSCDEX_GetSubUnit(char driveLetter);
 bool CDROM_Interface_Image::images_init = false;
 
 isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int& error, std::vector<std::string>& options) {
+    enable_udf = (dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10));//default
     enable_rock_ridge = (dos.version.major >= 7 || uselfn);//default
     enable_joliet = (dos.version.major >= 7 || uselfn);//default
     is_rock_ridge = false;
     is_joliet = false;
+    is_udf = false;
     for (const auto &opt : options) {
         size_t equ = opt.find_first_of('=');
         std::string name,value;
@@ -182,6 +331,10 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
         else if (name == "joliet") { // Enable/disable Joliet extensions
             if (value == "1" || value == "") enable_joliet = true; // "-o joliet" or "-o joliet=1"
             else if (value == "0") enable_joliet = false;
+	}
+        else if (name == "udf") { // Enable/disable UDF
+            if (value == "1" || value == "") enable_udf = true; // "-o udf" or "-o udf=1"
+            else if (value == "0") enable_udf = false;
 	}
     }
 
@@ -778,6 +931,31 @@ static bool escape_is_joliet(const unsigned char *esc) {
 	return false;
 }
 
+bool isoDrive :: loadImageUDF() {
+	uint8_t pvd[COOKED_SECTOR_SIZE];
+	UDFextent_ad avdex;
+
+	/* look for the anchor volume descriptor */
+	{
+		UDFAnchorVolumeDescriptorPointer avdp;
+		UDFTagId aid;
+		memset(pvd,0,16);
+		readSector(pvd,256);
+		if (!aid.get(COOKED_SECTOR_SIZE,pvd)) return false;
+		if (aid.TagIdentifier != 2/*Anchor volume descriptor*/ || aid.TagLocation != 256) return false;
+		avdp.get(aid,COOKED_SECTOR_SIZE,pvd);
+		avdex = avdp.MainVolumeDescriptorSequenceExtent;
+		if (avdex.ExtentLocation == 0 || avdex.ExtentLength == 0) return false;
+	}
+
+	LOG(LOG_MISC,LOG_DEBUG)("UDF Anchor Volume Descriptor points to location=%lu len=%lu",
+		(unsigned long)avdex.ExtentLocation,
+		(unsigned long)avdex.ExtentLength);
+	return false;
+
+	return true;
+}
+
 bool isoDrive :: loadImage() {
 	uint8_t pvd[COOKED_SECTOR_SIZE];
 	unsigned int choose_iso9660 = 0;
@@ -785,7 +963,15 @@ bool isoDrive :: loadImage() {
 	unsigned int sector = 16;
 
 	is_rock_ridge = false;
+	is_udf = false;
 	dataCD = false;
+
+	if (enable_udf && loadImageUDF()) {
+		LOG(LOG_MISC,LOG_DEBUG)("ISO: UDF filesystem detected");
+		is_udf = true;
+		dataCD = true;
+		return true;
+	}
 
 	/* scan the volume descriptors */
 	while (sector < 256) {
