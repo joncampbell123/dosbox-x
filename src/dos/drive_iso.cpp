@@ -665,7 +665,17 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 		}
 	}
 
-	if (is_joliet || (is_rock_ridge_name && filename_not_strict_8x3((char*)de->ident)) || filename_not_8x3((char*)de->ident)) {
+	bool jolietrr = is_joliet || (is_rock_ridge_name && filename_not_strict_8x3((char*)de->ident));
+	if (!jolietrr && !(dos.version.major >= 7 || uselfn)) {
+		char* dotpos = strchr((char*)de->ident, '.');
+		if (dotpos!=NULL) {
+			if (strlen(dotpos)>4) dotpos[4]=0;
+			if (dotpos-(char*)de->ident>8) {
+				strcpy((char*)(&de->ident[8]),dotpos);
+			}
+		} else if (strlen((char*)de->ident)>8) de->ident[8]=0;
+	}
+	if (jolietrr || filename_not_8x3((char*)de->ident)) {
 		const char *ext = NULL;
 		size_t tailsize = 0;
 		bool lfn = false;
@@ -754,14 +764,6 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 			}
 			*d = 0;
 		}
-	} else {
-		char* dotpos = strchr((char*)de->ident, '.');
-		if (dotpos!=NULL) {
-			if (strlen(dotpos)>4) dotpos[4]=0;
-			if (dotpos-(char*)de->ident>8) {
-				strcpy((char*)(&de->ident[8]),dotpos);
-			}
-		} else if (strlen((char*)de->ident)>8) de->ident[8]=0;
 	}
 	return de->length;
 }

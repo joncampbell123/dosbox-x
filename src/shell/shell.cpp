@@ -55,7 +55,7 @@ extern bool startcmd, startwait, startquiet, internal_program;
 extern bool addovl, addipx, addne2k, enableime, tryconvertcp;
 extern bool halfwidthkana, force_conversion, showdbcs, gbk, chinasea;
 extern const char* RunningProgram;
-extern int enablelfn, msgcodepage;
+extern int enablelfn, msgcodepage, lastmsgcp;
 extern uint16_t countryNo;
 extern unsigned int dosbox_shell_env_size;
 bool outcon = true, usecon = true, pipetmpdev = true;
@@ -74,6 +74,7 @@ void initRand();
 void initcodepagefont(void);
 void runMount(const char *str);
 void ResolvePath(std::string& in);
+void SwitchLanguage(int oldcp, int newcp, bool confirm);
 void CALLBACK_DeAllocate(Bitu in), DOSBox_ConsolePauseWait();
 void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
 void DOS_SetCountry(uint16_t countryNo), makestdcp950table(), makeseacp951table();
@@ -858,6 +859,7 @@ void DOS_Shell::Prepare(void) {
                     } else if (control->opt_langcp && !name && (layout.empty() || layout=="auto"))
                         SetKEYBCP();
                 }
+                if (lastmsgcp && lastmsgcp != dos.loaded_codepage) SwitchLanguage(lastmsgcp, dos.loaded_codepage, true);
             }
 			if (country>0&&!control->opt_noconfig) {
 				countryNo = country;
