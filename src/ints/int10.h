@@ -158,6 +158,13 @@ typedef struct {
 	uint8_t text_row;
 } Int10Data;
 
+typedef struct {
+	uint8_t red;
+	uint8_t green;
+	uint8_t blue;
+	uint8_t alpha;		// unused
+} alt_rgb;
+
 #define _EGA_HALF_CLOCK			0x0001
 #define _DOUBLESCAN			    0x0002  /* CGA/EGA on VGA doublescan (bit 7 of max scanline) */
 #define _VGA_PIXEL_DOUBLE		0x0004

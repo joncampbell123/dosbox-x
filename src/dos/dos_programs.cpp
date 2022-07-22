@@ -7729,13 +7729,12 @@ bool setVGAColor(const char *colorArray, int i) {
     IO_WriteB(VGAREG_ACTL_ADDRESS, i+32);
     uint8_t imap=IO_ReadB(VGAREG_ACTL_READ_DATA);
     IO_WriteB(VGAREG_DAC_WRITE_ADDRESS, imap);
-    IO_WriteB(VGAREG_DAC_DATA, rgbVal[0]*63/255);
-    IO_WriteB(VGAREG_DAC_DATA, rgbVal[1]*63/255);
-    IO_WriteB(VGAREG_DAC_DATA, rgbVal[2]*63/255);
+    IO_WriteB(VGAREG_DAC_DATA, (rgbVal[0]+2)*63/255);
+    IO_WriteB(VGAREG_DAC_DATA, (rgbVal[1]+2)*63/255);
+    IO_WriteB(VGAREG_DAC_DATA, (rgbVal[2]+2)*63/255);
     return true;
 }
 
-typedef struct {uint8_t red; uint8_t green; uint8_t blue; uint8_t alpha;} alt_rgb;
 alt_rgb altBGR[16], *rgbcolors = (alt_rgb*)render.pal.rgb;
 #if defined(USE_TTF)
 extern alt_rgb altBGR1[16];
@@ -7750,7 +7749,7 @@ public:
 private:
 	void PrintUsage() {
         constexpr const char *msg =
-            "Views or changes the text-mode color scheme settings.\n\nSETCOLOR [color# [value]]\n\nFor example:\n\n  SETCOLOR 1 (50,50,50)\n\nChange Color #1 to the specified color value\n\n  SETCOLOR 7 -\n\nReturn Color #7 to the default color value\n\n  SETCOLOR 3 +\n\nReturn Color #3 to the preset color value\n\n  SETCOLOR MONO\n\nDisplay current MONO mode status\n\nTo change the current background and foreground colors, use COLOR command.\n";
+            "Views or changes the text-mode color scheme settings.\n\nSETCOLOR [color# [value]]\n\nFor example:\n\n  SETCOLOR 0 (50,50,50)\n\nChange Color #0 to the specified color value\n\n  SETCOLOR 7 -\n\nReturn Color #7 to the default color value\n\n  SETCOLOR 3 +\n\nReturn Color #3 to the preset color value\n\n  SETCOLOR MONO\n\nDisplay current MONO mode status\n\nTo change the current background and foreground colors, use COLOR command.\n";
         WriteOut(msg);
 	}
 };

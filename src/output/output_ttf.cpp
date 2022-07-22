@@ -110,12 +110,6 @@ static SDL_Rect ttf_textClip = {0, 0, 0, 0};
 ttf_cell curAttrChar[txtMaxLins*txtMaxCols];					// currently displayed textpage
 ttf_cell newAttrChar[txtMaxLins*txtMaxCols];					// to be replaced by
 
-typedef struct {
-	uint8_t red;
-	uint8_t green;
-	uint8_t blue;
-	uint8_t alpha;		// unused
-} alt_rgb;
 alt_rgb altBGR0[16], altBGR1[16];
 int blinkCursor = -1;
 static int prev_sline = -1;
@@ -246,9 +240,9 @@ void setVGADAC() {
             IO_WriteB(VGAREG_ACTL_ADDRESS, i+32);
             imap[i]=IO_ReadB(VGAREG_ACTL_READ_DATA);
             IO_WriteB(VGAREG_DAC_WRITE_ADDRESS, imap[i]);
-            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].red*63/255);
-            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].green*63/255);
-            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].blue*63/255);
+            IO_WriteB(VGAREG_DAC_DATA, (altBGR1[i].red+2)*63/255);
+            IO_WriteB(VGAREG_DAC_DATA, (altBGR1[i].green+2)*63/255);
+            IO_WriteB(VGAREG_DAC_DATA, (altBGR1[i].blue+2)*63/255);
         }
     }
 }
