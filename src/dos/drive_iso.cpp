@@ -847,6 +847,9 @@ public:
 	bool Close();
 	uint16_t GetInformation(void);
 	uint32_t GetSeekPos(void);
+public:
+	UDFextents udffext;
+	bool udf = false;
 private:
 	isoDrive *drive;
     uint8_t buffer[ISO_FRAMESIZE] = {};
@@ -869,6 +872,12 @@ isoFile::isoFile(isoDrive* drive, const char* name, const FileStat_Block* stat, 
 }
 
 bool isoFile::Read(uint8_t *data, uint16_t *size) {
+	if (udf) {
+		*size = (uint16_t)(drive->UDFextent_read(udffext,data,*size));
+		filePos = *size;
+		return true;
+	}
+
 	if (filePos + *size > fileEnd)
 		*size = (uint16_t)(fileEnd - filePos);
 	
@@ -927,6 +936,12 @@ bool isoFile::Seek(uint32_t *pos, uint32_t type) {
 		filePos = fileEnd;
 	
 	*pos = filePos - fileBegin;
+
+	if (udf) {
+		*pos = drive->UDFextent_seek(udffext,*pos);
+		filePos = *pos + fileBegin;
+	}
+
 	return true;
 }
 
@@ -1069,7 +1084,19 @@ bool isoDrive::FileOpen(DOS_File **file, const char *name, uint32_t flags) {
 		UDFFileIdentifierDescriptor fid;
 		UDFFileEntry fe;
 		success = lookup(fid, fe, name) && !(fid.FileCharacteristics & 0x02/*Directory*/);
-		success = false;//TODO
+		if (success) {
+			UDFextents fex;
+
+			UDFFileEntryToExtents(fex,fe);
+
+			file_stat.size = (uint32_t)std::min((uint64_t)fe.InformationLength,(uint64_t)0xFFFFFFFF);
+			file_stat.attr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
+			isoFile *ifile = new isoFile(this, name, &file_stat, 0);
+			ifile->udffext = fex;
+			ifile->udf = true;
+			*file = ifile;
+			(*file)->flags = flags;
+		}
 	}
 	else {
 		isoDirEntry de;

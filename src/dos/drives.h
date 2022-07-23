@@ -1096,12 +1096,12 @@ private:
     uint8_t subUnit = 0;
     char driveLetter = '\0';
 	char discLabel[32];
-private:
+public:
 	UDFextent_ad convertToUDFextent_ad(const UDFshort_ad &s,const uint32_t partition_ref_id=0xFFFFFFFFu) const;
 	UDFextent_ad convertToUDFextent_ad(const UDFextent_ad &s) const;
 	UDFextent_ad convertToUDFextent_ad(const UDFlong_ad &s) const;
 	UDFextent_ad convertToUDFextent_ad(const UDFext_ad &s) const;
-private:
+public:
 	bool convertToUDFextent_ad(UDFextent_ad &d,const UDFshort_ad &s,const uint32_t partition_ref_id=0xFFFFFFFFu) const;
 	bool convertToUDFextent_ad(UDFextent_ad &d,const UDFextent_ad &s) const;
 	bool convertToUDFextent_ad(UDFextent_ad &d,const UDFlong_ad &s) const;
@@ -1111,7 +1111,7 @@ private:
 	UDFPrimaryVolumeDescriptor					pvold;
 	UDFFileSetDescriptor						fsetd;
 	UDFPartitionDescriptor						partd;
-private:
+public:
 	void UDFextent_rewind(struct UDFextents &ex);
 	void UDFFileEntryToExtents(UDFextents &ex,UDFFileEntry &fe);
 	uint64_t UDFextent_seek(struct UDFextents &ex,uint64_t ofs);
