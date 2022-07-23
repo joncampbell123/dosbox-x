@@ -1,4 +1,8 @@
 0.84.2
+  - Added support for UDF filesystem to ISO image
+    handling. It is enabled by default if emulating
+    MS-DOS 7.10 (aka Windows 98) or higher.
+    (joncampbell123).
   - Added code to detect Rock Ridge according to the
     System Use Sharing Protocol standard, and to
     read the SUSP entries correctly for the alternate
