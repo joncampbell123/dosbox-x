@@ -689,19 +689,19 @@ UDFlong_ad::UDFlong_ad() {
 
 ////////////////////////////////////
 
-isoDrive::UDFextent::UDFextent() {
+UDFextent::UDFextent() {
 }
 
-isoDrive::UDFextent::UDFextent(const struct UDFextent_ad &s) {
+UDFextent::UDFextent(const struct UDFextent_ad &s) {
 	ex = s;
 }
 
 ////////////////////////////////////
 
-isoDrive::UDFextents::UDFextents() {
+UDFextents::UDFextents() {
 }
 
-isoDrive::UDFextents::UDFextents(const struct UDFextent_ad &s) {
+UDFextents::UDFextents(const struct UDFextent_ad &s) {
 	xl.push_back(s);
 }
 
@@ -1439,7 +1439,7 @@ int isoDrive::GetDirIterator(const isoDirEntry* de) {
 	return dirIterator;
 }
 
-bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDescriptor &fid, UDFFileEntry &fe, isoDrive::UDFextents &dirext, char fname[LFN_NAMELENGTH],unsigned int dirIteratorIndex) {
+bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDescriptor &fid, UDFFileEntry &fe, UDFextents &dirext, char fname[LFN_NAMELENGTH],unsigned int dirIteratorIndex) {
 	if (!is_udf) return 0;
 
 	UDFTagId ctag;

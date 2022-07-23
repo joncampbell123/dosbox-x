@@ -997,6 +997,35 @@ struct UDFFileIdentifierDescriptor { /* ECMA-167 4/14.4 */
 
 ////////////////////////////////////
 
+struct UDFextent {
+	struct UDFextent_ad ex;
+
+	UDFextent();
+	UDFextent(const struct UDFextent_ad &s);
+};
+
+struct UDFextents {
+	std::vector<struct UDFextent> xl;
+
+	// extents stored within extent area
+	bool is_indata = false;
+	std::vector<uint8_t> indata;
+
+	// current position
+	uint32_t		relofs = 0;	// offset within extent
+	uint64_t		extofs = 0;	// base offset of extent
+	size_t			extent = 0;	// which extent
+	uint64_t		filesz = 0;	// file size
+
+	std::vector<uint8_t>	sector_buffer;
+	uint32_t		sector_buffer_n = 0xFFFFFFFFu;
+
+				UDFextents();
+				UDFextents(const struct UDFextent_ad &s);
+};
+
+////////////////////////////////////
+
 class isoDrive : public DOS_Drive {
 public:
 	isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int &error, std::vector<std::string>& options);
@@ -1083,31 +1112,6 @@ private:
 	UDFFileSetDescriptor						fsetd;
 	UDFPartitionDescriptor						partd;
 private:
-	struct UDFextent {
-		struct UDFextent_ad ex;
-
-		UDFextent();
-		UDFextent(const struct UDFextent_ad &s);
-	};
-	struct UDFextents {
-		std::vector<struct UDFextent> xl;
-
-		// extents stored within extent area
-		bool is_indata = false;
-		std::vector<uint8_t> indata;
-
-		// current position
-		uint32_t		relofs = 0;	// offset within extent
-		uint64_t		extofs = 0;	// base offset of extent
-		size_t			extent = 0;	// which extent
-		uint64_t		filesz = 0;	// file size
-
-		std::vector<uint8_t>	sector_buffer;
-		uint32_t		sector_buffer_n = 0xFFFFFFFFu;
-
-		UDFextents();
-		UDFextents(const struct UDFextent_ad &s);
-	};
 	void UDFextent_rewind(struct UDFextents &ex);
 	void UDFFileEntryToExtents(UDFextents &ex,UDFFileEntry &fe);
 	uint64_t UDFextent_seek(struct UDFextents &ex,uint64_t ofs);
