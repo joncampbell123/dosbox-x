@@ -1,4 +1,5 @@
-0.84.2
+2022.08.0
+  - Switched to year.month.patch versioning (Jookia)
   - Fix ISO image format detection to support pure
     UDF formatted images, meaning that the image
     lacks any ISO 9660 features and contains only
