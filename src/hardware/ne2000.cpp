@@ -281,9 +281,9 @@ bx_ne2k_c::write_cr(uint32_t value)
 	/* TODO: Transmit packet */
     //BX_NE2K_THIS ethdev->sendpkt(& BX_NE2K_THIS s.mem[BX_NE2K_THIS s.tx_page_start*256 - BX_NE2K_MEMSTART], BX_NE2K_THIS s.tx_bytes);
     	ethernet->SendPacket(&s.mem[s.tx_page_start*256 - BX_NE2K_MEMSTART], s.tx_bytes);
-	// some more debug
+	// Trigger any pending timers
 	if (BX_NE2K_THIS s.tx_timer_active) {
-      BX_PANIC(("CR write, tx timer still active"));
+	  NE2000_TX_Event(0);
 	  PIC_RemoveEvents(NE2000_TX_Event);
 	}
 	//LOG_MSG("send packet command");

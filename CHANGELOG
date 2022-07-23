@@ -1,4 +1,6 @@
 0.84.2
+  - Fix NE2000 panicking if packets are queued too fast.
+    (kcgen, Jookia)
   - Fix ISO image format detection to support pure
     UDF formatted images, meaning that the image
     lacks any ISO 9660 features and contains only
