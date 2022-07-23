@@ -1035,23 +1035,15 @@ public:
 	virtual void Activate(void);
 private:
     int  readDirEntry(isoDirEntry* de, const uint8_t* data, unsigned int direntindex);
-	bool lookupSingle(isoDirEntry *de, const char *name, uint32_t sectorStart, uint32_t length);
 	bool lookup(isoDirEntry *de, const char *path);
+	bool lookup(UDFFileIdentifierDescriptor &fid, UDFFileEntry &fe, const char *path);
 	int  UpdateMscdex(char driveLetter, const char* path, uint8_t& subUnit);
 	int  GetDirIterator(const isoDirEntry* de);
+	int  GetDirIterator(const UDFFileEntry &fe);
 	bool GetNextDirEntry(const int dirIteratorHandle, isoDirEntry* de);
 	void FreeDirIterator(const int dirIterator);
 	bool ReadCachedSector(uint8_t** buffer, const uint32_t sector);
-	
-	struct DirIterator {
-		bool valid;
-		bool root;
-		uint32_t currentSector;
-		uint32_t endSector;
-		uint32_t index;
-		uint32_t pos;
-	} dirIterators[MAX_OPENDIRS];
-	
+
 	int nextFreeDirIterator;
 	
 	struct SectorHashEntry {
@@ -1090,6 +1082,49 @@ private:
 	UDFPrimaryVolumeDescriptor					pvold;
 	UDFFileSetDescriptor						fsetd;
 	UDFPartitionDescriptor						partd;
+private:
+	struct UDFextent {
+		struct UDFextent_ad ex;
+
+		UDFextent();
+		UDFextent(const struct UDFextent_ad &s);
+	};
+	struct UDFextents {
+		std::vector<struct UDFextent> xl;
+
+		// extents stored within extent area
+		bool is_indata = false;
+		std::vector<uint8_t> indata;
+
+		// current position
+		uint32_t		relofs = 0;	// offset within extent
+		uint64_t		extofs = 0;	// base offset of extent
+		size_t			extent = 0;	// which extent
+		uint64_t		filesz = 0;	// file size
+
+		std::vector<uint8_t>	sector_buffer;
+		uint32_t		sector_buffer_n = 0xFFFFFFFFu;
+
+		UDFextents();
+		UDFextents(const struct UDFextent_ad &s);
+	};
+	void UDFextent_rewind(struct UDFextents &ex);
+	void UDFFileEntryToExtents(UDFextents &ex,UDFFileEntry &fe);
+	uint64_t UDFextent_seek(struct UDFextents &ex,uint64_t ofs);
+	int UDFextent_read(struct UDFextents &ex,unsigned char *buf,size_t count);
+	uint64_t UDFtotalsize(struct UDFextents &ex) const;
+private:
+	struct DirIterator {
+		bool valid;
+		bool root;
+		uint32_t currentSector;
+		uint32_t endSector;
+		uint32_t index;
+		uint32_t pos;
+		UDFextents udfdirext;
+	} dirIterators[MAX_OPENDIRS];
+private:
+	bool GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDescriptor &fid, UDFFileEntry &fe, UDFextents &dirext);
 };
 
 struct VFILE_Block;
