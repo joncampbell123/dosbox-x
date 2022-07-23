@@ -1124,7 +1124,7 @@ private:
 		UDFextents udfdirext;
 	} dirIterators[MAX_OPENDIRS];
 private:
-	bool GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDescriptor &fid, UDFFileEntry &fe, UDFextents &dirext);
+	bool GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDescriptor &fid, UDFFileEntry &fe, UDFextents &dirext, char fname[LFN_NAMELENGTH],unsigned int dirIteratorIndex);
 };
 
 struct VFILE_Block;

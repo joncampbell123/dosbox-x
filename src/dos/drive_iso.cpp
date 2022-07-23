@@ -1192,6 +1192,7 @@ bool isoDrive::FindFirst(const char *dir, DOS_DTA &dta, bool fcb_findfirst) {
 
 bool isoDrive::FindNext(DOS_DTA &dta) {
 	uint8_t attr;
+	char fname[LFN_NAMELENGTH];
 	char pattern[CROSS_LEN], findName[DOS_NAMELENGTH_ASCII], lfindName[ISO_MAXPATHNAME];
 	dta.GetSearchParams(attr, pattern, false);
 
@@ -1201,28 +1202,21 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 	if (is_udf) {
 		UDFFileIdentifierDescriptor fid;
 		UDFFileEntry fe;
-		while (GetNextDirEntry(dirIterator, fid, fe, dirIterators[dirIterator].udfdirext)) {
+		while (GetNextDirEntry(dirIterator, fid, fe, dirIterators[dirIterator].udfdirext, fname, dirIterators[dirIterator].index)) {
 			uint8_t findAttr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
 			if (fid.FileCharacteristics & 0x02/*Directory*/) findAttr |= DOS_ATTR_DIRECTORY;
 
 			/* skip parent directory */
 			if (fid.LengthOfFileIdentifier == 0 || (fid.FileCharacteristics & 0x08)) continue;
 
-			const std::string ennamepp = fid.FileIdentifier.string_value();
-			const char *enname = ennamepp.c_str();
-
-			// NTS: For whatever reason, the first byte may be a control value between 0x01 to 0x08.
-			if (*enname >= 0x01 && *enname <= 0x08) enname++;
-
-			strcpy(fullname,enname);
 			strcpy(lfindName,fullname);
-			if (!(isRoot && enname[0]=='.') && (WildFileCmp((char*)enname, pattern) || LWildFileCmp(lfindName, pattern))
+			if (!(isRoot && fname[0]=='.') && (WildFileCmp((char*)fname, pattern) || LWildFileCmp(lfindName, pattern))
 					&& !(~attr & findAttr & (DOS_ATTR_DIRECTORY | DOS_ATTR_HIDDEN | DOS_ATTR_SYSTEM))) {
 
 				/* file is okay, setup everything to be copied in DTA Block */
 				findName[0] = 0;
-				if(strlen((char*)enname) < DOS_NAMELENGTH_ASCII) {
-					strcpy(findName, (char*)enname);
+				if(strlen((char*)fname) < DOS_NAMELENGTH_ASCII) {
+					strcpy(findName, (char*)fname);
 					upcase(findName);
 				}
 				uint32_t findSize = (uint32_t)std::min((uint64_t)fe.InformationLength,(uint64_t)0xFFFFFFFF);
@@ -1445,7 +1439,7 @@ int isoDrive::GetDirIterator(const isoDirEntry* de) {
 	return dirIterator;
 }
 
-bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDescriptor &fid, UDFFileEntry &fe, isoDrive::UDFextents &dirext) {
+bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDescriptor &fid, UDFFileEntry &fe, isoDrive::UDFextents &dirext, char fname[LFN_NAMELENGTH],unsigned int dirIteratorIndex) {
 	if (!is_udf) return 0;
 
 	UDFTagId ctag;
@@ -1505,6 +1499,106 @@ bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDes
 		if (!fe_found) {
 			LOG(LOG_MISC,LOG_DEBUG)("UDF: File Identifier cannot find File Entry for '%s'",fid.FileIdentifier.string_value().c_str());
 			fe = UDFFileEntry();
+		}
+	}
+
+	const std::string ennamepp = fid.FileIdentifier.string_value();
+	const char *enname = ennamepp.c_str();
+
+	// NTS: For whatever reason, the first byte may be a control value between 0x01 to 0x08.
+	if (*enname >= 0x01 && *enname <= 0x08) enname++;
+
+	strcpy((char*)fullname,(char*)enname);
+	strcpy((char*)fname,(char*)enname);
+
+	{
+		const char *ext = NULL;
+		size_t tailsize = 0;
+		bool lfn = false;
+		char tail[128];
+
+		if (strcmp((char*)fullname,".") != 0 && strcmp((char*)fullname,"..")) {
+			size_t nl = 0,el = 0,periods = 0;
+			const char *s = (const char*)fullname;
+			while (*s != 0) {
+				if (*s == '.') break;
+				if (*s == ' ' || *s == '\'' || *s == '\"') lfn = true;
+				nl++;
+				s++;
+			}
+			if (!nl || nl > 8) lfn = true;
+			if (*s == '.') {
+				periods++;
+				if (nl) ext = s+1;
+				s++;
+			}
+			while (*s != 0) {
+				if (*s == '.') {
+					periods++;
+					ext = s+1;
+				}
+				if (*s == ' ' || *s == '\'' || *s == '\"') lfn = true;
+				el++;
+				s++;
+			}
+			if (periods > 1 || el > 3) lfn = true;
+		}
+
+		/* Windows 95 adds a ~number to the 8.3 name if effectively an LFN.
+		 * I'm not 100% certain but the index appears to be related to the index of the ISO 9660 dirent.
+		 * This is a guess as to how it works. */
+		if (lfn) {
+			tailsize = sprintf(tail,"~%u",dirIteratorIndex);
+			const char *s = (const char*)fullname;
+			char *d = (char*)fname;
+			size_t c;
+
+			c = 0;
+			while (*s == '.'||*s == ' ') s++;
+			bool lead = false;
+			while (*s != 0) {
+				if (s == ext) break; // doesn't match if ext == NULL, so no harm in that case
+                if (!lead && ((IS_PC98_ARCH && shiftjis_lead_byte(*s & 0xFF)) || (isDBCSCP() && isKanji1_gbk(*s & 0xFF)))) {
+                    if (c >= (7-tailsize)) break;
+                    lead = true;
+                    *d++ = *s;
+                    c++;
+				} else if ((unsigned char)*s <= 32 || (unsigned char)*s == 127 || *s == '.' || *s == '\"' || *s == '+' || *s == '=' || *s == ',' || *s == ';' || *s == ':' || *s == '<' || *s == '>' || ((*s == '[' || *s == ']' || *s == '|' || *s == '\\')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*s=='?'||*s=='*') {
+                    lead = false;
+                } else if (c >= (8-tailsize)) break;
+                else {
+                    lead = false;
+					*d++ = *s;
+					c++;
+				}
+				s++;
+			}
+			if (tailsize != 0) {
+				for (c=0;c < tailsize;c++) *d++ = tail[c];
+			}
+			lead = false;
+			if (s == ext) { /* ext points to char after '.' */
+				if (*s != 0) { /* anything after? */
+					*d++ = '.';
+					c = 0;
+					while (*s != 0) {
+						if (!lead && ((IS_PC98_ARCH && shiftjis_lead_byte(*s & 0xFF)) || (isDBCSCP() && isKanji1_gbk(*s & 0xFF)))) {
+                            if (c >= 2) break;
+                            lead = true;
+                            *d++ = *s;
+                            c++;
+						} else if ((unsigned char)*s <= 32 || (unsigned char)*s == 127 || *s == '.' || *s == '\"' || *s == '+' || *s == '=' || *s == ',' || *s == ';' || *s == ':' || *s == '<' || *s == '>' || ((*s == '[' || *s == ']' || *s == '|' || *s == '\\')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*s=='?'||*s=='*') {
+                            lead = false;
+                        } else if (c >= 3) break;
+                        else {
+							*d++ = *s;
+							c++;
+						}
+						s++;
+					}
+				}
+			}
+			*d = 0;
 		}
 	}
 
@@ -2064,6 +2158,7 @@ bool isoDrive :: loadImage() {
 
 bool isoDrive :: lookup(UDFFileIdentifierDescriptor &fid, UDFFileEntry &fe, const char *path) {
 	uint8_t pvd[COOKED_SECTOR_SIZE];
+	char fname[LFN_NAMELENGTH];
 	bool cisdir = false;
 	UDFextents dirext;
 	UDFTagId ctag;
@@ -2109,19 +2204,11 @@ bool isoDrive :: lookup(UDFFileIdentifierDescriptor &fid, UDFFileEntry &fe, cons
 
 			// look for the current path element
 			int dirIterator = GetDirIterator(fe);
-			while (!found && GetNextDirEntry(dirIterator, fid, fe, dirext)) {
+			while (!found && GetNextDirEntry(dirIterator, fid, fe, dirext, fname, dirIterators[dirIterator].index)) {
 				/* skip parent directory */
 				if (fid.LengthOfFileIdentifier == 0 || (fid.FileCharacteristics & 0x08)) continue;
 
-				const std::string ennamepp = fid.FileIdentifier.string_value();
-				const char *enname = ennamepp.c_str();
-
-				// NTS: For whatever reason, the first byte may be a control value between 0x01 to 0x08.
-				if (*enname >= 0x01 && *enname <= 0x08) enname++;
-
-				// TODO: Short name?
-
-				if (0 == strncasecmp((char*)enname, name, ISO_MAXPATHNAME)) {
+				if (0 == strncasecmp((char*)fname, name, ISO_MAX_FILENAME_LENGTH) || 0 == strncasecmp((char*) fullname, name, ISO_MAXPATHNAME)) {
 					cisdir = !!(fid.FileCharacteristics & 0x02/*Directory*/);
 					UDFFileEntryToExtents(dirext,fe);
 					found = true;
