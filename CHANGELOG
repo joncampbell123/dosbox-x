@@ -1,4 +1,8 @@
 0.84.2
+  - Fix ISO image format detection to support pure
+    UDF formatted images, meaning that the image
+    lacks any ISO 9660 features and contains only
+    UDF. (joncampbell123).
   - Added support for UDF filesystem to ISO image
     handling. It is enabled by default if emulating
     MS-DOS 7.10 (aka Windows 98) or higher.

@@ -1012,8 +1012,25 @@ bool CDROM_Interface_Image::CanReadPVD(TrackFile *file, int sectorSize, bool mod
 	if (mode2) seek += 24;
 	file->read(pvd, seek, COOKED_SECTOR_SIZE);
 	// pvd[0] = descriptor type, pvd[1..5] = standard identifier, pvd[6] = iso version (+8 for High Sierra)
-	return ((pvd[0] == 1 && !strncmp((char*)(&pvd[1]), "CD001", 5) && pvd[6] == 1) ||
-			(pvd[8] == 1 && !strncmp((char*)(&pvd[9]), "CDROM", 5) && pvd[14] == 1));
+	if ((pvd[0] == 1 && !strncmp((char*)(&pvd[1]), "CD001", 5) && pvd[6] == 1) ||
+		(pvd[8] == 1 && !strncmp((char*)(&pvd[9]), "CDROM", 5) && pvd[14] == 1))
+			return true; // At least ISO 9660 compliant
+
+	// Hm, maybe the ISO image is pure UDF
+	seek = 256 * sectorSize;	// anchor volume descriptor pointer at sector 256
+	if ((sectorSize == RAW_SECTOR_SIZE || sectorSize == 2448) && !mode2) seek += 16;
+	if (mode2) seek += 24;
+	file->read(pvd, seek, COOKED_SECTOR_SIZE);
+	{
+		UDFTagId aid;
+
+		if (aid.get(COOKED_SECTOR_SIZE,pvd)) {
+			if (aid.TagIdentifier == 2/*Anchor volume descriptor*/ || aid.TagLocation == 256)
+				return true; // The ISO image is pure UDF
+		}
+	}
+
+	return false;
 }
 
 #if defined(WIN32)
