@@ -20,7 +20,7 @@ sed -b -i "s/VERSION \"\([0-9.]\+\)\"/VERSION \"$ver\"/g" vs/config_package.h
 
 sed -b -i "s/^AC_INIT(dosbox-x,\([0-9.]\+\)/AC_INIT(dosbox-x,$ver/" configure.ac
 
-sed -b -i "s/^#define MyAppVersion "\([0-9.]\+\)"/#define MyAppVersion "$ver"/" contrib/windows/installer/DOSBox-X-setup.iss
+sed -b -i "s/^#define MyAppVersion \"\([0-9.]\+\)\"/#define MyAppVersion \"$ver\"/" contrib/windows/installer/DOSBox-X-setup.iss
 
 ver=`echo $ver | tr . ,`
 
