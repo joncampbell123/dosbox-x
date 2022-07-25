@@ -1579,6 +1579,7 @@ uint32_t GetHexValue(char* const str, char* &hex,bool *parsed,int exprge)
 
     /* support simple add/subtract expressions */
     while (*hex != 0) {
+        char* beforespace = hex;
         while (*hex == ' ') hex++;
 
         if (*hex == '+') {
@@ -1640,6 +1641,7 @@ uint32_t GetHexValue(char* const str, char* &hex,bool *parsed,int exprge)
             else regval = 0;
         }
         else {
+            hex = beforespace; // Rewind to avoid consuming trailing spaces
             break; // No valid char
         }
     }
