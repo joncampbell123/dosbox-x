@@ -1823,7 +1823,7 @@ static bool doDir(DOS_Shell * shell, char * args, DOS_DTA dta, char * numformat,
 
 void DOS_Shell::CMD_DIR(char * args) {
 	HELP("DIR");
-	char numformat[16];
+	char numformat[64];
 	char path[DOS_PATHLENGTH];
 	char sargs[CROSS_LEN];
 
