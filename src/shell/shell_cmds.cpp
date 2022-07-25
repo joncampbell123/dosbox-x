@@ -3449,7 +3449,8 @@ void DOS_Shell::CMD_CHOICE(char * args){
 		dotype = true;
 		DOS_ReadFile (STDIN,&c,&n);
 		dotype = false;
-		if (c==3) {dos.return_code=0;return;}
+		if (n==0) {dos.return_code=255;return;}
+		if (CheckBreak(this) || c==3) {dos.return_code=0;return;}
 	} while (!c || !(ptr = strchr(rem,(optS?c:toupper(c)))));
 	c = optS?c:(uint8_t)toupper(c);
 	DOS_WriteFile (STDOUT,&c, &n);
