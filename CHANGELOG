@@ -1,7 +1,9 @@
 2022.08.0
+  - CHOICE now supports breaking and errors on end of
+    file or pipe instead of freezing DOSBox-X. (Jookia)
   - Fixed debugger commands parsing numbers wrong. (Jookia)
   - Fixed DIR crashing on volumes with more than
-    999,999,999,999 bytes of free space. (Jookia)
+    999,999,999,999 bytes of free space. (Jookia)>>>>>>> master
   - Switched to year.month.patch versioning (Jookia)
   - Fix NE2000 panicking if packets are queued too fast.
     (kcgen, Jookia)
