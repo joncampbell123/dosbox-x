@@ -2599,6 +2599,11 @@ public:
 
             if (IS_PC98_ARCH) {
                 for(i=0;i<bootsize;i++) real_writeb((uint16_t)load_seg, (uint16_t)i, bootarea.rawdata[i]);
+                if (CPU_ArchitectureType >= CPU_ARCHTYPE_386) {
+                    uint64_t address = 0x480;
+                    PageHandler *ph = MEM_GetPageHandler((Bitu)(address>>12));
+                    if (ph->flags & PFLAG_WRITEABLE) host_writeb(ph->GetHostWritePt((Bitu)(address>>12)) + (address&0xFFF), 3);
+                }
             }
             else {
                 for(i=0;i<bootsize;i++) real_writeb(0, (uint16_t)((load_seg<<4) + i), bootarea.rawdata[i]);

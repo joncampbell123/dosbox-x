@@ -4407,6 +4407,7 @@ void DOS_Shell::CMD_COUNTRY(char * args) {
 }
 
 extern bool jfont_init, isDBCSCP();
+extern Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const char * codepagefile);
 void runRescan(const char *str), MSG_Init(), JFONT_Init(), InitFontHandle(), ShutFontHandle(), initcodepagefont(), DOSBox_SetSysMenu();
 int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
     if (isSupportedCP(newCP)) {
@@ -4416,6 +4417,7 @@ int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
 		missing = TTF_using() ? setTTFCodePage() : 0;
 #endif
         if (!TTF_using()) initcodepagefont();
+        if (dos.loaded_codepage==437) DOS_LoadKeyboardLayout("us", 437, "auto");
         if (opt==-1) {
             MSG_Init();
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
@@ -4472,7 +4474,7 @@ void DOS_Shell::CMD_CHCP(char * args) {
 	int newCP;
 	char buff[256], *r;
     int missing = 0, n = sscanf(args, "%d%s", &newCP, buff);
-    if (!TTF_using() && n && newCP != 932 && newCP != 936 && newCP != 949 && newCP != 950 && newCP != 951)
+    if (!TTF_using() && n && newCP != 437 && newCP != 932 && newCP != 936 && newCP != 949 && newCP != 950 && newCP != 951)
     {
         WriteOut("Changing to this code page is only supported for the TrueType font output.\n");
         return;

@@ -266,6 +266,7 @@ void LoadMessageFile(const char * fname) {
 		systemmessagebox("Warning", message.c_str(), "ok","warning", 1);
 		SetVal("dosbox", "language", "");
 		LOG_MSG("MSG:Cannot load language file: %s",fname);
+		control->opt_lang = "";
 		return;
 	}
     msgcodepage = 0;

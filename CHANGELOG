@@ -3,7 +3,7 @@
     file or pipe instead of freezing DOSBox-X. (Jookia)
   - Fixed debugger commands parsing numbers wrong. (Jookia)
   - Fixed DIR crashing on volumes with more than
-    999,999,999,999 bytes of free space. (Jookia)>>>>>>> master
+    999,999,999,999 bytes of free space. (Jookia)
   - Switched to year.month.patch versioning (Jookia)
   - Fix NE2000 panicking if packets are queued too fast.
     (kcgen, Jookia)
@@ -51,6 +51,8 @@
     is called on mode change. This caused lost
     keystrokes, leaving the mapper the impression that
     those keys were still held down. (joncampbell123).
+  - Fixed PC-98 mode MS-DOS 7/Windows 9x boot disk's
+    80386 CPU check. (Wengier)
   - Added support for auto-converting non-image drives
     (such as mounted local drives) to disk images, so
      that they will be visible when booting into guest
