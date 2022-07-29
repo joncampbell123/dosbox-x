@@ -44,7 +44,7 @@ extern bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CRO
 using namespace std;
 
 static bool islfnchar(const char *s) {
-    return (unsigned char)*s <= 32 || (unsigned char)*s == 127 || *s == '.' || *s == '\"' || *s == '+' || *s == '=' || *s == ',' || *s == ';' || *s == ':' || *s == '<' || *s == '>' || *s == '?' || *s == '*';
+    return (unsigned char)*s <= 32 || (unsigned char)*s == 127 || *s == '\"' || *s == '+' || *s == '=' || *s == ',' || *s == ';' || *s == ':' || *s == '<' || *s == '>' || *s == '?' || *s == '*';
 }
 
 ////////////////////////////////////
@@ -1598,10 +1598,14 @@ bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDes
                     c++;
 				} else if ((unsigned char)*s <= 32 || (unsigned char)*s == 127 || *s == '.' || *s == '\"' || *s == '+' || *s == '=' || *s == ',' || *s == ';' || *s == ':' || *s == '<' || *s == '>' || ((*s == '[' || *s == ']' || *s == '|' || *s == '\\')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*s=='?'||*s=='*') {
                     lead = false;
-                    *d++ = '_';
-                    c++;
-                } else if (c >= (8-tailsize)) break;
-                else {
+                    if (*s != '.') {
+                        *d++ = '_';
+                        c++;
+                    }
+                } else if (c >= (8-tailsize)) {
+                    if (s < ext) s = ext;
+                    break;
+                } else {
                     lead = false;
 					*d++ = *s;
 					c++;
@@ -1894,10 +1898,14 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
                     c++;
 				} else if ((unsigned char)*s <= 32 || (unsigned char)*s == 127 || *s == '.' || *s == '\"' || *s == '+' || *s == '=' || *s == ',' || *s == ';' || *s == ':' || *s == '<' || *s == '>' || ((*s == '[' || *s == ']' || *s == '|' || *s == '\\')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*s=='?'||*s=='*') {
                     lead = false;
-                    *d++ = '_';
-                    c++;
-                } else if (c >= (8-tailsize)) break;
-                else {
+                    if (*s != '.') {
+                        *d++ = '_';
+                        c++;
+                    }
+                } else if (c >= (8-tailsize)) {
+                    if (s < ext) s = ext;
+                    break;
+                } else {
                     lead = false;
 					*d++ = *s;
 					c++;
