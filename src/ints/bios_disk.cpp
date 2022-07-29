@@ -703,6 +703,7 @@ struct fatFromDOSDrive
                 sasi.cylinders = 615;
             }
             tsize = BYTESPERSECTOR * sasi.sectors * sasi.surfaces * sasi.cylinders;
+            if (tsize < sum.used_bytes) readOnly = true;
             addFreeMB = readOnly ? 0 :((std::ceil)((double)tsize - sum.used_bytes) / (1024 * 1024) + 1);
         } else
             addFreeMB = (readOnly ? 0 : freeSpaceMB);

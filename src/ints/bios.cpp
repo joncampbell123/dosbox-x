@@ -9102,7 +9102,7 @@ private:
         32
 #endif
         , SDL_STRING);
-        sprintf(logostr[6], "|  Version %7s  |", VERSION);
+        sprintf(logostr[6], "| Version %9s |", VERSION);
         strcpy(logostr[7], "+-------------------+");
 startfunction:
         int logo_x,logo_y,x=2,y=2,rowheight=8;
