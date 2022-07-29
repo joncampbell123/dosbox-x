@@ -1094,6 +1094,8 @@ bool isoDrive::FileOpen(DOS_File **file, const char *name, uint32_t flags) {
 			UDFFileEntryToExtents(fex,fe);
 
 			file_stat.size = (uint32_t)std::min((uint64_t)fe.InformationLength,(uint64_t)0xFFFFFFFF);
+			file_stat.date = DOS_PackDate(fe.ModificationDateAndTime.Year,fe.ModificationDateAndTime.Month,fe.ModificationDateAndTime.Day);
+			file_stat.time = DOS_PackTime(fe.ModificationDateAndTime.Hour,fe.ModificationDateAndTime.Minute,fe.ModificationDateAndTime.Second);
 			file_stat.attr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
 			isoFile *ifile = new isoFile(this, name, &file_stat, 0);
 			ifile->udffext = fex;
@@ -1251,8 +1253,8 @@ bool isoDrive::FindNext(DOS_DTA &dta) {
 					upcase(findName);
 				}
 				uint32_t findSize = (uint32_t)std::min((uint64_t)fe.InformationLength,(uint64_t)0xFFFFFFFF);
-				uint16_t findDate = 0;
-				uint16_t findTime = 0;
+				uint16_t findDate = DOS_PackDate(fe.ModificationDateAndTime.Year,fe.ModificationDateAndTime.Month,fe.ModificationDateAndTime.Day);
+				uint16_t findTime = DOS_PackTime(fe.ModificationDateAndTime.Hour,fe.ModificationDateAndTime.Minute,fe.ModificationDateAndTime.Second);
 				dta.SetResult(findName, lfindName, findSize, 0, findDate, findTime, findAttr);
 				return true;
 			}
@@ -1382,8 +1384,8 @@ bool isoDrive::FileStat(const char *name, FileStat_Block *const stat_block) {
 		bool success = lookup(fid, fe, name);
 
 		if (success) {
-			stat_block->date = 0;//TODO
-			stat_block->time = 0;//TODO
+			stat_block->date = DOS_PackDate(fe.ModificationDateAndTime.Year,fe.ModificationDateAndTime.Month,fe.ModificationDateAndTime.Day);
+			stat_block->time = DOS_PackTime(fe.ModificationDateAndTime.Hour,fe.ModificationDateAndTime.Minute,fe.ModificationDateAndTime.Second);
 			stat_block->size = (uint32_t)std::min((uint64_t)fe.InformationLength,(uint64_t)0xFFFFFFFF);
 			stat_block->attr = DOS_ATTR_ARCHIVE | DOS_ATTR_READ_ONLY;
 			if (fid.FileCharacteristics & 0x02/*Directory*/) stat_block->attr |= DOS_ATTR_DIRECTORY;
