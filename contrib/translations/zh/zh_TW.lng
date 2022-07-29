@@ -2091,7 +2091,7 @@ CHCP nnn[:[語言]]
 
   nnn   指定字碼頁編號.
   檔案  指定字碼頁檔案.
-  語言  指定相應的語言.
+  語言  指定對應的語言.
 
 在 TrueType 字型輸出方式所支援變更的字碼頁包括:
 
@@ -2164,7 +2164,7 @@ DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]
 
 .
 :SHELL_CMD_DEBUGBOX_HELP
-執行程式並在進入點調用偵錯工具.
+執行程式並在進入點切換到偵錯工具.
 
 .
 :SHELL_CMD_DEBUGBOX_HELP_LONG
@@ -2246,7 +2246,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 停止將剪貼簿內容貼上
 .
 :MENU:mapper_ejectpage
-傳送印表機換頁符號
+傳送印表機換頁字元
 .
 :MENU:mapper_printtext
 列印 DOS 畫面文字
@@ -2804,7 +2804,7 @@ DOS
 反轉 Y 軸
 .
 :MENU:dos_mouse_sensitivity
-敏感度
+靈敏度
 .
 :MENU:DOSVerMenu
 報告的 DOS 版本
@@ -2864,10 +2864,10 @@ EMM386 模擬
 限制磁碟傳輸速度
 .
 :MENU:limit_hdd_rate
-限制硬碟數據速率
+限制硬碟資料速率
 .
 :MENU:limit_floppy_rate
-限制軟碟數據速率
+限制軟碟資料速率
 .
 :MENU:DOSWinMenu
 主機系統應用程式
@@ -2993,7 +2993,7 @@ MPEG-TS + H.264
 從磁碟映像開機
 .
 :MENU:drive_saveimg
-另存磁碟映像
+儲存到磁碟映像
 .
 :MENU:HelpMenu
 說明
@@ -3023,7 +3023,7 @@ DOSBox-X 支援
 顯示記錄主控台
 .
 :MENU:disable_logging
-禁用記錄輸出
+停用記錄輸出
 .
 :MENU:wait_on_error
 主控台遇到錯誤時等待
