@@ -1,4 +1,7 @@
 2022.08.0
+  - Fill in PC-98 BIOS data area byte value indicating
+    CPU type (whether 8086, 286, 386 or higher)
+    (Wengier), fill it in at startup (joncampbell123).
   - CHOICE now supports breaking and errors on end of
     file or pipe instead of freezing DOSBox-X. (Jookia)
   - Fixed debugger commands parsing numbers wrong. (Jookia)
