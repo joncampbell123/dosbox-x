@@ -1472,7 +1472,7 @@ void DOS_Shell::CMD_RMDIR(char * args) {
 }
 
 static void FormatNumber(uint64_t num,char * buf) {
-	uint32_t numm,numk,numb,numg,numt;
+	uint32_t numm,numk,numb,numg,numt,nump;
 	numb=num % 1000;
 	num/=1000;
 	numk=num % 1000;
@@ -1481,7 +1481,13 @@ static void FormatNumber(uint64_t num,char * buf) {
 	num/=1000;
 	numg=num % 1000;
 	num/=1000;
-	numt=num;
+	numt=num % 1000;
+	num/=1000;
+	nump=num;
+	if (nump) {
+		sprintf(buf,"%u%c%03u%c%03u%c%03u%c%03u%c%03u",nump,dos.tables.country[7],numt,dos.tables.country[7],numg,dos.tables.country[7],numm,dos.tables.country[7],numk,dos.tables.country[7],numb);
+		return;
+	}
 	if (numt) {
 		sprintf(buf,"%u%c%03u%c%03u%c%03u%c%03u",numt,dos.tables.country[7],numg,dos.tables.country[7],numm,dos.tables.country[7],numk,dos.tables.country[7],numb);
 		return;
