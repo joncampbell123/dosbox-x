@@ -679,7 +679,8 @@ struct fatFromDOSDrive
         readOnly = free_clusters == 0 || freeSpaceMB == 0;
         if (!DriveFileIterator(drv, Iter::SumFileSize, (Bitu)&sum)) return;
 
-        uint32_t usedMB = (uint32_t)sum.used_bytes / (1024*1024), addFreeMB, totalMB, tsize = 0;
+        uint32_t usedMB = sum.used_bytes / (1024*1024), addFreeMB, totalMB, tsizeMB;
+        uint64_t tsize = 0;
         if (IS_PC98_ARCH) {
             if (usedMB < 6) {
                 sasi.sectors = 33;
@@ -699,12 +700,19 @@ struct fatFromDOSDrive
                 sasi.cylinders = 310;
             } else {
                 sasi.sectors = 33;
-                sasi.surfaces = (std::ceil)((double)(usedMB+(readOnly?0:5))/10);
-                sasi.cylinders = 615;
+                uint32_t heads = (std::ceil)((double)(usedMB+(readOnly?0:(usedMB>=2047?freeSpaceMB:5)))/10);
+                if (heads > 255) {
+                    sasi.surfaces = 255;
+                    sasi.cylinders = heads * 615 / 255;
+                } else {
+                    sasi.surfaces = heads;
+                    sasi.cylinders = 615;
+                }
             }
             tsize = BYTESPERSECTOR * sasi.sectors * sasi.surfaces * sasi.cylinders;
-            if (tsize < sum.used_bytes) readOnly = true;
-            addFreeMB = readOnly ? 0 :((std::ceil)((double)tsize - sum.used_bytes) / (1024 * 1024) + 1);
+            tsizeMB = sasi.sectors * sasi.surfaces * sasi.cylinders / (1024 * 1024 / BYTESPERSECTOR);
+            if (tsizeMB < usedMB) readOnly = true;
+            addFreeMB = readOnly ? 0 : (usedMB >= 2047 ? freeSpaceMB : ((std::ceil)((double)tsize - sum.used_bytes) / (1024 * 1024) + 1));
         } else
             addFreeMB = (readOnly ? 0 : freeSpaceMB);
         totalMB = usedMB + (addFreeMB ? (1 + addFreeMB) : 0);
@@ -762,7 +770,7 @@ struct fatFromDOSDrive
             memset(&hdi, 0, sizeof(hdi));
         //	STOREINTELDWORD(hdi.hddtype, 0);
             STOREINTELDWORD(hdi.headersize, 4096);
-            STOREINTELDWORD(hdi.hddsize, tsize);
+            STOREINTELDWORD(hdi.hddsize, (uint32_t)tsize);
             STOREINTELDWORD(hdi.sectorsize, BYTESPERSECTOR);
             STOREINTELDWORD(hdi.sectors, sasi.sectors);
             STOREINTELDWORD(hdi.surfaces, sasi.surfaces);

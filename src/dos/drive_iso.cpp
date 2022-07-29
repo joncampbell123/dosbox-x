@@ -43,6 +43,10 @@ extern bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CRO
 
 using namespace std;
 
+static bool islfnchar(const char *s) {
+    return (unsigned char)*s <= 32 || (unsigned char)*s == 127 || *s == '.' || *s == '\"' || *s == '+' || *s == '=' || *s == ',' || *s == ';' || *s == ':' || *s == '<' || *s == '>' || *s == '?' || *s == '*';
+}
+
 ////////////////////////////////////
 
 /*From Linux kernel source*/
@@ -1549,7 +1553,7 @@ bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDes
 			const char *s = (const char*)fullname;
 			while (*s != 0) {
 				if (*s == '.') break;
-				if (*s == ' ' || *s == '\'' || *s == '\"') lfn = true;
+				if (islfnchar(s)) lfn = true;
 				nl++;
 				s++;
 			}
@@ -1564,7 +1568,7 @@ bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDes
 					periods++;
 					ext = s+1;
 				}
-				if (*s == ' ' || *s == '\'' || *s == '\"') lfn = true;
+				if (islfnchar(s)) lfn = true;
 				el++;
 				s++;
 			}
@@ -1592,6 +1596,8 @@ bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDes
                     c++;
 				} else if ((unsigned char)*s <= 32 || (unsigned char)*s == 127 || *s == '.' || *s == '\"' || *s == '+' || *s == '=' || *s == ',' || *s == ';' || *s == ':' || *s == '<' || *s == '>' || ((*s == '[' || *s == ']' || *s == '|' || *s == '\\')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*s=='?'||*s=='*') {
                     lead = false;
+                    *d++ = '_';
+                    c++;
                 } else if (c >= (8-tailsize)) break;
                 else {
                     lead = false;
@@ -1616,6 +1622,8 @@ bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDes
                             c++;
 						} else if ((unsigned char)*s <= 32 || (unsigned char)*s == 127 || *s == '.' || *s == '\"' || *s == '+' || *s == '=' || *s == ',' || *s == ';' || *s == ':' || *s == '<' || *s == '>' || ((*s == '[' || *s == ']' || *s == '|' || *s == '\\')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*s=='?'||*s=='*') {
                             lead = false;
+                            *d++ = '_';
+                            c++;
                         } else if (c >= 3) break;
                         else {
 							*d++ = *s;
@@ -1841,7 +1849,7 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 			const char *s = (const char*)fullname;
 			while (*s != 0) {
 				if (*s == '.') break;
-				if (*s == ' ' || *s == '\'' || *s == '\"') lfn = true;
+				if (islfnchar(s)) lfn = true;
 				nl++;
 				s++;
 			}
@@ -1856,7 +1864,7 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 					periods++;
 					ext = s+1;
 				}
-				if (*s == ' ' || *s == '\'' || *s == '\"') lfn = true;
+				if (islfnchar(s)) lfn = true;
 				el++;
 				s++;
 			}
@@ -1884,6 +1892,8 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
                     c++;
 				} else if ((unsigned char)*s <= 32 || (unsigned char)*s == 127 || *s == '.' || *s == '\"' || *s == '+' || *s == '=' || *s == ',' || *s == ';' || *s == ':' || *s == '<' || *s == '>' || ((*s == '[' || *s == ']' || *s == '|' || *s == '\\')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*s=='?'||*s=='*') {
                     lead = false;
+                    *d++ = '_';
+                    c++;
                 } else if (c >= (8-tailsize)) break;
                 else {
                     lead = false;
@@ -1908,6 +1918,8 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
                             c++;
 						} else if ((unsigned char)*s <= 32 || (unsigned char)*s == 127 || *s == '.' || *s == '\"' || *s == '+' || *s == '=' || *s == ',' || *s == ';' || *s == ':' || *s == '<' || *s == '>' || ((*s == '[' || *s == ']' || *s == '|' || *s == '\\')&&(!lead||((dos.loaded_codepage==936||IS_PDOSV)&&!gbk)))||*s=='?'||*s=='*') {
                             lead = false;
+                            *d++ = '_';
+                            c++;
                         } else if (c >= 3) break;
                         else {
 							*d++ = *s;
