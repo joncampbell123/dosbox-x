@@ -771,6 +771,7 @@ void CopyClipboard(int all) {
     morelen=true;
     baselen=0;
     for (std::string token; std::getline(iss, token); ) {
+        if (token.size() && token.back() == 13) token.pop_back();
         if (CodePageGuestToHostUTF8(temp,token.c_str()))
             result+=temp;
         else
