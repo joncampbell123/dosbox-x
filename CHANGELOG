@@ -46,6 +46,8 @@
   - SDL_Net support is available for HX-DOS builds,
     similar to other builds. Packet driver is needed
     for network capability in DOS. (Wengier)
+  - Fixed line endings when copying to shared clipboard
+    (e.g. CLIP$) in non-Windows platforms. (Wengier)
   - Fixed problems with SDL1 Windows builds in which
     the user had to type the Fullscreen mapper shortcut
     twice. It seems a SDL1 library function that is

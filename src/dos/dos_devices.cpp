@@ -438,7 +438,11 @@ private:
 						break;
 					case 10:															// Linefeed (combination)
 					case 13:
+#if defined(WIN32)
 						fwrite("\x0d\x00\x0a\x00", 1, 4, fh);
+#else
+						fwrite("x0a\x00", 1, 2, fh);
+#endif
 						if (i < rawdata.size() -1 && textChar == 23-rawdata[i+1])
 							i++;
 						break;
@@ -481,6 +485,7 @@ private:
             std::string result="";
             std::istringstream iss(contents.c_str());
             for (std::string token; std::getline(iss, token); ) {
+                if (token.size() && token.back() == 13) token.pop_back();
                 char* uname = CodePageGuestToHost(token.c_str());
                 result+=(uname!=NULL?std::string(uname):token)+std::string(1, 10);
             }

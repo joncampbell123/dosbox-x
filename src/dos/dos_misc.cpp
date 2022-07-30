@@ -39,6 +39,10 @@ bool ANSI_SYS_installed();
 #if defined(MACOSX)
 bool SetClipboard(std::string value);
 #endif
+#if (!defined(WIN32) && defined(C_SDL2)) || defined(MACOSX)
+typedef char host_cnv_char_t;
+host_cnv_char_t *CodePageGuestToHost(const char *s);
+#endif
 
 extern bool enable_share_exe, enable_network_redirector;
 
@@ -469,8 +473,7 @@ static bool DOS_MultiplexFunctions(void) {
             std::istringstream iss(text);
             std::string result="";
             for (std::string token; std::getline(iss, token); ) {
-                typedef char host_cnv_char_t;
-                host_cnv_char_t *CodePageGuestToHost(const char *s);
+                if (token.size() && token.back() == 13) token.pop_back();
                 char* uname = CodePageGuestToHost(token.c_str());
                 result+=(uname!=NULL?std::string(uname):token)+std::string(1, 10);
             }
