@@ -43,7 +43,6 @@ extern bool int13_extensions_enable, bootguest, bootvm, use_quick_reboot;
 extern bool isDBCSCP(), isKanji1_gbk(uint8_t chr), shiftjis_lead_byte(int c);
 extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 
-#define TOFAT_TIMEOUT 4000
 #define STATIC_ASSERTM(A,B) static_assertion_##A##_##B
 #define STATIC_ASSERTN(A,B) STATIC_ASSERTM(A,B)
 #define STATIC_ASSERT(cond) typedef char STATIC_ASSERTN(__LINE__,__COUNTER__)[(cond)?1:-1]
@@ -57,13 +56,13 @@ uint32_t DriveCalculateCRC32(const uint8_t *ptr, size_t len, uint32_t crc)
 	return ~crcu32;
 }
 
-bool DriveFileIterator(DOS_Drive* drv, void(*func)(const char* path, bool is_dir, uint32_t size, uint16_t date, uint16_t time, uint8_t attr, Bitu data), Bitu data)
+bool DriveFileIterator(DOS_Drive* drv, void(*func)(const char* path, bool is_dir, uint32_t size, uint16_t date, uint16_t time, uint8_t attr, Bitu data), Bitu data, int timeout)
 {
 	if (!drv) return true;
 	uint32_t starttick = GetTicks();
 	struct Iter
 	{
-		static bool ParseDir(DOS_Drive* drv, uint32_t startticks, const std::string& dir, std::vector<std::string>& dirs, void(*func)(const char* path, bool is_dir, uint32_t size, uint16_t date, uint16_t time, uint8_t attr, Bitu data), Bitu data)
+		static bool ParseDir(DOS_Drive* drv, uint32_t startticks, const std::string& dir, std::vector<std::string>& dirs, void(*func)(const char* path, bool is_dir, uint32_t size, uint16_t date, uint16_t time, uint8_t attr, Bitu data), Bitu data, int timeout)
 		{
 			size_t dirlen = dir.length();
 			if (dirlen + DOS_NAMELENGTH >= DOS_PATHLENGTH) return true;
@@ -81,7 +80,7 @@ bool DriveFileIterator(DOS_Drive* drv, void(*func)(const char* path, bool is_dir
 			dta.SetupSearch(255, (uint8_t)(0xffff & ~DOS_ATTR_VOLUME), (char*)"*.*");
 			for (bool more = drv->FindFirst((char*)dir.c_str(), dta); more; more = drv->FindNext(dta))
 			{
-                if (startticks && GetTicks()-startticks > TOFAT_TIMEOUT) {
+                if (startticks && timeout > 0 && GetTicks()-startticks > timeout * 1000) {
                     LOG_MSG("Timeout iterating directories");
                     dos.dta(save_dta);
                     return false;
@@ -106,7 +105,7 @@ bool DriveFileIterator(DOS_Drive* drv, void(*func)(const char* path, bool is_dir
 	{
 		std::swap(dirs.back(), dir);
 		dirs.pop_back();
-		if (!Iter::ParseDir(drv, starttick, dir.c_str(), dirs, func, data)) return false;
+		if (!Iter::ParseDir(drv, starttick, dir.c_str(), dirs, func, data, timeout)) return false;
 	}
 	return true;
 }
@@ -422,7 +421,7 @@ struct fatFromDOSDrive
 			if (df) { df->Close(); delete df; }
 	}
 
-	fatFromDOSDrive(DOS_Drive* drv, int freeMB) : drive(drv)
+	fatFromDOSDrive(DOS_Drive* drv, int freeMB, int timeout) : drive(drv)
 	{
 		cacheSectorNumber[0] = 1; // must not state that sector 0 is already cached
 		memset(&cacheSectorNumber[1], 0, sizeof(cacheSectorNumber) - sizeof(cacheSectorNumber[0]));
@@ -677,7 +676,7 @@ struct fatFromDOSDrive
         rsize=false;
         tomany=false;
         readOnly = free_clusters == 0 || freeSpaceMB == 0;
-        if (!DriveFileIterator(drv, Iter::SumFileSize, (Bitu)&sum)) return;
+        if (!DriveFileIterator(drv, Iter::SumFileSize, (Bitu)&sum, timeout)) return;
 
         uint32_t usedMB = sum.used_bytes / (1024*1024), addFreeMB, totalMB, tsizeMB;
         uint64_t tsize = 0;
@@ -1632,9 +1631,9 @@ imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint32_t imgSizeK, bool
     }
 }
 
-imageDisk::imageDisk(class DOS_Drive *useDrive, unsigned int letter, int freeMB)
+imageDisk::imageDisk(class DOS_Drive *useDrive, unsigned int letter, int freeMB, int timeout)
 {
-	ffdd = new fatFromDOSDrive(useDrive, freeMB);
+	ffdd = new fatFromDOSDrive(useDrive, freeMB, timeout);
 	if (!ffdd->success) {
 		LOG_MSG("FAT conversion failed");
 		delete ffdd;

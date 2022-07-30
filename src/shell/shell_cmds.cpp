@@ -1472,7 +1472,8 @@ void DOS_Shell::CMD_RMDIR(char * args) {
 }
 
 static void FormatNumber(uint64_t num,char * buf) {
-	uint32_t numm,numk,numb,numg,numt,nump;
+	uint64_t numo = num;
+	uint32_t numb,numk,numm,numg,nummi,numgi,numti,numpi,numei;
 	numb=num % 1000;
 	num/=1000;
 	numk=num % 1000;
@@ -1480,16 +1481,26 @@ static void FormatNumber(uint64_t num,char * buf) {
 	numm=num % 1000;
 	num/=1000;
 	numg=num % 1000;
-	num/=1000;
-	numt=num % 1000;
-	num/=1000;
-	nump=num;
-	if (nump) {
-		sprintf(buf,"%u%c%03u%c%03u%c%03u%c%03u%c%03u",nump,dos.tables.country[7],numt,dos.tables.country[7],numg,dos.tables.country[7],numm,dos.tables.country[7],numk,dos.tables.country[7],numb);
+	numo/=1024;
+	numo/=1024;
+	nummi=(numo % 1024) / 10.24 + 0.5;
+	numo/=1024;
+	numgi=numo % 1000;
+	numo/=1000;
+	numti=numo % 1000;
+	numo/=1000;
+	numpi=numo % 1000;
+	numei=numo / 1000;
+	if (numei) {
+		sprintf(buf,"%u%c%03u%c%03u%c%03u%c%02u G",numei,dos.tables.country[7],numpi,dos.tables.country[7],numti,dos.tables.country[7],numgi,dos.tables.country[9],nummi);
 		return;
 	}
-	if (numt) {
-		sprintf(buf,"%u%c%03u%c%03u%c%03u%c%03u",numt,dos.tables.country[7],numg,dos.tables.country[7],numm,dos.tables.country[7],numk,dos.tables.country[7],numb);
+	if (numpi) {
+		sprintf(buf,"%u%c%03u%c%03u%c%02u G",numpi,dos.tables.country[7],numti,dos.tables.country[7],numgi,dos.tables.country[9],nummi);
+		return;
+	}
+	if (numti) {
+		sprintf(buf,"%u%c%03u%c%02u G",numti,dos.tables.country[7],numgi,dos.tables.country[9],nummi);
 		return;
 	}
 	if (numg) {

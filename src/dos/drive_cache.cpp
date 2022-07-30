@@ -776,15 +776,17 @@ DOS_Drive_Cache::CFileInfo* DOS_Drive_Cache::FindDirInfo(const char* path, char*
     } while (pos);
 
     // Save last result for faster access next time
-    strcpy(save_path,path);
-    strcpy(save_expanded,expandedPath);
-    save_dir = curDir;
+    if (strlen(expandedPath) < CROSS_LEN) {
+        strcpy(save_path,path);
+        strcpy(save_expanded,expandedPath);
+        save_dir = curDir;
+    }
 
     return curDir;
 }
 
 bool DOS_Drive_Cache::OpenDir(const char* path, uint16_t& id) {
-    char expand[CROSS_LEN] = {0};
+    char expand[CROSS_LEN + LFN_NAMELENGTH] = {0};
     CFileInfo* dir = FindDirInfo(path,expand);
     if (OpenDir(dir,expand,id)) {
         dirSearch[id]->nextEntry = 0;
@@ -794,6 +796,7 @@ bool DOS_Drive_Cache::OpenDir(const char* path, uint16_t& id) {
 }
 
 bool DOS_Drive_Cache::OpenDir(CFileInfo* dir, const char* expand, uint16_t& id) {
+    if (strlen(expand)>=CROSS_LEN-1) return false;
     id = GetFreeID(dir);
     dirSearch[id] = dir;
     char expandcopy [CROSS_LEN];

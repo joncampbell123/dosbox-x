@@ -485,8 +485,9 @@ bool drive_saveimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
             return true;
         }
     if (dos_kernel_disabled || !strcmp(RunningProgram, "LOADLIN")) return false;
-    int freeMB = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_int("convert fat free space");
-    imageDisk *imagedrv = new imageDisk(Drives[drive], drive, freeMB);
+    Section_prop *sec = static_cast<Section_prop *>(control->GetSection("dosbox"));
+    int freeMB = sec->Get_int("convert fat free space"), timeout = sec->Get_int("convert fat timeout");
+    imageDisk *imagedrv = new imageDisk(Drives[drive], drive, freeMB, timeout);
     if (!saveDiskImage(imagedrv, lTheSaveFileName)) systemmessagebox("Error", "Failed to save disk image.", "ok","error", 1);
     if (imagedrv) delete imagedrv;
 

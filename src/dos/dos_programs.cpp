@@ -2539,7 +2539,8 @@ public:
             const uint8_t page=real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
             if (!dos_kernel_disabled && (convimg == 1 || (convertimg && convimg == -1))) {
                 unsigned int drv = 2, nextdrv = 2;
-                int freeMB = static_cast<Section_prop *>(control->GetSection("dosbox"))->Get_int("convert fat free space");
+                Section_prop *sec = static_cast<Section_prop *>(control->GetSection("dosbox"));
+                int freeMB = sec->Get_int("convert fat free space"), timeout = sec->Get_int("convert fat timeout");
                 for (unsigned int d=2;d<DOS_DRIVES+2;d++) {
                     if (d==DOS_DRIVES) drv=0;
                     else if (d==DOS_DRIVES+1) drv=1;
@@ -2566,7 +2567,7 @@ public:
                             }
                         }
                         Overlay_Drive *od = dynamic_cast<Overlay_Drive*>(Drives[drv]);
-                        imageDisk *imagedrv = new imageDisk(Drives[drv], drv, (convertro || Drives[drv]->readonly || (od && od->ovlreadonly)) ? 0 : freeMB);
+                        imageDisk *imagedrv = new imageDisk(Drives[drv], drv, (convertro || Drives[drv]->readonly || (od && od->ovlreadonly)) ? 0 : freeMB, timeout);
                         if (imagedrv && imagedrv->ffdd) {
                             imageDiskList[nextdrv] = imagedrv;
                             bool ide_slave = false;

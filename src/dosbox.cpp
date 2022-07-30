@@ -1798,6 +1798,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help("If set, auto-converted FAT images will have the specified free space in MB (except PC-98 FAT12/16 HDI) if less than the actual free space.\n"
                    "If set to 0, the converted disk will be read-only; if set to -1, the actual free space on host drive will be used for the converted disk.");
 
+    Pint = secprop->Add_int("convert fat timeout", Property::Changeable::WhenIdle,4);
+    Pint->Set_help("If set to a positive integer, the FAT auto-conversion will time out after the specified number of seconds.");
+
     Pbool = secprop->Add_bool("leading colon write protect image",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, BOOT and IMGMOUNT commands will put an image file name with a leading colon (:) in write-protect mode.");
 

@@ -65,7 +65,7 @@ class imageDisk {
 		virtual void Get_Geometry(uint32_t * getHeads, uint32_t *getCyl, uint32_t *getSect, uint32_t *getSectSize);
 		virtual uint8_t GetBiosType(void);
 		virtual uint32_t getSectSize(void);
-		imageDisk(class DOS_Drive *useDrive, unsigned int letter, int freeMB);
+		imageDisk(class DOS_Drive *useDrive, unsigned int letter, int freeMB, int timeout);
 		imageDisk(FILE *imgFile, const char *imgName, uint32_t imgSizeK, bool isHardDisk);
 		imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, uint32_t heads, uint32_t sectors, uint32_t sector_size, bool hardDrive);
 		virtual ~imageDisk();
@@ -402,7 +402,7 @@ public:
         (void)data;//UNUSED
         return 0x05; /* fail, read only */
     }
-    imageDiskElToritoFloppy(unsigned char new_CDROM_drive,unsigned long new_cdrom_sector_offset,unsigned char floppy_emu_type) : imageDisk(NULL,NULL,0,false) {
+    imageDiskElToritoFloppy(unsigned char new_CDROM_drive,unsigned long new_cdrom_sector_offset,unsigned char floppy_emu_type) : imageDisk((FILE *)NULL,NULL,0,false) {
         diskimg = NULL;
         sector_size = 512;
         CDROM_drive = new_CDROM_drive;
