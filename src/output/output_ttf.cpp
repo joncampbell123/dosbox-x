@@ -240,9 +240,9 @@ void setVGADAC() {
             IO_WriteB(VGAREG_ACTL_ADDRESS, i+32);
             imap[i]=IO_ReadB(VGAREG_ACTL_READ_DATA);
             IO_WriteB(VGAREG_DAC_WRITE_ADDRESS, imap[i]);
-            IO_WriteB(VGAREG_DAC_DATA, (altBGR1[i].red+2)*63/255);
-            IO_WriteB(VGAREG_DAC_DATA, (altBGR1[i].green+2)*63/255);
-            IO_WriteB(VGAREG_DAC_DATA, (altBGR1[i].blue+2)*63/255);
+            IO_WriteB(VGAREG_DAC_DATA, (altBGR1[i].red+3)*63/255);
+            IO_WriteB(VGAREG_DAC_DATA, (altBGR1[i].green+3)*63/255);
+            IO_WriteB(VGAREG_DAC_DATA, (altBGR1[i].blue+3)*63/255);
         }
     }
 }

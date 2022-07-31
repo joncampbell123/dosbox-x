@@ -469,19 +469,19 @@ void dosbox_integration_trigger_read() {
         case 4: /* current emulator time as 16.16 fixed point */
             dosbox_int_register = (uint32_t)(PIC_FullIndex() * 0x10000);
             break;
-        case 5: // DOSBox-X version number major (e.g. 0)
+        case 5: // DOSBox-X version number major (e.g. 2022)
         {
             const char * ver = strchr(VERSION, '.');
-            dosbox_int_register = ver == NULL ? 0 : atoi(std::string(ver).substr(0, strlen(ver) - strlen(VERSION)).c_str());
+            dosbox_int_register = ver == NULL ? 0 : atoi(std::string(VERSION).substr(0, strlen(ver) - strlen(VERSION)).c_str());
             break;
         }
-        case 6: // DOSBox-X version number minor (e.g. 84)
+        case 6: // DOSBox-X version number minor (e.g. 8)
         {
             const char * ver = strchr(VERSION, '.');
             dosbox_int_register = ver == NULL ? 0 : atoi(ver + 1);
             break;
         }
-        case 7: // DOSBox-X version number sub (e.g. 1)
+        case 7: // DOSBox-X version number sub (e.g. 0)
         {
             const char * ver = strchr(VERSION, '.');
             ver = strchr(ver + 1, '.');

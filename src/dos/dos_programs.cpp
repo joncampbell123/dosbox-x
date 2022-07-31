@@ -7730,9 +7730,9 @@ bool setVGAColor(const char *colorArray, int i) {
     IO_WriteB(VGAREG_ACTL_ADDRESS, i+32);
     uint8_t imap=IO_ReadB(VGAREG_ACTL_READ_DATA);
     IO_WriteB(VGAREG_DAC_WRITE_ADDRESS, imap);
-    IO_WriteB(VGAREG_DAC_DATA, (rgbVal[0]+2)*63/255);
-    IO_WriteB(VGAREG_DAC_DATA, (rgbVal[1]+2)*63/255);
-    IO_WriteB(VGAREG_DAC_DATA, (rgbVal[2]+2)*63/255);
+    IO_WriteB(VGAREG_DAC_DATA, (rgbVal[0]+3)*63/255);
+    IO_WriteB(VGAREG_DAC_DATA, (rgbVal[1]+3)*63/255);
+    IO_WriteB(VGAREG_DAC_DATA, (rgbVal[2]+3)*63/255);
     return true;
 }
 

@@ -2076,11 +2076,17 @@ bool isoDrive :: loadImage() {
 	is_udf = false;
 	dataCD = false;
 
-	if (enable_udf && loadImageUDF()) {
+	if (loadImageUDF()) {
 		LOG(LOG_MISC,LOG_DEBUG)("ISO: UDF filesystem detected");
-		is_udf = true;
-		dataCD = true;
-		return true;
+		if (enable_udf) {
+			is_udf = true;
+			dataCD = true;
+			return true;
+		} else if (dos.version.major < 7 || (dos.version.major == 7 && dos.version.minor < 10)) {
+			const char *msg = "This is a UDF image which requires a reported DOS version of 7.10 to mount.\r\n";
+			uint16_t n = (uint16_t)strlen(msg);
+			DOS_WriteFile (STDOUT,(uint8_t *)msg, &n);
+		}
 	}
 
 	/* scan the volume descriptors */

@@ -105,6 +105,8 @@
   - When changing TTF font, DOSBox-X will try to show
     the number of missing characters in the new TTF
     font (if any). (Wengier)
+  - Fixed color becoming darker after changing TTF font
+    multiples times in TTF output. (Wengier)
   - Fixed display of individual/total file sizes with
     DIR command when they are very large. (Wengier)
   - Fixed non-US code page conversions for mounted FAT
