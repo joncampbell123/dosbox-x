@@ -143,13 +143,13 @@ void getlogtext(std::string &str), getcodetext(std::string &text), ApplySetting(
 void ttf_switch_on(bool ss=true), ttf_switch_off(bool ss=true), setAspectRatio(Section_prop * section), GFX_ForceRedrawScreen(void), SetWindowTransparency(int trans);
 bool CheckQuit(void), OpenGL_using(void);
 char tmp1[CROSS_LEN*2], tmp2[CROSS_LEN];
-const char *aboutmsg = "DOSBox-X version " VERSION " (" SDL_STRING ", "
+const char *aboutmsg = "DOSBox-X version " VERSION " ("
 #if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_IA64) || defined(__ia64__) || defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__) || defined(__powerpc64__)
 	"64"
 #else
 	"32"
 #endif
-	"-bit)\nBuild date/time: " UPDATED_STR "\nCopyright 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nProject maintainer: joncampbell123\nDOSBox-X homepage: https://dosbox-x.com";
+	"-bit " SDL_STRING ")\nBuild date/time: " UPDATED_STR "\nCopyright 2011-" COPYRIGHT_END_YEAR " The DOSBox-X Team\nProject maintainer: joncampbell123\nDOSBox-X homepage: https://dosbox-x.com";
 
 void RebootConfig(std::string filename, bool confirm=false) {
     std::string exepath=GetDOSBoxXPath(true), para="-conf \""+filename+"\"";

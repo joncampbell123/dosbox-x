@@ -1504,7 +1504,8 @@ static void FormatNumber(uint64_t num,char * buf) {
 		return;
 	}
 	if (numg) {
-		sprintf(buf,"%u%c%03u%c%03u%c%03u",numg,dos.tables.country[7],numm,dos.tables.country[7],numk,dos.tables.country[7],numb);
+		if (numgi>127) sprintf(buf,"%u%c%02u G",numgi,dos.tables.country[9],nummi);
+		else sprintf(buf,"%u%c%03u%c%03u%c%03u",numg,dos.tables.country[7],numm,dos.tables.country[7],numk,dos.tables.country[7],numb);
 		return;
 	}
 	if (numm) {
