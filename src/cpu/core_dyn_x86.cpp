@@ -169,7 +169,7 @@ static struct {
 } decoder_pagefault;
 
 #if defined(X86_DYNFPU_DH_ENABLED)
-static struct dyn_dh_fpu {
+static struct dyn_dh_fpu_struct {
 	uint16_t	cw,host_cw;
 	bool		state_used;
 	// some fields expanded here for alignment purposes

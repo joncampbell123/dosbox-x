@@ -1353,13 +1353,13 @@ static void gen_dh_fpu_saveInit(void) {
 	else opcode(0).set64().setimm(addr,8).Emit8Reg(0xB8);
 
 	// fnsave [dyn_dh_fpu.state]
-	opcode(6).setea(0,-1,0,offsetof(struct dyn_dh_fpu,state)).Emit8(0xdd);
+	opcode(6).setea(0,-1,0,offsetof(dyn_dh_fpu_struct,state)).Emit8(0xdd);
 	// fldcw [dyn_dh_fpu.host_cw]
-	opcode(5).setea(0,-1,0,offsetof(struct dyn_dh_fpu,host_cw)).Emit8(0xd9);
+	opcode(5).setea(0,-1,0,offsetof(dyn_dh_fpu_struct,host_cw)).Emit8(0xd9);
 	// mov byte [dyn_dh_fpu.state_used], 0
-	opcode(0).setimm(0,1).setea(0,-1,0,offsetof(struct dyn_dh_fpu,state_used)).Emit8(0xc6);
+	opcode(0).setimm(0,1).setea(0,-1,0,offsetof(dyn_dh_fpu_struct,state_used)).Emit8(0xc6);
 	// or byte [dyn_dh_fpu.state.cw], 0x3F
-	opcode(1).setimm(0x3F,1).setea(0,-1,0,offsetof(struct dyn_dh_fpu,state.cw)).Emit8(0x80);
+	opcode(1).setimm(0x3F,1).setea(0,-1,0,offsetof(dyn_dh_fpu_struct,state.cw)).Emit8(0x80);
 	cache_addb(0xC3); // RET
 
 	cache.pos = oldpos;
