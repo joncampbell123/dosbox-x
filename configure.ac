@@ -160,7 +160,7 @@ else
     CXXFLAGS="$CXXFLAGS -std=gnu++14";
 fi
 
-dnl yksoft1 wants a MinGW build for Windows that doesn't use the Windows menu system.
+dnl Allow the SDL drawn menu to be enabled on Windows or macOS instead of their native menu system.
 AH_TEMPLATE(C_FORCE_MENU_SDLDRAW,[Define to 1 to force SDL-drawn menus])
 AC_ARG_ENABLE(force-menu-sdldraw,AC_HELP_STRING([--enable-force-menu-sdldraw],[Force SDL drawn menus]),enable_force_menu_sdldraw=yes)
 
