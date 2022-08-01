@@ -75,6 +75,7 @@ cp $hxdir/DPMILD32.EXE . || exit 1
 cp $hxdir/HDPMI32.EXE . || exit 1
 cp $hxdir/HXGUIHLP.INI . || exit 1
 cp $hxdir/README.TXT . || exit 1
+cp $hxdir/WATTCP.CFG . || exit 1
 cp $hxdir/WINSPOOL.DRV . || exit 1
 cp $hxdir/*.DLL . || exit 1
 mkdir -p drivez || exit 1

@@ -60,6 +60,7 @@ jobs:
           cp $top/build-scripts/mingw/hxdos-bin/HDPMI32.EXE $top/package/
           cp $top/build-scripts/mingw/hxdos-bin/HXGUIHLP.INI $top/package/
           cp $top/build-scripts/mingw/hxdos-bin/README.TXT $top/package/
+          cp $top/build-scripts/mingw/hxdos-bin/WATTCP.CFG $top/package/
           cp $top/build-scripts/mingw/hxdos-bin/WINSPOOL.DRV $top/package/
           cp $top/build-scripts/mingw/hxdos-bin/*.DLL $top/package/
           mkdir -p $top/package/drivez
