@@ -1,0 +1,255 @@
+
+
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8'>
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <meta name="description" content="DOSBox-X: Free, cross-platform and complete DOS, Windows 3.x and 9x emulation package">
+
+    <link rel="stylesheet" type="text/css" media="screen" href="css/style.css">
+
+    <script type="text/javascript" src="js/script.js"></script>
+    <title>DOSBox-X - Accurate DOS emulation for Windows, Linux, macOS, and DOS</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <table width="100%" style="border: hidden">
+        <tr>
+        <td width="25%" style="border: hidden; min-width: 300px; text-align: center">
+          &nbsp;<p />&nbsp;<br/>
+          <img id="dosbox-x-logo" src="images/dosbox-x-logo.svg" title="DOSBox-X" alt="DOSBox-X logo" style="width:90px" />
+        </td><td>&nbsp;<p />
+          <h1 id="project_title">DOSBox-X</h1>
+          <h2 id="project_tagline">Cross-platform DOS emulation package<br />Complete, accurate emulation and more</h2>
+        </td>
+        </tr>
+        </table>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer"; style="background-color: #fafacf">
+        <div style="text-align: center">
+            <h3 style="padding-top: 10px">DOSBox-X 0.84.2 (2022.08.0) Release Notes</h3>
+            <h4 style="padding-bottom: 15px; font-weight: normal">Release Date: <span style="color: green">August 1, 2022</span></h4>
+            Please report any issues in our <a href="https://github.com/joncampbell123/dosbox-x/issues">issue tracker</a>.</p>
+            <p>Also, make sure to check out our <a href="wiki">Wiki guide</a>.</p>
+            <h4>New in This Version</h4>
+
+            <table width="100%" style="border: hidden">
+            <tr>
+            <td width="20%" style="border: hidden"></td>
+            <td width="60%" style="border: hidden; text-align: left">
+<ul>
+<li>
+    Fill in PC-98 BIOS data area byte value indicating
+    CPU type (whether 8086, 286, 386 or higher)
+    (Wengier), fill it in at startup (joncampbell123).
+</li>
+<li>
+    CHOICE now supports breaking and errors on end of
+    file or pipe instead of freezing DOSBox-X. (Jookia)
+</li>
+<li>
+    Fixed debugger commands parsing numbers wrong. (Jookia)
+</li>
+<li>
+    Fixed DIR crashing on volumes with more than
+    999,999,999,999 bytes of free space. (Jookia)
+</li>
+<li>
+    Switched to year.month.patch versioning (Jookia)
+</li>
+<li>
+    Fix NE2000 panicking if packets are queued too fast.
+    (kcgen, Jookia)
+</li>
+<li>
+    Fix ISO image format detection to support pure
+    UDF formatted images, meaning that the image
+    lacks any ISO 9660 features and contains only
+    UDF. (joncampbell123).
+</li>
+<li>
+    Added support for UDF filesystem to ISO image
+    handling. It is enabled by default if emulating
+    MS-DOS 7.10 (aka Windows 98) or higher.
+    (joncampbell123).
+</li>
+<li>
+    Added code to detect Rock Ridge according to the
+    System Use Sharing Protocol standard, and to
+    read the SUSP entries correctly for the alternate
+    name, if enabled. (joncampbell123)
+</li>
+<li>
+    Updated ISO MSCDEX drive emulation to scan the
+    available volumes in the ISO image rather than
+    assume the first volume, which makes Joilet
+    support possible if long filenames are enabled
+    and the DOS version is 7.0 or higher. (joncampbell123).
+</li>
+<li>
+    Add IMGMOUNT -o option for ISO filesystem support
+    to enable/disable Joliet extensions, which is a
+    Microsoft extension to ISO 9660 where long names
+    encoded using Unicode UCS-16 exist as a supplementary
+    volume in the ISO image and are used by Windows 95
+    and higher to support long filenames on CD-ROM.
+    Added support for reading the Joliet volume and
+    providing them for both the 8.3 and long filename
+    APIs in DOS. (joncampbell123).
+</li>
+<li>
+    Add IMGMOUNT -o option for ISO filesystem support
+    to enable/disable Rock Ridge long filename support.
+    The option is -o rr=1 to enable and -o rr=0 to
+    disable. (joncampbell123).
+</li>
+<li>
+    Fixed 8.3 name generations on ISO drives with Rock
+    Ridge extension. The ISO drives can be refreshed
+    via RESCAN command like other drives. (Wengier)
+</li>
+<li>
+    SDL_Net support is available for HX-DOS builds,
+    similar to other builds. Packet driver is needed
+    for network capability in DOS. (Wengier)
+</li>
+<li>
+    Fixed line endings when copying to shared clipboard
+    (e.g. CLIP$) in non-Windows platforms. (Wengier)
+</li>
+<li>
+    Fixed problems with SDL1 Windows builds in which
+    the user had to type the Fullscreen mapper shortcut
+    twice. It seems a SDL1 library function that is
+    used to indicate ignoring or adding a class of
+    events also liked to flush the event queue. This
+    is called on mode change. This caused lost
+    keystrokes, leaving the mapper the impression that
+    those keys were still held down. (joncampbell123).
+</li>
+<li>
+    Fixed PC-98 mode MS-DOS 7/Windows 9x boot disk's
+    80386 CPU check. (Wengier)
+</li>
+<li>
+    Added support for auto-converting non-image drives
+    (such as mounted local drives) to disk images, so
+     that they will be visible when booting into guest
+    systems. A config option "convertdrivefat" (in
+    [dosbox] section) is added to toggle this setting,
+    or you can toggle via BOOT command's -convertfat
+    (or -convertfatro option for read-only access) and
+    -noconvertfat options. There're also config options
+    "convert fat free space" (in [dosbox] section) and
+    "drive z convert fat" (in [dos] section) to control
+    free space (in MB; 0 means read-only) and whether
+    to also convert virtual drive Z:. Much of the code
+    is imported from DOSBox Pure, with added support
+    for PC-98 HDI and code page conversions. (Wengier)
+</li>
+<li>
+    Added menu option "Save to disk image" (under drive
+    letter in "Drive" menu) to save a mounted non-FAT
+    drive to selected disk image (IMG/HDI). (Wengier)
+</li>
+<li>
+    Added the "Limit disk transfer speed" menu group
+    (under "DOS") to toggle the hard & floppy disk data
+    rate function. Also moved "Quick launch program..."
+    menu from "DOS" menu to "Main" menu. (Wengier)
+</li>
+<li>
+    Added code pages 856 (Hebrew) and 859 (Latin 9) for
+    the guest-to-host code page conversions. (Wengier)
+</li>
+<li>
+    Added config option to allow create of temporary
+    devices for piping operations when a temporary DOS
+    path is not available. (Wengier)
+</li>
+<li>
+    Added support for ATAPI raw sector reading with
+    READ CD command. (schellingb)
+</li>
+<li>
+    Report bad sectors recorded in raw CD images as
+    ATAPI read errors. (schellingb)
+</li>
+<li>
+    You can use CONFIG -set langcp=... to change the
+    current language along with the embedded code page,
+    or CHCP nnn:... to specify a language file as well,
+    e.g. "CHCP 932:" or "CHCP 932:ja_JP" for Japanese
+    code page and language file. Also improved -langcp
+    option for SBCS code pages, and Windows installer
+    will additionally set keyboard layouts for the
+    selected languages. (Wengier)
+</li>
+<li>
+    Changed menu option "Restart DOSBox-X with language
+    file..." to "Load language file..." for loading
+    language files without rebooting DOSBox-X, unless
+    a guest system is currently running. (Wengier)
+</li>
+<li>
+    Imported the more recent MBR code from FreeDOS to
+    avoid the "boot menu" as in older code. (Wengier)
+</li>
+<li>
+    When changing TTF font, DOSBox-X will try to show
+    the number of missing characters in the new TTF
+    font (if any). (Wengier)
+</li>
+<li>
+    Fixed color becoming darker after changing TTF font
+    multiples times in TTF output. (Wengier)
+</li>
+<li>
+    Fixed display of individual/total file sizes with
+    DIR command when they are very large. (Wengier)
+</li>
+<li>
+    Fixed non-US code page conversions for mounted FAT
+    drives. (Wengier)
+</li>
+<li>
+    Fixed incorrect message displays in Configuration
+    Tool and Mapper Editor when booting into guest
+    systems with language files. (Wengier)
+</li>
+<li>
+    Fixed possible "Path not found" bug when switching
+    to code page 950 from another code page. (Wengier)
+</li>
+<li>
+    Fixed creating directories may not work properly
+    for overlay drives on Windows systems. (Wengier)
+</li>
+<li>
+    Fixed -set and -get options of CONFIG command when
+    there are spaces in property names, without having
+    to prepend the section names. For example, command
+    CONFIG -get "synchronize time" is supported just
+    as CONFIG -get "dosbox synchronize time". Similar
+    for -SET option when launching DOSBox-X. (Wengier)
+</li>
+</ul>
+            </td><td></td></tr>
+            <tr><td></td><td style="border: hidden"><table width="100%" style="text-align: center; font-weight: bold"><tr><td width="50%">Previous release: 0.84.1 (<a href="release-0.84.1.html">release notes</a>)</td><td width="50%"></td></tr></table></td><td style="border: hidden"></td></tr>
+            <tr><td style="border: hidden"></td><td style="border: hidden"><center>Return to <a href="index.html">main page</a></center></td><td style="border: hidden"></td></tr>
+            </table>            
+        </div>
+    </div>
+
+    <!-- FOOTER  -->
+    <iframe src="footer.html" onload="this.before((this.contentDocument.body||this.contentDocument).children[0]);this.remove()"></iframe>
+
+  </body>
+</html>
