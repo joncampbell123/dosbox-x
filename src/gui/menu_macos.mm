@@ -9,7 +9,7 @@
 #include "SDL_version.h"
 #include "SDL_syswm.h"
 
-#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X NSMenu / NSMenuItem handle */
+#if defined(MACOSX)
 # include <MacTypes.h>
 # include <Cocoa/Cocoa.h>
 # include <Foundation/NSString.h>
@@ -17,14 +17,17 @@
 # include <IOKit/pwr_mgt/IOPMLib.h>
 # include <Cocoa/Cocoa.h>
 
-@interface NSApplication (DOSBoxX)
-@end
-
 #if !defined(C_SDL2)
 extern "C" void* sdl1_hax_stock_macosx_menu(void);
 extern "C" void sdl1_hax_stock_macosx_menu_additem(NSMenu *modme);
 extern "C" NSWindow *sdl1_hax_get_window(void);
 #endif
+
+extern int pause_menu_item_tag;
+extern bool is_paused;
+extern void PushDummySDL(void);
+extern bool MAPPER_IsRunning(void);
+extern bool GUI_IsRunning(void);
 
 char tempstr[4096];
 bool InitCodePage(), CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
@@ -41,211 +44,6 @@ bool SetClipboard(std::string value) {
 	[pb clearContents];
 	return [pb setString:text forType:NSStringPboardType];
 }
-
-void *sdl_hax_nsMenuItemFromTag(void *nsMenu, unsigned int tag) {
-	NSMenuItem *ns_item = [((NSMenu*)nsMenu) itemWithTag: tag];
-	return (ns_item != nil) ? ns_item : NULL;
-}
-
-void sdl_hax_nsMenuItemUpdateFromItem(void *nsMenuItem, DOSBoxMenu::item &item) {
-	if (item.has_changed()) {
-		NSMenuItem *ns_item = (NSMenuItem*)nsMenuItem;
-
-		[ns_item setEnabled:(item.is_enabled() ? YES : NO)];
-		[ns_item setState:(item.is_checked() ? NSOnState : NSOffState)];
-
-		const std::string &it = item.get_text();
-		const std::string &st = item.get_shortcut_text();
-		std::string ft = it;
-
-		/* TODO: Figure out how to put the shortcut text right-aligned while leaving the main text left-aligned */
-		if (!st.empty()) {
-			ft += " [";
-			ft += st;
-			ft += "]";
-		}
-
-		{
-			NSString *title;
-            int cp = dos.loaded_codepage;
-            InitCodePage();
-            if (CodePageGuestToHostUTF8(tempstr,ft.c_str()))
-                title = [[NSString alloc] initWithUTF8String:tempstr];
-            else
-                title = [[NSString alloc] initWithString:[NSString stringWithFormat:@"%s",ft.c_str()]];
-            dos.loaded_codepage = cp;
-			[ns_item setTitle:title];
-			[title release];
-		}
-
-		item.clear_changed();
-	}
-}
-
-void* sdl_hax_nsMenuAlloc(const char *initWithText) {
-	NSString *title;
-    int cp = dos.loaded_codepage;
-    InitCodePage();
-    if (CodePageGuestToHostUTF8(tempstr,initWithText))
-        title = [[NSString alloc] initWithUTF8String:tempstr];
-    else
-        title = [[NSString alloc] initWithString:[NSString stringWithFormat:@"%s",initWithText]];
-    dos.loaded_codepage = cp;
-	NSMenu *menu = [[NSMenu alloc] initWithTitle: title];
-	[title release];
-	[menu setAutoenablesItems:NO];
-	return (void*)menu;
-}
-
-void sdl_hax_nsMenuRelease(void *nsMenu) {
-	[((NSMenu*)nsMenu) release];
-}
-
-void sdl_hax_macosx_setmenu(void *nsMenu) {
-	if (nsMenu != NULL) {
-        /* switch to the menu object given */
-		[NSApp setMainMenu:((NSMenu*)nsMenu)];
-	}
-	else {
-#if !defined(C_SDL2)
-		/* switch back to the menu SDL 1.x made */
-		[NSApp setMainMenu:((NSMenu*)sdl1_hax_stock_macosx_menu())];
-#endif
-	}
-}
-
-void sdl_hax_nsMenuItemSetTag(void *nsMenuItem, unsigned int new_id) {
-	[((NSMenuItem*)nsMenuItem) setTag:new_id];
-}
-
-void sdl_hax_nsMenuItemSetSubmenu(void *nsMenuItem,void *nsMenu) {
-	[((NSMenuItem*)nsMenuItem) setSubmenu:((NSMenu*)nsMenu)];
-}
-
-void* sdl_hax_nsMenuItemAlloc(const char *initWithText) {
-	NSString *title;
-    int cp = dos.loaded_codepage;
-    InitCodePage();
-    if (CodePageGuestToHostUTF8(tempstr,initWithText))
-        title = [[NSString alloc] initWithUTF8String:tempstr];
-    else
-        title = [[NSString alloc] initWithString:[NSString stringWithFormat:@"%s",initWithText]];
-    dos.loaded_codepage = cp;
-	NSMenuItem *item = [[NSMenuItem alloc] initWithTitle: title action:@selector(DOSBoxXMenuAction:) keyEquivalent:@""];
-	[title release];
-	return (void*)item;
-}
-
-void sdl_hax_nsMenuAddItem(void *nsMenu,void *nsMenuItem) {
-	[((NSMenu*)nsMenu) addItem:((NSMenuItem*)nsMenuItem)];
-}
-
-void* sdl_hax_nsMenuAllocSeparator(void) {
-	return (void*)([NSMenuItem separatorItem]);
-}
-
-void sdl_hax_nsMenuItemRelease(void *nsMenuItem) {
-	[((NSMenuItem*)nsMenuItem) release];
-}
-
-void sdl_hax_nsMenuAddApplicationMenu(void *nsMenu) {
-#if defined(C_SDL2)
-	/* make up an Application menu and stick it in first.
-	   the caller should have passed us an empty menu */
-	NSMenu *appMenu;
-	NSMenuItem *appMenuItem;
-
-	appMenu = [[NSMenu alloc] initWithTitle:@""];
-	[appMenu addItemWithTitle:@"About DOSBox-X" action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""];
-
-	appMenuItem = [[NSMenuItem alloc] initWithTitle:@"" action:nil keyEquivalent:@""];
-	[appMenuItem setSubmenu:appMenu];
-	[((NSMenu*)nsMenu) addItem:appMenuItem];
-	[appMenuItem release];
-	[appMenu release];
-#else
-    /* Re-use the application menu from SDL1 */
-    sdl1_hax_stock_macosx_menu_additem((NSMenu*)nsMenu);
-#endif
-}
-
-extern int pause_menu_item_tag;
-extern bool is_paused;
-extern void PushDummySDL(void);
-extern bool MAPPER_IsRunning(void);
-extern bool GUI_IsRunning(void);
-
-static DOSBoxMenu *altMenu = NULL;
-
-void menu_macosx_set_menuobj(DOSBoxMenu *new_altMenu) {
-    if (new_altMenu != NULL && new_altMenu != &mainMenu)
-        altMenu = new_altMenu;
-    else
-        altMenu = NULL;
-}
-
-@implementation NSApplication (DOSBoxX)
-- (void)DOSBoxXMenuAction:(id)sender
-{
-    if (altMenu != NULL) {
-        altMenu->mainMenuAction([sender tag]);
-    }
-    else {
-        if ((is_paused && pause_menu_item_tag != [sender tag]) || MAPPER_IsRunning() || GUI_IsRunning()) return;
-        /* sorry! */
-        mainMenu.mainMenuAction([sender tag]);
-    }
-}
-
-- (void)DOSBoxXMenuActionNewInstance:(id)sender
-{
-    (void)sender;
-    if (is_paused || MAPPER_IsRunning() || GUI_IsRunning()) return;
-    void NewInstanceEvent(bool pressed);
-    NewInstanceEvent(true);
-}
-
-- (void)DOSBoxXMenuActionMapper:(id)sender
-{
-    (void)sender;
-    if (is_paused || MAPPER_IsRunning() || GUI_IsRunning()) return;
-    extern void MAPPER_Run(bool pressed);
-    MAPPER_Run(false);
-}
-
-- (void)DOSBoxXMenuActionCapMouse:(id)sender
-{
-    (void)sender;
-    if (is_paused || MAPPER_IsRunning() || GUI_IsRunning()) return;
-    extern void MapperCapCursorToggle(void);
-    MapperCapCursorToggle();
-}
-
-- (void)DOSBoxXMenuActionCfgGUI:(id)sender
-{
-    (void)sender;
-    if (is_paused || MAPPER_IsRunning() || GUI_IsRunning()) return;
-    extern void GUI_Run(bool pressed);
-    GUI_Run(false);
-}
-
-- (void)DOSBoxXMenuActionPause:(id)sender
-{
-    (void)sender;
-    extern bool unpause_now;
-    extern void PauseDOSBox(bool pressed);
-
-    if (MAPPER_IsRunning() || GUI_IsRunning()) return;
-
-    if (is_paused) {
-        PushDummySDL();
-        unpause_now = true;
-    }
-    else {
-        PauseDOSBox(true);
-    }
-}
-@end
 
 bool has_touch_bar_support = false;
 
@@ -507,7 +305,6 @@ void macosx_init_dock_menu(void) {
     [menu release];
 #endif
 }
-#endif
 
 #if !defined(C_SDL2)
 extern "C" int sdl1_hax_macosx_window_to_monitor_and_update(CGDirectDisplayID *did);
@@ -683,3 +480,208 @@ int macosx_yesnocancel(const char *title, const char *message) {
     int res = [alert runModal];
     return res==NSAlertFirstButtonReturn?1:(res==NSAlertSecondButtonReturn?0:-1);
 }
+
+#if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU /* Mac OS X NSMenu / NSMenuItem handle */
+@interface NSApplication (DOSBoxX)
+@end
+
+void *sdl_hax_nsMenuItemFromTag(void *nsMenu, unsigned int tag) {
+	NSMenuItem *ns_item = [((NSMenu*)nsMenu) itemWithTag: tag];
+	return (ns_item != nil) ? ns_item : NULL;
+}
+
+void sdl_hax_nsMenuItemUpdateFromItem(void *nsMenuItem, DOSBoxMenu::item &item) {
+	if (item.has_changed()) {
+		NSMenuItem *ns_item = (NSMenuItem*)nsMenuItem;
+
+		[ns_item setEnabled:(item.is_enabled() ? YES : NO)];
+		[ns_item setState:(item.is_checked() ? NSOnState : NSOffState)];
+
+		const std::string &it = item.get_text();
+		const std::string &st = item.get_shortcut_text();
+		std::string ft = it;
+
+		/* TODO: Figure out how to put the shortcut text right-aligned while leaving the main text left-aligned */
+		if (!st.empty()) {
+			ft += " [";
+			ft += st;
+			ft += "]";
+		}
+
+		{
+			NSString *title;
+            int cp = dos.loaded_codepage;
+            InitCodePage();
+            if (CodePageGuestToHostUTF8(tempstr,ft.c_str()))
+                title = [[NSString alloc] initWithUTF8String:tempstr];
+            else
+                title = [[NSString alloc] initWithString:[NSString stringWithFormat:@"%s",ft.c_str()]];
+            dos.loaded_codepage = cp;
+			[ns_item setTitle:title];
+			[title release];
+		}
+
+		item.clear_changed();
+	}
+}
+
+void* sdl_hax_nsMenuAlloc(const char *initWithText) {
+	NSString *title;
+    int cp = dos.loaded_codepage;
+    InitCodePage();
+    if (CodePageGuestToHostUTF8(tempstr,initWithText))
+        title = [[NSString alloc] initWithUTF8String:tempstr];
+    else
+        title = [[NSString alloc] initWithString:[NSString stringWithFormat:@"%s",initWithText]];
+    dos.loaded_codepage = cp;
+	NSMenu *menu = [[NSMenu alloc] initWithTitle: title];
+	[title release];
+	[menu setAutoenablesItems:NO];
+	return (void*)menu;
+}
+
+void sdl_hax_nsMenuRelease(void *nsMenu) {
+	[((NSMenu*)nsMenu) release];
+}
+
+void sdl_hax_macosx_setmenu(void *nsMenu) {
+	if (nsMenu != NULL) {
+        /* switch to the menu object given */
+		[NSApp setMainMenu:((NSMenu*)nsMenu)];
+	}
+	else {
+#if !defined(C_SDL2)
+		/* switch back to the menu SDL 1.x made */
+		[NSApp setMainMenu:((NSMenu*)sdl1_hax_stock_macosx_menu())];
+#endif
+	}
+}
+
+void sdl_hax_nsMenuItemSetTag(void *nsMenuItem, unsigned int new_id) {
+	[((NSMenuItem*)nsMenuItem) setTag:new_id];
+}
+
+void sdl_hax_nsMenuItemSetSubmenu(void *nsMenuItem,void *nsMenu) {
+	[((NSMenuItem*)nsMenuItem) setSubmenu:((NSMenu*)nsMenu)];
+}
+
+void* sdl_hax_nsMenuItemAlloc(const char *initWithText) {
+	NSString *title;
+    int cp = dos.loaded_codepage;
+    InitCodePage();
+    if (CodePageGuestToHostUTF8(tempstr,initWithText))
+        title = [[NSString alloc] initWithUTF8String:tempstr];
+    else
+        title = [[NSString alloc] initWithString:[NSString stringWithFormat:@"%s",initWithText]];
+    dos.loaded_codepage = cp;
+	NSMenuItem *item = [[NSMenuItem alloc] initWithTitle: title action:@selector(DOSBoxXMenuAction:) keyEquivalent:@""];
+	[title release];
+	return (void*)item;
+}
+
+void sdl_hax_nsMenuAddItem(void *nsMenu,void *nsMenuItem) {
+	[((NSMenu*)nsMenu) addItem:((NSMenuItem*)nsMenuItem)];
+}
+
+void* sdl_hax_nsMenuAllocSeparator(void) {
+	return (void*)([NSMenuItem separatorItem]);
+}
+
+void sdl_hax_nsMenuItemRelease(void *nsMenuItem) {
+	[((NSMenuItem*)nsMenuItem) release];
+}
+
+void sdl_hax_nsMenuAddApplicationMenu(void *nsMenu) {
+#if defined(C_SDL2)
+	/* make up an Application menu and stick it in first.
+	   the caller should have passed us an empty menu */
+	NSMenu *appMenu;
+	NSMenuItem *appMenuItem;
+
+	appMenu = [[NSMenu alloc] initWithTitle:@""];
+	[appMenu addItemWithTitle:@"About DOSBox-X" action:@selector(orderFrontStandardAboutPanel:) keyEquivalent:@""];
+
+	appMenuItem = [[NSMenuItem alloc] initWithTitle:@"" action:nil keyEquivalent:@""];
+	[appMenuItem setSubmenu:appMenu];
+	[((NSMenu*)nsMenu) addItem:appMenuItem];
+	[appMenuItem release];
+	[appMenu release];
+#else
+    /* Re-use the application menu from SDL1 */
+    sdl1_hax_stock_macosx_menu_additem((NSMenu*)nsMenu);
+#endif
+}
+
+static DOSBoxMenu *altMenu = NULL;
+
+void menu_macosx_set_menuobj(DOSBoxMenu *new_altMenu) {
+    if (new_altMenu != NULL && new_altMenu != &mainMenu)
+        altMenu = new_altMenu;
+    else
+        altMenu = NULL;
+}
+
+@implementation NSApplication (DOSBoxX)
+- (void)DOSBoxXMenuAction:(id)sender
+{
+    if (altMenu != NULL) {
+        altMenu->mainMenuAction([sender tag]);
+    }
+    else {
+        if ((is_paused && pause_menu_item_tag != [sender tag]) || MAPPER_IsRunning() || GUI_IsRunning()) return;
+        /* sorry! */
+        mainMenu.mainMenuAction([sender tag]);
+    }
+}
+
+- (void)DOSBoxXMenuActionNewInstance:(id)sender
+{
+    (void)sender;
+    if (is_paused || MAPPER_IsRunning() || GUI_IsRunning()) return;
+    void NewInstanceEvent(bool pressed);
+    NewInstanceEvent(true);
+}
+
+- (void)DOSBoxXMenuActionMapper:(id)sender
+{
+    (void)sender;
+    if (is_paused || MAPPER_IsRunning() || GUI_IsRunning()) return;
+    extern void MAPPER_Run(bool pressed);
+    MAPPER_Run(false);
+}
+
+- (void)DOSBoxXMenuActionCapMouse:(id)sender
+{
+    (void)sender;
+    if (is_paused || MAPPER_IsRunning() || GUI_IsRunning()) return;
+    extern void MapperCapCursorToggle(void);
+    MapperCapCursorToggle();
+}
+
+- (void)DOSBoxXMenuActionCfgGUI:(id)sender
+{
+    (void)sender;
+    if (is_paused || MAPPER_IsRunning() || GUI_IsRunning()) return;
+    extern void GUI_Run(bool pressed);
+    GUI_Run(false);
+}
+
+- (void)DOSBoxXMenuActionPause:(id)sender
+{
+    (void)sender;
+    extern bool unpause_now;
+    extern void PauseDOSBox(bool pressed);
+
+    if (MAPPER_IsRunning() || GUI_IsRunning()) return;
+
+    if (is_paused) {
+        PushDummySDL();
+        unpause_now = true;
+    }
+    else {
+        PauseDOSBox(true);
+    }
+}
+@end
+#endif
+#endif
