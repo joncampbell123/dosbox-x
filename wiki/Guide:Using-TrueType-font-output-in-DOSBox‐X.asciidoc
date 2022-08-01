@@ -78,7 +78,7 @@ If you are a speaker of a non-English language, you probably also want to use a 
 
 If you use DOSBox-X's PC-98 mode, you probably want to use a Japanese TrueType font so that Japanese characters will be displayed correctly in this mode. Please look at the link:Guide%3APC‐98-emulation-in-DOSBox‐X{suffixappend}[Guide: PC‐98 emulation in DOSBox‐X] page for more information about this.
 
-As of DOSBox-X version 0.83.14, DOSBox-X also supports CJK (Chinese, Japanese, Korean) double-byte code pages (932, 936, 949, 950) for TTF output in the standard mode (non-PC-98 mode). With this you can run for example Chinese (Simplified or Traditional) or Japanese text-mode DOS applications with DOSBox-X's TTF output. You will need to use TrueType fonts for the languages so that the characters in these languages will be displayed correctly, such as the link:https://unifoundry.com/unifont/[GNU Unifont], link:https://github.com/be5invis/Sarasa-Gothic[Sarasa Gothic] (which looks very nice and included in the Windows installer), or a TTF/TTC font like ``simkai.ttf`` or ``mingliu.ttc`` (included in some versions of Windows). See the link:Guide%3AEast-Asian-language-support-in-DOSBox‐X{suffixappend}[East Asian language support guide page] for more information. Below is a screenshot showing a Chinese-language DOS program named Softscape Tools running in DOSBox-X with the ``simkai.ttf`` TTF font: 
+As of DOSBox-X version 0.83.14, DOSBox-X also supports CJK (Chinese, Japanese, Korean) double-byte code pages (932, 936, 949, 950/951) for TTF output in the standard mode (non-PC-98 mode). With this you can run for example Chinese (Simplified or Traditional) or Japanese text-mode DOS applications with DOSBox-X's TTF output. You will need to use TrueType fonts for the languages so that the characters in these languages will be displayed correctly, such as the link:https://unifoundry.com/unifont/[GNU Unifont], link:https://github.com/be5invis/Sarasa-Gothic[Sarasa Gothic] (which looks very nice and included in the Windows installer), or a TTF/TTC font like ``simkai.ttf`` or ``mingliu.ttc`` (included in some versions of Windows). See the link:Guide%3AEast-Asian-language-support-in-DOSBox‐X{suffixappend}[East Asian language support guide page] for more information. Below is a screenshot showing a Chinese-language DOS program named Softscape Tools running in DOSBox-X with the ``simkai.ttf`` TTF font: 
 
 image::images/DOSBox-X:Softscape_Tools_Simkai.png[Chinese-language DOS program running in DOSBox-X]
 
@@ -182,23 +182,23 @@ The color schemes can also be changed when DOSBox-X is running. There is a ``SET
 To change the scheme of a specific color using SETCOLOR command, just provide the color number and its color value, e.g.
 
 ``
-SETCOLOR 1 (50,50,50)
+SETCOLOR 7 (50,50,50)
 ``
 
-The above command change Color #1 to the specified color value. You can also return it to the default color value using the command:
+The above command change Color #7 to the specified color value. You can also return it to the default color value using the command:
 
 ``
-SETCOLOR 1 -
+SETCOLOR 7 -
 ``
 
 Or return it to the color scheme as specified by the ``colors`` config option (if set):
 
 ``
-SETCOLOR 1 {plus}
+SETCOLOR 7 {plus}
 ``
 
 (Starting with DOSBox-X version 0.83.19, there is also a menu option ``Reset TTF color scheme`` in the ``TTF options`` menu group to return the whole color scheme to the default one)
 
-Entering ``SETCOLOR 1`` will display the current color value of Color #1.
+Entering ``SETCOLOR 7`` will display the current color value of Color #7.
 
 If you want to actually change the default console foreground and background colors, please use the ``COLOR`` command, which works the same way as the same-named command in the Windows Command Prompt. For example, the command ``COLOR 61`` produces red on blue by default, unless you have customized the color schemes using the ``SETCOLOR`` command above. For bright background colors you will need to set the option ``high intensity blinking`` to ``false`` (mentioned in the previous section), or else blinking foreground texts will be displayed instead of bright background colors. In such case you can for example enter the command ``COLOR fc`` to produce light red on bright white, unless you have customized the color schemes. The ``COLOR`` command without an argument restores the original color.

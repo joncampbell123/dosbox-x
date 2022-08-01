@@ -474,7 +474,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 Instructions can be found below for the different major versions.</p>
 </div>
 <div class="paragraph">
-<p>Later Windows 95, 98 and ME however require that you run the underlying DOS they came with, and as such instead of using the integrated DOS, you will need to boot them inside DOSBox-X.
+<p>Later Windows 95, 98 and ME however require that you run the underlying DOS they came with, and as such instead of using the integrated emulated DOS that DOSBox-X provides, you will need to boot them inside DOSBox-X.
 Again, instructions are provided below.</p>
 </div>
 </div>
@@ -510,7 +510,7 @@ Getting these image files is outside the scope of this guide.</p>
 <h2 id="_wine">Wine</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>If your running Linux in an x86 or x86-64 PC, you can also try running Windows games and applications using <a href="https://www.winehq.org/">Wine</a>.
+<p>If your running Linux on an x86 or x86-64 PC, you can also try running Windows games and applications using <a href="https://www.winehq.org/">Wine</a>.
 Especially 32-bit Windows games and applications, typically work quite well, and this may be an easier and faster solution and provide better integration with your desktop environment.
 16-bit or mixed 16/32-bit Windows games and applications are more problematic with Wine as modern 64-bit Linux distributions typically have the required kernel functionality for running 16-bit code (e.g., <code>X86_16BIT</code> and <code>MODIFY_LDT_SYSCALL</code>) disabled at kernel compile time.</p>
 </div>
@@ -522,7 +522,7 @@ Especially 32-bit Windows games and applications, typically work quite well, and
 <div class="sect2">
 <h3 id="_windows_versions_1_0_3_11">Windows versions 1.0-3.11</h3>
 <div class="paragraph">
-<p>For these versions you have the choice if you run the directly in DOSBox-X itself, using the integrated DOS, or if you install a real DOS first and run Windows underneath that.</p>
+<p>For these versions you often have the choice to run them directly in DOSBox-X itself, using the emulated integrated DOS, or if you install a real DOS first and run Windows on top of that.</p>
 </div>
 <div class="paragraph">
 <p>There are various limitations that Windows imposes that are dependent on the version. A few milestones:</p>
@@ -683,7 +683,7 @@ Especially 32-bit Windows games and applications, typically work quite well, and
 <div class="ulist">
 <ul>
 <li>
-<p>Adds support for SMB file sharing</p>
+<p>Adds support for SMB file and printer sharing</p>
 </li>
 </ul>
 </div>
@@ -847,6 +847,9 @@ Especially 32-bit Windows games and applications, typically work quite well, and
 <div class="ulist">
 <ul>
 <li>
+<p>Updates MS-DOS to 8.0</p>
+</li>
+<li>
 <p>Adds support for USB Mass Storage</p>
 </li>
 </ul>
@@ -887,7 +890,7 @@ Especially 32-bit Windows games and applications, typically work quite well, and
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-07-01 15:14:03 -0400
+Last updated 2022-08-01 17:01:25 -0400
 </div>
 </div>
 </body>

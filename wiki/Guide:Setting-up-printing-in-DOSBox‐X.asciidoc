@@ -345,7 +345,7 @@ You can specify the default target printer with the `device=` option.
 
 Create a PNG or BMP file with the print output.
 
-Between PNG and BMP, PNG is more modern format.
+Between PNG and BMP, PNG is a more modern format.
 BMP will create larger files, due to lack of compression, while the image quality will be identical.
 
 **ps**
@@ -355,7 +355,7 @@ Create a PostScript output file, and supports multi-page documents with the `mul
 This is typically the best option for Linux and macOS hosts, as PostScript is supported by default.
 For Windows hosts it requires installing a link:https://www.ghostscript.com/[PostScript viewer].
 
-This format can be easily be converted to PDF.
+This format can easily be converted to PDF.
 
 ==== multipage
 * Default value: false

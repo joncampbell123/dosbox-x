@@ -470,6 +470,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_harddisk_images">Harddisk images</a>
 <ul class="sectlevel2">
 <li><a href="#_creating_harddisk_images">Creating harddisk images</a></li>
+<li><a href="#_creating_harddisk_images_from_folder_mounts">Creating harddisk images from folder mounts</a></li>
 <li><a href="#_mounting_harddisk_images">Mounting harddisk images</a></li>
 <li><a href="#_specifying_the_partition_to_mount">Specifying the partition to mount</a></li>
 <li><a href="#_unmounting_harddisk_images">Unmounting harddisk images</a></li>
@@ -482,6 +483,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_cd_rom_or_dvd_images">CD-ROM or DVD images</a>
 <ul class="sectlevel2">
 <li><a href="#_mounting_cd_or_dvd_images">Mounting CD or DVD images</a></li>
+<li><a href="#_rock_ridge_joliet_and_udf">Rock Ridge, Joliet and UDF</a></li>
 <li><a href="#_accessing_a_cd_or_dvd_in_real_dos">Accessing a CD or DVD in real DOS</a></li>
 <li><a href="#_mounting_multiple_cd_or_dvd_images">Mounting multiple CD or DVD images</a></li>
 <li><a href="#_mounting_from_the_drive_menu_3">Mounting from the Drive menu</a></li>
@@ -528,7 +530,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="title">Tip</div>
 </td>
 <td class="content">
-Whenever this guide mentions mounting an image file, such as disk.ima, hdd.img or cdrom.iso, those are files on your host filesystem.
+Whenever this guide mentions mounting an image file, such as <code>disk.ima</code>, <code>hdd.img</code> or <code>cdrom.iso</code>, those are files on your host filesystem.
 And they may optionally be prefixed with the host path to the file. e.g. <code>disk.ima</code> may become <code>"C:\John Doe\dosroot\disk.ima"</code>.
 Also note that if there are any spaces in the host path or filename, you need to enclose it with quotes.
 </td>
@@ -547,10 +549,10 @@ The output of the two commands differs somewhat.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>MOUNT will show all active mounts</p>
+<p><code>MOUNT</code> will show all active mounts</p>
 </li>
 <li>
-<p>IMGMOUNT will show mounted images, and the device numbers (drive numbers) in use</p>
+<p><code>IMGMOUNT</code> will show mounted images, and the device numbers (drive numbers) in use</p>
 </li>
 </ul>
 </div>
@@ -564,18 +566,18 @@ Note that both of these options will only show image mounts, not folder mounts.<
 <h2 id="_diskette_floppy_disk_images">Diskette (floppy disk) images</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>DOSBox-X supports mounting diskette images in the following formats:</p>
+<p>DOSBox-X supports mounting diskette (aka Floppy) images in the following formats:</p>
 </div>
 <div class="ulist">
 <ul>
 <li>
-<p>MFM sector image format (typically .ima or .img)</p>
+<p>MFM sector image format (typically ending in <code>.ima</code> or <code>.img</code>)</p>
 </li>
 <li>
-<p>Microsoft DMF (typically .dmf)</p>
+<p>Microsoft DMF (typically ending in <code>.dmf</code>)</p>
 </li>
 <li>
-<p>NEC PC-98 diskette images (.fdd .fdi .nfd or .d88)</p>
+<p>NEC PC-98 diskette images (typically ending in <code>.fdd</code>, <code>.fdi</code>, <code>.nfd</code> or <code>.d88</code>)</p>
 </li>
 </ul>
 </div>
@@ -586,8 +588,8 @@ Note that both of these options will only show image mounts, not folder mounts.<
 <div class="title">Note</div>
 </td>
 <td class="content">
-The IMG extension is also used for harddisk images, so there can be some confusion.
-Files with the extension IMA are automatically treated as diskette images.
+The <code>.IMG</code> extension is also used for harddisk images, so there can be some confusion.
+Files with the extension <code>.IMA</code> are automatically treated as diskette images.
 </td>
 </tr>
 </table>
@@ -611,25 +613,25 @@ Any programs on copy-protected diskettes need to be "cracked" to remove the copy
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://github.com/joncampbell123/dosbox-x/issues/1466">IBM DSKF</a> (.DSK)</p>
+<p><a href="https://github.com/joncampbell123/dosbox-x/issues/1466">IBM DSKF</a> (<code>.DSK</code>)</p>
 </li>
 <li>
-<p><a href="https://github.com/joncampbell123/dosbox-x/issues/1465">IBM XDF</a> (.XDF)</p>
+<p><a href="https://github.com/joncampbell123/dosbox-x/issues/1465">IBM XDF</a> (<code>.XDF</code>)</p>
 </li>
 <li>
-<p><a href="https://github.com/joncampbell123/dosbox-x/issues/711">ImageDisk</a> (.IMD)</p>
+<p><a href="https://github.com/joncampbell123/dosbox-x/issues/711">ImageDisk</a> (<code>.IMD</code>)</p>
 </li>
 <li>
-<p>Interchangeable Preservation Format (.IPF)</p>
+<p>Interchangeable Preservation Format (<code>.IPF</code>)</p>
 </li>
 <li>
-<p>KryoFlux Stream files (.RAW)</p>
+<p>KryoFlux Stream files (<code>.RAW</code>)</p>
 </li>
 <li>
-<p>Teledisk (.TD0)</p>
+<p>Teledisk (<code>.TD0</code>)</p>
 </li>
 <li>
-<p>Transcopy (.TC)</p>
+<p>Transcopy (<code>.TC</code>)</p>
 </li>
 </ul>
 </div>
@@ -681,11 +683,11 @@ This option allows most common floppy disk types to be created, for less common 
 </div>
 </div>
 <div class="paragraph">
-<p>The above command will create a 1.44MB formatted disk image named disk.ima.
+<p>The above command will create a 1.44MB formatted disk image named <code>disk.ima</code>.
 The diskette image will appear to have been formatted by MS-DOS 5.0.</p>
 </div>
 <div class="paragraph">
-<p>The image filename for this command is optional, and if you do not specify a filename, then the name IMGMAKE.IMG will be used, such as the following:</p>
+<p>The image filename for this command is optional, and if you do not specify a filename, then the name <code>IMGMAKE.IMG</code> will be used, such as the following:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -731,8 +733,8 @@ DOSBox-X has no integrated FORMAT command, so creating diskette images that are 
 <div class="title">Tip</div>
 </td>
 <td class="content">
-DOSBox-X will automatically assume it is a diskette image if the filename extension is .IMA, or if you&#8217;re mounting on the emulated A: or B: drive.
-If this is not the case, you can force a diskette type with the <code>-t floppy</code> parameter.
+DOSBox-X will automatically assume it is a diskette image if the filename extension is <code>.IMA</code>, or if you&#8217;re mounting on the emulated <code>A:</code> or <code>B:</code> drive.
+If this is not the case, you can force DOSBox-X to treat an image as a diskette type with the <code>-t floppy</code> parameter.
 </td>
 </tr>
 </table>
@@ -766,7 +768,7 @@ If this is not the case, you can force a diskette type with the <code>-t floppy<
 <td class="tableblock halign-left valign-top"><p class="tableblock">40</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">8</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">160KB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_160</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>-t fd_160</code></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>5.25" SSDD</strong></p></td>
@@ -774,7 +776,7 @@ If this is not the case, you can force a diskette type with the <code>-t floppy<
 <td class="tableblock halign-left valign-top"><p class="tableblock">40</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">9</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">180KB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_180</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>-t fd_180</code></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">5.25" SSDD</p></td>
@@ -782,7 +784,7 @@ If this is not the case, you can force a diskette type with the <code>-t floppy<
 <td class="tableblock halign-left valign-top"><p class="tableblock">40</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">10</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">200KB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_200</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>-t fd_200</code></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">5.25" DSDD</p></td>
@@ -790,7 +792,7 @@ If this is not the case, you can force a diskette type with the <code>-t floppy<
 <td class="tableblock halign-left valign-top"><p class="tableblock">40</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">8</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">320KB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_320</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>-t fd_320</code></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>5.25" DSDD</strong></p></td>
@@ -798,7 +800,7 @@ If this is not the case, you can force a diskette type with the <code>-t floppy<
 <td class="tableblock halign-left valign-top"><p class="tableblock">40</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">9</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">360KB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_360</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>-t fd_360</code></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">5.25" DSDD</p></td>
@@ -806,7 +808,7 @@ If this is not the case, you can force a diskette type with the <code>-t floppy<
 <td class="tableblock halign-left valign-top"><p class="tableblock">40</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">10</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">400KB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_400</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>-t fd_400</code></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>5.25" HD</strong></p></td>
@@ -814,7 +816,7 @@ If this is not the case, you can force a diskette type with the <code>-t floppy<
 <td class="tableblock halign-left valign-top"><p class="tableblock">80</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">15</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">1200KB (1.2MB)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_1200</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>-t fd_1200</code></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">3.5" DSDD (2DD)</p></td>
@@ -822,7 +824,7 @@ If this is not the case, you can force a diskette type with the <code>-t floppy<
 <td class="tableblock halign-left valign-top"><p class="tableblock">80</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">9</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">720KB</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_720</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>-t fd_720</code></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock"><strong>3.5" HD</strong></p></td>
@@ -830,7 +832,7 @@ If this is not the case, you can force a diskette type with the <code>-t floppy<
 <td class="tableblock halign-left valign-top"><p class="tableblock">80</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">18</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">1440KB (1.44MB)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_1440 or -t fd</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>-t fd_1440</code> or <code>-t fd</code></p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">3.5" ED</p></td>
@@ -838,7 +840,7 @@ If this is not the case, you can force a diskette type with the <code>-t floppy<
 <td class="tableblock halign-left valign-top"><p class="tableblock">80</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">36</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">2880KB (2.88MB)</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">-t fd_2880</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>-t fd_2880</code></p></td>
 </tr>
 </tbody>
 </table>
@@ -876,7 +878,7 @@ imgmount A: disk.ima -t floppy</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>If you do not specify an image filename, then the name IMGMAKE.IMG will be used, such as the following:</p>
+<p>If you do not specify an image filename, then the name <code>IMGMAKE.IMG</code> will be used, such as the following:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -890,7 +892,7 @@ imgmount A: disk.ima -t floppy</pre>
 <div class="title">Note</div>
 </td>
 <td class="content">
-The <code>-t floppy</code> parameter is only needed with DOSBox-X when the extension is not .IMA, and you&#8217;re wanting to mount a diskette image on drives greater than B:.
+The <code>-t floppy</code> parameter is only needed with DOSBox-X when the extension is not <code>.IMA</code>, and you&#8217;re wanting to mount a diskette image on drives greater than <code>B:</code>.
 </td>
 </tr>
 </table>
@@ -912,7 +914,7 @@ The <code>-t floppy</code> parameter is only needed with DOSBox-X when the exten
 </div>
 </div>
 <div class="paragraph">
-<p>0 represents drive A: and 1 represents drive B:, but due to the use of drive numbers they cannot be directly accessed from the DOSBox-X integrated DOS. Note that when using drive numbers like 0 and 1 to mount a diskette image the <code>-fs none</code> flag is automatically assumed in DOSBox-X. For vanilla DOSBox, or other forks, the <code>-fs none</code> flag will be required.</p>
+<p>0 represents drive <code>A:</code> and 1 represents drive <code>B:</code>, but due to the use of drive numbers they cannot be directly accessed from the DOSBox-X integrated DOS. Note that when using drive numbers like 0 and 1 to mount a diskette image the <code>-fs none</code> flag is automatically assumed in DOSBox-X. For vanilla DOSBox, or other forks, the <code>-fs none</code> flag will be required.</p>
 </div>
 <div class="sect3">
 <h4 id="_mounting_from_the_drive_menu">Mounting from the Drive menu</h4>
@@ -957,15 +959,17 @@ e.g.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>In this example disk1.ima will be immediately usable on A: but disk2.ima will require a disk-swap action.</p>
+<p>In this example <code>disk1.ima</code> will be immediately usable on drive <code>A:</code> but <code>disk2.ima</code> will require a disk-swap action.</p>
 </div>
 <div class="paragraph">
 <p>Disk-swap can be done using either a hot-key combination, or using the menu bar.
 The hot-key for Windows is F11+CTRL+D and for other platforms F12+CTRL+D.
-Or from the menu you can select "DOS" followed by "Swap floppy".</p>
+Or from the menu you can select "DOS" followed by "Swap floppy".
+Lastly, you can use the <code>IMGSWAP</code> command to swap between images.</p>
 </div>
 <div class="paragraph">
-<p>If you lose track of which disk is currently active, open the 'Drive' menu option, select the drive letter and select 'Drive Information'.</p>
+<p>If you lose track of which disk is currently active, open the 'Drive' menu option, select the drive letter and select 'Drive Information'.
+This information can also be retrieved from the <code>IMGSWAP</code> command.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1030,7 +1034,7 @@ On the other hand, if you wish to make individual images read-only (instead of a
 </div>
 </div>
 <div class="paragraph">
-<p>This will cause the currently mounted disk image (if any) to be unmounted, and disk2.ima to be mounted instead.</p>
+<p>This will cause the currently mounted disk image (if any) to be unmounted, and <code>disk2.ima</code> to be mounted instead.</p>
 </div>
 <div class="paragraph">
 <p>Alternatively you can unmount a diskette from the DOSBox-X menu bar (when running in Windowed mode) by selecting "Drive", followed by the drive letter and "Unmount".</p>
@@ -1122,11 +1126,11 @@ You should never mount a disk image simultaneously in both DOSBox-X and in Linux
 <div class="sect3">
 <h4 id="_gnome_disk_image_mounter">Gnome Disk Image Mounter</h4>
 <div class="paragraph">
-<p>When using the Gnome desktop environment, you can open .IMG disks with the "Disk Image Mounter". Simply right-click on the file, and select 'Open with Disk Image Mounter' and the file will be mounted READ-ONLY in the Gnome file manager.</p>
+<p>When using the Gnome desktop environment, you can open <code>.IMG</code> disks with the "Disk Image Mounter". Simply right-click on the file, and select 'Open with Disk Image Mounter' and the file will be mounted READ-ONLY in the Gnome file manager.</p>
 </div>
 <div class="paragraph">
-<p>The first time you want to open .IMA files, you need to right-click and choose "Open With Other Application", and then click on "View All Applications" and choose "Disk Image Mounter" from the list.
-The next time you want to open a .IMA file, the option will be available directly from the right-click menu.</p>
+<p>The first time you want to open <code>.IMA</code> files, you need to right-click and choose "Open With Other Application", and then click on "View All Applications" and choose "Disk Image Mounter" from the list.
+The next time you want to open a <code>.IMA</code> file, the option will be available directly from the right-click menu.</p>
 </div>
 <div class="paragraph">
 <p>Disks can be unmounted from the Gnome file manager by clicking the unmount button next to the volume name.</p>
@@ -1147,7 +1151,7 @@ The next time you want to open a .IMA file, the option will be available directl
 <h4 id="_mounting_a_diskette_image_from_the_linux_shell">Mounting a diskette image from the Linux shell</h4>
 <div class="paragraph">
 <p>The more traditional Linux method of mounting diskette image files from a Linux terminal.
-This method requires sudo access.</p>
+This method requires <code>sudo</code> access.</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1155,7 +1159,7 @@ This method requires sudo access.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>The above command will cause disk.ima to be mounted under /mnt.</p>
+<p>The above command will cause <code>disk.ima</code> to be mounted under <code>/mnt</code> on the host.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1251,7 +1255,7 @@ It provides various commands which can be used to interact with DOS diskette ima
 <div class="sect4">
 <h5 id="_list_contents_of_a_diskette_image">List contents of a diskette image</h5>
 <div class="paragraph">
-<p>This will list the contents of the root directory of the diskette image, similar to the DOS DIR command.</p>
+<p>This will list the contents of the root directory of the diskette image, similar to the DOS <code>DIR</code> command.</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1270,7 +1274,7 @@ It provides various commands which can be used to interact with DOS diskette ima
 <div class="sect4">
 <h5 id="_copy_file_into_a_diskette_image">Copy file into a diskette image</h5>
 <div class="paragraph">
-<p>This command will copy the file hello.txt into the root directory of the disk image.</p>
+<p>This command will copy the file <code>hello.txt</code> into the root directory of the disk image.</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1278,7 +1282,7 @@ It provides various commands which can be used to interact with DOS diskette ima
 </div>
 </div>
 <div class="paragraph">
-<p>This command will copy the file hello.txt into the GAMES directory of the disk image.</p>
+<p>This command will copy the file <code>hello.txt</code> into the GAMES directory of the disk image.</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1289,7 +1293,7 @@ It provides various commands which can be used to interact with DOS diskette ima
 <div class="sect4">
 <h5 id="_copy_files_out_of_a_diskette_image">Copy file(s) out of a diskette image</h5>
 <div class="paragraph">
-<p>This command will copy the file hello.txt out of the root of the diskette image, to the current directory (.)</p>
+<p>This command will copy the file <code>hello.txt</code> out of the root of the diskette image, to the current directory (<code>.</code>)</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1297,7 +1301,7 @@ It provides various commands which can be used to interact with DOS diskette ima
 </div>
 </div>
 <div class="paragraph">
-<p>Or if you want to copy all files, including sub-directories, from the diskette image to the directory tmp</p>
+<p>Or if you want to copy all files, including sub-directories, from the diskette image to the directory <code>tmp</code></p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1358,7 +1362,7 @@ Unfortunately this support is incompatible with the typical MFM image files used
 <div class="sect2">
 <h3 id="_using_diskette_images_in_macos">Using diskette images in macOS</h3>
 <div class="paragraph">
-<p>You can mount MFM image files with the extension IMG in macOS from the Finder by double-clicking on it.
+<p>You can mount MFM image files with the extension <code>.IMG</code> in macOS from the Finder by double-clicking on it.
 You can unmount it by clicking on the "Eject" button next to it in the Finder.</p>
 </div>
 <div class="paragraph">
@@ -1376,10 +1380,10 @@ You can unmount it by clicking on the "Eject" button next to it in the Finder.</
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://en.wikipedia.org/wiki/IMG_(file_format)">MFM sector image format</a> (typically .img)</p>
+<p><a href="https://en.wikipedia.org/wiki/IMG_(file_format)">MFM sector image format</a> (typically <code>.img</code>)</p>
 </li>
 <li>
-<p><a href="https://en.wikipedia.org/wiki/Qcow">QCOW2</a> - QEMU copy-on-write v2 (.qcow2)</p>
+<p><a href="https://en.wikipedia.org/wiki/Qcow">QCOW2</a> - QEMU copy-on-write v2 (<code>.qcow2</code>)</p>
 <div class="ulist">
 <ul>
 <li>
@@ -1392,7 +1396,7 @@ You can unmount it by clicking on the "Eject" button next to it in the Finder.</
 </div>
 </li>
 <li>
-<p><a href="https://en.wikipedia.org/wiki/VHD_(file_format)">Virtual Hard Disk</a> Volume (.vhd)</p>
+<p><a href="https://en.wikipedia.org/wiki/VHD_(file_format)">Virtual Hard Disk</a> Volume (<code>.vhd</code>)</p>
 <div class="ulist">
 <ul>
 <li>
@@ -1402,10 +1406,10 @@ You can unmount it by clicking on the "Eject" button next to it in the Finder.</
 </div>
 </li>
 <li>
-<p>Bochs bximage (typically .img)</p>
+<p>Bochs bximage (typically <code>.img</code>)</p>
 </li>
 <li>
-<p>NEC PC-98 harddisk images (.nhd or .hdi)</p>
+<p>NEC PC-98 harddisk images (<code>.nhd</code> or <code>.hdi</code>)</p>
 </li>
 </ul>
 </div>
@@ -1421,7 +1425,7 @@ You can unmount it by clicking on the "Eject" button next to it in the Finder.</
 <div class="title">Note</div>
 </td>
 <td class="content">
-In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create diskette images at any time from the DOSBox-X menu.
+In addition to the below DOSBox-X command line utility, starting with DOSBox-X 0.83.9 it is possible to create harddisk images at any time from the DOSBox-X menu.
 Go to the "DOS" menu, and select "Create blank disk image…".
 This option allows a few common HDD sizes to be created, for less common types you need to use the command line utility.
 </td>
@@ -1493,7 +1497,7 @@ But this can cause <code>IMGMAKE</code> to give errors if the partition size is 
 </td>
 <td class="content">
 FAT12 and FAT16 harddisk images will appear to have been partitioned and formatted by MS-DOS 5.0.
-FAT32 harddisk images will appear to have been formatted by Windows 98.
+FAT32 harddisk images will appear to have been partitioned and formatted by Windows 98.
 </td>
 </tr>
 </table>
@@ -1513,7 +1517,7 @@ FAT32 harddisk images will appear to have been formatted by Windows 98.
 <p>This will create a 520MB partitioned and formatted harddisk image named hdd.img.</p>
 </div>
 <div class="paragraph">
-<p>The image filename for this command is optional, and if you do not specify a filename, then the name IMGMAKE.IMG will be used, such as the following:</p>
+<p>The image filename for this command is optional, and if you do not specify a filename, then the name <code>IMGMAKE.IMG</code> will be used, such as the following:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1580,49 +1584,49 @@ DOSBox-X has no integrated FDISK and FORMAT commands, so creating harddisk image
 <td class="tableblock halign-left valign-top"><p class="tableblock">Seagate ST225</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">21MB (~ 20.23MB usable)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">615,4,17</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">-t hd_st225</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>-t hd_st225</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">FAT16</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Seagate ST251</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">41MB (~ 40.65MB usable)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">820,6,17</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">-t hd_st251</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>-t hd_st251</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">FAT16</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">241MB (~ 240.39MB usable)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">489,16,63</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">-t hd_250</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>-t hd_250</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">FAT16</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">504MB (~ 503.21MB usable)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">1023,16,63</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">-t hd_520</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>-t hd_520</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">FAT16</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">2GB (~ 1.96GB usable)</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">1023,64,63</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">-t hd_2gig</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>-t hd_2gig</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">FAT16</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">4GB</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">1023,130,63</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">-t hd_4gig</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>-t hd_4gig</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">FAT32</p></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">8GB</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">1023,255,63</p></td>
-<td class="tableblock halign-left valign-top"><p class="tableblock">-t hd_8gig</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>-t hd_8gig</code></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">FAT32</p></td>
 </tr>
 </tbody>
@@ -1687,6 +1691,32 @@ The BAT file will contain the imgmount command to mount the harddisk image, incl
 </div>
 </div>
 <div class="sect2">
+<h3 id="_creating_harddisk_images_from_folder_mounts">Creating harddisk images from folder mounts</h3>
+<div class="paragraph">
+<p>Starting with DOSBox-X 2022.08.0 it is possible to convert a host folder mount to a harddisk image file.</p>
+</div>
+<div class="paragraph">
+<p>The steps are simply to first <code>mount</code> a host folder, and then from the menus (when running in Windowed mode), select "Drive" &gt; "drive letter" &gt; "Save to disk image".</p>
+</div>
+<div class="paragraph">
+<p>The FAT version will be automatically selected, based on the aggregate amount of files in the folder, plus (by default) 250MiB of free space.
+If the total does not exceed 2GiB, it will be converted to a FAT16 harddisk image file, otherwise it will become a FAT32 image instead (which will require a guest OS with FAT32 support).</p>
+</div>
+<div class="paragraph">
+<p>The amount of free space can be adjusted in the DOSBox-X config file as such:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>[sdl]
+convert fat free space = 10</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will limit the free space to 10MiB.
+Set it to 0 for read-only (no free space) and -1 to attempt to use the actual free space on the host drive (subject to FAT filesystem limits).</p>
+</div>
+</div>
+<div class="sect2">
 <h3 id="_mounting_harddisk_images">Mounting harddisk images</h3>
 <div class="paragraph">
 <p>Mounting a harddisk image in DOSBox-X is typically as simple as</p>
@@ -1707,7 +1737,7 @@ imgmount C: disk.ima -t hdd -fs fat</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>If you do not specify an image filename, it will try to open a file named IMGMAKE.IMG, such as in this example:</p>
+<p>If you do not specify an image filename, it will try to open a file named <code>IMGMAKE.IMG</code>, such as in this example:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1721,7 +1751,7 @@ imgmount C: disk.ima -t hdd -fs fat</pre>
 <div class="title">Note</div>
 </td>
 <td class="content">
-The <code>-t hdd</code> option is only needed with DOSBox-X when mounting a harddisk image on the emulated A: or B: drive, as those are normally reserved for diskettes.
+The <code>-t hdd</code> option is only needed with DOSBox-X when mounting a harddisk image on the emulated <code>A:</code> or <code>B:</code> drive, as those are normally reserved for diskettes.
 Or when mounting a harddisk image that is not partitioned or formatted, or formatted with an unsupported filesystem in combination with the <code>-size</code> parameter.
 The <code>-fs fat</code> option should not be needed as the FAT12, FAT16 or FAT32 filesystem types will be automatically detected.
 </td>
@@ -1737,7 +1767,7 @@ The <code>-fs fat</code> option should not be needed as the FAT12, FAT16 or FAT3
 <td class="content">
 If a harddisk image has either a "FAT16 LBA" or "FAT32" partition, the mount will fail unless a higher than default reported DOS version is set.
 Those partition types are normally restricted to, respectively, MS-DOS 7.0 (Windows 95) or MS-DOS 7.1 (Windows 95 OSR2/Windows 98) or later, and therefore DOSBox-X does not allow them to be mounted with the default DOS 5.0 version that DOSBox-X reports.
-You can change the reported DOS version in your DOSBox-X config file by for instance setting ver=7.1 in the [dos] section. Or alternatively from the DOSBox-X DOS prompt by typing for instance <code>ver set 7.1</code>.
+You can change the reported DOS version in your DOSBox-X config file by for instance setting <code>ver=7.1</code> in the <code>[dos]</code> section. Or alternatively from the DOSBox-X DOS prompt by typing for instance <code>ver set 7.1</code>.
 </td>
 </tr>
 </table>
@@ -1836,7 +1866,7 @@ DOSBox-X automatically assumes the <code>-fs none</code> flag when a drive numbe
 <div class="title">Important</div>
 </td>
 <td class="content">
-The order of the geometry values for the IMGMOUNT command are reversed compared to IMGMAKE.
+The order of the geometry values for the <code>IMGMOUNT</code> command are reversed compared to <code>IMGMAKE</code>.
 So instead of specifying the size in CHS order, it needs to be specified in SHC (Sectors, Heads, Cylinders) order.
 In addition, it needs to be prefixed with the bytes-per-sector, which should always be 512 for now.
 So a CHS of 992,2,32 becomes <code>-size 512,32,2,992</code>.
@@ -1970,7 +2000,7 @@ If the harddisk image has an Extended partition, that partition cannot be mounte
 </div>
 </div>
 <div class="paragraph">
-<p>This will cause the currently mounted harddisk image (if any) to be unmounted, and hdd2.img to be mounted instead.</p>
+<p>This will cause the currently mounted harddisk image (if any) to be unmounted, and <code>hdd2.img</code> to be mounted instead.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -2044,7 +2074,7 @@ You can also mount and boot a disk image in one step by selecting "Boot from dis
 <div class="title">Warning</div>
 </td>
 <td class="content">
-You should never mount a harddisk image simultaneously in both DOSBox-X and in Linux, as that can cause corruption of files or the filesystem on the diskette image.
+You should never mount a harddisk image simultaneously in both DOSBox-X and in Linux, as that can cause corruption of files or the filesystem on the disk image.
 </td>
 </tr>
 </table>
@@ -2052,7 +2082,7 @@ You should never mount a harddisk image simultaneously in both DOSBox-X and in L
 <div class="sect3">
 <h4 id="_gnome_disk_image_mounter_2">Gnome Disk Image Mounter</h4>
 <div class="paragraph">
-<p>When using the Gnome desktop environment, you can open .IMG disks with the "Disk Image Mounter".
+<p>When using the Gnome desktop environment, you can open <code>.IMG</code> disks with the "Disk Image Mounter".
 Simply right-click on the file, and select 'Open with Disk Image Mounter' and the file will be mounted READ-ONLY in the Gnome file manager.</p>
 </div>
 <div class="admonitionblock note">
@@ -2085,7 +2115,7 @@ If the harddisk image contains multiple partitions, they will ALL be mounted.
 <div class="sect3">
 <h4 id="_mounting_a_harddisk_image_from_the_linux_shell">Mounting a harddisk image from the Linux shell</h4>
 <div class="paragraph">
-<p>The more traditional Linux method of mounting harddisk image files from a Linux terminal. This method requires sudo access.</p>
+<p>The more traditional Linux method of mounting harddisk image files from a Linux terminal. This method requires <code>sudo</code> access.</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -2093,7 +2123,7 @@ If the harddisk image contains multiple partitions, they will ALL be mounted.
 </div>
 </div>
 <div class="paragraph">
-<p>The above command will cause hdd.img to be mounted under /mnt</p>
+<p>The above command will cause <code>hdd.img</code> to be mounted under <code>/mnt</code> on the host.</p>
 </div>
 <div class="paragraph">
 <p>The offset is required to skip the Master Boot Record (MBR) and partition data at the beginning of the harddisk image.</p>
@@ -2106,7 +2136,7 @@ If the harddisk image contains multiple partitions, they will ALL be mounted.
 </td>
 <td class="content">
 This command will mount the first partition only.
-If the harddisk image contains multiple partitions, you can find the offset for the other partitions by running <code>fdisk -l hdd.img</code> and looking for the "Start" of the partition, and multiply the value by 512.
+If the harddisk image contains multiple partitions, you can find the offset for the other partitions by running on the host <code>fdisk -l hdd.img</code> and looking for the "Start" of the partition, and multiply the value by 512.
 For the first partition this should normally always start at 63*512=32256
 </td>
 </tr>
@@ -2123,7 +2153,7 @@ For the first partition this should normally always start at 63*512=32256
 <div class="title">Note</div>
 </td>
 <td class="content">
-Windows 8 and newer has integrated support for mounting image files, and will offer the "Mount" option when you right-click a .IMG file.
+Windows 8 and newer has integrated support for mounting image files, and will offer the "Mount" option when you right-click a <code>.IMG</code> file.
 Unfortunately this support is incompatible with the typical MFM image files used by DOSBox-X, and the mount will fail.
 </td>
 </tr>
@@ -2136,7 +2166,7 @@ Unfortunately this support is incompatible with the typical MFM image files used
 <div class="sect2">
 <h3 id="_using_harddisk_images_in_macos">Using harddisk images in macOS</h3>
 <div class="paragraph">
-<p>You can mount MFM harddisk image files with the extension IMG in macOS from the Finder by double-clicking on it.
+<p>You can mount MFM harddisk image files with the extension <code>.IMG</code> in macOS from the Finder by double-clicking on it.
 You can unmount it by clicking on the "Eject" button next to it in the Finder.</p>
 </div>
 <div class="paragraph">
@@ -2170,11 +2200,30 @@ Once you&#8217;re done, you can detach it as follows:</p>
 <h2 id="_cd_rom_or_dvd_images">CD-ROM or DVD images</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>DOSbox-X supports CD-ROM or DVD image files with the ISO-9660 (or High-Sierra) filesystem in ISO, CUE+BIN or MDF image format.</p>
+<p>DOSbox-X supports CD-ROM or DVD image files with the ISO-9660 (or High-Sierra) filesystem in <code>.ISO</code>, <code>.CUE'+</code>.BIN' or <code>.MDF</code> image format.</p>
 </div>
 <div class="paragraph">
-<p>ISO is the easiest format to work with, as long as there is only a single data track on the CD or DVD.
-If the CD or DVD contains multiple tracks, like DATA and AUDIO (aka redbook audio) the use of CUE+BIN or MDF is required.</p>
+<p>By default ISO-9660 Level 1 is used, which is limited to traditional DOS 8.3 character filenames. When emulating DOS version 7.0 or later (or <code>lfn=true</code> is set in the DOSBox-X config file), ISO-9660 Level 2 is supported with up to 31 character filenames.</p>
+</div>
+<div class="paragraph">
+<p>Starting with DOSBox-X 2022.08.0 there is also support for:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Rock Ridge extensions to ISO-9660, allowing up to 255 character mixed-case file names with Unicode (typically used by Unix or Unix-like systems, such as Linux)</p>
+</li>
+<li>
+<p>Joliet extensions to ISO-9660, allowing up to 64 character mixed-case file names with Unicode (introduced for Windows 95)</p>
+</li>
+<li>
+<p>UDF filesystem, more commonly used for DVD media (introduced for Windows 98)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><code>.ISO</code> is the easiest format to work with, as long as there is only a single data track on the CD or DVD.
+If the CD or DVD contains multiple tracks, like DATA and AUDIO (aka redbook audio) the use of <code>.CUE</code>+<code>.BIN</code> or <code>.MDF</code> is required.</p>
 </div>
 <div class="sect2">
 <h3 id="_mounting_cd_or_dvd_images">Mounting CD or DVD images</h3>
@@ -2203,7 +2252,7 @@ imgmount D: cdrom.iso -t cdrom</pre>
 <div class="title">Note</div>
 </td>
 <td class="content">
-The <code>-t iso</code> or <code>-t cdrom</code> parameter is only needed with DOSBox-X when the extension is not .ISO, .CUE or .MDF.
+The <code>-t iso</code> or <code>-t cdrom</code> parameter is only needed with DOSBox-X when the extension is not <code>.ISO</code>, <code>.CUE</code> or <code>.MDF</code>.
 </td>
 </tr>
 </table>
@@ -2215,10 +2264,33 @@ The <code>-t iso</code> or <code>-t cdrom</code> parameter is only needed with D
 <div class="title">Note</div>
 </td>
 <td class="content">
-If the names of your CD/DVD images contain characters of foreign languages such as Russian, please make sure that the current DOS code page matches the language you use before mounting the images. If you decide to put such commands in the [autoexec] section of the config file, please also make sure the encoding of your config file matches your language when you save the config file.
+If the names of your CD/DVD images contain characters of foreign languages such as Japanese, please make sure that the current DOS code page matches the language you use before mounting the images. If you decide to put such commands in the [autoexec] section of the config file, please also make sure the encoding of your config file matches your language when you save the config file.
 </td>
 </tr>
 </table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_rock_ridge_joliet_and_udf">Rock Ridge, Joliet and UDF</h3>
+<div class="paragraph">
+<p>Starting with DOSBox-X 2022.08.0, there is support for the Rock Ridge and Joliet extensions (for long filenames) to the ISO-9660 filesystem, in addition to support for the UDF filesystem.</p>
+</div>
+<div class="paragraph">
+<p>Support for Rock Ridge and Joliet is automatically enabled when emulating DOS 7.0 or later. Support for UDF is enabled when emulating DOS 7.1 or later. Alternatively, Rock Ridge and Joliet support is also enabled when the <code>lfn=true</code> setting is set in the DOSBox-X config file.</p>
+</div>
+<div class="paragraph">
+<p>If DOSBox-X detects a CD image with both Rock Ridge and Joliet extensions, it will only use the Joliet extensions.</p>
+</div>
+<div class="paragraph">
+<p>Rock Ridge, Joliet or UDF support can be enabled or disabled when mounting a CD image with the <code>-o [rr|joliet|udf]</code> image mount option.</p>
+</div>
+<div class="paragraph">
+<p>e.g. to mount a CD image and disable Rock Ridge support:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>imgmount D: cdrom.iso -o rr=0</code></pre>
+</div>
 </div>
 </div>
 <div class="sect2">
@@ -2228,7 +2300,7 @@ If the names of your CD/DVD images contain characters of foreign languages such 
 If however, you boot real DOS in DOSBox-X, any mounted CD-ROM images will not be accessible until you load both an IDE CD-ROM driver and MSCDEX.</p>
 </div>
 <div class="paragraph">
-<p>For a IDE CD-ROM driver we recommend either OAKCDROM.SYS, UIDE.SYS or VIDE-CDD.SYS.</p>
+<p>For a IDE CD-ROM driver we recommend either <code>OAKCDROM.SYS</code>, <code>UIDE.SYS</code> or <code>VIDE-CDD.SYS</code>.</p>
 </div>
 <div class="ulist">
 <ul>
@@ -2244,7 +2316,7 @@ If however, you boot real DOS in DOSBox-X, any mounted CD-ROM images will not be
 </ul>
 </div>
 <div class="paragraph">
-<p>MSCDEX.EXE is included with MS-DOS 6.x and included on the Windows 95, 98 or ME boot disks, or you can use the <a href="http://adoxa.altervista.org/shsucdx/index.html">SHSUCDX.EXE</a> redirector available from FreeDOS.</p>
+<p><code>MSCDEX.EXE</code> is included with MS-DOS 6.x and included on the Windows 95, 98 or ME boot disks, or you can use the <a href="http://adoxa.altervista.org/shsucdx/index.html">SHSUCDX.EXE</a> redirector available from FreeDOS.</p>
 </div>
 <div class="paragraph">
 <p>Edit the config.sys file and add the following line to it:</p>
@@ -2263,11 +2335,11 @@ If however, you boot real DOS in DOSBox-X, any mounted CD-ROM images will not be
 </div>
 </div>
 <div class="paragraph">
-<p>The above assumes oakcdrom.sys and mscdex.exe are in the C:\DOS directory in the harddisk image file.
-You can substitute oakcdrom.sys and mscdex.exe with their FreeDOS equivalents with the same parameters.</p>
+<p>The above assumes <code>oakcdrom.sys</code> and <code>mscdex.exe</code> are in the <code>C:\DOS</code> directory in the harddisk image file.
+You can substitute <code>oakcdrom.sys</code> and <code>mscdex.exe</code> with their FreeDOS equivalents with the same parameters.</p>
 </div>
 <div class="paragraph">
-<p>The <code>/L:D</code> option will cause MSCDEX to use the D: drive for the CD-ROM, adjust as needed.</p>
+<p>The <code>/L:D</code> option will cause MSCDEX to use the D: drive letter for the CD-ROM, adjust as needed.</p>
 </div>
 </div>
 <div class="sect2">
@@ -2282,15 +2354,17 @@ e.g.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>In this example cdrom1.iso will be immediately usable on D: but cdrom2.iso will require a disc-swap action.</p>
+<p>In this example <code>cdrom1.iso</code> will be immediately usable on D: but <code>cdrom2.iso</code> will require a disc-swap action.</p>
 </div>
 <div class="paragraph">
 <p>Disk-swap can be done using either a hot-key combination, or using the menu bar.
 The hot-key for Windows is F11+CTRL+C and for other platforms F12+CTRL+C.
-Or from the menu you can select "DOS" followed by "Swap CD".</p>
+Or from the menu you can select "DOS" followed by "Swap CD".
+Lastly, you can use the <code>IMGSWAP</code> command to swap between images.</p>
 </div>
 <div class="paragraph">
-<p>If you lose track of which disc is currently active, open the 'Drive' menu option, select the drive letter and select 'Drive Information'.</p>
+<p>If you lose track of which disc is currently active, open the 'Drive' menu option, select the drive letter and select 'Drive Information'.
+This information can also be retrieved from the <code>IMGSWAP</code> command.</p>
 </div>
 </div>
 <div class="sect2">
@@ -2336,7 +2410,7 @@ All the other mount options are host folder mounts.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>This will cause the currently mounted image file (if any) to be unmounted, and cdrom2.iso to be mounted instead.</p>
+<p>This will cause the currently mounted image file (if any) to be unmounted, and <code>cdrom2.iso</code> to be mounted instead.</p>
 </div>
 <div class="admonitionblock tip">
 <table>
@@ -2395,19 +2469,19 @@ DOSBox-X supports the <code>-L</code> parameter for the <code>BOOT</code> comman
 <div class="sect2">
 <h3 id="_using_cd_or_dvd_images_in_linux">Using CD or DVD images in Linux</h3>
 <div class="paragraph">
-<p>ISO images are fully supported by standard Linux tools, but CUE+BIN and MDF are not.</p>
+<p><code>.ISO</code> images are fully supported by standard Linux tools, but <code>.CUE</code>+<code>.BIN</code> and <code>.MDF</code> are not.</p>
 </div>
 <div class="sect3">
 <h4 id="_gnome_disk_image_mounter_3">Gnome Disk Image Mounter</h4>
 <div class="paragraph">
-<p>If you&#8217;re using the Gnome desktop environment, you can open .ISO disks with the "Disk Image Mounter". Simply right-click on the file, and select 'Open with Disk Image Mounter' and the file will be mounted in the Gnome file manager.
-This method will not work for CUE+BIN or MDF files.</p>
+<p>If you&#8217;re using the Gnome desktop environment, you can open <code>.ISO</code> disks with the "Disk Image Mounter". Simply right-click on the file, and select 'Open with Disk Image Mounter' and the file will be mounted in the Gnome file manager.
+This method will not work for <code>.CUE</code>+<code>.BIN</code> or <code>MDF</code> files.</p>
 </div>
 <div class="paragraph">
 <p>Disks can be unmounted from the Gnome file manager by clicking the unmount button next to the volume name.</p>
 </div>
 <div class="paragraph">
-<p>ISO images can also be mounted from the Linux Terminal using:</p>
+<p><code>.ISO</code> images can also be mounted from the Linux Terminal using:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -2418,15 +2492,15 @@ This method will not work for CUE+BIN or MDF files.</p>
 <div class="sect3">
 <h4 id="_cdemu">CDEmu</h4>
 <div class="paragraph">
-<p><a href="https://cdemu.sourceforge.io/">CDEmu</a> is a CD-ROM emulator for Linux. It supports numerous image formats, including ISO, CUE+BIN and MDF.</p>
+<p><a href="https://cdemu.sourceforge.io/">CDEmu</a> is a CD-ROM emulator for Linux. It supports numerous image formats, including <code>.ISO</code>, <code>.CUE</code>+<code>.BIN</code> and <code>.MDF</code>.</p>
 </div>
 </div>
 <div class="sect3">
 <h4 id="_mounting_a_iso_image_from_the_linux_shell">Mounting a ISO image from the Linux shell</h4>
 <div class="paragraph">
 <p>The more traditional Linux method of mounting diskette image files from a Linux terminal.
-This method will not work for CUE+BIN or MDF files.
-This method requires sudo access.</p>
+This method will not work for <code>.CUE</code>+<code>.BIN</code> or <code>.MDF</code> files.
+This method requires <code>sudo</code> access.</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -2434,7 +2508,7 @@ This method requires sudo access.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>The above command will cause cdrom.iso to be mounted under /mnt.</p>
+<p>The above command will cause <code>cdrom.iso</code> to be mounted under <code>/mnt</code> on the host.</p>
 </div>
 </div>
 </div>
@@ -2453,7 +2527,7 @@ This method requires sudo access.</p>
 <div class="sect2">
 <h3 id="_using_cd_or_dvd_images_in_macos">Using CD or DVD images in macOS</h3>
 <div class="paragraph">
-<p>You can mount ISO image files with the extension ISO in macOS from the Finder by double-clicking on it.
+<p>You can mount ISO image files with the extension <code>.ISO</code> in macOS from the Finder by double-clicking on it.
 You can unmount it by clicking on the "Eject" button next to it in the Finder.</p>
 </div>
 <div class="paragraph">
@@ -2515,7 +2589,7 @@ COPY D:\UNZIP.EXE C:\DOS</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This copies the file UNZIP.EXE from the host system to the C:\DOS directory in the harddisk image file.</p>
+<p>This copies the file <code>UNZIP.EXE</code> from the host system to the <code>C:\DOS</code> directory in the harddisk image file.</p>
 </div>
 </div>
 </div>
@@ -2531,7 +2605,7 @@ COPY D:\UNZIP.EXE C:\DOS</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This will create a temporary RAM drive as drive E: with a size of 20MB.</p>
+<p>This will create a temporary RAM drive as drive <code>E:</code> with a size of 20MB.</p>
 </div>
 <div class="admonitionblock caution">
 <table>
@@ -2552,7 +2626,7 @@ The contents of the RAM drive will be lost if the drive is unmounted, a program 
 <div class="title">Note</div>
 </td>
 <td class="content">
-Unlike traditional DOS RAM disk programs (e.g. VDISK, RAMDRIVE) this RAM drive will not use any memory allocated for use inside DOSBox-X itself.
+Unlike traditional DOS RAM disk programs (e.g. <code>VDISK</code>, <code>RAMDRIVE</code>) this RAM drive will not use any memory allocated for use inside DOSBox-X itself.
 In other words, it will have no effect on available memory for DOS programs.
 </td>
 </tr>
@@ -2592,7 +2666,7 @@ DOSBox-X provides limited support for these images.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>The above command will create a 2GB QCOW2 file named hdd.qcow2.</p>
+<p>The above command will create a 2GB QCOW2 file named <code>hdd.qcow2</code>.</p>
 </div>
 <div class="paragraph">
 <p>Mounting a qcow2 file can be accomplished in DOSBox-X as follows:</p>
@@ -2603,7 +2677,7 @@ DOSBox-X provides limited support for these images.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Due to the need to mount QCOW2 images with a drive number, the content of a qcow2 file cannot be accessed from the DOSBox-X integrated DOS, but only after booting real DOS or Windows 9x.</p>
+<p>Due to the need to mount QCOW2 images with a drive number, the content of a qcow2 file cannot be accessed from the DOSBox-X integrated DOS, but only after booting a guest OS such as MS-DOS or Windows 9x.</p>
 </div>
 <div class="paragraph">
 <p>Once a qcow2 file has been partitioned and formatted and made bootable, you can boot from it as such:</p>
@@ -2649,7 +2723,7 @@ This will even work with USB diskette drives.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>The above will try to read the real A: drive on your Windows PC, and convert it to a disk image named disk.ima. The <code>-r</code> option specifies how many retries are allowed while reading the original diskette.</p>
+<p>The above will try to read the real A: drive on your Windows PC, and convert it to a disk image named <code>disk.ima</code>. The <code>-r</code> option specifies how many retries are allowed while reading the original diskette.</p>
 </div>
 <div class="admonitionblock caution">
 <table>
@@ -2725,7 +2799,7 @@ This is because, once you boot a guest OS, the drive letter mapping loses its me
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-07-01 15:14:03 -0400
+Last updated 2022-08-01 17:01:25 -0400
 </div>
 </div>
 </body>

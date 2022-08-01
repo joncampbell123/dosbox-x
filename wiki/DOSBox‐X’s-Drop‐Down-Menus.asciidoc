@@ -11,6 +11,10 @@ DOSBox-X features a GUI menu bar that does not exist in DOSBox, so you can achie
 
 * **Mapper editor**: Enters DOSBox-X's keyboard mapper editor, where you can map different keys for use with the emulated DOS. Press the Esc key three times to exit the editor.
 
+* **Quick launch program...** Launches a program selected from the file browser to run inside DOSBox-X directly. The program folder will be automatically mounted and unmounted, with the option to stay in the program folder after the program finishes.
+
+* **Load language file...**: Select a language file to use for DOSBox-X’s messages, along with the code page as specified in the language file.
+
 * **Load mapper file...**: Selects a mapper file for use with DOSBox-X to replace the currently loaded mapper file (if any).
 
 * **Send special key**: Sends special keys such as the logo key, Ctrl+Esc, Alt+Tab, and Ctrl+Alt+Del to the emulated DOS system.
@@ -40,8 +44,6 @@ DOSBox-X features a GUI menu bar that does not exist in DOSBox, so you can achie
 * **Restart DOSBox-X instance**: Reboots the current DOSBox-X instance with the same configuration.
 
 * **Restart DOSBox-X with config file...**: Restart DOSBox-X automatically with the select config file loaded.
-
-* **Restart DOSBox-X with language file...**: Restart DOSBox-X automatically with the select language file loaded.
 
 * **Quit from DOSBox-X**: Exit from DOSBox-X.
 
@@ -136,8 +138,6 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 
 **5. The "DOS" menu**
 
-* **Quick launch program...** Launches a program selected from the file browser to run inside DOSBox-X directly. The program folder will be automatically mounted and unmounted, with the option to stay in the program folder after the program finishes.
-
 * **Reported DOS version**: Changes the reported DOS version to the specified version from the list, including 3.3, 5.0, 6.22 and 7.1. Long filename (LFN) and FAT32 disk image support will be enabled when you select 7.1 as the reported DOS version. You can also enter a version with “Edit”.
 
 * **Long filename support**: Changes the long filename (LFN) setting, either enable, disable, or auto per reported DOS version (i.e. enable LFN if the reported DOS version is at least 7).
@@ -145,6 +145,8 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 * **Mouse emulation**: Changes the mouse settings for the emulated DOS inside DOSBox-X, such as the mouse sensitivity.
 
 * **Expanded Memory (EMS)**: Select a mode for the Expanded Memory (EMS), or disables the EMS for some DOS programs or games.
+
+* **Limit disk transfer speed**: Toggle whether to emulate the slowness of hard disks and floppy disks by limiting the data transfer speed of mounted drives.
 
 * **Windows host applications**: Enable this if you want to launch Windows applications from mounted directories to run on the host, and whether to wait for the applications.
 

@@ -579,7 +579,7 @@ CONFIG -set font=</code></pre>
 <p>If you use DOSBox-X&#8217;s PC-98 mode, you probably want to use a Japanese TrueType font so that Japanese characters will be displayed correctly in this mode. Please look at the <a href="Guide%3APC‐98-emulation-in-DOSBox‐X">Guide: PC‐98 emulation in DOSBox‐X</a> page for more information about this.</p>
 </div>
 <div class="paragraph">
-<p>As of DOSBox-X version 0.83.14, DOSBox-X also supports CJK (Chinese, Japanese, Korean) double-byte code pages (932, 936, 949, 950) for TTF output in the standard mode (non-PC-98 mode). With this you can run for example Chinese (Simplified or Traditional) or Japanese text-mode DOS applications with DOSBox-X&#8217;s TTF output. You will need to use TrueType fonts for the languages so that the characters in these languages will be displayed correctly, such as the <a href="https://unifoundry.com/unifont/">GNU Unifont</a>, <a href="https://github.com/be5invis/Sarasa-Gothic">Sarasa Gothic</a> (which looks very nice and included in the Windows installer), or a TTF/TTC font like <code>simkai.ttf</code> or <code>mingliu.ttc</code> (included in some versions of Windows). See the <a href="Guide%3AEast-Asian-language-support-in-DOSBox‐X">East Asian language support guide page</a> for more information. Below is a screenshot showing a Chinese-language DOS program named Softscape Tools running in DOSBox-X with the <code>simkai.ttf</code> TTF font:</p>
+<p>As of DOSBox-X version 0.83.14, DOSBox-X also supports CJK (Chinese, Japanese, Korean) double-byte code pages (932, 936, 949, 950/951) for TTF output in the standard mode (non-PC-98 mode). With this you can run for example Chinese (Simplified or Traditional) or Japanese text-mode DOS applications with DOSBox-X&#8217;s TTF output. You will need to use TrueType fonts for the languages so that the characters in these languages will be displayed correctly, such as the <a href="https://unifoundry.com/unifont/">GNU Unifont</a>, <a href="https://github.com/be5invis/Sarasa-Gothic">Sarasa Gothic</a> (which looks very nice and included in the Windows installer), or a TTF/TTC font like <code>simkai.ttf</code> or <code>mingliu.ttc</code> (included in some versions of Windows). See the <a href="Guide%3AEast-Asian-language-support-in-DOSBox‐X">East Asian language support guide page</a> for more information. Below is a screenshot showing a Chinese-language DOS program named Softscape Tools running in DOSBox-X with the <code>simkai.ttf</code> TTF font:</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -740,15 +740,15 @@ colors=(0,0,0) #0e0e0e (75,75,75) (89,89,89) (38,38,38) (52,52,52) #717171 #c0c0
 </div>
 <div class="paragraph">
 <p><code>
-SETCOLOR 1 (50,50,50)
+SETCOLOR 7 (50,50,50)
 </code></p>
 </div>
 <div class="paragraph">
-<p>The above command change Color #1 to the specified color value. You can also return it to the default color value using the command:</p>
+<p>The above command change Color #7 to the specified color value. You can also return it to the default color value using the command:</p>
 </div>
 <div class="paragraph">
 <p><code>
-SETCOLOR 1 -
+SETCOLOR 7 -
 </code></p>
 </div>
 <div class="paragraph">
@@ -756,14 +756,14 @@ SETCOLOR 1 -
 </div>
 <div class="paragraph">
 <p><code>
-SETCOLOR 1 &#43;
+SETCOLOR 7 &#43;
 </code></p>
 </div>
 <div class="paragraph">
 <p>(Starting with DOSBox-X version 0.83.19, there is also a menu option <code>Reset TTF color scheme</code> in the <code>TTF options</code> menu group to return the whole color scheme to the default one)</p>
 </div>
 <div class="paragraph">
-<p>Entering <code>SETCOLOR 1</code> will display the current color value of Color #1.</p>
+<p>Entering <code>SETCOLOR 7</code> will display the current color value of Color #7.</p>
 </div>
 <div class="paragraph">
 <p>If you want to actually change the default console foreground and background colors, please use the <code>COLOR</code> command, which works the same way as the same-named command in the Windows Command Prompt. For example, the command <code>COLOR 61</code> produces red on blue by default, unless you have customized the color schemes using the <code>SETCOLOR</code> command above. For bright background colors you will need to set the option <code>high intensity blinking</code> to <code>false</code> (mentioned in the previous section), or else blinking foreground texts will be displayed instead of bright background colors. In such case you can for example enter the command <code>COLOR fc</code> to produce light red on bright white, unless you have customized the color schemes. The <code>COLOR</code> command without an argument restores the original color.</p>
@@ -773,7 +773,7 @@ SETCOLOR 1 &#43;
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-07-01 15:14:03 -0400
+Last updated 2022-08-01 17:01:25 -0400
 </div>
 </div>
 </body>

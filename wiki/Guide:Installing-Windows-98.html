@@ -512,6 +512,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </li>
 <li><a href="#_hard_disk_read_ahead_optimization">Hard Disk Read-ahead optimization</a></li>
+<li><a href="#_host_folder_mounts">Host Folder mounts</a></li>
 <li><a href="#_known_limitations">Known limitations</a></li>
 <li><a href="#_outstanding_issues">Outstanding issues</a></li>
 </ul>
@@ -1558,15 +1559,78 @@ This is no doubt because the host system is better at caching then the Windows 9
 </div>
 </div>
 <div class="sect1">
+<h2 id="_host_folder_mounts">Host Folder mounts</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Starting with DOSBox-X 2022.08.0, there is optional support to dynamically convert a host folder mount to an emulated FAT harddisk for use when you need to boot a guest OS, such as Windows 98.
+This can be accomplished in one of two ways. Either when you issue the <code>boot</code> command, you add the option <code>-convertfat</code>. e.g. <code>boot c: -convertfat</code>.</p>
+</div>
+<div class="paragraph">
+<p>Or by setting the following option in your DOSBox-X config file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>[sdl]
+convertdrivefat = true</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When you now boot from a real image file, it will attempt to convert <strong>ALL</strong> folder mounts at the time of booting to emulated FAT Harddisks.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+You cannot boot from such an emulated FAT harddisk. You will still need some other bootable image file to actually boot a guest OS.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+This conversion is dynamic, effectively creating an emulated FAT harddisk out of a folder mount.
+This converted FAT harddisk is not automatically stored permanently.
+You can however, store it as a permanent image file that you can later mount with <code>IMGMOUNT</code>, using the "Drive" &gt; "drive letter" &gt; "Save to disk image" option from the menus.
+Please see the "Creating harddisk images from folder mounts" section in the <a href="Guide%3AManaging-image-files-in-DOSBox‐X#Creating_harddisk_images_from_folder_mounts">Guide: Managing image files in DOSBox-X</a> for more information.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+There is currently no support for creating emulated CD-ROM or Floppy drives out of folder mounts with this method. Any CD-ROM or Floppy folder mounts will also be converted to harddisk folder mounts, and may not actually work for the intended purpose.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>One thing to note, is that there is no way to specify the FAT type to use for the conversion.
+The FAT type will be automatically selected based on the aggregate size of files in the folder, plus 250MiB (this can be adjusted with the <code>convert fat free space</code> option in the DOSBox-X config file).
+If the total space of files + 250MiB does not exceed 2GiB, it will convert it into a FAT16 disk. Otherwise it will become a FAT32, which in turn will require a guest OS with FAT32 support.</p>
+</div>
+<div class="paragraph">
+<p>Alternatively, you can also make the emulated FAT drive read-only by using the <code>-convertfatro</code> option with the <code>boot</code> command. Or by setting <code>convert fat free space=0</code> option in the DOSBox-X config file.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
 <h2 id="_known_limitations">Known limitations</h2>
 <div class="sectionbody">
 <div class="ulist">
 <ul>
-<li>
-<p>When booting a guest OS, such a Windows 98 in DOSBox-X, so-called folder mounts are not supported.
-Any folders of the host you mount before starting Windows 95 will <strong>NOT</strong> be available in Windows 98.
-Only image mounts (HDD, Floppy or CD) using <code>imgmount</code> are possible in combination with booting a guest OS.</p>
-</li>
 <li>
 <p>If you intend at any point to use a Floppy or CD during your usage of Windows 98, you must attach a floppy and/or CD image <strong>before</strong> starting Windows 98.
 You can load a different CD or Floppy image, once you booted Windows 95, but if a floppy or CD is not present when starting Windows 98 the drive is simply missing and you cannot add it without rebooting the guest OS.</p>
@@ -1593,7 +1657,7 @@ You can load a different CD or Floppy image, once you booted Windows 95, but if 
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-07-01 15:14:03 -0400
+Last updated 2022-08-01 17:01:25 -0400
 </div>
 </div>
 </body>

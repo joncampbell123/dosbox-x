@@ -470,6 +470,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_guides_to_installing_dos_in_dosbox_x">Guides to installing DOS in DOSBox-X</a></li>
 <li><a href="#_hints_and_tips">Hints and Tips</a>
 <ul class="sectlevel2">
+<li><a href="#_host_folder_mounts">Host Folder Mounts</a></li>
 <li><a href="#_dos_disk_caching_software">DOS disk caching software</a></li>
 <li><a href="#_shutdown_dos">Shutdown DOS</a></li>
 <li><a href="#_long_wait_on_himem_sys">Long wait on HIMEM.SYS</a></li>
@@ -488,8 +489,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="_readme_1st">README.1ST</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Before going through this guide, consider if you really need this as the integrated DOS functionality in DOSBox-X is more convenient for typical use-cases.
-Booting real DOS is rarely necessary to run DOS applications and games, or even Windows version up to 3.11 in DOSBox-X.
+<p>Before going through this guide, consider if you really need this as the integrated DOS emulation in DOSBox-X is more convenient for typical use-cases.
+Booting real DOS is rarely necessary to run DOS applications and games, or even running Windows version up to Windows 3.11 in DOSBox-X.
 And even if you have an application that requires a specific DOS version, you can change the reported version of the integrated DOS in DOSBox-X.</p>
 </div>
 <div class="paragraph">
@@ -531,7 +532,7 @@ LFN (Long File Name) support will be enabled when the reported version is set to
 <div class="ulist">
 <ul>
 <li>
-<p>Inability to use the <code>MOUNT</code> command to access directories on the host filesystem. All storage will have to be in the form of images, and they need to be mounted using <code>IMGMOUNT</code> <strong>before</strong> using the <code>BOOT</code> command to boot regular DOS.</p>
+<p>Inability to use the <code>MOUNT</code> command to access directories on the host filesystem (see below for a possible workaround). All storage will have to be in the form of images, and they need to be mounted using <code>IMGMOUNT</code> <strong>before</strong> using the <code>BOOT</code> command to boot regular DOS.</p>
 </li>
 <li>
 <p>If you need to access a CD or DVD drive you need to load an IDE/PATA CD/DVD driver and MSCDEX (or equivalent)</p>
@@ -867,20 +868,22 @@ This even works for the original IBM PC DOS Version 1.00.</p>
 <h2 id="_hints_and_tips">Hints and Tips</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_dos_disk_caching_software">DOS disk caching software</h3>
+<h3 id="_host_folder_mounts">Host Folder Mounts</h3>
 <div class="paragraph">
-<p>DOS may put SMARTDRV.EXE in AUTOEXEC.BAT to run on startup.
-This made sense back in the day, but it provides no speed advantages when run on an emulator on a modern host operating system. In fact, it may actually be counterproductive.
-As such it is recommended to disable SmartDrive.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_shutdown_dos">Shutdown DOS</h3>
-<div class="paragraph">
-<p>Normally when running DOSBox-X, you can simply type either <code>EXIT</code> or <code>SHUTDOWN /S</code> command and DOSBox-X will close. The <code>/S</code> option of <code>SHUTDOWN</code> command instructs DOSBox to shut down, and it relies on the APM support provided by DOSBox-X. It has become a built-in DOS command as of DOSBox-X version 0.83.20.</p>
+<p>Starting with DOSBox-X 2022.08.0, there is optional support to dynamically convert a host folder mount to an emulated FAT harddisk for use when you need to boot a guest OS, such as PC DOS, MS-DOS or FreeDOS.
+This can be accomplished in one of two ways. Either when you issue the <code>boot</code> command, you add the option <code>-convertfat</code>. e.g. <code>boot c: -convertfat</code>.</p>
 </div>
 <div class="paragraph">
-<p>On the other hand, if you are running a real DOS disk image, you will need to copy the <code>SHUTDOWN.COM</code> program (located in the <code>Z:\BIN</code> directory) to your disk image. This can be useful for scripted operations, for instance if you&#8217;re running a program from AUTOEXEC.BAT, and want it to shut down DOSBox-X when it finishes.</p>
+<p>Or by setting the following option in your DOSBox-X config file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>[sdl]
+convertdrivefat = true</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When you now boot from a real image file, it will attempt to convert <strong>ALL</strong> folder mounts at the time of booting to emulated FAT Harddisks.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -889,13 +892,81 @@ As such it is recommended to disable SmartDrive.</p>
 <div class="title">Note</div>
 </td>
 <td class="content">
-If SMARTDRV is being used, you MUST do a <code>SMARTDRV /C</code> <strong>before</strong> invoking the <code>SHUTDOWN</code> command as otherwise you risk filesystem corruption.
+You cannot boot from such an emulated FAT harddisk. You will still need some other bootable image file to actually boot a guest OS.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+This conversion is dynamic, effectively creating an emulated FAT harddisk out of a folder mount.
+This converted FAT harddisk is not automatically stored permanently.
+You can however, store it as a permanent image file that you can later mount with <code>IMGMOUNT</code>, using the "Drive" &gt; "drive letter" &gt; "Save to disk image" option from the menus.
+Please see the "Creating harddisk images from folder mounts" section in the <a href="Guide%3AManaging-image-files-in-DOSBox‐X#Creating_harddisk_images_from_folder_mounts">Guide: Managing image files in DOSBox-X</a> for more information.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+There is currently no support for creating emulated CD-ROM or Floppy drives out of folder mounts with this method. Any CD-ROM or Floppy folder mounts will also be converted to harddisk folder mounts, and may not actually work for the intended purpose.
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>Example AUTOEXEC.BAT usage of ATXOFF in combination with Windows 3.x:</p>
+<p>One thing to note, is that there is no way to specify the FAT type to use for the conversion.
+The FAT type will be automatically selected based on the aggregate size of files in the folder, plus 250MiB (this can be adjusted with the <code>convert fat free space</code> option in the DOSBox-X config file).
+If the total space of files + 250MiB does not exceed 2GiB, it will convert it into a FAT16 disk. Otherwise it will become a FAT32, which in turn will require a guest OS with FAT32 support.</p>
+</div>
+<div class="paragraph">
+<p>Alternatively, you can also make the emulated FAT drive read-only by using the <code>-convertfatro</code> option with the <code>boot</code> command. Or by setting <code>convert fat free space=0</code> option in the DOSBox-X config file.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_dos_disk_caching_software">DOS disk caching software</h3>
+<div class="paragraph">
+<p>The DOS setup program may put SMARTDRV.EXE in AUTOEXEC.BAT to run on startup.
+This made sense back in the day, but it provides no speed advantages when run on an emulator on a modern host operating system.
+In fact, it may actually be counterproductive.
+As such it is recommended to disable SmartDrive or similar disk caching programs.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_shutdown_dos">Shutdown DOS</h3>
+<div class="paragraph">
+<p>Normally when running DOSBox-X, you can simply type either the <code>EXIT</code> or <code>SHUTDOWN /S</code> command and DOSBox-X will close.
+The <code>/S</code> option of <code>SHUTDOWN</code> command instructs DOSBox to shut down, and it relies on the APM support provided by DOSBox-X.
+It has become a built-in DOS command as of DOSBox-X version 0.83.20.</p>
+</div>
+<div class="paragraph">
+<p>On the other hand, if you are running a real DOS disk image, you will need to copy the <code>SHUTDOWN.COM</code> program (located in the <code>Z:\BIN</code> directory) to your disk image.
+This can be useful for scripted operations, for instance if you&#8217;re running a program from AUTOEXEC.BAT, and want it to shut down DOSBox-X when it finishes.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If SMARTDRV is being used, you MUST do a <code>SMARTDRV /C</code> <strong>before</strong> invoking the <code>SHUTDOWN</code> command as otherwise you risk filesystem corruption of the disk image.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Example AUTOEXEC.BAT usage of <code>SHUTDOWN.COM</code> in combination with Windows 3.x:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -929,7 +1000,7 @@ For rebooting DOS with such a command you may also want to check the "Enable qui
 <div class="sect2">
 <h3 id="_boot_menu">Boot menu</h3>
 <div class="paragraph">
-<p>When using <code>IMGMAKE</code> to create a partitioned image, and when booting from the image afterwards you will get the following boot menu with a 4-second timeout.</p>
+<p>If you used <code>IMGMAKE</code> from DOSBox-X prior to 2022.08.0 to create a partitioned image, when booting from the image you will get the following boot menu with a 4-second timeout.</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -940,7 +1011,8 @@ Default: F1</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This is due to a special Master Boot Record (MBR) that IMGMAKE creates.</p>
+<p>This is due to a special Master Boot Record (MBR) that IMGMAKE creates.
+Images created with <code>IMGMAKE</code> from DOSBox-X 2022.08.0 or later will no longer show this menu.</p>
 </div>
 <div class="paragraph">
 <p>Pressing Enter or F1 will continue the boot process, without having to wait for the timeout.
@@ -952,7 +1024,7 @@ Alternatively you can remove the boot menu by booting to DOS and running <code>F
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-07-01 15:14:03 -0400
+Last updated 2022-08-01 17:01:25 -0400
 </div>
 </div>
 </body>

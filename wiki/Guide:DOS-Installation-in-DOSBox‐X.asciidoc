@@ -12,8 +12,8 @@ toc::[]
 This guide explains how to boot regular (or real) IBM PC DOS or Microsoft MS-DOS in DOSBox-X, including creating hard disk images.
 
 == README.1ST
-Before going through this guide, consider if you really need this as the integrated DOS functionality in DOSBox-X is more convenient for typical use-cases.
-Booting real DOS is rarely necessary to run DOS applications and games, or even Windows version up to 3.11 in DOSBox-X.
+Before going through this guide, consider if you really need this as the integrated DOS emulation in DOSBox-X is more convenient for typical use-cases.
+Booting real DOS is rarely necessary to run DOS applications and games, or even running Windows version up to Windows 3.11 in DOSBox-X.
 And even if you have an application that requires a specific DOS version, you can change the reported version of the integrated DOS in DOSBox-X.
 
 There are three ways to change the DOS version that DOSBox-X reports:
@@ -27,7 +27,7 @@ NOTE: LFN (Long File Name) support will be enabled when the reported version is 
 == Disadvantages of booting DOS in DOSBox-X
 Some disadvantages of booting regular DOS in DOSBox-X includes:
 
-* Inability to use the ``MOUNT`` command to access directories on the host filesystem. All storage will have to be in the form of images, and they need to be mounted using ``IMGMOUNT`` *before* using the ``BOOT`` command to boot regular DOS.
+* Inability to use the ``MOUNT`` command to access directories on the host filesystem (see below for a possible workaround). All storage will have to be in the form of images, and they need to be mounted using ``IMGMOUNT`` *before* using the ``BOOT`` command to boot regular DOS.
 * If you need to access a CD or DVD drive you need to load an IDE/PATA CD/DVD driver and MSCDEX (or equivalent)
 * If you need a mouse, you need to load a mouse driver (e.g. MOUSE.COM or CTMOUSE.EXE)
 * Less free memory in the lower 640KB range, and having to tune available memory by selectively loading drivers high
@@ -133,19 +133,50 @@ image::images/MS-DOS:PC-DOS_1.0.png[Booting IBM PC DOS 1.00]
 * link:Guide%3AInstalling-FreeDOS[Guide: Installing FreeDOS in DOSBox-X]
 
 == Hints and Tips
+=== Host Folder Mounts
+Starting with DOSBox-X 2022.08.0, there is optional support to dynamically convert a host folder mount to an emulated FAT harddisk for use when you need to boot a guest OS, such as PC DOS, MS-DOS or FreeDOS.
+This can be accomplished in one of two ways. Either when you issue the `boot` command, you add the option `-convertfat`. e.g. `boot c: -convertfat`.
+
+Or by setting the following option in your DOSBox-X config file:
+```
+[sdl]
+convertdrivefat = true
+```
+
+When you now boot from a real image file, it will attempt to convert **ALL** folder mounts at the time of booting to emulated FAT Harddisks.
+
+NOTE: You cannot boot from such an emulated FAT harddisk. You will still need some other bootable image file to actually boot a guest OS.
+
+NOTE: This conversion is dynamic, effectively creating an emulated FAT harddisk out of a folder mount.
+This converted FAT harddisk is not automatically stored permanently.
+You can however, store it as a permanent image file that you can later mount with `IMGMOUNT`, using the "Drive" > "drive letter" > "Save to disk image" option from the menus.
+Please see the "Creating harddisk images from folder mounts" section in the link:Guide%3AManaging-image-files-in-DOSBox‐X#Creating_harddisk_images_from_folder_mounts[Guide: Managing image files in DOSBox-X] for more information.
+
+NOTE: There is currently no support for creating emulated CD-ROM or Floppy drives out of folder mounts with this method. Any CD-ROM or Floppy folder mounts will also be converted to harddisk folder mounts, and may not actually work for the intended purpose.
+
+One thing to note, is that there is no way to specify the FAT type to use for the conversion.
+The FAT type will be automatically selected based on the aggregate size of files in the folder, plus 250MiB (this can be adjusted with the `convert fat free space` option in the DOSBox-X config file).
+If the total space of files + 250MiB does not exceed 2GiB, it will convert it into a FAT16 disk. Otherwise it will become a FAT32, which in turn will require a guest OS with FAT32 support.
+
+Alternatively, you can also make the emulated FAT drive read-only by using the `-convertfatro` option with the `boot` command. Or by setting `convert fat free space=0` option in the DOSBox-X config file.
+
 === DOS disk caching software
-DOS may put SMARTDRV.EXE in AUTOEXEC.BAT to run on startup.
-This made sense back in the day, but it provides no speed advantages when run on an emulator on a modern host operating system. In fact, it may actually be counterproductive.
-As such it is recommended to disable SmartDrive.
+The DOS setup program may put SMARTDRV.EXE in AUTOEXEC.BAT to run on startup.
+This made sense back in the day, but it provides no speed advantages when run on an emulator on a modern host operating system.
+In fact, it may actually be counterproductive.
+As such it is recommended to disable SmartDrive or similar disk caching programs.
 
 === Shutdown DOS
-Normally when running DOSBox-X, you can simply type either ``EXIT`` or ``SHUTDOWN /S`` command and DOSBox-X will close. The ``/S`` option of ``SHUTDOWN`` command instructs DOSBox to shut down, and it relies on the APM support provided by DOSBox-X. It has become a built-in DOS command as of DOSBox-X version 0.83.20.
+Normally when running DOSBox-X, you can simply type either the ``EXIT`` or ``SHUTDOWN /S`` command and DOSBox-X will close.
+The ``/S`` option of ``SHUTDOWN`` command instructs DOSBox to shut down, and it relies on the APM support provided by DOSBox-X.
+It has become a built-in DOS command as of DOSBox-X version 0.83.20.
 
-On the other hand, if you are running a real DOS disk image, you will need to copy the ``SHUTDOWN.COM`` program (located in the ``Z:\BIN`` directory) to your disk image. This can be useful for scripted operations, for instance if you're running a program from AUTOEXEC.BAT, and want it to shut down DOSBox-X when it finishes.
+On the other hand, if you are running a real DOS disk image, you will need to copy the ``SHUTDOWN.COM`` program (located in the ``Z:\BIN`` directory) to your disk image.
+This can be useful for scripted operations, for instance if you're running a program from AUTOEXEC.BAT, and want it to shut down DOSBox-X when it finishes.
 
-NOTE: If SMARTDRV is being used, you MUST do a ``SMARTDRV /C`` *before* invoking the ``SHUTDOWN`` command as otherwise you risk filesystem corruption.
+NOTE: If SMARTDRV is being used, you MUST do a ``SMARTDRV /C`` *before* invoking the ``SHUTDOWN`` command as otherwise you risk filesystem corruption of the disk image.
 
-Example AUTOEXEC.BAT usage of ATXOFF in combination with Windows 3.x:
+Example AUTOEXEC.BAT usage of `SHUTDOWN.COM` in combination with Windows 3.x:
 ....
 PATH C:\DOS;C:\WINDOWS
 SET TEMP=C:\WINDOWS\TEMP
@@ -166,7 +197,7 @@ If for some reason you want to do a reboot from the command-line, you can do so 
 For rebooting DOS with such a command you may also want to check the "Enable quick reboot" menu item (under "DOS") for a faster restart of the guest DOS system.
 
 === Boot menu
-When using ``IMGMAKE`` to create a partitioned image, and when booting from the image afterwards you will get the following boot menu with a 4-second timeout.
+If you used ``IMGMAKE`` from DOSBox-X prior to 2022.08.0 to create a partitioned image, when booting from the image you will get the following boot menu with a 4-second timeout.
 
 ....
 F1 . . . Dos
@@ -176,6 +207,7 @@ Default: F1
 ....
 
 This is due to a special Master Boot Record (MBR) that IMGMAKE creates.
+Images created with `IMGMAKE` from DOSBox-X 2022.08.0 or later will no longer show this menu.
 
 Pressing Enter or F1 will continue the boot process, without having to wait for the timeout.
 Alternatively you can remove the boot menu by booting to DOS and running ``FDISK /MBR`` to create a new MBR without the boot menu.
