@@ -11,6 +11,8 @@ It is recommended to run DOSBox-X on a DOS system with at least 128MB of RAM. Yo
 
 If you want to enable long filename support, before running DOSBox-X you also need to load the (freely available) DOSLFN driver and then start DOSBox-X with "DOSBOX-X -SET LFN=1".
 
+If network functionality (such as IPX and Modem support) is desired, you will need to load a packet driver for your ethernet card, and modify the settings in WATTCP.CFG where needed.
+
 For running DOSBox-X with a language file rather than English (default), you can use -LANGCP option to specify a language file, such as "DOSBOX-X -LANGCP JA_JP" for Japanese messages.
 
 Further Information about DOSBox-X

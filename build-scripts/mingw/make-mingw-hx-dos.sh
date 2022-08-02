@@ -86,7 +86,7 @@ for i in `ls contrib/translations/` ; do cp contrib/translations/$i/*.lng langua
 cd "$top/$hxdosdir" || exit 1
 echo "Packing up now..."
 
-$tooldir/zip.exe -r -9 ../"$name" {CHANGELOG.txt,COPYING.txt,dosbox-x.exe,dosbox-x.ref,dosbox-x.ref.full,FREECG98.BMP,wqy_1?pt.bdf,Nouveau_IBM.ttf,DPMILD32.EXE,HDPMI32.EXE,HXGUIHLP.INI,README.TXT,WINSPOOL.DRV,*.DLL,drivez/*,language/*} || exit 1
+$tooldir/zip.exe -r -9 ../"$name" {CHANGELOG.txt,COPYING.txt,dosbox-x.exe,dosbox-x.ref,dosbox-x.ref.full,FREECG98.BMP,wqy_1?pt.bdf,Nouveau_IBM.ttf,DPMILD32.EXE,HDPMI32.EXE,HXGUIHLP.INI,README.TXT,WATTCP.CFG,WINSPOOL.DRV,*.DLL,drivez/*,language/*} || exit 1
 cd ..
 
 exit 0
