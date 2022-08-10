@@ -1,0 +1,3474 @@
+:DOSBOX-X:LANGUAGE:deutsch
+:DOSBOX-X:CODEPAGE:437
+:DOSBOX-X:VERSION:0.84.0
+:DOSBOX-X:REMARK:
+:AUTOEXEC_CONFIGFILE_HELP
+Befehle in diesen Zeilen werden zum Start ausgefuehrt.
+Alle Befehle fuer MOUNT koennen hier eingefuegt werden.
+
+.
+:CONFIGFILE_INTRO
+# Dies ist die Konfig-Datei fuer DOSBox-X %s. (Verwende bitte die neuste Version von DOSBox-X)
+# Kommentarzeilen beginnen mit # und werden von DOSBox-X ignoriert.
+# Sie werden benoetigt, um (kompakt) die Wirkung jeder Option zu beschreiben.
+# Um ALLE Optionen aufzulisten, einfach das Kommando 'config -all' mit
+# der Option -wc oder -writeconf benutzen.
+
+.
+:CONFIG_SUGGESTED_VALUES
+Moegliche Werte
+.
+:CONFIG_ADVANCED_OPTION
+Erweiterte Optionen (Fuer weitere Details: siehe Konfig-Referenz-Datei [dosbox-x.reference.full.conf] )
+.
+:CONFIG_TOOL
+DOSBox-X Konfig-Tool
+.
+:CONFIG_TOOL_EXIT
+Beende Konfig-Tool
+.pc98
+:MAPPER_EDITOR_EXIT
+Beende Mapper-Editor
+.
+:SAVE_MAPPER_FILE
+Speichere Mapper-Datei
+.
+:WARNING
+Warnung
+.
+:YES
+Ja
+.
+:NO
+Nein
+.
+:OK
+OK
+.
+:CANCEL
+Abbrechen
+.
+:CLOSE
+Ende
+.
+:DEBUGCMD
+Debugger-Kommando eingeben
+.
+:ADD
+Hinzf
+.
+:DEL
+Entf
+.
+:NEXT
+Weiter
+.
+:SAVE
+Speichern
+.
+:EXIT
+Beenden
+.
+:CAPTURE
+Aufnehmen
+.
+:SAVE_CONFIGURATION
+Speichere Konfiguration
+.
+:SAVE_LANGUAGE
+Speichere Sprachdatei
+.
+:SAVE_RESTART
+Speichern & Neustart
+.
+:PASTE_CLIPBOARD
+Clipboard einfuegen
+.
+:APPEND_HISTORY
+History hinzufuegen
+.
+:EXECUTE_NOW
+Jetzt ausfuehren
+.
+:ADDITION_CONTENT
+Zusaetzlicher Inhalt:
+.
+:CONTENT
+Inhalt:
+.
+:EDIT_FOR
+Bearbeite %s
+.
+:HELP_FOR
+Hilfe fuer %s
+.
+:HELP_INFO
+Fuer mehr Infos, auf den Button "Hilfe" weiter unten klicken.
+.
+:SELECT_VALUE
+Waehle Wert fuer Eigenschaft
+.
+:CONFIGURATION_FOR
+Konfiguration fuer %s
+.
+:CONFIGURATION
+Konfiguration
+.
+:SETTINGS
+Einstellungen
+.
+:LOGGING_OUTPUT
+DOSBox-X Log-Output
+.
+:CODE_OVERVIEW
+Code-Uebersicht
+.
+:VISIT_HOMEPAGE
+Homepage besuchen
+.
+:GET_STARTED
+Einfuehrung
+.
+:CDROM_SUPPORT
+CD-ROM-Support
+.
+:DRIVE_INFORMATION
+Laufwerksinformation
+.
+:MOUNTED_DRIVE_NUMBER
+Liste von eingehaengten Laufwerken
+.
+:IDE_CONTROLLER_ASSIGNMENT
+IDE-Controller-Zuweisung
+.
+:HELP_COMMAND
+Hilfe fuer DOS-Kommandos
+.
+:CURRENT_VOLUME
+Aktuelle Lautstaerkeeinstellung
+.
+:CURRENT_SBCONFIG
+Sound Blaster Konfiguration
+.
+:CURRENT_MIDICONFIG
+Aktuelle MIDI Konfiguration
+.
+:CREATE_IMAGE
+Leeres Laufwerksimage erstellen
+.
+:NETWORK_LIST
+Liste der Netzwerkschnittstellen
+.
+:PRINTER_LIST
+Liste der Drucker
+.
+:INTRODUCTION
+Einfuehrung
+.
+:CONFIGURE_GROUP
+Waehle Einstellungsgruppe:
+.
+:SHOW_ADVOPT
+Erweiterte Optionen
+.
+:USE_PRIMARYCONFIG
+Nutze primaere Konfig-Datei
+.
+:USE_PORTABLECONFIG
+Nutze portable Konfig-Datei
+.
+:USE_USERCONFIG
+Nutze Benutzer-Konfig-Datei
+.
+:CONFIG_SAVETO
+Dateiname fuer die Konfig-Datei eingeben:
+.
+:CONFIG_SAVEALL
+Alles in Konfig-Datei speichern (inklusive erweiterte Einstellungen)
+.
+:LANG_FILENAME
+Dateiname fuer Sprachdatei eingeben:
+.
+:LANG_LANGNAME
+Name der Sprache (optional):
+.
+:INTRO_MESSAGE
+Willkommen zu DOSBox-X, einem kompletten OSS-DOS-Emulationspaket.
+Es erstellt eine DOS-Shell, welche wie damals aussieht.
+Man kann auch Windows 3.x und 9x/Me hiermit ausfuehren.
+.
+:DRIVE
+Laufwerk
+.
+:TYPE
+Typ
+.
+:LABEL
+Bezeichnung
+.
+:DRIVE_NUMBER
+LW-Buchstabe
+.
+:DISK_NAME
+LW-Name
+.
+:IDE_POSITION
+IDE-Position
+.
+:SWAP_SLOT
+Slot wechseln
+.
+:EMPTY_SLOT
+Leerer Slot
+.
+:SLOT
+Slot
+.
+:SELECT_EVENT
+Waehle ein Event zum Aendern.
+.
+:SELECT_DIFFERENT_EVENT
+Waehle ein Event oder klick auf die Buttons Hinzf/Entf/Weiter.
+.
+:PRESS_JOYSTICK_KEY
+Joystick bewegen oder Button druecken.
+.
+:CAPTURE_ENABLED
+Capture enabled. Hit ESC to release capture.
+.
+:MAPPER_FILE_SAVED
+Mapper-Datei gespeichert
+.
+:AUTO_CYCLE_MAX
+Auto-Zyklen [max]
+.
+:AUTO_CYCLE_AUTO
+Auto-Zyklen [auto]
+.
+:AUTO_CYCLE_OFF
+Auto-Zyklen [off]
+.
+:PROGRAM_CONFIG_PROPERTY_ERROR
+Kein solcher Abschnitt oder solche Eigenschaft.
+
+.
+:PROGRAM_CONFIG_NO_PROPERTY
+Keine Eigenschaft %s in Abschnitt %s.
+
+.
+:PROGRAM_CONFIG_SET_SYNTAX
+Die Syntax fuer die -set Option ist inkorrekt.
+
+.
+:PROGRAM_CONFIG_NOCONFIGFILE
+Keine Konfig-Datei geladen!
+
+.
+:PROGRAM_CONFIG_PRIMARY_CONF
+Primaere Konfig-Datei: 
+%s
+
+.
+:PROGRAM_CONFIG_ADDITIONAL_CONF
+Zusaetzliche Konfig-Dateien:
+
+.
+:PROGRAM_CONFIG_GLOBAL_CONF
+
+Globale Konfig-Datei: 
+%s
+
+.
+:PROGRAM_CONFIG_CONFDIR
+DOSBox-X %s Nutzer-Konfig-Ordner: 
+%s
+
+
+.
+:PROGRAM_CONFIG_WORKDIR
+Arbeitsverzeichnis von DOSBox-X: 
+%s
+
+
+.
+:PROGRAM_CONFIG_FILE_ERROR
+
+Kann Datei %s nicht oeffnen
+
+.
+:PROGRAM_CONFIG_FILE_WHICH
+Schreibe Konfig-Datei %s
+
+.
+:PROGRAM_LANGUAGE_FILE_WHICH
+In Sprachdatei %s geschrieben
+
+.
+:PROGRAM_CONFIG_USAGE
+Das DOSBox-X Kommandozeilen Konfig-Werkzeug. Optionen:
+-wc (oder -writeconf) ohne Parameter: Schreibt in primaere Konfig-Datei.
+-wc (oder -writeconf) mit Dateiname: Schreibt Datei in Konfig-Ordner.
+-wl (oder -writelang) mit Dateiname: Schreibt aktuelle Sprache in Datei.
+-ln (oder -langname) Zeigt Name der Sprache (ohne Argumente) oder aendert ihn.
+-wcp [Dateiname] Schreibt Datei in Programmordner (dosbox-x.conf or Dateiname).
+-wcd Schreibt in die Standard-Konfig-Datei im Konfig-Ordner.
+-all, -mod Mit -wc, -wcp, oder -wcd nutzen, um ALLE oder nur modifizierte Optionen zu speichern.
+-wcboot, -wcpboot, oder -wcdboot starten DOSBox-X neu nach Speichern der Datei.
+-bootconf (oder -bc) startet neu mit primaerer Konfig-Datei (oder angegebener Datei).
+-norem Ignoriert alle Kommentare, wenn zusammen mit -wc, -wcp, oder -wcd benutzt.
+-l Listet Konfig-Parameter von DOSBox-X auf.
+-h, -help, -? Zeigt diese Hilfe
+-h, -help, -? section / property Zeigt Info fuer bestimmten Abschnitt oder Eigenschaft.
+-axclear Loescht den Abschnitt [autoexec].
+-axadd [line] Fuegt eine Zeile dem Abschnitt [autoexec] hinzu.
+-axtype Zeigt den Inhalt des [autoexec]-Abschnitts.
+-avistart, -avistop Startet oder stoppt AVI-Aufnahme.
+-securemode Aktiviert abgesicherten Modus, wo Funktionen wie einhaengen abgeschaltet sind.
+-startmapper Startet den DOSBox-X-Mapper-Editor.
+-gui Startet das grafische Konfig-Tool.
+-get "section property" gibt den Wert einer Eigenschaft zurueck (ebenso %%CONFIG%%).
+-set (-setf for force) "section property=value" setzt den Wert einer Eigenschaft.
+
+.
+:PROGRAM_CONFIG_HLP_PROPHLP
+Zweck der Eigenschaft "%s" (enthalten in Abschnitt "%s"):
+%s
+
+Moegliche Werte: %s
+Standardwert: %s
+Aktueller Wert: %s
+
+.
+:PROGRAM_CONFIG_HLP_LINEHLP
+Zweck des Abschnitts "%s":
+%s
+Aktueller Wert:
+%s
+
+.
+:PROGRAM_CONFIG_HLP_NOCHANGE
+Diese Eigenschaft kann nicht zur Laufzeit geaendert werden.
+
+.
+:PROGRAM_CONFIG_APPLY_RESTART
+Neustarten, um Aenderungen zu uebernehmen [Y/N]?
+.
+:PROGRAM_CONFIG_HLP_POSINT
+Positive Ganzzahl
+.
+:PROGRAM_CONFIG_HLP_SECTHLP
+Abschnitt %s enthaelt folgende Eigenschaften:
+
+.
+:PROGRAM_CONFIG_HLP_SECTLIST
+DOSBox-X Konfig enthaelt folgende Abschnitte:
+
+
+.
+:PROGRAM_CONFIG_SECURE_ON
+Zum Abgesicherten Modus gewechselt.
+
+.
+:PROGRAM_CONFIG_SECURE_DISALLOW
+Dies kann im abgesicherten Modus nicht ausgefuehrt werden.
+
+.
+:PROGRAM_CONFIG_SECTION_ERROR
+Abschnitt %s existiert nicht.
+
+.
+:PROGRAM_CONFIG_VALUE_ERROR
+"%s" ist kein gueltiger Wert fuer Eigenschaft %s.
+
+.
+:PROGRAM_CONFIG_PROPERTY_DUPLICATE
+In anderen Abschnitten existiert derselbe Name einer Eigenschaft.
+
+.
+:PROGRAM_CONFIG_GET_SYNTAX
+Korrekte Syntax: config -get "section property".
+
+.
+:PROGRAM_CONFIG_PRINT_STARTUP
+
+DOSBox-X wurde mit folgenden Kommandoparametern gestartet:
+%s
+
+.
+:PROGRAM_CONFIG_MISSINGPARAM
+Fehlender Parameter.
+
+.
+:PROGRAM_MOUSE_INSTALL
+Am PS/2-Port installiert.
+
+.
+:PROGRAM_MOUSE_VERTICAL
+Umgekehrte Y-Achse aktiviert.
+
+.
+:PROGRAM_MOUSE_VERTICAL_BACK
+Umgekehrte Y-Achse deaktiviert.
+
+.
+:PROGRAM_MOUSE_UNINSTALL
+Treiber erfolgreich entladen...
+
+.
+:PROGRAM_MOUSE_ERROR
+Bereits am PS/2-Port installiert.
+
+.
+:PROGRAM_MOUSE_NOINSTALLED
+Kein Treiber installiert.
+
+.
+:PROGRAM_MOUSE_HELP
+Schaltet Maus ein/aus.
+
+MOUSE [/?] [/U] [/V]
+  /U: Deinstallieren
+  /V: Y-Achse umkehren
+
+.
+:PROGRAM_MOUNT_CDROMS_FOUND
+CDROMs gefunden: %d
+
+.
+:PROGRAM_MOUNT_STATUS_FORMAT
+%-5s  %-58s %-12s
+
+.
+:PROGRAM_MOUNT_STATUS_ELTORITO
+Laufwerk %c als El Torito Disketten-LW eingehangen
+
+.
+:PROGRAM_MOUNT_STATUS_RAMDRIVE
+Laufwerk %c als RAM-LW eingehangen
+
+.
+:PROGRAM_MOUNT_STATUS_2
+Laufwerk %c als %s eingehangen
+
+.
+:PROGRAM_MOUNT_STATUS_1
+Aktuell eingehaengte Laufwerke:
+
+.
+:PROGRAM_IMGMOUNT_STATUS_FORMAT
+%-5s  %-47s  %-12s  %s
+
+.
+:PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT
+%-12s  %-40s  %-12s  %s
+
+.
+:PROGRAM_IMGMOUNT_STATUS_2
+Aktuell eingehaengte LW-Buchstaben:
+
+.
+:PROGRAM_IMGMOUNT_STATUS_1
+Aktuell eingehaengte FAT/ISO-Laufwerke:
+
+.
+:PROGRAM_IMGMOUNT_STATUS_NONE
+Kein Laufwerk verfuegbar
+
+.
+:PROGRAM_IMGSWAP_STATUS
+Aktuell eingehaengte, tauschbare Laufwerke:
+
+.
+:PROGRAM_IMGSWAP_ERROR
+Position fuer dieses LW muss zwischen 1 and %d sein.
+
+.
+:PROGRAM_MOUNT_ERROR_1
+Ordner %s existiert nicht.
+
+.
+:PROGRAM_MOUNT_ERROR_2
+%s ist kein Ordner
+
+.
+:PROGRAM_MOUNT_IMGMOUNT
+Fuer Image-Dateien, nutze das ←[34;1mIMGMOUNT←[0m Kommando, nicht ←[34;1mMOUNT←[0m .
+
+.
+:PROGRAM_MOUNT_ILL_TYPE
+Illegaler Typ %s
+
+.
+:PROGRAM_MOUNT_ALREADY_MOUNTED
+Laufwerk %c bereits als %s eingehaengt
+
+.
+:PROGRAM_MOUNT_USAGE
+Haengt Ordner oder LW vom Host-System als DOSBox-X Laufwerk ein.
+Usage: ←[34;1m←[32;1mMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mlocal_directory←[0m [option]←[0m
+ ←[37;1mdrive←[0m            Buchstabe, unter dem der Ordner oder das LW eingehaengt wird.
+ ←[36;1mlocal_directory←[0m  Lokaler Ordner oder LW vom Host-System, das eingehaengt wird.
+ [option]         Option(en) zum Einhaengen. Folgende Optionen werden akzeptiert:
+ -t               Legt LW-Typ im Gast-System fest.
+                  Unterstuetzte Typen: dir, floppy, cdrom, overlay
+ (Anmerkung: 'overlay' leitet Schreibzugriffe in einen anderen Ordner um)
+ -label [name]    Legt die Bezeichnung des Laufwerks fest (in Grossbuchstaben).
+ -nl              Wenn Buchstabe vergeben, nutze den naechsten, der verfuegbar ist.
+ -ro              Als schreibgeschuetztes Laufwerk einhaengen.
+ -pr              Explizit als Pfad relativ zur Konfig-Datei deklarieren.
+ -cd              Generiere eine Liste lokaler CD-Laufwerke als "drive #" Werte.
+ -usecd [drive #] Fuer direkte Hardware-Emulation wie z.B Audio-Wiedergabe.
+ -ioctl           Nutze Lowest-Level-Hardware-Zugriff (gefolgt von -usecd Option).
+ -aspi            Nutze installierten ASPI-Layer (gefolgt von -usecd Option).
+ -freesize [size] Lege freien Speicher des Laufwerks in MB fest (in KB fuer Disketten).
+ -nocachedir      Kein Laufwerks-Cache. Aktualisiere in Echtzeit.
+ -z drive         Verschiebe Laufwerk Z: zu anderem Buchstaben.
+ -o               Gib Laufwerk an als: local, remote.
+ -q               Stiller Modus (keine Rueckmeldungen).
+ -u               Laufwerk aushaengen.
+ ←[32;1m-examples        Ein paar Beispiele zeigen.←[0m
+MOUNT ohne Parameter zeigt eine Liste der eingehaengten Laufwerke.
+.
+:PROGRAM_MOUNT_EXAMPLE
+Ein einfaches Beispiel des MOUNT Kommandos:
+
+←[32;1mMOUNT c %s←[0m
+
+Hiermit wird %s als Laufwerk C: in DOSBox-X eingebunden.
+Der Ordner muss auf dem Host-System existieren. Enthaelt der Ordner
+Leerzeichen, dann sollte er in doppelten Anfuehrungszeichen geschrieben
+sein, z.B. %s
+
+Weitere Beispiele fuer MOUNT:
+
+←[32;1mMOUNT←[0m                            - Zeigt eine Liste der eingehaengten Laufwerke
+←[32;1mMOUNT -cd←[0m                        - Zeigt alle lokalen CD-Laufwerke
+←[32;1mMOUNT d %s←[0m            - Haenge den Ordner als Laufwerk D: ein
+←[32;1mMOUNT c %s -t cdrom←[0m      - Haenge ein CD-ROM-LW als Laufwerk C: ein
+←[32;1mMOUNT c %s -ro←[0m           - Haenge Laufwerk C: mit Schreibschutz ein
+←[32;1mMOUNT c %s -label TEST←[0m   - Haenge Laufwerk C: mit Bezeichnung TEST ein
+←[32;1mMOUNT c %s -nocachedir ←[0m  - Haenge Laufwerk C: ohne LW-Cache ein
+←[32;1mMOUNT c %s -freesize 128←[0m - Haenge Laufwerk C: mit 128MB freiem Speicher ein
+←[32;1mMOUNT c %s -u←[0m            - Erzwinge Laufwerk C: einzuhaengen, selbst wenn bereits vergeben
+←[32;1mMOUNT c %s -t overlay←[0m  - Haenge Laufwerk C: mit zusaetzlichem Overlay-LW ein
+←[32;1mMOUNT c -u←[0m                       - Haenge Laufwerk C: aus
+
+.
+:PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED
+Laufwerk %c nicht eingehangen.
+
+.
+:PROGRAM_MOUNT_UMOUNT_SUCCESS
+Laufwerk %c erfolgreich ausgehangen.
+
+.
+:PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS
+Buchstabe %c erfolgreich ausgehangen.
+
+.
+:PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL
+Virtuelle Laufwerke koennen nicht ausgehangen werden.
+
+.
+:PROGRAM_MOUNT_WARNING_WIN
+Warnung: Laufwerk C:\ ist beim Einhaengen nicht empfohlen.
+
+.
+:PROGRAM_MOUNT_WARNING_OTHER
+Warnung: Laufwerk / ist beim Einhaengen nicht empfohlen.
+
+.
+:PROGRAM_MOUNT_PHYSFS_ERROR
+Konnte PhysFS-Laufwerk aus Archiv-Datei nicht einhaengen.
+
+.
+:PROGRAM_MOUNT_OVERLAY_NO_BASE
+Bitte ZUERST einen normalen Ordner einhaengen, BEVOR man ein Overlay hinzufuegt.
+
+.
+:PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE
+Overlay NICHT kompatibel mit dem angegebenen Laufwerk.
+
+.
+:PROGRAM_MOUNT_OVERLAY_MIXED_BASE
+Das Overlay muss auf dieselbe Weise addressiert werden wie das zugrunde liegende LW.
+Mischen von relativen und absoluten Pfaden verboten.
+.
+:PROGRAM_MOUNT_OVERLAY_SAME_AS_BASE
+Der Overlay-Ordner darf nicht mit sich selbst uebereinstimmen.
+
+.
+:PROGRAM_MOUNT_OVERLAY_ERROR
+Beim Erstellen des Overlay-Laufwerks ist ein Fehler aufgetreten.
+
+.
+:PROGRAM_MOUNT_OVERLAY_STATUS
+Overlay %s auf Laufwerk %c eingehangen.
+
+.
+:PROGRAM_LOADFIX_ALLOC
+%d KiB alloziiert.
+
+.
+:PROGRAM_LOADFIX_DEALLOC
+%d KiB freigegeben.
+
+.
+:PROGRAM_LOADFIX_DEALLOCALL
+Gebrauchten Speicher freigegeben.
+
+.
+:PROGRAM_LOADFIX_ERROR
+Fehler beim Alloziieren von Speicher.
+
+.
+:PROGRAM_LOADFIX_HELP
+Laedt ein Programm oberhalb der ersten 64 KiB durch Reduzierung des verfuegbaren Speichers.
+
+LOADFIX [-xms] [-ems] [-{ram}] [{program}] [{options}]
+LOADFIX -f [-xms] [-ems]
+
+  -xms        alloziiert Speicher via XMS anstelle von konventionellem Speicher
+  -ems        alloziiert Speicher via EMS anstelle von konventionellem Speicher
+  -{ram}      Legt die Menge des Speichers zum Alloziieren in KiB fest
+              Standard: 64KiB fuer konventionellem Speicher; 1MiB fuer XMS/EMS Speicher
+  -a          Alloziiert genug Speicher, um die ersten 64KiB Speicher zu fuellen
+  -f (or -d)  Gibt den alloziierten Speicher frei
+  {program}   Startet das specifizierte Programm
+  {options}   Programm Optionen (falls verfuegbar)
+
+Examples:
+  ←[32;1mLOADFIX game.exe←[0m     Alloziiert 64KiB an konventionellem Speicher und startet game.exe
+  ←[32;1mLOADFIX -a←[0m           Auto-alloziieert genuegend konventionellen Speicher
+  ←[32;1mLOADFIX -128←[0m         Alloziiert 128KiB an lonventionellem Speicher
+  ←[32;1mLOADFIX -xms←[0m         Alloziiert 1MiB an XMS Speicher
+  ←[32;1mLOADFIX -f←[0m           Gibt den alloziierten konventionellen Speicher frei
+
+.
+:MSCDEX_SUCCESS
+MSCDEX installiert.
+
+.
+:MSCDEX_ERROR_MULTIPLE_CDROMS
+MSCDEX: Fehler: Buchstaben von mehreren CD-ROM-Laufwerken muessen aufeinander folgen.
+
+.
+:MSCDEX_ERROR_NOT_SUPPORTED
+MSCDEX: Fehler: Noch nicht unterstuetzt.
+
+.
+:MSCDEX_ERROR_PATH
+MSCDEX: Angegebener Pfad ist kein CD-ROM-Laufwerk.
+
+.
+:MSCDEX_ERROR_OPEN
+MSCDEX: Fehler: Ungueltige Datei oder kann nicht geoeffnet werden.
+
+.
+:MSCDEX_TOO_MANY_DRIVES
+MSCDEX: Fehler: Zu viele CD-ROM-Laufwerke (max: 5).
+MSCDEX Installation fehlgeschlagen.
+.
+:MSCDEX_LIMITED_SUPPORT
+MSCDEX: Unterordner eingehangen: Begrenzte Unterstuetzung.
+
+.
+:MSCDEX_INVALID_FILEFORMAT
+MSCDEX: Fehler: Datei ist kein ISO/CUE-Image oder enthaelt Fehler.
+
+.
+:MSCDEX_UNKNOWN_ERROR
+MSCDEX: Unbekannter Fehler.
+
+.
+:PROGRAM_RESCAN_SUCCESS
+Laufwerks-Cache geleert.
+
+.
+:PROGRAM_INTRO
+←[2J←[32;1mWillkommen zu DOSBox-X←[0m, einem OSS-x86-Emulator mit Sound und Grafik.
+DOSBox-X erstellt eine Shell, die wie das einfache DOS von damals aussieht.
+
+←[31;1mDOSBox-X wird ohne Warnung anhalten/sich beenden, wenn ein Fehler auftritt!←[0m
+
+
+
+.
+:PROGRAM_INTRO_MENU_UP
+DOSBox-X Einfuehrung
+.
+:PROGRAM_INTRO_MENU_BASIC
+Einfaches Einhaengen
+.
+:PROGRAM_INTRO_MENU_CDROM
+CD-ROM-Unterstuetzung
+.
+:PROGRAM_INTRO_MENU_USAGE
+Verwendung
+.
+:PROGRAM_INTRO_MENU_INFO
+Information
+.
+:PROGRAM_INTRO_MENU_QUIT
+Beenden
+.
+:PROGRAM_INTRO_MENU_BASIC_HELP
+
+←[1m   ←[1m←[KMOUNT erlaubt echte Hardware innerhalb von DOSBox-X zu nutzen.←[0m
+
+.
+:PROGRAM_INTRO_MENU_CDROM_HELP
+
+←[1m   ←[1m←[KUm dein CD-ROM-LW in DOSBox-X zu nutzen, muessen zusaetzliche Optionen beim
+   Einhaengen des CD-ROM-LW angegeben werden.←[0m
+
+.
+:PROGRAM_INTRO_MENU_USAGE_HELP
+
+←[1m   ←[1m←[KEine Uebersicht zu den Kommandooptionen, die man DOSBox-X geben kann.←[0m
+
+.
+:PROGRAM_INTRO_MENU_INFO_HELP
+
+←[1m   ←[1m←[KWie man mehr Informationen zu DOSBox-X erhaelt.←[0m
+
+.
+:PROGRAM_INTRO_MENU_QUIT_HELP
+
+←[1m   ←[1m←[KIntro beenden.←[0m
+
+.
+:PROGRAM_INTRO_USAGE_TOP
+←[2J←[32;1mEine Uebersicht der Kommandooptionen, die man DOSBox-X geben kann.←[0m
+Windows-Nutzer muessen cmd.exe oeffnen oder eine Verknuepfung zu DOSBox-X.exe dafuer bearbeiten.
+
+dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
+         [-conf congfigfile] [-lang languagefile] [-machine machinetype]
+         [-startmapper] [-noautoexec] [-scaler scaler | -forcescaler scaler]
+         [-o options] [-c command] [-set <section property=value>]
+
+
+.
+:PROGRAM_INTRO_USAGE_1
+←[33;1m  name←[0m
+○Wenn name ein Ordner ist, wird er als Laufwerk C: eingehaengt.
+○Wenn name ein Programm ist, wird sein Ordner als Laufwerk C:
+○eingehaengt und das Programm ausgefuehrt.
+
+←[33;1m  -exit←[0m
+○DOSBox-X schliesst sich selbst, wenn die DOS-Anwendung beendet wurde.
+
+←[33;1m  -version←[0m
+○Zeigt die Versionsinformationen an und beendet sich. Nuetzlich fuer Frontends.
+
+←[33;1m  -fastlaunch←[0m
+○Aktiviert Schnellstartmodus (ueberspringe BIOS-Logo und Willkommensbanner).
+
+←[33;1m  -fullscreen←[0m
+○Startet DOSBox-X im Vollbildmodus.
+
+.
+:PROGRAM_INTRO_USAGE_2
+←[33;1m  -conf←[0m configfile
+○Startet DOSBox-X mit den Optionen aus der Konfig-Datei.
+○Siehe Dokumentation fuer mehr Details.
+
+←[33;1m  -lang←[0m languagefile
+○Startet DOSBox-X mit der angegebenen Sprachdatei.
+
+←[33;1m  -startmapper←[0m
+○Startet den Keymapper zuerst. Nuetzlich fuer Leute mit
+○Tastaturproblemen.
+
+←[33;1m  -machine←[0m machinetype
+○Startet DOSBox-X mit dem angegebenen Maschinenentyp. Gueltige Optionen:
+○hercules, cga, cga_mono, mcga, mda, pcjr, tandy, ega, vga, vgaonly,
+○pc98, vesa_nolfb, vesa_oldvbe, svga_paradise, svga_s3 (Standard).
+○Die Maschinentypen beeinflussen sowohl Video- als auch Soundkarte.
+
+.
+:PROGRAM_INTRO_USAGE_3
+←[33;1m  -noautoexec←[0m
+○Ueberspringt den [autoexec] Abschnitt der Konfig-Datei.
+
+←[33;1m  -o←[0m options
+○Zeigt die Kommandooption(en) fuer "name" an, wenn es eine Anwendung ist.
+○Mehrere -o koennen fuer mehrere Anwendungen benutzt werden.
+
+←[33;1m  -c←[0m command
+○Fuehrt zuerst command aus, dann name. Mehrere Kommandos sind moeglich.
+○Jedes Kommando sollte mit -c beginnen.
+○Ein Kommando ist: ein internes Programm, ein DOS-Kommando oder eine
+○ausfuehrbahre Datei auf einem eingehaengten Laufwerk.
+
+←[33;1m  -set←[0m <section property=value>
+○Legt die Konfig-Option fest (ignoriert die Konfig-Datei). Jede Option
+○sollte mit -set beginnen, wenn mehrere angegeben werden sollen.
+
+.
+:PROGRAM_INTRO_INFO
+←[32;1mInformation:←[0m
+
+Fuer Information ueber einfaches Einhaengen, tippe ←[34;1mintro mount←[0m
+Fuer Information ueber CD-ROM-Support, tippe ←[34;1mintro cdrom←[0m
+Fuer Information ueber besondere Tasten, tippe ←[34;1mintro special←[0m
+Fuer Information ueber Allgemeines, tippe ←[34;1mintro usage←[0m
+
+Die neuste Version von DOSBox-X findet man auf der Webseite:←[34;1m
+
+←[34;1mhttps://dosbox-x.com/←[0m or ←[34;1mhttp://dosbox-x.software←[0m
+
+Fuer mehr Information ueber DOSBox-X, schaue ins Wiki auf:
+
+←[34;1mhttps://dosbox-x.com/wiki←[0m
+
+.
+:PROGRAM_INTRO_MOUNT_START
+←[32;1mHiere ein paar Kommandos zur Einfuehrung:←[0m
+Bevor man auf Dateien auf dem eigenen Computer zugreifen kann,
+muss man einen Ordner mit den noetigen Dateien einhaengen.
+
+
+.
+:PROGRAM_INTRO_MOUNT_EXST_WINDOWS
+←[32mmount c c:\dosgames\←[37m erstellt LW C mit c:\dosgames als Inhalt.
+.
+:PROGRAM_INTRO_MOUNT_EXEN_WINDOWS
+c:\dosgames\←[37m ist ein Beispiel. Ersetze es mit deinem eigenen Spieleordner.←[37m 
+.
+:PROGRAM_INTRO_MOUNT_EXST_OTHER
+←[32mmount c ~/dosgames←[37m erstellt LW C mit ~/dosgames als Inhalt.
+.
+:PROGRAM_INTRO_MOUNT_EXEN_OTHER
+←[32m~/dosgames←[37m ist ein Beispiel. Ersetze es mit deinem eigenen Spieleordner.←[37m  
+.
+:PROGRAM_INTRO_MOUNT_END
+Wurde das Laufwerk eingehaengt, tippe ←[34;1mc:←[0m, um dein gerade eingerichtetes
+Laufwerk C: zu betreten. Tippe ←[34;1mdir←[0m um den Inhalt zu sehen. ←[34;1mcd←[0m erlaubt es
+einen Ordner zu wechseln (erkennbar an ←[33;1m[]←[0m in einem Ordnerverzeichnis).
+Alle Dateien mit der Endung ←[31m.exe .bat←[0m und ←[31m.com←[0m sind startfaehig.
+
+.
+:PROGRAM_INTRO_CDROM
+←[2J←[32;1mWie man ein echtes/virtuelles CD-ROM-LW in DOSBox-X einhaengt:←[0m
+DOSBox-X unterstuetzt CD-ROM-Emulation auf verschiedenen Ebenen.
+
+Das Level ←[33mbasic←[0m laeuft mit allen CD-ROM-Laufwerken und normalen
+Ordnern. Es installiert MSCDEX und markiert alle Dateien
+als schreibgeschuetzt. Dies genuegt fuer die meisten Spiele:
+←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom←[0m  oder  ←[34;1mmount d C:\example -t cdrom←[0m
+Falls nicht, muss man DOSBox-X den Bezeichner der CD-ROM geben:
+←[34;1mmount d C:\example -t cdrom -label CDLABEL←[0m
+
+Das Level ←[33mnext←[0m fuegt Low-Level-Support hinzu.
+Es funktioniert nur mit CD-ROM-Laufwerken:
+←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom -usecd ←[33m0←[0m
+
+Das ←[33mletzte←[0m Support-Level haengt vom Betriebssystem ab:
+Fuer ←[1mWindows 2000←[0m, ←[1mWindows XP←[0m und ←[1mLinux←[0m:
+←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom -usecd ←[33m0 ←[34m-ioctl←[0m
+Fuer ←[1mWindows 9x←[0m mit installiertem ASPI-Layer:
+←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom -usecd ←[33m0 ←[34m-aspi←[0m
+
+Ersetze ←[0;31mD:\←[0m mit dem Pfad zum CD-ROM-Laufwerk.
+Ersetze ←[33;1m0←[0m in ←[34;1m-usecd ←[33m0←[0m mit der Zahl, die zum CD-ROM-LW gehoert:
+←[34;1mmount -cd←[0m
+
+.
+:PROGRAM_BOOT_NOT_EXIST
+Bootdisk-Datei existiert nicht.  Fehlschlag.
+
+.
+:PROGRAM_BOOT_NOT_OPEN
+Kannot Bootdisk-Datei nicht oeffnen.  Fehlschlag.
+
+.
+:PROGRAM_BOOT_WRITE_PROTECTED
+Image-Datei ist SCHREIBGESCHUeTZT!!!
+
+.
+:PROGRAM_BOOT_PRINT_ERROR
+Dieses Kommando startet DOSBox-X von einem Disketten- oder
+Festplatten-Image.
+
+Hierfuer muss der LW-Buchstabe als auch ein oder mehrere (wechselbare)
+Images angegeben werden.
+Fehlt der LW-Buchstabe, wird standardmaessig Laufwerk A: gewaehlt.
+Ohne Parameter wird versucht, das aktuelle Laufwerk zu booten.
+Nur die Laufwerke A, C, und D koennen booten. Festplatten koennen nur von
+Laufwerk C oder D booten, wenn sie mit dem Kommado ←[34;1mIMGMOUNT←[0m
+eingehaengt wurden.
+
+Die Syntax dieses Kommandos funktioniert wie folgt:
+
+←[34;1mBOOT [driveletter:]←[0m
+
+←[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L driveletter]←[0m
+
+Hinweis: Eine Image-Datei, die mit : beginnt, wird schreibgeschuetzt geoeffnet,
+falls die passende Option aktiviert ist.
+
+Beispiele:
+
+←[32;1mBOOT A:←[0m       - boote von A: wenn es eingehaengt und bootfaehig ist.
+←[32;1mBOOT :DOS.IMG←[0m - boote das Image DOS.IMG mit Schreibschutz.
+
+.
+:PROGRAM_BOOT_UNABLE
+Kann von Laufwerk %c nicht booten.
+
+.
+:PROGRAM_BOOT_IMAGE_OPEN
+Oeffne Image-Datei: %s
+
+.
+:PROGRAM_BOOT_IMAGE_NOT_OPEN
+Kann %s nicht oeffnen
+
+.
+:PROGRAM_BOOT_CART_WO_PCJR
+PCjr-Cartridge gefunden, aber Maschine ist nicht PCjr
+.
+:PROGRAM_BOOT_CART_LIST_CMDS
+Verfuegbare PCjr-Cartridge-Kommandos: %s
+.
+:PROGRAM_BOOT_CART_NO_CMDS
+Keine PCjr-Cartridge-Kommandos gefunden
+.
+:PROGRAM_LOADROM_HELP
+Laedt die angegebene ROM-Image-Datei fuer Video-BIOS oder IBM BASIC.
+
+LOADROM ROM_file
+
+.
+:PROGRAM_LOADROM_SPECIFY_FILE
+ROM-Datei muss zum Laden angegeben werden.
+
+.
+:PROGRAM_LOADROM_CANT_OPEN
+Kann auf ROM-Datei nicht zugreifen.
+
+.
+:PROGRAM_LOADROM_TOO_LARGE
+ROM-Datei zu gross.
+
+.
+:PROGRAM_LOADROM_INCOMPATIBLE
+Video-BIOS mit aktuellem Maschinen-Typ nicht kompatibel.
+
+.
+:PROGRAM_LOADROM_UNRECOGNIZED
+ROM-Datei nicht erkannt.
+
+.
+:PROGRAM_LOADROM_BASIC_LOADED
+BASIC-ROM geladen.
+
+.
+:PROGRAM_BIOSTEST_HELP
+Startet ein BIOS-Image, um CPU-Test-BIOS auszufuehren.
+
+BIOSTEST image_file
+
+.
+:VHD_ERROR_OPENING
+Kann die angegebene VHD-Datei nicht oeffnen.
+
+.
+:VHD_INVALID_DATA
+Die angegebene VHD-Datei ist beschaedigt und kann nicht geoeffnet werden.
+
+.
+:VHD_UNSUPPORTED_TYPE
+Die angegebene VHD-Datei benutzt einen nicht unterstuetzten Typ.
+
+.
+:VHD_ERROR_OPENING_PARENT
+Die uebergeordnete VHD-Datei konnte nicht gefunden werden.
+
+.
+:VHD_PARENT_INVALID_DATA
+Die uebergeordnete VHD-Datei ist beschaedigt und kann nicht geoeffnet werden.
+
+.
+:VHD_PARENT_UNSUPPORTED_TYPE
+Die uebergeordnete VHD-Datei benutzt einen nicht unterstuetzten Typ.
+
+.
+:VHD_PARENT_INVALID_MATCH
+Die uebergeordnete VHD-Datei enthaelt nicht den erwarteten Index.
+
+.
+:VHD_PARENT_INVALID_DATE
+Die uebergeordnete VHD-Datei wurde geaendert und kann nicht geladen werden.
+
+.
+:PROGRAM_IMGMOUNT_SPECIFY_DRIVE
+Laufwerksbuchstabe zum Einhaengen fehlt.
+
+.
+:PROGRAM_IMGMOUNT_SPECIFY2
+Eine Zahl (0 bis %d) muss zum Einhaengen angegeben werden
+(0,1=fda,fdb;2,3=hda,hdb).
+
+.
+:PROGRAM_IMGMOUNT_INVALID_IMAGE
+Kann Image-Datei nicht laden.
+Das Image ist nicht verfuegbar, weil der Pfad ungueltig ist.
+
+.
+:PROGRAM_IMGMOUNT_DYNAMIC_VHD_UNSUPPORTED
+Dynamische VHD-Dateien sind nicht unterstuetzt.
+
+.
+:PROGRAM_IMGMOUNT_INVALID_GEOMETRY
+Konnte Laufwerksgeometrie aus dem Image nicht extrahieren.
+Nutze die Parameter -size bps,spc,hpc,cyl um die 
+korrekte Geometrie anzugeben.
+
+.
+:PROGRAM_IMGMOUNT_AUTODET_VALUES
+Image-Geometrie Auto-Erkennung: -size %u,%u,%u,%u
+
+.
+:PROGRAM_IMGMOUNT_TYPE_UNSUPPORTED
+Typ "%s" nicht unterstuetzt. "hdd", "floppy" oder "iso" angeben.
+
+.
+:PROGRAM_IMGMOUNT_FORMAT_UNSUPPORTED
+Format "%s" nicht unterstuetzt. "fat", "iso" oder "none" angeben.
+
+.
+:PROGRAM_IMGMOUNT_SPECIFY_FILE
+Image-Datei(en) zum Einhaengen angeben.
+
+.
+:PROGRAM_IMGMOUNT_FILE_NOT_FOUND
+Image-Datei nicht gefunden.
+
+.
+:PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND
+Image-Datei nicht gefunden: IMGMAKE.IMG.
+
+.
+:PROGRAM_IMGMOUNT_MOUNT
+Um Ordner einzuhaengen, nutze das ←[34;1mMOUNT←[0m Kommando, nicht ←[34;1mIMGMOUNT←[0m.
+
+.
+:PROGRAM_IMGMOUNT_ALREADY_MOUNTED
+Laufwerk bereits mit diesem Buchstaben eingehaengt.
+
+.
+:PROGRAM_IMGMOUNT_ALREADY_MOUNTED_NUMBER
+Laufwerksbuchstabe %d bereits eingehaengt.
+
+.
+:PROGRAM_IMGMOUNT_CANT_CREATE
+Kann kein Laufwerk aus dieser Datei erstellen.
+
+.
+:PROGRAM_IMGMOUNT_CANT_CREATE_PHYSFS
+Kann kein PhysFS-Laufwerk erstellen.
+
+.
+:PROGRAM_IMGMOUNT_MOUNT_NUMBER
+Laufwerk %d eingehaengt als %s
+
+.
+:PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE
+Image muss auf dem Host, lokal oder einem Netzlaufwerk sein.
+
+.
+:PROGRAM_IMGMOUNT_MULTIPLE_NON_CUEISO_FILES
+Nur bei CUE/ISO-Images werden mehrere Dateien unterstuetzt.
+
+.
+:PROGRAM_IMGMOUNT_HELP
+Haengt Disketten-, Festplatten und CD-Images ein.
+←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mfile←[0m [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]
+←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mfile←[0m [-ro] [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide controller]
+←[32;1mIMGMOUNT←[0m ←[37;1mdriveNum←[0m ←[36;1mfile←[0m [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl #]
+←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mfile←[0m [-t iso] [-fs iso]
+←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m [-t floppy] -bootcd cdDrive (or -el-torito cdDrive)
+←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m -t ram -size size
+←[32;1mIMGMOUNT←[0m -u ←[37;1mdrive|driveNum←[0m (or ←[32;1mIMGMOUNT←[0m ←[37;1mdrive|driveNum←[0m ←[36;1mfile←[0m [options] -u)
+ ←[37;1mdrive←[0m               Buchstabe zum Einhaengen des Images.
+ ←[37;1mdriveNum←[0m            Zahl zum Einhaengen, 0-1 sind Disketten, 2-5 sind Festplatten.
+ ←[36;1mfile←[0m                Image-Dateiname(n), oder ←[33;1mIMGMAKE.IMG←[0m wenn nichts angegeben.
+ -t iso              Image-Typ ist CD-ISO oder CUE/BIN-Image.
+ -t hdd|floppy|ram   Image-Typ ist Festplatte (inkl. VHD/HDI)|Diskette|RAM-LW.
+ -fs iso             Dateisystem ist ISO 9660 (Standard fuer .iso/.cue-Dateien).
+ -fs fat             Daieisystem ist FAT - FAT12, FAT16 und FAT32 unterstuetzt.
+ -fs none            Kein Dateisystem erkennen (Standard fuer Laufwerkszahlen).
+ -reservecyl #       # weniger Zylinder als im aktuellen BIOS angeben.
+ -ide controller     IDE-Controller (1m, 1s, 2m, 2s) zum Einhaengen angeben.
+ -size size|ss,s,h,c Groesse in KiB, oder Sektorgroesse und CHS-Geometrie angeben.
+ -bootcd cdDrive     CD-Laufwerk zum Booten angeben.
+ -o partidx=#        Festplattenpartitionsnummer zum Einhaengen als LW angeben.
+ -ro                 Image(s) schreibgeschuetzt (oder ':' fuer gleichen Effekt).
+ -u                  Laufwerk oder Laufwerksnummer aushaengen.
+ ←[32;1m-examples           Beispiele anzeigen.←[0m
+.
+:PROGRAM_IMGMOUNT_EXAMPLE
+Ein paar Beispiele fuer IMGMOUNT:
+
+  ←[32;1mIMGMOUNT←[0m                       - listet alle eingehaengten FAT/ISO-LW und -LW-Nummern
+  ←[32;1mIMGMOUNT C←[0m                     - Festplattenimage ←[33;1mIMGMAKE.IMG←[0m als C: einhaengen
+  ←[32;1mIMGMOUNT C ~/image.img←[0m         - Image ~/image.img als Festplatte C: einhaengen
+  ←[32;1mIMGMOUNT D ~/files/game.iso←[0m    - CD-Image ~/files/game.iso als D: einhaengen
+  ←[32;1mIMGMOUNT D cdaudio.cue←[0m         - CUE-Datei von CUE/BIN-Paar als CD-LW einhaengen
+  ←[32;1mIMGMOUNT 0 dos.ima←[0m             - Diskettenimage dos.ima als LW-Nummer 0 einhaengen
+                                   (←[33;1mBOOT A:←[0m bootet damit, wenn moeglich)
+  ←[32;1mIMGMOUNT A -ro dos.ima←[0m         - Image dos.ima als A: mit Schreibschutz einhaengen
+  ←[32;1mIMGMOUNT A :dsk1.img dsk2.img←[0m  - Images dsk1.img und dsk2.img als A: einhaengen,
+                                   tauschbar ueber Menuepunkt "Tausche Diskette",
+                                   dsk1.img mit Schreibschutz (nicht dsk2.img)
+  ←[32;1mIMGMOUNT A -bootcd D←[0m           - Haenge Bootdiskette A: ueber CD-LW D: ein
+  ←[32;1mIMGMOUNT C -t ram -size 10000←[0m  - Haenge C: als 10MB RAM-Laufwerk ein
+  ←[32;1mIMGMOUNT D d.img -o partidx=4←[0m  - Haenge 1. logische Partition von d.img als D: ein
+  ←[32;1mIMGMOUNT C disk.img -u←[0m         - Erzwinge das Image disk.img als Festplatte C: einzuhaengen,
+                                   wenn noetig, haenge vorheriges LW aus
+  ←[32;1mIMGMOUNT A -u←[0m                  - Laufwerk A: aushaengen
+
+.
+:PROGRAM_IMGMAKE_SYNTAX
+Erstellt Disketten- oder Festplattenimages.
+Verwendung: ←[34;1mIMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc] [-nofs]←[0m
+  ←[34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force]←[0m
+  file: Image-Datei zum Erstellen (oder ←[33;1mIMGMAKE.IMG←[0m wenn nichts) - ←[31;1mPfad auf Host←[0m
+  -t: Typ des Images.
+    ←[33;1mDiskettenvorlage←[0m (Namen entsprechen der Groesse in KiB oder fd=fd_1440):
+     fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880
+    ←[33;1mFestplattenvorlagen:←[0m
+     hd_250: 250MB-Image, hd_520: 520MB-Image, hd_1gig: 1GB-Image
+     hd_2gig: 2GB-Image, hd_4gig: 4GB-Image, hd_8gig: 8GB-Image
+     hd_st251: 40MB-Image, hd_st225: 20MB-Image (Geometrie alter Laufwerke)
+    ←[33;1mEigenes Festplattenimage:←[0m hd (benoetigt -size oder -chs)
+  -size: Groesse eines eigenen Festplattenimages in MiB.
+  -chs: Geometrie in Zylindern(1-1023),Koepfen(1-255),Sektoren(1-63).
+  -nofs: Diesen Parameter fuer ein leeres Image anhaengen.
+  -force: Image-Datei ueberschreiben, wenn bereits vorhanden.
+  -bat: .bat-Datei mit IMGMOUNT-Kommando fuer dieses Image erstellen.
+  -fat: FAT-Dateisystemtyp (12, 16, oder 32).
+  -spc: Sektoren pro Cluster ueberschreiben. Muss Potenz von 2 sein.
+  -fatcopies: Ueberschreibe Anzahl von FAT-Tabellen-Kopien.
+  -rootdir: Groesse des Wurzelverzeichnisses in Eintraegen. Ignoriert fuer FAT32.
+  ←[32;1m-examples: Beispiele anzeigen.←[0m
+.
+:PROGRAM_IMGMAKE_EXAMPLE
+Ein paar Beispiele fuer IMGMAKE:
+
+  ←[32;1mIMGMAKE -t fd←[0m                   - erstelle 1.44MB Diskette ←[33;1mIMGMAKE.IMG←[0m
+  ←[32;1mIMGMAKE -t fd_1440 -force←[0m       - erstelle und erzwinge Diskette ←[33;1mIMGMAKE.IMG←[0m
+  ←[32;1mIMGMAKE dos.img -t fd_2880←[0m      - erstelle 2.88MB Diskette namens dos.img
+  ←[32;1mIMGMAKE ~/disk.img -t hd -size 50←[0m       - erstelle 50MB HDD-Image ~/disk.img
+  ←[32;1mIMGMAKE ~/disk.img -t hd_520 -nofs←[0m      - erstelle 520MB leeres HDD-Image
+  ←[32;1mIMGMAKE ~/disk.img -t hd_2gig -fat 32←[0m   - erstelle 2GB FAT32 HDD-Image
+  ←[32;1mIMGMAKE ~/disk.img -t hd -chs 130,2,17←[0m  - erstelle HDD-Image mit dieser Geometrie
+
+.
+:PROGRAM_IMGMAKE_FILE_EXISTS
+Datei "%s" existiert bereits. Verwende "-force" zum Ueberschreiben.
+
+.
+:PROGRAM_IMGMAKE_CANNOT_WRITE
+In Datei "%s" kann nicht geschrieben werden.
+
+.
+:PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE
+Fuer das Image ist nicht genug Speicher verfuegbar.
+%u Byte benoetigt.
+
+.
+:PROGRAM_IMGMAKE_PRINT_CHS
+Erstelle Image-Datei "%s" mit %u Zylindern, %u Koepfen und %u Sektoren
+
+.
+:PROGRAM_IMGMAKE_CANT_READ_FLOPPY
+
+
+Kann Diskette nicht lesen.
+.
+:PROGRAM_KEYB_INFO
+Codepage %i geladen
+
+.
+:PROGRAM_KEYB_INFO_LAYOUT
+Codepage %i fuer Layout %s geladen
+
+.
+:PROGRAM_KEYB_SHOWHELP
+Konfiguriert eine Tastatur fuer eine bestimmte Sprache.
+
+Verwendung: ←[32;1mKEYB←[0m [keyboard layout ID [codepage number [codepage file]]]
+  layout ID        Name des Layouts oder der Tastaturdatei (.kl) zum Laden
+  codepage number  Zahl der Codepage zum Laden
+  codepage file    .cpi/.cpx Datei inklusive Codepage-Information
+  (.kl, .cpi/.cpx Dateien muessen im Dosbox-x-Ordner liegen, in dem die
+   Anwendung liegt.)
+
+Some examples:
+  ←[32;1mKEYB←[0m          Zeigt aktuelle Codepage.
+  ←[32;1mKEYB sp←[0m       Laedt spanisches (SP) Layout mit passender Codepage.
+  ←[32;1mKEYB sp 850←[0m   Laedt spanisches (SP) Layout mit Codepage 850.
+  ←[32;1mKEYB sp 850 mycp.cpi←[0m Wie oben, nur ueber Datei mycp.cpi.
+  ←[32;1mKEYB sp_mod 850←[0m      Laedt Tastaturlayout von sp_mod.kl mit Codepage 850.
+
+.
+:PROGRAM_KEYB_NOERROR
+Tastaturlayout %s fuer Codepage %i geladen
+
+.
+:PROGRAM_KEYB_FILENOTFOUND
+Tastaturdatei %s nicht gefunden (oder ungueltige ID)
+
+
+.
+:PROGRAM_KEYB_INVALIDFILE
+Tastaturdatei %s ungueltig
+
+.
+:PROGRAM_KEYB_LAYOUTNOTFOUND
+Kein Layout in %s fuer Codepage %i
+
+.
+:PROGRAM_KEYB_INVCPFILE
+Keine Codepage-Datei fuer Layout %s oder Datei ungueltig
+
+
+.
+:PROGRAM_MODE_USAGE
+Konfiguriert Systemgeraete.
+
+←[34;1mMODE←[0m display-type       :Displaytyp-Codes sind ←[1mCO80←[0m, ←[1mBW80←[0m, ←[1mCO40←[0m, ←[1mBW40←[0m, oder ←[1mMONO←[0m
+←[34;1mMODE CON COLS=←[0mc ←[34;1mLINES=←[0mn :Spalten und Zeilen, c=80 oder 132, n=25, 43, 50, oder 60
+←[34;1mMODE CON RATE=←[0mr ←[34;1mDELAY=←[0md :Wiederholrate, r=1-32 (32=schnellster), d=1-4 (1=langsamster)
+
+.
+:PROGRAM_MODE_INVALID_PARAMETERS
+Ungueltige(r) Parameter.
+
+.
+:PROGRAM_PORT_INVALID_NUMBER
+Eine Port-Nummer zwischen 1 und 9 muss angegeben werden.
+
+.
+:SHELL_CMD_TREE_ERROR
+Keine Unterordner
+
+.
+:SHELL_CMD_VOL_TREE
+Laufwerk %s enthaelt folgende Ordner
+
+.
+:SHELL_CMD_VOL_DRIVE
+
+ Belegung in Laufwerk %c 
+.
+:SHELL_CMD_VOL_SERIAL
+ Seriennummer des Laufwerks ist 
+.
+:SHELL_CMD_VOL_SERIAL_NOLABEL
+hat keine Bezeichnung
+
+.
+:SHELL_CMD_VOL_SERIAL_LABEL
+ist %s
+
+.
+:SHELL_ILLEGAL_PATH
+Pfad nicht gefunden
+
+.
+:SHELL_ILLEGAL_DRIVE
+Ungueltige Laufwerksspezifikation
+
+.
+:SHELL_CMD_HELP
+Fuer eine Liste aller interner Kommandos, tippe ←[33;1mHELP /ALL←[0m.
+Alle externen Kommandos koennen auf Laufwerk Z: als Programme gefunden werden.
+Eine kurze Liste der haeufigsten Kommandos:
+
+.
+:SHELL_CMD_HELP_END1
+Externe Kommandos wie ←[33;1mMOUNT←[0m und ←[33;1mIMGMOUNT←[0m koennen auf Laufwerk Z: gefunden werden.
+
+.
+:SHELL_CMD_HELP_END2
+Tippe ←[33;1mHELP ←[0m oder ←[33;1mcommand /?←[0m fuer mehr Infos zum angegebenen Kommando.
+
+.
+:SHELL_CMD_ECHO_ON
+ECHO ist an.
+
+.
+:SHELL_CMD_ECHO_OFF
+ECHO ist aus.
+
+.
+:SHELL_ILLEGAL_SWITCH
+Ungueltiger Switch - %s
+
+.
+:SHELL_INVALID_PARAMETER
+Ungueltiger Parameter - %s
+
+.
+:SHELL_MISSING_PARAMETER
+Notwendiger Parameter fehlt.
+
+.
+:SHELL_MISSING_FILE
+Die folgende Datei fehlt oder ist beschaedigt: %s
+
+.
+:SHELL_CMD_CHDIR_ERROR
+Ungueltiger Ordner - %s
+
+.
+:SHELL_CMD_CHDIR_HINT
+Hinweis: Um das Laufwerk zu wechseln, tippe ←[31m%c:←[0m
+
+.
+:SHELL_CMD_CHDIR_HINT_2
+Ordnername enthaelt Leerzeichen.
+Probiere ←[31mcd %s←[0m oder verwende Anfuehrungszeichen.
+
+.
+:SHELL_CMD_CHDIR_HINT_3
+Immer noch auf Laufwerk Z:! Der Ordner kann nicht gefunden werden.
+Um auf das eingehaengte Laufwerk zuzugreifen, wechsele es mit
+einer Syntax wie ←[31mC:←[0m.
+
+.
+:SHELL_CMD_DATE_HELP
+Zeigt oder aendert das interne Datum.
+
+.
+:SHELL_CMD_DATE_ERROR
+Das angegebene Datum ist nicht korrekt.
+
+.
+:SHELL_CMD_DATE_DAYS
+3SonMonDieMitDonFreSam
+.
+:SHELL_CMD_DATE_NOW
+Aktuelles Datum: 
+.
+:SHELL_CMD_DATE_SETHLP
+Tippe 'date %s' zum Aendern.
+
+.
+:SHELL_CMD_DATE_HELP_LONG
+DATE [[/T] [/H] [/S] | date]
+  date:       Neues Datum zum Setzen
+  /S:         Nutze Host-Zeit und Datum als DOS-Zeit (permanent)
+  /F:         Wechsle zu DOSBox-X interner Zeit (Gegenteil zu /S)
+  /T:         Nur Datum anzeigen
+  /H:         Synchronisiere mit Host
+
+.
+:SHELL_CMD_TIME_HELP
+Zeigt oder aendert die interne Zeit.
+
+.
+:SHELL_CMD_TIME_ERROR
+Die angegebene Zeit ist nicht korrekt.
+
+.
+:SHELL_CMD_TIME_NOW
+Aktuelle Zeit: 
+.
+:SHELL_CMD_TIME_SETHLP
+Tippe 'time %s' zum Aendern.
+
+.
+:SHELL_CMD_TIME_HELP_LONG
+TIME [[/T] [/H] | time]
+  time:       Neue Zeit zum Setzen
+  /T:         Zeige einfache Zeit
+  /H:         Synchronisiere mit Host
+
+.
+:SHELL_CMD_MKDIR_EXIST
+Ordner existiert bereits - %s
+
+.
+:SHELL_CMD_MKDIR_ERROR
+Kann Ordner nicht anlegen - %s
+
+.
+:SHELL_CMD_RMDIR_ERROR
+Ungueltiger Pfad, kein Ordner oder Ordner nicht leer - %s
+
+.
+:SHELL_CMD_RENAME_ERROR
+Kann nicht umbenennen - %s
+
+.
+:SHELL_CMD_ATTRIB_GET_ERROR
+Kann Attribute nicht lesen: %s
+
+.
+:SHELL_CMD_ATTRIB_SET_ERROR
+Kann Attribute nicht aendern: %s
+
+.
+:SHELL_CMD_DEL_ERROR
+Kann nicht loeschen - %s
+
+.
+:SHELL_CMD_DEL_SURE
+Alle Dateien im Ordner werden geloescht!
+Ganz sicher [Y/N]?
+.
+:SHELL_SYNTAXERROR
+Syntax-Fehler
+
+.
+:SHELL_CMD_SET_NOT_SET
+Umgebungsvariable %s nicht definiert.
+
+.
+:SHELL_CMD_SET_OUT_OF_SPACE
+Nicht genug Umgebungsspeicher uebrig.
+
+.
+:SHELL_CMD_IF_EXIST_MISSING_FILENAME
+IF EXIST: Fehlender Dateiname.
+
+.
+:SHELL_CMD_IF_ERRORLEVEL_MISSING_NUMBER
+IF ERRORLEVEL: Fehlende Nummer.
+
+.
+:SHELL_CMD_IF_ERRORLEVEL_INVALID_NUMBER
+IF ERRORLEVEL: Ungueltige Nummer.
+
+.
+:SHELL_CMD_GOTO_MISSING_LABEL
+Kein Bezeichner dem GOTO Kommando uebergeben.
+
+.
+:SHELL_CMD_GOTO_LABEL_NOT_FOUND
+GOTO: Bezeichner %s nicht gefunden.
+
+.
+:SHELL_CMD_FILE_ACCESS_DENIED
+Zugriff verweigert - %s
+
+.
+:SHELL_CMD_FILE_NOT_FOUND
+Datei nicht gefunden - %s
+
+.
+:SHELL_CMD_FILE_EXISTS
+Datei %s existiert bereits.
+
+.
+:SHELL_CMD_DIR_INTRO
+ Ordner von %s
+
+
+.
+:SHELL_CMD_DIR_BYTES_USED
+%5d Datei(en) %17s Byte
+
+.
+:SHELL_CMD_DIR_BYTES_FREE
+%5d Ordner  %17s Byte frei
+
+.
+:SHELL_CMD_DIR_FILES_LISTED
+Anzahl gelisteter Dateien:
+
+.
+:SHELL_EXECUTE_DRIVE_NOT_FOUND
+Laufwerk %c existiert nicht!
+Es muss mit ←[31mmount←[0m zuerst eingehaengt werden.
+Tippe ←[1;33mintro←[0m or ←[1;33mintro mount←[0m fuer mehr Information.
+
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_CDROM
+Darf DOSBox-X auf das reale CD-ROM-Laufwerk %c zugreifen [Y/N]?
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_FLOPPY
+Darf DOSBox-X auf das reale Diskettenlaufwerk %c zugreifen [Y/N]?
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_REMOVABLE
+Darf DOSBox-X auf das reale entfernbare Laufwerk %c zugreifen [Y/N]?
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_NETWORK
+Darf DOSBox-X auf das reale Netzlaufwerk %c zugreifen [Y/N]?
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_FIXED
+Darf DOSBox-X auf die reale Festplatte %c zugreifen [Y/N]?
+.
+:SHELL_EXECUTE_ILLEGAL_COMMAND
+Ungueltiges Kommando oder Dateiname - "%s"
+
+.
+:SHELL_CMD_PAUSE
+Beliebige Taste zum Fortfahren druecken . . .
+
+.
+:SHELL_CMD_PAUSE_HELP
+Wartet auf Tastendruck zum Fortfahren.
+
+.
+:SHELL_CMD_PAUSE_HELP_LONG
+PAUSE
+
+.
+:SHELL_CMD_COPY_FAILURE
+Kopieren fehlgeschlagen - %s
+
+.
+:SHELL_CMD_COPY_SUCCESS
+   %d Datei(en) kopiert.
+
+.
+:SHELL_CMD_COPY_CONFIRM
+Ueberschreibe %s (Ja(Y)/(N)ein/(A)lle)?
+.
+:SHELL_CMD_COPY_NOSPACE
+Nicht genuegend Speicherplatz - %s
+
+.
+:SHELL_CMD_COPY_ERROR
+Fehler beim Kopieren - %s
+
+.
+:SHELL_CMD_SUBST_DRIVE_LIST
+Diese lokalen Laufwerke sind aktuell eingehaengt:
+
+.
+:SHELL_CMD_SUBST_NO_REMOVE
+Aushaengen unmoeglich, Laufwerk nicht in Gebrauch.
+
+.
+:SHELL_CMD_SUBST_IN_USE
+Ziellaufwerk bereits in Verwendung.
+
+.
+:SHELL_CMD_SUBST_NOT_LOCAL
+SUBST kann nur auf lokale Laufwerke angewendet werden.
+
+.
+:SHELL_CMD_SUBST_INVALID_PATH
+Laufwerk oder Pfad ungueltig.
+
+.
+:SHELL_CMD_SUBST_FAILURE
+SUBST: In deiner Kommandozeile ist ein Fehler.
+
+.
+:SHELL_CMD_VTEXT_ON
+DOS/V V-text ist momentan aktiviert.
+
+.
+:SHELL_CMD_VTEXT_OFF
+DOS/V V-text ist momentan deaktiviert.
+
+.
+:SHELL_STARTUP_TITLE
+Willkommen zu DOSBox-X !
+.
+:SHELL_STARTUP_HEAD1_PC98
+←[36mEinfuehrung zu DOSBox-X:     ←[37m                                     
+.
+:SHELL_STARTUP_TEXT1_PC98
+Tippe ←[32mHELP←[37m fuer Shell-Kommandos und ←[32mINTRO←[37m fuer eine Einfuehrung.  
+Ueber die ←[33mDrop-Down-Menues←[37m koennen Aktionen ausgefuehrt werden.   
+.
+:SHELL_STARTUP_EXAMPLE_PC98
+←[32mBeispiel←[37m: Probiere ←[33mTrueType font←[37m oder die ←[33mOpenGL perfect←[37m Option.  
+.
+:SHELL_STARTUP_TEXT2_PC98
+Fuer das ←[33mKonfigurations-Tool←[37m, druecke ←[31mHost+C←[37m. Host-Key ist ←[32mF12←[37m.   
+Starte den ←[33mMapper Editor←[37m zur Tastenbelegung ueber ←[31mhost+M←[37m.         
+Wechsle zwischen Fenster- und Vollbildmodus ueber ←[31mHost+F←[37m.         
+Zum Aendern von CPU-Speed druecke ←[31mHost+Plus←[37m oder ←[31mHost+Minus←[37m.      
+.
+:SHELL_STARTUP_INFO_PC98
+←[36mDOSBox-X laeuft jetzt im ←[32mjapanischen NEC PC-98←[36m Emulationsmodus.←[37m   
+.
+:SHELL_STARTUP_TEXT3_PC98
+←[32mDOSBox-X Projekt ←[33mhttps://dosbox-x.com/     ←[36mKomplette DOS-Emulation←[37m
+←[32mDOSBox-X Handb.  ←[33mhttps://dosbox-x.com/wiki←[37m ←[36mDOS, Windows 3.x und 9x←[37m
+←[32mDOSBox-X Support ←[33mhttps://github.com/joncampbell123/dosbox-x/issues←[37m
+.
+:SHELL_STARTUP_HEAD1
+←[36mEinfuehrung zu DOSBox-X:                                                     ←[37m
+.
+:SHELL_STARTUP_TEXT1
+Tippe ←[32mHELP←[37m fuer Shell-Kommandos und ←[32mINTRO←[37m fuer eine Einfuehrung.               
+Ueber die ←[33mDrop-Down-Menues←[37m koennen verschiedene Aktionen ausgefuehrt werden.    
+.
+:SHELL_STARTUP_EXAMPLE
+←[32mBeispiel←[37m: Probiere ←[33mTrueType font←[37m oder die ←[33mOpenGL pixel-perfect←[37m Option.      
+.
+:SHELL_STARTUP_HEAD2
+←[36mNuetzliche Tastaturkuerzel:                                                   ←[37m
+.
+:SHELL_STARTUP_TEXT2
+- wechsle zwischen Fenster- und Vollbildmodus mit der Kombination ←[31mF12 ←[37m+ ←[31mF←[37m ←[37m  
+- starte ←[33mKonfigurations-Tool←[37m mit ←[31mF12 ←[37m+ ←[31mC←[37m←[37m und ←[33mMapper Editor←[37m mit ←[31mF12 ←[37m+ ←[31mM←[37m  ←[37m    
+- Aendere die emulierte Geschwindigkeit mit ←[31mF12 ←[37m+ ←[31mPlus←[37m←[37m oder ←[31mF12 ←[37m+ ←[31mMinus←[37m   ←[37m   
+.
+:SHELL_STARTUP_DOSV
+←[32mDOS/V Modus←[37m aktiviert. Probiere auch den ←[32mTTF CJK mode←[37m fuer allg. DOS-Emulation.
+.
+:SHELL_STARTUP_CGA
+Composite-CGA-Modus unterstuetzt. Druecke ←[31mCtrl+F8←[37m fuer Composite-Output ON/OFF.
+Druecke ←[31mCtrl+Shift+[F7/F8]←[37m fuer andere Farben; ←[31mCtrl+F7←[37m waehlt fruehes/spaetes CGA-Modell. 
+.
+:SHELL_STARTUP_CGA_MONO
+Druecke ←[31mCtrl+F7←[37m zum Wechseln zwischen gruen, gelb und weisser Monochrom-Farbe,      
+und ←[31mCtrl+F8←[37m zum Aendern von Kontrast/Helligkeit.                         
+.
+:SHELL_STARTUP_HERC
+Druecke ←[31mCtrl+F7←[37m zum Wechseln zwischen gruen, gelb und weisser Monochrom-Farbe.      
+Druecke ←[31mCtrl+F8←[37m zum Wechseln der horizontalen Blende (nur im Grafikmodus).          
+.
+:SHELL_STARTUP_HEAD3
+←[36mDOSBox-X-Project im Web:                                                    ←[37m
+.
+:SHELL_STARTUP_TEXT3
+←[32mHomepage des Projects←[37m: ←[33mhttps://dosbox-x.com/        ←[36mKomplette DOS-Emulation←[37m 
+←[32mHandbuecher im Wiki←[37m: ←[33mhttps://dosbox-x.com/wiki←[32m       ←[36mDOS, Windows 3.x und 9x←[37m 
+←[32mVorschlaege ←[37m: ←[33mhttps://github.com/joncampbell123/dosbox-x/issues      ←[37m        
+.
+:SHELL_STARTUP_LAST
+VIEL SPASS MIT DOSBOX-X !
+.
+:SHELL_CMD_BREAK_HELP
+Setzt oder entfernt erweiterte Pruefung fuer CTRL+C.
+
+.
+:SHELL_CMD_BREAK_HELP_LONG
+BREAK [ON | OFF]
+
+Tippe BREAK ohne Parameter, um die aktuelle Einstellung zu zeigen.
+
+.
+:SHELL_CMD_CHDIR_HELP
+Zeigt oder aendert den aktuellen Ordner.
+
+.
+:SHELL_CMD_CHDIR_HELP_LONG
+CHDIR [drive:][path]
+CHDIR [..]
+CD [drive:][path]
+CD [..]
+
+  ..   Wechselt zum uebergeordneten Verzeichnis.
+
+Tippe CD drive: um den aktuellen Ordner dieses Laufwerks zu zeigen.
+Tippe CD ohne Parameter um das aktuelle Arbeitsverzeichnis zu zeigen.
+
+.
+:SHELL_CMD_CLS_HELP
+Loescht den Bildschirminhalt.
+
+.
+:SHELL_CMD_CLS_HELP_LONG
+CLS
+
+.
+:SHELL_CMD_DIR_HELP
+Zeigt alle Dateien und Unterordner in einem Ordner an.
+
+.
+:SHELL_CMD_DIR_HELP_LONG
+DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|D]]
+
+  [drive:][path][filename]
+              Zur Angabe von Laufwerk, Ordner und/oder Datei(en) zum Auflisten.
+  /W          Benutze breites Listenformat.
+  /B          Benutze knappes Format (keine Ueberschriften oder Zusammenfassung).
+  /S          Zeigt Dateien in angegebenen Ordner und allen Unterordnern.
+  /P          Pausiert jedesmal, wenn Bildschirm voller Infos
+  /A          Zeigt Dateien mit diesen Attributen.
+  attributes   D  Ordner                R  Schreibgeschuetzt
+               H  Versteckt             A  Zur Archivierung bereit
+               S  Systemdateien         -  Negation
+  /O          Listet Dateien in sortierter Reihenfolge.
+  sortorder    N  Name (Alphabetisch)       S  Groesse (kleinste zuerst)
+               E  Endung (Alphabetisch)     D  Nach Datum & Zeit (fruehste zuerst)
+               G  Ordner zuerst             -  Umgekehrte Reihenfolge
+
+Schalter koennen in der DIRCMD Umgebungsvariable gespeichert sein. Ueberschreibe
+vordefinierte Schalter mit - (Bindestrich)--z.B., /-W.
+
+.
+:SHELL_CMD_ECHO_HELP
+Zeigt Nachrichten oder schaltet Kommando-Wiederholung ein/aus.
+
+.
+:SHELL_CMD_ECHO_HELP_LONG
+  ECHO [ON | OFF]
+  ECHO [message]
+
+Tippe ECHO ohne Parameter zum Anzeigen der aktuellen Einstellung.
+
+.
+:SHELL_CMD_EXIT_HELP
+Beendet die Kommando-Shell.
+
+.
+:SHELL_CMD_EXIT_HELP_LONG
+EXIT
+
+.
+:SHELL_CMD_HELP_HELP
+Zeigt die Kommando-Hilfe von DOSBox-X.
+
+.
+:SHELL_CMD_HELP_HELP_LONG
+HELP [/A or /ALL]
+HELP [command]
+
+   /A or /ALL   Listet alle unterstuetzten internen Kommandos.
+   [command]    Zeigt Hilfe zum angegebenen Kommando.
+
+←[0mZ.B., ←[37;1mHELP COPY←[0m oder ←[37;1mCOPY /?←[0m zeigt Infos zum COPY Kommando.
+
+Hinweis: Externe Kommandos wie ←[33;1mMOUNT←[0m und ←[33;1mIMGMOUNT←[0m werden nicht mit HELP [/A] gelistet.
+         Diese Kommandos koennen auf Laufwerk Z: als Programme sein (z.B. MOUNT.COM).
+         Tippe ←[33;1mcommand /?←[0m oder ←[33;1mHELP command←[0m fuer Infos zum Kommando.
+
+.
+:SHELL_CMD_LS_HELP
+Listet Inhalt des Ordners.
+
+.
+:SHELL_CMD_LS_HELP_LONG
+LS [drive:][path][filename] [/A] [/L] [/P] [/Z]
+
+  /A     Listet auch versteckte und Systemdateien.
+  /L     Ein Name pro Zeile anzeigen.
+  /P     Pausiert jedesmal, wenn Bildschirm voller Infos.
+  /Z     Zeigt kurze Namen, selbst wenn LFN-Support verfuegbar.
+
+.
+:SHELL_CMD_MKDIR_HELP
+Erstellt einen Ordner.
+
+.
+:SHELL_CMD_MKDIR_HELP_LONG
+MKDIR [drive:][path]
+MD [drive:][path]
+
+.
+:SHELL_CMD_RMDIR_HELP
+Entfernt einen Ordner.
+
+.
+:SHELL_CMD_RMDIR_HELP_LONG
+RMDIR [drive:][path]
+RD [drive:][path]
+
+.
+:SHELL_CMD_SET_HELP
+Zeigt oder aendert Umgebungsvariablen.
+
+.
+:SHELL_CMD_SET_HELP_LONG
+SET [variable=[string]]
+
+   variable     Name der Umgebungsvariable.
+   string       Text, der der Variable zugewiesen wird.
+
+* Ist kein Text angegeben, wird die Variable aus der Umgebung entfernt.
+
+Tippe SET ohne Parameter, um alle Umgebungsvariablen anzuzeigen.
+
+.
+:SHELL_CMD_IF_HELP
+Verwendet fuer verzweigte Anweisungen in BATCH-Skripten.
+
+.
+:SHELL_CMD_IF_HELP_LONG
+IF [NOT] ERRORLEVEL number command [ELSE] [command2]
+IF [NOT] string1==string2 command [ELSE] [command2]
+IF [NOT] EXIST filename command [ELSE] [command2]
+
+  NOT               Kommando wird nur ausgefuehrt, wenn die
+                    Bedingung FALSCH ist
+
+  ERRORLEVEL number Kommando wird nur ausgefuehrt, wenn der Fehlercode
+                    des letzten Programms gleich oder hoeher als die
+                    angegebene Nummer ist.
+
+  string1==string2  Kommando wird nur ausgefuehrt, wenn beide
+                    Texte uebereinstimmen.
+
+  EXIST filename    Kommando wird nur ausgefuehrt, wenn der Dateiname
+                    existiert.
+
+  command           Das auszufuehrende Kommando, wenn die Bedingung
+                    zutrifft. Folgt ein ELSE auf das Kommando, so wird
+                    das Kommando hinter dem ELSE ausgefuehrt, wenn
+                    die Bedingung nicht zutrifft.
+
+.
+:SHELL_CMD_GOTO_HELP
+Springt zu einer Zeile mit Bezeichnung in einem BATCH-Skript.
+
+.
+:SHELL_CMD_GOTO_HELP_LONG
+GOTO label
+
+   label   Die Bezeichnung in einem BATCH-Skript.
+
+Man platziert eine Bezeichnung, indem eine Zeile mit einem
+Doppelpunkt beginnt.
+
+.
+:SHELL_CMD_HISTORY_HELP
+Zeigt oder loescht die Liste der zuletzt eingegebenen Kommandos.
+
+.
+:SHELL_CMD_HISTORY_HELP_LONG
+HISTORY [/C]
+
+  /C  Loescht die Liste der zuletzt eingegebenen Kommandos.
+
+.
+:SHELL_CMD_SHIFT_HELP
+Aendert die Position von ersetzbaren Parametern in BATCH-Skripten.
+
+.
+:SHELL_CMD_SHIFT_HELP_LONG
+SHIFT
+
+.
+:SHELL_CMD_FOR_HELP
+Fuehrt das angegebene Kommando aus, fuer jede Datei in einer Dateiliste.
+
+.
+:SHELL_CMD_FOR_HELP_LONG
+FOR %%variable IN (set) DO command [command-parameters]
+
+  %%variable  Legt den ersetzbaren Parameter fest.
+  (set)      Liste aus einer oder mehr Dateien. Platzhalter erlaubt.
+  command    Kommando, das fuer jede Datei ausgefuehrt wird.
+  command-parameters
+             Parameter des auszufuehrenden Kommandos.
+
+Wird das Kommando in BATCH-Skripten verwendet,
+schreibe %%%%variable anstelle von %%variable.
+
+.
+:SHELL_CMD_LFNFOR_HELP
+Aktiviert oder deaktiviert lange Dateinamen bei Verwendung von
+FOR Platzhaltern.
+
+.
+:SHELL_CMD_LFNFOR_HELP_LONG
+LFNFOR [ON | OFF]
+
+Tippe LFNFOR ohne Parameter um die Einstellung fuer LFNFOR anzuzeigen.
+
+Dieses Kommando ist nur bei aktivem LFN-Support nuetzlich.
+
+.
+:SHELL_CMD_TYPE_HELP
+Zeigt den Inhalt einer Textdatei.
+
+.
+:SHELL_CMD_TYPE_HELP_LONG
+TYPE [drive:][path][filename]
+
+.
+:SHELL_CMD_REM_HELP
+Fuegt Kommentare in einem BATCH-Skript hinzu.
+
+.
+:SHELL_CMD_REM_HELP_LONG
+REM [comment]
+
+.
+:SHELL_CMD_RENAME_HELP
+Benennt Datei(en)/Ordner um.
+
+.
+:SHELL_CMD_RENAME_HELP_LONG
+RENAME [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]
+REN [drive:][path][directoryname1 | filename1] [directoryname2 | filename2]
+
+Man beachte, dass Datei(en)/Ordner nur umbenannt, aber nicht verschoben werden.
+
+Platzhalter (* und ?) werden fuer Dateien unterstuetzt. Z.B., das folgende Kommando
+benennt alle Textdateien um: ←[37;1mREN *.TXT *.BAK←[0m
+
+.
+:SHELL_CMD_DELETE_HELP
+Loescht eine oder mehrere Dateien.
+
+.
+:SHELL_CMD_DELETE_HELP_LONG
+DEL [/P] [/F] [/Q] names
+ERASE [/P] [/F] [/Q] names
+
+  names         Legt eine Liste von einer oder mehr Dateien oder Ordner fest.
+                Platzhalter sind zum Loeschen mehrerer Dateien erlaubt. Wird
+                ein Ordner angegeben, so werden alle Dateien darin
+                ebenfalls geloescht.
+  /P            Fragt nach Bestaetigung, bevor Datei(en) geloescht werden.
+  /F            Erzwinge schreibgeschuetzte Dateien zu loeschen.
+  /Q            Stiller Modus, frage nicht, ob bei globalem Platzhalter
+                geloescht werden soll.
+
+.
+:SHELL_CMD_COPY_HELP
+Kopiert eine oder mehrere Dateien.
+
+.
+:SHELL_CMD_COPY_HELP_LONG
+COPY [/Y | /-Y] source [+source [+ ...]] [destination]
+
+  source        Legt eine Liste von einer oder mehr Dateien zum Kopieren fest.
+  destination   Legt den Ordner und/oder Dateinamen fuer die neuen
+                Datei(en) fest.
+  /Y            Dateien ueberschreiben, wenn im Ziel vorhanden.
+  /-Y           Fragt nach Bestaetigung, bevor Datei(en) im Zielpfad
+                ueberschrieben werden.
+
+Der Schalter /Y kann in der COPYCMD Umgebungsvariable vorbelegt werden.
+Dies kann mit /-Y in der Kommandozeile ueberschrieben werden.
+
+Um Dateien zu verketten, lege eine Datei als Ziel, aber mehrere Dateien
+als Quelle (mit Platzhaltern oder dem file1+file2+file3 Format) fest.
+
+.
+:SHELL_CMD_CALL_HELP
+Startet ein BATCH-Skript aus einem anderen BATCH-Skript.
+
+.
+:SHELL_CMD_CALL_HELP_LONG
+CALL [drive:][path]filename [batch-parameters]
+
+batch-parameters   Legt alle Informationen fest, welche vom
+                   BATCH-Skript benoetigt werden.
+
+.
+:SHELL_CMD_SUBST_HELP
+Weist einen internen Ordner einem Laufwerk zu.
+
+.
+:SHELL_CMD_SUBST_HELP_LONG
+SUBST [drive1: [drive2:]path]
+SUBST drive1: /D
+
+  drive1:       Laufwerk, dem man einen Ordner zuweisen will.
+  [drive2:]path Laufwerk oder Ordner, der zugewiesen wird.
+  /D            Loescht das eingehaengte oder zugewiesene Laufwerk.
+
+Tippe SUBST ohne Parameter, um alle lokalen, eingehaengten Laufwerke
+aufzulisten.
+
+.
+:SHELL_CMD_LOADHIGH_HELP
+Laedt ein Programm in den oberen Speicher (benoetigt XMS und UMB Speicher).
+
+.
+:SHELL_CMD_LOADHIGH_HELP_LONG
+LH              [drive:][path]filename [parameters]
+LOADHIGH        [drive:][path]filename [parameters]
+
+.
+:SHELL_CMD_CHOICE_HELP
+Wartet auf Tastendruck, um eine von mehreren Optionen zu waehlen.
+
+.
+:SHELL_CMD_CHOICE_HELP_LONG
+CHOICE [/C:choices] [/N] [/S] /T[:]c,nn text
+
+  /C[:]choices Legt die Tasten fest.  Standard: yn.
+  /N           Optionen nicht am Ende des Prompts zeigen.
+  /S           Aktiviert Case-Sensitive Auswahl.
+  /T[:]c,nn    Waehlt Option c nach nn Sekunden.
+  text         Text der beim Prompt angezeigt wird.
+
+ERRORLEVEL entspricht der Position der Option, die der Nutzer gewaehlt hat.
+
+.
+:SHELL_CMD_ATTRIB_HELP
+Zeigt oder aendert Datei-Attribute.
+
+.
+:SHELL_CMD_ATTRIB_HELP_LONG
+ATTRIB [+R | -R] [+A | -A] [+S | -S] [+H | -H] [drive:][path][filename] [/S]
+
+  +   Fuegt Attribut hinzu.
+  -   Entfernt Attribut.
+  R   Schreibschutz-Attribut.
+  A   Archiv-Attribut.
+  S   Systemdatei-Attribut.
+  H   Attribut "Versteckte Datei".
+  [drive:][path][filename]
+      Legt Datei(en) oder Ordner fuer ATTRIB zum Verarbeiten fest.
+  /S  Verarbeitet Dateien in allen Unterordnern im angegebenen Pfad.
+
+.
+:SHELL_CMD_PATH_HELP
+Zeigt oder setzt einen Suchpfad fuer ausfuehrbare Dateien.
+
+.
+:SHELL_CMD_PATH_HELP_LONG
+PATH [[drive:]path[;...][;%PATH%]
+PATH ;
+
+Tippe PATH ; um alle Einstellungen zum Suchpfad zu loeschen.
+Tippe PATH ohne Parameter, um den aktuellen Suchpfad anzuzeigen.
+
+.
+:SHELL_CMD_PUSHD_HELP
+Speichert den aktuellen Ordner fuer das Kommando POPD und
+wechselt zum angegebenen Ordner
+
+.
+:SHELL_CMD_PUSHD_HELP_LONG
+PUSHD [path]
+
+path        Ordner, zu dem man wechseln will.
+
+Tippe PUSHD ohne Parameter, um die aktuell gespeicherten
+Ordner anzuzeigen.
+
+.
+:SHELL_CMD_POPD_HELP
+Wechselt zum Ordner, der mit dem PUSHD Kommando gespeichert wurde.
+
+.
+:SHELL_CMD_POPD_HELP_LONG
+POPD
+
+.
+:SHELL_CMD_VERIFY_HELP
+Wenn aktiviert, wird gesprueft, ob Dateien korrekt gespeichert wurden.
+
+.
+:SHELL_CMD_VERIFY_HELP_LONG
+VERIFY [ON | OFF]
+
+Tippe VERIFY ohne Parameter, um die aktuelle Einstellung zu sehen.
+
+.
+:SHELL_CMD_VER_HELP
+Zeigt oder setzt die von DOSBox-X ausgegebene DOS-Version.
+
+.
+:SHELL_CMD_VER_HELP_LONG
+VER [/R]
+VER [SET] number or VER SET [major minor]
+
+  /R                 Zeigt die Git-Commit-Version und Build-Datum von DOSBox-X.
+  [SET] number       Setzt die angegebene Nummer als DOS-Version.
+  SET [major minor]  Setzt die DOS-Version im Major-, Minor-Format.
+
+  ←[0mZ.B., ←[37;1mVER 6.0←[0m oder ←[37;1mVER 7.1←[0m setzt die DOS-Version auf 6.0 oder 7.1.
+  Andererseits, ←[37;1mVER SET 7 1←[0m setzt die DOS-Version auf 7.01 anstatt 7.1.
+
+Tippe VER ohne Parameter, um die Version von DOSBox-X und
+der DOS-Version zu zeigen.
+
+.
+:SHELL_CMD_VER_VER
+DOSBox-X-Version %s (%s).
+DOS-Version %d.%02d.
+
+.
+:SHELL_CMD_VER_INVALID
+Die angegebene DOS-Version ist nicht korrekt.
+
+.
+:SHELL_CMD_VOL_HELP
+Zeigt Bezeichnung und Seriennummer des Laufwerks, wenn vorhanden.
+
+.
+:SHELL_CMD_VOL_HELP_LONG
+VOL [drive]
+
+.
+:SHELL_CMD_PROMPT_HELP
+Aendert den Kommandoprompt.
+
+.
+:SHELL_CMD_PROMPT_HELP_LONG
+PROMPT [text]
+  text    Definiert einen neuen Kommandoprompt.
+
+Der Prompt kann aus normalen Buchstaben und
+folgenden Sonderzeichen bestehen:
+  $A   & (Kaufmanns-Und)
+  $B   | (Pipe)
+  $C   ( (oeffnende Klammer)
+  $D   Aktuelles Datum
+  $E   Escape-Zeichen (ASCII-Code 27)
+  $F   ) (schliessende Klammer)
+  $G   > (groesser als Zeichen)
+  $H   Backspace (loescht vorheriges Zeichen)
+  $L   < (kleiner als Zeichen)
+  $N   Aktuelles Laufwerk
+  $P   Aktuelles Laufwerk und Pfad
+  $Q   = (Gleichheitszeichen)
+  $S     (Leerzeichen)
+  $T   Aktuelle Uhrzeit
+  $V   DOS-Versionsnummer
+  $_   Zeilenumbruch UND Wagenruecklauf
+  $$   $ (Dollarzeichen)
+
+.
+:SHELL_CMD_ALIAS_HELP
+Definiert oder zeigt Aliasse.
+
+.
+:SHELL_CMD_ALIAS_HELP_LONG
+ALIAS [name[=value] ... ]
+
+Tippe ALIAS ohne Parameter, um alle definierten Aliasse
+in folgender Form anzuzeigen:
+`ALIAS NAME = VALUE'
+
+.
+:SHELL_CMD_ASSOC_HELP
+Zeigt oder aendert die Zuweisung der Dateiendungen.
+
+.
+:SHELL_CMD_ASSOC_HELP_LONG
+ASSOC [.ext[=command] ... ]
+
+Tippe ASSOC ohne Parameter, um die aktuelle Zuweisung der Dateiendungen
+anzuzeigen. Dateiendungen muessen mit einem Punkt (.) beginnen;
+Platzhalter (* und ?) sind erlaubt.
+
+.
+:SHELL_CMD_CHCP_HELP
+Zeigt oder aendert die aktuelle DOS-Codepage.
+
+.
+:SHELL_CMD_CHCP_HELP_LONG
+CHCP [nnn [file]]
+
+  nnn   Legt die Codepage-Nummer fest.
+  file  Legt die Codepage-Datei fest.
+
+Unterstuetzte Codepages, die in Verbindung mit
+TrueType-Font-Output kombiniert werden koennen:
+
+437,737,775,808,850,852,853,855,857,858,860-866,869,872,874,3021
+
+Windows-Codepages: 1250,1251,1252,1253,1254,1255,1256,1257,1258
+
+und 2-Byte-Codepages, inklusive 932, 936, 949, and 950.
+
+Eigene Codepages werden unterstuetzt, indem man
+eine passende Codepage-Datei verwendet.
+
+.
+:SHELL_CMD_CHCP_ACTIVE
+Aktive Codepage: %d
+
+.
+:SHELL_CMD_CHCP_MISSING
+ASCII-Zeichen nicht definiert in TTF-Font: %d
+
+.
+:SHELL_CMD_CHCP_INVALID
+Ungueltige Codepage-Nummer - %s
+
+.
+:SHELL_CMD_COUNTRY_HELP
+Zeigt oder aendert die aktuelle Laendereinstellung.
+
+.
+:SHELL_CMD_COUNTRY_HELP_LONG
+COUNTRY [nnn] 
+
+  nnn   Legt den Laendercode fest.
+
+Landesspezifische Informationen wie Datum- und Uhrzeit-Format
+sind davon betroffen.
+
+Mehr Infos unter:
+https://dosbox-x.com/wiki/Guide:Regional-settings-in-DOSBox%u2010X
+
+.
+:SHELL_CMD_CTTY_HELP
+Aendert das Terminalgeraet, welches das System steuert.
+
+.
+:SHELL_CMD_CTTY_HELP_LONG
+CTTY device
+  device        Verwendetes Terminalgeraet, wie z.B. CON.
+
+.
+:SHELL_CMD_MORE_HELP
+Zeigt Ausgabe Bildschirm fuer Bildschirm.
+
+.
+:SHELL_CMD_MORE_HELP_LONG
+MORE [drive:][path][filename]
+MORE < [drive:][path]filename
+command-name | MORE [drive:][path][filename]
+
+.
+:SHELL_CMD_TRUENAME_HELP
+Findet den langen Namen einer Datei.
+
+.
+:SHELL_CMD_TRUENAME_HELP_LONG
+TRUENAME [/H] file
+
+.
+:SHELL_CMD_DXCAPTURE_HELP
+Startet Programm zur Video- oder Audio-Aufnahme.
+
+.
+:SHELL_CMD_DXCAPTURE_HELP_LONG
+DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]
+
+Hiermit wird eine Video- oder Audio-Aufnahme vorbereitet,
+das Programm gestartet und beim Beenden des Programms die
+Aufnahme automatisch beendet.
+
+.
+:SHELL_CMD_DEBUGBOX_HELP
+Startet ein Programm und haelt den Debugger am definierten Haltepunkt an.
+
+.
+:SHELL_CMD_DEBUGBOX_HELP_LONG
+DEBUGBOX [command] [options]
+
+Tippe DEBUGBOX ohne Parameter, um den Debugger zu starten.
+
+.
+:SHELL_CMD_COMMAND_HELP
+Startet die DOSBox-X Kommandoshell.
+
+Folgende Optionen werden akzeptiert:
+
+  /C    Fuehrt das angegebene Kommando aus und kehrt zurueckt.
+  /K    Fuehrt das angegebene Kommando aus und faehrt fort.
+  /P    Laedt eine permanente Kopie der Kommandoshell.
+  /INIT Initialisiert die Kommandoshell.
+
+.
+:MENU:mapper_reset
+Setzt die virtuelle Maschine zurueck (RESET)
+.
+:MENU:mapper_reboot
+Starte Gastsystem neu
+.
+:MENU:mapper_loadmap
+Lade Mapper-Datei...
+.
+:MENU:mapper_quickrun
+Schnellstartprogramm...
+.
+:MENU:mapper_shutdown
+Beende DOSBox-X
+.
+:MENU:mapper_capmouse
+Maus einfangen
+.
+:MENU:mapper_fastedit
+Schnelleditieren: kopiere Auswahl und fuege Text ein
+.
+:MENU:mapper_copyall
+Kopiere den gesamten Text vom DOS-Bildschirm
+.
+:MENU:mapper_paste
+Aus Zwischenablage einfuegen
+.
+:MENU:mapper_pasteend
+Beende aus Zwischenablage einfuegen
+.
+:MENU:mapper_ejectpage
+Sende Seitenumbruch
+.
+:MENU:mapper_printtext
+Drucke DOS-Textbildschirm aus
+.
+:MENU:mapper_pause
+Pausiere Emulation
+.
+:MENU:mapper_pauseints
+Pausiere mit aktivierten Interrupts
+.
+:MENU:mapper_gui
+Konfigurations-Tool
+.
+:MENU:mapper_mapper
+Mapper-Editor
+.
+:MENU:mapper_fullscr
+Vollbildschirm umschalten
+.
+:MENU:mapper_resetsize
+Fenstergroesse zuruecksetzen
+.
+:MENU:mapper_dbcssbcs
+CJK: Wechsle zwischen DBCS/SBCS Modi
+.
+:MENU:mapper_autoboxdraw
+CJK: Auto-Erkennung von Textzeichen fuer Rahmen
+.
+:MENU:mapper_incsize
+TTF-Schriftgroesse erhoehen
+.
+:MENU:mapper_decsize
+TTF-Schriftgroesse senken
+.
+:MENU:mapper_resetcolor
+TTF-Farbschema zuruecksetzen
+.
+:MENU:mapper_pwrbutton
+APM-Ein/Aus-Schalter
+.
+:MENU:mapper_togmenu
+Zeige/verstecke Menueleiste
+.
+:MENU:MainMenu
+Haupt
+.
+:MENU:MainSendKey
+Sende Spezialtaste
+.
+:MENU:MainHostKey
+Waehle Host-Taste
+.
+:MENU:WheelToArrow
+Mausrad-Bewegungen
+.
+:MENU:SharedClipboard
+Funktionen fuer gemeins. Ablage
+.
+:MENU:CpuMenu
+CPU
+.
+:MENU:CpuCoreMenu
+CPU-Kern
+.
+:MENU:CpuTypeMenu
+CPU-Typ
+.
+:MENU:CpuSpeedMenu
+Emulierte CPU-Geschwindigkeit
+.
+:MENU:cpu88-4
+8088 XT 4.77MHz (~240 Zyklen)
+.
+:MENU:cpu286-8
+286 8MHz (~750 Zyklen)
+.
+:MENU:cpu286-12
+286 12MHz (~1510 Zyklen)
+.
+:MENU:cpu286-25
+286 25MHz (~3300 Zyklen)
+.
+:MENU:cpu386-25
+386DX 25MHz (~4595 Zyklen)
+.
+:MENU:cpu386-33
+386DX 33MHz (~6075 Zyklen)
+.
+:MENU:cpu486-33
+486DX 33MHz (~12010 Zyklen)
+.
+:MENU:cpu486-66
+486DX2 66MHz (~23880 Zyklen)
+.
+:MENU:cpu486-100
+486DX4 100MHz (~33445 Zyklen)
+.
+:MENU:cpu486-133
+486DX5 133MHz (~47810 Zyklen)
+.
+:MENU:cpu586-60
+Pentium 60MHz (~31545 Zyklen)
+.
+:MENU:cpu586-66
+Pentium 66MHz (~35620 Zyklen)
+.
+:MENU:cpu586-75
+Pentium 75MHz (~43500 Zyklen)
+.
+:MENU:cpu586-90
+Pentium 90MHz (~52000 Zyklen)
+.
+:MENU:cpu586-100
+Pentium 100MHz (~60000 Zyklen)
+.
+:MENU:cpu586-120
+Pentium 120MHz (~74000 Zyklen)
+.
+:MENU:cpu586-133
+Pentium 133MHz (~80000 Zyklen)
+.
+:MENU:cpu586-166
+Pentium 166MHz MMX (~97240 Zyklen)
+.
+:MENU:cpuak6-166
+AMD K6 166MHz (~110000 Zyklen)
+.
+:MENU:cpuak6-200
+AMD K6 200MHz (~130000 Zyklen)
+.
+:MENU:cpuak6-300
+AMD K6-2 300MHz (~193000 Zyklen)
+.
+:MENU:cpuath-600
+AMD Athlon 600MHz (~306000 Zyklen)
+.
+:MENU:cpu686-866
+Pentium III 866MHz EB (~407000 Zyklen)
+.
+:MENU:VideoMenu
+Video
+.
+:MENU:VideoFrameskipMenu
+Frameskip
+.
+:MENU:frameskip_0
+Aus
+.
+:MENU:frameskip_1
+1 Frame
+.
+:MENU:frameskip_2
+2 Frames
+.
+:MENU:frameskip_3
+3 Frames
+.
+:MENU:frameskip_4
+4 Frames
+.
+:MENU:frameskip_5
+5 Frames
+.
+:MENU:frameskip_6
+6 Frames
+.
+:MENU:frameskip_7
+7 Frames
+.
+:MENU:frameskip_8
+8 Frames
+.
+:MENU:frameskip_9
+9 Frames
+.
+:MENU:frameskip_10
+10 Frames
+.
+:MENU:VideoRatioMenu
+Bildverhaeltnis
+.
+:MENU:video_ratio_1_1
+1:1
+.
+:MENU:video_ratio_3_2
+3:2
+.
+:MENU:video_ratio_4_3
+4:3
+.
+:MENU:video_ratio_16_9
+16:9
+.
+:MENU:video_ratio_16_10
+16:10
+.
+:MENU:video_ratio_18_10
+18:10
+.
+:MENU:video_ratio_original
+Original-Verhaeltnis
+.
+:MENU:video_ratio_set
+Setze Verhaeltnis
+.
+:MENU:VideoScalerMenu
+Scaler
+.
+:MENU:scaler_set_none
+Keiner
+.
+:MENU:scaler_set_normal2x
+Normal 2X
+.
+:MENU:scaler_set_normal3x
+Normal 3X
+.
+:MENU:scaler_set_normal4x
+Normal 4X
+.
+:MENU:scaler_set_normal5x
+Normal 5X
+.
+:MENU:scaler_set_hardware_none
+Hardware 1x
+.
+:MENU:scaler_set_hardware2x
+Hardware 2X
+.
+:MENU:scaler_set_hardware3x
+Hardware 3X
+.
+:MENU:scaler_set_hardware4x
+Hardware 4X
+.
+:MENU:scaler_set_hardware5x
+Hardware 5X
+.
+:MENU:scaler_set_gray
+Graustufen
+.
+:MENU:scaler_set_gray2x
+Graustufen 2X
+.
+:MENU:scaler_set_tv2x
+TV 2X
+.
+:MENU:scaler_set_tv3x
+TV 3X
+.
+:MENU:scaler_set_scan2x
+Scan 2X
+.
+:MENU:scaler_set_scan3x
+Scan 3X
+.
+:MENU:scaler_set_rgb2x
+RGB 2X
+.
+:MENU:scaler_set_rgb3x
+RGB 3X
+.
+:MENU:scaler_set_advmame2x
+MAME (erweitert) 2X
+.
+:MENU:scaler_set_advmame3x
+MAME (erweitert) 3X
+.
+:MENU:scaler_set_hq2x
+HQ 2X
+.
+:MENU:scaler_set_hq3x
+HQ 3X
+.
+:MENU:scaler_set_advinterp2x
+Verbesserte Interpolation 2X
+.
+:MENU:scaler_set_advinterp3x
+Verbesserte Interpolation 3X
+.
+:MENU:scaler_set_2xsai
+2xSai
+.
+:MENU:scaler_set_super2xsai
+Super2xSai
+.
+:MENU:scaler_set_supereagle
+SuperEagle
+.
+:MENU:scaler_set_xbrz
+xBRZ
+.
+:MENU:scaler_set_xbrz_bilinear
+xBRZ Bilinear
+.
+:MENU:refresh_rate
+Wiederholrate...
+.
+:MENU:VideoOutputMenu
+Output
+.
+:MENU:output_surface
+Oberflaeche
+.
+:MENU:output_direct3d
+Direct3D
+.
+:MENU:output_opengl
+OpenGL
+.
+:MENU:output_openglnb
+OpenGL nearest
+.
+:MENU:output_openglpp
+OpenGL perfect
+.
+:MENU:output_ttf
+TrueType-Font
+.
+:MENU:doublescan
+Doublescan
+.
+:MENU:VideoVsyncMenu
+V-Sync
+.
+:MENU:vsync_on
+An
+.
+:MENU:vsync_force
+Erzwingen
+.
+:MENU:vsync_host
+Host
+.
+:MENU:vsync_off
+Aus
+.
+:MENU:vsync_set_syncrate
+Setze Sync-Rate
+.
+:MENU:VideoOverscanMenu
+Overscan
+.
+:MENU:overscan_0
+Aus
+.
+:MENU:overscan_1
+1
+.
+:MENU:overscan_2
+2
+.
+:MENU:overscan_3
+3
+.
+:MENU:overscan_4
+4
+.
+:MENU:overscan_5
+5
+.
+:MENU:overscan_6
+6
+.
+:MENU:overscan_7
+7
+.
+:MENU:overscan_8
+8
+.
+:MENU:overscan_9
+9
+.
+:MENU:overscan_10
+10
+.
+:MENU:VideoTextmodeMenu
+Text-Modus
+.
+:MENU:clear_screen
+Bildschirm loeschen
+.
+:MENU:vga_9widetext
+Erlaube 9-Pixel-breite Fonts
+.
+:MENU:text_background
+Hohe Aufloesung: Hintergrundfarbe
+.
+:MENU:text_blinking
+Hohe Aufloesung: blinkender Text
+.
+:MENU:line_80x25
+Bildschirm: 80 Spalten x 25 Zeilen
+.
+:MENU:line_80x43
+Bildschirm: 80 Spalten x 43 Zeilen
+.
+:MENU:line_80x50
+Bildschirm: 80 Spalten x 50 Zeilen
+.
+:MENU:line_80x60
+Bildschirm: 80 Spalten x 60 Zeilen
+.
+:MENU:line_132x25
+Bildschirm: 132 Spalten x 25 Zeilen
+.
+:MENU:line_132x43
+Bildschirm: 132 Spalten x 43 Zeilen
+.
+:MENU:line_132x50
+Bildschirm: 132 Spalten x 50 Zeilen
+.
+:MENU:line_132x60
+Bildschirm: 132 Spalten x 60 Zeilen
+.
+:MENU:VideoTTFMenu
+TTF-Optionen
+.
+:MENU:ttf_showbold
+Zeige fetten Text in TTF
+.
+:MENU:ttf_showital
+Zeige kursiven Text in TTF
+.
+:MENU:ttf_showline
+Zeige unterstrichenen Text in TTF
+.
+:MENU:ttf_showsout
+Zeige durchgestrichenen Text in TTF
+.
+:MENU:ttf_wpno
+TTF-Textverarbeitung: Nichts
+.
+:MENU:ttf_wpwp
+TTF-Textverarbeitung: WordPerfect
+.
+:MENU:ttf_wpws
+TTF-Textverarbeitung: WordStar
+.
+:MENU:ttf_wpxy
+TTF-Textverarbeitung: XyWrite
+.
+:MENU:ttf_wpfe
+TTF-Textverarbeitung: FastEdit
+.
+:MENU:ttf_blinkc
+Zeige blinkenden TTF-Cursor
+.
+:MENU:ttf_right_left
+Zeige Text von rechts nach links
+.
+:MENU:ttf_printfont
+Nutze diesen TTF-Font zum Drucken
+.
+:MENU:ttf_halfwidthkana
+CJK: Erlaube halbbreite Katakana (Japan)
+.
+:MENU:ttf_extcharset
+CJK: Erlaube chinesische Zeichen (erweitert)
+.
+:MENU:VideoPC98Menu
+PC-98-Optionen
+.
+:MENU:pc98_5mhz_gdc
+5MHz GDC Uhr
+.
+:MENU:pc98_allow_200scanline
+Erlaube 200-Zeilen Scanline-effect
+.
+:MENU:pc98_allow_4partitions
+Erlaube 4 Grafiklayer
+.
+:MENU:pc98_enable_egc
+Aktiviere EGC
+.
+:MENU:pc98_enable_grcg
+Aktiviere GRCG
+.
+:MENU:pc98_enable_analog
+Aktiviere Analogbildschirm
+.
+:MENU:pc98_enable_analog256
+Aktiviere 256-Farben Bildschirm
+.
+:MENU:pc98_enable_188user
+Aktiviere 188+ Benutzer-CG-Zellen
+.
+:MENU:pc98_clear_text
+Loesche Textlayer
+.
+:MENU:pc98_clear_graphics
+Loesche Grafiklayer
+.
+:MENU:Video3dfxMenu
+3dfx-Emulation
+.
+:MENU:3dfx_voodoo
+Interne Voodoo-Karte
+.
+:MENU:3dfx_glide
+Glide-Passthrough
+.
+:MENU:load_glsl_shader
+Waehle OpenGL (GLSL) Shader...
+.
+:MENU:load_ttf_font
+Waehle TrueType-Font (TTF/OTF)...
+.
+:MENU:SoundMenu
+Sound
+.
+:MENU:mixer_swapstereo
+Stereo tauschen
+.
+:MENU:mixer_mute
+Stumm
+.
+:MENU:mixer_info
+Zeige Lauststaerkeregler
+.
+:MENU:sb_info
+Zeige Sound Blaster Konfiguration
+.
+:MENU:midi_info
+Zeige MIDI Konfiguration
+.
+:MENU:DOSMenu
+DOS
+.
+:MENU:enable_a20gate
+Aktiviere A20-Gate
+.
+:MENU:change_currentcd
+Wechsle aktuelles CD-Image...
+.
+:MENU:change_currentfd
+Wechsle aktuelles Diskettenimage...
+.
+:MENU:DOSMouseMenu
+Maus-Emulation
+.
+:MENU:dos_mouse_enable_int33
+Interne Emulation
+.
+:MENU:dos_mouse_y_axis_reverse
+Y-Achse umkehren
+.
+:MENU:dos_mouse_sensitivity
+Empfindlichkeit
+.
+:MENU:DOSVerMenu
+Angezeigte DOS-Version
+.
+:MENU:dos_ver_330
+3.30
+.
+:MENU:dos_ver_500
+5.00
+.
+:MENU:dos_ver_622
+6.22
+.
+:MENU:dos_ver_710
+7.10
+.
+:MENU:dos_ver_edit
+Editieren
+.
+:MENU:DOSLFNMenu
+Support: Lange Dateinamen
+.
+:MENU:dos_lfn_auto
+DOS-Version: Auto-Report
+.
+:MENU:dos_lfn_enable
+Aktiviere lange Dateinamen Emulation
+.
+:MENU:dos_lfn_disable
+Deaktiviere lange Dateinamen Emulation
+.
+:MENU:DOSPC98Menu
+PC-98 PIT Master-Clock
+.
+:MENU:dos_pc98_pit_4mhz
+4MHz/8MHz PIT Master-Clock
+.
+:MENU:dos_pc98_pit_5mhz
+5MHz/10MHz PIT Master-Clock
+.
+:MENU:DOSEMSMenu
+Erweiterter Speicher (EMS)
+.
+:MENU:dos_ems_true
+Aktiviere EMS-Emulation
+.
+:MENU:dos_ems_board
+EMS Board-Emulation
+.
+:MENU:dos_ems_emm386
+EMM386-Emulation
+.
+:MENU:dos_ems_false
+Deaktiviere EMS-Emulation
+.
+:MENU:DOSWinMenu
+Hostsystem-Programme
+.
+:MENU:dos_win_autorun
+Windows: Dosbos-X-Autostart
+.
+:MENU:dos_win_transpath
+Uebersetze Pfade in Hostsystempfade
+.
+:MENU:dos_win_wait
+Warte auf Programm, wenn moeglich
+.
+:MENU:dos_win_quiet
+Stiller Modus - keine Rueckmeldungen
+.
+:MENU:CaptureMenu
+Aufnahme
+.
+:MENU:CaptureFormatMenu
+Aufnahmeformat
+.
+:MENU:capture_fmt_avi_zmbv
+AVI + ZMBV
+.
+:MENU:capture_fmt_mpegts_h264
+MPEG-TS + H.264
+.
+:MENU:saveoptionmenu
+Optionen zum Speichern/Laden
+.
+:MENU:saveslotmenu
+Waehle Speicherslot
+.
+:MENU:enable_autosave
+Aktiviere Auto-Savestate
+.
+:MENU:noremark_savestate
+Keine Meldung beim Speichern von States
+.
+:MENU:force_loadstate
+Keine Warnung beim Laden von States
+.
+:MENU:removestate
+State in Slot loeschen
+.
+:MENU:refreshslot
+Displaystatus erneuern
+.
+:MENU:lastautosaveslot
+Waehle letzteb Auto-Save-Slot
+.
+:MENU:usesavefile
+Nutze Datei anstatt Save-Slot
+.
+:MENU:autosavecfg
+Auto-Save Einstellungen...
+.
+:MENU:browsesavefile
+Suche Save-Datei...
+.
+:MENU:current_page
+Aktuelle Seite: 1/10
+.
+:MENU:prev_page
+Vorherige Seite
+.
+:MENU:next_page
+Naechste Seite
+.
+:MENU:first_page
+Zur ersten Seite
+.
+:MENU:last_page
+Zur letzten Seite
+.
+:MENU:DriveMenu
+Laufwerk
+.
+:MENU:drive_mounthd
+Ordner als Festplatte einhaengen
+.
+:MENU:drive_mountcd
+Ordner als CD-Laufwerk einhaengen
+.
+:MENU:drive_mountfd
+Ordner als Diskette einhaengen
+.
+:MENU:drive_mountfro
+Option: Schreibgeschuetzt einhaengen
+.
+:MENU:drive_mountarc
+Archiv-Datei einhaengen (ZIP/7Z)
+.
+:MENU:drive_mountimg
+CD-/Festplatten-Image einhaengen
+.
+:MENU:drive_mountimgs
+Mehrere Images einhaengen (CD/HDD)
+.
+:MENU:drive_mountiro
+Option: Schreibgeschuetzt einhaengen (M)
+.
+:MENU:drive_unmount
+Laufwerk aushaengen
+.
+:MENU:drive_rescan
+Laufwerk neu einlesen
+.
+:MENU:drive_swap
+Diskette tauschen
+.
+:MENU:drive_info
+Laufwerksinformation
+.
+:MENU:drive_boot
+Von Laufwerk booten
+.
+:MENU:drive_bootimg
+Von Image booten
+.
+:MENU:HelpMenu
+Hilfe
+.
+:MENU:help_intro
+Einfuehrung
+.
+:MENU:help_homepage
+DOSBox-X Homepage
+.
+:MENU:help_wiki
+DOSBox-X Wiki-Guide
+.
+:MENU:help_issue
+DOSBox-X Support
+.
+:MENU:help_about
+Ueber DOSBox-X
+.
+:MENU:show_console
+Zeige Log
+.
+:MENU:disable_logging
+Deaktiviere Log-Output
+.
+:MENU:wait_on_error
+Konsole, warte bei Fehler
+.
+:MENU:show_codetext
+Zeige Code-Uebersicht
+.
+:MENU:show_logtext
+Zeige Log-Text
+.
+:MENU:save_logas
+Speichere Log als...
+.
+:MENU:debugger_rundebug
+Debugger-Option: Starte Debugger
+.
+:MENU:debugger_runnormal
+Debugger-Option: Starte normal
+.
+:MENU:debugger_runwatch
+Debugger-Option: Beobachtung
+.
+:MENU:HelpCommandMenu
+DOS-Kommandos
+.
+:MENU:DebugMenu
+Debug
+.
+:MENU:HelpDebugMenu
+Log
+.
+:MENU:debug_blankrefreshtest
+Refresh-Test (leerer Bildschirm)
+.
+:MENU:debug_generatenmi
+Generiere NMI-Interrupt
+.
+:MENU:debug_int2fhook
+INT 2Fh Aufrufe abfangen
+.
+:MENU:debug_logint21
+Logge INT 21h Aufrufe
+.
+:MENU:debug_logfileio
+Logge Datei-I/O
+.
+:MENU:mapper_speedlock
+Toggle Speedlock
+.
+:MENU:mapper_speedlock2
+Turbo (Fast Forward)
+.
+:MENU:mapper_speednorm
+Normal Speed
+.
+:MENU:mapper_speedup
+Schneller
+.
+:MENU:mapper_slowdown
+Langsamer
+.
+:MENU:mapper_editcycles
+Zyklen aendern
+.
+:MENU:mapper_savestate
+State speichern
+.
+:MENU:mapper_loadstate
+State laden
+.
+:MENU:mapper_showstate
+State-Information zeigen
+.
+:MENU:mapper_prevslot
+Waehle vorherigen Slot
+.
+:MENU:mapper_nextslot
+Waehle naechsten Slot
+.
+:MENU:mapper_decfskip
+Frameskip senken
+.
+:MENU:mapper_incfskip
+Frameskip erhoehen
+.
+:MENU:mapper_aspratio
+An Bildverhaeltnis anpassen
+.
+:MENU:mapper_fscaler
+Scaler erzwingen
+.
+:MENU:mapper_recwave
+Audio als WAV aufnehmen
+.
+:MENU:mapper_recmtwave
+Audio als Multi-Track AVI aufnehmen
+.
+:MENU:mapper_caprawmidi
+MIDI-Output aufnehmen
+.
+:MENU:mapper_caprawopl
+FM (OPL) Output aufnehmen
+.
+:MENU:mapper_video
+Video als AVI aufnehmen
+.
+:MENU:mapper_scrshot
+Bildschirmfoto machen
+.
+:MENU:mapper_volup
+Lauter
+.
+:MENU:mapper_voldown
+Leiser
+.
+:MENU:mapper_recvolup
+Aufnahme: Lauter
+.
+:MENU:mapper_recvoldown
+Aufnahme: Leiser
+.
+:MENU:mapper_sendkey_mapper
+Spezialtaste senden
+.
+:MENU:mapper_cycledown
+Zyklen verringern
+.
+:MENU:mapper_cycleup
+Zyklen erhoehen
+.
+:MENU:mapper_normal
+Normaler Core
+.
+:MENU:mapper_dynamic
+Dynamischer Core (dynamic_x86)
+.
+:MENU:mapper_simple
+Simpler Core
+.
+:MENU:mapper_full
+Kompletter Core
+.
+:MENU:cputype_auto
+Auto
+.
+:MENU:cputype_8086
+8086
+.
+:MENU:cputype_8086_prefetch
+8086 mit Prefetch
+.
+:MENU:cputype_80186
+80186
+.
+:MENU:cputype_80186_prefetch
+80186 mit Prefetch
+.
+:MENU:cputype_286
+286
+.
+:MENU:cputype_286_prefetch
+286 mit Prefetch
+.
+:MENU:cputype_386
+386
+.
+:MENU:cputype_386_prefetch
+386 mit Prefetch
+.
+:MENU:cputype_486old
+486 (alt)
+.
+:MENU:cputype_486old_prefetch
+486 (alt) mit Prefetch
+.
+:MENU:cputype_486
+486
+.
+:MENU:cputype_486_prefetch
+486 mit Prefetch
+.
+:MENU:cputype_pentium
+Pentium
+.
+:MENU:cputype_pentium_mmx
+Pentium MMX
+.
+:MENU:cputype_ppro_slow
+Pentium Pro
+.
+:MENU:cputype_pentium_ii
+Pentium II
+.
+:MENU:cputype_pentium_iii
+Pentium III
+.
+:MENU:cputype_experimental
+Experimentell
+.
+:MENU:debug_pageflip
+Page flip Debugzeile
+.
+:MENU:debug_retracepoll
+Debugzeile zurueckverfolgen
+.
+:MENU:mapper_swapimg
+Diskette wechseln
+.
+:MENU:mapper_swapcd
+CD wechseln
+.
+:MENU:mapper_debugger
+Starte DOSBox-X Debugger
+.
+:MENU:mapper_rescanall
+Alle Laufwerke neu einlesen
+.
+:MENU:hostkey_mapper
+Mapper-definiert
+.
+:MENU:showdetails
+Zeige FPS und RT Speed in Fensterleiste
+.
+:MENU:restartinst
+Starte DOSBox-X-Instanz neu
+.
+:MENU:restartconf
+Starte DOSBox-X mit Konfig-Datei neu...
+.
+:MENU:restartlang
+Starte DOSBox-X mit Sprachdatei neu...
+.
+:MENU:auto_lock_mouse
+Maus automatisch einfangen
+.
+:MENU:clipboard_right
+Ueber rechte Maustaste
+.
+:MENU:clipboard_middle
+Ueber mittlere Maustaste
+.
+:MENU:clipboard_arrows
+Ueber Pfeiltasten (Pos1=Start, Ende=Ende)
+.
+:MENU:screen_to_clipboard
+Gesamten Text vom DOS-Bildschirm kopieren
+.
+:MENU:clipboard_device
+Aktiviere Zugriff auf DOS-Zwischenablage
+.
+:MENU:clipboard_dosapi
+Aktiviere DOS-Zwischenablage-API fuer Programme
+.
+:MENU:clipboard_biospaste
+Nutze BIOS-Funktion fuer Zwischenablage (Einf)
+.
+:MENU:sendkey_winlogo
+Sende Logo-Taste
+.
+:MENU:sendkey_winmenu
+Sende Menue-Taste
+.
+:MENU:sendkey_alttab
+Sende Alt+Tab
+.
+:MENU:sendkey_ctrlesc
+Sende Strg+Esc
+.
+:MENU:sendkey_ctrlbreak
+Sende Strg+Pause
+.
+:MENU:sendkey_cad
+Sende Strg+Alt+Entf
+.
+:MENU:hostkey_ctrlalt
+Strg+Alt
+.
+:MENU:hostkey_ctrlshift
+Strg+Shift
+.
+:MENU:hostkey_altshift
+Alt+Shift
+.
+:MENU:sendkey_mapper_winlogo
+Mapper "Spezialtaste senden": Logo-Taste
+.
+:MENU:sendkey_mapper_winmenu
+Mapper "Spezialtaste senden": Menue-Taste
+.
+:MENU:sendkey_mapper_alttab
+Mapper "Spezialtaste senden": Alt+Tab
+.
+:MENU:sendkey_mapper_ctrlesc
+Mapper "Spezialtaste senden": Strg+Esc
+.
+:MENU:sendkey_mapper_ctrlbreak
+Mapper "Spezialtaste senden": Strg+Pause
+.
+:MENU:sendkey_mapper_cad
+Mapper "Spezialtaste senden": Strg+Alt+Entf
+.
+:MENU:wheel_none
+Pfeiltasten nicht konvertieren
+.
+:MENU:wheel_updown
+Konvertiere hoch/runter Tasten
+.
+:MENU:wheel_leftright
+Konvertiere links/rechts Tasten
+.
+:MENU:wheel_pageupdown
+Konvertiere Bild+/Bild- Tasten
+.
+:MENU:wheel_ctrlupdown
+Konvertiere Strg+hoch/runter Tasten
+.
+:MENU:wheel_ctrlleftright
+Konvertiere Strg+links/rechts Tasten
+.
+:MENU:wheel_ctrlpageupdown
+Konvertiere Strg+Bild+/Bild- Tasten
+.
+:MENU:wheel_ctrlwz
+Konvertiere Strg+W/Z Tasten
+.
+:MENU:wheel_guest
+Auch fuer Gastsystem aktivieren
+.
+:MENU:doublebuf
+Double Buffering (Vollbild)
+.
+:MENU:alwaysontop
+Immer im Vordergrund
+.
+:MENU:highdpienable
+High DPI aktivieren
+.
+:MENU:sync_host_datetime
+Synchronisiere Host-Datum/Zeit
+.
+:MENU:shell_config_commands
+Konfig. Optionen als Kommandos
+.
+:MENU:quick_reboot
+Aktiviere schneller Neustart
+.
+:MENU:make_diskimage
+Leeres Image erstellen...
+.
+:MENU:list_drivenum
+Zeige Nummern eingehaengter Laufwerke
+.
+:MENU:list_ideinfo
+Zeige IDE-Platten oder -CD-Status
+.
+:MENU:pc98_use_uskb
+Nutze US-Tastaturlayout
+.
+:MAPPER:caprawopl
+FM/OPL Output aufnehmen
+.
+:MAPPER:copyall
+In Zwischenablage kopieren
+.
+:MAPPER:cycauto
+Auto-Zyklen ein/aus
+.
+:MAPPER:debugger
+Debugger zeigen
+.
+:MAPPER:decsize
+TTF-Groesse verringern
+.
+:MAPPER:dynamic
+CPU: dynamischer Core
+.
+:MAPPER:fastedit
+Schnelledit-Modus
+.
+:MAPPER:full
+CPU: Kompletter Core
+.
+:MAPPER:incsize
+TTF-Groesse erhoehen
+.
+:MAPPER:loadmap
+Lade Mapper Datei
+.
+:MAPPER:nextslot
+Naechster Save Slot
+.
+:MAPPER:normal
+CPU: normaler Core
+.
+:MAPPER:paste
+Aus Zwischenablage einfuegen
+.
+:MAPPER:pasteend
+Zwischenablage einfuegen: Abbruch
+.
+:MAPPER:pauseints
+Mit Interrupt pausieren
+.
+:MAPPER:prevslot
+Vorheriger Save Slot
+.
+:MAPPER:printtext
+Textbildschirm ausdrucken
+.
+:MAPPER:quickrun
+Schnellstartprogramm
+.
+:MAPPER:reboot
+DOS-System neustarten
+.
+:MAPPER:recmtwave
+Als Multi-Track AVI aufnehmen
+.
+:MAPPER:rescanall
+Laufwerke neu einlesen
+.
+:MAPPER:reset
+DOSBox-X neustarten
+.
+:MAPPER:resetcolor
+Farbschema zuruecksetzen
+.
+:MAPPER:showstate
+State-Info anzeigen
+.
+:MAPPER:simple
+CPU: simpler Core
+.
+:MAPPER:togmenu
+Menueleiste ein/aus
+.
