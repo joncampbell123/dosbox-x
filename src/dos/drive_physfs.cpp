@@ -407,7 +407,7 @@ bool physfsDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 		return false;
 	}
 
-	*file=new physfsFile(name,hand,0x202,newname,false);
+	*file=new physfsFile(name,hand,0x2,newname,false);
 	(*file)->flags=flags;  //for the inheritance flag and maybe check for others.
 	return true;
 }
@@ -447,7 +447,7 @@ bool physfsDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attrib
 	}
 
 	/* Make the 16 bit device information */
-	*file=new physfsFile(name,hand,0x202,newname,true);
+	*file=new physfsFile(name,hand,0x2,newname,true);
 	(*file)->flags=OPEN_READWRITE;
 	if(!existing_file) {
 		strcpy(newname,basedir);
