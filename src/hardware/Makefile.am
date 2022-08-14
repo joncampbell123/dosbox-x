@@ -18,7 +18,7 @@ libhardware_a_SOURCES = adlib.cpp dma.cpp gameblaster.cpp hardware.cpp iohandler
 			snd_pc98/common/parts.c snd_pc98/generic/keydisp.c snd_pc98/sound/adpcmc.c snd_pc98/sound/adpcmg.c \
 			snd_pc98/sound/rhythmc.c snd_pc98/sound/sound.c snd_pc98/sound/getsnd/getwave.c snd_pc98/sound/getsnd/getsmix.c \
 			snd_pc98/sound/getsnd/getsnd.c snd_pc98/x11/dosio.c snd_pc98/sound/fmboard.c snd_pc98/sound/soundrom.c \
-			snd_pc98/cbus/board86.c snd_pc98/sound/fmtimer.c snd_pc98/cbus/board26k.c 8255.cpp opl2board/opl2board.cpp opl3duoboard/opl3duoboard.cpp \
+			snd_pc98/cbus/board86.c snd_pc98/cbus/pcm86io.c snd_pc98/sound/fmtimer.c snd_pc98/cbus/board26k.c 8255.cpp opl2board/opl2board.cpp opl3duoboard/opl3duoboard.cpp \
 						RetroWaveLib/Board/OPL3.c \
 						RetroWaveLib/Platform/Win32_SerialPort.c \
             			RetroWaveLib/Platform/POSIX_SerialPort.c \
