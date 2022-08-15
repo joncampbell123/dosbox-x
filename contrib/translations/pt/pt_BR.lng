@@ -21,7 +21,7 @@ Valores possíveis
 Opções avançadas (ver arquivo de referência de configuração completo [dosbox-x.reference.full.conf] para mais detalhes)
 .
 :CONFIG_TOOL
-Ferramenta configuração do DOSBox-X
+Ferramenta de configuração do MS-DOS
 .
 :CONFIG_TOOL_EXIT
 Sair da ferramenta de configuração
@@ -2353,7 +2353,7 @@ Selecionar tecla do anfitrião
 Movimentos da roda do mouse
 .
 :MENU:SharedClipboard
-Funções área de transferência compartilhada
+Funções de área de transferência compartilhada
 .
 :MENU:CpuMenu
 CPU
@@ -2476,7 +2476,7 @@ Desligado
 10 quadros
 .
 :MENU:VideoRatioMenu
-proporção da tela
+Proporção da tela
 .
 :MENU:video_ratio_1_1
 1:1
@@ -2497,7 +2497,7 @@ proporção da tela
 18:10
 .
 :MENU:video_ratio_original
-proporção original
+Proporção original
 .
 :MENU:video_ratio_set
 Definir proporção
