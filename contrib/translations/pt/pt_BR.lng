@@ -21,7 +21,7 @@ Valores possíveis
 Opções avançadas (ver arquivo de referência de configuração completo [dosbox-x.reference.full.conf] para mais detalhes)
 .
 :CONFIG_TOOL
-Ferramenta de configuração do MS-DOS
+Ferramenta de configuração do DOSBox-X
 .
 :CONFIG_TOOL_EXIT
 Sair da ferramenta de configuração
