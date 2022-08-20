@@ -846,7 +846,7 @@ c:\jogosdos\[37m é um exemplo. Substitua por sua própria pasta de jogos.[37m
 :PROGRAM_INTRO_MOUNT_END
 Quando mount for completado corretamente você pode digitar [34;1mc:[0m para ir para
 sua unidade montada C:. Digite [34;1mdir[0m para mostrar seu conteúdo, [34;1mcd[0m permite
-que você entre em uma pasta (reconhecido pro [33;1m[][0m em uma pasta listada).
+que você entre em uma pasta (reconhecido por [33;1m[][0m em uma pasta listada).
 Você pode executar programas terminados em [31m.exe .bat[0m e [31m.com[0m.
 
 .
