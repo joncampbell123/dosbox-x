@@ -119,7 +119,7 @@ static bool blinkstate = false;
 bool colorChanged = false, justChanged = false, staycolors = false, firstsize = true, ttfswitch=false, switch_output_from_ttf=false;
 
 int menuwidth_atleast(int width), FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
-void AdjustIMEFontSize(void), initcodepagefont(void), change_output(int output), drawmenu(Bitu val), KEYBOARD_Clear(void), RENDER_Reset(void), DOSBox_SetSysMenu(void), GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight), SetWindowTransparency(int trans), resetFontSize(void), RENDER_CallBack( GFX_CallBackFunctions_t function );
+void AdjustIMEFontSize(void),refreshExtChar(void), initcodepagefont(void), change_output(int output), drawmenu(Bitu val), KEYBOARD_Clear(void), RENDER_Reset(void), DOSBox_SetSysMenu(void), GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight), SetWindowTransparency(int trans), resetFontSize(void), RENDER_CallBack( GFX_CallBackFunctions_t function );
 bool isDBCSCP(void), InitCodePage(void), CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 std::string GetDOSBoxXPath(bool withexe=false);
 
@@ -487,13 +487,6 @@ void CheckTTFLimit() {
             ttf.cols = 80;
         }
     }
-}
-
-void refreshExtChar() {
-    mainMenu.get_item("ttf_extcharset").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables);
-    if (dos.loaded_codepage == 936) mainMenu.get_item("ttf_extcharset").check(gbk).refresh_item(mainMenu);
-    else if (dos.loaded_codepage == 950 || dos.loaded_codepage == 951) mainMenu.get_item("ttf_extcharset").check(chinasea).refresh_item(mainMenu);
-    else mainMenu.get_item("ttf_extcharset").check(gbk&&chinasea).refresh_item(mainMenu);
 }
 
 int setTTFMap(bool changecp) {
