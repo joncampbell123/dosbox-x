@@ -53,7 +53,7 @@ jobs:
           chmod +x $top/src/bin/dosbox-x/dosbox-x.app/Contents/MacOS/dosbox-x $top/src/bin/dosbox-x-sdl2/dosbox-x.app/Contents/MacOS/dosbox-x
           $top/src/bin/dosbox-x/dosbox-x.app/Contents/MacOS/dosbox-x -tests
           $top/src/bin/dosbox-x-sdl2/dosbox-x.app/Contents/MacOS/dosbox-x -tests
-      - name: Upload release package
+      - name: Upload preview package
         uses: actions/upload-artifact@v3.1.0
         with:
           name: dosbox-x-macosx-x86_64-${{ env.timestamp }}

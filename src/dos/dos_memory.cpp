@@ -17,6 +17,7 @@
  */
 
 #include <algorithm>
+#include <array>
 
 #include "dosbox.h"
 #include "logging.h"
@@ -199,6 +200,10 @@ bool DOS_AllocateMemory(uint16_t * segment,uint16_t * blocks) {
 	DOS_MCB psp_mcb(dos.psp()-1);
 	char psp_name[9];
 	psp_mcb.GetFileName(psp_name);
+	if (umb_start==UMB_START_SEG && (dos.loaded_codepage == 936 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951)) {
+		static constexpr std::array<const char*, 4> blacklisted {"KNL", "LIMD", "PY", "RDFNT"};
+		for (auto prog : blacklisted) if (!strcmp(psp_name, prog)) return false;
+	}
 	uint16_t found_seg=0,found_seg_size=0;
 	for (;;) {
 		mcb.SetPt(mcb_segment);
@@ -491,6 +496,12 @@ bool DOS_LinkUMBsToMemChain(uint16_t linkstate) {
 	if (umb_start!=UMB_START_SEG) {
 		if (umb_start!=0xffff) LOG(LOG_DOSMISC,LOG_ERROR)("Corrupt UMB chain: %x",umb_start);
 		return false;
+	} else if (dos.loaded_codepage == 936 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) {
+		static constexpr std::array<const char*, 6> blacklisted {"KNL", "LIMD", "PY", "RDFNT", "HAN16E", "HAN16V"};
+		char psp_name[9];
+		DOS_MCB psp_mcb(dos.psp()-1);
+		psp_mcb.GetFileName(psp_name);
+		for (auto prog : blacklisted) if (!strcmp(psp_name, prog)) return false;
 	}
 
 	if ((linkstate&1)==(dos_infoblock.GetUMBChainState()&1)) return true;

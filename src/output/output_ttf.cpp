@@ -489,6 +489,13 @@ void CheckTTFLimit() {
     }
 }
 
+void refreshExtChar() {
+    mainMenu.get_item("ttf_extcharset").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables);
+    if (dos.loaded_codepage == 936) mainMenu.get_item("ttf_extcharset").check(gbk).refresh_item(mainMenu);
+    else if (dos.loaded_codepage == 950 || dos.loaded_codepage == 951) mainMenu.get_item("ttf_extcharset").check(chinasea).refresh_item(mainMenu);
+    else mainMenu.get_item("ttf_extcharset").check(gbk&&chinasea).refresh_item(mainMenu);
+}
+
 int setTTFMap(bool changecp) {
     char text[2];
     uint16_t uname[4], wcTest[256];
@@ -549,9 +556,7 @@ int setTTFCodePage() {
 #endif
         if(IS_JEGA_ARCH) memcpy(cpMap,cpMap_AX,sizeof(cpMap[0])*32);
         if (cp == 932 && halfwidthkana) resetFontSize();
-        if (cp == 936) mainMenu.get_item("ttf_extcharset").check(gbk).refresh_item(mainMenu);
-        else if (cp == 950 || cp == 951) mainMenu.get_item("ttf_extcharset").check(chinasea).refresh_item(mainMenu);
-        else mainMenu.get_item("ttf_extcharset").check(gbk&&chinasea).refresh_item(mainMenu);
+        refreshExtChar();
         return notMapped;
     } else
         return -1;

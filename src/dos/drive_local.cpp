@@ -107,7 +107,8 @@ uint16_t customcp_to_unicode[256], altcp_to_unicode[256];
 extern uint16_t cpMap_AX[32];
 extern uint16_t cpMap_PC98[256];
 extern std::map<int, int> lowboxdrawmap, pc98boxdrawmap;
-bool cpwarn_once = false, ignorespecial = false, tryconvertcp = false, notrycp = false;
+int tryconvertcp = 0;
+bool cpwarn_once = false, ignorespecial = false, notrycp = false;
 std::string prefix_local = ".DBLOCALFILE";
 
 char* GetCrossedName(const char *basedir, const char *dir) {
@@ -210,13 +211,14 @@ template <class MT> bool String_DBCS_TO_HOST_UTF16(uint16_t *d/*CROSS_LEN*/,cons
     const char *ss = s;
 
     while (*s != 0 && s < sf) {
+        if (morelen && !(dos.loaded_codepage == 932
 #if defined(USE_TTF)
-        if (morelen && !(dos.loaded_codepage == 932 && halfwidthkana) && (std::find(bdlist.begin(), bdlist.end(), (uint16_t)(baselen + s - ss)) != bdlist.end() || (isKanji1(*s) && (!(*(s+1)) || !isKanji2(*(s+1)))))) {
+        && halfwidthkana
+#endif
+        ) && (std::find(bdlist.begin(), bdlist.end(), (uint16_t)(baselen + s - ss)) != bdlist.end() || (isKanji1(*s) && (!(*(s+1)) || !isKanji2(*(s+1)))))) {
             *d++ = cp437_to_unicode[(uint8_t)*s++];
             continue;
-        } else
-#endif
-            if (morelen && IS_JEGA_ARCH && (uint8_t)(*s) && (uint8_t)(*s)<32) {
+        } else if (morelen && IS_JEGA_ARCH && (uint8_t)(*s) && (uint8_t)(*s)<32) {
             *d++ = cpMap_AX[(uint8_t)*s++];
             continue;
         } else if (morelen && IS_PC98_ARCH && pc98boxdrawmap.find((uint8_t)*s) != pc98boxdrawmap.end()) {
@@ -261,13 +263,14 @@ template <class MT> bool String_DBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const cha
     const char *ss = s;
 
     while (*s != 0 && s < sf) {
+        if (morelen && !(dos.loaded_codepage == 932
 #if defined(USE_TTF)
-        if (morelen && !(dos.loaded_codepage == 932 && halfwidthkana) && (std::find(bdlist.begin(), bdlist.end(), (uint16_t)(baselen + s - ss)) != bdlist.end() || (isKanji1(*s) && (!(*(s+1)) || !isKanji2(*(s+1))))) && utf8_encode(&d,df,(uint32_t)cp437_to_unicode[(uint8_t)*s]) >= 0) {
+        && halfwidthkana
+#endif
+        ) && (std::find(bdlist.begin(), bdlist.end(), (uint16_t)(baselen + s - ss)) != bdlist.end() || (isKanji1(*s) && (!(*(s+1)) || !isKanji2(*(s+1))))) && utf8_encode(&d,df,(uint32_t)cp437_to_unicode[(uint8_t)*s]) >= 0) {
             s++;
             continue;
-        } else
-#endif
-        if (morelen && IS_JEGA_ARCH && (uint8_t)(*s) && (uint8_t)(*s)<32) {
+        } else if (morelen && IS_JEGA_ARCH && (uint8_t)(*s) && (uint8_t)(*s)<32) {
             uint16_t oc = cpMap_AX[(uint8_t)*s];
             if (utf8_encode(&d,df,(uint32_t)oc) >= 0) {
                 s++;

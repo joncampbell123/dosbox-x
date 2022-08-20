@@ -1076,7 +1076,10 @@ static void OPL_CallBack(Bitu len) {
 }
 
 static Bitu OPL_Read(Bitu port,Bitu iolen) {
-    if (IS_PC98_ARCH) port >>= 8u; // C8D2h -> C8h, C9D2h -> C9h, OPL emulation looks only at bit 0.
+    if (IS_PC98_ARCH) {
+        if (port == 0xC8D2 && iolen == 1 && module->PortRead(port, iolen) == 0xFF && module->PortRead(port/0x100, iolen) == 0) return 0xFF; // fix for First Queen
+        port >>= 8u; // C8D2h -> C8h, C9D2h -> C9h, OPL emulation looks only at bit 0.
+    }
 
 	return module->PortRead( port, iolen );
 }
