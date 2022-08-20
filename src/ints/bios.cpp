@@ -107,6 +107,8 @@ void pc98_update_display_page_ptr(void);
 void pc98_update_palette(void);
 bool MEM_map_ROM_alias_physmem(Bitu start,Bitu end);
 void MOUSE_Startup(Section *sec);
+void Mouse_PS2SetSamplingRate(uint8_t rate);
+bool Mouse_PS2SetPacketSize(uint8_t packet_size);
 void change_output(int output);
 void runBoot(const char *str);
 void SetIMPosition(void);
@@ -3478,6 +3480,16 @@ static Bitu INT18_PC98_Handler(void) {
             break;
         case 0x03: /* Initialization of keyboard interface (キーボード・インタフェイスの初期化) */
             /* TODO */
+            IO_WriteB(0x43, 0x3a);
+            IO_WriteB(0x43, 0x32);
+            IO_WriteB(0x43, 0x16);
+            for (int i=0; i<0x20; i++) mem_writeb(0x502+i, 0);
+            for (int i=0; i<0x13; i++) mem_writeb(0x528+i, 0);
+            mem_writew(0x522, 0x0e00);
+            mem_writew(0x524, 0x0502);
+            mem_writew(0x526, 0x0502);
+            mem_writew(0x5c6, 0x0e00);
+            mem_writew(0x5c8, 0xfd80);
             break;
         case 0x04: /* Sense of key input state (キー入力状態のセンス) */
             reg_ah = mem_readb(0x52A + (unsigned int)(reg_al & 0x0Fu));
@@ -3534,6 +3546,9 @@ static Bitu INT18_PC98_Handler(void) {
             //Attribute bit (bit 2)
             pc98_attr4_graphic = !!(reg_al & 0x04);
             pc98_40col_text = !!(reg_al & 0x02);
+#if defined(USE_TTF)
+            if (!(reg_al & 0xc) && pc98_gdc[GDC_MASTER].display_enable) ttf_switch_on(false);
+#endif
 
             mem_writeb(0x53C,(mem_readb(0x53C) & 0xF0u) | (reg_al & 0x0Fu));
 
@@ -6366,6 +6381,7 @@ static Bitu INT15_Handler(void) {
                          *       PS/2 mouse bytes coming from AUX (if aux=true) or emulate the
                          *       re-framing if aux=false to emulate this protocol fully. */
                         LOG_MSG("INT 15h mouse initialized to %u-byte protocol\n",reg_bh);
+                        Mouse_PS2SetPacketSize(reg_bh);
                         KEYBOARD_AUX_Write(0xF6); /* set defaults */
                         Mouse_SetPS2State(false);
                         KEYBOARD_ClrBuffer();
@@ -6378,6 +6394,7 @@ static Bitu INT15_Handler(void) {
                     }
                     break;
                 case 0x02: {        // set sampling rate
+                    Mouse_PS2SetSamplingRate(reg_bh);
                     static const unsigned char tbl[7] = {10,20,40,60,80,100,200};
                     KEYBOARD_AUX_Write(0xF3);
                     if (reg_bh > 6) reg_bh = 6;

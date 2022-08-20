@@ -46,7 +46,7 @@ jobs:
           top=`pwd`
           strip -s $top/src/dosbox-x.exe
           $top/build-scripts/mingw/hxdos-bin/PESTUB.EXE -n $top/src/dosbox-x.exe
-          $top/vs/tool/upx.exe --lzma -9 $top/src/dosbox-x.exe
+          $top/vs/tool/upx.exe --strip-relocs=0 --lzma -9 $top/src/dosbox-x.exe
           cp $top/src/dosbox-x.exe $top/package/dosbox-x.exe
           cp $top/CHANGELOG $top/package/CHANGELOG.txt
           cp $top/COPYING $top/package/COPYING.txt

@@ -58,6 +58,8 @@ int  MSCDEX_RemoveDrive(char driveLetter);
 int  MSCDEX_AddDrive(char driveLetter, const char* physicalPath, uint8_t& subUnit);
 bool MSCDEX_HasMediaChanged(uint8_t subUnit);
 bool MSCDEX_GetVolumeName(uint8_t subUnit, char* name);
+bool isDBCSCP();
+char * DBCS_upcase(char * str);
 
 PHYSFS_sint64 PHYSFS_fileLength(const char *name) {
 	PHYSFS_file *f = PHYSFS_openRead(name);
@@ -664,7 +666,10 @@ again:
 	}
 	if(strlen(dir_ent)<DOS_NAMELENGTH_ASCII){
 		strcpy(find_name,dir_ent);
-		upcase(find_name);
+		if (IS_PC98_ARCH || isDBCSCP())
+			DBCS_upcase(find_name);
+		else
+			upcase(find_name);
 	}
 	strcpy(lfind_name,ldir_ent);
 	lfind_name[LFN_NAMELENGTH]=0;

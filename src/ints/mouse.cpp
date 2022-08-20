@@ -351,6 +351,7 @@ void DoPS2Callback(uint16_t data, int16_t mouseX, int16_t mouseY) {
                 CPU_Push16((uint16_t)(ydiff % 256));
                 CPU_Push16((uint16_t)GetWheel8bit());
                 CPU_Push16((uint16_t)0);
+                break;
             default:   // Standard protocol
                 CPU_Push16((uint16_t)mdat);
                 CPU_Push16((uint16_t)(xdiff % 256));
@@ -893,6 +894,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
     } else
 #endif
 	for (int i=r1; i<=r2; i++) {
+        uint16_t startlen = len;
         bool lead1 = false, lead2 = false;
         if ((showdbcs && !ttfuse && !IS_DOSV && isDBCSCP()
 #if defined(USE_TTF)
@@ -909,6 +911,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 				uint16_t address=((i*80)+(ttfuse&&rtl?ttfcols-j-1:j))*2;
 				PhysPt where = CurMode->pstart+address;
 				result=mem_readw(where);
+                if (!result || (result == 0xFE && j && mem_readw(where-2) == 0)) result = 32;
                 if ((result & 0xFF00u) != 0u && (result & 0x7Cu) == 0x08u && (result%0xff) - (result/0x100) == 0xB) {
                     uint8_t val = result/0x100+31;
                     for (auto it = pc98boxdrawmap.begin(); it != pc98boxdrawmap.end(); ++it)
@@ -935,6 +938,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
                 if (lead2) lead2=false;
                 else if (isKanji1(real_readb(seg,(i*c+j)*2))) lead2=true;
                 result=real_readb(seg,(i*c+j)*2);
+                if ((uint8_t)result==0) result=32;
                 text[len++]=result;
                 if (!lead2 && del_flag && (text[len-1]&0xFF) == 0x7F) text[len-1]++;
                 if (j==c2&&c2<c-1&&lead2) {
@@ -950,7 +954,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
                 && showdbcs) ? std::find(jtbs.begin(), jtbs.end(), std::make_pair(i,j)) != jtbs.end():false;
                 if (!isJEGAEnabled()||j>c1||!find) {
                     ReadCharAttr(ttfuse&&rtl?ttfcols-j-1:j,i,page,&result);
-                    if (!result && CurMode->type == M_DCGA && !IS_J3100) result=32;
+                    if ((uint8_t)result==0) result=32;
 #if defined(USE_TTF)
                     if (ttfuse && isDBCSCP()) {
                         ttf_cell *curAC = curAttrChar+i*ttfcols;
@@ -976,11 +980,11 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
                 }
 			}
 		}
-		while (len>0&&text[len-1]==32) text[--len]=0;
+		if (ttfuse&&rtl) std::reverse(text+startlen, text+len);
+		while (len>0&&text[len-1]==32) {text[--len]=0;bdlist.remove(len);}
 		if (i<r2) text[len++]='\n';
 	}
     text[len] = 0;
-    if (ttfuse&&rtl) std::reverse(text, text+len);
 	*textlen=len;
 	return text;
 }

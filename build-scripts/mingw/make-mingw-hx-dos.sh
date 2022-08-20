@@ -62,7 +62,7 @@ hxdir="build-scripts/mingw/hxdos-bin"
 strip src/dosbox-x.exe || exit 1
 cp src/dosbox-x.exe dosbox-x.exe || exit 1
 $hxdir/pestub.exe -n dosbox-x.exe
-$tooldir/upx.exe --lzma -9 dosbox-x.exe
+$tooldir/upx.exe --strip-relocs=0 --lzma -9 dosbox-x.exe
 cp CHANGELOG CHANGELOG.txt || exit 1
 cp COPYING COPYING.txt || exit 1
 cp dosbox-x.reference.conf dosbox-x.ref || exit 1

@@ -101,6 +101,7 @@ void GDC_ProcDelay(Bitu /*val*/);
 void PC98_show_cursor(bool show);
 void pc98_port6A_command_write(unsigned char b);
 void pc98_port68_command_write(unsigned char b);
+void initRand(void);
 
 PC98_GDC_state::PC98_GDC_state() {
     memset(param_ram,0,sizeof(param_ram));
@@ -647,6 +648,10 @@ uint8_t PC98_GDC_state::read_status(void) {
         ret |= 0x02; // FIFO full
     if (rfifo_has_content())
         ret |= 0x01; // data ready
+    else if (fifo_read == fifo_write) {
+        initRand();
+        if (rand()%20<1) ret |= 0x08;
+    }
 
     return ret;
 }

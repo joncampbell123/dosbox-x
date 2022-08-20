@@ -44,6 +44,8 @@ struct {
 } disp2;
 
 static bool disp2_init=false;
+extern bool force_conversion;
+bool InitCodePage();
 
 bool DISP2_Active(void) {
 	return disp2_init;
@@ -99,7 +101,12 @@ static void DISP2_Refresh(Bitu /*val*/) {
 	}
 	old_ch=new_ch;
 	old_pos=new_pos;
-	if (need_refresh) refresh();
+	if (need_refresh) {
+		refresh();
+#ifdef WIN32
+		if (dos.loaded_codepage && !(altcp && dos.loaded_codepage == altcp) && !(customcp && dos.loaded_codepage == customcp)) SetConsoleOutputCP(dos.loaded_codepage);
+#endif
+	}
 	PIC_AddEvent(DISP2_Refresh,REFRESH_DELAY);
 }
 

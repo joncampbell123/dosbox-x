@@ -433,7 +433,7 @@ protected:
     Bitu activity;
 
     //! \brief Mapper entry name
-    char entry[16];
+    char entry[20];
 
     //! \brief Current value of the event (such as joystick position)
     Bits current_value;
