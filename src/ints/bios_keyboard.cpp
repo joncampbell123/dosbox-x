@@ -1381,6 +1381,10 @@ Bitu INT16_Handler(void) {
         /* Weird call used by some dos apps */
         LOG(LOG_BIOS,LOG_NORMAL)("INT16:55:Word TSR compatible call");
         break;
+    case 0xdb:
+        // ETen call
+        // reg_ax = 8000;
+        break;
     case 0xf0:
         // J-3100 beep
         break;

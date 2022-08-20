@@ -1129,6 +1129,10 @@ CX	640x480	800x600	  1024x768/1280x1024
 			SegSet16(es, GetGaijiSeg());
 		}
 		break;
+    case 0xdb:
+        // ETen call
+        // if (reg_al==1) reg_ax = 0;
+        break;
 	case 0xf0:
 		INT10_EGA_RIL_ReadRegister(reg_bl, reg_dx);
 		break;

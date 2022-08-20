@@ -107,8 +107,7 @@ uint16_t customcp_to_unicode[256], altcp_to_unicode[256];
 extern uint16_t cpMap_AX[32];
 extern uint16_t cpMap_PC98[256];
 extern std::map<int, int> lowboxdrawmap, pc98boxdrawmap;
-int tryconvertcp = 0;
-bool cpwarn_once = false, ignorespecial = false, notrycp = false;
+bool cpwarn_once = false, ignorespecial = false, tryconvertcp = false, notrycp = false;
 std::string prefix_local = ".DBLOCALFILE";
 
 char* GetCrossedName(const char *basedir, const char *dir) {
