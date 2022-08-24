@@ -75,7 +75,7 @@ bool tonoime = false, enableime = false;
 bool usesystemcursor = false, rtl = false, selmark = false;
 bool mountfro[26], mountiro[26];
 bool OpenGL_using(void), Direct3D_using(void);
-void DOSBox_SetSysMenu(void), GFX_OpenGLRedrawScreen(void), InitFontHandle(void), DOSV_FillScreen(void), Add_VFiles(bool usecp), SetWindowTransparency(int trans);
+void DOSBox_SetSysMenu(void), GFX_OpenGLRedrawScreen(void), InitFontHandle(void), DOSV_FillScreen(void), refreshExtChar(void), Add_VFiles(bool usecp), SetWindowTransparency(int trans);
 void MenuBrowseProgramFile(void), OutputSettingMenuUpdate(void), aspect_ratio_menu(void), update_pc98_clock_pit_menu(void), AllocCallback1(void), AllocCallback2(void), ToggleMenu(bool pressed);
 int Reflect_Menu(void);
 
@@ -7429,7 +7429,7 @@ std::wstring win32_prompt_folder(const char *default_folder) {
 }
 #endif
 
-void DISP2_Init(uint8_t color);
+void DISP2_Init(uint8_t color), DISP2_Shut();
 //extern void UI_Init(void);
 void grGlideShutdown(void);
 int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
@@ -8302,6 +8302,14 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             else if (control->opt_langcp) tonoime = true;
             force_conversion = false;
             dos.loaded_codepage=cp;
+#if defined (WIN32)
+            if (!enableime&&!tonoime) {
+                const Section_prop* section = static_cast<Section_prop*>(control->GetSection("dos"));
+                const char * layoutname=section->Get_string("keyboardlayout");
+                WORD cur_kb_layout = LOWORD(GetKeyboardLayout(0));
+                if (!strcmp(layoutname, "jp") || !strcmp(layoutname, "ko") || !strcmp(layoutname, "cn") || !strcmp(layoutname, "tw") || !strcmp(layoutname, "hk") || !strcmp(layoutname, "zh") || !strcmp(layoutname, "zhs") || !strcmp(layoutname, "zht") || (!strcmp(layoutname, "auto") && (cur_kb_layout == 1028 || cur_kb_layout == 1041 || cur_kb_layout == 1042 || cur_kb_layout == 2052 || cur_kb_layout == 3076))) enableime = true;
+            }
+#endif
         }
     }
 #if defined(WIN32) && !defined(HX_DOS)
@@ -8897,7 +8905,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("mapper_dbcssbcs").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dbcs_sbcs||IS_PC98_ARCH||IS_JEGA_ARCH);
         mainMenu.get_item("mapper_autoboxdraw").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(autoboxdraw||IS_PC98_ARCH||IS_JEGA_ARCH);
         mainMenu.get_item("ttf_halfwidthkana").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(halfwidthkana||IS_PC98_ARCH||IS_JEGA_ARCH);
-        mainMenu.get_item("ttf_extcharset").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dos.loaded_codepage==936?gbk:(dos.loaded_codepage==950||dos.loaded_codepage==951?chinasea:gbk&&chinasea));
+        refreshExtChar();
 #endif
 #if C_PRINTER
         mainMenu.get_item("mapper_printtext").enable(!IS_PC98_ARCH);
@@ -9147,10 +9155,10 @@ fresh_boot:
 
         checkmenuwidth = ctrlbrk = false;
         if (dos_kernel_shutdown) {
-
             inshell = tryconvertcp = false;
             maincp = dos.loaded_codepage;
             if (!IS_PC98_ARCH&&!IS_JEGA_ARCH&&!IS_J3100&&dos.loaded_codepage!=437) dos.loaded_codepage=437;
+            if (ticksLocked && !static_cast<Section_prop *>(control->GetSection("cpu"))->Get_bool("turbo")) DOSBOX_UnlockSpeed2(true);
 
             /* NTS: we take different paths depending on whether we're just shutting down DOS
              *      or doing a hard reboot. */
@@ -9447,6 +9455,9 @@ fresh_boot:
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
         void sdl_hax_macosx_setmenu(void *nsMenu);
         sdl_hax_macosx_setmenu(NULL);
+#endif
+#if C_DEBUG
+        DISP2_Shut();
 #endif
 
 #if defined(C_SDL2)

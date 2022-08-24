@@ -606,15 +606,41 @@ void DOS_Shell::RunInternal(void) {
 	}
 }
 
-char *str_replace(char *orig, char *rep, char *with);
+bool ansiinstalled = true, ANSI_SYS_installed();
+extern void ReadCharAttr(uint16_t col,uint16_t row,uint8_t page,uint16_t * result);
+bool is_ANSI_installed(Program *shell) {
+    if (ANSI_SYS_installed()) return true;
+    uint16_t oldax=reg_ax;
+    if (CurMode->type == M_TEXT) {
+        shell->WriteOut("-\033[2J=+");
+        uint8_t page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+        uint16_t result1, result2;
+        ReadCharAttr(0,0,page,&result1);
+        ReadCharAttr(1,0,page,&result2);
+        bool installed = (uint8_t)result1=='=' && (uint8_t)result2=='+';
+        if (installed) {
+            shell->WriteOut("\033[2J");
+            return true;
+        }
+        reg_ax = (uint16_t)CurMode->mode;
+        CALLBACK_RunRealInt(0x10);
+        reg_ax=oldax;
+    }
+    reg_ax=0x1a00;
+    CALLBACK_RunRealInt(0x2F);
+    if (reg_al!=0xff) {reg_ax=oldax;return false;}
+    reg_ax=oldax;
+    return true;
+}
+
 std::string GetPlatform(bool save);
-bool ANSI_SYS_installed();
+char *str_replace(char *orig, char *rep, char *with);
 const char *ParseMsg(const char *msg) {
     char str[13];
     strncpy(str, UPDATED_STR, 12);
     str[12]=0;
     if (machine != MCH_PC98) {
-        if (!ANSI_SYS_installed() || J3_IsJapanese()) {
+        if (!ansiinstalled || J3_IsJapanese()) {
             msg = str_replace(str_replace((char *)msg, (char*)"\033[0m", (char*)""), (char*)"\033[1m", (char*)"");
             for (int i=1; i<8; i++) {
                 sprintf(str, "\033[3%dm", i);
@@ -729,6 +755,7 @@ void DOS_Shell::Prepare(void) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
         if (section->Get_bool("startbanner")&&!control->opt_fastlaunch) {
             /* Start a normal shell and check for a first command init */
+            ansiinstalled = is_ANSI_installed(this);
             std::string verstr = "v"+std::string(VERSION)+", "+GetPlatform(false);
             if (machine == MCH_PC98) {
                 WriteOut(ParseMsg("\x86\x52\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"

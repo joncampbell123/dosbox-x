@@ -271,3 +271,9 @@ void DISP2_Init(uint8_t color) {
 	// initialization complete
 	disp2_init=true;
 }
+
+void DISP2_Shut() {
+#ifndef WIN32
+	if (disp2_init) endwin();
+#endif
+}
