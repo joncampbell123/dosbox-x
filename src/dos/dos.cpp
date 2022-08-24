@@ -71,10 +71,12 @@ extern bool use_quick_reboot, j3100_start;
 extern bool enable_config_as_shell_commands;
 extern bool checkwat, loadlang, pcibus_enable;
 extern bool log_int21, log_fileio, pipetmpdev;
+extern bool chinasea;
 #if defined(USE_TTF)
 extern bool ttf_dosv;
 #endif
-extern int autofixwarn, lfn_filefind_handle, result_errorcode;
+extern int tryconvertcp, autofixwarn;
+extern int lfn_filefind_handle, result_errorcode;
 extern uint16_t customcp_to_unicode[256];
 int customcp = 0, altcp = 0;
 unsigned long totalc, freec;
@@ -82,8 +84,10 @@ uint16_t countryNo = 0;
 Bitu INT29_HANDLER(void);
 bool isDBCSCP();
 uint32_t BIOS_get_PC98_INT_STUB(void);
+uint16_t GetDefaultCP(void);
 void ResolvePath(std::string& in);
 void SwitchLanguage(int oldcp, int newcp, bool confirm);
+void makestdcp950table(), makeseacp951table();
 std::string GetDOSBoxXPath(bool withexe=false);
 extern std::string prefix_local, prefix_overlay;
 
@@ -3930,6 +3934,17 @@ public:
 				SetNumLock();
 #endif
 		}
+        char *r;
+#if defined(WIN32)
+        unsigned int cp = GetACP();
+        const char *cstr = (control->opt_noconfig || !config_section) ? "" : (char *)config_section->Get_string("country");
+        r = (char *)strchr(cstr, ',');
+        if ((r==NULL || !*(r+1) || atoi(trim(r+1)) == cp || (atoi(trim(r+1)) == 951 && cp == 950)) && GetDefaultCP() == 437) {
+            if (cp == 950 && !chinasea) makestdcp950table();
+            if (cp == 951 && chinasea) makeseacp951table();
+            tryconvertcp = (r==NULL || !*(r+1)) ? 1 : 2;
+        }
+#endif
 
         dos_sda_size = section->Get_int("dos sda size");
 		enable_network_redirector = section->Get_bool("network redirector");
@@ -3995,7 +4010,8 @@ public:
         }
         std::string autofixwarning=section->Get_string("autofixwarning");
         autofixwarn=autofixwarning=="false"||autofixwarning=="0"||autofixwarning=="none"?0:(autofixwarning=="a20fix"?1:(autofixwarning=="loadfix"?2:3));
-        char *cpstr = (char *)section->Get_string("customcodepage"), *r=(char *)strchr(cpstr, ',');
+        char *cpstr = (char *)section->Get_string("customcodepage");
+        r=(char *)strchr(cpstr, ',');
         customcp = 0;
         for (int i=0; i<256; i++) customcp_to_unicode[i] = 0;
         if (r!=NULL) {
@@ -4562,7 +4578,7 @@ void DOS_ShutdownDrives() {
 		if (Drives[i] != NULL) {
 			if (DriveManager::UnmountDrive(i) == 0)
 				Drives[i] = NULL; /* deletes drive but does not set to NULL because surrounding code does that */
-			else
+			else if (i != ZDRIVE_NUM)
 				LOG(LOG_DOSMISC,LOG_DEBUG)("Failed to unmount drive %c",i+'A'); /* probably drive Z: , UnMount() always returns nonzero */
 		}
 

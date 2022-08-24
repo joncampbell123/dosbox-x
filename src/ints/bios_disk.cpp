@@ -35,10 +35,10 @@
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 #endif
 
-extern int bootdrive;
 extern unsigned long freec;
 extern const uint8_t freedos_mbr[];
-extern bool int13_disk_change_detect_enable, skipintprog, rsize, tryconvertcp;
+extern int bootdrive, tryconvertcp;
+extern bool int13_disk_change_detect_enable, skipintprog, rsize;
 extern bool int13_extensions_enable, bootguest, bootvm, use_quick_reboot;
 extern bool isDBCSCP(), isKanji1_gbk(uint8_t chr), shiftjis_lead_byte(int c);
 extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
@@ -901,7 +901,7 @@ struct fatFromDOSDrive
 		}
 
 		codepage = dos.loaded_codepage;
-		tryconvcp = tryconvertcp;
+		tryconvcp = tryconvertcp>0;
 		success = true;
 	}
 

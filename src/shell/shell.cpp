@@ -52,8 +52,8 @@
 
 extern bool dos_shell_running_program, mountwarning, winautorun;
 extern bool startcmd, startwait, startquiet, internal_program;
-extern bool addovl, addipx, addne2k, enableime, tryconvertcp;
-extern bool halfwidthkana, force_conversion, showdbcs, gbk, chinasea;
+extern bool addovl, addipx, addne2k, enableime, showdbcs;
+extern bool halfwidthkana, force_conversion, gbk;
 extern const char* RunningProgram;
 extern int enablelfn, msgcodepage, lastmsgcp;
 extern uint16_t countryNo;
@@ -66,7 +66,6 @@ Bitu call_int2e = 0;
 
 std::string GetDOSBoxXPath(bool withexe=false);
 const char* DOS_GetLoadedLayout(void);
-uint16_t GetDefaultCP(void);
 int Reflect_Menu(void);
 void SetIMPosition(void);
 void SetKEYBCP();
@@ -74,10 +73,10 @@ void initRand();
 void initcodepagefont(void);
 void runMount(const char *str);
 void ResolvePath(std::string& in);
+void DOS_SetCountry(uint16_t countryNo);
 void SwitchLanguage(int oldcp, int newcp, bool confirm);
 void CALLBACK_DeAllocate(Bitu in), DOSBox_ConsolePauseWait();
 void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-void DOS_SetCountry(uint16_t countryNo), makestdcp950table(), makeseacp951table();
 bool isDBCSCP(), InitCodePage(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), sdl_wait_on_error();
 
 Bitu call_shellstop = 0;
@@ -413,7 +412,7 @@ public:
 		return true;
 	}
 	virtual bool Close() { return true; }
-	virtual uint16_t GetInformation(void) { return DeviceInfoFlags::Device | DeviceInfoFlags::Nul; }
+	virtual uint16_t GetInformation(void) { return (strcmp(RunningProgram, "WCLIP") ? DeviceInfoFlags::Device : 0) | DeviceInfoFlags::EofOnInput; }
 	virtual bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
 	virtual bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
 };
@@ -948,17 +947,6 @@ void DOS_Shell::Prepare(void) {
 				}
 			}
 		}
-        unsigned int cp;
-#if defined(WIN32)
-        cp = GetACP();
-        const char *cstr = (control->opt_noconfig || !section) ? "" : (char *)section->Get_string("country");
-        char *r = (char *)strchr(cstr, ',');
-        if ((r==NULL || !*(r+1) || atoi(trim(r+1)) == cp || (atoi(trim(r+1)) == 951 && cp == 950)) && GetDefaultCP() == 437) {
-            if (cp == 950 && !chinasea) makestdcp950table();
-            if (cp == 951 && chinasea) makeseacp951table();
-            tryconvertcp = true;
-        }
-#endif
         std::string line;
         GetEnvStr("PATH",line);
 		if (!strlen(config_data)) {
@@ -967,6 +955,7 @@ void DOS_Shell::Prepare(void) {
 			strcat(config_data, "\r\n");
 		}
         internal_program = true;
+		VFILE_Register("AUTOEXEC.BAT",(uint8_t *)autoexec_data,(uint32_t)strlen(autoexec_data));
 		VFILE_Register("CONFIG.SYS",(uint8_t *)config_data,(uint32_t)strlen(config_data));
         internal_program = false;
 #if defined(WIN32)
@@ -994,7 +983,7 @@ void DOS_Shell::Prepare(void) {
         internal_program = true;
 		VFILE_Register("4DOS.INI",(uint8_t *)i4dos_data,(uint32_t)strlen(i4dos_data), "/4DOS/");
         internal_program = false;
-        cp=dos.loaded_codepage;
+        unsigned int cp=dos.loaded_codepage;
         if (!dos.loaded_codepage) InitCodePage();
         initcodepagefont();
         dos.loaded_codepage=cp;

@@ -59,10 +59,10 @@ extern bool log_fileio;
 extern bool ticksLocked;
 extern bool isJPkeyboard;
 extern bool enable_autosave;
+extern bool use_quick_reboot;
+extern bool showdbcs, skipdraw;
 extern bool noremark_save_state;
-extern bool showdbcs, tryconvertcp;
 extern bool ctrlbrk, dpi_aware_enable;
-extern bool use_quick_reboot, skipdraw;
 extern bool force_load_state, force_conversion;
 extern bool pc98_force_ibm_layout, gbk, chinasea;
 extern bool inshell, enable_config_as_shell_commands;
@@ -77,7 +77,7 @@ bool mountfro[26], mountiro[26];
 bool OpenGL_using(void), Direct3D_using(void);
 void DOSBox_SetSysMenu(void), GFX_OpenGLRedrawScreen(void), InitFontHandle(void), DOSV_FillScreen(void), refreshExtChar(void), Add_VFiles(bool usecp), SetWindowTransparency(int trans);
 void MenuBrowseProgramFile(void), OutputSettingMenuUpdate(void), aspect_ratio_menu(void), update_pc98_clock_pit_menu(void), AllocCallback1(void), AllocCallback2(void), ToggleMenu(bool pressed);
-int Reflect_Menu(void);
+extern int tryconvertcp, Reflect_Menu(void);
 
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE
@@ -9155,7 +9155,8 @@ fresh_boot:
 
         checkmenuwidth = ctrlbrk = false;
         if (dos_kernel_shutdown) {
-            inshell = tryconvertcp = false;
+            tryconvertcp = 0;
+            inshell = false;
             maincp = dos.loaded_codepage;
             if (!IS_PC98_ARCH&&!IS_JEGA_ARCH&&!IS_J3100&&dos.loaded_codepage!=437) dos.loaded_codepage=437;
             if (ticksLocked && !static_cast<Section_prop *>(control->GetSection("cpu"))->Get_bool("turbo")) DOSBOX_UnlockSpeed2(true);

@@ -44,7 +44,10 @@
 int lastcp = 0;
 void DOSBox_SetSysMenu(void);
 bool OpenGL_using(void), isDBCSCP(void);
-void change_output(int output), JFONT_Init(void), UpdateSDLDrawTexture();
+void change_output(int output), UpdateSDLDrawTexture();
+void SwitchLanguage(int oldcp, int newcp, bool confirm);
+void MSG_Init(), JFONT_Init(), runRescan(const char *str);
+extern int tryconvertcp, toSetCodePage(DOS_Shell *shell, int newCP, int opt);
 extern bool jfont_init;
 static FILE* OpenDosboxFile(const char* name) {
 	uint8_t drive;
@@ -784,7 +787,6 @@ void initcodepagefont() {
     if (!dos.loaded_codepage) return;
 	uint32_t start_pos;
 	uint16_t number_of_codepages;
-	static uint8_t cpi_buf[65536];
 	uint32_t cpi_buf_size=0,size_of_cpxdata=0;
     switch (dos.loaded_codepage) {
 			case 437:	case 850:	case 852:	case 853:	case 857:	case 858:
@@ -1406,7 +1408,7 @@ public:
 		const char * layoutname=section->Get_string("keyboardlayout");
 		dos.loaded_codepage = GetDefaultCP();	// default codepage already initialized
         int tocp=!strcmp(layoutname, "jp")||IS_JDOSV?932:(!strcmp(layoutname, "ko")||IS_KDOSV?949:(!strcmp(layoutname, "tw")||!strcmp(layoutname, "hk")||!strcmp(layoutname, "zht")||IS_TDOSV?950:(!strcmp(layoutname, "cn")||!strcmp(layoutname, "zh")||!strcmp(layoutname, "zhs")||IS_PDOSV?936:(!strcmp(layoutname, "us")?437:0))));
-        if (tocp) layoutname="us";
+        if (tocp && strcmp(layoutname, "jp") && strcmp(layoutname, "ko")) layoutname="us";
 
 #if defined(USE_TTF)
         if (TTF_using()) setTTFCodePage(); else
@@ -1441,6 +1443,12 @@ public:
 /*				case 1026: // Bulgaria, CP 915, Alt CP 850
 					layoutname = "bg241";
 					break; */
+				case 1028: // Taiwan, CP 950, Alt CP 951
+					if (tryconvertcp == 1) {
+						layoutname = "us";
+						tocp = 950;
+					}
+					break;
 				case 1029: // Czech Republic, CP 852, Alt CP 850
 					layoutname = "cz243";
 					break;
@@ -1483,6 +1491,18 @@ public:
 				case 1040: // Italy, CP 850, Alt CP 437
 					layoutname = "it";
 					wants_dos_codepage = GetDefaultCP();
+					break;
+				case 1041: // Japan, CP 932
+					if (tryconvertcp == 1) {
+						layoutname = "jp";
+						tocp = 932;
+					}
+					break;
+				case 1042: // Korea, CP 949
+					if (tryconvertcp == 1) {
+						layoutname = "ko";
+						tocp = 949;
+					}
 					break;
 				case 1043: // Netherlands, CP 850, Alt CP 437
 					layoutname = "nl";
@@ -1549,6 +1569,12 @@ public:
 				case 1067: // Armenian, has no DOS CP
 					layoutname = "hy";
 					break; */
+				case 2052: // China, CP 936
+					if (tryconvertcp == 1) {
+						layoutname = "us";
+						tocp = 936;
+					}
+					break;
 				case 2055: // Swiss-German, CP 850, Alt CP 437
 					layoutname = "sg";
 					wants_dos_codepage = GetDefaultCP();
@@ -1571,6 +1597,12 @@ public:
 					break;
 				case 2070: // Portugal, CP 850, Alt CP 860
 					layoutname = "po";
+					break;
+				case 3076: // Hong Kong, CP 950, Alt CP 951
+					if (tryconvertcp == 1) {
+						layoutname = "us";
+						tocp = 950;
+					}
 					break;
 				case 3081: // Australia, CP 850, Alt CP 437
 					layoutname = "us"; 
@@ -1608,9 +1640,6 @@ public:
 					layoutname = "uk"; 
 					wants_dos_codepage = GetDefaultCP();
 					break;
-				case 1041: // Japan, CP 943, Alt CP 942
-					layoutname = "jp";
-					break;
 				default:
 					break;
 			}
@@ -1644,17 +1673,25 @@ public:
 			}
 		}
         if (tocp && !IS_PC98_ARCH) {
-            dos.loaded_codepage=tocp;
-            if (!jfont_init && isDBCSCP()) JFONT_Init();
-            SetupDBCSTable();
+            uint16_t cpbak = dos.loaded_codepage;
 #if defined(USE_TTF)
-            if (TTF_using()) setTTFCodePage(); else
+            if (ttf.inUse)
+                toSetCodePage(NULL, tocp, -1);
+            else
 #endif
-            DOSBox_SetSysMenu();
+            {
+                dos.loaded_codepage = tocp;
+                MSG_Init();
+                DOSBox_SetSysMenu();
+                if (!jfont_init && isDBCSCP()) JFONT_Init();
+                SetupDBCSTable();
+                runRescan("-A -Q");
 #if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-            if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
-                UpdateSDLDrawTexture();
+                if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
+                    UpdateSDLDrawTexture();
 #endif
+            }
+            SwitchLanguage(cpbak, dos.loaded_codepage, false);
         }
 	}
 

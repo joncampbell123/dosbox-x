@@ -2269,7 +2269,7 @@ bool fatDrive::FindFirst(const char *_dir, DOS_DTA &dta,bool fcb_findfirst) {
     direntry dummyClust = {};
 
     // volume label searches always affect root directory, no matter the current directory, at least with FCBs
-    if (dta.GetAttr() == DOS_ATTR_VOLUME || ((dta.GetAttr() & DOS_ATTR_VOLUME) && fcb_findfirst)) {
+    if (dta.GetAttr() == DOS_ATTR_VOLUME || ((dta.GetAttr() & DOS_ATTR_VOLUME) && (fcb_findfirst || !(_dir && *_dir && dta.GetAttr() == 0x3F)))) {
         if(!getDirClustNum("\\", &cwdDirCluster, false)) {
             DOS_SetError(DOSERR_PATH_NOT_FOUND);
             return false;

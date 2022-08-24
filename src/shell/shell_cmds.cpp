@@ -470,9 +470,10 @@ void DOS_Shell::CMD_BREAK(char * args) {
 		WriteOut("Must specify ON or OFF\n");
 }
 
+bool ANSI_SYS_installed();
 void DOS_Shell::CMD_CLS(char * args) {
 	HELP("CLS");
-   if (CurMode->type==M_TEXT || IS_PC98_ARCH)
+   if ((CurMode->type==M_TEXT || IS_PC98_ARCH) && ANSI_SYS_installed())
        WriteOut("\033[2J");
    else {
       uint16_t oldax=reg_ax;
