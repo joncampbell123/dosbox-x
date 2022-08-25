@@ -32,6 +32,7 @@ jobs:
         shell: pwsh
         run: |
           msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration=Release -p:Platform=Win32
+          if (-not(Test-Path -Path bin\Win32\Release\dosbox-x.exe -PathType Leaf)) {exit 1}
           contrib\windows\installer\PatchPE.exe bin\Win32\Release\dosbox-x.exe
       - name: Package Visual Studio Win32 SDL1
         shell: bash
@@ -64,6 +65,7 @@ jobs:
         shell: pwsh
         run: |
           msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration="Release SDL2" -p:Platform=Win32
+          if (-not(Test-Path -Path bin\Win32\"Release SDL2"\dosbox-x.exe -PathType Leaf)) {exit 1}
           contrib\windows\installer\PatchPE.exe bin\Win32\"Release SDL2"\dosbox-x.exe
       - name: Package Visual Studio Win32 SDL2
         shell: bash
@@ -131,6 +133,7 @@ jobs:
         shell: pwsh
         run: |
           msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration=Release -p:Platform=ARM -p:PostBuildEventUseInBuild=false
+          if (-not(Test-Path -Path bin\ARM\Release\dosbox-x.exe -PathType Leaf)) {exit 1}
       - name: Package Visual Studio ARM32 SDL1
         shell: bash
         run: |
@@ -157,6 +160,7 @@ jobs:
         shell: pwsh
         run: |
           msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration="Release SDL2" -p:Platform=ARM -p:PostBuildEventUseInBuild=false
+          if (-not(Test-Path -Path bin\ARM\"Release SDL2"\dosbox-x.exe -PathType Leaf)) {exit 1}
       - name: Package Visual Studio ARM32 SDL2
         shell: bash
         run: |

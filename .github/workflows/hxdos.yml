@@ -70,6 +70,22 @@ jobs:
           cd $top/package/
           $top/vs/tool/zip.exe -r -9 $top/dosbox-x-mingw-hx-dos-${{ env.timestamp }}.zip *
           cd $top
+      - name: Download Windows build
+        uses: robinraju/release-downloader@v1.4
+        with:
+          latest: true
+          filename: "dosbox-x-vsbuild-win32-*.zip"
+      - name: Run in Windows build
+        shell: bash
+        run: |
+          top=`pwd`
+          $top/vs/tool/unzip.exe -o dosbox-x-vsbuild-win32-*.zip bin/Win32/Release/dosbox-x.*
+          cp $top/package/dosbox-x.ref $top/hxdos.cfg
+          echo mount b ..>>$top/hxdos.cfg
+          echo "echo success>b:\SUCCESS.TXT">>$top/hxdos.cfg
+          $top/bin/Win32/Release/dosbox-x.exe -silent -exit -set memsize=128 -c "mount c ." -c "c:" -c "cd package" -c "dosbox-x -silent -exit -conf ..\hxdos.cfg>..\OUTPUT.TXT"
+          cat $top/OUTPUT.TXT
+          test -f $top/SUCCESS.TXT || (echo The HX-DOS build did not run successfully && exit 1)
       - name: Upload preview package
         uses: actions/upload-artifact@v3.1.0
         with:

@@ -32,6 +32,7 @@ jobs:
         shell: pwsh
         run: |
           msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration=Release -p:Platform=x64
+          if (-not(Test-Path -Path bin\x64\Release\dosbox-x.exe -PathType Leaf)) {exit 1}
           contrib\windows\installer\PatchPE.exe bin\x64\Release\dosbox-x.exe
       - name: Package Visual Studio Win64 SDL1
         shell: bash
@@ -60,10 +61,11 @@ jobs:
           cp $top/contrib/windows/shaders/* $top/package/bin/x64/Release/shaders/
           cp $top/contrib/glshaders/* $top/package/bin/x64/Release/glshaders/
           cp $top/contrib/translations/*/*.lng $top/package/bin/x64/Release/languages/
-      - name: Build Visual Studio Win64 SDL1
+      - name: Build Visual Studio Win64 SDL2
         shell: pwsh
         run: |
           msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration="Release SDL2" -p:Platform=x64
+          if (-not(Test-Path -Path bin\x64\"Release SDL2"\dosbox-x.exe -PathType Leaf)) {exit 1}
           contrib\windows\installer\PatchPE.exe bin\x64\"Release SDL2"\dosbox-x.exe
       - name: Package Visual Studio Win64 SDL2
         shell: bash
@@ -131,6 +133,7 @@ jobs:
         shell: pwsh
         run: |
           msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration=Release -p:Platform=ARM64 -p:PostBuildEventUseInBuild=false
+          if (-not(Test-Path -Path bin\ARM64\Release\dosbox-x.exe -PathType Leaf)) {exit 1}
       - name: Package Visual Studio ARM64 SDL1
         shell: bash
         run: |
@@ -157,6 +160,7 @@ jobs:
         shell: pwsh
         run: |
           msbuild -m vs/dosbox-x.sln -t:dosbox-x:Rebuild -p:Configuration="Release SDL2" -p:Platform=ARM64 -p:PostBuildEventUseInBuild=false
+          if (-not(Test-Path -Path bin\ARM64\"Release SDL2"\dosbox-x.exe -PathType Leaf)) {exit 1}
       - name: Package Visual Studio ARM64 SDL2
         shell: bash
         run: |
