@@ -63,6 +63,7 @@ bool                                    systemmessagebox(char const * aTitle, ch
 bool resetreq=false;
 void resetFontSize(), drawmenu(Bitu val);
 #endif
+void SetWindowTransparency(int trans);
 
 static void Check_Palette(void) {
     /* Clean up any previous changed palette data */
@@ -837,6 +838,9 @@ forcenormal:
 #endif
     // Ensure VMware mouse support knows the current parameters
 	VMWARE_ScreenParams(sdl.clip.x, sdl.clip.y, sdl.clip.w, sdl.clip.h, sdl.desktop.fullscreen);
+#if defined(MACOSX) && !defined(C_SDL2)
+	SetWindowTransparency(-1);
+#endif
 }
 
 void RENDER_CallBack( GFX_CallBackFunctions_t function ) {

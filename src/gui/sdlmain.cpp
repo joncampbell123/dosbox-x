@@ -75,7 +75,7 @@ bool tonoime = false, enableime = false;
 bool usesystemcursor = false, rtl = false, selmark = false;
 bool mountfro[26], mountiro[26];
 bool OpenGL_using(void), Direct3D_using(void);
-void DOSBox_SetSysMenu(void), GFX_OpenGLRedrawScreen(void), InitFontHandle(void), DOSV_FillScreen(void), refreshExtChar(void), Add_VFiles(bool usecp), SetWindowTransparency(int trans);
+void DOSBox_SetSysMenu(void), GFX_OpenGLRedrawScreen(void), InitFontHandle(void), DOSV_FillScreen(void), refreshExtChar(void), Add_VFiles(bool usecp), SetAlpha(double alpha), SetWindowTransparency(int trans);
 void MenuBrowseProgramFile(void), OutputSettingMenuUpdate(void), aspect_ratio_menu(void), update_pc98_clock_pit_menu(void), AllocCallback1(void), AllocCallback2(void), ToggleMenu(bool pressed);
 extern int tryconvertcp, Reflect_Menu(void);
 
@@ -7237,13 +7237,16 @@ void update_capture_fmt_menu(void);
 #endif
 
 void SetWindowTransparency(int trans) {
-    if (trans == transparency) return;
+    if (trans == -1) trans = transparency;
+    else if (trans == transparency) return;
     double alpha = (double)(100-trans)/100;
 #if defined(C_SDL2)
     SDL_SetWindowOpacity(sdl.window,alpha);
 #elif defined(WIN32) && !defined(HX_DOS)
     SetWindowLong(GetHWND(), GWL_EXSTYLE, GetWindowLong(GetHWND(), GWL_EXSTYLE) | WS_EX_LAYERED);
     SetLayeredWindowAttributes(GetHWND(), 0, 255 * alpha, LWA_ALPHA);
+#elif defined(MACOSX)
+    SetAlpha(alpha);
 #elif defined(LINUX) && C_X11
     Display *dpy = XOpenDisplay(NULL);
     if (!dpy) return;

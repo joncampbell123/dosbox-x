@@ -21,6 +21,10 @@
 extern "C" void* sdl1_hax_stock_macosx_menu(void);
 extern "C" void sdl1_hax_stock_macosx_menu_additem(NSMenu *modme);
 extern "C" NSWindow *sdl1_hax_get_window(void);
+void SetAlpha(double alpha) {
+	NSWindow *wnd = sdl1_hax_get_window();
+	if (wnd != nil) wnd.alphaValue = alpha;
+}
 #endif
 
 extern int pause_menu_item_tag;
