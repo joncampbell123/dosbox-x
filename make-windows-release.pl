@@ -37,7 +37,7 @@ print "$zipname\n";
 
 my @platforms = ('ARM', 'ARM64', 'Win32', 'x64');
 my @builds = ('Release', 'Release SDL2');
-my @files = ('dosbox-x.reference.conf', 'dosbox-x.reference.full.conf', 'readme.txt', 'dosbox-x.exe', 'FREECG98.bmp', 'wqy_11pt.bdf', 'wqy_12pt.bdf', 'Nouveau_IBM.ttf', 'SarasaGothicFixed.ttf', 'changelog.txt', 'drivez', 'scripts', 'shaders', 'languages');
+my @files = ('dosbox-x.reference.conf', 'dosbox-x.reference.full.conf', 'readme.txt', 'dosbox-x.exe', 'FREECG98.bmp', 'wqy_11pt.bdf', 'wqy_12pt.bdf', 'Nouveau_IBM.ttf', 'SarasaGothicFixed.ttf', 'changelog.txt', 'drivez', 'scripts', 'shaders', 'glshaders', 'languages');
 
 foreach $platform (@platforms) {
 	$plat = $platform;
@@ -55,7 +55,6 @@ foreach $platform (@platforms) {
 	foreach $build (@builds) {
         push(@filelist, "bin/$platform/$build/inpout32.dll") if $plat eq 'win32';
         push(@filelist, "bin/$platform/$build/inpoutx64.dll") if $plat eq 'win64';
-        push(@filelist, "bin/$platform/$build/glshaders") if ($plat eq 'win32') or ($plat eq 'win64');
 		foreach $file (@files) {
 			$addfile = "bin/$platform/$build/$file";
 			die "Missing file $addfile" unless -e $addfile;

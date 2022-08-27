@@ -73,6 +73,7 @@ jobs:
       - name: Download Windows build
         uses: robinraju/release-downloader@v1.4
         with:
+          repository: "joncampbell123/dosbox-x"
           latest: true
           filename: "dosbox-x-vsbuild-win32-*.zip"
       - name: Run in Windows build

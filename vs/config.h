@@ -149,9 +149,7 @@
 /* #undef C_SDL2 */
 
 /* Define to 1 to use opengl display output support */
-#if !defined(_M_ARM64) && !defined (_M_ARM)
-# define C_OPENGL 1
-#endif
+#define C_OPENGL 1
 
 /* Set to 1 to enable XBRZ support */
 #define C_XBRZ 1

@@ -492,7 +492,12 @@ void MSG_Init() {
         if (pathprop != NULL) {
             std::string path = pathprop->realpath;
             ResolvePath(path);
-            LoadMessageFile(path.c_str());
+            if (testLoadLangFile(path.c_str()))
+                LoadMessageFile(path.c_str());
+            else {
+                std::string lang = section->Get_string("language");
+                if (lang.size()) LoadMessageFile(lang.c_str());
+            }
         }
 	}
     std::string showdbcsstr = static_cast<Section_prop *>(control->GetSection("dosv"))->Get_string("showdbcsnodosv");

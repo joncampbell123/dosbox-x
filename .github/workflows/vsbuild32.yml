@@ -141,6 +141,7 @@ jobs:
           mkdir -p $top/package/bin/ARM/Release/drivez
           mkdir -p $top/package/bin/ARM/Release/scripts
           mkdir -p $top/package/bin/ARM/Release/shaders
+          mkdir -p $top/package/bin/ARM/Release/glshaders
           mkdir -p $top/package/bin/ARM/Release/languages
           sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/;s/^\(windowposition[ ]*=\)[ ]*-/\1 /;s/^\(file access tries[ ]*=[ ]*\)0$/\13/;s/^\(printoutput[ ]*=[ ]*\)png$/\1printer/;s/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/bin/ARM/Release/dosbox-x.conf
           cp $top/bin/ARM/Release/dosbox-x.exe $top/package/bin/ARM/Release/dosbox-x.exe
@@ -155,6 +156,7 @@ jobs:
           cp $top/contrib/windows/installer/drivez_readme.txt $top/package/bin/ARM/Release/drivez/readme.txt
           cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/bin/ARM/Release/scripts/
           cp $top/contrib/windows/shaders/* $top/package/bin/ARM/Release/shaders/
+          cp $top/contrib/glshaders/* $top/package/bin/ARM/Release/glshaders/
           cp $top/contrib/translations/*/*.lng $top/package/bin/ARM/Release/languages/
       - name: Build Visual Studio ARM32 SDL2
         shell: pwsh
@@ -168,6 +170,7 @@ jobs:
           mkdir -p $top/package/bin/ARM/"Release SDL2"/drivez
           mkdir -p $top/package/bin/ARM/"Release SDL2"/scripts
           mkdir -p $top/package/bin/ARM/"Release SDL2"/shaders
+          mkdir -p $top/package/bin/ARM/"Release SDL2"/glshaders
           mkdir -p $top/package/bin/ARM/"Release SDL2"/languages
           sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/;s/^\(windowposition[ ]*=\)[ ]*-/\1 /;s/^\(file access tries[ ]*=[ ]*\)0$/\13/;s/^\(printoutput[ ]*=[ ]*\)png$/\1printer/;s/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/bin/ARM/"Release SDL2"/dosbox-x.conf
           cp $top/bin/ARM/"Release SDL2"/dosbox-x.exe $top/package/bin/ARM/"Release SDL2"/dosbox-x.exe
@@ -182,6 +185,7 @@ jobs:
           cp $top/contrib/windows/installer/drivez_readme.txt $top/package/bin/ARM/"Release SDL2"/drivez/readme.txt
           cp $top/contrib/windows/installer/windows_explorer_context_menu*.bat $top/package/bin/ARM/"Release SDL2"/scripts/
           cp $top/contrib/windows/shaders/* $top/package/bin/ARM/"Release SDL2"/shaders/
+          cp $top/contrib/glshaders/* $top/package/bin/ARM/"Release SDL2"/glshaders/
           cp $top/contrib/translations/*/*.lng $top/package/bin/ARM/"Release SDL2"/languages/
           cp $top/COPYING $top/package/COPYING
           cd $top/package/
