@@ -1,4 +1,24 @@
-2022.08.0
+2022.09.0 (0.84.3)
+  - Improved ANSI.SYS detection for the welcome banner
+    and CLS command. The command "INTRO WELCOME" will
+    re-display the welcome banner without running the
+    commands in AUTOEXEC.BAT. (Wengier)
+  - Improved detection for the Chinese/Japanese/Korean
+    keyboard layouts on Windows platform. (Wengier)
+  - Fixed file copying problem with Windows 9x install
+    at the end of the DOS-based Setup. (Wengier)
+  - Fixed that texting pasting via mouse may not work
+    properly in some cases. (Wengeir)
+  - Fixed the mouse scrolling wheel not working with
+    "CTMOUSE /O" in guest DOS. (Wengier)
+  - Fixed window transparency setting not working in
+    macOS SDL1 build. (Wengier)
+  - Fixed the terminal mess-up issue with -display2
+    option on Linux and macOS platforms. (Wengier)
+  - Fixed OpenGL output options not working in Windows
+    ARM32/ARM64 builds. (Wengier)
+
+2022.08.0 (0.84.2)
   - Fill in PC-98 BIOS data area byte value indicating
     CPU type (whether 8086, 286, 386 or higher)
     (Wengier), fill it in at startup (joncampbell123).
