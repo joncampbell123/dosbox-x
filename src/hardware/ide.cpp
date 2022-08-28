@@ -1461,7 +1461,7 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
     /* INQUIRY strings */
     id_mmc_vendor_id = "DOSBox-X";
     /* SafeDisc 2 DRM checks for the keyword "virtual" and will refuse to run. */
-    id_mmc_product_id = "Virt. CD-ROM";
+    id_mmc_product_id = "ATAPI CD-ROM";
     id_mmc_product_rev = "0.83-X";
 }
 
