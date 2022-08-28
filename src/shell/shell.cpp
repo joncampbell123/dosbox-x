@@ -819,7 +819,7 @@ void DOS_Shell::Prepare(void) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
         if (section->Get_bool("startbanner")&&!control->opt_fastlaunch)
             showWelcome(this);
-        else if (CurMode->type==M_TEXT || IS_PC98_ARCH)
+        else if ((CurMode->type==M_TEXT || IS_PC98_ARCH) && ANSI_SYS_installed())
             WriteOut("\033[2J");
 		if (!countryNo) {
 #if defined(WIN32)
