@@ -1296,8 +1296,15 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
         if (nHandle == -1) {CloseHandle(handle);return false;}
         hand = _wfdopen(nHandle, L"wb+");
 #else
-        int fd = open(host_name, O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
+        int fd = open(host_name,
+#if defined(O_DIRECT)
+            (file_access_tries>0 ? O_DIRECT : 0) |
+#endif
+            O_RDWR | O_CREAT, S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH | S_IWOTH);
         if (fd<0) {return false;}
+#if defined(F_NOCACHE)
+        if (file_access_tries>0) fcntl(fd, F_NOCACHE, 1);
+#endif
         hand = fdopen(fd, "wb+");
 #endif
     } else {
@@ -1311,7 +1318,7 @@ bool localDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attribu
 		LOG_MSG("Warning: file creation failed: %s",newname);
 		return false;
 	}
-   
+
 	if(!existing_file) {
 		strcpy(newname,basedir);
 		strcat(newname,name);
@@ -1656,13 +1663,12 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 	if (allocation.mediaid==0xF0 ) {
 		EmptyCache(); //rescan floppie-content on each findfirst
 	}
-    
-	
+
 	if (tempDir[strlen(tempDir)-1]!=CROSS_FILESPLIT) {
 		char end[2]={CROSS_FILESPLIT,0};
 		strcat(tempDir,end);
 	}
-	
+
 	uint16_t id;
 	if (!dirCache.FindFirst(tempDir,id)) {
 		DOS_SetError(DOSERR_PATH_NOT_FOUND);
@@ -1675,7 +1681,7 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 		ldid[lfn_filefind_handle]=id;
 		ldir[lfn_filefind_handle]=tempDir;
 	}
-	
+
 	uint8_t sAttr;
 	dta.GetSearchParams(sAttr,tempDir,false);
 
@@ -1736,7 +1742,7 @@ again:
 
 	strcpy(full_name,lfn_filefind_handle>=LFN_FILEFIND_MAX?srchInfo[id].srch_dir:(ldir[lfn_filefind_handle]!=""?ldir[lfn_filefind_handle].c_str():"\\"));
 	strcpy(lfull_name,full_name);
-	
+
 	strcat(full_name,dir_ent);
     strcat(lfull_name,ldir_ent);
 
@@ -1782,7 +1788,7 @@ again:
     }
 #endif
  	if (~srch_attr & find_attr & DOS_ATTR_DIRECTORY) goto again;
-	
+
 	/*file is okay, setup everything to be copied in DTA Block */
 	char find_name[DOS_NAMELENGTH_ASCII], lfind_name[LFN_NAMELENGTH+1];
     uint16_t find_date,find_time;uint32_t find_size,find_hsize;
@@ -2539,11 +2545,15 @@ bool localFile::Read(uint8_t * data,uint16_t * size) {
     }
 #endif
 	if (last_action==WRITE) {
-        fseek(fhandle,ftell(fhandle),SEEK_SET);
+		if (file_access_tries>0) {
+			off_t pos = lseek(fileno(fhandle),0,SEEK_CUR);
+			if (pos>-1) lseek(fileno(fhandle),pos,SEEK_SET);
+		} else
+			fseek(fhandle,ftell(fhandle),SEEK_SET);
         if (!newtime) UpdateLocalDateTime();
     }
 	last_action=READ;
-	*size=(uint16_t)fread(data,1,*size,fhandle);
+	*size=file_access_tries>0?(uint16_t)read(fileno(fhandle),data,*size):(uint16_t)fread(data,1,*size,fhandle);
 	/* Fake harddrive motion. Inspector Gadget with soundblaster compatible */
 	/* Same for Igor */
 	/* hardrive motion => unmask irq 2. Only do it when it's masked as unmasking is realitively heavy to emulate */
@@ -2587,16 +2597,20 @@ bool localFile::Write(const uint8_t * data,uint16_t * size) {
         return false;
     }
 #endif
-	if (last_action==READ) fseek(fhandle,ftell(fhandle),SEEK_SET);
+	if (last_action==READ) {
+		if (file_access_tries>0) {
+			off_t pos = lseek(fileno(fhandle),0,SEEK_CUR);
+			if (pos>-1) lseek(fileno(fhandle),pos,SEEK_SET);
+		} else fseek(fhandle,ftell(fhandle),SEEK_SET);
+	}
 	last_action=WRITE;
-	if(*size==0){  
-        return (!ftruncate(fileno(fhandle),ftell(fhandle)));
-    }
-    else 
-    {
-		*size=(uint16_t)fwrite(data,1,*size,fhandle);
+	if (*size==0){
+		uint32_t pos=file_access_tries>0?lseek(fileno(fhandle),0,SEEK_CUR):ftell(fhandle);
+		return !ftruncate(fileno(fhandle),pos);
+	} else {
+		*size=file_access_tries>0?(uint16_t)write(fileno(fhandle),data,*size):(uint16_t)fwrite(data,1,*size,fhandle);
 		return true;
-    }
+	}
 }
 
 #ifndef WIN32
@@ -2737,11 +2751,16 @@ bool localFile::Seek(uint32_t * pos,uint32_t type) {
         return false;
     }
 #endif
-	int ret=fseek(fhandle,*reinterpret_cast<int32_t*>(pos),seektype);
-	if (ret!=0) {
-		// Out of file range, pretend everythings ok 
+	bool fail;
+	if (file_access_tries>0) fail=lseek(fileno(fhandle),*reinterpret_cast<int32_t*>(pos),seektype)==-1;
+	else fail=fseek(fhandle,*reinterpret_cast<int32_t*>(pos),seektype)!=0;
+	if (fail) {
+		// Out of file range, pretend everythings ok
 		// and move file pointer top end of file... ?! (Black Thorne)
-		fseek(fhandle,0,SEEK_END);
+		if (file_access_tries>0)
+			lseek(fileno(fhandle),0,SEEK_END);
+		else
+			fseek(fhandle,0,SEEK_END);
 	}
 #if 0
 	fpos_t temppos;
@@ -2749,7 +2768,7 @@ bool localFile::Seek(uint32_t * pos,uint32_t type) {
 	uint32_t * fake_pos=(uint32_t*)&temppos;
 	*pos=*fake_pos;
 #endif
-	*pos=(uint32_t)ftell(fhandle);
+	*pos=file_access_tries>0?(uint32_t)lseek(fileno(fhandle),0,SEEK_CUR):(uint32_t)ftell(fhandle);
 	last_action=NONE;
 	return true;
 }
@@ -2817,10 +2836,10 @@ bool localFile::Close() {
 uint16_t localFile::GetInformation(void) {
 	return read_only_medium ? DeviceInfoFlags::NotWritten : 0;
 }
-	
+
 
 uint32_t localFile::GetSeekPos() {
-	return (uint32_t)ftell( fhandle );
+	return file_access_tries>0?(uint32_t)lseek(fileno(fhandle),0,SEEK_CUR):(uint32_t)ftell( fhandle );
 }
 
 localFile::localFile() {}
@@ -2896,8 +2915,13 @@ void localFile::Flush(void) {
     if (file_access_tries>0) return;
 #endif
 	if (last_action==WRITE) {
-		fseek(fhandle,ftell(fhandle),SEEK_SET);
-        fflush(fhandle);
+		if (file_access_tries>0) {
+			off_t pos = lseek(fileno(fhandle),0,SEEK_CUR);
+			if (pos>-1) lseek(fileno(fhandle),pos,SEEK_SET);
+		} else {
+			fseek(fhandle,ftell(fhandle),SEEK_SET);
+			fflush(fhandle);
+		}
 		last_action=NONE;
         if (!newtime) UpdateLocalDateTime();
 	}

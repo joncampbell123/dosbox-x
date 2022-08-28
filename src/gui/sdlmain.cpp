@@ -7230,6 +7230,7 @@ bool VM_PowerOn() {
 #if defined(LINUX) && C_X11
 # include <X11/Xlib.h>
 # include <X11/Xatom.h>
+# include "SDL_syswm.h"
 #endif
 
 #if !defined(C_EMSCRIPTEN)
@@ -7248,11 +7249,23 @@ void SetWindowTransparency(int trans) {
 #elif defined(MACOSX)
     SetAlpha(alpha);
 #elif defined(LINUX) && C_X11
-    Display *dpy = XOpenDisplay(NULL);
-    if (!dpy) return;
+    Display *dpy;
+    Window window;
+    SDL_SysWMinfo wminfo;
+    memset(&wminfo,0,sizeof(wminfo));
+    SDL_VERSION(&wminfo.version);
+    if (SDL_GetWMInfo(&wminfo) >= 0) {
+        dpy = wminfo.info.x11.display;
+        if (!dpy) return;
+        if (wminfo.info.x11.wmwindow) window = wminfo.info.x11.wmwindow;
+    } else {
+        dpy = XOpenDisplay(NULL);
+        if (!dpy) return;
+        window = DefaultRootWindow(dpy);
+    }
     unsigned long opacity = (unsigned long)(0xFFFFFFFFul * alpha);
     Atom atom = XInternAtom(dpy, "_NET_WM_WINDOW_OPACITY", False);
-    XChangeProperty(dpy, DefaultRootWindow(dpy), atom, XA_CARDINAL, 32, PropModeReplace, (unsigned char *)&opacity, 1L);
+    XChangeProperty(dpy, window, atom, XA_CARDINAL, 32, PropModeReplace, (unsigned char *)&opacity, 1L);
 #endif
     transparency = trans;
 }
