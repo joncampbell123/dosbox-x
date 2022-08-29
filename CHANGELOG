@@ -14,8 +14,10 @@
     "CTMOUSE /O" in guest DOS. (Wengier)
   - Fixed window transparency setting not working in
     macOS SDL1 build. (Wengier)
+  - Fixed macOS small display issue with the in-tree
+    SDL2 library by applying SDL updates. (Wengier)
   - Fixed menu option "Always on top" to work with the
-    built-in SDL2 library on macOS. (Wengier)
+    in-tree SDL2 library on macOS. (Wengier)
   - Fixed the terminal mess-up issue with -display2
     option on Linux and macOS platforms. (Wengier)
   - Fixed OpenGL output options not working in Windows

@@ -5636,8 +5636,14 @@ void GFX_Events() {
                             for(int no = 0 ; buff[no] != 0 ; no++) {
                                 if (IS_PC98_ARCH || isDBCSCP()) {
                                     if(dos.loaded_codepage == 932 && isKanji1(buff[no]) && isKanji2(buff[no + 1])) {
+#if defined(MACOSX)
+                                        if (buff[no] == 0x81 && buff[no + 1] == 0x40) no++;
+                                        else
+#endif
+                                        {
                                         BIOS_AddKeyToBuffer(0xf100 | buff[no++]);
                                         BIOS_AddKeyToBuffer(0xf000 | buff[no]);
+                                        }
                                     } else {
                                         BIOS_AddKeyToBuffer(buff[no]);
                                     }
@@ -5650,6 +5656,7 @@ void GFX_Events() {
                     }
                     SetIMPosition();
                 }
+                ime_text = "";
             }
             break;
 #endif
@@ -5673,19 +5680,14 @@ void GFX_Events() {
                 IME_GetEnable()
 #endif
                 ) {
-#if !defined (MACOSX)
                     // Enter, BS, TAB, <-, ->
                     if(event.key.keysym.sym == 0x0d || event.key.keysym.sym == 0x08 || event.key.keysym.sym == 0x09 || event.key.keysym.scancode == 0x4f || event.key.keysym.scancode == 0x50) {
                         if(ime_text.size() != 0) {
                             break;
                         }
                     } else
-#endif
                         if((event.key.keysym.mod & 0x03) == 0 && event.key.keysym.scancode == 0x2c && ime_text.size() == 0 && dos.loaded_codepage == 932) {
                         // Zenkaku space
-#if defined (MACOSX)
-                        if (!SDL_IM_Composition(4)) break;
-#endif
                         BIOS_AddKeyToBuffer(0xf100 | 0x81);
                         BIOS_AddKeyToBuffer(0xf000 | 0x40);
                         break;
