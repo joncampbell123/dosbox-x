@@ -6,10 +6,12 @@
   - Improved IME support on macOS SDL2 build. (Wengier)
   - Improved detection for the Chinese/Japanese/Korean
     keyboard layouts on Windows platform. (Wengier)
+  - Fixed SafeDisc 2 check for Red Alert 2 by renaming
+    the IDE CD-ROM device. (rderooy & psyraven)
   - Fixed file copying problem with Windows 9x install
     at the end of the DOS-based Setup. (Wengier)
-  - Fixed that texting pasting via mouse may not work
-    properly in some cases. (Wengeir)
+  - Fixed that pasting text from clipboard via mouse
+    may not work properly in some cases. (Wengier)
   - Fixed the mouse scrolling wheel not working with
     "CTMOUSE /O" in guest DOS. (Wengier)
   - Fixed window transparency setting not working in

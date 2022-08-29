@@ -1460,7 +1460,7 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
 
     /* INQUIRY strings */
     id_mmc_vendor_id = "DOSBox-X";
-    id_mmc_product_id = "Virtual CD-ROM";
+    id_mmc_product_id = "ATAPI CD-ROM";
     id_mmc_product_rev = "0.84-X";
 }
 
