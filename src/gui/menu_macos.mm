@@ -25,6 +25,25 @@ void SetAlpha(double alpha) {
 	NSWindow *wnd = sdl1_hax_get_window();
 	if (wnd != nil) wnd.alphaValue = alpha;
 }
+#else
+void sdl1_hax_set_topmost(unsigned char topmost) {
+    SDL_Window* GFX_GetSDLWindow(void);
+    SDL_SysWMinfo wminfo;
+    memset(&wminfo,0,sizeof(wminfo));
+    SDL_VERSION(&wminfo.version);
+    NSWindow *wnd = nil;
+    if (SDL_GetWindowWMInfo(GFX_GetSDLWindow(),&wminfo) >= 0) {
+        if (wminfo.subsystem == SDL_SYSWM_COCOA && wminfo.info.cocoa.window != NULL) {
+            wnd = wminfo.info.cocoa.window;
+        }
+    }
+    if (wnd != nil) {
+        if (topmost)
+            [ wnd setLevel: NSStatusWindowLevel ];
+        else
+            [ wnd setLevel: NSNormalWindowLevel ];
+    }
+}
 #endif
 
 extern int pause_menu_item_tag;

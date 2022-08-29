@@ -2055,7 +2055,7 @@ uint8_t GetKanjiAttr()
 
 void INT8_DOSV()
 {
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX) && defined(SDL_DOSBOX_X_IME)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
 	SetIMPosition();
 #endif
 	if(!CheckAnotherDisplayDriver() && real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) != 0x72 && real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) != 0x12) {
@@ -2524,7 +2524,7 @@ void J3_OffCursor()
 
 void INT8_J3()
 {
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX) && defined(SDL_DOSBOX_X_IME)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
 	SetIMPosition();
 #endif
 

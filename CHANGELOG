@@ -3,6 +3,7 @@
     and CLS command. The command "INTRO WELCOME" will
     re-display the welcome banner without running the
     commands in AUTOEXEC.BAT. (Wengier)
+  - Improved IME support on macOS SDL2 build. (Wengier)
   - Improved detection for the Chinese/Japanese/Korean
     keyboard layouts on Windows platform. (Wengier)
   - Fixed file copying problem with Windows 9x install
@@ -13,6 +14,8 @@
     "CTMOUSE /O" in guest DOS. (Wengier)
   - Fixed window transparency setting not working in
     macOS SDL1 build. (Wengier)
+  - Fixed menu option "Always on top" to work with the
+    built-in SDL2 library on macOS. (Wengier)
   - Fixed the terminal mess-up issue with -display2
     option on Linux and macOS platforms. (Wengier)
   - Fixed OpenGL output options not working in Windows

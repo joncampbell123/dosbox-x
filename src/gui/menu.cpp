@@ -152,9 +152,7 @@ static const char *def_menu_main[] =
     "auto_lock_mouse",
     "WheelToArrow",
     "--",
-#if !(defined(MACOSX) && defined(C_SDL2) && !SDL_VERSION_ATLEAST(2, 0, 16))
     "alwaysontop",
-#endif
 #if !defined(C_EMSCRIPTEN)//FIXME: Reset causes problems with Emscripten
     "mapper_pause",
     "mapper_pauseints",

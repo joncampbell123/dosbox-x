@@ -952,7 +952,7 @@ void SetIME() {
         dos.im_enable_flag = false;
         SDL_SetIMValues(SDL_IM_ENABLE, 0, NULL);
     }
-#elif (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && defined(C_SDL2)
+#elif (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && defined(C_SDL2)
     if (enableime && !control->opt_silent) {
 #if !defined(SDL_DOSBOX_X_IME)
         LOG_MSG("Note: The linked SDL 2.x library is not compiled with enhanced IME functions.");
