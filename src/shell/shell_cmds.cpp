@@ -2771,7 +2771,10 @@ void DOS_Shell::CMD_IF(char * args) {
 
 		{	/* DOS_FindFirst uses dta so set it to our internal dta */
 			char spath[DOS_PATHLENGTH], path[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], full[DOS_PATHLENGTH], *r;
-			if (!DOS_Canonicalize(word,full)) return;
+			if (!DOS_Canonicalize(word,full)) {
+				if (has_not) DoCommand(args);
+				return;
+			}
 			r=strrchr_dbcs(full, '\\');
 			if (r!=NULL) {
 				*r=0;
