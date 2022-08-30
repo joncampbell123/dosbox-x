@@ -56,11 +56,12 @@
 #define PHYSFS_FILE_ATTRIBUTE_REPARSE_POINT 0x400
 #define PHYSFS_IO_REPARSE_TAG_SYMLINK    0xA000000C
 
-
+typedef wchar_t host_cnv_char_t;
+host_cnv_char_t *CodePageGuestToHost(const char *s);
 #define UTF8_TO_UNICODE_STACK(w_assignto, str) { \
     if (str == NULL) \
         w_assignto = NULL; \
-    else { \
+    else if ((w_assignto = CodePageGuestToHost(str)) == NULL) { \
         const size_t len = (PHYSFS_uint64) ((strlen(str) + 1) * 2); \
         w_assignto = (WCHAR *) __PHYSFS_smallAlloc(len); \
         if (w_assignto != NULL) \

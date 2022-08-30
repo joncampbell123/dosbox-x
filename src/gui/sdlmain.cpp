@@ -59,10 +59,10 @@ extern bool log_fileio;
 extern bool ticksLocked;
 extern bool isJPkeyboard;
 extern bool enable_autosave;
+extern bool use_quick_reboot;
+extern bool showdbcs, skipdraw;
 extern bool noremark_save_state;
-extern bool showdbcs, tryconvertcp;
 extern bool ctrlbrk, dpi_aware_enable;
-extern bool use_quick_reboot, skipdraw;
 extern bool force_load_state, force_conversion;
 extern bool pc98_force_ibm_layout, gbk, chinasea;
 extern bool inshell, enable_config_as_shell_commands;
@@ -75,9 +75,9 @@ bool tonoime = false, enableime = false;
 bool usesystemcursor = false, rtl = false, selmark = false;
 bool mountfro[26], mountiro[26];
 bool OpenGL_using(void), Direct3D_using(void);
-void DOSBox_SetSysMenu(void), GFX_OpenGLRedrawScreen(void), InitFontHandle(void), DOSV_FillScreen(void), Add_VFiles(bool usecp), SetWindowTransparency(int trans);
+void DOSBox_SetSysMenu(void), GFX_OpenGLRedrawScreen(void), InitFontHandle(void), DOSV_FillScreen(void), refreshExtChar(void), Add_VFiles(bool usecp), SetAlpha(double alpha), SetWindowTransparency(int trans);
 void MenuBrowseProgramFile(void), OutputSettingMenuUpdate(void), aspect_ratio_menu(void), update_pc98_clock_pit_menu(void), AllocCallback1(void), AllocCallback2(void), ToggleMenu(bool pressed);
-int Reflect_Menu(void);
+extern int tryconvertcp, Reflect_Menu(void);
 
 #ifndef _GNU_SOURCE
 # define _GNU_SOURCE
@@ -312,7 +312,7 @@ void DOSBOX_UnlockSpeed2(bool pressed), DEBUG_Enable_Handler(bool pressed);
 int FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && defined(C_SDL2)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && defined(C_SDL2)
 static std::string ime_text = "";
 extern bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
 extern bool IME_GetEnable();
@@ -5035,12 +5035,13 @@ static bool CheckEnableImmOnKey(SDL_KeyboardEvent key)
 	}
 	return false;
 }
-#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+#elif (defined(WIN32) && !defined(HX_DOS) || defined(MACOSX)) && defined(C_SDL2)
 static bool CheckEnableImmOnKey(SDL_KeyboardEvent key)
 {
 	if(key.keysym.scancode == 0x29 ||
 #if defined(SDL_DOSBOX_X_IME)
-	(!SDL_IM_Composition() && (key.keysym.sym == 0x08 || key.keysym.sym == 0x09 || (key.keysym.sym >= 0x20 && key.keysym.sym <= 0x7F) || key.keysym.scancode == 0x39 || (key.keysym.scancode >= 0x53 && key.keysym.scancode <= 0x63))) ||
+	(!SDL_IM_Composition(4) && (key.keysym.sym == 0x20 || (key.keysym.sym >= 0x30 && key.keysym.sym <= 0x39))) ||
+	(!SDL_IM_Composition(1) && (key.keysym.sym == 0x08 || key.keysym.sym == 0x09 || (key.keysym.sym > 0x20 && key.keysym.sym <= 0x2F) || (key.keysym.sym > 0x3A && key.keysym.sym <= 0x7F) || key.keysym.scancode == 0x39 || (key.keysym.scancode >= 0x53 && key.keysym.scancode <= 0x63))) ||
 #endif
 	(key.keysym.scancode >= 0x49 && key.keysym.scancode <= 0x52) || (key.keysym.scancode >= 0xe0 && key.keysym.scancode <= 0xe6) || (strPasteBuffer.length() && key.keysym.sym >= 0x20)) {
 		// ESC, shift, control, alt, PgUp, PgDn, etc.
@@ -5060,7 +5061,7 @@ bool sdl_wait_on_error() {
     return sdl.wait_on_error;
 }
 
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX) && defined(SDL_DOSBOX_X_IME)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
 static uint8_t im_x, im_y;
 static uint32_t last_ticks;
 void SetIMPosition() {
@@ -5313,7 +5314,7 @@ void GFX_Events() {
         }
     }
 #endif
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX) && defined(SDL_DOSBOX_X_IME)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
    if(IS_PC98_ARCH) {
        static uint32_t poll98_delay = 0;
        uint32_t time = GetTicks();
@@ -5621,7 +5622,7 @@ void GFX_Events() {
 			} else
                 HandleMouseWheel(event.wheel.direction == SDL_MOUSEWHEEL_NORMAL, event.wheel.y);
 			break;
-#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11
+#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX) && defined(SDL_DOSBOX_X_IME)
         case SDL_TEXTEDITING:
             ime_text = event.edit.text;
             break;
@@ -5635,8 +5636,14 @@ void GFX_Events() {
                             for(int no = 0 ; buff[no] != 0 ; no++) {
                                 if (IS_PC98_ARCH || isDBCSCP()) {
                                     if(dos.loaded_codepage == 932 && isKanji1(buff[no]) && isKanji2(buff[no + 1])) {
+#if defined(MACOSX)
+                                        if (buff[no] == 0x81 && buff[no + 1] == 0x40) no++;
+                                        else
+#endif
+                                        {
                                         BIOS_AddKeyToBuffer(0xf100 | buff[no++]);
                                         BIOS_AddKeyToBuffer(0xf000 | buff[no]);
+                                        }
                                     } else {
                                         BIOS_AddKeyToBuffer(buff[no]);
                                     }
@@ -5649,6 +5656,7 @@ void GFX_Events() {
                     }
                     SetIMPosition();
                 }
+                ime_text = "";
             }
             break;
 #endif
@@ -5664,14 +5672,21 @@ void GFX_Events() {
             if (event.type == SDL_KEYDOWN && isModifierApplied())
                 ClipKeySelect(event.key.keysym.sym);
             if(dos.im_enable_flag) {
-#if defined (WIN32) && !defined(HX_DOS)
-                if(event.type == SDL_KEYDOWN && IME_GetEnable()) {
+#if defined (WIN32) && !defined(HX_DOS) || defined(MACOSX) && defined(SDL_DOSBOX_X_IME)
+                if(event.type == SDL_KEYDOWN &&
+#if defined (MACOSX)
+                (SDL_IM_Composition(4) || ((event.key.keysym.mod & 0x03) == 0 && event.key.keysym.scancode == 0x2c && dos.loaded_codepage == 932))
+#else
+                IME_GetEnable()
+#endif
+                ) {
                     // Enter, BS, TAB, <-, ->
                     if(event.key.keysym.sym == 0x0d || event.key.keysym.sym == 0x08 || event.key.keysym.sym == 0x09 || event.key.keysym.scancode == 0x4f || event.key.keysym.scancode == 0x50) {
                         if(ime_text.size() != 0) {
                             break;
                         }
-                    } else if((event.key.keysym.mod & 0x03) == 0 && event.key.keysym.scancode == 0x2c && ime_text.size() == 0 && dos.loaded_codepage == 932) {
+                    } else
+                        if((event.key.keysym.mod & 0x03) == 0 && event.key.keysym.scancode == 0x2c && ime_text.size() == 0 && dos.loaded_codepage == 932) {
                         // Zenkaku space
                         BIOS_AddKeyToBuffer(0xf100 | 0x81);
                         BIOS_AddKeyToBuffer(0xf000 | 0x40);
@@ -5718,7 +5733,7 @@ void GFX_Events() {
         }
     }
 #endif
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX) && defined(SDL_DOSBOX_X_IME)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
    if(IS_PC98_ARCH) {
        static uint32_t poll98_delay = 0;
        uint32_t time = GetTicks();
@@ -7230,6 +7245,7 @@ bool VM_PowerOn() {
 #if defined(LINUX) && C_X11
 # include <X11/Xlib.h>
 # include <X11/Xatom.h>
+# include "SDL_syswm.h"
 #endif
 
 #if !defined(C_EMSCRIPTEN)
@@ -7237,19 +7253,34 @@ void update_capture_fmt_menu(void);
 #endif
 
 void SetWindowTransparency(int trans) {
-    if (trans == transparency) return;
+    if (trans == -1) trans = transparency;
+    else if (trans == transparency) return;
     double alpha = (double)(100-trans)/100;
 #if defined(C_SDL2)
     SDL_SetWindowOpacity(sdl.window,alpha);
 #elif defined(WIN32) && !defined(HX_DOS)
     SetWindowLong(GetHWND(), GWL_EXSTYLE, GetWindowLong(GetHWND(), GWL_EXSTYLE) | WS_EX_LAYERED);
     SetLayeredWindowAttributes(GetHWND(), 0, 255 * alpha, LWA_ALPHA);
+#elif defined(MACOSX)
+    SetAlpha(alpha);
 #elif defined(LINUX) && C_X11
-    Display *dpy = XOpenDisplay(NULL);
-    if (!dpy) return;
+    Display *dpy;
+    Window window;
+    SDL_SysWMinfo wminfo;
+    memset(&wminfo,0,sizeof(wminfo));
+    SDL_VERSION(&wminfo.version);
+    if (SDL_GetWMInfo(&wminfo) >= 0) {
+        dpy = wminfo.info.x11.display;
+        if (!dpy) return;
+        if (wminfo.info.x11.wmwindow) window = wminfo.info.x11.wmwindow;
+    } else {
+        dpy = XOpenDisplay(NULL);
+        if (!dpy) return;
+        window = DefaultRootWindow(dpy);
+    }
     unsigned long opacity = (unsigned long)(0xFFFFFFFFul * alpha);
     Atom atom = XInternAtom(dpy, "_NET_WM_WINDOW_OPACITY", False);
-    XChangeProperty(dpy, DefaultRootWindow(dpy), atom, XA_CARDINAL, 32, PropModeReplace, (unsigned char *)&opacity, 1L);
+    XChangeProperty(dpy, window, atom, XA_CARDINAL, 32, PropModeReplace, (unsigned char *)&opacity, 1L);
 #endif
     transparency = trans;
 }
@@ -7292,7 +7323,7 @@ void GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight) {
 bool x11_on_top = false;
 #endif
 
-#if defined(MACOSX) && !defined(C_SDL2)
+#if defined(MACOSX)
 bool macosx_on_top = false;
 #endif
 
@@ -7300,10 +7331,8 @@ bool is_always_on_top(void) {
 #if defined(_WIN32)
     DWORD dwExStyle = ::GetWindowLong(GetHWND(), GWL_EXSTYLE);
     return !!(dwExStyle & WS_EX_TOPMOST);
-#elif defined(MACOSX) && !defined(C_SDL2)
+#elif defined(MACOSX)
     return macosx_on_top;
-#elif defined(MACOSX) && defined(C_SDL2) && SDL_VERSION_ATLEAST(2, 0, 16)
-    return SDL_GetWindowFlags(GFX_GetSDLWindow()) & SDL_WINDOW_ALWAYS_ON_TOP;
 #elif defined(LINUX)
     return x11_on_top;
 #else
@@ -7429,7 +7458,7 @@ std::wstring win32_prompt_folder(const char *default_folder) {
 }
 #endif
 
-void DISP2_Init(uint8_t color);
+void DISP2_Init(uint8_t color), DISP2_Shut();
 //extern void UI_Init(void);
 void grGlideShutdown(void);
 int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
@@ -8302,6 +8331,14 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             else if (control->opt_langcp) tonoime = true;
             force_conversion = false;
             dos.loaded_codepage=cp;
+#if defined (WIN32)
+            if (!enableime&&!tonoime) {
+                const Section_prop* section = static_cast<Section_prop*>(control->GetSection("dos"));
+                const char * layoutname=section->Get_string("keyboardlayout");
+                WORD cur_kb_layout = LOWORD(GetKeyboardLayout(0));
+                if (!strcmp(layoutname, "jp") || !strcmp(layoutname, "ko") || !strcmp(layoutname, "cn") || !strcmp(layoutname, "tw") || !strcmp(layoutname, "hk") || !strcmp(layoutname, "zh") || !strcmp(layoutname, "zhs") || !strcmp(layoutname, "zht") || (!strcmp(layoutname, "auto") && (cur_kb_layout == 1028 || cur_kb_layout == 1041 || cur_kb_layout == 1042 || cur_kb_layout == 2052 || cur_kb_layout == 3076))) enableime = true;
+            }
+#endif
         }
     }
 #if defined(WIN32) && !defined(HX_DOS)
@@ -8897,7 +8934,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.get_item("mapper_dbcssbcs").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dbcs_sbcs||IS_PC98_ARCH||IS_JEGA_ARCH);
         mainMenu.get_item("mapper_autoboxdraw").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(autoboxdraw||IS_PC98_ARCH||IS_JEGA_ARCH);
         mainMenu.get_item("ttf_halfwidthkana").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(halfwidthkana||IS_PC98_ARCH||IS_JEGA_ARCH);
-        mainMenu.get_item("ttf_extcharset").enable(TTF_using()&&!IS_PC98_ARCH&&!IS_JEGA_ARCH&&enable_dbcs_tables).check(dos.loaded_codepage==936?gbk:(dos.loaded_codepage==950||dos.loaded_codepage==951?chinasea:gbk&&chinasea));
+        refreshExtChar();
 #endif
 #if C_PRINTER
         mainMenu.get_item("mapper_printtext").enable(!IS_PC98_ARCH);
@@ -9147,10 +9184,11 @@ fresh_boot:
 
         checkmenuwidth = ctrlbrk = false;
         if (dos_kernel_shutdown) {
-
-            inshell = tryconvertcp = false;
+            tryconvertcp = 0;
+            inshell = false;
             maincp = dos.loaded_codepage;
             if (!IS_PC98_ARCH&&!IS_JEGA_ARCH&&!IS_J3100&&dos.loaded_codepage!=437) dos.loaded_codepage=437;
+            if (ticksLocked && !static_cast<Section_prop *>(control->GetSection("cpu"))->Get_bool("turbo")) DOSBOX_UnlockSpeed2(true);
 
             /* NTS: we take different paths depending on whether we're just shutting down DOS
              *      or doing a hard reboot. */
@@ -9414,7 +9452,7 @@ fresh_boot:
                 SDL_SetIMValues(SDL_IM_ONOFF, 0, NULL);
                 SDL_SetIMValues(SDL_IM_ENABLE, 0, NULL);
         }
-#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+#elif (defined(WIN32) && !defined(HX_DOS) || defined(MACOSX)) && defined(C_SDL2)
         if (!control->opt_silent) {
                 SDL_StopTextInput();
         }
@@ -9447,6 +9485,9 @@ fresh_boot:
 #if DOSBOXMENU_TYPE == DOSBOXMENU_NSMENU
         void sdl_hax_macosx_setmenu(void *nsMenu);
         sdl_hax_macosx_setmenu(NULL);
+#endif
+#if C_DEBUG
+        DISP2_Shut();
 #endif
 
 #if defined(C_SDL2)

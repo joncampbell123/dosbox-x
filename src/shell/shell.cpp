@@ -52,8 +52,8 @@
 
 extern bool dos_shell_running_program, mountwarning, winautorun;
 extern bool startcmd, startwait, startquiet, internal_program;
-extern bool addovl, addipx, addne2k, enableime, tryconvertcp;
-extern bool halfwidthkana, force_conversion, showdbcs, gbk, chinasea;
+extern bool addovl, addipx, addne2k, enableime, showdbcs;
+extern bool halfwidthkana, force_conversion, gbk;
 extern const char* RunningProgram;
 extern int enablelfn, msgcodepage, lastmsgcp;
 extern uint16_t countryNo;
@@ -66,7 +66,6 @@ Bitu call_int2e = 0;
 
 std::string GetDOSBoxXPath(bool withexe=false);
 const char* DOS_GetLoadedLayout(void);
-uint16_t GetDefaultCP(void);
 int Reflect_Menu(void);
 void SetIMPosition(void);
 void SetKEYBCP();
@@ -74,10 +73,10 @@ void initRand();
 void initcodepagefont(void);
 void runMount(const char *str);
 void ResolvePath(std::string& in);
+void DOS_SetCountry(uint16_t countryNo);
 void SwitchLanguage(int oldcp, int newcp, bool confirm);
 void CALLBACK_DeAllocate(Bitu in), DOSBox_ConsolePauseWait();
 void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused);
-void DOS_SetCountry(uint16_t countryNo), makestdcp950table(), makeseacp951table();
 bool isDBCSCP(), InitCodePage(), isKanji1(uint8_t chr), shiftjis_lead_byte(int c), sdl_wait_on_error();
 
 Bitu call_shellstop = 0;
@@ -413,7 +412,7 @@ public:
 		return true;
 	}
 	virtual bool Close() { return true; }
-	virtual uint16_t GetInformation(void) { return DeviceInfoFlags::Device | DeviceInfoFlags::Nul; }
+	virtual uint16_t GetInformation(void) { return (strcmp(RunningProgram, "WCLIP") ? DeviceInfoFlags::Device : 0) | DeviceInfoFlags::EofOnInput; }
 	virtual bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
 	virtual bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
 };
@@ -606,15 +605,41 @@ void DOS_Shell::RunInternal(void) {
 	}
 }
 
-char *str_replace(char *orig, char *rep, char *with);
+bool ansiinstalled = true, ANSI_SYS_installed();
+extern void ReadCharAttr(uint16_t col,uint16_t row,uint8_t page,uint16_t * result);
+bool is_ANSI_installed(Program *shell) {
+    if (ANSI_SYS_installed()) return true;
+    uint16_t oldax=reg_ax;
+    if (CurMode->type == M_TEXT) {
+        shell->WriteOut("-\033[2J=+");
+        uint8_t page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
+        uint16_t result1, result2;
+        ReadCharAttr(0,0,page,&result1);
+        ReadCharAttr(1,0,page,&result2);
+        bool installed = (uint8_t)result1=='=' && (uint8_t)result2=='+';
+        if (installed) {
+            shell->WriteOut("\033[2J");
+            return true;
+        }
+        reg_ax = (uint16_t)CurMode->mode;
+        CALLBACK_RunRealInt(0x10);
+        reg_ax=oldax;
+    }
+    reg_ax=0x1a00;
+    CALLBACK_RunRealInt(0x2F);
+    if (reg_al!=0xff) {reg_ax=oldax;return false;}
+    reg_ax=oldax;
+    return true;
+}
+
 std::string GetPlatform(bool save);
-bool ANSI_SYS_installed();
+char *str_replace(char *orig, char *rep, char *with);
 const char *ParseMsg(const char *msg) {
     char str[13];
     strncpy(str, UPDATED_STR, 12);
     str[12]=0;
     if (machine != MCH_PC98) {
-        if (!ANSI_SYS_installed() || J3_IsJapanese()) {
+        if (!ansiinstalled || J3_IsJapanese()) {
             msg = str_replace(str_replace((char *)msg, (char*)"\033[0m", (char*)""), (char*)"\033[1m", (char*)"");
             for (int i=1; i<8; i++) {
                 sprintf(str, "\033[3%dm", i);
@@ -724,72 +749,77 @@ void GetExpandedPath(std::string &path) {
     }
 }
 
+void showWelcome(Program *shell) {
+    /* Start a normal shell and check for a first command init */
+    ansiinstalled = is_ANSI_installed(shell);
+    std::string verstr = "v"+std::string(VERSION)+", "+GetPlatform(false);
+    if (machine == MCH_PC98) {
+        shell->WriteOut(ParseMsg("\x86\x52\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x56\n"));
+        shell->WriteOut(ParseMsg((std::string("\x86\x46 \033[32m")+(MSG_Get("SHELL_STARTUP_TITLE")+std::string("             ")).substr(0,30)+std::string("  \033[33m%*s\033[37m \x86\x46\n")).c_str()),34,verstr.c_str());
+        shell->WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
+        shell->WriteOut(ParseMsg((std::string("\x86\x46 ")+MSG_Get("SHELL_STARTUP_HEAD1_PC98")+std::string(" \x86\x46\n")).c_str()));
+        shell->WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
+        shell->WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT1_PC98"), (char*)"\n", (char*)" \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
+        shell->WriteOut(ParseMsg((std::string("\x86\x46 ")+MSG_Get("SHELL_STARTUP_EXAMPLE_PC98")+std::string(" \x86\x46\n")).c_str()));
+        shell->WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
+        shell->WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT2_PC98"), (char*)"\n", (char*)" \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
+        shell->WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
+        shell->WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_INFO_PC98"), (char*)"\n", (char*)" \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
+        shell->WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
+        shell->WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT3_PC98"), (char*)"\n", (char*)" \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
+        shell->WriteOut(ParseMsg("\x86\x5A\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
+            "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x5E\033[0m\n"));
+        shell->WriteOut(ParseMsg((std::string("\033[1m\033[32m")+MSG_Get("SHELL_STARTUP_LAST")+"\033[0m\n").c_str()));
+    } else {
+        shell->WriteOut(ParseMsg("\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+            "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+            "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\033[0m"));
+        shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA \033[32m")+(MSG_Get("SHELL_STARTUP_TITLE")+std::string("             ")).substr(0,30)+std::string(" \033[33m%*s\033[37m \xBA\033[0m")).c_str()),45,verstr.c_str());
+        shell->WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
+        shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_HEAD1")+std::string(" \xBA\033[0m")).c_str()));
+        shell->WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
+        shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT1"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+        if (IS_VGA_ARCH) shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_EXAMPLE")+std::string(" \xBA\033[0m")).c_str()));
+        shell->WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
+        shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_HEAD2")+std::string(" \xBA\033[0m")).c_str()));
+        shell->WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
+        shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT2"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+        shell->WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
+        if (IS_DOSV) {
+            shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_DOSV"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+            shell->WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
+        } else if (machine == MCH_CGA || machine == MCH_PCJR || machine == MCH_AMSTRAD) {
+            shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get(mono_cga?"SHELL_STARTUP_CGA_MONO":"SHELL_STARTUP_CGA"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+            shell->WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
+        } else if (machine == MCH_HERC || machine == MCH_MDA) {
+            shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_HERC"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+            shell->WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
+        }
+        shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_HEAD3")+std::string(" \xBA\033[0m")).c_str()));
+        shell->WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
+        shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT3"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+        shell->WriteOut(ParseMsg("\033[44;1m\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+            "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
+            "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m"));
+        shell->WriteOut(ParseMsg((std::string("\033[32m")+(MSG_Get("SHELL_STARTUP_LAST")+std::string("                                                       ")).substr(0,79)+std::string("\033[0m\n")).c_str()));
+    }
+}
+
 void DOS_Shell::Prepare(void) {
     if (this == first_shell) {
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
-        if (section->Get_bool("startbanner")&&!control->opt_fastlaunch) {
-            /* Start a normal shell and check for a first command init */
-            std::string verstr = "v"+std::string(VERSION)+", "+GetPlatform(false);
-            if (machine == MCH_PC98) {
-                WriteOut(ParseMsg("\x86\x52\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-                    "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-                    "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-                    "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-                    "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-                    "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x56\n"));
-                WriteOut(ParseMsg((std::string("\x86\x46 \033[32m")+(MSG_Get("SHELL_STARTUP_TITLE")+std::string("             ")).substr(0,30)+std::string("  \033[33m%*s\033[37m \x86\x46\n")).c_str()),34,verstr.c_str());
-                WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
-                WriteOut(ParseMsg((std::string("\x86\x46 ")+MSG_Get("SHELL_STARTUP_HEAD1_PC98")+std::string(" \x86\x46\n")).c_str()));
-                WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
-                WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT1_PC98"), (char*)"\n", (char*)" \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
-                WriteOut(ParseMsg((std::string("\x86\x46 ")+MSG_Get("SHELL_STARTUP_EXAMPLE_PC98")+std::string(" \x86\x46\n")).c_str()));
-                WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
-                WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT2_PC98"), (char*)"\n", (char*)" \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
-                WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
-                WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_INFO_PC98"), (char*)"\n", (char*)" \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
-                WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
-                WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT3_PC98"), (char*)"\n", (char*)" \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
-                WriteOut(ParseMsg("\x86\x5A\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-                    "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-                    "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-                    "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-                    "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
-                    "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x5E\033[0m\n"));
-                WriteOut(ParseMsg((std::string("\033[1m\033[32m")+MSG_Get("SHELL_STARTUP_LAST")+"\033[0m\n").c_str()));
-            } else {
-                WriteOut(ParseMsg("\033[44;1m\xC9\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-                    "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-                    "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBB\033[0m"));
-                WriteOut(ParseMsg((std::string("\033[44;1m\xBA \033[32m")+(MSG_Get("SHELL_STARTUP_TITLE")+std::string("             ")).substr(0,30)+std::string(" \033[33m%*s\033[37m \xBA\033[0m")).c_str()),45,verstr.c_str());
-                WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
-                WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_HEAD1")+std::string(" \xBA\033[0m")).c_str()));
-                WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
-                WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT1"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
-                if (IS_VGA_ARCH) WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_EXAMPLE")+std::string(" \xBA\033[0m")).c_str()));
-                WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
-                WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_HEAD2")+std::string(" \xBA\033[0m")).c_str()));
-                WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
-                WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT2"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
-                WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
-                if (IS_DOSV) {
-                    WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_DOSV"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
-                    WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
-                } else if (machine == MCH_CGA || machine == MCH_PCJR || machine == MCH_AMSTRAD) {
-                    WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get(mono_cga?"SHELL_STARTUP_CGA_MONO":"SHELL_STARTUP_CGA"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
-                    WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
-                } else if (machine == MCH_HERC || machine == MCH_MDA) {
-                    WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_HERC"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
-                    WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
-                }
-                WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_HEAD3")+std::string(" \xBA\033[0m")).c_str()));
-                WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
-                WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT3"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
-                WriteOut(ParseMsg("\033[44;1m\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-                    "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
-                    "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m"));
-                WriteOut(ParseMsg((std::string("\033[32m")+(MSG_Get("SHELL_STARTUP_LAST")+std::string("                                                       ")).substr(0,79)+std::string("\033[0m\n")).c_str()));
-            }
-        } else if (CurMode->type==M_TEXT || IS_PC98_ARCH)
+        if (section->Get_bool("startbanner")&&!control->opt_fastlaunch)
+            showWelcome(this);
+        else if ((CurMode->type==M_TEXT || IS_PC98_ARCH) && ANSI_SYS_installed())
             WriteOut("\033[2J");
 		if (!countryNo) {
 #if defined(WIN32)
@@ -921,17 +951,6 @@ void DOS_Shell::Prepare(void) {
 				}
 			}
 		}
-        unsigned int cp;
-#if defined(WIN32)
-        cp = GetACP();
-        const char *cstr = (control->opt_noconfig || !section) ? "" : (char *)section->Get_string("country");
-        char *r = (char *)strchr(cstr, ',');
-        if ((r==NULL || !*(r+1) || atoi(trim(r+1)) == cp || (atoi(trim(r+1)) == 951 && cp == 950)) && GetDefaultCP() == 437) {
-            if (cp == 950 && !chinasea) makestdcp950table();
-            if (cp == 951 && chinasea) makeseacp951table();
-            tryconvertcp = true;
-        }
-#endif
         std::string line;
         GetEnvStr("PATH",line);
 		if (!strlen(config_data)) {
@@ -940,6 +959,7 @@ void DOS_Shell::Prepare(void) {
 			strcat(config_data, "\r\n");
 		}
         internal_program = true;
+		VFILE_Register("AUTOEXEC.BAT",(uint8_t *)autoexec_data,(uint32_t)strlen(autoexec_data));
 		VFILE_Register("CONFIG.SYS",(uint8_t *)config_data,(uint32_t)strlen(config_data));
         internal_program = false;
 #if defined(WIN32)
@@ -967,12 +987,12 @@ void DOS_Shell::Prepare(void) {
         internal_program = true;
 		VFILE_Register("4DOS.INI",(uint8_t *)i4dos_data,(uint32_t)strlen(i4dos_data), "/4DOS/");
         internal_program = false;
-        cp=dos.loaded_codepage;
+        unsigned int cp=dos.loaded_codepage;
         if (!dos.loaded_codepage) InitCodePage();
         initcodepagefont();
         dos.loaded_codepage=cp;
     }
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX) && defined(SDL_DOSBOX_X_IME)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
     if (enableime) SetIMPosition();
 #endif
 }

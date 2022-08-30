@@ -2819,11 +2819,9 @@ void toggle_always_on_top(void) {
     sdl1_hax_set_topmost(!cur);
 #elif defined(_WIN32)
     SetWindowPos(GetHWND(), cur?HWND_NOTOPMOST:HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-#elif defined(MACOSX) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#elif defined(MACOSX) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
+    void sdl1_hax_set_topmost(unsigned char topmost);
     sdl1_hax_set_topmost(macosx_on_top = (!cur));
-#elif defined(MACOSX) && defined(C_SDL2) && SDL_VERSION_ATLEAST(2, 0, 16)
-    SDL_Window* GFX_GetSDLWindow(void);
-    SDL_SetWindowAlwaysOnTop(GFX_GetSDLWindow(), cur?SDL_FALSE:SDL_TRUE);
 #elif defined(LINUX)
     void LinuxX11_OnTop(bool f);
     LinuxX11_OnTop(x11_on_top = (!cur));

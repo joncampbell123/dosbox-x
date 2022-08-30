@@ -952,7 +952,7 @@ void SetIME() {
         dos.im_enable_flag = false;
         SDL_SetIMValues(SDL_IM_ENABLE, 0, NULL);
     }
-#elif (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && defined(C_SDL2)
+#elif (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && defined(C_SDL2)
     if (enableime && !control->opt_silent) {
 #if !defined(SDL_DOSBOX_X_IME)
         LOG_MSG("Note: The linked SDL 2.x library is not compiled with enhanced IME functions.");
@@ -1240,6 +1240,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* auxdevices[] = {"none","2button","3button","intellimouse","intellimouse45",0};
     const char* cputype_values[] = {"auto", "8086", "8086_prefetch", "80186", "80186_prefetch", "286", "286_prefetch", "386", "386_prefetch", "486old", "486old_prefetch", "486", "486_prefetch", "pentium", "pentium_mmx", "ppro_slow", "pentium_ii", "pentium_iii", "experimental", 0};
     const char* rates[] = {  "49716", "48000", "44100", "32000","22050", "16000", "11025", "8000", 0 };
+    const char* pcrates[] = {  "65536", "49716", "48000", "44100", "32000","22050", "16000", "11025", "8000", 0 };
 #if C_FLUIDSYNTH || defined(WIN32) && !defined(HX_DOS)
     const char* devices[] = { "default", "win32", "alsa", "oss", "coreaudio", "coremidi", "mt32", "synth", "fluidsynth", "timidity", "none", 0};
 #else
@@ -3670,7 +3671,7 @@ void DOSBOX_SetupConfigSections(void) {
             "Set to 0 for some early Abaddon demos including \"Torso\" and \"Cycling\".");
 
     Pint = secprop->Add_int("pcrate",Property::Changeable::WhenIdle,65536);
-    Pint->Set_values(rates);
+    Pint->Set_values(pcrates);
     Pint->Set_help("Sample rate of the PC-Speaker sound generation.");
     Pint->SetBasic(true);
 

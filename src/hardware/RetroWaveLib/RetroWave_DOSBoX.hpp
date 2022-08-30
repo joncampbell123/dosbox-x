@@ -30,9 +30,8 @@
 #include "Platform/Win32_SerialPort.h"
 #include "Platform/Linux_SPI.h"
 
+#include "logging.h"
 #include "../serialport/libserial.h"
-
-extern void DEBUG_ShowMsg(char const* format,...);
 
 extern RetroWaveContext retrowave_global_context;
 extern int retrowave_global_context_inited;

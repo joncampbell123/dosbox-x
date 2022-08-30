@@ -102,9 +102,9 @@ bool qmount = false;
 bool nowarn = false;
 bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*/);
 extern bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
-extern bool addovl, addipx, addne2k, prepared, inshell, usecon, uao, loadlang, morelen, mountfro[26], mountiro[26], resetcolor, staycolors, printfont, tryconvertcp, notrycp, internal_program;
+extern bool addovl, addipx, addne2k, prepared, inshell, usecon, uao, loadlang, morelen, mountfro[26], mountiro[26], resetcolor, staycolors, printfont, notrycp, internal_program;
 extern bool clear_screen(), OpenGL_using(void), DOS_SetAnsiAttr(uint8_t attr), isDBCSCP();
-extern int lastcp, lastmsgcp, FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
+extern int lastcp, lastmsgcp, tryconvertcp, FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 extern uint8_t DOS_GetAnsiAttr(void);
 extern int toSetCodePage(DOS_Shell *shell, int newCP, int opt);
 void MSG_Init(), JFONT_Init(), InitFontHandle(), ShutFontHandle(), DOSBox_SetSysMenu(), Load_Language(std::string name);
@@ -4460,13 +4460,18 @@ public:
 
     void Run(void) {
 		if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
-			WriteOut("A full-screen introduction to DOSBox-X.\n\nINTRO [/RUN] [CDROM|MOUNT|USAGE]\n");
+			WriteOut("A full-screen introduction to DOSBox-X.\n\nINTRO [/RUN] [CDROM|MOUNT|USAGE|WELCOME]\n");
 			return;
 		}
         uint8_t attr = DOS_GetAnsiAttr();
         std::string menuname = "BASIC"; // default
         /* Only run if called from the first shell (Xcom TFTD runs any intro file in the path) */
         if (!cmd->FindExist("-run", true)&&!cmd->FindExist("/run", true)&&DOS_PSP(dos.psp()).GetParent() != DOS_PSP(DOS_PSP(dos.psp()).GetParent()).GetParent()) return;
+        if(cmd->FindExist("welcome",false)) {
+            void showWelcome(Program *shell);
+            showWelcome(this);
+            return;
+        }
         if(cmd->FindExist("cdrom",false)) {
             WriteOut(MSG_Get("PROGRAM_INTRO_CDROM"));
             if (attr) DOS_SetAnsiAttr(attr);
@@ -8388,7 +8393,7 @@ void Add_VFiles(bool usecp) {
     PROGRAMS_MakeFile("COUNTRY.COM",COUNTRY_ProgramStart,"/SYSTEM/");
 	PROGRAMS_MakeFile("COMMAND.COM",SHELL_ProgramStart);
     internal_program = true;
-    if (usecp) VFILE_Register("AUTOEXEC.BAT",(uint8_t *)autoexec_data,(uint32_t)strlen(autoexec_data));
+    if (usecp && prepared) VFILE_Register("AUTOEXEC.BAT",(uint8_t *)autoexec_data,(uint32_t)strlen(autoexec_data));
     if (prepared) VFILE_Register("CONFIG.SYS",(uint8_t *)config_data,(uint32_t)strlen(config_data));
     internal_program = false;
     PROGRAMS_MakeFile("RE-DOS.COM",REDOS_ProgramStart,"/SYSTEM/");
@@ -8481,9 +8486,9 @@ void Add_VFiles(bool usecp) {
 	/* These are IBM PC/XT/AT ONLY. They will not work in PC-98 mode. */
 	if (!IS_PC98_ARCH) {
 		VFILE_RegisterBuiltinFileBlob(bfb_SYS_COM, "/DOS/"); /* may rely on INT 13h or IBM PC specific functions and layout */
-		VFILE_RegisterBuiltinFileBlob(bfb_FDISK_EXE, "/DOS/"); /* relies on IBM PC INT 13h */
 		VFILE_RegisterBuiltinFileBlob(bfb_FORMAT_EXE, "/DOS/"); /* does not work in PC-98 mode */
 		VFILE_RegisterBuiltinFileBlob(bfb_DEFRAG_EXE, "/DOS/"); /* relies on IBM PC CGA/EGA/VGA alphanumeric display memory */
+		VFILE_RegisterBuiltinFileBlob(bfb_FDISK_EXE, "/BIN/"); /* relies on IBM PC INT 13h */
 		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM16_EXE, "/DEBUG/");
 		VFILE_RegisterBuiltinFileBlob(bfb_HEXMEM32_EXE, "/DEBUG/");
 		VFILE_RegisterBuiltinFileBlob(bfb_DOSIDLE_EXE, "/BIN/");

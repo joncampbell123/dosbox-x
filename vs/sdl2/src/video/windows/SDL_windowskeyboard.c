@@ -159,7 +159,8 @@ WIN_QuitKeyboard(_THIS)
 #endif
 }
 
-SDL_bool SDL_IM_Composition() {
+SDL_bool SDL_IM_Composition(int more) {
+    (void)more;
 #ifndef SDL_DISABLE_WINDOWS_IME
 #define IME_END_CR_WAIT 50
     return ime_incompos||end_ticks&&(GetTickCount()-end_ticks<IME_END_CR_WAIT) ? SDL_TRUE : SDL_FALSE;

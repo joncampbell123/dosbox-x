@@ -61,12 +61,12 @@ void retrowave_init_dosbox(const std::string& bus, const std::string& path, cons
 
 		rc = retrowave_init_linux_spi(&retrowave_global_context, path.c_str(), scg[0], scg[1]);
 #else
-		DEBUG_ShowMsg("RetroWave: error: SPI is not supported on your platform!");
+		LOG_MSG("RetroWave: error: SPI is not supported on your platform!");
 #endif
 	}
 
 	if (rc < 0) {
-		DEBUG_ShowMsg("RetroWave: Failed to init board! Please change configuration!");
+		LOG_MSG("RetroWave: Failed to init board! Please change configuration!");
 		retrowave_init(&retrowave_global_context);
 		retrowave_global_context.callback_io = retrowave_iocb_empty;
 	}

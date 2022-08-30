@@ -470,9 +470,10 @@ void DOS_Shell::CMD_BREAK(char * args) {
 		WriteOut("Must specify ON or OFF\n");
 }
 
+bool is_ANSI_installed(Program *shell);
 void DOS_Shell::CMD_CLS(char * args) {
 	HELP("CLS");
-   if (CurMode->type==M_TEXT || IS_PC98_ARCH)
+   if ((CurMode->type==M_TEXT || IS_PC98_ARCH) && is_ANSI_installed(this))
        WriteOut("\033[2J");
    else {
       uint16_t oldax=reg_ax;
@@ -2770,7 +2771,10 @@ void DOS_Shell::CMD_IF(char * args) {
 
 		{	/* DOS_FindFirst uses dta so set it to our internal dta */
 			char spath[DOS_PATHLENGTH], path[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], full[DOS_PATHLENGTH], *r;
-			if (!DOS_Canonicalize(word,full)) return;
+			if (!DOS_Canonicalize(word,full)) {
+				if (has_not) DoCommand(args);
+				return;
+			}
 			r=strrchr_dbcs(full, '\\');
 			if (r!=NULL) {
 				*r=0;

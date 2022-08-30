@@ -14,10 +14,10 @@ chmod +x vs/sdl/build-scripts/strip_fPIC.sh
 
 # prefer to compile against our own copy of SDL 2.x IF the system does not provide one
 x=`which sdl2-config`
-if test -z "$x" ; then
+#if test -z "$x" ; then
     echo Compiling our internal SDL 2.x
     (cd vs/sdl2 && ./build-dosbox.sh) || exit 1
-fi
+#fi
 
 # prefer to compile against our own zlib
 echo Compiling our internal zlib

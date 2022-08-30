@@ -119,7 +119,7 @@ static bool blinkstate = false;
 bool colorChanged = false, justChanged = false, staycolors = false, firstsize = true, ttfswitch=false, switch_output_from_ttf=false;
 
 int menuwidth_atleast(int width), FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
-void AdjustIMEFontSize(void), initcodepagefont(void), change_output(int output), drawmenu(Bitu val), KEYBOARD_Clear(void), RENDER_Reset(void), DOSBox_SetSysMenu(void), GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight), SetWindowTransparency(int trans), resetFontSize(void), RENDER_CallBack( GFX_CallBackFunctions_t function );
+void AdjustIMEFontSize(void),refreshExtChar(void), initcodepagefont(void), change_output(int output), drawmenu(Bitu val), KEYBOARD_Clear(void), RENDER_Reset(void), DOSBox_SetSysMenu(void), GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight), SetWindowTransparency(int trans), resetFontSize(void), RENDER_CallBack( GFX_CallBackFunctions_t function );
 bool isDBCSCP(void), InitCodePage(void), CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 std::string GetDOSBoxXPath(bool withexe=false);
 
@@ -549,9 +549,7 @@ int setTTFCodePage() {
 #endif
         if(IS_JEGA_ARCH) memcpy(cpMap,cpMap_AX,sizeof(cpMap[0])*32);
         if (cp == 932 && halfwidthkana) resetFontSize();
-        if (cp == 936) mainMenu.get_item("ttf_extcharset").check(gbk).refresh_item(mainMenu);
-        else if (cp == 950 || cp == 951) mainMenu.get_item("ttf_extcharset").check(chinasea).refresh_item(mainMenu);
-        else mainMenu.get_item("ttf_extcharset").check(gbk&&chinasea).refresh_item(mainMenu);
+        refreshExtChar();
         return notMapped;
     } else
         return -1;

@@ -1357,10 +1357,11 @@ Cocoa_CreateWindow(_THIS, SDL_Window * window)
     SDLView *contentView = [[SDLView alloc] initWithFrame:rect];
     [contentView setSDLWindow:window];
 
-    if (window->flags & SDL_WINDOW_ALLOW_HIGHDPI) {
-        if ([contentView respondsToSelector:@selector(setWantsBestResolutionOpenGLSurface:)]) {
-            [contentView setWantsBestResolutionOpenGLSurface:YES];
-        }
+    /* Note: as of the macOS 10.15 SDK, this defaults to YES instead of NO when
+     * the NSHighResolutionCapable boolean is set in Info.plist. */
+    if ([contentView respondsToSelector:@selector(setWantsBestResolutionOpenGLSurface:)]) {
+        BOOL highdpi = (window->flags & SDL_WINDOW_ALLOW_HIGHDPI) != 0;
+        [contentView setWantsBestResolutionOpenGLSurface:highdpi];
     }
 
 #if SDL_VIDEO_OPENGL_ES2
@@ -1643,10 +1644,14 @@ Cocoa_SetWindowFullscreen(_THIS, SDL_Window * window, SDL_VideoDisplay * display
         rect.size.height = bounds.h;
         ConvertNSRect([nswindow screen], fullscreen, &rect);
 
-        /* Hack to fix origin on Mac OS X 10.4 */
-        NSRect screenRect = [[nswindow screen] frame];
-        if (screenRect.size.height >= 1.0f) {
-            rect.origin.y += (screenRect.size.height - rect.size.height);
+        /* Hack to fix origin on Mac OS X 10.4
+           This is no longer needed as of Mac OS X 10.15, according to bug 4822.
+         */
+        if (floor(NSAppKitVersionNumber) <= NSAppKitVersionNumber10_14) {
+            NSRect screenRect = [[nswindow screen] frame];
+            if (screenRect.size.height >= 1.0f) {
+                rect.origin.y += (screenRect.size.height - rect.size.height);
+            }
         }
 
         [nswindow setStyleMask:NSWindowStyleMaskBorderless];
