@@ -1275,6 +1275,3 @@ AC_OUTPUT
 
 # HACK: it's a script...
 chmod +x make-rpm.sh
-
-# HACK: Write all PACKAGE defines to vs/config_package.h so Windows builds are kept in sync
-grep -E 'PACKAGE|VERSION' config.h > $srcdir/vs/config_package.h
