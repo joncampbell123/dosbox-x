@@ -409,7 +409,7 @@ bool physfsDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 		return false;
 	}
 
-	*file=new physfsFile(name,hand,0x202,newname,false);
+	*file=new physfsFile(name,hand,0x2,newname,false);
 	(*file)->flags=flags;  //for the inheritance flag and maybe check for others.
 	return true;
 }
@@ -449,7 +449,7 @@ bool physfsDrive::FileCreate(DOS_File * * file,const char * name,uint16_t attrib
 	}
 
 	/* Make the 16 bit device information */
-	*file=new physfsFile(name,hand,0x202,newname,true);
+	*file=new physfsFile(name,hand,0x2,newname,true);
 	(*file)->flags=OPEN_READWRITE;
 	if(!existing_file) {
 		strcpy(newname,basedir);
@@ -750,7 +750,7 @@ bool physfsFile::Seek(uint32_t * pos,uint32_t type) {
 	}
 
 	if (!PHYSFS_seek(fhandle,mypos)) {
-		// Out of file range, pretend everythings ok
+		// Out of file range, pretend everything's ok
 		// and move file pointer top end of file... ?! (Black Thorne)
 		PHYSFS_seek(fhandle,PHYSFS_fileLength(fhandle));
 	};

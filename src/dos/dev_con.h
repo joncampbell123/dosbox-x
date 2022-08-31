@@ -55,6 +55,7 @@ uint16_t last_int16_code = 0;
 static size_t dev_con_pos=0,dev_con_max=0;
 static unsigned char dev_con_readbuf[64];
 extern bool CheckHat(uint8_t code);
+extern bool isDBCSCP();
 extern bool inshell;
 #if defined(USE_TTF)
 extern bool ttf_dosv;
@@ -703,9 +704,9 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 		data[count++]=readcache;
 		if (dos.echo) {
 #if defined(USE_TTF)
-			if (IS_DOSV || ttf_dosv) {
+			if (IS_DOSV || ttf_dosv || IS_PC98_ARCH) {
 #else
-			if (IS_DOSV) {
+			if (IS_DOSV || IS_PC98_ARCH) {
 #endif
 				reg_al = readcache;
 				CALLBACK_RunRealInt(0x29);
@@ -742,9 +743,9 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 			reg_ax=oldax;
 			if(dos.echo) { 
 #if defined(USE_TTF)
-				if (IS_DOSV || ttf_dosv) {
+				if (IS_DOSV || ttf_dosv || IS_PC98_ARCH) {
 #else
-				if (IS_DOSV) {
+				if (IS_DOSV || IS_PC98_ARCH) {
 #endif
 					reg_al = 13;
 					CALLBACK_RunRealInt(0x29);
@@ -760,9 +761,51 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 		case 8:
 			if(*size==1) data[count++]=reg_al;  //one char at the time so give back that BS
 			else if(count) {                    //Remove data if it exists (extended keys don't go right)
-				data[count--]=0;
-				Real_INT10_TeletypeOutput(8,defattr);
-				Real_INT10_TeletypeOutput(' ',defattr);
+				uint8_t flag = 0;
+				if(IS_PC98_ARCH || isDBCSCP()) {
+					if(count > 1) {
+						for(uint16_t pos = 0 ; pos < count ; pos++) {
+							if(flag == 1) {
+								flag = 2;
+							} else {
+								flag = 0;
+								if(isKanji1(data[pos])) {
+									flag = 1;
+								}
+							}
+						}
+					}
+				}
+				if(flag == 2) {
+					data[count--]=0;
+					data[count--]=0;
+					if(IS_PC98_ARCH) {
+						reg_al = 8; CALLBACK_RunRealInt(0x29);
+						reg_al = 8; CALLBACK_RunRealInt(0x29);
+						reg_al = ' '; CALLBACK_RunRealInt(0x29);
+						reg_al = ' '; CALLBACK_RunRealInt(0x29);
+						reg_al = 8; CALLBACK_RunRealInt(0x29);
+						reg_al = 8; CALLBACK_RunRealInt(0x29);
+						continue;
+					} else {
+						Real_INT10_TeletypeOutput(8, defattr);
+						Real_INT10_TeletypeOutput(8, defattr);
+						Real_INT10_TeletypeOutput(' ', defattr);
+						Real_INT10_TeletypeOutput(' ', defattr);
+						Real_INT10_TeletypeOutput(8, defattr);
+					}
+				} else {
+					data[count--]=0;
+					if(IS_PC98_ARCH) {
+						reg_al = 8; CALLBACK_RunRealInt(0x29);
+						reg_al = ' '; CALLBACK_RunRealInt(0x29);
+						reg_al = 8; CALLBACK_RunRealInt(0x29);
+						continue;
+					} else {
+						Real_INT10_TeletypeOutput(8, defattr);
+						Real_INT10_TeletypeOutput(' ', defattr);
+					}
+				}
 			} else {
 				continue;                       //no data read yet so restart whileloop.
 			}

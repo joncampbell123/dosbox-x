@@ -120,6 +120,11 @@ void pcm86_setnextintr(void) {
 }
 
 void SOUNDCALL pcm86gen_checkbuf(void) {
+	if (pcm86.realbuf <= pcm86.fifosize) {
+		pcm86.reqirq = 0;
+		pcm86.irqflag = 1;
+		pic_setirq(fmtimer.irq);
+	}
 #if 0
 	long	bufs;
 	UINT32	past;
@@ -165,7 +170,7 @@ BOOL pcm86gen_intrq(void) {
 	}
 	if (pcm86.fifo & 0x20) {
 		sound_sync();
-		if ((pcm86.reqirq) && (pcm86.virbuf <= pcm86.fifosize)) {
+		if ((pcm86.reqirq) && (pcm86.realbuf <= pcm86.fifosize)) {
 			pcm86.reqirq = 0;
 			pcm86.irqflag = 1;
 			return(TRUE);

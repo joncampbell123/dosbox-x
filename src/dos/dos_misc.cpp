@@ -358,7 +358,7 @@ static bool DOS_MultiplexFunctions(void) {
 					reg_bx = (reg_dx & 0x16);
 					reg_dx = 0xa2ab;
 					return true;
-				case 0x0003:		// get size of data struc
+				case 0x0003:		// get size of data struct
 					if (reg_dx==0x0001) {
 						// CDS size requested
 						reg_ax = 0xb97c;

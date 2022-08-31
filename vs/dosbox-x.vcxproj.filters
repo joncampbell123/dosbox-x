@@ -1596,6 +1596,9 @@
     <ClCompile Include="..\src\misc\mkdir_p.cpp">
       <Filter>Sources\misc</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\hardware\snd_pc98\cbus\pcm86io.c">
+      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -2533,6 +2536,9 @@
     </ClInclude>
     <ClInclude Include="..\src\libs\mt32\Display.h">
       <Filter>Sources\libs\mt32</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\snd_pc98\cbus\pcm86io.h">
+      <Filter>Sources\hardware\snd_pc98\cbus</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

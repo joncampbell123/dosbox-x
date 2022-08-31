@@ -1536,7 +1536,7 @@ static Bitu DOS_21Handler(void) {
                     reg_dh = BCD2BIN(reg_dh);       // seconds
 
                     // calculate milliseconds (% 20 to prevent overflow, .55ms has period of 20)
-                    // direcly read BIOS_TIMER, don't want to destroy regs by calling int 1a
+                    // directly read BIOS_TIMER, don't want to destroy regs by calling int 1a
                     reg_dl = (uint8_t)((mem_readd(BIOS_TIMER) % 20) * 55 % 100);
                 }
                 break;
@@ -1607,7 +1607,7 @@ static Bitu DOS_21Handler(void) {
             //Check input parameters nonetheless
             if( reg_ch > 23 || reg_cl > 59 || reg_dh > 59 || reg_dl > 99 )
                 reg_al = 0xff; 
-            else { //Allow time to be set to zero. Restore the orginal time for all other parameters. (QuickBasic)
+            else { //Allow time to be set to zero. Restore the original time for all other parameters. (QuickBasic)
                 if (reg_cx == 0 && reg_dx == 0) {time_start = mem_readd(BIOS_TIMER);LOG_MSG("Warning: game messes with DOS time!");}
                 else time_start = 0;
 				uint32_t ticks=(uint32_t)(((double)(reg_ch*3600+
@@ -1945,30 +1945,24 @@ static Bitu DOS_21Handler(void) {
                 }
 
                 dos.echo=true;
-
-                if(handle >= DOS_FILES) {
+                if(handle >= DOS_FILES || !Files[handle] || !Files[handle]->IsOpen()) {
                     DOS_SetError(DOSERR_INVALID_HANDLE);
-                } else 
-                if(!Files[handle] || !Files[handle]->IsOpen())
-                    DOS_SetError(DOSERR_INVALID_HANDLE);
-                else if(Files[handle]->GetInformation() & EXT_DEVICE_BIT)
-                {
+                }
+                else if(Files[handle]->GetInformation() & EXT_DEVICE_BIT) {
                     fRead = !(((DOS_ExtDevice*)Files[handle])->CallDeviceFunction(4, 26, SegValue(ds), reg_dx, toread) & 0x8000);
 #if defined(USE_TTF)
-                    if(fRead && ttf.inUse && reg_bx == WPvga512CHMhandle)
-                        MEM_BlockRead(SegPhys(ds) + reg_dx, dos_copybuf, toread);
+                    fRead &= ttf.inUse && reg_bx == WPvga512CHMhandle;
 #endif
                 }
-                else
-                {
-                    if((fRead = DOS_ReadFile(reg_bx, dos_copybuf, &toread)))
-                        MEM_BlockWrite(SegPhys(ds) + reg_dx, dos_copybuf, toread);
+                else {
+                   fRead = DOS_ReadFile(reg_bx, dos_copybuf, &toread);
                 }
 
                 if (fRead) {
+                    MEM_BlockWrite(SegPhys(ds) + reg_dx, dos_copybuf, toread);
                     reg_ax=toread;
 #if defined(USE_TTF)
-                    if (ttf.inUse && reg_bx == WPvga512CHMhandle){
+                    if (ttf.inUse && reg_bx == WPvga512CHMhandle) {
                         if (toread == 26 || toread == 2) {
                             if (toread == 2)
                                 WP5chars = *(uint16_t*)dos_copybuf;
@@ -2037,17 +2031,15 @@ static Bitu DOS_21Handler(void) {
                 {
                     uint32_t handle = RealHandle(reg_bx);
 
-                    if(handle >= DOS_FILES) {
+                    if(handle >= DOS_FILES || !Files[handle] || !Files[handle]->IsOpen()) {
                         DOS_SetError(DOSERR_INVALID_HANDLE);
                     }
-                    else
-                        if(!Files[handle] || !Files[handle]->IsOpen())
-                            DOS_SetError(DOSERR_INVALID_HANDLE);
-                        else if(Files[handle]->GetInformation() & EXT_DEVICE_BIT)
-                        {
-                            fWritten = !(((DOS_ExtDevice*)Files[handle])->CallDeviceFunction(8, 26, SegValue(ds), reg_dx, towrite) & 0x8000);
-                        }
-                        else fWritten = DOS_WriteFile(reg_bx, dos_copybuf, &towrite);
+                    else if(Files[handle]->GetInformation() & EXT_DEVICE_BIT) {
+                        fWritten = !(((DOS_ExtDevice*)Files[handle])->CallDeviceFunction(8, 26, SegValue(ds), reg_dx, towrite) & 0x8000);
+                    }
+                    else {
+                        fWritten = DOS_WriteFile(reg_bx, dos_copybuf, &towrite);
+                    }
                 }
                 if (fWritten) {
                     reg_ax=towrite;
@@ -2398,7 +2390,7 @@ static Bitu DOS_21Handler(void) {
                 reg_bh=0;   //Unspecified error class
             }
             reg_bl=1;   //Retry retry retry
-            reg_ch=0;   //Unkown error locus
+            reg_ch=0;   //Unknown error locus
             break;
         case 0x5a:                  /* Create temporary file */
             {
@@ -2578,7 +2570,7 @@ static Bitu DOS_21Handler(void) {
         case 0x64:                  /* Set device driver lookahead flag */
             LOG(LOG_DOSMISC,LOG_NORMAL)("set driver look ahead flag");
             break;
-        case 0x65:                  /* Get extented country information and a lot of other useless shit*/
+        case 0x65:                  /* Get extended country information and a lot of other useless shit*/
             { /* Todo maybe fully support this for now we set it standard for USA */ 
                 LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:65:Extended country information call %X",reg_ax);
                 if((reg_al <=  0x07) && (reg_cx < 0x05)) {
@@ -3044,7 +3036,7 @@ static Bitu DOS_21Handler(void) {
             break;
     }
 
-    /* if INT 21h involves any BIOS calls that need the timer, emulate the fact that tbe
+    /* if INT 21h involves any BIOS calls that need the timer, emulate the fact that the
      * BIOS might unmask IRQ 0 as part of the job (especially INT 13h disk I/O).
      *
      * Some DOS games & demos mask interrupts at the PIC level in a stingy manner that
@@ -3136,7 +3128,7 @@ static Bitu DOS_25Handler_Actual(bool fat32) {
 		 *  Disk read packet:
 		 *    +0 DWORD = sector number
 		 *    +4 WORD = sector count
-		 *    +6 DWORD = disk tranfer area
+		 *    +6 DWORD = disk transfer area
 		 */
 		if (sector_count != 0 && sector_size != 0) {
 			unsigned char tmp[2048];
@@ -3256,7 +3248,7 @@ static Bitu DOS_26Handler_Actual(bool fat32) {
 		 *  Disk read packet:
 		 *    +0 DWORD = sector number
 		 *    +4 WORD = sector count
-		 *    +6 DWORD = disk tranfer area
+		 *    +6 DWORD = disk transfer area
 		 */
 		if (sector_count != 0 && sector_size != 0) {
 			unsigned char tmp[2048];
@@ -4087,7 +4079,7 @@ public:
             LOG(LOG_DOSMISC,LOG_DEBUG)("DOS: CP/M compatibility method with DOS in HMA requires mirror of entry point in HMA.");
             if (dos_initial_hma_free > 0xFF00) {
                 dos_initial_hma_free = 0xFF00;
-                LOG(LOG_DOSMISC,LOG_DEBUG)("DOS: CP/M compatibility method requires reduction of HMA free space to accomodate.");
+                LOG(LOG_DOSMISC,LOG_DEBUG)("DOS: CP/M compatibility method requires reduction of HMA free space to accommodate.");
             }
         }
 
@@ -4315,7 +4307,7 @@ public:
          *      some PC-98 games will read directly, and an ANSI driver.
          *
          *      Some PC-98 games will have problems if loaded below a certain
-         *      threshhold as well.
+         *      threshold as well.
          *
          *        Valkyrie: 0xE10 is not enough for the game to run. If a specific
          *                  FM music selection is chosen, the remaining memory is
@@ -5116,7 +5108,7 @@ void DOS_Int21_716c(char *name1, const char *name2) {
 }
 
 void DOS_Int21_71a0(char *name1, char *name2) {
-		/* NTS:  Windows Millenium Edition's SETUP program will make this LFN call to
+		/* NTS:  Windows Millennium Edition's SETUP program will make this LFN call to
 		 *		 canonicalize "C:", except the protected mode kernel does not translate
 		 *		 DS:DX and ES:DI from protected mode. So DS:DX correctly points to
 		 *		 ASCII-Z string "C:" but when the jump is made back to real mode and
