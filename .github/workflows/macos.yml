@@ -12,7 +12,7 @@ jobs:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
       contents: read  # for actions/checkout to fetch code
     if: github.event_name == 'push' || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
-    runs-on: macos-latest
+    runs-on: macos-10.15
     steps:
       - name: Cancel previous runs
         uses: styfle/cancel-workflow-action@0.10.0
@@ -23,8 +23,8 @@ jobs:
         run: |
           echo "timestamp=`date +%F-%T | sed -e 's/:/-/g' | sed -e 's/-//g'`" >> $GITHUB_ENV
           brew install autoconf automake nasm glfw glew sdl_net sdl2
-          mkdir -p src/bin/dosbox-x
-          mkdir -p src/bin/dosbox-x-sdl2
+          mkdir -p package/dosbox-x
+          mkdir -p package/dosbox-x-sdl2
           cd vs/sdlnet && ./build-dosbox.sh
       - name: Build macOS SDL1
         run: |
@@ -32,28 +32,39 @@ jobs:
           ./build-macos
           strip $top/src/dosbox-x
           make dosbox-x.app
-          mv dosbox-x.app $top/src/bin/dosbox-x
-          cp $top/CHANGELOG $top/src/bin/dosbox-x/CHANGELOG.txt
-          cp $top/COPYING $top/src/bin/dosbox-x/COPYING.txt
-          cp $top/contrib/macos/readme.txt $top/src/bin/dosbox-x/README.txt
+          mv dosbox-x.app $top/package/dosbox-x
       - name: Build macOS SDL2
         run: |
           top=`pwd`
           ./build-macos-sdl2
           strip $top/src/dosbox-x
           make dosbox-x.app
-          mv dosbox-x.app $top/src/bin/dosbox-x-sdl2
-          cp $top/CHANGELOG $top/src/bin/dosbox-x-sdl2/CHANGELOG.txt
-          cp $top/COPYING $top/src/bin/dosbox-x-sdl2/COPYING.txt
-          cp $top/contrib/macos/readme.txt $top/src/bin/dosbox-x-sdl2/README.txt
+          mv dosbox-x.app $top/package/dosbox-x-sdl2
       - name: Unit testing
         run: |
           top=`pwd`
-          chmod +x $top/src/bin/dosbox-x/dosbox-x.app/Contents/MacOS/dosbox-x $top/src/bin/dosbox-x-sdl2/dosbox-x.app/Contents/MacOS/dosbox-x
-          $top/src/bin/dosbox-x/dosbox-x.app/Contents/MacOS/dosbox-x -tests
-          $top/src/bin/dosbox-x-sdl2/dosbox-x.app/Contents/MacOS/dosbox-x -tests
+          chmod +x $top/package/dosbox-x/dosbox-x.app/Contents/MacOS/dosbox-x $top/package/dosbox-x-sdl2/dosbox-x.app/Contents/MacOS/dosbox-x
+          $top/package/dosbox-x/dosbox-x.app/Contents/MacOS/dosbox-x -tests
+          $top/package/dosbox-x-sdl2/dosbox-x.app/Contents/MacOS/dosbox-x -tests
+      - name: Package build
+        run: |
+          top=`pwd`
+          cp $top/CHANGELOG $top/package/dosbox-x/CHANGELOG.txt
+          cp $top/COPYING $top/package/dosbox-x/COPYING.txt
+          cp $top/contrib/macos/readme.txt $top/package/dosbox-x/README.txt
+          cp $top/CHANGELOG $top/package/dosbox-x-sdl2/CHANGELOG.txt
+          cp $top/COPYING $top/package/dosbox-x-sdl2/COPYING.txt
+          cp $top/contrib/macos/readme.txt $top/package/dosbox-x-sdl2/README.txt
+          cd $top/package/
+          zip -r -9 $top/dosbox-x-macosx-x86_64-${{ env.timestamp }}.zip *
+          cd $top
       - name: Upload preview package
         uses: actions/upload-artifact@v3.1.0
         with:
           name: dosbox-x-macosx-x86_64-${{ env.timestamp }}
-          path: ${{ github.workspace }}/src/bin/
+          path: ${{ github.workspace }}/package/
+      - name: Upload release package
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: dosbox-x-macosx-x86_64-${{ env.timestamp }}.zip
