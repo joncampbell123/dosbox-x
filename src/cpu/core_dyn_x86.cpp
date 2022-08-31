@@ -335,7 +335,7 @@ restart_core:
 			while (decoder_pagefault.had_pagefault) {
 				// Can happen only if use_dynamic_core_with_paging is on
 				// We can't throw exception during the creation of the block, as it will corrupt things
-				// If a page fault occoured, invalidated the block, and try to create smaller block
+				// If a page fault occurred, invalidated the block, and try to create smaller block
 				// If the page fault is in the current instruction, throw exception
 				block->Clear();
 				if (cache_size == 1)

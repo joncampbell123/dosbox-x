@@ -560,7 +560,7 @@ static void dyn_fpu_esc6(){
 			break;
 		case 0x02:  /* FCOMP5*/
 			gen_call_function((void*)&FPU_FCOM,"%Drd%Drd",DREG(TMPB),DREG(EA));
-			break;	/* TODO IS THIS ALLRIGHT ????????? */
+			break;	/* TODO IS THIS ALRIGHT ????????? */
 		case 0x03:  /*FCOMPP*/
 			if(sub != 1) {
 				FPU_LOG_WARN(6,false,3,sub);

@@ -116,7 +116,7 @@ uint32_t get_CF(void) {
 	case t_TESTd:
 		return false;	/* Set to false */
 	case t_DIV:
-		return false;	/* Unkown */
+		return false;	/* Unknown */
 	default:
 		LOG(LOG_CPU,LOG_ERROR)("get_CF Unknown %d",(int)lflags.type);
 	}
@@ -198,7 +198,7 @@ uint32_t get_AF(void) {
 	case t_DSHRd:
 	case t_DIV:
 	case t_MUL:
-		return false;			          /* Unkown */
+		return false;			          /* Unknown */
 	default:
 		LOG(LOG_CPU,LOG_ERROR)("get_AF Unknown %d",(int)lflags.type);
 	}
@@ -267,7 +267,7 @@ uint32_t get_ZF(void) {
 		return (lf_resd==0);
 	case t_DIV:
 	case t_MUL:
-		return false;		/* Unkown */
+		return false;		/* Unknown */
 	default:
 		LOG(LOG_CPU,LOG_ERROR)("get_ZF Unknown %d",(int)lflags.type);
 	}
@@ -335,9 +335,9 @@ uint32_t get_SF(void) {
 		return	(lf_resd&0x80000000);
 	case t_DIV:
 	case t_MUL:
-		return false;	/* Unkown */
+		return false;	/* Unknown */
 	default:
-		LOG(LOG_CPU,LOG_ERROR)("get_SF Unkown %d",(int)lflags.type);
+		LOG(LOG_CPU,LOG_ERROR)("get_SF Unknown %d",(int)lflags.type);
 	}
 	return false;
 
@@ -423,9 +423,9 @@ uint32_t get_OF(void) {
 	case t_SARd:
 		return false;			/* Return false */
 	case t_DIV:
-		return false;		/* Unkown */
+		return false;		/* Unknown */
 	default:
-		LOG(LOG_CPU,LOG_ERROR)("get_OF Unkown %d",(int)lflags.type);
+		LOG(LOG_CPU,LOG_ERROR)("get_OF Unknown %d",(int)lflags.type);
 	}
 	return false;
 }

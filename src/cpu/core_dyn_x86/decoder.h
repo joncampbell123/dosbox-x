@@ -338,7 +338,7 @@ static void dyn_set_eip_last_end(DynReg * endreg) {
 	gen_protectflags();
 	gen_lea(endreg,DREG(EIP),0,0,decode.code-decode.code_start);
 	gen_dop_word_imm(DOP_ADD,decode.big_op,DREG(EIP),decode.op_start-decode.code_start);
-	decode.eip_location=decode.op_start; // this is the only place where a pagefault can happen after chaning eip
+	decode.eip_location=decode.op_start; // this is the only place where a pagefault can happen after changing eip
 }
 
 static INLINE void dyn_set_eip_end(void) {
@@ -3187,7 +3187,7 @@ restart_prefix:
 						&DynRegs[decode.modrm.rm&3],decode.modrm.rm&4);
 				}
 				break;
-			case 0x7:		//CALBACK Iw
+			case 0x7:		//CALLBACK Iw
 				gen_save_host_direct(&core_dyn.callback,decode_fetchw());
 				dyn_set_eip_end();
 				dyn_reduce_cycles();

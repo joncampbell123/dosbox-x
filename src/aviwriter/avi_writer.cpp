@@ -435,7 +435,7 @@ int avi_writer_stream_repeat_last_chunk(avi_writer *w,avi_writer_stream *s) {
     /* lookup the previous chunk */
     /* NTS: this must come after the check_samplecount() because check_samplecount()
      *      uses realloc() to extend the array and realloc() may move the data around
-     *      to fullfill the request */
+     *      to fulfill the request */
     assert(s->sample_index != NULL);
     assert(s->sample_index_max >= s->sample_write_chunk);
     psi = s->sample_index + s->sample_write_chunk - 1;

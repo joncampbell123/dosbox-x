@@ -596,7 +596,7 @@ void DBGUI_StartUp(void) {
 
 #ifdef WIN32
     /* Tell Windows 10 we DONT want a thin tall console window that fills the screen top to bottom.
-       It's a nuisance especially when the user attempts to move the windwo up to the top to see
+       It's a nuisance especially when the user attempts to move the window up to the top to see
        the status, only for Windows to auto-maximize. 30 lines is enough, thanks. */
     {
         if (dbg.win_main) {

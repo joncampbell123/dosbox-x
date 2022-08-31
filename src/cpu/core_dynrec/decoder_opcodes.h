@@ -815,7 +815,7 @@ static bool dyn_grp4_eb(void) {
 			MOV_REG_BYTE_FROM_HOST_REG_LOW(FC_RETOP,decode.modrm.rm&3,((decode.modrm.rm>>2)&1));
 		}
 		break;
-	case 0x7:		//CALBACK Iw
+	case 0x7:		//CALLBACK Iw
 		gen_mov_direct_dword(&core_dynrec.callback,decode_fetchw());
 		dyn_set_eip_end();
 		dyn_reduce_cycles();
