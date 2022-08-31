@@ -1434,7 +1434,7 @@ int isoDrive::GetDirIterator(const UDFFileEntry &fe) {
 
 	int dirIterator = nextFreeDirIterator;
 
-	dirIterators[dirIterator].currentSector = 0; // irrelevent
+	dirIterators[dirIterator].currentSector = 0; // irrelevant
 	dirIterators[dirIterator].endSector = 0; // irrelevant
 
 	// reset position and mark as valid
@@ -1685,7 +1685,7 @@ bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, isoDirEntry* de) {
 void isoDrive::FreeDirIterator(const int dirIterator) {
 	dirIterators[dirIterator].valid = false;
 	
-	// if this was the last aquired iterator decrement nextFreeIterator
+	// if this was the last acquired iterator decrement nextFreeIterator
 	if ((dirIterator + 1) % MAX_OPENDIRS == nextFreeDirIterator) {
 		if (nextFreeDirIterator>0) {
 			nextFreeDirIterator--;

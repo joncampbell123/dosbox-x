@@ -1402,7 +1402,7 @@ void CPU_Interrupt(Bitu num,Bitu type,uint32_t oldeip) {
 						E_Exit("Non-conforming intra privilege INT with DPL!=CPL");
 				case DESC_CODE_N_C_A:	case DESC_CODE_N_C_NA:
 				case DESC_CODE_R_C_A:	case DESC_CODE_R_C_NA:
-					/* Prepare stack for gate to same priviledge */
+					/* Prepare stack for gate to same privilege */
 					CPU_CHECK_COND(!cs_desc.saved.seg.p,
 							"INT:Same level:CS segment not present",
 						EXCEPTION_NP,(gate_sel & 0xfffc)+((type&CPU_INT_SOFTWARE)?0:1))
@@ -1993,7 +1993,7 @@ call_code:
 				switch (n_cs_desc.Type()) {
 				case DESC_CODE_N_NC_A:case DESC_CODE_N_NC_NA:
 				case DESC_CODE_R_NC_A:case DESC_CODE_R_NC_NA:
-					/* Check if we goto inner priviledge */
+					/* Check if we goto inner privilege */
 					if (n_cs_dpl < cpu.cpl) {
 						/* Get new SS:ESP out of TSS */
                         uint16_t n_ss_sel;

@@ -409,7 +409,7 @@ int64_t CDROM_Interface_Image::CHDFile::getLength()
 
 uint16_t CDROM_Interface_Image::CHDFile::getEndian()
 {
-    // CHD: no idea about this, chaning this did not fix the cd audio noise
+    // CHD: no idea about this, changing this did not fix the cd audio noise
     // Image files are read into native-endian byte-order
 #if defined(WORDS_BIGENDIAN)
     return AUDIO_S16MSB;
@@ -569,7 +569,7 @@ bool CDROM_Interface_Image::GetAudioSub(unsigned char& attr, unsigned char& trac
 	#ifdef DEBUG
 	LOG_MSG("%s CDROM: GetAudioSub attr=%u, track=%u, index=%u", get_time(), attr, track, index);
 
-	LOG_MSG("%s CDROM: GetAudioSub absoute  offset (%d), MSF=%d:%d:%d",
+	LOG_MSG("%s CDROM: GetAudioSub absolute offset (%d), MSF=%d:%d:%d",
       get_time(),
 	  player.currFrame + 150,
 	  absPos.min,
@@ -853,10 +853,10 @@ void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 			total_requested = 0;
 		}
 
-		// Three scenarios in order of probabilty:
+		// Three scenarios in order of probability:
 		//
 		// 1. Consume: If our decoded circular buffer is sufficiently filled to
-		//	     satify the requested size, then feed the callback with
+		//	     satisfy the requested size, then feed the callback with
 		//	     the requested number of bytes.
 		//
 		// 2. Wrap: If we've decoded and consumed to edge of our buffer, then
@@ -865,7 +865,7 @@ void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 		//
 		// 3. Fill: When out circular buffer is too depleted to satisfy the
 		//	     requested size, then perform chunked-decode reads from
-		//	     the audio-codec to either fill our buffer or satify our
+		//	     the audio-codec to either fill our buffer or satisfy our
 		//	     remaining playback - whichever is smaller.
 		//
 		while (true) {
@@ -897,8 +897,8 @@ void CDROM_Interface_Image::CDAudioCallBack(Bitu len)
 
 				// Games can query the current Red Book MSF frame-position, so we keep that up-to-date here.
 				// We scale the final number of frames by the percent complete, which
-				// avoids having to keep track of the euivlent number of Red Book frames
-				// read (which would involve coverting the compressed streams data-rate into
+				// avoids having to keep track of the equivalent number of Red Book frames
+				// read (which would involve converting the compressed streams data-rate into
 				// CDROM Red Book rate, which is more work than simply scaling).
 				//
 				const float playbackPercentSoFar = static_cast<float>(player.playbackTotal - player.playbackRemaining) / player.playbackTotal;
@@ -1453,8 +1453,8 @@ bool CDROM_Interface_Image::GetRealFileName(string &filename, string &pathname)
 #if !defined (WIN32)
 	/**
 	 *  Consider the possibility that the filename has a windows directory
-	 *  seperator (inside the CUE file) which is common for some commercial
-	 *  rereleases of DOS games using DOSBox
+	 *  separator (inside the CUE file) which is common for some commercial
+	 *  re-releases of DOS games using DOSBox
 	 */
 	string copy = filename;
 	size_t l = copy.size();

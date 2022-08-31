@@ -1410,7 +1410,7 @@ do_cli:	if (CPU_CLI()) RUNEXCEPTION();
 		if (CPU_STI()) RUNEXCEPTION();
 #if CPU_PIC_CHECK
 		if (GETFLAG(IF) && PIC_IRQCheck) {
-            // NTS: Do not immmediately break execution, but set the cycle count to a minimal
+            // NTS: Do not immediately break execution, but set the cycle count to a minimal
             //      value so that if a CLI follows immediately the interrupt will be ignored.
             //
             //      It turns out on a 486 that STI+CLI (right next to each other) does not

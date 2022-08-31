@@ -566,7 +566,7 @@ static void dyn_fpu_esc6(){
 		case 0x02:  /* FCOMP5*/
 			dyn_fpu_top();
 			gen_call_function_RR(FPU_FCOM,FC_OP1,FC_OP2);
-			break;	/* TODO IS THIS ALLRIGHT ????????? */
+			break;	/* TODO IS THIS ALRIGHT ????????? */
 		case 0x03:  /*FCOMPP*/
 			if(decode.modrm.rm != 1) {
 				LOG(LOG_FPU,LOG_WARN)("ESC 6:Unhandled group %d subfunction %d",(unsigned int)decode.modrm.reg,(unsigned int)decode.modrm.rm);
