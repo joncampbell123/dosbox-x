@@ -346,7 +346,7 @@ public:
 	bool overlay_active;
 };
 
-//Create leading directories of a file being overlayed if they exist in the original (localDrive).
+//Create leading directories of a file being overlaid if they exist in the original (localDrive).
 //This function is used to create copies of existing files, so all leading directories exist in the original.
 
 FILE* Overlay_Drive::create_file_in_overlay(const char* dos_filename, char const* mode) {
@@ -645,7 +645,7 @@ bool Overlay_Drive::FileOpen(DOS_File * * file,const char * name,uint32_t flags)
 	} else {
 		; //TODO error handling!!!! (maybe check if it exists and read only (should not happen with overlays)
 	}
-	bool overlayed = fileopened;
+	bool overlaid = fileopened;
 
 	//File not present in overlay, try normal drive
 	//TODO take care of file being marked deleted.
@@ -658,7 +658,7 @@ bool Overlay_Drive::FileOpen(DOS_File * * file,const char * name,uint32_t flags)
 		//Convert file to OverlayFile
 		OverlayFile* f = ccc(*file);
 		f->flags = flags; //ccc copies the flags of the localfile, which were not correct in this case
-		f->overlay_active = overlayed; //No need to switch if already in overlayed.
+		f->overlay_active = overlaid; //No need to switch if already in overlay.
 		*file = f;
 	}
 	return fileopened;

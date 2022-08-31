@@ -558,7 +558,7 @@ public:
 			*(datadst++) = ' ';
 		if (uint16_t newsize = (uint16_t)(datadst - data))									// If data
 			{
-			if (rawdata.capacity() < 100000)											// Prevent repetive size allocations
+			if (rawdata.capacity() < 100000)											// Prevent repetitive size allocations
 				rawdata.reserve(100000);
 			rawdata.append((char *)data, newsize);
 			}
