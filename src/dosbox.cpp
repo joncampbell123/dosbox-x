@@ -1774,7 +1774,7 @@ void DOSBOX_SetupConfigSections(void) {
         "Many 386/486 class motherboards and processors prior to 1995\n"
         "suffered from memory aliasing for various technical reasons. If the software you are\n"
         "trying to run assumes aliasing, or otherwise plays cheap tricks with paging,\n"
-        "enabling this option can help. Note that enabling this option can cause slight performance degredation. Set to 0 to disable.\n"
+        "enabling this option can help. Note that enabling this option can cause slight performance degradation. Set to 0 to disable.\n"
         "Recommended values when enabled:\n"
         "    24: 16MB aliasing. Common on 386SX systems (CPU had 24 external address bits)\n"
         "        or 386DX and 486 systems where the CPU communicated directly with the ISA bus (A24-A31 tied off)\n"
@@ -2388,7 +2388,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("vertical retrace poll debug line",Property::Changeable::Always,false);
     Pbool->Set_help("VGA debugging switch. If set, an inverse green dotted line will be drawn on the exact scanline that the CRTC status port (0x3DA) was read.\n"
-            "This can be used to help diagnose whether the DOS game is propertly waiting for vertical retrace.");
+            "This can be used to help diagnose whether the DOS game is properly waiting for vertical retrace.");
 
     Pbool = secprop->Add_bool("cgasnow",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("When machine=cga, determines whether or not to emulate CGA snow in 80x25 text mode.\n"
@@ -3559,7 +3559,7 @@ void DOSBOX_SetupConfigSections(void) {
             "                                        hanging when you click on the buttons in the main menu.");
 
     /* some DOS demos, especially where the programmers wrote their own tracker, forget to set "master IRQ enable" on the GUS,
-     * and then wonder why music isn't playing. prior to some GUS bugfixes they happend to work anyway because DOSBox also
+     * and then wonder why music isn't playing. prior to some GUS bugfixes they happen to work anyway because DOSBox also
      * ignored master IRQ enable. you can restore that buggy behavior here.
      *
      * DOS games & demos that need this:
@@ -3830,7 +3830,7 @@ void DOSBOX_SetupConfigSections(void) {
         "               transparent, port, inhsocket, sock, nonlocal (all optional).\n"
         "               connections are limited to localhost unless you specify nonlocal:1\n"
         "               \"sock\" parameter specifies the protocol to be used by both sides\n"
-        "               of the conection. 0 for TCP and 1 for ENet reliable UDP.\n"
+        "               of the connection. 0 for TCP and 1 for ENet reliable UDP.\n"
         "Example: serial1=modem listenport:5000 sock:1\n"
         "Note: COM1-4 are standard COM ports in DOS, whereas COM5-9 are extended COM ports.\n"
         "      You can optionally specify base addresses and IRQs for them with base: and irq: options.\n"
@@ -4622,7 +4622,7 @@ void DOSBOX_SetupConfigSections(void) {
         Phex = secprop->Add_hex("altio",Property::Changeable::WhenIdle,0/*use IDE default*/);
         if (i == 0) Phex->Set_help("Alternate I/O port for IDE controller (alt status, etc). Set to 0 for default.\n"
                 "WARNING: Setting the I/O port to non-standard values will not work unless the guest OS is using the ISA PnP BIOS to detect the IDE controller.\n"
-                "         For best compatability set this value to io+0x206, for example, io=1F0 altio=3F6.\n"
+                "         For best compatibility set this value to io+0x206, for example, io=1F0 altio=3F6.\n"
                 "         The primary IDE controller will not claim port 3F7 if the primary floppy controller is enabled due to I/O port overlap in the 3F0-3F7 range.");
 
         Pbool = secprop->Add_bool("int13fakeio",Property::Changeable::WhenIdle,false);
@@ -4724,7 +4724,7 @@ void DOSBOX_SetupConfigSections(void) {
      *
      *    What? What the fuck are you talking about?
      *
-     *    "AT mode" seems to imply the presense of port 3F7. PS/2 mode seems to imply the presense of 3F0-3F1 and 3F7.
+     *    "AT mode" seems to imply the presence of port 3F7. PS/2 mode seems to imply the presence of 3F0-3F1 and 3F7.
      *    A Toshiba laptop (Satellite Pro 465CDX) has port 3F7 but not 3F0-3F1. By other documentation I've found, that
      *    means this laptop (which came out late 1997) is running in AT mode! There's plenty of hardware running in both
      *    PS/2 and AT mode, even some very old stuff in my pile of junk dating back to 1990!
