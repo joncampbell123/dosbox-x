@@ -1919,6 +1919,9 @@
     <ClInclude Include="..\include\cp437_uni.h">
       <Filter>Includes</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\cp453_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\cp808_uni.h">
       <Filter>Includes</Filter>
     </ClInclude>

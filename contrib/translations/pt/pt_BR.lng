@@ -2174,7 +2174,7 @@ CHCP nnn[:[idioma]]
 
 Páginas de código compatíveis para a saída de fonte TrueType:
 
-437,737,775,808,850,852,853,855-866,869,872,874,1250-1258,3021
+437,453,737,775,808,850,852,853,855-866,869,872,874,1250-1258,3021
 
 Também páginas de códigos de duplo byte includindo 932,936,949,950/951.
 

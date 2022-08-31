@@ -53,6 +53,7 @@
 #include "jfont.h"
 
 #include "cp437_uni.h"
+#include "cp453_uni.h"
 #include "cp737_uni.h"
 #include "cp775_uni.h"
 #include "cp808_uni.h"
@@ -609,6 +610,8 @@ bool CodePageHostToGuestUTF16(char *d/*CROSS_LEN*/,const uint16_t *s/*CROSS_LEN*
     switch (dos.loaded_codepage) {
         case 437:
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+        case 453:
+            return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp453_to_unicode,sizeof(cp453_to_unicode)/sizeof(cp453_to_unicode[0]));
         case 737:
             return String_HOST_TO_SBCS_UTF16<uint16_t>(d,s,cp737_to_unicode,sizeof(cp737_to_unicode)/sizeof(cp737_to_unicode[0]));
         case 775:
@@ -703,6 +706,8 @@ bool CodePageHostToGuestUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     switch (dos.loaded_codepage) {
         case 437:
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+        case 453:
+            return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp453_to_unicode,sizeof(cp453_to_unicode)/sizeof(cp453_to_unicode[0]));
         case 737:
             return String_HOST_TO_SBCS_UTF8<uint16_t>(d,s,cp737_to_unicode,sizeof(cp737_to_unicode)/sizeof(cp737_to_unicode[0]));
         case 775:
@@ -797,6 +802,8 @@ bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*
     switch (dos.loaded_codepage) {
         case 437:
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+        case 453:
+            return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp453_to_unicode,sizeof(cp453_to_unicode)/sizeof(cp453_to_unicode[0]));
         case 737:
             return String_SBCS_TO_HOST_UTF16<uint16_t>(d,s,cp737_to_unicode,sizeof(cp737_to_unicode)/sizeof(cp737_to_unicode[0]));
         case 775:
@@ -891,6 +898,8 @@ bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/) {
     switch (dos.loaded_codepage) {
         case 437:
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp437_to_unicode,sizeof(cp437_to_unicode)/sizeof(cp437_to_unicode[0]));
+        case 453:
+            return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp453_to_unicode,sizeof(cp453_to_unicode)/sizeof(cp453_to_unicode[0]));
         case 737:
             return String_SBCS_TO_HOST_UTF8<uint16_t>(d,s,cp737_to_unicode,sizeof(cp737_to_unicode)/sizeof(cp737_to_unicode[0]));
         case 775:

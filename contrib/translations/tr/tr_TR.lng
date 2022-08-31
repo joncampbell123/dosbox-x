@@ -2154,7 +2154,7 @@ CHCP nnn[:[dil]]
 
 TrueType yazıtipi çıktısında desteklenen kod sayfaları aşağıdaki gibidir:
 
-437,737,775,808,850,852,853,855-866,869,872,874,1250-1258,3021
+437,453,737,775,808,850,852,853,855-866,869,872,874,1250-1258,3021
 
 Ek olarak 932,936,949,950/951 numaralı çoklu bit kod sayfaları da desteklenir.
 
