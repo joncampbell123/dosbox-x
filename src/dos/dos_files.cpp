@@ -96,7 +96,7 @@ void DOS_SetDefaultDrive(uint8_t drive) {
 
 bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive) {
 	if(!name || *name == 0 || *name == ' ' || *name == '\n' || *name == ':') {
-		/* Both \0 and space are seperators and
+		/* Both \0 and space are separators and
 		 * empty filenames report file not found */
 		DOS_SetError(DOSERR_FILE_NOT_FOUND);
 		return false;
@@ -247,7 +247,7 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive)
 				if (ext) {
 					if(strchr(ext+1,'.')) { 
 					//another dot in the extension =>file not found
-					//Or path not found depending on wether 
+					//Or path not found depending on whether
 					//we are still in dir check stage or file stage
 						if(stop)
 							DOS_SetError(DOSERR_FILE_NOT_FOUND);
@@ -551,7 +551,7 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 	char dir[DOS_PATHLENGTH];char pattern[DOS_PATHLENGTH];
 	size_t len = strlen(search);
 	if(len && search[len - 1] == '\\' && !( (len > 2) && (search[len - 2] == ':') && (attr == DOS_ATTR_VOLUME) )) { 
-		//Dark Forces installer, but c:\ is allright for volume labels(exclusively set)
+		//Dark Forces installer, but c:\ is alright for volume labels(exclusively set)
 		DOS_SetError(DOSERR_NO_MORE_FILES);
 		return false;
 	}
@@ -1540,7 +1540,7 @@ static void SaveFindResult(DOS_FCB & find_fcb) {
 	drive=find_fcb.GetDrive()+1;
 	uint8_t find_attr = DOS_ATTR_ARCHIVE;
 	find_fcb.GetAttr(find_attr); /* Gets search attributes if extended */
-	/* Create a correct file and extention */
+	/* Create a correct file and extension */
     if (attr & DOS_ATTR_VOLUME)
         DTAExtendNameVolumeLabel(name,file_name,ext);
     else
@@ -1735,7 +1735,7 @@ uint8_t DOS_FCBIncreaseSize(uint16_t seg,uint16_t offset) {
 }
 
 uint8_t DOS_FCBRandomRead(uint16_t seg,uint16_t offset,uint16_t * numRec,bool restore) {
-/* if restore is true :random read else random blok read. 
+/* if restore is true :random read else random block read.
  * random read updates old block and old record to reflect the random data
  * before the read!!!!!!!!! and the random data is not updated! (user must do this)
  * Random block read updates these fields to reflect the state after the read!

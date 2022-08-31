@@ -1616,7 +1616,7 @@ bool localDrive::FileUnlink(const char * name) {
 #else
 		FILE* file_writable = fopen(host_name,"rb+");
 #endif
-		if(!file_writable) return false; //No acces ? ERROR MESSAGE NOT SET. FIXME ?
+		if(!file_writable) return false; //No access ? ERROR MESSAGE NOT SET. FIXME ?
 		fclose(file_writable);
 
 		//File exists and can technically be deleted, nevertheless it failed.
@@ -2755,7 +2755,7 @@ bool localFile::Seek(uint32_t * pos,uint32_t type) {
 	if (file_access_tries>0) fail=lseek(fileno(fhandle),*reinterpret_cast<int32_t*>(pos),seektype)==-1;
 	else fail=fseek(fhandle,*reinterpret_cast<int32_t*>(pos),seektype)!=0;
 	if (fail) {
-		// Out of file range, pretend everythings ok
+		// Out of file range, pretend everything is ok
 		// and move file pointer top end of file... ?! (Black Thorne)
 		if (file_access_tries>0)
 			lseek(fileno(fhandle),0,SEEK_END);
