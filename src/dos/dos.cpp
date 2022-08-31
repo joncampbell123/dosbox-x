@@ -1945,30 +1945,24 @@ static Bitu DOS_21Handler(void) {
                 }
 
                 dos.echo=true;
-
-                if(handle >= DOS_FILES) {
+                if(handle >= DOS_FILES || !Files[handle] || !Files[handle]->IsOpen()) {
                     DOS_SetError(DOSERR_INVALID_HANDLE);
-                } else 
-                if(!Files[handle] || !Files[handle]->IsOpen())
-                    DOS_SetError(DOSERR_INVALID_HANDLE);
-                else if(Files[handle]->GetInformation() & EXT_DEVICE_BIT)
-                {
+                }
+                else if(Files[handle]->GetInformation() & EXT_DEVICE_BIT) {
                     fRead = !(((DOS_ExtDevice*)Files[handle])->CallDeviceFunction(4, 26, SegValue(ds), reg_dx, toread) & 0x8000);
 #if defined(USE_TTF)
-                    if(fRead && ttf.inUse && reg_bx == WPvga512CHMhandle)
-                        MEM_BlockRead(SegPhys(ds) + reg_dx, dos_copybuf, toread);
+                    fRead &= ttf.inUse && reg_bx == WPvga512CHMhandle;
 #endif
                 }
-                else
-                {
-                    if((fRead = DOS_ReadFile(reg_bx, dos_copybuf, &toread)))
-                        MEM_BlockWrite(SegPhys(ds) + reg_dx, dos_copybuf, toread);
+                else {
+                   fRead = DOS_ReadFile(reg_bx, dos_copybuf, &toread);
                 }
 
                 if (fRead) {
+                    MEM_BlockWrite(SegPhys(ds) + reg_dx, dos_copybuf, toread);
                     reg_ax=toread;
 #if defined(USE_TTF)
-                    if (ttf.inUse && reg_bx == WPvga512CHMhandle){
+                    if (ttf.inUse && reg_bx == WPvga512CHMhandle) {
                         if (toread == 26 || toread == 2) {
                             if (toread == 2)
                                 WP5chars = *(uint16_t*)dos_copybuf;
@@ -2037,17 +2031,15 @@ static Bitu DOS_21Handler(void) {
                 {
                     uint32_t handle = RealHandle(reg_bx);
 
-                    if(handle >= DOS_FILES) {
+                    if(handle >= DOS_FILES || !Files[handle] || !Files[handle]->IsOpen()) {
                         DOS_SetError(DOSERR_INVALID_HANDLE);
                     }
-                    else
-                        if(!Files[handle] || !Files[handle]->IsOpen())
-                            DOS_SetError(DOSERR_INVALID_HANDLE);
-                        else if(Files[handle]->GetInformation() & EXT_DEVICE_BIT)
-                        {
-                            fWritten = !(((DOS_ExtDevice*)Files[handle])->CallDeviceFunction(8, 26, SegValue(ds), reg_dx, towrite) & 0x8000);
-                        }
-                        else fWritten = DOS_WriteFile(reg_bx, dos_copybuf, &towrite);
+                    else if(Files[handle]->GetInformation() & EXT_DEVICE_BIT) {
+                        fWritten = !(((DOS_ExtDevice*)Files[handle])->CallDeviceFunction(8, 26, SegValue(ds), reg_dx, towrite) & 0x8000);
+                    }
+                    else {
+                        fWritten = DOS_WriteFile(reg_bx, dos_copybuf, &towrite);
+                    }
                 }
                 if (fWritten) {
                     reg_ax=towrite;
