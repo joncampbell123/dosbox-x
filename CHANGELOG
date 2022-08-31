@@ -1,4 +1,6 @@
 2022.09.0 (0.84.3)
+  - Added 86PCM support for PC-98 emulation. (nanshiki)
+  - Added German language translation. (Link-Mario)
   - Improved ANSI.SYS detection for the welcome banner
     and CLS command. The command "INTRO WELCOME" will
     re-display the welcome banner without running the
@@ -6,10 +8,19 @@
   - Improved IME support on macOS SDL2 build. (Wengier)
   - Improved detection for the Chinese/Japanese/Korean
     keyboard layouts on Windows platform. (Wengier)
+  - Improved Windows installer for selecting languages
+    for the DOS emulator. (Wengier)
+  - Improved config option "file access tries" for the
+    Linux and macOS platforms. (Wengier)
   - Fixed SafeDisc 2 check for Red Alert 2 by renaming
     the IDE CD-ROM device. (rderooy & psyraven)
+  - Fixed problem when inputting characters with call
+    INT21/AH=3Fh in PC-98 mode. (nanshiki)
+  - Fixed hang on zip-mounted drives. (tbr)
   - Fixed file copying problem with Windows 9x install
     at the end of the DOS-based Setup. (Wengier)
+  - Fixed command like "IF NOT EXIST D:\NUL ..." not
+    working if the drive does not exist. (Wengier)
   - Fixed that pasting text from clipboard via mouse
     may not work properly in some cases. (Wengier)
   - Fixed the mouse scrolling wheel not working with
