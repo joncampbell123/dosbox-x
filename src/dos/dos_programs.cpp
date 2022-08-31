@@ -1495,7 +1495,7 @@ public:
                   std::string base = ldp->getBasedir();
                   uint8_t o_error = 0;
                   newdrive = new Overlay_Drive(base.c_str(),temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,o_error,options);
-                  //Erase old drive on success
+                  //Erase old drive on succes
                   if (newdrive) {
                       if (o_error) {
                           if (quiet) {delete newdrive;return;}
@@ -3077,7 +3077,7 @@ public:
         return false;
     }
 
-    // 0=still waiting, 1=catastrophic failure, 2=success, 3=sector not found, 4=crc error 
+    // 0=still waiting, 1=catastrophic faliure, 2=success, 3=sector not found, 4=crc error 
     Bitu CheckDiskReadComplete(HANDLE f, OVERLAPPED* o) {
         DWORD numret;
         BOOL b = GetOverlappedResult( f, o, &numret,false); 
@@ -3704,7 +3704,7 @@ restart_int:
                             sectors_per_cluster = 8; /* 4KB (8*512) */
                     }
                     else {
-                        /* 1 sector per cluster is very inefficient */
+                        /* 1 sector per cluster is very inefficent */
                         if (vol_sectors >= 6144000/*3000MB*/)
                             sectors_per_cluster = 8;
                         else if (vol_sectors >= 1048576/*512MB*/)
@@ -3727,7 +3727,7 @@ restart_int:
             while ((vol_sectors/sectors_per_cluster) >= (fatlimit - 2u) && sectors_per_cluster < 0x80u) sectors_per_cluster <<= 1;
             sbuf[0x0d]=(uint8_t)sectors_per_cluster;
             // TODO small floppys have 2 sectors per cluster?
-            // reserved sectors
+            // reserverd sectors
             host_writew(&sbuf[0x0e],reserved_sectors);
             // Number of FATs
             sbuf[0x10] = fat_copies;
@@ -5396,7 +5396,7 @@ private:
                 switch (DriveManager::UnmountDrive(i_drive)) {
                 case 0: //success
                 {
-                    //detach hard drive or floppy drive from bios and ide controller
+                    //detatch hard drive or floppy drive from bios and ide controller
                     if (image && !partitionMount) DetachFromBios(image);
                     /* If the drive letter is also a CD-ROM drive attached to IDE, then let the IDE code know */
                     if (cdrom) IDE_CDROM_Detach(i_drive);
@@ -5447,7 +5447,7 @@ private:
         else if (isdigit(letter)) { /* DOSBox-X: drives mounted by number (INT 13h) can be unmounted this way */
             int index = letter - '0';
 
-            //detach hard drive or floppy drive from bios and ide controller
+            //detatch hard drive or floppy drive from bios and ide controller
             if (index < MAX_DISK_IMAGES && imageDiskList[index]) {
                 if (index > 1) IDE_Hard_Disk_Detach(index);
                 imageDiskList[index]->Release();
@@ -6875,7 +6875,7 @@ void AUTOTYPE::PrintKeys()
 	}
 
 	// Setup our rows and columns
-	const size_t wrap_width = 72; // comfortable columns not pushed to the edge
+	const size_t wrap_width = 72; // confortable columns not pushed to the edge
 	const size_t columns = wrap_width / max_length;
 	const size_t rows = ceil_udivide(names.size(), columns);
 
@@ -6891,7 +6891,7 @@ void AUTOTYPE::PrintKeys()
 /*
  *  Converts a string to a finite number (such as float or double).
  *  Returns the number or quiet_NaN, if it could not be parsed.
- *  This function does not attempt to capture exceptions that may
+ *  This function does not attemp to capture exceptions that may
  *  be thrown from std::stod(...)
  */
 template<typename T>
@@ -6957,7 +6957,7 @@ bool AUTOTYPE::ReadDoubleArg(const std::string &name,
 			         "floating point number\n",
 			         name.c_str(), str_value.c_str());
 		}
-	} else { // Otherwise they haven't passed this flag
+	} else { // Otherwise thay haven't passed this flag
 		value = def_value;
 		result = true;
 	}

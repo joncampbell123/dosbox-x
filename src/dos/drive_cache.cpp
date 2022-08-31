@@ -155,7 +155,7 @@ void DOS_Drive_Cache::SetBaseDir(const char* baseDir, DOS_Drive *drive) {
     UINT test = GetDriveType(drives);
     if(test == DRIVE_CDROM) cdrom = true;
 #else // OS2
-    //TODO determine whether cdrom or not!
+    //TODO determine wether cdrom or not!
     FSINFO fsinfo;
     ULONG drivenumber = drive[0];
     if (drivenumber > 26) { // drive letter was lowercase
@@ -875,7 +875,7 @@ void DOS_Drive_Cache::CopyEntry(CFileInfo* dir, CFileInfo* from) {
 }
 
 bool DOS_Drive_Cache::ReadDir(uint16_t id, char* &result, char * &lresult) {
-    // shouldn't happen...
+    // shouldnt happen...
     if (id>=MAX_OPENDIRS) return false;
 
     if (!IsCachedIn(dirSearch[id])) {

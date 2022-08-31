@@ -456,7 +456,7 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 				currentSector = myDrive->getAbsoluteSectFromBytePos(firstCluster, seekpos);
 				if (currentSector == 0) {
 					/* I guess allocateCluster() didn't work after all. This check is necessary to prevent
-					 * this condition from treating the BOOT SECTOR as a file. */
+					 * this conditon from treating the BOOT SECTOR as a file. */
 					LOG(LOG_DOSMISC,LOG_WARN)("FAT file write: unable to allocate first cluster, erroring out");
 					goto finalizeWrite;
 				}
@@ -1054,7 +1054,7 @@ uint32_t fatDrive::getAbsoluteSectFromChain(uint32_t startClustNum, uint32_t log
 
 	/* startClustNum == 0 means the file is (likely) zero length and has no allocation chain yet.
 	 * Nothing to map. Without this check, this code would permit the FAT file reader/writer to
-	 * treat the ROOT DIRECTORY as a file (with disastrous results)
+	 * treat the ROOT DIRECTORY as a file (with disasterous results)
 	 *
 	 * [https://github.com/joncampbell123/dosbox-x/issues/1517] */
 	if (startClustNum == 0) return 0;
@@ -1084,7 +1084,7 @@ uint32_t fatDrive::getAbsoluteSectFromChain(uint32_t startClustNum, uint32_t log
 			//LOG_MSG("End of cluster chain reached before end of logical sector seek!");
 			if (skipClust == 1 && fattype == FAT12) {
 				//break;
-				LOG(LOG_DOSMISC,LOG_ERROR)("End of cluster chain reached, but maybe good after all ?");
+				LOG(LOG_DOSMISC,LOG_ERROR)("End of cluster chain reached, but maybe good afterall ?");
 			}
 			return 0;
 		}
@@ -1230,7 +1230,7 @@ bool fatDrive::allocateCluster(uint32_t useCluster, uint32_t prevCluster) {
 
 		/* Point cluster to new cluster in chain */
 		setClusterValue(prevCluster, useCluster);
-		//LOG_MSG("Chaining cluster %d to %d", prevCluster, useCluster);
+		//LOG_MSG("Chaining cluser %d to %d", prevCluster, useCluster);
 	} 
 
 	switch(fattype) {

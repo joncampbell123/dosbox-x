@@ -750,7 +750,7 @@ bool physfsFile::Seek(uint32_t * pos,uint32_t type) {
 	}
 
 	if (!PHYSFS_seek(fhandle,mypos)) {
-		// Out of file range, pretend everything is ok
+		// Out of file range, pretend everythings ok
 		// and move file pointer top end of file... ?! (Black Thorne)
 		PHYSFS_seek(fhandle,PHYSFS_fileLength(fhandle));
 	};

@@ -981,7 +981,7 @@ Bitu keyboard_layout::read_codepage_file(const char* codepage_file_name, int32_t
 	bool upxfound=false;
 	uint16_t found_at_pos=5;
 	if (tempfile==NULL) {
-		// check if built-in codepage is available
+		// check if build-in codepage is available
 		// reference: https://gitlab.com/FreeDOS/base/cpidos/-/blob/master/DOC/CPIDOS/CODEPAGE.TXT
 		switch (codepage_id) {
 			case 437:	case 850:	case 852:	case 853:	case 857:	case 858:
