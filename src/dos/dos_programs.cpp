@@ -7129,8 +7129,9 @@ void UTF8::Run()
     }
     int cp=dos.loaded_codepage;
     char target[11] = "CP437";
-    if (dos.loaded_codepage==808) strcpy(target, "CP866");
-    if (dos.loaded_codepage==859) strcpy(target, "CP858");
+    if (dos.loaded_codepage==453) strcpy(target, "CP850");
+    else if (dos.loaded_codepage==808) strcpy(target, "CP866");
+    else if (dos.loaded_codepage==859) strcpy(target, "CP858");
     else if (dos.loaded_codepage==872) strcpy(target, "CP855");
     else if (dos.loaded_codepage==951 && !uao) strcpy(target, "BIG5HKSCS");
     else if (dos.loaded_codepage==951) strcpy(target, "CP950");
@@ -7208,8 +7209,9 @@ void UTF16::Run()
         return;
     }
     char target[11] = "CP437";
-    if (dos.loaded_codepage==808) strcpy(target, "CP866");
-    if (dos.loaded_codepage==859) strcpy(target, "CP858");
+    if (dos.loaded_codepage==453) strcpy(target, "CP850");
+    else if (dos.loaded_codepage==808) strcpy(target, "CP866");
+    else if (dos.loaded_codepage==859) strcpy(target, "CP858");
     else if (dos.loaded_codepage==872) strcpy(target, "CP855");
     else if (dos.loaded_codepage==951 && !uao) strcpy(target, "BIG5HKSCS");
     else if (dos.loaded_codepage==951) strcpy(target, "CP950");

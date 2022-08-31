@@ -94,7 +94,7 @@ DOSBox-X is a cross-platform DOS emulator, so all major host operating systems a
 
 2. Linux (with X11), 32-bit and 64-bit
 
-3. macOS (Mac OS X) Sierra 10.12 or higher 64-bit
+3. macOS (Mac OS X), Intel and ARM-based 64-bit
 
 4. DOS (MS-DOS 5.0+ or compatible)
 
@@ -104,7 +104,7 @@ For running DOSBox-X in a real DOS system (MS-DOS or compatible), you can find t
 
 Development (preview) builds intended for testing purposes for various platforms are also available from the [DOSBox-X Development Builds](https://dosbox-x.com/devel-build.html) page.
 
-The full source code is officially provided with each DOSBox-X release, which may be compiled to run on the above and possbily other operating systems too. You can also get the latest development source code from the repository directly. See also the [BUILD](BUILD.md) page for information on building/compiling the DOSBox-X source code.
+The full source code is officially provided with each DOSBox-X release, which may be compiled to run on the above and possibly other operating systems too. You can also get the latest development source code from the repository directly. See also the [BUILD](BUILD.md) page for information on building/compiling the DOSBox-X source code.
 
 
 ## Compatibility with DOS programs and games
@@ -395,6 +395,8 @@ messages in such languages. There are several language files available in the DO
 * Chinese (Traditional) language file: [contrib/translations/zh/zh_TW.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_TW.lng)
 
 * French language file: [contrib/translations/fr/fr_FR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/fr/fr_FR.lng)
+
+* German language file: [contrib/translations/de/de_DE.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/de/de_DE.lng)
 
 * Japanese language file: [contrib/translations/ja/ja_JP.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ja/ja_JP.lng)
 

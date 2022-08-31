@@ -1272,7 +1272,8 @@ LPWSTR getWString(std::string str, wchar_t *def, wchar_t*& buffer) {
     }
     uint16_t len=(uint16_t)str.size();
     if (cp>0) {
-        if (cp==808) cp=866;
+        if (cp==453) cp=850;
+        else if (cp==808) cp=866;
         else if (cp==859) cp=858;
         else if (cp==872) cp=855;
         else if (cp==951) cp=950;

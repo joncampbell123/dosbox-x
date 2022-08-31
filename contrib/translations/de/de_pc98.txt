@@ -2058,7 +2058,7 @@ POPD
 
 .
 :SHELL_CMD_VERIFY_HELP
-Wenn aktiviert, wird getestet, ob Dateien korrekt gespeichert wurden.
+Wenn aktiviert, wird getestet, ob Daten korrekt gespeichert wurden.
 
 .
 :SHELL_CMD_VERIFY_HELP_LONG

@@ -18,7 +18,7 @@ The four major operating systems and platforms of DOSBox-X are:
 
 2. Linux (with X11) 64-bit x86/x64, and on a Raspberry Pi 3/4
 
-3. macOS (Mac OS X) Sierra 10.12 or higher, 64-bit Intel and ARM-based
+3. macOS (Mac OS X) recent version, 64-bit Intel and ARM-based
 
 4. DOS (MS-DOS 5.0+ or compatible)
 
@@ -190,7 +190,8 @@ but not Visual Studio builds.
 Build the source code for your platform (Win32, x64, ARM and ARM64 are supported).
 
 As of 2018/06/06, Visual Studio 2017 builds (32-bit and 64-bit) explicitly require
-a processor that supports the SSE instruction set.
+a processor that supports the SSE instruction set. As of version 2022.09.01, Visual
+Studio ARM/ARM64 builds require a Windows SDK that includes the OpenGL library.
 
 Visual Studio Code is supported, too.
 
