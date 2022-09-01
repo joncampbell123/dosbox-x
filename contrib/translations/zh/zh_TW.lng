@@ -1464,11 +1464,11 @@ GOTO: 標籤 %s 找不到.
 
 .
 :SHELL_CMD_DIR_BYTES_USED
-%5d 個檔案 %17s 位元組
+%5d 個檔案 %18s 位元組
 
 .
 :SHELL_CMD_DIR_BYTES_FREE
-%5d 個目錄 %17s 可用位元組
+%5d 個目錄 %18s 可用位元組
 
 .
 :SHELL_CMD_DIR_FILES_LISTED

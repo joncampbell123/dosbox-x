@@ -1475,7 +1475,7 @@ El archivo %s ya existe.
 
 .
 :SHELL_CMD_DIR_BYTES_USED
-%5d Archivo(s) %17s Bytes
+%5d Archivo(s) %14s Bytes
 
 .
 :SHELL_CMD_DIR_BYTES_FREE

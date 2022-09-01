@@ -1483,11 +1483,11 @@ O arquivo %s já existe.
 
 .
 :SHELL_CMD_DIR_BYTES_USED
-%5d arquivo(s) %17s bytes
+%5d arquivo(s) %14s bytes
 
 .
 :SHELL_CMD_DIR_BYTES_FREE
-%5d pasta(s)  %17s bytes disponíveis
+%5d pasta(s) %16s bytes disponíveis
 
 .
 :SHELL_CMD_DIR_FILES_LISTED

@@ -1487,7 +1487,7 @@ GOTO: 딱지 %s을(를) 찾을 수 없습니다.
 
 .
 :SHELL_CMD_DIR_BYTES_FREE
-%5d 개의 디렉토리 %17s 바이트의 여유 공간
+%5d 개의 디렉토리 %13s 바이트의 여유 공간
 
 .
 :SHELL_CMD_DIR_FILES_LISTED

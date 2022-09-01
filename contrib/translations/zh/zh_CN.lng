@@ -1464,11 +1464,11 @@ GOTO: 标签 %s 找不到.
 
 .
 :SHELL_CMD_DIR_BYTES_USED
-%5d 个文件 %17s 字节
+%5d 个文件 %18s 字节
 
 .
 :SHELL_CMD_DIR_BYTES_FREE
-%5d 个目录 %17s 可用字节
+%5d 个目录 %18s 可用字节
 
 .
 :SHELL_CMD_DIR_FILES_LISTED

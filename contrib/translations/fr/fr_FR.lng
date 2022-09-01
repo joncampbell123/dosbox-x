@@ -1475,11 +1475,11 @@ Le fichier %s existe déjà.
 
 .
 :SHELL_CMD_DIR_BYTES_USED
-%5d Fichier(s) %17s Octets
+%5d Fichier(s) %14s Octets
 
 .
 :SHELL_CMD_DIR_BYTES_FREE
-%5d Dir(s) %17s Octets libres
+%5d Dir(s) %18s Octets libres
 
 .
 :SHELL_CMD_DIR_FILES_LISTED

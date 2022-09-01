@@ -1476,11 +1476,11 @@ Dosya bulunamadı - %s
 
 .
 :SHELL_CMD_DIR_BYTES_USED
-%5d dosya, %17s bayt
+%5d dosya, %18s bayt
 
 .
 :SHELL_CMD_DIR_BYTES_FREE
-%5d dizin, %17s bayt boş
+%5d dizin, %18s bayt boş
 
 .
 :SHELL_CMD_DIR_FILES_LISTED
