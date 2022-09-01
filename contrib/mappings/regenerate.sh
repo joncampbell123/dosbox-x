@@ -19,6 +19,7 @@
 ./sb2u.pl cp865_to_unicode <CP865.TXT >../../include/cp865_uni.h || exit 1
 ./sb2u.pl cp866_to_unicode <CP866.TXT >../../include/cp866_uni.h || exit 1
 ./sb2u.pl cp867_to_unicode <CP867.TXT >../../include/cp867_uni.h || exit 1
+./sb2u.pl cp868_to_unicode <CP868.TXT >../../include/cp868_uni.h || exit 1
 ./sb2u.pl cp869_to_unicode <CP869.TXT >../../include/cp869_uni.h || exit 1
 ./sb2u.pl cp872_to_unicode <CP872.TXT >../../include/cp872_uni.h || exit 1
 ./sb2u.pl cp874_to_unicode <CP874.TXT >../../include/cp874_uni.h || exit 1

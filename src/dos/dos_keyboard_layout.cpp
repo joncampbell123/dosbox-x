@@ -787,6 +787,8 @@ void initcodepagefont() {
     if (!dos.loaded_codepage) return;
 	uint32_t start_pos;
 	uint16_t number_of_codepages;
+	static uint8_t cpi_buff[65536];
+	uint8_t *cpibuf = dos.loaded_codepage == 856 ? cpi_buff : cpi_buf;
 	uint32_t cpi_buf_size=0,size_of_cpxdata=0;
     switch (dos.loaded_codepage) {
 			case 437:	case 850:	case 852:	case 853:	case 857:	case 858:
@@ -848,11 +850,11 @@ void initcodepagefont() {
     }
     uint16_t found_at_pos=0x29+19;
     size_of_cpxdata=cpi_buf_size;
-    cpi_buf[found_at_pos]=0xcb;
+    cpibuf[found_at_pos]=0xcb;
     uint16_t seg=0;
     uint16_t size=0x1500;
     if (!DOS_AllocateMemory(&seg,&size)) return;
-    MEM_BlockWrite(((unsigned int)seg<<4u)+0x100u,cpi_buf,size_of_cpxdata);
+    MEM_BlockWrite(((unsigned int)seg<<4u)+0x100u,cpibuf,size_of_cpxdata);
     uint16_t save_ds=SegValue(ds);
     uint16_t save_es=SegValue(es);
     uint16_t save_ss=SegValue(ss);
@@ -866,39 +868,39 @@ void initcodepagefont() {
     SegSet16(es,save_es);
     SegSet16(ss,save_ss);
     reg_esp=save_esp;
-    MEM_BlockRead(((unsigned int)seg<<4u)+0x100u,cpi_buf,65536u);
+    MEM_BlockRead(((unsigned int)seg<<4u)+0x100u,cpibuf,65536u);
     cpi_buf_size=65536;
     DOS_FreeMemory(seg);
-	start_pos=host_readd(&cpi_buf[0x13]);
-	number_of_codepages=host_readw(&cpi_buf[start_pos]);
+	start_pos=host_readd(&cpibuf[0x13]);
+	number_of_codepages=host_readw(&cpibuf[start_pos]);
 	start_pos+=4;
 	for (uint16_t test_codepage=0; test_codepage<number_of_codepages; test_codepage++) {
 		uint16_t device_type, font_codepage, font_type;
-		device_type=host_readw(&cpi_buf[start_pos+0x04]);
-		font_codepage=host_readw(&cpi_buf[start_pos+0x0e]);
+		device_type=host_readw(&cpibuf[start_pos+0x04]);
+		font_codepage=host_readw(&cpibuf[start_pos+0x0e]);
 		uint32_t font_data_header_pt;
-		font_data_header_pt=host_readd(&cpi_buf[start_pos+0x16]);
-		font_type=host_readw(&cpi_buf[font_data_header_pt]);
+		font_data_header_pt=host_readd(&cpibuf[start_pos+0x16]);
+		font_type=host_readw(&cpibuf[font_data_header_pt]);
 		if ((device_type==0x0001) && (font_type==0x0001) && (font_codepage==dos.loaded_codepage)) {
-			uint16_t number_of_fonts=host_readw(&cpi_buf[font_data_header_pt+0x02]);
+			uint16_t number_of_fonts=host_readw(&cpibuf[font_data_header_pt+0x02]);
 			uint32_t font_data_start=font_data_header_pt+0x06;
 			for (uint16_t current_font=0; current_font<number_of_fonts; current_font++) {
-				uint8_t font_height=cpi_buf[font_data_start];
+				uint8_t font_height=cpibuf[font_data_start];
 				font_data_start+=6;
 				if (font_height==0x10) {
                     for (uint16_t i=0;i<256*16;i++)
-                        int10_font_16_init[i]=eurAscii>32&&i/16==eurAscii?euro_16[i%16]:cpi_buf[font_data_start+i];
+                        int10_font_16_init[i]=eurAscii>32&&i/16==eurAscii?euro_16[i%16]:cpibuf[font_data_start+i];
                     font_16_init=true;
 				} else if (font_height==0x0e) {
                     for (uint16_t i=0;i<256*14;i++)
-                        int10_font_14_init[i]=eurAscii>32&&i/14==eurAscii?euro_14[i%14]:cpi_buf[font_data_start+i];
+                        int10_font_14_init[i]=eurAscii>32&&i/14==eurAscii?euro_14[i%14]:cpibuf[font_data_start+i];
                     font_14_init=true;
                 }
 				font_data_start+=font_height*256u;
 			}
 			return;
 		}
-		start_pos=host_readd(&cpi_buf[start_pos]);
+		start_pos=host_readd(&cpibuf[start_pos]);
 		start_pos+=2;
 	}
 }
@@ -1734,7 +1736,7 @@ void DOS_KeyboardLayout_Init() {
 
 static const std::set<int> supportedCodepages =
 {
-	437, 737, 775, 808, 850, 852, 853, 855, 856, 857, 858, 859, 860, 861, 862, 863, 864, 865, 866, 867, 869, 872, 874,
+	437, 737, 775, 808, 850, 852, 853, 855, 856, 857, 858, 859, 860, 861, 862, 863, 864, 865, 866, 867, 868, 869, 872, 874,
 	932, 936, 949, 950, 951, 1250, 1251, 1252, 1253, 1254, 1255, 1256, 1257, 1258, 3021
 };
 

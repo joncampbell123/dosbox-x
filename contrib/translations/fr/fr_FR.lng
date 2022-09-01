@@ -2157,7 +2157,7 @@ CHCP nnn[:[langue]]
 Pages de code prises en charge pour être modifiées dans la sortie
 de la police TrueType :
 
-437,737,775,808,850,852,853,855-867,869,872,874,1250-1258,3021
+437,737,775,808,850,852,853,855-869,872,874,1250-1258,3021
 
 Également des pages de code à double octet, notamment 932, 936, 949 et 950/951.
 

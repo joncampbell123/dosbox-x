@@ -2179,7 +2179,7 @@ CHCP nnn[:[language]]
 Unterstützte Codepages, die in Verbindung mit
 TrueType-Font-Output kombiniert werden können:
 
-437,737,775,808,850,852,853,855-867,869,872,874,1250-1258,3021
+437,737,775,808,850,852,853,855-869,872,874,1250-1258,3021
 
 und 2-Byte-Codepages, inklusive 932, 936, 949, und 950/951.
 

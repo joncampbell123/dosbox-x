@@ -1973,6 +1973,9 @@
     <ClInclude Include="..\include\cp867_uni.h">
       <Filter>Includes</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\cp868_uni.h">
+      <Filter>Includes</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\cp869_uni.h">
       <Filter>Includes</Filter>
     </ClInclude>
