@@ -5085,7 +5085,7 @@ void SetIMPosition() {
         last_ticks = GetTicks();
         im_x = x;
         im_y = y;
-#if defined(LINUX)
+#if defined(LINUX) || defined(MACOSX)
         y++;
 #endif
         uint8_t height = IS_PC98_ARCH?16:real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);

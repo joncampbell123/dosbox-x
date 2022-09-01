@@ -202,14 +202,14 @@ Libraries used by DOSBox-X
 
 The following libraries are used by DOSBox-X:
 
-* SDL 1.2.x or SDL 2.0.x
+* SDL 1.2.x or SDL 2.x (in-tree)
 
     The Simple DirectMedia Library available at https://www.libsdl.org
 
     The SDL1 library distributed with DOSBox-X had been heavily modified
     from the original to support for example native OS menus.
     
-    Note that only version 1.2.x (SDL1 version) and version 2.0.x
+    Note that only version 1.2.x (SDL1 version) and version 2.x
     (SDL2 version) are currently supported.
     
     License: LGPLv2+
@@ -224,7 +224,7 @@ The following libraries are used by DOSBox-X:
     
     License: Public Domain
 
-* Libpng (optional)
+* Libpng (in-tree; optional)
 
     Needed for the screenshots.
     
@@ -234,7 +234,7 @@ The following libraries are used by DOSBox-X:
     
     License: zlib/libpng
 
-* Zlib
+* Zlib (in-tree)
 
     Needed by libpng, and for save-state and CHD support.
     
@@ -244,7 +244,7 @@ The following libraries are used by DOSBox-X:
     
     License: zlib
 
-* FreeType (optional)
+* FreeType (in-tree; optional)
 
     Needed for TrueType font (TTF) output and printing support.
     
@@ -278,7 +278,7 @@ The following libraries are used by DOSBox-X:
     
     License: Modified 4-clause BSD license
 
-* SDL_Net (optional)
+* SDL_Net (in-tree; optional)
 
     For Modem/IPX support.
     
@@ -286,7 +286,7 @@ The following libraries are used by DOSBox-X:
     
     License: LGPLv2+
 
-* SDL_Sound (optional)
+* SDL_Sound (in-tree; optional)
     
     For compressed audio on diskimages (cue sheets) support.
     
