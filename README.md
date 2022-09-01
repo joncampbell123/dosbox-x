@@ -390,23 +390,17 @@ a non-English language, you are encouraged to create additional language files f
 messages in DOSBox-X to your language. Other DOSBox-X users can also use these language files for DOSBox-X to display
 messages in such languages. There are several language files available in the DOSBox-X repository, e.g.:
 
-* Chinese (Simplified) language file: [contrib/translations/zh/zh_CN.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_CN.lng)
-
-* Chinese (Traditional) language file: [contrib/translations/zh/zh_TW.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_TW.lng)
-
-* French language file: [contrib/translations/fr/fr_FR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/fr/fr_FR.lng)
-
-* German language file: [contrib/translations/de/de_DE.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/de/de_DE.lng)
-
-* Japanese language file: [contrib/translations/ja/ja_JP.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ja/ja_JP.lng)
-
-* Korean language file: [contrib/translations/ko/ko_KR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ko/ko_KR.lng)
-
-* Portuguese (Brazilian) language file: [contrib/translations/pt/pt_BR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/pt/pt_BR.lng)
-
-* Spanish language file: [contrib/translations/es/es_ES.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/es/es_ES.lng)
-
-* Turkish language file: [contrib/translations/tr/tr_TR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/tr/tr_TR.lng)
+|Language name|Language file|
+| --- | --- |
+|Chinese (Simplified)|[contrib/translations/zh/zh_CN.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_CN.lng)|
+|Chinese (Traditional)|[contrib/translations/zh/zh_TW.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_TW.lng)|
+|French|[contrib/translations/fr/fr_FR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/fr/fr_FR.lng)|
+|German|[contrib/translations/de/de_DE.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/de/de_DE.lng)|
+|Japanese|[contrib/translations/ja/ja_JP.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ja/ja_JP.lng)|
+|Korean|[contrib/translations/ko/ko_KR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ko/ko_KR.lng)|
+|Portuguese (Brazilian)|[contrib/translations/pt/pt_BR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/pt/pt_BR.lng)|
+|Spanish|[contrib/translations/es/es_ES.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/es/es_ES.lng)|
+|Turkish|[contrib/translations/tr/tr_TR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/tr/tr_TR.lng)|
 
 The fact that DOSBox-X was developed around the U.S. keyboard layout is primarily due to limitations around the SDL1
 library which provides input handling. As such when using the SDL1 version and a non-US keyboard, DOSBox-X automatically

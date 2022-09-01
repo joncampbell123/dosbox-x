@@ -1492,6 +1492,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
     }
 
 	loadedDisk->Addref();
+	bool isipl1 = false;
 
 	{
 		FAT_BootSector bootbuffer = {};
@@ -1569,6 +1570,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 
 					partition_index = chosen_idx;
 				}
+				isipl1 = true;
 			}
 			else if (ptype == "MBR") {
 				/* IBM PC master boot record search */
@@ -1820,6 +1822,11 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 		//(BPB.v.BPB_NumHeads > headscyl && !IS_PC98_ARCH) ||
 		(BPB.v.BPB_SecPerTrk == 0 && !IS_PC98_ARCH) ||
 		(BPB.v.BPB_SecPerTrk > cylsector && !IS_PC98_ARCH)) {
+		if (isipl1 && !IS_PC98_ARCH && (BPB.v.BPB_NumHeads == 0 || BPB.v.BPB_SecPerTrk == 0 || BPB.v.BPB_SecPerTrk > cylsector)) {
+			const char *msg = "Please restart DOSBox-X in PC-98 mode to mount HDI disk images.\r\n";
+			uint16_t n = (uint16_t)strlen(msg);
+			DOS_WriteFile (STDOUT,(uint8_t *)msg, &n);
+		}
 		LOG_MSG("Sanity checks failed");
 		created_successfully = false;
 		return;
