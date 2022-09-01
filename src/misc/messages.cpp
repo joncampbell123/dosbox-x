@@ -206,7 +206,7 @@ void AddMessages() {
 void SetKEYBCP() {
     if (IS_PC98_ARCH || IS_JEGA_ARCH || IS_DOSV || dos_kernel_disabled || !strcmp(RunningProgram, "LOADLIN")) return;
     if (msgcodepage == 437) {dos.loaded_codepage=0;DOS_LoadKeyboardLayout("us", 437, "auto");dos.loaded_codepage=437;}
-    else if (msgcodepage == 453) {dos.loaded_codepage=437;DOS_LoadKeyboardLayout("de", 453, "auto");dos.loaded_codepage=453;}
+    else if (msgcodepage == 850) {dos.loaded_codepage=437;DOS_LoadKeyboardLayout("de", 850, "auto");dos.loaded_codepage=850;}
     else if (msgcodepage == 857) {dos.loaded_codepage=437;DOS_LoadKeyboardLayout("tr", 857, "auto");dos.loaded_codepage=857;}
     else if (msgcodepage == 858) {dos.loaded_codepage=437;DOS_LoadKeyboardLayout("es", 858, "auto");dos.loaded_codepage=858;}
     else if (msgcodepage == 859) {dos.loaded_codepage=437;DOS_LoadKeyboardLayout("fr", 859, "auto");dos.loaded_codepage=859;}

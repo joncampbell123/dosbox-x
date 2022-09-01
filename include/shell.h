@@ -45,7 +45,7 @@ extern DOS_Shell * first_shell;
 
 const std::map<int, std::string> langcp_map {
 	{437, "en_US"},
-	{453, "de_DE"},
+	{850, "de_DE"},
 	{857, "tr_TR"},
 	{858, "es_ES"},
 	{859, "fr_FR"},

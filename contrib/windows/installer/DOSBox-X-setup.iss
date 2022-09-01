@@ -318,7 +318,7 @@ begin
               if (PageLang.Values[1]) then
                 FileLines[i] := linetmp+' 33,859';
               if (PageLang.Values[2]) then
-                FileLines[i] := linetmp+' 49,453';
+                FileLines[i] := linetmp+' 49,850';
               if (PageLang.Values[3]) then
                 FileLines[i] := linetmp+' 81,932';
               if (PageLang.Values[4]) then
