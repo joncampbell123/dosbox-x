@@ -510,7 +510,7 @@ int setTTFMap(bool changecp) {
     }
     uint16_t unimap;
     int notMapped = 0;
-    for (int y = ((customcp&&(dos.loaded_codepage==customcp||changecp))||(altcp&&(dos.loaded_codepage==altcp||changecp))?0:8); y < 16; y++)
+    for (int y = ((cpMap[1]!=1&&cpMap[1]!=0x263A)||cp==867||(customcp&&(dos.loaded_codepage==customcp||changecp))||(altcp&&(dos.loaded_codepage==altcp||changecp))?0:8); y < 16; y++)
         for (int x = 0; x < 16; x++) {
             if (y<8 && (wcTest[y*16+x] == y*16+x || wcTest[y*16+x] == cp437_to_unicode[y*16+x])) unimap = cpMap_copy[y*16+x];
             else unimap = wcTest[y*16+x];

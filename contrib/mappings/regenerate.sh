@@ -1,6 +1,5 @@
 #!/bin/bash
 ./sb2u.pl cp437_to_unicode <CP437.TXT >../../include/cp437_uni.h || exit 1
-./sb2u.pl cp453_to_unicode <CP453.TXT >../../include/cp453_uni.h || exit 1
 ./sb2u.pl cp737_to_unicode <CP737.TXT >../../include/cp737_uni.h || exit 1
 ./sb2u.pl cp775_to_unicode <CP775.TXT >../../include/cp775_uni.h || exit 1
 ./sb2u.pl cp808_to_unicode <CP808.TXT >../../include/cp808_uni.h || exit 1
@@ -19,6 +18,7 @@
 ./sb2u.pl cp864_to_unicode <CP864.TXT >../../include/cp864_uni.h || exit 1
 ./sb2u.pl cp865_to_unicode <CP865.TXT >../../include/cp865_uni.h || exit 1
 ./sb2u.pl cp866_to_unicode <CP866.TXT >../../include/cp866_uni.h || exit 1
+./sb2u.pl cp867_to_unicode <CP867.TXT >../../include/cp867_uni.h || exit 1
 ./sb2u.pl cp869_to_unicode <CP869.TXT >../../include/cp869_uni.h || exit 1
 ./sb2u.pl cp872_to_unicode <CP872.TXT >../../include/cp872_uni.h || exit 1
 ./sb2u.pl cp874_to_unicode <CP874.TXT >../../include/cp874_uni.h || exit 1

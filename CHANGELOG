@@ -1,6 +1,8 @@
 2022.09.0 (0.84.3)
   - Added 86PCM support for PC-98 emulation. (nanshiki)
   - Added German language translation. (Link-Mario)
+  - Added code page 867 for code page conversion, which
+    is compatible with Hebrew WordPerfect. (Wengier)
   - Improved ANSI.SYS detection for the welcome banner
     and CLS command. The command "INTRO WELCOME" will
     re-display the welcome banner without running the
