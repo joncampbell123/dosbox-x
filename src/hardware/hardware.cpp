@@ -149,33 +149,30 @@ void ffmpeg_closeall() {
 
 void ffmpeg_audio_frame_send() {
 	AVPacket pkt;
-	int gotit;
+	int r;
 
+	memset(&pkt,0,sizeof(pkt));
 	av_init_packet(&pkt);
-	if (av_new_packet(&pkt,65536) == 0) {
-		pkt.flags |= AV_PKT_FLAG_KEY;
+	pkt.flags |= AV_PKT_FLAG_KEY;
 
-		if (avcodec_encode_audio2(ffmpeg_aud_ctx,&pkt,ffmpeg_aud_frame,&gotit) == 0) {
-			if (gotit) {
-				pkt.pts = (int64_t)ffmpeg_audio_sample_counter;
-				pkt.dts = (int64_t)ffmpeg_audio_sample_counter;
-				pkt.stream_index = ffmpeg_aud_stream->index;
-				av_packet_rescale_ts(&pkt,ffmpeg_aud_ctx->time_base,ffmpeg_aud_stream->time_base);
+	ffmpeg_aud_frame->pts = (int64_t)ffmpeg_audio_sample_counter;
+	r=avcodec_send_frame(ffmpeg_aud_ctx,ffmpeg_aud_frame);
+	if (r < 0 && r != AVERROR(EAGAIN))
+		LOG_MSG("WARNING: avcodec_send_frame() failed to encode (err=%d)",r);
 
-				if (av_interleaved_write_frame(ffmpeg_fmt_ctx,&pkt) < 0)
-					LOG_MSG("WARNING: av_interleaved_write_frame failed");
-			}
-			else {
-				LOG_MSG("DEBUG: avcodec_encode_audio2() delayed output");
-			}
-		}
-		else {
-			LOG_MSG("WARNING: avcodec_encode_audio2() failed to encode");
-		}
+	while ((r=avcodec_receive_packet(ffmpeg_aud_ctx,&pkt)) >= 0) {
+		pkt.stream_index = ffmpeg_aud_stream->index;
+		av_packet_rescale_ts(&pkt,ffmpeg_aud_ctx->time_base,ffmpeg_aud_stream->time_base);
+
+		if (av_interleaved_write_frame(ffmpeg_fmt_ctx,&pkt) < 0)
+			LOG_MSG("WARNING: av_interleaved_write_frame failed");
 	}
-	av_packet_unref(&pkt);
+
+	if (r != AVERROR(EAGAIN))
+		LOG_MSG("WARNING: avcodec_receive_packet() failed to encode (err=%d)",r);
 
 	ffmpeg_audio_sample_counter += (uint64_t)ffmpeg_aud_frame->nb_samples;
+	av_packet_unref(&pkt);
 }
 
 void ffmpeg_take_audio(int16_t *raw,unsigned int samples) {
@@ -279,34 +276,37 @@ void ffmpeg_flushout() {
 	/* audio */
 	if (ffmpeg_fmt_ctx != NULL) {
 		if (ffmpeg_aud_frame != NULL) {
-			bool again;
 			AVPacket pkt;
+			int r;
 
-			if (ffmpeg_aud_write != 0)
+			if (ffmpeg_aud_write != 0) {
 				ffmpeg_aud_frame->nb_samples = (int)ffmpeg_aud_write;
+				ffmpeg_audio_frame_send();
+			}
 
-			ffmpeg_audio_frame_send();
 			ffmpeg_aud_write = 0;
 			ffmpeg_aud_frame->nb_samples = 0;
 
-			do {
-				again=false;
-				av_init_packet(&pkt);
-				if (av_new_packet(&pkt,65536) == 0) {
-					int gotit=0;
-					if (avcodec_encode_audio2(ffmpeg_aud_ctx,&pkt,NULL,&gotit) == 0) {
-						if (gotit) {
-							again = true;
-							pkt.stream_index = ffmpeg_aud_stream->index;
-							av_packet_rescale_ts(&pkt,ffmpeg_aud_ctx->time_base,ffmpeg_aud_stream->time_base);
+			memset(&pkt,0,sizeof(pkt));
+			av_init_packet(&pkt);
+			pkt.flags |= AV_PKT_FLAG_KEY;
 
-							if (av_interleaved_write_frame(ffmpeg_fmt_ctx,&pkt) < 0)
-								LOG_MSG("WARNING: av_interleaved_write_frame failed");
-						}
-					}
-				}
-				av_packet_unref(&pkt);
-			} while (again);
+			r=avcodec_send_frame(ffmpeg_aud_ctx,NULL);
+			if (r < 0 && r != AVERROR(EAGAIN))
+				LOG_MSG("WARNING: avcodec_send_frame() failed to encode (err=%d)",r);
+
+			while ((r=avcodec_receive_packet(ffmpeg_aud_ctx,&pkt)) >= 0) {
+				pkt.stream_index = ffmpeg_aud_stream->index;
+				av_packet_rescale_ts(&pkt,ffmpeg_aud_ctx->time_base,ffmpeg_aud_stream->time_base);
+
+				if (av_interleaved_write_frame(ffmpeg_fmt_ctx,&pkt) < 0)
+					LOG_MSG("WARNING: av_interleaved_write_frame failed");
+			}
+
+			if (r != AVERROR(EAGAIN))
+				LOG_MSG("WARNING: avcodec_receive_packet() failed to encode (err=%d)",r);
+
+			av_packet_unref(&pkt);
 		}
 	}
 
