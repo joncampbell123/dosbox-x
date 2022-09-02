@@ -111,6 +111,8 @@ void ffmpeg_closeall() {
 			ffmpeg_avformat_began = false;
 		}
 		avio_close(ffmpeg_fmt_ctx->pb);
+		if (ffmpeg_vid_ctx != NULL) avcodec_close(ffmpeg_vid_ctx);
+		if (ffmpeg_aud_ctx != NULL) avcodec_close(ffmpeg_aud_ctx);
 		avformat_free_context(ffmpeg_fmt_ctx);
 		ffmpeg_fmt_ctx = NULL;
 		ffmpeg_vid_ctx = NULL; // NTS: avformat_free_context() freed this for us, don't free again
