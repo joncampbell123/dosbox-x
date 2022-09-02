@@ -461,6 +461,8 @@ void ffmpeg_reopen_video(double fps,const int bpp) {
 	{
 		AVDictionary *opts = NULL;
 
+		av_dict_set(&opts,"crf","14",1); /* default is 20, this allows higher quality */
+		av_dict_set(&opts,"crf_max","20",1); /* don't let it get too low quality */
 		av_dict_set(&opts,"preset","superfast",1);
 		av_dict_set(&opts,"aud","1",1);
 
@@ -1179,6 +1181,8 @@ skip_shot:
 			{
 				AVDictionary *opts = NULL;
 
+				av_dict_set(&opts,"crf","14",1); /* default is 20, this allows higher quality */
+				av_dict_set(&opts,"crf_max","20",1); /* don't let it get too low quality */
 				av_dict_set(&opts,"preset","superfast",1);
 				av_dict_set(&opts,"aud","1",1);
 
