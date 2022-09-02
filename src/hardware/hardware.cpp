@@ -118,10 +118,12 @@ void ffmpeg_closeall() {
 	}
 	if (ffmpeg_vid_ctx != NULL) {
 		avcodec_close(ffmpeg_vid_ctx);
+		avcodec_free_context(&ffmpeg_vid_ctx);
 		ffmpeg_vid_ctx = NULL;
 	}
 	if (ffmpeg_aud_ctx != NULL) {
 		avcodec_close(ffmpeg_aud_ctx);
+		avcodec_free_context(&ffmpeg_aud_ctx);
 		ffmpeg_aud_ctx = NULL;
 	}
 	if (ffmpeg_vidrgb_frame != NULL) {
@@ -412,6 +414,7 @@ int ffmpeg_bpp_pick_rgb_format(int bpp) {
 void ffmpeg_reopen_video(double fps,const int bpp) {
 	if (ffmpeg_vid_ctx != NULL) {
 		avcodec_close(ffmpeg_vid_ctx);
+		avcodec_free_context(&ffmpeg_vid_ctx);
 		ffmpeg_vid_ctx = NULL;
 	}
 	if (ffmpeg_vidrgb_frame != NULL) {
