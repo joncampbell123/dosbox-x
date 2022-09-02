@@ -551,8 +551,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 <div class="paragraph">
-<p>Windows 2.x available as both Retail and OEM editions.
-A runtime edition was also included with some applications.</p>
+<p>Windows 2.x was available in both Retail and OEM editions, for shipping with computers.
+A special runtime edition was also included with some applications.</p>
 </div>
 </div>
 <div class="sect2">
@@ -562,7 +562,7 @@ A runtime edition was also included with some applications.</p>
 Versions ending in <strong>/386</strong> are meant for 386 class computers, while the <strong>Windows 2.03</strong> release could also run on 8086/8088 and 286 class computers.</p>
 </div>
 <div class="paragraph">
-<p>But with 2.10 they appended <strong>/286</strong> to this version because <code>HIMEM.SYS</code> was included which requires at least a 286 class computer.</p>
+<p>But with version 2.10 they appended <strong>/286</strong> to the version because <code>HIMEM.SYS</code> was included which requires at least a 286 class computer.</p>
 </div>
 <div class="paragraph">
 <p>Despite the <strong>/286</strong> or <strong>/386</strong> suffixes, all versions could be run on older computers.
@@ -663,11 +663,11 @@ Therefore, if you want to run this version in DOSBox-X, you should enable <code>
 Instead, select the "Microsoft Mouse connected to PS/2 Mouse Port".</p>
 </div>
 <div class="paragraph">
-<p>Windows 2.1x will complain if the High Memory Area (HMA) is used.
+<p>Windows 2.1x editions will complain if the High Memory Area (HMA) is used.
 This can be resolved by setting <code>DOS=LOW</code> in the [config] section of the DOSBox-X config file.</p>
 </div>
 <div class="paragraph">
-<p>The Windows/386 editions install by default into <code>C:\WIN386</code> instead of <code>C:\WINDOWS</code> as all other Windows versions normally do.
+<p>All Windows/386 editions install by default into <code>C:\WIN386</code> instead of <code>C:\WINDOWS</code> as other Windows versions normally do.
 And the command to start Windows/386 is <code>win386.exe</code>, instead of the typical <code>win.com</code> of most other Windows versions at the time.
 Windows/386 also has a <code>win86.com</code> executable, which is effectively a renamed <code>win.com</code>, and this makes it possible to run Windows/386 on 8086 and 286 computers.</p>
 </div>
@@ -1345,13 +1345,13 @@ Unpack the archive, and you will find a Windows 2.0 mouse driver in the <code>wi
 <div class="paragraph">
 <p>In addition, set the following options in your DOSBox-X config file:</p>
 </div>
-<div class="listingblock">
+<div class="literalblock">
 <div class="content">
-<pre class="highlight"><code>[sdl]
+<pre>[sdl]
 mouse emulation=integration
 
 [cpu]
-integration device=true</code></pre>
+integration device=true</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1375,7 +1375,7 @@ This can be controlled by the <code>mouse_wheel_key=</code> setting in the <code
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-08-01 17:01:25 -0400
+Last updated 2022-09-01 22:04:27 -0400
 </div>
 </div>
 </body>

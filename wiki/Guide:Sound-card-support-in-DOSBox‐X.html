@@ -485,7 +485,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 This document attempts to help the novice user, especially those that never experienced DOS PC&#8217;s during the 80&#8217;s and 90&#8217;s with selecting an appropriate audio output option for games.</p>
 </div>
 <div class="paragraph">
-<p>You can set the audio output option to emulate in your DOSBox-X config file.
+<p>You can set the audio output option to emulate in the DOSBox-X config file.
 The available audio option can be found in a few sections, such as <code>[pcspeaker]</code>, <code>[sblaster]</code>, <code>[gus]</code> and <code>[innova]</code>.</p>
 </div>
 <div class="paragraph">
@@ -717,7 +717,7 @@ It was really only meant for simple beeps, but ended up widely used by PC games 
 Originally a dynamic speaker was used, but later model PCs used a tiny piezo speaker instead which further reduced sound quality and volume.</p>
 </div>
 <div class="paragraph">
-<p>PC Speaker emulation is enabled by default, but can be disabled by setting <code>pcspeaker=false</code> in the <code>[speaker]</code> section of your config file.</p>
+<p>PC Speaker emulation is enabled by default, but can be disabled by setting <code>pcspeaker=false</code> in the <code>[speaker]</code> section of the DOSBox-X config file.</p>
 </div>
 <div class="ulist">
 <ul>
@@ -730,7 +730,7 @@ Originally a dynamic speaker was used, but later model PCs used a tiny piezo spe
 </ul>
 </div>
 <div class="paragraph">
-<p>The following options are available in the <code>[speaker]</code> section of you config file:</p>
+<p>The following options are available in the <code>[speaker]</code> section of the DOSBox-X config file:</p>
 </div>
 <div class="sect3">
 <h4 id="_pcspeaker">pcspeaker</h4>
@@ -808,7 +808,7 @@ Set to 0 for some early Abaddon demos including "Torso" and "Cycling".</p>
 <p>Default value: 44100</p>
 </li>
 <li>
-<p>Valid values: 44100, 48000, 32000, 22050, 16000, 11025, 8000, 49716</p>
+<p>Valid values: 8000, 11025, 16000, 22050, 32000, 44100, 48000, 49716, 65536</p>
 </li>
 </ul>
 </div>
@@ -826,7 +826,7 @@ Set to 0 for some early Abaddon demos including "Torso" and "Cycling".</p>
 <p>The PCjr was introduced by IBM in March 1984, and discontinued due to poor sales just over a year later.</p>
 </div>
 <div class="paragraph">
-<p>PCjr audio is automatically enabled when you set <code>machine=pcjr</code> in the <code>[dosbox]</code> section of your config file.</p>
+<p>PCjr audio is automatically enabled when you set <code>machine=pcjr</code> in the <code>[dosbox]</code> section of the DOSBox-X config file.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -849,7 +849,7 @@ Enabling PCjr mode, also enables PCjr video emulation
 <p><a href="https://www.mobygames.com/attribute/sheet/attributeId,32/">MobyGames: Games supporting Tandy/PCjr sound</a></p>
 </li>
 <li>
-<p><a href="http://nerdlypleasures.blogspot.com/2015/10/the-journey-of-pcjrtandy-sound-chip.html">Nerdy Pleasures: The Journey of the "PCjr./Tandy Sound Chip"</a></p>
+<p><a href="https://nerdlypleasures.blogspot.com/2015/10/the-journey-of-pcjrtandy-sound-chip.html">Nerdy Pleasures: The Journey of the "PCjr./Tandy Sound Chip"</a></p>
 </li>
 </ul>
 </div>
@@ -860,7 +860,7 @@ Enabling PCjr mode, also enables PCjr video emulation
 <p>Tandy audio, was introduced with the Tandy 1000 in 1984, which began as a clone of the IBM PCjr.</p>
 </div>
 <div class="paragraph">
-<p>Tandy audio is automatically enabled when you set <code>machine=tandy</code> in the <code>[dosbox]</code> section of your config file.</p>
+<p>Tandy audio is automatically enabled when you set <code>machine=tandy</code> in the <code>[dosbox]</code> section of the DOSBox-X config file.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -896,7 +896,7 @@ So to enable the Tandy DAC, you need to set <code>sblaster=none</code>.
 <p><a href="https://en.wikipedia.org/wiki/Tandy_Graphics_Adapter">Wikipedia article on Tandy Graphics</a></p>
 </li>
 <li>
-<p><a href="http://www.dosdays.co.uk/computers/Tandy%201000/tandy1000.php">DOS Days on the Tandy 1000 Series</a></p>
+<p><a href="https://www.dosdays.co.uk/computers/Tandy%201000/tandy1000.php">DOS Days on the Tandy 1000 Series</a></p>
 </li>
 <li>
 <p><a href="https://www.youtube.com/watch?v=mYHtojsaRkY">YouTube : The Tandy 1000 - The best MS-DOS computer in 1984</a></p>
@@ -954,7 +954,7 @@ So to enable the Tandy DAC, you need to set <code>sblaster=none</code>.
 <div class="sect2">
 <h3 id="_adlib_music_synthesizer_card">AdLib Music Synthesizer Card</h3>
 <div class="paragraph">
-<p>The AdLib Music Synthesizer Card was released by Ad Lib in 1987.
+<p>The AdLib Music Synthesizer Card (typically simple referred to as "AdLib") was released by Ad Lib in 1987, and is based on the Yamaha OPL2 chip.
 It was the first popular sound card for IBM PC&#8217;s and compatibles.
 It was an easy card to clone, resulting in many AdLib compatible sound cards.</p>
 </div>
@@ -969,7 +969,7 @@ oplmode=opl2</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>However, the above is normally not needed as the later Sound Blaster cards, such as the sb16 that DOSBox-X by default emulates, are all backward compatible with the AdLib.</p>
+<p>However, the above is normally not needed as the later Sound Blaster cards, such as the sb16 that DOSBox-X by default emulates, are all backward compatible with the AdLib Music Synthesizer Card.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -989,7 +989,7 @@ Some programs may require the AdLib <code>SOUND.COM</code> TSR to be loaded. See
 <p><a href="https://en.wikipedia.org/wiki/Ad_Lib,_Inc.">Wikipedia: AdLib</a></p>
 </li>
 <li>
-<p><a href="http://www.dosdays.co.uk/topics/Manufacturers/adlib.php">DOS Days: AdLib</a></p>
+<p><a href="https://www.dosdays.co.uk/topics/Manufacturers/adlib.php">DOS Days: AdLib</a></p>
 </li>
 <li>
 <p><a href="https://www.mobygames.com/attribute/sheet/attributeId,21/">MobyGames: Games supporting AdLib sound</a></p>
@@ -1001,10 +1001,13 @@ Some programs may require the AdLib <code>SOUND.COM</code> TSR to be loaded. See
 <h3 id="_cms_game_blaster">CMS / Game Blaster</h3>
 <div class="paragraph">
 <p>FM synthesizer card, released by Creative Technology in 1987.
-Originally named the <strong>Creative Music System</strong> (CMS), but the year after rebranded as the <strong>Game Blaster</strong>.</p>
+Based around two Philips SAA-1099 chips, allowing for stereo sound.</p>
 </div>
 <div class="paragraph">
-<p>CMS/Game Blaster emulation can be enabled by setting <code>sbtype=gb</code> in the <code>[sblaster]</code> section of your config file.</p>
+<p>Originally named the <strong>Creative Music System</strong> (CMS), but the year after rebranded as the <strong>Game Blaster</strong>.</p>
+</div>
+<div class="paragraph">
+<p>CMS/Game Blaster emulation can be enabled by setting <code>sbtype=gb</code> in the <code>[sblaster]</code> section of the DOSBox-X config file.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1024,7 +1027,7 @@ Some programs may require the Creative <code>CMSDRV.COM</code> TSR to be loaded.
 <p><a href="https://www.mobygames.com/attribute/sheet/attributeId,42/p,2/">MobyGames: Games supporting the Game Blaster</a></p>
 </li>
 <li>
-<p><a href="http://www.dosdays.co.uk/topics/Manufacturers/creative.php">DOS Days: Creative Labs</a></p>
+<p><a href="https://www.dosdays.co.uk/topics/Manufacturers/creative.php">DOS Days: Creative Labs</a></p>
 </li>
 </ul>
 </div>
@@ -1093,13 +1096,14 @@ Relatively few games support this option, and the FM sounds very much like the P
 <div class="sect2">
 <h3 id="_disney_sound_source">Disney Sound Source</h3>
 <div class="paragraph">
-<p>Covox introduced the <strong>Covox Speech Thing</strong> parallel port sound dongle in 1987, while Disney introduced the <strong>Disney Sound Source</strong> in 1990.</p>
+<p>Covox introduced the <strong>Covox Speech Thing</strong> parallel port sound dongle in 1987, while Disney introduced the <strong>Disney Sound Source</strong> in 1990, which is backwards compatible with the Covox, but adds a FIFO buffer and logic to reduce CPU overhead.</p>
 </div>
 <div class="paragraph">
 <p>These parallel port devices only provide a DAC at a low frequency for playback of digital samples, and has no FM sound.</p>
 </div>
 <div class="paragraph">
-<p>DOSBox-X provides emulation for the Disney Sound Source, which is effectively backward compatible with the earlier Covox devices.</p>
+<p>DOSBox-X provides emulation for the Disney Sound Source, which is effectively backward compatible with the earlier Covox Speech Thing.
+Also games compatible with the <strong>Intersound MDO</strong> should work with this, as it is effectively a Covox Speech Thing clone.</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1107,7 +1111,16 @@ Relatively few games support this option, and the FM sounds very much like the P
 <p><a href="https://en.wikipedia.org/wiki/Covox_Speech_Thing">Wikipedia: Covox Speech Thing</a></p>
 </li>
 <li>
-<p><a href="http://nerdlypleasures.blogspot.com/2014/09/the-mysterious-covox-pc-sound-devices.html">The Mysterious Covox PC Sound Devices</a></p>
+<p><a href="https://nerdlypleasures.blogspot.com/2014/09/the-mysterious-covox-pc-sound-devices.html">The Mysterious Covox PC Sound Devices</a></p>
+</li>
+<li>
+<p><a href="https://www.mobygames.com/attribute/sheet/attributeId,43/p,2/">MobyGames: Games supporting the Covox Speech Thing</a></p>
+</li>
+<li>
+<p><a href="https://www.mobygames.com/attribute/sheet/attributeId,1860/p">MobyGames: Games supporting the Intersound MDO</a></p>
+</li>
+<li>
+<p><a href="https://www.mobygames.com/attribute/sheet/attributeId,44/p,2/">MobyGames: Games supporting the Disney Sound Source</a></p>
 </li>
 </ul>
 </div>
@@ -1127,8 +1140,10 @@ Relatively few games support this option, and the FM sounds very much like the P
 </ul>
 </div>
 <div class="paragraph">
-<p>Enables or disables Disney Sound Source emulation on the parallel port.
-This feature is backward compatible with the <strong>Covox Speech Thing</strong> and <strong>Covox Voice Master</strong> parallel port dongles.</p>
+<p>Enables or disables Disney Sound Source emulation on the parallel port.</p>
+</div>
+<div class="paragraph">
+<p>This feature is backward compatible with the <strong>Covox Speech Thing</strong> and <strong>Intersound MDO</strong> parallel port dongles.</p>
 </div>
 </div>
 </div>
@@ -1144,7 +1159,7 @@ This feature is backward compatible with the <strong>Covox Speech Thing</strong>
 <div class="title">Note</div>
 </td>
 <td class="content">
-The SB cards are backwards compatible with the AdLib cards. As such the AdLib <code>sound.com</code> TSR works on them, but Creative had to create their own version as they could not distribute the one from AdLib. The Creative TSR is named <code>sb-sound.com</code>, but is not 100% compatible. See the <a href="https://www.vogons.org/viewtopic.php?f=33&amp;t=76607p">Sound Driver Pack</a> for details.
+The SB cards are backwards compatible with the AdLib Music Synthesizer Card. As such the AdLib <code>sound.com</code> TSR works on them, but Creative had to create their own version as they could not distribute the one from AdLib. The Creative TSR is named <code>sb-sound.com</code>, but is not 100% compatible. See the <a href="https://www.vogons.org/viewtopic.php?f=33&amp;t=76607p">Sound Driver Pack</a> for details.
 </td>
 </tr>
 </table>
@@ -1172,7 +1187,7 @@ Some programs may require the Creative <code>SBFMDRV.COM</code> TSR or <code>CT-
 <div class="ulist">
 <ul>
 <li>
-<p>Backward compatible with the AdLib</p>
+<p>Backward compatible with the AdLib Music Synthesizer Card</p>
 </li>
 <li>
 <p>Backward compatible with the CMS/Game Blaster (optional for the SB 1.5)</p>
@@ -1183,7 +1198,7 @@ Some programs may require the Creative <code>SBFMDRV.COM</code> TSR or <code>CT-
 </ul>
 </div>
 <div class="paragraph">
-<p>Sound Blaster 1.x emulation can be enabled by setting <code>sbtype=sb1</code> in the <code>[sblaster]</code> section of your config file.</p>
+<p>Sound Blaster 1.x emulation can be enabled by setting <code>sbtype=sb1</code> in the <code>[sblaster]</code> section of the DOSBox-X config file.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1197,7 +1212,7 @@ Some programs may require the Creative <code>SBFMDRV.COM</code> TSR or <code>CT-
 <div class="ulist">
 <ul>
 <li>
-<p>Backward compatible with AdLib</p>
+<p>Backward compatible with AdLib Music Synthesizer Card</p>
 </li>
 <li>
 <p>Optional backward compatibility with CMS/Game Blaster</p>
@@ -1211,7 +1226,7 @@ Some programs may require the Creative <code>SBFMDRV.COM</code> TSR or <code>CT-
 </ul>
 </div>
 <div class="paragraph">
-<p>Sound Blaster 2.0 emulation can be enabled by setting <code>sbtype=sb2</code> in the <code>[sblaster]</code> section of your config file.</p>
+<p>Sound Blaster 2.0 emulation can be enabled by setting <code>sbtype=sb2</code> in the <code>[sblaster]</code> section of the DOSBox-X config file.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1225,7 +1240,7 @@ Some programs may require the Creative <code>SBFMDRV.COM</code> TSR or <code>CT-
 <div class="ulist">
 <ul>
 <li>
-<p>Backward compatible with the AdLib</p>
+<p>Backward compatible with the AdLib Music Synthesizer Card</p>
 </li>
 <li>
 <p>Backward compatible with the Sound Blaster 1.x</p>
@@ -1261,13 +1276,13 @@ This adapter was retroactively often named the SB Pro 1 or SB Pro 1.0.
 </td>
 <td class="content">
 Any software making use of the Stereo FM feature will sound wrong if it was coded for the later SB Pro 2 (or vice versa).
-Therefore, it is important that you select the right SB Pro model in DOSBox-X and in the software setup of the game.
+Therefore, it is important that you select the right SB Pro model in DOSBox-X, to correspond to that supported by the game.
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>Sound Blaster Pro emulation can be enabled by setting <code>sbtype=sbpro1</code> in the <code>[sblaster]</code> section of your config file.</p>
+<p>Sound Blaster Pro emulation can be enabled by setting <code>sbtype=sbpro1</code> in the <code>[sblaster]</code> section of the DOSBox-X config file.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1281,7 +1296,7 @@ Therefore, it is important that you select the right SB Pro model in DOSBox-X an
 <div class="ulist">
 <ul>
 <li>
-<p>Backward compatible with the AdLib</p>
+<p>Backward compatible with the AdLib Music Synthesizer Card</p>
 </li>
 <li>
 <p>Backward compatible with the Sound Blaster 1.x</p>
@@ -1302,13 +1317,13 @@ Therefore, it is important that you select the right SB Pro model in DOSBox-X an
 </td>
 <td class="content">
 Any software making use of the Stereo FM feature will sound wrong if it was coded for the original SB Pro (or vice versa).
-Therefore, it is important that you select the right SB Pro model in DOSBox-X and in the software setup of the game.
+Therefore, it is important that you select the right SB Pro model in DOSBox-X, to correspond to that supported by the game.
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>Sound Blaster Pro 2 emulation can be enabled by setting <code>sbtype=sbpro2</code> in the <code>[sblaster]</code> section of your config file.</p>
+<p>Sound Blaster Pro 2 emulation can be enabled by setting <code>sbtype=sbpro2</code> in the <code>[sblaster]</code> section of the DOSBox-X config file.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1322,7 +1337,7 @@ Therefore, it is important that you select the right SB Pro model in DOSBox-X an
 <div class="ulist">
 <ul>
 <li>
-<p>Backward compatible with the AdLib</p>
+<p>Backward compatible with the AdLib Music Synthesizer Card</p>
 </li>
 <li>
 <p>Backward compatible with the Sound Blaster 1.x</p>
@@ -1339,7 +1354,7 @@ Therefore, it is important that you select the right SB Pro model in DOSBox-X an
 </ul>
 </div>
 <div class="paragraph">
-<p>Sound Blaster 16 emulation is enabled by default, and can be enabled by setting <code>sbtype=sb16</code> in the <code>[sblaster]</code> section of your config file.</p>
+<p>Sound Blaster 16 emulation is enabled by default, and can be enabled by setting <code>sbtype=sb16</code> in the <code>[sblaster]</code> section of the DOSBox-X config file.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -2285,7 +2300,7 @@ This chip was used by a range of sound cards from different manufacturers, and i
 <div class="ulist">
 <ul>
 <li>
-<p>AdLib</p>
+<p>AdLib Music Synthesizer Card</p>
 </li>
 <li>
 <p>Sound Blaster 1.x</p>
@@ -2313,7 +2328,7 @@ ESS688 emulation is experimental, it is not meant for regular use.
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://www.dosdays.co.uk/topics/Manufacturers/ess.php">DOS Days: Electronic Speech Systems (ESS)</a></p>
+<p><a href="https://www.dosdays.co.uk/topics/Manufacturers/ess.php">DOS Days: Electronic Speech Systems (ESS)</a></p>
 </li>
 </ul>
 </div>
@@ -2330,7 +2345,7 @@ It was also offered by Packard Bell as the <strong>Forte 16SBP</strong>.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>AdLib</p>
+<p>AdLib Music Synthesizer Card</p>
 </li>
 <li>
 <p>Sound Blaster 2.0</p>
@@ -2358,7 +2373,7 @@ Reveal SC400 emulation is experimental, it is not meant for regular use.
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://dosdays.co.uk/topics/Manufacturers/aztech.php">DOS Days: Aztech</a></p>
+<p><a href="https://dosdays.co.uk/topics/Manufacturers/aztech.php">DOS Days: Aztech</a></p>
 </li>
 </ul>
 </div>
@@ -2377,14 +2392,14 @@ It was a popular sound card in certain circles, such as the demo scene, but neve
 It did ship with a TSR (SBOS) that needed to be loaded into memory to provide AdLib or Sound Blaster emulation, but this caused many issues.</p>
 </div>
 <div class="paragraph">
-<p>In practice, you only want to use this option, if the GUS is specifically supported by the software.</p>
+<p>In practice, you only want to use this emulation option, if the GUS is specifically supported by the software.</p>
 </div>
 <div class="paragraph">
 <p>Configuring the GUS is more complex than other soundcards, as quite a few software titles that supports the GUS require that you have a configured "ULTRASND" directory setup with the necessary files in it.
 By default, this directory is expected to be located at <code>C:\ULTRASND</code> within DOSBox-X.</p>
 </div>
 <div class="paragraph">
-<p>One way is to install the Gravis UltraSound driver disks inside DOSBox-X, another is to find a configured ULTRASND folder online that you can simply unpack to the root of your virtual C: drive.</p>
+<p>One way is to install the Gravis UltraSound driver disks inside DOSBox-X, another is to find a configured ULTRASND folder online that you can simply unpack to the root of the virtual C: drive.</p>
 </div>
 <div class="ulist">
 <ul>
@@ -2398,7 +2413,7 @@ By default, this directory is expected to be located at <code>C:\ULTRASND</code>
 <p><a href="https://www.vogons.org/viewtopic.php?t=36661">Vogons: Gravis Ultrasound - Hardware Mixing Game List</a></p>
 </li>
 <li>
-<p><a href="http://www.dosdays.co.uk/topics/Manufacturers/gravis.php">DOS Days: Advanced Gravis</a></p>
+<p><a href="https://www.dosdays.co.uk/topics/Manufacturers/gravis.php">DOS Days: Advanced Gravis</a></p>
 </li>
 <li>
 <p><a href="https://www.mobygames.com/attribute/sheet/attributeId,20/">MobyGames: Games supporting the Gravis UltraSound / ACE</a></p>
@@ -2929,7 +2944,7 @@ Patch sets as used with Timidity should work fine.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-08-01 17:01:25 -0400
+Last updated 2022-09-01 22:04:27 -0400
 </div>
 </div>
 </body>

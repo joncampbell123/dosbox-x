@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.17">
-<title>Demo description</title>
+<title>Mouse support in DOSBox-X</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -443,47 +443,614 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p><a href="Guide%3AMS‐DOS%3Ademoscene%3A1993.html">1993</a> demoscene entry.</p>
+<p>Back to the <a href="Home">DOSBox-X Wiki Welcome page</a>.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_demo_description">Demo description</h2>
+<h2 id="_mouse_support_in_dosbox_x">Mouse support in DOSBox-X</h2>
+<div class="sectionbody">
+<div id="toc" class="toc">
+<div id="toctitle" class="title">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_mouse_support_in_dosbox_x">Mouse support in DOSBox-X</a></li>
+<li><a href="#_overview">Overview</a></li>
+<li><a href="#_relative_vs_absolute_mode">Relative vs Absolute mode</a></li>
+<li><a href="#_capturing_mouse">Capturing mouse</a>
+<ul class="sectlevel2">
+<li><a href="#_autolock">autolock</a></li>
+<li><a href="#_autolock_feedback">autolock_feedback</a></li>
+<li><a href="#_middle_unlock">middle_unlock</a></li>
+</ul>
+</li>
+<li><a href="#_mouse_wheel_support">Mouse wheel support</a>
+<ul class="sectlevel2">
+<li><a href="#_true_mouse_wheel_support">True mouse wheel support</a></li>
+<li><a href="#_emulated_mouse_wheel_support">Emulated mouse wheel support</a>
+<ul class="sectlevel3">
+<li><a href="#_mouse_wheel_key">mouse_wheel_key</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#_other_mouse_settings">Other mouse settings</a>
+<ul class="sectlevel2">
+<li><a href="#_aux">aux</a></li>
+<li><a href="#_auxdevice">auxdevice</a></li>
+<li><a href="#_mouse_emulation">mouse_emulation</a></li>
+<li><a href="#_sensitivity">sensitivity</a></li>
+<li><a href="#_usesystemcursor">usesystemcursor</a></li>
+<li><a href="#_vmware">vmware</a></li>
+<li><a href="#_int33">int33</a></li>
+<li><a href="#_int33_hide_host_cursor_if_interrupt_subroutine">int33 hide host cursor if interrupt subroutine</a></li>
+<li><a href="#_int33_hide_host_cursor_when_polling">int33 hide host cursor when polling</a></li>
+<li><a href="#_int33_disable_cell_granularity">int33 disable cell granularity</a></li>
+<li><a href="#_biosps2">biosps2</a></li>
+<li><a href="#_int15_mouse_callback_does_not_preserve_registers">int15 mouse callback does not preserve registers</a></li>
+</ul>
+</li>
+<li><a href="#_serial_mouse">Serial mouse</a></li>
+<li><a href="#_mouse_in_a_guest_os">Mouse in a guest OS</a></li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_overview">Overview</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>TODO</p>
+<p>DOSBox-X by default provides mouse support when using the integrated emulated DOS.
+When booting a guest OS, such as MS-DOS or Windows 9x, the guest OS is responsible for providing the mouse support.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_recommended_dosbox_x_configuration">Recommended DOSBox-X configuration</h2>
+<h2 id="_relative_vs_absolute_mode">Relative vs Absolute mode</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>Most mice only support relative mode, and this is what DOS and Windows drivers and applications typically expected.
+It means the mouse, when moved, gives an offset and the application will move the mouse cursor by that offset.</p>
+</div>
+<div class="paragraph">
+<p>Absolute mode is where the mouse (as is typical for a touchscreen), returns the exact position of the mouse.</p>
+</div>
+<div class="paragraph">
+<p>Relative mode works well in fullscreen mode, but starts to be a problem when running something like DOSBox-X in a window, when the mouse is not confined to the window (seamless).
+After a bit the mouse would start to drift and the host mouse cursor and the mouse cursor in DOSBox-X would start to diverge, causing problems properly controlling the guest mouse cursor.</p>
+</div>
+<div class="paragraph">
+<p>As such, when running DOSBox-X in a window, using the integrated mouse support, it defaults to absolute mode which allows to seamlessly move the mouse in and out of the DOSBox-X window.
+This works because the integrated mouse support (unlike legacy mouse drivers), supports absolute mode.</p>
+</div>
+<div class="paragraph">
+<p>However, if the application loads its own mouse driver, it will typically revert to relative mode and DOSBox-X will require that the mouse is locked to the window.
+Example of cases where you will encounter this:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Running Windows inside DOSBox-X (using the standard Windows mouse drivers)</p>
+</li>
+<li>
+<p>Booting a guest OS, like MS-DOS, and loading a typical DOS mouse driver</p>
+</li>
+<li>
+<p>Some rare applications and games that have their own mouse driver built-in</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In some cases, such as running Windows inside DOSBox-X, there may be a 3rd party driver you can install to get absolute mode mapping support.
+See the <a href="Guide%3AMicrosoft-Windows-in-DOSBox‐X">Windows installation guides</a> for more information on this.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_capturing_mouse">Capturing mouse</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When running DOSBox-X in windowed mode, by default you can capture (confine to the DOSBox-X window), and release the mouse using CTRL-F10 (this key combination can be remapped in the key mapper).</p>
+</div>
+<div class="paragraph">
+<p>Alternatively, you can select "Main" &#8594; "Capture mouse" from the menus.</p>
+</div>
+<div class="paragraph">
+<p>From the menus, you can also get it to autolock the mouse when you click in the window using the "Main" &#8594; "Autolock mouse" option.</p>
+</div>
+<div class="paragraph">
+<p>These options can also be controlled from the DOSBox-X config file.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+While capturing the mouse in windowed mouse is typically not needed, as DOSBox-X will try to enable seamless integration with the host OS.
+In some cases you will want to do it anyway, as leaving the DOSBox-X window with the mouse may cause gameplay problems.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_autolock">autolock</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: false</p>
+</li>
+<li>
+<p>Possible values: false, true</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Set in the <code>[sdl]</code> section, to allow the mouse to be captured, when clicking in the DOSBox-X window:</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_autolock_feedback">autolock_feedback</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: beep</p>
+</li>
+<li>
+<p>Possible values: none, beep, flash</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Set in the <code>[sdl]</code> section, to give user feedback type when the mouse is auto locked:</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_middle_unlock">middle_unlock</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: manual</p>
+</li>
+<li>
+<p>Possible values: none, manual, auto, both</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Set in the <code>[sdl]</code> section, to allow the middle mouse button to release the mouse:</p>
+</div>
+<div class="paragraph">
+<p>If set to "manual", it works only with <code>autolock=false</code>.</p>
+</div>
+<div class="paragraph">
+<p>If set to "auto", it works only with <code>autolock=true</code>.</p>
+</div>
+<div class="paragraph">
+<p>If set to "both", it works regardless of <code>autolock=</code> setting.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mouse_wheel_support">Mouse wheel support</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The first mice with scroll wheel came out in 1995. But the much more popular Microsoft IntelliMouse came out in 1996, together with drivers for Windows 95.</p>
+</div>
+<div class="sect2">
+<h3 id="_true_mouse_wheel_support">True mouse wheel support</h3>
+<div class="paragraph">
+<p>DOSBox-X has support for the Microsoft IntelliMouse with scroll wheel from the integrated emulated DOS.</p>
+</div>
+<div class="paragraph">
+<p>But true mouse wheel support is disabled by default as legacy DOS applications don&#8217;t support it (DOS and DOS applications at this time, generally were being sunset).</p>
+</div>
+<div class="paragraph">
+<p>To get the scroll wheel working, you will have to set <code>mouse_wheel_key=0</code> in the <code>[SDL]</code> section of the DOSBox-X config file, as this option will otherwise interfere.</p>
+</div>
+<div class="paragraph">
+<p>The option can also be disabled from the menus, by selecting the "Main" &#8594; "Mouse wheel movements" &#8594; "Do not convert to arrow keys" option.
+But this will not be saved on DOSBox-X shutdown.</p>
+</div>
+<div class="paragraph">
+<p>If you boot DOS as a guest OS, you will also need to load the CuteMouse driver v2.1 as such: <code>CTMOUSE /O</code>, and make sure no other mouse drivers are being loaded in the <code>AUTOEXEC.BAT</code> file.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_emulated_mouse_wheel_support">Emulated mouse wheel support</h3>
+<div class="paragraph">
+<p>Since most DOS applications (and early Windows) don&#8217;t support the scroll wheel, DOSBox-X by default maps the mouse wheel movements to keyboard keys.
+By default DOSBox-X maps the mouse wheel to the up/down arrow (aka cursor) keys.</p>
+</div>
+<div class="paragraph">
+<p>The mouse wheel options can be found, when running DOSBox-X in a window, from the menu bar under "Main" &#8594; "Mouse wheel movements".
+But changes here will not be saved on DOSBox-X shutdown.</p>
+</div>
+<div class="paragraph">
+<p>These options can also be controlled from the DOSBox-X config file.</p>
+</div>
+<div class="sect3">
+<h4 id="_mouse_wheel_key">mouse_wheel_key</h4>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: -1</p>
+</li>
+<li>
+<p>Possible values: -7 to 7</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Set in the <code>[sdl]</code> section, converts mouse wheel movements into keyboard presses such as arrow keys.</p>
+</div>
+<div class="paragraph">
+<p>valid settings:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>mouse_wheel_key = 0</code>: disabled</p>
+</li>
+<li>
+<p><code>mouse_wheel_key = 1</code>: up/down arrows</p>
+</li>
+<li>
+<p><code>mouse_wheel_key = 2</code>: left/right arrows</p>
+</li>
+<li>
+<p><code>mouse_wheel_key = 3</code>: PgUp/PgDn keys</p>
+</li>
+<li>
+<p><code>mouse_wheel_key = 4</code>: Ctrl+up/down arrows</p>
+</li>
+<li>
+<p><code>mouse_wheel_key = 5</code>: Ctrl+left/right arrows</p>
+</li>
+<li>
+<p><code>mouse_wheel_key = 6</code>: Ctrl+PgUp/PgDn keys</p>
+</li>
+<li>
+<p><code>mouse_wheel_key = 7</code>: Ctrl+W/Z, as supported by text editors like WordStar and MS-DOS EDIT.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Putting a minus sign in front will disable the conversion for guest systems.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_other_mouse_settings">Other mouse settings</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_aux">aux</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: true</p>
+</li>
+<li>
+<p>Possible values: false, true</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Set in the <code>[keyboard]</code> section, enables or disables the i8042 auxiliary port.
+Needed for PS/2 mouse emulation in a guest OS such as Windows ME which does not use the BIOS to receive mouse events.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_auxdevice">auxdevice</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: intellimouse</p>
+</li>
+<li>
+<p>Possible values: none, 2button, 3button, intellimouse, intellimouse45</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Set in the <code>[keyboard]</code> section if the DOSBox-X config file. Sets the type of PS/2 mouse attached to the AUX port.</p>
+</div>
+<div class="paragraph">
+<p>valid options:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>auxdevice = none</code>: disables PS/2 mouse emulation</p>
+</li>
+<li>
+<p><code>auxdevice = 2button</code>: emulate a Microsoft 2 button mouse</p>
+</li>
+<li>
+<p><code>auxdevice = 3button</code>: emulate a Microsoft 3 button mouse</p>
+</li>
+<li>
+<p><code>auxdevice = intellimouse</code>: emulate a MS IntelliMouse with scroll wheel</p>
+</li>
+<li>
+<p><code>auxdevice = intellimouse45</code>: emulate a MS IntelliMouse Explorer with scroll wheel and 4th and 5th button</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The <code>auxdevice=3button</code> option requires that you set <code>middle_unlock=none</code> in the <code>[sdl]</code> section of the DOSBox-X config file.
+Also this option does not currently work when you boot a guest OS.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_mouse_emulation">mouse_emulation</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: locked</p>
+</li>
+<li>
+<p>Possible values: integration, locked, always, never</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Set in the <code>[sdl]</code> section of the DOSBox-X config file.
+Determines when the mouse is emulated ?</p>
+</div>
+<div class="paragraph">
+<p>Valid options:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>mouse_emulation = integration</code>: when not locked</p>
+</li>
+<li>
+<p><code>mouse_emulation = locked</code>:      when locked</p>
+</li>
+<li>
+<p><code>mouse_emulation = always</code>:      every time</p>
+</li>
+<li>
+<p><code>mouse_emulation = never</code>:       at no time</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If disabled, the mouse position in DOSBox-X is exactly where the host OS reports it.</p>
+</div>
+<div class="paragraph">
+<p>When using a high DPI mouse, the emulation of mouse movement can noticeably reduce the sensitiveness of your device, i.e. the mouse is slower but more precise.</p>
+</div>
+<div class="paragraph">
+<p>For the "integration" option, the setting <code>integration device=true</code> must also be set in the <code>[cpu]</code> section.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_sensitivity">sensitivity</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: 100</p>
+</li>
+<li>
+<p>Possible values:</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Set in the <code>[sdl]</code> section, adjusts mouse sensitivity.
+The optional second parameter specifies vertical sensitivity (e.g. 100,-50).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_usesystemcursor">usesystemcursor</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: false</p>
+</li>
+<li>
+<p>Possible values: false, true</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Set in the <code>[sdl]</code> section, uses the mouse cursor of the host system instead of drawing a DOS mouse cursor.</p>
+</div>
+<div class="paragraph">
+<p>Activated when the mouse is not locked to the window.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vmware">vmware</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: true</p>
+</li>
+<li>
+<p>Possible values: false, true</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Enable VMware interface emulation including guest mouse integration (when used along with e.g. VMware mouse driver for Windows 3.x).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_int33">int33</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: true</p>
+</li>
+<li>
+<p>Possible values: false, true</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Enable INT 33H for mouse support.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_int33_hide_host_cursor_if_interrupt_subroutine">int33 hide host cursor if interrupt subroutine</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: true</p>
+</li>
+<li>
+<p>Possible values: false, true</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If set, the cursor on the host will be hidden if the DOS application provides it&#8217;s own interrupt subroutine for the mouse driver to call, which is usually an indication that the DOS game wishes to draw the cursor with it&#8217;s own support routines (DeluxePaint II).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_int33_hide_host_cursor_when_polling">int33 hide host cursor when polling</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: false</p>
+</li>
+<li>
+<p>Possible values: false, true</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If set, the cursor on the host will be hidden even if the DOS application has also hidden the cursor in the guest, as long as the DOS application is polling position and button status.</p>
+</div>
+<div class="paragraph">
+<p>This can be useful for DOS programs that draw the cursor on their own instead of using the mouse driver, including most games and DeluxePaint II.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_int33_disable_cell_granularity">int33 disable cell granularity</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: false</p>
+</li>
+<li>
+<p>Possible values: false, true</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If set, the mouse pointer position is reported at full precision (as if 640x200 coordinates) in all modes.</p>
+</div>
+<div class="paragraph">
+<p>If not set, the mouse pointer position is rounded to the top-left corner of a character cell in text modes.</p>
+</div>
+<div class="paragraph">
+<p>This option is OFF by default.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_biosps2">biosps2</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: true</p>
+</li>
+<li>
+<p>Possible values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Emulate BIOS INT 15h PS/2 mouse services.</p>
+</div>
+<div class="paragraph">
+<p>Note that some OS&#8217;s like Microsoft Windows neither use INT 33h nor probe the AUX port directly and depend on this BIOS interface exclusively for PS/2 mouse support.</p>
+</div>
+<div class="paragraph">
+<p>In other cases there is no harm in leaving this enabled</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_int15_mouse_callback_does_not_preserve_registers">int15 mouse callback does not preserve registers</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Default value: false</p>
+</li>
+<li>
+<p>Possible values: false, true</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Set to true if the guest OS or DOS program assigns an INT 15h mouse callback, but does not properly preserve CPU registers.</p>
+</div>
+<div class="paragraph">
+<p>Diagnostic function only (default off).</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_serial_mouse">Serial mouse</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>By default DOSBox-X emulates a PS/2 mouse.
+But some early DOS applications or Windows versions come with their own mouse driver that only works with serial mice.
+For this purpose, DOSBox-X can be set to emulate a Microsoft serial mouse.
+If serial mouse emulation is enabled, the PS/2 mouse emulation is automatically disabled.</p>
+</div>
+<div class="paragraph">
+<p>Set the following setting to enable serial mouse emulation:</p>
+</div>
 <div class="literalblock">
 <div class="content">
-<pre>[dosbox]
-memsize=1
-machine=svga_et4000
-
-[cpu]
-core=normal
-cputype=386
-cycles=10000
-
-[gus]
-gus=true
-
-[autoexec]
-mount c: .
-c:</pre>
+<pre>[serial]
+serial1=serialmouse</pre>
 </div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+most software will expect to find the serial mouse on COM1, as such it is recommended to use the above <code>serial1=</code> setting, which maps to COM1.
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_more_information">More information</h2>
+<h2 id="_mouse_in_a_guest_os">Mouse in a guest OS</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><a href="http://www.pouet.net/prod.php?which=5081">More information (Pouet)</a></p>
+<p>When booting a guest OS, such as MS-DOS or Windows 95, DOSBox-X no longer provides a mouse driver, as this is up to the guest OS.</p>
+</div>
+<div class="paragraph">
+<p>In the case of MS-DOS, IBM PC-DOS or FreeDOS, the recommended mouse driver is <a href="http://cutemouse.sourceforge.net/">CuteMouse (aka ctmouse)</a>.
+It supports both PS/2 and Serial mice, and requires less memory then other mouse drivers.</p>
+</div>
+<div class="paragraph">
+<p>However, any Microsoft mouse compatible mouse driver should work, at least for basic functionality.</p>
 </div>
 </div>
 </div>

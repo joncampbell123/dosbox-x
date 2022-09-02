@@ -202,6 +202,8 @@ Due to the higher price of the adapter and monitor, and the lower resolution, it
 Also note that CGA is not backward compatible with MDA.
 The vertical refresh of CGA is 60Hz, which matches up well with the majority of modern 60Hz LCDs.
 
+WARNING: The `allow more than 640kb base memory` configuration option allows more conventional memory, for instance, in combination with CGA graphics you can have up to 736KB of base memory. But not all software is compatible with this option. Even the included `mem` command will crash if it is set.
+
 ==== Graphics modes:
 
 - 160x100 in 16 colours, chosen from a 16-colour palette, utilizing a specific configuration of the 80x25 text mode.

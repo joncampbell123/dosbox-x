@@ -1608,7 +1608,7 @@ You do not even have to enable NE2000 emulation for this.</p>
 To test this, first <code>ping</code> the remote systems from the host OS to ensure connectivity.</p>
 </div>
 <div class="paragraph">
-<p>A disadvantage of this approach is that you cannot communicate with retro PCs on the same network that are running native IPX.</p>
+<p>A disadvantage of this approach is that you cannot communicate with retro PCs on the same network that are running the native IPX stack.</p>
 </div>
 <div class="paragraph">
 <p>This process is described on the <a href="https://www.dosbox.com/wiki/Connectivity">DOSBox wiki</a>.</p>
@@ -1617,13 +1617,13 @@ To test this, first <code>ping</code> the remote systems from the host OS to ens
 <div class="sect2">
 <h3 id="_using_the_netware_16_bit_dos_client">Using the NetWare 16-bit DOS Client</h3>
 <div class="paragraph">
-<p>This example uses Novell&#8217;s IPX, and only works with the PCAP back-end.
-A disadvantage of this approach is that it is not routable over the Internet, meaning it can only communicate with other systems running IPX on your local network.
+<p>This example uses Novell&#8217;s IPX stack, and only works with the PCAP back-end.
+A disadvantage of this approach is that it is not routable over the Internet, meaning it can only communicate with other systems running the native IPX stack on your local network.
 An advantage is that it can communicate with a real retro DOS PC running IPX on your local network.</p>
 </div>
 <div class="paragraph">
 <p>This requires that you first download the <code>vlm121_2.exe</code> and <code>vlm121_6.exe</code> files from the Novell NetWare 16-bit DOS Client.
-The rest of the NetWare client files are not needed for the purpose of running DOS games that require IPX.</p>
+The rest of the NetWare client files are typically not needed for the purpose of running DOS games that require IPX.</p>
 </div>
 <div class="paragraph">
 <p><strong>External links</strong></p>
@@ -1646,7 +1646,7 @@ The easiest way is probably to extract them in DOSBox-X itself.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>If you want to do a full installation of the NetWare 16-bit Client, you cannot run the <code>INSTALL.EXE</code> in the emulated DOS environment that DOSBox-X provides. It will fail with "An invalid drive was given in path". You can however install it if you boot a real DOS in DOSBox-X.</p>
+<p>If you want to do a full installation of the NetWare 16-bit Client, you cannot run the NetWare <code>INSTALL.EXE</code> in the emulated DOS environment that DOSBox-X provides. It will fail with "An invalid drive was given in path". You can however install it if you boot a real DOS in DOSBox-X.</p>
 </li>
 <li>
 <p>These instructions do not apply to the 32-bit NetWare client (client32) for DOS and 16-bit Windows.</p>
@@ -1661,6 +1661,9 @@ The easiest way is probably to extract them in DOSBox-X itself.</p>
 <div class="paragraph">
 <p>Move the files to a temporary directory for extraction, and from that directory launch DOSBox-X.</p>
 </div>
+<div class="paragraph">
+<p>Then run the following commands:</p>
+</div>
 <div class="literalblock">
 <div class="content">
 <pre>MOUNT C .
@@ -1670,7 +1673,7 @@ VLM121_6.EXE -y</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The files needed are still packed in yet another "Personal Netware Packed File" archive. Extract them as follows:</p>
+<p>The files needed are still packed in yet another "Personal NetWare Packed File" archive. Extract them as follows:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1697,7 +1700,7 @@ EXIT</pre>
 <p><code>NETBIOS.EXE</code> (NetBIOS Protocol over IPX)</p>
 </li>
 <li>
-<p><code>NE2000.COM</code> (ODI driver for the NE2000 adapter)</p>
+<p><code>NE2000.COM</code> (ODI driver for the NE2000 network adapter)</p>
 </li>
 </ul>
 </div>
@@ -1724,7 +1727,7 @@ EXIT</pre>
 <p>If you used a different IRQ or IO (port) base address, adjust <code>NET.CFG</code> accordingly.</p>
 </li>
 <li>
-<p>If you&#8217;re running on Linux, be sure the <code>NET.CFG</code> config file is saved in DOS format (with CRLF line terminators), otherwise the NE2000 driver will not be loaded at the specified resources. If necessary use <code>unix2dos</code> to convert it.</p>
+<p>If you&#8217;re running on Linux, be sure the <code>NET.CFG</code> config file is saved in DOS format (with CRLF line terminators), otherwise the NE2000 driver will not be loaded at the specified resources. If necessary use <code>unix2dos</code> to convert it to DOS format.</p>
 </li>
 </ul>
 </div>
@@ -1752,7 +1755,7 @@ IPX\IPXODI.COM</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Note: For <a href="https://www.mobygames.com/attribute/sheet/attributeId,129/p,2/">games that require NETBIOS</a>, you can also add <code>IPX\NETBIOS.EXE</code> to the end.
+<p>Note: For <a href="https://www.mobygames.com/attribute/sheet/attributeId,129/p,2/">games that require NETBIOS</a>, you can also add <code>IPX\NETBIOS.EXE</code> at the end.
 But note that this is NetBIOS <strong>over</strong> IPX, which cannot communicate with other systems running native NetBIOS Frames (NBF) or NetBIOS over TCP/IP.</p>
 </div>
 </div>
@@ -1762,7 +1765,7 @@ But note that this is NetBIOS <strong>over</strong> IPX, which cannot communicat
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-08-01 17:01:25 -0400
+Last updated 2022-09-01 22:04:27 -0400
 </div>
 </div>
 </body>

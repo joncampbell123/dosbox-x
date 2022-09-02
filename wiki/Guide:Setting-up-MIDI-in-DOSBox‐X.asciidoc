@@ -11,24 +11,27 @@ toc::[]
 
 == Overview
 DOSBox-X has support for emulating either a General MIDI or a Roland MT-32 synthesizer.
-In addition, it is possible to use a real external MIDI synthesizer.
+In addition, it is possible to use an external MIDI synthesizer, either real or software.
 
-As of DOSBox-X version 0.83.6, the DOSMID program is included in DOSBox-X and will appear on the Z drive, and you can use it to play MIDI/RMI/MUS audio files.
+NOTE: As of DOSBox-X version 0.83.6, the DOSMID program is included in DOSBox-X and will appear on the virtual Z: drive, which can be used to playback MIDI/RMI/MUS audio files.
 
-NOTE: You can check your currently active MIDI setup in DOSBox-X by going to the Sound option on the menu bar (when in windowed mode), and selecting "Show MIDI device configuration".
+NOTE: You can check the currently active MIDI setup in DOSBox-X by going to the Sound option on the menu bar (when in windowed mode), and selecting "Show MIDI device configuration".
 
 === MIDI options
 This section will list the available MIDI configuration options that DOSBox-X provides, with exception to the MT-32 and FluidSynth options which are listed in their respective sections.
 
 ==== mpu401
 * Default value: intelligent
-* Other values: uart, none
+* Valid values: intelligent, uart, none
 
-The default "intelligent", also referred to as "normal mode" Roland MPU-401 emulation should provide the broadest range of compatibility with games.
+The MPU-401 is a PC to MIDI interface, originally developed by Roland.
 
-Setting it to "uart", emulates the later cost-reduced "MPU-401 compatible" options, such as was integrated in various soundcards.
+The default "intelligent" setting, also referred to as "normal mode" Roland MPU-401 emulation should provide the broadest range of compatibility with games.
+
+Setting it to "uart", emulates the later cost-reduced "MPU-401 compatible" options, such as was integrated in various sound cards.
 
 Setting it to "none" disables MPU-401 emulation, and therefore MIDI emulation will be disabled.
+
 Both MT-32 and General MIDI require MPU-401 emulation.
 
 ==== mpubase
@@ -64,39 +67,39 @@ However, the IBM PC BIOS redirects IRQ2 to IRQ9 for backwards compatibility, suc
 
 ==== mididevice
 * Default value: default
-** Linux: "default" will result in it trying to find a MIDI device for output, it will attempt (in order): TiMidity++, FluidSynth and MT-32 emulation.
-** MacOSX: "default" is the same as "coreaudio"
-** Windows: "default" is the same as "win32", which is the "Microsoft GS Wavetable software synthesizer".
+** Linux Host: "default" will result in it trying to find a MIDI device for output, it will attempt (in order): TiMidity++, FluidSynth and MT-32 emulation.
+** macOS Host: "default" is the same as "coreaudio"
+** Windows Host: "default" is the same as "win32", which in turn will default to the "Microsoft GS Wavetable software synthesizer"
 
 Other options:
 
-* win32
-** Microsoft GS Wavetable software synthesizer
+* `mididevice = win32`
+** Defaults to the "Microsoft GS Wavetable software synthesizer" integrated in Windows.
 ** Don't be confused by the name, it also applies to 64-Bit Windows.
-* alsa
+* `mididevice = alsa`
 ** Advanced Linux Sound Architecture
 ** This option can be used if you have a soundcard with a wavetable, or want to use an external MIDI device.
 ** The output device needs to be specified with the midiconfig option.
-* oss
+* `mididevice = oss`
 ** Linux/Unix Open Sound System (deprecated)
 ** This option can be used if you have a soundcard with a wavetable, or want to use an external MIDI device.
 ** The output device needs to be specified with the midiconfig option.
-* coreaudio
-** MacOSX CoreAudio
-** Mac OS X's framework to render the music through the built-in OS X synthesizer.
+* `mididevice = coreaudio`
+** macOS CoreAudio
+** framework to render the music through the built-in OS X synthesizer.
 ** A SF2 or SF3 soundfount can be specified with the ``midiconfig`` setting.
-* coremidi
-** MacOSX CoreMidi
-** Mac OS X's framework to route MIDI commands to any device that has been configured in Audio MIDI Setup.
-* mt32
+* `mididevice = coremidi`
+** macOS CoreMidi
+** framework to route MIDI commands to any device that has been configured in Audio MIDI Setup.
+* `mididevice = mt32`
 ** Roland MT-32 emulation. See the Roland MT-32 Emulation section below for more details.
-* synth
-** same as "fluidsynth" (deprecated)
-* fluidsynth
+* `mididevice = synth`
+** Deprecated option, same as "fluidsynth"
+* `mididevice = fluidsynth`
 ** FluidSynth General MIDI emulation. See the FluidSynth General MIDI emulation section below for more details.
-* timidity
+* `mididevice = timidity`
 ** TiMidity{plus}{plus} General MIDI emulation See the TiMidity{plus}{plus} General MIDI emulation section for more details.
-* none
+* `mididevice = none`
 ** Disable MIDI
 
 ==== midiconfig
@@ -104,32 +107,31 @@ Other options:
 
 This can be used to pass special options needed for the chosen "mididevice".
 
-For instance, for the "mididevice=coreaudio" or "synth" options, this can be a path and filename of a soundfont (in sf2 or sf3 format).
+For instance, for the `mididevice=coreaudio` or `synth` options, this can be a path and filename of a SoundFont (in sf2 or sf3 format).
 
-For Linux with "mididevice=alsa" or "oss" this is the ID or part of the name of the wavetable synth module of your soundcard (most soundcards don't have one), or that of your external MIDI synth.
+For Linux with `mididevice=alsa` or `oss` this is the ID or part of the name of the wavetable synth module of your sound card (most sound cards don't have one), or that of your external MIDI synth.
 You can use ``aconnect -i`` to list available devices with ALSA.
-You can use the Client ID with device ID combined and set it for instance as ``midiconfig=14:0``
+You can use the Client ID with device ID combined and set it for instance as `midiconfig=14:0`
 
-For Windows with "mididevice=win32", this can be used to specify the ID or part of the name of the synth you want to use.
-It defaults to the "Microsoft GS Wavetable Synth".
-In DOSBox-X run ``mixer /listmidi`` to list available options.
+For Windows with `mididevice=win32`, this can be used to specify the ID or part of the name of the synth you want to use.
+It defaults to the "Microsoft GS Wavetable Synth", which is the software synth integrated in Windows.
+In DOSBox-X run `mixer /listmidi` to list available options.
 
-For MacOSX with "mididevice=coremidi", this can be used to specify the ID or part of the name of the synth you want to use (how to list the options?).
+For macOS with `mididevice=coremidi`, this can be used to specify the ID or part of the name of the synth you want to use (how to list the options?).
 
 In case of a real Roland MT-32 rev. 0 as MIDI output device, some games may require a delay in order to prevent 'buffer overflow' issues.
-In that case, add 'delaysysex', for example: ``midiconfig=2 delaysysex`` would cause Windows to use MIDI device 2 (as listed in DOSBox-X with ``mixer /listmidi``), and apply the delaysysex workaround.
+In that case, add 'delaysysex', for example: `midiconfig=2 delaysysex` would cause Windows to use MIDI device 2 (as listed in DOSBox-X with `mixer /listmidi`), and apply the delaysysex workaround.
 
 ==== samplerate
 * Default value: 44100
 * Possible values: 44100, 48000, 32000, 22050, 16000, 11025, 8000, 49716
 
-Samplerate is a deprecated option for use with "mididevice=synth".
-Please use "mididevice=fluidsynth" instead, with the "fluid.samplerate" option if necessary.
+Samplerate is a deprecated option for use with `mididevice=synth`.
+Please use `mididevice=fluidsynth` instead, with the `fluid.samplerate` option if necessary.
 
 You should set this to the same sample rate as the `rate=` option in the `[mixer]` section.
 
 == Roland MT-32 Emulation
-
 The Roland MT-32 pre-dates General MIDI, and was used by a broad range of DOS games, starting in 1988 with King's Quest IV.
 
 The MT-32 emulation that is integrated into DOSBox-X is based on the link:http://munt.sourceforge.net/[Munt project].
@@ -139,7 +141,6 @@ Emulation is provided for the original MT-32 (aka "MT-32 Old"), the revised MT-3
 NOTE: If a game offers a "Sound Canvas", Roland SC-55, Roland SCC-I or a Roland RAP-10 option you want to try, look at the link:#General-MIDI-Emulation[General MIDI Emulation] section below instead.
 
 === MT-32
-
 There are slight differences between the MT-32 Old and New revisions which in some cases can cause games composed on one to not sound quite right if played back on a different revision.
 Unfortunately the games themselves don't specify which revision you need, as the game developers themselves were often not aware of the existence of different revisions.
 
@@ -154,13 +155,14 @@ To emulate a Roland MT-32 or CM-32L, the original ROMs are needed.
 Extracting ROM's from a real Roland MT-32 or CM-32L is documented on the Munt website.
 This guide will not go into more detail on getting these ROMs.
 
-Ideally you will have two sets of ROMs. One set from the MT-32 Old, and one set from a CM-32L.
-Since a CM-32L is backwards compatible with an MT-32 New, you don't really need a ROM set for it.
+Ideally you will have two sets of ROMs.
+One set from the MT-32 Old, and one set from a CM-32L.
+Since a CM-32L is backwards compatible with an MT-32 New, you don't really need a ROM set for the MT-32 New if you already have one for the CM-32L.
 
 Once you have the ROMs, save them in different directories.
 If you save them in the same directory, DOSBox-X will always use the newer CM-32L ROMs, which in some cases will not sound right if the game was composed with an MT-32 Old.
 
-e.g. on Linux
+E.g. on Linux
 
 ....
 /home/myuser/emu/mt32/MT32_CONTROL.ROM
@@ -203,13 +205,13 @@ If no path is specified, DOSBox-X will check the directory from which it was sta
 
 Accepted file names are as follows:
 
-* ``CM32L_CONTROL.ROM`` and ``CM32L_PCM.ROM``
+* `CM32L_CONTROL.ROM` and `CM32L_PCM.ROM`
 
 or
 
-* ``MT32_CONTROL.ROM`` and ``MT32_PCM.ROM``
+* `MT32_CONTROL.ROM` and `MT32_PCM.ROM`
 
-If the directory contains both CM-32L and MT-32 ROMs, DOSBox-X will use the CM-32L ROMs and emulate a Roland CM-32L.
+If the directory contains both CM-32L and MT-32 ROMs, DOSBox-X will default to emulating a Roland CM-32L.
 
 ==== mt32.reverse.stereo
 * Default: false
@@ -294,15 +296,15 @@ Fastest mode.
 
 * Coarse = 1
 ** Coarse emulation of LPF (Low Pass Filter) circuit. High frequencies are boosted, sample rate remains unchanged.
-A bit better sounding but also a bit slower.
+Slightly better sounding but also a slightly slower.
 
 * Accurate = 2 (default)
-** Finer emulation of LPF circuit. Output signal is upsampled to 48 kHz to allow emulation of audible mirror spectra above 16 kHz,
+** Finer emulation of LPF circuit. Output signal is up-sampled to 48 kHz to allow emulation of audible mirror spectra above 16 kHz,
 which is passed through the LPF circuit without significant attenuation.
 Sounding is closer to the analogue output from real hardware but also slower than the modes 0 and 1.
 
 * Oversampled = 3
-** Same as the default mode 2 but the output signal is 2x oversampled, i.e. the output sample rate is 96 kHz.
+** Same as the default mode 2 but the output signal is 2x over-sampled, i.e. the output sample rate is 96 kHz.
 Even slower than all the other modes but better retains the highest frequencies while further resampled in DOSBox-X mixer.
 
 ==== mt32.output gain
@@ -362,12 +364,12 @@ Some games specifically list "Sound Canvas" as an option, but most of the time i
 Games known to actually support the GS extensions can be found here: link:https://web.archive.org/web/20180102190328/https://www.vogons.org/viewtopic.php?f=7&t=35811[Sound Driver Enhancement Hacks - General MIDI] (archive.org link, as a recent Vogons update has broken rendering of coloured text).
 
 == FluidSynth
-FluidSynth is the preferred software synthesizer for Linux, but it is also available for Windows and macOS.
+FluidSynth is the preferred software synthesizer for Linux, but it is also available for Windows and macOS hosts.
 
 === Linux Setup
-DOSBox-X provides a range of configuration options, but for most Linux systems you can get it up and running simply by installing a soundfont, using your package manager, such as "fluid-soundfont-gm".
+DOSBox-X provides a range of configuration options, but for most Linux systems you can get it up and running simply by installing a SoundFont, from the distro package manager, such as "fluid-soundfont-gm".
 
-If you installed DOSBox-X using one of the provided RPM packages, this soundfont will be automatically installed by your package manager.
+If you installed DOSBox-X using one of the provided RPM packages, this SoundFont will be automatically installed by your package manager.
 
 And then simply adding the following lines to your DOSBox-X config file:
 
@@ -375,7 +377,7 @@ And then simply adding the following lines to your DOSBox-X config file:
 [midi]
 mididevice=fluidsynth
 ....
-In some cases, you may also need to specify a soundfont file with ``fluid.soundfont=``, and the sound server with ``fluid.driver=``
+In some cases, you may also need to specify a SoundFont file with ``fluid.soundfont=``, and the sound server with ``fluid.driver=``
 
 === Windows Setup
 FluidSynth support is included in both Visual Studio and MinGW builds by default in DOSBox-X version 0.83.7 and later. You can add the following lines to your DOSBox-X config file.
@@ -385,7 +387,7 @@ FluidSynth support is included in both Visual Studio and MinGW builds by default
 mididevice=fluidsynth
 fluid.soundfont="C:\DOSBox-X\soundfonts\FluidR3_GM.sf2"
 ....
-Adjust the path and filename to your soundfont as necessary (e.g. "C:\DOSBox-X\GeneralUser_GS.sf2" instead of "C:\DOSBox-X\soundfonts\FluidR3_GM.sf2").
+Adjust the path and filename to your SoundFont as necessary (e.g. "C:\DOSBox-X\GeneralUser_GS.sf2" instead of "C:\DOSBox-X\soundfonts\FluidR3_GM.sf2").
 When no soundfont is specified, DOSBox-X will try to open C:\soundfonts\default.sf2 if it exists.
 
 === FluidSynth config options
@@ -393,40 +395,41 @@ When no soundfont is specified, DOSBox-X will try to open C:\soundfonts\default.
 ==== fluid.driver
 * Default value:
 ** Linux: pulseaudio
-** MacOSX: coreaudio
+** macOS: coreaudio
 ** Windows: dsound
 * Possible values: pulseaudio, alsa, oss, coreaudio, dsound, portaudio, sndman, jack, file, default
 
-This parameter is typically not needed if your running FluidSynth on Windows, where it will automatically use dsound. Likewise on MacOS it will default to CoreAudio.
+This parameter is typically not needed if your running FluidSynth on Windows, where it will automatically use dsound. Likewise on macOS it will default to CoreAudio.
 
 You can however optionally set it to "file", which will cause a ``fluidsynth.wav`` file to be created in the current working directory with the MIDI output.
 
-For Linux, the "pulseaudio" (default) and "jack" options are for different Sound Servers. Most modern Linux distributions by default install PulseAudio.
+For Linux, the "pulseaudio" (default) and "jack" options are for different Sound Servers.
+Most modern Linux distributions by default install PulseAudio.
 Jack is lower latency, but higher CPU.
-It is possible to replace your installed PulseAudio Sound Server with Jack, but audio output of many applications will stop working, including web browsers.
+It is possible to replace an installed PulseAudio Sound Server with Jack, but audio output of many applications will stop working, including web browsers.
 An alternative if you want to use Jack for FluidSynth is to set up PulseAudio as a client of Jack, but the setup of that is beyond the scope of this guide.
 It is expected that "PipeWire" will replace both PulseAudio and Jack in the near future.
 
-For Windows and MacOSX you can optionally download and install link:http://www.fluidsynth.org/[FluidSynth]. Note that not every update is released as binary, so unless you can compile it yourself you may be a few versions behind.
+For Windows and macOS you can optionally download and install link:http://www.fluidsynth.org/[FluidSynth]. Note that not every update is released as binary, so unless you can compile it yourself you may be a few versions behind.
 
 ==== fluid.soundfont
 * Default value:
-** Windows: C:\soundfonts\default.sf2
-** Other: /usr/share/soundfonts/default.sf2 or /usr/share/sounds/sf2/FluidR3_GM.sf2
+** Windows: `C:\soundfonts\default.sf2`
+** Other: `/usr/share/soundfonts/default.sf2` or `/usr/share/sounds/sf2/FluidR3_GM.sf2`
 
 This parameter can be used to specify a single SF2 or SF3 link:https://github.com/FluidSynth/fluidsynth/wiki/SoundFont[SoundFont] file.
 
-Many soundfonts can be found online, but you want one that covers the whole General MIDI range, also called a "GM SoundFont".
+Many sound fonts can be found online, but you want one that covers the whole General MIDI range, also called a "GM SoundFont".
 FluidR3_GM.sf2 is such a free SoundFont.
 
-TIP: For some games, you may optionally want to download a SoundFont that implements both GM and the GS extensions, or a soundfont that mimics a certain MIDI sound module.
-An example is the link:https://musical-artifacts.com/artifacts/1229[FluidR3 GM+GS soundfont], which has both GM and the GS extensions in a single file.
-Alternatively, you can look for a soundfont that mimics a certain MIDI sound module like the Roland SC-55 or SC-88, but all the Sound Canvas look-alike soundfonts available at present don't seem to implement the GS extensions, and as such are only useful for GM.
+TIP: For some games, you may want to use a SoundFont that implements both GM and the GS extensions, or a SoundFont that mimics a certain MIDI sound module.
+An example is the link:https://musical-artifacts.com/artifacts/1229[FluidR3 GM+GS SoundFont], which has both GM and the GS extensions in a single file.
+Alternatively, you can look for a SoundFont that mimics a certain MIDI sound module like the Roland SC-55 or SC-88, but all the Sound Canvas look-alike sound fonts available at present don't seem to implement the GS extensions, and as such are only useful for GM.
 The Roland SC-55 or SC-88 (Sound Canvas) in particular, was used by many musicians back in the day to compose General MIDI music for DOS and Windows games.
 
-NOTE: While FluidSynth supports stacking or chaining of soundfonts, this is not supported in this implementation.
+NOTE: While FluidSynth supports stacking or chaining of sound fonts, this is not supported in this implementation.
 So for instance, you cannot specify both FluidR3_GM and FluidR3_GS.
-Instead, you need a single soundfont that implements all the sounds you need, which the above linked "FluidR3 GM+GS" does.
+Instead, you need a single SoundFont that implements all the sounds you need, which the above linked "FluidR3 GM+GS" does.
 
 ==== fluid.samplerate
 * Default value: 48000
@@ -457,7 +460,7 @@ By default, fluidsynth will use a single CPU core.
 If you set this value higher, fluidsynth will create additional synthesis threads.
 
 ==== fluid.periods
-* Default value: 16 (Linux and MacOS X)
+* Default value: 16 (Linux and macOS)
 * Default value: 8 (Windows)
 * Min - Max: 2 - 64
 
@@ -465,7 +468,7 @@ The number of the audio buffers used by the driver.
 This number of buffers, multiplied by the buffer size (see setting fluid.periodsize), determines the maximum latency of the audio driver.
 
 ==== fluid.periodsize
-* Default value: 64 (Linux and MacOS X)
+* Default value: 64 (Linux and macOS)
 * Default value: 512 (Windows)
 * Min - Max: 64-8192
 
@@ -542,9 +545,9 @@ Specifies the chorus type. 0 is sine wave, 1 is triangle wave.
 == TiMidity{plus}{plus}
 TiMidity{plus}{plus} is a MIDI software synthesis, primarily for Linux.
 You should consider using FluidSynth instead.
-But if you want to try TiMidity{plus}{plus}, install the timidity{plus}{plus} package with your package manager, and also install a soundfont like FluidR3_GM.
+But if you want to try TiMidity{plus}{plus}, install the timidity{plus}{plus} package with your package manager, and also install a SoundFont like FluidR3_GM.
 
-You then need to point TiMidity{plus}{plus} to the soundfont you want to use, for this edit ``/etc/timidity++/timidity.cfg`` and make sure the ``soundfont`` setting points to a valid SF2 or SF3 soundfont file.
+You then need to point TiMidity{plus}{plus} to the SoundFont you want to use, for this edit ``/etc/timidity++/timidity.cfg`` and make sure the ``soundfont`` setting points to a valid SF2 or SF3 SoundFont file.
 
 TiMidity{plus}{plus} support is not built-in like FluidSynth, instead you need to run it as a separate background service to which DOSBox-X can connect.
 After you have installed the packages, enable and start the timidity service.
@@ -593,7 +596,7 @@ In DOSBox-X 0.83.12 or later you can use DOSBox-X’s built-in MIXER command to 
 Alternatively, you can use the command ``aconnect -i`` in the Linux terminal to find which "device" is your MIDI output.
 
 Once you get the device ID (e.g. 128:0) you can then add it to the ``midiconfig=`` line.
-e.g.
+E.g.
 
 ....
 [midi]
@@ -609,14 +612,14 @@ You can use OSS if you have a real MIDI sequencer, or a sound card with MIDI sup
 TBD.
 
 == Microsoft GS Wavetable software synthesizer
-This is the default MIDI emulation option on Windows when using ``mididevice=default`` or ``mididevice=win32`` (note: the "win32" option is a misnomer as it applies to both 32 and 64bit versions of Windows).
+This is the default MIDI emulation option on Windows when using ``mididevice=default`` or ``mididevice=win32`` (note: the "win32" option naming is a misnomer as it applies to both 32 and 64bit versions of Windows).
 
 The advantage is, that it requires no configuration.
 The disadvantage is that it has high-latency and many of the sounds don't sound correct.
 On a modern Windows system, there are no configuration options either.
 
 == CoreAudio
-OSX TBD. Help needed.
+macOS TBD. Help needed.
 
 == CoreMIDI
-OSX TBD. Help needed.
+macOS TBD. Help needed.

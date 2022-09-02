@@ -879,6 +879,12 @@ press the X key on your keyboard.</p>
 </div>
 </li>
 <li>
+<p><a href="Guide%3AMouse-support-in-DOSBox‐X">Guide: Mouse support in DOSBox-X</a></p>
+<div class="paragraph">
+<p>Explains DOSBox-X&#8217;s mouse emulation options.</p>
+</div>
+</li>
+<li>
 <p><a href="Guide%3ASetting-up-3dfx-Voodoo-in-DOSBox‐X">Guide: Setting up 3dfx Voodoo in DOSBox-X</a></p>
 <div class="paragraph">
 <p>Explains the emulation of 3dfx Voodoo, using either the Voodoo hardware emulation or the Glide API passthrough.</p>
@@ -986,9 +992,9 @@ press the X key on your keyboard.</p>
 </li>
 </ul>
 </div>
-<div class="listingblock">
+<div class="literalblock">
 <div class="content">
-<pre class="highlight"><code>[dosbox]
+<pre>[dosbox]
 fastbioslogo = true
 startbanner = false
 
@@ -998,25 +1004,25 @@ cycles = max
 
 [dos]
 hard drive data rate limit = 0
-floppy drive data rate limit = 0</code></pre>
+floppy drive data rate limit = 0</pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Using the TrueType font (TTF) output and disabling double-scanning can improve the performance too (especially for text-mode applications):</p>
 </div>
-<div class="listingblock">
+<div class="literalblock">
 <div class="content">
-<pre class="highlight"><code>[sdl]
+<pre>[sdl]
 output=ttf
-doublescan=false</code></pre>
+doublescan=false</pre>
 </div>
 </div>
 <div class="paragraph">
 <p>If you do not need any sound output, you can also set the following to further improve the speed when DOSBox-X starts:</p>
 </div>
-<div class="listingblock">
+<div class="literalblock">
 <div class="content">
-<pre class="highlight"><code>[mixer]
+<pre>[mixer]
 nosound=true
 
 [midi]
@@ -1026,7 +1032,7 @@ mididevice=none
 sbtype=none
 
 [speaker]
-pcspeaker=false</code></pre>
+pcspeaker=false</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1036,7 +1042,7 @@ pcspeaker=false</code></pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-08-01 17:01:25 -0400
+Last updated 2022-09-01 22:04:27 -0400
 </div>
 </div>
 </body>

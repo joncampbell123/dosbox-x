@@ -89,11 +89,9 @@ If you already have a DOSBox-X language file available, you can specify its file
 
 ``language=C:\message.txt``
 
-For example, the Chinese (Simplified & Traditional), English (United States), French, Japanese, Portuguese (Brazilian), Spanish, and Turkic language files for DOSBox-X are available from:
+For example, the Chinese (Simplified & Traditional), English (United States), French, German, Japanese, Portuguese (Brazilian), Spanish, and Turkic language files for DOSBox-X are available from:
 
-* https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_CN.lng?raw=true[zh_CN.lng]
-
-* https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_TW.lng?raw=true[zh_TW.lng]
+* https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/de/de_DE.lng?raw=true[de_DE.lng]
 
 * https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/en/en_US.lng?raw=true[en_US.lng]
 
@@ -108,6 +106,10 @@ For example, the Chinese (Simplified & Traditional), English (United States), Fr
 * https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/pt/pt_BR.lng?raw=true[pt_BR.lng]
 
 * https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/tr/tr_TR.lng?raw=true[tr_TR.lng]
+
+* https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_CN.lng?raw=true[zh_CN.lng]
+
+* https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_TW.lng?raw=true[zh_TW.lng]
 
 Alternatively, you can start DOSBox-X with the -lang option to use your language file. For example, to use "C:\message.txt" as the language file:
 

@@ -138,10 +138,10 @@ Starting with DOSBox-X 2022.08.0, there is optional support to dynamically conve
 This can be accomplished in one of two ways. Either when you issue the `boot` command, you add the option `-convertfat`. e.g. `boot c: -convertfat`.
 
 Or by setting the following option in your DOSBox-X config file:
-```
+....
 [sdl]
 convertdrivefat = true
-```
+....
 
 When you now boot from a real image file, it will attempt to convert **ALL** folder mounts at the time of booting to emulated FAT Harddisks.
 

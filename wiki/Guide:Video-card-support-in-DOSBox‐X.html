@@ -879,6 +879,18 @@ Due to the higher price of the adapter and monitor, and the lower resolution, it
 Also note that CGA is not backward compatible with MDA.
 The vertical refresh of CGA is 60Hz, which matches up well with the majority of modern 60Hz LCDs.</p>
 </div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+The <code>allow more than 640kb base memory</code> configuration option allows more conventional memory, for instance, in combination with CGA graphics you can have up to 736KB of base memory. But not all software is compatible with this option. Even the included <code>mem</code> command will crash if it is set.
+</td>
+</tr>
+</table>
+</div>
 <div class="sect3">
 <h4 id="_graphics_modes">Graphics modes:</h4>
 <div class="ulist">
@@ -3972,7 +3984,7 @@ Else, leave it turned off.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-08-01 17:01:25 -0400
+Last updated 2022-09-01 22:04:27 -0400
 </div>
 </div>
 </body>

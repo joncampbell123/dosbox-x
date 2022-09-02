@@ -480,7 +480,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_using_harddisk_images_in_macos">Using harddisk images in macOS</a></li>
 </ul>
 </li>
-<li><a href="#_cd_rom_or_dvd_images">CD-ROM or DVD images</a>
+<li><a href="#_cd_rom_or_dvd_images">CD-ROM or DVD images</a></li>
+<li><a href="#_copy_protected_media">Copy protected media</a>
 <ul class="sectlevel2">
 <li><a href="#_mounting_cd_or_dvd_images">Mounting CD or DVD images</a></li>
 <li><a href="#_rock_ridge_joliet_and_udf">Rock Ridge, Joliet and UDF</a></li>
@@ -571,7 +572,7 @@ Note that both of these options will only show image mounts, not folder mounts.<
 <div class="ulist">
 <ul>
 <li>
-<p>MFM sector image format (typically ending in <code>.ima</code> or <code>.img</code>)</p>
+<p>RAW MFM sector image format (typically ending in <code>.ima</code> or <code>.img</code>)</p>
 </li>
 <li>
 <p>Microsoft DMF (typically ending in <code>.dmf</code>)</p>
@@ -642,7 +643,7 @@ Any programs on copy-protected diskettes need to be "cracked" to remove the copy
 <div class="title">Note</div>
 </td>
 <td class="content">
-While DOSBox-X does not support mounting or booting from diskette images in IBM DSKF format, it is possible to use the <code><a href="http://ftpmirror.your.org/pub/misc/ftp.software.ibm.com/storage/adsm/tools/loaddskf/loaddskf.exe">LOADDSKF.EXE</a></code> program in DOSBox-X to convert an IBM DSKF file to a regular MFM Disk format.
+While DOSBox-X does not support mounting or booting from diskette images in IBM DSKF format, it is possible to use the <code><a href="http://ftpmirror.your.org/pub/misc/ftp.software.ibm.com/storage/adsm/tools/loaddskf/loaddskf.exe">LOADDSKF.EXE</a></code> program in DOSBox-X to convert an IBM DSKF file to a regular RAW MFM Disk format.
 </td>
 </tr>
 </table>
@@ -664,7 +665,7 @@ This option allows most common floppy disk types to be created, for less common 
 </table>
 </div>
 <div class="paragraph">
-<p>DOSBox-X has a built-in <code>IMGMAKE</code> command with which you can create FAT12 formatted diskette images in MFM sector image format from the DOSBox-X command prompt.</p>
+<p>DOSBox-X has a built-in <code>IMGMAKE</code> command with which you can create FAT12 formatted diskette images in RAW MFM sector image format from the DOSBox-X command prompt.</p>
 </div>
 <div class="paragraph">
 <p>Example:</p>
@@ -1334,7 +1335,7 @@ You should never mount a disk image simultaneously in both DOSBox-X and in Windo
 </td>
 <td class="content">
 Windows 8 and newer has integrated support for mounting image files, and will offer the "Mount" option when you right-click a .IMG file.
-Unfortunately this support is incompatible with the typical MFM image files used by DOSBox-X, and the mount will fail.
+Unfortunately this support is incompatible with the typical RAW MFM image files used by DOSBox-X, and the mount will fail.
 </td>
 </tr>
 </table>
@@ -1362,7 +1363,7 @@ Unfortunately this support is incompatible with the typical MFM image files used
 <div class="sect2">
 <h3 id="_using_diskette_images_in_macos">Using diskette images in macOS</h3>
 <div class="paragraph">
-<p>You can mount MFM image files with the extension <code>.IMG</code> in macOS from the Finder by double-clicking on it.
+<p>You can mount RAW MFM image files with the extension <code>.IMG</code> in macOS from the Finder by double-clicking on it.
 You can unmount it by clicking on the "Eject" button next to it in the Finder.</p>
 </div>
 <div class="paragraph">
@@ -1380,7 +1381,7 @@ You can unmount it by clicking on the "Eject" button next to it in the Finder.</
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://en.wikipedia.org/wiki/IMG_(file_format)">MFM sector image format</a> (typically <code>.img</code>)</p>
+<p><a href="https://en.wikipedia.org/wiki/IMG_(file_format)">RAW MFM sector image format</a> (typically <code>.img</code>)</p>
 </li>
 <li>
 <p><a href="https://en.wikipedia.org/wiki/Qcow">QCOW2</a> - QEMU copy-on-write v2 (<code>.qcow2</code>)</p>
@@ -1433,7 +1434,7 @@ This option allows a few common HDD sizes to be created, for less common types y
 </table>
 </div>
 <div class="paragraph">
-<p>DOSBox-X has a built-in <code>IMGMAKE</code> command with which you can create partitioned and FAT formatted harddisk images in MFM sector image format from the DOSBox-X command prompt.
+<p>DOSBox-X has a built-in <code>IMGMAKE</code> command with which you can create partitioned and FAT formatted harddisk images in RAW MFM sector image format from the DOSBox-X command prompt.
 <code>IMGMAKE</code> only creates a single primary DOS partition per harddisk image file.</p>
 </div>
 <div class="sect3">
@@ -1482,7 +1483,7 @@ This option allows a few common HDD sizes to be created, for less common types y
 But this can cause <code>IMGMAKE</code> to give errors if the partition size is not supported by the filesystem type, or can cause other problems such as performance issues or waisted disk space.</p>
 </div>
 <div class="paragraph">
-<p>e.g.</p>
+<p>e.g., to create a 400MiB HDD image formatted as FAT32:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1705,10 +1706,10 @@ If the total does not exceed 2GiB, it will be converted to a FAT16 harddisk imag
 <div class="paragraph">
 <p>The amount of free space can be adjusted in the DOSBox-X config file as such:</p>
 </div>
-<div class="listingblock">
+<div class="literalblock">
 <div class="content">
-<pre class="highlight"><code>[sdl]
-convert fat free space = 10</code></pre>
+<pre>[sdl]
+convert fat free space = 10</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2154,7 +2155,7 @@ For the first partition this should normally always start at 63*512=32256
 </td>
 <td class="content">
 Windows 8 and newer has integrated support for mounting image files, and will offer the "Mount" option when you right-click a <code>.IMG</code> file.
-Unfortunately this support is incompatible with the typical MFM image files used by DOSBox-X, and the mount will fail.
+Unfortunately this support is incompatible with the typical RAW MFM image files used by DOSBox-X, and the mount will fail.
 </td>
 </tr>
 </table>
@@ -2166,11 +2167,11 @@ Unfortunately this support is incompatible with the typical MFM image files used
 <div class="sect2">
 <h3 id="_using_harddisk_images_in_macos">Using harddisk images in macOS</h3>
 <div class="paragraph">
-<p>You can mount MFM harddisk image files with the extension <code>.IMG</code> in macOS from the Finder by double-clicking on it.
+<p>You can mount RAW MFM harddisk image files with the extension <code>.IMG</code> in macOS from the Finder by double-clicking on it.
 You can unmount it by clicking on the "Eject" button next to it in the Finder.</p>
 </div>
 <div class="paragraph">
-<p>MFM Harddisk images can also be opened in macOS from the Terminal using <code>hdiutil</code> as such:</p>
+<p>RAW MFM Harddisk images can also be opened in macOS from the Terminal using <code>hdiutil</code> as such:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -2200,10 +2201,11 @@ Once you&#8217;re done, you can detach it as follows:</p>
 <h2 id="_cd_rom_or_dvd_images">CD-ROM or DVD images</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>DOSbox-X supports CD-ROM or DVD image files with the ISO-9660 (or High-Sierra) filesystem in <code>.ISO</code>, <code>.CUE'+</code>.BIN' or <code>.MDF</code> image format.</p>
+<p>DOSbox-X supports CD-ROM or DVD image files with the ISO-9660 (or High-Sierra) filesystem in <code>.ISO</code>, <code>.CUE</code>+<code>.BIN</code> or <code>.MDF</code> image format.</p>
 </div>
 <div class="paragraph">
-<p>By default ISO-9660 Level 1 is used, which is limited to traditional DOS 8.3 character filenames. When emulating DOS version 7.0 or later (or <code>lfn=true</code> is set in the DOSBox-X config file), ISO-9660 Level 2 is supported with up to 31 character filenames.</p>
+<p>By default ISO-9660 Level 1 is used, which is limited to traditional DOS 8.3 character filenames.
+When emulating DOS version 7.0 or later (or <code>lfn=true</code> is set in the DOSBox-X config file), ISO-9660 Level 2 is supported with up to 31 character filenames.</p>
 </div>
 <div class="paragraph">
 <p>Starting with DOSBox-X 2022.08.0 there is also support for:</p>
@@ -2224,6 +2226,27 @@ Once you&#8217;re done, you can detach it as follows:</p>
 <div class="paragraph">
 <p><code>.ISO</code> is the easiest format to work with, as long as there is only a single data track on the CD or DVD.
 If the CD or DVD contains multiple tracks, like DATA and AUDIO (aka redbook audio) the use of <code>.CUE</code>+<code>.BIN</code> or <code>.MDF</code> is required.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_copy_protected_media">Copy protected media</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>DOSBox-X has limited support for copy protected CD-ROMs.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>In DOSBox-X 2022.08.00 the IDE emulation was enhanced such that SafeDisc 1 games should work</p>
+</li>
+<li>
+<p>In DOSBox-X 2022.09.00 another minor change was introduced to solve one of the issues with SafeDisc 2</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If you run into issues with copy protected media, look for "cracks" for the game to bypass the copy protection.</p>
 </div>
 <div class="sect2">
 <h3 id="_mounting_cd_or_dvd_images">Mounting CD or DVD images</h3>
@@ -2287,9 +2310,9 @@ If the names of your CD/DVD images contain characters of foreign languages such 
 <div class="paragraph">
 <p>e.g. to mount a CD image and disable Rock Ridge support:</p>
 </div>
-<div class="listingblock">
+<div class="literalblock">
 <div class="content">
-<pre class="highlight"><code>imgmount D: cdrom.iso -o rr=0</code></pre>
+<pre>imgmount D: cdrom.iso -o rr=0</pre>
 </div>
 </div>
 </div>
@@ -2799,7 +2822,7 @@ This is because, once you boot a guest OS, the drive letter mapping loses its me
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-08-01 17:01:25 -0400
+Last updated 2022-09-01 22:04:27 -0400
 </div>
 </div>
 </body>

@@ -477,9 +477,16 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </li>
 <li><a href="#_installing_in_a_mounted_folder">Installing in a mounted folder</a></li>
-<li><a href="#_install_windows_3_x_into_a_dos_hdd_image">Install Windows 3.x into a DOS HDD image</a></li>
+<li><a href="#_booting_from_a_dos_hdd_image">Booting from a DOS HDD image</a>
+<ul class="sectlevel2">
+<li><a href="#_host_folder_mounts">Host Folder mounts</a></li>
+<li><a href="#_installing_windows_3_x_into_a_dos_hdd_image">Installing Windows 3.x into a DOS HDD image</a></li>
+</ul>
+</li>
 <li><a href="#_starting_windows_3_x_after_installation">Starting Windows 3.x after installation</a></li>
 <li><a href="#_steps_to_take_after_installation">Steps to take after installation</a></li>
+<li><a href="#_windows_3_0_video_driver">Windows 3.0 video driver</a></li>
+<li><a href="#_windows_3_1x_video_driver">Windows 3.1x video driver</a></li>
 <li><a href="#_mouse_support">Mouse support</a></li>
 <li><a href="#_dosbox_x_mouse_integration_driver">DOSBox-X mouse integration driver</a>
 <ul class="sectlevel2">
@@ -493,10 +500,15 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_setting_up_ne2000_networking_in_windows_for_workgroups">Setting up NE2000 networking in Windows for Workgroups</a></li>
 </ul>
 </li>
-<li><a href="#_enabling_sound">Enabling sound</a>
+<li><a href="#_sound_in_windows_3_0">Sound in Windows 3.0</a></li>
+<li><a href="#_sound_in_windows_3_0_multimedia_edition">Sound in Windows 3.0 Multimedia Edition</a>
+<ul class="sectlevel2">
+<li><a href="#_enabling_external_midi_in_windows_3_0_multimedia_edition">Enabling external MIDI in Windows 3.0 Multimedia Edition</a></li>
+</ul>
+</li>
+<li><a href="#_sound_in_windows_3_1x">Sound in Windows 3.1x</a>
 <ul class="sectlevel2">
 <li><a href="#_enabling_external_midi_in_windows_3_1x">Enabling external MIDI in Windows 3.1x</a></li>
-<li><a href="#_enabling_external_midi_in_windows_3_0a_with_mm_extensions">Enabling external MIDI in Windows 3.0a with MM Extensions</a></li>
 </ul>
 </li>
 <li><a href="#_enabling_printing">Enabling printing</a>
@@ -524,7 +536,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="ulist">
 <ul>
 <li>
-<p><strong>Windows 3.0</strong></p>
+<p><strong>Windows 3.0</strong> (released May 22, 1990)</p>
 <div class="ulist">
 <ul>
 <li>
@@ -540,7 +552,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><strong>Windows 3.0a</strong></p>
+<p><strong>Windows 3.0a</strong> (released Dec,, 1990)</p>
 <div class="ulist">
 <ul>
 <li>
@@ -553,7 +565,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><strong>Windows 3.0a with Multimedia Extensions</strong></p>
+<p><strong>Windows 3.0a with Multimedia Extensions</strong> (released Oct, 1991)</p>
 <div class="ulist">
 <ul>
 <li>
@@ -581,7 +593,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><strong>Windows 3.1</strong></p>
+<p><strong>Windows 3.1</strong> (released Apr 6, 1992)</p>
 <div class="ulist">
 <ul>
 <li>
@@ -606,7 +618,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><strong>Windows 3.11</strong></p>
+<p><strong>Windows 3.11</strong> (released Nov 8, 1993)</p>
 <div class="ulist">
 <ul>
 <li>
@@ -616,7 +628,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><strong>Windows for Workgroups 3.1</strong></p>
+<p><strong>Windows for Workgroups 3.1</strong> (released Oct, 1992)</p>
 <div class="ulist">
 <ul>
 <li>
@@ -629,7 +641,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </li>
 <li>
-<p><strong>Windows for Workgroups 3.11</strong></p>
+<p><strong>Windows for Workgroups 3.11</strong> (released Nov 8, 1993)</p>
 <div class="ulist">
 <ul>
 <li>
@@ -643,9 +655,16 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </li>
 <li>
 <p><strong>Windows for Workgroups 3.11a</strong></p>
+<div class="ulist">
+<ul>
+<li>
+<p>Removed compression support from Remote Access software</p>
+</li>
+</ul>
+</div>
 </li>
 <li>
-<p><strong>Windows 3.2</strong></p>
+<p><strong>Windows 3.2</strong> (released Nov 22, 1993)</p>
 <div class="ulist">
 <ul>
 <li>
@@ -769,7 +788,7 @@ Some examples:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://vogonsdrivers.com/">VOGONS Vintage Driver Library</a></p>
+<p><a href="https://vogonsdrivers.com/">VOGONS Vintage Driver Library</a></p>
 </li>
 <li>
 <p><a href="https://en.wikipedia.org/wiki/Windows_3.0">Wikipedia: Windows 3.0</a></p>
@@ -788,6 +807,12 @@ Some examples:</p>
 </li>
 <li>
 <p><a href="https://betawiki.net/wiki/Windows_3.1xp">BetaWiki: Windows 3.1x</a></p>
+</li>
+<li>
+<p><a href="https://nerdlypleasures.blogspot.com/2016/12/windows-30-multimedia-edition-early.html">Nerdly Pleasures: Windows 3.0 Multimedia Edition - Early Windows Multimedia Gaming</a></p>
+</li>
+<li>
+<p><a href="https://nerdlypleasures.blogspot.com/2016/11/windows-31-dawn-of-windows-gaming.html">Nerdly Pleasures: Windows 3.1 - The Dawn of Windows Gaming</a></p>
 </li>
 </ul>
 </div>
@@ -817,6 +842,9 @@ Starting with DOSBox-X 0.83.21 the turbo mode is automatically disabled the mome
 </div>
 <div class="sect2">
 <h3 id="_windows_3_0a_with_multimedia_extensions_specific_notes">Windows 3.0a with Multimedia Extensions specific notes</h3>
+<div class="paragraph">
+<p>Also called <strong>Windows 3.0 Multimedia Edition</strong></p>
+</div>
 <div class="ulist">
 <ul>
 <li>
@@ -824,10 +852,25 @@ Starting with DOSBox-X 0.83.21 the turbo mode is automatically disabled the mome
 Examples of such customization, are an OEM specific launcher, OEM specific applications, but also that the installer may default to custom audio and video options.</p>
 </li>
 <li>
-<p>For versions distributed on CD, the installation can be started by going into the <code>MWIN</code> directory on the CD and running <code>SETUP.EXE</code>.</p>
+<p>It seems all versions were distributed on CD, the installation can be started by going into the <code>MWIN</code> directory on the CD and running <code>SETUP.EXE</code>.</p>
 </li>
 <li>
 <p>Unlike regular Windows which installs by default to <code>C:\WINDOWS</code> this edition installs by default to <code>C:\MWINDOWS</code>.</p>
+</li>
+<li>
+<p>The two editions which have been archived, shipped with Multimedia upgrade kits, are from Tandy and Creative Labs respectively.</p>
+</li>
+<li>
+<p>The Tandy edition shipped as part of a Sound and CD-ROM upgrade kit, included a "Tandy Sound Blaster Pro 16". Despite the name, this is not actually a SB16, but rather a modified SB Pro (aka SB Pro 1.0). Drivers for this are included with the Windows installation and you should emulate a SB Pro 1 for the best experience. The card by default was set to IO 220, IRQ 10 and DMA 3, and you should either use those settings in your DOSBox-X config file, or modify <code>C:\MWINDOWS\SYSTEM.INI</code> after installation.</p>
+</li>
+<li>
+<p>The Creative Labs edition shipped as part of a Sound and CD-ROM upgrade kit, included a "Sound Blaster Pro" (aka SB Pro 1.0). Drivers for this are included with the Windows installation and you should emulate a SB Pro 1 for the best experience.</p>
+</li>
+<li>
+<p>During Windows setup, change the default "Palettized VGA 640x480 with 16 colors" display option to "VGA", or audio playback will cause Windows to crash. You can install the ET4000 drivers afterwards.</p>
+</li>
+<li>
+<p>If during Windows setup you are asked to provide the path to "mouse.sys", skip it. It is looking for the Microsoft DOS Mouse driver, which is not needed.</p>
 </li>
 </ul>
 </div>
@@ -858,6 +901,10 @@ floppy drive data rate limit=0
 [cpu]
 cputype=pentium
 core=normal
+
+[sblaster]
+# uncomment the next line if you want to use Windows 3.0 Multimedia Edition
+#sbtype=sbpro1
 
 [pci]
 voodoo=false
@@ -1105,15 +1152,81 @@ EXIT</pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_install_windows_3_x_into_a_dos_hdd_image">Install Windows 3.x into a DOS HDD image</h2>
+<h2 id="_booting_from_a_dos_hdd_image">Booting from a DOS HDD image</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This method brings with it a bit of added inconvenience.
 For instance, you will need to do your own DOS memory management and load DOS drivers for CD-ROM access.
-You can also not mount a host directory (folder mount) in DOSBox-X when you boot a disk image.
-Even host directories that you mounted prior to booting the disk image will become unavailable.
-Everything needs to be done using IMAGE files.</p>
+You can also not boot DOSBox-X from a mounted host directory (folder mount).</p>
 </div>
+<div class="sect2">
+<h3 id="_host_folder_mounts">Host Folder mounts</h3>
+<div class="paragraph">
+<p>Starting with DOSBox-X 2022.08.0, there is optional support to dynamically convert a host folder mount to an emulated FAT harddisk for use when you need to boot a guest OS, such as MS-DOS.
+This can be accomplished in one of two ways. Either when you issue the <code>boot</code> command, you add the option <code>-convertfat</code>. e.g. <code>boot c: -convertfat</code>.</p>
+</div>
+<div class="paragraph">
+<p>Or by setting the following option in your DOSBox-X config file:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[sdl]
+convertdrivefat = true</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When you now boot from a real image file, it will attempt to convert <strong>ALL</strong> folder mounts at the time of booting to emulated FAT Harddisks.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+You cannot boot from such an emulated FAT harddisk. You will still need some other bootable image file to actually boot a guest OS.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+This conversion is dynamic, effectively creating an emulated FAT harddisk out of a folder mount.
+This converted FAT harddisk is not automatically stored permanently.
+You can however, store it as a permanent image file that you can later mount with <code>IMGMOUNT</code>, using the "Drive" &gt; "drive letter" &gt; "Save to disk image" option from the menus.
+Please see the "Creating harddisk images from folder mounts" section in the <a href="Guide%3AManaging-image-files-in-DOSBox‐X#Creating_harddisk_images_from_folder_mounts">Guide: Managing image files in DOSBox-X</a> for more information.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+There is currently no support for creating emulated CD-ROM or Floppy drives out of folder mounts with this method. Any CD-ROM or Floppy folder mounts will also be converted to harddisk folder mounts, and may not actually work for the intended purpose.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>One thing to note, is that there is no way to specify the FAT type to use for the conversion.
+The FAT type will be automatically selected based on the aggregate size of files in the folder, plus 250MiB (this can be adjusted with the <code>convert fat free space</code> option in the DOSBox-X config file).
+If the total space of files + 250MiB does not exceed 2GiB, it will convert it into a FAT16 disk. Otherwise it will become a FAT32, which in turn will require a guest OS with FAT32 support.</p>
+</div>
+<div class="paragraph">
+<p>Alternatively, you can also make the emulated FAT drive read-only by using the <code>-convertfatro</code> option with the <code>boot</code> command. Or by setting <code>convert fat free space=0</code> option in the DOSBox-X config file.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_installing_windows_3_x_into_a_dos_hdd_image">Installing Windows 3.x into a DOS HDD image</h3>
 <div class="paragraph">
 <p>The first step is to create a DOS HDD image, for which you can follow the <a href="Guide%3ADOS-Installation-in-DOSBox‐X">PC DOS and MS-DOS Installation Guide</a>.
 You need at least DOS 3.1 for Windows 3.0 and 3.1x, and DOS 3.3 for Windows for Workgroups.
@@ -1169,6 +1282,7 @@ SETUP</pre>
 </div>
 </div>
 </div>
+</div>
 <div class="sect1">
 <h2 id="_starting_windows_3_x_after_installation">Starting Windows 3.x after installation</h2>
 <div class="sectionbody">
@@ -1215,6 +1329,305 @@ SETUP</pre>
 <p>Adobe Type Manager 3.02</p>
 </li>
 </ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_windows_3_0_video_driver">Windows 3.0 video driver</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>See <a href="Guide%3AVideo-card-support-in-DOSBox‐X">Video card support in DOSBox‐X</a> for more information about the various video cards, and available options.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+For Windows 3.0 the recommended display adapter is the Tseng Labs ET4000.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Here are the recommended drivers, depending on the video adapter you are emulating.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Tseng Labs</strong></p>
+<div class="ulist">
+<ul>
+<li>
+<p>ET3000 using <code>machine=svga_et3000</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://files.mpoli.fi/hardware/DISPLAY/TSENG/ET3-W31.ZIP">Windows 3.0 and 3.1beta - ET3000 drivers, Jan 15 1992</a></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>ET4000 using <code>machine=svga_et4000</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://vogonsdrivers.com/getfile.php?fileid=292&amp;menustate=0">Windows 3.0 - ET4000 drivers, Jan 15 1992</a></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Paradise Systems</strong></p>
+<div class="ulist">
+<ul>
+<li>
+<p>PVGA1A using <code>machine=svga_paradise</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://vogonsdrivers.com/getfile.php?fileid=243&amp;menustate=0">Windows 3.0 - PVGA drivers, Dec 19 1990</a></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_windows_3_1x_video_driver">Windows 3.1x video driver</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>See <a href="Guide%3AVideo-card-support-in-DOSBox‐X">Video card support in DOSBox‐X</a> for more information about the various video cards, and available options.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The generic "Super VGA" driver included with Windows 3.1x only works with <code>machine=svga_et4000</code>.
+Regardless, It is recommended to use the default VGA video driver during Windows 3.1x installation, and install a 3rd party SVGA driver afterwards.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>For installing a 3rd party display driver, you should follow the instructions (e.g. README) included with the driver.
+If there are no instructions included, exit Windows 3.1x back to the DOSBox-X prompt, then go into the WINDOWS subdirectory, and run <code>SETUP</code>. e.g.,</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>cd \WINDOWS
+SETUP</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Select the "Display" option, followed by the "Other" option at the bottom of the list.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/Windows:Windows_3.11_SETUP_Display.png" alt="Windows 3.11 splash screen">
+</div>
+</div>
+<div class="paragraph">
+<p>Now provide the path where the unpacked driver can be found, and continue and the driver should install.</p>
+</div>
+<div class="paragraph">
+<p>Here are the recommended drivers, depending on the video adapter you are emulating.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+For Windows 3.1x the recommended display adapter is the default S3 Trio64.
+</td>
+</tr>
+</table>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>S3 Graphics</strong></p>
+<div class="ulist">
+<ul>
+<li>
+<p>S3 86c928 using <code>machine=svga_s386c928</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://files.mpoli.fi/hardware/DISPLAY/S3/S3WIN230.ZIP">Windows 3.1x - S3 928 drivers version 2.3B11, April 25 1994</a></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>S3 Vision864 using <code>machine=svga_s3vision864</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://files.mpoli.fi/hardware/DISPLAY/S3/864141B5.ZIP">Windows 3.1x - S3 864 drivers version 1.41B5, March 2 1995</a></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>S3 Vision868 using <code>machine=svga_s3vision868</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://files.mpoli.fi/hardware/DISPLAY/S3/868141B5.ZIP">Windows 3.1x - S3 868 drivers version 1.41B5, March 2 1995</a></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>S3 Vision964 using <code>machine=svga_s3vision964</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://files.mpoli.fi/hardware/DISPLAY/S3/964141B5.ZIP">Windows 3.1x - S3 964 drivers version 1.41B5, March 2 1995</a></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>S3 Vision968 using <code>machine=svga_s3vision968</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://files.mpoli.fi/hardware/DISPLAY/S3/968141B5.ZIP">Windows 3.1x - S3 868 drivers version 1.41B5, March 2 1995</a></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>S3 Trio32 using <code>machine=svga_s3trio32</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://vogonsdrivers.com/getfile.php?fileid=275&amp;menustate=0">Windows 3.1x - S3 Trio drivers version 1.70.04, Sep 22 1997</a></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>S3 Trio64 (<strong>default</strong>) using <code>machine=svga_s3</code> or <code>machine=svga_s3trio64</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://vogonsdrivers.com/getfile.php?fileid=275&amp;menustate=0">Windows 3.1x - S3 Trio drivers version 1.70.04, Sep 22 1997</a></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>S3 Trio64V+ using <code>machine=svga_s3trio64v+</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://vogonsdrivers.com/getfile.php?fileid=275&amp;menustate=0">Windows 3.1x - S3 Trio drivers version 1.70.04, Sep 22 1997</a></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>S3 ViRGE using <code>machine=svga_s3virge</code> (experimental)</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://vogonsdrivers.com/getfile.php?fileid=1702&amp;menustate=0">Windows 3.1x - S3 ViRGE drivers version 1.05.09, June 2 1997</a></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>S3 ViRGE/VX using <code>machine=svga_s3virgevx</code> (experimental)</p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://vogonsdrivers.com/getfile.php?fileid=1702&amp;menustate=0">Windows 3.1x - S3 ViRGE drivers version 1.05.09, June 2 1997</a></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Tseng Labs</strong></p>
+<div class="ulist">
+<ul>
+<li>
+<p>ET3000 using <code>machine=svga_et3000</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://vogonsdrivers.com/getfile.php?fileid=245&amp;menustate=0">Windows 3.1x - ET3000 drivers, Dec 8 1994</a></p>
+</li>
+<li>
+<p><a href="http://files.mpoli.fi/hardware/DISPLAY/TSENG/ET4-W31.ZIP">Windows 3.0/3.1x - Jan 15 1992 </a></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>ET4000 using <code>machine=svga_et4000</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://files.mpoli.fi/hardware/DISPLAY/TSENG/W31ET4.ZIP">Windows 3.1x - ET4000 drivers, Dec 8 1994</a></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Paradise Systems</strong></p>
+<div class="ulist">
+<ul>
+<li>
+<p>PVGA1A using <code>machine=svga_paradise</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p>There does not appear to be a Windows 3.1x specific driver, use the Windows 3.0 driver instead.</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The above video drivers are so-called "flat mode" drivers, which only work in Windows 3.1x Enhanced Mode (386 and above).
+If for some reason you want to run Windows 3.1x standard mode (e.g. on a 286), use the Windows 3.0 drivers instead.
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
@@ -1267,13 +1680,13 @@ Unpack the archive, and you will find a Windows 3.0 or 3.1 mouse driver in respe
 <div class="paragraph">
 <p>In addition, set the following options in your DOSBox-X config file:</p>
 </div>
-<div class="listingblock">
+<div class="literalblock">
 <div class="content">
-<pre class="highlight"><code>[sdl]
+<pre>[sdl]
 mouse emulation=integration
 
 [cpu]
-integration device=true</code></pre>
+integration device=true</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1524,51 +1937,97 @@ There is no support by default for the TCP/IP protocol.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_enabling_sound">Enabling sound</h2>
+<h2 id="_sound_in_windows_3_0">Sound in Windows 3.0</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>DOSBox-X by default emulates a Creative Labs SoundBlaster 16.
-<a href="http://www.sierrahelp.com/Utilities/Emulators/DOSBox/3x_InstallSB.html">Download and install</a> the SB16 driver package.
-This needs to be run from DOS.</p>
+<p>Windows 3.0 and 3.0a does not really support sound. It only supports the PC Speaker, and even then is limited to a simple "beep" sound.</p>
 </div>
 <div class="paragraph">
-<p>Pay close attention during installation to the IRQ.
-The emulated SB16 in DOSBox-X defaults to IRQ7, while the SB16 driver package assumes IRQ5.
-So, unless you changed the SB IRQ in your DOSBox-X config file, change the IRQ during installation to IRQ7.</p>
+<p>Some early Windows games will directly access the PC Speaker, without a driver, to get more complex sounds.</p>
+</div>
+<div class="paragraph">
+<p>In addition, it is possible to install early versions of Sound Blaster software for Windows, which provides its own API, to allow the included Jukebox and Mixer to access the hardware.</p>
+</div>
+<div class="paragraph">
+<p><a href="http://files.mpoli.fi/hardware/SOUND/CLABS/WIN30.ZIP">SB 1.0/1.5/2.0 and SB Pro 1.0 drivers for Windows 3.0</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_sound_in_windows_3_0_multimedia_edition">Sound in Windows 3.0 Multimedia Edition</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>As mentioned, this Windows edition was only available as part of a Multimedia PC purchase, or Multimedia upgrade kit.</p>
+</div>
+<div class="paragraph">
+<p>Very few Windows games support this edition.
+Look for a combination of Windows 3.0 and the "Multimedia Windows" or "Windows MPC" logo on the box.
+A few known titles to support it:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Early Sierra Online Windows versions such as: Mixed Up Mother Goose, King&#8217;s Quest V, Space Quest IV, Laura Bow 2, King&#8217;s Quest VI, Freddy Pharkas, EcoQuest 1</p>
+</li>
+<li>
+<p>Battle Chess Enhanced CD-ROM</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The only available sound drivers, are the once included with the installation. Later Windows 3.1 sound drivers will not work.</p>
+</div>
+<div class="paragraph">
+<p>There are two editions for which information is available:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Tandy Multimedia upgrade kit with "Tandy Sound Blaster Pro 16", which is actually a modified SB Pro 1.0</p>
+</li>
+<li>
+<p>Creative Labs Multimedia upgrade kit with SB Pro 1.0</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For both of these edition, it is best to use <code>sbtype=sbpro1</code> in your DOSBox-X config file.</p>
+</div>
+<div class="paragraph">
+<p>During Windows installation, the Tandy edition will only offer the option to change the base IO port from the default 220.
+Options to change the IRQ and DMA are not given. For this edition, you should either set <code>irq=10</code> and <code>dma=3</code> in your DOSBox-X config file, or modify the defaults manually after installation in <code>C:\MWINDOWS\SYSTEM.INI</code></p>
+</div>
+<div class="paragraph">
+<p>For the Creative Labs edition, it will ask for the base IO port, IRQ and DMA during installation.
+Unless you changed the settings in your DOSBox-X config file, the default is IO 220, IRQ 7 and DMA 1.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Setting the wrong SB settings can cause Windows to crash when it tries to play sounds, which it will do by default on Windows startup.
+</td>
+</tr>
+</table>
 </div>
 <div class="sect2">
-<h3 id="_enabling_external_midi_in_windows_3_1x">Enabling external MIDI in Windows 3.1x</h3>
+<h3 id="_enabling_external_midi_in_windows_3_0_multimedia_edition">Enabling external MIDI in Windows 3.0 Multimedia Edition</h3>
 <div class="paragraph">
-<p>By default, the SB16 Windows 3.1x drivers will emulate MIDI playback using the OPL chip.
-However, DOSBox-X has built-in support for General MIDI emulation (which is enabled by default), and which sounds much better.</p>
-</div>
-<div class="paragraph">
-<p>To set it up, first ensure the SB16 drivers are installed.
-Then in Windows 3.1x go to "Control Panel" and open "MIDI Mapper".</p>
+<p>By default, the SBPro Windows drivers will emulate MIDI playback using the dual OPL2 chips.</p>
 </div>
 <div class="paragraph">
-<p>In Windows 3.1x go to "Control Panel", and open "MIDI Mapper.
-If there is no "MIDI Mapper" icon in "Control Panel", the Sound Blaster drivers were not installed.
-Select the "SB16 All MIDI" option from the drop-down menu and press the "Close" button.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="images/Windows:Windows_3.1_MIDI.png" alt="Windows 3.1x MIDI">
-</div>
+<p>However, DOSBox-X has built-in support for General MIDI emulation (which is normally enabled by default), and which sounds much better.</p>
 </div>
 <div class="paragraph">
-<p>You should now be able to open the Windows 3.1x Media Player and playback <code>C:\WINDOWS\CANYON.MID</code>.</p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_enabling_external_midi_in_windows_3_0a_with_mm_extensions">Enabling external MIDI in Windows 3.0a with MM Extensions</h3>
-<div class="paragraph">
-<p>The same can be carried out with <strong>Windows 3.0a with Multimedia Extensions</strong>, but the "SB16 All MIDI" option will not be listed.</p>
+<p>To set it up, in Windows 3.0 Multimedia Edition, go to "Control Panel" and open "MIDI Mapper".</p>
 </div>
 <div class="paragraph">
-<p>Instead, in the "MIDI Mapper" dialogue box click on the "New&#8230;&#8203;" button.
+<p>In the "MIDI Mapper" dialogue box click on the "New&#8230;&#8203;" button.
 You will be asked for a name and description.
-You can name it anything you like, for instance "SB16 Ext MIDI", and click the "OK" button.
+You can name it anything you like, for instance "SBPro Ext MIDI", and click the "OK" button.
 You do not have to enter anything for the Description.</p>
 </div>
 <div class="imageblock">
@@ -1588,7 +2047,49 @@ Once finished click the "OK" button and confirm the save.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>You should now be able to open the Windows 3.0a Media Player and playback <code>C:\MWINDOWS\MMDATA\CANYON.MID</code>.</p>
+<p>You should now be able to open the Windows 3.0 Media Player and playback something like <code>C:\MWINDOWS\MMDATA\CANYON.MID</code>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_sound_in_windows_3_1x">Sound in Windows 3.1x</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Starting with Windows 3.1, multimedia support is standard.</p>
+</div>
+<div class="paragraph">
+<p>DOSBox-X by default emulates a Creative Labs Sound Blaster 16.
+<a href="http://www.sierrahelp.com/Utilities/Emulators/DOSBox/3x_InstallSB.html">Download and install</a> the SB16 driver package.
+The installer needs to be run from DOS.</p>
+</div>
+<div class="paragraph">
+<p>Pay close attention during installation to the IRQ.
+The emulated SB16 in DOSBox-X defaults to IRQ7, while the SB16 driver package assumes IRQ5.
+So, unless you changed the SB IRQ in your DOSBox-X config file, change the IRQ during installation to IRQ7.</p>
+</div>
+<div class="sect2">
+<h3 id="_enabling_external_midi_in_windows_3_1x">Enabling external MIDI in Windows 3.1x</h3>
+<div class="paragraph">
+<p>By default, the SB16 Windows 3.1x drivers will emulate MIDI playback using the OPL3 chip.
+However, DOSBox-X has built-in support for General MIDI emulation (which is enabled by default), and which sounds much better.</p>
+</div>
+<div class="paragraph">
+<p>To set it up, first ensure the SB16 drivers are installed.
+Then in Windows 3.1x go to "Control Panel" and open "MIDI Mapper".</p>
+</div>
+<div class="paragraph">
+<p>In Windows 3.1x go to "Control Panel", and open "MIDI Mapper.
+If there is no "MIDI Mapper" icon in "Control Panel", the Sound Blaster drivers were not installed.
+Select the "SB16 All MIDI" option from the drop-down menu and press the "Close" button.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/Windows:Windows_3.1_MIDI.png" alt="Windows 3.1x MIDI">
+</div>
+</div>
+<div class="paragraph">
+<p>You should now be able to open the Windows 3.1x Media Player and playback something like <code>C:\WINDOWS\CANYON.MID</code>.</p>
 </div>
 </div>
 </div>
@@ -1789,7 +2290,7 @@ But if a CD is not present when starting Windows 3.x the drive is simply missing
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-08-01 17:01:25 -0400
+Last updated 2022-09-01 22:04:27 -0400
 </div>
 </div>
 </body>

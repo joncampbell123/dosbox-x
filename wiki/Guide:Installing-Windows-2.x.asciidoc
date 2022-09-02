@@ -26,14 +26,14 @@ toc::[]
 ** AppleTalk Support.
 ** Faster printing and updated printer drivers.
 
-Windows 2.x available as both Retail and OEM editions.
-A runtime edition was also included with some applications.
+Windows 2.x was available in both Retail and OEM editions, for shipping with computers.
+A special runtime edition was also included with some applications.
 
 === Naming
 Naming of Windows 2.x versions can be confusing.
 Versions ending in */386* are meant for 386 class computers, while the *Windows 2.03* release could also run on 8086/8088 and 286 class computers.
 
-But with 2.10 they appended */286* to this version because ``HIMEM.SYS`` was included which requires at least a 286 class computer.
+But with version 2.10 they appended */286* to the version because ``HIMEM.SYS`` was included which requires at least a 286 class computer.
 
 Despite the */286* or */386* suffixes, all versions could be run on older computers.
 For the */286* editions this meant not using ``HIMEM.SYS``, while for the */386* versions it meant starting windows with ``win86.com`` instead of ``win386.exe``.
@@ -64,10 +64,10 @@ Therefore, if you want to run this version in DOSBox-X, you should enable ``seri
 If given the option during installation, do not select the "IBM Personal Systems/2 Mouse", as it seems to cause Windows to hang at the title screen.
 Instead, select the "Microsoft Mouse connected to PS/2 Mouse Port".
 
-Windows 2.1x will complain if the High Memory Area (HMA) is used.
+Windows 2.1x editions will complain if the High Memory Area (HMA) is used.
 This can be resolved by setting ``DOS=LOW`` in the [config] section of the DOSBox-X config file.
 
-The Windows/386 editions install by default into ``C:\WIN386`` instead of ``C:\WINDOWS`` as all other Windows versions normally do.
+All Windows/386 editions install by default into ``C:\WIN386`` instead of ``C:\WINDOWS`` as other Windows versions normally do.
 And the command to start Windows/386 is ``win386.exe``, instead of the typical ``win.com`` of most other Windows versions at the time.
 Windows/386 also has a ``win86.com`` executable, which is effectively a renamed ``win.com``, and this makes it possible to run Windows/386 on 8086 and 286 computers.
 
@@ -442,13 +442,13 @@ Unpack the archive, and you will find a Windows 2.0 mouse driver in the `windrv/
 
 
 In addition, set the following options in your DOSBox-X config file:
-```
+....
 [sdl]
 mouse emulation=integration
 
 [cpu]
 integration device=true
-```
+....
 Now when you run Windows 2.0, you should have seamless mouse support.
 
 NOTE: These old windows versions had no support for mice with scroll wheels. By default DOSBox-X will simulate cursor up/down keypresses when you use the scroll wheel.

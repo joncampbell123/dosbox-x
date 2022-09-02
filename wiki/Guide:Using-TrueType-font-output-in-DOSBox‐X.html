@@ -478,9 +478,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="paragraph">
 <p>You can start DOSBox-X with the TrueType font (TTF) output by setting it from the [sdl] section of the DOSBox-X configuration, like this:</p>
 </div>
-<div class="listingblock">
+<div class="literalblock">
 <div class="content">
-<pre class="highlight"><code>output = ttf</code></pre>
+<pre>output = ttf</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -544,12 +544,12 @@ font=Nouveau_IBM
 <div class="paragraph">
 <p>So for example if you use Windows 10, which includes font files such as <code>Consola.ttf</code>, <code>Lucon.ttf</code>, <code>vgasys.fon</code>, and <code>msgothic.ttc</code> in C:\WINDOWS\Fonts by default, then you can just set one of the following to enable one of them:</p>
 </div>
-<div class="listingblock">
+<div class="literalblock">
 <div class="content">
-<pre class="highlight"><code>font=Consola
+<pre>font=Consola
 font=Lucon
 font=vgasys.fon
-font=msgothic.ttc</code></pre>
+font=msgothic.ttc</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -563,10 +563,10 @@ font=msgothic.ttc</code></pre>
 <div class="paragraph">
 <p>Alternatively, you can dynamically switch the font file to use with the TrueType font output from the menu or the command line. There is a menu option "Select TrueType font (TTF)&#8230;&#8203;" under the "Video" menu which allows users to select a TTF font file to use. Alternatively, you can do so with CONFIG command, such as the following:</p>
 </div>
-<div class="listingblock">
+<div class="literalblock">
 <div class="content">
-<pre class="highlight"><code>CONFIG -set font=Consola
-CONFIG -set font=</code></pre>
+<pre>CONFIG -set font=Consola
+CONFIG -set font=</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -603,10 +603,10 @@ CONFIG -set font=</code></pre>
 <div class="paragraph">
 <p>Also, the default DOSBox-X text screen is the standard 80 columns and 25 rows. This can be changed by specifying different numbers of columns and rows via the config options <code>lins</code> and <code>cols</code>. For example, the following will set the text screen to be 100 columns and 50 rows:</p>
 </div>
-<div class="listingblock">
+<div class="literalblock">
 <div class="content">
-<pre class="highlight"><code>cols=100
-lins=50</code></pre>
+<pre>cols=100
+lins=50</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -615,10 +615,10 @@ lins=50</code></pre>
 <div class="paragraph">
 <p>Alternatively, you can do so using MODE or CONFIG command from the a command line. With MODE command you can change the screen dimensions to those supported by the above menu options. For example:</p>
 </div>
-<div class="listingblock">
+<div class="literalblock">
 <div class="content">
-<pre class="highlight"><code>MODE CON LINES=50
-MODE CON LINES=60 COLS=132</code></pre>
+<pre>MODE CON LINES=50
+MODE CON LINES=60 COLS=132</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -627,10 +627,10 @@ MODE CON LINES=60 COLS=132</code></pre>
 <div class="paragraph">
 <p>With CONFIG command, you can change the values of cols and lins dynamically, but one at a time. For example:</p>
 </div>
-<div class="listingblock">
+<div class="literalblock">
 <div class="content">
-<pre class="highlight"><code>CONFIG -set lins=30
-CONFIG -set cols=100</code></pre>
+<pre>CONFIG -set lins=30
+CONFIG -set cols=100</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -644,9 +644,9 @@ CONFIG -set cols=100</code></pre>
 <div class="paragraph">
 <p>DOSBox-X supports on-screen text styles for DOS applications like WordPerfect, WordStar, XyWrite, and FastEdit. You will need to specify a word processor (WP=WordPerfect, WS=WordStar, XY=XyWrite, FE=FastEdit) for this, and then text styles such as bold, italics, and underlines will be displayed visually when running these applications using the TrueType font output in DOSBox-X. For example:</p>
 </div>
-<div class="listingblock">
+<div class="literalblock">
 <div class="content">
-<pre class="highlight"><code>wp=XY</code></pre>
+<pre>wp=XY</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -655,12 +655,12 @@ CONFIG -set cols=100</code></pre>
 <div class="paragraph">
 <p>For bold, italic, and bold italic texts you can either let DOSBox-X to automatically do so (such as slanting the characters automatically for italic texts) or specify actual bold, italic, and bold italic fonts (if they exist) to render these text styles. For example, for the Consola font, the actual bold, italic, and bold italic versions are named Consolab, Consolai, and Consolaz, so you can set the following to specify its variant fonts:</p>
 </div>
-<div class="listingblock">
+<div class="literalblock">
 <div class="content">
-<pre class="highlight"><code>font=Consola
+<pre>font=Consola
 fontbold=Consolab
 fontital=Consolai
-fontboit=Consolaz</code></pre>
+fontboit=Consolaz</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -773,7 +773,7 @@ SETCOLOR 7 &#43;
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-08-01 17:01:25 -0400
+Last updated 2022-09-01 22:04:27 -0400
 </div>
 </div>
 </body>
