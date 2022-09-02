@@ -437,7 +437,6 @@ void ffmpeg_reopen_video(double fps,const int bpp) {
 	// FIXME: This is copypasta! Consolidate!
 	ffmpeg_vid_ctx = ffmpeg_vid_stream->codec = avcodec_alloc_context3(ffmpeg_vid_codec);
 	if (ffmpeg_vid_ctx == NULL) E_Exit("Error: Unable to reopen vid codec");
-	avcodec_get_context_defaults3(ffmpeg_vid_ctx,ffmpeg_vid_codec);
 	ffmpeg_vid_ctx->bit_rate = 25000000; // TODO: make configuration option!
 	ffmpeg_vid_ctx->keyint_min = 15; // TODO: make configuration option!
 	ffmpeg_vid_ctx->time_base.num = 1000000;
@@ -1155,7 +1154,7 @@ skip_shot:
 				goto skip_video;
 			}
 			ffmpeg_vid_ctx = ffmpeg_vid_stream->codec;
-			avcodec_get_context_defaults3(ffmpeg_vid_ctx,ffmpeg_vid_codec);
+
 			ffmpeg_vid_ctx->bit_rate = 25000000; // TODO: make configuration option!
 			ffmpeg_vid_ctx->keyint_min = 15; // TODO: make configuration option!
 			ffmpeg_vid_ctx->time_base.num = 1000000;
@@ -1200,7 +1199,6 @@ skip_shot:
 				goto skip_video;
 			}
 			ffmpeg_aud_ctx = ffmpeg_aud_stream->codec;
-			avcodec_get_context_defaults3(ffmpeg_aud_ctx,ffmpeg_aud_codec);
 			ffmpeg_aud_ctx->sample_rate = (int)capture.video.audiorate;
 			ffmpeg_aud_ctx->channels = 2;
 			ffmpeg_aud_ctx->flags = 0; // do not use global headers
