@@ -1,4 +1,8 @@
 2022.09.0 (0.84.3)
+  - Updated FFMPEG video capture to use newer API,
+    fix memory leaks, and fix use-after-free bug that
+    may have been responsible for occasional crashes
+    when using the function. (joncampbell123)
   - Added 86PCM support for PC-98 emulation. (nanshiki)
   - Added German language translation. (Link-Mario)
   - Added code page 867 (compatible with Hebrew DOS
