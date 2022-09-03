@@ -7,7 +7,7 @@ To stop/end the recording, you have to press CTRL-ALT-F5 again.
 To play the recorded movie, you need a movie player which can handle the
 ZMBV codec. MS Windows users can find this codec in the start menu entry of
 DOSBox. Users of Linux and other OSes should look for a movie player that
-uses the ffmpeg libary (you may need to update or ask your distribution to
+uses the ffmpeg library (you may need to update or ask your distribution to
 upgrade).
 
 FAQ:

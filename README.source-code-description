@@ -464,7 +464,7 @@ inverting all bits (~) of an integer for masking. The
 result may be treated by the compiler as an integer. Make
 sure to typecast it to clarify.
 
-Another possible incompatiblity lies with printf() and
+Another possible incompatibility lies with printf() and
 long long integers.
 
 Always typecast the printf() parameters to the data type
@@ -561,7 +561,7 @@ on the pointer value as if an integer, then add the integer
 value to the pointer.
 
 At the lowest level, a pointer could be thought of as an
-integer that is interepreted by the CPU as a memory address
+integer that is interpreted by the CPU as a memory address
 to operate on, rather than an integer value directly.
 
 Therefore, when adding an integer to a pointer value, the
@@ -1256,7 +1256,7 @@ base of the bitplane up.
 The uint32_t masks and shifting should be
 maintained so that b[0] to b[3] refer to
 the same bytes of video memory. Only uint32_t
-should be handled differently to accomodate
+should be handled differently to accommodate
 host byte order.
 
 For more information, see vga/hardware/vga_memory.cpp

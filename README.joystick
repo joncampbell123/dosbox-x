@@ -60,7 +60,7 @@ joy2axis7=7
 
 [mapper]
 
-# Following settings specify deadzone for a mapper binding to be triggerred.
+# Following settings specify deadzone for a mapper binding to be triggered.
 # This is useful when you wish to map some physical joystick axes to act as keys,
 # i.e. use left thumbstick to emit WSAD keys.
 

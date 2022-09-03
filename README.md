@@ -225,13 +225,13 @@ some things the design as implemented now cannot accommodate.
   from motherboards. The focus is on implementing hardware emulation
   for hardware made before that point.
 
-  Contributers are free to focus on emulating hardware within the
+  Contributors are free to focus on emulating hardware within the
   time frame between 1980 and 2000/2001 of their choice.
 
 * Windows guest emulation, Windows Vista or later.
 
   DOSBox-X emulation, in terms of running Windows in DOSBox-X, will
-  focus primarily on Windows 1.0 through Windows ME (Millenium Edition),
+  focus primarily on Windows 1.0 through Windows ME (Millennium Edition),
   and then on Windows NT through Windows XP. Windows Vista and later
   versions are not a priority and will not be considered at this time.
   These versions of Windows are not based on DOS.
@@ -330,7 +330,7 @@ years ago, the project is still in semi-active development today
 in the form of DOSBox SVN. Meanwhile, some of the changes themselves
 incorporated code from other projects.
 
-Some features and improvments in DOSBox-X also came from another
+Some features and improvements in DOSBox-X also came from another
 branch of DOSBox known as [DOSBox SVN Daum](http://ykhwong.x-y.net)
 which itself incorporated features from the original DOSBox
 project, DOSBox-X, and many experimental patches. Although the
@@ -366,7 +366,7 @@ See also the [CREDITS](CREDITS.md) page for crediting of the source code.
 
 * DOSBoxWP (for WordPerfect for DOS) by emendelson
 
-  DOSBoxWP is a customized version of DOSBox-X targetted for users of WordPerfect for DOS.
+  DOSBoxWP is a customized version of DOSBox-X targeted for users of WordPerfect for DOS.
 
   URL (Windows): http://www.columbia.edu/~em36/wpdos/dosboxwp.html
 
