@@ -67,7 +67,7 @@ namespace EndianSwapper
         public:
             static T Swap(T v)
             {
-                assert(false); // Shoud not be here...
+                assert(false); // Should not be here...
                 return v;
             }
     };

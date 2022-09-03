@@ -363,7 +363,7 @@ bool BIOS_AddKeyToBuffer(uint16_t code) {
         }
     }
     /* Check for buffer Full */
-    //TODO Maybe beeeeeeep or something although that should happend when internal buffer is full
+    //TODO Maybe beeeeeeep or something although that should happened when internal buffer is full
     if (ttail==head) {
 #if defined(USE_TTF)
         if(IS_DOSV || ttf_dosv) {

@@ -353,7 +353,7 @@ static const struct
 }
 state_table[] =
 {
-    /* Render sates */
+    /* Render states */
     {SC_RENDERSTATE, D3DRS_ZENABLE, "D3DRS_ZENABLE"}, /* 0x0 */
     {SC_RENDERSTATE, D3DRS_FILLMODE, "D3DRS_FILLMODE"},
     {SC_RENDERSTATE, D3DRS_SHADEMODE, "D3DRS_SHADEMODE"},

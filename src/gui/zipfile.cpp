@@ -405,7 +405,7 @@ unsigned long zip_nv_pair_map::get_ulong(const char *name) {
 void zip_nv_pair_map::process_line(char *line/*will modify, assume caller has put NUL at the end*/) {
     char *equ = strchr(line,'=');
     if (equ == NULL) return;
-    *equ++ = 0; /* overwite '=' with NUL, split name vs value */
+    *equ++ = 0; /* overwrite '=' with NUL, split name vs value */
 
     /* no null names */
     if (*line == 0) return;

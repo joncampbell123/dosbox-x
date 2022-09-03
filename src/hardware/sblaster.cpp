@@ -1709,16 +1709,16 @@ static void DSP_DoCommand(void) {
             for (s=0;s < sc;s++) sb.chan->AddSamples_m8(1,(uint8_t*)(&sb.dsp.in.data[0]));
         }
         break;
-    case 0x24:  /* Singe Cycle 8-Bit DMA ADC */
+    case 0x24:  /* Single Cycle 8-Bit DMA ADC */
         sb.dma.left=sb.dma.total=1u+(unsigned int)sb.dsp.in.data[0]+((unsigned int)sb.dsp.in.data[1] << 8u);
         sb.dma.sign=false;
         LOG(LOG_SB,LOG_ERROR)("DSP:Faked ADC for %d bytes",(int)sb.dma.total);
         GetDMAChannel(sb.hw.dma8)->Register_Callback(DSP_ADC_CallBack);
         break;
-    case 0x91:  /* Singe Cycle 8-Bit DMA High speed DAC */
+    case 0x91:  /* Single Cycle 8-Bit DMA High speed DAC */
         DSP_SB2_ABOVE;
         /* fall through */
-    case 0x14:  /* Singe Cycle 8-Bit DMA DAC */
+    case 0x14:  /* Single Cycle 8-Bit DMA DAC */
     case 0x15:  /* Wari hack. Waru uses this one instead of 0x14, but some weird stuff going on there anyway */
         /* Note: 0x91 is documented only for DSP ver.2.x and 3.x, not 4.x */
         DSP_PrepareDMA_Old(DSP_DMA_8,false,false,/*hispeed*/(sb.dsp.cmd&0x80)!=0);
@@ -1773,7 +1773,7 @@ static void DSP_DoCommand(void) {
 		//      the Sound Blaster Pro in which the Pro treats stereo output as just mono that is alternately latched
 		//      to left and right DACs. The SB16 handling here also follows that tradition because Creative's SB16
 		//      playback commands 0xB0-0xCF follow the same tradition: Block size specified in the command is given
-		//      in samples, and by samples, they mean individual samples, and therefore it is stil doubled when
+		//      in samples, and by samples, they mean individual samples, and therefore it is still doubled when
 		//      asked to play stereo audio. I suppose this is why Linux ALSA chose to further clarify the terminology
 		//      by defining audio "samples" vs audio "frames".
 		// NTS: The sb.dma.total as individual sample count has been confirmed with DOSLIB and real hardware, and by
@@ -2213,7 +2213,7 @@ static bool DSP_busy_cycle() {
      *      enough, more than 8 is required, and the SNDSB test code will have issues with
      *      direct DAC mode again.
      *
-     *      This isn't 100% accurate, but it's the best DOSBox-X can do for now to mimick
+     *      This isn't 100% accurate, but it's the best DOSBox-X can do for now to mimic
      *      SB16 DSP behavior. */
 
     now = PIC_FullIndex();
@@ -2305,7 +2305,7 @@ static void DSP_DoWrite(uint8_t val) {
 }
 
 static uint8_t DSP_ReadData(void) {
-/* Static so it repeats the last value on succesive reads (JANGLE DEMO) */
+/* Static so it repeats the last value on successive reads (JANGLE DEMO) */
     if (sb.dsp.out.used) {
         sb.dsp.out.lastval=sb.dsp.out.data[sb.dsp.out.pos];
         sb.dsp.out.pos++;
@@ -2387,7 +2387,7 @@ void updateSoundBlasterFilter(Bitu rate) {
          *
          * Try to approximate the ESS's filter by undoing the calculation then feeding our own lowpass filter with it.
          *
-         * This implementation is matched aginst real hardware by ear, even though the reference hardware is a
+         * This implementation is matched against real hardware by ear, even though the reference hardware is a
          * laptop with a cheap tinny amplifier */
         uint64_t filter_raw = (uint64_t)7160000ULL / (256u - ESSreg(0xA2));
         uint64_t filter_hz = (filter_raw * (uint64_t)11) / (uint64_t)(82 * 4); /* match lowpass by ear compared to real hardware */

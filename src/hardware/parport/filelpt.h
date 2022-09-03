@@ -44,7 +44,7 @@ public:
 	bool addLF;					// if set, add line feed after carriage return if not used by app
     bool squote;
 
-	uint8_t lastChar = 0;				// used to save the previous character to decide wether to add LF
+	uint8_t lastChar = 0;				// used to save the previous character to decide whether to add LF
 	const uint16_t* codepage_ptr; // pointer to the translation codepage if not null
 
 	bool OpenFile();

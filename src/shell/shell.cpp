@@ -160,7 +160,7 @@ void AutoexecObject::Install(const std::string &in) {
 
 	//autoexec.bat is normally created AUTOEXEC_Init.
 	//But if we are already running (first_shell)
-	//we have to update the envirionment to display changes
+	//we have to update the environment to display changes
 
 	if(first_shell)	{
 		//create a copy as the string will be modified

@@ -372,14 +372,14 @@ graphics_chars:
 /* General */
 		case 0x30:/* Get Font Information */
 			switch (reg_bh) {
-			case 0x00:	/* interupt 0x1f vector */
+			case 0x00:	/* interrupt 0x1f vector */
 				{
 					RealPt int_1f=RealGetVec(0x1f);
 					SegSet16(es,RealSeg(int_1f));
 					reg_bp=RealOff(int_1f);
 				}
 				break;
-			case 0x01:	/* interupt 0x43 vector */
+			case 0x01:	/* interrupt 0x43 vector */
 				{
 					RealPt int_43=RealGetVec(0x43);
 					SegSet16(es,RealSeg(int_43));
@@ -1173,7 +1173,7 @@ CX	640x480	800x600	  1024x768/1280x1024
 		break;
 	default:
 		LOG(LOG_INT10,LOG_ERROR)("Function %4X not supported",reg_ax);
-//		reg_al=0x00;		//Successfull, breaks marriage
+//		reg_al=0x00;		//Successful, breaks marriage
 		break;
 	}
 	return CBRET_NONE;

@@ -142,7 +142,7 @@ typedef struct
 
 /**
  * \struct Sound_DecoderInfo
- * \brief Information about available soudn decoders.
+ * \brief Information about available sound decoders.
  *
  * Each decoder sets up one of these structs, which can be retrieved via
  *  the Sound_AvailableDecoders() function. EVERY FIELD IN THIS IS READ-ONLY.
@@ -426,7 +426,7 @@ SNDDECLSPEC void SDLCALL Sound_ClearError(void);
  *  via Sound_FreeSample().
  *
  * You do not have to keep a reference to (rw) around. If this function
- *  suceeds, it stores (rw) internally (and disposes of it during the call
+ *  succeeds, it stores (rw) internally (and disposes of it during the call
  *  to Sound_FreeSample()). If this function fails, it will dispose of the
  *  SDL_RWops for you.
  *

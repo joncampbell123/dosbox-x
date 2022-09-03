@@ -89,7 +89,7 @@ typedef struct __SOUND_DECODERFUNCTIONS__
          *  reinitialized, in which case this method will be tried again.
          *
          * Note that the decoders quit() method won't be called if this
-         *  method fails, so if you can't intialize, you'll have to clean
+         *  method fails, so if you can't initialize, you'll have to clean
          *  up the half-initialized state in this method.
          */
     int (*init)(void);

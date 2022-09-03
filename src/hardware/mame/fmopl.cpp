@@ -2100,7 +2100,7 @@ static unsigned char OPLRead(FM_OPL *OPL,int a)
 	return 0xff;
 }
 
-/* CSM Key Controll */
+/* CSM Key Control */
 static inline void CSMKeyControll(OPL_CH *CH)
 {
 	CH->SLOT[SLOT1].KEYON(4);
@@ -2121,7 +2121,7 @@ static int OPLTimerOver(FM_OPL *OPL,int c)
 	else
 	{   /* Timer A */
 		OPL->STATUS_SET(0x40);
-		/* CSM mode key,TL controll */
+		/* CSM mode key,TL control */
 		if( OPL->mode & 0x80 )
 		{   /* CSM mode total level latch and auto key on */
 			int ch;

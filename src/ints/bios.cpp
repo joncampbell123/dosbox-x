@@ -5274,7 +5274,7 @@ static Bitu INTDC_PC98_Handler(void) {
                 /* DS:DX contains
                  *       16*10 bytes, 16 bytes per entry for function keys F1-F10
                  *       16*10 bytes, 16 bytes per entry for function key shortcuts Shift+F1 to Shift+F10
-                 *       6*11 bytes, 6 bytes per entry of unknown relevence (GUESS: Escapes for other keys like INS, DEL?)
+                 *       6*11 bytes, 6 bytes per entry of unknown relevance (GUESS: Escapes for other keys like INS, DEL?)
                  *
                  * For whatever reason, the buffer is copied to the DOS buffer +1, meaning that on write it skips the 0x08 byte. */
                 Bitu ofs = (Bitu)(SegValue(ds) << 4ul) + (Bitu)reg_dx;
@@ -5965,7 +5965,7 @@ static Bitu INT14_Handler(void) {
         if (INT14_Wait(port+6u, 0x30u, timeout, &reg_ah)) {
             // wait for TX buffer empty
             if (INT14_Wait(port+5u, 0x20u, timeout, &reg_ah)) {
-                // fianlly send the character
+                // finally send the character
                 IO_WriteB(port,reg_al);
             } else
                 reg_ah |= 0x80u;
@@ -6466,7 +6466,7 @@ static Bitu INT15_Handler(void) {
         reg_ah=0x86;
         CALLBACK_SCF(true);
         break;
-    case 0xc4:  /* BIOS POS Programm option Select */
+    case 0xc4:  /* BIOS POS Program option Select */
         LOG(LOG_BIOS,LOG_NORMAL)("INT15:Function %X called, bios mouse not supported",reg_ah);
         CALLBACK_SCF(true);
         break;
@@ -6497,7 +6497,7 @@ static Bitu INT15_Handler(void) {
                     break;
                 case 0x01: // connect real mode interface
                     if(!APMBIOS_allow_realmode) {
-                        LOG_MSG("APM BIOS: OS attemped real-mode connection, which is disabled in your dosbox-x.conf\n");
+                        LOG_MSG("APM BIOS: OS attempted real-mode connection, which is disabled in your dosbox-x.conf\n");
                         reg_ah = 0x86;  // APM not present
                         CALLBACK_SCF(true);         
                         break;
@@ -6524,7 +6524,7 @@ static Bitu INT15_Handler(void) {
                     break;
                 case 0x02: // connect 16-bit protected mode interface
                     if(!APMBIOS_allow_prot16) {
-                        LOG_MSG("APM BIOS: OS attemped 16-bit protected mode connection, which is disabled in your dosbox-x.conf\n");
+                        LOG_MSG("APM BIOS: OS attempted 16-bit protected mode connection, which is disabled in your dosbox-x.conf\n");
                         reg_ah = 0x06;  // not supported
                         CALLBACK_SCF(true);         
                         break;
@@ -6561,7 +6561,7 @@ static Bitu INT15_Handler(void) {
                     // Note that Windows 98 will NOT talk to the APM BIOS unless the 32-bit protected mode connection is available.
                     // And if you lie about it in function 0x00 and then fail, Windows 98 will fail with a "Windows protection error".
                     if(!APMBIOS_allow_prot32) {
-                        LOG_MSG("APM BIOS: OS attemped 32-bit protected mode connection, which is disabled in your dosbox-x.conf\n");
+                        LOG_MSG("APM BIOS: OS attempted 32-bit protected mode connection, which is disabled in your dosbox-x.conf\n");
                         reg_ah = 0x08;  // not supported
                         CALLBACK_SCF(true);         
                         break;
@@ -10444,7 +10444,7 @@ void write_ID_version_string() {
      *      experiments show you can move the version string around so long as it's
      *      +1 from a paragraph boundary */
     /* TODO: *DO* allow dynamic relocation however if the dosbox-x.conf indicates that the user
-     *       is not interested in IBM BIOS compatability. Also, it would be really cool if
+     *       is not interested in IBM BIOS compatibility. Also, it would be really cool if
      *       dosbox-x.conf could override these strings and the user could enter custom BIOS
      *       version and ID strings. Heh heh heh.. :) */
     str_id_at = 0xFE00E;

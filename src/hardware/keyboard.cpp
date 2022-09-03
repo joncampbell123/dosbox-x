@@ -103,7 +103,7 @@ struct ps2mouse {
     bool        scale21;        /* 2:1 scaling */
     bool        intellimouse_mode;  /* intellimouse scroll wheel */
     bool        intellimouse_btn45; /* 4th & 5th buttons */
-    bool        int33_taken;        /* for compatability with existing DOSBox code: allow INT 33H emulation to "take over" and disable us */
+    bool        int33_taken;        /* for compatibility with existing DOSBox code: allow INT 33H emulation to "take over" and disable us */
     bool        l,m,r;          /* mouse button states */
 };
 
@@ -239,7 +239,7 @@ void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel) {
 int KEYBOARD_AUX_Active() {
     /* NTS: We want to allow software to read by polling, which doesn't
      *      require interrupts to be enabled. Whether or not IRQ12 is
-     *      unmasked is irrelevent */
+     *      unmasked is irrelevant */
     return keyb.auxactive && !keyb.ps2mouse.int33_taken;
 }
 
@@ -1631,9 +1631,9 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
     case KBD_jp_hiragana:ret=0x70;break;/*also Katakana */
     case KBD_jp_backslash:ret=0x73;break;/*JP 106-key: _ \ or ろ (ro)  <-- WARNING: UTF-8 unicode */
     case KBD_jp_yen:ret=0x7d;break;/*JP 106-key: | ¥ (yen) or ー (prolonged sound mark)  <-- WARNING: UTF-8 unicode */
-	case KBD_colon:if (!pc98_force_ibm_layout) {ret = 0x28; break;} /*JP106-key : or * same postion with Quote key */
-	case KBD_caret:if (!pc98_force_ibm_layout) {ret = 0x0d; break;} /*JP106-key ^ or ~ same postion with Equals key */
-	case KBD_atsign:if (!pc98_force_ibm_layout) {ret = 0x1a; break;} /*JP106-key @ or ` same postion with Left-bracket key */
+	case KBD_colon:if (!pc98_force_ibm_layout) {ret = 0x28; break;} /*JP106-key : or * same position with Quote key */
+	case KBD_caret:if (!pc98_force_ibm_layout) {ret = 0x0d; break;} /*JP106-key ^ or ~ same position with Equals key */
+	case KBD_atsign:if (!pc98_force_ibm_layout) {ret = 0x1a; break;} /*JP106-key @ or ` same position with Left-bracket key */
 	default:
         LOG(LOG_MISC, LOG_WARN)("Unsupported key press %lu", (unsigned long)keytype);
         return;

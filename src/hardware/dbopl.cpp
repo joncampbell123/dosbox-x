@@ -100,7 +100,7 @@ namespace DBOPL {
 #endif
 
 
-//How much to substract from the base value for the final attenuation
+//How much to subtract from the base value for the final attenuation
 static const uint8_t KslCreateTable[16] = {
 	//0 will always be be lower than 7 * 8
 	64, 32, 24, 19, 
@@ -210,7 +210,7 @@ static void EnvelopeSelect( uint8_t val, uint8_t& index, uint8_t& shift ) {
 
 #if ( DBOPL_WAVE == WAVE_HANDLER )
 /*
-	Generate the different waveforms out of the sine/exponetial table using handlers
+	Generate the different waveforms out of the sine/exponential table using handlers
 */
 static /*inline*/ Bits MakeVolume( Bitu wave, Bitu volume ) {
 	Bitu total = wave + volume;
@@ -910,10 +910,10 @@ Channel* Channel::BlockTemplate( Chip* chip, uint32_t samples, int32_t* output )
 		//Early out for percussion handlers
 		if ( mode == sm2Percussion ) {
 			GeneratePercussion<false>( chip, output + i );
-			continue;	//Prevent some unitialized value bitching
+			continue;	//Prevent some uninitialized value bitching
 		} else if ( mode == sm3Percussion ) {
 			GeneratePercussion<true>( chip, output + i * 2 );
-			continue;	//Prevent some unitialized value bitching
+			continue;	//Prevent some uninitialized value bitching
 		}
 
 		//Do unsigned shift so we can shift out all bits but still stay in 10 bit range otherwise
@@ -1450,7 +1450,7 @@ void InitTables( void ) {
 			ChanOffsetTable[i] = 0;
 			continue;
 		}
-		//Make sure the four op channels follow eachother
+		//Make sure the four op channels follow each other
 		if ( index < 6 ) {
 			index = (index % 3) * 2 + ( index / 3 );
 		}

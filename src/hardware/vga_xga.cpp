@@ -2314,7 +2314,7 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 //	LOG_MSG("XGA: Write to port %x, val %8x, len %x", (unsigned int)port, (unsigned int)val, (unsigned int)len);
 
 #if 0
-	// streams procesing debug
+	// streams processing debug
 	if (port >= 0x8180 && port <= 0x81FF)
 		LOG_MSG("XGA streams processing: Write to port %x, val %8x, len %x",(unsigned int)port,(unsigned int)val,(unsigned int)len);
 #endif
@@ -2560,7 +2560,7 @@ void XGA_Write(Bitu port, Bitu val, Bitu len) {
 		case 0x81EC: // S3 Trio64V+ streams processor, Streams FIFO and RAS Controls (MMIO only)
 			if (s3Card == S3_Trio64V || s3Card >= S3_ViRGE) {
 				/* bits [4:0] should be a value from 0 to 24 to shift priority between primary and secondary.
-				 * The larger the value, the more slots alloted to secondary layer.
+				 * The larger the value, the more slots allotted to secondary layer.
 				 * Allocation is out of 24 slots, therefore values larger than 24 are invalid. */
 				uint8_t thr = val & 0x1Fu;
 				if (thr > 24u) thr -= 16u; // assume some kind of odd malfunction happens on real hardware, check later

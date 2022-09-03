@@ -645,9 +645,9 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 			//      Intel 8254 PIT datasheet:
 			//
 			//      "The selected Counter's output latch (OL) latches the count at the time the
-			//      Counter Latch Comand is received. The count is held in the latch until it is
+			//      Counter Latch Command is received. The count is held in the latch until it is
 			//      read by the CPU (or until the Counter is reprogrammed). The count is then
-			//      unlatched automaticaly and the OL returns to "following" the counting element (CE)".
+			//      unlatched automatically and the OL returns to "following" the counting element (CE)".
 			//
 			//      So the datasheet, and the behavior of Lemmings, confirms that the latch stays
 			//      in effect even if you write the control word.

@@ -34,7 +34,7 @@
 *   a size in kilobytes or a specific set of chs values to emulate
 * It will then split the image into 64k chunks that are allocated on-demand.
 * Initially the only RAM required is for the chunk map
-* The image is effectively intialized to all zeros, as each chunk is zeroed
+* The image is effectively initialized to all zeros, as each chunk is zeroed
 *   upon allocation
 * Writes of all zeros do not allocate memory if none has yet been assigned
 *
@@ -45,7 +45,7 @@ imageDiskMemory::imageDiskMemory(uint32_t imgSizeK) : imageDisk(ID_MEMORY) {
 	//notes:
 	//  this code always returns HARD DRIVES with 512 byte sectors
 	//  the code will round up in case it cannot make an exact match
-	//  it enforces a minimum drive size of 32kb, since a hard drive cannot be formatted as FAT12 with a smaller parition
+	//  it enforces a minimum drive size of 32kb, since a hard drive cannot be formatted as FAT12 with a smaller partition
 	//  the code works properly throughout the range of a 32-bit unsigned integer, however:
 	//    a) for drives requesting more than 8,225,280kb, the number of cylinders will exceed 1024
 	//    b) for drives requesting ULONG_MAX kb, the drive it creates will be slightly larger than ULONG_MAX kb, due to rounding
@@ -346,7 +346,7 @@ uint8_t imageDiskMemory::Write_AbsoluteSector(uint32_t sectnum, const void * dat
 	return 0x00;
 }
 
-// Parition and format the ramdrive
+// Partition and format the ramdrive
 uint8_t imageDiskMemory::Format() {
 	//verify that the geometry of the drive is valid
 	if (this->sector_size != 512) {

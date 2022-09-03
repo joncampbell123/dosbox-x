@@ -526,7 +526,7 @@ FILE *fopen_wrap(const char *path, const char *mode) {
 			*last = 0;
 			//If this compare fails, then we are dealing with files in / 
 			//Which is outside the scope, but test anyway. 
-			//However as realpath only works for exising files. The testing is 
+			//However as realpath only works for existing files. The testing is 
 			//in that case not done against new files.
 		}
 		char* check = realpath(work,NULL);

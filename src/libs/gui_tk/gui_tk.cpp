@@ -2039,7 +2039,7 @@ bool ScreenSDL::event(SDL_Event &event) {
 #if defined(C_SDL2)
     /* handle mouse events only if it comes from the mouse.
      * ignore the fake mouse events some OSes generate from the touchscreen.
-     * Note that Windows will fake mouse events, Linux/X11 wil not */
+     * Note that Windows will fake mouse events, Linux/X11 will not */
     if (event.type == SDL_MOUSEMOTION || event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_MOUSEBUTTONUP) {
         if (event.button.which == SDL_TOUCH_MOUSEID) /* don't handle mouse events faked by touchscreen */
             return true;/*eat the event or else it will just keep calling objects until processed*/

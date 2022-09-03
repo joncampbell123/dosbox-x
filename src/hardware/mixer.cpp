@@ -18,7 +18,7 @@
 
 
 /* 
-    Remove the sdl code from here and have it handeld in the sdlmain.
+    Remove the sdl code from here and have it handled in sdlmain.
     That should call the mixer start from there or something.
 */
 

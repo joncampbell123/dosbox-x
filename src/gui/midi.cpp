@@ -520,7 +520,7 @@ void MIDI_RawOutByte(uint8_t data) {
 		midi.handler->PlayMsg(midi.rt_buf);
 		return;
 	}	 
-	/* Test for a active sysex tranfer */
+	/* Test for a active sysex transfer */
 	if (midi.status==0xf0) {
 		if (!(data&0x80)) { 
 			if (midi.sysex.used<(SYSEX_SIZE-1)) midi.sysex.buf[midi.sysex.used++] = data;

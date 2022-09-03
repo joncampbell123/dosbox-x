@@ -2142,7 +2142,7 @@ dac_text16:
 		unsigned char s3_mode = 0x00;
 
 		switch (CurMode->type) {
-			case M_LIN4: // <- Theres a discrepance with real hardware on this
+			case M_LIN4: // <- There's a discrepance with real hardware on this
 			case M_LIN8:
 			case M_LIN15:
 			case M_LIN16:
@@ -2693,7 +2693,7 @@ public:
     void doHelp(void) {
         WriteOut("VESAMOED VESA BIOS mode editor utility\n");
         WriteOut("\n");
-        WriteOut("NOTE: Due to architectual limitations of VBE emulation,\n");
+        WriteOut("NOTE: Due to architectural limitations of VBE emulation,\n");
         WriteOut("      Adding new modes is not allowed.\n");
         WriteOut("\n");
         WriteOut("  -mode <x>               VBE video mode to edit.\n");

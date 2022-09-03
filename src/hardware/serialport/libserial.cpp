@@ -270,7 +270,7 @@ bool SERIAL_setCommParameters(COMPORT port,
 
 #include <errno.h>
 #include <fcntl.h>
-#include <stdio.h> // sprinf
+#include <stdio.h> // sprintf
 
 struct _COMPORT {
 	int porthandle;

@@ -261,21 +261,21 @@ Uint64 load_existing_seek_points(const char* filename,
                                  map<Uint64, drmp3_uint64>& pcm_frame_count_table,
                                  vector<drmp3_seek_point_serial>& seek_points) {
 
-    // The below sentinals sanity check and read the incoming
+    // The below sentinels sanity check and read the incoming
     // file one-by-one until all the data can be trusted.
 
-    // Sentinal 1: bail if we got a zero-byte file.
+    // Sentinel 1: bail if we got a zero-byte file.
     struct stat buffer;
     if (stat(filename, &buffer) != 0) {
         return 0;
     }
 
-    // Sentinal 2: Bail if the file isn't big enough to hold our identifier.
+    // Sentinel 2: Bail if the file isn't big enough to hold our identifier.
     if (get_file_size(filename) < static_cast<int64_t>(sizeof(SEEK_TABLE_IDENTIFIER))) {
         return 0;
     }
 
-    // Sentinal 3: Bail if we don't get a matching identifier.
+    // Sentinel 3: Bail if we don't get a matching identifier.
     string fetched_identifier;
     ifstream infile(filename, ios_base::binary);
     Archive<ifstream> deserialize(infile);
@@ -289,13 +289,13 @@ Uint64 load_existing_seek_points(const char* filename,
     deserialize >> seek_points_table >> pcm_frame_count_table;
     infile.close();
 
-    // Sentinal 4: does the seek_points table have our stream's hash?
+    // Sentinel 4: does the seek_points table have our stream's hash?
     const auto p_seek_points = seek_points_table.find(stream_hash);
     if (p_seek_points == seek_points_table.end()) {
         return 0;
     }
 
-    // Sentinal 5: does the pcm_frame_count table have our stream's hash?
+    // Sentinel 5: does the pcm_frame_count table have our stream's hash?
     const auto p_pcm_frame_count = pcm_frame_count_table.find(stream_hash);
     if (p_pcm_frame_count == pcm_frame_count_table.end()) {
         return 0;

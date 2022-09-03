@@ -58,7 +58,7 @@ static double sign(double a) {
 
 /*
  This function calculates what percentage of a rectangle intersected by a line lies near the center of the
- cordinate system. It is mathematically exact, and well-tested for xcenter > 0 and ycenter > 0 (it's only
+ coordinate system. It is mathematically exact, and well-tested for xcenter > 0 and ycenter > 0 (it's only
  used that way). It should be correct for other cases as well, but well... famous last words :)
 */
 static double intersect_any(double xcenter, double ycenter, double xsize, double ysize, double yoffset, double gradient) {

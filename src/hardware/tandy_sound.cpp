@@ -150,7 +150,7 @@ static void TandyDACModeChanged(void) {
 				if (tandy.dac.dma.chan) {
 					tandy.dac.dma.chan->Register_Callback(TandyDAC_DMA_CallBack);
 					tandy.dac.chan->Enable(true);
-//					LOG_MSG("Tandy DAC: playback started with freqency %f, volume %f",freq,vol);
+//					LOG_MSG("Tandy DAC: playback started with frequency %f, volume %f",freq,vol);
 				}
 			}
 		}

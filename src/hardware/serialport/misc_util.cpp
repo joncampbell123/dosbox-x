@@ -240,7 +240,7 @@ ENETServerSocket::~ENETServerSocket()
 	isopen = false;
 }
 
-// covert an ENet address to a string
+// convert an ENet address to a string
 static char *enet_address_to_string(const ENetAddress &address)
 {
 	static char ip_buf[INET_ADDRSTRLEN];

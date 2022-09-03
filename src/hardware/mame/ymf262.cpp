@@ -26,7 +26,7 @@ Revision History:
     6. 4-channel sound output.
     7. YMF262 compabile DAC (YAC512) is available.
     8. LFO for vibrato and tremolo effedts.
-    9. 2 programable timers.
+    9. 2 programmable timers.
    10. Shorter register access time compared with YM3812.
    11. 5V single supply silicon gate CMOS process.
    12. 24 Pin SOP Package (YMF262-M), 48 Pin SQFP Package (YMF262-S).

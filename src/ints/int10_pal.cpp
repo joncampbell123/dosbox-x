@@ -348,7 +348,7 @@ void INT10_GetDACPage(uint8_t* mode,uint8_t* page) {
 	}
 
     /* the operations carried out here blanked the display because of the index (0x10/0x14) without bit 5,
-     * write a dummy index with bit 5 to reenable the display. Bugfix for "Blue Force" MS-DOS game.
+     * write a dummy index with bit 5 to re-enable the display. Bugfix for "Blue Force" MS-DOS game.
      *
      * Note that DOSBox SVN had the same bug without this fix, but appeared to work because the AC blanking
      * didn't work. DOSBox SVN has a similar fix as of commit r4297. */

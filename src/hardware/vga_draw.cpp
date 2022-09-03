@@ -1925,7 +1925,7 @@ static uint8_t * MCGA_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
     // draw the text mode cursor if needed
     if ((vga.draw.cursor.count&0x8) && (line >= vga.draw.cursor.sline) &&
         (line <= vga.draw.cursor.eline) && vga.draw.cursor.enabled) {
-        // the adress of the attribute that makes up the cell the cursor is in
+        // the address of the attribute that makes up the cell the cursor is in
         Bits attr_addr = ((Bits)vga.draw.cursor.address - (Bits)vidstart) >> (Bits)1; /* <- FIXME: This right? */
         if (attr_addr >= 0 && attr_addr < (Bits)vga.draw.blocks) {
             Bitu index = (Bitu)attr_addr * (vga.draw.char9dot?9u:8u) * 4u;
@@ -4722,7 +4722,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     Bitu vblank_skip;
 
     /* NTS: PC-98 emulation re-uses VGA state FOR NOW.
-     *      This will slowly change to accomodate PC-98 display controller over time
+     *      This will slowly change to accommodate PC-98 display controller over time
      *      and IS_PC98_ARCH will become it's own case statement. */
 
     if (IS_PC98_ARCH) {
@@ -5162,7 +5162,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
                     vga.draw.address_line_total *= 2;
 
                 /* if doublescan=false and line_total is even, then halve the height.
-                 * the VGA raster scan will skip every other line to accomodate that. */
+                 * the VGA raster scan will skip every other line to accommodate that. */
                 if ((!vga.draw.doublescan_effect) && (vga.draw.address_line_total & 1) == 0)
                     height /= 2;
                 else

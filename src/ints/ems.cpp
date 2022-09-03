@@ -1765,7 +1765,7 @@ public:
 
 			if (!vcpi.enabled) return;
 
-			/* Install v86-callback that handles interrupts occuring
+			/* Install v86-callback that handles interrupts occurring
 			   in v86 mode, including protection fault exceptions */
 			call_v86mon.Install(&V86_Monitor,CB_IRET,"V86 Monitor");
 
