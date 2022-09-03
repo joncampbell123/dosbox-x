@@ -1481,7 +1481,7 @@ Datei %s existiert bereits.
 
 .
 :SHELL_CMD_DIR_BYTES_USED
-%5d Datei(en) %17s Byte
+%5d Datei(en) %15s Byte
 
 .
 :SHELL_CMD_DIR_BYTES_FREE

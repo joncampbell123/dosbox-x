@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Traditional Chinese
 :DOSBOX-X:CODEPAGE:950
-:DOSBOX-X:VERSION:2022.09.0
+:DOSBOX-X:VERSION:2022.09.1
 :DOSBOX-X:REMARK:建議將國家和字碼頁設為 886,950 並搭配中文字型; 或使用 cht 或 tw 中文 DOS/V 模式以直接支援中文顯示和列印
 :AUTOEXEC_CONFIGFILE_HELP
 段落中的指令行會在啟動時執行.
@@ -1464,11 +1464,11 @@ GOTO: 標籤 %s 找不到.
 
 .
 :SHELL_CMD_DIR_BYTES_USED
-%5d 個檔案 %17s 位元組
+%5d 個檔案 %18s 位元組
 
 .
 :SHELL_CMD_DIR_BYTES_FREE
-%5d 個目錄 %17s 可用位元組
+%5d 個目錄 %18s 可用位元組
 
 .
 :SHELL_CMD_DIR_FILES_LISTED

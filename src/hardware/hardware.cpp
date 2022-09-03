@@ -111,15 +111,21 @@ void ffmpeg_closeall() {
 			ffmpeg_avformat_began = false;
 		}
 		avio_close(ffmpeg_fmt_ctx->pb);
+		if (ffmpeg_vid_ctx != NULL) avcodec_close(ffmpeg_vid_ctx);
+		if (ffmpeg_aud_ctx != NULL) avcodec_close(ffmpeg_aud_ctx);
 		avformat_free_context(ffmpeg_fmt_ctx);
 		ffmpeg_fmt_ctx = NULL;
+		ffmpeg_vid_ctx = NULL; // NTS: avformat_free_context() freed this for us, don't free again
+		ffmpeg_aud_ctx = NULL; // NTS: avformat_free_context() freed this for us, don't free again
 	}
 	if (ffmpeg_vid_ctx != NULL) {
 		avcodec_close(ffmpeg_vid_ctx);
+		avcodec_free_context(&ffmpeg_vid_ctx);
 		ffmpeg_vid_ctx = NULL;
 	}
 	if (ffmpeg_aud_ctx != NULL) {
 		avcodec_close(ffmpeg_aud_ctx);
+		avcodec_free_context(&ffmpeg_aud_ctx);
 		ffmpeg_aud_ctx = NULL;
 	}
 	if (ffmpeg_vidrgb_frame != NULL) {
@@ -149,33 +155,30 @@ void ffmpeg_closeall() {
 
 void ffmpeg_audio_frame_send() {
 	AVPacket pkt;
-	int gotit;
+	int r;
 
+	memset(&pkt,0,sizeof(pkt));
 	av_init_packet(&pkt);
-	if (av_new_packet(&pkt,65536) == 0) {
-		pkt.flags |= AV_PKT_FLAG_KEY;
 
-		if (avcodec_encode_audio2(ffmpeg_aud_ctx,&pkt,ffmpeg_aud_frame,&gotit) == 0) {
-			if (gotit) {
-				pkt.pts = (int64_t)ffmpeg_audio_sample_counter;
-				pkt.dts = (int64_t)ffmpeg_audio_sample_counter;
-				pkt.stream_index = ffmpeg_aud_stream->index;
-				av_packet_rescale_ts(&pkt,ffmpeg_aud_ctx->time_base,ffmpeg_aud_stream->time_base);
+	ffmpeg_aud_frame->key_frame = 1;
+	ffmpeg_aud_frame->pts = (int64_t)ffmpeg_audio_sample_counter;
+	r=avcodec_send_frame(ffmpeg_aud_ctx,ffmpeg_aud_frame);
+	if (r < 0 && r != AVERROR(EAGAIN))
+		LOG_MSG("WARNING: avcodec_send_frame() audio failed to encode (err=%d)",r);
 
-				if (av_interleaved_write_frame(ffmpeg_fmt_ctx,&pkt) < 0)
-					LOG_MSG("WARNING: av_interleaved_write_frame failed");
-			}
-			else {
-				LOG_MSG("DEBUG: avcodec_encode_audio2() delayed output");
-			}
-		}
-		else {
-			LOG_MSG("WARNING: avcodec_encode_audio2() failed to encode");
-		}
+	while ((r=avcodec_receive_packet(ffmpeg_aud_ctx,&pkt)) >= 0) {
+		pkt.stream_index = ffmpeg_aud_stream->index;
+		av_packet_rescale_ts(&pkt,ffmpeg_aud_ctx->time_base,ffmpeg_aud_stream->time_base);
+
+		if (av_interleaved_write_frame(ffmpeg_fmt_ctx,&pkt) < 0)
+			LOG_MSG("WARNING: av_interleaved_write_frame failed");
 	}
-	av_packet_unref(&pkt);
+
+	if (r != AVERROR(EAGAIN))
+		LOG_MSG("WARNING: avcodec_receive_packet() audio failed to encode (err=%d)",r);
 
 	ffmpeg_audio_sample_counter += (uint64_t)ffmpeg_aud_frame->nb_samples;
+	av_packet_unref(&pkt);
 }
 
 void ffmpeg_take_audio(int16_t *raw,unsigned int samples) {
@@ -238,78 +241,84 @@ void ffmpeg_take_audio(int16_t *raw,unsigned int samples) {
 void ffmpeg_reopen_video(double fps);
 
 void ffmpeg_flush_video() {
+	/* video */
 	if (ffmpeg_fmt_ctx != NULL) {
 		if (ffmpeg_vid_frame != NULL) {
-			bool again;
+			signed long long saved_dts;
 			AVPacket pkt;
+			int r;
 
-			do {
-				again=false;
-				av_init_packet(&pkt);
-				if (av_new_packet(&pkt,50000000/8) == 0) {
-					int gotit=0;
-					if (avcodec_encode_video2(ffmpeg_vid_ctx,&pkt,NULL,&gotit) == 0) {
-						if (gotit) {
-							uint64_t tm;
+			memset(&pkt,0,sizeof(pkt));
+			av_init_packet(&pkt);
 
-							again = true;
-							tm = (uint64_t)pkt.pts;
-							pkt.stream_index = ffmpeg_vid_stream->index;
-							av_packet_rescale_ts(&pkt,ffmpeg_vid_ctx->time_base,ffmpeg_vid_stream->time_base);
-							pkt.pts += (int64_t)ffmpeg_video_frame_time_offset;
-							pkt.dts += (int64_t)ffmpeg_video_frame_time_offset;
+			r=avcodec_send_frame(ffmpeg_vid_ctx,NULL);
+			if (r < 0 && r != AVERROR(EAGAIN))
+				LOG_MSG("WARNING: avcodec_send_frame() video flush failed to encode (err=%d)",r);
 
-							if (av_interleaved_write_frame(ffmpeg_fmt_ctx,&pkt) < 0)
-								LOG_MSG("WARNING: av_interleaved_write_frame failed");
+			while ((r=avcodec_receive_packet(ffmpeg_vid_ctx,&pkt)) >= 0) {
+				saved_dts = pkt.dts;
+				pkt.stream_index = ffmpeg_vid_stream->index;
+				av_packet_rescale_ts(&pkt,ffmpeg_vid_ctx->time_base,ffmpeg_vid_stream->time_base);
+				pkt.pts += (int64_t)ffmpeg_video_frame_time_offset;
+				pkt.dts += (int64_t)ffmpeg_video_frame_time_offset;
 
-							pkt.pts = (int64_t)tm + (int64_t)1;
-							pkt.dts = (int64_t)tm + (int64_t)1;
-							av_packet_rescale_ts(&pkt,ffmpeg_vid_ctx->time_base,ffmpeg_vid_stream->time_base);
-							ffmpeg_video_frame_last_time = (uint64_t)pkt.pts;
-						}
-					}
-				}
-				av_packet_unref(&pkt);
-			} while (again);
+				if (av_interleaved_write_frame(ffmpeg_fmt_ctx,&pkt) < 0)
+					LOG_MSG("WARNING: av_interleaved_write_frame failed");
+
+				pkt.pts = (int64_t)saved_dts + (int64_t)1;
+				pkt.dts = (int64_t)saved_dts + (int64_t)1;
+				av_packet_rescale_ts(&pkt,ffmpeg_vid_ctx->time_base,ffmpeg_vid_stream->time_base);
+				ffmpeg_video_frame_last_time = (uint64_t)pkt.pts;
+			}
+
+			if (r != AVERROR(EAGAIN) && r != AVERROR_EOF)
+				LOG_MSG("WARNING: avcodec_receive_packet() video flush failed to encode (err=%d)",r);
+
+			av_packet_unref(&pkt);
+		}
+	}
+}
+
+void ffmpeg_flush_audio() {
+	/* audio */
+	if (ffmpeg_fmt_ctx != NULL) {
+		if (ffmpeg_aud_frame != NULL) {
+			AVPacket pkt;
+			int r;
+
+			if (ffmpeg_aud_write != 0) {
+				ffmpeg_aud_frame->nb_samples = (int)ffmpeg_aud_write;
+				ffmpeg_audio_frame_send();
+			}
+
+			ffmpeg_aud_write = 0;
+			ffmpeg_aud_frame->nb_samples = 0;
+
+			memset(&pkt,0,sizeof(pkt));
+			av_init_packet(&pkt);
+
+			r=avcodec_send_frame(ffmpeg_aud_ctx,NULL);
+			if (r < 0 && r != AVERROR(EAGAIN))
+				LOG_MSG("WARNING: avcodec_send_frame() audio flush failed to encode (err=%d)",r);
+
+			while ((r=avcodec_receive_packet(ffmpeg_aud_ctx,&pkt)) >= 0) {
+				pkt.stream_index = ffmpeg_aud_stream->index;
+				av_packet_rescale_ts(&pkt,ffmpeg_aud_ctx->time_base,ffmpeg_aud_stream->time_base);
+
+				if (av_interleaved_write_frame(ffmpeg_fmt_ctx,&pkt) < 0)
+					LOG_MSG("WARNING: av_interleaved_write_frame failed");
+			}
+
+			if (r != AVERROR(EAGAIN) && r != AVERROR_EOF)
+				LOG_MSG("WARNING: avcodec_receive_packet() audio flush failed to encode (err=%d)",r);
+
+			av_packet_unref(&pkt);
 		}
 	}
 }
 
 void ffmpeg_flushout() {
-	/* audio */
-	if (ffmpeg_fmt_ctx != NULL) {
-		if (ffmpeg_aud_frame != NULL) {
-			bool again;
-			AVPacket pkt;
-
-			if (ffmpeg_aud_write != 0)
-				ffmpeg_aud_frame->nb_samples = (int)ffmpeg_aud_write;
-
-			ffmpeg_audio_frame_send();
-			ffmpeg_aud_write = 0;
-			ffmpeg_aud_frame->nb_samples = 0;
-
-			do {
-				again=false;
-				av_init_packet(&pkt);
-				if (av_new_packet(&pkt,65536) == 0) {
-					int gotit=0;
-					if (avcodec_encode_audio2(ffmpeg_aud_ctx,&pkt,NULL,&gotit) == 0) {
-						if (gotit) {
-							again = true;
-							pkt.stream_index = ffmpeg_aud_stream->index;
-							av_packet_rescale_ts(&pkt,ffmpeg_aud_ctx->time_base,ffmpeg_aud_stream->time_base);
-
-							if (av_interleaved_write_frame(ffmpeg_fmt_ctx,&pkt) < 0)
-								LOG_MSG("WARNING: av_interleaved_write_frame failed");
-						}
-					}
-				}
-				av_packet_unref(&pkt);
-			} while (again);
-		}
-	}
-
+	ffmpeg_flush_audio();
 	ffmpeg_flush_video();
 }
 #endif
@@ -407,6 +416,7 @@ int ffmpeg_bpp_pick_rgb_format(int bpp) {
 void ffmpeg_reopen_video(double fps,const int bpp) {
 	if (ffmpeg_vid_ctx != NULL) {
 		avcodec_close(ffmpeg_vid_ctx);
+		avcodec_free_context(&ffmpeg_vid_ctx);
 		ffmpeg_vid_ctx = NULL;
 	}
 	if (ffmpeg_vidrgb_frame != NULL) {
@@ -427,7 +437,6 @@ void ffmpeg_reopen_video(double fps,const int bpp) {
 	// FIXME: This is copypasta! Consolidate!
 	ffmpeg_vid_ctx = ffmpeg_vid_stream->codec = avcodec_alloc_context3(ffmpeg_vid_codec);
 	if (ffmpeg_vid_ctx == NULL) E_Exit("Error: Unable to reopen vid codec");
-	avcodec_get_context_defaults3(ffmpeg_vid_ctx,ffmpeg_vid_codec);
 	ffmpeg_vid_ctx->bit_rate = 25000000; // TODO: make configuration option!
 	ffmpeg_vid_ctx->keyint_min = 15; // TODO: make configuration option!
 	ffmpeg_vid_ctx->time_base.num = 1000000;
@@ -452,6 +461,8 @@ void ffmpeg_reopen_video(double fps,const int bpp) {
 	{
 		AVDictionary *opts = NULL;
 
+		av_dict_set(&opts,"crf","14",1); /* default is 20, this allows higher quality */
+		av_dict_set(&opts,"crf_max","20",1); /* don't let it get too low quality */
 		av_dict_set(&opts,"preset","superfast",1);
 		av_dict_set(&opts,"aud","1",1);
 
@@ -1145,7 +1156,7 @@ skip_shot:
 				goto skip_video;
 			}
 			ffmpeg_vid_ctx = ffmpeg_vid_stream->codec;
-			avcodec_get_context_defaults3(ffmpeg_vid_ctx,ffmpeg_vid_codec);
+
 			ffmpeg_vid_ctx->bit_rate = 25000000; // TODO: make configuration option!
 			ffmpeg_vid_ctx->keyint_min = 15; // TODO: make configuration option!
 			ffmpeg_vid_ctx->time_base.num = 1000000;
@@ -1170,6 +1181,8 @@ skip_shot:
 			{
 				AVDictionary *opts = NULL;
 
+				av_dict_set(&opts,"crf","14",1); /* default is 20, this allows higher quality */
+				av_dict_set(&opts,"crf_max","20",1); /* don't let it get too low quality */
 				av_dict_set(&opts,"preset","superfast",1);
 				av_dict_set(&opts,"aud","1",1);
 
@@ -1190,7 +1203,6 @@ skip_shot:
 				goto skip_video;
 			}
 			ffmpeg_aud_ctx = ffmpeg_aud_stream->codec;
-			avcodec_get_context_defaults3(ffmpeg_aud_ctx,ffmpeg_aud_codec);
 			ffmpeg_aud_ctx->sample_rate = (int)capture.video.audiorate;
 			ffmpeg_aud_ctx->channels = 2;
 			ffmpeg_aud_ctx->flags = 0; // do not use global headers
@@ -1357,11 +1369,14 @@ skip_shot:
 		}
 #if (C_AVCODEC)
 		else if (export_ffmpeg && ffmpeg_fmt_ctx != NULL) {
+			signed long long saved_dts;
 			AVPacket pkt;
+			int r;
 
 			// video
+			memset(&pkt,0,sizeof(pkt));
 			av_init_packet(&pkt);
-			if (av_new_packet(&pkt,50000000/8) == 0) {
+			{
 				unsigned char *srcline,*dstline;
 				Bitu x;
 
@@ -1437,37 +1452,31 @@ skip_shot:
 					LOG_MSG("WARNING: sws_scale() failed");
 
 				// encode it
-				int gotit=0;
-				pkt.pts = (int64_t)capture.video.frames;
-				pkt.dts = (int64_t)capture.video.frames;
 				ffmpeg_vid_frame->pts = (int64_t)capture.video.frames; // or else libx264 complains about non-monotonic timestamps
 				ffmpeg_vid_frame->key_frame = ((capture.video.frames % 15) == 0)?1:0;
-				if (avcodec_encode_video2(ffmpeg_vid_ctx,&pkt,ffmpeg_vid_frame,&gotit) == 0) {
-					if (gotit) {
-						uint64_t tm;
 
-						tm = (uint64_t)pkt.pts;
-						pkt.stream_index = ffmpeg_vid_stream->index;
-						av_packet_rescale_ts(&pkt,ffmpeg_vid_ctx->time_base,ffmpeg_vid_stream->time_base);
-						pkt.pts += (int64_t)ffmpeg_video_frame_time_offset;
-						pkt.dts += (int64_t)ffmpeg_video_frame_time_offset;
+				r=avcodec_send_frame(ffmpeg_vid_ctx,ffmpeg_vid_frame);
+				if (r < 0 && r != AVERROR(EAGAIN))
+					LOG_MSG("WARNING: avcodec_send_frame() video failed to encode (err=%d)",r);
 
-						if (av_interleaved_write_frame(ffmpeg_fmt_ctx,&pkt) < 0)
-							LOG_MSG("WARNING: av_interleaved_write_frame failed");
+				while ((r=avcodec_receive_packet(ffmpeg_vid_ctx,&pkt)) >= 0) {
+					saved_dts = pkt.dts;
+					pkt.stream_index = ffmpeg_vid_stream->index;
+					av_packet_rescale_ts(&pkt,ffmpeg_vid_ctx->time_base,ffmpeg_vid_stream->time_base);
+					pkt.pts += (int64_t)ffmpeg_video_frame_time_offset;
+					pkt.dts += (int64_t)ffmpeg_video_frame_time_offset;
 
-						pkt.pts = (int64_t)tm + (int64_t)1;
-						pkt.dts = (int64_t)tm + (int64_t)1;
-						av_packet_rescale_ts(&pkt,ffmpeg_vid_ctx->time_base,ffmpeg_vid_stream->time_base);
-						ffmpeg_video_frame_last_time = (uint64_t)pkt.pts;
-					}
-					else {
-						LOG_MSG("DEBUG: avcodec_encode_video2 delayed frame");
-						/* delayed frame */
-					}
+					if (av_interleaved_write_frame(ffmpeg_fmt_ctx,&pkt) < 0)
+						LOG_MSG("WARNING: av_interleaved_write_frame failed");
+
+					pkt.pts = (int64_t)saved_dts + (int64_t)1;
+					pkt.dts = (int64_t)saved_dts + (int64_t)1;
+					av_packet_rescale_ts(&pkt,ffmpeg_vid_ctx->time_base,ffmpeg_vid_stream->time_base);
+					ffmpeg_video_frame_last_time = (uint64_t)pkt.pts;
 				}
-				else {
-					LOG_MSG("WARNING: avcodec_encode_video2() failed");
-				}
+
+				if (r != AVERROR(EAGAIN))
+					LOG_MSG("WARNING: avcodec_receive_packet() video failed to encode (err=%d)",r);
 			}
 			av_packet_unref(&pkt);
 			capture.video.frames++;

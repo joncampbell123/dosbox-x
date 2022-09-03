@@ -1,4 +1,8 @@
 2022.09.0 (0.84.3)
+  - Updated FFMPEG video capture to use newer API,
+    fix memory leaks, and fix use-after-free bug that
+    may have been responsible for occasional crashes
+    when using the function. (joncampbell123)
   - Added 86PCM support for PC-98 emulation. (nanshiki)
   - Added German language translation. (Link-Mario)
   - Added code page 867 (compatible with Hebrew DOS
@@ -19,7 +23,8 @@
     the IDE CD-ROM device. (rderooy & psyraven)
   - Fixed problem when inputting characters with call
     INT21/AH=3Fh in PC-98 mode. (nanshiki)
-  - Fixed hang on zip-mounted drives. (tbr)
+  - Fixed hang on zip-mounted drives and minor bug on
+    the DOS file-read code. (tbr)
   - Fixed file copying problem with Windows 9x install
     at the end of the DOS-based Setup. (Wengier)
   - Fixed command like "IF NOT EXIST D:\NUL ..." not
@@ -27,7 +32,7 @@
   - Fixed that pasting text from clipboard via mouse
     may not work properly in some cases. (Wengier)
   - Fixed the mouse scrolling wheel not working with
-    "CTMOUSE /O" in guest DOS. (Wengier)
+    CTMOUSE 2.1's "CTMOUSE /O" in guest DOS. (Wengier)
   - Fixed window transparency setting not working in
     macOS SDL1 build. (Wengier)
   - Fixed macOS small display issue with the in-tree

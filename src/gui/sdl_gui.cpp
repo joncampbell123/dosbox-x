@@ -3160,7 +3160,7 @@ public:
             new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>350?(parent->getWidth()-350)/2:0, 150, 350, mainMenu.get_item("help_about").get_text().c_str(), aboutmsg);
         } else if (arg == MSG_Get("INTRODUCTION")) {
             //new GUI::MessageBox2(getScreen(), 20, 50, 540, "Introduction", intromsg);
-            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>540?(parent->getWidth()-540)/2:0, 50, 540, mainMenu.get_item("help_intro").get_text().c_str(), MSG_Get("INTRO_MESSAGE"));
+            new GUI::MessageBox2(getScreen(), getScreen()->getWidth()>540?(parent->getWidth()-540)/2:0, 150, 540, mainMenu.get_item("help_intro").get_text().c_str(), MSG_Get("INTRO_MESSAGE"));
         } else if (arg == MSG_Get("GET_STARTED")) {
             std::string msg = MSG_Get("PROGRAM_INTRO_MOUNT_START");
 #ifdef WIN32

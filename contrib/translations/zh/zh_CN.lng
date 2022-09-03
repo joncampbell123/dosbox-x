@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Simplified Chinese
 :DOSBOX-X:CODEPAGE:936
-:DOSBOX-X:VERSION:2022.09.0
+:DOSBOX-X:VERSION:2022.09.1
 :DOSBOX-X:REMARK:建议将国家和代码页设为 86,936 并搭配中文字体; 或使用 chs 或 cn 中文 DOS/V 模式以直接支持中文显示和打印
 :AUTOEXEC_CONFIGFILE_HELP
 Lines in this section will be run at startup.
@@ -1464,11 +1464,11 @@ GOTO: 标签 %s 找不到.
 
 .
 :SHELL_CMD_DIR_BYTES_USED
-%5d 个文件 %17s 字节
+%5d 个文件 %18s 字节
 
 .
 :SHELL_CMD_DIR_BYTES_FREE
-%5d 个目录 %17s 可用字节
+%5d 个目录 %18s 可用字节
 
 .
 :SHELL_CMD_DIR_FILES_LISTED
