@@ -64,7 +64,7 @@ modules:
     sources:
       - type: git
         url: https://gitlab.freedesktop.org/slirp/libslirp
-        tag: "v4.6.1"
+        tag: "v4.7.0"
     x-checker-data:
       type: anitya
       project-id: 96796
