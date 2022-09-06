@@ -1,4 +1,5 @@
 Unreleased
+  - Updated Flatpak SDK and dependencies (Jookia)
   - Fixed FFMPEG 5 compatibility (Jookia)
 
 2022.09.0 (0.84.3)

@@ -1,7 +1,7 @@
 ---
 app-id: com.dosbox_x.DOSBox-X
 runtime: org.freedesktop.Platform
-runtime-version: '21.08'
+runtime-version: '22.08'
 sdk: org.freedesktop.Sdk
 
 command: dosbox-x
@@ -52,8 +52,8 @@ modules:
       - "*.so"
     sources:
       - type: archive
-        url: https://github.com/FluidSynth/fluidsynth/archive/v2.2.4.tar.gz
-        sha256: 83cb1dba04c632ede74f0c0717018b062c0e00b639722203b23f77a961afd390
+        url: https://github.com/FluidSynth/fluidsynth/archive/v2.2.9.tar.gz
+        sha256: bc62494ec2554fdcfc01512a2580f12fc1e1b01ce37a18b370dd7902af7a8159
 
   # Build libslirp for networking
   - name: libslirp
@@ -64,7 +64,7 @@ modules:
     sources:
       - type: git
         url: https://gitlab.freedesktop.org/slirp/libslirp
-        tag: "v4.6.1"
+        tag: "v4.7.0"
     x-checker-data:
       type: anitya
       project-id: 96796
