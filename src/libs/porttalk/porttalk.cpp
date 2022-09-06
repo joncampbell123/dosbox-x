@@ -237,7 +237,7 @@ bool setPermissionList() {
 #endif
 
 #ifdef LINUX
-# if defined(__i386__) || defined(__amd64__) || defined(__x86_64__)
+# if (defined(__i386__) || defined(__amd64__) || defined(__x86_64__)) && !(defined(ANDROID) || defined(__ANDROID__)) // ioperm is unavaliable on Android
 // This Linux ioperm only works up to port 0x3FF
 #include <sys/perm.h>
 // For musl-libc based toolchain, use <sys/io.h> instead of <sys/perm.h>
@@ -255,7 +255,17 @@ void addIOPermission(uint16_t port) {
 bool setPermissionList() {
     return true;
 }
+# else
+// Placeholders
+bool initPorttalk() {
+    return false;
+}
+ 
+void addIOPermission(uint16_t port) {}
 
+bool setPermissionList() {
+    return false;
+}
 # endif
 #endif
 
