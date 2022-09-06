@@ -221,7 +221,7 @@ Bitu OUTPUT_SURFACE_SetSize()
     sdl.deferred_resize = false;
     sdl.must_redraw_all = true;
 
-    /* Fix a glitch with aspect=true occuring when
+    /* Fix a glitch with aspect=true occurring when
     changing between modes with different dimensions */
     SDL_FillRect(sdl.surface, NULL, SDL_MapRGB(sdl.surface->format, 0, 0, 0));
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW

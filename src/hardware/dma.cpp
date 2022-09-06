@@ -299,7 +299,7 @@ void DmaController::WriteControllerReg(Bitu reg,Bitu val,Bitu /*len*/) {
 			chan->currcnt=(uint16_t)((chan->currcnt&0x00ff)|(val << 8));
 		}
 		break;
-	case 0x8:		/* Comand reg not used */
+	case 0x8:		/* Command reg not used */
 		break;
 	case 0x9:		/* Request registers, memory to memory */
 		//TODO Warning?

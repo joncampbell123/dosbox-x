@@ -110,7 +110,7 @@ class SlirpEthernetConnection : public EthernetConnection {
 
 		std::list<int> registered_fds; /*!< File descriptors to watch */
 
-		// keep track of the ports fowarded
+		// keep track of the ports forwarded
 		std::map<int, int> forwarded_tcp_ports = {};
 		std::map<int, int> forwarded_udp_ports = {};
 #ifndef WIN32

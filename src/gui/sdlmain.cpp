@@ -2654,7 +2654,7 @@ void GFX_SwitchFullScreen(void)
 
                Frankly I wish I knew how to fix the SDL1 Quartz code to use whatever abracadabra magic code is required
                to enumerate these extra HDTV modes so this hack isn't necessary, except that experience says this hack is
-               always necesary because it might not always work.
+               always necessary because it might not always work.
 
                This magic hidden super secret API bullshit is annoying. You're worse than Microsoft with this stuff, Apple --J.C. */
             {
@@ -2709,7 +2709,7 @@ void GFX_SwitchFullScreen(void)
 
     // if we're going fullscreen and current scaler exceeds screen size,
     // cancel the fullscreen change -> fixes scaler crashes
-    // TODO this will need further changes to accomodate different outputs (e.g. stretched)
+    // TODO this will need further changes to accommodate different outputs (e.g. stretched)
     if (full)
     {
         int width, height;
@@ -3087,7 +3087,7 @@ static void SetPriority(PRIORITY_LEVELS level) {
         SetPriorityClass(GetCurrentProcess(),HIGH_PRIORITY_CLASS);
         break;
 #elif C_SET_PRIORITY
-/* Linux use group as dosbox-x has mulitple threads under linux */
+/* Linux use group as dosbox-x has multiple threads under linux */
     case PRIORITY_LEVEL_PAUSE:  // if DOSBox-X is paused, assume idle priority
     case PRIORITY_LEVEL_LOWEST:
         setpriority (PRIO_PGRP, 0,PRIO_MAX);
@@ -5270,7 +5270,7 @@ bool eatRestoredWindow = false;
 /* DOSBox SVN revision 4176:4177: For Linux/X11, Xorg 1.20.1
  * will make spurious focus gain and loss events when locking the mouse in windowed mode.
  *
- * This has not been tested with DOSBox-X yet becaus I do not run Xorg 1.20.1, yet */
+ * This has not been tested with DOSBox-X yet because I do not run Xorg 1.20.1, yet */
 #if defined(LINUX)
 #define SDL_XORG_FIX 1
 #else
@@ -8564,7 +8564,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         KeyboardLayoutDetect();
         SetMapperKeyboardLayout(host_keyboard_layout);
 
-        /* -- -- Initialise Joystick and CD-ROM seperately. This way we can warn when it fails instead of exiting the application */
+        /* -- -- Initialise Joystick and CD-ROM separately. This way we can warn when it fails instead of exiting the application */
         LOG(LOG_MISC,LOG_DEBUG)("Initializing SDL joystick subsystem...");
         glide.fullscreen = &sdl.desktop.fullscreen;
         if (SDL_InitSubSystem(SDL_INIT_JOYSTICK) >= 0) {

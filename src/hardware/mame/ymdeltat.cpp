@@ -222,7 +222,7 @@ value:   START, REC, MEMDAT, REPEAT, SPOFF, x,x,RESET   meaning:
 		if (portstate & 0x20) /* do we access external memory? */
 		{
 			now_addr = start << 1;
-			memread = 2;    /* two dummy reads needed before accesing external memory via register $08*/
+			memread = 2;    /* two dummy reads needed before accessing external memory via register $08*/
 
 			/* if yes, then let's check if ADPCM memory is mapped and big enough */
 			if (!memory)

@@ -146,7 +146,7 @@ static REG8 IOINPCALL pcm86_ia460(UINT port) {
 	return pcm86.soundflags;
 }
 
-// Bit0 flips syncronizing with the sampling rate set by port A468h.
+// Bit0 flips synchronizing with the sampling rate set by port A468h.
 // but I could not think of a good way to implement it.
 // NEC Windows 3.1 sound driver freeze if bit0 does not change, 
 // so I have added a process to switch it on each call.

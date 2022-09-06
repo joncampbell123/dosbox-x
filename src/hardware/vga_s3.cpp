@@ -267,7 +267,7 @@ void SVGA_S3_WriteCRTC(Bitu reg,Bitu val,Bitu iolen) {
             3   (80x,928) ISA Latch Address. If set latches address during every ISA
                 cycle, unlatches during every ISA cycle if clear.
                 (864/964) LAT DEL. Address Latch Delay Control (VL-Bus only). If set
-                address latching occours in the T1 cycle, if clear in the T2 cycle
+                address latching occurs in the T1 cycle, if clear in the T2 cycle
                 (I.e. one clock cycle delayed).
             4   ENB LA. Enable Linear Addressing if set.
             5   (not 864/964) Limit Entry Depth for Write-Post. If set limits Write

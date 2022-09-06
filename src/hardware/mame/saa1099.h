@@ -23,7 +23,7 @@
 //  TYPE DEFINITIONS
 //**************************************************************************
 
-//Container class for int that just initalizes to 0
+//Container class for int that just initializes to 0
 class NullInt {
     int value;
 public:

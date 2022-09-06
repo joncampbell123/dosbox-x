@@ -1512,7 +1512,7 @@ void ConstructSubMenu(DOSBoxMenu::item_handle_t item_id, const char * const * li
          *      This seemingly inefficient method of populating the display
          *      list is REQUIRED because DOSBoxMenu::item& is a reference
          *      to a std::vector, and the reference becomes invalid when
-         *      the vector reallocates to accomodate more entries.
+         *      the vector reallocates to accommodate more entries.
          *
          *      Holding onto one reference for the entire loop risks a
          *      segfault (use after free) bug if the vector should reallocate
@@ -2238,7 +2238,7 @@ umount:
             Drives[i_drive-'A'] = 0;
             if(i_drive-'A' == DOS_GetDefaultDrive()) 
                 DOS_SetDrive(toupper('Z') - 'A');
-            LOG_MSG("GUI:Drive %c has succesfully been removed.",i_drive); break;
+            LOG_MSG("GUI:Drive %c has successfully been removed.",i_drive); break;
         case 1:
             LOG_MSG("GUI:Virtual Drives can not be unMOUNTed."); break;
         case 2:

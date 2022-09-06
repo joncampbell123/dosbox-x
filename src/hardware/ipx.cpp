@@ -361,7 +361,7 @@ static void IPX_AES_EventHandler(Bitu param)
 		}
 		tmpECB = tmp2ECB;
 	}
-	LOG_MSG("!!!! Rouge AES !!!!" );
+	LOG_MSG("!!!! Rogue AES !!!!" );
 }
 
 static void sendPacket(ECBClass* sendecb);
@@ -685,7 +685,7 @@ static void sendPacket(ECBClass* sendecb) {
 	uint8_t immedAddr[6];
 	sendecb->getImmAddress(immedAddr);
 	// filter out broadcasts and local loopbacks
-	// Real implementation uses the ImmedAddr to check wether this is a broadcast
+	// Real implementation uses the ImmedAddr to check whether this is a broadcast
 
 	bool islocalbroadcast=true;
 	bool isloopback=true;

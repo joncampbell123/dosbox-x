@@ -318,7 +318,7 @@ bool Prop_int::CheckValue(Value const& in, bool warn) {
 //  if (!suggested_values.empty() && Property::CheckValue(in,warn)) return true;
     if (!suggested_values.empty()) return Property::CheckValue(in,warn);
 
-    //No >= and <= in Value type and == is ambigious
+    //No >= and <= in Value type and == is ambigiuous
     int mi = min;
     int ma = max;
     int va = static_cast<int>(Value(in));
@@ -722,7 +722,7 @@ bool Section_prop::HandleInputline(string const& gegevens) {
 	     ((val[0] == '\"'  && val[length - 1] == '\"' ) ||
 	      (val[0] == '\'' && val[length - 1] == '\''))
 	   ) val = val.substr(1,length - 2);
-    /* trim the results incase there were spaces somewhere */
+    /* trim the results in case there were spaces somewhere */
     trim(name);trim(val);
     for(it tel = properties.begin();tel != properties.end();++tel) {
         if (!strcasecmp((*tel)->propname.c_str(),name.c_str())) {
@@ -797,7 +797,7 @@ bool Config::PrintConfig(char const * const configfilename,int everything,bool n
     FILE* outfile = fopen(configfilename,"w+t");
     if (outfile == NULL) return false;
 
-    /* Print start of configfile and add a return to improve readibility. */
+    /* Print start of configfile and add a return to improve readability. */
     if (!norem) {
         fprintf(outfile,MSG_Get("CONFIGFILE_INTRO"),VERSION);
         fprintf(outfile,"\n");

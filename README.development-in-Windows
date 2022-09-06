@@ -116,7 +116,7 @@ The section about configuring IntelliSense still needs to be written.
 Joystick improvements for SDL1 build
 ------------------------------------
 
-XInput is now supported through the SDL_JOYSTICK_XINPUT define, this fixes the long plaguing issue where triggers were seen as the third axis on Xbox controllers. The resulting experience was an unsable input since both triggers shared the same the axis in the default DirectInput driver provided by Microsoft, for compatibility reasons. Some might have noticed that an earlier version of the device driver did not exhibit such behavior, at the cost of breaking legacy compatibility. By enabling this flag, XInput will be used in place of DirectInput. Consequently, the third axis will be the horizontal axis of the right thumbstick and triggers will act as the fifth and sixth axes when using the 'ch' joystick type.
+XInput is now supported through the SDL_JOYSTICK_XINPUT define, this fixes the long plaguing issue where triggers were seen as the third axis on Xbox controllers. The resulting experience was an unusable input since both triggers shared the same the axis in the default DirectInput driver provided by Microsoft, for compatibility reasons. Some might have noticed that an earlier version of the device driver did not exhibit such behavior, at the cost of breaking legacy compatibility. By enabling this flag, XInput will be used in place of DirectInput. Consequently, the third axis will be the horizontal axis of the right thumbstick and triggers will act as the fifth and sixth axes when using the 'ch' joystick type.
 
 To enable it:
 

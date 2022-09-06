@@ -3088,7 +3088,7 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
                         LOG_MSG("INT 13 WARNING: I/O issued on drive attached to IDE emulation with changed logical geometry!\n");
 
                     /* HACK: src/ints/bios_disk.cpp implementation doesn't correctly
-                     *       wrap sector numbers across tracks. it fullfills the read
+                     *       wrap sector numbers across tracks. it fulfills the read
                      *       by counting sectors and reading from C,H,S+i which means
                      *       that if the OS assumes the ability to read across track
                      *       boundaries (as Windows 95 does) we will get invalid
@@ -4186,7 +4186,7 @@ void IDEATADevice::writecommand(uint8_t cmd) {
         case 0xA1: /* IDENTIFY PACKET DEVICE */
             /* We are not an ATAPI packet device.
              * Most MS-DOS drivers and Windows 95 like to issue both IDENTIFY ATA and IDENTIFY ATAPI commands.
-             * I also gather from some contributers on the github comments that people think our "Unknown IDE/ATA command"
+             * I also gather from some contributors on the github comments that people think our "Unknown IDE/ATA command"
              * error message is part of some other error in the emulation. Rather than put up with that, we'll just
              * silently abort the command with an error. */
             abort_normal();

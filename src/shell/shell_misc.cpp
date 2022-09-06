@@ -1168,7 +1168,7 @@ void DOS_Shell::ProcessCmdLineEnvVarStitution(char *line) {
      * ^ WTF?
      *
      * So the below code has funny conditions to match Win95's weird rules on what
-     * consitutes valid or invalid %variable% names. */
+     * constitutes valid or invalid %variable% names. */
 
     /* continue scanning for the ending '%'. variable names are apparently meant to be
      * alphanumeric, start with a letter, without spaces (if Windows 95 COMMAND.COM is
@@ -1425,7 +1425,7 @@ continue_1:
 		/* Fill the command line */
 		CommandTail cmdtail;
 		cmdtail.count = 0;
-        memset(&cmdtail.buffer,0,CTBUF); //Else some part of the string is unitialized (valgrind)
+        memset(&cmdtail.buffer,0,CTBUF); //Else some part of the string is uninitialized (valgrind)
         if (strlen(line)>=CTBUF) line[CTBUF-1]=0;
 		cmdtail.count=(uint8_t)strlen(line);
 		memcpy(cmdtail.buffer,line,strlen(line));
@@ -1434,12 +1434,12 @@ continue_1:
 		MEM_BlockWrite(SegPhys(ss)+reg_sp+0x100,&cmdtail,CTBUF+1);
 		
 		/* Split input line up into parameters, using a few special rules, most notable the one for /AAA => A\0AA
-		 * Qbix: It is extremly messy, but this was the only way I could get things like /:aa and :/aa to work correctly */
+		 * Qbix: It is extremely messy, but this was the only way I could get things like /:aa and :/aa to work correctly */
 		
 		//Prepare string first
 		char parseline[258] = { 0 };
 		for(char *pl = line,*q = parseline; *pl ;pl++,q++) {
-			if (*pl == '=' || *pl == ';' || *pl ==',' || *pl == '\t' || *pl == ' ') *q = 0; else *q = *pl; //Replace command seperators with 0.
+			if (*pl == '=' || *pl == ';' || *pl ==',' || *pl == '\t' || *pl == ' ') *q = 0; else *q = *pl; //Replace command separators with 0.
 		} //No end of string \0 needed as parseline is larger than line
 
 		for(char* p = parseline; (p-parseline) < 250 ;p++) { //Stay relaxed within boundaries as we have plenty of room

@@ -372,7 +372,7 @@ class PARPORTS:public Module_base {
 					defaultirq[i] = (uint8_t)strtol(str.c_str(), NULL, 10);
 				cmd.FindCommand(1,str);
 
-				/* DOSBox SVN disney=true compatability: Reserve LPT1 for Disney Sound Source */
+				/* DOSBox SVN disney=true compatibility: Reserve LPT1 for Disney Sound Source */
 				if (i == 0 && DISNEY_ShouldInit())
 					continue;
 
@@ -681,9 +681,9 @@ void PARALLEL_OnPowerOn (Section * sec) {
 	if (testParallelPortsBaseclass) delete testParallelPortsBaseclass;
 	testParallelPortsBaseclass = new PARPORTS (control->GetSection("parallel"));
 
-	/* DOSBox SVN compatability: LPT1 should be reserved for Disney Sound Source if disney=true, now init it */
+	/* DOSBox SVN compatibility: LPT1 should be reserved for Disney Sound Source if disney=true, now init it */
 	if (!DISNEY_HasInit() && DISNEY_ShouldInit() && parallelPortObjects[0] == NULL) {
-		LOG_MSG("disney=true. For compatability with other DOSBox forks and SVN, LPT1 has been reserved for Disney Sound Source. Initializing it now.");
+		LOG_MSG("disney=true. For compatibility with other DOSBox forks and SVN, LPT1 has been reserved for Disney Sound Source. Initializing it now.");
 		LOG_MSG("DOSBox-X also supports disney=false and parallel1=disney");
 		DISNEY_Init(parallel_baseaddr[0]);
 	}

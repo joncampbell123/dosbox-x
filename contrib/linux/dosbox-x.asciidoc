@@ -161,7 +161,7 @@ VESA SVGA - S3 Trio64 with VESA BIOS Extensions (VBE) 1.2
 +
 * *vesa_oldvbe10*
 +
-VESA SVGA - S3 Trio64 wtih VESA BIOS Extensions (VBE) 1.0
+VESA SVGA - S3 Trio64 with VESA BIOS Extensions (VBE) 1.0
 +
 * *vesa_nolfb*
 +
@@ -193,7 +193,7 @@ NOTE: The _machinetype_ affects not only the emulated video card, but may also e
 
 *-conf* _configfile_::
 Start dosbox-x with the options specified in _configfile_. This file may also have a section called _[autoexec]_ in which you can put commands you wish to execute on startup.
-Multiple *-conf* options with _configfiles_ can be specified and they will be overlayed on each other.
+Multiple *-conf* options with _configfiles_ can be specified and they will be overlaid on each other.
 *-editconf* [_editor_]::
 Open the default configuration file in a text editor. If no editor name is given, then use the program from the EDITOR environment variable.
 *-userconf*::

@@ -43,7 +43,7 @@ static uint8_t static_functionality[0x10]=
  /* 7 */ 0x07,  // 200, 350, 400 scan lines
  /* 8 */ 0x04,  // total number of character blocks available in text modes
  /* 9 */ 0x02,  // maximum number of active character blocks in text modes
- /* a */ 0xff,  // Misc Flags Everthing supported 
+ /* a */ 0xff,  // Misc Flags Everything supported 
  /* b */ 0x0e,  // Support for Display combination, intensity/blinking and video state saving/restoring
  /* c */ 0x00,  // reserved
  /* d */ 0x00,  // reserved

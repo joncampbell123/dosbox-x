@@ -1038,7 +1038,7 @@ void VGA_Reset(Section*) {
             // TODO: There are reports of VGA cards that have less than 256KB in the early days of VGA.
             //       How does that work exactly, especially when 640x480 requires about 37KB per plane?
             //       Did these cards have some means to chain two bitplanes odd/even in the same way
-            //       tha EGA did it?
+            //       than EGA did it?
             if (vga.mem.memsize != 0 || svgaCard == SVGA_None) {
                 if (vga.mem.memsize < _KB_bytes(256)) vga.mem.memsize = _KB_bytes(256);
             }
@@ -1747,17 +1747,17 @@ void JEGA_setupAX(void) {
 	jega.RDFFB = 0x00;//bc: Font access first byte
 	jega.RDFSB = 0x00;//bd: second
 	jega.RDFAP = 0x00;//be: Font Access Pattern
-	jega.RPESL = 0x00;//09: end scan line (superceded by EGA)
-	jega.RPULP = 0x00;//14: under scan line (superceded by EGA)
+	jega.RPESL = 0x00;//09: end scan line (superseded by EGA)
+	jega.RPULP = 0x00;//14: under scan line (superseded by EGA)
 	jega.RPSSC = 1;//db: DBCS start scan line
 	jega.RPSSU = 3;//d9: 2x DBCS upper start scan
 	jega.RPSSL = 0;//da: 2x DBCS lower start scan
 	jega.RPPAJ = 0x00;//dc: super imposed (only AX-2 system, not implemented)
 	jega.RCMOD = 0x00;//dd: Cursor Mode (not implemented)
-	jega.RCCLH = 0x00;//0e: Cursor location Upper bits (superceded by EGA)
-	jega.RCCLL = 0x00;//0f: Cursor location Lower bits (superceded by EGA)
-	jega.RCCSL = 0x00;//0a: Cursor Start Line (superceded by EGA)
-	jega.RCCEL = 0x00;//0b: Cursor End Line (superceded by EGA)
+	jega.RCCLH = 0x00;//0e: Cursor location Upper bits (superseded by EGA)
+	jega.RCCLL = 0x00;//0f: Cursor location Lower bits (superseded by EGA)
+	jega.RCCSL = 0x00;//0a: Cursor Start Line (superseded by EGA)
+	jega.RCCEL = 0x00;//0b: Cursor End Line (superseded by EGA)
 	jega.RCSKW = 0x20;//de: Cursor Skew control (not implemented)
 	jega.ROMSL = 0x00;//df: Unused?
 	jega.RSTAT = 0x03;//bf: Font register accessible status

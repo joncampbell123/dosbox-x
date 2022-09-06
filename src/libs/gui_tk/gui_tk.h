@@ -605,7 +605,7 @@ protected:
 	Window *const parent;
 
 	/// Child window of last button-down event
-	/** It receives all drag/up/click/doubleclick events until an up event is received */
+	/** It receives all drag/up/click/double-click events until an up event is received */
 	Window  *mouseChild;
 
     /// \c true if this window is transient (such as menu popus)
@@ -1002,7 +1002,7 @@ public:
 
 /** \brief A 24 bit per pixel RGB framebuffer aligned to 32 bit per pixel.
  *
- *  Warning: This framebuffer type varies with CPU endiannes. It is meant as
+ *  Warning: This framebuffer type varies with CPU endianness. It is meant as
  *  a testing/debugging tool.
  */
 class ScreenRGB32le : public Screen {

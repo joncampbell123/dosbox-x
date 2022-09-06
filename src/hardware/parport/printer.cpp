@@ -2224,7 +2224,7 @@ void CPrinter::outputPage()
 			}
 			else
 			{
-				// Find end of heterogenous area
+				// Find end of heterogeneous area
 				uint8_t diffCount = 1;
 				while (
                     diffCount < 128 && diffCount + pix < numpix && 
@@ -2322,7 +2322,7 @@ void CPrinter::fprintASCII85(FILE* f, uint16_t b)
 	}
 	else // Close string
 	{
-		// Partial tupel if there are still bytes in the buffer
+		// Partial tuple if there are still bytes in the buffer
 		if (ASCII85BufferPos > 0)
 		{
 			for (uint8_t i = ASCII85BufferPos; i < 4; i++)

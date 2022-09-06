@@ -3032,7 +3032,7 @@ public:
         bar->addItem(2,MSG_Get("VISIT_HOMEPAGE"));
         bar->addItem(2,"");
         if (!dos_kernel_disabled) {
-            /* these do not work until shell help text is registerd */
+            /* these do not work until shell help text is registered */
             bar->addItem(2,MSG_Get("GET_STARTED"));
             bar->addItem(2,MSG_Get("CDROM_SUPPORT"));
             bar->addItem(2,"");

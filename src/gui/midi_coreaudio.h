@@ -133,7 +133,7 @@ public:
 					}
 #else
 					// kMusicDeviceProperty_SoundBankFSRef is present on 10.6+, but
-					// kMusicDeviceProperty_SoundBankURL was added in 10.5 as a future prooof replacement
+					// kMusicDeviceProperty_SoundBankURL was added in 10.5 as a future proof replacement
 					CFURLRef url = CFURLCreateFromFileSystemRepresentation(
 					                                                       kCFAllocatorDefault,
 					                                                       (const UInt8*)soundfont,

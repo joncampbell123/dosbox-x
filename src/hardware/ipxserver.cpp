@@ -176,7 +176,7 @@ static void IPX_ServerLoop() {
 				UnpackIP(tmpHeader->src.addr.byIP, &tmpAddr);
 				for(i=0;i<SOCKETTABLESIZE;i++) {
 					if(!connBuffer[i].connected) {
-						// Use prefered host IP rather than the reported source IP
+						// Use preferred host IP rather than the reported source IP
 						// It may be better to use the reported source
 						ipconn[i] = inPacket.address;
 

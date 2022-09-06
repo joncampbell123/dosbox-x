@@ -164,7 +164,7 @@ private:
 	// Closes a multipage document
 	void finishMultipage();
 
-	// Returns value of the num-th pixel (couting left-right, top-down) in a safe way
+	// Returns value of the num-th pixel (counting left-right, top-down) in a safe way
 	uint8_t getPixel(uint32_t num);
 
 	FT_Library FTlib;					// FreeType2 library used to render the characters

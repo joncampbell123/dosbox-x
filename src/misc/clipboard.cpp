@@ -321,7 +321,7 @@ static void PasteInitMapSCToSDLKey()
 
 // Just in case, to keep us from entering an unexpected KB state
 const  size_t      kPasteMinBufExtra = 4;
-/// Sightly inefficient, but who cares
+/// Slightly inefficient, but who cares
 static void GenKBStroke(const UINT uiScanCode, const bool bDepressed, const SDLMod keymods)
 {
     const SDLKey sdlkey = aryScanCodeToSDLKey[uiScanCode & 0xFF];
@@ -383,7 +383,7 @@ bool PasteClipboardNext() {
             (bModCntrlOn ? KMOD_LCTRL : 0) |
             (bModAltOn ? KMOD_LALT : 0));
 
-        /// \note Currently pasteing a character is a two step affair, because if
+        /// \note Currently pasting a character is a two step affair, because if
         ///       you do it too quickly DI can miss a key press/release.
         // Could be made more efficient, but would require tracking of more state,
         // so let's forgot that for now...

@@ -521,7 +521,7 @@ void PC98_GDC_state::begin_frame(void) {
     scan_address = 0;
     display_partition = 0;
 
-    /* the actual starting address is determined by the display partition in paramter RAM */
+    /* the actual starting address is determined by the display partition in parameter RAM */
     load_display_partition();
 }
 

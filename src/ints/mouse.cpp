@@ -1771,7 +1771,7 @@ static Bitu INT33_Handler(void) {
              *                        04h     Swedish
              *                        05h     Finnish
              *                        06h     Spanish
-             *                        07h     Portugese
+             *                        07h     Portuguese
              *                        08h     Italian
              *
              */

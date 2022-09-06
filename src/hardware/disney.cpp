@@ -199,7 +199,7 @@ static void disney_write(Bitu port,Bitu val,Bitu iolen) {
 	{
 		disney.data=(uint8_t)val;
 		// if data is written here too often without using the stereo
-		// mechanism we use the simple DAC machanism. 
+		// mechanism we use the simple DAC mechanism.
         if(disney.state != DS_RUNNING) {
 			disney.interface_det++;
 			if(disney.interface_det > 5)
@@ -350,7 +350,7 @@ static void DISNEY_CallBack(Bitu len) {
 			uint8_t gapfiller = 128; //Keep the middle
 			if(real_used) {
 				// fix for some stupid game; it outputs 0 at the end of the stream
-				// causing a click. So if we have at least two bytes availible in the
+				// causing a click. So if we have at least two bytes available in the
 				// buffer and the last one is a 0 then ignore that.
 				if(disney.leader->buffer[real_used-1]==0)
 					real_used--;

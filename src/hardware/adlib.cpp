@@ -533,7 +533,7 @@ struct RawHeader {
 /*
 	The Raw Tables is < 128 and is used to convert raw commands into a full register index 
 	When the high bit of a raw command is set it indicates the cmd/data pair is to be sent to the 2nd port
-	After the conversion table the raw data follows immediatly till the end of the chunk
+	After the conversion table the raw data follows immediately till the end of the chunk
 */
 
 //Table to map the opl register to one <127 for dro saving
@@ -1050,7 +1050,7 @@ void Module::Init( Mode m ) {
 	case MODE_OPL2:
 		break;
 	case MODE_DUALOPL2:
-		//Setup opl3 mode in the hander
+		//Setup opl3 mode in the handler
 		handler->WriteReg( 0x105, 1 );
 		//Also set it up in the cache so the capturing will start opl3
 		CacheWrite( 0x105, 1 );
@@ -1110,7 +1110,7 @@ void SaveRad() {
 	fwrite( "RAD by REALiTY!!", 1, 16, handle );
 	b[w++] = 0x10;		//version
 	b[w++] = 0x06;		//default speed and no description
-	//Write 18 instuments for all operators in the cache
+	//Write 18 instruments for all operators in the cache
 	for ( unsigned int i = 0; i < 18; i++ ) {
 		uint8_t* set = module->cache + ( i / 9 ) * 256;
 		Bitu offset = ((i % 9) / 3) * 8 + (i % 3);

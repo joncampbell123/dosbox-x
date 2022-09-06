@@ -1003,7 +1003,7 @@ void GFX_EndTextLines(bool force) {
     }
 #endif
     static uint8_t bcount = 0;
-	Uint16 unimap[txtMaxCols+1];							// max+1 charaters in a line
+	Uint16 unimap[txtMaxCols+1];							// max+1 characters in a line
 	int xmin = ttf.cols;									// keep track of changed area
 	int ymin = ttf.lins;
 	int xmax = -1;

@@ -104,7 +104,7 @@ static uint8_t ioperm[8192];
 static bool isNT = false;
 
 bool initPorttalk() {
-    // handles neded for starting service
+    // handles needed for starting service
     SC_HANDLE  ServiceManager = NULL;
     SC_HANDLE  PorttalkService = NULL;
 
@@ -148,7 +148,7 @@ bool initPorttalk() {
                     LOG_MSG("Porttalk service is not installed.");
                     break;
                 default:
-                    LOG_MSG("Error %d occured accessing porttalk dirver.",retval);
+                    LOG_MSG("Error %d occurred accessing porttalk driver.",retval);
                     break;
                 }
                 goto error;
@@ -175,7 +175,7 @@ bool initPorttalk() {
             if (porttalkhandle == INVALID_HANDLE_VALUE) {
                 // bullshit
                 LOG_MSG(
-                    "Porttalk driver could not be opened after being started successully.");
+                    "Porttalk driver could not be opened after being started successfully.");
                 return false;
             }
 

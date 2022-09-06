@@ -877,7 +877,7 @@ static void write_tandy(Bitu port,Bitu val,Bitu /*iolen*/) {
 		// The remapped range is 32kB instead of 16. Therefore CPU_PG bit 0
 		// appears to be ORed with CPU A14 (to preserve some sort of
 		// backwards compatibility?), resulting in odd pages being mapped
-		// as 2x16kB. Implemeted in vga_memory.cpp Tandy handler.
+		// as 2x16kB. Implemented in vga_memory.cpp Tandy handler.
 
 		vga.tandy.line_mask = (uint8_t)(val >> 6);
 		vga.tandy.draw_bank = val & ((vga.tandy.line_mask&2) ? 0x6 : 0x7);

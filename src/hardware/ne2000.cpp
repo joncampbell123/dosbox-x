@@ -747,7 +747,7 @@ bx_ne2k_c::page0_write(uint32_t offset, uint32_t value, unsigned io_len)
     break;
 
   case 0xe:  // DCR
-    // the loopback mode is not suppported yet
+    // the loopback mode is not supported yet
     if (!(value & 0x08)) {
       BX_ERROR(("DCR write, loopback mode selected"));
     }

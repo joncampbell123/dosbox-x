@@ -617,7 +617,7 @@ void FPU_ESC6_Normal(Bitu rm) {
 		break;
 	case 0x02:  /* FCOMP5*/
 		FPU_FCOM(TOP,STV(sub));
-		break;	/* TODO IS THIS ALLRIGHT ????????? */
+		break;	/* TODO IS THIS ALRIGHT ????????? */
 	case 0x03:  /*FCOMPP*/
 		if(sub != 1) {
 			LOG(LOG_FPU,LOG_WARN)("ESC 6:Unhandled group %d subfunction %d",(int)group,(int)sub);

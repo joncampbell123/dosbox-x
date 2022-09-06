@@ -5447,7 +5447,7 @@ private:
         else if (isdigit(letter)) { /* DOSBox-X: drives mounted by number (INT 13h) can be unmounted this way */
             int index = letter - '0';
 
-            //detatch hard drive or floppy drive from bios and ide controller
+            //detach hard drive or floppy drive from bios and ide controller
             if (index < MAX_DISK_IMAGES && imageDiskList[index]) {
                 if (index > 1) IDE_Hard_Disk_Detach(index);
                 imageDiskList[index]->Release();
