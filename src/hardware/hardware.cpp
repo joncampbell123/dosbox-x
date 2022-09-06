@@ -52,6 +52,7 @@
 #if (C_AVCODEC)
 extern "C" {
 #include <libavutil/pixfmt.h>
+#include <libavutil/channel_layout.h>
 #include <libswscale/swscale.h>
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
@@ -72,9 +73,9 @@ bool systemmessagebox(char const * aTitle, char const * aMessage, char const * a
 #if (C_AVCODEC)
 bool ffmpeg_init = false;
 AVFormatContext*	ffmpeg_fmt_ctx = NULL;
-AVCodec*		ffmpeg_vid_codec = NULL;
+const AVCodec*		ffmpeg_vid_codec = NULL;
 AVCodecContext*		ffmpeg_vid_ctx = NULL;
-AVCodec*		ffmpeg_aud_codec = NULL;
+const AVCodec*		ffmpeg_aud_codec = NULL;
 AVCodecContext*		ffmpeg_aud_ctx = NULL;
 AVStream*		ffmpeg_vid_stream = NULL;
 AVStream*		ffmpeg_aud_stream = NULL;
@@ -435,7 +436,7 @@ void ffmpeg_reopen_video(double fps,const int bpp) {
 	LOG_MSG("Restarting video codec");
 
 	// FIXME: This is copypasta! Consolidate!
-	ffmpeg_vid_ctx = ffmpeg_vid_stream->codec = avcodec_alloc_context3(ffmpeg_vid_codec);
+	ffmpeg_vid_ctx = avcodec_alloc_context3(ffmpeg_vid_codec);
 	if (ffmpeg_vid_ctx == NULL) E_Exit("Error: Unable to reopen vid codec");
 	ffmpeg_vid_ctx->bit_rate = 25000000; // TODO: make configuration option!
 	ffmpeg_vid_ctx->keyint_min = 15; // TODO: make configuration option!
@@ -478,7 +479,7 @@ void ffmpeg_reopen_video(double fps,const int bpp) {
 	if (ffmpeg_aud_frame == NULL || ffmpeg_vid_frame == NULL || ffmpeg_vidrgb_frame == NULL)
 		E_Exit(" ");
 
-	av_frame_set_colorspace(ffmpeg_vidrgb_frame,AVCOL_SPC_RGB);
+	ffmpeg_vidrgb_frame->colorspace = AVCOL_SPC_RGB;
 	ffmpeg_vidrgb_frame->width = (int)capture.video.width;
 	ffmpeg_vidrgb_frame->height = (int)capture.video.height;
 	ffmpeg_vidrgb_frame->format = ffmpeg_bpp_pick_rgb_format(bpp);
@@ -486,8 +487,8 @@ void ffmpeg_reopen_video(double fps,const int bpp) {
 		E_Exit(" ");
 	}
 
-	av_frame_set_colorspace(ffmpeg_vid_frame,AVCOL_SPC_SMPTE170M);
-	av_frame_set_color_range(ffmpeg_vidrgb_frame,AVCOL_RANGE_MPEG);
+	ffmpeg_vid_frame->colorspace = AVCOL_SPC_SMPTE170M;
+	ffmpeg_vidrgb_frame->color_range = AVCOL_RANGE_MPEG;
 	ffmpeg_vid_frame->width = (int)capture.video.width;
 	ffmpeg_vid_frame->height = (int)capture.video.height;
 	ffmpeg_vid_frame->format = ffmpeg_vid_ctx->pix_fmt;
@@ -1140,12 +1141,11 @@ skip_shot:
 				LOG_MSG("Failed to allocate format context (mpegts)");
 				goto skip_video;
 			}
-			snprintf(ffmpeg_fmt_ctx->filename,sizeof(ffmpeg_fmt_ctx->filename),"%s",path.c_str());
 
 			if (ffmpeg_fmt_ctx->oformat == NULL)
 				goto skip_video;
 
-			if (avio_open(&ffmpeg_fmt_ctx->pb,ffmpeg_fmt_ctx->filename,AVIO_FLAG_WRITE) < 0) {
+			if (avio_open(&ffmpeg_fmt_ctx->pb,pathvid.c_str(),AVIO_FLAG_WRITE) < 0) {
 				LOG_MSG("Failed to avio_open");
 				goto skip_video;
 			}
@@ -1155,8 +1155,8 @@ skip_shot:
 				LOG_MSG("failed to open audio stream");
 				goto skip_video;
 			}
-			ffmpeg_vid_ctx = ffmpeg_vid_stream->codec;
-
+			ffmpeg_vid_ctx = avcodec_alloc_context3(ffmpeg_vid_codec);
+			if (ffmpeg_vid_ctx == NULL) E_Exit("Error: Unable to open vid context");
 			ffmpeg_vid_ctx->bit_rate = 25000000; // TODO: make configuration option!
 			ffmpeg_vid_ctx->keyint_min = 15; // TODO: make configuration option!
 			ffmpeg_vid_ctx->time_base.num = 1000000;
@@ -1202,7 +1202,8 @@ skip_shot:
 				LOG_MSG("failed to open audio stream");
 				goto skip_video;
 			}
-			ffmpeg_aud_ctx = ffmpeg_aud_stream->codec;
+			ffmpeg_aud_ctx = avcodec_alloc_context3(ffmpeg_aud_codec);
+			if (ffmpeg_aud_ctx == NULL) E_Exit("Error: Unable to open aud context");
 			ffmpeg_aud_ctx->sample_rate = (int)capture.video.audiorate;
 			ffmpeg_aud_ctx->channels = 2;
 			ffmpeg_aud_ctx->flags = 0; // do not use global headers
@@ -1239,9 +1240,9 @@ skip_shot:
 			if (ffmpeg_aud_frame == NULL || ffmpeg_vid_frame == NULL || ffmpeg_vidrgb_frame == NULL)
 				goto skip_video;
 
-			av_frame_set_channels(ffmpeg_aud_frame,2);
-			av_frame_set_sample_rate(ffmpeg_aud_frame,(int)capture.video.audiorate);
-			av_frame_set_channel_layout(ffmpeg_aud_frame,AV_CH_LAYOUT_STEREO);
+			ffmpeg_aud_frame->channels = 2;
+			ffmpeg_aud_frame->sample_rate = (int)capture.video.audiorate;
+			ffmpeg_aud_frame->channel_layout = AV_CH_LAYOUT_STEREO;
 			ffmpeg_aud_frame->nb_samples = ffmpeg_aud_ctx->frame_size;
 			ffmpeg_aud_frame->format = ffmpeg_aud_ctx->sample_fmt;
 			if (av_frame_get_buffer(ffmpeg_aud_frame,16) < 0) {
@@ -1249,7 +1250,7 @@ skip_shot:
 				goto skip_video;
 			}
 
-			av_frame_set_colorspace(ffmpeg_vidrgb_frame,AVCOL_SPC_RGB);
+			ffmpeg_vidrgb_frame->colorspace = AVCOL_SPC_RGB;
 			ffmpeg_vidrgb_frame->width = (int)capture.video.width;
 			ffmpeg_vidrgb_frame->height = (int)capture.video.height;
 			ffmpeg_vidrgb_frame->format = ffmpeg_bpp_pick_rgb_format((int)bpp);
@@ -1258,8 +1259,8 @@ skip_shot:
 				goto skip_video;
 			}
 
-			av_frame_set_colorspace(ffmpeg_vid_frame,AVCOL_SPC_SMPTE170M);
-			av_frame_set_color_range(ffmpeg_vidrgb_frame,AVCOL_RANGE_MPEG);
+			ffmpeg_vid_frame->colorspace = AVCOL_SPC_SMPTE170M;
+			ffmpeg_vidrgb_frame->color_range = AVCOL_RANGE_MPEG;
 			ffmpeg_vid_frame->width = (int)capture.video.width;
 			ffmpeg_vid_frame->height = (int)capture.video.height;
 			ffmpeg_vid_frame->format = ffmpeg_vid_ctx->pix_fmt;

@@ -1,3 +1,6 @@
+Unreleased
+  - Fixed FFMPEG 5 compatibility (Jookia)
+
 2022.09.0 (0.84.3)
   - Updated FFMPEG video capture to use newer API,
     fix memory leaks, and fix use-after-free bug that
