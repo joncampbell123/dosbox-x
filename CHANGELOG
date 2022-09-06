@@ -1,4 +1,5 @@
 Unreleased
+  - Use pkg-config to find OpenGL (Jookia)
   - Updated Flatpak SDK and dependencies (Jookia)
   - Fixed FFMPEG 5 compatibility (Jookia)
 
