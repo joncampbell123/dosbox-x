@@ -1150,7 +1150,14 @@ case "$host" in
        AC_DEFINE(C_OPENGL,1)
        ;;
     *)
-       if test x$have_gl_h = xyes -a x$have_gl_lib = xyes ; then
+       pkg-config --exists gl; RES=$?
+       if test x$RES = x0; then
+         AC_MSG_RESULT(yes)
+         CFLAGS="$CFLAGS "`pkg-config gl --cflags`
+         CPPFLAGS="$CPPFLAGS "`pkg-config gl --cflags`
+         LIBS="$LIBS "`pkg-config gl --libs`
+         AC_DEFINE(C_OPENGL,1)
+       elif test x$have_gl_h = xyes -a x$have_gl_lib = xyes ; then
          AC_MSG_RESULT(yes)
          LIBS="$LIBS -lGL"
          AC_DEFINE(C_OPENGL,1)
