@@ -9,6 +9,8 @@ Unreleased
   - Fix setcap on systems with split /usr (Jookia)
   - Fix building with --disable-core-inline (Jookia)
   - Fix building not finding fluidsynth (Jookia)
+  - Fix some NetBSD build issues
+    (Jookia, with patch from Nia)
 
 2022.09.0 (0.84.3)
   - Updated FFMPEG video capture to use newer API,
