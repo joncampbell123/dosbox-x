@@ -6935,11 +6935,7 @@ bool AUTOTYPE::ReadDoubleArg(const std::string &name,
 	if (cmd->FindString(flag, str_value, true)) {
 		// Can the user's value be parsed?
 		const double user_value = to_finite<double>(str_value);
-#if defined(__FreeBSD__) || defined(MACOSX) || defined(EMSCRIPTEN) || ((defined(ANDROID) || defined(__ANDROID__)) && defined(__clang__))
-		if (isfinite(user_value)) { /* *sigh* Really, clang, really? */
-#else
-		if (std::isfinite(user_value)) {
-#endif
+		if (isfinite(user_value)) {
 			result = true;
 
 			// Clamp the user's value if needed
