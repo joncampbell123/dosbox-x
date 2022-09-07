@@ -2,6 +2,8 @@ Unreleased
   - Use pkg-config to find OpenGL (Jookia)
   - Updated Flatpak SDK and dependencies (Jookia)
   - Fixed FFMPEG 5 compatibility (Jookia)
+  - Fix FFMPEG crash if FFMPEG fails to write header
+    for some reason. (joncampbell123)
 
 2022.09.0 (0.84.3)
   - Updated FFMPEG video capture to use newer API,
