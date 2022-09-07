@@ -1224,14 +1224,14 @@ skip_shot:
 			ffmpeg_aud_stream->time_base.num = 1;
 			ffmpeg_aud_stream->time_base.den = ffmpeg_aud_ctx->sample_rate;
 
-			/* Note whether we started the header.
-			 * Writing the trailer out of turn seems to cause segfaults in libavformat */
-			ffmpeg_avformat_began = true;
-
 			if (avformat_write_header(ffmpeg_fmt_ctx,NULL) < 0) {
 				LOG_MSG("Failed to write header");
 				goto skip_video;
 			}
+
+			/* Note whether we started the header.
+			 * Writing the trailer out of turn seems to cause segfaults in libavformat */
+			ffmpeg_avformat_began = true;
 
 			ffmpeg_aud_write = 0;
 			ffmpeg_aud_frame = av_frame_alloc();
