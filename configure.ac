@@ -543,7 +543,7 @@ case "$host_cpu" in
     c_targetcpu="arm"
     c_unalignedmemory=yes
     ;;
-   armv6l)
+   armv6*)
     AC_DEFINE(C_TARGETCPU,ARMV4LE)
     AC_MSG_RESULT(ARMv6 Little Endian)
     c_targetcpu="arm"
