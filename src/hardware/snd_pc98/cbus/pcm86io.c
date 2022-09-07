@@ -266,3 +266,38 @@ void pcm86io_setid(unsigned int baseio)
 	}
 }
 
+// AVSDRV.SYS helper
+void pcm86io_setfreq(unsigned char val)
+{
+	pcm86.rescue = pcm86rescue[val & 7] << pcm86.stepbit;
+	pcm86_setpcmrate(val);
+}
+
+void pcm86io_outpcm(unsigned char val)
+{
+	pcm86.buffer[pcm86.wrtpos] = val;
+	pcm86.wrtpos = (pcm86.wrtpos + 1) & PCM86_BUFMSK;
+	pcm86.realbuf++;
+	if (pcm86.realbuf >= PCM86_REALBUFSIZE) {
+		pcm86.realbuf -= 4;
+		pcm86.readpos = (pcm86.readpos + 4) & PCM86_BUFMSK;
+	}
+	pcm86.reqirq = 1;
+}
+
+void pcm86io_setvol(unsigned char val)
+{
+	pcm86.vol5 = val & 15;
+	pcm86.volume = pcm86cfg.vol * pcm86.vol5;
+}
+
+void pcm86io_setpcm(unsigned char val)
+{
+	pcm86.dactrl = (pcm86.dactrl & 0x0f) | 0xb0;
+	if((val & 0x80) == 0) {
+		pcm86.dactrl |= 0x40;
+	}
+	pcm86.stepbit = pcm86bits[(pcm86.dactrl >> 4) & 7];
+	pcm86.stepmask = (1 << pcm86.stepbit) - 1;
+	pcm86.rescue = pcm86rescue[pcm86.fifo & 7] << pcm86.stepbit;
+}

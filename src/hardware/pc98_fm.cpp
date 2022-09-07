@@ -165,6 +165,8 @@ void pic_resetirq(REG8 irq) {
 #include "sound.h"
 #include "fmboard.h"
 
+static void avsdrv_check_size(SINT32 size);
+
 // wrapper for fmtimer events
 void fmport_a(NEVENTITEM item);
 void fmport_b(NEVENTITEM item);
@@ -223,7 +225,9 @@ static void pc98_mix_CallBack(Bitu len) {
     adpcm_getpcm(&adpcm3, (SINT32*)MixTemp, s);
 #endif	// defined(SUPPORT_PX)
 
+    SINT32 start = pcm86.realbuf;
     pcm86gen_getpcm(NULL, (SINT32*)MixTemp, s);
+	avsdrv_check_size(start - pcm86.realbuf);
 
     pc98_mixer->AddSamples_s32(s, (int32_t*)MixTemp);
 }
@@ -543,5 +547,266 @@ void PC98_FM_OnEnterPC98(Section *sec) {
         fmboard_on_reset();
         fmboard_bind(); // FIXME: Re-binds I/O ports as well
     }
+}
+
+extern "C" void pcm86io_setfreq(unsigned char val);
+extern "C" void pcm86io_setvol(unsigned char val);
+extern "C" void pcm86io_outpcm(unsigned char val);
+extern "C" void pcm86io_setpcm(unsigned char val);
+
+#define AVSDRV_PCB_SIZE		0x10
+#define AVSDRV_PCB_MASK		0x0f
+#define	AVSDRV_VOLUME_SIZE	4
+#define	AVSDRV_PCM_VOLUME	2
+#define	AVSDRV_OUTPUT_SIZE	1024
+struct AVSDRV_PCB {
+	uint16_t seg, off;
+	uint16_t data_seg, data_off;
+	uint16_t size, use_size;
+	uint16_t pos;
+	uint8_t status;
+};
+static AVSDRV_PCB pcb_data[AVSDRV_PCB_SIZE];
+static uint16_t pcb_write, pcb_read;
+static uint8_t avsdrv_pcm;
+static uint8_t avsdrv_freq;
+static uint8_t avsdrv_mute;
+static uint8_t avsdrv_volume[AVSDRV_VOLUME_SIZE];
+static bool avsdrv_play;
+
+Bitu PC98_AVSDRV_PCM_Handler(void)
+{
+	const char *call_name = "?";
+
+	switch(reg_ah) {
+	case 0x00:
+		// $INITDRV
+		avsdrv_volume[AVSDRV_PCM_VOLUME] = 0x0a;
+		pcm86io_setvol(avsdrv_volume[AVSDRV_PCM_VOLUME]);
+		avsdrv_pcm = 0xa0;
+		avsdrv_freq = 0;
+		break;
+	case 0x01:
+		call_name = "$INITFUNC";
+        goto unknown;
+	case 0x02:
+		call_name = "$ASKFUNC";
+        goto unknown;
+	case 0x03:
+		call_name = "$SETPARAM";
+        goto unknown;
+	case 0x04:
+		call_name = "$GETPARAM";
+        goto unknown;
+	case 0x05:
+		// $SETVOL
+		{
+			uint8_t select = reg_al >> 4;
+			if(select == AVSDRV_PCM_VOLUME) {
+				pcm86io_setvol(reg_al);
+			}
+			if(select < AVSDRV_VOLUME_SIZE) {
+				avsdrv_volume[select] = reg_al & 0x0f;
+			}
+		}
+		break;
+	case 0x06:
+		// $GETVOL
+		{
+			uint8_t select = reg_al >> 4;
+			if(select < AVSDRV_VOLUME_SIZE) {
+				reg_al = (reg_al & 0xf0) | avsdrv_volume[select];
+			}
+		}
+        goto unknown;
+	case 0x07:
+		call_name = "$SETMIX";
+        goto unknown;
+	case 0x08:
+		call_name = "$GETMIX";
+        goto unknown;
+	case 0x09:
+		// $SETMUTE
+		avsdrv_mute = reg_al;
+		if(reg_al == 1) {
+			pcm86io_setvol(0);
+		} else if(reg_al == 0) {
+			pcm86io_setvol(avsdrv_volume[AVSDRV_PCM_VOLUME]);
+		}
+		break;
+	case 0x0a:
+		// $GETMUTE
+		reg_al = avsdrv_mute;
+		break;
+	case 0x0b:
+		// $SETFREQ
+		if(avsdrv_freq != reg_al) {
+			avsdrv_freq = reg_al;
+			pcm86io_setfreq(avsdrv_freq);
+		}
+		break;
+	case 0x0c:
+		// $GETFREQ
+		reg_al = avsdrv_freq;
+		break;
+	case 0x0d:
+		// $SETPCM
+		if(avsdrv_pcm != reg_al) {
+			avsdrv_pcm = reg_al;
+			pcm86io_setpcm(avsdrv_pcm);
+		}
+		break;
+	case 0x0e:
+		// $GETPCM
+		reg_al = avsdrv_pcm;
+		break;
+	case 0x10:
+		// $PCMTRN
+		{
+			pcm86.fifo |= 0xa0;
+			avsdrv_play = true;
+
+		    pcb_data[pcb_write].seg = SegValue(es);
+		    pcb_data[pcb_write].off = reg_bx;
+			pcb_data[pcb_write].data_seg = real_readw(pcb_data[pcb_write].seg, pcb_data[pcb_write].off + 0x08);
+			pcb_data[pcb_write].data_off = real_readw(pcb_data[pcb_write].seg, pcb_data[pcb_write].off + 0x06);
+			pcb_data[pcb_write].size = real_readw(pcb_data[pcb_write].seg, pcb_data[pcb_write].off + 0x0a);
+			pcb_data[pcb_write].use_size = 0;
+
+			uint8_t value = real_readb(pcb_data[pcb_write].seg, pcb_data[pcb_write].off);
+			if(avsdrv_pcm != value) {
+				avsdrv_pcm = value;
+				pcm86io_setpcm(avsdrv_pcm);
+			}
+			value = real_readb(pcb_data[pcb_write].seg, pcb_data[pcb_write].off + 0x01);
+			if(avsdrv_freq != value && value != 0xff) {
+				avsdrv_freq = value;
+				pcm86io_setfreq(avsdrv_freq);
+			}
+			real_writew(pcb_data[pcb_write].seg, pcb_data[pcb_write].off + 0x10, pcb_data[pcb_write].data_seg);
+			real_writew(pcb_data[pcb_write].seg, pcb_data[pcb_write].off + 0x0e, pcb_data[pcb_write].data_off);
+		    uint8_t data[2];
+		    uint16_t step = (avsdrv_pcm & 0x80) ? 2 : 1;
+		    pcb_data[pcb_write].pos = pcb_data[pcb_write].data_off;
+			for(uint16_t len = 0 ; len < AVSDRV_OUTPUT_SIZE && len < pcb_data[pcb_write].size ; len += step) {
+				data[0] = real_readb(pcb_data[pcb_write].data_seg, pcb_data[pcb_write].pos++);
+				pcm86io_outpcm(data[0]);
+				if(step == 2) {
+					// 16bit
+					data[1] = real_readb(pcb_data[pcb_write].data_seg, pcb_data[pcb_write].pos++);
+					pcm86io_outpcm(data[1]);
+				}
+				if((avsdrv_pcm & 0x70) != 0x20) {
+					// mono -> stereo
+					pcm86io_outpcm(data[0]);
+					if(step == 2) {
+						// 16bit
+						pcm86io_outpcm(data[1]);
+					}
+				}
+			}
+			real_writew(pcb_data[pcb_write].seg, pcb_data[pcb_write].off + 0x12, 0);
+			real_writew(pcb_data[pcb_write].seg, pcb_data[pcb_write].off + 0x14, 0);
+			real_writew(pcb_data[pcb_write].seg, pcb_data[pcb_write].off + 0x03, 0xff);
+			pcb_data[pcb_write].status = 0xff;
+			pcb_write++;
+			pcb_write &= AVSDRV_PCB_MASK;
+		}
+		break;
+	case 0x11:
+		// $STPTRN
+		while(pcb_write != pcb_read) {
+			real_writeb(pcb_data[pcb_read].seg, pcb_data[pcb_read].off + 0x03, 0x01);
+			pcb_data[pcb_read].status = 0x01;
+			pcb_read++;
+			pcb_read &= AVSDRV_PCB_MASK;
+		}
+		if(pcb_data[pcb_read].seg != 0) {
+			real_writeb(pcb_data[pcb_read].seg, pcb_data[pcb_read].off + 0x03, 0x01);
+			pcb_data[pcb_read].status = 0x01;
+		}
+		pcm86.readpos = pcm86.wrtpos;
+		pcm86.realbuf = 0;
+		pcm86.fifo &= ~0xa0;
+		break;
+	case 0x12:
+		// $SNSTRN
+		reg_al = ((avsdrv_pcm & 0x0f) << 4) | 0x01;
+		if(pcb_write == pcb_read) {
+			// POLICENAUTS
+			// If you don't do this, the audio will be cut off for a very short time.
+			if(pcb_data[pcb_read].use_size < 2048) {
+				reg_al &= ~0x01;
+			}
+		}
+		SegSet16(es, pcb_data[pcb_read].seg);
+		reg_bx = pcb_data[pcb_read].off;
+		reg_cx = 0;
+		reg_dx = pcm86.realbuf;
+		if((avsdrv_pcm & 0x70) != 0x20) {
+			reg_dx /= 2;
+		}
+		break;
+	default:
+	unknown:
+		LOG_MSG("PC-98 AVSDRV.SYS PCM (INT D9h) call '%s' with AX=%04X ES=%04X BX=%04X", call_name, reg_ax, SegValue(es), reg_bx);
+		break;
+	}
+	CALLBACK_SCF(false);
+	return CBRET_NONE;
+}
+
+static void avsdrv_check_size(SINT32 size)
+{
+	if(pcb_data[pcb_read].status == 0xff) {
+		if((avsdrv_pcm & 0x70) != 0x20) {
+			size /= 2;
+		}
+		pcb_data[pcb_read].use_size += size;
+
+		// POLICENAUTS
+        // Dealing with the interruption of explosion sounds, etc.
+		if(pcb_data[pcb_read].use_size > (pcb_data[pcb_read].pos - pcb_data[pcb_read].data_off) / 2) {
+		    uint8_t data[2];
+		    uint16_t step = (avsdrv_pcm & 0x80) ? 2 : 1;
+		    uint16_t data_end = pcb_data[pcb_read].data_off + pcb_data[pcb_read].size;
+			for(uint16_t len = 0 ; len < AVSDRV_OUTPUT_SIZE && pcb_data[pcb_read].pos < data_end ; len += step) {
+				data[0] = real_readb(pcb_data[pcb_read].data_seg, pcb_data[pcb_read].pos++);
+				pcm86io_outpcm(data[0]);
+				if(step == 2) {
+					data[1] = real_readb(pcb_data[pcb_read].data_seg, pcb_data[pcb_read].pos++);
+					pcm86io_outpcm(data[1]);
+				}
+				if((avsdrv_pcm & 0x70) != 0x20) {
+					pcm86io_outpcm(data[0]);
+					if(step == 2) {
+						pcm86io_outpcm(data[1]);
+					}
+				}
+			}
+		}
+		// POLICENAUTS
+		// It has to be in units of 2048 bytes to lip-syncs.
+		uint16_t use_size = pcb_data[pcb_read].use_size & 0xf800;
+		if(pcb_data[pcb_read].use_size >= pcb_data[pcb_read].size) {
+			size = pcb_data[pcb_read].use_size - pcb_data[pcb_read].size;
+			real_writeb(pcb_data[pcb_read].seg, pcb_data[pcb_read].off + 0x03, 0);
+			pcb_data[pcb_read].status = 0x00;
+			real_writew(pcb_data[pcb_read].seg, pcb_data[pcb_read].off + 0x12, use_size);
+			real_writew(pcb_data[pcb_read].seg, pcb_data[pcb_read].off + 0x0e, pcb_data[pcb_read].data_off + use_size);
+			pcb_read++;
+			pcb_read &= AVSDRV_PCB_MASK;
+
+			pcb_data[pcb_read].use_size += size;
+
+		} else {
+			real_writew(pcb_data[pcb_read].seg, pcb_data[pcb_read].off + 0x12, use_size);
+			real_writew(pcb_data[pcb_read].seg, pcb_data[pcb_read].off + 0x0e, pcb_data[pcb_read].data_off + use_size);
+		}
+	}
+	if(avsdrv_play && pcm86.realbuf == 0) {
+		avsdrv_play = false;
+		pcm86.fifo &= ~0xa0;
+	}
 }
 

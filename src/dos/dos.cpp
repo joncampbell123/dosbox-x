@@ -301,6 +301,7 @@ uint16_t	NetworkHandleList[127];uint8_t dos_copybuf_second[DOS_COPYBUFSIZE];
 static uint16_t ias_handle;
 static uint16_t mskanji_handle;
 static uint16_t ibmjp_handle;
+static uint16_t avsdrv_handle;
 
 static bool hat_flag[] = {
 //            a     b     c     d     e      f      g      h
@@ -921,6 +922,8 @@ void HostAppRun() {
 #define IAS_DEVICE_HANDLE 0x1a50
 #define MSKANJI_DEVICE_HANDLE 0x1a51
 #define IBMJP_DEVICE_HANDLE 0x1a52
+#define AVSDRV_DEVICE_HANDLE 0x1a53
+
 static Bitu DOS_21Handler(void) {
     bool unmask_irq0 = false;
 
@@ -1872,6 +1875,15 @@ static Bitu DOS_21Handler(void) {
                     }
                 }
             }
+            if(IS_PC98_ARCH) {
+                if(!strncmp(name1, "AVSDRV$$", 8)) {
+                    avsdrv_handle = AVSDRV_DEVICE_HANDLE;
+                    reg_ax = AVSDRV_DEVICE_HANDLE;
+                    force_sfn = false;
+                    CALLBACK_SCF(false);
+                    break;
+                }
+            }
 			uint8_t oldal=reg_al;
 			force_sfn = true;
             if (DOS_OpenFile(name1,reg_al,&reg_ax)) {
@@ -1901,6 +1913,23 @@ static Bitu DOS_21Handler(void) {
             break;
 		}
         case 0x3e:      /* CLOSE Close file */
+            if(ias_handle != 0 && ias_handle == reg_bx) {
+                ias_handle = 0;
+                CALLBACK_SCF(false);
+                break;
+            } else if(mskanji_handle != 0 && mskanji_handle == reg_bx) {
+                mskanji_handle = 0;
+                CALLBACK_SCF(false);
+                break;
+            } else if(ibmjp_handle != 0 && ibmjp_handle == reg_bx) {
+                ibmjp_handle = 0;
+                CALLBACK_SCF(false);
+                break;
+            } else if(avsdrv_handle != 0 && avsdrv_handle == reg_bx) {
+                avsdrv_handle = 0;
+                CALLBACK_SCF(false);
+                break;
+            }
             unmask_irq0 |= disk_io_unmask_irq0;
             if (DOS_CloseFile(reg_bx, false, &reg_al)) {
 #if defined(USE_TTF)
