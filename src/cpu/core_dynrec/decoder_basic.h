@@ -93,7 +93,7 @@ static DualOps grp1_table[8]={
 
 
 // decoding information used during translation of a code block
-static struct DynDecode {
+static struct DynDecodeDynRec {
 	PhysPt code;			// pointer to next byte in the instruction stream
 	PhysPt code_start;		// pointer to the start of the current code block
 	PhysPt op_start;		// pointer to the start of the current instruction
@@ -614,11 +614,11 @@ template <typename T> static DRC_PTR_SIZE_IM INLINE gen_call_function_mm(const T
 
 
 
-enum save_info_type {db_exception, cycle_check, string_break, trap};
+enum save_info_type_dynrec {db_exception, cycle_check, string_break, trap};
 
 
 // function that is called on exceptions
-static BlockReturn DynRunException(uint32_t eip_add,uint32_t cycle_sub) {
+static BlockReturnDynRec DynRunException(uint32_t eip_add,uint32_t cycle_sub) {
 	reg_eip+=eip_add;
 	CPU_Cycles-=cycle_sub;
 	if (cpu.exception.which==SMC_CURRENT_BLOCK) return BR_SMCBlock;
@@ -630,7 +630,7 @@ static BlockReturn DynRunException(uint32_t eip_add,uint32_t cycle_sub) {
 // array with information about code that is generated at the
 // end of a cache block because it is rarely reached (like exceptions)
 static struct {
-	save_info_type type;
+	save_info_type_dynrec type;
 	DRC_PTR_SIZE_IM branch_pos;
 	uint32_t eip_change;
 	Bitu cycles;
@@ -640,7 +640,7 @@ Bitu used_save_info_dynrec=0;
 
 
 // return from current block, with returncode
-static void dyn_return(BlockReturn retcode,bool ret_exception=false) {
+static void dyn_return(BlockReturnDynRec retcode,bool ret_exception=false) {
 	if (!ret_exception) {
 		gen_mov_dword_to_reg_imm(FC_RETOP,retcode);
 	}

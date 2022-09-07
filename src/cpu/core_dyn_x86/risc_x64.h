@@ -269,13 +269,13 @@ public:
 	}
 };
 
-static BlockReturn gen_runcodeInit(uint8_t *code);
-static BlockReturn (*gen_runcode)(uint8_t *code) = gen_runcodeInit;
+static BlockReturnDynX86 gen_runcodeInit(uint8_t *code);
+static BlockReturnDynX86 (*gen_runcode)(uint8_t *code) = gen_runcodeInit;
 
-static BlockReturn gen_runcodeInit(uint8_t *code) {
+static BlockReturnDynX86 gen_runcodeInit(uint8_t *code) {
 	uint8_t* oldpos = cache.pos;
 	cache.pos = &cache_code_link_blocks[128];
-	gen_runcode = (BlockReturn(*)(uint8_t*))cache_rwtox(cache.pos);
+	gen_runcode = (BlockReturnDynX86(*)(uint8_t*))cache_rwtox(cache.pos);
 
 	opcode(5).Emit8Reg(0x50);  // push rbp
 	opcode(15).Emit8Reg(0x50); // push r15
@@ -1235,7 +1235,7 @@ static void gen_test_host_byte(void * data, uint8_t imm) {
 	opcode(0).setimm(imm,1).setabsaddr(data).Emit8(0xF6); // test byte[], uint8_t
 }
 
-static void gen_return(BlockReturn retcode) {
+static void gen_return(BlockReturnDynX86 retcode) {
 	gen_protectflags();
 	opcode(1).setea(4,-1,0,CALLSTACK).Emit8(0x8B); // mov ecx, [rsp+8/40]
 	opcode(0).set64().setrm(4).setimm(CALLSTACK+8,1).Emit8(0x83); // add rsp,16/48
@@ -1247,7 +1247,7 @@ static void gen_return(BlockReturn retcode) {
 	opcode(4).setea(4,-1,0,CALLSTACK-8).Emit8(0xFF); // jmp [rsp+CALLSTACK-8]
 }
 
-static void gen_return_fast(BlockReturn retcode,bool ret_exception=false) {
+static void gen_return_fast(BlockReturnDynX86 retcode,bool ret_exception=false) {
 	if (GCC_UNLIKELY(x64gen.flagsactive)) IllegalOption("gen_return_fast");
 	opcode(1).setabsaddr(&reg_flags).Emit8(0x8B); // mov ECX, [cpu_regs.flags]
 	if (!ret_exception) {

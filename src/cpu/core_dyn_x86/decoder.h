@@ -42,7 +42,7 @@ union pagefault_restore {
 	uint32_t dword;
 };
 
-static struct DynDecode {
+static struct DynDecodeDynX86 {
 	PhysPt code;
 	PhysPt code_start;
 	PhysPt eip_location;
@@ -360,11 +360,11 @@ static INLINE void dyn_set_eip_last(void) {
 }
 
 
-enum save_info_type {db_exception, cycle_check, normal, fpu_restore, trap, page_fault};
+enum save_info_type_dynx86 {db_exception, cycle_check, normal, fpu_restore, trap, page_fault};
 
 
 static struct {
-	save_info_type type;
+	save_info_type_dynx86 type;
 	DynState state;
 	uint8_t * branch_pos;
 	uint32_t eip_change;
@@ -379,7 +379,7 @@ static struct {
 Bitu used_save_info=0;
 
 
-static BlockReturn DynRunException(uint32_t eip_add,uint32_t cycle_sub,uint32_t dflags) {
+static BlockReturnDynX86 DynRunException(uint32_t eip_add,uint32_t cycle_sub,uint32_t dflags) {
 	reg_flags=(dflags&FMASK_TEST) | (reg_flags&(~FMASK_TEST));
 	reg_eip+=eip_add;
 	CPU_Cycles-=cycle_sub;
@@ -392,7 +392,7 @@ static BlockReturn DynRunException(uint32_t eip_add,uint32_t cycle_sub,uint32_t 
 	return BR_Normal;
 }
 
-static BlockReturn DynRunPageFault(uint32_t eip_add,uint32_t cycle_sub,uint32_t pf_restore,uint32_t dflags) {
+static BlockReturnDynX86 DynRunPageFault(uint32_t eip_add,uint32_t cycle_sub,uint32_t pf_restore,uint32_t dflags) {
 	pagefault_restore pf_restore_struct;
 	pf_restore_struct.dword = pf_restore;
 	reg_flags=(dflags&FMASK_TEST) | (reg_flags&(~FMASK_TEST));

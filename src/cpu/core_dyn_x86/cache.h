@@ -495,7 +495,7 @@ static INLINE void cache_addq(uint64_t val) {
 	cache.pos=pos;
 }
 
-static void gen_return(BlockReturn retcode);
+static void gen_return(BlockReturnDynX86 retcode);
 
 static uint8_t * cache_code_start_ptr=NULL;
 static uint8_t * cache_code=NULL;

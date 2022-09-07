@@ -19,7 +19,7 @@
 #include "inout.h"
 #include "logging.h"
 
-enum STRING_OP {
+enum STRING_OP_NORMAL {
 	// simple string ops
 	R_OUTSB,R_OUTSW,R_OUTSD,
 	R_INSB, R_INSW, R_INSD,
@@ -35,7 +35,7 @@ enum STRING_OP {
 
 extern int cpu_rep_max;
 
-void DoString(STRING_OP type) {
+void DoString(STRING_OP_NORMAL type) {
 	static PhysPt  si_base,di_base;
 	static uint32_t	si_index,di_index;
 	static uint32_t	add_mask;

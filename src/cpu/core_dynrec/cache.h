@@ -601,7 +601,7 @@ static INLINE void cache_addq(uint64_t val) {
 }
 
 
-static void dyn_return(BlockReturn retcode,bool ret_exception);
+static void dyn_return(BlockReturnDynRec retcode,bool ret_exception);
 static void dyn_run_code(void);
 
 static bool cache_initialized = false;
