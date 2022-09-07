@@ -120,7 +120,7 @@ void pcm86_setnextintr(void) {
 }
 
 void SOUNDCALL pcm86gen_checkbuf(void) {
-	if (pcm86.realbuf <= pcm86.fifosize) {
+	if ((pcm86.fifo & 0x20) == 0x20 && pcm86.realbuf <= pcm86.fifosize) {
 		pcm86.reqirq = 0;
 		pcm86.irqflag = 1;
 		pic_setirq(fmtimer.irq);
