@@ -19,6 +19,7 @@
 #include "cpu.h"
 #include "lazyflags.h"
 #include "callback.h"
+#include "paging.h"
 #include "pic.h"
 #include "fpu.h"
 
@@ -74,8 +75,6 @@ static void SaveMw(Bitu off,Bitu val) {
 #define SaveMd(off,val)	mem_writed(off,val)
 
 #else 
-
-#include "paging.h"
 
 #define LoadMb(off) mem_readb_inline(off)
 
