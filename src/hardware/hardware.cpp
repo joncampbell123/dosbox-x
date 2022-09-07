@@ -438,6 +438,7 @@ void ffmpeg_reopen_video(double fps,const int bpp) {
 	// FIXME: This is copypasta! Consolidate!
 	ffmpeg_vid_ctx = avcodec_alloc_context3(ffmpeg_vid_codec);
 	if (ffmpeg_vid_ctx == NULL) E_Exit("Error: Unable to reopen vid codec");
+	ffmpeg_vid_stream->codec = ffmpeg_vid_ctx; // NTS: This is required in FFMPEG 4.3 to make the encoder work
 	ffmpeg_vid_ctx->bit_rate = 25000000; // TODO: make configuration option!
 	ffmpeg_vid_ctx->keyint_min = 15; // TODO: make configuration option!
 	ffmpeg_vid_ctx->time_base.num = 1000000;
