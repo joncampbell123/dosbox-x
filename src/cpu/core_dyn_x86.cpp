@@ -98,7 +98,7 @@ enum BranchTypes {
 };
 
 
-enum BlockReturn {
+enum BlockReturnDynX86 {
 	BR_Normal=0,
 	BR_Cycles,
 	BR_Link1,BR_Link2,
@@ -363,7 +363,7 @@ restart_core:
 run_block:
 	cache.block.running=0;
 	core_dyn.pagefault = false;
-	BlockReturn ret=gen_runcode((uint8_t*)cache_rwtox(block->cache.start));
+	BlockReturnDynX86 ret=gen_runcode((uint8_t*)cache_rwtox(block->cache.start));
 
 	if (sizeof(CPU_Cycles) > 4) {
 		// HACK: All dynrec cores for each processor assume CPU_Cycles is 32-bit wide.

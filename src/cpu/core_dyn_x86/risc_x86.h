@@ -84,8 +84,8 @@ public:
 	}
 };
 
-static BlockReturn gen_runcode(uint8_t * code) {
-	BlockReturn retval;
+static BlockReturnDynX86 gen_runcode(uint8_t * code) {
+	BlockReturnDynX86 retval;
 #if defined (_MSC_VER)
 	__asm {
 /* Prepare the flags */
@@ -1072,7 +1072,7 @@ static void gen_test_host_byte(void * data, uint8_t imm) {
 	cache_addb(imm);
 }
 
-static void gen_return(BlockReturn retcode) {
+static void gen_return(BlockReturnDynX86 retcode) {
 	gen_protectflags();
 	cache_addb(0x59);			//POP ECX, the flags
 	if (retcode==0) cache_addw(0xc033);		//MOV EAX, 0
@@ -1083,7 +1083,7 @@ static void gen_return(BlockReturn retcode) {
 	cache_addb(0xc3);			//RET
 }
 
-static void gen_return_fast(BlockReturn retcode,bool ret_exception=false) {
+static void gen_return_fast(BlockReturnDynX86 retcode,bool ret_exception=false) {
 	if (GCC_UNLIKELY(x86gen.flagsactive)) IllegalOption("gen_return_fast");
 	cache_addw(0x0d8b);			//MOV ECX, the flags
 	cache_addd((uintptr_t)&cpu_regs.flags);
