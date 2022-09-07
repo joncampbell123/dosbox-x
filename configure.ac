@@ -429,6 +429,43 @@ else
   fi
 fi
 
+dnl FEATURE: Whether to use OpenGL
+AH_TEMPLATE(C_OPENGL,[Define to 1 to use opengl display output support])
+AC_ARG_ENABLE(opengl,AC_HELP_STRING([--disable-opengl],[Disable opengl support]),enable_opengl=$enableval,enable_opengl=yes)
+AC_MSG_CHECKING(whether opengl display output will be enabled)
+
+# We need to do this before any other AC_CHECK_LIB runs just to make sure
+# linking doesn't fail if SDL is using OpenGL
+if test x$enable_opengl = xyes; then
+case "$host" in
+    *-*-darwin*)
+       AC_MSG_RESULT(yes)
+       LIBS="$LIBS -framework OpenGL"
+       AC_DEFINE(C_OPENGL,1)
+       ;;
+    *)
+       pkg-config --exists gl; RES=$?
+       if test x$RES = x0; then
+         AC_MSG_RESULT(yes)
+         CFLAGS="$CFLAGS "`pkg-config gl --cflags`
+         CPPFLAGS="$CPPFLAGS "`pkg-config gl --cflags`
+         LIBS="$LIBS "`pkg-config gl --libs`
+         AC_DEFINE(C_OPENGL,1)
+       elif test x$have_gl_h = xyes -a x$have_gl_lib = xyes ; then
+         AC_MSG_RESULT(yes)
+         LIBS="$LIBS -lGL"
+         AC_DEFINE(C_OPENGL,1)
+       elif test x$have_gl_h = xyes -a x$have_opengl32_lib = xyes ; then
+         AC_MSG_RESULT(yes)
+         LIBS="$LIBS -lopengl32"
+         AC_DEFINE(C_OPENGL,1)
+       else
+         AC_MSG_RESULT(no)
+       fi
+       ;;
+esac
+fi
+
 # FIXME: Arrggh we need the WHOLE PATH
 pwd=`realpath $srcdir`
 if [[ -z "$pwd" ]]; then pwd=`pwd`; fi
@@ -586,6 +623,7 @@ case "$host" in
        WINDRES=":"
     ;;
 esac
+
 
 dnl LIBRARY TEST: ncurses
 AC_CHECK_HEADER(curses.h,have_curses_h=yes,)
@@ -1134,42 +1172,6 @@ if test x$enable_ffmpeg = xyes; then
             AC_DEFINE(C_AVCODEC,1)
         fi
     fi
-fi
-
-dnl FEATURE: Whether to use OpenGL
-AH_TEMPLATE(C_OPENGL,[Define to 1 to use opengl display output support])
-AC_ARG_ENABLE(opengl,AC_HELP_STRING([--disable-opengl],[Disable opengl support]),enable_opengl=$enableval,enable_opengl=yes)
-AC_MSG_CHECKING(whether opengl display output will be enabled)
-
-# test
-if test x$enable_opengl = xyes; then
-case "$host" in
-    *-*-darwin*)
-       AC_MSG_RESULT(yes)
-       LIBS="$LIBS -framework OpenGL"
-       AC_DEFINE(C_OPENGL,1)
-       ;;
-    *)
-       pkg-config --exists gl; RES=$?
-       if test x$RES = x0; then
-         AC_MSG_RESULT(yes)
-         CFLAGS="$CFLAGS "`pkg-config gl --cflags`
-         CPPFLAGS="$CPPFLAGS "`pkg-config gl --cflags`
-         LIBS="$LIBS "`pkg-config gl --libs`
-         AC_DEFINE(C_OPENGL,1)
-       elif test x$have_gl_h = xyes -a x$have_gl_lib = xyes ; then
-         AC_MSG_RESULT(yes)
-         LIBS="$LIBS -lGL"
-         AC_DEFINE(C_OPENGL,1)
-       elif test x$have_gl_h = xyes -a x$have_opengl32_lib = xyes ; then
-         AC_MSG_RESULT(yes)
-         LIBS="$LIBS -lopengl32"
-         AC_DEFINE(C_OPENGL,1)
-       else
-         AC_MSG_RESULT(no)
-       fi
-       ;;
-esac
 fi
 
 dnl FEATURE: Whether to use Direct3D 9 output
