@@ -20,6 +20,8 @@
 #include "dosbox.h"
 #if C_DEBUG
 
+#include "../../tests/tests.h"
+
 #include <string.h>
 #include <list>
 #include <vector>
@@ -48,7 +50,6 @@ using namespace std;
 #include "../cpu/lazyflags.h"
 #include "keyboard.h"
 #include "control.h"
-#include "../../tests/tests.h"
 
 #ifdef WIN32
 void WIN32_Console();
