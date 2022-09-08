@@ -132,11 +132,11 @@ install: src/dosbox-x
 	install -m 644 $(srcdir)/contrib/linux/dosbox-x.1 $(DESTDIR)$(mandir)/man1
 	mkdir -p $(DESTDIR)$(prefix)/share/bash-completion/completions
 	install -m 644 $(srcdir)/contrib/linux/dosbox-x $(DESTDIR)$(prefix)/share/bash-completion/completions
-	-command -v setcap >/dev/null && setcap cap_net_raw=ep $(DESTDIR)$(bindir)/dosbox-x || true
+	-command -v setcap >/dev/null && setcap cap_net_raw=ep $(DESTDIR)$(bindir)/dosbox-x
 
 install_strip: src/dosbox-x install
 	install -m 755 -s src/dosbox-x $(DESTDIR)$(bindir)
-	-command -v setcap >/dev/null && setcap cap_net_raw=ep $(DESTDIR)$(bindir)/dosbox-x || true
+	-command -v setcap >/dev/null && setcap cap_net_raw=ep $(DESTDIR)$(bindir)/dosbox-x
 
 uninstall:
 	rm -f $(DESTDIR)$(bindir)/dosbox-x
