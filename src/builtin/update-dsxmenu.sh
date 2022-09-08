@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 (cd /usr/src/doslib/tool/dsxmenu && ./make.sh) || exit 1
 
 filename="DSXMENU.EXE"

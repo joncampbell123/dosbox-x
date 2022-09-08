@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # 
 # Setup:
 #   git clone https://github.com/joncampbell123/dosbox-x dosbox-x-mingw-hx-dos

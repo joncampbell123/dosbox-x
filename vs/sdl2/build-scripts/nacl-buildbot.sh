@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # This is the script buildbot.libsdl.org uses to cross-compile SDL2 from
 #  amd64 Linux to NaCl.

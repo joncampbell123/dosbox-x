@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 rm -Rfv linux-host || exit 1
 mkdir -p linux-host || exit 1
 
