@@ -1,4 +1,4 @@
-#!/bin/bash -eu
+#!/usr/bin/env bash -eu
 # Copyright 2017 Glenn Randers-Pehrson
 # Copyright 2016 Google Inc.
 #

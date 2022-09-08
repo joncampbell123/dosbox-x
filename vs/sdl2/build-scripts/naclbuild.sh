@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 if [ -z "$1" ] && [ -z "$NACL_SDK_ROOT" ]; then
     echo "Usage: ./naclbuild ~/nacl/pepper_35"
     echo "This will build SDL for Native Client, and testgles2.c as a demo"

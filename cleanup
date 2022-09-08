@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 make clean 2>/dev/null
 make distclean 2>/dev/null
 find -name \*~ -delete

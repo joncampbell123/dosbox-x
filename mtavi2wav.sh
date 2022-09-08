@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Stupid multitrack audio hack for stupid Premiere.
 # Turns a DOSBox-X multitrack AVI capture into several WAV files.
