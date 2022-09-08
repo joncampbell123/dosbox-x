@@ -212,7 +212,9 @@ static SDL_VideoDevice *X11_CreateDevice(int devindex)
 		device->SetIMValues = X11_SetIMValues;
 		device->GetIMValues = X11_GetIMValues;
 		device->FlushIMString = X11_FlushIMString;
+		#ifdef ENABLE_IM_EVENT
 		device->GetIMInfo = X11_GetIMInfo;
+		#endif
 
 		device->free = X11_DeleteDevice;
 	}
