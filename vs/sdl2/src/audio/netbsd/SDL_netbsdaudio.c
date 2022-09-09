@@ -63,7 +63,7 @@ NETBSDAUDIO_Status(_THIS)
 #ifdef DEBUG_AUDIO
     /* *INDENT-OFF* */
     audio_info_t info;
-    const audio_prinfo *prinfo;
+    const audio_prinfo_t *prinfo;
 
     if (ioctl(this->hidden->audio_fd, AUDIO_GETINFO, &info) < 0) {
         fprintf(stderr, "AUDIO_GETINFO failed.\n");
@@ -274,7 +274,7 @@ NETBSDAUDIO_OpenDevice(_THIS, void *handle, const char *devname, int iscapture)
     const int flags = iscapture ? OPEN_FLAGS_INPUT : OPEN_FLAGS_OUTPUT;
     SDL_AudioFormat format = 0;
     audio_info_t info;
-    audio_prinfo *prinfo = iscapture ? &info.play : &info.record;
+    audio_prinfo_t *prinfo = iscapture ? &info.play : &info.record;
 
     /* We don't care what the devname is...we'll try to open anything. */
     /*  ...but default to first name in the list... */
