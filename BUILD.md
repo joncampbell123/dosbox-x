@@ -66,7 +66,7 @@ How to compile the source code (cross-platform)
 sudo make install
 ```
 
-* General Linux compile (SDL2)
+* General Linux or BSD compile (SDL2)
 ```
 ./build-debug-sdl2
 sudo make install
