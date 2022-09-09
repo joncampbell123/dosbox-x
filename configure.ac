@@ -635,9 +635,7 @@ AC_CHECK_HEADER(slirp/libslirp.h,have_slirp_h=yes,)
 AC_CHECK_LIB(slirp, slirp_input, have_slirp_lib=yes, ,-lz)
 
 dnl LIBRARY TEST: libiconv
-dnl This may be provided by libc itself, -liconv may not be needed.
 AC_CHECK_HEADER(iconv.h,have_iconv_h=yes,)
-AC_CHECK_LIB(iconv, libiconv_open, have_iconv_lib=yes, ,-liconv)
 
 dnl TEST: check if iconv uses const char
 AC_MSG_CHECKING([whether iconv uses const char**])
@@ -1060,23 +1058,15 @@ if test x$enable_libslirp = xyes ; then
     LIBS="$LIBS "`pkg-config slirp --libs`
     CFLAGS="$CFLAGS "`pkg-config slirp --cflags`
     CPPFLAGS="$CPPFLAGS "`pkg-config slirp --cflags`
+    case "$host" in
+      *-*-cygwin* | *-*-mingw32*)
+         LIBS="$LIBS -lintl"
+      ;;
+    esac
   else
     have_slirp=no
     AC_MSG_WARN([Can't find libslirp, userspace TCP/IP emulation disabled])
   fi
-  case "$host" in
-    *-*-cygwin* | *-*-mingw32*)
-       if test x$have_slirp = xyes; then
-         LIBS="$LIBS -lintl -liconv"
-       fi
-    ;;
-  esac
-else
-  case "$host" in
-    *-*-cygwin* | *-*-mingw32*)
-      LIBS="$LIBS -liconv"
-    ;;
-  esac
 fi
 
 if test x$enable_x11 != xno; then
@@ -1192,16 +1182,13 @@ AM_CONDITIONAL(C_DIRECT3D, test x"$do_d3d" = x"1")
 AH_TEMPLATE(C_ICONV,[Define to 1 to use iconv])
 if test x$have_iconv_h = xyes; then
     AC_DEFINE(C_ICONV,1)
-case "$host" in
-    *-*-darwin*)
-    LIBS="$LIBS -liconv"
-    ;;
-    *-*-cygwin* | *-*-mingw32*)
-       if test x$have_slirp = xno; then
-         LIBS="$LIBS -liconv"
-       fi
-    ;;
-esac
+    AC_MSG_CHECKING([whether we must link against -liconv])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+    #include <iconv.h>
+    iconv_t wrap_open(const char *tocode, const char *fromcode) {
+      return iconv_open(tocode, fromcode);
+    }]])],
+    AC_MSG_RESULT(no), [AC_MSG_RESULT(yes);LIBS="$LIBS -liconv"])
 fi
 
 dnl placeholder
