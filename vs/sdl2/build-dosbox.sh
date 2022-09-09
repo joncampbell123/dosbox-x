@@ -1,4 +1,21 @@
 #!/usr/bin/env bash
+
+MAKE=""
+find_make()
+{
+  if test "$MAKE" = "" && \
+     command -v $1 >/dev/null && \
+     $1 --version | grep -q "GNU Make"; then
+    MAKE="$1"
+  fi
+}
+find_make make
+find_make gmake
+if test "$MAKE" = ""; then
+  echo "Couldn't find GNU Make!"
+  exit 1
+fi
+
 rm -Rfv linux-host || exit 1
 mkdir -p linux-host || exit 1
 
@@ -46,6 +63,6 @@ cat >>include/SDL_config.h <<_EOF
 _EOF
 fi
 
-make -j3 || exit 1
-make install || exit 1  # will install into ./linux-host
+$MAKE -j3 || exit 1
+$MAKE install || exit 1  # will install into ./linux-host
 
