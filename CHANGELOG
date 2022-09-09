@@ -17,6 +17,7 @@ Unreleased
     out of the box experience (aybe)
   - SDL1 XInput is now enabled by default for
     a better out of the box experience (aybe)
+  - Fixed build on NetBSD and FreeBSD (Jookia)
 
 2022.09.0 (0.84.3)
   - Updated FFMPEG video capture to use newer API,
