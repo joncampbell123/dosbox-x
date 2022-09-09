@@ -368,7 +368,7 @@ bool physfsDrive::setOverlaydir(const char * name) {
         return false;
 	} else {
         if (oldwrite) PHYSFS_unmount(oldwrite);
-        PHYSFS_mount(newname, NULL, 1);
+        PHYSFS_mount(newname, NULL, 0);
         dirCache.EmptyCache();
     }
 	if (oldwrite) free((char *)oldwrite);
