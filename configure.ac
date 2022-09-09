@@ -644,7 +644,7 @@ AC_CHECK_HEADER(slirp/libslirp.h,have_slirp_h=yes,)
 AC_CHECK_LIB(slirp, slirp_input, have_slirp_lib=yes, ,-lz)
 
 dnl LIBRARY TEST: libiconv
-dnl This may be provided by glibc itself, -liconv may not be needed.
+dnl This may be provided by libc itself, -liconv may not be needed.
 AC_CHECK_HEADER(iconv.h,have_iconv_h=yes,)
 AC_CHECK_LIB(iconv, libiconv_open, have_iconv_lib=yes, ,-liconv)
 case "$host" in
@@ -1191,7 +1191,7 @@ fi
 
 AM_CONDITIONAL(C_DIRECT3D, test x"$do_d3d" = x"1")
 
-AH_TEMPLATE(C_ICONV,[Define to 1 to use GNU libiconv])
+AH_TEMPLATE(C_ICONV,[Define to 1 to use iconv])
 if test x$have_iconv_h = xyes; then
     AC_DEFINE(C_ICONV,1)
 case "$host" in
