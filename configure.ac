@@ -639,6 +639,14 @@ dnl This may be provided by glibc itself, -liconv may not be needed.
 AC_CHECK_HEADER(iconv.h,have_iconv_h=yes,)
 AC_CHECK_LIB(iconv, libiconv_open, have_iconv_lib=yes, ,-liconv)
 
+dnl TEST: check if iconv uses const char
+AC_MSG_CHECKING([whether iconv uses const char**])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+#include <iconv.h>
+size_t iconv(iconv_t, const char **restrict, size_t *restrict, char **restrict, size_t *restrict);
+])], AC_DEFINE(ICONV_CONST_CHAR, 1) AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
+AH_TEMPLATE(ICONV_CONST_CHAR,[Whether iconv uses const char**])
+
 dnl LIBRARY TEST: SDLnet
 AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)
 AC_CHECK_LIB(SDL2_net, SDLNet_Init, have_sdl2_net_lib=yes, , )
