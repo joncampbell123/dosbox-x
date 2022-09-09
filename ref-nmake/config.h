@@ -264,9 +264,6 @@
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t
 
-/* Define to `int` if you don't have socklen_t */
-#undef socklen_t
-
 #if C_ATTRIBUTE_ALWAYS_INLINE
 #define INLINE inline __attribute__((always_inline))
 #else
