@@ -359,8 +359,6 @@ static list<string>::iterator histBuffPos = histBuff.end();
 static char* F80ToString(int regIndex, char* dest) {
 #if C_FPU_X86
 	snprintf(dest, 11, "%08.2Lf", reinterpret_cast<long double&>(fpu.p_regs[regIndex]));
-#elif defined(HAS_LONG_DOUBLE)
-	snprintf(dest, 11, "%08.2Lf", fpu.regs_80[regIndex].v);
 #else
 	snprintf(dest, 11, "%08.2f", fpu.regs[regIndex].d);
 #endif
@@ -375,8 +373,6 @@ static bool F80TestUpdate(int regIndex) {
 	
 #if C_FPU_X86
 	return !(fpu.p_regs[regIndex].m1 == oldfpu.p_regs[regIndex].m1 && fpu.p_regs[regIndex].m2 == oldfpu.p_regs[regIndex].m2 && fpu.p_regs[regIndex].m3 == oldfpu.p_regs[regIndex].m3);
-#elif defined(HAS_LONG_DOUBLE)
-	return fpu.regs_80[regIndex].v != oldfpu.regs_80[regIndex].v; /* I'm certain that strict float equality can be used here. */
 #else
 	return fpu.regs[regIndex].d != oldfpu.regs[regIndex].d;
 #endif
@@ -4737,16 +4733,9 @@ static void LogFPUInfo(void) {
     for (unsigned int i=0;i < 8;i++) {
         unsigned int adj = STV(i);
 
-#if C_FPU_X86 && HAS_LONG_DOUBLE
-        DEBUG_ShowMsg(" st(%u): %s val=%.20Lg (0x%04x%08x%08x)", i, FPU_tag(fpu.tags[adj]),
-                      reinterpret_cast<long double&>(fpu.p_regs[adj]), fpu.p_regs[adj].m3,
-                      fpu.p_regs[adj].m2, fpu.p_regs[adj].m1);
-#elif C_FPU_X86
+#if C_FPU_X86
         DEBUG_ShowMsg(" st(%u): %s val=0x%04x%08x%08x", i, FPU_tag(fpu.tags[adj]),
                       fpu.p_regs[adj].m3, fpu.p_regs[adj].m2, fpu.p_regs[adj].m1);
-#elif HAS_LONG_DOUBLE
-        DEBUG_ShowMsg(" st(%u): %s val=%.20Lg (0x%04x%016llx)", i, FPU_tag(fpu.tags[adj]),
-                      fpu.regs_80[adj].v, fpu.regs_80[adj].raw.h, fpu.regs_80[adj].raw.l);
 #else
         DEBUG_ShowMsg(" st(%u): %s use80=%u val=%.16g (0x%016llx)", i, FPU_tag(fpu.tags[adj]),
                       fpu.use80[adj], fpu.regs[adj].d, fpu.regs[adj].ll);

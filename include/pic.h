@@ -47,13 +47,8 @@ unsigned int PIC_parse_IRQ_hack_string(const char *str);
 extern Bitu PIC_IRQCheck;
 extern Bitu PIC_Ticks;
 
-#if defined(HAS_LONG_DOUBLE)
-typedef long double pic_tickindex_t;
-# define pic_tickfmod fmodl
-#else
 typedef double pic_tickindex_t;
-# define pic_tickfmod fmod
-#endif
+#define pic_tickfmod fmod
 
 pic_tickindex_t PIC_GetCurrentEventTime(void);
 

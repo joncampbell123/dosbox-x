@@ -47,8 +47,6 @@ static void FPU_FFREE(Bitu st) {
 
 #if C_FPU_X86
 #include "../../fpu/fpu_instructions_x86.h"
-#elif defined(HAS_LONG_DOUBLE)
-#include "../../fpu/fpu_instructions_longdouble.h"
 #else
 #include "../../fpu/fpu_instructions.h"
 #endif

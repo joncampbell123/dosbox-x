@@ -22,16 +22,6 @@
 #if C_FPU
 
 MMX_reg *reg_mmx[8] = {
-#if defined(HAS_LONG_DOUBLE)
-	&fpu._do_not_use__regs[0].reg_mmx,
-	&fpu._do_not_use__regs[1].reg_mmx,
-	&fpu._do_not_use__regs[2].reg_mmx,
-	&fpu._do_not_use__regs[3].reg_mmx,
-	&fpu._do_not_use__regs[4].reg_mmx,
-	&fpu._do_not_use__regs[5].reg_mmx,
-	&fpu._do_not_use__regs[6].reg_mmx,
-	&fpu._do_not_use__regs[7].reg_mmx,
-#else
 	&fpu.regs[0].reg_mmx,
 	&fpu.regs[1].reg_mmx,
 	&fpu.regs[2].reg_mmx,
@@ -40,7 +30,6 @@ MMX_reg *reg_mmx[8] = {
 	&fpu.regs[5].reg_mmx,
 	&fpu.regs[6].reg_mmx,
 	&fpu.regs[7].reg_mmx,
-#endif
 };
 
 MMX_reg * lookupRMregMM[256]={

@@ -11,6 +11,9 @@ Unreleased
   - Fix building not finding fluidsynth (Jookia)
   - Fix some NetBSD build issues
     (Jookia, with patch from Nia)
+  - Dropped support for using 'long double' for FPU
+    values. This only worked on x86, use the FPU
+    emulation instead. (Jookia)
 
 2022.09.0 (0.84.3)
   - Updated FFMPEG video capture to use newer API,

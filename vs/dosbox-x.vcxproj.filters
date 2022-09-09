@@ -2342,9 +2342,6 @@
     <ClInclude Include="..\include\byteorder.h">
       <Filter>Includes</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\fpu_control_x86.h">
-      <Filter>Includes</Filter>
-    </ClInclude>
     <ClInclude Include="..\include\iconvpp.hpp">
       <Filter>Includes</Filter>
     </ClInclude>
@@ -2464,9 +2461,6 @@
     </ClInclude>
     <ClInclude Include="..\src\cpu\core_normal\table_ea_8086.h">
       <Filter>Sources\cpu\core_normal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\fpu\fpu_instructions_longdouble.h">
-      <Filter>Sources\fpu</Filter>
     </ClInclude>
     <ClInclude Include="..\src\fpu\fpu_instructions_x86.h">
       <Filter>Sources\fpu</Filter>

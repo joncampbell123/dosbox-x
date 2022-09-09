@@ -44,17 +44,11 @@ void FPU_ESC7_EA(Bitu rm,PhysPt addr);
 
 #pragma pack(push,1)
 typedef union {
-// TODO: The configure script needs to use "long double" on x86/x86_64 and verify sizeof(long double) == 10,
-//       else undef a macro to let the code emulate long double 80-bit IEEE. Also needs to determine host
-//       byte order here so host long double matches our struct.
 	struct {
 		uint64_t	mantissa;		// [63:0]
 		unsigned int	exponent:15;		// [78:64]
 		unsigned int	sign:1;			// [79:79]
 	} f;
-#if defined(HAS_LONG_DOUBLE)
-	long double		v;			// [79:0]
-#endif
 	struct {
 		uint64_t	l;
 		uint16_t	h;
@@ -433,18 +427,10 @@ struct FPUStatusWord
 
 
 typedef struct {
-#if defined(HAS_LONG_DOUBLE)//probably shouldn't allow struct to change size based on this
-	FPU_Reg		_do_not_use__regs[9];
-#else
 	FPU_Reg		regs[9];
-#endif
 	FPU_P_Reg	p_regs[9];
 	FPU_Reg_80	regs_80[9];
-#if defined(HAS_LONG_DOUBLE)//probably shouldn't allow struct to change size based on this
-	bool		_do_not_use__use80[9];		// if set, use the 80-bit precision version
-#else
 	bool		use80[9];		// if set, use the 80-bit precision version
-#endif
 	FPU_Tag		tags[9];
 	FPUControlWord  cw;
 	FPUStatusWord   sw;

@@ -48,8 +48,6 @@ uint16_t FPU_GetTag(void){
 
 #if C_FPU_X86
 #include "fpu_instructions_x86.h"
-#elif defined(HAS_LONG_DOUBLE)
-#include "fpu_instructions_longdouble.h"
 #else
 #include "fpu_instructions.h"
 #endif
@@ -919,108 +917,6 @@ dump:
 		(unsigned long long)ft.f.mantissa);
 }
 
-// test routine at startup to make sure our typedef struct bitfields
-// line up with the host's definition of a 80-bit extended-precision
-// floating point value (if the host is i686, x86_64, or any other
-// host with the same definition of long double).
-void FPU_Selftest_80() {
-#if defined(HAS_LONG_DOUBLE)
-	// we're assuming "long double" means the Intel 80x87 extended precision format, which is true when using
-	// GCC on Linux i686 and x86_64 hosts.
-	//
-	// I understand that other platforms (PowerPC, Sparc, etc) might have other ideas on what makes "long double"
-	// and I also understand Microsoft Visual C++ treats long double the same as double. We will disable this
-	// test with #ifdefs when compiling for platforms where long double doesn't mean 80-bit extended precision.
-	struct ftest {
-		const char*	name;
-		long double	val;
-		int		exponent:15;
-		unsigned int	sign:1;
-		uint64_t	mantissa;
-	};
-	static const struct ftest test[] = {
-		// name			// val		// exponent (no bias)		// sign		// 64-bit mantissa WITH whole integer bit #63
-		{"0.0L",		0.0,		-FPU_Reg_80_exponent_bias,	0,		0x0000000000000000ULL},	// IEEE standard way to encode zero
-		{"1.0L",		1.0,		0,				0,		0x8000000000000000ULL},	// 1.0 x 2^0 = 1.0 x 1 = 1.0
-		{"2.0L",		2.0,		1,				0,		0x8000000000000000ULL},	// 1.0 x 2^1 = 1.0 x 2 = 2.0
-		{"3.0L",		3.0,		1,				0,		0xC000000000000000ULL},	// 1.5 x 2^1 = 1.5 x 2 = 3.0
-		{"4.0L",		4.0,		2,				0,		0x8000000000000000ULL},	// 1.0 x 2^2 = 1.0 x 4 = 4.0
-		{"-1.0L",		-1.0,		0,				1,		0x8000000000000000ULL},	// 1.0 x 2^0 = 1.0 x 1 = 1.0
-		{"-2.0L",		-2.0,		1,				1,		0x8000000000000000ULL},	// 1.0 x 2^1 = 1.0 x 2 = 2.0
-		{"-3.0L",		-3.0,		1,				1,		0xC000000000000000ULL},	// 1.5 x 2^1 = 1.5 x 2 = 3.0
-		{"-4.0L",		-4.0,		2,				1,		0x8000000000000000ULL}	// 1.0 x 2^2 = 1.0 x 4 = 4.0
-	};
-	static const size_t tests = sizeof(test) / sizeof(test[0]);
-#endif
-	FPU_Reg_80 ft;
-
-	if (sizeof(ft) < 10) {
-		LOG(LOG_FPU,LOG_WARN)("FPU80 sizeof(reg80) < 10 bytes");
-		return;
-	}
-#if defined(HAS_LONG_DOUBLE)
-	if (sizeof(long double) == sizeof(double)) {
-		LOG(LOG_FPU,LOG_WARN)("FPU80 sizeof(long double) == sizeof(double) so your compiler just makes it an alias. skipping tests. please recompile with proper config.");
-		return;
-	}
-	else if (sizeof(long double) < 10 || sizeof(long double) > 16) {
-		// NTS: We can't assume 10 bytes. GCC on i686 makes long double 12 or 16 bytes long for alignment
-		//      even though only 80 bits (10 bytes) are used.
-		LOG(LOG_FPU,LOG_WARN)("FPU80 sizeof(float) < 10 bytes your host is weird");
-		return;
-	}
-#endif
-
-	// make sure bitfields line up
-	ft.raw.l = 0;
-	ft.raw.h = 1U << 15U;
-	if (ft.f.sign != 1 || ft.f.exponent != 0 || ft.f.mantissa != 0) {
-		LOG(LOG_FPU,LOG_WARN)("FPU80 bitfield test #1 failed. h=%04x l=%016llx",(unsigned int)ft.raw.h,(unsigned long long)ft.raw.l);
-		return;
-	}
-	ft.raw.l = 0;
-	ft.raw.h = 1U << 0U;
-	if (ft.f.sign != 0 || ft.f.exponent != 1 || ft.f.mantissa != 0) {
-		LOG(LOG_FPU,LOG_WARN)("FPU80 bitfield test #2 failed. h=%04x l=%016llx",(unsigned int)ft.raw.h,(unsigned long long)ft.raw.l);
-		return;
-	}
-	ft.raw.l = 1ULL << 0ULL;
-	ft.raw.h = 0;
-	if (ft.f.sign != 0 || ft.f.exponent != 0 || ft.f.mantissa != 1) {
-		LOG(LOG_FPU,LOG_WARN)("FPU80 bitfield test #3 failed. h=%04x l=%016llx",(unsigned int)ft.raw.h,(unsigned long long)ft.raw.l);
-		return;
-	}
-
-#if defined(HAS_LONG_DOUBLE)
-	for (size_t t=0;t < tests;t++) {
-		ft.v = test[t].val; FPU_Reg_m_barrier();
-		if (((int)ft.f.exponent - FPU_Reg_80_exponent_bias) != test[t].exponent ||
-			ft.f.sign != test[t].sign || ft.f.mantissa != test[t].mantissa) {
-			LOG(LOG_FPU,LOG_WARN)("FPU80 selftest fail stage %s",test[t].name);
-			LOG(LOG_FPU,LOG_WARN)("  expected t.v = %.10Lf t.s=%u t.exp=%d t.mantissa=%llu (0x%llx)",
-				test[t].val,
-				test[t].sign,
-				(int)test[t].exponent,
-				(unsigned long long)test[t].mantissa,
-				(unsigned long long)test[t].mantissa);
-			goto dump;
-		}
-	}
-
-	LOG(LOG_FPU,LOG_DEBUG)("FPU80 selftest passed");
-	return;
-dump:
-	LOG(LOG_FPU,LOG_WARN)("Result: t.v = %.10Lf t.s=%u t.exp=%d t.mantissa=%llu (0x%llx)",
-		ft.v,
-		(int)ft.f.sign,
-		(int)ft.f.exponent - FPU_Reg_64_exponent_bias,
-		(unsigned long long)ft.f.mantissa,
-		(unsigned long long)ft.f.mantissa);
-#else
-	LOG(LOG_FPU,LOG_DEBUG)("FPU80 selftest skipped, compiler does not have long double as 80-bit IEEE");
-#endif
-}
-
 void FPU_Selftest() {
 	FPU_Reg freg;
 
@@ -1040,15 +936,12 @@ void FPU_Selftest() {
 
 #if C_FPU_X86
     LOG(LOG_FPU,LOG_NORMAL)("FPU core: x86 FPU");
-#elif defined(HAS_LONG_DOUBLE)
-    LOG(LOG_FPU,LOG_NORMAL)("FPU core: long double FPU");
 #else
     LOG(LOG_FPU,LOG_NORMAL)("FPU core: double FPU (caution: possible precision errors)");
 #endif
 
 	FPU_Selftest_32();
 	FPU_Selftest_64();
-	FPU_Selftest_80();
 }
 
 void FPU_Init() {
@@ -1114,8 +1007,6 @@ void CPU_FXSAVE(PhysPt eaa) {
 		mem_writed(eaa+0x020+(i*16)+0,fpu.p_regs[STV(i)].m1);
 		mem_writed(eaa+0x020+(i*16)+4,fpu.p_regs[STV(i)].m2);
 		mem_writew(eaa+0x020+(i*16)+8,fpu.p_regs[STV(i)].m3);
-#elif defined(HAS_LONG_DOUBLE)
-		FPU_ST80(eaa+0x020+(i*16),STV(i));
 #else
 		FPU_ST80(eaa+0x020+(i*16),STV(i),/*&*/fpu.regs_80[STV(i)],fpu.use80[STV(i)]);
 #endif
@@ -1149,8 +1040,6 @@ void CPU_FXRSTOR(PhysPt eaa) {
 		fpu.p_regs[STV(i)].m1 = mem_readd(eaa+0x020+(i*16)+0);
 		fpu.p_regs[STV(i)].m2 = mem_readd(eaa+0x020+(i*16)+4);
 		fpu.p_regs[STV(i)].m3 = mem_readw(eaa+0x020+(i*16)+8);
-#elif defined(HAS_LONG_DOUBLE)
-		fpu.regs_80[STV(i)].v = FPU_FLD80(eaa+0x020+(i*16));
 #else
 		fpu.regs[STV(i)].d = FPU_FLD80(eaa+0x020+(i*16),/*&*/fpu.regs_80[STV(i)]);
 		fpu.use80[STV(i)] = true;
