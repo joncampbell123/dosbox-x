@@ -123,7 +123,7 @@ return_address:
 		"popl %%ebp							\n"
 		"popl %%ebx							\n"
 		:"=a" (retval), "=c" (tempflags)
-		:"r" (tempflags),"r" (code)
+		:"Q" (tempflags),"r" (code)
 		:"%edx","%edi","%esi","cc","memory"
 	);
 	reg_flags=(reg_flags & ~FMASK_TEST) | (tempflags & FMASK_TEST);
@@ -137,7 +137,7 @@ return_address:
 		"run_return_adress:					\n"
 		"popl %%ebp							\n"
 		:"=a" (retval), "=c" (tempflags)
-		:"r" (tempflags),"r" (code)
+		:"Q" (tempflags),"r" (code)
 		:"%edx","%ebx","%edi","%esi","cc","memory"
 	);
 	reg_flags=(reg_flags & ~FMASK_TEST) | (tempflags & FMASK_TEST);
