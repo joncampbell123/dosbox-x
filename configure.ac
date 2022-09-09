@@ -532,6 +532,13 @@ case "$host" in
        CXXFLAGS="$CXXFLAGS -D_GLIBCXX_USE_C99=1"
        ;;
 esac
+
+dnl Fix for FreeBSD not automatically linking to pthread for std::thread
+case "$host" in
+    *-*-freebsd*)
+       LIBS="$LIBS -lpthread"
+    ;;
+esac
 fi
 
 AM_CONDITIONAL(MACOSX, test x"$macosx" = x"1")
