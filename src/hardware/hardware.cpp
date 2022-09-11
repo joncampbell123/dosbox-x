@@ -474,6 +474,10 @@ void ffmpeg_reopen_video(double fps,const int bpp) {
 		av_dict_free(&opts);
 	}
 
+	if (avcodec_parameters_from_context(ffmpeg_vid_stream->codecpar, ffmpeg_vid_ctx) < 0) {
+		E_Exit("failed to copy video codec parameters");
+	}
+
 	ffmpeg_vid_frame = av_frame_alloc();
 	ffmpeg_vidrgb_frame = av_frame_alloc();
 	if (ffmpeg_aud_frame == NULL || ffmpeg_vid_frame == NULL || ffmpeg_vidrgb_frame == NULL)
@@ -1197,6 +1201,11 @@ skip_shot:
 			ffmpeg_vid_stream->time_base.num = (int)1000000;
 			ffmpeg_vid_stream->time_base.den = (int)(1000000 * fps);
 
+			if (avcodec_parameters_from_context(ffmpeg_vid_stream->codecpar, ffmpeg_vid_ctx) < 0) {
+				LOG_MSG("failed to copy video codec parameters");
+				goto skip_video;
+			}
+
 			ffmpeg_aud_stream = avformat_new_stream(ffmpeg_fmt_ctx,ffmpeg_aud_codec);
 			if (ffmpeg_aud_stream == NULL) {
 				LOG_MSG("failed to open audio stream");
@@ -1223,6 +1232,11 @@ skip_shot:
 
 			ffmpeg_aud_stream->time_base.num = 1;
 			ffmpeg_aud_stream->time_base.den = ffmpeg_aud_ctx->sample_rate;
+
+			if (avcodec_parameters_from_context(ffmpeg_aud_stream->codecpar, ffmpeg_aud_ctx) < 0) {
+				LOG_MSG("failed to copy audio codec parameters");
+				goto skip_video;
+			}
 
 			if (avformat_write_header(ffmpeg_fmt_ctx,NULL) < 0) {
 				LOG_MSG("Failed to write header");
