@@ -1211,11 +1211,16 @@ skip_shot:
 			ffmpeg_aud_ctx = avcodec_alloc_context3(ffmpeg_aud_codec);
 			if (ffmpeg_aud_ctx == NULL) E_Exit("Error: Unable to open aud context");
 			ffmpeg_aud_ctx->sample_rate = (int)capture.video.audiorate;
-			ffmpeg_aud_ctx->channels = 2;
 			ffmpeg_aud_ctx->flags = 0; // do not use global headers
 			ffmpeg_aud_ctx->bit_rate = 320000;
 			ffmpeg_aud_ctx->profile = FF_PROFILE_AAC_LOW;
+
+			#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(59,24,100)
+			ffmpeg_aud_ctx->channels = 2;
 			ffmpeg_aud_ctx->channel_layout = AV_CH_LAYOUT_STEREO;
+			#else
+			ffmpeg_aud_ctx->ch_layout = AV_CHANNEL_LAYOUT_STEREO;
+			#endif
 
 			if (ffmpeg_aud_codec->sample_fmts != NULL)
 				ffmpeg_aud_ctx->sample_fmt = (ffmpeg_aud_codec->sample_fmts)[0];
@@ -1251,9 +1256,14 @@ skip_shot:
 			if (ffmpeg_aud_frame == NULL || ffmpeg_vid_frame == NULL || ffmpeg_vidrgb_frame == NULL)
 				goto skip_video;
 
+			#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(59,24,100)
 			ffmpeg_aud_frame->channels = 2;
-			ffmpeg_aud_frame->sample_rate = (int)capture.video.audiorate;
 			ffmpeg_aud_frame->channel_layout = AV_CH_LAYOUT_STEREO;
+			#else
+			ffmpeg_aud_frame->ch_layout = AV_CHANNEL_LAYOUT_STEREO;
+			#endif
+
+			ffmpeg_aud_frame->sample_rate = (int)capture.video.audiorate;
 			ffmpeg_aud_frame->nb_samples = ffmpeg_aud_ctx->frame_size;
 			ffmpeg_aud_frame->format = ffmpeg_aud_ctx->sample_fmt;
 			if (av_frame_get_buffer(ffmpeg_aud_frame,16) < 0) {
