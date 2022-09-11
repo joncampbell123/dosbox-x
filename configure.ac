@@ -607,14 +607,14 @@ case "$host" in
 esac
 
 
-dnl LIBRARY TEST: ncurses
+dnl LIBRARY TEST: curses
 AC_CHECK_HEADER(curses.h,have_curses_h=yes,)
-AC_CHECK_LIB(curses, initscr, have_curses_lib=yes, , )
-AC_CHECK_LIB(ncurses, initscr, have_ncurses_lib=yes, , )
-AC_CHECK_LIB(pdcurses, initscr, have_pdcurses_lib=yes, , )
+AC_CHECK_LIB(curses, initscr, curses_lib=curses, , )
+AC_CHECK_LIB(ncurses, initscr, curses_lib=ncurses, , )
+AC_CHECK_LIB(pdcurses, initscr, curses_lib=pdcurses, , )
 # Check if this system's ncurses uses a separate tinfo library
 AC_CHECK_LIB(tinfo, nodelay,
-	     if test x$have_ncurses_lib = xyes ; then
+	     if test x$curses_lib = xncurses ; then
 	       LIBS="$LIBS -ltinfo";
 	     fi)
 
@@ -838,20 +838,8 @@ AH_TEMPLATE(C_HEAVY_DEBUG,[Define to 1 to enable heavy debugging, also have to e
 AC_ARG_ENABLE(debug,AC_HELP_STRING([--enable-debug],[Enable debug mode]),[
    if test x$enable_debug = xno; then
      AC_MSG_RESULT([Debugger not enabled])
-   elif test x$have_ncurses_lib = xyes -a x$have_curses_h = xyes ; then
-     LIBS="$LIBS -lncurses"
-     AC_DEFINE(C_DEBUG,1)
-     if test x$enable_debug = xheavy ; then 
-       AC_DEFINE(C_HEAVY_DEBUG,1)
-     fi
-   elif test x$have_curses_lib = xyes -a x$have_curses_h = xyes ; then
-     LIBS="$LIBS -lcurses"
-     AC_DEFINE(C_DEBUG,1)
-     if test x$enable_debug = xheavy ; then 
-       AC_DEFINE(C_HEAVY_DEBUG,1)
-     fi
-   elif test x$have_pdcurses_lib = xyes -a x$have_curses_h = xyes ; then
-     LIBS="$LIBS -lpdcurses"
+   elif test x$curses_lib != x -a x$have_curses_h = xyes; then
+     LIBS="$LIBS -l$curses_lib"
      AC_DEFINE(C_DEBUG,1)
      if test x$enable_debug = xheavy ; then 
        AC_DEFINE(C_HEAVY_DEBUG,1)
