@@ -438,7 +438,6 @@ void ffmpeg_reopen_video(double fps,const int bpp) {
 	// FIXME: This is copypasta! Consolidate!
 	ffmpeg_vid_ctx = avcodec_alloc_context3(ffmpeg_vid_codec);
 	if (ffmpeg_vid_ctx == NULL) E_Exit("Error: Unable to reopen vid codec");
-	ffmpeg_vid_stream->codec = ffmpeg_vid_ctx; // NTS: This is required in FFMPEG 4.3 to make the encoder work
 	ffmpeg_vid_ctx->bit_rate = 25000000; // TODO: make configuration option!
 	ffmpeg_vid_ctx->keyint_min = 15; // TODO: make configuration option!
 	ffmpeg_vid_ctx->time_base.num = 1000000;
@@ -1156,10 +1155,8 @@ skip_shot:
 				LOG_MSG("failed to open audio stream");
 				goto skip_video;
 			}
-			avcodec_free_context(&ffmpeg_vid_stream->codec); // NTS: FFMPEG 4.3 allocates a codec context for us, which we don't want, so we free it to avoid a memory leak
 			ffmpeg_vid_ctx = avcodec_alloc_context3(ffmpeg_vid_codec);
 			if (ffmpeg_vid_ctx == NULL) E_Exit("Error: Unable to open vid context");
-			ffmpeg_vid_stream->codec = ffmpeg_vid_ctx; // NTS: This is required in FFMPEG 4.3 to make the encoder work
 			ffmpeg_vid_ctx->bit_rate = 25000000; // TODO: make configuration option!
 			ffmpeg_vid_ctx->keyint_min = 15; // TODO: make configuration option!
 			ffmpeg_vid_ctx->time_base.num = 1000000;
@@ -1205,10 +1202,8 @@ skip_shot:
 				LOG_MSG("failed to open audio stream");
 				goto skip_video;
 			}
-			avcodec_free_context(&ffmpeg_aud_stream->codec); // NTS: FFMPEG 4.3 allocates a codec context for us, which we don't want, so we free it to avoid a memory leak
 			ffmpeg_aud_ctx = avcodec_alloc_context3(ffmpeg_aud_codec);
 			if (ffmpeg_aud_ctx == NULL) E_Exit("Error: Unable to open aud context");
-			ffmpeg_aud_stream->codec = ffmpeg_aud_ctx; // NTS: This is required in FFMPEG 4.3 to make the encoder work
 			ffmpeg_aud_ctx->sample_rate = (int)capture.video.audiorate;
 			ffmpeg_aud_ctx->channels = 2;
 			ffmpeg_aud_ctx->flags = 0; // do not use global headers
