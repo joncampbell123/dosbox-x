@@ -738,7 +738,7 @@ Bitu PC98_AVSDRV_PCM_Handler(void)
 		if(pcb_write == pcb_read) {
 			// POLICENAUTS
 			// If you don't do this, the audio will be cut off for a very short time.
-			if(pcb_data[pcb_read].use_size < 2048) {
+			if(pcb_data[pcb_read].use_size < 2048 || pcm86.realbuf == 0) {
 				reg_al &= ~0x01;
 			}
 		}
