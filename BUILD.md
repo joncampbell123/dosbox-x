@@ -423,11 +423,6 @@ The DOSBox-X configure script accepts the following switches, which you can use 
         
         Disables FFMPEG avcodec support
 
-* --disable-core-inline
-        
-        Disables some memory increasing inlines. This will reduces compiletime 
-        for a possible speed decrease.
-
 * --disable-fpu
         
         Disables the emulated FPU. Although the FPU emulation code isn't
