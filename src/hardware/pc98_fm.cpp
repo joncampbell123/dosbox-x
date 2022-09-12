@@ -581,10 +581,13 @@ Bitu PC98_AVSDRV_PCM_Handler(void)
 	switch(reg_ah) {
 	case 0x00:
 		// $INITDRV
+		memset(pcb_data, 0, sizeof(pcb_data));
+		pcb_write = pcb_read = 0;
 		avsdrv_volume[AVSDRV_PCM_VOLUME] = 0x0a;
 		pcm86io_setvol(avsdrv_volume[AVSDRV_PCM_VOLUME]);
 		avsdrv_pcm = 0xa0;
 		avsdrv_freq = 0;
+		avsdrv_mute = 0;
 		break;
 	case 0x01:
 		call_name = "$INITFUNC";
@@ -735,7 +738,7 @@ Bitu PC98_AVSDRV_PCM_Handler(void)
 		if(pcb_write == pcb_read) {
 			// POLICENAUTS
 			// If you don't do this, the audio will be cut off for a very short time.
-			if(pcb_data[pcb_read].use_size < 2048) {
+			if(pcb_data[pcb_read].use_size < 2048 || pcm86.realbuf == 0) {
 				reg_al &= ~0x01;
 			}
 		}
