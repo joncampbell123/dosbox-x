@@ -1,0 +1,3489 @@
+:DOSBOX-X:LANGUAGE:Nederlands (Nederland)
+:DOSBOX-X:CODEPAGE:858
+:DOSBOX-X:VERSION:2022.09.1
+:DOSBOX-X:REMARK:
+:AUTOEXEC_CONFIGFILE_HELP
+Lijnen in dit gedeelte worden uitgevoerd bij opstarten.
+MOUNT lijnen kunnen hier geplaatst worden.
+
+.
+:CONFIGFILE_INTRO
+# Dit is het configuratie bestand voor DOSBox-X %s. (Gebruik A.U.B. de laatste versie van DOSBox-X)
+# Commentaarregels beginnend met een # worden genegeerd door DOSBox-X.
+# Ze worden gebruikt (compact) om de werking van elke optie te documenteren.
+# Om ALLE opties te tonen, gebruik het commando 'config -all' met -wc of -writeconf opties.
+
+.
+:CONFIG_SUGGESTED_VALUES
+Mogelijke waardes
+.
+:CONFIG_ADVANCED_OPTION
+Geavanceerde opties (Voor meer detail, zie volledige configuratie referentie bestand [dosbox-x.reference.full.conf])
+.
+:CONFIG_TOOL
+DOSBox-X Configuratietool
+.
+:CONFIG_TOOL_EXIT
+Beëindig configuratietool
+.
+:MAPPER_EDITOR_EXIT
+Beëindig mapper-editor
+.
+:SAVE_MAPPER_FILE
+Mapper bestand opslaan
+.
+:WARNING
+Waarschuwing
+.
+:YES
+Ja
+.
+:NO
+Nee
+.
+:OK
+OK
+.
+:CANCEL
+Annuleer
+.
+:CLOSE
+Sluiten
+.
+:DEBUGCMD
+Voer debugger-opdracht in
+.
+:ADD
+Voeg toe
+.
+:DEL
+Verwijder
+.
+:NEXT
+Volgend
+.
+:SAVE
+Opslaan
+.
+:EXIT
+Beëindigen
+.
+:CAPTURE
+Opnemen
+.
+:SAVE_CONFIGURATION
+Configuratie opslaan
+.
+:SAVE_LANGUAGE
+Taalbestand opslaan
+.
+:SAVE_RESTART
+Opslaan & herstarten
+.
+:PASTE_CLIPBOARD
+Klemboard plakken
+.
+:APPEND_HISTORY
+Geschiedenis toevoegen
+.
+:EXECUTE_NOW
+Nu uitvoeren
+.
+:ADDITION_CONTENT
+Extra content:
+.
+:CONTENT
+Content:
+.
+:EDIT_FOR
+Bewerk %s
+.
+:HELP_FOR
+Help voor %s
+.
+:HELP_INFO
+Klik op de "Help" knop hieronder om meer hulpinformatie te zien.
+.
+:SELECT_VALUE
+Selecteer eigenschapswaarde
+.
+:CONFIGURATION_FOR
+Configuratie voor %s
+.
+:CONFIGURATION
+Configuratie
+.
+:SETTINGS
+Instellingen
+.
+:LOGGING_OUTPUT
+DOSBox-X logboekuitvoer
+.
+:CODE_OVERVIEW
+Code overzicht
+.
+:VISIT_HOMEPAGE
+Bezoek Homepage
+.
+:GET_STARTED
+Beginnen
+.
+:CDROM_SUPPORT
+CD-ROM ondersteuning
+.
+:DRIVE_INFORMATION
+Schijf informatie
+.
+:MOUNTED_DRIVE_NUMBER
+Gekoppelde schijf nummers
+.
+:IDE_CONTROLLER_ASSIGNMENT
+Toewijzing van IDE-controller
+.
+:HELP_COMMAND
+Help voor DOS commando
+.
+:CURRENT_VOLUME
+Huidige geluidsmixervolumes
+.
+:CURRENT_SBCONFIG
+Sound Blaster configuratie
+.
+:CURRENT_MIDICONFIG
+Huidige MIDI configuratie
+.
+:CREATE_IMAGE
+Lege schijfimage maken
+.
+:NETWORK_LIST
+Netwerkinterface lijst
+.
+:PRINTER_LIST
+Printerapparaatlijst
+.
+:INTRODUCTION
+Introductie
+.
+:CONFIGURE_GROUP
+Kies een instellingengroep om te configureren:
+.
+:SHOW_ADVOPT
+Toon geavanceerde opties
+.
+:USE_PRIMARYCONFIG
+Gebruik primair configuratiebestand
+.
+:USE_PORTABLECONFIG
+Draagbaar configuratiebestand gebruiken
+.
+:USE_USERCONFIG
+Gebruik gebruiker configuratiebestand
+.
+:CONFIG_SAVETO
+Voer de bestandsnaam in voor het configuratiebestand om in op te slaan:
+.
+:CONFIG_SAVEALL
+Sla alle (inclusief geavanceerde) configuratie-opties op in het configuratiebestand
+.
+:LANG_FILENAME
+Voer bestandsnaam in voor taalbestand:
+.
+:LANG_LANGNAME
+Taal naam (optioneel):
+.
+:INTRO_MESSAGE
+Welkom bij DOSBox-X, een gratis en compleet DOS-emulatiepakket.
+DOSBox-X maakt een DOS-shell die eruitziet als de gewone DOS.
+U kunt Windows 3.x en 9x/Me ook binnen de DOS-machine uitvoeren.
+.
+:DRIVE
+Schijf
+.
+:TYPE
+Type
+.
+:LABEL
+Label
+.
+:DRIVE_NUMBER
+Schijf nummer
+.
+:DISK_NAME
+Schijf naam
+.
+:IDE_POSITION
+IDE positie
+.
+:SWAP_SLOT
+Ruil slot
+.
+:EMPTY_SLOT
+Slot legen
+.
+:SLOT
+Slot
+.
+:SELECT_EVENT
+Selecteer een evenement om te wijzigen.
+.
+:SELECT_DIFFERENT_EVENT
+Selecteer een gebeurtenis of druk op de knoppen Toevoegen/Verwijderen/Volgende.
+.
+:PRESS_JOYSTICK_KEY
+Druk op een toets/joystickknop of beweeg de joystick.
+.
+:CAPTURE_ENABLED
+Opslaan ingeschakeld. Druk op ESC om de opname vrij te geven.
+.
+:MAPPER_FILE_SAVED
+Mapper bestand opgeslagen
+.
+:AUTO_CYCLE_MAX
+Auto cycli [max]
+.
+:AUTO_CYCLE_AUTO
+Auto cycli [auto]
+.
+:AUTO_CYCLE_OFF
+Auto cycli [off]
+.
+:PROGRAM_CONFIG_PROPERTY_ERROR
+Geen dergelijke sectie of eigenschap.
+
+.
+:PROGRAM_CONFIG_NO_PROPERTY
+Geen eigenschap %s in sectie %s.
+
+.
+:PROGRAM_CONFIG_SET_SYNTAX
+De syntax voor de -set optie is onjuist.
+
+.
+:PROGRAM_CONFIG_NOCONFIGFILE
+Geen configuratiebestand geladen!
+
+.
+:PROGRAM_CONFIG_PRIMARY_CONF
+Primair configuratiebestand: 
+%s
+
+.
+:PROGRAM_CONFIG_ADDITIONAL_CONF
+Extra configuratiebestanden:
+
+.
+:PROGRAM_CONFIG_GLOBAL_CONF
+
+Globaal configuratiebestand: 
+%s
+
+.
+:PROGRAM_CONFIG_CONFDIR
+DOSBox-X %s gebruikersconfiguratiemap: 
+%s
+
+
+.
+:PROGRAM_CONFIG_WORKDIR
+DOSBox-X's werkmap: 
+%s
+
+
+.
+:PROGRAM_CONFIG_FILE_ERROR
+
+Kan bestand %s niet openen
+
+.
+:PROGRAM_CONFIG_FILE_WHICH
+Schrijven van configuratiebestand %s
+
+.
+:PROGRAM_LANGUAGE_FILE_WHICH
+Schrijven naar taal bestand %s
+
+.
+:PROGRAM_CONFIG_USAGE
+Het DOSBox-X-configuratietool voor de opdrachtregel. Opties:
+-wc (of -writeconf): Schrijft naar primair geladen configuratiebestand.
+-wc (of -writeconf) met bestandsnaam: Schrijft naar de config directory.
+-wl (of -writelang) met bestandsnaam: Schrijft de huidige taalstrings.
+-ln (of -langname) Toont (zonder argumenten) of specificeert de taalnaam.
+-wcp [bestandsnaam] Schrijft naar programmamap (dosbox-x.conf of bestandsnaam).
+-wcd Schrijft naar het standaard configuratiebestand in de configuratiemap.
+-all, -mod Met -wc, -wcp of -wcd om ALLE of gewijzigde opties te schrijven.
+-wcboot, -wcpboot of -wcdboot zal DOSBox-X opnieuw opstarten na het schrijven.
+-bootconf (of -bc) herstart met gespecificeerd bestand (of primair bestand).
+-norem Gebruik met -wc, -wcp of -wcd om geen commentaar te schrijven.
+-l Geeft een overzicht van de configuratieparameters van DOSBox-X.
+-h, -help, -? Toont deze hulp; voeg "sections" toe voor een sectie lijst.
+-h, -help, -? sectie / eigendom Toont info over de sectie of eigenschap.
+-axclear Wist de [autoexec] sectie.
+-axadd [regel] Voegt een regel toe aan de [autoexec] sectie.
+-axtype Drukt de inhoud van de [autoexec]-sectie af.
+-avistart, -avistop Start of stopt AVI-opname.
+-securemode Activeert veilige modus waarin functies zoals koppelen niet werken.
+-startmapper Start de DOSBox-X mapper-editor.
+-gui Start de grafische configuratietool.
+-get "sectie eigenschap" geeft de waarde van de eigenschap (ook naar %%CONFIG%%).
+-set (-setf voor forceren) "sectie eigenschap=waarde" zet de eigenschap waarde.
+
+.
+:PROGRAM_CONFIG_HLP_PROPHLP
+Doel van eigenschap "%s" (opgenomen in sectie "%s"):
+%s
+
+Mogelijke waarden: %s
+Standaard waarde: %s
+Huidige waarde: %s
+
+.
+:PROGRAM_CONFIG_HLP_LINEHLP
+Doel van sectie "%s":
+%s
+Huidige waarde:
+%s
+
+.
+:PROGRAM_CONFIG_HLP_NOCHANGE
+Deze eigenschap kan tijdens runtime niet worden gewijzigd.
+
+.
+:PROGRAM_CONFIG_APPLY_RESTART
+Wilt u nu opnieuw opstarten om de instelling toe te passen [Y/N]?
+.
+:PROGRAM_CONFIG_HLP_POSINT
+positief integer
+.
+:PROGRAM_CONFIG_HLP_SECTHLP
+Sectie %s bevat de volgende eigenschappen:
+
+.
+:PROGRAM_CONFIG_HLP_SECTLIST
+De DOSBox-X-configuratie bevat de volgende secties:
+
+
+.
+:PROGRAM_CONFIG_SECURE_ON
+Overgeschakeld naar beveiligde modus.
+
+.
+:PROGRAM_CONFIG_SECURE_DISALLOW
+Deze bewerking is niet toegestaan in de beveiligde modus.
+
+.
+:PROGRAM_CONFIG_SECTION_ERROR
+Sectie %s bestaat niet.
+
+.
+:PROGRAM_CONFIG_VALUE_ERROR
+"%s" is geen geldige waarde voor eigenschap %s.
+
+.
+:PROGRAM_CONFIG_PROPERTY_DUPLICATE
+Er kunnen andere secties zijn met dezelfde eigenschapsnaam.
+
+.
+:PROGRAM_CONFIG_GET_SYNTAX
+Correcte syntaxis: config -get "sectie eigenschap".
+
+.
+:PROGRAM_CONFIG_PRINT_STARTUP
+
+DOSBox-X is gestart met de volgende opdrachtregelparameters:
+%s
+
+.
+:PROGRAM_CONFIG_MISSINGPARAM
+Ontbrekende parameter.
+
+.
+:PROGRAM_MOUSE_INSTALL
+Geïnstalleerd op PS/2-poort.
+
+.
+:PROGRAM_MOUSE_VERTICAL
+Omgekeerde Y-as ingeschakeld.
+
+.
+:PROGRAM_MOUSE_VERTICAL_BACK
+Omgekeerde Y-as uitgeschakeld.
+
+.
+:PROGRAM_MOUSE_UNINSTALL
+Driver succesvol verwijderd...
+
+.
+:PROGRAM_MOUSE_ERROR
+Reeds geïnstalleerd op PS/2-poort.
+
+.
+:PROGRAM_MOUSE_NOINSTALLED
+Driver is niet geïnstalleerd.
+
+.
+:PROGRAM_MOUSE_HELP
+Schakelt de muis in/uit.
+
+MOUSE [/?] [/U] [/V]
+  /U: Verwijderen
+  /V: Omgekeerde Y-as
+
+.
+:PROGRAM_MOUNT_CDROMS_FOUND
+CDROMs gevonden: %d
+
+.
+:PROGRAM_MOUNT_STATUS_FORMAT
+%-5s  %-58s %-12s
+
+.
+:PROGRAM_MOUNT_STATUS_ELTORITO
+Schijf %c is gemount als El Torito diskettestation
+
+.
+:PROGRAM_MOUNT_STATUS_RAMDRIVE
+Schijf %c is gekoppeld als RAM-schijf
+
+.
+:PROGRAM_MOUNT_STATUS_2
+Schijf %c is gekoppeld als %s
+
+.
+:PROGRAM_MOUNT_STATUS_1
+De huidige gekoppelde schijven zijn:
+
+.
+:PROGRAM_IMGMOUNT_STATUS_FORMAT
+%-5s  %-47s  %-12s  %s
+
+.
+:PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT
+%-12s  %-40s  %-12s  %s
+
+.
+:PROGRAM_IMGMOUNT_STATUS_2
+De huidige gekoppelde schijf nummers zijn:
+
+.
+:PROGRAM_IMGMOUNT_STATUS_1
+De huidige gekoppelde FAT/ISO schijven zijn:
+
+.
+:PROGRAM_IMGMOUNT_STATUS_NONE
+Geen schijf beschikbaar
+
+.
+:PROGRAM_IMGSWAP_STATUS
+Schijven die momenteel beschikbaar zijn om te wisselen zijn:
+
+.
+:PROGRAM_IMGSWAP_ERROR
+De positie moet voor deze schijf tussen 1 en %d liggen.
+
+.
+:PROGRAM_MOUNT_ERROR_1
+Map %s bestaat niet.
+
+.
+:PROGRAM_MOUNT_ERROR_2
+%s is geen map
+
+.
+:PROGRAM_MOUNT_IMGMOUNT
+Om imagebestanden te koppelen, gebruik het ←[34;1mIMGMOUNT←[0m commando, niet het ←[34;1mMOUNT←[0m commando.
+
+.
+:PROGRAM_MOUNT_ILL_TYPE
+Illegaal type %s
+
+.
+:PROGRAM_MOUNT_ALREADY_MOUNTED
+Schijf %c reeds gekoppeld met %s
+
+.
+:PROGRAM_MOUNT_USAGE
+Koppelt mappen of schijven van het hostsysteem als DOSBox-X-schijven.
+Gebruik: ←[34;1m←[32;1mMOUNT←[0m ←[37;1mschijf←[0m ←[36;1mlocale_map←[0m [optie]←[0m
+ ←[37;1mschijf←[0m            Schijfletter waar de map of de schijf wordt aangekoppeld.
+ ←[36;1mlocale_map←[0m         Lokale map of schijf in het hostsysteem.
+ [optie]            Optie(s) voor koppelen. De volgende opties zijn mogelijk:
+ -t                 Specificeer het schijftype van de gekoppelde schijf.
+                    Ondersteund schijftype: dir, floppy, cdrom, overlay
+ (Opmerking: 'overlay' schrijfacties leiden om naar een andere map)
+ -label [naam]      Stel de volumenaam van de schijf in (in hoofdletters).
+ -nl                Gebruik de volgende beschikbare schijfletter.
+ -ro                Koppel de schijf in alleen-lezen modus.
+ -pr                Specificeer een pad relatief aan het configuratiebestand.
+ -cd                Toon lijst van lokale CD-stations (met "schijf #" waarden).
+ -usecd [schijf #]  Voor hardware-emulatie, zoals het afspelen van audio.
+ -ioctl             Hardwaretoegang op laagste niveau (met de optie -usecd).
+ -aspi              Gebruik de ASPI-laag (met de optie -usecd).
+ -freesize [ruimte] Vrije schijfruimte van de drive in MB (KB voor diskettes).
+ -nocachedir        Realtime update door de schijf niet in de cache te plaatsen
+ -z schijf          Verplaats virtuele schijf Z: naar een andere letter.
+ -o                 Rapporteer de schijf als: local, remote.
+ -q                 Stille modus (geen berichtuitvoer).
+ -u                 Ontkoppel de schijf.
+ ←[32;1m-examples          Toon enkele gebruiksvoorbeelden.←[0m
+Typ MOUNT zonder parameters om een lijst met gekoppelde schijven te tonen.
+.
+:PROGRAM_MOUNT_EXAMPLE
+Een eenvoudig voorbeeld van de MOUNT-opdracht:
+
+←[32;1mMOUNT c %s←[0m
+
+Hierdoor fungeert de map %s als de C:-schijf in DOSBox-X.
+De map moet aanwezig zijn in het hostsysteem. Als de map spaties bevat,
+zorg ervoor dat u de map correct citeert met dubbele aanhalingstekens,
+bijv. %s
+
+Enkele andere gebruiksvoorbeelden van MOUNT:
+
+←[32;1mMOUNT←[0m                            - toon alle gekoppelde schijven
+←[32;1mMOUNT -cd←[0m                        - toon alle lokale CD-stations
+←[32;1mMOUNT d %s←[0m            - koppel de D: schijf aan een map
+←[32;1mMOUNT c %s -t cdrom←[0m      - koppel de C: schijf als een CD-ROM station
+←[32;1mMOUNT c %s -ro←[0m           - koppel de C: schijf in alleen-lezen modus
+←[32;1mMOUNT c %s -label TEST←[0m   - koppel de C: drive met het label TEST
+←[32;1mMOUNT c %s -nocachedir ←[0m  - koppel C: zonder cache
+←[32;1mMOUNT c %s -freesize 128←[0m - koppel C: met 128MB vrije schijfruimte
+←[32;1mMOUNT c %s -u←[0m            - koppel C: schijf geforceerd
+←[32;1mMOUNT c %s -t overlay←[0m  - koppel C: met overlay-map bovenaan
+←[32;1mMOUNT c -u←[0m                       - ontkoppel de C: schijf
+
+.
+:PROGRAM_MOUNT_UMOUNT_NOT_MOUNTED
+Schijf %c is niet gekoppeld.
+
+.
+:PROGRAM_MOUNT_UMOUNT_SUCCESS
+Schijf %c is succesvol verwijderd.
+
+.
+:PROGRAM_MOUNT_UMOUNT_NUMBER_SUCCESS
+Schijfnummer %c is succesvol verwijderd.
+
+.
+:PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL
+Virtuele schijven kunnen niet worden losgekoppeld.
+
+.
+:PROGRAM_MOUNT_WARNING_WIN
+Waarschuwing: Koppelen van C:\ is niet aanbevolen.
+
+.
+:PROGRAM_MOUNT_WARNING_OTHER
+Waarschuwing: Koppelen van / is niet aanbevolen.
+
+.
+:PROGRAM_MOUNT_PHYSFS_ERROR
+Kan de PhysFS-schijf niet koppelen met het archiefbestand.
+
+.
+:PROGRAM_MOUNT_OVERLAY_NO_BASE
+Koppel eerst een normale map voordat u er een overlay bovenop toevoegt.
+
+.
+:PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE
+De overlay is NIET compatibel met de opgegeven schijf.
+
+.
+:PROGRAM_MOUNT_OVERLAY_MIXED_BASE
+De overlay moet worden gespecificeerd met dezelfde adressering als de onderliggende schijf. Geen vermenging van relatieve en absolute paden.
+.
+:PROGRAM_MOUNT_OVERLAY_SAME_AS_BASE
+De overlay-map mag niet hetzelfde zijn als de onderliggende schijf.
+
+.
+:PROGRAM_MOUNT_OVERLAY_ERROR
+Er is een fout opgetreden bij het maken van een overlay-schijf.
+
+.
+:PROGRAM_MOUNT_OVERLAY_STATUS
+Overlay %s op schijf %c gekoppeld.
+
+.
+:PROGRAM_LOADFIX_ALLOC
+%d KB toegekend.
+
+.
+:PROGRAM_LOADFIX_DEALLOC
+%d KB vrijgegeven.
+
+.
+:PROGRAM_LOADFIX_DEALLOCALL
+Gebruikt geheugen vrijgemaakt.
+
+.
+:PROGRAM_LOADFIX_ERROR
+Geheugentoewijzingsfout.
+
+.
+:PROGRAM_LOADFIX_HELP
+Laadt een programma boven de eerste 64 KiB door geheugen te verminderen.
+
+LOADFIX [-xms] [-ems] [-{ram}] [{programma}] [{opties}]
+LOADFIX -f [-xms] [-ems]
+
+  -xms        Wijst geheugen toe vanuit XMS i.p.v. conventioneel geheugen
+  -ems        Wijst geheugen toe vanuit EMS i.p.v. conventioneel geheugen
+  -{ram}      Zet de hoeveelheid geheugen die moet worden toegewezen in KB
+              Standaard: 64 KiB voor conventioneel geheugen; 1 MiB voor XMS/EMS
+  -a          Auto gebruikt voldoende geheugen om de eerste 64 KiB te vullen
+  -f (of -d)  Maakt eerder toegewezen geheugen vrij
+  {programma} Voert het opgegeven programma uit
+  {opties}    Programma-opties (indien aanwezig)
+
+Voorbeelden:
+  ←[32;1mLOADFIX game.exe←[0m Wijst 64KiB conventioneel geheugen toe en start game.exe
+  ←[32;1mLOADFIX -a←[0m       wijst automatisch voldoende conventioneel geheugen toe
+  ←[32;1mLOADFIX -128←[0m     Wijst 128KiB conventioneel geheugen toe
+  ←[32;1mLOADFIX -xms←[0m     Wijst 1 MiB XMS-geheugen toe
+  ←[32;1mLOADFIX -f←[0m       Maakt toegewezen conventioneel geheugen vrij
+
+.
+:MSCDEX_SUCCESS
+MSCDEX geïnstalleerd.
+
+.
+:MSCDEX_ERROR_MULTIPLE_CDROMS
+MSCDEX: Fout: Schijf-letters van meerdere cd-rom-drives moeten doorlopend zijn.
+
+.
+:MSCDEX_ERROR_NOT_SUPPORTED
+MSCDEX: Fout: Nog niet ondersteund.
+
+.
+:MSCDEX_ERROR_PATH
+MSCDEX: De opgegeven locatie is geen cd-rom-station.
+
+.
+:MSCDEX_ERROR_OPEN
+MSCDEX: Fout: Ongeldig bestand of kan niet worden geopend.
+
+.
+:MSCDEX_TOO_MANY_DRIVES
+MSCDEX: Fout: Te veel cd-rom-stations (max: 5). MSCDEX Installatie mislukt.
+
+.
+:MSCDEX_LIMITED_SUPPORT
+MSCDEX: Gekoppelde map: beperkte ondersteuning.
+
+.
+:MSCDEX_INVALID_FILEFORMAT
+MSCDEX: Fout: Bestand is geen ISO/CUE-image of bevat fouten.
+
+.
+:MSCDEX_UNKNOWN_ERROR
+MSCDEX: Fout: onbekende fout.
+
+.
+:PROGRAM_RESCAN_SUCCESS
+Schijf-cache gewist.
+
+.
+:PROGRAM_INTRO
+←[2J←[32;1mWelkom bij DOSBox-X←[0m, een open-source x86-emulator met geluid en grafiek.
+DOSBox-X maakt een shell voor je die er net zo uitziet als de gewone DOS.
+
+←[31;1mDOSBox-X zal stoppen/afsluiten zonder waarschuwing als er een fout is!←[0m
+
+
+
+.
+:PROGRAM_INTRO_MENU_UP
+DOSBox-X Introductie
+.
+:PROGRAM_INTRO_MENU_BASIC
+Basis koppeling
+.
+:PROGRAM_INTRO_MENU_CDROM
+CD-ROM ondersteuning
+.
+:PROGRAM_INTRO_MENU_USAGE
+Gebruik
+.
+:PROGRAM_INTRO_MENU_INFO
+Informatie
+.
+:PROGRAM_INTRO_MENU_QUIT
+Afsluiten
+.
+:PROGRAM_INTRO_MENU_BASIC_HELP
+
+←[1m   ←[1m←[KMOUNT staat toe om echte hardware binnen DOSBox-X's te gebruiken.←[0m
+
+.
+:PROGRAM_INTRO_MENU_CDROM_HELP
+
+←[1m   ←[1m←[KOm uw CD-ROM in DOSBox-X te mounten, moet u extra opties specificeren
+   bij het koppelen van de CD-ROM.←[0m
+
+.
+:PROGRAM_INTRO_MENU_USAGE_HELP
+
+←[1m   ←[1m←[KEen overzicht van de commandoregelopties die u aan DOSBox-X kunt geven..←[0m
+
+.
+:PROGRAM_INTRO_MENU_INFO_HELP
+
+←[1m   ←[1m←[KMeer informatie over DOSBox-X krijgen.←[0m
+
+.
+:PROGRAM_INTRO_MENU_QUIT_HELP
+
+←[1m   ←[1m←[KIntro beëindigen.←[0m
+
+.
+:PROGRAM_INTRO_USAGE_TOP
+←[2J←[32;1mEen overzicht van de opdrachtregelopties die u aan DOSBox-X kunt geven.←[0m
+Windows-gebruikers moeten cmd.exe openen of de DOSBox-X snelkoppeling bewerken.
+
+dosbox-x [naam] [-exit] [-version] [-fastlaunch] [-fullscreen]
+         [-conf configuratiebestand] [-lang taalbestand] [-machine machinetype]
+         [-startmapper] [-noautoexec] [-scaler scaler | -forcescaler scaler]
+         [-o opties] [-c commando] [-set <sectie eigenschap=waarde>]
+
+
+.
+:PROGRAM_INTRO_USAGE_1
+←[33;1m  naam←[0m
+○Als naam een map is, wordt die als de C:-schijf gekoppeld.
+○Als naam een uitvoerbaar bestand is, wordt de map met naam gekoppeld
+○als de C:-schijf en de programmanaam uitgevoerd.
+
+←[33;1m  -exit←[0m
+○DOSBox-X sluit zichzelf wanneer de 'naam' DOS-toepassing eindigt.
+
+←[33;1m  -version←[0m
+○Toont versie informatie en beëindigt. Nuttig voor frontends.
+
+←[33;1m  -fastlaunch←[0m
+○Snelle opstartmodus (BIOS-logo en welkombanner overslaan).
+
+←[33;1m  -fullscreen←[0m
+○Start DOSBox-X op volledig scherm.
+
+.
+:PROGRAM_INTRO_USAGE_2
+←[33;1m  -conf←[0m configuratiebestand
+○Start DOSBox-X met de opties gespecificeerd in het configuratiebestand.
+○Zie de documentatie voor meer details.
+
+←[33;1m  -lang←[0m taalbestand
+○Start DOSBox-X met de taal die is opgegeven in het taalbestand.
+
+←[33;1m  -startmapper←[0m
+○Start de keymapper direct bij het opstarten in. Handig voor mensen met
+○toetsenbord problemen.
+
+←[33;1m  -machine←[0m machinetype
+○Start DOSBox-X met aangegeven machine type. Geldige keuzes:
+○hercules, cga, cga_mono, mcga, mda, pcjr, tandy, ega, vga, vgaonly,
+○pc98, vesa_nolfb, vesa_oldvbe, svga_paradise, svga_s3 (standaard).
+○Het machinetype beïnvloed beschikbare videokaart als ook geluidskaarten.
+
+.
+:PROGRAM_INTRO_USAGE_3
+←[33;1m  -noautoexec←[0m
+○Slaat de [autoexec]-sectie van het geladen configuratiebestand over.
+
+←[33;1m  -o←[0m opties
+○Biedt opdrachtregeloptie(s) voor "naam" als een uitvoerbare naam is
+○gespecificeerd. Meerdere -o opties zijn toegelaten.
+
+←[33;1m  -c←[0m commando
+○Voert de opgegeven opdracht uit voor `naam` wordt uitgevoerd. Meerdere
+○opdrachten kunnen worden opgegeven. Elke opdracht moet beginnen met -c.
+○Een commando kan zijn: een intern programma, een DOS-commando of een
+○uitvoerbaar bestand op een gekoppelde schijf.
+
+←[33;1m  -set←[0m <sectie eigenschap=waarde>
+○Zet de configuratieoptie (configuratiebestand wordt genegeerd).Meerdere
+○opties zijn mogelijk. Elke optie zal moeten beginnen met -set
+
+.
+:PROGRAM_INTRO_INFO
+←[32;1mInformatie:←[0m
+
+Voor informatie over basiskoppelen typt u ←[34;1mintro mount←[0m
+Voor informatie over cd-rom-ondersteuning typt u ←[34;1mintro cdrom←[0m
+Voor informatie over speciale toetsen typt u ←[34;1mintro special←[0m
+Voor informatie over gebruik typt u ←[34;1mintro gebruik←[0m
+
+Ga voor de nieuwste versie van DOSBox-X naar de startpagina:←[34;1m
+
+←[34;1mhttps://dosbox-x.com/←[0m of ←[34;1mhttp://dosbox-x.software←[0m
+
+Voor meer informatie over DOSBox-X, neem een kijkje op de Wiki:
+
+←[34;1mhttps://dosbox-x.com/wiki←[0m
+
+.
+:PROGRAM_INTRO_MOUNT_START
+←[32;1mHier zijn enkele commando's om u op weg te helpen:←[0m
+Voordat u de bestanden op uw eigen bestandssysteem kunt gebruiken,
+moet eerst de map met de bestanden gekoppeld worden.
+
+
+.
+:PROGRAM_INTRO_MOUNT_EXST_WINDOWS
+←[32mmount c c:\dosgames\←[37m zal een C-schijf maken met c:\dosgames als inhoud. 
+.
+:PROGRAM_INTRO_MOUNT_EXEN_WINDOWS
+c:\dosgames\←[37m is een voorbeeld. Vervang het door uw eigen gamesmap.←[37m 
+.
+:PROGRAM_INTRO_MOUNT_EXST_OTHER
+←[32mmount c ~/dosgames←[37m zal een C-schijf maken met ~/dosgames als inhoud. 
+.
+:PROGRAM_INTRO_MOUNT_EXEN_OTHER
+←[32m~/dosgames←[37m is een voorbeeld. Vervang het door uw eigen gamesmap      ←[37m
+.
+:PROGRAM_INTRO_MOUNT_END
+Wanneer de koppeling is uitgevoerd, typt u ←[34;1mc:←[0m om naar uw nieuw gekoppelde C:
+schijf te gaan. Typt daar ←[34;1mdir←[0m om de inhoud ervan weertegeven. ←[34;1mcd←[0m stelt u in
+staat om een map in te gaan (herkenbaar door de ←[33;1m[]←[0m in een maplijst).
+U kunt programma's/bestanden uitvoeren die eindigen op ←[31m.exe .bat←[0m en ←[31m.com←[0m.
+
+.
+:PROGRAM_INTRO_CDROM
+←[2J←[32;1mHoe een echte/virtuele CD-ROM station in DOSBox-X te koppelen:←[0m
+DOSBox-X levert CD-ROM emulatie op diverse niveaus.
+
+Het niveau ←[33mbasis←[0m werkt op alle cd-rom-drives en normale mappen.
+Het installeert MSCDEX en markeert de bestanden als alleen-lezen.
+Meestal is dit voldoende voor de meeste spelen:
+←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom←[0m   of   ←[34;1mmount d C:\voorbeeld -t cdrom←[0m
+Indien niet, moet het label van de CD-ROM mogelijk gezet worden:
+←[34;1mmount d C:\voorbeeld -t cdrom -label CDLABEL←[0m
+
+Het ←[33mvolgend←[0m-niveau voegt wat ondersteuning op laag niveau toe.
+Werkt daarom alleen op CD-ROM stations:
+←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom -usecd ←[33m0←[0m
+
+Het ←[33mlaatste←[0m-niveau hangt af van uw besturingssysteem:
+Voor ←[1mWindows 2000←[0m, ←[1mWindows XP←[0m en ←[1mLinux←[0m:
+←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom -usecd ←[33m0 ←[34m-ioctl←[0m
+Voor ←[1mWindows 9x←[0m met een ASPI-laag geïnstalleerd:
+←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom -usecd ←[33m0 ←[34m-aspi←[0m
+
+Vervang ←[0;31mD:\←[0m door de locatie van uw CD-ROM.
+Vervang de ←[33;1m0←[0m in ←[34;1m-usecd ←[33m0←[0m] door het nummer van uw CD-ROM als u typt:
+←[34;1mmount -cd←[0m
+
+.
+:PROGRAM_BOOT_NOT_EXIST
+Bootdisk-bestand bestaat niet. Mislukt.
+
+.
+:PROGRAM_BOOT_NOT_OPEN
+Kan het bootdisk-bestand niet openen. Mislukt.
+
+.
+:PROGRAM_BOOT_WRITE_PROTECTED
+Imagebestand is alleen-lezen! Start op in schrijfbeveiligde modus.
+
+.
+:PROGRAM_BOOT_PRINT_ERROR
+Dit commando start DOSBox-X op vanaf een diskette of vanaf een harde schijf.
+
+Met dit commando kunnen meerdere swappable floppy disks opgegeven worden via
+het menu-commando, en drive: geeft de schijf aan om vanaf te starten.
+Als er geen letter is opgegeven, start dit standaard op vanaf de A-schijf.
+Zonder parameter, zal het proberen op te starten vanaf de huidige schijf.
+De enige opstartbare letters zijn A, C en D. Voor opstarten vanaf een harde
+schijf (C of D), zorg dat de image al is gekoppeld via de ←[34;1mIMGMOUNT←[0m opdracht.
+
+De syntaxis van deze opdracht is een van de volgende:
+
+←[34;1mBOOT [stationsletter:] [-convertfat|-convertfatro|-noconvertfat]←[0m
+
+←[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L stationsletter]←[0m
+
+Nota: een imagebestand dat start met : wordt opgestart in schrijfbeveiligde
+modus als de optie "leading colon write protect image" is ingeschakeld.
+
+Voorbeelden:
+
+←[32;1mBOOT A:←[0m       - opstarten vanaf A: indien gekoppeld en startbaar.
+←[32;1mBOOT :DOS.IMG←[0m - opstarten van DOS.IMG in schrijfbeveiligde modus.
+
+.
+:PROGRAM_BOOT_UNABLE
+Kan niet opstarten vanaf station %c.
+
+.
+:PROGRAM_BOOT_IMAGE_OPEN
+Imagebestand openen: %s
+
+.
+:PROGRAM_BOOT_IMAGE_NOT_OPEN
+Kan %s niet openen
+
+.
+:PROGRAM_BOOT_CART_WO_PCJR
+PCjr-cartridge gevonden, maar machine is niet PCjr
+.
+:PROGRAM_BOOT_CART_LIST_CMDS
+Beschikbare commando's voor PCjr-cartridges:%s
+.
+:PROGRAM_BOOT_CART_NO_CMDS
+Geen PCjr cartridge-commando's gevonden
+.
+:PROGRAM_LOADROM_HELP
+Laadt het opgegeven ROM-imagebestand voor video-BIOS of IBM BASIC.
+
+LOADROM ROM_file
+
+.
+:PROGRAM_LOADROM_SPECIFY_FILE
+Moet het ROM-bestand specificeren om te laden.
+
+.
+:PROGRAM_LOADROM_CANT_OPEN
+ROM-bestand niet toegankelijk.
+
+.
+:PROGRAM_LOADROM_TOO_LARGE
+ROM-bestand te groot.
+
+.
+:PROGRAM_LOADROM_INCOMPATIBLE
+Video-BIOS niet ondersteund door machinetype.
+
+.
+:PROGRAM_LOADROM_UNRECOGNIZED
+ROM-bestand niet herkend.
+
+.
+:PROGRAM_LOADROM_BASIC_LOADED
+BASIC-ROM geladen.
+
+.
+:PROGRAM_BIOSTEST_HELP
+Start op in een BIOS-image voor het uitvoeren van CPU-tester BIOS.
+
+BIOSTEST image_file
+
+.
+:VHD_ERROR_OPENING
+Kan het opgegeven VHD-bestand niet openen.
+
+.
+:VHD_INVALID_DATA
+Het opgegeven VHD-bestand is beschadigd en kan niet worden geopend.
+
+.
+:VHD_UNSUPPORTED_TYPE
+Het opgegeven VHD-bestand is van een niet-ondersteund type.
+
+.
+:VHD_ERROR_OPENING_PARENT
+Het bovenliggende item van het opgegeven VHD-bestand is niet gevonden.
+
+.
+:VHD_PARENT_INVALID_DATA
+het bovenliggende item van het VHD-bestand is beschadigd.
+
+.
+:VHD_PARENT_UNSUPPORTED_TYPE
+Het bovenliggende item van het VHD-bestand is van een niet-ondersteund type.
+
+.
+:VHD_PARENT_INVALID_MATCH
+Het bovenliggende item van het VHD-bestand bevat niet de verwachte id.
+
+.
+:VHD_PARENT_INVALID_DATE
+Het bovenliggende item van het VHD-bestand is gewijzigd en niet meer geldig.
+
+.
+:PROGRAM_IMGMOUNT_SPECIFY_DRIVE
+Moet een stationsletter opgeven om het imagebestand te koppelen.
+
+.
+:PROGRAM_IMGMOUNT_SPECIFY2
+Moet het stationsnummer (0 tot %d) specificeren om de image (0,1=fda,fdb;2,3=hda,hdb) koppelen.
+
+.
+:PROGRAM_IMGMOUNT_INVALID_IMAGE
+Kon imagebestand niet laden.
+Controleer of het pad correct is en de image toegankelijk is.
+
+.
+:PROGRAM_IMGMOUNT_DYNAMIC_VHD_UNSUPPORTED
+Dynamische VHD-bestanden worden niet ondersteund.
+
+.
+:PROGRAM_IMGMOUNT_INVALID_GEOMETRY
+Kan schijfgeometrie niet uit de image halen.
+Gebruik parameter -size bps,spc,hpc,cyl om de geometrie op te geven.
+
+.
+:PROGRAM_IMGMOUNT_AUTODET_VALUES
+Automatische detectie van imagegeometrie: -size %u,%u,%u,%u
+
+.
+:PROGRAM_IMGMOUNT_TYPE_UNSUPPORTED
+Typ "%s" wordt niet ondersteund. Geef "hdd", "floppy" of "iso" op.
+
+.
+:PROGRAM_IMGMOUNT_FORMAT_UNSUPPORTED
+Formaat "%s" wordt niet ondersteund. Geef "fat", "iso" of "none" op.
+
+.
+:PROGRAM_IMGMOUNT_SPECIFY_FILE
+Moet imagebestand(en) specificeren om te koppelen.
+
+.
+:PROGRAM_IMGMOUNT_FILE_NOT_FOUND
+Imagebestand niet gevonden.
+
+.
+:PROGRAM_IMGMOUNT_DEFAULT_NOT_FOUND
+Imagebestand niet gevonden: IMGMAKE.IMG.
+
+.
+:PROGRAM_IMGMOUNT_MOUNT
+Gebruik voor het aankoppelen van mappen ←[34;1mMOUNT←[0m, niet [34;1mIMGMOUNT←[0m].
+
+.
+:PROGRAM_IMGMOUNT_ALREADY_MOUNTED
+Schijf al gekoppeld op die letter.
+
+.
+:PROGRAM_IMGMOUNT_ALREADY_MOUNTED_NUMBER
+Schijfnummer %d is al gekoppeld.
+
+.
+:PROGRAM_IMGMOUNT_CANT_CREATE
+Kan geen schijf maken van bestand.
+
+.
+:PROGRAM_IMGMOUNT_CANT_CREATE_PHYSFS
+Kan geen PhysFS-schijf maken.
+
+.
+:PROGRAM_IMGMOUNT_MOUNT_NUMBER
+Drive nummer %d gekoppeld als %s
+
+.
+:PROGRAM_IMGMOUNT_NON_LOCAL_DRIVE
+De image moet op een host-, lokale of netwerkschijf staan.
+
+.
+:PROGRAM_IMGMOUNT_MULTIPLE_NON_CUEISO_FILES
+Meerdere bestanden wordt alleen ondersteund voor cue/iso-imagebestanden.
+
+.
+:PROGRAM_IMGMOUNT_HELP
+Koppeld floppy, harde schijf en optische schijf-images.
+←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mfile←[0m [-ro] [-t floppy] [-fs fat] [-size ss,s,h,c]
+←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mfile←[0m [-ro] [-t hdd] [-fs fat] [-size ss,s,h,c] [-ide controller]
+←[32;1mIMGMOUNT←[0m ←[37;1mdriveNum←[0m ←[36;1mfile←[0m [-ro] [-fs none] [-size ss,s,h,c] [-reservecyl #]
+←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m ←[36;1mfile←[0m [-t iso] [-fs iso]
+←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m [-t floppy] -bootcd cdDrive (of -el-torito cdDrive)
+←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m -t ram -size size
+←[32;1mIMGMOUNT←[0m -u ←[37;1mdrive|driveNum←[0m (of ←[32;1mIMGMOUNT←[0m ←[37;1mdrive|driveNum←[0m ←[36;1mfile←[0m [opties] -u)
+ ←[37;1mdrive←[0m               Schijfletter om image te koppelen.
+ ←[37;1mdriveNum←[0m            Schijfnummer, waar 0-1 zijn FDDs, 2-5 zijn HDDs.
+ ←[36;1mfile←[0m                Imagebestand(en), of ←[33;1mIMGMAKE.IMG←[0m als niet gespecificeerd.
+ -t iso              Imagetype optische schijf ISO of CUE/BIN-image.
+ -t hdd|floppy|ram   Imagetype harde schijf (incl. VHD/HDI)|floppy|RAM-schijf.
+ -fs iso             Bestandssysteem ISO 9660 (automatisch voor .iso/.cue).
+ -fs fat             Bestandssysteem FAT - FAT12, FAT16 en FAT32 ondersteund.
+ -fs none            Geen autodetectie (standaard voor schijfnummers).
+ -reservecyl #       Meld # aantal cilinders minder dan werkelijk in BIOS.
+ -ide controller     IDE-controller (1m, 1s, 2m, 2s) om schijf te koppelen.
+ -size size|ss,s,h,c Grootte in KB, of sectorgrootte en CHS-geometrie.
+ -bootcd cdDrive     CD-station die een opstartbare diskette bevat.
+ -o partidx=#        Partitienummer van de harde schijf op te koppelen.
+ -ro                 Koppel image alleen-lezen (of gebruik voorvoegsel ':').
+ -u                  Ontkoppel de schijf of het schijfnummer.
+ ←[32;1m-examples           Laat enkele gebruiksvoorbeelden zien.←[0m
+.
+:PROGRAM_IMGMOUNT_EXAMPLE
+Enkele gebruiksvoorbeelden van IMGMOUNT:
+
+  ←[32;1mIMGMOUNT←[0m                      - Toont gekoppelde schijven & schijf nummers
+  ←[32;1mIMGMOUNT C←[0m                    - Koppel HDD image ←[33;1mIMGMAKE.IMG←[0m als C:
+  ←[32;1mIMGMOUNT C c:\image.img←[0m       - Koppel HDD image c:\image.img als C:
+  ←[32;1mIMGMOUNT D c:\files\game.iso←[0m  - Koppel CD image c:\files\game.iso als D:
+  ←[32;1mIMGMOUNT D cdaudio.cue←[0m        - Koppel CUE image van een CUE/BIN paar als CD
+  ←[32;1mIMGMOUNT 0 dos.ima←[0m            - Koppel FDD image dos.ima als schijf nummer 0
+                                  (←[33;1mBOOT A:←[0m probeert te starten van de schijf)
+  ←[32;1mIMGMOUNT A -ro dos.ima←[0m        - Koppel FDD image dos.ima als A: enkel-lezen
+  ←[32;1mIMGMOUNT A :dsk1.img dsk2.img←[0m - Koppel FDD bestanden dsk1.img en dsk2.img als
+                                  A:, verwisselbaar via menu item,
+                                  met dsk1.img enkel-lezen (maar niet dsk2.img)
+  ←[32;1mIMGMOUNT A -bootcd D←[0m          - Koppel startbare FDD A: van CD-station D:
+  ←[32;1mIMGMOUNT C -t ram -size 10000←[0m - Koppel HDD C: als een 10MB RAM-schijf
+  ←[32;1mIMGMOUNT D d.img -o partidx=4←[0m - Koppel 1e logische partitie van d.img als D:
+  ←[32;1mIMGMOUNT C disk.img -u←[0m        - Koppel HDD bestand disk.img als C:,
+                                  auto-ontkoppel C: schijf eerst indien nodig
+  ←[32;1mIMGMOUNT A -u←[0m                 - ontkoppel eerder aangekoppelde A: schijf
+
+.
+:PROGRAM_IMGMAKE_SYNTAX
+Creëert diskette- of harde schijf-images.
+Gebruik: ←[34;1mIMGMAKE [bestand] [-t type] [[-size grootte] | [-chs geometrie]]←[0m
+  ←[34;1m[-spc] [-nofs] [-bat] [-fat] [-fatcopies] [-rootdir] [-force]←[0m
+  bestand: Image bestand om te maken (of ←[33;1mIMGMAKE.IMG←[0m indien blank) - ←[31;1mHost pad←[0m
+  -t: Type van image.
+    ←[33;1mDiskette sjablonen←[0m (namen worden omgezet in diskettes in KB of fd=fd_1440):
+     fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880
+    ←[33;1mHarde schijf sjablonen:←[0m
+     hd_250: 250MB image, hd_520: 520MB image, hd_1gig: 1GB image
+     hd_2gig: 2GB image, hd_4gig: 4GB image, hd_8gig: 8GB image
+     hd_st251: 40MB image, hd_st225: 20MB image (geometrie van oude schijven)
+    ←[33;1mHDD images op maat:←[0m hd (vereist -size of -chs)
+  -size: Grootte van een HDD image op maat in MB.
+  -chs: Schijf geometrie in cilinders(1-1023),koppen(1-255),sectoren(1-63).
+  -nofs: Voeg deze parameter toe om een leeg image te maken.
+  -force: Forceer om een bestaand imagebestand te overschrijven.
+  -bat: Maak een .bat-bestand met de IMGMOUNT opdracht voor deze image.
+  -fat: FAT-bestandssysteemtype (12, 16 of 32).
+  -spc: Sectoren per cluster. Moet een macht van 2 zijn.
+  -fatcopies: Overschrijf het aantal FAT-tabelkopieën.
+  -rootdir: Grootte van de hoofdmap in items. Genegeerd voor FAT32.
+  ←[32;1m-examples: Laat enkele gebruiksvoorbeelden zien.←[0m
+
+.
+:PROGRAM_IMGMAKE_EXAMPLE
+Enkele gebruiksvoorbeelden van IMGMAKE:
+
+  ←[32;1mIMGMAKE -t fd←[0m               - maak een 1.44MB floppy image ←[33;1mIMGMAKE.IMG←[0m
+  ←[32;1mIMGMAKE -t fd_1440 -force←[0m   - forceer het maken van een FDD image ←[33;1mIMGMAKE.IMG←[0m
+  ←[32;1mIMGMAKE dos.img -t fd_2880←[0m  - maak een 2.88MB FDD image genaamd dos.img
+  ←[32;1mIMGMAKE c:\disk.img -t hd -size 50←[0m      - maak een 50MB HDD image c:\disk.img
+  ←[32;1mIMGMAKE c:\disk.img -t hd_520 -nofs←[0m     - maak een 520MB blank HDD image
+  ←[32;1mIMGMAKE c:\disk.img -t hd_2gig -fat 32←[0m  - maak een 2GB FAT32 HDD image
+  ←[32;1mIMGMAKE c:\disk.img -t hd -chs 130,2,17←[0m - maak een HDD image met CHS
+  ←[32;1mIMGMAKE c:\disk.img -source a←[0m           - lees image van fysieke schijf A:
+
+.
+:PROGRAM_IMGMAKE_FLREAD
+Schijf geometrie: %d Cilinders, %d Koppen, %d Sectoren, %d Kilobytes
+
+
+.
+:PROGRAM_IMGMAKE_FLREAD2
+%s =goed, %s =goed na opnieuw, ! =CRC fout, x =sector niet gevonden, ? =onbekend
+
+
+.
+:PROGRAM_IMGMAKE_FILE_EXISTS
+Het bestand "%s" bestaat al. Specificeer "-force" om te overschrijven.
+
+.
+:PROGRAM_IMGMAKE_CANNOT_WRITE
+Het bestand "%s" kan niet worden geopend om te schrijven.
+
+.
+:PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE
+Onvoldoende ruimte beschikbaar voor het imagebestand. %u bytes nodig.
+
+.
+:PROGRAM_IMGMAKE_PRINT_CHS
+Imagebestand "%s" maken met %u-cilinders, %u-koppen en %u-sectoren
+
+.
+:PROGRAM_IMGMAKE_CANT_READ_FLOPPY
+
+
+Kan floppy niet lezen.
+.
+:PROGRAM_KEYB_INFO
+Codetabel %i is geladen
+
+.
+:PROGRAM_KEYB_INFO_LAYOUT
+Codetabel %i is geladen voor lay-out %s
+
+.
+:PROGRAM_KEYB_SHOWHELP
+Configureert een toetsenbord voor een bepaalde taal.
+
+Gebruik: ←[32;1mKEYB←[0m [keyboard lay-out ID [codetabel nummer [codetabelbestand]]]
+  lay-out ID         Naam van de lay-out of keyboard bestand (.kl) om te laden
+  codetabelnummer    Nummer van de codetabel om te laden
+  codetabelbestand   .cpi/.cpx bestand met specifieke codetabel informatie
+  (.kl, .cpi/.cpx bestanden in de map plaatsen waar de dosbox-x applicatie is.)
+
+Enkele voorbeelden:
+  ←[32;1mKEYB←[0m          Toon de momenteel geladen codetabel.
+  ←[32;1mKEYB sp←[0m       Laad de Spaanse (SP) lay-out, met passende codetabel.
+  ←[32;1mKEYB sp 850←[0m   Laad de Spaanse (SP) lay-out, gebruik codetabel 850.
+  ←[32;1mKEYB sp 850 mycp.cpi←[0m Zoals hierboven, maar met bestand mycp.cpi.
+  ←[32;1mKEYB sp_mod 850←[0m      Laad keyboard lay-out van sp_mod.kl met codetabel 850.
+
+.
+:PROGRAM_KEYB_NOERROR
+Toetsenbordindeling %s geladen voor codetabel %i
+
+.
+:PROGRAM_KEYB_FILENOTFOUND
+Toetsenbordbestand %s niet gevonden (of geen geldig ID)
+
+
+.
+:PROGRAM_KEYB_INVALIDFILE
+Toetsenbordbestand %s ongeldig
+
+.
+:PROGRAM_KEYB_LAYOUTNOTFOUND
+Geen lay-out in %s voor codetabel %i
+
+.
+:PROGRAM_KEYB_INVCPFILE
+Geen of ongeldig codetabelbestand voor lay-out %s
+
+
+.
+:PROGRAM_MODE_USAGE
+Configureert systeemapparaten.
+
+←[34;1mMODE←[0m weergavemodus      :weergave-adapters zijn ←[1mCO80←[0m, ←[1mBW80←[0m, ←[1mCO40←[0m, ←[1mBW40←[0m, of ←[1mMONO←[0m
+←[34;1mMODE CON COLS=←[0mc ←[34;1mLINES=←[0mn :kolommen en lijnen, c=80 of 132, n=25, 43, 50, of 60
+←[34;1mMODE CON RATE=←[0mr ←[34;1mDELAY=←[0md :aanslagsnelheid, r=1-32 (32=snelste), d=1-4 (1=laagst)
+
+.
+:PROGRAM_MODE_INVALID_PARAMETERS
+Ongeldige parameter(s).
+
+.
+:PROGRAM_PORT_INVALID_NUMBER
+Moet een poortnummer tussen 1 en 9 specificeren.
+
+.
+:SHELL_CMD_TREE_ERROR
+Geen mappen aanwezig
+
+.
+:SHELL_CMD_VOL_TREE
+Overzicht map pad voor volume %s
+
+.
+:SHELL_CMD_VOL_DRIVE
+
+ Volume in schijf %c 
+.
+:SHELL_CMD_VOL_SERIAL
+ Volume Serienummer is
+.
+:SHELL_CMD_VOL_SERIAL_NOLABEL
+heeft geen label
+
+.
+:SHELL_CMD_VOL_SERIAL_LABEL
+is %s
+
+.
+:SHELL_ILLEGAL_PATH
+Pad niet gevonden
+
+.
+:SHELL_ILLEGAL_DRIVE
+Ongeldige schijfspecificatie
+
+.
+:SHELL_CMD_HELP
+Voor een lijst van alle interne opdrachten, typt ←[33;1mHELP /ALL←[0m.
+U kunt ook externe opdrachten op de Z:-schijf vinden als programma's.
+Een korte lijst van de meest gebruikte commando's:
+
+.
+:SHELL_CMD_HELP_END1
+Externe opdrachten zoals ←[33;1mMOUNT←[0m en ←[33;1mIMGMOUNT←[0m staan op de Z: schijf.
+
+.
+:SHELL_CMD_HELP_END2
+Typ ←[33;1mHELP opdracht←[0m of ←[33;1mopdracht /?←[0m voor hulp voor de aangegeven opdracht.
+
+.
+:SHELL_CMD_ECHO_ON
+ECHO is aan.
+
+.
+:SHELL_CMD_ECHO_OFF
+ECHO is uit.
+
+.
+:SHELL_ILLEGAL_SWITCH
+Ongeldige switch - %s
+
+.
+:SHELL_INVALID_PARAMETER
+Ongeldige parameter - %s
+
+.
+:SHELL_MISSING_PARAMETER
+Vereiste parameter ontbreekt.
+
+.
+:SHELL_MISSING_FILE
+Het volgende bestand ontbreekt of is beschadigd: %s
+
+.
+:SHELL_CMD_CHDIR_ERROR
+Ongeldige map - %s
+
+.
+:SHELL_CMD_CHDIR_HINT
+Hint: Om over te schakelen naar een andere schijf, typ ←[31m%c:←[0m
+
+.
+:SHELL_CMD_CHDIR_HINT_2
+directorynaam bevat spaties zonder aanhalingstekens.
+Probeer ←[31mcd %s←[0m of citeer ze correct tussen aanhalingstekens.
+
+.
+:SHELL_CMD_CHDIR_HINT_3
+U bevindt zich nog steeds op schijf Z:! De map kan niet worden gevonden.
+Voor toegang tot een gekoppelde schijf, ga daarnaar met een syntaxis zoals ←[31mC:←[0m.
+
+.
+:SHELL_CMD_DATE_HELP
+Toont of wijzigt de interne datum.
+
+.
+:SHELL_CMD_DATE_ERROR
+De opgegeven datum is niet correct.
+
+.
+:SHELL_CMD_DATE_DAYS
+3ZonMaaDinWoeDonVriZat
+.
+:SHELL_CMD_DATE_NOW
+Huidige datum: 
+.
+:SHELL_CMD_DATE_SETHLP
+Typ 'datum %s' om te wijzigen.
+
+.
+:SHELL_CMD_DATE_HELP_LONG
+DATE [[/T] [/H] [/S] | datum]
+  datum:      Nieuwe datum om te zetten
+  /S:         Hosttijd en -datum permanent gebruiken als DOS-tijd
+  /F:         Schakel terug naar DOSBox-X interne tijd (tegengestelde van /S)
+  /T:         Toon enkel de datum
+  /H:         Synchroniseren met host
+
+.
+:SHELL_CMD_TIME_HELP
+Toont of wijzigt de interne tijd.
+
+.
+:SHELL_CMD_TIME_ERROR
+De opgegeven tijd is niet correct.
+
+.
+:SHELL_CMD_TIME_NOW
+Huidige tijd: 
+.
+:SHELL_CMD_TIME_SETHLP
+Typ 'tijd %s' om te wijzigen.
+
+.
+:SHELL_CMD_TIME_HELP_LONG
+TIME [[/T] [/H] | tijd]
+  tijd:       Nieuwe tijd om te zetten
+  /T:         Toon simpele tijd
+  /H:         Synchroniseren met host
+
+.
+:SHELL_CMD_MKDIR_EXIST
+Map bestaat al - %s
+
+.
+:SHELL_CMD_MKDIR_ERROR
+Kan map niet aanmaken - %s
+
+.
+:SHELL_CMD_RMDIR_ERROR
+Ongeldig pad, geen map of map niet leeg - %s
+
+.
+:SHELL_CMD_RENAME_ERROR
+Kan naam niet wijzigen - %s
+
+.
+:SHELL_CMD_ATTRIB_GET_ERROR
+Kan attributen niet ophalen: %s
+
+.
+:SHELL_CMD_ATTRIB_SET_ERROR
+Kan attributen niet instellen: %s
+
+.
+:SHELL_CMD_DEL_ERROR
+Kan niet verwijderen - %s
+
+.
+:SHELL_CMD_DEL_SURE
+Alle bestanden in de map worden verwijderd!
+Weet je het zeker [Y/N]?
+.
+:SHELL_SYNTAXERROR
+Syntaxfout
+
+.
+:SHELL_CMD_SET_NOT_SET
+Omgevingsvariabele %s niet gedefinieerd.
+
+.
+:SHELL_CMD_SET_OUT_OF_SPACE
+Niet genoeg omgevingsruimte over.
+
+.
+:SHELL_CMD_IF_EXIST_MISSING_FILENAME
+IF EXIST: Ontbrekende bestandsnaam.
+
+.
+:SHELL_CMD_IF_ERRORLEVEL_MISSING_NUMBER
+IF ERRORLEVEL: Missende nummer.
+
+.
+:SHELL_CMD_IF_ERRORLEVEL_INVALID_NUMBER
+IF ERRORLEVEL: Ongeldig nummer.
+
+.
+:SHELL_CMD_GOTO_MISSING_LABEL
+Geen label geleverd aan het GOTO-commando.
+
+.
+:SHELL_CMD_GOTO_LABEL_NOT_FOUND
+GOTO: Label %s niet gevonden.
+
+.
+:SHELL_CMD_FILE_ACCESS_DENIED
+Toegang geweigerd - %s
+
+.
+:SHELL_CMD_FILE_NOT_FOUND
+Bestand niet gevonden - %s
+
+.
+:SHELL_CMD_FILE_EXISTS
+Bestand %s bestaat al.
+
+.
+:SHELL_CMD_DIR_INTRO
+ Map van %s
+
+
+.
+:SHELL_CMD_DIR_BYTES_USED
+%5d Bestand(en) %15s Bytes
+
+.
+:SHELL_CMD_DIR_BYTES_FREE
+%5d Map(en)  %17s Bytes beschikbaar
+
+.
+:SHELL_CMD_DIR_FILES_LISTED
+Totaal aantal bestanden vermeld:
+
+.
+:SHELL_EXECUTE_DRIVE_NOT_FOUND
+Schijf %c bestaat niet! U moet het eerst koppelen met ←[31mmount←[0m.
+Typ ←[1;33mintro←[0m of ←[1;33mintro mount←[0m voor meer informatie.
+
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_CDROM
+Wilt u DOSBox-X toegang geven tot uw echte CD-ROM-station %c [Y/N]?
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_FLOPPY
+Wilt u DOSBox-X toegang geven tot uw echte diskettestation %c [Y/N]?
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_REMOVABLE
+Wilt u DOSBox-X toegang geven tot uw echte verwisselbare schijf %c [Y/N]?
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_NETWORK
+Wilt u DOSBox-X toegang geven tot uw echte netwerkschijf %c [Y/N]?
+.
+:SHELL_EXECUTE_DRIVE_ACCESS_FIXED
+Wilt u DOSBox-X toegang geven tot uw echte harde schijf %c [Y/N]?
+.
+:SHELL_EXECUTE_ILLEGAL_COMMAND
+Slechte opdracht of bestandsnaam - "%s"
+
+.
+:SHELL_CMD_PAUSE
+Druk op een willekeurige toets om door te gaan. . .
+
+.
+:SHELL_CMD_PAUSE_HELP
+Wacht op een toetsaanslag om door te gaan.
+
+.
+:SHELL_CMD_PAUSE_HELP_LONG
+PAUSE
+
+.
+:SHELL_CMD_COPY_FAILURE
+Kopiëren mislukt - %s
+
+.
+:SHELL_CMD_COPY_SUCCESS
+   %d Bestand(en) gekopieerd.
+
+.
+:SHELL_CMD_COPY_CONFIRM
+Overschrijf %s (Ja(Y)/Nee/Alles)?
+.
+:SHELL_CMD_COPY_NOSPACE
+Onvoldoende schijfruimte - %s
+
+.
+:SHELL_CMD_COPY_ERROR
+Kopieerfout - %s
+
+.
+:SHELL_CMD_SUBST_DRIVE_LIST
+De momenteel aangekoppelde lokale schijven zijn:
+
+.
+:SHELL_CMD_SUBST_NO_REMOVE
+Kan niet worden verwijderd, schijf niet in gebruik.
+
+.
+:SHELL_CMD_SUBST_IN_USE
+Doelschijf is al in gebruik.
+
+.
+:SHELL_CMD_SUBST_NOT_LOCAL
+SUBST kan alleen op lokale schijven gebruikt worden.
+
+.
+:SHELL_CMD_SUBST_INVALID_PATH
+De opgegeven schijf of pad is ongeldig.
+
+.
+:SHELL_CMD_SUBST_FAILURE
+SUBST: Er is een fout in de opdrachtregel.
+
+.
+:SHELL_CMD_VTEXT_ON
+DOS/V V-tekst is momenteel geactiveerd.
+
+.
+:SHELL_CMD_VTEXT_OFF
+DOS/V V-tekst is momenteel gedeactiveerd.
+
+.
+:SHELL_STARTUP_TITLE
+Welkom bij DOSBox-X!
+.
+:SHELL_STARTUP_HEAD1_PC98
+←[36mInleiding tot DOSBox-X:←[37m                                           
+.
+:SHELL_STARTUP_TEXT1_PC98
+Typ ←[32mHELP←[37m voor shell-opdrachten, en ←[32mINTRO←[37m voor een korte intro.    
+U kunt ook diverse taken uitvoeren via de ←[33mvervolgkeuzemenu's←[37m.     
+.
+:SHELL_STARTUP_EXAMPLE_PC98
+←[32mVoorbeeld←[37m: Selecteer ←[33mTrueType font←[37m of ←[33mOpenGL perfect←[37m output optie.
+.
+:SHELL_STARTUP_TEXT2_PC98
+Start de ←[33mConfiguration Tool←[37m met ←[31mhost+C←[37m. Hosttoets is ←[32mF11←[37m.         
+Start de ←[33mMapper Editor←[37m voor toetstoewijzingen met ←[31mhost+M←[37m.         
+Wissel tussen venstermodus en volledig scherm met ←[31mhost+F←[37m.         
+Om de CPU snelheid te wijzigen, gebruik ←[31mhost+Plus←[37m of ←[31mhost+Minus←[37m.  
+.
+:SHELL_STARTUP_INFO_PC98
+←[36mDOSBox-X draait nu in ←[32mJapanese NEC PC-98←[36m emulatiemodus.←[37m           
+.
+:SHELL_STARTUP_TEXT3_PC98
+←[32mDOSBox-X project ←[33mhttps://dosbox-x.com/     ←[36mComplete DOS-emulatie←[37m  
+←[32mDOSBox-X gids    ←[33mhttps://dosbox-x.com/wiki←[37m ←[36mDOS, Windows 3.x en 9x←[37m 
+←[32mDOSBox-X support ←[33mhttps://github.com/joncampbell123/dosbox-x/issues←[37m
+.
+:SHELL_STARTUP_HEAD1
+←[36mAan de slag met DOSBox-X:                                                   ←[37m
+.
+:SHELL_STARTUP_TEXT1
+Typ ←[32mHELP←[37m voor een lijst met shell-commando's, ←[32mINTRO←[37m voor een korte intro.   
+Diverse taken kunnen ook uitgevoerd worden via de ←[33mvervolgkeuzemenu's←[37m.       
+.
+:SHELL_STARTUP_EXAMPLE
+←[32mVoorbeeld←[37m: Probeer de optie ←[33mTrueType font←[37m of ←[33mOpenGL pixel-perfekt←[37m output.   
+.
+:SHELL_STARTUP_HEAD2
+←[36mHandige standaard sneltoetsen:                                              ←[37m
+.
+:SHELL_STARTUP_TEXT2
+- schakel tussen venstermodus en volledig scherm met de combinatie ←[31mF11 ←[37m+ ←[31mF←[37m ←[37m 
+- start ←[33mConfiguratie Tool←[37m met ←[31mF11 ←[37m+ ←[31mC←[37m←[37m en ←[33mMapper Editor←[37m met ←[31mF11 ←[37m+ ←[31mM←[37m  ←[37m        
+- verhoog of verlaag de emulatiesnelheid met ←[31mF11 ←[37m+ ←[31mPlus←[37m←[37m of ←[31mF11 ←[37m+ ←[31mMinus←[37m   ←[37m   
+.
+:SHELL_STARTUP_DOSV
+←[32mDOS/V-modus←[37m is nu actief. Probeer ook ←[32mTTF CJK-modus←[37m voor een algemene DOS-emulatie.
+.
+:SHELL_STARTUP_CGA
+Composiet CGA-modus is ondersteund. Druk ←[31mCtrl+F8←[37m om het AAN/UIT te zetten.  
+Gebruik ←[31mCtrl+Shift+[F7/F8]←[37m voor tint wijzigen; ←[31mCtrl+F7←[37m voor vroeg/laat CGA. 
+.
+:SHELL_STARTUP_CGA_MONO
+Gebruik ←[31mCtrl+F7←[37m om tussen groen, oranje en wit monochrome te kiezen,        
+en ←[31mCtrl+F8←[37m om de instellingen voor contrast/helderheid te wijzigen.         
+.
+:SHELL_STARTUP_HERC
+Gebruik ←[31mCtrl+F7←[37m om tussen groen, oranje en wit monochrome te kiezen, en druk
+op ←[31mCtrl+F8←[37m om horizontale menging te schakelen(alleen in grafische modus).  
+.
+:SHELL_STARTUP_HEAD3
+←[36mDOSBox-X project op het web:                                                ←[37m
+.
+:SHELL_STARTUP_TEXT3
+←[32mHomepagina         ←[37m: ←[33mhttps://dosbox-x.com/           ←[36mComplete DOS-emulaties←[37m 
+←[32mGidsen op Wiki     ←[37m: ←[33mhttps://dosbox-x.com/wiki←[32m       ←[36mDOS, Windows 3.x en 9x←[37m 
+←[32mProblemen          ←[37m: ←[33mhttps://github.com/joncampbell123/dosbox-x/issues      ←[37m
+.
+:SHELL_STARTUP_LAST
+VEEL PLEZIER MET DOSBox-X!
+.
+:SHELL_CMD_BREAK_HELP
+Stelt uitgebreide CTRL+C-controle in of uit.
+
+.
+:SHELL_CMD_BREAK_HELP_LONG
+BREAK [ON | OFF]
+
+Typ BREAK zonder parameter om de huidige BREAK-instelling weer te geven.
+
+.
+:SHELL_CMD_CHDIR_HELP
+Toont of wijzigt de huidige directory.
+
+.
+:SHELL_CMD_CHDIR_HELP_LONG
+CHDIR [schijf:][pad]
+CHDIR [..]
+CD [schijf:][pad]
+CD [..]
+
+  ..   Geeft aan dat u naar de bovenliggende map wilt gaan.
+
+Typ CD schijf: om de huidige map op het opgegeven station weer te geven.
+Typ CD zonder parameters om de huidige schijf en de huidige map weer te geven.
+
+.
+:SHELL_CMD_CLS_HELP
+Maakt het scherm leeg.
+
+.
+:SHELL_CMD_CLS_HELP_LONG
+CLS
+
+.
+:SHELL_CMD_DIR_HELP
+Toont een lijst met bestanden en submappen in een map.
+
+.
+:SHELL_CMD_DIR_HELP_LONG
+DIR [schijf:][pad][bestand] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|D]]
+
+  [schijf:][pad][bestandsnaam]
+              Specificeer schijf, map, en/of bestanden on te tonen.
+  /W          Toon in uitgebreid lijst formaat.
+  /B          Toon in minimaal formaat (geen kopinformatie of samenvatting).
+  /S          Toont bestanden in de opgegeven map en alle submappen.
+  /P          Pauzeert na elk scherm vol met informatie.
+  /A          Toont bestanden met gespecificeerde attributen.
+  attributen   D  Mappen                     R  Alleen-lezen bestanden
+               H  Verborgen bestanden        A  Klaar voor archivering
+               S  Systeem bestanden          -  Negatie
+  /O          Lijst op bestanden in gesorteerde volgorde.
+  sortering    N  Op name (alfabetisch)      S  Op grootte (kleinste eerst)
+               E  Op extensie (alfabetisch)  D  Op datum&tijd (vroegste eerst)
+               G  Groep mappen eerst         -  Voorvoegsel voor volgorde keren
+
+Opties kunnen in de omgevingsvariabele DIRCMD gezet worden. Overschrijf
+voorgedefinieerde opties door te beginnen met - (koppelteken)--bijvoorbeeld /-W
+
+.
+:SHELL_CMD_ECHO_HELP
+Toont berichten of schakelt commando-echo in of uit.
+
+.
+:SHELL_CMD_ECHO_HELP_LONG
+  ECHO [ON | OFF]
+  ECHO [bericht]
+
+Typ ECHO zonder parameters om de huidige echo-instelling weer te geven.
+
+.
+:SHELL_CMD_EXIT_HELP
+Beëindigd de commando-shell.
+
+.
+:SHELL_CMD_EXIT_HELP_LONG
+EXIT
+
+.
+:SHELL_CMD_HELP_HELP
+Toont DOSBox-X commando help.
+
+.
+:SHELL_CMD_HELP_HELP_LONG
+HELP [/A of /ALL]
+HELP [commando]
+
+   /A of /ALL   Toont alle ondersteunde interne commando's.
+   [commando]   Toont help voor het opgegeven commando.
+
+←[0mBijv. ←[37;1mHELP COPY←[0m of ←[37;1mCOPY /?←[0m toont help info voor het COPY commando.
+
+Tip: Externe commando's zoals ←[33;1mMOUNT←[0m en ←[33;1mIMGMOUNT←[0m worden niet getoond door HELP.
+     Deze externe commando's zijn te vinden op de Z:-schijf (bijv. MOUNT.COM).
+     Typ ←[33;1mcommando /?←[0m of ←[33;1mHELP commando←[0m voor help bij externe commando's.
+
+.
+:SHELL_CMD_LS_HELP
+Toont map inhoud.
+
+.
+:SHELL_CMD_LS_HELP_LONG
+LS [schijf:][map][bestandsnaam] [/A] [/L] [/P] [/Z]
+
+  /A     Toont ook verborgen en systeem bestanden.
+  /L     Toont één bestand per regel.
+  /P     Pauzeert na elk scherm vol met informatie.
+  /Z     Toont korte namen zelfs als LFN ondersteuning beschikbaar is.
+
+.
+:SHELL_CMD_MKDIR_HELP
+Maakt een map aan.
+
+.
+:SHELL_CMD_MKDIR_HELP_LONG
+MKDIR [schijf:][pad]
+MD [schijf:][pad]
+
+.
+:SHELL_CMD_RMDIR_HELP
+Verwijdert een map.
+
+.
+:SHELL_CMD_RMDIR_HELP_LONG
+RMDIR [schijf:][map]
+RD [schijf:][map]
+
+.
+:SHELL_CMD_SET_HELP
+Toont of wijzigt omgevingsvariabelen.
+
+.
+:SHELL_CMD_SET_HELP_LONG
+SET [variabele=[waarde]]
+
+   variabele    Specificeert de naam van de omgevingsvariabele.
+   waarde       Een reeks tekens die aan de variabele moet worden toegewezen.
+
+* Als er geen waarde is opgegeven, wordt de omgevingsvariabele verwijderd.
+
+Typ SET zonder parameters om de huidige omgevingsvariabelen weer te geven.
+
+.
+:SHELL_CMD_IF_HELP
+Voert voorwaardelijke verwerking uit in batchprogramma's.
+
+.
+:SHELL_CMD_IF_HELP_LONG
+IF [NOT] ERRORLEVEL nummer commando
+IF [NOT] waarde1==waarde2 commando
+IF [NOT] EXIST bestandsnaam commando
+
+  NOT               Commando wordt alleen uitgevoerd als de conditie
+                    ONJUIST is.
+
+
+  ERRORLEVEL nummer Commando wordt niet uitgevoerd, als de foutcode van het
+                    laatste commando gelijk of hoger is dan het opgegeven
+                    nummer.
+
+  waarde1==waarde2  Commando wordt alleen uitgevoerd als de beide waardes
+                    overeenkomen.
+
+  EXIST bestand     Commando wordt alleen uitgevoerd als het bestand bestaat.
+
+  commando          Commando om uit te voeren als aan de conditie is voldaan.
+                    Commando kan gevolgd worden door de ELSE instructie welke
+                    het commando daarachter zal uitvoeren als aan de conditie
+                    niet is voldaan.
+
+.
+:SHELL_CMD_GOTO_HELP
+Springt naar een gelabelde regel in een batchprogramma.
+
+.
+:SHELL_CMD_GOTO_HELP_LONG
+GOTO label
+
+   label   Een tekstreeks die in het batchprogramma als label wordt gebruikt.
+
+U typt zelf een label op een regel, beginnend met een dubbele punt.
+
+.
+:SHELL_CMD_HISTORY_HELP
+Toont of wist de lijst met opdrachtengeschiedenis.
+
+.
+:SHELL_CMD_HISTORY_HELP_LONG
+HISTORY [/C]
+
+  /C  Wist de lijst met opdrachtengeschiedenis.
+
+.
+:SHELL_CMD_SHIFT_HELP
+Wijzigt de positie van vervangbare parameters in een batchbestand.
+
+.
+:SHELL_CMD_SHIFT_HELP_LONG
+SHIFT
+
+.
+:SHELL_CMD_FOR_HELP
+Voert een opgegeven opdracht uit voor elk bestand in een set bestanden.
+
+.
+:SHELL_CMD_FOR_HELP_LONG
+FOR %%variabele IN (set) DO commando [commando-parameters]
+
+  %%variabele  Specificeert een vervangbare parameter.
+  (set)       Specificeert één of meer bestanden. Jokertekens toegelaten.
+  commando    Commando om uit te voeren voor elk bestand.
+  commando-parameters
+             Specificeert parameters of opties voor de opgegeven opdracht.
+
+Om in een batchprogramma te gebruiken, gebruik %%%%variabele ipv %%variabele.
+
+.
+:SHELL_CMD_LFNFOR_HELP
+Schakelt lange bestandsnamen in of uit bij het verwerken van FOR-jokertekens.
+
+.
+:SHELL_CMD_LFNFOR_HELP_LONG
+LFNFOR [ON | OFF]
+
+Typ LFNFOR zonder een parameter om de huidige LFNFOR-instelling weer te geven.
+
+Deze opdracht is alleen nuttig als LFN-ondersteuning is ingeschakeld.
+
+.
+:SHELL_CMD_TYPE_HELP
+Geeft de inhoud van een tekstbestand weer.
+
+.
+:SHELL_CMD_TYPE_HELP_LONG
+TYPE [schijf:][pad][bestandsnaam]
+
+.
+:SHELL_CMD_REM_HELP
+Voegt opmerkingen toe aan een batchbestand.
+
+.
+:SHELL_CMD_REM_HELP_LONG
+REM [opmerking]
+
+.
+:SHELL_CMD_RENAME_HELP
+Hernoemt een bestand/map of bestanden.
+
+.
+:SHELL_CMD_RENAME_HELP_LONG
+RENAME [schijf:][pad][mapnaam1 | bestand1] [map2 | bestand2]
+REN [schijf:][pad][mapnaam1 | bestand1] [map2 | bestand2]
+
+Tip: U kunt geen nieuwe schijf of pad voor uw bestemming opgeven.
+
+Jokertekens (* en ?) zijn ondersteund voor bestanden. Bijvoorbeeld, het
+volgende commando hernoemt alle tekst bestanden: ←[37;1mREN *.TXT *.BAK←[0m
+
+.
+:SHELL_CMD_DELETE_HELP
+Verwijdert een of meer bestanden.
+
+.
+:SHELL_CMD_DELETE_HELP_LONG
+DEL [/P] [/F] [/Q] namen
+ERASE [/P] [/F] [/Q] namen
+
+  namen         Specificeert een lijst met een of meer bestanden of mappen.
+                Jokertekens kunnen worden gebruikt om meerdere bestanden te
+                verwijderen. Als een map is opgegeven, worden alle bestanden
+                in de map verwijderd.
+  /P            Vraagt om bevestiging voor bestanden worden verwijderd.
+  /F            Forceer het verwijderen van alleen-lezen bestanden.
+  /Q            Stille modus, niet vragen bij jokertekens alles te verwijderen.
+
+.
+:SHELL_CMD_COPY_HELP
+Kopieert een of meer bestanden.
+
+.
+:SHELL_CMD_COPY_HELP_LONG
+COPY [/Y | /-Y] bron [+bron [+ ...]] [bestemming]
+
+  bron         Specificeert de bestand(en) die moeten worden gekopieerd.
+  bestemming   Specificeert de map en/of bestandsnaam voor de nieuwe bestanden.
+  /Y           Onderdrukt de vraag om te bevestigen dat u een bestaand
+               doelbestand wilt overschrijven.
+  /-Y          Vraagt om bevestiging dat u een bestaand doelbestand wilt
+               overschrijven.
+
+De optie /Y kan vooraf zijn ingesteld in de COPYCMD-omgevingsvariabele.
+Dit kan worden overschreven met /-Y op de opdrachtregel.
+
+Om bestanden te verketenen, geef één bestand als bestemming, maar meerdere
+bestanden als bron (met jokertekens of bestands1+bestand2+bestand3-formaat).
+
+.
+:SHELL_CMD_CALL_HELP
+Start een batchbestand vanuit een ander batchbestand.
+
+.
+:SHELL_CMD_CALL_HELP_LONG
+CALL [schijf:][pad]bestandsnaam [batch-parameters]
+
+batch-parameters   Specificeert alle opdrachtregelinformatie die vereist zijn
+                   voor het batchprogramma.
+
+.
+:SHELL_CMD_SUBST_HELP
+Wijst een virtuele schijfletter toe aan een map.
+
+.
+:SHELL_CMD_SUBST_HELP_LONG
+SUBST [schijf1: [schijf2:]map]
+SUBST schijf1: /D
+
+  schijf1:       Specificeert een schijf waaraan u een pad wilt toewijzen.
+  [schijf2:]path Specificeert de bron schijf of pad.
+  /D             Verwijdert een toegewezen schijf.
+
+Typ SUBST zonder parameters voor een lijst met gekoppelde lokale schijven.
+
+.
+:SHELL_CMD_LOADHIGH_HELP
+Laadt een programma in het bovenste geheugen (vereist XMS- en UMB-geheugen).
+
+.
+:SHELL_CMD_LOADHIGH_HELP_LONG
+LH              [schijf:][pad]bestandsnaam [parameters]
+LOADHIGH        [schijf:][pad]bestandsnaam [parameters]
+
+.
+:SHELL_CMD_CHOICE_HELP
+Wacht op een toetsdruk om een van meerdere keuzes te kiezen.
+
+.
+:SHELL_CMD_CHOICE_HELP_LONG
+CHOICE [/C:keuzes] [/N] [/S] /T[:]c,nn tekst
+
+  /C[:]keuzes  Specificeert toegestane keuzes. Standaard: yn.
+  /N           Geef de keuzes aan het einde van de prompt niet weer.
+  /S           Behandel keuze toetsen als hoofdletterongevoelig.
+  /T[:]c,nn    Standaardkeuze op c na nn seconden.
+  tekst        De tekst die als prompt moet worden weergegeven.
+
+ERRORLEVEL zal de offset zijn van de positie van de keuze die gemaakt is.
+
+.
+:SHELL_CMD_ATTRIB_HELP
+Toont of wijzigt bestandsattributen.
+
+.
+:SHELL_CMD_ATTRIB_HELP_LONG
+ATTRIB [+R | -R] [+A | -A] [+S | -S] [+H | -H] [schijf:][pad][bestand] [/S]
+
+  +   Zet een attribuut.
+  -   Wist een attribuut.
+  R   Alleen-lezen bestandsattribuut.
+  A   Archiefbestandsattribuut.
+  S   Systeembestandsattribuut.
+  H   Verborgen bestandsattribuut.
+  [schijf:][pad][bestandsnaam]
+      Specificeert bestand(en) of map die ATTRIB moet verwerken.
+  /S  Verwerkt bestanden in alle mappen in het opgegeven pad.
+
+.
+:SHELL_CMD_PATH_HELP
+Toont of stelt een zoekpad in voor uitvoerbare bestanden.
+
+.
+:SHELL_CMD_PATH_HELP_LONG
+PATH [[schijf:]pad[;...][;%PATH%]
+PATH ;
+
+Typ PATH ; om alle zoekpadinstellingen te wissen.
+Typ PATH zonder parameters om het huidige pad weer te geven.
+
+.
+:SHELL_CMD_PUSHD_HELP
+Slaat de huidige map op voor gebruik door het POPD-commando en verandert
+vervolgens naar de opgegeven map.
+
+.
+:SHELL_CMD_PUSHD_HELP_LONG
+PUSHD [pad]
+
+pad         Specificeert de directory om de huidige directory te maken.
+
+Typ PUSHD zonder parameters om de momenteel opgeslagen mappen weer te geven.
+
+.
+:SHELL_CMD_POPD_HELP
+Wijzigt naar de map die werd opgeslagen door het PUSHD-commando.
+
+.
+:SHELL_CMD_POPD_HELP_LONG
+POPD
+
+.
+:SHELL_CMD_VERIFY_HELP
+Test of bestanden correct naar een schijf worden geschreven.
+
+.
+:SHELL_CMD_VERIFY_HELP_LONG
+VERIFY [ON | OFF]
+
+Typ VERIFY zonder parameter om de huidige VERIFY-instelling weer te geven.
+
+.
+:SHELL_CMD_VER_HELP
+Toont of stelt DOSBox-X's gerapporteerde DOS-versie in.
+
+.
+:SHELL_CMD_VER_HELP_LONG
+VER [/R]
+VER [SET] nummer of VER SET [major minor]
+
+  /R                 Geef de Git-commit-versie en bouwdatum van DOSBox-X weer.
+  [SET] nummer       Gebruik het nummer als de gerapporteerde DOS-versie.
+  SET [major minor]  Zet de DOS-versie in hoofd- en ondergeschikt formaat.
+
+  ←[0mBijv. ←[37;1mVER 6.0←[0m of ←[37;1mVER 7.1←[0m Zet de DOS versie op 6.0 of 7.1.
+  Aan de andere kant stelt ←[37;1mVER SET 7 1←[0m de DOS-versie in op 7.01 in plaats van op 7.1.
+  Anderzijds stelt ←[37;1mVER SET 7 1←[0m de DOS-versie in op 7.01 in plaats van 7.1.
+
+Typ VER zonder parameters om de DOSBox-X en gerapporteerde DOS-versie te tonen.
+
+.
+:SHELL_CMD_VER_VER
+DOSBox-X versie %s (%s). Gerapporteerde DOS-versie %d.%02d.
+
+.
+:SHELL_CMD_VER_INVALID
+De opgegeven DOS-versie is niet correct.
+
+.
+:SHELL_CMD_VOL_HELP
+Geeft het schijfvolumelabel en het serienummer weer, indien aanwezig.
+
+.
+:SHELL_CMD_VOL_HELP_LONG
+VOL [schijf]
+
+.
+:SHELL_CMD_PROMPT_HELP
+Wijzigt de opdrachtprompt.
+
+.
+:SHELL_CMD_PROMPT_HELP_LONG
+PROMPT [tekst]
+  tekst   Specificeert een nieuwe opdrachtprompt.
+
+Een prompt kan bestaan uit normale tekens en de volgende speciale codes:
+  $A   & (Ampersand)
+  $B   | (pijp)
+  $C   ( (Linker haakje)
+  $D   Huidige datum
+  $E   Escape-code (ASCII-code 27)
+  $F   ) (Rechts haakje)
+  $G   > (groter dan teken)
+  $H   Backspace (wist vorig teken)
+  $L   < (kleiner dan teken)
+  $N   Huidige schijf
+  $P   Huidige schijf en pad
+  $Q   = (gelijkteken)
+  $S     (spatie)
+  $T   Huidige tijd
+  $V   DOS-versienummer
+  $_   Wagenretour en regelinvoer
+  $$   $ (dollarteken)
+
+.
+:SHELL_CMD_ALIAS_HELP
+Definieert of geeft aliassen weer.
+
+.
+:SHELL_CMD_ALIAS_HELP_LONG
+ALIAS [naam[=waarde] ... ]
+
+Typ ALIAS zonder parameters om de lijst met aliassen weer te geven in de vorm:
+`ALIAS NAAM = WAARDE'
+
+.
+:SHELL_CMD_ASSOC_HELP
+Toont of wijzigt bestandsextensieassociaties.
+
+.
+:SHELL_CMD_ASSOC_HELP_LONG
+ASSOC [.ext[=commando] ... ]
+
+Typ ASSOC zonder parameters om de huidige bestandsassociaties weer te geven.
+Bestandsextensies moeten beginnen met een punt (.); jokertekens (* en ?) mogen.
+
+.
+:SHELL_CMD_CHCP_HELP
+Toont of wijzigt de huidige DOS-codetabel.
+
+.
+:SHELL_CMD_CHCP_HELP_LONG
+CHCP [nnn [bestand]]
+CHCP nnn[:[taal]]
+
+  nnn      Specificeert een codetabelnummer.
+  bestand  Specificeert een codetabelbestand.
+  taal     Specificeert een corresponderende taal.
+
+Ondersteunde codetabellen voor het wijzigen van de TrueType-lettertypeuitvoer:
+
+437,737,775,808,850,852,853,855-869,872,874,1250-1258,3021
+
+Ook dubbele-byte codetabellen inclusief 932, 936, 949 en 950/951.
+
+Aangepaste codetabellen zijn mogelijk via codetabelbestanden.
+
+.
+:SHELL_CMD_CHCP_ACTIVE
+Actieve codetabel: %d
+
+.
+:SHELL_CMD_CHCP_MISSING
+ASCII-tekens niet gedefinieerd in TTF-lettertype: %d
+
+.
+:SHELL_CMD_CHCP_INVALID
+Ongeldig codetabelnummer - %s
+
+.
+:SHELL_CMD_COUNTRY_HELP
+Toont of wijzigt het huidige land.
+
+.
+:SHELL_CMD_COUNTRY_HELP_LONG
+COUNTRY [nnn] 
+
+  nnn   Specificeert een landcode.
+
+Landspecifieke informatie, zoals datum- en tijdnotaties, wordt beïnvloed.
+
+.
+:SHELL_CMD_CTTY_HELP
+Wijzigt het terminalapparaat dat wordt gebruikt om het systeem te besturen.
+
+.
+:SHELL_CMD_CTTY_HELP_LONG
+CTTY apparaat
+  apparaat      Het terminalapparaat om te gebruiken, zoals CON.
+
+.
+:SHELL_CMD_MORE_HELP
+Geeft de uitvoer één scherm per keer weer.
+
+.
+:SHELL_CMD_MORE_HELP_LONG
+MORE [schijf:][pad][bestandsnaam]
+MORE < [schijf:][pad]bestandsnaam
+commando-naam | MORE [schijf:][pad][bestandsnaam]
+
+.
+:SHELL_CMD_TRUENAME_HELP
+Vindt het volledige pad en naam voor een bestand.
+
+.
+:SHELL_CMD_TRUENAME_HELP_LONG
+TRUENAME [/H] bestand
+
+.
+:SHELL_CMD_DXCAPTURE_HELP
+Voert programma uit met video- of audio-opname.
+
+.
+:SHELL_CMD_DXCAPTURE_HELP_LONG
+DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [commando] [opties]
+
+Het zal video- of audio-opname starten, het programma uitvoeren en vervolgens
+automatisch stoppen met vastleggen wanneer het programma wordt afgesloten.
+
+.
+:SHELL_CMD_DEBUGBOX_HELP
+Voert programma uit en breekt in debugger op het beginpunt.
+
+.
+:SHELL_CMD_DEBUGBOX_HELP_LONG
+DEBUGBOX [commando] [opties]
+
+Typ DEBUGBOX zonder een parameter om de debugger te starten.
+
+.
+:SHELL_CMD_COMMAND_HELP
+Start de DOSBox-X-opdrachtshell.
+
+De volgende opties worden geaccepteerd:
+
+  /C    Voert de opgegeven opdracht uit en keert terug.
+  /K    Voert de opgegeven opdracht uit en blijft actief.
+  /P    Laadt een permanente kopie van de opdrachtshell.
+  /INIT Initialiseert de opdrachtshell.
+
+.
+:MENU:mapper_reset
+Virtuele machine resetten
+.
+:MENU:mapper_reboot
+Herstart gastsysteem
+.
+:MENU:mapper_loadmap
+Mapper-bestand laden...
+.
+:MENU:mapper_loadlanguage
+Taalbestand laden...
+.
+:MENU:mapper_quickrun
+Snelstartprogramma...
+.
+:MENU:mapper_shutdown
+Afsluiten van DOSBox-X
+.
+:MENU:mapper_capmouse
+Muis vastleggen
+.
+:MENU:mapper_fastedit
+Snel bewerken: kopiëren op selecteren en tekst plakken
+.
+:MENU:mapper_copyall
+Kopieer alle tekst op het DOS-scherm
+.
+:MENU:mapper_paste
+Plakken vanaf het klembord
+.
+:MENU:mapper_pasteend
+Stop met klembord plakken
+.
+:MENU:mapper_ejectpage
+Pagina-feed verzenden
+.
+:MENU:mapper_printtext
+DOS-tekstscherm afdrukken
+.
+:MENU:mapper_pause
+Emulatie pauzeren
+.
+:MENU:mapper_pauseints
+Pauze met interrupts ingeschakeld
+.
+:MENU:mapper_gui
+Configuratie tool
+.
+:MENU:mapper_mapper
+Mapper-editor
+.
+:MENU:mapper_fullscr
+Volledig scherm activeren
+.
+:MENU:mapper_resetsize
+Venstergrootte resetten
+.
+:MENU:mapper_dbcssbcs
+CJK: schakelen tussen DBCS/SBCS-modi
+.
+:MENU:mapper_autoboxdraw
+CJK: Auto-detect box-tekenkarakters
+.
+:MENU:mapper_incsize
+TTF-lettertype vergroten
+.
+:MENU:mapper_decsize
+TTF-lettertype verkleinen
+.
+:MENU:mapper_resetcolor
+TTF-kleurenschema resetten
+.
+:MENU:mapper_pwrbutton
+APM-aan/uit-knop
+.
+:MENU:mapper_togmenu
+Verberg/toon menubalk
+.
+:MENU:MainMenu
+Hoofd
+.
+:MENU:MainSendKey
+Speciale toets verzenden
+.
+:MENU:MainHostKey
+Selecteer hosttoets
+.
+:MENU:WheelToArrow
+Muiswielbewegingen
+.
+:MENU:SharedClipboard
+Gedeelde klembordfuncties
+.
+:MENU:CpuMenu
+CPU
+.
+:MENU:CpuCoreMenu
+CPU-kern
+.
+:MENU:CpuTypeMenu
+CPU-type:
+.
+:MENU:CpuSpeedMenu
+CPU-snelheid emuleren
+.
+:MENU:cpu88-4
+8088 XT 4.77MHz (~240 cycli)
+.
+:MENU:cpu286-8
+286 8MHz (~750 cycli)
+.
+:MENU:cpu286-12
+286 12MHz (~1510 cycli)
+.
+:MENU:cpu286-25
+286 25MHz (~3300 cycli)
+.
+:MENU:cpu386-25
+386DX 25MHz (~4595 cycli)
+.
+:MENU:cpu386-33
+386DX 33MHz (~6075 cycli)
+.
+:MENU:cpu486-33
+486DX 33MHz (~12010 cycli)
+.
+:MENU:cpu486-66
+486DX2 66MHz (~23880 cycli)
+.
+:MENU:cpu486-100
+486DX4 100MHz (~33445 cycli)
+.
+:MENU:cpu486-133
+486DX5 133MHz (~47810 cycli)
+.
+:MENU:cpu586-60
+Pentium 60MHz (~31545 cycli)
+.
+:MENU:cpu586-66
+Pentium 66MHz (~35620 cycli)
+.
+:MENU:cpu586-75
+Pentium 75MHz (~43500 cycli)
+.
+:MENU:cpu586-90
+Pentium 90MHz (~52000 cycli)
+.
+:MENU:cpu586-100
+Pentium 100MHz (~60000 cycli)
+.
+:MENU:cpu586-120
+Pentium 120MHz (~74000 cycli)
+.
+:MENU:cpu586-133
+Pentium 133MHz (~80000 cycli)
+.
+:MENU:cpu586-166
+Pentium 166MHz MMX (~97240 cycli)
+.
+:MENU:cpuak6-166
+AMD K6 166MHz (~110000 cycli)
+.
+:MENU:cpuak6-200
+AMD K6 200MHz (~130000 cycli)
+.
+:MENU:cpuak6-300
+AMD K6-2 300MHz (~193000 cycli)
+.
+:MENU:cpuath-600
+AMD Athlon 600MHz (~306000 cycli)
+.
+:MENU:cpu686-866
+Pentium III 866MHz EB (~407000 cycli)
+.
+:MENU:VideoMenu
+Video
+.
+:MENU:VideoFrameskipMenu
+Frameskip
+.
+:MENU:frameskip_0
+Uit
+.
+:MENU:frameskip_1
+1 beeld
+.
+:MENU:frameskip_2
+2 beelden
+.
+:MENU:frameskip_3
+3 beelden
+.
+:MENU:frameskip_4
+4 beelden
+.
+:MENU:frameskip_5
+5 beelden
+.
+:MENU:frameskip_6
+6 beelden
+.
+:MENU:frameskip_7
+7 beelden
+.
+:MENU:frameskip_8
+8 beelden
+.
+:MENU:frameskip_9
+9 beelden
+.
+:MENU:frameskip_10
+10 beelden
+.
+:MENU:VideoRatioMenu
+Beeldverhouding
+.
+:MENU:video_ratio_1_1
+1:1
+.
+:MENU:video_ratio_3_2
+3:2
+.
+:MENU:video_ratio_4_3
+4:3
+.
+:MENU:video_ratio_16_9
+16:9
+.
+:MENU:video_ratio_16_10
+16:10
+.
+:MENU:video_ratio_18_10
+18:10
+.
+:MENU:video_ratio_original
+Originele verhouding
+.
+:MENU:video_ratio_set
+Verhouding instellen
+.
+:MENU:VideoScalerMenu
+Schaler
+.
+:MENU:scaler_set_none
+Geen
+.
+:MENU:scaler_set_normal2x
+Normaal 2X
+.
+:MENU:scaler_set_normal3x
+Normaal 3X
+.
+:MENU:scaler_set_normal4x
+Normaal 4X
+.
+:MENU:scaler_set_normal5x
+Normaal 5X
+.
+:MENU:scaler_set_hardware_none
+Hardware Geen
+.
+:MENU:scaler_set_hardware2x
+Hardware 2X
+.
+:MENU:scaler_set_hardware3x
+Hardware 3X
+.
+:MENU:scaler_set_hardware4x
+Hardware 4X
+.
+:MENU:scaler_set_hardware5x
+Hardware 5X
+.
+:MENU:scaler_set_gray
+Grijstinten
+.
+:MENU:scaler_set_gray2x
+Grijstinten 2X
+.
+:MENU:scaler_set_tv2x
+TV 2X
+.
+:MENU:scaler_set_tv3x
+TV 3X
+.
+:MENU:scaler_set_scan2x
+Scan 2X
+.
+:MENU:scaler_set_scan3x
+Scan 3X
+.
+:MENU:scaler_set_rgb2x
+RGB 2X
+.
+:MENU:scaler_set_rgb3x
+RGB 3X
+.
+:MENU:scaler_set_advmame2x
+Geavanceerd MAME 2X
+.
+:MENU:scaler_set_advmame3x
+Geavanceerd MAME 3X
+.
+:MENU:scaler_set_hq2x
+HQ 2X
+.
+:MENU:scaler_set_hq3x
+HQ 3X
+.
+:MENU:scaler_set_advinterp2x
+Geavanceerde interpolatie 2X
+.
+:MENU:scaler_set_advinterp3x
+Geavanceerde interpolatie 3X
+.
+:MENU:scaler_set_2xsai
+2xSai
+.
+:MENU:scaler_set_super2xsai
+Super2xSai
+.
+:MENU:scaler_set_supereagle
+SuperEagle
+.
+:MENU:scaler_set_xbrz
+xBRZ
+.
+:MENU:scaler_set_xbrz_bilinear
+xBRZ Bilineair
+.
+:MENU:set_titletext
+Titelbalktekst instellen...
+.
+:MENU:set_transparency
+Transparantie instellen...
+.
+:MENU:refresh_rate
+Vernieuwingsfrequentie aanpassen...
+.
+:MENU:VideoOutputMenu
+Uitgang
+.
+:MENU:output_surface
+Surface
+.
+:MENU:output_direct3d
+Direct3D
+.
+:MENU:output_opengl
+OpenGL
+.
+:MENU:output_openglnb
+OpenGL dichtstbijzijnde
+.
+:MENU:output_openglpp
+OpenGL perfect
+.
+:MENU:output_ttf
+TrueType-lettertype
+.
+:MENU:doublescan
+Dubbelscan
+.
+:MENU:VideoVsyncMenu
+V-Sync
+.
+:MENU:vsync_on
+Aan
+.
+:MENU:vsync_force
+Forceren
+.
+:MENU:vsync_host
+Host
+.
+:MENU:vsync_off
+Uit
+.
+:MENU:vsync_set_syncrate
+Synchronisatie instellen
+.
+:MENU:VideoOverscanMenu
+Overscan
+.
+:MENU:overscan_0
+Uit
+.
+:MENU:overscan_1
+1
+.
+:MENU:overscan_2
+2
+.
+:MENU:overscan_3
+3
+.
+:MENU:overscan_4
+4
+.
+:MENU:overscan_5
+5
+.
+:MENU:overscan_6
+6
+.
+:MENU:overscan_7
+7
+.
+:MENU:overscan_8
+8
+.
+:MENU:overscan_9
+9
+.
+:MENU:overscan_10
+10
+.
+:MENU:VideoTextmodeMenu
+Tekstmodus
+.
+:MENU:clear_screen
+Wis het scherm
+.
+:MENU:vga_9widetext
+9-pixel brede lettertypen toestaan
+.
+:MENU:text_background
+Hoge intensiteit: achtergrondkleur
+.
+:MENU:text_blinking
+Hoge intensiteit: knipperende tekst
+.
+:MENU:line_80x25
+Scherm: 80 kolommen x 25 regels
+.
+:MENU:line_80x43
+Scherm: 80 kolommen x 43 regels
+.
+:MENU:line_80x50
+Scherm: 80 kolommen x 50 regels
+.
+:MENU:line_80x60
+Scherm: 80 kolommen x 60 regels
+.
+:MENU:line_132x25
+Scherm: 132 kolommen x 25 regels
+.
+:MENU:line_132x43
+Scherm: 132 kolommen x 43 regels
+.
+:MENU:line_132x50
+Scherm: 132 kolommen x 50 regels
+.
+:MENU:line_132x60
+Scherm: 132 kolommen x 60 regels
+.
+:MENU:VideoTTFMenu
+TTF opties
+.
+:MENU:ttf_showbold
+Vetgedrukte tekst weergeven in TTF
+.
+:MENU:ttf_showital
+Cursieve tekst weergeven in TTF
+.
+:MENU:ttf_showline
+Onderstreepte tekst weergeven in TTF
+.
+:MENU:ttf_showsout
+Doorgestreepte tekst weergeven in TTF
+.
+:MENU:ttf_wpno
+TTF-tekstverwerker: Geen
+.
+:MENU:ttf_wpwp
+TTF-tekstverwerker: WordPerfect
+.
+:MENU:ttf_wpws
+TTF-tekstverwerker: WordStar
+.
+:MENU:ttf_wpxy
+TTF-tekstverwerker: XyWrite
+.
+:MENU:ttf_wpfe
+TTF-tekstverwerker: FastEdit
+.
+:MENU:ttf_blinkc
+Toon TTF knipperende cursor
+.
+:MENU:ttf_right_left
+Tekst van rechts naar links weergeven
+.
+:MENU:ttf_printfont
+Gebruik het huidige TTF-lettertype voor afdrukken
+.
+:MENU:ttf_halfwidthkana
+CJK: Japanse Katakana op halve breedte toestaan
+.
+:MENU:ttf_extcharset
+CJK: uitgebreide Chinese tekenset inschakelen
+.
+:MENU:VideoPC98Menu
+PC-98 opties
+.
+:MENU:pc98_5mhz_gdc
+5MHz GDC-klok
+.
+:MENU:pc98_allow_200scanline
+Scanline-effect met 200 regels toestaan
+.
+:MENU:pc98_allow_4partitions
+Sta 4 weergavepartities toe in de grafische laag
+.
+:MENU:pc98_enable_egc
+Activeer EGC
+.
+:MENU:pc98_enable_grcg
+Activeer GRCG
+.
+:MENU:pc98_enable_analog
+Activeer analoge weergave
+.
+:MENU:pc98_enable_analog256
+Activeer analoog 256-kleurweergave
+.
+:MENU:pc98_enable_188user
+Activeer 188+ gebruiker CG cellen
+.
+:MENU:pc98_clear_text
+Tekstlaag wissen
+.
+:MENU:pc98_clear_graphics
+Grafische laag wissen
+.
+:MENU:Video3dfxMenu
+3dfx emulatie
+.
+:MENU:3dfx_voodoo
+Interne Voodoo kaart
+.
+:MENU:3dfx_glide
+Glide passthrough
+.
+:MENU:load_d3d_shader
+Selecteer Direct3D pixel shader...
+.
+:MENU:load_glsl_shader
+Selecteer OpenGL (GLSL) shader...
+.
+:MENU:load_ttf_font
+Selecteer TrueType lettertype (TTF/OTF)...
+.
+:MENU:SoundMenu
+Geluid
+.
+:MENU:mixer_swapstereo
+Stereo omwisselen
+.
+:MENU:mixer_mute
+Stom
+.
+:MENU:mixer_info
+Geluidsmixervolumes weergeven
+.
+:MENU:sb_info
+Sound Blaster-configuratie weergeven
+.
+:MENU:midi_info
+Configuratie van MIDI-apparaat weergeven
+.
+:MENU:DOSMenu
+DOS
+.
+:MENU:enable_a20gate
+Activeer A20 poort
+.
+:MENU:change_currentcd
+Huidige cd-image wijzigen...
+.
+:MENU:change_currentfd
+Huidige disketteimage wijzigen...
+.
+:MENU:DOSMouseMenu
+Muis emulatie
+.
+:MENU:dos_mouse_enable_int33
+Interne emulatie
+.
+:MENU:dos_mouse_y_axis_reverse
+Y-as omgekeerd
+.
+:MENU:dos_mouse_sensitivity
+Gevoeligheid
+.
+:MENU:DOSVerMenu
+Gerapporteerde DOS-versie
+.
+:MENU:dos_ver_330
+3.30
+.
+:MENU:dos_ver_500
+5.00
+.
+:MENU:dos_ver_622
+6.22
+.
+:MENU:dos_ver_710
+7.10
+.
+:MENU:dos_ver_edit
+Bewerk
+.
+:MENU:DOSLFNMenu
+Lange bestandsnaam ondersteuning
+.
+:MENU:dos_lfn_auto
+Automatisch voor DOS versie
+.
+:MENU:dos_lfn_enable
+Activeer lange bestandsnaam emulatie
+.
+:MENU:dos_lfn_disable
+Deactiveer lange bestandsnaam emulatie
+.
+:MENU:DOSPC98Menu
+PC-98 PIT-hoofdklok
+.
+:MENU:dos_pc98_pit_4mhz
+4MHz/8MHz PIT-hoofdklok
+.
+:MENU:dos_pc98_pit_5mhz
+5MHz/10MHz PIT-hoofdklok
+.
+:MENU:DOSEMSMenu
+Uitgebreid geheugen (EMS)
+.
+:MENU:dos_ems_true
+Activeer EMS emulatie
+.
+:MENU:dos_ems_board
+EMS-kaartemulatie
+.
+:MENU:dos_ems_emm386
+EMM386 emulatie
+.
+:MENU:dos_ems_false
+Deactiveer EMS emulatie
+.
+:MENU:DOSDiskRateMenu
+Begrens schijfoverdrachtsnelheid
+.
+:MENU:limit_hdd_rate
+Beperk harde schijf overdrachtsnelheid
+.
+:MENU:limit_floppy_rate
+Beperk diskette overdrachtsnelheid
+.
+:MENU:DOSWinMenu
+Hostsysteemtoepassingen
+.
+:MENU:dos_win_autorun
+Start om op de Windows-host te draaien
+.
+:MENU:dos_win_transpath
+Vertaal paden naar hostsysteempaden
+.
+:MENU:dos_win_wait
+Wacht indien mogelijk op het programma
+.
+:MENU:dos_win_quiet
+Stille modus - geen startberichten
+.
+:MENU:CaptureMenu
+Opname
+.
+:MENU:CaptureFormatMenu
+Opnameformaat
+.
+:MENU:capture_fmt_avi_zmbv
+AVI + ZMBV
+.
+:MENU:capture_fmt_mpegts_h264
+MPEG-TS + H.264
+.
+:MENU:saveoptionmenu
+Opslaan/laden opties
+.
+:MENU:saveslotmenu
+Selecteer opslagvak
+.
+:MENU:enable_autosave
+Activeer automatisch staat opslaan
+.
+:MENU:noremark_savestate
+Geen opmerking bij het opslaan van status
+.
+:MENU:force_loadstate
+Geen waarschuwing bij het laden van staat
+.
+:MENU:removestate
+Status in vak verwijderen
+.
+:MENU:refreshslot
+Weergavestatus vernieuwen
+.
+:MENU:lastautosaveslot
+Selecteer laatst automatisch opgeslagen vak
+.
+:MENU:usesavefile
+Gebruik opslagbestand in plaats van opslagvak
+.
+:MENU:autosavecfg
+Instellingen automatisch opslaan...
+.
+:MENU:browsesavefile
+Blader voor opgeslagen bestand...
+.
+:MENU:current_page
+Huidige pagina: 1/10
+.
+:MENU:prev_page
+Vorige pagina
+.
+:MENU:next_page
+Volgende pagina
+.
+:MENU:first_page
+Naar eerste pagina
+.
+:MENU:last_page
+Naar laatste pagina
+.
+:MENU:DriveMenu
+Schijf
+.
+:MENU:drive_mountauto
+Auto-koppelen Windows-schijf
+.
+:MENU:drive_mounthd
+Map koppelen als harde schijf
+.
+:MENU:drive_mountcd
+Map koppelen als cd-station
+.
+:MENU:drive_mountfd
+Map koppelen als diskettestation
+.
+:MENU:drive_mountfro
+Optie: koppel map alleen-lezen
+.
+:MENU:drive_mountarc
+Koppel een archiefbestand (ZIP/7Z)
+.
+:MENU:drive_mountimg
+Koppel een schijf- of cd-imagebestand
+.
+:MENU:drive_mountimgs
+Koppel meerdere schijf-/cd-images
+.
+:MENU:drive_mountiro
+Optie: koppel images alleen-lezen
+.
+:MENU:drive_unmount
+Schijf ontkoppelen
+.
+:MENU:drive_rescan
+Schijf opnieuw scannen
+.
+:MENU:drive_swap
+Verwissel diskette
+.
+:MENU:drive_info
+Schijf informatie
+.
+:MENU:drive_boot
+Opstarten vanaf schijf
+.
+:MENU:drive_bootimg
+Opstarten vanaf schijfimage
+.
+:MENU:drive_saveimg
+Opslaan op schijfimage
+.
+:MENU:HelpMenu
+Help
+.
+:MENU:help_intro
+Introductie
+.
+:MENU:help_homepage
+DOSBox-X startpagina
+.
+:MENU:help_wiki
+DOSBox-X Wiki-gids
+.
+:MENU:help_issue
+DOSBox-X-ondersteuning
+.
+:MENU:help_nic
+Lijst met netwerkinterfaces
+.
+:MENU:help_prt
+Lijst printerapparaten
+.
+:MENU:help_about
+Over DOSBox-X
+.
+:MENU:show_console
+Logboekconsole weergeven
+.
+:MENU:disable_logging
+Logboekuitvoer uitschakelen
+.
+:MENU:wait_on_error
+Console wacht op fout
+.
+:MENU:show_codetext
+Toon codeoverzicht
+.
+:MENU:show_logtext
+Logboektekst weergeven
+.
+:MENU:save_logas
+Logboek opslaan als...
+.
+:MENU:debugger_rundebug
+Debugger-optie: Start Debugger
+.
+:MENU:debugger_runnormal
+Debugger-optie: Start normaal
+.
+:MENU:debugger_runwatch
+Debugger-optie: Start toezicht
+.
+:MENU:HelpCommandMenu
+DOS commando's
+.
+:MENU:DebugMenu
+Debug
+.
+:MENU:HelpDebugMenu
+Logboek console
+.
+:MENU:debug_blankrefreshtest
+Vernieuwingstest (leeg scherm)
+.
+:MENU:debug_generatenmi
+NMI-interrupt genereren
+.
+:MENU:debug_int2fhook
+INT 2Fh oproepen afvangen
+.
+:MENU:debug_logint21
+Log INT 21h-oproepen
+.
+:MENU:debug_logfileio
+Log bestand I/O
+.
+:MENU:mapper_speedlock
+Snelheidsvergrendeling Aan/Uit
+.
+:MENU:mapper_speedlock2
+Turbo (snel vooruitspoelen)
+.
+:MENU:mapper_speednorm
+Normale snelheid
+.
+:MENU:mapper_speedup
+Snelheid omhoog
+.
+:MENU:mapper_slowdown
+Snelheid omlaag
+.
+:MENU:mapper_editcycles
+Cycli bewerken
+.
+:MENU:mapper_savestate
+Staat opslaan
+.
+:MENU:mapper_loadstate
+Staat laden
+.
+:MENU:mapper_showstate
+Toon staat informatie
+.
+:MENU:mapper_prevslot
+Selecteer vorige vak
+.
+:MENU:mapper_nextslot
+Selecteer volgende vak
+.
+:MENU:mapper_decfskip
+Frameskip verlagen
+.
+:MENU:mapper_incfskip
+Frameskip verhogen
+.
+:MENU:mapper_aspratio
+Aanpassen aan beeldverhouding
+.
+:MENU:mapper_fscaler
+Forceer schaler
+.
+:MENU:mapper_recwave
+Audio opnemen als WAV
+.
+:MENU:mapper_recmtwave
+Audio opnemen als multi-track AVI
+.
+:MENU:mapper_caprawmidi
+MIDI-uitgang opnemen
+.
+:MENU:mapper_caprawopl
+FM-uitgang (OPL) opnemen
+.
+:MENU:mapper_video
+Video opnemen als AVI
+.
+:MENU:mapper_scrshot
+Schermafdruk maken
+.
+:MENU:mapper_volup
+Volume verhogen
+.
+:MENU:mapper_voldown
+Volume verlagen
+.
+:MENU:mapper_recvolup
+Opnamevolume verhogen
+.
+:MENU:mapper_recvoldown
+Opnamevolume verlagen
+.
+:MENU:mapper_sendkey_mapper
+Speciale toets zenden
+.
+:MENU:mapper_cycledown
+Cycli verhogen
+.
+:MENU:mapper_cycleup
+Cycli verlagen
+.
+:MENU:mapper_normal
+Normale kern
+.
+:MENU:mapper_dynamic
+Dynamische kern (dynamic_x86)
+.
+:MENU:mapper_simple
+Simpele kern
+.
+:MENU:mapper_full
+Complete kern
+.
+:MENU:cputype_auto
+Auto
+.
+:MENU:cputype_8086
+8086
+.
+:MENU:cputype_8086_prefetch
+8086 met prefetch
+.
+:MENU:cputype_80186
+80186
+.
+:MENU:cputype_80186_prefetch
+80186 met prefetch
+.
+:MENU:cputype_286
+286
+.
+:MENU:cputype_286_prefetch
+286 met prefetch
+.
+:MENU:cputype_386
+386
+.
+:MENU:cputype_386_prefetch
+386 met prefetch
+.
+:MENU:cputype_486old
+486 (oud)
+.
+:MENU:cputype_486old_prefetch
+486 (oud) met prefetch
+.
+:MENU:cputype_486
+486
+.
+:MENU:cputype_486_prefetch
+486 met prefetch
+.
+:MENU:cputype_pentium
+Pentium
+.
+:MENU:cputype_pentium_mmx
+Pentium MMX
+.
+:MENU:cputype_ppro_slow
+Pentium Pro
+.
+:MENU:cputype_pentium_ii
+Pentium II
+.
+:MENU:cputype_pentium_iii
+Pentium III
+.
+:MENU:cputype_experimental
+Experimenteel
+.
+:MENU:debug_pageflip
+Page flip debug line
+.
+:MENU:debug_retracepoll
+Retrace poll debug line
+.
+:MENU:mapper_swapimg
+Diskette verwisselen
+.
+:MENU:mapper_swapcd
+Cd-station verwisselen
+.
+:MENU:mapper_debugger
+Start DOSBox-X Debugger
+.
+:MENU:mapper_rescanall
+Scan alle schijven opnieuw
+.
+:MENU:hostkey_mapper
+Mapper-gedefinieerd
+.
+:MENU:showdetails
+Toon FPS en RT snelheid in titlebalk
+.
+:MENU:restartinst
+Herstart DOSBox-X instantie
+.
+:MENU:restartconf
+Start DOSBox-X opnieuw met configuratiebestand...
+.
+:MENU:loadlang
+Taalbestand laden...
+.
+:MENU:auto_lock_mouse
+Muis automatisch vangen
+.
+:MENU:clipboard_right
+Via rechtermuisknop
+.
+:MENU:clipboard_middle
+Via middelste muisknop
+.
+:MENU:clipboard_arrows
+Via pijltjestoetsen (Home=start, End=einde)
+.
+:MENU:screen_to_clipboard
+Kopieer alle tekst op het DOS-scherm
+.
+:MENU:clipboard_device
+Activeer DOS-klembordapparaat toegang
+.
+:MENU:clipboard_dosapi
+Activeer DOS-klembord-API voor toepassingen
+.
+:MENU:clipboard_biospaste
+BIOS-functie gebruiken voor plakken op het klembord
+.
+:MENU:sendkey_winlogo
+Logotoets verzenden
+.
+:MENU:sendkey_winmenu
+Menutoets verzenden
+.
+:MENU:sendkey_alttab
+Verzend Alt+Tab
+.
+:MENU:sendkey_ctrlesc
+Verzend Ctrl+Esc
+.
+:MENU:sendkey_ctrlbreak
+Verzend Ctrl+Break
+.
+:MENU:sendkey_cad
+Verzend Ctrl+Alt+Del
+.
+:MENU:hostkey_ctrlalt
+Ctrl+Alt
+.
+:MENU:hostkey_ctrlshift
+Ctrl+Shift
+.
+:MENU:hostkey_altshift
+Alt+Shift
+.
+:MENU:sendkey_mapper_winlogo
+Mapper "Zend speciale toets": logotoets
+.
+:MENU:sendkey_mapper_winmenu
+Mapper "Zend speciale toets": menutoets
+.
+:MENU:sendkey_mapper_alttab
+Mapper "Zend speciale toets": Alt+Tab
+.
+:MENU:sendkey_mapper_ctrlesc
+Mapper "Zend speciale toets": Ctrl+Esc
+.
+:MENU:sendkey_mapper_ctrlbreak
+Mapper "Zend speciale toets": Ctrl+Break
+.
+:MENU:sendkey_mapper_cad
+Mapper "Zend speciale toets": Ctrl+Alt+Del
+.
+:MENU:wheel_none
+Niet converteren naar pijltjestoetsen
+.
+:MENU:wheel_updown
+Converteren naar omhoog/omlaag pijlen
+.
+:MENU:wheel_leftright
+Converteren naar links/rechts pijlen
+.
+:MENU:wheel_pageupdown
+Converteren naar PgUp/PgDn toetsen
+.
+:MENU:wheel_ctrlupdown
+Converteren naar Ctrl+omhoog/omlaag toetsen
+.
+:MENU:wheel_ctrlleftright
+Converteren naar Ctrl+links/rechts toetsen
+.
+:MENU:wheel_ctrlpageupdown
+Converteren naar Ctrl+PgUp/PgDn pijlen
+.
+:MENU:wheel_ctrlwz
+Converteren naar Ctrl+W/Z toetsen
+.
+:MENU:wheel_guest
+Activeer ook voor gastsysteem
+.
+:MENU:doublebuf
+Dubbel bufferen (volledig scherm)
+.
+:MENU:alwaysontop
+Altijd bovenop
+.
+:MENU:highdpienable
+Hoge DPI inschakelen
+.
+:MENU:sync_host_datetime
+Host datum/tijd synchroniseren
+.
+:MENU:shell_config_commands
+Configuratie-opties als opdrachten
+.
+:MENU:quick_reboot
+Activeer snel opstarten
+.
+:MENU:make_diskimage
+Lege schijfimage maken...
+.
+:MENU:list_drivenum
+Toon gekoppelde schijfnummers
+.
+:MENU:list_ideinfo
+Toon IDE schijf of CD status
+.
+:MENU:pc98_use_uskb
+Gebruik VS toetsenbordindeling
+.
+:MAPPER:caprawopl
+FM/OPL-uitgang opnemen
+.
+:MAPPER:copyall
+Kopieer naar klembord
+.
+:MAPPER:cycauto
+Auto-cycli aan/uit
+.
+:MAPPER:debugger
+Toon debugger
+.
+:MAPPER:decsize
+TTF-grootte verkleinen
+.
+:MAPPER:dynamic
+CPU: dynamische kern
+.
+:MAPPER:fastedit
+Snelle bewerkingsmodus
+.
+:MAPPER:full
+CPU: complete kern
+.
+:MAPPER:incsize
+TTF-grootte vergroten
+.
+:MAPPER:loadmap
+Laad mapper bestand
+.
+:MAPPER:nextslot
+Volgende opslaan vak
+.
+:MAPPER:normal
+CPU: normale kern
+.
+:MAPPER:paste
+Plakken vanaf klembord
+.
+:MAPPER:pasteend
+Stop klembord plakken
+.
+:MAPPER:pauseints
+Pauze met interrupt
+.
+:MAPPER:prevslot
+Vorige opslaan vak
+.
+:MAPPER:printtext
+Tekstscherm afdrukken
+.
+:MAPPER:quickrun
+Snelstartprogramma
+.
+:MAPPER:reboot
+Herstart DOS-systeem
+.
+:MAPPER:rescanall
+Schijven opnieuw scannen
+.
+:MAPPER:reset
+Reset DOSBox-X
+.
+:MAPPER:resetcolor
+Kleurenschema resetten
+.
+:MAPPER:showstate
+Toon staat info
+.
+:MAPPER:simple
+CPU: simpele kern
+.
+:MAPPER:togmenu
+Menubalk aan/uit
+.
