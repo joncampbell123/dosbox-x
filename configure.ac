@@ -1165,9 +1165,10 @@ AC_ARG_ENABLE(avcodec,AC_HELP_STRING([--enable-avcodec],[Enable FFMPEG avcodec s
 if test x$enable_ffmpeg = xyes; then
     if test x$have_ffmpeg = xyes; then
         if test x$have_avcodec_h = xyes; then
-            CFLAGS="$CFLAGS "`pkg-config libavcodec --cflags`
-            CPPFLAGS="$CPPFLAGS "`pkg-config libavcodec --cflags`
-            LIBS="$LIBS -lavcodec -lavformat -lavutil -lswscale "`pkg-config libavcodec --libs`
+            PKGS="libavcodec libavformat libavutil libswscale libswresample"
+            CFLAGS="$CFLAGS "`pkg-config $PKGS --cflags`
+            CPPFLAGS="$CPPFLAGS "`pkg-config $PKGS --cflags`
+            LIBS=`pkg-config $PKGS --libs`" $LIBS"
             AC_MSG_RESULT(yes)
             AC_DEFINE(C_AVCODEC,1)
         fi

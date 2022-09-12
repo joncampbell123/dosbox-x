@@ -64,13 +64,6 @@ extern "C" {
 #  error Your libavcodec is too old. Update FFMPEG.
 # endif
 
-/* Some code needs hacks for FFMPEG 4 */
-# if LIBAVCODEC_VERSION_MAJOR == 58
-#  define FFMPEG4_ONLY(x) x
-# else
-#  define FFMPEG4_ONLY(x)
-# endif
-
 #endif
 
 bool skip_encoding_unchanged_frames = false, show_recorded_filename = true;
@@ -162,11 +155,10 @@ void ffmpeg_closeall() {
 }
 
 void ffmpeg_audio_frame_send() {
-	AVPacket pkt;
+	AVPacket* pkt = av_packet_alloc();
 	int r;
 
-	memset(&pkt,0,sizeof(pkt));
-	av_init_packet(&pkt);
+	if (!pkt) E_Exit("Error: Unable to alloc packet");
 
 	ffmpeg_aud_frame->key_frame = 1;
 	ffmpeg_aud_frame->pts = (int64_t)ffmpeg_audio_sample_counter;
@@ -174,11 +166,11 @@ void ffmpeg_audio_frame_send() {
 	if (r < 0 && r != AVERROR(EAGAIN))
 		LOG_MSG("WARNING: avcodec_send_frame() audio failed to encode (err=%d)",r);
 
-	while ((r=avcodec_receive_packet(ffmpeg_aud_ctx,&pkt)) >= 0) {
-		pkt.stream_index = ffmpeg_aud_stream->index;
-		av_packet_rescale_ts(&pkt,ffmpeg_aud_ctx->time_base,ffmpeg_aud_stream->time_base);
+	while ((r=avcodec_receive_packet(ffmpeg_aud_ctx,pkt)) >= 0) {
+		pkt->stream_index = ffmpeg_aud_stream->index;
+		av_packet_rescale_ts(pkt,ffmpeg_aud_ctx->time_base,ffmpeg_aud_stream->time_base);
 
-		if (av_interleaved_write_frame(ffmpeg_fmt_ctx,&pkt) < 0)
+		if (av_interleaved_write_frame(ffmpeg_fmt_ctx,pkt) < 0)
 			LOG_MSG("WARNING: av_interleaved_write_frame failed");
 	}
 
@@ -186,7 +178,7 @@ void ffmpeg_audio_frame_send() {
 		LOG_MSG("WARNING: avcodec_receive_packet() audio failed to encode (err=%d)",r);
 
 	ffmpeg_audio_sample_counter += (uint64_t)ffmpeg_aud_frame->nb_samples;
-	av_packet_unref(&pkt);
+	av_packet_free(&pkt);
 }
 
 void ffmpeg_take_audio(int16_t *raw,unsigned int samples) {
@@ -253,36 +245,35 @@ void ffmpeg_flush_video() {
 	if (ffmpeg_fmt_ctx != NULL) {
 		if (ffmpeg_vid_frame != NULL) {
 			signed long long saved_dts;
-			AVPacket pkt;
+			AVPacket* pkt = av_packet_alloc();
 			int r;
 
-			memset(&pkt,0,sizeof(pkt));
-			av_init_packet(&pkt);
+			if (!pkt) E_Exit("Error: Unable to alloc packet");
 
 			r=avcodec_send_frame(ffmpeg_vid_ctx,NULL);
 			if (r < 0 && r != AVERROR(EAGAIN))
 				LOG_MSG("WARNING: avcodec_send_frame() video flush failed to encode (err=%d)",r);
 
-			while ((r=avcodec_receive_packet(ffmpeg_vid_ctx,&pkt)) >= 0) {
-				saved_dts = pkt.dts;
-				pkt.stream_index = ffmpeg_vid_stream->index;
-				av_packet_rescale_ts(&pkt,ffmpeg_vid_ctx->time_base,ffmpeg_vid_stream->time_base);
-				pkt.pts += (int64_t)ffmpeg_video_frame_time_offset;
-				pkt.dts += (int64_t)ffmpeg_video_frame_time_offset;
+			while ((r=avcodec_receive_packet(ffmpeg_vid_ctx,pkt)) >= 0) {
+				saved_dts = pkt->dts;
+				pkt->stream_index = ffmpeg_vid_stream->index;
+				av_packet_rescale_ts(pkt,ffmpeg_vid_ctx->time_base,ffmpeg_vid_stream->time_base);
+				pkt->pts += (int64_t)ffmpeg_video_frame_time_offset;
+				pkt->dts += (int64_t)ffmpeg_video_frame_time_offset;
 
-				if (av_interleaved_write_frame(ffmpeg_fmt_ctx,&pkt) < 0)
+				if (av_interleaved_write_frame(ffmpeg_fmt_ctx,pkt) < 0)
 					LOG_MSG("WARNING: av_interleaved_write_frame failed");
 
-				pkt.pts = (int64_t)saved_dts + (int64_t)1;
-				pkt.dts = (int64_t)saved_dts + (int64_t)1;
-				av_packet_rescale_ts(&pkt,ffmpeg_vid_ctx->time_base,ffmpeg_vid_stream->time_base);
-				ffmpeg_video_frame_last_time = (uint64_t)pkt.pts;
+				pkt->pts = (int64_t)saved_dts + (int64_t)1;
+				pkt->dts = (int64_t)saved_dts + (int64_t)1;
+				av_packet_rescale_ts(pkt,ffmpeg_vid_ctx->time_base,ffmpeg_vid_stream->time_base);
+				ffmpeg_video_frame_last_time = (uint64_t)pkt->pts;
 			}
 
 			if (r != AVERROR(EAGAIN) && r != AVERROR_EOF)
 				LOG_MSG("WARNING: avcodec_receive_packet() video flush failed to encode (err=%d)",r);
 
-			av_packet_unref(&pkt);
+			av_packet_free(&pkt);
 		}
 	}
 }
@@ -291,8 +282,10 @@ void ffmpeg_flush_audio() {
 	/* audio */
 	if (ffmpeg_fmt_ctx != NULL) {
 		if (ffmpeg_aud_frame != NULL) {
-			AVPacket pkt;
+			AVPacket* pkt = av_packet_alloc();
 			int r;
+
+			if (!pkt) E_Exit("Error: Unable to alloc packet");
 
 			if (ffmpeg_aud_write != 0) {
 				ffmpeg_aud_frame->nb_samples = (int)ffmpeg_aud_write;
@@ -302,25 +295,22 @@ void ffmpeg_flush_audio() {
 			ffmpeg_aud_write = 0;
 			ffmpeg_aud_frame->nb_samples = 0;
 
-			memset(&pkt,0,sizeof(pkt));
-			av_init_packet(&pkt);
-
 			r=avcodec_send_frame(ffmpeg_aud_ctx,NULL);
 			if (r < 0 && r != AVERROR(EAGAIN))
 				LOG_MSG("WARNING: avcodec_send_frame() audio flush failed to encode (err=%d)",r);
 
-			while ((r=avcodec_receive_packet(ffmpeg_aud_ctx,&pkt)) >= 0) {
-				pkt.stream_index = ffmpeg_aud_stream->index;
-				av_packet_rescale_ts(&pkt,ffmpeg_aud_ctx->time_base,ffmpeg_aud_stream->time_base);
+			while ((r=avcodec_receive_packet(ffmpeg_aud_ctx,pkt)) >= 0) {
+				pkt->stream_index = ffmpeg_aud_stream->index;
+				av_packet_rescale_ts(pkt,ffmpeg_aud_ctx->time_base,ffmpeg_aud_stream->time_base);
 
-				if (av_interleaved_write_frame(ffmpeg_fmt_ctx,&pkt) < 0)
+				if (av_interleaved_write_frame(ffmpeg_fmt_ctx,pkt) < 0)
 					LOG_MSG("WARNING: av_interleaved_write_frame failed");
 			}
 
 			if (r != AVERROR(EAGAIN) && r != AVERROR_EOF)
 				LOG_MSG("WARNING: avcodec_receive_packet() audio flush failed to encode (err=%d)",r);
 
-			av_packet_unref(&pkt);
+			av_packet_free(&pkt);
 		}
 	}
 }
@@ -445,7 +435,6 @@ void ffmpeg_reopen_video(double fps,const int bpp) {
 	// FIXME: This is copypasta! Consolidate!
 	ffmpeg_vid_ctx = avcodec_alloc_context3(ffmpeg_vid_codec);
 	if (ffmpeg_vid_ctx == NULL) E_Exit("Error: Unable to reopen vid codec");
-	FFMPEG4_ONLY(ffmpeg_vid_stream->codec = ffmpeg_vid_ctx); // NTS: This is required in FFMPEG 4.3 to make the encoder work
 	ffmpeg_vid_ctx->bit_rate = 25000000; // TODO: make configuration option!
 	ffmpeg_vid_ctx->keyint_min = 15; // TODO: make configuration option!
 	ffmpeg_vid_ctx->time_base.num = 1000000;
@@ -480,6 +469,10 @@ void ffmpeg_reopen_video(double fps,const int bpp) {
 		}
 
 		av_dict_free(&opts);
+	}
+
+	if (avcodec_parameters_from_context(ffmpeg_vid_stream->codecpar, ffmpeg_vid_ctx) < 0) {
+		E_Exit("failed to copy video codec parameters");
 	}
 
 	ffmpeg_vid_frame = av_frame_alloc();
@@ -1163,10 +1156,8 @@ skip_shot:
 				LOG_MSG("failed to open audio stream");
 				goto skip_video;
 			}
-			FFMPEG4_ONLY(avcodec_free_context(&ffmpeg_vid_stream->codec)); // NTS: FFMPEG 4.3 allocates a codec context for us, which we don't want, so we free it to avoid a memory leak
 			ffmpeg_vid_ctx = avcodec_alloc_context3(ffmpeg_vid_codec);
 			if (ffmpeg_vid_ctx == NULL) E_Exit("Error: Unable to open vid context");
-			FFMPEG4_ONLY(ffmpeg_vid_stream->codec = ffmpeg_vid_ctx); // NTS: This is required in FFMPEG 4.3 to make the encoder work
 			ffmpeg_vid_ctx->bit_rate = 25000000; // TODO: make configuration option!
 			ffmpeg_vid_ctx->keyint_min = 15; // TODO: make configuration option!
 			ffmpeg_vid_ctx->time_base.num = 1000000;
@@ -1207,21 +1198,29 @@ skip_shot:
 			ffmpeg_vid_stream->time_base.num = (int)1000000;
 			ffmpeg_vid_stream->time_base.den = (int)(1000000 * fps);
 
+			if (avcodec_parameters_from_context(ffmpeg_vid_stream->codecpar, ffmpeg_vid_ctx) < 0) {
+				LOG_MSG("failed to copy video codec parameters");
+				goto skip_video;
+			}
+
 			ffmpeg_aud_stream = avformat_new_stream(ffmpeg_fmt_ctx,ffmpeg_aud_codec);
 			if (ffmpeg_aud_stream == NULL) {
 				LOG_MSG("failed to open audio stream");
 				goto skip_video;
 			}
-			FFMPEG4_ONLY(avcodec_free_context(&ffmpeg_aud_stream->codec)); // NTS: FFMPEG 4.3 allocates a codec context for us, which we don't want, so we free it to avoid a memory leak
 			ffmpeg_aud_ctx = avcodec_alloc_context3(ffmpeg_aud_codec);
 			if (ffmpeg_aud_ctx == NULL) E_Exit("Error: Unable to open aud context");
-			FFMPEG4_ONLY(ffmpeg_aud_stream->codec = ffmpeg_aud_ctx); // NTS: This is required in FFMPEG 4.3 to make the encoder work
 			ffmpeg_aud_ctx->sample_rate = (int)capture.video.audiorate;
-			ffmpeg_aud_ctx->channels = 2;
 			ffmpeg_aud_ctx->flags = 0; // do not use global headers
 			ffmpeg_aud_ctx->bit_rate = 320000;
 			ffmpeg_aud_ctx->profile = FF_PROFILE_AAC_LOW;
+
+			#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(59,24,100)
+			ffmpeg_aud_ctx->channels = 2;
 			ffmpeg_aud_ctx->channel_layout = AV_CH_LAYOUT_STEREO;
+			#else
+			ffmpeg_aud_ctx->ch_layout = AV_CHANNEL_LAYOUT_STEREO;
+			#endif
 
 			if (ffmpeg_aud_codec->sample_fmts != NULL)
 				ffmpeg_aud_ctx->sample_fmt = (ffmpeg_aud_codec->sample_fmts)[0];
@@ -1235,6 +1234,11 @@ skip_shot:
 
 			ffmpeg_aud_stream->time_base.num = 1;
 			ffmpeg_aud_stream->time_base.den = ffmpeg_aud_ctx->sample_rate;
+
+			if (avcodec_parameters_from_context(ffmpeg_aud_stream->codecpar, ffmpeg_aud_ctx) < 0) {
+				LOG_MSG("failed to copy audio codec parameters");
+				goto skip_video;
+			}
 
 			if (avformat_write_header(ffmpeg_fmt_ctx,NULL) < 0) {
 				LOG_MSG("Failed to write header");
@@ -1252,9 +1256,14 @@ skip_shot:
 			if (ffmpeg_aud_frame == NULL || ffmpeg_vid_frame == NULL || ffmpeg_vidrgb_frame == NULL)
 				goto skip_video;
 
+			#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(59,24,100)
 			ffmpeg_aud_frame->channels = 2;
-			ffmpeg_aud_frame->sample_rate = (int)capture.video.audiorate;
 			ffmpeg_aud_frame->channel_layout = AV_CH_LAYOUT_STEREO;
+			#else
+			ffmpeg_aud_frame->ch_layout = AV_CHANNEL_LAYOUT_STEREO;
+			#endif
+
+			ffmpeg_aud_frame->sample_rate = (int)capture.video.audiorate;
 			ffmpeg_aud_frame->nb_samples = ffmpeg_aud_ctx->frame_size;
 			ffmpeg_aud_frame->format = ffmpeg_aud_ctx->sample_fmt;
 			if (av_frame_get_buffer(ffmpeg_aud_frame,16) < 0) {
@@ -1383,12 +1392,10 @@ skip_shot:
 #if (C_AVCODEC)
 		else if (export_ffmpeg && ffmpeg_fmt_ctx != NULL) {
 			signed long long saved_dts;
-			AVPacket pkt;
+			AVPacket* pkt = av_packet_alloc();
 			int r;
 
-			// video
-			memset(&pkt,0,sizeof(pkt));
-			av_init_packet(&pkt);
+			if (!pkt) E_Exit("Error: Unable to alloc packet");
 			{
 				unsigned char *srcline,*dstline;
 				Bitu x;
@@ -1472,26 +1479,26 @@ skip_shot:
 				if (r < 0 && r != AVERROR(EAGAIN))
 					LOG_MSG("WARNING: avcodec_send_frame() video failed to encode (err=%d)",r);
 
-				while ((r=avcodec_receive_packet(ffmpeg_vid_ctx,&pkt)) >= 0) {
-					saved_dts = pkt.dts;
-					pkt.stream_index = ffmpeg_vid_stream->index;
-					av_packet_rescale_ts(&pkt,ffmpeg_vid_ctx->time_base,ffmpeg_vid_stream->time_base);
-					pkt.pts += (int64_t)ffmpeg_video_frame_time_offset;
-					pkt.dts += (int64_t)ffmpeg_video_frame_time_offset;
+				while ((r=avcodec_receive_packet(ffmpeg_vid_ctx,pkt)) >= 0) {
+					saved_dts = pkt->dts;
+					pkt->stream_index = ffmpeg_vid_stream->index;
+					av_packet_rescale_ts(pkt,ffmpeg_vid_ctx->time_base,ffmpeg_vid_stream->time_base);
+					pkt->pts += (int64_t)ffmpeg_video_frame_time_offset;
+					pkt->dts += (int64_t)ffmpeg_video_frame_time_offset;
 
-					if (av_interleaved_write_frame(ffmpeg_fmt_ctx,&pkt) < 0)
+					if (av_interleaved_write_frame(ffmpeg_fmt_ctx,pkt) < 0)
 						LOG_MSG("WARNING: av_interleaved_write_frame failed");
 
-					pkt.pts = (int64_t)saved_dts + (int64_t)1;
-					pkt.dts = (int64_t)saved_dts + (int64_t)1;
-					av_packet_rescale_ts(&pkt,ffmpeg_vid_ctx->time_base,ffmpeg_vid_stream->time_base);
-					ffmpeg_video_frame_last_time = (uint64_t)pkt.pts;
+					pkt->pts = (int64_t)saved_dts + (int64_t)1;
+					pkt->dts = (int64_t)saved_dts + (int64_t)1;
+					av_packet_rescale_ts(pkt,ffmpeg_vid_ctx->time_base,ffmpeg_vid_stream->time_base);
+					ffmpeg_video_frame_last_time = (uint64_t)pkt->pts;
 				}
 
 				if (r != AVERROR(EAGAIN))
 					LOG_MSG("WARNING: avcodec_receive_packet() video failed to encode (err=%d)",r);
 			}
-			av_packet_unref(&pkt);
+			av_packet_free(&pkt);
 			capture.video.frames++;
 
 			if ( capture.video.audioused ) {
