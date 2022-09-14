@@ -4005,9 +4005,9 @@ static void CreateLayout(void) {
 #define XO 16
 #define YO 0
 
-    AddKeyButtonEvent(PX(XO + 1), PY(YO + 0), BU(1), BV(1), "SCL", "scrolllock", KBD_scrolllock);
     AddKeyButtonEvent(PX(XO + 2), PY(YO + 0), BU(1), BV(1), "PAU", "pause", KBD_pause);
     AddKeyButtonEvent(PX(XO + 0), PY(YO + 0), BU(1), BV(1), "Prn", "printscreen", KBD_printscreen);
+    AddKeyButtonEvent(PX(XO + 1), PY(YO + 0), BU(1), BV(1), "Scr", "scrolllock", KBD_scrolllock);
 
     AddKeyButtonEvent(PX(XO + 2), PY(YO + 2), BU(1), BV(1), "PUP", "pageup", KBD_pageup);
     AddKeyButtonEvent(PX(XO + 0), PY(YO + 2), BU(1), BV(1), "Ins", "insert", KBD_insert);
