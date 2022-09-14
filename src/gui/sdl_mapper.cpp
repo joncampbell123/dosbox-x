@@ -3926,7 +3926,7 @@ static void CreateLayout(void) {
 #undef YO
 #define XO 0
 #define YO 1
-    AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "ESC", "esc", KBD_esc);
+    AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "Esc", "esc", KBD_esc);
 
     for(i = 0; i < 12; i++)
     {
@@ -3950,21 +3950,21 @@ static void CreateLayout(void) {
 #define XO 0
 #define YO 3
 
-    AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "TAB", "tab", KBD_tab);
+    AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "Tab", "tab", KBD_tab);
 
     for(i = 0; i < 12; i++)
     {
         AddKeyButtonEvent(PX(XO + 2 + i), PY(YO), BU(1), BV(1), combo_2[i].title, combo_2[i].entry, combo_2[i].key);
     }
 
-    AddKeyButtonEvent(PX(XO + 14), PY(YO), BU(2), BV(2), "ENTER", "enter", KBD_enter);
+    AddKeyButtonEvent(PX(XO + 14), PY(YO), BU(2), BV(2), "Enter", "enter", KBD_enter);
 
 #undef XO
 #undef YO
 #define XO 0
 #define YO 4
 
-    caps_lock_event = AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "CAPS", "capslock", KBD_capslock);
+    caps_lock_event = AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "Caps", "capslock", KBD_capslock);
 
     for(i = 0; i < 12; i++)
     {
@@ -3977,45 +3977,45 @@ static void CreateLayout(void) {
 #define XO 0
 #define YO 5
 
-    AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "SHIFT", "lshift", KBD_leftshift);
+    AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "Shift", "lshift", KBD_leftshift);
 
     for(i = 0; i < 11; i++)
     {
         AddKeyButtonEvent(PX(XO + 2 + i), PY(YO), BU(1), BV(1), combo_4[i].title, combo_4[i].entry, combo_4[i].key);
     }
 
-    AddKeyButtonEvent(PX(XO + 13), PY(YO), BU(3), BV(1), "SHIFT", "rshift", KBD_rightshift);
+    AddKeyButtonEvent(PX(XO + 13), PY(YO), BU(3), BV(1), "Shift", "rshift", KBD_rightshift);
 
 #undef XO
 #undef YO
 #define XO 0
 #define YO 6
 
-    AddKeyButtonEvent(PX(XO + 00), PY(YO), BU(2), BV(1), "CTRL", "lctrl", KBD_leftctrl);
-    AddKeyButtonEvent(PX(XO + 02), PY(YO), BU(1), BV(1), "WIN", "lwindows", KBD_lwindows);
-    AddKeyButtonEvent(PX(XO + 03), PY(YO), BU(1), BV(1), "ALT", "lalt", KBD_leftalt);
-    AddKeyButtonEvent(PX(XO + 04), PY(YO), BU(7), BV(1), "SPACE", "space", KBD_space);
-    AddKeyButtonEvent(PX(XO + 11), PY(YO), BU(1), BV(1), "ALT", "ralt", KBD_rightalt);
-    AddKeyButtonEvent(PX(XO + 12), PY(YO), BU(1), BV(1), "WIN", "rwindows", KBD_rwindows);
-    AddKeyButtonEvent(PX(XO + 13), PY(YO), BU(1), BV(1), "MNU", "rwinmenu", KBD_rwinmenu);
-    AddKeyButtonEvent(PX(XO + 14), PY(YO), BU(2), BV(1), "CTRL", "rctrl", KBD_rightctrl);
+    AddKeyButtonEvent(PX(XO + 00), PY(YO), BU(2), BV(1), "Ctrl", "lctrl", KBD_leftctrl);
+    AddKeyButtonEvent(PX(XO + 02), PY(YO), BU(1), BV(1), "Win", "lwindows", KBD_lwindows);
+    AddKeyButtonEvent(PX(XO + 03), PY(YO), BU(1), BV(1), "Alt", "lalt", KBD_leftalt);
+    AddKeyButtonEvent(PX(XO + 04), PY(YO), BU(7), BV(1), "Space", "space", KBD_space);
+    AddKeyButtonEvent(PX(XO + 11), PY(YO), BU(1), BV(1), "Alt", "ralt", KBD_rightalt);
+    AddKeyButtonEvent(PX(XO + 12), PY(YO), BU(1), BV(1), "Win", "rwindows", KBD_rwindows);
+    AddKeyButtonEvent(PX(XO + 13), PY(YO), BU(1), BV(1), "App", "rwinmenu", KBD_rwinmenu);
+    AddKeyButtonEvent(PX(XO + 14), PY(YO), BU(2), BV(1), "Ctrl", "rctrl", KBD_rightctrl);
 
 #undef XO
 #undef YO
 #define XO 16
 #define YO 0
 
-    AddKeyButtonEvent(PX(XO + 0), PY(YO + 0), BU(1), BV(1), "PRT", "printscreen", KBD_printscreen);
     AddKeyButtonEvent(PX(XO + 1), PY(YO + 0), BU(1), BV(1), "SCL", "scrolllock", KBD_scrolllock);
     AddKeyButtonEvent(PX(XO + 2), PY(YO + 0), BU(1), BV(1), "PAU", "pause", KBD_pause);
+    AddKeyButtonEvent(PX(XO + 0), PY(YO + 0), BU(1), BV(1), "Prn", "printscreen", KBD_printscreen);
 
-    AddKeyButtonEvent(PX(XO + 0), PY(YO + 2), BU(1), BV(1), "INS", "insert", KBD_insert);
-    AddKeyButtonEvent(PX(XO + 1), PY(YO + 2), BU(1), BV(1), "HOM", "home", KBD_home);
     AddKeyButtonEvent(PX(XO + 2), PY(YO + 2), BU(1), BV(1), "PUP", "pageup", KBD_pageup);
+    AddKeyButtonEvent(PX(XO + 0), PY(YO + 2), BU(1), BV(1), "Ins", "insert", KBD_insert);
+    AddKeyButtonEvent(PX(XO + 1), PY(YO + 2), BU(1), BV(1), "Hom", "home", KBD_home);
 
-    AddKeyButtonEvent(PX(XO + 0), PY(YO + 3), BU(1), BV(1), "DEL", "delete", KBD_delete);
-    AddKeyButtonEvent(PX(XO + 1), PY(YO + 3), BU(1), BV(1), "END", "end", KBD_end);
     AddKeyButtonEvent(PX(XO + 2), PY(YO + 3), BU(1), BV(1), "PDN", "pagedown", KBD_pagedown);
+    AddKeyButtonEvent(PX(XO + 0), PY(YO + 3), BU(1), BV(1), "Del", "delete", KBD_delete);
+    AddKeyButtonEvent(PX(XO + 1), PY(YO + 3), BU(1), BV(1), "End", "end", KBD_end);
 
     AddKeyButtonEvent(PX(XO + 1), PY(YO + 5), BU(1), BV(1), "\x18", "up", KBD_up);
     AddKeyButtonEvent(PX(XO + 0), PY(YO + 6), BU(1), BV(1), "\x1B", "left", KBD_left);
@@ -4027,10 +4027,10 @@ static void CreateLayout(void) {
 #define XO 19
 #define YO 2
 
-    AddKeyButtonEvent(PX(XO + 3) - 3, PY(YO - 1), BU(1) - 1, BV(1), "NEQ", "kp_equals", KBD_kpequals);
+    AddKeyButtonEvent(PX(XO + 3) - 3, PY(YO - 1), BU(1) - 1, BV(1), "Neq", "kp_equals", KBD_kpequals);
 
     num_lock_event =
-    AddKeyButtonEvent(PX(XO + 0) - 0, PY(YO + 0), BU(1) - 1, BV(1), "NUM", "numlock", KBD_numlock);
+    AddKeyButtonEvent(PX(XO + 0) - 0, PY(YO + 0), BU(1) - 1, BV(1), "Num", "numlock", KBD_numlock);
     AddKeyButtonEvent(PX(XO + 1) - 1, PY(YO + 0), BU(1) - 1, BV(1), "/", "kp_divide", KBD_kpdivide);
     AddKeyButtonEvent(PX(XO + 2) - 2, PY(YO + 0), BU(1) - 1, BV(1), "*", "kp_multiply", KBD_kpmultiply);
     AddKeyButtonEvent(PX(XO + 3) - 3, PY(YO + 0), BU(1) - 1, BV(1), "-", "kp_minus", KBD_kpminus);
@@ -4048,7 +4048,7 @@ static void CreateLayout(void) {
     AddKeyButtonEvent(PX(XO + 1) - 1, PY(YO + 3), BU(1) - 1, BV(1), "2", "kp_2", KBD_kp2);
     AddKeyButtonEvent(PX(XO + 2) - 2, PY(YO + 3), BU(1) - 1, BV(1), "3", "kp_3", KBD_kp3);
 
-    AddKeyButtonEvent(PX(XO + 3) - 3, PY(YO + 3), BU(1) - 1, BV(2), "ENT", "kp_enter", KBD_kpenter);
+    AddKeyButtonEvent(PX(XO + 3) - 3, PY(YO + 3), BU(1) - 1, BV(2), "Ent", "kp_enter", KBD_kpenter);
 
     if(IS_PC98_ARCH) // TODO
     {
