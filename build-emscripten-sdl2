@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# make sure you use ". ./emsdk_set_env.sh"
+# make sure you use ". ./emsdk_env.sh"
 
 # I'm sick and tired of all the churn the three versions of autoconf
 # are causing in this repo. Stop committing the configure scripts
@@ -36,4 +36,7 @@ chmod +x configure
     --enable-sdl2 --with-sdl-prefix=$EMSDK/upstream/emscripten/system --disable-screenshots \
     --disable-opengl --disable-mt32 --enable-emscripten --enable-force-menu-sdldraw --disable-x11 \
     --disable-avcodec --disable-libslirp --disable-libfluidsynth --disable-freetype "$@"
+
 make -j6 || exit 1
+
+# the resulting files are src/dosbox-x (JS) and src/dosbox-x.wasm
