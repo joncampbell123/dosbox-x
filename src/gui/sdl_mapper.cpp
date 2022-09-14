@@ -289,6 +289,12 @@ static KeyBlock combo_4[11] =
     {".>","period",KBD_period},                     {"/?","slash",KBD_slash},
 };
 
+static const char* LabelMod1 = "Mod1";
+static const char* LabelMod2 = "Mod2";
+static const char* LabelMod3 = "Mod3";
+static const char* LabelHost = "Host";
+static const char* LabelHold = "Hold";
+
 static bool initjoy=true;
 static int cpage=1, maxpage=1;
 
@@ -2813,18 +2819,18 @@ public:
         switch (type) {
         case BC_Mod1:
             checked=(mapper.abind->mods&BMOD_Mod1)>0;
-            str = checked && mod_event[1] != NULL ? mod_event[1]->GetBindMenuText() : "mod1";
-            strcpy(text, str.size()>8?"mod1":str.c_str());
+            str = checked && mod_event[1] != NULL ? mod_event[1]->GetBindMenuText() : LabelMod1;
+            strcpy(text, str.size()>8?LabelMod1:str.c_str());
             break;
         case BC_Mod2:
             checked=(mapper.abind->mods&BMOD_Mod2)>0;
-            str = checked && mod_event[2] != NULL ? mod_event[2]->GetBindMenuText() : "mod2";
-            strcpy(text, str.size()>8?"mod2":str.c_str());
+            str = checked && mod_event[2] != NULL ? mod_event[2]->GetBindMenuText() : LabelMod2;
+            strcpy(text, str.size()>8?LabelMod2:str.c_str());
             break;
         case BC_Mod3:
             checked=(mapper.abind->mods&BMOD_Mod3)>0;
-            str = checked && mod_event[3] != NULL ? mod_event[3]->GetBindMenuText() : "mod3";
-            strcpy(text, str.size()>8?"mod3":str.c_str());
+            str = checked && mod_event[3] != NULL ? mod_event[3]->GetBindMenuText() : LabelMod3;
+            strcpy(text, str.size()>8?LabelMod3:str.c_str());
             break;
         case BC_Host:
             checked=(mapper.abind->mods&BMOD_Host)>0;
@@ -4196,10 +4202,10 @@ static void CreateLayout(void) {
 
 #pragma region Modifiers & Bindings
 
-    AddModButton(PX(0) + CX, PY(17), BU(2), BV(1), "Mod1", 1);
-    AddModButton(PX(2) + CX, PY(17), BU(2), BV(1), "Mod2", 2);
-    AddModButton(PX(4) + CX, PY(17), BU(2), BV(1), "Mod3", 3);
-    AddModButton(PX(6) + CX, PY(17), BU(3), BV(1), "Host", 4);
+    AddModButton(PX(0) + CX, PY(17), BU(2), BV(1), LabelMod1, 1);
+    AddModButton(PX(2) + CX, PY(17), BU(2), BV(1), LabelMod2, 2);
+    AddModButton(PX(4) + CX, PY(17), BU(2), BV(1), LabelMod3, 3);
+    AddModButton(PX(6) + CX, PY(17), BU(3), BV(1), LabelHost, 4);
 
     bind_but.event_title = new CCaptionButton(PX(0) + CX, PY(18), 0, 0, false);
     bind_but.bind_title  = new CCaptionButton(PX(0) + CX, PY(19), 0, 0, false);
@@ -4208,11 +4214,11 @@ static void CreateLayout(void) {
     bind_but.del  = new CBindButton(PX(3) + CX, PY(20), BU(3), BV(1), MSG_Get("DEL"), BB_Del);
     bind_but.next = new CBindButton(PX(6) + CX, PY(20), BU(3), BV(1), MSG_Get("NEXT"), BB_Next);
 
-    bind_but.mod1 = new CCheckButton(PX(0) + CX, PY(21) + CY, BU(3), BV(1), "mod1", BC_Mod1);
-    bind_but.mod2 = new CCheckButton(PX(0) + CX, PY(22) + CY, BU(3), BV(1), "mod2", BC_Mod2);
-    bind_but.mod3 = new CCheckButton(PX(0) + CX, PY(23) + CY, BU(3), BV(1), "mod3", BC_Mod3);
-    bind_but.host = new CCheckButton(PX(3) + CX, PY(21) + CY, BU(3), BV(1), "host", BC_Host);
-    bind_but.hold = new CCheckButton(PX(3) + CX, PY(22) + CY, BU(3), BV(1), "hold", BC_Hold);
+    bind_but.mod1 = new CCheckButton(PX(0) + CX, PY(21) + CY, BU(3), BV(1), LabelMod1, BC_Mod1);
+    bind_but.mod2 = new CCheckButton(PX(0) + CX, PY(22) + CY, BU(3), BV(1), LabelMod2, BC_Mod2);
+    bind_but.mod3 = new CCheckButton(PX(0) + CX, PY(23) + CY, BU(3), BV(1), LabelMod3, BC_Mod3);
+    bind_but.host = new CCheckButton(PX(3) + CX, PY(21) + CY, BU(3), BV(1), LabelHost, BC_Host);
+    bind_but.hold = new CCheckButton(PX(3) + CX, PY(22) + CY, BU(3), BV(1), LabelHold, BC_Hold);
 
 #pragma endregion
 
