@@ -11,6 +11,7 @@ Unreleased
   - Fix building not finding fluidsynth (Jookia)
   - Fix some NetBSD build issues
     (Jookia, with patch from Nia)
+  - Fix minor graphical issues in mapper GUI (aybe)
 
 2022.09.0 (0.84.3)
   - Updated FFMPEG video capture to use newer API,
