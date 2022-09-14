@@ -4186,17 +4186,17 @@ static void CreateLayout(void) {
 #define XO 0
 #define YO 11
 
-    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 0), BU(3), BV(1), "HANKAKU", "jp_hankaku", KBD_jp_hankaku);
-    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 1), BU(3), BV(1), "MUHENKAN","jp_muhenkan",KBD_jp_muhenkan);
-    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 2), BU(3), BV(1), "HENKAN",  "jp_henkan",  KBD_jp_henkan);
-    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 3), BU(3), BV(1), "HIRAGANA","jp_hiragana",KBD_jp_hiragana);
-    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 4), BU(3), BV(1), "YEN",     "jp_yen",     KBD_jp_yen);
+    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 0), BU(3), BV(1), "Hankaku", "jp_hankaku", KBD_jp_hankaku);
+    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 1), BU(3), BV(1), "Muhenkan","jp_muhenkan",KBD_jp_muhenkan);
+    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 2), BU(3), BV(1), "Henkan",  "jp_henkan",  KBD_jp_henkan);
+    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 3), BU(3), BV(1), "Hiragana","jp_hiragana",KBD_jp_hiragana);
+    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 4), BU(3), BV(1), "Yen",     "jp_yen",     KBD_jp_yen);
     AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 0), BU(1), BV(1), "\\",      "jp_bckslash",KBD_jp_backslash);
     AddKeyButtonEvent(PX(XO + 5) + CX, PY(YO + 0), BU(1), BV(1), ":*",      "colon",      KBD_colon);
     AddKeyButtonEvent(PX(XO + 6) + CX, PY(YO + 0), BU(1), BV(1), "^`",      "caret",      KBD_caret);
     AddKeyButtonEvent(PX(XO + 7) + CX, PY(YO + 0), BU(1), BV(1), "@~",      "atsign",     KBD_atsign);
-    AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 3), BU(3), BV(1), "HANCHA",  "kor_hancha", KBD_kor_hancha);
-    AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 4), BU(3), BV(1), "HANYONG", "kor_hanyong",KBD_kor_hanyong);
+    AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 3), BU(3), BV(1), "Hancha",  "kor_hancha", KBD_kor_hancha);
+    AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 4), BU(3), BV(1), "Hanyong", "kor_hanyong",KBD_kor_hanyong);
 
 #pragma endregion
 
