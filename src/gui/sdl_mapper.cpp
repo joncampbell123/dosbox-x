@@ -1361,6 +1361,36 @@ public:
         key = _key;
     }
     virtual ~CKeyBind() {}
+
+    std::string CamelCase(const char* input)
+    {
+        auto text = std::string(input);
+
+        auto caps = true;
+
+        for(auto& c : text)
+        {
+            if(std::isalpha(c))
+            {
+                if(caps)
+                {
+                    c = std::toupper(c);
+                    caps = false;
+                }
+                else
+                {
+                    c = std::tolower(c);
+                }
+            }
+            else if(c == ' ')
+            {
+                caps = true;
+            }
+        }
+
+        return text;
+    }
+
     virtual void BindName(char * buf) override {
 #if defined(C_SDL2)
         sprintf(buf,"Key %s",SDL_GetScancodeName(key));
@@ -1377,7 +1407,8 @@ public:
         else if (!strcmp(r, "left shift")) r = "Left Shift";
         else if (!strcmp(r, "right shift")) r = "Right Shift";
 		//LOG_MSG("Key %s", r);
-		sprintf(buf,"Key %s",r);
+		const auto str = CamelCase(r);
+		sprintf(buf,"%s key",str.c_str());
 #endif
     }
     virtual void ConfigName(char * buf) override {
@@ -3729,7 +3760,7 @@ static void SetActiveBind(CBind * _bind) {
     if (_bind) {
         bind_but.bind_title->Enable(true);
         char buf[256];_bind->BindName(buf);
-        bind_but.bind_title->Change("BIND:%s",buf);
+        bind_but.bind_title->Change("INPUT: %s",buf);
         bind_but.bind_title->SetColor(CLR_GREEN);
         bind_but.del->Enable(true);
         bind_but.next->Enable(true);
@@ -3754,7 +3785,7 @@ static void SetActiveEvent(CEvent * event) {
     mapper.aevent=event;
     mapper.redraw=true;
     mapper.addbind=false;
-    bind_but.event_title->Change("EVENT:%s",event ? event->GetName(): "none");
+    bind_but.event_title->Change("EVENT: %s",event ? event->GetName(): "none");
     if (!event) {
         change_action_text(MSG_Get("SELECT_EVENT"),CLR_WHITE);
         bind_but.add->Enable(false);
