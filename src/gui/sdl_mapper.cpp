@@ -4009,13 +4009,13 @@ static void CreateLayout(void) {
     AddKeyButtonEvent(PX(XO + 1), PY(YO + 0), BU(1), BV(1), "Scr", "scrolllock", KBD_scrolllock);
     AddKeyButtonEvent(PX(XO + 2), PY(YO + 0), BU(1), BV(1), "Brk", "pause", KBD_pause);
 
-    AddKeyButtonEvent(PX(XO + 2), PY(YO + 2), BU(1), BV(1), "PUP", "pageup", KBD_pageup);
     AddKeyButtonEvent(PX(XO + 0), PY(YO + 2), BU(1), BV(1), "Ins", "insert", KBD_insert);
     AddKeyButtonEvent(PX(XO + 1), PY(YO + 2), BU(1), BV(1), "Hom", "home", KBD_home);
+    AddKeyButtonEvent(PX(XO + 2), PY(YO + 2), BU(1), BV(1), "Pg\x18", "pageup", KBD_pageup);
 
-    AddKeyButtonEvent(PX(XO + 2), PY(YO + 3), BU(1), BV(1), "PDN", "pagedown", KBD_pagedown);
     AddKeyButtonEvent(PX(XO + 0), PY(YO + 3), BU(1), BV(1), "Del", "delete", KBD_delete);
     AddKeyButtonEvent(PX(XO + 1), PY(YO + 3), BU(1), BV(1), "End", "end", KBD_end);
+    AddKeyButtonEvent(PX(XO + 2), PY(YO + 3), BU(1), BV(1), "Pg\x19", "pagedown", KBD_pagedown);
 
     AddKeyButtonEvent(PX(XO + 1), PY(YO + 5), BU(1), BV(1), "\x18", "up", KBD_up);
     AddKeyButtonEvent(PX(XO + 0), PY(YO + 6), BU(1), BV(1), "\x1B", "left", KBD_left);
