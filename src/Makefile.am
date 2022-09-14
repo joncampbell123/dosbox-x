@@ -2,7 +2,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include "-DRESDIR=\"$(resdir)\""
 
 if EMSCRIPTEN
 # fix https://github.com/emscripten-core/emscripten/issues/10061
-dosbox_x_LDFLAGS += -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=['$$ERRNO_CODES']
+dosbox_x_LDFLAGS = -s DEFAULT_LIBRARY_FUNCS_TO_INCLUDE=['$$ERRNO_CODES']
 endif
 
 SUBDIRS = cpu debug dos fpu gui hardware libs ints misc shell builtin platform aviwriter output
