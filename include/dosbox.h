@@ -20,6 +20,10 @@
 #ifndef DOSBOX_DOSBOX_H
 #define DOSBOX_DOSBOX_H
 
+#if !defined (WIN32)
+/* for mkdir_p, needed by emscripten */
+#include <sys/stat.h>
+#endif
 #include "config.h"
 
 #if defined(C_ICONV)
