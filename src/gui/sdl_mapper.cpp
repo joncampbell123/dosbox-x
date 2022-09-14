@@ -4101,10 +4101,10 @@ static void CreateLayout(void) {
 #undef YO
 #define XO 0
 #define YO 9
-    new CTextButton(PX(XO + 0) + CX * 2, PY(YO - 1), BU(3), BV(1), "Mouse");
-    AddMouseButtonEvent(PX(XO + 0) + CX * 2, PY(YO), BU(1), BV(1), "L", "left", 0);
-    AddMouseButtonEvent(PX(XO + 1) + CX * 2, PY(YO), BU(1), BV(1), "M", "middle", 2);
-    AddMouseButtonEvent(PX(XO + 2) + CX * 2, PY(YO), BU(1), BV(1), "R", "right", 1);
+    new CTextButton(PX(XO + 0) + CX * 1, PY(YO - 1), BU(3), BV(1), "Mouse");
+    AddMouseButtonEvent(PX(XO + 0) + CX * 1, PY(YO), BU(1), BV(1), "L", "left", 0);
+    AddMouseButtonEvent(PX(XO + 1) + CX * 1, PY(YO), BU(1), BV(1), "M", "middle", 2);
+    AddMouseButtonEvent(PX(XO + 2) + CX * 1, PY(YO), BU(1), BV(1), "R", "right", 1);
 
 #pragma endregion
 
