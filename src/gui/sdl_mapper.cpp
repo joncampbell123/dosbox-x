@@ -2509,7 +2509,7 @@ public:
         page=1;
         SetCanClick(true);
     }
-    virtual void Draw(void) {
+    virtual void Draw(bool background, bool border) {
         uint8_t bg;
 
         if (!enabled) return;
@@ -2526,10 +2526,27 @@ public:
 #endif
         for (Bitu lines=0;lines<dy;lines++)  {
             if (lines==0 || lines==(dy-1)) {
-                for (Bitu cols=0;cols<dx;cols++) *(point+cols)=color;
+                if (border)
+                {
+                    for (Bitu cols=0;cols<dx;cols++)
+                    {
+                        *(point+cols)=color;
+                    }
+                }
             } else {
-                for (Bitu cols=1;cols<(dx-1);cols++) *(point+cols)=bg;
-                *point=color;*(point+dx-1)=color;
+                if (background)
+                {
+                    for (Bitu cols=1;cols<(dx-1);cols++)
+                    {
+                        *(point+cols)=bg;
+                    }
+                }
+
+                if (border)
+                {
+                    *point=color;
+                    *(point+dx-1)=color;
+                }
             }
 #if defined(C_SDL2)
             point+=mapper.draw_surface->w;
@@ -2537,6 +2554,9 @@ public:
             point+=mapper.surface->pitch;
 #endif
         }
+    }
+    virtual void Draw(void) {
+        Draw(true, true);
     }
     virtual bool OnTop(Bitu _x,Bitu _y) {
         return ( enabled && (_x>=x) && (_x<x+dx) && (_y>=y) && (_y<y+dy));
@@ -2659,6 +2679,8 @@ public:
 #else
             point+=mapper.surface->pitch;
 #endif
+            // draw the borders a second time to prevent the text from overwriting them
+            CButton::Draw(false, true);
         }
     }
     void SetText(const char *_text) {
