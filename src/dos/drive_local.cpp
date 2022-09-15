@@ -30,6 +30,9 @@
 #define _DARWIN_C_SOURCE
 #endif
 #ifndef WIN32
+#if defined(EMSCRIPTEN)
+#include <fcntl.h>
+#endif
 #include <utime.h>
 #include <sys/file.h>
 #else

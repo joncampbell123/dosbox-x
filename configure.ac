@@ -34,7 +34,7 @@ int main(){
   return 0;
 }
 EOF
-if $CXX $CPPFLAGS $CXXFLAGS -Werror -o conftest.o conftest.c++ [$1] > /dev/null 2>&1
+if $CXX $CPPFLAGS $CXXFLAGS -Werror -c -o conftest.o conftest.c++ [$1] > /dev/null 2>&1
 then
   AC_MSG_RESULT([yes])
   CXXFLAGS="${CXXFLAGS} [$1]"
@@ -63,6 +63,7 @@ AC_PROG_CPP
 AC_PROG_CXX
 AC_PROG_OBJCXX
 AC_PROG_INSTALL
+AC_CHECK_TOOL(AR, ar)
 AC_PROG_RANLIB
 AC_PREFIX_DEFAULT([/usr/local])
 
