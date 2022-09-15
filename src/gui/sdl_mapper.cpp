@@ -289,6 +289,12 @@ static KeyBlock combo_4[11] =
     {".>","period",KBD_period},                     {"/?","slash",KBD_slash},
 };
 
+static const char* LabelMod1 = "Mod1";
+static const char* LabelMod2 = "Mod2";
+static const char* LabelMod3 = "Mod3";
+static const char* LabelHost = "Host";
+static const char* LabelHold = "Hold";
+
 static bool initjoy=true;
 static int cpage=1, maxpage=1;
 
@@ -1355,6 +1361,36 @@ public:
         key = _key;
     }
     virtual ~CKeyBind() {}
+
+    std::string CamelCase(const char* input)
+    {
+        auto text = std::string(input);
+
+        auto caps = true;
+
+        for(auto& c : text)
+        {
+            if(std::isalpha(c))
+            {
+                if(caps)
+                {
+                    c = std::toupper(c);
+                    caps = false;
+                }
+                else
+                {
+                    c = std::tolower(c);
+                }
+            }
+            else if(c == ' ')
+            {
+                caps = true;
+            }
+        }
+
+        return text;
+    }
+
     virtual void BindName(char * buf) override {
 #if defined(C_SDL2)
         sprintf(buf,"Key %s",SDL_GetScancodeName(key));
@@ -1371,7 +1407,8 @@ public:
         else if (!strcmp(r, "left shift")) r = "Left Shift";
         else if (!strcmp(r, "right shift")) r = "Right Shift";
 		//LOG_MSG("Key %s", r);
-		sprintf(buf,"Key %s",r);
+		const auto str = CamelCase(r);
+		sprintf(buf,"%s key",str.c_str());
 #endif
     }
     virtual void ConfigName(char * buf) override {
@@ -2472,7 +2509,7 @@ public:
         page=1;
         SetCanClick(true);
     }
-    virtual void Draw(void) {
+    virtual void Draw(bool background, bool border) {
         uint8_t bg;
 
         if (!enabled) return;
@@ -2489,10 +2526,27 @@ public:
 #endif
         for (Bitu lines=0;lines<dy;lines++)  {
             if (lines==0 || lines==(dy-1)) {
-                for (Bitu cols=0;cols<dx;cols++) *(point+cols)=color;
+                if (border)
+                {
+                    for (Bitu cols=0;cols<dx;cols++)
+                    {
+                        *(point+cols)=color;
+                    }
+                }
             } else {
-                for (Bitu cols=1;cols<(dx-1);cols++) *(point+cols)=bg;
-                *point=color;*(point+dx-1)=color;
+                if (background)
+                {
+                    for (Bitu cols=1;cols<(dx-1);cols++)
+                    {
+                        *(point+cols)=bg;
+                    }
+                }
+
+                if (border)
+                {
+                    *point=color;
+                    *(point+dx-1)=color;
+                }
             }
 #if defined(C_SDL2)
             point+=mapper.draw_surface->w;
@@ -2500,6 +2554,9 @@ public:
             point+=mapper.surface->pitch;
 #endif
         }
+    }
+    virtual void Draw(void) {
+        Draw(true, true);
     }
     virtual bool OnTop(Bitu _x,Bitu _y) {
         return ( enabled && (_x>=x) && (_x<x+dx) && (_y>=y) && (_y<y+dy));
@@ -2622,6 +2679,8 @@ public:
 #else
             point+=mapper.surface->pitch;
 #endif
+            // draw the borders a second time to prevent the text from overwriting them
+            CButton::Draw(false, true);
         }
     }
     void SetText(const char *_text) {
@@ -2813,18 +2872,18 @@ public:
         switch (type) {
         case BC_Mod1:
             checked=(mapper.abind->mods&BMOD_Mod1)>0;
-            str = checked && mod_event[1] != NULL ? mod_event[1]->GetBindMenuText() : "mod1";
-            strcpy(text, str.size()>8?"mod1":str.c_str());
+            str = checked && mod_event[1] != NULL ? mod_event[1]->GetBindMenuText() : LabelMod1;
+            strcpy(text, str.size()>8?LabelMod1:str.c_str());
             break;
         case BC_Mod2:
             checked=(mapper.abind->mods&BMOD_Mod2)>0;
-            str = checked && mod_event[2] != NULL ? mod_event[2]->GetBindMenuText() : "mod2";
-            strcpy(text, str.size()>8?"mod2":str.c_str());
+            str = checked && mod_event[2] != NULL ? mod_event[2]->GetBindMenuText() : LabelMod2;
+            strcpy(text, str.size()>8?LabelMod2:str.c_str());
             break;
         case BC_Mod3:
             checked=(mapper.abind->mods&BMOD_Mod3)>0;
-            str = checked && mod_event[3] != NULL ? mod_event[3]->GetBindMenuText() : "mod3";
-            strcpy(text, str.size()>8?"mod3":str.c_str());
+            str = checked && mod_event[3] != NULL ? mod_event[3]->GetBindMenuText() : LabelMod3;
+            strcpy(text, str.size()>8?LabelMod3:str.c_str());
             break;
         case BC_Host:
             checked=(mapper.abind->mods&BMOD_Host)>0;
@@ -3723,7 +3782,7 @@ static void SetActiveBind(CBind * _bind) {
     if (_bind) {
         bind_but.bind_title->Enable(true);
         char buf[256];_bind->BindName(buf);
-        bind_but.bind_title->Change("BIND:%s",buf);
+        bind_but.bind_title->Change("INPUT: %s",buf);
         bind_but.bind_title->SetColor(CLR_GREEN);
         bind_but.del->Enable(true);
         bind_but.next->Enable(true);
@@ -3748,7 +3807,7 @@ static void SetActiveEvent(CEvent * event) {
     mapper.aevent=event;
     mapper.redraw=true;
     mapper.addbind=false;
-    bind_but.event_title->Change("EVENT:%s",event ? event->GetName(): "none");
+    bind_but.event_title->Change("EVENT: %s",event ? event->GetName(): "none");
     if (!event) {
         change_action_text(MSG_Get("SELECT_EVENT"),CLR_WHITE);
         bind_but.add->Enable(false);
@@ -3920,7 +3979,7 @@ static void CreateLayout(void) {
 #undef YO
 #define XO 0
 #define YO 1
-    AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "ESC", "esc", KBD_esc);
+    AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "Esc", "esc", KBD_esc);
 
     for(i = 0; i < 12; i++)
     {
@@ -3944,21 +4003,21 @@ static void CreateLayout(void) {
 #define XO 0
 #define YO 3
 
-    AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "TAB", "tab", KBD_tab);
+    AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "Tab", "tab", KBD_tab);
 
     for(i = 0; i < 12; i++)
     {
         AddKeyButtonEvent(PX(XO + 2 + i), PY(YO), BU(1), BV(1), combo_2[i].title, combo_2[i].entry, combo_2[i].key);
     }
 
-    AddKeyButtonEvent(PX(XO + 14), PY(YO), BU(2), BV(2), "ENTER", "enter", KBD_enter);
+    AddKeyButtonEvent(PX(XO + 14), PY(YO), BU(2), BV(2), "Enter", "enter", KBD_enter);
 
 #undef XO
 #undef YO
 #define XO 0
 #define YO 4
 
-    caps_lock_event = AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "CAPS", "capslock", KBD_capslock);
+    caps_lock_event = AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "Caps", "capslock", KBD_capslock);
 
     for(i = 0; i < 12; i++)
     {
@@ -3971,45 +4030,45 @@ static void CreateLayout(void) {
 #define XO 0
 #define YO 5
 
-    AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "SHIFT", "lshift", KBD_leftshift);
+    AddKeyButtonEvent(PX(XO), PY(YO), BU(2), BV(1), "Shift", "lshift", KBD_leftshift);
 
     for(i = 0; i < 11; i++)
     {
         AddKeyButtonEvent(PX(XO + 2 + i), PY(YO), BU(1), BV(1), combo_4[i].title, combo_4[i].entry, combo_4[i].key);
     }
 
-    AddKeyButtonEvent(PX(XO + 13), PY(YO), BU(3), BV(1), "SHIFT", "rshift", KBD_rightshift);
+    AddKeyButtonEvent(PX(XO + 13), PY(YO), BU(3), BV(1), "Shift", "rshift", KBD_rightshift);
 
 #undef XO
 #undef YO
 #define XO 0
 #define YO 6
 
-    AddKeyButtonEvent(PX(XO + 00), PY(YO), BU(2), BV(1), "CTRL", "lctrl", KBD_leftctrl);
-    AddKeyButtonEvent(PX(XO + 02), PY(YO), BU(1), BV(1), "WIN", "lwindows", KBD_lwindows);
-    AddKeyButtonEvent(PX(XO + 03), PY(YO), BU(1), BV(1), "ALT", "lalt", KBD_leftalt);
-    AddKeyButtonEvent(PX(XO + 04), PY(YO), BU(7), BV(1), "SPACE", "space", KBD_space);
-    AddKeyButtonEvent(PX(XO + 11), PY(YO), BU(1), BV(1), "ALT", "ralt", KBD_rightalt);
-    AddKeyButtonEvent(PX(XO + 12), PY(YO), BU(1), BV(1), "WIN", "rwindows", KBD_rwindows);
-    AddKeyButtonEvent(PX(XO + 13), PY(YO), BU(1), BV(1), "MNU", "rwinmenu", KBD_rwinmenu);
-    AddKeyButtonEvent(PX(XO + 14), PY(YO), BU(2), BV(1), "CTRL", "rctrl", KBD_rightctrl);
+    AddKeyButtonEvent(PX(XO + 00), PY(YO), BU(2), BV(1), "Ctrl", "lctrl", KBD_leftctrl);
+    AddKeyButtonEvent(PX(XO + 02), PY(YO), BU(1), BV(1), "Win", "lwindows", KBD_lwindows);
+    AddKeyButtonEvent(PX(XO + 03), PY(YO), BU(1), BV(1), "Alt", "lalt", KBD_leftalt);
+    AddKeyButtonEvent(PX(XO + 04), PY(YO), BU(7), BV(1), "Space", "space", KBD_space);
+    AddKeyButtonEvent(PX(XO + 11), PY(YO), BU(1), BV(1), "Alt", "ralt", KBD_rightalt);
+    AddKeyButtonEvent(PX(XO + 12), PY(YO), BU(1), BV(1), "Win", "rwindows", KBD_rwindows);
+    AddKeyButtonEvent(PX(XO + 13), PY(YO), BU(1), BV(1), "App", "rwinmenu", KBD_rwinmenu);
+    AddKeyButtonEvent(PX(XO + 14), PY(YO), BU(2), BV(1), "Ctrl", "rctrl", KBD_rightctrl);
 
 #undef XO
 #undef YO
 #define XO 16
 #define YO 0
 
-    AddKeyButtonEvent(PX(XO + 0), PY(YO + 0), BU(1), BV(1), "PRT", "printscreen", KBD_printscreen);
-    AddKeyButtonEvent(PX(XO + 1), PY(YO + 0), BU(1), BV(1), "SCL", "scrolllock", KBD_scrolllock);
-    AddKeyButtonEvent(PX(XO + 2), PY(YO + 0), BU(1), BV(1), "PAU", "pause", KBD_pause);
+    AddKeyButtonEvent(PX(XO + 0), PY(YO + 0), BU(1), BV(1), "Prn", "printscreen", KBD_printscreen);
+    AddKeyButtonEvent(PX(XO + 1), PY(YO + 0), BU(1), BV(1), "Scr", "scrolllock", KBD_scrolllock);
+    AddKeyButtonEvent(PX(XO + 2), PY(YO + 0), BU(1), BV(1), "Brk", "pause", KBD_pause);
 
-    AddKeyButtonEvent(PX(XO + 0), PY(YO + 2), BU(1), BV(1), "INS", "insert", KBD_insert);
-    AddKeyButtonEvent(PX(XO + 1), PY(YO + 2), BU(1), BV(1), "HOM", "home", KBD_home);
-    AddKeyButtonEvent(PX(XO + 2), PY(YO + 2), BU(1), BV(1), "PUP", "pageup", KBD_pageup);
+    AddKeyButtonEvent(PX(XO + 0), PY(YO + 2), BU(1), BV(1), "Ins", "insert", KBD_insert);
+    AddKeyButtonEvent(PX(XO + 1), PY(YO + 2), BU(1), BV(1), "Hom", "home", KBD_home);
+    AddKeyButtonEvent(PX(XO + 2), PY(YO + 2), BU(1), BV(1), "Pg\x18", "pageup", KBD_pageup);
 
-    AddKeyButtonEvent(PX(XO + 0), PY(YO + 3), BU(1), BV(1), "DEL", "delete", KBD_delete);
-    AddKeyButtonEvent(PX(XO + 1), PY(YO + 3), BU(1), BV(1), "END", "end", KBD_end);
-    AddKeyButtonEvent(PX(XO + 2), PY(YO + 3), BU(1), BV(1), "PDN", "pagedown", KBD_pagedown);
+    AddKeyButtonEvent(PX(XO + 0), PY(YO + 3), BU(1), BV(1), "Del", "delete", KBD_delete);
+    AddKeyButtonEvent(PX(XO + 1), PY(YO + 3), BU(1), BV(1), "End", "end", KBD_end);
+    AddKeyButtonEvent(PX(XO + 2), PY(YO + 3), BU(1), BV(1), "Pg\x19", "pagedown", KBD_pagedown);
 
     AddKeyButtonEvent(PX(XO + 1), PY(YO + 5), BU(1), BV(1), "\x18", "up", KBD_up);
     AddKeyButtonEvent(PX(XO + 0), PY(YO + 6), BU(1), BV(1), "\x1B", "left", KBD_left);
@@ -4021,10 +4080,10 @@ static void CreateLayout(void) {
 #define XO 19
 #define YO 2
 
-    AddKeyButtonEvent(PX(XO + 3) - 3, PY(YO - 1), BU(1) - 1, BV(1), "NEQ", "kp_equals", KBD_kpequals);
+    AddKeyButtonEvent(PX(XO + 3) - 3, PY(YO - 1), BU(1) - 1, BV(1), "Neq", "kp_equals", KBD_kpequals);
 
     num_lock_event =
-    AddKeyButtonEvent(PX(XO + 0) - 0, PY(YO + 0), BU(1) - 1, BV(1), "NUM", "numlock", KBD_numlock);
+    AddKeyButtonEvent(PX(XO + 0) - 0, PY(YO + 0), BU(1) - 1, BV(1), "Num", "numlock", KBD_numlock);
     AddKeyButtonEvent(PX(XO + 1) - 1, PY(YO + 0), BU(1) - 1, BV(1), "/", "kp_divide", KBD_kpdivide);
     AddKeyButtonEvent(PX(XO + 2) - 2, PY(YO + 0), BU(1) - 1, BV(1), "*", "kp_multiply", KBD_kpmultiply);
     AddKeyButtonEvent(PX(XO + 3) - 3, PY(YO + 0), BU(1) - 1, BV(1), "-", "kp_minus", KBD_kpminus);
@@ -4042,7 +4101,7 @@ static void CreateLayout(void) {
     AddKeyButtonEvent(PX(XO + 1) - 1, PY(YO + 3), BU(1) - 1, BV(1), "2", "kp_2", KBD_kp2);
     AddKeyButtonEvent(PX(XO + 2) - 2, PY(YO + 3), BU(1) - 1, BV(1), "3", "kp_3", KBD_kp3);
 
-    AddKeyButtonEvent(PX(XO + 3) - 3, PY(YO + 3), BU(1) - 1, BV(2), "ENT", "kp_enter", KBD_kpenter);
+    AddKeyButtonEvent(PX(XO + 3) - 3, PY(YO + 3), BU(1) - 1, BV(2), "Ent", "kp_enter", KBD_kpenter);
 
     if(IS_PC98_ARCH) // TODO
     {
@@ -4064,10 +4123,10 @@ static void CreateLayout(void) {
 #undef YO
 #define XO 0
 #define YO 9
-    new CTextButton(PX(XO + 0) + CX * 2, PY(YO - 1), BU(3), BV(1), "Mouse");
-    AddMouseButtonEvent(PX(XO + 0) + CX * 2, PY(YO), BU(1), BV(1), "L", "left", 0);
-    AddMouseButtonEvent(PX(XO + 1) + CX * 2, PY(YO), BU(1), BV(1), "M", "middle", 2);
-    AddMouseButtonEvent(PX(XO + 2) + CX * 2, PY(YO), BU(1), BV(1), "R", "right", 1);
+    new CTextButton(PX(XO + 0) + CX * 1, PY(YO - 1), BU(3), BV(1), "Mouse");
+    AddMouseButtonEvent(PX(XO + 0) + CX * 1, PY(YO), BU(1), BV(1), "L", "left", 0);
+    AddMouseButtonEvent(PX(XO + 1) + CX * 1, PY(YO), BU(1), BV(1), "M", "middle", 2);
+    AddMouseButtonEvent(PX(XO + 2) + CX * 1, PY(YO), BU(1), BV(1), "R", "right", 1);
 
 #pragma endregion
 
@@ -4180,26 +4239,26 @@ static void CreateLayout(void) {
 #define XO 0
 #define YO 11
 
-    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 0), BU(3), BV(1), "HANKAKU", "jp_hankaku", KBD_jp_hankaku);
-    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 1), BU(3), BV(1), "MUHENKAN","jp_muhenkan",KBD_jp_muhenkan);
-    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 2), BU(3), BV(1), "HENKAN",  "jp_henkan",  KBD_jp_henkan);
-    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 3), BU(3), BV(1), "HIRAGANA","jp_hiragana",KBD_jp_hiragana);
-    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 4), BU(3), BV(1), "YEN",     "jp_yen",     KBD_jp_yen);
+    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 0), BU(3), BV(1), "Hankaku", "jp_hankaku", KBD_jp_hankaku);
+    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 1), BU(3), BV(1), "Muhenkan","jp_muhenkan",KBD_jp_muhenkan);
+    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 2), BU(3), BV(1), "Henkan",  "jp_henkan",  KBD_jp_henkan);
+    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 3), BU(3), BV(1), "Hiragana","jp_hiragana",KBD_jp_hiragana);
+    AddKeyButtonEvent(PX(XO + 0) + CX, PY(YO + 4), BU(3), BV(1), "Yen",     "jp_yen",     KBD_jp_yen);
     AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 0), BU(1), BV(1), "\\",      "jp_bckslash",KBD_jp_backslash);
     AddKeyButtonEvent(PX(XO + 5) + CX, PY(YO + 0), BU(1), BV(1), ":*",      "colon",      KBD_colon);
     AddKeyButtonEvent(PX(XO + 6) + CX, PY(YO + 0), BU(1), BV(1), "^`",      "caret",      KBD_caret);
     AddKeyButtonEvent(PX(XO + 7) + CX, PY(YO + 0), BU(1), BV(1), "@~",      "atsign",     KBD_atsign);
-    AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 3), BU(3), BV(1), "HANCHA",  "kor_hancha", KBD_kor_hancha);
-    AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 4), BU(3), BV(1), "HANYONG", "kor_hanyong",KBD_kor_hanyong);
+    AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 3), BU(3), BV(1), "Hancha",  "kor_hancha", KBD_kor_hancha);
+    AddKeyButtonEvent(PX(XO + 4) + CX, PY(YO + 4), BU(3), BV(1), "Hanyong", "kor_hanyong",KBD_kor_hanyong);
 
 #pragma endregion
 
 #pragma region Modifiers & Bindings
 
-    AddModButton(PX(0) + CX, PY(17), BU(2), BV(1), "Mod1", 1);
-    AddModButton(PX(2) + CX, PY(17), BU(2), BV(1), "Mod2", 2);
-    AddModButton(PX(4) + CX, PY(17), BU(2), BV(1), "Mod3", 3);
-    AddModButton(PX(6) + CX, PY(17), BU(3), BV(1), "Host", 4);
+    AddModButton(PX(0) + CX, PY(17), BU(2), BV(1), LabelMod1, 1);
+    AddModButton(PX(2) + CX, PY(17), BU(2), BV(1), LabelMod2, 2);
+    AddModButton(PX(4) + CX, PY(17), BU(2), BV(1), LabelMod3, 3);
+    AddModButton(PX(6) + CX, PY(17), BU(3), BV(1), LabelHost, 4);
 
     bind_but.event_title = new CCaptionButton(PX(0) + CX, PY(18), 0, 0, false);
     bind_but.bind_title  = new CCaptionButton(PX(0) + CX, PY(19), 0, 0, false);
@@ -4208,11 +4267,11 @@ static void CreateLayout(void) {
     bind_but.del  = new CBindButton(PX(3) + CX, PY(20), BU(3), BV(1), MSG_Get("DEL"), BB_Del);
     bind_but.next = new CBindButton(PX(6) + CX, PY(20), BU(3), BV(1), MSG_Get("NEXT"), BB_Next);
 
-    bind_but.mod1 = new CCheckButton(PX(0) + CX, PY(21) + CY, BU(3), BV(1), "mod1", BC_Mod1);
-    bind_but.mod2 = new CCheckButton(PX(0) + CX, PY(22) + CY, BU(3), BV(1), "mod2", BC_Mod2);
-    bind_but.mod3 = new CCheckButton(PX(0) + CX, PY(23) + CY, BU(3), BV(1), "mod3", BC_Mod3);
-    bind_but.host = new CCheckButton(PX(3) + CX, PY(21) + CY, BU(3), BV(1), "host", BC_Host);
-    bind_but.hold = new CCheckButton(PX(3) + CX, PY(22) + CY, BU(3), BV(1), "hold", BC_Hold);
+    bind_but.mod1 = new CCheckButton(PX(0) + CX, PY(21) + CY, BU(3), BV(1), LabelMod1, BC_Mod1);
+    bind_but.mod2 = new CCheckButton(PX(0) + CX, PY(22) + CY, BU(3), BV(1), LabelMod2, BC_Mod2);
+    bind_but.mod3 = new CCheckButton(PX(0) + CX, PY(23) + CY, BU(3), BV(1), LabelMod3, BC_Mod3);
+    bind_but.host = new CCheckButton(PX(3) + CX, PY(21) + CY, BU(3), BV(1), LabelHost, BC_Host);
+    bind_but.hold = new CCheckButton(PX(3) + CX, PY(22) + CY, BU(3), BV(1), LabelHold, BC_Hold);
 
 #pragma endregion
 
