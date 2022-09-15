@@ -39,7 +39,6 @@
  #define NATIVESOCKETS
  #include <winsock2.h>
  #include <ws2tcpip.h> //for socklen_t
- //typedef int  socklen_t;
 
 //Tests for BSD/OS2/LINUX
 #elif defined HAVE_STDLIB_H && defined HAVE_SYS_TYPES_H && defined HAVE_SYS_SOCKET_H && defined HAVE_NETINET_IN_H
@@ -50,7 +49,6 @@
  #include <sys/types.h>
  #include <sys/socket.h>
  #include <netinet/in.h>
- //socklen_t should be handled by configure
 #endif
 
 // Using a non-blocking connection routine really should
