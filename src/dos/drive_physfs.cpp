@@ -368,7 +368,7 @@ bool physfsDrive::setOverlaydir(const char * name) {
         return false;
 	} else {
         if (oldwrite) PHYSFS_unmount(oldwrite);
-        PHYSFS_mount(newname, NULL, 1);
+        PHYSFS_mount(newname, NULL, 0);
         dirCache.EmptyCache();
     }
 	if (oldwrite) free((char *)oldwrite);
@@ -743,7 +743,7 @@ bool physfsFile::Seek(uint32_t * pos,uint32_t type) {
 	switch (type) {
 	case DOS_SEEK_SET:break;
 	case DOS_SEEK_CUR:mypos += PHYSFS_tell(fhandle); break;
-	case DOS_SEEK_END:mypos += PHYSFS_fileLength(fhandle)-mypos; break;
+	case DOS_SEEK_END:mypos += PHYSFS_fileLength(fhandle); -mypos; break;
 	default:
 	//TODO Give some doserrorcode;
 		return false;//ERROR
