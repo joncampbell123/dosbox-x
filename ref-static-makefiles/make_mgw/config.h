@@ -36,9 +36,6 @@
 /* Define to 1 to use FFMPEG libavcodec for video capture */
 /* #undef C_AVCODEC */
 
-/* Define to 1 to use inlined memory functions in cpu core */
-#define C_CORE_INLINE 1
-
 /* Define to 1 to use Direct3D shaders */
 /* #undef C_D3DSHADERS */
 

@@ -65,6 +65,6 @@ pacman -S --needed --noconfirm mingw-w64-x86_64-libslirp &>/dev/null
 echo Compiling DOSBox-X
 chmod +x configure
 # FIXME: I would like MinGW builds to enable the debugger, eventually
-./configure --enable-core-inline --enable-d3d9 --enable-d3d-shaders --disable-libfluidsynth --prefix=/usr "$@" || exit 1
+./configure --enable-d3d9 --enable-d3d-shaders --disable-libfluidsynth --prefix=/usr "$@" || exit 1
 make -j3 || exit 1
 

@@ -42,9 +42,6 @@
 /* Determines if the compilers supports fastcall attribute. */
 #undef C_ATTRIBUTE_FASTCALL
 
-/* Define to 1 to use inlined memory functions in cpu core */
-#define C_CORE_INLINE	1
-
 /* Indicate whether SDL_net is present */
 #define C_SDL_NET 1
 

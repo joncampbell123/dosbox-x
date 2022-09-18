@@ -13,7 +13,7 @@ export PATH=$GCCSDK_INSTALL_ENV/bin:$PATH
 export CPPFLAGS=-I$GCCSDK_INSTALL_ENV/include
 export LDFLAGS="-L$GCCSDK_INSTALL_ENV/lib -static"
 
-./configure --host=arm-unknown-riscos --enable-core-inline "$@"
+./configure --host=arm-unknown-riscos "$@"
 make -j3 || exit 1
 elf2aif src/dosbox-x !DosBox-X/dosbox-x,ff8
 cp contrib/fonts/FREECG98.BMP !DosBox-X/resources/freecg98.bmp,69c

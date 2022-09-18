@@ -32,9 +32,6 @@
 /* Determines if the compilers supports fastcall attribute. */
 #undef C_ATTRIBUTE_FASTCALL
 
-/* Define to 1 to use inlined memory functions in cpu core */
-#define C_CORE_INLINE	1
-
 /* Define to 1 to enable internal debugger, requires libcurses */
 #define C_DEBUG 1
 

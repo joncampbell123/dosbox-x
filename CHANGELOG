@@ -12,6 +12,7 @@ Unreleased
   - Fix some NetBSD build issues
     (Jookia, with patch from Nia)
   - Fix minor graphical issues in mapper GUI (aybe)
+  - Removed --disable-core-inline (Jookia)
   - Swap SDL2 XInput axes by default for a better
     out of the box experience (aybe)
   - SDL1 XInput is now enabled by default for

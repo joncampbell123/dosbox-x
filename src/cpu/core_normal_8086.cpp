@@ -47,35 +47,6 @@ extern bool mustCompleteInstruction;
 static uint16_t last_ea86_offset;
 
 /* NTS: we special case writes to seg:ffff to emulate 8086 behavior where word read/write wraps around the 64KB segment */
-#if (!C_CORE_INLINE)
-
-#define LoadMb(off) mem_readb(off)
-
-static inline uint16_t LoadMw(Bitu off) {
-	if (last_ea86_offset == 0xffff)
-		return (mem_readb(off) | (mem_readb(off-0xffff) << 8));
-
-	return mem_readw(off);	
-}
-
-#define LoadMd(off) mem_readd(off)
-
-#define SaveMb(off,val)	mem_writeb(off,val)
-
-static void SaveMw(Bitu off,Bitu val) {
-	if (last_ea86_offset == 0xffff) {
-		mem_writeb(off,val);
-		mem_writeb(off-0xffff,val>>8);
-	}
-	else {
-		mem_writew(off,val);
-	}
-}
-
-#define SaveMd(off,val)	mem_writed(off,val)
-
-#else 
-
 #define LoadMb(off) mem_readb_inline(off)
 
 static inline uint16_t LoadMw(Bitu off) {
@@ -100,8 +71,6 @@ static void SaveMw(Bitu off,Bitu val) {
 }
 
 #define SaveMd(off,val)	mem_writed_inline(off,val)
-
-#endif
 
 extern Bitu cycle_count;
 
