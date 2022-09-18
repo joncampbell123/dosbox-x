@@ -408,9 +408,9 @@ UpdateXInputJoystickState(SDL_Joystick * joystick, XINPUT_STATE_EX *pXInputState
 
     SDL_PrivateJoystickAxis(joystick, 0, pXInputState->Gamepad.sThumbLX);
     SDL_PrivateJoystickAxis(joystick, 1, ~pXInputState->Gamepad.sThumbLY);
-    SDL_PrivateJoystickAxis(joystick, 2, ((int)pXInputState->Gamepad.bLeftTrigger * 257) - 32768);
-    SDL_PrivateJoystickAxis(joystick, 3, pXInputState->Gamepad.sThumbRX);
-    SDL_PrivateJoystickAxis(joystick, 4, ~pXInputState->Gamepad.sThumbRY);
+    SDL_PrivateJoystickAxis(joystick, 2, pXInputState->Gamepad.sThumbRX);
+    SDL_PrivateJoystickAxis(joystick, 3, ~pXInputState->Gamepad.sThumbRY);
+    SDL_PrivateJoystickAxis(joystick, 4, ((int)pXInputState->Gamepad.bLeftTrigger * 257) - 32768);
     SDL_PrivateJoystickAxis(joystick, 5, ((int)pXInputState->Gamepad.bRightTrigger * 257) - 32768);
 
     for (button = 0; button < SDL_arraysize(s_XInputButtons); ++button) {

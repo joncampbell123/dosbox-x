@@ -13,6 +13,10 @@ Unreleased
     (Jookia, with patch from Nia)
   - Fix minor graphical issues in mapper GUI (aybe)
   - Removed --disable-core-inline (Jookia)
+  - Swap SDL2 XInput axes by default for a better
+    out of the box experience (aybe)
+  - SDL1 XInput is now enabled by default for
+    a better out of the box experience (aybe)
 
 2022.09.0 (0.84.3)
   - Updated FFMPEG video capture to use newer API,
