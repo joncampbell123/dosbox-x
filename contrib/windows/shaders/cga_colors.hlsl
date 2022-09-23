@@ -1,3 +1,6 @@
+// this a re-implementation of CGA palettes from DOSBox Staging by https://github.com/aybe
+// the idea of custom CGA palettes is originally an idea from https://github.com/johnnovak
+
 #include "shader.code"
 string name : NAME = "Filter";
 string combineTechique : COMBINETECHNIQUE = "Filter";
