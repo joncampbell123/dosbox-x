@@ -3211,6 +3211,13 @@ void DOSBOX_SetupConfigSections(void) {
         "Quick changes of volume or expression on a MIDI channel may result in amp jumps on real hardware.\n"
         "When \"Nice Amp Ramp\" mode is enabled (default), amp changes gradually instead.\n"
         "Otherwise, the emulation accuracy is preserved.");
+    Pbool = secprop->Add_bool("mt32.engage.channel1", Property::Changeable::WhenIdle, false);
+    Pbool->Set_help("Use alternative channel assignment on synth start.\n"
+         "By default, MT-32 compatible devices only react on MIDI messages that come on MIDI channels 2-10 ignoring messages\n"
+         "on MIDI channel 1. However, some tunes involve MIDI channel 1 yet do not initialise the device accordingly.\n"
+         "In such cases, one might fix this by pressing a magic button combination on MT-32 front panel.\n"
+         "Enabling this property has the same effect: the device starts recognising messages on MIDI channels 1-8 and 10 instead.\n"
+         "Default is false.");
 
 #if C_FLUIDSYNTH || defined(WIN32) && !defined(HX_DOS)
 	const char *fluiddrivers[] = {"pulseaudio", "alsa", "oss", "coreaudio", "dsound", "portaudio", "sndman", "jack", "file", "default",0};

@@ -119,6 +119,8 @@ mt32emu_service_i mt32emu_get_service_i();
 #define mt32emu_get_partial_states i.v0->getPartialStates
 #define mt32emu_get_playing_notes i.v0->getPlayingNotes
 #define mt32emu_get_patch_name i.v0->getPatchName
+#define mt32emu_get_sound_group_name iV6()->getSoundGroupName
+#define mt32emu_get_sound_name iV6()->getSoundName
 #define mt32emu_read_memory i.v0->readMemory
 #define mt32emu_get_display_state iV5()->getDisplayState
 #define mt32emu_set_main_display_mode iV5()->setMainDisplayMode
@@ -320,6 +322,8 @@ public:
 	void getPartialStates(Bit8u *partial_states) { mt32emu_get_partial_states(c, partial_states); }
 	Bit32u getPlayingNotes(Bit8u part_number, Bit8u *keys, Bit8u *velocities) { return mt32emu_get_playing_notes(c, part_number, keys, velocities); }
 	const char *getPatchName(Bit8u part_number) { return mt32emu_get_patch_name(c, part_number); }
+	bool getSoundGroupName(char *soundGroupName, Bit8u timbreGroup, Bit8u timbreNumber) { return mt32emu_get_sound_group_name(c, soundGroupName, timbreGroup, timbreNumber) != MT32EMU_BOOL_FALSE; }
+	bool getSoundName(char *soundName, Bit8u timbreGroup, Bit8u timbreNumber) { return mt32emu_get_sound_name(c, soundName, timbreGroup, timbreNumber) != MT32EMU_BOOL_FALSE; }
 	void readMemory(Bit32u addr, Bit32u len, Bit8u *data) { mt32emu_read_memory(c, addr, len, data); }
 
 	bool getDisplayState(char *target_buffer, const bool narrow_lcd) { return mt32emu_get_display_state(c, target_buffer, narrow_lcd ? MT32EMU_BOOL_TRUE : MT32EMU_BOOL_FALSE) != MT32EMU_BOOL_FALSE; }
@@ -341,6 +345,7 @@ private:
 	const mt32emu_service_i_v3 *iV3() { return (getVersionID() < MT32EMU_SERVICE_VERSION_3) ? NULL : i.v3; }
 	const mt32emu_service_i_v4 *iV4() { return (getVersionID() < MT32EMU_SERVICE_VERSION_4) ? NULL : i.v4; }
 	const mt32emu_service_i_v5 *iV5() { return (getVersionID() < MT32EMU_SERVICE_VERSION_5) ? NULL : i.v5; }
+	const mt32emu_service_i_v6 *iV6() { return (getVersionID() < MT32EMU_SERVICE_VERSION_6) ? NULL : i.v6; }
 #endif
 
 	Service(const Service &);            // prevent copy-construction
@@ -349,69 +354,69 @@ private:
 
 namespace CppInterfaceImpl {
 
-static mt32emu_report_handler_version getReportHandlerVersionID(mt32emu_report_handler_i);
+static mt32emu_report_handler_version MT32EMU_C_CALL getReportHandlerVersionID(mt32emu_report_handler_i);
 
-static void printDebug(void *instance_data, const char *fmt, va_list list) {
+static void MT32EMU_C_CALL printDebug(void *instance_data, const char *fmt, va_list list) {
 	static_cast<IReportHandler *>(instance_data)->printDebug(fmt, list);
 }
 
-static void onErrorControlROM(void *instance_data) {
+static void MT32EMU_C_CALL onErrorControlROM(void *instance_data) {
 	static_cast<IReportHandler *>(instance_data)->onErrorControlROM();
 }
 
-static void onErrorPCMROM(void *instance_data) {
+static void MT32EMU_C_CALL onErrorPCMROM(void *instance_data) {
 	static_cast<IReportHandler *>(instance_data)->onErrorPCMROM();
 }
 
-static void showLCDMessage(void *instance_data, const char *message) {
+static void MT32EMU_C_CALL showLCDMessage(void *instance_data, const char *message) {
 	static_cast<IReportHandler *>(instance_data)->showLCDMessage(message);
 }
 
-static void onMIDIMessagePlayed(void *instance_data) {
+static void MT32EMU_C_CALL onMIDIMessagePlayed(void *instance_data) {
 	static_cast<IReportHandler *>(instance_data)->onMIDIMessagePlayed();
 }
 
-static mt32emu_boolean onMIDIQueueOverflow(void *instance_data) {
+static mt32emu_boolean MT32EMU_C_CALL onMIDIQueueOverflow(void *instance_data) {
 	return static_cast<IReportHandler *>(instance_data)->onMIDIQueueOverflow() ? MT32EMU_BOOL_TRUE : MT32EMU_BOOL_FALSE;
 }
 
-static void onMIDISystemRealtime(void *instance_data, mt32emu_bit8u system_realtime) {
+static void MT32EMU_C_CALL onMIDISystemRealtime(void *instance_data, mt32emu_bit8u system_realtime) {
 	static_cast<IReportHandler *>(instance_data)->onMIDISystemRealtime(system_realtime);
 }
 
-static void onDeviceReset(void *instance_data) {
+static void MT32EMU_C_CALL onDeviceReset(void *instance_data) {
 	static_cast<IReportHandler *>(instance_data)->onDeviceReset();
 }
 
-static void onDeviceReconfig(void *instance_data) {
+static void MT32EMU_C_CALL onDeviceReconfig(void *instance_data) {
 	static_cast<IReportHandler *>(instance_data)->onDeviceReconfig();
 }
 
-static void onNewReverbMode(void *instance_data, mt32emu_bit8u mode) {
+static void MT32EMU_C_CALL onNewReverbMode(void *instance_data, mt32emu_bit8u mode) {
 	static_cast<IReportHandler *>(instance_data)->onNewReverbMode(mode);
 }
 
-static void onNewReverbTime(void *instance_data, mt32emu_bit8u time) {
+static void MT32EMU_C_CALL onNewReverbTime(void *instance_data, mt32emu_bit8u time) {
 	static_cast<IReportHandler *>(instance_data)->onNewReverbTime(time);
 }
 
-static void onNewReverbLevel(void *instance_data, mt32emu_bit8u level) {
+static void MT32EMU_C_CALL onNewReverbLevel(void *instance_data, mt32emu_bit8u level) {
 	static_cast<IReportHandler *>(instance_data)->onNewReverbLevel(level);
 }
 
-static void onPolyStateChanged(void *instance_data, mt32emu_bit8u part_num) {
+static void MT32EMU_C_CALL onPolyStateChanged(void *instance_data, mt32emu_bit8u part_num) {
 	static_cast<IReportHandler *>(instance_data)->onPolyStateChanged(part_num);
 }
 
-static void onProgramChanged(void *instance_data, mt32emu_bit8u part_num, const char *sound_group_name, const char *patch_name) {
+static void MT32EMU_C_CALL onProgramChanged(void *instance_data, mt32emu_bit8u part_num, const char *sound_group_name, const char *patch_name) {
 	static_cast<IReportHandler *>(instance_data)->onProgramChanged(part_num, sound_group_name, patch_name);
 }
 
-static void onLCDStateUpdated(void *instance_data) {
+static void MT32EMU_C_CALL onLCDStateUpdated(void *instance_data) {
 	static_cast<IReportHandlerV1 *>(instance_data)->onLCDStateUpdated();
 }
 
-static void onMidiMessageLEDStateUpdated(void *instance_data, mt32emu_boolean led_state) {
+static void MT32EMU_C_CALL onMidiMessageLEDStateUpdated(void *instance_data, mt32emu_boolean led_state) {
 	static_cast<IReportHandlerV1 *>(instance_data)->onMidiMessageLEDStateUpdated(led_state != MT32EMU_BOOL_FALSE);
 }
 
@@ -444,7 +449,7 @@ static const mt32emu_report_handler_i_v1 REPORT_HANDLER_V1_THUNK = {
 
 #undef MT32EMU_REPORT_HANDLER_THUNK_V0
 
-static mt32emu_report_handler_version getReportHandlerVersionID(mt32emu_report_handler_i thunk) {
+static mt32emu_report_handler_version MT32EMU_C_CALL getReportHandlerVersionID(mt32emu_report_handler_i thunk) {
 	if (thunk.v0 == &REPORT_HANDLER_V0_THUNK) return MT32EMU_REPORT_HANDLER_VERSION_0;
 	return MT32EMU_REPORT_HANDLER_VERSION_CURRENT;
 }
@@ -456,19 +461,19 @@ static mt32emu_report_handler_i getReportHandlerThunk(mt32emu_report_handler_ver
 	return thunk;
 }
 
-static mt32emu_midi_receiver_version getMidiReceiverVersionID(mt32emu_midi_receiver_i) {
+static mt32emu_midi_receiver_version MT32EMU_C_CALL getMidiReceiverVersionID(mt32emu_midi_receiver_i) {
 	return MT32EMU_MIDI_RECEIVER_VERSION_CURRENT;
 }
 
-static void handleShortMessage(void *instance_data, const mt32emu_bit32u message) {
+static void MT32EMU_C_CALL handleShortMessage(void *instance_data, const mt32emu_bit32u message) {
 	static_cast<IMidiReceiver *>(instance_data)->handleShortMessage(message);
 }
 
-static void handleSysex(void *instance_data, const mt32emu_bit8u stream[], const mt32emu_bit32u length) {
+static void MT32EMU_C_CALL handleSysex(void *instance_data, const mt32emu_bit8u stream[], const mt32emu_bit32u length) {
 	static_cast<IMidiReceiver *>(instance_data)->handleSysex(stream, length);
 }
 
-static void handleSystemRealtimeMessage(void *instance_data, const mt32emu_bit8u realtime) {
+static void MT32EMU_C_CALL handleSystemRealtimeMessage(void *instance_data, const mt32emu_bit8u realtime) {
 	static_cast<IMidiReceiver *>(instance_data)->handleSystemRealtimeMessage(realtime);
 }
 
@@ -573,6 +578,8 @@ static mt32emu_midi_receiver_i getMidiReceiverThunk() {
 #undef mt32emu_get_partial_states
 #undef mt32emu_get_playing_notes
 #undef mt32emu_get_patch_name
+#undef mt32emu_get_sound_group_name
+#undef mt32emu_get_sound_name
 #undef mt32emu_read_memory
 #undef mt32emu_get_display_state
 #undef mt32emu_set_main_display_mode

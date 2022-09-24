@@ -100,7 +100,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
-    <PlatformToolset>v143</PlatformToolset>
+    <PlatformToolset>v142</PlatformToolset>
     <CharacterSet>MultiByte</CharacterSet>
     <WholeProgramOptimization>true</WholeProgramOptimization>
   </PropertyGroup>
@@ -1881,6 +1881,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     <ClInclude Include="..\src\libs\mt32\TVA.h" />
     <ClInclude Include="..\src\libs\mt32\TVF.h" />
     <ClInclude Include="..\src\libs\mt32\TVP.h" />
+    <ClInclude Include="..\src\libs\mt32\Types.h" />
     <ClInclude Include="..\src\misc\ethernet_pcap.h" />
     <ClInclude Include="..\src\misc\ethernet_slirp.h" />
     <ClInclude Include="..\src\output\direct3d\d3d_components.h" />

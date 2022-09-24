@@ -37,6 +37,7 @@ struct ROMInfoLists {
 	ROMInfoList mt32_1_06;
 	ROMInfoList mt32_1_07;
 	ROMInfoList mt32_bluer;
+	ROMInfoList mt32_2_03;
 	ROMInfoList mt32_2_04;
 	ROMInfoList mt32_2_06;
 	ROMInfoList mt32_2_07;
@@ -69,6 +70,7 @@ static const ROMInfoLists &getROMInfoLists() {
 	static ROMInfo CTRL_MT32_BLUER_B = {32768, "e0934320d7cbb5edfaa29e0d01ae835ef620085b", ROMInfo::Control, "ctrl_mt32_bluer_b", "MT-32 Control BlueRidge", ROMInfo::Mux1, &CTRL_MT32_BLUER_A};
 	static ROMInfo CTRL_MT32_BLUER = {65536, "7b8c2a5ddb42fd0732e2f22b3340dcf5360edf92", ROMInfo::Control, "ctrl_mt32_bluer", "MT-32 Control BlueRidge", ROMInfo::Full, NULL};
 
+	static const ROMInfo CTRL_MT32_V2_03 = {131072, "5837064c9df4741a55f7c4d8787ac158dff2d3ce", ROMInfo::Control, "ctrl_mt32_2_03", "MT-32 Control v2.03", ROMInfo::Full, NULL};
 	static const ROMInfo CTRL_MT32_V2_04 = {131072, "2c16432b6c73dd2a3947cba950a0f4c19d6180eb", ROMInfo::Control, "ctrl_mt32_2_04", "MT-32 Control v2.04", ROMInfo::Full, NULL};
 	static const ROMInfo CTRL_MT32_V2_06 = {131072, "2869cf4c235d671668cfcb62415e2ce8323ad4ed", ROMInfo::Control, "ctrl_mt32_2_06", "MT-32 Control v2.06", ROMInfo::Full, NULL};
 	static const ROMInfo CTRL_MT32_V2_07 = {131072, "47b52adefedaec475c925e54340e37673c11707c", ROMInfo::Control, "ctrl_mt32_2_07", "MT-32 Control v2.07", ROMInfo::Full, NULL};
@@ -90,6 +92,7 @@ static const ROMInfoLists &getROMInfoLists() {
 		&CTRL_MT32_V1_06,
 		&CTRL_MT32_V1_07,
 		&CTRL_MT32_BLUER,
+		&CTRL_MT32_V2_03,
 		&CTRL_MT32_V2_04,
 		&CTRL_MT32_V2_06,
 		&CTRL_MT32_V2_07,
@@ -130,6 +133,7 @@ static const ROMInfoLists &getROMInfoLists() {
 	static const ROMInfo * const MT32_V1_06_ROMS[] = {&CTRL_MT32_V1_06, &PCM_MT32, &CTRL_MT32_V1_06_A, &CTRL_MT32_V1_06_B, &PCM_MT32_L, &PCM_MT32_H, NULL};
 	static const ROMInfo * const MT32_V1_07_ROMS[] = {&CTRL_MT32_V1_07, &PCM_MT32, &CTRL_MT32_V1_07_A, &CTRL_MT32_V1_07_B, &PCM_MT32_L, &PCM_MT32_H, NULL};
 	static const ROMInfo * const MT32_BLUER_ROMS[] = {&CTRL_MT32_BLUER, &PCM_MT32, &CTRL_MT32_BLUER_A, &CTRL_MT32_BLUER_B, &PCM_MT32_L, &PCM_MT32_H, NULL};
+	static const ROMInfo * const MT32_V2_03_ROMS[] = {&CTRL_MT32_V2_03, &PCM_MT32, &PCM_MT32_L, &PCM_MT32_H, NULL};
 	static const ROMInfo * const MT32_V2_04_ROMS[] = {&CTRL_MT32_V2_04, &PCM_MT32, &PCM_MT32_L, &PCM_MT32_H, NULL};
 	static const ROMInfo * const MT32_V2_06_ROMS[] = {&CTRL_MT32_V2_06, &PCM_MT32, &PCM_MT32_L, &PCM_MT32_H, NULL};
 	static const ROMInfo * const MT32_V2_07_ROMS[] = {&CTRL_MT32_V2_07, &PCM_MT32, &PCM_MT32_L, &PCM_MT32_H, NULL};
@@ -143,6 +147,7 @@ static const ROMInfoLists &getROMInfoLists() {
 		{MT32_V1_06_ROMS, _CALC_ARRAY_LENGTH(MT32_V1_06_ROMS)},
 		{MT32_V1_07_ROMS, _CALC_ARRAY_LENGTH(MT32_V1_07_ROMS)},
 		{MT32_BLUER_ROMS, _CALC_ARRAY_LENGTH(MT32_BLUER_ROMS)},
+		{MT32_V2_03_ROMS, _CALC_ARRAY_LENGTH(MT32_V2_03_ROMS)},
 		{MT32_V2_04_ROMS, _CALC_ARRAY_LENGTH(MT32_V2_04_ROMS)},
 		{MT32_V2_06_ROMS, _CALC_ARRAY_LENGTH(MT32_V2_06_ROMS)},
 		{MT32_V2_07_ROMS, _CALC_ARRAY_LENGTH(MT32_V2_07_ROMS)},
@@ -326,6 +331,7 @@ const MachineConfiguration * const *MachineConfiguration::getAllMachineConfigura
 	static const MachineConfiguration MT32_1_06 = MachineConfiguration("mt32_1_06", romInfoLists.mt32_1_06.romInfos, romInfoLists.mt32_1_06.itemCount);
 	static const MachineConfiguration MT32_1_07 = MachineConfiguration("mt32_1_07", romInfoLists.mt32_1_07.romInfos, romInfoLists.mt32_1_07.itemCount);
 	static const MachineConfiguration MT32_BLUER = MachineConfiguration("mt32_bluer", romInfoLists.mt32_bluer.romInfos, romInfoLists.mt32_bluer.itemCount);
+	static const MachineConfiguration MT32_2_03 = MachineConfiguration("mt32_2_03", romInfoLists.mt32_2_03.romInfos, romInfoLists.mt32_2_03.itemCount);
 	static const MachineConfiguration MT32_2_04 = MachineConfiguration("mt32_2_04", romInfoLists.mt32_2_04.romInfos, romInfoLists.mt32_2_04.itemCount);
 	static const MachineConfiguration MT32_2_06 = MachineConfiguration("mt32_2_06", romInfoLists.mt32_2_06.romInfos, romInfoLists.mt32_2_06.itemCount);
 	static const MachineConfiguration MT32_2_07 = MachineConfiguration("mt32_2_07", romInfoLists.mt32_2_07.romInfos, romInfoLists.mt32_2_07.itemCount);
@@ -333,7 +339,7 @@ const MachineConfiguration * const *MachineConfiguration::getAllMachineConfigura
 	static const MachineConfiguration CM32L_1_02 = MachineConfiguration("cm32l_1_02", romInfoLists.cm32l_1_02.romInfos, romInfoLists.cm32l_1_02.itemCount);
 	static const MachineConfiguration CM32LN_1_00 = MachineConfiguration("cm32ln_1_00", romInfoLists.cm32ln_1_00.romInfos, romInfoLists.cm32ln_1_00.itemCount);
 	static const MachineConfiguration * const MACHINE_CONFIGURATIONS[] = {
-		&MT32_1_04, &MT32_1_05, &MT32_1_06, &MT32_1_07, &MT32_BLUER, &MT32_2_04, &MT32_2_06, &MT32_2_07, &CM32L_1_00, &CM32L_1_02, &CM32LN_1_00, NULL
+		&MT32_1_04, &MT32_1_05, &MT32_1_06, &MT32_1_07, &MT32_BLUER, &MT32_2_03, &MT32_2_04, &MT32_2_06, &MT32_2_07, &CM32L_1_00, &CM32L_1_02, &CM32LN_1_00, NULL
 	};
 
 	if (itemCount != NULL) *itemCount = _CALC_ARRAY_LENGTH(MACHINE_CONFIGURATIONS);

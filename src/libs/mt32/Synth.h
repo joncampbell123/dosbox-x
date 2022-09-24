@@ -244,6 +244,7 @@ private:
 	void voicePartStateChanged(Bit8u partNum, bool activated) const;
 	void newTimbreSet(Bit8u partNum) const;
 	const char *getSoundGroupName(const Part *part) const;
+	const char *getSoundGroupName(Bit8u timbreGroup, Bit8u timbreNumber) const;
 	void printDebug(const char *fmt, ...);
 
 	// partNum should be 0..7 for Part 1..8, or 8 for Rhythm
@@ -565,7 +566,23 @@ public:
 
 	// Returns name of the patch set on the specified part.
 	// Argument partNumber should be 0..7 for Part 1..8, or 8 for Rhythm.
+	// The returned value is a null-terminated string which is guaranteed to remain valid until the next call to one of render methods.
 	MT32EMU_EXPORT const char *getPatchName(Bit8u partNumber) const;
+
+	// Retrieves the name of the sound group the timbre identified by arguments timbreGroup and timbreNumber is associated with.
+	// Values 0-3 of timbreGroup correspond to the timbre banks GROUP A, GROUP B, MEMORY and RHYTHM.
+	// For all but the RHYTHM timbre bank, allowed values of timbreNumber are in range 0-63. The number of timbres
+	// contained in the RHYTHM bank depends on the used control ROM version.
+	// The argument soundGroupName must point to an array of at least 8 characters. The result is a null-terminated string.
+	// Returns whether the specified timbre has been found and the result written in soundGroupName.
+	MT32EMU_EXPORT_V(2.7) bool getSoundGroupName(char *soundGroupName, Bit8u timbreGroup, Bit8u timbreNumber) const;
+	// Retrieves the name of the timbre identified by arguments timbreGroup and timbreNumber.
+	// Values 0-3 of timbreGroup correspond to the timbre banks GROUP A, GROUP B, MEMORY and RHYTHM.
+	// For all but the RHYTHM timbre bank, allowed values of timbreNumber are in range 0-63. The number of timbres
+	// contained in the RHYTHM bank depends on the used control ROM version.
+	// The argument soundName must point to an array of at least 11 characters. The result is a null-terminated string.
+	// Returns whether the specified timbre has been found and the result written in soundName.
+	MT32EMU_EXPORT_V(2.7) bool getSoundName(char *soundName, Bit8u timbreGroup, Bit8u timbreNumber) const;
 
 	// Stores internal state of emulated synth into an array provided (as it would be acquired from hardware).
 	MT32EMU_EXPORT void readMemory(Bit32u addr, Bit32u len, Bit8u *data);
