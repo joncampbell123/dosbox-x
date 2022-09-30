@@ -106,6 +106,7 @@ static const ControlROMMap ControlROMMaps[] = {
 	{"ctrl_mt32_1_06",    OLD_MT32_LATER,    0x3000, 128, 0x8000, 0x0000, false, 0xC000, 0x4000, false, 0x3200, 30, 0x7414, 85, 0x57D9, 0x57F4, 0x57E2, 0x5264, 0x5270, 0x5280, 0x521C, 0x70CA, 19, 0x217A, 0x4BBA},
 	{"ctrl_mt32_1_07",    OLD_MT32_LATER,    0x3000, 128, 0x8000, 0x0000, false, 0xC000, 0x4000, false, 0x3200, 30, 0x73fe, 85, 0x57B1, 0x57CC, 0x57BA, 0x523C, 0x5248, 0x5258, 0x51F4, 0x70B0, 19, 0x217A, 0x4B92},
 	{"ctrl_mt32_bluer",   OLD_MT32_LATER,    0x3000, 128, 0x8000, 0x0000, false, 0xC000, 0x4000, false, 0x3200, 30, 0x741C, 85, 0x57E5, 0x5800, 0x57EE, 0x5270, 0x527C, 0x528C, 0x5228, 0x70CE, 19, 0x217A, 0x4BC6},
+	{"ctrl_mt32_2_03",  NEW_MT32_COMPATIBLE, 0x8100, 128, 0x8000, 0x8000, true,  0x8080, 0x8000, true,  0x8500, 64, 0x8580, 85, 0x4F49, 0x4F64, 0x4F52, 0x4885, 0x4889, 0x48A2, 0x48B9, 0x5A44, 19, 0x1EF0, 0x4066},
 	{"ctrl_mt32_2_04",  NEW_MT32_COMPATIBLE, 0x8100, 128, 0x8000, 0x8000, true,  0x8080, 0x8000, true,  0x8500, 64, 0x8580, 85, 0x4F5D, 0x4F78, 0x4F66, 0x4899, 0x489D, 0x48B6, 0x48CD, 0x5A58, 19, 0x1EF0, 0x406D},
 	{"ctrl_mt32_2_06",  NEW_MT32_COMPATIBLE, 0x8100, 128, 0x8000, 0x8000, true,  0x8080, 0x8000, true,  0x8500, 64, 0x8580, 85, 0x4F69, 0x4F84, 0x4F72, 0x48A5, 0x48A9, 0x48C2, 0x48D9, 0x5A64, 19, 0x1EF0, 0x4021},
 	{"ctrl_mt32_2_07",  NEW_MT32_COMPATIBLE, 0x8100, 128, 0x8000, 0x8000, true,  0x8080, 0x8000, true,  0x8500, 64, 0x8580, 85, 0x4F81, 0x4F9C, 0x4F8A, 0x48B9, 0x48BD, 0x48D6, 0x48ED, 0x5A78, 19, 0x1EE7, 0x4035},
@@ -374,8 +375,11 @@ void Synth::newTimbreSet(Bit8u partNum) const {
 
 const char *Synth::getSoundGroupName(const Part *part) const {
 	const PatchParam &patch = part->getPatchTemp()->patch;
-	Bit8u timbreNumber = patch.timbreNum;
-	switch (patch.timbreGroup) {
+	return getSoundGroupName(patch.timbreGroup, patch.timbreNum);
+}
+
+const char *Synth::getSoundGroupName(Bit8u timbreGroup, Bit8u timbreNumber) const {
+	switch (timbreGroup) {
 	case 1:
 		timbreNumber += 64;
 		// Fall-through
@@ -2621,6 +2625,26 @@ Bit32u Synth::getPlayingNotes(Bit8u partNumber, Bit8u *keys, Bit8u *velocities) 
 
 const char *Synth::getPatchName(Bit8u partNumber) const {
 	return (!opened || partNumber > 8) ? NULL : parts[partNumber]->getCurrentInstr();
+}
+
+bool Synth::getSoundGroupName(char *soundGroupName, Bit8u timbreGroup, Bit8u timbreNumber) const {
+	if (!opened || 63 < timbreNumber) return false;
+	const char *foundGroupName = getSoundGroupName(timbreGroup, timbreNumber);
+	if (foundGroupName == NULL) return false;
+	memcpy(soundGroupName, foundGroupName, 7);
+	soundGroupName[7] = 0;
+	return true;
+}
+
+bool Synth::getSoundName(char *soundName, Bit8u timbreGroup, Bit8u timbreNumber) const {
+	if (!opened || 3 < timbreGroup) return false;
+	Bit8u timbresInGroup = 3 == timbreGroup ? controlROMMap->timbreRCount : 64;
+	if (timbresInGroup <= timbreNumber) return false;
+	TimbreParam::CommonParam &timbreCommon = mt32ram.timbres[timbreGroup * 64 + timbreNumber].timbre.common;
+	if (timbreCommon.partialMute == 0) return false;
+	memcpy(soundName, timbreCommon.name, sizeof timbreCommon.name);
+	soundName[sizeof timbreCommon.name] = 0;
+	return true;
 }
 
 const Part *Synth::getPart(Bit8u partNum) const {

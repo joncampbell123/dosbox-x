@@ -304,6 +304,10 @@ public:
 
         service->setReversedStereoEnabled(section->Get_bool("mt32.reverse.stereo"));
         service->setNiceAmpRampEnabled(section->Get_bool("mt32.niceampramp"));
+        if(section->Get_bool("mt32.engage.channel1")) {
+           uint8_t channelAssignmentSysex[] = { 0x10, 0x00, 0x0d, 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x09 };
+            service->writeSysex(16, channelAssignmentSysex, sizeof channelAssignmentSysex);
+        }
         noise = section->Get_bool("mt32.verbose");
         renderInThread = section->Get_bool("mt32.thread");
 

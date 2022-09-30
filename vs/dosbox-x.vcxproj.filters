@@ -2543,6 +2543,7 @@
     <ClInclude Include="..\src\hardware\snd_pc98\cbus\pcm86io.h">
       <Filter>Sources\hardware\snd_pc98\cbus</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\libs\mt32\Types.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\winres.rc">
