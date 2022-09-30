@@ -3,6 +3,11 @@ Unreleased
     (Jookia)
   - Use pkg-config to find OpenGL (Jookia)
   - Updated Flatpak SDK and dependencies (Jookia)
+  - PC-98 Implement AVSDRV.SYS PCM function (int D9h)
+    (nanshiki)
+  - PC-98 Support 6x8 Katakana font with int 18h ah=14h
+    (nanshiki)
+  - PC-98 Fix Audio Q-Channel info in MSCDEX (nanshiki)
   - Fixed FFMPEG 5 compatibility (Jookia)
   - Fix FFMPEG crash if FFMPEG fails to write header
     for some reason. (joncampbell123)
@@ -18,6 +23,9 @@ Unreleased
   - SDL1 XInput is now enabled by default for
     a better out of the box experience (aybe)
   - add set of cga shaders from dosbox staging (aybe)
+  - Updated mt32emu code to latest(2.7.0).(maron2000)
+    Also, added config option "mt32.engage.channel1"
+     (Refer to https://github.com/munt/munt for details)
 
 2022.09.0 (0.84.3)
   - Updated FFMPEG video capture to use newer API,
@@ -682,8 +690,9 @@ Unreleased
   - Fix audio speech stuttering issue in SpaceQuest 4
     v1.3 using Sound Blaster. (grapeli & rderooy)
   - Fix issue with Lemmings palette swapping not working
-    properly. (maron20000 & grapeli)
-  - Updated MT32emu to version 2.6.1. (maron20000)
+    properly. (maron2000 & grapeli)
+  - Updated MT32emu to version 2.6.1. (maron2000)
+    (Refer to https://github.com/munt/munt for details)
   - Updated DOSMID to version 0.9.6. (Wengier)
   - Integrated commits from mainline (Allofich)
     - Indicate in BIOS memory when keyboard ACK received.
