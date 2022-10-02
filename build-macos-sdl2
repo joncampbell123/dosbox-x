@@ -15,6 +15,12 @@ chmod +x vs/sdl/build-scripts/strip_fPIC.sh
 # prefer to compile against our own copy of SDL 2.x IF the system does not provide one
 echo Compiling our internal SDL 2.x
 (cd vs/sdl2 && ./build-dosbox.sh) || exit 1
+new="-I$top/vs/sdl2/linux-host/include "
+nld="-L$top/vs/sdl2/linux-host/lib "
+export CFLAGS="$new$CFLAGS"
+export LDFLAGS="$nld$LDFLAGS"
+export CPPFLAGS="$new$CPPFLAGS"
+export CXXFLAGS="$new$CXXFLAGS"
 
 # prefer to compile against our own zlib
 echo Compiling our internal zlib

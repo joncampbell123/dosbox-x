@@ -15,6 +15,12 @@ chmod +x vs/sdl/build-scripts/strip_fPIC.sh
 # prefer to compile against our own copy of SDL 1.x
 echo Compiling our internal SDL 1.x
 (cd vs/sdl && ./build-dosbox.sh) || exit 1
+new="-I$top/vs/sdl/linux-host/include "
+nld="-L$top/vs/sdl/linux-host/lib "
+export CFLAGS="$new$CFLAGS"
+export LDFLAGS="$nld$LDFLAGS"
+export CPPFLAGS="$new$CPPFLAGS"
+export CXXFLAGS="$new$CXXFLAGS"
 
 # FIXME: SDLnet will compile a static library that targets a foreign architecture,
 #        and then ld will complain about it????????
