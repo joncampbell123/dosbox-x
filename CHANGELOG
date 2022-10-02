@@ -1,4 +1,7 @@
 Unreleased
+  - Fixed build to properly compile against internal
+    SDL/SDL2 library even if an external version is
+    available (joncampbell123)
   - Fixed some violations of the one definition rule.
     (Jookia)
   - Use pkg-config to find OpenGL (Jookia)
