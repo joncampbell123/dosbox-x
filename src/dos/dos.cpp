@@ -1980,15 +1980,17 @@ static Bitu DOS_21Handler(void) {
                 else if(Files[handle]->GetInformation() & EXT_DEVICE_BIT) {
                     fRead = !(((DOS_ExtDevice*)Files[handle])->CallDeviceFunction(4, 26, SegValue(ds), reg_dx, toread) & 0x8000);
 #if defined(USE_TTF)
-                    fRead &= ttf.inUse && reg_bx == WPvga512CHMhandle;
+                    if(fRead && ttf.inUse && reg_bx == WPvga512CHMhandle)
+                        MEM_BlockRead(SegPhys(ds) + reg_dx, dos_copybuf, toread);
 #endif
                 }
-                else {
-                   fRead = DOS_ReadFile(reg_bx, dos_copybuf, &toread);
+                else
+                {
+                    if(fRead = DOS_ReadFile(reg_bx, dos_copybuf, &toread))
+                        MEM_BlockWrite(SegPhys(ds) + reg_dx, dos_copybuf, toread);
                 }
 
                 if (fRead) {
-                    MEM_BlockWrite(SegPhys(ds) + reg_dx, dos_copybuf, toread);
                     reg_ax=toread;
 #if defined(USE_TTF)
                     if (ttf.inUse && reg_bx == WPvga512CHMhandle) {
