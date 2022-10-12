@@ -1308,7 +1308,8 @@ bool CPrinter::processCommandChar(uint8_t ch)
 		    }
 		    curX = leftMargin;
 		    curY += lineSpacing;
-		    if (curY > bottomMargin)
+		    //LOG_MSG("curY:%f, bottomMargin:%f",curY, bottomMargin);
+		    if (curY > bottomMargin-0.0001) // goto the next page if curY is larger or slightly smaller than bottomMargin
 			    newPage(true, false);
 		    return true;
 	    case 0x0e:		//Select double-width printing (one line) (SO)
