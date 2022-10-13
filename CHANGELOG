@@ -29,6 +29,8 @@ Unreleased
   - Updated mt32emu code to latest(2.7.0).(maron2000)
     Also, added config option "mt32.engage.channel1"
      (Refer to https://github.com/munt/munt for details)
+  - Fix missing line in printouts (Issue #3569)
+    (maron2000)
 
 2022.09.0 (0.84.3)
   - Updated FFMPEG video capture to use newer API,
