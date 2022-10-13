@@ -12,10 +12,11 @@
 #if defined(MACOSX)
 # include <MacTypes.h>
 # include <Cocoa/Cocoa.h>
+# include <Carbon/Carbon.h>
 # include <Foundation/NSString.h>
+# include <Foundation/Foundation.h>
 # include <ApplicationServices/ApplicationServices.h>
 # include <IOKit/pwr_mgt/IOPMLib.h>
-# include <Cocoa/Cocoa.h>
 
 #if !defined(C_SDL2)
 extern "C" void* sdl1_hax_stock_macosx_menu(void);
@@ -43,6 +44,14 @@ void sdl1_hax_set_topmost(unsigned char topmost) {
         else
             [ wnd setLevel: NSNormalWindowLevel ];
     }
+}
+#endif
+
+#if defined(MACOSX) && defined(C_SDL2) && defined(SDL_DOSBOX_X_IME)
+bool IME_GetEnable() {
+    TISInputSourceRef is = TISCopyCurrentKeyboardInputSource();
+    CFBooleanRef ret = (CFBooleanRef)TISGetInputSourceProperty(is, kTISPropertyInputSourceIsASCIICapable);
+    return !CFBooleanGetValue(ret);
 }
 #endif
 

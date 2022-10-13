@@ -5673,11 +5673,9 @@ void GFX_Events() {
                 ClipKeySelect(event.key.keysym.sym);
             if(dos.im_enable_flag) {
 #if defined (WIN32) && !defined(HX_DOS) || defined(MACOSX) && defined(SDL_DOSBOX_X_IME)
-                if(event.type == SDL_KEYDOWN &&
+                if(event.type == SDL_KEYDOWN && IME_GetEnable() &&
 #if defined (MACOSX)
                 (SDL_IM_Composition(4) || ((event.key.keysym.mod & 0x03) == 0 && event.key.keysym.scancode == 0x2c && dos.loaded_codepage == 932))
-#else
-                IME_GetEnable()
 #endif
                 ) {
                     // Enter, BS, TAB, <-, ->
