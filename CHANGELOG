@@ -31,6 +31,9 @@ Unreleased
      (Refer to https://github.com/munt/munt for details)
   - Fix missing line in printouts (Issue #3569)
     (maron2000)
+  - Limit the "always return bit 6 of port 61h as set
+    for PC" change to only apply to early PC types
+    (MDA, CGA or Hercules). (Allofich)
 
 2022.09.0 (0.84.3)
   - Updated FFMPEG video capture to use newer API,
