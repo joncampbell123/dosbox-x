@@ -59,7 +59,7 @@ jobs:
           zip -r -9 $top/dosbox-x-macosx-x86_64-${{ env.timestamp }}.zip *
           cd $top
       - name: Upload preview package
-        uses: actions/upload-artifact@v3.1.0
+        uses: actions/upload-artifact@v3.1.1
         with:
           name: dosbox-x-macosx-x86_64-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/

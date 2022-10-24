@@ -99,7 +99,7 @@ jobs:
           $top/vs/tool/zip.exe -r -9 $top/dosbox-x-vsbuild-win64-${{ env.timestamp }}.zip *
           cd $top
       - name: Upload preview package
-        uses: actions/upload-artifact@v3.1.0
+        uses: actions/upload-artifact@v3.1.1
         with:
           name: dosbox-x-vsbuild-win64-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
@@ -192,7 +192,7 @@ jobs:
           $top/vs/tool/zip.exe -r -9 $top/dosbox-x-vsbuild-arm64-${{ env.timestamp }}.zip *
           cd $top
       - name: Upload preview package
-        uses: actions/upload-artifact@v3.1.0
+        uses: actions/upload-artifact@v3.1.1
         with:
           name: dosbox-x-vsbuild-arm64-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
