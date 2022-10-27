@@ -2621,7 +2621,7 @@ protected:
         if(centered)
         {
             const auto size = data.size();
-            const auto xPos = std::max(x, x + dx / 2 - size * 8 / 2);
+            const auto xPos = std::max(x, (Bitu) (x + dx / 2 - size * 8 / 2));
             const auto yPos = std::max(y, y + dy / 2 - 14 / 2);
             DrawText(1 + xPos, yPos, data.c_str(), foreground, background);
         }
