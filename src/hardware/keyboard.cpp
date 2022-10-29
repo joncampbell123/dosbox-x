@@ -679,10 +679,10 @@ static Bitu read_p61(Bitu, Bitu) {
         ((TIMER_GetOutput2() || (port_61_data&1) == 0)? 0x20:0) | // NTS: Timer 2 doesn't cycle if Port 61 gate turned off, and it becomes '1' when turned off
         ((fmod(PIC_FullIndex(),0.030) > 0.015)? 0x10:0));
 
-    // Always return bit 6 as set for a PC and as cleared for PCjr or Tandy. See https://www.vogons.org/viewtopic.php?t=50417.
+    // Always return bit 6 as set for early PCs and as cleared for PCjr or Tandy. See https://www.vogons.org/viewtopic.php?t=50417.
     if(machine == MCH_PCJR || machine == MCH_TANDY)
         dbg &= 0xBF;
-    else
+    else if(machine == MCH_CGA || machine == MCH_HERC || machine == MCH_MDA)
         dbg |= 0x40;
 
     return dbg;
