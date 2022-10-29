@@ -40,6 +40,8 @@ Unreleased
     - r4477, r4478: Drive system improvements.
     - r4479: Correct handling of invalid encodings of
     the BOUND instruction.
+    - r4480: Some confirmed DOS behaviors and minor
+    cleanup.
 
 2022.09.0 (0.84.3)
   - Updated FFMPEG video capture to use newer API,
