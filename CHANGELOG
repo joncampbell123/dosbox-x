@@ -37,7 +37,9 @@ Unreleased
   - Integrated SVN commits (Allofich)
     - r4476: Preserve last error code when no error
     occurs.
-    - r4477: Drive system improvements.
+    - r4477, r4478: Drive system improvements.
+    - r4479: Correct handling of invalid encodings of
+    the BOUND instruction.
 
 2022.09.0 (0.84.3)
   - Updated FFMPEG video capture to use newer API,
