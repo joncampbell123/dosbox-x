@@ -2,7 +2,7 @@
 #    environment configuration    #
 #---------------------------------#
 
-image: Visual Studio 2019
+image: Visual Studio 2022
 
 init:
   - git config --global core.autocrlf true
