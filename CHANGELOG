@@ -34,6 +34,9 @@ Unreleased
   - Limit the "always return bit 6 of port 61h as set
     for PC" change to only apply to early PC types
     (MDA, CGA or Hercules). (Allofich)
+  - Integrated SVN commits (Allofich)
+    - r4476: Preserve last error code when no error
+    occurs.
 
 2022.09.0 (0.84.3)
   - Updated FFMPEG video capture to use newer API,
