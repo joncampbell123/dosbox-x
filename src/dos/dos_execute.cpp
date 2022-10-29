@@ -69,33 +69,6 @@ unsigned int ENV_KEEPFREE = 83;
 #define OVERLAY 3
 
 
-
-static void SaveRegisters(void) {
-	reg_sp-=18;
-	mem_writew(SegPhys(ss)+reg_sp+ 0,reg_ax);
-	mem_writew(SegPhys(ss)+reg_sp+ 2,reg_cx);
-	mem_writew(SegPhys(ss)+reg_sp+ 4,reg_dx);
-	mem_writew(SegPhys(ss)+reg_sp+ 6,reg_bx);
-	mem_writew(SegPhys(ss)+reg_sp+ 8,reg_si);
-	mem_writew(SegPhys(ss)+reg_sp+10,reg_di);
-	mem_writew(SegPhys(ss)+reg_sp+12,reg_bp);
-	mem_writew(SegPhys(ss)+reg_sp+14,SegValue(ds));
-	mem_writew(SegPhys(ss)+reg_sp+16,SegValue(es));
-}
-
-static void RestoreRegisters(void) {
-	reg_ax=mem_readw(SegPhys(ss)+reg_sp+ 0);
-	reg_cx=mem_readw(SegPhys(ss)+reg_sp+ 2);
-	reg_dx=mem_readw(SegPhys(ss)+reg_sp+ 4);
-	reg_bx=mem_readw(SegPhys(ss)+reg_sp+ 6);
-	reg_si=mem_readw(SegPhys(ss)+reg_sp+ 8);
-	reg_di=mem_readw(SegPhys(ss)+reg_sp+10);
-	reg_bp=mem_readw(SegPhys(ss)+reg_sp+12);
-	SegSet16(ds,mem_readw(SegPhys(ss)+reg_sp+14));
-	SegSet16(es,mem_readw(SegPhys(ss)+reg_sp+16));
-	reg_sp+=18;
-}
-
 extern bool force_sfn;
 extern uint8_t ZDRIVE_NUM;
 extern void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused), menu_update_autocycle(void);
@@ -134,14 +107,23 @@ void DOS_Terminate(uint16_t pspseg,bool tsr,uint8_t exitcode) {
 	/* Restore the SS:SP to the previous one */
 	SegSet16(ss,RealSeg(parentpsp.GetStack()));
 	reg_sp = RealOff(parentpsp.GetStack());		
-	/* Restore the old CS:IP from int 22h */
-	RestoreRegisters();
+	/* Restore registers */
+	reg_ax = real_readw(SegValue(ss),reg_sp+ 0);
+	reg_bx = real_readw(SegValue(ss),reg_sp+ 2);
+	reg_cx = real_readw(SegValue(ss),reg_sp+ 4);
+	reg_dx = real_readw(SegValue(ss),reg_sp+ 6);
+	reg_si = real_readw(SegValue(ss),reg_sp+ 8);
+	reg_di = real_readw(SegValue(ss),reg_sp+10);
+	reg_bp = real_readw(SegValue(ss),reg_sp+12);
+	SegSet16(ds,real_readw(SegValue(ss),reg_sp+14));
+	SegSet16(es,real_readw(SegValue(ss),reg_sp+16));
+	reg_sp+=18;
 	/* Set the CS:IP stored in int 0x22 back on the stack */
-	mem_writew(SegPhys(ss)+reg_sp+0,RealOff(old22));
-	mem_writew(SegPhys(ss)+reg_sp+2,RealSeg(old22));
+	real_writew(SegValue(ss),reg_sp+0,RealOff(old22));
+	real_writew(SegValue(ss),reg_sp+2,RealSeg(old22));
 	/* set IOPL=3 (Strike Commander), nested task set,
 	   interrupts enabled, test flags cleared */
-	mem_writew(SegPhys(ss)+reg_sp+4,0x7202);
+	real_writew(SegValue(ss),reg_sp+4,0x7202);
 	// Free memory owned by process
 	if (!tsr) DOS_FreeProcessMemory(pspseg);
 	DOS_UpdatePSPName();
@@ -251,11 +233,8 @@ bool DOS_ChildPSP(uint16_t segment, uint16_t size) {
 	psp.SetFCB1(RealMake(parent_psp_seg,0x5c));
 	psp.SetFCB2(RealMake(parent_psp_seg,0x6c));
 	psp.SetEnvironment(psp_parent.GetEnvironment());
+	psp.SetStack(psp_parent.GetStack());
 	psp.SetSize(size);
-	// push registers in case child PSP is terminated
-	SaveRegisters();
-	psp.SetStack(RealMakeSeg(ss,reg_sp));
-	reg_sp+=18;
 	return true;
 }
 
@@ -510,8 +489,8 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 
 	if ((flags == LOAD) || (flags == LOADNGO)) {
 		/* Get Caller's program CS:IP of the stack and set termination address to that */
-		RealSetVec(0x22,RealMake(mem_readw(SegPhys(ss)+reg_sp+2),mem_readw(SegPhys(ss)+reg_sp)));
-		SaveRegisters();
+		RealSetVec(0x22,RealMake(real_readw(SegValue(ss),reg_sp+2),real_readw(SegValue(ss),reg_sp)));
+		reg_sp-=18;
 		DOS_PSP callpsp(dos.psp());
 		/* Save the SS:SP on the PSP of calling program */
 		callpsp.SetStack(RealMakeSeg(ss,reg_sp));

@@ -42,6 +42,10 @@ Unreleased
     the BOUND instruction.
     - r4480: Some confirmed DOS behaviors and minor
     cleanup.
+    - r4481: Push registers for most DOS function calls;
+    prevents a bug in UNLZEXE from causing a crash, and
+    maybe helps other buggy programs and unusual cases.
+    Use real addressing to support stack pointer wraparound.
 
 2022.09.0 (0.84.3)
   - Updated FFMPEG video capture to use newer API,

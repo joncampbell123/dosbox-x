@@ -1244,11 +1244,10 @@ static Bitu MSCDEX_Interrupt_Handler(void) {
 static bool MSCDEX_Handler(void) {
 	if(reg_ah == 0x11) {
 		if(reg_al == 0x00) {
-			PhysPt check = PhysMake(SegValue(ss),reg_sp);
-			if(mem_readw(check+6) == 0xDADA) {
+			if(real_readw(SegValue(ss),reg_sp+6) == 0xDADA) {
 				if (mscdex->rootDriverHeaderSeg==0) return false;
 				//MSCDEX sets word on stack to ADAD if it DADA on entry.
-				mem_writew(check+6,0xADAD);
+				real_writew(SegValue(ss),reg_sp+6,0xADAD);
 				reg_al = 0xff;
 			} else {
 				if (!enable_network_redirector) return false;

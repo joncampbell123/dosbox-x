@@ -164,9 +164,9 @@ void CALLBACK_RunRealFarInt(uint16_t seg,uint16_t off) {
 	FillFlags();
 
 	reg_sp-=6;
-	mem_writew(SegPhys(ss)+reg_sp,RealOff(CALLBACK_RealPointer(call_stop)));
-	mem_writew(SegPhys(ss)+reg_sp+2,RealSeg(CALLBACK_RealPointer(call_stop)));
-	mem_writew(SegPhys(ss)+reg_sp+4,(uint16_t)reg_flags);
+	real_writew(SegValue(ss),reg_sp+0,RealOff(CALLBACK_RealPointer(call_stop)));
+	real_writew(SegValue(ss),reg_sp+2,RealSeg(CALLBACK_RealPointer(call_stop)));
+	real_writew(SegValue(ss),reg_sp+4,(uint16_t)reg_flags);
 	uint32_t oldeip=reg_eip;
 	uint16_t oldcs=SegValue(cs);
 	reg_eip=off;
@@ -178,8 +178,8 @@ void CALLBACK_RunRealFarInt(uint16_t seg,uint16_t off) {
 
 void CALLBACK_RunRealFar(uint16_t seg,uint16_t off) {
 	reg_sp-=4;
-	mem_writew(SegPhys(ss)+reg_sp,RealOff(CALLBACK_RealPointer(call_stop)));
-	mem_writew(SegPhys(ss)+reg_sp+2,RealSeg(CALLBACK_RealPointer(call_stop)));
+	real_writew(SegValue(ss),reg_sp+0,RealOff(CALLBACK_RealPointer(call_stop)));
+	real_writew(SegValue(ss),reg_sp+2,RealSeg(CALLBACK_RealPointer(call_stop)));
 	uint32_t oldeip=reg_eip;
 	uint16_t oldcs=SegValue(cs);
 	reg_eip=off;
@@ -215,51 +215,51 @@ void CALLBACK_SZF(bool val) {
     uint32_t tempf;
 
     if (cpu.stack.big)
-        tempf = mem_readd(SegPhys(ss)+reg_esp+8); // first word past FAR 32:32
+        tempf = real_readd(SegValue(ss),reg_esp+8); // first word past FAR 32:32
     else
-        tempf = mem_readw(SegPhys(ss)+reg_sp+4); // first word past FAR 16:16
+        tempf = real_readw(SegValue(ss),reg_sp+4); // first word past FAR 16:16
 
     if (val) tempf |= FLAG_ZF;
     else tempf &= ~FLAG_ZF;
 
     if (cpu.stack.big)
-        mem_writed(SegPhys(ss)+reg_esp+8,tempf);
+        real_writed(SegValue(ss),reg_esp+8,tempf);
     else
-        mem_writew(SegPhys(ss)+reg_sp+4,(uint16_t)tempf);
+        real_writew(SegValue(ss),reg_sp+4,(uint16_t)tempf);
 }
 
 void CALLBACK_SCF(bool val) {
     uint32_t tempf;
 
     if (cpu.stack.big)
-        tempf = mem_readd(SegPhys(ss)+reg_esp+8); // first word past FAR 32:32
+        tempf = real_readd(SegValue(ss),reg_esp+8); // first word past FAR 32:32
     else
-        tempf = mem_readw(SegPhys(ss)+reg_sp+4); // first word past FAR 16:16
+        tempf = real_readw(SegValue(ss),reg_sp+4); // first word past FAR 16:16
 
     if (val) tempf |= FLAG_CF;
     else tempf &= ~FLAG_CF;
 
     if (cpu.stack.big)
-        mem_writed(SegPhys(ss)+reg_esp+8,tempf);
+        real_writed(SegValue(ss),reg_esp+8,tempf);
     else
-        mem_writew(SegPhys(ss)+reg_sp+4,(uint16_t)tempf);
+        real_writew(SegValue(ss),reg_sp+4,(uint16_t)tempf);
 }
 
 void CALLBACK_SIF(bool val) {
     uint32_t tempf;
 
     if (cpu.stack.big)
-        tempf = mem_readd(SegPhys(ss)+reg_esp+8); // first word past FAR 32:32
+        tempf = real_readd(SegValue(ss),reg_esp+8); // first word past FAR 32:32
     else
-        tempf = mem_readw(SegPhys(ss)+reg_sp+4); // first word past FAR 16:16
+        tempf = real_readw(SegValue(ss),reg_sp+4); // first word past FAR 16:16
 
     if (val) tempf |= FLAG_IF;
     else tempf &= ~FLAG_IF;
 
     if (cpu.stack.big)
-        mem_writed(SegPhys(ss)+reg_esp+8,tempf);
+        real_writed(SegValue(ss),reg_esp+8,tempf);
     else
-        mem_writew(SegPhys(ss)+reg_sp+4,(uint16_t)tempf);
+        real_writew(SegValue(ss),reg_sp+4,(uint16_t)tempf);
 }
 
 void CALLBACK_SetDescription(Bitu nr, const char* descr) {

@@ -949,6 +949,16 @@ static Bitu DOS_21Handler(void) {
     if (((reg_ah != 0x50) && (reg_ah != 0x51) && (reg_ah != 0x62) && (reg_ah != 0x64)) && (reg_ah<0x6c)) {
         DOS_PSP psp(dos.psp());
         psp.SetStack(RealMake(SegValue(ss),reg_sp-18));
+        /* Save registers */
+        real_writew(SegValue(ss), reg_sp - 18, reg_ax);
+        real_writew(SegValue(ss), reg_sp - 16, reg_bx);
+        real_writew(SegValue(ss), reg_sp - 14, reg_cx);
+        real_writew(SegValue(ss), reg_sp - 12, reg_dx);
+        real_writew(SegValue(ss), reg_sp - 10, reg_si);
+        real_writew(SegValue(ss), reg_sp - 8, reg_di);
+        real_writew(SegValue(ss), reg_sp - 6, reg_bp);
+        real_writew(SegValue(ss), reg_sp - 4, SegValue(ds));
+        real_writew(SegValue(ss), reg_sp - 2, SegValue(es));
     }
 
     if (reg_ah == 0x06) {
@@ -1000,7 +1010,7 @@ static Bitu DOS_21Handler(void) {
                 /* Wengier: This case fixes the bug that DIR /S from MS-DOS 7+ could crash hard within DOSBox-X. With this change it should now work properly. */
                 DOS_Terminate(dos.psp(),false,0);
 			else
-                DOS_Terminate(mem_readw(SegPhys(ss)+reg_sp+2),false,0);
+                DOS_Terminate(real_readw(SegValue(ss),reg_sp+2),false,0);
 
             if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
             dos_program_running = false;
