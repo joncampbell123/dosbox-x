@@ -37,6 +37,7 @@ Unreleased
   - Integrated SVN commits (Allofich)
     - r4476: Preserve last error code when no error
     occurs.
+    - r4477: Drive system improvements.
 
 2022.09.0 (0.84.3)
   - Updated FFMPEG video capture to use newer API,

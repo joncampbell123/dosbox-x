@@ -398,6 +398,7 @@ public:
 	uint8_t readSector(uint32_t sectnum, void * data);
 	uint8_t writeSector(uint32_t sectnum, void * data);
 	uint32_t getAbsoluteSectFromBytePos(uint32_t startClustNum, uint32_t bytePos);
+	uint32_t getSectorCount(void);
 	uint32_t getSectorSize(void);
 	uint32_t getClusterSize(void);
 	uint32_t getAbsoluteSectFromChain(uint32_t startClustNum, uint32_t logicalSector);
@@ -412,6 +413,7 @@ public:
 	imageDisk *loadedDisk = NULL;
 	uint8_t req_ver_major = 0,req_ver_minor = 0;
 	bool created_successfully = true;
+	uint32_t partSectOff;
     struct {
         uint32_t bytesector;
         uint32_t cylsector;
@@ -472,7 +474,6 @@ private:
 	bool absolute = false;
 	uint8_t fattype = 0;
 	uint32_t CountOfClusters = 0;
-	uint32_t partSectOff = 0;
 	uint32_t partSectSize = 0;
 	uint32_t firstDataSector = 0;
 	uint32_t firstRootDirSect = 0;

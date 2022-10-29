@@ -3131,10 +3131,43 @@ static Bitu DOS_27Handler(void) {
 	return CBRET_NONE;
 }
 
+static uint16_t DOS_SectorAccess(bool read) {
+	fatDrive * drive = (fatDrive *)Drives[reg_al];
+	uint16_t bufferSeg = SegValue(ds);
+	uint16_t bufferOff = reg_bx;
+	uint16_t sectorCnt = reg_cx;
+	uint32_t sectorNum = (uint32_t)reg_dx + drive->partSectOff;
+	uint32_t sectorEnd = drive->getSectorCount() + drive->partSectOff;
+	uint8_t sectorBuf[512];
+	Bitu i;
+
+	if (sectorCnt == 0xffff) { // large partition form
+		bufferSeg = real_readw(SegValue(ds),reg_bx + 8);
+		bufferOff = real_readw(SegValue(ds),reg_bx + 6);
+		sectorCnt = real_readw(SegValue(ds),reg_bx + 4);
+		sectorNum = real_readd(SegValue(ds),reg_bx + 0) + drive->partSectOff;
+	} else if (sectorEnd > 0xffff) return 0x0207; // must use large partition form
+
+	while (sectorCnt--) {
+		if (sectorNum >= sectorEnd) return 0x0408; // sector not found
+		if (read) {
+			if (drive->readSector(sectorNum++,&sectorBuf)) return 0x0408;
+			for (i=0;i<512;i++) real_writeb(bufferSeg,bufferOff++,sectorBuf[i]);
+		} else {
+			for (i=0;i<512;i++) sectorBuf[i] = real_readb(bufferSeg,bufferOff++);
+			if (drive->writeSector(sectorNum++,&sectorBuf)) return 0x0408;
+		}
+	}
+	return 0;
+}
+
 static Bitu DOS_25Handler_Actual(bool fat32) {
 	if (reg_al >= DOS_DRIVES || !Drives[reg_al] || Drives[reg_al]->isRemovable()) {
 		reg_ax = 0x8002;
 		SETFLAGBIT(CF,true);
+	} else if (strncmp(Drives[reg_al]->GetInfo(),"fatDrive",8) == 0) {
+		reg_ax = DOS_SectorAccess(true);
+		SETFLAGBIT(CF,reg_ax != 0);
 	} else {
 		DOS_Drive *drv = Drives[reg_al];
 		/* assume drv != NULL */
@@ -3235,7 +3268,7 @@ static Bitu DOS_25Handler_Actual(bool fat32) {
 		/* MicroProse installer hack, inherited from DOSBox SVN, as a fallback if INT 25h emulation is not available for the drive. */
 		if (reg_cx == 1 && reg_dx == 0 && reg_al >= 2) {
 			// write some BPB data into buffer for MicroProse installers
-			mem_writew(ptr+0x1c,0x3f); // hidden sectors
+			real_writew(SegValue(ds),reg_bx+0x1c,0x3f); // hidden sectors
 			SETFLAGBIT(CF,false);
 			reg_ax = 0;
 		} else {
@@ -3255,6 +3288,9 @@ static Bitu DOS_26Handler_Actual(bool fat32) {
 	if (reg_al >= DOS_DRIVES || !Drives[reg_al] || Drives[reg_al]->isRemovable()) {	
 		reg_ax = 0x8002;
 		SETFLAGBIT(CF,true);
+	} else if (strncmp(Drives[reg_al]->GetInfo(),"fatDrive",8) == 0) {
+		reg_ax = DOS_SectorAccess(false);
+		SETFLAGBIT(CF,reg_ax != 0);
 	} else {
 		DOS_Drive *drv = Drives[reg_al];
 		/* assume drv != NULL */
