@@ -8712,8 +8712,20 @@ private:
             // DMA *not* supported - Ancient Art of War CGA uses this to identify PCjr
             if (machine==MCH_PCJR) config |= 0x100;
 
-            // Gameport
-            config |= 0x1000;
+            // Several online sources say bit 0 indicates a floppy drive is installed.
+            // Testing of a couple BIOSes from 1992 and 1993 showed bit 0 to always be 1,
+            // even with no floppy drives installed or configured in the BIOS.
+            // Maybe 0 is possible in older BIOSes.
+            config |= 0x01;
+
+            // Bit 6 is 1 if there are 2 floppies connected and configured in the BIOS.
+            // Setting to 1 since DOSBox-X can mount floppy images in both drives A and B.
+            config |= 0x40;
+
+            // Bit 12 is "game I/O attached" for PCJr, Tandy and PC/XT, and 0 (not used) for PC/AT
+            if ((CPU_ArchitectureType == CPU_ARCHTYPE_8086) && (joytype != JOY_NONE))
+                config |= 0x1000;
+
             mem_writew(BIOS_CONFIGURATION,config);
             if (IS_EGAVGA_ARCH) config &= ~0x30; //EGA/VGA startup display mode differs in CMOS
             CMOS_SetRegister(0x14,(uint8_t)(config&0xff)); //Should be updated on changes

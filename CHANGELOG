@@ -31,6 +31,8 @@ Unreleased
      (Refer to https://github.com/munt/munt for details)
   - Fix missing line in printouts (Issue #3569)
     (maron2000)
+  - Adjust Int 11 return value to better match real
+    BIOSes. (Allofich)
   - Limit the "always return bit 6 of port 61h as set
     for PC" change to only apply to early PC types
     (MDA, CGA or Hercules). (Allofich)
