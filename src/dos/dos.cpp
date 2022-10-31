@@ -949,6 +949,16 @@ static Bitu DOS_21Handler(void) {
     if (((reg_ah != 0x50) && (reg_ah != 0x51) && (reg_ah != 0x62) && (reg_ah != 0x64)) && (reg_ah<0x6c)) {
         DOS_PSP psp(dos.psp());
         psp.SetStack(RealMake(SegValue(ss),reg_sp-18));
+        /* Save registers */
+        real_writew(SegValue(ss), reg_sp - 18, reg_ax);
+        real_writew(SegValue(ss), reg_sp - 16, reg_bx);
+        real_writew(SegValue(ss), reg_sp - 14, reg_cx);
+        real_writew(SegValue(ss), reg_sp - 12, reg_dx);
+        real_writew(SegValue(ss), reg_sp - 10, reg_si);
+        real_writew(SegValue(ss), reg_sp - 8, reg_di);
+        real_writew(SegValue(ss), reg_sp - 6, reg_bp);
+        real_writew(SegValue(ss), reg_sp - 4, SegValue(ds));
+        real_writew(SegValue(ss), reg_sp - 2, SegValue(es));
     }
 
     if (reg_ah == 0x06) {
@@ -1000,7 +1010,7 @@ static Bitu DOS_21Handler(void) {
                 /* Wengier: This case fixes the bug that DIR /S from MS-DOS 7+ could crash hard within DOSBox-X. With this change it should now work properly. */
                 DOS_Terminate(dos.psp(),false,0);
 			else
-                DOS_Terminate(mem_readw(SegPhys(ss)+reg_sp+2),false,0);
+                DOS_Terminate(real_readw(SegValue(ss),reg_sp+2),false,0);
 
             if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
             dos_program_running = false;
@@ -2303,6 +2313,7 @@ static Bitu DOS_21Handler(void) {
         case 0x4d:                  /* Get Return code */
             reg_al=dos.return_code;/* Officially read from SDA and clear when read */
             reg_ah=dos.return_mode;
+            CALLBACK_SCF(false);
             break;
         case 0x4e:                  /* FINDFIRST Find first matching file */
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
@@ -2381,13 +2392,14 @@ static Bitu DOS_21Handler(void) {
                     CALLBACK_SCF(true);
                 }
             } else {
-                LOG(LOG_DOSMISC,LOG_ERROR)("DOS:57:Unsupported subtion %X",reg_al);
+                LOG(LOG_DOSMISC,LOG_ERROR)("DOS:57:Unsupported subfunction %X",reg_al);
             }
             break;
         case 0x58:                  /* Get/Set Memory allocation strategy */
             switch (reg_al) {
                 case 0:                 /* Get Strategy */
                     reg_ax=DOS_GetMemAllocStrategy();
+                    CALLBACK_SCF(false);
                     break;
                 case 1:                 /* Set Strategy */
                     if (DOS_SetMemAllocStrategy(reg_bx)) CALLBACK_SCF(false);
@@ -2422,6 +2434,7 @@ static Bitu DOS_21Handler(void) {
             }
             reg_bl=1;   //Retry retry retry
             reg_ch=0;   //Unknown error locus
+            CALLBACK_SCF(false); //undocumented
             break;
         case 0x5a:                  /* Create temporary file */
             {
@@ -2484,7 +2497,10 @@ static Bitu DOS_21Handler(void) {
                 reg_si = DOS_SDA_OFS;
                 reg_cx = DOS_SDA_SEG_SIZE;  // swap if in dos
                 reg_dx = 0x1a;  // swap always (NTS: Size of DOS SDA structure in dos_inc)
+                CALLBACK_SCF(false);
                 LOG(LOG_DOSMISC,LOG_NORMAL)("Get SDA, Let's hope for the best!");
+            } else {
+                LOG(LOG_DOSMISC,LOG_ERROR)("DOS:5D:Unsupported subfunction %X",reg_al);
             }
             break;
         case 0x5e:                  /* Network and printer functions */
@@ -2814,6 +2830,7 @@ static Bitu DOS_21Handler(void) {
         case 0x68:                  /* FFLUSH Commit file */
             case_0x68_fallthrough:
             if(DOS_FlushFile(reg_bl)) {
+                reg_ah = 0x68;
                 CALLBACK_SCF(false);
             } else {
                 reg_ax = dos.errorcode;
@@ -3131,10 +3148,43 @@ static Bitu DOS_27Handler(void) {
 	return CBRET_NONE;
 }
 
+static uint16_t DOS_SectorAccess(bool read) {
+	fatDrive * drive = (fatDrive *)Drives[reg_al];
+	uint16_t bufferSeg = SegValue(ds);
+	uint16_t bufferOff = reg_bx;
+	uint16_t sectorCnt = reg_cx;
+	uint32_t sectorNum = (uint32_t)reg_dx + drive->partSectOff;
+	uint32_t sectorEnd = drive->getSectorCount() + drive->partSectOff;
+	uint8_t sectorBuf[512];
+	Bitu i;
+
+	if (sectorCnt == 0xffff) { // large partition form
+		bufferSeg = real_readw(SegValue(ds),reg_bx + 8);
+		bufferOff = real_readw(SegValue(ds),reg_bx + 6);
+		sectorCnt = real_readw(SegValue(ds),reg_bx + 4);
+		sectorNum = real_readd(SegValue(ds),reg_bx + 0) + drive->partSectOff;
+	} else if (sectorEnd > 0xffff) return 0x0207; // must use large partition form
+
+	while (sectorCnt--) {
+		if (sectorNum >= sectorEnd) return 0x0408; // sector not found
+		if (read) {
+			if (drive->readSector(sectorNum++,&sectorBuf)) return 0x0408;
+			for (i=0;i<512;i++) real_writeb(bufferSeg,bufferOff++,sectorBuf[i]);
+		} else {
+			for (i=0;i<512;i++) sectorBuf[i] = real_readb(bufferSeg,bufferOff++);
+			if (drive->writeSector(sectorNum++,&sectorBuf)) return 0x0408;
+		}
+	}
+	return 0;
+}
+
 static Bitu DOS_25Handler_Actual(bool fat32) {
 	if (reg_al >= DOS_DRIVES || !Drives[reg_al] || Drives[reg_al]->isRemovable()) {
 		reg_ax = 0x8002;
 		SETFLAGBIT(CF,true);
+	} else if (strncmp(Drives[reg_al]->GetInfo(),"fatDrive",8) == 0) {
+		reg_ax = DOS_SectorAccess(true);
+		SETFLAGBIT(CF,reg_ax != 0);
 	} else {
 		DOS_Drive *drv = Drives[reg_al];
 		/* assume drv != NULL */
@@ -3235,7 +3285,7 @@ static Bitu DOS_25Handler_Actual(bool fat32) {
 		/* MicroProse installer hack, inherited from DOSBox SVN, as a fallback if INT 25h emulation is not available for the drive. */
 		if (reg_cx == 1 && reg_dx == 0 && reg_al >= 2) {
 			// write some BPB data into buffer for MicroProse installers
-			mem_writew(ptr+0x1c,0x3f); // hidden sectors
+			real_writew(SegValue(ds),reg_bx+0x1c,0x3f); // hidden sectors
 			SETFLAGBIT(CF,false);
 			reg_ax = 0;
 		} else {
@@ -3255,6 +3305,9 @@ static Bitu DOS_26Handler_Actual(bool fat32) {
 	if (reg_al >= DOS_DRIVES || !Drives[reg_al] || Drives[reg_al]->isRemovable()) {	
 		reg_ax = 0x8002;
 		SETFLAGBIT(CF,true);
+	} else if (strncmp(Drives[reg_al]->GetInfo(),"fatDrive",8) == 0) {
+		reg_ax = DOS_SectorAccess(false);
+		SETFLAGBIT(CF,reg_ax != 0);
 	} else {
 		DOS_Drive *drv = Drives[reg_al];
 		/* assume drv != NULL */

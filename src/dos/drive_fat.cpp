@@ -412,7 +412,8 @@ bool fatFile::Write(const uint8_t * data, uint16_t *size) {
 
 	if(seekpos < filelength && *size == 0) {
 		/* Truncate file to current position */
-		myDrive->deleteClustChain(firstCluster, seekpos);
+		if(firstCluster != 0) myDrive->deleteClustChain(firstCluster, seekpos);
+		if(seekpos == 0) firstCluster = 0;
 		filelength = seekpos;
 		if (filelength == 0) firstCluster = 0; /* A file of length zero has a starting cluster of zero as well */
 		modified = true;
@@ -1035,6 +1036,13 @@ uint8_t fatDrive::writeSector(uint32_t sectnum, void * data) {
 	uint32_t sector = sectnum % BPB.v.BPB_SecPerTrk + 1L;
 	return loadedDisk->Write_Sector(head, cylinder, sector, data);
 }
+
+uint32_t fatDrive::getSectorCount(void) {
+	if (BPB.v.BPB_TotSec16 != 0)
+		return (uint32_t)BPB.v.BPB_TotSec16;
+	else
+		return BPB.v.BPB_TotSec32;
+ }
 
 uint32_t fatDrive::getSectorSize(void) {
 	return BPB.v.BPB_BytsPerSec;

@@ -882,9 +882,12 @@ bool DOS_OpenFile(char const * name,uint8_t flags,uint16_t * entry,bool fcb) {
         else
 		    Files[handle]=new DOS_Device(*Devices[devnum]);
 	} else {
+		uint16_t olderror=dos.errorcode;
+		dos.errorcode=0;
         exists=Drives[drive]->FileOpen(&Files[handle],fullname,flags) || Drives[drive]->FileOpen(&Files[handle],upcase(fullname),flags);
 		if (exists) Files[handle]->SetDrive(drive);
 		else if (dos.errorcode==DOSERR_ACCESS_CODE_INVALID) return false;
+		dos.errorcode=olderror;
 	}
 	if (exists || device ) { 
 		Files[handle]->AddRef();
@@ -1309,6 +1312,7 @@ bool DOS_CreateTempFile(char * const name,uint16_t * entry) {
 			tempname++;
 		}
 	}
+	uint16_t olderror=dos.errorcode;
 	dos.errorcode=0;
 	/* add random crap to the end of the name and try to open */
 	initRand();
@@ -1324,6 +1328,7 @@ bool DOS_CreateTempFile(char * const name,uint16_t * entry) {
 	} while (cont || DOS_FileExists(name));
 	DOS_CreateFile(name,0,entry);
 	if (dos.errorcode) return false;
+	dos.errorcode=olderror;
 	return true;
 }
 

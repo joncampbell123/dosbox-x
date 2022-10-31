@@ -446,7 +446,7 @@ static OpCode OpCodeTable[1024]={
 
 /* 0x260 - 0x267 */
 {D_PUSHAd	,0			,0		,0		},{D_POPAd	,0			,0		,0		},
-{L_MODRM	,O_BOUNDd	,0		,0		},{0		,0			,0		,0		},
+{L_MODRM	,O_BOUNDd	,0		,M_Gd	},{0		,0			,0		,0		},
 {L_PRESEG	,0			,0		,fs		},{L_PRESEG	,0			,0		,gs		},
 {L_PREOP	,0			,0		,0		},{L_PREADD	,0			,0		,0		},
 /* 0x268 - 0x26f */

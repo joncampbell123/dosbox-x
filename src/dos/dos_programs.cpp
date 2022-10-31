@@ -2114,6 +2114,11 @@ public:
                     continue;
                 }
 
+                if(imageDiskList[0] != NULL || imageDiskList[1] != NULL) {
+                    WriteOut(MSG_Get("PROGRAM_BOOT_IMAGE_MOUNTED"));
+                    return;
+                }
+
                 if (i >= MAX_SWAPPABLE_DISKS) {
                     return; //TODO give a warning.
                 }
@@ -8851,6 +8856,7 @@ void DOS_SetupPrograms(void) {
         "\033[32;1mBOOT :DOS.IMG\033[0m - boot from floppy image DOS.IMG in write-protected mode.\n"
         );
     MSG_Add("PROGRAM_BOOT_UNABLE","Unable to boot off of drive %c.\n");
+    MSG_Add("PROGRAM_BOOT_IMAGE_MOUNTED", "Floppy image(s) already mounted.\n");
     MSG_Add("PROGRAM_BOOT_IMAGE_OPEN","Opening image file: %s\n");
     MSG_Add("PROGRAM_BOOT_IMAGE_NOT_OPEN","Cannot open %s\n");
     MSG_Add("PROGRAM_BOOT_CART_WO_PCJR","PCjr cartridge found, but machine is not PCjr");
