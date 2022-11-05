@@ -67,7 +67,7 @@ void Opl3DuoBoard::reset() {
 }
 
 void Opl3DuoBoard::resetBuffer() {
-	sendBuffer = {};
+	sendBuffer = std::queue<uint8_t>();
 }
 
 void Opl3DuoBoard::write(uint32_t reg, uint8_t val) {

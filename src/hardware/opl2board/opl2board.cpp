@@ -6,7 +6,7 @@ OPL2AudioBoard::OPL2AudioBoard() {
 }
 
 void OPL2AudioBoard::connect(const char* port) {
-	printf("OPL2 Audio Board: Connecting to port %s... ", port);
+	printf("OPL2 Audio Board: Connecting to port %s... \n", port);
 
 	comport = nullptr;
 	if (SERIAL_open(port, &comport)) {
@@ -59,7 +59,7 @@ void OPL2AudioBoard::reset() {
 }
 void OPL2AudioBoard::resetBuffer()
 {
-	sendBuffer = {};
+	sendBuffer = std::queue<uint8_t>();
 }
 void OPL2AudioBoard::writeBuffer()
 {
@@ -89,7 +89,7 @@ void OPL2AudioBoard::writeBuffer()
 void OPL2AudioBoard::write(uint8_t reg, uint8_t val) {
 	if (comport) {
 		#if OPL2_AUDIO_BOARD_DEBUG
-			printf("OPL2 Audio Board: Write %d --> %d\n", val, reg);
+			printf("OPL2 Audio Board: Write %d --> %d | buffer size %d\n", val, reg, sendBuffer.size());
 		#endif
 #if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 		sendBuffer.push(reg);
