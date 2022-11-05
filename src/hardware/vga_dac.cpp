@@ -56,9 +56,10 @@ enum {DAC_READ,DAC_WRITE};
 
 static void VGA_DAC_SendColor( Bitu index, Bitu src ) {
     const uint8_t dacshift = vga_8bit_dac ? 0u : 2u;
-    const uint8_t red = vga.dac.rgb[src].red << dacshift;
-    const uint8_t green = vga.dac.rgb[src].green << dacshift;
-    const uint8_t blue = vga.dac.rgb[src].blue << dacshift;
+    /* convert 6bit VGA palette to 8bit RGB */
+    uint8_t red = (vga.dac.rgb[src].red << dacshift | vga.dac.rgb[src].red >> (dacshift * 2));
+    uint8_t green = (vga.dac.rgb[src].green << dacshift | vga.dac.rgb[src].green >> (dacshift * 2));
+    uint8_t blue = (vga.dac.rgb[src].blue << dacshift | vga.dac.rgb[src].blue >> (dacshift * 2));
 
     /* FIXME: CGA composite mode calls RENDER_SetPal itself, which conflicts with this code */
     if (vga.mode == M_CGA16)

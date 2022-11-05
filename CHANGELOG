@@ -48,6 +48,7 @@ Unreleased
     prevents a bug in UNLZEXE from causing a crash, and
     maybe helps other buggy programs and unusual cases.
     Use real addressing to support stack pointer wraparound.
+  - Fix 6-bit VGA to 8-bit RGB palette conversion (maron2000)
 
 2022.09.0 (0.84.3)
   - Updated FFMPEG video capture to use newer API,
