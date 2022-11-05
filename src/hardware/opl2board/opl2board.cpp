@@ -63,26 +63,28 @@ void OPL2AudioBoard::resetBuffer()
 }
 void OPL2AudioBoard::writeBuffer()
 {
-#if !defined(MACOS)
-	/* Note:(josephillips85) This is a workaround to fix the thread stop issue presented on MacOS
-	 Probably hitting this BUG https://github.com/apple/darwin-libpthread/blob/main/src/pthread.c#L2177
-	 Already tested on MacOS Big Sur 11.2.1 */
-	while(!stopThread) {
-		if (!sendBuffer.empty()) {
-			if (SERIAL_sendchar(comport, sendBuffer.front())) {
-				sendBuffer.pop();
+#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+
+	#if !defined(MACOS)
+		/* Note:(josephillips85) This is a workaround to fix the thread stop issue presented on MacOS
+		 Probably hitting this BUG https://github.com/apple/darwin-libpthread/blob/main/src/pthread.c#L2177
+		 Already tested on MacOS Big Sur 11.2.1 */
+		while(!stopThread) {
+			if (!sendBuffer.empty()) {
+				if (SERIAL_sendchar(comport, sendBuffer.front())) {
+					sendBuffer.pop();
+				}
 			}
 		}
-	}
-#else
-
-	do {
-		while(!sendBuffer.empty()) {
-			if(SERIAL_sendchar(comport, sendBuffer.front())) {
-				sendBuffer.pop();
-			};
-		}
-	} while(!stopThread);
+	#else
+		do {
+			while(!sendBuffer.empty()) {
+				if(SERIAL_sendchar(comport, sendBuffer.front())) {
+					sendBuffer.pop();
+				};
+			}
+		} while(!stopThread);
+	#endif
 
 #endif
 }
