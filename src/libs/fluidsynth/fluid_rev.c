@@ -62,7 +62,7 @@
 
 
 //#define DC_OFFSET 0
-#define DC_OFFSET 1e-8
+#define DC_OFFSET 1.0e-8f
 //#define DC_OFFSET 0.001f
 typedef struct _fluid_allpass fluid_allpass;
 typedef struct _fluid_comb fluid_comb;

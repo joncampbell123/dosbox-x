@@ -79,5 +79,6 @@ fluid_evt_heap_t* _fluid_evt_heap_init(int nbEvents);
 void _fluid_evt_heap_free(fluid_evt_heap_t* heap);
 fluid_evt_entry* _fluid_seq_heap_get_free(fluid_evt_heap_t* heap);
 void _fluid_seq_heap_set_free(fluid_evt_heap_t* heap, fluid_evt_entry* evt);
+void fluid_event_key_pressure(fluid_event_t* evt, int channel, short key, short val);
 
 #endif /* _FLUID_EVENT_PRIV_H */

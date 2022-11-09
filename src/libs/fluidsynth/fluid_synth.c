@@ -592,7 +592,7 @@ new_fluid_synth(fluid_settings_t *settings)
   fluid_settings_getint(settings, "synth.audio-groups", &synth->audio_groups);
   fluid_settings_getint(settings, "synth.effects-channels", &synth->effects_channels);
   fluid_settings_getnum(settings, "synth.gain", &gain);
-  synth->gain = gain;
+  synth->gain = (fluid_real_t)gain;
   fluid_settings_getint(settings, "synth.device-id", &synth->device_id);
   fluid_settings_getint(settings, "synth.cpu-cores", &synth->cores);
 
@@ -712,13 +712,13 @@ new_fluid_synth(fluid_settings_t *settings)
     goto error_recovery;
   }
   for (i = 0; i < synth->nvoice; i++) {
-    synth->voice[i] = new_fluid_voice((fluid_real_t)synth->sample_rate);
+    synth->voice[i] = new_fluid_voice((fluid_real_t)(synth->sample_rate));
     if (synth->voice[i] == NULL) {
       goto error_recovery;
     }
   }
 
-  fluid_synth_set_sample_rate(synth, synth->sample_rate);
+  fluid_synth_set_sample_rate(synth, (fluid_real_t)(synth->sample_rate));
   
   fluid_synth_update_overflow(synth, "", 0.0f);
   fluid_synth_update_mixer(synth, fluid_rvoice_mixer_set_polyphony, 
@@ -866,12 +866,12 @@ delete_fluid_synth(fluid_synth_t* synth)
   if (synth->tuning != NULL) {
     for (i = 0; i < 128; i++) {
       if (synth->tuning[i] != NULL) {
-	for (k = 0; k < 128; k++) {
-	  if (synth->tuning[i][k] != NULL) {
-	    delete_fluid_tuning(synth->tuning[i][k]);
-	  }
-	}
-	FLUID_FREE(synth->tuning[i]);
+	    for (k = 0; k < 128; k++) {
+	      if (synth->tuning[i][k] != NULL) {
+	        delete_fluid_tuning(synth->tuning[i][k]);
+	      }
+	    }
+	    FLUID_FREE(synth->tuning[i]);
       }
     }
     FLUID_FREE(synth->tuning);
@@ -1144,11 +1144,11 @@ fluid_synth_cc_LOCAL (fluid_synth_t* synth, int channum, int num)
             break;
           case RPN_CHANNEL_FINE_TUNE:   /* Fine tune is 14 bit over 1 semitone (+/- 50 cents, 8192 = center) */
             fluid_synth_set_gen_LOCAL (synth, channum, GEN_FINETUNE,
-                                       (data - 8192) / 8192.0 * 50.0, FALSE);
+                                       (data - 8192.0f) / 8192.0f * 50.0f, FALSE);
             break;
           case RPN_CHANNEL_COARSE_TUNE: /* Coarse tune is 7 bit and in semitones (64 is center) */
             fluid_synth_set_gen_LOCAL (synth, channum, GEN_COARSETUNE,
-                                       value - 64, FALSE);
+                                       value - 64.0f, FALSE);
             break;
           case RPN_TUNING_PROGRAM_CHANGE:
             fluid_channel_set_tuning_prog (chan, value);
@@ -1360,10 +1360,10 @@ fluid_synth_sysex_midi_tuning (fluid_synth_t *synth, const char *data, int len,
 
       for (i = 0; i < 128; i++)
       {
-        note = tunedata[i] / 100.0;
+        note = (int)(tunedata[i] / 100.0);
         fluid_clip (note, 0, 127);
 
-        frac = ((tunedata[i] - note * 100.0) * 16384.0 + 50.0) / 100.0;
+        frac = (int)(((tunedata[i] - note * 100.0) * 16384.0 + 50.0) / 100.0);
         fluid_clip (frac, 0, 16383);
 
         *resptr++ = note;
@@ -2560,7 +2560,7 @@ fluid_synth_nwrite_float(fluid_synth_t* synth, int len,
 	synth->cur = num;
 
 	time = fluid_utime() - time;
-	cpu_load = 0.5 * (synth->cpu_load + time * synth->sample_rate / len / 10000.0);
+	cpu_load = (float)(0.5 * (synth->cpu_load + time * synth->sample_rate / len / 10000.0));
 	fluid_atomic_float_set(&synth->cpu_load, cpu_load);
 
 	if (!synth->eventhandler->is_threadsafe)
@@ -2636,7 +2636,7 @@ fluid_synth_write_float(fluid_synth_t* synth, int len,
   fluid_real_t** left_in;
   fluid_real_t** right_in;
   double time = fluid_utime();
-  float cpu_load;
+  double cpu_load;
 
   fluid_profile_ref_var (prof_ref);
   if (!synth->eventhandler->is_threadsafe)
@@ -2664,7 +2664,7 @@ fluid_synth_write_float(fluid_synth_t* synth, int len,
 
   time = fluid_utime() - time;
   cpu_load = 0.5 * (synth->cpu_load + time * synth->sample_rate / len / 10000.0);
-  fluid_atomic_float_set (&synth->cpu_load, cpu_load);
+  fluid_atomic_float_set (&synth->cpu_load, (float)cpu_load);
 
   if (!synth->eventhandler->is_threadsafe)
     fluid_synth_api_exit(synth);
@@ -2740,7 +2740,7 @@ fluid_synth_write_s16(fluid_synth_t* synth, int len,
   double time = fluid_utime();
   int di; 
   //double prof_ref_on_block;
-  float cpu_load;
+  double cpu_load;
   fluid_profile_ref_var (prof_ref);
   
   if (!synth->eventhandler->is_threadsafe)
@@ -2788,7 +2788,7 @@ fluid_synth_write_s16(fluid_synth_t* synth, int len,
 
   time = fluid_utime() - time;
   cpu_load = 0.5 * (synth->cpu_load + time * synth->sample_rate / len / 10000.0);
-  fluid_atomic_float_set (&synth->cpu_load, cpu_load);
+  fluid_atomic_float_set (&synth->cpu_load, (float)cpu_load);
 
   if (!synth->eventhandler->is_threadsafe)
     fluid_synth_api_exit(synth);
@@ -3081,7 +3081,7 @@ static void
 fluid_synth_kill_by_exclusive_class_LOCAL(fluid_synth_t* synth,
                                           fluid_voice_t* new_voice)
 {
-  int excl_class = _GEN(new_voice,GEN_EXCLUSIVECLASS);
+  fluid_real_t excl_class = _GEN(new_voice,GEN_EXCLUSIVECLASS);
   fluid_voice_t* existing_voice;
   int i;
 
@@ -3097,7 +3097,7 @@ fluid_synth_kill_by_exclusive_class_LOCAL(fluid_synth_t* synth,
 
     if (_PLAYING(existing_voice)
         && existing_voice->chan == new_voice->chan
-        && (int)_GEN (existing_voice, GEN_EXCLUSIVECLASS) == excl_class
+        && _GEN(existing_voice, GEN_EXCLUSIVECLASS) == excl_class
         && fluid_voice_get_id (existing_voice) != fluid_voice_get_id(new_voice))
       fluid_voice_kill_excl(existing_voice);
   }
@@ -3928,8 +3928,8 @@ fluid_synth_set_chorus_full(fluid_synth_t* synth, int set, int nr, double level,
 int
 fluid_synth_get_chorus_nr(fluid_synth_t* synth)
 {
-  double result;
-  fluid_return_val_if_fail (synth != NULL, 0.0);
+  int result;
+  fluid_return_val_if_fail (synth != NULL, 0);
   fluid_synth_api_enter(synth);
 
   result = fluid_atomic_int_get (&synth->chorus_nr);
@@ -3992,8 +3992,8 @@ fluid_synth_get_chorus_depth_ms(fluid_synth_t* synth)
 int
 fluid_synth_get_chorus_type(fluid_synth_t* synth)
 {
-  double result;
-  fluid_return_val_if_fail (synth != NULL, 0.0);
+  int result;
+  fluid_return_val_if_fail (synth != NULL, 0);
   fluid_synth_api_enter(synth);
 
   result = fluid_atomic_int_get (&synth->chorus_type);

@@ -86,7 +86,7 @@
  */
 #define MAX_SAMPLES_LN2 12
 
-#define MAX_SAMPLES (1 << (MAX_SAMPLES_LN2-1))
+#define MAX_SAMPLES (2^(MAX_SAMPLES_LN2))
 #define MAX_SAMPLES_ANDMASK (MAX_SAMPLES-1)
 
 
@@ -95,7 +95,7 @@
    samples
 */
 #define INTERPOLATION_SUBSAMPLES_LN2 8
-#define INTERPOLATION_SUBSAMPLES (1 << (INTERPOLATION_SUBSAMPLES_LN2-1))
+#define INTERPOLATION_SUBSAMPLES (2^INTERPOLATION_SUBSAMPLES_LN2)
 #define INTERPOLATION_SUBSAMPLES_ANDMASK (INTERPOLATION_SUBSAMPLES-1)
 
 /* Use how many samples for interpolation? Must be odd.  '7' sounds
@@ -270,7 +270,7 @@ fluid_chorus_set(fluid_chorus_t* chorus, int set, int nr, float level,
   if (chorus->speed_Hz < MIN_SPEED_HZ) {
     fluid_log(FLUID_WARN, "chorus: speed is too low (min %f)! Setting value to min.",
 	     (double) MIN_SPEED_HZ);
-    chorus->speed_Hz = MIN_SPEED_HZ;
+    chorus->speed_Hz = (float) MIN_SPEED_HZ;
   } else if (chorus->speed_Hz > MAX_SPEED_HZ) {
     fluid_log(FLUID_WARN, "chorus: speed must be below %f Hz! Setting value to max.",
 	     (double) MAX_SPEED_HZ);
@@ -289,7 +289,7 @@ fluid_chorus_set(fluid_chorus_t* chorus, int set, int nr, float level,
   } else if (chorus->level > 10) {
     fluid_log(FLUID_WARN, "chorus: level must be < 10. A reasonable level is << 1! "
 	     "Setting it to 0.1.");
-    chorus->level = 0.1;
+    chorus->level = (float) 0.1;
   }
 
   /* The modulating LFO goes through a full period every x samples: */
@@ -518,7 +518,7 @@ fluid_chorus_triangle(int *buf, int len, int depth)
 		incr = 2.0 / len * (double)depth * (double)INTERPOLATION_SUBSAMPLES;
 	
 		    /* Initialize first value */
-		val = 0. - 3. * MAX_SAMPLES * INTERPOLATION_SUBSAMPLES;
+		val = 0. - (double)3. * (double)MAX_SAMPLES * INTERPOLATION_SUBSAMPLES;
 	
 		    /* Build triangular modulation waveform */
 		while (il <= ir)

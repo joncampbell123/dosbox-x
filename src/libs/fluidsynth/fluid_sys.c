@@ -401,7 +401,7 @@ double fluid_utime(void) {
   }
 }
 
-unsigned int fluid_curtime(void) { return fluid_utime() * 1000; }
+unsigned int fluid_curtime(void) { return (unsigned int)(fluid_utime() * 1000); }
 
 #else /* HAVE_WINDOWS_H */
 

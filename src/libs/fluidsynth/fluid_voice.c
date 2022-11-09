@@ -113,14 +113,14 @@ fluid_voice_update_volenv(fluid_voice_t* voice,
                           unsigned int count,
                           fluid_real_t coeff,
                           fluid_real_t increment,
-                          fluid_real_t min,
-                          fluid_real_t max)
+                          fluid_real_t min_val,
+                          fluid_real_t max_val)
 {
   fluid_adsr_env_set_data(&voice->volenv, section, count, coeff, increment, 
-			  min, max);
+			  min_val, max_val);
   UPDATE_RVOICE_GENERIC_ALL(fluid_adsr_env_set_data, 
 			    &voice->rvoice->envlfo.volenv, section, count, 
-			    coeff, increment, min, max);
+			    coeff, increment, min_val, max_val);
 }
 
 static inline void
@@ -129,12 +129,12 @@ fluid_voice_update_modenv(fluid_voice_t* voice,
                           unsigned int count,
                           fluid_real_t coeff,
                           fluid_real_t increment,
-                          fluid_real_t min,
-                          fluid_real_t max)
+                          fluid_real_t min_val,
+                          fluid_real_t max_val)
 {
   UPDATE_RVOICE_GENERIC_ALL(fluid_adsr_env_set_data, 
 			    &voice->rvoice->envlfo.modenv, section, count,
-			    coeff, increment, min, max);
+			    coeff, increment, min_val, max_val);
 }
 
 static inline void fluid_sample_null_ptr(fluid_sample_t** sample)
@@ -297,8 +297,8 @@ fluid_voice_init(fluid_voice_t* voice, fluid_sample_t* sample,
 
   voice->synth_gain = gain;
   /* avoid division by zero later*/
-  if (voice->synth_gain < 0.0000001){
-    voice->synth_gain = 0.0000001;
+  if (voice->synth_gain < 0.0000001f){
+    voice->synth_gain = 0.0000001f;
   }
   UPDATE_RVOICE_R1(fluid_rvoice_set_synth_gain, voice->synth_gain);
 
@@ -471,7 +471,7 @@ void
 fluid_voice_calculate_gen_pitch(fluid_voice_t* voice)
 {
   fluid_tuning_t* tuning;
-  fluid_real_t x;
+  double x;
 
   /* The GEN_PITCH is a hack to fit the pitch bend controller into the
    * modulator paradigm.  Now the nominal pitch of the key is set.
@@ -483,11 +483,11 @@ fluid_voice_calculate_gen_pitch(fluid_voice_t* voice)
   if (fluid_channel_has_tuning(voice->channel)) {
     tuning = fluid_channel_get_tuning (voice->channel);
     x = fluid_tuning_get_pitch (tuning, (int)(voice->root_pitch / 100.0f));
-    voice->gen[GEN_PITCH].val = voice->gen[GEN_SCALETUNE].val / 100.0f *
+    voice->gen[GEN_PITCH].val = voice->gen[GEN_SCALETUNE].val / 100.0 *
       (fluid_tuning_get_pitch (tuning, voice->key) - x) + x;
   } else {
     voice->gen[GEN_PITCH].val = voice->gen[GEN_SCALETUNE].val
-      * (voice->key - voice->root_pitch / 100.0f) + voice->root_pitch;
+      * ((double)(voice->key) - voice->root_pitch / 100.0) + voice->root_pitch;
   }
 
 }
@@ -639,7 +639,7 @@ calculate_hold_decay_buffers(fluid_voice_t* voice, int gen_base,
    * will cause (60-72)*100=-1200 timecents of time variation.
    * The time is cut in half.
    */
-  timecents = (_GEN(voice, gen_base) + _GEN(voice, gen_key2base) * (60.0 - voice->key));
+  timecents = (_GEN(voice, gen_base) + _GEN(voice, gen_key2base) * (60.0f - voice->key));
 
   /* Range checking */
   if (is_decay){
@@ -706,7 +706,7 @@ fluid_voice_update_param(fluid_voice_t* voice, int gen)
   fluid_real_t y;
   unsigned int count, z;
   // Alternate attenuation scale used by EMU10K1 cards when setting the attenuation at the preset or instrument level within the SoundFont bank.
-  static const float ALT_ATTENUATION_SCALE = 0.4;
+  static const float ALT_ATTENUATION_SCALE = 0.4f;
 
   switch (gen) {
 
@@ -726,7 +726,7 @@ fluid_voice_update_param(fluid_voice_t* voice, int gen)
     /* Range: SF2.01 section 8.1.3 # 48
      * Motivation for range checking:
      * OHPiano.SF2 sets initial attenuation to a whooping -96 dB */
-    fluid_clip(voice->attenuation, 0.0, 1440.0);
+    fluid_clip(voice->attenuation, 0.0f, 1440.0f);
     UPDATE_RVOICE_R1(fluid_rvoice_set_attenuation, voice->attenuation);
     break;
 
@@ -746,7 +746,7 @@ fluid_voice_update_param(fluid_voice_t* voice, int gen)
   case GEN_REVERBSEND:
     /* The generator unit is 'tenths of a percent'. */
     voice->reverb_send = _GEN(voice, GEN_REVERBSEND) / 1000.0f;
-    fluid_clip(voice->reverb_send, 0.0, 1.0);
+    fluid_clip(voice->reverb_send, 0.0f, 1.0f);
     voice->amp_reverb = voice->reverb_send * voice->synth_gain / 32768.0f;
     UPDATE_RVOICE_BUFFERS2(fluid_rvoice_buffers_set_amp, 2, voice->amp_reverb);
     break;
@@ -754,7 +754,7 @@ fluid_voice_update_param(fluid_voice_t* voice, int gen)
   case GEN_CHORUSSEND:
     /* The generator unit is 'tenths of a percent'. */
     voice->chorus_send = _GEN(voice, GEN_CHORUSSEND) / 1000.0f;
-    fluid_clip(voice->chorus_send, 0.0, 1.0);
+    fluid_clip(voice->chorus_send, 0.0f, 1.0f);
     voice->amp_chorus = voice->chorus_send * voice->synth_gain / 32768.0f;
     UPDATE_RVOICE_BUFFERS2(fluid_rvoice_buffers_set_amp, 3, voice->amp_chorus);
     break;
@@ -768,14 +768,14 @@ fluid_voice_update_param(fluid_voice_t* voice, int gen)
      */
     if (voice->sample != NULL) {
       if (voice->gen[GEN_OVERRIDEROOTKEY].val > -1)   //FIXME: use flag instead of -1
-        voice->root_pitch = voice->gen[GEN_OVERRIDEROOTKEY].val * 100.0f
-	  - voice->sample->pitchadj;
+        voice->root_pitch = (fluid_real_t)(voice->gen[GEN_OVERRIDEROOTKEY].val * 100.0
+	  - (double)voice->sample->pitchadj);
       else
         voice->root_pitch = voice->sample->origpitch * 100.0f - voice->sample->pitchadj;
       x = (fluid_ct2hz(voice->root_pitch) * ((fluid_real_t) voice->output_rate / voice->sample->samplerate));
     } else {
       if (voice->gen[GEN_OVERRIDEROOTKEY].val > -1)    //FIXME: use flag instead of -1
-        voice->root_pitch = voice->gen[GEN_OVERRIDEROOTKEY].val * 100.0f;
+        voice->root_pitch = (fluid_real_t)(voice->gen[GEN_OVERRIDEROOTKEY].val * 100.0);
       else
         voice->root_pitch = 0;
       x = fluid_ct2hz(voice->root_pitch);
@@ -820,25 +820,25 @@ fluid_voice_update_param(fluid_voice_t* voice, int gen)
      * response of a non-resonant filter.  This idea is implemented as
      * follows: */
     q_dB -= 3.01f;
-    UPDATE_RVOICE_FILTER1(fluid_iir_filter_set_q_dB, q_dB);
+    UPDATE_RVOICE_FILTER1(fluid_iir_filter_set_q_dB, (fluid_real_t)q_dB);
 
     break;
 
   case GEN_MODLFOTOPITCH:
     x = _GEN(voice, GEN_MODLFOTOPITCH);
-    fluid_clip(x, -12000.0, 12000.0);
+    fluid_clip(x, -12000.0f, 12000.0f);
     UPDATE_RVOICE_R1(fluid_rvoice_set_modlfo_to_pitch, x);
     break;
 
   case GEN_MODLFOTOVOL:
     x = _GEN(voice, GEN_MODLFOTOVOL);
-    fluid_clip(x, -960.0, 960.0);
+    fluid_clip(x, -960.0f, 960.0f);
     UPDATE_RVOICE_R1(fluid_rvoice_set_modlfo_to_vol, x);
     break;
 
   case GEN_MODLFOTOFILTERFC:
     x = _GEN(voice, GEN_MODLFOTOFILTERFC);
-    fluid_clip(x, -12000, 12000);
+    fluid_clip(x, -12000.0f, 12000.0f);
     UPDATE_RVOICE_R1(fluid_rvoice_set_modlfo_to_fc, x);
     break;
 
@@ -880,7 +880,7 @@ fluid_voice_update_param(fluid_voice_t* voice, int gen)
 
   case GEN_VIBLFOTOPITCH:
     x = _GEN(voice, GEN_VIBLFOTOPITCH);
-    fluid_clip(x, -12000.0, 12000.0);
+    fluid_clip(x, -12000.0f, 12000.0f);
     UPDATE_RVOICE_R1(fluid_rvoice_set_viblfo_to_pitch, x); 
     break;
 
@@ -895,7 +895,7 @@ fluid_voice_update_param(fluid_voice_t* voice, int gen)
      * */
     x = _GEN(voice, GEN_KEYNUM);
     if (x >= 0){
-      voice->key = (fluid_real_t)x;
+      voice->key = (unsigned char)x;
     }
     break;
 
@@ -909,13 +909,13 @@ fluid_voice_update_param(fluid_voice_t* voice, int gen)
      * enabled or not. But here we rely on the default value of -1.  */
     x = _GEN(voice, GEN_VELOCITY);
     if (x > 0) {
-      voice->vel = (fluid_real_t)x;
+      voice->vel = (unsigned char)x;
     }
     break;
 
   case GEN_MODENVTOPITCH:
     x = _GEN(voice, GEN_MODENVTOPITCH);
-    fluid_clip(x, -12000.0, 12000.0);
+    fluid_clip(x, -12000.0f, 12000.0f);
     UPDATE_RVOICE_R1(fluid_rvoice_set_modenv_to_pitch, x);
     break;
 
@@ -926,7 +926,7 @@ fluid_voice_update_param(fluid_voice_t* voice, int gen)
      * Motivation for range checking:
      * Filter is reported to make funny noises now and then
      */
-    fluid_clip(x, -12000.0, 12000.0);
+    fluid_clip(x, -12000.0f, 12000.0f);
     UPDATE_RVOICE_R1(fluid_rvoice_set_modenv_to_fc, x);
     break;
 
@@ -1481,8 +1481,8 @@ int fluid_voice_set_param(fluid_voice_t* voice, int gen, fluid_real_t nrpn_value
 int fluid_voice_set_gain(fluid_voice_t* voice, fluid_real_t gain)
 {
   /* avoid division by zero*/
-  if (gain < 0.0000001){
-    gain = 0.0000001;
+  if (gain < 0.0000001f){
+    gain = 0.0000001f;
   }
 
   voice->synth_gain = gain;
@@ -1620,8 +1620,8 @@ fluid_voice_get_overflow_prio(fluid_voice_t* voice,
     if (voice->has_noteoff) {
       // FIXME: Should take into account where on the envelope we are...?
     }
-    if (a < 0.1) 
-      a = 0.1; // Avoid div by zero
+    if (a < 0.1f) 
+      a = 0.10f; // Avoid div by zero
       this_voice_prio += score->volume / a;
     }
     
