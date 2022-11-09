@@ -364,6 +364,10 @@ public:
 		else
 		    fluid_settings_setstr(settings, "audio.driver", "pulseaudio");
 #endif
+#if defined (WIN32)
+        else
+            fluid_settings_setstr(settings, "audio.driver", "dsound"); // Explicitly set audio driver to be dsound as default for Windows
+#endif //WIN32
 		fluid_settings_setnum(settings, "synth.sample-rate", atof(section->Get_string("fluid.samplerate")));
 		fluid_settings_setnum(settings, "synth.gain", atof(section->Get_string("fluid.gain")));
 		fluid_settings_setint(settings, "synth.polyphony", section->Get_int("fluid.polyphony"));
