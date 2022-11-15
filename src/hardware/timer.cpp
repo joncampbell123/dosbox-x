@@ -655,6 +655,7 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 			// save output status to be used with timer 0 irq
 			bool old_output = counter_output(0);
 			// save the current count value to be re-used in undocumented newmode
+			counter_latch(latch,false); /* update counter but do not affect held counter if latched by program */
 			pit[latch].bcd = (val&1)>0;   
 			if (val & 1) {
 				if(pit[latch].cntr>=9999) pit[latch].cntr=9999;
@@ -665,7 +666,8 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 				pit[latch].counterstatus_set=false;
 				latched_timerstatus_locked=false;
 			}
-			pit[latch].reset_count_at(PIC_FullIndex()); // for undocumented newmode
+			// Do not call reset_count_at() here, it causes problems.
+			// When the mode byte is written, count stops. When the new count is written, THEN call reset_count_at()
 			pit[latch].update_count = false;
 			pit[latch].counting = false;
 			pit[latch].read_state  = (val >> 4) & 0x03;
