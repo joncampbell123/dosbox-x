@@ -12,15 +12,14 @@ void Opl3DuoBoard::connect(const char* port) {
 	comport = 0;
 	if (SERIAL_open(port, &comport)) {
 		SERIAL_setCommParameters(comport, 115200, 'n', SERIAL_1STOP, 8);
-		printf("OPL3 Duo! Board: COM Port OK.\n");
-            
 #if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-        resetBuffer();
-        stopOPL3DuoThread = false;
-        thread = std::thread(&Opl3DuoBoard::writeBuffer,this);
+		resetBuffer();
+		stopOPL3DuoThread = false;
+		thread = std::thread(&Opl3DuoBoard::writeBuffer,this);
 #endif
+		printf("OPL3 Duo! Board: COM Port OK.\n");
 	} else {
-		printf("OPL3 Duo! Board: Unable to open COM port Failed.\n");
+		printf("OPL3 Duo! Board: Unable to open COM port Failed.  Error %d: %s\\n", errno, strerror(errno));
 	}
 }
 
@@ -68,26 +67,22 @@ void Opl3DuoBoard::reset() {
 }
 
 void Opl3DuoBoard::resetBuffer() {
-    bufferWrPos = 0;
-    bufferRdPos = 0;
+	sendBuffer = std::queue<uint8_t>();
 }
 
 void Opl3DuoBoard::write(uint32_t reg, uint8_t val) {
 	if (comport) {
 		#if OPL3_DUO_BOARD_DEBUG
-			printf("OPL3 Duo! Board: Write %d --> %d\n", val, reg);
+			printf("OPL3 Duo! Board: Write %d --> %d | buffer size %d\n", val, reg, sendBuffer.size());
 		#endif
-
 #if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-		sendBuffer[bufferWrPos] = (reg >> 6) | 0x80;
-		sendBuffer[bufferWrPos + 1] = ((reg & 0x3f) << 1) | (val >> 7);
-		sendBuffer[bufferWrPos + 2] = (val & 0x7f);
-    bufferWrPos = (bufferWrPos + 3) % OPL3_DUO_BUFFER_SIZE;
-#else    
-
-        SERIAL_sendchar(comport, (reg >> 6) | 0x80);
-        SERIAL_sendchar(comport, ((reg & 0x3f) << 1) | (val >> 7));
-        SERIAL_sendchar(comport, val & 0x7f);
+		sendBuffer.push((reg >> 6) | 0x80);
+		sendBuffer.push(((reg & 0x3f) << 1) | (val >> 7));
+		sendBuffer.push((val & 0x7f));
+#else
+		SERIAL_sendchar(comport, (reg >> 6) | 0x80);
+		SERIAL_sendchar(comport, ((reg & 0x3f) << 1) | (val >> 7));
+		SERIAL_sendchar(comport, val & 0x7f);
 #endif
 
 	}
@@ -96,27 +91,25 @@ void Opl3DuoBoard::write(uint32_t reg, uint8_t val) {
 void Opl3DuoBoard::writeBuffer() {
 #if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 
-    #if !defined(MACOS)
-    /* Note:(josephillips85) This is a workaround to fix the thread stop issue presented on MacOS
-     Probably hitting this BUG https://github.com/apple/darwin-libpthread/blob/main/src/pthread.c#L2177 
-     Already tested on MacOS Big Sur 11.2.1 */
-
-        while(!stopOPL3DuoThread) {        
-            if (bufferRdPos != bufferWrPos){
-            SERIAL_sendchar(comport, sendBuffer[bufferRdPos]);
-            bufferRdPos = (bufferRdPos + 1) % OPL3_DUO_BUFFER_SIZE;
-
-            }
-        }
-   #else
-
-   do {
-        while(bufferRdPos != bufferWrPos) {
-            SERIAL_sendchar(comport, sendBuffer[bufferRdPos]);
-            bufferRdPos = (bufferRdPos + 1) % OPL3_DUO_BUFFER_SIZE;
-        }
-    } while(!stopOPL3DuoThread);
-
-  #endif
+	#if !defined(MACOS)
+	/* Note:(josephillips85) This is a workaround to fix the thread stop issue presented on MacOS
+	 Probably hitting this BUG https://github.com/apple/darwin-libpthread/blob/main/src/pthread.c#L2177
+	 Already tested on MacOS Big Sur 11.2.1 */
+		while(!stopOPL3DuoThread) {
+			if (!sendBuffer.empty()) {
+				if (SERIAL_sendchar(comport, sendBuffer.front())) {
+					sendBuffer.pop();
+				}
+			}
+		}
+	#else
+	do {
+		while(!sendBuffer.empty()) {
+			if(SERIAL_sendchar(comport, sendBuffer.front())) {
+				sendBuffer.pop();
+			};
+		}
+	} while(!stopOPL3DuoThread);
+	#endif
 #endif
 }
