@@ -1,4 +1,7 @@
 Unreleased
+  - Add dosbox.conf option "cpuid string" to allow
+    CPUID to return custom ID strings instead of just
+    "GenuineIntel". Have fun! (joncampbell123)
   - Fixed build to properly compile against internal
     SDL/SDL2 library even if an external version is
     available (joncampbell123)

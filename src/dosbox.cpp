@@ -2632,6 +2632,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_values(fpu_settings);
     Pstring->SetBasic(true);
 
+    Pstring = secprop->Add_string("cpuid string",Property::Changeable::Always,"");
+    Pstring->Set_help("If set, changes the string returned by the CPUID instruction. Normally by default the string is 'GenuineIntel'.\n"
+		    "CAUTION: Custom strings can interfere with guest code CPU detection");
+
     Pstring = secprop->Add_string("processor serial number",Property::Changeable::Always,"");
     Pstring->Set_help("For Pentium III emulation, this sets the 96-bit Processor Serial Number returned by CPUID.\n"
             "If not set, then emulation will act as if the PSN has been disabled by the BIOS.\n"
