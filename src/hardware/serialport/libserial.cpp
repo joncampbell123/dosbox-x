@@ -305,11 +305,14 @@ bool SERIAL_open(const char* portname, COMPORT* port) {
 	termios termInfo;
 	memcpy(&termInfo,&cp->backup,sizeof(termios));
 
-	// initialize the port
-	termInfo.c_cflag = CS8 | CREAD | CLOCAL; // noparity, 1 stopbit
-	termInfo.c_iflag = PARMRK | INPCK;
-	termInfo.c_oflag = 0;
-	termInfo.c_lflag = 0;
+	// initialize the device, we first reset any bits we don't need.
+	// this step is needed because edits to serial devices are persistent.
+	termInfo.c_cflag &= ~(PARENB | CSTOPB | CSIZE | CRTSCTS | CMSPAR);
+	termInfo.c_iflag &= ~(IGNBRK | BRKINT | ICRNL | INLCR | PARMRK | INPCK | ISTRIP | IXON); // reset input controls
+	termInfo.c_oflag &= ~OPOST ; // raw output
+	termInfo.c_lflag &= ~(ECHO | ECHONL | ICANON | IEXTEN | ISIG); // no line processing, raw input
+	// Use preferred default options
+	termInfo.c_cflag |= CREAD | CLOCAL; // Standard default, must always be set
 	termInfo.c_cc[VMIN] = 0;
 	termInfo.c_cc[VTIME] = 0;
 
@@ -408,17 +411,35 @@ bool SERIAL_setCommParameters(COMPORT port,
 	termios termInfo;
 	int result = tcgetattr(port->porthandle, &termInfo);
 	if (result==-1) return false;
-	termInfo.c_cflag = CREAD | CLOCAL;
+	// reset flags that will be affected by this function
+	termInfo.c_iflag &= ~(INPCK | ISTRIP);
+	termInfo.c_cflag &= ~(CSIZE | PARENB | PARODD | CSTOPB | CBAUD | CMSPAR);
 
 	// parity
+#ifndef CMSPAR
+	// Mark or space parity bit.
 	// "works on many systems"
-	#define CMSPAR 010000000000
+	#define CMSPAR 010000000000 // Many systems have this define, not posix standard
+#endif
+	// set options according to parity
 	switch (parity) {
-	case 'n': break;
-	case 'o': termInfo.c_cflag |= (PARODD | PARENB); break;
-	case 'e': termInfo.c_cflag |= PARENB; break;
-	case 'm': termInfo.c_cflag |= (PARENB | CMSPAR | PARODD); break;
-	case 's': termInfo.c_cflag |= (PARENB | CMSPAR); break;
+	case 'n': break; // no parity
+	case 'o': // Odd parity
+		termInfo.c_iflag |= INPCK | ISTRIP;
+		termInfo.c_cflag |= (PARODD | PARENB);
+		break;
+	case 'e': // Even parity
+		termInfo.c_iflag |= INPCK | ISTRIP;
+		termInfo.c_cflag |= PARENB;
+		break;
+	case 'm': // Mark parity
+		termInfo.c_iflag |= INPCK | ISTRIP;
+		termInfo.c_cflag |= (PARENB | CMSPAR | PARODD);
+		break;
+	case 's': // Space parity
+		termInfo.c_iflag |= INPCK | ISTRIP;
+		termInfo.c_cflag |= (PARENB | CMSPAR);
+		break;
 	default:
 		return false;
 	}
