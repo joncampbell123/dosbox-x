@@ -236,7 +236,7 @@ struct PIT_Block {
     }
 
     read_counter_result read_counter(void) const {//This assumes you call track_time()
-        if (!gate)
+        if (!gate || new_mode)
             return last_counter;
 
         const pic_tickindex_t index = reltime();
@@ -336,7 +336,7 @@ static bool counter_output(Bitu counter) {
 	PIT_Block *p = &pit[counter];
     p->track_time(PIC_FullIndex());
 
-    PIT_Block::read_counter_result res = p->read_counter();
+    PIT_Block::read_counter_result res = p->last_counter = p->read_counter();
     p->update_output_from_counter(res);
 
     return p->output;
@@ -373,7 +373,7 @@ static void counter_latch(Bitu counter,bool do_latch=true) {
 
     p->track_time(PIC_FullIndex());
 
-    PIT_Block::read_counter_result res = p->read_counter();
+    PIT_Block::read_counter_result res = p->last_counter = p->read_counter();
     p->update_output_from_counter(res);
 
     if (do_latch) {
