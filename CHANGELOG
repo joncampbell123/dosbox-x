@@ -1,4 +1,5 @@
 Unreleased
+  - Fix 8254 PIT emulation (joncampbell123)
   - Add dosbox.conf option "cpuid string" to allow
     CPUID to return custom ID strings instead of just
     "GenuineIntel". Have fun! (joncampbell123)
