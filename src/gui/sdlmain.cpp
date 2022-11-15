@@ -5038,6 +5038,7 @@ static bool CheckEnableImmOnKey(SDL_KeyboardEvent key)
 #elif (defined(WIN32) && !defined(HX_DOS) || defined(MACOSX)) && defined(C_SDL2)
 static bool CheckEnableImmOnKey(SDL_KeyboardEvent key)
 {
+	if(ime_text.size() != 0) return false;
 	if(key.keysym.scancode == 0x29 ||
 #if defined(SDL_DOSBOX_X_IME)
 	(!SDL_IM_Composition(4) && (key.keysym.sym == 0x20 || (key.keysym.sym >= 0x30 && key.keysym.sym <= 0x39))) ||
