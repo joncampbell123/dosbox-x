@@ -2996,7 +2996,10 @@ bool CPU_CPUID(void) {
 	if (CPU_ArchitectureType < CPU_ARCHTYPE_486NEW) return false;
 	switch (reg_eax) {
 	case 0:	/* Vendor ID String and maximum level? */
-		reg_eax=1;  /* Maximum level */ 
+		if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII)
+			reg_eax=3;  /* Maximum level */
+		else
+			reg_eax=1;  /* Maximum level */
 		reg_ebx='G' | ('e' << 8) | ('n' << 16) | ('u'<< 24); 
 		reg_edx='i' | ('n' << 8) | ('e' << 16) | ('I'<< 24); 
 		reg_ecx='n' | ('t' << 8) | ('e' << 16) | ('l'<< 24); 
