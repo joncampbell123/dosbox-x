@@ -236,7 +236,7 @@ struct PIT_Block {
     }
 
     read_counter_result read_counter(void) const {//This assumes you call track_time()
-        if (!gate || new_mode)
+        if (!gate || new_mode || (mode == 0 && write_state == 0)/*mode 0 midway through 16-bit write also halts counter*/)
             return last_counter;
 
         const pic_tickindex_t index = reltime();
@@ -438,6 +438,7 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 		case 3:
 			p->write_latch = val & 0xff;
 			p->write_state = 0;
+			if (p->mode == 0) counter_latch(counter,false);
 			break;
 		case 1:
 			p->write_latch = val & 0xff;
