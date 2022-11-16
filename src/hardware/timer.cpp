@@ -410,6 +410,27 @@ bool TIMER2_ClockGateEnabled(void) {
     return !pit[IS_PC98_ARCH ? 1 : 2].new_mode;
 }
 
+// 8254 real hardware notes:
+// True to Intel documentation, mode 0 halts the count upon writing the mode byte, and it also
+// halts the count when given the first byte of a 16-bit count written to the timer. Reading
+// the counter during this state does not start it. Writing the mode byte again does not start
+// it. Twiddling the BCD bit back and forth (1996, Pyromania demoscene entry) does nothing.
+//
+// NOTES, 1996 demoscene entry "Pyromania":
+// - At the start of the credits section (animation followed by credits), the demo will hang
+//   and not continue. This is caused by misprogramming the 8254 PIT 0 in a way that causes
+//   all IRQ 0 timer interrupts to cease. The demo appears to write the mode 0 interval as
+//   expected, but then writes the first byte again (that's a total of 3 bytes). That leaves
+//   the 8254 in the halted case waiting for the other byte. The demo also uses a delay loop
+//   that uses a combined call to INT 1Ah to read BIOS_TIMER and the high byte of the counter
+//   value to wait a specific period of time. However in this state the timer counter is not
+//   ticking, and the lack of IRQ 0 means the IRQ 0 interrupt handler is not there to increment
+//   BIOS_TIMER, therefore nothing happens. Therefore, emulation is correct that the demo will
+//   hang at that point and the hang is not DOSBox-X's fault.
+//
+//   This is either the result of extremely sloppy code that happened to work on the democoder's
+//   machine (non-Intel hardware that minimally implements a 8254?) or perhaps a race condition
+//   between the program and it's own IRQ 0 interrupt.
 static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 //LOG(LOG_PIT,LOG_ERROR)("port %X write:%X state:%X",port,val,pit[port-0x40].write_state);
 
