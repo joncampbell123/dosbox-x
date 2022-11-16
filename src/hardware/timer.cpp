@@ -425,8 +425,10 @@ bool TIMER2_ClockGateEnabled(void) {
 //   that uses a combined call to INT 1Ah to read BIOS_TIMER and the high byte of the counter
 //   value to wait a specific period of time. However in this state the timer counter is not
 //   ticking, and the lack of IRQ 0 means the IRQ 0 interrupt handler is not there to increment
-//   BIOS_TIMER, therefore nothing happens. Therefore, emulation is correct that the demo will
-//   hang at that point and the hang is not DOSBox-X's fault.
+//   BIOS_TIMER, therefore nothing happens. Also noted is that the demo, for whatever reason,
+//   sets the mode byte twice, once normally, and then again with the BCD mode set. Therefore,
+//   emulation is correct that the demo will hang at that point and the hang is not DOSBox-X's
+//   fault.
 //
 //   This is either the result of extremely sloppy code that happened to work on the democoder's
 //   machine (non-Intel hardware that minimally implements a 8254?) or perhaps a race condition
