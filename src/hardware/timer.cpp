@@ -437,6 +437,13 @@ bool TIMER2_ClockGateEnabled(void) {
 //   Additional notes from testing: It is indeed some sort of race condition. There is code to
 //   set PIT 0 to mode 2 counter 0 momentarily before going back to mode 0. Interrupts are
 //   enabled at that point, which may be interrupted at that key point.
+//
+//   Additional notes: Indeed, the problem is that a flaw in this code at the time acted upon
+//   the demo's programming of PIT 0 mode 2 counter == 0 momentarily, then switching back to
+//   mode 0. When the demo wrote the first byte of the 16-bit count, an interrupt occurred
+//   immediately, and the IRQ wrote the count in the middle, then returned for the code to
+//   write the second byte. This race condition confused the 8254. Fixing the code not to do
+//   that fixes the demo crash.
 static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 //LOG(LOG_PIT,LOG_ERROR)("port %X write:%X state:%X",port,val,pit[port-0x40].write_state);
 
@@ -680,8 +687,6 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 			//      So the datasheet, and the behavior of Lemmings, confirms that the latch stays
 			//      in effect even if you write the control word.
 
-			// save output status to be used with timer 0 irq
-			bool old_output = counter_output(0);
 			// save the current count value to be re-used in undocumented newmode
 			counter_latch(latch,false); /* update counter but do not affect held counter if latched by program */
 			pit[latch].bcd = (val&1)>0;   
@@ -719,7 +724,7 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 
 			if (latch == 0) {
 				PIC_RemoveEvents(PIT0_Event);
-				if((mode != 0)&& !old_output) {
+				if((mode != 0)&& (pit[latch].reltime() > pit[latch].delay)) {
 					PIC_ActivateIRQ(0);
 				} else {
 					PIC_DeActivateIRQ(0);
