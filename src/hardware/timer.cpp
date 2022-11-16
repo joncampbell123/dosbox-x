@@ -433,6 +433,10 @@ bool TIMER2_ClockGateEnabled(void) {
 //   This is either the result of extremely sloppy code that happened to work on the democoder's
 //   machine (non-Intel hardware that minimally implements a 8254?) or perhaps a race condition
 //   between the program and it's own IRQ 0 interrupt.
+//
+//   Additional notes from testing: It is indeed some sort of race condition. There is code to
+//   set PIT 0 to mode 2 counter 0 momentarily before going back to mode 0. Interrupts are
+//   enabled at that point, which may be interrupted at that key point.
 static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 //LOG(LOG_PIT,LOG_ERROR)("port %X write:%X state:%X",port,val,pit[port-0x40].write_state);
 
