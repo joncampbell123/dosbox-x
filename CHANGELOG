@@ -55,6 +55,7 @@ Unreleased
   - Win32 logging console (aybe)
     - add 'Debug/Clear logging console' menu entry
     - ensure main window stays above it when shown
+  - Fix overflow in mapper info on SDL2 builds (aybe)
 
 2022.09.0 (0.84.3)
   - Updated FFMPEG video capture to use newer API,
