@@ -2306,19 +2306,19 @@ bool show_console_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
     if (DEBUG_IsDebuggerConsoleVisible())
         return true;
 #endif
-    HWND hwnd = GetConsoleWindow();
+    auto console = GetConsoleWindow();
 
-    if (hwnd == nullptr)
+    if (console == nullptr)
         DOSBox_ShowConsole();
 
-    BOOL visible = IsWindowVisible(hwnd);
+    auto visible = IsWindowVisible(console);
 
-    ShowWindow(hwnd, visible ? SW_HIDE : SW_SHOW);
+    ShowWindow(console, visible ? SW_HIDE : SW_SHOW);
     
-    if (hwnd == nullptr)
-        hwnd = GetConsoleWindow();
+    if (console == nullptr)
+        console = GetConsoleWindow();
 
-    visible = IsWindowVisible(hwnd);
+    visible = IsWindowVisible(console);
 
     mainMenu.get_item("show_console").check(visible).refresh_item(mainMenu);
     mainMenu.get_item("clear_console").check(false).enable(visible).refresh_item(mainMenu);
