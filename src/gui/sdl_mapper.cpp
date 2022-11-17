@@ -4370,9 +4370,9 @@ static void CreateLayout(void) {
 
     // NOTE: screen budget is really tight down there, more than that and drawing crashes
 
-    bind_but.action = new CCaptionButton(PX(8) - CX, PY(22) - CY, BU(15), BV(1), false);
-    bind_but.dbg1   = new CCaptionButton(PX(8) - CX, PY(23) - CY, BU(16), BV(1), false);
-    bind_but.dbg2   = new CCaptionButton(PX(8) - CX, PY(24) - CY, BU(16), BV(1), false);
+    bind_but.action = new CCaptionButton(PX(7), PY(22) - CY, BU(15), BV(1), false);
+    bind_but.dbg1   = new CCaptionButton(PX(7), PY(23) - CY, BU(16), BV(1), false);
+    bind_but.dbg2   = new CCaptionButton(PX(7), PY(24) - CY, BU(16), BV(1), false);
 
     bind_but.dbg1->Change("%s", "");
     bind_but.dbg2->Change("%s", "");
