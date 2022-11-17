@@ -8970,6 +8970,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
 #if !defined(C_EMSCRIPTEN)
         mainMenu.get_item("show_console").check(showconsole_init).refresh_item(mainMenu);
+        mainMenu.get_item("clear_console").check(false).enable(false).refresh_item(mainMenu);
         if (control->opt_display2) {
             mainMenu.get_item("show_console").enable(false).refresh_item(mainMenu);
             mainMenu.get_item("wait_on_error").enable(false).refresh_item(mainMenu);

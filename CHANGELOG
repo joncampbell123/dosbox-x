@@ -52,6 +52,9 @@ Unreleased
     prevents a bug in UNLZEXE from causing a crash, and
     maybe helps other buggy programs and unusual cases.
     Use real addressing to support stack pointer wraparound.
+  - Win32 logging console (aybe)
+    - add 'Debug/Clear logging console' menu entry
+    - ensure main window stays above it when shown
   - Fix overflow in mapper info on SDL2 builds (aybe)
 
 2022.09.0 (0.84.3)
