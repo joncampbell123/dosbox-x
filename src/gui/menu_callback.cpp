@@ -2306,6 +2306,8 @@ bool show_console_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
     if (DEBUG_IsDebuggerConsoleVisible())
         return true;
 #endif
+    auto window = GetForegroundWindow();
+
     auto console = GetConsoleWindow();
 
     if (console == nullptr)
@@ -2314,7 +2316,9 @@ bool show_console_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
     auto visible = IsWindowVisible(console);
 
     ShowWindow(console, visible ? SW_HIDE : SW_SHOW);
-    
+
+    SetForegroundWindow(window);
+
     if (console == nullptr)
         console = GetConsoleWindow();
 

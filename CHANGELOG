@@ -52,7 +52,9 @@ Unreleased
     prevents a bug in UNLZEXE from causing a crash, and
     maybe helps other buggy programs and unusual cases.
     Use real addressing to support stack pointer wraparound.
-  - Add Win32 'Debug/Clear logging console' menu item (aybe)
+  - Win32 logging console (aybe)
+    - add 'Debug/Clear logging console' menu entry
+    - ensure main window stays above it when shown
 
 2022.09.0 (0.84.3)
   - Updated FFMPEG video capture to use newer API,
