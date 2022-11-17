@@ -272,6 +272,12 @@ bool SERIAL_setCommParameters(COMPORT port,
 #include <fcntl.h>
 #include <stdio.h> // sprintf
 
+#ifndef CMSPAR
+// Mark or space parity bit.
+// "works on many systems"
+#define CMSPAR 010000000000 // Many systems have this define, not posix standard
+#endif
+
 struct _COMPORT {
 	int porthandle;
 	bool breakstatus;
@@ -413,14 +419,9 @@ bool SERIAL_setCommParameters(COMPORT port,
 	if (result==-1) return false;
 	// reset flags that will be affected by this function
 	termInfo.c_iflag &= ~(INPCK | ISTRIP);
-	termInfo.c_cflag &= ~(CSIZE | PARENB | PARODD | CSTOPB | CBAUD | CMSPAR);
+	termInfo.c_cflag &= ~(CSIZE | PARENB | PARODD | CSTOPB | CMSPAR);
 
 	// parity
-#ifndef CMSPAR
-	// Mark or space parity bit.
-	// "works on many systems"
-	#define CMSPAR 010000000000 // Many systems have this define, not posix standard
-#endif
 	// set options according to parity
 	switch (parity) {
 	case 'n': break; // no parity
