@@ -2307,14 +2307,59 @@ bool show_console_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const
         return true;
 #endif
     HWND hwnd = GetConsoleWindow();
-    if (hwnd == NULL)
+
+    if (hwnd == nullptr)
         DOSBox_ShowConsole();
-    else if (IsWindowVisible(hwnd))
-        ShowWindow(hwnd, SW_HIDE);
-    else
-        ShowWindow(hwnd, SW_SHOW);
-    mainMenu.get_item("show_console").check(IsWindowVisible(hwnd)).refresh_item(mainMenu);
+
+    BOOL visible = IsWindowVisible(hwnd);
+
+    ShowWindow(hwnd, visible ? SW_HIDE : SW_SHOW);
+    
+    if (hwnd == nullptr)
+        hwnd = GetConsoleWindow();
+
+    visible = IsWindowVisible(hwnd);
+
+    mainMenu.get_item("show_console").check(visible).refresh_item(mainMenu);
+    mainMenu.get_item("clear_console").check(false).enable(visible).refresh_item(mainMenu);
 #endif
+    return true;
+}
+
+bool clear_console_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+#if !defined(C_EMSCRIPTEN) && defined(WIN32) && !defined(HX_DOS)
+#if C_DEBUG
+    bool DEBUG_IsDebuggerConsoleVisible(void);
+    if (DEBUG_IsDebuggerConsoleVisible())
+        return true;
+#endif
+    const HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+
+    constexpr COORD position = { 0, 0 };
+
+    DWORD written;
+
+    CONSOLE_SCREEN_BUFFER_INFO info;
+
+    if(!GetConsoleScreenBufferInfo(handle, &info))
+        return false;
+
+    const DWORD size = info.dwSize.X * info.dwSize.Y;
+
+    if(!FillConsoleOutputCharacter(handle, ' ', size, position, &written))
+        return false;
+
+    if(!GetConsoleScreenBufferInfo(handle, &info))
+        return false;
+
+    if(!FillConsoleOutputAttribute(handle, info.wAttributes, size, position, &written))
+        return false;
+
+    SetConsoleCursorPosition(handle, position);
+#endif
+    // TODO clear console on other platforms
     return true;
 }
 
@@ -3527,6 +3572,7 @@ void AllocCallback1() {
                     set_callback_function(help_about_callback);
 #if !defined(C_EMSCRIPTEN)
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"show_console").set_text("Show logging console").set_callback_function(show_console_menu_callback);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"clear_console").set_text("Clear logging console").set_callback_function(clear_console_menu_callback);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"disable_logging").set_text("Disable logging output").set_callback_function(disable_log_menu_callback).check(control->opt_nolog);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"wait_on_error").set_text("Console wait on error").set_callback_function(wait_on_error_menu_callback).check(sdl.wait_on_error);
 #endif
