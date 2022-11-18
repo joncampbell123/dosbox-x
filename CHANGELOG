@@ -1,4 +1,6 @@
 Unreleased
+  - VGA 6-bit DAC mode expand to full 8-bit range,
+    instead of simple shifting (joncampbell123).
   - Fix 8254 PIT emulation (joncampbell123)
   - Add dosbox.conf option "cpuid string" to allow
     CPUID to return custom ID strings instead of just
