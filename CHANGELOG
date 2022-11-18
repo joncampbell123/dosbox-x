@@ -1,4 +1,10 @@
 Unreleased
+  - Disabled code to randomly return GDC drawing
+    status active. The implementation was causing
+    severe performance issues. The code has not
+    been removed because it could be optimized and
+    fixed and could even follow the state of GDC
+    drawing. (joncampbell123)
   - VGA 6-bit DAC mode expand to full 8-bit range,
     instead of simple shifting (joncampbell123).
   - Fix 8254 PIT emulation (joncampbell123)
