@@ -1799,6 +1799,16 @@ static Bitu write_font24x24(void)
 	return CBRET_NONE;
 }
 
+#if defined(MACOSX) && defined(C_SDL2) && defined(SDL_DOSBOX_X_IME)
+extern bool IME_GetEnable();
+extern void IME_SetEnable(int state);
+#ifndef TRUE
+#define TRUE 1
+#endif
+#ifndef FALSE
+#define FALSE 0
+#endif
+#endif
 
 static Bitu mskanji_api(void)
 {
@@ -1837,14 +1847,14 @@ static Bitu mskanji_api(void)
 					real_writew(param_seg, param_off + 2, 0x0009);
 			}
 		}
-#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+#elif (defined(WIN32) && !defined(HX_DOS) || defined(MACOSX)) && defined(C_SDL2)
 		if(mode & 0x8000) {
 			if(mode & 0x0001)
 				IME_SetEnable(FALSE);
 			else if(mode & 0x0002)
 				IME_SetEnable(TRUE);
 		} else {
-			if(IME_GetEnable() == NULL)
+			if(IME_GetEnable())
 				real_writew(param_seg, param_off + 2, 0x000a);
 			else
 				real_writew(param_seg, param_off + 2, 0x0009);
@@ -2283,14 +2293,14 @@ Bitu INT6F_Handler(void)
 	case 0x05:
 #if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 		SDL_SetIMValues(SDL_IM_ONOFF, 1, NULL);
-#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+#elif (defined(WIN32) && !defined(HX_DOS) || defined(MACOSX)) && defined(C_SDL2)
 		IME_SetEnable(TRUE);
 #endif
 		break;
 	case 0x0b:
 #if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 		SDL_SetIMValues(SDL_IM_ONOFF, 0, NULL);
-#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+#elif (defined(WIN32) && !defined(HX_DOS) || defined(MACOSX)) && defined(C_SDL2)
 		IME_SetEnable(FALSE);
 #endif
 		break;
@@ -2304,7 +2314,7 @@ Bitu INT6F_Handler(void)
 					reg_al = 0x01;
 				}
 			}
-#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+#elif (defined(WIN32) && !defined(HX_DOS) || defined(MACOSX)) && defined(C_SDL2)
 			if(IME_GetEnable()) {
 				reg_al = 0x01;
 			}

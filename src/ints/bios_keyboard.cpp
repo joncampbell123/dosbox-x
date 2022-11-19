@@ -1166,6 +1166,16 @@ static bool IsEnhancedKey(uint16_t &key) {
 extern void IME_SetEnable(BOOL state);
 extern bool IME_GetEnable();
 #endif
+#if defined(MACOSX) && defined(C_SDL2) && defined(SDL_DOSBOX_X_IME)
+extern bool IME_GetEnable();
+extern void IME_SetEnable(int state);
+#ifndef TRUE
+#define TRUE 1
+#endif
+#ifndef FALSE
+#define FALSE 0
+#endif
+#endif
 
 extern bool DOS_BreakFlag;
 extern bool DOS_BreakConioFlag;
@@ -1316,7 +1326,7 @@ Bitu INT16_Handler(void) {
                 }
             }
         }
-#elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
+#elif (defined(WIN32) && !defined(HX_DOS) || defined(MACOSX)) && defined(C_SDL2)
 #if defined(USE_TTF)
         if((IS_DOSV || ttf_dosv) && IS_DOS_CJK && (DOSV_GetFepCtrl() & DOSV_FEP_CTRL_IAS)) {
 #else
