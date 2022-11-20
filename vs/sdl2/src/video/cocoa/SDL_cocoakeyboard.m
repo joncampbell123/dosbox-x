@@ -34,11 +34,27 @@
 /*#define DEBUG_IME NSLog */
 #define DEBUG_IME(...)
 
+@interface IMETextView : NSView
+@property (nonatomic, copy) NSAttributedString *text;
+@end
+
+@implementation IMETextView
+- (void)drawRect:(NSRect)dirtyRect
+{
+    [super drawRect:dirtyRect];
+    CGSize size = [_text size];
+    [[NSColor whiteColor] set];
+    NSRectFill(dirtyRect);
+    [_text drawInRect:CGRectMake(0, 0, size.width, size.height)];
+}
+@end
+
 @interface SDLTranslatorResponder : NSView <NSTextInputClient> {
     NSString *_markedText;
     NSRange   _markedRange;
     NSRange   _selectedRange;
     SDL_Rect  _inputRect;
+    IMETextView *_markedLabel;
 }
 - (void)doCommandBySelector:(SEL)myselector;
 - (void)setInputRect:(SDL_Rect *)rect;
@@ -68,6 +84,9 @@
     }
 
     SDL_SendKeyboardText(str);
+
+    [_markedLabel setHidden:YES];
+    _markedLabel.text = nil;
 }
 
 - (void)doCommandBySelector:(SEL)myselector
@@ -98,6 +117,13 @@ static long end_ticks = 0;
 - (void)setMarkedText:(id)aString selectedRange:(NSRange)selectedRange replacementRange:(NSRange)replacementRange
 {
     if ([aString isKindOfClass:[NSAttributedString class]]) {
+        [aString addAttribute:NSFontAttributeName value:[NSFont systemFontOfSize:_inputRect.h] range:NSMakeRange(0, [aString length])];
+        _markedLabel.text = aString;
+        CGSize size = [aString size];
+        [_markedLabel setFrameSize:size];
+        [_markedLabel setHidden:NO];
+        [_markedLabel setNeedsDisplay:YES];
+
         aString = [aString string];
     }
 
@@ -129,6 +155,8 @@ static long end_ticks = 0;
     [_markedText release];
     _markedText = nil;
 
+    [_markedLabel setHidden:YES];
+
     SDL_SendEditingText("", 0, 0);
 }
 
@@ -142,8 +170,8 @@ SDL_bool SDL_IM_Composition(int more) {
     NSWindow *window = [self window];
     NSRect contentRect = [window contentRectForFrameRect:[window frame]];
     float windowHeight = contentRect.size.height;
-    NSRect rect = NSMakeRect(_inputRect.x, windowHeight - _inputRect.y - _inputRect.h,
-                             _inputRect.w, _inputRect.h);
+    NSRect rect = NSMakeRect(_inputRect.x, windowHeight - _inputRect.y,
+                             _inputRect.w, 0);
 
     if (actualRange) {
         *actualRange = aRange;
@@ -161,6 +189,12 @@ SDL_bool SDL_IM_Composition(int more) {
     {
         rect = [window convertRectToScreen:rect];
     }
+
+    if(!_markedLabel) {
+        _markedLabel = [[IMETextView alloc] initWithFrame: NSMakeRect(0.0, 0.0, 0.0, 0.0)];
+        [[[self window] contentView] addSubview:_markedLabel];
+    }
+    [_markedLabel setFrameOrigin: NSMakePoint(_inputRect.x, windowHeight - _inputRect.y)];
 
     return rect;
 }
