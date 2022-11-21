@@ -2233,8 +2233,8 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
 
     if (usedbcs && (vga.draw.height < 16u || vga.draw.width < 8u)) return TempLine;
 
-    unsigned int row = (vidstart - vga.config.real_start - vga.draw.bytes_skip) / vga.draw.address_add, col = 0;
-    unsigned int rows = (vga.draw.height / 16u) - 1u, cols = (vga.draw.address_add / 2u) - 1u;
+    unsigned int row = usedbcs ? ((vidstart - vga.config.real_start - vga.draw.bytes_skip) / vga.draw.address_add) : 0, col = 0;
+    unsigned int rows = usedbcs ? ((vga.draw.height / 16u) - 1u) : 0, cols = usedbcs ? ((vga.draw.address_add / 2u) - 1u) : 0;
 
     if (usedbcs && line == 1) {
         if (!jtbs.empty()) jtbs.erase(std::remove_if(jtbs.begin(), jtbs.end(), first_equal(row)), jtbs.end());

@@ -4370,9 +4370,9 @@ static void CreateLayout(void) {
 
     // NOTE: screen budget is really tight down there, more than that and drawing crashes
 
-    bind_but.action = new CCaptionButton(PX(8) - CX, PY(22) - CY, BU(15), BV(1), false);
-    bind_but.dbg1   = new CCaptionButton(PX(8) - CX, PY(23) - CY, BU(16), BV(1), false);
-    bind_but.dbg2   = new CCaptionButton(PX(8) - CX, PY(24) - CY, BU(16), BV(1), false);
+    bind_but.action = new CCaptionButton(PX(7), PY(22) - CY, BU(15), BV(1), false);
+    bind_but.dbg1   = new CCaptionButton(PX(7), PY(23) - CY, BU(16), BV(1), false);
+    bind_but.dbg2   = new CCaptionButton(PX(7), PY(24) - CY, BU(16), BV(1), false);
 
     bind_but.dbg1->Change("%s", "");
     bind_but.dbg2->Change("%s", "");
@@ -4465,8 +4465,10 @@ static struct {
     /* Is that the extra backslash key ("less than" key) */
     /* on some keyboards with the 102-keys layout??      */
     {"lessthan",SDL_SCANCODE_NONUSBACKSLASH},
-#if !defined(MACOSX)
-#if (defined (WIN32) || defined (__linux__))
+#if defined(MACOSX)
+    {"jp_bckslash",SDL_SCANCODE_INTERNATIONAL1},
+    {"jp_yen",SDL_SCANCODE_INTERNATIONAL3},
+#elif (defined (WIN32) || defined (__linux__))
     /* Special handling for JP Keyboards */
     {"jp_bckslash",SDL_SCANCODE_INTERNATIONAL1}, // SDL2 returns same code as SDL_SCANCODE_NONUSBACKSLASH?
     {"jp_yen",SDL_SCANCODE_INTERNATIONAL3},
@@ -4474,7 +4476,6 @@ static struct {
     {"jp_henkan", SDL_SCANCODE_INTERNATIONAL4},
     {"jp_hiragana", SDL_SCANCODE_INTERNATIONAL2},
 #endif //(defined (WIN32) || defined (__linux__))
-#endif //!defined(MACOSX)
 #if 0
 #ifdef SDL_DOSBOX_X_SPECIAL
     /* hack for Japanese keyboards with \ and _ */

@@ -1,4 +1,8 @@
+#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+  #include <thread>
+#endif
 #include "../serialport/libserial.h"
+#include <queue>
 
 #ifndef OPL2_AUDIO_BOARD
 	#define OPL2_AUDIO_BOARD
@@ -15,6 +19,14 @@
 			void write(uint8_t reg, uint8_t val);
 
 		private:
+			void resetBuffer();
+			void writeBuffer();
+
+#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+			std::thread thread;
+			bool stopThread = false;
+#endif
 			COMPORT comport;
+			std::queue<uint8_t> sendBuffer;
 	};
 #endif

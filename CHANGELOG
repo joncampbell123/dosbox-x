@@ -1,4 +1,16 @@
 Unreleased
+  - Disabled code to randomly return GDC drawing
+    status active. The implementation was causing
+    severe performance issues. The code has not
+    been removed because it could be optimized and
+    fixed and could even follow the state of GDC
+    drawing. (joncampbell123)
+  - VGA 6-bit DAC mode expand to full 8-bit range,
+    instead of simple shifting (joncampbell123).
+  - Fix 8254 PIT emulation (joncampbell123)
+  - Add dosbox.conf option "cpuid string" to allow
+    CPUID to return custom ID strings instead of just
+    "GenuineIntel". Have fun! (joncampbell123)
   - Fixed build to properly compile against internal
     SDL/SDL2 library even if an external version is
     available (joncampbell123)
@@ -48,6 +60,10 @@ Unreleased
     prevents a bug in UNLZEXE from causing a crash, and
     maybe helps other buggy programs and unusual cases.
     Use real addressing to support stack pointer wraparound.
+  - Win32 logging console (aybe)
+    - add 'Debug/Clear logging console' menu entry
+    - ensure main window stays above it when shown
+  - Fix overflow in mapper info on SDL2 builds (aybe)
 
 2022.09.0 (0.84.3)
   - Updated FFMPEG video capture to use newer API,

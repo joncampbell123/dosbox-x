@@ -96,6 +96,8 @@ uint64_t rdtsc_adjust = 0;
 bool cpu_double_fault_enable;
 bool cpu_triple_fault_reset;
 
+unsigned char cpu_custom_cpuid[12] = {0};
+
 /* SYSENTER/SYSEXIT */
 uint16_t cpu_sep_cs = 0;		/* MSR 0x174h value of CS */
 uint32_t cpu_sep_esp = 0;		/* MSR 0x175h value of ESP */
@@ -2996,10 +2998,20 @@ bool CPU_CPUID(void) {
 	if (CPU_ArchitectureType < CPU_ARCHTYPE_486NEW) return false;
 	switch (reg_eax) {
 	case 0:	/* Vendor ID String and maximum level? */
-		reg_eax=1;  /* Maximum level */ 
-		reg_ebx='G' | ('e' << 8) | ('n' << 16) | ('u'<< 24); 
-		reg_edx='i' | ('n' << 8) | ('e' << 16) | ('I'<< 24); 
-		reg_ecx='n' | ('t' << 8) | ('e' << 16) | ('l'<< 24); 
+		if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII)
+			reg_eax=3;  /* Maximum level */
+		else
+			reg_eax=1;  /* Maximum level */
+		if (cpu_custom_cpuid[0] != 0) {
+			reg_ebx=cpu_custom_cpuid[0] | (cpu_custom_cpuid[1] << 8) | (cpu_custom_cpuid[ 2] << 16) | (cpu_custom_cpuid[ 3] << 24);
+			reg_edx=cpu_custom_cpuid[4] | (cpu_custom_cpuid[5] << 8) | (cpu_custom_cpuid[ 6] << 16) | (cpu_custom_cpuid[ 7] << 24);
+			reg_ecx=cpu_custom_cpuid[8] | (cpu_custom_cpuid[9] << 8) | (cpu_custom_cpuid[10] << 16) | (cpu_custom_cpuid[11] << 24);
+		}
+		else {
+			reg_ebx='G' | ('e' << 8) | ('n' << 16) | ('u'<< 24);
+			reg_edx='i' | ('n' << 8) | ('e' << 16) | ('I'<< 24);
+			reg_ecx='n' | ('t' << 8) | ('e' << 16) | ('l'<< 24);
+		}
 		break;
 	case 1:	/* get processor type/family/model/stepping and feature flags */
 		if ((CPU_ArchitectureType == CPU_ARCHTYPE_486NEW) ||
@@ -3815,7 +3827,23 @@ public:
 			CPU_ArchitectureType = CPU_ARCHTYPE_PENTIUMIII;
 		}
 
+		cpu_custom_cpuid[0] = 0;
+
 		const char *fpus = section->Get_string("fpu");
+
+		{
+			size_t o=0;
+			const char *s = section->Get_string("cpuid string");
+			if (s != NULL && *s != 0) {
+				const char *os = s;
+
+				while (*s != NULL && o < 12) cpu_custom_cpuid[o++] = *s++;
+				while (o < 12) cpu_custom_cpuid[o++] = ' ';
+
+				if (*s != NULL && o == 12)
+					LOG_MSG("WARNING: CPUID string '%s' truncated. Maximum 12 characters",os);
+			}
+		}
 
 		if (CPU_ArchitectureType >= CPU_ARCHTYPE_486OLD)
 			FPU_ArchitectureType = FPU_ARCHTYPE_BEST;

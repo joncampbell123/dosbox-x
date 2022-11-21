@@ -812,9 +812,9 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 			break;
 		case 0xe0: /* Extended keys in the  int 16 0x10 case */
 #if defined(USE_TTF)
-			if((isJEGAEnabled() || IS_DOSV || ttf_dosv) && (reg_ah == 0xf0 || reg_ah == 0xf1)) {
+			if((isJEGAEnabled() || IS_PC98_ARCH || IS_DOSV || ttf_dosv) && (reg_ah == 0xf0 || reg_ah == 0xf1)) {
 #else
-			if((isJEGAEnabled() || IS_DOSV) && (reg_ah == 0xf0 || reg_ah == 0xf1)) {
+			if((isJEGAEnabled() || IS_PC98_ARCH || IS_DOSV) && (reg_ah == 0xf0 || reg_ah == 0xf1)) {
 #endif
 				data[count++]=reg_al;
 			} else if(!reg_ah) { /*extended key if reg_ah isn't 0 */

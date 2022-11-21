@@ -5038,6 +5038,7 @@ static bool CheckEnableImmOnKey(SDL_KeyboardEvent key)
 #elif (defined(WIN32) && !defined(HX_DOS) || defined(MACOSX)) && defined(C_SDL2)
 static bool CheckEnableImmOnKey(SDL_KeyboardEvent key)
 {
+	if(ime_text.size() != 0) return false;
 	if(key.keysym.scancode == 0x29 ||
 #if defined(SDL_DOSBOX_X_IME)
 	(!SDL_IM_Composition(4) && (key.keysym.sym == 0x20 || (key.keysym.sym >= 0x30 && key.keysym.sym <= 0x39))) ||
@@ -5091,10 +5092,14 @@ void SetIMPosition() {
         uint8_t height = IS_PC98_ARCH?16:real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
         uint8_t width = CurMode && DOSV_CheckCJKVideoMode() ? CurMode->cwidth : (height / 2);
         SDL_Rect rect;
+        rect.h = 0;
 #if defined(USE_TTF)
         if (ttf.inUse) {
             rect.x = x * ttf.width;
             rect.y = y * ttf.height + (ttf.height - TTF_FontAscent(ttf.SDL_font)) / 2;
+#if defined(MACOSX)
+            rect.h = ttf.height;
+#endif
         } else {
 #endif
             double sx = sdl.clip.w>0&&sdl.draw.width>0?((double)sdl.clip.w/sdl.draw.width):1, sy = sdl.clip.h>0&&sdl.draw.height>0?((double)sdl.clip.h/sdl.draw.height):1;
@@ -5103,6 +5108,9 @@ void SetIMPosition() {
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
             rect.y += mainMenu.menuBarHeight;
 #endif
+#if defined(MACOSX)
+            rect.h = height;
+#endif
 #if defined(USE_TTF)
         }
 #endif
@@ -5110,7 +5118,6 @@ void SetIMPosition() {
             rect.y--;
 #if defined(C_SDL2)
         rect.w = 0;
-        rect.h = 0;
         SDL_SetTextInputRect(&rect);
 #else
         SDL_SetIMPosition(rect.x, rect.y);
@@ -8969,6 +8976,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
 #if !defined(C_EMSCRIPTEN)
         mainMenu.get_item("show_console").check(showconsole_init).refresh_item(mainMenu);
+        mainMenu.get_item("clear_console").check(false).enable(false).refresh_item(mainMenu);
         if (control->opt_display2) {
             mainMenu.get_item("show_console").enable(false).refresh_item(mainMenu);
             mainMenu.get_item("wait_on_error").enable(false).refresh_item(mainMenu);

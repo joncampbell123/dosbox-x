@@ -53,6 +53,29 @@ bool IME_GetEnable() {
     CFBooleanRef ret = (CFBooleanRef)TISGetInputSourceProperty(is, kTISPropertyInputSourceIsASCIICapable);
     return !CFBooleanGetValue(ret);
 }
+
+void IME_SetEnable(int state) {
+    if(state) {
+        NSString *locale;
+        NSArray *languages = [NSLocale preferredLanguages];
+        if (languages != nil) {
+            locale = [languages objectAtIndex:0];
+        } else {
+            locale = [[NSLocale currentLocale] objectForKey:NSLocaleLanguageCode];
+        }
+        TISInputSourceRef source = TISCopyInputSourceForLanguage((CFStringRef)locale);
+        if (source) {
+            TISSelectInputSource(source);
+        }
+    } else {
+        NSArray *source_list = CFBridgingRelease(TISCreateASCIICapableInputSourceList());
+        TISInputSourceRef source;
+        source = (__bridge TISInputSourceRef)([source_list firstObject]);
+        if (source) {
+            TISSelectInputSource(source);
+        }
+    }
+}
 #endif
 
 extern int pause_menu_item_tag;

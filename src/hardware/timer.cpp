@@ -236,7 +236,7 @@ struct PIT_Block {
     }
 
     read_counter_result read_counter(void) const {//This assumes you call track_time()
-        if (!gate)
+        if (!gate || new_mode || (mode == 0 && write_state == 0)/*mode 0 midway through 16-bit write also halts counter*/)
             return last_counter;
 
         const pic_tickindex_t index = reltime();
@@ -336,7 +336,7 @@ static bool counter_output(Bitu counter) {
 	PIT_Block *p = &pit[counter];
     p->track_time(PIC_FullIndex());
 
-    PIT_Block::read_counter_result res = p->read_counter();
+    PIT_Block::read_counter_result res = p->last_counter = p->read_counter();
     p->update_output_from_counter(res);
 
     return p->output;
@@ -373,7 +373,7 @@ static void counter_latch(Bitu counter,bool do_latch=true) {
 
     p->track_time(PIC_FullIndex());
 
-    PIT_Block::read_counter_result res = p->read_counter();
+    PIT_Block::read_counter_result res = p->last_counter = p->read_counter();
     p->update_output_from_counter(res);
 
     if (do_latch) {
@@ -410,6 +410,40 @@ bool TIMER2_ClockGateEnabled(void) {
     return !pit[IS_PC98_ARCH ? 1 : 2].new_mode;
 }
 
+// 8254 real hardware notes:
+// True to Intel documentation, mode 0 halts the count upon writing the mode byte, and it also
+// halts the count when given the first byte of a 16-bit count written to the timer. Reading
+// the counter during this state does not start it. Writing the mode byte again does not start
+// it. Twiddling the BCD bit back and forth (1996, Pyromania demoscene entry) does nothing.
+//
+// NOTES, 1996 demoscene entry "Pyromania":
+// - At the start of the credits section (animation followed by credits), the demo will hang
+//   and not continue. This is caused by misprogramming the 8254 PIT 0 in a way that causes
+//   all IRQ 0 timer interrupts to cease. The demo appears to write the mode 0 interval as
+//   expected, but then writes the first byte again (that's a total of 3 bytes). That leaves
+//   the 8254 in the halted case waiting for the other byte. The demo also uses a delay loop
+//   that uses a combined call to INT 1Ah to read BIOS_TIMER and the high byte of the counter
+//   value to wait a specific period of time. However in this state the timer counter is not
+//   ticking, and the lack of IRQ 0 means the IRQ 0 interrupt handler is not there to increment
+//   BIOS_TIMER, therefore nothing happens. Also noted is that the demo, for whatever reason,
+//   sets the mode byte twice, once normally, and then again with the BCD mode set. Therefore,
+//   emulation is correct that the demo will hang at that point and the hang is not DOSBox-X's
+//   fault.
+//
+//   This is either the result of extremely sloppy code that happened to work on the democoder's
+//   machine (non-Intel hardware that minimally implements a 8254?) or perhaps a race condition
+//   between the program and it's own IRQ 0 interrupt.
+//
+//   Additional notes from testing: It is indeed some sort of race condition. There is code to
+//   set PIT 0 to mode 2 counter 0 momentarily before going back to mode 0. Interrupts are
+//   enabled at that point, which may be interrupted at that key point.
+//
+//   Additional notes: Indeed, the problem is that a flaw in this code at the time acted upon
+//   the demo's programming of PIT 0 mode 2 counter == 0 momentarily, then switching back to
+//   mode 0. When the demo wrote the first byte of the 16-bit count, an interrupt occurred
+//   immediately, and the IRQ wrote the count in the middle, then returned for the code to
+//   write the second byte. This race condition confused the 8254. Fixing the code not to do
+//   that fixes the demo crash.
 static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 //LOG(LOG_PIT,LOG_ERROR)("port %X write:%X state:%X",port,val,pit[port-0x40].write_state);
 
@@ -438,6 +472,7 @@ static void write_latch(Bitu port,Bitu val,Bitu /*iolen*/) {
 		case 3:
 			p->write_latch = val & 0xff;
 			p->write_state = 0;
+			if (p->mode == 0) counter_latch(counter,false);
 			break;
 		case 1:
 			p->write_latch = val & 0xff;
@@ -652,9 +687,8 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 			//      So the datasheet, and the behavior of Lemmings, confirms that the latch stays
 			//      in effect even if you write the control word.
 
-			// save output status to be used with timer 0 irq
-			bool old_output = counter_output(0);
 			// save the current count value to be re-used in undocumented newmode
+			counter_latch(latch,false); /* update counter but do not affect held counter if latched by program */
 			pit[latch].bcd = (val&1)>0;   
 			if (val & 1) {
 				if(pit[latch].cntr>=9999) pit[latch].cntr=9999;
@@ -665,7 +699,8 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 				pit[latch].counterstatus_set=false;
 				latched_timerstatus_locked=false;
 			}
-			pit[latch].reset_count_at(PIC_FullIndex()); // for undocumented newmode
+			// Do not call reset_count_at() here, it causes problems.
+			// When the mode byte is written, count stops. When the new count is written, THEN call reset_count_at()
 			pit[latch].update_count = false;
 			pit[latch].counting = false;
 			pit[latch].read_state  = (val >> 4) & 0x03;
@@ -689,7 +724,7 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 
 			if (latch == 0) {
 				PIC_RemoveEvents(PIT0_Event);
-				if((mode != 0)&& !old_output) {
+				if((mode != 0)&& (pit[latch].reltime() > pit[latch].delay)) {
 					PIC_ActivateIRQ(0);
 				} else {
 					PIC_DeActivateIRQ(0);

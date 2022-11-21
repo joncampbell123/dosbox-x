@@ -2007,7 +2007,7 @@ std::string localDrive::GetHostName(const char * name) {
 	dirCache.ExpandName(newname);
 	const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
 	ht_stat_t temp_stat;
-	static std::string hostname = host_name != NULL && ht_stat(host_name,&temp_stat)==0 ? newname : "";
+	static std::string hostname; hostname = host_name != NULL && ht_stat(host_name,&temp_stat)==0 ? newname : "";
 	return hostname;
 }
 
