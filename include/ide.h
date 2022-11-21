@@ -17,5 +17,6 @@ void IDE_CDROM_Detach_Ret(signed char &indexret,bool &slaveret,unsigned char dri
 void IDE_Hard_Disk_Attach(signed char index,bool slave,unsigned char bios_disk_index);
 void IDE_Hard_Disk_Detach(unsigned char bios_disk_index);
 void IDE_ResetDiskByBIOS(unsigned char disk);
+bool IDE_controller_occupied(signed char index, bool slave);
 
 #endif
