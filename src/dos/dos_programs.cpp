@@ -4893,6 +4893,7 @@ public:
         std::string el_torito;
         std::string ideattach="auto";
         std::string type="hdd";
+        uint8_t tdr;
 	std::string bdisk;
 	int bdisk_number=-1;
 
@@ -4903,7 +4904,7 @@ public:
             ((temp_line.size()>1) && (temp_line[1]!=':'))) {
             // drive not valid
         } else {
-            uint8_t tdr = toupper(temp_line[0]);
+            tdr = toupper(temp_line[0]);
             if(tdr=='A'||tdr=='B'||tdr=='0'||tdr=='1') type="floppy";
         }
 
@@ -4975,12 +4976,22 @@ public:
         cmd->FindString("-ide",ideattach,true);
 		std::transform(ideattach.begin(), ideattach.end(), ideattach.begin(), ::tolower);
 
-        if (ideattach == "auto") {
-            if (type != "floppy") {
-                IDE_Auto(ide_index,ide_slave);
+        if(isdigit(tdr) && tdr - '0' >= 2) { //Allocate to respective slots if drive number is specified
+            ide_index = (tdr - '2') / 2;     // Drive number 2 = 1m (index=0, slave=false), 3 = 1s (index=0, slave=true), ...
+            ide_slave = (tdr - '2') & 1 ? true : false;
+            LOG_MSG("IDE: index %d slave=%d", ide_index, ide_slave ? 1 : 0);
+        } else if(ideattach == "auto") {
+            //LOG_MSG("IDE: attach=auto type=%s", type);
+            if(type != "floppy") {
+                if(type == "iso") {
+                    if(!IDE_controller_occupied(1, false)) { // CD-ROMS default to secondary master if not occupied
+                        ide_index = 1;
+                        ide_slave = false;
+                    }
+                }
+                if (ide_index < 0) IDE_Auto(ide_index, ide_slave);
+                LOG_MSG("IDE: index %d slave=%d", ide_index, ide_slave ? 1 : 0);
             }
-                
-            LOG_MSG("IDE: index %d slave=%d",ide_index,ide_slave?1:0);
         }
         else if (ideattach != "none" && isdigit(ideattach[0]) && ideattach[0] > '0') { /* takes the form [controller]<m/s> such as: 1m for primary master */
             ide_index = ideattach[0] - '1';
@@ -5072,6 +5083,14 @@ public:
 				if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".chd")||!strcasecmp(ext, ".mdf")||!strcasecmp(ext, ".gog")||!strcasecmp(ext, ".ins")) {
 					type="iso";
 					fstype="iso";
+                    if(ide_index < 0 || ideattach == "auto") {
+                        if(!IDE_controller_occupied(1, false)) { // check if secondary master is already occupied
+                            ide_index = 1;
+                            ide_slave = false;
+                        }
+                        else IDE_Auto(ide_index, ide_slave);
+                        LOG_MSG("IDE: index %d slave=%d", ide_index, ide_slave ? 1 : 0);
+                    }
 				} else if (!strcasecmp(ext, ".ima")) {
 					type="floppy";
 					ideattach="none";

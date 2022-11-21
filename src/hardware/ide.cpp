@@ -2648,7 +2648,7 @@ void IDE_Auto(signed char &index,bool &slave) {
     slave = false;
     for (i=0;i < MAX_IDE_CONTROLLERS;i++) {
         IDEController* c;
-        if ((c=idecontroller[i]) == NULL) continue;
+        if((c = idecontroller[i]) == NULL) continue;
         index = (signed char)i;
 
         if (c->device[0] == NULL) {
@@ -2659,6 +2659,16 @@ void IDE_Auto(signed char &index,bool &slave) {
             slave = true;
             break;
         }
+    }
+}
+
+bool IDE_controller_occupied(signed char index, bool slave) { // Return true if specified slot is occupied 
+    const uint8_t ide_device = slave ? 1 : 0;
+    if(idecontroller[index]->device[ide_device] == NULL) {
+        return false;
+    }
+    else {
+        return true;
     }
 }
 
