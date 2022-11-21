@@ -246,7 +246,7 @@ void Program::WriteOut(const char * format,...) {
 }
 
 void Program::WriteOut(const char *format, const char *arguments) {
-	char buf[2048];
+	char buf[2048 + CMD_MAXLINE];
 	sprintf(buf,format,arguments);
 
 	uint16_t size = (uint16_t)strlen(buf);
