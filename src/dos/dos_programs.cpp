@@ -4976,7 +4976,11 @@ public:
         cmd->FindString("-ide",ideattach,true);
 		std::transform(ideattach.begin(), ideattach.end(), ideattach.begin(), ::tolower);
 
-        if(ideattach == "auto") {
+        if(isdigit(tdr) && tdr - '0' >= 2) { //Allocate to respective slots if drive number is specified
+            ide_index = (tdr - '2') / 2;     // Drive number 2 = 1m (index=0, slave=false), 3 = 1s (index=0, slave=true), ...
+            ide_slave = (tdr - '2') & 1 ? true : false;
+            LOG_MSG("IDE: index %d slave=%d", ide_index, ide_slave ? 1 : 0);
+        } else if(ideattach == "auto") {
             //LOG_MSG("IDE: attach=auto type=%s", type);
             if(type != "floppy") {
                 if(type == "iso") {
