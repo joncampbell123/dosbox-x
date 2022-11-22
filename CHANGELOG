@@ -1,4 +1,11 @@
 Unreleased
+  - Add VGA FONTDUMP debugger command for those
+    who might want to take custom fonts in text
+    mode and do something with them outside the
+    emulator. "VGA FONTDUMP" followed by a filename
+    which must have the extension .BIN (for a raw
+    64KB dump of font RAM) or .BMP (for a formatted
+    dump as a monochrome bitmap file). (joncampbell123).
   - Disabled code to randomly return GDC drawing
     status active. The implementation was causing
     severe performance issues. The code has not

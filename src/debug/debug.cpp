@@ -1835,6 +1835,9 @@ bool lookslikefloat(char* str) {
     return true;
 }
 
+void VGA_DumpFontRamBIN(const char *filename);
+void VGA_DumpFontRamBMP(const char *filename);
+
 bool ParseCommand(char* str) {
     std::string copy_str = str;
     for (auto &c : copy_str) c = toupper(c);
@@ -2740,14 +2743,56 @@ bool ParseCommand(char* str) {
     }
 
     if (command == "VGA") {
+        while (*found == ' ') found++;
         stream >> command;
+        while (*found != 0 && *found != ' ') found++;
+        while (*found == ' ') found++;
 
         if (IS_PC98_ARCH) {
             DEBUG_ShowMsg("VGA debugger commands not available in PC-98 mode");
             return false;
         }
 
-        if (command == "CRTC") {
+	if (command == "FONTDUMP") { // Dump font RAM to file
+		/* Rule: If the file extension is .BIN, write the entire contents of bitplane 2 where the font resides (64KB).
+		 *       If the file extension is .BMP, write only the visible font characters in a neat 8x8 (256) matrix.
+		 *       If you run this when EGA/VGA graphics are active, you will get "jibberish" based on the graphics on
+		 *       screen, and that is your fault.
+		 * TODO: VGA 512-char mode? */
+		if (IS_PC98_ARCH) {
+			LOG_MSG("Command not available in PC-98 mode");
+			return false;
+		}
+		else if (!IS_EGAVGA_ARCH) {
+			LOG_MSG("Command requires EGA, VGA, or SVGA machine type");
+			return false;
+		}
+		else {
+			std::string filename;
+			const char *fext;
+
+			while (*found == ' ') found++;
+			while (*found != 0 && *found != ' ') filename += *found++;
+			while (*found == ' ') found++;
+
+			/* Possible parameters following the filename here */
+
+			fext = (const char*)strrchr(filename.c_str(),'.');
+			if (fext == NULL) fext = "";
+
+			if (!strcasecmp(fext,".bin")) {
+				VGA_DumpFontRamBIN(filename.c_str());
+			}
+			else if (!strcasecmp(fext,".bmp")) {
+				VGA_DumpFontRamBMP(filename.c_str());
+			}
+			else {
+				LOG_MSG("Unknown file extension '%s' in '%s'. Please use .BIN or .BMP",fext,filename.c_str());
+				return false;
+			}
+		}
+	}
+	else if (command == "CRTC") {
             DEBUG_ShowMsg("VGA CRTC info: index=%02xh readonly=%u",vga.crtc.index,vga.crtc.read_only?1:0);
             DEBUG_ShowMsg("htotal=%02xh hdend=%02xh strhb=%02xh endhb=%02xh strrt=%02xh endrt=%02xh",
                 vga.crtc.horizontal_total,              vga.crtc.horizontal_display_end,

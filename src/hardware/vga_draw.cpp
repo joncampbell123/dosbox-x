@@ -5786,6 +5786,101 @@ uint32_t VGA_QuerySizeIG(void) {
              (uint32_t)vga.draw.width;
 }
 
+void VGA_DumpFontRamBIN(const char *filename) {
+	FILE *fp = fopen(filename,"wb");
+	if (!fp) {
+		LOG_MSG("VGA: Unable to open %s for writing",filename);
+		return;
+	}
+
+	unsigned int im;
+	unsigned int i,j;
+	unsigned char tmp[256];
+	const uint32_t *plm = (const uint32_t*)vga.mem.linear;
+
+	/* converting total bytes to planar bytes (256KB bytes -> 64KB bytes per bitplane) divide by 256 */
+	im = ((vga.mem.memmask + 1u) >> 2u) / 256u;
+	if (im > 256) im = 256;
+
+	LOG_MSG("Writing %s as raw %uKB dump of VGA font RAM",filename,(im + 3u) / 4u);
+
+	/* 256*256 == 65536 */
+	for (i=0;i < im;i++,plm += 256) {
+		for (j=0;j < 256;j++) {
+			VGA_Latch p(plm[j]);
+			tmp[j] = p.b[2];
+		}
+
+		fwrite(tmp,256,1,fp);
+	}
+
+	fclose(fp);
+}
+
+void VGA_DumpFontRamBMP(const char *filename) {
+	FILE *fp = fopen(filename,"wb");
+	if (!fp) {
+		LOG_MSG("VGA: Unable to open %s for writing",filename);
+		return;
+	}
+
+	unsigned int row,col,sl;
+	unsigned int rowheight = (vga.crtc.maximum_scan_line & 0x1Fu) + 1;
+	unsigned char tmp[256];
+
+	unsigned int bits_size = 16u/*width in bytes*/ * (16u * rowheight); /* 1bpp BYTE aligned */
+	unsigned int header_size = 40u + (4u * 2u); /* BITMAPINFOHEADER + 2 colors */
+
+	LOG_MSG("Writing %s as %d x %d bitmap rowheight %d",filename,16u * 8u,16u * rowheight,rowheight);
+
+	/* BITMAPFILEHEADER */
+	host_writew(tmp+0x00,0x4D42); /* "BM" */
+	host_writed(tmp+0x02,bits_size + header_size + 14/*BITMAPFILEHEADER*/);
+	host_writew(tmp+0x06,0);
+	host_writew(tmp+0x08,0);
+	host_writed(tmp+0x0A,14 + header_size);
+	fwrite(tmp,14,1,fp); /* write it */
+
+	/* BITMAPINFOHEADER + palette */
+	host_writed(tmp+0x00,40); // biSize
+	host_writed(tmp+0x04,16u * 8u); // biWidth
+	host_writed(tmp+0x08,16u * rowheight); // biHeight
+	host_writew(tmp+0x0C,1); // biPlanes
+	host_writew(tmp+0x0E,1); // biBitCount
+	host_writed(tmp+0x10,0); // biCompression (BI_RGB)
+	host_writed(tmp+0x14,bits_size); // biSizeImage
+	host_writed(tmp+0x18,0); // biXPelsPerMeter
+	host_writed(tmp+0x1C,0); // biYPelsPerMeter
+	host_writed(tmp+0x20,2); // biClrUsed
+	host_writed(tmp+0x24,2); // biClrImportant
+	/* palette (at offset 40) */
+	host_writed(tmp+0x28,0x00000000); // XRGB 0,0,0
+	host_writed(tmp+0x2C,0x00FFFFFF); // XRGB 255,255,255
+	fwrite(tmp,header_size,1,fp);
+
+	const uint32_t *plm = (const uint32_t*)vga.mem.linear;
+
+	/* Scanlines.
+	 * NTS: Remember that Windows bitmaps store the scanlines bottom to top (upside down) */
+	row = 15u;
+	do {
+		unsigned int cc = row * 16u;
+
+		sl = rowheight - 1;
+		do {
+			for (col=0;col < 16;col++) {
+				VGA_Latch p(plm[((cc+col)*32u)+sl/*planar byte offset*/]);
+				tmp[col] = p.b[2]/*bitplane 2*/;
+			}
+
+			fwrite(tmp,16,1,fp);
+		} while ((sl--) != 0u); /* stop when sl == 0 */
+	} while ((row--) != 0u); /* test pre-decrement to stop when row == 0 */
+
+	/* done */
+	fclose(fp);
+}
+
 // save state support
 void *VGA_DisplayStartLatch_PIC_Event = (void*)((uintptr_t)VGA_DisplayStartLatch);
 void *VGA_DrawEGASingleLine_PIC_Event = (void*)((uintptr_t)VGA_DrawEGASingleLine);
