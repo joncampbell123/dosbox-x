@@ -67,10 +67,22 @@ Unreleased
     prevents a bug in UNLZEXE from causing a crash, and
     maybe helps other buggy programs and unusual cases.
     Use real addressing to support stack pointer wraparound.
+  - Fix Opl3! Duo and Opl2 Audio board audio playback on 
+    unix (stengun)
+  - Fix Japanese input related issues (nanshiki)
+  - Fix START command only ever opens first file
+    (NebularNerd, darac-10, aybe)
   - Win32 logging console (aybe)
     - add 'Debug/Clear logging console' menu entry
     - ensure main window stays above it when shown
   - Fix overflow in mapper info on SDL2 builds (aybe)
+  - Enable OpenGL output in MinGW builds again (maron2000)
+  - Fixed to display IME marked text in SDL2 version on 
+    macOS (nanshiki)
+  - Fix allocation of IDE slots when mounting images by 
+    IMGMOUNT (maron2000)
+  - Increase of sprintf buffer size in Program::WriteOut()
+    (caiiiycuk)
 
 2022.09.0 (0.84.3)
   - Updated FFMPEG video capture to use newer API,
