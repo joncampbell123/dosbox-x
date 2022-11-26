@@ -401,7 +401,7 @@ uint64_t LinMakeProt(uint16_t selector, uint32_t offset)
 uint64_t GetAddress(uint16_t seg, uint32_t offset)
 {
 	if (cpu.pmode && !(reg_flags & FLAG_VM))
-        return LinMakeProt(seg,offset);
+		return LinMakeProt(seg,offset);
 
 	if (seg==SegValue(cs)) return SegPhys(cs)+(uint64_t)offset;
 	return ((uint64_t)seg<<4u)+offset;
