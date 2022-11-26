@@ -2054,6 +2054,50 @@ bool ParseCommand(char* str) {
 		return true;
 	}
 
+	if (command == "SMV") { // Set memory with following values (virtual linear address)
+		uint32_t ofs = GetHexValue(found,found); SkipSpace(found);
+		uint16_t count = 0;
+		bool parsed;
+
+		while (*found) {
+			char prefix = 'B';
+			uint32_t value;
+
+			/* allow d: w: b: prefixes */
+			if ((*found == 'B' || *found == 'W' || *found == 'D') && found[1] == ':') {
+				prefix = *found; found += 2;
+				value = GetHexValue(found,found,&parsed);
+			}
+			else {
+				value = GetHexValue(found,found,&parsed);
+			}
+
+			SkipSpace(found);
+			if (!parsed) {
+				DEBUG_ShowMsg("GetHexValue parse error at %s",found);
+				break;
+			}
+
+			if (prefix == 'D') {
+				mem_writed_checked((PhysPt)(ofs+count),value);
+				count += 4;
+			}
+			else if (prefix == 'W') {
+				mem_writew_checked((PhysPt)(ofs+count),value);
+				count += 2;
+			}
+			else if (prefix == 'B') {
+				mem_writeb_checked((PhysPt)(ofs+count),value);
+				count++;
+			}
+		}
+
+		if (count > 0)
+			DEBUG_ShowMsg("DEBUG: Memory changed (%u bytes)\n",(unsigned int)count);
+
+		return true;
+	}
+
 	if (command == "BP") { // Add new breakpoint
 		uint16_t seg = (uint16_t)GetHexValue(found,found);found++; // skip ":"
 		uint32_t ofs = GetHexValue(found,found);
@@ -3455,6 +3499,8 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("BPLIST                    - List breakpoints.\n");
 		DEBUG_ShowMsg("BPDEL  [bpNr] / *         - Delete breakpoint nr / all.\n");
 		DEBUG_ShowMsg("C / D  [segment]:[offset] - Set code / data view address.\n");
+		DEBUG_ShowMsg("DV [addr]                 - Set data view to linear (virtual) address\n");
+		DEBUG_ShowMsg("DP [addr]                 - Set data view to physical address\n");
 		DEBUG_ShowMsg("DOS MCBS                  - Show Memory Control Block chain.\n");
 		DEBUG_ShowMsg("DOS KERN                  - Show DOS kernel memory blocks.\n");
 		DEBUG_ShowMsg("DOS XMS                   - Show XMS memory handles.\n");
@@ -3472,6 +3518,7 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("ADDLOG [message]          - Add message to the log file.\n");
 		DEBUG_ShowMsg("SR [reg] [value]          - Set register value. Multiple pairs allowed.\n");
 		DEBUG_ShowMsg("SM [seg]:[off] [val] [.]..- Set memory with following values.\n");
+		DEBUG_ShowMsg("SMV [addr] [val] [.]..    - Set memory with following values at linear (virtual) address.\n");
 		DEBUG_ShowMsg("EV [value [value] ...]    - Show register value(s).\n");
 		DEBUG_ShowMsg("IV [seg]:[off] [name]     - Create var name for memory address.\n");
 		DEBUG_ShowMsg("SV [filename]             - Save var list in file.\n");

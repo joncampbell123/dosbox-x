@@ -1,4 +1,10 @@
 Unreleased
+  - Added SMV debugger command. This is the linear
+    (virtual) equivalent of the SM "Set Memory"
+    command. (joncampbell123).
+    (https://github.com/joncampbell123/dosbox-x/issues/3826)
+  - Fix debugger help command to list both C / D commands
+    and the DV/DP commands. (joncampbell123)
   - Add VGA FONTDUMP debugger command for those
     who might want to take custom fonts in text
     mode and do something with them outside the
