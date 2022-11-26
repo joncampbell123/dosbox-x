@@ -3026,7 +3026,17 @@ void GFX_Stop() {
     sdl.active=false;
 }
 
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
+static uint8_t im_x, im_y;
+#endif
+
 void GFX_Start() {
+#if defined(MACOSX) && !defined(C_SDL2)
+	if(dos.im_enable_flag) {
+		SDL_SetIMValues(SDL_IM_ENABLE, 1, NULL);
+		im_x = -1;
+	}
+#endif
     sdl.active=true;
 }
 
@@ -5010,10 +5020,14 @@ bool GFX_IsFullscreen(void) {
     return sdl.desktop.fullscreen;
 }
 
-#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(MACOSX)) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 static bool CheckEnableImmOnKey(SDL_KeyboardEvent key)
 {
+#if defined(MACOSX)
+	if(key.keysym.sym == 0 || (key.keysym.sym == 0x08 || key.keysym.sym == 0x09 || (key.keysym.sym >= 0x20 && key.keysym.sym <= 0x7F) || (key.keysym.sym >= 0x100 && key.keysym.sym <= 0x119) || key.keysym.sym == 0x12C || key.keysym.sym == 0x12D) || (strPasteBuffer.length() && key.keysym.sym >= 0x80)) {
+#else
 	if(key.keysym.sym == 0 || (!SDL_IM_Composition() && (key.keysym.sym == 0x08 || key.keysym.sym == 0x09 || (key.keysym.sym >= 0x20 && key.keysym.sym <= 0x7F) || (key.keysym.sym >= 0x100 && key.keysym.sym <= 0x119) || key.keysym.sym == 0x12C || key.keysym.sym == 0x12D) || (strPasteBuffer.length() && key.keysym.sym >= 0x80))) {
+#endif
 		// BS, <-, ->, PgUp, PgDn, etc.
 		return true;
 	}
@@ -5062,8 +5076,7 @@ bool sdl_wait_on_error() {
     return sdl.wait_on_error;
 }
 
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX) && defined(SDL_DOSBOX_X_IME)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
-static uint8_t im_x, im_y;
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
 static uint32_t last_ticks;
 void SetIMPosition() {
 	uint8_t x, y;
@@ -5115,11 +5128,18 @@ void SetIMPosition() {
         }
 #endif
         if(IS_PC98_ARCH)
+#if defined(MACOSX)
+            rect.y += 2;
+#else
             rect.y--;
+#endif
 #if defined(C_SDL2)
         rect.w = 0;
         SDL_SetTextInputRect(&rect);
 #else
+#if defined(MACOSX)
+        SDL_SetIMValues(SDL_IM_FONT_SIZE, rect.h, NULL);
+#endif
         SDL_SetIMPosition(rect.x, rect.y);
 #endif
 	}
@@ -5321,7 +5341,7 @@ void GFX_Events() {
         }
     }
 #endif
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX) && defined(SDL_DOSBOX_X_IME)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
    if(IS_PC98_ARCH) {
        static uint32_t poll98_delay = 0;
        uint32_t time = GetTicks();
@@ -5738,7 +5758,7 @@ void GFX_Events() {
         }
     }
 #endif
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX) && defined(SDL_DOSBOX_X_IME)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
    if(IS_PC98_ARCH) {
        static uint32_t poll98_delay = 0;
        uint32_t time = GetTicks();
@@ -6074,6 +6094,47 @@ void GFX_Events() {
 #endif
 #endif
 #if defined (MACOSX)
+			int onoff;
+			if(SDL_GetIMValues(SDL_IM_ONOFF, &onoff, NULL) == NULL) {
+				if(onoff != 0 && event.type == SDL_KEYDOWN) {
+					if(event.key.keysym.sym == 0x0d) {
+						if(sdl.ime_ticks != 0) {
+							if(GetTicks() - sdl.ime_ticks < 10) {
+								sdl.ime_ticks = 0;
+								break;
+							}
+						}
+					} else if(!CheckEnableImmOnKey(event.key)) {
+						sdl.ime_ticks = 0;
+						break;
+					}
+				}
+			}
+			sdl.ime_ticks = 0;
+			if(event.key.keysym.scancode == 0 && event.key.keysym.sym == 0) {
+				int len;
+				if(len = SDL_FlushIMString(NULL)) {
+					int flag = 0;
+					unsigned char *buff = (unsigned char *)malloc((len + 2)); 
+
+					SDL_FlushIMString(buff);
+					for(int no = 0 ; no < len ; no++) {
+						if(flag == 0) {
+							if(isKanji1(buff[no])) {
+								flag = 1;
+								BIOS_AddKeyToBuffer(0xf000 | buff[no]);
+							} else {
+								BIOS_AddKeyToBuffer(buff[no]);
+							}
+						} else {
+							BIOS_AddKeyToBuffer(0xf100 | buff[no]);
+							flag = 0;
+						}
+					}
+					free(buff);
+					sdl.ime_ticks = GetTicks();
+				}
+			}
             if (event.type == SDL_KEYDOWN && isModifierApplied())
                 ClipKeySelect(event.key.keysym.sym);
             /* On macs CMD-Q is the default key to close an application */
@@ -9453,7 +9514,7 @@ fresh_boot:
 
         sticky_keys(true); //Might not be needed if the shutdown function switches to windowed mode, but it doesn't hurt
 
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
         if (!control->opt_silent) {
                 SDL_SetIMValues(SDL_IM_ONOFF, 0, NULL);
                 SDL_SetIMValues(SDL_IM_ENABLE, 0, NULL);

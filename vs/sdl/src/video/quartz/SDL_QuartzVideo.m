@@ -100,14 +100,207 @@ static inline void QZ_SetFrame(_THIS, NSScreen *nsscreen, NSRect frame)
 }
 #endif
 
-@interface SDLTranslatorResponder : NSTextView
+#define SJIS_LENGTH 80
+
+@interface IMETextView : NSView
+@property (nonatomic, copy) NSAttributedString *text;
+@end
+
+@implementation IMETextView
+- (void)drawRect:(NSRect)dirtyRect
 {
+    [super drawRect:dirtyRect];
+    CGSize size = [_text size];
+    [[NSColor whiteColor] set];
+    NSRectFill(dirtyRect);
+    [_text drawInRect:CGRectMake(0, 0, size.width, size.height)];
 }
-- (void) doCommandBySelector:(SEL)myselector;
+@end
+
+@interface SDLTranslatorResponder : NSView <NSTextInputClient> {
+    NSString *_markedText;
+    NSRange   _markedRange;
+    NSRange   _selectedRange;
+    SDL_Rect  _inputRect;
+    IMETextView *_markedLabel;
+    char _textSJIS[SJIS_LENGTH];
+    SDL_Event event_keydown;
+}
+- (void)doCommandBySelector:(SEL)myselector;
+- (void)setInputXY:(int)x y:(int)y;
+- (void)setFontHeight:(int)h;
+- (int)getFontHeight;
+- (int)getTextLength;
 @end
 
 @implementation SDLTranslatorResponder
-- (void) doCommandBySelector:(SEL) myselector {}
+- (void)setFontHeight:(int)h
+{
+    _inputRect.h = h;
+}
+
+- (int)getFontHeight
+{
+    return _inputRect.h;
+}
+
+- (int)getTextLength
+{
+    return strlen(_textSJIS);
+}
+
+- (char *)getText
+{
+    return _textSJIS;
+}
+
+- (void)setInputXY:(int)x y:(int)y
+{
+    _inputRect.x = x;
+    _inputRect.y = y;
+}
+
+- (void)insertText:(id)aString replacementRange:(NSRange)replacementRange
+{
+    char *sjis;
+    /* Could be NSString or NSAttributedString, so we have
+     * to test and convert it before return as SDL event */
+    if ([aString isKindOfClass: [NSAttributedString class]]) {
+        sjis = [[aString string] cStringUsingEncoding:NSShiftJISStringEncoding];
+    } else {
+        sjis = [aString cStringUsingEncoding:NSShiftJISStringEncoding];
+    }
+    strncpy(_textSJIS, sjis, SJIS_LENGTH);
+    _textSJIS[SJIS_LENGTH - 1] = 0;
+
+    event_keydown.type = SDL_KEYDOWN;
+    SDL_PushEvent(&event_keydown);
+
+    [_markedLabel setHidden:YES];
+    _markedLabel.text = nil;
+}
+
+- (void)doCommandBySelector:(SEL)myselector
+{
+    /* No need to do anything since we are not using Cocoa
+       selectors to handle special keys, instead we use SDL
+       key events to do the same job.
+    */
+}
+/*
+- (BOOL) acceptsFirstResponder {
+    return YES;
+}
+*/
+- (BOOL)hasMarkedText
+{
+    return _markedText != nil;
+}
+
+- (NSRange)markedRange
+{
+    return _markedRange;
+}
+
+- (NSRange)selectedRange
+{
+    return _selectedRange;
+}
+
+- (void)setMarkedText:(id)aString selectedRange:(NSRange)selectedRange replacementRange:(NSRange)replacementRange
+{
+    if ([aString isKindOfClass:[NSAttributedString class]]) {
+        [aString addAttribute:NSFontAttributeName value:[NSFont systemFontOfSize:_inputRect.h] range:NSMakeRange(0, [aString length])];
+        _markedLabel.text = aString;
+        CGSize size = [aString size];
+        [_markedLabel setFrameSize:size];
+        [_markedLabel setHidden:NO];
+        [_markedLabel setNeedsDisplay:YES];
+
+        aString = [aString string];
+    }
+
+    if ([aString length] == 0) {
+        [self unmarkText];
+        return;
+    }
+
+    if (_markedText != aString) {
+        [_markedText release];
+        _markedText = [aString retain];
+    }
+
+    _selectedRange = selectedRange;
+    _markedRange = NSMakeRange(0, [aString length]);
+}
+
+- (void)unmarkText
+{
+    [_markedText release];
+    _markedText = nil;
+
+    [_markedLabel setHidden:YES];
+}
+
+- (NSRect)firstRectForCharacterRange:(NSRange)aRange actualRange:(NSRangePointer)actualRange
+{
+    NSWindow *window = [self window];
+    NSRect contentRect = [window contentRectForFrameRect:[window frame]];
+    float windowHeight = contentRect.size.height;
+    NSRect rect = NSMakeRect(_inputRect.x, windowHeight - _inputRect.y,
+                             _inputRect.w, 0);
+
+    if (actualRange) {
+        *actualRange = aRange;
+    }
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED < 1070
+    if (![window respondsToSelector:@selector(convertRectToScreen:)]) {
+        rect.origin = [window convertBaseToScreen:rect.origin];
+    } else
+#endif
+    {
+        rect = [window convertRectToScreen:rect];
+    }
+
+    if(_markedLabel == nil) {
+        _markedLabel = [[IMETextView alloc] initWithFrame: NSMakeRect(0.0, 0.0, 0.0, 0.0)];
+        //NSWindow *window = [self window];
+        [[[self window] contentView] addSubview:_markedLabel];
+    }
+    [_markedLabel setFrameOrigin: NSMakePoint(_inputRect.x, windowHeight - _inputRect.y)];
+
+    return rect;
+}
+
+- (NSAttributedString *)attributedSubstringForProposedRange:(NSRange)aRange actualRange:(NSRangePointer)actualRange
+{
+    return nil;
+}
+
+- (NSInteger)conversationIdentifier
+{
+    return (NSInteger) self;
+}
+
+/* This method returns the index for character that is
+ * nearest to thePoint.  thPoint is in screen coordinate system.
+ */
+- (NSUInteger)characterIndexForPoint:(NSPoint)thePoint
+{
+    return 0;
+}
+
+/* This method is the key to attribute extension.
+ * We could add new attributes through this method.
+ * NSInputServer examines the return value of this
+ * method & constructs appropriate attributed string.
+ */
+- (NSArray *)validAttributesForMarkedText
+{
+    return [NSArray array];
+}
+
 @end
 
 /* absent in 10.3.9.  */
@@ -259,6 +452,12 @@ static SDL_VideoDevice* QZ_CreateDevice (int device_index)
      *  shader.  :)
      */
     /*device->CreateYUVOverlay = QZ_CreateYUVOverlay;*/
+
+    device->SetIMPosition = QZ_SetIMPosition;
+    device->SetIMValues = QZ_SetIMValues;
+    device->GetIMValues = QZ_GetIMValues;
+    device->FlushIMString = QZ_FlushIMString;
+    //device->GetIMInfo = WIN_GetIMInfo;
 
     device->free             = QZ_DeleteDevice;
 

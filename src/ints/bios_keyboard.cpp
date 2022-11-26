@@ -1306,7 +1306,7 @@ Bitu INT16_Handler(void) {
                  (mem_readb(BIOS_KEYBOARD_FLAGS3)&0x0c);    // Right Ctrl/Alt pressed, bits 2,3
         break;
     case 0x13:
-#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(MACOSX)) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 #if defined(USE_TTF)
         if((IS_DOSV || ttf_dosv) && IS_DOS_CJK && (DOSV_GetFepCtrl() & DOSV_FEP_CTRL_IAS)) {
 #else

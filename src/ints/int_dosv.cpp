@@ -1832,7 +1832,7 @@ static Bitu mskanji_api(void)
 		real_writeb(kk_seg, kk_off + 5, 0);
 		reg_ax = 0;
 	} else if(func == 5) {
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 		if(mode & 0x8000) {
 			if(mode & 0x0001)
 				SDL_SetIMValues(SDL_IM_ONOFF, 0, NULL);
@@ -2065,7 +2065,7 @@ uint8_t GetKanjiAttr()
 
 void INT8_DOSV()
 {
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX) && defined(SDL_DOSBOX_X_IME)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
 	SetIMPosition();
 #endif
 	if(!CheckAnotherDisplayDriver() && real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) != 0x72 && real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) != 0x12) {
@@ -2291,14 +2291,14 @@ Bitu INT6F_Handler(void)
 	case 0x03:
 	case 0x04:
 	case 0x05:
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 		SDL_SetIMValues(SDL_IM_ONOFF, 1, NULL);
 #elif (defined(WIN32) && !defined(HX_DOS) || defined(MACOSX)) && defined(C_SDL2)
 		IME_SetEnable(TRUE);
 #endif
 		break;
 	case 0x0b:
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 		SDL_SetIMValues(SDL_IM_ONOFF, 0, NULL);
 #elif (defined(WIN32) && !defined(HX_DOS) || defined(MACOSX)) && defined(C_SDL2)
 		IME_SetEnable(FALSE);
@@ -2307,7 +2307,7 @@ Bitu INT6F_Handler(void)
 	case 0x66:
 		{
 			reg_al = 0x00;
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 			int onoff;
 			if(SDL_GetIMValues(SDL_IM_ONOFF, &onoff, NULL) == NULL) {
 				if(onoff) {
@@ -2534,7 +2534,7 @@ void J3_OffCursor()
 
 void INT8_J3()
 {
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX) && defined(SDL_DOSBOX_X_IME)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
 	SetIMPosition();
 #endif
 

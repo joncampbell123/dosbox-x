@@ -226,6 +226,11 @@ typedef struct SDL_SysWMinfo {
 	int data;
 } SDL_SysWMinfo;
 
+#ifdef ENABLE_IM_EVENT
+struct SDL_SysIMinfo;
+typedef struct SDL_SysIMinfo SDL_SysIMinfo;
+#endif
+
 #endif /* video driver type */
 
 #endif /* SDL_PROTOTYPES_ONLY */

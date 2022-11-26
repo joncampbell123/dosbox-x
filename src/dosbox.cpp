@@ -941,7 +941,7 @@ void SetCyclesCount_mapper_shortcut(bool pressed) {
 }
 
 void SetIME() {
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
     if (enableime && !control->opt_silent) {
         dos.im_enable_flag = true;
         SDL_SetIMValues(SDL_IM_ENABLE, 1, NULL);

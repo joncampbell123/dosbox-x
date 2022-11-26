@@ -2372,15 +2372,17 @@ extern void IME_SetFontSize(int size);
 void AdjustIMEFontSize()
 {
 	int cheight = CurMode->cheight;
+#if !defined(MACOSX)
 	if(IS_DOSV && cheight == 19) {
 		cheight = 16;
 	}
+#endif
 #if defined(USE_TTF)
 	if(dos.im_enable_flag && ttf.inUse) {
 		cheight = TTF_FontAscent(ttf.SDL_font);
 	}
 #endif
-#if defined(WIN32) && !defined(HX_DOS) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(MACOSX)) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 	SDL_SetIMValues(SDL_IM_FONT_SIZE, cheight, NULL);
 #elif defined(WIN32) && !defined(HX_DOS) && defined(C_SDL2)
 	IME_SetFontSize(cheight);
