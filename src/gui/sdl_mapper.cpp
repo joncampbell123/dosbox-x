@@ -890,7 +890,7 @@ static SDLKey sdlkey_map[]={
     /*52-57*/ SDLK_KP0, SDLK_KP1, SDLK_KP2, SDLK_KP3, SDLK_KP4, SDLK_KP5, 
     /*58-5C*/ SDLK_KP6, SDLK_KP7, Z, SDLK_KP8, SDLK_KP9, 
 
-    /*5D-5F*/ Z, Z, SDLK_a,
+	/*5D-5F*/ SDLK_WORLD_1, SDLK_UNDERSCORE, SDLK_a,
     
     /* Function keys and cursor blocks (F13 not supported, F14 =>
      * PRINT[SCREEN], F15 => SCROLLOCK, F16 => PAUSE, HELP => INSERT) */
@@ -4567,11 +4567,16 @@ static struct {
     // TODO??
 #else
 #ifdef SDL_DOSBOX_X_SPECIAL
+#if defined(MACOSX)
+    {"jp_bckslash",SDLK_UNDERSCORE},
+    {"jp_yen",SDLK_WORLD_1 },
+#else
     /* hack for Japanese keyboards with \ and _ */
     {"jp_bckslash",SDLK_JP_RO}, // Same difference
     {"jp_ro",SDLK_JP_RO}, // DOSBox proprietary
     /* hack for Japanese keyboards with Yen and | */
     {"jp_yen",SDLK_JP_YEN },
+#endif
 #endif
     /* more */
     {"jp_hankaku", SDLK_WORLD_12 },
