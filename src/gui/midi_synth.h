@@ -364,7 +364,7 @@ public:
 		else
 		    fluid_settings_setstr(settings, "audio.driver", "pulseaudio");
 #endif
-#if defined (WIN32)
+#if defined (WIN32) && !defined(HX_DOS)
         else
             fluid_settings_setstr(settings, "audio.driver", "dsound"); // Explicitly set audio driver to be dsound as default for Windows
 #endif //WIN32
