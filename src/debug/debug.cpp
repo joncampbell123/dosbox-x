@@ -2007,49 +2007,49 @@ bool ParseCommand(char* str) {
 
 	if (command == "SM") { // Set memory with following values
 		uint16_t seg = (uint16_t)GetHexValue(found,found);
-        if (*found == ':') { // allow seg:off syntax
-            found++;
-            SkipSpace(found);
-        }
+		if (*found == ':') { // allow seg:off syntax
+			found++;
+			SkipSpace(found);
+		}
 		uint32_t ofs = GetHexValue(found,found); SkipSpace(found);
 		uint16_t count = 0;
-        bool parsed;
+		bool parsed;
 
-        while (*found) {
-            char prefix = 'B';
-            uint32_t value;
+		while (*found) {
+			char prefix = 'B';
+			uint32_t value;
 
-            /* allow d: w: b: prefixes */
-            if ((*found == 'B' || *found == 'W' || *found == 'D') && found[1] == ':') {
-                prefix = *found; found += 2;
-                value = GetHexValue(found,found,&parsed);
-            }
-            else {
-                value = GetHexValue(found,found,&parsed);
-            }
+			/* allow d: w: b: prefixes */
+			if ((*found == 'B' || *found == 'W' || *found == 'D') && found[1] == ':') {
+				prefix = *found; found += 2;
+				value = GetHexValue(found,found,&parsed);
+			}
+			else {
+				value = GetHexValue(found,found,&parsed);
+			}
 
-            SkipSpace(found);
-            if (!parsed) {
-                DEBUG_ShowMsg("GetHexValue parse error at %s",found);
-                break;
-            }
+			SkipSpace(found);
+			if (!parsed) {
+				DEBUG_ShowMsg("GetHexValue parse error at %s",found);
+				break;
+			}
 
-            if (prefix == 'D') {
-                mem_writed_checked((PhysPt)GetAddress(seg,ofs+count),value);
-                count += 4;
-            }
-            else if (prefix == 'W') {
-                mem_writew_checked((PhysPt)GetAddress(seg,ofs+count),value);
-                count += 2;
-            }
-            else if (prefix == 'B') {
-                mem_writeb_checked((PhysPt)GetAddress(seg,ofs+count),value);
-                count++;
-            }
-        }
+			if (prefix == 'D') {
+				mem_writed_checked((PhysPt)GetAddress(seg,ofs+count),value);
+				count += 4;
+			}
+			else if (prefix == 'W') {
+				mem_writew_checked((PhysPt)GetAddress(seg,ofs+count),value);
+				count += 2;
+			}
+			else if (prefix == 'B') {
+				mem_writeb_checked((PhysPt)GetAddress(seg,ofs+count),value);
+				count++;
+			}
+		}
 
-        if (count > 0)
-            DEBUG_ShowMsg("DEBUG: Memory changed (%u bytes)\n",(unsigned int)count);
+		if (count > 0)
+			DEBUG_ShowMsg("DEBUG: Memory changed (%u bytes)\n",(unsigned int)count);
 
 		return true;
 	}
@@ -2262,28 +2262,28 @@ bool ParseCommand(char* str) {
 
 	if (command == "D") { // Set data overview
 		dataSeg = (uint16_t)GetHexValue(found,found); SkipSpace(found);
-        if (*found == ':') { // allow seg:off syntax
-            found++;
-            SkipSpace(found);
-        }
+		if (*found == ':') { // allow seg:off syntax
+			found++;
+			SkipSpace(found);
+		}
 		dataOfs = GetHexValue(found,found); SkipSpace(found);
-        dbg.set_data_view(DBGBlock::DATV_SEGMENTED);
+		dbg.set_data_view(DBGBlock::DATV_SEGMENTED);
 		DEBUG_ShowMsg("DEBUG: Set data overview to %04X:%04X\n",dataSeg,dataOfs);
 		return true;
 	}
 
 	if (command == "DV") { // Set data overview
-        dataSeg = 0;
+		dataSeg = 0;
 		dataOfs = GetHexValue(found,found); SkipSpace(found);
-        dbg.set_data_view(DBGBlock::DATV_VIRTUAL);
+		dbg.set_data_view(DBGBlock::DATV_VIRTUAL);
 		DEBUG_ShowMsg("DEBUG: Set data overview to %04X:%04X\n",dataSeg,dataOfs);
 		return true;
 	}
 
 	if (command == "DP") { // Set data overview
-        dataSeg = 0;
+		dataSeg = 0;
 		dataOfs = GetHexValue(found,found); SkipSpace(found);
-        dbg.set_data_view(DBGBlock::DATV_PHYSICAL);
+		dbg.set_data_view(DBGBlock::DATV_PHYSICAL);
 		DEBUG_ShowMsg("DEBUG: Set data overview to %04X:%04X\n",dataSeg,dataOfs);
 		return true;
 	}
