@@ -19,13 +19,14 @@ LIBSOREL=$(LIBSOMAJ).$(RELEASE)
 OLDSO=libpng.so
 
 # Utilities:
-AR_RC=ar rc
-CC=gcc
-MKDIR_P=mkdir -p
-LN_SF=ln -sf
-RANLIB=ranlib
-CP=cp
-RM_F=/bin/rm -f
+AR ?= ar
+CC ?= gcc
+RANLIB ?= ranlib
+AR_RC ?= $(AR) rc
+MKDIR_P ?= mkdir -p
+LN_SF = ln -sf
+CP ?= cp
+RM_F ?= /bin/rm -f
 
 # where "make install" puts libpng16.a, libpng16.so*,
 # libpng16/png.h, libpng16/pngconf.h, and libpng16/pnglibconf.h
@@ -49,12 +50,12 @@ WARNMORE=-Wwrite-strings -Wpointer-arith -Wshadow \
 
 # for pgcc version 2.95.1, -O3 is buggy; don't use it.
 
-CPPFLAGS=-I$(ZLIBINC) # -DPNG_DEBUG=5
-CFLAGS= -W -Wall -O3 -funroll-loops \
+CPPFLAGS+=-I$(ZLIBINC) # -DPNG_DEBUG=5
+CFLAGS += -W -Wall -O3 -funroll-loops \
 	$(ALIGN) # $(WARNMORE) -g -DPNG_DEBUG=5
 
-LDFLAGS=-L. -Wl,-rpath,. -L$(ZLIBLIB) -Wl,-rpath,$(ZLIBLIB) -lpng16 -lz -lm
-LDFLAGS_A=-L$(ZLIBLIB) -Wl,-rpath,$(ZLIBLIB) libpng.a -lz -lm
+LDFLAGS+=-L. -Wl,-rpath,. -L$(ZLIBLIB) -Wl,-rpath,$(ZLIBLIB) -lpng16 -lz -lm
+LDFLAGS_A+=-L$(ZLIBLIB) -Wl,-rpath,$(ZLIBLIB) libpng.a -lz -lm
 
 INCPATH=$(prefix)/include
 LIBPATH=$(exec_prefix)/lib

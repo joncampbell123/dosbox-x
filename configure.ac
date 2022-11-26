@@ -63,9 +63,10 @@ AC_CANONICAL_BUILD
 
 dnl Setup for automake
 AM_INIT_AUTOMAKE([foreign subdir-objects])
-AC_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS([config.h])
 
 dnl Checks for programs.
+AC_PROG_AWK
 AC_PROG_MAKE_SET
 AC_PROG_CC
 AC_PROG_CPP
@@ -73,6 +74,8 @@ AC_PROG_CXX
 AC_PROG_OBJCXX
 AC_PROG_INSTALL
 AC_CHECK_TOOL(AR, ar)
+AC_PROG_MKDIR_P
+AC_PROG_OBJCXX
 AC_PROG_RANLIB
 AC_PREFIX_DEFAULT([/usr/local])
 
@@ -131,18 +134,44 @@ CXXFLAGS="$OLDCXXFLAGS"
 CPPFLAGS="$OLDCPPFLAGS"
 CFLAGS="$OLDCFLAGS"
 
-if test x$warn_cpp0x = x1; then
+if test "x${warn_cpp0x}" = 'x1'; then
     AC_MSG_ERROR([ Your compiler must support C++11 or better ])
 fi
 
 dnl Allow devs to force compile as C++11 as long as this code supports C++11 as a baseline
 AC_ARG_ENABLE(force-cxx11,AC_HELP_STRING([--enable-force-cxx11],[Force compile as C++11]),force_cxx11=yes)
+AC_ARG_WITH([cxx-version], 
+            AS_HELP_STRING([--with-cxx-version],
+                [Force compile as given C++ version (11, 14, 17, 20, 2a, 23). This option is for testing purposes only and if used will probably break the build. Caveat emptor.]),
+            [custom_cxx_version="$withval"], [])
 
-if test x$warn_cpp11 = x1; then
+if test -n "${custom_cxx_version}"; then
+    case "${custom_cxx_version}" in
+        2a|23)
+            CXXFLAGS="$CXXFLAGS -std=gnu++2a"
+            AC_MSG_WARN([Compiling with C++ version '-std=gnu++${custom_cxx_version}': this version is known not to work.])
+            ;;
+        17)
+            CXXFLAGS="$CXXFLAGS -std=gnu++17 -Dregister="
+            AC_MSG_RESULT([[Compiling with C++ version '-std=gnu++${custom_cxx_version}']])
+            ;;
+        11|14)
+            CXXFLAGS="$CXXFLAGS -std=gnu++${custom_cxx_version}"
+            AC_MSG_RESULT([[Compiling with C++ version '-std=gnu++${custom_cxx_version}']])
+            ;;
+        gnu++*|std++*|-std=*)
+            AC_MSG_ERROR([Please specify only a bare number for the C++ version (e.g. --with-cxx-version=17)])
+            ;;
+        *)
+            AC_MSG_ERROR([Unknown or invalid C++ version given "${custom_cxx_version}."])
+            ;;
+    esac
+    CFLAGS="$CFLAGS -std=gnu11"
+elif test "x${warn_cpp11}" = 'x1'; then
     AC_MSG_WARN([ Your compiler does not support C++14. Currently it is optional. At some point in the future, it will be required ])
     CFLAGS="$CFLAGS -std=gnu11";
     CXXFLAGS="$CXXFLAGS -std=gnu++11";
-elif test x$force_cxx11 = xyes; then
+elif test "x${force_cxx11}" = 'xyes'; then
     CFLAGS="$CFLAGS -std=gnu11";
     CXXFLAGS="$CXXFLAGS -std=gnu++11";
 else
@@ -170,20 +199,23 @@ dnl Optimize for speed by default
 AC_ARG_ENABLE(optimize,AC_HELP_STRING([--disable-optimize],[Don't enable compiler optimizations]))
 
 dnl FIXME: Remove default "-O2" set by some autotools versions. TODO: check availability of sed.
-CFLAGS=["`echo $CFLAGS' ' | sed -e 's/-O[^ ]* //g'`"]
-CXXFLAGS=["`echo $CXXFLAGS' ' | sed -e 's/-O[^ ]* //g'`"]
+dnl
+dnl Never, EVER override the user's CFLAGS: it's Evil and Wrong.
+dnl
+dnl CFLAGS=["`echo $CFLAGS' ' | sed -e 's/-O[^ ]* //g'`"]
+dnl CXXFLAGS=["`echo $CXXFLAGS' ' | sed -e 's/-O[^ ]* //g'`"]
 
-if test x$enable_optimize != xno; then
-    if test x$enable_emscripten = xyes; then
-	    CFLAGS="$CFLAGS -Os"
-	    CXXFLAGS="$CXXFLAGS -Os"
+if test "x${enable_optimize}" != 'xno'; then
+    if test "x${enable_emscripten}" = 'xyes'; then
+	    CFLAGS="-Os $CFLAGS"
+	    CXXFLAGS="-Os $CXXFLAGS"
     else
-	    CFLAGS="$CFLAGS -O2"
-	    CXXFLAGS="$CXXFLAGS -O2"
+	    CFLAGS="-O2 $CFLAGS"
+	    CXXFLAGS="-O2 $CXXFLAGS "
     fi
 fi
 
-if test x$enable_emscripten = xyes; then
+if test "x${enable_emscripten}" = 'xyes'; then
 	AC_DEFINE(C_EMSCRIPTEN,1,[Targeting Emscripten])
   AC_DEFINE(C_DIRECTSERIAL, 0, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
 fi
@@ -191,14 +223,14 @@ fi
 dnl Some stuff for the icon.
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
-    if test x$enable_hx = xyes; then
+    if test "x${enable_hx}" = 'xyes'; then
         CXXFLAGS="$CXXFLAGS -DHX_DOS"
         AC_DEFINE(C_HX_DOS,1,[Targeting HX DOS extender])
     fi
     ;;
 esac
 
-if test x$enable_force_menu_sdldraw = xyes; then
+if test "x${enable_force_menu_sdldraw}" = 'xyes'; then
     CXXFLAGS="$CXXFLAGS -DFORCE_SDLDRAW"
     AC_DEFINE(C_FORCE_MENU_SDLDRAW,1,[Force SDL drawn menus])
 fi
@@ -237,7 +269,7 @@ LIBS=$LIBS_BACKUP
 dnl Look for clock_gettime, a DB_HAVE_CLOCK_GETTIME is set when present
 AH_TEMPLATE([DB_HAVE_CLOCK_GETTIME],[Determines if the function clock_gettime is available.])
 AC_SEARCH_LIBS([clock_gettime], [rt] , [found_clock_gettime=yes], [found_clock_gettime=no])
-if test x$found_clock_gettime = xyes; then
+if test "x${found_clock_gettime}" = 'xyes'; then
   AC_DEFINE(DB_HAVE_CLOCK_GETTIME)
 fi
 
@@ -328,7 +360,7 @@ case "$host" in
        ;;
 esac
 
-if test x$enable_emscripten = xyes; then
+if test "x${enable_emscripten}" = 'xyes'; then
     CXXFLAGS="$CXXFLAGS"
 else
     dnl Some default CPU flags
@@ -342,7 +374,7 @@ fi
 
 dnl Some needed libaries for OS2
 dnl perharps join this with the other target depended checks. move them upwards
-if test x$host = xi386-pc-os2-emx ; then
+if test "x${host}" = xi386-pc-os2-emx ; then
     CXXFLAGS="$CXXFLAGS -Zmt"
     LDFLAGS="$LDFLAGS -Zomf -Zmt"
 fi
@@ -395,8 +427,8 @@ case "$host" in
        DBPLATFORM="other"
     ;;
 esac
-       AM_CONDITIONAL(HAVE_WINDRES, test "x$WINDRES" != "x:")
-       AM_CONDITIONAL(MACOSX, test "x$DBPLATFORM" = "xmac")
+       AM_CONDITIONAL(HAVE_WINDRES, test "x${WINDRES}" != "x:")
+       AM_CONDITIONAL(MACOSX, test "x${DBPLATFORM}" = "xmac")
        AC_SUBST(WINDRES)
 
 dnl LIBRARY TEST: SDL 2.x
@@ -427,7 +459,7 @@ AC_MSG_CHECKING(whether opengl display output will be enabled)
 
 # We need to do this before any other AC_CHECK_LIB runs just to make sure
 # linking doesn't fail if SDL is using OpenGL
-if test x$enable_opengl = xyes; then
+if test "x${enable_opengl}" = xyes; then
 case "$host" in
     *-*-darwin*)
        AC_MSG_RESULT(yes)
@@ -436,17 +468,17 @@ case "$host" in
        ;;
     *)
        pkg-config --exists gl; RES=$?
-       if test x$RES = x0; then
+       if test "x${RES}" = 'x0'; then
          AC_MSG_RESULT(yes)
-         CFLAGS="$CFLAGS "`pkg-config gl --cflags`
-         CPPFLAGS="$CPPFLAGS "`pkg-config gl --cflags`
-         LIBS="$LIBS "`pkg-config gl --libs`
+         CFLAGS="$CFLAGS $(pkg-config gl --cflags)"
+         CPPFLAGS="$CPPFLAGS $(pkg-config gl --cflags)"
+         LIBS="$LIBS $(pkg-config gl --libs)"
          AC_DEFINE(C_OPENGL,1)
-       elif test x$have_gl_h = xyes -a x$have_gl_lib = xyes ; then
+       elif test "x${have_gl_h}" = 'xyes' && test "x${have_gl_lib}" = 'xyes' ; then
          AC_MSG_RESULT(yes)
          LIBS="$LIBS -lGL"
          AC_DEFINE(C_OPENGL,1)
-       elif test x$have_gl_h = xyes -a x$have_opengl32_lib = xyes ; then
+       elif test "x${have_gl_h}" = 'xyes' && test "x${have_opengl32_lib}" = 'xyes' ; then
          AC_MSG_RESULT(yes)
          LIBS="$LIBS -lopengl32"
          AC_DEFINE(C_OPENGL,1)
@@ -458,15 +490,15 @@ esac
 fi
 
 # FIXME: Arrggh we need the WHOLE PATH
-pwd=`realpath $srcdir`
-if [[ -z "$pwd" ]]; then pwd=`pwd`; fi
+[pwd=$(realpath "$srcdir")]
+[if test -z "${pwd}" ; then pwd=$(pwd); fi]
 
-CFLAGS="$CFLAGS -I$pwd -I$pwd/vs/sdlnet/linux-host/include -I$pwd/vs/sdlnet/linux-host/include/SDL"
-LDFLAGS="$LDFLAGS -L$pwd/vs/sdlnet/linux-host/lib"
-CPPFLAGS="$CPPFLAGS -I$pwd -I$pwd/vs/sdlnet/linux-host/include -I$pwd/vs/sdlnet/linux-host/include/SDL"
-CXXFLAGS="$CXXFLAGS -I$pwd -I$pwd/vs/sdlnet/linux-host/include -I$pwd/vs/sdlnet/linux-host/include/SDL"
+CFLAGS="$CFLAGS \"-I${pwd} -I${pwd}/vs/sdlnet/linux-host/include\" \"-I${pwd}/vs/sdlnet/linux-host/include/SDL\""
+LDFLAGS="$LDFLAGS \"-L${pwd}/vs/sdlnet/linux-host/lib\""
+CPPFLAGS="$CPPFLAGS \"-I${pwd}\" \"-I$pwd/vs/sdlnet/linux-host/include\" \"-I$pwd/vs/sdlnet/linux-host/include/SDL\""
+CXXFLAGS="$CXXFLAGS \"-I${pwd}\" \"-I${pwd}/vs/sdlnet/linux-host/include\" \"-I${pwd}/vs/sdlnet/linux-host/include/SDL\""
 
-if test x$enable_emscripten != xyes; then
+if test "x${enable_emscripten}" != 'xyes'; then
 dnl Some target detection and actions for them
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
@@ -483,7 +515,7 @@ case "$host" in
        dnl to do more to distinguish them.
        dnl For now I am lazy and do not add proper detection code.
        macosx=1
-       if test x$warn_cpp11 = x1; then
+       if test "x${warn_cpp11}" = x1; then
            OBJCXXFLAGS="$OBJCXXFLAGS -std=gnu++14";
        else
            OBJCXXFLAGS="$OBJCXXFLAGS -std=gnu++11";
@@ -534,8 +566,8 @@ case "$host" in
 esac
 fi
 
-AM_CONDITIONAL(MACOSX, test x"$macosx" = x"1")
-AM_CONDITIONAL(EMSCRIPTEN, test x"$enable_emscripten" = x"yes")
+AM_CONDITIONAL(MACOSX, test "x$macosx" = 'x1')
+AM_CONDITIONAL(EMSCRIPTEN, test "x$enable_emscripten" = 'xyes')
 
 dnl The target cpu checks for dynamic cores
 AH_TEMPLATE(C_TARGETCPU,[The type of cpu this target has])
@@ -623,7 +655,7 @@ AC_CHECK_LIB(ncurses, initscr, curses_lib=ncurses, , )
 AC_CHECK_LIB(pdcurses, initscr, curses_lib=pdcurses, , )
 # Check if this system's ncurses uses a separate tinfo library
 AC_CHECK_LIB(tinfo, nodelay,
-	     if test x$curses_lib = xncurses ; then
+	     if test "x${curses_lib}" = 'xncurses' ; then
 	       LIBS="$LIBS -ltinfo";
 	     fi)
 
@@ -660,7 +692,7 @@ AC_COMPILE_IFELSE([AC_LANG_SOURCE([
 #endif
 void test(){}
 ])], , enable_x11=no)
-if test x$enable_x11 != xno; then
+if test "x${enable_x11}" != 'xno'; then
   dnl LIBRARY TEST: X11 Xlib support
   AC_CHECK_LIB(X11, main, have_x11_lib=yes, have_x11_lib=no, )
   AC_CHECK_LIB(Xrandr, XRRGetCrtcInfo, have_xrandr_lib=yes, have_xrandr_lib=no, )
@@ -668,7 +700,7 @@ if test x$enable_x11 != xno; then
 
   dnl Compile test will fail for XKBrules.h if we do not also include XKBlib.h
   dnl Hope your compiler supports the GCC style -include option!
-  if test x$have_x11_h = xyes; then
+  if test "x${have_x11_h}" = 'xyes'; then
     save_CPPFLAGS=$CPPFLAGS
     CPPFLAGS="$CPPFLAGS -include X11/XKBlib.h"
 
@@ -686,10 +718,10 @@ AC_CHECK_LIB(fluidsynth, fluid_synth_sysex, have_fluidsynth_lib=yes,,)
 dnl LIBRARY TEST: FreeType2
 AH_TEMPLATE(C_FREETYPE,[Define to 1 to enable freetype support])
 AC_ARG_ENABLE(freetype,AC_HELP_STRING([--disable-freetype],[Disable freetype support]),enable_freetype=$enableval,enable_freetype=yes)
-AM_CONDITIONAL(C_FREETYPE, test "x$enable_freetype" = "xyes")
-if test x$enable_freetype = xyes; then
+AM_CONDITIONAL(C_FREETYPE, test "x${enable_freetype}" = 'xyes')
+if test "x${enable_freetype}" = 'xyes'; then
   AC_MSG_CHECKING(for freetype)
-  if test x$INTERNAL_FREETYPE = x1; then
+  if test "x${INTERNAL_FREETYPE}" = x1; then
     # CFLAGS and LDFLAGS were already updated by build-macos
     AC_DEFINE(C_FREETYPE,1)
     AC_MSG_RESULT(yes)
@@ -710,7 +742,7 @@ fi
 
 dnl LIBRARY TEST: FFMPEG support
 pkg-config --exists libavcodec; RES=$?
-if test x$RES = x0; then
+if test "x${RES}" = 'x0'; then
   have_avcodec_h=yes
   have_ffmpeg=yes
 else
@@ -728,7 +760,7 @@ AC_CHECK_HEADER(d3d9.h, have_d3d9_h=yes , have_d3d9_h=no , )
 AC_CHECK_HEADER(d3dx9math.h, have_d3dx9math_h=yes , have_d3dx9math_h=no , )
 
 dnl ================== SDL net special test for OS/2
-if test x$host = xi386-pc-os2-emx ; then
+if test "x${host}" = xi386-pc-os2-emx ; then
   LIBS_BACKUP=$LIBS;
   LIBS="$LIBS -lSDL_Net";
   AC_LINK_IFELSE([AC_LANG_PROGRAM([[#include <SDL_Net.h>]],[[
@@ -740,9 +772,9 @@ fi
 dnl FEATURE: PRINTER (requires FreeType2)
 AH_TEMPLATE(C_PRINTER,[Define to 1 to enable printer emulation])
 AC_ARG_ENABLE(printer,AC_HELP_STRING([--disable-printer],[disable printer emulation]),enable_printer=$enableval,enable_printer=yes)
-AM_CONDITIONAL(C_PRINTER, test "x$enable_printer" = "xyes")
-if test x$enable_freetype = xyes; then
-  if test x$enable_printer = xyes; then
+AM_CONDITIONAL(C_PRINTER, test "x${enable_printer}" = "xyes")
+if test "x${enable_freetype}" = 'xyes'; then
+  if test "x${enable_printer}" = 'xyes'; then
     AC_DEFINE(C_PRINTER,1)
   fi
 fi
@@ -750,9 +782,9 @@ fi
 dnl FEATURE: xBRZ
 AH_TEMPLATE(C_XBRZ,[Define to 1 to enable XBRZ scaler])
 AC_ARG_ENABLE(xbrz,AC_HELP_STRING([--enable-xbrz],[compile with xBRZ scaler (default yes)]),enable_xbrz=$enableval,enable_xbrz=yes)
-AM_CONDITIONAL(C_XBRZ, test "x$enable_xbrz" = "xyes")
-if test x$enable_emscripten != xyes; then
-  if test x$enable_xbrz = xyes; then
+AM_CONDITIONAL(C_XBRZ, test "x${enable_xbrz}" = 'xyes')
+if test "x${enable_emscripten}" != 'xyes'; then
+  if test "x${enable_xbrz}" = 'xyes'; then
     AC_DEFINE(C_XBRZ,1)
   fi
 fi
@@ -760,8 +792,8 @@ fi
 dnl FEATURE: xBRZ
 AH_TEMPLATE(C_SCALER_FULL_LINE,[Define to 1 to alter the simpler render scalers to operate only on the full scanline instead of detecting differences. This is a performance adjustment for slow or embedded systems])
 AC_ARG_ENABLE(scaler-full-line,AC_HELP_STRING([--enable-scaler-full-line],[scaler render full line instead of detecting changes, for slower systems]),enable_scaler_full_line=$enableval,enable_scaler_full_line=no)
-AM_CONDITIONAL(C_SCALER_FULL_LINE, test "x$enable_scaler_full_line" = "xyes")
-if test x$enable_scaler_full_line = xyes; then
+AM_CONDITIONAL(C_SCALER_FULL_LINE, test "x${enable_scaler_full_line}" = 'xyes')
+if test "x${enable_scaler_full_line}" = 'xyes'; then
   AC_DEFINE(C_SCALER_FULL_LINE,1)
 fi
 
@@ -773,7 +805,7 @@ AC_HELP_STRING([--enable-alsa-midi],[compile with alsa midi support (default yes
  no)  alsa_midi=false;;
 esac],
 [alsa_midi=true])
-if test x$alsa_midi = xtrue ; then 
+if test "x${alsa_midi}" = xtrue ; then 
   CXXFLAGS="$CXXFLAGS $ALSA_CFLAGS"
 fi
 
@@ -783,7 +815,7 @@ AC_ARG_ENABLE(mt32,AC_HELP_STRING([--disable-mt32],[Disable MT32 emulation]),,en
 AC_MSG_CHECKING(whether MT32 emulation will be enabled) 
 
 # test
-if test x$enable_mt32 = xyes ; then 
+if test "x${enable_mt32}" = 'xyes' ; then 
   case "$host_cpu" in
     x86_64 | amd64)
       AC_MSG_RESULT(yes)
@@ -806,7 +838,7 @@ else
   enable_mt32=no
   AC_MSG_RESULT(no)
 fi 
-AM_CONDITIONAL(C_MT32, test "x$enable_mt32" = "xyes")
+AM_CONDITIONAL(C_MT32, test "x${enable_mt32}" = 'xyes')
 
 dnl On some Linux platforms, std::atomic needs a helper library
 case "$host" in
@@ -827,7 +859,7 @@ case "$host" in
             }
         ])],STD_ATOMIC_NEED_LIBATOMIC=no,STD_ATOMIC_NEED_LIBATOMIC=yes)
         AC_MSG_RESULT($STD_ATOMIC_NEED_LIBATOMIC)
-        if test "x$STD_ATOMIC_NEED_LIBATOMIC" = xyes; then
+        if test "x${STD_ATOMIC_NEED_LIBATOMIC}" = 'xyes'; then
           LIBS="$LIBS -latomic"
         fi
         ;;
@@ -845,12 +877,12 @@ dnl FEATURE: DEBUG and HEAVY DEBUG options (debugger)
 AH_TEMPLATE(C_DEBUG,[Define to 1 to enable internal debugger, requires libcurses])
 AH_TEMPLATE(C_HEAVY_DEBUG,[Define to 1 to enable heavy debugging, also have to enable C_DEBUG])
 AC_ARG_ENABLE(debug,AC_HELP_STRING([--enable-debug],[Enable debug mode]),[
-   if test x$enable_debug = xno; then
+   if test "x${enable_debug}" = 'xno'; then
      AC_MSG_RESULT([Debugger not enabled])
-   elif test x$curses_lib != x -a x$have_curses_h = xyes; then
-     LIBS="$LIBS -l$curses_lib"
+   elif test "x${have_ncurses_lib}" = 'xyes' && test "x${have_curses_h}" = 'xyes' ; then
+     LIBS="$LIBS -lncurses"
      AC_DEFINE(C_DEBUG,1)
-     if test x$enable_debug = xheavy ; then 
+     if test "x${enable_debug}" = 'xheavy' ; then 
        AC_DEFINE(C_HEAVY_DEBUG,1)
      fi
    else 
@@ -864,7 +896,7 @@ dnl dynamic/dynrec core
 AC_MSG_CHECKING([whether Apple user wants to override the build process to produce a 32 bit binary])
 case "$host" in 
   *-*-darwin*)
-   if test x$c_targetcpu = xx86_64 -a x$c_sizep = x4 ; then
+   if test "x${c_targetcpu}" = 'xx86_64' && test "x${c_sizep}" = 'x4' ; then
      AC_MSG_RESULT(yes)
      AC_DEFINE(C_TARGETCPU,X86)
      c_targetcpu="x86"
@@ -884,9 +916,9 @@ dnl FEATURE: Whether to enable x86 dynamic core
 AH_TEMPLATE(C_DYNAMIC_X86,[Define to 1 to use x86/x64 dynamic cpu core])
 AC_ARG_ENABLE(dynamic-x86,AC_HELP_STRING([--disable-dynamic-x86],[Disable x86/x64 dynamic cpu core]),,enable_dynamic_x86=yes)
 AC_MSG_CHECKING(whether x86 dynamic cpu core will be enabled)
-if test x$enable_dynamic_x86 = xno -o x$enable_dynamic_core = xno; then
+if test "x${enable_dynamic_x86}" = 'xno' || test "x${enable_dynamic_core}" = xno; then
    AC_MSG_RESULT(no)
-elif test x$c_targetcpu = xx86 -o x$c_targetcpu = xx86_64; then
+elif test "x${c_targetcpu}" = xx86 || test "x${c_targetcpu}" = xx86_64; then
    AC_DEFINE(C_DYNAMIC_X86,1)
    AC_MSG_RESULT(yes)
 else
@@ -897,10 +929,10 @@ dnl FEATURE: Whether to enable recompiling dynamic core
 AH_TEMPLATE(C_DYNREC,[Define to 1 to use recompiling cpu core])
 AC_ARG_ENABLE(dynrec,AC_HELP_STRING([--disable-dynrec],[Disable recompiling cpu core]),,enable_dynrec=yes)
 AC_MSG_CHECKING(whether recompiling cpu core will be enabled) 
-if test x$enable_dynrec = xno -o x$enable_dynamic_core = xno; then 
+if test "x${enable_dynrec}" = 'xno' || test "x${enable_dynamic_core}" = 'xno'; then 
    AC_MSG_RESULT(no)
 # test for MIPS32 is missing from this Dynamic Recompiler whitelist
-elif test x$c_targetcpu = xx86 -o x$c_targetcpu = xx86_64 -o x$c_targetcpu = xarm; then
+elif test "x${c_targetcpu}" = xx86 || test "x${c_targetcpu}" = xx86_64 || test "x${c_targetcpu}" = xarm; then
    AC_DEFINE(C_DYNREC,1)
    AC_MSG_RESULT(yes)
 else
@@ -911,7 +943,7 @@ dnl FEATURE: Whether to emulate the floating point unit
 AH_TEMPLATE(C_FPU,[Define to 1 to enable floating point emulation])
 AC_ARG_ENABLE(fpu,AC_HELP_STRING([--disable-fpu],[Disable fpu support]),,enable_fpu=yes)
 AC_MSG_CHECKING(whether fpu emulation will be enabled) 
-if test x$enable_fpu = xyes ; then 
+if test "x${enable_fpu}" = 'xyes' ; then 
   AC_MSG_RESULT(yes)
   AC_DEFINE(C_FPU,1)
 else 
@@ -922,11 +954,11 @@ AH_TEMPLATE(C_FPU_X86,[Define to 1 to use a x86/x64 assembly fpu core])
 AC_ARG_ENABLE(fpu-x86,AC_HELP_STRING([--disable-fpu-x86],[Disable x86 assembly fpu core]),,enable_fpu_x86=yes)
 AC_ARG_ENABLE(fpu-x64,AC_HELP_STRING([--disable-fpu-x64],[Disable x64 assembly fpu core]),,enable_fpu_x64=yes)
 AC_MSG_CHECKING(whether the x86/x64 assembly fpu core will be enabled) 
-if test x$enable_fpu_x86 = xno -o x$enable_fpu_x64 = xno; then 
+if test "x${enable_fpu_x86}" = 'xno' || test "x${enable_fpu_x64}" = xno; then 
    AC_MSG_RESULT(no)
 else
-  if test x$enable_fpu = xyes; then
-    if test x$c_targetcpu = xx86 -o x$c_targetcpu = xx86_64; then
+  if test "x${enable_fpu}" = 'xyes'; then
+    if test "x${c_targetcpu}" = xx86 || test "x${c_targetcpu}" = xx86_64; then
         AC_DEFINE(C_FPU_X86,1)
         AC_MSG_RESULT(yes)
     else
@@ -941,7 +973,7 @@ dnl FEATURE: Whether to enable unaligned memory access
 AH_TEMPLATE(C_UNALIGNED_MEMORY,[Define to 1 to use a unaligned memory access])
 AC_ARG_ENABLE(unaligned_memory,AC_HELP_STRING([--disable-unaligned-memory],[Disable unaligned memory access]),,enable_unaligned_memory=yes)
 AC_MSG_CHECKING(whether to enable unaligned memory access) 
-if test x$enable_unaligned_memory = xyes -a x$c_unalignedmemory = xyes; then 
+if test "x${enable_unaligned_memory}" = 'xyes' && test "x${c_unalignedmemory}" = 'xyes'; then 
   AC_DEFINE(C_UNALIGNED_MEMORY,1)
   AC_MSG_RESULT(yes)
 else
@@ -955,20 +987,20 @@ AH_TEMPLATE(C_IPX,[Define to 1 to enable IPX over Internet networking, requires 
 
 case "$host" in
   *-*-cygwin* | *-*-mingw32*)
-    if test x$have_sdl_net_h = xyes; then
+    if test "x${have_sdl_net_h}" = 'xyes'; then
       have_sdl_net_lib=yes
     fi
   ;;
 esac
 dnl enable SDL2 net if SDL2
 if test -n "$SDL2_LIBS"; then
- if test x$have_sdl2_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
+ if test "x${have_sdl2_net_lib}" = 'xyes' && test "x${have_sdl_net_h}" = 'xyes' ; then
   LIBS="$LIBS -lSDL2_net"
   AC_DEFINE(C_SDL_NET,1)
   AC_DEFINE(C_MODEM,1)
   AC_DEFINE(C_IPX,1)
   have_sdl_net=yes
- elif test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
+ elif test "x${have_sdl_net_lib}" = 'xyes' && test "x${have_sdl_net_h}" = 'xyes' ; then
   LIBS="$LIBS -lSDL_net"
   AC_DEFINE(C_SDL_NET,1)
   AC_DEFINE(C_MODEM,1)
@@ -978,7 +1010,7 @@ if test -n "$SDL2_LIBS"; then
   AC_MSG_WARN([Can't find SDL_net, internal modem and ipx disabled])
  fi
 else
- if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
+ if test "x${have_sdl_net_lib}" = 'xyes' && test "x${have_sdl_net_h}" = 'xyes' ; then
   LIBS="$LIBS -lSDL_net"
   AC_DEFINE(C_SDL_NET,1)
   AC_DEFINE(C_MODEM,1)
@@ -991,7 +1023,7 @@ fi
 
 dnl FEATURE: Whether to support libz, and enable snapshots
 AH_TEMPLATE(C_LIBZ,[Define to 1 if you have libz])
-if test x$have_zlib_lib = xyes -a x$have_zlib_h = xyes ; then
+if test "x${have_zlib_lib}" = 'xyes' && test "x${have_zlib_h}" = 'xyes' ; then
   LIBS="$LIBS -lz"
   AC_DEFINE(C_LIBZ,1)
 fi
@@ -1001,8 +1033,8 @@ AH_TEMPLATE(C_LIBPNG,[Define to 1 if you have libpng])
 AH_TEMPLATE(C_SSHOT,[Define to 1 to enable screenshots, requires libpng])
 AC_ARG_ENABLE(screenshots,AC_HELP_STRING([--disable-screenshots],[Disable screenshots and movie recording]),,enable_screenshots=yes)
 AC_MSG_CHECKING([whether screenshots will be enabled])
-if test x$enable_screenshots = xyes; then 
-    if test x$have_png_lib = xyes -a x$have_png_h = xyes ; then
+if test "x${enable_screenshots}" = 'xyes'; then 
+    if test "x${have_png_lib}" = 'xyes' && test "x${have_png_h}" = 'xyes' ; then
     LIBS="$LIBS -lpng -lz"
     AC_DEFINE(C_LIBPNG,1)
     AC_DEFINE(C_SSHOT,1)
@@ -1023,7 +1055,7 @@ case "$host" in
        AC_DEFINE(C_PCAP,1)
     ;;
     *)
-       if test x$have_pcap_lib = xyes -a x$have_pcap_h = xyes ; then
+       if test "x${have_pcap_lib}" = 'xyes' && test "x${have_pcap_h}" = 'xyes' ; then
          LIBS="$LIBS -lpcap";
          AC_DEFINE(C_PCAP,1)
        else
@@ -1035,27 +1067,27 @@ esac
 dnl FEATURE: Whether to use libslirp, and enable userspace TCP/IP emulation
 AH_TEMPLATE(C_SLIRP, [Define to 1 to enable userspace TCP/IP emulation, requires libslirp])
 AC_ARG_ENABLE(libslirp,AC_HELP_STRING([--disable-libslirp],[Disable libslirp support]),enable_libslirp=$enableval,enable_libslirp=yes)
-if test x$enable_libslirp = xyes ; then
+if test "x${enable_libslirp}" = 'xyes' ; then
   case "$host" in
     *-*-cygwin* | *-*-mingw32*)
-       if test x$have_slirp_h = xyes; then
+       if test "x${have_slirp_h}" = 'xyes'; then
          have_slirp_lib=yes
        fi
     ;;
   esac
-  if test x$have_slirp_lib = xyes -a x$have_slirp_h = xyes ; then
+  if test "x${have_slirp_lib}" = 'xyes' && test "x${have_slirp_h}" = 'xyes' ; then
     have_slirp=yes
     AC_DEFINE(C_SLIRP,1)
-    LIBS="$LIBS "`pkg-config slirp --libs`
-    CFLAGS="$CFLAGS "`pkg-config slirp --cflags`
-    CPPFLAGS="$CPPFLAGS "`pkg-config slirp --cflags`
+    LIBS="${LIBS} $(pkg-config slirp --libs)"
+    CFLAGS="$CFLAGS $(pkg-config slirp --cflags)"
+    CPPFLAGS="$CPPFLAGS $(pkg-config slirp --cflags)"
   else
     have_slirp=no
     AC_MSG_WARN([Can't find libslirp, userspace TCP/IP emulation disabled])
   fi
   case "$host" in
     *-*-cygwin* | *-*-mingw32*)
-       if test x$have_slirp = xyes; then
+       if test "x${have_slirp}" = 'xyes'; then
          LIBS="$LIBS -lintl -liconv"
        fi
     ;;
@@ -1068,11 +1100,11 @@ else
   esac
 fi
 
-if test x$enable_x11 != xno; then
+if test "x${enable_x11}" != 'xno'; then
   dnl FEATURE: Whether to use X11 XKBlib
   AH_TEMPLATE(C_X11_XKB,[define to 1 if you have XKBlib.h and X11 lib])
   AC_MSG_CHECKING(for XKBlib support)
-  if test x$have_x11_lib = xyes -a x$have_x11_h = xyes ; then
+  if test "x${have_x11_lib}" = 'xyes' && test "x${have_x11_h}" = 'xyes' ; then
     LIBS="$LIBS -lX11"
     AC_DEFINE(C_X11_XKB,1)
     AC_MSG_RESULT(yes)
@@ -1083,7 +1115,7 @@ if test x$enable_x11 != xno; then
   dnl FEATURE: Whether to use X11 XRandR
   AH_TEMPLATE(C_X11_XRANDR,[define to 1 if you have XRandr.h and X11 lib])
   AC_MSG_CHECKING(for XRandR support)
-  if test x$have_xrandr_lib = xyes -a x$have_x11_h = xyes ; then
+  if test "x${have_xrandr_lib}" = 'xyes' && test "x${have_x11_h}" = 'xyes' ; then
     LIBS="$LIBS -lXrandr"
     AC_DEFINE(C_X11_XRANDR,1)
     AC_MSG_RESULT(yes)
@@ -1092,17 +1124,17 @@ if test x$enable_x11 != xno; then
   fi
 
   dnl Having XKBlib doesn't mean XKBrules.h is around
-  if test x$have_x11_ext_xkbrules_h = xyes ; then
+  if test "x${have_x11_ext_xkbrules_h}" = 'xyes' ; then
     AH_TEMPLATE(C_X11_EXT_XKBRULES,[define to 1 if XKBrules.h is present])
     AC_DEFINE(C_X11_EXT_XKBRULES,1)
   fi
-  if test x$have_xkbfile_h = xyes ; then
+  if test "x${have_xkbfile_h}" = 'xyes' ; then
     AH_TEMPLATE(C_X11_XKBFILE,[define to 1 if XKBfile.h is present])
     AC_DEFINE(C_X11_XKBFILE,1)
     LIBS="$LIBS -lxkbfile"
   fi
 
-  if test x$have_x11_h = xyes ; then
+  if test "x${have_x11_h}" = 'xyes' ; then
     AH_TEMPLATE(C_X11,[define to 1 to enable X11 support])
     AC_DEFINE(C_X11,1)
   fi
@@ -1111,15 +1143,15 @@ fi
 dnl FEATURE: Whether to use Fluidsynth
 AH_TEMPLATE(C_FLUIDSYNTH,[Define to 1 to enable libfluidsynth MIDI synthesis])
 AC_ARG_ENABLE(libfluidsynth,AC_HELP_STRING([--disable-libfluidsynth],[Disable libfluidsynth support]),enable_libfluidsynth=$enableval,enable_libfluidsynth=yes)
-if test x$enable_libfluidsynth = xyes; then
+if test "x${enable_libfluidsynth}" = 'xyes'; then
     case "$host" in
         *-*-linux*)
-        if test x$have_fluidsynth_h = xyes; then
+        if test "x${have_fluidsynth_h}" = 'xyes'; then
           have_fluidsynth_lib=yes
         fi
       ;;
     esac
-    if test x$have_fluidsynth_lib = xyes -a x$have_fluidsynth_h = xyes ; then
+    if test "x${have_fluidsynth_lib}" = 'xyes' && test "x${have_fluidsynth_h}" = xyes ; then
       LIBS="$LIBS -lfluidsynth"
       AC_DEFINE(C_FLUIDSYNTH,1)
     else
@@ -1133,10 +1165,13 @@ AC_ARG_ENABLE(avcodec,AC_HELP_STRING([--enable-avcodec],[Enable FFMPEG avcodec s
 if test x$enable_ffmpeg = xyes; then
     if test x$have_ffmpeg = xyes; then
         if test x$have_avcodec_h = xyes; then
+if test "x${enable_ffmpeg}" = 'xyes'; then
+    if test "x${have_ffmpeg}" = 'xyes'; then
+        if test "x${have_avcodec_h}" = 'xyes'; then
             PKGS="libavcodec libavformat libavutil libswscale libswresample"
-            CFLAGS="$CFLAGS "`pkg-config $PKGS --cflags`
-            CPPFLAGS="$CPPFLAGS "`pkg-config $PKGS --cflags`
-            LIBS=`pkg-config $PKGS --libs`" $LIBS"
+            CFLAGS="$CFLAGS $(pkg-config $PKGS --cflags)"
+            CPPFLAGS="$CPPFLAGS $(pkg-config $PKGS --cflags)"
+            LIBS="$(pkg-config $PKGS --libs) ${LIBS}"
             AC_MSG_RESULT(yes)
             AC_DEFINE(C_AVCODEC,1)
         fi
@@ -1152,16 +1187,16 @@ dnl FEATURE: Direct3D9 shaders
 AH_TEMPLATE(C_D3DSHADERS,[Define to 1 to use Direct3D shaders])
 AC_ARG_ENABLE(d3d-shaders,AC_HELP_STRING([--enable-d3d-shaders],[Enable Direct3D shaders]),enable_d3d_shaders=$enableval,enable_d3d_shaders=no)
 
-if test x$enable_d3d9 = xyes; then
+if test "x${enable_d3d9}" = 'xyes'; then
     case "$host" in
         *-*-cygwin* | *-*-mingw32*)
-        if test x$have_d3d9_h = xyes -a x$have_d3dx9math_h = xyes ; then
+        if test "x${have_d3d9_h}" = 'xyes' && test "x${have_d3dx9math_h}" = xyes ; then
 	    do_d3d=1
             AC_MSG_RESULT(yes)
             AH_TEMPLATE(C_DIRECT3D,[Define to 1 to enable Direct3D 9 display output support])
             AC_DEFINE(HAVE_D3D9_H,1)
             AC_DEFINE(C_DIRECT3D,1)
-            if test x$enable_d3d_shaders = xyes; then
+            if test "x${enable_d3d_shaders}" = 'xyes'; then
                 AC_DEFINE(C_D3DSHADERS,1)
             fi
         else
@@ -1179,14 +1214,14 @@ fi
 AM_CONDITIONAL(C_DIRECT3D, test x"$do_d3d" = x"1")
 
 AH_TEMPLATE(C_ICONV,[Define to 1 to use GNU libiconv])
-if test x$have_iconv_h = xyes; then
+if test "x${have_iconv_h}" = 'xyes'; then
     AC_DEFINE(C_ICONV,1)
 case "$host" in
     *-*-darwin*)
     LIBS="$LIBS -liconv"
     ;;
     *-*-cygwin* | *-*-mingw32*)
-       if test x$have_slirp = xno; then
+       if test "x${have_slirp}" = 'xno'; then
          LIBS="$LIBS -liconv"
        fi
     ;;
@@ -1198,14 +1233,14 @@ AH_TEMPLATE(C_ICONV_WIN32,[Define to 1 to use Win32 functions in iconv backend])
 
 dnl If networking is used, add networking libraries last on Windows
 dnl so SDL_net, fluidsynth and libslirp successfully link to them
-if test x$enable_emscripten != xyes; then
+if test "x${enable_emscripten}" != 'xyes'; then
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
-       if test x$have_slirp = xyes; then
+       if test "x${have_slirp}" = 'xyes'; then
          LIBS="$LIBS -luuid -lole32"
        fi
        LIBS="$LIBS -lwsock32 -lws2_32 -liphlpapi -lshlwapi"
-       if test x$enable_freetype = xyes; then
+       if test "x${enable_freetype}" = 'xyes'; then
          LIBS="$LIBS -lfreetype -lwinspool"
        fi
     ;;

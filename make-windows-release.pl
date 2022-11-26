@@ -10,7 +10,7 @@ my $brancha=`git branch`;
 my $branch;
 
 my @a = split(/\n/,$brancha);
-for ($i=0;$i < @a;$i++) {
+for (my $i=0; $i < @a; ++$i) {
 	my $line = $a[$i];
 	chomp $line;
 
@@ -19,17 +19,17 @@ for ($i=0;$i < @a;$i++) {
 	}
 }
 
-if ( "$branch" eq "develop-win-sdl1-async-hack-201802" ) {
+if ( "$branch" eq 'develop-win-sdl1-async-hack-201802' ) {
     $subdir="release/windows-async";
 }
 
-$suffix = $subdir;
+my $suffix = $subdir;
 $suffix =~ s/^.*\/windows/vsbuild/g;
 
-mkdir "release" unless -d "release";
+mkdir 'release' unless -d 'release';
 mkdir "$subdir" unless -d "$subdir";
 
-die "bin directory not exist" unless -d "bin";
+die 'bin directory not exist' unless -d 'bin';
 
 die unless -f $ziptool;
 
@@ -39,7 +39,7 @@ my @platforms = ('ARM', 'ARM64', 'Win32', 'x64');
 my @builds = ('Release', 'Release SDL2');
 my @files = ('dosbox-x.reference.conf', 'dosbox-x.reference.full.conf', 'readme.txt', 'dosbox-x.exe', 'FREECG98.bmp', 'wqy_11pt.bdf', 'wqy_12pt.bdf', 'Nouveau_IBM.ttf', 'SarasaGothicFixed.ttf', 'changelog.txt', 'drivez', 'scripts', 'shaders', 'glshaders', 'languages');
 
-foreach $platform (@platforms) {
+foreach my $platform (@platforms) {
 	$plat = $platform;
 	$plat = 'win32' if $plat eq 'Win32';
 	$plat = 'win64' if $plat eq 'x64';
@@ -64,6 +64,6 @@ foreach $platform (@platforms) {
 	}
 
 	# do it
-	$r = system($ziptool, '-9', '-r', "$subdir/$zipname", @filelist);
+	my $r = system($ziptool, '-9', '-r', "$subdir/$zipname", @filelist);
 	exit 1 unless $r == 0;
 }
