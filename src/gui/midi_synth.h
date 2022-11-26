@@ -354,20 +354,25 @@ public:
 			}
 #endif
 		} else
-            ResolvePath(sf);
+			ResolvePath(sf);
+
 		soundfont.assign(sf);
 		settings = new_fluid_settings();
+
 		if (strcmp(section->Get_string("fluid.driver"), "default") != 0) {
 			fluid_settings_setstr(settings, "audio.driver", section->Get_string("fluid.driver"));
 		}
 #if defined (__linux__) // Let's use pulseaudio as default on Linux, and not the FluidSynth default of Jack
-		else
-		    fluid_settings_setstr(settings, "audio.driver", "pulseaudio");
+		else {
+			fluid_settings_setstr(settings, "audio.driver", "pulseaudio");
+		}
 #endif
 #if defined (WIN32) && !defined(HX_DOS)
-        else
-            fluid_settings_setstr(settings, "audio.driver", "dsound"); // Explicitly set audio driver to be dsound as default for Windows
+		else {
+			fluid_settings_setstr(settings, "audio.driver", "dsound"); // Explicitly set audio driver to be dsound as default for Windows
+		}
 #endif //WIN32
+
 		fluid_settings_setnum(settings, "synth.sample-rate", atof(section->Get_string("fluid.samplerate")));
 		fluid_settings_setnum(settings, "synth.gain", atof(section->Get_string("fluid.gain")));
 		fluid_settings_setint(settings, "synth.polyphony", section->Get_int("fluid.polyphony"));
