@@ -334,6 +334,13 @@ void     QZ_InitOSKeymap (_THIS) {
     keymap[QZ_KP_ENTER] = SDLK_KP_ENTER;
 }
 
+static int GetEnableIME()
+{
+    TISInputSourceRef is = TISCopyCurrentKeyboardInputSource();
+    CFBooleanRef ret = (CFBooleanRef)TISGetInputSourceProperty(is, kTISPropertyInputSourceIsASCIICapable);
+    return CFBooleanGetValue(ret) ? 0 : 1;
+}
+
 static void QZ_DoKey (_THIS, int state, NSEvent *event) {
 
     NSString *chars = NULL;
@@ -348,12 +355,11 @@ static void QZ_DoKey (_THIS, int state, NSEvent *event) {
         contains multiple characters, we'll use 0 as
         the scancode/keysym.
     */
-    if (SDL_TranslateUNICODE && state == SDL_PRESSED) {
+    if (state == SDL_PRESSED && GetEnableIME()) {
         [field_edit interpretKeyEvents:[NSArray arrayWithObject:event]];
         chars = [ event characters ];
         numChars = [ chars length ];
-        if (numChars > 0)
-            [field_edit setString:@""];
+        return;
     } else {
         numChars = 0;
     }
@@ -1331,3 +1337,144 @@ void QZ_UpdateMouse (_THIS)
     SDL_PrivateAppActive (QZ_IsMouseInWindow (this), SDL_APPMOUSEFOCUS);
     SDL_PrivateMouseMotion (0, 0, p.x, p.y);
 }
+
+#ifdef ENABLE_IM_EVENT
+int QZ_SetIMPosition(_THIS, int x, int y)
+{
+    [field_edit setInputXY:x y:y];
+    return 0;
+}
+
+void QZ_EnableIME(_THIS)
+{ @autoreleasepool
+{
+    if (field_edit) {
+        [field_edit release];
+    }
+    field_edit =  [[SDLTranslatorResponder alloc] initWithFrame: NSMakeRect(0.0, 0.0, 0.0, 0.0)];
+
+    NSView *parentView = [qz_window contentView];
+
+    if (![[field_edit superview] isEqual:parentView]) {
+        [field_edit removeFromSuperview];
+    }
+    [parentView addSubview: field_edit];
+    [qz_window makeFirstResponder: field_edit];
+}}
+
+void QZ_DisableIME(_THIS)
+{ @autoreleasepool
+{
+    if(field_edit) {
+        [field_edit removeFromSuperview];
+        [field_edit release];
+        field_edit = nil;
+    }
+}}
+
+char *QZ_SetIMValues(_THIS, SDL_imvalue value, int alt)
+{
+    switch (value) {
+        case SDL_IM_ENABLE:
+            if (alt) {
+                QZ_EnableIME(this);
+                ime_enable = YES;
+                return NULL;
+            } else {
+                QZ_DisableIME(this);
+                ime_enable = NO;
+                return NULL;
+            }
+        case SDL_IM_FLIP:
+            return NULL;
+        case SDL_IM_ONOFF:
+            if(alt) {
+                NSString *locale;
+                NSArray *languages = [NSLocale preferredLanguages];
+                if (languages != nil) {
+                    locale = [languages objectAtIndex:0];
+                } else {
+                    locale = [[NSLocale currentLocale] objectForKey:NSLocaleLanguageCode];
+                }
+                TISInputSourceRef source = TISCopyInputSourceForLanguage(locale);
+                if (source) {
+                    TISSelectInputSource(source);
+                }
+            } else {
+                NSArray *source_list = CFBridgingRelease(TISCreateASCIICapableInputSourceList());
+                TISInputSourceRef source;
+                source = (__bridge TISInputSourceRef)([source_list firstObject]);
+                if (source) {
+                    TISSelectInputSource(source);
+                }
+            }
+            return NULL;
+        case SDL_IM_FONT_SIZE:
+            [field_edit setFontHeight:alt];
+            return NULL;
+        default:
+             SDL_SetError("SDL_SetIMValues: unknow enum type: %d", value);
+             return "SDL_SetIMValues: unknow enum type";
+    }
+    return NULL;
+}
+
+char *QZ_GetIMValues(_THIS, SDL_imvalue value, int *alt)
+{
+    switch (value) {
+        case SDL_IM_ENABLE:
+            if (ime_enable == YES) {
+                *alt = 1;
+                return NULL;
+            } else {
+                *alt = 0;
+                return NULL;
+            }
+        case SDL_IM_FLIP:
+            *alt = 0;
+            return NULL;
+        case SDL_IM_ONOFF:
+            *alt = GetEnableIME();
+            return NULL;
+        case SDL_IM_FONT_SIZE:
+            *alt = [field_edit getFontHeight];
+            return NULL;
+        default:
+            SDL_SetError("QZ_GetIMValues: nuknown enum type %d", value);
+            return "QZ_GetIMValues: nuknown enum type";
+    }
+    return NULL;
+}
+
+int QZ_FlushIMString(_THIS, void *buffer)
+{
+    if(buffer) {
+        char *str = [field_edit getText];
+        if(str) {
+            strcpy(buffer, str);
+        } else {
+            *(char *)buffer = 0;
+        }
+    }
+    return [field_edit getTextLength];
+}
+
+#else /* !ENABLE_IM_EVENT */
+/* Fill with null implementation */
+int QZ_SetIMPosition(_THIS, int x, int y)
+{
+    return 0;
+}
+char *QZ_SetIMValues(_THIS, SDL_imvalue value, int alt)
+{
+    return NULL;
+}
+char *QZ_GetIMValues(_THIS, SDL_imvalue value, int *alt)
+{
+    return NULL;
+}
+int QZ_FlushIMString(_THIS, void *buffer)
+{
+    return 0;
+}
+#endif

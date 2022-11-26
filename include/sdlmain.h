@@ -166,6 +166,9 @@ struct SDL_Block {
     uint32_t focus_ticks = 0;
     uint32_t ime_ticks;
 #endif
+#if defined(MACOSX)
+	uint32_t ime_ticks;
+#endif
     // state of alt-keys for certain special handlings
     uint16_t laltstate = 0, raltstate = 0;
     uint16_t lctrlstate = 0, rctrlstate = 0;

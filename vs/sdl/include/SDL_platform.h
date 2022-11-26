@@ -71,6 +71,7 @@
 #if defined(__APPLE__)
 #undef __MACOSX__
 #define __MACOSX__	1
+#define ENABLE_IM_EVENT 1
 #elif defined(macintosh)
 #undef __MACOS__
 #define __MACOS__	1
