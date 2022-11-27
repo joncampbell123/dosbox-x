@@ -1,4 +1,16 @@
 Unreleased
+  - Fix VBE mode 0x212, which is 640x480 24bpp packed
+    mode but with a per scanline stride of 2048 bytes
+    per pixel set aside for the Windows 3.1 driver and
+    the "640x480 (1Meg) 16 million colors" setting,
+    so that the VBE "Get Mode Info" call reflects the
+    proper per-scanline stride instead of the ideal one.
+    This should fix complaints about VBEMP and 640x480
+    24-bit color mode. Given how minimal the use of the
+    mode is by the Windows 3.1 driver, the 2048 byte
+    mode does not permit setting scan line length or
+    display start i.e. panning is not permitted.
+    (joncampbell123).
   - Fix Pentium Pro emulation to support microcode
     related MSRs so that Windows 98 does not crash
     on startup when cputype=ppro_slow. (joncampbell123).

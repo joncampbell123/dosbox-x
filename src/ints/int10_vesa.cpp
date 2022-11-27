@@ -29,6 +29,7 @@
 #include "int10.h"
 #include "render.h"
 #include "dos_inc.h"
+#include "bitop.h"
 
 int hack_lfb_yadjust = 0;
 
@@ -482,6 +483,15 @@ foundit:
 		var_write(&minfo.YCharSize,(uint8_t)mblock->cheight); /* optional in VBE 1.0 */
 	}
 
+	/* this special hack is for the Windows 3.1 S3 driver in "640x480 (1MB) 16 million colors" mode which does no scan line or display offset calls at all */
+	if (mblock->special & _S3_POW2_STRIDE) {
+		uint16_t w = host_readw((HostPt)(&minfo.BytesPerScanLine));
+		if (!bitop::ispowerof2(w)) {
+			w = bitop::bit2mask(bitop::log2(w) + 1u);
+			var_write(&minfo.BytesPerScanLine,(uint16_t)w);
+		}
+	}
+
 	if (!int10.vesa_nolfb && !int10.vesa_oldvbe) var_write(&minfo.PhysBasePtr,S3_LFB_BASE + (hack_lfb_yadjust*(long)host_readw((HostPt)(&minfo.BytesPerScanLine))));
 
 	MEM_BlockWrite(buf,&minfo,sizeof(MODE_INFO));
@@ -583,6 +593,10 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 	Bitu new_offset = vga.config.scan_len;
 	Bitu screen_height = CurMode->sheight;
 	Bitu max_offset;
+
+	/* this special hack is for the Windows 3.1 S3 driver in "640x480 (1MB) 16 million colors" mode which does no scan line or display offset calls at all */
+	if (CurMode->special & _S3_POW2_STRIDE)
+		return VESA_MODE_UNSUPPORTED;
 
 	switch (CurMode->type) {
 		case M_TEXT:
@@ -695,6 +709,10 @@ uint8_t VESA_ScanLineLength(uint8_t subcall,uint16_t val, uint16_t & bytes,uint1
 uint8_t VESA_SetDisplayStart(uint16_t x,uint16_t y,bool wait) {
 	Bitu pixels_per_offset;
 	Bitu panning_factor = 1;
+
+	/* this special hack is for the Windows 3.1 S3 driver in "640x480 (1MB) 16 million colors" mode which does no scan line or display offset calls at all */
+	if (CurMode->special & _S3_POW2_STRIDE)
+		return VESA_MODE_UNSUPPORTED;
 
 	if (!wait) {
 		if (vesa_set_display_vsync_wait > 0)
