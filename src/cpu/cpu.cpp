@@ -4455,7 +4455,8 @@ bool CPU_RDMSR() {
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: MSR_IA32_EBL_CR_POWERON");
 			return true;
 		case 0x0000008b: /* Intel microcode revision... Windows ME insists on reading this at startup if Pentium II and stepping 3 */
-			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			/* NTS: Windows 98 will also read this register on boot up if emulating a Pentium Pro */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII && !(CPU_ArchitectureType==CPU_ARCHTYPE_PPROSLOW)) return false;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Guest is reading Intel microcode revision");
 			if (CPU_ArchitectureType >= CPU_ARCHTYPE_PENTIUMIII) {
 				// Taken from an actual Pentium III system. Windows ME will try to update microcode if major version is too low, this value stops that.
@@ -4556,7 +4557,8 @@ bool CPU_WRMSR() {
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Guest is attempting to update microcode (is that you Windows ME?) EDX:EAX=%08x:%08x",reg_edx,reg_eax);
 			return true;
 		case 0x0000008b: /* Intel microcode revision... why is Windows ME writing this register before reading it? */
-			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			/* NTS: Windows 98 will also write this register on boot up if emulating a Pentium Pro */
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII && !(CPU_ArchitectureType==CPU_ARCHTYPE_PPROSLOW)) return false;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Attempt to write Intel microcode revision (is that you Windows ME?) EDX:EAX=%08x:%08x",reg_edx,reg_eax);
 			return true;
 		case 0x000000ce: /* MSR_PLATFORM_INFO? */

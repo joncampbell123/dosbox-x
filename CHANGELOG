@@ -1,4 +1,7 @@
 Unreleased
+  - Fix Pentium Pro emulation to support microcode
+    related MSRs so that Windows 98 does not crash
+    on startup when cputype=ppro_slow. (joncampbell123).
   - Added SMV debugger command. This is the linear
     (virtual) equivalent of the SM "Set Memory"
     command. (joncampbell123).
