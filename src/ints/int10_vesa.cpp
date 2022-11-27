@@ -869,6 +869,10 @@ Bitu INT10_WriteVESAModeList(Bitu max_modes) {
         else if (ModeList_VGA[i].type == M_ERROR) {
             /* ignore */
         }
+        /* do not list modes that are marked as do not list */
+        else if (ModeList_VGA[i].special & _DO_NOT_LIST) {
+            /* ignore */
+        }
         else {
             /* If there is no "accepts mode" then accept.
              *

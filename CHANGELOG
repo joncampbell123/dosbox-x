@@ -1,4 +1,12 @@
 Unreleased
+  - Mark VBE mode 0x212 as "do not list" so that it does
+    not appear in normal VBE mode enumeration, while
+    keeping it valid for the Windows 3.1 driver which
+    assumes the mode is there at that number without
+    enumeration. By not listing the mode, drivers like
+    VBEMP and DOS application code will not attempt to
+    use it. There is already another mode number for
+    640x480 24bpp anyway. (joncampbell123)
   - Fix VBE mode 0x212, which is 640x480 24bpp packed
     mode but with a per scanline stride of 2048 bytes
     per pixel set aside for the Windows 3.1 driver and

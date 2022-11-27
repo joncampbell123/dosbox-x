@@ -217,7 +217,15 @@ VideoModeBlock ModeList_VGA[]={
 { 0x209  ,M_LIN15	,1152,864,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,364 ,948 ,288,864 ,0	},
 { 0x20A  ,M_LIN16	,1152,864,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,364 ,948 ,288,864 ,0	},
 { 0x20B  ,M_LIN32	,1152,864,160,64 ,8 ,16 ,1 ,0xA0000 ,0x10000,182 ,948 ,144,864 ,0	},
-{ 0x212  ,M_LIN24	,640 ,480,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 ,_S3_POW2_STRIDE }, // Windows 3.1 + S386C928 driver expects this AND 2048 bytes per scanline
+
+// Windows 3.1 + S386C928 driver expects this AND 2048 bytes per scanline. This is a 640x480 24bpp mode but the Windows 3.1
+// driver assumes 2048 bytes per scanline and assumes this video mode is there. It will select this mode if you go into
+// Windows SETUP and select "640x480 (1Meg)16 million colors". It was probably a budget mode for cards with only 1MB of
+// video RAM since 32bpp 640x480 would need more than 1MB of RAM. There is already a 640x480 24bpp packed mode 0x216 without
+// the rounding up. To avoid confusing VBEMP, and because the S3 driver ASSUMES this is here, it is marked as DO NOT LIST
+// and will not appear in VBE mode enumeration.
+{ 0x212  ,M_LIN24	,640 ,480,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,525 ,80 ,480 ,_S3_POW2_STRIDE | _DO_NOT_LIST },
+
 { 0x213  ,M_LIN32	,640 ,400,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 ,0	},
 
 // Some custom modes
