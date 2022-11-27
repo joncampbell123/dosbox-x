@@ -4442,10 +4442,10 @@ bool CPU_RDMSR() {
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Faking IA32 platform ID");
 			return true;
 		case 0x0000001b: /* Local APIC */
-			/* NTS: Windows ME assumes this MSR is present if we report ourself as a Pentium II,
+			/* NTS: Windows ME assumes this MSR is present if we report ourself as a Pentium II or Pentium Pro,
 			 *      instead of, you know, using CPUID */
 			/* NTS: Apparently the Linux kernel also assumes this register is present. */
-			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII && !(CPU_ArchitectureType==CPU_ARCHTYPE_PPROSLOW)) return false;
 			reg_edx = reg_eax = 0;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("RDMSR: Faking Local APIC");
 			return true;
@@ -4547,7 +4547,7 @@ bool CPU_WRMSR() {
 			 *      this register was 0x00000000 when it booted. Fortunately, Windows ME still
 			 *      runs properly if we silently ignore the write and leave it 0x00000000. */
 			/* NTS: Apparently the Linux kernel also assumes this register is present. */
-			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII) return false;
+			if (CPU_ArchitectureType<CPU_ARCHTYPE_PENTIUMII && !(CPU_ArchitectureType==CPU_ARCHTYPE_PPROSLOW)) return false;
 			UNBLOCKED_LOG(LOG_CPU,LOG_NORMAL)("WRMSR: Faking Local APIC");
 			if (reg_eax & 0x800) UNBLOCKED_LOG(LOG_CPU,LOG_WARN)("Guest OS is attempting to enable the Local APIC which we do not emulate yet");
 			return true;
