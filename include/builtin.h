@@ -64,7 +64,6 @@ extern struct BuiltinFileBlob bfb_MPXPLAY_EXE;	// MPXPLAY.EXE
 extern struct BuiltinFileBlob bfb_NE2000_COM;	// NE2000.COM
 extern struct BuiltinFileBlob bfb_GLIDE2X_OVL;	// GLIDE2X.OVL
 extern struct BuiltinFileBlob bfb_VGA_COM;	// VGA.COM
-extern struct BuiltinFileBlob bfb_SCANRES_COM;	// SCANRES.COM
 extern struct BuiltinFileBlob bfb_EGA_COM;	// EGA.COM
 extern struct BuiltinFileBlob bfb_CLR_COM;	// CLR.COM
 extern struct BuiltinFileBlob bfb_CGA_COM;	// CGA.COM
