@@ -112,6 +112,8 @@ Unreleased
     IMGMOUNT (maron2000)
   - Increase of sprintf buffer size in Program::WriteOut()
     (caiiiycuk)
+  - Fix unexpected behavior of swapping multiple CD images
+    (maron2000)
 
 2022.09.0 (0.84.3)
   - Updated FFMPEG video capture to use newer API,
