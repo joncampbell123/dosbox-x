@@ -2329,12 +2329,12 @@ void isoDrive :: EmptyCache(void) {
 	enable_rock_ridge = dos.version.major >= 7 || uselfn;
 	enable_joliet = dos.version.major >= 7 || uselfn;
 	is_joliet = false;
-	this->fileName[0]  = '\0';
-	this->discLabel[0] = '\0';
+	//this->fileName[0]  = '\0';
+	//this->discLabel[0] = '\0';
 	nextFreeDirIterator = 0;
 	memset(dirIterators, 0, sizeof(dirIterators));
 	memset(sectorHashEntries, 0, sizeof(sectorHashEntries));
 	memset(&rootEntry, 0, sizeof(isoDirEntry));
-	safe_strncpy(this->fileName, fileName, CROSS_LEN);
+	//safe_strncpy(this->fileName, fileName, CROSS_LEN);
 	loadImage();
 }
