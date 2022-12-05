@@ -356,10 +356,12 @@ static void QZ_DoKey (_THIS, int state, NSEvent *event) {
         the scancode/keysym.
     */
     if (state == SDL_PRESSED && GetEnableIME()) {
-        [field_edit interpretKeyEvents:[NSArray arrayWithObject:event]];
-        chars = [ event characters ];
-        numChars = [ chars length ];
-        return;
+        if(!(SDL_GetModState() & (KMOD_LMETA | KMOD_RMETA)) || [event keyCode] != 12) {
+            [field_edit interpretKeyEvents:[NSArray arrayWithObject:event]];
+            chars = [ event characters ];
+            numChars = [ chars length ];
+            return;
+        }
     } else {
         numChars = 0;
     }
