@@ -8545,7 +8545,6 @@ void Add_VFiles(bool usecp) {
 
 	if (IS_VGA_ARCH) {
         VFILE_RegisterBuiltinFileBlob(bfb_VGA_COM, "/TEXTUTIL/");
-        VFILE_RegisterBuiltinFileBlob(bfb_SCANRES_COM, "/TEXTUTIL/");
         VFILE_RegisterBuiltinFileBlob(bfb_EGA_COM, "/TEXTUTIL/");
         VFILE_RegisterBuiltinFileBlob(bfb_CLR_COM, "/TEXTUTIL/");
         VFILE_RegisterBuiltinFileBlob(bfb_CGA_COM, "/TEXTUTIL/");

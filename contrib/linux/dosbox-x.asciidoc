@@ -331,7 +331,7 @@ NOTE: Some commands (like NE2000) are only present in case the corresponding fea
 - *Z:\TEXTUTIL*
 +
 --
-*CGA*, *CLR*, *EGA*, *SCANRES*, *VGA*, *DCGA*, *132X25*, *132X43*, *132X50*,
+*CGA*, *CLR*, *EGA*, *VGA*, *DCGA*, *132X25*, *132X43*, *132X50*,
 *132X60*, *80X25*, *80X50*, *80X60*
 --
 
