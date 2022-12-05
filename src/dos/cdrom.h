@@ -347,6 +347,7 @@ public:
 	bool	ReadSector              (uint8_t *buffer, bool raw, unsigned long sector);
 	//! \brief Indicate whether the image has a data track
 	bool	HasDataTrack            (void);
+	bool	HasAudioTrack           (void);
     //! \brief Flag to track if images have been initialized
     //!
     //! \description Whether images[] has been initialized.

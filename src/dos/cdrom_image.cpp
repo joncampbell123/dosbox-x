@@ -1427,6 +1427,16 @@ bool CDROM_Interface_Image::HasDataTrack(void)
 	return false;
 }
 
+bool CDROM_Interface_Image::HasAudioTrack(void)
+{
+	//Audio track has attribute 0x00
+	for (const auto &track : tracks) {
+		if (track.attr == 0x00) {
+			return true;
+		}
+	}
+	return false;
+}
 
 bool CDROM_Interface_Image::GetRealFileName(string &filename, string &pathname)
 {
