@@ -355,15 +355,13 @@ static void QZ_DoKey (_THIS, int state, NSEvent *event) {
         contains multiple characters, we'll use 0 as
         the scancode/keysym.
     */
+    chars = [ event characters ];
+    numChars = [ chars length ];
     if (state == SDL_PRESSED && GetEnableIME()) {
         if(!(SDL_GetModState() & (KMOD_LMETA | KMOD_RMETA)) || [event keyCode] != 12) {
             [field_edit interpretKeyEvents:[NSArray arrayWithObject:event]];
-            chars = [ event characters ];
-            numChars = [ chars length ];
             return;
         }
-    } else {
-        numChars = 0;
     }
 
     if (numChars == 0) {
@@ -388,7 +386,7 @@ static void QZ_DoKey (_THIS, int state, NSEvent *event) {
 
             key.scancode = 0;
             key.sym      = 0;
-            key.unicode  = [ chars characterAtIndex:i];
+            key.unicode  = [ chars characterAtIndex:i ];
             key.mod      = KMOD_NONE;
 
             SDL_PrivateKeyboard (state, &key);
