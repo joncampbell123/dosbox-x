@@ -841,6 +841,7 @@ public:
         }
         std::string temps = prop->GetValue().ToString();
         input->setText(stringify(temps));
+	scan_tabbing = true;
 
         /* first child is first tabbable */
         {
@@ -896,6 +897,7 @@ public:
             infoButton->addActionHandler(this);
         }
         input->setText(stringify((double)prop->GetValue()));
+	scan_tabbing = true;
 
         /* first child is first tabbable */
         {
@@ -953,6 +955,7 @@ public:
         }
         std::string temps = prop->GetValue().ToString();
         input->setText(temps.c_str());
+	scan_tabbing = true;
 
         /* first child is first tabbable */
         {
@@ -1010,6 +1013,7 @@ public:
         }
         //Maybe use ToString() of Value
         input->setText(stringify(static_cast<int>(prop->GetValue())));
+	scan_tabbing = true;
 
         /* first child is first tabbable */
         {
@@ -1444,6 +1448,7 @@ public:
 
         b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w)*2, button_row_y, MSG_Get("CANCEL"), button_w);
         b->addActionHandler(this);
+	scan_tabbing = true;
         closeButton = b;
 
         /* first child is first tabbable */
@@ -1669,6 +1674,7 @@ public:
 
         b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w)*3, button_row_y, MSG_Get("CANCEL"), button_w);
         b->addActionHandler(this);
+	scan_tabbing = true;
         closeButton = b;
 
         /* first child is first tabbable */

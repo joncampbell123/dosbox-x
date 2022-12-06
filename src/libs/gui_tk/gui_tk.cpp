@@ -718,6 +718,31 @@ void Window::paintAll(Drawable &d) const
 	}
 }
 
+void Window::onTabbing(const int msg) {
+	if (msg == ONTABBING_TABTOTHIS) {
+		std::list<Window *>::iterator i = children.begin(), e = children.end();
+		while (i != e) {
+			if ((*i)->tabbable && (*i)->first_tabbable) {
+				if ((*i)->raise())
+					break;
+			}
+
+			i++;
+		}
+	}
+	else if (msg == ONTABBING_REVTABTOTHIS) {
+		std::list<Window *>::reverse_iterator i = children.rbegin(), e = children.rend();
+		while (i != e) {
+			if ((*i)->tabbable && (*i)->last_tabbable) {
+				if ((*i)->raise())
+					break;
+			}
+
+			i++;
+		}
+	}
+}
+
 bool Window::keyDown(const Key &key)
 {
 	if (children.empty()) return false;
@@ -736,6 +761,7 @@ bool Window::keyDown(const Key &key)
 			if ((*i)->tabbable) {
 				// WARNING: remember raise() changes the order of children, therefore using
 				//          *i after raise() is invalid (stale reference)
+				(*i)->onTabbing(ONTABBING_REVTABTOTHIS);
 				if ((*i)->raise())
 					break;
 			}
@@ -754,6 +780,7 @@ bool Window::keyDown(const Key &key)
 			if ((*i)->tabbable) {
 				// WARNING: remember raise() changes the order of children, therefore using
 				//          *i after raise() is invalid (stale reference)
+				(*i)->onTabbing(ONTABBING_TABTOTHIS);
 				if ((*i)->raise())
 					break;
 			}
@@ -854,6 +881,7 @@ bool WindowInWindow::keyDown(const Key &key)
 				// WARNING: remember raise() changes the order of children, therefore using
 				//          *i after raise() is invalid (stale reference)
 				scrollToWindow(*i);
+				(*i)->onTabbing(ONTABBING_REVTABTOTHIS);
 				if ((*i)->raise())
 					break;
 			}
@@ -873,6 +901,7 @@ bool WindowInWindow::keyDown(const Key &key)
 				// WARNING: remember raise() changes the order of children, therefore using
 				//          *i after raise() is invalid (stale reference)
 				scrollToWindow(*i);
+				(*i)->onTabbing(ONTABBING_TABTOTHIS);
 				if ((*i)->raise())
 					break;
 			}

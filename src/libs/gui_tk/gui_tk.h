@@ -566,6 +566,10 @@ public:
 		virtual ~Window_Callback() {}
 };
 
+enum {
+	ONTABBING_TABTOTHIS=0, /* Key::Tab to this */
+	ONTABBING_REVTABTOTHIS /* Shift+Key::Tab to this */
+};
 
 /** \brief A Window is a rectangular sub-area of another window.
  *
@@ -622,6 +626,9 @@ public:
 
 	/// \c last element of a tabbable list
 	bool last_tabbable = false;
+
+	/// \c onTabbing should scan
+	bool scan_tabbing = false;
 protected:
 	/// Child windows.
 	/** Z ordering is done in list order. The first element is the lowermost
@@ -763,6 +770,8 @@ public:
 		}
 		parent->setDirty();
 	}
+
+	virtual void onTabbing(const int msg);
 
 	/// Return the \p n th child
 	Window *getChild(int n) {
