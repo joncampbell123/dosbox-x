@@ -1266,6 +1266,7 @@ public:
             name += "_CONFIGFILE_HELP";
             setText(MSG_Get(name.c_str()));
         }
+        wiw->raise(); /* focus on the message, not the close button, so the user can immediately arrow up/down */
         move(parent->getWidth()>this->getWidth()?(parent->getWidth()-this->getWidth())/2:0,parent->getHeight()>this->getHeight()?(parent->getHeight()-this->getHeight())/2:0);
     };
 
