@@ -841,6 +841,24 @@ public:
         }
         std::string temps = prop->GetValue().ToString();
         input->setText(stringify(temps));
+
+        /* first child is first tabbable */
+        {
+            Window *w = this->getChild(0);
+            if (w) w->first_tabbable = true;
+        }
+
+        /* last child is first tabbable */
+        {
+            Window *w = this->getChild(this->getChildCount()-1);
+            if (w) w->last_tabbable = true;
+        }
+
+        /* the FIRST field needs to come first when tabbed to */
+        {
+            Window *w = this->getChild(0);
+            if (w) w->raise(); /* NTS: This CHANGES the child element order, getChild(0) will return something else */
+        }
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -878,6 +896,24 @@ public:
             infoButton->addActionHandler(this);
         }
         input->setText(stringify((double)prop->GetValue()));
+
+        /* first child is first tabbable */
+        {
+            Window *w = this->getChild(0);
+            if (w) w->first_tabbable = true;
+        }
+
+        /* last child is first tabbable */
+        {
+            Window *w = this->getChild(this->getChildCount()-1);
+            if (w) w->last_tabbable = true;
+        }
+
+        /* the FIRST field needs to come first when tabbed to */
+        {
+            Window *w = this->getChild(0);
+            if (w) w->raise(); /* NTS: This CHANGES the child element order, getChild(0) will return something else */
+        }
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -917,6 +953,24 @@ public:
         }
         std::string temps = prop->GetValue().ToString();
         input->setText(temps.c_str());
+
+        /* first child is first tabbable */
+        {
+            Window *w = this->getChild(0);
+            if (w) w->first_tabbable = true;
+        }
+
+        /* last child is first tabbable */
+        {
+            Window *w = this->getChild(this->getChildCount()-1);
+            if (w) w->last_tabbable = true;
+        }
+
+        /* the FIRST field needs to come first when tabbed to */
+        {
+            Window *w = this->getChild(0);
+            if (w) w->raise(); /* NTS: This CHANGES the child element order, getChild(0) will return something else */
+        }
     }
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {
@@ -956,6 +1010,24 @@ public:
         }
         //Maybe use ToString() of Value
         input->setText(stringify(static_cast<int>(prop->GetValue())));
+
+        /* first child is first tabbable */
+        {
+            Window *w = this->getChild(0);
+            if (w) w->first_tabbable = true;
+        }
+
+        /* last child is first tabbable */
+        {
+            Window *w = this->getChild(this->getChildCount()-1);
+            if (w) w->last_tabbable = true;
+        }
+
+        /* the FIRST field needs to come first when tabbed to */
+        {
+            Window *w = this->getChild(0);
+            if (w) w->raise(); /* NTS: This CHANGES the child element order, getChild(0) will return something else */
+        }
     };
 
     void actionExecuted(GUI::ActionEventSource *b, const GUI::String &arg) {

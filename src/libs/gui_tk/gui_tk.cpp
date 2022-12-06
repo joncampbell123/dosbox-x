@@ -724,29 +724,43 @@ bool Window::keyDown(const Key &key)
 	if ((*children.rbegin())->keyDown(key)) return true;
 	if (key.ctrl || key.alt || key.windows || key.special != Key::Tab) return false;
 
+	bool tab_quit = false;
+
 	if (key.shift) {
 		std::list<Window *>::reverse_iterator i = children.rbegin(), e = children.rend();
 		++i;
-        while (i != e) {
-            if ((*i)->tabbable) {
-                if ((*i)->raise())
-                    break;
-            }
+		while (i != e) {
+			if ((*i)->last_tabbable)
+				tab_quit = true;
 
-            ++i;
-        }
-        return (i != e) || toplevel/*prevent TAB escape to another window*/;
+			if ((*i)->tabbable) {
+				// WARNING: remember raise() changes the order of children, therefore using
+				//          *i after raise() is invalid (stale reference)
+				if ((*i)->raise())
+					break;
+			}
+
+			++i;
+		}
+		if (tab_quit) return false;
+		return (i != e) || toplevel/*prevent TAB escape to another window*/;
 	} else {
 		std::list<Window *>::iterator i = children.begin(), e = children.end();
-        --e;
+		--e;
 		while (i != e) {
-            if ((*i)->tabbable) {
-                if ((*i)->raise())
-                    break;
-            }
+			if ((*i)->first_tabbable)
+				tab_quit = true;
 
-            ++i;
-        }
+			if ((*i)->tabbable) {
+				// WARNING: remember raise() changes the order of children, therefore using
+				//          *i after raise() is invalid (stale reference)
+				if ((*i)->raise())
+					break;
+			}
+
+			++i;
+		}
+		if (tab_quit) return false;
 		return (i != e) || toplevel/*prevent TAB escape to another window*/;
 	}
 }
@@ -795,77 +809,77 @@ bool WindowInWindow::keyDown(const Key &key)
 {
 	if (children.empty()) return false;
 	if ((*children.rbegin())->keyDown(key)) return true;
-    if (dragging || vscroll_dragging) return true;
+	if (dragging || vscroll_dragging) return true;
 
-    if (key.special == Key::Up) {
-        scroll_pos_y -= 64;
-        if (scroll_pos_y < 0) scroll_pos_y = 0;
-        if (scroll_pos_y > scroll_pos_h) scroll_pos_y = scroll_pos_h;
-        return true;
-    }
+	if (key.special == Key::Up) {
+		scroll_pos_y -= 64;
+		if (scroll_pos_y < 0) scroll_pos_y = 0;
+		if (scroll_pos_y > scroll_pos_h) scroll_pos_y = scroll_pos_h;
+		return true;
+	}
 
-    if (key.special == Key::Down) {
-        scroll_pos_y += 64;
-        if (scroll_pos_y < 0) scroll_pos_y = 0;
-        if (scroll_pos_y > scroll_pos_h) scroll_pos_y = scroll_pos_h;
-        return true;
-    }
+	if (key.special == Key::Down) {
+		scroll_pos_y += 64;
+		if (scroll_pos_y < 0) scroll_pos_y = 0;
+		if (scroll_pos_y > scroll_pos_h) scroll_pos_y = scroll_pos_h;
+		return true;
+	}
 
-    if (key.special == Key::PageUp) {
-        scroll_pos_y -= height - 16;
-        if (scroll_pos_y < 0) scroll_pos_y = 0;
-        if (scroll_pos_y > scroll_pos_h) scroll_pos_y = scroll_pos_h;
-        return true;
-    }
+	if (key.special == Key::PageUp) {
+		scroll_pos_y -= height - 16;
+		if (scroll_pos_y < 0) scroll_pos_y = 0;
+		if (scroll_pos_y > scroll_pos_h) scroll_pos_y = scroll_pos_h;
+		return true;
+	}
 
-    if (key.special == Key::PageDown) {
-        scroll_pos_y += height - 16;
-        if (scroll_pos_y < 0) scroll_pos_y = 0;
-        if (scroll_pos_y > scroll_pos_h) scroll_pos_y = scroll_pos_h;
-        return true;
-    }
+	if (key.special == Key::PageDown) {
+		scroll_pos_y += height - 16;
+		if (scroll_pos_y < 0) scroll_pos_y = 0;
+		if (scroll_pos_y > scroll_pos_h) scroll_pos_y = scroll_pos_h;
+		return true;
+	}
 
 	if (key.ctrl || key.alt || key.windows || key.special != Key::Tab) return false;
 
-    bool tab_quit = false;
+	bool tab_quit = false;
 
 	if (key.shift) {
 		std::list<Window *>::reverse_iterator i = children.rbegin(), e = children.rend();
 		++i;
-        while (i != e) {
-            if ((*i)->last_tabbable)
-                tab_quit = true;
+		while (i != e) {
+			if ((*i)->last_tabbable)
+				tab_quit = true;
 
-            if ((*i)->tabbable) {
-                // WARNING: remember raise() changes the order of children, therefore using
-                //          *i after raise() is invalid (stale reference)
-                scrollToWindow(*i);
-                if ((*i)->raise())
-                    break;
-            }
+			if ((*i)->tabbable) {
+				// WARNING: remember raise() changes the order of children, therefore using
+				//          *i after raise() is invalid (stale reference)
+				scrollToWindow(*i);
+				if ((*i)->raise())
+					break;
+			}
 
-            ++i;
-        }
-        if (tab_quit) return false;
-        return (i != e) || toplevel/*prevent TAB escape to another window*/;
-    } else {
-        std::list<Window *>::iterator i = children.begin(), e = children.end();
-        --e;
-        while (i != e) {
-            if ((*i)->first_tabbable)
-                tab_quit = true;
+			++i;
+		}
+		if (tab_quit) return false;
+		return (i != e) || toplevel/*prevent TAB escape to another window*/;
+	} else {
+		std::list<Window *>::iterator i = children.begin(), e = children.end();
+		--e;
+		while (i != e) {
+			if ((*i)->first_tabbable)
+				tab_quit = true;
 
-            if ((*i)->tabbable) {
-                // WARNING: remember raise() changes the order of children, therefore using
-                //          *i after raise() is invalid (stale reference)
-                scrollToWindow(*i);
-                if ((*i)->raise())
-                    break;
-            }
+			if ((*i)->tabbable) {
+				// WARNING: remember raise() changes the order of children, therefore using
+				//          *i after raise() is invalid (stale reference)
+				scrollToWindow(*i);
+				if ((*i)->raise())
+					break;
+			}
 
-            ++i;
-        }
-        if (tab_quit) return false;
+			++i;
+		}
+		if (tab_quit) return false;
 		return (i != e) || toplevel/*prevent TAB escape to another window*/;
 	}
 }
@@ -1186,100 +1200,100 @@ bool Input::keyDown(const Key &key)
 {
 	const Font *f = Font::getFont("input");
 	switch (key.special) {
-	case Key::None:
-		if (key.ctrl) {
-			switch (key.character) {
-			case 1:
-			case 'a':
-			case 'A':
-				if (key.shift) {
-					start_sel = end_sel = pos;
-				} else {
-					start_sel = 0;
-					pos = end_sel = (Size)text.size();
+		case Key::None:
+			if (key.ctrl) {
+				switch (key.character) {
+					case 1:
+					case 'a':
+					case 'A':
+						if (key.shift) {
+							start_sel = end_sel = pos;
+						} else {
+							start_sel = 0;
+							pos = end_sel = (Size)text.size();
+						}
+						break;
+					case 24:
+					case 'x':
+					case 'X':
+						cutSelection();
+						break;
+					case 3:
+					case 'c':
+					case 'C':
+						copySelection();
+						break;
+					case 22:
+					case 'v':
+					case 'V':
+						pasteSelection();
+						break;
+					default: printf("Ctrl-0x%x\n",key.character); break;
 				}
 				break;
-			case 24:
-			case 'x':
-			case 'X':
-				cutSelection();
-				break;
-			case 3:
-			case 'c':
-			case 'C':
-				copySelection();
-				break;
-			case 22:
-			case 'v':
-			case 'V':
-				pasteSelection();
-				break;
-			default: printf("Ctrl-0x%x\n",key.character); break;
+			}
+			if (start_sel != end_sel) clearSelection();
+			if (insert || pos >= text.size() ) text.insert(text.begin()+int(pos++),key.character);
+			else text[pos++] = key.character;
+			break;
+		case Key::Left:
+			if (pos > 0) pos--;
+			break;
+		case Key::Right:
+			if (pos < text.size()) pos++;
+			break;
+		case Key::Down:
+			if (multi) pos = findPos(posx+3, posy-offset+f->getHeight()+4);
+			else return false;
+			break;
+		case Key::Up:
+			if (multi) pos = findPos(posx+3, posy-offset-f->getHeight()+4);
+			else return false;
+			break;
+		case Key::Home:
+			if (multi) {
+				while (pos > 0 && f->toSpecial(text[pos-1]) != Font::LF) pos--;
+			} else pos = 0;
+			break;
+		case Key::End:
+			if (multi) {
+				while (pos < text.size() && f->toSpecial(text[pos]) != Font::LF) pos++;
+			} else pos = (Size)text.size();
+			break;
+		case Key::Backspace:
+			if (!key.shift && start_sel != end_sel) clearSelection();
+			else if (pos > 0) {
+				text.erase(text.begin()+int(--pos));
+				if (start_sel > pos) start_sel = pos;
+				if (end_sel > pos) end_sel = pos;
 			}
 			break;
-		}
-		if (start_sel != end_sel) clearSelection();
-		if (insert || pos >= text.size() ) text.insert(text.begin()+int(pos++),key.character);
-		else text[pos++] = key.character;
-		break;
-	case Key::Left:
-		if (pos > 0) pos--;
-		break;
-	case Key::Right:
-		if (pos < text.size()) pos++;
-		break;
-	case Key::Down:
-		if (multi) pos = findPos(posx+3, posy-offset+f->getHeight()+4);
-        else return false;
-		break;
-	case Key::Up:
-		if (multi) pos = findPos(posx+3, posy-offset-f->getHeight()+4);
-        else return false;
-		break;
-	case Key::Home:
-		if (multi) {
-			while (pos > 0 && f->toSpecial(text[pos-1]) != Font::LF) pos--;
-		} else pos = 0;
-		break;
-	case Key::End:
-		if (multi) {
-			while (pos < text.size() && f->toSpecial(text[pos]) != Font::LF) pos++;
-		} else pos = (Size)text.size();
-		break;
-	case Key::Backspace:
-		if (!key.shift && start_sel != end_sel) clearSelection();
-		else if (pos > 0) {
-			text.erase(text.begin()+int(--pos));
-			if (start_sel > pos) start_sel = pos;
-			if (end_sel > pos) end_sel = pos;
-		}
-		break;
-	case Key::Delete:
-		if (key.shift) cutSelection();
-		else if (start_sel != end_sel) clearSelection();
-		else if (pos < text.size()) text.erase(text.begin()+int(pos));
-		break;
-	case Key::Insert:
-		if (key.ctrl) copySelection();
-		else if (key.shift) pasteSelection();
-		else insert = !insert;
-		break;
-	case Key::Enter:
-		if (multi) {
-			if (start_sel != end_sel) clearSelection();
-			if (insert || pos >= text.size() ) text.insert(text.begin()+int(pos++),f->fromSpecial(Font::LF));
-			else text[pos++] = f->fromSpecial(Font::LF);
-		} else executeAction(text);
-		break;
-	case Key::Tab:
-		if (multi && enable_tab_input) {
-			if (start_sel != end_sel) clearSelection();
-			if (insert || pos >= text.size() ) text.insert(text.begin()+int(pos++),f->fromSpecial(Font::Tab));
-			else text[pos++] = f->fromSpecial(Font::Tab);
-		} else return false;
-		break;
-	default:
-		return false;
+		case Key::Delete:
+			if (key.shift) cutSelection();
+			else if (start_sel != end_sel) clearSelection();
+			else if (pos < text.size()) text.erase(text.begin()+int(pos));
+			break;
+		case Key::Insert:
+			if (key.ctrl) copySelection();
+			else if (key.shift) pasteSelection();
+			else insert = !insert;
+			break;
+		case Key::Enter:
+			if (multi) {
+				if (start_sel != end_sel) clearSelection();
+				if (insert || pos >= text.size() ) text.insert(text.begin()+int(pos++),f->fromSpecial(Font::LF));
+				else text[pos++] = f->fromSpecial(Font::LF);
+			} else executeAction(text);
+			break;
+		case Key::Tab:
+			if (multi && enable_tab_input) {
+				if (start_sel != end_sel) clearSelection();
+				if (insert || pos >= text.size() ) text.insert(text.begin()+int(pos++),f->fromSpecial(Font::Tab));
+				else text[pos++] = f->fromSpecial(Font::Tab);
+			} else return false;
+			break;
+		default:
+			return false;
 	}
 	if (!key.ctrl) {
 		if (!key.shift || key.special == Key::None) start_sel = end_sel = pos;
