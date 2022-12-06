@@ -1340,10 +1340,6 @@ public:
         GUI::Button *b = new GUI::Button(this, button_row_cx, button_row_y, mainMenu.get_item("HelpMenu").get_text().c_str(), button_w);
         b->addActionHandler(this);
 
-        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w)*2, button_row_y, MSG_Get("CANCEL"), button_w);
-        b->addActionHandler(this);
-        closeButton = b;
-
         b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w), button_row_y, MSG_Get("OK"), button_w);
 
         int i = 0, j = 0;
@@ -1373,6 +1369,10 @@ public:
             j++;
         }
         b->addActionHandler(this);
+
+        b = new GUI::Button(this, button_row_cx + (button_w + button_pad_w)*2, button_row_y, MSG_Get("CANCEL"), button_w);
+        b->addActionHandler(this);
+        closeButton = b;
 
         /* first child is first tabbable */
         {
@@ -1567,10 +1567,6 @@ public:
         b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w), button_row_y, mainMenu.get_item("HelpMenu").get_text().c_str(), button_w);
         b->addActionHandler(this);
 
-        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w)*3, button_row_y, MSG_Get("CANCEL"), button_w);
-        b->addActionHandler(this);
-        closeButton = b;
-
         b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w)*2, button_row_y, MSG_Get("OK"), button_w);
 
         int i = 0;
@@ -1598,6 +1594,10 @@ public:
             i++;
         }
         b->addActionHandler(this);
+
+        b = new GUI::Button(this, button_row_cx + button_w + (button_w + button_pad_w)*3, button_row_y, MSG_Get("CANCEL"), button_w);
+        b->addActionHandler(this);
+        closeButton = b;
 
         /* first child is first tabbable */
         {
