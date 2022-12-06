@@ -580,7 +580,7 @@ class Window : public Refcount {
 protected:
 	friend class ToplevelWindow;
 	friend class TransientWindow;
-    friend class WindowInWindow;
+	friend class WindowInWindow;
 	friend class Menu;
 
 	/// Width of the window.
@@ -598,8 +598,8 @@ protected:
 	/// \c true if this window should be visible on screen.
 	bool visible;
 
-    /// \c true if the user should be allowed to TAB to this window.
-    bool tabbable;
+	/// \c true if the user should be allowed to TAB to this window.
+	bool tabbable;
 
 	/// Parent window.
 	Window *const parent;
@@ -608,20 +608,20 @@ protected:
 	/** It receives all drag/up/click/double-click events until an up event is received */
 	Window  *mouseChild;
 
-    /// \c true if this window is transient (such as menu popus)
-    bool transient;
+	/// \c true if this window is transient (such as menu popus)
+	bool transient;
 
-    /// \c toplevel window
-    bool toplevel;
+	/// \c toplevel window
+	bool toplevel;
 
-    /// \c mouse is within the boundaries of the window
-    bool mouse_in_window;
+	/// \c mouse is within the boundaries of the window
+	bool mouse_in_window;
 public:
-    /// \c first element of a tabbable list
-    bool first_tabbable = false;
+	/// \c first element of a tabbable list
+	bool first_tabbable = false;
 
-    /// \c last element of a tabbable list
-    bool last_tabbable = false;
+	/// \c last element of a tabbable list
+	bool last_tabbable = false;
 protected:
 	/// Child windows.
 	/** Z ordering is done in list order. The first element is the lowermost
@@ -729,7 +729,7 @@ public:
 	/// Mouse was double-clicked. Returns true if event was handled.
 	virtual bool mouseDoubleClicked(int x, int y, MouseButton button);
 	/// Mouse was pressed outside the bounds of the window, if this window has focus (for transient windows). Returns true if event was handled.
-    /// Transient windows by default should disappear.
+	/// Transient windows by default should disappear.
 	virtual bool mouseDownOutside(MouseButton button);
 
 	/// Key was pressed. Returns true if event was handled.
@@ -772,9 +772,9 @@ public:
 		return NULL;
 	}
 
-    unsigned int getChildCount(void) {
-        return (unsigned int)children.size();
-    }
+	unsigned int getChildCount(void) {
+		return (unsigned int)children.size();
+	}
 
 };
 
