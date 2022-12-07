@@ -1,4 +1,11 @@
 Unreleased
+  - Do not load country/font information at startup
+    if the code page to load is the same as the default
+    code page. (joncampbell123)
+  - Fix Tab/Shift+Tab in Configuration GUI regarding
+    setting text fields that have a ... button to select
+    from an enumeration. Those buttons are no longer a
+    trap for tab enumeration. (joncampbell123)
   - Fix Mac OS SDL1 keyboard support code to properly
     fill in unicode character values in relation to
     IME checks. This fixes a problem where it was
