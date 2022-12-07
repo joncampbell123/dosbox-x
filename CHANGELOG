@@ -2,15 +2,15 @@ Unreleased
   - Fix code page CPI/CPX loader to allocate 128KB of
     memory instead of 84KB. The code allocates a 64KB
     stack for the executable code within. The 84KB
-    allocation permitted the stack entry to exist beyond
-    available conventional memory if conventional memory
-    size was below about 156KB and cause a crash. This
-    is a quick fix, a long term fix would be to instead
-    set the initial stack pointer to some location below
-    0xFFFE based on available memory, just as the .COM
-    executable loader was modified to do some time back
-    to enable proper execution when memsize < 64KB.
-    (joncampbell123)
+    allocation permitted the initial stack pointer to
+    exist beyond available conventional memory if
+    conventional memory size was below about 156KB and
+    cause a crash. This is a quick fix, a long term fix
+    would be to instead set the initial stack pointer
+    to some offset below 0xFFFE based on available memory,
+    just as the .COM executable loader was modified to do
+    some time back to enable proper execution when
+    memsize < 64KB. (joncampbell123)
   - Do not load country/font information at startup
     if the code page to load is the same as the default
     code page. (joncampbell123)
