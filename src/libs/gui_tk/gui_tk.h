@@ -568,7 +568,9 @@ public:
 
 enum {
 	ONTABBING_TABTOTHIS=0, /* Key::Tab to this */
-	ONTABBING_REVTABTOTHIS /* Shift+Key::Tab to this */
+	ONTABBING_REVTABTOTHIS, /* Shift+Key::Tab to this */
+	ONTABBING_TABFROMTHIS, /* Key::Tab to this */
+	ONTABBING_REVTABFROMTHIS /* Shift+Key::Tab to this */
 };
 
 /** \brief A Window is a rectangular sub-area of another window.
@@ -889,6 +891,8 @@ public:
 	virtual void paintScrollBar3DOutset(Drawable &dscroll, int x, int y, int w, int h) const;
 	virtual void paintScrollBar3DInset(Drawable &dscroll, int x, int y, int w, int h) const;
 	virtual void paintAll(Drawable &d) const;
+
+	virtual void onTabbing(const int msg);
 
 	virtual void resize(int w, int h);
 

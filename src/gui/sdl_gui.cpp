@@ -828,7 +828,6 @@ protected:
 public:
     PropertyEditorString(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
         PropertyEditor(parent, x, y, section, prop, opts) {
-        label = new GUI::Label(this, 0, 5, prop->propname);
         std::string title(section->GetName());
         if (title=="4dos"&&!strcmp(prop->propname.c_str(), "rem"))
             input = new GUI::Input(this, 30, 0, 470);
@@ -841,6 +840,7 @@ public:
         }
         std::string temps = prop->GetValue().ToString();
         input->setText(stringify(temps));
+        label = new GUI::Label(this, 0, 5, prop->propname);
 	scan_tabbing = true;
 
         /* first child is first tabbable */
@@ -890,13 +890,13 @@ protected:
 public:
     PropertyEditorFloat(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
         PropertyEditor(parent, x, y, section, prop, opts) {
-        label = new GUI::Label(this, 0, 5, prop->propname);
         input = new GUI::Input(this, 380, 0, opts?90:120);
         if (opts) {
             infoButton=new GUI::Button(this, 470, 0, "...", 30, 24);
             infoButton->addActionHandler(this);
         }
         input->setText(stringify((double)prop->GetValue()));
+        label = new GUI::Label(this, 0, 5, prop->propname);
 	scan_tabbing = true;
 
         /* first child is first tabbable */
@@ -947,7 +947,6 @@ protected:
 public:
     PropertyEditorHex(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
         PropertyEditor(parent, x, y, section, prop, opts) {
-        label = new GUI::Label(this, 0, 5, prop->propname);
         input = new GUI::Input(this, 380, 0, opts?90:120);
         if (opts) {
             infoButton=new GUI::Button(this, 470, 0, "...", 30, 24);
@@ -955,6 +954,7 @@ public:
         }
         std::string temps = prop->GetValue().ToString();
         input->setText(temps.c_str());
+        label = new GUI::Label(this, 0, 5, prop->propname);
 	scan_tabbing = true;
 
         /* first child is first tabbable */
@@ -1005,7 +1005,6 @@ protected:
 public:
     PropertyEditorInt(Window *parent, int x, int y, Section_prop *section, Property *prop, bool opts) :
         PropertyEditor(parent, x, y, section, prop, opts) {
-        label = new GUI::Label(this, 0, 5, prop->propname);
         input = new GUI::Input(this, 380, 0, opts?90:120);
         if (opts) {
             infoButton=new GUI::Button(this, 470, 0, "...", 30, 24);
@@ -1013,6 +1012,7 @@ public:
         }
         //Maybe use ToString() of Value
         input->setText(stringify(static_cast<int>(prop->GetValue())));
+        label = new GUI::Label(this, 0, 5, prop->propname);
 	scan_tabbing = true;
 
         /* first child is first tabbable */
