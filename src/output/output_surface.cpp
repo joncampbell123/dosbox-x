@@ -19,7 +19,7 @@ void X11_ErrorHandlerInstall(void);
 
 void OUTPUT_SURFACE_Initialize()
 {
-#if C_X11
+#if C_X11 && defined(LINUX)
     // Apparently if the window size changes rapidly enough, SDL2 can be tricked into
     // blitting the wrong dimensions to the window and trigger an X11 BadValue error.
     // Set up an error handler that prints the error to STDERR and then returns,

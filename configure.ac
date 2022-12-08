@@ -647,6 +647,11 @@ dnl LIBRARY TEST: libiconv
 dnl This may be provided by glibc itself, -liconv may not be needed.
 AC_CHECK_HEADER(iconv.h,have_iconv_h=yes,)
 AC_CHECK_LIB(iconv, libiconv_open, have_iconv_lib=yes, ,-liconv)
+case "$host" in
+  *-*-openbsd*)
+    LIBS="$LIBS -liconv"
+    ;;
+esac
 
 dnl LIBRARY TEST: SDLnet
 AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)

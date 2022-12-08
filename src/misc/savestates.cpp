@@ -17,7 +17,7 @@
 #ifdef WIN32
 #include "direct.h"
 #endif
-#if defined (__APPLE__)
+#if defined (__OpenBSD__) || defined (__APPLE__)
 #else
 #include <malloc.h>
 #endif

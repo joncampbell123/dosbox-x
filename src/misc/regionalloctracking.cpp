@@ -22,7 +22,7 @@
 #include "regionalloctracking.h"
 #include "parport.h"
 #include <time.h>
-#if !defined(ANDROID) && !defined(__ANDROID__)
+#if !defined(ANDROID) && !defined(__ANDROID__) && !defined(__OpenBSD__)
 /* Newer NDKs doesn't have this header.
    It doesn't matter anyway */
 #include <sys/timeb.h>
