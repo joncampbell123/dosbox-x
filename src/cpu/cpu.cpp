@@ -3837,10 +3837,10 @@ public:
 			if (s != NULL && *s != 0) {
 				const char *os = s;
 
-				while (*s != NULL && o < 12) cpu_custom_cpuid[o++] = *s++;
+				while (*s != 0 && o < 12) cpu_custom_cpuid[o++] = *s++;
 				while (o < 12) cpu_custom_cpuid[o++] = ' ';
 
-				if (*s != NULL && o == 12)
+				if (*s != 0 && o == 12)
 					LOG_MSG("WARNING: CPUID string '%s' truncated. Maximum 12 characters",os);
 			}
 		}
