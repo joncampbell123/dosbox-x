@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [[ ! -x $(which flatpak-builder) ]]; then
 	echo Please install flatpak-builder
