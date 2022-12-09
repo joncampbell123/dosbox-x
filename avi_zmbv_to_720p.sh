@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 file="$1"
 bitrate=15000000
 aspect_ratio=4:3
