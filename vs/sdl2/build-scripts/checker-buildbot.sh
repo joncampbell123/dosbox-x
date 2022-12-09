@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # This is a script used by some Buildbot buildslaves to push the project
 #  through Clang's static analyzer and prepare the output to be uploaded
