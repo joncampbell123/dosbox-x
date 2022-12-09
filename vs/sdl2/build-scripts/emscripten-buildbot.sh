@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 if [ -z "$SDKDIR" ]; then
     SDKDIR="/emsdk_portable"
