@@ -148,10 +148,10 @@ static char *joydevnames[MAX_JOYS];
 static int	report_alloc(struct report *, struct report_desc *, int);
 static void	report_free(struct report *);
 
-#if defined(USBHID_UCR_DATA) || defined(__FreeBSD_kernel__)
-#define REP_BUF_DATA(rep) ((rep)->buf->ucr_data)
-#elif (defined(__FREEBSD__) && (__FreeBSD_kernel_version > 800063))
+#if (defined(__FREEBSD__) && (__FreeBSD_kernel_version > 800063))
 #define REP_BUF_DATA(rep) ((rep)->buf->ugd_data)
+#elif defined(USBHID_UCR_DATA) || defined(__FreeBSD_kernel__)
+#define REP_BUF_DATA(rep) ((rep)->buf->ucr_data)
 #else
 #define REP_BUF_DATA(rep) ((rep)->buf->data)
 #endif
