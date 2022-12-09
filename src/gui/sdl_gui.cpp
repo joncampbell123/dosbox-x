@@ -3654,7 +3654,7 @@ void GUI_Shortcut(int select) {
         PIC_AddEvent(RunCfgTool, 100);
     } else
 #endif
-    RunCfgTool(NULL);
+    RunCfgTool(0);
 }
 
 void GUI_Run(bool pressed) {
@@ -3669,5 +3669,5 @@ void GUI_Run(bool pressed) {
         PIC_AddEvent(RunCfgTool, 100);
     } else
 #endif
-    RunCfgTool(NULL);
+    RunCfgTool(0);
 }
