@@ -1,4 +1,5 @@
 Unreleased
+  - Fixed build on NetBSD and FreeBSD (Jookia #3722) and on OpenBSD (iyzsong #3879)
   - Fix code page CPI/CPX loader to allocate 128KB of
     memory instead of 84KB. The code allocates a 64KB
     stack for the executable code within. The 84KB
