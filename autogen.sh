@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # If an error occurs, quit the script and inform the user. This ensures scripts
 # like ./build-macos and ./build-macos-sdl2 etc. Don't continue on if Autotools isn't installed.
