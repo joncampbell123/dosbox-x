@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Do you like Clang/LLVM? Use this script to build DOSBox-X!
 export CC=`which clang`
