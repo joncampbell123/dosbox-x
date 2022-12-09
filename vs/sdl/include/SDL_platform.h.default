@@ -50,6 +50,7 @@
 #if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
 #undef __FREEBSD__
 #define __FREEBSD__	1
+#define ENABLE_IM_EVENT 1
 #endif
 #if defined(__HAIKU__)
 #undef __HAIKU__
@@ -79,10 +80,12 @@
 #if defined(__NetBSD__)
 #undef __NETBSD__
 #define __NETBSD__	1
+#define ENABLE_IM_EVENT 1
 #endif
 #if defined(__OpenBSD__)
 #undef __OPENBSD__
 #define __OPENBSD__	1
+#define ENABLE_IM_EVENT 1
 #endif
 #if defined(__OS2__)
 #undef __OS2__
