@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 make dox || exit 1
 make dox-site-update || exit 1
 make compat-site-update
