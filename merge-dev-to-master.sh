@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 curbranch=`git branch | grep \* | cut -d ' ' -f 2`
 
 if [[ x"$curbranch" == x"master" || x"$curbranch" == x"develop" ]]; then
