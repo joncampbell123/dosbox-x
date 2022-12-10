@@ -9915,11 +9915,30 @@ public:
 
         ulimit = 640;
         t_conv = MEM_TotalPages() << 2; /* convert 4096/byte pages -> 1024/byte KB units */
-        if (allow_more_than_640kb) {
-            if (machine == MCH_CGA)
-                ulimit = 736;       /* 640KB + 64KB + 32KB  0x00000-0xB7FFF */
+        /* NTS: Tandy machines, because top of memory shares video memory, need more than 640KB of memory to present 640KB of memory
+         *      to DOS. In that case, apparently, that gives 640KB to DOS and 128KB to video memory. 640KB of memory in a Tandy system
+         *      means 624KB for DOS and 16KB for Tandy video memory... except that 16-color higher Tandy modes need 32KB of video
+         *      memory, so the top of memory has to be adjusted or handled carefully to avoid corruption of the MCB chain. In the 768KB
+         *      case video memory is high enough not to conflict with DOS conventional memory at all.
+         *
+         *      Might and Magic III Isles of Terra will crash in Tandy graphics modes unless we emulate the 768KB Tandy case because the
+         *      game doesn't appear to correctly handle the conflict between the DOS MCB chain and video memory (causing an MCB corruption
+         *      error) and it appears to make some effort to allocate memory blocks from top of memory which makes the problem worse.
+         *
+         *      I am fairly certain that there is nothing on Tandy systems to occupy A0000-AFFFFh. Unless of course you install EGA/VGA
+         *      hardware in such a system. */
+        if (allow_more_than_640kb || machine == MCH_TANDY) {
+            if (machine == MCH_CGA || machine == MCH_TANDY)
+                ulimit = 736;       /* 640KB + 64KB + 32KB = 0x00000-0xB7FFF */
             else if (machine == MCH_HERC || machine == MCH_MDA)
                 ulimit = 704;       /* 640KB + 64KB = 0x00000-0xAFFFF */
+            else if (machine == MCH_TANDY)
+                ulimit = 768;       /* 640KB + 128KB = 0x00000-0xBFFFF */
+
+            /* NTS: Yes, this means Tandy video memory at B8000 overlaps conventional memory, but the
+             *      top of conventional memory is stolen as video memory anyway. Tandy documentation
+             *      suggests that memory is only installed in multiples of 128KB so there doesn't seem
+             *      to be a way to install only 704KB for example. */
 
             if (t_conv > ulimit) t_conv = ulimit;
             if (t_conv > 640) { /* because the memory emulation has already set things up */
@@ -9991,21 +10010,32 @@ public:
              * converting KB to paragraphs. Note that it calls INT 12h while in CGA mode, and subtracts 16KB
              * knowing video memory will extend downward 16KB into a 32KB region when it switches into the
              * Tandy/PCjr 16-color mode. */
-            if (t_conv > 640) t_conv = 640;
-            if (ulimit > 640) ulimit = 640;
-            t_conv -= 16;
-            ulimit -= 16;
+            /* Tandy systems can present full 640KB of conventional memory with 128KB for video memory if 768KB
+             * is installed! */
+            if (t_conv > (640+32)) {
+                if (t_conv > 640) t_conv = 640;
+                if (ulimit > 640) ulimit = 640;
 
-            /* if 32KB would cross a 128KB boundary, then adjust again or else
-             * things will horribly break between text and graphics modes */
-            if ((t_conv % 128) < 16)
+                /* Video memory takes the rest */
+                tandy_128kbase = 0xA0000;
+            }
+            else {
+                if (t_conv > 640) t_conv = 640;
+                if (ulimit > 640) ulimit = 640;
                 t_conv -= 16;
+                ulimit -= 16;
 
-            /* Our choice also affects which 128KB bank within which the 16KB banks
-             * select what system memory becomes video memory.
-             *
-             * FIXME: Is this controlled by the "extended ram page register?" How? */
-            tandy_128kbase = ((t_conv - 16u) << 10u) & 0xE0000; /* byte offset = (KB - 16) * 64, round down to multiple of 128KB */
+                /* if 32KB would cross a 128KB boundary, then adjust again or else
+                 * things will horribly break between text and graphics modes */
+                if ((t_conv % 128) < 16)
+                    t_conv -= 16;
+
+                /* Our choice also affects which 128KB bank within which the 16KB banks
+                 * select what system memory becomes video memory.
+                 *
+                 * FIXME: Is this controlled by the "extended ram page register?" How? */
+                tandy_128kbase = ((t_conv - 16u) << 10u) & 0xE0000; /* byte offset = (KB - 16) * 64, round down to multiple of 128KB */
+            }
             LOG(LOG_MISC,LOG_DEBUG)("BIOS: setting tandy 128KB base region to %lxh",(unsigned long)tandy_128kbase);
         }
         else if (machine == MCH_PCJR) {

@@ -1,4 +1,15 @@
 Unreleased
+  - Allow more than 640KB of conventional memory,
+    regardless of "allow more than 640kb" option, for
+    Tandy machine type. The setting is capped to 768KB
+    to reflect Tandy systems with that upgrade, which
+    is said to allow a full 640KB for DOS and 128KB for
+    video RAM without any conflict from the MCB chain.
+    Adjust Tandy video emulation for 768KB case. This
+    fixes "Might and Magic III Isles of Terra" crashes
+    in Tandy mode and Tandy graphics because the game
+    does not correctly handle the memory configuration
+    when less RAM is involved. (joncampbell123).
   - Fix code page CPI/CPX loader to allocate 128KB of
     memory instead of 84KB. The code allocates a 64KB
     stack for the executable code within. The 84KB
