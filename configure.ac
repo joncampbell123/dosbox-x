@@ -320,7 +320,7 @@ int main(int argc,char **argv) {
 
 dnl Some target detection and actions for them
 case "$host" in
-    *-*-darwin*)
+    *-*-darwin* | *-*-openbsd*)
        dnl El Capitan's refusal to allow sudo make install to /usr/include, and the failure of most open source to
        dnl include from /usr/local/include is irritating and tiresome...
        CFLAGS="$CFLAGS -I/usr/local/include"
