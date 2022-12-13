@@ -49,6 +49,7 @@ int inet_pton_win(int af, const char* src, void* dst)
 #endif /* _WIN32_WINNT */
 #else /* !WIN32 */
 #include <arpa/inet.h>
+#include <sys/socket.h>
 #endif /* WIN32 */
 
 /* Begin boilerplate to map libslirp's C-based callbacks to our C++
