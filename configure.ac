@@ -915,6 +915,13 @@ if test x$enable_dynrec = xno -o x$enable_dynamic_core = xno; then
 elif test x$c_targetcpu = xx86 -o x$c_targetcpu = xx86_64 -o x$c_targetcpu = xarm; then
    AC_DEFINE(C_DYNREC,1)
    AC_MSG_RESULT(yes)
+
+   case "$host" in
+      *-*-openbsd*)
+         AC_MSG_WARN([DOSBox-X will be linked with "wxneeded" to support dynrec core on OpenBSD])
+         LDFLAGS="-Wl,-z,wxneeded $LDFLAGS"
+      ;;
+   esac
 else
    AC_MSG_RESULT(no)
 fi
