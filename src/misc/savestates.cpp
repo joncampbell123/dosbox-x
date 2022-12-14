@@ -1217,7 +1217,7 @@ void SaveState::save(size_t slot) { //throw (Error)
 			}
 
 			if(!create_machinetype) {
-				std::string tempname = temp+"Machine_type";
+				std::string tempname = temp+"Machine_Type";
 				std::ofstream machinetype (tempname.c_str(), std::ofstream::binary);
 				machinetype << getType();
 				create_machinetype=true;
