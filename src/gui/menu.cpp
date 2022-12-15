@@ -382,6 +382,9 @@ static const char *def_menu_video_output[] =
 #if defined(USE_TTF)
     "output_ttf",
 #endif
+#if C_GAMELINK
+    "output_gamelink",
+#endif
     "--",
     "doublescan",
 #if !defined(C_SDL2)

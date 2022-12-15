@@ -2600,6 +2600,9 @@ Surface
 :MENU:output_ttf
 TrueType 글꼴
 .
+:MENU:output_gamelink
+Game Link
+.
 :MENU:doublescan
 더블 스캔
 .

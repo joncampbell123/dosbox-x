@@ -157,11 +157,22 @@ void change_output(int output) {
         break;
 #endif
 
+#if C_GAMELINK
+    case 12:
+        OUTPUT_GAMELINK_Select();
+        break;
+#endif
+
     default:
         LOG_MSG("SDL: Unsupported output device %d, switching back to surface",output);
         OUTPUT_SURFACE_Select();
         break;
     }
+
+#if C_GAMELINK
+    if (!OUTPUT_GAMELINK_InitTrackingMode() && sdl.desktop.want_type == SCREEN_GAMELINK) OUTPUT_SURFACE_Select();
+#endif
+
 
 #if C_OPENGL
     if (sdl.desktop.want_type != SCREEN_OPENGL) mainMenu.get_item("load_glsl_shader").enable(false).refresh_item(mainMenu);
@@ -271,6 +282,9 @@ void OutputSettingMenuUpdate(void) {
 #endif
 #if defined(USE_TTF)
     mainMenu.get_item("output_ttf").check(sdl.desktop.want_type == SCREEN_TTF).refresh_item(mainMenu);
+#endif
+#if C_GAMELINK
+    mainMenu.get_item("output_gamelink").check(sdl.desktop.want_type == SCREEN_GAMELINK).refresh_item(mainMenu);
 #endif
 }
 
@@ -388,6 +402,13 @@ bool toOutput(const char *what) {
             if (!control->opt_nomenu && static_cast<Section_prop *>(control->GetSection("sdl"))->Get_bool("showmenu")) DOSBox_SetMenu();
 #endif
         }
+#endif
+    }
+    else if (!strcmp(what,"gamelink")) {
+#if C_GAMELINK
+        if (sdl.desktop.want_type == SCREEN_GAMELINK) return false;
+        change_output(12);
+        reset = true;
 #endif
     }
     if (reset) RENDER_Reset();

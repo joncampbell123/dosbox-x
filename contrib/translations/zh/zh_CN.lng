@@ -2565,6 +2565,9 @@ OpenGL perfect
 :MENU:output_ttf
 TrueType 字体
 .
+:MENU:output_gamelink
+Game Link
+.
 :MENU:doublescan
 双重扫描
 .

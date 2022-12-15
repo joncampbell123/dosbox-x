@@ -136,6 +136,7 @@ struct SDL_Block {
         bool want_mouse;
         bool enable;
         bool snoop;
+        Bitu loadaddr;
     } gamelink;
 #endif // C_GAMELINK
     struct {

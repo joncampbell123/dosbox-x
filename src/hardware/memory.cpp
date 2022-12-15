@@ -1758,7 +1758,9 @@ void Init_AddressLimitAndGateMask() {
 void ShutDownRAM(Section * sec) {
     (void)sec;//UNUSED
     if (MemBase != NULL) {
-#if !C_GAMELINK
+#if C_GAMELINK
+        GameLink::FreeRAM(MemBase);
+#else
         delete [] MemBase;
 #endif
         MemBase = NULL;
@@ -1858,7 +1860,7 @@ void Init_RAM() {
     /* Allocate the RAM. We alloc as a large unsigned char array. new[] does not initialize the array,
      * so we then must zero the buffer. */
 #if C_GAMELINK
-        MemBase = GameLink::AllocRAM(memory.pages*4096);
+    MemBase = GameLink::AllocRAM(memory.pages*4096);
 #else // C_GAMELINK
     MemBase = new(std::nothrow) uint8_t[memory.pages*4096];
 #endif // C_GAMELINK

@@ -722,6 +722,11 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
                     sdl.mouse.xsensitivity = p3->GetSection()->Get_int("xsens");
                     sdl.mouse.ysensitivity = p3->GetSection()->Get_int("ysens");
                 }
+#if C_GAMELINK
+                if (!strcasecmp(inputline.substr(0, 22).c_str(), "gamelink load address=")) {
+                    sdl.gamelink.loadaddr = section->Get_int("gamelink load address");
+                }
+#endif
                 if (!strcasecmp(inputline.substr(0, 11).c_str(), "fullscreen=")) {
                     if (section->Get_bool("fullscreen")) {
                         if (!GFX_IsFullscreen()) {GFX_LosingFocus();GFX_SwitchFullScreen();}

@@ -10,24 +10,32 @@
 #include "vga.h"
 #include "mixer.h"
 #include "mapper.h"
-#include "scancodes_windows.h"
+#include "../gamelink/scancodes_windows.h"
+#include "../output/output_surface.h"
 
 using namespace std;
 
 extern uint32_t RunningProgramHash[4];
 extern const char* RunningProgram;
-extern "C" SDL_Scancode SDL_GetScancodeFromTable(int, int);
 
-// output API below
-
-void OUTPUT_GAMELINK_Initialize()
-{
-    LOG_MSG("OUTPUT_GAMELINK: Initialize");
-}
+#if !defined(C_SDL2)
+#error "gamelink output requires SDL2"
+#endif
 
 void OUTPUT_GAMELINK_Select()
 {
-    LOG_MSG("OUTPUT_GAMELINK: Select");
+    //LOG_MSG("OUTPUT_GAMELINK: Select");
+    if (!sdl.gamelink.enable) {
+#ifdef WIN32
+        MessageBoxA( NULL, "ERROR: Game Link output disabled.",
+                                "DOSBox \"Game Link\" Error", MB_OK | MB_ICONSTOP );
+#else // WIN32
+        LOG_MSG( "OUTPUT_GAMELINK: Not enabled via `gamelink master = true`, falling back to `output=surface`." );
+#endif // WIN32
+        OUTPUT_SURFACE_Select();
+        return;
+    }
+
     sdl.desktop.want_type = SCREEN_GAMELINK;
     render.aspectOffload = true;
     sdl.desktop.fullscreen = false;
@@ -37,7 +45,7 @@ void OUTPUT_GAMELINK_Select()
 
 void OUTPUT_GAMELINK_InputEvent()
 {
-//    LOG_MSG("OUTPUT_GAMELINK: InputEvent");
+    //LOG_MSG("OUTPUT_GAMELINK: InputEvent");
     //
     // Client Mouse & Keyboard
 
@@ -116,31 +124,32 @@ void OUTPUT_GAMELINK_InputEvent()
     }
 }
 
-void OUTPUT_GAMELINK_TrackingMode()
+bool OUTPUT_GAMELINK_InitTrackingMode()
 {
-    LOG_MSG("OUTPUT_GAMELINK: TrackingMode %i", sdl.gamelink.enable);
-    if (!sdl.gamelink.enable) return;
+    //LOG_MSG("OUTPUT_GAMELINK: Game Link %s", sdl.gamelink.enable?"enabled":"disabled");
+    if (!sdl.gamelink.enable) return false;
 
     bool trackonly_mode = sdl.desktop.want_type != SCREEN_GAMELINK;
 
-    // GAMELINK Init (after splash screen, so we have a HWND for tray icon on Win32)
     memset(&sdl.gamelink.input_prev, 0, sizeof(GameLink::sSharedMMapInput_R2));
     int iresult = GameLink::Init(trackonly_mode);
     if (iresult != 1) {
 #ifdef WIN32
-        MessageBoxA( NULL, "ERROR: Couldn't initialise inter-process communication.",
+        MessageBoxA( NULL, "ERROR: Couldn't initialise Game Link inter-process communication.",
                                 "DOSBox \"Game Link\" Error", MB_OK | MB_ICONSTOP );
 #else // WIN32
         LOG_MSG("GAMELINK: Couldn't initialise inter-process communication.");
-#endif // WIN32        
-        DoKillSwitch();
+#endif // WIN32
+        sdl.gamelink.enable = false;
+        return false;
     }
+    return true;
 }
 
-#if defined(C_SDL2)
+
 Bitu OUTPUT_GAMELINK_SetSize()
 {
-    LOG_MSG("OUTPUT_GAMELINK: SetSize");
+    //LOG_MSG("OUTPUT_GAMELINK: SetSize");
     Bitu bpp = 0;
     Bitu retFlags = 0;
     (void)bpp;
@@ -161,9 +170,7 @@ Bitu OUTPUT_GAMELINK_SetSize()
     sdl.desktop.type = SCREEN_GAMELINK;
     retFlags = GFX_CAN_32 | GFX_SCALING;
 
-    LOG_MSG("gamelink rendersize=%ux%u",
-            (unsigned int)sdl.draw.width,
-            (unsigned int)sdl.draw.height);
+    LOG_MSG("GAMELINK: rendersize=%ux%u", (unsigned int)sdl.draw.width, (unsigned int)sdl.draw.height);
 
 #if C_XBRZ
     if (sdl_xbrz.enable)
@@ -185,32 +192,38 @@ Bitu OUTPUT_GAMELINK_SetSize()
 
     if (sdl.clip.w > GameLink::sSharedMMapFrame_R1::MAX_WIDTH || sdl.clip.h > GameLink::sSharedMMapFrame_R1::MAX_HEIGHT) {
 #ifdef WIN32
-        MessageBoxA( NULL, "ERROR: Output resolution too big (windowresolution).",
+        MessageBoxA( NULL, "ERROR: Game Link output resolution too big (windowresolution).",
                                 "DOSBox \"Game Link\" Error", MB_OK | MB_ICONSTOP );
 #else // WIN32
         LOG_MSG("GAMELINK: Output resolution too big (windowresolution).");
 #endif // WIN32
-        DoKillSwitch();
+        sdl.gamelink.enable = false;
+        return 0;
     }
 
     sdl.deferred_resize = false;
     sdl.must_redraw_all = true;
 
-    sdl.window = GFX_SetSDLWindowMode(640, 480, SCREEN_GAMELINK);
+    sdl.window = GFX_SetSDLWindowMode(640, 200, SCREEN_GAMELINK);
     if (sdl.window == NULL)
         E_Exit("Could not set windowed video mode %ix%i: %s", (int)sdl.draw.width, (int)sdl.draw.height, SDL_GetError());
 
     sdl.surface = SDL_GetWindowSurface(sdl.window);
 
+    // FIXME: find proper way to refresh the menu bar without causing infinite recursion
+    static bool in_setsize = false;
+    if (!in_setsize) {
+        in_setsize = true;
+        DOSBox_RefreshMenu();
+        in_setsize = false;
+    }
+
     return retFlags;
 }
-#else
-#error "gamelink output requires SDL2"
-#endif /*!defined(C_SDL2)*/
 
 bool OUTPUT_GAMELINK_StartUpdate(uint8_t* &pixels, Bitu &pitch)
 {
-//    LOG_MSG("OUTPUT_GAMELINK: StartUpdate");
+    //LOG_MSG("OUTPUT_GAMELINK: StartUpdate");
 #if C_XBRZ
     if (sdl_xbrz.enable && sdl_xbrz.scale_on)
     {
@@ -231,8 +244,8 @@ bool OUTPUT_GAMELINK_StartUpdate(uint8_t* &pixels, Bitu &pitch)
 
 void OUTPUT_GAMELINK_Transfer()
 {
-//    LOG_MSG("OUTPUT_GAMELINK: Transfer");
-    GameLink::Out( (uint16_t)sdl.desktop.window.width, (uint16_t)sdl.desktop.window.height, render.src.ratio,
+    //LOG_MSG("OUTPUT_GAMELINK: Transfer");
+    GameLink::Out( (uint16_t)sdl.clip.w+2*sdl.clip.x, (uint16_t)sdl.clip.h+2*sdl.clip.y, render.src.ratio,
         sdl.gamelink.want_mouse,
         RunningProgram,
         RunningProgramHash,
@@ -242,7 +255,7 @@ void OUTPUT_GAMELINK_Transfer()
 
 void OUTPUT_GAMELINK_EndUpdate(const uint16_t *changedLines)
 {
-//    LOG_MSG("OUTPUT_GAMELINK: EndUpdate");
+    //LOG_MSG("OUTPUT_GAMELINK: EndUpdate");
 #if C_XBRZ
     if (sdl_xbrz.enable && sdl_xbrz.scale_on)
     {
@@ -278,10 +291,11 @@ void OUTPUT_GAMELINK_EndUpdate(const uint16_t *changedLines)
     }
 #endif /*C_XBRZ*/
     if (!menu.hidecycles) frames++;
+    SDL_UpdateWindowSurface(sdl.window);
 }
 
 void OUTPUT_GAMELINK_Shutdown()
 {
-    LOG_MSG("OUTPUT_GAMELINK: Shutdown");
+    //LOG_MSG("OUTPUT_GAMELINK: Shutdown");
     GameLink::Term();
 }

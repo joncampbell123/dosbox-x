@@ -2605,6 +2605,9 @@ OpenGL (Parfait)
 :MENU:output_ttf
 Police de caractères TrueType
 .
+:MENU:output_gamelink
+Game Link
+.
 :MENU:doublescan
 Doublescan
 .

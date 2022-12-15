@@ -48,25 +48,6 @@ extern uint32_t RunningProgramLoadAddress;
 
 #define PROTOCOL_VER		4
 
-// Ugly hack: grid cartographer sends absolute addresses, but different dosbox
-// versions load executables at different addresses. 
-
-// To fix those cases, this code calculates an offset from the original and
-// the actual load address. To configure the original load address for a
-// game, edit the corresponding grid cartographer profile XML file, search
-// for the <peek> tag, add 0x1000_0000 to the address and put it at the end. For
-// example, if the load address is 0x1a70 the XML tag could look like:
-// <peek bytes="1299c 1299e 19c42 19c2e 19c30 19c40 19c32 17a8a 10001a70" />
-
-// To find out the original load address, use the "gamelinksnoop" option and
-// load the same game in dosbox-gridc and this dosbox, load the same save
-// game/move to the same position. Console output should then contain a
-// suggested original load address.
-
-// This default offset works for some simple cases.
-#define PEEK_ADDR_DEFAULT_OFFSET 0x6850
-
-
 #ifdef WIN32
 #define GAMELINK_MUTEX_NAME		"DWD_GAMELINK_MUTEX_R4"
 #else // WIN32
@@ -174,11 +155,8 @@ static int create_mutex( const char* p_name )
 	// The mutex is already open?
 	g_mutex_handle = OpenMutexA( SYNCHRONIZE, FALSE, p_name );
 	if ( g_mutex_handle != 0 ) {
-		if (sdl.gamelink.snoop) return 1;
-		// .. didn't fail - so must already exist.
-		CloseHandle( g_mutex_handle );
-		g_mutex_handle = 0;
-		return 0;
+		LOG_MSG( "GAMELINK: WARNING: MUTEX \"%s\" already exists, assuming it is left over from a crash.", p_name );
+		return 1;
 	}
 
 	// Actually create it.
@@ -193,17 +171,8 @@ static int create_mutex( const char* p_name )
 	g_mutex_handle = sem_open( p_name, 0, 0666, 0 );
 	if ( g_mutex_handle != SEM_FAILED )
     {
-		// .. didn't fail - so must already exist.
-		LOG_MSG( "GAMELINK: ERROR: MUTEX \"%s\" already exists.", p_name );
-		LOG_MSG( "GAMELINK: Already running Game Link, or maybe a crash?", p_name );
-#ifdef MACOSX
-		LOG_MSG( "GAMELINK: Might need to manually reboot the system." );
-#else // MACOSX
-		LOG_MSG( "GAMELINK: Might need to manually tidy up in /dev/shm (or reboot system)." );
-#endif // MACOSX
-		sem_close( g_mutex_handle );
-		g_mutex_handle = 0;
-		return 0;
+		LOG_MSG( "GAMELINK: WARNING: MUTEX \"%s\" already exists, assuming it is left over from a crash.", p_name );
+		return 1;
 	}
 
 	// Actually create it.
@@ -396,17 +365,17 @@ int GameLink::Init( const bool trackonly_mode )
     //LOG_MSG("GAMELINK: Init %i", trackonly_mode);
 	int iresult;
 
+	// Store the mode we're in.
+	g_trackonly_mode = trackonly_mode;
+
 	// Already initialised?
 	if ( g_mutex_handle )
 	{
-		LOG_MSG( "GAMELINK: Ignoring re-initialisation." );
+		//LOG_MSG( "GAMELINK: Ignoring re-initialisation." );
 
 		// success
 		return 1;
 	}
-
-	// Store the mode we're in.
-	g_trackonly_mode = trackonly_mode;
 
 	// Create a fresh mutex.
 	iresult = create_mutex( GAMELINK_MUTEX_NAME );
@@ -426,8 +395,14 @@ uint8_t* GameLink::AllocRAM( const uint32_t size )
 {
     //LOG_MSG("GAMELINK: AllocRAM %i", size);
 	int iresult;
+	uint8_t *membase;
 
 	g_membase_size = size;
+
+	if (!sdl.gamelink.enable) {
+		membase = (uint8_t*)malloc(g_membase_size);
+		return membase;
+	}
 
 	// Create a shared memory area.
 	iresult = create_shared_memory();
@@ -446,7 +421,6 @@ uint8_t* GameLink::AllocRAM( const uint32_t size )
 	const int memory_map_size = MEMORY_MAP_CORE_SIZE + g_membase_size;
 	LOG_MSG( "GAMELINK: Initialised. Allocated %d MB of shared memory.", (memory_map_size + (1024*1024) - 1) / (1024*1024) );
 
-	uint8_t *membase;
 	if (sdl.gamelink.snoop) {
 		membase = (uint8_t*)malloc(g_membase_size);
 	} else {
@@ -455,6 +429,14 @@ uint8_t* GameLink::AllocRAM( const uint32_t size )
 
 	// Return RAM base pointer.
 	return membase;
+}
+
+void GameLink::FreeRAM(void *membase)
+{
+	// free memory if we did not use shared memory
+	if (membase != ((uint8_t*)g_p_shared_memory) + MEMORY_MAP_CORE_SIZE) {
+		free(membase);
+	}
 }
 
 //------------------------------------------------------------------------------
@@ -530,7 +512,7 @@ void GameLink::Out( const uint16_t frame_width,
 					const uint8_t* p_frame,
 					const uint8_t* p_sysmem )
 {
-	// LOG_MSG("GAMELINK: Out");
+	//LOG_MSG("GAMELINK: Out %i %i %i", frame_width, frame_height, g_trackonly_mode);
 	// Not initialised (or disabled) ?
 	if ( g_p_shared_memory == NULL ) {
 		return; // <=== EARLY OUT
@@ -597,7 +579,7 @@ void GameLink::Out( const uint16_t frame_width,
 
 	{
 
-		if (!sdl.gamelink.snoop) { // ========================
+		if (!sdl.gamelink.snoop) {
 
 			// Set version
 			g_p_shared_memory->version = PROTOCOL_VER;
@@ -644,7 +626,7 @@ void GameLink::Out( const uint16_t frame_width,
 		{
 
 			// Find peek offset
-			uint32_t offset = PEEK_ADDR_DEFAULT_OFFSET;
+			uint32_t offset = RunningProgramLoadAddress - sdl.gamelink.loadaddr;
 			int cnt = g_p_shared_memory->peek.addr_count;
 			if (cnt <= sSharedMMapPeek_R2::PEEK_LIMIT
 				&& cnt >= 1
@@ -705,10 +687,12 @@ void GameLink::Out( const uint16_t frame_width,
 				}
 				if (match) {
 					LOG_MSG("Match at %06x, Offset %06x, Original Load Address %06x", addr, addr-base, RunningProgramLoadAddress - (addr-base));
+					LOG_MSG("gamelink load address = %i", RunningProgramLoadAddress - (addr-base));
+					LOG_MSG("Profile XML value: %x", 0x10000000+(RunningProgramLoadAddress - (addr-base)));
 					break;
 				}
 			}
-		} // ========================
+		}
 
 #ifdef WIN32
 

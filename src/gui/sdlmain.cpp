@@ -1950,7 +1950,10 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
     }
 
 #if C_GAMELINK
-    OUTPUT_GAMELINK_TrackingMode();
+    if (!OUTPUT_GAMELINK_InitTrackingMode() && sdl.desktop.want_type == SCREEN_GAMELINK) {
+        OUTPUT_SURFACE_Select();
+        retFlags = OUTPUT_SURFACE_SetSize();
+    }
 #endif
 
     // we have selected an actual desktop type
@@ -3651,6 +3654,13 @@ static void GUI_StartUp() {
 
     usesystemcursor = section->Get_bool("usesystemcursor");
 
+#if C_GAMELINK
+    sdl.gamelink.enable = section->Get_bool("gamelink master");
+    sdl.gamelink.snoop = section->Get_bool("gamelink snoop");
+    sdl.gamelink.loadaddr = section->Get_int("gamelink load address");
+#endif
+
+
 #if C_XBRZ
     // initialize xBRZ parameters and check output type for compatibility
     xBRZ_Initialize();
@@ -3735,12 +3745,6 @@ static void GUI_StartUp() {
         LOG_MSG("SDL: Unsupported output device %s, switching back to surface",output.c_str());
         OUTPUT_SURFACE_Select(); // should not reach there anymore
     }
-
-#if C_GAMELINK
-    bool gamelink_master_enable = section->Get_bool("gamelinkmaster");
-    sdl.gamelink.enable = (gamelink_master_enable || sdl.desktop.want_type == SCREEN_GAMELINK);
-    sdl.gamelink.snoop = section->Get_bool("gamelinksnoop");
-#endif
 
     sdl.overscan_width=(unsigned int)section->Get_int("overscan");
 //  sdl.overscan_color=section->Get_int("overscancolor");
@@ -6452,10 +6456,14 @@ void SDL_SetupConfigSection() {
         "If set to \"auto\" (default), it is enabled when using non-US keyboards in SDL1 builds.");
     Pstring->SetBasic(true);
 
-    Pbool = sdl_sec->Add_bool("gamelinkmaster", Property::Changeable::Always, false);
-    Pbool->Set_help("Allow Game Link connections e.g. from Grid Cartographer, even without output=gamelink.");
-    Pbool = sdl_sec->Add_bool("gamelinksnoop", Property::Changeable::Always, false);
+#if C_GAMELINK
+    Pbool = sdl_sec->Add_bool("gamelink master", Property::Changeable::OnlyAtStart, false);
+    Pbool->Set_help("Allow Game Link connections e.g. from Grid Cartographer; required for output=gamelink, otherwise optional.");
+    Pbool = sdl_sec->Add_bool("gamelink snoop", Property::Changeable::OnlyAtStart, false);
     Pbool->Set_help("Connect to an existing Game Link session and output link data instead of sending own data. Compares memory contents to find a suitable memory offset of peeks.");
+    Pint = sdl_sec->Add_int("gamelink load address", Property::Changeable::Always, GAMELINK_LOAD_ADDRESS_DEFAULT);
+    Pbool->Set_help("Configure the original load address of the software (when running in plain DOSBox) so that gamelink accesses are adjusted for different load addresses.");
+#endif
 
     Pint = sdl_sec->Add_int("overscan",Property::Changeable::Always, 0);
     Pint->SetMinMax(0,10);

@@ -3,12 +3,10 @@
 #ifndef DOSBOX_OUTPUT_GAMELINK_H
 #define DOSBOX_OUTPUT_GAMELINK_H
 
-#if C_GAMELINK
 #include "../gamelink/gamelink.h"
-#endif // C_GAMELINK
 
 // output API
-void OUTPUT_GAMELINK_Initialize();
+//void OUTPUT_GAMELINK_Initialize();
 void OUTPUT_GAMELINK_Select();
 Bitu OUTPUT_GAMELINK_GetBestMode(Bitu flags);
 Bitu OUTPUT_GAMELINK_SetSize();
@@ -19,6 +17,7 @@ void OUTPUT_GAMELINK_Shutdown();
 // specific additions
 void OUTPUT_GAMELINK_InputEvent();
 void OUTPUT_GAMELINK_Transfer();
-void OUTPUT_GAMELINK_TrackingMode();
+bool OUTPUT_GAMELINK_InitTrackingMode();
+
 
 #endif /*DOSBOX_OUTPUT_GAMELINK_H*/
