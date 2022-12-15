@@ -37,9 +37,9 @@ gamelink master = true
 scaler=xbrz
 ```
 
-If you use the xbrz scaler, you must use `windowresolution` to set the frame
+If you use the `xbrz` scaler, you must use `windowresolution` to set the frame
 buffer size that is sent to GC. For all other scalers, the native
-(scaled) resolution is used. GC will then perform scaling of this
+(software-scaled) resolution is used. GC will then perform scaling of this
 fixed-resolution image to the appropriate resolution, including optional
 aspect correction.
 
