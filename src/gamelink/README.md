@@ -31,15 +31,17 @@ An example config looks like this:
 ```
 [sdl]
 output=gamelink
-windowresolution=1280x800
+gamelink master = true
 
 [render]
 scaler=xbrz
 ```
 
-`windowresolution` sets the (fixed) frame buffer size that is sent to GC. GC
-will then perform scaling of this fixed-resolution image to the appropriate
-resolution, including optional aspect correction.
+If you use the xbrz scaler, you must use `windowresolution` to set the frame
+buffer size that is sent to GC. For all other scalers, the native
+(scaled) resolution is used. GC will then perform scaling of this
+fixed-resolution image to the appropriate resolution, including optional
+aspect correction.
 
 Hardware scalers are not available beyond what GC offers, but it is possible
 to use a DOSBox software scaler in addition to that. See the example above
@@ -58,7 +60,9 @@ An example config looks like this:
 
 ```
 [sdl]
-gamelinkmaster = true
+output = surface
+# ... or any other non-gamelink output
+gamelink master = true
 ```
 
 Just add this single option to an existing working configuration and GC can
@@ -98,21 +102,31 @@ extra option:
 
 ```
 [sdl]
-gamelinksnoop = true
+gamelink snoop = true
 ```
 
 3. Load the same save game in both DOSBox instances, and the console output of
 DOSBox-X should contain a message telling you the original load address.
 
-4. Find the game profile XML file and locate the `<peek>` tag inside. It will
-contain a list of addresses.
+Once you know the original load address, you can configure it in two ways,
+whatever is easiest for you:
 
-5. Add `0x1000'0000` to that load address (so `14c0` becomes `100014c0`) and add the
+The easiest option is to set it in DOSBox-X (decimal):
+
+```
+[sdl]
+gamelink load address = 22160
+```
+
+Alternatively, you can modify your Grid Cartographer profile:
+
+1. Find the game profile XML file and locate the `<peek>` tag inside. It will
+contain a list of addresses (hex).
+
+2. Add `0x1000'0000` to that load address (so `14c0` becomes `100014c0`) and add the
 result to the end of this list. 
 
-6. Exit everything, Restart GC and run DOSBox-X without `gamelinksnoop`
-
-7. Enjoy MT32 music while mapping in GC or any of the other DOSBox-X features.
+3. Exit everything, Restart GC and run DOSBox-X without `gamelink snoop`
 
 
 
