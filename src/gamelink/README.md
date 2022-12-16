@@ -105,28 +105,31 @@ extra option:
 gamelink snoop = true
 ```
 
-3. Load the same save game in both DOSBox instances, and the console output of
-DOSBox-X should contain a message telling you the original load address.
+3. Load the same save game in both DOSBox instances and move to the same
+place. Once a match is detected, a popup dialog window should tell you two
+different configuration values.
 
-Once you know the original load address, you can configure it in two ways,
-whatever is easiest for you:
+With these two values, you can configure Game Link in two different ways,
+whatever works best for you.
 
-The easiest option is to set it in DOSBox-X (decimal):
+The first and easiest option is to enter the first value from the dialog
+window into the DOSBox-X configuration file:
 
 ```
 [sdl]
-gamelink load address = 22160
+gamelink load address = 6768
 ```
 
-Alternatively, you can modify your Grid Cartographer profile:
+The second option is to modify your Grid Cartographer profile:
 
-1. Find the game profile XML file and locate the `<peek>` tag inside. It will
-contain a list of addresses (hex).
+1. Find the game profile XML file and locate the `<peek>` tag near the start
+of the file. It will contain a list of hexadecimal numbers.
 
-2. Add `0x1000'0000` to that load address (so `14c0` becomes `100014c0`) and add the
-result to the end of this list. 
+2. Add the second value from the dialog window (the one starting with `100`)
+to the end of this list.
 
-3. Exit everything, Restart GC and run DOSBox-X without `gamelink snoop`
+3. Exit everything including GC, disable `gamelink snoop` and enjoy
+GC+DOSBox-X!
 
 
 

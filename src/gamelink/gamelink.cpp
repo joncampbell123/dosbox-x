@@ -9,6 +9,9 @@
 
 #if C_GAMELINK
 
+// define this to debug memory offset detection
+// #define DEBUG_SNOOP
+
 // External Dependencies
 #ifdef WIN32
 #include <Windows.h>
@@ -615,12 +618,14 @@ void GameLink::Out( const uint16_t frame_width,
 				}
 			}
 		} else {
+#ifdef DEBUG_SNOOP
 			LOG_MSG("Hash: %x %x %x %x Flags: %x",
 				g_p_shared_memory->program_hash[0],
 				g_p_shared_memory->program_hash[1],
 				g_p_shared_memory->program_hash[2],
 				g_p_shared_memory->program_hash[3],
 				g_p_shared_memory->flags);
+#endif
 		}
 
 		{
@@ -660,11 +665,15 @@ void GameLink::Out( const uint16_t frame_width,
 				if (!sdl.gamelink.snoop) {
 					g_p_shared_memory->peek.data[ pindex ] = data;
 				} else {
+#ifdef DEBUG_SNOOP
 					uint8_t seek = g_p_shared_memory->peek.data[ pindex ];
 					LOG_MSG("_____ peek: %04x = %i / %i / %i", address, seek, data, address >= g_membase_size?0:*(((uint8_t*)g_p_shared_memory) + MEMORY_MAP_CORE_SIZE + address));
+#endif
 				}
 			}
 		}
+
+		int found_offset = 0;
 
 		if (!sdl.gamelink.snoop) {
 			// Message Processing.
@@ -673,12 +682,15 @@ void GameLink::Out( const uint16_t frame_width,
 						  &(proc_mech_buffer) );
 
 		} else if (RunningProgramLoadAddress && g_p_shared_memory->peek.addr_count) {
+#ifdef DEBUG_SNOOP
 			LOG_MSG("Load Address = %06x", RunningProgramLoadAddress);
+#endif
 			for (int addr = 0; addr < g_membase_size-1024; addr++) {
 				bool match = true;
 				int base = g_p_shared_memory->peek.addr[ 0 ];
 				for (int i = 0; i < g_p_shared_memory->peek.addr_count; i++) {
 					uint8_t seek = g_p_shared_memory->peek.data[ i ];
+					if (g_p_shared_memory->peek.addr[ i ] > 0x1000'0000) continue;
 					int oaddr = g_p_shared_memory->peek.addr[ i ] - base + addr;
 					if (oaddr >= g_membase_size || p_sysmem[ oaddr ] != seek) {
 						match = false;
@@ -686,10 +698,13 @@ void GameLink::Out( const uint16_t frame_width,
 					}
 				}
 				if (match) {
-					LOG_MSG("Match at %06x, Offset %06x, Original Load Address %06x", addr, addr-base, RunningProgramLoadAddress - (addr-base));
-					LOG_MSG("gamelink load address = %i", RunningProgramLoadAddress - (addr-base));
-					LOG_MSG("Profile XML value: %x", 0x10000000+(RunningProgramLoadAddress - (addr-base)));
+					found_offset = (addr-base);
+#ifdef DEBUG_SNOOP
+					LOG_MSG("Match at %06x, Offset %06x, Original Load Address %06x", addr, addr-base, RunningProgramLoadAddress - found_offset);
+#else
+					// assume first offset is the correct one
 					break;
+#endif
 				}
 			}
 		}
@@ -708,6 +723,20 @@ void GameLink::Out( const uint16_t frame_width,
 		}
 
 #endif // WIN32
+
+		static int last_offset = 0;
+		if (sdl.gamelink.snoop && found_offset && found_offset != last_offset) {
+			last_offset = found_offset;
+			LOG_MSG("gamelink load address = %i", RunningProgramLoadAddress - found_offset);
+			LOG_MSG("Grid Cartorapher profile XML value: %x", 0x10000000+(RunningProgramLoadAddress - found_offset));
+
+			char result[256];
+			snprintf(result, sizeof(result), "Found possible ram offset. Config values are:\ngamelink load address = %i\nGrid Cartographer profile XML <peek>: %x",
+				RunningProgramLoadAddress - found_offset,
+				0x10000000+(RunningProgramLoadAddress - found_offset));
+            systemmessagebox("Game Link Snoop Success", result, "ok", "info", 1);
+
+		}
 
 		// Mechanical Message Processing, out of mutex.
 		if (!sdl.gamelink.snoop && proc_mech_buffer.payload)

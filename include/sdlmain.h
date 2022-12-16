@@ -237,6 +237,7 @@ void UpdateWindowDimensions(Bitu width, Bitu height);
 void DoKillSwitch();
 void ResetSystem(bool pressed);
 void PauseDOSBox(bool pressed);
+bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 
 #if defined(C_SDL2)
 SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES screenType);
