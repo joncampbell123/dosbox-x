@@ -3688,7 +3688,7 @@ static void GUI_StartUp() {
         if (output == "overlay" || output == "ddraw")
             LOG_MSG("The %s output has been removed.", output.c_str());
         else
-            LOG_MSG("The %s output is not enabled.", output == "ttf" ? "TrueType font (TTF)":output);
+            LOG_MSG("The %s output is not enabled.", output == "ttf" ? "TrueType font (TTF)":output.c_str());
 #if C_DIRECT3D
         output = "direct3d";
 #elif C_OPENGL

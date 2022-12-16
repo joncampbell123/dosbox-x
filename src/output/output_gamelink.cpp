@@ -8,6 +8,7 @@
 #include "sdlmain.h"
 #include "render.h"
 #include "vga.h"
+#include "mem.h"
 #include "mixer.h"
 #include "mapper.h"
 #include "../gamelink/scancodes_windows.h"
