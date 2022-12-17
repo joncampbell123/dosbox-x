@@ -1,6 +1,10 @@
 #ifndef __GAMELINK_H___
 #define __GAMELINK_H___
 
+#include "config.h"
+
+#if C_GAMELINK
+
 #include "dosbox.h"
 
 #ifdef WIN32
@@ -196,5 +200,6 @@ namespace GameLink
 }; // namespace GameLink
 
 //==============================================================================
+#endif
 
 #endif // __GAMELINK_HDR__

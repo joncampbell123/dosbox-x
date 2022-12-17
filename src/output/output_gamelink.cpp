@@ -1,3 +1,7 @@
+#include "config.h"
+
+#if C_GAMELINK
+
 #include <sys/types.h>
 #include <assert.h>
 #include <math.h>
@@ -300,3 +304,5 @@ void OUTPUT_GAMELINK_Shutdown()
     //LOG_MSG("OUTPUT_GAMELINK: Shutdown");
     GameLink::Term();
 }
+
+#endif

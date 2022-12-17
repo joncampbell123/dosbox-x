@@ -1,7 +1,11 @@
-#include "dosbox.h"
-
 #ifndef DOSBOX_OUTPUT_GAMELINK_H
 #define DOSBOX_OUTPUT_GAMELINK_H
+
+#include "config.h"
+
+#if C_GAMELINK
+
+#include "dosbox.h"
 
 #include "../gamelink/gamelink.h"
 
@@ -19,5 +23,6 @@ void OUTPUT_GAMELINK_InputEvent();
 void OUTPUT_GAMELINK_Transfer();
 bool OUTPUT_GAMELINK_InitTrackingMode();
 
+#endif
 
 #endif /*DOSBOX_OUTPUT_GAMELINK_H*/
