@@ -12,6 +12,13 @@
 // define this to debug memory offset detection
 // #define DEBUG_SNOOP
 
+// Local Dependencies
+#include "dosbox.h"
+#include "gamelink.h"
+#include "logging.h"
+#include "sdlmain.h"
+#include "../resource.h"
+
 // External Dependencies
 #ifdef WIN32
 #include <Windows.h>
@@ -30,13 +37,6 @@
 // SDL Dependencies
 #include "SDL_syswm.h"
 #include "SDL.h"
-
-// Local Dependencies
-#include "dosbox.h"
-#include "gamelink.h"
-#include "logging.h"
-#include "sdlmain.h"
-#include "../resource.h"
 
 extern bool is_paused;
 extern uint32_t RunningProgramLoadAddress;
