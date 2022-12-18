@@ -431,7 +431,6 @@ if test x$enable_gamelink = xyes; then
     AC_MSG_RESULT(yes)
     C_GAMELINK=1
     AC_DEFINE(C_GAMELINK,1)
-    LIBS="$LIBS -lrt" # uses shm_* functions which requires librt on Linux
   fi
 else
   AC_MSG_RESULT(no)
@@ -515,6 +514,7 @@ case "$host" in
     *-*-linux*)
        AC_DEFINE(LINUX, 1, [Compiling on GNU/Linux])
        CXXFLAGS="$CXXFLAGS -D_XOPEN_SOURCE=700 -D_POSIX_C_SOURCE=200809L"
+       LIBS="$LIBS -lrt" # uses shm_* functions which requires librt on Linux
        dnl FEATURE: Whether to support direct parallel port passthrough
        AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
        dnl FEATURE: Whether to support direct serial port passthrough
