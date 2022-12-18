@@ -431,6 +431,7 @@ if test x$enable_gamelink = xyes; then
     AC_MSG_RESULT(yes)
     C_GAMELINK=1
     AC_DEFINE(C_GAMELINK,1)
+    LIBS="$LIBS -lrt" # uses shm_* functions which requires librt on Linux
   fi
 else
   AC_MSG_RESULT(no)
