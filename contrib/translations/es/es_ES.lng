@@ -2605,6 +2605,9 @@ OpenGL perfecto
 :MENU:output_ttf
 Fuente TrueType
 .
+:MENU:output_gamelink
+Game Link
+.
 :MENU:doublescan
 Doublescan
 .

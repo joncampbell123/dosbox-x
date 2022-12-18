@@ -148,6 +148,11 @@
 /* Define to 1 to use opengl display output support */
 #define C_OPENGL 1
 
+#ifdef C_SDL2
+/* Define to 1 to enable gamelink support (needs SDL2) */
+#define C_GAMELINK 1
+#endif
+
 /* Set to 1 to enable XBRZ support */
 #define C_XBRZ 1
 

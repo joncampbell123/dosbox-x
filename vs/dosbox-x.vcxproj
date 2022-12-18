@@ -1167,6 +1167,8 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     <ClCompile Include="..\src\dos\drive_physfs.cpp" />
     <ClCompile Include="..\src\dos\drive_virtual.cpp" />
     <ClCompile Include="..\src\fpu\fpu.cpp" />
+    <ClCompile Include="..\src\gamelink\gamelink.cpp" />
+    <ClCompile Include="..\src\gamelink\gamelink_term.cpp" />
     <ClCompile Include="..\src\gui\bitop.cpp" />
     <ClCompile Include="..\src\gui\ptrop.cpp" />
     <ClCompile Include="..\src\gui\zipcrc.c" />
@@ -1532,6 +1534,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     <ClCompile Include="..\src\output\direct3d\hq2x_d3d.cpp" />
     <ClCompile Include="..\src\output\direct3d\ScalingEffect.cpp" />
     <ClCompile Include="..\src\output\output_direct3d.cpp" />
+    <ClCompile Include="..\src\output\output_gamelink.cpp" />
     <ClCompile Include="..\src\output\output_opengl.cpp" />
     <ClCompile Include="..\src\output\output_surface.cpp" />
     <ClCompile Include="..\src\output\output_tools.cpp" />
@@ -1768,6 +1771,8 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     <ClInclude Include="..\src\fpu\fpu_instructions.h" />
     <ClInclude Include="..\src\fpu\fpu_instructions_longdouble.h" />
     <ClInclude Include="..\src\fpu\fpu_instructions_x86.h" />
+    <ClInclude Include="..\src\gamelink\gamelink.h" />
+    <ClInclude Include="..\src\gamelink\scancodes_windows.h" />
     <ClInclude Include="..\src\gui\dosbox.cga640.bmp.h" />
     <ClInclude Include="..\src\gui\dosbox.vga16.bmp.h" />
     <ClInclude Include="..\src\gui\dosbox_logo.h" />
@@ -1889,6 +1894,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     <ClInclude Include="..\src\output\direct3d\hq2x_d3d.h" />
     <ClInclude Include="..\src\output\direct3d\ScalingEffect.h" />
     <ClInclude Include="..\src\output\output_direct3d.h" />
+    <ClInclude Include="..\src\output\output_gamelink.h" />
     <ClInclude Include="..\src\output\output_opengl.h" />
     <ClInclude Include="..\src\output\output_surface.h" />
     <ClInclude Include="..\src\output\output_tools.h" />

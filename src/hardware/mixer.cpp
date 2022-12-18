@@ -225,6 +225,11 @@ inline void MixerChannel::updateSlew(void) {
         max_change = 0x7FFFFFFFUL;
 }
 
+void MIXER_SetMaster(float vol0, float vol1) {
+	mixer.mastervol[0] = vol0;
+	mixer.mastervol[1] = vol1;
+}
+
 MixerChannel * MIXER_AddChannel(MIXER_Handler handler,Bitu freq,const char * name) {
     MixerChannel * chan=new MixerChannel();
     chan->freq_fslew = 0;

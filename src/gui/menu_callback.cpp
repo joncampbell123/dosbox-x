@@ -3168,6 +3168,10 @@ void AllocCallback1() {
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_ttf").set_text("TrueType font").
                     set_callback_function(output_menu_callback);
 #endif
+#if C_GAMELINK
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"output_gamelink").set_text("Game Link").
+                    set_callback_function(output_menu_callback);
+#endif
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"doublescan").set_text("Doublescan").
                     set_callback_function(doublescan_menu_callback);
             }

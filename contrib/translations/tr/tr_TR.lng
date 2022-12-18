@@ -2600,6 +2600,9 @@ OpenGL mükemmel
 :MENU:output_ttf
 TrueType yazıtipi
 .
+:MENU:output_gamelink
+Game Link
+.
 :MENU:doublescan
 Çift tarama
 .

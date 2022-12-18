@@ -2622,6 +2622,9 @@ OpenGL pixel perfeito
 :MENU:output_ttf
 Fonte TrueType
 .
+:MENU:output_gamelink
+Game Link
+.
 :MENU:doublescan
 Dupla varredura
 .

@@ -2587,6 +2587,9 @@ OpenGL perfect
 :MENU:output_ttf
 TrueTypeフォント
 .
+:MENU:output_gamelink
+Game Link
+.
 :MENU:doublescan
 ダブルスキャン
 .

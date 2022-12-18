@@ -41,6 +41,10 @@
 
 #include <string.h>
 
+#if C_GAMELINK
+#include "../gamelink/gamelink.h"
+#endif // C_GAMELINK
+
 static MEM_Callout_t lfb_mem_cb = MEM_Callout_t_none;
 static MEM_Callout_t lfb_mmio_cb = MEM_Callout_t_none;
 
@@ -1754,7 +1758,11 @@ void Init_AddressLimitAndGateMask() {
 void ShutDownRAM(Section * sec) {
     (void)sec;//UNUSED
     if (MemBase != NULL) {
+#if C_GAMELINK
+        GameLink::FreeRAM(MemBase);
+#else
         delete [] MemBase;
+#endif
         MemBase = NULL;
     }
 }
@@ -1851,7 +1859,11 @@ void Init_RAM() {
 
     /* Allocate the RAM. We alloc as a large unsigned char array. new[] does not initialize the array,
      * so we then must zero the buffer. */
+#if C_GAMELINK
+    MemBase = GameLink::AllocRAM(memory.pages*4096);
+#else // C_GAMELINK
     MemBase = new(std::nothrow) uint8_t[memory.pages*4096];
+#endif // C_GAMELINK
     if (!MemBase) E_Exit("Can't allocate main memory of %d KB",(int)memsizekb);
     /* Clear the memory, as new doesn't always give zeroed memory
      * (Visual C debug mode). We want zeroed memory though. */

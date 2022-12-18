@@ -38,6 +38,13 @@ if !EMSCRIPTEN
 dosbox_x_LDADD += aviwriter/libaviwriter.a
 endif
 
+if C_GAMELINK
+if !EMSCRIPTEN
+SUBDIRS += gamelink
+dosbox_x_LDADD +=  gamelink/libgamelink.a
+endif
+endif
+
 if C_DIRECT3D
 dosbox_x_LDADD += output/direct3d/liboutputdirect3d.a
 endif

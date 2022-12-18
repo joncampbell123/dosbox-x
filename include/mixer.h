@@ -113,6 +113,8 @@ public:
 	MixerChannel * next;
 };
 
+void MIXER_SetMaster(float vol0,float vol1);
+
 MixerChannel * MIXER_AddChannel(MIXER_Handler handler,Bitu freq,const char * name);
 MixerChannel * MIXER_FindChannel(const char * name);
 /* Find the device you want to delete with findchannel "delchan gets deleted" */

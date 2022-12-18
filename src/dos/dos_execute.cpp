@@ -29,6 +29,10 @@
 #include "debug.h"
 #include "cpu.h"
 #include "menu.h"
+#include "crc32.h"
+
+uint32_t RunningProgramHash[4] = {0,0,0,0};
+uint32_t RunningProgramLoadAddress = 0;
 
 const char * RunningProgram="DOSBOX-X";
 
@@ -276,6 +280,8 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 	PhysPt loadaddress;RealPt relocpt;
     uint32_t headersize = 0, imagesize = 0;
 	DOS_ParamBlock block(block_pt);
+	uint32_t checksum = 0;
+	uint32_t checksum_bytes = 0;
 
 	block.LoadData();
 	//Remove the loadhigh flag for the moment!
@@ -403,6 +409,7 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 	} else loadseg=block.overlay.loadseg;
 	/* Load the executable */
 	loadaddress=PhysMake(loadseg,0);
+	RunningProgramLoadAddress = loadaddress;
 
 	if (iscom) {	/* COM Load 64k - 256 bytes max */
 		/* how big is the COM image? make sure it fits */
@@ -414,18 +421,24 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 
 		pos=0;DOS_SeekFile(fhandle,&pos,DOS_SEEK_SET);	
 		DOS_ReadFile(fhandle,loadbuf,&readsize);
+		checksum = crc32(checksum, loadbuf, readsize);
+		checksum_bytes += readsize;
 		MEM_BlockWrite(loadaddress,loadbuf,readsize);
 	} else {	/* EXE Load in 32kb blocks and then relocate */
 		if (imagesize > (unsigned int)(memsize*0x10)) E_Exit("DOS:Not enough memory for EXE image");
 		pos=headersize;DOS_SeekFile(fhandle,&pos,DOS_SEEK_SET);	
 		while (imagesize>0x7FFF) {
 			readsize=0x8000;DOS_ReadFile(fhandle,loadbuf,&readsize);
+			checksum = crc32(checksum, loadbuf, readsize);
+			checksum_bytes += readsize;
 			MEM_BlockWrite(loadaddress,loadbuf,readsize);
 //			if (readsize!=0x8000) LOG(LOG_EXEC,LOG_NORMAL)("Illegal header");
 			loadaddress+=0x8000;imagesize-=0x8000;
 		}
 		if (imagesize>0) {
 			readsize=(uint16_t)imagesize;DOS_ReadFile(fhandle,loadbuf,&readsize);
+			checksum = crc32(checksum, loadbuf, readsize);
+			checksum_bytes += readsize;
 			MEM_BlockWrite(loadaddress,loadbuf,readsize);
 //			if (readsize!=imagesize) LOG(LOG_EXEC,LOG_NORMAL)("Illegal header");
 		}
@@ -533,6 +546,10 @@ bool DOS_Execute(const char* name, PhysPt block_pt, uint8_t flags) {
 		DOS_MCB pspmcb(dos.psp()-1);
 		pspmcb.SetFileName(stripname);
 		DOS_UpdatePSPName();
+		RunningProgramHash[0] = head.checksum;
+		RunningProgramHash[1] = checksum_bytes;
+		RunningProgramHash[2] = checksum;
+		RunningProgramHash[3] = 0;
 	}
 
 	if (flags==LOAD) {

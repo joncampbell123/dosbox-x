@@ -420,6 +420,24 @@ else
   fi
 fi
 
+AH_TEMPLATE(C_GAMELINK,[Define to 1 to enable game link headless mode])
+AC_CHECK_LIB(rt, main, have_rt_lib=yes, have_rt_lib=no , )
+AC_ARG_ENABLE(gamelink,AC_HELP_STRING([--disable-gamelink],[Disable headless game link output mode (only for SDL2)]),,enable_gamelink=yes)
+AC_MSG_CHECKING(whether gamelink is enabled) 
+if test x$enable_gamelink = xyes; then
+  if test "x$SDL2_LIBS" = "x"; then
+    AC_MSG_RESULT(no (SDL2 missing))
+  else
+    AC_MSG_RESULT(yes)
+    C_GAMELINK=1
+    AC_DEFINE(C_GAMELINK,1)
+  fi
+else
+  AC_MSG_RESULT(no)
+fi
+AM_CONDITIONAL([C_GAMELINK], [test "x$C_GAMELINK" = x1])
+
+
 dnl FEATURE: Whether to use OpenGL
 AH_TEMPLATE(C_OPENGL,[Define to 1 to use opengl display output support])
 AC_ARG_ENABLE(opengl,AC_HELP_STRING([--disable-opengl],[Disable opengl support]),enable_opengl=$enableval,enable_opengl=yes)
@@ -1229,6 +1247,7 @@ src/cpu/core_normal/Makefile
 src/debug/Makefile
 src/dos/Makefile
 src/fpu/Makefile
+src/gamelink/Makefile
 src/gui/Makefile
 src/hardware/Makefile
 src/hardware/mame/Makefile
