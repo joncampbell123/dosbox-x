@@ -32,16 +32,26 @@ AC_ARG_ENABLE(sdl2,     [  --enable-sdl2           Enable SDL 2.x],
       PATH=vs/sdl2/linux-host/bin:$PATH
     fi
 
+    manual_sdl2config="$SDL2_CONFIG"
+
     AC_PATH_PROG(SDL2_CONFIG, sdl2-config, no)
-    min_sdl2_version=ifelse([$1], ,0.11.0,$1)
-    AC_MSG_CHECKING(for SDL2 - version >= $min_sdl2_version)
-    no_sdl2=""
-    if test "$SDL2_CONFIG" = "no" ; then
-      no_sdl2=yes
-    else
+    AC_MSG_CHECKING(for SDL2)
+
+    # Prefer pkg-config unless sdl2-config was
+    # manually specified before we looked for it
+    if test x$manual_sdl2config = xno && \
+        pkg-config --exists sdl2 ; then
+      SDL2_CFLAGS=`pkg-config sdl2 --cflags`
+      SDL2_LIBS=`pkg-config sdl2 --libs`
+      AC_DEFINE(C_SDL2,1)
+      AC_MSG_RESULT(found using pkg-config)
+    elif test x$SDL2_CONFIG != xno; then
       SDL2_CFLAGS=`$SDL2_CONFIG $sdl2conf_args --cflags`
       SDL2_LIBS=`$SDL2_CONFIG $sdl2conf_args --libs`
       AC_DEFINE(C_SDL2,1)
+      AC_MSG_RESULT(found using sdl2-config)
+    else
+      AC_MSG_RESULT(not found)
     fi
   fi
 

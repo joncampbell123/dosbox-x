@@ -60,13 +60,13 @@ and descriptions on the source code.
 How to compile the source code (cross-platform)
 -----------------------------------------------
 
-* General Linux compile (SDL1)
+* General Linux or BSD compile (SDL1)
 ```
 ./build-debug
 sudo make install
 ```
 
-* General Linux compile (SDL2)
+* General Linux or BSD compile (SDL2)
 ```
 ./build-debug-sdl2
 sudo make install

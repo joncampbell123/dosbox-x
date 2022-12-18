@@ -350,6 +350,7 @@ BSD_JoystickOpen(SDL_Joystick * joy, int device_index)
         rep->rid = -1;          /* XXX */
     }
 #if defined(__NetBSD__)
+    {
     usb_device_descriptor_t udd;
     struct usb_string_desc usd;
     if (ioctl(fd, USB_GET_DEVICE_DESC, &udd) == -1)
@@ -378,6 +379,7 @@ BSD_JoystickOpen(SDL_Joystick * joy, int device_index)
             SDL_free(joydevnames[numjoysticks]);
             joydevnames[numjoysticks] = new_name;
         }
+    }
     }
 desc_failed:
 #endif

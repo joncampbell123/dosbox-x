@@ -1,4 +1,21 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+MAKE=""
+find_make()
+{
+  if test "$MAKE" = "" && \
+     command -v $1 >/dev/null && \
+     $1 --version | grep -q "GNU Make"; then
+    MAKE="$1"
+  fi
+}
+find_make make
+find_make gmake
+if test "$MAKE" = ""; then
+  echo "Couldn't find GNU Make!"
+  exit 1
+fi
+
 rm -Rfv linux-host || exit 1
 mkdir -p linux-host || exit 1
 
@@ -21,6 +38,10 @@ opts="--disable-video-x11"
 fi
 if [ "$1" == "hx-dos" ]; then
 opts="--disable-video-opengl"
+fi
+if [ "$sys" != "Linux" ]; then
+# These are supported on BSDs but the SDL2 code assumes Linux
+opts="--disable-video-wayland --disable-libudev"
 fi
 
 ac_cv_header_iconv_h=no ac_cv_func_iconv=no ac_cv_lib_iconv_libiconv_open=no ../configure "--srcdir=$srcdir" "--prefix=$instdir" --enable-static --disable-shared --disable-x11-shared --disable-video-x11-xrandr --disable-video-x11-vm --disable-video-x11-xv $opts || exit 1
@@ -46,6 +67,6 @@ cat >>include/SDL_config.h <<_EOF
 _EOF
 fi
 
-make -j3 || exit 1
-make install || exit 1  # will install into ./linux-host
+$MAKE -j3 || exit 1
+$MAKE install || exit 1  # will install into ./linux-host
 

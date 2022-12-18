@@ -320,7 +320,7 @@ int main(int argc,char **argv) {
 
 dnl Some target detection and actions for them
 case "$host" in
-    *-*-darwin*)
+    *-*-darwin* | *-*-openbsd*)
        dnl El Capitan's refusal to allow sudo make install to /usr/include, and the failure of most open source to
        dnl include from /usr/local/include is irritating and tiresome...
        CFLAGS="$CFLAGS -I/usr/local/include"
@@ -532,6 +532,13 @@ case "$host" in
        CXXFLAGS="$CXXFLAGS -D_GLIBCXX_USE_C99=1"
        ;;
 esac
+
+dnl Fix for FreeBSD not automatically linking to pthread for std::thread
+case "$host" in
+    *-*-freebsd*)
+       LIBS="$LIBS -lpthread"
+    ;;
+esac
 fi
 
 AM_CONDITIONAL(MACOSX, test x"$macosx" = x"1")
@@ -644,14 +651,14 @@ AC_CHECK_HEADER(slirp/libslirp.h,have_slirp_h=yes,)
 AC_CHECK_LIB(slirp, slirp_input, have_slirp_lib=yes, ,-lz)
 
 dnl LIBRARY TEST: libiconv
-dnl This may be provided by glibc itself, -liconv may not be needed.
 AC_CHECK_HEADER(iconv.h,have_iconv_h=yes,)
-AC_CHECK_LIB(iconv, libiconv_open, have_iconv_lib=yes, ,-liconv)
-case "$host" in
-  *-*-openbsd*)
-    LIBS="$LIBS -liconv"
-    ;;
-esac
+dnl TEST: check if iconv uses const char
+AC_MSG_CHECKING([whether iconv uses const char**])
+AC_COMPILE_IFELSE([AC_LANG_SOURCE([
+#include <iconv.h>
+size_t iconv(iconv_t, const char **restrict, size_t *restrict, char **restrict, size_t *restrict);
+])], AC_DEFINE(ICONV_CONST_CHAR, 1) AC_MSG_RESULT(yes), AC_MSG_RESULT(no))
+AH_TEMPLATE(ICONV_CONST_CHAR,[Whether iconv uses const char**])
 
 dnl LIBRARY TEST: SDLnet
 AC_CHECK_HEADER(SDL_net.h,have_sdl_net_h=yes,)
@@ -908,6 +915,13 @@ if test x$enable_dynrec = xno -o x$enable_dynamic_core = xno; then
 elif test x$c_targetcpu = xx86 -o x$c_targetcpu = xx86_64 -o x$c_targetcpu = xarm; then
    AC_DEFINE(C_DYNREC,1)
    AC_MSG_RESULT(yes)
+
+   case "$host" in
+      *-*-openbsd*)
+         AC_MSG_WARN([DOSBox-X will be linked with "wxneeded" to support dynrec core on OpenBSD])
+         LDFLAGS="-Wl,-z,wxneeded $LDFLAGS"
+      ;;
+   esac
 else
    AC_MSG_RESULT(no)
 fi
@@ -1054,23 +1068,15 @@ if test x$enable_libslirp = xyes ; then
     LIBS="$LIBS "`pkg-config slirp --libs`
     CFLAGS="$CFLAGS "`pkg-config slirp --cflags`
     CPPFLAGS="$CPPFLAGS "`pkg-config slirp --cflags`
+    case "$host" in
+      *-*-cygwin* | *-*-mingw32*)
+         LIBS="$LIBS -lintl"
+      ;;
+    esac
   else
     have_slirp=no
     AC_MSG_WARN([Can't find libslirp, userspace TCP/IP emulation disabled])
   fi
-  case "$host" in
-    *-*-cygwin* | *-*-mingw32*)
-       if test x$have_slirp = xyes; then
-         LIBS="$LIBS -lintl -liconv"
-       fi
-    ;;
-  esac
-else
-  case "$host" in
-    *-*-cygwin* | *-*-mingw32*)
-      LIBS="$LIBS -liconv"
-    ;;
-  esac
 fi
 
 if test x$enable_x11 != xno; then
@@ -1183,19 +1189,16 @@ fi
 
 AM_CONDITIONAL(C_DIRECT3D, test x"$do_d3d" = x"1")
 
-AH_TEMPLATE(C_ICONV,[Define to 1 to use GNU libiconv])
+AH_TEMPLATE(C_ICONV,[Define to 1 to use iconv])
 if test x$have_iconv_h = xyes; then
     AC_DEFINE(C_ICONV,1)
-case "$host" in
-    *-*-darwin*)
-    LIBS="$LIBS -liconv"
-    ;;
-    *-*-cygwin* | *-*-mingw32*)
-       if test x$have_slirp = xno; then
-         LIBS="$LIBS -liconv"
-       fi
-    ;;
-esac
+    AC_MSG_CHECKING([whether we must link against -liconv])
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[
+    #include <iconv.h>
+    iconv_t wrap_open(const char *tocode, const char *fromcode) {
+      return iconv_open(tocode, fromcode);
+    }]])],
+    AC_MSG_RESULT(no), [AC_MSG_RESULT(yes);LIBS="$LIBS -liconv"])
 fi
 
 dnl placeholder

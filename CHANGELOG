@@ -149,6 +149,7 @@ Unreleased
     (caiiiycuk)
   - Fix unexpected behavior of swapping multiple CD images
     (maron2000)
+  - Fixed build on NetBSD and FreeBSD (Jookia)
 
 2022.09.0 (0.84.3)
   - Updated FFMPEG video capture to use newer API,

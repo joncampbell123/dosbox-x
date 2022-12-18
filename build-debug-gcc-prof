@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # allow 32-bit on 64-bit (x86) builds
 if [ "$1" == "32" ]; then
