@@ -22,11 +22,9 @@ export LDFLAGS="$nld$LDFLAGS"
 export CPPFLAGS="$new$CPPFLAGS"
 export CXXFLAGS="$new$CXXFLAGS"
 
-# FIXME: SDLnet will compile a static library that targets a foreign architecture,
-#        and then ld will complain about it????????
 # prefer to compile against our own copy of SDLnet 1.x
-#echo Compiling our internal SDLnet 1.x
-#(cd vs/sdlnet && ./build-dosbox.sh) || exit 1
+echo Compiling our internal SDLnet 1.x
+(cd vs/sdlnet && ./build-dosbox.sh) || exit 1
 
 # prefer to compile against our own zlib
 echo Compiling our internal zlib
