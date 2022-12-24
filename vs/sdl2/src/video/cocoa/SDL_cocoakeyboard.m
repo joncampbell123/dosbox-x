@@ -165,6 +165,21 @@ SDL_bool SDL_IM_Composition(int more) {
     return ime_incompos||end_ticks&&(TickCount()-end_ticks<IME_END_CR_WAIT*more) ? SDL_TRUE : SDL_FALSE;
 }
 
+static int GetEnableIME()
+{
+    TISInputSourceRef is = TISCopyCurrentKeyboardInputSource();
+    CFBooleanRef ret = (CFBooleanRef)TISGetInputSourceProperty(is, kTISPropertyInputSourceIsASCIICapable);
+    return CFBooleanGetValue(ret) ? 0 : 1;
+}
+
+- (void)keyboardInputSourceChanged:(NSNotification *)notification
+{
+    if(!GetEnableIME()) {
+        [_markedLabel setHidden:YES];
+        [[NSTextInputContext currentInputContext] discardMarkedText];
+    }
+}
+
 - (NSRect)firstRectForCharacterRange:(NSRange)aRange actualRange:(NSRangePointer)actualRange
 {
     NSWindow *window = [self window];
@@ -193,6 +208,10 @@ SDL_bool SDL_IM_Composition(int more) {
     if(!_markedLabel) {
         _markedLabel = [[IMETextView alloc] initWithFrame: NSMakeRect(0.0, 0.0, 0.0, 0.0)];
         [[[self window] contentView] addSubview:_markedLabel];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(keyboardInputSourceChanged:)
+                                                     name:NSTextInputContextKeyboardSelectionDidChangeNotification
+                                                   object:nil];
     }
     [_markedLabel setFrameOrigin: NSMakePoint(_inputRect.x, windowHeight - _inputRect.y)];
 

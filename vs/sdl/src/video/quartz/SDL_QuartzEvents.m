@@ -334,7 +334,7 @@ void     QZ_InitOSKeymap (_THIS) {
     keymap[QZ_KP_ENTER] = SDLK_KP_ENTER;
 }
 
-static int GetEnableIME()
+int GetEnableIME()
 {
     TISInputSourceRef is = TISCopyCurrentKeyboardInputSource();
     CFBooleanRef ret = (CFBooleanRef)TISGetInputSourceProperty(is, kTISPropertyInputSourceIsASCIICapable);
