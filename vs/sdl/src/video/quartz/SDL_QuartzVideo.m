@@ -242,6 +242,16 @@ static inline void QZ_SetFrame(_THIS, NSScreen *nsscreen, NSRect frame)
     [_markedLabel setHidden:YES];
 }
 
+extern int GetEnableIME();
+
+- (void)keyboardInputSourceChanged:(NSNotification *)notification
+{
+    if(!GetEnableIME()) {
+        [_markedLabel setHidden:YES];
+        [[NSTextInputContext currentInputContext] discardMarkedText];
+    }
+}
+
 - (NSRect)firstRectForCharacterRange:(NSRange)aRange actualRange:(NSRangePointer)actualRange
 {
     NSWindow *window = [self window];
@@ -265,8 +275,11 @@ static inline void QZ_SetFrame(_THIS, NSScreen *nsscreen, NSRect frame)
 
     if(_markedLabel == nil) {
         _markedLabel = [[IMETextView alloc] initWithFrame: NSMakeRect(0.0, 0.0, 0.0, 0.0)];
-        //NSWindow *window = [self window];
         [[[self window] contentView] addSubview:_markedLabel];
+        [[NSNotificationCenter defaultCenter] addObserver:self
+                                                 selector:@selector(keyboardInputSourceChanged:)
+                                                     name:NSTextInputContextKeyboardSelectionDidChangeNotification
+                                                   object:nil];
     }
     [_markedLabel setFrameOrigin: NSMakePoint(_inputRect.x, windowHeight - _inputRect.y)];
 
