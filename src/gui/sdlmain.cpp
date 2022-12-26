@@ -6459,7 +6459,7 @@ void SDL_SetupConfigSection() {
     Pbool->Set_help("Allow Game Link connections e.g. from Grid Cartographer; required for output=gamelink, otherwise optional.");
     Pbool = sdl_sec->Add_bool("gamelink snoop", Property::Changeable::OnlyAtStart, false);
     Pbool->Set_help("Connect to an existing Game Link session and output link data instead of sending own data. Compares memory contents to find a suitable memory offset of peeks.");
-    Pint = sdl_sec->Add_int("gamelink load address", Property::Changeable::Always, GAMELINK_LOAD_ADDRESS_DEFAULT);
+    Pint = sdl_sec->Add_int("gamelink load address", Property::Changeable::Always, 0);
     Pbool->Set_help("Configure the original load address of the software (when running in plain DOSBox) so that gamelink accesses are adjusted for different load addresses.");
 #endif
 

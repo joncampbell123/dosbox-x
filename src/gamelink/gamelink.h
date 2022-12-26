@@ -174,29 +174,6 @@ namespace GameLink
 	extern void InitTerminal();
 
 
-// Ugly hack: grid cartographer sends absolute addresses, but different dosbox
-// versions load executables at different addresses. 
-
-// To fix those cases, this code calculates an offset from the original and
-// the actual load address. There are two ways to configure the original load
-// address. One way is to use option "gamelink load address", the other is to
-// modify the Grid Cartographer profile:
-
-// To do so, edit the corresponding grid cartographer profile XML file, search
-// for the <peek> tag, add 0x1000_0000 to the address and put it at the end. For
-// example, if the load address is 0x1a70 the XML tag could look like:
-// <peek bytes="1299c 1299e 19c42 19c2e 19c30 19c40 19c32 17a8a 10001a70" />
-
-// To find out the original load address, run the game in dosbox-gridc and
-// connect to Grid Cartographer. Start DOSBox-X in parallel with
-// the "gamelinksnoop = true" option. Load the same game in both,
-// dosbox-gridc and DOSBox-X, load the same save game/move to the same
-// position. Console output should then contain a suggested original load
-// address.
-
-// This default offset works for some simple cases.
-#define GAMELINK_LOAD_ADDRESS_DEFAULT 0x1a70
-
 }; // namespace GameLink
 
 //==============================================================================

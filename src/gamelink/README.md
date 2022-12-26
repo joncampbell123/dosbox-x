@@ -35,7 +35,28 @@ gamelink master = true
 
 [render]
 scaler=xbrz
+
+[dos]
+hma                                              = false
+drive z expand path                              = false
+minimum dos initial private segment              = 0
+minimum mcb segment                              = 0
+minimum mcb free                                 = 187
+maximum environment block size on exec           = 32768
+additional environment block size on exec        = 83
+kernel allocation in umb                         = true
+shellhigh                                        = true
+
+[config]
+set path=z:\system
+set prompt=
+set comspec=z:\
 ```
+
+The [dos] and [config] sections are mandatory with exactly these settings!
+DOSBox-X has a different default memory layout than mainline DOSBox, the
+shown settings fix this. This is needed so that Game Link clients see the
+same memory content no matter which DOSBox version you use.
 
 If you use the `xbrz` scaler, you must use `windowresolution` to set the frame
 buffer size that is sent to GC. For all other scalers, the native
@@ -63,11 +84,28 @@ An example config looks like this:
 output = surface
 # ... or any other non-gamelink output
 gamelink master = true
+
+[dos]
+hma                                              = false
+drive z expand path                              = false
+minimum dos initial private segment              = 0
+minimum mcb segment                              = 0
+minimum mcb free                                 = 187
+maximum environment block size on exec           = 32768
+additional environment block size on exec        = 83
+kernel allocation in umb                         = true
+shellhigh                                        = true
+
+[config]
+set path=z:\system
+set prompt=
+set comspec=z:\
 ```
 
-Just add this single option to an existing working configuration and GC can
-track your movement through your game world. Everything else should work as
-normal.
+Add the `gamelink master` option and the shown extra settings to an existing
+working configuration and GC can track your movement through your game world.
+Everything else should work as normal. See above for an explanation why those
+extra settings are needed.
 
 
 
@@ -83,19 +121,56 @@ from game to game. See the GC web site and the web in general for details.
 Compatibility
 -------------
 
-Unfortunately, DOSBox-X loads executables at different addresses from the
-reference DOSBox-GRIDC. This breaks all game profiles. There are two
-workarounds in place to deal with this:
+... or "My game works in DOSBox-GRIDC but not in DOSBox-X!"
 
-A default offset will be added to every memory address request. This should
-work with some simple programs.
+As already mentioned above, DOSBox-X loads executables at different addresses
+from the reference DOSBox-GRIDC. The following extra settings will configure
+DOSBox-X for a memory layout that is virtually indistinguishable from
+mainline DOSBox:
 
-For all other programs, you need to find out its original load address and
-modify the GC profile to tell DOSBox this address.  This is more involved:
+```
+
+[dos]
+hma                                              = false
+drive z expand path                              = false
+minimum dos initial private segment              = 0
+minimum mcb segment                              = 0
+minimum mcb free                                 = 187
+maximum environment block size on exec           = 32768
+additional environment block size on exec        = 83
+kernel allocation in umb                         = true
+shellhigh                                        = true
+
+[config]
+set path=z:\system
+set prompt=
+set comspec=z:\
+```
+
+Note that you will not have a command prompt, unfortunately. But you can type
+commands just fine, everything should work as normal.
+
+There is one small hack in there: the COMSPEC environment variable had to be
+shortened because the default DOSBOX-X environment is bigger than mainline
+DOSBox, and there are actually games sensitive to that (e.g. Ultima 1).
+However, this setting might create problems with other games, so you can try
+to use these two values instead:
+
+```
+[dos]
+additional environment block size on exec        = 72
+
+[config]
+set comspec=z:\command.com
+```
+
+If nothing works, there is a more complicated solution. You need to find out
+the game's original load address and tell DOSBox this address. It works like
+this:
 
 
 1. You need to run the game in the original DOSBox-GRIDC together with GC
-itself.
+itself. Load a save game so that your position is detected in GC.
 
 2. Then you run the same game in DOSBox-X, which has been configured with one
 extra option:
@@ -105,32 +180,19 @@ extra option:
 gamelink snoop = true
 ```
 
-3. Load the same save game in both DOSBox instances and move to the same
-place. Once a match is detected, a popup dialog window should tell you two
-different configuration values.
+3. Load the same save game in DOSBox-X instances and move to the same
+place. Once a match is detected, a popup dialog window should tell you a
+configuration value for DOSBox-X.
 
-With these two values, you can configure Game Link in two different ways,
-whatever works best for you.
-
-The first and easiest option is to enter the first value from the dialog
-window into the DOSBox-X configuration file:
+4. Enter the setting from the dialog window into the DOSBox-X configuration
+file, for example like this:
 
 ```
 [sdl]
 gamelink load address = 6768
 ```
 
-The second option is to modify your Grid Cartographer profile:
-
-1. Find the game profile XML file and locate the `<peek>` tag near the start
-of the file. It will contain a list of hexadecimal numbers.
-
-2. Add the second value from the dialog window (the one starting with `100`)
-to the end of this list.
-
-3. Exit everything including GC, disable `gamelink snoop` and enjoy
-GC+DOSBox-X!
-
+5. Remember to turn off the `gamelink snoop` setting and enjoy your game.
 
 
 
