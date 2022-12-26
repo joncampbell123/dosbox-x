@@ -71,7 +71,7 @@ jobs:
           $top/vs/tool/zip.exe -r -9 $top/dosbox-x-mingw-hx-dos-${{ env.timestamp }}.zip *
           cd $top
       - name: Download Windows build
-        uses: robinraju/release-downloader@v1.6
+        uses: robinraju/release-downloader@v1.7
         with:
           repository: "joncampbell123/dosbox-x"
           latest: true
