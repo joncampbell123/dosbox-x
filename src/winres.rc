@@ -3,7 +3,7 @@
 #include "../include/resource.h"
 #include "../vs/config_package.h"
 
-#define VERSION_NUMBER 2022,09,1,0
+#define VERSION_NUMBER 2022,12,26,0
 
 // icon resource
 dosbox_ico ICON "../contrib/icons/dosbox-x.ico"
