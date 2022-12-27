@@ -1,4 +1,4 @@
-Unreleased
+2022.12.26
   - Allow more than 640KB of conventional memory,
     regardless of "allow more than 640kb" option, for
     Tandy machine type. The setting is capped to 768KB
