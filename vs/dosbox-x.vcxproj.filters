@@ -1599,6 +1599,9 @@
     <ClCompile Include="..\src\hardware\snd_pc98\cbus\pcm86io.c">
       <Filter>Sources\hardware\snd_pc98\cbus</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\gamelink\gamelink.cpp" />
+    <ClCompile Include="..\src\gamelink\gamelink_term.cpp" />
+    <ClCompile Include="..\src\output\output_gamelink.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">
@@ -2544,6 +2547,9 @@
       <Filter>Sources\hardware\snd_pc98\cbus</Filter>
     </ClInclude>
     <ClInclude Include="..\src\libs\mt32\Types.h" />
+    <ClInclude Include="..\src\gamelink\gamelink.h" />
+    <ClInclude Include="..\src\gamelink\scancodes_windows.h" />
+    <ClInclude Include="..\src\output\output_gamelink.h" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\src\winres.rc">
