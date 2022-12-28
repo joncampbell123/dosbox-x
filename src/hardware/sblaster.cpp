@@ -3391,7 +3391,7 @@ private:
             case SBT_PRO1:
                 opl_mode=OPL_dualopl2;
                 break;
-            case SBT_PRO2:
+            case SBT_PRO2: // NTS: ESS 688 cards also had an OPL3 (http://www.dosdays.co.uk/topics/Manufacturers/ess.php)
             case SBT_16:
                 opl_mode=OPL_opl3;
                 break;
