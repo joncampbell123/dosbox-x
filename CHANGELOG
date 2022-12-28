@@ -1,3 +1,9 @@
+Next
+  - Fix S3 cursor emulation to support both X11 and
+    Windows hardware mouse cursor modes available
+    on S3 Virge, Trio, and possibly other cards
+    (John Tsiombikas)
+
 2022.12.26
   - Allow more than 640KB of conventional memory,
     regardless of "allow more than 640kb" option, for
