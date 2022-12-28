@@ -669,13 +669,25 @@ static uint8_t * VGA_Draw_Linear_Line_24_to_32_HWMouse(Bitu vidstart, Bitu /*lin
             uint8_t bitsB = vga.mem.linear[m+2];
             for (uint8_t bit=(0x80 >> cursorStartBit); bit != 0; bit >>= 1) { // for each bit
                 cursorStartBit=0;
-                if (bitsA&bit) {
-                    if (bitsB&bit) *xat ^= ~0U;
-                    //else Transparent
-                } else if (bitsB&bit) {
-                    *xat = *(uint32_t*)vga.s3.hgc.forestack;
+                if (vga.s3.reg_55 & 0x10) {
+                    // X11 mode: draw when mask bit is set, otherwise transparent
+                    if (bitsA & bit) {
+                        if (bitsB & bit) {
+                            *xat = *(uint16_t*)vga.s3.hgc.forestack;
+                        } else {
+                            *xat = *(uint16_t*)vga.s3.hgc.backstack;
+                        }
+                    }
                 } else {
-                    *xat = *(uint32_t*)vga.s3.hgc.backstack;
+                    // MS Windows mode
+                    if (bitsA&bit) {
+                        if (bitsB&bit) *xat ^= ~0U;
+                        //else Transparent
+                    } else if (bitsB&bit) {
+                        *xat = *(uint32_t*)vga.s3.hgc.forestack;
+                    } else {
+                        *xat = *(uint32_t*)vga.s3.hgc.backstack;
+                    }
                 }
                 xat++;
             }
@@ -1410,13 +1422,25 @@ static uint8_t * VGA_Draw_VGA_Line_Xlat32_HWMouse( Bitu vidstart, Bitu /*line*/)
                 for (uint8_t bit=(0x80 >> cursorStartBit); bit != 0; bit >>= 1) {
                     // for each bit
                     cursorStartBit=0; // only the first byte has some bits cut off
-                    if (bitsA&bit) {
-                        if (bitsB&bit) *xat ^= 0xFFFFFFFF; // Invert screen data
-                        //else Transparent
-                    } else if (bitsB&bit) {
-                        *xat = vga.dac.xlat32[fg]; // foreground color
+                    if (vga.s3.reg_55 & 0x10) {
+                        // X11 mode: draw when mask bit is set, otherwise transparent
+                        if (bitsA & bit) {
+                            if (bitsB & bit) {
+                                *xat = *(uint16_t*)vga.s3.hgc.forestack;
+                            } else {
+                                *xat = *(uint16_t*)vga.s3.hgc.backstack;
+                            }
+                        }
                     } else {
-                        *xat = vga.dac.xlat32[bg];
+                        // MS Windows mode
+                        if (bitsA&bit) {
+                            if (bitsB&bit) *xat ^= 0xFFFFFFFF; // Invert screen data
+                            //else Transparent
+                        } else if (bitsB&bit) {
+                            *xat = vga.dac.xlat32[fg]; // foreground color
+                        } else {
+                            *xat = vga.dac.xlat32[bg];
+                        }
                     }
                     xat++;
                 }
@@ -1486,13 +1510,25 @@ static uint8_t * VGA_Draw_VGA_Line_HWMouse( Bitu vidstart, Bitu /*line*/) {
             for (uint8_t bit=(0x80 >> cursorStartBit); bit != 0; bit >>= 1) {
                 // for each bit
                 cursorStartBit=0; // only the first byte has some bits cut off
-                if (bitsA&bit) {
-                    if (bitsB&bit) *xat ^= 0xFF; // Invert screen data
-                    //else Transparent
-                } else if (bitsB&bit) {
-                    *xat = vga.s3.hgc.forestack[0]; // foreground color
+                if (vga.s3.reg_55 & 0x10) {
+                    // X11 mode: draw when mask bit is set, otherwise transparent
+                    if (bitsA & bit) {
+                        if (bitsB & bit) {
+                            *xat = *(uint16_t*)vga.s3.hgc.forestack;
+                        } else {
+                            *xat = *(uint16_t*)vga.s3.hgc.backstack;
+                        }
+                    }
                 } else {
-                    *xat = vga.s3.hgc.backstack[0];
+                    // MS Windows mode
+                    if (bitsA&bit) {
+                        if (bitsB&bit) *xat ^= 0xFF; // Invert screen data
+                        //else Transparent
+                    } else if (bitsB&bit) {
+                        *xat = vga.s3.hgc.forestack[0]; // foreground color
+                    } else {
+                        *xat = vga.s3.hgc.backstack[0];
+                    }
                 }
                 xat++;
             }
@@ -1561,16 +1597,28 @@ static uint8_t * VGA_Draw_LIN16_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
             for (uint8_t bit=(0x80 >> cursorStartBit); bit != 0; bit >>= 1) {
                 // for each bit
                 cursorStartBit=0;
-                if (bitsA&bit) {
-                    // byte order doesn't matter here as all bits get flipped
-                    if (bitsB&bit) *xat ^= ~0U;
-                    //else Transparent
-                } else if (bitsB&bit) {
-                    // Source as well as destination are uint8_t arrays, 
-                    // so this should work out endian-wise?
-                    *xat = *(uint16_t*)vga.s3.hgc.forestack;
+                if (vga.s3.reg_55 & 0x10) {
+                    // X11 mode: draw when mask bit is set, otherwise transparent
+                    if (bitsA & bit) {
+                        if (bitsB & bit) {
+                            *xat = *(uint16_t*)vga.s3.hgc.forestack;
+                        } else {
+                            *xat = *(uint16_t*)vga.s3.hgc.backstack;
+                        }
+                    }
                 } else {
-                    *xat = *(uint16_t*)vga.s3.hgc.backstack;
+                    // MS Windows mode
+                    if (bitsA&bit) {
+                        // byte order doesn't matter here as all bits get flipped
+                        if (bitsB&bit) *xat ^= ~0U;
+                        //else Transparent
+                    } else if (bitsB&bit) {
+                        // Source as well as destination are uint8_t arrays, 
+                        // so this should work out endian-wise?
+                        *xat = *(uint16_t*)vga.s3.hgc.forestack;
+                    } else {
+                        *xat = *(uint16_t*)vga.s3.hgc.backstack;
+                    }
                 }
                 xat++;
             }
@@ -1634,13 +1682,25 @@ static uint8_t * VGA_Draw_LIN32_Line_HWMouse(Bitu vidstart, Bitu /*line*/) {
             uint8_t bitsB = vga.mem.linear[m+2];
             for (uint8_t bit=(0x80 >> cursorStartBit); bit != 0; bit >>= 1) { // for each bit
                 cursorStartBit=0;
-                if (bitsA&bit) {
-                    if (bitsB&bit) *xat ^= ~0U;
-                    //else Transparent
-                } else if (bitsB&bit) {
-                    *xat = *(uint32_t*)vga.s3.hgc.forestack;
+                if (vga.s3.reg_55 & 0x10) {
+                    // X11 mode: draw when mask bit is set, otherwise transparent
+                    if (bitsA & bit) {
+                        if (bitsB & bit) {
+                            *xat = *(uint16_t*)vga.s3.hgc.forestack;
+                        } else {
+                            *xat = *(uint16_t*)vga.s3.hgc.backstack;
+                        }
+                    }
                 } else {
-                    *xat = *(uint32_t*)vga.s3.hgc.backstack;
+                    // MS Windows mode
+                    if (bitsA&bit) {
+                        if (bitsB&bit) *xat ^= ~0U;
+                        //else Transparent
+                    } else if (bitsB&bit) {
+                        *xat = *(uint32_t*)vga.s3.hgc.forestack;
+                    } else {
+                        *xat = *(uint32_t*)vga.s3.hgc.backstack;
+                    }
                 }
                 xat++;
             }
