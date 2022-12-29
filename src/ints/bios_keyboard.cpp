@@ -1326,7 +1326,7 @@ Bitu INT16_Handler(void) {
                 }
             }
         }
-#elif (defined(WIN32) && !defined(HX_DOS) || defined(MACOSX)) && defined(C_SDL2)
+#elif (defined(WIN32) && !defined(HX_DOS) || defined(MACOSX)) && defined(C_SDL2) && defined(SDL_DOSBOX_X_IME)
 #if defined(USE_TTF)
         if((IS_DOSV || ttf_dosv) && IS_DOS_CJK && (DOSV_GetFepCtrl() & DOSV_FEP_CTRL_IAS)) {
 #else
