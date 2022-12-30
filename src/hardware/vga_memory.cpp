@@ -2525,6 +2525,10 @@ void VGA_SetupHandlers(void) {
 							newHandler = &vgaph.cvga_slow;
 					}
 				}
+				else if (vga.complexity.flags != 0 && (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K) && vga.mode == M_VGA) {
+					/* NTS: Tseng ET4000AX emulation CLEARS the "compatible chain4" flag for 256-color mode which is why this extra check is needed */
+					newHandler = &vgaph.cvga_et4000_slow;
+				}
 				else {
 					/* this is needed for SVGA modes (Paradise, Tseng, S3) because SVGA
 					 * modes do NOT use the chain4 configuration. For Tseng ET4000AX

@@ -167,7 +167,7 @@ void write_p3c5(Bitu /*port*/,Bitu val,Bitu iolen) {
 		cmplx |= vga.complexity.setf(VGACMPLX_NON_EXTENDED,(val & 2) == 0 && !vga_ignore_extended_memory_bit); // only 64kb on the adapter?
 		cmplx |= vga.complexity.setf(VGACMPLX_ODDEVEN,
 			((val & 1) != 0 && (val & 4) != 0) /* Alphanumeric mode without Odd/Even mode */ ||
-			((val & 1) == 0 && (val & 4) == 0 && !non_cga_ignore_oddeven_engage) /* Graphics mode without Odd/Even mode */); // NTS: Odd/Even mode is set by CLEARING the bit!
+			((val & 1) == 0 && (val & 4) == 0 && !non_cga_ignore_oddeven_engage) /* Graphics mode with Odd/Even mode */); // NTS: Odd/Even mode is set by CLEARING the bit!
 		if (IS_VGA_ARCH) {
 			/* Changing this means changing the VGA Memory Read/Write Handler */
 			if (val&0x08) vga.config.chained=true;
