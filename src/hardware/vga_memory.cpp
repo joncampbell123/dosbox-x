@@ -2320,7 +2320,7 @@ void VGA_SetupHandlers(void) {
 	PageHandler *newHandler;
 	switch (machine) {
 	case MCH_CGA:
-        MEM_ResetPageHandler_Unmapped( VGA_PAGE_B0, 8 );            // B0000-B7FFF is unmapped
+		MEM_ResetPageHandler_Unmapped( VGA_PAGE_B0, 8 );            // B0000-B7FFF is unmapped
 		if (enableCGASnow && (vga.mode == M_TEXT || vga.mode == M_TANDY_TEXT))
 			MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.cgatext );
 		else
@@ -2328,7 +2328,7 @@ void VGA_SetupHandlers(void) {
 		goto range_done;
 	case MCH_MCGA://Based on real hardware, A0000-BFFFF is the 64KB of RAM mapped twice
 		MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.mcgatext );     // A0000-AFFFF is the 64KB of video RAM
-        MEM_ResetPageHandler_Unmapped( VGA_PAGE_B0, 8 );            // B0000-B7FFF is unmapped
+		MEM_ResetPageHandler_Unmapped( VGA_PAGE_B0, 8 );            // B0000-B7FFF is unmapped
 		MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.mcgatext );      // B8000-BFFFF is the last 32KB half of video RAM, alias
 		goto range_done;
 	case MCH_PCJR:
@@ -2383,56 +2383,56 @@ void VGA_SetupHandlers(void) {
 		MEM_SetPageHandler( VGA_PAGE_B8, 4, &vgaph.ams );   // 0xb8000 - 0xbbfff
 		goto range_done;
 	case EGAVGA_ARCH_CASE:
-        break;
-    case PC98_ARCH_CASE:
-        MEM_SetPageHandler(             VGA_PAGE_A0 + 0x00, 0x02, &vgaph.pc98_text );/* A0000-A1FFFh text layer, character data */
-        MEM_SetPageHandler(             VGA_PAGE_A0 + 0x02, 0x02, &vgaph.pc98_text );/* A2000-A3FFFh text layer, attribute data + non-volatile RAM */
-        MEM_SetPageHandler(             VGA_PAGE_A0 + 0x04, 0x01, &vgaph.pc98_cg );  /* A4000-A4FFFh character generator memory-mapped I/O */
-        MEM_ResetPageHandler_Unmapped(  VGA_PAGE_A0 + 0x05, 0x03);                   /* A5000-A7FFFh not mapped */
+		break;
+	case PC98_ARCH_CASE:
+		MEM_SetPageHandler(             VGA_PAGE_A0 + 0x00, 0x02, &vgaph.pc98_text );/* A0000-A1FFFh text layer, character data */
+		MEM_SetPageHandler(             VGA_PAGE_A0 + 0x02, 0x02, &vgaph.pc98_text );/* A2000-A3FFFh text layer, attribute data + non-volatile RAM */
+		MEM_SetPageHandler(             VGA_PAGE_A0 + 0x04, 0x01, &vgaph.pc98_cg );  /* A4000-A4FFFh character generator memory-mapped I/O */
+		MEM_ResetPageHandler_Unmapped(  VGA_PAGE_A0 + 0x05, 0x03);                   /* A5000-A7FFFh not mapped */
 
-        if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
-            if (pc98_gdc_vramop & (1 << VOPBIT_PEGC_PLANAR)) {
-                MEM_SetPageHandler(             VGA_PAGE_A0 + 0x08, 0x10, &vgaph.pc98_256planar );/* A8000-B7FFFh planar graphics (???) */
-                MEM_ResetPageHandler_Unmapped(  VGA_PAGE_A0 + 0x18, 0x08);                        /* B8000-BFFFFh graphics layer, not mapped */
-            }
-            else {
-                MEM_SetPageHandler(             VGA_PAGE_A0 + 0x08, 0x08, &vgaph.pc98_256bank0 );/* A8000-AFFFFh graphics layer, bank 0 */
-                MEM_SetPageHandler(             VGA_PAGE_A0 + 0x10, 0x08, &vgaph.pc98_256bank1 );/* B0000-B7FFFh graphics layer, bank 1 */
-                MEM_ResetPageHandler_Unmapped(  VGA_PAGE_A0 + 0x18, 0x08);                       /* B8000-BFFFFh graphics layer, not mapped */
-            }
-        }
-        else {
-            MEM_SetPageHandler(             VGA_PAGE_A0 + 0x08, 0x08, &vgaph.pc98 );/* A8000-AFFFFh graphics layer, B bitplane */
-            MEM_SetPageHandler(             VGA_PAGE_A0 + 0x10, 0x08, &vgaph.pc98 );/* B0000-B7FFFh graphics layer, R bitplane */
-            MEM_SetPageHandler(             VGA_PAGE_A0 + 0x18, 0x08, &vgaph.pc98 );/* B8000-BFFFFh graphics layer, G bitplane */
-        }
+		if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
+			if (pc98_gdc_vramop & (1 << VOPBIT_PEGC_PLANAR)) {
+				MEM_SetPageHandler(             VGA_PAGE_A0 + 0x08, 0x10, &vgaph.pc98_256planar );/* A8000-B7FFFh planar graphics (???) */
+				MEM_ResetPageHandler_Unmapped(  VGA_PAGE_A0 + 0x18, 0x08);                        /* B8000-BFFFFh graphics layer, not mapped */
+			}
+			else {
+				MEM_SetPageHandler(             VGA_PAGE_A0 + 0x08, 0x08, &vgaph.pc98_256bank0 );/* A8000-AFFFFh graphics layer, bank 0 */
+				MEM_SetPageHandler(             VGA_PAGE_A0 + 0x10, 0x08, &vgaph.pc98_256bank1 );/* B0000-B7FFFh graphics layer, bank 1 */
+				MEM_ResetPageHandler_Unmapped(  VGA_PAGE_A0 + 0x18, 0x08);                       /* B8000-BFFFFh graphics layer, not mapped */
+			}
+		}
+		else {
+			MEM_SetPageHandler(             VGA_PAGE_A0 + 0x08, 0x08, &vgaph.pc98 );/* A8000-AFFFFh graphics layer, B bitplane */
+			MEM_SetPageHandler(             VGA_PAGE_A0 + 0x10, 0x08, &vgaph.pc98 );/* B0000-B7FFFh graphics layer, R bitplane */
+			MEM_SetPageHandler(             VGA_PAGE_A0 + 0x18, 0x08, &vgaph.pc98 );/* B8000-BFFFFh graphics layer, G bitplane */
+		}
 
-        /* E0000-E7FFFh graphics layer
-         *  - In 8-color mode, E0000-E7FFFh is not mapped
-         *  - In 16-color mode, E0000-E7FFFh is the 4th bitplane (E)
-         *  - In 256-color mode, E0000-E7FFFh is memory-mapped I/O that controls the 256-color mode */
-        if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
-            MEM_SetPageHandler(0xE0, 8, &vgaph.pc98_256mmio );
-        else if (pc98_gdc_vramop & (1 << VOPBIT_ANALOG))
-            MEM_SetPageHandler(0xE0, 8, &vgaph.pc98 );
-        else
-            MEM_ResetPageHandler_Unmapped(0xE0, 8);
+		/* E0000-E7FFFh graphics layer
+		 *  - In 8-color mode, E0000-E7FFFh is not mapped
+		 *  - In 16-color mode, E0000-E7FFFh is the 4th bitplane (E)
+		 *  - In 256-color mode, E0000-E7FFFh is memory-mapped I/O that controls the 256-color mode */
+		if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
+			MEM_SetPageHandler(0xE0, 8, &vgaph.pc98_256mmio );
+		else if (pc98_gdc_vramop & (1 << VOPBIT_ANALOG))
+			MEM_SetPageHandler(0xE0, 8, &vgaph.pc98 );
+		else
+			MEM_ResetPageHandler_Unmapped(0xE0, 8);
 
-        // TODO: What about PC-9821 systems with more than 15MB of RAM? Do they maintain a "hole"
-        //       in memory for this linear framebuffer? Intel motherboard chipsets of that era do
-        //       support a 15MB memory hole.
-        if (MEM_TotalPages() <= 0xF00/*FIXME*/) {
-            /* F00000-FF7FFFh linear framebuffer (256-packed)
-             *  - Does not exist except in 256-color mode.
-             *  - Switching from 256-color mode immediately unmaps this linear framebuffer.
-             *  - Switching to 256-color mode will immediately map the linear framebuffer if the enable bit is set in the PEGC MMIO registers */
-            if ((pc98_gdc_vramop & (1 << VOPBIT_VGA)) && pc98_pegc_linear_framebuffer_enabled())
-                MEM_SetPageHandler(0xF00, 512/*kb*/ / 4/*kb*/, &vgaph.map_lfb_pc98 );
-            else
-                MEM_ResetPageHandler_Unmapped(0xF00, 512/*kb*/ / 4/*kb*/);
-        }
+		// TODO: What about PC-9821 systems with more than 15MB of RAM? Do they maintain a "hole"
+		//       in memory for this linear framebuffer? Intel motherboard chipsets of that era do
+		//       support a 15MB memory hole.
+		if (MEM_TotalPages() <= 0xF00/*FIXME*/) {
+			/* F00000-FF7FFFh linear framebuffer (256-packed)
+			 *  - Does not exist except in 256-color mode.
+			 *  - Switching from 256-color mode immediately unmaps this linear framebuffer.
+			 *  - Switching to 256-color mode will immediately map the linear framebuffer if the enable bit is set in the PEGC MMIO registers */
+			if ((pc98_gdc_vramop & (1 << VOPBIT_VGA)) && pc98_pegc_linear_framebuffer_enabled())
+				MEM_SetPageHandler(0xF00, 512/*kb*/ / 4/*kb*/, &vgaph.map_lfb_pc98 );
+			else
+				MEM_ResetPageHandler_Unmapped(0xF00, 512/*kb*/ / 4/*kb*/);
+		}
 
-        goto range_done;
+		goto range_done;
 	default:
 		LOG_MSG("Illegal machine type %d", machine );
 		return;
@@ -2440,120 +2440,120 @@ void VGA_SetupHandlers(void) {
 
 	/* This should be vga only */
 	switch (vga.mode) {
-	case M_ERROR:
-	default:
-		return;
-	case M_LIN15:
-	case M_LIN16:
-	case M_LIN24:
-	case M_LIN32:
-    case M_PACKED4:
-		newHandler = &vgaph.map;
-		break;
-	case M_TEXT:
-	case M_CGA2:
-	case M_CGA4:
-	case M_DCGA:
-        /* EGA/VGA emulate CGA modes as chained */
-        /* fall through */
-	case M_LIN8:
-	case M_LIN4:
-	case M_VGA:
-	case M_EGA:
-        if (vga.config.chained) {
-            if (vga.config.compatible_chain4) {
-                /* NTS: ET4000AX cards appear to have a different chain4 implementation from everyone else:
-                 *      the planar memory byte address is address >> 2 and bits A0-A1 select the plane,
-                 *      where all other clones I've tested seem to write planar memory byte (address & ~3)
-                 *      (one byte per 4 bytes) and bits A0-A1 select the plane. */
-                /* FIXME: Different chain4 implementation on ET4000 noted---is it true also for ET3000? */
-                if (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K)
-                    newHandler = &vgaph.cvga_et4000_slow;
-                else
-                    newHandler = &vgaph.cvga_slow;
-            }
-            else {
-                /* this is needed for SVGA modes (Paradise, Tseng, S3) because SVGA
-                 * modes do NOT use the chain4 configuration */
-                newHandler = &vgaph.map;
-            }
-        } else {
-            newHandler = &vgaph.uvga;
-        }
-        break;
-	case M_AMSTRAD:
-		newHandler = &vgaph.map;
-		break;
+		case M_ERROR:
+		default:
+			return;
+		case M_LIN15:
+		case M_LIN16:
+		case M_LIN24:
+		case M_LIN32:
+		case M_PACKED4:
+			newHandler = &vgaph.map;
+			break;
+		case M_TEXT:
+		case M_CGA2:
+		case M_CGA4:
+		case M_DCGA:
+			/* EGA/VGA emulate CGA modes as chained */
+			/* fall through */
+		case M_LIN8:
+		case M_LIN4:
+		case M_VGA:
+		case M_EGA:
+			if (vga.config.chained) {
+				if (vga.config.compatible_chain4) {
+					/* NTS: ET4000AX cards appear to have a different chain4 implementation from everyone else:
+					 *      the planar memory byte address is address >> 2 and bits A0-A1 select the plane,
+					 *      where all other clones I've tested seem to write planar memory byte (address & ~3)
+					 *      (one byte per 4 bytes) and bits A0-A1 select the plane. */
+					/* FIXME: Different chain4 implementation on ET4000 noted---is it true also for ET3000? */
+					if (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K)
+						newHandler = &vgaph.cvga_et4000_slow;
+					else
+						newHandler = &vgaph.cvga_slow;
+				}
+				else {
+					/* this is needed for SVGA modes (Paradise, Tseng, S3) because SVGA
+					 * modes do NOT use the chain4 configuration */
+					newHandler = &vgaph.map;
+				}
+			} else {
+				newHandler = &vgaph.uvga;
+			}
+			break;
+		case M_AMSTRAD:
+			newHandler = &vgaph.map;
+			break;
 	}
-    // Workaround for ETen Chinese DOS system (e.g. ET24VA)
-    if ((dos.loaded_codepage == 936 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && strlen(RunningProgram) > 3 && !strncmp(RunningProgram, "ET", 2)) enveten = true;
-    runeten = !vga_fill_inactive_ram && enveten && (dos.loaded_codepage == 936 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && ((strlen(RunningProgram) > 3 && !strncmp(RunningProgram, "ET", 2)) || !TTF_using());
+	// Workaround for ETen Chinese DOS system (e.g. ET24VA)
+	if ((dos.loaded_codepage == 936 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && strlen(RunningProgram) > 3 && !strncmp(RunningProgram, "ET", 2)) enveten = true;
+	runeten = !vga_fill_inactive_ram && enveten && (dos.loaded_codepage == 936 || dos.loaded_codepage == 950 || dos.loaded_codepage == 951) && ((strlen(RunningProgram) > 3 && !strncmp(RunningProgram, "ET", 2)) || !TTF_using());
 	switch ((vga.gfx.miscellaneous >> 2) & 3) {
-	case 0:
-        vgapages.base = VGA_PAGE_A0;
-        switch (svgaCard) {
-            case SVGA_TsengET3K:
-            case SVGA_TsengET4K:
-                vgapages.mask = 0x1ffff & vga.mem.memmask;
-                break;
-                /* NTS: Looking at the official ET4000 programming guide, it does in fact support the full 128KB */
-            case SVGA_S3Trio:
-            default:
-                vgapages.mask = 0xffff & vga.mem.memmask;
-                break;
-		}
-		if (CurMode && CurMode->mode >= 0x14/*VESA BIOS or extended mode*/ && vbe_window_size > 0/*user override of window size*/) {
-			unsigned int pages = (vbe_window_size + 0xFFFu) >> 12u; /* bytes to pages, round up */
-			if (pages > 32) pages = 32;
-			assert(pages != 0u);
+		case 0:
+			vgapages.base = VGA_PAGE_A0;
+			switch (svgaCard) {
+				case SVGA_TsengET3K:
+				case SVGA_TsengET4K:
+					vgapages.mask = 0x1ffff & vga.mem.memmask;
+					break;
+					/* NTS: Looking at the official ET4000 programming guide, it does in fact support the full 128KB */
+				case SVGA_S3Trio:
+				default:
+					vgapages.mask = 0xffff & vga.mem.memmask;
+					break;
+			}
+			if (CurMode && CurMode->mode >= 0x14/*VESA BIOS or extended mode*/ && vbe_window_size > 0/*user override of window size*/) {
+				unsigned int pages = (vbe_window_size + 0xFFFu) >> 12u; /* bytes to pages, round up */
+				if (pages > 32) pages = 32;
+				assert(pages != 0u);
 
-			/* map only what the window size determines, make the rest empty */
-			MEM_SetPageHandler(VGA_PAGE_A0, pages, newHandler );
-			MEM_SetPageHandler(VGA_PAGE_A0 + pages, 32 - pages, &vgaph.empty );
-		}
-		else {
-			/*full 128KB */
-			MEM_SetPageHandler(VGA_PAGE_A0, 32, newHandler );
-		}
-		break;
-	case 1:
-		vgapages.base = VGA_PAGE_A0;
-		vgapages.mask = 0xffff & vga.mem.memmask;
-		MEM_SetPageHandler( VGA_PAGE_A0, 16, newHandler );
-        if (vga_fill_inactive_ram || runeten)
-            MEM_ResetPageHandler_RAM( VGA_PAGE_B0, 16);
-        else
-            MEM_SetPageHandler( VGA_PAGE_B0, 16, &vgaph.empty );
-		break;
-	case 2:
-		vgapages.base = VGA_PAGE_B0;
-		vgapages.mask = 0x7fff & vga.mem.memmask;
-		MEM_SetPageHandler( VGA_PAGE_B0, 8, newHandler );
-        if (vga_fill_inactive_ram || runeten) {
-            MEM_ResetPageHandler_RAM( VGA_PAGE_A0, 16 );
-            MEM_ResetPageHandler_RAM( VGA_PAGE_B8, 8 );
-        } else {
-            MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.empty );
-            MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.empty );
-        }
-        break;
-	case 3:
-		vgapages.base = VGA_PAGE_B8;
-		vgapages.mask = 0x7fff & vga.mem.memmask;
-		MEM_SetPageHandler( VGA_PAGE_B8, 8, newHandler );
-        if (vga_fill_inactive_ram || runeten) {
-            MEM_ResetPageHandler_RAM( VGA_PAGE_A0, 16 );
-            MEM_ResetPageHandler_RAM( VGA_PAGE_B0, 8 );
-        } else {
-            MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.empty );
-            MEM_SetPageHandler( VGA_PAGE_B0, 8, &vgaph.empty );
-        }
-        break;
+				/* map only what the window size determines, make the rest empty */
+				MEM_SetPageHandler(VGA_PAGE_A0, pages, newHandler );
+				MEM_SetPageHandler(VGA_PAGE_A0 + pages, 32 - pages, &vgaph.empty );
+			}
+			else {
+				/*full 128KB */
+				MEM_SetPageHandler(VGA_PAGE_A0, 32, newHandler );
+			}
+			break;
+		case 1:
+			vgapages.base = VGA_PAGE_A0;
+			vgapages.mask = 0xffff & vga.mem.memmask;
+			MEM_SetPageHandler( VGA_PAGE_A0, 16, newHandler );
+			if (vga_fill_inactive_ram || runeten)
+				MEM_ResetPageHandler_RAM( VGA_PAGE_B0, 16);
+			else
+				MEM_SetPageHandler( VGA_PAGE_B0, 16, &vgaph.empty );
+			break;
+		case 2:
+			vgapages.base = VGA_PAGE_B0;
+			vgapages.mask = 0x7fff & vga.mem.memmask;
+			MEM_SetPageHandler( VGA_PAGE_B0, 8, newHandler );
+			if (vga_fill_inactive_ram || runeten) {
+				MEM_ResetPageHandler_RAM( VGA_PAGE_A0, 16 );
+				MEM_ResetPageHandler_RAM( VGA_PAGE_B8, 8 );
+			} else {
+				MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.empty );
+				MEM_SetPageHandler( VGA_PAGE_B8, 8, &vgaph.empty );
+			}
+			break;
+		case 3:
+			vgapages.base = VGA_PAGE_B8;
+			vgapages.mask = 0x7fff & vga.mem.memmask;
+			MEM_SetPageHandler( VGA_PAGE_B8, 8, newHandler );
+			if (vga_fill_inactive_ram || runeten) {
+				MEM_ResetPageHandler_RAM( VGA_PAGE_A0, 16 );
+				MEM_ResetPageHandler_RAM( VGA_PAGE_B0, 8 );
+			} else {
+				MEM_SetPageHandler( VGA_PAGE_A0, 16, &vgaph.empty );
+				MEM_SetPageHandler( VGA_PAGE_B0, 8, &vgaph.empty );
+			}
+			break;
 	}
 	if(svgaCard == SVGA_S3Trio && (vga.s3.ext_mem_ctrl & 0x10))
 		MEM_SetPageHandler(VGA_PAGE_A0, 16, &vgaph.mmio);
 
-    non_cga_ignore_oddeven_engage = (non_cga_ignore_oddeven && !(vga.mode == M_TEXT || vga.mode == M_CGA2 || vga.mode == M_CGA4));
+	non_cga_ignore_oddeven_engage = (non_cga_ignore_oddeven && !(vga.mode == M_TEXT || vga.mode == M_CGA2 || vga.mode == M_CGA4));
 
 range_done:
 #if C_DEBUG
