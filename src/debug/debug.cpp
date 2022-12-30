@@ -3001,6 +3001,20 @@ bool ParseCommand(char* str) {
                 vga.config.full_not_enable_set_reset,
                 vga.config.full_enable_set_reset,
                 vga.config.full_enable_and_set_reset);
+	    {
+		    std::string s;
+
+		    if (vga.complexity.flags & VGACMPLX_MAP_MASK) s += "mapmask|";
+		    if (vga.complexity.flags & VGACMPLX_NON_EXTENDED) s += "nonextend|";
+		    if (vga.complexity.flags & VGACMPLX_ODDEVEN) s += "oddeven|";
+		    if (vga.complexity.flags & VGACMPLX_BITMASK) s += "bitmask|";
+		    if (vga.complexity.flags & VGACMPLX_COLORDONTCARE) s += "clrdontcare|";
+		    if (vga.complexity.flags & VGACMPLX_WRITEMODE) s += "wrmode|";
+		    if (vga.complexity.flags & VGACMPLX_READMODE) s += "rdmode|";
+		    if (vga.complexity.flags & VGACMPLX_ROPROT) s += "roprot|";
+		    if (vga.complexity.flags & VGACMPLX_SETRESET) s += "setreset|";
+		    DEBUG_ShowMsg("complexity-flags=0x%lx=%s",(unsigned long)vga.complexity.flags,s.c_str());
+	    }
         }
         else {
             return false;

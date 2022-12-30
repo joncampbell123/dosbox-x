@@ -905,6 +905,40 @@ typedef struct {
 	PageHandler *handler;
 } VGA_LFB;
 
+enum {
+	VGACMPLX_MAP_MASK=(1u << 0u), // at least one bit is clear in the sequencer map mask register, problem for chained 256-color mode
+	VGACMPLX_NON_EXTENDED=(1u << 1u), // the extended memory bit is cleared in the sequencer register
+	VGACMPLX_ODDEVEN=(1u << 2u), // Odd/Even addressing mode set in sequencer register
+	VGACMPLX_BITMASK=(1u << 3u), // Bit mask in graphics controller is not 0xFF
+	VGACMPLX_COLORDONTCARE=(1u << 4u), // At least one bit set in the color don't care graphics controller register
+	VGACMPLX_WRITEMODE=(1u << 5u), // Graphics controller write mode is not zero
+	VGACMPLX_READMODE=(1u << 6u), // Graphics controller read mode is not zero
+	VGACMPLX_ROPROT=(1u << 7u), // Graphics controller raster op is nonzero or data rotate nonzero
+	VGACMPLX_SETRESET=(1u << 8u) // Graphics controller set/reset enable is nonzero
+};
+
+// optimization tracking, the "complexity" of the arrangement.
+typedef union {
+	unsigned int	flags = 0;
+
+	INLINE unsigned int setf(unsigned int flag) {
+		const unsigned int pf = flags;
+		flags |= flag;
+		return pf ^ flags;
+	}
+	INLINE unsigned int clearf(unsigned int flag) {
+		const unsigned int pf = flags;
+		flags &= ~flag;
+		return pf ^ flags;
+	}
+	INLINE unsigned int setf(unsigned int flag,bool cond) {
+		if (cond)
+			return setf(flag);
+		else
+			return clearf(flag);
+	}
+} VGA_Complexity;
+
 static const size_t VGA_Draw_2_elem = 2;
 
 typedef struct VGA_Type_t {
@@ -930,6 +964,7 @@ typedef struct VGA_Type_t {
     VGA_OTHER other = {};
     VGA_Memory mem;
     VGA_LFB lfb = {};
+    VGA_Complexity complexity = {};
 } VGA_Type;
 
 

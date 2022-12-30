@@ -356,6 +356,47 @@ template <const bool chained> static inline void VGA_Generic_Write_Handler(PhysP
     ((uint32_t*)vga.mem.linear)[planeaddr]=pixels.d;
 }
 
+// Fast version especially for 256-color mode.
+// In most cases all the remapping, bit operations, and such are unnecessary, and having an alternate
+// path for this case hopefully addresses complaints by other DOSBox forks and users about "worse VGA
+// performance"
+class VGA_ChainedVGA_Handler : public PageHandler {
+public:
+	VGA_ChainedVGA_Handler() : PageHandler(PFLAG_NOCODE) {}
+	static INLINE PhysPt chain4remap(const PhysPt addr) {
+		return ((addr & ~3u) << 2u) + (addr & 3u);
+	}
+	static INLINE PhysPt lin2mem(const PhysPt addr) {
+		// planar byte offset = addr & ~3u      (discard low 2 bits)
+		// planer index = addr & 3u             (use low 2 bits as plane index)
+		return chain4remap((PAGING_GetPhysicalAddress(addr)&vgapages.mask)+(PhysPt)vga.svga.bank_read_full)&vga.mem.memmask;
+	}
+	uint8_t readb(PhysPt addr ) {
+		VGAMEM_USEC_read_delay();
+		return vga.mem.linear[lin2mem(addr)];
+	}
+	uint16_t readw(PhysPt addr ) {
+		VGAMEM_USEC_read_delay();
+		return *((uint16_t*)(&vga.mem.linear[lin2mem(addr)]));
+	}
+	uint32_t readd(PhysPt addr ) {
+		VGAMEM_USEC_read_delay();
+		return *((uint32_t*)(&vga.mem.linear[lin2mem(addr)]));
+	}
+	void writeb(PhysPt addr, uint8_t val ) {
+		VGAMEM_USEC_write_delay();
+		vga.mem.linear[lin2mem(addr)] = val;
+	}
+	void writew(PhysPt addr,uint16_t val) {
+		VGAMEM_USEC_write_delay();
+		*((uint16_t*)(&vga.mem.linear[lin2mem(addr)])) = val;
+	}
+	void writed(PhysPt addr,uint32_t val) {
+		VGAMEM_USEC_write_delay();
+		*((uint32_t*)(&vga.mem.linear[lin2mem(addr)])) = val;
+	}
+};
+
 // Slow accurate emulation.
 // This version takes the Graphics Controller bitmask and ROPs into account.
 // This is needed for demos that use the bitmask to do color combination or bitplane "page flipping" tricks.
@@ -2243,7 +2284,7 @@ static struct vg {
 	VGA_MCGATEXT_PageHandler	mcgatext;
 	VGA_TANDY_PageHandler		tandy;
 //	VGA_ChainedEGA_Handler		cega;
-//	VGA_ChainedVGA_Handler		cvga;
+	VGA_ChainedVGA_Handler		cvga;
 	VGA_ChainedVGA_Slow_Handler	cvga_slow;
 //	VGA_ET4000_ChainedVGA_Handler		cvga_et4000;
 	VGA_ET4000_ChainedVGA_Slow_Handler	cvga_et4000_slow;
@@ -2462,16 +2503,27 @@ void VGA_SetupHandlers(void) {
 		case M_EGA:
 			if (vga.config.chained) {
 				if (vga.config.compatible_chain4) {
-					/* NTS: ET4000AX cards appear to have a different chain4 implementation from everyone else:
-					 *      the planar memory byte address is address >> 2 and bits A0-A1 select the plane,
-					 *      where all other clones I've tested seem to write planar memory byte (address & ~3)
-					 *      (one byte per 4 bytes) and bits A0-A1 select the plane. Note that the et4000 emulation
-					 *      implemented so far will not trigger this if() condition for 256-color mode. */
-					/* FIXME: Different chain4 implementation on ET4000 noted---is it true also for ET3000? */
-					if (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K)
-						newHandler = &vgaph.cvga_et4000_slow;
-					else
-						newHandler = &vgaph.cvga_slow;
+					if (vga.complexity.flags == 0) {
+						/* The DOS program is not using anything beyond basic memory I/O and does not need the
+						 * raster op, data rotate, and bit planar features at all. Therefore VGA memory I/O
+						 * performance can be improved by assigning a simplified handler that omits that logic */
+						if (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K)
+							newHandler = &vgaph.map;
+						else
+							newHandler = &vgaph.cvga;
+					}
+					else {
+						/* NTS: ET4000AX cards appear to have a different chain4 implementation from everyone else:
+						 *      the planar memory byte address is address >> 2 and bits A0-A1 select the plane,
+						 *      where all other clones I've tested seem to write planar memory byte (address & ~3)
+						 *      (one byte per 4 bytes) and bits A0-A1 select the plane. Note that the et4000 emulation
+						 *      implemented so far will not trigger this if() condition for 256-color mode. */
+						/* FIXME: Different chain4 implementation on ET4000 noted---is it true also for ET3000? */
+						if (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K)
+							newHandler = &vgaph.cvga_et4000_slow;
+						else
+							newHandler = &vgaph.cvga_slow;
+					}
 				}
 				else {
 					/* this is needed for SVGA modes (Paradise, Tseng, S3) because SVGA
