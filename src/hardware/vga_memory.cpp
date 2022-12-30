@@ -1941,11 +1941,11 @@ class VGA_Map_Handler : public PageHandler {
 public:
 	VGA_Map_Handler() : PageHandler(PFLAG_READABLE|PFLAG_WRITEABLE|PFLAG_NOCODE) {}
 	HostPt GetHostReadPt(Bitu phys_page) {
- 		phys_page-=vgapages.base;
+		phys_page-=vgapages.base;
 		return &vga.mem.linear[CHECKED3(vga.svga.bank_read_full+phys_page*4096)];
 	}
 	HostPt GetHostWritePt(Bitu phys_page) {
- 		phys_page-=vgapages.base;
+		phys_page-=vgapages.base;
 		return &vga.mem.linear[CHECKED3(vga.svga.bank_write_full+phys_page*4096)];
 	}
 };
@@ -2474,7 +2474,10 @@ void VGA_SetupHandlers(void) {
 				}
 				else {
 					/* this is needed for SVGA modes (Paradise, Tseng, S3) because SVGA
-					 * modes do NOT use the chain4 configuration */
+					 * modes do NOT use the chain4 configuration. For Tseng ET4000AX
+					 * emulation this map handler also handles chained 256-color mode
+					 * because of the different way that the memory address is mapped
+					 * to bitplane. */
 					newHandler = &vgaph.map;
 				}
 			} else {
