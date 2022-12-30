@@ -2465,7 +2465,8 @@ void VGA_SetupHandlers(void) {
 					/* NTS: ET4000AX cards appear to have a different chain4 implementation from everyone else:
 					 *      the planar memory byte address is address >> 2 and bits A0-A1 select the plane,
 					 *      where all other clones I've tested seem to write planar memory byte (address & ~3)
-					 *      (one byte per 4 bytes) and bits A0-A1 select the plane. */
+					 *      (one byte per 4 bytes) and bits A0-A1 select the plane. Note that the et4000 emulation
+					 *      implemented so far will not trigger this if() condition for 256-color mode. */
 					/* FIXME: Different chain4 implementation on ET4000 noted---is it true also for ET3000? */
 					if (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K)
 						newHandler = &vgaph.cvga_et4000_slow;
