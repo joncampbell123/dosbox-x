@@ -113,7 +113,7 @@ static void write_p3cf(Bitu port,Bitu val,Bitu iolen) {
 		} else gfx(mode)=(uint8_t)val;
 		vga.config.write_mode=(uint8_t)val & 3;
 		vga.config.read_mode=((uint8_t)val >> 3) & 1;
-		cmplx |= vga.complexity.setf(VGACMPLX_COLORDONTCARE,(val & 0xF) != 0 && vga.config.read_mode == 1);
+		cmplx |= vga.complexity.setf(VGACMPLX_COLORDONTCARE,gfx(color_dont_care) != 0 && vga.config.read_mode == 1);
 		cmplx |= vga.complexity.setf(VGACMPLX_WRITEMODE,vga.config.write_mode != 0);
 		cmplx |= vga.complexity.setf(VGACMPLX_READMODE,vga.config.read_mode != 0);
 		if (cmplx != 0) VGA_SetupHandlers();
@@ -175,7 +175,7 @@ static void write_p3cf(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	case 7: /* Color Don't Care Register */
 		gfx(color_dont_care)=val & 0x0f;
-		cmplx |= vga.complexity.setf(VGACMPLX_COLORDONTCARE,(val & 0xF) != 0 && vga.config.read_mode == 1);
+		cmplx |= vga.complexity.setf(VGACMPLX_COLORDONTCARE,gfx(color_dont_care) != 0 && vga.config.read_mode == 1);
 		if (cmplx != 0) VGA_SetupHandlers();
 		/*
 			0	Ignore bit plane 0 in Read mode 1 if clear.
@@ -189,7 +189,7 @@ static void write_p3cf(Bitu port,Bitu val,Bitu iolen) {
 	case 8: /* Bit Mask Register */
 		gfx(bit_mask)=(uint8_t)val;
 		vga.config.full_bit_mask=ExpandTable[val];
-		cmplx |= vga.complexity.setf(VGACMPLX_BITMASK,(val & 0xFF) != 0xFF); // at least one bit will be masked off?
+		cmplx |= vga.complexity.setf(VGACMPLX_BITMASK,vga.config.full_bit_mask != 0xFFFFFFFFu); // at least one bit will be masked off?
 
 		/* check for unusual use of the bit mask register in chained 320x200x256 mode and switch to the slow & accurate emulation */
 		if (vga.mode == M_VGA && vga.config.chained)

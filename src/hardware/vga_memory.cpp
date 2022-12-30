@@ -546,7 +546,7 @@ public:
 class VGA_UnchainedVGA_Handler : public PageHandler {
 public:
 	Bitu readHandler(PhysPt start) {
-        return VGA_Generic_Read_Handler(start, start, vga.config.read_map_select);
+		return VGA_Generic_Read_Handler(start, start, vga.config.read_map_select);
 	}
 public:
 	uint8_t readb(PhysPt addr) {
@@ -606,6 +606,65 @@ public:
 		writeHandler(addr+1,(uint8_t)(val >> 8));
 		writeHandler(addr+2,(uint8_t)(val >> 16));
 		writeHandler(addr+3,(uint8_t)(val >> 24));
+	}
+};
+
+// This version assumes that no raster ops, bit shifts, bit masking, or complicated stuff is enabled
+// so that DOS games using 256-color unchained mode in a simple way, or games with simple handling
+// of 16-color planar modes, can see a performance improvement.
+class VGA_UnchainedVGA_Fast_Handler : public VGA_UnchainedVGA_Handler {
+public:
+	void writeHandler(PhysPt start, uint8_t val) {
+		start &= 0xFFFFu;
+		((uint32_t*)vga.mem.linear)[start] = (((uint32_t*)vga.mem.linear)[start] & vga.config.full_not_map_mask) + (ExpandTable[val] & vga.config.full_map_mask);
+	}
+	void writeHandlerFull(PhysPt start, uint8_t val) {
+		start &= 0xFFFFu;
+		((uint32_t*)vga.mem.linear)[start] = ExpandTable[val];
+	}
+public:
+	VGA_UnchainedVGA_Fast_Handler() : VGA_UnchainedVGA_Handler() {}
+	void writeb(PhysPt addr,uint8_t val) {
+		VGAMEM_USEC_write_delay();
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+		addr += (PhysPt)vga.svga.bank_write_full;
+//		addr = CHECKED2(addr);
+		if (vga.config.full_map_mask == 0xFFFFFFFFu)
+			writeHandlerFull(addr+0,(uint8_t)(val >> 0));
+		else
+			writeHandler(addr+0,(uint8_t)(val >> 0));
+	}
+	void writew(PhysPt addr,uint16_t val) {
+		VGAMEM_USEC_write_delay();
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+		addr += (PhysPt)vga.svga.bank_write_full;
+//		addr = CHECKED2(addr);
+		if (vga.config.full_map_mask == 0xFFFFFFFFu) {
+			writeHandlerFull(addr+0,(uint8_t)(val >> 0));
+			writeHandlerFull(addr+1,(uint8_t)(val >> 8));
+		}
+		else {
+			writeHandler(addr+0,(uint8_t)(val >> 0));
+			writeHandler(addr+1,(uint8_t)(val >> 8));
+		}
+	}
+	void writed(PhysPt addr,uint32_t val) {
+		VGAMEM_USEC_write_delay();
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+		addr += (PhysPt)vga.svga.bank_write_full;
+//		addr = CHECKED2(addr);
+		if (vga.config.full_map_mask == 0xFFFFFFFFu) {
+			writeHandlerFull(addr+0,(uint8_t)(val >> 0));
+			writeHandlerFull(addr+1,(uint8_t)(val >> 8));
+			writeHandlerFull(addr+2,(uint8_t)(val >> 16));
+			writeHandlerFull(addr+3,(uint8_t)(val >> 24));
+		}
+		else {
+			writeHandler(addr+0,(uint8_t)(val >> 0));
+			writeHandler(addr+1,(uint8_t)(val >> 8));
+			writeHandler(addr+2,(uint8_t)(val >> 16));
+			writeHandler(addr+3,(uint8_t)(val >> 24));
+		}
 	}
 };
 
@@ -2290,6 +2349,7 @@ static struct vg {
 	VGA_ET4000_ChainedVGA_Slow_Handler	cvga_et4000_slow;
 //	VGA_UnchainedEGA_Handler	uega;
 	VGA_UnchainedVGA_Handler	uvga;
+	VGA_UnchainedVGA_Fast_Handler	uvga_fast;
 	VGA_PCJR_Handler			pcjr;
 	VGA_HERC_Handler			herc;
 //	VGA_LIN4_Handler			lin4;
@@ -2538,7 +2598,10 @@ void VGA_SetupHandlers(void) {
 					newHandler = &vgaph.map;
 				}
 			} else {
-				newHandler = &vgaph.uvga;
+				if (vga.complexity.flags == 0 && (vga.mode == M_EGA || vga.mode == M_VGA))
+					newHandler = &vgaph.uvga_fast;
+				else
+					newHandler = &vgaph.uvga;
 			}
 			break;
 		case M_AMSTRAD:
