@@ -3062,12 +3062,12 @@ void GFX_Stop() {
     sdl.active=false;
 }
 
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && ((defined(C_SDL2) && defined(SDL_DOSBOX_X_IME)) || defined(SDL_DOSBOX_X_SPECIAL))
 static uint8_t im_x, im_y;
 #endif
 
 void GFX_Start() {
-#if defined(MACOSX) && !defined(C_SDL2)
+#if defined(MACOSX) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 	if(dos.im_enable_flag) {
 		SDL_SetIMValues(SDL_IM_ENABLE, 1, NULL);
 		im_x = -1;
@@ -5144,7 +5144,7 @@ bool sdl_wait_on_error() {
     return sdl.wait_on_error;
 }
 
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && ((defined(C_SDL2) && defined(SDL_DOSBOX_X_IME)) || defined(SDL_DOSBOX_X_SPECIAL))
 static uint32_t last_ticks;
 void SetIMPosition() {
 	uint8_t x, y;
@@ -5414,7 +5414,7 @@ void GFX_Events() {
     if (sdl.desktop.type == SCREEN_GAMELINK) OUTPUT_GAMELINK_InputEvent();
 #endif
 
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && ((defined(C_SDL2) && defined(SDL_DOSBOX_X_IME)) || defined(SDL_DOSBOX_X_SPECIAL))
    if(IS_PC98_ARCH) {
        static uint32_t poll98_delay = 0;
        uint32_t time = GetTicks();
@@ -5842,7 +5842,7 @@ void GFX_Events() {
         }
     }
 #endif
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && ((defined(C_SDL2) && defined(SDL_DOSBOX_X_IME)) || defined(SDL_DOSBOX_X_SPECIAL))
    if(IS_PC98_ARCH) {
        static uint32_t poll98_delay = 0;
        uint32_t time = GetTicks();
@@ -6177,7 +6177,7 @@ void GFX_Events() {
 			}
 #endif
 #endif
-#if defined (MACOSX)
+#if defined (MACOSX) &&  defined(SDL_DOSBOX_X_SPECIAL)
 			int onoff;
 			if(SDL_GetIMValues(SDL_IM_ONOFF, &onoff, NULL) == NULL) {
 				if(onoff != 0 && event.type == SDL_KEYDOWN) {
