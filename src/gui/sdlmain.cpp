@@ -5729,7 +5729,7 @@ void GFX_Events() {
 			} else
                 HandleMouseWheel(event.wheel.direction == SDL_MOUSEWHEEL_NORMAL, event.wheel.y);
 			break;
-#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX) && defined(SDL_DOSBOX_X_IME)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && ((defined(C_SDL2) && defined(SDL_DOSBOX_X_IME)) || defined(SDL_DOSBOX_X_SPECIAL))
         case SDL_TEXTEDITING:
             if (sdl.desktop.type == SCREEN_GAMELINK) break;
             ime_text = event.edit.text;
