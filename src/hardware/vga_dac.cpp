@@ -25,6 +25,10 @@
 extern bool vga_enable_3C6_ramdac;
 extern bool vga_8bit_dac;
 
+unsigned int VGA_DAC_DeferredUpdate = 0;
+
+void VGA_DAC_DeferredUpdateColorPalette();
+
 /*
 3C6h (R/W):  PEL Mask
 bit 0-7  This register is anded with the palette index sent for each dot.
@@ -191,6 +195,13 @@ void VGA_DAC_UpdateColorPalette() {
         VGA_DAC_UpdateColor( i );
 }
 
+void VGA_DAC_DeferredUpdateColorPalette() {
+	if (VGA_DAC_DeferredUpdate > 0) {
+		VGA_DAC_DeferredUpdate = 0;
+		VGA_DAC_UpdateColorPalette(); // FIXME: Yes, this is very inefficient. Will improve later.
+	}
+}
+
 void write_p3c6(Bitu port,Bitu val,Bitu iolen) {
     (void)iolen;//UNUSED
     (void)port;//UNUSED
@@ -207,7 +218,7 @@ void write_p3c6(Bitu port,Bitu val,Bitu iolen) {
         // TODO: MCGA 640x480 2-color mode appears to latch the DAC at retrace
         //       for background/foreground. Does that apply to the PEL mask too?
 
-        VGA_DAC_UpdateColorPalette();
+        VGA_DAC_DeferredUpdate++;
     }
 }
 
@@ -319,7 +330,7 @@ void write_p3c9(Bitu port,Bitu val,Bitu iolen) {
              * MCGA double-buffers foreground and background colors */
         }
         else {
-            VGA_DAC_UpdateColorPalette(); // FIXME: Yes, this is very inefficient. Will improve later.
+            VGA_DAC_DeferredUpdate++;
         }
 
         /* only if we just completed a color should we advance */

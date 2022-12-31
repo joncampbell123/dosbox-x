@@ -9,6 +9,11 @@ Next
     simplified version for a bit of a performance boost
     in response to complaints about poor VGA emulation
     performance. (joncampbell123)
+  - VGA palette DAC update: Instead of recalculating
+    the palette map every time a color is written through
+    port 3C9h, set a flag. Defer palette map update to
+    when the next scan line is rendered, in order to
+    improve performance. (joncampbell123)
 
 2022.12.26
   - Allow more than 640KB of conventional memory,

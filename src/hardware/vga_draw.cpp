@@ -3360,6 +3360,8 @@ void VGA_Alt_NextScanLine(void) {
     }
 }
 
+void VGA_DAC_DeferredUpdateColorPalette();
+
 static void VGA_DrawSingleLine(Bitu /*blah*/) {
     unsigned int lines = 0;
     bool skiprender;
@@ -3374,6 +3376,7 @@ again:
         vga.draw.render_step = 0;
 
     if (!skiprender) {
+        VGA_DAC_DeferredUpdateColorPalette();
         if (GCC_UNLIKELY(vga.attr.disabled)) {
             switch(machine) {
                 case MCH_PCJR:
