@@ -377,11 +377,17 @@ public:
 	}
 	uint16_t readw(PhysPt addr ) {
 		VGAMEM_USEC_read_delay();
-		return *((uint16_t*)(&vga.mem.linear[lin2mem(addr)]));
+		if ((addr & 1) == 0)
+			return *((uint16_t*)(&vga.mem.linear[lin2mem(addr)]));
+		else
+			return PageHandler::readw(addr);
 	}
 	uint32_t readd(PhysPt addr ) {
 		VGAMEM_USEC_read_delay();
-		return *((uint32_t*)(&vga.mem.linear[lin2mem(addr)]));
+		if ((addr & 3) == 0)
+			return *((uint32_t*)(&vga.mem.linear[lin2mem(addr)]));
+		else
+			return PageHandler::readd(addr);
 	}
 	void writeb(PhysPt addr, uint8_t val ) {
 		VGAMEM_USEC_write_delay();
@@ -389,11 +395,17 @@ public:
 	}
 	void writew(PhysPt addr,uint16_t val) {
 		VGAMEM_USEC_write_delay();
-		*((uint16_t*)(&vga.mem.linear[lin2mem(addr)])) = val;
+		if ((addr & 1) == 0)
+			*((uint16_t*)(&vga.mem.linear[lin2mem(addr)])) = val;
+		else
+			PageHandler::writew(addr,val);
 	}
 	void writed(PhysPt addr,uint32_t val) {
 		VGAMEM_USEC_write_delay();
-		*((uint32_t*)(&vga.mem.linear[lin2mem(addr)])) = val;
+		if ((addr & 3) == 0)
+			*((uint32_t*)(&vga.mem.linear[lin2mem(addr)])) = val;
+		else
+			PageHandler::writed(addr,val);
 	}
 };
 
@@ -611,7 +623,8 @@ public:
 
 // This version assumes that no raster ops, bit shifts, bit masking, or complicated stuff is enabled
 // so that DOS games using 256-color unchained mode in a simple way, or games with simple handling
-// of 16-color planar modes, can see a performance improvement.
+// of 16-color planar modes, can see a performance improvement. Reading still uses the slower generic
+// code because it's uncommon to read back and the unchained mode has planar actions to it.
 class VGA_UnchainedVGA_Fast_Handler : public VGA_UnchainedVGA_Handler {
 public:
 	void writeHandler(PhysPt start, uint8_t val) {
@@ -629,10 +642,8 @@ public:
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
 		addr += (PhysPt)vga.svga.bank_write_full;
 //		addr = CHECKED2(addr);
-		if (vga.config.full_map_mask == 0xFFFFFFFFu)
-			writeHandlerFull(addr+0,(uint8_t)(val >> 0));
-		else
-			writeHandler(addr+0,(uint8_t)(val >> 0));
+		// For single byte emulation it's faster to just do the full mask and OR than check for "full" case.
+		writeHandler(addr+0,(uint8_t)(val >> 0));
 	}
 	void writew(PhysPt addr,uint16_t val) {
 		VGAMEM_USEC_write_delay();
