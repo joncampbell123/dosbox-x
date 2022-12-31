@@ -221,8 +221,8 @@ typedef enum PROCESS_DPI_AWARENESS {
 extern "C" void sdl1_hax_macosx_highdpi_set_enable(const bool enable);
 #endif
 
-#if !defined(C_SDL2) && !defined(RISCOS)
 # include "SDL_version.h"
+#if !defined(C_SDL2) && !defined(RISCOS)
 # ifndef SDL_DOSBOX_X_SPECIAL
 #  warning It is STRONGLY RECOMMENDED to compile the DOSBox-X code using the SDL 1.x library provided in this source repository.
 #  error You can ignore this by commenting out this error, but you will encounter problems if you use the unmodified SDL 1.x library.
@@ -5091,11 +5091,12 @@ bool GFX_IsFullscreen(void) {
 #if (defined(WIN32) && !defined(HX_DOS) || defined(MACOSX)) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 static bool CheckEnableImmOnKey(SDL_KeyboardEvent key)
 {
-#if defined(MACOSX)
-	if(key.keysym.sym == 0 || (key.keysym.sym == 0x08 || key.keysym.sym == 0x09 || (key.keysym.sym >= 0x20 && key.keysym.sym <= 0x7F) || (key.keysym.sym >= 0x100 && key.keysym.sym <= 0x119) || key.keysym.sym == 0x12C || key.keysym.sym == 0x12D) || (strPasteBuffer.length() && key.keysym.sym >= 0x80)) {
-#else
-	if(key.keysym.sym == 0 || (!SDL_IM_Composition() && (key.keysym.sym == 0x08 || key.keysym.sym == 0x09 || (key.keysym.sym >= 0x20 && key.keysym.sym <= 0x7F) || (key.keysym.sym >= 0x100 && key.keysym.sym <= 0x119) || key.keysym.sym == 0x12C || key.keysym.sym == 0x12D) || (strPasteBuffer.length() && key.keysym.sym >= 0x80))) {
-#endif
+	if(key.keysym.sym == 0 || (
+	  #if defined(SDL_DOSBOX_X_IME) && !defined(MACOSX)
+	  !SDL_IM_Composition() &&
+	  #endif
+	  (key.keysym.sym == 0x08 || key.keysym.sym == 0x09 || (key.keysym.sym >= 0x20 && key.keysym.sym <= 0x7F) || (key.keysym.sym >= 0x100 && key.keysym.sym <= 0x119) || key.keysym.sym == 0x12C || key.keysym.sym == 0x12D) || (strPasteBuffer.length() && key.keysym.sym >= 0x80))
+	) {
 		// BS, <-, ->, PgUp, PgDn, etc.
 		return true;
 	}
