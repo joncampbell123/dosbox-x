@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.17">
+<meta name="generator" content="Asciidoctor 2.0.18">
 <title>East Asian language and system support</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
@@ -84,10 +84,10 @@ code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;
 ul,ol,dl{line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
 ul,ol{margin-left:1.5em}
 ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0}
-ul.square li ul,ul.circle li ul,ul.disc li ul{list-style:inherit}
-ul.square{list-style-type:square}
 ul.circle{list-style-type:circle}
 ul.disc{list-style-type:disc}
+ul.square{list-style-type:square}
+ul.circle ul:not([class]),ul.disc ul:not([class]),ul.square ul:not([class]){list-style:inherit}
 ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
 dl dt{margin-bottom:.3125em;font-weight:bold}
 dl dd{margin-bottom:1.25em}
@@ -495,7 +495,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="_truetype_font_output_with_cjk_support">TrueType font output with CJK support</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>As a general DOS emulation environment, you can enable CJK support using the TrueType font (TTF) output with a CJK code page (932 for Japanese, 936 for Simplified Chinese, 949 for Korean, and 950/951 for Traditional Chinese). General information about DOSBox-X&#8217;s TrueType font output is available from the <a href="Guide%3AUsing-TrueType-font-output-in-DOSBox‐X">TrueType font output guide page</a>. Set the code page with either the <code>country</code> option in [config] section of the config file, or using <code>CHCP</code> command, such as <code>country=81,932</code> or <code>CHCP 932</code> for Japanese. The default TTF font bundled with DOSBox-X does not support Chinese/Japanese/Korean characters, but there are many TTF fonts (or TTC/OTF fonts) available containing support for CJK characters, and you can load them for the TTF output via the <code>font</code> config option in [ttf] section of the config file. Some of these fonts (such as <a href="https://unifoundry.com/unifont/">GNU Unifont</a> and <a href="https://github.com/be5invis/Sarasa-Gothic">Sarasa Gothic</a>) are intended to cover all CJK languages, whereas other TTF fonts (e.g. MigMix or M+ fonts) are intended to cover only characters of a specific CJK language. TTF or TTC fonts like <code>simkai.ttf</code>, <code>simhei.ttf</code>, and <code>mingliu.ttc</code> are included in some versions of Windows, so you need to only specify a setting like <code>font=simkai</code> or <code>font=mingliu.ttc</code> to load them in such cases. Otherwise you will need to download TTF fonts and load them accordingly. The <code>SarasaGothicFixed.ttf</code> and <code>UnifontFullMediumMono.ttf</code> font files are also available in the DOSBox-X repository for download:</p>
+<p>As a general DOS emulation environment, you can enable CJK support using the TrueType font (TTF) output with a CJK code page (932 for Japanese, 936 for Simplified Chinese, 949 for Korean, and 950/951 for Traditional Chinese). General information about DOSBox-X&#8217;s TrueType font output is available from the <a href="Guide%3AUsing-TrueType-font-output-in-DOSBox‐X">TrueType font output guide page</a>. Set the code page with either the <code>country</code> option in [config] section of the config file, or using <code>CHCP</code> command, such as <code>country=81,932</code> or <code>CHCP 932</code> for Japanese. The default TTF font bundled with DOSBox-X does not support Chinese/Japanese/Korean characters, but there are many TTF fonts (or TTC/OTF fonts) available containing support for CJK characters, and you can load them for the TTF output via the <code>font</code> config option in [ttf] section of the config file. Some of these fonts (such as <a href="https://unifoundry.com/unifont/">GNU Unifont</a> and <a href="https://github.com/be5invis/Sarasa-Gothic">Sarasa Gothic</a>) are intended to cover all CJK languages, whereas other TTF fonts (e.g. MigMix or M+ fonts) are intended to cover only characters of a specific CJK language. TTF or TTC fonts like <code>simkai.ttf</code>, <code>simhei.ttf</code>, and <code>mingliu.ttc</code> are included in some versions of Windows, so you need to only specify a setting like <code>font=simkai</code> or <code>font=mingliu.ttc</code> to load them in such cases. Otherwise, you will need to download TTF fonts and load them accordingly. The <code>SarasaGothicFixed.ttf</code> and <code>UnifontFullMediumMono.ttf</code> font files are also available in the DOSBox-X repository for download:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -532,13 +532,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="paragraph">
-<p>There are also other config options for the TrueType font relating to CJK support, such as automatic box-drawing recognition and SBCS &lt;&#8658; DBCS mode switch, as found in the [ttf] section of the config file (such as <code>autodbcs</code> and <code>autoboxdraw</code> options). These can also be toggled dynamically from the drop-down menu (inside "Video" ⇒ "TTF options" menu group), or via keyboard shortcuts as of DOSBox-X 0.83.24. Moreover, as of DOSBox-X 0.83.21 there is a <code>UTF8</code> command which allows to convert text encoded in UTF-8 to view in the current code page.</p>
+<p>There are other config options for the TrueType font relating to CJK support, such as automatic box-drawing recognition and SBCS &lt;&#8658; DBCS mode switch, as found in the [ttf] section of the config file (such as <code>autodbcs</code> and <code>autoboxdraw</code> options). These can also be toggled dynamically from the drop-down menu (inside "Video" ⇒ "TTF options" menu group), or via keyboard shortcuts as of DOSBox-X 0.83.24. Moreover, as of DOSBox-X 0.83.21 there is a <code>UTF8</code> command which allows conversion of text encoded in UTF-8 to be viewed in the current code page.</p>
 </div>
 <div class="paragraph">
 <p>Apart from the code page 950 for the Traditional Chinese, there is also a "hidden" code page 951 which enables the Big5-HKSCS charset (or Big5-UAO charset with the option <code>uao</code> set to <code>true</code>) instead of the Big5-1984 or the Big5-2003 charset. They are however not fully compatible with the ChinaSea extension. If you set <code>chinasea</code> to <code>true</code>, then a subset of either the Big5-HKSCS charset or the Big5-UAO charset will be replaced with ChinaSea characters.</p>
 </div>
 <div class="paragraph">
-<p>DOSBox-X additionally allows to run (Simplified or Traditional) Chinese DOS systems such as CCDOS 97, PDOS, or TechWay SCS (天汇汉字系统) to run when in the TTF output. DOSBox-X will automatically switch to a graphical output to let Chinese DOS systems to render correctly in this case. For the ETen Chinese DOS system (倚天中文系統) and running ET16V (飛碟五號) or ET24VA (飛碟24) it is strongly recommended to set the option <code>vga fill active memory=true</code> (in [video] section, supported since DOSBox-X 0.83.19), and for the latter (ET24VA), also the option <code>machine=svga_et4000</code> (in [dosbox] section) of the DOSBox-X configuration so that it will run properly.</p>
+<p>DOSBox-X additionally allows running (Simplified or Traditional) Chinese DOS systems such as CCDOS 97, PDOS, or TechWay SCS (天汇汉字系统) to run when in the TTF output. DOSBox-X will automatically switch to a graphical output to let Chinese DOS systems to render correctly in this case. For the ETen Chinese DOS system (倚天中文系統) and running ET16V (飛碟五號) or ET24VA (飛碟24) it is strongly recommended setting the option <code>vga fill active memory=true</code> (in [video] section, supported since DOSBox-X 0.83.19), and for the latter (ET24VA), also the option <code>machine=svga_et4000</code> (in [dosbox] section) of the DOSBox-X configuration so that it will run properly.</p>
 </div>
 </div>
 </div>
@@ -557,7 +557,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="paragraph">
-<p>By default DOSBox-X will render Chinese/Japanese/Korean characters in a DBCS code page with a standard (non-TTF) output (e.g. OpenGL, Direct3D, Surface) if a language file is loaded (or with setting <code>autodbcs=true</code> in [ttf] section as of DOSBox-X 0.83.24). But you can change this behavior with the <code>showdbcsdosv</code> config option. If it is set to <code>true</code>, then DOSBox-X will enable the Chinese/Japanese/Korean character rendering in a DBCS code page regardless of whether a language file is loaded; if it is set to <code>false</code>, then DOSBox-X will not render Chinese/Japanese/Korean characters in a DBCS code page in non-DOS/V and non-TTF modes. In every case you can also run external programs such as CCDOS 97, PDOS, and ETen so that Chinese/Japanese/Korean characters will be rendered by such programs.</p>
+<p>By default, DOSBox-X will render Chinese/Japanese/Korean characters in a DBCS code page with a standard (non-TTF) output (e.g. OpenGL, Direct3D, Surface) if a language file is loaded (or with setting <code>autodbcs=true</code> in [ttf] section as of DOSBox-X 0.83.24). But you can change this behavior with the <code>showdbcsdosv</code> config option. If it is set to <code>true</code>, then DOSBox-X will enable the Chinese/Japanese/Korean character rendering in a DBCS code page regardless of whether a language file is loaded; if it is set to <code>false</code>, then DOSBox-X will not render Chinese/Japanese/Korean characters in a DBCS code page in non-DOS/V and non-TTF modes. In every case you can also run external programs such as CCDOS 97, PDOS, and ETen so that Chinese/Japanese/Korean characters will be rendered by such programs.</p>
 </div>
 </div>
 </div>
@@ -634,7 +634,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-09-01 22:04:27 -0400
+Last updated 2022-12-31 02:04:38 -0800
 </div>
 </div>
 </body>

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.17">
+<meta name="generator" content="Asciidoctor 2.0.18">
 <title>DOS games in DOSBox-X</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
@@ -84,10 +84,10 @@ code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;
 ul,ol,dl{line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
 ul,ol{margin-left:1.5em}
 ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0}
-ul.square li ul,ul.circle li ul,ul.disc li ul{list-style:inherit}
-ul.square{list-style-type:square}
 ul.circle{list-style-type:circle}
 ul.disc{list-style-type:disc}
+ul.square{list-style-type:square}
+ul.circle ul:not([class]),ul.disc ul:not([class]),ul.square ul:not([class]){list-style:inherit}
 ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
 dl dt{margin-bottom:.3125em;font-weight:bold}
 dl dd{margin-bottom:1.25em}
@@ -462,7 +462,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </ul>
 </div>
 <div class="paragraph">
-<p>This guide explains how to setup and play DOS games in DOSBox-X.</p>
+<p>This guide explains how to set up and play DOS games in DOSBox-X.</p>
 </div>
 </div>
 </div>
@@ -476,10 +476,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>If you use Windows, you can launch a DOS game on your computer easily using the "quick launch" feature. When DOSBox-X is running, select the "DOS" menu and click "Quick launch program&#8230;&#8203;", then you will be able to select a game to run using the Windows file browser. The game directory will be automatically mounted and the game will be started after you select a game executable on your computer.</p>
 </div>
 <div class="paragraph">
-<p>If you installed DOSBox-X 0.83.5 or later using the Windows installer, you can also launch a DOS game directly from the Windows Explorer, even if DOSBox-X is not currently running. Right click the executable of your DOS game and select "Open with DOSBox-X". Then DOSBox-X will be started and automatically run the game you just selected.</p>
+<p>If you installed DOSBox-X 0.83.5 or later using the Windows installer, you can also launch a DOS game directly from the Windows Explorer, even if DOSBox-X is not currently running. Right-click the executable of your DOS game and select "Open with DOSBox-X". Then DOSBox-X will be started and automatically run the game you just selected.</p>
 </div>
 <div class="paragraph">
-<p>Otherwise, you can manually run the DOS game from the DOSBox-X command line. Now start DOSBox-X. By default there is no drive mounted other than the internal virtual drive Z:. You need to mount the game directory so that it can be seen from within DOSBox-X. You can either mount a drive from the Drive menu, or by typing a command like the following:</p>
+<p>Otherwise, you can manually run the DOS game from the DOSBox-X command line. Now start DOSBox-X. By default, there is no drive mounted other than the internal virtual drive Z:. You need to mount the game directory so that it can be seen from within DOSBox-X. You can either mount a drive from the Drive menu, or by typing a command like the following:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -529,7 +529,7 @@ Drive D is mounted as CDRom D:\</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The drive will be changed from Z:\ to C:\. And it is now time to run the game. Most games have an EXE file in their directory that you can run. However, some might require a BAT file, or COM file (common in demos and really old games). Most of the time, the file is in the root folder. Please consult the documentation of your game for which file is needed to start the game. Suppose the game executable is called PLAY.EXE, then you can just type this:</p>
+<p>The drive will be changed from Z:\ to C:\. And it is now time to run the game. Most games have an EXE file in their directory that you can run. However, some might require a BAT file, or COM file (common in demos and very old games). Most of the time, the file is in the root folder. Please consult the documentation of your game for which file is needed to start the game. Suppose the game executable is called PLAY.EXE, then you can just type this:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -548,7 +548,7 @@ Drive D is mounted as CDRom D:\</pre>
 <p><strong>CD-ROM: The game can&#8217;t find its CD-ROM.</strong></p>
 </div>
 <div class="paragraph">
-<p>If your mounting a host folder as CD-ROM, or if (on Windows) your want to
+<p>If you&#8217;re mounting a host folder as CD-ROM, or if (on Windows) you want to
 mount your real CD-ROM or DVD-ROM drive for use in DOSBox-X, be sure to
 mount the CD-ROM with the <code>-t cdrom</code> switch. This will enable the
 MSCDEX interface required by DOS games to interface with CD-ROMs.
@@ -565,7 +565,7 @@ This enables very good low-level CD-ROM support on any operating system.</p>
 <p><strong>MOUSE: The mouse doesn&#8217;t work.</strong></p>
 </div>
 <div class="paragraph">
-<p>By default mouse autolock is disabled in the DOSBox-X config file. You can either
+<p>By default, mouse autolock is disabled in the DOSBox-X config file. You can either
 edit the config file and in the <code>[SDL]</code> section, set <code>autolock=true</code>.
 Or you can go to the "Main" menu and select "Capture mouse". If DOSBox-X detects
 when a program uses PS/2 mouse control and autolock is enabled, when you click on
@@ -623,7 +623,7 @@ digital sound output through the internal speaker.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>The is the first card released by Creative Labs&#174;.  The default
+<p>This is the first card released by Creative Labs&#174;.  The default
 configuration places it on address 220. It is disabled by default.</p>
 </div>
 <div class="ulist">
@@ -634,9 +634,9 @@ configuration places it on address 220. It is disabled by default.</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>The emulation of this sound hardware is complete with the exception of the
+<p>The emulation of this sound hardware is complete except for the
 noise channel. The noise channel is not very well documented and as such
-is only a best guess as to the sound&#8217;s accuracy. It is disabled as default.</p>
+is only the best guess as to the sound&#8217;s accuracy. It is disabled as default.</p>
 </div>
 <div class="ulist">
 <ul>
@@ -669,7 +669,7 @@ almost play digitized sound. Placed at address 220 (also on 388).</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>By default DOSBox-X provides SoundBlaster 16 level 16-bit stereo sound.
+<p>By default, DOSBox-X provides SoundBlaster 16 level 16-bit stereo sound.
 You can select a different SoundBlaster version in the configuration of
 DOSBox-X. AWE32 music is not emulated as you can use MPU-401 instead (see below).</p>
 </div>
@@ -716,7 +716,7 @@ A different device/emulator is needed for Roland LAPC/CM-32L/MT-32 compatibility
 </div>
 <div class="paragraph">
 <p>There can be many reasons that a game crashes or misbehaves.
-DOS compatible PC&#8217;s existed for a long time, from many different manufacturers.
+DOS compatible PC&#8217;s existed for a long time, from many manufacturers.
 And during that time many upgrades to components where made.
 As such, even with a legacy DOS PC you can expect to run into compatibility issues.</p>
 </div>
@@ -825,7 +825,7 @@ add write permissions etc.)</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-09-01 22:04:27 -0400
+Last updated 2022-12-31 02:04:38 -0800
 </div>
 </div>
 </body>

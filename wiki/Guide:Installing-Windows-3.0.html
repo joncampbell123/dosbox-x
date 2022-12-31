@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.18">
-<title>Installing Microsoft Windows 1.0x in DOSBox-X</title>
+<title>Installing Microsoft Windows 3.0 in DOSBox-X</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -448,31 +448,63 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect1">
-<h2 id="_installing_microsoft_windows_1_0x_in_dosbox_x">Installing Microsoft Windows 1.0x in DOSBox-X</h2>
+<h2 id="_installing_microsoft_windows_3_0_in_dosbox_x">Installing Microsoft Windows 3.0 in DOSBox-X</h2>
 <div class="sectionbody">
 <div class="imageblock">
 <div class="content">
-<img src="images/Windows:Windows_1.01_SPLASH.png" alt="Windows 1.01 splash screen">
+<img src="images/Windows:Windows_3.0_SPLASH.png" alt="Windows 3.0 splash screen">
 </div>
 </div>
 <div id="toc" class="toc">
 <div id="toctitle" class="title">Table of Contents</div>
 <ul class="sectlevel1">
-<li><a href="#_installing_microsoft_windows_1_0x_in_dosbox_x">Installing Microsoft Windows 1.0x in DOSBox-X</a></li>
+<li><a href="#_installing_microsoft_windows_3_0_in_dosbox_x">Installing Microsoft Windows 3.0 in DOSBox-X</a></li>
 <li><a href="#_overview">Overview</a>
 <ul class="sectlevel2">
 <li><a href="#_editions_this_applies_to">Editions this applies to</a></li>
-<li><a href="#_limitations">Limitations</a></li>
+<li><a href="#_readme_1st">README.1ST</a></li>
 <li><a href="#_useful_links">Useful links</a></li>
+<li><a href="#_general_notes">General Notes</a></li>
+<li><a href="#_windows_3_0a_with_multimedia_extensions_specific_notes">Windows 3.0a with Multimedia Extensions specific notes</a></li>
 </ul>
 </li>
 <li><a href="#_dosbox_x_config_file">DOSBox-X config file</a></li>
-<li><a href="#_preparing_for_installation">Preparing for installation</a></li>
+<li><a href="#_preparing_for_installation">Preparing for installation</a>
+<ul class="sectlevel2">
 <li><a href="#_example_of_extracting_files_from_disk_images">Example of extracting files from disk images</a></li>
+<li><a href="#_mounting_an_installation_cd_rom">Mounting an installation CD-ROM</a></li>
+</ul>
+</li>
 <li><a href="#_installing_in_a_mounted_folder">Installing in a mounted folder</a></li>
-<li><a href="#_windows_1_0x_setup_program">Windows 1.0x setup program</a></li>
-<li><a href="#_starting_windows_1_0x_after_installation">Starting Windows 1.0x after installation</a></li>
-<li><a href="#_mouse_integration">Mouse integration</a></li>
+<li><a href="#_booting_from_a_dos_hdd_image">Booting from a DOS HDD image</a>
+<ul class="sectlevel2">
+<li><a href="#_host_folder_mounts">Host Folder mounts</a></li>
+<li><a href="#_installing_windows_3_0_into_a_dos_hdd_image">Installing Windows 3.0 into a DOS HDD image</a></li>
+</ul>
+</li>
+<li><a href="#_starting_windows_3_0_after_installation">Starting Windows 3.0 after installation</a></li>
+<li><a href="#_steps_to_take_after_installation">Steps to take after installation</a></li>
+<li><a href="#_video_driver">Video driver</a></li>
+<li><a href="#_mouse_support">Mouse support</a></li>
+<li><a href="#_dosbox_x_mouse_integration_driver">DOSBox-X mouse integration driver</a>
+<ul class="sectlevel2">
+<li><a href="#_vmware_mouse_driver">VMWare mouse driver</a></li>
+</ul>
+</li>
+<li><a href="#_sound">Sound</a></li>
+<li><a href="#_multimedia_edition_sound">Multimedia Edition Sound</a>
+<ul class="sectlevel2">
+<li><a href="#_enabling_external_midi_in_windows_3_0_multimedia_edition">Enabling external MIDI in Windows 3.0 Multimedia Edition</a></li>
+</ul>
+</li>
+<li><a href="#_enabling_printing">Enabling printing</a>
+<ul class="sectlevel2">
+<li><a href="#_print_to_postscript">Print to PostScript</a></li>
+<li><a href="#_epson_emulation">Epson emulation</a></li>
+</ul>
+</li>
+<li><a href="#_starting_a_windows_game_from_dos">Starting a Windows game from DOS</a></li>
+<li><a href="#_known_limitations">Known limitations</a></li>
 </ul>
 </div>
 </div>
@@ -480,86 +512,140 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect1">
 <h2 id="_overview">Overview</h2>
 <div class="sectionbody">
+<div class="paragraph">
+<p>This guide will give a general description of installing Windows 3.0 in DOSBox-X, in addition to addressing some common issues.</p>
+</div>
 <div class="sect2">
 <h3 id="_editions_this_applies_to">Editions this applies to</h3>
 <div class="ulist">
 <ul>
 <li>
-<p>Windows 1.01</p>
+<p><strong>Windows 3.0</strong> (released May 22, 1990)</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Initial US release version</p>
+<p>Supports up to 16MB RAM.</p>
+</li>
+<li>
+<p>Improved UI.</p>
+</li>
+<li>
+<p>Improved memory management (286+ only).</p>
 </li>
 </ul>
 </div>
 </li>
 <li>
-<p>Windows 1.02</p>
+<p><strong>Windows 3.0a</strong> (released Dec, 1990)</p>
 <div class="ulist">
 <ul>
 <li>
-<p>International release</p>
+<p>Allow programs to call into real-mode when started in standard mode.</p>
 </li>
 <li>
-<p>Support for international keyboards</p>
-</li>
-<li>
-<p>Support for regional settings like time and date format</p>
-</li>
-<li>
-<p>Support for A4 paper</p>
+<p>Bug fixes for the installer to alleviate crashes.</p>
 </li>
 </ul>
 </div>
 </li>
 <li>
-<p>Windows 1.03</p>
+<p><strong>Windows 3.0a with Multimedia Extensions</strong> (released Oct, 1991)</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Additional drivers</p>
+<p>Adds Multimedia Extensions 1.0.</p>
 </li>
 <li>
-<p>Adds support for Tandy graphics</p>
+<p>Multimedia extensions do not support real mode (8086/8088 CPUs).</p>
+</li>
+<li>
+<p>Adds support for recording and playing digital audio files.</p>
+</li>
+<li>
+<p>Adds support for MIDI devices.</p>
+</li>
+<li>
+<p>Adds support for screensavers.</p>
+</li>
+<li>
+<p>Adds support for analogue joysticks.</p>
+</li>
+<li>
+<p>Adds support for audio CD-ROMs.</p>
 </li>
 </ul>
 </div>
 </li>
-<li>
-<p>Windows 1.04</p>
-<div class="ulist">
-<ul>
-<li>
-<p>Adds support for the IBM PS/2 (but no support for PS/2 mouse or VGA)</p>
-</li>
 </ul>
 </div>
-</li>
-</ul>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.6666%;">
+<col style="width: 16.667%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Edition</th>
+<th class="tableblock halign-left valign-top">Min CPU</th>
+<th class="tableblock halign-left valign-top">Min RAM</th>
+<th class="tableblock halign-left valign-top">Max RAM</th>
+<th class="tableblock halign-left valign-top">Min HDD space</th>
+<th class="tableblock halign-left valign-top">Min DOS</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.0</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8086</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1MB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">16MB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8MB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.1</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.0a</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8086</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1MB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">16MB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8MB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.1</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.0a Multimedia Edition</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">286</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">2MB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">16MB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">30MB</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.1</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Windows 3.0 was available in both Retail and OEM editions, except for <strong>Windows 3.0a with Multimedia Extensions</strong> which was available only through OEMs.</p>
 </div>
 <div class="paragraph">
-<p>Windows 1.0x was the first versions of the Microsoft Windows line, available as both Retail and OEM editions.
-A runtime edition was also included with some applications.</p>
+<p>OEM editions may include and default to different drivers in SETUP for things like video and sound.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_limitations">Limitations</h3>
+<h3 id="_readme_1st">README.1ST</h3>
 <div class="paragraph">
-<p>According to Microsoft: <em>Windows 1.0 required a minimum of 256 kilobyte, two double-sided disk drives and a graphics adapter.
-A hard disk and 512KB memory are recommended for running multiple programs or when using DOS 3.0 or higher.</em></p>
+<p>There are already some guides to installing Windows 3.0 in DOSBox, and those guides will also work with DOSBox-X.
+Some examples:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://www.sierrahelp.com/Utilities/Emulators/DOSBox/3x_install.html">Windows 3x on DOSBox guide</a> on sierrahelp.com</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>In actuality, it also needs at least DOS 2.0 (but lower than 4.0), and the two disk drives are not mandatory if there is a harddisk.
-It only supports up to 640KB base memory (no support for EMS/XMS/UMB memory).</p>
-</div>
-<div class="paragraph">
-<p>The retail release of Windows 1.04 adds support for the IBM PS/2 but did not add support for the IBM PS/2 Mouse, or the newer VGA, MCGA or 8514/A video adapters.
-IBM distributed a special OEM version of Windows 1.04 as part of the "<strong>IBM PS/2 Collegiate Kit</strong>", which does have support for those features.</p>
-</div>
-<div class="paragraph">
-<p>Unless this special IBM OEM version of Windows 1.04 is used, you must enable the serial mouse emulation in DOSBox-X and tell Windows during installation to configure a serial mouse.
-And likewise, you will be limited to EGA graphics.</p>
+<p>This guide does not look to replicate those guides. Instead, this guide will have some install guidance and hints and tips not covered on those pages, or that are specific to DOSBox-X. It is not intended to be a comprehensive guide.</p>
 </div>
 </div>
 <div class="sect2">
@@ -567,13 +653,70 @@ And likewise, you will be limited to EGA graphics.</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://en.wikipedia.org/wiki/Windows_1.0">Wikipedia: Windows 1.0</a></p>
+<p><a href="https://vogonsdrivers.com/">VOGONS Vintage Driver Library</a></p>
 </li>
 <li>
-<p><a href="https://betawiki.net/wiki/Windows_1.0">BetaWiki: Windows 1.0</a></p>
+<p><a href="https://en.wikipedia.org/wiki/Windows_3.0">Wikipedia: Windows 3.0</a></p>
 </li>
 <li>
-<p><a href="http://toastytech.com/guis/win1x2x.html">Overview of Windows 1.x/2.x Applications</a></p>
+<p><a href="https://betawiki.net/wiki/Windows_3.0">BetaWiki: Windows 3.0</a></p>
+</li>
+<li>
+<p><a href="https://betawiki.net/wiki/Windows_3.00a_Multimedia_Edition">BetaWiki: Windows 3.00a Multimedia Edition</a></p>
+</li>
+<li>
+<p><a href="https://nerdlypleasures.blogspot.com/2016/12/windows-30-multimedia-edition-early.html">Nerdly Pleasures: Windows 3.0 Multimedia Edition - Early Windows Multimedia Gaming</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_general_notes">General Notes</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>Some parts of the installation can take a considerable amount of time.
+You may be able to speed this up considerably (depending on the host CPU) by using the DOSBox-X Turbo mode, which can be enabled from the drop-down menu bar by selecting "CPU" followed by "Turbo (Fast Forward)".
+This turbo mode is not like the old Turbo button on retro PCs, but functions more like a fast-forward, and therefore should not be used when interacting with the guest OS.
+Starting with DOSBox-X 0.83.21 the turbo mode is automatically disabled the moment a key is pressed, to prevent spurious keypresses to be registered causing undesirable effects.</p>
+</li>
+<li>
+<p>Unless noted otherwise, Windows 3.1 drivers are not backward compatible with Windows 3.0.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_windows_3_0a_with_multimedia_extensions_specific_notes">Windows 3.0a with Multimedia Extensions specific notes</h3>
+<div class="paragraph">
+<p>Also called <strong>Windows 3.0 Multimedia Edition</strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>This edition was available only to OEMs (Original Equipment Manufacturers) for bundling with a multimedia PC or multimedia upgrade set, as such Windows will be customized to that multimedia system or upgrade set.
+Examples of such customization, are an OEM specific launcher, OEM specific applications, but also that the installer may default to custom audio and video options.</p>
+</li>
+<li>
+<p>It seems all versions were distributed on CD, the installation can be started by going into the <code>MWIN</code> directory on the CD and running <code>SETUP.EXE</code>.</p>
+</li>
+<li>
+<p>Unlike regular Windows which installs by default to <code>C:\WINDOWS</code> this edition installs by default to <code>C:\MWINDOWS</code>.</p>
+</li>
+<li>
+<p>The two editions which have been archived, shipped with Multimedia upgrade kits, are from Tandy and Creative Labs respectively.</p>
+</li>
+<li>
+<p>The Tandy edition shipped as part of a Sound and CD-ROM upgrade kit, included a "Tandy Sound Blaster Pro 16". Despite the name, this is not actually a SB16, but rather a modified SB Pro (aka SB Pro 1.0). Drivers for this are included with the Windows installation and you should emulate a SB Pro 1 for the best experience. The card by default was set to IO 220, IRQ 10 and DMA 3, and you should either use those settings in your DOSBox-X config file, or modify <code>C:\MWINDOWS\SYSTEM.INI</code> after installation.</p>
+</li>
+<li>
+<p>The Creative Labs edition shipped as part of a Sound and CD-ROM upgrade kit, included a "Sound Blaster Pro" (aka SB Pro 1.0). Drivers for this are included with the Windows installation, and you should emulate an SB Pro 1 for the best experience.</p>
+</li>
+<li>
+<p>During Windows setup, change the default "Palettized VGA 640x480 with 16 colors" display option to "VGA", or audio playback will cause Windows to crash. You can install the ET4000 drivers afterwards.</p>
+</li>
+<li>
+<p>If during Windows setup you are asked to provide the path to "mouse.sys", skip it. It is looking for the Microsoft DOS Mouse driver, which is not needed.</p>
 </li>
 </ul>
 </div>
@@ -584,7 +727,7 @@ And likewise, you will be limited to EGA graphics.</p>
 <h2 id="_dosbox_x_config_file">DOSBox-X config file</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>It is recommended that you create a custom DOSBox-X config file for running Windows 1.0x</p>
+<p>It is recommended that you create a custom DOSBox-X config file for running Windows 3.0</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -592,22 +735,27 @@ And likewise, you will be limited to EGA graphics.</p>
 autolock=true
 
 [dosbox]
-title=Windows 1.0x
+title=Windows 3.0
+memsize=16
+machine=svga_et4000
 
 [dos]
-ver=3.4
+hard drive data rate limit=0
+floppy drive data rate limit=0
 
-[serial]
-# Comment out the line below if you have the special OEM Windows 1.04
-# release from the IBM PS/2 Collegiate Kit, which supports PS/2 mouse.
-serial1=serialmouse
+[cpu]
+cputype=pentium
+core=normal
 
-[parallel]
-parallel1=printer
+[sblaster]
+sbtype=sbpro1
 
-[printer]
-multipage=true
-timeout=5000
+[pci]
+voodoo=false
+
+[ide, primary]
+int13fakeio=true
+int13fakev86io=false
 
 [render]
 scaler=none
@@ -616,7 +764,7 @@ scaler=none
 </div>
 </div>
 <div class="paragraph">
-<p>Copy the above config and save it as <strong>win1x.conf</strong></p>
+<p>Copy the above config and save it as <code>win30.conf</code></p>
 </div>
 </div>
 </div>
@@ -624,11 +772,67 @@ scaler=none
 <h2 id="_preparing_for_installation">Preparing for installation</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The installation will be into a mounted folder, and Windows 1.0x will run from the integrated DOS that DOSBox-X provides.
-You can optionally install real DOS into DOSBox-X and install Windows 1.0x in that, but there is no known advantage to doing so.</p>
+<p>Except for the Multimedia Edition, all Windows 3.0 versions were shipped on floppies, requiring anywhere between 5 and 15 disks, depending on media-type and Windows version.
+And while it is possible to install Windows 3.0 from floppy images in DOSBox-X, the disk-swap process for this is rather tedious for substantial number of disks.
+As such it is recommended to make a directory such as "INSTALL" and copy the contents of ALL the diskettes into this directory.
+This way there is no need to swap disks during the installation process.</p>
+</div>
+<div class="sect2">
+<h3 id="_example_of_extracting_files_from_disk_images">Example of extracting files from disk images</h3>
+<div class="paragraph">
+<p>There are several ways to extract the contents of disk images, such as 7zip on Windows or "Disk Image Mounter" on Linux.
+In this example, DOSBox-X itself is used to mount a disk image, copy its contents into a folder, unmount the disk image and do the next.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>MOUNT C /home/myuser/winroot
+C:
+MD INSTALL
+IMGMOUNT A DISK01.IMG -U
+COPY A:\*.* C:\INSTALL
+IMGMOUNT A DISK02.IMG -U
+COPY A:\*.* C:\INSTALL
+IMGMOUNT A DISK03.IMG -U
+COPY A:\*.* C:\INSTALL
+IMGMOUNT A DISK04.IMG -U
+COPY A:\*.* C:\INSTALL
+IMGMOUNT A DISK05.IMG -U
+COPY A:\*.* C:\INSTALL
+IMGMOUNT A -U</pre>
+</div>
 </div>
 <div class="paragraph">
-<p>Start by creating a directory on your system that you&#8217;re going to use (mount) as your Windows 1.0x C: drive. Valid examples:</p>
+<p>Your new INSTALL directory now holds the contents of all 5 disks in this example.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_mounting_an_installation_cd_rom">Mounting an installation CD-ROM</h3>
+<div class="paragraph">
+<p>If you have a "Windows 3.0a Multimedia Edition" CD-ROM image, you can simply mount it in DOSBox-X, and run the SETUP program.</p>
+</div>
+<div class="paragraph">
+<p>e.g.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMOUNT D win30me.iso
+D:
+CD MWIN
+SETUP.EXE</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The installer is normally found on the CD as <code>\MWIN\SETUP.EXE</code>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_installing_in_a_mounted_folder">Installing in a mounted folder</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Create a directory on your system that you&#8217;re going to use (mount) as your Windows 3.0 C: drive.
+Valid examples:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -640,7 +844,7 @@ You can optionally install real DOS into DOSBox-X and install Windows 1.0x in th
 <p>C:\winroot</p>
 </li>
 <li>
-<p>C:\users\myuser\win1x</p>
+<p>C:\users\myuser\win30</p>
 </li>
 </ul>
 </div>
@@ -653,7 +857,7 @@ You can optionally install real DOS into DOSBox-X and install Windows 1.0x in th
 <p>/home/myuser/winroot</p>
 </li>
 <li>
-<p>/home/myuser/windows/win1x</p>
+<p>/home/myuser/windows/win30</p>
 </li>
 </ul>
 </div>
@@ -667,74 +871,37 @@ You can optionally install real DOS into DOSBox-X and install Windows 1.0x in th
 <div class="title">Note</div>
 </td>
 <td class="content">
-For users running Windows on their host computer, do <strong>NOT</strong> mount the root of your C: drive as the DOSBox-X C: drive! (e.g., <code>MOUNT C: C:\</code> should NOT be done)
+For users running Windows natively on their computer, do <strong>NOT</strong> mount the root of your C: drive as the DOSBox C: drive! (e.g., <code>MOUNT C: C:\</code> should NOT be done), as it will cause confusion and potential conflicts between the host system C:\WINDOWS directory and that of Windows 3.0.
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>All Windows 1.0x versions were shipped on diskettes, requiring anywhere between 3 and 7 disks, depending on media-type and Windows version.
-And while it is possible to install Windows 1.0x from floppy images in DOSBox-X, the disk-swap process for this is rather tedious for substantial number of disks.
-As such it is recommended to make a directory such as "INSTALL" and copy the contents of ALL the diskettes into this directory.
-This way there is no need to swap disks during the installation process.</p>
+<p>Now create a directory underneath that, which will hold your Windows 3.0 installation files.
+e.g., <code>C:\users\myuser\win30\INSTALL</code> or <code>/home/myuser/winroot/INSTALL</code> and copy the installation files into it.</p>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_example_of_extracting_files_from_disk_images">Example of extracting files from disk images</h2>
-<div class="sectionbody">
 <div class="paragraph">
-<p>There are several ways to extract the contents of disk images, such as 7zip on Windows or "Disk Image Mounter" on Linux.
-In this example, DOSBox-X itself is used to mount a disk image, copy its contents into a folder, unmount the disk image and do the next.</p>
+<p>You are now ready to start DOSBox-X from the command-line, using the newly created <code>win30.conf</code>.
+This assumes that the <code>dosbox-x</code> program is in your path and <code>win30.conf</code> is in your current directory.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>dosbox-x -conf win30.conf</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You now need to mount your new folder as the C: drive in DOSBox-X and start the installation.</p>
 </div>
 <div class="literalblock">
 <div class="content">
 <pre>MOUNT C /home/myuser/winroot
 C:
-MD INSTALL
-IMGMOUNT A DISK01.IMG -U
-XCOPY A:\. C:\INSTALL /S /Y
-IMGMOUNT A DISK02.IMG -U
-XCOPY A:\. C:\INSTALL /S /Y
-IMGMOUNT A DISK03.IMG -U
-XCOPY A:\. C:\INSTALL /S /Y
-IMGMOUNT A DISK04.IMG -U
-XCOPY A:\. C:\INSTALL /S /Y
-IMGMOUNT A DISK05.IMG -U
-XCOPY A:\. C:\INSTALL /S /Y
-IMGMOUNT A -U</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Your new INSTALL directory now holds the contents of all 5 floppy disks.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_installing_in_a_mounted_folder">Installing in a mounted folder</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>You&#8217;re now ready to start DOSBox-X from the command-line, using the newly created win1x.conf config file.
-This assumes that the <code>dosbox-x</code> program is in your path and <code>win1x.conf</code> is in your current directory.</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>dosbox-x -conf win1x.conf</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>You now need to mount your new folder as the C: drive in DOSBox-X, and the "INSTALL" directory on A: and start the installation.</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>MOUNT A /home/myuser/winroot/INSTALL
-MOUNT C /home/myuser/winroot
-A:
+CD INSTALL
 SETUP</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Adjust the path for mounting the A: and C: drive as needed.</p>
+<p>Adjust the path for mounting the C: drive as needed.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -743,352 +910,339 @@ SETUP</pre>
 <div class="title">Note</div>
 </td>
 <td class="content">
-If your path has spaces, you need to enclose it in quotes. e.g., <code>MOUNT C "C:\Users\John Doe\winroot"</code>
+If your path has spaces in it, you need to enclose it in quotes. e.g., <code>MOUNT C "C:\Users\John Doe\winroot"</code>
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>The Windows installation will now take place. See the <a href="#Windows-1.0x-setup-program">Windows 1.0x setup program</a> section below.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_windows_1_0x_setup_program">Windows 1.0x setup program</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>The setup program will ask several question relating to mouse, display and printer.
-If you have v1.02 or newer it will also ask you about the keyboard layout.</p>
+<p>The Windows installation will now take place.</p>
 </div>
 <div class="paragraph">
-<p>Note: Unless otherwise noted, the below screenshots are from the retail Windows 1.01 release, other releases can vary.
-In particular, OEM or Runtime versions may have a different number of disks and present other options.</p>
-</div>
-<hr>
-<div class="paragraph">
-<p>Simply press Enter, or "<strong>C</strong>" to continue as prompted.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="images/Windows:Windows_1.01_SETUP_01.png" alt="Windows 1.01 SETUP">
-</div>
-</div>
-<hr>
-<div class="paragraph">
-<p><strong>Installation directory</strong></p>
+<p>Once the installation process has finished, you will be asked if you want to start windows or exit to DOS.
+Exit to DOS and type EXIT to close DOSBox-X.</p>
 </div>
 <div class="paragraph">
-<p>You can optionally specify a different directory to install Windows into.</p>
-</div>
-<div class="paragraph">
-<p>Simply press <strong>Enter</strong> to continue as prompted.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="images/Windows:Windows_1.01_SETUP_02.png" alt="Windows 1.01 SETUP directory">
-</div>
-</div>
-<hr>
-<div class="paragraph">
-<p>This screen will vary depending on the release version, OEM and if it is a runtime version.</p>
-</div>
-<div class="paragraph">
-<p>Simply press Enter, or "<strong>C</strong>" to continue as prompted.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="images/Windows:Windows_1.01_SETUP_03.png" alt="Windows 1.01 SETUP">
-</div>
-</div>
-<hr>
-<div class="paragraph">
-<p><strong>Keyboard selection</strong></p>
-</div>
-<div class="paragraph">
-<p>If you have version 1.02 or later, SETUP will ask for your keyboard layout.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="images/Windows:Windows_1.04_SETUP_KB_PS2.png" alt="Windows 1.04 SETUP">
-</div>
-</div>
-<hr>
-<div class="paragraph">
-<p><strong>Mouse selection</strong></p>
-</div>
-<div class="paragraph">
-<p>If you have the special IBM OEM version of Windows 1.04, as shown below, you can select option 8 "<strong>IBM Personal System/2 Mouse</strong>" for PS/2 mouse.
-In which case you need to disable the serialmouse option in your DOSBox-X config file.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="images/Windows:Windows_1.04_SETUP_04_PS2.png" alt="Windows 1.04 SETUP MOUSE PS2">
-</div>
-</div>
-<div class="paragraph">
-<p>Otherwise, select option 2 "<strong>Microsoft Mouse (Bus/Serial)</strong>" and press Enter to continue as prompted.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="images/Windows:Windows_1.01_SETUP_04.png" alt="Windows 1.01 SETUP MOUSE">
-</div>
-</div>
-<hr>
-<div class="paragraph">
-<p><strong>Graphics Adapter selection</strong></p>
-</div>
-<div class="paragraph">
-<p>If you have the special IBM OEM version of Windows 1.04, as show below, you can select option 2 "<strong>IBM Personal System/2 Model 50, 60, 80</strong>" for VGA.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="images/Windows:Windows_1.04_SETUP_05_PS2.png" alt="Windows 1.04 SETUP GRAPHICS PS2">
-</div>
-</div>
-<div class="paragraph">
-<p>Otherwise, select option 6 "<strong>EGA (more than 64K) with Enhanced Color Display</strong>" as shown below, and press Enter to continue as prompted.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="images/Windows:Windows_1.01_SETUP_05.png" alt="Windows 1.01 SETUP GRAPHICS">
-</div>
-</div>
-<hr>
-<div class="paragraph">
-<p><strong>Build disk</strong></p>
-</div>
-<div class="paragraph">
-<p>SETUP now asks for the Build disk.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>If you&#8217;re following the folder installation method, you can simply press Enter.</p>
-</li>
-<li>
-<p>If you&#8217;re using disk images to install Windows, you need to now swap the disk using the menu item "DOS" followed by "Swap floppy". And then press enter.</p>
-</li>
-</ul>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="images/Windows:Windows_1.01_SETUP_06.png" alt="Windows 1.01 SETUP Build Disk">
-</div>
-</div>
-<hr>
-<div class="paragraph">
-<p><strong>Utilities disk</strong></p>
-</div>
-<div class="paragraph">
-<p>SETUP now asks for the Utilities disk.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>If you&#8217;re following the folder installation method, you can simply press Enter.</p>
-</li>
-<li>
-<p>If you&#8217;re using disk images to install Windows, you need to now swap the disk using the menu item "DOS" followed by "Swap floppy". And then press enter.</p>
-</li>
-</ul>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="images/Windows:Windows_1.01_SETUP_07.png" alt="Windows 1.01 SETUP Build Disk">
-</div>
-</div>
-<hr>
-<div class="paragraph">
-<p><strong>Printer setup</strong></p>
-</div>
-<div class="paragraph">
-<p>SETUP now asks if you want to set up a printer. You can press enter or "<strong>Y</strong>" to confirm, or you can press "<strong>N</strong>" to skip this step.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="images/Windows:Windows_1.01_SETUP_08.png" alt="Windows 1.01 SETUP printer">
-</div>
-</div>
-<hr>
-<div class="paragraph">
-<p><strong>Printer setup - select model</strong></p>
-</div>
-<div class="paragraph">
-<p>If you indicated wanting to set up a printer, SETUP now asks you which model.</p>
-</div>
-<div class="paragraph">
-<p>For this guide we use option 2, the "<strong>Epson LQ-1500</strong>", and press Enter.</p>
-</div>
-<div class="paragraph">
-<p>Later releases may have more options, such as a "<strong>Generic / Text Only</strong>" printer which can also be used.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="images/Windows:Windows_1.01_SETUP_09.png" alt="Windows 1.01 SETUP printer">
-</div>
-</div>
-<hr>
-<div class="paragraph">
-<p><strong>Printer setup - port select</strong></p>
-</div>
-<div class="paragraph">
-<p>If you indicated wanting to set up a printer, SETUP now asks you which port the printer is connected to.</p>
-</div>
-<div class="paragraph">
-<p>Select the number for the "<strong>LPT1:</strong>" port and press Enter.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-In the version shown, it is option 1, but in some other releases it is option 2.
-</td>
-</tr>
-</table>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="images/Windows:Windows_1.01_SETUP_10.png" alt="Windows 1.01 SETUP printer">
-</div>
-</div>
-<hr>
-<div class="paragraph">
-<p><strong>Printer setup - another printer</strong></p>
-</div>
-<div class="paragraph">
-<p>SETUP now asks if you want to set up another printer.</p>
-</div>
-<div class="paragraph">
-<p>Press Enter to continue without setting up another printer.</p>
-</div>
-<div class="paragraph">
-<p>You can always change the installed printers afterwards by running <code>CONTROL.EXE</code> from within Windows 1.0x.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="images/Windows:Windows_1.01_SETUP_11.png" alt="Windows 1.01 SETUP printer">
-</div>
-</div>
-<hr>
-<div class="paragraph">
-<p><strong>Desktop Applications disk</strong></p>
-</div>
-<div class="paragraph">
-<p>SETUP now asks for the Desktop Applications disk.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>If you&#8217;re following the folder installation method, you can simply press Enter.</p>
-</li>
-<li>
-<p>If you&#8217;re using disk images to install Windows, you need to now swap the disk using the menu item "DOS" followed by "Swap floppy". And then press enter.</p>
-</li>
-</ul>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="images/Windows:Windows_1.01_SETUP_12.png" alt="Windows 1.01 SETUP Applications Disk">
-</div>
-</div>
-<hr>
-<div class="paragraph">
-<p><strong>Microsoft Write Program disk</strong></p>
-</div>
-<div class="paragraph">
-<p>SETUP now asks for the Microsoft Write Program disk.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>If you&#8217;re following the folder installation method, you can simply press Enter.</p>
-</li>
-<li>
-<p>If you&#8217;re using disk images to install Windows, you need to now swap the disk using the menu item "DOS" followed by "Swap floppy". And then press enter.</p>
-</li>
-</ul>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="images/Windows:Windows_1.01_SETUP_13.png" alt="Windows 1.01 SETUP Write Program Disk">
-</div>
-</div>
-<hr>
-<div class="paragraph">
-<p><strong>SETUP completed</strong></p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="images/Windows:Windows_1.01_SETUP_14.png" alt="Windows 1.01 SETUP finished">
-</div>
-</div>
-<div class="paragraph">
-<p>The setup program is now finished, and you&#8217;re ready to start Windows 1.0x.</p>
-</div>
-<div class="paragraph">
-<p>But first type <code>EXIT</code> to close DOSBox-X.</p>
-</div>
-<div class="paragraph">
-<p>And then edit your <code>win1x.conf</code> config file and add the following lines into the <code>[autoexec]</code> section at the end of the file:</p>
+<p>Now edit your <code>win30.conf</code> config file and add the following lines into the [autoexec] section at the end of the file.</p>
 </div>
 <div class="literalblock">
 <div class="content">
 <pre>@ECHO OFF
 MOUNT C /home/myuser/winroot
 C:
+IF EXIST C:\MWINDOWS\WIN.COM GOTO MWINDOWS
+IF EXIST C:\WINDOWS\WIN.COM GOTO WINDOWS
+ECHO No Windows installation found
+GOTO END
+
+:MWINDOWS
+echo Starting Windows 3.0a with Multimedia Extensions
+SET PATH=%PATH%;C:\MWINDOWS;
+SET TEMP=C:\MWINDOWS\TEMP
+C:\MWINDOWS\WIN.COM
+GOTO END
+
+:WINDOWS
+echo Starting Windows 3.0
 SET PATH=%PATH%;C:\WINDOWS;
+SET TEMP=C:\WINDOWS\TEMP
 C:\WINDOWS\WIN.COM
+GOTO END
+
+:END
 EXIT</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Adjust the path for mounting the C: drive as needed.
-If you don&#8217;t want DOSBox-X to close when exiting Windows 1.0x, remove the <code>EXIT</code> command.</p>
+<p>Adjust the <code>MOUNT</code> path above for mounting the C: drive as needed.</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_starting_windows_1_0x_after_installation">Starting Windows 1.0x after installation</h2>
+<h2 id="_booting_from_a_dos_hdd_image">Booting from a DOS HDD image</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>After the installation is finished, you can start Windows 1.0x from the command-prompt with the following command:</p>
+<p>This method brings with it a bit of added inconvenience.
+For instance, you will need to do your own DOS memory management and load DOS drivers for CD-ROM access.
+You can also not boot DOSBox-X from a mounted host directory (folder mount).</p>
+</div>
+<div class="sect2">
+<h3 id="_host_folder_mounts">Host Folder mounts</h3>
+<div class="paragraph">
+<p>Starting with DOSBox-X 2022.08.0, there is optional support to dynamically convert a host folder mount to an emulated FAT harddisk for use when you need to boot a guest OS, such as MS-DOS.
+This can be accomplished in one of two ways. Either when you issue the <code>boot</code> command, you add the option <code>-convertfat</code>. e.g. <code>boot c: -convertfat</code>.</p>
+</div>
+<div class="paragraph">
+<p>Or by setting the following option in your DOSBox-X config file:</p>
 </div>
 <div class="literalblock">
 <div class="content">
-<pre>dosbox-x -conf win1x.conf</pre>
+<pre>[sdl]
+convertdrivefat = true</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can optionally create a shortcut on your desktop to start Windows 1.0x directly.</p>
+<p>When you now boot from a real image file, it will attempt to convert <strong>ALL</strong> folder mounts at the time of booting to emulated FAT Harddisks.</p>
 </div>
-<div class="imageblock">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+You cannot boot from such an emulated FAT harddisk. You will still need some other bootable image file to actually boot a guest OS.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+This conversion is dynamic, effectively creating an emulated FAT harddisk out of a folder mount.
+This converted FAT harddisk is not automatically stored permanently.
+You can however, store it as a permanent image file that you can later mount with <code>IMGMOUNT</code>, using the "Drive" &gt; "drive letter" &gt; "Save to disk image" option from the menus.
+Please see the "Creating harddisk images from folder mounts" section in the <a href="Guide%3AManaging-image-files-in-DOSBox‐X#Creating_harddisk_images_from_folder_mounts">Guide: Managing image files in DOSBox-X</a> for more information.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+There is currently no support for creating emulated CD-ROM or Floppy drives out of folder mounts with this method. Any CD-ROM or Floppy folder mounts will also be converted to harddisk folder mounts, and may not actually work for the intended purpose.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>One thing to note, is that there is no way to specify the FAT type to use for the conversion.
+The FAT type will be automatically selected based on the aggregate size of files in the folder, plus 250MiB (this can be adjusted with the <code>convert fat free space</code> option in the DOSBox-X config file).
+If the total space of files + 250MiB does not exceed 2GiB, it will convert it into a FAT16 disk. Otherwise, it will become a FAT32, which in turn will require a guest OS with FAT32 support.</p>
+</div>
+<div class="paragraph">
+<p>Alternatively, you can also make the emulated FAT drive read-only by using the <code>-convertfatro</code> option with the <code>boot</code> command. Or by setting <code>convert fat free space=0</code> option in the DOSBox-X config file.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_installing_windows_3_0_into_a_dos_hdd_image">Installing Windows 3.0 into a DOS HDD image</h3>
+<div class="paragraph">
+<p>The first step is to create a DOS HDD image, for which you can follow the <a href="Guide%3ADOS-Installation-in-DOSBox‐X">PC DOS and MS-DOS Installation Guide</a>.
+You need at least DOS 3.1 for Windows 3.0.
+However, it is recommended to use a newer version such as DOS 6.x</p>
+</div>
+<div class="paragraph">
+<p>Once you have a DOS HDD image, temporarily mount it in DOSBox-X to transfer your INSTALL folder into your DOS HDD image, together with any drivers and add-ons you might need (preferably already unzipped, such that you don&#8217;t need to do that in DOS or Windows 3.0, as they lack support for that by default).</p>
+</div>
+<div class="paragraph">
+<p>Something like:</p>
+</div>
+<div class="literalblock">
 <div class="content">
-<img src="images/Windows:Windows_1.01.png" alt="Windows 1.01 MS-DOS Executive">
+<pre>IMGMOUNT C hdd.img
+MOUNT D .
+XCOPY D:\INSTALL C:\INSTALL /I /S
+XCOPY D:\DRIVERS C:\DRIVERS /I /S
+XCOPY D:\ADDONS C:\ADDONS /I /S
+EXIT</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Adjust paths in the above example as needed.</p>
+</div>
+<div class="paragraph">
+<p>Now edit your <code>win30.conf</code> config file and in the <code>[autoexec]</code> section at the end, add the following lines:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>IMGMOUNT C hdd.img
+BOOT C:</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now start DOSBox-X with your <code>win30.conf</code> config file from the command-line:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>dosbox-x -conf win30.conf</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>It should boot to the C: prompt, and you can start the installation process.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>CD INSTALL
+SETUP</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After the installation is finished, you can install your drivers and add-ons.</p>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_mouse_integration">Mouse integration</h2>
+<h2 id="_starting_windows_3_0_after_installation">Starting Windows 3.0 after installation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After the installation is finished, you can start Windows 3.0 from the command-prompt with the following command:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>dosbox-x -conf win30.conf</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can optionally create a shortcut on your desktop to start Windows 3.0 directly.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_steps_to_take_after_installation">Steps to take after installation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Once Windows 3.0 is installed, here is some additional software you may want to install or update:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Updated Video drivers</p>
+</li>
+<li>
+<p>Adobe Type Manager 2.5</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_video_driver">Video driver</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>See <a href="Guide%3AVideo-card-support-in-DOSBox‐X">Video card support in DOSBox‐X</a> for more information about the various video cards, and available options.</p>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Tip</div>
+</td>
+<td class="content">
+For Windows 3.0 the recommended display adapter is the Tseng Labs ET4000.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Here are the recommended drivers, depending on the video adapter you are emulating.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Tseng Labs</strong></p>
+<div class="ulist">
+<ul>
+<li>
+<p>ET3000 using <code>machine=svga_et3000</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://files.mpoli.fi/hardware/DISPLAY/TSENG/ET3-W31.ZIP">Windows 3.0 and 3.1beta - ET3000 drivers, Jan 15 1992</a></p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>ET4000 using <code>machine=svga_et4000</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://vogonsdrivers.com/getfile.php?fileid=292&amp;menustate=0">Windows 3.0 - ET4000 drivers, Jan 15 1992</a></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p><strong>Paradise Systems</strong></p>
+<div class="ulist">
+<ul>
+<li>
+<p>PVGA1A using <code>machine=svga_paradise</code></p>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://vogonsdrivers.com/getfile.php?fileid=243&amp;menustate=0">Windows 3.0 - PVGA drivers, Dec 19 1990</a></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_mouse_support">Mouse support</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>When running Windows in DOSBox-X the integration is not seamless.
-You need to capture the mouse and again release it when you want to leave the DOSBox-X window.
+You need to capture the mouse and again release it when you want the mouse to leave the DOSBox-X window.
 This is because Windows uses its own driver instead of using the integrated mouse support that DOSBox-X provides.</p>
 </div>
 <div class="paragraph">
-<p>There is however experimental support in DOSBox-X for such seamless integration.
+<p>There are two possible solutions to this.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_dosbox_x_mouse_integration_driver">DOSBox-X mouse integration driver</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There is experimental support in DOSBox-X for seamless integration.
 To get this working take the following steps:</p>
 </div>
 <div class="paragraph">
 <p>Go to <a href="https://github.com/joncampbell123/doslib/releases">doslib releases</a> and download the latest binary release of doslib.
-Unpack the archive, and you will find a Windows 1.0 mouse driver with installation instructions in the <code>windrv/dosboxpi/bin/win10</code> directory.</p>
+Unpack the archive, and you will find a Windows 3.0 mouse driver in the <code>windrv/dosboxpi/bin/win30</code> directory.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Copy the <code>DBOXMPI.DRV</code> and <code>OEMSETUP.INF</code> files for your Windows version to a place where the Windows SETUP.EXE program will be able to find it</p>
+</li>
+<li>
+<p>When you run SETUP.EXE, select to change the mouse and then select the "Other (requires disk provided by a hardware manufacturer)" option</p>
+</li>
+<li>
+<p>Enter the path where you saved the <code>DBOXMPI.DRV</code> and <code>OEMSETUP.INF</code> files</p>
+</li>
+<li>
+<p>Select the "DOSBox-X Mouse Pointer Integration" option</p>
+</li>
+<li>
+<p>If SETUP asks for the "DOSBox-X Guest Additions" disk, give it the same path as before.</p>
+</li>
+<li>
+<p>Continue the setup as normal</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
-<p>Follow the installation instructions, and in addition, set the following options in your DOSBox-X config file:</p>
+<p>In addition, set the following options in your DOSBox-X config file:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -1100,7 +1254,7 @@ integration device=true</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Now when you run Windows 1.0, you should have seamless mouse support.</p>
+<p>Now when you run Windows 3.0, you should have seamless mouse support.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1114,6 +1268,280 @@ This can be controlled by the <code>mouse_wheel_key=</code> setting in the <code
 </td>
 </tr>
 </table>
+</div>
+<div class="sect2">
+<h3 id="_vmware_mouse_driver">VMWare mouse driver</h3>
+<div class="paragraph">
+<p>DOSBox-X 0.83.24 or later also supports the VMware mouse protocol.
+There is a 4rd party Windows 3.0 mouse driver <a href="https://git.javispedro.com/cgit/vbados.git/about/">VBMOUSE.DRV</a> by @javispedro, including support for the scroll wheel.</p>
+</div>
+<div class="paragraph">
+<p>If you are running Windows 3.0 directly in the DOSBox-X integrated DOS environment, do not load the VBMOUSE.EXE driver. Only install the VBMOUSE.DRV in Windows 3.0.</p>
+</div>
+<div class="paragraph">
+<p>For scroll wheel support, you will also have to set the following setting in your DOSBox-X config file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code>[sdl]
+mouse_wheel_key=0</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_sound">Sound</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Windows 3.0 and 3.0a does not really support sound.
+It only supports the PC Speaker, and even then is limited to a simple "beep" sound.</p>
+</div>
+<div class="paragraph">
+<p>Some early Windows games will directly access the PC Speaker, without a driver, to get more complex sounds.</p>
+</div>
+<div class="paragraph">
+<p>In addition, it is possible to install early versions of Sound Blaster software for Windows, which provides its own API, to allow the included Jukebox and Mixer to access the hardware.</p>
+</div>
+<div class="paragraph">
+<p><a href="http://files.mpoli.fi/hardware/SOUND/CLABS/WIN30.ZIP">SB 1.0/1.5/2.0 and SB Pro 1.0 drivers for Windows 3.0</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_multimedia_edition_sound">Multimedia Edition Sound</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>As mentioned, this Windows edition was only available as part of a Multimedia PC purchase, or Multimedia upgrade kit.</p>
+</div>
+<div class="paragraph">
+<p>Very few Windows games support this edition.
+Look for a combination of Windows 3.0 and the "Multimedia Windows" or "Windows MPC" logo on the box.
+A few known titles to support it:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Early Sierra Online Windows versions such as: Mixed Up Mother Goose, King&#8217;s Quest V, Space Quest IV, Laura Bow 2, King&#8217;s Quest VI, Freddy Pharkas, EcoQuest 1</p>
+</li>
+<li>
+<p>Battle Chess Enhanced CD-ROM</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The only available sound drivers, are the once included with the installation. Later Windows 3.1 sound drivers will not work.</p>
+</div>
+<div class="paragraph">
+<p>There are two editions for which information is available:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Tandy Multimedia upgrade kit with "Tandy Sound Blaster Pro 16", which is actually a modified SB Pro 1.0</p>
+</li>
+<li>
+<p>Creative Labs Multimedia upgrade kit with SB Pro 1.0</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For both of these editions, it is best to use <code>sbtype=sbpro1</code> in your DOSBox-X config file.</p>
+</div>
+<div class="paragraph">
+<p>During Windows installation, the Tandy edition will only offer the option to change the base IO port from the default 220.
+Options to change the IRQ and DMA are not given. For this edition, you should either set <code>irq=10</code> and <code>dma=3</code> in your DOSBox-X config file, or modify the defaults manually after installation in <code>C:\MWINDOWS\SYSTEM.INI</code></p>
+</div>
+<div class="paragraph">
+<p>For the Creative Labs edition, it will ask for the base IO port, IRQ and DMA during installation.
+Unless you changed the settings in your DOSBox-X config file, the default is IO 220, IRQ 7 and DMA 1.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Setting the wrong SB settings can cause Windows to crash when it tries to play sounds, which it will do by default on Windows startup.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_enabling_external_midi_in_windows_3_0_multimedia_edition">Enabling external MIDI in Windows 3.0 Multimedia Edition</h3>
+<div class="paragraph">
+<p>By default, the SBPro Windows drivers will emulate MIDI playback using the dual OPL2 chips.</p>
+</div>
+<div class="paragraph">
+<p>However, DOSBox-X has built-in support for General MIDI emulation (which is normally enabled by default), and which sounds much better.</p>
+</div>
+<div class="paragraph">
+<p>To set it up, in Windows 3.0 Multimedia Edition, go to "Control Panel" and open "MIDI Mapper".</p>
+</div>
+<div class="paragraph">
+<p>In the "MIDI Mapper" dialogue box click on the "New&#8230;&#8203;" button.
+You will be asked for a name and description.
+You can name it anything you like, for instance "SBPro Ext MIDI", and click the "OK" button.
+You do not have to enter anything for the Description.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/Windows:Windows_3.0_MIDI_1.png" alt="Windows 3.0a MIDI">
+</div>
+</div>
+<div class="paragraph">
+<p>You will then get a "MIDI Setup" window.
+The only thing you want to change here is the "Port Name" to "SB MIDI Out" for all 16 lines.
+You may also notice that for each line the active checkbox gets checked, this is correct.
+Once finished click the "OK" button and confirm the save.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/Windows:Windows_3.0_MIDI_2.png" alt="Windows 3.0a MIDI">
+</div>
+</div>
+<div class="paragraph">
+<p>You should now be able to open the Windows 3.0 Media Player and playback something like <code>C:\MWINDOWS\MMDATA\CANYON.MID</code>.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_enabling_printing">Enabling printing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Also see the <a href="Guide%3ASetting-up-printing-in-DOSBox%E2%80%90X">Guide: Setting up printing in DOSBox-X</a></p>
+</div>
+<div class="sect2">
+<h3 id="_print_to_postscript">Print to PostScript</h3>
+<div class="paragraph">
+<p>For the best print quality, you will want to print to a PostScript printer in Windows 3.0.</p>
+</div>
+<div class="paragraph">
+<p>First, set up your DOSBox-X config to print to a file as such:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[dosbox]
+captures=capture
+
+[parallel]
+parallel1=file timeout=2000</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next in Windows 3.0, select any PostScript printer such as the "QMS ColorScript 100", during printer setup connected to LPT1.</p>
+</div>
+<div class="paragraph">
+<p>When you print, a .prt file in your <code>captures=</code> directory will be created, which despite the extension, is actually a PostScript file.</p>
+</div>
+<div class="paragraph">
+<p>On Linux and macOS, PostScript files are natively supported and can be viewed and printed.
+On a Windows host, it is necessary to install a separate PostScript viewer such as <a href="http://pages.cs.wisc.edu/~ghost/">GSview</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_epson_emulation">Epson emulation</h3>
+<div class="paragraph">
+<p>As an alternative, you can use the integrated Epson printer emulation, but the output quality will be significantly less compared to PostScript.</p>
+</div>
+<div class="paragraph">
+<p>First, set up your DOSBox-X config to emulate an Epson printer as such:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[parallel]
+parallel1=printer
+
+[printer]
+printer=true
+printoutput=ps
+multipage=true
+timeout=2000</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next in Windows 3.0, select the "Epson LQ-850/950/1050" option, connected to LPT1.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+Make sure that you do not configure the Epson printer driver for a graphics resolution other than 180x180, or the output will be corrupted.
+</td>
+</tr>
+</table>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="images/Windows:Windows_3.0_EPSON_SETUP.png" alt="Windows 3.0 Epson setup">
+</div>
+</div>
+<div class="paragraph">
+<p>When you print, a PostScript file with the .ps extension will be created in your current working directory.
+The emulated Epson printer settings can be adjusted as documented on the above linked wiki printing guide.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_starting_a_windows_game_from_dos">Starting a Windows game from DOS</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If you want to silently start a Windows game, without seeing the Windows 3.0 splash screen or program manager, and when you exit the game that it exits Windows, here are the steps to take:</p>
+</div>
+<div class="paragraph">
+<p>First install the game normally in Windows.</p>
+</div>
+<div class="paragraph">
+<p>You can then start the game from DOS simply by appending the Windows game executable behind the WIN.COM executable as such:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>WIN \path\to\game.exe</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will prevent the Windows splash screen being shown and will directly start the game without first going to the Program Manager (progman).</p>
+</div>
+<div class="paragraph">
+<p>The second step you may want to take, is that when you exit the game, you also exit Windows 3.0. For this you need a 3rd party utility called "<a href="http://www.shdon.com/software/tools">RUNEXIT.EXE</a>", and place it in your PATH. Now simply start the game as follows:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>WIN RUNEXIT \path\to\game.exe</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Like before it will start the game without the Windows splash screen, but now when you Exit the game it will also Exit Windows. This way you can launch Windows games from a DOS batch file, or from a DOSBox launcher such as <a href="http://members.quicknet.nl/blankendaalr/dbgl/">DBGL</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_known_limitations">Known limitations</h2>
+<div class="sectionbody">
+<div class="ulist">
+<ul>
+<li>
+<p>When booting a guest OS, such an MS-DOS with Windows 3.0 in DOSBox-X, so-called folder mounts are not supported.
+Any folders of the host you mount before starting MS-DOS will <strong>NOT</strong> be available in DOS and Windows 3.0.
+Only image mounts (HDD, Floppy or CD) using <code>imgmount</code> are possible in combination with booting a guest OS.</p>
+</li>
+<li>
+<p>If you intend at any point to use a Floppy during your usage of Windows 3.0, you must mount a floppy <strong>before</strong> starting Windows 3.0.
+You can load a different Floppy, once you started Windows 3.0 this way from the DOSBox-X menus.
+If you don&#8217;t load a floppy before and attach it afterwards, it may appear to work in Windows 3.0, but it will not work properly, and you get strange errors.</p>
+</li>
+<li>
+<p>If you intend at any point to use a CD during your usage of Windows 3.0, you must mount a CD <strong>before</strong> starting Windows 3.0.
+You can load a different CD from the DOSBox-X menus, once you started Windows 3.0.
+But if a CD is not present when starting Windows 3.0 the drive is simply missing, and you cannot add it without quitting and restarting Windows 3.0.</p>
+</li>
+</ul>
 </div>
 </div>
 </div>

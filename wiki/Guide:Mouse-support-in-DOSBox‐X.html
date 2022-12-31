@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.17">
+<meta name="generator" content="Asciidoctor 2.0.18">
 <title>Mouse support in DOSBox-X</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
@@ -84,10 +84,10 @@ code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;
 ul,ol,dl{line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
 ul,ol{margin-left:1.5em}
 ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0}
-ul.square li ul,ul.circle li ul,ul.disc li ul{list-style:inherit}
-ul.square{list-style-type:square}
 ul.circle{list-style-type:circle}
 ul.disc{list-style-type:disc}
+ul.square{list-style-type:square}
+ul.circle ul:not([class]),ul.disc ul:not([class]),ul.square ul:not([class]){list-style:inherit}
 ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
 dl dt{margin-bottom:.3125em;font-weight:bold}
 dl dd{margin-bottom:1.25em}
@@ -661,7 +661,7 @@ But this will not be saved on DOSBox-X shutdown.</p>
 <h3 id="_emulated_mouse_wheel_support">Emulated mouse wheel support</h3>
 <div class="paragraph">
 <p>Since most DOS applications (and early Windows) don&#8217;t support the scroll wheel, DOSBox-X by default maps the mouse wheel movements to keyboard keys.
-By default DOSBox-X maps the mouse wheel to the up/down arrow (aka cursor) keys.</p>
+By default, DOSBox-X maps the mouse wheel to the up/down arrow (aka cursor) keys.</p>
 </div>
 <div class="paragraph">
 <p>The mouse wheel options can be found, when running DOSBox-X in a window, from the menu bar under "Main" &#8594; "Mouse wheel movements".
@@ -773,10 +773,10 @@ Needed for PS/2 mouse emulation in a guest OS such as Windows ME which does not 
 <p><code>auxdevice = 3button</code>: emulate a Microsoft 3 button mouse</p>
 </li>
 <li>
-<p><code>auxdevice = intellimouse</code>: emulate a MS IntelliMouse with scroll wheel</p>
+<p><code>auxdevice = intellimouse</code>: emulate an MS IntelliMouse with scroll wheel</p>
 </li>
 <li>
-<p><code>auxdevice = intellimouse45</code>: emulate a MS IntelliMouse Explorer with scroll wheel and 4th and 5th button</p>
+<p><code>auxdevice = intellimouse45</code>: emulate an MS IntelliMouse Explorer with scroll wheel and 4th and 5th button</p>
 </li>
 </ul>
 </div>
@@ -788,7 +788,7 @@ Needed for PS/2 mouse emulation in a guest OS such as Windows ME which does not 
 </td>
 <td class="content">
 The <code>auxdevice=3button</code> option requires that you set <code>middle_unlock=none</code> in the <code>[sdl]</code> section of the DOSBox-X config file.
-Also this option does not currently work when you boot a guest OS.
+Also, this option does not currently work when you boot a guest OS.
 </td>
 </tr>
 </table>
@@ -920,7 +920,7 @@ The optional second parameter specifies vertical sensitivity (e.g. 100,-50).</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>If set, the cursor on the host will be hidden if the DOS application provides it&#8217;s own interrupt subroutine for the mouse driver to call, which is usually an indication that the DOS game wishes to draw the cursor with it&#8217;s own support routines (DeluxePaint II).</p>
+<p>If set, the cursor on the host will be hidden if the DOS application provides its own interrupt subroutine for the mouse driver to call, which is usually an indication that the DOS game wishes to draw the cursor with its own support routines (DeluxePaint II).</p>
 </div>
 </div>
 <div class="sect2">
@@ -979,8 +979,17 @@ The optional second parameter specifies vertical sensitivity (e.g. 100,-50).</p>
 <div class="paragraph">
 <p>Emulate BIOS INT 15h PS/2 mouse services.</p>
 </div>
-<div class="paragraph">
-<p>Note that some OS&#8217;s like Microsoft Windows neither use INT 33h nor probe the AUX port directly and depend on this BIOS interface exclusively for PS/2 mouse support.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Some OS&#8217;s like Microsoft Windows (prior to ME) neither use INT 33h nor probe the AUX port directly and depend on this BIOS interface exclusively for PS/2 mouse support.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>In other cases there is no harm in leaving this enabled</p>
@@ -1011,7 +1020,7 @@ The optional second parameter specifies vertical sensitivity (e.g. 100,-50).</p>
 <h2 id="_serial_mouse">Serial mouse</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>By default DOSBox-X emulates a PS/2 mouse.
+<p>By default, DOSBox-X emulates a PS/2 mouse.
 But some early DOS applications or Windows versions come with their own mouse driver that only works with serial mice.
 For this purpose, DOSBox-X can be set to emulate a Microsoft serial mouse.
 If serial mouse emulation is enabled, the PS/2 mouse emulation is automatically disabled.</p>
@@ -1047,17 +1056,21 @@ most software will expect to find the serial mouse on COM1, as such it is recomm
 </div>
 <div class="paragraph">
 <p>In the case of MS-DOS, IBM PC-DOS or FreeDOS, the recommended mouse driver is <a href="http://cutemouse.sourceforge.net/">CuteMouse (aka ctmouse)</a>.
-It supports both PS/2 and Serial mice, and requires less memory then other mouse drivers.</p>
+It supports both PS/2 and Serial mice, and requires less memory than other mouse drivers.</p>
 </div>
 <div class="paragraph">
 <p>However, any Microsoft mouse compatible mouse driver should work, at least for basic functionality.</p>
+</div>
+<div class="paragraph">
+<p>Another option is <a href="https://git.javispedro.com/cgit/vbados.git/about/">VBMOUSE.EXE</a>, which provides seamless support, and also supports the scroll wheel on modern mice.
+It is however limited to PS/2 mice, so will not work with the optional serial mouse emulation that DOSBox-X provides.</p>
 </div>
 </div>
 </div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-09-01 22:04:27 -0400
+Last updated 2022-12-31 02:04:38 -0800
 </div>
 </div>
 </body>

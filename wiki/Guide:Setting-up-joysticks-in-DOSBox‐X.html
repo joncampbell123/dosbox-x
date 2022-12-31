@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.17">
+<meta name="generator" content="Asciidoctor 2.0.18">
 <title>Setting up joysticks in DOSBox-X</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
@@ -84,10 +84,10 @@ code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;
 ul,ol,dl{line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
 ul,ol{margin-left:1.5em}
 ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0}
-ul.square li ul,ul.circle li ul,ul.disc li ul{list-style:inherit}
-ul.square{list-style-type:square}
 ul.circle{list-style-type:circle}
 ul.disc{list-style-type:disc}
+ul.square{list-style-type:square}
+ul.circle ul:not([class]),ul.disc ul:not([class]),ul.square ul:not([class]){list-style:inherit}
 ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
 dl dt{margin-bottom:.3125em;font-weight:bold}
 dl dd{margin-bottom:1.25em}
@@ -681,7 +681,7 @@ While if two gamepads are detected, it will be set to 2axis.</p>
 <div class="title">Tip</div>
 </td>
 <td class="content">
-If your having problems with the game when using a joystick, try setting it explicitly to 2axis mode.
+If you&#8217;re having problems with the game when using a joystick, try setting it explicitly to 2axis mode.
 </td>
 </tr>
 </table>
@@ -1934,7 +1934,7 @@ To change this, add the following setting: <code>joy1axis2=4</code></p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-09-01 22:04:27 -0400
+Last updated 2022-12-31 02:04:38 -0800
 </div>
 </div>
 </body>

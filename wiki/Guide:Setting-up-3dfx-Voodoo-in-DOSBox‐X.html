@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.17">
+<meta name="generator" content="Asciidoctor 2.0.18">
 <title>Setting up 3dfx Voodoo in DOSBox-X</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
@@ -84,10 +84,10 @@ code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;
 ul,ol,dl{line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
 ul,ol{margin-left:1.5em}
 ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0}
-ul.square li ul,ul.circle li ul,ul.disc li ul{list-style:inherit}
-ul.square{list-style-type:square}
 ul.circle{list-style-type:circle}
 ul.disc{list-style-type:disc}
+ul.square{list-style-type:square}
+ul.circle ul:not([class]),ul.disc ul:not([class]),ul.square ul:not([class]){list-style:inherit}
 ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
 dl dt{margin-bottom:.3125em;font-weight:bold}
 dl dd{margin-bottom:1.25em}
@@ -863,7 +863,7 @@ You will need to compile it yourself using Visual Studio or MinGW, and should th
 </div>
 <div class="paragraph">
 <p>The original OpenGlide repository on Sourceforge has been unmaintained for a long time and does not work for our purposes.
-Some forks exists, such as: <a href="https://github.com/voyageur/openglide" class="bare">https://github.com/voyageur/openglide</a> which works for DOSBox-X SDL1, or the fork available here: <a href="https://github.com/kjliew/qemu-xtra" class="bare">https://github.com/kjliew/qemu-xtra</a> which seems to work for DOSBox-X SDL2.</p>
+Some forks exist, such as: <a href="https://github.com/voyageur/openglide" class="bare">https://github.com/voyageur/openglide</a> which works for DOSBox-X SDL1, or the fork available here: <a href="https://github.com/kjliew/qemu-xtra" class="bare">https://github.com/kjliew/qemu-xtra</a> which seems to work for DOSBox-X SDL2.</p>
 </div>
 </div>
 </div>
@@ -1156,7 +1156,7 @@ NoSplash=1</pre>
 <p>A: This is normal when you&#8217;re running the game in high-level emulation mode (<code>glide=true</code>).
 This 3dfx splash screen is not part of the game, but rather built into the original Glide library (GLIDE2X.OVL for DOS, or GLIDE2X.DLL for Windows 9x).
 But the special versions used for Glide pass-through to the host do not have this animation.
-If your running 32bit Windows on the host, you may want to have a look at the <code>splash=true</code> setting, mentioned above.</p>
+If you&#8217;re running 32bit Windows on the host, you may want to have a look at the <code>splash=true</code> setting, mentioned above.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1181,7 +1181,7 @@ For instance, if there is a <code>GLIDE2X.OVL</code> file in the game directory,
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-09-01 22:04:27 -0400
+Last updated 2022-12-31 02:04:38 -0800
 </div>
 </div>
 </body>

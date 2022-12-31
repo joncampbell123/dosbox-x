@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.17">
+<meta name="generator" content="Asciidoctor 2.0.18">
 <title>CPU settings in DOSBox-X</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
@@ -84,10 +84,10 @@ code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;
 ul,ol,dl{line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
 ul,ol{margin-left:1.5em}
 ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0}
-ul.square li ul,ul.circle li ul,ul.disc li ul{list-style:inherit}
-ul.square{list-style-type:square}
 ul.circle{list-style-type:circle}
 ul.disc{list-style-type:disc}
+ul.square{list-style-type:square}
+ul.circle ul:not([class]),ul.disc ul:not([class]),ul.square ul:not([class]){list-style:inherit}
 ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
 dl dt{margin-bottom:.3125em;font-weight:bold}
 dl dd{margin-bottom:1.25em}
@@ -668,10 +668,10 @@ Disabling the FPU could cause problems with software that expects an FPU to be p
 <div class="title">Warning</div>
 </td>
 <td class="content">
-The real FPUs have a 80bit precision.
+The real x87 FPUs provide 80bit precision.
 This is however not supported with Windows DOSBox-X builds compiled using the Microsoft Visual Studio (MSVS) compiler, which is limited to just 64bits precision.
-Very few DOS games used the FPU, but for those that do, this lesser precision can cause a variety of problems, from graphical glitches to crashes, to incorrect outcomes in DOS applications.
-If your running Windows as the host OS, you can either disable the FPU emulation, or if proper FPU emulation is important, use the MinGW builds.
+Very few DOS games used the FPU, but for those that do, this reduced precision can cause a variety of problems, from graphical glitches to crashes, to incorrect outcomes in DOS applications.
+If you&#8217;re running Windows as the host OS, you can either disable the FPU emulation, or if proper FPU emulation is important, use the MinGW builds.
 </td>
 </tr>
 </table>
@@ -1096,16 +1096,16 @@ Regular DOSBox has a few other cputype options not available in DOSBox-X (<code>
 <p><code>cycles=fixed 5000</code> or <code>cycles=5000</code> - All programs you start are run with a fixed speed of ~5 MIPS. Useful for speed sensitive games or games that need a continuous CPU speed.</p>
 </li>
 <li>
-<p><code>cycles=max</code> - All programs you start run at the maximum speed your CPU permits.</p>
+<p><code>cycles=max</code> - All programs you start run at the maximum speed your host CPU permits.</p>
 </li>
 <li>
-<p><code>cycles=max limit 50000</code> - All programs you start run at up to 50000 cycles, depending on the power of your CPU.</p>
+<p><code>cycles=max limit 50000</code> - All programs you start run at up to 50000 cycles, depending on the power of your host CPU.</p>
 </li>
 <li>
-<p><code>cycles=max 50%</code> - About 50% of your CPU power will be used.</p>
+<p><code>cycles=max 50%</code> - About 50% of your host CPU power will be used.</p>
 </li>
 <li>
-<p><code>cycles=auto</code> - Real mode programs will run at 3000 cycles. Protected mode programs run with cycles=max.</p>
+<p><code>cycles=auto</code> - Real mode programs will run at 3000 cycles. Protected mode programs will automatically switch to <code>cycles=max</code>.</p>
 </li>
 <li>
 <p><code>cycles=auto 5000 50% limit 50000</code> - Real mode programs run with 5000 fixed cycles, protected mode programs with cycles=max 50% limit 50000.</p>
@@ -1117,103 +1117,163 @@ Regular DOSBox has a few other cputype options not available in DOSBox-X (<code>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
-<col style="width: 50%;">
-<col style="width: 50%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 25%;">
 </colgroup>
 <thead>
 <tr>
 <th class="tableblock halign-left valign-top">Emulated CPU</th>
-<th class="tableblock halign-left valign-top">cycles</th>
+<th class="tableblock halign-left valign-top">MHz</th>
+<th class="tableblock halign-left valign-top">Approximate Cycles</th>
+<th class="tableblock halign-left valign-top">Suggested Host CPU</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">8088 at 4.77MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8088</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">4.77</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">240</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">286 at 8MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">286</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">750</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">286 at 12MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">286</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">12</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">1510</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">286 at 25MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">286</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">25</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">3300</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">386DX at 25MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">386DX</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">25</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">4595</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">386DX at 33MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">386DX</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">33</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">6075</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">486DX at 33MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">486DX</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">33</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">12019</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">486DX2 at 66MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">486DX2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">66</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">23880</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">486DX4 at 100MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">486DX4</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">100</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">33445</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">486DX5 at 133MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">486DX5</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">133</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">47810</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Pentium at 60MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Intel Pentium</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">60</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">31545</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Pentium at 66MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Intel Pentium</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">66</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">35620</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Pentium at 75MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Intel Pentium</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">75</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">43500</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Pentium at 90MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Intel Pentium</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">90</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">52000</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Pentium at 100MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Intel Pentium</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">100</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">60000</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Pentium at 120MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Intel Pentium</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">120</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">74000</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Pentium at 133MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Intel Pentium</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">133</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">80000</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Intel Core 2 Duo 3.3GHz</p></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Pentium at 166MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Intel Pentium MMX</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">166</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">97240</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">Pentium II at 300MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Intel Pentium II</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">300</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">200000</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">AMD K6 at 166MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Intel Pentium III</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">866</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">407000</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">AMD K6</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">166</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">110000</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">AMD K6 at 200MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">AMD K6</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">200</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">130000</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">AMD K6-2 at 300MHz</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">AMD K6-2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">300</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">193000</p></td>
+<td class="tableblock halign-left valign-top"></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">AMD Athlon</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">600</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">306000</p></td>
+<td class="tableblock halign-left valign-top"></td>
 </tr>
 </tbody>
 </table>
@@ -1224,7 +1284,7 @@ Regular DOSBox has a few other cputype options not available in DOSBox-X (<code>
 <div class="title">Warning</div>
 </td>
 <td class="content">
-Setting the cycles value too high for your host CPU, results in sound dropouts and lag.
+Setting the cycles value higher then your host CPU can handle, results in sound dropouts and lag.
 </td>
 </tr>
 </table>
@@ -1236,7 +1296,19 @@ Setting the cycles value too high for your host CPU, results in sound dropouts a
 <div class="title">Note</div>
 </td>
 <td class="content">
-More host CPU cores do not help to increase emulation speed. A newer generation host CPU and higher host CPU clock frequency (GHz) do help.
+More host CPU cores do not help to increase DOSBox-X emulation speed. A newer generation host CPU and higher host CPU clock frequency (GHz) do help.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+This only deals with emulating a legacy CPU. Emulating different video adapters will add additional requirements to the host system.
 </td>
 </tr>
 </table>
@@ -1459,7 +1531,7 @@ If set, the Turbo mode will be automatically stopped if keyboard input is detect
 <div class="title">Warning</div>
 </td>
 <td class="content">
-This can cause Windows 95 OSR2 and later to enumerate the APM BIOS twice and cause problems. Due to this, it is not recommended to enable this option, at this point in time.
+This can cause Windows 95 OSR2 and later to enumerate the APM BIOS twice and cause problems. Due to this, it is not recommended enabling this option, at this point in time.
 </td>
 </tr>
 </table>
@@ -2143,7 +2215,7 @@ Software developers therefore used other timing methods, and therefore cycle acc
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-09-01 22:04:27 -0400
+Last updated 2022-12-31 02:04:38 -0800
 </div>
 </div>
 </body>

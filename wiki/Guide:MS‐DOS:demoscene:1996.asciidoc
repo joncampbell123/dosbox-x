@@ -1,6 +1,0 @@
-ifdef::env-github[:suffixappend:]
-ifndef::env-github[:suffixappend: .html]
-
-## 1996 link:Guide%3ADOS-demoscene-software-in-DOSBox‐X{suffixappend}[MS-DOS demos].
-
-link:Software%3Ademoscene%3AInside-by-CNCD-(1996)[Inside by CNCD (1996)]

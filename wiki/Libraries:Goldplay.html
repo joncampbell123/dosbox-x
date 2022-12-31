@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.17">
+<meta name="generator" content="Asciidoctor 2.0.18">
 <title>Goldplay music &amp; sound library for MS-DOS</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
@@ -84,10 +84,10 @@ code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;
 ul,ol,dl{line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
 ul,ol{margin-left:1.5em}
 ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0}
-ul.square li ul,ul.circle li ul,ul.disc li ul{list-style:inherit}
-ul.square{list-style-type:square}
 ul.circle{list-style-type:circle}
 ul.disc{list-style-type:disc}
+ul.square{list-style-type:square}
+ul.circle ul:not([class]),ul.disc ul:not([class]),ul.square ul:not([class]){list-style:inherit}
 ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
 dl dt{margin-bottom:.3125em;font-weight:bold}
 dl dd{margin-bottom:1.25em}
@@ -444,7 +444,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="_goldplay_music_sound_library_for_ms_dos">Goldplay music &amp; sound library for MS-DOS</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Goldplay is a early MOD music player library for MS-DOS. It was often
+<p>Goldplay is an early MOD music player library for MS-DOS. It was often
 used by early DOS demos in the 1991-1993 timeframe as a way to play
 music during the demo effects. It supports Sound Blaster, Sound Blaster
 Pro, LPT DAC, and PC speaker playback.</p>
@@ -457,13 +457,13 @@ Pro, LPT DAC, and PC speaker playback.</p>
 <div class="paragraph">
 <p>What makes Goldplay noteworthy in DOSBox-X development is how Goldplay
 configures Sound Blaster hardware for music playback. Most games
-allocate a buffer, setup DMA to point to the buffer and it’s length, and
+allocate a buffer, setup DMA to point to the buffer, and it’s length, and
 hook the IRQ to keep the DSP going when the block finishes (usually
 single-cycle mode for SB1.0 compatibility). Goldplay instead allocates a
 buffer that is 1 byte long (2 if stereo), configures the DMA controller
 into auto-init mode (to loop over the byte or bytes), then commands the
-DSP to play a DSP block that is far larger than that buffer (usually
-65536 samples). The Sound Blaster DSP doesn’t know how long the DMA
+DSP to play a DSP block that is far larger than its buffer (usually
+65536 samples). The Sound Blaster DSP doesn&#8217;t know how long the DMA
 buffer is, so it reads and plays that many bytes before signalling the
 IRQ. The DMA controller quickly hits terminal count, but since it’s in
 auto-init mode, automatically loops back to the same byte. Without
@@ -500,7 +500,7 @@ the data by itself at the right timing.</p>
 <h2 id="_obvious_problems">Obvious problems</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>For obvious reasons, this technique doesn’t work very well with
+<p>For obvious reasons, this technique doesn&#8217;t work very well with
 emulation and virtualization scenarios. Most Sound Blaster emulation is
 written for DOS games that setup DMA and play blocks. If given a
 goldplay-based DOS program, they will likely either not play anything,
@@ -532,7 +532,7 @@ collection</a></p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-09-01 22:04:27 -0400
+Last updated 2022-12-31 02:04:38 -0800
 </div>
 </div>
 </body>
