@@ -221,8 +221,8 @@ typedef enum PROCESS_DPI_AWARENESS {
 extern "C" void sdl1_hax_macosx_highdpi_set_enable(const bool enable);
 #endif
 
-#if !defined(C_SDL2) && !defined(RISCOS)
 # include "SDL_version.h"
+#if !defined(C_SDL2) && !defined(RISCOS)
 # ifndef SDL_DOSBOX_X_SPECIAL
 #  warning It is STRONGLY RECOMMENDED to compile the DOSBox-X code using the SDL 1.x library provided in this source repository.
 #  error You can ignore this by commenting out this error, but you will encounter problems if you use the unmodified SDL 1.x library.
@@ -3062,7 +3062,7 @@ void GFX_Stop() {
     sdl.active=false;
 }
 
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && ((defined(C_SDL2) && defined(SDL_DOSBOX_X_IME)) || defined(SDL_DOSBOX_X_SPECIAL))
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
 static uint8_t im_x, im_y;
 #endif
 
@@ -5091,11 +5091,12 @@ bool GFX_IsFullscreen(void) {
 #if (defined(WIN32) && !defined(HX_DOS) || defined(MACOSX)) && !defined(C_SDL2) && defined(SDL_DOSBOX_X_SPECIAL)
 static bool CheckEnableImmOnKey(SDL_KeyboardEvent key)
 {
-#if defined(MACOSX)
-	if(key.keysym.sym == 0 || (key.keysym.sym == 0x08 || key.keysym.sym == 0x09 || (key.keysym.sym >= 0x20 && key.keysym.sym <= 0x7F) || (key.keysym.sym >= 0x100 && key.keysym.sym <= 0x119) || key.keysym.sym == 0x12C || key.keysym.sym == 0x12D) || (strPasteBuffer.length() && key.keysym.sym >= 0x80)) {
-#else
-	if(key.keysym.sym == 0 || (!SDL_IM_Composition() && (key.keysym.sym == 0x08 || key.keysym.sym == 0x09 || (key.keysym.sym >= 0x20 && key.keysym.sym <= 0x7F) || (key.keysym.sym >= 0x100 && key.keysym.sym <= 0x119) || key.keysym.sym == 0x12C || key.keysym.sym == 0x12D) || (strPasteBuffer.length() && key.keysym.sym >= 0x80))) {
-#endif
+	if(key.keysym.sym == 0 || (
+	  #if defined(SDL_DOSBOX_X_IME) && !defined(MACOSX)
+	  !SDL_IM_Composition() &&
+	  #endif
+	  (key.keysym.sym == 0x08 || key.keysym.sym == 0x09 || (key.keysym.sym >= 0x20 && key.keysym.sym <= 0x7F) || (key.keysym.sym >= 0x100 && key.keysym.sym <= 0x119) || key.keysym.sym == 0x12C || key.keysym.sym == 0x12D) || (strPasteBuffer.length() && key.keysym.sym >= 0x80))
+	) {
 		// BS, <-, ->, PgUp, PgDn, etc.
 		return true;
 	}
@@ -5144,7 +5145,7 @@ bool sdl_wait_on_error() {
     return sdl.wait_on_error;
 }
 
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && ((defined(C_SDL2) && defined(SDL_DOSBOX_X_IME)) || defined(SDL_DOSBOX_X_SPECIAL))
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
 static uint32_t last_ticks;
 void SetIMPosition() {
 	uint8_t x, y;
@@ -5183,7 +5184,8 @@ void SetIMPosition() {
 #endif
         } else {
 #endif
-            double sx = sdl.clip.w>0&&sdl.draw.width>0?((double)sdl.clip.w/sdl.draw.width):1, sy = sdl.clip.h>0&&sdl.draw.height>0?((double)sdl.clip.h/sdl.draw.height):1;
+            double sx = sdl.clip.w>0&&sdl.draw.width>0?((double)sdl.clip.w/sdl.draw.width):1;
+            double sy = sdl.clip.h>0&&sdl.draw.height>0?((double)sdl.clip.h/sdl.draw.height):1;
             rect.x = x * width * sx;
             rect.y = y * height * sy - (J3_IsJapanese()?2:(IS_DOSV?-1:(DOSV_CheckCJKVideoMode()?2:0)));
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW /* SDL drawn menus */
@@ -5414,7 +5416,7 @@ void GFX_Events() {
     if (sdl.desktop.type == SCREEN_GAMELINK) OUTPUT_GAMELINK_InputEvent();
 #endif
 
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && ((defined(C_SDL2) && defined(SDL_DOSBOX_X_IME)) || defined(SDL_DOSBOX_X_SPECIAL))
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
    if(IS_PC98_ARCH) {
        static uint32_t poll98_delay = 0;
        uint32_t time = GetTicks();
@@ -5729,7 +5731,7 @@ void GFX_Events() {
 			} else
                 HandleMouseWheel(event.wheel.direction == SDL_MOUSEWHEEL_NORMAL, event.wheel.y);
 			break;
-#if defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX) && defined(SDL_DOSBOX_X_IME)
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
         case SDL_TEXTEDITING:
             if (sdl.desktop.type == SCREEN_GAMELINK) break;
             ime_text = event.edit.text;
@@ -5782,9 +5784,9 @@ void GFX_Events() {
             if (event.type == SDL_KEYDOWN && isModifierApplied())
                 ClipKeySelect(event.key.keysym.sym);
             if(dos.im_enable_flag) {
-#if defined (WIN32) && !defined(HX_DOS) || defined(MACOSX) && defined(SDL_DOSBOX_X_IME)
+#if defined (WIN32) && !defined(HX_DOS) || defined(MACOSX)
                 if(event.type == SDL_KEYDOWN && IME_GetEnable()
-#if 0 //defined (MACOSX)
+#if 0 // defined(SDL_DOSBOX_X_IME) && defined(MACOSX)
                 && (SDL_IM_Composition(4) || ((event.key.keysym.mod & 0x03) == 0 && event.key.keysym.scancode == 0x2c && dos.loaded_codepage == 932))
 #endif
                 ) {
@@ -5842,7 +5844,7 @@ void GFX_Events() {
         }
     }
 #endif
-#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && ((defined(C_SDL2) && defined(SDL_DOSBOX_X_IME)) || defined(SDL_DOSBOX_X_SPECIAL))
+#if (defined(WIN32) && !defined(HX_DOS) || defined(LINUX) && C_X11 || defined(MACOSX)) && (defined(C_SDL2) || defined(SDL_DOSBOX_X_SPECIAL))
    if(IS_PC98_ARCH) {
        static uint32_t poll98_delay = 0;
        uint32_t time = GetTicks();
