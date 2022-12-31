@@ -3,6 +3,12 @@ Next
     Windows hardware mouse cursor modes available
     on S3 Virge, Trio, and possibly other cards
     (John Tsiombikas)
+  - Add EGA/VGA emulation code to keep track at runtime
+    whether planar features are in use. If they are not,
+    then handle EGA/VGA video memory access using a
+    simplified version for a bit of a performance boost
+    in response to complaints about poor VGA emulation
+    performance. (joncampbell123)
 
 2022.12.26
   - Allow more than 640KB of conventional memory,
