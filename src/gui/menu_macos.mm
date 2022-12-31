@@ -47,7 +47,7 @@ void sdl1_hax_set_topmost(unsigned char topmost) {
 }
 #endif
 
-#if defined(MACOSX) && defined(C_SDL2) && defined(SDL_DOSBOX_X_IME)
+#if defined(MACOSX) && defined(C_SDL2)
 bool IME_GetEnable() {
     TISInputSourceRef is = TISCopyCurrentKeyboardInputSource();
     CFBooleanRef ret = (CFBooleanRef)TISGetInputSourceProperty(is, kTISPropertyInputSourceIsASCIICapable);
