@@ -31,8 +31,10 @@
 #include <oleauto.h>
 
 #ifndef SDL_DISABLE_WINDOWS_IME
+#ifdef SDL_DOSBOX_X_IME
 static Uint32 end_ticks = 0;
 static SDL_bool ime_incompos;
+#endif
 static void IME_Init(SDL_VideoData *videodata, HWND hwnd);
 static void IME_Enable(SDL_VideoData *videodata, HWND hwnd);
 static void IME_Disable(SDL_VideoData *videodata, HWND hwnd);
@@ -159,6 +161,7 @@ WIN_QuitKeyboard(_THIS)
 #endif
 }
 
+#ifdef SDL_DOSBOX_X_IME
 SDL_bool SDL_IM_Composition(int more) {
     (void)more;
 #ifndef SDL_DISABLE_WINDOWS_IME
@@ -168,6 +171,7 @@ SDL_bool SDL_IM_Composition(int more) {
     return SDL_FALSE;
 #endif
 }
+#endif
 
 void
 WIN_ResetDeadKeys()
@@ -896,10 +900,12 @@ IME_HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM *lParam, SDL_VideoD
         break;
     case WM_IME_SETCONTEXT:
         // Disabled because the string being converted will not be displayed.
-        //*lParam = 0;
+        // *lParam = 0;
         break;
     case WM_IME_STARTCOMPOSITION:
+        #ifdef SDL_DOSBOX_X_IME
         ime_incompos = 1;
+        #endif
         //trap = SDL_TRUE;
         break;
     case WM_IME_COMPOSITION:
@@ -919,8 +925,10 @@ IME_HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM *lParam, SDL_VideoD
         ImmReleaseContext(hwnd, himc);
         break;
     case WM_IME_ENDCOMPOSITION:
+        #ifdef SDL_DOSBOX_X_IME
         end_ticks = GetTickCount();
         ime_incompos = 0;
+        #endif
         videodata->ime_composition[0] = 0;
         videodata->ime_readingstring[0] = 0;
         videodata->ime_cursor = 0;
