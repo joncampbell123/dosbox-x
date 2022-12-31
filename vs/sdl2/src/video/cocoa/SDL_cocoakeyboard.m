@@ -34,7 +34,6 @@
 /*#define DEBUG_IME NSLog */
 #define DEBUG_IME(...)
 
-#if defined(SDL_DOSBOX_X_IME)
 @interface IMETextView : NSView
 @property (nonatomic, copy) NSAttributedString *text;
 @end
@@ -49,16 +48,13 @@
     [_text drawInRect:CGRectMake(0, 0, size.width, size.height)];
 }
 @end
-#endif
 
 @interface SDLTranslatorResponder : NSView <NSTextInputClient> {
     NSString *_markedText;
     NSRange   _markedRange;
     NSRange   _selectedRange;
     SDL_Rect  _inputRect;
-    #if defined(SDL_DOSBOX_X_IME)
     IMETextView *_markedLabel;
-    #endif
 }
 - (void)doCommandBySelector:(SEL)myselector;
 - (void)setInputRect:(SDL_Rect *)rect;
@@ -89,10 +85,8 @@
 
     SDL_SendKeyboardText(str);
 
-    #if defined(SDL_DOSBOX_X_IME)
     [_markedLabel setHidden:YES];
     _markedLabel.text = nil;
-    #endif
 }
 
 - (void)doCommandBySelector:(SEL)myselector
@@ -118,21 +112,17 @@
     return _selectedRange;
 }
 
-#if defined(SDL_DOSBOX_X_IME)
 static SDL_bool ime_incompos = 0;
 static long end_ticks = 0;
-#endif
 - (void)setMarkedText:(id)aString selectedRange:(NSRange)selectedRange replacementRange:(NSRange)replacementRange
 {
     if ([aString isKindOfClass:[NSAttributedString class]]) {
-        #if defined(SDL_DOSBOX_X_IME)
         [aString addAttribute:NSFontAttributeName value:[NSFont systemFontOfSize:_inputRect.h] range:NSMakeRange(0, [aString length])];
         _markedLabel.text = aString;
         CGSize size = [aString size];
         [_markedLabel setFrameSize:size];
         [_markedLabel setHidden:NO];
         [_markedLabel setNeedsDisplay:YES];
-        #endif
 
         aString = [aString string];
     }
@@ -142,9 +132,7 @@ static long end_ticks = 0;
         return;
     }
 
-    #if defined(SDL_DOSBOX_X_IME)
     ime_incompos = 1;
-    #endif
     if (_markedText != aString) {
         [_markedText release];
         _markedText = [aString retain];
@@ -158,10 +146,8 @@ static long end_ticks = 0;
 
     DEBUG_IME(@"setMarkedText: %@, (%d, %d)", _markedText,
           selRange.location, selRange.length);
-    #if defined(SDL_DOSBOX_X_IME)
     ime_incompos = 0;
     end_ticks = TickCount();
-    #endif
 }
 
 - (void)unmarkText
@@ -169,14 +155,11 @@ static long end_ticks = 0;
     [_markedText release];
     _markedText = nil;
 
-    #if defined(SDL_DOSBOX_X_IME)
     [_markedLabel setHidden:YES];
-    #endif
 
     SDL_SendEditingText("", 0, 0);
 }
 
-#if defined(SDL_DOSBOX_X_IME)
 #define IME_END_CR_WAIT 25
 SDL_bool SDL_IM_Composition(int more) {
     return ime_incompos||end_ticks&&(TickCount()-end_ticks<IME_END_CR_WAIT*more) ? SDL_TRUE : SDL_FALSE;
@@ -196,20 +179,14 @@ static int GetEnableIME()
         [[NSTextInputContext currentInputContext] discardMarkedText];
     }
 }
-#endif
 
 - (NSRect)firstRectForCharacterRange:(NSRange)aRange actualRange:(NSRangePointer)actualRange
 {
     NSWindow *window = [self window];
     NSRect contentRect = [window contentRectForFrameRect:[window frame]];
     float windowHeight = contentRect.size.height;
-    #if defined(SDL_DOSBOX_X_IME)
     NSRect rect = NSMakeRect(_inputRect.x, windowHeight - _inputRect.y,
                              _inputRect.w, 0);
-    #else
-    NSRect rect = NSMakeRect(_inputRect.x, windowHeight - _inputRect.y - _inputRect.h,
-                             _inputRect.w, _inputRect.h);
-    #endif
 
     if (actualRange) {
         *actualRange = aRange;
@@ -228,7 +205,6 @@ static int GetEnableIME()
         rect = [window convertRectToScreen:rect];
     }
 
-    #if defined(SDL_DOSBOX_X_IME)
     if(!_markedLabel) {
         _markedLabel = [[IMETextView alloc] initWithFrame: NSMakeRect(0.0, 0.0, 0.0, 0.0)];
         [[[self window] contentView] addSubview:_markedLabel];
@@ -238,7 +214,6 @@ static int GetEnableIME()
                                                    object:nil];
     }
     [_markedLabel setFrameOrigin: NSMakePoint(_inputRect.x, windowHeight - _inputRect.y)];
-    #endif
 
     return rect;
 }
