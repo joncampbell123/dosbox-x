@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+set -e
+
+# Poorly written shell script to update the wiki
+# on the dosbox-x site
+# ./update-wiki
+#   path/to/site/wiki path/to/copy/of/dosbox-x.wiki
+
+localbak="`pwd`"
+tempdir="`mktemp -d`"
+destdir="`realpath $1`"
+srcdir="`realpath $2`"
+spfiles="$destdir/index.html $destdir/top.html $destdir/guides.html"
+
+function cleanup {
+  echo "Removing temp files"
+  rm -r $tempdir || true
+  cd $localbak
+}
+trap cleanup EXIT
+
+which asciidoctor 1>/dev/null || (echo "Install asciidoctor first" && false)
+
+echo "Copying files"
+rmdir $tempdir || true
+cp -r $srcdir $tempdir
+cd $tempdir
+rm -rf .git || true
+
+echo "Generating wiki in $tempdir"
+asciidoctor -b html5 -d book *.asciidoc
+rm *.asciidoc
+cp -t . $spfiles
+
+echo "Copying files over"
+rm -r $destdir
+cp -r $tempdir $destdir

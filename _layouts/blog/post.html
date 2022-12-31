@@ -1,0 +1,21 @@
+---
+layout: blog/default
+---
+
+<table width="100%" style="border: hidden">
+    <tr>
+        <td width="15%" style="border: hidden"></td>
+        <td width="70%" style="border: hidden; text-align: left">
+            <h1>{{ page.title | escape }}</h1>
+            <p>
+            <time datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished" class="subtitle-mute">
+              {{ page.date | date: site.blog.date_format }}
+            </time>
+            </p>
+
+            {{ content }}
+        </td>
+        <td width="15%" style="border: hidden"></td>
+    </tr>
+</table>
+<p style="text-align: center">Return to <a href="{{ "/blog/devtest" | relative_url }}">blog home page</a></p>

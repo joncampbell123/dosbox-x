@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.17">
+<meta name="generator" content="Asciidoctor 2.0.18">
 <title>Installing Microsoft Windows 2.x in DOSBox-X</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
@@ -84,10 +84,10 @@ code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;
 ul,ol,dl{line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
 ul,ol{margin-left:1.5em}
 ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0}
-ul.square li ul,ul.circle li ul,ul.disc li ul{list-style:inherit}
-ul.square{list-style-type:square}
 ul.circle{list-style-type:circle}
 ul.disc{list-style-type:disc}
+ul.square{list-style-type:square}
+ul.circle ul:not([class]),ul.disc ul:not([class]),ul.square ul:not([class]){list-style:inherit}
 ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
 dl dt{margin-bottom:.3125em;font-weight:bold}
 dl dd{margin-bottom:1.25em}
@@ -900,7 +900,7 @@ Everything needs to be done using IMAGE files.</p>
 <div class="paragraph">
 <p>The first step is to create a DOS HDD image, for which you can follow the <a href="Guide%3ADOS-Installation-in-DOSBox‐X">PC DOS and MS-DOS Installation Guide</a>.
 It is recommended to use at least DOS 3.1, as it is compatible with all Windows 2.x releases.
-When using DOS 5.0 or higher however, it will be necessary to use <a href="https://web.csulb.edu/~murdock/setver.html">SETVER</a> to make Windows 2.x think your using and older DOS version like version 4.0.</p>
+When using DOS 5.0 or higher however, it will be necessary to use <a href="https://web.csulb.edu/~murdock/setver.html">SETVER</a> to make Windows 2.x think you&#8217;re using and older DOS version like version 4.0.</p>
 </div>
 <div class="paragraph">
 <p>Once you have a DOS HDD image, temporarily mount it in DOSBox-X to transfer your INSTALL folder into your DOS HDD image, together with any drivers and add-ons you might need (preferably already unzipped, such that you don&#8217;t need to do that in DOS or Windows 3.x, as they lack support for that by default).</p>
@@ -1215,7 +1215,7 @@ You will be asked for a country for regional settings.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>If your following Method 1, you can simply press Enter.</p>
+<p>If you&#8217;re following Method 1, you can simply press Enter.</p>
 </li>
 <li>
 <p>If you&#8217;re using disk images to install Windows, you must now swap the disk using the menu item "DOS" followed by "Swap floppy".
@@ -1313,7 +1313,7 @@ You can optionally create a shortcut on your desktop to start Windows 2.x direct
 <div class="paragraph">
 <p>When running Windows in DOSBox-X the integration is not seamless.
 You need to capture the mouse and again release it when you want to leave the DOSBox-X window.
-This is because Windows uses it&#8217;s own driver instead of using the integrated mouse support that DOSBox-X provides.</p>
+This is because Windows uses its own driver instead of using the integrated mouse support that DOSBox-X provides.</p>
 </div>
 <div class="paragraph">
 <p>There is however experimental support in DOSBox-X for such seamless integration.
@@ -1364,7 +1364,7 @@ integration device=true</pre>
 <div class="title">Note</div>
 </td>
 <td class="content">
-These old windows versions had no support for mice with scroll wheels. By default DOSBox-X will simulate cursor up/down keypresses when you use the scroll wheel.
+These old windows versions had no support for mice with scroll wheels. By default, DOSBox-X will simulate cursor up/down keypresses when you use the scroll wheel.
 This can be controlled by the <code>mouse_wheel_key=</code> setting in the <code>[sdl]</code> section of your DOSBox-X config file.
 </td>
 </tr>
@@ -1375,7 +1375,7 @@ This can be controlled by the <code>mouse_wheel_key=</code> setting in the <code
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-09-01 22:04:27 -0400
+Last updated 2022-12-31 02:04:38 -0800
 </div>
 </div>
 </body>

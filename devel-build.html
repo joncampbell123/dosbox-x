@@ -1,19 +1,9 @@
+---
+title: DOSBox-X Development Builds
+layout: default
+---
 
-
-<!DOCTYPE html>
-<html>
-
-  <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="description" content="DOSBox-X: Free and cross-platform DOS, Windows 3.x and 9x emulation package">
-
-    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
-    <link rel="stylesheet" type="text/css" media="screen" href="css/style.css">
-
-    <script type="text/javascript" src="js/script.js"></script>
-    <title>DOSBox-X - Accurate DOS emulation for Windows, Linux, macOS, and DOS</title>
-    <script type="text/javascript">
+<script type="text/javascript">
   // Fetch build status using GitHub API and update HTML
   // The function is originally written by the DOSBox Staging Team
   function set_ci_status(workflow_file, os_name, description, page = 1) {
@@ -52,7 +42,7 @@
                     set_ci_status(workflow_file, os_name, page + 1);
                     return;
                 }
-				
+        
                 // Update HTML elements
                 let build_link = document.createElement("a");
                 build_link.textContent = description;
@@ -84,90 +74,67 @@
     set_ci_status("macos.yml", "macos", "macOS (x86_64) builds");
     set_ci_status("hxdos.yml", "hxdos", "HX-DOS (x86) build");
   });
-    </script>
-  </head>
+</script>
 
-  <body>
+<div style="text-align: center">
+  <h3 style="padding-top: 10px;">{{ page.title | escape }}</h3>
 
-    <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        <table width="100%" style="border: hidden">
-        <tr>
-        <td width="25%" style="border: hidden; min-width: 300px; text-align: center">
-          &nbsp;<p />&nbsp;<br/>
-          <img id="dosbox-x-logo" src="images/dosbox-x-logo.svg" title="DOSBox-X" alt="DOSBox-X logo" style="width:90px" />
-        </td><td>&nbsp;<p />
-          <h1 id="project_title">DOSBox-X</h1>
-          <h2 id="project_tagline">Cross-platform DOS emulation package<br />Complete, accurate emulation and more</h2>
-        </td>
-        </tr>
-        </table>
-    </div>
+  <p>
+      These are development (preview) builds intended for testing purposes for the supported platforms.<br />
+      If you instead want to download the release builds, go to the <a href="{{ "/" | relative_url }}">DOSBox-X homepage</a> or <a href="https://github.com/joncampbell123/dosbox-x/releases">Release page</a>.<br />
+      Both SDL1 &amp; SDL2 builds are provided for each platform below except the SDL1-only HX-DOS target.
+  </p>
 
-    <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer"; style="background-color: #fafacf">
-        <div style="text-align: center">
-            <h3 style="padding-top: 10px">DOSBox-X Development Builds</h3>
-    <p>
-        These are development (preview) builds intended for testing purposes for the supported platforms.<br />
-        If you instead want to download the release builds, go to the <a href="https://www.dosbox-x.com/">DOSBox-X homepage</a> or <a href="https://github.com/joncampbell123/dosbox-x/releases">Release page</a>.<br />
-        Both SDL1 &amp; SDL2 builds are provided for each platform below except the SDL1-only HX-DOS target.
-    </p>
-
-    <p>
-        <em><span style="font-weight: bold">Note:</span> Build artifacts are hosted on <a href="https://github.com/">GitHub</a>; you need to be logged in to download them.</em>
-    </p>
-	</div>
-
-    <center>
-	<table style="width: 50%; min-width: 500px">
-       <tr>
+  <p>
+      <em><strong>Note:</strong> Build artifacts are hosted on <a href="https://github.com/">GitHub</a>; you need to be logged in to download them.</em>
+  </p>
+</div>
+<center>
+  <table style="width: 50%; min-width: 500px; text-align: center">
+      <tr>
           <th style="text-align: center">Download link</th>
           <th style="text-align: center">Commit</th>
           <th style="text-align: center">Date</th>
-       </tr>
-       <tr>
-          <td id="vsbuild32-build-link"><img style="margin:auto;margin-left:0.1em;" src="images/dots.svg"/></td>
+      </tr>
+      <tr>
+          <td id="vsbuild32-build-link"><img style="margin:auto;margin-left:0.1em;" src="images/dots.svg" class="devel-builds-dots"/></td>
           <td id="vsbuild32-build-commit">-</td>
           <td id="vsbuild32-build-date">-</td>
-       </tr>
-       <tr>
-          <td id="vsbuild64-build-link"><img style="margin:auto;margin-left:0.1em;" src="images/dots.svg"/></td>
+      </tr>
+      <tr>
+          <td id="vsbuild64-build-link"><img style="margin:auto;margin-left:0.1em;" src="images/dots.svg" class="devel-builds-dots"/></td>
           <td id="vsbuild64-build-commit">-</td>
           <td id="vsbuild64-build-date">-</td>
-       </tr>
-       <tr>
-          <td id="mingw32-build-link"><img style="margin:auto;margin-left:0.1em;" src="images/dots.svg"/></td>
+      </tr>
+      <tr>
+          <td id="mingw32-build-link"><img style="margin:auto;margin-left:0.1em;" src="images/dots.svg" class="devel-builds-dots"/></td>
           <td id="mingw32-build-commit">-</td>
           <td id="mingw32-build-date">-</td>
-       </tr>
-       <tr>
-          <td id="mingw64-build-link"><img style="margin:auto;margin-left:0.1em;" src="images/dots.svg"/></td>
+      </tr>
+      <tr>
+          <td id="mingw64-build-link"><img style="margin:auto;margin-left:0.1em;" src="images/dots.svg" class="devel-builds-dots"/></td>
           <td id="mingw64-build-commit">-</td>
           <td id="mingw64-build-date">-</td>
-       </tr>
-       <tr>
-          <td id="linux-build-link"><img style="margin:auto;margin-left:0.1em;" src="images/dots.svg"/></td>
+      </tr>
+      <tr>
+          <td id="linux-build-link"><img style="margin:auto;margin-left:0.1em;" src="images/dots.svg" class="devel-builds-dots"/></td>
           <td id="linux-build-commit">-</td>
           <td id="linux-build-date">-</td>
-       </tr>
-		<tr>
-          <td id="macos-build-link"><img style="margin:auto;margin-left:0.1em;" src="images/dots.svg"/></td>
+      </tr>
+    <tr>
+          <td id="macos-build-link"><img style="margin:auto;margin-left:0.1em;" src="images/dots.svg" class="devel-builds-dots"/></td>
           <td id="macos-build-commit">-</td>
           <td id="macos-build-date">-</td>
-       </tr>
-       <tr>
-          <td id="hxdos-build-link"><img style="margin:auto;margin-left:0.1em;" src="images/dots.svg"/></td>
+      </tr>
+      <tr>
+          <td id="hxdos-build-link"><img style="margin:auto;margin-left:0.1em;" src="images/dots.svg" class="devel-builds-dots"/></td>
           <td id="hxdos-build-commit">-</td>
           <td id="hxdos-build-date">-</td>
-       </tr>
+      </tr>
     </table>
-	Return to <a href="index.html">main page</a><p />
-	</center>
+
+    <div style="text-align: center">
+    Return to <a href="{{ "/" | relative_url }}">main page</a>
+    <p></p>
     </div>
-
-    <!-- FOOTER  -->
-    <iframe src="footer.html" onload="this.before((this.contentDocument.body||this.contentDocument).children[0]);this.remove()"></iframe>
-
-  </body>
-</html>
+</center>

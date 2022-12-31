@@ -1,0 +1,18 @@
+# Please change this file for new versions.
+
+version: 2022.12.26
+# Release date and secondary version label
+# is retrieved from the release note of
+# the version
+git_tag: dosbox-x-v2022.12.26
+
+win32_setup_file: dosbox-x-win32-2022.12.26-setup.exe
+win64_setup_file: dosbox-x-win64-2022.12.26-setup.exe
+
+macos_intel_file: dosbox-x-macosx-x86_64-20221226190321.zip
+macos_arm_file: dosbox-x-macosx-arm64-20221226183221.zip
+#macos_special_file: dosbox-x-macosx-2022.12.26-high-sierra.zip
+
+dos_hx_file: dosbox-x-mingw-hx-dos-20221227040431.zip
+# TODO: There are no LOADLIN builds since 0.84.0.
+# dos_loadlin_file: dosbox-x-dos-0.83.25-loadlin.zip

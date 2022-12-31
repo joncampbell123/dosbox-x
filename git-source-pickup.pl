@@ -9,7 +9,9 @@ $branch = `git branch | grep '^\*' | sed -e 's/^\* //'`; chomp $branch;
 $branchfname = "-branch-$branch" if $branch ne "";
 print "Current branch: $branch\n";
 
-system("find -name \\\*\~ -delete") == 0 || die;
+print "Ensuring the build tree is clean...\n";
+$x = system("./git-update-all-wo-push");
+die unless $x == 0;
 
 if (!open(S,"git --no-pager log --max-count=1 |")) { exit 1; }
 my $lcommit = "x";

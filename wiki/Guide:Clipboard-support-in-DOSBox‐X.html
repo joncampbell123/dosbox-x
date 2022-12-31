@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.17">
+<meta name="generator" content="Asciidoctor 2.0.18">
 <title>Clipboard Support in DOSBox-X</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
@@ -84,10 +84,10 @@ code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;
 ul,ol,dl{line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
 ul,ol{margin-left:1.5em}
 ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0}
-ul.square li ul,ul.circle li ul,ul.disc li ul{list-style:inherit}
-ul.square{list-style-type:square}
 ul.circle{list-style-type:circle}
 ul.disc{list-style-type:disc}
+ul.square{list-style-type:square}
+ul.circle ul:not([class]),ul.disc ul:not([class]),ul.square ul:not([class]){list-style:inherit}
 ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
 dl dt{margin-bottom:.3125em;font-weight:bold}
 dl dd{margin-bottom:1.25em}
@@ -457,7 +457,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <ul class="sectlevel2">
 <li><a href="#_overview">Overview</a></li>
 <li><a href="#_select_copy_and_paste_text_using_a_mouse_button">Select, copy and paste text using a mouse button</a></li>
-<li><a href="#_select_copy_and_paste_text_using_using_the_keyboard">Select, copy and paste text using using the keyboard</a></li>
+<li><a href="#_select_copy_and_paste_text_using_the_keyboard">Select, copy and paste text using the keyboard</a></li>
 <li><a href="#_copy_and_paste_text_using_a_dos_device">Copy and paste text using a DOS device</a></li>
 <li><a href="#_copy_and_paste_text_using_a_dos_program">Copy and paste text using a DOS program</a></li>
 </ul>
@@ -478,7 +478,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_select_copy_and_paste_text_using_a_mouse_button">Select, copy and paste text using a mouse button</h3>
 <div class="paragraph">
-<p>Note: This function was only available for the Windows platform in DOSBox-X version 0.83.6 and earlier. In version 0.83.7 and later it is available for other platforms (except Linux SDL1 build) also.</p>
+<p>Note: This function was only available for the Windows platform in DOSBox-X version 0.83.6 and earlier. In version 0.83.7, and later it is available for other platforms (except Linux SDL1 build) also.</p>
 </div>
 <div class="paragraph">
 <p>You can also use a mouse button to easily select, copy or paste text to or from the clipboard in DOSBox-X when the mouse is not locked. The default mouse button is the right mouse button, but it can be set to the middle mouse button or to disable the feature with the <code>clip_mouse_button</code> config option in the [sdl] section of the DOSBox-X config file. With this feature enabled you can right-drag (or middle-drag) on text in the DOSBox-X window and release the mouse to copy to the clipboard; right-click (or middle-click) in the DOSBox-X window to paste from the clipboard. It works even for double-byte characters when DOSBox-X is running in the PC-98/JEGA mode or a CJK code page. During the text selection you can always left-click (or press the ESC key) to cancel the selection.</p>
@@ -491,7 +491,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 </div>
 <div class="sect2">
-<h3 id="_select_copy_and_paste_text_using_using_the_keyboard">Select, copy and paste text using using the keyboard</h3>
+<h3 id="_select_copy_and_paste_text_using_the_keyboard">Select, copy and paste text using the keyboard</h3>
 <div class="paragraph">
 <p>Note: Pasting from the clipboard using a keyboard shortcut is supported in all platforms since DOSBox-X version 0.83.8. Selecting and copying text using the keyboard are supported in all except for the Linux SDL1 build since DOSBox-X version 0.83.11.</p>
 </div>
@@ -511,7 +511,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_copy_and_paste_text_using_a_dos_device">Copy and paste text using a DOS device</h3>
 <div class="paragraph">
-<p>Note: This function was only available for the Windows platform in DOSBox-X version 0.83.10 and earlier. In version 0.83.11 and later it is available for Linux/macOS builds also, although in the Linux SDL1 build only read access is supported.</p>
+<p>Note: This function was only available for the Windows platform in DOSBox-X version 0.83.10 and earlier. In version 0.83.11, and later it is available for Linux/macOS builds also, although in the Linux SDL1 build only read access is supported.</p>
 </div>
 <div class="paragraph">
 <p>You can use a DOS device (e.g. CLIP$) to easily copy text to and/or paste text from the clipboard in DOSBox-X. To activate this function, please make sure the "Enable DOS clipboard device access: CLIP$" toggle within the "Shared clipboard functions" menu group is checked. Alternatively, you can enable it via the <code>dos clipboard device enable</code> setting in the [dos] section of the DOSBox-X config file (e.g. dosbox-x.conf) by setting it to <code>true</code> or <code>full</code>, then a DOS device (default name: <code>CLIP$</code>) will be added to DOSBox-X to allow bidirectional communications with the clipboard.</p>
@@ -569,7 +569,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_copy_and_paste_text_using_a_dos_program">Copy and paste text using a DOS program</h3>
 <div class="paragraph">
-<p>Note: This function was only available for the Windows platform in DOSBox-X version 0.83.10 and earlier. In version 0.83.11 and later it is available for Linux/macOS builds also, although in the Linux SDL1 build only text pasting is supported.</p>
+<p>Note: This function was only available for the Windows platform in DOSBox-X version 0.83.10 and earlier. In version 0.83.11, and later it is available for Linux/macOS builds also, although in the Linux SDL1 build only text pasting is supported.</p>
 </div>
 <div class="paragraph">
 <p>Copying and pasting text to or from the clipboard is also supported via the DOS APIs in DOSBox-X, so DOS programs that can directly access the Windows 3.x/9x clipboard from a DOS window can also be used to copy and paste text to or from the shared clipboard when running in DOSBox-X. This function may be enabled by default, but can be disabled either by unchecking the option "Enable DOS clipboard API for applications" within the "Shared clipboard functions" menu group, or by setting the config option <code>dos clipboard api</code> to <code>false</code> in the [dos] section of the config file.</p>
@@ -602,7 +602,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>Will display the content of the clipboard.</p>
 </div>
 <div class="paragraph">
-<p>There are also other similar DOS programs that will work in DOSBox-X, such as <a href="http://ansis.lv/dosclip/index.en.php">DOSClip 3.2</a>, a TSR program to select, copy or paste text to or from the clipboard.</p>
+<p>There are other similar DOS programs that will work in DOSBox-X, such as <a href="http://ansis.lv/dosclip/index.en.php">DOSClip 3.2</a>, a TSR program to select, copy or paste text to or from the clipboard.</p>
 </div>
 <div class="paragraph">
 <p>Like copying and pasting text using a DOS device, this bidirectional clipboard access will be deactivated if the secure mode for DOSBox-X is enabled, and it will also not work if booting into a guest OS.</p>
@@ -611,7 +611,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-09-01 22:04:27 -0400
+Last updated 2022-12-31 02:04:38 -0800
 </div>
 </div>
 </body>

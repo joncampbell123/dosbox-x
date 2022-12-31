@@ -1,0 +1,95 @@
+# This config file is meant for settings that affect the whole site.
+# Consider using Jekyll's data files feature for data that is needed
+# to be update frequently.
+#
+# For technical reasons, this file is *NOT* reloaded automatically when you use
+# 'bundle exec jekyll serve'. If you change this file, please restart the server process.
+
+# Site settings
+# These are used to personalize the site.
+# Custom variables will be accessible in templates via {{ site.myvariable }}.
+
+title: DOSBox-X
+# Used for template files: this is the HTML title for all Jekyll pages in this site.
+# Unless {{ page.title }} is set - in that case,
+#   {{ page.title }} - {{ site.title }}
+# will be the HTML title.
+title_verbose: DOSBox-X - Accurate DOS emulation for Windows, Linux, macOS, and DOS
+
+# Site description. Will appear in head meta (for search engine results).
+description: "DOSBox-X: Free, cross-platform and complete DOS, Windows 3.x and 9x emulation package"
+# Tagline shown on pages.
+tagline:
+  Cross-platform DOS emulation package<br />
+  Complete, accurate emulation and more
+
+release_date_format: "%B %-d, %Y"
+
+blog:
+  title: DOSBox-X testing and development log
+  # Site description. Will appear in head meta (for search engine results).
+  description: An ongoing log of testing and development for your enjoyment.
+  date_format: "%Y/%m/%d %H:%M"
+paginate: 10
+paginate_path: "/blog/devtest/page-:num"
+
+# FIXME: Use specific location for DST
+timezone: Etc/GMT+7
+
+# Last version that doesn't have a release note document.
+last_version: 0.83.4
+
+collections:
+  # This is so we can put release notes under _release_notes
+  # in source, while making Jekyll output them to
+  # release-0.XX.X.html files.
+  release_notes:
+    output: true
+    # We use :title instead of the more straightforward
+    # :name, so Jekyll don't do un-nice things
+    # to our version numbers.
+    # Because somebody thought that is good:
+    # https://jekyllrb.com/docs/permalinks/#collections
+    permalink: /release-:title:output_ext
+
+defaults:
+  -
+    scope:
+      path: ""
+    values:
+      layout: "page"
+  -
+    scope:
+      path: "_release_notes"
+    values:
+      layout: "release_notes"
+  -
+    scope:
+      path: "wiki"
+    values:
+      layout: ""
+  -
+    scope:
+      path: "_posts"
+    values:
+      layout: "blog/post"
+      permalink: /blog/devtest/:year-:month-:day-:hour:minute/
+
+exclude:
+  # Script files.
+  - git-source-pickup.pl
+  - git-update-all
+  - git-update-all-wo-push
+  # Pre-convert-to-HTML raw wiki markup files.
+  - wiki/*.asciidoc
+  - wiki/*.md
+  # RubyGem / Bundler files
+  - vendor/bundle/
+  - vendor/cache/
+  - vendor/gems/
+  - vendor/ruby/
+  - Gemfile
+  - Gemfile.lock
+  # Mysterious cache directory from the site template, kept here
+  # just in case.
+  - .jekyll-cache/

@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.17">
+<meta name="generator" content="Asciidoctor 2.0.18">
 <title>Installing Microsoft Windows Millennium Edition in DOSBox-X</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
@@ -84,10 +84,10 @@ code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;
 ul,ol,dl{line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
 ul,ol{margin-left:1.5em}
 ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0}
-ul.square li ul,ul.circle li ul,ul.disc li ul{list-style:inherit}
-ul.square{list-style-type:square}
 ul.circle{list-style-type:circle}
 ul.disc{list-style-type:disc}
+ul.square{list-style-type:square}
+ul.circle ul:not([class]),ul.disc ul:not([class]),ul.square ul:not([class]){list-style:inherit}
 ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
 dl dt{margin-bottom:.3125em;font-weight:bold}
 dl dd{margin-bottom:1.25em}
@@ -846,7 +846,7 @@ SETUP.EXE /NM</pre>
 <p>At this point it should format the harddisk and the installation process should start.</p>
 </div>
 <div class="paragraph">
-<p>When the Windows installer reboots, and your back at the DOSBox-X <code>Z:\&gt;</code> prompt.
+<p>When the Windows installer reboots, and you&#8217;re back at the DOSBox-X <code>Z:\&gt;</code> prompt.
 Close DOSBox-X and edit your <code>winme.conf</code> config file, and add the following lines in the [autoexec] section at the end of the file:</p>
 </div>
 <div class="literalblock">
@@ -991,7 +991,7 @@ SETUP /NM</pre>
 The actual steps will not be covered in this guide, but are pretty self-explanatory and detailed guides on the Windows ME install process can be found online such as YouTube.</p>
 </div>
 <div class="paragraph">
-<p>When the installer reboots DOSBox-X, and your back at the DOSBox-X <code>Z:\</code> prompt, type <code>EXIT</code>.</p>
+<p>When the installer reboots DOSBox-X, and you&#8217;re back at the DOSBox-X <code>Z:\</code> prompt, type <code>EXIT</code>.</p>
 </div>
 <div class="paragraph">
 <p>Now edit your <code>winme.conf</code> config file.
@@ -1689,7 +1689,7 @@ There is currently no support for creating emulated CD-ROM or Floppy drives out 
 <div class="paragraph">
 <p>One thing to note, is that there is no way to specify the FAT type to use for the conversion.
 The FAT type will be automatically selected based on the aggregate size of files in the folder, plus 250MiB (this can be adjusted with the <code>convert fat free space</code> option in the DOSBox-X config file).
-If the total space of files + 250MiB does not exceed 2GiB, it will convert it into a FAT16 disk. Otherwise it will become a FAT32, which in turn will require a guest OS with FAT32 support.</p>
+If the total space of files + 250MiB does not exceed 2GiB, it will convert it into a FAT16 disk. Otherwise, it will become a FAT32, which in turn will require a guest OS with FAT32 support.</p>
 </div>
 <div class="paragraph">
 <p>Alternatively, you can also make the emulated FAT drive read-only by using the <code>-convertfatro</code> option with the <code>boot</code> command. Or by setting <code>convert fat free space=0</code> option in the DOSBox-X config file.</p>
@@ -1703,7 +1703,7 @@ If the total space of files + 250MiB does not exceed 2GiB, it will convert it in
 <ul>
 <li>
 <p>If you intend at any point to use a Floppy or CD during your usage of Windows ME, you must attach a floppy and/or CD image <strong>before</strong> starting Windows ME.
-You can load a different CD or Floppy image, once you booted Windows 95, but if a floppy or CD is not present when starting Windows ME the drive is simply missing and you cannot add it without rebooting the guest OS.</p>
+You can load a different CD or Floppy image, once you booted Windows 95, but if a floppy or CD is not present when starting Windows ME the drive is simply missing, and you cannot add it without rebooting the guest OS.</p>
 </li>
 <li>
 <p>When mounting a CD-ROM image using <code>imgmount</code>, before booting Windows 95, you may have to specify the IDE device to attach it to for it to work properly in Windows 95. e.g. <code>imgmount d game_cd.iso -ide 2m</code> to make the CD-ROM drive appear as the master device on the secondary IDE controller.</p>
@@ -1749,7 +1749,7 @@ You can load a different CD or Floppy image, once you booted Windows 95, but if 
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-09-01 22:04:27 -0400
+Last updated 2022-12-31 02:04:38 -0800
 </div>
 </div>
 </body>

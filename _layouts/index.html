@@ -1,0 +1,23 @@
+---
+layout: default
+---
+
+<div id="main_header">
+{%- capture header -%}{% include index_header.md %}{%- endcapture -%}
+{{ header | markdownify }}
+</div>
+
+<hr />
+
+<section id="main_content">
+  <table width="100%" style="border: hidden">
+    <tr>
+      <td width="20%" style="border: hidden; min-width: 300px">
+{% include version.html %}
+      </td>
+      <td width="80%" markdown="1">
+{{ content }}
+      </td>
+    </tr>
+  </table>
+</section>

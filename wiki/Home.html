@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.17">
+<meta name="generator" content="Asciidoctor 2.0.18">
 <title>Introduction</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
@@ -84,10 +84,10 @@ code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;
 ul,ol,dl{line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
 ul,ol{margin-left:1.5em}
 ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0}
-ul.square li ul,ul.circle li ul,ul.disc li ul{list-style:inherit}
-ul.square{list-style-type:square}
 ul.circle{list-style-type:circle}
 ul.disc{list-style-type:disc}
+ul.square{list-style-type:square}
+ul.circle ul:not([class]),ul.disc ul:not([class]),ul.square ul:not([class]){list-style:inherit}
 ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
 dl dt{margin-bottom:.3125em;font-weight:bold}
 dl dd{margin-bottom:1.25em}
@@ -450,13 +450,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_introduction">Introduction</h3>
 <div class="paragraph">
-<p>DOSBox-X (homepage: <a target="_top" href="https://dosbox-x.com">https://dosbox-x.com</a> or <a target="_top" href="http://dosbox-x.software">http://dosbox-x.software</a>) is a cross-platform DOS emulator based on <a target="_top" href="http://www.dosbox.com">DOSBox</a>. Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applications that simply cannot be run on modern PCs and operating systems. However, while the main focus of DOSBox is for running DOS games, DOSBox-X goes much further than this. Started as a fork of the DOSBox project, it retains compatibility with the wide base of DOS games and DOS gaming DOSBox was designed for. But it is also a platform for running DOS applications, including emulating the environments to run Windows 3.x, 9x and ME and software written for those versions of Windows.</p>
+<p>DOSBox-X (homepage: <a href="https://dosbox-x.com">https://dosbox-x.com</a> or <a href="http://dosbox-x.software">http://dosbox-x.software</a>) is a cross-platform DOS emulator based on <a href="http://www.dosbox.com">DOSBox</a>. Like DOSBox, it emulates a PC necessary for running many MS-DOS games and applications that simply cannot be run on modern PCs and operating systems. However, while the main focus of DOSBox is for running DOS games, DOSBox-X goes much further than this. Started as a fork of the DOSBox project, it retains compatibility with the wide base of DOS games and DOS gaming DOSBox was designed for. But it is also a platform for running DOS applications, including emulating the environments to run Windows 3.x, 9x and ME and software written for those versions of Windows.</p>
 </div>
 <div class="paragraph">
-<p>DOSBox-X supports multiple host operating systems including Windows, Linux, macOS and DOS. Windows binaries (both 32-bit and 64-bit), Linux Flatpaks or RPM packages (64-bit), macOS packages (64-bit) and DOS packages (for MS-DOS 5.0+ or compatible) are officially released periodically, typically on the last day of a month or at the start of the next month. Please check out the <a target="_top" href="http://dosbox-x.com">DOSBox-X homepage</a> for common packages of the latest release for the supported platforms. Also see the <a target="_top" href="https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md">INSTALL</a> page for DOSBox-X installation instructions and other packages. The portable ZIP and Linux RPM packages for all released DOSBox-X versions and their change logs can be found in the <a target="_top" href="https://github.com/joncampbell123/dosbox-x/releases">Releases</a> page.</p>
+<p>DOSBox-X supports multiple host operating systems including Windows, Linux, macOS and DOS. Windows binaries (both 32-bit and 64-bit), Linux Flatpaks or RPM packages (64-bit), macOS packages (64-bit) and DOS packages (for MS-DOS 5.0+ or compatible) are officially released periodically, typically on the last day of a month or at the start of the next month. Please check out the <a href="http://dosbox-x.com">DOSBox-X homepage</a> for common packages of the latest release for the supported platforms. Also see the <a href="https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md">INSTALL</a> page for DOSBox-X installation instructions and other packages. The portable ZIP and Linux RPM packages for all released DOSBox-X versions and their change logs can be found in the <a href="https://github.com/joncampbell123/dosbox-x/releases">Releases</a> page.</p>
 </div>
 <div class="paragraph">
-<p>For Windows users the Windows installer for DOSBox-X is available to ease the installation process (in addition to portable packages), and with the installer you will be able to start DOSBox-X as soon as the installation ends. The installer can also be used to upgrade from a previous version of DOSBox-X while keeping the previous user settings. For Linux users both RPM and Flatpak packages are available, with the latter being standalone applications independent of Linux distributions, and as a result you should be able to run it on any Linux platforms. For macOS and DOS users the self-contained portable packages are the default packages. You can also compile the source code yourself; instructions on building the source code is available from the <a target="_top" href="https://github.com/joncampbell123/dosbox-x/blob/master/BUILD.md">BUILD</a> page.</p>
+<p>For Windows users the Windows installer for DOSBox-X is available to ease the installation process (in addition to portable packages), and with the installer you will be able to start DOSBox-X as soon as the installation ends. The installer can also be used to upgrade from a previous version of DOSBox-X while keeping the previous user settings. For Linux users both RPM and Flatpak packages are available, with the latter being standalone applications independent of Linux distributions, and as a result you should be able to run it on any Linux platforms. For macOS and DOS users the self-contained portable packages are the default packages. You can also compile the source code yourself; instructions on building the source code is available from the <a href="https://github.com/joncampbell123/dosbox-x/blob/master/BUILD.md">BUILD</a> page.</p>
 </div>
 <div id="toc" class="toc">
 <div id="toctitle" class="title">Table of Contents</div>
@@ -477,13 +477,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="sect2">
 <h3 id="_dosbox_xs_main_focus">DOSBox-X&#8217;s Main Focus</h3>
 <div class="paragraph">
-<p>Unlike DOSBox&#8217;s original focus on DOS games, DOSBox-X gives more focus on general DOS emulation, with the eventual goal of being a complete DOS emulation package that covers all pre-2000 DOS and Windows 9x based system scenarios, including all types and manners of hardware that were made for DOS PCs of that time. We believe that a better way to emulate the legacy PC platform is to give the user all the options they need to emulate everything from original IBM PC system all the way up to late 1990&#8217;s configuration, whatever it takes to get that game or software package to run. We have made serious efforts to maintain and improve the emulation accuracy of the hardware and many more ways to tweak and configure the DOS virtual machine, and at the same time we are also making efforts to improve emulation quality and usability, including the general experiences for new users who want to run DOS programs or games, as well as implementing emulation that is accurate enough to <a target="_top" href="https://dosbox-x.com/newdosdevelopment.html">help make new DOS developments possible</a> with confidence the program will run properly on actual DOS systems.</p>
+<p>Unlike DOSBox&#8217;s original focus on DOS games, DOSBox-X gives more focus on general DOS emulation, with the eventual goal of being a complete DOS emulation package that covers all pre-2000 DOS and Windows 9x based system scenarios, including all types and manners of hardware that were made for DOS PCs of that time. We believe that a better way to emulate the legacy PC platform is to give the user all the options they need to emulate everything from original IBM PC system all the way up to late 1990&#8217;s configuration, whatever it takes to get that game or software package to run. We have made serious efforts to maintain and improve the emulation accuracy of the hardware and many more ways to tweak and configure the DOS virtual machine, and at the same time we are also making efforts to improve emulation quality and usability, including the general experiences for new users who want to run DOS programs or games, as well as implementing emulation that is accurate enough to <a href="https://dosbox-x.com/newdosdevelopment.html">help make new DOS developments possible</a> with confidence the program will run properly on actual DOS systems.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_what_dosbox_x_can_do">What DOSBox-X Can Do</h3>
 <div class="paragraph">
-<p>Derived from DOSBox, DOSBox-X emulates a PC complete with keyboard, mouse, joystick, sound, graphics, modem, printer, network, communication and storage devices, etc, in order to have a working DOS environment to run software designed for DOS. The vast majority of DOS (MS-DOS and PC DOS in particular) games and applications should run in DOSBox-X, although some of them may require additional configurations. DOSBox-X not only emulates a IBM PC, but also legacy systems such as the Japanese NEC PC-98. With the help of DOSBox-X, you will be able to run your favorite DOS games and programs on modern operating systems (32-bit and 64-bit) such as Microsoft Windows Vista, 7, 8, 10 and various Linux distributions. DOSBox-X also provides additional features that are useful but generally do not exist in a real DOS system, such as support for keyboard remapping and saving/loading states. With all these features it is usually very simple to make your DOS games or programs run smoothly within DOSBox-X.</p>
+<p>Derived from DOSBox, DOSBox-X emulates a PC complete with keyboard, mouse, joystick, sound, graphics, modem, printer, network, communication and storage devices, etc., in order to have a working DOS environment to run software designed for DOS. The vast majority of DOS (MS-DOS and PC DOS in particular) games and applications should run in DOSBox-X, although some of them may require additional configurations. DOSBox-X not only emulates an IBM PC, but also legacy systems such as the Japanese NEC PC-98. With the help of DOSBox-X, you will be able to run your favorite DOS games and programs on modern operating systems (32-bit and 64-bit) such as Microsoft Windows Vista, 7, 8, 10 and various Linux distributions. DOSBox-X also provides additional features that are useful but generally do not exist in a real DOS system, such as support for keyboard remapping and saving/loading states. With all these features it is usually very simple to make your DOS games or programs run smoothly within DOSBox-X.</p>
 </div>
 <div class="paragraph">
 <p>For examples of DOSBox-X&#8217;s unique features, please see <a href="DOSBox‐X’s-Feature-Highlights">DOSBox-X&#8217;s Feature Highlights</a> page.</p>
@@ -500,13 +500,13 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Mount local drives/directories: This can be usually done using MOUNT command, which allows you to mount your host drives/directories as DOSBox-X&#8217;s drives. For example, in Windows <code>MOUNT C D:\GAMES</code> will give you a C drive in DOSBox-X which points to your Windows D:\GAMES directory (that was created before). In Linux, <code>MOUNT C /home/username</code> will give you a C drive in DOSBox-X which points to the /home/username directory. To change to the drive mounted like above, type <code>C:</code>. If everything went fine, DOSBox-X will display the prompt "C:\&gt;". To mount your CD drives on a Windows system in DOSBox-X you need to specify additional options. For example, you can use the command <code>MOUNT D E:\ -T CDROM</code> to enable CD support (including MSCDEX). For Windows you can also select a directory to mount via the Windows file browser from the "Drive" menu with some options ("Mount as Hard Disk", "Mount as CD-ROM" and "Mount as Floppy" within a drive).</p>
+<p>Mount local drives/directories: This can be usually done using MOUNT command, which allows you to mount your host drives/directories as DOSBox-X&#8217;s drives. For example, in Windows <code>MOUNT C D:\GAMES</code> will give you a C drive in DOSBox-X which points to your Windows D:\GAMES directory (that was created before). In Linux, <code>MOUNT C /home/username</code> will give you a C drive in DOSBox-X which points to the /home/username directory. To change to the drive mounted like above, type <code>C:</code>. If everything went fine, DOSBox-X will display the prompt "C:\&gt;". To mount your CD drives on a Windows system in DOSBox-X you need to specify additional options. For example, you can use the command <code>MOUNT D E:\ -T CDROM</code> to enable CD support (including MSCDEX). For Windows, you can also select a directory to mount via the Windows file browser from the "Drive" menu with some options ("Mount as Hard Disk", "Mount as CD-ROM" and "Mount as Floppy" within a drive).</p>
 </li>
 <li>
-<p>Auto-mount drives: If you are using Windows, DOSBox-X will ask if you want to give it access to your Windows drive when you try to go to a drive (e.g. C:), but that drive has not yet been mounted inside DOSBox-X. This basically makes DOSBox-X access to the same drives as in your Windows system. If you answer Y for Yes, then the whole Windows drive will be mounted and accessible within DOSBox-X. You can also automatically mount drives via the "Drive" menu (select a drive and "Mount Automatically"). Furthermore, it is possible to automatically mount all available Windows drives as DOSBox-X drives at start by setting the "automountall" config option to "true". Note however that it is not recommended to mount your whole Windows Drive C: inside DOSBox-X because DOSBox-X will then be able to access all files and directories in your Windows Drive C:, which may not be very safe.</p>
+<p>Auto-mount drives: If you are using Windows, DOSBox-X will ask if you want to give it access to your Windows drive when you try to go to a drive (e.g. C:), but that drive has not yet been mounted inside DOSBox-X. This basically makes DOSBox-X access to the same drives as in your Windows system. If you answer Y for Yes, then the whole Windows drive will be mounted and accessible within DOSBox-X. You can also automatically mount drives via the "Drive" menu (select a drive and "Mount Automatically"). Furthermore, it is possible to automatically mount all available Windows drives as DOSBox-X drives at start by setting the "automountall" config option to "true". Note however that it is not recommended mounting your whole Windows Drive C: inside DOSBox-X because DOSBox-X will then be able to access all files and directories in your Windows Drive C:, which may not be very safe.</p>
 </li>
 <li>
-<p>Mount image files: DOSBox-X supports mounting harddisk, floppy diskette and CD-ROM image files using the IMGMOUNT command. In Windows you can type <code>IMGMOUNT A D:\GAMES\GAME_DISK.IMA</code> to mount the floppy image file D:\GAMES\GAME_DISK.IMA located on your host system as an emulated floppy drive. Likewise on Linux <code>IMGMOUNT A /home/username/Games/GAME_DISK.IMA</code> will have the same effect. A CD-ROM image (in CUE or ISO format), including MSCDEX emulation and support for CD audio tracks, can be mounted in a similar way. On Windows <code>IMGMOUNT D D:\GAMES\GAME_CD.ISO</code>, or on Linux <code>IMGMOUNT D /home/username/Games/GAME_CD.ISO</code> will mount the file GAME_CD.ISO on an emulated CD-ROM drive. For Windows you can also select an image file to mount via the Windows file browser from the "Drive" menu (select a drive and "Mount disk image").</p>
+<p>Mount image files: DOSBox-X supports mounting harddisk, floppy diskette and CD-ROM image files using the IMGMOUNT command. In Windows, you can type <code>IMGMOUNT A D:\GAMES\GAME_DISK.IMA</code> to mount the floppy image file D:\GAMES\GAME_DISK.IMA located on your host system as an emulated floppy drive. Likewise on Linux <code>IMGMOUNT A /home/username/Games/GAME_DISK.IMA</code> will have the same effect. A CD-ROM image (in CUE or ISO format), including MSCDEX emulation and support for CD audio tracks, can be mounted in a similar way. On Windows <code>IMGMOUNT D D:\GAMES\GAME_CD.ISO</code>, or on Linux <code>IMGMOUNT D /home/username/Games/GAME_CD.ISO</code> will mount the file GAME_CD.ISO on an emulated CD-ROM drive. For Windows, you can also select an image file to mount via the Windows file browser from the "Drive" menu (select a drive and "Mount disk image").</p>
 </li>
 </ol>
 </div>
@@ -529,7 +529,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>You can set various configuration options for use with DOSBox-X. DOSBox-X will load the configuration file from either the current directory (typically the directory where the DOSBox-X program is located), or from the platform-dependent user directory.</p>
 </div>
 <div class="paragraph">
-<p>By default, DOSBox-X will first try to load the file <strong>dosbox-x.conf</strong> (or dosbox.conf) from the current directory, followed by the DOSBox-X program directory. You can specify an alternative directory (instead of the current directory) for DOSBox-X to look for the configuration file with the <code>-defaultdir</code> command-line option, such as <code>-defaultdir mydir</code>. If the config file is not found, DOSBox-X will then try to load the the configuration file from the user directory according to the platform:</p>
+<p>By default, DOSBox-X will first try to load the file <strong>dosbox-x.conf</strong> (or dosbox.conf) from the current directory, followed by the DOSBox-X program directory. You can specify an alternative directory (instead of the current directory) for DOSBox-X to look for the configuration file with the <code>-defaultdir</code> command-line option, such as <code>-defaultdir mydir</code>. If the config file is not found, DOSBox-X will then try to load the configuration file from the user directory according to the platform:</p>
 </div>
 <div class="literalblock">
 <div class="content">
@@ -809,7 +809,7 @@ press the X key on your keyboard.</p>
 <li>
 <p><a href="Guide%3ADOS-games-in-DOSBox‐X">Guide: DOS games in DOSBox-X</a></p>
 <div class="paragraph">
-<p>Explains how to setup and play DOS games in DOSBox-X.</p>
+<p>Explains how to set up and play DOS games in DOSBox-X.</p>
 </div>
 </li>
 <li>
@@ -920,10 +920,10 @@ press the X key on your keyboard.</p>
 <p>Efforts are also made to aid retro DOS developments, which is why DOSBox-X used to focus on the demoscene (especially anything prior to 1996) because that era of the MS-DOS scene tends to have all manner of weird hardware tricks, bugs, and speed-sensitive issues that make them the perfect kind of stuff to test emulation accuracy against, even more so than old DOS games. But without a doubt we also actively test against other DOS games and applications, as well as PC-98 programs (most of them are games).</p>
 </div>
 <div class="paragraph">
-<p>DOSBox-X vs MS-DOS application test results: <a target="_top" href="https://dosbox-x.com/msdos-compat.html">DOSBox-X DOS application compatibility testing chart</a></p>
+<p>DOSBox-X vs MS-DOS application test results: <a href="https://dosbox-x.com/msdos-compat.html">DOSBox-X DOS application compatibility testing chart</a></p>
 </div>
 <div class="paragraph">
-<p>DOSBox-X vs Demoscene test results: <a target="_top" href="http://dosbox-x.com/demoscene-compat.html">DOSBox-X demoscene compatibility testing chart</a></p>
+<p>DOSBox-X vs Demoscene test results: <a href="http://dosbox-x.com/demoscene-compat.html">DOSBox-X demoscene compatibility testing chart</a></p>
 </div>
 </div>
 <div class="sect2">
@@ -981,7 +981,7 @@ press the X key on your keyboard.</p>
 <li>
 <p><strong>Can DOSBox-X synchronize the content of mounted local drives with the host file system and/or the internal clock with the host system clock automatically?</strong></p>
 <div class="paragraph">
-<p>Yes, you can let DOSBox-X synchronize them automatically with config options, or they may become desynchronized if there are changes outside of DOSBox-X (DOSBox-X caches the file list on a directory/drive by default to improve its performance). To synchronize the content of mounted local drives with the host file system automatically, you can set <code>nocachedir=true</code> in [dosbox] section of the config file. Alternatively, you can synchronize individual drive with the host file system by adding the <code>-nocachedir</code> option to <code>MOUNT</code> command, e.g. <code>MOUNT D D:\ -nocachedir</code>. Likewise, to synchronize the internal clock with the host system clock automatically, you can set <code>synchronize time=true</code> in [dosbox] section of the config file, or you can toggle this from DOSBox-X’s drop-down menu ("DOS" &#8658; "synchronize host date/time"). Note that you can also use <code>RESCAN</code> command to manually synchronize the content of mounted local drive(s) with the host file system (type <code>RESCAN /?</code> for more information about this command), and you can use <code>DATE /H</code> or <code>TIME /H</code> command to manually synchronize the internal date/time with the host system date/time.</p>
+<p>Yes, you can let DOSBox-X synchronize them automatically with config options, or they may become desynchronized if there are changes outside DOSBox-X (DOSBox-X caches the file list on a directory/drive by default to improve its performance). To synchronize the content of mounted local drives with the host file system automatically, you can set <code>nocachedir=true</code> in [dosbox] section of the config file. Alternatively, you can synchronize individual drive with the host file system by adding the <code>-nocachedir</code> option to <code>MOUNT</code> command, e.g. <code>MOUNT D D:\ -nocachedir</code>. Likewise, to synchronize the internal clock with the host system clock automatically, you can set <code>synchronize time=true</code> in [dosbox] section of the config file, or you can toggle this from DOSBox-X’s drop-down menu ("DOS" &#8658; "synchronize host date/time"). Note that you can also use <code>RESCAN</code> command to manually synchronize the content of mounted local drive(s) with the host file system (type <code>RESCAN /?</code> for more information about this command), and you can use <code>DATE /H</code> or <code>TIME /H</code> command to manually synchronize the internal date/time with the host system date/time.</p>
 </div>
 </li>
 <li>
@@ -1042,7 +1042,7 @@ pcspeaker=false</pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-09-01 22:04:27 -0400
+Last updated 2022-12-31 02:04:38 -0800
 </div>
 </div>
 </body>

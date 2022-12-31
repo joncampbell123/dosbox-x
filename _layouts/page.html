@@ -1,0 +1,19 @@
+---
+layout: default
+---
+
+<div style="text-align: center">
+    <h3 style="padding-top: 10px;">{{ page.title | escape }}</h3>
+
+    <table width="100%" style="border: hidden">
+        <tr>
+            <td width="15%" style="border: hidden"></td>
+            <td width="70%" style="border: hidden; text-align: left">
+{{ content }}
+
+                <div style="text-align: center">Return to <a href="{{ "/" | relative_url }}">main page</a></div>
+            </td>
+            <td width="15%" style="border: hidden"></td>
+        </tr>
+    </table>
+</div>

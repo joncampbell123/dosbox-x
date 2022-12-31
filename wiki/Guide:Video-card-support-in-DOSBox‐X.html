@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.17">
+<meta name="generator" content="Asciidoctor 2.0.18">
 <title>Selecting a video adapter in DOSBox-X</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
@@ -84,10 +84,10 @@ code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;
 ul,ol,dl{line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
 ul,ol{margin-left:1.5em}
 ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0}
-ul.square li ul,ul.circle li ul,ul.disc li ul{list-style:inherit}
-ul.square{list-style-type:square}
 ul.circle{list-style-type:circle}
 ul.disc{list-style-type:disc}
+ul.square{list-style-type:square}
+ul.circle ul:not([class]),ul.disc ul:not([class]),ul.square ul:not([class]){list-style:inherit}
 ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
 dl dt{margin-bottom:.3125em;font-weight:bold}
 dl dd{margin-bottom:1.25em}
@@ -828,7 +828,7 @@ The vertical refresh of MDA is only 50Hz, but with the phosphor glow of green an
 </div>
 <div class="paragraph">
 <p>The main selling feature of this adapter, compared to CGA, was its clarity as it uses effectively a 720x350 resolution, which made it very popular for business software.
-For games your going to be limited to text mode games, like text adventures.</p>
+For games, you&#8217;re going to be limited to text mode games, like text adventures.</p>
 </div>
 <div class="paragraph">
 <p>This mode can be set using <code>machine=mda</code> in your DOSBox-X config file.
@@ -1469,7 +1469,7 @@ Some clone EGA cards added extra video memory and video modes, typically known a
 </div>
 <div class="paragraph">
 <p>Starting with DOSBox-X 0.84.1 an EGA adapter attached to a 200-line CGA monitor can be emulated by setting <code>machine=ega200</code>.
-When using this reduced mode, the regular 350-line EGA modes will not be be available.</p>
+When using this reduced mode, the regular 350-line EGA modes will not be available.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1535,7 +1535,7 @@ There is no support for emulating an EGA adapter with monochrome MDA monitor at 
 <div class="sect2">
 <h3 id="_amstrad">Amstrad</h3>
 <div class="paragraph">
-<p>Amstrad in 1986 introduced the PC1512 which is a IBM PC clone with CGA (RGBI only) graphics, but also adds a 640x200 16-colour mode.</p>
+<p>Amstrad in 1986 introduced the PC1512 which is an IBM PC clone with CGA (RGBI only) graphics, but also adds a 640x200 16-colour mode.</p>
 </div>
 <div class="paragraph">
 <p>Very little software exists that can use this mode. Here are some known examples:</p>
@@ -1580,7 +1580,7 @@ There is no support for emulating an EGA adapter with monochrome MDA monitor at 
 </ul>
 </div>
 <div class="paragraph">
-<p>In addition there is a <a href="http://sierrahelp.com/Patches-Updates/MiscUpdates.html">PC1512.DRV</a> driver for Sierra SCI0 and SCI1 games.</p>
+<p>In addition, there is a <a href="http://sierrahelp.com/Patches-Updates/MiscUpdates.html">PC1512.DRV</a> driver for Sierra SCI0 and SCI1 games.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -2138,7 +2138,7 @@ Like the regular S3 ViRGE, the emulation of this card is considered experimental
 </div>
 <div class="paragraph">
 <p>Introduced in November 1995.
-Similar to the regular S3 ViRGE but available with 2, 4 or 8MB VRAM, allowing higher resolution and higher colour depths graphics modes.</p>
+Similar to the regular S3 ViRGE but available with 2, 4 or 8MB VRAM, allowing higher resolution and higher colour depth&#8217;s graphics modes.</p>
 </div>
 <div class="paragraph">
 <p>This mode can be set using <code>machine=svga_s3virgevx</code> in your DOSBox-X config file</p>
@@ -2494,7 +2494,7 @@ It is advised that you set your terminal window to 80x25 as to minimize characte
 <td class="content">
 The 2nd display output to the terminal window will be in the DOS codepage that is set in DOSBox-X.
 However, most terminal programs expect Unicode these days, which will result in unicode question marks for a lot of characters.
-This can be minimized by using a terminal program that allows setting an encoding other then unicode, which a lot of Linux terminal programs allow.
+This can be minimized by using a terminal program that allows setting an encoding other than unicode, which a lot of Linux terminal programs allow.
 </td>
 </tr>
 </table>
@@ -2574,7 +2574,7 @@ If your game is not sensitive to VGA RAM I/O speed, then turning on this option 
 <div class="ulist">
 <ul>
 <li>
-<p><code>vmemsize=-1</code>: auto (<code>vmemsizekb</code> is ignored), and default value is dependant on the emulated SVGA adapter.</p>
+<p><code>vmemsize=-1</code>: auto (<code>vmemsizekb</code> is ignored), and default value is dependent on the emulated SVGA adapter.</p>
 </li>
 <li>
 <p><code>vmemsize=0</code>: 512kB for 800x600 at 256 colors (if vmemsizekb=0)</p>
@@ -2597,7 +2597,7 @@ If your game is not sensitive to VGA RAM I/O speed, then turning on this option 
 </ul>
 </div>
 <div class="paragraph">
-<p>For <a href="https://en.wikipedia.org/wiki/Build_(game_engine)">build engine games</a>, use more memory than in the list above so it can use triple buffering and thus won&#8217;t flicker.</p>
+<p>For <a href="https://en.wikipedia.org/wiki/Build_(game_engine)">build engine games</a>, use more memory than in the list above, so it can use triple buffering and thus won&#8217;t flicker.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -2973,7 +2973,7 @@ If you disable the 14 &amp; 16 pixel high font AND the second half when <code>ma
 <div class="title">Note</div>
 </td>
 <td class="content">
-Almost all modern LCD displays only support 60Hz, which is not ideal for games meant to run at 70Hz.
+Almost all modern LCDs only support 60Hz, which is not ideal for games meant to run at 70Hz.
 </td>
 </tr>
 </table>
@@ -2992,7 +2992,7 @@ Almost all modern LCD displays only support 60Hz, which is not ideal for games m
 </ul>
 </div>
 <div class="paragraph">
-<p>Whether or not to emulate a Sierra or compatible RAMDAC at IO port 3C6h-3C9h.</p>
+<p>Whether to emulate a Sierra or compatible RAMDAC at IO port 3C6h-3C9h.</p>
 </div>
 <div class="paragraph">
 <p>Some DOS games expect to access IO port 3C6h to enable highcolor/truecolor SVGA modes on older chipsets.
@@ -3060,7 +3060,7 @@ Else, bit 6 of the DAC command selects between 5:5:5 and 5:6:5.</p>
 <p>If true, an inverse line will be drawn on the exact scanline that the CRTC display offset registers were written.</p>
 </div>
 <div class="paragraph">
-<p>This can be used to help diagnose whether or not the DOS game is page flipping properly according to vertical retrace if the display on-screen is flickering.</p>
+<p>This can be used to help diagnose whether the DOS game is page flipping properly according to vertical retrace if the display on-screen is flickering.</p>
 </div>
 </div>
 <div class="sect2">
@@ -3557,7 +3557,7 @@ This is intended to emulate the inertia of the electron beam in a CRT monitor</p
 <p>If true, allow low resolution VESA modes (320x200x16/24/32bpp and so on).</p>
 </div>
 <div class="paragraph">
-<p>You could set this to false to simulate SVGA hardware with a BIOS that does not support the low resolution modes for testing purposes, or to limit the amount of modes available.</p>
+<p>You could set this too false to simulate SVGA hardware with a BIOS that does not support the low resolution modes for testing purposes, or to limit the amount of modes available.</p>
 </div>
 </div>
 <div class="sect2">
@@ -3796,7 +3796,7 @@ The modes enabled by this option are still limited by the width and height limit
 <div class="ulist">
 <ul>
 <li>
-<p>Set to false to emulate most VGA behavior</p>
+<p>Set too false to emulate most VGA behavior</p>
 </li>
 <li>
 <p>Set to true for the value to latch once at the start of the frame.</p>
@@ -3962,6 +3962,18 @@ Else, leave it turned off.</p>
 <div class="paragraph">
 <p>Synchronize vsync timing to the host display. Requires calibration within DOSBox-X.</p>
 </div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+Synchronizing to the host may cause issues with some games. For instance Sierra AGI games use VSYNC as part of their Hercules detection and will fail to find the adapter.
+</td>
+</tr>
+</table>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_vsyncrate">vsyncrate</h3>
@@ -3984,7 +3996,7 @@ Else, leave it turned off.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-09-01 22:04:27 -0400
+Last updated 2022-12-31 02:04:38 -0800
 </div>
 </div>
 </body>

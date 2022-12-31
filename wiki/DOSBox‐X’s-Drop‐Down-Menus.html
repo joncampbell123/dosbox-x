@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.17">
+<meta name="generator" content="Asciidoctor 2.0.18">
 <title>Untitled</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
@@ -84,10 +84,10 @@ code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;
 ul,ol,dl{line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
 ul,ol{margin-left:1.5em}
 ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0}
-ul.square li ul,ul.circle li ul,ul.disc li ul{list-style:inherit}
-ul.square{list-style-type:square}
 ul.circle{list-style-type:circle}
 ul.disc{list-style-type:disc}
+ul.square{list-style-type:square}
+ul.circle ul:not([class]),ul.disc ul:not([class]),ul.square ul:not([class]){list-style:inherit}
 ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
 dl dt{margin-bottom:.3125em;font-weight:bold}
 dl dd{margin-bottom:1.25em}
@@ -524,7 +524,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><strong>Turbo (Fast Forward)</strong>: Increases the emulated DOS&#8217;s current CPU speed to 200%-300% of the normal speed (this will cause the clock to get out of sync inside DOSBox-X).</p>
 </li>
 <li>
-<p><strong>Normal speed</strong>: Restores the emulated DOS&#8217;s current speed relative to real-time to the normal speed.</p>
+<p><strong>Normal speed</strong>: Restores the emulated DOS&#8217;s current speed relative too real-time to the normal speed.</p>
 </li>
 <li>
 <p><strong>Speed up</strong>: Increases the emulated DOS&#8217;s current speed relative to real-time. You can speed up the emulation with this if you want to play a game at greater than 100% normal speed.</p>
@@ -539,7 +539,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><strong>Decrement cycles</strong>: Decreases the amount of CPU instructions DOSBox-X tries to emulate each millisecond.</p>
 </li>
 <li>
-<p><strong>Emulate CPU speed</strong>: Emulate the speed of the a specific CPU class by setting the approximate cycles.</p>
+<p><strong>Emulate CPU speed</strong>: Emulate the speed of a specific CPU class by setting the approximate cycles.</p>
 </li>
 <li>
 <p><strong>Edit cycles</strong>: Sets the amount of CPU instructions DOSBox-X tries to emulate each millisecond to a specific value.</p>
@@ -585,7 +585,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p><strong>Adjust refresh rate&#8230;&#8203;</strong>: Sets the video refresh rate (0 for unlocking the refresh rate).</p>
 </li>
 <li>
-<p><strong>Force scaler</strong>: Forces the use of a scaler even if the result might not be desired. To fit a scaler in the resolution used at full screen may require a border or side bars. To fill the screen entirely, depending on your hardware, a different scaler/fullresolution might work.</p>
+<p><strong>Force scaler</strong>: Forces the use of a scaler even if the result might not be desired. To fit a scaler in the resolution used at full screen may require a border or sidebars. To fill the screen entirely, depending on your hardware, a different scaler/fullresolution might work.</p>
 </li>
 <li>
 <p><strong>Scaler</strong>: Selects a scaler used to enlarge/enhance low resolution modes.</p>
@@ -616,7 +616,7 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 <p><strong>3dfx emulation</strong>: Toggle the 3dfx emulation, including low-level Voodoo card emulation and high-level Glide emulation.</p>
 </li>
 <li>
-<p><strong>Select pixel shader&#8230;&#8203;</strong>: Selects a Direct3D pixel shader file for use with the Direct3D output in Windows. In case the shader fails to load, there is no visual indication but it will be written to the log file (so if you want more immediate feedback on success or failure, use the menu to show the DOSBox-X console which will also show the reason for the shader failure).</p>
+<p><strong>Select pixel shader&#8230;&#8203;</strong>: Selects a Direct3D pixel shader file for use with the Direct3D output in Windows. In case the shader fails to load, there is no visual indication, but it will be written to the log file (so if you want more immediate feedback on success or failure, use the menu to show the DOSBox-X console which will also show the reason for the shader failure).</p>
 </li>
 <li>
 <p><strong>Select OpenGL (GLSL) shader&#8230;&#8203;</strong>: Selects a OpenGL (GLSL) shader file for use with the OpenGL outputs (opengl/openglnb/openglhq).</p>
@@ -687,7 +687,7 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 <p><strong>Enables A20 gate</strong>: Turns the A20 gate on or off if it is not locked.</p>
 </li>
 <li>
-<p><strong>Enable quick reboot</strong>: Selects whether to use quick reboot mode so that the kernel of the emulated DOS (integrated DOS or guest DOS) will be restarted instead of the whole virtual machine when DOS programs (or Windows 9x guest systems) make calls to restart the system.</p>
+<p><strong>Enable quick reboot</strong>: Selects whether to use quick reboot mode so that the kernel of the emulated DOS (integrated DOS or guest DOS) will be restarted instead of the whole virtual machine when a DOS program (or Windows 9x guest systems) make calls to restart the system.</p>
 </li>
 <li>
 <p><strong>Synchronize host date/time</strong>: Selects whether to force synchronizations with the date/time of the host system.</p>
@@ -814,7 +814,7 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 <p><strong>DOSBox-X Wiki guide</strong>: Links to the DOSBox-X Wiki where you will find the DOSBox-X user guide.</p>
 </li>
 <li>
-<p><strong>DOSBox-X support</strong>: Links to the DOSBox-X Issue Tracker where you will can report issues or make suggestions.</p>
+<p><strong>DOSBox-X support</strong>: Links to the DOSBox-X Issue Tracker where you can report issues or make suggestions.</p>
 </li>
 <li>
 <p><strong>List network interfaces</strong>: Displays the list of network interfaces for the NE2000 networking feature.</p>
@@ -854,7 +854,7 @@ rscan border, from 0 to 10. This works only if the video output is set to surfac
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-09-01 22:04:27 -0400
+Last updated 2022-12-31 02:04:38 -0800
 </div>
 </div>
 </body>

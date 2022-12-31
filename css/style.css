@@ -60,8 +60,8 @@ body {
 
 h1, h2, h3, h4, h5, h6 {
   margin: 10px 0;
-  font-weight: 700;
-  color:#222222;
+  font-weight: 600;
+  color: #222222;
   font-family: 'Lucida Grande', 'Calibri', Helvetica, Arial, sans-serif;
   letter-spacing: -1px;
 }
@@ -94,7 +94,7 @@ h6 {
 }
 
 p {
-  margin: 10px 0 15px 0;
+  margin: 10px 0 10px 0;
 }
 
 footer p {
@@ -133,7 +133,7 @@ strong {
   font-weight: bold;
 }
 
-img:not(#dosbox-x-logo) {
+img:not(#dosbox-x-logo, .devel-builds-dots) {
   position: relative;
   margin: 0 auto;
   max-width: 739px;
@@ -231,6 +231,7 @@ hr {
   margin-bottom: 5px;
   border: none;
   background: url('../images/bg_hr.png') repeat-x center;
+  border-bottom: 1px solid #8c8b8b;
 }
 
 table {
@@ -271,32 +272,27 @@ Full-Width Styles
   margin: 0 auto;
 }
 
-@media screen and (min-width: 981px) {
-#intro {
+/* DOSBox-X mod start. */
+
+#main_header p {
+  font-size: 16px;
   padding-bottom: 15px;
-  font-weight: normal;
-}
 }
 
-@media screen and (max-width: 980px) {
-#intro {
-  padding-bottom: 15px;
-  font-weight: normal;
-  font-size: 17px;
-}
-}
-
-@media screen and (min-width: 981px) {
-#prespace {
-  border: hidden;
-  width: 10%;
-}
-}
-
-@media screen and (max-width: 980px) {
 #prespace {
   border: hidden;
 }
+
+@media screen and (min-width: 981px) {
+  #prespace {
+    width: 10%;
+  }
+}
+
+@media screen and (max-width: 980px) {
+  #intro {
+    font-size: 17px;
+  }
 }
 
 #linkwiki {
@@ -367,68 +363,19 @@ Full-Width Styles
   text-shadow: #111 0px 0px 10px;
 }
 
-#downloads {
-  position: absolute;
-  width: 210px;
-  z-index: 10;
-  bottom: -40px;
-  right: 0;
-  height: 70px;
-  background: url('../images/icon_download.png') no-repeat 0% 90%;
-}
-
-.zip_download_link {
-  display: block;
-  float: right;
-  width: 90px;
-  height:70px;
-  text-indent: -5000px;
-  overflow: hidden;
-  background: url(../images/sprite_download.png) no-repeat bottom left;
-}
-
-.tar_download_link {
-  display: block;
-  float: right;
-  width: 90px;
-  height:70px;
-  text-indent: -5000px;
-  overflow: hidden;
-  background: url(../images/sprite_download.png) no-repeat bottom right;
-  margin-left: 10px;
-}
-
-.zip_download_link:hover {
-  background: url(../images/sprite_download.png) no-repeat top left;
-}
-
-.tar_download_link:hover {
-  background: url(../images/sprite_download.png) no-repeat top right;
-}
-
 #main_content_wrap {
   background: #f2f2f2;
   border-top: 1px solid #111;
   border-bottom: 1px solid #111;
 }
 
-#main_content {
-  padding-top: 10px;
-}
-
 #footer_wrap {
   background: #000066;
 }
 
-
-
-/*******************************************************************************
-Small Device Styles
-*******************************************************************************/
-
 @media screen and (max-width: 480px) {
   body {
-    font-size:14px;
+    font-size: 14px;
   }
 
   #downloads {
@@ -441,7 +388,7 @@ Small Device Styles
   }
 
   #project_title {
-  font-size: 32px;
+    font-size: 32px;
   }
 
   h1 {
@@ -474,4 +421,18 @@ Small Device Styles
     font-size: 11px;
   }
 
+  #main_header p {
+    font-size: 14px;
+  }
+}
+
+.align-center {
+  text-align: center;
+}
+#main_header {
+  text-align: center;
+}
+.subtitle-mute {
+  font-size: 16px;
+  color: grey;
 }

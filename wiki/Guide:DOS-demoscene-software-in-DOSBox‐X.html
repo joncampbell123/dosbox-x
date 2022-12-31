@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.17">
+<meta name="generator" content="Asciidoctor 2.0.18">
 <title>Demo settings and notes list</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
@@ -84,10 +84,10 @@ code{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;
 ul,ol,dl{line-height:1.6;margin-bottom:1.25em;list-style-position:outside;font-family:inherit}
 ul,ol{margin-left:1.5em}
 ul li ul,ul li ol{margin-left:1.25em;margin-bottom:0}
-ul.square li ul,ul.circle li ul,ul.disc li ul{list-style:inherit}
-ul.square{list-style-type:square}
 ul.circle{list-style-type:circle}
 ul.disc{list-style-type:disc}
+ul.square{list-style-type:square}
+ul.circle ul:not([class]),ul.disc ul:not([class]),ul.square ul:not([class]){list-style:inherit}
 ol li ul,ol li ol{margin-left:1.25em;margin-bottom:0}
 dl dt{margin-bottom:.3125em;font-weight:bold}
 dl dd{margin-bottom:1.25em}
@@ -468,7 +468,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <p>For demos 1995 to 1997: you should use cputype=pentium and core=dynamic where possible. Set cycles count to at least 35000 to simulate the average speed of a Pentium 100MHz system the demos are written against. Set memsize to at least 16MB.</p>
 </div>
 <div class="paragraph">
-<p>For demos 1994 and earlier: some demos use extended memory, some don&#8217;t. Unless the demo mentions extended memory it&#8217;s safe to set memsize=1 (no extended memory). Else you should set xms=true and memsize=8 to be safe. Do not set memsize to any value larger than 8MB, some demos will crash with too much RAM. Remember machines of that time rarely had more than 8MB of RAM except for high-end servers. You may also want to turn off upper memory blocks (umb=false). Some demos require expanded memory for their music playback (most common is to require expanded memory for Sound Blaster MOD music playback), set ems=true and memsize to at least 2-4MB to provide extended memory. There are also demos of this time frame that use their own custom protected mode memory management to varying degrees of success. Remember that compatibility for this time period is hampered somewhat by demos of this time being sort of a "wild west" of experimentation with PC hardware programming tricks. There even exists a <a href="http://www.pouet.net/prod.php?which=1356">demo</a> that abuses the Intel 486/Pentium CPU to enter "<a href="http://en.wikipedia.org/wiki/Unreal_mode#Huge_versus_Big_real_mode">Huge unreal mode</a>" to execute it&#8217;s code and data from a 4GB flat 16-bit code segment. CPU settings should generally aim to emulate a 386, 486, or Pentium, and to emulate a machine with a cycles count of 32000 or less. For many early demos (1991-1992) you should consider using a cycles count between 4000 and 8000. These demos will run too fast and depending on how the video routines were written will also flicker badly.</p>
+<p>For demos 1994 and earlier: some demos use extended memory, some don&#8217;t. Unless the demo mentions extended memory it&#8217;s safe to set memsize=1 (no extended memory). Else you should set xms=true and memsize=8 to be safe. Do not set memsize to any value larger than 8MB, some demos will crash with too much RAM. Remember machines of that time rarely had more than 8MB of RAM except for high-end servers. You may also want to turn off upper memory blocks (umb=false). Some demos require expanded memory for their music playback (most common is to require expanded memory for Sound Blaster MOD music playback), set ems=true and memsize to at least 2-4MB to provide extended memory. There are also demos of this time frame that use their own custom protected mode memory management to varying degrees of success. Remember that compatibility for this time period is hampered somewhat by demos of this time being sort of a "wild west" of experimentation with PC hardware programming tricks. There even exists a <a href="http://www.pouet.net/prod.php?which=1356">demo</a> that abuses the Intel 486/Pentium CPU to enter "<a href="http://en.wikipedia.org/wiki/Unreal_mode#Huge_versus_Big_real_mode">Huge unreal mode</a>" to execute its code and data from a 4GB flat 16-bit code segment. CPU settings should generally aim to emulate a 386, 486, or Pentium, and to emulate a machine with a cycles count of 32000 or less. For many early demos (1991-1992) you should consider using a cycles count between 4000 and 8000. These demos will run too fast and depending on how the video routines were written will also flicker badly.</p>
 </div>
 </div>
 </div>
@@ -512,7 +512,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-09-01 22:04:27 -0400
+Last updated 2022-12-31 02:04:38 -0800
 </div>
 </div>
 </body>
