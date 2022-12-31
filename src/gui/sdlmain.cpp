@@ -5786,7 +5786,7 @@ void GFX_Events() {
             if(dos.im_enable_flag) {
 #if defined (WIN32) && !defined(HX_DOS) || defined(MACOSX)
                 if(event.type == SDL_KEYDOWN && IME_GetEnable()
-#if 0 // requires SDL_DOSBOX_X_IME & Windows apparently
+#if 0 // defined(SDL_DOSBOX_X_IME) && defined(MACOSX)
                 && (SDL_IM_Composition(4) || ((event.key.keysym.mod & 0x03) == 0 && event.key.keysym.scancode == 0x2c && dos.loaded_codepage == 932))
 #endif
                 ) {
