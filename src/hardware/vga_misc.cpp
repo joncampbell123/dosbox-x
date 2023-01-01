@@ -36,6 +36,9 @@ Bitu vga_read_p3d5(Bitu port,Bitu iolen);
 extern void DISP2_RegisterPorts(void);
 extern bool DISP2_Active(void);
 
+extern bool vga_render_on_demand;
+void VGA_RenderOnDemandUpTo(void);
+
 /* allow the user to specify that undefined bits in 3DA/3BA be set to some nonzero value.
  * this is needed for "JOOP #2" by Europe demo, which has some weird retrace tracking code
  * like this:
@@ -48,10 +51,15 @@ extern bool DISP2_Active(void);
 unsigned char vga_p3da_undefined_bits = 0;
 
 Bitu vga_read_p3da(Bitu port,Bitu iolen) {
-    (void)port;//UNUSED
-    (void)iolen;//UNUSED
+	(void)port;//UNUSED
+	(void)iolen;//UNUSED
 	uint8_t retval = vga_p3da_undefined_bits;
 	double timeInFrame = PIC_FullIndex()-vga.draw.delay.framestart;
+
+	// If the game or demo is wasting time in a loop polling this register (not merely reading to
+	// clear the port 3C0h flip/flop) then now is as good a time as any to render the VGA raster
+	// up to the current point.
+	if (vga_render_on_demand && !vga.attr.disabled/*screen not disabled*/ && !vga.internal.attrindex/*attribute controller flipflop clear*/) VGA_RenderOnDemandUpTo();
 
 	vga.internal.attrindex=false;
 	vga.tandy.pcjr_flipflop=false;
@@ -65,15 +73,15 @@ Bitu vga_read_p3da(Bitu port,Bitu iolen) {
 	} else {
 		double timeInLine=fmod(timeInFrame,vga.draw.delay.htotal);
 		if (timeInLine >= vga.draw.delay.hblkstart && 
-			timeInLine <= vga.draw.delay.hblkend) {
+				timeInLine <= vga.draw.delay.hblkend) {
 			retval |= 1; // horizontal blanking
 		}
 	}
 
-    if (timeInFrame >= vga.draw.delay.vrstart &&
-        timeInFrame <= vga.draw.delay.vrend) {
-        retval |= 8; // vertical retrace
-    }
+	if (timeInFrame >= vga.draw.delay.vrstart &&
+			timeInFrame <= vga.draw.delay.vrend) {
+		retval |= 8; // vertical retrace
+	}
 
 	vsync_poll_debug_notify();
 	return retval;

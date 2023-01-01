@@ -2605,6 +2605,14 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, ignore attempts to blank the display using the EGA/VGA sequencer registers.\n"
 		    "This should not be set except for DOS games with bugs in their display handling code.");
 
+    Pbool = secprop->Add_bool("memory io optimization 1",Property::Changeable::Always,true);
+    Pbool->Set_help("Enable one class of EGA/VGA memory I/O optimizations. If graphical artifacts or errors occur, try turning this off first. May provide a performance benefit.");
+
+    Pbool = secprop->Add_bool("scanline render on demand",Property::Changeable::Always,false);
+    Pbool->Set_help("Render video output at vsync or when something is changed mid frame, instead of stopping to render every scanline.\n"
+		    "May provide a performance benefit to most DOS games. However this may also break timing-dependent game or Demoscene effects.\n"
+		    "Default OFF (false)");
+
     secprop=control->AddSection_prop("vsync",&Null_Init,true);//done
 
     Pstring = secprop->Add_string("vsyncmode",Property::Changeable::WhenIdle,"off");

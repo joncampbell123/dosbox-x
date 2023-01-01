@@ -25,6 +25,9 @@
 /* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
 #include "cpu_io_is_forbidden.h"
 
+extern bool vga_render_on_demand;
+void VGA_RenderOnDemandUpTo(void);
+
 #define attr(blah) vga.attr.blah
 
 void VGA_ATTR_SetEGAMonitorPalette(EGAMonitorMode m) {
@@ -135,6 +138,19 @@ bool J3_IsCga4Dcga();
 
 void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 	if (!vga.internal.attrindex) {
+		/* Render on Demand problem:
+		 *
+		 *          If we act on all writes as a cue to render a scanline, what will likely happen is the
+		 *          scanline will be rendered blank. The reason is that when writing the palette in the
+		 *          Attribute Controller you are supposed to set bit 0x20 to disable the screen while you
+		 *          do so. Acting upon all writes will likely lead to a render while screen is disabled.
+		 *          Therefore, only trigger when the screen is enabled.
+		 *
+		 *          This means that render on demand will probably not 100% render things correctly for
+		 *          very timing dependent tricks, but will render most DOS games with better performance
+		 *          which for most casual users of DOSBox and DOSBox-X is just fine. Just don't expect
+		 *          this performance enhancement to handle all the tricks of the Demoscene. --J.C. */
+		if (vga_render_on_demand && !attr(disabled)/*screen not yet disabled*/) VGA_RenderOnDemandUpTo();
 		attr(index)=val & 0x1F;
 		vga.internal.attrindex=true;
 		if (val & 0x20) attr(disabled) &= ~1;
@@ -157,6 +173,7 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
          */
 		return;
 	} else {
+		if (vga_render_on_demand && !attr(disabled)/*screen not disabled*/) VGA_RenderOnDemandUpTo();
 		vga.internal.attrindex=false;
 		switch (attr(index)) {
 			/* Palette */

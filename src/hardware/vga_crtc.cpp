@@ -27,6 +27,9 @@
 #include "video.h"
 #include "pic.h"
 
+extern bool vga_render_on_demand;
+void VGA_RenderOnDemandUpTo(void);
+
 /* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
 #include "cpu_io_is_forbidden.h"
 
@@ -144,6 +147,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		*/
 		break;
 	case 0x07:	/* Overflow Register */
+		if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
 		//Line compare bit ignores read only */
 		vga.config.line_compare=(vga.config.line_compare & 0x6ff) | (val & 0x10) << 4;
 		if (crtc(read_only)) break;
@@ -163,6 +167,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		*/
 		break;
 	case 0x08:	/* Preset Row Scan Register */
+		if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
 		crtc(preset_row_scan)=(uint8_t)val;
 		vga.config.hlines_skip=val&31;
 		if (IS_VGA_ARCH) vga.config.bytes_skip=(val>>5)&3;
@@ -178,6 +183,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	case 0x09: /* Maximum Scan Line Register */
 	{
+		if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
 		if (IS_VGA_ARCH) {
 			vga.config.line_compare &= 0x5ff;
 			vga.config.line_compare |= (val&0x40)<<3;
@@ -208,6 +214,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	}
 	case 0x0A:	/* Cursor Start Register */
+		if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
 		crtc(cursor_start)=(uint8_t)val;
 		vga.draw.cursor.sline=val&0x1f;
 		if (IS_VGA_ARCH) vga.draw.cursor.enabled=!(val&0x20);
@@ -218,6 +225,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		*/
 		break;
 	case 0x0B:	/* Cursor End Register */
+		if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
 		crtc(cursor_end)=(uint8_t)val;
 		vga.draw.cursor.eline=val&0x1f;
 		vga.draw.cursor.delay=(val>>5)&0x3;
@@ -305,6 +313,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		*/
 		break;
 	case 0x13:	/* Offset register */
+		if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
 		crtc(offset)=(uint8_t)val;
 		vga.config.scan_len&=0x300;
 		vga.config.scan_len|=val;
@@ -380,6 +389,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		*/
 		break;
 	case 0x18:	/* Line Compare Register */
+		if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
 		crtc(line_compare)=(uint8_t)val;
 		vga.config.line_compare=(vga.config.line_compare & 0x700) | val;
 		/*

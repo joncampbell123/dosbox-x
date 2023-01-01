@@ -44,6 +44,7 @@ extern bool non_cga_ignore_oddeven;
 extern bool non_cga_ignore_oddeven_engage;
 extern bool vga_fill_inactive_ram;
 extern bool vga_ignore_extended_memory_bit;
+extern bool memio_complexity_optimization;
 extern bool enable_pc98_256color_planar;
 extern bool enable_pc98_256color;
 
@@ -2574,7 +2575,7 @@ void VGA_SetupHandlers(void) {
 		case M_EGA:
 			if (vga.config.chained) {
 				if (vga.config.compatible_chain4) {
-					if (vga.complexity.flags == 0) {
+					if (vga.complexity.flags == 0 && memio_complexity_optimization) {
 						/* The DOS program is not using anything beyond basic memory I/O and does not need the
 						 * raster op, data rotate, and bit planar features at all. Therefore VGA memory I/O
 						 * performance can be improved by assigning a simplified handler that omits that logic */
@@ -2596,7 +2597,7 @@ void VGA_SetupHandlers(void) {
 							newHandler = &vgaph.cvga_slow;
 					}
 				}
-				else if (vga.complexity.flags != 0 && (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K) && vga.mode == M_VGA) {
+				else if ((vga.complexity.flags != 0 || !memio_complexity_optimization) && (svgaCard == SVGA_TsengET3K || svgaCard == SVGA_TsengET4K) && vga.mode == M_VGA) {
 					/* NTS: Tseng ET4000AX emulation CLEARS the "compatible chain4" flag for 256-color mode which is why this extra check is needed */
 					newHandler = &vgaph.cvga_et4000_slow;
 				}
@@ -2609,7 +2610,7 @@ void VGA_SetupHandlers(void) {
 					newHandler = &vgaph.map;
 				}
 			} else {
-				if (vga.complexity.flags == 0 && (vga.mode == M_EGA || vga.mode == M_VGA))
+				if (vga.complexity.flags == 0 && memio_complexity_optimization && (vga.mode == M_EGA || vga.mode == M_VGA))
 					newHandler = &vgaph.uvga_fast;
 				else
 					newHandler = &vgaph.uvga;

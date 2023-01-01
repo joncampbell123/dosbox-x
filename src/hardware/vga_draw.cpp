@@ -51,6 +51,8 @@
 bool ega200 = false;
 bool mcga_double_scan = false;
 
+extern bool vga_render_on_demand;
+
 /* S3 streams processor state.
  * Registers are only loaded into hardware on vertical sync anyway. */
 struct s3drawstream {
@@ -3366,6 +3368,8 @@ static void VGA_DrawSingleLine(Bitu /*blah*/) {
     unsigned int lines = 0;
     bool skiprender;
 
+    vga.draw.hsync_events++;
+
 again:
     if (vga.draw.render_step == 0)
         skiprender = false;
@@ -3488,7 +3492,8 @@ again:
     }
 
     if (vga.draw.lines_done < vga.draw.lines_total) {
-        PIC_AddEvent(VGA_DrawSingleLine,vga.draw.delay.singleline_delay);
+        if (!vga_render_on_demand)
+            PIC_AddEvent(VGA_DrawSingleLine,vga.draw.delay.singleline_delay);
     } else {
         vga_mode_frames_since_time_base++;
 
@@ -3626,7 +3631,26 @@ void VGA_SetBlinking(Bitu enabled) {
 
 extern bool                        GDC_vsync_interrupt;
 
+void VGA_RenderOnDemandUpTo(void) {
+    /* dt calculation is designed to match PIC_AddEvent() calls for the same scanline by scanline rendering without the on demand rendering mode */
+    const pic_tickindex_t dt = PIC_FullIndex() - vga.draw.delay.framestart;
+    signed int scanline = (signed int)floor((double)(1.0 + ((dt - (vga.draw.delay.htotal/4.0)) / vga.draw.delay.singleline_delay)));
+    int patience = 4096;
+
+    if (scanline < 0) scanline = 0;
+    while (vga.draw.lines_done < vga.draw.lines_total && vga.draw.hsync_events < (unsigned int)scanline && patience-- > 0)
+        VGA_DrawSingleLine(0);
+}
+
+void VGA_RenderOnDemandComplete(void) {
+    int patience = 4096;
+
+    while (vga.draw.lines_done < vga.draw.lines_total && patience-- > 0)
+        VGA_DrawSingleLine(0);
+}
+
 static void VGA_VertInterrupt(Bitu /*val*/) {
+    VGA_RenderOnDemandComplete();
     if (IS_PC98_ARCH) {
         if (GDC_vsync_interrupt) {
             GDC_vsync_interrupt = false;
@@ -3642,11 +3666,14 @@ static void VGA_VertInterrupt(Bitu /*val*/) {
 }
 
 static void VGA_Other_VertInterrupt(Bitu val) {
+    VGA_RenderOnDemandComplete();
     if (val) PIC_ActivateIRQ(5);
     else PIC_DeActivateIRQ(5);
 }
 
 static void VGA_DisplayStartLatch(Bitu /*val*/) {
+    VGA_RenderOnDemandComplete();
+
     /* hretrace fx support: store the hretrace value at start of picture so we have
      * a point of reference how far to displace the scanline when wavy effects are
      * made */
@@ -3661,6 +3688,7 @@ static void VGA_DisplayStartLatch(Bitu /*val*/) {
 }
  
 static void VGA_PanningLatch(Bitu /*val*/) {
+    VGA_RenderOnDemandComplete();
     vga.draw.panning = vga.config.pel_panning;
 
     if (IS_PC98_ARCH) {
@@ -3785,6 +3813,9 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         pc98_update_display_page_ptr();
     }
 
+    if (vga_render_on_demand)
+        VGA_RenderOnDemandComplete();
+
     if (VGA_IsCaptureEnabled()) {
         if (VGA_IsCaptureInProgress()) {
             VGA_MarkCaptureInProgress(false);
@@ -3797,7 +3828,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             VGA_CaptureMarkError();
     }
 
-    vga.draw.delay.framestart = current_time; /* FIXME: Anyone use this?? If not, remove it */
+    vga.draw.hsync_events = 0;
+    vga.draw.delay.framestart = current_time; /* used by port 3DAh, for example */
     vga_page_flip_occurred = false;
     vga.draw.has_split = false;
     vga_3da_polled = false;
@@ -3926,11 +3958,6 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         fv = vsynctimerval + vsync_adj;
         if (fv < 1) fv = 1;
         PIC_AddEvent(VGA_VerticalTimer,fv);
-#if 0
-        fv = vdisplayendtimerval + vsync_adj;
-        if (fv < 1) fv = 1;
-        PIC_AddEvent(VGA_DisplayStartLatch,fv);
-#endif
     }
     
     switch(machine) {
@@ -4574,9 +4601,12 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             RENDER_EndUpdate(true);
         }
         vga.draw.lines_done = 0;
-        if (vga.draw.mode==EGALINE)
-            PIC_AddEvent(VGA_DrawEGASingleLine,(float)(vga.draw.delay.htotal/4.0 + draw_skip));
-        else PIC_AddEvent(VGA_DrawSingleLine,(float)(vga.draw.delay.htotal/4.0 + draw_skip));
+        if (!vga_render_on_demand) {
+            if (vga.draw.mode==EGALINE)
+                PIC_AddEvent(VGA_DrawEGASingleLine,(float)(vga.draw.delay.htotal/4.0 + draw_skip));
+            else
+                PIC_AddEvent(VGA_DrawSingleLine,(float)(vga.draw.delay.htotal/4.0 + draw_skip));
+	}
         break;
     }
 }

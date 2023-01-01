@@ -182,6 +182,7 @@ typedef struct {
 	Bitu vblank_skip;
 	Bitu lines_done;
 	Bitu split_line;
+	Bitu hsync_events;
 	Bitu byte_panning_shift;
     Bitu render_step,render_max;
 	struct {

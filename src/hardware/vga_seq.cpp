@@ -26,6 +26,9 @@ extern bool ignore_sequencer_blanking;
 extern bool non_cga_ignore_oddeven_engage;
 extern bool vga_ignore_extended_memory_bit;
 
+extern bool vga_render_on_demand;
+void VGA_RenderOnDemandUpTo(void);
+
 #define seq(blah) vga.seq.blah
 
 Bitu read_p3c4(Bitu /*port*/,Bitu /*iolen*/) {
@@ -93,11 +96,13 @@ void write_p3c5(Bitu /*port*/,Bitu val,Bitu iolen) {
 //	LOG_MSG("SEQ WRITE reg %X val %X",seq(index),val);
 	switch(seq(index)) {
 	case 0:		/* Reset */
+		if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
 		if((seq(reset)^val)&0x3) VGA_SequReset((val&0x3)!=0x3);
 		seq(reset)=(uint8_t)val;
 		break;
 	case 1:		/* Clocking Mode */
 		if (val!=seq(clocking_mode)) {
+			if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
 			if((seq(clocking_mode)^val)&0x20) VGA_Screenstate((val&0x20)==0);
 			// don't resize if only the screen off bit was changed
 			if ((val&(~0x20u))!=(seq(clocking_mode)&(~0x20u))) {
@@ -137,6 +142,7 @@ void write_p3c5(Bitu /*port*/,Bitu val,Bitu iolen) {
 		break;
 	case 3:		/* Character Map Select */
 		{
+			if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
 			seq(character_map_select)=(uint8_t)val;
 			uint8_t font1=(val & 0x3) << 1;
 			if (IS_VGA_ARCH) font1|=(val & 0x10) >> 4;

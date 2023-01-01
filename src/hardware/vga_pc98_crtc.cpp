@@ -42,6 +42,9 @@
 
 void pc98_update_page_ptrs(void);
 
+extern bool vga_render_on_demand;
+void VGA_RenderOnDemandUpTo(void);
+
 extern bool                 pc98_40col_text;
 extern bool                 pc98_31khz_mode;
 extern bool                 pc98_attr4_graphic;
@@ -170,6 +173,7 @@ void update_gdc_analog(void) {
 void pc98_port6A_command_write(unsigned char b) {
     switch (b) {
         case 0x00: // 16-color (analog) disable
+            if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
             pc98_gdc_vramop &= ~(1 << VOPBIT_ANALOG);
             update_gdc_analog();
             VGA_SetupHandlers();   // confirmed on real hardware: this disables access to E000:0000
@@ -179,6 +183,7 @@ void pc98_port6A_command_write(unsigned char b) {
             break;
         case 0x01: // or enable
             if (enable_pc98_16color) {
+                if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
                 pc98_gdc_vramop |= (1 << VOPBIT_ANALOG);
                 update_gdc_analog();
                 VGA_SetupHandlers();   // confirmed on real hardware: this enables access to E000:0000
@@ -207,6 +212,7 @@ void pc98_port6A_command_write(unsigned char b) {
             break;
         case 0x20: // 256-color mode disable
             if (enable_pc98_egc && egc_enable_enable) {
+                if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
                 pc98_gdc_vramop &= ~(1 << VOPBIT_VGA);
                 update_gdc_analog();
                 VGA_SetupHandlers(); // memory mapping presented to the CPU changes
@@ -216,6 +222,7 @@ void pc98_port6A_command_write(unsigned char b) {
             break;
         case 0x21: // 256-color mode enable
             if (enable_pc98_egc && egc_enable_enable && enable_pc98_256color) {
+                if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
                 pc98_gdc_vramop |= (1 << VOPBIT_VGA);
                 update_gdc_analog();
                 VGA_SetupHandlers(); // memory mapping presented to the CPU changes
@@ -225,6 +232,7 @@ void pc98_port6A_command_write(unsigned char b) {
             break;
         case 0x40: // CRT mode
         case 0x41: // Plasma/LCD mode
+            if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
             pc98_crt_mode = (b&1)==0;
             break;
         case 0x68: // 128KB VRAM boundary
@@ -239,11 +247,13 @@ void pc98_port6A_command_write(unsigned char b) {
             break;
         case 0x82: // GDC Clock #1   0=2.5MHz   1=5MHz
         case 0x83:
+            if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
             gdc_clock_1 = !!(b&1);
             gdc_clock_check();
             break;
         case 0x84: // GDC Clock #2   0=2.5MHz   1=5MHz
         case 0x85:
+            if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
             gdc_clock_2 = !!(b&1);
             gdc_clock_check();
             break;
@@ -259,18 +269,22 @@ void pc98_port68_command_write(unsigned char b) {
     switch (b) {
         case 0x00: // text screeen attribute bit 4 meaning: 0=vertical line
         case 0x01: //                                       1=simple graphic
+            if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
             pc98_attr4_graphic = !!(b&1);
             break;
         case 0x02: // monochrome display mode               0=disable
         case 0x03: //                                       1=enable
+            if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
             pc98_monochrome_mode = !!(b&1);
             break;
         case 0x04: // 40-column mode  0=80-column
         case 0x05: //                 1=40-column
+            if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
             pc98_40col_text = !!(b&1);
             break;
         case 0x08: // 200-line mode: show odd raster
         case 0x09: //                don't show odd raster
+            if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
             pc98_graphics_hide_odd_raster_200line = !!(b&1);
             break;
         case 0x0A: // TODO
@@ -279,6 +293,7 @@ void pc98_port68_command_write(unsigned char b) {
             break;
         case 0x0E: // Display enable
         case 0x0F:
+            if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
             pc98_display_enable = !!(b&1);
             break;
         default:
@@ -346,6 +361,7 @@ Bitu pc98_read_9a8(Bitu /*port*/,Bitu /*iolen*/) {
 
 void pc98_write_9a8(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
     if ((val&1) != (pc98_31khz_mode?1:0)) {
+        if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
         pc98_31khz_mode = !!(val&1);
         VGA_SetupDrawing(0);
     }

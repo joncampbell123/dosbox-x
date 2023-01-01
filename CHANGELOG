@@ -14,6 +14,25 @@ Next
     port 3C9h, set a flag. Defer palette map update to
     when the next scan line is rendered, in order to
     improve performance. (joncampbell123)
+  - Add option to enable or disable the "memory I/O
+    optimization" option, meaning the code that was
+    added to assign simplified VGA memory I/O handling
+    when the DOS game is not using any bit planar raster
+    op and more complicated features of the EGA/VGA
+    hardware. (joncampbell123)
+  - Added VGA render on demand mode to VGA emulation.
+    When enabled, VGA emulation does not render scanlines
+    until vertical retrace or when certain registers are
+    written that change the display (attribute controller,
+    VGA palette, etc.). It is added to dosbox.conf as
+    "scanline render on demand" and is false by default
+    because it can provide a performance boost for DOS games
+    but it also tends to break timing-dependent Demoscene
+    effects. The idea is that some emulator performance
+    improvement may be possible by not interrupting the
+    CPU loop per scanline for the same reason that DOSBox
+    SVN has traditionally only rendered the VGA display
+    in quarters instead of per scanline. (joncampbell123).
 
 2022.12.26
   - Allow more than 640KB of conventional memory,

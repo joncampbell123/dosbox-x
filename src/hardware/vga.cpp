@@ -179,6 +179,8 @@ bool                                vga_8bit_dac = false;
 bool                                vga_alt_new_mode = false;
 bool                                enable_vga_8bit_dac = true;
 bool                                ignore_sequencer_blanking = false;
+bool                                memio_complexity_optimization = true;
+bool                                vga_render_on_demand = false; // Render at vsync or specific changes to hardware instead of every scanline
 
 bool                                pc98_crt_mode = false;      // see port 6Ah command 40h/41h.
                                                                 // this boolean is the INVERSE of the bit.
@@ -926,6 +928,16 @@ void VGA_Reset(Section*) {
     vga_8bit_dac = false;
     enable_vga_8bit_dac = section->Get_bool("enable 8-bit dac");
     ignore_sequencer_blanking = section->Get_bool("ignore sequencer blanking");
+    memio_complexity_optimization = section->Get_bool("memory io optimization 1");
+    vga_render_on_demand = section->Get_bool("scanline render on demand");
+
+    if (memio_complexity_optimization)
+        LOG_MSG("Memory I/I complexity optimization enabled aka option 'memory io optimization 1'. If the game or demo is unable to draw to the screen properly, set the option to false.");
+
+    if (vga_render_on_demand)
+        LOG_MSG("'scanline render on demand' option is enabled. If this option breaks the game or demo effects or display, set the option to false.");
+    else
+        LOG_MSG("The 'scanline render on demand' option is available and may provide a modest boost in video render performance if set to true.");
 
     vga_memio_delay_ns = section->Get_int("vmemdelay");
     if (vga_memio_delay_ns < 0) {

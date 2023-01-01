@@ -29,6 +29,9 @@ unsigned int VGA_DAC_DeferredUpdate = 0;
 
 void VGA_DAC_DeferredUpdateColorPalette();
 
+extern bool vga_render_on_demand;
+void VGA_RenderOnDemandUpTo(void);
+
 /*
 3C6h (R/W):  PEL Mask
 bit 0-7  This register is anded with the palette index sent for each dot.
@@ -218,6 +221,7 @@ void write_p3c6(Bitu port,Bitu val,Bitu iolen) {
         // TODO: MCGA 640x480 2-color mode appears to latch the DAC at retrace
         //       for background/foreground. Does that apply to the PEL mask too?
 
+        if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
         VGA_DAC_DeferredUpdate++;
     }
 }
@@ -330,6 +334,7 @@ void write_p3c9(Bitu port,Bitu val,Bitu iolen) {
              * MCGA double-buffers foreground and background colors */
         }
         else {
+            if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
             VGA_DAC_DeferredUpdate++;
         }
 
