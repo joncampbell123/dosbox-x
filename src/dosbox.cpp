@@ -2608,11 +2608,13 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("memory io optimization 1",Property::Changeable::Always,true);
     Pbool->Set_help("Enable one class of EGA/VGA memory I/O optimizations. Default ON (true).\n"
 		    "If graphical artifacts or errors occur, try turning this off first. May provide a performance benefit.");
+    Pbool->SetBasic(true);
 
     Pbool = secprop->Add_bool("scanline render on demand",Property::Changeable::Always,false);
     Pbool->Set_help("Render video output at vsync or when something is changed mid frame, instead of stopping to render every scanline.\n"
 		    "May provide a performance benefit to most DOS games. However this may also break timing-dependent game or Demoscene effects.\n"
 		    "Default OFF (false)");
+    Pbool->SetBasic(true);
 
     secprop=control->AddSection_prop("vsync",&Null_Init,true);//done
 
