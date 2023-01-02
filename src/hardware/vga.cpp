@@ -931,7 +931,7 @@ void VGA_Reset(Section*) {
     vga_render_on_demand = section->Get_bool("scanline render on demand");
 
     if (memio_complexity_optimization)
-        LOG_MSG("Memory I/I complexity optimization enabled aka option 'memory io optimization 1'. If the game or demo is unable to draw to the screen properly, set the option to false.");
+        LOG_MSG("Memory I/O complexity optimization enabled aka option 'memory io optimization 1'. If the game or demo is unable to draw to the screen properly, set the option to false.");
 
     if (vga_render_on_demand)
         LOG_MSG("'scanline render on demand' option is enabled. If this option breaks the game or demo effects or display, set the option to false.");
