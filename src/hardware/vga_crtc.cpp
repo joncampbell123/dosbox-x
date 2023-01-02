@@ -189,28 +189,28 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 			vga.config.line_compare |= (val&0x40)<<3;
 		} else if(machine==MCH_EGA) {
 			val &= 0x7f; // EGA ignores the doublescan bit
-			}
+		}
 		uint8_t old = crtc(maximum_scan_line);
 		crtc(maximum_scan_line) = (uint8_t)val;
 
-        unsigned char chk = 0x20;
+		unsigned char chk = 0x20;
 
-        if (!vga.draw.doublescan_set)
-            chk |= 0x81; /* doublescan + LSB of maximum scanline */
+		if (!vga.draw.doublescan_set)
+			chk |= 0x81; /* doublescan + LSB of maximum scanline */
 
 		if ((old ^ val) & chk) VGA_StartResize();
 		vga.draw.address_line_total = (val & 0x1F) + 1;
 		if (val&0x80) vga.draw.address_line_total *= 2;
 		/*
-			0-4	Number of scan lines in a character row -1. In graphics modes this is
-				the number of times (-1) the line is displayed before passing on to
-				the next line (0: normal, 1: double, 2: triple...).
-				This is independent of bit 7, except in CGA modes which seems to
-				require this field to be 1 and bit 7 to be set to work.
-			5	Bit 9 of Start Vertical Blanking
-			6	Bit 9 of Line Compare Register
-			7	Doubles each scan line if set. I.e. displays 200 lines on a 400 display.
-		*/
+		   0-4	Number of scan lines in a character row -1. In graphics modes this is
+		   the number of times (-1) the line is displayed before passing on to
+		   the next line (0: normal, 1: double, 2: triple...).
+		   This is independent of bit 7, except in CGA modes which seems to
+		   require this field to be 1 and bit 7 to be set to work.
+		   5	Bit 9 of Start Vertical Blanking
+		   6	Bit 9 of Line Compare Register
+		   7	Doubles each scan line if set. I.e. displays 200 lines on a 400 display.
+		   */
 		break;
 	}
 	case 0x0A:	/* Cursor Start Register */
@@ -256,7 +256,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		 * color index [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%2086C928%20GUI%20Accelerator%20%281992%2d09%29%2epdf] */
 		break;
 	case 0x0F:	/* Cursor Location Low Register */
-//TODO update cursor on screen
+		//TODO update cursor on screen
 		crtc(cursor_location_low)=(uint8_t)val;
 		vga.config.cursor_start&=0xffff00;
 		vga.config.cursor_start|=val;
@@ -325,7 +325,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	case 0x14:	/* Underline Location Register */
 		crtc(underline_location)=(uint8_t)val;
-        VGA_CheckAddrShift();
+		VGA_CheckAddrShift();
 		VGA_CheckScanLength();
 		/*
 			0-4	Position of underline within Character cell.
@@ -356,6 +356,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		*/
 		break;
 	case 0x17:	/* Mode Control Register */
+		if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
 		crtc(mode_control)=(uint8_t)val;
 		vga.tandy.line_mask = (~val) & 3u;
 
@@ -367,7 +368,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 			vga.tandy.line_shift = 0;
 		}
 
-        VGA_CheckAddrShift();
+		VGA_CheckAddrShift();
 		VGA_CheckScanLength();
 
 		//Should we really need to do a determinemode here?
