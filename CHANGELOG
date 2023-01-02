@@ -33,6 +33,9 @@ Next
     CPU loop per scanline for the same reason that DOSBox
     SVN has traditionally only rendered the VGA display
     in quarters instead of per scanline. (joncampbell123).
+  - Remove experimental "alt VGA" rendering code. It was
+    never completed and it is probably starting to
+    bitrot (joncampbell123).
 
 2022.12.26
   - Allow more than 640KB of conventional memory,

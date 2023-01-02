@@ -6935,9 +6935,6 @@ bool DOSBOX_parse_argv() {
             if (!control->cmdline->NextOptArgv(tmp)) return false;
             control->opt_set.push_back(tmp);
         }
-        else if (optname == "alt-vga") {
-            control->opt_alt_vga_render = true;
-        }
         else if (optname == "log-con") {
             control->opt_log_con = true;
         }

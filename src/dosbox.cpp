@@ -1881,9 +1881,6 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help("How many frames DOSBox-X skips before drawing one.");
     Pint->SetBasic(true);
 
-    Pbool = secprop->Add_bool("alt render",Property::Changeable::Always,false);
-    Pbool->Set_help("If set, use a new experimental rendering engine");
-
     Pstring = secprop->Add_string("aspect", Property::Changeable::Always, "false");
     Pstring->Set_values(aspectmodes);
     Pstring->Set_help(

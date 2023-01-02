@@ -176,7 +176,6 @@ unsigned char*                      pc98_pgraph_current_display_page;
 unsigned char*                      pc98_pgraph_current_cpu_page;
 
 bool                                vga_8bit_dac = false;
-bool                                vga_alt_new_mode = false;
 bool                                enable_vga_8bit_dac = true;
 bool                                ignore_sequencer_blanking = false;
 bool                                memio_complexity_optimization = true;

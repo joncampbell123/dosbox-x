@@ -85,7 +85,6 @@ public:
         opt_startmapper = false;
         opt_fastbioslogo = false;
         opt_defaultmapper = false;
-        opt_alt_vga_render = false;
         opt_used_defaultdir = false;
         opt_date_host_forced = false;
         opt_disable_numlock_check = false;
@@ -119,7 +118,6 @@ public:
     bool opt_disable_numlock_check;
     bool opt_date_host_forced;
     bool opt_used_defaultdir;
-    bool opt_alt_vga_render;
     bool opt_defaultmapper;
     bool opt_fastbioslogo;
     bool opt_break_start;

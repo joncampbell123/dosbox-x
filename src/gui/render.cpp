@@ -1338,9 +1338,6 @@ void RENDER_Init() {
 
     RENDER_UpdateFromScalerSetting();
 
-    vga_alt_new_mode = control->opt_alt_vga_render || section->Get_bool("alt render");
-    if (vga_alt_new_mode) LOG_MSG("Alternative VGA render engine not yet fully implemented!");
-
     render.autofit=section->Get_bool("autofit");
 
 #if C_OPENGL
