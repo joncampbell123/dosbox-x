@@ -7645,6 +7645,7 @@ namespace linker {
 	typedef uint8_t				fixup_method_t;			// fixup method
 	typedef uint8_t				fixup_how_t;			// fixup how
 	typedef uint8_t				symbol_type_t;			// symbol type
+	typedef size_t				symbol_ref_t;			// symbol reference
 
 	static constexpr segment_size_t		segment_size_undef = ~((uint64_t)(0ull));
 	static constexpr segment_offset_t	segment_offset_undef = ~((uint64_t)(0ull));
@@ -7662,6 +7663,7 @@ namespace linker {
 	static constexpr fixup_method_t		fixup_method_undef = ~((uint8_t)(0u));
 	static constexpr fixup_how_t		fixup_how_undef = ~((uint8_t)(0u));
 	static constexpr symbol_type_t		symbol_type_undef = ~((uint8_t)(0u));
+	static constexpr symbol_ref_t		symbol_ref_undef = ~((size_t)(0ul));
 
 	static constexpr alignmask_t		byte_align_mask = ~((alignmask_t)(0ull));
 	static constexpr alignmask_t		word_align_mask = ~((alignmask_t)(1ull));
@@ -7738,31 +7740,32 @@ namespace linker {
 		void unallocate(const refT x);
 	};
 
+	struct symbol_t {
+		symbol_type_t				symbol_type = symbol_type_undef; // type of symbol
+		string_ref_t				symbol_name = string_ref_undef; // name of symbol
+		string_ref_t				symbol_group = string_ref_undef; // name of group symbol belongs to
+		segment_ref_t				symbol_segment = segment_ref_undef; // name of segment symbol belongs to
+		fragment_ref_t				symbol_fragment = fragment_ref_undef; // which fragment in the segment
+		segment_offset_t			symbol_offset = segment_offset_undef; // offset within fragment
+		source_ref_t				source = source_ref_undef; // from this source
+		source_module_ref_t			source_module = source_module_ref_undef; // from this module
+	};
+
+	typedef _common_ref2table_t<symbol_t,symbol_ref_t> symbol_table_t;
+
 	struct fixup_t {
 		/* frame method and seg/group/extern name to which address computation is performed (OMF spec) */
 		fixup_method_t				frame_method = fixup_method_undef;
-		string_ref_t				frame_name = string_ref_undef;
+		segment_ref_t				frame_name = segment_ref_undef;
 		/* target method and seg/group/extern name to which the fixup refers to (OMF spec) */
 		fixup_method_t				target_method = fixup_method_undef;
-		string_ref_t				target_name = string_ref_undef;
-		/* which segment this fixup is applied to and where */
-		string_ref_t				fixup_name = string_ref_undef;
+		segment_ref_t				target_name = segment_ref_undef;
+		/* where to apply in the segment */
 		fragment_relative_t			fixup_at = fragment_relative_undef;
 		/* how to apply the fixup */
 		fixup_how_t				fixup_how = fixup_how_undef;
 		/* other flags */
 		bool					segment_relative = false; /* segment relative vs self relative (OMF spec) */
-	};
-
-	struct symbol_t {
-		symbol_type_t				symbol_type = symbol_type_undef; // type of symbol
-		string_ref_t				symbol_name = string_ref_undef; // name of symbol
-		string_ref_t				symbol_segment = string_ref_undef; // name of segment symbol belongs to
-		string_ref_t				symbol_group = string_ref_undef; // name of group symbol belongs to
-		fragment_ref_t				symbol_fragment = fragment_ref_undef; // which fragment in the segment
-		segment_offset_t			symbol_offset = segment_offset_undef; // offset within fragment
-		source_ref_t				source = source_ref_undef; // from this source
-		source_module_ref_t			source_module = source_module_ref_undef; // from this module
 	};
 
 	struct fragment_t {
