@@ -7619,6 +7619,225 @@ std::wstring win32_prompt_folder(const char *default_folder) {
 }
 #endif
 
+#define LNKDEV
+
+#ifdef LNKDEV
+#include <unordered_map>
+
+namespace linker {
+
+	typedef uint64_t			segment_size_t;			// segment size in bytes
+	typedef uint64_t			segment_offset_t;		// offset within a segment
+	typedef int32_t				segment_relative_t;		// offset in segments. In real mode, as paragraphs. In protected mode, as index numbers. Can be negative.
+	typedef uint64_t			fragment_relative_t;		// offset in segment relative to fragment (so fragments can move easily)
+	typedef uint64_t			alignmask_t;			// alignment mask (bit mask)
+	typedef uint64_t			file_offset_t;			// file offset
+	typedef uint64_t			linear_addr_t;			// linear (flat) memory address
+	typedef size_t				source_ref_t;			// source index
+	typedef size_t				source_module_ref_t;		// source module index
+	typedef unsigned int			segment_flags_t;		// segment flags
+	typedef unsigned int			cpu_major_type_t;		// CPU type (major category)
+	typedef unsigned int			cpu_minor_type_t;		// CPU type (minor within category)
+	typedef unsigned int			cpu_flags_t;			// CPU flags, meaning depends on CPU type
+	typedef size_t				fragment_ref_t;			// fragment within segment index
+	typedef size_t				segment_ref_t;			// segment ref
+	typedef size_t				string_ref_t;			// string index reference
+
+	static constexpr segment_size_t		segment_size_undef = ~((uint64_t)(0ull));
+	static constexpr segment_offset_t	segment_offset_undef = ~((uint64_t)(0ull));
+	static constexpr segment_relative_t	segment_relative_undef = ~((int32_t)(0x7FFFFFFF));
+	static constexpr fragment_relative_t	fragment_relative_undef = ~((uint64_t)(0ull));
+	static constexpr file_offset_t		file_offset_undef = ~((uint64_t)(0ull));
+	static constexpr linear_addr_t		linear_addr_undef = ~((uint64_t)(0ull));
+	static constexpr source_ref_t		source_ref_undef = ~((size_t)(0ul));
+	static constexpr source_module_ref_t	source_module_ref_undef = ~((size_t)(0ul));
+	static constexpr cpu_major_type_t	cpu_major_undef = ~((unsigned int)(0u));
+	static constexpr cpu_minor_type_t	cpu_minor_undef = ~((unsigned int)(0u));
+	static constexpr fragment_ref_t		fragment_ref_undef = ~((size_t)(0ul));
+	static constexpr segment_ref_t		segment_ref_undef = ~((size_t)(0ul));
+	static constexpr string_ref_t		string_ref_undef = ~((size_t)(0ul));
+
+	static constexpr alignmask_t		byte_align_mask = ~((alignmask_t)(0ull));
+	static constexpr alignmask_t		word_align_mask = ~((alignmask_t)(1ull));
+	static constexpr alignmask_t		dword_align_mask = ~((alignmask_t)(3ull));
+	static constexpr alignmask_t		qword_align_mask = ~((alignmask_t)(7ull));
+	static constexpr alignmask_t		para_align_mask = ~((alignmask_t)(15ull));
+
+	static constexpr cpu_major_type_t	CPUMAJT_INTELX86 = 0; /* Intel x86/x86_64 (8086, 386, etc.) */
+	static constexpr cpu_minor_type_t	CPUMINT_INTELX86_8086 = 0; /* Intel 8088/8086 (16-bit) */
+	static constexpr cpu_minor_type_t	CPUMINT_INTELX86_286 = 286; /* Intel 286 (16-bit) */
+	static constexpr cpu_minor_type_t	CPUMINT_INTELX86_386 = 386; /* Intel 386 (32-bit) */
+	static constexpr cpu_minor_type_t	CPUMINT_INTELX86_486 = 486; /* Intel 486 (32-bit) */
+	static constexpr cpu_minor_type_t	CPUMINT_INTELX86_586 = 586; /* Intel 586/Pentium (32-bit) */
+	static constexpr cpu_minor_type_t	CPUMINT_INTELX86_686 = 686; /* Intel 686/Pentium II (32-bit) */
+	static constexpr cpu_minor_type_t	CPUMINT_INTELX86_X64 = 6400; /* x86_64 (64-bit) */
+
+	static constexpr segment_flags_t	SEGFLAG_COMBINEABLE = segment_flags_t(1u << 0u); // source module says it's OK to combine segments of the same name and/or class
+	static constexpr segment_flags_t	SEGFLAG_PINNED = segment_flags_t(1u << 1u); // segment is pinned at it's position in the segment order, do not move
+	static constexpr segment_flags_t	SEGFLAG_NOEMIT = segment_flags_t(1u << 2u); // segment exists only in memory and does not have data on disk (BSS, STACK, etc)
+	static constexpr segment_flags_t	SEGFLAG_HEADER = segment_flags_t(1u << 3u); // segment is part of the file header
+	static constexpr segment_flags_t	SEGFLAG_SEGMENTMODEL = segment_flags_t(1u << 4u); // segment is intended for segmented memory model (rel_offset/rel_segments values matter)
+	static constexpr segment_flags_t	SEGFLAG_FLATMODEL = segment_flags_t(1u << 5u); // segment is intended for flat memory model (linear_addr value matters)
+
+	// cpu_major == CPUMAJT_INTELX86
+	static constexpr cpu_flags_t		CPUFLAG_INTELX86_BIG386 = cpu_flags_t(1u << 0u); // (i386) segment should be loaded as "big" 4GB limit (B bit)
+	static constexpr cpu_flags_t		CPUFLAG_INTELX86_16BIT = cpu_flags_t(1u << 1u); // 16-bit segment
+	static constexpr cpu_flags_t		CPUFLAG_INTELX86_32BIT = cpu_flags_t(1u << 2u); // 32-bit segment
+	static constexpr cpu_flags_t		CPUFLAG_INTELX86_64BIT = cpu_flags_t(1u << 3u); // 64-bit segment
+	static constexpr cpu_flags_t		CPUFLAG_INTELX86_BITNESSMASK = CPUFLAG_INTELX86_16BIT | CPUFLAG_INTELX86_32BIT | CPUFLAG_INTELX86_64BIT; // use to compare bitness
+	// NTS: One or the other must be set, both may be set if the code can run in either environment
+	static constexpr cpu_flags_t		CPUFLAG_INTELX86_REALMODE = cpu_flags_t(1u << 4u); // real mode segment
+	static constexpr cpu_flags_t		CPUFLAG_INTELX86_PROTMODE = cpu_flags_t(1u << 5u); // protected mode segment
+
+	struct stringtable_t {
+		std::string				empty;
+		std::vector<std::string>		ref2str; // ref -> str
+		std::unordered_map<std::string,size_t>	str2ref; // str -> ref
+
+		bool exists(const string_ref_t x) const;
+		const std::string &get(const string_ref_t x) const;
+		string_ref_t add(const std::string &s);
+	};
+
+	template <typename T,typename refT> struct _common_ref2table_t {
+		std::vector<T>				ref;
+
+		bool exists(const refT x) const;
+		const T &get(const refT x) const;
+		T &get(const refT x);
+		refT allocate(void);
+
+		// This will pop the last added entry off the end. If the reference is not the end, then assigns a default
+		// constructor of T to the entry. Hope your class T has default values to indicate it is obviously not allocated!
+		void unallocate(const refT x);
+	};
+
+	struct fragment_t {
+		alignmask_t				alignmask = 0;
+		std::shared_ptr< std::vector<uint8_t> >	data; // data within fragment using shared_ptr for copy on write semantics if needed---CAN BE NULL, BE CAREFUL!
+		size_t					size = 0; // total size of fragment
+		source_ref_t				source = source_ref_undef; // from this source
+		source_module_ref_t			source_module = source_module_ref_undef; // from this module
+		segment_offset_t			assigned_offset = segment_offset_undef; // assigned offset of fragment within segment
+		segment_size_t				assigned_size = segment_size_undef; // assigned size of fragment within segment
+		segment_ref_t				assigned_segment = segment_ref_undef; // assigned to segment
+		// fragment data copy on write semantics:
+		// if shared_ptr has a use_count() == 1, it is OK to modify in place.
+		// if shared_ptr has a use_count() > 1, you must copy the data and then modify it.
+		// use_count() is 100% accurate for this code because we are not using it in a multithreaded manner.
+	};
+
+	typedef _common_ref2table_t<fragment_t,fragment_ref_t> fragment_table_t;
+
+	struct source_module_t {
+		string_ref_t		name = string_ref_undef;
+		size_t			index = source_module_ref_undef;
+		file_offset_t		offset = file_offset_undef;
+	};
+
+	typedef _common_ref2table_t<source_module_t,source_module_ref_t> source_module_table_t;
+
+	struct source_t {
+		string_ref_t			name = string_ref_undef;
+		string_ref_t			path = string_ref_undef;
+		bool				is_library = false;
+		source_module_table_t		modules;
+	};
+
+	typedef _common_ref2table_t<source_t,source_ref_t> source_table_t;
+
+	struct segment_t {
+		segment_flags_t			flags = 0; // segment flags
+		alignmask_t			alignmask = 0; // segment alignment
+		segment_size_t			size = segment_size_undef; // assigned size of the segment
+		segment_offset_t		rel_offset = segment_offset_undef; // additional segment address offset relative to segment register
+		segment_relative_t		rel_segments = segment_relative_undef; // relative segment address (paragraphs in real mode, selectors in protected mode)
+		file_offset_t			file_offset = file_offset_undef; // assigned file offset of the segment on disk
+		linear_addr_t			linear_addr = linear_addr_undef; // assigned linear address of segment in linear memory if applicable
+		cpu_major_type_t		cpu_major = cpu_major_undef; // intended CPU, major category
+		cpu_minor_type_t		cpu_minor = cpu_minor_undef; // intended CPU, minor category
+		cpu_flags_t			cpu_flags = 0; // meaning is specific to major/minor CPU type
+		source_ref_t			source = source_ref_undef; // segment first seen from this source
+		source_module_ref_t		source_module = source_module_ref_undef; // segment first seen from this module
+		string_ref_t			name = string_ref_undef;		// segment name
+		string_ref_t			classname = string_ref_undef;		// segment class
+		string_ref_t			groupname = string_ref_undef;		// segment group
+		std::vector<fragment_ref_t>	fragments; // fragments contained in this segment
+
+		// NTS: rel_offset also allows the .COM memory model where the base of the executable image starts at offset 0x100 within the segment,
+		//      in which case rel_segments is negative number -0x10 for entry point rel_segments:0x100 to point to base of executable image.
+	};
+
+	typedef _common_ref2table_t<segment_t,segment_ref_t> segment_table_t;
+
+	static_assert(segment_size_undef == 0xFFFFFFFFFFFFFFFFull, "constant failure");
+
+	static constexpr inline alignmask_t align_mask_to_value(const alignmask_t v) {
+		return (~v) + ((alignmask_t)1u);
+	}
+
+	static constexpr inline alignmask_t align_value_to_mask(const alignmask_t v) {
+		return (~v) + ((alignmask_t)1u);
+	}
+
+	bool stringtable_t::exists(const string_ref_t x) const {
+		return x < ref2str.size();
+	}
+
+	const std::string &stringtable_t::get(const string_ref_t x) const {
+		if (x < ref2str.size())
+			return ref2str[x];
+		else
+			return empty;
+	}
+
+	string_ref_t stringtable_t::add(const std::string &s) {
+		/* if the string already exists, return the existing reference */
+		{
+			const auto i = str2ref.find(s);
+			if (i != str2ref.end()) return i->second;
+		}
+		/* else, add the string and return the new reference */
+		const string_ref_t newi = ref2str.size();
+		ref2str.push_back(s);
+		str2ref[s] = newi;
+		return newi;
+	}
+
+	template <typename T,typename refT> bool _common_ref2table_t<T,refT>::exists(const refT x) const {
+		return ref.find(x) != ref.end();
+	}
+
+	template <typename T,typename refT> const T &_common_ref2table_t<T,refT>::get(const refT x) const {
+		if (x < ref.size())
+			return ref[x];
+		else
+			throw std::range_error("get() out of range (const)");
+	}
+
+	template <typename T,typename refT> T &_common_ref2table_t<T,refT>::get(const refT x) {
+		if (x < ref.size())
+			return ref[x];
+		else
+			throw std::range_error("get() out of range");
+	}
+
+	template <typename T,typename refT> refT _common_ref2table_t<T,refT>::allocate(void) {
+		const refT id = ref.size();
+		ref.push_back(std::move(T()));
+		return id;
+	}
+
+	template <typename T,typename refT> void _common_ref2table_t<T,refT>::unallocate(const refT x) {
+		if (size_t(x) == (ref.size() - size_t(1u)))
+			ref.pop_back();
+		else
+			ref[x] = std::move(T());
+	}
+
+};
+#endif
+
 void DISP2_Init(uint8_t color), DISP2_Shut();
 //extern void UI_Init(void);
 void grGlideShutdown(void);
@@ -7626,6 +7845,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     CommandLine com_line(argc,argv);
     Config myconf(&com_line);
     bool saved_opt_test;
+
+#ifdef LNKDEV
+#endif
 
     control=&myconf;
 
