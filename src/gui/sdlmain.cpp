@@ -7646,6 +7646,7 @@ namespace linker {
 	typedef uint8_t				fixup_how_t;			// fixup how
 	typedef uint8_t				symbol_type_t;			// symbol type
 	typedef size_t				symbol_ref_t;			// symbol reference
+	typedef size_t				group_ref_t;			// group ref
 
 	static constexpr segment_size_t		segment_size_undef = ~((uint64_t)(0ull));
 	static constexpr segment_offset_t	segment_offset_undef = ~((uint64_t)(0ull));
@@ -7664,6 +7665,7 @@ namespace linker {
 	static constexpr fixup_how_t		fixup_how_undef = ~((uint8_t)(0u));
 	static constexpr symbol_type_t		symbol_type_undef = ~((uint8_t)(0u));
 	static constexpr symbol_ref_t		symbol_ref_undef = ~((size_t)(0ul));
+	static constexpr group_ref_t		group_ref_undef = ~((size_t)(0ul));
 
 	static constexpr alignmask_t		byte_align_mask = ~((alignmask_t)(0ull));
 	static constexpr alignmask_t		word_align_mask = ~((alignmask_t)(1ull));
@@ -7787,9 +7789,9 @@ namespace linker {
 	typedef _common_ref2table_t<fragment_t,fragment_ref_t> fragment_table_t;
 
 	struct source_module_t {
-		string_ref_t		name = string_ref_undef;
-		size_t			index = source_module_ref_undef;
-		file_offset_t		offset = file_offset_undef;
+		string_ref_t			name = string_ref_undef;
+		size_t				index = source_module_ref_undef;
+		file_offset_t			offset = file_offset_undef;
 	};
 
 	typedef _common_ref2table_t<source_module_t,source_module_ref_t> source_module_table_t;
@@ -7819,13 +7821,20 @@ namespace linker {
 		string_ref_t			name = string_ref_undef;		// segment name
 		string_ref_t			classname = string_ref_undef;		// segment class
 		string_ref_t			groupname = string_ref_undef;		// segment group
-		std::vector<fragment_ref_t>	fragments; // fragments contained in this segment
+		fragment_table_t		fragments; // fragments contained in this segment
 
 		// NTS: rel_offset also allows the .COM memory model where the base of the executable image starts at offset 0x100 within the segment,
 		//      in which case rel_segments is negative number -0x10 for entry point rel_segments:0x100 to point to base of executable image.
 	};
 
 	typedef _common_ref2table_t<segment_t,segment_ref_t> segment_table_t;
+
+	struct group_t {
+		string_ref_t			name;
+		std::vector<segment_ref_t>	segments;
+	};
+
+	typedef _common_ref2table_t<group_t,group_ref_t> group_table_t;
 
 	static_assert(segment_size_undef == 0xFFFFFFFFFFFFFFFFull, "constant failure");
 
@@ -7891,6 +7900,14 @@ namespace linker {
 		else
 			ref[x] = std::move(T());
 	}
+
+	struct linkstate {
+		source_t			sources;
+		stringtable_t			strings;
+		segment_table_t			segments;
+		group_table_t			groups;
+		symbol_table_t			symbols;
+	};
 
 };
 #endif
