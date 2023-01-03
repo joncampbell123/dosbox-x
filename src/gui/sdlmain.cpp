@@ -7642,6 +7642,8 @@ namespace linker {
 	typedef size_t				fragment_ref_t;			// fragment within segment index
 	typedef size_t				segment_ref_t;			// segment ref
 	typedef size_t				string_ref_t;			// string index reference
+	typedef uint8_t				fixup_method_t;			// fixup method
+	typedef uint8_t				fixup_how_t;			// fixup how
 
 	static constexpr segment_size_t		segment_size_undef = ~((uint64_t)(0ull));
 	static constexpr segment_offset_t	segment_offset_undef = ~((uint64_t)(0ull));
@@ -7656,6 +7658,8 @@ namespace linker {
 	static constexpr fragment_ref_t		fragment_ref_undef = ~((size_t)(0ul));
 	static constexpr segment_ref_t		segment_ref_undef = ~((size_t)(0ul));
 	static constexpr string_ref_t		string_ref_undef = ~((size_t)(0ul));
+	static constexpr fixup_method_t		fixup_method_undef = ~((uint8_t)(0u));
+	static constexpr fixup_how_t		fixup_how_undef = ~((uint8_t)(0u));
 
 	static constexpr alignmask_t		byte_align_mask = ~((alignmask_t)(0ull));
 	static constexpr alignmask_t		word_align_mask = ~((alignmask_t)(1ull));
@@ -7689,6 +7693,19 @@ namespace linker {
 	static constexpr cpu_flags_t		CPUFLAG_INTELX86_REALMODE = cpu_flags_t(1u << 4u); // real mode segment
 	static constexpr cpu_flags_t		CPUFLAG_INTELX86_PROTMODE = cpu_flags_t(1u << 5u); // protected mode segment
 
+	// fixup methods
+	static constexpr fixup_method_t		FIXUPMETH_SEGMENT = 0; // fixup refers to segment base
+	static constexpr fixup_method_t		FIXUPMETH_GROUP = 1; // fixup refers to segment group base
+	static constexpr fixup_method_t		FIXUPMETH_EXTERN = 2; // fixup refers to external symbol
+	static constexpr fixup_method_t		FIXUPMETH_TARGET = 5; // fixup refers to target
+
+	// fixup how
+	static constexpr fixup_how_t		FIXUPHOW_OFFSET16 = 1; // 16-bit offset
+	static constexpr fixup_how_t		FIXUPHOW_SEGMENTBASE16 = 2; // 16-bit segment base
+	static constexpr fixup_how_t		FIXUPHOW_SEGMENTOFFSET16 = 3; // 16:16 segment:offset
+	static constexpr fixup_how_t		FIXUPHOW_OFFSET32 = 9; // 32-bit offset
+	static constexpr fixup_how_t		FIXUPHOW_SEGMENTOFFSET32 = 11; // 16:32 segment:offset
+
 	struct stringtable_t {
 		std::string				empty;
 		std::vector<std::string>		ref2str; // ref -> str
@@ -7712,6 +7729,22 @@ namespace linker {
 		void unallocate(const refT x);
 	};
 
+	struct fixup_t {
+		/* frame method and seg/group/extern name to which address computation is performed (OMF spec) */
+		fixup_method_t				frame_method = fixup_method_undef;
+		string_ref_t				frame_name = string_ref_undef;
+		/* target method and seg/group/extern name to which the fixup refers to (OMF spec) */
+		fixup_method_t				target_method = fixup_method_undef;
+		string_ref_t				target_name = string_ref_undef;
+		/* which segment this fixup is applied to and where */
+		string_ref_t				fixup_name = string_ref_undef;
+		fragment_relative_t			fixup_at = fragment_relative_undef;
+		/* how to apply the fixup */
+		fixup_how_t				fixup_how = fixup_how_undef;
+		/* other flags */
+		bool					segment_relative = false; /* segment relative vs self relative (OMF spec) */
+	};
+
 	struct fragment_t {
 		alignmask_t				alignmask = 0;
 		std::shared_ptr< std::vector<uint8_t> >	data; // data within fragment using shared_ptr for copy on write semantics if needed---CAN BE NULL, BE CAREFUL!
@@ -7725,6 +7758,7 @@ namespace linker {
 		// if shared_ptr has a use_count() == 1, it is OK to modify in place.
 		// if shared_ptr has a use_count() > 1, you must copy the data and then modify it.
 		// use_count() is 100% accurate for this code because we are not using it in a multithreaded manner.
+		std::vector<fixup_t>			fixups;
 	};
 
 	typedef _common_ref2table_t<fragment_t,fragment_ref_t> fragment_table_t;
