@@ -7643,7 +7643,6 @@ namespace linker {
 	typedef uint8_t				fixup_how_t;			// fixup how
 	typedef uint8_t				symbol_type_t;			// symbol type
 	typedef size_t				symbol_ref_t;			// symbol reference
-	typedef size_t				group_ref_t;			// group ref
 
 	static constexpr segment_size_t		segment_size_undef = ~((uint64_t)(0ull));
 	static constexpr segment_offset_t	segment_offset_undef = ~((uint64_t)(0ull));
@@ -7659,7 +7658,6 @@ namespace linker {
 	static constexpr fixup_how_t		fixup_how_undef = ~((uint8_t)(0u));
 	static constexpr symbol_type_t		symbol_type_undef = ~((uint8_t)(0u));
 	static constexpr symbol_ref_t		symbol_ref_undef = ~((size_t)(0ul));
-	static constexpr group_ref_t		group_ref_undef = ~((size_t)(0ul));
 
 	static constexpr alignmask_t		byte_align_mask = ~((alignmask_t)(0ull));
 	static constexpr alignmask_t		word_align_mask = ~((alignmask_t)(1ull));
@@ -7754,7 +7752,6 @@ namespace linker {
 		string_ref_t				name = string_ref_undef; // name of symbol
 		segment_ref_t				segref = segment_ref_undef; // segment symbol belongs to
 		segment_offset_t			offset = segment_offset_undef; // offset within fragment
-		source_ref_t				source = source_ref_undef; // from this source
 	};
 
 	template <typename T,typename refT,typename reverseT> struct _common_ref2symtable_t {
@@ -7772,12 +7769,10 @@ namespace linker {
 	struct fixup_t {
 		/* frame method and seg/group/extern name to which address computation is performed (OMF spec) */
 		fixup_method_t				frame_method = fixup_method_undef;
-		segment_ref_t				frame_name = segment_ref_undef;
+		string_ref_t				frame_name = string_ref_undef;
 		/* target method and seg/group/extern name to which the fixup refers to (OMF spec) */
 		fixup_method_t				target_method = fixup_method_undef;
-		segment_ref_t				target_name = segment_ref_undef;
-		/* where to apply in the segment (relative to segment base) */
-		segment_offset_t			fixup_at = segment_offset_undef;
+		string_ref_t				target_name = string_ref_undef;
 		/* how to apply the fixup */
 		fixup_how_t				fixup_how = fixup_how_undef;
 		/* other flags */
@@ -7818,13 +7813,6 @@ namespace linker {
 	};
 
 	typedef _common_ref2table_t<segment_t,segment_ref_t> segment_table_t;
-
-	struct group_t {
-		string_ref_t			name;
-		std::vector<segment_ref_t>	segments;
-	};
-
-	typedef _common_ref2table_t<group_t,group_ref_t> group_table_t;
 
 	static_assert(segment_size_undef == 0xFFFFFFFFFFFFFFFFull, "constant failure");
 
@@ -7943,7 +7931,6 @@ namespace linker {
 		source_table_t			sources;
 		stringtable_t			strings;
 		segment_table_t			segments;
-		group_table_t			groups;
 		symbol_table_t			symbols;
 	};
 
@@ -8249,9 +8236,6 @@ namespace linker {
 	}
 
 	bool OMF_add_GRPDEF(linkstate &module,OMF_extra_linkstate &modex,const OMF_record &rec) {
-		const group_ref_t group_ref = module.groups.allocate();
-		group_t &groupref = module.groups.get(group_ref);
-
 		const uint8_t *ri = &rec.record[0];
 		const uint8_t *re = &rec.record[rec.record.size()];
 
@@ -8259,7 +8243,7 @@ namespace linker {
 
 		const uint16_t nameindex = OMF_read_index(ri,re);
 		if (!modex.LNAMES.exists(from1based(nameindex))) return false;
-		groupref.name = modex.LNAMES.get(from1based(nameindex));
+		const string_ref_t groupname = modex.LNAMES.get(from1based(nameindex));
 
 		while ((ri+2) <= re) {
 			if (*ri == 0xFF) {
@@ -8267,9 +8251,8 @@ namespace linker {
 				assert(ri <= re);
 				const uint16_t segindex = OMF_read_index(ri,re);
 				if (!module.segments.exists(from1based(segindex))) return false;
-				groupref.segments.push_back(from1based(segindex));
 				segment_t &sref = module.segments.get(from1based(segindex));
-				if (sref.groupname == group_ref_undef) sref.groupname = groupref.name;
+				if (sref.groupname == string_ref_undef) sref.groupname = groupname;
 				else return false; // a segment cannot be part of multiple groups in one module!
 			}
 			else {
@@ -8349,6 +8332,7 @@ namespace linker {
 				if (!OMF_add_LEDATA(module,modex,rec))
 					return false;
 			}
+			// TODO: OMFRECT_LIDATA / OMFRECT_LIDATA_32 (iterated data), which is not often used except by Microsoft tools like Microsoft MASM.
 			else if (rec.type == OMFRECT_MODEND || rec.type == OMFRECT_MODEND_32) {
 				break;
 			}
