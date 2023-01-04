@@ -7634,7 +7634,6 @@ namespace linker {
 	typedef uint64_t			file_offset_t;			// file offset
 	typedef uint64_t			linear_addr_t;			// linear (flat) memory address
 	typedef size_t				source_ref_t;			// source index
-	typedef size_t				source_module_ref_t;		// source module index
 	typedef unsigned int			segment_flags_t;		// segment flags
 	typedef unsigned int			cpu_major_type_t;		// CPU type (major category)
 	typedef unsigned int			cpu_minor_type_t;		// CPU type (minor within category)
@@ -7655,7 +7654,6 @@ namespace linker {
 	static constexpr file_offset_t		file_offset_undef = ~((uint64_t)(0ull));
 	static constexpr linear_addr_t		linear_addr_undef = ~((uint64_t)(0ull));
 	static constexpr source_ref_t		source_ref_undef = ~((size_t)(0ul));
-	static constexpr source_module_ref_t	source_module_ref_undef = ~((size_t)(0ul));
 	static constexpr cpu_major_type_t	cpu_major_undef = ~((unsigned int)(0u));
 	static constexpr cpu_minor_type_t	cpu_minor_undef = ~((unsigned int)(0u));
 	static constexpr fragment_ref_t		fragment_ref_undef = ~((size_t)(0ul));
@@ -7758,7 +7756,6 @@ namespace linker {
 		fragment_ref_t				symbol_fragment = fragment_ref_undef; // which fragment in the segment
 		segment_offset_t			symbol_offset = segment_offset_undef; // offset within fragment
 		source_ref_t				source = source_ref_undef; // from this source
-		source_module_ref_t			source_module = source_module_ref_undef; // from this module
 	};
 
 	typedef _common_ref2table_t<symbol_t,symbol_ref_t> symbol_table_t;
@@ -7783,7 +7780,6 @@ namespace linker {
 		std::shared_ptr< std::vector<uint8_t> >	data; // data within fragment using shared_ptr for copy on write semantics if needed---CAN BE NULL, BE CAREFUL!
 		size_t					size = 0; // total size of fragment
 		source_ref_t				source = source_ref_undef; // from this source
-		source_module_ref_t			source_module = source_module_ref_undef; // from this module
 		segment_offset_t			assigned_offset = segment_offset_undef; // assigned offset of fragment within segment
 		segment_size_t				assigned_size = segment_size_undef; // assigned size of fragment within segment
 		segment_ref_t				assigned_segment = segment_ref_undef; // assigned to segment
@@ -7796,19 +7792,12 @@ namespace linker {
 
 	typedef _common_ref2table_t<fragment_t,fragment_ref_t> fragment_table_t;
 
-	struct source_module_t {
-		string_ref_t			name = string_ref_undef;
-		size_t				index = source_module_ref_undef;
-		file_offset_t			offset = file_offset_undef;
-	};
-
-	typedef _common_ref2table_t<source_module_t,source_module_ref_t> source_module_table_t;
-
 	struct source_t {
 		string_ref_t			name = string_ref_undef;
 		string_ref_t			path = string_ref_undef;
+		size_t				index = source_ref_undef;
+		file_offset_t			offset = file_offset_undef;
 		bool				is_library = false;
-		source_module_table_t		modules;
 	};
 
 	typedef _common_ref2table_t<source_t,source_ref_t> source_table_t;
@@ -7825,7 +7814,6 @@ namespace linker {
 		cpu_minor_type_t		cpu_minor = cpu_minor_undef; // intended CPU, minor category
 		cpu_flags_t			cpu_flags = 0; // meaning is specific to major/minor CPU type
 		source_ref_t			source = source_ref_undef; // segment first seen from this source
-		source_module_ref_t		source_module = source_module_ref_undef; // segment first seen from this module
 		string_ref_t			name = string_ref_undef;		// segment name
 		string_ref_t			classname = string_ref_undef;		// segment class
 		string_ref_t			groupname = string_ref_undef;		// segment group
@@ -8219,19 +8207,15 @@ namespace linker {
 		return true;
 	}
 
-	bool OMF_read_module(linkstate &module,OMF_XADR &adr,const OMF_record &first_rec,const char *path,FILE *fp,uint16_t blocksize=0,uint32_t dict_offset=0) {
+	bool OMF_read_module(linkstate &module,OMF_XADR &adr,const OMF_record &first_rec,const OMF_record &current_rec,const char *path,FILE *fp,uint16_t blocksize=0,uint32_t dict_offset=0) {
 		/* already read the THEADR/LHEADR */
 		const source_ref_t source_ref = module.sources.allocate();
 		source_t &source = module.sources.get(source_ref);
 		source.is_library = (first_rec.type == OMFRECT_LIBHEAD || first_rec.type == OMFRECT_LHEADR);
 		source.name = module.strings.add(adr.name);
 		source.path = module.strings.add(path);
-
-		const source_module_ref_t source_module_ref = source.modules.allocate();
-		source_module_t &source_module = source.modules.get(source_module_ref);
-		source_module.name = module.strings.add(adr.name);
-		source_module.index = source_module_ref;
-		source_module.offset = first_rec.file_offset;
+		source.offset = current_rec.file_offset;
+		source.index = source_ref;
 
 		OMF_extra_linkstate modex;
 		OMF_record rec;
@@ -8283,7 +8267,7 @@ namespace linker {
 
 					modules.push_back(std::move(linkstate()));
 					linkstate &module = modules.back();
-					if (!OMF_read_module(module,adr,headrec,path,fp,libhead.record_length,libhead.dict_offset)) {
+					if (!OMF_read_module(module,adr,headrec,rec,path,fp,libhead.record_length,libhead.dict_offset)) {
 						fclose(fp);
 						return false;
 					}
@@ -8299,7 +8283,7 @@ namespace linker {
 
 			modules.push_back(std::move(linkstate()));
 			linkstate &module = modules.back();
-			if (!OMF_read_module(module,adr,rec,path,fp)) {
+			if (!OMF_read_module(module,adr,rec,rec,path,fp)) {
 				fclose(fp);
 				return false;
 			}
@@ -8338,17 +8322,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			auto &module = *mi;
 			for (auto si=module.sources.ref.begin();si!=module.sources.ref.end();si++) {
 				auto &source = *si;
-				fprintf(stderr,"  Source LIB=%u name='%s' path='%s'\n",
+				fprintf(stderr,"  Source LIB=%u name='%s' path='%s' index=%lu offset=%lu\n",
 					source.is_library?1:0,
 					module.strings.get(source.name).c_str(),
-					module.strings.get(source.path).c_str());
-				for (auto smi=source.modules.ref.begin();smi!=source.modules.ref.end();smi++) {
-					auto &sourcemodule = *smi;
-					fprintf(stderr,"    Module name='%s' index=%lu offset=%lu\n",
-						module.strings.get(sourcemodule.name).c_str(),
-						(unsigned long)sourcemodule.index,
-						(unsigned long)sourcemodule.offset);
-				}
+					module.strings.get(source.path).c_str(),
+					(unsigned long)source.index,
+					(unsigned long)source.offset);
 			}
 			for (auto si=module.segments.ref.begin();si!=module.segments.ref.end();si++) {
 				auto &segm = *si; // "segment" might still be reserved by your compiler... maybe?
