@@ -8280,6 +8280,45 @@ namespace linker {
 		return true;
 	}
 
+	bool OMF_add_LEDATA(linkstate &module,OMF_extra_linkstate &modex,const OMF_record &rec) {
+		const uint8_t *ri = &rec.record[0];
+		const uint8_t *re = &rec.record[rec.record.size()];
+
+		const bool fmt32 = (rec.type == OMFRECT_LEDATA_32);
+
+		// <segment index> <data offset> <data>
+
+		const uint16_t segindex = OMF_read_index(ri,re);
+		if (!module.segments.exists(from1based(segindex))) return false;
+		segment_t &segref = module.segments.get(from1based(segindex));
+
+		const uint32_t dataoffset = (fmt32 ? OMF_read_dword(ri,re) : OMF_read_word(ri,re));
+
+		if (ri < re) {
+			const size_t datalen = (size_t)(re - ri);
+
+			// This code assumes that LEDATA is built completely in sequence, which most tools do.
+			// We do not support out of order LEDATA entries. Maybe someday if we have to support
+			// that kind of thing, we can change this later.
+			if ((uint32_t)segref.data.size() != dataoffset)
+				return false; // we only support append!
+
+			const size_t putat = segref.data.size();
+
+			// Are we about to append data beyond the reported size of the segment? That is an error too.
+			if (segref.size != segment_size_undef && segment_size_t(putat+datalen) > segref.size)
+				return false;
+
+			segref.data.resize(segref.data.size() + datalen);
+			assert((putat+datalen) <= segref.data.size());
+			assert((ri+datalen) <= re);
+			memcpy(&segref.data[putat],ri,datalen);
+			ri += datalen;
+		}
+
+		return true;
+	}
+
 	bool OMF_read_module(linkstate &module,OMF_XADR &adr,const OMF_record &first_rec,const OMF_record &current_rec,const char *path,FILE *fp,uint16_t blocksize=0,uint32_t dict_offset=0) {
 		/* already read the THEADR/LHEADR */
 		const source_ref_t source_ref = module.sources.allocate();
@@ -8304,6 +8343,10 @@ namespace linker {
 			}
 			else if (rec.type == OMFRECT_LNAMES) {
 				if (!OMF_add_LNAMES(module,modex,rec))
+					return false;
+			}
+			else if (rec.type == OMFRECT_LEDATA || rec.type == OMFRECT_LEDATA_32) {
+				if (!OMF_add_LEDATA(module,modex,rec))
 					return false;
 			}
 			else if (rec.type == OMFRECT_MODEND || rec.type == OMFRECT_MODEND_32) {
@@ -8408,7 +8451,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			}
 			for (auto si=module.segments.ref.begin();si!=module.segments.ref.end();si++) {
 				auto &segm = *si; // "segment" might still be reserved by your compiler... maybe?
-				fprintf(stderr,"  Segment name='%s' class='%s' group='%s' size=0x%lu align=%lu flags=0x%0lx USE%d\n",
+				fprintf(stderr,"  Segment name='%s' class='%s' group='%s' size=0x%lx align=%lu flags=0x%0lx USE%d\n",
 					module.strings.get(segm.name).c_str(),
 					module.strings.get(segm.classname).c_str(),
 					module.strings.get(segm.groupname).c_str(),
@@ -8416,6 +8459,18 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					(unsigned long)linker::align_mask_to_value(segm.alignmask),
 					(unsigned long)segm.flags,
 					(segm.cpu_major == linker::CPUMAJT_INTELX86 && segm.cpu_minor == linker::CPUMINT_INTELX86_386)?32:16);
+				if (!segm.data.empty()) {
+					size_t o=0;
+
+					fprintf(stderr,"    Data:\n");
+					while (o < segm.data.size()) {
+						if ((o&15u) == 0) fprintf(stderr,"0x%08lx:",(unsigned long)o);
+						fprintf(stderr," %02x",segm.data[o]);
+						if ((o&15u) == 15u) fprintf(stderr,"\n");
+						o++;
+					}
+					if ((o&15u) != 0u) fprintf(stderr,"\n");
+				}
 			}
 		}
 	}
