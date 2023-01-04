@@ -8207,6 +8207,38 @@ namespace linker {
 		return true;
 	}
 
+	bool OMF_add_GRPDEF(linkstate &module,OMF_extra_linkstate &modex,const OMF_record &rec) {
+		const group_ref_t group_ref = module.groups.allocate();
+		group_t &groupref = module.groups.get(group_ref);
+
+		const uint8_t *ri = &rec.record[0];
+		const uint8_t *re = &rec.record[rec.record.size()];
+
+		// <name index> [ 0xFF <segment index> [ ... ] ]
+
+		const uint16_t nameindex = OMF_read_index(ri,re);
+		if (!modex.LNAMES.exists(from1based(nameindex))) return false;
+		groupref.name = modex.LNAMES.get(from1based(nameindex));
+
+		while ((ri+2) <= re) {
+			if (*ri == 0xFF) {
+				ri++;
+				assert(ri <= re);
+				const uint16_t segindex = OMF_read_index(ri,re);
+				if (!module.segments.exists(from1based(segindex))) return false;
+				groupref.segments.push_back(from1based(segindex));
+				segment_t &sref = module.segments.get(from1based(segindex));
+				if (sref.groupname == group_ref_undef) sref.groupname = groupref.name;
+				else return false; // a segment cannot be part of multiple groups in one module!
+			}
+			else {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
 	bool OMF_read_module(linkstate &module,OMF_XADR &adr,const OMF_record &first_rec,const OMF_record &current_rec,const char *path,FILE *fp,uint16_t blocksize=0,uint32_t dict_offset=0) {
 		/* already read the THEADR/LHEADR */
 		const source_ref_t source_ref = module.sources.allocate();
@@ -8223,6 +8255,10 @@ namespace linker {
 		while (OMF_read_record(rec,fp,blocksize,dict_offset)) {
 			if (rec.type == OMFRECT_SEGDEF || rec.type == OMFRECT_SEGDEF_32) {
 				if (!OMF_add_SEGDEF(module,modex,rec))
+					return false;
+			}
+			else if (rec.type == OMFRECT_GRPDEF) {
+				if (!OMF_add_GRPDEF(module,modex,rec))
 					return false;
 			}
 			else if (rec.type == OMFRECT_LNAMES) {
