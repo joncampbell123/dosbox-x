@@ -36,6 +36,15 @@ Next
   - Remove experimental "alt VGA" rendering code. It was
     never completed and it is probably starting to
     bitrot (joncampbell123).
+  - Fix EGA/VGA version of CGA 4-color graphics renderer
+    code to consider all four bitplanes when combining
+    each pair into a 2-bit value. When bitplanes 2+3 are
+    enabled and writeable, the 4-color mode becomes a
+    sort of 2-plane 2 bits per pixel 16-color mode. Fix
+    for machine=ega and "Leather Goddess of Phobos 2",
+    a game that sets up EGA 640x200 16-color mode then
+    suddenly switches on the 2bpp CGA mode as a way to
+    do 16-color dithered graphics. (joncampbell123).
 
 2022.12.26
   - Allow more than 640KB of conventional memory,

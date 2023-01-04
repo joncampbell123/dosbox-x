@@ -298,19 +298,27 @@ static uint8_t * EGA_Draw_2BPP_Line_as_EGA(Bitu vidstart, Bitu line) {
     uint8_t * draw=(uint8_t *)TempLine;
     VGA_Latch pixels;
 
+    /* NTS: In reality the 2bpp "shift reg" mode of EGA/VGA bundles odd/even bits for CGA 4-color
+     *      across bitplanes 0+1 and 2+3, but the INT 10h CGA 4-color mode disables bitplanes 2 and 3
+     *      so that all you see are bitplanes 0+1 set up to emulate CGA video memory. However some
+     *      games are said to enable bitplanes 2 and 3 and then use the CGA-like 2bpp mode as a hack
+     *      for filling in EGA colors faster, usually with dithering
+     *
+     *      (ref: "Leather Goddesses of Phobos 2" according to ripsaw8080 when machine=ega). */
+
     for (Bitu x=0;x<vga.draw.blocks;x++) {
         pixels.d = base[vidstart & vga.tandy.addr_mask];
         vidstart += (Bitu)1u << (Bitu)vga.config.addr_shift;
 
-        /* CGA odd/even mode, first plane */
-        Bitu val=pixels.b[0];
-        for (Bitu i=0;i < 4;i++,val <<= 2)
-            *draw++ = vga.attr.palette[(val>>6)&3];
+        /* CGA odd/even mode, first plane and maybe third plane */
+        Bitu val=pixels.b[0],val2=pixels.b[2]<<2;
+        for (Bitu i=0;i < 4;i++,val <<= 2,val2 <<= 2)
+            *draw++ = vga.attr.palette[(((val>>6)&0x3)|((val2>>6)&0xC))&vga.attr.color_plane_enable];
 
-        /* CGA odd/even mode, second plane */
-        val=pixels.b[1];
-        for (Bitu i=0;i < 4;i++,val <<= 2)
-            *draw++ = vga.attr.palette[(val>>6)&3];
+        /* CGA odd/even mode, second plane and maybe fourth plane */
+        val=pixels.b[1],val2=pixels.b[3]<<2;
+        for (Bitu i=0;i < 4;i++,val <<= 2,val2 <<= 2)
+            *draw++ = vga.attr.palette[(((val>>6)&0x3)|((val2>>6)&0xC))&vga.attr.color_plane_enable];
     }
     return TempLine;
 }
@@ -320,19 +328,27 @@ static uint8_t * VGA_Draw_2BPP_Line_as_VGA(Bitu vidstart, Bitu line) {
     uint32_t * draw=(uint32_t *)TempLine;
     VGA_Latch pixels;
 
+    /* NTS: In reality the 2bpp "shift reg" mode of EGA/VGA bundles odd/even bits for CGA 4-color
+     *      across bitplanes 0+1 and 2+3, but the INT 10h CGA 4-color mode disables bitplanes 2 and 3
+     *      so that all you see are bitplanes 0+1 set up to emulate CGA video memory. However some
+     *      games are said to enable bitplanes 2 and 3 and then use the CGA-like 2bpp mode as a hack
+     *      for filling in EGA colors faster, usually with dithering
+     *
+     *      (ref: "Leather Goddesses of Phobos 2" according to ripsaw8080 when machine=ega). */
+
     for (Bitu x=0;x<vga.draw.blocks;x++) {
         pixels.d = base[vidstart & vga.tandy.addr_mask];
         vidstart += (Bitu)1u << (Bitu)vga.config.addr_shift;
 
-        /* CGA odd/even mode, first plane */
-        Bitu val=pixels.b[0];
-        for (Bitu i=0;i < 4;i++,val <<= 2)
-            *draw++ = vga.dac.xlat32[(val>>6)&3];
+        /* CGA odd/even mode, first plane and maybe third plane */
+        Bitu val=pixels.b[0],val2=pixels.b[2]<<2;
+        for (Bitu i=0;i < 4;i++,val <<= 2,val2 <<= 2)
+            *draw++ = vga.dac.xlat32[(((val>>6)&0x3)|((val2>>6)&0xC))&vga.attr.color_plane_enable];
 
-        /* CGA odd/even mode, second plane */
-        val=pixels.b[1];
-        for (Bitu i=0;i < 4;i++,val <<= 2)
-            *draw++ = vga.dac.xlat32[(val>>6)&3];
+        /* CGA odd/even mode, second plane and maybe fourth plane */
+        val=pixels.b[1],val2=pixels.b[3]<<2;
+        for (Bitu i=0;i < 4;i++,val <<= 2,val2 <<= 2)
+            *draw++ = vga.dac.xlat32[(((val>>6)&0x3)|((val2>>6)&0xC))&vga.attr.color_plane_enable];
     }
     return TempLine;
 }
