@@ -7773,8 +7773,9 @@ namespace linker {
 		/* target method and seg/group/extern name to which the fixup refers to (OMF spec) */
 		fixup_method_t				target_method = fixup_method_undef;
 		string_ref_t				target_name = string_ref_undef;
-		/* how to apply the fixup */
+		/* how to apply the fixup and where */
 		fixup_how_t				fixup_how = fixup_how_undef;
+		segment_offset_t			fixup_offset = segment_offset_undef;
 		/* other flags */
 		bool					segment_relative = false; /* segment relative vs self relative (OMF spec) */
 	};
