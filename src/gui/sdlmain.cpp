@@ -7718,6 +7718,15 @@ namespace linker {
 	static constexpr symbol_type_t		SYMTYPE_LOCAL_EXTERN = 11; // external symbol local to module
 	static constexpr symbol_type_t		SYMTYPE_LOCAL_PUBLIC = 12; // public symbol local to module
 
+	// some object formats index from 1 instead of zero
+	template <typename T> static constexpr inline T from1based(const T x) { /* 1-based to zero based */
+		return x - T(1u);
+	}
+
+	template <typename T> static constexpr inline T to1based(const T x) { /* zero based to 1-based */
+		return x + T(1u);
+	}
+
 	struct stringtable_t {
 		std::string				empty;
 		std::vector<std::string>		ref2str; // ref -> str
@@ -7980,7 +7989,7 @@ namespace linker {
 	typedef _common_ref2table_t<string_ref_t,string_ref_t> OMF_LNAMES_table_t;
 
 	struct OMF_extra_linkstate {
-		OMF_LNAMES_table_t		LNAMES;
+		OMF_LNAMES_table_t		LNAMES; /* map LNAME index to string ref */
 	};
 
 	void OMF_XADR::parse(const OMF_record &r) {
@@ -8198,13 +8207,13 @@ namespace linker {
 		const uint16_t overlaynameindex = OMF_read_index(ri,re);//ignored
 		(void)overlaynameindex;
 
-		if (!modex.LNAMES.exists(nameindex)) return false;
-		segref.name = modex.LNAMES.get(nameindex);
+		if (!modex.LNAMES.exists(from1based(nameindex))) return false;
+		segref.name = modex.LNAMES.get(from1based(nameindex));
 
-		if (!modex.LNAMES.exists(classnameindex)) return false;
-		segref.classname = modex.LNAMES.get(classnameindex);
+		if (!modex.LNAMES.exists(from1based(classnameindex))) return false;
+		segref.classname = modex.LNAMES.get(from1based(classnameindex));
 
-		if (!modex.LNAMES.exists(overlaynameindex)) return false;
+		if (!modex.LNAMES.exists(from1based(overlaynameindex))) return false;
 		/* ignored */
 
 		return true;
@@ -8227,15 +8236,8 @@ namespace linker {
 		OMF_extra_linkstate modex;
 		OMF_record rec;
 
-		// LNAMEs are 1-based, fill slot 0
-		{
-			string_ref_t x = modex.LNAMES.allocate();
-			modex.LNAMES.get(x) = module.strings.add("");
-			assert(modex.LNAMES.ref.size() == 1);
-		}
-
 		while (OMF_read_record(rec,fp,blocksize,dict_offset)) {
-			if (rec.type == OMFRECT_SEGDEF) {
+			if (rec.type == OMFRECT_SEGDEF || rec.type == OMFRECT_SEGDEF_32) {
 				if (!OMF_add_SEGDEF(module,modex,rec))
 					return false;
 			}
