@@ -7629,7 +7629,6 @@ namespace linker {
 	typedef uint64_t			segment_size_t;			// segment size in bytes
 	typedef uint64_t			segment_offset_t;		// offset within a segment
 	typedef int32_t				segment_relative_t;		// offset in segments. In real mode, as paragraphs. In protected mode, as index numbers. Can be negative.
-	typedef uint64_t			fragment_relative_t;		// offset in segment relative to fragment (so fragments can move easily)
 	typedef uint64_t			alignmask_t;			// alignment mask (bit mask)
 	typedef uint64_t			file_offset_t;			// file offset
 	typedef uint64_t			linear_addr_t;			// linear (flat) memory address
@@ -7638,7 +7637,6 @@ namespace linker {
 	typedef unsigned int			cpu_major_type_t;		// CPU type (major category)
 	typedef unsigned int			cpu_minor_type_t;		// CPU type (minor within category)
 	typedef unsigned int			cpu_flags_t;			// CPU flags, meaning depends on CPU type
-	typedef size_t				fragment_ref_t;			// fragment within segment index
 	typedef size_t				segment_ref_t;			// segment ref
 	typedef size_t				string_ref_t;			// string index reference
 	typedef uint8_t				fixup_method_t;			// fixup method
@@ -7650,13 +7648,11 @@ namespace linker {
 	static constexpr segment_size_t		segment_size_undef = ~((uint64_t)(0ull));
 	static constexpr segment_offset_t	segment_offset_undef = ~((uint64_t)(0ull));
 	static constexpr segment_relative_t	segment_relative_undef = ~((int32_t)(0x7FFFFFFF));
-	static constexpr fragment_relative_t	fragment_relative_undef = ~((uint64_t)(0ull));
 	static constexpr file_offset_t		file_offset_undef = ~((uint64_t)(0ull));
 	static constexpr linear_addr_t		linear_addr_undef = ~((uint64_t)(0ull));
 	static constexpr source_ref_t		source_ref_undef = ~((size_t)(0ul));
 	static constexpr cpu_major_type_t	cpu_major_undef = ~((unsigned int)(0u));
 	static constexpr cpu_minor_type_t	cpu_minor_undef = ~((unsigned int)(0u));
-	static constexpr fragment_ref_t		fragment_ref_undef = ~((size_t)(0ul));
 	static constexpr segment_ref_t		segment_ref_undef = ~((size_t)(0ul));
 	static constexpr string_ref_t		string_ref_undef = ~((size_t)(0ul));
 	static constexpr fixup_method_t		fixup_method_undef = ~((uint8_t)(0u));
@@ -7686,6 +7682,7 @@ namespace linker {
 	static constexpr segment_flags_t	SEGFLAG_PRIVATE = segment_flags_t(1u << 6u); // do not combine with any other segment
 	static constexpr segment_flags_t	SEGFLAG_STACK = segment_flags_t(1u << 7u); // stack segment
 	static constexpr segment_flags_t	SEGFLAG_COMMON = segment_flags_t(1u << 8u); // common
+	static constexpr segment_flags_t	SEGFLAG_DELETED = segment_flags_t(1u << 9u); // deleted segment, do not consider anything
 
 	// cpu_major == CPUMAJT_INTELX86
 	static constexpr cpu_flags_t		CPUFLAG_INTELX86_BIG386 = cpu_flags_t(1u << 0u); // (i386) segment should be loaded as "big" 4GB limit (B bit)
@@ -7725,15 +7722,19 @@ namespace linker {
 		return x + T(1u);
 	}
 
-	struct stringtable_t {
-		std::string				empty;
-		std::vector<std::string>		ref2str; // ref -> str
-		std::unordered_map<std::string,size_t>	str2ref; // str -> ref
+	template <typename T,typename refT> struct _common_ref2table_bidi_t {
+		T						empty;
+		std::vector<T>					ref2t; // ref -> T
+		std::unordered_map<T,refT>			t2ref; // T -> ref
 
-		bool exists(const string_ref_t x) const;
-		const std::string &get(const string_ref_t x) const;
-		string_ref_t add(const std::string &s);
+		bool exists(const refT x) const;
+		const T &get(const refT x) const;
+		T &get(const refT x);
+		refT add(const T &s);
+		refT add(T &&s);
 	};
+
+	typedef _common_ref2table_bidi_t<std::string,string_ref_t> stringtable_t;
 
 	template <typename T,typename refT> struct _common_ref2table_t {
 		std::vector<T>				ref;
@@ -7749,16 +7750,24 @@ namespace linker {
 	};
 
 	struct symbol_t {
-		symbol_type_t				symbol_type = symbol_type_undef; // type of symbol
-		string_ref_t				symbol_name = string_ref_undef; // name of symbol
-		string_ref_t				symbol_group = string_ref_undef; // name of group symbol belongs to
-		segment_ref_t				symbol_segment = segment_ref_undef; // name of segment symbol belongs to
-		fragment_ref_t				symbol_fragment = fragment_ref_undef; // which fragment in the segment
-		segment_offset_t			symbol_offset = segment_offset_undef; // offset within fragment
+		symbol_type_t				type = symbol_type_undef; // type of symbol
+		string_ref_t				name = string_ref_undef; // name of symbol
+		segment_ref_t				segref = segment_ref_undef; // segment symbol belongs to
+		segment_offset_t			offset = segment_offset_undef; // offset within fragment
 		source_ref_t				source = source_ref_undef; // from this source
 	};
 
-	typedef _common_ref2table_t<symbol_t,symbol_ref_t> symbol_table_t;
+	template <typename T,typename refT,typename reverseT> struct _common_ref2symtable_t {
+		std::vector<T>							ref2t; /* ref -> T */
+		std::unordered_map<reverseT, std::vector<refT> >		name2t; /* reverseT -> one or more ref */
+
+		bool exists(const refT x) const;
+		const T &get(const refT x) const;
+		T &get(const refT x);
+		refT add(const reverseT &name);
+	};
+
+	typedef _common_ref2symtable_t<symbol_t,symbol_ref_t,string_ref_t> symbol_table_t;
 
 	struct fixup_t {
 		/* frame method and seg/group/extern name to which address computation is performed (OMF spec) */
@@ -7767,30 +7776,13 @@ namespace linker {
 		/* target method and seg/group/extern name to which the fixup refers to (OMF spec) */
 		fixup_method_t				target_method = fixup_method_undef;
 		segment_ref_t				target_name = segment_ref_undef;
-		/* where to apply in the segment */
-		fragment_relative_t			fixup_at = fragment_relative_undef;
+		/* where to apply in the segment (relative to segment base) */
+		segment_offset_t			fixup_at = segment_offset_undef;
 		/* how to apply the fixup */
 		fixup_how_t				fixup_how = fixup_how_undef;
 		/* other flags */
 		bool					segment_relative = false; /* segment relative vs self relative (OMF spec) */
 	};
-
-	struct fragment_t {
-		alignmask_t				alignmask = 0;
-		std::shared_ptr< std::vector<uint8_t> >	data; // data within fragment using shared_ptr for copy on write semantics if needed---CAN BE NULL, BE CAREFUL!
-		size_t					size = 0; // total size of fragment
-		source_ref_t				source = source_ref_undef; // from this source
-		segment_offset_t			assigned_offset = segment_offset_undef; // assigned offset of fragment within segment
-		segment_size_t				assigned_size = segment_size_undef; // assigned size of fragment within segment
-		segment_ref_t				assigned_segment = segment_ref_undef; // assigned to segment
-		// fragment data copy on write semantics:
-		// if shared_ptr has a use_count() == 1, it is OK to modify in place.
-		// if shared_ptr has a use_count() > 1, you must copy the data and then modify it.
-		// use_count() is 100% accurate for this code because we are not using it in a multithreaded manner.
-		std::vector<fixup_t>			fixups;
-	};
-
-	typedef _common_ref2table_t<fragment_t,fragment_ref_t> fragment_table_t;
 
 	struct source_t {
 		string_ref_t			name = string_ref_undef;
@@ -7817,8 +7809,9 @@ namespace linker {
 		string_ref_t			name = string_ref_undef;		// segment name
 		string_ref_t			classname = string_ref_undef;		// segment class
 		string_ref_t			groupname = string_ref_undef;		// segment group
-		fragment_table_t		fragments; // fragments contained in this segment
-		unsigned int			format_index = 0;
+		unsigned int			format_index = 0;			// format specific index
+		std::vector<uint8_t>		data;					// segment data if applicable
+		std::vector<fixup_t>		fixups;					// fixups of segment
 
 		// NTS: rel_offset also allows the .COM memory model where the base of the executable image starts at offset 0x100 within the segment,
 		//      in which case rel_segments is negative number -0x10 for entry point rel_segments:0x100 to point to base of executable image.
@@ -7843,27 +7836,47 @@ namespace linker {
 		return (~v) + ((alignmask_t)1u);
 	}
 
-	bool stringtable_t::exists(const string_ref_t x) const {
-		return x < ref2str.size();
+	template <typename T,typename refT> bool _common_ref2table_bidi_t<T,refT>::exists(const refT x) const {
+		return x < ref2t.size();
 	}
 
-	const std::string &stringtable_t::get(const string_ref_t x) const {
-		if (x < ref2str.size())
-			return ref2str[x];
+	template <typename T,typename refT> const T &_common_ref2table_bidi_t<T,refT>::get(const refT x) const {
+		if (x < ref2t.size())
+			return ref2t[x];
 		else
 			return empty;
 	}
 
-	string_ref_t stringtable_t::add(const std::string &s) {
+	template <typename T,typename refT> T &_common_ref2table_bidi_t<T,refT>::get(const refT x) {
+		if (x < ref2t.size())
+			return ref2t[x];
+		else
+			return empty;
+	}
+
+	template <typename T,typename refT> refT _common_ref2table_bidi_t<T,refT>::add(const T &s) {
 		/* if the string already exists, return the existing reference */
 		{
-			const auto i = str2ref.find(s);
-			if (i != str2ref.end()) return i->second;
+			const auto i = t2ref.find(s);
+			if (i != t2ref.end()) return i->second;
 		}
 		/* else, add the string and return the new reference */
-		const string_ref_t newi = ref2str.size();
-		ref2str.push_back(s);
-		str2ref[s] = newi;
+		const refT newi = ref2t.size();
+		t2ref[s] = newi;
+		ref2t.push_back(s);
+		return newi;
+	}
+
+	template <typename T,typename refT> refT _common_ref2table_bidi_t<T,refT>::add(T &&s) {
+		/* if the string already exists, return the existing reference */
+		{
+			const auto i = t2ref.find(s);
+			if (i != t2ref.end()) return i->second;
+		}
+		/* else, add the string and return the new reference */
+		const refT newi = ref2t.size();
+		t2ref[s] = newi;
+		ref2t.push_back(std::move(s));
 		return newi;
 	}
 
@@ -7896,6 +7909,34 @@ namespace linker {
 			ref.pop_back();
 		else
 			ref[x] = std::move(T());
+	}
+
+	template <typename T,typename refT,typename reverseT> bool _common_ref2symtable_t<T,refT,reverseT>::exists(const refT x) const {
+		return x < ref2t.size();
+	}
+
+	template <typename T,typename refT,typename reverseT> const T &_common_ref2symtable_t<T,refT,reverseT>::get(const refT x) const {
+		if (x < ref2t.size())
+			return ref2t[x];
+		else
+			throw std::range_error("get() out of range (const)");
+	}
+
+	template <typename T,typename refT,typename reverseT> T &_common_ref2symtable_t<T,refT,reverseT>::get(const refT x) {
+		if (x < ref2t.size())
+			return ref2t[x];
+		else
+			throw std::range_error("get() out of range");
+	}
+
+	template <typename T,typename refT,typename reverseT> refT _common_ref2symtable_t<T,refT,reverseT>::add(const reverseT &rt) {
+		/* else, add the string and return the new reference */
+		const refT newi = ref2t.size();
+		name2t[rt].push_back(newi);
+		T newT;
+		newT.name = rt;
+		ref2t.push_back(std::move(newT));
+		return newi;
 	}
 
 	struct linkstate {
@@ -8098,9 +8139,9 @@ namespace linker {
 	string_ref_t OMF_read_lenstring(stringtable_t &st,const uint8_t* &r,const uint8_t *e) {
 		const uint8_t len = OMF_read_byte(r,e);
 		assert((r+len) <= e);
-		const std::string s((char*)r,len);
+		const string_ref_t ref = st.add(std::move(std::string((char*)r,len)));
 		r += len;
-		return st.add(s);
+		return ref;
 	}
 
 	bool OMF_add_LNAMES(linkstate &module,OMF_extra_linkstate &modex,const OMF_record &rec) {
