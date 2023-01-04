@@ -7741,10 +7741,6 @@ namespace linker {
 		const T &get(const refT x) const;
 		T &get(const refT x);
 		refT allocate(void);
-
-		// This will pop the last added entry off the end. If the reference is not the end, then assigns a default
-		// constructor of T to the entry. Hope your class T has default values to indicate it is obviously not allocated!
-		void unallocate(const refT x);
 	};
 
 	struct symbol_t {
@@ -7893,13 +7889,6 @@ namespace linker {
 		return id;
 	}
 
-	template <typename T,typename refT> void _common_ref2table_t<T,refT>::unallocate(const refT x) {
-		if (size_t(x) == (ref.size() - size_t(1u)))
-			ref.pop_back();
-		else
-			ref[x] = std::move(T());
-	}
-
 	template <typename T,typename refT,typename reverseT> bool _common_ref2symtable_t<T,refT,reverseT>::exists(const refT x) const {
 		return x < ref2t.size();
 	}
@@ -7928,11 +7917,14 @@ namespace linker {
 		return newi;
 	}
 
+	typedef struct std::vector<segment_ref_t> segment_order_list_t;
+
 	struct linkstate {
 		source_table_t			sources;
 		stringtable_t			strings;
 		segment_table_t			segments;
 		symbol_table_t			symbols;
+		segment_order_list_t		segment_order;
 	};
 
 	typedef uint8_t				omf_record_type_t;
@@ -8342,6 +8334,8 @@ namespace linker {
 			}
 		}
 
+		for (size_t i=0;i < module.segments.ref.size();i++) module.segment_order.push_back(segment_ref_t(i));
+
 		return true;
 	}
 
@@ -8457,6 +8451,12 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					if ((o&15u) != 0u) fprintf(stderr,"\n");
 				}
 			}
+			fprintf(stderr,"  Segment order:");
+			for (auto si=module.segment_order.begin();si!=module.segment_order.end();si++) {
+				auto &segm = module.segments.get(*si);
+				fprintf(stderr," (%lu)('%s')",(unsigned long)(*si),module.strings.get(segm.name).c_str());
+			}
+			fprintf(stderr,"\n");
 		}
 	}
 #endif
