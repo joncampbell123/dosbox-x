@@ -7672,22 +7672,22 @@ namespace linker {
 	static constexpr alignmask_t		dword_align_mask = ~((alignmask_t)(3ull));
 	static constexpr alignmask_t		qword_align_mask = ~((alignmask_t)(7ull));
 	static constexpr alignmask_t		para_align_mask = ~((alignmask_t)(15ull));
+	static constexpr alignmask_t		page_align_mask = ~((alignmask_t)(4095ull));
 
 	static constexpr cpu_major_type_t	CPUMAJT_INTELX86 = 0; /* Intel x86/x86_64 (8086, 386, etc.) */
 	static constexpr cpu_minor_type_t	CPUMINT_INTELX86_8086 = 0; /* Intel 8088/8086 (16-bit) */
-	static constexpr cpu_minor_type_t	CPUMINT_INTELX86_286 = 286; /* Intel 286 (16-bit) */
 	static constexpr cpu_minor_type_t	CPUMINT_INTELX86_386 = 386; /* Intel 386 (32-bit) */
-	static constexpr cpu_minor_type_t	CPUMINT_INTELX86_486 = 486; /* Intel 486 (32-bit) */
-	static constexpr cpu_minor_type_t	CPUMINT_INTELX86_586 = 586; /* Intel 586/Pentium (32-bit) */
-	static constexpr cpu_minor_type_t	CPUMINT_INTELX86_686 = 686; /* Intel 686/Pentium II (32-bit) */
 	static constexpr cpu_minor_type_t	CPUMINT_INTELX86_X64 = 6400; /* x86_64 (64-bit) */
 
-	static constexpr segment_flags_t	SEGFLAG_COMBINEABLE = segment_flags_t(1u << 0u); // source module says it's OK to combine segments of the same name and/or class
+	static constexpr segment_flags_t	SEGFLAG_PUBLIC = segment_flags_t(1u << 0u); // source module says it's OK to combine segments of the same name and/or class
 	static constexpr segment_flags_t	SEGFLAG_PINNED = segment_flags_t(1u << 1u); // segment is pinned at it's position in the segment order, do not move
 	static constexpr segment_flags_t	SEGFLAG_NOEMIT = segment_flags_t(1u << 2u); // segment exists only in memory and does not have data on disk (BSS, STACK, etc)
 	static constexpr segment_flags_t	SEGFLAG_HEADER = segment_flags_t(1u << 3u); // segment is part of the file header
 	static constexpr segment_flags_t	SEGFLAG_SEGMENTMODEL = segment_flags_t(1u << 4u); // segment is intended for segmented memory model (rel_offset/rel_segments values matter)
 	static constexpr segment_flags_t	SEGFLAG_FLATMODEL = segment_flags_t(1u << 5u); // segment is intended for flat memory model (linear_addr value matters)
+	static constexpr segment_flags_t	SEGFLAG_PRIVATE = segment_flags_t(1u << 6u); // do not combine with any other segment
+	static constexpr segment_flags_t	SEGFLAG_STACK = segment_flags_t(1u << 7u); // stack segment
+	static constexpr segment_flags_t	SEGFLAG_COMMON = segment_flags_t(1u << 8u); // common
 
 	// cpu_major == CPUMAJT_INTELX86
 	static constexpr cpu_flags_t		CPUFLAG_INTELX86_BIG386 = cpu_flags_t(1u << 0u); // (i386) segment should be loaded as "big" 4GB limit (B bit)
@@ -7713,7 +7713,6 @@ namespace linker {
 	static constexpr fixup_how_t		FIXUPHOW_SEGMENTOFFSET32 = 11; // 16:32 segment:offset
 
 	// symbol types
-	static constexpr symbol_type_t		SYMTYPE_ENTRYPOINT = 0; // entry point
 	static constexpr symbol_type_t		SYMTYPE_EXTERN = 1; // external symbol
 	static constexpr symbol_type_t		SYMTYPE_PUBLIC = 2; // public symbol
 	static constexpr symbol_type_t		SYMTYPE_LOCAL_EXTERN = 11; // external symbol local to module
@@ -7822,6 +7821,7 @@ namespace linker {
 		string_ref_t			classname = string_ref_undef;		// segment class
 		string_ref_t			groupname = string_ref_undef;		// segment group
 		fragment_table_t		fragments; // fragments contained in this segment
+		unsigned int			format_index = 0;
 
 		// NTS: rel_offset also allows the .COM memory model where the base of the executable image starts at offset 0x100 within the segment,
 		//      in which case rel_segments is negative number -0x10 for entry point rel_segments:0x100 to point to base of executable image.
@@ -7871,7 +7871,7 @@ namespace linker {
 	}
 
 	template <typename T,typename refT> bool _common_ref2table_t<T,refT>::exists(const refT x) const {
-		return ref.find(x) != ref.end();
+		return x < ref.size();
 	}
 
 	template <typename T,typename refT> const T &_common_ref2table_t<T,refT>::get(const refT x) const {
@@ -7977,6 +7977,12 @@ namespace linker {
 		void				parse(const OMF_record &r);
 	};
 
+	typedef _common_ref2table_t<string_ref_t,string_ref_t> OMF_LNAMES_table_t;
+
+	struct OMF_extra_linkstate {
+		OMF_LNAMES_table_t		LNAMES;
+	};
+
 	void OMF_XADR::parse(const OMF_record &r) {
 		/* <length of string> <string> */
 		name.clear();
@@ -8059,6 +8065,151 @@ namespace linker {
 		return true;
 	}
 
+	uint8_t OMF_read_byte(const uint8_t* &r,const uint8_t *e) {
+		if (r < e) {
+			const uint8_t v = *r; r++;
+			return v;
+		}
+
+		return 0x00;
+	}
+
+	uint16_t OMF_read_index(const uint8_t* &r,const uint8_t *e) {
+		uint16_t v = OMF_read_byte(r,e);
+		if (v & 0x80) v = ((v & 0x7Fu) << 8u) + OMF_read_byte(r,e);
+		return v;
+	}
+
+	uint16_t OMF_read_word(const uint8_t* &r,const uint8_t *e) {
+		if ((r+2u) <= e) {
+			const uint16_t v = le16toh( *((uint16_t*)r) ); r += 2;
+			return v;
+		}
+
+		return 0x00;
+	}
+
+	uint32_t OMF_read_dword(const uint8_t* &r,const uint8_t *e) {
+		if ((r+4u) <= e) {
+			const uint16_t v = le32toh( *((uint32_t*)r) ); r += 4;
+			return v;
+		}
+
+		return 0x00;
+	}
+
+	string_ref_t OMF_read_lenstring(stringtable_t &st,const uint8_t* &r,const uint8_t *e) {
+		const uint8_t len = OMF_read_byte(r,e);
+		assert((r+len) <= e);
+		const std::string s((char*)r,len);
+		r += len;
+		return st.add(s);
+	}
+
+	bool OMF_add_LNAMES(linkstate &module,OMF_extra_linkstate &modex,const OMF_record &rec) {
+		const uint8_t *ri = &rec.record[0];
+		const uint8_t *re = &rec.record[rec.record.size()];
+
+		while (ri < re) {
+			const string_ref_t r = OMF_read_lenstring(module.strings,ri,re);
+			if (r != string_ref_undef)
+				modex.LNAMES.get(modex.LNAMES.allocate()) = r;
+			else
+				return false;
+		}
+
+		return true;
+	}
+
+	bool OMF_add_SEGDEF(linkstate &module,OMF_extra_linkstate &modex,const OMF_record &rec) {
+		const segment_ref_t segment_ref = module.segments.allocate();
+		segment_t &segref = module.segments.get(segment_ref);
+
+		const bool fmt32 = (rec.type == OMFRECT_SEGDEF_32);
+
+		const uint8_t *ri = &rec.record[0];
+		const uint8_t *re = &rec.record[rec.record.size()];
+
+		/* OMF counts segment indexes from 1, this code from 0, allocate() ref indexes always count up from 0 */
+		segref.format_index = (unsigned int)segment_ref + 1u;
+
+		/* OMF is almost always associated with Intel x86 (anything else use it?) */
+		segref.cpu_major = CPUMAJT_INTELX86;
+		segref.cpu_minor = CPUMINT_INTELX86_8086; // 16-bit by default
+
+		/* bits [7:5] = Alignment
+		 * bits [4:2] = Combination
+		 * bit  [1]   = Big (as in, segment length is exactly 64KB or 4GB depending on 16/32-bit)
+		 * bit  [0]   = P (1=32-bit segment  0=16-bit segment) */
+		uint8_t attr = OMF_read_byte(ri,re);
+
+		switch (attr>>5u) {
+			case 0: /* absolute segment (not supported here) even if Microsoft's linker supports it */
+				return false;
+			case 1: /* byte align */
+				segref.alignmask = byte_align_mask;
+				break;
+			case 2: /* word align */
+				segref.alignmask = word_align_mask;
+				break;
+			case 3: /* paragraph align */
+				segref.alignmask = para_align_mask;
+				break;
+			case 4: /* page align */
+				segref.alignmask = page_align_mask;
+				break;
+			case 5: /* dword align */
+				segref.alignmask = dword_align_mask;
+				break;
+			default:/* not supported */
+				break;
+		};
+
+		switch ((attr>>2u)&7u) {
+			case 0: /* private */
+				segref.flags |= SEGFLAG_PRIVATE;
+				break;
+			case 2: /* public (combineable) */
+			case 4: /* public (combineable) */
+			case 7: /* public (combineable) */
+				segref.flags |= SEGFLAG_PUBLIC;
+				break;
+			case 5: /* stack (combineable) */
+				segref.flags |= SEGFLAG_PUBLIC | SEGFLAG_STACK;
+				segref.alignmask = byte_align_mask;
+				break;
+			case 6: /* common (combineable) */
+				segref.flags |= SEGFLAG_PUBLIC | SEGFLAG_COMMON;
+				break;
+		};
+
+		if (attr & 2u) // B for big, as in the MSB of the size to allow exactly 64KB or 4GB in size
+			segref.size = (fmt32 ? 0x100000000ULL/*4GB*/ : 0x10000ULL/*64KB*/);
+		else
+			segref.size = 0;
+
+		if (attr & 1u) // USE32
+			segref.cpu_minor = CPUMINT_INTELX86_386; // 32-bit
+
+		// <segment length> <segment name index> <class name index> <overlay name index>
+		segref.size += (fmt32 ? OMF_read_dword(ri,re) : OMF_read_word(ri,re));
+		const uint16_t nameindex = OMF_read_index(ri,re);
+		const uint16_t classnameindex = OMF_read_index(ri,re);
+		const uint16_t overlaynameindex = OMF_read_index(ri,re);//ignored
+		(void)overlaynameindex;
+
+		if (!modex.LNAMES.exists(nameindex)) return false;
+		segref.name = modex.LNAMES.get(nameindex);
+
+		if (!modex.LNAMES.exists(classnameindex)) return false;
+		segref.classname = modex.LNAMES.get(classnameindex);
+
+		if (!modex.LNAMES.exists(overlaynameindex)) return false;
+		/* ignored */
+
+		return true;
+	}
+
 	bool OMF_read_module(linkstate &module,OMF_XADR &adr,const OMF_record &first_rec,const char *path,FILE *fp,uint16_t blocksize=0,uint32_t dict_offset=0) {
 		/* already read the THEADR/LHEADR */
 		const source_ref_t source_ref = module.sources.allocate();
@@ -8073,10 +8224,26 @@ namespace linker {
 		source_module.index = source_module_ref;
 		source_module.offset = first_rec.file_offset;
 
+		OMF_extra_linkstate modex;
 		OMF_record rec;
 
+		// LNAMEs are 1-based, fill slot 0
+		{
+			string_ref_t x = modex.LNAMES.allocate();
+			modex.LNAMES.get(x) = module.strings.add("");
+			assert(modex.LNAMES.ref.size() == 1);
+		}
+
 		while (OMF_read_record(rec,fp,blocksize,dict_offset)) {
-			if (rec.type == OMFRECT_MODEND) {
+			if (rec.type == OMFRECT_SEGDEF) {
+				if (!OMF_add_SEGDEF(module,modex,rec))
+					return false;
+			}
+			else if (rec.type == OMFRECT_LNAMES) {
+				if (!OMF_add_LNAMES(module,modex,rec))
+					return false;
+			}
+			else if (rec.type == OMFRECT_MODEND || rec.type == OMFRECT_MODEND_32) {
 				break;
 			}
 			else if (rec.type == OMFRECT_LIBEND) {
@@ -8144,7 +8311,7 @@ namespace linker {
 		return true;
 	}
 
-};
+}
 #endif
 
 void DISP2_Init(uint8_t color), DISP2_Shut();
@@ -8159,8 +8326,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 	{
 		std::vector<linker::linkstate> modules;
 		// test cases, the hw/cpu/dos86l directory of my DOSLIB development Git repository after a build
-		linker::OMF_read(modules,"cpu.lib");
-		linker::OMF_read(modules,"sseoff.obj");
+		if (!linker::OMF_read(modules,"cpu.lib"))
+			fprintf(stderr,"Fail cpu.lib\n");
+		if (!linker::OMF_read(modules,"sseoff.obj"))
+			fprintf(stderr,"Fail sseoff.obj\n");
 
 		for (auto mi=modules.begin();mi!=modules.end();mi++) {
 			fprintf(stderr,"Module %zu\n",(size_t)(mi-modules.begin()));
@@ -8178,6 +8347,17 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 						(unsigned long)sourcemodule.index,
 						(unsigned long)sourcemodule.offset);
 				}
+			}
+			for (auto si=module.segments.ref.begin();si!=module.segments.ref.end();si++) {
+				auto &segm = *si; // "segment" might still be reserved by your compiler... maybe?
+				fprintf(stderr,"  Segment name='%s' class='%s' group='%s' size=0x%lu align=%lu flags=0x%0lx USE%d\n",
+					module.strings.get(segm.name).c_str(),
+					module.strings.get(segm.classname).c_str(),
+					module.strings.get(segm.groupname).c_str(),
+					(unsigned long)segm.size,
+					(unsigned long)linker::align_mask_to_value(segm.alignmask),
+					(unsigned long)segm.flags,
+					(segm.cpu_major == linker::CPUMAJT_INTELX86 && segm.cpu_minor == linker::CPUMINT_INTELX86_386)?32:16);
 			}
 		}
 	}
