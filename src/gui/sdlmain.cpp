@@ -7902,12 +7902,247 @@ namespace linker {
 	}
 
 	struct linkstate {
-		source_t			sources;
+		source_table_t			sources;
 		stringtable_t			strings;
 		segment_table_t			segments;
 		group_table_t			groups;
 		symbol_table_t			symbols;
 	};
+
+	typedef uint8_t				omf_record_type_t;
+
+	static constexpr omf_record_type_t	omf_record_type_undef = ~((uint8_t)(0u));
+
+	static constexpr omf_record_type_t	OMFRECT_THEADR     = 0x80;
+	static constexpr omf_record_type_t	OMFRECT_LHEADR     = 0x82;
+	static constexpr omf_record_type_t	OMFRECT_COMENT     = 0x88;
+	static constexpr omf_record_type_t	OMFRECT_MODEND     = 0x8A;
+	static constexpr omf_record_type_t	OMFRECT_MODEND_32  = 0x8B;
+	static constexpr omf_record_type_t	OMFRECT_EXTDEF     = 0x8C;
+	static constexpr omf_record_type_t	OMFRECT_PUBDEF     = 0x90;
+	static constexpr omf_record_type_t	OMFRECT_PUBDEF_32  = 0x91;
+	static constexpr omf_record_type_t	OMFRECT_LINNUM     = 0x94;
+	static constexpr omf_record_type_t	OMFRECT_LINNUM_32  = 0x95;
+	static constexpr omf_record_type_t	OMFRECT_LNAMES     = 0x96;
+	static constexpr omf_record_type_t	OMFRECT_SEGDEF     = 0x98;
+	static constexpr omf_record_type_t	OMFRECT_SEGDEF_32  = 0x99;
+	static constexpr omf_record_type_t	OMFRECT_GRPDEF     = 0x9A;
+	static constexpr omf_record_type_t	OMFRECT_FIXUPP     = 0x9C;
+	static constexpr omf_record_type_t	OMFRECT_FIXUPP_32  = 0x9D;
+	static constexpr omf_record_type_t	OMFRECT_LEDATA     = 0xA0;
+	static constexpr omf_record_type_t	OMFRECT_LEDATA_32  = 0xA1;
+	static constexpr omf_record_type_t	OMFRECT_LIDATA     = 0xA2;
+	static constexpr omf_record_type_t	OMFRECT_LIDATA_32  = 0xA3;
+	static constexpr omf_record_type_t	OMFRECT_COMDEF     = 0xB0;
+	static constexpr omf_record_type_t	OMFRECT_BAKPAT     = 0xB2;
+	static constexpr omf_record_type_t	OMFRECT_BAKPAT_32  = 0xB3;
+	static constexpr omf_record_type_t	OMFRECT_LEXTDEF    = 0xB4;
+	static constexpr omf_record_type_t	OMFRECT_LPUBDEF    = 0xB6;
+	static constexpr omf_record_type_t	OMFRECT_LPUBDEF_32 = 0xB7;
+	static constexpr omf_record_type_t	OMFRECT_LCOMDEF    = 0xB8;
+	static constexpr omf_record_type_t	OMFRECT_CEXTDEF    = 0xBC;
+	static constexpr omf_record_type_t	OMFRECT_COMDAT     = 0xC2;
+	static constexpr omf_record_type_t	OMFRECT_COMDAT_32  = 0xC3;
+	static constexpr omf_record_type_t	OMFRECT_LINSYM     = 0xC4;
+	static constexpr omf_record_type_t	OMFRECT_LINSYM_32  = 0xC5;
+	static constexpr omf_record_type_t	OMFRECT_ALIAS      = 0xC6;
+	static constexpr omf_record_type_t	OMFRECT_NBKPAT     = 0xC8;
+	static constexpr omf_record_type_t	OMFRECT_NBKPAT_32  = 0xC9;
+	static constexpr omf_record_type_t	OMFRECT_LLNAMES    = 0xCA;
+	static constexpr omf_record_type_t	OMFRECT_VERNUM     = 0xCC;
+	static constexpr omf_record_type_t	OMFRECT_VENDEXT    = 0xCE;
+	static constexpr omf_record_type_t	OMFRECT_LIBHEAD    = 0xF0;
+	static constexpr omf_record_type_t	OMFRECT_LIBEND     = 0xF1;
+
+	struct OMF_record {
+		std::vector<uint8_t>		record;
+		omf_record_type_t		type = omf_record_type_undef;
+		unsigned long			file_offset = 0;
+	};
+
+	static constexpr uint8_t		OMF_LIBHEAD_FLAG_CASE_SENSITIVE = (1u << 0u);
+
+	struct OMF_LIBHEAD {
+		uint16_t			record_length = 0;
+		uint32_t			dict_offset = 0;
+		uint16_t			dict_size_in_blocks = 0;
+		uint8_t				flags = 0;
+
+		void				parse(const OMF_record &r);
+	};
+
+	struct OMF_XADR { // OMF_LHEADR / OMF_THEADR
+		std::string			name;
+
+		void				parse(const OMF_record &r);
+	};
+
+	void OMF_XADR::parse(const OMF_record &r) {
+		/* <length of string> <string> */
+		name.clear();
+		if (r.record.size() >= 1u) {
+			size_t len = r.record[0];
+			if (len > (r.record.size()-1u)) len = (r.record.size()-1u);
+			assert((1u+len) <= r.record.size());
+			name = std::string((char*)(&r.record[1]),len);
+		}
+	}
+
+	void OMF_LIBHEAD::parse(const OMF_record &r) {
+		record_length = r.record.size() + 3u/*header*/ + 1u/*checksum which is not included in record[]*/;
+		if (r.record.size() >= 7) {
+			dict_offset = le32toh( *((uint32_t*)(&r.record[0])) );
+			dict_size_in_blocks = le16toh( *((uint16_t*)(&r.record[4])) );
+			flags = r.record[6];
+		}
+	}
+
+	bool OMF_read_record(OMF_record &rec,FILE *fp/*TODO READER OBJECT*/,uint16_t block_size=0,uint32_t dict_offset=0) {
+		unsigned char hdr[3],chk;
+		uint16_t len;
+
+		/* note header offset */
+		rec.file_offset = ftell(fp);
+
+		/* header:
+		 *
+		 * <type> <16-bit length> <data> <checksum byte or 0>
+		 *
+		 * length includes <data> and <checksum>
+		 *
+		 * MS-DOS 16-bit linkers for arcane reasons probably related to FCBs and record length
+		 * like to use multiples of 512 bytes, supposedly. */
+		if (fread(hdr,3,1,fp) != 1)
+			return false;
+
+		/* type and length */
+		rec.type = hdr[0];
+		len = le16toh( *((uint16_t*)(hdr+1)) );
+		if (len == 0) return false;
+
+		/* read in length - 1 (data region) */
+		rec.record.resize(len-1u);
+		if (fread(&rec.record[0],len-1u,1,fp) != 1)
+			return false;
+
+		/* read in checksum byte */
+		if (fread(&chk,1,1,fp) != 1)
+			return false;
+
+		/* checksum is optional */
+		if (chk != 0) {
+			unsigned char sum = chk;
+			unsigned int i;
+
+			for (i=0;i < 3;i++)
+				sum += hdr[i];
+			for (i=0;i < (len-1u);i++)
+				sum += rec.record[i];
+
+			if (sum != 0)
+				return false;
+		}
+
+		if (rec.type == OMFRECT_MODEND || rec.type == OMFRECT_MODEND_32) {
+			if (block_size > 0) {
+				unsigned long ofs = ftell(fp);
+				ofs += (unsigned long)block_size - 1ul;
+				ofs -= ofs % (unsigned long)block_size;
+				fseek(fp,(long)ofs,SEEK_SET);
+			}
+			if (dict_offset != 0u) {
+				if ((unsigned long)ftell(fp) >= (unsigned long)dict_offset)
+					return false;
+			}
+		}
+
+		return true;
+	}
+
+	bool OMF_read_module(linkstate &module,OMF_XADR &adr,const OMF_record &first_rec,const char *path,FILE *fp,uint16_t blocksize=0,uint32_t dict_offset=0) {
+		/* already read the THEADR/LHEADR */
+		const source_ref_t source_ref = module.sources.allocate();
+		source_t &source = module.sources.get(source_ref);
+		source.is_library = (first_rec.type == OMFRECT_LIBHEAD || first_rec.type == OMFRECT_LHEADR);
+		source.name = module.strings.add(adr.name);
+		source.path = module.strings.add(path);
+
+		const source_module_ref_t source_module_ref = source.modules.allocate();
+		source_module_t &source_module = source.modules.get(source_module_ref);
+		source_module.name = module.strings.add(adr.name);
+		source_module.index = source_module_ref;
+		source_module.offset = first_rec.file_offset;
+
+		OMF_record rec;
+
+		while (OMF_read_record(rec,fp,blocksize,dict_offset)) {
+			if (rec.type == OMFRECT_MODEND) {
+				break;
+			}
+			else if (rec.type == OMFRECT_LIBEND) {
+				break;
+			}
+		}
+
+		return true;
+	}
+
+	bool OMF_read(std::vector<linkstate> &modules,const char *path/*TODO READER OBJECT*/) {
+		OMF_LIBHEAD libhead;
+		OMF_record rec;
+		FILE *fp;
+
+		if ((fp=fopen(path,"rb")) == NULL)
+			return false;
+
+		/* the first record must be THEADR (single object) or LHEADR (library) */
+		if (!OMF_read_record(rec,fp)) {
+			fclose(fp);
+			return false;
+		}
+
+		if (rec.type == OMFRECT_LIBHEAD || rec.type == OMFRECT_LHEADR) {
+			OMF_record headrec = rec;
+
+			if (rec.type == OMFRECT_LIBHEAD)
+				libhead.parse(rec);
+
+			while (OMF_read_record(rec,fp,libhead.record_length,libhead.dict_offset)) {
+				if (rec.type == OMFRECT_LHEADR || rec.type == OMFRECT_THEADR) {
+					OMF_XADR adr;
+					adr.parse(rec);
+
+					modules.push_back(std::move(linkstate()));
+					linkstate &module = modules.back();
+					if (!OMF_read_module(module,adr,headrec,path,fp,libhead.record_length,libhead.dict_offset)) {
+						fclose(fp);
+						return false;
+					}
+				}
+				else if (rec.type == OMFRECT_LIBEND) {
+					break;
+				}
+			}
+		}
+		else if (rec.type == OMFRECT_THEADR) {
+			OMF_XADR adr;
+			adr.parse(rec);
+
+			modules.push_back(std::move(linkstate()));
+			linkstate &module = modules.back();
+			if (!OMF_read_module(module,adr,rec,path,fp)) {
+				fclose(fp);
+				return false;
+			}
+		}
+		else {
+			fclose(fp);
+			return false;
+		}
+
+		fclose(fp);
+		return true;
+	}
 
 };
 #endif
@@ -7921,6 +8156,31 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     bool saved_opt_test;
 
 #ifdef LNKDEV
+	{
+		std::vector<linker::linkstate> modules;
+		// test cases, the hw/cpu/dos86l directory of my DOSLIB development Git repository after a build
+		linker::OMF_read(modules,"cpu.lib");
+		linker::OMF_read(modules,"sseoff.obj");
+
+		for (auto mi=modules.begin();mi!=modules.end();mi++) {
+			fprintf(stderr,"Module %zu\n",(size_t)(mi-modules.begin()));
+			auto &module = *mi;
+			for (auto si=module.sources.ref.begin();si!=module.sources.ref.end();si++) {
+				auto &source = *si;
+				fprintf(stderr,"  Source LIB=%u name='%s' path='%s'\n",
+					source.is_library?1:0,
+					module.strings.get(source.name).c_str(),
+					module.strings.get(source.path).c_str());
+				for (auto smi=source.modules.ref.begin();smi!=source.modules.ref.end();smi++) {
+					auto &sourcemodule = *smi;
+					fprintf(stderr,"    Module name='%s' index=%lu offset=%lu\n",
+						module.strings.get(sourcemodule.name).c_str(),
+						(unsigned long)sourcemodule.index,
+						(unsigned long)sourcemodule.offset);
+				}
+			}
+		}
+	}
 #endif
 
     control=&myconf;
