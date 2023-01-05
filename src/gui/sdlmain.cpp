@@ -7638,11 +7638,13 @@ namespace linker {
 	typedef unsigned int			cpu_minor_type_t;		// CPU type (minor within category)
 	typedef unsigned int			cpu_flags_t;			// CPU flags, meaning depends on CPU type
 	typedef size_t				segment_ref_t;			// segment ref
+	typedef size_t				group_ref_t;			// group ref
 	typedef size_t				string_ref_t;			// string index reference
 	typedef uint8_t				fixup_method_t;			// fixup method
 	typedef uint8_t				fixup_how_t;			// fixup how
 	typedef uint8_t				symbol_type_t;			// symbol type
 	typedef size_t				symbol_ref_t;			// symbol reference
+	typedef size_t				fixup_method_index_t;		// index behind fixup method
 
 	static constexpr segment_size_t		segment_size_undef = ~((uint64_t)(0ull));
 	static constexpr segment_offset_t	segment_offset_undef = ~((uint64_t)(0ull));
@@ -7650,6 +7652,7 @@ namespace linker {
 	static constexpr file_offset_t		file_offset_undef = ~((uint64_t)(0ull));
 	static constexpr linear_addr_t		linear_addr_undef = ~((uint64_t)(0ull));
 	static constexpr source_ref_t		source_ref_undef = ~((size_t)(0ul));
+	static constexpr group_ref_t		group_ref_undef = ~((size_t)(0ul));
 	static constexpr cpu_major_type_t	cpu_major_undef = ~((unsigned int)(0u));
 	static constexpr cpu_minor_type_t	cpu_minor_undef = ~((unsigned int)(0u));
 	static constexpr segment_ref_t		segment_ref_undef = ~((size_t)(0ul));
@@ -7658,6 +7661,7 @@ namespace linker {
 	static constexpr fixup_how_t		fixup_how_undef = ~((uint8_t)(0u));
 	static constexpr symbol_type_t		symbol_type_undef = ~((uint8_t)(0u));
 	static constexpr symbol_ref_t		symbol_ref_undef = ~((size_t)(0ul));
+	static constexpr fixup_method_index_t	fixup_method_index_undef = ~((size_t)(0ul));
 
 	static constexpr alignmask_t		byte_align_mask = ~((alignmask_t)(0ull));
 	static constexpr alignmask_t		word_align_mask = ~((alignmask_t)(1ull));
@@ -7747,7 +7751,7 @@ namespace linker {
 	struct symbol_t {
 		symbol_type_t				type = symbol_type_undef; // type of symbol
 		string_ref_t				name = string_ref_undef; // name of symbol
-		string_ref_t				group = string_ref_undef; // group of symbol (OMF)
+		group_ref_t				group = group_ref_undef; // group of symbol (OMF)
 		segment_ref_t				segref = segment_ref_undef; // segment symbol belongs to (undefined if extern)
 		segment_offset_t			offset = segment_offset_undef; // offset within fragment
 	};
@@ -7808,10 +7812,10 @@ namespace linker {
 	struct fixup_t {
 		/* frame method and seg/group/extern name to which address computation is performed (OMF spec) */
 		fixup_method_t				frame_method = fixup_method_undef;
-		segment_ref_t				frame_segref = segment_ref_undef;
+		fixup_method_index_t			frame_index = fixup_method_index_undef;
 		/* target method and seg/group/extern name to which the fixup refers to (OMF spec) */
 		fixup_method_t				target_method = fixup_method_undef;
-		segment_ref_t				target_segref = segment_ref_undef;
+		fixup_method_index_t			target_index = fixup_method_index_undef;
 		/* how to apply the fixup and where */
 		fixup_how_t				fixup_how = fixup_how_undef;
 		segment_offset_t			fixup_offset = segment_offset_undef;
@@ -7968,6 +7972,13 @@ namespace linker {
 		bool				has_entry = false;
 	};
 
+	struct group_t {
+		string_ref_t			name = string_ref_undef;
+		std::vector<segment_ref_t>	segment_members;
+	};
+
+	typedef _common_ref2table_t<group_t,group_ref_t> group_table_t;
+
 	struct linkstate {
 		source_table_t			sources;
 		stringtable_t			strings;
@@ -7975,7 +7986,46 @@ namespace linker {
 		symbol_table_t			symbols;
 		segment_order_list_t		segment_order;
 		moduleinfo_t			moduleinfo;
+		group_table_t			groups;
+
+		std::string			fixup_to_string(const fixup_method_t m,const fixup_method_index_t i);
 	};
+
+	std::string linkstate::fixup_to_string(const fixup_method_t m,const fixup_method_index_t i) {
+		std::string r;
+		char tmp[64];
+
+		switch (m) {
+			case FIXUPMETH_SEGMENT:
+				r += "segment ";
+				if (segments.exists(segment_ref_t(from1based(i)))) {
+					const auto &ref = segments.get(segment_ref_t(from1based(i)));
+					r += std::string("'")+strings.get(ref.name)+"'";
+				}
+				break;
+			case FIXUPMETH_GROUP:
+				r += "group ";
+				if (groups.exists(group_ref_t(from1based(i)))) {
+					const auto &ref = groups.get(group_ref_t(from1based(i)));
+					r += std::string("'")+strings.get(ref.name)+"'";
+				}
+				break;
+			case FIXUPMETH_EXTERN:
+				r += "extern ";
+				// TODO
+				break;
+			case FIXUPMETH_TARGET:
+				r += "target ";
+				break;
+			default:
+				r += "??? ";
+				sprintf(tmp,"%lu",(unsigned long)i);
+				r += i;
+				break;
+		};
+
+		return r;
+	}
 
 	typedef uint8_t				omf_record_type_t;
 
@@ -8047,11 +8097,8 @@ namespace linker {
 
 	typedef _common_ref2table_t<string_ref_t,string_ref_t> OMF_LNAMES_table_t;
 
-	typedef _common_ref2table_t<string_ref_t,size_t> OMF_GRPDEF_names_t;
-
 	struct OMF_extra_linkstate {
 		OMF_LNAMES_table_t		LNAMES; /* map LNAME index to string ref */
-		OMF_GRPDEF_names_t		GRPDEF_names; /* only the names */
 	};
 
 	void OMF_XADR::parse(const OMF_record &r) {
@@ -8286,21 +8333,25 @@ namespace linker {
 		const uint8_t *ri = &rec.record[0];
 		const uint8_t *re = &rec.record[rec.record.size()];
 
+		(void)modex;
+
 		// <name index> [ 0xFF <segment index> [ ... ] ]
 
 		const uint16_t nameindex = OMF_read_index(ri,re);
 		if (!modex.LNAMES.exists(from1based(nameindex))) return false;
 		const string_ref_t groupname = modex.LNAMES.get(from1based(nameindex));
-		size_t grpdefidx = modex.GRPDEF_names.allocate();
-		modex.GRPDEF_names.get(grpdefidx) = groupname;
+		const group_ref_t grpdefidx = module.groups.allocate();
+		auto &groupref = module.groups.get(grpdefidx);
+		groupref.name = groupname;
 
 		while ((ri+2) <= re) {
 			if (*ri == 0xFF) {
 				ri++;
 				assert(ri <= re);
 				const uint16_t segindex = OMF_read_index(ri,re);
-				if (!module.segments.exists(from1based(segindex))) return false;
-				segment_t &sref = module.segments.get(from1based(segindex));
+				if (!module.segments.exists(segment_ref_t(from1based(segindex)))) return false;
+				groupref.segment_members.push_back(segment_ref_t(from1based(segindex)));
+				segment_t &sref = module.segments.get(segment_ref_t(from1based(segindex)));
 				if (sref.groupname == string_ref_undef) sref.groupname = groupname;
 				else return false; // a segment cannot be part of multiple groups in one module!
 			}
@@ -8411,8 +8462,8 @@ namespace linker {
 			sym.offset = segment_offset_t(public_offset);
 
 			if (basegroupindex != 0) {
-				if (modex.GRPDEF_names.exists(from1based(basegroupindex)))
-					sym.group = modex.GRPDEF_names.get(from1based(basegroupindex));
+				if (module.groups.exists(group_ref_t(from1based(basegroupindex))))
+					sym.group = group_ref_t(from1based(basegroupindex));
 				else
 					return false;
 			}
@@ -8450,8 +8501,7 @@ namespace linker {
 				case 0:	module.moduleinfo.entry_point.frame_method = FIXUPMETH_SEGMENT; break;
 				case 1:	module.moduleinfo.entry_point.frame_method = FIXUPMETH_GROUP; break;
 				case 2:	module.moduleinfo.entry_point.frame_method = FIXUPMETH_EXTERN; break;
-				case 5:	module.moduleinfo.entry_point.frame_method = FIXUPMETH_TARGET; break;
-				default: return false; /* NTS: method 4 doesn't make sense here (segment index of last LEDATA) */
+				default: return false; /* NTS: method 4 doesn't make sense here (segment index of last LEDATA), frame-as-target violates how the spec says this is done */
 			};
 
 			switch (end_data & 3u) {
@@ -8465,13 +8515,9 @@ namespace linker {
 			const uint16_t target_index = OMF_read_index(ri,re);
 			const uint32_t offset = (fmt32 ? OMF_read_dword(ri,re) : OMF_read_word(ri,re));
 
-			if (!module.segments.exists(from1based(frame_index))) return false;
-			module.moduleinfo.entry_point.frame_segref = from1based(frame_index);
-
-			if (!module.segments.exists(from1based(target_index))) return false;
-			module.moduleinfo.entry_point.target_segref = from1based(target_index);
-
 			// fixup how is not used for entry point
+			module.moduleinfo.entry_point.frame_index = frame_index;
+			module.moduleinfo.entry_point.target_index = target_index;
 			module.moduleinfo.entry_point.fixup_offset = segment_offset_t(offset);
 		}
 
@@ -8651,10 +8697,22 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			}
 			fprintf(stderr,"  Segment order:");
 			for (auto si=module.segment_order.begin();si!=module.segment_order.end();si++) {
-				auto &segm = module.segments.get(*si);
+				const auto &segm = module.segments.get(*si);
 				fprintf(stderr," (%lu)('%s')",(unsigned long)(*si),module.strings.get(segm.name).c_str());
 			}
 			fprintf(stderr,"\n");
+			fprintf(stderr,"  Groups:\n");
+			for (size_t gi=0;gi < module.groups.ref.size();gi++) {
+				const auto &grp = module.groups.get(gi);
+				fprintf(stderr,"    name='%s' ",module.strings.get(grp.name).c_str());
+				fprintf(stderr,"segs='");
+				for (auto si=grp.segment_members.begin();si!=grp.segment_members.end();si++) {
+					const auto &srp = module.segments.get(*si);
+					fprintf(stderr,"%s ",module.strings.get(srp.name).c_str());
+				}
+				fprintf(stderr,"'");
+				fprintf(stderr,"\n");
+			}
 			fprintf(stderr,"  Symbols:\n");
 			for (size_t si=0;si < module.symbols.ref2t.size();si++) {
 				const auto &sym = module.symbols.get(linker::symbol_ref_t(si));
@@ -8668,10 +8726,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					default: fprintf(stderr,"(%lu""??"") ",(unsigned long)sym.type); break;
 				}
 				if (sym.group != linker::segment_ref_undef) {
-					fprintf(stderr,"group=('%s') ",module.strings.get(sym.group).c_str());
+					const auto &grpref = module.groups.get(sym.group);
+					fprintf(stderr,"group=('%s') ",module.strings.get(grpref.name).c_str());
 				}
 				if (sym.segref != linker::segment_ref_undef) {
-					auto &segref = module.segments.get(sym.segref);
+					const auto &segref = module.segments.get(sym.segref);
 					fprintf(stderr,"segment=('%s') ",module.strings.get(segref.name).c_str());
 				}
 				if (sym.offset != linker::segment_offset_undef) {
@@ -8683,10 +8742,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			if (module.moduleinfo.has_entry) {
 				// NTS: entry point does not use fixup how field and self relative field
 				const auto &f = module.moduleinfo.entry_point; // reduce typing
-				const auto &fseg = module.segments.get(f.frame_segref);
-				const auto &tseg = module.segments.get(f.target_segref);
-				fprintf(stderr,"   Frame: Segment '%s' method=%u\n",module.strings.get(fseg.name).c_str(),f.frame_method);
-				fprintf(stderr,"   Target: Segment '%s' method=%u\n",module.strings.get(tseg.name).c_str(),f.target_method);
+				fprintf(stderr,"   Frame: index=%lu method=%u %s\n",
+					(unsigned long)f.frame_index,f.frame_method,module.fixup_to_string(f.frame_method,f.frame_index).c_str());
+				fprintf(stderr,"   Target: index=%lu method=%u %s\n",
+					(unsigned long)f.target_index,f.target_method,module.fixup_to_string(f.target_method,f.target_index).c_str());
 				fprintf(stderr,"   offset=0x%08lx\n",(unsigned long)f.fixup_offset);
 			}
 			fprintf(stderr,"\n");
