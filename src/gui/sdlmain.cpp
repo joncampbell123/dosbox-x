@@ -7808,10 +7808,10 @@ namespace linker {
 	struct fixup_t {
 		/* frame method and seg/group/extern name to which address computation is performed (OMF spec) */
 		fixup_method_t				frame_method = fixup_method_undef;
-		string_ref_t				frame_name = string_ref_undef;
+		segment_ref_t				frame_segref = segment_ref_undef;
 		/* target method and seg/group/extern name to which the fixup refers to (OMF spec) */
 		fixup_method_t				target_method = fixup_method_undef;
-		string_ref_t				target_name = string_ref_undef;
+		segment_ref_t				target_segref = segment_ref_undef;
 		/* how to apply the fixup and where */
 		fixup_how_t				fixup_how = fixup_how_undef;
 		segment_offset_t			fixup_offset = segment_offset_undef;
@@ -7962,12 +7962,19 @@ namespace linker {
 
 	typedef struct std::vector<segment_ref_t> segment_order_list_t;
 
+	struct moduleinfo_t {
+		fixup_t				entry_point;
+		bool				is_main = false;
+		bool				has_entry = false;
+	};
+
 	struct linkstate {
 		source_table_t			sources;
 		stringtable_t			strings;
 		segment_table_t			segments;
 		symbol_table_t			symbols;
 		segment_order_list_t		segment_order;
+		moduleinfo_t			moduleinfo;
 	};
 
 	typedef uint8_t				omf_record_type_t;
@@ -8417,6 +8424,60 @@ namespace linker {
 		return true;
 	}
 
+	bool OMF_add_MODEND(linkstate &module,OMF_extra_linkstate &modex,const OMF_record &rec) {
+		const uint8_t *ri = &rec.record[0];
+		const uint8_t *re = &rec.record[rec.record.size()];
+
+		const bool fmt32 = (rec.type == OMFRECT_MODEND_32);
+
+		(void)modex;
+
+		/* <module type> [ ... ] */
+
+		const uint8_t module_type = OMF_read_byte(ri,re);
+		module.moduleinfo.is_main = (module_type & 0x80) != 0;
+		module.moduleinfo.has_entry = (module_type & 0x40) != 0;
+
+		if (module.moduleinfo.has_entry) {
+			/* <end data byte> <frame index> <target index> <target offset> */
+			const uint8_t end_data = OMF_read_byte(ri,re);
+
+			/* the end data byte has the same format as the Fix Data bit layout */
+			if (end_data & 0x80) return false; /* F=0 or bust (FRAME method explicitly specified) */
+			if (end_data & 0x04) return false; /* T=0 or bust (TARGET method explicitly specified) */
+
+			switch ((end_data >> 4u) & 7u) {
+				case 0:	module.moduleinfo.entry_point.frame_method = FIXUPMETH_SEGMENT; break;
+				case 1:	module.moduleinfo.entry_point.frame_method = FIXUPMETH_GROUP; break;
+				case 2:	module.moduleinfo.entry_point.frame_method = FIXUPMETH_EXTERN; break;
+				case 5:	module.moduleinfo.entry_point.frame_method = FIXUPMETH_TARGET; break;
+				default: return false; /* NTS: method 4 doesn't make sense here (segment index of last LEDATA) */
+			};
+
+			switch (end_data & 3u) {
+				case 0:	module.moduleinfo.entry_point.target_method = FIXUPMETH_SEGMENT; break;
+				case 1:	module.moduleinfo.entry_point.target_method = FIXUPMETH_GROUP; break;
+				case 2:	module.moduleinfo.entry_point.target_method = FIXUPMETH_EXTERN; break;
+				default: return false;
+			};
+
+			const uint16_t frame_index = OMF_read_index(ri,re);
+			const uint16_t target_index = OMF_read_index(ri,re);
+			const uint32_t offset = (fmt32 ? OMF_read_dword(ri,re) : OMF_read_word(ri,re));
+
+			if (!module.segments.exists(from1based(frame_index))) return false;
+			module.moduleinfo.entry_point.frame_segref = from1based(frame_index);
+
+			if (!module.segments.exists(from1based(target_index))) return false;
+			module.moduleinfo.entry_point.target_segref = from1based(target_index);
+
+			// fixup how is not used for entry point
+			module.moduleinfo.entry_point.fixup_offset = segment_offset_t(offset);
+		}
+
+		return true;
+	}
+
 	bool OMF_read_module(linkstate &module,OMF_XADR &adr,const OMF_record &first_rec,const OMF_record &current_rec,const char *path,FILE *fp,uint16_t blocksize=0,uint32_t dict_offset=0) {
 		/* already read the THEADR/LHEADR */
 		const source_ref_t source_ref = module.sources.allocate();
@@ -8457,6 +8518,9 @@ namespace linker {
 			}
 			// TODO: OMFRECT_LIDATA / OMFRECT_LIDATA_32 (iterated data), which is not often used except by Microsoft tools like Microsoft MASM.
 			else if (rec.type == OMFRECT_MODEND || rec.type == OMFRECT_MODEND_32) {
+				if (!OMF_add_MODEND(module,modex,rec))
+					return false;
+
 				break;
 			}
 			else if (rec.type == OMFRECT_LIBEND) {
@@ -8547,6 +8611,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			fprintf(stderr,"Fail cpu.lib\n");
 		if (!linker::OMF_read(modules,"sseoff.obj"))
 			fprintf(stderr,"Fail sseoff.obj\n");
+		if (!linker::OMF_read(modules,"hello.obj"))
+			fprintf(stderr,"Fail hello.obj\n");
 
 		for (auto mi=modules.begin();mi!=modules.end();mi++) {
 			fprintf(stderr,"Module %zu\n",(size_t)(mi-modules.begin()));
@@ -8612,6 +8678,16 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					fprintf(stderr,"offset=0x%08lx ",(unsigned long)sym.offset);
 				}
 				fprintf(stderr,"\n");
+			}
+			fprintf(stderr,"  Module end: main=%u entry=%u\n",module.moduleinfo.is_main,module.moduleinfo.has_entry);
+			if (module.moduleinfo.has_entry) {
+				// NTS: entry point does not use fixup how field and self relative field
+				const auto &f = module.moduleinfo.entry_point; // reduce typing
+				const auto &fseg = module.segments.get(f.frame_segref);
+				const auto &tseg = module.segments.get(f.target_segref);
+				fprintf(stderr,"   Frame: Segment '%s' method=%u\n",module.strings.get(fseg.name).c_str(),f.frame_method);
+				fprintf(stderr,"   Target: Segment '%s' method=%u\n",module.strings.get(tseg.name).c_str(),f.target_method);
+				fprintf(stderr,"   offset=0x%08lx\n",(unsigned long)f.fixup_offset);
 			}
 			fprintf(stderr,"\n");
 		}
