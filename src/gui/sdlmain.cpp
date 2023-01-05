@@ -7700,7 +7700,6 @@ namespace linker {
 	static constexpr fixup_method_t		FIXUPMETH_SEGMENT = 0; // fixup refers to segment base
 	static constexpr fixup_method_t		FIXUPMETH_GROUP = 1; // fixup refers to segment group base
 	static constexpr fixup_method_t		FIXUPMETH_EXTERN = 2; // fixup refers to external symbol
-	static constexpr fixup_method_t		FIXUPMETH_TARGET = 5; // fixup refers to target
 
 	// fixup how
 	static constexpr fixup_how_t		FIXUPHOW_OFFSET16 = 1; // 16-bit offset
@@ -8012,10 +8011,10 @@ namespace linker {
 				break;
 			case FIXUPMETH_EXTERN:
 				r += "extern ";
-				// TODO
-				break;
-			case FIXUPMETH_TARGET:
-				r += "target ";
+				if (symbols.exists(symbol_ref_t(from1based(i)))) {
+					const auto &ref = symbols.get(symbol_ref_t(from1based(i)));
+					r += std::string("'")+strings.get(ref.name)+"'";
+				}
 				break;
 			default:
 				r += "??? ";
@@ -8102,6 +8101,7 @@ namespace linker {
 	struct OMF_extra_linkstate {
 		OMF_LNAMES_table_t		LNAMES; /* map LNAME index to string ref */
 		OMF_EXTDEF_table_t		EXTDEF; /* map EXTDEF to symbol ref */
+		segment_ref_t			last_LEDATA_segment = segment_ref_undef; /* last LEDATA segment */
 	};
 
 	void OMF_XADR::parse(const OMF_record &r) {
@@ -8381,6 +8381,9 @@ namespace linker {
 		segment_t &segref = module.segments.get(from1based(segindex));
 
 		const uint32_t dataoffset = (fmt32 ? OMF_read_dword(ri,re) : OMF_read_word(ri,re));
+
+		/* keep track of this segment index as last tracked segment, some FIXUPPs rely on it */
+		modex.last_LEDATA_segment = from1based(segindex);
 
 		if (ri < re) {
 			const size_t datalen = (size_t)(re - ri);
