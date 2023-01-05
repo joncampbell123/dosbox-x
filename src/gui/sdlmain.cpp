@@ -7980,6 +7980,7 @@ namespace linker {
 		int16_t				intel_cpulevel = -1;
 		int32_t				m68k_cpulevel = -1;
 		int				memory_model = -1;
+		std::vector<string_ref_t>	default_library_search;
 	};
 
 	struct group_t {
@@ -8098,6 +8099,7 @@ namespace linker {
 	static constexpr uint8_t		OMFCOMENT_MEMORYMODEL_OW_C = 0x9B; // memory model (Open Watcom C)
 	static constexpr uint8_t		OMFCOMENT_MEMORYMODEL_MS_C = 0x9D; // memory model (Microsoft C)
 	static constexpr uint8_t		OMFCOMENT_DOSSEG = 0x9E; // DOSSEG switch
+	static constexpr uint8_t		OMFCOMENT_DEFAULT_LIBRARY_SEARCH_NAME = 0x9F;
 
 	static constexpr uint8_t		MEMMODEL_TINY      = uint8_t('t');
 	static constexpr uint8_t		MEMMODEL_SMALL     = uint8_t('s');
@@ -8697,7 +8699,11 @@ namespace linker {
 		 * bit 6: no list */
 		const uint8_t cclass = OMF_read_byte(ri,re);
 
-		if (cclass == OMFCOMENT_DOSSEG) {
+		if (cclass == OMFCOMENT_DEFAULT_LIBRARY_SEARCH_NAME) {
+			if (ri < re)
+				module.moduleinfo.default_library_search.push_back(module.strings.add(std::string((const char*)(ri),(size_t)(re-ri))));
+		}
+		else if (cclass == OMFCOMENT_DOSSEG) {
 			module.moduleinfo.dosseg = true;
 		}
 		else if (cclass == OMFCOMENT_MEMORYMODEL_MS_C) {
@@ -9038,6 +9044,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				fprintf(stderr,"  68000 CPU level: %d\n",module.moduleinfo.m68k_cpulevel);
 			if (module.moduleinfo.memory_model >= 0)
 				fprintf(stderr,"  Memory model: '%c'\n",module.moduleinfo.memory_model);
+			if (!module.moduleinfo.default_library_search.empty()) {
+				fprintf(stderr,"  Default library search:\n");
+				for (auto si=module.moduleinfo.default_library_search.begin();si!=module.moduleinfo.default_library_search.end();si++)
+					fprintf(stderr,"    '%s'\n",module.strings.get(*si).c_str());
+			}
 			fprintf(stderr,"\n");
 		}
 	}
