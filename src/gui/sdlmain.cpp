@@ -8097,8 +8097,11 @@ namespace linker {
 
 	typedef _common_ref2table_t<string_ref_t,string_ref_t> OMF_LNAMES_table_t;
 
+	typedef _common_ref2table_t<symbol_ref_t,size_t> OMF_EXTDEF_table_t;
+
 	struct OMF_extra_linkstate {
 		OMF_LNAMES_table_t		LNAMES; /* map LNAME index to string ref */
+		OMF_EXTDEF_table_t		EXTDEF; /* map EXTDEF to symbol ref */
 	};
 
 	void OMF_XADR::parse(const OMF_record &r) {
@@ -8423,6 +8426,8 @@ namespace linker {
 			const symbol_ref_t symref = module.symbols.add(nameref);
 			symbol_t &sym = module.symbols.get(symref);
 			sym.type = local ? SYMTYPE_LOCAL_EXTERN : SYMTYPE_EXTERN;
+
+			modex.EXTDEF.ref.push_back(symref);
 		}
 
 		return true;
@@ -8499,21 +8504,28 @@ namespace linker {
 
 			switch ((end_data >> 4u) & 7u) {
 				case 0:	module.moduleinfo.entry_point.frame_method = FIXUPMETH_SEGMENT; break;
-				case 1:	module.moduleinfo.entry_point.frame_method = FIXUPMETH_GROUP; break;
-				case 2:	module.moduleinfo.entry_point.frame_method = FIXUPMETH_EXTERN; break;
-				default: return false; /* NTS: method 4 doesn't make sense here (segment index of last LEDATA), frame-as-target violates how the spec says this is done */
+				case 1: module.moduleinfo.entry_point.frame_method = FIXUPMETH_GROUP; break; /* NTS: Only used for 32-bit 'FLAT' group */
+				default: return false; /* no other is supported */
 			};
 
 			switch (end_data & 3u) {
 				case 0:	module.moduleinfo.entry_point.target_method = FIXUPMETH_SEGMENT; break;
-				case 1:	module.moduleinfo.entry_point.target_method = FIXUPMETH_GROUP; break;
-				case 2:	module.moduleinfo.entry_point.target_method = FIXUPMETH_EXTERN; break;
-				default: return false;
+				default: return false; /* no other is supported */
 			};
 
 			const uint16_t frame_index = OMF_read_index(ri,re);
 			const uint16_t target_index = OMF_read_index(ri,re);
 			const uint32_t offset = (fmt32 ? OMF_read_dword(ri,re) : OMF_read_word(ri,re));
+
+			// Reference by group is only allowed if it refers to 'FLAT'
+			if (module.moduleinfo.entry_point.frame_method == FIXUPMETH_GROUP) {
+				if (!module.groups.exists(from1based(frame_index)))
+					return false;
+
+				const auto &grp = module.groups.get(from1based(frame_index));
+				if (module.strings.get(grp.name) != "FLAT")
+					return false;
+			}
 
 			// fixup how is not used for entry point
 			module.moduleinfo.entry_point.frame_index = frame_index;
