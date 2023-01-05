@@ -7816,6 +7816,7 @@ namespace linker {
 		/* target method and seg/group/extern name to which the fixup refers to (OMF spec) */
 		fixup_method_t				target_method = fixup_method_undef;
 		fixup_method_index_t			target_index = fixup_method_index_undef;
+		segment_offset_t			target_offset = segment_offset_undef;
 		/* how to apply the fixup and where */
 		fixup_how_t				fixup_how = fixup_how_undef;
 		segment_offset_t			fixup_offset = segment_offset_undef;
@@ -7983,6 +7984,19 @@ namespace linker {
 
 	typedef _common_ref2table_t<group_t,group_ref_t> group_table_t;
 
+	const char *fixup_how_to_string(const fixup_how_t h) {
+		switch (h) {
+			case FIXUPHOW_OFFSET16: return "offset16";
+			case FIXUPHOW_SEGMENTBASE16: return "segbase16";
+			case FIXUPHOW_SEGMENTOFFSET16: return "segoffset16";
+			case FIXUPHOW_OFFSET32: return "offset32";
+			case FIXUPHOW_SEGMENTOFFSET32: return "segoffset32";
+			default: break;
+		};
+
+		return "?";
+	}
+
 	struct linkstate {
 		source_table_t			sources;
 		stringtable_t			strings;
@@ -8107,6 +8121,7 @@ namespace linker {
 		OMF_LNAMES_table_t		LNAMES; /* map LNAME index to string ref */
 		OMF_EXTDEF_table_t		EXTDEF; /* map EXTDEF to symbol ref */
 		segment_ref_t			last_LEDATA_segment = segment_ref_undef; /* last LEDATA segment */
+		segment_offset_t		last_LEDATA_offset = segment_offset_undef; /* last LEDATA offset */
 	};
 
 	void OMF_XADR::parse(const OMF_record &r) {
@@ -8387,6 +8402,7 @@ namespace linker {
 
 		/* keep track of this segment index as last tracked segment, some FIXUPPs rely on it */
 		modex.last_LEDATA_segment = from1based(segindex);
+		modex.last_LEDATA_offset = dataoffset;
 
 		if (ri < re) {
 			const size_t datalen = (size_t)(re - ri);
@@ -8543,6 +8559,112 @@ namespace linker {
 		return true;
 	}
 
+	bool OMF_add_FIXUPP(linkstate &module,OMF_extra_linkstate &modex,const OMF_record &rec) {
+		const uint8_t *ri = &rec.record[0];
+		const uint8_t *re = &rec.record[rec.record.size()];
+
+		const bool fmt32 = (rec.type == OMFRECT_FIXUPP_32);
+
+		/* fixups apply to the segment index of the last LEDATA */
+		if (modex.last_LEDATA_segment == segment_ref_undef) return false;
+		if (!module.segments.exists(modex.last_LEDATA_segment)) return false;
+		auto &segref = module.segments.get(modex.last_LEDATA_segment);
+
+		/* <subrecord> [ <subrecord> ... ] */
+		/* NTS: We only support FIXUP types, not THREAD, at this time */
+		while (ri < re) {
+			fixup_t fixup;
+
+			/* FIXUP:
+			 *   <word>
+			 *   bit 15: 1 (FIXUP)
+			 *   bit 14: mode (1=segment-relative 0=self-relative)
+			 *   bits [13-10]: Location (how to fix up i.e. 16-bit offset)
+			 *   bits [9-0]: data record offset (relative to last LEDATA/LIDATA)
+			 *   <fix data> (conditionally present)
+			 *   bit 7: F (1=FRAME by thread  0=FRAME explicitly defined in this record)
+			 *   bits [6-4]: Frame method
+			 *   bit 3: T (1=TARGET by thread  0=TARGET explicitly defined in this record)
+			 *   bit 2: P (1=no target displacement  0=target displacement)
+			 *   bits [1-0]: Target method
+			 *   <frame index> (conditional)
+			 *   <target index> (conditional)
+			 *   <target displacement> (conditional) */
+			/* THREAD:
+			 *   <byte>
+			 *   bit 7: 0 (THREAD)
+			 *   bit 6: D 0=TARGET thread  1=FRAME thread
+			 *   bit 5: 0
+			 *   bits [4-2]: method
+			 *   bits [1-0]: thread number
+			 *   <index> (conditional) */
+			if (*ri & 0x80) {
+				// FIXUP
+				// 16-bit word is big endian
+				uint16_t h = OMF_read_byte(ri,re) << 8u;
+				h += OMF_read_byte(ri,re);
+				assert((h&0x8000u) != 0u);
+
+				fixup.segment_relative = (h & 0x4000u) != 0; // bit 14
+				fixup.fixup_offset = (h & 0x3FFu) + modex.last_LEDATA_offset; // bits 9-0 relative to last LEDATA
+				// TODO: If the last was LIDATA not LEDATA then fixup_offset points at a data field of the iterated data structure
+
+				switch ((h >> 10u) & 15u) { // bits 13-10
+					case 1: fixup.fixup_how = FIXUPHOW_OFFSET16; break;
+					case 2: fixup.fixup_how = FIXUPHOW_SEGMENTBASE16; break;
+					case 3: fixup.fixup_how = FIXUPHOW_SEGMENTOFFSET16; break;
+					case 5: fixup.fixup_how = FIXUPHOW_OFFSET16; break;
+					case 9: fixup.fixup_how = FIXUPHOW_OFFSET32; break;
+					case 11: fixup.fixup_how = FIXUPHOW_SEGMENTOFFSET32; break;
+					case 13: fixup.fixup_how = FIXUPHOW_OFFSET32; break;
+					default: return false;
+				};
+
+				const uint8_t fixdata = OMF_read_byte(ri,re);
+				if ((fixdata & 0x80u) != 0u) return false; // FRAME threads not supported
+				if ((fixdata & 0x08u) != 0u) return false; // TARGET threads not supported
+
+				if (((fixdata >> 4u) & 7u) <= 2u) /* F0, F1, or F2 have frame index */
+					fixup.frame_index = OMF_read_index(ri,re);
+
+				if (true) /* any conditions otherwise? */
+					fixup.target_index = OMF_read_index(ri,re);
+
+				switch (fixdata & 3u) {
+					case 0: fixup.target_method = FIXUPMETH_SEGMENT; break;
+					case 1: fixup.target_method = FIXUPMETH_GROUP; break;
+					case 2: fixup.target_method = FIXUPMETH_EXTERN; break;
+					default: return false;
+				};
+
+				switch ((fixdata >> 4u) & 7u) {
+					case 0: fixup.frame_method = FIXUPMETH_SEGMENT; break;
+					case 1: fixup.frame_method = FIXUPMETH_GROUP; break;
+					case 2: fixup.frame_method = FIXUPMETH_EXTERN; break;
+					case 4: fixup.frame_method = FIXUPMETH_SEGMENT; /* frame is segment reference to whatever the last LEDATA segment referred to */
+						fixup.frame_index = to1based(modex.last_LEDATA_segment);
+						break;
+					case 5: /* frame is the same as target */
+						fixup.frame_method = fixup.target_method;
+						fixup.frame_index = fixup.target_index;
+						break;
+					default: return false;
+				};
+
+				if ((fixdata & 4u) == 0u)
+					fixup.target_offset = (fmt32 ? OMF_read_dword(ri,re) : OMF_read_word(ri,re));
+
+				segref.fixups.push_back(std::move(fixup));
+			}
+			else {
+				// THREAD
+				return false; // NOT SUPPORTED
+			}
+		}
+
+		return true;
+	}
+
 	bool OMF_read_module(linkstate &module,OMF_XADR &adr,const OMF_record &first_rec,const OMF_record &current_rec,const char *path,FILE *fp,uint16_t blocksize=0,uint32_t dict_offset=0) {
 		/* already read the THEADR/LHEADR */
 		const source_ref_t source_ref = module.sources.allocate();
@@ -8587,6 +8709,10 @@ namespace linker {
 					return false;
 
 				break;
+			}
+			else if (rec.type == OMFRECT_FIXUPP || rec.type == OMFRECT_FIXUPP_32) {
+				if (!OMF_add_FIXUPP(module,modex,rec))
+					return false;
 			}
 			else if (rec.type == OMFRECT_LIBEND) {
 				break;
@@ -8714,6 +8840,34 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 						o++;
 					}
 					if ((o&15u) != 0u) fprintf(stderr,"\n");
+				}
+				if (!segm.fixups.empty()) {
+					fprintf(stderr,"    Fixups:\n");
+					for (auto fi=segm.fixups.begin();fi!=segm.fixups.end();fi++) {
+						const auto &f = *fi;
+
+						fprintf(stderr,"      Entry:\n");
+
+						fprintf(stderr,"        Frame: index=%lu method=%u %s\n",
+							(unsigned long)f.frame_index,
+							f.frame_method,
+							module.fixup_to_string(f.frame_method,f.frame_index).c_str());
+
+						fprintf(stderr,"        Target: index=%lu method=%u",
+							(unsigned long)f.target_index,
+							f.target_method);
+						if (f.target_offset != linker::segment_offset_undef) {
+							fprintf(stderr," targetoffset=0x%08lx",
+								(unsigned long)f.target_offset);
+						}
+						fprintf(stderr," %s\n",
+							module.fixup_to_string(f.target_method,f.target_index).c_str());
+
+						fprintf(stderr,"        segmentrel=%u offset=0x%08lx how=%s\n",
+							f.segment_relative,
+							(unsigned long)f.fixup_offset,
+							linker::fixup_how_to_string(f.fixup_how));
+					}
 				}
 			}
 			fprintf(stderr,"  Segment order:");
