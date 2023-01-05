@@ -7706,6 +7706,7 @@ namespace linker {
 	static constexpr fixup_how_t		FIXUPHOW_SEGMENTOFFSET32 = 11; // 16:32 segment:offset
 
 	// symbol types
+	static constexpr symbol_type_t		SYMTYPE_DELETED = 0; // deleted symbol
 	static constexpr symbol_type_t		SYMTYPE_EXTERN = 1; // external symbol
 	static constexpr symbol_type_t		SYMTYPE_PUBLIC = 2; // public symbol
 	static constexpr symbol_type_t		SYMTYPE_LOCAL_EXTERN = 11; // external symbol local to module
@@ -7746,7 +7747,8 @@ namespace linker {
 	struct symbol_t {
 		symbol_type_t				type = symbol_type_undef; // type of symbol
 		string_ref_t				name = string_ref_undef; // name of symbol
-		segment_ref_t				segref = segment_ref_undef; // segment symbol belongs to
+		string_ref_t				group = string_ref_undef; // group of symbol (OMF)
+		segment_ref_t				segref = segment_ref_undef; // segment symbol belongs to (undefined if extern)
 		segment_offset_t			offset = segment_offset_undef; // offset within fragment
 	};
 
@@ -7760,7 +7762,48 @@ namespace linker {
 		refT add(const reverseT &name);
 	};
 
-	typedef _common_ref2symtable_t<symbol_t,symbol_ref_t,string_ref_t> symbol_table_t;
+	struct symbol_table_t : public _common_ref2symtable_t<symbol_t,symbol_ref_t,string_ref_t> {
+		symbol_table_t() : _common_ref2symtable_t<symbol_t,symbol_ref_t,string_ref_t>() { }
+		void sortbyname(const stringtable_t &st);
+	};
+
+	const stringtable_t *symbol_table_sort_name_func_strings = NULL;
+
+	unsigned int symbol_type_to_priority_sort_val(const symbol_type_t t) {
+		switch (t) {
+			case SYMTYPE_LOCAL_PUBLIC:	return 4;
+			case SYMTYPE_PUBLIC:		return 3;
+			case SYMTYPE_LOCAL_EXTERN:	return 2;
+			case SYMTYPE_EXTERN:		return 1;
+			default:			break;
+		};
+
+		return 0;
+	}
+
+	bool symbol_table_name_sort_func(const symbol_t &a,const symbol_t &b) {
+		/* strings are different if string refs differ, if so sort alphabetically A-Z */
+		if (a.name != b.name) {
+			const char *sa = symbol_table_sort_name_func_strings->get(a.name).c_str();
+			const char *sb = symbol_table_sort_name_func_strings->get(b.name).c_str();
+			return strcmp(sa,sb) < 0; /* a < b   assume strcmp() != 0 */
+		}
+
+		/* string refs match, sort by type priority, highest to lowest */
+		const unsigned int pra = symbol_type_to_priority_sort_val(a.type);
+		const unsigned int prb = symbol_type_to_priority_sort_val(b.type);
+		if (pra != prb) return pra > prb; /* we want higher priority first before lower priority */
+
+		/* nothing to do */
+		return false;
+	}
+
+	void symbol_table_t::sortbyname(const stringtable_t &st) {
+		name2t.clear();
+		symbol_table_sort_name_func_strings = &st;
+		std::sort(ref2t.begin(),ref2t.end(),symbol_table_name_sort_func);
+		for (size_t si=0;si < ref2t.size();si++) name2t[ref2t[si].name/*string ref*/].push_back(si/*symbol ref*/);
+	}
 
 	struct fixup_t {
 		/* frame method and seg/group/extern name to which address computation is performed (OMF spec) */
@@ -7997,8 +8040,11 @@ namespace linker {
 
 	typedef _common_ref2table_t<string_ref_t,string_ref_t> OMF_LNAMES_table_t;
 
+	typedef _common_ref2table_t<string_ref_t,size_t> OMF_GRPDEF_names_t;
+
 	struct OMF_extra_linkstate {
 		OMF_LNAMES_table_t		LNAMES; /* map LNAME index to string ref */
+		OMF_GRPDEF_names_t		GRPDEF_names; /* only the names */
 	};
 
 	void OMF_XADR::parse(const OMF_record &r) {
@@ -8118,9 +8164,11 @@ namespace linker {
 
 	string_ref_t OMF_read_lenstring(stringtable_t &st,const uint8_t* &r,const uint8_t *e) {
 		const uint8_t len = OMF_read_byte(r,e);
-		assert((r+len) <= e);
+		if ((r+len) > e) return string_ref_undef;
+
 		const string_ref_t ref = st.add(std::move(std::string((char*)r,len)));
 		r += len;
+
 		return ref;
 	}
 
@@ -8130,10 +8178,9 @@ namespace linker {
 
 		while (ri < re) {
 			const string_ref_t r = OMF_read_lenstring(module.strings,ri,re);
-			if (r != string_ref_undef)
-				modex.LNAMES.get(modex.LNAMES.allocate()) = r;
-			else
-				return false;
+			if (r == string_ref_undef) return false;
+
+			modex.LNAMES.get(modex.LNAMES.allocate()) = r;
 		}
 
 		return true;
@@ -8237,6 +8284,8 @@ namespace linker {
 		const uint16_t nameindex = OMF_read_index(ri,re);
 		if (!modex.LNAMES.exists(from1based(nameindex))) return false;
 		const string_ref_t groupname = modex.LNAMES.get(from1based(nameindex));
+		size_t grpdefidx = modex.GRPDEF_names.allocate();
+		modex.GRPDEF_names.get(grpdefidx) = groupname;
 
 		while ((ri+2) <= re) {
 			if (*ri == 0xFF) {
@@ -8261,6 +8310,8 @@ namespace linker {
 		const uint8_t *re = &rec.record[rec.record.size()];
 
 		const bool fmt32 = (rec.type == OMFRECT_LEDATA_32);
+
+		(void)modex;
 
 		// <segment index> <data offset> <data>
 
@@ -8290,6 +8341,77 @@ namespace linker {
 			assert((ri+datalen) <= re);
 			memcpy(&segref.data[putat],ri,datalen);
 			ri += datalen;
+		}
+
+		return true;
+	}
+
+	bool OMF_add_EXTDEF(linkstate &module,OMF_extra_linkstate &modex,const OMF_record &rec) {
+		const uint8_t *ri = &rec.record[0];
+		const uint8_t *re = &rec.record[rec.record.size()];
+
+		const bool local = (rec.type == OMFRECT_LEXTDEF);
+
+		(void)modex;
+
+		while (ri < re) {
+			/* <external name string> <type index> */
+			const string_ref_t nameref = OMF_read_lenstring(module.strings,ri,re);
+			if (nameref == string_ref_undef) return false;
+
+			const uint16_t type_index = OMF_read_index(ri,re);
+			(void)type_index;//ignored
+
+			const symbol_ref_t symref = module.symbols.add(nameref);
+			symbol_t &sym = module.symbols.get(symref);
+			sym.type = local ? SYMTYPE_LOCAL_EXTERN : SYMTYPE_EXTERN;
+		}
+
+		return true;
+	}
+
+	bool OMF_add_PUBDEF(linkstate &module,OMF_extra_linkstate &modex,const OMF_record &rec) {
+		const uint8_t *ri = &rec.record[0];
+		const uint8_t *re = &rec.record[rec.record.size()];
+
+		const bool fmt32 = (rec.type == OMFRECT_PUBDEF_32 || rec.type == OMFRECT_LPUBDEF_32);
+		const bool local = (rec.type == OMFRECT_LPUBDEF || rec.type == OMFRECT_LPUBDEF_32);
+
+		/* <base group index> <base segment index> [ base frame ] < entry [ entry ... ] >
+		 *
+		 * We do not support the case where base frame field exists.
+		 *
+		 * entry = <OMF string public name> <public offset> <type index>
+		 *
+		 * group index can be zero */
+		const uint16_t basegroupindex = OMF_read_index(ri,re);
+		const uint16_t basesegindex = OMF_read_index(ri,re);
+
+		/* we do not support the base frame case */
+		if (basesegindex == 0) return false;
+
+		while (ri < re) {
+			const string_ref_t nameref = OMF_read_lenstring(module.strings,ri,re);
+			if (ri >= re) break;
+
+			const uint32_t public_offset = (fmt32 ? OMF_read_dword(ri,re) : OMF_read_word(ri,re));
+			const uint16_t type_index = OMF_read_index(ri,re);
+			(void)type_index;//ignored
+
+			const symbol_ref_t symref = module.symbols.add(nameref);
+			symbol_t &sym = module.symbols.get(symref);
+			sym.type = local ? SYMTYPE_LOCAL_PUBLIC : SYMTYPE_PUBLIC;
+			sym.offset = segment_offset_t(public_offset);
+
+			if (basegroupindex != 0) {
+				if (modex.GRPDEF_names.exists(from1based(basegroupindex)))
+					sym.group = modex.GRPDEF_names.get(from1based(basegroupindex));
+				else
+					return false;
+			}
+
+			if (!modex.LNAMES.exists(from1based(basesegindex))) return false;
+			sym.segref = from1based(basesegindex);
 		}
 
 		return true;
@@ -8325,6 +8447,14 @@ namespace linker {
 				if (!OMF_add_LEDATA(module,modex,rec))
 					return false;
 			}
+			else if (rec.type == OMFRECT_EXTDEF || rec.type == OMFRECT_LEXTDEF) {
+				if (!OMF_add_EXTDEF(module,modex,rec))
+					return false;
+			}
+			else if (rec.type == OMFRECT_PUBDEF || rec.type == OMFRECT_PUBDEF_32 || rec.type == OMFRECT_LPUBDEF || rec.type == OMFRECT_LPUBDEF_32) {
+				if (!OMF_add_PUBDEF(module,modex,rec))
+					return false;
+			}
 			// TODO: OMFRECT_LIDATA / OMFRECT_LIDATA_32 (iterated data), which is not often used except by Microsoft tools like Microsoft MASM.
 			else if (rec.type == OMFRECT_MODEND || rec.type == OMFRECT_MODEND_32) {
 				break;
@@ -8335,6 +8465,8 @@ namespace linker {
 		}
 
 		for (size_t i=0;i < module.segments.ref.size();i++) module.segment_order.push_back(segment_ref_t(i));
+
+		module.symbols.sortbyname(module.strings);
 
 		return true;
 	}
@@ -8455,6 +8587,31 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			for (auto si=module.segment_order.begin();si!=module.segment_order.end();si++) {
 				auto &segm = module.segments.get(*si);
 				fprintf(stderr," (%lu)('%s')",(unsigned long)(*si),module.strings.get(segm.name).c_str());
+			}
+			fprintf(stderr,"\n");
+			fprintf(stderr,"  Symbols:\n");
+			for (size_t si=0;si < module.symbols.ref2t.size();si++) {
+				const auto &sym = module.symbols.get(linker::symbol_ref_t(si));
+				fprintf(stderr,"    '%s' ",module.strings.get(sym.name).c_str());
+				switch (sym.type) {
+					case linker::SYMTYPE_DELETED: fprintf(stderr,"(DELETED) "); break;
+					case linker::SYMTYPE_EXTERN: fprintf(stderr,"(extern) "); break;
+					case linker::SYMTYPE_PUBLIC: fprintf(stderr,"(public) "); break;
+					case linker::SYMTYPE_LOCAL_EXTERN: fprintf(stderr,"(localextern) "); break;
+					case linker::SYMTYPE_LOCAL_PUBLIC: fprintf(stderr,"(localpublic) "); break;
+					default: fprintf(stderr,"(%lu""??"") ",(unsigned long)sym.type); break;
+				}
+				if (sym.group != linker::segment_ref_undef) {
+					fprintf(stderr,"group=('%s') ",module.strings.get(sym.group).c_str());
+				}
+				if (sym.segref != linker::segment_ref_undef) {
+					auto &segref = module.segments.get(sym.segref);
+					fprintf(stderr,"segment=('%s') ",module.strings.get(segref.name).c_str());
+				}
+				if (sym.offset != linker::segment_offset_undef) {
+					fprintf(stderr,"offset=0x%08lx ",(unsigned long)sym.offset);
+				}
+				fprintf(stderr,"\n");
 			}
 			fprintf(stderr,"\n");
 		}
