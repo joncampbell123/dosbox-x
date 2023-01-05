@@ -8372,8 +8372,6 @@ namespace linker {
 
 		const bool fmt32 = (rec.type == OMFRECT_LEDATA_32);
 
-		(void)modex;
-
 		// <segment index> <data offset> <data>
 
 		const uint16_t segindex = OMF_read_index(ri,re);
@@ -8415,8 +8413,6 @@ namespace linker {
 		const uint8_t *re = &rec.record[rec.record.size()];
 
 		const bool local = (rec.type == OMFRECT_LEXTDEF);
-
-		(void)modex;
 
 		while (ri < re) {
 			/* <external name string> <type index> */
