@@ -7809,6 +7809,7 @@ namespace linker {
 	}
 
 	struct fixup_t {
+		/* NTS: the index, according to method, can be a segment reference, group reference, or EXTERN reference */
 		/* frame method and seg/group/extern name to which address computation is performed (OMF spec) */
 		fixup_method_t				frame_method = fixup_method_undef;
 		fixup_method_index_t			frame_index = fixup_method_index_undef;
@@ -7965,7 +7966,11 @@ namespace linker {
 
 	typedef struct std::vector<segment_ref_t> segment_order_list_t;
 
+	static const unsigned int		SRCFMT_UNSPEC = 0;
+	static const unsigned int		SRCFMT_OMF = 1; // relocatable object module format
+
 	struct moduleinfo_t {
+		unsigned int			source_format = SRCFMT_UNSPEC;
 		fixup_t				entry_point;
 		bool				is_main = false;
 		bool				has_entry = false;
@@ -8426,6 +8431,9 @@ namespace linker {
 			symbol_t &sym = module.symbols.get(symref);
 			sym.type = local ? SYMTYPE_LOCAL_EXTERN : SYMTYPE_EXTERN;
 
+			/* build EXTDEF table according to OMF spec because FIXUPP records, if they refer to an EXTERN,
+			 * do so by a 1-based index into that table. Here, the table is built so that an EXTDEF index
+			 * can be quickly mapped to a symbol_ref_t. */
 			modex.EXTDEF.ref.push_back(symref);
 		}
 
@@ -8516,7 +8524,7 @@ namespace linker {
 			const uint16_t target_index = OMF_read_index(ri,re);
 			const uint32_t offset = (fmt32 ? OMF_read_dword(ri,re) : OMF_read_word(ri,re));
 
-			// Reference by group is only allowed if it refers to 'FLAT'
+			// Reference by group is only allowed if it refers to 'FLAT' which is used for 32-bit flat memory models
 			if (module.moduleinfo.entry_point.frame_method == FIXUPMETH_GROUP) {
 				if (!module.groups.exists(from1based(frame_index)))
 					return false;
@@ -8619,6 +8627,7 @@ namespace linker {
 
 					modules.push_back(std::move(linkstate()));
 					linkstate &module = modules.back();
+					module.moduleinfo.source_format = SRCFMT_OMF;
 					if (!OMF_read_module(module,adr,headrec,rec,path,fp,libhead.record_length,libhead.dict_offset)) {
 						fclose(fp);
 						return false;
@@ -8635,6 +8644,7 @@ namespace linker {
 
 			modules.push_back(std::move(linkstate()));
 			linkstate &module = modules.back();
+			module.moduleinfo.source_format = SRCFMT_OMF;
 			if (!OMF_read_module(module,adr,rec,rec,path,fp)) {
 				fclose(fp);
 				return false;
