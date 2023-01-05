@@ -7976,6 +7976,7 @@ namespace linker {
 		bool				is_main = false;
 		bool				has_entry = false;
 		bool				optimized = false;
+		bool				dosseg = false; // DOSSEG switch
 		int16_t				intel_cpulevel = -1;
 		int32_t				m68k_cpulevel = -1;
 		int				memory_model = -1;
@@ -8096,6 +8097,7 @@ namespace linker {
 
 	static constexpr uint8_t		OMFCOMENT_MEMORYMODEL_OW_C = 0x9B; // memory model (Open Watcom C)
 	static constexpr uint8_t		OMFCOMENT_MEMORYMODEL_MS_C = 0x9D; // memory model (Microsoft C)
+	static constexpr uint8_t		OMFCOMENT_DOSSEG = 0x9E; // DOSSEG switch
 
 	static constexpr uint8_t		MEMMODEL_TINY      = uint8_t('t');
 	static constexpr uint8_t		MEMMODEL_SMALL     = uint8_t('s');
@@ -8695,7 +8697,10 @@ namespace linker {
 		 * bit 6: no list */
 		const uint8_t cclass = OMF_read_byte(ri,re);
 
-		if (cclass == OMFCOMENT_MEMORYMODEL_MS_C) {
+		if (cclass == OMFCOMENT_DOSSEG) {
+			module.moduleinfo.dosseg = true;
+		}
+		else if (cclass == OMFCOMENT_MEMORYMODEL_MS_C) {
 			module.moduleinfo.intel_cpulevel = -1;
 			module.moduleinfo.optimized = false;
 			module.moduleinfo.memory_model = -1;
@@ -9025,6 +9030,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			}
 			if (module.moduleinfo.optimized)
 				fprintf(stderr,"  Is optimized\n");
+			if (module.moduleinfo.dosseg)
+				fprintf(stderr,"  Is DOSSEG\n");
 			if (module.moduleinfo.intel_cpulevel >= 0)
 				fprintf(stderr,"  Intel CPU level: %d\n",module.moduleinfo.intel_cpulevel);
 			if (module.moduleinfo.m68k_cpulevel >= 0)
