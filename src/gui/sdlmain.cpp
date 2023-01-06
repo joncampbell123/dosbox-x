@@ -7746,16 +7746,22 @@ namespace DOSLIBLinker {
 	static constexpr uint8_t		MEMMODEL_FLAT      = uint8_t('f');
 
 	// common callback function setup
-	typedef void (*log_callback_func_t)(const char *classname,void *_user,const char *str);
+	typedef void (*log_callback_func_t)(const int level,void *_user,const char *str);
+
+	// log levels
+	static const int			LNKLOG_DEBUGMORE = -2;
+	static const int			LNKLOG_DEBUG = -1;
+	static const int			LNKLOG_NORMAL = 0;
+	static const int			LNKLOG_WARN = 1;
+	static const int			LNKLOG_ERR = 2;
 
 	struct log_callback {
 		log_callback_func_t		callback = (log_callback_func_t)NULL;
-		const char*			classname = NULL;
+		int				minimum_log_level = LNKLOG_NORMAL;
 		void*				_user = NULL;
 
 		log_callback();
-		log_callback(const char *n_classname);
-		void log(const char *fmt,...);
+		void log(const int level,const char *fmt,...);
 	};
 
 	// file I/O abstraction
@@ -8129,18 +8135,15 @@ namespace DOSLIBLinker {
 	log_callback::log_callback() {
 	}
 
-	log_callback::log_callback(const char *n_classname) : classname(n_classname) {
-	}
-
-	void log_callback::log(const char *fmt,...) {
-		if (callback != NULL) {
+	void log_callback::log(const int level,const char *fmt,...) {
+		if (callback != NULL && level >= minimum_log_level) {
 			static const size_t tmpsize = 512;
 			char *tmp = new char[tmpsize];
 			va_list va;
 
 			va_start(va,fmt);
 			vsnprintf(tmp,tmpsize,fmt,va); // NTS: sprintf() is documented to fit within tmpsize including NUL
-			callback(classname,_user,tmp);
+			callback(level,_user,tmp);
 			va_end(va);
 
 			delete[] tmp;
@@ -8287,6 +8290,10 @@ namespace DOSLIBLinker {
 
 	/////////////////////////
 
+	static log_callback				log_callback_silent;
+
+	/////////////////////////
+
 	namespace OMF {
 
 		typedef uint8_t				record_type_t;
@@ -8368,6 +8375,7 @@ namespace DOSLIBLinker {
 			EXTDEF_table_t			EXTDEF; /* map EXTDEF to symbol ref */
 			segment_ref_t			last_LEDATA_segment = segment_ref_undef; /* last LEDATA segment */
 			segment_offset_t		last_LEDATA_offset = segment_offset_undef; /* last LEDATA offset */
+			log_callback*			log = NULL;
 		};
 
 		void XADR::parse(const record &r) {
@@ -8501,7 +8509,10 @@ namespace DOSLIBLinker {
 
 			while (ri < re) {
 				const string_ref_t r = read_lenstring(module.strings,ri,re);
-				if (r == string_ref_undef) return false;
+				if (r == string_ref_undef) {
+					modex.log->log(LNKLOG_ERR,"LNAME read error");
+					return false;
+				}
 
 				modex.LNAMES.get(modex.LNAMES.allocate()) = r;
 			}
@@ -8533,6 +8544,7 @@ namespace DOSLIBLinker {
 
 			switch (attr>>5u) {
 				case 0: /* absolute segment (not supported here) even if Microsoft's linker supports it */
+					modex.log->log(LNKLOG_ERR,"SEGDEF with absolute segment not supported");
 					return false;
 				case 1: /* byte align */
 					segref.alignmask = byte_align_mask;
@@ -8550,7 +8562,8 @@ namespace DOSLIBLinker {
 					segref.alignmask = dword_align_mask;
 					break;
 				default:/* not supported */
-					break;
+					modex.log->log(LNKLOG_ERR,"SEGDEF unknown alignment code %u",attr>>5u);
+					return false;
 			};
 
 			switch ((attr>>2u)&7u) {
@@ -8569,6 +8582,9 @@ namespace DOSLIBLinker {
 				case 6: /* common (combineable) */
 					segref.flags |= SEGFLAG_PUBLIC | SEGFLAG_COMMON;
 					break;
+				default:
+					modex.log->log(LNKLOG_ERR,"SEGDEF unknown combination code %u",(attr>>2u)&7u);
+					return false;
 			};
 
 			if (attr & 2u) // B for big, as in the MSB of the size to allow exactly 64KB or 4GB in size
@@ -8586,13 +8602,22 @@ namespace DOSLIBLinker {
 			const uint16_t overlaynameindex = read_index(ri,re);//ignored
 			(void)overlaynameindex;
 
-			if (!modex.LNAMES.exists(from1based(nameindex))) return false;
+			if (!modex.LNAMES.exists(from1based(nameindex))) {
+				modex.log->log(LNKLOG_ERR,"SEGDEF unable to resolve LNAME for name index");
+				return false;
+			}
 			segref.name = modex.LNAMES.get(from1based(nameindex));
 
-			if (!modex.LNAMES.exists(from1based(classnameindex))) return false;
+			if (!modex.LNAMES.exists(from1based(classnameindex))) {
+				modex.log->log(LNKLOG_ERR,"SEGDEF unable to resolve LNAME for class name index");
+				return false;
+			}
 			segref.classname = modex.LNAMES.get(from1based(classnameindex));
 
-			if (!modex.LNAMES.exists(from1based(overlaynameindex))) return false;
+			if (!modex.LNAMES.exists(from1based(overlaynameindex))) {
+				modex.log->log(LNKLOG_ERR,"SEGDEF unable to resolve LNAME for overlay name index");
+				return false;
+			}
 			/* ignored */
 
 			return true;
@@ -8602,12 +8627,13 @@ namespace DOSLIBLinker {
 			const uint8_t *ri = &rec.record[0];
 			const uint8_t *re = &rec.record[rec.record.size()];
 
-			(void)modex;
-
 			// <name index> [ 0xFF <segment index> [ ... ] ]
 
 			const uint16_t nameindex = read_index(ri,re);
-			if (!modex.LNAMES.exists(from1based(nameindex))) return false;
+			if (!modex.LNAMES.exists(from1based(nameindex))) {
+				modex.log->log(LNKLOG_ERR,"GRPDEF unable to resolve LNAME for name index");
+				return false;
+			}
 			const string_ref_t groupname = modex.LNAMES.get(from1based(nameindex));
 			const group_ref_t grpdefidx = module.groups.allocate();
 			auto &groupref = module.groups.get(grpdefidx);
@@ -8618,13 +8644,22 @@ namespace DOSLIBLinker {
 					ri++;
 					assert(ri <= re);
 					const uint16_t segindex = read_index(ri,re);
-					if (!module.segments.exists(segment_ref_t(from1based(segindex)))) return false;
+					if (!module.segments.exists(segment_ref_t(from1based(segindex)))) {
+						modex.log->log(LNKLOG_ERR,"GRPDEF refers to non-existent segments");
+						return false;
+					}
 					groupref.segment_members.push_back(segment_ref_t(from1based(segindex)));
 					segment_t &sref = module.segments.get(segment_ref_t(from1based(segindex)));
-					if (sref.groupname == string_ref_undef) sref.groupname = groupname;
-					else return false; // a segment cannot be part of multiple groups in one module!
+					if (sref.groupname == string_ref_undef) {
+						sref.groupname = groupname;
+					}
+					else if (sref.groupname != groupname) { // I suppose it's perfectly fine for a GRPDEF to re-declare the same membership again
+						modex.log->log(LNKLOG_ERR,"GRPDEF refers to segments already part of another group");
+						return false; // a segment cannot be part of multiple groups in one module!
+					}
 				}
 				else {
+					modex.log->log(LNKLOG_ERR,"GRPDEF unknown entry type %02x",*ri);
 					return false;
 				}
 			}
@@ -8641,7 +8676,10 @@ namespace DOSLIBLinker {
 			// <segment index> <data offset> <data>
 
 			const uint16_t segindex = read_index(ri,re);
-			if (!module.segments.exists(from1based(segindex))) return false;
+			if (!module.segments.exists(from1based(segindex))) {
+				modex.log->log(LNKLOG_ERR,"LEDATA refers to non-existent segment");
+				return false;
+			}
 			segment_t &segref = module.segments.get(from1based(segindex));
 
 			const uint32_t dataoffset = (fmt32 ? read_dword(ri,re) : read_word(ri,re));
@@ -8656,14 +8694,18 @@ namespace DOSLIBLinker {
 				// This code assumes that LEDATA is built completely in sequence, which most tools do.
 				// We do not support out of order LEDATA entries. Maybe someday if we have to support
 				// that kind of thing, we can change this later.
-				if ((uint32_t)segref.data.size() != dataoffset)
+				if ((uint32_t)segref.data.size() != dataoffset) {
+					modex.log->log(LNKLOG_ERR,"LEDATA discontinuous data segment (gap or overlap). Continuous ordered segments only.");
 					return false; // we only support append!
+				}
 
 				const size_t putat = segref.data.size();
 
 				// Are we about to append data beyond the reported size of the segment? That is an error too.
-				if (segref.size != segment_size_undef && segment_size_t(putat+datalen) > segref.size)
+				if (segref.size != segment_size_undef && segment_size_t(putat+datalen) > segref.size) {
+					modex.log->log(LNKLOG_ERR,"LEDATA data provided that would overrun reported SEGDEF segment size");
 					return false;
+				}
 
 				segref.data.resize(segref.data.size() + datalen);
 				assert((putat+datalen) <= segref.data.size());
@@ -8684,7 +8726,10 @@ namespace DOSLIBLinker {
 			while (ri < re) {
 				/* <external name string> <type index> */
 				const string_ref_t nameref = read_lenstring(module.strings,ri,re);
-				if (nameref == string_ref_undef) return false;
+				if (nameref == string_ref_undef) {
+					modex.log->log(LNKLOG_ERR,"EXTDEF unable to read symbol name");
+					return false;
+				}
 
 				const uint16_t type_index = read_index(ri,re);
 				(void)type_index;//ignored
@@ -8720,7 +8765,10 @@ namespace DOSLIBLinker {
 			const uint16_t basesegindex = read_index(ri,re);
 
 			/* we do not support the base frame case */
-			if (basesegindex == 0) return false;
+			if (basesegindex == 0) {
+				modex.log->log(LNKLOG_ERR,"PUBDEF unsupported base frame case (basesegindex == 0)");
+				return false;
+			}
 
 			while (ri < re) {
 				const string_ref_t nameref = read_lenstring(module.strings,ri,re);
@@ -8736,13 +8784,19 @@ namespace DOSLIBLinker {
 				sym.offset = segment_offset_t(public_offset);
 
 				if (basegroupindex != 0) {
-					if (module.groups.exists(group_ref_t(from1based(basegroupindex))))
+					if (module.groups.exists(group_ref_t(from1based(basegroupindex)))) {
 						sym.group = group_ref_t(from1based(basegroupindex));
-					else
+					}
+					else {
+						modex.log->log(LNKLOG_ERR,"PUBDEF symbol refers to non-existent GRPDEF");
 						return false;
+					}
 				}
 
-				if (!modex.LNAMES.exists(from1based(basesegindex))) return false;
+				if (!module.segments.exists(from1based(basesegindex))) {
+					modex.log->log(LNKLOG_ERR,"PUBDEF symbol refers to non-existent SEGDEF");
+					return false;
+				}
 				sym.segref = from1based(basesegindex);
 			}
 
@@ -8768,18 +8822,28 @@ namespace DOSLIBLinker {
 				const uint8_t end_data = read_byte(ri,re);
 
 				/* the end data byte has the same format as the Fix Data bit layout */
-				if (end_data & 0x80) return false; /* F=0 or bust (FRAME method explicitly specified) */
-				if (end_data & 0x04) return false; /* T=0 or bust (TARGET method explicitly specified) */
+				if (end_data & 0x80) {
+					modex.log->log(LNKLOG_ERR,"MODEND entry point must refer to explicit FRAME method");
+					return false; /* F=0 or bust (FRAME method explicitly specified) */
+				}
+				if (end_data & 0x04) {
+					modex.log->log(LNKLOG_ERR,"MODEND entry point must refer to explicit TARGET method");
+					return false; /* T=0 or bust (TARGET method explicitly specified) */
+				}
 
 				switch ((end_data >> 4u) & 7u) {
 					case 0:	module.moduleinfo.entry_point.frame_method = FIXUPMETH_SEGMENT; break;
 					case 1: module.moduleinfo.entry_point.frame_method = FIXUPMETH_GROUP; break; /* NTS: Only used for 32-bit 'FLAT' group */
-					default: return false; /* no other is supported */
+					default:
+						modex.log->log(LNKLOG_ERR,"MODEND entry point unsupported FRAME fixup method");
+						return false; /* no other is supported */
 				};
 
 				switch (end_data & 3u) {
 					case 0:	module.moduleinfo.entry_point.target_method = FIXUPMETH_SEGMENT; break;
-					default: return false; /* no other is supported */
+					default:
+						modex.log->log(LNKLOG_ERR,"MODEND entry point unsupported TARGET fixup method");
+						return false; /* no other is supported */
 				};
 
 				const uint16_t frame_index = read_index(ri,re);
@@ -8788,12 +8852,16 @@ namespace DOSLIBLinker {
 
 				// Reference by group is only allowed if it refers to 'FLAT' which is used for 32-bit flat memory models
 				if (module.moduleinfo.entry_point.frame_method == FIXUPMETH_GROUP) {
-					if (!module.groups.exists(from1based(frame_index)))
+					if (!module.groups.exists(from1based(frame_index))) {
+						modex.log->log(LNKLOG_ERR,"MODEND entry point points to non-existent GRPDEF");
 						return false;
+					}
 
 					const auto &grp = module.groups.get(from1based(frame_index));
-					if (module.strings.get(grp.name) != "FLAT")
+					if (module.strings.get(grp.name) != "FLAT") {
+						modex.log->log(LNKLOG_ERR,"MODEND entry point is not allowed to refer to GRPDEF except for 32-bit FLAT memory model group");
 						return false;
+					}
 				}
 
 				// fixup how is not used for entry point
@@ -8812,8 +8880,14 @@ namespace DOSLIBLinker {
 			const bool fmt32 = (rec.type == RECTYPE_FIXUPP_32);
 
 			/* fixups apply to the segment index of the last LEDATA */
-			if (modex.last_LEDATA_segment == segment_ref_undef) return false;
-			if (!module.segments.exists(modex.last_LEDATA_segment)) return false;
+			if (modex.last_LEDATA_segment == segment_ref_undef) {
+				modex.log->log(LNKLOG_ERR,"FIXUPP without previous LEDATA/LIDATA");
+				return false;
+			}
+			if (!module.segments.exists(modex.last_LEDATA_segment)) {
+				modex.log->log(LNKLOG_ERR,"FIXUPP after LEDATA/LIDATA which referred to non-existent segment (bug)");
+				return false;
+			}
 			auto &segref = module.segments.get(modex.last_LEDATA_segment);
 
 			/* <subrecord> [ <subrecord> ... ] */
@@ -8863,12 +8937,20 @@ namespace DOSLIBLinker {
 						case 9: fixup.fixup_how = FIXUPHOW_OFFSET32; break;
 						case 11: fixup.fixup_how = FIXUPHOW_SEGMENTOFFSET32; break;
 						case 13: fixup.fixup_how = FIXUPHOW_OFFSET32; break;
-						default: return false;
+						default:
+							 modex.log->log(LNKLOG_ERR,"FIXUPP unknown location code %u",(h >> 10u) & 15u);
+							 return false;
 					};
 
 					const uint8_t fixdata = read_byte(ri,re);
-					if ((fixdata & 0x80u) != 0u) return false; // FRAME threads not supported
-					if ((fixdata & 0x08u) != 0u) return false; // TARGET threads not supported
+					if ((fixdata & 0x80u) != 0u) {
+						modex.log->log(LNKLOG_ERR,"FIXUPP handling: FRAME threads are not supported (fixdata)");
+						return false; // FRAME threads not supported
+					}
+					if ((fixdata & 0x08u) != 0u) {
+						modex.log->log(LNKLOG_ERR,"FIXUPP handling: TARGET threads are not supported (fixdata)");
+						return false; // TARGET threads not supported
+					}
 
 					if (((fixdata >> 4u) & 7u) <= 2u) /* F0, F1, or F2 have frame index */
 						fixup.frame_index = read_index(ri,re);
@@ -8880,7 +8962,9 @@ namespace DOSLIBLinker {
 						case 0: fixup.target_method = FIXUPMETH_SEGMENT; break;
 						case 1: fixup.target_method = FIXUPMETH_GROUP; break;
 						case 2: fixup.target_method = FIXUPMETH_EXTERN; break;
-						default: return false;
+						default:
+							modex.log->log(LNKLOG_ERR,"FIXUPP unsupported/unknown TARGET method");
+							return false;
 					};
 
 					switch ((fixdata >> 4u) & 7u) {
@@ -8894,7 +8978,9 @@ namespace DOSLIBLinker {
 							fixup.frame_method = fixup.target_method;
 							fixup.frame_index = fixup.target_index;
 							break;
-						default: return false;
+						default:
+							modex.log->log(LNKLOG_ERR,"FIXUPP unsupported/unknown FRAME method");
+							return false;
 					};
 
 					if ((fixdata & 4u) == 0u)
@@ -8904,6 +8990,7 @@ namespace DOSLIBLinker {
 				}
 				else {
 					// THREAD
+					modex.log->log(LNKLOG_ERR,"FIXUPP THREAD subrecords are not supported");
 					return false; // NOT SUPPORTED
 				}
 			}
@@ -8996,11 +9083,16 @@ namespace DOSLIBLinker {
 					};
 				}
 			}
+			else {
+				modex.log->log(LNKLOG_DEBUGMORE,"Unhandled OMF COMENT type %02x at 0x%08lx",
+					(unsigned int)cclass,
+					(unsigned long)rec.file_offset);
+			}
 
 			return true;
 		}
 
-		bool read_module(linker_object_module &module,XADR &adr,const record &first_rec,const record &current_rec,const char *path,file_io &fp,uint16_t blocksize=0,uint32_t dict_offset=0) {
+		bool read_module(linker_object_module &module,XADR &adr,const record &first_rec,const record &current_rec,const char *path,file_io &fp,log_callback *log=NULL,uint16_t blocksize=0,uint32_t dict_offset=0) {
 			/* already read the THEADR/LHEADR */
 			const source_ref_t source_ref = module.sources.allocate();
 			source_t &source = module.sources.get(source_ref);
@@ -9010,8 +9102,15 @@ namespace DOSLIBLinker {
 			source.offset = current_rec.file_offset;
 			source.index = source_ref;
 
-			extra_linker_object_module modex;
 			record rec;
+
+			if (source.is_library) {
+				log->log(LNKLOG_DEBUG,"Parsing OMF library module at 0x%08lx",
+					(unsigned long)current_rec.file_offset);
+			}
+
+			extra_linker_object_module modex;
+			modex.log = log;
 
 			while (read_record(rec,fp,blocksize,dict_offset)) {
 				if (rec.type == RECTYPE_SEGDEF || rec.type == RECTYPE_SEGDEF_32) {
@@ -9056,6 +9155,11 @@ namespace DOSLIBLinker {
 					if (!add_COMENT(module,modex,rec))
 						return false;
 				}
+				else {
+					log->log(LNKLOG_DEBUGMORE,"Unhandled OMF record type %02x at 0x%08lx",
+						(unsigned int)rec.type,
+						(unsigned long)rec.file_offset);
+				}
 			}
 
 			for (size_t i=0;i < module.segments.ref.size();i++) module.segment_order.push_back(segment_ref_t(i));
@@ -9065,16 +9169,23 @@ namespace DOSLIBLinker {
 			return true;
 		}
 
-		bool read(std::vector<linker_object_module> &modules,file_io &fp,const char *path) {
+		bool read(std::vector<linker_object_module> &modules,file_io &fp,const char *path,log_callback *log=NULL) {
 			LIBHEAD libhead;
 			record rec;
 
+			/* this code can look cleaner if it has SOMETHING to log to even if NULL */
+			if (log == NULL) log = &log_callback_silent;
+
 			/* the first record must be THEADR (single object) or LHEADR (library) */
-			if (!read_record(rec,fp))
+			if (!read_record(rec,fp)) {
+				log->log(LNKLOG_DEBUG,"%s is not an OMF file, unable to read first record",path);
 				return false;
+			}
 
 			if (rec.type == RECTYPE_LIBHEAD || rec.type == RECTYPE_LHEADR) {
 				record headrec = rec;
+
+				log->log(LNKLOG_DEBUG,"%s is an OMF library",path);
 
 				if (rec.type == RECTYPE_LIBHEAD)
 					libhead.parse(rec);
@@ -9087,7 +9198,7 @@ namespace DOSLIBLinker {
 						modules.push_back(std::move(linker_object_module()));
 						linker_object_module &module = modules.back(); // referce to the instance we just pushed onto the vector
 						module.moduleinfo.source_format = SRCFMT_OMF;
-						if (!read_module(module,adr,headrec,rec,path,fp,libhead.record_length,libhead.dict_offset))
+						if (!read_module(module,adr,headrec,rec,path,fp,log,libhead.record_length,libhead.dict_offset))
 							return false;
 					}
 					else if (rec.type == RECTYPE_LIBEND) {
@@ -9099,10 +9210,12 @@ namespace DOSLIBLinker {
 				XADR adr;
 				adr.parse(rec);
 
+				log->log(LNKLOG_DEBUG,"%s is an OMF object file",path);
+
 				modules.push_back(std::move(linker_object_module()));
 				linker_object_module &module = modules.back(); // referce to the instance we just pushed onto the vector
 				module.moduleinfo.source_format = SRCFMT_OMF;
-				if (!read_module(module,adr,rec,rec,path,fp))
+				if (!read_module(module,adr,rec,rec,path,fp,log))
 					return false;
 			}
 			else {
@@ -9112,17 +9225,23 @@ namespace DOSLIBLinker {
 			return true;
 		}
 
-		bool read(std::vector<linker_object_module> &modules,const char *path) {
+		bool read(std::vector<linker_object_module> &modules,const char *path,log_callback *log=NULL) {
 			file_stdio_io fp;
 
 			if (!fp.open(path))
 				return false;
 
-			return read(modules,fp,path);
+			return read(modules,fp,path,log);
 		}
 
 	}
 
+}
+#endif
+
+#ifdef LNKDEV
+static void link_log_callback(const int level,void *_user,const char *str) {
+	fprintf(stderr,"linker(%d): %s\n",level,str);
 }
 #endif
 
@@ -9136,13 +9255,18 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
 #ifdef LNKDEV
 	{
+		DOSLIBLinker::log_callback log;
 		std::vector<DOSLIBLinker::linker_object_module> modules;
+
+		log.minimum_log_level = DOSLIBLinker::LNKLOG_DEBUGMORE;
+		log.callback = link_log_callback;
+
 		// test cases, the hw/cpu/dos86l directory of my DOSLIB development Git repository after a build
-		if (!DOSLIBLinker::OMF::read(modules,"cpu.lib"))
+		if (!DOSLIBLinker::OMF::read(modules,"cpu.lib",&log))
 			fprintf(stderr,"Fail cpu.lib\n");
-		if (!DOSLIBLinker::OMF::read(modules,"sseoff.obj"))
+		if (!DOSLIBLinker::OMF::read(modules,"sseoff.obj",&log))
 			fprintf(stderr,"Fail sseoff.obj\n");
-		if (!DOSLIBLinker::OMF::read(modules,"hello.obj"))
+		if (!DOSLIBLinker::OMF::read(modules,"hello.obj",&log))
 			fprintf(stderr,"Fail hello.obj\n");
 
 		for (auto mi=modules.begin();mi!=modules.end();mi++) {
