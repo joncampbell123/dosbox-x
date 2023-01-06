@@ -7627,41 +7627,58 @@ std::wstring win32_prompt_folder(const char *default_folder) {
 namespace DOSLIBLinker {
 
 	typedef uint64_t			segment_size_t;			// segment size in bytes
-	typedef uint64_t			segment_offset_t;		// offset within a segment
-	typedef int32_t				segment_relative_t;		// offset in segments. In real mode, as paragraphs. In protected mode, as index numbers. Can be negative.
-	typedef uint64_t			alignmask_t;			// alignment mask (bit mask)
-	typedef uint64_t			file_offset_t;			// file offset
-	typedef uint64_t			linear_addr_t;			// linear (flat) memory address
-	typedef size_t				source_ref_t;			// source index
-	typedef unsigned int			segment_flags_t;		// segment flags
-	typedef unsigned int			cpu_major_type_t;		// CPU type (major category)
-	typedef unsigned int			cpu_minor_type_t;		// CPU type (minor within category)
-	typedef unsigned int			cpu_flags_t;			// CPU flags, meaning depends on CPU type
-	typedef size_t				segment_ref_t;			// segment ref
-	typedef size_t				group_ref_t;			// group ref
-	typedef size_t				string_ref_t;			// string index reference
-	typedef uint8_t				fixup_method_t;			// fixup method
-	typedef uint8_t				fixup_how_t;			// fixup how
-	typedef uint8_t				symbol_type_t;			// symbol type
-	typedef size_t				symbol_ref_t;			// symbol reference
-	typedef size_t				fixup_method_index_t;		// index behind fixup method
-
 	static constexpr segment_size_t		segment_size_undef = ~((uint64_t)(0ull));
+
+	typedef uint64_t			segment_offset_t;		// offset within a segment
 	static constexpr segment_offset_t	segment_offset_undef = ~((uint64_t)(0ull));
+
+	typedef int32_t				segment_relative_t;		// offset in segments. In real mode, as paragraphs. In protected mode, as index numbers. Can be negative.
 	static constexpr segment_relative_t	segment_relative_undef = ~((int32_t)(0x7FFFFFFF));
+
+	typedef uint64_t			file_offset_t;			// file offset
 	static constexpr file_offset_t		file_offset_undef = ~((uint64_t)(0ull));
+
+	typedef uint64_t			linear_addr_t;			// linear (flat) memory address
 	static constexpr linear_addr_t		linear_addr_undef = ~((uint64_t)(0ull));
+
+	typedef size_t				source_ref_t;			// source index
 	static constexpr source_ref_t		source_ref_undef = ~((size_t)(0ul));
-	static constexpr group_ref_t		group_ref_undef = ~((size_t)(0ul));
+
+	typedef uint64_t			alignmask_t;			// alignment mask (bit mask)
+
+	typedef unsigned int			segment_flags_t;		// segment flags
+
+	typedef unsigned int			cpu_major_type_t;		// CPU type (major category)
 	static constexpr cpu_major_type_t	cpu_major_undef = ~((unsigned int)(0u));
+
+	typedef unsigned int			cpu_minor_type_t;		// CPU type (minor within category)
 	static constexpr cpu_minor_type_t	cpu_minor_undef = ~((unsigned int)(0u));
+
+	typedef size_t				segment_ref_t;			// segment ref
 	static constexpr segment_ref_t		segment_ref_undef = ~((size_t)(0ul));
+
+	typedef size_t				group_ref_t;			// group ref
+	static constexpr group_ref_t		group_ref_undef = ~((size_t)(0ul));
+
+	typedef size_t				string_ref_t;			// string index reference
 	static constexpr string_ref_t		string_ref_undef = ~((size_t)(0ul));
+
+	typedef uint8_t				fixup_method_t;			// fixup method
 	static constexpr fixup_method_t		fixup_method_undef = ~((uint8_t)(0u));
+
+	typedef uint8_t				fixup_how_t;			// fixup how
 	static constexpr fixup_how_t		fixup_how_undef = ~((uint8_t)(0u));
+
+	typedef uint8_t				symbol_type_t;			// symbol type
 	static constexpr symbol_type_t		symbol_type_undef = ~((uint8_t)(0u));
+
+	typedef size_t				symbol_ref_t;			// symbol reference
 	static constexpr symbol_ref_t		symbol_ref_undef = ~((size_t)(0ul));
+
+	typedef size_t				fixup_method_index_t;		// index behind fixup method
 	static constexpr fixup_method_index_t	fixup_method_index_undef = ~((size_t)(0ul));
+
+	typedef unsigned int			cpu_flags_t;			// CPU flags, meaning depends on CPU type
 
 	static constexpr alignmask_t		byte_align_mask = ~((alignmask_t)(0ull));
 	static constexpr alignmask_t		word_align_mask = ~((alignmask_t)(1ull));
@@ -7715,6 +7732,12 @@ namespace DOSLIBLinker {
 	static constexpr symbol_type_t		SYMTYPE_LOCAL_EXTERN = 11; // external symbol local to module
 	static constexpr symbol_type_t		SYMTYPE_LOCAL_PUBLIC = 12; // public symbol local to module
 
+	// module source formats
+	static const unsigned int		SRCFMT_UNSPEC = 0;
+	static const unsigned int		SRCFMT_OMF = 1; // relocatable object module format
+
+	static_assert(segment_size_undef == 0xFFFFFFFFFFFFFFFFull, "constant failure");
+
 	// some object formats index from 1 instead of zero
 	template <typename T> static constexpr inline T from1based(const T x) { /* 1-based to zero based */
 		return x - T(1u);
@@ -7736,8 +7759,6 @@ namespace DOSLIBLinker {
 		refT add(T &&s);
 	};
 
-	typedef _common_ref2table_bidi_t<std::string,string_ref_t> stringtable_t;
-
 	template <typename T,typename refT> struct _common_ref2table_t {
 		std::vector<T>				ref;
 
@@ -7745,14 +7766,6 @@ namespace DOSLIBLinker {
 		const T &get(const refT x) const;
 		T &get(const refT x);
 		refT allocate(void);
-	};
-
-	struct symbol_t {
-		symbol_type_t				type = symbol_type_undef; // type of symbol
-		string_ref_t				name = string_ref_undef; // name of symbol
-		group_ref_t				group = group_ref_undef; // group of symbol (OMF)
-		segment_ref_t				segref = segment_ref_undef; // segment symbol belongs to (undefined if extern)
-		segment_offset_t			offset = segment_offset_undef; // offset within fragment
 	};
 
 	template <typename T,typename refT,typename reverseT> struct _common_ref2symtable_t {
@@ -7765,48 +7778,20 @@ namespace DOSLIBLinker {
 		refT add(const reverseT &name);
 	};
 
+	typedef _common_ref2table_bidi_t<std::string,string_ref_t> stringtable_t;
+
+	struct symbol_t {
+		symbol_type_t				type = symbol_type_undef; // type of symbol
+		string_ref_t				name = string_ref_undef; // name of symbol
+		group_ref_t				group = group_ref_undef; // group of symbol (OMF)
+		segment_ref_t				segref = segment_ref_undef; // segment symbol belongs to (undefined if extern)
+		segment_offset_t			offset = segment_offset_undef; // offset within fragment
+	};
+
 	struct symbol_table_t : public _common_ref2symtable_t<symbol_t,symbol_ref_t,string_ref_t> {
 		symbol_table_t() : _common_ref2symtable_t<symbol_t,symbol_ref_t,string_ref_t>() { }
 		void sortbyname(const stringtable_t &st);
 	};
-
-	const stringtable_t *symbol_table_sort_name_func_strings = NULL;
-
-	unsigned int symbol_type_to_priority_sort_val(const symbol_type_t t) {
-		switch (t) {
-			case SYMTYPE_LOCAL_PUBLIC:	return 4;
-			case SYMTYPE_PUBLIC:		return 3;
-			case SYMTYPE_LOCAL_EXTERN:	return 2;
-			case SYMTYPE_EXTERN:		return 1;
-			default:			break;
-		};
-
-		return 0;
-	}
-
-	bool symbol_table_name_sort_func(const symbol_t &a,const symbol_t &b) {
-		/* strings are different if string refs differ, if so sort alphabetically A-Z */
-		if (a.name != b.name) {
-			const char *sa = symbol_table_sort_name_func_strings->get(a.name).c_str();
-			const char *sb = symbol_table_sort_name_func_strings->get(b.name).c_str();
-			return strcmp(sa,sb) < 0; /* a < b   assume strcmp() != 0 */
-		}
-
-		/* string refs match, sort by type priority, highest to lowest */
-		const unsigned int pra = symbol_type_to_priority_sort_val(a.type);
-		const unsigned int prb = symbol_type_to_priority_sort_val(b.type);
-		if (pra != prb) return pra > prb; /* we want higher priority first before lower priority */
-
-		/* nothing to do */
-		return false;
-	}
-
-	void symbol_table_t::sortbyname(const stringtable_t &st) {
-		name2t.clear();
-		symbol_table_sort_name_func_strings = &st;
-		std::sort(ref2t.begin(),ref2t.end(),symbol_table_name_sort_func);
-		for (size_t si=0;si < ref2t.size();si++) name2t[ref2t[si].name/*string ref*/].push_back(si/*symbol ref*/);
-	}
 
 	struct fixup_t {
 		/* NTS: the index, according to method, can be a segment reference, group reference, or EXTERN reference */
@@ -7832,8 +7817,6 @@ namespace DOSLIBLinker {
 		bool				is_library = false;
 	};
 
-	typedef _common_ref2table_t<source_t,source_ref_t> source_table_t;
-
 	struct segment_t {
 		segment_flags_t			flags = 0; // segment flags
 		alignmask_t			alignmask = 0; // segment alignment
@@ -7857,9 +7840,40 @@ namespace DOSLIBLinker {
 		//      in which case rel_segments is negative number -0x10 for entry point rel_segments:0x100 to point to base of executable image.
 	};
 
-	typedef _common_ref2table_t<segment_t,segment_ref_t> segment_table_t;
+	struct moduleinfo_t {
+		unsigned int			source_format = SRCFMT_UNSPEC;
+		fixup_t				entry_point;
+		bool				is_main = false;
+		bool				has_entry = false;
+		bool				optimized = false;
+		bool				dosseg = false; // DOSSEG switch
+		int16_t				intel_cpulevel = -1;
+		int32_t				m68k_cpulevel = -1;
+		int				memory_model = -1;
+		std::vector<string_ref_t>	default_library_search;
+	};
 
-	static_assert(segment_size_undef == 0xFFFFFFFFFFFFFFFFull, "constant failure");
+	struct group_t {
+		string_ref_t			name = string_ref_undef;
+		std::vector<segment_ref_t>	segment_members;
+	};
+
+	typedef _common_ref2table_t<group_t,group_ref_t> group_table_t;
+	typedef _common_ref2table_t<source_t,source_ref_t> source_table_t;
+	typedef _common_ref2table_t<segment_t,segment_ref_t> segment_table_t;
+	typedef struct std::vector<segment_ref_t> segment_order_list_t;
+
+	struct linkstate {
+		source_table_t			sources;
+		stringtable_t			strings;
+		segment_table_t			segments;
+		symbol_table_t			symbols;
+		segment_order_list_t		segment_order;
+		moduleinfo_t			moduleinfo;
+		group_table_t			groups;
+
+		std::string			fixup_to_string(const fixup_method_t m,const fixup_method_index_t i);
+	};
 
 	static constexpr inline alignmask_t align_mask_to_value(const alignmask_t v) {
 		return (~v) + ((alignmask_t)1u);
@@ -7965,30 +7979,43 @@ namespace DOSLIBLinker {
 		return newi;
 	}
 
-	typedef struct std::vector<segment_ref_t> segment_order_list_t;
+	const stringtable_t *symbol_table_sort_name_func_strings = NULL;
 
-	static const unsigned int		SRCFMT_UNSPEC = 0;
-	static const unsigned int		SRCFMT_OMF = 1; // relocatable object module format
+	unsigned int symbol_type_to_priority_sort_val(const symbol_type_t t) {
+		switch (t) {
+			case SYMTYPE_LOCAL_PUBLIC:	return 4;
+			case SYMTYPE_PUBLIC:		return 3;
+			case SYMTYPE_LOCAL_EXTERN:	return 2;
+			case SYMTYPE_EXTERN:		return 1;
+			default:			break;
+		};
 
-	struct moduleinfo_t {
-		unsigned int			source_format = SRCFMT_UNSPEC;
-		fixup_t				entry_point;
-		bool				is_main = false;
-		bool				has_entry = false;
-		bool				optimized = false;
-		bool				dosseg = false; // DOSSEG switch
-		int16_t				intel_cpulevel = -1;
-		int32_t				m68k_cpulevel = -1;
-		int				memory_model = -1;
-		std::vector<string_ref_t>	default_library_search;
-	};
+		return 0;
+	}
 
-	struct group_t {
-		string_ref_t			name = string_ref_undef;
-		std::vector<segment_ref_t>	segment_members;
-	};
+	bool symbol_table_name_sort_func(const symbol_t &a,const symbol_t &b) {
+		/* strings are different if string refs differ, if so sort alphabetically A-Z */
+		if (a.name != b.name) {
+			const char *sa = symbol_table_sort_name_func_strings->get(a.name).c_str();
+			const char *sb = symbol_table_sort_name_func_strings->get(b.name).c_str();
+			return strcmp(sa,sb) < 0; /* a < b   assume strcmp() != 0 */
+		}
 
-	typedef _common_ref2table_t<group_t,group_ref_t> group_table_t;
+		/* string refs match, sort by type priority, highest to lowest */
+		const unsigned int pra = symbol_type_to_priority_sort_val(a.type);
+		const unsigned int prb = symbol_type_to_priority_sort_val(b.type);
+		if (pra != prb) return pra > prb; /* we want higher priority first before lower priority */
+
+		/* nothing to do */
+		return false;
+	}
+
+	void symbol_table_t::sortbyname(const stringtable_t &st) {
+		name2t.clear();
+		symbol_table_sort_name_func_strings = &st;
+		std::sort(ref2t.begin(),ref2t.end(),symbol_table_name_sort_func);
+		for (size_t si=0;si < ref2t.size();si++) name2t[ref2t[si].name/*string ref*/].push_back(si/*symbol ref*/);
+	}
 
 	const char *fixup_how_to_string(const fixup_how_t h) {
 		switch (h) {
@@ -8002,18 +8029,6 @@ namespace DOSLIBLinker {
 
 		return "?";
 	}
-
-	struct linkstate {
-		source_table_t			sources;
-		stringtable_t			strings;
-		segment_table_t			segments;
-		symbol_table_t			symbols;
-		segment_order_list_t		segment_order;
-		moduleinfo_t			moduleinfo;
-		group_table_t			groups;
-
-		std::string			fixup_to_string(const fixup_method_t m,const fixup_method_index_t i);
-	};
 
 	std::string linkstate::fixup_to_string(const fixup_method_t m,const fixup_method_index_t i) {
 		std::string r;
