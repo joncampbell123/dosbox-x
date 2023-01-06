@@ -8390,12 +8390,12 @@ namespace DOSLIBLinker {
 		}
 	}
 
-	bool OMF_read_record(OMF_record &rec,FILE *fp/*TODO READER OBJECT*/,uint16_t block_size=0,uint32_t dict_offset=0) {
+	bool OMF_read_record(OMF_record &rec,file_io &fp/*TODO READER OBJECT*/,uint16_t block_size=0,uint32_t dict_offset=0) {
 		unsigned char hdr[3],chk;
 		uint16_t len;
 
 		/* note header offset */
-		rec.file_offset = ftell(fp);
+		rec.file_offset = fp.tell();
 
 		/* header:
 		 *
@@ -8405,7 +8405,7 @@ namespace DOSLIBLinker {
 		 *
 		 * MS-DOS 16-bit linkers for arcane reasons probably related to FCBs and record length
 		 * like to use multiples of 512 bytes, supposedly. */
-		if (fread(hdr,3,1,fp) != 1)
+		if (!fp.read(hdr,3))
 			return false;
 
 		/* type and length */
@@ -8415,11 +8415,11 @@ namespace DOSLIBLinker {
 
 		/* read in length - 1 (data region) */
 		rec.record.resize(len-1u);
-		if (fread(&rec.record[0],len-1u,1,fp) != 1)
+		if (!fp.read(&rec.record[0],len-1u))
 			return false;
 
 		/* read in checksum byte */
-		if (fread(&chk,1,1,fp) != 1)
+		if (!fp.read(&chk,1))
 			return false;
 
 		/* checksum is optional */
@@ -8438,13 +8438,13 @@ namespace DOSLIBLinker {
 
 		if (rec.type == OMFRECT_MODEND || rec.type == OMFRECT_MODEND_32) {
 			if (block_size > 0) {
-				unsigned long ofs = ftell(fp);
-				ofs += (unsigned long)block_size - 1ul;
-				ofs -= ofs % (unsigned long)block_size;
-				fseek(fp,(long)ofs,SEEK_SET);
+				off_t ofs = fp.tell();
+				ofs += (off_t)block_size - (off_t)1;
+				ofs -= ofs % (off_t)block_size;
+				fp.seek(ofs);
 			}
 			if (dict_offset != 0u) {
-				if ((unsigned long)ftell(fp) >= (unsigned long)dict_offset)
+				if (fp.tell() >= (off_t)dict_offset)
 					return false;
 			}
 		}
@@ -9000,7 +9000,7 @@ namespace DOSLIBLinker {
 		return true;
 	}
 
-	bool OMF_read_module(linkstate &module,OMF_XADR &adr,const OMF_record &first_rec,const OMF_record &current_rec,const char *path,FILE *fp,uint16_t blocksize=0,uint32_t dict_offset=0) {
+	bool OMF_read_module(linkstate &module,OMF_XADR &adr,const OMF_record &first_rec,const OMF_record &current_rec,const char *path,file_io &fp,uint16_t blocksize=0,uint32_t dict_offset=0) {
 		/* already read the THEADR/LHEADR */
 		const source_ref_t source_ref = module.sources.allocate();
 		source_t &source = module.sources.get(source_ref);
@@ -9065,19 +9065,13 @@ namespace DOSLIBLinker {
 		return true;
 	}
 
-	bool OMF_read(std::vector<linkstate> &modules,const char *path/*TODO READER OBJECT*/) {
+	bool OMF_read(std::vector<linkstate> &modules,file_io &fp,const char *path) {
 		OMF_LIBHEAD libhead;
 		OMF_record rec;
-		FILE *fp;
-
-		if ((fp=fopen(path,"rb")) == NULL)
-			return false;
 
 		/* the first record must be THEADR (single object) or LHEADR (library) */
-		if (!OMF_read_record(rec,fp)) {
-			fclose(fp);
+		if (!OMF_read_record(rec,fp))
 			return false;
-		}
 
 		if (rec.type == OMFRECT_LIBHEAD || rec.type == OMFRECT_LHEADR) {
 			OMF_record headrec = rec;
@@ -9093,10 +9087,8 @@ namespace DOSLIBLinker {
 					modules.push_back(std::move(linkstate()));
 					linkstate &module = modules.back();
 					module.moduleinfo.source_format = SRCFMT_OMF;
-					if (!OMF_read_module(module,adr,headrec,rec,path,fp,libhead.record_length,libhead.dict_offset)) {
-						fclose(fp);
+					if (!OMF_read_module(module,adr,headrec,rec,path,fp,libhead.record_length,libhead.dict_offset))
 						return false;
-					}
 				}
 				else if (rec.type == OMFRECT_LIBEND) {
 					break;
@@ -9110,18 +9102,23 @@ namespace DOSLIBLinker {
 			modules.push_back(std::move(linkstate()));
 			linkstate &module = modules.back();
 			module.moduleinfo.source_format = SRCFMT_OMF;
-			if (!OMF_read_module(module,adr,rec,rec,path,fp)) {
-				fclose(fp);
+			if (!OMF_read_module(module,adr,rec,rec,path,fp))
 				return false;
-			}
 		}
 		else {
-			fclose(fp);
 			return false;
 		}
 
-		fclose(fp);
 		return true;
+	}
+
+	bool OMF_read(std::vector<linkstate> &modules,const char *path) {
+		file_stdio_io fp;
+
+		if (!fp.open(path))
+			return false;
+
+		return OMF_read(modules,fp,path);
 	}
 
 }
