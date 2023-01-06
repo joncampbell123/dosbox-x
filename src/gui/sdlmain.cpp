@@ -7702,6 +7702,7 @@ namespace DOSLIBLinker {
 	static constexpr segment_flags_t	SEGFLAG_STACK = segment_flags_t(1u << 7u); // stack segment
 	static constexpr segment_flags_t	SEGFLAG_COMMON = segment_flags_t(1u << 8u); // common
 	static constexpr segment_flags_t	SEGFLAG_DELETED = segment_flags_t(1u << 9u); // deleted segment, do not consider anything
+	static constexpr segment_flags_t	SEGFLAG_PADDING = segment_flags_t(1u << 10u); // it's just padding
 
 	// cpu_major == CPUMAJT_INTELX86
 	static constexpr cpu_flags_t		CPUFLAG_INTELX86_BIG386 = cpu_flags_t(1u << 0u); // (i386) segment should be loaded as "big" 4GB limit (B bit)
@@ -7896,6 +7897,7 @@ namespace DOSLIBLinker {
 		string_ref_t			name = string_ref_undef;		// segment name
 		string_ref_t			classname = string_ref_undef;		// segment class
 		group_ref_t			groupref = group_ref_undef;		// segment group
+		uint64_t			user_order = 0;				// user controllable sort order param
 		unsigned int			format_index = 0;			// format specific index
 		std::vector<uint8_t>		data;					// segment data if applicable
 		std::vector<fixup_t>		fixups;					// fixups of segment
@@ -7937,6 +7939,10 @@ namespace DOSLIBLinker {
 		group_table_t			groups;
 
 		std::string			fixup_to_string(const fixup_method_t m,const fixup_method_index_t i);
+
+		void				gen_sort_segments(void);
+
+		static bool			gen_sort_func(const segment_ref_t a,const segment_ref_t b);
 	};
 
 	static constexpr inline alignmask_t align_mask_to_value(const alignmask_t v) {
@@ -8043,8 +8049,7 @@ namespace DOSLIBLinker {
 		return newi;
 	}
 
-	const stringtable_t *symbol_table_sort_name_func_strings = NULL;
-
+	static const stringtable_t *symbol_table_sort_name_func_strings = NULL;
 	unsigned int symbol_type_to_priority_sort_val(const symbol_type_t t) {
 		switch (t) {
 			case SYMTYPE_LOCAL_PUBLIC:	return 4;
@@ -8092,6 +8097,38 @@ namespace DOSLIBLinker {
 		};
 
 		return "?";
+	}
+
+	static const linker_object_module *lom_sort_ref = NULL;
+	bool linker_object_module::gen_sort_func(const segment_ref_t a,const segment_ref_t b) {
+		/* do not move undef */
+		if (a == segment_ref_undef || b == segment_ref_undef) return false;
+
+		const segment_t &sa = lom_sort_ref->segments.get(a);
+		const segment_t &sb = lom_sort_ref->segments.get(b);
+
+		/* do not move pinned */
+		if (sa.flags & SEGFLAG_PINNED) return false;
+		if (sb.flags & SEGFLAG_PINNED) return false;
+
+		/* caller or loader arrangement takes priority */
+		if (sa.user_order != sb.user_order) return sa.user_order < sb.user_order;
+		/* then CPU (why would you mix 16/32-bit in one segment you weirdo?) */
+		if (sa.cpu_major != sb.cpu_major) return sa.cpu_major < sb.cpu_major;
+		if (sa.cpu_minor != sb.cpu_minor) return sa.cpu_minor < sb.cpu_minor;
+		/* then group */
+		if (sa.groupref != sb.groupref) return sa.groupref < sb.groupref;
+		/* then class */
+		if (sa.classname != sb.classname) return sa.classname < sb.classname;
+		/* then name */
+		if (sa.name != sb.name) return sa.name < sb.name;
+
+		return false;
+	}
+
+	void linker_object_module::gen_sort_segments(void) {
+		lom_sort_ref = this;
+		std::sort(segment_order.begin(),segment_order.end(),linker_object_module::gen_sort_func);
 	}
 
 	std::string linker_object_module::fixup_to_string(const fixup_method_t m,const fixup_method_index_t i) {
@@ -9165,6 +9202,8 @@ namespace DOSLIBLinker {
 			for (size_t i=0;i < module.segments.ref.size();i++) module.segment_order.push_back(segment_ref_t(i));
 
 			module.symbols.sortbyname(module.strings);
+
+			module.gen_sort_segments();
 
 			return true;
 		}
