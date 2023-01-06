@@ -7619,12 +7619,12 @@ std::wstring win32_prompt_folder(const char *default_folder) {
 }
 #endif
 
-//#define LNKDEV
+#define LNKDEV
 
 #ifdef LNKDEV
 #include <unordered_map>
 
-namespace linker {
+namespace DOSLIBLinker {
 
 	typedef uint64_t			segment_size_t;			// segment size in bytes
 	typedef uint64_t			segment_offset_t;		// offset within a segment
@@ -8909,13 +8909,13 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
 #ifdef LNKDEV
 	{
-		std::vector<linker::linkstate> modules;
+		std::vector<DOSLIBLinker::linkstate> modules;
 		// test cases, the hw/cpu/dos86l directory of my DOSLIB development Git repository after a build
-		if (!linker::OMF_read(modules,"cpu.lib"))
+		if (!DOSLIBLinker::OMF_read(modules,"cpu.lib"))
 			fprintf(stderr,"Fail cpu.lib\n");
-		if (!linker::OMF_read(modules,"sseoff.obj"))
+		if (!DOSLIBLinker::OMF_read(modules,"sseoff.obj"))
 			fprintf(stderr,"Fail sseoff.obj\n");
-		if (!linker::OMF_read(modules,"hello.obj"))
+		if (!DOSLIBLinker::OMF_read(modules,"hello.obj"))
 			fprintf(stderr,"Fail hello.obj\n");
 
 		for (auto mi=modules.begin();mi!=modules.end();mi++) {
@@ -8937,9 +8937,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					module.strings.get(segm.classname).c_str(),
 					module.strings.get(segm.groupname).c_str(),
 					(unsigned long)segm.size,
-					(unsigned long)linker::align_mask_to_value(segm.alignmask),
+					(unsigned long)DOSLIBLinker::align_mask_to_value(segm.alignmask),
 					(unsigned long)segm.flags,
-					(segm.cpu_major == linker::CPUMAJT_INTELX86 && segm.cpu_minor == linker::CPUMINT_INTELX86_386)?32:16);
+					(segm.cpu_major == DOSLIBLinker::CPUMAJT_INTELX86 && segm.cpu_minor == DOSLIBLinker::CPUMINT_INTELX86_386)?32:16);
 				if (!segm.data.empty()) {
 					size_t o=0;
 
@@ -8967,7 +8967,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 						fprintf(stderr,"        Target: index=%lu method=%u",
 							(unsigned long)f.target_index,
 							f.target_method);
-						if (f.target_offset != linker::segment_offset_undef) {
+						if (f.target_offset != DOSLIBLinker::segment_offset_undef) {
 							fprintf(stderr," targetoffset=0x%08lx",
 								(unsigned long)f.target_offset);
 						}
@@ -8977,7 +8977,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 						fprintf(stderr,"        segmentrel=%u offset=0x%08lx how=%s\n",
 							f.segment_relative,
 							(unsigned long)f.fixup_offset,
-							linker::fixup_how_to_string(f.fixup_how));
+							DOSLIBLinker::fixup_how_to_string(f.fixup_how));
 					}
 				}
 			}
@@ -9001,25 +9001,25 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			}
 			fprintf(stderr,"  Symbols:\n");
 			for (size_t si=0;si < module.symbols.ref2t.size();si++) {
-				const auto &sym = module.symbols.get(linker::symbol_ref_t(si));
+				const auto &sym = module.symbols.get(DOSLIBLinker::symbol_ref_t(si));
 				fprintf(stderr,"    '%s' ",module.strings.get(sym.name).c_str());
 				switch (sym.type) {
-					case linker::SYMTYPE_DELETED: fprintf(stderr,"(DELETED) "); break;
-					case linker::SYMTYPE_EXTERN: fprintf(stderr,"(extern) "); break;
-					case linker::SYMTYPE_PUBLIC: fprintf(stderr,"(public) "); break;
-					case linker::SYMTYPE_LOCAL_EXTERN: fprintf(stderr,"(localextern) "); break;
-					case linker::SYMTYPE_LOCAL_PUBLIC: fprintf(stderr,"(localpublic) "); break;
+					case DOSLIBLinker::SYMTYPE_DELETED: fprintf(stderr,"(DELETED) "); break;
+					case DOSLIBLinker::SYMTYPE_EXTERN: fprintf(stderr,"(extern) "); break;
+					case DOSLIBLinker::SYMTYPE_PUBLIC: fprintf(stderr,"(public) "); break;
+					case DOSLIBLinker::SYMTYPE_LOCAL_EXTERN: fprintf(stderr,"(localextern) "); break;
+					case DOSLIBLinker::SYMTYPE_LOCAL_PUBLIC: fprintf(stderr,"(localpublic) "); break;
 					default: fprintf(stderr,"(%lu""??"") ",(unsigned long)sym.type); break;
 				}
-				if (sym.group != linker::segment_ref_undef) {
+				if (sym.group != DOSLIBLinker::segment_ref_undef) {
 					const auto &grpref = module.groups.get(sym.group);
 					fprintf(stderr,"group=('%s') ",module.strings.get(grpref.name).c_str());
 				}
-				if (sym.segref != linker::segment_ref_undef) {
+				if (sym.segref != DOSLIBLinker::segment_ref_undef) {
 					const auto &segref = module.segments.get(sym.segref);
 					fprintf(stderr,"segment=('%s') ",module.strings.get(segref.name).c_str());
 				}
-				if (sym.offset != linker::segment_offset_undef) {
+				if (sym.offset != DOSLIBLinker::segment_offset_undef) {
 					fprintf(stderr,"offset=0x%08lx ",(unsigned long)sym.offset);
 				}
 				fprintf(stderr,"\n");
