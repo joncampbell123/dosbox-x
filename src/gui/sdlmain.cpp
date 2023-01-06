@@ -7912,7 +7912,7 @@ namespace DOSLIBLinker {
 	typedef _common_ref2table_t<segment_t,segment_ref_t> segment_table_t;
 	typedef struct std::vector<segment_ref_t> segment_order_list_t;
 
-	struct linkstate {
+	struct linker_object_module {
 		source_table_t			sources;
 		stringtable_t			strings;
 		segment_table_t			segments;
@@ -8079,7 +8079,7 @@ namespace DOSLIBLinker {
 		return "?";
 	}
 
-	std::string linkstate::fixup_to_string(const fixup_method_t m,const fixup_method_index_t i) {
+	std::string linker_object_module::fixup_to_string(const fixup_method_t m,const fixup_method_index_t i) {
 		std::string r;
 		char tmp[64];
 
@@ -8363,7 +8363,7 @@ namespace DOSLIBLinker {
 
 	typedef _common_ref2table_t<symbol_ref_t,size_t> OMF_EXTDEF_table_t;
 
-	struct OMF_extra_linkstate {
+	struct OMF_extra_linker_object_module {
 		OMF_LNAMES_table_t		LNAMES; /* map LNAME index to string ref */
 		OMF_EXTDEF_table_t		EXTDEF; /* map EXTDEF to symbol ref */
 		segment_ref_t			last_LEDATA_segment = segment_ref_undef; /* last LEDATA segment */
@@ -8495,7 +8495,7 @@ namespace DOSLIBLinker {
 		return ref;
 	}
 
-	bool OMF_add_LNAMES(linkstate &module,OMF_extra_linkstate &modex,const OMF_record &rec) {
+	bool OMF_add_LNAMES(linker_object_module &module,OMF_extra_linker_object_module &modex,const OMF_record &rec) {
 		const uint8_t *ri = &rec.record[0];
 		const uint8_t *re = &rec.record[rec.record.size()];
 
@@ -8509,7 +8509,7 @@ namespace DOSLIBLinker {
 		return true;
 	}
 
-	bool OMF_add_SEGDEF(linkstate &module,OMF_extra_linkstate &modex,const OMF_record &rec) {
+	bool OMF_add_SEGDEF(linker_object_module &module,OMF_extra_linker_object_module &modex,const OMF_record &rec) {
 		const segment_ref_t segment_ref = module.segments.allocate();
 		segment_t &segref = module.segments.get(segment_ref);
 
@@ -8598,7 +8598,7 @@ namespace DOSLIBLinker {
 		return true;
 	}
 
-	bool OMF_add_GRPDEF(linkstate &module,OMF_extra_linkstate &modex,const OMF_record &rec) {
+	bool OMF_add_GRPDEF(linker_object_module &module,OMF_extra_linker_object_module &modex,const OMF_record &rec) {
 		const uint8_t *ri = &rec.record[0];
 		const uint8_t *re = &rec.record[rec.record.size()];
 
@@ -8632,7 +8632,7 @@ namespace DOSLIBLinker {
 		return true;
 	}
 
-	bool OMF_add_LEDATA(linkstate &module,OMF_extra_linkstate &modex,const OMF_record &rec) {
+	bool OMF_add_LEDATA(linker_object_module &module,OMF_extra_linker_object_module &modex,const OMF_record &rec) {
 		const uint8_t *ri = &rec.record[0];
 		const uint8_t *re = &rec.record[rec.record.size()];
 
@@ -8675,7 +8675,7 @@ namespace DOSLIBLinker {
 		return true;
 	}
 
-	bool OMF_add_EXTDEF(linkstate &module,OMF_extra_linkstate &modex,const OMF_record &rec) {
+	bool OMF_add_EXTDEF(linker_object_module &module,OMF_extra_linker_object_module &modex,const OMF_record &rec) {
 		const uint8_t *ri = &rec.record[0];
 		const uint8_t *re = &rec.record[rec.record.size()];
 
@@ -8702,7 +8702,7 @@ namespace DOSLIBLinker {
 		return true;
 	}
 
-	bool OMF_add_PUBDEF(linkstate &module,OMF_extra_linkstate &modex,const OMF_record &rec) {
+	bool OMF_add_PUBDEF(linker_object_module &module,OMF_extra_linker_object_module &modex,const OMF_record &rec) {
 		const uint8_t *ri = &rec.record[0];
 		const uint8_t *re = &rec.record[rec.record.size()];
 
@@ -8749,7 +8749,7 @@ namespace DOSLIBLinker {
 		return true;
 	}
 
-	bool OMF_add_MODEND(linkstate &module,OMF_extra_linkstate &modex,const OMF_record &rec) {
+	bool OMF_add_MODEND(linker_object_module &module,OMF_extra_linker_object_module &modex,const OMF_record &rec) {
 		const uint8_t *ri = &rec.record[0];
 		const uint8_t *re = &rec.record[rec.record.size()];
 
@@ -8805,7 +8805,7 @@ namespace DOSLIBLinker {
 		return true;
 	}
 
-	bool OMF_add_FIXUPP(linkstate &module,OMF_extra_linkstate &modex,const OMF_record &rec) {
+	bool OMF_add_FIXUPP(linker_object_module &module,OMF_extra_linker_object_module &modex,const OMF_record &rec) {
 		const uint8_t *ri = &rec.record[0];
 		const uint8_t *re = &rec.record[rec.record.size()];
 
@@ -8911,7 +8911,7 @@ namespace DOSLIBLinker {
 		return true;
 	}
 
-	bool OMF_add_COMENT(linkstate &module,OMF_extra_linkstate &modex,const OMF_record &rec) {
+	bool OMF_add_COMENT(linker_object_module &module,OMF_extra_linker_object_module &modex,const OMF_record &rec) {
 		const uint8_t *ri = &rec.record[0];
 		const uint8_t *re = &rec.record[rec.record.size()];
 
@@ -9000,7 +9000,7 @@ namespace DOSLIBLinker {
 		return true;
 	}
 
-	bool OMF_read_module(linkstate &module,OMF_XADR &adr,const OMF_record &first_rec,const OMF_record &current_rec,const char *path,file_io &fp,uint16_t blocksize=0,uint32_t dict_offset=0) {
+	bool OMF_read_module(linker_object_module &module,OMF_XADR &adr,const OMF_record &first_rec,const OMF_record &current_rec,const char *path,file_io &fp,uint16_t blocksize=0,uint32_t dict_offset=0) {
 		/* already read the THEADR/LHEADR */
 		const source_ref_t source_ref = module.sources.allocate();
 		source_t &source = module.sources.get(source_ref);
@@ -9010,7 +9010,7 @@ namespace DOSLIBLinker {
 		source.offset = current_rec.file_offset;
 		source.index = source_ref;
 
-		OMF_extra_linkstate modex;
+		OMF_extra_linker_object_module modex;
 		OMF_record rec;
 
 		while (OMF_read_record(rec,fp,blocksize,dict_offset)) {
@@ -9065,7 +9065,7 @@ namespace DOSLIBLinker {
 		return true;
 	}
 
-	bool OMF_read(std::vector<linkstate> &modules,file_io &fp,const char *path) {
+	bool OMF_read(std::vector<linker_object_module> &modules,file_io &fp,const char *path) {
 		OMF_LIBHEAD libhead;
 		OMF_record rec;
 
@@ -9084,8 +9084,8 @@ namespace DOSLIBLinker {
 					OMF_XADR adr;
 					adr.parse(rec);
 
-					modules.push_back(std::move(linkstate()));
-					linkstate &module = modules.back();
+					modules.push_back(std::move(linker_object_module()));
+					linker_object_module &module = modules.back(); // referce to the instance we just pushed onto the vector
 					module.moduleinfo.source_format = SRCFMT_OMF;
 					if (!OMF_read_module(module,adr,headrec,rec,path,fp,libhead.record_length,libhead.dict_offset))
 						return false;
@@ -9099,8 +9099,8 @@ namespace DOSLIBLinker {
 			OMF_XADR adr;
 			adr.parse(rec);
 
-			modules.push_back(std::move(linkstate()));
-			linkstate &module = modules.back();
+			modules.push_back(std::move(linker_object_module()));
+			linker_object_module &module = modules.back(); // referce to the instance we just pushed onto the vector
 			module.moduleinfo.source_format = SRCFMT_OMF;
 			if (!OMF_read_module(module,adr,rec,rec,path,fp))
 				return false;
@@ -9112,7 +9112,7 @@ namespace DOSLIBLinker {
 		return true;
 	}
 
-	bool OMF_read(std::vector<linkstate> &modules,const char *path) {
+	bool OMF_read(std::vector<linker_object_module> &modules,const char *path) {
 		file_stdio_io fp;
 
 		if (!fp.open(path))
@@ -9134,7 +9134,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
 #ifdef LNKDEV
 	{
-		std::vector<DOSLIBLinker::linkstate> modules;
+		std::vector<DOSLIBLinker::linker_object_module> modules;
 		// test cases, the hw/cpu/dos86l directory of my DOSLIB development Git repository after a build
 		if (!DOSLIBLinker::OMF_read(modules,"cpu.lib"))
 			fprintf(stderr,"Fail cpu.lib\n");
