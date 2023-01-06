@@ -7736,6 +7736,55 @@ namespace DOSLIBLinker {
 	static const unsigned int		SRCFMT_UNSPEC = 0;
 	static const unsigned int		SRCFMT_OMF = 1; // relocatable object module format
 
+	// common callback function setup
+	typedef void (*log_callback_func_t)(const char *classname,void *_user,const char *str);
+
+	struct log_callback {
+		log_callback_func_t		callback = (log_callback_func_t)NULL;
+		const char*			classname = NULL;
+		void*				_user = NULL;
+
+		log_callback();
+		log_callback(const char *n_classname);
+		void log(const char *fmt,...);
+	};
+
+	// file I/O abstraction
+	struct file_io {
+						file_io();
+		virtual				~file_io();
+
+		virtual bool			ok(void) const;
+		virtual off_t			size(void);
+		virtual off_t			tell(void);
+		virtual bool			seek(off_t ofs);
+		virtual bool			read(void *ptr,size_t len);
+		virtual bool			write(const void *ptr,size_t len);
+		virtual void			close(void);
+
+		int				last_error = 0; // ERRNO value
+		size_t				last_iosize = 0; // last read/write
+	};
+
+	// file I/O FILE*
+	struct file_stdio_io : public file_io {
+						file_stdio_io();
+						file_stdio_io(const char *path,const char *how=NULL);
+		virtual				~file_stdio_io();
+
+		virtual bool			ok(void) const;
+		virtual off_t			size(void);
+		virtual off_t			tell(void);
+		virtual bool			seek(off_t ofs);
+		virtual bool			read(void *ptr,size_t len);
+		virtual bool			write(const void *ptr,size_t len);
+		virtual void			close(void);
+
+		bool				open(const char *path,const char *how=NULL);
+
+		FILE*				fp = NULL;
+	};
+
 	static_assert(segment_size_undef == 0xFFFFFFFFFFFFFFFFull, "constant failure");
 
 	// some object formats index from 1 instead of zero
@@ -8065,6 +8114,169 @@ namespace DOSLIBLinker {
 
 		return r;
 	}
+
+	/////////////////////////
+
+	log_callback::log_callback() {
+	}
+
+	log_callback::log_callback(const char *n_classname) : classname(n_classname) {
+	}
+
+	void log_callback::log(const char *fmt,...) {
+		if (callback != NULL) {
+			static const size_t tmpsize = 512;
+			char *tmp = new char[tmpsize];
+			va_list va;
+
+			va_start(va,fmt);
+			vsnprintf(tmp,tmpsize,fmt,va); // NTS: sprintf() is documented to fit within tmpsize including NUL
+			callback(classname,_user,tmp);
+			va_end(va);
+
+			delete[] tmp;
+		}
+	}
+
+	/////////////////////////
+
+	file_io::file_io() {
+	}
+
+	file_io::~file_io() {
+	}
+
+	bool file_io::ok(void) const {
+		return false;
+	}
+
+	off_t file_io::size(void) {
+		last_error = ENOSYS;
+		return 0;
+	}
+
+	off_t file_io::tell(void) {
+		last_error = ENOSYS;
+		return 0;
+	}
+
+	bool file_io::seek(off_t ofs) {
+		(void)ofs;
+		last_error = ENOSYS;
+		return false;
+	}
+
+	bool file_io::read(void *ptr,size_t len) {
+		(void)ptr;
+		(void)len;
+		last_error = ENOSYS;
+		last_iosize = 0;
+		return false;
+	}
+
+	bool file_io::write(const void *ptr,size_t len) {
+		(void)ptr;
+		(void)len;
+		last_error = ENOSYS;
+		last_iosize = 0;
+		return false;
+	}
+
+	void file_io::close(void) {
+	}
+
+	/////////////////////////
+
+	file_stdio_io::file_stdio_io() : file_io() {
+		fp = NULL;
+	}
+
+	file_stdio_io::file_stdio_io(const char *path,const char *how) : file_io() {
+		open(path,how);
+	}
+
+	file_stdio_io::~file_stdio_io() {
+		close();
+	}
+
+	bool file_stdio_io::ok(void) const {
+		return (fp != NULL);
+	}
+
+	off_t file_stdio_io::size(void) {
+		if (fp != NULL) {
+			const off_t saved = (off_t)ftell(fp);
+			fseek(fp,0,SEEK_END);
+			const off_t size = (off_t)ftell(fp);
+			fseek(fp,(long)saved,SEEK_SET);
+			return size;
+		}
+		else {
+			last_error = EBADF;
+		}
+
+		return 0;
+	}
+
+	off_t file_stdio_io::tell(void) {
+		if (fp != NULL)
+			return (off_t)ftell(fp);
+		else
+			last_error = EBADF;
+
+		return 0;
+	}
+
+	bool file_stdio_io::seek(off_t ofs) {
+		if (fp != NULL) {
+			fseek(fp,(long)ofs,SEEK_SET);
+			return true;
+		}
+		else {
+			last_error = EBADF;
+			return false;
+		}
+	}
+
+	bool file_stdio_io::read(void *ptr,size_t len) {
+		if (fp != NULL) {
+			last_iosize = 0;
+			if (fread(ptr,len,1,fp) != 1) return false;
+			return true;
+		}
+		else {
+			last_error = EBADF;
+			return false;
+		}
+	}
+
+	bool file_stdio_io::write(const void *ptr,size_t len) {
+		if (fp != NULL) {
+			last_iosize = 0;
+			if (fwrite(ptr,len,1,fp) != 1) return false;
+			return true;
+		}
+		else {
+			last_error = EBADF;
+			return false;
+		}
+	}
+
+	void file_stdio_io::close(void) {
+		if (fp != NULL) {
+			fclose(fp);
+			fp = NULL;
+		}
+	}
+
+	bool file_stdio_io::open(const char *path,const char *how) {
+		close();
+		if (how == NULL) how = "rb";
+		fp = fopen(path,how);
+		return ok();
+	}
+
+	/////////////////////////
 
 	typedef uint8_t				omf_record_type_t;
 
@@ -8712,6 +8924,7 @@ namespace DOSLIBLinker {
 		const uint8_t ctype = OMF_read_byte(ri,re);
 		/* bit 7: no purge
 		 * bit 6: no list */
+		(void)ctype;//ignored
 		const uint8_t cclass = OMF_read_byte(ri,re);
 
 		if (cclass == OMFCOMENT_DEFAULT_LIBRARY_SEARCH_NAME) {
