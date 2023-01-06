@@ -7895,7 +7895,7 @@ namespace DOSLIBLinker {
 		source_ref_t			source = source_ref_undef; // segment first seen from this source
 		string_ref_t			name = string_ref_undef;		// segment name
 		string_ref_t			classname = string_ref_undef;		// segment class
-		string_ref_t			groupname = string_ref_undef;		// segment group
+		group_ref_t			groupref = group_ref_undef;		// segment group
 		unsigned int			format_index = 0;			// format specific index
 		std::vector<uint8_t>		data;					// segment data if applicable
 		std::vector<fixup_t>		fixups;					// fixups of segment
@@ -8650,10 +8650,10 @@ namespace DOSLIBLinker {
 					}
 					groupref.segment_members.push_back(segment_ref_t(from1based(segindex)));
 					segment_t &sref = module.segments.get(segment_ref_t(from1based(segindex)));
-					if (sref.groupname == string_ref_undef) {
-						sref.groupname = groupname;
+					if (sref.groupref == group_ref_undef) {
+						sref.groupref = grpdefidx;
 					}
-					else if (sref.groupname != groupname) { // I suppose it's perfectly fine for a GRPDEF to re-declare the same membership again
+					else if (sref.groupref != grpdefidx) { // I suppose it's perfectly fine for a GRPDEF to re-declare the same membership again
 						modex.log->log(LNKLOG_ERR,"GRPDEF refers to segments already part of another group");
 						return false; // a segment cannot be part of multiple groups in one module!
 					}
@@ -9286,7 +9286,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				fprintf(stderr,"  Segment name='%s' class='%s' group='%s' size=0x%lx align=%lu flags=0x%0lx USE%d\n",
 					module.strings.get(segm.name).c_str(),
 					module.strings.get(segm.classname).c_str(),
-					module.strings.get(segm.groupname).c_str(),
+					(segm.groupref != DOSLIBLinker::group_ref_undef) ? module.strings.get(module.groups.get(segm.groupref).name).c_str() : "",
 					(unsigned long)segm.size,
 					(unsigned long)DOSLIBLinker::align_mask_to_value(segm.alignmask),
 					(unsigned long)segm.flags,
