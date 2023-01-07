@@ -324,7 +324,11 @@ static void PIT0_Event(Bitu /*val*/) {
 			LOG_MSG("PIT0_Event timing error %.6fms",err);
 #endif
 
-		PIC_AddEvent(PIT0_Event,pit[0].delay - (err * 0.05));
+        if(pit[0].delay - (err * 0.05) <= 0) {
+            err = 0;
+            //LOG_MSG("PIT0_Event delay value negative, reset to 0", err);
+        }
+        PIC_AddEvent(PIT0_Event,pit[0].delay - (err * 0.05));
 	}
 }
 
