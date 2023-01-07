@@ -8549,6 +8549,25 @@ namespace DOSLIBLinker {
 			return 0x00;
 		}
 
+		uint32_t read_comlen(const uint8_t* &r,const uint8_t *e) {
+			uint32_t v = read_byte(r,e);
+			if (v == 0x81) {
+				v = read_word(r,e);
+			}
+			else if (v == 0x84) {
+				// FIXME: Is this right? Everything in OMF is little endian, so this would make sense.
+				v = read_word(r,e);
+				v |= read_byte(r,e) << 16u;
+			}
+			else if (v == 0x88) {
+				v = read_dword(r,e);
+			}
+			else if (v > 0x80) {
+				return 0;
+			}
+			return v;
+		}
+
 		string_ref_t read_lenstring(stringtable_t &st,const uint8_t* &r,const uint8_t *e) {
 			const uint8_t len = read_byte(r,e);
 			if ((r+len) > e) return string_ref_undef;
@@ -8877,6 +8896,58 @@ namespace DOSLIBLinker {
 					return false;
 				}
 				sym.segref = from1based(basesegindex);
+			}
+
+			return true;
+		}
+
+		bool add_COMDEF(linker_object_module &module,extra_linker_object_module &modex,const record &rec) {
+			const uint8_t *ri = &rec.record[0];
+			const uint8_t *re = &rec.record[rec.record.size()];
+
+			const bool local = (rec.type == RECTYPE_LCOMDEF);
+
+			/* <communal name> <type index> <data type> <communal length> */
+			while (ri < re) {
+				const string_ref_t name = read_lenstring(module.strings,ri,re);
+				if (name == string_ref_undef) {
+					modex.log->log(LNKLOG_ERR,"name read error");
+					return false;
+				}
+
+				const uint16_t typeindex = read_index(ri,re);
+				(void)typeindex;//ignored
+				const uint8_t datatype = read_byte(ri,re);
+				uint32_t comlen;
+
+				if (datatype == 0x62) {
+					// near data
+					comlen = read_comlen(ri,re);
+				}
+				else if (datatype == 0x61) {
+					// far data
+					const uint32_t elem = read_comlen(ri,re);
+					const uint32_t size = read_comlen(ri,re);
+					if (size == 0) {
+						modex.log->log(LNKLOG_ERR,"invalid COMDEF FAR data entry");
+						return false;
+					}
+
+					comlen = elem * size;
+				}
+				else {
+					// OMF spec unclear: Borland segment index? Does that mean there is a com len or not?
+					modex.log->log(LNKLOG_ERR,"Unhandled COMDEF entry type %02x",(unsigned int)datatype);
+					return false;
+				}
+
+				const symbol_ref_t symref = module.symbols.add(name);
+				symbol_t &sym = module.symbols.get(symref);
+				sym.type = local ? SYMTYPE_LOCAL_COMMON : SYMTYPE_COMMON;
+				if (comlen > uint32_t(0)) sym.size = segment_size_t(comlen);
+
+				/* COMDEF is counted in the EXTDEF table too. */
+				modex.EXTDEF.ref.push_back(symref);
 			}
 
 			return true;
@@ -9216,6 +9287,10 @@ namespace DOSLIBLinker {
 					if (!add_PUBDEF(module,modex,rec))
 						return false;
 				}
+				else if (rec.type == RECTYPE_COMDEF || rec.type == RECTYPE_LCOMDEF) {
+					if (!add_COMDEF(module,modex,rec))
+						return false;
+				}
 				// TODO: RECTYPE_LIDATA / RECTYPE_LIDATA_32 (iterated data), which is not often used except by Microsoft tools like Microsoft MASM.
 				else if (rec.type == RECTYPE_MODEND || rec.type == RECTYPE_MODEND_32) {
 					if (!add_MODEND(module,modex,rec))
@@ -9331,6 +9406,8 @@ namespace DOSLIBLinker {
 
 #ifdef LNKDEV
 static void link_log_callback(const int level,void *_user,const char *str) {
+	(void)_user;
+
 	fprintf(stderr,"linker(%d): %s\n",level,str);
 }
 #endif
@@ -9361,6 +9438,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 		DOSLIBLinker::OMF::read(modules,"0006.obj",&log);
 		DOSLIBLinker::OMF::read(modules,"0007.obj",&log);
 		DOSLIBLinker::OMF::read(modules,"0008.obj",&log);
+		DOSLIBLinker::OMF::read(modules,"0009.obj",&log);
 
 		for (auto mi=modules.begin();mi!=modules.end();mi++) {
 			fprintf(stderr,"Module %zu\n",(size_t)(mi-modules.begin()));
