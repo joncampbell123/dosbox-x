@@ -7709,6 +7709,7 @@ namespace DOSLIBLinker {
 	static constexpr segment_flags_t	SEGFLAG_COMMON = segment_flags_t(1u << 8u); // common
 	static constexpr segment_flags_t	SEGFLAG_DELETED = segment_flags_t(1u << 9u); // deleted segment, do not consider anything
 	static constexpr segment_flags_t	SEGFLAG_PADDING = segment_flags_t(1u << 10u); // it's just padding
+	static constexpr segment_flags_t	SEGFLAG_ABSOLUTE = segment_flags_t(1u << 11u); // rel_offset and rel_segment represent an absolute address
 
 	// cpu_major == CPUMAJT_INTELX86
 	static constexpr cpu_flags_t		CPUFLAG_INTELX86_BIG386 = cpu_flags_t(1u << 0u); // (i386) segment should be loaded as "big" 4GB limit (B bit)
@@ -8593,9 +8594,17 @@ namespace DOSLIBLinker {
 			uint8_t attr = read_byte(ri,re);
 
 			switch (attr>>5u) {
-				case 0: /* absolute segment (not supported here) even if Microsoft's linker supports it */
-					modex.log->log(LNKLOG_ERR,"SEGDEF with absolute segment not supported");
-					return false;
+				case 0: /* absolute segment, supported by Microsoft MASM+LINK and apparently even NASM will generate this now... yay! */
+					/* From the OMF spec: "Microsoft LINK ignores the offset field" yeah, well, we don't :) */
+					{
+						const uint16_t framenum = read_word(ri,re);
+						const uint16_t offset = read_byte(ri,re);
+						segref.alignmask = byte_align_mask;
+						segref.flags |= SEGFLAG_ABSOLUTE;
+						segref.rel_offset = segment_offset_t(offset);
+						segref.rel_segments = segment_relative_t(framenum);
+					}
+					break;
 				case 1: /* byte align */
 					segref.alignmask = byte_align_mask;
 					break;
@@ -9346,6 +9355,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 		DOSLIBLinker::OMF::read(modules,"0005.obj",&log);
 		DOSLIBLinker::OMF::read(modules,"0006.obj",&log);
 		DOSLIBLinker::OMF::read(modules,"0007.obj",&log);
+		DOSLIBLinker::OMF::read(modules,"0008.obj",&log);
 
 		for (auto mi=modules.begin();mi!=modules.end();mi++) {
 			fprintf(stderr,"Module %zu\n",(size_t)(mi-modules.begin()));
@@ -9369,6 +9379,16 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					(unsigned long)DOSLIBLinker::align_mask_to_value(segm.alignmask),
 					(unsigned long)segm.flags,
 					(segm.cpu_major == DOSLIBLinker::CPUMAJT_INTELX86 && segm.cpu_minor == DOSLIBLinker::CPUMINT_INTELX86_386)?32:16);
+
+				if (segm.rel_offset != DOSLIBLinker::segment_offset_undef || segm.rel_segments != DOSLIBLinker::segment_relative_undef) {
+					fprintf(stderr,"    Rel address: %04lx:%08lx\n",
+						(unsigned long)segm.rel_segments,
+						(unsigned long)segm.rel_offset);
+				}
+				if (segm.linear_addr != DOSLIBLinker::linear_addr_undef) {
+					fprintf(stderr,"    Lin address: %08lx\n",
+						(unsigned long)segm.linear_addr);
+				}
 
 				if (!segm.data.empty()) {
 					for (auto fi=segm.data.begin();fi!=segm.data.end();fi++) {
