@@ -8437,9 +8437,16 @@ namespace DOSLIBLinker {
 		struct extra_linker_object_module {
 			LNAMES_table_t			LNAMES; /* map LNAME index to string ref */
 			EXTDEF_table_t			EXTDEF; /* map EXTDEF to symbol ref */
-			segment_ref_t			last_LEDATA_segment = segment_ref_undef; /* last LEDATA segment */
-			segment_offset_t		last_LEDATA_offset = segment_offset_undef; /* last LEDATA offset */
+			segment_ref_t			last_LEDATA_segment = segment_ref_undef; /* last LEDATA/LIDATA segment */
+			segment_offset_t		last_LEDATA_offset = segment_offset_undef; /* last LEDATA/LIDATA offset */
 			log_callback*			log = NULL;
+
+			// LIDATA handling
+			std::vector<uint8_t>		LIDATA;
+			std::vector<fixup_t>		LIDATA_fixups;
+			segment_offset_t		LIDATA_offset = segment_offset_undef;
+			segment_ref_t			LIDATA_segment = segment_ref_undef;
+			bool				LIDATA_format32 = false;
 		};
 
 		void XADR::parse(const record &r) {
@@ -8588,6 +8595,146 @@ namespace DOSLIBLinker {
 
 		bool omf_segment_datafrag_sort_offset_func(const segment_frag_t &fa,const segment_frag_t &fb) {
 			return fa.data_offset < fb.data_offset;
+		}
+
+		bool last_was_LIDATA(linker_object_module &module,extra_linker_object_module &modex) {
+			(void)module;
+			if (modex.LIDATA_offset != segment_offset_undef || modex.LIDATA_segment != segment_ref_undef)
+				return true;
+			return false;
+		}
+
+		void discard_LIDATA(linker_object_module &module,extra_linker_object_module &modex) {
+			(void)module;
+			modex.LIDATA.clear();
+			modex.LIDATA_fixups.clear();
+			modex.LIDATA_offset = segment_offset_undef;
+			modex.LIDATA_segment = segment_ref_undef;
+		}
+
+		bool expand_LIDATA(linker_object_module &module,extra_linker_object_module &modex,segment_t &segref,segment_frag_t &sfrag,const uint8_t *rbase,const uint8_t* &ri,const uint8_t* &re,const unsigned int level) {
+			const uint32_t repeat_count = (modex.LIDATA_format32 ? read_dword(ri,re) : read_word(ri,re));
+			const uint16_t block_count = read_word(ri,re);
+
+			if (ri >= re) {
+				modex.log->log(LNKLOG_ERR,"LIDATA error: incomplete data record");
+				return false;
+			}
+			if (level >= 8) {
+				modex.log->log(LNKLOG_ERR,"LIDATA error: data record iteration too deep");
+				return false;
+			}
+			if (repeat_count >= uint32_t(0x100000u)) {
+				modex.log->log(LNKLOG_ERR,"LIDATA error: data record repeat count too large");
+				return false;
+			}
+			if (block_count >= uint32_t(0x2000u)) {
+				modex.log->log(LNKLOG_ERR,"LIDATA error: data record block count too large");
+				return false;
+			}
+
+			(void)segref;
+			(void)module;
+
+			if (block_count != 0) {
+				const uint8_t *repeat = ri;
+
+				for (uint32_t r=0;r < repeat_count;r++) {
+					ri = repeat;
+					for (uint32_t b=0;b < block_count;b++) {
+						if (!expand_LIDATA(module,modex,segref,sfrag,rbase,ri,re,level+1u))
+							return false;
+					}
+				}
+			}
+			else {
+				const uint8_t datalen = read_byte(ri,re);
+				if ((ri+size_t(datalen)) > re) {
+					modex.log->log(LNKLOG_ERR,"LIDATA error: incomplete data block");
+					return false;
+				}
+				if (datalen != 0) {
+					const size_t addsz = size_t(repeat_count) * size_t(datalen);
+					if (addsz >= size_t(4*1024*1024)) {
+						/* oh yeah, right, sure */
+						modex.log->log(LNKLOG_ERR,"LIDATA error: repeating data block too large");
+						return false;
+					}
+
+					const size_t putat = sfrag.data.size();
+					sfrag.data.resize(sfrag.data.size() + addsz);
+					assert((putat+addsz) == sfrag.data.size());
+
+					uint8_t *d = &sfrag.data[putat];
+					for (uint32_t r=0;r < repeat_count;r++) {
+						assert(d <= (&sfrag.data[sfrag.data.size()]));
+						memcpy(d,ri,datalen);
+						d += datalen;
+					}
+					assert(d == (&sfrag.data[putat+addsz]));
+
+					sfrag.data_size = segment_size_t(putat) + segment_size_t(addsz);
+					assert(sfrag.data.size() == size_t(sfrag.data_size));
+					ri += datalen;
+				}
+			}
+
+			return true;
+		}
+
+		bool flush_LIDATA(linker_object_module &module,extra_linker_object_module &modex) {
+			if (modex.LIDATA_offset != segment_offset_undef && modex.LIDATA_segment != segment_ref_undef && !modex.LIDATA.empty()) {
+				/* iterated data record = <repeat count> 0 <data length byte> <data>
+				 *                        OR
+				 *                        <repeat count> <block count> ( <(iterated data record) * (block count)> )
+				 *
+				 * Yes, it's a recursive structure. An iterated data record can simply say a data block is repeated N times, or it can say
+				 * that there are N copies of an iterated data block which emits X copies of a data block, or more.
+				 *
+				 * To complicate things, FIXUPP records are applied to the iterated data before expansion, which is why we hold onto
+				 * the LIDATA to give FIXUPP a chance (which we also expand here from the last FIXUPP record if it happened) */
+				const uint8_t *ri = &modex.LIDATA[0];
+				const uint8_t *re = &modex.LIDATA[modex.LIDATA.size()];
+
+				auto &segref = module.segments.get(modex.LIDATA_segment);
+
+				// Moving on, refer to the current fragment
+				auto &sfrag = segref.data.back();
+
+				// Sanity check
+				assert(uint32_t(sfrag.data_offset+sfrag.data_size) == (uint32_t)modex.LIDATA_offset);
+				assert(size_t(sfrag.data_size) == sfrag.data.size());
+
+				/* OMF spec is not clear, so I am guessing: Is it one top level data block or do you just
+				 * parse data blocks until the end of record? */
+				// TODO: Need to also expand FIXUPP records
+				while (ri < re) {
+					if (!expand_LIDATA(module,modex,segref,sfrag,&modex.LIDATA[0],ri,re,0)) {
+						discard_LIDATA(module,modex);
+						return false;
+					}
+				}
+			}
+
+			discard_LIDATA(module,modex);
+			return true;
+		}
+
+		void new_LIDATA(linker_object_module &module,extra_linker_object_module &modex,const bool fmt32,const uint8_t *data,const size_t datalen) {
+			(void)module;
+			assert(data != NULL);
+			assert(modex.LIDATA.empty());
+			assert(modex.LIDATA_fixups.empty());
+			assert(modex.LIDATA_offset == segment_offset_undef);
+			assert(modex.LIDATA_segment == segment_ref_undef);
+
+			if (datalen != 0) {
+				modex.LIDATA_offset = modex.last_LEDATA_offset;
+				modex.LIDATA_segment = modex.last_LEDATA_segment;
+				modex.LIDATA_format32 = fmt32;
+				modex.LIDATA.resize(datalen);
+				memcpy(&modex.LIDATA[0],data,datalen);
+			}
 		}
 
 		bool add_LNAMES(linker_object_module &module,extra_linker_object_module &modex,const record &rec) {
@@ -8768,6 +8915,9 @@ namespace DOSLIBLinker {
 
 			const bool fmt32 = (rec.type == RECTYPE_LEDATA_32);
 
+			if (!flush_LIDATA(module,modex))
+				return false;
+
 			// <segment index> <data offset> <data>
 
 			const uint16_t segindex = read_index(ri,re);
@@ -8849,6 +8999,103 @@ namespace DOSLIBLinker {
 				sfrag.data_size = segment_size_t(putat) + segment_size_t(datalen);
 				assert(sfrag.data.size() == size_t(sfrag.data_size));
 				ri += datalen;
+			}
+
+			return true;
+		}
+
+		bool add_LIDATA(linker_object_module &module,extra_linker_object_module &modex,const record &rec) {
+			const uint8_t *ri = &rec.record[0];
+			const uint8_t *re = &rec.record[rec.record.size()];
+
+			const bool fmt32 = (rec.type == RECTYPE_LIDATA_32);
+
+			if (!flush_LIDATA(module,modex))
+				return false;
+
+			// <segment index> <data offset> <iterated data>
+
+			const uint16_t segindex = read_index(ri,re);
+			if (!module.segments.exists(from1based(segindex))) {
+				modex.log->log(LNKLOG_ERR,"LIDATA refers to non-existent segment");
+				return false;
+			}
+			segment_t &segref = module.segments.get(from1based(segindex));
+
+			const uint32_t dataoffset = (fmt32 ? read_dword(ri,re) : read_word(ri,re));
+
+			/* keep track of this segment index as last tracked segment, some FIXUPPs rely on it */
+			modex.last_LEDATA_segment = from1based(segindex);
+			modex.last_LEDATA_offset = dataoffset;
+
+			if (ri < re) {
+				const size_t datalen = (size_t)(re - ri);
+
+				// Make sure the incoming data does not spill past the segment size specified in the SEGDEF
+				if (segref.size != segment_size_undef && (segment_size_t(dataoffset)+segment_size_t(datalen)) > segref.size) {
+					modex.log->log(LNKLOG_ERR,"LEDATA data provided that would overrun reported SEGDEF segment size");
+					return false;
+				}
+
+				// NTS: This code must be prepared to handle LEDATA fragments that start from a nonzero
+				//      address and count upward, and even handle cases where the LEDATA changes base and
+				//      starts counting up again. And here's why:
+				//
+				//      Microsoft MASM allows the use of the ORG directive within segments to specify the
+				//      offset within the segment that symbols are allocated. This is used for example as
+				//      a way to assemble .COM executables by specifying a USE16 CODE segment with ORG 100h.
+				//      When MASM assembles that, the OBJ file it generates lists the highest offset in the
+				//      segment +1 as the size, but emits LEDATA starting from that ORG address instead of
+				//      zero.
+				//
+				//      Microsoft MASM *also* has a feature where you can emit ORG at any time throughout
+				//      the segment, and symbols after that point take on the new offset! LEDATA fragments
+				//      will immediately begin at that offset in the OBJ file.
+				//
+				//      You can even use ORG to go back and overwrite already emitted data, but that's
+				//      exactly where we draw the line with a big NOPE because that would massively complicate
+				//      this code and make a mess of the linker state here. This code by design will emit an
+				//      error. Don't do that to this linker, please.
+
+				// If no current fragment, start one
+				if (segref.data.empty()) {
+					segref.data.push_back(std::move(segment_frag_t()));
+					auto &sfrag = segref.data.back();
+					sfrag.org_offset = dataoffset; /* If the value is nonzero there is a good chance the segment wants that offset specifically */
+					sfrag.data_offset = dataoffset; /* whatever the offset (Microsoft MASM ORG directive) becomes the base of the fragment */
+					sfrag.data_size = 0;
+				}
+				// if there is a fragment, start another one if the offset does not match
+				else {
+					const auto &csfrag = segref.data.back();
+					if (uint32_t(csfrag.data_offset+csfrag.data_size) != dataoffset) {
+						// discontinuous LEDATA, start another fragment
+						segref.data.push_back(std::move(segment_frag_t()));
+						auto &sfrag = segref.data.back();
+						sfrag.org_offset = dataoffset; /* If the value is nonzero there is a good chance the segment wants that offset specifically */
+						sfrag.data_offset = dataoffset; /* whatever the offset (Microsoft MASM ORG directive) becomes the base of the fragment */
+						sfrag.data_size = 0;
+					}
+				}
+
+				// Moving on, refer to the current fragment
+				auto &sfrag = segref.data.back();
+
+				// Sanity check
+				assert(uint32_t(sfrag.data_offset+sfrag.data_size) == dataoffset);
+				assert(size_t(sfrag.data_size) == sfrag.data.size());
+
+				// Now... iterated data is more complicated to handle.
+				// It's a recursive data structure that expands to a repeating pattern, which we could expand here,
+				// EXCEPT that the OMF spec also allows FIXUPP records to fix up LIDATA segments. The way FIXUPP
+				// works is that it patches the iterated data structure BEFORE the data expansion! The best way to
+				// handle this is to store the LIDATA and emit later, giving the next FIXUPP record a chance to do
+				// it's thing.
+				//
+				// By the way the iterated data structure also varies one field based on whether the record was
+				// 16-bit or 32-bit.
+				assert((ri+datalen) == re);
+				new_LIDATA(module,modex,fmt32,ri,datalen); // segment and offset stored in last_LEDATA* variables
 			}
 
 			return true;
@@ -9179,7 +9426,10 @@ namespace DOSLIBLinker {
 					if ((fixdata & 4u) == 0u)
 						fixup.target_offset = (fmt32 ? read_dword(ri,re) : read_word(ri,re));
 
-					segref.fixups.push_back(std::move(fixup));
+					if (last_was_LIDATA(module,modex))
+						modex.LIDATA_fixups.push_back(std::move(fixup));
+					else
+						segref.fixups.push_back(std::move(fixup));
 				}
 				else {
 					// THREAD
@@ -9188,6 +9438,7 @@ namespace DOSLIBLinker {
 				}
 			}
 
+			discard_LIDATA(module,modex);
 			return true;
 		}
 
@@ -9322,6 +9573,10 @@ namespace DOSLIBLinker {
 					if (!add_LEDATA(module,modex,rec))
 						return false;
 				}
+				else if (rec.type == RECTYPE_LIDATA || rec.type == RECTYPE_LIDATA_32) {
+					if (!add_LIDATA(module,modex,rec))
+						return false;
+				}
 				else if (rec.type == RECTYPE_EXTDEF || rec.type == RECTYPE_LEXTDEF) {
 					if (!add_EXTDEF(module,modex,rec))
 						return false;
@@ -9358,6 +9613,10 @@ namespace DOSLIBLinker {
 						(unsigned long)rec.file_offset);
 				}
 			}
+
+			/* flush LIDATA */
+			if (!flush_LIDATA(module,modex))
+				return false;
 
 			/* any segment with a nonzero size but no data should be marked NOEMIT.
 			 * OMF does not appear to have an explicit flag to say so even for segments you would normally expect
@@ -9503,6 +9762,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 		DOSLIBLinker::OMF::read(modules,"0010.obj",&log);
 		DOSLIBLinker::OMF::read(modules,"0011.obj",&log);
 		DOSLIBLinker::OMF::read(modules,"0012.obj",&log);
+		DOSLIBLinker::OMF::read(modules,"0013.obj",&log);
 
 		for (auto mi=modules.begin();mi!=modules.end();mi++) {
 			fprintf(stderr,"Module %zu\n",(size_t)(mi-modules.begin()));
