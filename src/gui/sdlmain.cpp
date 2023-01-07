@@ -8586,6 +8586,10 @@ namespace DOSLIBLinker {
 			return ref;
 		}
 
+		bool omf_segment_datafrag_sort_offset_func(const segment_frag_t &fa,const segment_frag_t &fb) {
+			return fa.data_offset < fb.data_offset;
+		}
+
 		bool add_LNAMES(linker_object_module &module,extra_linker_object_module &modex,const record &rec) {
 			const uint8_t *ri = &rec.record[0];
 			const uint8_t *re = &rec.record[rec.record.size()];
@@ -9369,6 +9373,23 @@ namespace DOSLIBLinker {
 			module.symbols.sortbyname(module.strings);
 
 			module.gen_sort_segments();
+
+			/* Sort fragment by offsets for organization.
+			 * Sorting also allows us to detect discontinuous Microsoft MASM ORG offsets,
+			 * and if the user abused ORG for overlapping LEDATA, throw an error because
+			 * we will not support that. */
+			for (auto si=module.segments.ref.begin();si!=module.segments.ref.end();si++) {
+				std::sort((*si).data.begin(),(*si).data.end(),omf_segment_datafrag_sort_offset_func);
+
+				/* look for overlaps and error out if found */
+				for (size_t fi=0;(fi+size_t(1u)) < (*si).data.size();fi++) {
+					if (((*si).data[fi].data_offset+(*si).data[fi].data_size) > (*si).data[fi+size_t(1u)].data_offset) {
+						log->log(LNKLOG_ERR,"In segment '%s', overlapping fragment(s) detected",
+							module.strings.get((*si).name).c_str());
+						return false;
+					}
+				}
+			}
 
 			return true;
 		}
