@@ -7889,6 +7889,8 @@ namespace DOSLIBLinker {
 		segment_offset_t			fixup_offset = segment_offset_undef;
 		/* other flags */
 		bool					segment_relative = false; /* segment relative vs self relative (OMF spec) */
+
+		size_t					fixup_size(void) const;
 	};
 
 	struct source_t {
@@ -8192,6 +8194,21 @@ namespace DOSLIBLinker {
 		};
 
 		return r;
+	}
+
+	/////////////////////////
+
+	size_t fixup_t::fixup_size(void) const {
+		switch (fixup_how) {
+			case FIXUPHOW_OFFSET16: return 2;
+			case FIXUPHOW_SEGMENTBASE16: return 2;
+			case FIXUPHOW_SEGMENTOFFSET16: return 4;
+			case FIXUPHOW_OFFSET32: return 4;
+			case FIXUPHOW_SEGMENTOFFSET32: return 6;
+			default: break;
+		};
+
+		return 0;
 	}
 
 	/////////////////////////
@@ -8612,7 +8629,51 @@ namespace DOSLIBLinker {
 			modex.LIDATA_segment = segment_ref_undef;
 		}
 
-		bool expand_LIDATA(linker_object_module &module,extra_linker_object_module &modex,segment_t &segref,segment_frag_t &sfrag,const uint8_t *rbase,const uint8_t* &ri,const uint8_t* &re,const unsigned int level) {
+		bool fixup_check_and_scanfwd(linker_object_module &module,extra_linker_object_module &modex,const size_t liofs,const size_t rgnlen,size_t &fix,const size_t fex,const bool is_data) {
+			size_t scfix = fix;
+
+			(void)module;
+			while (scfix < fex) {
+				assert(scfix < modex.LIDATA_fixups.size());
+				const auto &fref = modex.LIDATA_fixups[scfix];
+				const size_t fixsz = fref.fixup_size();
+
+				if (fixsz == 0 || fref.fixup_offset == segment_offset_undef) {
+					scfix++;
+					continue;
+				}
+
+				if (!is_data) {
+					/* fixup overlaps the region defined as non-data by at least one byte */
+					if ((size_t(fref.fixup_offset)+fixsz) > liofs && size_t(fref.fixup_offset) < (liofs+rgnlen))
+						return false;
+				}
+				else {
+					/* fixup extends outside the data region by at least one byte */
+					if (size_t(fref.fixup_offset) < liofs && (size_t(fref.fixup_offset)+fixsz) > (liofs+rgnlen))
+						return false;
+				}
+
+				if (size_t(fref.fixup_offset) >= (liofs+rgnlen))
+					break;
+				if ((size_t(fref.fixup_offset)+fixsz) < liofs)
+					fix = scfix;
+
+				scfix++;
+			}
+
+			return true;
+		}
+
+		bool expand_LIDATA(linker_object_module &module,extra_linker_object_module &modex,segment_t &segref,segment_frag_t &sfrag,const uint8_t *rbase,const uint8_t* &ri,const uint8_t* &re,const unsigned int level,size_t &fix,const size_t fex) {
+			{
+				const unsigned int hdrsz = (modex.LIDATA_format32 ? (4+2) : (2+2));
+				if (!fixup_check_and_scanfwd(module,modex,(size_t)(ri-rbase),hdrsz,fix,fex,false/*not data*/)) {
+					modex.log->log(LNKLOG_ERR,"LIDATA error: FIXUPP overlaps non-data part of record");
+					return false;
+				}
+			}
+
 			const uint32_t repeat_count = (modex.LIDATA_format32 ? read_dword(ri,re) : read_word(ri,re));
 			const uint16_t block_count = read_word(ri,re);
 
@@ -8637,23 +8698,35 @@ namespace DOSLIBLinker {
 			(void)module;
 
 			if (block_count != 0) {
+				const size_t repeat_fix = fix;
 				const uint8_t *repeat = ri;
 
 				for (uint32_t r=0;r < repeat_count;r++) {
+					fix = repeat_fix;
 					ri = repeat;
 					for (uint32_t b=0;b < block_count;b++) {
-						if (!expand_LIDATA(module,modex,segref,sfrag,rbase,ri,re,level+1u))
+						if (!expand_LIDATA(module,modex,segref,sfrag,rbase,ri,re,level+1u,fix,fex))
 							return false;
 					}
 				}
 			}
 			else {
+				if (!fixup_check_and_scanfwd(module,modex,(size_t)(ri-rbase),1u,fix,fex,false/*not data*/)) {
+					modex.log->log(LNKLOG_ERR,"LIDATA error: FIXUPP overlaps non-data part of record");
+					return false;
+				}
+
 				const uint8_t datalen = read_byte(ri,re);
 				if ((ri+size_t(datalen)) > re) {
 					modex.log->log(LNKLOG_ERR,"LIDATA error: incomplete data block");
 					return false;
 				}
 				if (datalen != 0) {
+					if (!fixup_check_and_scanfwd(module,modex,(size_t)(ri-rbase),datalen,fix,fex,true/*data*/)) {
+						modex.log->log(LNKLOG_ERR,"LIDATA error: FIXUPP overlaps non-data part of record");
+						return false;
+					}
+
 					const size_t addsz = size_t(repeat_count) * size_t(datalen);
 					if (addsz >= size_t(4*1024*1024)) {
 						/* oh yeah, right, sure */
@@ -8682,8 +8755,15 @@ namespace DOSLIBLinker {
 			return true;
 		}
 
+		static bool LIDATA_fixup_sort_by_fixoff(const fixup_t &fa,const fixup_t &fb) {
+			return fa.fixup_offset < fb.fixup_offset;
+		}
+
 		bool flush_LIDATA(linker_object_module &module,extra_linker_object_module &modex) {
 			if (modex.LIDATA_offset != segment_offset_undef && modex.LIDATA_segment != segment_ref_undef && !modex.LIDATA.empty()) {
+				/* Sort fixups for LIDATA by offset so that iterative replication can be done properly */
+				std::sort(modex.LIDATA_fixups.begin(),modex.LIDATA_fixups.end(),LIDATA_fixup_sort_by_fixoff);
+
 				/* iterated data record = <repeat count> 0 <data length byte> <data>
 				 *                        OR
 				 *                        <repeat count> <block count> ( <(iterated data record) * (block count)> )
@@ -8695,6 +8775,8 @@ namespace DOSLIBLinker {
 				 * the LIDATA to give FIXUPP a chance (which we also expand here from the last FIXUPP record if it happened) */
 				const uint8_t *ri = &modex.LIDATA[0];
 				const uint8_t *re = &modex.LIDATA[modex.LIDATA.size()];
+				const size_t fex = modex.LIDATA_fixups.size();
+				size_t fix = 0;
 
 				auto &segref = module.segments.get(modex.LIDATA_segment);
 
@@ -8709,7 +8791,7 @@ namespace DOSLIBLinker {
 				 * parse data blocks until the end of record? */
 				// TODO: Need to also expand FIXUPP records
 				while (ri < re) {
-					if (!expand_LIDATA(module,modex,segref,sfrag,&modex.LIDATA[0],ri,re,0)) {
+					if (!expand_LIDATA(module,modex,segref,sfrag,&modex.LIDATA[0],ri,re,0,fix,fex)) {
 						discard_LIDATA(module,modex);
 						return false;
 					}
@@ -9366,8 +9448,11 @@ namespace DOSLIBLinker {
 					assert((h&0x8000u) != 0u);
 
 					fixup.segment_relative = (h & 0x4000u) != 0; // bit 14
-					fixup.fixup_offset = (h & 0x3FFu) + modex.last_LEDATA_offset; // bits 9-0 relative to last LEDATA
-					// TODO: If the last was LIDATA not LEDATA then fixup_offset points at a data field of the iterated data structure
+
+					if (last_was_LIDATA(module,modex))
+						fixup.fixup_offset = (h & 0x3FFu); // bits 9-0 within last LIDATA where patching is required prior to expansion
+					else
+						fixup.fixup_offset = (h & 0x3FFu) + modex.last_LEDATA_offset; // bits 9-0 relative to last LEDATA
 
 					switch ((h >> 10u) & 15u) { // bits 13-10
 						case 1: fixup.fixup_how = FIXUPHOW_OFFSET16; break;
