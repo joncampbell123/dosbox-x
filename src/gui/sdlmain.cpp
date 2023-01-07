@@ -7678,6 +7678,12 @@ namespace DOSLIBLinker {
 	typedef size_t				fixup_method_index_t;		// index behind fixup method
 	static constexpr fixup_method_index_t	fixup_method_index_undef = ~((size_t)(0ul));
 
+	typedef unsigned int			segment_frag_flags_t;
+
+	static constexpr unsigned int		SEGFRAGFL_PINNED = segment_frag_flags_t(1u << 0u); // pinned, do not move
+	static constexpr unsigned int		SEGFRAGFL_PADDING = segment_frag_flags_t(1u << 1u); // fragment is just padding
+	static constexpr unsigned int		SEGFRAGFL_HEADER = segment_frag_flags_t(1u << 2u); // is part of file header
+
 	typedef unsigned int			cpu_flags_t;			// CPU flags, meaning depends on CPU type
 
 	static constexpr alignmask_t		byte_align_mask = ~((alignmask_t)(0ull));
@@ -7882,6 +7888,13 @@ namespace DOSLIBLinker {
 		bool				is_library = false;
 	};
 
+	struct segment_frag_t {
+		segment_offset_t		data_offset = segment_offset_undef;	// data offset for arrangement
+		segment_offset_t		data_size = segment_offset_undef;	// data size for arrangement
+		segment_frag_flags_t		flags = 0;
+		std::vector<uint8_t>		data;
+	};
+
 	struct segment_t {
 		segment_flags_t			flags = 0; // segment flags
 		alignmask_t			alignmask = 0; // segment alignment
@@ -7899,7 +7912,7 @@ namespace DOSLIBLinker {
 		group_ref_t			groupref = group_ref_undef;		// segment group
 		uint64_t			user_order = 0;				// user controllable sort order param
 		unsigned int			format_index = 0;			// format specific index
-		std::vector<uint8_t>		data;					// segment data if applicable
+		std::vector<segment_frag_t>	data;					// segment data
 		std::vector<fixup_t>		fixups;					// fixups of segment
 
 		// NTS: rel_offset also allows the .COM memory model where the base of the executable image starts at offset 0x100 within the segment,
@@ -8728,15 +8741,30 @@ namespace DOSLIBLinker {
 			if (ri < re) {
 				const size_t datalen = (size_t)(re - ri);
 
+				// Only one fragment should exist at load time!
+				if (segref.data.empty()) {
+					segref.data.push_back(std::move(segment_frag_t()));
+					auto &sfrag = segref.data.back();
+					sfrag.data_offset = 0;
+					sfrag.data_size = segref.size;
+				}
+				if (segref.data.size() != size_t(1u)) {
+					modex.log->log(LNKLOG_ERR,"LEDATA loading when segment has more than one fragment (bug)");
+					return false; // we only support append!
+				}
+
+				// Now refer to the one fragment.
+				auto &sfrag = segref.data[0];
+
 				// This code assumes that LEDATA is built completely in sequence, which most tools do.
 				// We do not support out of order LEDATA entries. Maybe someday if we have to support
 				// that kind of thing, we can change this later.
-				if ((uint32_t)segref.data.size() != dataoffset) {
+				if ((uint32_t)sfrag.data.size() != dataoffset) {
 					modex.log->log(LNKLOG_ERR,"LEDATA discontinuous data segment (gap or overlap). Continuous ordered segments only.");
 					return false; // we only support append!
 				}
 
-				const size_t putat = segref.data.size();
+				const size_t putat = sfrag.data.size();
 
 				// Are we about to append data beyond the reported size of the segment? That is an error too.
 				if (segref.size != segment_size_undef && segment_size_t(putat+datalen) > segref.size) {
@@ -8744,10 +8772,10 @@ namespace DOSLIBLinker {
 					return false;
 				}
 
-				segref.data.resize(segref.data.size() + datalen);
-				assert((putat+datalen) <= segref.data.size());
+				sfrag.data.resize(sfrag.data.size() + datalen);
+				assert((putat+datalen) <= sfrag.data.size());
 				assert((ri+datalen) <= re);
-				memcpy(&segref.data[putat],ri,datalen);
+				memcpy(&sfrag.data[putat],ri,datalen);
 				ri += datalen;
 			}
 
@@ -9330,17 +9358,36 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					(unsigned long)DOSLIBLinker::align_mask_to_value(segm.alignmask),
 					(unsigned long)segm.flags,
 					(segm.cpu_major == DOSLIBLinker::CPUMAJT_INTELX86 && segm.cpu_minor == DOSLIBLinker::CPUMINT_INTELX86_386)?32:16);
-				if (!segm.data.empty()) {
-					size_t o=0;
 
-					fprintf(stderr,"    Data:\n");
-					while (o < segm.data.size()) {
-						if ((o&15u) == 0) fprintf(stderr,"0x%08lx:",(unsigned long)o);
-						fprintf(stderr," %02x",segm.data[o]);
-						if ((o&15u) == 15u) fprintf(stderr,"\n");
-						o++;
+				if (!segm.data.empty()) {
+					for (auto fi=segm.data.begin();fi!=segm.data.end();fi++) {
+						auto &sfrag = *fi;
+						size_t o;
+
+						fprintf(stderr,"    Data [%08lx-%08lx] for [%08lx-%08lx]",
+							(unsigned long)sfrag.data_offset,
+							(unsigned long)sfrag.data_offset+(unsigned long)sfrag.data.size()-1ul,
+							(unsigned long)sfrag.data_offset,
+							(unsigned long)sfrag.data_offset+sfrag.data_size-1ul);
+						if (sfrag.flags & DOSLIBLinker::SEGFRAGFL_PINNED) fprintf(stderr," PINNED");
+						if (sfrag.flags & DOSLIBLinker::SEGFRAGFL_PADDING) fprintf(stderr," PADDING");
+						fprintf(stderr,"\n");
+
+						if (!sfrag.data.empty()) {
+							if (sfrag.data_offset == DOSLIBLinker::segment_offset_undef)
+								o = 0;
+							else
+								o = (size_t)sfrag.data_offset;
+
+							while (o < sfrag.data.size()) {
+								if ((o&15u) == 0) fprintf(stderr,"0x%08lx:",(unsigned long)o);
+								fprintf(stderr," %02x",sfrag.data[o]);
+								if ((o&15u) == 15u) fprintf(stderr,"\n");
+								o++;
+							}
+							if ((o&15u) != 0u) fprintf(stderr,"\n");
+						}
 					}
-					if ((o&15u) != 0u) fprintf(stderr,"\n");
 				}
 				if (!segm.fixups.empty()) {
 					fprintf(stderr,"    Fixups:\n");
