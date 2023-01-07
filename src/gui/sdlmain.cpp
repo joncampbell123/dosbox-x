@@ -7686,6 +7686,8 @@ namespace DOSLIBLinker {
 
 	typedef unsigned int			cpu_flags_t;			// CPU flags, meaning depends on CPU type
 
+	typedef unsigned int			symbol_flags_t;
+
 	static constexpr alignmask_t		byte_align_mask = ~((alignmask_t)(0ull));
 	static constexpr alignmask_t		word_align_mask = ~((alignmask_t)(1ull));
 	static constexpr alignmask_t		dword_align_mask = ~((alignmask_t)(3ull));
@@ -7741,6 +7743,10 @@ namespace DOSLIBLinker {
 	static constexpr symbol_type_t		SYMTYPE_LOCAL_EXTERN = 11; // external symbol local to module
 	static constexpr symbol_type_t		SYMTYPE_LOCAL_PUBLIC = 12; // public symbol local to module
 	static constexpr symbol_type_t		SYMTYPE_LOCAL_COMMON = 13; // common symbol local to module
+
+	// symbol flags
+	static constexpr symbol_flags_t		SYMFLAG_NEAR = (1u << 0u); // Symbol declared near (OMF)
+	static constexpr symbol_flags_t		SYMFLAG_FAR = (1u << 1u); // Symbol declared far (OMF)
 
 	// module source formats
 	static const unsigned int		SRCFMT_UNSPEC = 0;
@@ -7861,6 +7867,7 @@ namespace DOSLIBLinker {
 		segment_ref_t				segref = segment_ref_undef; // segment symbol belongs to (undefined if extern)
 		segment_offset_t			offset = segment_offset_undef; // offset within fragment
 		segment_size_t				size = segment_size_undef; // size, if known (usually only for common symbols)
+		symbol_flags_t				flags = 0;
 	};
 
 	struct symbol_table_t : public _common_ref2symtable_t<symbol_t,symbol_ref_t,string_ref_t> {
@@ -8918,11 +8925,13 @@ namespace DOSLIBLinker {
 				const uint16_t typeindex = read_index(ri,re);
 				(void)typeindex;//ignored
 				const uint8_t datatype = read_byte(ri,re);
+				unsigned int flags = 0;
 				uint32_t comlen;
 
 				if (datatype == 0x62) {
 					// near data
 					comlen = read_comlen(ri,re);
+					flags |= SYMFLAG_NEAR;
 				}
 				else if (datatype == 0x61) {
 					// far data
@@ -8934,6 +8943,7 @@ namespace DOSLIBLinker {
 					}
 
 					comlen = elem * size;
+					flags |= SYMFLAG_FAR;
 				}
 				else {
 					// OMF spec unclear: Borland segment index? Does that mean there is a com len or not?
@@ -8944,6 +8954,7 @@ namespace DOSLIBLinker {
 				const symbol_ref_t symref = module.symbols.add(name);
 				symbol_t &sym = module.symbols.get(symref);
 				sym.type = local ? SYMTYPE_LOCAL_COMMON : SYMTYPE_COMMON;
+				sym.flags = flags;
 				if (comlen > uint32_t(0)) sym.size = segment_size_t(comlen);
 
 				/* COMDEF is counted in the EXTDEF table too. */
@@ -9591,6 +9602,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				if (sym.size != DOSLIBLinker::segment_size_undef) {
 					fprintf(stderr,"size=0x%08lx ",(unsigned long)sym.size);
 				}
+				if (sym.flags & DOSLIBLinker::SYMFLAG_NEAR)
+					fprintf(stderr,"NEAR ");
+				if (sym.flags & DOSLIBLinker::SYMFLAG_FAR)
+					fprintf(stderr,"FAR ");
 				fprintf(stderr,"\n");
 			}
 			fprintf(stderr,"  Module end: main=%u entry=%u\n",module.moduleinfo.is_main,module.moduleinfo.has_entry);
