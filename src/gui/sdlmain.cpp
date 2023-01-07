@@ -7737,8 +7737,10 @@ namespace DOSLIBLinker {
 	static constexpr symbol_type_t		SYMTYPE_DELETED = 0; // deleted symbol
 	static constexpr symbol_type_t		SYMTYPE_EXTERN = 1; // external symbol
 	static constexpr symbol_type_t		SYMTYPE_PUBLIC = 2; // public symbol
+	static constexpr symbol_type_t		SYMTYPE_COMMON = 3; // common symbol
 	static constexpr symbol_type_t		SYMTYPE_LOCAL_EXTERN = 11; // external symbol local to module
 	static constexpr symbol_type_t		SYMTYPE_LOCAL_PUBLIC = 12; // public symbol local to module
+	static constexpr symbol_type_t		SYMTYPE_LOCAL_COMMON = 13; // common symbol local to module
 
 	// module source formats
 	static const unsigned int		SRCFMT_UNSPEC = 0;
@@ -7858,6 +7860,7 @@ namespace DOSLIBLinker {
 		group_ref_t				group = group_ref_undef; // group of symbol (OMF)
 		segment_ref_t				segref = segment_ref_undef; // segment symbol belongs to (undefined if extern)
 		segment_offset_t			offset = segment_offset_undef; // offset within fragment
+		segment_size_t				size = segment_size_undef; // size, if known (usually only for common symbols)
 	};
 
 	struct symbol_table_t : public _common_ref2symtable_t<symbol_t,symbol_ref_t,string_ref_t> {
@@ -8066,8 +8069,10 @@ namespace DOSLIBLinker {
 	static const stringtable_t *symbol_table_sort_name_func_strings = NULL;
 	unsigned int symbol_type_to_priority_sort_val(const symbol_type_t t) {
 		switch (t) {
-			case SYMTYPE_LOCAL_PUBLIC:	return 4;
-			case SYMTYPE_PUBLIC:		return 3;
+			case SYMTYPE_LOCAL_PUBLIC:	return 6;
+			case SYMTYPE_PUBLIC:		return 5;
+			case SYMTYPE_LOCAL_COMMON:	return 4;
+			case SYMTYPE_COMMON:		return 3;
 			case SYMTYPE_LOCAL_EXTERN:	return 2;
 			case SYMTYPE_EXTERN:		return 1;
 			default:			break;
@@ -9488,8 +9493,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					case DOSLIBLinker::SYMTYPE_DELETED: fprintf(stderr,"(DELETED) "); break;
 					case DOSLIBLinker::SYMTYPE_EXTERN: fprintf(stderr,"(extern) "); break;
 					case DOSLIBLinker::SYMTYPE_PUBLIC: fprintf(stderr,"(public) "); break;
+					case DOSLIBLinker::SYMTYPE_COMMON: fprintf(stderr,"(common) "); break;
 					case DOSLIBLinker::SYMTYPE_LOCAL_EXTERN: fprintf(stderr,"(localextern) "); break;
 					case DOSLIBLinker::SYMTYPE_LOCAL_PUBLIC: fprintf(stderr,"(localpublic) "); break;
+					case DOSLIBLinker::SYMTYPE_LOCAL_COMMON: fprintf(stderr,"(localcommon) "); break;
 					default: fprintf(stderr,"(%lu""??"") ",(unsigned long)sym.type); break;
 				}
 				if (sym.group != DOSLIBLinker::segment_ref_undef) {
@@ -9502,6 +9509,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				}
 				if (sym.offset != DOSLIBLinker::segment_offset_undef) {
 					fprintf(stderr,"offset=0x%08lx ",(unsigned long)sym.offset);
+				}
+				if (sym.size != DOSLIBLinker::segment_size_undef) {
+					fprintf(stderr,"size=0x%08lx ",(unsigned long)sym.size);
 				}
 				fprintf(stderr,"\n");
 			}
