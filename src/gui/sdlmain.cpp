@@ -8650,8 +8650,13 @@ namespace DOSLIBLinker {
 				}
 				else {
 					/* fixup extends outside the data region by at least one byte */
-					if (size_t(fref.fixup_offset) < liofs && (size_t(fref.fixup_offset)+fixsz) > (liofs+rgnlen))
-						return false;
+					if ((size_t(fref.fixup_offset)+fixsz) > liofs && size_t(fref.fixup_offset) < (liofs+rgnlen)) {
+						if (size_t(fref.fixup_offset) < liofs && (size_t(fref.fixup_offset)+fixsz) > (liofs+rgnlen))
+							return false;
+
+						fix = scfix;
+						break;
+					}
 				}
 
 				if (size_t(fref.fixup_offset) >= (liofs+rgnlen))
@@ -8727,6 +8732,9 @@ namespace DOSLIBLinker {
 						return false;
 					}
 
+					const size_t min_li = size_t(ri-rbase);
+					const size_t max_li = size_t(ri+datalen-rbase);
+
 					const size_t addsz = size_t(repeat_count) * size_t(datalen);
 					if (addsz >= size_t(4*1024*1024)) {
 						/* oh yeah, right, sure */
@@ -8740,6 +8748,20 @@ namespace DOSLIBLinker {
 
 					uint8_t *d = &sfrag.data[putat];
 					for (uint32_t r=0;r < repeat_count;r++) {
+						/* copy and translate fixups as well */
+						size_t cix = fix;
+						while (cix < fex) {
+							const auto &fref = modex.LIDATA_fixups[cix++];
+							if (fref.fixup_offset >= min_li && fref.fixup_offset < max_li) {
+								fixup_t tc = fref;
+								tc.fixup_offset = sfrag.data_offset + segment_offset_t(putat) + segment_offset_t(fref.fixup_offset - min_li);
+								segref.fixups.push_back(std::move(tc));
+							}
+							else {
+								break;
+							}
+						}
+
 						assert(d <= (&sfrag.data[sfrag.data.size()]));
 						memcpy(d,ri,datalen);
 						d += datalen;
