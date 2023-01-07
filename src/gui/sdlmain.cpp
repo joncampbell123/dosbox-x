@@ -9502,6 +9502,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 		DOSLIBLinker::OMF::read(modules,"0009.obj",&log);
 		DOSLIBLinker::OMF::read(modules,"0010.obj",&log);
 		DOSLIBLinker::OMF::read(modules,"0011.obj",&log);
+		DOSLIBLinker::OMF::read(modules,"0012.obj",&log);
 
 		for (auto mi=modules.begin();mi!=modules.end();mi++) {
 			fprintf(stderr,"Module %zu\n",(size_t)(mi-modules.begin()));
