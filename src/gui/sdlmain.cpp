@@ -9227,6 +9227,15 @@ namespace DOSLIBLinker {
 				}
 			}
 
+			/* any segment with a nonzero size but no data should be marked NOEMIT.
+			 * OMF does not appear to have an explicit flag to say so even for segments you would normally expect
+			 * that kind of thing (like STACK and BSS) */
+			for (auto si=module.segments.ref.begin();si!=module.segments.ref.end();si++) {
+				auto &sref = *si;
+				if (sref.size != segment_size_undef && sref.size > segment_size_t(0u) && sref.data.empty())
+					sref.flags |= SEGFLAG_NOEMIT;
+			}
+
 			for (size_t i=0;i < module.segments.ref.size();i++) module.segment_order.push_back(segment_ref_t(i));
 
 			module.symbols.sortbyname(module.strings);
@@ -9329,12 +9338,14 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 		log.callback = link_log_callback;
 
 		// test cases, the hw/cpu/dos86l directory of my DOSLIB development Git repository after a build
-		if (!DOSLIBLinker::OMF::read(modules,"cpu.lib",&log))
-			fprintf(stderr,"Fail cpu.lib\n");
-		if (!DOSLIBLinker::OMF::read(modules,"sseoff.obj",&log))
-			fprintf(stderr,"Fail sseoff.obj\n");
-		if (!DOSLIBLinker::OMF::read(modules,"hello.obj",&log))
-			fprintf(stderr,"Fail hello.obj\n");
+		DOSLIBLinker::OMF::read(modules,"0000.obj",&log);
+		DOSLIBLinker::OMF::read(modules,"0001.obj",&log);
+		DOSLIBLinker::OMF::read(modules,"0002.obj",&log);
+		DOSLIBLinker::OMF::read(modules,"0003.obj",&log);
+		DOSLIBLinker::OMF::read(modules,"0004.obj",&log);
+		DOSLIBLinker::OMF::read(modules,"0005.obj",&log);
+		DOSLIBLinker::OMF::read(modules,"0006.obj",&log);
+		DOSLIBLinker::OMF::read(modules,"0007.obj",&log);
 
 		for (auto mi=modules.begin();mi!=modules.end();mi++) {
 			fprintf(stderr,"Module %zu\n",(size_t)(mi-modules.begin()));
