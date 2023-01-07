@@ -7900,6 +7900,7 @@ namespace DOSLIBLinker {
 	};
 
 	struct segment_frag_t {
+		segment_offset_t		org_offset = segment_offset_undef;	// segment ORG (origin) allowed by some assemblers
 		segment_offset_t		data_offset = segment_offset_undef;	// data offset for arrangement
 		segment_offset_t		data_size = segment_offset_undef;	// data size for arrangement
 		segment_frag_flags_t		flags = 0;
@@ -8781,41 +8782,68 @@ namespace DOSLIBLinker {
 			if (ri < re) {
 				const size_t datalen = (size_t)(re - ri);
 
-				// Only one fragment should exist at load time!
-				if (segref.data.empty()) {
-					segref.data.push_back(std::move(segment_frag_t()));
-					auto &sfrag = segref.data.back();
-					sfrag.data_offset = 0;
-					sfrag.data_size = segref.size;
-				}
-				if (segref.data.size() != size_t(1u)) {
-					modex.log->log(LNKLOG_ERR,"LEDATA loading when segment has more than one fragment (bug)");
-					return false; // we only support append!
-				}
-
-				// Now refer to the one fragment.
-				auto &sfrag = segref.data[0];
-
-				// This code assumes that LEDATA is built completely in sequence, which most tools do.
-				// We do not support out of order LEDATA entries. Maybe someday if we have to support
-				// that kind of thing, we can change this later.
-				if ((uint32_t)sfrag.data.size() != dataoffset) {
-					modex.log->log(LNKLOG_ERR,"LEDATA discontinuous data segment (gap or overlap). Continuous ordered segments only.");
-					return false; // we only support append!
-				}
-
-				const size_t putat = sfrag.data.size();
-
-				// Are we about to append data beyond the reported size of the segment? That is an error too.
-				if (segref.size != segment_size_undef && segment_size_t(putat+datalen) > segref.size) {
+				// Make sure the incoming data does not spill past the segment size specified in the SEGDEF
+				if (segref.size != segment_size_undef && (segment_size_t(dataoffset)+segment_size_t(datalen)) > segref.size) {
 					modex.log->log(LNKLOG_ERR,"LEDATA data provided that would overrun reported SEGDEF segment size");
 					return false;
 				}
 
+				// NTS: This code must be prepared to handle LEDATA fragments that start from a nonzero
+				//      address and count upward, and even handle cases where the LEDATA changes base and
+				//      starts counting up again. And here's why:
+				//
+				//      Microsoft MASM allows the use of the ORG directive within segments to specify the
+				//      offset within the segment that symbols are allocated. This is used for example as
+				//      a way to assemble .COM executables by specifying a USE16 CODE segment with ORG 100h.
+				//      When MASM assembles that, the OBJ file it generates lists the highest offset in the
+				//      segment +1 as the size, but emits LEDATA starting from that ORG address instead of
+				//      zero.
+				//
+				//      Microsoft MASM *also* has a feature where you can emit ORG at any time throughout
+				//      the segment, and symbols after that point take on the new offset! LEDATA fragments
+				//      will immediately begin at that offset in the OBJ file.
+				//
+				//      You can even use ORG to go back and overwrite already emitted data, but that's
+				//      exactly where we draw the line with a big NOPE because that would massively complicate
+				//      this code and make a mess of the linker state here. This code by design will emit an
+				//      error. Don't do that to this linker, please.
+
+				// If no current fragment, start one
+				if (segref.data.empty()) {
+					segref.data.push_back(std::move(segment_frag_t()));
+					auto &sfrag = segref.data.back();
+					sfrag.org_offset = dataoffset; /* If the value is nonzero there is a good chance the segment wants that offset specifically */
+					sfrag.data_offset = dataoffset; /* whatever the offset (Microsoft MASM ORG directive) becomes the base of the fragment */
+					sfrag.data_size = 0;
+				}
+				// if there is a fragment, start another one if the offset does not match
+				else {
+					const auto &csfrag = segref.data.back();
+					if (uint32_t(csfrag.data_offset+csfrag.data_size) != dataoffset) {
+						// discontinuous LEDATA, start another fragment
+						segref.data.push_back(std::move(segment_frag_t()));
+						auto &sfrag = segref.data.back();
+						sfrag.org_offset = dataoffset; /* If the value is nonzero there is a good chance the segment wants that offset specifically */
+						sfrag.data_offset = dataoffset; /* whatever the offset (Microsoft MASM ORG directive) becomes the base of the fragment */
+						sfrag.data_size = 0;
+					}
+				}
+
+				// Moving on, refer to the current fragment
+				auto &sfrag = segref.data.back();
+
+				// Sanity check
+				assert(uint32_t(sfrag.data_offset+sfrag.data_size) == dataoffset);
+				assert(size_t(sfrag.data_size) == sfrag.data.size());
+
+				// Expand the vector and copy the data in
+				const size_t putat = sfrag.data.size();
 				sfrag.data.resize(sfrag.data.size() + datalen);
-				assert((putat+datalen) <= sfrag.data.size());
-				assert((ri+datalen) <= re);
+				assert((putat+datalen) == sfrag.data.size());
+				assert((ri+datalen) == re);
 				memcpy(&sfrag.data[putat],ri,datalen);
+				sfrag.data_size = segment_size_t(putat) + segment_size_t(datalen);
+				assert(sfrag.data.size() == size_t(sfrag.data_size));
 				ri += datalen;
 			}
 
@@ -9440,6 +9468,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 		log.callback = link_log_callback;
 
 		// test cases, the hw/cpu/dos86l directory of my DOSLIB development Git repository after a build
+		DOSLIBLinker::OMF::read(modules,"cpu.lib",&log);
 		DOSLIBLinker::OMF::read(modules,"0000.obj",&log);
 		DOSLIBLinker::OMF::read(modules,"0001.obj",&log);
 		DOSLIBLinker::OMF::read(modules,"0002.obj",&log);
@@ -9450,6 +9479,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 		DOSLIBLinker::OMF::read(modules,"0007.obj",&log);
 		DOSLIBLinker::OMF::read(modules,"0008.obj",&log);
 		DOSLIBLinker::OMF::read(modules,"0009.obj",&log);
+		DOSLIBLinker::OMF::read(modules,"0010.obj",&log);
+		DOSLIBLinker::OMF::read(modules,"0011.obj",&log);
 
 		for (auto mi=modules.begin();mi!=modules.end();mi++) {
 			fprintf(stderr,"Module %zu\n",(size_t)(mi-modules.begin()));
@@ -9509,6 +9540,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 							(unsigned long)sfrag.data_offset+sfrag.data_size-1ul);
 						if (sfrag.flags & DOSLIBLinker::SEGFRAGFL_PINNED) fprintf(stderr," PINNED");
 						if (sfrag.flags & DOSLIBLinker::SEGFRAGFL_PADDING) fprintf(stderr," PADDING");
+						if (sfrag.org_offset != DOSLIBLinker::segment_offset_undef) fprintf(stderr," ORG=0x%08lx",(unsigned long)sfrag.org_offset);
 						fprintf(stderr,"\n");
 
 						if (!sfrag.data.empty()) {
@@ -9517,9 +9549,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 							else
 								o = (size_t)sfrag.data_offset;
 
-							while (o < sfrag.data.size()) {
+							for (auto di=sfrag.data.begin();di!=sfrag.data.end();di++) {
 								if ((o&15u) == 0) fprintf(stderr,"0x%08lx:",(unsigned long)o);
-								fprintf(stderr," %02x",sfrag.data[o]);
+								fprintf(stderr," %02x",*di);
 								if ((o&15u) == 15u) fprintf(stderr,"\n");
 								o++;
 							}
