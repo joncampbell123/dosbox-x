@@ -9371,7 +9371,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			}
 			for (auto si=module.segments.ref.begin();si!=module.segments.ref.end();si++) {
 				auto &segm = *si; // "segment" might still be reserved by your compiler... maybe?
-				fprintf(stderr,"  Segment name='%s' class='%s' group='%s' size=0x%lx align=%lu flags=0x%0lx USE%d\n",
+				fprintf(stderr,"  Segment name='%s' class='%s' group='%s' size=0x%lx align=%lu flags=0x%0lx USE%d",
 					module.strings.get(segm.name).c_str(),
 					module.strings.get(segm.classname).c_str(),
 					(segm.groupref != DOSLIBLinker::group_ref_undef) ? module.strings.get(module.groups.get(segm.groupref).name).c_str() : "",
@@ -9379,6 +9379,19 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					(unsigned long)DOSLIBLinker::align_mask_to_value(segm.alignmask),
 					(unsigned long)segm.flags,
 					(segm.cpu_major == DOSLIBLinker::CPUMAJT_INTELX86 && segm.cpu_minor == DOSLIBLinker::CPUMINT_INTELX86_386)?32:16);
+				if (segm.flags & DOSLIBLinker::SEGFLAG_PUBLIC) fprintf(stderr," PUBLIC");
+				if (segm.flags & DOSLIBLinker::SEGFLAG_PINNED) fprintf(stderr," PINNED");
+				if (segm.flags & DOSLIBLinker::SEGFLAG_NOEMIT) fprintf(stderr," NOEMIT");
+				if (segm.flags & DOSLIBLinker::SEGFLAG_HEADER) fprintf(stderr," HEADER");
+				if (segm.flags & DOSLIBLinker::SEGFLAG_SEGMENTMODEL) fprintf(stderr," SEGMENTED");
+				if (segm.flags & DOSLIBLinker::SEGFLAG_FLATMODEL) fprintf(stderr," FLAT");
+				if (segm.flags & DOSLIBLinker::SEGFLAG_PRIVATE) fprintf(stderr," PRIVATE");
+				if (segm.flags & DOSLIBLinker::SEGFLAG_STACK) fprintf(stderr," STACK");
+				if (segm.flags & DOSLIBLinker::SEGFLAG_COMMON) fprintf(stderr," COMMON");
+				if (segm.flags & DOSLIBLinker::SEGFLAG_DELETED) fprintf(stderr," DELETED");
+				if (segm.flags & DOSLIBLinker::SEGFLAG_PADDING) fprintf(stderr," PADDING");
+				if (segm.flags & DOSLIBLinker::SEGFLAG_ABSOLUTE) fprintf(stderr," ABSOLUTE");
+				fprintf(stderr,"\n");
 
 				if (segm.rel_offset != DOSLIBLinker::segment_offset_undef || segm.rel_segments != DOSLIBLinker::segment_relative_undef) {
 					fprintf(stderr,"    Rel address: %04lx:%08lx\n",
