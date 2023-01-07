@@ -9438,7 +9438,6 @@ namespace DOSLIBLinker {
 				}
 			}
 
-			discard_LIDATA(module,modex);
 			return true;
 		}
 
@@ -9763,6 +9762,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 		DOSLIBLinker::OMF::read(modules,"0011.obj",&log);
 		DOSLIBLinker::OMF::read(modules,"0012.obj",&log);
 		DOSLIBLinker::OMF::read(modules,"0013.obj",&log);
+		DOSLIBLinker::OMF::read(modules,"0014.obj",&log);
 
 		for (auto mi=modules.begin();mi!=modules.end();mi++) {
 			fprintf(stderr,"Module %zu\n",(size_t)(mi-modules.begin()));
@@ -9813,7 +9813,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				if (!segm.data.empty()) {
 					for (auto fi=segm.data.begin();fi!=segm.data.end();fi++) {
 						auto &sfrag = *fi;
-						size_t o;
 
 						fprintf(stderr,"    Data [%08lx-%08lx] for [%08lx-%08lx]",
 							(unsigned long)sfrag.data_offset,
@@ -9826,18 +9825,33 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 						fprintf(stderr,"\n");
 
 						if (!sfrag.data.empty()) {
-							if (sfrag.data_offset == DOSLIBLinker::segment_offset_undef)
-								o = 0;
-							else
-								o = (size_t)sfrag.data_offset;
+							unsigned long base = 0;
+							size_t o = 0;
 
-							for (auto di=sfrag.data.begin();di!=sfrag.data.end();di++) {
-								if ((o&15u) == 0) fprintf(stderr,"0x%08lx:",(unsigned long)o);
-								fprintf(stderr," %02x",*di);
-								if ((o&15u) == 15u) fprintf(stderr,"\n");
-								o++;
+							if (sfrag.data_offset != DOSLIBLinker::segment_offset_undef)
+								base = (unsigned long)sfrag.data_offset;
+
+							for (auto di=sfrag.data.begin();di!=sfrag.data.end();) {
+								if (o == 0) fprintf(stderr,"0x%08lx:",(unsigned long)(di-sfrag.data.begin()) + (unsigned long)base);
+
+								if (di == sfrag.data.begin() && o != (size_t)(base&15u)) {
+									fprintf(stderr,"   ");
+								}
+								else {
+									fprintf(stderr," %02x",*di);
+									di++;
+								}
+
+								if (o == 15u) {
+									fprintf(stderr,"\n");
+									o = 0;
+								}
+								else {
+									o++;
+								}
 							}
-							if ((o&15u) != 0u) fprintf(stderr,"\n");
+
+							if (o != 0u) fprintf(stderr,"\n");
 						}
 					}
 				}
