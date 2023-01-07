@@ -8748,7 +8748,10 @@ namespace DOSLIBLinker {
 
 					uint8_t *d = &sfrag.data[putat];
 					for (uint32_t r=0;r < repeat_count;r++) {
-						/* copy and translate fixups as well */
+						/* copy and translate fixups as well. The LIDATA fixup records given to us by FIXUPP
+						 * were given in a separate std::vector with the fixup_offset set to the absolute
+						 * address inside the last LIDATA data structure. This code needs to translate that
+						 * into the expanded memory address and emit one entry per repeat of the iteration. */
 						size_t cix = fix;
 						while (cix < fex) {
 							const auto &fref = modex.LIDATA_fixups[cix++];
