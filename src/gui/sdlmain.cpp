@@ -7914,7 +7914,7 @@ namespace DOSLIBLinker {
 	};
 
 	struct segment_frag_t {
-		segment_offset_t		data_offset = segment_offset_undef;	// data offset for arrangement
+		segment_offset_t		data_offset = segment_offset_undef;	// data offset for arrangement relative to rel_offset
 		segment_offset_t		data_size = segment_offset_undef;	// data size for arrangement
 		segment_frag_flags_t		flags = 0;
 		std::vector<uint8_t>		data;
@@ -7926,6 +7926,7 @@ namespace DOSLIBLinker {
 		segment_size_t			size = segment_size_undef; // assigned size of the segment
 		segment_offset_t		rel_offset = segment_offset_undef; // additional segment address offset relative to segment register
 		segment_relative_t		rel_segments = segment_relative_undef; // relative segment address (paragraphs in real mode, selectors in protected mode)
+		segment_offset_t		org_offset = segment_offset_undef; // offset chosen by ORG directive (lowest of all fragments)
 		file_offset_t			file_offset = file_offset_undef; // assigned file offset of the segment on disk
 		linear_addr_t			linear_addr = linear_addr_undef; // assigned linear address of segment in linear memory if applicable
 		cpu_major_type_t		cpu_major = cpu_major_undef; // intended CPU, major category
@@ -7945,6 +7946,7 @@ namespace DOSLIBLinker {
 		// NTS: rel_offset also allows the .COM memory model where the base of the executable image starts at offset 0x100 within the segment,
 		//      in which case rel_segments is negative number -0x10 for entry point rel_segments:0x100 to point to base of executable image.
 
+		segment_offset_t		lowest_data_base(void);
 		void				sort_data_fragments_by_offset(void);
 		void				sort_fixups_by_offset(void);
 	};
@@ -8401,6 +8403,17 @@ namespace DOSLIBLinker {
 
 	static bool segment_sort_fixupoffset_func(const fixup_t &fa,const fixup_t &fb) {
 		return fa.fixup_offset < fb.fixup_offset;
+	}
+
+	segment_offset_t segment_t::lowest_data_base(void) {
+		segment_offset_t r = segment_offset_undef;
+
+		for (auto di=data.begin();di!=data.end();di++) {
+			if (r == segment_offset_undef || r > (*di).data_offset)
+				r = (*di).data_offset;
+		}
+
+		return r;
 	}
 
 	void segment_t::sort_data_fragments_by_offset(void) {
@@ -9913,6 +9926,9 @@ namespace DOSLIBLinker {
 					}
 				}
 
+				/* ORG offset */
+				(*si).org_offset = (*si).lowest_data_base();
+
 				/* sort fixups */
 				(*si).sort_fixups_by_offset();
 
@@ -10102,6 +10118,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					fprintf(stderr," moved_to=%s",module.strings.get(mvseg.name).c_str());
 				}
 				fprintf(stderr,"\n");
+
+				if (segm.org_offset != DOSLIBLinker::segment_offset_undef) {
+					fprintf(stderr,"    Org address: %08lx\n",
+						(unsigned long)segm.org_offset);
+				}
 
 				if (segm.rel_offset != DOSLIBLinker::segment_offset_undef || segm.rel_segments != DOSLIBLinker::segment_relative_undef) {
 					fprintf(stderr,"    Rel address: %04lx:%08lx\n",
