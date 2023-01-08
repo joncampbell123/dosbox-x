@@ -7713,6 +7713,8 @@ namespace DOSLIBLinker {
 	static constexpr segment_flags_t	SEGFLAG_DELETED = segment_flags_t(1u << 9u); // deleted segment, do not consider anything
 	static constexpr segment_flags_t	SEGFLAG_PADDING = segment_flags_t(1u << 10u); // it's just padding
 	static constexpr segment_flags_t	SEGFLAG_ABSOLUTE = segment_flags_t(1u << 11u); // rel_offset and rel_segment represent an absolute address
+	static constexpr segment_flags_t	SEGFLAG_REALMODE = segment_flags_t(1u << 12u); // real-mode memory model
+	static constexpr segment_flags_t	SEGFLAG_PROTMODE = segment_flags_t(1u << 13u); // prot-mode memory model
 
 	// cpu_major == CPUMAJT_INTELX86
 	static constexpr cpu_flags_t		CPUFLAG_INTELX86_BIG386 = cpu_flags_t(1u << 0u); // (i386) segment should be loaded as "big" 4GB limit (B bit)
@@ -9929,6 +9931,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				if (segm.flags & DOSLIBLinker::SEGFLAG_DELETED) fprintf(stderr," DELETED");
 				if (segm.flags & DOSLIBLinker::SEGFLAG_PADDING) fprintf(stderr," PADDING");
 				if (segm.flags & DOSLIBLinker::SEGFLAG_ABSOLUTE) fprintf(stderr," ABSOLUTE");
+				if (segm.flags & DOSLIBLinker::SEGFLAG_REALMODE) fprintf(stderr," REALMODE");
+				if (segm.flags & DOSLIBLinker::SEGFLAG_PROTMODE) fprintf(stderr," PROTMODE");
+
 				if (segm.moved_to != DOSLIBLinker::segment_ref_undef) {
 					const auto &mvseg = module.segments.get(segm.moved_to);
 					fprintf(stderr," moved_to=%s",module.strings.get(mvseg.name).c_str());
