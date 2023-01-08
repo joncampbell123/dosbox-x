@@ -7678,6 +7678,9 @@ namespace DOSLIBLinker {
 	typedef size_t				fixup_method_index_t;		// index behind fixup method
 	static constexpr fixup_method_index_t	fixup_method_index_undef = ~((size_t)(0ul));
 
+	typedef uint16_t			memory_mode_t;
+	static constexpr memory_mode_t		memory_mode_undef = ~((uint16_t)(0u));
+
 	typedef unsigned int			segment_frag_flags_t;
 
 	static constexpr unsigned int		SEGFRAGFL_PINNED = segment_frag_flags_t(1u << 0u); // pinned, do not move
@@ -7688,6 +7691,10 @@ namespace DOSLIBLinker {
 	typedef unsigned int			cpu_flags_t;			// CPU flags, meaning depends on CPU type
 
 	typedef unsigned int			symbol_flags_t;
+
+	static constexpr memory_mode_t		MEMMODE_REAL = 0; // x86 real mode
+	static constexpr memory_mode_t		MEMMODE_PROT = 1; // x86 protected mode
+	static constexpr memory_mode_t		MEMMODE_FLAT = 2; // gen flat memory mode
 
 	static constexpr alignmask_t		byte_align_mask = ~((alignmask_t)(0ull));
 	static constexpr alignmask_t		word_align_mask = ~((alignmask_t)(1ull));
@@ -7706,15 +7713,12 @@ namespace DOSLIBLinker {
 	static constexpr segment_flags_t	SEGFLAG_NOEMIT = segment_flags_t(1u << 2u); // segment exists only in memory and does not have data on disk (BSS, STACK, etc)
 	static constexpr segment_flags_t	SEGFLAG_HEADER = segment_flags_t(1u << 3u); // segment is part of the file header
 	static constexpr segment_flags_t	SEGFLAG_SEGMENTMODEL = segment_flags_t(1u << 4u); // segment is intended for segmented memory model (rel_offset/rel_segments values matter)
-	static constexpr segment_flags_t	SEGFLAG_FLATMODEL = segment_flags_t(1u << 5u); // segment is intended for flat memory model (linear_addr value matters)
 	static constexpr segment_flags_t	SEGFLAG_PRIVATE = segment_flags_t(1u << 6u); // do not combine with any other segment
 	static constexpr segment_flags_t	SEGFLAG_STACK = segment_flags_t(1u << 7u); // stack segment
 	static constexpr segment_flags_t	SEGFLAG_COMMON = segment_flags_t(1u << 8u); // common
 	static constexpr segment_flags_t	SEGFLAG_DELETED = segment_flags_t(1u << 9u); // deleted segment, do not consider anything
 	static constexpr segment_flags_t	SEGFLAG_PADDING = segment_flags_t(1u << 10u); // it's just padding
 	static constexpr segment_flags_t	SEGFLAG_ABSOLUTE = segment_flags_t(1u << 11u); // rel_offset and rel_segment represent an absolute address
-	static constexpr segment_flags_t	SEGFLAG_REALMODE = segment_flags_t(1u << 12u); // real-mode memory model
-	static constexpr segment_flags_t	SEGFLAG_PROTMODE = segment_flags_t(1u << 13u); // prot-mode memory model
 	static constexpr segment_flags_t	SEGFLAG_NOASSIGNLINEAR = segment_flags_t(1u << 14u); // do not assign linear memory address
 
 	// cpu_major == CPUMAJT_INTELX86
@@ -7723,9 +7727,6 @@ namespace DOSLIBLinker {
 	static constexpr cpu_flags_t		CPUFLAG_INTELX86_32BIT = cpu_flags_t(1u << 2u); // 32-bit segment
 	static constexpr cpu_flags_t		CPUFLAG_INTELX86_64BIT = cpu_flags_t(1u << 3u); // 64-bit segment
 	static constexpr cpu_flags_t		CPUFLAG_INTELX86_BITNESSMASK = CPUFLAG_INTELX86_16BIT | CPUFLAG_INTELX86_32BIT | CPUFLAG_INTELX86_64BIT; // use to compare bitness
-	// NTS: One or the other must be set, both may be set if the code can run in either environment
-	static constexpr cpu_flags_t		CPUFLAG_INTELX86_REALMODE = cpu_flags_t(1u << 4u); // real mode segment
-	static constexpr cpu_flags_t		CPUFLAG_INTELX86_PROTMODE = cpu_flags_t(1u << 5u); // protected mode segment
 
 	// fixup methods
 	static constexpr fixup_method_t		FIXUPMETH_SEGMENT = 0; // fixup refers to segment base
@@ -7930,6 +7931,7 @@ namespace DOSLIBLinker {
 		uint64_t			user_order = 0;				// user controllable sort order param
 		unsigned int			format_index = 0;			// format specific index
 		segment_ref_t			moved_to = segment_ref_undef;		// References to this segment should redirect here (combined segment)
+		memory_mode_t			memory_mode = memory_mode_undef;	// Memory mode
 		std::vector<segment_frag_t>	data;					// segment data
 		std::vector<fixup_t>		fixups;					// fixups of segment
 
@@ -9760,10 +9762,10 @@ namespace DOSLIBLinker {
 					sref.flags |= SEGFLAG_NOEMIT;
 
 				// "FLAT" group and this segment is 32-bit and not an absolute segment address
-				if (has_flat && !(sref.flags & SEGFLAG_ABSOLUTE) &&
+				if (has_flat && !(sref.flags & SEGFLAG_ABSOLUTE) && sref.memory_mode == memory_mode_undef &&
 					sref.cpu_major == DOSLIBLinker::CPUMAJT_INTELX86 && sref.cpu_minor == DOSLIBLinker::CPUMINT_INTELX86_386) {
 					sref.flags &= ~SEGFLAG_SEGMENTMODEL;
-					sref.flags |= SEGFLAG_FLATMODEL;
+					sref.memory_mode = MEMMODE_FLAT;
 				}
 			}
 
@@ -9981,16 +9983,23 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				if (segm.flags & DOSLIBLinker::SEGFLAG_NOEMIT) fprintf(stderr," NOEMIT");
 				if (segm.flags & DOSLIBLinker::SEGFLAG_HEADER) fprintf(stderr," HEADER");
 				if (segm.flags & DOSLIBLinker::SEGFLAG_SEGMENTMODEL) fprintf(stderr," SEGMENTED");
-				if (segm.flags & DOSLIBLinker::SEGFLAG_FLATMODEL) fprintf(stderr," FLAT");
 				if (segm.flags & DOSLIBLinker::SEGFLAG_PRIVATE) fprintf(stderr," PRIVATE");
 				if (segm.flags & DOSLIBLinker::SEGFLAG_STACK) fprintf(stderr," STACK");
 				if (segm.flags & DOSLIBLinker::SEGFLAG_COMMON) fprintf(stderr," COMMON");
 				if (segm.flags & DOSLIBLinker::SEGFLAG_DELETED) fprintf(stderr," DELETED");
 				if (segm.flags & DOSLIBLinker::SEGFLAG_PADDING) fprintf(stderr," PADDING");
 				if (segm.flags & DOSLIBLinker::SEGFLAG_ABSOLUTE) fprintf(stderr," ABSOLUTE");
-				if (segm.flags & DOSLIBLinker::SEGFLAG_REALMODE) fprintf(stderr," REALMODE");
-				if (segm.flags & DOSLIBLinker::SEGFLAG_PROTMODE) fprintf(stderr," PROTMODE");
 				if (segm.flags & DOSLIBLinker::SEGFLAG_NOASSIGNLINEAR) fprintf(stderr," NOASSIGNLINEAR");
+
+				if (segm.memory_mode != DOSLIBLinker::memory_mode_undef) {
+					fprintf(stderr," memorymode=");
+					switch (segm.memory_mode) {
+						case DOSLIBLinker::MEMMODE_REAL: fprintf(stderr,"REAL"); break;
+						case DOSLIBLinker::MEMMODE_PROT: fprintf(stderr,"PROT"); break;
+						case DOSLIBLinker::MEMMODE_FLAT: fprintf(stderr,"FLAT"); break;
+						default: break;
+					}
+				}
 
 				if (segm.moved_to != DOSLIBLinker::segment_ref_undef) {
 					const auto &mvseg = module.segments.get(segm.moved_to);
