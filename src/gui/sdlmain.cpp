@@ -7752,13 +7752,11 @@ namespace DOSLIBLinker {
 	static constexpr symbol_type_t		SYMTYPE_EXTERN = 1; // external symbol
 	static constexpr symbol_type_t		SYMTYPE_PUBLIC = 2; // public symbol
 	static constexpr symbol_type_t		SYMTYPE_COMMON = 3; // common symbol
-	static constexpr symbol_type_t		SYMTYPE_LOCAL_EXTERN = 11; // external symbol local to module
-	static constexpr symbol_type_t		SYMTYPE_LOCAL_PUBLIC = 12; // public symbol local to module
-	static constexpr symbol_type_t		SYMTYPE_LOCAL_COMMON = 13; // common symbol local to module
 
 	// symbol flags
 	static constexpr symbol_flags_t		SYMFLAG_NEAR = (1u << 0u); // Symbol declared near (OMF)
 	static constexpr symbol_flags_t		SYMFLAG_FAR = (1u << 1u); // Symbol declared far (OMF)
+	static constexpr symbol_flags_t		SYMFLAG_LOCAL = (1u << 2u); // Symbol declared local to module (OMF)
 
 	// module source formats
 	static const unsigned int		SRCFMT_UNSPEC = 0;
@@ -8100,14 +8098,11 @@ namespace DOSLIBLinker {
 	}
 
 	static const stringtable_t *symbol_table_sort_name_func_strings = NULL;
-	unsigned int symbol_type_to_priority_sort_val(const symbol_type_t t) {
-		switch (t) {
-			case SYMTYPE_LOCAL_PUBLIC:	return 6;
-			case SYMTYPE_PUBLIC:		return 5;
-			case SYMTYPE_LOCAL_COMMON:	return 4;
-			case SYMTYPE_COMMON:		return 3;
-			case SYMTYPE_LOCAL_EXTERN:	return 2;
-			case SYMTYPE_EXTERN:		return 1;
+	unsigned int symbol_type_to_priority_sort_val(const symbol_t t) {
+		switch (t.type) {
+			case SYMTYPE_PUBLIC:		return (t.flags & SYMFLAG_LOCAL) ? 6 : 5;
+			case SYMTYPE_COMMON:		return (t.flags & SYMFLAG_LOCAL) ? 4 : 3;
+			case SYMTYPE_EXTERN:		return (t.flags & SYMFLAG_LOCAL) ? 2 : 1;
 			default:			break;
 		};
 
@@ -8123,8 +8118,8 @@ namespace DOSLIBLinker {
 		}
 
 		/* string refs match, sort by type priority, highest to lowest */
-		const unsigned int pra = symbol_type_to_priority_sort_val(a.type);
-		const unsigned int prb = symbol_type_to_priority_sort_val(b.type);
+		const unsigned int pra = symbol_type_to_priority_sort_val(a);
+		const unsigned int prb = symbol_type_to_priority_sort_val(b);
 		if (pra != prb) return pra > prb; /* we want higher priority first before lower priority */
 
 		/* nothing to do */
@@ -9383,7 +9378,8 @@ namespace DOSLIBLinker {
 
 				const symbol_ref_t symref = module.symbols.add(nameref);
 				symbol_t &sym = module.symbols.get(symref);
-				sym.type = local ? SYMTYPE_LOCAL_EXTERN : SYMTYPE_EXTERN;
+				sym.type = SYMTYPE_EXTERN;
+				if (local) sym.flags |= SYMFLAG_LOCAL;
 
 				/* build EXTDEF table according to OMF spec because FIXUPP records, if they refer to an EXTERN,
 				 * do so by a 1-based index into that table. Here, the table is built so that an EXTDEF index
@@ -9443,9 +9439,10 @@ namespace DOSLIBLinker {
 
 				const symbol_ref_t symref = segref.symbols.add(nameref);
 				symbol_t &sym = segref.symbols.get(symref);
-				sym.type = local ? SYMTYPE_LOCAL_PUBLIC : SYMTYPE_PUBLIC;
+				sym.type = SYMTYPE_PUBLIC;
 				sym.offset = segment_offset_t(public_offset);
 				sym.segref = from1based(basesegindex);
+				if (local) sym.flags |= SYMFLAG_LOCAL;
 
 				if (basegroupindex != 0) {
 					if (module.groups.exists(group_ref_t(from1based(basegroupindex)))) {
@@ -9506,9 +9503,10 @@ namespace DOSLIBLinker {
 
 				const symbol_ref_t symref = module.symbols.add(name);
 				symbol_t &sym = module.symbols.get(symref);
-				sym.type = local ? SYMTYPE_LOCAL_COMMON : SYMTYPE_COMMON;
+				sym.type = SYMTYPE_COMMON;
 				sym.flags = flags;
 				if (comlen > uint32_t(0)) sym.size = segment_size_t(comlen);
+				if (local) sym.flags |= SYMFLAG_LOCAL;
 
 				/* COMDEF is counted in the EXTDEF table too. */
 				modex.EXTDEF.ref.push_back(symref);
@@ -10237,9 +10235,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 						case DOSLIBLinker::SYMTYPE_EXTERN: fprintf(stderr,"(extern) "); break;
 						case DOSLIBLinker::SYMTYPE_PUBLIC: fprintf(stderr,"(public) "); break;
 						case DOSLIBLinker::SYMTYPE_COMMON: fprintf(stderr,"(common) "); break;
-						case DOSLIBLinker::SYMTYPE_LOCAL_EXTERN: fprintf(stderr,"(localextern) "); break;
-						case DOSLIBLinker::SYMTYPE_LOCAL_PUBLIC: fprintf(stderr,"(localpublic) "); break;
-						case DOSLIBLinker::SYMTYPE_LOCAL_COMMON: fprintf(stderr,"(localcommon) "); break;
 						default: fprintf(stderr,"(%lu""??"") ",(unsigned long)sym.type); break;
 					}
 					if (sym.group != DOSLIBLinker::segment_ref_undef) {
@@ -10256,6 +10251,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					if (sym.size != DOSLIBLinker::segment_size_undef) {
 						fprintf(stderr,"size=0x%08lx ",(unsigned long)sym.size);
 					}
+					if (sym.flags & DOSLIBLinker::SYMFLAG_LOCAL)
+						fprintf(stderr,"LOCAL ");
 					if (sym.flags & DOSLIBLinker::SYMFLAG_NEAR)
 						fprintf(stderr,"NEAR ");
 					if (sym.flags & DOSLIBLinker::SYMFLAG_FAR)
@@ -10290,9 +10287,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					case DOSLIBLinker::SYMTYPE_EXTERN: fprintf(stderr,"(extern) "); break;
 					case DOSLIBLinker::SYMTYPE_PUBLIC: fprintf(stderr,"(public) "); break;
 					case DOSLIBLinker::SYMTYPE_COMMON: fprintf(stderr,"(common) "); break;
-					case DOSLIBLinker::SYMTYPE_LOCAL_EXTERN: fprintf(stderr,"(localextern) "); break;
-					case DOSLIBLinker::SYMTYPE_LOCAL_PUBLIC: fprintf(stderr,"(localpublic) "); break;
-					case DOSLIBLinker::SYMTYPE_LOCAL_COMMON: fprintf(stderr,"(localcommon) "); break;
 					default: fprintf(stderr,"(%lu""??"") ",(unsigned long)sym.type); break;
 				}
 				if (sym.group != DOSLIBLinker::segment_ref_undef) {
@@ -10309,6 +10303,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				if (sym.size != DOSLIBLinker::segment_size_undef) {
 					fprintf(stderr,"size=0x%08lx ",(unsigned long)sym.size);
 				}
+				if (sym.flags & DOSLIBLinker::SYMFLAG_LOCAL)
+					fprintf(stderr,"LOCAL ");
 				if (sym.flags & DOSLIBLinker::SYMFLAG_NEAR)
 					fprintf(stderr,"NEAR ");
 				if (sym.flags & DOSLIBLinker::SYMFLAG_FAR)
