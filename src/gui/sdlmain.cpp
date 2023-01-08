@@ -8922,6 +8922,12 @@ namespace DOSLIBLinker {
 					return false;
 			};
 
+			// A reasonable assumption is that all segments are of the segmented memory model.
+			// We can't assume real mode because 16-bit segmented models are also used for
+			// 16-bit protected mode environments like Windows 3.1. However we don't know
+			// whether real mode or not here, yet.
+			segref.flags |= SEGFLAG_SEGMENTMODEL;
+
 			switch ((attr>>2u)&7u) {
 				case 0: /* private */
 					segref.flags |= SEGFLAG_PRIVATE;
@@ -9736,13 +9742,27 @@ namespace DOSLIBLinker {
 			if (!flush_LIDATA(module,modex))
 				return false;
 
+			/* if there is a FLAT group, any 32-bit segment should be re-marked as flat memory model */
+			bool has_flat = false;
+			for (auto gi=module.groups.ref.begin();gi!=module.groups.ref.end();gi++) {
+				const auto &gref = *gi;
+				if (module.strings.get(gref.name) == "FLAT") has_flat = true;
+			}
+
 			/* any segment with a nonzero size but no data should be marked NOEMIT.
 			 * OMF does not appear to have an explicit flag to say so even for segments you would normally expect
 			 * that kind of thing (like STACK and BSS) */
 			for (auto si=module.segments.ref.begin();si!=module.segments.ref.end();si++) {
 				auto &sref = *si;
+
 				if (sref.size != segment_size_undef && sref.size > segment_size_t(0u) && sref.data.empty())
 					sref.flags |= SEGFLAG_NOEMIT;
+
+				// "FLAT" group and this segment is 32-bit
+				if (has_flat && sref.cpu_major == DOSLIBLinker::CPUMAJT_INTELX86 && sref.cpu_minor == DOSLIBLinker::CPUMINT_INTELX86_386) {
+					sref.flags &= ~SEGFLAG_SEGMENTMODEL;
+					sref.flags |= SEGFLAG_FLATMODEL;
+				}
 			}
 
 			for (size_t i=0;i < module.segments.ref.size();i++) module.segment_order.push_back(segment_ref_t(i));
