@@ -7715,6 +7715,7 @@ namespace DOSLIBLinker {
 	static constexpr segment_flags_t	SEGFLAG_ABSOLUTE = segment_flags_t(1u << 11u); // rel_offset and rel_segment represent an absolute address
 	static constexpr segment_flags_t	SEGFLAG_REALMODE = segment_flags_t(1u << 12u); // real-mode memory model
 	static constexpr segment_flags_t	SEGFLAG_PROTMODE = segment_flags_t(1u << 13u); // prot-mode memory model
+	static constexpr segment_flags_t	SEGFLAG_NOASSIGNLINEAR = segment_flags_t(1u << 14u); // do not assign linear memory address
 
 	// cpu_major == CPUMAJT_INTELX86
 	static constexpr cpu_flags_t		CPUFLAG_INTELX86_BIG386 = cpu_flags_t(1u << 0u); // (i386) segment should be loaded as "big" 4GB limit (B bit)
@@ -8897,7 +8898,7 @@ namespace DOSLIBLinker {
 						const uint16_t framenum = read_word(ri,re);
 						const uint16_t offset = read_byte(ri,re);
 						segref.alignmask = byte_align_mask;
-						segref.flags |= SEGFLAG_ABSOLUTE;
+						segref.flags |= SEGFLAG_ABSOLUTE | SEGFLAG_SEGMENTMODEL | SEGFLAG_NOASSIGNLINEAR;
 						segref.rel_offset = segment_offset_t(offset);
 						segref.rel_segments = segment_relative_t(framenum);
 					}
@@ -9758,8 +9759,9 @@ namespace DOSLIBLinker {
 				if (sref.size != segment_size_undef && sref.size > segment_size_t(0u) && sref.data.empty())
 					sref.flags |= SEGFLAG_NOEMIT;
 
-				// "FLAT" group and this segment is 32-bit
-				if (has_flat && sref.cpu_major == DOSLIBLinker::CPUMAJT_INTELX86 && sref.cpu_minor == DOSLIBLinker::CPUMINT_INTELX86_386) {
+				// "FLAT" group and this segment is 32-bit and not an absolute segment address
+				if (has_flat && !(sref.flags & SEGFLAG_ABSOLUTE) &&
+					sref.cpu_major == DOSLIBLinker::CPUMAJT_INTELX86 && sref.cpu_minor == DOSLIBLinker::CPUMINT_INTELX86_386) {
 					sref.flags &= ~SEGFLAG_SEGMENTMODEL;
 					sref.flags |= SEGFLAG_FLATMODEL;
 				}
@@ -9799,6 +9801,41 @@ namespace DOSLIBLinker {
 							module.strings.get((*si).name).c_str());
 						return false;
 					}
+				}
+			}
+
+			/* Now give each segment an address and it's fragments. At least in linear space.
+			 * We can't assume anything about segments yet, so no changes are made here for
+			 * rel_segments and rel_offset. */
+			{
+				linear_addr_t offset = 0;
+
+				for (auto si=module.segments.ref.begin();si!=module.segments.ref.end();si++) {
+					auto &sref = *si;
+
+					/* default to no linear address (TODO: Maybe check a flag first that says linear addr is fixed for a reason) */
+					sref.linear_addr = linear_addr_undef;
+
+					if (sref.size == segment_size_undef) continue;
+					if (sref.alignmask == alignmask_t(0)) continue;
+
+					/* absolute segments don't count, nor does anything marked "do not assign linear address" */
+					if (sref.flags & SEGFLAG_ABSOLUTE) continue;
+					if (sref.flags & SEGFLAG_NOASSIGNLINEAR) continue;
+
+					/* align up */
+					/* NTS: Byte  (1) alignment mask is 0xFFFFFFFF, ~mask is 0x00000000
+					 *      Word  (2) alignment mask is 0xFFFFFFFE, ~mask is 0x00000001
+					 *      Dword (4) alignment mask is 0xFFFFFFFC, ~mask is 0x00000003
+					 *
+					 *      Basically this is the same as computing "offset += alignment_in_bytes - 1; offset -= offset % alignment_in_bytes;"
+					 *      for example for DWORD "offset += 3; offset -= offset % 4;" to round up. This trick only works if alignment is a
+					 *      power of 2, which within this linker and the OMF standard, is always the case. */
+					offset = (offset + (~sref.alignmask)) & sref.alignmask;
+					sref.linear_addr = offset;
+
+					/* move on */
+					offset += (*si).size;
 				}
 			}
 
@@ -9953,6 +9990,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				if (segm.flags & DOSLIBLinker::SEGFLAG_ABSOLUTE) fprintf(stderr," ABSOLUTE");
 				if (segm.flags & DOSLIBLinker::SEGFLAG_REALMODE) fprintf(stderr," REALMODE");
 				if (segm.flags & DOSLIBLinker::SEGFLAG_PROTMODE) fprintf(stderr," PROTMODE");
+				if (segm.flags & DOSLIBLinker::SEGFLAG_NOASSIGNLINEAR) fprintf(stderr," NOASSIGNLINEAR");
 
 				if (segm.moved_to != DOSLIBLinker::segment_ref_undef) {
 					const auto &mvseg = module.segments.get(segm.moved_to);
