@@ -7627,9 +7627,11 @@ std::wstring win32_prompt_folder(const char *default_folder) {
 namespace DOSLIBLinker {
 
 	typedef uint64_t			segment_size_t;			// segment size in bytes
+	typedef int64_t				ssegment_size_t;
 	static constexpr segment_size_t		segment_size_undef = ~((uint64_t)(0ull));
 
 	typedef uint64_t			segment_offset_t;		// offset within a segment
+	typedef int64_t				ssegment_offset_t;
 	static constexpr segment_offset_t	segment_offset_undef = ~((uint64_t)(0ull));
 
 	typedef int32_t				segment_relative_t;		// offset in segments. In real mode, as paragraphs. In protected mode, as index numbers. Can be negative.
@@ -7924,7 +7926,7 @@ namespace DOSLIBLinker {
 		segment_size_t			size = segment_size_undef; // assigned size of the segment
 		segment_offset_t		rel_offset = segment_offset_undef; // additional segment address offset relative to segment register
 		segment_relative_t		rel_segments = segment_relative_undef; // relative segment address (paragraphs in real mode, selectors in protected mode)
-		segment_offset_t		offset_adjust = 0; // size, offset, data fragments and fixups have been adjusted by this value (i.e. -0x100 for .COM)
+		segment_offset_t		offset_base = 0; // in memory base address of segment (ORG directive)
 		file_offset_t			file_offset = file_offset_undef; // assigned file offset of the segment on disk
 		linear_addr_t			linear_addr = linear_addr_undef; // assigned linear address of segment in linear memory if applicable
 		cpu_major_type_t		cpu_major = cpu_major_undef; // intended CPU, major category
@@ -7945,9 +7947,10 @@ namespace DOSLIBLinker {
 		// NTS: rel_offset also allows the .COM memory model where the base of the executable image starts at offset 0x100 within the segment,
 		//      in which case rel_segments is negative number -0x10 for entry point rel_segments:0x100 to point to base of executable image.
 
-		segment_offset_t		lowest_data_base(void);
+		segment_offset_t		lowest_data_base(void) const;
 		void				sort_data_fragments_by_offset(void);
 		void				sort_fixups_by_offset(void);
+		segment_size_t			size_adjusted(void) const;
 	};
 
 	struct moduleinfo_t {
@@ -7991,6 +7994,7 @@ namespace DOSLIBLinker {
 		void				get_segment_grouping_list(std::vector< std::vector<segment_ref_t> > &scan);
 		void				assume_memory_mode(const memory_mode_t dm);
 		void				arrange_segments_simple(const arrange_mode_t am,const segment_offset_t linbase=0);
+		void				segment_nonzero_rebase_simple(const alignmask_t alignmask);
 	};
 
 	static constexpr inline alignmask_t align_mask_to_value(const alignmask_t v) {
@@ -8401,7 +8405,13 @@ namespace DOSLIBLinker {
 		return fa.fixup_offset < fb.fixup_offset;
 	}
 
-	segment_offset_t segment_t::lowest_data_base(void) {
+	segment_size_t segment_t::size_adjusted(void) const {
+		ssegment_size_t s = ssegment_size_t(size) - ssegment_size_t(offset_base);
+		if (s < ssegment_size_t(0)) s = ssegment_size_t(0);
+		return segment_size_t(s);
+	}
+
+	segment_offset_t segment_t::lowest_data_base(void) const {
 		segment_offset_t r = segment_offset_undef;
 
 		for (auto di=data.begin();di!=data.end();di++) {
@@ -8459,6 +8469,46 @@ namespace DOSLIBLinker {
 		}
 	}
 
+	/* This version is intended for simple flat modes and real mode */
+	void linker_object_module::segment_nonzero_rebase_simple(const alignmask_t alignmask) {
+		std::vector< std::vector<segment_ref_t> > scan; /* scan[group][segment] */
+
+		get_segment_grouping_list(scan);
+		for (auto sgi=scan.begin();sgi!=scan.end();sgi++) {
+			/* For any group, determine lowest org base and largest alignment of them all */
+			segment_offset_t orgbase = segment_offset_undef;
+			alignmask_t orgalign = byte_align_mask;
+			const auto &sg = *sgi;
+			segment_offset_t org;
+
+			for (auto si=sg.begin();si!=sg.end();si++) {
+				const auto &sref = segments.get(*si);
+				org = sref.lowest_data_base();
+				if (sref.alignmask == 0) continue;
+				if (org == segment_offset_undef) continue;
+				if (sref.memory_mode == MEMMODE_PROT) continue;
+				if (orgbase == segment_offset_undef && orgbase > org) orgbase = org;
+				orgalign &= sref.alignmask;
+			}
+
+			/* no base determined or zero?, nothing to do */
+			if (orgbase == segment_offset_undef) continue;
+			orgalign &= alignmask;
+			orgbase &= orgalign;
+			if (orgbase == 0) continue;
+
+			/* make adjustment */
+			for (auto si=sg.begin();si!=sg.end();si++) {
+				auto &sref = segments.get(*si);
+				org = sref.lowest_data_base();
+				if (sref.alignmask == 0) continue;
+				if (org == segment_offset_undef) continue;
+				if (sref.memory_mode == MEMMODE_PROT) continue;
+				sref.offset_base += org;
+			}
+		}
+	}
+
 	/* This version is intended for real and protected mode segmented models, and very simple flat memory models.
 	 * For your use, you can specify the linear base for flat and the segment index base for segmented real or protected mode */
 	void linker_object_module::arrange_segments_simple(const arrange_mode_t am,const segment_offset_t linbase) {
@@ -8489,6 +8539,8 @@ namespace DOSLIBLinker {
 				if (sref.size == segment_size_undef) continue;
 				if (sref.alignmask == 0) continue;
 
+				if (sref.offset_base & (~sref.alignmask)) continue; /* alignment does not work, continue */
+
 				/* NTS: alignmask is mask according to alignment.
 				 *      byte  (1) alignment is 0xFFFFFFFF, ~mask is 0x00000000
 				 *      word  (2) alignment is 0xFFFFFFFE, ~mask is 0x00000001
@@ -8501,26 +8553,39 @@ namespace DOSLIBLinker {
 
 				if (am == DOSLIBLinker::ARRANGE_SINGLESEGMENT) {
 					if (sref.memory_mode == MEMMODE_REAL) {
-						sref.rel_segments = 0;
-						sref.rel_offset = linoff - linbase;
+						sref.rel_segments = segment_relative_t((-ssegment_offset_t(sref.offset_base)) >> ssegment_offset_t(4));
+						sref.rel_offset = (linoff - linbase) + (sref.offset_base & para_align_mask);
+						linoff += sref.size_adjusted();
 					}
 					else if (sref.memory_mode == MEMMODE_PROT) {
 						sref.rel_segments = 0;
 						sref.rel_offset = linoff - linbase;
+						linoff += segment_offset_t(sref.size);
+						assert(sref.offset_base == 0);
+					}
+					else {
+						linoff += sref.size_adjusted();
 					}
 				}
 				else {
 					if (sref.memory_mode == MEMMODE_REAL) {
-						sref.rel_segments = segment_relative_t((grouplinoff - linbase) >> 4u);
-						sref.rel_offset = segment_offset_t((grouplinoff - linbase) & 0xFu) + segment_offset_t(linoff - grouplinoff);
+						sref.rel_segments = segment_relative_t((grouplinoff - linbase) >> 4u) +
+							segment_relative_t((-ssegment_offset_t(sref.offset_base)) >> ssegment_offset_t(4));
+						sref.rel_offset = segment_offset_t((grouplinoff - linbase) & 0xFu) +
+							segment_offset_t(linoff - grouplinoff) + (sref.offset_base & para_align_mask);
+						linoff += sref.size_adjusted();
 					}
 					else if (sref.memory_mode == MEMMODE_PROT) {
 						sref.rel_segments = segoff - groupsegoff;
 						sref.rel_offset = segment_offset_t(linoff - grouplinoff);
+						linoff += segment_offset_t(sref.size);
+						assert(sref.offset_base == 0);
+					}
+					else {
+						linoff += sref.size_adjusted();
 					}
 				}
 
-				linoff += segment_offset_t(sref.size);
 				segoff++;
 			}
 		}
@@ -10081,6 +10146,11 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			// We want to make a real-mode MS-DOS EXE file
 			module.assume_memory_mode(DOSLIBLinker::MEMMODE_REAL);
 
+			// For any segment with a nonzero origin (Microsoft MASM ORG directive) that is
+			// real-mode or flat, change the offset_base to encode to the image only what
+			// exists from the first fragment instead of unused space.
+			module.segment_nonzero_rebase_simple(DOSLIBLinker::para_align_mask);
+
 			// Now arrange segments
 			module.arrange_segments_simple(DOSLIBLinker::ARRANGE_MULTISEGMENT);
 		}
@@ -10134,6 +10204,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					const auto &mvseg = module.segments.get(segm.moved_to);
 					fprintf(stderr," moved_to=%s",module.strings.get(mvseg.name).c_str());
 				}
+				fprintf(stderr," sizeadj=%lx",
+					(unsigned long)segm.size_adjusted());
 				fprintf(stderr,"\n");
 
 				DOSLIBLinker::segment_offset_t ldb = segm.lowest_data_base();
@@ -10142,9 +10214,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 						(unsigned long)ldb);
 				}
 
-				if (segm.offset_adjust != 0) {
+				if (segm.offset_base != 0) {
 					fprintf(stderr,"    Ofs adjust: %lx\n",
-						(unsigned long)segm.offset_adjust);
+						(unsigned long)segm.offset_base);
 				}
 
 				if (segm.rel_offset != DOSLIBLinker::segment_offset_undef || segm.rel_segments != DOSLIBLinker::segment_relative_undef) {
