@@ -7990,7 +7990,7 @@ namespace DOSLIBLinker {
 
 		void				get_segment_grouping_list(std::vector< std::vector<segment_ref_t> > &scan);
 		void				assume_memory_mode(const memory_mode_t dm);
-		void				arrange_segments(const arrange_mode_t am);
+		void				arrange_segments_simple(const arrange_mode_t am,const segment_offset_t linbase=0);
 	};
 
 	static constexpr inline alignmask_t align_mask_to_value(const alignmask_t v) {
@@ -8459,14 +8459,19 @@ namespace DOSLIBLinker {
 		}
 	}
 
-	void linker_object_module::arrange_segments(const arrange_mode_t am) {
+	/* This version is intended for real and protected mode segmented models, and very simple flat memory models.
+	 * For your use, you can specify the linear base for flat and the segment index base for segmented real or protected mode */
+	void linker_object_module::arrange_segments_simple(const arrange_mode_t am,const segment_offset_t linbase) {
 		std::vector< std::vector<segment_ref_t> > scan; /* scan[group][segment] */
-		segment_offset_t segoff = 0;
-		linear_addr_t linoff = 0;
+		linear_addr_t linoff = linbase;
+		segment_relative_t segoff = 0;
+
+		if (!(am == ARRANGE_SINGLESEGMENT || am == ARRANGE_MULTISEGMENT))
+			return;
 
 		get_segment_grouping_list(scan);
-
 		for (auto sgi=scan.begin();sgi!=scan.end();sgi++) {
+			const segment_relative_t groupsegoff = segoff;
 			const linear_addr_t grouplinoff = linoff;
 			const auto &sg = *sgi;
 
@@ -8497,20 +8502,20 @@ namespace DOSLIBLinker {
 				if (am == DOSLIBLinker::ARRANGE_SINGLESEGMENT) {
 					if (sref.memory_mode == MEMMODE_REAL) {
 						sref.rel_segments = 0;
-						sref.rel_offset = linoff;
+						sref.rel_offset = linoff - linbase;
 					}
 					else if (sref.memory_mode == MEMMODE_PROT) {
 						sref.rel_segments = 0;
-						sref.rel_offset = linoff;
+						sref.rel_offset = linoff - linbase;
 					}
 				}
 				else {
 					if (sref.memory_mode == MEMMODE_REAL) {
-						sref.rel_segments = segment_relative_t(grouplinoff >> 4u);
-						sref.rel_offset = segment_offset_t(grouplinoff & 0xFu) + segment_offset_t(linoff - grouplinoff);
+						sref.rel_segments = segment_relative_t((grouplinoff - linbase) >> 4u);
+						sref.rel_offset = segment_offset_t((grouplinoff - linbase) & 0xFu) + segment_offset_t(linoff - grouplinoff);
 					}
 					else if (sref.memory_mode == MEMMODE_PROT) {
-						sref.rel_segments = segoff;
+						sref.rel_segments = segoff - groupsegoff;
 						sref.rel_offset = segment_offset_t(linoff - grouplinoff);
 					}
 				}
@@ -10077,7 +10082,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			module.assume_memory_mode(DOSLIBLinker::MEMMODE_REAL);
 
 			// Now arrange segments
-			module.arrange_segments(DOSLIBLinker::ARRANGE_MULTISEGMENT);
+			module.arrange_segments_simple(DOSLIBLinker::ARRANGE_MULTISEGMENT);
 		}
 
 		for (auto mi=modules.begin();mi!=modules.end();mi++) {
