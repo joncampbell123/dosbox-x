@@ -7984,6 +7984,7 @@ namespace DOSLIBLinker {
 
 		static bool			gen_sort_func(const segment_ref_t a,const segment_ref_t b);
 
+		void				get_segment_grouping_list(std::vector< std::vector<segment_ref_t> > &scan);
 		void				assume_memory_mode(const memory_mode_t dm);
 		void				arrange_segments(const arrange_mode_t am);
 	};
@@ -8400,85 +8401,88 @@ namespace DOSLIBLinker {
 		}
 	}
 
+	void linker_object_module::get_segment_grouping_list(std::vector< std::vector<segment_ref_t> > &scan) {
+		scan.clear();
+
+		for (size_t si=0;si < segments.ref.size();) {
+			scan.push_back(std::move(std::vector<segment_ref_t>()));
+			auto &scangroup = scan.back();
+			scangroup.push_back(segment_ref_t(si));
+			const auto &cref = segments.ref[si++];
+			while (si < segments.ref.size()) {
+				const auto &nref = segments.ref[si];
+
+				if (cref.groupref != group_ref_undef && nref.groupref != group_ref_undef && cref.memory_mode == nref.memory_mode) {
+					if (strings.get(groups.get(cref.groupref).name) == strings.get(groups.get(nref.groupref).name)) {
+						scangroup.push_back(segment_ref_t(si));
+						si++;
+						continue;
+					}
+				}
+
+				break;
+			}
+		}
+	}
+
 	void linker_object_module::arrange_segments(const arrange_mode_t am) {
+		std::vector< std::vector<segment_ref_t> > scan; /* scan[group][segment] */
 		segment_offset_t segoff = 0;
 		linear_addr_t linoff = 0;
 
-		for (auto si=segments.ref.begin();si!=segments.ref.end();si++) {
-			auto &sref = *si;
+		get_segment_grouping_list(scan);
 
-			sref.linear_addr = linear_addr_undef;
+		for (auto sgi=scan.begin();sgi!=scan.end();sgi++) {
+			const linear_addr_t grouplinoff = linoff;
+			const auto &sg = *sgi;
 
-			if (sref.flags & SEGFLAG_ABSOLUTE) continue;
+			for (auto si=sg.begin();si!=sg.end();si++) {
+				auto &sref = segments.get(*si);
 
-			sref.rel_segments = segment_relative_undef;
-			sref.rel_offset = segment_offset_undef;
+				sref.linear_addr = linear_addr_undef;
 
-			if (sref.flags & SEGFLAG_DELETED) continue;
-			if (sref.size == segment_size_undef) continue;
-			if (sref.alignmask == 0) continue;
+				if (sref.flags & SEGFLAG_ABSOLUTE) continue;
 
-			/* NTS: alignmask is mask according to alignment.
-			 *      byte  (1) alignment is 0xFFFFFFFF, ~mask is 0x00000000
-			 *      word  (2) alignment is 0xFFFFFFFE, ~mask is 0x00000001
-			 *      dword (4) alignment is 0xFFFFFFFC, ~mask is 0x00000003
-			 *
-			 * This calculation is equivalent to "offset += byte_alignment - 1; offset -= offset % byte_alignment;"
-			 * Example dword alignment (4) "offset += 3; offset -= offset % 4;" */
-			linoff = (linoff + (~sref.alignmask)) & sref.alignmask;
-			sref.linear_addr = linoff;
+				sref.rel_segments = segment_relative_undef;
+				sref.rel_offset = segment_offset_undef;
 
-			if (am == DOSLIBLinker::ARRANGE_SINGLESEGMENT) {
-				if (sref.memory_mode == MEMMODE_REAL) {
-					sref.rel_segments = 0;
-					sref.rel_offset = linoff;
-				}
-				else if (sref.memory_mode == MEMMODE_PROT) {
-					sref.rel_segments = 0;
-					sref.rel_offset = linoff;
-				}
-			}
-			else {
-				if (sref.memory_mode == MEMMODE_REAL) {
-					sref.rel_segments = segment_relative_t(linoff >> 4u);
-					sref.rel_offset = segment_offset_t(linoff & 0xFu);
-				}
-				else if (sref.memory_mode == MEMMODE_PROT) {
-					sref.rel_segments = segoff;
-					sref.rel_offset = 0;
-				}
-			}
+				if (sref.flags & SEGFLAG_DELETED) continue;
+				if (sref.size == segment_size_undef) continue;
+				if (sref.alignmask == 0) continue;
 
-			linoff += segment_offset_t(sref.size);
-			segoff++;
-		}
+				/* NTS: alignmask is mask according to alignment.
+				 *      byte  (1) alignment is 0xFFFFFFFF, ~mask is 0x00000000
+				 *      word  (2) alignment is 0xFFFFFFFE, ~mask is 0x00000001
+				 *      dword (4) alignment is 0xFFFFFFFC, ~mask is 0x00000003
+				 *
+				 * This calculation is equivalent to "offset += byte_alignment - 1; offset -= offset % byte_alignment;"
+				 * Example dword alignment (4) "offset += 3; offset -= offset % 4;" */
+				linoff = (linoff + (~sref.alignmask)) & sref.alignmask;
+				sref.linear_addr = linoff;
 
-		if (am == DOSLIBLinker::ARRANGE_SINGLESEGMENT) {
-		}
-		else {
-			/* scan again and adjust real mode rel_segments for grouping */
-			for (size_t si=0;si < segments.ref.size();) {
-				auto &cref = segments.ref[si++];
-				while (si < segments.ref.size()) {
-					auto &nref = segments.ref[si];
-					if (cref.groupref != group_ref_undef && nref.groupref != group_ref_undef && cref.memory_mode == nref.memory_mode) {
-						if (strings.get(groups.get(cref.groupref).name) == strings.get(groups.get(nref.groupref).name)) {
-							if (cref.memory_mode == MEMMODE_REAL) {
-								nref.rel_segments = segment_relative_t(cref.linear_addr >> 4u);
-								nref.rel_offset = segment_offset_t(cref.linear_addr & 0xFu) + (nref.linear_addr - cref.linear_addr);
-							}
-							else if (cref.memory_mode == MEMMODE_PROT) {
-								nref.rel_segments = cref.rel_segments;
-								nref.rel_offset = nref.linear_addr - cref.linear_addr;
-							}
-
-							si++;
-							continue;
-						}
+				if (am == DOSLIBLinker::ARRANGE_SINGLESEGMENT) {
+					if (sref.memory_mode == MEMMODE_REAL) {
+						sref.rel_segments = 0;
+						sref.rel_offset = linoff;
 					}
-
-					break;
+					else if (sref.memory_mode == MEMMODE_PROT) {
+						sref.rel_segments = 0;
+						sref.rel_offset = linoff;
+					}
 				}
+				else {
+					if (sref.memory_mode == MEMMODE_REAL) {
+						sref.rel_segments = segment_relative_t(grouplinoff >> 4u);
+						sref.rel_offset = segment_offset_t(grouplinoff & 0xFu) + segment_offset_t(linoff - grouplinoff);
+					}
+					else if (sref.memory_mode == MEMMODE_PROT) {
+						sref.rel_segments = segoff;
+						sref.rel_offset = segment_offset_t(linoff - grouplinoff);
+					}
+				}
+
+				linoff += segment_offset_t(sref.size);
+				segoff++;
 			}
 		}
 	}
