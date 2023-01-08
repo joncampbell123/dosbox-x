@@ -8615,6 +8615,10 @@ namespace DOSLIBLinker {
 			return fa.data_offset < fb.data_offset;
 		}
 
+		bool omf_segment_datafrag_sort_fixupoffset_func(const fixup_t &fa,const fixup_t &fb) {
+			return fa.fixup_offset < fb.fixup_offset;
+		}
+
 		bool last_was_LIDATA(linker_object_module &module,extra_linker_object_module &modex) {
 			(void)module;
 			if (modex.LIDATA_offset != segment_offset_undef || modex.LIDATA_segment != segment_ref_undef)
@@ -9750,12 +9754,26 @@ namespace DOSLIBLinker {
 			 * and if the user abused ORG for overlapping LEDATA, throw an error because
 			 * we will not support that. */
 			for (auto si=module.segments.ref.begin();si!=module.segments.ref.end();si++) {
+				/* sort fragments */
 				std::sort((*si).data.begin(),(*si).data.end(),omf_segment_datafrag_sort_offset_func);
 
 				/* look for overlaps and error out if found */
 				for (size_t fi=0;(fi+size_t(1u)) < (*si).data.size();fi++) {
 					if (((*si).data[fi].data_offset+(*si).data[fi].data_size) > (*si).data[fi+size_t(1u)].data_offset) {
 						log->log(LNKLOG_ERR,"In segment '%s', overlapping fragment(s) detected",
+							module.strings.get((*si).name).c_str());
+						return false;
+					}
+				}
+
+				/* sort fixups */
+				std::sort((*si).fixups.begin(),(*si).fixups.end(),omf_segment_datafrag_sort_fixupoffset_func);
+
+				/* look for overlaps and error out if found */
+				for (size_t fi=0;(fi+size_t(1u)) < (*si).fixups.size();fi++) {
+					const size_t fixsz = (*si).fixups[fi].fixup_size();
+					if (((*si).fixups[fi].fixup_offset+fixsz) > (*si).fixups[fi+size_t(1u)].fixup_offset) {
+						log->log(LNKLOG_ERR,"In segment '%s', overlapping fixup(s) detected",
 							module.strings.get((*si).name).c_str());
 						return false;
 					}
