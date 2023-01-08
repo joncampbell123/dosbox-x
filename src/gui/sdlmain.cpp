@@ -7926,7 +7926,7 @@ namespace DOSLIBLinker {
 		segment_size_t			size = segment_size_undef; // assigned size of the segment
 		segment_offset_t		rel_offset = segment_offset_undef; // additional segment address offset relative to segment register
 		segment_relative_t		rel_segments = segment_relative_undef; // relative segment address (paragraphs in real mode, selectors in protected mode)
-		segment_offset_t		org_offset = segment_offset_undef; // offset chosen by ORG directive (lowest of all fragments)
+		segment_offset_t		offset_adjust = 0; // size, offset, data fragments and fixups have been adjusted by this value (i.e. -0x100 for .COM)
 		file_offset_t			file_offset = file_offset_undef; // assigned file offset of the segment on disk
 		linear_addr_t			linear_addr = linear_addr_undef; // assigned linear address of segment in linear memory if applicable
 		cpu_major_type_t		cpu_major = cpu_major_undef; // intended CPU, major category
@@ -8412,6 +8412,10 @@ namespace DOSLIBLinker {
 			if (r == segment_offset_undef || r > (*di).data_offset)
 				r = (*di).data_offset;
 		}
+
+		// TODO: If there is some assembler out there that makes OMF files
+		//       with FIXUPPs outside defined LEDATA/LIDATA data areas,
+		//       add code here to consider fixups as well.
 
 		return r;
 	}
@@ -9926,9 +9930,6 @@ namespace DOSLIBLinker {
 					}
 				}
 
-				/* ORG offset */
-				(*si).org_offset = (*si).lowest_data_base();
-
 				/* sort fixups */
 				(*si).sort_fixups_by_offset();
 
@@ -10119,9 +10120,15 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				}
 				fprintf(stderr,"\n");
 
-				if (segm.org_offset != DOSLIBLinker::segment_offset_undef) {
-					fprintf(stderr,"    Org address: %08lx\n",
-						(unsigned long)segm.org_offset);
+				DOSLIBLinker::segment_offset_t ldb = segm.lowest_data_base();
+				if (ldb != DOSLIBLinker::segment_offset_undef) {
+					fprintf(stderr,"    Lowest: %lx\n",
+						(unsigned long)ldb);
+				}
+
+				if (segm.offset_adjust != 0) {
+					fprintf(stderr,"    Ofs adjust: %lx\n",
+						(unsigned long)segm.offset_adjust);
 				}
 
 				if (segm.rel_offset != DOSLIBLinker::segment_offset_undef || segm.rel_segments != DOSLIBLinker::segment_relative_undef) {
