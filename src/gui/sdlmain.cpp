@@ -7683,6 +7683,7 @@ namespace DOSLIBLinker {
 	static constexpr unsigned int		SEGFRAGFL_PINNED = segment_frag_flags_t(1u << 0u); // pinned, do not move
 	static constexpr unsigned int		SEGFRAGFL_PADDING = segment_frag_flags_t(1u << 1u); // fragment is just padding
 	static constexpr unsigned int		SEGFRAGFL_HEADER = segment_frag_flags_t(1u << 2u); // is part of file header
+	static constexpr unsigned int		SEGFRAGFL_OFFSETBYORG = segment_frag_flags_t(1u << 3u); // fragment offset chosen by ORG directive
 
 	typedef unsigned int			cpu_flags_t;			// CPU flags, meaning depends on CPU type
 
@@ -7902,7 +7903,6 @@ namespace DOSLIBLinker {
 	};
 
 	struct segment_frag_t {
-		segment_offset_t		org_offset = segment_offset_undef;	// segment ORG (origin) allowed by some assemblers
 		segment_offset_t		data_offset = segment_offset_undef;	// data offset for arrangement
 		segment_offset_t		data_size = segment_offset_undef;	// data size for arrangement
 		segment_frag_flags_t		flags = 0;
@@ -9078,7 +9078,7 @@ namespace DOSLIBLinker {
 				if (segref.data.empty()) {
 					segref.data.push_back(std::move(segment_frag_t()));
 					auto &sfrag = segref.data.back();
-					sfrag.org_offset = dataoffset; /* If the value is nonzero there is a good chance the segment wants that offset specifically */
+					if (dataoffset != 0) sfrag.flags |= SEGFRAGFL_OFFSETBYORG;
 					sfrag.data_offset = dataoffset; /* whatever the offset (Microsoft MASM ORG directive) becomes the base of the fragment */
 					sfrag.data_size = 0;
 				}
@@ -9089,7 +9089,7 @@ namespace DOSLIBLinker {
 						// discontinuous LEDATA, start another fragment
 						segref.data.push_back(std::move(segment_frag_t()));
 						auto &sfrag = segref.data.back();
-						sfrag.org_offset = dataoffset; /* If the value is nonzero there is a good chance the segment wants that offset specifically */
+						if (dataoffset != 0) sfrag.flags |= SEGFRAGFL_OFFSETBYORG;
 						sfrag.data_offset = dataoffset; /* whatever the offset (Microsoft MASM ORG directive) becomes the base of the fragment */
 						sfrag.data_size = 0;
 					}
@@ -9173,7 +9173,7 @@ namespace DOSLIBLinker {
 				if (segref.data.empty()) {
 					segref.data.push_back(std::move(segment_frag_t()));
 					auto &sfrag = segref.data.back();
-					sfrag.org_offset = dataoffset; /* If the value is nonzero there is a good chance the segment wants that offset specifically */
+					if (dataoffset != 0) sfrag.flags |= SEGFRAGFL_OFFSETBYORG;
 					sfrag.data_offset = dataoffset; /* whatever the offset (Microsoft MASM ORG directive) becomes the base of the fragment */
 					sfrag.data_size = 0;
 				}
@@ -9184,7 +9184,7 @@ namespace DOSLIBLinker {
 						// discontinuous LEDATA, start another fragment
 						segref.data.push_back(std::move(segment_frag_t()));
 						auto &sfrag = segref.data.back();
-						sfrag.org_offset = dataoffset; /* If the value is nonzero there is a good chance the segment wants that offset specifically */
+						if (dataoffset != 0) sfrag.flags |= SEGFRAGFL_OFFSETBYORG;
 						sfrag.data_offset = dataoffset; /* whatever the offset (Microsoft MASM ORG directive) becomes the base of the fragment */
 						sfrag.data_size = 0;
 					}
@@ -9955,8 +9955,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 							(unsigned long)sfrag.data_offset,
 							(unsigned long)sfrag.data_offset+sfrag.data_size-1ul);
 						if (sfrag.flags & DOSLIBLinker::SEGFRAGFL_PINNED) fprintf(stderr," PINNED");
+						if (sfrag.flags & DOSLIBLinker::SEGFRAGFL_HEADER) fprintf(stderr," HEADER");
 						if (sfrag.flags & DOSLIBLinker::SEGFRAGFL_PADDING) fprintf(stderr," PADDING");
-						if (sfrag.org_offset != DOSLIBLinker::segment_offset_undef) fprintf(stderr," ORG=0x%08lx",(unsigned long)sfrag.org_offset);
+						if (sfrag.flags & DOSLIBLinker::SEGFRAGFL_OFFSETBYORG) fprintf(stderr," OFSBYORG");
 						fprintf(stderr,"\n");
 
 						if (!sfrag.data.empty()) {
