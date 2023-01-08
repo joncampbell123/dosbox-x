@@ -8557,6 +8557,7 @@ namespace DOSLIBLinker {
 		static constexpr record_type_t		RECTYPE_BAKPAT     = 0xB2;
 		static constexpr record_type_t		RECTYPE_BAKPAT_32  = 0xB3;
 		static constexpr record_type_t		RECTYPE_LEXTDEF    = 0xB4;
+		static constexpr record_type_t		RECTYPE_LEXTDEF_32 = 0xB5;
 		static constexpr record_type_t		RECTYPE_LPUBDEF    = 0xB6;
 		static constexpr record_type_t		RECTYPE_LPUBDEF_32 = 0xB7;
 		static constexpr record_type_t		RECTYPE_LCOMDEF    = 0xB8;
@@ -9366,7 +9367,7 @@ namespace DOSLIBLinker {
 			const uint8_t *ri = &rec.record[0];
 			const uint8_t *re = &rec.record[rec.record.size()];
 
-			const bool local = (rec.type == RECTYPE_LEXTDEF);
+			const bool local = (rec.type == RECTYPE_LEXTDEF || rec.type == RECTYPE_LEXTDEF_32);
 
 			while (ri < re) {
 				/* <external name string> <type index> */
@@ -9842,7 +9843,7 @@ namespace DOSLIBLinker {
 					if (!add_LIDATA(module,modex,rec))
 						return false;
 				}
-				else if (rec.type == RECTYPE_EXTDEF || rec.type == RECTYPE_LEXTDEF) {
+				else if (rec.type == RECTYPE_EXTDEF || rec.type == RECTYPE_LEXTDEF || rec.type == RECTYPE_LEXTDEF_32) {
 					if (!add_EXTDEF(module,modex,rec))
 						return false;
 				}
