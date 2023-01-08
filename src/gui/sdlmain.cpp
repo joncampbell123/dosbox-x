@@ -7877,7 +7877,7 @@ namespace DOSLIBLinker {
 		string_ref_t				name = string_ref_undef; // name of symbol
 		group_ref_t				group = group_ref_undef; // group of symbol (OMF)
 		segment_ref_t				segref = segment_ref_undef; // segment symbol belongs to (undefined if extern)
-		segment_offset_t			offset = segment_offset_undef; // offset within fragment
+		segment_offset_t			offset = segment_offset_undef; // offset within segment relative to data fragments
 		segment_size_t				size = segment_size_undef; // size, if known (usually only for common symbols)
 		symbol_flags_t				flags = 0;
 	};
@@ -8164,15 +8164,15 @@ namespace DOSLIBLinker {
 
 		/* caller or loader arrangement takes priority */
 		if (sa.user_order != sb.user_order) return sa.user_order < sb.user_order;
-		/* then CPU (why would you mix 16/32-bit in one segment you weirdo?) */
-		if (sa.cpu_major != sb.cpu_major) return sa.cpu_major < sb.cpu_major;
-		if (sa.cpu_minor != sb.cpu_minor) return sa.cpu_minor < sb.cpu_minor;
 		/* then group */
 		if (sa.groupref != sb.groupref) return sa.groupref < sb.groupref;
 		/* then class */
 		if (sa.classname != sb.classname) return sa.classname < sb.classname;
 		/* then name */
 		if (sa.name != sb.name) return sa.name < sb.name;
+		/* then CPU */
+		if (sa.cpu_major != sb.cpu_major) return sa.cpu_major < sb.cpu_major;
+		if (sa.cpu_minor != sb.cpu_minor) return sa.cpu_minor < sb.cpu_minor;
 
 		return false;
 	}
