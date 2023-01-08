@@ -7944,6 +7944,9 @@ namespace DOSLIBLinker {
 
 		// NTS: rel_offset also allows the .COM memory model where the base of the executable image starts at offset 0x100 within the segment,
 		//      in which case rel_segments is negative number -0x10 for entry point rel_segments:0x100 to point to base of executable image.
+
+		void				sort_data_fragments_by_offset(void);
+		void				sort_fixups_by_offset(void);
 	};
 
 	struct moduleinfo_t {
@@ -8392,6 +8395,24 @@ namespace DOSLIBLinker {
 
 	/////////////////////////
 
+	static bool segment_datafrag_sort_offset_func(const segment_frag_t &fa,const segment_frag_t &fb) {
+		return fa.data_offset < fb.data_offset;
+	}
+
+	static bool segment_sort_fixupoffset_func(const fixup_t &fa,const fixup_t &fb) {
+		return fa.fixup_offset < fb.fixup_offset;
+	}
+
+	void segment_t::sort_data_fragments_by_offset(void) {
+		std::sort(data.begin(),data.end(),segment_datafrag_sort_offset_func);
+	}
+
+	void segment_t::sort_fixups_by_offset(void) {
+		std::sort(fixups.begin(),fixups.end(),segment_sort_fixupoffset_func);
+	}
+
+	/////////////////////////
+
 	void linker_object_module::assume_memory_mode(const memory_mode_t dm) {
 		for (auto si=segments.ref.begin();si!=segments.ref.end();si++) {
 			if ((*si).memory_mode == memory_mode_undef) {
@@ -8722,14 +8743,6 @@ namespace DOSLIBLinker {
 			r += len;
 
 			return ref;
-		}
-
-		bool omf_segment_datafrag_sort_offset_func(const segment_frag_t &fa,const segment_frag_t &fb) {
-			return fa.data_offset < fb.data_offset;
-		}
-
-		bool omf_segment_datafrag_sort_fixupoffset_func(const fixup_t &fa,const fixup_t &fb) {
-			return fa.fixup_offset < fb.fixup_offset;
 		}
 
 		bool last_was_LIDATA(linker_object_module &module,extra_linker_object_module &modex) {
@@ -9889,7 +9902,7 @@ namespace DOSLIBLinker {
 			 * we will not support that. */
 			for (auto si=module.segments.ref.begin();si!=module.segments.ref.end();si++) {
 				/* sort fragments */
-				std::sort((*si).data.begin(),(*si).data.end(),omf_segment_datafrag_sort_offset_func);
+				(*si).sort_data_fragments_by_offset();
 
 				/* look for overlaps and error out if found */
 				for (size_t fi=0;(fi+size_t(1u)) < (*si).data.size();fi++) {
@@ -9901,7 +9914,7 @@ namespace DOSLIBLinker {
 				}
 
 				/* sort fixups */
-				std::sort((*si).fixups.begin(),(*si).fixups.end(),omf_segment_datafrag_sort_fixupoffset_func);
+				(*si).sort_fixups_by_offset();
 
 				/* look for overlaps and error out if found */
 				for (size_t fi=0;(fi+size_t(1u)) < (*si).fixups.size();fi++) {
