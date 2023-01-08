@@ -7681,12 +7681,16 @@ namespace DOSLIBLinker {
 	typedef uint16_t			memory_mode_t;
 	static constexpr memory_mode_t		memory_mode_undef = ~((uint16_t)(0u));
 
+	typedef uint16_t			arrange_mode_t;
+	static constexpr arrange_mode_t		arrange_mode_undef = ~((uint16_t)(0u));
+
 	typedef unsigned int			segment_frag_flags_t;
 
 	static constexpr unsigned int		SEGFRAGFL_PINNED = segment_frag_flags_t(1u << 0u); // pinned, do not move
 	static constexpr unsigned int		SEGFRAGFL_PADDING = segment_frag_flags_t(1u << 1u); // fragment is just padding
 	static constexpr unsigned int		SEGFRAGFL_HEADER = segment_frag_flags_t(1u << 2u); // is part of file header
 	static constexpr unsigned int		SEGFRAGFL_OFFSETBYORG = segment_frag_flags_t(1u << 3u); // fragment offset chosen by ORG directive
+	static constexpr unsigned int		SEGFRAGFL_DELETED = segment_frag_flags_t(1u << 4u); // ignore fragment
 
 	typedef unsigned int			cpu_flags_t;			// CPU flags, meaning depends on CPU type
 
@@ -7695,6 +7699,9 @@ namespace DOSLIBLinker {
 	static constexpr memory_mode_t		MEMMODE_REAL = 0; // x86 real mode
 	static constexpr memory_mode_t		MEMMODE_PROT = 1; // x86 protected mode
 	static constexpr memory_mode_t		MEMMODE_FLAT = 2; // gen flat memory mode
+
+	static constexpr arrange_mode_t		ARRANGE_MULTISEGMENT = 0; // EXE, most formats
+	static constexpr arrange_mode_t		ARRANGE_SINGLESEGMENT = 1; // COM, flat segmented images
 
 	static constexpr alignmask_t		byte_align_mask = ~((alignmask_t)(0ull));
 	static constexpr alignmask_t		word_align_mask = ~((alignmask_t)(1ull));
@@ -7976,6 +7983,9 @@ namespace DOSLIBLinker {
 		void				gen_sort_segments(void);
 
 		static bool			gen_sort_func(const segment_ref_t a,const segment_ref_t b);
+
+		void				assume_memory_mode(const memory_mode_t dm);
+		void				arrange_segments(const arrange_mode_t am);
 	};
 
 	static constexpr inline alignmask_t align_mask_to_value(const alignmask_t v) {
@@ -8378,6 +8388,100 @@ namespace DOSLIBLinker {
 	/////////////////////////
 
 	static log_callback				log_callback_silent;
+
+	/////////////////////////
+
+	void linker_object_module::assume_memory_mode(const memory_mode_t dm) {
+		for (auto si=segments.ref.begin();si!=segments.ref.end();si++) {
+			if ((*si).memory_mode == memory_mode_undef) {
+				(*si).memory_mode = dm;
+				if (dm == MEMMODE_FLAT) (*si).flags &= ~SEGFLAG_SEGMENTMODEL;
+			}
+		}
+	}
+
+	void linker_object_module::arrange_segments(const arrange_mode_t am) {
+		segment_offset_t segoff = 0;
+		linear_addr_t linoff = 0;
+
+		for (auto si=segments.ref.begin();si!=segments.ref.end();si++) {
+			auto &sref = *si;
+
+			sref.linear_addr = linear_addr_undef;
+
+			if (sref.flags & SEGFLAG_ABSOLUTE) continue;
+
+			sref.rel_segments = segment_relative_undef;
+			sref.rel_offset = segment_offset_undef;
+
+			if (sref.flags & SEGFLAG_DELETED) continue;
+			if (sref.size == segment_size_undef) continue;
+			if (sref.alignmask == 0) continue;
+
+			/* NTS: alignmask is mask according to alignment.
+			 *      byte  (1) alignment is 0xFFFFFFFF, ~mask is 0x00000000
+			 *      word  (2) alignment is 0xFFFFFFFE, ~mask is 0x00000001
+			 *      dword (4) alignment is 0xFFFFFFFC, ~mask is 0x00000003
+			 *
+			 * This calculation is equivalent to "offset += byte_alignment - 1; offset -= offset % byte_alignment;"
+			 * Example dword alignment (4) "offset += 3; offset -= offset % 4;" */
+			linoff = (linoff + (~sref.alignmask)) & sref.alignmask;
+			sref.linear_addr = linoff;
+
+			if (am == DOSLIBLinker::ARRANGE_SINGLESEGMENT) {
+				if (sref.memory_mode == MEMMODE_REAL) {
+					sref.rel_segments = 0;
+					sref.rel_offset = linoff;
+				}
+				else if (sref.memory_mode == MEMMODE_PROT) {
+					sref.rel_segments = 0;
+					sref.rel_offset = linoff;
+				}
+			}
+			else {
+				if (sref.memory_mode == MEMMODE_REAL) {
+					sref.rel_segments = segment_relative_t(linoff >> 4u);
+					sref.rel_offset = segment_offset_t(linoff & 0xFu);
+				}
+				else if (sref.memory_mode == MEMMODE_PROT) {
+					sref.rel_segments = segoff;
+					sref.rel_offset = 0;
+				}
+			}
+
+			linoff += segment_offset_t(sref.size);
+			segoff++;
+		}
+
+		if (am == DOSLIBLinker::ARRANGE_SINGLESEGMENT) {
+		}
+		else {
+			/* scan again and adjust real mode rel_segments for grouping */
+			for (size_t si=0;si < segments.ref.size();) {
+				auto &cref = segments.ref[si++];
+				while (si < segments.ref.size()) {
+					auto &nref = segments.ref[si];
+					if (cref.groupref != group_ref_undef && nref.groupref != group_ref_undef && cref.memory_mode == nref.memory_mode) {
+						if (strings.get(groups.get(cref.groupref).name) == strings.get(groups.get(nref.groupref).name)) {
+							if (cref.memory_mode == MEMMODE_REAL) {
+								nref.rel_segments = segment_relative_t(cref.linear_addr >> 4u);
+								nref.rel_offset = segment_offset_t(cref.linear_addr & 0xFu) + (nref.linear_addr - cref.linear_addr);
+							}
+							else if (cref.memory_mode == MEMMODE_PROT) {
+								nref.rel_segments = cref.rel_segments;
+								nref.rel_offset = nref.linear_addr - cref.linear_addr;
+							}
+
+							si++;
+							continue;
+						}
+					}
+
+					break;
+				}
+			}
+		}
+	}
 
 	/////////////////////////
 
@@ -9806,41 +9910,6 @@ namespace DOSLIBLinker {
 				}
 			}
 
-			/* Now give each segment an address and it's fragments. At least in linear space.
-			 * We can't assume anything about segments yet, so no changes are made here for
-			 * rel_segments and rel_offset. */
-			{
-				linear_addr_t offset = 0;
-
-				for (auto si=module.segments.ref.begin();si!=module.segments.ref.end();si++) {
-					auto &sref = *si;
-
-					/* default to no linear address (TODO: Maybe check a flag first that says linear addr is fixed for a reason) */
-					sref.linear_addr = linear_addr_undef;
-
-					if (sref.size == segment_size_undef) continue;
-					if (sref.alignmask == alignmask_t(0)) continue;
-
-					/* absolute segments don't count, nor does anything marked "do not assign linear address" */
-					if (sref.flags & SEGFLAG_ABSOLUTE) continue;
-					if (sref.flags & SEGFLAG_NOASSIGNLINEAR) continue;
-
-					/* align up */
-					/* NTS: Byte  (1) alignment mask is 0xFFFFFFFF, ~mask is 0x00000000
-					 *      Word  (2) alignment mask is 0xFFFFFFFE, ~mask is 0x00000001
-					 *      Dword (4) alignment mask is 0xFFFFFFFC, ~mask is 0x00000003
-					 *
-					 *      Basically this is the same as computing "offset += alignment_in_bytes - 1; offset -= offset % alignment_in_bytes;"
-					 *      for example for DWORD "offset += 3; offset -= offset % 4;" to round up. This trick only works if alignment is a
-					 *      power of 2, which within this linker and the OMF standard, is always the case. */
-					offset = (offset + (~sref.alignmask)) & sref.alignmask;
-					sref.linear_addr = offset;
-
-					/* move on */
-					offset += (*si).size;
-				}
-			}
-
 			return true;
 		}
 
@@ -9955,6 +10024,16 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 		DOSLIBLinker::OMF::read(modules,"0012.obj",&log);
 		DOSLIBLinker::OMF::read(modules,"0013.obj",&log);
 		DOSLIBLinker::OMF::read(modules,"0014.obj",&log);
+
+		for (auto mi=modules.begin();mi!=modules.end();mi++) {
+			auto &module = *mi;
+
+			// We want to make a real-mode MS-DOS EXE file
+			module.assume_memory_mode(DOSLIBLinker::MEMMODE_REAL);
+
+			// Now arrange segments
+			module.arrange_segments(DOSLIBLinker::ARRANGE_MULTISEGMENT);
+		}
 
 		for (auto mi=modules.begin();mi!=modules.end();mi++) {
 			fprintf(stderr,"Module %zu\n",(size_t)(mi-modules.begin()));
