@@ -7926,6 +7926,7 @@ namespace DOSLIBLinker {
 		group_ref_t			groupref = group_ref_undef;		// segment group
 		uint64_t			user_order = 0;				// user controllable sort order param
 		unsigned int			format_index = 0;			// format specific index
+		segment_ref_t			moved_to = segment_ref_undef;		// References to this segment should redirect here (combined segment)
 		std::vector<segment_frag_t>	data;					// segment data
 		std::vector<fixup_t>		fixups;					// fixups of segment
 
@@ -9535,6 +9536,8 @@ namespace DOSLIBLinker {
 
 					if ((fixdata & 4u) == 0u)
 						fixup.target_offset = (fmt32 ? read_dword(ri,re) : read_word(ri,re));
+					else
+						fixup.target_offset = 0;
 
 					if (last_was_LIDATA(module,modex))
 						modex.LIDATA_fixups.push_back(std::move(fixup));
@@ -9908,6 +9911,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				if (segm.flags & DOSLIBLinker::SEGFLAG_DELETED) fprintf(stderr," DELETED");
 				if (segm.flags & DOSLIBLinker::SEGFLAG_PADDING) fprintf(stderr," PADDING");
 				if (segm.flags & DOSLIBLinker::SEGFLAG_ABSOLUTE) fprintf(stderr," ABSOLUTE");
+				if (segm.moved_to != DOSLIBLinker::segment_ref_undef) {
+					const auto &mvseg = module.segments.get(segm.moved_to);
+					fprintf(stderr," moved_to=%s",module.strings.get(mvseg.name).c_str());
+				}
 				fprintf(stderr,"\n");
 
 				if (segm.rel_offset != DOSLIBLinker::segment_offset_undef || segm.rel_segments != DOSLIBLinker::segment_relative_undef) {
