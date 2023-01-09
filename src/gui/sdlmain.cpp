@@ -7619,7 +7619,7 @@ std::wstring win32_prompt_folder(const char *default_folder) {
 }
 #endif
 
-#define LNKDEV
+//#define LNKDEV
 
 #ifdef LNKDEV
 #include <unordered_map>
