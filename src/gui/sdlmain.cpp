@@ -7619,11 +7619,12 @@ std::wstring win32_prompt_folder(const char *default_folder) {
 }
 #endif
 
-//#define LNKDEV
+#define LNKDEV
 
 #ifdef LNKDEV
 #include <unordered_map>
 
+# if 0//REF
 namespace DOSLIBLinker {
 
 	typedef uint64_t			segment_size_t;			// segment size in bytes
@@ -10093,7 +10094,9 @@ namespace DOSLIBLinker {
 
 	}
 
-}
+} // end nameapce
+# endif//REF
+
 #endif
 
 #ifdef LNKDEV
@@ -10113,6 +10116,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     bool saved_opt_test;
 
 #ifdef LNKDEV
+# if 0//REF
 	{
 		DOSLIBLinker::log_callback log;
 		std::vector<DOSLIBLinker::linker_object_module> modules;
@@ -10381,6 +10385,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 			fprintf(stderr,"\n");
 		}
 	}
+# endif//REF
 #endif
 
     control=&myconf;
