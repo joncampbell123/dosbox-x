@@ -7879,6 +7879,7 @@ namespace DOSLIBLinker {
 		segment_ref_t				segref = segment_ref_undef; // segment symbol belongs to (undefined if extern)
 		segment_offset_t			offset = segment_offset_undef; // offset within segment relative to data fragments
 		segment_size_t				size = segment_size_undef; // size, if known (usually only for common symbols)
+		uint64_t				module_id = 0; // a value of arbitrary ID used to identify if a symbol came from the same module
 		symbol_flags_t				flags = 0;
 	};
 
@@ -7984,6 +7985,7 @@ namespace DOSLIBLinker {
 		segment_order_list_t		segment_order;
 		moduleinfo_t			moduleinfo;
 		group_table_t			groups;
+		uint64_t			module_id = 0;
 
 		std::string			fixup_to_string(const fixup_method_t m,const fixup_method_index_t i);
 
@@ -8392,6 +8394,8 @@ namespace DOSLIBLinker {
 	}
 
 	/////////////////////////
+
+	static uint64_t					module_id_load_next = uint64_t(1ull);
 
 	static log_callback				log_callback_silent;
 
@@ -9448,6 +9452,7 @@ namespace DOSLIBLinker {
 
 				const symbol_ref_t symref = module.symbols.add(nameref);
 				symbol_t &sym = module.symbols.get(symref);
+				sym.module_id = module.module_id;
 				sym.type = SYMTYPE_EXTERN;
 				if (local) sym.flags |= SYMFLAG_LOCAL;
 
@@ -9509,6 +9514,7 @@ namespace DOSLIBLinker {
 
 				const symbol_ref_t symref = segref.symbols.add(nameref);
 				symbol_t &sym = segref.symbols.get(symref);
+				sym.module_id = module.module_id;
 				sym.type = SYMTYPE_PUBLIC;
 				sym.offset = segment_offset_t(public_offset);
 				sym.segref = from1based(basesegindex);
@@ -9573,6 +9579,7 @@ namespace DOSLIBLinker {
 
 				const symbol_ref_t symref = module.symbols.add(name);
 				symbol_t &sym = module.symbols.get(symref);
+				sym.module_id = module.module_id;
 				sym.type = SYMTYPE_COMMON;
 				sym.flags = flags;
 				if (comlen > uint32_t(0)) sym.size = segment_size_t(comlen);
@@ -9891,6 +9898,9 @@ namespace DOSLIBLinker {
 			source.path = module.strings.add(path);
 			source.offset = current_rec.file_offset;
 			source.index = source_ref;
+
+			module.module_id = module_id_load_next;
+			module_id_load_next++;
 
 			record rec;
 
@@ -10328,6 +10338,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					if (sym.size != DOSLIBLinker::segment_size_undef) {
 						fprintf(stderr,"size=0x%08lx ",(unsigned long)sym.size);
 					}
+					fprintf(stderr,"modid=%lu ",(unsigned long)sym.module_id);
 					if (sym.flags & DOSLIBLinker::SYMFLAG_LOCAL)
 						fprintf(stderr,"LOCAL ");
 					if (sym.flags & DOSLIBLinker::SYMFLAG_NEAR)
