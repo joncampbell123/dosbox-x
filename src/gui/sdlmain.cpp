@@ -7943,7 +7943,6 @@ namespace DOSLIBLinker {
 		memory_mode_t			memory_mode = memory_mode_undef;	// Memory mode
 		std::vector<segment_frag_t>	data;					// segment data
 		std::vector<fixup_t>		fixups;					// fixups of segment
-		symbol_table_t			symbols;				// symbols (PUBDEF only, all others go directly to module symbol table)
 
 		// NTS: rel_offset also allows the .COM memory model where the base of the executable image starts at offset 0x100 within the segment,
 		//      in which case rel_segments is negative number -0x10 for entry point rel_segments:0x100 to point to base of executable image.
@@ -9488,21 +9487,19 @@ namespace DOSLIBLinker {
 				return false;
 			}
 
-			/* Instead of adding to the module table, PUBDEFs are added to the segment symbol table.
-			 * This is for performance reasons. To adjust a segment base offset the fixups, symbols
-			 * in that segment, and data fragments all need to be adjusted. Adding to the module
-			 * table directly would mean having to scan all symbols to match the segment which is
-			 * worse performance than just keeping all PUBDEFs within the segment. After adjustment
-			 * the symbols are later added to the module symbol table.
-			 *
-			 * Note that EXTDEF and COMDEF do not refer to a segment at all, and can be added to the
-			 * module table directly without concern for offsets. */
 			if (!module.segments.exists(from1based(basesegindex))) {
-				modex.log->log(LNKLOG_ERR,"PUBDEF symbol refers to non-existent SEGDEF");
+				modex.log->log(LNKLOG_ERR,"PUBDEF refers to non-existent SEGDEF");
 				return false;
 			}
 
 			auto &segref = module.segments.get(from1based(basesegindex));
+
+			if (basegroupindex != 0) {
+				if (!module.groups.exists(group_ref_t(from1based(basegroupindex)))) {
+					modex.log->log(LNKLOG_ERR,"PUBDEF refers to non-existent GRPDEF");
+					return false;
+				}
+			}
 
 			while (ri < re) {
 				const string_ref_t nameref = read_lenstring(module.strings,ri,re);
@@ -9512,23 +9509,14 @@ namespace DOSLIBLinker {
 				const uint16_t type_index = read_index(ri,re);
 				(void)type_index;//ignored
 
-				const symbol_ref_t symref = segref.symbols.add(nameref);
-				symbol_t &sym = segref.symbols.get(symref);
+				const symbol_ref_t symref = module.symbols.add(nameref);
+				symbol_t &sym = module.symbols.get(symref);
 				sym.module_id = module.module_id;
 				sym.type = SYMTYPE_PUBLIC;
 				sym.offset = segment_offset_t(public_offset);
 				sym.segref = from1based(basesegindex);
 				if (local) sym.flags |= SYMFLAG_LOCAL;
-
-				if (basegroupindex != 0) {
-					if (module.groups.exists(group_ref_t(from1based(basegroupindex)))) {
-						sym.group = group_ref_t(from1based(basegroupindex));
-					}
-					else {
-						modex.log->log(LNKLOG_ERR,"PUBDEF symbol refers to non-existent GRPDEF");
-						return false;
-					}
-				}
+				if (basegroupindex != 0) sym.group = group_ref_t(from1based(basegroupindex));
 			}
 
 			return true;
@@ -10312,40 +10300,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 							(unsigned long)f.fixup_offset,
 							DOSLIBLinker::fixup_how_to_string(f.fixup_how));
 					}
-				}
-				fprintf(stderr,"    Symbols:\n");
-				for (size_t si=0;si < segm.symbols.ref2t.size();si++) {
-					const auto &sym = segm.symbols.get(DOSLIBLinker::symbol_ref_t(si));
-					fprintf(stderr,"      '%s' ",module.strings.get(sym.name).c_str());
-					switch (sym.type) {
-						case DOSLIBLinker::SYMTYPE_DELETED: fprintf(stderr,"(DELETED) "); break;
-						case DOSLIBLinker::SYMTYPE_EXTERN: fprintf(stderr,"(extern) "); break;
-						case DOSLIBLinker::SYMTYPE_PUBLIC: fprintf(stderr,"(public) "); break;
-						case DOSLIBLinker::SYMTYPE_COMMON: fprintf(stderr,"(common) "); break;
-						default: fprintf(stderr,"(%lu""??"") ",(unsigned long)sym.type); break;
-					}
-					if (sym.group != DOSLIBLinker::segment_ref_undef) {
-						const auto &grpref = module.groups.get(sym.group);
-						fprintf(stderr,"group=('%s') ",module.strings.get(grpref.name).c_str());
-					}
-					if (sym.segref != DOSLIBLinker::segment_ref_undef) {
-						const auto &segref = module.segments.get(sym.segref);
-						fprintf(stderr,"segment=('%s') ",module.strings.get(segref.name).c_str());
-					}
-					if (sym.offset != DOSLIBLinker::segment_offset_undef) {
-						fprintf(stderr,"offset=0x%08lx ",(unsigned long)sym.offset);
-					}
-					if (sym.size != DOSLIBLinker::segment_size_undef) {
-						fprintf(stderr,"size=0x%08lx ",(unsigned long)sym.size);
-					}
-					fprintf(stderr,"modid=%lu ",(unsigned long)sym.module_id);
-					if (sym.flags & DOSLIBLinker::SYMFLAG_LOCAL)
-						fprintf(stderr,"LOCAL ");
-					if (sym.flags & DOSLIBLinker::SYMFLAG_NEAR)
-						fprintf(stderr,"NEAR ");
-					if (sym.flags & DOSLIBLinker::SYMFLAG_FAR)
-						fprintf(stderr,"FAR ");
-					fprintf(stderr,"\n");
 				}
 			}
 			fprintf(stderr,"  Segment order:");
