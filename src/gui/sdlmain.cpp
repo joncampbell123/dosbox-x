@@ -7619,7 +7619,7 @@ std::wstring win32_prompt_folder(const char *default_folder) {
 }
 #endif
 
-#define LNKDEV
+//#define LNKDEV
 
 #ifdef LNKDEV
 #include <unordered_map>
@@ -7627,9 +7627,11 @@ std::wstring win32_prompt_folder(const char *default_folder) {
 namespace DOSLIBLinker {
 
 	typedef uint64_t			segment_size_t;			// segment size in bytes
+	typedef int64_t				ssegment_size_t;
 	static constexpr segment_size_t		segment_size_undef = ~((uint64_t)(0ull));
 
 	typedef uint64_t			segment_offset_t;		// offset within a segment
+	typedef int64_t				ssegment_offset_t;
 	static constexpr segment_offset_t	segment_offset_undef = ~((uint64_t)(0ull));
 
 	typedef int32_t				segment_relative_t;		// offset in segments. In real mode, as paragraphs. In protected mode, as index numbers. Can be negative.
@@ -7678,15 +7680,30 @@ namespace DOSLIBLinker {
 	typedef size_t				fixup_method_index_t;		// index behind fixup method
 	static constexpr fixup_method_index_t	fixup_method_index_undef = ~((size_t)(0ul));
 
+	typedef uint16_t			memory_mode_t;
+	static constexpr memory_mode_t		memory_mode_undef = ~((uint16_t)(0u));
+
+	typedef uint16_t			arrange_mode_t;
+	static constexpr arrange_mode_t		arrange_mode_undef = ~((uint16_t)(0u));
+
 	typedef unsigned int			segment_frag_flags_t;
 
 	static constexpr unsigned int		SEGFRAGFL_PINNED = segment_frag_flags_t(1u << 0u); // pinned, do not move
 	static constexpr unsigned int		SEGFRAGFL_PADDING = segment_frag_flags_t(1u << 1u); // fragment is just padding
 	static constexpr unsigned int		SEGFRAGFL_HEADER = segment_frag_flags_t(1u << 2u); // is part of file header
+	static constexpr unsigned int		SEGFRAGFL_OFFSETBYORG = segment_frag_flags_t(1u << 3u); // fragment offset chosen by ORG directive
+	static constexpr unsigned int		SEGFRAGFL_DELETED = segment_frag_flags_t(1u << 4u); // ignore fragment
 
 	typedef unsigned int			cpu_flags_t;			// CPU flags, meaning depends on CPU type
 
 	typedef unsigned int			symbol_flags_t;
+
+	static constexpr memory_mode_t		MEMMODE_REAL = 0; // x86 real mode
+	static constexpr memory_mode_t		MEMMODE_PROT = 1; // x86 protected mode
+	static constexpr memory_mode_t		MEMMODE_FLAT = 2; // gen flat memory mode
+
+	static constexpr arrange_mode_t		ARRANGE_MULTISEGMENT = 0; // EXE, most formats
+	static constexpr arrange_mode_t		ARRANGE_SINGLESEGMENT = 1; // COM, flat segmented images
 
 	static constexpr alignmask_t		byte_align_mask = ~((alignmask_t)(0ull));
 	static constexpr alignmask_t		word_align_mask = ~((alignmask_t)(1ull));
@@ -7705,13 +7722,13 @@ namespace DOSLIBLinker {
 	static constexpr segment_flags_t	SEGFLAG_NOEMIT = segment_flags_t(1u << 2u); // segment exists only in memory and does not have data on disk (BSS, STACK, etc)
 	static constexpr segment_flags_t	SEGFLAG_HEADER = segment_flags_t(1u << 3u); // segment is part of the file header
 	static constexpr segment_flags_t	SEGFLAG_SEGMENTMODEL = segment_flags_t(1u << 4u); // segment is intended for segmented memory model (rel_offset/rel_segments values matter)
-	static constexpr segment_flags_t	SEGFLAG_FLATMODEL = segment_flags_t(1u << 5u); // segment is intended for flat memory model (linear_addr value matters)
 	static constexpr segment_flags_t	SEGFLAG_PRIVATE = segment_flags_t(1u << 6u); // do not combine with any other segment
 	static constexpr segment_flags_t	SEGFLAG_STACK = segment_flags_t(1u << 7u); // stack segment
 	static constexpr segment_flags_t	SEGFLAG_COMMON = segment_flags_t(1u << 8u); // common
 	static constexpr segment_flags_t	SEGFLAG_DELETED = segment_flags_t(1u << 9u); // deleted segment, do not consider anything
 	static constexpr segment_flags_t	SEGFLAG_PADDING = segment_flags_t(1u << 10u); // it's just padding
 	static constexpr segment_flags_t	SEGFLAG_ABSOLUTE = segment_flags_t(1u << 11u); // rel_offset and rel_segment represent an absolute address
+	static constexpr segment_flags_t	SEGFLAG_NOASSIGNLINEAR = segment_flags_t(1u << 14u); // do not assign linear memory address
 
 	// cpu_major == CPUMAJT_INTELX86
 	static constexpr cpu_flags_t		CPUFLAG_INTELX86_BIG386 = cpu_flags_t(1u << 0u); // (i386) segment should be loaded as "big" 4GB limit (B bit)
@@ -7719,9 +7736,6 @@ namespace DOSLIBLinker {
 	static constexpr cpu_flags_t		CPUFLAG_INTELX86_32BIT = cpu_flags_t(1u << 2u); // 32-bit segment
 	static constexpr cpu_flags_t		CPUFLAG_INTELX86_64BIT = cpu_flags_t(1u << 3u); // 64-bit segment
 	static constexpr cpu_flags_t		CPUFLAG_INTELX86_BITNESSMASK = CPUFLAG_INTELX86_16BIT | CPUFLAG_INTELX86_32BIT | CPUFLAG_INTELX86_64BIT; // use to compare bitness
-	// NTS: One or the other must be set, both may be set if the code can run in either environment
-	static constexpr cpu_flags_t		CPUFLAG_INTELX86_REALMODE = cpu_flags_t(1u << 4u); // real mode segment
-	static constexpr cpu_flags_t		CPUFLAG_INTELX86_PROTMODE = cpu_flags_t(1u << 5u); // protected mode segment
 
 	// fixup methods
 	static constexpr fixup_method_t		FIXUPMETH_SEGMENT = 0; // fixup refers to segment base
@@ -7740,13 +7754,11 @@ namespace DOSLIBLinker {
 	static constexpr symbol_type_t		SYMTYPE_EXTERN = 1; // external symbol
 	static constexpr symbol_type_t		SYMTYPE_PUBLIC = 2; // public symbol
 	static constexpr symbol_type_t		SYMTYPE_COMMON = 3; // common symbol
-	static constexpr symbol_type_t		SYMTYPE_LOCAL_EXTERN = 11; // external symbol local to module
-	static constexpr symbol_type_t		SYMTYPE_LOCAL_PUBLIC = 12; // public symbol local to module
-	static constexpr symbol_type_t		SYMTYPE_LOCAL_COMMON = 13; // common symbol local to module
 
 	// symbol flags
 	static constexpr symbol_flags_t		SYMFLAG_NEAR = (1u << 0u); // Symbol declared near (OMF)
 	static constexpr symbol_flags_t		SYMFLAG_FAR = (1u << 1u); // Symbol declared far (OMF)
+	static constexpr symbol_flags_t		SYMFLAG_LOCAL = (1u << 2u); // Symbol declared local to module (OMF)
 
 	// module source formats
 	static const unsigned int		SRCFMT_UNSPEC = 0;
@@ -7865,8 +7877,9 @@ namespace DOSLIBLinker {
 		string_ref_t				name = string_ref_undef; // name of symbol
 		group_ref_t				group = group_ref_undef; // group of symbol (OMF)
 		segment_ref_t				segref = segment_ref_undef; // segment symbol belongs to (undefined if extern)
-		segment_offset_t			offset = segment_offset_undef; // offset within fragment
+		segment_offset_t			offset = segment_offset_undef; // offset within segment relative to data fragments
 		segment_size_t				size = segment_size_undef; // size, if known (usually only for common symbols)
+		uint64_t				module_id = 0; // a value of arbitrary ID used to identify if a symbol came from the same module
 		symbol_flags_t				flags = 0;
 	};
 
@@ -7902,8 +7915,7 @@ namespace DOSLIBLinker {
 	};
 
 	struct segment_frag_t {
-		segment_offset_t		org_offset = segment_offset_undef;	// segment ORG (origin) allowed by some assemblers
-		segment_offset_t		data_offset = segment_offset_undef;	// data offset for arrangement
+		segment_offset_t		data_offset = segment_offset_undef;	// data offset for arrangement relative to rel_offset
 		segment_offset_t		data_size = segment_offset_undef;	// data size for arrangement
 		segment_frag_flags_t		flags = 0;
 		std::vector<uint8_t>		data;
@@ -7915,6 +7927,7 @@ namespace DOSLIBLinker {
 		segment_size_t			size = segment_size_undef; // assigned size of the segment
 		segment_offset_t		rel_offset = segment_offset_undef; // additional segment address offset relative to segment register
 		segment_relative_t		rel_segments = segment_relative_undef; // relative segment address (paragraphs in real mode, selectors in protected mode)
+		segment_offset_t		offset_base = 0; // in memory base address of segment (ORG directive)
 		file_offset_t			file_offset = file_offset_undef; // assigned file offset of the segment on disk
 		linear_addr_t			linear_addr = linear_addr_undef; // assigned linear address of segment in linear memory if applicable
 		cpu_major_type_t		cpu_major = cpu_major_undef; // intended CPU, major category
@@ -7926,11 +7939,18 @@ namespace DOSLIBLinker {
 		group_ref_t			groupref = group_ref_undef;		// segment group
 		uint64_t			user_order = 0;				// user controllable sort order param
 		unsigned int			format_index = 0;			// format specific index
+		segment_ref_t			moved_to = segment_ref_undef;		// References to this segment should redirect here (combined segment)
+		memory_mode_t			memory_mode = memory_mode_undef;	// Memory mode
 		std::vector<segment_frag_t>	data;					// segment data
 		std::vector<fixup_t>		fixups;					// fixups of segment
 
 		// NTS: rel_offset also allows the .COM memory model where the base of the executable image starts at offset 0x100 within the segment,
 		//      in which case rel_segments is negative number -0x10 for entry point rel_segments:0x100 to point to base of executable image.
+
+		segment_offset_t		lowest_data_base(void) const;
+		void				sort_data_fragments_by_offset(void);
+		void				sort_fixups_by_offset(void);
+		segment_size_t			size_adjusted(void) const;
 	};
 
 	struct moduleinfo_t {
@@ -7964,12 +7984,18 @@ namespace DOSLIBLinker {
 		segment_order_list_t		segment_order;
 		moduleinfo_t			moduleinfo;
 		group_table_t			groups;
+		uint64_t			module_id = 0;
 
 		std::string			fixup_to_string(const fixup_method_t m,const fixup_method_index_t i);
 
 		void				gen_sort_segments(void);
 
 		static bool			gen_sort_func(const segment_ref_t a,const segment_ref_t b);
+
+		void				get_segment_grouping_list(std::vector< std::vector<segment_ref_t> > &scan);
+		void				assume_memory_mode(const memory_mode_t dm);
+		void				arrange_segments_simple(const arrange_mode_t am,const segment_offset_t linbase=0);
+		void				segment_nonzero_rebase_simple(const alignmask_t alignmask);
 	};
 
 	static constexpr inline alignmask_t align_mask_to_value(const alignmask_t v) {
@@ -8077,14 +8103,11 @@ namespace DOSLIBLinker {
 	}
 
 	static const stringtable_t *symbol_table_sort_name_func_strings = NULL;
-	unsigned int symbol_type_to_priority_sort_val(const symbol_type_t t) {
-		switch (t) {
-			case SYMTYPE_LOCAL_PUBLIC:	return 6;
-			case SYMTYPE_PUBLIC:		return 5;
-			case SYMTYPE_LOCAL_COMMON:	return 4;
-			case SYMTYPE_COMMON:		return 3;
-			case SYMTYPE_LOCAL_EXTERN:	return 2;
-			case SYMTYPE_EXTERN:		return 1;
+	unsigned int symbol_type_to_priority_sort_val(const symbol_t t) {
+		switch (t.type) {
+			case SYMTYPE_PUBLIC:		return (t.flags & SYMFLAG_LOCAL) ? 6 : 5;
+			case SYMTYPE_COMMON:		return (t.flags & SYMFLAG_LOCAL) ? 4 : 3;
+			case SYMTYPE_EXTERN:		return (t.flags & SYMFLAG_LOCAL) ? 2 : 1;
 			default:			break;
 		};
 
@@ -8100,8 +8123,8 @@ namespace DOSLIBLinker {
 		}
 
 		/* string refs match, sort by type priority, highest to lowest */
-		const unsigned int pra = symbol_type_to_priority_sort_val(a.type);
-		const unsigned int prb = symbol_type_to_priority_sort_val(b.type);
+		const unsigned int pra = symbol_type_to_priority_sort_val(a);
+		const unsigned int prb = symbol_type_to_priority_sort_val(b);
 		if (pra != prb) return pra > prb; /* we want higher priority first before lower priority */
 
 		/* nothing to do */
@@ -8142,15 +8165,15 @@ namespace DOSLIBLinker {
 
 		/* caller or loader arrangement takes priority */
 		if (sa.user_order != sb.user_order) return sa.user_order < sb.user_order;
-		/* then CPU (why would you mix 16/32-bit in one segment you weirdo?) */
-		if (sa.cpu_major != sb.cpu_major) return sa.cpu_major < sb.cpu_major;
-		if (sa.cpu_minor != sb.cpu_minor) return sa.cpu_minor < sb.cpu_minor;
 		/* then group */
 		if (sa.groupref != sb.groupref) return sa.groupref < sb.groupref;
 		/* then class */
 		if (sa.classname != sb.classname) return sa.classname < sb.classname;
 		/* then name */
 		if (sa.name != sb.name) return sa.name < sb.name;
+		/* then CPU */
+		if (sa.cpu_major != sb.cpu_major) return sa.cpu_major < sb.cpu_major;
+		if (sa.cpu_minor != sb.cpu_minor) return sa.cpu_minor < sb.cpu_minor;
 
 		return false;
 	}
@@ -8371,7 +8394,205 @@ namespace DOSLIBLinker {
 
 	/////////////////////////
 
+	static uint64_t					module_id_load_next = uint64_t(1ull);
+
 	static log_callback				log_callback_silent;
+
+	/////////////////////////
+
+	static bool segment_datafrag_sort_offset_func(const segment_frag_t &fa,const segment_frag_t &fb) {
+		return fa.data_offset < fb.data_offset;
+	}
+
+	static bool segment_sort_fixupoffset_func(const fixup_t &fa,const fixup_t &fb) {
+		return fa.fixup_offset < fb.fixup_offset;
+	}
+
+	segment_size_t segment_t::size_adjusted(void) const {
+		ssegment_size_t s = ssegment_size_t(size) - ssegment_size_t(offset_base);
+		if (s < ssegment_size_t(0)) s = ssegment_size_t(0);
+		return segment_size_t(s);
+	}
+
+	segment_offset_t segment_t::lowest_data_base(void) const {
+		segment_offset_t r = segment_offset_undef;
+
+		for (auto di=data.begin();di!=data.end();di++) {
+			if (r == segment_offset_undef || r > (*di).data_offset)
+				r = (*di).data_offset;
+		}
+
+		// TODO: If there is some assembler out there that makes OMF files
+		//       with FIXUPPs outside defined LEDATA/LIDATA data areas,
+		//       add code here to consider fixups as well.
+
+		return r;
+	}
+
+	void segment_t::sort_data_fragments_by_offset(void) {
+		std::sort(data.begin(),data.end(),segment_datafrag_sort_offset_func);
+	}
+
+	void segment_t::sort_fixups_by_offset(void) {
+		std::sort(fixups.begin(),fixups.end(),segment_sort_fixupoffset_func);
+	}
+
+	/////////////////////////
+
+	void linker_object_module::assume_memory_mode(const memory_mode_t dm) {
+		for (auto si=segments.ref.begin();si!=segments.ref.end();si++) {
+			if ((*si).memory_mode == memory_mode_undef) {
+				(*si).memory_mode = dm;
+				if (dm == MEMMODE_FLAT) (*si).flags &= ~SEGFLAG_SEGMENTMODEL;
+			}
+		}
+	}
+
+	void linker_object_module::get_segment_grouping_list(std::vector< std::vector<segment_ref_t> > &scan) {
+		scan.clear();
+
+		for (size_t si=0;si < segments.ref.size();) {
+			scan.push_back(std::move(std::vector<segment_ref_t>()));
+			auto &scangroup = scan.back();
+			scangroup.push_back(segment_ref_t(si));
+			const auto &cref = segments.ref[si++];
+			while (si < segments.ref.size()) {
+				const auto &nref = segments.ref[si];
+
+				if (cref.groupref != group_ref_undef && nref.groupref != group_ref_undef && cref.memory_mode == nref.memory_mode) {
+					if (strings.get(groups.get(cref.groupref).name) == strings.get(groups.get(nref.groupref).name)) {
+						scangroup.push_back(segment_ref_t(si));
+						si++;
+						continue;
+					}
+				}
+
+				break;
+			}
+		}
+	}
+
+	/* This version is intended for simple flat modes and real mode */
+	void linker_object_module::segment_nonzero_rebase_simple(const alignmask_t alignmask) {
+		std::vector< std::vector<segment_ref_t> > scan; /* scan[group][segment] */
+
+		get_segment_grouping_list(scan);
+		for (auto sgi=scan.begin();sgi!=scan.end();sgi++) {
+			/* For any group, determine lowest org base and largest alignment of them all */
+			segment_offset_t orgbase = segment_offset_undef;
+			alignmask_t orgalign = byte_align_mask;
+			const auto &sg = *sgi;
+			segment_offset_t org;
+
+			for (auto si=sg.begin();si!=sg.end();si++) {
+				const auto &sref = segments.get(*si);
+				org = sref.lowest_data_base();
+				if (sref.alignmask == 0) continue;
+				if (org == segment_offset_undef) continue;
+				if (sref.memory_mode == MEMMODE_PROT) continue;
+				if (orgbase == segment_offset_undef && orgbase > org) orgbase = org;
+				orgalign &= sref.alignmask;
+			}
+
+			/* no base determined or zero?, nothing to do */
+			if (orgbase == segment_offset_undef) continue;
+			orgalign &= alignmask;
+			orgbase &= orgalign;
+			if (orgbase == 0) continue;
+
+			/* make adjustment */
+			for (auto si=sg.begin();si!=sg.end();si++) {
+				auto &sref = segments.get(*si);
+				org = sref.lowest_data_base();
+				if (sref.alignmask == 0) continue;
+				if (org == segment_offset_undef) continue;
+				if (sref.memory_mode == MEMMODE_PROT) continue;
+				sref.offset_base += org;
+			}
+		}
+	}
+
+	/* This version is intended for real and protected mode segmented models, and very simple flat memory models.
+	 * For your use, you can specify the linear base for flat and the segment index base for segmented real or protected mode */
+	void linker_object_module::arrange_segments_simple(const arrange_mode_t am,const segment_offset_t linbase) {
+		std::vector< std::vector<segment_ref_t> > scan; /* scan[group][segment] */
+		linear_addr_t linoff = linbase;
+		segment_relative_t segoff = 0;
+
+		if (!(am == ARRANGE_SINGLESEGMENT || am == ARRANGE_MULTISEGMENT))
+			return;
+
+		get_segment_grouping_list(scan);
+		for (auto sgi=scan.begin();sgi!=scan.end();sgi++) {
+			const segment_relative_t groupsegoff = segoff;
+			const linear_addr_t grouplinoff = linoff;
+			const auto &sg = *sgi;
+
+			for (auto si=sg.begin();si!=sg.end();si++) {
+				auto &sref = segments.get(*si);
+
+				sref.linear_addr = linear_addr_undef;
+
+				if (sref.flags & SEGFLAG_ABSOLUTE) continue;
+
+				sref.rel_segments = segment_relative_undef;
+				sref.rel_offset = segment_offset_undef;
+
+				if (sref.flags & SEGFLAG_DELETED) continue;
+				if (sref.size == segment_size_undef) continue;
+				if (sref.alignmask == 0) continue;
+
+				if (sref.offset_base & (~sref.alignmask)) continue; /* alignment does not work, continue */
+
+				/* NTS: alignmask is mask according to alignment.
+				 *      byte  (1) alignment is 0xFFFFFFFF, ~mask is 0x00000000
+				 *      word  (2) alignment is 0xFFFFFFFE, ~mask is 0x00000001
+				 *      dword (4) alignment is 0xFFFFFFFC, ~mask is 0x00000003
+				 *
+				 * This calculation is equivalent to "offset += byte_alignment - 1; offset -= offset % byte_alignment;"
+				 * Example dword alignment (4) "offset += 3; offset -= offset % 4;" */
+				linoff = (linoff + (~sref.alignmask)) & sref.alignmask;
+				sref.linear_addr = linoff;
+
+				if (am == DOSLIBLinker::ARRANGE_SINGLESEGMENT) {
+					if (sref.memory_mode == MEMMODE_REAL) {
+						sref.rel_segments = segment_relative_t((-ssegment_offset_t(sref.offset_base)) >> ssegment_offset_t(4));
+						sref.rel_offset = (linoff - linbase) + (sref.offset_base & para_align_mask);
+						linoff += sref.size_adjusted();
+					}
+					else if (sref.memory_mode == MEMMODE_PROT) {
+						sref.rel_segments = 0;
+						sref.rel_offset = linoff - linbase;
+						linoff += segment_offset_t(sref.size);
+						assert(sref.offset_base == 0);
+					}
+					else {
+						linoff += sref.size_adjusted();
+					}
+				}
+				else {
+					if (sref.memory_mode == MEMMODE_REAL) {
+						sref.rel_segments = segment_relative_t((grouplinoff - linbase) >> 4u) +
+							segment_relative_t((-ssegment_offset_t(sref.offset_base)) >> ssegment_offset_t(4));
+						sref.rel_offset = segment_offset_t((grouplinoff - linbase) & 0xFu) +
+							segment_offset_t(linoff - grouplinoff) + (sref.offset_base & para_align_mask);
+						linoff += sref.size_adjusted();
+					}
+					else if (sref.memory_mode == MEMMODE_PROT) {
+						sref.rel_segments = segoff - groupsegoff;
+						sref.rel_offset = segment_offset_t(linoff - grouplinoff);
+						linoff += segment_offset_t(sref.size);
+						assert(sref.offset_base == 0);
+					}
+					else {
+						linoff += sref.size_adjusted();
+					}
+				}
+
+				segoff++;
+			}
+		}
+	}
 
 	/////////////////////////
 
@@ -8405,6 +8626,7 @@ namespace DOSLIBLinker {
 		static constexpr record_type_t		RECTYPE_BAKPAT     = 0xB2;
 		static constexpr record_type_t		RECTYPE_BAKPAT_32  = 0xB3;
 		static constexpr record_type_t		RECTYPE_LEXTDEF    = 0xB4;
+		static constexpr record_type_t		RECTYPE_LEXTDEF_32 = 0xB5;
 		static constexpr record_type_t		RECTYPE_LPUBDEF    = 0xB6;
 		static constexpr record_type_t		RECTYPE_LPUBDEF_32 = 0xB7;
 		static constexpr record_type_t		RECTYPE_LCOMDEF    = 0xB8;
@@ -8608,10 +8830,6 @@ namespace DOSLIBLinker {
 			r += len;
 
 			return ref;
-		}
-
-		bool omf_segment_datafrag_sort_offset_func(const segment_frag_t &fa,const segment_frag_t &fb) {
-			return fa.data_offset < fb.data_offset;
 		}
 
 		bool last_was_LIDATA(linker_object_module &module,extra_linker_object_module &modex) {
@@ -8890,7 +9108,7 @@ namespace DOSLIBLinker {
 						const uint16_t framenum = read_word(ri,re);
 						const uint16_t offset = read_byte(ri,re);
 						segref.alignmask = byte_align_mask;
-						segref.flags |= SEGFLAG_ABSOLUTE;
+						segref.flags |= SEGFLAG_ABSOLUTE | SEGFLAG_SEGMENTMODEL | SEGFLAG_NOASSIGNLINEAR;
 						segref.rel_offset = segment_offset_t(offset);
 						segref.rel_segments = segment_relative_t(framenum);
 					}
@@ -8914,6 +9132,12 @@ namespace DOSLIBLinker {
 					modex.log->log(LNKLOG_ERR,"SEGDEF unknown alignment code %u",attr>>5u);
 					return false;
 			};
+
+			// A reasonable assumption is that all segments are of the segmented memory model.
+			// We can't assume real mode because 16-bit segmented models are also used for
+			// 16-bit protected mode environments like Windows 3.1. However we don't know
+			// whether real mode or not here, yet.
+			segref.flags |= SEGFLAG_SEGMENTMODEL;
 
 			switch ((attr>>2u)&7u) {
 				case 0: /* private */
@@ -9073,7 +9297,7 @@ namespace DOSLIBLinker {
 				if (segref.data.empty()) {
 					segref.data.push_back(std::move(segment_frag_t()));
 					auto &sfrag = segref.data.back();
-					sfrag.org_offset = dataoffset; /* If the value is nonzero there is a good chance the segment wants that offset specifically */
+					if (dataoffset != 0) sfrag.flags |= SEGFRAGFL_OFFSETBYORG;
 					sfrag.data_offset = dataoffset; /* whatever the offset (Microsoft MASM ORG directive) becomes the base of the fragment */
 					sfrag.data_size = 0;
 				}
@@ -9084,7 +9308,7 @@ namespace DOSLIBLinker {
 						// discontinuous LEDATA, start another fragment
 						segref.data.push_back(std::move(segment_frag_t()));
 						auto &sfrag = segref.data.back();
-						sfrag.org_offset = dataoffset; /* If the value is nonzero there is a good chance the segment wants that offset specifically */
+						if (dataoffset != 0) sfrag.flags |= SEGFRAGFL_OFFSETBYORG;
 						sfrag.data_offset = dataoffset; /* whatever the offset (Microsoft MASM ORG directive) becomes the base of the fragment */
 						sfrag.data_size = 0;
 					}
@@ -9168,7 +9392,7 @@ namespace DOSLIBLinker {
 				if (segref.data.empty()) {
 					segref.data.push_back(std::move(segment_frag_t()));
 					auto &sfrag = segref.data.back();
-					sfrag.org_offset = dataoffset; /* If the value is nonzero there is a good chance the segment wants that offset specifically */
+					if (dataoffset != 0) sfrag.flags |= SEGFRAGFL_OFFSETBYORG;
 					sfrag.data_offset = dataoffset; /* whatever the offset (Microsoft MASM ORG directive) becomes the base of the fragment */
 					sfrag.data_size = 0;
 				}
@@ -9179,7 +9403,7 @@ namespace DOSLIBLinker {
 						// discontinuous LEDATA, start another fragment
 						segref.data.push_back(std::move(segment_frag_t()));
 						auto &sfrag = segref.data.back();
-						sfrag.org_offset = dataoffset; /* If the value is nonzero there is a good chance the segment wants that offset specifically */
+						if (dataoffset != 0) sfrag.flags |= SEGFRAGFL_OFFSETBYORG;
 						sfrag.data_offset = dataoffset; /* whatever the offset (Microsoft MASM ORG directive) becomes the base of the fragment */
 						sfrag.data_size = 0;
 					}
@@ -9212,7 +9436,7 @@ namespace DOSLIBLinker {
 			const uint8_t *ri = &rec.record[0];
 			const uint8_t *re = &rec.record[rec.record.size()];
 
-			const bool local = (rec.type == RECTYPE_LEXTDEF);
+			const bool local = (rec.type == RECTYPE_LEXTDEF || rec.type == RECTYPE_LEXTDEF_32);
 
 			while (ri < re) {
 				/* <external name string> <type index> */
@@ -9227,7 +9451,9 @@ namespace DOSLIBLinker {
 
 				const symbol_ref_t symref = module.symbols.add(nameref);
 				symbol_t &sym = module.symbols.get(symref);
-				sym.type = local ? SYMTYPE_LOCAL_EXTERN : SYMTYPE_EXTERN;
+				sym.module_id = module.module_id;
+				sym.type = SYMTYPE_EXTERN;
+				if (local) sym.flags |= SYMFLAG_LOCAL;
 
 				/* build EXTDEF table according to OMF spec because FIXUPP records, if they refer to an EXTERN,
 				 * do so by a 1-based index into that table. Here, the table is built so that an EXTDEF index
@@ -9261,6 +9487,20 @@ namespace DOSLIBLinker {
 				return false;
 			}
 
+			if (!module.segments.exists(from1based(basesegindex))) {
+				modex.log->log(LNKLOG_ERR,"PUBDEF refers to non-existent SEGDEF");
+				return false;
+			}
+
+			auto &segref = module.segments.get(from1based(basesegindex));
+
+			if (basegroupindex != 0) {
+				if (!module.groups.exists(group_ref_t(from1based(basegroupindex)))) {
+					modex.log->log(LNKLOG_ERR,"PUBDEF refers to non-existent GRPDEF");
+					return false;
+				}
+			}
+
 			while (ri < re) {
 				const string_ref_t nameref = read_lenstring(module.strings,ri,re);
 				if (ri >= re) break;
@@ -9271,24 +9511,12 @@ namespace DOSLIBLinker {
 
 				const symbol_ref_t symref = module.symbols.add(nameref);
 				symbol_t &sym = module.symbols.get(symref);
-				sym.type = local ? SYMTYPE_LOCAL_PUBLIC : SYMTYPE_PUBLIC;
+				sym.module_id = module.module_id;
+				sym.type = SYMTYPE_PUBLIC;
 				sym.offset = segment_offset_t(public_offset);
-
-				if (basegroupindex != 0) {
-					if (module.groups.exists(group_ref_t(from1based(basegroupindex)))) {
-						sym.group = group_ref_t(from1based(basegroupindex));
-					}
-					else {
-						modex.log->log(LNKLOG_ERR,"PUBDEF symbol refers to non-existent GRPDEF");
-						return false;
-					}
-				}
-
-				if (!module.segments.exists(from1based(basesegindex))) {
-					modex.log->log(LNKLOG_ERR,"PUBDEF symbol refers to non-existent SEGDEF");
-					return false;
-				}
 				sym.segref = from1based(basesegindex);
+				if (local) sym.flags |= SYMFLAG_LOCAL;
+				if (basegroupindex != 0) sym.group = group_ref_t(from1based(basegroupindex));
 			}
 
 			return true;
@@ -9339,9 +9567,11 @@ namespace DOSLIBLinker {
 
 				const symbol_ref_t symref = module.symbols.add(name);
 				symbol_t &sym = module.symbols.get(symref);
-				sym.type = local ? SYMTYPE_LOCAL_COMMON : SYMTYPE_COMMON;
+				sym.module_id = module.module_id;
+				sym.type = SYMTYPE_COMMON;
 				sym.flags = flags;
 				if (comlen > uint32_t(0)) sym.size = segment_size_t(comlen);
+				if (local) sym.flags |= SYMFLAG_LOCAL;
 
 				/* COMDEF is counted in the EXTDEF table too. */
 				modex.EXTDEF.ref.push_back(symref);
@@ -9535,6 +9765,8 @@ namespace DOSLIBLinker {
 
 					if ((fixdata & 4u) == 0u)
 						fixup.target_offset = (fmt32 ? read_dword(ri,re) : read_word(ri,re));
+					else
+						fixup.target_offset = 0;
 
 					if (last_was_LIDATA(module,modex))
 						modex.LIDATA_fixups.push_back(std::move(fixup));
@@ -9655,6 +9887,9 @@ namespace DOSLIBLinker {
 			source.offset = current_rec.file_offset;
 			source.index = source_ref;
 
+			module.module_id = module_id_load_next;
+			module_id_load_next++;
+
 			record rec;
 
 			if (source.is_library) {
@@ -9686,7 +9921,7 @@ namespace DOSLIBLinker {
 					if (!add_LIDATA(module,modex,rec))
 						return false;
 				}
-				else if (rec.type == RECTYPE_EXTDEF || rec.type == RECTYPE_LEXTDEF) {
+				else if (rec.type == RECTYPE_EXTDEF || rec.type == RECTYPE_LEXTDEF || rec.type == RECTYPE_LEXTDEF_32) {
 					if (!add_EXTDEF(module,modex,rec))
 						return false;
 				}
@@ -9727,13 +9962,28 @@ namespace DOSLIBLinker {
 			if (!flush_LIDATA(module,modex))
 				return false;
 
+			/* if there is a FLAT group, any 32-bit segment should be re-marked as flat memory model */
+			bool has_flat = false;
+			for (auto gi=module.groups.ref.begin();gi!=module.groups.ref.end();gi++) {
+				const auto &gref = *gi;
+				if (module.strings.get(gref.name) == "FLAT") has_flat = true;
+			}
+
 			/* any segment with a nonzero size but no data should be marked NOEMIT.
 			 * OMF does not appear to have an explicit flag to say so even for segments you would normally expect
 			 * that kind of thing (like STACK and BSS) */
 			for (auto si=module.segments.ref.begin();si!=module.segments.ref.end();si++) {
 				auto &sref = *si;
+
 				if (sref.size != segment_size_undef && sref.size > segment_size_t(0u) && sref.data.empty())
 					sref.flags |= SEGFLAG_NOEMIT;
+
+				// "FLAT" group and this segment is 32-bit and not an absolute segment address
+				if (has_flat && !(sref.flags & SEGFLAG_ABSOLUTE) && sref.memory_mode == memory_mode_undef &&
+					sref.cpu_major == DOSLIBLinker::CPUMAJT_INTELX86 && sref.cpu_minor == DOSLIBLinker::CPUMINT_INTELX86_386) {
+					sref.flags &= ~SEGFLAG_SEGMENTMODEL;
+					sref.memory_mode = MEMMODE_FLAT;
+				}
 			}
 
 			for (size_t i=0;i < module.segments.ref.size();i++) module.segment_order.push_back(segment_ref_t(i));
@@ -9747,12 +9997,26 @@ namespace DOSLIBLinker {
 			 * and if the user abused ORG for overlapping LEDATA, throw an error because
 			 * we will not support that. */
 			for (auto si=module.segments.ref.begin();si!=module.segments.ref.end();si++) {
-				std::sort((*si).data.begin(),(*si).data.end(),omf_segment_datafrag_sort_offset_func);
+				/* sort fragments */
+				(*si).sort_data_fragments_by_offset();
 
 				/* look for overlaps and error out if found */
 				for (size_t fi=0;(fi+size_t(1u)) < (*si).data.size();fi++) {
 					if (((*si).data[fi].data_offset+(*si).data[fi].data_size) > (*si).data[fi+size_t(1u)].data_offset) {
 						log->log(LNKLOG_ERR,"In segment '%s', overlapping fragment(s) detected",
+							module.strings.get((*si).name).c_str());
+						return false;
+					}
+				}
+
+				/* sort fixups */
+				(*si).sort_fixups_by_offset();
+
+				/* look for overlaps and error out if found */
+				for (size_t fi=0;(fi+size_t(1u)) < (*si).fixups.size();fi++) {
+					const size_t fixsz = (*si).fixups[fi].fixup_size();
+					if (((*si).fixups[fi].fixup_offset+fixsz) > (*si).fixups[fi+size_t(1u)].fixup_offset) {
+						log->log(LNKLOG_ERR,"In segment '%s', overlapping fixup(s) detected",
 							module.strings.get((*si).name).c_str());
 						return false;
 					}
@@ -9875,6 +10139,21 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 		DOSLIBLinker::OMF::read(modules,"0014.obj",&log);
 
 		for (auto mi=modules.begin();mi!=modules.end();mi++) {
+			auto &module = *mi;
+
+			// We want to make a real-mode MS-DOS EXE file
+			module.assume_memory_mode(DOSLIBLinker::MEMMODE_REAL);
+
+			// For any segment with a nonzero origin (Microsoft MASM ORG directive) that is
+			// real-mode or flat, change the offset_base to encode to the image only what
+			// exists from the first fragment instead of unused space.
+			module.segment_nonzero_rebase_simple(DOSLIBLinker::para_align_mask);
+
+			// Now arrange segments
+			module.arrange_segments_simple(DOSLIBLinker::ARRANGE_MULTISEGMENT);
+		}
+
+		for (auto mi=modules.begin();mi!=modules.end();mi++) {
 			fprintf(stderr,"Module %zu\n",(size_t)(mi-modules.begin()));
 			auto &module = *mi;
 			for (auto si=module.sources.ref.begin();si!=module.sources.ref.end();si++) {
@@ -9901,14 +10180,42 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				if (segm.flags & DOSLIBLinker::SEGFLAG_NOEMIT) fprintf(stderr," NOEMIT");
 				if (segm.flags & DOSLIBLinker::SEGFLAG_HEADER) fprintf(stderr," HEADER");
 				if (segm.flags & DOSLIBLinker::SEGFLAG_SEGMENTMODEL) fprintf(stderr," SEGMENTED");
-				if (segm.flags & DOSLIBLinker::SEGFLAG_FLATMODEL) fprintf(stderr," FLAT");
 				if (segm.flags & DOSLIBLinker::SEGFLAG_PRIVATE) fprintf(stderr," PRIVATE");
 				if (segm.flags & DOSLIBLinker::SEGFLAG_STACK) fprintf(stderr," STACK");
 				if (segm.flags & DOSLIBLinker::SEGFLAG_COMMON) fprintf(stderr," COMMON");
 				if (segm.flags & DOSLIBLinker::SEGFLAG_DELETED) fprintf(stderr," DELETED");
 				if (segm.flags & DOSLIBLinker::SEGFLAG_PADDING) fprintf(stderr," PADDING");
 				if (segm.flags & DOSLIBLinker::SEGFLAG_ABSOLUTE) fprintf(stderr," ABSOLUTE");
+				if (segm.flags & DOSLIBLinker::SEGFLAG_NOASSIGNLINEAR) fprintf(stderr," NOASSIGNLINEAR");
+
+				if (segm.memory_mode != DOSLIBLinker::memory_mode_undef) {
+					fprintf(stderr," memorymode=");
+					switch (segm.memory_mode) {
+						case DOSLIBLinker::MEMMODE_REAL: fprintf(stderr,"REAL"); break;
+						case DOSLIBLinker::MEMMODE_PROT: fprintf(stderr,"PROT"); break;
+						case DOSLIBLinker::MEMMODE_FLAT: fprintf(stderr,"FLAT"); break;
+						default: break;
+					}
+				}
+
+				if (segm.moved_to != DOSLIBLinker::segment_ref_undef) {
+					const auto &mvseg = module.segments.get(segm.moved_to);
+					fprintf(stderr," moved_to=%s",module.strings.get(mvseg.name).c_str());
+				}
+				fprintf(stderr," sizeadj=%lx",
+					(unsigned long)segm.size_adjusted());
 				fprintf(stderr,"\n");
+
+				DOSLIBLinker::segment_offset_t ldb = segm.lowest_data_base();
+				if (ldb != DOSLIBLinker::segment_offset_undef) {
+					fprintf(stderr,"    Lowest: %lx\n",
+						(unsigned long)ldb);
+				}
+
+				if (segm.offset_base != 0) {
+					fprintf(stderr,"    Ofs adjust: %lx\n",
+						(unsigned long)segm.offset_base);
+				}
 
 				if (segm.rel_offset != DOSLIBLinker::segment_offset_undef || segm.rel_segments != DOSLIBLinker::segment_relative_undef) {
 					fprintf(stderr,"    Rel address: %04lx:%08lx\n",
@@ -9930,8 +10237,9 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 							(unsigned long)sfrag.data_offset,
 							(unsigned long)sfrag.data_offset+sfrag.data_size-1ul);
 						if (sfrag.flags & DOSLIBLinker::SEGFRAGFL_PINNED) fprintf(stderr," PINNED");
+						if (sfrag.flags & DOSLIBLinker::SEGFRAGFL_HEADER) fprintf(stderr," HEADER");
 						if (sfrag.flags & DOSLIBLinker::SEGFRAGFL_PADDING) fprintf(stderr," PADDING");
-						if (sfrag.org_offset != DOSLIBLinker::segment_offset_undef) fprintf(stderr," ORG=0x%08lx",(unsigned long)sfrag.org_offset);
+						if (sfrag.flags & DOSLIBLinker::SEGFRAGFL_OFFSETBYORG) fprintf(stderr," OFSBYORG");
 						fprintf(stderr,"\n");
 
 						if (!sfrag.data.empty()) {
@@ -10021,9 +10329,6 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					case DOSLIBLinker::SYMTYPE_EXTERN: fprintf(stderr,"(extern) "); break;
 					case DOSLIBLinker::SYMTYPE_PUBLIC: fprintf(stderr,"(public) "); break;
 					case DOSLIBLinker::SYMTYPE_COMMON: fprintf(stderr,"(common) "); break;
-					case DOSLIBLinker::SYMTYPE_LOCAL_EXTERN: fprintf(stderr,"(localextern) "); break;
-					case DOSLIBLinker::SYMTYPE_LOCAL_PUBLIC: fprintf(stderr,"(localpublic) "); break;
-					case DOSLIBLinker::SYMTYPE_LOCAL_COMMON: fprintf(stderr,"(localcommon) "); break;
 					default: fprintf(stderr,"(%lu""??"") ",(unsigned long)sym.type); break;
 				}
 				if (sym.group != DOSLIBLinker::segment_ref_undef) {
@@ -10040,6 +10345,8 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 				if (sym.size != DOSLIBLinker::segment_size_undef) {
 					fprintf(stderr,"size=0x%08lx ",(unsigned long)sym.size);
 				}
+				if (sym.flags & DOSLIBLinker::SYMFLAG_LOCAL)
+					fprintf(stderr,"LOCAL ");
 				if (sym.flags & DOSLIBLinker::SYMFLAG_NEAR)
 					fprintf(stderr,"NEAR ");
 				if (sym.flags & DOSLIBLinker::SYMFLAG_FAR)
