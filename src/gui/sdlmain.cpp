@@ -7623,6 +7623,89 @@ std::wstring win32_prompt_folder(const char *default_folder) {
 
 #ifdef LNKDEV
 #include <unordered_map>
+#include <type_traits>
+
+class DOSLIBLinker {
+public:
+	// This was supposed to be a constexpr function but GCC seems to think that defining it here and calling it from
+	// a default template argument directly below makes it "not yet defined", so... fine. It's a struct who's only
+	// purpose is to carry a default undef value.
+	template < typename T > struct abstract_default_undef {
+		static constexpr T value =
+			(std::is_signed<T>::value) ?
+				T( bitop::type_msb_mask< typename std::make_unsigned<T>::type >() ) : /* 0x80, 0x8000, etc */
+				bitop::allones< T >(); /* 0xFF, 0xFFFF, etc */
+	};
+
+	// To declare things in a way that types cannot mix even if the underlying type is the same. For use only with integers.
+	template < typename T/*type*/, const T undef_value = abstract_default_undef<T>::value > class abstract_an_int {
+		public:
+			typedef T					base_type;
+			typedef typename std::make_signed<T>::type	signed_type; /* for difference calculations or determining if somehow the value went negative */
+			typedef abstract_an_int<T,undef_value>		this_type;
+			static constexpr T				undef = undef_value;
+			T						value;
+
+			abstract_an_int() { }
+			abstract_an_int(const T v) : value(v) { }
+	};
+
+	template < typename T/*type*/ > class abstract_a_mask : public abstract_an_int< T, T(0u) > {
+		private:
+			typedef abstract_an_int< T, T(0u) > sbt; // why do I have to scope to what I am subclassing to access value??
+			typedef abstract_a_mask< T > this_type;
+		public:
+			static inline constexpr T bitalignmask(const unsigned int b) {
+				return bitop::invert<T>( bitop::bitcount2masklsb<T>(b) );
+			}
+
+			abstract_a_mask() { }
+			abstract_a_mask(const T v) : abstract_an_int< T, T(0u) >(v) { }
+
+			static constexpr T		byte_mask = bitalignmask(0);	// ..FFFF
+			static constexpr T		word_mask = bitalignmask(1);	// ..FFFE (x86 16-bit word)
+			static constexpr T		dword_mask = bitalignmask(2);	// ..FFFC (x86 32-bit word aka double word)
+			static constexpr T		qword_mask = bitalignmask(3);	// ..FFF8 (x86 64-bit word aka quad word)
+			static constexpr T		para_mask = bitalignmask(4);	// ..FFF0 (x86 "pargraph" aka 16 bytes, distance between real-mode segments)
+			static constexpr T		page256_mask = bitalignmask(8);	// ..FF00 (x86 256-byte page in real mode)
+			static constexpr T		page_mask = bitalignmask(12);	// ..F000 (x86 4096-byte page in protected mode)
+
+			static_assert( byte_mask    ==  bitop::allones<T>(),               "alignmask error" );
+			static_assert( word_mask    == (bitop::allones<T>() - T(0x0001u)), "alignmask error" );
+			static_assert( dword_mask   == (bitop::allones<T>() - T(0x0003u)), "alignmask error" );
+			static_assert( qword_mask   == (bitop::allones<T>() - T(0x0007u)), "alignmask error" );
+			static_assert( para_mask    == (bitop::allones<T>() - T(0x000Fu)), "alignmask error" );
+			static_assert( page256_mask == (bitop::allones<T>() - T(0x00FFu)), "alignmask error" );
+			static_assert( page_mask    == (bitop::allones<T>() - T(0x0FFFu)), "alignmask error" );
+	};
+
+	template < typename T/*type*/ > class abstract_flags : public abstract_an_int< T, T(0u) > {
+		private:
+			typedef abstract_an_int< T, T(0u) > sbt; // why do I have to scope to what I am subclassing to access value??
+			typedef abstract_flags< T > this_type;
+		public:
+			abstract_flags() { }
+			abstract_flags(const T v) : abstract_an_int< T, T(0u) >(v) { }
+
+			inline bool is(const T f) const { return (sbt::value & f) != T(0u); }
+			inline this_type &set(const T f) { sbt::value |= f; return *this; }
+			inline this_type &clear(const T f) { sbt::value &= ~f; return *this; }
+	};
+
+	typedef abstract_an_int<uint64_t>	segment_size_t;			// segment sizes
+	typedef abstract_an_int<uint64_t>	segment_offset_t;		// segment offsets
+	typedef abstract_an_int<int32_t>	segment_value_t;		// segment value (real mode paragraph, protected mode index), can be negative
+	typedef abstract_flags<uint32_t>	segment_flags_t;		// segment flags
+	typedef abstract_an_int<uint64_t>	file_offset_t;			// file offset
+	typedef abstract_an_int<uint64_t>	linear_addr_t;			// linear (flat) address
+	typedef abstract_an_int<size_t>		source_ref_t;			// reference to a source meaning a file and a module within it
+	typedef abstract_a_mask<uint64_t>	alignment_mask_t;		// masks used for alignment of data, undef value 0
+	typedef abstract_flags<uint32_t>	symbol_flags_t;			// symbol flags
+	typedef abstract_flags<uint32_t>	fragment_flags_t;		// fragment flags
+	typedef abstract_flags<uint32_t>	fixup_flags_t;			// fixup flags
+	typedef abstract_flags<uint32_t>	cpu_flags_t;			// cpu flags
+public:
+};
 
 # if 0//REF
 namespace DOSLIBLinker {
