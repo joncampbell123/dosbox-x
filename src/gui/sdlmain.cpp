@@ -7757,6 +7757,54 @@ public:
 		private:
 			std::vector<T>		ref;
 			std::unordered_map<T,size_t> str2ref; // exact string to ref
+			const std::vector<size_t> empty_value;
+		public:
+			size_t add(const T &s) {
+				{
+					const auto i = str2ref.find(s);
+					if (i != str2ref.end()) return i->second;
+				}
+
+				const size_t ni = str2ref[s] = ref.size();
+				ref.emplace(ref.end(),s);
+				assert((ni+size_t(1u)) == ref.size());
+				return ni;
+			}
+
+			size_t lookup(const T &s) const {
+				const auto i = str2ref.find(s);
+				if (i != str2ref.end()) return i->second;
+				return undef;
+			}
+
+			inline size_t size(void) const {
+				return ref.size();
+			}
+
+			T& get(const size_t ri) {
+				if (ri < ref.size())
+					return ref[ri];
+				else
+					throw std::out_of_range("get() out of range");
+			}
+
+			const T& get(const size_t ri) const {
+				if (ri < ref.size())
+					return ref[ri];
+				else
+					throw std::out_of_range("get() out of range const");
+			}
+	};
+
+	/* case insensitive supporting version */
+	template < typename T/*type*/ > class stringi_management_as_handles {
+		public:
+			typedef T		elem_type;
+			typedef size_t		ref_type;
+			static constexpr size_t	undef = ~((size_t)(0ull));
+		private:
+			std::vector<T>		ref;
+			std::unordered_map<T,size_t> str2ref; // exact string to ref
 			std::unordered_map<T,std::vector<size_t> > istr2ref; // case-insensitive string to ref
 			const std::vector<size_t> empty_value;
 		public:
@@ -7766,13 +7814,9 @@ public:
 					if (i != str2ref.end()) return i->second;
 				}
 
-				const size_t ni = ref.size();
-
-				str2ref[s] = ni;
+				const size_t ni = str2ref[s] = ref.size();
 				istr2ref[stringmgrciconv(s)].push_back(ni);
-
 				ref.emplace(ref.end(),s);
-
 				assert((ni+size_t(1u)) == ref.size());
 				return ni;
 			}
@@ -7808,19 +7852,20 @@ public:
 			}
 	};
 
-
-	typedef abstract_an_int<uint64_t>	segment_size_t;			// segment sizes
-	typedef abstract_an_int<uint64_t>	segment_offset_t;		// segment offsets
-	typedef abstract_an_int<int32_t>	segment_value_t;		// segment value (real mode paragraph, protected mode index), can be negative
-	typedef abstract_flags<uint32_t>	segment_flags_t;		// segment flags
-	typedef abstract_an_int<uint64_t>	file_offset_t;			// file offset
-	typedef abstract_an_int<uint64_t>	linear_addr_t;			// linear (flat) address
-	typedef abstract_an_int<size_t>		source_ref_t;			// reference to a source meaning a file and a module within it
-	typedef abstract_a_mask<uint64_t>	alignment_mask_t;		// masks used for alignment of data, undef value 0
-	typedef abstract_flags<uint32_t>	symbol_flags_t;			// symbol flags
-	typedef abstract_flags<uint32_t>	fragment_flags_t;		// fragment flags
-	typedef abstract_flags<uint32_t>	fixup_flags_t;			// fixup flags
-	typedef abstract_flags<uint32_t>	cpu_flags_t;			// cpu flags
+	typedef abstract_an_int<uint64_t>			segment_size_t;			// segment sizes
+	typedef abstract_an_int<uint64_t>			segment_offset_t;		// segment offsets
+	typedef abstract_an_int<int32_t>			segment_value_t;		// segment value (real mode paragraph, protected mode index), can be negative
+	typedef abstract_flags<uint32_t>			segment_flags_t;		// segment flags
+	typedef abstract_an_int<uint64_t>			file_offset_t;			// file offset
+	typedef abstract_an_int<uint64_t>			linear_addr_t;			// linear (flat) address
+	typedef abstract_an_int<size_t>				source_ref_t;			// reference to a source meaning a file and a module within it
+	typedef abstract_a_mask<uint64_t>			alignment_mask_t;		// masks used for alignment of data, undef value 0
+	typedef abstract_flags<uint32_t>			symbol_flags_t;			// symbol flags
+	typedef stringi_management_as_handles<std::string>	stringi_table_t;		// symbol table with case insensitive match
+	typedef string_management_as_handles<std::string>	string_table_t;			// symbol table
+	typedef abstract_flags<uint32_t>			fragment_flags_t;		// fragment flags
+	typedef abstract_flags<uint32_t>			fixup_flags_t;			// fixup flags
+	typedef abstract_flags<uint32_t>			cpu_flags_t;			// cpu flags
 public:
 };
 
