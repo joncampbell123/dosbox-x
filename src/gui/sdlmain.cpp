@@ -7716,11 +7716,77 @@ public:
 				return ni;
 			}
 
-			size_t allocate(T &&init) {
+			inline size_t size(void) const {
+				return ref.size();
+			}
+
+			T& get(const size_t ri) {
+				if (ri < ref.size())
+					return ref[ri];
+				else
+					throw std::out_of_range("get() out of range");
+			}
+
+			const T& get(const size_t ri) const {
+				if (ri < ref.size())
+					return ref[ri];
+				else
+					throw std::out_of_range("get() out of range const");
+			}
+	};
+
+	static std::string stringmgrciconv(const std::string &s) {
+		std::string r;
+
+		for (auto si=s.begin();si!=s.end();si++) {
+			if (*si >= 'a' && *si <= 'z') r += toupper(*si);
+			else r += *si;
+		}
+
+		return r;
+	}
+
+	/* NTS: For simplicity reasons, you can allocate here, but you cannot delete.
+	 *      If you need to "delete" something it should be a struct with some way
+	 *      to signal it's been deleted or not initialized. */
+	template < typename T/*type*/ > class string_management_as_handles {
+		public:
+			typedef T		elem_type;
+			typedef size_t		ref_type;
+			static constexpr size_t	undef = ~((size_t)(0ull));
+		private:
+			std::vector<T>		ref;
+			std::unordered_map<T,size_t> str2ref; // exact string to ref
+			std::unordered_map<T,std::vector<size_t> > istr2ref; // case-insensitive string to ref
+			const std::vector<size_t> empty_value;
+		public:
+			size_t add(const T &s) {
+				{
+					const auto i = str2ref.find(s);
+					if (i != str2ref.end()) return i->second;
+				}
+
 				const size_t ni = ref.size();
-				ref.emplace(ref.end(),std::move(init));
+
+				str2ref[s] = ni;
+				istr2ref[stringmgrciconv(s)].push_back(ni);
+
+				ref.emplace(ref.end(),s);
+
 				assert((ni+size_t(1u)) == ref.size());
 				return ni;
+			}
+
+			size_t lookup(const T &s) const {
+				const auto i = str2ref.find(s);
+				if (i != str2ref.end()) return i->second;
+				return undef;
+			}
+
+			const std::vector<size_t> &lookupi(const T &s) const {
+				const auto i = istr2ref.find(stringmgrciconv(s));
+				if (i != istr2ref.end()) return i->second;
+				return empty_value;
 			}
 
 			inline size_t size(void) const {
@@ -7739,8 +7805,9 @@ public:
 					return ref[ri];
 				else
 					throw std::out_of_range("get() out of range const");
-		}
+			}
 	};
+
 
 	typedef abstract_an_int<uint64_t>	segment_size_t;			// segment sizes
 	typedef abstract_an_int<uint64_t>	segment_offset_t;		// segment offsets
