@@ -7692,6 +7692,56 @@ public:
 			inline this_type &clear(const T f) { sbt::value &= ~f; return *this; }
 	};
 
+	/* NTS: For simplicity reasons, you can allocate here, but you cannot delete.
+	 *      If you need to "delete" something it should be a struct with some way
+	 *      to signal it's been deleted or not initialized. */
+	template < typename T/*type*/ > class management_as_handles {
+		public:
+			typedef T		elem_type;
+			typedef size_t		ref_type;
+		private:
+			std::vector<T>		ref;
+		public:
+			size_t allocate(void) {
+				const size_t ni = ref.size();
+				ref.emplace(ref.end());
+				assert((ni+size_t(1u)) == ref.size());
+				return ni;
+			}
+
+			size_t allocate(const T &init) {
+				const size_t ni = ref.size();
+				ref.emplace(ref.end(),init);
+				assert((ni+size_t(1u)) == ref.size());
+				return ni;
+			}
+
+			size_t allocate(T &&init) {
+				const size_t ni = ref.size();
+				ref.emplace(ref.end(),std::move(init));
+				assert((ni+size_t(1u)) == ref.size());
+				return ni;
+			}
+
+			inline size_t size(void) const {
+				return ref.size();
+			}
+
+			T& get(const size_t ri) {
+				if (ri < ref.size())
+					return ref[ri];
+				else
+					throw std::out_of_range("get() out of range");
+			}
+
+			const T& get(const size_t ri) const {
+				if (ri < ref.size())
+					return ref[ri];
+				else
+					throw std::out_of_range("get() out of range const");
+		}
+	};
+
 	typedef abstract_an_int<uint64_t>	segment_size_t;			// segment sizes
 	typedef abstract_an_int<uint64_t>	segment_offset_t;		// segment offsets
 	typedef abstract_an_int<int32_t>	segment_value_t;		// segment value (real mode paragraph, protected mode index), can be negative
