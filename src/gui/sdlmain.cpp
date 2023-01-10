@@ -7764,13 +7764,13 @@ public:
 	 *      to signal it's been deleted or not initialized. */
 	template < typename T/*type*/ > class string_management_as_handles {
 		public:
-			typedef T		elem_type;
-			typedef size_t		ref_type;
-			static constexpr size_t	undef = ~((size_t)(0ull));
+			typedef T					elem_type;
+			typedef size_t					ref_type;
+			static constexpr size_t				undef = ~((size_t)(0ull));
 		private:
-			std::vector<T>		ref;
-			std::unordered_map<T,size_t> str2ref; // exact string to ref
-			const std::vector<size_t> empty_value;
+			std::vector<T>					ref;
+			std::unordered_map<T,size_t>			str2ref; // exact string to ref
+			const std::vector<size_t>			empty_value;
 		public:
 			size_t add(const T &s) {
 				{
@@ -7809,14 +7809,14 @@ public:
 	/* case insensitive supporting version */
 	template < typename T/*type*/ > class stringi_management_as_handles {
 		public:
-			typedef T		elem_type;
-			typedef size_t		ref_type;
-			static constexpr size_t	undef = ~((size_t)(0ull));
+			typedef T					elem_type;
+			typedef size_t					ref_type;
+			static constexpr size_t				undef = ~((size_t)(0ull));
 		private:
-			std::vector<T>		ref;
-			std::unordered_map<T,size_t> str2ref; // exact string to ref
-			std::unordered_map<T,std::vector<size_t> > istr2ref; // case-insensitive string to ref
-			const std::vector<size_t> empty_value;
+			std::vector<T>					ref;
+			std::unordered_map<T,size_t>			str2ref; // exact string to ref
+			std::unordered_map<T,std::vector<size_t> > 	istr2ref; // case-insensitive string to ref
+			const std::vector<size_t>			empty_value;
 		public:
 			size_t add(const T &s) {
 				{
