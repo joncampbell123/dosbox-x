@@ -7794,17 +7794,6 @@ public:
 				return ref.size();
 			}
 
-			T& get(const size_t ri) {
-				if (ri < ref.size())
-					return ref[ri];
-				else
-					throw std::out_of_range("get() out of range");
-			}
-
-			T& get(const abstract_an_int<size_t> ri) {
-				return get(ri.value);
-			}
-
 			const T& get(const size_t ri) const {
 				if (ri < ref.size())
 					return ref[ri];
@@ -7856,17 +7845,6 @@ public:
 
 			inline size_t size(void) const {
 				return ref.size();
-			}
-
-			T& get(const size_t ri) {
-				if (ri < ref.size())
-					return ref[ri];
-				else
-					throw std::out_of_range("get() out of range");
-			}
-
-			T& get(const abstract_an_int<size_t> ri) {
-				return get(ri.value);
 			}
 
 			const T& get(const size_t ri) const {
