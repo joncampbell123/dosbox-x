@@ -7806,59 +7806,6 @@ public:
 			}
 	};
 
-	/* case insensitive supporting version */
-	template < typename T/*type*/ > class stringi_management_as_handles {
-		public:
-			typedef T					elem_type;
-			typedef size_t					ref_type;
-			static constexpr size_t				undef = ~((size_t)(0ull));
-		private:
-			std::vector<T>					ref;
-			std::unordered_map<T,size_t>			str2ref; // exact string to ref
-			std::unordered_map<T,std::vector<size_t> > 	istr2ref; // case-insensitive string to ref
-			const std::vector<size_t>			empty_value;
-		public:
-			size_t add(const T &s) {
-				{
-					const auto i = str2ref.find(s);
-					if (i != str2ref.end()) return i->second;
-				}
-
-				const size_t ni = str2ref[s] = ref.size();
-				istr2ref[stringmgrciconv(s)].push_back(ni);
-				ref.emplace(ref.end(),s);
-				assert((ni+size_t(1u)) == ref.size());
-				return ni;
-			}
-
-			size_t lookup(const T &s) const {
-				const auto i = str2ref.find(s);
-				if (i != str2ref.end()) return i->second;
-				return undef;
-			}
-
-			const std::vector<size_t> &lookupi(const T &s) const {
-				const auto i = istr2ref.find(stringmgrciconv(s));
-				if (i != istr2ref.end()) return i->second;
-				return empty_value;
-			}
-
-			inline size_t size(void) const {
-				return ref.size();
-			}
-
-			const T& get(const size_t ri) const {
-				if (ri < ref.size())
-					return ref[ri];
-				else
-					throw std::out_of_range("get() out of range const");
-			}
-
-			const T& get(const abstract_an_int<size_t> ri) const {
-				return get(ri.value);
-			}
-	};
-
 	typedef abstract_an_int<uint64_t>			segment_size_t;			// segment sizes
 	typedef abstract_an_int<uint64_t>			segment_offset_t;		// segment offsets
 	typedef abstract_an_int<int32_t>			segment_value_t;		// segment value (real mode paragraph, protected mode index), can be negative
@@ -7868,7 +7815,6 @@ public:
 	typedef abstract_an_int<size_t>				source_ref_t;			// reference to a source meaning a file and a module within it
 	typedef abstract_a_mask<uint64_t>			alignment_mask_t;		// masks used for alignment of data, undef value 0
 	typedef abstract_flags<uint32_t>			symbol_flags_t;			// symbol flags
-	typedef stringi_management_as_handles<std::string>	stringi_table_t;		// symbol table with case insensitive match
 	typedef string_management_as_handles<std::string>	string_table_t;			// symbol table
 	typedef abstract_flags<uint32_t>			fragment_flags_t;		// fragment flags
 	typedef abstract_flags<uint32_t>			fixup_flags_t;			// fixup flags
