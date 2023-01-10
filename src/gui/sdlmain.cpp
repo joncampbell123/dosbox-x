@@ -7637,6 +7637,11 @@ public:
 				bitop::allones< T >(); /* 0xFF, 0xFFFF, etc */
 	};
 
+	static_assert(           abstract_default_undef< uint16_t >::value   ==      0xFFFFu, "default undef error" );
+	static_assert( uint16_t( abstract_default_undef<  int16_t >::value ) ==      0x8000u, "default undef error" );
+	static_assert(           abstract_default_undef< uint32_t >::value   ==  0xFFFFFFFFu, "default undef error" );
+	static_assert( uint32_t( abstract_default_undef<  int32_t >::value ) ==  0x80000000u, "default undef error" );
+
 	// To declare things in a way that types cannot mix even if the underlying type is the same. For use only with integers.
 	template < typename T/*type*/, const T undef_value = abstract_default_undef<T>::value > class abstract_an_int {
 		public:
@@ -7727,11 +7732,19 @@ public:
 					throw std::out_of_range("get() out of range");
 			}
 
+			T& get(const abstract_an_int<size_t> ri) {
+				return get(ri.value);
+			}
+
 			const T& get(const size_t ri) const {
 				if (ri < ref.size())
 					return ref[ri];
 				else
 					throw std::out_of_range("get() out of range const");
+			}
+
+			const T& get(const abstract_an_int<size_t> ri) const {
+				return get(ri.value);
 			}
 	};
 
@@ -7788,11 +7801,19 @@ public:
 					throw std::out_of_range("get() out of range");
 			}
 
+			T& get(const abstract_an_int<size_t> ri) {
+				return get(ri.value);
+			}
+
 			const T& get(const size_t ri) const {
 				if (ri < ref.size())
 					return ref[ri];
 				else
 					throw std::out_of_range("get() out of range const");
+			}
+
+			const T& get(const abstract_an_int<size_t> ri) const {
+				return get(ri.value);
 			}
 	};
 
@@ -7844,11 +7865,19 @@ public:
 					throw std::out_of_range("get() out of range");
 			}
 
+			T& get(const abstract_an_int<size_t> ri) {
+				return get(ri.value);
+			}
+
 			const T& get(const size_t ri) const {
 				if (ri < ref.size())
 					return ref[ri];
 				else
 					throw std::out_of_range("get() out of range const");
+			}
+
+			const T& get(const abstract_an_int<size_t> ri) const {
+				return get(ri.value);
 			}
 	};
 
@@ -7867,6 +7896,10 @@ public:
 	typedef abstract_flags<uint32_t>			fixup_flags_t;			// fixup flags
 	typedef abstract_flags<uint32_t>			cpu_flags_t;			// cpu flags
 public:
+
+	// global references within this linker
+	string_table_t						strings;
+	typedef abstract_an_int<size_t>				strings_ref_t;			// reference into strings
 };
 
 # if 0//REF
