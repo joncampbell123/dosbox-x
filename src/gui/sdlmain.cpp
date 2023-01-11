@@ -7627,6 +7627,70 @@ std::wstring win32_prompt_folder(const char *default_folder) {
 
 class DOSLIBLinker {
 public:
+	// common callback function setup
+	typedef void (*log_callback_func_t)(const int level,void *_user,const char *str);
+
+	// log levels
+	static const int			LNKLOG_DEBUGMORE = -2;
+	static const int			LNKLOG_DEBUG = -1;
+	static const int			LNKLOG_NORMAL = 0;
+	static const int			LNKLOG_WARN = 1;
+	static const int			LNKLOG_ERR = 2;
+
+	static void log_default_callback(const int level,void *_user,const char *str) {
+		/* silence */
+		(void)level;
+		(void)_user;
+		(void)str;
+	}
+
+	struct log_callback {
+		log_callback_func_t		callback = log_default_callback;
+		int				minimum_log_level = LNKLOG_NORMAL;
+		void*				_user = NULL;
+
+		log_callback();
+		void log(const int level,const char *fmt,...);
+		void set_minimum(const int min_level = LNKLOG_NORMAL);
+		void set_callback(log_callback_func_t func);
+	};
+
+	// file I/O abstraction
+	struct file_io {
+						file_io();
+		virtual				~file_io();
+
+		virtual bool			ok(void) const;
+		virtual off_t			size(void);
+		virtual off_t			tell(void);
+		virtual bool			seek(off_t ofs);
+		virtual bool			read(void *ptr,size_t len);
+		virtual bool			write(const void *ptr,size_t len);
+		virtual void			close(void);
+
+		int				last_error = 0; // ERRNO value
+		size_t				last_iosize = 0; // last read/write
+	};
+
+	// file I/O FILE*
+	struct file_stdio_io : public file_io {
+						file_stdio_io();
+						file_stdio_io(const char *path,const char *how=NULL);
+		virtual				~file_stdio_io();
+
+		virtual bool			ok(void) const;
+		virtual off_t			size(void);
+		virtual off_t			tell(void);
+		virtual bool			seek(off_t ofs);
+		virtual bool			read(void *ptr,size_t len);
+		virtual bool			write(const void *ptr,size_t len);
+		virtual void			close(void);
+
+		bool				open(const char *path,const char *how=NULL);
+
+		FILE*				fp = NULL;
+	};
+
 	// This was supposed to be a constexpr function but GCC seems to think that defining it here and calling it from
 	// a default template argument directly below makes it "not yet defined", so... fine. It's a struct who's only
 	// purpose is to carry a default undef value.
@@ -7653,6 +7717,14 @@ public:
 
 			abstract_an_int() { }
 			abstract_an_int(const T v) : value(v) { }
+
+			inline const T operator()(void) const {
+				return value;
+			}
+
+			inline T &operator()(void) {
+				return value;
+			}
 	};
 
 	template < typename T/*type*/ > class abstract_a_mask : public abstract_an_int< T, T(0u) > {
@@ -7707,6 +7779,10 @@ public:
 		private:
 			std::vector<T>		ref;
 		public:
+			void clear(void) {
+				ref.clear();
+			}
+
 			size_t allocate(void) {
 				const size_t ni = ref.size();
 				ref.emplace(ref.end());
@@ -7748,7 +7824,7 @@ public:
 			}
 	};
 
-	static std::string stringmgrciconv(const std::string &s) {
+	static std::string stringupper(const std::string &s) {
 		std::string r;
 
 		for (auto si=s.begin();si!=s.end();si++) {
@@ -7772,6 +7848,11 @@ public:
 			std::unordered_map<T,size_t>			str2ref; // exact string to ref
 			const std::vector<size_t>			empty_value;
 		public:
+			void clear(void) {
+				ref.clear();
+				str2ref.clear();
+			}
+
 			size_t add(const T &s) {
 				{
 					const auto i = str2ref.find(s);
@@ -7810,6 +7891,12 @@ public:
 	typedef abstract_an_int<uint64_t>			segment_offset_t;		// segment offsets
 	typedef abstract_an_int<int32_t>			segment_value_t;		// segment value (real mode paragraph, protected mode index), can be negative
 	typedef abstract_flags<uint32_t>			segment_flags_t;		// segment flags
+	typedef abstract_an_int<size_t>				segment_ref_t;			// reference to segment
+
+	typedef abstract_an_int<size_t>				groups_ref_t;			// reference to group
+
+	typedef abstract_an_int<size_t>				strings_ref_t;			// reference into strings
+
 	typedef abstract_an_int<uint64_t>			file_offset_t;			// file offset
 	typedef abstract_an_int<uint64_t>			linear_addr_t;			// linear (flat) address
 	typedef abstract_an_int<size_t>				source_ref_t;			// reference to a source meaning a file and a module within it
@@ -7821,10 +7908,338 @@ public:
 	typedef abstract_flags<uint32_t>			cpu_flags_t;			// cpu flags
 public:
 
+	// useful functions for 1-based indices in some formats
+	static inline constexpr size_t from1based(const size_t v) {
+		return v - size_t(1u);
+	}
+
+	static inline constexpr size_t to1based(const size_t v) {
+		return v + size_t(1u);
+	}
+
+	// logging system
+	log_callback						log;
+
 	// global references within this linker
 	string_table_t						strings;
-	typedef abstract_an_int<size_t>				strings_ref_t;			// reference into strings
 };
+
+/////////////////////////
+
+DOSLIBLinker::log_callback::log_callback() {
+}
+
+void DOSLIBLinker::log_callback::log(const int level,const char *fmt,...) {
+	if (callback != NULL && level >= minimum_log_level) {
+		static const size_t tmpsize = 512;
+		char *tmp = new char[tmpsize];
+		va_list va;
+
+		va_start(va,fmt);
+		vsnprintf(tmp,tmpsize,fmt,va); // NTS: sprintf() is documented to fit within tmpsize including NUL
+		callback(level,_user,tmp);
+		va_end(va);
+
+		delete[] tmp;
+	}
+}
+
+void DOSLIBLinker::log_callback::set_minimum(const int min_level) {
+	minimum_log_level = min_level;
+}
+
+void DOSLIBLinker::log_callback::set_callback(log_callback_func_t func) {
+	callback = (func != NULL) ? func : log_default_callback;
+}
+
+/////////////////////////
+
+DOSLIBLinker::file_io::file_io() {
+}
+
+DOSLIBLinker::file_io::~file_io() {
+}
+
+bool DOSLIBLinker::file_io::ok(void) const {
+	return false;
+}
+
+off_t DOSLIBLinker::file_io::size(void) {
+	last_error = ENOSYS;
+	return 0;
+}
+
+off_t DOSLIBLinker::file_io::tell(void) {
+	last_error = ENOSYS;
+	return 0;
+}
+
+bool DOSLIBLinker::file_io::seek(off_t ofs) {
+	(void)ofs;
+	last_error = ENOSYS;
+	return false;
+}
+
+bool DOSLIBLinker::file_io::read(void *ptr,size_t len) {
+	(void)ptr;
+	(void)len;
+	last_error = ENOSYS;
+	last_iosize = 0;
+	return false;
+}
+
+bool DOSLIBLinker::file_io::write(const void *ptr,size_t len) {
+	(void)ptr;
+	(void)len;
+	last_error = ENOSYS;
+	last_iosize = 0;
+	return false;
+}
+
+void DOSLIBLinker::file_io::close(void) {
+}
+
+/////////////////////////
+
+DOSLIBLinker::file_stdio_io::file_stdio_io() : file_io() {
+	fp = NULL;
+}
+
+DOSLIBLinker::file_stdio_io::file_stdio_io(const char *path,const char *how) : file_io() {
+	open(path,how);
+}
+
+DOSLIBLinker::file_stdio_io::~file_stdio_io() {
+	close();
+}
+
+bool DOSLIBLinker::file_stdio_io::ok(void) const {
+	return (fp != NULL);
+}
+
+off_t DOSLIBLinker::file_stdio_io::size(void) {
+	if (fp != NULL) {
+		const off_t saved = (off_t)ftell(fp);
+		fseek(fp,0,SEEK_END);
+		const off_t size = (off_t)ftell(fp);
+		fseek(fp,(long)saved,SEEK_SET);
+		return size;
+	}
+	else {
+		last_error = EBADF;
+	}
+
+	return 0;
+}
+
+off_t DOSLIBLinker::file_stdio_io::tell(void) {
+	if (fp != NULL)
+		return (off_t)ftell(fp);
+	else
+		last_error = EBADF;
+
+	return 0;
+}
+
+bool DOSLIBLinker::file_stdio_io::seek(off_t ofs) {
+	if (fp != NULL) {
+		fseek(fp,(long)ofs,SEEK_SET);
+		return true;
+	}
+	else {
+		last_error = EBADF;
+		return false;
+	}
+}
+
+bool DOSLIBLinker::file_stdio_io::read(void *ptr,size_t len) {
+	if (fp != NULL) {
+		last_iosize = 0;
+		if (fread(ptr,len,1,fp) != 1) return false;
+		return true;
+	}
+	else {
+		last_error = EBADF;
+		return false;
+	}
+}
+
+bool DOSLIBLinker::file_stdio_io::write(const void *ptr,size_t len) {
+	if (fp != NULL) {
+		last_iosize = 0;
+		if (fwrite(ptr,len,1,fp) != 1) return false;
+		return true;
+	}
+	else {
+		last_error = EBADF;
+		return false;
+	}
+}
+
+void DOSLIBLinker::file_stdio_io::close(void) {
+	if (fp != NULL) {
+		fclose(fp);
+		fp = NULL;
+	}
+}
+
+bool DOSLIBLinker::file_stdio_io::open(const char *path,const char *how) {
+	close();
+	if (how == NULL) how = "rb";
+	fp = fopen(path,how);
+	return ok();
+}
+
+class DOSLIBLinkerOMF {
+public:
+	typedef DOSLIBLinker::management_as_handles< DOSLIBLinker::strings_ref_t >			lnames_t;	// OMF LNAMES [ref] -> strings_ref_t
+	typedef DOSLIBLinker::management_as_handles< DOSLIBLinker::segment_ref_t >			segdef_t;	// OMF SEGDEF [ref] -> segment_ref_t
+	typedef DOSLIBLinker::management_as_handles< DOSLIBLinker::groups_ref_t >			grpdef_t;	// OMF GRPDEF [ref] -> groups_ref_t
+
+	typedef DOSLIBLinker::abstract_an_int<uint8_t>							record_type_t;
+	static constexpr record_type_t::base_type							OMFRECT_THEADR     = 0x80;
+	static constexpr record_type_t::base_type							OMFRECT_LHEADR     = 0x82;
+	static constexpr record_type_t::base_type							OMFRECT_MODEND     = 0x8A;
+	static constexpr record_type_t::base_type							OMFRECT_MODEND_32  = 0x8B;
+	static constexpr record_type_t::base_type							OMFRECT_LNAMES     = 0x96;
+	static constexpr record_type_t::base_type							OMFRECT_LLNAMES    = 0xCA;
+	static constexpr record_type_t::base_type							OMFRECT_LIBHEAD    = 0xF0;
+	static constexpr record_type_t::base_type							OMFRECT_LIBEND     = 0xF1;
+
+	struct record {
+		std::vector<uint8_t>									record;
+		record_type_t										type = record_type_t::undef;
+		DOSLIBLinker::file_offset_t								file_offset = DOSLIBLinker::file_offset_t::undef;
+
+		void											clear(void);
+	};
+
+	bool												is_library = false;
+	uint32_t											block_size = 0;
+	uint32_t											dict_offset = 0;
+	std::vector<DOSLIBLinker::source_ref_t>								sources_loaded;
+
+	lnames_t											LNAMES;
+
+	/* clear all state */
+	void clear(void) {
+		clear_for_module();
+
+		is_library = false;
+		block_size = 0;
+		dict_offset = 0;
+		sources_loaded.clear();
+	}
+
+	/* clear state for module */
+	void clear_for_module(void) {
+		LNAMES.clear();
+	}
+
+	bool read_record(record &rec,DOSLIBLinker::file_io &fio) {
+		unsigned char hdr[3],chk;
+		uint16_t len;
+
+		/* clear record */
+		rec.clear();
+
+		/* note header offset */
+		rec.file_offset = fio.tell();
+
+		/* header:
+		 *
+		 * <type> <16-bit length> <data> <checksum byte or 0>
+		 *
+		 * length includes <data> and <checksum>
+		 *
+		 * MS-DOS 16-bit linkers for arcane reasons probably related to FCBs and record length
+		 * like to use multiples of 512 bytes, supposedly. */
+		if (!fio.read(hdr,3))
+			return false;
+
+		/* type and length */
+		rec.type = hdr[0];
+		len = le16toh( *((uint16_t*)(hdr+1)) );
+		if (len == 0) return false;
+
+		/* read in length - 1 (data region) */
+		rec.record.resize(len-1u);
+		if (!fio.read(&rec.record[0],len-1u))
+			return false;
+
+		/* read in checksum byte */
+		if (!fio.read(&chk,1))
+			return false;
+
+		/* checksum is optional */
+		if (chk != 0) {
+			unsigned char sum = chk;
+			unsigned int i;
+
+			for (i=0;i < 3;i++)
+				sum += hdr[i];
+			for (i=0;i < (len-1u);i++)
+				sum += rec.record[i];
+
+			if (sum != 0)
+				return false;
+		}
+
+		if (rec.type() == OMFRECT_MODEND || rec.type() == OMFRECT_MODEND_32) {
+			if (block_size > 0) {
+				off_t ofs = fio.tell();
+				ofs += (off_t)block_size - (off_t)1;
+				ofs -= ofs % (off_t)block_size;
+				fio.seek(ofs);
+			}
+			if (dict_offset != 0u) {
+				if (fio.tell() >= (off_t)dict_offset)
+					return false;
+			}
+		}
+
+		return true;
+	}
+
+	bool read(DOSLIBLinker &linker,const char *path) {
+		DOSLIBLinker::file_stdio_io fio(path);
+		if (!fio.ok()) return false;
+		return read(linker,fio,path);
+	}
+
+	bool read(DOSLIBLinker &linker,DOSLIBLinker::file_io &fio,const char *path) {
+		record rec;
+
+		/* this clears OMF class state */
+		clear();
+
+		/* the first record must be THEADR (single object) or LHEADR (library) */
+		if (!read_record(rec,fio)) {
+			linker.log.log(DOSLIBLinker::LNKLOG_DEBUG,"%s is not an OMF file, unable to read first record",path);
+			return false;
+		}
+
+		if (rec.type() == OMFRECT_LIBHEAD || rec.type() == OMFRECT_LHEADR) {
+			is_library = true;
+			linker.log.log(DOSLIBLinker::LNKLOG_DEBUG,"%s is an OMF library",path);
+		}
+		else if (rec.type() == OMFRECT_THEADR) {
+			linker.log.log(DOSLIBLinker::LNKLOG_DEBUG,"%s is an OMF object file",path);
+		}
+		else {
+			return false;
+		}
+
+		clear_for_module();
+		return true;
+	}
+};
+
+void DOSLIBLinkerOMF::record::clear(void) {
+	record.clear();
+	type = record_type_t::undef;
+	file_offset = DOSLIBLinker::file_offset_t::undef;
+}
 
 # if 0//REF
 namespace DOSLIBLinker {
@@ -7975,61 +8390,6 @@ namespace DOSLIBLinker {
 	static constexpr uint8_t		MEMMODEL_LARGE     = uint8_t('l');
 	static constexpr uint8_t		MEMMODEL_HUGE      = uint8_t('h');
 	static constexpr uint8_t		MEMMODEL_FLAT      = uint8_t('f');
-
-	// common callback function setup
-	typedef void (*log_callback_func_t)(const int level,void *_user,const char *str);
-
-	// log levels
-	static const int			LNKLOG_DEBUGMORE = -2;
-	static const int			LNKLOG_DEBUG = -1;
-	static const int			LNKLOG_NORMAL = 0;
-	static const int			LNKLOG_WARN = 1;
-	static const int			LNKLOG_ERR = 2;
-
-	struct log_callback {
-		log_callback_func_t		callback = (log_callback_func_t)NULL;
-		int				minimum_log_level = LNKLOG_NORMAL;
-		void*				_user = NULL;
-
-		log_callback();
-		void log(const int level,const char *fmt,...);
-	};
-
-	// file I/O abstraction
-	struct file_io {
-						file_io();
-		virtual				~file_io();
-
-		virtual bool			ok(void) const;
-		virtual off_t			size(void);
-		virtual off_t			tell(void);
-		virtual bool			seek(off_t ofs);
-		virtual bool			read(void *ptr,size_t len);
-		virtual bool			write(const void *ptr,size_t len);
-		virtual void			close(void);
-
-		int				last_error = 0; // ERRNO value
-		size_t				last_iosize = 0; // last read/write
-	};
-
-	// file I/O FILE*
-	struct file_stdio_io : public file_io {
-						file_stdio_io();
-						file_stdio_io(const char *path,const char *how=NULL);
-		virtual				~file_stdio_io();
-
-		virtual bool			ok(void) const;
-		virtual off_t			size(void);
-		virtual off_t			tell(void);
-		virtual bool			seek(off_t ofs);
-		virtual bool			read(void *ptr,size_t len);
-		virtual bool			write(const void *ptr,size_t len);
-		virtual void			close(void);
-
-		bool				open(const char *path,const char *how=NULL);
-
-		FILE*				fp = NULL;
-	};
 
 	static_assert(segment_size_undef == 0xFFFFFFFFFFFFFFFFull, "constant failure");
 
@@ -8439,167 +8799,7 @@ namespace DOSLIBLinker {
 
 	/////////////////////////
 
-	log_callback::log_callback() {
-	}
-
-	void log_callback::log(const int level,const char *fmt,...) {
-		if (callback != NULL && level >= minimum_log_level) {
-			static const size_t tmpsize = 512;
-			char *tmp = new char[tmpsize];
-			va_list va;
-
-			va_start(va,fmt);
-			vsnprintf(tmp,tmpsize,fmt,va); // NTS: sprintf() is documented to fit within tmpsize including NUL
-			callback(level,_user,tmp);
-			va_end(va);
-
-			delete[] tmp;
-		}
-	}
-
-	/////////////////////////
-
-	file_io::file_io() {
-	}
-
-	file_io::~file_io() {
-	}
-
-	bool file_io::ok(void) const {
-		return false;
-	}
-
-	off_t file_io::size(void) {
-		last_error = ENOSYS;
-		return 0;
-	}
-
-	off_t file_io::tell(void) {
-		last_error = ENOSYS;
-		return 0;
-	}
-
-	bool file_io::seek(off_t ofs) {
-		(void)ofs;
-		last_error = ENOSYS;
-		return false;
-	}
-
-	bool file_io::read(void *ptr,size_t len) {
-		(void)ptr;
-		(void)len;
-		last_error = ENOSYS;
-		last_iosize = 0;
-		return false;
-	}
-
-	bool file_io::write(const void *ptr,size_t len) {
-		(void)ptr;
-		(void)len;
-		last_error = ENOSYS;
-		last_iosize = 0;
-		return false;
-	}
-
-	void file_io::close(void) {
-	}
-
-	/////////////////////////
-
-	file_stdio_io::file_stdio_io() : file_io() {
-		fp = NULL;
-	}
-
-	file_stdio_io::file_stdio_io(const char *path,const char *how) : file_io() {
-		open(path,how);
-	}
-
-	file_stdio_io::~file_stdio_io() {
-		close();
-	}
-
-	bool file_stdio_io::ok(void) const {
-		return (fp != NULL);
-	}
-
-	off_t file_stdio_io::size(void) {
-		if (fp != NULL) {
-			const off_t saved = (off_t)ftell(fp);
-			fseek(fp,0,SEEK_END);
-			const off_t size = (off_t)ftell(fp);
-			fseek(fp,(long)saved,SEEK_SET);
-			return size;
-		}
-		else {
-			last_error = EBADF;
-		}
-
-		return 0;
-	}
-
-	off_t file_stdio_io::tell(void) {
-		if (fp != NULL)
-			return (off_t)ftell(fp);
-		else
-			last_error = EBADF;
-
-		return 0;
-	}
-
-	bool file_stdio_io::seek(off_t ofs) {
-		if (fp != NULL) {
-			fseek(fp,(long)ofs,SEEK_SET);
-			return true;
-		}
-		else {
-			last_error = EBADF;
-			return false;
-		}
-	}
-
-	bool file_stdio_io::read(void *ptr,size_t len) {
-		if (fp != NULL) {
-			last_iosize = 0;
-			if (fread(ptr,len,1,fp) != 1) return false;
-			return true;
-		}
-		else {
-			last_error = EBADF;
-			return false;
-		}
-	}
-
-	bool file_stdio_io::write(const void *ptr,size_t len) {
-		if (fp != NULL) {
-			last_iosize = 0;
-			if (fwrite(ptr,len,1,fp) != 1) return false;
-			return true;
-		}
-		else {
-			last_error = EBADF;
-			return false;
-		}
-	}
-
-	void file_stdio_io::close(void) {
-		if (fp != NULL) {
-			fclose(fp);
-			fp = NULL;
-		}
-	}
-
-	bool file_stdio_io::open(const char *path,const char *how) {
-		close();
-		if (how == NULL) how = "rb";
-		fp = fopen(path,how);
-		return ok();
-	}
-
-	/////////////////////////
-
 	static uint64_t					module_id_load_next = uint64_t(1ull);
-
-	static log_callback				log_callback_silent;
 
 	/////////////////////////
 
@@ -10318,6 +10518,33 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     bool saved_opt_test;
 
 #ifdef LNKDEV
+	{
+		const char *testlist[] = {
+			"0000.obj",	"0001.obj",	"0002.obj",	"0003.obj",
+			"0004.obj",	"0005.obj",	"0006.obj",	"0007.obj",
+			"0008.obj",	"0009.obj",	"0010.obj",	"0011.obj",
+			"0012.obj",	"0013.obj",	"0014.obj",	"cpu.lib",
+			NULL
+		};
+		DOSLIBLinker linker;
+		DOSLIBLinkerOMF omf;
+
+		linker.log.set_minimum(DOSLIBLinker::LNKLOG_DEBUGMORE);
+		linker.log.set_callback(link_log_callback);
+
+		for (size_t ti=0;testlist[ti] != NULL;ti++) {
+			if (!omf.read(linker,testlist[ti]))
+				fprintf(stderr,"%s err\n",testlist[ti]);
+
+			fprintf(stderr,"==== File %s result: ====\n",testlist[ti]);
+			fprintf(stderr,"  is_library=%u block_size=%lu dict_offset=%lu sources_count=%lu\n",
+				(unsigned int)omf.is_library,
+				(unsigned long)omf.block_size,
+				(unsigned long)omf.dict_offset,
+				(unsigned long)omf.sources_loaded.size());
+			fprintf(stderr,"\n");
+		}
+	}
 # if 0//REF
 	{
 		DOSLIBLinker::log_callback log;
