@@ -1,4 +1,10 @@
 Next
+  - Fix PIT 0 timer interrupt handling not to attempt
+    periodic event and error adjustment unless the game
+    is using periodic modes 2 or 3. This fixes PIT timing
+    bug and possible emulator hang when exiting games
+    like "Days of Thunder" that leave PIT 0 in mode 0 or
+    1 on exit for some reason. (joncampbell123)
   - Fix Sound Blaster DMA rate limits to better reflect
     actual hardware. SB16 limits to 45454Hz just as
     Pro and earlier do. These limits were added before

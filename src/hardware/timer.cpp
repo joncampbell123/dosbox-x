@@ -310,25 +310,31 @@ unsigned long PIT_TICK_RATE = PIT_TICK_RATE_IBM;
 
 static void PIT0_Event(Bitu /*val*/) {
 	PIC_ActivateIRQ(0);
-	if (pit[0].mode != 0) {
+	/* NTS: "Days of Thunder" leaves PIT 0 in mode 1 for some reason, which triggers once and then stops. "start" does not advance in that mode.
+	 *      For any non-periodic mode, this code would falsely detect an ever increasing error and act badly. */
+	if (pit[0].mode == 2 || pit[0].mode == 3) {
 		pit[0].track_time(PIC_FullIndex());
 
 		/* event timing error checking */
 		pic_tickindex_t err = PIC_GetCurrentEventTime() - pit[0].start;
 
-		if (err >= (pit[0].delay/2))
-			err -=  pit[0].delay;
-
 #if 0//change if debug information wanted
 		if (fabs(err) >= (0.5 / CPU_CycleMax))
-			LOG_MSG("PIT0_Event timing error %.6fms",err);
+			LOG_MSG("PIT0_Event timing error %.6fms for delay %.6fms now %.6fms start %.6fms mode %u",
+				(double)err,(double)pit[0].delay,(double)PIC_GetCurrentEventTime(),(double)pit[0].start,pit[0].mode);
 #endif
 
-        if(pit[0].delay - (err * 0.05) <= 0) {
-            err = 0;
-            //LOG_MSG("PIT0_Event delay value negative, reset to 0", err);
-        }
-        PIC_AddEvent(PIT0_Event,pit[0].delay - (err * 0.05));
+		pic_tickindex_t finaldelay = pit[0].delay - (err * 0.05);
+
+		if (finaldelay <= 0) { /* do not emit delays of zero */
+			// Uncomment this line below if you need to debug negative delays
+			//LOG_MSG("PIT0_Event delay value negative (%.6fms), reset to 0", (double)finaldelay);
+
+			// speed it up!
+			finaldelay = pit[0].delay * 0.95;
+		}
+
+		PIC_AddEvent(PIT0_Event,finaldelay);
 	}
 }
 
