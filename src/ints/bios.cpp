@@ -9836,7 +9836,10 @@ public:
         else phys_writeb(0xffffe,0xfc); /* PC (FIXME: This is listed as model byte PS/2 model 60) */
 
         // signature
-        phys_writeb(0xfffff,0x55);
+        if (machine==MCH_TANDY)
+            phys_writeb(0xfffff,0xff); // Needed for Ninja (1986)
+        else
+            phys_writeb(0xfffff,0x55);
     }
     BIOS(Section* configuration):Module_base(configuration){
         isapnp_biosstruct_base = 0;
