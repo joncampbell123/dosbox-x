@@ -23,7 +23,7 @@ The four major operating systems and platforms of DOSBox-X are:
 4. DOS (MS-DOS 5.0+ or compatible)
 
 Straight Windows builds are expected to compile using the free community edition
-of Visual Studio 2015 to Visual Studio 2022 and the DirectX 2010 SDK.
+of Visual Studio 2017 to Visual Studio 2022 and the DirectX 2010 SDK.
 
 Linux and MinGW Windows builds are expected to compile with the GNU autotools.
 
@@ -168,15 +168,23 @@ After a successful compile, the RPM can be found in the releases directory.
 Compiling the source code using Visual Studio (Windows)
 -------------------------------------------------------
 
-You can build the source code with Visual Studio (2015, 2017, 2019, 2022).
+You can build the source code with Visual Studio 2017, 2019, and 2022.
+(The code currently cannot be built with Visual Studio 2015)
 The executables will work on 32-bit and 64-bit Windows Vista or higher.
+If you want the executables to work on Windows XP, you can patch the PE header
+using a tool included in the source code.
+
+```./contrib/windows/installer/PatchPE.exe path-to-your-exe-file/dosbox-x.exe```
 
 Use the ```./vs/dosbox-x.sln``` "solution" file and build the source code.
 You will need the DirectX 2010 SDK for Direct3D9 support.
 
 By default the targeted platform is v142 (Visual Studio 2019).
-For building the source code in Visual Studio 2015 or 2017,
-you may change the platform toolset to v140 or v141 respectively.
+For building the source code in Visual Studio 2017 or 2022,
+you may change the platform toolset to v141 or v143 respectively.
+For Visual Studio 2017, you have to set ``WindowsTargetPlatformVersion`` to whatever
+Windows SDK version installed in your PC, for example ``10.0.22000.0``.
+(Visual Studio 2019 and beyond will pick the latest Windows SDK version if you set the value to `10.0`)
 
 Libraries such as SDL, freetype, libpdcurses, libpng and zlib are already included,
 and as of DOSBox-X 0.83.6 support for FluidSynth MIDI Synthesizer is also included
