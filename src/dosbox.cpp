@@ -3043,7 +3043,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Swaps the left and right stereo channels.");
     Pbool->SetBasic(true);
 
-    Pint = secprop->Add_int("rate",Property::Changeable::OnlyAtStart,44100);
+    Pint = secprop->Add_int("rate",Property::Changeable::OnlyAtStart,48000);
     Pint->SetMinMax(8000,192000);
     Pint->Set_help("Mixer sample rate, setting any device's rate higher than this will probably lower their sound quality.");
     Pint->SetBasic(true);

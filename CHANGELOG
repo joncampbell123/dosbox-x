@@ -1,4 +1,13 @@
 Next
+  - Change default mixer rate to 48KHz instead of the
+    long standard 44.1KHz. Most modern sound cards on
+    modern OSes render at 48KHz anyway and resample
+    either in hardware or software and most configurations
+    render at 48KHz. Perhaps somewhat improved audio quality
+    could be had by rendering at what most sound cards are
+    doing these days anyway. As usual, audiophiles are free
+    to set the mixer rate to 96KHz if supported by their
+    sound card. (joncampbell123)
   - Fix PIT 0 timer interrupt handling not to attempt
     periodic event and error adjustment unless the game
     is using periodic modes 2 or 3. This fixes PIT timing
