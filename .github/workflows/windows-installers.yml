@@ -1,0 +1,98 @@
+name: Windows installers
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+
+jobs:
+  build-dosbox-x-windows-installers:
+    permissions:
+      actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
+      contents: write # for actions/checkout to fetch code and softprops/action-gh-release
+    runs-on: windows-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - name: Cancel previous runs
+        uses: styfle/cancel-workflow-action@0.11.0
+        with:
+          access_token: ${{ github.token }}
+      - uses: actions/checkout@v3
+      - name: Wait for new DOSBox-X release
+        shell: bash
+        run: |
+          # Wait long enough to make sure the new release has been created and the Windows binaries have been built.
+          #MINUTES_WAIT=0
+          MINUTES_WAIT=45
+          for minutes in `seq $MINUTES_WAIT`; do
+            sleep 60
+            echo "Waiting: $minutes of $MINUTES_WAIT minutes"
+          done
+      - name: Get DOSBox-X Windows builds
+        shell: bash
+        run: |
+          DOSBOX_X_RELEASE=`gh release list -L1 | grep -o "....-..-.." | head -n 1 | sed -e "s/-/./g"`
+          echo "DOSBOX_X_RELEASE=$DOSBOX_X_RELEASE" >> $GITHUB_ENV
+          RELEASE_DIR="release/windows"
+          mkdir -p $RELEASE_DIR
+          cd $RELEASE_DIR
+          # Wait until all required DOSBox-X builds are available.
+          DOSBOX_BUILDS_AVAILABLE=false
+          while [ $DOSBOX_BUILDS_AVAILABLE != true ]; do
+            gh release download -p 'dosbox-x-mingw-win*.zip' -p 'dosbox-x-vsbuild-*.zip'
+            # Rename the files so that the date in the file name matches the release date.
+            DOSBOX_X_RELEASE_COMPACT=`echo ${DOSBOX_X_RELEASE} | sed -e "s/\.//g"`
+            for file in `ls dosbox-x-*.zip`; do
+              filename_ok=`echo $file | sed -e "s/-[0-9]\{8\}/-$DOSBOX_X_RELEASE_COMPACT/"`
+              if [ $file != $filename_ok ]; then
+                mv $file $filename_ok
+              fi
+            done
+            # Check if all required DOSBox-X builds are available.
+            DOSBOX_BUILDS_AVAILABLE=true
+            if [ `ls dosbox-x-vsbuild-win32-*.zip 1>/dev/null 2>&1; echo $?` != 0 ]; then DOSBOX_BUILDS_AVAILABLE=false; fi
+            if [ `ls dosbox-x-vsbuild-win64-*.zip 1>/dev/null 2>&1; echo $?` != 0 ]; then DOSBOX_BUILDS_AVAILABLE=false; fi
+            if [ `ls dosbox-x-vsbuild-arm32-*.zip 1>/dev/null 2>&1; echo $?` != 0 ]; then DOSBOX_BUILDS_AVAILABLE=false; fi
+            if [ `ls dosbox-x-vsbuild-arm64-*.zip 1>/dev/null 2>&1; echo $?` != 0 ]; then DOSBOX_BUILDS_AVAILABLE=false; fi
+            if [ `ls dosbox-x-mingw-win32-*.zip 1>/dev/null 2>&1; echo $?` != 0 ]; then DOSBOX_BUILDS_AVAILABLE=false; fi
+            if [ `ls dosbox-x-mingw-win32-*.zip 1>/dev/null 2>&1; echo $?` != 0 ]; then DOSBOX_BUILDS_AVAILABLE=false; fi
+            if [ `ls dosbox-x-mingw-win64-*.zip 1>/dev/null 2>&1; echo $?` != 0 ]; then DOSBOX_BUILDS_AVAILABLE=false; fi
+            if [ $DOSBOX_BUILDS_AVAILABLE == false ]; then
+              echo "Waiting for DOSBox-X Windows builds to be uploaded to the latest release."
+              sleep 10
+            fi
+          done
+      - name: Update installer configuration
+        shell: bash
+        run: |
+          APP_VERSION=${{ env.DOSBOX_X_RELEASE }}
+          sed -i "s/^#define MyAppVersion.*/#define MyAppVersion \"$APP_VERSION\"/" contrib/windows/installer/DOSBox-X-setup.iss
+      - name: Build DOSBox-X Windows installers
+        shell: pwsh
+        run: |
+          $INSTALLER_DATE = echo ${{ env.DOSBOX_X_RELEASE }} | % { $_ -replace '\.', '' }
+          .\build_windows_installer.bat $INSTALLER_DATE
+      - name: Upload DOSBox-X Windows 32 bit installer
+        uses: actions/upload-artifact@v3
+        with:
+          name: dosbox-x-win32-${{ env.DOSBOX_X_RELEASE }}-setup.exe
+          path: release/windows/dosbox-x-win32-${{ env.DOSBOX_X_RELEASE }}-setup.exe
+      - name: Upload DOSBox-X Windows 64 bit installer
+        uses: actions/upload-artifact@v3
+        with:
+          name: dosbox-x-win64-${{ env.DOSBOX_X_RELEASE }}-setup.exe
+          path: release/windows/dosbox-x-win64-${{ env.DOSBOX_X_RELEASE }}-setup.exe
+      - name: Upload release packages
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            release/windows/dosbox-x-win32-${{ env.DOSBOX_X_RELEASE }}-setup.exe
+            release/windows/dosbox-x-win64-${{ env.DOSBOX_X_RELEASE }}-setup.exe
+
