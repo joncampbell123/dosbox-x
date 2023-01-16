@@ -1036,11 +1036,11 @@ static uint8_t DSP_RateLimitedFinalTC_Old() {
             else u_limit = 165; /* 11KHz */
         }
         else if (sb.type == SBT_16) /* Sound Blaster 16. Highspeed commands are treated like an alias to normal DSP commands */
-            u_limit = sb.vibra ? 234/*46KHz*/ : 233/*44.1KHz*/;
+            u_limit = 234/*45454Hz*/;
         else if (sb.type == SBT_2) /* Sound Blaster 2.0 */
-            u_limit = (sb.dsp.highspeed ? 233/*44.1KHz*/ : 210/*22.5KHz*/);
+            u_limit = (sb.dsp.highspeed ? 234/*45454Hz*/ : 210/*22.5KHz*/);
         else
-            u_limit = (sb.dsp.highspeed ? 233/*44.1KHz*/ : 212/*22.5KHz*/);
+            u_limit = (sb.dsp.highspeed ? 234/*45454Hz*/ : 212/*22.5KHz*/);
 
         /* NTS: Don't forget: Sound Blaster Pro "stereo" is programmed with a time constant divided by
          *      two times the sample rate, which is what we get back here. That's why here we don't need
@@ -1052,17 +1052,12 @@ static uint8_t DSP_RateLimitedFinalTC_Old() {
 }
 
 static unsigned int DSP_RateLimitedFinalSB16Freq_New(unsigned int freq) {
-    // sample rate was set by SB16 DSP command 0x41/0x42, not SB/SBpro command 0x40 (unusual case)
-    if (sb.sample_rate_limits) { /* enforce speed limits documented by Creative */
-        unsigned int u_limit,l_limit=4000; /* NTS: Recording vs playback is not considered because DOSBox only emulates playback */
-
-        if (sb.vibra) u_limit = 46000;
-        else u_limit = 44100;
-
-        if (freq < l_limit)
-            freq = l_limit;
-        if (freq > u_limit)
-            freq = u_limit;
+    /* If sample rate was set by DSP command 0x41/0x42 */
+    if (sb.sample_rate_limits) { /* enforce speed limits documented by Creative... which are somewhat wrong. They are the same limits as high-speed playback modes on SB Pro and 2.0 */
+        if (freq < 4900)
+                freq = 5000; /* Apparent behavior is that SB16 commands only go down to 5KHz but that limit is imposed if slightly below 5KHz, see rate graphs on Hackipedia */
+        if (freq > 45454)
+                freq = 45454;
     }
 
     return freq;

@@ -1,4 +1,9 @@
 Next
+  - Fix Sound Blaster DMA rate limits to better reflect
+    actual hardware. SB16 limits to 45454Hz just as
+    Pro and earlier do. These limits were added before
+    the proper measurements were coded and tested on
+    real hardware. (joncampbell123)
   - Fix S3 cursor emulation to support both X11 and
     Windows hardware mouse cursor modes available
     on S3 Virge, Trio, and possibly other cards
