@@ -58,13 +58,15 @@ jobs:
           top=`pwd`
           #$top/bin/Win32/Release/dosbox-x.exe -tests -set waitonerror=false -set logfile=tests.log || (echo Unit test completed: failure && exit 1)
           #cat tests.log
-          cp $top/bin/Win32/Release/dosbox-x.exe $top/package/dosbox-x_XPx86_SDL1.exe
-          cp $top/bin/Win32/"Release SDL2"/dosbox-x.exe $top/package/dosbox-x_XPx86_SDL2.exe
           mkdir -p $top/package/drivez
           mkdir -p $top/package/scripts
           mkdir -p $top/package/shaders
           mkdir -p $top/package/glshaders
           mkdir -p $top/package/languages
+          cp $top/bin/Win32/Release/dosbox-x.exe $top/package/dosbox-x_XPx86_SDL1.exe
+          cp $top/bin/Win32/"Release SDL2"/dosbox-x.exe $top/package/dosbox-x_XPx86_SDL2.exe
+          cp $top/bin/x64/Release/dosbox-x.exe $top/package/dosbox-x_XPx64_SDL1.exe
+          cp $top/bin/x64/"Release SDL2"/dosbox-x.exe $top/package/dosbox-x_XPx64_SDL2.exe
           sed -e 's/^\(output[ ]*=[ ]*\)default$/\1ttf/;s/^\(windowposition[ ]*=\)[ ]*-/\1 /;s/^\(file access tries[ ]*=[ ]*\)0$/\13/;s/^\(printoutput[ ]*=[ ]*\)png$/\1printer/;s/\(drive data rate limit[ ]*=[ ]*\)-1$/\10/' $top/dosbox-x.reference.conf>$top/package/dosbox-x.conf
           cp $top/CHANGELOG $top/package/CHANGELOG.txt
           cp $top/dosbox-x.reference.conf $top/package/dosbox-x.reference.conf
