@@ -33,6 +33,7 @@
 #include <string.h>
 
 uint8_t prevchr = 0;
+uint8_t prevattr = 0;
 uint16_t pcol = 0, prow = 0, pchr = 0;
 bool CheckBoxDrawing(uint8_t c1, uint8_t c2, uint8_t c3, uint8_t c4);
 uint8_t DefaultANSIAttr();
@@ -567,14 +568,6 @@ void INT10_ScrollWindow_viaRealInt(uint8_t rul, uint8_t cul, uint8_t rlr, uint8_
 	_popregs;
 }
 
-static bool CheckJapaneseGraphicsMode(uint8_t attr) {
-	if(real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) == 0x72) {
-		if(attr & 0x80)
-			return true;
-	}
-	return false;
-}
-
 uint8_t *GetSbcsFont(Bitu code);
 uint8_t *GetSbcs19Font(Bitu code);
 uint8_t *GetDbcsFont(Bitu code);
@@ -830,26 +823,29 @@ void WriteCharDOSVSbcs(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr) {
 		return;
 	}
 
-	if(CheckJapaneseGraphicsMode(attr)) {
-		IO_Write(0x3ce, 0x05); IO_Write(0x3cf, 0x03);
-		IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr & 0x0f);
-		IO_Write(0x3ce, 0x03); IO_Write(0x3cf, 0x18);
+	if(real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) == 0x72) {
+		if(attr & 0x80) {
+			IO_Write(0x3ce, 0x05); IO_Write(0x3cf, 0x03);
+			IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr & 0x0f);
+			IO_Write(0x3ce, 0x03); IO_Write(0x3cf, 0x18);
 
-		volatile uint8_t dummy;
-		Bitu width = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
-		uint8_t height = real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
-		font = height == 16 ? GetSbcsFont(chr) : GetSbcs19Font(chr);
-		off = row * width * height + col;
-		select = StartBankSelect(off);
-		for(uint8_t h = 0 ; h < height ; h++) {
-			dummy = real_readb(0xa000, off);
-			data = *font++;
-			real_writeb(0xa000, off, data);
-			off += width;
-			select = CheckBankSelect(select, off);
+			volatile uint8_t dummy;
+			Bitu width = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
+			uint8_t height = real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
+			font = height == 16 ? GetSbcsFont(chr) : GetSbcs19Font(chr);
+			off = row * width * height + col;
+			select = StartBankSelect(off);
+			for(uint8_t h = 0 ; h < height ; h++) {
+				dummy = real_readb(0xa000, off);
+				data = *font++;
+				real_writeb(0xa000, off, data);
+				off += width;
+				select = CheckBankSelect(select, off);
+			}
+			IO_Write(0x3ce, 0x03); IO_Write(0x3cf, 0x00);
+			return;
 		}
-		IO_Write(0x3ce, 0x03); IO_Write(0x3cf, 0x00);
-		return;
+		attr &= 0x0f;
 	}
 	volatile uint8_t dummy;
 	Bitu width = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
@@ -870,6 +866,61 @@ void WriteCharDOSVSbcs(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr) {
 	}
 }
 
+static void DrawCharDOSVDbcsHalf(Bitu off, uint8_t *font, uint8_t attr, Bitu width, uint8_t height, uint8_t select, bool xor_flag)
+{
+	volatile uint8_t dummy;
+	uint8_t data;
+	if(xor_flag) {
+		IO_Write(0x3ce, 0x05); IO_Write(0x3cf, 0x03);
+		IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr & 0x0f);
+		IO_Write(0x3ce, 0x03); IO_Write(0x3cf, 0x18);
+	} else {
+		IO_Write(0x3ce, 0x05); IO_Write(0x3cf, 0x03);
+		IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr >> 4);
+		real_writeb(0xa000, off, 0xff); dummy = real_readb(0xa000, off);
+		IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr & 0x0f);
+	}
+	for(uint8_t h = 0 ; h < height ; h++) {
+		if(xor_flag) {
+			dummy = real_readb(0xa000, off);
+		}
+		if(height == 19 && (h == 0 || h > 16)) {
+			data = 0;
+		} else {
+			data = *font;
+			font += 2;
+		}
+		real_writeb(0xa000, off, data);
+		off += width;
+		select = CheckBankSelect(select, off);
+	}
+	if(xor_flag) {
+		IO_Write(0x3ce, 0x03); IO_Write(0x3cf, 0x00);
+	}
+}
+
+static inline void DrawCharDOSVDbcs(Bitu off, uint16_t *font, uint8_t attr, Bitu width, uint8_t height, uint8_t select)
+{
+	volatile uint16_t dummy;
+	uint16_t data;
+
+	IO_Write(0x3ce, 0x05); IO_Write(0x3cf, 0x03);
+	IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr >> 4);
+	real_writew(0xa000, off, 0xffff); dummy = real_readw(0xa000, off);
+	IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr & 0x0f);
+
+	for(uint8_t h = 0 ; h < height ; h++) {
+		if(height == 19 && (h == 0 || h > 16)) {
+			data = 0;
+		} else {
+			data = *font++;
+		}
+		real_writew(0xa000, off, data);
+		off += width;
+		select = CheckBankSelect(select, off);
+	}
+}
+
 void WriteCharDOSVDbcs(uint16_t col, uint16_t row, uint16_t chr, uint8_t attr) {
 	if(IS_DOSV && real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT) == 24) {
 		WriteCharDOSVDbcs24(col, row, chr, attr);
@@ -884,61 +935,40 @@ void WriteCharDOSVDbcs(uint16_t col, uint16_t row, uint16_t chr, uint8_t attr) {
 		pcol = col;prow = row;pchr = chr;
 		return;
 	}
-	Bitu off;
-	uint8_t *font;
-	uint8_t select;
-	int i = 0;
-
-	if(CheckJapaneseGraphicsMode(attr)) {
-		IO_Write(0x3ce, 0x05); IO_Write(0x3cf, 0x03);
-		IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr & 0x0f);
-		IO_Write(0x3ce, 0x03); IO_Write(0x3cf, 0x18);
-
-		volatile uint16_t dummy;
-		Bitu width = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
-		uint8_t height = real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
-		font = (uint8_t *)GetDbcsFont(chr);
-		off = row * width * height + col;
-		select = StartBankSelect(off);
-		i = -1;
-		for(uint8_t h = 0 ; h < height ; h++) {
-			dummy = real_readw(0xa000, off);
-			if(height == 19 && (h == 0 || h > 16)) {
-                real_writeb(0xa000, off, 0);
-                real_writeb(0xa000, off+1+(col==width-1?width*height:0), 0);
-			} else {
-                real_writeb(0xa000, off, *(font+2*i));
-                real_writeb(0xa000, off+1+(col==width-1?width*height:0), *(font+2*i+1));
-			}
-			i++;
-			off += width;
-			select = CheckBankSelect(select, off);
-		}
-		IO_Write(0x3ce, 0x03); IO_Write(0x3cf, 0x00);
-		return;
-	}
-	volatile uint16_t dummy;
 	Bitu width = real_readw(BIOSMEM_SEG, BIOSMEM_NB_COLS);
 	uint8_t height = real_readb(BIOSMEM_SEG, BIOSMEM_CHAR_HEIGHT);
-	font = (uint8_t *)GetDbcsFont(chr);
-	off = row * width * height + col;
-	select = StartBankSelect(off);
-	IO_Write(0x3ce, 0x05); IO_Write(0x3cf, 0x03);
-	IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr >> 4);
-	real_writew(0xa000, off, 0xffff); dummy = real_readw(0xa000, off);
-	IO_Write(0x3ce, 0x00); IO_Write(0x3cf, attr & 0x0f);
-	i = -1;
-	for(uint8_t h = 0 ; h < height ; h++) {
-		if (h == 0 || (h > 16 && height == 19)) {
-            real_writeb(0xa000, off, 0);
-            real_writeb(0xa000, off+1+(col==width-1?width*height:0), 0);
-		} else {
-            real_writeb(0xa000, off, *(font+2*i));
-            real_writeb(0xa000, off+1+(col==width-1?width*height:0), *(font+2*i+1));
+	if(col == 0xffff) {
+		col = width - 1;
+		row--;
+	}
+	uint8_t *font = GetDbcsFont(chr);
+	Bitu off = row * width * height + col;
+	uint8_t select = StartBankSelect(off);
+	if(real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) == 0x72) {
+		if(attr & 0x80) {
+			DrawCharDOSVDbcsHalf(off, font, prevattr, width, height, select, true);
+			if(col != width - 1) {
+				off++;
+				select = StartBankSelect(off);
+				DrawCharDOSVDbcsHalf(off, font + 1, attr, width, height, select, true);
+			}
+			return;
 		}
-		i++;
-		off += width;
-		select = CheckBankSelect(select, off);
+	}
+	if(attr != prevattr || col == width - 1) {
+		DrawCharDOSVDbcsHalf(off, font, prevattr, width, height, select, false);
+		if(col == width - 1) {
+			off = (row + 1) * width * height;
+		} else {
+			off++;
+		}
+		select = StartBankSelect(off);
+		DrawCharDOSVDbcsHalf(off, font + 1, attr, width, height, select, false);
+	} else {
+		if(real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_MODE) == 0x72) {
+			attr &= 0x0f;
+		}
+		DrawCharDOSVDbcs(off, (uint16_t *)font, attr, width, height, select);
 	}
 	pcol = col;prow = row;pchr = chr;
 }
@@ -959,8 +989,11 @@ void WriteCharTopView(uint16_t off, int count) {
 			off += 2;
 			if (IS_J3100 && J3_IsJapanese())
 				WriteCharDCGADbcs(col, row, ((uint16_t)code << 8) | real_readb(seg, off), attr);
-			else
+			else {
+				prevattr = attr;
+				attr = real_readb(seg, off + 1);
 				WriteCharDOSVDbcs(col, row, ((uint16_t)code << 8) | real_readb(seg, off), attr);
+			}
 			count--;
 			col++;
 			if (col >= width) {
@@ -1476,6 +1509,28 @@ void SetVTRAMChar(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr)
 	mem_writeb(addr+1, attr);
 }
 
+void WriteCharV(uint16_t col,uint16_t row,uint8_t chr,uint8_t attr,bool useattr)
+{
+    DOSV_OffCursor();
+
+    uint16_t seg = GetTextSeg();
+    uint16_t width = real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
+    real_writeb(seg, row * width * 2 + col * 2, chr);
+    if(useattr) {
+        real_writeb(seg, row * width * 2 + col * 2 + 1, attr);
+    }
+    if (isKanji1(chr) && prevchr == 0) {
+        prevchr = chr;
+        prevattr = attr;
+    } else if (isKanji2(chr) && prevchr != 0) {
+        WriteCharDOSVDbcs(col - 1, row, (prevchr << 8) | chr, attr);
+        prevchr = 0;
+    } else {
+        WriteCharDOSVSbcs(col, row, chr, attr);
+    }
+    return;
+}
+
 void WriteChar(uint16_t col,uint16_t row,uint8_t page,uint16_t chr,uint8_t attr,bool useattr) {
     /* Externally used by the mouse routine */
     PhysPt fontdata;
@@ -1586,6 +1641,7 @@ void WriteChar(uint16_t col,uint16_t row,uint8_t page,uint16_t chr,uint8_t attr,
 				real_writeb(seg, row * width * 2 + col * 2 + 1, attr);
 			if (isKanji1(chr) && prevchr == 0 && (IS_JDOSV || col < width - 1)) {
 				prevchr = chr;
+				prevattr = attr;
 				prow = row;
 			} else if (isKanji2(chr) && prevchr != 0 && ((IS_JDOSV & !col) || (col && row == prow))) {
 				WriteCharDOSVDbcs((col?col:cols) - 1, row - (!row||col?0:1), (prevchr << 8) | chr, attr);
@@ -1750,7 +1806,11 @@ static void INT10_TeletypeOutputAttr(uint8_t chr,uint8_t attr,bool useattr,uint8
 			cur_col = CURSOR_POS_COL(page);
 		}
         /* Draw the actual Character */
-        WriteChar(cur_col,cur_row,page,chr,attr,useattr);
+        if(IS_DOSV && DOSV_CheckCJKVideoMode()) {
+            WriteCharV(cur_col,cur_row,chr,attr,useattr);
+        } else {
+            WriteChar(cur_col,cur_row,page,chr,attr,useattr);
+        }
         cur_col++;
     }
     if(cur_col==ncols) {
@@ -1804,7 +1864,7 @@ void INT10_WriteString(uint8_t row,uint8_t col,uint8_t flag,uint8_t attr,PhysPt 
             string++;
         }
         if (DOSV_CheckCJKVideoMode() && flag == 0x20) {
-            WriteChar(col, row, page, chr, attr, true);
+            WriteCharV(col, row, chr, attr, true);
             col++;
             if (col == real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)) {
                 col = 0;
