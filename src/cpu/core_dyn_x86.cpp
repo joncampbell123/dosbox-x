@@ -313,20 +313,18 @@ Bits CPU_Core_Dyn_X86_Run(void) {
 			FPU_SetTag(dyn_dh_fpu.state.tag);
 			fpu.cw = dyn_dh_fpu.state.cw;
 			fpu.sw = dyn_dh_fpu.state.sw;
+			const uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
 			for(Bitu i = 0;i < 8;i++){
-				fpu.p_regs[STV(i)].m1 = *((uint32_t*)(dyn_dh_fpu.state.st_reg[i]+0));
-				fpu.p_regs[STV(i)].m2 = *((uint32_t*)(dyn_dh_fpu.state.st_reg[i]+4));
-				fpu.p_regs[STV(i)].m3 = *((uint16_t*)(dyn_dh_fpu.state.st_reg[i]+8));
+				memcpy(&fpu.p_regs[STV(i)], buffer + i * 10, 10);
 			}
 		}
 		~auto_fpu_sync () {
 			dyn_dh_fpu.state.tag = FPU_GetTag();
 			dyn_dh_fpu.state.cw = fpu.cw;
 			dyn_dh_fpu.state.sw = fpu.sw;
+			uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
 			for(Bitu i = 0;i < 8;i++){
-				*((uint32_t*)(dyn_dh_fpu.state.st_reg[i]+0)) = fpu.p_regs[STV(i)].m1;
-				*((uint32_t*)(dyn_dh_fpu.state.st_reg[i]+4)) = fpu.p_regs[STV(i)].m2;
-				*((uint16_t*)(dyn_dh_fpu.state.st_reg[i]+8)) = fpu.p_regs[STV(i)].m3;
+				memcpy(buffer + i * 10, &fpu.p_regs[STV(i)], 10);
 			}
 		}
 	};
