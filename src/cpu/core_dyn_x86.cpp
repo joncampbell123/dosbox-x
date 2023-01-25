@@ -315,7 +315,7 @@ Bits CPU_Core_Dyn_X86_Run(void) {
 			fpu.sw = dyn_dh_fpu.state.sw;
 			const uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
 			for(Bitu i = 0;i < 8;i++){
-				memcpy(&fpu.p_regs[STV(i)], buffer + i * 10, 10);
+				memcpy(&fpu.p_regs[i], buffer + i * 10, 10);
 			}
 		}
 		~auto_fpu_sync () {
@@ -324,7 +324,7 @@ Bits CPU_Core_Dyn_X86_Run(void) {
 			dyn_dh_fpu.state.sw = fpu.sw;
 			uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
 			for(Bitu i = 0;i < 8;i++){
-				memcpy(buffer + i * 10, &fpu.p_regs[STV(i)], 10);
+				memcpy(buffer + i * 10, &fpu.p_regs[i], 10);
 			}
 		}
 	};
