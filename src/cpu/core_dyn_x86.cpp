@@ -292,29 +292,49 @@ static void dyn_restoreregister(DynReg * src_reg, DynReg * dst_reg) {
 
 #include "core_dyn_x86/decoder.h"
 
-extern int dynamic_core_cache_block_size;
+#if defined(X86_DYNFPU_DH_ENABLED)
+static void copy_dh_fpu_to_normal (void)
+{
+	if (dyn_dh_fpu.state_used) {
+		gen_dh_fpu_save();
+	}
+	FPU_SetTag(dyn_dh_fpu.state.tag);
+	fpu.cw = dyn_dh_fpu.state.cw;
+	fpu.sw = dyn_dh_fpu.state.sw;
+	const uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
+	for(Bitu i = 0;i < 8;i++){
+		memcpy(&fpu.p_regs[STV(i)], buffer + i * 10, 10);
+	}
+}
 
-class auto_fpu_sync {
-public:
-	auto_fpu_sync () {
-		FPU_SetTag(dyn_dh_fpu.state.tag);
-		fpu.cw = dyn_dh_fpu.state.cw;
-		fpu.sw = dyn_dh_fpu.state.sw;
-		const uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
-		for(Bitu i = 0;i < 8;i++){
-			memcpy(&fpu.p_regs[STV(i)], buffer + i * 10, 10);
-		}
+static void copy_normal_fpu_to_dh (void)
+{
+	dyn_dh_fpu.state.tag = FPU_GetTag();
+	dyn_dh_fpu.state.cw = fpu.cw;
+	dyn_dh_fpu.state.sw = fpu.sw;
+	uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
+	for(Bitu i = 0;i < 8;i++){
+		memcpy(buffer + i * 10, &fpu.p_regs[STV(i)], 10);
 	}
-	~auto_fpu_sync () {
-		dyn_dh_fpu.state.tag = FPU_GetTag();
-		dyn_dh_fpu.state.cw = fpu.cw;
-		dyn_dh_fpu.state.sw = fpu.sw;
-		uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
-		for(Bitu i = 0;i < 8;i++){
-			memcpy(buffer + i * 10, &fpu.p_regs[STV(i)], 10);
-		}
-	}
-};
+}
+
+static Bits Safe_CPU_Core_Normal_Run (void)
+{
+	if (dyn_dh_fpu.state_used)
+		gen_dh_fpu_save();
+	copy_dh_fpu_to_normal();
+	Bits ret = CPU_Core_Normal_Run();
+	copy_normal_fpu_to_dh();
+	return ret;
+}
+#else
+static Bits Safe_CPU_Core_Normal_Run (void)
+{
+	return CPU_Core_Normal_Run();
+}
+#endif
+
+extern int dynamic_core_cache_block_size;
 
 Bits CPU_Core_Dyn_X86_Run(void) {
 	// helper class to auto-save DH_FPU state on function exit
@@ -345,10 +365,7 @@ restart_core:
 	}
 	if (!chandler) {
 		if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = true;
-		return [] {
-			auto_fpu_sync fpu_sync;
-			return CPU_Core_Normal_Run();
-		}();
+		return Safe_CPU_Core_Normal_Run();
 	}
 	/* Find correct Dynamic Block to run */
 	CacheBlock * block=chandler->FindCacheBlock(ip_point&4095);
@@ -373,14 +390,8 @@ restart_core:
 			int32_t old_cycles=(int32_t)CPU_Cycles;
 			CPU_Cycles=1;
 			CPU_CycleLeft+=old_cycles;
-			// manually save
-			fpu_saver = auto_dh_fpu();
-            auto_fpu_sync fpu_sync;
 			if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = true;
-			Bits nc_retcode= [] {
-				auto_fpu_sync fpu_sync;
-				return CPU_Core_Normal_Run();
-			}();
+			Bits nc_retcode=Safe_CPU_Core_Normal_Run();
 			if (!nc_retcode) {
 				CPU_Cycles=old_cycles-1;
 				CPU_CycleLeft-=old_cycles;
@@ -449,10 +460,7 @@ run_block:
 		CPU_CycleLeft+=CPU_Cycles;
 		CPU_Cycles=1;
 		if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = true;
-		return [] {
-			auto_fpu_sync fpu_sync;
-			return CPU_Core_Normal_Run();
-		}();
+		return Safe_CPU_Core_Normal_Run();
 	case BR_Link1:
 	case BR_Link2:
 		{
@@ -486,10 +494,7 @@ Bits CPU_Core_Dyn_X86_Trap_Run(void) {
 	CPU_Cycles = 1;
 	cpu.trap_skip = false;
 
-	Bits ret=[] {
-		auto_fpu_sync fpu_sync;
-		return CPU_Core_Normal_Run();
-	}();
+	Bits ret=Safe_CPU_Core_Normal_Run();
 	if (!cpu.trap_skip) CPU_DebugException(DBINT_STEP,reg_eip);
 	CPU_Cycles = oldCycles-1;
 	cpudecoder = &CPU_Core_Dyn_X86_Run;
