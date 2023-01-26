@@ -307,7 +307,29 @@ Bits CPU_Core_Dyn_X86_Run(void) {
 	};
 	auto_dh_fpu fpu_saver;
 
-	/* Determine the linear address of CS:EIP */
+	class auto_fpu_sync {
+	public:
+		auto_fpu_sync () {
+			FPU_SetTag(dyn_dh_fpu.state.tag);
+			fpu.cw = dyn_dh_fpu.state.cw;
+			fpu.sw = dyn_dh_fpu.state.sw;
+			const uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
+			for(Bitu i = 0;i < 8;i++){
+				memcpy(&fpu.p_regs[i], buffer + i * 10, 10);
+			}
+		}
+		~auto_fpu_sync () {
+			dyn_dh_fpu.state.tag = FPU_GetTag();
+			dyn_dh_fpu.state.cw = fpu.cw;
+			dyn_dh_fpu.state.sw = fpu.sw;
+			uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
+			for(Bitu i = 0;i < 8;i++){
+				memcpy(buffer + i * 10, &fpu.p_regs[i], 10);
+			}
+		}
+	};
+
+    /* Determine the linear address of CS:EIP */
 restart_core:
 	if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = false;
 	PhysPt ip_point=SegPhys(cs)+reg_eip;
@@ -350,6 +372,7 @@ restart_core:
 			CPU_CycleLeft+=old_cycles;
 			// manually save
 			fpu_saver = auto_dh_fpu();
+            auto_fpu_sync fpu_sync;
 			if (!use_dynamic_core_with_paging) dosbox_allow_nonrecursive_page_fault = true;
 			Bits nc_retcode=CPU_Core_Normal_Run();
 			if (!nc_retcode) {
