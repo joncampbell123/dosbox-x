@@ -1415,7 +1415,10 @@ public:
 		const char * layoutname=section->Get_string("keyboardlayout");
 		dos.loaded_codepage = GetDefaultCP();	// default codepage already initialized
         int tocp=!strcmp(layoutname, "jp")||IS_JDOSV?932:(!strcmp(layoutname, "ko")||IS_KDOSV?949:(!strcmp(layoutname, "tw")||!strcmp(layoutname, "hk")||!strcmp(layoutname, "zht")||IS_TDOSV?950:(!strcmp(layoutname, "cn")||!strcmp(layoutname, "zh")||!strcmp(layoutname, "zhs")||IS_PDOSV?936:(!strcmp(layoutname, "us")?437:0))));
-        if (tocp && strcmp(layoutname, "jp") && strcmp(layoutname, "ko")) layoutname="us";
+#if defined(WIN32)
+		if (dos.loaded_codepage == 932 && !IS_PC98_ARCH && GetKeyboardType(0) == 7 && !strcmp(layoutname, "auto")) layoutname = "jp106";
+#endif
+        if (tocp && strcmp(layoutname, "jp106") && strcmp(layoutname, "jp") && strcmp(layoutname, "ko")) layoutname="us";
 
 #if defined(USE_TTF)
         if (TTF_using()) setTTFCodePage(); else
@@ -1680,6 +1683,8 @@ public:
 			}
 		}
         if (tocp && !IS_PC98_ARCH) {
+            if(dos.loaded_codepage == 932 && !strcmp(layoutname, "jp106")) loaded_layout->read_keyboard_file(layoutname, dos.loaded_codepage);
+
             uint16_t cpbak = dos.loaded_codepage;
 #if defined(USE_TTF)
             if (ttf.inUse)
