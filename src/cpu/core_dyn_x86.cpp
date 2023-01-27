@@ -293,44 +293,58 @@ static void dyn_restoreregister(DynReg * src_reg, DynReg * dst_reg) {
 #include "core_dyn_x86/decoder.h"
 
 #if defined(X86_DYNFPU_DH_ENABLED)
-static void copy_dh_fpu_to_normal (void)
+
+static bool using_normal_core = false;
+
+static void dh_fpu_enter_normal_core (void)
 {
 	if (dyn_dh_fpu.state_used) {
 		gen_dh_fpu_save();
 	}
-	FPU_SetTag(dyn_dh_fpu.state.tag);
-	fpu.cw = dyn_dh_fpu.state.cw;
-	fpu.sw = dyn_dh_fpu.state.sw;
-	const uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
-	for(Bitu i = 0;i < 8;i++){
-		memcpy(&fpu.p_regs[STV(i)], buffer + i * 10, 10);
+	if (!using_normal_core) {
+		using_normal_core = true;
+		FPU_SetTag(dyn_dh_fpu.state.tag);
+		fpu.cw = dyn_dh_fpu.state.cw;
+		fpu.sw = dyn_dh_fpu.state.sw;
+		const uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
+		for(Bitu i = 0;i < 8;i++){
+			memcpy(&fpu.p_regs[STV(i)], buffer + i * 10, 10);
+		}
 	}
 }
 
-static void copy_normal_fpu_to_dh (void)
+static void dh_fpu_enter_dyn_core (void)
 {
-	dyn_dh_fpu.state.tag = FPU_GetTag();
-	dyn_dh_fpu.state.cw = fpu.cw;
-	dyn_dh_fpu.state.sw = fpu.sw;
-	uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
-	for(Bitu i = 0;i < 8;i++){
-		memcpy(buffer + i * 10, &fpu.p_regs[STV(i)], 10);
+	if (using_normal_core) {
+		using_normal_core = false;
+		dyn_dh_fpu.state.tag = FPU_GetTag();
+		dyn_dh_fpu.state.cw = fpu.cw;
+		dyn_dh_fpu.state.sw = fpu.sw;
+		uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
+		for(Bitu i = 0;i < 8;i++){
+			memcpy(buffer + i * 10, &fpu.p_regs[STV(i)], 10);
+		}
 	}
 }
 
 static Bits Safe_CPU_Core_Normal_Run (void)
 {
-	if (dyn_dh_fpu.state_used)
-		gen_dh_fpu_save();
-	copy_dh_fpu_to_normal();
-	Bits ret = CPU_Core_Normal_Run();
-	copy_normal_fpu_to_dh();
-	return ret;
+	dh_fpu_enter_normal_core();
+	return CPU_Core_Normal_Run();
+}
+static BlockReturnDynX86 safe_gen_runcode(uint8_t* code)
+{
+	dh_fpu_enter_dyn_core();
+	return gen_runcode(code);
 }
 #else
 static Bits Safe_CPU_Core_Normal_Run (void)
 {
 	return CPU_Core_Normal_Run();
+}
+static BlockReturnDynX86 safe_gen_runcode(uint8_t* code)
+{
+	return gen_runcode(code);
 }
 #endif
 
@@ -403,7 +417,7 @@ restart_core:
 run_block:
 	cache.block.running=0;
 	core_dyn.pagefault = false;
-	BlockReturnDynX86 ret=gen_runcode((uint8_t*)cache_rwtox(block->cache.start));
+	BlockReturnDynX86 ret=safe_gen_runcode((uint8_t*)cache_rwtox(block->cache.start));
 
 	if (sizeof(CPU_Cycles) > 4) {
 		// HACK: All dynrec cores for each processor assume CPU_Cycles is 32-bit wide.
