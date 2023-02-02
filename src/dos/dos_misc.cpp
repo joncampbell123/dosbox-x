@@ -25,6 +25,7 @@
 #include "dos_inc.h"
 #include "control.h"
 #include "support.h"
+#include "cpu.h"
 
 #include <array>
 #include <cstring>
@@ -396,7 +397,8 @@ static bool DOS_MultiplexFunctions(void) {
 		return false;
 	}
 	case 0x1680:	/*  RELEASE CURRENT VIRTUAL MACHINE TIME-SLICE */
-		//TODO Maybe do some idling but could screw up other systems :)
+        CPU_Cycles = -1;
+        reg_al = 0;
 		return true; //So no warning in the debugger anymore
 	case 0x1689:	/*  Kernel IDLE CALL */
 	case 0x168f:	/*  Close awareness crap */

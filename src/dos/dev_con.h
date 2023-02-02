@@ -721,7 +721,25 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
             continue;
         }
 
-		reg_ah=(IS_EGAVGA_ARCH)?0x10:0x0;
+        const uint8_t int16_poll_function=(IS_EGAVGA_ARCH)?0x11:0x1;
+        const uint8_t int16_read_function=(IS_EGAVGA_ARCH)?0x10:0x0;
+        // Poll the keyboard until there is a key-press ready to read. If there
+        // is no input (ZF=0) then call INT 28h to release the rest of our
+        // timeslice to host system.
+        while (true) {
+            reg_ah=int16_poll_function;
+            if (IS_PC98_ARCH)
+                INT16_Handler_Wrap();
+            else
+                CALLBACK_RunRealInt(0x16);
+            if ((reg_flags & FLAG_ZF) == 0) {
+                break;
+            } else {
+                CALLBACK_RunRealInt(0x28);
+            }
+        }
+
+		reg_ah=int16_read_function;
 
         /* FIXME: PC-98 emulation should eventually use CONIO emulation that
          *        better emulates the actual platform. The purpose of this
