@@ -19,6 +19,7 @@
  *  With major works from joncampbell123 and Wengier
  */
 
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -30,7 +31,7 @@
 #define _DARWIN_C_SOURCE
 #endif
 #ifndef WIN32
-#if defined(EMSCRIPTEN)
+#if defined(EMSCRIPTEN) || defined(HAIKU)
 #include <fcntl.h>
 #endif
 #include <utime.h>
@@ -1163,9 +1164,18 @@ void drivezRegister(std::string path, std::string dir, bool usecp) {
         if (d) {
             while ((dir = readdir(d)) != NULL) {
                 host_cnv_char_t *temp_name = CodePageHostToGuest(dir->d_name);
-                if (dir->d_type == DT_REG)
+#if defined(HAIKU)
+                struct stat path_stat;
+                stat(dir->d_name, &path_stat);
+                bool is_regular_file = S_ISREG(path_stat.st_mode);
+                bool is_directory = S_ISDIR(path_stat.st_mode);
+#else
+                bool is_regular_file = (dir->d_type == DT_REG);
+                bool is_directory = (dir->d_type == DT_DIR);
+#endif
+                if (is_regular_file)
                     names.push_back(temp_name!=NULL?temp_name:dir->d_name);
-                else if (dir->d_type == DT_DIR && strcmp(temp_name != NULL ? temp_name : dir->d_name, ".") && strcmp(temp_name != NULL ? temp_name : dir->d_name, ".."))
+                else if (is_directory && strcmp(temp_name != NULL ? temp_name : dir->d_name, ".") && strcmp(temp_name != NULL ? temp_name : dir->d_name, ".."))
                     names.push_back(std::string(temp_name != NULL ? temp_name : dir->d_name) + "/");
             }
             closedir(d);
