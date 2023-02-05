@@ -3153,7 +3153,8 @@ static Bitu DOS_28Handler(void) {
     // input). In theory disk I/O should also call this while waiting for data
     // from the device. But emulated disk is so fast this is probably not worth
     // it.
-    CPU_Cycles = -1;
+    CPU_IODelayRemoved += CPU_Cycles;
+    CPU_Cycles = 0;
 	return CBRET_NONE;
 }
 
