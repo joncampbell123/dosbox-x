@@ -1,66 +1,52 @@
 ---
-layout: blog/default
+layout: page_alt
+blog: true
 ---
 
-<table width="100%" style="border: hidden">
+{%- if page.title -%}
+<h1>{{ page.title }}</h1>
+{%- endif -%}
+
+{{ content }}
+
+{%- if site.paginate -%}
+    {% assign posts = paginator.posts %}
+{%- else -%}
+    {%- assign posts = site.posts -%}
+{%- endif -%}
+
+{%- if posts.size > 0 -%}
+<ul class="post-list">
+    {%- assign date_format = site.blog.date_format | default: "%Y/%m/%d %H:%M" -%}
+    {%- for post in posts -%}
+        <li>
+            <span class="post-meta">{{ post.date | date: date_format }}</span>
+            <h3>
+            <a class="post-link" href="{{ post.url | relative_url }}">
+                {{ post.title | escape }}
+            </a>
+            </h3>
+        </li>
+{%- endfor -%}
+</ul>
+{%- endif -%}
+
+{%- if paginator.page -%}
+<table width="100%" style="text-align: center">
     <tr>
-        <td width="15%" style="border: hidden"></td>
-        <td width="70%" style="border: hidden; text-align: left">
-            {%- if page.title -%}
-                <h1>{{ page.title }}</h1>
-            {%- endif -%}
-
-            {{ content }}
-
-            {%- if site.paginate -%}
-                {% assign posts = paginator.posts %}
-            {%- else -%}
-                {%- assign posts = site.posts -%}
-            {%- endif -%}
-
-            {%- if posts.size > 0 -%}
-                <ul class="post-list">
-                {%- assign date_format = site.blog.date_format | default: "%Y/%m/%d %H:%M" -%}
-                {%- for post in posts -%}
-                <li>
-                    <span class="post-meta">{{ post.date | date: date_format }}</span>
-                    <h3>
-                    <a class="post-link" href="{{ post.url | relative_url }}">
-                        {{ post.title | escape }}
-                    </a>
-                    </h3>
-                </li>
-                {%- endfor -%}
-                </ul>
-            {%- endif -%}
+        <td width="33%">
+            {%- if paginator.previous_page %}
+            <a href="{{ paginator.previous_page_path | relative_url }}">Page {{ paginator.previous_page }}</a>
+            {%- endif %}
         </td>
-        <td width="15%" style="border: hidden"></td>
-    </tr>
-
-    {%- if paginator.page -%}
-    <tr>
-        <td width="15%" style="border: hidden"></td>
-        <td width="70%" style="border: hidden">
-            <table width="100%" style="text-align: center">
-                <tr>
-                    <td width="33%">
-                        {%- if paginator.previous_page %}
-                        <a href="{{ paginator.previous_page_path | relative_url }}">Page {{ paginator.previous_page }}</a>
-                        {%- endif %}
-                    </td>
-                    <td width="33%">
-                        Page {{ paginator.page }}
-                    </td>
-                    <td width="33%">
-                        {%- if paginator.next_page %}
-                        <a href="{{ paginator.next_page_path | relative_url }}">Page {{ paginator.next_page }}</a>
-                        {%- endif %}
-                    </td>
-                </tr>
-            </table>
+        <td width="33%">
+            Page {{ paginator.page }}
         </td>
-        <td width="15%" style="border: hidden"></td>
+        <td width="33%">
+            {%- if paginator.next_page %}
+            <a href="{{ paginator.next_page_path | relative_url }}">Page {{ paginator.next_page }}</a>
+            {%- endif %}
+        </td>
     </tr>
-    {%- endif -%}
 </table>
-<p style="text-align: center">Return to <a href="{{ "/" | relative_url }}">main page</a></p>
+{%- endif -%}

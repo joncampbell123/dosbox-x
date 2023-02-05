@@ -27,6 +27,8 @@ time, mark, audio, video {
   border: 0;
   font: inherit;
   vertical-align: baseline;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
 }
 
 /* HTML5 display-role reset for older browsers */
@@ -94,7 +96,7 @@ h6 {
 }
 
 p {
-  margin: 10px 0 10px 0;
+  margin: 15px 0;
 }
 
 footer p {
@@ -238,19 +240,19 @@ table {
   border: 1px solid #373737;
   margin-bottom: 20px;
   text-align: left;
- }
+}
 
 th {
   font-family: 'Lucida Grande', 'Helvetica Neue', Helvetica, Arial, sans-serif;
   padding: 10px;
   background: #373737;
   color: #fff;
- }
+}
 
 td {
   padding: 10px;
   border: 1px solid #373737;
- }
+}
 
 form {
   background: #f2f2f2;
@@ -266,27 +268,15 @@ Full-Width Styles
 }
 
 .inner {
-  position: relative;
   max-width: 640px;
   padding: 20px 10px;
   margin: 0 auto;
 }
 
-/* DOSBox-X mod start. */
-
 #main_header p {
   font-size: 16px;
-  padding-bottom: 15px;
-}
-
-#prespace {
-  border: hidden;
-}
-
-@media screen and (min-width: 981px) {
-  #prespace {
-    width: 10%;
-  }
+  margin: 0;
+  margin-bottom: 5px;
 }
 
 @media screen and (max-width: 980px) {
@@ -295,43 +285,24 @@ Full-Width Styles
   }
 }
 
+.home-link {
+  display: block;
+  padding: 10px;
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 0 10px rgba(0,0,0,.5);
+  border-radius: 2px;
+}
+
 #linkwiki {
-  display: block;
-  position: relative;
-  z-index: 10;
-  padding: 10px 10px 10px 10px;
-  color: #fff;
   background-color: green;
-  font-weight: 700;
-  box-shadow: 0 0 10px rgba(0,0,0,.5);
-  border-bottom-left-radius: 2px;
-  border-bottom-right-radius: 2px;
 }
-
 #linktracker {
-  display: block;
-  position: relative;
-  z-index: 10;
-  padding: 10px 10px 10px 10px;
-  color: #fff;
   background-color: purple;
-  font-weight: 700;
-  box-shadow: 0 0 10px rgba(0,0,0,.5);
-  border-bottom-left-radius: 2px;
-  border-bottom-right-radius: 2px;
 }
-
 #linkproject {
-  display: block;
-  position: relative;
-  z-index: 10;
-  padding: 10px 50px 10px 10px;
-  color: #fff;
   background: url('../images/blacktocat.png') #0090ff no-repeat 95% 50%;
-  font-weight: 700;
-  box-shadow: 0 0 10px rgba(0,0,0,.5);
-  border-bottom-left-radius: 2px;
-  border-bottom-right-radius: 2px;
+  padding-right: 50px;
 }
 
 #header_wrap {
@@ -341,10 +312,19 @@ Full-Width Styles
   background: -ms-linear-gradient(top, #373737, #333399);
   background: -o-linear-gradient(top, #373737, #333399);
   background: linear-gradient(top, #373737, #333399);
+  margin: 0;
+  padding: 0;
 }
 
 #header_wrap .inner {
-  padding: 50px 10px 30px 10px;
+  padding-top: 30px;
+}
+
+#header_wrap .inner,
+.home-links {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 #project_title {
@@ -426,7 +406,9 @@ Full-Width Styles
   }
 }
 
-.align-center {
+.align-center,
+table.align-center > tbody > tr > th,
+table.align-center > tbody > tr > td {
   text-align: center;
 }
 #main_header {
@@ -435,4 +417,19 @@ Full-Width Styles
 .subtitle-mute {
   font-size: 16px;
   color: grey;
+}
+
+table.hide-table-appearence,
+table.hide-table-appearence > tbody > tr > th,
+table.hide-table-appearence > tbody > tr > td {
+  border: none;
+}
+
+.home-links {
+  gap: 10px;
+}
+.home-links > div {
+  flex-basis: fit-content;
+  width: fit-content;
+  flex-grow: 0;
 }

@@ -23,6 +23,8 @@ tagline:
   Cross-platform DOS emulation package<br />
   Complete, accurate emulation and more
 
+theme: null
+
 release_date_format: "%B %-d, %Y"
 
 blog:
@@ -90,6 +92,5 @@ exclude:
   - vendor/ruby/
   - Gemfile
   - Gemfile.lock
-  # Mysterious cache directory from the site template, kept here
-  # just in case.
+  # Jekyll build cache directory
   - .jekyll-cache/

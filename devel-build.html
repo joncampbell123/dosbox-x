@@ -1,13 +1,21 @@
 ---
 title: DOSBox-X Development Builds
-layout: default
+layout: page
 ---
 
 <script type="text/javascript">
-  // Fetch build status using GitHub API and update HTML
-  // The function is originally written by the DOSBox Staging Team
-  function set_ci_status(workflow_file, os_name, description, page = 1) {
+const repo = "joncampbell123/dosbox-x";
 
+function reportError(msg, e) {
+	let stack = e ? "\n" + e.stack : "";
+	if (false)
+		alert(msg + stack);
+	console.log(msg, e);
+}
+
+// Fetch build status using GitHub API and update HTML
+// The function is originally written by the DOSBox Staging Team
+function set_ci_status(workflow_id, description, page = 1) {
     // GitHub has strict rate-limits for anonymous users: 60 requests per hour;
     // We request 100 results per page (max allowed); main builds are very
     // likely to be included in the first page anyway.
@@ -15,21 +23,29 @@ layout: default
         return;
     }
 
-    let per_page = 100;
-    let gh_api_url = "https://api.github.com/repos/joncampbell123/dosbox-x/";
-    fetch(gh_api_url + "actions/workflows/" + workflow_file + "/runs" +
-          "?page=" + page + "&per_page=" + per_page)
-        .then(response => {
+    let builds = document.querySelector("#builds");
+    let build_entry_id = "build-" + workflow_id;
+    let build_entry = builds.querySelector("#" + build_entry_id);
+    if (!build_entry) {
+        build_entry = document.importNode(document.querySelector("#build-template").content.querySelector("tr"), true);
+        build_entry.setAttribute("id", build_entry_id);
+        builds.appendChild(build_entry);
+    }
 
+    const per_page = 100;
+    const gh_api_url = "https://api.github.com/repos/" + repo + "/";
+
+    fetch(gh_api_url + "actions/workflows/" + workflow_id + ".yml" + "/runs" +
+        "?page=" + page + "&per_page=" + per_page)
+        .then((response) => {
             // Handle HTTP error
             if (response.status !== 200) {
-                console.log("Looks like there was a problem." +
-                            "Status Code: " + response.status);
+                reportError("Looks like there was a problem. " +
+                            "Status code: " + response.status);
                 return;
             }
 
-            response.json().then(data => {
-
+            response.json().then((data) => {
                 // console.log(data.workflow_runs);
 
                 let status = data.workflow_runs
@@ -38,103 +54,74 @@ layout: default
                     .find(run => run.conclusion == "success");
 
                 // If result not found, query the next page
-                if (status == undefined) {
-                    set_ci_status(workflow_file, os_name, page + 1);
+                if (!status) {
+                    set_ci_status(workflow_id, page + 1);
                     return;
                 }
-        
+
                 // Update HTML elements
                 let build_link = document.createElement("a");
-                build_link.textContent = description;
                 build_link.setAttribute("href", status.html_url);
-                let build_link_tr_el = document.getElementById(os_name + "-build-link");
-                build_link_tr_el.innerHTML = '';
-                build_link_tr_el.appendChild(build_link);
+                build_link.textContent = description;
+                let build_link_el = build_entry.querySelector(".build-link");
+                build_link_el.replaceChildren(build_link);
 
                 let build_commit = status.head_commit.id;
-                let commit_el = document.getElementById(os_name + "-build-commit");
-                commit_el.innerHTML = "<a href='https://github.com/joncampbell123/dosbox-x/commit/" + build_commit + "'>" + build_commit.substring(0, 7) + "</a>";
+                let build_commit_link = document.createElement("a");
+                build_commit_link.setAttribute("href", `https://github.com/${repo}/commit/${build_commit}`);
+                build_commit_link.textContent = build_commit.substring(0, 7);
+                let commit_el = build_entry.querySelector(".build-commit");
+                commit_el.replaceChildren(build_commit_link);
 
                 let build_date = new Date(status.updated_at);
-                let date_el = document.getElementById(os_name + "-build-date");
+                let date_el = build_entry.querySelector(".build-date");
                 date_el.textContent = build_date.toUTCString();
             });
-        })
-        .catch(err => {
-            console.log('Fetch Error :-S', err);
-        });
-  }
+      })
+      .catch((err) => {
+          reportError("Fetch Error :-S", err);
+      });
+}
 
-  document.addEventListener("DOMContentLoaded", () => {
-    set_ci_status("vsbuild32.yml", "vsbuild32", "32-bit Visual Studio builds");
-    set_ci_status("vsbuild64.yml", "vsbuild64", "64-bit Visual Studio builds");
-    set_ci_status("mingw32.yml", "mingw32", "32-bit MinGW builds");
-    set_ci_status("mingw64.yml", "mingw64", "64-bit MinGW builds");
-    set_ci_status("linux.yml", "linux", "Linux (x86_64) builds");
-    set_ci_status("macos.yml", "macos", "macOS (x86_64) builds");
-    set_ci_status("hxdos.yml", "hxdos", "HX-DOS (x86) build");
-  });
+document.addEventListener("DOMContentLoaded", () => {
+    set_ci_status("vsbuild32", "32-bit Visual Studio builds");
+    set_ci_status("vsbuild64", "64-bit Visual Studio builds");
+    set_ci_status("mingw32", "32-bit MinGW builds");
+    set_ci_status("mingw64", "64-bit MinGW builds");
+    set_ci_status("linux", "Linux (x86_64) builds");
+    set_ci_status("macos", "macOS (x86_64) builds");
+    set_ci_status("hxdos", "HX-DOS (x86) build");
+});
 </script>
-
-<div style="text-align: center">
-  <h3 style="padding-top: 10px;">{{ page.title | escape }}</h3>
-
-  <p>
-      These are development (preview) builds intended for testing purposes for the supported platforms.<br />
-      If you instead want to download the release builds, go to the <a href="{{ "/" | relative_url }}">DOSBox-X homepage</a> or <a href="https://github.com/joncampbell123/dosbox-x/releases">Release page</a>.<br />
-      Both SDL1 &amp; SDL2 builds are provided for each platform below except the SDL1-only HX-DOS target.
-  </p>
-
-  <p>
-      <em><strong>Note:</strong> Build artifacts are hosted on <a href="https://github.com/">GitHub</a>; you need to be logged in to download them.</em>
-  </p>
-</div>
 <center>
-  <table style="width: 50%; min-width: 500px; text-align: center">
-      <tr>
-          <th style="text-align: center">Download link</th>
-          <th style="text-align: center">Commit</th>
-          <th style="text-align: center">Date</th>
-      </tr>
-      <tr>
-          <td id="vsbuild32-build-link"><img style="margin:auto;margin-left:0.1em;" src="images/dots.svg" class="devel-builds-dots"/></td>
-          <td id="vsbuild32-build-commit">-</td>
-          <td id="vsbuild32-build-date">-</td>
-      </tr>
-      <tr>
-          <td id="vsbuild64-build-link"><img style="margin:auto;margin-left:0.1em;" src="images/dots.svg" class="devel-builds-dots"/></td>
-          <td id="vsbuild64-build-commit">-</td>
-          <td id="vsbuild64-build-date">-</td>
-      </tr>
-      <tr>
-          <td id="mingw32-build-link"><img style="margin:auto;margin-left:0.1em;" src="images/dots.svg" class="devel-builds-dots"/></td>
-          <td id="mingw32-build-commit">-</td>
-          <td id="mingw32-build-date">-</td>
-      </tr>
-      <tr>
-          <td id="mingw64-build-link"><img style="margin:auto;margin-left:0.1em;" src="images/dots.svg" class="devel-builds-dots"/></td>
-          <td id="mingw64-build-commit">-</td>
-          <td id="mingw64-build-date">-</td>
-      </tr>
-      <tr>
-          <td id="linux-build-link"><img style="margin:auto;margin-left:0.1em;" src="images/dots.svg" class="devel-builds-dots"/></td>
-          <td id="linux-build-commit">-</td>
-          <td id="linux-build-date">-</td>
-      </tr>
-    <tr>
-          <td id="macos-build-link"><img style="margin:auto;margin-left:0.1em;" src="images/dots.svg" class="devel-builds-dots"/></td>
-          <td id="macos-build-commit">-</td>
-          <td id="macos-build-date">-</td>
-      </tr>
-      <tr>
-          <td id="hxdos-build-link"><img style="margin:auto;margin-left:0.1em;" src="images/dots.svg" class="devel-builds-dots"/></td>
-          <td id="hxdos-build-commit">-</td>
-          <td id="hxdos-build-date">-</td>
-      </tr>
-    </table>
 
-    <div style="text-align: center">
-    Return to <a href="{{ "/" | relative_url }}">main page</a>
-    <p></p>
-    </div>
+<p>
+    These are development (preview) builds intended for testing purposes for the supported platforms.<br />
+    If you instead want to download the release builds, go to the <a href="{{ "/" | relative_url }}">DOSBox-X homepage</a> or <a href="https://github.com/joncampbell123/dosbox-x/releases">Release page</a>.<br />
+    Both SDL1 &amp; SDL2 builds are provided for each platform below except the SDL1-only HX-DOS target.
+</p>
+
+<p>
+    <em><strong>Note:</strong> Build artifacts are hosted on <a href="https://github.com/">GitHub</a>; you need to be logged in to download them.</em>
+</p>
+<noscript>
+	<p>This page requires JavaScript.</p>
+</noscript>
+
+<template id="build-template">
+    <tr>
+        <td class="build-link"><img style="margin:auto;margin-left:0.1em;" src="images/dots.svg" class="devel-builds-dots"/></td>
+        <td class="build-commit">-</td>
+        <td class="build-date">-</td>
+    </tr>
+</template>
+
+<table id="builds" style="width: 50%; min-width: 500px; text-align: center">
+    <tr>
+        <th style="text-align: center">Download link</th>
+        <th style="text-align: center">Commit</th>
+        <th style="text-align: center">Date</th>
+    </tr>
+</table>
+
 </center>

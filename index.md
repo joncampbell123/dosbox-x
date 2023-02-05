@@ -8,51 +8,51 @@ Compared with DOSBox, DOSBox-X focuses more on general emulation and accuracy. I
 
 {% capture lang_file_loc %}https://raw.githubusercontent.com/joncampbell123/dosbox-x/{{ site.data.latest_version.git_tag }}{% endcapture %}
 
-<table style="width: 100%">
+<table style="width: 100%" class="align-center">
 <tr>
-<td width="33%" class="align-center" markdown="1">
+<td width="33%" markdown="span">
 [![Word for DOS running in DOSBox-X](images/msword.png){:width="90%"}](images/msword.png)
 </td>
-<td width="33%" class="align-center" markdown="1">
+<td width="33%" markdown="span">
 [![Tomb Raider 3dfx running in DOSBox-X](images/tomb3d.png){:width="90%"}](images/tomb3d.png)
 </td>
-<td width="33%" class="align-center" markdown="1">
+<td width="33%" markdown="span">
 [![Windows 98 guest running in DOSBox-X](images/win98guest.png){:width="90%"}](images/win98guest.png)
 </td>
 </tr>
 
 <tr>
-<td class="align-center" markdown="1">
+<td markdown="span">
 **Word for DOS running in DOSBox-X**
 </td>
-<td class="align-center" markdown="1">
+<td markdown="span">
 **Tomb Raider 3dfx running in DOSBox-X**
 </td>
-<td class="align-center" markdown="1">
+<td markdown="span">
 **Windows 98 guest running in DOSBox-X**
 </td>
 </tr>
 
-<tr class="align-center">
-<td width="33%" class="align-center" markdown="1">
+<tr>
+<td width="33%" markdown="span">
 [![PC-98 Touhou game running in DOSBox-X](images/pc98touhou.png){:width="90%"}](images/pc98touhou.png)
 </td>
-<td width="33%" class="align-center" markdown="1">
+<td width="33%" markdown="span">
 [![Configuration Tool running in DOSBox-X](images/configtool.png){:width="90%"}](images/configtool.png)
 </td>
-<td width="33%" class="align-center" markdown="1">
+<td width="33%" markdown="span">
 [![Traditional Chinese TTF mode in DOSBox-X](images/ttfhe5.png){:width="90%"}](images/ttfhe5.png)
 </td>
 </tr>
 
 <tr>
-<td class="align-center" markdown="1">
+<td markdown="span">
 **PC-98 Touhou game running in DOSBox-X** (With [Japanese [日本語] language file]({{ lang_file_loc }}/contrib/translations/ja/ja_JP.lng))
 </td>
-<td class="align-center" markdown="1">
+<td markdown="span">
 **Configuration Tool running in DOSBox-X** (With [Spanish [Español] language file]({{ lang_file_loc }}/contrib/translations/es/es_ES.lng))
 </td>
-<td class="align-center" markdown="1">
+<td markdown="span">
 **Traditional Chinese TTF mode in DOSBox-X** (Chinese [中文] language files: [zh_CN]({{ lang_file_loc }}/contrib/translations/zh/zh_CN.lng) \| [zh_TW]({{ lang_file_loc }}/contrib/translations/zh/zh_TW.lng))
 </td>
 </tr>
@@ -62,17 +62,16 @@ A few examples of DOSBox-X's unique features are available in the [DOSBox-X's Fe
 
 DOSBox-X maintains a [Wiki system](wiki/){:target="_blank"} (see also [guide page list](wiki/guides.html){:target="_blank"}) which explains how to set up DOSBox-X and configure different types of DOS software to run in DOSBox-X. Also, as DOSBox-X is an open-source project, we encourage you to contribute to DOSBox-X in order to make it work even better, such as suggesting or making enhancements, reporting or fixing bugs, language translations, and more. Please visit [our project website on GitHub](https://github.com/joncampbell123/dosbox-x) for further information. Feel free to leave comments or feedbacks as we would like to hear from you, and help is greatly appreciated since the main project developer only has limited time to work on DOSBox-X.
 
-<table style="border: hidden">
-<tr>
-<td id="prespace"> </td>
-<td style="border: hidden" markdown="1">
-[View Wiki Guide](wiki/){:id="linkwiki" target="_blank"}
-</td>
-<td style="border: hidden" markdown="1">
-[View Issue Tracker](https://github.com/joncampbell123/dosbox-x/issues){:id="linktracker" target="_blank"}
-</td>
-<td style="border: hidden" markdown="1">
-[View Project on GitHub](https://github.com/joncampbell123/dosbox-x){:id="linkproject" target="_blank"}
-</td>
-</tr>
-</table>
+<p>
+<div class="home-links">
+<div markdown="span">
+[View Wiki Guide](wiki/){:class="home-link" id="linkwiki" target="_blank"}
+</div>
+<div markdown="span">
+[View Issue Tracker](https://github.com/joncampbell123/dosbox-x/issues){:class="home-link" id="linktracker" target="_blank"}
+</div>
+<div markdown="span">
+[View Project on GitHub](https://github.com/joncampbell123/dosbox-x){:class="home-link" id="linkproject" target="_blank"}
+</div>
+</div>
+</p>
