@@ -3148,16 +3148,6 @@ static Bitu DOS_27Handler(void) {
 	return CBRET_NONE;
 }
 
-static Bitu DOS_28Handler(void) {
-    // Called by DOS keyboard input service (eg. when reading command-line
-    // input). In theory disk I/O should also call this while waiting for data
-    // from the device. But emulated disk is so fast this is probably not worth
-    // it.
-    CPU_IODelayRemoved += CPU_Cycles;
-    CPU_Cycles = 0;
-	return CBRET_NONE;
-}
-
 static uint16_t DOS_SectorAccess(bool read) {
 	fatDrive * drive = (fatDrive *)Drives[reg_al];
 	uint16_t bufferSeg = SegValue(ds);
@@ -4272,7 +4262,7 @@ public:
 		callback[4].Install(DOS_27Handler,CB_IRET,"DOS Int 27");
 		callback[4].Set_RealVec(0x27);
 
-		callback[5].Install(DOS_28Handler,CB_IRET/*CB_INT28*/,"DOS idle");
+        callback[5].Install(NULL,CB_INT28,"DOS idle");
 		callback[5].Set_RealVec(0x28);
 
 		if (IS_PC98_ARCH) {

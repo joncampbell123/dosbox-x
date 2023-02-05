@@ -397,10 +397,10 @@ static bool DOS_MultiplexFunctions(void) {
 		return false;
 	}
 	case 0x1680:	/*  RELEASE CURRENT VIRTUAL MACHINE TIME-SLICE */
-        CPU_IODelayRemoved += CPU_Cycles;
-        CPU_Cycles = 0;
+        CPU_STI();
+        CPU_HLT(reg_eip);
         reg_al = 0;
-		return true; //So no warning in the debugger anymore
+		return true;
 	case 0x1689:	/*  Kernel IDLE CALL */
 	case 0x168f:	/*  Close awareness crap */
 	   /* Removing warning */
