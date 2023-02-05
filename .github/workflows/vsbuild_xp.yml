@@ -180,6 +180,8 @@ jobs:
       - name: Prepare files
         shell: bash
         run: |
+          DOSBOX_X_RELEASE=`gh release list -L1 | grep -o "....-..-.." | head -n 1 | sed -e "s/-/./g"`
+          echo "DOSBOX_X_RELEASE=$DOSBOX_X_RELEASE" >> $GITHUB_ENV
           echo "timestamp=`date +%F-%T | sed -e 's/:/-/g' | sed -e 's/-//g'`" >> $GITHUB_ENV
           cp dosbox-*.conf contrib/windows/installer/
           #ls -lg vs-bin
@@ -195,6 +197,12 @@ jobs:
         with:
           name: dosbox-x-winXP-${{ env.timestamp }}-setup.exe
           path: contrib/windows/installer/dosbox-x-winXP-*.exe
+      - name: Upload XP build installer release version
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            contrib/windows/installer/dosbox-x-winXP-*.exe
       - name: Clean cache
         run: |
           gh extension install actions/gh-actions-cache
