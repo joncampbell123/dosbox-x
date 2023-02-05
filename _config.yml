@@ -82,6 +82,7 @@ exclude:
   - git-source-pickup.pl
   - git-update-all
   - git-update-all-wo-push
+  - update-wiki
   # Pre-convert-to-HTML raw wiki markup files.
   - wiki/*.asciidoc
   - wiki/*.md
