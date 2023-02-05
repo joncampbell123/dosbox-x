@@ -397,10 +397,15 @@ static bool DOS_MultiplexFunctions(void) {
 		return false;
 	}
 	case 0x1680:	/*  RELEASE CURRENT VIRTUAL MACHINE TIME-SLICE */
-        CPU_STI();
-        CPU_HLT(reg_eip);
-        reg_al = 0;
+    {
+        static const bool idle_enabled = ((Section_prop*)control->GetSection("dos"))->Get_bool("dos idle api");
+        if (idle_enabled) {
+            CPU_STI();
+            CPU_HLT(reg_eip);
+            reg_al = 0;
+        }
 		return true;
+    }
 	case 0x1689:	/*  Kernel IDLE CALL */
 	case 0x168f:	/*  Close awareness crap */
 	   /* Removing warning */

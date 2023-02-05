@@ -4503,6 +4503,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("If set, DOS APIs for communications with the Windows clipboard will be enabled for shared clipboard communications.");
     Pbool->SetBasic(true);
 
+    Pbool = secprop->Add_bool("dos idle api",Property::Changeable::OnlyAtStart,true);
+    Pbool->Set_help("If set, DOSBox-X can lower the host system's CPU load when a supported guest program is idle.");
+    Pbool->SetBasic(true);
+
     secprop=control->AddSection_prop("ipx",&Null_Init,true);
     Pbool = secprop->Add_bool("ipx",Property::Changeable::WhenIdle, false);
     Pbool->Set_help("Enable ipx over UDP/IP emulation.");
