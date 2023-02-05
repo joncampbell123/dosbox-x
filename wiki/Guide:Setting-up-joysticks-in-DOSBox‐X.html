@@ -492,7 +492,7 @@ To connect two joysticks to one port, a separate Y-splitter cable was needed.</p
 Any SDL supported gamepads will automatically become available within DOSBox-X as a joystick.</p>
 </div>
 <div class="paragraph">
-<p>For games that do not support Joysticks natively, DOSBox-X provides the possibility to map joystick inputs to keyboard presses.</p>
+<p>For games that do not support Joysticks themselves, DOSBox-X provides the possibility to map gamepad inputs to keyboard presses.</p>
 </div>
 </div>
 </div>
@@ -500,7 +500,10 @@ Any SDL supported gamepads will automatically become available within DOSBox-X a
 <h2 id="_general_notes">General notes</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>You will want to try and experiment as on what settings work best for software A and software B, and will probably end up with software-specific configurations.</p>
+<p>You will want to try and experiment as on what settings work best for different games, and will probably end up with software-specific DOSBox-X configurations.</p>
+</div>
+<div class="paragraph">
+<p>If a game support joystick input, but you cannot get it working properly (e.g., joystick not detected by the game), you may have to play with the <code>cycles=</code> setting. Many games are sensitive to CPU speed issues when it comes to their joystick support.</p>
 </div>
 <div class="paragraph">
 <p>Please note that most DOS software supporting joystick input will not react properly when you adjust CPU cycles while they are being run, i.e. either find the appropriate number of CPU cycles it requires first or restart it for a consistent joystick experience.</p>
@@ -516,6 +519,18 @@ Any SDL supported gamepads will automatically become available within DOSBox-X a
 <div class="paragraph">
 <p>While most home computers and game consoles back in the day used digital joysticks or controllers, the IBM PC instead used analogue joysticks.</p>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+An exception to this are late PC gaming joysticks, like the MS SideWinder which encoded digital signals over the analogue connection. This however required special software support. These type of joysticks are not emulated by DOSBox-X.
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>This has both advantages and disadvantages. An advantage is that it allows more accurate steering, a disadvantage is that it requires calibration.</p>
 </div>
@@ -528,6 +543,9 @@ Others will silently perform a centre calibration on startup, or may omit it com
 </div>
 <div class="paragraph">
 <p>Vogons user jfnagel posted a few <a href="https://www.vogons.org/viewtopic.php?p=187168#p187168">joystick test programs for DOS</a> that you may want to try in DOSBox-X to see how your controller behaves with various settings and how accurate the calibration is.</p>
+</div>
+<div class="paragraph">
+<p>Emulated CPU speed can also cause havoc on a games joystick calibration routine. You may need to adjust the <code>cycles=</code> setting if you encounter issues.</p>
 </div>
 </div>
 </div>
@@ -1934,7 +1952,7 @@ To change this, add the following setting: <code>joy1axis2=4</code></p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-12-31 02:04:38 -0800
+Last updated 2023-02-05 01:05:47 -0800
 </div>
 </div>
 </body>

@@ -573,7 +573,7 @@ And likewise, you will be limited to EGA graphics.</p>
 <p><a href="https://betawiki.net/wiki/Windows_1.0">BetaWiki: Windows 1.0</a></p>
 </li>
 <li>
-<p><a href="http://toastytech.com/guis/win1x2x.html">Overview of Windows 1.x/2.x Applications</a></p>
+<p><a href="https://toastytech.com/guis/win1x2x.html">Overview of Windows 1.x/2.x Applications</a></p>
 </li>
 </ul>
 </div>
@@ -586,9 +586,9 @@ And likewise, you will be limited to EGA graphics.</p>
 <div class="paragraph">
 <p>It is recommended that you create a custom DOSBox-X config file for running Windows 1.0x</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[sdl]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[sdl]
 autolock=true
 
 [dosbox]
@@ -612,7 +612,7 @@ timeout=5000
 [render]
 scaler=none
 
-[autoexec]</pre>
+[autoexec]</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -687,9 +687,9 @@ This way there is no need to swap disks during the installation process.</p>
 <p>There are several ways to extract the contents of disk images, such as 7zip on Windows or "Disk Image Mounter" on Linux.
 In this example, DOSBox-X itself is used to mount a disk image, copy its contents into a folder, unmount the disk image and do the next.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>MOUNT C /home/myuser/winroot
+<pre class="highlight"><code class="language-console" data-lang="console">MOUNT C /home/myuser/winroot
 C:
 MD INSTALL
 IMGMOUNT A DISK01.IMG -U
@@ -702,7 +702,7 @@ IMGMOUNT A DISK04.IMG -U
 XCOPY A:\. C:\INSTALL /S /Y
 IMGMOUNT A DISK05.IMG -U
 XCOPY A:\. C:\INSTALL /S /Y
-IMGMOUNT A -U</pre>
+IMGMOUNT A -U</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -717,20 +717,20 @@ IMGMOUNT A -U</pre>
 <p>You&#8217;re now ready to start DOSBox-X from the command-line, using the newly created win1x.conf config file.
 This assumes that the <code>dosbox-x</code> program is in your path and <code>win1x.conf</code> is in your current directory.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>dosbox-x -conf win1x.conf</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf win1x.conf</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>You now need to mount your new folder as the C: drive in DOSBox-X, and the "INSTALL" directory on A: and start the installation.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>MOUNT A /home/myuser/winroot/INSTALL
+<pre class="highlight"><code class="language-console" data-lang="console">MOUNT A /home/myuser/winroot/INSTALL
 MOUNT C /home/myuser/winroot
 A:
-SETUP</pre>
+SETUP</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1034,14 +1034,14 @@ In the version shown, it is option 1, but in some other releases it is option 2.
 <div class="paragraph">
 <p>And then edit your <code>win1x.conf</code> config file and add the following lines into the <code>[autoexec]</code> section at the end of the file:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>@ECHO OFF
+<pre class="highlight"><code class="language-shell" data-lang="shell">@ECHO OFF
 MOUNT C /home/myuser/winroot
 C:
 SET PATH=%PATH%;C:\WINDOWS;
 C:\WINDOWS\WIN.COM
-EXIT</pre>
+EXIT</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1056,9 +1056,9 @@ If you don&#8217;t want DOSBox-X to close when exiting Windows 1.0x, remove the 
 <div class="paragraph">
 <p>After the installation is finished, you can start Windows 1.0x from the command-prompt with the following command:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>dosbox-x -conf win1x.conf</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf win1x.conf</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1090,13 +1090,13 @@ Unpack the archive, and you will find a Windows 1.0 mouse driver with installati
 <div class="paragraph">
 <p>Follow the installation instructions, and in addition, set the following options in your DOSBox-X config file:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[sdl]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[sdl]
 mouse emulation=integration
 
 [cpu]
-integration device=true</pre>
+integration device=true</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1120,7 +1120,7 @@ This can be controlled by the <code>mouse_wheel_key=</code> setting in the <code
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-12-31 02:04:38 -0800
+Last updated 2023-02-05 01:05:47 -0800
 </div>
 </div>
 </body>

@@ -490,7 +490,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_jega">JEGA</a></li>
 <li><a href="#_dcga">DCGA</a></li>
 <li><a href="#_mcga">MCGA</a></li>
-<li><a href="#_vga">VGA</a></li>
+<li><a href="#_vga">VGA</a>
+<ul class="sectlevel3">
+<li><a href="#_vga_configuration">VGA Configuration</a></li>
+</ul>
+</li>
 <li><a href="#_svga">SVGA</a>
 <ul class="sectlevel3">
 <li><a href="#_s3_graphics">S3 Graphics</a></li>
@@ -943,7 +947,7 @@ But you may have to find a way to force the game to use CGA, if it also supports
 <div class="sect3">
 <h4 id="_keyboard_shortcuts">Keyboard shortcuts:</h4>
 <div class="paragraph">
-<p>By default, the following keyboard shortcuts, specific to CGA and PCjr are available:</p>
+<p>When using <code>machine = cga</code>, the following keyboard shortcuts, specific to CGA and PCjr are available:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -962,7 +966,7 @@ But you may have to find a way to force the game to use CGA, if it also supports
 </ul>
 </div>
 <div class="paragraph">
-<p>If you&#8217;re using <code>machine=cga_mono</code>, you instead have these shortcuts:</p>
+<p>When using <code>machine=cga_mono</code>, these keyboard shortcuts are instead available:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1029,7 +1033,7 @@ See the <code>cgasnow</code> setting in the <code>[video]</code> section below.<
 <p><a href="https://www.reenigne.org/blog/comparison-of-cga-card-versions/">Blog post on CGA adapter revisions</a></p>
 </li>
 <li>
-<p><a href="http://nerdlypleasures.blogspot.com/2013/11/ibm-pc-color-composite-graphics.html">Blog post on CGA composite video, adapter revisions and artefact colours</a></p>
+<p><a href="https://nerdlypleasures.blogspot.com/2013/11/ibm-pc-color-composite-graphics.html">Blog post on CGA composite video, adapter revisions and artefact colours</a></p>
 </li>
 <li>
 <p><a href="https://www.youtube.com/watch?v=niKblgZupOc">YouTube : CGA Graphics - Not as bas as you thought!</a></p>
@@ -1159,7 +1163,7 @@ You can optionally change the display colour by setting in the <code>[render]</c
 <p><a href="https://en.wikipedia.org/wiki/Hercules_Graphics_Card">Wikipedia article on the Hercules Graphics Card</a></p>
 </li>
 <li>
-<p><a href="http://www.dosdays.co.uk/topics/Manufacturers/hercules.php">DOS Days article on Hercules Computer Technology</a></p>
+<p><a href="https://www.dosdays.co.uk/topics/Manufacturers/hercules.php">DOS Days article on Hercules Computer Technology</a></p>
 </li>
 <li>
 <p><a href="https://jeffpar.github.io/kbarchive/kb/044/Q44273/">MS KnowledgeBase article on MSHERC.COM</a></p>
@@ -1224,7 +1228,7 @@ And there are also TSRs (Terminate and Stay Resident) programs that can emulate 
 <h3 id="_ibm_pcjr">IBM PCjr</h3>
 <div class="paragraph">
 <p>The PCjr was introduced by IBM in March 1984, and discontinued due to poor sales just over a year later.
-It&#8217;s integrated video card is backwards compatible with CGA, but adds a few new modes:</p>
+It&#8217;s integrated video card is backwards compatible with CGA, with the addition of a few modes:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1387,7 +1391,7 @@ Many games that support both Tandy and EGA, look near identical in both. It woul
 <p><a href="https://en.wikipedia.org/wiki/Tandy_Graphics_Adapter">Wikipedia article on Tandy Graphics</a></p>
 </li>
 <li>
-<p><a href="http://www.dosdays.co.uk/computers/Tandy%201000/tandy1000.php">DOS Days article on the Tandy 1000 Series</a></p>
+<p><a href="https://www.dosdays.co.uk/computers/Tandy%201000/tandy1000.php">DOS Days article on the Tandy 1000 Series</a></p>
 </li>
 <li>
 <p><a href="https://www.youtube.com/watch?v=mYHtojsaRkY">YouTube : The Tandy 1000 - The best MS-DOS computer in 1984</a></p>
@@ -1409,11 +1413,10 @@ Many games that support both Tandy and EGA, look near identical in both. It woul
 <h3 id="_ega">EGA</h3>
 <div class="paragraph">
 <p>EGA stands for <strong>Enhanced Graphics Adapter</strong> and was introduced by IBM in 1984, as the official follow-on to CGA.
-It still only supports up to 16 colours on-screen, but out of a gamut of 64 colours and at a higher resolution.</p>
+It still only supports up to 16 colours on-screen, but out of a pallet of 64 colours and at a higher resolution.</p>
 </div>
 <div class="paragraph">
-<p>The original IBM adapters came with just 64KiB video RAM, but could be upgraded to 128 or 192KiB.
-Some EGA clones even provided 256KiB, and additional high-res video modes.</p>
+<p>The original IBM adapters came with just 64KiB video RAM, but could be upgraded to 128 or 256KiB.</p>
 </div>
 <div class="paragraph">
 <p>One feature it dropped however, was the composite output support.
@@ -1454,7 +1457,7 @@ Emulating 64KiB of video memory with EGA is not recommended, as the code for it 
 <div class="title">Note</div>
 </td>
 <td class="content">
-Some clone EGA cards added extra video memory and video modes, typically known as SuperEGA cards. The emulation of such cards is not supported by DOSBox-X.
+Some clone EGA cards added extra video modes, typically known as SuperEGA cards. The emulation of such cards is not supported by DOSBox-X.
 </td>
 </tr>
 </table>
@@ -1462,10 +1465,10 @@ Some clone EGA cards added extra video memory and video modes, typically known a
 <div class="sect3">
 <h4 id="_ega_with_an_mda_or_cga_monitor">EGA with an MDA or CGA monitor</h4>
 <div class="paragraph">
-<p>It is possible to use an MDA, CGA or EGA monitor with an IBM EGA card.</p>
+<p>DOSBox-X emulates the EGA card with an EGA monitor. But with a real IBM EGA card it is also possible to use an MDA or CGA monitor.</p>
 </div>
 <div class="paragraph">
-<p>Some software such as the <a href="https://www.os2museum.com/wp/fantasyland-on-vga/">IBM Fantasy Land Demo</a> expects a CGA monitor with 200-line text mode and 8x8 characters, and will not work properly with a regular EGA monitor with 350-line text mode and 8x14 characters.</p>
+<p>Although rare, some software such as the <a href="https://www.os2museum.com/wp/fantasyland-on-vga/">IBM Fantasy Land Demo</a>, which expects a CGA monitor with 200-line text mode and 8x8 font, and will not work properly with a regular EGA monitor with 350-line text mode and 8x14 font.</p>
 </div>
 <div class="paragraph">
 <p>Starting with DOSBox-X 0.84.1 an EGA adapter attached to a 200-line CGA monitor can be emulated by setting <code>machine=ega200</code>.
@@ -1620,7 +1623,7 @@ Video memory is fixed to 64KiB and cannot be changed.</p>
 <p><a href="https://en.wikipedia.org/wiki/PC1512">Wikipedia article on the Amstrad PC1512</a></p>
 </li>
 <li>
-<p><a href="http://www.dosdays.co.uk/computers/Amstrad%20PC1000/pics.php">Internal pictures of the PC1512</a></p>
+<p><a href="https://www.dosdays.co.uk/computers/Amstrad%20PC1000/pics.php">Internal pictures of the PC1512</a></p>
 </li>
 </ul>
 </div>
@@ -1700,7 +1703,8 @@ Typing the <code>VGA</code> command you can go to the Japanese DOS/V mode, and t
 <div class="sect2">
 <h3 id="_mcga">MCGA</h3>
 <div class="paragraph">
-<p>MCGA stands for <strong>Multi-Color Graphics Array</strong> and was introduced by IBM in 1987 as integrated in the IBM PS/2 Model 30 and a bit later the Model 25.
+<p>MCGA stands for <strong>Multi-Color Graphics Array</strong> and was introduced by on April 2, 1987 as integrated in the IBM PS/2 Model 30 and a bit later that year on the Model 25.
+It features 64 KiB video RAM, and cannot be changed.
 No stand-alone MCGA cards were ever produced.</p>
 </div>
 <div class="paragraph">
@@ -1709,10 +1713,10 @@ It does not however provide backwards compatibility with EGA.
 In effect, MCGA can be thought of as either an enhanced CGA card, or a cost-reduced VGA card.</p>
 </div>
 <div class="paragraph">
-<p>As the high-colour mode is near identical to the one offered by VGA, many games have a combined "VGA/MCGA" video option, and selecting MCGA with a VGA adapter normally also works.</p>
+<p>As the high-colour mode is near identical to the one offered by VGA, many games have a combined "MCGA/VGA" video option, and selecting MCGA with a VGA adapter normally also works.</p>
 </div>
 <div class="paragraph">
-<p>One rare example of a game that offers an MCGA option, but does not support VGA is <a href="https://www.mobygames.com/game/dos/thexder">Thexder</a>.
+<p>One rare example of a game that offers an MCGA option, but does not work on VGA is <a href="https://www.mobygames.com/game/dos/thexder">Thexder</a>.
 This is not because the game could not have worked on VGA, but rather because it looks for specific machine settings that are only true on the above PS/2 Models.
 As such as part of the MCGA emulation, DOSBox-X also emulates some PS/2 specific machine settings, just enough to make games like Thexder work in MCGA mode.</p>
 </div>
@@ -1745,13 +1749,11 @@ However, due to other MCGA limitations the VGA option may provide a better exper
 <h3 id="_vga">VGA</h3>
 <div class="paragraph">
 <p>VGA stands for <strong>Video Graphics Array</strong> and was introduced by IBM in 1987.
-One of the stand-out features was that it could display up to 256 colours from a palette of 262,144.</p>
+One of the stand-out features was that it could display up to 256 colours from a palette of 262,144.
+It features 256 KiB of video RAM (fixed), and is backward compatible with CGA (RGBI only), EGA and MCGA.</p>
 </div>
 <div class="paragraph">
-<p>It originally featured 256KiB of video RAM.</p>
-</div>
-<div class="paragraph">
-<p>VGA is backward compatible with both EGA and CGA (RGBI mode only), and adds the following new graphics modes:</p>
+<p>VGA adds the following new graphics modes:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -1768,8 +1770,63 @@ One of the stand-out features was that it could display up to 256 colours from a
 This is important for modern LCDs, as many will only run at 60Hz, which causes issues with many games that were designed to run at 70Hz, resulting in dropped frames.
 This can cause both video and audio distortion, as in many games the audio is linked to the frame rate.</p>
 </div>
+<div class="sect3">
+<h4 id="_vga_configuration">VGA Configuration</h4>
+<div class="paragraph">
+<p>DOSBox-X does not have a true VGA emulation mode.
+For normal use it is recommended to use the default <code>machine = svga_s3</code> which is backward compatible with VGA.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The provided <code>machine = vgaonly</code> option has some changes to improve VGA compatibility, but which makes it slower for the common use-case.
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>This mode can be set using <code>machine=vgaonly</code> in your DOSBox-X config file</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Disables non-VGA modes</p>
+</li>
+<li>
+<p>Default 80x25 text mode of 720x400 with a 9x16 font, instead of the 640x400 with 8x16 font for the svga_* options.</p>
+</li>
+<li>
+<p>Colour depth is reduced</p>
+</li>
+<li>
+<p>Support for changing display parameters by scanline, needed by some games. e.g.,</p>
+</li>
+<li>
+<p>Lemmings</p>
+</li>
+<li>
+<p>Oh No More Lemmings</p>
+</li>
+<li>
+<p>Pinball Fantasies</p>
+</li>
+<li>
+<p>Support for video blanking tricks, needed by some games. e.g.,</p>
+</li>
+<li>
+<p>Alien Carnage</p>
+</li>
+<li>
+<p>Halloween Harry</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p><strong>Resources</strong></p>
 </div>
 <div class="ulist">
 <ul>
@@ -1785,6 +1842,7 @@ This can cause both video and audio distortion, as in many games the audio is li
 <img src="images/Game:Monkey_Island_VGA.png" alt="Game:Monkey Island VGA">
 </div>
 <div class="title">Monkey Island VGA Edition</div>
+</div>
 </div>
 </div>
 </div>
@@ -1809,7 +1867,7 @@ This can cause both video and audio distortion, as in many games the audio is li
 <p><a href="https://en.wikipedia.org/wiki/S3_Graphics">Wikipedia article on S3 Graphics</a></p>
 </li>
 <li>
-<p><a href="http://www.dosdays.co.uk/topics/Manufacturers/s3.php">DOS Days article on S3 Graphics</a></p>
+<p><a href="https://www.dosdays.co.uk/topics/Manufacturers/s3.php">DOS Days article on S3 Graphics</a></p>
 </li>
 </ul>
 </div>
@@ -1854,7 +1912,7 @@ All the emulated S3 cards have VESA VBE 2.0 support.
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/351-s3-vision864">S3 Vision864 at the VGA Museum</a></p>
+<p><a href="https://www.vgamuseum.info/index.php/component/k2/item/351-s3-vision864">S3 Vision864 at the VGA Museum</a></p>
 </li>
 </ul>
 </div>
@@ -1878,7 +1936,7 @@ Apart from faster dual-ported video memory and larger memory sizes, identical to
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://www.vgamuseum.info/index.php/cpu/item/354-s3-vision964">S3 Vision964 at the VGA Museum</a></p>
+<p><a href="https://www.vgamuseum.info/index.php/cpu/item/354-s3-vision964">S3 Vision964 at the VGA Museum</a></p>
 </li>
 </ul>
 </div>
@@ -1900,7 +1958,7 @@ Based on the Vision864, with added motion video acceleration.</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/353-s3-vision868">S3 Vision868 at the VGA Museum</a></p>
+<p><a href="https://www.vgamuseum.info/index.php/component/k2/item/353-s3-vision868">S3 Vision868 at the VGA Museum</a></p>
 </li>
 </ul>
 </div>
@@ -1924,7 +1982,7 @@ Apart from faster dual-ported video memory and larger memory sizes, identical to
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://www.vgamuseum.info/index.php/cpu/item/355-s3-vision968">S3 Vision968 at the VGA Museum</a></p>
+<p><a href="https://www.vgamuseum.info/index.php/cpu/item/355-s3-vision968">S3 Vision968 at the VGA Museum</a></p>
 </li>
 </ul>
 </div>
@@ -1943,7 +2001,7 @@ Low-cost 32bit version of the Trio64. Available in 1 or 2MB video memory configu
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/356-s3-trio32">S3 Trio32 at the VGA Museum</a></p>
+<p><a href="https://www.vgamuseum.info/index.php/component/k2/item/356-s3-trio32">S3 Trio32 at the VGA Museum</a></p>
 </li>
 </ul>
 </div>
@@ -2008,7 +2066,7 @@ More video memory can however be used in VESA mode.
 <p><a href="https://en.wikipedia.org/wiki/S3_Triop">S3 Trio at Wikipedia</a></p>
 </li>
 <li>
-<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/357-s3-trio64">S3 Trio64 at the VGA Museum</a></p>
+<p><a href="https://www.vgamuseum.info/index.php/component/k2/item/357-s3-trio64">S3 Trio64 at the VGA Museum</a></p>
 </li>
 </ul>
 </div>
@@ -2031,7 +2089,7 @@ Available in 1, 2 or 4MB video memory configurations.</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/359-s3-trio64v">S3 Trio64V+ at the VGA Museum</a></p>
+<p><a href="https://www.vgamuseum.info/index.php/component/k2/item/359-s3-trio64v">S3 Trio64V+ at the VGA Museum</a></p>
 </li>
 </ul>
 </div>
@@ -2073,7 +2131,7 @@ Early Windows and CAD accelerator card. Available in 1, 2, 3 or 4MB video RAM co
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/344-s3-p86c928">S3 86c928 at the VGA Museum</a></p>
+<p><a href="https://www.vgamuseum.info/index.php/component/k2/item/344-s3-p86c928">S3 86c928 at the VGA Museum</a></p>
 </li>
 </ul>
 </div>
@@ -2114,7 +2172,7 @@ It seems to work well enough for regular use, but the S3D functionality still ne
 <p><a href="https://en.wikipedia.org/wiki/S3_ViRGE">S3 ViRGE at Wikipedia</a></p>
 </li>
 <li>
-<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/365-s3-virge">S3 ViRGE at the VGA Museum</a></p>
+<p><a href="https://www.vgamuseum.info/index.php/component/k2/item/365-s3-virge">S3 ViRGE at the VGA Museum</a></p>
 </li>
 <li>
 <p><a href="https://www.vogons.org/viewtopic.php?t=33483">List of games supporting S3D mode</a></p>
@@ -2149,7 +2207,7 @@ Similar to the regular S3 ViRGE but available with 2, 4 or 8MB VRAM, allowing hi
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://www.vgamuseum.info/index.php/component/k2/item/366-s3-virge-vx">S3 ViRGE/VX at the VGA Museum</a></p>
+<p><a href="https://www.vgamuseum.info/index.php/component/k2/item/366-s3-virge-vx">S3 ViRGE/VX at the VGA Museum</a></p>
 </li>
 </ul>
 </div>
@@ -2166,10 +2224,13 @@ Similar to the regular S3 ViRGE but available with 2, 4 or 8MB VRAM, allowing hi
 <p><a href="https://en.wikipedia.org/wiki/Tseng_Labs">Wikipedia article on Tseng Labs</a></p>
 </li>
 <li>
-<p><a href="http://www.dosdays.co.uk/topics/Manufacturers/tseng_labs.php">DOS Days article on Tseng Labs</a></p>
+<p><a href="https://www.dosdays.co.uk/topics/Manufacturers/tseng_labs.php">DOS Days - Tseng Labs</a></p>
 </li>
 <li>
-<p><a href="http://vogonsdrivers.com/index.php?catid=63">VOGONS Vintage Driver Library for Tseng Labs</a></p>
+<p><a href="https://dosdays.co.uk/topics/Manufacturers/tsenglabs_downloads.php">DOS Days - Tseng Labs Downloads</a></p>
+</li>
+<li>
+<p><a href="https://vogonsdrivers.com/index.php?catid=63">VOGONS Vintage Driver Library for Tseng Labs</a></p>
 </li>
 </ul>
 </div>
@@ -2205,7 +2266,7 @@ Video memory defaults to 512KiB and cannot be adjusted.</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://www.vgamuseum.info/index.php/companies/item/460-tseng-et3000ax">Tseng Labs ET3000 at the VGA Museum</a></p>
+<p><a href="https://www.vgamuseum.info/index.php/companies/item/460-tseng-et3000ax">Tseng Labs ET3000 at the VGA Museum</a></p>
 </li>
 </ul>
 </div>
@@ -2268,7 +2329,7 @@ vmemsizekb=512</pre>
 <p><a href="http://files.mpoli.fi/hardware/DISPLAY/TSENG/ET-4000.ZIP">Tseng Labs ET4000 driver package</a></p>
 </li>
 <li>
-<p><a href="http://www.vgamuseum.info/index.php/companies/item/461-tseng-et4000ax">Tseng Labs ET4000 at the VGA Museum</a></p>
+<p><a href="https://www.vgamuseum.info/index.php/companies/item/461-tseng-et4000ax">Tseng Labs ET4000 at the VGA Museum</a></p>
 </li>
 </ul>
 </div>
@@ -2277,37 +2338,37 @@ vmemsizekb=512</pre>
 <div class="sect3">
 <h4 id="_paradise_systems_pvga1a">Paradise Systems PVGA1A</h4>
 <div class="paragraph">
-<p>Introduced in 1988.
-Generic clone VGA card.</p>
+<p>The Paradise Systems PVGA1A is a SuperVGA (SVGA) card introduced in 1988.
+It is backward compatible with CGA (RGBI only), EGA, MCGA and VGA.</p>
 </div>
 <div class="paragraph">
 <p>This mode can be set using <code>machine=svga_paradise</code> in your DOSBox-X config file.
-Video memory defaults to 512KiB, but can be adjusted to 256 or 1024KiB.</p>
+Video memory defaults to 512 KiB, but can be adjusted to 256 or 1024 KiB.</p>
 </div>
 <div class="paragraph">
-<p>For 256KiB, set your config as follows:</p>
+<p>For 256 KiB, set your config as follows:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[dosbox]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[dosbox]
 machine=svga_paradise
 
 [video]
 vmemsize=0
-vmemsizekb=256</pre>
+vmemsizekb=256</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>For 1024KiB, set your config as follows:</p>
+<p>For 1024 KiB, set your config as follows:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[dosbox]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[dosbox]
 machine=svga_paradise
 
 [video]
 vmemsize=1
-vmemsizekb=0</pre>
+vmemsizekb=0</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2316,10 +2377,10 @@ vmemsizekb=0</pre>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://www.dosdays.co.uk/topics/Manufacturers/paradise.php">DOS Days article on Paradise Systems</a></p>
+<p><a href="https://www.dosdays.co.uk/topics/Manufacturers/paradise.php">DOS Days article on Paradise Systems</a></p>
 </li>
 <li>
-<p><a href="http://www.vgamuseum.info/index.php/companies/item/478-paradise-systems-pvga1a">Paradise Systems PVGA1A</a></p>
+<p><a href="https://www.vgamuseum.info/index.php/companies/item/478-paradise-systems-pvga1a">Paradise Systems PVGA1A</a></p>
 </li>
 </ul>
 </div>
@@ -2354,7 +2415,7 @@ Even different video chips from the same manufacturer were not necessarily compa
 </ul>
 </div>
 <div class="paragraph">
-<p>The only emulated cards supported by DOSBox-X to provide VBE support are the S3 models, which all defaults to VBE 2.0.</p>
+<p>The only emulated cards supported by DOSBox-X to provide VBE support are the S3 models, which all default to VBE 2.0.</p>
 </div>
 <div class="paragraph">
 <p>There are many VESA settings available in the <code>[video]</code> section of the DOSBox-x config file, which are documented below.</p>
@@ -2380,7 +2441,7 @@ Even different video chips from the same manufacturer were not necessarily compa
 This also works with MDA+EGA, MDA+VGA and MDA+SVGA. Hercules can also be used as a more capable substitute for MDA.</p>
 </div>
 <div class="paragraph">
-<p>This is possible because MDA (and Hercules) don&#8217;t conflict with the resources needed for CGA/EGA/VGA and SVGA.
+<p>This is possible because MDA (and Hercules), when properly setup don&#8217;t conflict with the resources needed for CGA/EGA/VGA and SVGA.
 As such it is not possible for instance to have two VGA cards, as they would conflict.</p>
 </div>
 <div class="paragraph">
@@ -2517,7 +2578,7 @@ Because both the second display code and the integrated debugger uses the termin
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://www.seasip.info/VintagePC/dualhead.html">Dual-Head Operation on a Vintage PC</a></p>
+<p><a href="https://www.seasip.info/VintagePC/dualhead.html">Dual-Head Operation on a Vintage PC</a></p>
 </li>
 <li>
 <p><a href="https://www.vogons.org/viewtopic.php?f=32&amp;t=26110">Vogons thread on this topic</a></p>
@@ -3996,7 +4057,7 @@ Synchronizing to the host may cause issues with some games. For instance Sierra 
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-12-31 02:04:38 -0800
+Last updated 2023-02-05 01:05:47 -0800
 </div>
 </div>
 </body>

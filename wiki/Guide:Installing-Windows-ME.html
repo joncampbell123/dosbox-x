@@ -568,7 +568,7 @@ As such, unless you have a specific requirement for Windows ME, the DOSBox-X tea
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://vogonsdrivers.com/">VOGONS Vintage Driver Library</a></p>
+<p><a href="https://vogonsdrivers.com/">VOGONS Vintage Driver Library</a></p>
 </li>
 <li>
 <p><a href="https://en.wikipedia.org/wiki/Windows_ME">Wikipedia: Windows ME</a></p>
@@ -590,9 +590,9 @@ As such, unless you have a specific requirement for Windows ME, the DOSBox-X tea
 <div class="paragraph">
 <p>You first need to create a DOSBox-X config file.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[sdl]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[sdl]
 autolock=true
 
 [dosbox]
@@ -632,7 +632,7 @@ cd-rom insertion delay=4000
 [render]
 scaler=none
 
-[autoexec]</pre>
+[autoexec]</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -740,9 +740,9 @@ This option allows for various common harddisk types to be created, for less com
 <p>First you need to start DOSBox-X from the command-line, using your newly created <code>winme.conf</code>.
 This assumes that dosbox-x is in your path and <code>winme.conf</code> is in your current directory.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>dosbox-x -conf winme.conf</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf winme.conf</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -755,18 +755,18 @@ The maximum FAT32 partition size for Windows ME should be 2TB, but this has not 
 <div class="paragraph">
 <p>In later Windows versions, starting with Windows 2000, Microsoft won&#8217;t let you format a volume bigger than 32GB with FAT32 using its built-in formatting tool, this was presumably to push migrations to NTFS and later exFAT.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMAKE hdd.img -t hd_8gig</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE hdd.img -t hd_8gig</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Or if you want to create a larger disk, you can create a custom type.
 This is an example of a 16GB (16*1024=16384 MB) disk, which due to its size, will be formatted as FAT32.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMAKE hdd.img -t hd -size 16384</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE hdd.img -t hd -size 16384</code></pre>
 </div>
 </div>
 </div>
@@ -801,19 +801,19 @@ This is an example of a 16GB (16*1024=16384 MB) disk, which due to its size, wil
 <div class="paragraph">
 <p>First mount the harddisk image you created earlier:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMOUNT C hdd.img</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Now let’s boot from the CD-ROM and start the installation.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMOUNT D WinME.iso
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT D WinME.iso
 IMGMOUNT A -bootcd D
-BOOT A:</pre>
+BOOT A:</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -836,10 +836,10 @@ After which you will get the "Microsoft Windows Millennium Startup Menu" where y
 <p>After it finished loading the CD-ROM support, you will be at the DOS <code>A:\&gt;</code> prompt.
 Now type the following commands:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>D:
-SETUP.EXE /NM</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">D:
+SETUP.EXE /NM</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -849,19 +849,19 @@ SETUP.EXE /NM</pre>
 <p>When the Windows installer reboots, and you&#8217;re back at the DOSBox-X <code>Z:\&gt;</code> prompt.
 Close DOSBox-X and edit your <code>winme.conf</code> config file, and add the following lines in the [autoexec] section at the end of the file:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMOUNT C hdd.img
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img
 IMGMOUNT D WinME.iso
-BOOT C:</pre>
+BOOT C:</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Now start DOSBox-X as follows to continue the installation process:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>dosbox-x -conf winme.conf</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf winme.conf</code></pre>
 </div>
 </div>
 </div>
@@ -914,9 +914,9 @@ The \WIN9X\OLS sub-directory can however be skipped which will save roughly 42MB
 <div class="paragraph">
 <p>First mount the harddisk image you created earlier:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMOUNT C hdd.img</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -925,9 +925,9 @@ The \WIN9X\OLS sub-directory can however be skipped which will save roughly 42MB
 <div class="paragraph">
 <p>If you have a copy of the Windows ME CD-ROM as an ISO (or a cue/bin pair), you can mount it as follows:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMOUNT D WinME.iso</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT D WinME.iso</code></pre>
 </div>
 </div>
 </div>
@@ -937,9 +937,9 @@ The \WIN9X\OLS sub-directory can however be skipped which will save roughly 42MB
 <p>While not strictly necessary, as it is possible to run SETUP.EXE directly from the CD-ROM (if you have the CD-ROM automatically mounted in your [autoexec] section of the config file).
 It is recommended to copy the installation files (contents of the WIN9X directory on the CD-ROM) to your HDD image, as it will prevent Windows ME from asking for the CD-ROM when it needs additional files later.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>XCOPY D:\WIN9X C:\WIN9X /I /E</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">XCOPY D:\WIN9X C:\WIN9X /I /E</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -974,11 +974,11 @@ Alternatively, you may overcome this issue by selecting "CPU" &#8658; "Emulate C
 </tr>
 </table>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>C:
+<pre class="highlight"><code class="language-console" data-lang="console">C:
 CD \WIN9X
-SETUP /NM</pre>
+SETUP /NM</code></pre>
 </div>
 </div>
 <div class="imageblock">
@@ -997,19 +997,19 @@ The actual steps will not be covered in this guide, but are pretty self-explanat
 <p>Now edit your <code>winme.conf</code> config file.
 At the end of the file, in the [autoexec] section, add the following two lines:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMOUNT C hdd.img
-BOOT C:</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img
+BOOT C:</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Save the config file, and at the command-prompt of your host PC you can type the below command to continue with the next phase of the installation process.
 This is also the command you use, after the installation is finished, to start Windows ME in DOSBox-X.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>dosbox-x -conf winme.conf</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf winme.conf</code></pre>
 </div>
 </div>
 </div>
@@ -1021,9 +1021,9 @@ This is also the command you use, after the installation is finished, to start W
 <div class="paragraph">
 <p>After the installation is finished, you can start Windows ME from the command-prompt of your host PC, with the following command:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>dosbox-x -conf winme.conf</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf winme.conf</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1087,10 +1087,10 @@ The option to load image files from the menu bar becomes unavailable the moment 
 <div class="paragraph">
 <p>For now, you can work around it, by specifying multiple image files with the IMGMOUNT command as such:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMOUNT A disk1.img disk2.img disk3.img
-IMGMOUNT D cd1.iso cd2.iso cd3.iso</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT A disk1.img disk2.img disk3.img
+IMGMOUNT D cd1.iso cd2.iso cd3.iso</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1137,15 +1137,15 @@ In some cases, this is not possible, such as:</p>
 <div class="paragraph">
 <p>To enable NE2000 emulation with the pcap back-end, add the following to your <code>winme.conf</code> config file:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[ne2000]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[ne2000]
 ne2000=true
 nicirq=10
 backend=pcap
 
 [ethernet, pcap]
-realnic=list</pre>
+realnic=list</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1178,12 +1178,12 @@ As such it will work with wireless adapters, and it will work in most sandboxed 
 <div class="paragraph">
 <p>To enable NE2000 emulation with the slirp back-end, add the following to your <code>winme.conf</code> config file:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[ne2000]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[ne2000]
 ne2000=true
 nicirq=10
-backend=slirp</pre>
+backend=slirp</code></pre>
 </div>
 </div>
 </div>
@@ -1398,11 +1398,12 @@ As such you will be limited to the above video modes with this driver.</p>
 <div class="paragraph">
 <p>First add the following lines to your DOSBox-X config file in the [video] section:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>allow high definition vesa modes=true
+<pre class="highlight"><code class="language-ini" data-lang="ini">[video]
+allow high definition vesa modes=true
 allow unusual vesa modes=true
-allow low resolution vesa modes=false</pre>
+allow low resolution vesa modes=false</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1490,13 +1491,13 @@ If you don&#8217;t see this option listed, click on the "view all Control Panel 
 <div class="paragraph">
 <p>First, set up your DOSBox-X config to print to a file as such:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[dosbox]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[dosbox]
 captures=capture
 
 [parallel]
-parallel1=file timeout=2000</pre>
+parallel1=file timeout=2000</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1507,7 +1508,7 @@ parallel1=file timeout=2000</pre>
 </div>
 <div class="paragraph">
 <p>On Linux and macOS, PostScript files are natively supported and can be viewed and printed.
-On a Windows host, it is necessary to install a separate PostScript viewer such as <a href="http://pages.cs.wisc.edu/~ghost/">GSview</a>.</p>
+On a Windows host, it is necessary to install a separate PostScript viewer such as <a href="https://pages.cs.wisc.edu/~ghost/">GSview</a>.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1518,16 +1519,16 @@ On a Windows host, it is necessary to install a separate PostScript viewer such 
 <div class="paragraph">
 <p>First, set up your DOSBox-X config to emulate an Epson printer as such:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[parallel]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[parallel]
 parallel1=printer
 
 [printer]
 printer=true
 printoutput=ps
 multipage=true
-timeout=2000</pre>
+timeout=2000</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1570,10 +1571,10 @@ After the update it will show a date of 4-29-1999.</p>
 <div class="paragraph">
 <p>If for some reason you do not want 3dfx Voodoo emulation, it can be disabled by adding the following lines to your DOSBox-X config:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[voodoo]
-voodoo_card=false</pre>
+<pre class="highlight"><code class="language-ini" data-lang="ini">[voodoo]
+voodoo_card=false</code></pre>
 </div>
 </div>
 <div class="sect2">
@@ -1597,10 +1598,10 @@ The work-around is to use the SDL1 DOSBox-X instead.</p>
 <div class="paragraph">
 <p>You need to set the following DOSBox-X config option:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[voodoo]
-glide=true</pre>
+<pre class="highlight"><code class="language-ini" data-lang="ini">[voodoo]
+glide=true</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1638,10 +1639,10 @@ This can be accomplished in one of two ways. Either when you issue the <code>boo
 <div class="paragraph">
 <p>Or by setting the following option in your DOSBox-X config file:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[sdl]
-convertdrivefat = true</pre>
+<pre class="highlight"><code class="language-ini" data-lang="ini">[sdl]
+convertdrivefat = true</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1749,7 +1750,7 @@ You can load a different CD or Floppy image, once you booted Windows 95, but if 
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-12-31 02:04:38 -0800
+Last updated 2023-02-05 01:05:47 -0800
 </div>
 </div>
 </body>

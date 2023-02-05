@@ -586,19 +586,19 @@ This option allows for various common harddisk types to be created, for less com
 <div class="paragraph">
 <p>Maximum HDD size has increased to 8GB (or more exactly 7.84GB), but the maximum partition size is basically still 2GB, which is a FAT16 limitation.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre> IMGMAKE hdd.img -t hd -size 2048
+<pre class="highlight"><code class="language-console" data-lang="console"> IMGMAKE hdd.img -t hd -size 2048
  IMGMOUNT C hdd.img
- BOOT DISK1.IMG DISK2.IMG DISK3.IMG</pre>
+ BOOT DISK1.IMG DISK2.IMG DISK3.IMG</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>If you want to create an HDD image with a size less than 65MB (such as the hd_st251 template which creates a 40MB HDD image) for use with MS-DOS 6 Setup, you may want to specify the option <code>-FAT 12</code> for IMGMAKE command so that the FAT12 file system will be used (instead of FAT16 or FAT32), e.g.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre> IMGMAKE hdd.img -t hd_st251 -fat 12</pre>
+<pre class="highlight"><code class="language-console" data-lang="console"> IMGMAKE hdd.img -t hd_st251 -fat 12</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -610,10 +610,10 @@ This option allows for various common harddisk types to be created, for less com
 <div class="paragraph">
 <p>You can now boot these DOS versions directly from the HDD image as follows:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMOUNT C hdd.img
-BOOT C:</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img
+BOOT C:</code></pre>
 </div>
 </div>
 </div>
@@ -621,7 +621,7 @@ BOOT C:</pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-12-31 02:04:38 -0800
+Last updated 2023-02-05 01:05:47 -0800
 </div>
 </div>
 </body>

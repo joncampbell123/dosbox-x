@@ -478,9 +478,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="paragraph">
 <p>You can start DOSBox-X with the TrueType font (TTF) output by setting it from the [sdl] section of the DOSBox-X configuration, like this:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>output = ttf</pre>
+<pre class="highlight"><code class="language-ini" data-lang="ini">[sdl]
+output = ttf</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -509,24 +510,30 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h2 id="_use_your_own_truetype_font_for_the_output">Use your own TrueType font for the output</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>By default, DOSBox-X uses the built-in TrueType font for the TTF output. However, the TTF output is very flexible so that users can always specify a different font file to be rendered for the output. For example, you may want to use a different TTF font such as Consola, Lucon, or Nouveau IBM depending on your preference (and your language). If you want to use a TTF font that is not included in the Windows/Linux/macOS system by default you will need to download it (or copy it from another system) first.</p>
+<p>By default, DOSBox-X uses the built-in TrueType font for the TTF output.
+However, the TTF output is very flexible so that users can always specify a different font file to be rendered for the output.
+For example, you may want to use a different TTF font such as Consola, Lucon, or Nouveau IBM depending on your preference (and your language).
+If you want to use a TTF font that is not included in the Windows/Linux/macOS system by default you will need to download it (or copy it from another system) first.</p>
 </div>
 <div class="paragraph">
-<p>Even though it is typical to use .TTF fonts for the TrueType font output, DOSBox-X does support more font types in addition to .TTF fonts, such as the .OTF fonts (OpenType fonts, such as <code>OratorStd.otf</code>), the .FON fonts (such as <code>vgasys.fon</code>), and the .TTC fonts (TrueType Collection, such as <code>msgothic.ttc</code>), although it is preferred to use monospaced fonts for the best results. Virtually all these fonts can also be used for rendering texts in the TrueType output.</p>
+<p>Even though it is typical to use .TTF fonts for the TrueType font output, DOSBox-X does support more font types in addition to .TTF fonts, such as the .OTF fonts (OpenType fonts, such as <code>OratorStd.otf</code>), the .FON fonts (such as <code>vgasys.fon</code>), and the .TTC fonts (TrueType Collection, such as <code>msgothic.ttc</code>), although it is preferred to use monospaced fonts for the best results.
+Virtually all these fonts can also be used for rendering texts in the TrueType output.</p>
 </div>
 <div class="paragraph">
 <p>For example, assuming the file <code>Nouveau_IBM.ttf</code> is in the DOSBox-X working directory or in the same directory as the DOSBox-X executable, you can specify this font for use with the TTF output in DOSBox-X by setting the following in the [ttf] section of the DOSBox-X configuration:</p>
 </div>
-<div class="paragraph">
-<p><code>
-font=Nouveau_IBM
-</code></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ini" data-lang="ini">[ttf]
+font=Nouveau_IBM</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>If the file extension is .ttf you can either omit the extension or put the full file name (e.g. <code>font=Nouveau_IBM.ttf</code>).</p>
 </div>
 <div class="paragraph">
-<p>On the other hand, if you want to use a TTF font that is already included in the default system, then you can specify the font directly. DOSBox-X will look for the font in the default system font path:</p>
+<p>On the other hand, if you want to use a TTF font that is already included in the default system, then you can specify the font directly.
+DOSBox-X will look for the font in the default system font path:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -561,12 +568,14 @@ font=msgothic.ttc</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Alternatively, you can dynamically switch the font file to use with the TrueType font output from the menu or the command line. There is a menu option "Select TrueType font (TTF)&#8230;&#8203;" under the "Video" menu which allows users to select a TTF font file to use. Alternatively, you can do so with CONFIG command, such as the following:</p>
+<p>Alternatively, you can dynamically switch the font file to use with the TrueType font output from the menu or the command line.
+There is a menu option "Select TrueType font (TTF)&#8230;&#8203;" under the "Video" menu which allows users to select a TTF font file to use.
+Alternatively, you can do so with CONFIG command, such as the following:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>CONFIG -set font=Consola
-CONFIG -set font=</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">CONFIG -set font=Consola
+CONFIG -set font=</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -603,10 +612,11 @@ CONFIG -set font=</pre>
 <div class="paragraph">
 <p>Also, the default DOSBox-X text screen is the standard 80 columns and 25 rows. This can be changed by specifying different numbers of columns and rows via the config options <code>lins</code> and <code>cols</code>. For example, the following will set the text screen to be 100 columns and 50 rows:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>cols=100
-lins=50</pre>
+<pre class="highlight"><code class="language-ini" data-lang="ini">[ttf]
+cols=100
+lins=50</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -615,10 +625,10 @@ lins=50</pre>
 <div class="paragraph">
 <p>Alternatively, you can do so using MODE or CONFIG command from the command line. With MODE command you can change the screen dimensions to those supported by the above menu options. For example:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>MODE CON LINES=50
-MODE CON LINES=60 COLS=132</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">MODE CON LINES=50
+MODE CON LINES=60 COLS=132</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -627,10 +637,10 @@ MODE CON LINES=60 COLS=132</pre>
 <div class="paragraph">
 <p>With CONFIG command, you can change the values of cols and lins dynamically, but one at a time. For example:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>CONFIG -set lins=30
-CONFIG -set cols=100</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">CONFIG -set lins=30
+CONFIG -set cols=100</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -644,9 +654,10 @@ CONFIG -set cols=100</pre>
 <div class="paragraph">
 <p>DOSBox-X supports on-screen text styles for DOS applications like WordPerfect, WordStar, XyWrite, and FastEdit. You will need to specify a word processor (WP=WordPerfect, WS=WordStar, XY=XyWrite, FE=FastEdit) for this, and then text styles such as bold, italics, and underlines will be displayed visually when running these applications using the TrueType font output in DOSBox-X. For example:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>wp=XY</pre>
+<pre class="highlight"><code class="language-ini" data-lang="ini">[ttf]
+wp=XY</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -655,12 +666,13 @@ CONFIG -set cols=100</pre>
 <div class="paragraph">
 <p>For bold, italic, and bold italic texts you can either let DOSBox-X to automatically do so (such as slanting the characters automatically for italic texts) or specify actual bold, italic, and bold italic fonts (if they exist) to render these text styles. For example, for the Consola font, the actual bold, italic, and bold italic versions are named Consolab, Consolai, and Consolaz, so you can set the following to specify its variant fonts:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>font=Consola
+<pre class="highlight"><code class="language-ini" data-lang="ini">[ttf]
+font=Consola
 fontbold=Consolab
 fontital=Consolai
-fontboit=Consolaz</pre>
+fontboit=Consolaz</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -708,26 +720,26 @@ fontboit=Consolaz</pre>
 <div class="paragraph">
 <p>The default color scheme is:</p>
 </div>
-<div class="paragraph">
-<p><code>
-colors=#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff
-</code></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ini" data-lang="ini">colors=#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>You can supply a different color scheme so that it will be used instead of the default one. For example, the following will give a dark color scheme (as in TameDOS):</p>
 </div>
-<div class="paragraph">
-<p><code>
-colors=#000000 #000080 #008000 #008080 #800000 #800080 #808000 #c0c0c0 #808080 #3300ff #33ff00 #00ffff #ff0000 #ff00ff #ffff00 #ffffff
-</code></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ini" data-lang="ini">colors=#000000 #000080 #008000 #008080 #800000 #800080 #808000 #c0c0c0 #808080 #3300ff #33ff00 #00ffff #ff0000 #ff00ff #ffff00 #ffffff</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>And the following will give a gray-scaled color scheme:</p>
 </div>
-<div class="paragraph">
-<p><code>
-colors=(0,0,0) #0e0e0e (75,75,75) (89,89,89) (38,38,38) (52,52,52) #717171 #c0c0c0 #808080 (28,28,28) (150,150,150) (178,178,178) (76,76,76)  (104,104,104) (226,226,226) (255,255,255)
-</code></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ini" data-lang="ini">colors=(0,0,0) #0e0e0e (75,75,75) (89,89,89) (38,38,38) (52,52,52) #717171 #c0c0c0 #808080 (28,28,28) (150,150,150) (178,178,178) (76,76,76)  (104,104,104) (226,226,226) (255,255,255)</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>Starting with DOSBox-X version 0.83.24, DOSBox-X will stay with the preset color scheme when switching from another output if there is a leading <code>&#43;</code> sign for the <code>colors</code> setting, e.g. <code>colors=+(0,0,0) …</code></p>
@@ -738,26 +750,26 @@ colors=(0,0,0) #0e0e0e (75,75,75) (89,89,89) (38,38,38) (52,52,52) #717171 #c0c0
 <div class="paragraph">
 <p>To change the scheme of a specific color using SETCOLOR command, just provide the color number and its color value, e.g.</p>
 </div>
-<div class="paragraph">
-<p><code>
-SETCOLOR 7 (50,50,50)
-</code></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-console" data-lang="console">SETCOLOR 7 (50,50,50)</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>The above command change Color #7 to the specified color value. You can also return it to the default color value using the command:</p>
 </div>
-<div class="paragraph">
-<p><code>
-SETCOLOR 7 -
-</code></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-console" data-lang="console">SETCOLOR 7 -</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>Or return it to the color scheme as specified by the <code>colors</code> config option (if set):</p>
 </div>
-<div class="paragraph">
-<p><code>
-SETCOLOR 7 &#43;
-</code></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-console" data-lang="console">SETCOLOR 7 {plus}</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>(Starting with DOSBox-X version 0.83.19, there is also a menu option <code>Reset TTF color scheme</code> in the <code>TTF options</code> menu group to return the whole color scheme to the default one)</p>
@@ -773,7 +785,7 @@ SETCOLOR 7 &#43;
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-12-31 02:04:38 -0800
+Last updated 2023-02-05 01:05:47 -0800
 </div>
 </div>
 </body>

@@ -492,10 +492,10 @@ This option allows for various common harddisk types to be created, for less com
 <div class="paragraph">
 <p>From the DOSBox-X command prompt:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMAKE hdd.img -t hd -size 2048
-IMGMOUNT C hdd.img</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE hdd.img -t hd -size 2048
+IMGMOUNT C hdd.img</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -509,11 +509,11 @@ IMGMOUNT C hdd.img</pre>
 <div class="paragraph">
 <p>Next step is to mount and boot the (El-Torito) ISO CD image.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMOUNT D FD13LGCY.iso
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT D FD13LGCY.iso
 IMGMOUNT A -bootcd D
-BOOT A:</pre>
+BOOT A:</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -522,10 +522,10 @@ BOOT A:</pre>
 <div class="paragraph">
 <p>After it finished the installation, it will reboot DOSBox-X, and you&#8217;re again at the <code>Z:\&gt;</code> prompt. Now type the following to boot FreeDOS normally.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMOUNT C hdd.img
-BOOT C:</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img
+BOOT C:</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -536,7 +536,7 @@ BOOT C:</pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-12-31 02:04:38 -0800
+Last updated 2023-02-05 01:05:47 -0800
 </div>
 </div>
 </body>

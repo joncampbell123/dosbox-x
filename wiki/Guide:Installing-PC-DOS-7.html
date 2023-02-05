@@ -542,7 +542,7 @@ On Linux you can run the command <code>file filename.dsk</code>, and if it retur
 Another way is to check the size of the .DSK file.
 If it is exactly 1474560, 1228800, 737280 or 368640 bytes, it is likely to be a regular MFM disk image (in respectively 1.44MB, 1.2MB, 720KB or 360KB sizes).
 The size of a DSKF disk image will instead vary.
-IBM DSKF image files can be converted in DOSBox-X to regular diskette images with <a href="http://ftpmirror.your.org/pub/misc/ftp.software.ibm.com/storage/adsm/tools/loaddskf/loaddskf.exe">LOADDSKF.EXE</a>.</p>
+IBM DSKF image files can be converted in DOSBox-X to regular diskette images with <a href="https://ftpmirror.your.org/pub/misc/ftp.software.ibm.com/storage/adsm/tools/loaddskf/loaddskf.exe">LOADDSKF.EXE</a>.</p>
 </li>
 </ul>
 </div>
@@ -619,22 +619,22 @@ This method requires DOSBox-X 0.83.2 or newer.
 </tr>
 </table>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre> IMGMAKE hdd.img -t hd -size 2048
+<pre class="highlight"><code class="language-console" data-lang="console"> IMGMAKE hdd.img -t hd -size 2048
  IMGMOUNT C hdd.img
  IMGMOUNT D PC-DOS_2000.iso
  D:
- SETUP</pre>
+ SETUP</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>After it finished the installation, it will reboot DOSBox-X, and you&#8217;re again at the <code>Z:\&gt;</code> prompt. Now type the following to boot PC DOS 2000 normally.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMOUNT C hdd.img
-BOOT C:</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img
+BOOT C:</code></pre>
 </div>
 </div>
 </div>
@@ -645,9 +645,9 @@ BOOT C:</pre>
 <div class="paragraph">
 <p>If you have the PC DOS 2000 disk images in DSKF format, you first need to convert them, one by one, with LOADDSKF.EXE in DOSBox-X as follows:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMAKE DISK1.IMG -t fd_1440
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE DISK1.IMG -t fd_1440
 IMGMOUNT A DISK1.IMG -U
 LOADDSKF PCDOS_1.DSK A:
 IMGMAKE DISK2.IMG -t fd_1440
@@ -665,7 +665,7 @@ LOADDSKF PCDOS_5.DSK A:
 IMGMAKE DISK6.IMG -t fd_1440
 IMGMOUNT A DISK6.IMG -U
 LOADDSKF PCDOS_6.DSK A:
-IMGMOUNT A -U</pre>
+IMGMOUNT A -U</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -674,11 +674,11 @@ IMGMOUNT A -U</pre>
 <div class="paragraph">
 <p>Once you have the PC DOS 2000 disk images in non-DSKF format, you can install them as follows:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre> IMGMAKE hdd.img -t hd -size 2048
+<pre class="highlight"><code class="language-console" data-lang="console"> IMGMAKE hdd.img -t hd -size 2048
  IMGMOUNT C hdd.img
- BOOT DISK1.IMG DISK2.IMG DISK3.IMG DISK4.IMG DISK5.IMG DISK6.IMG</pre>
+ BOOT DISK1.IMG DISK2.IMG DISK3.IMG DISK4.IMG DISK5.IMG DISK6.IMG</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -687,10 +687,10 @@ IMGMOUNT A -U</pre>
 <div class="paragraph">
 <p>You can now boot these DOS versions directly from the HDD image as follows:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMOUNT C hdd.img
-BOOT C:</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img
+BOOT C:</code></pre>
 </div>
 </div>
 </div>
@@ -698,7 +698,7 @@ BOOT C:</pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-12-31 02:04:38 -0800
+Last updated 2023-02-05 01:05:47 -0800
 </div>
 </div>
 </body>

@@ -643,7 +643,7 @@ Any programs on copy-protected diskettes need to be "cracked" to remove the copy
 <div class="title">Note</div>
 </td>
 <td class="content">
-While DOSBox-X does not support mounting or booting from diskette images in IBM DSKF format, it is possible to use the <code><a href="http://ftpmirror.your.org/pub/misc/ftp.software.ibm.com/storage/adsm/tools/loaddskf/loaddskf.exe">LOADDSKF.EXE</a></code> program in DOSBox-X to convert an IBM DSKF file to a regular RAW MFM Disk format.
+While DOSBox-X does not support mounting or booting from diskette images in IBM DSKF format, it is possible to use the <code><a href="https://ftpmirror.your.org/pub/misc/ftp.software.ibm.com/storage/adsm/tools/loaddskf/loaddskf.exe">LOADDSKF.EXE</a></code> program in DOSBox-X to convert an IBM DSKF file to a regular RAW MFM Disk format.
 </td>
 </tr>
 </table>
@@ -670,17 +670,17 @@ This option allows most common floppy disk types to be created, for less common 
 <div class="paragraph">
 <p>Example:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMAKE disk.ima -t fd</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE disk.ima -t fd</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>This is equivalent to</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMAKE disk.ima -t fd_1440</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE disk.ima -t fd_1440</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -690,9 +690,9 @@ The diskette image will appear to have been formatted by MS-DOS 5.0.</p>
 <div class="paragraph">
 <p>The image filename for this command is optional, and if you do not specify a filename, then the name <code>IMGMAKE.IMG</code> will be used, such as the following:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMAKE -t fd</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE -t fd</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -710,9 +710,9 @@ The filename for the disk image is not limited to the DOS 8.3 filename length, b
 <div class="paragraph">
 <p>You can optionally create a diskette image that is not formatted with:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMAKE disk.ima -t fd -nofs</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE disk.ima -t fd -nofs</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -864,26 +864,26 @@ The 10-sector disks were used by the DEC Rainbow 100, and should likewise be avo
 <div class="paragraph">
 <p>Mounting a diskette image in DOSBox-X is typically as simple as</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount a disk.ima</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount a disk.ima</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>This is equivalent to</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount A: disk.ima
-imgmount A: disk.ima -t floppy</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount A: disk.ima
+imgmount A: disk.ima -t floppy</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>If you do not specify an image filename, then the name <code>IMGMAKE.IMG</code> will be used, such as the following:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount a</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount a</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -901,17 +901,17 @@ The <code>-t floppy</code> parameter is only needed with DOSBox-X when the exten
 <div class="paragraph">
 <p>A diskette image that is not formatted, or has an unsupported filesystem can be mounted as follows:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount 0 disk.ima</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount 0 disk.ima</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>This is equivalent to</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount 0 disk.ima -fs none</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount 0 disk.ima -fs none</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -954,9 +954,9 @@ Now a file browser will allow you to select an image file.</p>
 For this purpose it is possible to mount multiple diskette images on one drive letter and swap between them.
 e.g.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount a disk1.ima disk2.ima disk3.ima</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount a disk1.ima disk2.ima disk3.ima</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -980,17 +980,17 @@ This information can also be retrieved from the <code>IMGSWAP</code> command.</p
 It is possible to make a diskette image read-only (write protected) either by using the <code>-ro</code> option, or by attaching the <code>:</code> prefix to the filename.
 e.g.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount a disk.ima -ro</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount a disk.ima -ro</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>This is equivalent to:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount a :disk.ima</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount a :disk.ima</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -998,9 +998,9 @@ e.g.</p>
 If you use the <code>-ro</code> option, then all images specified in the command will become read-only.
 On the other hand, if you wish to make individual images read-only (instead of all of them), then you can attach the <code>:</code> prefix to these images, like this:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount a :disk1.ima :disk2.ima :disk3.ima userdisk.ima</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount a :disk1.ima :disk2.ima :disk3.ima userdisk.ima</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1013,25 +1013,25 @@ On the other hand, if you wish to make individual images read-only (instead of a
 <div class="paragraph">
 <p>Diskette images can be unmounted using the <code>-u</code> flag. e.g.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount a -u</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount a -u</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>You can also unmount using the <code>MOUNT</code> command.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>mount a -u</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">mount a -u</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>It is also possible to unmount the currently mounted image (if any), and mount a new image in one step.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount a disk2.ima -u</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount a disk2.ima -u</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1046,10 +1046,10 @@ On the other hand, if you wish to make individual images read-only (instead of a
 <div class="paragraph">
 <p>You can either mount a disk image first and then boot from it:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount a dos.ima
-boot a:</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount a dos.ima
+boot a:</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1067,9 +1067,9 @@ DOSBox-X supports the <code>-L</code> parameter for the <code>BOOT</code> comman
 <div class="paragraph">
 <p>Or you can boot directly from a disk as such:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>boot dos.ima</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">boot dos.ima</code></pre>
 </div>
 </div>
 <div class="admonitionblock tip">
@@ -1139,9 +1139,9 @@ The next time you want to open a <code>.IMA</code> file, the option will be avai
 <div class="paragraph">
 <p>Disk images can also be mounted READ-WRITE from the Linux Terminal using:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>gnome-disk-image-mounter -w disk.ima</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">gnome-disk-image-mounter -w disk.ima</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1154,9 +1154,9 @@ The next time you want to open a <code>.IMA</code> file, the option will be avai
 <p>The more traditional Linux method of mounting diskette image files from a Linux terminal.
 This method requires <code>sudo</code> access.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>sudo mount -o loop,uid=$UID disk.ima /mnt</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">sudo mount -o loop,uid=$UID disk.ima /mnt</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1258,17 +1258,17 @@ It provides various commands which can be used to interact with DOS diskette ima
 <div class="paragraph">
 <p>This will list the contents of the root directory of the diskette image, similar to the DOS <code>DIR</code> command.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>mdir -i disk.ima</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">mdir -i disk.ima</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Assuming the diskette image has a directory named GAMES, the contents can be listed as</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>mdir -i disk.ima ::games</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">mdir -i disk.ima ::games</code></pre>
 </div>
 </div>
 </div>
@@ -1277,17 +1277,17 @@ It provides various commands which can be used to interact with DOS diskette ima
 <div class="paragraph">
 <p>This command will copy the file <code>hello.txt</code> into the root directory of the disk image.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>mcopy -i disk.ima hello.txt ::</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">mcopy -i disk.ima hello.txt ::</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>This command will copy the file <code>hello.txt</code> into the GAMES directory of the disk image.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>mcopy -i disk.ima hello.txt ::games</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">mcopy -i disk.ima hello.txt ::games</code></pre>
 </div>
 </div>
 </div>
@@ -1296,18 +1296,18 @@ It provides various commands which can be used to interact with DOS diskette ima
 <div class="paragraph">
 <p>This command will copy the file <code>hello.txt</code> out of the root of the diskette image, to the current directory (<code>.</code>)</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>mcopy -i disk.ima ::hello.txt .</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">mcopy -i disk.ima ::hello.txt .</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Or if you want to copy all files, including sub-directories, from the diskette image to the directory <code>tmp</code></p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>mkdir tmp
-mcopy -s -i disk.ima :: tmp</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">mkdir tmp
+mcopy -s -i disk.ima :: tmp</code></pre>
 </div>
 </div>
 </div>
@@ -1349,7 +1349,7 @@ Unfortunately this support is incompatible with the typical RAW MFM image files 
 <p><a href="https://www.7-zip.org/">7-Zip</a></p>
 </li>
 <li>
-<p><a href="http://www.winimage.com/winimage.htm">WinImage</a></p>
+<p><a href="https://www.winimage.com/winimage.htm">WinImage</a></p>
 </li>
 <li>
 <p><a href="https://www.win-rar.com/">WinRAR</a></p>
@@ -1485,9 +1485,9 @@ But this can cause <code>IMGMAKE</code> to give errors if the partition size is 
 <div class="paragraph">
 <p>e.g., to create a 400MiB HDD image formatted as FAT32:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMAKE hdd.img -t hd -size 400 -fat 32</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE hdd.img -t hd -size 400 -fat 32</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1509,9 +1509,9 @@ FAT32 harddisk images will appear to have been partitioned and formatted by Wind
 <div class="paragraph">
 <p>Example:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMAKE hdd.img -t hd_520</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE hdd.img -t hd_520</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1520,9 +1520,9 @@ FAT32 harddisk images will appear to have been partitioned and formatted by Wind
 <div class="paragraph">
 <p>The image filename for this command is optional, and if you do not specify a filename, then the name <code>IMGMAKE.IMG</code> will be used, such as the following:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMAKE -t hd_520</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE -t hd_520</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1543,9 +1543,9 @@ The filename in this case is not limited to the DOS 8.3 filename length, but rat
 <div class="paragraph">
 <p>You can optionally create a harddisk image that is not partitioned and formatted with:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMAKE hdd.img -t hd_520 -nofs</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE hdd.img -t hd_520 -nofs</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1641,17 +1641,17 @@ DOSBox-X has no integrated FDISK and FORMAT commands, so creating harddisk image
 <div class="paragraph">
 <p>To create a partitioned and FAT16 formatted 31MB HDD image:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMAKE hdd.img -t hd -size 31</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE hdd.img -t hd -size 31</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>The same can be accomplished with the CHS (Cylinders, Heads, Sectors) geometry:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMAKE hdd.img -t hd -chs 992,2,32</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE hdd.img -t hd -chs 992,2,32</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1660,9 +1660,9 @@ DOSBox-X has no integrated FDISK and FORMAT commands, so creating harddisk image
 <div class="paragraph">
 <p>You can optionally create a harddisk image that is not partitioned and formatted by specifying <code>-nofs</code>:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMAKE hdd.img -t hd -size 31 -nofs</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE hdd.img -t hd -size 31 -nofs</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1680,9 +1680,9 @@ DOSBox-X has no integrated FDISK and FORMAT commands, so creating harddisk image
 <div class="paragraph">
 <p>The <code>IMGMAKE</code> command also has an optional ''-bat'' option for use on Windows systems.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMAKE hdd.img -t hd -size 31 -nofs -bat</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE hdd.img -t hd -size 31 -nofs -bat</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1706,10 +1706,10 @@ If the total does not exceed 2GiB, it will be converted to a FAT16 harddisk imag
 <div class="paragraph">
 <p>The amount of free space can be adjusted in the DOSBox-X config file as such:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[sdl]
-convert fat free space = 10</pre>
+<pre class="highlight"><code class="language-ini" data-lang="ini">[sdl]
+convert fat free space = 10</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1722,27 +1722,27 @@ Set it to 0 for read-only (no free space) and -1 to attempt to use the actual fr
 <div class="paragraph">
 <p>Mounting a harddisk image in DOSBox-X is typically as simple as</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount c hdd.img</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount c hdd.img</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>This is equivalent to</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount C: hdd.img
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount C: hdd.img
 imgmount C: disk.ima -t hdd
-imgmount C: disk.ima -t hdd -fs fat</pre>
+imgmount C: disk.ima -t hdd -fs fat</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>If you do not specify an image filename, it will try to open a file named <code>IMGMAKE.IMG</code>, such as in this example:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount c</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount c</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1790,9 +1790,9 @@ When booting real DOS in DOSBox-X, all partitions will be accessible.
 <div class="paragraph">
 <p>A harddisk image that is partitioned, but not formatted, or has an unsupported filesystem can be mounted as follows:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount 2 hdd.img</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount 2 hdd.img</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1847,17 +1847,17 @@ DOSBox-X automatically assumes the <code>-fs none</code> flag when a drive numbe
 <div class="paragraph">
 <p>Using the original template it was based on:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount 2 hdd.img -t hd_4gig</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount 2 hdd.img -t hd_4gig</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Or using the original SHC it was based on:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount 2 hdd.img -t hdd -size 512,32,2,992</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount 2 hdd.img -t hdd -size 512,32,2,992</code></pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -1944,9 +1944,9 @@ Doing so when running a program, real DOS or Win9x is strongly discouraged as it
 <div class="paragraph">
 <p>e.g. to mount the 2nd primary partition:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount C: hdd.img -o partidx=1</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount C: hdd.img -o partidx=1</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1979,25 +1979,25 @@ If the harddisk image has an Extended partition, that partition cannot be mounte
 <div class="paragraph">
 <p>Harddisk images can be unmounted using the <code>-u</code> flag. e.g.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount c -u</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount c -u</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>You can also unmount using the <code>MOUNT</code> command.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>mount c -u</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">mount c -u</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>It is also possible to unmount the currently mounted image (if any), and mount a new image in one step.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount c hdd2.img -u</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount c hdd2.img -u</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2034,10 +2034,10 @@ Doing so when running a program, real DOS or Win9x is strongly discouraged as it
 <div class="paragraph">
 <p>First mount the harddisk image, and then boot from it as follows:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount c hdd.img
-boot c:</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount c hdd.img
+boot c:</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -2104,9 +2104,9 @@ If the harddisk image contains multiple partitions, they will ALL be mounted.
 <div class="paragraph">
 <p>Disk images can also be mounted READ-WRITE from the Linux Terminal using:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>gnome-disk-image-mounter -w hdd.img</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">gnome-disk-image-mounter -w hdd.img</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2118,9 +2118,9 @@ If the harddisk image contains multiple partitions, they will ALL be mounted.
 <div class="paragraph">
 <p>The more traditional Linux method of mounting harddisk image files from a Linux terminal. This method requires <code>sudo</code> access.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>sudo mount -o loop,offset=32256,uid=$UID hdd.img /mnt</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">sudo mount -o loop,offset=32256,uid=$UID hdd.img /mnt</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2173,11 +2173,11 @@ You can unmount it by clicking on the "Eject" button next to it in the Finder.</
 <div class="paragraph">
 <p>RAW MFM Harddisk images can also be opened in macOS from the Terminal using <code>hdiutil</code> as such:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>hdiutil attach hdd.img
+<pre class="highlight"><code class="language-console" data-lang="console">hdiutil attach hdd.img
 /dev/disk6              FDisk_partition_scheme
-/dev/disk6a1            DOS_FAT_16</pre>
+/dev/disk6a1            DOS_FAT_16</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2188,10 +2188,10 @@ In the above example the disk is mounted on <code>/dev/disk6</code>, and the fir
 <p>After this the harddisk image should be available from both the terminal and from Finder.
 Once you&#8217;re done, you can detach it as follows:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>hdiutil detach /dev/disk6
-"disk6" ejected.</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">hdiutil detach /dev/disk6
+"disk6" ejected.</code></pre>
 </div>
 </div>
 </div>
@@ -2251,19 +2251,19 @@ If the CD or DVD contains multiple tracks, like DATA and AUDIO (aka redbook audi
 <div class="paragraph">
 <p>Mounting a CD or DVD image in DOSBox-X is typically as simple as</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount d cdrom.iso</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount d cdrom.iso</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>This is equivalent to</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount D: cdrom.iso
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount D: cdrom.iso
 imgmount D: cdrom.iso -t iso
-imgmount D: cdrom.iso -t cdrom</pre>
+imgmount D: cdrom.iso -t cdrom</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -2308,9 +2308,9 @@ If the names of your CD/DVD images contain characters of foreign languages such 
 <div class="paragraph">
 <p>e.g. to mount a CD image and disable Rock Ridge support:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount D: cdrom.iso -o rr=0</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount D: cdrom.iso -o rr=0</code></pre>
 </div>
 </div>
 </div>
@@ -2332,7 +2332,7 @@ If however, you boot real DOS in DOSBox-X, any mounted CD-ROM images will not be
 <p><a href="https://www.ibiblio.org/pub/micro/pc-stuff/freedos/files/dos/cdrom/uide/">UIDE.SYS</a> is available from <a href="https://www.freedos.org/">FreeDOS</a>. Note that this driver is know to have issues in some cases, such as with mixed media (data+audio)</p>
 </li>
 <li>
-<p>You can also use the <a href="http://vogonsdrivers.com/getfile.php?fileid=1456&amp;menustate=0">Acer VIDE-CDD.SYS</a> driver which loads faster than OAKCDROM.SYS.</p>
+<p>You can also use the <a href="https://vogonsdrivers.com/getfile.php?fileid=1456&amp;menustate=0">Acer VIDE-CDD.SYS</a> driver which loads faster than OAKCDROM.SYS.</p>
 </li>
 </ul>
 </div>
@@ -2342,17 +2342,17 @@ If however, you boot real DOS in DOSBox-X, any mounted CD-ROM images will not be
 <div class="paragraph">
 <p>Edit the config.sys file and add the following line to it:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>device=c:\dos\oakcdrom.sys /D:cdrom001</pre>
+<pre class="highlight"><code class="language-shell" data-lang="shell">device=c:\dos\oakcdrom.sys /D:cdrom001</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Edit the autoexec.bat file and add the following line to it:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>device=c:\dos\mscdex.exe /D:cdrom001 /L:D</pre>
+<pre class="highlight"><code class="language-shell" data-lang="shell">device=c:\dos\mscdex.exe /D:cdrom001 /L:D</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2369,9 +2369,9 @@ You can substitute <code>oakcdrom.sys</code> and <code>mscdex.exe</code> with th
 <p>Some DOS programs or games came on multiple CD or DVDs, for this purpose it is possible to mount multiple images on one drive letter and swap between them.
 e.g.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount d cdrom1.iso cdrom2.iso cdrom3.iso</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount d cdrom1.iso cdrom2.iso cdrom3.iso</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2409,25 +2409,25 @@ All the other mount options are host folder mounts.</p>
 <div class="paragraph">
 <p>CD or DVD images can be unmounted using the <code>-u</code> flag. e.g.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount d -u</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount d -u</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>You can also unmount using the <code>MOUNT</code> command.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>mount d -u</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">mount d -u</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>It is also possible to unmount the currently mounted image (if any), and mount a new image in one step.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount d cdrom2.iso -u</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount d cdrom2.iso -u</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2455,11 +2455,11 @@ Only those that use the El Torito emulated diskette method are supported, such a
 <div class="paragraph">
 <p>You first need to mount the CD-ROM, then mount the diskette image, located on the CD-ROM, and finally you can boot from the A: drive:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount d Win98.iso
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount d Win98.iso
 imgmount a -bootcd d
-boot A:</pre>
+boot A:</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -2504,9 +2504,9 @@ This method will not work for <code>.CUE</code>+<code>.BIN</code> or <code>MDF</
 <div class="paragraph">
 <p><code>.ISO</code> images can also be mounted from the Linux Terminal using:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>gnome-disk-image-mounter cdrom.iso</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">gnome-disk-image-mounter cdrom.iso</code></pre>
 </div>
 </div>
 </div>
@@ -2523,9 +2523,9 @@ This method will not work for <code>.CUE</code>+<code>.BIN</code> or <code>MDF</
 This method will not work for <code>.CUE</code>+<code>.BIN</code> or <code>.MDF</code> files.
 This method requires <code>sudo</code> access.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>sudo mount -o loop cdrom.iso /mnt</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">sudo mount -o loop cdrom.iso /mnt</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2588,12 +2588,12 @@ You can unmount it by clicking on the "Eject" button next to it in the Finder.</
 <div class="paragraph">
 <p>Example of extracting the contents of a CD-ROM image file:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMOUNT d cdrom.iso
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT d cdrom.iso
 MOUNT C .
 MKDIR C:\CDROM
-XCOPY D: C:\CDROM /I /S</pre>
+XCOPY D: C:\CDROM /I /S</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2602,11 +2602,11 @@ XCOPY D: C:\CDROM /I /S</pre>
 <div class="paragraph">
 <p>Example of copying a file into a harddisk image file:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMOUNT C hdd.img
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img
 MOUNT D .
-COPY D:\UNZIP.EXE C:\DOS</pre>
+COPY D:\UNZIP.EXE C:\DOS</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2620,9 +2620,9 @@ COPY D:\UNZIP.EXE C:\DOS</pre>
 <div class="paragraph">
 <p>If you need a temporary drive, creating a RAM drive is as simple as running</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMOUNT e -t ram -size 20000</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT e -t ram -size 20000</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2681,9 +2681,9 @@ DOSBox-X provides limited support for these images.</p>
 <div class="paragraph">
 <p>A QCOW2 image can be created with <a href="https://www.qemu.org/download/">qemu-img</a> as such:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>qemu-img create -f qcow2 hdd.qcow2 2G</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">qemu-img create -f qcow2 hdd.qcow2 2G</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2692,9 +2692,9 @@ DOSBox-X provides limited support for these images.</p>
 <div class="paragraph">
 <p>Mounting a qcow2 file can be accomplished in DOSBox-X as follows:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount 2 hdd.qcow2</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount 2 hdd.qcow2</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2703,10 +2703,10 @@ DOSBox-X provides limited support for these images.</p>
 <div class="paragraph">
 <p>Once a qcow2 file has been partitioned and formatted and made bootable, you can boot from it as such:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>imgmount 2 hdd.qcow2
-boot C:</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">imgmount 2 hdd.qcow2
+boot C:</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2738,9 +2738,9 @@ This saves disk space compared to maintaining multiple full installations, and c
 <p>If you have a relatively modern PC running Windows with a floppy drive, the <code>IMGMAKE</code> command supports converting a diskette to an image file.
 This will even work with USB diskette drives.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMAKE disk.ima -source a -r 3</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE disk.ima -source a -r 3</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2820,7 +2820,7 @@ This is because, once you boot a guest OS, the drive letter mapping loses its me
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-12-31 02:04:38 -0800
+Last updated 2023-02-05 01:05:47 -0800
 </div>
 </div>
 </body>

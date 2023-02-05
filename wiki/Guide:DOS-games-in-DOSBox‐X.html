@@ -481,9 +481,9 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="paragraph">
 <p>Otherwise, you can manually run the DOS game from the DOSBox-X command line. Now start DOSBox-X. By default, there is no drive mounted other than the internal virtual drive Z:. You need to mount the game directory so that it can be seen from within DOSBox-X. You can either mount a drive from the Drive menu, or by typing a command like the following:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>MOUNT C C:\GAME</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">MOUNT C C:\GAME</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -503,9 +503,9 @@ C: Tells the program what you want your new drive to be called (leaving it as C:
 C:\GAME: This is the directory you want to set as the new drive for DOSBox-X. If your game is located in a different directory, then replace it with that directory.
 (Note: If you want to mount a CD-ROM instead of a folder, type this:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>MOUNT D D:\ -T CDROM</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">MOUNT D D:\ -T CDROM</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -523,17 +523,17 @@ Drive D is mounted as CDRom D:\</pre>
 <div class="paragraph">
 <p>After you have done this, you will be prompted with a Z:\&gt;. Now, just write what you wanted to call your new DOSBox-X drive, such as C: mentioned above. To navigate to that newly mounted drive just type in:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>C:</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">C:</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>The drive will be changed from Z:\ to C:\. And it is now time to run the game. Most games have an EXE file in their directory that you can run. However, some might require a BAT file, or COM file (common in demos and very old games). Most of the time, the file is in the root folder. Please consult the documentation of your game for which file is needed to start the game. Suppose the game executable is called PLAY.EXE, then you can just type this:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>PLAY.EXE</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">PLAY.EXE</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -825,7 +825,7 @@ add write permissions etc.)</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-12-31 02:04:38 -0800
+Last updated 2023-02-05 01:05:47 -0800
 </div>
 </div>
 </body>

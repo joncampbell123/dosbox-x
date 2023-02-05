@@ -654,7 +654,7 @@ IBM released a corrective service (CSD UR22624) to upgrade a 4.00 installation t
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://www.os2museum.com/wp/dos/dos-4-0/" class="bare">http://www.os2museum.com/wp/dos/dos-4-0/</a></p>
+<p><a href="https://www.os2museum.com/wp/dos/dos-4-0/" class="bare">https://www.os2museum.com/wp/dos/dos-4-0/</a></p>
 </li>
 </ul>
 </div>
@@ -671,18 +671,18 @@ IBM released a corrective service (CSD UR22624) to upgrade a 4.00 installation t
 <div class="paragraph">
 <p>If you decide to do just an absolute minimal install, and effectively skip the MS-DOS 4.0x install program, you don&#8217;t need to worry about the buggy MS-DOS 4.0x installer.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre> IMGMAKE hdd.img -t hd -size 32
- IMGMOUNT C hdd.img</pre>
+<pre class="highlight"><code class="language-console" data-lang="console"> IMGMAKE hdd.img -t hd -size 32
+ IMGMOUNT C hdd.img</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Now you need to boot from the first MS-DOS 4.0x disk, which is called either Setup or Install depending on the media type.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre> BOOT SETUP.IMG</pre>
+<pre class="highlight"><code class="language-console" data-lang="console"> BOOT SETUP.IMG</code></pre>
 </div>
 </div>
 <div class="imageblock">
@@ -706,9 +706,9 @@ IBM released a corrective service (CSD UR22624) to upgrade a 4.00 installation t
 <div class="paragraph">
 <p>and run the following command to format the C: drive and transfer system files:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre> FORMAT C: /S</pre>
+<pre class="highlight"><code class="language-console" data-lang="console"> FORMAT C: /S</code></pre>
 </div>
 </div>
 <div class="imageblock">
@@ -748,11 +748,11 @@ Alternatively if you want to do a full install, you can type <code>SELECT MENU</
 <p>During install, the installer will insist on a blank disk to be labelled "SELECT COPY", to make a copy of the INSTALL (Setup) disk.
 Unfortunately while it seems the installer should allow to use the B: drive for this purpose this does not seem to work in practice (it seems this only works if there is no disk in drive B: when the installer starts, which you cannot do with DOSBox-X).</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre> IMGMAKE SELECT_COPY.IMG -t fd_720
+<pre class="highlight"><code class="language-console" data-lang="console"> IMGMAKE SELECT_COPY.IMG -t fd_720
  IMGMOUNT C hdd.img
- BOOT :SETUP.IMG SELECT_COPY.IMG :SETUP.IMG SELECT_COPY.IMG :OPERATING.IMG :MSSHELL.IMG</pre>
+ BOOT :SETUP.IMG SELECT_COPY.IMG :SETUP.IMG SELECT_COPY.IMG :OPERATING.IMG :MSSHELL.IMG</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -930,10 +930,10 @@ You will then be asked for the OPERATING disk, and finally (if selected to insta
 <div class="paragraph">
 <p>You can now boot the MS-DOS 4.0x HDD image using</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMOUNT C hdd.img
-BOOT -L C</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img
+BOOT -L C</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -962,10 +962,10 @@ You will also need two blank disks.</p>
 <div class="paragraph">
 <p>Now that you have created a bootable HDD image you can boot it from the DOSBox-X <code>Z:\&gt;</code> prompt with the following commands:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMOUNT C hdd.img
-BOOT -L C</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img
+BOOT -L C</code></pre>
 </div>
 </div>
 </div>
@@ -983,11 +983,11 @@ BOOT -L C</pre>
 <div class="paragraph">
 <p>First start by creating an HDD image file, mount it and boot from disk (this assumes 3.5" media).</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre> IMGMAKE hdd.img -t hd -size 1024
+<pre class="highlight"><code class="language-console" data-lang="console"> IMGMAKE hdd.img -t hd -size 1024
  IMGMOUNT C hdd.img
- BOOT :INSTALL.IMG :OPERATING.IMG</pre>
+ BOOT :INSTALL.IMG :OPERATING.IMG</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1000,7 +1000,7 @@ After the installation is finished, and you boot from the HDD image, it will go 
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-12-31 02:04:38 -0800
+Last updated 2023-02-05 01:05:47 -0800
 </div>
 </div>
 </body>

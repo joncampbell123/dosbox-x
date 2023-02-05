@@ -767,15 +767,15 @@ In some cases this is not possible, such as:</p>
 <div class="paragraph">
 <p>To enable NE2000 emulation with the pcap back-end, add the following to your DOSBox-X config file:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[ne2000]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[ne2000]
 ne2000=true
 nicirq=10
 backend=pcap
 
 [ethernet, pcap]
-realnic=list</pre>
+realnic=list</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -870,12 +870,12 @@ This can be overcome using the <code>tcp_port_forwards=</code> and <code>udp_por
 <div class="paragraph">
 <p>To enable NE2000 emulation with the slirp back-end, add the following to your DOSBox-X config file:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[ne2000]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[ne2000]
 ne2000=true
 nicirq=10
-backend=slirp</pre>
+backend=slirp</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1160,9 +1160,9 @@ Or the libslirp library for the slirp back-end.</p>
 <div class="paragraph">
 <p>If you&#8217;re running a recent Debian or Debian based distribution such as Ubuntu, you can install the libraries from the command-line as follows:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>apt-get install libpcap libslirp</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">$ sudo apt-get install libpcap libslirp</code></pre>
 </div>
 </div>
 </div>
@@ -1174,9 +1174,9 @@ Or the libslirp library for the slirp back-end.</p>
 <div class="paragraph">
 <p>Otherwise, if you&#8217;re running a recent Red Hat, CentOS, SUSE or Fedora Linux distribution, you can install the libraries from the command-line as follows:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>dnf install libpcap libslirp</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">$ sudo dnf install libpcap libslirp</code></pre>
 </div>
 </div>
 </div>
@@ -1187,11 +1187,11 @@ Or the libslirp library for the slirp back-end.</p>
 <p>The provided RPMs have networking enabled, but if you compiled DOSBox-X yourself and the libpcap or libslirp headers where not installed, the resulting DOSBox-X binary will lack libpcap and/or libslirp support.
 To check if your binary has networking support, run the following command:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>ldd /usr/bin/dosbox-x |grep "pcap\|slirp"
+<pre class="highlight"><code class="language-console" data-lang="console">$ ldd /usr/bin/dosbox-x |grep "pcap\|slirp"
 	libpcap.so.1 =&gt; /lib64/libpcap.so.1 (0x00007f7877a7a000)
-	libslirp.so.0 =&gt; /lib64/libslirp.so.0 (0x00007f7877a5c000)</pre>
+	libslirp.so.0 =&gt; /lib64/libslirp.so.0 (0x00007f7877a5c000)</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1208,12 +1208,12 @@ If you&#8217;re DOSBox-x binary has no networking, your options are to use the p
 <p>Otherwise, you need to ensure that the DOSBox-X binary has permission to listen to and generate low level network traffic (promiscuous mode).
 You can do this as follows:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>$ which dosbox-x
+<pre class="highlight"><code class="language-console" data-lang="console">$ which dosbox-x
 /usr/bin/dosbox-x
 $ getcap /usr/bin/dosbox-x
-$</pre>
+$</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1221,9 +1221,9 @@ $</pre>
 In this case getcap does not return anything, meaning it has no special capabilities, which you need to rectify if you want to be able to have PCAP networking in DOSBox-X.
 Run the following command:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>$ sudo setcap cap_net_raw+ep /usr/bin/dosbox-x</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">$ sudo setcap cap_net_raw+ep /usr/bin/dosbox-x</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1232,10 +1232,10 @@ Run the following command:</p>
 <div class="paragraph">
 <p>To validate that now the DOSBox-X binary indeed has the cap_net_raw capability, run:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>$ getcap /usr/bin/dosbox-x
-/usr/bin/dosbox-x = cap_net_raw+ep</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">$ getcap /usr/bin/dosbox-x
+/usr/bin/dosbox-x = cap_net_raw+ep</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1254,23 +1254,23 @@ It is highly recommended to only bridge to wired Ethernet adapters, as wireless 
 <div class="paragraph">
 <p>Create a simple <code>ne2000.conf</code> config file as follows:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[ne2000]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[ne2000]
 ne2000=true
 nicirq=10
 backend=pcap
 
 [ethernet, pcap]
-realnic=list</pre>
+realnic=list</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Now, from a terminal, start DOSBox-X, using the ne2000.conf config file you just created.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>dosbox-x -conf ne2000.conf</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf ne2000.conf</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1297,15 +1297,15 @@ In the above example, 1, or eno1 is the integrated Ethernet of my PC, which we w
 <div class="paragraph">
 <p>Edit the ne2000.conf config file and change realnic= to the number or name of your chosen network interface. e.g.:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[ne2000]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[ne2000]
 ne2000=true
 nicirq=10
 backend=pcap
 
 [ethernet, pcap]
-realnic=eno1</pre>
+realnic=eno1</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1347,22 +1347,22 @@ It is highly recommended to only bridge to wired Ethernet adapters, as wireless 
 <div class="paragraph">
 <p>Create a simple <code>ne2000.conf</code> config file as follows:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[ne2000]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[ne2000]
 ne2000=true
 nicirq=10
 
 [ethernet, pcap]
-realnic=list</pre>
+realnic=list</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Now, from a command prompt, start DOSBox-X, using the <code>ne2000.conf</code> config file you just created.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>dosbox-x -conf ne2000.conf</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf ne2000.conf</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1405,15 +1405,15 @@ In the above example, 9 is the USB Ethernet adapter I want to use. It may take y
 <div class="paragraph">
 <p>Edit the <code>ne2000.conf</code> config file and change <code>realnic=</code> to the value or name of your chosen network interface. e.g.:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[ne2000]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[ne2000]
 ne2000=true
 nicirq=10
 backend=pcap
 
 [ethernet, pcap]
-realnic="Realtek USB NIC"</pre>
+realnic="Realtek USB NIC"</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1447,29 +1447,29 @@ realnic="Realtek USB NIC"</pre>
 <div class="paragraph">
 <p>unzip both mTCP and the NE2000 DOS Packet driver into a directory. In the below example the directory is named <code>mtcp</code>, then start DOSBox-X with the <code>ne2000.conf</code> config file that you created:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>dosbox-x -conf ne2000.conf</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf ne2000.conf</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Now in DOSBox-X run the following commands:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>MOUNT C mtcp
+<pre class="highlight"><code class="language-console" data-lang="console">MOUNT C mtcp
 C:
 SET MTCPCFG=C:\SAMPLES\SAMPLE.CFG
 NE2000 0x60 10 0x300
-DHCP</pre>
+DHCP</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>If all worked fine, you should have gotten an IP address, and you can now do something like</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>PING google.com</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">PING google.com</code></pre>
 </div>
 </div>
 <div class="sect2">
@@ -1477,9 +1477,9 @@ DHCP</pre>
 <div class="paragraph">
 <p>When loading the NE2000 DOS Packet driver you get an all FF Ethernet MAC address:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>C:\&gt;NE2000 0x60 10 0x300
+<pre class="highlight"><code class="language-console" data-lang="console">C:\&gt;NE2000 0x60 10 0x300
 Packet driver for NE2000, version 11.4.3
 Packet driver skeleton copyright 1988-93, Crynwr Software.
 This program is freely copyable; source must be available; NO WARRANTY.
@@ -1489,7 +1489,7 @@ System: [345]86 processor, ISA bus, Two 8259s
 Packet driver software interrupt is 0x60 (96)
 Interrupt number 0xA (10)
 I/O port 0x300 (768)
-My Ethernet address is FF:FF:FF:FF:FF:FF</pre>
+My Ethernet address is FF:FF:FF:FF:FF:FF</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1524,9 +1524,9 @@ My Ethernet address is FF:FF:FF:FF:FF:FF</pre>
 <div class="paragraph">
 <p>When starting DHCP you get only timeouts.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>C:\&gt;DHCP
+<pre class="highlight"><code class="language-console" data-lang="console">C:\&gt;DHCP
 mTCP DHCP Client by M Brutman (mbbrutman@gmail.com) (C)opyright 2008-2020
 Version: Mar  7 2020
 
@@ -1538,7 +1538,7 @@ DHCP request sent, attempt 2: Timeout
 DHCP request sent, attempt 3: Timeout
 
 Error: Your Ethernet card reported an error for every packet we sent.
-Check your cabling and packet driver settings, including the hardware IRQ.</pre>
+Check your cabling and packet driver settings, including the hardware IRQ.</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1572,20 +1572,18 @@ If there are multiple DOSBox-X instances running on the same host, or on differe
 </div>
 <div class="paragraph">
 <p>In your DOSBox-X config file, in the <code>[ne2000]</code> section, add a <code>macaddr=</code> line with a new MAC address.
-The AC:DE:48 range is a reserved range for private use, so just modify the last three number blocks.</p>
+The AC:DE:48 range is a reserved range for private use, so just modify the last three number blocks.
+e.g.,</p>
 </div>
-<div class="paragraph">
-<p>e.g.</p>
-</div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[ne2000]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[ne2000]
 ne2000=true
 nicirq=10
 macaddr=AC:DE:48:88:99:AB
 
 [ethernet, pcap]
-realnic=1</pre>
+realnic=1</code></pre>
 </div>
 </div>
 </div>
@@ -1664,25 +1662,25 @@ The easiest way is probably to extract them in DOSBox-X itself.</p>
 <div class="paragraph">
 <p>Then run the following commands:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>MOUNT C .
+<pre class="highlight"><code class="language-console" data-lang="console">MOUNT C .
 C:
 VLM121_2.EXE -y
-VLM121_6.EXE -y</pre>
+VLM121_6.EXE -y</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>The files needed are still packed in yet another "Personal NetWare Packed File" archive. Extract them as follows:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>MKDIR IPX
+<pre class="highlight"><code class="language-console" data-lang="console">MKDIR IPX
 NWUNPACK LSL.CO_ \IPX
 NWUNPACK IPXODI.CO_ \IPX
 NWUNPACK NETBIOS.EX_ \IPX
 NWUNPACK DOS\NE2000.CO_ \IPX
-EXIT</pre>
+EXIT</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1737,21 +1735,21 @@ EXIT</pre>
 <div class="paragraph">
 <p>Now modify your <code>ne2000.conf</code> config file that you created earlier, such that it contains the following lines in the <code>[autoexec]</code> section at the end:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>MOUNT C .
+<pre class="highlight"><code class="language-console" data-lang="console">MOUNT C .
 C:
 IPX\LSL.COM
 IPX\NE2000.COM
-IPX\IPXODI.COM</pre>
+IPX\IPXODI.COM</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Adjust paths in the above example as necessary, and you should be able to run it from a command prompt as follows:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>dosbox-x -conf ne2000.conf</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf ne2000.conf</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1765,7 +1763,7 @@ But note that this is NetBIOS <strong>over</strong> IPX, which cannot communicat
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-12-31 02:04:38 -0800
+Last updated 2023-02-05 01:05:47 -0800
 </div>
 </div>
 </body>

@@ -841,7 +841,7 @@ Please use <code>mididevice=fluidsynth</code> instead, with the <code>fluid.samp
 <p>The Roland MT-32 pre-dates General MIDI, and was used by a broad range of DOS games, starting in 1988 with King&#8217;s Quest IV.</p>
 </div>
 <div class="paragraph">
-<p>The MT-32 emulation that is integrated into DOSBox-X is based on the <a href="http://munt.sourceforge.net/">Munt project</a>.</p>
+<p>The MT-32 emulation that is integrated into DOSBox-X is based on the <a href="https://munt.sourceforge.net/">Munt project</a>.</p>
 </div>
 <div class="paragraph">
 <p>Emulation is provided for the original MT-32 (aka "MT-32 Old"), the revised MT-32 (aka "MT-32 New"), and the CM-32L and LAPC-I.</p>
@@ -922,11 +922,11 @@ C:\Users\My User\emu\cm32l\CM32L_PCM.ROM</pre>
 <div class="paragraph">
 <p>At a minimum you need to have the following set in your DOSBox-X config file:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[midi]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[midi]
 mididevice=mt32
-mt32.romdir="C:\Users\My User\emu\cm32l"</pre>
+mt32.romdir="C:\Users\My User\emu\cm32l"</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1453,7 +1453,7 @@ An alternative if you want to use Jack for FluidSynth is to set up PulseAudio as
 It is expected that "PipeWire" will replace both PulseAudio and Jack in the near future.</p>
 </div>
 <div class="paragraph">
-<p>For Windows and macOS you can optionally download and install <a href="http://www.fluidsynth.org/">FluidSynth</a>. Note that not every update is released as binary, so unless you can compile it yourself you may be a few versions behind.</p>
+<p>For Windows and macOS you can optionally download and install <a href="https://www.fluidsynth.org/">FluidSynth</a>. Note that not every update is released as binary, so unless you can compile it yourself you may be a few versions behind.</p>
 </div>
 </div>
 <div class="sect3">
@@ -1813,48 +1813,48 @@ After you have installed the packages, enable and start the timidity service.
 This only needs to be done once.
 On a modern Linux distribution this can be done as follows from the command line:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>sudo systemctl enable timidity
-sudo systemctl start timidity</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">sudo systemctl enable timidity
+sudo systemctl start timidity</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Before trying MIDI in DOSBox-X, validate that TiMidity&#43;&#43; is working by playing a MIDI file.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>timidity example.midi</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">timidity example.midi</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Once you confirmed that MIDI works, set the below options in your DOSBox-X config file. This will cause DOSBox-X to try to connect to TiMidity&#43;&#43; over TCP/IP to localhost (127.0.0.1) on port 7777:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[midi]
-mididevice=timidity</pre>
+<pre class="highlight"><code class="language-ini" data-lang="ini">[midi]
+mididevice=timidity</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Using <code>midiconfig=</code> a different host and/or port can be specified:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[midi]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[midi]
 mididevice=timidity
-midiconfig=localhost:8000</pre>
+midiconfig=localhost:8000</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Alternatively it is also possible to connect to TiMidity&#43;&#43; over ALSA as follows.
 First locate the ALSA MIDI device that got assigned to TiMidity&#43;&#43; using <code>aconnect -i</code> (in the Linux terminal) or <code>mixer /listmidi alsa</code> (in the command line of DOSBox-X 0.83.12 or later). Then use the following config options:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[midi]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[midi]
 mididevice=alsa
-midiconfig=128:0</pre>
+midiconfig=128:0</code></pre>
 </div>
 </div>
 </div>
@@ -1880,11 +1880,11 @@ You can optionally also use ALSA with a separate software sequencer that creates
 <p>Once you get the device ID (e.g. 128:0) you can then add it to the <code>midiconfig=</code> line.
 E.g.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[midi]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[midi]
 mididevice=alsa
-midiconfig=128:0</pre>
+midiconfig=128:0</code></pre>
 </div>
 </div>
 </div>
@@ -1934,7 +1934,7 @@ On a modern Windows system, there are no configuration options either.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-12-31 02:04:38 -0800
+Last updated 2023-02-05 01:05:47 -0800
 </div>
 </div>
 </body>

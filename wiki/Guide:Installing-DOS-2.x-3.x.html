@@ -659,13 +659,13 @@ Since DOSBox-X does not emulate the peculiarities of such early clone systems, t
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://www.os2museum.com/wp/dos/dos-2-0-and-2-1/" class="bare">http://www.os2museum.com/wp/dos/dos-2-0-and-2-1/</a></p>
+<p><a href="https://www.os2museum.com/wp/dos/dos-2-0-and-2-1/" class="bare">https://www.os2museum.com/wp/dos/dos-2-0-and-2-1/</a></p>
 </li>
 <li>
-<p><a href="http://www.os2museum.com/wp/dos/dos-3-0-3-2/" class="bare">http://www.os2museum.com/wp/dos/dos-3-0-3-2/</a></p>
+<p><a href="https://www.os2museum.com/wp/dos/dos-3-0-3-2/" class="bare">https://www.os2museum.com/wp/dos/dos-3-0-3-2/</a></p>
 </li>
 <li>
-<p><a href="http://www.os2museum.com/wp/dos/dos-3-3/" class="bare">http://www.os2museum.com/wp/dos/dos-3-3/</a></p>
+<p><a href="https://www.os2museum.com/wp/dos/dos-3-3/" class="bare">https://www.os2museum.com/wp/dos/dos-3-3/</a></p>
 </li>
 </ul>
 </div>
@@ -821,10 +821,10 @@ Device number 2 represents the first disk on the primary HDD controller.
 </tr>
 </table>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre> IMGMAKE hdd.img -t hd -size 31 -nofs
- IMGMOUNT 2 hdd.img -size 512,32,2,992 -fs none</pre>
+<pre class="highlight"><code class="language-console" data-lang="console"> IMGMAKE hdd.img -t hd -size 31 -nofs
+ IMGMOUNT 2 hdd.img -size 512,32,2,992 -fs none</code></pre>
 </div>
 </div>
 <div class="imageblock">
@@ -835,9 +835,9 @@ Device number 2 represents the first disk on the primary HDD controller.
 <div class="paragraph">
 <p>You are now ready to boot the DOS diskette image:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre> BOOT dos.img</pre>
+<pre class="highlight"><code class="language-console" data-lang="console"> BOOT dos.img</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -874,10 +874,10 @@ At this point the HDD image is partitioned, but not yet formatted or made bootab
 <div class="paragraph">
 <p>Since there is now a partition, DOSBox-X can now autodetect the disk geometry. As such, it is no longer necessary to specify the geometry settings.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre> IMGMOUNT 2 hdd.img -fs none
- BOOT dos.img</pre>
+<pre class="highlight"><code class="language-console" data-lang="console"> IMGMOUNT 2 hdd.img -fs none
+ BOOT dos.img</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -896,9 +896,9 @@ With PC DOS 3.2 this is enhanced to also support transfer to the HDD with the fo
 </tr>
 </table>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre> FORMAT C: /S</pre>
+<pre class="highlight"><code class="language-console" data-lang="console"> FORMAT C: /S</code></pre>
 </div>
 </div>
 <div class="imageblock">
@@ -909,10 +909,10 @@ With PC DOS 3.2 this is enhanced to also support transfer to the HDD with the fo
 <div class="paragraph">
 <p>You can optionally copy over the rest of the diskette contents at this point</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre> MKDIR C:\DOS
- COPY A:\*.* C:\DOS</pre>
+<pre class="highlight"><code class="language-console" data-lang="console"> MKDIR C:\DOS
+ COPY A:\*.* C:\DOS</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -926,10 +926,10 @@ You should be again at the DOSBox-X <code>Z:\&gt;</code> prompt.</p>
 <p>Your setup is now complete and all that is left is how to boot the image normally.
 From the DOSBox-X <code>Z:\&gt;</code> prompt this can be accomplished with:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMOUNT C hdd.img
-BOOT C:</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img
+BOOT C:</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -985,10 +985,10 @@ So you can boot from the HDD image with the following commands instead.</p>
 </li>
 </ul>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMOUNT C hdd.img
-BOOT C:</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img
+BOOT C:</code></pre>
 </div>
 </div>
 <div class="imageblock">
@@ -1001,7 +1001,7 @@ BOOT C:</pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-12-31 02:04:38 -0800
+Last updated 2023-02-05 01:05:47 -0800
 </div>
 </div>
 </body>

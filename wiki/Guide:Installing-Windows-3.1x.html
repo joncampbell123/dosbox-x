@@ -736,9 +736,9 @@ Starting with DOSBox-X 0.83.21 the turbo mode is automatically disabled the mome
 <div class="paragraph">
 <p>It is recommended that you create a custom DOSBox-X config file for running Windows 3.1x</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[sdl]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[sdl]
 autolock=true
 
 [dosbox]
@@ -763,7 +763,7 @@ int13fakev86io=false
 [render]
 scaler=none
 
-[autoexec]</pre>
+[autoexec]</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -786,9 +786,9 @@ This way there is no need to swap disks during the installation process.</p>
 <p>There are several ways to extract the contents of disk images, such as 7zip on Windows or "Disk Image Mounter" on Linux.
 In this example, DOSBox-X itself is used to mount a disk image, copy its contents into a folder, unmount the disk image and do the next.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>MOUNT C /home/myuser/winroot
+<pre class="highlight"><code class="language-console" data-lang="console">MOUNT C /home/myuser/winroot
 C:
 MD INSTALL
 IMGMOUNT A DISK01.IMG -U
@@ -801,7 +801,7 @@ IMGMOUNT A DISK04.IMG -U
 COPY A:\*.* C:\INSTALL
 IMGMOUNT A DISK05.IMG -U
 COPY A:\*.* C:\INSTALL
-IMGMOUNT A -U</pre>
+IMGMOUNT A -U</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -879,20 +879,20 @@ e.g., <code>C:\users\myuser\win31\INSTALL</code> or <code>/home/myuser/winroot/I
 <p>You are now ready to start DOSBox-X from the command-line, using the newly created <code>win31.conf</code>.
 This assumes that the <code>dosbox-x</code> program is in your path and <code>win31.conf</code> is in your current directory.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>dosbox-x -conf win31.conf</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf win31.conf</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>You now need to mount your new folder as the C: drive in DOSBox-X and start the installation.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>MOUNT C /home/myuser/winroot
+<pre class="highlight"><code class="language-console" data-lang="console">MOUNT C /home/myuser/winroot
 C:
 CD INSTALL
-SETUP</pre>
+SETUP</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -920,9 +920,9 @@ Exit to DOS and type EXIT to close DOSBox-X.</p>
 <div class="paragraph">
 <p>Now edit your <code>win31.conf</code> config file and add the following lines into the [autoexec] section at the end of the file.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>@ECHO OFF
+<pre class="highlight"><code class="language-shell" data-lang="shell">@ECHO OFF
 MOUNT C /home/myuser/winroot
 C:
 IF EXIST C:\WINDOWS\IFSHLP.SYS GOTO WFW
@@ -947,7 +947,7 @@ C:\WINDOWS\WIN.COM
 GOTO END
 
 :END
-EXIT</pre>
+EXIT</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -972,10 +972,10 @@ This can be accomplished in one of two ways. Either when you issue the <code>boo
 <div class="paragraph">
 <p>Or by setting the following option in your DOSBox-X config file:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[sdl]
-convertdrivefat = true</pre>
+<pre class="highlight"><code class="language-ini" data-lang="ini">[sdl]
+convertdrivefat = true</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1042,14 +1042,14 @@ However, it is recommended to use a newer version such as DOS 6.x</p>
 <div class="paragraph">
 <p>Something like:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMOUNT C hdd.img
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img
 MOUNT D .
 XCOPY D:\INSTALL C:\INSTALL /I /S
 XCOPY D:\DRIVERS C:\DRIVERS /I /S
 XCOPY D:\ADDONS C:\ADDONS /I /S
-EXIT</pre>
+EXIT</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1058,27 +1058,27 @@ EXIT</pre>
 <div class="paragraph">
 <p>Now edit your <code>win31.conf</code> config file and in the <code>[autoexec]</code> section at the end, add the following lines:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMOUNT C hdd.img -reservecyl 1
-BOOT C:</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img -reservecyl 1
+BOOT C:</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Now start DOSBox-X with your <code>win31.conf</code> config file from the command-line:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>dosbox-x -conf win31.conf</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf win31.conf</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>It should boot to the C: prompt, and you can start the installation process.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>CD INSTALL
-SETUP</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">CD INSTALL
+SETUP</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1093,9 +1093,9 @@ SETUP</pre>
 <div class="paragraph">
 <p>After the installation is finished, you can start Windows 3.1x from the command-prompt with the following command:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>dosbox-x -conf win31.conf</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf win31.conf</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1171,10 +1171,10 @@ If you intend to use Video for Windows (VFW), first install VFW and then the upd
 <p>For installing a 3rd party display driver, you should follow the instructions (e.g. README) included with the driver.
 If there are no instructions included, exit Windows 3.1x back to the DOSBox-X prompt, then go into the WINDOWS subdirectory, and run <code>SETUP</code>. e.g.,</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>cd \WINDOWS
-SETUP</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">cd \WINDOWS
+SETUP</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1264,7 +1264,7 @@ For Windows 3.1x the recommended display adapter is the default S3 Trio64.
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://vogonsdrivers.com/getfile.php?fileid=275&amp;menustate=0">Windows 3.1x - S3 Trio drivers version 1.70.04, Sep 22, 1997</a></p>
+<p><a href="https://vogonsdrivers.com/getfile.php?fileid=275&amp;menustate=0">Windows 3.1x - S3 Trio drivers version 1.70.04, Sep 22, 1997</a></p>
 </li>
 </ul>
 </div>
@@ -1274,7 +1274,7 @@ For Windows 3.1x the recommended display adapter is the default S3 Trio64.
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://vogonsdrivers.com/getfile.php?fileid=275&amp;menustate=0">Windows 3.1x - S3 Trio drivers version 1.70.04, Sep 22, 1997</a></p>
+<p><a href="https://vogonsdrivers.com/getfile.php?fileid=275&amp;menustate=0">Windows 3.1x - S3 Trio drivers version 1.70.04, Sep 22, 1997</a></p>
 </li>
 </ul>
 </div>
@@ -1284,7 +1284,7 @@ For Windows 3.1x the recommended display adapter is the default S3 Trio64.
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://vogonsdrivers.com/getfile.php?fileid=275&amp;menustate=0">Windows 3.1x - S3 Trio drivers version 1.70.04, Sep 22, 1997</a></p>
+<p><a href="https://vogonsdrivers.com/getfile.php?fileid=275&amp;menustate=0">Windows 3.1x - S3 Trio drivers version 1.70.04, Sep 22, 1997</a></p>
 </li>
 </ul>
 </div>
@@ -1294,7 +1294,7 @@ For Windows 3.1x the recommended display adapter is the default S3 Trio64.
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://vogonsdrivers.com/getfile.php?fileid=1702&amp;menustate=0">Windows 3.1x - S3 ViRGE drivers version 1.05.09, June 2, 1997</a></p>
+<p><a href="https://vogonsdrivers.com/getfile.php?fileid=1702&amp;menustate=0">Windows 3.1x - S3 ViRGE drivers version 1.05.09, June 2, 1997</a></p>
 </li>
 </ul>
 </div>
@@ -1304,7 +1304,7 @@ For Windows 3.1x the recommended display adapter is the default S3 Trio64.
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://vogonsdrivers.com/getfile.php?fileid=1702&amp;menustate=0">Windows 3.1x - S3 ViRGE drivers version 1.05.09, June 2, 1997</a></p>
+<p><a href="https://vogonsdrivers.com/getfile.php?fileid=1702&amp;menustate=0">Windows 3.1x - S3 ViRGE drivers version 1.05.09, June 2, 1997</a></p>
 </li>
 </ul>
 </div>
@@ -1321,10 +1321,10 @@ For Windows 3.1x the recommended display adapter is the default S3 Trio64.
 <div class="ulist">
 <ul>
 <li>
-<p><a href="http://vogonsdrivers.com/getfile.php?fileid=245&amp;menustate=0">Windows 3.1x - ET3000 drivers, Dec 8 1994</a></p>
+<p><a href="https://vogonsdrivers.com/getfile.php?fileid=245&amp;menustate=0">Windows 3.1x - ET3000 drivers, Dec 8 1994</a></p>
 </li>
 <li>
-<p><a href="http://files.mpoli.fi/hardware/DISPLAY/TSENG/ET4-W31.ZIP">Windows 3.0/3.1x - Jan 15 1992 </a></p>
+<p><a href="http://files.mpoli.fi/hardware/DISPLAY/TSENG/ET4-W31.ZIP">Windows 3.0/3.1x - Jan 15 1992</a></p>
 </li>
 </ul>
 </div>
@@ -1425,13 +1425,13 @@ Unpack the archive, and you will find a Windows 3.1x mouse driver in the <code>w
 <div class="paragraph">
 <p>In addition, set the following options in your DOSBox-X config file:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[sdl]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[sdl]
 mouse emulation=integration
 
 [cpu]
-integration device=true</pre>
+integration device=true</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1556,7 +1556,7 @@ However, based on benchmarks, there is no advantage at this time to enabling the
 </ul>
 </div>
 <div class="paragraph">
-<p>See <a href="http://os2museum.com/wp/how-to-please-wdctrl/">How to please WDCTRL</a> for more background information.</p>
+<p>See <a href="https://os2museum.com/wp/how-to-please-wdctrl/">How to please WDCTRL</a> for more background information.</p>
 </div>
 <div class="paragraph">
 <p><strong>32-Bit File Access</strong> has no such requirements and can be enabled seemingly on any system.</p>
@@ -1615,15 +1615,15 @@ In some cases, this is not possible, such as:</p>
 <div class="paragraph">
 <p>To enable NE2000 emulation with the pcap back-end, add the following to your <code>win31.conf</code> config file:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[ne2000]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[ne2000]
 ne2000=true
 nicirq=10
 backend=pcap
 
 [ethernet, pcap]
-realnic=list</pre>
+realnic=list</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1656,12 +1656,12 @@ As such it will work with wireless adapters, and it will work in most sandboxed 
 <div class="paragraph">
 <p>To enable NE2000 emulation with the slirp back-end, add the following to your <code>win31.conf</code> config file:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[ne2000]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[ne2000]
 ne2000=true
 nicirq=10
-backend=slirp</pre>
+backend=slirp</code></pre>
 </div>
 </div>
 </div>
@@ -1754,13 +1754,13 @@ Select the "SB16 All MIDI" option from the drop-down menu and press the "Close" 
 <div class="paragraph">
 <p>First, set up your DOSBox-X config to print to a file as such:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[dosbox]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[dosbox]
 captures=capture
 
 [parallel]
-parallel1=file timeout=2000</pre>
+parallel1=file timeout=2000</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1776,7 +1776,7 @@ parallel1=file timeout=2000</pre>
 </div>
 <div class="paragraph">
 <p>On Linux and macOS, PostScript files are natively supported and can be viewed and printed.
-On a Windows host, it is necessary to install a separate PostScript viewer such as <a href="http://pages.cs.wisc.edu/~ghost/">GSview</a>.</p>
+On a Windows host, it is necessary to install a separate PostScript viewer such as <a href="https://pages.cs.wisc.edu/~ghost/">GSview</a>.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1787,16 +1787,16 @@ On a Windows host, it is necessary to install a separate PostScript viewer such 
 <div class="paragraph">
 <p>First, set up your DOSBox-X config to emulate an Epson printer as such:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[parallel]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[parallel]
 parallel1=printer
 
 [printer]
 printer=true
 printoutput=ps
 multipage=true
-timeout=2000</pre>
+timeout=2000</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1875,26 +1875,26 @@ While DOSBox-X&#8217;s integrated SHARE feature was improved compared to that of
 <div class="paragraph">
 <p>You can then start the game from DOS simply by appending the Windows game executable behind the WIN.COM executable as such:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>WIN \path\to\game.exe</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">WIN \path\to\game.exe</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>This will prevent the Windows splash screen being shown and will directly start the game without first going to the Program Manager (progman).</p>
 </div>
 <div class="paragraph">
-<p>The second step you may want to take, is that when you exit the game, you also exit Windows 3.1x. For this you need a 3rd party utility called "<a href="http://www.shdon.com/software/tools">RUNEXIT.EXE</a>", and place it in your PATH.
+<p>The second step you may want to take, is that when you exit the game, you also exit Windows 3.1x. For this you need a 3rd party utility called "<a href="https://www.shdon.com/software/tools">RUNEXIT.EXE</a>", and place it in your PATH.
 Now simply start the game as follows:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>WIN RUNEXIT \path\to\game.exe</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">WIN RUNEXIT \path\to\game.exe</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Like before it will start the game without the Windows splash screen, but now when you Exit the game it will also Exit Windows.
-This way you can launch Windows games from a DOS batch file, or from a DOSBox launcher such as <a href="http://members.quicknet.nl/blankendaalr/dbgl/">DBGL</a>.</p>
+This way you can launch Windows games from a DOS batch file, or from a DOSBox launcher such as <a href="https://dbgl.org/">DBGL</a>.</p>
 </div>
 </div>
 </div>
@@ -1940,7 +1940,7 @@ But if a CD is not present when starting Windows 3.1x the drive is simply missin
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-12-31 02:04:38 -0800
+Last updated 2023-02-05 01:05:47 -0800
 </div>
 </div>
 </body>

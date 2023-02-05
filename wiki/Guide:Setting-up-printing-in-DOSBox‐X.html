@@ -693,10 +693,10 @@ This option may not work without additional steps, as this tries to do direct ac
 <div class="paragraph">
 <p>Example:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[parallel]
-parallel1=file dev:lpt1 timeout=1000 addFF cp:437</pre>
+<pre class="highlight"><code class="language-ini" data-lang="ini">[parallel]
+parallel1=file dev:lpt1 timeout=1000 addFF cp:437</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -713,13 +713,13 @@ This has its own configuration section which is documented below.</p>
 <p>Defines that this port has the emulated Disney Sound Source attached (Covox Voice Master and Covox Speech Thing compatible).
 It requires the following lines in your config:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[speaker]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[speaker]
 disney=true
 
 [parallel]
-parallel1=disney</pre>
+parallel1=disney</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1333,14 +1333,14 @@ From a consistency perspective it is best to specify a device name, as the devic
 <div class="paragraph">
 <p>Example:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[parallel]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[parallel]
 parallel1=printer
 
 [printer]
 printoutput=printer
-device="Microsoft Print to PDF"</pre>
+device="Microsoft Print to PDF"</code></pre>
 </div>
 </div>
 </div>
@@ -1630,13 +1630,13 @@ If you need them you may need to find those online.</p>
 <div class="paragraph">
 <p>In this example, set up a DOSBox-X config file with the following lines:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[dosbox]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[dosbox]
 captures=capture
 
 [parallel]
-parallel1=file</pre>
+parallel1=file</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1679,16 +1679,16 @@ If you booted real DOS, or Windows 9x in DOSBox-X the output filename will be <c
 <div class="paragraph">
 <p>Make sure your DOSBox-X config file contains the statements:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[parallel]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[parallel]
 parallel1=printer
 
 [printer]
 printer=true
 printoutput=printer
 timeout=1000
-device=-</pre>
+device=-</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1711,10 +1711,10 @@ In practice this means that this method is only really meant for situations wher
 <div class="paragraph">
 <p>Make sure your DOSBox-X config file contains the statements:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[parallel]
-parallel1=file dev:lpt1</pre>
+<pre class="highlight"><code class="language-ini" data-lang="ini">[parallel]
+parallel1=file dev:lpt1</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1722,17 +1722,17 @@ parallel1=file dev:lpt1</pre>
 PortTalk is needed because direct port access is no longer permitted with more modern Windows versions.
 The last Windows version supported by PortTalk is Windows XP (32-bit).</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[parallel]
-parallel1=reallpt directlpt:378</pre>
+<pre class="highlight"><code class="language-ini" data-lang="ini">[parallel]
+parallel1=reallpt directlpt:378</code></pre>
 </div>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_windows_host_in_combination_with_3rd_party_printing_solution">Windows host, in combination with 3rd-party printing solution</h3>
 <div class="paragraph">
-<p>In addition to relying entirely on the built-in printing methods, DOSBox-X can also work in combination with external third-party printing solutions like <a href="https://www.printfil.com/">Printfil</a>, <a href="http://www.dosprn.com/">DOSPRN</a>, or <a href="http://sourceforge.net/projects/winprint/">WinPrint</a> (open-source).
+<p>In addition to relying entirely on the built-in printing methods, DOSBox-X can also work in combination with external third-party printing solutions like <a href="https://www.printfil.com/">Printfil</a>, <a href="http://www.dosprn.com/">DOSPRN</a>, or <a href="https://sourceforge.net/projects/winprint/">WinPrint</a> (open-source).
 Both Printfil and DOSPRN are shareware applications that specifically list DOSBox-X as supported for printing to any printer configured on the Windows host system.</p>
 </div>
 </div>
@@ -1769,28 +1769,28 @@ Below is a screenshot of its configuration window.</p>
 <p>Replace "username" in the example below with your own Linux username.
 This will make your user a member of the "lp" group, which is a group that on most (all?) Linux distributions should have the necessary access to the parallel port.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>sudo usermod -a -G lp username</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">sudo usermod -a -G lp username</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Make sure your DOSBox-X config file contains the statements:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[parallel]
-parallel1=reallpt realport:/dev/parport0</pre>
+<pre class="highlight"><code class="language-ini" data-lang="ini">[parallel]
+parallel1=reallpt realport:/dev/parport0</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>This has been confirmed to work.
 Alternatively you can try to set it up as follows:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[parallel]
-parallel1=file dev:/dev/parport0</pre>
+<pre class="highlight"><code class="language-ini" data-lang="ini">[parallel]
+parallel1=file dev:/dev/parport0</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1835,15 +1835,15 @@ On Linux there has been some success with using a StarTech PEX1P2 PCIe parallel 
 <div class="paragraph">
 <p>Make sure your DOSBox-X config file contains the statements:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[parallel]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[parallel]
 parallel1=printer
 
 [printer]
 printer=true
 printoutput=png
-timeout=1000</pre>
+timeout=1000</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1868,16 +1868,16 @@ Alternatively you can specify a different directory using the <code>docpath=</co
 <div class="paragraph">
 <p>Make sure your DOSBox-X config file contains the statements:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[parallel]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[parallel]
 parallel1=printer
 
 [printer]
 printer=true
 printoutput=ps
 multipage=true
-timeout=1000</pre>
+timeout=1000</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1921,10 +1921,10 @@ This application can then be used to view the output, and possibly print it or b
 <div class="paragraph">
 <p>e.g. when running DOSBox-X on a Windows host:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[parallel]
-parallel1=file file:output.prn timeout:2000 openpcl:pcl6 openps:gswin32c openwith:notepad</pre>
+<pre class="highlight"><code class="language-ini" data-lang="ini">[parallel]
+parallel1=file file:output.prn timeout:2000 openpcl:pcl6 openps:gswin32c openwith:notepad</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1944,13 +1944,13 @@ If this is not flexible enough, for instance because you need to have the printe
 This should give you the highest quality output, and depending on the application, you may even get colour by selecting a colour PostScript printer.
 The output is saved to a file on the host, to the directory specified with the <code>captures=</code> option, and when the file is closed (when no output is received for 2 seconds), the file will be opened using xdg-open such that it can be viewed and printed.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[dosbox]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[dosbox]
 captures=capture
 
 [parallel]
-parallel1=file file:output.ps timeout:2000 openps:xdg-open</pre>
+parallel1=file file:output.ps timeout:2000 openps:xdg-open</code></pre>
 </div>
 </div>
 </div>
@@ -1959,13 +1959,13 @@ parallel1=file file:output.ps timeout:2000 openps:xdg-open</pre>
 <div class="paragraph">
 <p>Similar to the Linux example above, but here the macOS Preview application is used to open the PostScript file, from where it can be viewed and printed.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[dosbox]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[dosbox]
 captures=capture
 
 [parallel]
-parallel1=file file:output.ps timeout:2000 squote openps:'open -s "Preview"'</pre>
+parallel1=file file:output.ps timeout:2000 squote openps:'open -s "Preview"'</code></pre>
 </div>
 </div>
 </div>
@@ -1974,7 +1974,7 @@ parallel1=file file:output.ps timeout:2000 squote openps:'open -s "Preview"'</pr
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-12-31 02:04:38 -0800
+Last updated 2023-02-05 01:05:47 -0800
 </div>
 </div>
 </body>

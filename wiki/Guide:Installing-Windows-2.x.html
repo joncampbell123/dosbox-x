@@ -699,10 +699,10 @@ All other Windows/286 and Windows/386 editions need to be run from a real DOS in
 <p><a href="https://betawiki.net/wiki/Windows_2.x">BetaWiki: Windows 2.x</a></p>
 </li>
 <li>
-<p><a href="http://www.os2museum.com/wp/windows386-2-01/">os2museum: Windows/386 2.01</a></p>
+<p><a href="https://www.os2museum.com/wp/windows386-2-01/">os2museum: Windows/386 2.01</a></p>
 </li>
 <li>
-<p><a href="http://toastytech.com/guis/win1x2x.html">Overview of Windows 1.x/2.x Applications</a></p>
+<p><a href="https://toastytech.com/guis/win1x2x.html">Overview of Windows 1.x/2.x Applications</a></p>
 </li>
 </ul>
 </div>
@@ -715,9 +715,9 @@ All other Windows/286 and Windows/386 editions need to be run from a real DOS in
 <div class="paragraph">
 <p>It is recommended that you create a custom DOSBox-X config file for running Windows 2.x</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[sdl]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[sdl]
 autolock=true
 
 [dosbox]
@@ -744,7 +744,7 @@ scaler=none
 = this prevents Windows 2.1x from complaining that HMA is in use
 dos=low
 
-[autoexec]</pre>
+[autoexec]</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -818,9 +818,9 @@ This way there is no need to swap disks during the installation process.</p>
 <p>There are several ways to extract the contents of disk images, such as 7zip on Windows or "Disk Image Mounter" on Linux.
 In this example, DOSBox-X itself is used to mount a disk image, copy its contents into a folder, unmount the disk image and do the next.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>MOUNT C /home/myuser/winroot
+<pre class="highlight"><code class="language-console" data-lang="console">MOUNT C /home/myuser/winroot
 C:
 MD INSTALL
 IMGMOUNT A DISK01.IMG -U
@@ -833,7 +833,7 @@ IMGMOUNT A DISK04.IMG -U
 XCOPY A:\. C:\INSTALL /S /Y
 IMGMOUNT A DISK05.IMG -U
 XCOPY A:\. C:\INSTALL /S /Y
-IMGMOUNT A -U</pre>
+IMGMOUNT A -U</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -846,20 +846,20 @@ IMGMOUNT A -U</pre>
 <p>You&#8217;re now ready to start DOSBox-X from the command-line, using the newly created <code>win2x.conf</code> config file.
 This assumes that the <code>dosbox-x</code> program is in your path and <code>win2x.conf</code> is in your current directory.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>dosbox-x -conf win2x.conf</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf win2x.conf</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>You now need to mount your new folder as the C: drive in DOSBox-X and start the installation.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>MOUNT C /home/myuser/winroot
+<pre class="highlight"><code class="language-console" data-lang="console">MOUNT C /home/myuser/winroot
 C:
 CD INSTALL
-SETUP</pre>
+SETUP</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -908,14 +908,14 @@ When using DOS 5.0 or higher however, it will be necessary to use <a href="https
 <div class="paragraph">
 <p>Something like:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMOUNT C hdd.img
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img
 MOUNT D .
 XCOPY D:\INSTALL C:\INSTALL /I /S
 XCOPY D:\DRIVERS C:\DRIVERS /I /S
 XCOPY D:\ADDONS C:\ADDONS /I /S
-EXIT</pre>
+EXIT</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -924,27 +924,27 @@ EXIT</pre>
 <div class="paragraph">
 <p>Now edit your <code>win2x.conf</code> config file and in the <code>[autoexec]</code> section at the end, add the following lines:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>IMGMOUNT C hdd.img
-BOOT C:</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img
+BOOT C:</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Now start DOSBox-X with your win2x.conf config file from the command-line:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>dosbox-x -conf win2x.conf</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf win2x.conf</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>It should boot to the C: prompt, and you can start the installation process.</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>CD INSTALL
-SETUP</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">CD INSTALL
+SETUP</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1246,9 +1246,9 @@ And then press enter.</p>
 <div class="paragraph">
 <p>And then edit your <code>win2x.conf</code> config file and add the following lines into the <code>[autoexec]</code> section at the end of the file:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>@ECHO OFF
+<pre class="highlight"><code class="language-shell" data-lang="shell">@ECHO OFF
 MOUNT C /home/myuser/winroot
 C:
 IF EXIST C:\WINDOWS\WIN.COM GOTO WINDOWS
@@ -1268,7 +1268,7 @@ C:\WIN386\WIN386.EXE
 GOTO END
 
 :END
-EXIT</pre>
+EXIT</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1295,9 +1295,9 @@ You can optionally create a shortcut on your desktop to start Windows 2.x direct
 </tr>
 </table>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>dosbox-x -conf win2x.conf</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf win2x.conf</code></pre>
 </div>
 </div>
 <div class="imageblock">
@@ -1345,13 +1345,13 @@ Unpack the archive, and you will find a Windows 2.0 mouse driver in the <code>wi
 <div class="paragraph">
 <p>In addition, set the following options in your DOSBox-X config file:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[sdl]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[sdl]
 mouse emulation=integration
 
 [cpu]
-integration device=true</pre>
+integration device=true</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1375,7 +1375,7 @@ This can be controlled by the <code>mouse_wheel_key=</code> setting in the <code
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-12-31 02:04:38 -0800
+Last updated 2023-02-05 01:05:47 -0800
 </div>
 </div>
 </body>

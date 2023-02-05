@@ -486,8 +486,11 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="paragraph">
 <p>If you change the <code>COUNTRY=</code> setting, the date and time will be displayed in the format associated with the specified country code. For example, 44 is the country code (based on the international dialling prefix) for the UK, and setting the following:</p>
 </div>
-<div class="paragraph">
-<p><code>COUNTRY=44</code></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ini" data-lang="ini">[config]
+COUNTRY=44</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>Will cause DOSBox-X to use the UK date and time format:</p>
@@ -501,8 +504,10 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <div class="paragraph">
 <p>Alternatively, the COUNTRY command can be used from the DOSBox-X command line to change the country code. For example, the following command will switch the country code to 61 for international English:</p>
 </div>
-<div class="paragraph">
-<p><code>COUNTRY 61</code></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-console" data-lang="console">COUNTRY 61</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>A list of supported country codes and their corresponding date and time formats:</p>
@@ -745,8 +750,11 @@ DOSBox-X will accept any other country code not listed above, but in that case w
 <div class="paragraph">
 <p>If you already have a DOSBox-X language file available, you can specify its filename in DOSBox-X&#8217;s config file (dosbox-x.conf by default) in the [dosbox] section in order to activate it. There is a <code>language=</code> setting which allows you to enter the name of the language file. For example, suppose the language file is located at C:\message.txt, then you can specify the following for use with DOSBox-X:</p>
 </div>
-<div class="paragraph">
-<p><code>language=C:\message.txt</code></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ini" data-lang="ini">[dosbox]
+language=C:\message.txt</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>For example, the Chinese (Simplified &amp; Traditional), English (United States), French, German, Japanese, Portuguese (Brazilian), Spanish, and Turkic language files for DOSBox-X are available from:</p>
@@ -788,8 +796,10 @@ DOSBox-X will accept any other country code not listed above, but in that case w
 <div class="paragraph">
 <p>Alternatively, you can start DOSBox-X with the -lang option to use your language file. For example, to use "C:\message.txt" as the language file:</p>
 </div>
-<div class="paragraph">
-<p><code>dosbox-x -lang C:\message.txt</code></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -lang C:\message.txt</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>Note: It is important to set the correct code page in the config file, via the <code>COUNTRY=</code> setting in [config] section of the config file, e.g. <code>COUNTRY=42,852</code> for the Czech language, and perhaps the <code>keyboardlayout</code> config option mentioned in the next section.</p>
@@ -816,8 +826,10 @@ DOSBox-X will accept any other country code not listed above, but in that case w
 <div class="paragraph">
 <p>Alternatively, you can let DOSBox-X generate the language file with its built-in <code>CONFIG</code> command, via its "-wl" (or "-writelang") option. Usage:</p>
 </div>
-<div class="paragraph">
-<p><code>CONFIG -wl filename</code></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-console" data-lang="console">CONFIG -wl filename</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>This command writes the current language settings to a file in a specified location. "filename" is located on the local drive, not a mounted drive in DOSBox-X. It is located in the DOSBox-X directory by default.</p>
@@ -848,8 +860,10 @@ It will also automatically set a suitable codepage.</p>
 <div class="paragraph">
 <p>Alternatively, the KEYB command can be used from the DOSBox-X command line to change the keyboard layout on-the-fly. For example:</p>
 </div>
-<div class="paragraph">
-<p><code>KEYB UK</code></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-console" data-lang="console">KEYB UK</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>This command will switch the current keyboard layout to the UK keyboard layout and set code page 858.
@@ -1088,8 +1102,10 @@ Starting with DOSBox 0.83.24, for using layouts marked with * the ten ega.cpx fi
 <div class="paragraph">
 <p>Alternatively you can also specify a different codepage by adding the codepage number to the end.</p>
 </div>
-<div class="paragraph">
-<p><code>KEYB UK 850</code></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-console" data-lang="console">KEYB UK 850</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>Most western European countries would have used codepage 850 back in the day, but DOSBox-X by default uses codepage 858, which is the same as codepage 850 with the addition of the Euro symbol.
@@ -1184,8 +1200,11 @@ The Euro symbol will be supported and displayed in the above-mentioned ASCII pos
 DOSBox-X has an <code>euro</code> config option in the [render] section of the config file (dosbox-x.conf by default), which allows you to specify an ASCII position (between 33 and 255) for the Euro symbol to be rendered in place of the original character if you wish.
 For example, setting the following will allow DOSBox-X to display the Euro symbol instead of C-cedilla (Ç) in position 128.</p>
 </div>
-<div class="paragraph">
-<p><code>euro=128</code></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ini" data-lang="ini">[render]
+euro=128</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>It will work even after you use the <code>KEYB</code> command to change the current codepage of DOSBox-X from the command line.
@@ -1195,7 +1214,8 @@ The Euro symbol will be displayed in the specified position instead of the origi
 <div class="sect2">
 <h3 id="_support_for_external_keyboard_files">Support for external keyboard files</h3>
 <div class="paragraph">
-<p>DOSBox-X allows the use of external keyboard files for international keyboard layouts in addition to those that are already built into DOSBox-X. A list of supported keyboard layouts in DOSBox-X can be found in the "International keyboard layouts and codepages" section.</p>
+<p>DOSBox-X allows the use of external keyboard files for international keyboard layouts in addition to those that are already built into DOSBox-X.
+A list of supported keyboard layouts in DOSBox-X can be found in the "International keyboard layouts and codepages" section.</p>
 </div>
 <div class="paragraph">
 <p>For using external keyboard files in DOSBox-X, the FreeDOS <code>.kl</code> files are supported (FreeDOS <code>keyb2</code> keyboard layout files) as well as the FreeDOS <code>keyboard.sys</code>/<code>keybrd2.sys</code>/<code>keybrd3.sys</code> libraries which consist of all available <code>.kl</code> files.</p>
@@ -1204,16 +1224,22 @@ The Euro symbol will be displayed in the specified position instead of the origi
 <p>Check out the FreeDOS website for precompiled keyboard layouts if the DOSBox-X integrated layouts do not work for some reason, or if updated or new layouts become available.</p>
 </div>
 <div class="paragraph">
-<p>Both <code>.CPI</code> (MS-DOS and compatible codepage files) and <code>.CPX</code> (FreeDOS UPX-compressed codepage files) can be used as the codepage files in DOSBox-X. Some codepages are compiled into DOSBox-X, so it is mostly not needed to care about external codepage files. If you need a different (or custom) codepage file, copy it into the DOSBox-X directory, such it is accessible for DOSBox-X.</p>
+<p>Both <code>.CPI</code> (MS-DOS and compatible codepage files) and <code>.CPX</code> (FreeDOS UPX-compressed codepage files) can be used as the codepage files in DOSBox-X.
+Some codepages are compiled into DOSBox-X, so it is mostly not needed to care about external codepage files.
+If you need a different (or custom) codepage file, copy it into the DOSBox-X directory, such it is accessible for DOSBox-X.</p>
 </div>
 <div class="paragraph">
 <p>If you place all ten <code>ega.cpx</code> files (from FreeDOS) in the DOSBox-X folder, an appropriate codepage file for the requested layout/codepage is chosen automatically.</p>
 </div>
 <div class="paragraph">
-<p>Additional layouts can be added by copying the corresponding <code>.kl</code> file into the directory of the DOSBox-X config file and using the first part of the filename as the language code. For example, for the file <code>UZ.KL</code> (keyboard layout for Uzbekistan) you can specify the following in the DOSBox-X config file:</p>
+<p>Additional layouts can be added by copying the corresponding <code>.kl</code> file into the directory of the DOSBox-X config file and using the first part of the filename as the language code.
+For example, for the file <code>UZ.KL</code> (keyboard layout for Uzbekistan) you can specify the following in the DOSBox-X config file:</p>
 </div>
-<div class="paragraph">
-<p><code>keyboardlayout=uz</code></p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlight"><code class="language-ini" data-lang="ini">[dos]
+keyboardlayout=uz</code></pre>
+</div>
 </div>
 <div class="paragraph">
 <p>The integration of keyboard layout packages (like <code>keybrd2.sys</code>) works similar.</p>
@@ -1234,13 +1260,16 @@ The information in this section applies to DOSBox-X 0.83.4 and later only. Previ
 </table>
 </div>
 <div class="paragraph">
-<p>DOSBox-X supports both SDL1 and SDL2 versions, using the cross-platform SDL 1.2 and SDL 2.0 libraries respectively. Since SDL is responsible for input handling in DOSBox-X, there are some differences between the SDL1 binary and the SDL2 binary in regard to the keyboard layout support of DOSBox-X.</p>
+<p>DOSBox-X supports both SDL1 and SDL2 versions, using the cross-platform SDL 1.2 and SDL 2.0 libraries respectively.
+Since SDL is responsible for input handling in DOSBox-X, there are some differences between the SDL1 binary and the SDL2 binary in regard to the keyboard layout support of DOSBox-X.</p>
 </div>
 <div class="paragraph">
-<p>The SDL1 version of DOSBox-X in particular only supports the US keyboard layout due to the limitations around the SDL1 library. As such when using the SDL1 version, DOSBox-X will automatically decide whether to use scancodes with the default <code>usescancodes=auto</code> config setting, which should work around most keyboard layout problems with non-US keyboards.</p>
+<p>The SDL1 version of DOSBox-X in particular only supports the US keyboard layout due to the limitations around the SDL1 library.
+As such when using the SDL1 version, DOSBox-X will automatically decide whether to use scancodes with the default <code>usescancodes=auto</code> config setting, which should work around most keyboard layout problems with non-US keyboards.</p>
 </div>
 <div class="paragraph">
-<p>On the other hand, you can override this by changing the setting <code>usescancodes</code> to either <code>true</code> or <code>false</code>. The <code>false</code> setting was the default setting before DOSBox-X 0.83.4, which worked well for US keyboard layout, but the keys could be messed up for non-US keyboards when you are using the SDL1 version. So it is recommended to leave this setting to <code>auto</code> for the SDL1 binary.</p>
+<p>On the other hand, you can override this by changing the setting <code>usescancodes</code> to either <code>true</code> or <code>false</code>.
+The <code>false</code> setting was the default setting before DOSBox-X 0.83.4, which worked well for US keyboard layout, but the keys could be messed up for non-US keyboards when you are using the SDL1 version. So it is recommended to leave this setting to <code>auto</code> for the SDL1 binary.</p>
 </div>
 <div class="paragraph">
 <p>When using the SDL2 binary, scancodes are not needed when using non-US keyboard layouts in DOSBox-X (this setting has no effect in the SDL2 version).</p>
@@ -1251,7 +1280,7 @@ The information in this section applies to DOSBox-X 0.83.4 and later only. Previ
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-12-31 02:04:38 -0800
+Last updated 2023-02-05 01:05:47 -0800
 </div>
 </div>
 </body>

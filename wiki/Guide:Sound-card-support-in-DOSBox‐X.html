@@ -961,11 +961,11 @@ It was an easy card to clone, resulting in many AdLib compatible sound cards.</p
 <div class="paragraph">
 <p>AdLib can be emulated with the following config settings:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[sblaster]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[sblaster]
 sbtype=none
-oplmode=opl2</pre>
+oplmode=opl2</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -979,6 +979,18 @@ oplmode=opl2</pre>
 </td>
 <td class="content">
 Some programs may require the AdLib <code>SOUND.COM</code> TSR to be loaded. See the <a href="https://www.vogons.org/viewtopic.php?f=33&amp;t=76607p">Sound Driver Pack</a> for details.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Some games may fail to detect the AdLib, if the CPU cycles are set too high.
 </td>
 </tr>
 </table>
@@ -1355,6 +1367,18 @@ Therefore, it is important that you select the right SB Pro model in DOSBox-X, t
 </div>
 <div class="paragraph">
 <p>Sound Blaster 16 emulation is enabled by default, and can be enabled by setting <code>sbtype=sb16</code> in the <code>[sblaster]</code> section of the DOSBox-X config file.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+There are variations of the Sound Blaster 16 with an ASP (Advanced Signal Processor), also known as the CSP (Creative Signal Processor). Only a subset of the ASP functionality is implemented in DOSBox-X. In general, you should not expect programs using the ASP to work properly.
+</td>
+</tr>
+</table>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -2255,11 +2279,11 @@ If 0, busy cycle emulation is disabled.</p>
 <div class="paragraph">
 <p>This card is only partly emulated, for instance no DAC emulation, by using the following config settings:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[sblaster]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[sblaster]
 sbtype=none
-oplmode=opl3gold</pre>
+oplmode=opl3gold</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2944,7 +2968,7 @@ Patch sets as used with Timidity should work fine.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-12-31 02:04:38 -0800
+Last updated 2023-02-05 01:05:47 -0800
 </div>
 </div>
 </body>

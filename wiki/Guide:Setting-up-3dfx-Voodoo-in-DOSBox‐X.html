@@ -902,24 +902,24 @@ The following steps assume that you have the necessary compiler, developer tools
 <div class="paragraph">
 <p>Run the following commands from a Linux terminal to compile the OpenGlide fork from Voyageur:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>git clone https://github.com/voyageur/openglide.git
+<pre class="highlight"><code class="language-console" data-lang="console">git clone https://github.com/voyageur/openglide.git
 cd openglide
 ./bootstrap
 ./configure
 make
 sudo make install
-sudo ldconfig</pre>
+sudo ldconfig</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p><code>libglide2x.so</code> will by default be installed in <code>/usr/local/lib</code> which may or may-not be in your default library path.
 To check if ldconfig found the library, run the following command:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>ldconfig -p|grep glide</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">ldconfig -p|grep glide</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -935,10 +935,10 @@ To check if ldconfig found the library, run the following command:</p>
 <p>In the above example it found the <code>libglide2x.so</code> library.
 If the ldconfig command returns nothing, you need to add the <code>/usr/local/lib</code> directory to your library path and re-run ldconfig as follows:</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>sudo sh -c 'echo /usr/local/lib &gt; /etc/ld.so.conf.d/usr-local-lib.conf'
-sudo ldconfig</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">sudo sh -c 'echo /usr/local/lib &gt; /etc/ld.so.conf.d/usr-local-lib.conf'
+sudo ldconfig</code></pre>
 </div>
 </div>
 </div>
@@ -972,9 +972,9 @@ You can install Xcode from the App Store or run the following Terminal command:<
 </li>
 </ol>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>xcode-select --install</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">xcode-select --install</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -989,9 +989,9 @@ You can get it from <a href="https://brew.sh" class="bare">https://brew.sh</a> o
 </li>
 </ol>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"</code></pre>
 </div>
 </div>
 <div class="olist arabic">
@@ -1002,9 +1002,9 @@ Run the following Terminal command:</p>
 </li>
 </ol>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>brew install SDL1</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">brew install SDL1</code></pre>
 </div>
 </div>
 </div>
@@ -1021,9 +1021,9 @@ Run the following Terminal command:</p>
 </li>
 </ol>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>cd $HOME/Desktop/openglide-master</pre>
+<pre class="highlight"><code class="language-console" data-lang="console">cd $HOME/Desktop/openglide-master</code></pre>
 </div>
 </div>
 <div class="olist arabic">
@@ -1033,11 +1033,11 @@ Run the following Terminal command:</p>
 </li>
 </ol>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>./bootstrap
+<pre class="highlight"><code class="language-console" data-lang="console">./bootstrap
 ./configure
-sudo make install</pre>
+sudo make install</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1109,9 +1109,9 @@ These should be located in the same place as your DOSBox-X application or execut
 <div class="paragraph">
 <p>The following settings are recommended (with <code>InitFullScreen=1</code> to start in fullscreen mode)</p>
 </div>
-<div class="literalblock">
+<div class="listingblock">
 <div class="content">
-<pre>[Options]
+<pre class="highlight"><code class="language-ini" data-lang="ini">[Options]
 WrapperPriority=2
 CreateWindow=0
 InitFullScreen=1
@@ -1125,7 +1125,7 @@ EnablePaletteEXT=1
 EnableVertexArrayEXT=0
 TextureMemorySize=32
 FrameBufferMemorySize=16
-NoSplash=1</pre>
+NoSplash=1</code></pre>
 </div>
 </div>
 </div>
@@ -1181,7 +1181,7 @@ For instance, if there is a <code>GLIDE2X.OVL</code> file in the game directory,
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2022-12-31 02:04:38 -0800
+Last updated 2023-02-05 01:05:47 -0800
 </div>
 </div>
 </body>
