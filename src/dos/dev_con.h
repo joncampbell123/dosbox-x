@@ -732,7 +732,7 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
                 INT16_Handler_Wrap();
             else
                 CALLBACK_RunRealInt(0x16);
-            if ((reg_flags & FLAG_ZF) == 0) {
+            if (GETFLAG(ZF) == 0) {
                 break;
             } else {
                 CALLBACK_RunRealInt(0x28);
