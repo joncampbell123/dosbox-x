@@ -1,6 +1,6 @@
 name: Feature request
 description: Suggest an idea (a new feature or other improvements) to DOSBox-X
-labels: enhancement
+labels: ["feature request"]
 
 body:
   - type: markdown
