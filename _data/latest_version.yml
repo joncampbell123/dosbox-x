@@ -13,7 +13,8 @@ git_tag: dosbox-x-v2022.12.26
 
 # Change link to portable files to at least avoid 404 error,
 # since 2022.12.26 installers are not available.
-# Installers should be available in the next release, and the linked to them.
+# The actual installers should be linked in the next release,
+# where they are available.
 win32_setup_file: dosbox-x-vsbuild-win32-20221226190454.zip
 win64_setup_file: dosbox-x-vsbuild-win64-20221226190454.zip
 #not yet available
