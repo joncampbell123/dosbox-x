@@ -12,7 +12,7 @@ git_tag: dosbox-x-v2022.12.26
 #winXP_setup_file: dosbox-x-winXP-2022.12.26-setup.exe
 
 # Linking to the portable packages to at least avoid a 404 error,
-# since 2022.12.26 installers are not available.
+# since installers are not released for 2022.12.26.
 # The actual installers should be linked in the next release,
 # where they are available.
 win32_setup_file: dosbox-x-vsbuild-win32-20221226190454.zip
