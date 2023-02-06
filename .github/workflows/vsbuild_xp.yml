@@ -206,7 +206,11 @@ jobs:
       - name: Clean cache
         run: |
           gh extension install actions/gh-actions-cache
-          ## need permission? disabled for the time being
-          #gh actions-cache delete mingw-bin-${{ github.sha }} --confirm
-          #gh actions-cache delete vs-bin-${{ github.sha }} --confirm
+          ## need permission? disabled the following lines if error occurs when deleting cache
+          set +e
+          gh actions-cache delete mingw-bin-${{ github.sha }} --confirm
+          gh actions-cache delete vs-bin-${{ github.sha }} --confirm
           gh actions-cache list
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          
