@@ -6,8 +6,20 @@ version: 2022.12.26
 # the version
 git_tag: dosbox-x-v2022.12.26
 
-win32_setup_file: dosbox-x-win32-2022.12.26-setup.exe
-win64_setup_file: dosbox-x-win64-2022.12.26-setup.exe
+#Original
+#win32_setup_file: dosbox-x-win32-2022.12.26-setup.exe
+#win64_setup_file: dosbox-x-win64-2022.12.26-setup.exe
+#winXP_setup_file: dosbox-x-winXP-2022.12.26-setup.exe
+
+# Linking to the portable packages to at least avoid a 404 error,
+# since installers are not released for 2022.12.26.
+# The actual installers should be linked in the next release,
+# where they are available.
+win32_setup_file: dosbox-x-vsbuild-win32-20221226190454.zip
+win64_setup_file: dosbox-x-vsbuild-win64-20221226190454.zip
+#not yet available
+winXP_setup_file: dosbox-x-winXP-2022.12.26-setup.exe
+
 
 macos_intel_file: dosbox-x-macosx-x86_64-20221226190321.zip
 macos_arm_file: dosbox-x-macosx-arm64-20221226183221.zip
