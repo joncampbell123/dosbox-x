@@ -815,7 +815,7 @@ const char *modifier;
 #elif defined(MACOSX)
 # define DEFAULT_CONFIG_FILE            "/Library/Preferences/DOSBox Preferences"
 #elif defined(HAIKU)
-#define DEFAULT_CONFIG_FILE "~/config/settings/dosbox-x/dosbox-x.conf"
+#define DEFAULT_CONFIG_FILE             "~/config/settings/dosbox-x/dosbox-x.conf"
 #else /*linux freebsd*/
 # define DEFAULT_CONFIG_FILE            "/.dosboxrc"
 #endif

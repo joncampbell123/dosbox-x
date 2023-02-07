@@ -367,9 +367,13 @@ int WAI_PREFIX(getModulePath)(char* out, int capacity, int* dirname_length)
   return length;
 }
 
-#elif defined(__APPLE__)
+#elif defined(__APPLE__) || defined(__HAIKU__)
 
+#if defined(__APPLE__)
 #include <mach-o/dyld.h>
+#elif defined(__HAIKU__)
+#include <kernel/image.h>
+#endif
 #include <limits.h>
 #include <stdlib.h>
 #include <string.h>
@@ -389,13 +393,22 @@ int WAI_PREFIX(getExecutablePath)(char* out, int capacity, int* dirname_length)
   for (ok = false; !ok; ok = true)
   {
     uint32_t size = (uint32_t)sizeof(buffer1);
+#if defined(__APPLE__)
     if (_NSGetExecutablePath(path, &size) == -1)
     {
       path = (char*)WAI_MALLOC(size);
       if (!_NSGetExecutablePath(path, &size))
         break;
     }
-
+#elif defined(__HAIKU__)
+    image_info info;
+    int32 cookie = 0;
+    get_next_image_info(B_CURRENT_TEAM, &cookie, &info);
+    length = (int)strlen(info.name);
+    if(length > size)
+        break;
+    memcpy(path, info.name, length);
+#endif
     resolved = realpath(path, buffer2);
     if (!resolved)
       break;

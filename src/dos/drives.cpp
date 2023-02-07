@@ -260,7 +260,14 @@ int get_expanded_files(const std::string &path, std::vector<std::string> &paths,
     if (d) {
         while ((dir = readdir(d)) != NULL) {
             host_cnv_char_t *temp_name = CodePageHostToGuest(dir->d_name);
-            if (dir->d_type == DT_REG)
+#if defined(HAIKU)
+            struct stat path_stat;
+            stat(dir->d_name, &path_stat);
+            bool is_regular_file = S_ISREG(path_stat.st_mode);
+#else
+            bool is_regular_file = (dir->d_type == DT_REG);
+#endif
+            if (is_regular_file)
                 names.push_back(temp_name!=NULL?temp_name:dir->d_name);
         }
         closedir(d);

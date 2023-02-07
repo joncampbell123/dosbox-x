@@ -339,6 +339,10 @@ void OUTPUT_OPENGL_Select( GLKind kind )
     GFX_SetResizeable(true);
     sdl.window = GFX_SetSDLWindowMode(640,400, SCREEN_OPENGL);
     if (sdl.window) {
+        if(sdl_opengl.context) {
+            SDL_GL_DeleteContext(sdl_opengl.context);
+            sdl_opengl.context=0;
+        }
         sdl_opengl.context = SDL_GL_CreateContext(sdl.window);
         sdl.surface = SDL_GetWindowSurface(sdl.window);
     }
