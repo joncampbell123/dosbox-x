@@ -4262,7 +4262,11 @@ public:
 		callback[4].Install(DOS_27Handler,CB_IRET,"DOS Int 27");
 		callback[4].Set_RealVec(0x27);
 
-		callback[5].Install(NULL,CB_IRET/*CB_INT28*/,"DOS idle");
+        if (section->Get_bool("dos idle api")) {
+            callback[5].Install(NULL,CB_INT28,"DOS idle");
+        } else {
+            callback[5].Install(NULL,CB_IRET,"DOS idle");
+        }
 		callback[5].Set_RealVec(0x28);
 
 		if (IS_PC98_ARCH) {
