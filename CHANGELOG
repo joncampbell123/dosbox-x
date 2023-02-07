@@ -1,4 +1,23 @@
 Next
+  - Add support for INT 2F function 1680h "Idle" and DOS
+    idle (INT 28h), add code to reduce DOSBox-X CPU load
+    during emulation when the idle function is called,
+    add dosbox.conf enable/disable (default enable) to
+    control this behavior (Github user "finalpatch")
+  - Graphical fixes and dialog support for Haiku OS (amol-)
+  - Allow jp106 keyboard layout in DOS/V mode, automatically
+    choose when keyboard layout is auto on Windows with
+    Japanese keyboard, fix jp106 input in SDL1 builds running
+    on Japanese Windows with English keyboard (nanshiki)
+  - Sync dh fpu state with normal fpu when dynamic core
+    calls normal core to handle self modifying code. Add
+    additional code to other cases. (Github user "finalpatch")
+  - Fix incorrect handling of upper 4 bits of character attributes
+    in video mode 72h in DOS/V mode (nanshiki)
+  - Fix BIOS signature at 0xFFFFF to reflect actual value
+    of Tandy machines so "Ninja" works correctly in
+    Tandy mode (rderooy)
+    See also: [https://www.vogons.org/viewtopic.php?f=32&t=92129]
   - Change default mixer rate to 48KHz instead of the
     long standard 44.1KHz. Most modern sound cards on
     modern OSes render at 48KHz anyway and resample
