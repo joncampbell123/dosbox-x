@@ -23,6 +23,8 @@ tagline:
   Cross-platform DOS emulation package<br />
   Complete, accurate emulation and more
 
+theme: null
+
 release_date_format: "%B %-d, %Y"
 
 blog:
@@ -80,6 +82,7 @@ exclude:
   - git-source-pickup.pl
   - git-update-all
   - git-update-all-wo-push
+  - update-wiki
   # Pre-convert-to-HTML raw wiki markup files.
   - wiki/*.asciidoc
   - wiki/*.md
@@ -90,6 +93,5 @@ exclude:
   - vendor/ruby/
   - Gemfile
   - Gemfile.lock
-  # Mysterious cache directory from the site template, kept here
-  # just in case.
+  # Jekyll build cache directory
   - .jekyll-cache/

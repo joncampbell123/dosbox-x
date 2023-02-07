@@ -2,22 +2,6 @@
 layout: default
 ---
 
-{%- comment -%} This is pagination code {%- endcomment -%}
-{%- for index in (0..site.release_notes.size) -%}
-    {%- assign release = site.release_notes[index] -%}
-    {%- if release.slug == page.slug -%}
-        {%- assign index_1 = index | minus: 1 -%}
-        {%- if index_1 >= 0 -%}
-            {%- assign prev_post = site.release_notes[index_1] -%}
-        {%- endif -%}
-        {%- assign index_2 = index | plus: 1 -%}
-        {%- if index_2 < site.release_notes.size -%}
-            {%- assign next_post = site.release_notes[index_2] -%}
-        {%- endif -%}
-        {% break %}
-    {%- endif -%}
-{%- endfor -%}
-
 {%- capture version_text %}{{ page.slug | escape }}{% if page.version_secondary %} ({{ page.version_secondary }}){% endif %}{% endcapture -%}
 <div style="text-align: center">
     <h3 style="padding-top: 10px">DOSBox-X {{ version_text }} Release Notes</h3>
@@ -30,11 +14,10 @@ layout: default
 
     <h4>New in This Version</h4>
 
-    <table width="100%" style="border: hidden">
-
+    <table width="100%" class="hide-table-appearence">
         <tr>
-            <td width="20%" style="border: hidden"></td>
-            <td width="60%" style="border: hidden; text-align: left">
+            <td width="20%"></td>
+            <td width="60%" style="text-align: left">
                 {{ content }}
             </td>
             <td></td>
@@ -42,32 +25,31 @@ layout: default
 
         <tr>
             <td></td>
-            <td style="border: hidden">
-                <table width="100%" style="text-align: center; font-weight: bold">
+            <td>
+                <table width="100%" class="align-center">
                     <tr>
-                        <td width="50%">
-                            Previous release: {{ prev_post.slug | default: site.last_version }}
-                            ({% if prev_post %}<a href="{{ prev_post.url | relative_url }}">release notes</a>{% else %}release notes{% endif %})
-                        </td>
-                        <td width="50%">
-                            {%- if next_post -%}
-                            Next release: {{ next_post.slug }}
-                            (<a href="{{ next_post.url | relative_url }}">release notes</a>)
+                        <td width="50%"><strong>
+                            Previous release: {{ page.previous.slug | default: site.last_version }}
+                            ({% if page.previous %}<a href="{{ page.previous.url | relative_url }}">release notes</a>{% else %}release notes{% endif %})
+                        </strong></td>
+                        <td width="50%"><strong>
+                            {%- if page.next -%}
+                            Next release: {{ page.next.slug }}
+                            (<a href="{{ page.next.url | relative_url }}">release notes</a>)
                             {%- endif -%}
-                        </td>
+                        </strong></td>
                     </tr>
                 </table>
             </td>
-            <td style="border: hidden"></td>
+            <td></td>
         </tr>
 
         <tr>
-            <td style="border: hidden"></td>
-            <td style="border: hidden; text-align: center">
+            <td></td>
+            <td class="align-center">
                 Return to <a href="{{ "/" | relative_url }}">main page</a>
             </td>
-            <td style="border: hidden"></td>
+            <td></td>
         </tr>
     </table>
-</div>
 </div>

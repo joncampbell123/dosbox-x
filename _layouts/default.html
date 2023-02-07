@@ -2,7 +2,9 @@
 <html lang="en">
 
   <head>
-    {% include head_common.html %}
+    {%- include head_common.html -%}
+
+    {%- unless layout.blog or page.blog -%}
 
     <meta name="description" content="{{ site.description }}">
 
@@ -10,19 +12,32 @@
       {%- if page.layout == "release_notes" -%}
         {%- comment -%} FIXME: Hardcoding this because I don't know how to implement this otherwise {%- endcomment -%}
         DOSBox-X {{ page.slug }}{% if page.version_secondary %} ({{ page.version_secondary }}{% endif %} Release Notes - {{ site.title }}
-      {%- else if page.title == blank -%}
-        {{ site.title_verbose }}
-      {%- else -%}
+      {%- elsif page.title -%}
         {{ page.title }} - {{ site.title }}
+      {%- else -%}
+        {{ site.title_verbose }}
       {%- endif -%}
     </title>
+
+    {%- else -%}
+
+    <meta name="description" content="{{ site.blog.description }}">
+
+    <title>
+      {%- if page.title -%}
+        {{ page.title }} - {{ site.blog.title }}
+      {%- else -%}
+        {{ site.blog.title }}
+      {%- endif -%}
+    </title>
+
+    {%- endunless -%}
   </head>
 
   <body>
-
     <!-- HEADER -->
     <div id="header_wrap" class="outer">
-        {% include header.html %}
+        {%- include header.html -%}
     </div>
 
     <!-- MAIN CONTENT -->
@@ -32,7 +47,7 @@
 
     <!-- FOOTER  -->
     <div id="footer_wrap" class="outer">
-        {% include footer.html %}
+        {%- include footer.html -%}
     </div>
 
   </body>

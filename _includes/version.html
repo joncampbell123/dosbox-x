@@ -5,6 +5,7 @@
         {% break %}
     {%- endif -%}
 {%- endfor %}
+
 <h4>Latest Release: <span style="color: red">{{ version.version }}</span>{% if release_note and release_note.version_secondary %} ({{ release_note.version_secondary }}){% endif %}</h4>
 
 {% if release_note -%}
