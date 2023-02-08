@@ -2268,6 +2268,16 @@ static Bitu INT13_DiskHandler(void) {
         reg_ah = 0x00;
         CALLBACK_SCF(false);
         break;
+    case 0x44: /* Extended Verify Sectors [http://www.ctyme.com/intr/rb-0711.htm] */
+        if(driveInactive(drivenum)) {
+            reg_ah = 0xff;
+            CALLBACK_SCF(true);
+            return CBRET_NONE;
+        }
+        /* Just signal success, we don't actually verify anything */
+        reg_ah = 0x00;
+        CALLBACK_SCF(false);
+        break;
     case 0x48: { /* get drive parameters */
         uint16_t bufsz;
 

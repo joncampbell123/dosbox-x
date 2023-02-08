@@ -1,4 +1,7 @@
 Next
+  - Added INT 13h AH=44h Extended Verify to satisfy any disk
+    utilities that might use it. The function doesn't really
+    do anything except return success (joncampbell123).
   - Fix CPU stack management to use CPU mode agnostic method
     using mem_readw instead of real_readw. However the real
     mode version is used if real or virtual 8086 mode because
