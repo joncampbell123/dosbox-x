@@ -1,4 +1,12 @@
 Next
+  - Fix CPU stack management to use CPU mode agnostic method
+    using mem_readw instead of real_readw. However the real
+    mode version is used if real or virtual 8086 mode because
+    of comments in an older commit that mention UNLZEXE that
+    depends on real mode stack pointer rollover. This fixes
+    a bug related to protected mode APM (Advanced Power
+    Management) emulation that prevented the Linux kernel
+    from booting (joncampbell123).
   - Add support for INT 2F function 1680h "Idle" and DOS
     idle (INT 28h), add code to reduce DOSBox-X CPU load
     during emulation when the idle function is called,
