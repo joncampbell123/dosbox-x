@@ -1,4 +1,7 @@
 Next
+  - VHD image support: If the VHD image is not a fixed type,
+    say so in the log (previously it said nothing) and say
+    what kind of image was mounted (joncampbell123).
   - Added INT 13h AH=44h Extended Verify to satisfy any disk
     utilities that might use it. The function doesn't really
     do anything except return success (joncampbell123).

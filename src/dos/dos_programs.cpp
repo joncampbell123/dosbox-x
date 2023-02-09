@@ -5795,6 +5795,13 @@ private:
                                     vhdDisk = 0;
                                     skipDetectGeometry = false;
                                 }
+                                else {
+                                    LOG_MSG("VHD image detected: %u,%u,%u,%u",
+                                        (unsigned int)vhdDisk->sector_size, (unsigned int)vhdDisk->sectors, (unsigned int)vhdDisk->heads, (unsigned int)vhdDisk->cylinders);
+                                    if (vhdDisk->cylinders>1023) LOG_MSG("WARNING: cylinders>1023, INT13 will not work unless extensions are used");
+                                    if (vhdDisk->GetVHDType() == imageDiskVHD::VHD_TYPE_DYNAMIC) LOG_MSG("VHD is a dynamic image");
+                                    if (vhdDisk->GetVHDType() == imageDiskVHD::VHD_TYPE_DIFFERENCING) LOG_MSG("VHD is a differencing image");
+                                }
                                 break;
                             }
                             case imageDiskVHD::ERROR_OPENING: 

@@ -300,6 +300,7 @@ public:
 	virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data);
 	static ErrorCodes Open(const char* fileName, const bool readOnly, imageDisk** disk);
 	static VHDTypes GetVHDType(const char* fileName);
+	VHDTypes GetVHDType(void) const;
 	virtual ~imageDiskVHD();
 
 private:
