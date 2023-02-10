@@ -1,4 +1,5 @@
 Next
+  - VHD image support: Fix auto-detection of geometry (maron2000)
   - VHD image support: If the VHD image is not a fixed type,
     say so in the log (previously it said nothing) and say
     what kind of image was mounted (joncampbell123).
