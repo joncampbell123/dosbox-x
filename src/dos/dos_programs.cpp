@@ -5765,6 +5765,7 @@ private:
                 sizes[2] = 0;
                 sizes[3] = 0;
 
+
                 /* .HDI images contain the geometry explicitly in the header. */
                 if (str_size.size() == 0) {
                     const char *ext = strrchr(paths[i].c_str(), '.');
@@ -5787,20 +5788,23 @@ private:
                             case imageDiskVHD::UNSUPPORTED_WRITE:
                                 options.push_back("readonly");
                             case imageDiskVHD::OPEN_SUCCESS: {
-                                //upon successful, go back to old code if using a fixed disk, which patches chs values for incorrectly identified disks
                                 skipDetectGeometry = true;
                                 const imageDiskVHD* vhdDisk = dynamic_cast<imageDiskVHD*>(vhdImage);
-                                if (vhdDisk == NULL || vhdDisk->vhdType == imageDiskVHD::VHD_TYPE_FIXED) { //fixed disks would be null here
-                                    delete vhdDisk;
-                                    vhdDisk = 0;
-                                    skipDetectGeometry = false;
-                                }
-                                else {
-                                    LOG_MSG("VHD image detected: %u,%u,%u,%u",
-                                        (unsigned int)vhdDisk->sector_size, (unsigned int)vhdDisk->sectors, (unsigned int)vhdDisk->heads, (unsigned int)vhdDisk->cylinders);
+                                if (vhdDisk != NULL && vhdDisk->GetVHDType() != imageDiskVHD::VHD_TYPE_FIXED) { //fixed disks would be null here
+                                    LOG_MSG("VHD image detected SS,S,H,C: %u,%u,%u,%u",
+                                        (uint32_t)vhdDisk->sector_size, (uint32_t)vhdDisk->sectors, (uint32_t)vhdDisk->heads, (uint32_t)vhdDisk->cylinders);
                                     if (vhdDisk->cylinders>1023) LOG_MSG("WARNING: cylinders>1023, INT13 will not work unless extensions are used");
                                     if (vhdDisk->GetVHDType() == imageDiskVHD::VHD_TYPE_DYNAMIC) LOG_MSG("VHD is a dynamic image");
                                     if (vhdDisk->GetVHDType() == imageDiskVHD::VHD_TYPE_DIFFERENCING) LOG_MSG("VHD is a differencing image");
+                                } else {
+                                    delete vhdDisk;
+                                    vhdDisk = 0;
+                                    sizes[0] = vhdImage->sector_size; // sector size
+                                    sizes[1] = vhdImage->sectors;     // sectors
+                                    sizes[2] = vhdImage->heads;       // heads
+                                    sizes[3] = vhdImage->cylinders;   // cylinders
+                                    LOG_MSG("VHD fixed size image detected SS,S,H,C: %u,%u,%u,%u",
+                                        (uint32_t)sizes[0], (uint32_t)sizes[1], (uint32_t)sizes[2], (uint32_t)sizes[3]);
                                 }
                                 break;
                             }
