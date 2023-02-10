@@ -19,7 +19,10 @@
  *  With major works from joncampbell123 and Wengier
  */
 
+#if defined(HAIKU)
 #include "config.h"
+#endif // defined(HAIKU)
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
