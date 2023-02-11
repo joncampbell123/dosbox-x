@@ -683,7 +683,14 @@ static void GenerateDMASound(Bitu size) {
 
 	if (sb.dma.recording) {
 		/* How much can we do? assume not masked because we checked that at the start of this function.
-		 * Then generate that much input data. */
+		 * Then generate that much input data. After writing via DMA, mute the audio before it goes to
+		 * the mixer.
+		 *
+		 * TODO: It would be kind of fun to tie the generated audio parameters to mixer controls such
+		 *       as allowing the user to control how loud the 1KHz sine wave is with the line in volume
+		 *       control, and perhaps we should allow the generated audio to go out to the mixer output
+		 *       if the line in is unmuted, subject to the audio volume controls. Or perhaps this code
+		 *       should just make another mixer channel for recording sources. */
 		read=sb.dma.chan->currcnt + 1; /* DMA channel current count remain */
 		if (read > size) read = size;
 		gen_input(read,&sb.dma.buf.b8[sb.dma.remain_size]);
@@ -692,6 +699,7 @@ static void GenerateDMASound(Bitu size) {
 			case DSP_DMA_8:
 				if (sb.dma.stereo) {
 					read=sb.dma.chan->Write(read,&sb.dma.buf.b8[sb.dma.remain_size]);
+					if (read > 0) gen_input_silence(read,&sb.dma.buf.b8[sb.dma.remain_size]); /* mute before going out to mixer */
 					Bitu total=read+sb.dma.remain_size;
 					if (!sb.dma.sign)  sb.chan->AddSamples_s8(total>>1,sb.dma.buf.b8);
 					else sb.chan->AddSamples_s8s(total>>1,(int8_t*)sb.dma.buf.b8);
@@ -701,6 +709,7 @@ static void GenerateDMASound(Bitu size) {
 					} else sb.dma.remain_size=0;
 				} else {
 					read=sb.dma.chan->Write(read,sb.dma.buf.b8);
+					if (read > 0) gen_input_silence(read,sb.dma.buf.b8); /* mute before going out to mixer */
 					if (!sb.dma.sign) sb.chan->AddSamples_m8(read,sb.dma.buf.b8);
 					else sb.chan->AddSamples_m8s(read,(int8_t *)sb.dma.buf.b8);
 				}
@@ -713,6 +722,7 @@ static void GenerateDMASound(Bitu size) {
 					   16-bit DMA Read returns word size */
 					read=sb.dma.chan->Write(read,(uint8_t *)&sb.dma.buf.b16[sb.dma.remain_size])
 						>> (sb.dma.mode==DSP_DMA_16_ALIASED ? 1:0);
+					if (read > 0) gen_input_silence(read,(unsigned char*)(&sb.dma.buf.b16[sb.dma.remain_size])); /* mute before going out to mixer */
 					Bitu total=read+sb.dma.remain_size;
 #if defined(WORDS_BIGENDIAN)
 					if (sb.dma.sign) sb.chan->AddSamples_s16_nonnative(total>>1,sb.dma.buf.b16);
@@ -728,6 +738,7 @@ static void GenerateDMASound(Bitu size) {
 				} else {
 					read=sb.dma.chan->Write(read,(uint8_t *)sb.dma.buf.b16)
 						>> (sb.dma.mode==DSP_DMA_16_ALIASED ? 1:0);
+					if (read > 0) gen_input_silence(read,(unsigned char*)sb.dma.buf.b16); /* mute before going out to mixer */
 #if defined(WORDS_BIGENDIAN)
 					if (sb.dma.sign) sb.chan->AddSamples_m16_nonnative(read,sb.dma.buf.b16);
 					else sb.chan->AddSamples_m16u_nonnative(read,(uint16_t *)sb.dma.buf.b16);
