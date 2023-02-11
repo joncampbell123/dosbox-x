@@ -597,6 +597,46 @@ void SB_OnEndOfDMA(void) {
 }
 
 static unsigned int gen_input_ofs = 0;
+static unsigned long long gen_tone_angle = 0;
+
+static void gen_input_reset(void) {
+	gen_input_ofs = 0;
+}
+
+static double gen_1khz_tone(const bool advance) {
+	/* sin() is pretty fast on today's hardware, no lookup table necessary */
+	if (advance) gen_tone_angle++;
+	return sin((gen_tone_angle * M_PI * 1000.0) / sb.dma_dac_srcrate);
+}
+
+static void gen_input_1khz_tone(Bitu dmabytes,unsigned char *buf) {
+	const unsigned int ofsmax = sb.dma.stereo ? 2 : 1;
+	unsigned int fill;
+
+	if (sb.dma.mode == DSP_DMA_16 || sb.dma.mode == DSP_DMA_16_ALIASED) {
+		uint16_t *buf16 = (uint16_t*)buf;
+
+		if (sb.dma.mode == DSP_DMA_16_ALIASED) dmabytes >>= 1u;
+		fill = ((unsigned int)(gen_1khz_tone(false) * 0x4000/*half range*/) & 0xFFFF) ^ (sb.dma.sign ? 0x0000 : 0x8000);
+		while (dmabytes-- > 0) {
+			*buf16++ = fill;
+			if ((++gen_input_ofs) >= ofsmax) {
+				fill = ((unsigned int)(gen_1khz_tone(true) * 0x4000) & 0xFFFF) ^ (sb.dma.sign ? 0x0000 : 0x8000);
+				gen_input_ofs = 0;
+			}
+		}
+	}
+	else { /* 8-bit */
+		fill = ((unsigned int)(gen_1khz_tone(false) * 0x40/*half range*/) & 0xFF) ^ (sb.dma.sign ? 0x00 : 0x80);
+		while (dmabytes-- > 0) {
+			*buf++ = fill;
+			if ((++gen_input_ofs) >= ofsmax) {
+				fill = ((unsigned int)(gen_1khz_tone(true) * 0x40) & 0xFF) ^ (sb.dma.sign ? 0x00 : 0x80);
+				gen_input_ofs = 0;
+			}
+		}
+	}
+}
 
 static void gen_input_silence(Bitu dmabytes,unsigned char *buf) {
 	unsigned int fill;
@@ -1308,6 +1348,8 @@ static void DSP_Reset(void) {
     sb.dma.mode=sb.dma.mode_assigned=DSP_DMA_NONE;
     sb.dma.remain_size=0;
     if (sb.dma.chan) sb.dma.chan->Clear_Request();
+
+    gen_input_reset();
 
     sb.dsp.midi_rwpoll_mode = false;
     sb.dsp.midi_read_interrupt = false;
