@@ -1304,7 +1304,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* aspectmodes[] = { "false", "true", "0", "1", "yes", "no", "nearest", "bilinear", 0};
     const char *vga_ac_mapping_settings[] = { "", "auto", "4x4", "4low", "first16", 0 };
     const char* fpu_settings[] = { "true", "false", "1", "0", "auto", "8087", "287", "387", 0};
-    const char* sb_recording_sources[] = { "silence", "1khz tone", 0};
+    const char* sb_recording_sources[] = { "silence", "hiss", "1khz tone", 0};
 
     const char* hostkeys[] = {
         "ctrlalt", "ctrlshift", "altshift", "mapper", 0 };

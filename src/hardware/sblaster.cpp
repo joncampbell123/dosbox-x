@@ -121,7 +121,8 @@ enum {
 
 enum {
     REC_SILENCE=0,
-    REC_1KHZ_TONE
+    REC_1KHZ_TONE,
+    REC_HISS
 };
 
 unsigned int sb_recording_source = REC_SILENCE;
@@ -606,6 +607,8 @@ void SB_OnEndOfDMA(void) {
 
 static unsigned int gen_input_ofs = 0;
 static unsigned long long gen_tone_angle = 0;
+static unsigned int gen_hiss_rand[2] = {0,0};
+static int gen_last_hiss = 0;
 
 static void gen_input_reset(void) {
 	gen_input_ofs = 0;
@@ -646,6 +649,30 @@ static void gen_input_1khz_tone(Bitu dmabytes,unsigned char *buf) {
 	}
 }
 
+static int gen_hiss(unsigned int mask) {
+	if (gen_hiss_rand[0] == 0) gen_hiss_rand[0] = (unsigned int)rand();
+	if (gen_hiss_rand[1] == 0) gen_hiss_rand[1] = (unsigned int)rand();
+	/* ref: [https://stackoverflow.com/questions/167735/fast-pseudo-random-number-generator-for-procedural-content#167764] */
+	gen_hiss_rand[0] = 36969*(gen_hiss_rand[0] & 0xFFFF) + (gen_hiss_rand[1] >> 16);
+	gen_hiss_rand[1] = 18000*(gen_hiss_rand[1] & 0xFFFF) + (gen_hiss_rand[0] >> 16);
+	const unsigned int v = (gen_hiss_rand[1] << 16) + (gen_hiss_rand[0] & 0xFFFF);
+	const int r = (v - gen_last_hiss) & mask; /* we want a hiss not white noise */
+	gen_last_hiss = v;
+	return r;
+}
+
+static void gen_input_hiss(Bitu dmabytes,unsigned char *buf) {
+	if (sb.dma.mode == DSP_DMA_16 || sb.dma.mode == DSP_DMA_16_ALIASED) {
+		uint16_t *buf16 = (uint16_t*)buf;
+
+		if (sb.dma.mode == DSP_DMA_16_ALIASED) dmabytes >>= 1u;
+		while (dmabytes-- > 0) *buf16++ = ((gen_hiss(0x3ff) - 0x200) & 0xFFFF) ^ (sb.dma.sign ? 0x0000 : 0x8000);
+	}
+	else { /* 8-bit */
+		while (dmabytes-- > 0) *buf++ = ((gen_hiss(0x3) - 0x2) & 0xFF) ^ (sb.dma.sign ? 0x00 : 0x80);
+	}
+}
+
 static void gen_input_silence(Bitu dmabytes,unsigned char *buf) {
 	unsigned int fill;
 
@@ -666,6 +693,9 @@ static void gen_input(Bitu dmabytes,unsigned char *buf) {
 	switch (sb_recording_source) {
 		case REC_SILENCE:
 			gen_input_silence(dmabytes,buf);
+			break;
+		case REC_HISS:
+			gen_input_hiss(dmabytes,buf);
 			break;
 		case REC_1KHZ_TONE:
 			gen_input_1khz_tone(dmabytes,buf);
@@ -3613,6 +3643,8 @@ public:
 
                 if (!strcmp(s,"silence"))
                         sb_recording_source = REC_SILENCE;
+                else if (!strcmp(s,"hiss"))
+                        sb_recording_source = REC_HISS;
                 else if (!strcmp(s,"1khz tone"))
                         sb_recording_source = REC_1KHZ_TONE;
                 else
