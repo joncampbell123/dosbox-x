@@ -119,6 +119,8 @@ enum {
     PLAY_MONO,PLAY_STEREO
 };
 
+bool sb_listen_to_recording_source = false;
+
 struct SB_INFO {
     Bitu freq;
     uint8_t timeconst;
@@ -699,7 +701,7 @@ static void GenerateDMASound(Bitu size) {
 			case DSP_DMA_8:
 				if (sb.dma.stereo) {
 					read=sb.dma.chan->Write(read,&sb.dma.buf.b8[sb.dma.remain_size]);
-					if (read > 0) gen_input_silence(read,&sb.dma.buf.b8[sb.dma.remain_size]); /* mute before going out to mixer */
+					if (read > 0 && !sb_listen_to_recording_source) gen_input_silence(read,&sb.dma.buf.b8[sb.dma.remain_size]); /* mute before going out to mixer */
 					Bitu total=read+sb.dma.remain_size;
 					if (!sb.dma.sign)  sb.chan->AddSamples_s8(total>>1,sb.dma.buf.b8);
 					else sb.chan->AddSamples_s8s(total>>1,(int8_t*)sb.dma.buf.b8);
@@ -722,7 +724,7 @@ static void GenerateDMASound(Bitu size) {
 					   16-bit DMA Read returns word size */
 					read=sb.dma.chan->Write(read,(uint8_t *)&sb.dma.buf.b16[sb.dma.remain_size])
 						>> (sb.dma.mode==DSP_DMA_16_ALIASED ? 1:0);
-					if (read > 0) gen_input_silence(read,(unsigned char*)(&sb.dma.buf.b16[sb.dma.remain_size])); /* mute before going out to mixer */
+					if (read > 0 && !sb_listen_to_recording_source) gen_input_silence(read,(unsigned char*)(&sb.dma.buf.b16[sb.dma.remain_size])); /* mute before going out to mixer */
 					Bitu total=read+sb.dma.remain_size;
 #if defined(WORDS_BIGENDIAN)
 					if (sb.dma.sign) sb.chan->AddSamples_s16_nonnative(total>>1,sb.dma.buf.b16);
@@ -738,7 +740,7 @@ static void GenerateDMASound(Bitu size) {
 				} else {
 					read=sb.dma.chan->Write(read,(uint8_t *)sb.dma.buf.b16)
 						>> (sb.dma.mode==DSP_DMA_16_ALIASED ? 1:0);
-					if (read > 0) gen_input_silence(read,(unsigned char*)sb.dma.buf.b16); /* mute before going out to mixer */
+					if (read > 0 && !sb_listen_to_recording_source) gen_input_silence(read,(unsigned char*)sb.dma.buf.b16); /* mute before going out to mixer */
 #if defined(WORDS_BIGENDIAN)
 					if (sb.dma.sign) sb.chan->AddSamples_m16_nonnative(read,sb.dma.buf.b16);
 					else sb.chan->AddSamples_m16u_nonnative(read,(uint16_t *)sb.dma.buf.b16);
@@ -3596,6 +3598,7 @@ public:
         sb.emit_blaster_var=section->Get_bool("blaster environment variable");
         sb.sample_rate_limits=section->Get_bool("sample rate limits");
         sb.sbpro_stereo_bit_strict_mode=section->Get_bool("stereo control with sbpro only");
+        sb_listen_to_recording_source=section->Get_bool("listen to recording source");
         sb.hw.sb_io_alias=section->Get_bool("io port aliasing");
         sb.busy_cycle_hz=section->Get_int("dsp busy cycle rate");
         sb.busy_cycle_duty_percent=section->Get_int("dsp busy cycle duty");

@@ -3326,6 +3326,9 @@ void DOSBOX_SetupConfigSections(void) {
             "the DMA transfer per block poorly in a way that causes popping and artifacts. Setting this option to 0 for\n"
             "such DOS applications may reduce audible popping and artifacts.");
 
+    Pbool = secprop->Add_bool("listen to recording source",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("When the guest records audio from the Sound Blaster card, send the input source to the speakers as well so it can be heard.");
+
     /* Sound Blaster IRQ hacks.
      *
      * These hacks reduce emulation accuracy but can be set to work around bugs or mistakes in some old
