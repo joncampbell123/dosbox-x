@@ -3897,7 +3897,15 @@ restart_int:
                 WriteOut("WARNING: Cluster sizes >= 64KB are not compatible with MS-DOS and SCANDISK\n");
         }
         // write VHD footer if requested, largely copied from RAW2VHD program, no license was included
-        if((mediadesc == 0xF8) && (temp_line.find(".vhd")) != std::string::npos) {
+        char extension[6] = {}; // care extensions longer than 3 letters such as '.vhdd'
+        if(temp_line.find_last_of('.') != std::string::npos) {
+            for(int i = 0; i < sizeof(extension) - 1; i++) {
+                if(temp_line.find_last_of('.') + i > temp_line.length() - 1) break;
+                extension[i] = temp_line[temp_line.find_last_of('.') + i];
+            }
+            extension[sizeof(extension) - 1] = '\0'; // Terminate string just in case
+        }
+        if((mediadesc == 0xF8) && !strcasecmp(extension, ".vhd")) {
             int i;
             uint8_t footer[512];
             // basic information
