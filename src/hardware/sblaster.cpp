@@ -1927,10 +1927,19 @@ static void DSP_DoCommand(void) {
             for (s=0;s < sc;s++) sb.chan->AddSamples_m8(1,(uint8_t*)(&sb.dsp.in.data[0]));
         }
         break;
+    case 0x99:  /* Single Cycle 8-Bit DMA High speed DAC */
+        DSP_SB2_ABOVE;
+        /* fall through */
     case 0x24:  /* Single Cycle 8-Bit DMA ADC */
         sb.dma.recording=true;
         DSP_PrepareDMA_Old(DSP_DMA_8,false,false,/*hispeed*/(sb.dsp.cmd&0x80)!=0);
         LOG(LOG_SB,LOG_WARN)("Guest recording audio using SB/SBPro commands");
+        break;
+    case 0x98:  /* Auto Init 8-bit DMA High Speed */
+    case 0x2c:  /* Auto Init 8-bit DMA */
+        DSP_SB2_ABOVE; /* Note: 0x98 is documented only for DSP ver.2.x and 3.x, not 4.x */
+        sb.dma.recording=true;
+        DSP_PrepareDMA_Old(DSP_DMA_8,true,false,/*hispeed*/(sb.dsp.cmd&0x80)!=0);
         break;
     case 0x91:  /* Single Cycle 8-Bit DMA High speed DAC */
         DSP_SB2_ABOVE;
@@ -2277,6 +2286,12 @@ static void DSP_DoCommand(void) {
         //Small delay in order to emulate the slowness of the DSP, fixes Llamatron 2012 and Lemmings 3D
         PIC_AddEvent(&DSP_RaiseIRQEvent,0.01f);
         break;
+    case 0xa0: case 0xa8: /* Documented only for DSP 3.x */
+        if (sb.type == SBT_PRO1 || sb.type == SBT_PRO2)
+            sb.mixer.stereo = (sb.dsp.cmd & 8) > 0; /* <- HACK! 0xA0 input mode to mono 0xA8 stereo */
+        else
+            LOG(LOG_SB,LOG_WARN)("DSP command A0h/A8h are only supported in Sound Blaster Pro emulation mode");
+        break;
     case 0xf3:   /* Trigger 16bit IRQ */
         DSP_SB16_ONLY;
         SB_RaiseIRQ(SB_IRQ_16);
@@ -2308,11 +2323,6 @@ static void DSP_DoCommand(void) {
         break;
     case 0x20:
         DSP_AddData(0x7f);   // fake silent input for Creative parrot
-        break;
-    case 0x2c:
-    case 0x98: case 0x99: /* Documented only for DSP 2.x and 3.x */
-    case 0xa0: case 0xa8: /* Documented only for DSP 3.x */
-        LOG(LOG_SB,LOG_ERROR)("DSP:Unimplemented input command %2X",sb.dsp.cmd);
         break;
     case 0x88: /* Reveal SC400 ??? (used by TESTSC.EXE) */
         if (sb.reveal_sc_type != RSC_SC400) break;
