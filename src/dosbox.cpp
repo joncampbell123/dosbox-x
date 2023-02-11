@@ -1304,6 +1304,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* aspectmodes[] = { "false", "true", "0", "1", "yes", "no", "nearest", "bilinear", 0};
     const char *vga_ac_mapping_settings[] = { "", "auto", "4x4", "4low", "first16", 0 };
     const char* fpu_settings[] = { "true", "false", "1", "0", "auto", "8087", "287", "387", 0};
+    const char* sb_recording_sources[] = { "silence", "1khz tone", 0};
 
     const char* hostkeys[] = {
         "ctrlalt", "ctrlshift", "altshift", "mapper", 0 };
@@ -3328,6 +3329,10 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("listen to recording source",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("When the guest records audio from the Sound Blaster card, send the input source to the speakers as well so it can be heard.");
+
+    Pstring = secprop->Add_string("recording source",Property::Changeable::WhenIdle,"silence");
+    Pstring->Set_values(sb_recording_sources);
+    Pstring->Set_help("Audio source to use when guest is recording audio. At this time only generated audio sources are available.");
 
     /* Sound Blaster IRQ hacks.
      *

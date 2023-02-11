@@ -119,6 +119,12 @@ enum {
     PLAY_MONO,PLAY_STEREO
 };
 
+enum {
+    REC_SILENCE=0,
+    REC_1KHZ_TONE
+};
+
+unsigned int sb_recording_source = REC_SILENCE;
 bool sb_listen_to_recording_source = false;
 
 struct SB_INFO {
@@ -657,7 +663,17 @@ static void gen_input_silence(Bitu dmabytes,unsigned char *buf) {
 }
 
 static void gen_input(Bitu dmabytes,unsigned char *buf) {
-	gen_input_silence(dmabytes,buf);
+	switch (sb_recording_source) {
+		case REC_SILENCE:
+			gen_input_silence(dmabytes,buf);
+			break;
+		case REC_1KHZ_TONE:
+			gen_input_1khz_tone(dmabytes,buf);
+			break;
+		default:
+			abort();
+			break;
+	}
 }
 
 static void GenerateDMASound(Bitu size) {
@@ -711,7 +727,7 @@ static void GenerateDMASound(Bitu size) {
 					} else sb.dma.remain_size=0;
 				} else {
 					read=sb.dma.chan->Write(read,sb.dma.buf.b8);
-					if (read > 0) gen_input_silence(read,sb.dma.buf.b8); /* mute before going out to mixer */
+					if (read > 0 && !sb_listen_to_recording_source) gen_input_silence(read,sb.dma.buf.b8); /* mute before going out to mixer */
 					if (!sb.dma.sign) sb.chan->AddSamples_m8(read,sb.dma.buf.b8);
 					else sb.chan->AddSamples_m8s(read,(int8_t *)sb.dma.buf.b8);
 				}
@@ -3590,6 +3606,17 @@ public:
         else {
             if (sb.hw.base >= 0xD2 && sb.hw.base <= 0xDE) /* translate PC-98 to IBM PC (D2h -> 220h) */
                 sb.hw.base = 0x200 + ((sb.hw.base & 0xFu) << 4u);
+        }
+
+        {
+                const char *s = section->Get_string("recording source");
+
+                if (!strcmp(s,"silence"))
+                        sb_recording_source = REC_SILENCE;
+                else if (!strcmp(s,"1khz tone"))
+                        sb_recording_source = REC_1KHZ_TONE;
+                else
+                        sb_recording_source = REC_SILENCE;
         }
 
         sb.goldplay=section->Get_bool("goldplay");
