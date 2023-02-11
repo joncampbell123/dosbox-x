@@ -3329,10 +3329,12 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("listen to recording source",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("When the guest records audio from the Sound Blaster card, send the input source to the speakers as well so it can be heard.");
+    Pbool->SetBasic(true);
 
     Pstring = secprop->Add_string("recording source",Property::Changeable::WhenIdle,"silence");
     Pstring->Set_values(sb_recording_sources);
     Pstring->Set_help("Audio source to use when guest is recording audio. At this time only generated audio sources are available.");
+    Pstring->SetBasic(true);
 
     /* Sound Blaster IRQ hacks.
      *
