@@ -5763,6 +5763,7 @@ private:
         for (i = 0; i < paths.size(); i++) {
             const char* errorMessage = NULL;
             imageDisk* vhdImage = NULL;
+            imageDisk* newImage = NULL;
             bool ro=false;
 
             //detect hard drive geometry
@@ -5835,6 +5836,43 @@ private:
                             default: break;
                             }
                         }
+                        if(!strcasecmp(ext, ".qcow2")) {
+                            ro = wpcolon && paths[i].length() > 1 && paths[i].c_str()[0] == ':';
+                            const char* fname = ro ? paths[i].c_str() + 1 : paths[i].c_str();
+                            FILE* newDisk = fopen_lock(fname, ro ? "rb" : "rb+", ro);
+                            if(!newDisk) {
+                                if(!qmount) WriteOut("Unable to open '%s'\n", fname);
+                                return NULL;
+                            }
+                            QCow2Image::QCow2Header qcow2_header = QCow2Image::read_header(newDisk);
+                            uint64_t sectors;
+                            uint32_t imagesize;
+                            sizes[0] = 512; // default sector size
+                            if(qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)) {
+                                uint32_t cluster_size = 1u << qcow2_header.cluster_bits;
+                                if((sizes[0] < 512) || ((cluster_size % sizes[0]) != 0)) {
+                                    WriteOut("Sector size must be larger than 512 bytes and evenly divide the image cluster size of %lu bytes.\n", cluster_size);
+                                    return 0;
+                                }
+                                sectors = (uint64_t)qcow2_header.size / (uint64_t)sizes[0]; //sectors
+                                imagesize = (uint32_t)(qcow2_header.size / 1024L); // imagesize
+                                sizes[1] = 63; // sectors
+                                sizes[2] = 16; // heads
+                                sizes[3] = (uint64_t)qcow2_header.size / sizes[0] / sizes[1] / sizes[2]; // cylinders
+                                setbuf(newDisk, NULL);
+                                newImage = new QCow2Disk(qcow2_header, newDisk, fname, imagesize, (uint32_t)sizes[0], (imagesize > 2880));
+                                skipDetectGeometry = true;
+                                newImage->sector_size = sizes[0]; // sector size
+                                newImage->sectors = sizes[1];     // sectors
+                                newImage->heads = sizes[2];       // heads
+                                newImage->cylinders = sizes[3];   // cylinders
+                            }
+                            else {
+                                WriteOut("qcow2 image '%s' is not supported\n", fname);
+                                fclose(newDisk);
+                                newImage = NULL;
+                            }
+                        }
                     }
                 }
                 if (!skipDetectGeometry && !DetectGeometry(NULL, paths[i].c_str(), sizes)) {
@@ -5849,6 +5887,15 @@ private:
                     strcpy(newDrive->info, "fatDrive ");
                     strcat(newDrive->info, ro?paths[i].c_str()+1:paths[i].c_str());
                     vhdImage = NULL;
+                }
+                else if(newImage) {
+                    newDrive = new fatDrive(newImage, options);
+                    strcpy(newDrive->info, "fatDrive ");
+                    strcat(newDrive->info, ro ? paths[i].c_str() + 1 : paths[i].c_str());
+                    LOG_MSG("IMGMOUNT: qcow2 image mounted (experimental)");
+                    LOG_MSG("IMGMOUNT: qcow2 SS,S,H,C: %u,%u,%u,%u",
+                        (uint32_t)newImage->sector_size, (uint32_t)newImage->sectors, (uint32_t)newImage->heads, (uint32_t)newImage->cylinders);
+                    newImage = NULL;
                 }
                 else {
                     if (roflag) options.push_back("readonly");
