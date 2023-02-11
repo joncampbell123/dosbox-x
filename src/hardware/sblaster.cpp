@@ -432,6 +432,26 @@ static INLINE void DSP_FlushData(void) {
 
 static double last_dma_callback = 0.0f;
 
+/* these are settings that the user would probably like to change on the fly during emulation */
+void sb_update_recording_source_settings() {
+	Section_prop* section = static_cast<Section_prop *>(control->GetSection("sblaster"));
+
+	sb_listen_to_recording_source=section->Get_bool("listen to recording source");
+
+	{
+		const char *s = section->Get_string("recording source");
+
+		if (!strcmp(s,"silence"))
+			sb_recording_source = REC_SILENCE;
+		else if (!strcmp(s,"hiss"))
+			sb_recording_source = REC_HISS;
+		else if (!strcmp(s,"1khz tone"))
+			sb_recording_source = REC_1KHZ_TONE;
+		else
+			sb_recording_source = REC_SILENCE;
+	}
+}
+
 static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
     if (chan!=sb.dma.chan || event==DMA_REACHED_TC) return;
     else if (event==DMA_MASKED) {
@@ -3214,7 +3234,16 @@ bool SB_Get_Address(Bitu& sbaddr, Bitu& sbirq, Bitu& sbdma) {
     }
 }
 
+static pic_tickindex_t next_check_record_settings = 0;
+
 static void SBLASTER_CallBack(Bitu len) {
+    pic_tickindex_t now = PIC_FullIndex();
+
+    if (now >= next_check_record_settings) {
+        next_check_record_settings = now + 100/*ms*/;
+        sb_update_recording_source_settings();
+    }
+
     sb.directdac_warn_speaker_off = true;
 
     switch (sb.mode) {
@@ -3638,18 +3667,7 @@ public:
                 sb.hw.base = 0x200 + ((sb.hw.base & 0xFu) << 4u);
         }
 
-        {
-                const char *s = section->Get_string("recording source");
-
-                if (!strcmp(s,"silence"))
-                        sb_recording_source = REC_SILENCE;
-                else if (!strcmp(s,"hiss"))
-                        sb_recording_source = REC_HISS;
-                else if (!strcmp(s,"1khz tone"))
-                        sb_recording_source = REC_1KHZ_TONE;
-                else
-                        sb_recording_source = REC_SILENCE;
-        }
+        sb_update_recording_source_settings();
 
         sb.goldplay=section->Get_bool("goldplay");
         sb.min_dma_user=section->Get_int("mindma");
@@ -3657,7 +3675,6 @@ public:
         sb.emit_blaster_var=section->Get_bool("blaster environment variable");
         sb.sample_rate_limits=section->Get_bool("sample rate limits");
         sb.sbpro_stereo_bit_strict_mode=section->Get_bool("stereo control with sbpro only");
-        sb_listen_to_recording_source=section->Get_bool("listen to recording source");
         sb.hw.sb_io_alias=section->Get_bool("io port aliasing");
         sb.busy_cycle_hz=section->Get_int("dsp busy cycle rate");
         sb.busy_cycle_duty_percent=section->Get_int("dsp busy cycle duty");
