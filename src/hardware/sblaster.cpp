@@ -761,7 +761,10 @@ static void GenerateDMASound(Bitu size) {
 		 *       should just make another mixer channel for recording sources. */
 		read=sb.dma.chan->currcnt + 1; /* DMA channel current count remain */
 		if (read > size) read = size;
-		gen_input(read,&sb.dma.buf.b8[sb.dma.remain_size]);
+		if (sb.dma.mode == DSP_DMA_16 || sb.dma.mode == DSP_DMA_16_ALIASED)
+			gen_input(read,(unsigned char*)(&sb.dma.buf.b16[sb.dma.remain_size]));
+		else
+			gen_input(read,&sb.dma.buf.b8[sb.dma.remain_size]);
 
 		switch (sb.dma.mode) {
 			case DSP_DMA_8:
