@@ -604,6 +604,8 @@ static void GenerateDMASound(Bitu size) {
 
     if (sb.dma_dac_mode) return;
 
+    last_dma_callback = PIC_FullIndex();
+
     if(sb.dma.autoinit) {
         if (sb.dma.left <= size) size = sb.dma.left;
     } else {
