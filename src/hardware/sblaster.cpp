@@ -474,13 +474,13 @@ static void DSP_DMA_CallBack(DmaChannel * chan, DMAEvent event) {
                 if (s) GenerateDMASound(s);
             }
             sb.mode = MODE_DMA_MASKED;
-            LOG(LOG_SB,LOG_NORMAL)("DMA masked,stopping output, left %d",chan->currcnt);
+            LOG(LOG_SB,LOG_NORMAL)("DMA masked, stopping %s, left %d",sb.dma.recording?"input":"output",chan->currcnt);
         }
     } else if (event==DMA_UNMASKED) {
         if (sb.mode==MODE_DMA_MASKED && sb.dma.mode!=DSP_DMA_NONE) {
             DSP_ChangeMode(MODE_DMA);
             CheckDMAEnd();
-            LOG(LOG_SB,LOG_NORMAL)("DMA unmasked,starting output, auto %d block %d",chan->autoinit,chan->basecnt);
+            LOG(LOG_SB,LOG_NORMAL)("DMA unmasked, starting %s, auto %d block %d",sb.dma.recording?"input":"output",chan->autoinit,chan->basecnt);
         }
     }
 }
@@ -1225,8 +1225,9 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo,bool dontInit
     }
 
 #if (C_DEBUG)
-    LOG(LOG_SB,LOG_NORMAL)("DMA Transfer:%s %s %s freq %d rate %d size %d gold %d",
+    LOG(LOG_SB,LOG_NORMAL)("DMA Transfer:%s %s %s %s freq %d rate %d size %d gold %d",
         type,
+        sb.dma.recording ? "Recording" : "Playback",
         sb.dma.stereo ? "Stereo" : "Mono",
         sb.dma.autoinit ? "Auto-Init" : "Single-Cycle",
         (int)freq,(int)sb.dma.rate,(int)sb.dma.total,
