@@ -1707,10 +1707,9 @@ static void DSP_DoCommand(void) {
         }
         break;
     case 0x24:  /* Single Cycle 8-Bit DMA ADC */
-        sb.dma.left=sb.dma.total=1u+(unsigned int)sb.dsp.in.data[0]+((unsigned int)sb.dsp.in.data[1] << 8u);
-        sb.dma.sign=false;
-        LOG(LOG_SB,LOG_ERROR)("DSP:Faked ADC for %d bytes",(int)sb.dma.total);
-        GetDMAChannel(sb.hw.dma8)->Register_Callback(DSP_ADC_CallBack);
+        sb.dma.recording=true;
+        DSP_PrepareDMA_Old(DSP_DMA_8,false,false,/*hispeed*/(sb.dsp.cmd&0x80)!=0);
+        LOG(LOG_SB,LOG_WARN)("Guest recording audio using SB/SBPro commands");
         break;
     case 0x91:  /* Single Cycle 8-Bit DMA High speed DAC */
         DSP_SB2_ABOVE;
@@ -1718,11 +1717,13 @@ static void DSP_DoCommand(void) {
     case 0x14:  /* Single Cycle 8-Bit DMA DAC */
     case 0x15:  /* Wari hack. Waru uses this one instead of 0x14, but some weird stuff going on there anyway */
         /* Note: 0x91 is documented only for DSP ver.2.x and 3.x, not 4.x */
+        sb.dma.recording=false;
         DSP_PrepareDMA_Old(DSP_DMA_8,false,false,/*hispeed*/(sb.dsp.cmd&0x80)!=0);
         break;
     case 0x90:  /* Auto Init 8-bit DMA High Speed */
     case 0x1c:  /* Auto Init 8-bit DMA */
         DSP_SB2_ABOVE; /* Note: 0x90 is documented only for DSP ver.2.x and 3.x, not 4.x */
+        sb.dma.recording=false;
         DSP_PrepareDMA_Old(DSP_DMA_8,true,false,/*hispeed*/(sb.dsp.cmd&0x80)!=0);
         break;
     case 0x38:  /* Write to SB MIDI Output */
@@ -1783,33 +1784,39 @@ static void DSP_DoCommand(void) {
         sb.adpcm.haveref=true;
         /* FALLTHROUGH */
     case 0x74:  /* 074h : Single Cycle 4-bit ADPCM */
+        sb.dma.recording=false;
         DSP_PrepareDMA_Old(DSP_DMA_4,false,false,false);
         break;
     case 0x77:  /* 077h : Single Cycle 3-bit(2.6bit) ADPCM Reference*/
         sb.adpcm.haveref=true;
         /* FALLTHROUGH */
     case 0x76:  /* 074h : Single Cycle 3-bit(2.6bit) ADPCM */
+        sb.dma.recording=false;
         DSP_PrepareDMA_Old(DSP_DMA_3,false,false,false);
         break;
     case 0x7d:  /* Auto Init 4-bit ADPCM Reference */
         DSP_SB2_ABOVE;
         sb.adpcm.haveref=true;
+        sb.dma.recording=false;
         DSP_PrepareDMA_Old(DSP_DMA_4,true,false,false);
         break;
     case 0x7f:  /* Auto Init 3-bit(2.6bit) ADPCM Reference */
         DSP_SB2_ABOVE;
         sb.adpcm.haveref=true;
+        sb.dma.recording=false;
         DSP_PrepareDMA_Old(DSP_DMA_3,true,false,false);
         break;
     case 0x1f:  /* Auto Init 2-bit ADPCM Reference */
         DSP_SB2_ABOVE;
         sb.adpcm.haveref=true;
+        sb.dma.recording=false;
         DSP_PrepareDMA_Old(DSP_DMA_2,true,false,false);
         break;
     case 0x17:  /* 017h : Single Cycle 2-bit ADPCM Reference*/
         sb.adpcm.haveref=true;
         /* FALLTHROUGH */
     case 0x16:  /* 074h : Single Cycle 2-bit ADPCM */
+        sb.dma.recording=false;
         DSP_PrepareDMA_Old(DSP_DMA_2,false,false,false);
         break;
     case 0x80:  /* Silence DAC */
@@ -1876,9 +1883,12 @@ static void DSP_DoCommand(void) {
             DSP_SB16_ONLY;
         }
 
+        if (sb.dsp.cmd & 8) LOG(LOG_SB,LOG_WARN)("Guest recording audio using SB16 commands");
+
         /* Generic 8/16 bit DMA */
 //      DSP_SetSpeaker(true);       //SB16 always has speaker enabled
         sb.dma.sign=(sb.dsp.in.data[0] & 0x10) > 0;
+        sb.dma.recording=(sb.dsp.cmd & 0x8) > 0;
         DSP_PrepareDMA_New((sb.dsp.cmd & 0x10) ? DSP_DMA_16 : DSP_DMA_8,
             1u+(unsigned int)sb.dsp.in.data[1]+((unsigned int)sb.dsp.in.data[2] << 8u),
             (sb.dsp.cmd & 0x4)>0,
