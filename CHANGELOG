@@ -4,6 +4,27 @@ Next
   - VHD image support: Make file name check for .vhd extension
     to be case insensitive (maron2000)
   - VHD image support: Fix auto-detection of geometry (maron2000)
+  - Sound Blaster: Added code to periodically check the user's
+    settings regarding recording source selection and listening.
+    This should allow the user to change those settings on the
+    fly. (joncampbell123).
+  - Sound Blaster: Added options to control whether the generated
+    recording source is audible through the speakers, and what
+    generated audio to send to the client. Options are: silence,
+    hiss, and a 1KHz test tone. (joncampbell123).
+  - Sound Blaster: If the DSP is recording rather than playing,
+    then send audio to the guest at the recording sample rate
+    containing some form of generated audio. Default is silence.
+    This ALSO satisfies the Creative driver CTSB16.SYS when it
+    does the DMA test at startup. (joncampbell123).
+  - Sound Blaster: Fixed code to properly recognize when the
+    guest wants to record audio, including through SB16
+    commands. Prior to this fix, all SB16 Bxh-Cxh commands
+    were handled as if playback even if the command would
+    instead trigger recording. (joncampbell123).
+  - Sound Blaster: Add missing update of "last DMA callback"
+    timestamp that is needed for when the guest pauses DMA
+    during playback or recording. (joncampbell123).
   - VHD image support: If the VHD image is not a fixed type,
     say so in the log (previously it said nothing) and say
     what kind of image was mounted (joncampbell123).
