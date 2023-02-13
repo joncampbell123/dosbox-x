@@ -84,11 +84,11 @@ function set_ci_status(workflow_id, description, page = 1) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-    set_ci_status("vsbuild32", "32-bit Visual Studio builds");
-    set_ci_status("vsbuild64", "64-bit Visual Studio builds");
+    set_ci_status("vsbuild32", "32-bit Visual Studio builds (for Vista+/ARM)");
+    set_ci_status("vsbuild64", "64-bit Visual Studio builds (for Vista+/ARM)");
+    set_ci_status("mingw32", "32-bit MinGW builds (for Vista+)");
+    set_ci_status("mingw64", "64-bit MinGW builds (for Vista+)");
     set_ci_status("vsbuild_xp", "32/64-bit builds for Windows XP");	
-    set_ci_status("mingw32", "32-bit MinGW builds");
-    set_ci_status("mingw64", "64-bit MinGW builds");
     set_ci_status("linux", "Linux (x86_64) builds");
     set_ci_status("macos", "macOS (x86_64) builds");
     set_ci_status("hxdos", "HX-DOS (x86) build");
