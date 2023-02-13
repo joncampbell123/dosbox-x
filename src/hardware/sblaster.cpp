@@ -44,6 +44,8 @@
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 # pragma warning(disable:4305) /* truncation from double to float */
 # pragma warning(disable:4065) /* switch without case */
+#define _USE_MATH_DEFINES      /* needed for M_PI definition */
+//#define M_PI       3.14159265358979323846   /* pi */
 #endif
 
 #include <assert.h>
