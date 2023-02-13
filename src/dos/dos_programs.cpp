@@ -3897,7 +3897,15 @@ restart_int:
                 WriteOut("WARNING: Cluster sizes >= 64KB are not compatible with MS-DOS and SCANDISK\n");
         }
         // write VHD footer if requested, largely copied from RAW2VHD program, no license was included
-        if((mediadesc == 0xF8) && (temp_line.find(".vhd")) != std::string::npos) {
+        char extension[6] = {}; // care extensions longer than 3 letters such as '.vhdd'
+        if(temp_line.find_last_of('.') != std::string::npos) {
+            for(int i = 0; i < sizeof(extension) - 1; i++) {
+                if(temp_line.find_last_of('.') + i > temp_line.length() - 1) break;
+                extension[i] = temp_line[temp_line.find_last_of('.') + i];
+            }
+            extension[sizeof(extension) - 1] = '\0'; // Terminate string just in case
+        }
+        if((mediadesc == 0xF8) && !strcasecmp(extension, ".vhd")) {
             int i;
             uint8_t footer[512];
             // basic information
@@ -5755,6 +5763,7 @@ private:
         for (i = 0; i < paths.size(); i++) {
             const char* errorMessage = NULL;
             imageDisk* vhdImage = NULL;
+            imageDisk* newImage = NULL;
             bool ro=false;
 
             //detect hard drive geometry
@@ -5764,6 +5773,7 @@ private:
                 sizes[1] = 0;
                 sizes[2] = 0;
                 sizes[3] = 0;
+
 
                 /* .HDI images contain the geometry explicitly in the header. */
                 if (str_size.size() == 0) {
@@ -5787,20 +5797,23 @@ private:
                             case imageDiskVHD::UNSUPPORTED_WRITE:
                                 options.push_back("readonly");
                             case imageDiskVHD::OPEN_SUCCESS: {
-                                //upon successful, go back to old code if using a fixed disk, which patches chs values for incorrectly identified disks
                                 skipDetectGeometry = true;
                                 const imageDiskVHD* vhdDisk = dynamic_cast<imageDiskVHD*>(vhdImage);
-                                if (vhdDisk == NULL || vhdDisk->vhdType == imageDiskVHD::VHD_TYPE_FIXED) { //fixed disks would be null here
-                                    delete vhdDisk;
-                                    vhdDisk = 0;
-                                    skipDetectGeometry = false;
-                                }
-                                else {
-                                    LOG_MSG("VHD image detected: %u,%u,%u,%u",
-                                        (unsigned int)vhdDisk->sector_size, (unsigned int)vhdDisk->sectors, (unsigned int)vhdDisk->heads, (unsigned int)vhdDisk->cylinders);
+                                if (vhdDisk != NULL && vhdDisk->GetVHDType() != imageDiskVHD::VHD_TYPE_FIXED) { //fixed disks would be null here
+                                    LOG_MSG("VHD image detected SS,S,H,C: %u,%u,%u,%u",
+                                        (uint32_t)vhdDisk->sector_size, (uint32_t)vhdDisk->sectors, (uint32_t)vhdDisk->heads, (uint32_t)vhdDisk->cylinders);
                                     if (vhdDisk->cylinders>1023) LOG_MSG("WARNING: cylinders>1023, INT13 will not work unless extensions are used");
                                     if (vhdDisk->GetVHDType() == imageDiskVHD::VHD_TYPE_DYNAMIC) LOG_MSG("VHD is a dynamic image");
                                     if (vhdDisk->GetVHDType() == imageDiskVHD::VHD_TYPE_DIFFERENCING) LOG_MSG("VHD is a differencing image");
+                                } else {
+                                    delete vhdDisk;
+                                    vhdDisk = 0;
+                                    sizes[0] = vhdImage->sector_size; // sector size
+                                    sizes[1] = vhdImage->sectors;     // sectors
+                                    sizes[2] = vhdImage->heads;       // heads
+                                    sizes[3] = vhdImage->cylinders;   // cylinders
+                                    LOG_MSG("VHD fixed size image detected SS,S,H,C: %u,%u,%u,%u",
+                                        (uint32_t)sizes[0], (uint32_t)sizes[1], (uint32_t)sizes[2], (uint32_t)sizes[3]);
                                 }
                                 break;
                             }
@@ -5823,6 +5836,43 @@ private:
                             default: break;
                             }
                         }
+                        if(!strcasecmp(ext, ".qcow2")) {
+                            ro = wpcolon && paths[i].length() > 1 && paths[i].c_str()[0] == ':';
+                            const char* fname = ro ? paths[i].c_str() + 1 : paths[i].c_str();
+                            FILE* newDisk = fopen_lock(fname, ro ? "rb" : "rb+", ro);
+                            if(!newDisk) {
+                                if(!qmount) WriteOut("Unable to open '%s'\n", fname);
+                                return NULL;
+                            }
+                            QCow2Image::QCow2Header qcow2_header = QCow2Image::read_header(newDisk);
+                            uint64_t sectors;
+                            uint32_t imagesize;
+                            sizes[0] = 512; // default sector size
+                            if(qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)) {
+                                uint32_t cluster_size = 1u << qcow2_header.cluster_bits;
+                                if((sizes[0] < 512) || ((cluster_size % sizes[0]) != 0)) {
+                                    WriteOut("Sector size must be larger than 512 bytes and evenly divide the image cluster size of %lu bytes.\n", cluster_size);
+                                    return 0;
+                                }
+                                sectors = (uint64_t)qcow2_header.size / (uint64_t)sizes[0]; //sectors
+                                imagesize = (uint32_t)(qcow2_header.size / 1024L); // imagesize
+                                sizes[1] = 63; // sectors
+                                sizes[2] = 16; // heads
+                                sizes[3] = (uint64_t)qcow2_header.size / sizes[0] / sizes[1] / sizes[2]; // cylinders
+                                setbuf(newDisk, NULL);
+                                newImage = new QCow2Disk(qcow2_header, newDisk, fname, imagesize, (uint32_t)sizes[0], (imagesize > 2880));
+                                skipDetectGeometry = true;
+                                newImage->sector_size = sizes[0]; // sector size
+                                newImage->sectors = sizes[1];     // sectors
+                                newImage->heads = sizes[2];       // heads
+                                newImage->cylinders = sizes[3];   // cylinders
+                            }
+                            else {
+                                WriteOut("qcow2 image '%s' is not supported\n", fname);
+                                fclose(newDisk);
+                                newImage = NULL;
+                            }
+                        }
                     }
                 }
                 if (!skipDetectGeometry && !DetectGeometry(NULL, paths[i].c_str(), sizes)) {
@@ -5837,6 +5887,15 @@ private:
                     strcpy(newDrive->info, "fatDrive ");
                     strcat(newDrive->info, ro?paths[i].c_str()+1:paths[i].c_str());
                     vhdImage = NULL;
+                }
+                else if(newImage) {
+                    newDrive = new fatDrive(newImage, options);
+                    strcpy(newDrive->info, "fatDrive ");
+                    strcat(newDrive->info, ro ? paths[i].c_str() + 1 : paths[i].c_str());
+                    LOG_MSG("IMGMOUNT: qcow2 image mounted (experimental)");
+                    LOG_MSG("IMGMOUNT: qcow2 SS,S,H,C: %u,%u,%u,%u",
+                        (uint32_t)newImage->sector_size, (uint32_t)newImage->sectors, (uint32_t)newImage->heads, (uint32_t)newImage->cylinders);
+                    newImage = NULL;
                 }
                 else {
                     if (roflag) options.push_back("readonly");

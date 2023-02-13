@@ -1,4 +1,9 @@
 Next
+  - qcow2 image support: Make image able to be mounted by
+    drive letters (experimental) (maron2000)
+  - VHD image support: Make file name check for .vhd extension
+    to be case insensitive (maron2000)
+  - VHD image support: Fix auto-detection of geometry (maron2000)
   - Sound Blaster: Added code to periodically check the user's
     settings regarding recording source selection and listening.
     This should allow the user to change those settings on the
