@@ -4333,7 +4333,7 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_string("ver",Property::Changeable::WhenIdle,"");
     Pstring->Set_help("Set DOS version. Specify as major.minor format. A single number is treated as the major version (compatible with LFN support). Common settings are:\n"
-            "auto (or unset)                  Pick a DOS kernel version automatically\n"
+            "auto (or unset)                  Pick DOS kernel version 5.0 (DOSBox default)\n"
             "3.3                              MS-DOS 3.3 emulation (not tested!)\n"
             "5.0                              MS-DOS 5.0 emulation (recommended for DOS gaming)\n"
             "6.22                             MS-DOS 6.22 emulation\n"
