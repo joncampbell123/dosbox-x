@@ -19,7 +19,6 @@
  *  With major works from joncampbell123 and Wengier
  */
 
-#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,9 +30,6 @@
 #define _DARWIN_C_SOURCE
 #endif
 #ifndef WIN32
-#if defined(EMSCRIPTEN) || defined(HAIKU)
-#include <fcntl.h>
-#endif
 #include <utime.h>
 #include <sys/file.h>
 #else
@@ -55,6 +51,10 @@
 #include "timer.h"
 #include "render.h"
 #include "jfont.h"
+
+#if defined(EMSCRIPTEN) || defined(HAIKU)
+#include <fcntl.h>
+#endif
 
 #include "cp437_uni.h"
 #include "cp737_uni.h"

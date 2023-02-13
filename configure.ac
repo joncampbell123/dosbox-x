@@ -524,7 +524,7 @@ case "$host" in
        AC_DEFINE(HAIKU, 1, [Compiling on Haiku])
        dnl FEATURE: Whether to support direct serial port passthrough
        AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
-       LIBS="$LIBS -lnetwork -lbsd"
+       LIBS="$LIBS -lnetwork -lbsd -lbe"
        ;;
     *-*-freebsd* | *-*-dragonfly* | *-*-netbsd* | *-*-openbsd*)
        dnl Disabled directserial for now. It doesn't do anything without
