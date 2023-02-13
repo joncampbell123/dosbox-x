@@ -377,6 +377,7 @@ static void DSP_SetSpeaker(bool how) {
     if (sb.speaker==how) return;
     sb.speaker=how;
     if (sb.type==SBT_16) return;
+    if (sb.ess_type!=ESS_NONE) return;
     sb.chan->Enable(how);
     if (sb.speaker) {
         PIC_RemoveEvents(DMA_Silent_Event);
@@ -1076,7 +1077,7 @@ static void END_DMA_Event(Bitu val) {
 
 static void CheckDMAEnd(void) {
     if (!sb.dma.left) return;
-    if (!sb.speaker && sb.type!=SBT_16) {
+    if (!sb.speaker && sb.type!=SBT_16 && sb.ess_type==ESS_NONE) {
         Bitu bigger=(sb.dma.left > sb.dma.min) ? sb.dma.min : sb.dma.left;
         float delay=(bigger*1000.0f)/sb.dma.rate;
         PIC_AddEvent(DMA_Silent_Event,delay,bigger);
@@ -1533,6 +1534,8 @@ static void ESS_StartDMA() {
     LOG(LOG_SB,LOG_DEBUG)("ESS DMA start");
     sb.dma_dac_mode = 0;
     sb.dma.chan = GetDMAChannel(sb.hw.dma8);
+    sb.dma.recording = (ESSreg(0xB8) & 8/*ADC mode*/) > 0;
+    if (sb.dma.chan) sb.dma.chan->Raise_Request();
     // FIXME: Which bit(s) are responsible for signalling stereo?
     //        Is it bit 3 of the Analog Control?
     //        Is it bit 3/6 of the Audio Control 1?
@@ -1544,6 +1547,7 @@ static void ESS_StartDMA() {
     DSP_DoDMATransfer(
         (ESSreg(0xB7/*Audio Control 1*/)&4)?DSP_DMA_16_ALIASED:DSP_DMA_8,
         sb.freq,(ESSreg(0xA8/*Analog control*/)&3)==1?1:0/*stereo*/,true/*don't change dma.left*/);
+    sb.mode = MODE_DMA;
     sb.ess_playback_mode = true;
 }
 
@@ -1565,11 +1569,10 @@ static void ESS_CheckDMAEnable() {
     // if the DRQ is disabled, do not start
     if (!(ESSreg(0xB2) & 0x40))
         dma_en = false;
-    // HACK: DOSBox does not yet support recording
-    if (ESSreg(0xB8) & 8/*ADC mode*/)
-        dma_en = false;
-    if (ESSreg(0xB8) & 2/*DMA read*/)
-        dma_en = false;
+
+    if (ESSreg(0xB8) & 8) LOG(LOG_SB,LOG_WARN)("Guest recording audio using ESS commands");
+
+    if (!!(ESSreg(0xB8) & 8/*ADC mode*/) != !!(ESSreg(0xB8) & 2/*DMA read*/)) LOG(LOG_SB,LOG_WARN)("ESS DMA direction vs ADC mismatch");
 
     if (dma_en) {
         if (sb.mode != MODE_DMA) ESS_StartDMA();
@@ -1688,7 +1691,10 @@ static void ESS_DoWrite(uint8_t reg,uint8_t data) {
             if (chg & 1) sb.dma.left = sb.dma.total;
 
             sb.dma.autoinit = (data >> 2) & 1;
-            if (chg & 0xB) ESS_CheckDMAEnable();
+            if (chg & 0xB) {
+                if (chg & 0xA) ESS_StopDMA(); /* changing capture/playback direction? stop DMA to reinit */
+                ESS_CheckDMAEnable();
+            }
             break;
         case 0xB9: /* Audio 1 Transfer Type */
         case 0xBA: /* Left Channel ADC Offset Adjust */
