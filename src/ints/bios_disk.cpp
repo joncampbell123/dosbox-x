@@ -1866,7 +1866,7 @@ static Bitu INT13_DiskHandler(void) {
             CALLBACK_SCF(true);
             return CBRET_NONE;
         }
-        if (drivenum >= MAX_DISK_IMAGES && imageDiskList[drivenum] == NULL) {
+        if (drivenum >= MAX_DISK_IMAGES || imageDiskList[drivenum] == NULL) {
             if (drivenum >= DOS_DRIVES || !Drives[drivenum] || Drives[drivenum]->isRemovable()) {
                 reg_ah = 0x01;
                 CALLBACK_SCF(true);
