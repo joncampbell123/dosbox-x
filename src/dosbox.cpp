@@ -1871,7 +1871,8 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("allow more than 640kb base memory",Property::Changeable::Always,false);
     Pbool->Set_help("If set, and space is available, allow conventional memory to extend past 640KB.\n"
             "For example, if machine=cga, conventional memory can extend out to 0xB800 and provide up to 736KB of RAM.\n"
-            "This allows you to emulate PC/XT style memory extensions.");
+            "This allows you to emulate PC/XT style memory extensions.\n"
+            "For machine=tandy, this enables up to 768KB of memory which is then provided as 640KB to DOS to emulate the Tandy 768KB configuration with no overlap between DOS and video memory");
 
     Pbool = secprop->Add_bool("enable pci bus",Property::Changeable::OnlyAtStart,true);
     Pbool->Set_help("Enable PCI bus emulation");
