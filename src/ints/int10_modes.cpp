@@ -910,6 +910,10 @@ uint8_t TandyGetCRTPage(void) {
 		tom -= 16;
 
 	const uint8_t bank = (tom >> 4u) & 7; /* KB to 16KB bank paying attention only to 16KB page in 128KB region */
+
+	/* NTS: Some games like "Ducktales: Quest for Gold" require the bank value to be nonzero, or else it will
+	 *      assume the machine is not Tandy and use CGA mode instead. */
+
 	return ((CurMode->mode>=0x9) ? 0xc0 : 0x00) + (bank * 0x09);    /* 0x09 = 001001 equiv bank | (bank << 3) */
 }
 
