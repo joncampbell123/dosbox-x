@@ -9944,7 +9944,9 @@ public:
              *      to be a way to install only 704KB for example. */
 
             if (t_conv > ulimit) t_conv = ulimit;
-            if (t_conv > 640) { /* because the memory emulation has already set things up */
+            if (t_conv > 640 && machine != MCH_TANDY) {
+                /* because the memory emulation has already set things up
+                 * HOWEVER Tandy emulation has already properly mapped A0000-BFFFF so don't mess with it */
                 bool MEM_map_RAM_physmem(Bitu start,Bitu end);
                 MEM_map_RAM_physmem(0xA0000,(t_conv<<10)-1);
                 memset(GetMemBase()+(640<<10),0,(t_conv-640)<<10);
