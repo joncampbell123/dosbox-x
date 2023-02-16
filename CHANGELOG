@@ -1,4 +1,7 @@
 Next
+  - Fix INT13h AH=02 broken conditional branch which prevents
+    installer of game "Inherit the Earth: Quest for the Orb"
+    to obtain free space of hard drive (maron2000)
   - qcow2 image support: Make image able to be mounted by
     drive letters (experimental) (maron2000)
   - VHD image support: Make file name check for .vhd extension
