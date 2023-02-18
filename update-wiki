@@ -10,7 +10,15 @@ localbak="`pwd`"
 tempdir="`mktemp -d`"
 destdir="`realpath $1`"
 srcdir="`realpath $2`"
-spfiles="$destdir/index.html $destdir/top.html $destdir/guides.html"
+spfiles="$destdir/index.html
+$destdir/top.html
+$destdir/guides.html"
+
+function no_deps {
+  echo "Please install project deps with Bundler"
+  echo "  $ bundle install"
+  exit 1
+}
 
 function cleanup {
   echo "Removing temp files"
@@ -19,13 +27,17 @@ function cleanup {
 }
 trap cleanup EXIT
 
-which asciidoctor 1>/dev/null || (echo "Install asciidoctor first" && false)
+which bundle 1>/dev/null || no_deps
+bundle exec asciidoctor -v 1>/dev/null || no_deps
 
 echo "Copying files"
 rmdir $tempdir || true
 cp -r $srcdir $tempdir
 cd $tempdir
 rm -rf .git || true
+
+echo "Adding header to files"
+sed -i -e '1i:source-highlighter: rouge\' *.asciidoc
 
 echo "Generating wiki in $tempdir"
 asciidoctor -b html5 -d book *.asciidoc

@@ -435,6 +435,221 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 #footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
+<style>
+pre.rouge table td { padding: 5px; }
+pre.rouge table pre { margin: 0; }
+pre.rouge .cm {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .cp {
+  color: #999999;
+  font-weight: bold;
+}
+pre.rouge .c1 {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .cs {
+  color: #999999;
+  font-weight: bold;
+  font-style: italic;
+}
+pre.rouge .c, pre.rouge .ch, pre.rouge .cd, pre.rouge .cpf {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .err {
+  color: #a61717;
+  background-color: #e3d2d2;
+}
+pre.rouge .gd {
+  color: #000000;
+  background-color: #ffdddd;
+}
+pre.rouge .ge {
+  color: #000000;
+  font-style: italic;
+}
+pre.rouge .gr {
+  color: #aa0000;
+}
+pre.rouge .gh {
+  color: #999999;
+}
+pre.rouge .gi {
+  color: #000000;
+  background-color: #ddffdd;
+}
+pre.rouge .go {
+  color: #888888;
+}
+pre.rouge .gp {
+  color: #555555;
+}
+pre.rouge .gs {
+  font-weight: bold;
+}
+pre.rouge .gu {
+  color: #aaaaaa;
+}
+pre.rouge .gt {
+  color: #aa0000;
+}
+pre.rouge .kc {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kd {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kn {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kp {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kr {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kt {
+  color: #445588;
+  font-weight: bold;
+}
+pre.rouge .k, pre.rouge .kv {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .mf {
+  color: #009999;
+}
+pre.rouge .mh {
+  color: #009999;
+}
+pre.rouge .il {
+  color: #009999;
+}
+pre.rouge .mi {
+  color: #009999;
+}
+pre.rouge .mo {
+  color: #009999;
+}
+pre.rouge .m, pre.rouge .mb, pre.rouge .mx {
+  color: #009999;
+}
+pre.rouge .sa {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .sb {
+  color: #d14;
+}
+pre.rouge .sc {
+  color: #d14;
+}
+pre.rouge .sd {
+  color: #d14;
+}
+pre.rouge .s2 {
+  color: #d14;
+}
+pre.rouge .se {
+  color: #d14;
+}
+pre.rouge .sh {
+  color: #d14;
+}
+pre.rouge .si {
+  color: #d14;
+}
+pre.rouge .sx {
+  color: #d14;
+}
+pre.rouge .sr {
+  color: #009926;
+}
+pre.rouge .s1 {
+  color: #d14;
+}
+pre.rouge .ss {
+  color: #990073;
+}
+pre.rouge .s, pre.rouge .dl {
+  color: #d14;
+}
+pre.rouge .na {
+  color: #008080;
+}
+pre.rouge .bp {
+  color: #999999;
+}
+pre.rouge .nb {
+  color: #0086B3;
+}
+pre.rouge .nc {
+  color: #445588;
+  font-weight: bold;
+}
+pre.rouge .no {
+  color: #008080;
+}
+pre.rouge .nd {
+  color: #3c5d5d;
+  font-weight: bold;
+}
+pre.rouge .ni {
+  color: #800080;
+}
+pre.rouge .ne {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nf, pre.rouge .fm {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nl {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nn {
+  color: #555555;
+}
+pre.rouge .nt {
+  color: #000080;
+}
+pre.rouge .vc {
+  color: #008080;
+}
+pre.rouge .vg {
+  color: #008080;
+}
+pre.rouge .vi {
+  color: #008080;
+}
+pre.rouge .nv, pre.rouge .vm {
+  color: #008080;
+}
+pre.rouge .ow {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .o {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .w {
+  color: #bbbbbb;
+}
+pre.rouge {
+  background-color: #f8f8f8;
+}
+</style>
 </head>
 <body class="book">
 <div id="header">
@@ -904,13 +1119,13 @@ The following steps assume that you have the necessary compiler, developer tools
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">git clone https://github.com/voyageur/openglide.git
+<pre class="rouge highlight"><code data-lang="console"><span class="go">git clone https://github.com/voyageur/openglide.git
 cd openglide
 ./bootstrap
 ./configure
 make
 sudo make install
-sudo ldconfig</code></pre>
+sudo ldconfig</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -919,7 +1134,7 @@ To check if ldconfig found the library, run the following command:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">ldconfig -p|grep glide</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">ldconfig -p|grep glide</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -937,8 +1152,8 @@ If the ldconfig command returns nothing, you need to add the <code>/usr/local/li
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">sudo sh -c 'echo /usr/local/lib &gt; /etc/ld.so.conf.d/usr-local-lib.conf'
-sudo ldconfig</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="gp">sudo sh -c 'echo /usr/local/lib &gt;</span><span class="w"> </span>/etc/ld.so.conf.d/usr-local-lib.conf<span class="s1">'
+</span><span class="go">sudo ldconfig</span></code></pre>
 </div>
 </div>
 </div>
@@ -974,7 +1189,7 @@ You can install Xcode from the App Store or run the following Terminal command:<
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">xcode-select --install</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">xcode-select --install</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -991,7 +1206,7 @@ You can get it from <a href="https://brew.sh" class="bare">https://brew.sh</a> o
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="gp">/bin/bash -c "$</span><span class="o">(</span>curl <span class="nt">-fsSL</span> https://raw.githubusercontent.com/Homebrew/install/master/install.sh<span class="o">)</span><span class="s2">"</span></code></pre>
 </div>
 </div>
 <div class="olist arabic">
@@ -1004,7 +1219,7 @@ Run the following Terminal command:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">brew install SDL1</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">brew install SDL1</span></code></pre>
 </div>
 </div>
 </div>
@@ -1023,7 +1238,7 @@ Run the following Terminal command:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">cd $HOME/Desktop/openglide-master</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="gp">cd $</span>HOME/Desktop/openglide-master</code></pre>
 </div>
 </div>
 <div class="olist arabic">
@@ -1035,9 +1250,9 @@ Run the following Terminal command:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">./bootstrap
+<pre class="rouge highlight"><code data-lang="console"><span class="go">./bootstrap
 ./configure
-sudo make install</code></pre>
+sudo make install</span></code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1111,21 +1326,21 @@ These should be located in the same place as your DOSBox-X application or execut
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[Options]
-WrapperPriority=2
-CreateWindow=0
-InitFullScreen=1
-Resolution=0.0
-EnableMipMaps=0
-IgnorePaletteChange=0
-Wrap565to5551=1
-EnablePrecisionFix=1
-EnableMultiTextureEXT=1
-EnablePaletteEXT=1
-EnableVertexArrayEXT=0
-TextureMemorySize=32
-FrameBufferMemorySize=16
-NoSplash=1</code></pre>
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[Options]</span>
+<span class="py">WrapperPriority</span><span class="p">=</span><span class="s">2</span>
+<span class="py">CreateWindow</span><span class="p">=</span><span class="s">0</span>
+<span class="py">InitFullScreen</span><span class="p">=</span><span class="s">1</span>
+<span class="py">Resolution</span><span class="p">=</span><span class="s">0.0</span>
+<span class="py">EnableMipMaps</span><span class="p">=</span><span class="s">0</span>
+<span class="py">IgnorePaletteChange</span><span class="p">=</span><span class="s">0</span>
+<span class="py">Wrap565to5551</span><span class="p">=</span><span class="s">1</span>
+<span class="py">EnablePrecisionFix</span><span class="p">=</span><span class="s">1</span>
+<span class="py">EnableMultiTextureEXT</span><span class="p">=</span><span class="s">1</span>
+<span class="py">EnablePaletteEXT</span><span class="p">=</span><span class="s">1</span>
+<span class="py">EnableVertexArrayEXT</span><span class="p">=</span><span class="s">0</span>
+<span class="py">TextureMemorySize</span><span class="p">=</span><span class="s">32</span>
+<span class="py">FrameBufferMemorySize</span><span class="p">=</span><span class="s">16</span>
+<span class="py">NoSplash</span><span class="p">=</span><span class="s">1</span></code></pre>
 </div>
 </div>
 </div>
@@ -1181,7 +1396,7 @@ For instance, if there is a <code>GLIDE2X.OVL</code> file in the game directory,
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-02-05 01:05:47 -0800
+Last updated 2023-02-17 16:36:08 -0800
 </div>
 </div>
 </body>
