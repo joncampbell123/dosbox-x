@@ -1981,14 +1981,9 @@ void DOS_Shell::CMD_DIR(char * args) {
 	if (argLen == 0) {
 		strcpy(args,"*.*"); //no arguments.
 	} else {
-		switch (args[argLen-1])
-		{
-		case '\\':	// handle \, C:\, etc.
-		case ':' :	// handle C:, etc.
+		// handle \, C:\, etc.                          handle C:, etc.
+		if(check_last_split_char(args, argLen, '\\') || args[argLen-1] == ':') {
 			strcat(args,"*.*");
-			break;
-		default:
-			break;
 		}
 	}
 	args = ExpandDot(args,buffer,CROSS_LEN,!uselfn);

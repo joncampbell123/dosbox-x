@@ -300,7 +300,7 @@ bool DOS_GetSFNPath(char const * const path,char * SFNPath,bool LFN) {
 	int fbak=lfn_filefind_handle;
     for (char *s = strchr_dbcs(p,'\\'); s != NULL; s = strchr_dbcs(p,'\\')) {
 		*s = 0;
-		if (SFNPath[strlen(SFNPath)-1]=='\\')
+		if (check_last_split_char(SFNPath, strlen(SFNPath), '\\'))
 			sprintf(pdir,"\"%s%s\"",SFNPath,p);
 		else
 			sprintf(pdir,"\"%s\\%s\"",SFNPath,p);
@@ -393,7 +393,7 @@ bool DOS_ChangeDir(char const * const dir) {
 		return false;
 	}
 	if (!DOS_MakeName(dir,fulldir,&drive)) return false;
-	if (strlen(fulldir) && testdir[len-1]=='\\') {
+	if (strlen(fulldir) && check_last_split_char(testdir, len, '\\')) {
 		DOS_SetError(DOSERR_PATH_NOT_FOUND);
 		return false;
 	}
@@ -410,7 +410,7 @@ bool DOS_ChangeDir(char const * const dir) {
 bool DOS_MakeDir(char const * const dir) {
 	uint8_t drive;char fulldir[DOS_PATHLENGTH];
 	size_t len = strlen(dir);
-	if(!len || dir[len-1] == '\\') {
+	if(!len || check_last_split_char(dir, len, '\\')) {
 		DOS_SetError(DOSERR_PATH_NOT_FOUND);
 		return false;
 	}
@@ -550,7 +550,7 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 	uint8_t drive;char fullsearch[DOS_PATHLENGTH];
 	char dir[DOS_PATHLENGTH];char pattern[DOS_PATHLENGTH];
 	size_t len = strlen(search);
-	if(len && search[len - 1] == '\\' && !( (len > 2) && (search[len - 2] == ':') && (attr == DOS_ATTR_VOLUME) )) { 
+	if(len && check_last_split_char(search, len, '\\') && !( (len > 2) && (search[len - 2] == ':') && (attr == DOS_ATTR_VOLUME) )) { 
 		//Dark Forces installer, but c:\ is alright for volume labels(exclusively set)
 		DOS_SetError(DOSERR_NO_MORE_FILES);
 		return false;
@@ -1307,7 +1307,7 @@ bool DOS_CreateTempFile(char * const name,uint16_t * entry) {
 		tempname[0]='\\';
 		tempname++;
 	} else {
-		if ((name[namelen-1]!='\\') && (name[namelen-1]!='/')) {
+		if (!check_last_split_char(name, namelen, '\\') && (name[namelen-1]!='/')) {
 			tempname[0]='\\';
 			tempname++;
 		}
