@@ -50,6 +50,7 @@ char * ScanCMDRemain(char * cmd);
 char * StripWord(char *&line);
 Bits ConvDecWord(char * word);
 Bits ConvHexWord(char * word);
+bool check_last_split_char(const char *name, size_t len, char split);
 
 enum {
 	UTF8ERR_INVALID=-1,

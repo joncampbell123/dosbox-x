@@ -617,7 +617,7 @@ bool physfsDrive::FindNext(DOS_DTA & dta) {
 	char * dir_ent, *ldir_ent;
 	char full_name[CROSS_LEN], lfull_name[LFN_NAMELENGTH+1];
 
-	uint8_t srch_attr;char srch_pattern[DOS_NAMELENGTH_ASCII];
+	uint8_t srch_attr;char srch_pattern[LFN_NAMELENGTH+1];
 	uint8_t find_attr;
 
     dta.GetSearchParams(srch_attr,srch_pattern,false);

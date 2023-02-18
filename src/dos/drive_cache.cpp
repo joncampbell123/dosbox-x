@@ -198,9 +198,9 @@ char* DOS_Drive_Cache::GetExpandName(const char* path) {
         size_t len = strlen(work);
 #if defined (WIN32)
 //What about OS/2
-        if((work[len-1] == CROSS_FILESPLIT ) && (len >= 2) && (work[len-2] != ':')) {
+		if(check_last_split_char(work, len, CROSS_FILESPLIT) && (len >= 2) && (work[len-2] != ':')) {
 #else
-        if((len > 1) && (work[len-1] == CROSS_FILESPLIT )) {
+		if((len > 1) && check_last_split_char(work, len, CROSS_FILESPLIT)) {
 #endif       
             work[len-1] = 0; // Remove trailing slashes except when in root
         }

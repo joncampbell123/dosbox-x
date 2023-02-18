@@ -115,6 +115,22 @@ char *strtok_dbcs(char *s, const char *d) {
     return result;
 }
 
+bool check_last_split_char(const char *name, size_t len, char split)
+{
+	bool tail = false;
+	if((IS_PC98_ARCH || isDBCSCP()) && split == '\\') {
+		bool lead = false;
+		for(size_t pos = 0 ; pos < len ; pos++) {
+			if(lead) lead = false;
+        	else if ((IS_PC98_ARCH && shiftjis_lead_byte(name[pos])) || (isDBCSCP() && isKanji1(name[pos]))) lead = true;
+			else if(pos == len - 1 && name[pos] == split) tail = true;
+		}
+	} else if(len > 0) {
+		if(name[len - 1] == split) tail = true;
+	}
+	return tail;
+}
+
 /* 
 	Ripped some source from freedos for this one.
 
