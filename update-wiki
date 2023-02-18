@@ -40,7 +40,7 @@ echo "Adding header to files"
 sed -i -e '1i:source-highlighter: rouge\' *.asciidoc
 
 echo "Generating wiki in $tempdir"
-asciidoctor -b html5 -d book *.asciidoc
+bundle exec asciidoctor -b html5 -d book *.asciidoc
 rm *.asciidoc
 cp -t . $spfiles
 
