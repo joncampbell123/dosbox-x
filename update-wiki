@@ -11,8 +11,10 @@ tempdir="`mktemp -d`"
 destdir="`realpath $1`"
 srcdir="`realpath $2`"
 spfiles="$destdir/index.html
-$destdir/top.html
-$destdir/guides.html"
+$destdir/guides.html
+$destdir/copy-to-clipboard.js
+$destdir/octicons-16.svg
+$destdir/docinfo-footer.html"
 
 function no_deps {
   echo "Please install project deps with Bundler"
@@ -33,16 +35,17 @@ bundle exec asciidoctor -v 1>/dev/null || no_deps
 echo "Copying files"
 rmdir $tempdir || true
 cp -r $srcdir $tempdir
-cd $tempdir
-rm -rf .git || true
+rm -rf $tempdir/.git || true
 
 echo "Adding header to files"
-sed -i -e '1i:source-highlighter: rouge\' *.asciidoc
+sed -i -e '
+1i:source-highlighter: rouge\
+:docinfo: shared-footer' $tempdir/*.asciidoc
+cp -t $tempdir $spfiles
 
 echo "Generating wiki in $tempdir"
-bundle exec asciidoctor -b html5 -d book *.asciidoc
-rm *.asciidoc
-cp -t . $spfiles
+bundle exec asciidoctor -b html5 -d book $tempdir/*.asciidoc
+rm $tempdir/*.asciidoc
 
 echo "Copying files over"
 rm -r $destdir
