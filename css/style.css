@@ -448,8 +448,7 @@ table.hide-table-appearence > tbody > tr > td {
   justify-content: space-between;
   padding: 10px;
 }
-.release-date {
-  padding-bottom: 15px;
+h4.release-date {
   font-weight: normal;
 }
 .latest-release-text {
