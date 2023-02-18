@@ -435,6 +435,221 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 #footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
+<style>
+pre.rouge table td { padding: 5px; }
+pre.rouge table pre { margin: 0; }
+pre.rouge .cm {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .cp {
+  color: #999999;
+  font-weight: bold;
+}
+pre.rouge .c1 {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .cs {
+  color: #999999;
+  font-weight: bold;
+  font-style: italic;
+}
+pre.rouge .c, pre.rouge .ch, pre.rouge .cd, pre.rouge .cpf {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .err {
+  color: #a61717;
+  background-color: #e3d2d2;
+}
+pre.rouge .gd {
+  color: #000000;
+  background-color: #ffdddd;
+}
+pre.rouge .ge {
+  color: #000000;
+  font-style: italic;
+}
+pre.rouge .gr {
+  color: #aa0000;
+}
+pre.rouge .gh {
+  color: #999999;
+}
+pre.rouge .gi {
+  color: #000000;
+  background-color: #ddffdd;
+}
+pre.rouge .go {
+  color: #888888;
+}
+pre.rouge .gp {
+  color: #555555;
+}
+pre.rouge .gs {
+  font-weight: bold;
+}
+pre.rouge .gu {
+  color: #aaaaaa;
+}
+pre.rouge .gt {
+  color: #aa0000;
+}
+pre.rouge .kc {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kd {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kn {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kp {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kr {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kt {
+  color: #445588;
+  font-weight: bold;
+}
+pre.rouge .k, pre.rouge .kv {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .mf {
+  color: #009999;
+}
+pre.rouge .mh {
+  color: #009999;
+}
+pre.rouge .il {
+  color: #009999;
+}
+pre.rouge .mi {
+  color: #009999;
+}
+pre.rouge .mo {
+  color: #009999;
+}
+pre.rouge .m, pre.rouge .mb, pre.rouge .mx {
+  color: #009999;
+}
+pre.rouge .sa {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .sb {
+  color: #d14;
+}
+pre.rouge .sc {
+  color: #d14;
+}
+pre.rouge .sd {
+  color: #d14;
+}
+pre.rouge .s2 {
+  color: #d14;
+}
+pre.rouge .se {
+  color: #d14;
+}
+pre.rouge .sh {
+  color: #d14;
+}
+pre.rouge .si {
+  color: #d14;
+}
+pre.rouge .sx {
+  color: #d14;
+}
+pre.rouge .sr {
+  color: #009926;
+}
+pre.rouge .s1 {
+  color: #d14;
+}
+pre.rouge .ss {
+  color: #990073;
+}
+pre.rouge .s, pre.rouge .dl {
+  color: #d14;
+}
+pre.rouge .na {
+  color: #008080;
+}
+pre.rouge .bp {
+  color: #999999;
+}
+pre.rouge .nb {
+  color: #0086B3;
+}
+pre.rouge .nc {
+  color: #445588;
+  font-weight: bold;
+}
+pre.rouge .no {
+  color: #008080;
+}
+pre.rouge .nd {
+  color: #3c5d5d;
+  font-weight: bold;
+}
+pre.rouge .ni {
+  color: #800080;
+}
+pre.rouge .ne {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nf, pre.rouge .fm {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nl {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nn {
+  color: #555555;
+}
+pre.rouge .nt {
+  color: #000080;
+}
+pre.rouge .vc {
+  color: #008080;
+}
+pre.rouge .vg {
+  color: #008080;
+}
+pre.rouge .vi {
+  color: #008080;
+}
+pre.rouge .nv, pre.rouge .vm {
+  color: #008080;
+}
+pre.rouge .ow {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .o {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .w {
+  color: #bbbbbb;
+}
+pre.rouge {
+  background-color: #f8f8f8;
+}
+</style>
 </head>
 <body class="book">
 <div id="header">
@@ -480,8 +695,8 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[sdl]
-output = ttf</code></pre>
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[sdl]</span>
+<span class="py">output</span> <span class="p">=</span> <span class="s">ttf</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -524,8 +739,8 @@ Virtually all these fonts can also be used for rendering texts in the TrueType o
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[ttf]
-font=Nouveau_IBM</code></pre>
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[ttf]</span>
+<span class="py">font</span><span class="p">=</span><span class="s">Nouveau_IBM</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -574,8 +789,8 @@ Alternatively, you can do so with CONFIG command, such as the following:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">CONFIG -set font=Consola
-CONFIG -set font=</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">CONFIG -set font=Consola
+CONFIG -set font=</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -614,9 +829,9 @@ CONFIG -set font=</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[ttf]
-cols=100
-lins=50</code></pre>
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[ttf]</span>
+<span class="py">cols</span><span class="p">=</span><span class="s">100</span>
+<span class="py">lins</span><span class="p">=</span><span class="s">50</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -627,8 +842,8 @@ lins=50</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">MODE CON LINES=50
-MODE CON LINES=60 COLS=132</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">MODE CON LINES=50
+MODE CON LINES=60 COLS=132</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -639,8 +854,8 @@ MODE CON LINES=60 COLS=132</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">CONFIG -set lins=30
-CONFIG -set cols=100</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">CONFIG -set lins=30
+CONFIG -set cols=100</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -656,8 +871,8 @@ CONFIG -set cols=100</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[ttf]
-wp=XY</code></pre>
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[ttf]</span>
+<span class="py">wp</span><span class="p">=</span><span class="s">XY</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -668,11 +883,11 @@ wp=XY</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[ttf]
-font=Consola
-fontbold=Consolab
-fontital=Consolai
-fontboit=Consolaz</code></pre>
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[ttf]</span>
+<span class="py">font</span><span class="p">=</span><span class="s">Consola</span>
+<span class="py">fontbold</span><span class="p">=</span><span class="s">Consolab</span>
+<span class="py">fontital</span><span class="p">=</span><span class="s">Consolai</span>
+<span class="py">fontboit</span><span class="p">=</span><span class="s">Consolaz</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -722,7 +937,7 @@ fontboit=Consolaz</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">colors=#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff</code></pre>
+<pre class="rouge highlight"><code data-lang="ini"><span class="py">colors</span><span class="p">=</span><span class="s">#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -730,7 +945,7 @@ fontboit=Consolaz</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">colors=#000000 #000080 #008000 #008080 #800000 #800080 #808000 #c0c0c0 #808080 #3300ff #33ff00 #00ffff #ff0000 #ff00ff #ffff00 #ffffff</code></pre>
+<pre class="rouge highlight"><code data-lang="ini"><span class="py">colors</span><span class="p">=</span><span class="s">#000000 #000080 #008000 #008080 #800000 #800080 #808000 #c0c0c0 #808080 #3300ff #33ff00 #00ffff #ff0000 #ff00ff #ffff00 #ffffff</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -738,7 +953,7 @@ fontboit=Consolaz</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">colors=(0,0,0) #0e0e0e (75,75,75) (89,89,89) (38,38,38) (52,52,52) #717171 #c0c0c0 #808080 (28,28,28) (150,150,150) (178,178,178) (76,76,76)  (104,104,104) (226,226,226) (255,255,255)</code></pre>
+<pre class="rouge highlight"><code data-lang="ini"><span class="py">colors</span><span class="p">=</span><span class="s">(0,0,0) #0e0e0e (75,75,75) (89,89,89) (38,38,38) (52,52,52) #717171 #c0c0c0 #808080 (28,28,28) (150,150,150) (178,178,178) (76,76,76)  (104,104,104) (226,226,226) (255,255,255)</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -752,7 +967,7 @@ fontboit=Consolaz</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">SETCOLOR 7 (50,50,50)</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">SETCOLOR 7 (50,50,50)</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -760,7 +975,7 @@ fontboit=Consolaz</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">SETCOLOR 7 -</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">SETCOLOR 7 -</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -768,7 +983,7 @@ fontboit=Consolaz</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">SETCOLOR 7 {plus}</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">SETCOLOR 7 {plus}</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -785,8 +1000,104 @@ fontboit=Consolaz</code></pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-02-05 01:05:47 -0800
+Last updated 2023-02-17 18:16:47 -0800
 </div>
 </div>
+<style>
+    .book .listingblock > .content,
+    .book .literalblock > .content {
+      position: relative;
+    }
+
+    .book .listingblock code[data-lang]::before {
+      content: none;
+    }
+
+    .book .source-toolbox {
+      display: flex;
+      position: absolute;
+      visibility: hidden;
+      top: 0.25rem;
+      right: 0.5rem;
+      color: #808080;
+      white-space: nowrap;
+      font-size: 0.85em;
+    }
+
+    .book .listingblock:hover .source-toolbox,
+    .book .literalblock:hover .source-toolbox {
+      visibility: visible;
+    }
+
+    .book .source-toolbox .source-lang {
+      font-family: "Droid Sans Mono", "DejaVu Sans Mono", monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.075em;
+    }
+
+    .book .source-toolbox > :not(:last-child)::after {
+      content: "|";
+      letter-spacing: 0;
+      padding: 0 1ch;
+    }
+
+    .book .source-toolbox .copy-button {
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: none;
+      border: none;
+      color: inherit;
+      outline: none;
+      padding: 0;
+      font-family: inherit;
+      font-size: inherit;
+      line-height: inherit;
+      width: 1em;
+      height: 1em;
+    }
+
+    .book .source-toolbox .copy-icon {
+      flex: none;
+      width: inherit;
+      height: inherit;
+      filter: invert(50.2%);
+      margin-top: 0.05em;
+    }
+
+    .book .source-toolbox .copy-toast {
+      flex: none;
+      position: relative;
+      display: inline-flex;
+      justify-content: center;
+      margin-top: 1em;
+      border-radius: 0.25em;
+      padding: 0.5em;
+      cursor: auto;
+      opacity: 0;
+      transition: opacity 0.5s ease 0.75s;
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+    }
+
+    .book .source-toolbox .copy-toast::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      width: 1em;
+      height: 1em;
+      border: 0.55em solid transparent;
+      border-left-color: rgba(0, 0, 0, 0.8);
+      transform: rotate(-90deg) translateX(50%) translateY(50%);
+      transform-origin: left;
+    }
+
+    .book .source-toolbox .copy-button.clicked .copy-toast {
+      opacity: 1;
+      transition: none;
+    }
+</style>
+<script src="copy-to-clipboard.js"></script>
 </body>
 </html>

@@ -9,6 +9,7 @@ GEM
       zeitwerk (~> 2.2, >= 2.2.2)
     addressable (2.8.0)
       public_suffix (>= 2.0.2, < 5.0)
+    asciidoctor (2.0.18)
     coffee-script (2.4.1)
       coffee-script-source
       execjs
@@ -260,8 +261,10 @@ PLATFORMS
   x86_64-linux
 
 DEPENDENCIES
+  asciidoctor (~> 2.0)
   github-pages (~> 227)
   http_parser.rb (~> 0.6.0)
+  rouge (~> 3.26)
   tzinfo (~> 1.2)
   tzinfo-data
   wdm (~> 0.1.1)

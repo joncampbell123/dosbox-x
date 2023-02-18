@@ -435,6 +435,221 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 #footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
+<style>
+pre.rouge table td { padding: 5px; }
+pre.rouge table pre { margin: 0; }
+pre.rouge .cm {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .cp {
+  color: #999999;
+  font-weight: bold;
+}
+pre.rouge .c1 {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .cs {
+  color: #999999;
+  font-weight: bold;
+  font-style: italic;
+}
+pre.rouge .c, pre.rouge .ch, pre.rouge .cd, pre.rouge .cpf {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .err {
+  color: #a61717;
+  background-color: #e3d2d2;
+}
+pre.rouge .gd {
+  color: #000000;
+  background-color: #ffdddd;
+}
+pre.rouge .ge {
+  color: #000000;
+  font-style: italic;
+}
+pre.rouge .gr {
+  color: #aa0000;
+}
+pre.rouge .gh {
+  color: #999999;
+}
+pre.rouge .gi {
+  color: #000000;
+  background-color: #ddffdd;
+}
+pre.rouge .go {
+  color: #888888;
+}
+pre.rouge .gp {
+  color: #555555;
+}
+pre.rouge .gs {
+  font-weight: bold;
+}
+pre.rouge .gu {
+  color: #aaaaaa;
+}
+pre.rouge .gt {
+  color: #aa0000;
+}
+pre.rouge .kc {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kd {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kn {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kp {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kr {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kt {
+  color: #445588;
+  font-weight: bold;
+}
+pre.rouge .k, pre.rouge .kv {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .mf {
+  color: #009999;
+}
+pre.rouge .mh {
+  color: #009999;
+}
+pre.rouge .il {
+  color: #009999;
+}
+pre.rouge .mi {
+  color: #009999;
+}
+pre.rouge .mo {
+  color: #009999;
+}
+pre.rouge .m, pre.rouge .mb, pre.rouge .mx {
+  color: #009999;
+}
+pre.rouge .sa {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .sb {
+  color: #d14;
+}
+pre.rouge .sc {
+  color: #d14;
+}
+pre.rouge .sd {
+  color: #d14;
+}
+pre.rouge .s2 {
+  color: #d14;
+}
+pre.rouge .se {
+  color: #d14;
+}
+pre.rouge .sh {
+  color: #d14;
+}
+pre.rouge .si {
+  color: #d14;
+}
+pre.rouge .sx {
+  color: #d14;
+}
+pre.rouge .sr {
+  color: #009926;
+}
+pre.rouge .s1 {
+  color: #d14;
+}
+pre.rouge .ss {
+  color: #990073;
+}
+pre.rouge .s, pre.rouge .dl {
+  color: #d14;
+}
+pre.rouge .na {
+  color: #008080;
+}
+pre.rouge .bp {
+  color: #999999;
+}
+pre.rouge .nb {
+  color: #0086B3;
+}
+pre.rouge .nc {
+  color: #445588;
+  font-weight: bold;
+}
+pre.rouge .no {
+  color: #008080;
+}
+pre.rouge .nd {
+  color: #3c5d5d;
+  font-weight: bold;
+}
+pre.rouge .ni {
+  color: #800080;
+}
+pre.rouge .ne {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nf, pre.rouge .fm {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nl {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nn {
+  color: #555555;
+}
+pre.rouge .nt {
+  color: #000080;
+}
+pre.rouge .vc {
+  color: #008080;
+}
+pre.rouge .vg {
+  color: #008080;
+}
+pre.rouge .vi {
+  color: #008080;
+}
+pre.rouge .nv, pre.rouge .vm {
+  color: #008080;
+}
+pre.rouge .ow {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .o {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .w {
+  color: #bbbbbb;
+}
+pre.rouge {
+  background-color: #f8f8f8;
+}
+</style>
 </head>
 <body class="book">
 <div id="header">
@@ -592,47 +807,47 @@ As such, unless you have a specific requirement for Windows ME, the DOSBox-X tea
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[sdl]
-autolock=true
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[sdl]</span>
+<span class="py">autolock</span><span class="p">=</span><span class="s">true</span>
 
-[dosbox]
-title=Windows ME
-memsize=128
+<span class="nn">[dosbox]</span>
+<span class="py">title</span><span class="p">=</span><span class="s">Windows ME</span>
+<span class="py">memsize</span><span class="p">=</span><span class="s">128</span>
 
-[video]
-vmemsize=8
-vesa modelist width limit=0
-vesa modelist height limit=0
+<span class="nn">[video]</span>
+<span class="py">vmemsize</span><span class="p">=</span><span class="s">8</span>
+<span class="err">vesa</span> <span class="err">modelist</span> <span class="err">width</span> <span class="py">limit</span><span class="p">=</span><span class="s">0</span>
+<span class="err">vesa</span> <span class="err">modelist</span> <span class="err">height</span> <span class="py">limit</span><span class="p">=</span><span class="s">0</span>
 
-[dos]
-ver=8.0
-lfn=false
-hard drive data rate limit=0
-floppy drive data rate limit=0
+<span class="nn">[dos]</span>
+<span class="py">ver</span><span class="p">=</span><span class="s">8.0</span>
+<span class="py">lfn</span><span class="p">=</span><span class="s">false</span>
+<span class="err">hard</span> <span class="err">drive</span> <span class="err">data</span> <span class="err">rate</span> <span class="py">limit</span><span class="p">=</span><span class="s">0</span>
+<span class="err">floppy</span> <span class="err">drive</span> <span class="err">data</span> <span class="err">rate</span> <span class="py">limit</span><span class="p">=</span><span class="s">0</span>
 
-[cpu]
-cputype=pentium_mmx
-core=normal
+<span class="nn">[cpu]</span>
+<span class="py">cputype</span><span class="p">=</span><span class="s">pentium_mmx</span>
+<span class="py">core</span><span class="p">=</span><span class="s">normal</span>
 
-[sblaster]
-sbtype=sb16vibra
+<span class="nn">[sblaster]</span>
+<span class="py">sbtype</span><span class="p">=</span><span class="s">sb16vibra</span>
 
-[fdc, primary]
-int13fakev86io=false
+<span class="nn">[fdc, primary]</span>
+<span class="py">int13fakev86io</span><span class="p">=</span><span class="s">false</span>
 
-[ide, primary]
-int13fakeio=true
-int13fakev86io=false
+<span class="nn">[ide, primary]</span>
+<span class="py">int13fakeio</span><span class="p">=</span><span class="s">true</span>
+<span class="py">int13fakev86io</span><span class="p">=</span><span class="s">false</span>
 
-[ide, secondary]
-int13fakeio=true
-int13fakev86io=false
-cd-rom insertion delay=4000
+<span class="nn">[ide, secondary]</span>
+<span class="py">int13fakeio</span><span class="p">=</span><span class="s">true</span>
+<span class="py">int13fakev86io</span><span class="p">=</span><span class="s">false</span>
+<span class="err">cd-rom</span> <span class="err">insertion</span> <span class="py">delay</span><span class="p">=</span><span class="s">4000</span>
 
-[render]
-scaler=none
+<span class="nn">[render]</span>
+<span class="py">scaler</span><span class="p">=</span><span class="s">none</span>
 
-[autoexec]</code></pre>
+<span class="nn">[autoexec]</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -742,7 +957,7 @@ This assumes that dosbox-x is in your path and <code>winme.conf</code> is in you
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf winme.conf</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">dosbox-x -conf winme.conf</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -757,7 +972,7 @@ The maximum FAT32 partition size for Windows ME should be 2TB, but this has not 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE hdd.img -t hd_8gig</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMAKE hdd.img -t hd_8gig</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -766,7 +981,7 @@ This is an example of a 16GB (16*1024=16384 MB) disk, which due to its size, wil
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE hdd.img -t hd -size 16384</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMAKE hdd.img -t hd -size 16384</span></code></pre>
 </div>
 </div>
 </div>
@@ -803,7 +1018,7 @@ This is an example of a 16GB (16*1024=16384 MB) disk, which due to its size, wil
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMOUNT C hdd.img</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -811,9 +1026,9 @@ This is an example of a 16GB (16*1024=16384 MB) disk, which due to its size, wil
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT D WinME.iso
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMOUNT D WinME.iso
 IMGMOUNT A -bootcd D
-BOOT A:</code></pre>
+BOOT A:</span></code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -838,8 +1053,8 @@ Now type the following commands:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">D:
-SETUP.EXE /NM</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">D:
+SETUP.EXE /NM</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -851,9 +1066,9 @@ Close DOSBox-X and edit your <code>winme.conf</code> config file, and add the fo
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMOUNT C hdd.img
 IMGMOUNT D WinME.iso
-BOOT C:</code></pre>
+BOOT C:</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -861,7 +1076,7 @@ BOOT C:</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf winme.conf</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">dosbox-x -conf winme.conf</span></code></pre>
 </div>
 </div>
 </div>
@@ -916,7 +1131,7 @@ The \WIN9X\OLS sub-directory can however be skipped which will save roughly 42MB
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMOUNT C hdd.img</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -927,7 +1142,7 @@ The \WIN9X\OLS sub-directory can however be skipped which will save roughly 42MB
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT D WinME.iso</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMOUNT D WinME.iso</span></code></pre>
 </div>
 </div>
 </div>
@@ -939,7 +1154,7 @@ It is recommended to copy the installation files (contents of the WIN9X director
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">XCOPY D:\WIN9X C:\WIN9X /I /E</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">XCOPY D:\WIN9X C:\WIN9X /I /E</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -976,9 +1191,9 @@ Alternatively, you may overcome this issue by selecting "CPU" &#8658; "Emulate C
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">C:
+<pre class="rouge highlight"><code data-lang="console"><span class="go">C:
 CD \WIN9X
-SETUP /NM</code></pre>
+SETUP /NM</span></code></pre>
 </div>
 </div>
 <div class="imageblock">
@@ -999,8 +1214,8 @@ At the end of the file, in the [autoexec] section, add the following two lines:<
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img
-BOOT C:</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMOUNT C hdd.img
+BOOT C:</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1009,7 +1224,7 @@ This is also the command you use, after the installation is finished, to start W
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf winme.conf</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">dosbox-x -conf winme.conf</span></code></pre>
 </div>
 </div>
 </div>
@@ -1023,7 +1238,7 @@ This is also the command you use, after the installation is finished, to start W
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf winme.conf</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">dosbox-x -conf winme.conf</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1089,8 +1304,8 @@ The option to load image files from the menu bar becomes unavailable the moment 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT A disk1.img disk2.img disk3.img
-IMGMOUNT D cd1.iso cd2.iso cd3.iso</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMOUNT A disk1.img disk2.img disk3.img
+IMGMOUNT D cd1.iso cd2.iso cd3.iso</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1139,13 +1354,13 @@ In some cases, this is not possible, such as:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[ne2000]
-ne2000=true
-nicirq=10
-backend=pcap
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[ne2000]</span>
+<span class="py">ne2000</span><span class="p">=</span><span class="s">true</span>
+<span class="py">nicirq</span><span class="p">=</span><span class="s">10</span>
+<span class="py">backend</span><span class="p">=</span><span class="s">pcap</span>
 
-[ethernet, pcap]
-realnic=list</code></pre>
+<span class="nn">[ethernet, pcap]</span>
+<span class="py">realnic</span><span class="p">=</span><span class="s">list</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1180,10 +1395,10 @@ As such it will work with wireless adapters, and it will work in most sandboxed 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[ne2000]
-ne2000=true
-nicirq=10
-backend=slirp</code></pre>
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[ne2000]</span>
+<span class="py">ne2000</span><span class="p">=</span><span class="s">true</span>
+<span class="py">nicirq</span><span class="p">=</span><span class="s">10</span>
+<span class="py">backend</span><span class="p">=</span><span class="s">slirp</span></code></pre>
 </div>
 </div>
 </div>
@@ -1400,10 +1615,10 @@ As such you will be limited to the above video modes with this driver.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[video]
-allow high definition vesa modes=true
-allow unusual vesa modes=true
-allow low resolution vesa modes=false</code></pre>
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[video]</span>
+<span class="err">allow</span> <span class="err">high</span> <span class="err">definition</span> <span class="err">vesa</span> <span class="py">modes</span><span class="p">=</span><span class="s">true</span>
+<span class="err">allow</span> <span class="err">unusual</span> <span class="err">vesa</span> <span class="py">modes</span><span class="p">=</span><span class="s">true</span>
+<span class="err">allow</span> <span class="err">low</span> <span class="err">resolution</span> <span class="err">vesa</span> <span class="py">modes</span><span class="p">=</span><span class="s">false</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1493,11 +1708,11 @@ If you don&#8217;t see this option listed, click on the "view all Control Panel 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[dosbox]
-captures=capture
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[dosbox]</span>
+<span class="py">captures</span><span class="p">=</span><span class="s">capture</span>
 
-[parallel]
-parallel1=file timeout=2000</code></pre>
+<span class="nn">[parallel]</span>
+<span class="py">parallel1</span><span class="p">=</span><span class="s">file timeout=2000</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1521,14 +1736,14 @@ On a Windows host, it is necessary to install a separate PostScript viewer such 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[parallel]
-parallel1=printer
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[parallel]</span>
+<span class="py">parallel1</span><span class="p">=</span><span class="s">printer</span>
 
-[printer]
-printer=true
-printoutput=ps
-multipage=true
-timeout=2000</code></pre>
+<span class="nn">[printer]</span>
+<span class="py">printer</span><span class="p">=</span><span class="s">true</span>
+<span class="py">printoutput</span><span class="p">=</span><span class="s">ps</span>
+<span class="py">multipage</span><span class="p">=</span><span class="s">true</span>
+<span class="py">timeout</span><span class="p">=</span><span class="s">2000</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1573,8 +1788,8 @@ After the update it will show a date of 4-29-1999.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[voodoo]
-voodoo_card=false</code></pre>
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[voodoo]</span>
+<span class="py">voodoo_card</span><span class="p">=</span><span class="s">false</span></code></pre>
 </div>
 </div>
 <div class="sect2">
@@ -1600,8 +1815,8 @@ The work-around is to use the SDL1 DOSBox-X instead.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[voodoo]
-glide=true</code></pre>
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[voodoo]</span>
+<span class="py">glide</span><span class="p">=</span><span class="s">true</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1641,8 +1856,8 @@ This can be accomplished in one of two ways. Either when you issue the <code>boo
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[sdl]
-convertdrivefat = true</code></pre>
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[sdl]</span>
+<span class="py">convertdrivefat</span> <span class="p">=</span> <span class="s">true</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1750,8 +1965,104 @@ You can load a different CD or Floppy image, once you booted Windows 95, but if 
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-02-05 01:05:47 -0800
+Last updated 2023-02-17 18:16:47 -0800
 </div>
 </div>
+<style>
+    .book .listingblock > .content,
+    .book .literalblock > .content {
+      position: relative;
+    }
+
+    .book .listingblock code[data-lang]::before {
+      content: none;
+    }
+
+    .book .source-toolbox {
+      display: flex;
+      position: absolute;
+      visibility: hidden;
+      top: 0.25rem;
+      right: 0.5rem;
+      color: #808080;
+      white-space: nowrap;
+      font-size: 0.85em;
+    }
+
+    .book .listingblock:hover .source-toolbox,
+    .book .literalblock:hover .source-toolbox {
+      visibility: visible;
+    }
+
+    .book .source-toolbox .source-lang {
+      font-family: "Droid Sans Mono", "DejaVu Sans Mono", monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.075em;
+    }
+
+    .book .source-toolbox > :not(:last-child)::after {
+      content: "|";
+      letter-spacing: 0;
+      padding: 0 1ch;
+    }
+
+    .book .source-toolbox .copy-button {
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: none;
+      border: none;
+      color: inherit;
+      outline: none;
+      padding: 0;
+      font-family: inherit;
+      font-size: inherit;
+      line-height: inherit;
+      width: 1em;
+      height: 1em;
+    }
+
+    .book .source-toolbox .copy-icon {
+      flex: none;
+      width: inherit;
+      height: inherit;
+      filter: invert(50.2%);
+      margin-top: 0.05em;
+    }
+
+    .book .source-toolbox .copy-toast {
+      flex: none;
+      position: relative;
+      display: inline-flex;
+      justify-content: center;
+      margin-top: 1em;
+      border-radius: 0.25em;
+      padding: 0.5em;
+      cursor: auto;
+      opacity: 0;
+      transition: opacity 0.5s ease 0.75s;
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+    }
+
+    .book .source-toolbox .copy-toast::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      width: 1em;
+      height: 1em;
+      border: 0.55em solid transparent;
+      border-left-color: rgba(0, 0, 0, 0.8);
+      transform: rotate(-90deg) translateX(50%) translateY(50%);
+      transform-origin: left;
+    }
+
+    .book .source-toolbox .copy-button.clicked .copy-toast {
+      opacity: 1;
+      transition: none;
+    }
+</style>
+<script src="copy-to-clipboard.js"></script>
 </body>
 </html>

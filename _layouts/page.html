@@ -2,18 +2,15 @@
 layout: default
 ---
 
-<div style="text-align: center">
-    <h3 style="padding: 0; padding-top: 10px">{{ page.title | escape }}</h3>
+<div class="align-center">
+    <h3>{{ page.title | escape }}</h3>
 
-    <table width="100%" class="hide-table-appearence">
-        <tr>
-            <td width="15%"></td>
-            <td width="70%" style="text-align: left">
+    <div class="page-content-flex">
+        <div>
 {{ content }}
-
-                <p style="text-align: center">Return to <a href="{{ "/" | relative_url }}">main page</a></p>
-            </td>
-            <td width="15%"></td>
-        </tr>
-    </table>
+        </div>
+        <div class="align-center">
+            <p>Return to <a href="{{ '/' | relative_url }}">main page</a></p>
+        </div>
+    </div>
 </div>

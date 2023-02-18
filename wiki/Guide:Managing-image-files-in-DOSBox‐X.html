@@ -435,6 +435,221 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 #footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
+<style>
+pre.rouge table td { padding: 5px; }
+pre.rouge table pre { margin: 0; }
+pre.rouge .cm {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .cp {
+  color: #999999;
+  font-weight: bold;
+}
+pre.rouge .c1 {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .cs {
+  color: #999999;
+  font-weight: bold;
+  font-style: italic;
+}
+pre.rouge .c, pre.rouge .ch, pre.rouge .cd, pre.rouge .cpf {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .err {
+  color: #a61717;
+  background-color: #e3d2d2;
+}
+pre.rouge .gd {
+  color: #000000;
+  background-color: #ffdddd;
+}
+pre.rouge .ge {
+  color: #000000;
+  font-style: italic;
+}
+pre.rouge .gr {
+  color: #aa0000;
+}
+pre.rouge .gh {
+  color: #999999;
+}
+pre.rouge .gi {
+  color: #000000;
+  background-color: #ddffdd;
+}
+pre.rouge .go {
+  color: #888888;
+}
+pre.rouge .gp {
+  color: #555555;
+}
+pre.rouge .gs {
+  font-weight: bold;
+}
+pre.rouge .gu {
+  color: #aaaaaa;
+}
+pre.rouge .gt {
+  color: #aa0000;
+}
+pre.rouge .kc {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kd {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kn {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kp {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kr {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kt {
+  color: #445588;
+  font-weight: bold;
+}
+pre.rouge .k, pre.rouge .kv {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .mf {
+  color: #009999;
+}
+pre.rouge .mh {
+  color: #009999;
+}
+pre.rouge .il {
+  color: #009999;
+}
+pre.rouge .mi {
+  color: #009999;
+}
+pre.rouge .mo {
+  color: #009999;
+}
+pre.rouge .m, pre.rouge .mb, pre.rouge .mx {
+  color: #009999;
+}
+pre.rouge .sa {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .sb {
+  color: #d14;
+}
+pre.rouge .sc {
+  color: #d14;
+}
+pre.rouge .sd {
+  color: #d14;
+}
+pre.rouge .s2 {
+  color: #d14;
+}
+pre.rouge .se {
+  color: #d14;
+}
+pre.rouge .sh {
+  color: #d14;
+}
+pre.rouge .si {
+  color: #d14;
+}
+pre.rouge .sx {
+  color: #d14;
+}
+pre.rouge .sr {
+  color: #009926;
+}
+pre.rouge .s1 {
+  color: #d14;
+}
+pre.rouge .ss {
+  color: #990073;
+}
+pre.rouge .s, pre.rouge .dl {
+  color: #d14;
+}
+pre.rouge .na {
+  color: #008080;
+}
+pre.rouge .bp {
+  color: #999999;
+}
+pre.rouge .nb {
+  color: #0086B3;
+}
+pre.rouge .nc {
+  color: #445588;
+  font-weight: bold;
+}
+pre.rouge .no {
+  color: #008080;
+}
+pre.rouge .nd {
+  color: #3c5d5d;
+  font-weight: bold;
+}
+pre.rouge .ni {
+  color: #800080;
+}
+pre.rouge .ne {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nf, pre.rouge .fm {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nl {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nn {
+  color: #555555;
+}
+pre.rouge .nt {
+  color: #000080;
+}
+pre.rouge .vc {
+  color: #008080;
+}
+pre.rouge .vg {
+  color: #008080;
+}
+pre.rouge .vi {
+  color: #008080;
+}
+pre.rouge .nv, pre.rouge .vm {
+  color: #008080;
+}
+pre.rouge .ow {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .o {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .w {
+  color: #bbbbbb;
+}
+pre.rouge {
+  background-color: #f8f8f8;
+}
+</style>
 </head>
 <body class="book">
 <div id="header">
@@ -672,7 +887,7 @@ This option allows most common floppy disk types to be created, for less common 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE disk.ima -t fd</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMAKE disk.ima -t fd</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -680,7 +895,7 @@ This option allows most common floppy disk types to be created, for less common 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE disk.ima -t fd_1440</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMAKE disk.ima -t fd_1440</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -692,7 +907,7 @@ The diskette image will appear to have been formatted by MS-DOS 5.0.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE -t fd</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMAKE -t fd</span></code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -712,7 +927,7 @@ The filename for the disk image is not limited to the DOS 8.3 filename length, b
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE disk.ima -t fd -nofs</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMAKE disk.ima -t fd -nofs</span></code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -866,7 +1081,7 @@ The 10-sector disks were used by the DEC Rainbow 100, and should likewise be avo
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount a disk.ima</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount a disk.ima</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -874,8 +1089,8 @@ The 10-sector disks were used by the DEC Rainbow 100, and should likewise be avo
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount A: disk.ima
-imgmount A: disk.ima -t floppy</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount A: disk.ima
+imgmount A: disk.ima -t floppy</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -883,7 +1098,7 @@ imgmount A: disk.ima -t floppy</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount a</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount a</span></code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -903,7 +1118,7 @@ The <code>-t floppy</code> parameter is only needed with DOSBox-X when the exten
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount 0 disk.ima</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount 0 disk.ima</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -911,7 +1126,7 @@ The <code>-t floppy</code> parameter is only needed with DOSBox-X when the exten
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount 0 disk.ima -fs none</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount 0 disk.ima -fs none</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -956,7 +1171,7 @@ e.g.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount a disk1.ima disk2.ima disk3.ima</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount a disk1.ima disk2.ima disk3.ima</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -982,7 +1197,7 @@ e.g.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount a disk.ima -ro</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount a disk.ima -ro</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -990,7 +1205,7 @@ e.g.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount a :disk.ima</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount a :disk.ima</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1000,7 +1215,7 @@ On the other hand, if you wish to make individual images read-only (instead of a
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount a :disk1.ima :disk2.ima :disk3.ima userdisk.ima</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount a :disk1.ima :disk2.ima :disk3.ima userdisk.ima</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1015,7 +1230,7 @@ On the other hand, if you wish to make individual images read-only (instead of a
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount a -u</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount a -u</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1023,7 +1238,7 @@ On the other hand, if you wish to make individual images read-only (instead of a
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">mount a -u</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">mount a -u</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1031,7 +1246,7 @@ On the other hand, if you wish to make individual images read-only (instead of a
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount a disk2.ima -u</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount a disk2.ima -u</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1048,8 +1263,8 @@ On the other hand, if you wish to make individual images read-only (instead of a
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount a dos.ima
-boot a:</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount a dos.ima
+boot a:</span></code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1069,7 +1284,7 @@ DOSBox-X supports the <code>-L</code> parameter for the <code>BOOT</code> comman
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">boot dos.ima</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">boot dos.ima</span></code></pre>
 </div>
 </div>
 <div class="admonitionblock tip">
@@ -1141,7 +1356,7 @@ The next time you want to open a <code>.IMA</code> file, the option will be avai
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">gnome-disk-image-mounter -w disk.ima</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">gnome-disk-image-mounter -w disk.ima</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1156,7 +1371,7 @@ This method requires <code>sudo</code> access.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">sudo mount -o loop,uid=$UID disk.ima /mnt</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="gp">sudo mount -o loop,uid=$</span>UID disk.ima /mnt</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1260,7 +1475,7 @@ It provides various commands which can be used to interact with DOS diskette ima
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">mdir -i disk.ima</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">mdir -i disk.ima</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1268,7 +1483,7 @@ It provides various commands which can be used to interact with DOS diskette ima
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">mdir -i disk.ima ::games</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">mdir -i disk.ima ::games</span></code></pre>
 </div>
 </div>
 </div>
@@ -1279,7 +1494,7 @@ It provides various commands which can be used to interact with DOS diskette ima
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">mcopy -i disk.ima hello.txt ::</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">mcopy -i disk.ima hello.txt ::</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1287,7 +1502,7 @@ It provides various commands which can be used to interact with DOS diskette ima
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">mcopy -i disk.ima hello.txt ::games</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">mcopy -i disk.ima hello.txt ::games</span></code></pre>
 </div>
 </div>
 </div>
@@ -1298,7 +1513,7 @@ It provides various commands which can be used to interact with DOS diskette ima
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">mcopy -i disk.ima ::hello.txt .</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">mcopy -i disk.ima ::hello.txt .</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1306,8 +1521,8 @@ It provides various commands which can be used to interact with DOS diskette ima
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">mkdir tmp
-mcopy -s -i disk.ima :: tmp</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">mkdir tmp
+mcopy -s -i disk.ima :: tmp</span></code></pre>
 </div>
 </div>
 </div>
@@ -1487,7 +1702,7 @@ But this can cause <code>IMGMAKE</code> to give errors if the partition size is 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE hdd.img -t hd -size 400 -fat 32</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMAKE hdd.img -t hd -size 400 -fat 32</span></code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1511,7 +1726,7 @@ FAT32 harddisk images will appear to have been partitioned and formatted by Wind
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE hdd.img -t hd_520</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMAKE hdd.img -t hd_520</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1522,7 +1737,7 @@ FAT32 harddisk images will appear to have been partitioned and formatted by Wind
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE -t hd_520</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMAKE -t hd_520</span></code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1545,7 +1760,7 @@ The filename in this case is not limited to the DOS 8.3 filename length, but rat
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE hdd.img -t hd_520 -nofs</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMAKE hdd.img -t hd_520 -nofs</span></code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1643,7 +1858,7 @@ DOSBox-X has no integrated FDISK and FORMAT commands, so creating harddisk image
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE hdd.img -t hd -size 31</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMAKE hdd.img -t hd -size 31</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1651,7 +1866,7 @@ DOSBox-X has no integrated FDISK and FORMAT commands, so creating harddisk image
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE hdd.img -t hd -chs 992,2,32</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMAKE hdd.img -t hd -chs 992,2,32</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1662,7 +1877,7 @@ DOSBox-X has no integrated FDISK and FORMAT commands, so creating harddisk image
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE hdd.img -t hd -size 31 -nofs</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMAKE hdd.img -t hd -size 31 -nofs</span></code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1682,7 +1897,7 @@ DOSBox-X has no integrated FDISK and FORMAT commands, so creating harddisk image
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE hdd.img -t hd -size 31 -nofs -bat</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMAKE hdd.img -t hd -size 31 -nofs -bat</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1708,8 +1923,8 @@ If the total does not exceed 2GiB, it will be converted to a FAT16 harddisk imag
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[sdl]
-convert fat free space = 10</code></pre>
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[sdl]</span>
+<span class="err">convert</span> <span class="err">fat</span> <span class="err">free</span> <span class="py">space</span> <span class="p">=</span> <span class="s">10</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1724,7 +1939,7 @@ Set it to 0 for read-only (no free space) and -1 to attempt to use the actual fr
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount c hdd.img</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount c hdd.img</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1732,9 +1947,9 @@ Set it to 0 for read-only (no free space) and -1 to attempt to use the actual fr
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount C: hdd.img
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount C: hdd.img
 imgmount C: disk.ima -t hdd
-imgmount C: disk.ima -t hdd -fs fat</code></pre>
+imgmount C: disk.ima -t hdd -fs fat</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1742,7 +1957,7 @@ imgmount C: disk.ima -t hdd -fs fat</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount c</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount c</span></code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1792,7 +2007,7 @@ When booting real DOS in DOSBox-X, all partitions will be accessible.
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount 2 hdd.img</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount 2 hdd.img</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1849,7 +2064,7 @@ DOSBox-X automatically assumes the <code>-fs none</code> flag when a drive numbe
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount 2 hdd.img -t hd_4gig</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount 2 hdd.img -t hd_4gig</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1857,7 +2072,7 @@ DOSBox-X automatically assumes the <code>-fs none</code> flag when a drive numbe
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount 2 hdd.img -t hdd -size 512,32,2,992</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount 2 hdd.img -t hdd -size 512,32,2,992</span></code></pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -1946,7 +2161,7 @@ Doing so when running a program, real DOS or Win9x is strongly discouraged as it
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount C: hdd.img -o partidx=1</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount C: hdd.img -o partidx=1</span></code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1981,7 +2196,7 @@ If the harddisk image has an Extended partition, that partition cannot be mounte
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount c -u</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount c -u</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1989,7 +2204,7 @@ If the harddisk image has an Extended partition, that partition cannot be mounte
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">mount c -u</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">mount c -u</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1997,7 +2212,7 @@ If the harddisk image has an Extended partition, that partition cannot be mounte
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount c hdd2.img -u</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount c hdd2.img -u</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2036,8 +2251,8 @@ Doing so when running a program, real DOS or Win9x is strongly discouraged as it
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount c hdd.img
-boot c:</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount c hdd.img
+boot c:</span></code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -2106,7 +2321,7 @@ If the harddisk image contains multiple partitions, they will ALL be mounted.
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">gnome-disk-image-mounter -w hdd.img</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">gnome-disk-image-mounter -w hdd.img</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2120,7 +2335,7 @@ If the harddisk image contains multiple partitions, they will ALL be mounted.
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">sudo mount -o loop,offset=32256,uid=$UID hdd.img /mnt</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="gp">sudo mount -o loop,offset=32256,uid=$</span>UID hdd.img /mnt</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2175,9 +2390,9 @@ You can unmount it by clicking on the "Eject" button next to it in the Finder.</
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">hdiutil attach hdd.img
+<pre class="rouge highlight"><code data-lang="console"><span class="go">hdiutil attach hdd.img
 /dev/disk6              FDisk_partition_scheme
-/dev/disk6a1            DOS_FAT_16</code></pre>
+/dev/disk6a1            DOS_FAT_16</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2190,8 +2405,8 @@ Once you&#8217;re done, you can detach it as follows:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">hdiutil detach /dev/disk6
-"disk6" ejected.</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">hdiutil detach /dev/disk6
+"disk6" ejected.</span></code></pre>
 </div>
 </div>
 </div>
@@ -2253,7 +2468,7 @@ If the CD or DVD contains multiple tracks, like DATA and AUDIO (aka redbook audi
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount d cdrom.iso</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount d cdrom.iso</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2261,9 +2476,9 @@ If the CD or DVD contains multiple tracks, like DATA and AUDIO (aka redbook audi
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount D: cdrom.iso
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount D: cdrom.iso
 imgmount D: cdrom.iso -t iso
-imgmount D: cdrom.iso -t cdrom</code></pre>
+imgmount D: cdrom.iso -t cdrom</span></code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -2310,7 +2525,7 @@ If the names of your CD/DVD images contain characters of foreign languages such 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount D: cdrom.iso -o rr=0</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount D: cdrom.iso -o rr=0</span></code></pre>
 </div>
 </div>
 </div>
@@ -2344,7 +2559,7 @@ If however, you boot real DOS in DOSBox-X, any mounted CD-ROM images will not be
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-shell" data-lang="shell">device=c:\dos\oakcdrom.sys /D:cdrom001</code></pre>
+<pre class="rouge highlight"><code data-lang="shell"><span class="nv">device</span><span class="o">=</span>c:<span class="se">\d</span>os<span class="se">\o</span>akcdrom.sys /D:cdrom001</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2352,7 +2567,7 @@ If however, you boot real DOS in DOSBox-X, any mounted CD-ROM images will not be
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-shell" data-lang="shell">device=c:\dos\mscdex.exe /D:cdrom001 /L:D</code></pre>
+<pre class="rouge highlight"><code data-lang="shell"><span class="nv">device</span><span class="o">=</span>c:<span class="se">\d</span>os<span class="se">\m</span>scdex.exe /D:cdrom001 /L:D</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2371,7 +2586,7 @@ e.g.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount d cdrom1.iso cdrom2.iso cdrom3.iso</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount d cdrom1.iso cdrom2.iso cdrom3.iso</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2411,7 +2626,7 @@ All the other mount options are host folder mounts.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount d -u</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount d -u</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2419,7 +2634,7 @@ All the other mount options are host folder mounts.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">mount d -u</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">mount d -u</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2427,7 +2642,7 @@ All the other mount options are host folder mounts.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount d cdrom2.iso -u</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount d cdrom2.iso -u</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2457,9 +2672,9 @@ Only those that use the El Torito emulated diskette method are supported, such a
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount d Win98.iso
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount d Win98.iso
 imgmount a -bootcd d
-boot A:</code></pre>
+boot A:</span></code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -2506,7 +2721,7 @@ This method will not work for <code>.CUE</code>+<code>.BIN</code> or <code>MDF</
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">gnome-disk-image-mounter cdrom.iso</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">gnome-disk-image-mounter cdrom.iso</span></code></pre>
 </div>
 </div>
 </div>
@@ -2525,7 +2740,7 @@ This method requires <code>sudo</code> access.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">sudo mount -o loop cdrom.iso /mnt</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">sudo mount -o loop cdrom.iso /mnt</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2590,10 +2805,10 @@ You can unmount it by clicking on the "Eject" button next to it in the Finder.</
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT d cdrom.iso
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMOUNT d cdrom.iso
 MOUNT C .
 MKDIR C:\CDROM
-XCOPY D: C:\CDROM /I /S</code></pre>
+XCOPY D: C:\CDROM /I /S</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2604,9 +2819,9 @@ XCOPY D: C:\CDROM /I /S</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMOUNT C hdd.img
 MOUNT D .
-COPY D:\UNZIP.EXE C:\DOS</code></pre>
+COPY D:\UNZIP.EXE C:\DOS</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2622,7 +2837,7 @@ COPY D:\UNZIP.EXE C:\DOS</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT e -t ram -size 20000</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMOUNT e -t ram -size 20000</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2683,7 +2898,7 @@ DOSBox-X provides limited support for these images.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">qemu-img create -f qcow2 hdd.qcow2 2G</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">qemu-img create -f qcow2 hdd.qcow2 2G</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2694,7 +2909,7 @@ DOSBox-X provides limited support for these images.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount 2 hdd.qcow2</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount 2 hdd.qcow2</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2705,8 +2920,8 @@ DOSBox-X provides limited support for these images.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">imgmount 2 hdd.qcow2
-boot C:</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmount 2 hdd.qcow2
+boot C:</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2740,7 +2955,7 @@ This will even work with USB diskette drives.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMAKE disk.ima -source a -r 3</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMAKE disk.ima -source a -r 3</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2820,8 +3035,104 @@ This is because, once you boot a guest OS, the drive letter mapping loses its me
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-02-05 01:05:47 -0800
+Last updated 2023-02-17 18:16:47 -0800
 </div>
 </div>
+<style>
+    .book .listingblock > .content,
+    .book .literalblock > .content {
+      position: relative;
+    }
+
+    .book .listingblock code[data-lang]::before {
+      content: none;
+    }
+
+    .book .source-toolbox {
+      display: flex;
+      position: absolute;
+      visibility: hidden;
+      top: 0.25rem;
+      right: 0.5rem;
+      color: #808080;
+      white-space: nowrap;
+      font-size: 0.85em;
+    }
+
+    .book .listingblock:hover .source-toolbox,
+    .book .literalblock:hover .source-toolbox {
+      visibility: visible;
+    }
+
+    .book .source-toolbox .source-lang {
+      font-family: "Droid Sans Mono", "DejaVu Sans Mono", monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.075em;
+    }
+
+    .book .source-toolbox > :not(:last-child)::after {
+      content: "|";
+      letter-spacing: 0;
+      padding: 0 1ch;
+    }
+
+    .book .source-toolbox .copy-button {
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: none;
+      border: none;
+      color: inherit;
+      outline: none;
+      padding: 0;
+      font-family: inherit;
+      font-size: inherit;
+      line-height: inherit;
+      width: 1em;
+      height: 1em;
+    }
+
+    .book .source-toolbox .copy-icon {
+      flex: none;
+      width: inherit;
+      height: inherit;
+      filter: invert(50.2%);
+      margin-top: 0.05em;
+    }
+
+    .book .source-toolbox .copy-toast {
+      flex: none;
+      position: relative;
+      display: inline-flex;
+      justify-content: center;
+      margin-top: 1em;
+      border-radius: 0.25em;
+      padding: 0.5em;
+      cursor: auto;
+      opacity: 0;
+      transition: opacity 0.5s ease 0.75s;
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+    }
+
+    .book .source-toolbox .copy-toast::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      width: 1em;
+      height: 1em;
+      border: 0.55em solid transparent;
+      border-left-color: rgba(0, 0, 0, 0.8);
+      transform: rotate(-90deg) translateX(50%) translateY(50%);
+      transform-origin: left;
+    }
+
+    .book .source-toolbox .copy-button.clicked .copy-toast {
+      opacity: 1;
+      transition: none;
+    }
+</style>
+<script src="copy-to-clipboard.js"></script>
 </body>
 </html>

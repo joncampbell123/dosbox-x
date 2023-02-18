@@ -435,6 +435,221 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 #footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
+<style>
+pre.rouge table td { padding: 5px; }
+pre.rouge table pre { margin: 0; }
+pre.rouge .cm {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .cp {
+  color: #999999;
+  font-weight: bold;
+}
+pre.rouge .c1 {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .cs {
+  color: #999999;
+  font-weight: bold;
+  font-style: italic;
+}
+pre.rouge .c, pre.rouge .ch, pre.rouge .cd, pre.rouge .cpf {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .err {
+  color: #a61717;
+  background-color: #e3d2d2;
+}
+pre.rouge .gd {
+  color: #000000;
+  background-color: #ffdddd;
+}
+pre.rouge .ge {
+  color: #000000;
+  font-style: italic;
+}
+pre.rouge .gr {
+  color: #aa0000;
+}
+pre.rouge .gh {
+  color: #999999;
+}
+pre.rouge .gi {
+  color: #000000;
+  background-color: #ddffdd;
+}
+pre.rouge .go {
+  color: #888888;
+}
+pre.rouge .gp {
+  color: #555555;
+}
+pre.rouge .gs {
+  font-weight: bold;
+}
+pre.rouge .gu {
+  color: #aaaaaa;
+}
+pre.rouge .gt {
+  color: #aa0000;
+}
+pre.rouge .kc {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kd {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kn {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kp {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kr {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kt {
+  color: #445588;
+  font-weight: bold;
+}
+pre.rouge .k, pre.rouge .kv {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .mf {
+  color: #009999;
+}
+pre.rouge .mh {
+  color: #009999;
+}
+pre.rouge .il {
+  color: #009999;
+}
+pre.rouge .mi {
+  color: #009999;
+}
+pre.rouge .mo {
+  color: #009999;
+}
+pre.rouge .m, pre.rouge .mb, pre.rouge .mx {
+  color: #009999;
+}
+pre.rouge .sa {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .sb {
+  color: #d14;
+}
+pre.rouge .sc {
+  color: #d14;
+}
+pre.rouge .sd {
+  color: #d14;
+}
+pre.rouge .s2 {
+  color: #d14;
+}
+pre.rouge .se {
+  color: #d14;
+}
+pre.rouge .sh {
+  color: #d14;
+}
+pre.rouge .si {
+  color: #d14;
+}
+pre.rouge .sx {
+  color: #d14;
+}
+pre.rouge .sr {
+  color: #009926;
+}
+pre.rouge .s1 {
+  color: #d14;
+}
+pre.rouge .ss {
+  color: #990073;
+}
+pre.rouge .s, pre.rouge .dl {
+  color: #d14;
+}
+pre.rouge .na {
+  color: #008080;
+}
+pre.rouge .bp {
+  color: #999999;
+}
+pre.rouge .nb {
+  color: #0086B3;
+}
+pre.rouge .nc {
+  color: #445588;
+  font-weight: bold;
+}
+pre.rouge .no {
+  color: #008080;
+}
+pre.rouge .nd {
+  color: #3c5d5d;
+  font-weight: bold;
+}
+pre.rouge .ni {
+  color: #800080;
+}
+pre.rouge .ne {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nf, pre.rouge .fm {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nl {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nn {
+  color: #555555;
+}
+pre.rouge .nt {
+  color: #000080;
+}
+pre.rouge .vc {
+  color: #008080;
+}
+pre.rouge .vg {
+  color: #008080;
+}
+pre.rouge .vi {
+  color: #008080;
+}
+pre.rouge .nv, pre.rouge .vm {
+  color: #008080;
+}
+pre.rouge .ow {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .o {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .w {
+  color: #bbbbbb;
+}
+pre.rouge {
+  background-color: #f8f8f8;
+}
+</style>
 </head>
 <body class="book">
 <div id="header">
@@ -769,13 +984,13 @@ In some cases this is not possible, such as:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[ne2000]
-ne2000=true
-nicirq=10
-backend=pcap
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[ne2000]</span>
+<span class="py">ne2000</span><span class="p">=</span><span class="s">true</span>
+<span class="py">nicirq</span><span class="p">=</span><span class="s">10</span>
+<span class="py">backend</span><span class="p">=</span><span class="s">pcap</span>
 
-[ethernet, pcap]
-realnic=list</code></pre>
+<span class="nn">[ethernet, pcap]</span>
+<span class="py">realnic</span><span class="p">=</span><span class="s">list</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -872,10 +1087,10 @@ This can be overcome using the <code>tcp_port_forwards=</code> and <code>udp_por
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[ne2000]
-ne2000=true
-nicirq=10
-backend=slirp</code></pre>
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[ne2000]</span>
+<span class="py">ne2000</span><span class="p">=</span><span class="s">true</span>
+<span class="py">nicirq</span><span class="p">=</span><span class="s">10</span>
+<span class="py">backend</span><span class="p">=</span><span class="s">slirp</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1162,7 +1377,7 @@ Or the libslirp library for the slirp back-end.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">$ sudo apt-get install libpcap libslirp</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="gp">$</span><span class="w"> </span><span class="nb">sudo </span>apt-get <span class="nb">install </span>libpcap libslirp</code></pre>
 </div>
 </div>
 </div>
@@ -1176,7 +1391,7 @@ Or the libslirp library for the slirp back-end.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">$ sudo dnf install libpcap libslirp</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="gp">$</span><span class="w"> </span><span class="nb">sudo </span>dnf <span class="nb">install </span>libpcap libslirp</code></pre>
 </div>
 </div>
 </div>
@@ -1189,9 +1404,9 @@ To check if your binary has networking support, run the following command:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">$ ldd /usr/bin/dosbox-x |grep "pcap\|slirp"
-	libpcap.so.1 =&gt; /lib64/libpcap.so.1 (0x00007f7877a7a000)
-	libslirp.so.0 =&gt; /lib64/libslirp.so.0 (0x00007f7877a5c000)</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="gp">$</span><span class="w"> </span>ldd /usr/bin/dosbox-x |grep <span class="s2">"pcap</span><span class="se">\|</span><span class="s2">slirp"</span>
+<span class="gp">	libpcap.so.1 =&gt;</span><span class="w"> </span>/lib64/libpcap.so.1 <span class="o">(</span>0x00007f7877a7a000<span class="o">)</span>
+<span class="gp">	libslirp.so.0 =&gt;</span><span class="w"> </span>/lib64/libslirp.so.0 <span class="o">(</span>0x00007f7877a5c000<span class="o">)</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1210,10 +1425,10 @@ You can do this as follows:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">$ which dosbox-x
-/usr/bin/dosbox-x
-$ getcap /usr/bin/dosbox-x
-$</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="gp">$</span><span class="w"> </span>which dosbox-x
+<span class="go">/usr/bin/dosbox-x
+</span><span class="gp">$</span><span class="w"> </span>getcap /usr/bin/dosbox-x
+<span class="gp">$</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1223,7 +1438,7 @@ Run the following command:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">$ sudo setcap cap_net_raw+ep /usr/bin/dosbox-x</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="gp">$</span><span class="w"> </span><span class="nb">sudo </span>setcap cap_net_raw+ep /usr/bin/dosbox-x</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1234,8 +1449,8 @@ Run the following command:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">$ getcap /usr/bin/dosbox-x
-/usr/bin/dosbox-x = cap_net_raw+ep</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="gp">$</span><span class="w"> </span>getcap /usr/bin/dosbox-x
+<span class="go">/usr/bin/dosbox-x = cap_net_raw+ep</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1256,13 +1471,13 @@ It is highly recommended to only bridge to wired Ethernet adapters, as wireless 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[ne2000]
-ne2000=true
-nicirq=10
-backend=pcap
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[ne2000]</span>
+<span class="py">ne2000</span><span class="p">=</span><span class="s">true</span>
+<span class="py">nicirq</span><span class="p">=</span><span class="s">10</span>
+<span class="py">backend</span><span class="p">=</span><span class="s">pcap</span>
 
-[ethernet, pcap]
-realnic=list</code></pre>
+<span class="nn">[ethernet, pcap]</span>
+<span class="py">realnic</span><span class="p">=</span><span class="s">list</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1270,7 +1485,7 @@ realnic=list</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf ne2000.conf</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">dosbox-x -conf ne2000.conf</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1299,13 +1514,13 @@ In the above example, 1, or eno1 is the integrated Ethernet of my PC, which we w
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[ne2000]
-ne2000=true
-nicirq=10
-backend=pcap
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[ne2000]</span>
+<span class="py">ne2000</span><span class="p">=</span><span class="s">true</span>
+<span class="py">nicirq</span><span class="p">=</span><span class="s">10</span>
+<span class="py">backend</span><span class="p">=</span><span class="s">pcap</span>
 
-[ethernet, pcap]
-realnic=eno1</code></pre>
+<span class="nn">[ethernet, pcap]</span>
+<span class="py">realnic</span><span class="p">=</span><span class="s">eno1</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1349,12 +1564,12 @@ It is highly recommended to only bridge to wired Ethernet adapters, as wireless 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[ne2000]
-ne2000=true
-nicirq=10
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[ne2000]</span>
+<span class="py">ne2000</span><span class="p">=</span><span class="s">true</span>
+<span class="py">nicirq</span><span class="p">=</span><span class="s">10</span>
 
-[ethernet, pcap]
-realnic=list</code></pre>
+<span class="nn">[ethernet, pcap]</span>
+<span class="py">realnic</span><span class="p">=</span><span class="s">list</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1362,7 +1577,7 @@ realnic=list</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf ne2000.conf</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">dosbox-x -conf ne2000.conf</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1407,13 +1622,13 @@ In the above example, 9 is the USB Ethernet adapter I want to use. It may take y
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[ne2000]
-ne2000=true
-nicirq=10
-backend=pcap
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[ne2000]</span>
+<span class="py">ne2000</span><span class="p">=</span><span class="s">true</span>
+<span class="py">nicirq</span><span class="p">=</span><span class="s">10</span>
+<span class="py">backend</span><span class="p">=</span><span class="s">pcap</span>
 
-[ethernet, pcap]
-realnic="Realtek USB NIC"</code></pre>
+<span class="nn">[ethernet, pcap]</span>
+<span class="py">realnic</span><span class="p">=</span><span class="s">"Realtek USB NIC"</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1449,7 +1664,7 @@ realnic="Realtek USB NIC"</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf ne2000.conf</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">dosbox-x -conf ne2000.conf</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1457,11 +1672,11 @@ realnic="Realtek USB NIC"</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">MOUNT C mtcp
+<pre class="rouge highlight"><code data-lang="console"><span class="go">MOUNT C mtcp
 C:
 SET MTCPCFG=C:\SAMPLES\SAMPLE.CFG
 NE2000 0x60 10 0x300
-DHCP</code></pre>
+DHCP</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1469,7 +1684,7 @@ DHCP</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">PING google.com</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">PING google.com</span></code></pre>
 </div>
 </div>
 <div class="sect2">
@@ -1479,17 +1694,17 @@ DHCP</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">C:\&gt;NE2000 0x60 10 0x300
-Packet driver for NE2000, version 11.4.3
+<pre class="rouge highlight"><code data-lang="console"><span class="gp">C:\&gt;</span>NE2000 0x60 10 0x300
+<span class="go">Packet driver for NE2000, version 11.4.3
 Packet driver skeleton copyright 1988-93, Crynwr Software.
-This program is freely copyable; source must be available; NO WARRANTY.
-See the file COPYING.DOC for details; send FAX to +1-315-268-9201 for a copy.
-
+</span><span class="gp">This program is freely copyable;</span><span class="w"> </span><span class="nb">source </span>must be available<span class="p">;</span> NO WARRANTY.
+<span class="gp">See the file COPYING.DOC for details;</span><span class="w"> </span>send FAX to +1-315-268-9201 <span class="k">for </span>a copy.
+<span class="go">
 System: [345]86 processor, ISA bus, Two 8259s
 Packet driver software interrupt is 0x60 (96)
 Interrupt number 0xA (10)
 I/O port 0x300 (768)
-My Ethernet address is FF:FF:FF:FF:FF:FF</code></pre>
+My Ethernet address is FF:FF:FF:FF:FF:FF</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1526,8 +1741,8 @@ My Ethernet address is FF:FF:FF:FF:FF:FF</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">C:\&gt;DHCP
-mTCP DHCP Client by M Brutman (mbbrutman@gmail.com) (C)opyright 2008-2020
+<pre class="rouge highlight"><code data-lang="console"><span class="gp">C:\&gt;</span>DHCP
+<span class="go">mTCP DHCP Client by M Brutman (mbbrutman@gmail.com) (C)opyright 2008-2020
 Version: Mar  7 2020
 
 Timeout per request: 10 seconds, Retry attempts: 3
@@ -1538,7 +1753,7 @@ DHCP request sent, attempt 2: Timeout
 DHCP request sent, attempt 3: Timeout
 
 Error: Your Ethernet card reported an error for every packet we sent.
-Check your cabling and packet driver settings, including the hardware IRQ.</code></pre>
+Check your cabling and packet driver settings, including the hardware IRQ.</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1577,13 +1792,13 @@ e.g.,</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[ne2000]
-ne2000=true
-nicirq=10
-macaddr=AC:DE:48:88:99:AB
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[ne2000]</span>
+<span class="py">ne2000</span><span class="p">=</span><span class="s">true</span>
+<span class="py">nicirq</span><span class="p">=</span><span class="s">10</span>
+<span class="py">macaddr</span><span class="p">=</span><span class="s">AC:DE:48:88:99:AB</span>
 
-[ethernet, pcap]
-realnic=1</code></pre>
+<span class="nn">[ethernet, pcap]</span>
+<span class="py">realnic</span><span class="p">=</span><span class="s">1</span></code></pre>
 </div>
 </div>
 </div>
@@ -1664,10 +1879,10 @@ The easiest way is probably to extract them in DOSBox-X itself.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">MOUNT C .
+<pre class="rouge highlight"><code data-lang="console"><span class="go">MOUNT C .
 C:
 VLM121_2.EXE -y
-VLM121_6.EXE -y</code></pre>
+VLM121_6.EXE -y</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1675,12 +1890,12 @@ VLM121_6.EXE -y</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">MKDIR IPX
+<pre class="rouge highlight"><code data-lang="console"><span class="go">MKDIR IPX
 NWUNPACK LSL.CO_ \IPX
 NWUNPACK IPXODI.CO_ \IPX
 NWUNPACK NETBIOS.EX_ \IPX
 NWUNPACK DOS\NE2000.CO_ \IPX
-EXIT</code></pre>
+EXIT</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1737,11 +1952,11 @@ EXIT</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">MOUNT C .
+<pre class="rouge highlight"><code data-lang="console"><span class="go">MOUNT C .
 C:
 IPX\LSL.COM
 IPX\NE2000.COM
-IPX\IPXODI.COM</code></pre>
+IPX\IPXODI.COM</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1749,7 +1964,7 @@ IPX\IPXODI.COM</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf ne2000.conf</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">dosbox-x -conf ne2000.conf</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1763,8 +1978,104 @@ But note that this is NetBIOS <strong>over</strong> IPX, which cannot communicat
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-02-05 01:05:47 -0800
+Last updated 2023-02-17 18:16:47 -0800
 </div>
 </div>
+<style>
+    .book .listingblock > .content,
+    .book .literalblock > .content {
+      position: relative;
+    }
+
+    .book .listingblock code[data-lang]::before {
+      content: none;
+    }
+
+    .book .source-toolbox {
+      display: flex;
+      position: absolute;
+      visibility: hidden;
+      top: 0.25rem;
+      right: 0.5rem;
+      color: #808080;
+      white-space: nowrap;
+      font-size: 0.85em;
+    }
+
+    .book .listingblock:hover .source-toolbox,
+    .book .literalblock:hover .source-toolbox {
+      visibility: visible;
+    }
+
+    .book .source-toolbox .source-lang {
+      font-family: "Droid Sans Mono", "DejaVu Sans Mono", monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.075em;
+    }
+
+    .book .source-toolbox > :not(:last-child)::after {
+      content: "|";
+      letter-spacing: 0;
+      padding: 0 1ch;
+    }
+
+    .book .source-toolbox .copy-button {
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: none;
+      border: none;
+      color: inherit;
+      outline: none;
+      padding: 0;
+      font-family: inherit;
+      font-size: inherit;
+      line-height: inherit;
+      width: 1em;
+      height: 1em;
+    }
+
+    .book .source-toolbox .copy-icon {
+      flex: none;
+      width: inherit;
+      height: inherit;
+      filter: invert(50.2%);
+      margin-top: 0.05em;
+    }
+
+    .book .source-toolbox .copy-toast {
+      flex: none;
+      position: relative;
+      display: inline-flex;
+      justify-content: center;
+      margin-top: 1em;
+      border-radius: 0.25em;
+      padding: 0.5em;
+      cursor: auto;
+      opacity: 0;
+      transition: opacity 0.5s ease 0.75s;
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+    }
+
+    .book .source-toolbox .copy-toast::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      width: 1em;
+      height: 1em;
+      border: 0.55em solid transparent;
+      border-left-color: rgba(0, 0, 0, 0.8);
+      transform: rotate(-90deg) translateX(50%) translateY(50%);
+      transform-origin: left;
+    }
+
+    .book .source-toolbox .copy-button.clicked .copy-toast {
+      opacity: 1;
+      transition: none;
+    }
+</style>
+<script src="copy-to-clipboard.js"></script>
 </body>
 </html>

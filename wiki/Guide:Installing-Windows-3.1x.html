@@ -435,6 +435,221 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 #footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
 @media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
+<style>
+pre.rouge table td { padding: 5px; }
+pre.rouge table pre { margin: 0; }
+pre.rouge .cm {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .cp {
+  color: #999999;
+  font-weight: bold;
+}
+pre.rouge .c1 {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .cs {
+  color: #999999;
+  font-weight: bold;
+  font-style: italic;
+}
+pre.rouge .c, pre.rouge .ch, pre.rouge .cd, pre.rouge .cpf {
+  color: #999988;
+  font-style: italic;
+}
+pre.rouge .err {
+  color: #a61717;
+  background-color: #e3d2d2;
+}
+pre.rouge .gd {
+  color: #000000;
+  background-color: #ffdddd;
+}
+pre.rouge .ge {
+  color: #000000;
+  font-style: italic;
+}
+pre.rouge .gr {
+  color: #aa0000;
+}
+pre.rouge .gh {
+  color: #999999;
+}
+pre.rouge .gi {
+  color: #000000;
+  background-color: #ddffdd;
+}
+pre.rouge .go {
+  color: #888888;
+}
+pre.rouge .gp {
+  color: #555555;
+}
+pre.rouge .gs {
+  font-weight: bold;
+}
+pre.rouge .gu {
+  color: #aaaaaa;
+}
+pre.rouge .gt {
+  color: #aa0000;
+}
+pre.rouge .kc {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kd {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kn {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kp {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kr {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .kt {
+  color: #445588;
+  font-weight: bold;
+}
+pre.rouge .k, pre.rouge .kv {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .mf {
+  color: #009999;
+}
+pre.rouge .mh {
+  color: #009999;
+}
+pre.rouge .il {
+  color: #009999;
+}
+pre.rouge .mi {
+  color: #009999;
+}
+pre.rouge .mo {
+  color: #009999;
+}
+pre.rouge .m, pre.rouge .mb, pre.rouge .mx {
+  color: #009999;
+}
+pre.rouge .sa {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .sb {
+  color: #d14;
+}
+pre.rouge .sc {
+  color: #d14;
+}
+pre.rouge .sd {
+  color: #d14;
+}
+pre.rouge .s2 {
+  color: #d14;
+}
+pre.rouge .se {
+  color: #d14;
+}
+pre.rouge .sh {
+  color: #d14;
+}
+pre.rouge .si {
+  color: #d14;
+}
+pre.rouge .sx {
+  color: #d14;
+}
+pre.rouge .sr {
+  color: #009926;
+}
+pre.rouge .s1 {
+  color: #d14;
+}
+pre.rouge .ss {
+  color: #990073;
+}
+pre.rouge .s, pre.rouge .dl {
+  color: #d14;
+}
+pre.rouge .na {
+  color: #008080;
+}
+pre.rouge .bp {
+  color: #999999;
+}
+pre.rouge .nb {
+  color: #0086B3;
+}
+pre.rouge .nc {
+  color: #445588;
+  font-weight: bold;
+}
+pre.rouge .no {
+  color: #008080;
+}
+pre.rouge .nd {
+  color: #3c5d5d;
+  font-weight: bold;
+}
+pre.rouge .ni {
+  color: #800080;
+}
+pre.rouge .ne {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nf, pre.rouge .fm {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nl {
+  color: #990000;
+  font-weight: bold;
+}
+pre.rouge .nn {
+  color: #555555;
+}
+pre.rouge .nt {
+  color: #000080;
+}
+pre.rouge .vc {
+  color: #008080;
+}
+pre.rouge .vg {
+  color: #008080;
+}
+pre.rouge .vi {
+  color: #008080;
+}
+pre.rouge .nv, pre.rouge .vm {
+  color: #008080;
+}
+pre.rouge .ow {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .o {
+  color: #000000;
+  font-weight: bold;
+}
+pre.rouge .w {
+  color: #bbbbbb;
+}
+pre.rouge {
+  background-color: #f8f8f8;
+}
+</style>
 </head>
 <body class="book">
 <div id="header">
@@ -738,32 +953,32 @@ Starting with DOSBox-X 0.83.21 the turbo mode is automatically disabled the mome
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[sdl]
-autolock=true
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[sdl]</span>
+<span class="py">autolock</span><span class="p">=</span><span class="s">true</span>
 
-[dosbox]
-title=Windows 3.1x
-memsize=256
+<span class="nn">[dosbox]</span>
+<span class="py">title</span><span class="p">=</span><span class="s">Windows 3.1x</span>
+<span class="py">memsize</span><span class="p">=</span><span class="s">256</span>
 
-[dos]
-hard drive data rate limit=0
-floppy drive data rate limit=0
+<span class="nn">[dos]</span>
+<span class="err">hard</span> <span class="err">drive</span> <span class="err">data</span> <span class="err">rate</span> <span class="py">limit</span><span class="p">=</span><span class="s">0</span>
+<span class="err">floppy</span> <span class="err">drive</span> <span class="err">data</span> <span class="err">rate</span> <span class="py">limit</span><span class="p">=</span><span class="s">0</span>
 
-[cpu]
-cputype=pentium
-core=normal
+<span class="nn">[cpu]</span>
+<span class="py">cputype</span><span class="p">=</span><span class="s">pentium</span>
+<span class="py">core</span><span class="p">=</span><span class="s">normal</span>
 
-[pci]
-voodoo=false
+<span class="nn">[pci]</span>
+<span class="py">voodoo</span><span class="p">=</span><span class="s">false</span>
 
-[ide, primary]
-int13fakeio=true
-int13fakev86io=false
+<span class="nn">[ide, primary]</span>
+<span class="py">int13fakeio</span><span class="p">=</span><span class="s">true</span>
+<span class="py">int13fakev86io</span><span class="p">=</span><span class="s">false</span>
 
-[render]
-scaler=none
+<span class="nn">[render]</span>
+<span class="py">scaler</span><span class="p">=</span><span class="s">none</span>
 
-[autoexec]</code></pre>
+<span class="nn">[autoexec]</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -788,7 +1003,7 @@ In this example, DOSBox-X itself is used to mount a disk image, copy its content
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">MOUNT C /home/myuser/winroot
+<pre class="rouge highlight"><code data-lang="console"><span class="go">MOUNT C /home/myuser/winroot
 C:
 MD INSTALL
 IMGMOUNT A DISK01.IMG -U
@@ -801,7 +1016,7 @@ IMGMOUNT A DISK04.IMG -U
 COPY A:\*.* C:\INSTALL
 IMGMOUNT A DISK05.IMG -U
 COPY A:\*.* C:\INSTALL
-IMGMOUNT A -U</code></pre>
+IMGMOUNT A -U</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -881,7 +1096,7 @@ This assumes that the <code>dosbox-x</code> program is in your path and <code>wi
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf win31.conf</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">dosbox-x -conf win31.conf</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -889,10 +1104,10 @@ This assumes that the <code>dosbox-x</code> program is in your path and <code>wi
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">MOUNT C /home/myuser/winroot
+<pre class="rouge highlight"><code data-lang="console"><span class="go">MOUNT C /home/myuser/winroot
 C:
 CD INSTALL
-SETUP</code></pre>
+SETUP</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -922,28 +1137,28 @@ Exit to DOS and type EXIT to close DOSBox-X.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-shell" data-lang="shell">@ECHO OFF
+<pre class="rouge highlight"><code data-lang="shell">@ECHO OFF
 MOUNT C /home/myuser/winroot
 C:
-IF EXIST C:\WINDOWS\IFSHLP.SYS GOTO WFW
-IF EXIST C:\WINDOWS\WIN.COM GOTO WINDOWS
+IF EXIST C:<span class="se">\W</span>INDOWS<span class="se">\I</span>FSHLP.SYS GOTO WFW
+IF EXIST C:<span class="se">\W</span>INDOWS<span class="se">\W</span>IN.COM GOTO WINDOWS
 ECHO No Windows installation found
 GOTO END
 
 :WFW
-echo Starting Windows for Workgroups 3.1x
-SET PATH=%PATH%;C:\WINDOWS;
-SET TEMP=C:\WINDOWS\TEMP
-DEVICE C:\WINDOWS\IFSHLP.SYS
-C:\WINDOWS\NET.EXE START
-C:\WINDOWS\WIN.COM
+<span class="nb">echo </span>Starting Windows <span class="k">for </span>Workgroups 3.1x
+SET <span class="nv">PATH</span><span class="o">=</span>%PATH%<span class="p">;</span>C:<span class="se">\W</span>INDOWS<span class="p">;</span>
+SET <span class="nv">TEMP</span><span class="o">=</span>C:<span class="se">\W</span>INDOWS<span class="se">\T</span>EMP
+DEVICE C:<span class="se">\W</span>INDOWS<span class="se">\I</span>FSHLP.SYS
+C:<span class="se">\W</span>INDOWS<span class="se">\N</span>ET.EXE START
+C:<span class="se">\W</span>INDOWS<span class="se">\W</span>IN.COM
 GOTO END
 
 :WINDOWS
-echo Starting Windows 3.1x
-SET PATH=%PATH%;C:\WINDOWS;
-SET TEMP=C:\WINDOWS\TEMP
-C:\WINDOWS\WIN.COM
+<span class="nb">echo </span>Starting Windows 3.1x
+SET <span class="nv">PATH</span><span class="o">=</span>%PATH%<span class="p">;</span>C:<span class="se">\W</span>INDOWS<span class="p">;</span>
+SET <span class="nv">TEMP</span><span class="o">=</span>C:<span class="se">\W</span>INDOWS<span class="se">\T</span>EMP
+C:<span class="se">\W</span>INDOWS<span class="se">\W</span>IN.COM
 GOTO END
 
 :END
@@ -974,8 +1189,8 @@ This can be accomplished in one of two ways. Either when you issue the <code>boo
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[sdl]
-convertdrivefat = true</code></pre>
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[sdl]</span>
+<span class="py">convertdrivefat</span> <span class="p">=</span> <span class="s">true</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1044,12 +1259,12 @@ However, it is recommended to use a newer version such as DOS 6.x</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMOUNT C hdd.img
 MOUNT D .
 XCOPY D:\INSTALL C:\INSTALL /I /S
 XCOPY D:\DRIVERS C:\DRIVERS /I /S
 XCOPY D:\ADDONS C:\ADDONS /I /S
-EXIT</code></pre>
+EXIT</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1060,8 +1275,8 @@ EXIT</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">IMGMOUNT C hdd.img -reservecyl 1
-BOOT C:</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMOUNT C hdd.img -reservecyl 1
+BOOT C:</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1069,7 +1284,7 @@ BOOT C:</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf win31.conf</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">dosbox-x -conf win31.conf</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1077,8 +1292,8 @@ BOOT C:</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">CD INSTALL
-SETUP</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">CD INSTALL
+SETUP</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1095,7 +1310,7 @@ SETUP</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">dosbox-x -conf win31.conf</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">dosbox-x -conf win31.conf</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1173,8 +1388,8 @@ If there are no instructions included, exit Windows 3.1x back to the DOSBox-X pr
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">cd \WINDOWS
-SETUP</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">cd \WINDOWS
+SETUP</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1427,11 +1642,11 @@ Unpack the archive, and you will find a Windows 3.1x mouse driver in the <code>w
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[sdl]
-mouse emulation=integration
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[sdl]</span>
+<span class="err">mouse</span> <span class="py">emulation</span><span class="p">=</span><span class="s">integration</span>
 
-[cpu]
-integration device=true</code></pre>
+<span class="nn">[cpu]</span>
+<span class="err">integration</span> <span class="py">device</span><span class="p">=</span><span class="s">true</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1473,7 +1688,7 @@ As such you can install the VMware mouse driver for Windows 3.1x, and you will b
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code>[sdl]
+<pre class="rouge highlight"><code>[sdl]
 mouse_wheel_key=0</code></pre>
 </div>
 </div>
@@ -1617,13 +1832,13 @@ In some cases, this is not possible, such as:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[ne2000]
-ne2000=true
-nicirq=10
-backend=pcap
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[ne2000]</span>
+<span class="py">ne2000</span><span class="p">=</span><span class="s">true</span>
+<span class="py">nicirq</span><span class="p">=</span><span class="s">10</span>
+<span class="py">backend</span><span class="p">=</span><span class="s">pcap</span>
 
-[ethernet, pcap]
-realnic=list</code></pre>
+<span class="nn">[ethernet, pcap]</span>
+<span class="py">realnic</span><span class="p">=</span><span class="s">list</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1658,10 +1873,10 @@ As such it will work with wireless adapters, and it will work in most sandboxed 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[ne2000]
-ne2000=true
-nicirq=10
-backend=slirp</code></pre>
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[ne2000]</span>
+<span class="py">ne2000</span><span class="p">=</span><span class="s">true</span>
+<span class="py">nicirq</span><span class="p">=</span><span class="s">10</span>
+<span class="py">backend</span><span class="p">=</span><span class="s">slirp</span></code></pre>
 </div>
 </div>
 </div>
@@ -1756,11 +1971,11 @@ Select the "SB16 All MIDI" option from the drop-down menu and press the "Close" 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[dosbox]
-captures=capture
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[dosbox]</span>
+<span class="py">captures</span><span class="p">=</span><span class="s">capture</span>
 
-[parallel]
-parallel1=file timeout=2000</code></pre>
+<span class="nn">[parallel]</span>
+<span class="py">parallel1</span><span class="p">=</span><span class="s">file timeout=2000</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1789,14 +2004,14 @@ On a Windows host, it is necessary to install a separate PostScript viewer such 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-ini" data-lang="ini">[parallel]
-parallel1=printer
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[parallel]</span>
+<span class="py">parallel1</span><span class="p">=</span><span class="s">printer</span>
 
-[printer]
-printer=true
-printoutput=ps
-multipage=true
-timeout=2000</code></pre>
+<span class="nn">[printer]</span>
+<span class="py">printer</span><span class="p">=</span><span class="s">true</span>
+<span class="py">printoutput</span><span class="p">=</span><span class="s">ps</span>
+<span class="py">multipage</span><span class="p">=</span><span class="s">true</span>
+<span class="py">timeout</span><span class="p">=</span><span class="s">2000</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1877,7 +2092,7 @@ While DOSBox-X&#8217;s integrated SHARE feature was improved compared to that of
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">WIN \path\to\game.exe</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">WIN \path\to\game.exe</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1889,7 +2104,7 @@ Now simply start the game as follows:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-console" data-lang="console">WIN RUNEXIT \path\to\game.exe</code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">WIN RUNEXIT \path\to\game.exe</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1940,8 +2155,104 @@ But if a CD is not present when starting Windows 3.1x the drive is simply missin
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-02-05 01:05:47 -0800
+Last updated 2023-02-17 18:16:47 -0800
 </div>
 </div>
+<style>
+    .book .listingblock > .content,
+    .book .literalblock > .content {
+      position: relative;
+    }
+
+    .book .listingblock code[data-lang]::before {
+      content: none;
+    }
+
+    .book .source-toolbox {
+      display: flex;
+      position: absolute;
+      visibility: hidden;
+      top: 0.25rem;
+      right: 0.5rem;
+      color: #808080;
+      white-space: nowrap;
+      font-size: 0.85em;
+    }
+
+    .book .listingblock:hover .source-toolbox,
+    .book .literalblock:hover .source-toolbox {
+      visibility: visible;
+    }
+
+    .book .source-toolbox .source-lang {
+      font-family: "Droid Sans Mono", "DejaVu Sans Mono", monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.075em;
+    }
+
+    .book .source-toolbox > :not(:last-child)::after {
+      content: "|";
+      letter-spacing: 0;
+      padding: 0 1ch;
+    }
+
+    .book .source-toolbox .copy-button {
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: none;
+      border: none;
+      color: inherit;
+      outline: none;
+      padding: 0;
+      font-family: inherit;
+      font-size: inherit;
+      line-height: inherit;
+      width: 1em;
+      height: 1em;
+    }
+
+    .book .source-toolbox .copy-icon {
+      flex: none;
+      width: inherit;
+      height: inherit;
+      filter: invert(50.2%);
+      margin-top: 0.05em;
+    }
+
+    .book .source-toolbox .copy-toast {
+      flex: none;
+      position: relative;
+      display: inline-flex;
+      justify-content: center;
+      margin-top: 1em;
+      border-radius: 0.25em;
+      padding: 0.5em;
+      cursor: auto;
+      opacity: 0;
+      transition: opacity 0.5s ease 0.75s;
+      background: rgba(0, 0, 0, 0.8);
+      color: #fff;
+    }
+
+    .book .source-toolbox .copy-toast::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      width: 1em;
+      height: 1em;
+      border: 0.55em solid transparent;
+      border-left-color: rgba(0, 0, 0, 0.8);
+      transform: rotate(-90deg) translateX(50%) translateY(50%);
+      transform-origin: left;
+    }
+
+    .book .source-toolbox .copy-button.clicked .copy-toast {
+      opacity: 1;
+      transition: none;
+    }
+</style>
+<script src="copy-to-clipboard.js"></script>
 </body>
 </html>

@@ -3,22 +3,19 @@ layout: default
 blog: true
 ---
 
-<table width="100%" class="hide-table-appearence">
-    <tr>
-        <td width="15%"></td>
-        <td width="70%" style="text-align: left">
-            <h1>{{ page.title | escape }}</h1>
-            <p>
-            	<time datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished" class="subtitle-mute">
-            		{{ page.date | date: site.blog.date_format }}
-            	</time>
-            </p>
-
-            {{ content }}
-
-            <p style="text-align: center">Return to <a href="{{ "/blog/devtest" | relative_url }}">blog home page</a></p>
-        </td>
-        <td width="15%"></td>
-    </tr>
-</table>
-
+<div class="page-content-flex">
+    <div>
+        <h1>{{ page.title | escape }}</h1>
+        <p>
+            <time datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished" class="subtitle-mute">
+                {{ page.date | date: site.blog.date_format }}
+            </time>
+        </p>
+    </div>
+    <div>
+        {{ content }}
+    </div>
+    <div>
+        <p class="align-center">Return to <a href="{{ '/blog/devtest' | relative_url }}">blog home page</a></p>
+    </div>
+</div>

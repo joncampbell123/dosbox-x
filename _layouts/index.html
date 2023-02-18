@@ -10,14 +10,12 @@ layout: default
 <hr />
 
 <section id="main_content">
-  <table width="100%" class="hide-table-appearence">
-    <tr>
-      <td width="20%" style="min-width: 300px">
-{% include version.html %}
-      </td>
-      <td width="80%" markdown="1">
+    <div class="index-flex">
+        <div>
+            {% include version.html %}
+        </div>
+        <div style="max-width: 80%" markdown="1">
 {{ content }}
-      </td>
-    </tr>
-  </table>
+        </div>
+    </div>
 </section>
