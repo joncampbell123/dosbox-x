@@ -190,7 +190,7 @@ blockquote {
 }
 
 
-ul, ol, dl {
+:not(li) > ul, ol, dl { /* HACK */
   margin-bottom: 15px
 }
 
@@ -438,7 +438,7 @@ table.hide-table-appearence > tbody > tr > td {
 
 .page-content-flex {
   display: flex;
-  padding: 0 25vh;
+  padding: 0 12.5vw;
   text-align: left;
   justify-content: center;
   flex-direction: column;
