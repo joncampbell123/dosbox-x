@@ -3,9 +3,7 @@ layout: page_alt
 blog: true
 ---
 
-{%- if page.title -%}
-<h1>{{ page.title }}</h1>
-{%- endif -%}
+<h1>{{ site.blog.title }}</h1>
 
 {{ content }}
 
@@ -32,7 +30,7 @@ blog: true
 {%- endif -%}
 
 {%- if paginator.page -%}
-<table width="100%" style="text-align: center">
+<table width="100%" class="align-center">
     <tr>
         <td width="33%">
             {%- if paginator.previous_page %}

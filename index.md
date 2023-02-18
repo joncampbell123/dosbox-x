@@ -8,6 +8,7 @@ Compared with DOSBox, DOSBox-X focuses more on general emulation and accuracy. I
 
 {% capture lang_file_loc %}https://raw.githubusercontent.com/joncampbell123/dosbox-x/{{ site.data.latest_version.git_tag }}{% endcapture %}
 
+<!-- TODO: convert this to use a Markdown table -->
 <table style="width: 100%" class="align-center">
 <tr>
 <td width="33%" markdown="span">
