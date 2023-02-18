@@ -308,16 +308,20 @@ form {
 }
 
 #header_wrap .inner {
-  padding-top: 30px;
+  padding: 20px 0;
   max-width: 80vw;
   display: flex;
-  justify-content: space-evenly;
+  justify-content: center;
   align-items: center;
-  gap: 15px;
+  gap: 50px;
 }
 
 #header_wrap .inner > :nth-child(1) {
   text-align: center;
+}
+
+#header_wrap .inner > :nth-child(2) > :is(h1, h2) {
+  padding-bottom: 0;
 }
 
 #project_title {
@@ -441,9 +445,8 @@ table.hide-table-appearence > tbody > tr > td {
 }
 .index-flex {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   padding: 10px;
-  gap: 5px;
 }
 .release-date {
   padding-bottom: 15px;
