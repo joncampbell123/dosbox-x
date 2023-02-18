@@ -28,7 +28,8 @@
         code.appendChild(pre.firstChild)
         pre.appendChild(code)
       } else {
-        return
+        /*return*/
+        code = pre
       }
       ;(toolbox = document.createElement('div')).className = 'source-toolbox'
       if (lang) toolbox.appendChild(lang)

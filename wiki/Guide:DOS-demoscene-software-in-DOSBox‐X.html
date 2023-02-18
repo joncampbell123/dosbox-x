@@ -512,11 +512,12 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-02-17 17:57:50 -0800
+Last updated 2023-02-17 18:16:47 -0800
 </div>
 </div>
 <style>
-    .book .listingblock > .content {
+    .book .listingblock > .content,
+    .book .literalblock > .content {
       position: relative;
     }
 
@@ -535,7 +536,8 @@ Last updated 2023-02-17 17:57:50 -0800
       font-size: 0.85em;
     }
 
-    .book .listingblock:hover .source-toolbox {
+    .book .listingblock:hover .source-toolbox,
+    .book .literalblock:hover .source-toolbox {
       visibility: visible;
     }
 
