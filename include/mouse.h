@@ -48,4 +48,7 @@ bool Mouse_IsLocked();
 void Mouse_BeforeNewVideoMode(bool setmode);
 void Mouse_AfterNewVideoMode(bool setmode);
 
+void UpdateMouseReportRate(void);
+void ChangeMouseReportRate(unsigned int new_rate);
+
 #endif

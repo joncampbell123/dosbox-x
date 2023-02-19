@@ -389,7 +389,26 @@ Bitu PS2_Handler(void) {
 #define MOUSE_WHEEL_MOVED 128
 #define MOUSE_ABSOLUTE 256
 #define MOUSE_DUMMY 256
-#define MOUSE_DELAY 5.0
+
+unsigned int user_mouse_report_rate = 0;
+unsigned int mouse_report_rate = 200; /* DOSBox SVN compatible default (MOUSE_DELAY = 5.0 ms) */
+pic_tickindex_t MOUSE_DELAY = 5.0; /* This was once a hard #define */
+
+void UpdateMouseReportRate(void) {
+	/* If the user did not specify an explicit rate, then whatever the current rate goes and update MOUSE_DELAY.
+	 * This is done so that PS/2 mouse emulation can accept the commands to change reporting rate and have it work */
+	if (user_mouse_report_rate != 0)
+		mouse_report_rate = user_mouse_report_rate;
+
+	MOUSE_DELAY = 1000.0 / mouse_report_rate;
+}
+
+void ChangeMouseReportRate(unsigned int new_rate) {
+	if (user_mouse_report_rate == 0) {
+		mouse_report_rate = new_rate;
+		UpdateMouseReportRate();
+	}
+}
 
 void MOUSE_Limit_Events(Bitu /*val*/) {
     mouse.timer_in_progress = false;
@@ -2115,6 +2134,9 @@ void MOUSE_Startup(Section *sec) {
     if (MouseTypeNone() && !serialMouseEmulated) {
         return;
     }
+
+    user_mouse_report_rate=section->Get_int("mouse report rate");
+    UpdateMouseReportRate();
 
     en_int33_hide_if_intsub=section->Get_bool("int33 hide host cursor if interrupt subroutine");
 

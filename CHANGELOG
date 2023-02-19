@@ -1,4 +1,10 @@
 Next
+  - Added code to mouse emulation to control how often the mouse
+    reports events through the interrupt. Added dosbox.conf option
+    to allow the user to force a report rate, which can be used to
+    force a lower than normal report rate for games that cannot
+    proprly handle higher ones. Allow PS/2 mouse emulation, if
+    rate not set by user, to control report rate. (joncampbell123).
   - Add code to COMMAND.COM to flush keyboard input before running
     the command given by the user, and flush again when the command
     returns. Added option to dosbox.conf to enable/disable this

@@ -4426,6 +4426,13 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Enable INT 33H for mouse support.");
     Pbool->SetBasic(true);
 
+    Pint = secprop->Add_int("mouse report rate",Property::Changeable::WhenIdle,0);
+    Pint->Set_help("Mouse reporting rate, or 0 for auto. This affects how often mouse events are reported to the guest through the mouse interrupt.\n"
+		    "Some games including CyClone need a lower reporting rate to function correctly. Auto mode allows the guest to change the report rate through the PS/2 mouse emulation.\n"
+		    "This option does not affect any DOS game that uses polling through INT 33h to detect mouse movement.");
+    Pint->SetMinMax(0,10000);
+    Pint->SetBasic(true);
+
     Pbool = secprop->Add_bool("int33 hide host cursor if interrupt subroutine",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, the cursor on the host will be hidden if the DOS application provides it's own\n"
                     "interrupt subroutine for the mouse driver to call, which is usually an indication that\n"

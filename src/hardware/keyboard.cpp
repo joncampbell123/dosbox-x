@@ -404,6 +404,7 @@ void KEYBOARD_AUX_Write(Bitu val) {
             switch (val) {
                 case 0xff:  /* reset */
                     LOG(LOG_KEYBOARD,LOG_NORMAL)("AUX reset");
+                    ChangeMouseReportRate(100);
                     KEYBOARD_AddBuffer(AUX|0xfa);   /* ack */
                     KEYBOARD_AddBuffer(AUX|0xaa);   /* reset */
                     KEYBOARD_AddBuffer(AUX|0x00);   /* i am mouse */
@@ -411,6 +412,7 @@ void KEYBOARD_AUX_Write(Bitu val) {
                     AUX_Reset();
                     break;
                 case 0xf6:  /* set defaults */
+                    ChangeMouseReportRate(100);
                     KEYBOARD_AddBuffer(AUX|0xfa);   /* ack */
                     AUX_Reset();
                     break;
@@ -490,6 +492,7 @@ void KEYBOARD_AUX_Write(Bitu val) {
             keyb.ps2mouse.last_srate[2] = val;
             keyb.ps2mouse.samplerate = val;
             keyb.aux_command = ACMD_NONE;
+            ChangeMouseReportRate(val > 0 ? val : 100u);
             LOG(LOG_KEYBOARD,LOG_NORMAL)("PS/2 mouse sample rate set to %u",(int)val);
             if (keyb.ps2mouse.type >= MOUSE_INTELLIMOUSE) {
                 if (keyb.ps2mouse.last_srate[0] == 200 && keyb.ps2mouse.last_srate[2] == 80) {
