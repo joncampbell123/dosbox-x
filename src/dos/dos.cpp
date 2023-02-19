@@ -135,6 +135,7 @@ bool DOS_BreakConioFlag = false;
 bool enable_dbcs_tables = true;
 bool enable_share_exe = true;
 bool enable_filenamechar = true;
+bool shell_keyboard_flush = true;
 bool enable_network_redirector = true;
 bool force_conversion = false;
 bool hidenonrep = true;
@@ -923,6 +924,19 @@ void HostAppRun() {
 #define MSKANJI_DEVICE_HANDLE 0x1a51
 #define IBMJP_DEVICE_HANDLE 0x1a52
 #define AVSDRV_DEVICE_HANDLE 0x1a53
+
+/* called by shell to flush keyboard buffer right before executing the program to avoid
+ * having the Enter key in the buffer to confuse programs that act immediately on keyboard input. */
+void DOS_FlushSTDIN(void) {
+	LOG_MSG("Flush STDIN");
+	uint8_t handle=RealHandle(STDIN);
+	if (handle!=0xFF && Files[handle] && Files[handle]->IsName("CON")) {
+		uint8_t c;uint16_t n;
+		while (DOS_GetSTDINStatus()) {
+			n=1; DOS_ReadFile(STDIN,&c,&n);
+		}
+	}
+}
 
 static Bitu DOS_21Handler(void) {
     bool unmask_irq0 = false;
@@ -4023,6 +4037,7 @@ public:
 #endif
 
         dos_sda_size = section->Get_int("dos sda size");
+        shell_keyboard_flush = section->Get_bool("command shell flush keyboard buffer");
 		enable_network_redirector = section->Get_bool("network redirector");
 		enable_dbcs_tables = section->Get_bool("dbcs");
 		enable_share_exe = section->Get_bool("share");

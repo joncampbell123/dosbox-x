@@ -1,4 +1,8 @@
 Next
+  - Add code to COMMAND.COM to flush keyboard input before running
+    the command given by the user, and flush again when the command
+    returns. Added option to dosbox.conf to enable/disable this
+    function (joncampbell123)
   - Fix bug where Tandy mode ignored the "allow more than 640kb"
     setting.
   - Fix INT13h AH=02 broken conditional branch which prevents

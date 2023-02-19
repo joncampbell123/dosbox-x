@@ -4119,6 +4119,10 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Allow TSR and application (anything other than the DOS kernel) to request control of the HMA.\n"
             "They will not be able to request control however if the DOS kernel is configured to occupy the HMA (DOS=HIGH)");
 
+    Pbool = secprop->Add_bool("command shell flush keyboard buffer",Property::Changeable::WhenIdle,true);
+    Pbool->Set_help("If set, the DOS shell (COMMAND.COM) will flush the keyboard buffer before executing a command, and will flush the keyboard buffer again when the command returns.\n"
+            "The purpose of this option is to prevent the program from immediately acting on the Enter key you pressed to run it.");
+
     Pint = secprop->Add_int("hard drive data rate limit",Property::Changeable::WhenIdle,-1);
     Pint->Set_help("Slow down (limit) hard disk throughput. This setting controls the limit in bytes/second.\n"
                    "Set to 0 to disable the limit, or -1 (default) to use a reasonable limit.\n"

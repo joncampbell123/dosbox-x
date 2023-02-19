@@ -1025,4 +1025,6 @@ const std::map<std::string, int> country_code_map {
 	{"yu",     COUNTRYNO::Yugoslavia     },
 };
 
+void DOS_FlushSTDIN(void);
+
 #endif
