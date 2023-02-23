@@ -1689,16 +1689,11 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 	CROSS_FILENAME(tempDir);
 
 	size_t len = strlen(tempDir);
-#if defined (WIN32)
 	bool lead = false;
-#endif
 	for (unsigned int i=0;i<len;i++) {
-#if defined (WIN32)
 		if(lead) lead = false;
 		else if((IS_PC98_ARCH || isDBCSCP()) && isKanji1(tempDir[i])) lead = true;
-		else 
-#endif
-		tempDir[i]=toupper(tempDir[i]);
+		else tempDir[i]=toupper(tempDir[i]);
 	}
     if (nocachedir) EmptyCache();
 
