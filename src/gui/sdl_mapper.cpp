@@ -1167,12 +1167,25 @@ void setScanCode(Section_prop * section) {
 		usescancodes = 1;
 	else if (!strcasecmp(usesc, "false")||!strcmp(usesc, "0"))
 		usescancodes = 0;
+#if defined(WIN32)
+    else {
+        WORD cur_kb_layout = LOWORD(GetKeyboardLayout(0));
+        if(cur_kb_layout == 1033) { /* Locale ID: en-us */
+            usescancodes = 0;
+            LOG_MSG("SDL_mapper: US keyboard detected, set usescancodes=false");
+        }
+        else {
+            usescancodes = 1;
+            LOG_MSG("SDL_mapper: non-US keyboard detected, set usescancodes=true");
+        }
+    }
+#endif // defined(WIN32)
 }
 void loadScanCode();
 const char* DOS_GetLoadedLayout(void);
 bool load=false;
 bool prev_ret;
-#endif
+#endif // !defined(C_SDL2)
 
 bool useScanCode() {
 #if defined(C_SDL2)
