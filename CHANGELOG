@@ -1,4 +1,6 @@
 Next
+  - Set usescancodes=true when non-US keyboards are detected
+     (Windows builds) (maron2000)
   - Added code to mouse emulation to control how often the mouse
     reports events through the interrupt. Added dosbox.conf option
     to allow the user to force a report rate, which can be used to
