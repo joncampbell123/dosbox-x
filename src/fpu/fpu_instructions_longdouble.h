@@ -29,7 +29,8 @@
 #  include <fpu_control.h>
 # endif
 static inline void FPU_SyncCW(void) {
-    _FPU_SETCW(fpu.cw);
+    uint16_t tmp = fpu.cw | 0x80 | 0x3F; // HACK: Disable all FPU exceptions until DOSBox-X can catch and reflect FPU exceptions to the guest
+    _FPU_SETCW(tmp);
 }
 #else
 static inline void FPU_SyncCW(void) {
