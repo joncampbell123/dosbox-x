@@ -1,4 +1,6 @@
 Next
+  - Set usescancodes=true when non-US keyboards are detected
+     (Windows builds) (maron2000)
   - For long double without using x86 FPU, the code still calls the
     fstcw instruction and can enable FPU exceptions that crash the
     emulator, therefore mask off all exception bits to stop that.

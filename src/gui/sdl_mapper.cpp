@@ -1020,9 +1020,9 @@ static SDLKey sdlkey_map[MAX_SCANCODES] = { // Convert hardware scancode (XKB = 
     Z, //0x82 Hanguel
     Z, //0x83 Hanja
     SDLK_JP_YEN,//0x84
-    SDLK_LMETA, //0x85
-    SDLK_RMETA, //0x86
-    SDLK_MODE,  //0x87
+    SDLK_LSUPER, //0x85
+    SDLK_RSUPER, //0x86
+    SDLK_MENU,  //0x87
     Z,Z,Z,Z,Z,Z,Z,Z //0x88-0x8f unknown
     /* 0x90-0x9f unknown */
     //Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z
@@ -1167,12 +1167,25 @@ void setScanCode(Section_prop * section) {
 		usescancodes = 1;
 	else if (!strcasecmp(usesc, "false")||!strcmp(usesc, "0"))
 		usescancodes = 0;
+#if defined(WIN32)
+    else {
+        WORD cur_kb_layout = LOWORD(GetKeyboardLayout(0));
+        if(cur_kb_layout == 1033) { /* Locale ID: en-us */
+            usescancodes = 0;
+            LOG_MSG("SDL_mapper: US keyboard detected, set usescancodes=false");
+        }
+        else {
+            usescancodes = 1;
+            LOG_MSG("SDL_mapper: non-US keyboard detected, set usescancodes=true");
+        }
+    }
+#endif // defined(WIN32)
 }
 void loadScanCode();
 const char* DOS_GetLoadedLayout(void);
 bool load=false;
 bool prev_ret;
-#endif
+#endif // !defined(C_SDL2)
 
 bool useScanCode() {
 #if defined(C_SDL2)
@@ -1301,12 +1314,6 @@ Bitu GetKeyCode(SDL_keysym keysym) {
                 return SDLK_DELETE;
             case 0x7f:
                 return SDLK_PAUSE;
-            case 0x85:
-                return SDLK_LSUPER;
-            case 0x86:
-                return SDLK_RSUPER;
-            case 0x87:
-                return SDLK_MENU;
             default:
 #endif
                 key = (keysym.scancode < MAX_SCANCODES ? sdlkey_map[keysym.scancode] : SDLK_UNKNOWN);
