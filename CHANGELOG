@@ -1,4 +1,18 @@
 Next
+  - VGA emulation: Automatically ignore odd/even mode if "Chain 4"
+    mode is enabled in the sequencer (normally enabled only for
+    256-color mode). Some games accidentally set odd/even mode
+    in 256-color mode and yet apparently worked just fine on real
+    hardware. Without this change, such games will display distorted
+    graphics. It makes logical sense "Chain 4" would take priority
+    over odd/even mode. Note: If a game uses 256-color unchained mode
+    AND foolishly enables odd/even mode, then the resulting distorted
+    graphics are probably accurate to what would happen on real
+    hardware, but then programmers would have caught their mistake
+    and fixed it so that is very unlikely to occur. This helps to fix
+    "Seal: Magic Eye" although some remaining visual artifacts in the
+    game can only be resolved by setting machine=svga_et4000
+     (joncampbell123).
   - Set usescancodes=true when non-US keyboards are detected
      (Windows builds) (maron2000)
   - For long double without using x86 FPU, the code still calls the
