@@ -274,6 +274,7 @@ typedef struct {
     uint16_t d1;
     uint32_t d2;
 } FPU_P_Reg;
+static_assert( sizeof(FPU_P_Reg) == 16, "FPU_P_Reg error" );
 
 // memory barrier macro. to ensure that reads/stores to one half of the FPU reg struct
 // do not overlap with reads/stores from the other half. things can go wrong if the
