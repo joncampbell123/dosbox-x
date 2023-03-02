@@ -1,4 +1,12 @@
 Next
+  - Dynamic core: Fix serious bug in dynrec dynamic core where calls
+    to handle x86 FPU instructions erronously passed the entire
+    FPU status word instead of passing only the FPU stack pointer.
+    The result of this error was that floating point was erratic,
+    buggy, and often caused memory corruption in DOSBox-X eventually
+    leading to a crash. It should now be possible to properly run
+    DOS games on dynrec based systems, including ARM-based M1 Macbooks,
+    that use the FPU. (joncampbell123)
   - Debugger: When entering debugger interface, force dynamic core
     to flush it's state so that the debugger can show the correct
     state to the user when they use the "FPU" command to see it.
