@@ -2697,7 +2697,6 @@ void VGA_SetupHandlers(void) {
 	 *      If chain 4 (or "compatible chain 4") is enabled, then ignore odd/even mode.
 	 *      If neither text nor CGA display mode and requested by the user through dosbox.conf, ignore odd/even mode. */
 	non_cga_ignore_oddeven_engage =
-		vga.config.compatible_chain4 ||
 		(vga.seq.memory_mode & 8/*Chain 4 enable*/) ||
 		(non_cga_ignore_oddeven && !(vga.mode == M_TEXT || vga.mode == M_CGA2 || vga.mode == M_CGA4));
 
