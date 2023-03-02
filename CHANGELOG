@@ -1,4 +1,8 @@
 Next
+  - Debugger: When entering debugger interface, force dynamic core
+    to flush it's state so that the debugger can show the correct
+    state to the user when they use the "FPU" command to see it.
+     (joncampbell123).
   - VGA emulation: Automatically ignore odd/even mode if "Chain 4"
     mode is enabled in the sequencer (normally enabled only for
     256-color mode). Some games accidentally set odd/even mode

@@ -337,6 +337,10 @@ static BlockReturnDynX86 safe_gen_runcode(uint8_t* code)
 	dh_fpu_enter_dyn_core();
 	return gen_runcode(code);
 }
+
+void dyn_core_dh_debug_flush (void) {
+	dh_fpu_enter_normal_core();
+}
 #else
 static Bits Safe_CPU_Core_Normal_Run (void)
 {
@@ -345,6 +349,9 @@ static Bits Safe_CPU_Core_Normal_Run (void)
 static BlockReturnDynX86 safe_gen_runcode(uint8_t* code)
 {
 	return gen_runcode(code);
+}
+
+void dyn_core_dh_debug_flush (void) {
 }
 #endif
 

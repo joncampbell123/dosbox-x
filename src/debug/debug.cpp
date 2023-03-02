@@ -4262,6 +4262,12 @@ void DEBUG_WaitNoExecute(void) {
     cpudecoder = oldcore;
 }
 
+int GetDynamicType();
+
+#if (C_DYNAMIC_X86)
+void dyn_core_dh_debug_flush (void);
+#endif
+
 Bitu DEBUG_Loop(void) {
     if (debug_running) {
         Bitu now = SDL_GetTicks();
@@ -4282,6 +4288,14 @@ Bitu DEBUG_Loop(void) {
         uint32_t oldEIP	= reg_eip;
         PIC_runIRQs();
         SDL_Delay(1);
+
+#if (C_DYNAMIC_X86)
+	if (GetDynamicType() > 0) {
+		/* Force dynamic core to flush whatever internal FPU state to the FPU state we can see */
+		dyn_core_dh_debug_flush();
+	}
+#endif
+
         if ((oldCS!=SegValue(cs)) || (oldEIP!=reg_eip)) {
             CBreakpoint::AddBreakpoint(oldCS,oldEIP,true);
             CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
