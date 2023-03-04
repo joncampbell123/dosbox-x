@@ -3547,6 +3547,50 @@ void VGA_sof_debug_video_info(void) {
 			x += 8;
 		}
 	}
+	else if (machine == MCH_PCJR || machine == MCH_TANDY) {
+		/* Tandy/PCjr code re-uses the VGA attribute controller palette. CGA emulation re-uses CGA remaps. */
+		if (vga.draw.bpp == 8) { /* Doesn't use anything else */
+			x = VGA_debug_screen_puts8(x,y,"HWPAL:",white) + 8;
+			VGA_debug_screen_func->rect(x-1,y,x,y+7,0x8/*dkgray*/);
+			VGA_debug_screen_func->rect(x-1,y,x+(8*16),y+1,0x8);
+			VGA_debug_screen_func->rect(x-1,y+7,x+(8*16),y+8,0x8);
+			for (unsigned int c=0;c < 16;c++) {
+				VGA_debug_screen_func->rect(x,y,x+7,y+7,vga.attr.palette[c]);
+				VGA_debug_screen_func->rect(x+7,y,x+8,y+7,0x8);
+				x += 8;
+			}
+
+			x += 8;
+
+			if (vga.mode == M_CGA4 || vga.mode == M_TANDY4) {
+				x = VGA_debug_screen_puts8(x,y,"MDPAL:",white) + 8;
+				VGA_debug_screen_func->rect(x-1,y,x,y+7,0x8/*dkgray*/);
+				VGA_debug_screen_func->rect(x-1,y,x+(8*4),y+1,0x8);
+				VGA_debug_screen_func->rect(x-1,y+7,x+(8*4),y+8,0x8);
+				for (unsigned int c=0;c < 4;c++) {
+					VGA_debug_screen_func->rect(x,y,x+7,y+7,CGAPal4[c]);//already remapped, vga_other.cpp
+					VGA_debug_screen_func->rect(x+7,y,x+8,y+7,0x8);
+					x += 8;
+				}
+			}
+			else if (vga.mode == M_CGA2 || vga.mode == M_TANDY2) {
+				x = VGA_debug_screen_puts8(x,y,"MDPAL:",white) + 8;
+				VGA_debug_screen_func->rect(x-1,y,x,y+7,0x8/*dkgray*/);
+				VGA_debug_screen_func->rect(x-1,y,x+(8*2),y+1,0x8);
+				VGA_debug_screen_func->rect(x-1,y+7,x+(8*2),y+8,0x8);
+				for (unsigned int c=0;c < 2;c++) {
+					VGA_debug_screen_func->rect(x,y,x+7,y+7,CGAPal2[c]);//already remapped, vga_other.cpp
+					VGA_debug_screen_func->rect(x+7,y,x+8,y+7,0x8);
+					x += 8;
+				}
+			}
+			else {
+				/* would be redundant copy of HWPAL */
+			}
+
+			x += 8;
+		}
+	}
 }
 
 static void VGA_VerticalTimer(Bitu /*val*/) {
