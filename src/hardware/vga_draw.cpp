@@ -3395,13 +3395,32 @@ void VGA_sof_debug_video_info(void) {
 		}
 	}
 	else if (vga.mode == M_TEXT || vga.mode == M_TANDY_TEXT || vga.mode == M_HERC_TEXT) {
+		unsigned int pixperclock = 8;
+
+		if (machine == MCH_EGA || machine == MCH_VGA)
+			pixperclock = ((vga.seq.clocking_mode&1)?8:9);
+		else if (machine == MCH_HERC)
+			pixperclock = 8;
+
 		sprintf(tmp,"T %ux%u/%ux%u",
-			(unsigned int)vga.draw.width / ((vga.seq.clocking_mode&1)?8:9),(unsigned int)vga.draw.height / (unsigned int)vga.draw.address_line_total,
+			(unsigned int)vga.draw.width / pixperclock,(unsigned int)vga.draw.height / (unsigned int)vga.draw.address_line_total,
 			(unsigned int)vga.draw.width,(unsigned int)vga.draw.height);
 	}
 	else {
+		unsigned int rowdiv = (unsigned int)vga.draw.address_line_total;
+		unsigned int interleave_mul = 1;
+
+		if (machine == MCH_CGA || machine == MCH_TANDY || machine == MCH_PCJR || machine == MCH_HERC || machine == MCH_AMSTRAD) {
+			if (rowdiv == 2 || rowdiv == 4) rowdiv = 1; /* CGA graphics use interleaving to accomplish 200 lines, Tandy and Hercules use 4-way interleaving in some modes */
+		}
+		else if (machine == MCH_EGA || machine == MCH_VGA) {
+			/* EGA/VGA have bits set to display video memory 2-way interleave like CGA and even 4-way interleave like Hercules */
+			if (rowdiv == 4 && (vga.tandy.line_mask & 2)) rowdiv = 1;
+			else if (rowdiv == 2 && (vga.tandy.line_mask & 1)) rowdiv = 1;
+		}
+
 		sprintf(tmp,"G %ux%u/%ux%u",
-			(unsigned int)vga.draw.width,(unsigned int)vga.draw.height / (unsigned int)vga.draw.address_line_total,
+			(unsigned int)vga.draw.width,((unsigned int)vga.draw.height * interleave_mul) / rowdiv,
 			(unsigned int)vga.draw.width,(unsigned int)vga.draw.height);
 	}
 	x = VGA_debug_screen_puts8(x,y,tmp,white);
