@@ -66,6 +66,7 @@ extern "C" {
 
 #endif
 
+bool video_debug_overlay = false;
 bool skip_encoding_unchanged_frames = false, show_recorded_filename = true;
 std::string pathvid = "", pathwav = "", pathmtw = "", pathmid = "", pathopl = "", pathscr = "", pathprt = "";
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
@@ -1998,6 +1999,8 @@ void CAPTURE_Init() {
 	capturedir = proppath->realpath;
     SetGameState_Run(section->Get_int("saveslot")-1);
     noremark_save_state = !section->Get_bool("saveremark");
+    video_debug_overlay = section->Get_bool("video debug at startup");
+    mainMenu.get_item("video_debug_overlay").check(video_debug_overlay).refresh_item(mainMenu);
     mainMenu.get_item("noremark_savestate").check(noremark_save_state).refresh_item(mainMenu);
     force_load_state = section->Get_bool("forceloadstate");
     mainMenu.get_item("force_loadstate").check(force_load_state).refresh_item(mainMenu);

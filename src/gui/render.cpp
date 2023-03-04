@@ -45,6 +45,8 @@
 #include <emmintrin.h>
 #endif
 
+extern bool video_debug_overlay;
+
 Render_t                                render;
 int                                     eurAscii = -1;
 int                                     aspect_ratio_x = 0;
@@ -886,6 +888,12 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
         dblw=true; dblh=true;
     }
     LOG_MSG("pixratio %1.3f, dw %s, dh %s",ratio,dblw?"true":"false",dblh?"true":"false");
+
+    /* this must be done after dblw/dblh so extra room can be added without screwing up the screen */
+    if (video_debug_overlay) {
+	if (width < 320) width = 320;
+	height += 128;
+    }
 
     if ( ratio > 1.0 ) {
         double target = height * ratio + 0.025;

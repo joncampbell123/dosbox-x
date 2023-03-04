@@ -1534,6 +1534,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("Select the default save file to save/load states. If specified it will be used instead of the save slot.");
     Pstring->SetBasic(true);
 
+    Pbool = secprop->Add_bool("video debug at startup", Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, have video debug displays on by default");
+
     Pbool = secprop->Add_bool("saveremark", Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, the save state feature will ask users to enter remarks when saving a state.");
     Pbool->SetBasic(true);

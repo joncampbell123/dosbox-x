@@ -55,6 +55,7 @@ extern bool addovl, clearline, pcibus_enable, winrun, window_was_maximized, whee
 extern bool mountfro[26], mountiro[26];
 extern struct BuiltinFileBlob bfb_GLIDE2X_OVL;
 extern const char* RunningProgram;
+extern bool video_debug_overlay;
 
 void MSG_Init(void);
 void SendKey(std::string key);
@@ -2408,6 +2409,18 @@ bool show_codetext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     return true;
 }
 
+bool video_debug_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    video_debug_overlay = !video_debug_overlay;
+    mainMenu.get_item("video_debug_overlay").check(video_debug_overlay).refresh_item(mainMenu);
+
+    if (!vga.draw.vga_override)
+        RENDER_SetSize(vga.draw.width,vga.draw.height,render.src.bpp,render.src.fps,render.src.scrn_ratio);
+
+    return true;
+}
+
 bool disable_log_menu_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
@@ -3593,6 +3606,7 @@ void AllocCallback1() {
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debugger_rundebug").set_text("Debugger option: Run debugger").set_callback_function(debugger_rundebug_menu_callback).check(debugrunmode==0);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debugger_runnormal").set_text("Debugger option: Run normal").set_callback_function(debugger_runnormal_menu_callback).check(debugrunmode==1);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debugger_runwatch").set_text("Debugger option: Run watch").set_callback_function(debugger_runwatch_menu_callback).check(debugrunmode==2);
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"video_debug_overlay").set_text("Video debug overlay").set_callback_function(video_debug_callback).check(video_debug_overlay);
 #endif
             }
 
