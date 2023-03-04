@@ -3402,7 +3402,7 @@ void VGA_sof_debug_video_info(void) {
 		else if (machine == MCH_HERC)
 			pixperclock = 8;
 
-		sprintf(tmp,"T %ux%u/%ux%u",
+		sprintf(tmp,"T%ux%u>%ux%u",
 			(unsigned int)vga.draw.width / pixperclock,(unsigned int)vga.draw.height / (unsigned int)vga.draw.address_line_total,
 			(unsigned int)vga.draw.width,(unsigned int)vga.draw.height);
 	}
@@ -3419,7 +3419,7 @@ void VGA_sof_debug_video_info(void) {
 			else if (rowdiv == 2 && (vga.tandy.line_mask & 1)) rowdiv = 1;
 		}
 
-		sprintf(tmp,"G %ux%u/%ux%u",
+		sprintf(tmp,"G%ux%u>%ux%u",
 			(unsigned int)vga.draw.width,((unsigned int)vga.draw.height * interleave_mul) / rowdiv,
 			(unsigned int)vga.draw.width,(unsigned int)vga.draw.height);
 	}
