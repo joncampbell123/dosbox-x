@@ -3372,11 +3372,17 @@ void VGA_sof_debug_video_info(void) {
 
 		/* graphics */
 		if (pc98_gdc[GDC_SLAVE].display_enable) {
+			unsigned int rowsize = pc98_gdc[GDC_SLAVE].row_height;
+
+			/* NTS: Testing with real hardware shows 256-color mode ignores row height, or else the PC-98 port of "Alone in the Dark" would look wrong */
+			if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
+				rowsize = 1;
+
 			/* FIXME: Pixels count is incorrect for PC-9821 DOS utility "Paint tool" by Login... but correct for 256-color PC-9821 version
 			 *        of Battle Skin Panic */
 			d += sprintf(d,"G%ux%u",
 				pc98_gdc[GDC_SLAVE].active_display_words_per_line * (gdc_5mhz_mode?8:16)/*character clocks to pixels*/,
-				pc98_gdc[GDC_SLAVE].active_display_lines / pc98_gdc[GDC_SLAVE].row_height);
+				pc98_gdc[GDC_SLAVE].active_display_lines / rowsize);
 
 			if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
 				d += sprintf(d,"-256c");
@@ -3423,7 +3429,86 @@ void VGA_sof_debug_video_info(void) {
 			(unsigned int)vga.draw.width,((unsigned int)vga.draw.height * interleave_mul) / rowdiv,
 			(unsigned int)vga.draw.width,(unsigned int)vga.draw.height);
 	}
-	x = VGA_debug_screen_puts8(x,y,tmp,white);
+	x = VGA_debug_screen_puts8(x,y,tmp,white) + 8;
+
+	if (vga.mode == M_PC98) {
+		char *d = tmp;
+
+		d += sprintf(d,"T@%04x+%03x/",
+			(unsigned int)pc98_gdc[GDC_MASTER].scan_address,
+			(unsigned int)pc98_gdc[GDC_MASTER].display_pitch);
+
+		if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
+			d += sprintf(d,"G@0");
+		}
+		else {
+			/* TODO: Show stride, then both display partitions, including start address and number of lines.
+			 *       It might be helpful to the curious to see how vertical scrolling is actually done with
+			 *       most PC-98 games. Don't bother showing all 4 data partitions because you're supposed to
+			 *       only use the first 8 bytes for two and the latter 8 bytes for "parameters" to GDC commands.
+			 *       Older PC-98 games exploit the fact that the hardware will happily allow the latter 8 to
+			 *       be used as a 3rd and 4th display partition (Edge, Steel Hearts) even when newer hardware
+			 *       fixes the "bug" and forces only two partitions. Therefore, show only the first two.
+			 *
+			 *       As for the text display, you can use all 4 display partitions, however I have yet to see
+			 *       any PC-98 game use partitions at all on the text layer. Some might adjust the first
+			 *       partition for text scrolling... that's about it. */
+			d += sprintf(d,"G@%04x+%03x",
+				(unsigned int)pc98_gdc[GDC_SLAVE].scan_address,
+				(unsigned int)pc98_gdc[GDC_MASTER].display_pitch);
+		}
+
+		d += sprintf(d," pg:c%ud%u",(pc98_gdc_vramop & (1 << VOPBIT_ACCESS))?1:0,GDC_display_plane_pending);
+	}
+	else {
+		sprintf(tmp,"@%06x+%03x",(unsigned int)vga.draw.address,(unsigned int)vga.draw.address_add);
+	}
+	x = VGA_debug_screen_puts8(x,y,tmp,white) + 8;
+
+	/* next line: The color palette. Show a) the raw palette and b) the effective palette after all bit masking.
+	 * What we show depends on the hardware. For MDA/Hercules, you have ON and OFF so there's really no point in drawing it.
+	 * For CGA, you have all 16 colors in text mode, 4 colors for 320x200 from one 3 palettes (I'm counting the unofficial
+	 * palette with red instead of magenta) and a background color, and 2 colors for 640x200 (black + foreground color).
+	 *
+	 * PCjr and Tandy allow remapping the IRGB colors to... uh... other IRGB colors.
+	 *
+	 * EGA remaps the 16-color palette through the Attribute Controller (first 16 registers) which then either becomes a
+	 * 4-bit IRGB color for 200-line modes or a 6-bit xxRGBrgb (2-bit RGB = one of 64 colors) color. This is also affected
+	 * by a register that controls which bitplanes are sent to the display. I don't think EGA has a pel mask register.
+	 *
+	 * MCGA, except for 256-color mode, could be thought of as a fancy CGA card that produces a 4-bit IRGB value, which is
+	 * then treated like any other 8-bit value and sent to the DAC as-is. The 256-color mode is just 8-bit values sent to
+	 * the DAC as-is. Testing on a real PS/2 shows that MCGA systems have a VGA-like PEL mask register.
+	 *
+	 * VGA could be thought of as hardware that latches 4-bit pixel values around, which makes sense when you consider that
+	 * all standard modes OTHER than 256-color mode all boil down to: load, shift, mask, 4-bit pixel, send to output. Testing
+	 * shows that 256-color mode is even affected by this design. What looks like 8-bit values on display are apparently just
+	 * bytes from RAM shifted in 4 bits at a time per dot clock. You don't see that because another bit is set to hold the
+	 * DAC at the last whole value to hide the "halfway" byte underneath. It does explain why 256-color mode has only 320
+	 * pixels across and yet CRTC horizontal timing and dot clock values are programmed as if a 640 pixel wide mode, and why
+	 * standard VGA hardware cannot do a 640-pixel wide 256-color mode. Anyway, the 4-bit pixels going through the VGA hardware
+	 * could be thought of as going through a bitplane mask register, then the attribute controller which is then expanded to
+	 * a 6-bit value (EGA compatibility). If the right bits are set, you can fill in the top 2 bits from the color select
+	 * registers. The result is an 8-bit value which is then masked off through the PEL mask and then sent to the DAC through
+	 * which the final color is determined by the VGA palette. The two 4-bit values that make up the 8-bit 256-color mode
+	 * are handled in exactly the same way, the Attribute Controller palette can affect 256-color mode! The difference is
+	 * that color select doesn't have any effect because only the low 4 bits are used to produce the final 8 bits (although
+	 * the 1992 demo "Copper" exploits a hardware bug on Tseng ET4000 cards regarding color select to do those nifty "line
+	 * fading" demo effects).
+	 *
+	 * PC-98 hardware could be thought of as having 3 hardware palettes: the 8-color "digital" mode, the 16-color "analog"
+	 * mode, and the 256-color "vga" mode. At least the hardware I've tested on seems to behave as if somewhere in the
+	 * hardware, all 3 palettes exist simultaneously at once. The 8-color "digital" mode can remap the GRB colors from
+	 * any 3-bit value to any other 3-bit value. The 16-color analog mode offers RGB output with 4 bits per channel, which
+	 * incidentally, is why when PC-98 games do palette fades, they aren't as smooth as VGA or SVGA palette fades. However
+	 * the 256-color mode has a full 8 bits per channel to work with (2 more bits than VGA's 6 bits per channel!). Which
+	 * palette we show therefore depends on which mode the graphics plane is. There is also a "monochrome" mode which reduces
+	 * the 8-color mode to only bitplane 2 (green) and then the final color is controlled by the color attribute of the
+	 * text layer. As for the text mode, it has 3 bits to encode GRB and there's no palette to remap it, therefore nothing
+	 * to see here. There's no funny bitplane masking to the display that I'm aware of unlike VGA, which should make the
+	 * display code simpler here. */
+	y += 8;
+	x = 4;
 }
 
 static void VGA_VerticalTimer(Bitu /*val*/) {
