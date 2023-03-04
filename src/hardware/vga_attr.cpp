@@ -30,6 +30,12 @@ void VGA_RenderOnDemandUpTo(void);
 
 #define attr(blah) vga.attr.blah
 
+static EGAMonitorMode currentMonitorMode = CGA;
+
+EGAMonitorMode egaMonitorMode(void) {
+	return currentMonitorMode;
+}
+
 void VGA_ATTR_SetEGAMonitorPalette(EGAMonitorMode m) {
 	// palette bit assignment:
 	// bit | pin | EGA        | CGA       | monochrome
@@ -42,6 +48,7 @@ void VGA_ATTR_SetEGAMonitorPalette(EGAMonitorMode m) {
 	// 5   | 2   | red sec.   | nc        | nc
     // 6-7 | not used
 	// * additive color brown instead of yellow
+	currentMonitorMode = m;
 	switch(m) {
 		case CGA:
 			//LOG_MSG("Monitor CGA");

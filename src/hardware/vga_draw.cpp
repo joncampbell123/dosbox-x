@@ -3322,6 +3322,8 @@ void VGA_DebugOverlay() {
         RENDER_DrawLine(VGA_debug_screen+(y*VGA_debug_screen_stride));
 }
 
+EGAMonitorMode egaMonitorMode(void);
+
 extern uint8_t CGAPal2[2];
 extern uint8_t CGAPal4[4];
 
@@ -3468,6 +3470,16 @@ void VGA_sof_debug_video_info(void) {
 	}
 	x = VGA_debug_screen_puts8(x,y,tmp,white) + 8;
 
+	if (machine == MCH_EGA) {
+		char *d = tmp;
+		EGAMonitorMode m = egaMonitorMode();
+		if (m == EGA) d += sprintf(d,"64c");
+		else if (m == CGA) d += sprintf(d,"16c");
+		else if (m == MONO) d += sprintf(d,"mono");
+
+		x = VGA_debug_screen_puts8(x,y,tmp,white) + 8;
+	}
+
 	/* next line: The color palette. Show a) the raw palette and b) the effective palette after all bit masking.
 	 * What we show depends on the hardware. For MDA/Hercules, you have ON and OFF so there's really no point in drawing it.
 	 * For CGA, you have all 16 colors in text mode, 4 colors for 320x200 from one 3 palettes (I'm counting the unofficial
@@ -3589,6 +3601,49 @@ void VGA_sof_debug_video_info(void) {
 			}
 
 			x += 8;
+		}
+	}
+	else if (machine == MCH_EGA) {
+		/* Everything on EGA goes through the Attribute Controller.
+		 * Two palettes are shown because what's on the screen is also controlled by a register that masks off bitplanes. */
+		if (vga.draw.bpp == 8) { /* Doesn't use anything else */
+			x = VGA_debug_screen_puts8(x,y,"ACPAL:",white) + 8;
+			VGA_debug_screen_func->rect(x-1,y,x,y+7,0x8/*dkgray*/);
+			VGA_debug_screen_func->rect(x-1,y,x+(8*16),y+1,0x8);
+			VGA_debug_screen_func->rect(x-1,y+7,x+(8*16),y+8,0x8);
+			for (unsigned int c=0;c < 16;c++) {
+				VGA_debug_screen_func->rect(x,y,x+7,y+7,vga.attr.palette[c]);
+				VGA_debug_screen_func->rect(x+7,y,x+8,y+7,0x8);
+				x += 8;
+			}
+
+			x += 8;
+
+			// show the normally invisible (in the emulator) overscan color
+			x = VGA_debug_screen_puts8(x,y,"OVSC:",white) + 8;
+			sprintf(tmp,"%02X",vga.attr.overscan_color);
+			x = VGA_debug_screen_puts8(x,y,tmp,white);
+
+			x += 8;
+
+			// in 320-pixel wide modes both won't fit!
+			x = 4;
+			y += 8;
+
+			x = VGA_debug_screen_puts8(x,y,"MDPAL:",white) + 8;
+			VGA_debug_screen_func->rect(x-1,y,x,y+7,0x8/*dkgray*/);
+			VGA_debug_screen_func->rect(x-1,y,x+(8*16),y+1,0x8);
+			VGA_debug_screen_func->rect(x-1,y+7,x+(8*16),y+8,0x8);
+			for (unsigned int c=0;c < 16;c++) {
+				VGA_debug_screen_func->rect(x,y,x+7,y+7,vga.attr.palette[c&vga.attr.color_plane_enable]);
+				VGA_debug_screen_func->rect(x+7,y,x+8,y+7,0x8);
+				x += 8;
+			}
+
+			x += 8;
+
+			sprintf(tmp,"CPE:%x HPEL:%x",vga.attr.color_plane_enable&0xF,vga.config.pel_panning&0xF); /* 4 bits, 4 bitplanes, one hex digit */
+			x = VGA_debug_screen_puts8(x,y,tmp,white);
 		}
 	}
 }
