@@ -3465,9 +3465,14 @@ void VGA_sof_debug_video_info(void) {
 
 		d += sprintf(d," pg:c%ud%u",(pc98_gdc_vramop & (1 << VOPBIT_ACCESS))?1:0,GDC_display_plane_pending);
 	}
+	else if (IS_EGAVGA_ARCH) {
+		if (IS_VGA_ARCH && svgaCard != SVGA_None)
+			sprintf(tmp,"@%05x+%03x",(unsigned int)vga.config.display_start,(unsigned int)vga.config.scan_len*2);
+		else
+			sprintf(tmp,"@%04x+%02x",(unsigned int)vga.config.display_start,(unsigned int)vga.config.scan_len*2);
+	}
 	else {
-		/* FIXME: Check these values against EGA/VGA graphics modes, the values might be 2x, 4x, or 8x the values they should */
-		sprintf(tmp,"@%06x+%03x",(unsigned int)vga.draw.address,(unsigned int)vga.draw.address_add);
+		sprintf(tmp,"@%04x+%02x",(unsigned int)vga.config.display_start,(unsigned int)vga.other.hdend);
 	}
 	x = VGA_debug_screen_puts8(x,y,tmp,white) + 8;
 

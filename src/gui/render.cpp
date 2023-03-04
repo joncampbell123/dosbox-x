@@ -903,6 +903,9 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
 	if (machine == MCH_EGA) {
 		height += 8*3;
 	}
+	else if (machine == MCH_MDA || machine == MCH_HERC) {
+		/* add nothing, nothing to show at this time */
+	}
 	else {
 		height += 8*2;
 	}
