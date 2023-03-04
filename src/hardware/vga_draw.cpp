@@ -3530,7 +3530,72 @@ void VGA_sof_debug_video_info(void) {
 	 * display code simpler here. */
 	y += 8;
 	x = 4;
-	if (machine == MCH_CGA) {
+	if (machine == MCH_PC98) {
+		if (vga.draw.bpp == 32) { /* PC-98 emulation doesn't use anything else */
+			unsigned int dkgray =
+				((GFX_Rmask >> 2) & GFX_Rmask) |
+				((GFX_Gmask >> 2) & GFX_Gmask) |
+				((GFX_Bmask >> 2) & GFX_Bmask);
+
+			/* NTS: We *could* show all 3 hardware palettes, but I don't think anything out there
+			 *      depends on flipping between them like that. I doubt the hardware could support
+			 *      anything funky like flipping between 8/16-color mode mid-scanline like that. */
+			if (pc98_gdc_vramop & (1u << VOPBIT_VGA)) {
+				x = VGA_debug_screen_puts8(x,y,"PAL256:",white) + 8;
+				VGA_debug_screen_func->rect(x-1,y,x,y+7,dkgray);
+				VGA_debug_screen_func->rect(x-1,y,x+(4*128),y+1,dkgray);
+				VGA_debug_screen_func->rect(x-1,y+(4*4)-1,x+(4*128),y+(4*2),dkgray);
+				for (unsigned int c=0;c < 256;c++) {
+					const int bx = x+((c&127)*4),by = y+((c>>7)*4);
+					VGA_debug_screen_func->rect(bx,by+1,bx+3,by+4,vga.dac.xlat32[c]); /* xlat32[] already contains the translated color */
+					VGA_debug_screen_func->rect(bx+3,by+1,bx+4,by+4,dkgray);
+				}
+
+				x += 8 + (4*128);
+			}
+			else if (pc98_gdc_vramop & (1u << VOPBIT_ANALOG)) {
+				x = VGA_debug_screen_puts8(x,y,"PAL16:",white) + 8;
+				VGA_debug_screen_func->rect(x-1,y,x,y+7,dkgray);
+				VGA_debug_screen_func->rect(x-1,y,x+(8*16),y+1,dkgray);
+				VGA_debug_screen_func->rect(x-1,y+7,x+(8*16),y+8,dkgray);
+				for (unsigned int c=0;c < 16;c++) {
+					VGA_debug_screen_func->rect(x,y+1,x+7,y+7,vga.dac.xlat32[c]); /* xlat32[] already contains the translated color */
+					VGA_debug_screen_func->rect(x+7,y+1,x+8,y+7,dkgray);
+					x += 8;
+				}
+
+				x += 8;
+			}
+			else {
+				x = VGA_debug_screen_puts8(x,y,"PAL8:",white) + 8;
+				VGA_debug_screen_func->rect(x-1,y,x,y+7,dkgray);
+				VGA_debug_screen_func->rect(x-1,y,x+(8*8),y+1,dkgray);
+				VGA_debug_screen_func->rect(x-1,y+7,x+(8*8),y+8,dkgray);
+				for (unsigned int c=0;c < 8;c++) {
+					VGA_debug_screen_func->rect(x,y+1,x+7,y+7,vga.dac.xlat32[c]); /* xlat32[] already contains the translated color */
+					VGA_debug_screen_func->rect(x+7,y+1,x+8,y+7,dkgray);
+					x += 8;
+				}
+
+				x += 8;
+
+				if (pc98_monochrome_mode) {
+					x = VGA_debug_screen_puts8(x,y,"PALM:",white) + 8;
+					VGA_debug_screen_func->rect(x-1,y,x,y+7,dkgray);
+					VGA_debug_screen_func->rect(x-1,y,x+(8*2),y+1,dkgray);
+					VGA_debug_screen_func->rect(x-1,y+7,x+(8*2),y+8,dkgray);
+					for (unsigned int c=0;c < 2;c++) {
+						VGA_debug_screen_func->rect(x,y,x+7,y+7,vga.dac.xlat32[c<<4u]); /* xlat32[] already contains the translated color, green -> mono */
+						VGA_debug_screen_func->rect(x+7,y,x+8,y+7,dkgray);
+						x += 8;
+					}
+				}
+
+				x += 8;
+			}
+		}
+	}
+	else if (machine == MCH_CGA) {
 		if (vga.draw.bpp == 8 && vga.mode != M_CGA16) { /* CGA emulation doesn't use anything else, and do not draw palette in "composite" mode */
 			x = VGA_debug_screen_puts8(x,y,"PAL:",white) + 8;
 			VGA_debug_screen_func->rect(x-1,y,x,y+7,0x8/*dkgray*/);
@@ -3538,8 +3603,8 @@ void VGA_sof_debug_video_info(void) {
 				VGA_debug_screen_func->rect(x-1,y,x+(8*4),y+1,0x8);
 				VGA_debug_screen_func->rect(x-1,y+7,x+(8*4),y+8,0x8);
 				for (unsigned int c=0;c < 4;c++) {
-					VGA_debug_screen_func->rect(x,y,x+7,y+7,CGAPal4[c]);
-					VGA_debug_screen_func->rect(x+7,y,x+8,y+7,0x8);
+					VGA_debug_screen_func->rect(x,y+1,x+7,y+7,CGAPal4[c]);
+					VGA_debug_screen_func->rect(x+7,y+1,x+8,y+7,0x8);
 					x += 8;
 				}
 			}
@@ -3547,8 +3612,8 @@ void VGA_sof_debug_video_info(void) {
 				VGA_debug_screen_func->rect(x-1,y,x+(8*2),y+1,0x8);
 				VGA_debug_screen_func->rect(x-1,y+7,x+(8*2),y+8,0x8);
 				for (unsigned int c=0;c < 2;c++) {
-					VGA_debug_screen_func->rect(x,y,x+7,y+7,CGAPal2[c]);
-					VGA_debug_screen_func->rect(x+7,y,x+8,y+7,0x8);
+					VGA_debug_screen_func->rect(x,y+1,x+7,y+7,CGAPal2[c]);
+					VGA_debug_screen_func->rect(x+7,y+1,x+8,y+7,0x8);
 					x += 8;
 				}
 			}
@@ -3556,8 +3621,8 @@ void VGA_sof_debug_video_info(void) {
 				VGA_debug_screen_func->rect(x-1,y,x+(8*16),y+1,0x8);
 				VGA_debug_screen_func->rect(x-1,y+7,x+(8*16),y+8,0x8);
 				for (unsigned int c=0;c < 16;c++) {
-					VGA_debug_screen_func->rect(x,y,x+7,y+7,c);
-					VGA_debug_screen_func->rect(x+7,y,x+8,y+7,0x8);
+					VGA_debug_screen_func->rect(x,y+1,x+7,y+7,c);
+					VGA_debug_screen_func->rect(x+7,y+1,x+8,y+7,0x8);
 					x += 8;
 				}
 			}
@@ -3573,8 +3638,8 @@ void VGA_sof_debug_video_info(void) {
 			VGA_debug_screen_func->rect(x-1,y,x+(8*16),y+1,0x8);
 			VGA_debug_screen_func->rect(x-1,y+7,x+(8*16),y+8,0x8);
 			for (unsigned int c=0;c < 16;c++) {
-				VGA_debug_screen_func->rect(x,y,x+7,y+7,vga.attr.palette[c]);
-				VGA_debug_screen_func->rect(x+7,y,x+8,y+7,0x8);
+				VGA_debug_screen_func->rect(x,y+1,x+7,y+7,vga.attr.palette[c]);
+				VGA_debug_screen_func->rect(x+7,y+1,x+8,y+7,0x8);
 				x += 8;
 			}
 
@@ -3586,8 +3651,8 @@ void VGA_sof_debug_video_info(void) {
 				VGA_debug_screen_func->rect(x-1,y,x+(8*4),y+1,0x8);
 				VGA_debug_screen_func->rect(x-1,y+7,x+(8*4),y+8,0x8);
 				for (unsigned int c=0;c < 4;c++) {
-					VGA_debug_screen_func->rect(x,y,x+7,y+7,CGAPal4[c]);//already remapped, vga_other.cpp
-					VGA_debug_screen_func->rect(x+7,y,x+8,y+7,0x8);
+					VGA_debug_screen_func->rect(x,y+1,x+7,y+7,CGAPal4[c]);//already remapped, vga_other.cpp
+					VGA_debug_screen_func->rect(x+7,y+1,x+8,y+7,0x8);
 					x += 8;
 				}
 			}
@@ -3597,8 +3662,8 @@ void VGA_sof_debug_video_info(void) {
 				VGA_debug_screen_func->rect(x-1,y,x+(8*2),y+1,0x8);
 				VGA_debug_screen_func->rect(x-1,y+7,x+(8*2),y+8,0x8);
 				for (unsigned int c=0;c < 2;c++) {
-					VGA_debug_screen_func->rect(x,y,x+7,y+7,CGAPal2[c]);//already remapped, vga_other.cpp
-					VGA_debug_screen_func->rect(x+7,y,x+8,y+7,0x8);
+					VGA_debug_screen_func->rect(x,y+1,x+7,y+7,CGAPal2[c]);//already remapped, vga_other.cpp
+					VGA_debug_screen_func->rect(x+7,y+1,x+8,y+7,0x8);
 					x += 8;
 				}
 			}
@@ -3613,13 +3678,15 @@ void VGA_sof_debug_video_info(void) {
 		/* Everything on EGA goes through the Attribute Controller.
 		 * Two palettes are shown because what's on the screen is also controlled by a register that masks off bitplanes. */
 		if (vga.draw.bpp == 8) { /* Doesn't use anything else */
+			unsigned int dkgray = (egaMonitorMode() == EGA) ? 0x38 : 0x10;
+
 			x = VGA_debug_screen_puts8(x,y,"ACPAL:",white) + 8;
-			VGA_debug_screen_func->rect(x-1,y,x,y+7,0x8/*dkgray*/);
-			VGA_debug_screen_func->rect(x-1,y,x+(8*16),y+1,0x8);
-			VGA_debug_screen_func->rect(x-1,y+7,x+(8*16),y+8,0x8);
+			VGA_debug_screen_func->rect(x-1,y,x,y+7,dkgray/*dkgray*/);
+			VGA_debug_screen_func->rect(x-1,y,x+(8*16),y+1,dkgray);
+			VGA_debug_screen_func->rect(x-1,y+7,x+(8*16),y+8,dkgray);
 			for (unsigned int c=0;c < 16;c++) {
-				VGA_debug_screen_func->rect(x,y,x+7,y+7,vga.attr.palette[c]);
-				VGA_debug_screen_func->rect(x+7,y,x+8,y+7,0x8);
+				VGA_debug_screen_func->rect(x,y+1,x+7,y+7,vga.attr.palette[c]);
+				VGA_debug_screen_func->rect(x+7,y+1,x+8,y+7,dkgray);
 				x += 8;
 			}
 
@@ -3637,12 +3704,12 @@ void VGA_sof_debug_video_info(void) {
 			y += 8;
 
 			x = VGA_debug_screen_puts8(x,y,"MDPAL:",white) + 8;
-			VGA_debug_screen_func->rect(x-1,y,x,y+7,0x8/*dkgray*/);
-			VGA_debug_screen_func->rect(x-1,y,x+(8*16),y+1,0x8);
-			VGA_debug_screen_func->rect(x-1,y+7,x+(8*16),y+8,0x8);
+			VGA_debug_screen_func->rect(x-1,y,x,y+7,dkgray/*dkgray*/);
+			VGA_debug_screen_func->rect(x-1,y,x+(8*16),y+1,dkgray);
+			VGA_debug_screen_func->rect(x-1,y+7,x+(8*16),y+8,dkgray);
 			for (unsigned int c=0;c < 16;c++) {
-				VGA_debug_screen_func->rect(x,y,x+7,y+7,vga.attr.palette[c&vga.attr.color_plane_enable]);
-				VGA_debug_screen_func->rect(x+7,y,x+8,y+7,0x8);
+				VGA_debug_screen_func->rect(x,y+1,x+7,y+7,vga.attr.palette[c&vga.attr.color_plane_enable]);
+				VGA_debug_screen_func->rect(x+7,y+1,x+8,y+7,dkgray);
 				x += 8;
 			}
 
