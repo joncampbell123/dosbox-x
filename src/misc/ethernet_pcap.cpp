@@ -214,7 +214,7 @@ bool PcapEthernetConnection::Initialize(Section* config)
 #ifdef MACOSX
             timeout = 3000; // For macOS, use 3000ms as it does not appear to support -1
 #else
-            timeout = -1; // For other platform, use -1 which should mean "non-blocking mode"
+            timeout = -1; // For other platforms, use -1 which should mean "non-blocking mode"
 #endif
         } else
             timeout = strtoul(timeoutstr,&end,10);
