@@ -542,6 +542,26 @@ void diskio_delay(Bits value/*bytes*/, int type = -1) {
     }
 }
 
+static void diskio_delay_drive(uint8_t drive, uint16_t delay) {
+	if(drive < DOS_DRIVES) {
+		bool floppy = (drive < 2);
+		if(IS_PC98_ARCH) {
+			uint8_t id = Drives[drive]->GetMediaByte();
+			floppy = (id == 0xfe) || (id == 0xf0);
+		}
+		if(floppy)	diskio_delay(delay, 0);
+		else		diskio_delay(delay);
+	}
+}
+
+static void diskio_delay_handle(uint16_t reg_handle, uint16_t delay)
+{
+	uint8_t handle = RealHandle(reg_handle);
+	if(handle != 0xff && Files[handle]) {
+		diskio_delay_drive(Files[handle]->GetDrive(), delay);
+	}
+}
+
 static inline void overhead() {
 	reg_ip += 2;
 }
@@ -1846,15 +1866,12 @@ static Bitu DOS_21Handler(void) {
             unmask_irq0 |= disk_io_unmask_irq0;
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
             if (DOS_CreateFile(name1,reg_cx,&reg_ax)) {
+                diskio_delay_handle(reg_ax, 2048);
                 CALLBACK_SCF(false);
             } else {
                 reg_ax=dos.errorcode;
                 CALLBACK_SCF(true);
             }
-            if (DOS_GetDefaultDrive() < 2)
-                diskio_delay(2048,0); // Floppy
-            else
-                diskio_delay(2048);
 			force_sfn = false;
             break;
         case 0x3d:      /* OPEN Open existing file */
@@ -1918,25 +1935,24 @@ static Bitu DOS_21Handler(void) {
                         WPvga512CHMhandle = reg_ax;							// Save handle
                 }
 #endif
+                diskio_delay_handle(reg_ax, 1024);
 				force_sfn = false;
                 CALLBACK_SCF(false);
             } else {
 				force_sfn = false;
 				if (uselfn&&DOS_OpenFile(name1,oldal,&reg_ax)) {
+					diskio_delay_handle(reg_ax, 1024);
 					CALLBACK_SCF(false);
-					break;
-				}
-                reg_ax=dos.errorcode;
-                CALLBACK_SCF(true);
+				} else {
+                    reg_ax=dos.errorcode;
+                    CALLBACK_SCF(true);
+                }
             }
-            if(DOS_GetDefaultDrive() < 2)
-                diskio_delay(1024,0); // Floppy
-            else
-                diskio_delay(1024);
-			force_sfn = false;
+            force_sfn = false;
             break;
 		}
         case 0x3e:      /* CLOSE Close file */
+        {
             if(ias_handle != 0 && ias_handle == reg_bx) {
                 ias_handle = 0;
                 CALLBACK_SCF(false);
@@ -1954,23 +1970,23 @@ static Bitu DOS_21Handler(void) {
                 CALLBACK_SCF(false);
                 break;
             }
+            uint8_t handle = RealHandle(reg_bx);
+            uint8_t drive = (handle != 0xff && Files[handle]) ? Files[handle]->GetDrive() : DOS_DRIVES;
             unmask_irq0 |= disk_io_unmask_irq0;
             if (DOS_CloseFile(reg_bx, false, &reg_al)) {
 #if defined(USE_TTF)
                 if (ttf.inUse&&reg_bx == WPvga512CHMhandle)
                     WPvga512CHMhandle = -1;
 #endif
+                diskio_delay_drive(drive, 512);
                 /* al destroyed with pre-close refcount from sft */
                 CALLBACK_SCF(false);
             } else {
                 reg_ax=dos.errorcode;
                 CALLBACK_SCF(true);
             }
-            if(DOS_GetDefaultDrive() < 2)
-                diskio_delay(512, 0); // Floppy
-            else
-                diskio_delay(512);
             break;
+        }
         case 0x3f:      /* READ Read from file or device */
             unmask_irq0 |= disk_io_unmask_irq0;
             /* TODO: If handle is STDIN and not binary do CTRL+C checking */
@@ -2010,8 +2026,10 @@ static Bitu DOS_21Handler(void) {
                 }
                 else
                 {
-                    if(fRead = DOS_ReadFile(reg_bx, dos_copybuf, &toread))
+                    if(fRead = DOS_ReadFile(reg_bx, dos_copybuf, &toread)) {
                         MEM_BlockWrite(SegPhys(ds) + reg_dx, dos_copybuf, toread);
+                        diskio_delay_handle(reg_bx, toread);
+                    }
                 }
 
                 if (fRead) {
@@ -2051,10 +2069,6 @@ static Bitu DOS_21Handler(void) {
                     reg_ax=dos.errorcode;
                     CALLBACK_SCF(true);
                 }
-                if(DOS_GetDefaultDrive() < 2)
-                    diskio_delay(reg_ax,0); // Floppy
-                else
-                    diskio_delay(reg_ax);
                 dos.echo=false;
                 break;
             }
@@ -2093,7 +2107,9 @@ static Bitu DOS_21Handler(void) {
                         fWritten = !(((DOS_ExtDevice*)Files[handle])->CallDeviceFunction(8, 26, SegValue(ds), reg_dx, towrite) & 0x8000);
                     }
                     else {
-                        fWritten = DOS_WriteFile(reg_bx, dos_copybuf, &towrite);
+                        if(fWritten = DOS_WriteFile(reg_bx, dos_copybuf, &towrite)) {
+                            diskio_delay_handle(reg_bx, towrite);
+                        }
                     }
                 }
                 if (fWritten) {
@@ -2103,10 +2119,6 @@ static Bitu DOS_21Handler(void) {
                     reg_ax=dos.errorcode;
                     CALLBACK_SCF(true);
                 }
-                if(DOS_GetDefaultDrive() < 2)
-                    diskio_delay(reg_ax,0); // Floppy
-                else
-                    diskio_delay(reg_ax);
                 break;
             }
         case 0x41:                  /* UNLINK Delete file */
@@ -2114,16 +2126,13 @@ static Bitu DOS_21Handler(void) {
             MEM_StrCopy(SegPhys(ds)+reg_dx,name1,DOSNAMEBUF);
 			force_sfn = true;
             if (DOS_UnlinkFile(name1)) {
+                diskio_delay_drive((name1[1] == ':') ? toupper(name1[0]) - 'A' : DOS_GetDefaultDrive(), 1024);
                 CALLBACK_SCF(false);
             } else {
                 reg_ax=dos.errorcode;
                 CALLBACK_SCF(true);
             }
 			force_sfn = false;
-            if(DOS_GetDefaultDrive() < 2)
-                diskio_delay(1024,0); // Floppy
-            else
-                diskio_delay(1024);
             break;
         case 0x42:                  /* LSEEK Set current file position */
             unmask_irq0 |= disk_io_unmask_irq0;
@@ -2132,15 +2141,12 @@ static Bitu DOS_21Handler(void) {
                 if (DOS_SeekFile(reg_bx,&pos,reg_al)) {
                     reg_dx=(uint16_t)((unsigned int)pos >> 16u);
                     reg_ax=(uint16_t)(pos & 0xFFFF);
+                    diskio_delay_handle(reg_bx, 32);
                     CALLBACK_SCF(false);
                 } else {
                     reg_ax=dos.errorcode;
                     CALLBACK_SCF(true);
                 }
-                if(DOS_GetDefaultDrive() < 2)
-                    diskio_delay(32,0); // Floppy
-                else
-                    diskio_delay(32);
                 break;
             }
         case 0x43:                  /* Get/Set file attributes */
