@@ -448,8 +448,12 @@ void VGA_SetClock(Bitu which,Bitu target) {
     VGA_StartResize();
 }
 
+uint8_t CGAPal2[2] = {0,0};
+uint8_t CGAPal4[4] = {0,0,0,0};
+
 void VGA_SetCGA2Table(uint8_t val0,uint8_t val1) {
     const uint8_t total[2] = {val0,val1};
+    for (unsigned int i=0;i < 2;i++) CGAPal2[i] = total[i];
     for (Bitu i=0;i<16u;i++) {
         CGA_2_Table[i]=
 #ifdef WORDS_BIGENDIAN
@@ -469,6 +473,7 @@ void VGA_SetCGA2Table(uint8_t val0,uint8_t val1) {
 
 void VGA_SetCGA4Table(uint8_t val0,uint8_t val1,uint8_t val2,uint8_t val3) {
     const uint8_t total[4] = {val0,val1,val2,val3};
+    for (unsigned int i=0;i < 4;i++) CGAPal4[i] = total[i];
     for (Bitu i=0;i<256u;i++) {
         CGA_4_Table[i]=
 #ifdef WORDS_BIGENDIAN

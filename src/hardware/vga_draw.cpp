@@ -3322,6 +3322,9 @@ void VGA_DebugOverlay() {
         RENDER_DrawLine(VGA_debug_screen+(y*VGA_debug_screen_stride));
 }
 
+extern uint8_t CGAPal2[2];
+extern uint8_t CGAPal4[4];
+
 void VGA_sof_debug_video_info(void) {
 	unsigned int green,white;
 	char tmp[256];
@@ -3509,6 +3512,41 @@ void VGA_sof_debug_video_info(void) {
 	 * display code simpler here. */
 	y += 8;
 	x = 4;
+	if (machine == MCH_CGA) {
+		if (vga.draw.bpp == 8 && vga.mode != M_CGA16) { /* CGA emulation doesn't use anything else, and do not draw palette in "composite" mode */
+			x = VGA_debug_screen_puts8(x,y,"PAL:",white) + 8;
+			VGA_debug_screen_func->rect(x-1,y,x,y+7,0x8/*dkgray*/);
+			if (vga.mode == M_CGA4 || vga.mode == M_TANDY4) {
+				VGA_debug_screen_func->rect(x-1,y,x+(8*4),y+1,0x8);
+				VGA_debug_screen_func->rect(x-1,y+7,x+(8*4),y+8,0x8);
+				for (unsigned int c=0;c < 4;c++) {
+					VGA_debug_screen_func->rect(x,y,x+7,y+7,CGAPal4[c]);
+					VGA_debug_screen_func->rect(x+7,y,x+8,y+7,0x8);
+					x += 8;
+				}
+			}
+			else if (vga.mode == M_CGA2 || vga.mode == M_TANDY2) {
+				VGA_debug_screen_func->rect(x-1,y,x+(8*2),y+1,0x8);
+				VGA_debug_screen_func->rect(x-1,y+7,x+(8*2),y+8,0x8);
+				for (unsigned int c=0;c < 2;c++) {
+					VGA_debug_screen_func->rect(x,y,x+7,y+7,CGAPal2[c]);
+					VGA_debug_screen_func->rect(x+7,y,x+8,y+7,0x8);
+					x += 8;
+				}
+			}
+			else {
+				VGA_debug_screen_func->rect(x-1,y,x+(8*16),y+1,0x8);
+				VGA_debug_screen_func->rect(x-1,y+7,x+(8*16),y+8,0x8);
+				for (unsigned int c=0;c < 16;c++) {
+					VGA_debug_screen_func->rect(x,y,x+7,y+7,c);
+					VGA_debug_screen_func->rect(x+7,y,x+8,y+7,0x8);
+					x += 8;
+				}
+			}
+
+			x += 8;
+		}
+	}
 }
 
 static void VGA_VerticalTimer(Bitu /*val*/) {
