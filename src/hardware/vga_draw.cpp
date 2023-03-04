@@ -18,6 +18,7 @@
 
 
 #include <string.h>
+#include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include "dosbox.h"
@@ -133,6 +134,7 @@ bool pc98_monochrome_mode = false;
 
 extern bool pc98_40col_text;
 extern bool vga_3da_polled;
+extern bool video_debug_overlay;
 extern bool vga_page_flip_occurred;
 extern bool egavga_per_scanline_hpel;
 extern bool vga_enable_hpel_effects;
@@ -3152,6 +3154,259 @@ void VGA_CaptureWriteScanline(const uint8_t *raw) {
     }
 }
 
+/* VGA debug screen */
+struct VGA_debug_screen_func_t {
+	void		(*clear)(unsigned int color);
+	void		(*rect)(int x,int y,int w,int h,unsigned int color);
+	void		(*bitblt)(int x,int y,int w,int h,size_t stride,const unsigned char *bitmap,unsigned int color);
+};
+
+static const struct VGA_debug_screen_func_t* VGA_debug_screen_func = NULL;
+static unsigned char *VGA_debug_screen = NULL;
+static size_t VGA_debug_screen_stride = 0;
+static size_t VGA_debug_screen_w = 0;
+static size_t VGA_debug_screen_h = 0;
+static size_t VGA_debug_screen_bpp = 0;
+
+template <typename T> static T* VGA_debug_screen_ptr_fast(const unsigned int y) {
+	return (T*)(VGA_debug_screen + ((unsigned int)y * VGA_debug_screen_stride));
+}
+
+template <typename T> static T* VGA_debug_screen_ptr(const int y) {
+	if (y >= 0 && y < (int)VGA_debug_screen_h)
+		return VGA_debug_screen_ptr_fast<T>((unsigned int)y);
+
+	return NULL;
+}
+
+template <typename T> static void VGA_debug_screen_func_clear(unsigned int color) {
+	for (unsigned int y=0;y < VGA_debug_screen_h;y++) {
+		T* row = VGA_debug_screen_ptr_fast<T>(y);
+		for (unsigned int x=0;x < VGA_debug_screen_w;x++) *row++ = color;
+	}
+}
+
+template <typename T> static void VGA_debug_screen_func_rect(int x1,int y1,int x2,int y2,unsigned int color) {
+	if (x1 < 0) x1 = 0;
+	if (y1 < 0) y1 = 0;
+	if (x2 > (int)VGA_debug_screen_w) x2 = (int)VGA_debug_screen_w;
+	if (y2 > (int)VGA_debug_screen_h) y2 = (int)VGA_debug_screen_h;
+	while (y1 < y2) {
+		T* row = VGA_debug_screen_ptr_fast<T>(y1++) + (unsigned int)x1;
+		for (int x=x1;x < x2;x++) *row++ = color;
+	}
+}
+
+template <typename T> static void VGA_debug_screen_func_bitblt(int x,int y,int w,int h,size_t stride,const unsigned char *bitmap,unsigned int color) {
+	if (w <= 0 || x < 0 || (x+w) > (int)VGA_debug_screen_w) return;
+	if (h <= 0 || y < 0 || (y+h) > (int)VGA_debug_screen_h) return;
+
+	while (h > 0) {
+		{
+			T *row = VGA_debug_screen_ptr_fast<T>(y) + x;
+			const unsigned char *s = bitmap;
+			unsigned char tmp;
+			size_t r = w;
+
+			while (r >= 8) {
+				tmp = *s++;
+				for (size_t b=0;b < 8;b++) {
+					if (tmp & 0x80) *row = color;
+					tmp <<= 1u;
+					row++;
+				}
+				r -= 8;
+			}
+
+			if (r > 0) {
+				tmp = *s++;
+				do {
+					if (tmp & 0x80) *row++ = color;
+					tmp <<= 1u;
+					row++;
+					r--;
+				} while (r > 0);
+			}
+		}
+
+		bitmap += stride;
+		y++;
+		h--;
+	}
+}
+
+static const VGA_debug_screen_func_t VGA_debug_screen_funcs8 = {
+	&VGA_debug_screen_func_clear<uint8_t>,
+	&VGA_debug_screen_func_rect<uint8_t>,
+	&VGA_debug_screen_func_bitblt<uint8_t>
+};
+
+static const VGA_debug_screen_func_t VGA_debug_screen_funcs16 = {
+	&VGA_debug_screen_func_clear<uint16_t>,
+	&VGA_debug_screen_func_rect<uint16_t>,
+	&VGA_debug_screen_func_bitblt<uint16_t>
+};
+
+static const VGA_debug_screen_func_t VGA_debug_screen_funcs32 = {
+	&VGA_debug_screen_func_clear<uint32_t>,
+	&VGA_debug_screen_func_rect<uint32_t>,
+	&VGA_debug_screen_func_bitblt<uint32_t>
+};
+
+extern uint8_t int10_font_08[256 * 8];
+
+static int VGA_debug_screen_putc8(int x,int y,unsigned char c,unsigned int color) {
+	VGA_debug_screen_func->bitblt(x,y,8,8,1,int10_font_08 + ((unsigned int)c * 8),color);
+	x += 8;
+	return x;
+}
+
+static int VGA_debug_screen_puts8(int x,int y,const char *msg,unsigned int color) {
+	while (*msg != 0) {
+		VGA_debug_screen_func->bitblt(x,y,8,8,1,int10_font_08 + (((unsigned int)((unsigned char)(*msg++))) * 8u),color);
+		x += 8;
+	}
+
+	return x;
+}
+
+static void VGA_debug_screen_free(void) {
+	if (VGA_debug_screen != NULL) {
+		free(VGA_debug_screen);
+		VGA_debug_screen = NULL;
+		VGA_debug_screen_h = 0;
+	}
+}
+
+static void VGA_debug_screen_alloc(size_t w,size_t h,size_t bpp) {
+	assert(VGA_debug_screen == NULL);
+	VGA_debug_screen_w = w;
+	VGA_debug_screen_h = h;
+	VGA_debug_screen_bpp = bpp;
+	VGA_debug_screen_stride = ((w*((bpp+7)>>3))+7)&(~7);
+	VGA_debug_screen = (unsigned char*)malloc(VGA_debug_screen_stride * VGA_debug_screen_h);
+
+	switch (bpp) {
+		case 8:
+			VGA_debug_screen_func = &VGA_debug_screen_funcs8;
+			break;
+		case 16:
+			VGA_debug_screen_func = &VGA_debug_screen_funcs16;
+			break;
+		case 32:
+			VGA_debug_screen_func = &VGA_debug_screen_funcs32;
+			break;
+		default:
+			VGA_debug_screen_func = NULL;
+			break;
+	};
+}
+
+static void VGA_debug_screen_resize(size_t w,size_t h,size_t bpp) {
+	if (w == 0 || h == 0 || bpp == 0) {
+		VGA_debug_screen_free();
+	}
+	else if (w != VGA_debug_screen_w || h != VGA_debug_screen_h || bpp != VGA_debug_screen_bpp) {
+		VGA_debug_screen_free();
+		VGA_debug_screen_alloc(w,h,bpp);
+	}
+	else if (VGA_debug_screen == NULL) {
+		VGA_debug_screen_alloc(w,h,bpp);
+	}
+}
+
+void VGA_DebugOverlay() {
+    if (VGA_debug_screen == NULL || VGA_debug_screen_w < render.src.width) return;
+
+    for (unsigned int y=0;y < VGA_debug_screen_h && render.scale.inLine < render.src.height;y++)
+        RENDER_DrawLine(VGA_debug_screen+(y*VGA_debug_screen_stride));
+}
+
+void VGA_sof_debug_video_info(void) {
+	unsigned int green,white;
+	char tmp[256];
+	int x,y;
+
+	switch (VGA_debug_screen_bpp) {
+		case 8:
+			// CGA/Tandy/PCjr/Herc/MDA
+			if (machine == MCH_HERC || machine == MCH_MDA) {
+				white = 1;
+				green = 1;
+			}
+			else if (machine == MCH_EGA) {
+				white = 0x3F;
+				green = 0x12; /* xxRGBrgb */
+			}
+			else {
+				white = 0xF;
+				green = 0xA; /* xxxxIRGB */
+			}
+			break;
+		case 32: // VGA/MCGA/SVGA/PC98
+			green = GFX_Gmask;
+			white = GFX_Bmask | GFX_Gmask | GFX_Rmask;
+			break;
+		default:
+			return;
+	};
+
+	x = y = 4;
+	x = VGA_debug_screen_puts8(x,y,mode_texts[vga.mode],green) + 8;
+	if (vga.mode == M_PC98) {
+		/* PC-98 has two video "layers" that can contain both text and graphics at the same time.
+		 * Each one can be turned off at any time and it's helpful here to indicate if that's the case. */
+		char *d = tmp;
+
+		/* text */
+		if (pc98_gdc[GDC_MASTER].display_enable) {
+			d += sprintf(d,"T%ux%u",
+				pc98_gdc[GDC_MASTER].active_display_words_per_line / (pc98_40col_text?2:1),
+				pc98_gdc[GDC_MASTER].active_display_lines / pc98_gdc[GDC_MASTER].row_height);
+		}
+		else {
+			d += sprintf(d,"T---");
+		}
+
+		*d++ = '/';
+
+		/* graphics */
+		if (pc98_gdc[GDC_SLAVE].display_enable) {
+			/* FIXME: Pixels count is incorrect for PC-9821 DOS utility "Paint tool" by Login... but correct for 256-color PC-9821 version
+			 *        of Battle Skin Panic */
+			d += sprintf(d,"G%ux%u",
+				pc98_gdc[GDC_SLAVE].active_display_words_per_line * (gdc_5mhz_mode?8:16)/*character clocks to pixels*/,
+				pc98_gdc[GDC_SLAVE].active_display_lines / pc98_gdc[GDC_SLAVE].row_height);
+
+			if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
+				d += sprintf(d,"-256c");
+			else if (pc98_gdc_vramop & (1 << VOPBIT_ANALOG))
+				d += sprintf(d,"-16c");
+			else if (pc98_monochrome_mode)
+				d += sprintf(d,"-2c");
+			else
+				d += sprintf(d,"-8c");
+
+			if (pc98_graphics_hide_odd_raster_200line && pc98_gdc[GDC_SLAVE].row_height > 1 && !(pc98_gdc_vramop & (1 << VOPBIT_VGA)))
+				d += sprintf(d,"-r"); /* raster effect but you can't do it in 256-color mode and row height must be greater than 1 */
+		}
+		else {
+			d += sprintf(d,"G---");
+		}
+	}
+	else if (vga.mode == M_TEXT || vga.mode == M_TANDY_TEXT || vga.mode == M_HERC_TEXT) {
+		sprintf(tmp,"T %ux%u/%ux%u",
+			(unsigned int)vga.draw.width / ((vga.seq.clocking_mode&1)?8:9),(unsigned int)vga.draw.height / (unsigned int)vga.draw.address_line_total,
+			(unsigned int)vga.draw.width,(unsigned int)vga.draw.height);
+	}
+	else {
+		sprintf(tmp,"G %ux%u/%ux%u",
+			(unsigned int)vga.draw.width,(unsigned int)vga.draw.height / (unsigned int)vga.draw.address_line_total,
+			(unsigned int)vga.draw.width,(unsigned int)vga.draw.height);
+	}
+	x = VGA_debug_screen_puts8(x,y,tmp,white);
+}
+
 static void VGA_VerticalTimer(Bitu /*val*/) {
     double current_time = PIC_GetCurrentEventTime();
 
@@ -3880,6 +4135,16 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         }
     }
 #endif
+
+    if (video_debug_overlay && render.src.height > vga.draw.height && vga.draw.bpp == render.src.bpp)
+        VGA_debug_screen_resize(render.src.width,render.src.height - vga.draw.height,vga.draw.bpp);
+    else
+        VGA_debug_screen_free();
+
+    if (video_debug_overlay && VGA_debug_screen) {
+	VGA_debug_screen_func->clear(0);
+	VGA_sof_debug_video_info();
+    }
 
     // add the draw event
     switch (vga.draw.mode) {
