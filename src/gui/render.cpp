@@ -909,6 +909,9 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
 	else if (machine == MCH_PC98) {
 		height += 8*6;
 	}
+	else if (machine == MCH_VGA) {
+		height += 8*6;
+	}
 	else {
 		height += 8*2;
 	}
