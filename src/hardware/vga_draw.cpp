@@ -3467,10 +3467,28 @@ void VGA_sof_debug_video_info(void) {
 		d += sprintf(d," pg:c%ud%u",(pc98_gdc_vramop & (1 << VOPBIT_ACCESS))?1:0,GDC_display_plane_pending);
 	}
 	else if (IS_EGAVGA_ARCH) {
+		char *d = tmp;
+
 		if (IS_VGA_ARCH && svgaCard != SVGA_None)
-			sprintf(tmp,"@%05x+%03x",(unsigned int)vga.config.display_start,(unsigned int)vga.config.scan_len*2);
+			d += sprintf(d,"@%05x+%03x",(unsigned int)vga.config.display_start,(unsigned int)vga.config.scan_len*2);
 		else
-			sprintf(tmp,"@%04x+%02x",(unsigned int)vga.config.display_start,(unsigned int)vga.config.scan_len*2);
+			d += sprintf(d,"@%04x+%02x",(unsigned int)vga.config.display_start,(unsigned int)vga.config.scan_len*2);
+
+		switch (vga.config.addr_shift) {
+			case 0: *d++ = '-'; *d++ = 'B'; break;
+			case 1: *d++ = '-'; *d++ = 'W'; break;
+			case 2: *d++ = '-'; *d++ = 'D'; break;
+			default: break;
+		}
+
+		if (IS_VGA_ARCH && (vga.mode == M_LIN8 || vga.mode == M_VGA)) {
+			/* maybe the user might want to know if 256-color mode is chained or unchained */
+			if (vga.seq.memory_mode & 8) d += sprintf(d,"ch4"); /* if the "chain 4" bit is set, normal chained 4 */
+			else if (vga.config.addr_shift == 0) d += sprintf(d,"uch"); /* if not set, and CRTC mode is byte mode, unchained */
+			/* anything else is weird */
+		}
+
+		*d = 0;
 	}
 	else {
 		sprintf(tmp,"@%04x+%02x",(unsigned int)vga.config.display_start,(unsigned int)vga.other.hdend);
