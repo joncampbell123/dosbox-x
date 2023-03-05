@@ -1,4 +1,12 @@
 Next
+  - Added debug menu and dosbox.conf option to show debug information
+    at the bottom of the screen when enabled. This debug information
+    reflects the video state at the start of active display. It can be
+    used to see in real time the state of the palette, display offset,
+    display stride, and other useful information. It is rendered into
+    the frame on purpose so that it appears as part of the picture
+    when you take a screenshot or record a video to AVI or MTS for
+    later review. (joncampbell123)
   - Dynamic core: Fix serious bug in dynrec dynamic core where calls
     to handle x86 FPU instructions erronously passed the entire
     FPU status word instead of passing only the FPU stack pointer.
