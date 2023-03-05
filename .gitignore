@@ -320,8 +320,8 @@ __pycache__/
 ###############################################################################
 
 *~
-dosbox.app/
-dosbox.app/*
+dosbox-x.app/
+dosbox-x.app/*
 dosbox.icns
 dosbox.iconset/
 dosbox.iconset/*
@@ -351,6 +351,10 @@ Makefile
 config.h
 config.status
 stamp-h1
+
+# macOS Universal Binary intermediates
+/src/dosbox-x-arm64
+/src/dosbox-x-x86_64
 
 doxygen
 doxygen/*
@@ -410,6 +414,9 @@ vs/libpng/linux-build/*
 /vs/libpdcurses/wincon/firework.exe
 .vscode/settings.json
 vs/freetype/objs
+
+# Ignore mach-o-matic
+/src/tool/mach-o-matic
 
 # Ignore flatpak stuff
 .flatpak-builder/
