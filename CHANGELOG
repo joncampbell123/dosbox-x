@@ -1,4 +1,8 @@
 Next
+  - IPX emulation was broken because it set up the virtual file, IRQ
+    and interrupt handler way too early, which the BIOS startup would
+    then overwrite with the default BIOS IRQ handler. IPX emulation
+    should work now, at least multiplayer DOOM. (joncampbell123)
   - Added debug menu and dosbox.conf option to show debug information
     at the bottom of the screen when enabled. This debug information
     reflects the video state at the start of active display. It can be

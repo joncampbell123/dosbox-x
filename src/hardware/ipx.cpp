@@ -1196,10 +1196,15 @@ public:
 static IPX* test;
 
 void IPX_ShutDown(Section*) {
-	delete test;    
+	delete test;
 }
 
 void IPX_OnReset(Section*) {
+	/* reset signal */
+	delete test;
+}
+
+void IPX_Setup(Section*) {
 	if (test == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating IPX emulation");
 		test = new IPX(control->GetSection("ipx"));

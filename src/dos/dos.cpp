@@ -3946,6 +3946,8 @@ static Bitu DOS_29Handler(void)
 	return CBRET_NONE;
 }
 
+void IPX_Setup(Section*);
+
 class DOS:public Module_base{
 private:
 	CALLBACK_HandlerObject callback[9];
@@ -4468,6 +4470,10 @@ public:
                 }
             }
         }
+
+#if C_IPX
+	IPX_Setup(NULL);
+#endif
 
 		DOS_SetupPrograms();
 		DOS_SetupMisc();							/* Some additional dos interrupts */
