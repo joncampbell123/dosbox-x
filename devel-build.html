@@ -85,9 +85,9 @@ function add_ci_build_entry(workflow_id, description, page = 1) {
 document.addEventListener("DOMContentLoaded", () => {
     add_ci_build_entry("vsbuild32", "32-bit Visual Studio builds (for Vista+/ARM)");
     add_ci_build_entry("vsbuild64", "64-bit Visual Studio builds (for Vista+/ARM)");
-    add_ci_build_entry("mingw32", "32-bit MinGW builds (for Vista+)");
-    add_ci_build_entry("mingw64", "64-bit MinGW builds (for Vista+)");
-    add_ci_build_entry("vsbuild_xp", "32/64-bit builds for Windows XP");	
+    add_ci_build_entry("mingw32", "32-bit MinGW builds (for 7+) and lowend builds (for Vista+)");
+    add_ci_build_entry("mingw64", "64-bit MinGW builds (for 7+)");
+    add_ci_build_entry("vsbuild_xp", "32/64-bit builds for Windows XP+");	
     add_ci_build_entry("linux", "Linux (x86_64) builds");
     add_ci_build_entry("macos", "macOS (x86_64) builds");
     add_ci_build_entry("hxdos", "HX-DOS (x86) build");
