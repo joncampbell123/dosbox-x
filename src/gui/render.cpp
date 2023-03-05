@@ -910,7 +910,7 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
 		height += 8*6;
 	}
 	else if (machine == MCH_VGA) {
-		height += 8*6;
+		height += 8*7;
 	}
 	else {
 		height += 8*2;

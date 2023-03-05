@@ -3806,8 +3806,7 @@ void VGA_sof_debug_video_info(void) {
 				VGA_debug_screen_func->rect(x-1,y,x+(8*16),y+1,dkgray);
 				VGA_debug_screen_func->rect(x-1,y+7,x+(8*16),y+8,dkgray);
 				for (unsigned int c=0;c < 16;c++) {
-					unsigned int idx = vga.attr.palette[c]&0x3F;
-					/* TODO: Show the effects of color select here too */
+					const unsigned int idx = vga.attr.palette[c]&0x3F;
 					const unsigned int color = SDL_MapRGB(
 						sdl.surface->format,
 						((vga.dac.rgb[idx].red << dacshift) & 0xFF),
@@ -3821,7 +3820,31 @@ void VGA_sof_debug_video_info(void) {
 				x += 8;
 
 				sprintf(tmp,"CPE:%x HPEL:%x",vga.attr.color_plane_enable&0xF,vga.config.pel_panning&0xF); /* 4 bits, 4 bitplanes, one hex digit */
-				x = VGA_debug_screen_puts8(x,y,tmp,white);
+				x = VGA_debug_screen_puts8(x,y,tmp,white) + 8;
+
+				x = 4;
+				y += 8; /* next line */
+
+				/* attribute controller PAL with color select and other in force */
+				x = VGA_debug_screen_puts8(x,y,"CSPAL:",white) + 8;
+				VGA_debug_screen_func->rect(x-1,y,x+(8*16),y+1,dkgray);
+				VGA_debug_screen_func->rect(x-1,y+7,x+(8*16),y+8,dkgray);
+				for (unsigned int c=0;c < 16;c++) {
+					const unsigned int idx = vga.dac.combine[c]; /* vga_dac.cpp considers color select */
+					const unsigned int color = SDL_MapRGB(
+						sdl.surface->format,
+						((vga.dac.rgb[idx].red << dacshift) & 0xFF),
+						((vga.dac.rgb[idx].green << dacshift) & 0xFF),
+						((vga.dac.rgb[idx].blue << dacshift) & 0xFF));
+					VGA_debug_screen_func->rect(x,y+1,x+7,y+7,color);
+					VGA_debug_screen_func->rect(x+7,y+1,x+8,y+7,dkgray);
+					x += 8;
+				}
+
+				x += 8;
+
+				sprintf(tmp,"PM%02x MD%02x CS%02x",vga.dac.pel_mask,vga.attr.mode_control,vga.attr.color_select);
+				x = VGA_debug_screen_puts8(x,y,tmp,white) + 8;
 			}
 		}
 	}
