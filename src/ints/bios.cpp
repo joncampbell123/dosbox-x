@@ -3613,7 +3613,8 @@ static Bitu INT18_PC98_Handler(void) {
         //       Neko Project is also unaware of such a call.
         case 0x0C: /* text layer enable */
             if (pc98_gdc_vramop & (1u << VOPBIT_VGA)) {
-               /* NTS: According to tests on real PC-9821 hardware, you can't turn on the text layer in 256-color mode, at least through the BIOS */
+               /* NTS: According to tests on real PC-9821 hardware, you can't turn on the text layer in 256-color mode, at least through the BIOS. */
+               /* FIXME: Is this a restriction imposed by the BIOS, or the hardware itself? */
                LOG_MSG("INT 18h: Attempt to turn on text layer in 256-color mode");
             }
             else {
