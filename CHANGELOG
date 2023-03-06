@@ -1,4 +1,12 @@
 Next
+  - PC-98 256-color mode: Fix "Active Display Words" value set by INT 18h
+    to 40, not 80, for graphics layer. This has no apparent effect on
+    games but it does fix the sometimes erroneous graphics layer width
+    in the video debug display. Neko Project II source code seems to
+    indicate the 31KHz hsync mode is programmed that way even if 256-color
+    mode. This should not break anything since the GDC doesn't let you
+    read back the "SYNC" reset parameters anyway--this isn't VGA hardware,
+    after all. (joncampbell123).
   - IPX emulation was broken because it set up the virtual file, IRQ
     and interrupt handler way too early, which the BIOS startup would
     then overwrite with the default BIOS IRQ handler. IPX emulation
