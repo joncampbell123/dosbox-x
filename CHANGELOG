@@ -1,4 +1,13 @@
 Next
+  - PC-98: Ignore INT 18h AH=0Ch (enable text layer) in 256-color mode.
+    Real hardware doesn't seem to let you turn on the text layer in
+    256-color mode, though I am not certain if this is a restriction
+    imposed by the BIOS or by the hardware. This fixes possible cases
+    where Sim City 2000 in 256-color mode reveals garbage text data at
+    the bottom of the screen if it is there when it starts. This doesn't
+    fix the issue where Sim City 2000 cannot set 640x480 256-color mode
+    properly unless your display is already set to 31Khz hsync because that
+    is evidently a bug in the game, not DOSBox-X. (joncampbell123).
   - PC-98 256-color mode: Fix "Active Display Words" value set by INT 18h
     to 40, not 80, for graphics layer. This has no apparent effect on
     games but it does fix the sometimes erroneous graphics layer width

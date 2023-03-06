@@ -3612,11 +3612,17 @@ static Bitu INT18_PC98_Handler(void) {
         //       (Something to do with the buffer [https://ia801305.us.archive.org/8/items/PC9800TechnicalDataBookBIOS1992/PC-9800TechnicalDataBook_BIOS_1992_text.pdf])
         //       Neko Project is also unaware of such a call.
         case 0x0C: /* text layer enable */
-            pc98_gdc[GDC_MASTER].force_fifo_complete();
-            pc98_gdc[GDC_MASTER].display_enable = true;
+            if (pc98_gdc_vramop & (1u << VOPBIT_VGA)) {
+               /* NTS: According to tests on real PC-9821 hardware, you can't turn on the text layer in 256-color mode, at least through the BIOS */
+               LOG_MSG("INT 18h: Attempt to turn on text layer in 256-color mode");
+            }
+            else {
+                pc98_gdc[GDC_MASTER].force_fifo_complete();
+                pc98_gdc[GDC_MASTER].display_enable = true;
 #if defined(USE_TTF)
-            ttf_switch_on(false);
+                ttf_switch_on(false);
 #endif
+            }
             break;
         case 0x0D: /* text layer disable */
 #if defined(USE_TTF)
