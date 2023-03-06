@@ -3154,8 +3154,8 @@ bool ParseCommand(char* str) {
             cpptmp.clear();
             DEBUG_ShowMsg("PC-98 status: gdc5mhz=%u vsync-int-trig=%u rowheight=%u lines-drawn=%u",
                 gdc_5mhz_mode,GDC_vsync_interrupt,gdc.row_height,(unsigned int)vga.draw.lines_done);
-            DEBUG_ShowMsg("  cur-row-line=%u cur-scan=0x%x cur-partition=%u/%u part-remline=%u",
-                gdc.row_line,gdc.scan_address,gdc.display_partition,gdc.display_partition_mask+1,gdc.display_partition_rem_lines);
+            DEBUG_ShowMsg("  cur-row-line=%u cur-scan=0x%x cur-partition=%u/%u part-remline=%u adw=%u",
+                gdc.row_line,gdc.scan_address,gdc.display_partition,gdc.display_partition_mask+1,gdc.display_partition_rem_lines,gdc.active_display_words_per_line);
             DEBUG_ShowMsg("  vram-bound=%uKB monomode=%u",
                 pc98_256kb_boundary?256:128,pc98_monochrome_mode);
 
@@ -3228,10 +3228,10 @@ bool ParseCommand(char* str) {
             /*--------------------*/
 
             cpptmp.clear();
-            DEBUG_ShowMsg("PC-98 status: gdc5mhz=%u vsync-int-trig=%u rowheight=%u lines-drawn=%u",
-                gdc_5mhz_mode,GDC_vsync_interrupt,gdc.row_height,(unsigned int)vga.draw.lines_done);
-            DEBUG_ShowMsg("  cur-row-line=%u cur-scan=0x%x cur-partition=%u/%u part-remline=%u",
-                gdc.row_line,gdc.scan_address,gdc.display_partition,gdc.display_partition_mask+1,gdc.display_partition_rem_lines);
+            DEBUG_ShowMsg("PC-98 status: gdc5mhz=%u vsync-int-trig=%u rowheight=%u lines-drawn=%u pitch=%u",
+                gdc_5mhz_mode,GDC_vsync_interrupt,gdc.row_height,(unsigned int)vga.draw.lines_done,gdc.display_pitch);
+            DEBUG_ShowMsg("  cur-row-line=%u cur-scan=0x%x cur-partition=%u/%u part-remline=%u adw=%u",
+                gdc.row_line,gdc.scan_address,gdc.display_partition,gdc.display_partition_mask+1,gdc.display_partition_rem_lines,gdc.active_display_words_per_line);
 
             /*--------------------*/
 

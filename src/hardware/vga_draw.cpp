@@ -3384,8 +3384,8 @@ void VGA_sof_debug_video_info(void) {
 			if (pc98_gdc_vramop & (1 << VOPBIT_VGA))
 				rowsize = 1;
 
-			/* FIXME: Pixels count is incorrect for PC-9821 DOS utility "Paint tool" by Login... but correct for 256-color PC-9821 version
-			 *        of Battle Skin Panic */
+			/* FIXME: Pixels count is incorrect for PC-9821 DOS utility "Paint tool" by Login (1280x480?)... but correct for 256-color PC-9821 version
+			 *        of Battle Skin Panic (640x480) */
 			d += sprintf(d,"G%ux%u",
 				pc98_gdc[GDC_SLAVE].active_display_words_per_line * (gdc_5mhz_mode?8:16)/*character clocks to pixels*/,
 				pc98_gdc[GDC_SLAVE].active_display_lines / rowsize);
@@ -3405,6 +3405,8 @@ void VGA_sof_debug_video_info(void) {
 		else {
 			d += sprintf(d,"G---");
 		}
+
+		d += sprintf(d," GDC:%sMHz",gdc_5mhz_mode?"5":"2.5");
 	}
 	else if (vga.mode == M_TEXT || vga.mode == M_TANDY_TEXT || vga.mode == M_HERC_TEXT) {
 		unsigned int pixperclock = 8;
