@@ -40,13 +40,15 @@ string dylib_replace(string path) {
         fn = s;
 
     if (str_startswith(s,"/opt/homebrew/"))
-        return string("@executable_path/") + fn;
+        return string("@executable_path/arm64/") + fn;
+    if (str_startswith(s,"/usr/local/Homebrew/"))
+        return string("@executable_path/x86_64/") + fn;
     if (str_startswith(s,"/usr/local/lib/"))
-        return string("@executable_path/") + fn;
+        return string("@executable_path/x86_64/") + fn;
     if (str_startswith(s,"/usr/local/opt/"))
-        return string("@executable_path/") + fn;
+        return string("@executable_path/x86_64/") + fn;
     if (str_startswith(s,"/usr/local/Cellar/"))
-        return string("@executable_path/") + fn;
+        return string("@executable_path/x86_64/") + fn;
 
     return path;
 }
