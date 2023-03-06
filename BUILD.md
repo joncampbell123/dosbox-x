@@ -18,7 +18,7 @@ The four major operating systems and platforms of DOSBox-X are:
 
 2. Linux (with X11) 64-bit x86/x64, and on a Raspberry Pi 3/4
 
-3. macOS (Mac OS X) recent version, 64-bit Intel and ARM-based
+3. macOS (Mac OS X) recent version, 64-bit Intel, ARM-based, and Universal
 
 4. DOS (MS-DOS 5.0+ or compatible)
 
@@ -28,7 +28,10 @@ of Visual Studio 2017 to Visual Studio 2022 and the DirectX 2010 SDK.
 Linux and MinGW Windows builds are expected to compile with the GNU autotools.
 
 macOS builds are expected to compile on the terminal using GNU autotools and
-the LLVM/Clang compiler provided by XCode.
+the LLVM/Clang compiler provided by XCode. Universal macOS builds are only
+possible when building on a host machine powered by an Apple Silicon CPU, due to
+requiring parallel Homebrew installations running natively *and* under
+Rosetta 2.
 
 In all cases, the code requires a C++ compiler that can support the C++11
 standard.
@@ -73,14 +76,32 @@ sudo make install
 ```
 
 * macOS compile (SDL1)
-```
-./build-macos
-```
+  * Build natively for the host architecture
+    ```
+    ./build-macos
+    ```
+  * Build a Universal Binary on an Apple Silicon CPU (will *not* work on Intel)
+    ```
+    ./build-macos universal
+    ````
+    You can build an App Bundle from the result of this build with
+    ```
+    make dosbox-x.app
+    ```
 
 * macOS compile (SDL2)
-```
-./build-macos-sdl2
-```
+  * Build natively for the host architecture
+    ```
+    ./build-macos-sdl2
+    ```
+  * Build a Universal Binary on an Apple Silicon CPU (will *not* work on Intel)
+    ```
+    ./build-macos-sdl2 universal
+    ````
+    You can build an App Bundle from the result of this build with
+    ```
+    make dosbox-x.app
+    ```
 
 * MinGW compile (using MinGW-w64) for Windows Vista/7 or later (SDL1)
 ```
