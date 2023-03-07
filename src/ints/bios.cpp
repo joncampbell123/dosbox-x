@@ -9182,6 +9182,9 @@ private:
                 oldcols = oldlins = 0;
         }
 #endif
+        if (machine == MCH_MDA || machine == MCH_HERC) {
+            textsplash = true;
+        }
         char logostr[8][34];
         strcpy(logostr[0], "+---------------------+");
         strcpy(logostr[1], "|     Welcome  To     |");

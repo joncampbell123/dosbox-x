@@ -1,4 +1,8 @@
 Next
+  - Wengier coded this nice text-only DOSBox-X logo for the TTF output.
+    Fix border alignment issues and make the text logo the default and
+    only option for MDA and Hercules machine types at boot.
+    (joncampbell123).
   - Add -print-ticks command line option, which enables code to print
     both SDL_GetTicks() and emulator time once a second to the console
     and the log file. This may help in tracking down bugs related to
