@@ -205,6 +205,8 @@ Next
     a game that sets up EGA 640x200 16-color mode then
     suddenly switches on the 2bpp CGA mode as a way to
     do 16-color dithered graphics. (joncampbell123).
+  - Fix installers for Dynamix games not working.
+    (Allofich & halcyon00)
 
 2022.12.26
   - Allow more than 640KB of conventional memory,

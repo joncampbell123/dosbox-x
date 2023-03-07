@@ -234,7 +234,7 @@ bool DOS_CreateTempFile(char * const name,uint16_t * entry);
 bool DOS_FileExists(char const * const name);
 
 /* Helper Functions */
-bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive);
+bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive,bool isVolume = false);
 /* Drive Handing Routines */
 uint8_t DOS_GetDefaultDrive(void);
 void DOS_SetDefaultDrive(uint8_t drive);
