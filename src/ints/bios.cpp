@@ -9182,21 +9182,21 @@ private:
                 oldcols = oldlins = 0;
         }
 #endif
-        char logostr[8][30];
-        strcpy(logostr[0], "+-------------------+");
-        strcpy(logostr[1], "|    Welcome  To    |");
-        strcpy(logostr[2], "|                   |");
-        strcpy(logostr[3], "| D O S B o x - X ! |");
-        strcpy(logostr[4], "|                   |");
-        sprintf(logostr[5], "|    %d-bit %s    |",
+        char logostr[8][34];
+        strcpy(logostr[0], "+---------------------+");
+        strcpy(logostr[1], "|     Welcome  To     |");
+        strcpy(logostr[2], "|                     |");
+        strcpy(logostr[3], "|  D O S B o x - X !  |");
+        strcpy(logostr[4], "|                     |");
+        sprintf(logostr[5],"|     %d-bit %s     |",
 #if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_IA64) || defined(__ia64__) || defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__) || defined(__powerpc64__)^M
         64
 #else
         32
 #endif
         , SDL_STRING);
-        sprintf(logostr[6], "| Version %9s |", VERSION);
-        strcpy(logostr[7], "+-------------------+");
+        sprintf(logostr[6], "| Version %10s  |", VERSION);
+        strcpy(logostr[7], "+---------------------+");
 startfunction:
         int logo_x,logo_y,x=2,y=2,rowheight=8;
         logo_y = 2;
