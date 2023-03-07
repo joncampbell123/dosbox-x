@@ -6922,7 +6922,9 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -log-int21                              Log calls to INT 21h (debug level)\n");
             fprintf(stderr,"  -log-fileio                             Log file I/O through INT 21h (debug level)\n");
             fprintf(stderr,"  -nolog                                  Do not log anything to log file\n");
-            fprintf(stderr,"  -tests                                  Run unit tests to test the DOSBox-X code\n\n");
+            fprintf(stderr,"  -tests                                  Run unit tests to test the DOSBox-X code\n");
+            fprintf(stderr,"  -print-ticks                            (Debug) Print emulator time and SDL_GetTicks()\n");
+            fprintf(stderr,"\n");
 
 #if defined(WIN32)
             DOSBox_ConsolePauseWait();
@@ -7150,6 +7152,10 @@ bool DOSBOX_parse_argv() {
         }
         else if (optname == "early-debug") {
             control->opt_earlydebug = true;
+            control->opt_console = true;
+        }
+        else if (optname == "print-ticks") {
+            control->opt_print_ticks = true;
             control->opt_console = true;
         }
         else if (optname == "socket") {

@@ -1,4 +1,9 @@
 Next
+  - Add -print-ticks command line option, which enables code to print
+    both SDL_GetTicks() and emulator time once a second to the console
+    and the log file. This may help in tracking down bugs related to
+    long term laptop suspend or suspension of the process in general.
+    (joncampbell123).
   - PC-98: Ignore INT 18h AH=0Ch (enable text layer) in 256-color mode.
     Real hardware doesn't seem to let you turn on the text layer in
     256-color mode, though I am not certain if this is a restriction
