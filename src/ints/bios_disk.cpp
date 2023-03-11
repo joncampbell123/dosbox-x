@@ -1409,7 +1409,7 @@ uint32_t imageDisk::Get_Reserved_Cylinders() {
 imageDisk::imageDisk(IMAGE_TYPE class_id) : class_id(class_id) {
 }
 
-imageDisk::imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, uint32_t heads, uint32_t sectors, uint32_t sector_size, bool hardDrive) : ffdd(NULL)
+imageDisk::imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, uint32_t heads, uint32_t sectors, uint32_t sector_size, bool hardDrive)
 {
     if (diskName) this->diskname = diskName;
     this->cylinders = cylinders;
