@@ -4127,6 +4127,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring = secprop->Add_string("badcommandhandler",Property::Changeable::WhenIdle,"");
     Pstring->Set_help("Allow to specify a custom error handler command for the internal DOS shell before the \"Bad command or file name\" message shows up.");
 
+    Pstring = secprop->Add_string("mscdex device name",Property::Changeable::WhenIdle,"");
+    Pstring->Set_help("If set, use this name as the MSCDEX device name instead of MSCD001");
+
     Pbool = secprop->Add_bool("hma",Property::Changeable::WhenIdle,true);
     Pbool->Set_help("Report through XMS that HMA exists (not necessarily available)");
     Pbool->SetBasic(true);

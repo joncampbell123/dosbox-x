@@ -1,4 +1,6 @@
 Next
+  - Add dosbox.conf option to control the MSCDEX.EXE device name when
+    emulating a CD-ROM drive (joncampbell123).
   - Wengier coded this nice text-only DOSBox-X logo for the TTF output.
     Fix border alignment issues and make the text logo the default and
     only option for MDA and Hercules machine types at boot.
