@@ -1404,6 +1404,13 @@ static Bitu DOS_21Handler(void) {
             DOS_FCBSetRandomRecord(SegValue(ds),reg_dx);
             break;
         case 0x25:      /* Set Interrupt Vector */
+            // Magical Girl Pretty Sammy
+            // Patch sound driver bugs. Swap the order of "mov sp" and "mov ss".
+            if(IS_PC98_ARCH && reg_al == 0x60 && !strcmp(RunningProgram, "SNDCDDRV")
+              && real_readd(SegValue(ds), reg_dx + 47) == 0x0fa6268b && real_readd(SegValue(ds), reg_dx + 52) == 0x0fa4168e) {
+                real_writed(SegValue(ds), reg_dx + 47, 0x0fa4168e);
+                real_writed(SegValue(ds), reg_dx + 52, 0x0fa6268b);
+            }
             RealSetVec(reg_al, RealMakeSeg(ds, reg_dx));
             break;
         case 0x26:      /* Create new PSP */
