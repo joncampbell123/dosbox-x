@@ -8264,6 +8264,11 @@ private:
 
             // STOP interrupt or invalid opcode
             real_writed(0,0x06*4,CALLBACK_RealPointer(call_pc98_default_stop));
+
+            // Magical Girl Pretty Sammy installer
+            // Installer enters an infinite loop if lower 8 bits of the segment portion of int 7 are 0
+            real_writew(0, 7*4, real_readw(0, 7*4) - 0x10);
+            real_writew(0, 7*4+2, real_readw(0, 7*4+2) + 1);
         }
         else {
             /* Clear the vector table */

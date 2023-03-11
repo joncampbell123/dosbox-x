@@ -2325,6 +2325,16 @@ void isoDrive :: MediaChange() {
 }
 
 void isoDrive :: EmptyCache(void) {
+	// Magical Girl Pretty Sammy installer
+	// Installer copies files found by FindFirst/FindNext with "command /c copy",
+	// this function is called at end of DOS_Shell::CMD_COPY and cache is cleared, so only one file is copied.
+	if(IS_PC98_ARCH) {
+		const char *label = GetLabel();
+		if(!strncmp(label, "SAMY_A98", 8) || !strncmp(label, "SAMY_B98", 8)) {
+			// Do not clear cache for Pretty Sammy CD-ROM
+			return;
+		}
+	}
 	enable_udf = (dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10));//default
 	enable_rock_ridge = dos.version.major >= 7 || uselfn;
 	enable_joliet = dos.version.major >= 7 || uselfn;
