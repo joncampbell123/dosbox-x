@@ -596,7 +596,7 @@ struct fatFromDOSDrive
 					}
 					else if (dta_attr & DOS_ATTR_VOLUME)
 					{
-						if ((dirlen || (e->attrib & DOS_ATTR_DIRECTORY) || dta_size))
+						if (dirlen || (e->attrib & DOS_ATTR_DIRECTORY) || dta_size)
 							LOG_MSG("Invalid volume entry - %s\n", e->entryname);
 					}
 					else if (!(dta_attr & DOS_ATTR_DIRECTORY))
@@ -699,7 +699,7 @@ struct fatFromDOSDrive
                 sasi.cylinders = 310;
             } else {
                 sasi.sectors = 33;
-                uint32_t heads = (std::ceil)((double)(usedMB+(readOnly?0:(usedMB>=2047?freeSpaceMB:5)))/10);
+                uint32_t heads = std::ceil((double)(usedMB+(readOnly?0:(usedMB>=2047?freeSpaceMB:5)))/10);
                 if (heads > 255) {
                     sasi.surfaces = 255;
                     sasi.cylinders = heads * 615 / 255;
@@ -711,7 +711,7 @@ struct fatFromDOSDrive
             tsize = BYTESPERSECTOR * sasi.sectors * sasi.surfaces * sasi.cylinders;
             tsizeMB = sasi.sectors * sasi.surfaces * sasi.cylinders / (1024 * 1024 / BYTESPERSECTOR);
             if (tsizeMB < usedMB) readOnly = true;
-            addFreeMB = readOnly ? 0 : (usedMB >= 2047 ? freeSpaceMB : ((std::ceil)((double)tsize - sum.used_bytes) / (1024 * 1024) + 1));
+            addFreeMB = readOnly ? 0 : (usedMB >= 2047 ? freeSpaceMB : (std::ceil((double)tsize - sum.used_bytes) / (1024 * 1024) + 1));
         } else
             addFreeMB = (readOnly ? 0 : freeSpaceMB);
         totalMB = usedMB + (addFreeMB ? (1 + addFreeMB) : 0);
@@ -1177,7 +1177,7 @@ void updateDPT(void) {
         phys_writew(dpphysaddr[i] + 0x3, 0);
         phys_writew(dpphysaddr[i] + 0x5, tmpcyl == 0 ? 0 : (uint16_t)-1);
         phys_writeb(dpphysaddr[i] + 0x7, 0);
-        phys_writeb(dpphysaddr[i] + 0x8, tmpcyl == 0 ? 0 : (0xc0 | (((tmpheads) > 8) << 3)));
+        phys_writeb(dpphysaddr[i] + 0x8, tmpcyl == 0 ? 0 : (0xc0 | ((tmpheads > 8) << 3)));
         phys_writeb(dpphysaddr[i] + 0x9, 0);
         phys_writeb(dpphysaddr[i] + 0xa, 0);
         phys_writeb(dpphysaddr[i] + 0xb, 0);
@@ -1928,7 +1928,7 @@ static Bitu INT13_DiskHandler(void) {
             /* IDE emulation: simulate change of IDE state that would occur on a real machine after INT 13h */
             IDE_EmuINT13DiskReadByBIOS(reg_dl, (uint32_t)(reg_ch | ((reg_cl & 0xc0)<< 2)), (uint32_t)reg_dh, (uint32_t)((reg_cl & 63)+i));
 
-            if((last_status != 0x00) || (killRead)) {
+            if((last_status != 0x00) || killRead) {
                 LOG_MSG("Error in disk read");
                 killRead = false;
                 reg_ah = 0x04;
@@ -2223,7 +2223,7 @@ static Bitu INT13_DiskHandler(void) {
 
             IDE_EmuINT13DiskReadByBIOS_LBA(reg_dl,dap.sector+i);
 
-            if((last_status != 0x00) || (killRead)) {
+            if((last_status != 0x00) || killRead) {
                 LOG_MSG("Error in disk read");
                 killRead = false;
                 reg_ah = 0x04;
@@ -3542,7 +3542,7 @@ bool PartitionLoadIPL1(std::vector<_PC98RawPartition> &parts,imageDisk *loadedDi
 	memset(ipltable,0,sizeof(ipltable));
 	if (loadedDisk->Read_Sector(0,0,2,ipltable) != 0) return false;
 
-	const unsigned int max_entries = (std::min)(16UL,(unsigned long)(loadedDisk->getSectSize() / sizeof(_PC98RawPartition)));
+	const unsigned int max_entries = std::min(16UL,(unsigned long)(loadedDisk->getSectSize() / sizeof(_PC98RawPartition)));
 
 	for (size_t i=0;i < max_entries;i++) {
 		const _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));
