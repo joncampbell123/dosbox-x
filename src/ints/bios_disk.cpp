@@ -439,13 +439,13 @@ struct fatFromDOSDrive
 					memset(&ffdd.fat[ffdd.fat.size() - addSz], 0, addSz);
 				}
 				if (ffdd.fatSz == 32) // FAT32
-					var_write((uint32_t * const)&ffdd.fat[idx * 4], (const uint32_t)val);
+					var_write((uint32_t *)&ffdd.fat[idx * 4], val);
 				else if (ffdd.fatSz == 16) // FAT 16
-					var_write((uint16_t * const)&ffdd.fat[idx * 2], (const uint16_t)val);
+					var_write((uint16_t *)&ffdd.fat[idx * 2], (uint16_t)val);
 				else if (idx & 1) // FAT12 odd cluster
-					var_write((uint16_t * const)&ffdd.fat[idx + idx / 2], (const uint16_t)((var_read((uint16_t *)&ffdd.fat[idx + idx / 2]) & 0xF) | ((val & 0xFFF) << 4)));
+					var_write((uint16_t *)&ffdd.fat[idx + idx / 2], (uint16_t)((var_read((uint16_t *)&ffdd.fat[idx + idx / 2]) & 0xF) | ((val & 0xFFF) << 4)));
 				else // FAT12 even cluster
-					var_write((uint16_t * const)&ffdd.fat[idx + idx / 2], (const uint16_t)((var_read((uint16_t *)&ffdd.fat[idx + idx / 2]) & 0xF000) | (val & 0xFFF)));
+					var_write((uint16_t *)&ffdd.fat[idx + idx / 2], (uint16_t)((var_read((uint16_t *)&ffdd.fat[idx + idx / 2]) & 0xF000) | (val & 0xFFF)));
 			}
 
 			static direntry* AddDirEntry(fatFromDOSDrive& ffdd, bool useFAT16Root, size_t& diridx)
@@ -612,7 +612,7 @@ struct fatFromDOSDrive
                         } catch (...) {
                             LOG_MSG("Too many sectors needed, will discard remaining files (from %s)", lname);
                             ffdd.tomany = ffdd.readOnly = true;
-                            var_write((uint32_t *const)&ffdd.fsinfosec[488], (const uint32_t)0x0);
+                            var_write((uint32_t *)&ffdd.fsinfosec[488], (uint32_t)0x0);
                             break;
                         }
 					}
@@ -647,7 +647,7 @@ struct fatFromDOSDrive
 					}
 					if (e.attrib & DOS_ATTR_DIRECTORY) // this reallocates ffdd.dirs so do this last
 					{
-						var_write(&e.loFirstClust, (const uint16_t)(2 + ffdd.dirs.size() / entriesPerCluster));
+						var_write(&e.loFirstClust, (uint16_t)(2 + ffdd.dirs.size() / entriesPerCluster));
 						ParseDir(ffdd, dir, filter, totlen, myFirstCluster);
 					}
 				}
@@ -749,8 +749,8 @@ struct fatFromDOSDrive
 			for (direntry& e : (rootOrDir ? dirs : root))
 			{
 				if (!e.entrysize || (e.attrib & DOS_ATTR_LONG_NAME_MASK) == DOS_ATTR_LONG_NAME) continue;
-				var_write(&e.hiFirstClust, (const uint16_t)(fileCluster >> 16));
-				var_write(&e.loFirstClust, (const uint16_t)(fileCluster));
+				var_write(&e.hiFirstClust, (uint16_t)(fileCluster >> 16));
+				var_write(&e.loFirstClust, (uint16_t)(fileCluster));
 
 				// Write FAT link chain
 				uint32_t numClusters = (var_read(&e.entrysize) + bytesPerCluster - 1) / bytesPerCluster;
@@ -853,7 +853,7 @@ struct fatFromDOSDrive
 		memset(&bootsec, 0, sizeof(bootsec));
 		memcpy(bootsec.nearjmp, "\xEB\x3C\x90", sizeof(bootsec.nearjmp));
 		memcpy(bootsec.oemname, fatSz == 32 ? "MSWIN4.1" : "MSDOS5.0", sizeof(bootsec.oemname));
-		var_write((uint16_t *const)&bootsec.bytespersector, (const uint16_t)BYTESPERSECTOR);
+		var_write((uint16_t *)&bootsec.bytespersector, (uint16_t)BYTESPERSECTOR);
 		var_write(&bootsec.sectorspercluster, sectorsPerCluster);
 		var_write(&bootsec.reservedsectors, reservedSectors);
 		var_write(&bootsec.fatcopies, 2);
@@ -867,11 +867,11 @@ struct fatFromDOSDrive
 		if (fatSz != 32) // FAT12/FAT16
 		{
 			var_write(&mbr.pentry[0].parttype, (fatSz == 12 ? 0x01 : (sect_disk_end < 65536 ? 0x04 : 0x06))); // FAT12/16
-			var_write((uint16_t *const)&bootsec.rootdirentries, (const uint16_t)root.size());
-			var_write((uint16_t *const)&bootsec.sectorsperfat, (const uint16_t)sectorsPerFat);
+			var_write(&bootsec.rootdirentries, (uint16_t)root.size());
+			var_write(&bootsec.sectorsperfat, (uint16_t)sectorsPerFat);
 			bootsec.bootcode[0] = 0x80; //Physical drive (harddisk) flag
 			bootsec.bootcode[2] = 0x29; //Extended boot signature
-			var_write((uint32_t *const)&bootsec.bootcode[3], (const uint32_t)(serial + 1)); //4 byte partition serial number
+			var_write((uint32_t *)&bootsec.bootcode[3], serial + 1); //4 byte partition serial number
 			memcpy(&bootsec.bootcode[7], "NO NAME    ", 11); // volume label
 			memcpy(&bootsec.bootcode[18], "FAT1    ", 8); // file system string name
 			bootsec.bootcode[22] = (char)('0' + (fatSz % 10)); // '2' or '6'
@@ -879,25 +879,25 @@ struct fatFromDOSDrive
 		else // FAT32
 		{
 			var_write(&mbr.pentry[0].parttype, 0x0C); //FAT32
-			var_write((uint32_t *const)&bootsec.bootcode[0], sectorsPerFat);
-			var_write((uint32_t *const)&bootsec.bootcode[8], (const uint32_t)2); // First cluster number of the root directory
-			var_write((uint16_t *const)&bootsec.bootcode[12], (const uint16_t)1); // Sector of FSInfo structure in offset from top of the FAT32 volume
-			var_write((uint16_t *const)&bootsec.bootcode[14], (const uint16_t)6); // Sector of backup boot sector in offset from top of the FAT32 volume
+			var_write((uint32_t *)&bootsec.bootcode[0], sectorsPerFat);
+			var_write((uint32_t *)&bootsec.bootcode[8], (uint32_t)2); // First cluster number of the root directory
+			var_write((uint16_t *)&bootsec.bootcode[12], (uint16_t)1); // Sector of FSInfo structure in offset from top of the FAT32 volume
+			var_write((uint16_t *)&bootsec.bootcode[14], (uint16_t)6); // Sector of backup boot sector in offset from top of the FAT32 volume
 			bootsec.bootcode[28] = 0x80; //Physical drive (harddisk) flag
 			bootsec.bootcode[30] = 0x29; //Extended boot signature
-			var_write((uint32_t *const)&bootsec.bootcode[31], (const uint32_t)(serial + 1)); //4 byte partition serial number
+			var_write((uint32_t *)&bootsec.bootcode[31], serial + 1); //4 byte partition serial number
 			memcpy(&bootsec.bootcode[35], "NO NAME    ", 11); // volume label
 			memcpy(&bootsec.bootcode[46], "FAT32   ", 8); // file system string name
 
 			memset(fsinfosec, 0, sizeof(fsinfosec));
-			var_write((uint32_t *const)&fsinfosec[0], (const uint32_t)0x41615252); //lead signature
-			var_write((uint32_t *const)&fsinfosec[484], (const uint32_t)0x61417272); //Another signature
+			var_write((uint32_t *)&fsinfosec[0], (uint32_t)0x41615252); //lead signature
+			var_write((uint32_t *)&fsinfosec[484], (uint32_t)0x61417272); //Another signature
 			bool ver71 = dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10);
 			//Bitu freeclusters = readOnly ? 0x0 : (ver71 ? (Bitu)freeSpace / (BYTESPERSECTOR * sectorsPerCluster) : 0xFFFFFFFF);
 			Bitu freeclusters = readOnly ? 0x0 : (ver71 ? (Bitu)((sect_disk_end - sect_files_end) / sectorsPerCluster): 0xFFFFFFFF);
-			var_write((uint32_t *const)&fsinfosec[488], (const uint32_t)(freeclusters < 0xFFFFFFFF ? freeclusters : 0xFFFFFFFF)); //last known free cluster count (all FF is unknown)
-			var_write((uint32_t *const)&fsinfosec[492], (const uint32_t)(ver71 ? (sect_files_end / sectorsPerCluster): 0xFFFFFFFF)); //the cluster number at which the driver should start looking for free clusters (all FF is unknown)
-			var_write((uint32_t *const)&fsinfosec[508], (const uint32_t)0xAA550000); //ending signature
+			var_write((uint32_t *)&fsinfosec[488], (uint32_t)(freeclusters < 0xFFFFFFFF ? freeclusters : 0xFFFFFFFF)); //last known free cluster count (all FF is unknown)
+			var_write((uint32_t *)&fsinfosec[492], (ver71 ? (sect_files_end / sectorsPerCluster): 0xFFFFFFFF)); //the cluster number at which the driver should start looking for free clusters (all FF is unknown)
+			var_write((uint32_t *)&fsinfosec[508], 0xAA550000); //ending signature
 		}
 
 		codepage = dos.loaded_codepage;
