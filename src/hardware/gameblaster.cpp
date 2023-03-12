@@ -30,7 +30,7 @@
 #include "mame/emu.h"
 #include "mame/saa1099.h"
 
-#define MASTER_CLOCK 7159090
+#define MASTER_CLOCK 7159090	//ISA clock / 2
 
 //My mixer channel
 static MixerChannel * cms_chan;
