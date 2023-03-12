@@ -57,13 +57,18 @@ static void FPU_FFREE(Bitu st) {
 #define dyn_fpu_top() {				\
 	gen_protectflags();				\
 	gen_load_host(&TOP,DREG(EA),4); \
+	gen_sop_word_imm(SHIFT_SHR,true,DREG(EA),11); \
 	gen_dop_word_imm(DOP_ADD,true,DREG(EA),decode.modrm.rm);	\
 	gen_dop_word_imm(DOP_AND,true,DREG(EA),7);	\
 	gen_load_host(&TOP,DREG(TMPB),4);			\
+	gen_sop_word_imm(SHIFT_SHR,true,DREG(TMPB),11); \
+	gen_dop_word_imm(DOP_AND,true,DREG(TMPB),7);  \
 }
 
 static void dyn_save_fpu_top_for_pagefault() {
 	gen_load_host(&TOP,DREG(TMPB),4); 
+	gen_sop_word_imm(SHIFT_SHR,true,DREG(TMPB),11);
+	gen_dop_word_imm(DOP_AND,true,DREG(TMPB),7); 
 	gen_save_host(&core_dyn.pagefault_old_fpu_top, DREG(TMPB), 4);
 	decode.pf_restore.data.fpu_top = 1;
 }
@@ -139,6 +144,8 @@ static void dyn_fpu_esc0(){
 		dyn_fill_ea();
 		dyn_call_function_pagefault_check((void*)&FPU_FLD_F32_EA,"%Drd",DREG(EA)); 
 		gen_load_host(&TOP,DREG(TMPB),4);
+		gen_sop_word_imm(SHIFT_SHR,true,DREG(TMPB),11);
+		gen_dop_word_imm(DOP_AND,true,DREG(TMPB),7); 
 		dyn_eatree();
 	}
 }
@@ -152,10 +159,13 @@ static void dyn_fpu_esc1(){
 		case 0x00: /* FLD STi */
 			gen_protectflags(); 
 			gen_load_host(&TOP,DREG(EA),4); 
+			gen_sop_word_imm(SHIFT_SHR,true,DREG(EA),11);
 			gen_dop_word_imm(DOP_ADD,true,DREG(EA),decode.modrm.rm); 
 			gen_dop_word_imm(DOP_AND,true,DREG(EA),7); 
 			gen_call_function((void*)&FPU_PREP_PUSH,""); 
 			gen_load_host(&TOP,DREG(TMPB),4); 
+			gen_sop_word_imm(SHIFT_SHR,true,DREG(TMPB),11);
+			gen_dop_word_imm(DOP_AND,true,DREG(TMPB),7); 
 			gen_call_function((void*)&FPU_FST,"%Drd%Drd",DREG(EA),DREG(TMPB));
 			break;
 		case 0x01: /* FXCH STi */
@@ -298,6 +308,8 @@ static void dyn_fpu_esc1(){
 			if (use_dynamic_core_with_paging) dyn_save_fpu_top_for_pagefault();
 			gen_call_function((void*)&FPU_PREP_PUSH,"");
 			gen_load_host(&TOP,DREG(TMPB),4); 
+			gen_sop_word_imm(SHIFT_SHR,true,DREG(TMPB),11);
+			gen_dop_word_imm(DOP_AND,true,DREG(TMPB),7); 
 			dyn_call_function_pagefault_check((void*)&FPU_FLD_F32,"%Drd%Drd",DREG(EA),DREG(TMPB));
 			break;
 		case 0x01: /* UNKNOWN */
@@ -340,9 +352,12 @@ static void dyn_fpu_esc2(){
 			case 0x01:		/* FUCOMPP */
 				gen_protectflags(); 
 				gen_load_host(&TOP,DREG(EA),4); 
+				gen_sop_word_imm(SHIFT_SHR,true,DREG(EA),11);
 				gen_dop_word_imm(DOP_ADD,true,DREG(EA),1); 
 				gen_dop_word_imm(DOP_AND,true,DREG(EA),7); 
 				gen_load_host(&TOP,DREG(TMPB),4); 
+				gen_sop_word_imm(SHIFT_SHR,true,DREG(TMPB),11);
+				gen_dop_word_imm(DOP_AND,true,DREG(TMPB),7); 
 				gen_call_function((void *)&FPU_FUCOM,"%Drd%Drd",DREG(TMPB),DREG(EA));
 				gen_call_function((void *)&FPU_FPOP,"");
 				gen_call_function((void *)&FPU_FPOP,"");
@@ -360,6 +375,8 @@ static void dyn_fpu_esc2(){
 		dyn_fill_ea(); 
 		dyn_call_function_pagefault_check((void*)&FPU_FLD_I32_EA,"%Drd",DREG(EA)); 
 		gen_load_host(&TOP,DREG(TMPB),4); 
+		gen_sop_word_imm(SHIFT_SHR,true,DREG(TMPB),11);
+		gen_dop_word_imm(DOP_AND,true,DREG(TMPB),7); 
 		dyn_eatree();
 	}
 }
@@ -404,6 +421,8 @@ static void dyn_fpu_esc3(){
 			gen_call_function((void*)&FPU_PREP_PUSH,"");
 			gen_protectflags(); 
 			gen_load_host(&TOP,DREG(TMPB),4); 
+			gen_sop_word_imm(SHIFT_SHR,true,DREG(TMPB),11);
+			gen_dop_word_imm(DOP_AND,true,DREG(TMPB),7); 
 			dyn_call_function_pagefault_check((void*)&FPU_FLD_I32,"%Drd%Drd",DREG(EA),DREG(TMPB));
 			break;
 		case 0x01:	/* FISTTP */
@@ -470,6 +489,8 @@ static void dyn_fpu_esc4(){
 		dyn_fill_ea(); 
 		dyn_call_function_pagefault_check((void*)&FPU_FLD_F64_EA,"%Drd",DREG(EA)); 
 		gen_load_host(&TOP,DREG(TMPB),4); 
+		gen_sop_word_imm(SHIFT_SHR,true,DREG(TMPB),11);
+		gen_dop_word_imm(DOP_AND,true,DREG(TMPB),7); 
 		dyn_eatree();
 	}
 }
@@ -515,6 +536,8 @@ static void dyn_fpu_esc5(){
 			gen_call_function((void*)&FPU_PREP_PUSH,"");
 			gen_protectflags(); 
 			gen_load_host(&TOP,DREG(TMPB),4); 
+			gen_sop_word_imm(SHIFT_SHR,true,DREG(TMPB),11);
+			gen_dop_word_imm(DOP_AND,true,DREG(TMPB),7); 
 			dyn_call_function_pagefault_check((void*)&FPU_FLD_F64,"%Drd%Drd",DREG(EA),DREG(TMPB));
 			break;
 		case 0x01:  /* FISTTP longint*/
@@ -567,6 +590,7 @@ static void dyn_fpu_esc6(){
 				return;
 			}
 			gen_load_host(&TOP,DREG(EA),4); 
+			gen_sop_word_imm(SHIFT_SHR,true,DREG(EA),11);
 			gen_dop_word_imm(DOP_ADD,true,DREG(EA),1);
 			gen_dop_word_imm(DOP_AND,true,DREG(EA),7);
 			gen_call_function((void*)&FPU_FCOM,"%Drd%Drd",DREG(TMPB),DREG(EA));
@@ -592,6 +616,8 @@ static void dyn_fpu_esc6(){
 		dyn_fill_ea(); 
 		dyn_call_function_pagefault_check((void*)&FPU_FLD_I16_EA,"%Drd",DREG(EA)); 
 		gen_load_host(&TOP,DREG(TMPB),4); 
+		gen_sop_word_imm(SHIFT_SHR,true,DREG(TMPB),11);
+		gen_dop_word_imm(DOP_AND,true,DREG(TMPB),7); 
 		dyn_eatree();
 	}
 }
@@ -638,6 +664,8 @@ static void dyn_fpu_esc7(){
 			if (use_dynamic_core_with_paging) dyn_save_fpu_top_for_pagefault();
 			gen_call_function((void*)&FPU_PREP_PUSH,"");
 			gen_load_host(&TOP,DREG(TMPB),4); 
+			gen_sop_word_imm(SHIFT_SHR,true,DREG(TMPB),11);
+			gen_dop_word_imm(DOP_AND,true,DREG(TMPB),7); 
 			dyn_call_function_pagefault_check((void*)&FPU_FLD_I16,"%Drd%Drd",DREG(EA),DREG(TMPB));
 			break;
 		case 0x01:
@@ -654,12 +682,16 @@ static void dyn_fpu_esc7(){
 			if (use_dynamic_core_with_paging) dyn_save_fpu_top_for_pagefault();
 			gen_call_function((void*)&FPU_PREP_PUSH,"");
 			gen_load_host(&TOP,DREG(TMPB),4);
+			gen_sop_word_imm(SHIFT_SHR,true,DREG(TMPB),11);
+			gen_dop_word_imm(DOP_AND,true,DREG(TMPB),7); 
 			dyn_call_function_pagefault_check((void*)&FPU_FBLD,"%Drd%Drd",DREG(EA),DREG(TMPB));
 			break;
 		case 0x05:  /* FILD Bit64s */
 			if (use_dynamic_core_with_paging) dyn_save_fpu_top_for_pagefault();
 			gen_call_function((void*)&FPU_PREP_PUSH,"");
 			gen_load_host(&TOP,DREG(TMPB),4);
+			gen_sop_word_imm(SHIFT_SHR,true,DREG(TMPB),11);
+			gen_dop_word_imm(DOP_AND,true,DREG(TMPB),7); 
 			dyn_call_function_pagefault_check((void*)&FPU_FLD_I64,"%Drd%Drd",DREG(EA),DREG(TMPB));
 			break;
 		case 0x06:	/* FBSTP packed BCD */

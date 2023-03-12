@@ -1,4 +1,10 @@
 Next
+  - Fix dynamic_nodhfpu FPU stack bugs, the same bugs that once plagued
+    dynrec. dynamic_x86 never seemed to have the same problem because
+    in reality the DH FPU case was normally used, to hit this bug you
+    had to use core=dynamic_nodhfpu. Also fix dynamic x86 DH FPU code
+    never to restore from DH case if the DH FPU code was never enabled,
+    which periodically caused FPU state to dissapear. (joncampbell123).
   - Add dosbox.conf option to control the MSCDEX.EXE device name when
     emulating a CD-ROM drive (joncampbell123).
   - Wengier coded this nice text-only DOSBox-X logo for the TTF output.

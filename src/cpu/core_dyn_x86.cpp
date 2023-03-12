@@ -303,12 +303,14 @@ static void dh_fpu_enter_normal_core (void)
 	}
 	if (!using_normal_core) {
 		using_normal_core = true;
-		FPU_SetTag(dyn_dh_fpu.state.tag);
-		fpu.cw = dyn_dh_fpu.state.cw;
-		fpu.sw = dyn_dh_fpu.state.sw;
-		const uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
-		for(Bitu i = 0;i < 8;i++){
-			memcpy(&fpu.p_regs[STV(i)], buffer + i * 10, 10);
+		if (dyn_dh_fpu.dh_fpu_enabled) { /* If NOT enabled, the code below will obliterate FPU state and problems result */
+			FPU_SetTag(dyn_dh_fpu.state.tag);
+			fpu.cw = dyn_dh_fpu.state.cw;
+			fpu.sw = dyn_dh_fpu.state.sw;
+			const uint8_t* buffer = &dyn_dh_fpu.state.st_reg[0][0];
+			for(Bitu i = 0;i < 8;i++){
+				memcpy(&fpu.p_regs[STV(i)], buffer + i * 10, 10);
+			}
 		}
 	}
 }
