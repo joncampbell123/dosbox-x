@@ -53,7 +53,6 @@ static void FPU_FFREE(Bitu st) {
 #include "../../fpu/fpu_instructions.h"
 #endif
 
-
 #define dyn_fpu_top() {				\
 	gen_protectflags();				\
 	gen_load_host(&TOP,DREG(EA),4); \
