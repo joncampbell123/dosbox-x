@@ -149,9 +149,13 @@ public:
 		uint32_t freq = 7159000;		//14318180 isa clock / 2
 #endif
 
-		machine_config config;
-		device[0] = new saa1099_device(config, "", 0, 7159090);
-		device[1] = new saa1099_device(config, "", 0, 7159090);
++		machine_config config;
++		device[0] = new saa1099_device(config, "", 0, MASTER_CLOCK);
++		device[1] = new saa1099_device(config, "", 0, MASTER_CLOCK);
+
++		// Necessary for correct pitch, reevaluate if MAME sound source is updated.
++		device[0]->sample_rate = sampleRate;
++		device[1]->sample_rate = sampleRate;
 
 		device[0]->device_start();
 		device[1]->device_start();
