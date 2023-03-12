@@ -463,7 +463,22 @@ typedef struct {
 
 extern FPU_rec fpu;
 
+// TOP = macro for use in C/C++ for top of FPU stack
+// FPUSW = macro for the entire FPU status word for use in dynamic core
+// NTS: DOSBox-X until 2023/03/11 and all other forks have dynamic core code that generates memory loads
+//      from (&TOP). That code is flawed because while you think you are loading the top of the stack,
+//      what you are actually doing is taking the address of a bitfield (which doesn't do what you think
+//      it does!) and generating code to read that address. Code that you think is using the FPU top of
+//      stack is in reality using the entire FPU status word as top of stack!
+//
+//      This issue has since been resolved by adding a right shift instruction after the load. To make
+//      what is actually happening clearer for development going forward, all dynamic core code has been
+//      changed to use &FPUSW instead of &TOP.
+//
+//      FPUSW is a macro that resolves to the "reg" union field which is a plain 16-bit unsigned integer
+//      containing all FPU status word bits.
 #define TOP fpu.sw.top
+#define FPUSW fpu.sw.reg
 #define STV(i)  ( (fpu.sw.top + (i) ) & 7 )
 
 
