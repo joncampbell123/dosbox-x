@@ -907,6 +907,8 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
 		width += 4;
 		width += 4*2; /* cpe */
 		width += 4;
+		width += 8*32;
+		width += 4;
 	}
 	else if (machine == MCH_MDA || machine == MCH_HERC) {
 		/* add nothing, nothing to show at this time */
