@@ -2640,10 +2640,7 @@ interrupted_char_begin:
     return TempLine + (disp_off * 4);
 }
 
-void VGA_DebugAddEvent_VGASplit(void);
-
 static void VGA_ProcessSplit() {
-    if (video_debug_overlay) VGA_DebugAddEvent_VGASplit();
     vga.draw.has_split = true;
     if (vga.attr.mode_control&0x20) {
         vga.draw.address=0;
@@ -2724,7 +2721,6 @@ void VGA_Update_SplitLineCompare() {
 }
 
 void VGA_DAC_DeferredUpdateColorPalette();
-void VGA_DrawDebugLine(uint8_t *line,unsigned int w);
 
 static void VGA_DrawSingleLine(Bitu /*blah*/) {
     unsigned int lines = 0;
@@ -2812,7 +2808,13 @@ again:
             RENDER_DrawLine(TempLine);
         } else {
             uint8_t * data=VGA_DrawLine( vga.draw.address, vga.draw.address_line );
-            if (video_debug_overlay && vga.draw.width < render.src.width) VGA_DrawDebugLine(data+(vga.draw.width*((vga.draw.bpp+7u)>>3u)),render.src.width-vga.draw.width);
+            /* WARNING: For magic reasons possibly related to gremlins added by the GNU C++ compiler or other otherwordly phenomona,
+             *          Modifying the rendered scanline pointed to by *data somehow corrupts the video memory of the guest, even though
+             *          *data is 8bpp or 32bpp pixel data that was translated FROM the guest video memory TO a host bitmap and writing
+             *          over *data in any way should have no effect on the guest video memory it rendered from, but somehow, it does.
+             *          I don't know what the fuck is going on here but if you're wondering why this code doesn't render debug information
+             *          on the side, this is why. No, it has nothing to do with whether the templated function the EGA/VGA text calls
+             *          is inline or not. --J.C. */
             if (vga_page_flip_occurred) {
                 memxor(data,0xFF,vga.draw.width*(vga.draw.bpp>>3));
                 vga_page_flip_occurred = false;
@@ -2920,7 +2922,6 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
                 }
             }
             uint8_t * data=VGA_DrawLine(address, vga.draw.address_line ); 
-            if (video_debug_overlay && vga.draw.width < render.src.width) VGA_DrawDebugLine(data+(vga.draw.width*((vga.draw.bpp+7u)>>3u)),render.src.width-vga.draw.width);
 
             if (VGA_IsCaptureEnabled())
                 VGA_ProcessScanline(data);
@@ -3333,210 +3334,6 @@ EGAMonitorMode egaMonitorMode(void);
 
 extern uint8_t CGAPal2[2];
 extern uint8_t CGAPal4[4];
-
-enum {
-	DBGEV_SPLIT=0		// EGA/VGA splitscreen
-};
-
-struct debugline_event {
-	unsigned int	colorline = 0;
-	int		event = -1;
-	unsigned int	x = 0;
-	uint8_t		w = 0;
-	uint8_t		trow = 0;
-	size_t		tline = 0;
-	bool		done = false;
-	std::vector<std::string> text;
-
-	int drawwidth(void) const {
-		return w;
-	}
-	int drawheight(void) const {
-		return text.size() * 8;
-	}
-	void addline(const char *txt) {
-		addline(std::string(txt));
-	}
-	void addline(const std::string &txt) {
-		if (w < 8u*txt.length()) w = 8u*txt.length();
-		text.push_back(txt);
-	}
-};
-
-static std::vector<debugline_event> debugline_events;
-static unsigned int debugline_event_alloc_x = 0;
-
-void VGA_DebugAddEvent(debugline_event &ev) {
-	bool is_ega64 = (machine == MCH_EGA) && (egaMonitorMode() == EGA);
-	unsigned int minw = 0;
-
-	if (machine == MCH_EGA) {
-		minw = 4+(16*2)+4+(4*2)+4;
-	}
-
-	if (debugline_events.empty()) debugline_event_alloc_x = minw;
-
-	if ((debugline_event_alloc_x+ev.drawwidth()) > (render.src.width-vga.draw.width))
-		debugline_event_alloc_x = minw;
-
-	debugline_event_alloc_x += 8;
-
-	ev.x = debugline_event_alloc_x;
-
-	debugline_event_alloc_x += ev.drawwidth();
-	if (debugline_event_alloc_x >= (render.src.width-vga.draw.width))
-		debugline_event_alloc_x = minw;
-
-	if (ev.colorline == 0) {
-		switch (ev.event) {
-			case DBGEV_SPLIT:
-				if (vga.draw.bpp == 8)
-					ev.colorline = is_ega64 ? 0x12 : 0x0A;
-				else
-					ev.colorline = GFX_Gmask;
-				break;
-			default:
-				if (vga.draw.bpp == 8)
-					ev.colorline = is_ega64 ? 0x3F : 0x0F;
-				else
-					ev.colorline = GFX_Rmask | GFX_Gmask | GFX_Bmask;
-				break;
-		}
-	}
-
-	debugline_events.push_back(std::move(ev));
-}
-
-void VGA_DebugAddEvent_VGASplit(void) {
-	debugline_event ev;
-
-	ev.event = DBGEV_SPLIT;
-	ev.addline("SPLIT");
-	ev.addline("LNCMP");
-
-	VGA_DebugAddEvent(ev);
-}
-
-void VGA_DrawDebugLine(uint8_t *line,unsigned int w) {
-	unsigned int white,dkgray;
-	unsigned int minw = 0;
-
-	/* line points into part of the image past active display */
-	switch (VGA_debug_screen_bpp) {
-		case 8:
-			// CGA/Tandy/PCjr/Herc/MDA
-			if (machine == MCH_HERC || machine == MCH_MDA) {
-				white = 1;
-			}
-			else if (machine == MCH_EGA) {
-				dkgray = (egaMonitorMode() == EGA) ? 0x38 : 0x10;
-				white = 0x3F;
-			}
-			else {
-				white = 0xF;
-			}
-			break;
-		case 32: // VGA/MCGA/SVGA/PC98
-			white = GFX_Bmask | GFX_Gmask | GFX_Rmask;
-			break;
-		default:
-			return;
-	};
-
-	if (machine == MCH_EGA) {
-		if (vga.draw.bpp == 8) { /* Doesn't use anything else */
-			uint8_t *draw = line;
-			unsigned int dw = w;
-
-			if (dw <= 4) return;
-			for (unsigned int c=0;c < 4;c++) {
-				*draw++ = 0;
-				dw--;
-			}
-
-			if (dw <= (16*2)) return;
-			for (unsigned int c=0;c < 16;c++) {
-				draw[0] = draw[1] = vga.attr.palette[c&vga.attr.color_plane_enable];
-				draw += 2;
-				dw -= 2;
-			}
-
-			if (dw <= 4) return;
-			for (unsigned int c=0;c < 4;c++) {
-				*draw++ = 0;
-				dw--;
-			}
-
-			if (dw <= (4*2)) return;
-			for (unsigned int c=0;c < 4;c++) {
-				draw[0] = draw[1] = ((vga.attr.color_plane_enable << c) & 8) ? white : dkgray;
-				draw += 2;
-				dw -= 2;
-			}
-
-			minw = (unsigned int)(draw+4-line);
-
-			while (dw > 0) {
-				*draw++ = 0;
-				dw--;
-			}
-		}
-	}
-
-	bool allclear = true;
-
-	for (auto i=debugline_events.begin();i!=debugline_events.end();i++) {
-		auto &ev = *i;
-		if (!ev.done && ev.tline == 0 && ev.trow == 0) {
-			if (vga.draw.bpp == 8) {
-				for (unsigned int x=minw;x < w && x < ev.x;x++) line[x] = ev.colorline;
-			}
-
-			if (!ev.done) allclear = false;
-		}
-	}
-
-	for (auto i=debugline_events.begin();i!=debugline_events.end();i++) {
-		auto &ev = *i;
-		if (!ev.done) {
-			if (ev.tline < ev.text.size()) {
-				if (ev.trow < 8) {
-					if (vga.draw.bpp == 8) {
-						if ((ev.x+ev.w) <= w) {
-							uint8_t *dp = line+ev.x;
-							const char *str = ev.text[ev.tline].c_str();
-							unsigned int dw = ev.w;
-							while (*str != 0 && dw >= 8) {
-								unsigned char c = (unsigned char)(*str++);
-								unsigned char b = int10_font_08[(c*8)+ev.trow];
-								for (unsigned int x=0;x < 8;x++) {
-									*dp++ = (b & 0x80) ? 0 : ev.colorline;
-									b <<= 1u;
-								}
-								dw -= 8;
-							}
-							while (dw >= 8) {
-								for (unsigned int x=0;x < 8;x++) *dp++ = ev.colorline;
-								dw -= 8;
-							}
-						}
-					}
-
-					ev.trow++;
-				}
-				if (ev.trow >= 8) {
-					ev.tline++;
-					ev.trow = 0;
-				}
-			}
-
-			if (ev.tline >= ev.text.size()) ev.done = true;
-			if (!ev.done) allclear = false;
-		}
-	}
-
-	if (allclear) debugline_events.clear();
-}
 
 void VGA_sof_debug_video_info(void) {
 	unsigned int green,white;
@@ -4049,7 +3846,7 @@ void VGA_sof_debug_video_info(void) {
 
 				x += 8;
 
-				sprintf(tmp,"CPE:%x HPEL:%x",vga.attr.color_plane_enable&0xF,vga.config.pel_panning&0xF); /* 4 bits, 4 bitplanes, one hex digit */
+				sprintf(tmp,"CPE%x HPL%x YP%02x",vga.attr.color_plane_enable&0xF,vga.config.pel_panning&0xF,vga.config.hlines_skip); /* 4 bits, 4 bitplanes, one hex digit */
 				x = VGA_debug_screen_puts8(x,y,tmp,white) + 8;
 
 				x = 4;
@@ -4128,31 +3925,12 @@ void VGA_sof_debug_video_info(void) {
 
 			sprintf(tmp,"CPE:%x HPEL:%x",vga.attr.color_plane_enable&0xF,vga.config.pel_panning&0xF); /* 4 bits, 4 bitplanes, one hex digit */
 			x = VGA_debug_screen_puts8(x,y,tmp,white);
-
-			/* point out where side debug info is */
-			x = vga.draw.width;
-			y = 0;
-
-			x += 4;
-
-			VGA_debug_screen_func->rect(x,y,x+(16*2),y+8,white);
-			VGA_debug_screen_puts8(x,y,"MPAL",0);
-			x += 16*2;
-
-			x += 4;
-
-			VGA_debug_screen_func->rect(x,y,x+8,y+(8*3),white);
-			VGA_debug_screen_puts8(x,y,"C",0);
-			VGA_debug_screen_puts8(x,y+8,"P",0);
-			VGA_debug_screen_puts8(x,y+16,"E",0);
 		}
 	}
 }
 
 static void VGA_VerticalTimer(Bitu /*val*/) {
     double current_time = PIC_GetCurrentEventTime();
-
-    debugline_events.clear();
 
     if (IS_PC98_ARCH) {
         GDC_display_plane = GDC_display_plane_pending;
