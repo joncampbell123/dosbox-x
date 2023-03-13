@@ -30,7 +30,7 @@
 #include "mame/emu.h"
 #include "mame/saa1099.h"
 
-#define MASTER_CLOCK 7159090
+#define MASTER_CLOCK 7159090	//ISA clock / 2
 
 //My mixer channel
 static MixerChannel * cms_chan;
@@ -145,13 +145,13 @@ public:
 	
 		lastWriteTicks = (uint32_t)PIC_Ticks;
 
-#if 0 // unused?
-		uint32_t freq = 7159000;		//14318180 isa clock / 2
-#endif
-
 		machine_config config;
-		device[0] = new saa1099_device(config, "", 0, 7159090);
-		device[1] = new saa1099_device(config, "", 0, 7159090);
+		device[0] = new saa1099_device(config, "", 0, MASTER_CLOCK);
+		device[1] = new saa1099_device(config, "", 0, MASTER_CLOCK);
+
+		// Necessary for correct pitch, reevaluate if MAME sound source is updated.
+		device[0]->sample_rate = sampleRate;
+		device[1]->sample_rate = sampleRate;
 
 		device[0]->device_start();
 		device[1]->device_start();
