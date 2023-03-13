@@ -466,7 +466,7 @@ void dosbox_integration_trigger_read() {
             }
             break;
         case 3: /* version number */
-            dosbox_int_register = (INTDEV_VERSION_MAJOR) + (INTDEV_VERSION_MINOR << 8U) + (INTDEV_VERSION_SUB << 16U) + (INTDEV_VERSION_BUMP << 24U);
+            dosbox_int_register = INTDEV_VERSION_MAJOR + (INTDEV_VERSION_MINOR << 8U) + (INTDEV_VERSION_SUB << 16U) + (INTDEV_VERSION_BUMP << 24U);
             break;
         case 4: /* current emulator time as 16.16 fixed point */
             dosbox_int_register = (uint32_t)(PIC_FullIndex() * 0x10000);
@@ -824,7 +824,7 @@ void dosbox_integration_trigger_write() {
                 /* bits  [7:0]  = data byte if 8-bit DNA
                  * bits [15:0]  = data word if 16-bit DMA
                  * bits [18:16] = DMA channel to send to */
-                DmaChannel *ch = GetDMAChannel(((unsigned int)dosbox_int_register>>16u)&7u);
+                DmaChannel *ch = GetDMAChannel((dosbox_int_register>>16u)&7u);
                 if (ch != NULL) {
                     unsigned char tmp[2];
 
@@ -853,7 +853,7 @@ void dosbox_integration_trigger_write() {
                 dosbox_int_register_shf = 0;
                 dosbox_int_regsel_shf = 0;
                 /* bits [18:16] = DMA channel to send to */
-                DmaChannel *ch = GetDMAChannel(((unsigned int)dosbox_int_register>>16u)&7u);
+                DmaChannel *ch = GetDMAChannel((dosbox_int_register>>16u)&7u);
                 if (ch != NULL) {
                     unsigned char tmp[2];
 
@@ -1266,7 +1266,7 @@ void ISAPnPDevice::write_IRQ_Format(const uint16_t IRQ_mask,const unsigned char 
     write_begin_SMALLTAG(SmallTags::IRQFormat,write_irq_info?3:2);
     write_byte(IRQ_mask & 0xFF);
     write_byte(IRQ_mask >> 8);
-    if (write_irq_info) write_byte(((unsigned char)IRQ_signal_type & 0x0F));
+    if (write_irq_info) write_byte(IRQ_signal_type & 0x0F);
 }
 
 void ISAPnPDevice::write_DMA_Format(const uint8_t DMA_mask,const unsigned char transfer_type_preference,const bool is_bus_master,const bool byte_mode,const bool word_mode,const unsigned char speed_supported) {
@@ -1366,10 +1366,9 @@ void ISAPnPDevice::select_logical_device(Bitu val) {
     
 void ISAPnPDevice::checksum_ident() {
     unsigned char checksum = 0x6a,bit;
-    int i,j;
 
-    for (i=0;i < 8;i++) {
-        for (j=0;j < 8;j++) {
+    for (int i=0;i < 8;i++) {
+        for (int j=0;j < 8;j++) {
             bit = (ident[i] >> j) & 1;
             checksum = ((((checksum ^ (checksum >> 1)) & 1) ^ bit) << 7) | (checksum >> 1);
         }
@@ -1431,11 +1430,11 @@ public:
         }
         else {
             if (len > 65535) E_Exit("ISAPNP_SysDevNode data too long");
-            raw = new unsigned char[(size_t)len+1u];
+            raw = new unsigned char[len+1u];
             if (ir == NULL)
                 E_Exit("ISAPNP_SysDevNode cannot allocate buffer");
             else
-                memcpy(raw, ir, (size_t)len);
+                memcpy(raw, ir, len);
             raw_len = len;
             raw[len] = 0;
             own = true;
@@ -1455,9 +1454,7 @@ static Bitu         ISAPNP_SysDevNodeLargest=0;
 static Bitu         ISAPNP_SysDevNodeCount=0;
 
 void ISA_PNP_FreeAllSysNodeDevs() {
-    Bitu i;
-
-    for (i=0;i < MAX_ISA_PNP_SYSDEVNODES;i++) {
+    for (Bitu i=0;i < MAX_ISA_PNP_SYSDEVNODES;i++) {
         if (ISAPNP_SysDevNodes[i] != NULL) delete ISAPNP_SysDevNodes[i];
         ISAPNP_SysDevNodes[i] = NULL;
     }
@@ -6096,9 +6093,6 @@ static Bitu INT15_Handler(void) {
                 // 02 = NVR checksum error.
                 // AL = Byte read from NVR.
                 // CC.
-            default:
-                LOG(LOG_BIOS,LOG_NORMAL)("INT15 Unsupported PC1512 Call %02X",reg_ah);
-                return CBRET_NONE;
             case 0x03:
                 // Write VDU Colour Plane Write Register.
                 vga.amstrad.write_plane = reg_al & 0x0F;
@@ -6119,6 +6113,9 @@ static Bitu INT15_Handler(void) {
                 reg_bx = 0x0001;
                 CALLBACK_SCF(false);
                 break;
+            default:
+                LOG(LOG_BIOS, LOG_NORMAL)("INT15 Unsupported PC1512 Call %02X", reg_ah);
+                return CBRET_NONE;
         }
     }
     switch (reg_ah) {
@@ -6260,7 +6257,6 @@ static Bitu INT15_Handler(void) {
                             "This condition might result in an infinite wait on "
                             "some BIOSes. Unmasking IRQ to keep things moving along.");
                         IO_Write(0x21,t & ~(1 << 2));
-
                     }
                     if ((t=IO_Read(0xA1)) & (1 << 0)) {
                         LOG(LOG_BIOS,LOG_WARN)("INT15:86:Wait: IRQ 8 masked during wait. "
@@ -6329,9 +6325,6 @@ static Bitu INT15_Handler(void) {
         }
         break;
     case 0x90:  /* OS HOOK - DEVICE BUSY */
-        CALLBACK_SCF(false);
-        reg_ah=0;
-        break;
     case 0x91:  /* OS HOOK - DEVICE POST */
         CALLBACK_SCF(false);
         reg_ah=0;
@@ -6732,7 +6725,7 @@ static Bitu INT15_Handler(void) {
                             APM_ResumeNotificationFromSuspend = true;
                             break;
                         case 0x3: // power off
-                            throw(0);
+                            throw 0;
                         case 0x4: // last request processing notification (used by Windows ME)
                             LOG(LOG_MISC,LOG_DEBUG)("Guest is considering whether to accept the last returned APM event");
                             reg_ah = 0x00;
@@ -9666,7 +9659,7 @@ startfunction:
                             if (pos==4) hour=hour<23?hour+1:0;
                             else if (pos==5) min=min<59?min+1:0;
                             else if (pos==6) sec=sec<59?sec+1:0;
-                            mem_writed(BIOS_TIMER,(uint32_t)(((double)hour*3600+min*60+sec))*18.206481481);
+                            mem_writed(BIOS_TIMER,(uint32_t)((double)hour*3600+min*60+sec)*18.206481481);
                         }
                         mod = true;
                         if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
@@ -9677,15 +9670,15 @@ startfunction:
                         else if (pos==3) dos.date.day=dos.date.day>1?dos.date.day-1:(dos.date.month==1||dos.date.month==3||dos.date.month==5||dos.date.month==7||dos.date.month==8||dos.date.month==10||dos.date.month==12?31:(dos.date.month==2?29:30));
                         else if (pos==4||pos==5||pos==6) {
                             Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * mem_readd(BIOS_TIMER))/100;
-                            unsigned int sec=(uint8_t)((Bitu)time % 60);
+                            unsigned int sec=(uint8_t)(time % 60);
                             time/=60;
-                            unsigned int min=(uint8_t)((Bitu)time % 60);
+                            unsigned int min=(uint8_t)(time % 60);
                             time/=60;
-                            unsigned int hour=(uint8_t)((Bitu)time % 24);
+                            unsigned int hour=(uint8_t)(time % 24);
                             if (pos==4) hour=hour>0?hour-1:23;
                             else if (pos==5) min=min>0?min-1:59;
                             else if (pos==6) sec=sec>0?sec-1:59;
-                            mem_writed(BIOS_TIMER,(uint32_t)(((double)hour*3600+min*60+sec))*18.206481481);
+                            mem_writed(BIOS_TIMER,(uint32_t)((double)hour*3600+min*60+sec)*18.206481481);
                         }
                         mod = true;
                         if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
@@ -10658,8 +10651,8 @@ void ROMBIOS_Init() {
         if (top >= ((uint64_t)1UL << (uint64_t)21UL)) { /* 2MB or more */
             unsigned long alias_base,alias_end;
 
-            alias_base = (unsigned long)top + (unsigned long)rombios_minimum_location - (unsigned long)0x100000UL;
-            alias_end = (unsigned long)top - (unsigned long)1UL;
+            alias_base = (unsigned long)top + (unsigned long)rombios_minimum_location - 0x100000UL;
+            alias_end = (unsigned long)top - 1UL;
 
             LOG(LOG_BIOS,LOG_DEBUG)("ROM BIOS also mapping alias to 0x%08lx-0x%08lx",alias_base,alias_end);
             if (!MEM_map_ROM_alias_physmem(alias_base,alias_end)) {
@@ -10705,7 +10698,7 @@ void ROMBIOS_Init() {
 
 			    FILE *fp = fopen(ibm_rom_basic.c_str(),"rb");
 			    if (fp != NULL) {
-				    fread(GetMemBase()+ibm_rom_basic_base,(size_t)ibm_rom_basic_size,1u,fp);
+				    fread(GetMemBase()+ibm_rom_basic_base,ibm_rom_basic_size,1u,fp);
 				    fclose(fp);
 			    }
 		    }
