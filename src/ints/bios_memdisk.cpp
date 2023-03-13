@@ -96,7 +96,7 @@ imageDiskMemory::imageDiskMemory(uint32_t imgSizeK) : imageDisk(ID_MEMORY) {
 	}
 
 	LOG_MSG("Creating ramdrive as C/H/S %u/%u/%u with %u bytes/sector\n",
-		(unsigned int)cylinders, (unsigned int)heads, (unsigned int)sectors, (unsigned int)sector_size);
+		cylinders, heads, sectors, sector_size);
 
 	diskGeo diskParams;
 	diskParams.secttrack = sectors;
@@ -400,8 +400,8 @@ uint8_t imageDiskMemory::Format() {
 
 	LOG_MSG("Formatting FAT%u %s drive C/H/S %u/%u/%u with %u bytes/sector, %u root entries, %u-byte clusters, media id 0x%X\n",
 		(unsigned int)(isFat16 ? 16 : 12), this->hardDrive ? "hard" : "floppy",
-		(unsigned int)reported_cylinders, (unsigned int)this->heads, (unsigned int)this->sectors, (unsigned int)this->sector_size,
-		(unsigned int)root_ent, (unsigned int)(sectors_per_cluster * this->sector_size), (unsigned int)mediaID);
+		reported_cylinders, this->heads, this->sectors, this->sector_size,
+		root_ent, (sectors_per_cluster * this->sector_size), (unsigned int)mediaID);
 
 	//write MBR if applicable
 	uint8_t sbuf[512];
