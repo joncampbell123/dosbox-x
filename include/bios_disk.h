@@ -95,7 +95,7 @@ class imageDisk {
 	private:
 		volatile int refcount = 0;
 		std::vector<bool> partition_in_use; /* used by FAT driver to prevent mounting a partition twice */
-		uint64_t current_fpos;
+		uint64_t current_fpos = 0;
 
 	public:
 		int Addref() {
