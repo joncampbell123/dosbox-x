@@ -62,7 +62,7 @@ bool DriveFileIterator(DOS_Drive* drv, void(*func)(const char* path, bool is_dir
 	uint32_t starttick = GetTicks();
 	struct Iter
 	{
-		static bool ParseDir(DOS_Drive* drv, uint32_t startticks, const std::string& dir, std::vector<std::string>& dirs, void(*func)(const char* path, bool is_dir, uint32_t size, uint16_t date, uint16_t time, uint8_t attr, Bitu data), Bitu data, int timeout)
+		static bool ParseDir(DOS_Drive* drv, uint32_t startticks, const std::string& dir, std::vector<std::string>& dirs, void(*func)(const char* path, bool is_dir, uint32_t size, uint16_t date, uint16_t time, uint8_t attr, Bitu data), Bitu data, uint32_t timeout)
 		{
 			size_t dirlen = dir.length();
 			if (dirlen + DOS_NAMELENGTH >= DOS_PATHLENGTH) return true;
@@ -421,7 +421,7 @@ struct fatFromDOSDrive
 			if (df) { df->Close(); delete df; }
 	}
 
-	fatFromDOSDrive(DOS_Drive* drv, int freeMB, int timeout) : drive(drv)
+	fatFromDOSDrive(DOS_Drive* drv, uint32_t freeMB, int timeout) : drive(drv)
 	{
 		cacheSectorNumber[0] = 1; // must not state that sector 0 is already cached
 		memset(&cacheSectorNumber[1], 0, sizeof(cacheSectorNumber) - sizeof(cacheSectorNumber[0]));
@@ -672,7 +672,7 @@ struct fatFromDOSDrive
         free_clusters = freec?freec:drv_free_clusters;
         freeSpace = (uint64_t)drv_bytes_sector * drv_sectors_cluster * (freec?freec:free_clusters);
         freeSpaceMB = freeSpace / (1024*1024);
-        if (freeMB > -1 && freeMB < freeSpaceMB) freeSpaceMB = freeMB;
+        if (freeMB < freeSpaceMB) freeSpaceMB = freeMB;
         rsize=false;
         tomany=false;
         readOnly = free_clusters == 0 || freeSpaceMB == 0;
@@ -1078,7 +1078,7 @@ struct fatFromDOSDrive
                 for (int i = 0; i < 7; i++)
                     if (fwrite(filebuf, 1, BYTESPERSECTOR, f) != BYTESPERSECTOR) {fclose(f);return false;}
             }
-            for (int i = 0; i < sect_disk_end; i++) {
+            for (unsigned int i = 0; i < sect_disk_end; i++) {
                 ReadSector(i, filebuf);
                 if (fwrite(filebuf, 1, BYTESPERSECTOR, f) != BYTESPERSECTOR) {
                     fclose(f);
@@ -1631,7 +1631,7 @@ imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint32_t imgSizeK, bool
     }
 }
 
-imageDisk::imageDisk(class DOS_Drive *useDrive, unsigned int letter, int freeMB, int timeout)
+imageDisk::imageDisk(class DOS_Drive *useDrive, unsigned int letter, uint32_t freeMB, int timeout)
 {
 	ffdd = new fatFromDOSDrive(useDrive, freeMB, timeout);
 	if (!ffdd->success) {
