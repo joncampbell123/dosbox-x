@@ -2721,6 +2721,7 @@ void VGA_Update_SplitLineCompare() {
 }
 
 void VGA_DAC_DeferredUpdateColorPalette();
+void VGA_DrawDebugLine(uint8_t *line,unsigned int w);
 
 static void VGA_DrawSingleLine(Bitu /*blah*/) {
     unsigned int lines = 0;
@@ -2808,6 +2809,7 @@ again:
             RENDER_DrawLine(TempLine);
         } else {
             uint8_t * data=VGA_DrawLine( vga.draw.address, vga.draw.address_line );
+            if (video_debug_overlay && vga.draw.width < render.src.width) VGA_DrawDebugLine(data+(vga.draw.width*((vga.draw.bpp+7u)>>3u)),render.src.width-vga.draw.width);
             if (vga_page_flip_occurred) {
                 memxor(data,0xFF,vga.draw.width*(vga.draw.bpp>>3));
                 vga_page_flip_occurred = false;
@@ -2915,6 +2917,7 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
                 }
             }
             uint8_t * data=VGA_DrawLine(address, vga.draw.address_line ); 
+            if (video_debug_overlay && vga.draw.width < render.src.width) VGA_DrawDebugLine(data+(vga.draw.width*((vga.draw.bpp+7u)>>3u)),render.src.width-vga.draw.width);
 
             if (VGA_IsCaptureEnabled())
                 VGA_ProcessScanline(data);
@@ -3327,6 +3330,67 @@ EGAMonitorMode egaMonitorMode(void);
 
 extern uint8_t CGAPal2[2];
 extern uint8_t CGAPal4[4];
+
+void VGA_DrawDebugLine(uint8_t *line,unsigned int w) {
+	unsigned int white,dkgray;
+
+	/* line points into part of the image past active display */
+	switch (VGA_debug_screen_bpp) {
+		case 8:
+			// CGA/Tandy/PCjr/Herc/MDA
+			if (machine == MCH_HERC || machine == MCH_MDA) {
+				white = 1;
+			}
+			else if (machine == MCH_EGA) {
+				dkgray = (egaMonitorMode() == EGA) ? 0x38 : 0x10;
+				white = 0x3F;
+			}
+			else {
+				white = 0xF;
+			}
+			break;
+		case 32: // VGA/MCGA/SVGA/PC98
+			white = GFX_Bmask | GFX_Gmask | GFX_Rmask;
+			break;
+		default:
+			return;
+	};
+
+	if (machine == MCH_EGA) {
+		if (vga.draw.bpp == 8) { /* Doesn't use anything else */
+			if (w <= 4) return;
+			for (unsigned int c=0;c < 4;c++) {
+				*line++ = 0;
+				w--;
+			}
+
+			if (w <= (16*2)) return;
+			for (unsigned int c=0;c < 16;c++) {
+				line[0] = line[1] = vga.attr.palette[c&vga.attr.color_plane_enable];
+				line += 2;
+				w -= 2;
+			}
+
+			if (w <= 4) return;
+			for (unsigned int c=0;c < 4;c++) {
+				*line++ = 0;
+				w--;
+			}
+
+			if (w <= (4*2)) return;
+			for (unsigned int c=0;c < 4;c++) {
+				line[0] = line[1] = ((vga.attr.color_plane_enable << c) & 8) ? white : dkgray;
+				line += 2;
+				w -= 2;
+			}
+
+			while (w > 0) {
+				*line++ = 0;
+				w--;
+			}
+		}
+	}
+}
 
 void VGA_sof_debug_video_info(void) {
 	unsigned int green,white;
@@ -3917,6 +3981,23 @@ void VGA_sof_debug_video_info(void) {
 
 			sprintf(tmp,"CPE:%x HPEL:%x",vga.attr.color_plane_enable&0xF,vga.config.pel_panning&0xF); /* 4 bits, 4 bitplanes, one hex digit */
 			x = VGA_debug_screen_puts8(x,y,tmp,white);
+
+			/* point out where side debug info is */
+			x = vga.draw.width;
+			y = 0;
+
+			x += 4;
+
+			VGA_debug_screen_func->rect(x,y,x+(16*2),y+8,white);
+			VGA_debug_screen_puts8(x,y,"MPAL",0);
+			x += 16*2;
+
+			x += 4;
+
+			VGA_debug_screen_func->rect(x,y,x+8,y+(8*3),white);
+			VGA_debug_screen_puts8(x,y,"C",0);
+			VGA_debug_screen_puts8(x,y+8,"P",0);
+			VGA_debug_screen_puts8(x,y+16,"E",0);
 		}
 	}
 }
