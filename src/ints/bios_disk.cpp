@@ -51,7 +51,7 @@ uint32_t DriveCalculateCRC32(const uint8_t *ptr, size_t len, uint32_t crc)
 {
 	// Karl Malbrain's compact CRC-32. See "A compact CCITT crc16 and crc32 C implementation that balances processor cache usage against speed": http://www.geocities.com/malbrain/
 	static const uint32_t s_crc32[16] = { 0, 0x1db71064, 0x3b6e20c8, 0x26d930ac, 0x76dc4190, 0x6b6b51f4, 0x4db26158, 0x5005713c, 0xedb88320, 0xf00f9344, 0xd6d6a3e8, 0xcb61b38c, 0x9b64c2b0, 0x86d3d2d4, 0xa00ae278, 0xbdbdf21c };
-	uint32_t crcu32 = (uint32_t)~crc;
+	uint32_t crcu32 = ~crc;
 	while (len--) { uint8_t b = *ptr++; crcu32 = (crcu32 >> 4) ^ s_crc32[(crcu32 & 0xF) ^ (b & 0xF)]; crcu32 = (crcu32 >> 4) ^ s_crc32[(crcu32 & 0xF) ^ (b >> 4)]; }
 	return ~crcu32;
 }
@@ -1353,7 +1353,7 @@ uint8_t imageDisk::Read_AbsoluteSector(uint32_t sectnum, void * data) {
     got = (int)fread(data, 1, sector_size, diskimg);
     if ((unsigned int)got != sector_size) {
         LOG_MSG("fread() failed in Read_AbsoluteSector for sector %lu. Want=%u got=%d\n",
-            (unsigned long)sectnum,(unsigned int)sector_size,(unsigned int)got);
+            (unsigned long)sectnum,sector_size,(unsigned int)got);
         return 0x05;
     }
 
@@ -1430,7 +1430,7 @@ imageDisk::imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, ui
 
 imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint32_t imgSizeK, bool isHardDisk) : diskSizeK(imgSizeK), diskimg(imgFile), image_length((uint64_t)imgSizeK * 1024) {
     if (imgName != NULL)
-        diskname = (const char*)imgName;
+        diskname = imgName;
 
     active = false;
     hardDrive = isHardDisk;
@@ -1468,18 +1468,18 @@ imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint32_t imgSizeK, bool
                                 image_base = ofs;
                                 image_length -= ofs;
                                 LOG_MSG("FDI header: sectorsize is %u bytes/sector, header is %u bytes, fdd size (plus header) is %u bytes",
-                                    (unsigned int)sectorsize,(unsigned int)ofs,(unsigned int)fddsize);
+                                    sectorsize,ofs,fddsize);
 
                                 /* take on the geometry. */
                                 sectors = host_readd(fdihdr.sectors);
                                 heads = host_readd(fdihdr.surfaces);
                                 cylinders = host_readd(fdihdr.cylinders);
                                 LOG_MSG("FDI: Geometry is C/H/S %u/%u/%u",
-                                    (unsigned int)cylinders,(unsigned int)heads,(unsigned int)sectors);
+                                    cylinders,heads,sectors);
                             }
                             else {
                                 LOG_MSG("FDI header rejected. sectorsize=%u headersize=%u fddsize=%u",
-                                    (unsigned int)sectorsize,(unsigned int)ofs,(unsigned int)fddsize);
+                                    sectorsize,ofs,fddsize);
                             }
                         }
                         else {
@@ -1557,7 +1557,7 @@ imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint32_t imgSizeK, bool
                                 image_base = ofs;
                                 image_length -= ofs;
                                 LOG_MSG("NHD header: sectorsize is %u bytes/sector, header is %u bytes",
-                                        (unsigned int)sectorsize,(unsigned int)ofs);
+                                        sectorsize,ofs);
 
                                 /* take on the geometry.
                                  * PC-98 IPL1 support will need it to make sense of the partition table. */
@@ -1565,11 +1565,11 @@ imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint32_t imgSizeK, bool
                                 heads = host_readw((ConstHostPt)(&nhdhdr.wHead));
                                 cylinders = host_readd((ConstHostPt)(&nhdhdr.dwCylinder));
                                 LOG_MSG("NHD: Geometry is C/H/S %u/%u/%u",
-                                        (unsigned int)cylinders,(unsigned int)heads,(unsigned int)sectors);
+                                        cylinders,heads,sectors);
                             }
                             else {
                                 LOG_MSG("NHD header rejected. sectorsize=%u headersize=%u",
-                                        (unsigned int)sectorsize,(unsigned int)ofs);
+                                        sectorsize,ofs);
                             }
                         }
                         else {
@@ -1603,7 +1603,7 @@ imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint32_t imgSizeK, bool
                                 image_base = ofs;
                                 image_length -= ofs;
                                 LOG_MSG("HDI header: sectorsize is %u bytes/sector, header is %u bytes, hdd size (plus header) is %u bytes",
-                                    (unsigned int)sectorsize,(unsigned int)ofs,(unsigned int)hddsize);
+                                    sectorsize,ofs,hddsize);
 
                                 /* take on the geometry.
                                  * PC-98 IPL1 support will need it to make sense of the partition table. */
@@ -1611,11 +1611,11 @@ imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint32_t imgSizeK, bool
                                 heads = host_readd(hdihdr.surfaces);
                                 cylinders = host_readd(hdihdr.cylinders);
                                 LOG_MSG("HDI: Geometry is C/H/S %u/%u/%u",
-                                    (unsigned int)cylinders,(unsigned int)heads,(unsigned int)sectors);
+                                    cylinders,heads,sectors);
                             }
                             else {
                                 LOG_MSG("HDI header rejected. sectorsize=%u headersize=%u hddsize=%u",
-                                    (unsigned int)sectorsize,(unsigned int)ofs,(unsigned int)hddsize);
+                                    sectorsize,ofs,hddsize);
                             }
                         }
                         else {
@@ -1684,7 +1684,7 @@ void imageDisk::Set_GeometryForHardDisk()
 	fseek(diskimg,0,SEEK_END);
 	diskimgsize = (uint32_t)ftell(diskimg);
 	fseek(diskimg,current_fpos,SEEK_SET);
-	Set_Geometry(16, (uint32_t)(diskimgsize / (512 * 63 * 16)), 63, 512);
+	Set_Geometry(16, diskimgsize / (512 * 63 * 16), 63, 512);
 }
 
 void imageDisk::Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint32_t setSect, uint32_t setSectSize) {
@@ -2931,7 +2931,7 @@ imageDiskD88::imageDiskD88(FILE *imgFile, const char *imgName, uint32_t imgSizeK
     if (fread(&head,sizeof(head),1,diskimg) != 1) return;
 
     // validate fd_size
-    if ((uint32_t)host_readd((ConstHostPt)(&head.fd_size)) > (uint32_t)fsz) return;
+    if (host_readd((ConstHostPt)(&head.fd_size)) > (uint32_t)fsz) return;
 
     fd_type_major = head.fd_type >> 4U;
     fd_type_minor = head.fd_type & 0xFU;
@@ -3236,8 +3236,8 @@ imageDiskNFD::imageDiskNFD(FILE *imgFile, const char *imgName, uint32_t imgSizeK
     }
 
     // validate fd_size
-    if ((uint32_t)host_readd((ConstHostPt)(&head.headersize)) < sizeof(head)) return;
-    if ((uint32_t)host_readd((ConstHostPt)(&head.headersize)) > (uint32_t)fsz) return;
+    if (host_readd((ConstHostPt)(&head.headersize)) < sizeof(head)) return;
+    if (host_readd((ConstHostPt)(&head.headersize)) > (uint32_t)fsz) return;
 
     unsigned int data_offset = host_readd((ConstHostPt)(&head.headersize));
 
@@ -3272,7 +3272,7 @@ imageDiskNFD::imageDiskNFD(FILE *imgFile, const char *imgName, uint32_t imgSizeK
             vfdentry vent;
             vent.sector_size = 128 << e.sec_len_pow2;
             vent.data_offset = (uint32_t)data_offset;
-            vent.entry_offset = (uint32_t)ofs;
+            vent.entry_offset = ofs;
             vent.track = e.log_cyl;
             vent.head = e.log_head;
             vent.sector = e.log_rec;
@@ -3309,8 +3309,8 @@ imageDiskNFD::imageDiskNFD(FILE *imgFile, const char *imgName, uint32_t imgSizeK
                 if (fread(&e,sizeof(e),1,diskimg) != 1) return;
 
                 LOG_MSG("NFD %u/%u: ofs=%lu data=%lu cyl=%u head=%u sec=%u len=%u rep=%u",
-                        (unsigned int)s,
-                        (unsigned int)sectors,
+                        s,
+                        sectors,
                         (unsigned long)ofs,
                         (unsigned long)data_offset,
                         e.log_cyl,
@@ -3322,7 +3322,7 @@ imageDiskNFD::imageDiskNFD(FILE *imgFile, const char *imgName, uint32_t imgSizeK
                 vfdentry vent;
                 vent.sector_size = 128 << e.sec_len_pow2;
                 vent.data_offset = (uint32_t)data_offset;
-                vent.entry_offset = (uint32_t)ofs;
+                vent.entry_offset = ofs;
                 vent.track = e.log_cyl;
                 vent.head = e.log_head;
                 vent.sector = e.log_rec;
