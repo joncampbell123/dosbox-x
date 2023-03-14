@@ -2814,7 +2814,12 @@ again:
              *          over *data in any way should have no effect on the guest video memory it rendered from, but somehow, it does.
              *          I don't know what the fuck is going on here but if you're wondering why this code doesn't render debug information
              *          on the side, this is why. No, it has nothing to do with whether the templated function the EGA/VGA text calls
-             *          is inline or not. --J.C. */
+             *          is inline or not.
+             *
+             *          Modifying TempLine directly, which is the SAME memory location pointed to by data, does not cause this effect.
+             *          Why???
+             *
+             *          What the fuck? Clang/LLVM causes the same behavior too??*/
             if (vga_page_flip_occurred) {
                 memxor(data,0xFF,vga.draw.width*(vga.draw.bpp>>3));
                 vga_page_flip_occurred = false;
