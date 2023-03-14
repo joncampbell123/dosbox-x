@@ -17,12 +17,15 @@ orig_LDFLAGS="$LDFLAGS"
 orig_CPPFLAGS="$CPPFLAGS"
 orig_CXXFLAGS="$CXXFLAGS"
 
+# Remove our temporary copies of dosbox-x executable before rebuilding
+rm -f src/dosbox-x-arm64 src/dosbox-x-x86_64
+
 do_cleanup() {
     rm -rf vs/sdl2/linux-host vs/sdl2/linux-build
     rm -rf vs/zlib/linux-host vs/zlib/linux-build
     rm -rf vs/libpng/linux-host vs/libpng/linux-build
     rm -rf vs/freetype/linux-host vs/freetype/linux-build
-    [ -e Makefile ] && make distclean
+    [ -e Makefile ] && make clean
 }
 
 universal=0
@@ -127,6 +130,10 @@ for arch in $architectures; do
         export CPPFLAGS="$CPPFLAGS$new"
         export CXXFLAGS="$CXXFLAGS$new"
         export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$(${!brew_cmd} --prefix)/lib/pkgconfig"
+    fi
+
+    if [ "$universal" = 1 ]; then
+        opts="$opts --enable-universal"
     fi
 
     # now compile ourself
