@@ -52,6 +52,8 @@
 
 bool ega200 = false;
 bool mcga_double_scan = false;
+bool dbg_event_maxscan = false;
+bool dbg_event_scanstep = false;
 
 extern bool vga_render_on_demand;
 
@@ -3445,6 +3447,28 @@ void VGA_DrawDebugLine(uint8_t *line,unsigned int w) {
 	unsigned int white,dkgray;
 	unsigned int minw = 0;
 
+	if (dbg_event_maxscan) {
+		debugline_event ev;
+
+		ev.event = DBGEV_SPLIT;
+		ev.addline("MXS");
+
+		VGA_DebugAddEvent(ev);
+
+		dbg_event_maxscan = false;
+	}
+
+	if (dbg_event_scanstep) {
+		debugline_event ev;
+
+		ev.event = DBGEV_SPLIT;
+		ev.addline("OFS");
+
+		VGA_DebugAddEvent(ev);
+
+		dbg_event_scanstep = false;
+	}
+
 	/* line points into part of the image past active display */
 	switch (VGA_debug_screen_bpp) {
 		case 8:
@@ -4269,6 +4293,8 @@ void VGA_sof_debug_video_info(void) {
 static void VGA_VerticalTimer(Bitu /*val*/) {
     double current_time = PIC_GetCurrentEventTime();
 
+    dbg_event_maxscan = false;
+    dbg_event_scanstep = false;
     debugline_events.clear();
 
     if (IS_PC98_ARCH) {
