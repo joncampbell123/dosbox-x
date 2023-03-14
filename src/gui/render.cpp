@@ -31,6 +31,7 @@
 #include "control.h"
 #include "mapper.h"
 #include "menudef.h"
+#include "vga.h"
 #include "pic.h"
 #include "cross.h"
 #include "hardware.h"
@@ -902,6 +903,13 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
 	height += 4;
 	if (machine == MCH_EGA) {
 		height += 8*3;
+		width += 4;
+		width += 16*2; /* palette */
+		width += 4;
+		width += 4*2; /* cpe */
+		width += 4;
+		width += 8*32;
+		width += 4;
 	}
 	else if (machine == MCH_MDA || machine == MCH_HERC) {
 		/* add nothing, nothing to show at this time */
@@ -911,6 +919,15 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
 	}
 	else if (machine == MCH_VGA) {
 		height += 8*7;
+		width += 4;
+		if (vga.mode == M_VGA || vga.mode == M_LIN8) {
+			width += 256;
+			width += 4;
+		}
+		width += 16; /* CSPAL */
+		width += 4;
+		width += 8*32;
+		width += 4;
 	}
 	else {
 		height += 8*2;
