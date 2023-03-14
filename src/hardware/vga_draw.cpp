@@ -2818,12 +2818,10 @@ again:
         } else {
             uint8_t * data=VGA_DrawLine( vga.draw.address, vga.draw.address_line );
             /* WARNING: For magic reasons possibly related to gremlins added by the GNU C++ compiler or other otherwordly phenomona,
-             *          Modifying the rendered scanline pointed to by *data somehow corrupts the video memory of the guest, even though
+             *          modifying the rendered scanline pointed to by *data somehow corrupts the video memory of the guest, even though
              *          *data is 8bpp or 32bpp pixel data that was translated FROM the guest video memory TO a host bitmap and writing
              *          over *data in any way should have no effect on the guest video memory it rendered from, but somehow, it does.
-             *          I don't know what the fuck is going on here but if you're wondering why this code doesn't render debug information
-             *          on the side, this is why. No, it has nothing to do with whether the templated function the EGA/VGA text calls
-             *          is inline or not.
+             *          No, it has nothing to do with whether the templated function the EGA/VGA text calls is inline or not.
              *
              *          Modifying TempLine directly, which is the SAME memory location pointed to by data, does not cause this effect.
              *          Why???
@@ -2864,7 +2862,7 @@ again:
 
     if (!skiprender) {
         vga.draw.lines_done++;
-        if (vga.draw.split_line==vga.draw.lines_done) VGA_ProcessSplit();
+        if (vga.draw.split_line==vga.draw.lines_done && machine != MCH_PC98) VGA_ProcessSplit();
     }
 
     if (mcga_double_scan) {
@@ -2961,7 +2959,7 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
 
     if (!skiprender) {
         vga.draw.lines_done++;
-        if (vga.draw.split_line==vga.draw.lines_done) VGA_ProcessSplit();
+        if (vga.draw.split_line==vga.draw.lines_done && machine != MCH_PC98) VGA_ProcessSplit();
     }
 
     if (vga.draw.lines_done < vga.draw.lines_total) {
@@ -3401,6 +3399,19 @@ void VGA_DebugAddEvent(debugline_event &ev) {
 		minw = 4+16+4;
 		if (vga.mode == M_VGA || vga.mode == M_LIN8) minw += 256+4;
 	}
+	else if (machine == MCH_PC98) {
+		minw = 4+4;
+		if (pc98_gdc_vramop & (1u << VOPBIT_VGA)) {
+		}
+		else if (pc98_gdc_vramop & (1u << VOPBIT_ANALOG)) {
+			minw += 16*2;
+			minw += 4;
+		}
+		else {
+			minw += 8*2;
+			minw += 4;
+		}
+	}
 
 	if (debugline_events.empty()) debugline_event_alloc_x = minw;
 
@@ -3527,7 +3538,57 @@ void VGA_DrawDebugLine(uint8_t *line,unsigned int w) {
 			return;
 	};
 
-	if (machine == MCH_VGA) {
+	if (machine == MCH_PC98) {
+		if (vga.draw.bpp == 32) { /* Doesn't use anything else */
+			uint32_t *draw = (uint32_t*)line;
+			unsigned int dw = w;
+
+			if (dw <= 4) return;
+			for (unsigned int c=0;c < 4;c++) {
+				*draw++ = 0;
+				dw--;
+			}
+
+			if (pc98_gdc_vramop & (1u << VOPBIT_VGA)) {
+			}
+			else if (pc98_gdc_vramop & (1u << VOPBIT_ANALOG)) {
+				if (dw <= (16*2)) return;
+				for (unsigned int c=0;c < 16;c++) {
+					draw[0] = draw[1] = vga.dac.xlat32[c];
+					draw += 2;
+					dw -= 2;
+				}
+
+				if (dw <= 4) return;
+				for (unsigned int c=0;c < 4;c++) {
+					*draw++ = 0;
+					dw--;
+				}
+			}
+			else {
+				if (dw <= (8*2)) return;
+				for (unsigned int c=0;c < 8;c++) {
+					draw[0] = draw[1] = vga.dac.xlat32[c];
+					draw += 2;
+					dw -= 2;
+				}
+
+				if (dw <= 4) return;
+				for (unsigned int c=0;c < 4;c++) {
+					*draw++ = 0;
+					dw--;
+				}
+			}
+
+			minw = (unsigned int)(draw+4-(uint32_t*)line);
+
+			while (dw > 0) {
+				*draw++ = 0;
+				dw--;
+			}
+		}
+	}
+	else if (machine == MCH_VGA) {
 		if (vga.draw.bpp == 32) { /* Doesn't use anything else */
 			uint32_t *draw = (uint32_t*)line;
 			unsigned int dw = w;
@@ -3981,6 +4042,27 @@ void VGA_sof_debug_video_info(void) {
 				}
 
 				x += 8;
+			}
+
+			/* point out where side debug info is */
+			x = vga.draw.width;
+			y = 0;
+
+			x += 4;
+			if (pc98_gdc_vramop & (1u << VOPBIT_VGA)) {
+			}
+			else if (pc98_gdc_vramop & (1u << VOPBIT_ANALOG)) {
+				VGA_debug_screen_func->rect(x,y,x+(8*4),y+(8*1),white);
+				VGA_debug_screen_puts8(x,y,"EPAL",0);
+				x += 16*2;
+				x += 4;
+			}
+			else {
+				VGA_debug_screen_func->rect(x,y,x+(8*2),y+(8*2),white);
+				VGA_debug_screen_puts8(x,y,"EP",0);
+				VGA_debug_screen_puts8(x,y+8,"AL",0);
+				x += 8*2;
+				x += 4;
 			}
 		}
 	}
@@ -4743,7 +4825,7 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
     }
 
     /* do VGA split now if line compare <= 0. NTS: vga.draw.split_line is defined as Bitu (unsigned integer) so we need the typecast. */
-    if (GCC_UNLIKELY((Bits)vga.draw.split_line <= 0)) {
+    if (GCC_UNLIKELY((Bits)vga.draw.split_line <= 0) && machine != MCH_PC98) {
         VGA_ProcessSplit();
 
         /* if vblank_skip != 0, line compare can become a negative value! Fixes "Warlock" 1992 demo by Warlock */
