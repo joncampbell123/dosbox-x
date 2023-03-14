@@ -172,6 +172,8 @@ struct PC98_GDC_state {
     bool                    idle;
 
     bool                    doublescan;                 /* 200-line as 400-line */
+
+    bool                    dbg_ev_partition;
 };
 
 typedef union pc98_tile             egc_quad[4];

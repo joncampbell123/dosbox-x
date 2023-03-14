@@ -531,6 +531,8 @@ void PC98_GDC_state::begin_frame(void) {
 void PC98_GDC_state::load_display_partition(void) {
     unsigned char *pram = param_ram + (display_partition * 4);
 
+    dbg_ev_partition = true;
+
     scan_address  =  pram[0];
     scan_address +=  pram[1]         << 8;
     scan_address += (pram[2] & 0x03) << 16;

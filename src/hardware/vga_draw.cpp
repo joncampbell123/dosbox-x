@@ -88,6 +88,35 @@ struct s3drawstream {
 
 struct s3drawstream S3SSdraw = {0};
 
+enum {
+	DBGEV_SPLIT=0		// EGA/VGA splitscreen
+};
+
+struct debugline_event {
+	unsigned int	colorline = 0;
+	int		event = -1;
+	unsigned int	x = 0;
+	uint8_t		w = 0;
+	uint8_t		trow = 0;
+	size_t		tline = 0;
+	bool		done = false;
+	std::vector<std::string> text;
+
+	int drawwidth(void) const {
+		return w;
+	}
+	int drawheight(void) const {
+		return text.size() * 8;
+	}
+	void addline(const char *txt) {
+		addline(std::string(txt));
+	}
+	void addline(const std::string &txt) {
+		if (w < 8u*txt.length()) w = 8u*txt.length();
+		text.push_back(txt);
+	}
+};
+
 const char* const mode_texts[M_MAX] = {
     "M_CGA2",           // 0
     "M_CGA4",
@@ -2729,6 +2758,7 @@ void VGA_Update_SplitLineCompare() {
 }
 
 void VGA_DAC_DeferredUpdateColorPalette();
+void VGA_DebugAddEvent(debugline_event &ev);
 void VGA_DrawDebugLine(uint8_t *line,unsigned int w);
 
 static void VGA_DrawSingleLine(Bitu /*blah*/) {
@@ -2747,6 +2777,26 @@ again:
         vga.draw.render_step = 0;
 
     if (!skiprender) {
+        if (video_debug_overlay && machine == MCH_PC98) {
+            for (unsigned int i=0;i < 2;i++) {
+                if (pc98_gdc[i].dbg_ev_partition) {
+                    debugline_event ev;
+                    char name[20];
+
+                    sprintf(name,"%cPART%u",i==1?'G':'T',pc98_gdc[i].display_partition);
+                    ev.event = DBGEV_SPLIT;
+                    ev.addline(name);
+
+                    sprintf(name,"%04x",pc98_gdc[i].scan_address);
+                    ev.addline(name);
+
+                    VGA_DebugAddEvent(ev);
+
+                    pc98_gdc[i].dbg_ev_partition = false;
+                }
+            }
+        }
+
         VGA_DAC_DeferredUpdateColorPalette();
         if (GCC_UNLIKELY(vga.attr.disabled)) {
             switch(machine) {
@@ -3355,35 +3405,6 @@ EGAMonitorMode egaMonitorMode(void);
 
 extern uint8_t CGAPal2[2];
 extern uint8_t CGAPal4[4];
-
-enum {
-	DBGEV_SPLIT=0		// EGA/VGA splitscreen
-};
-
-struct debugline_event {
-	unsigned int	colorline = 0;
-	int		event = -1;
-	unsigned int	x = 0;
-	uint8_t		w = 0;
-	uint8_t		trow = 0;
-	size_t		tline = 0;
-	bool		done = false;
-	std::vector<std::string> text;
-
-	int drawwidth(void) const {
-		return w;
-	}
-	int drawheight(void) const {
-		return text.size() * 8;
-	}
-	void addline(const char *txt) {
-		addline(std::string(txt));
-	}
-	void addline(const std::string &txt) {
-		if (w < 8u*txt.length()) w = 8u*txt.length();
-		text.push_back(txt);
-	}
-};
 
 static std::vector<debugline_event> debugline_events;
 static unsigned int debugline_event_alloc_x = 0;
