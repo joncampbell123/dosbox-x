@@ -54,6 +54,9 @@ bool ega200 = false;
 bool mcga_double_scan = false;
 bool dbg_event_maxscan = false;
 bool dbg_event_scanstep = false;
+bool dbg_event_hretrace = false;
+bool dbg_event_color_select = false;
+bool dbg_event_color_plane_enable = false;
 
 extern bool vga_render_on_demand;
 
@@ -3469,6 +3472,39 @@ void VGA_DrawDebugLine(uint8_t *line,unsigned int w) {
 		dbg_event_scanstep = false;
 	}
 
+	if (dbg_event_hretrace) {
+		debugline_event ev;
+
+		ev.event = DBGEV_SPLIT;
+		ev.addline("HRT");
+
+		VGA_DebugAddEvent(ev);
+
+		dbg_event_hretrace = false;
+	}
+
+	if (dbg_event_color_plane_enable) {
+		debugline_event ev;
+
+		ev.event = DBGEV_SPLIT;
+		ev.addline("CPE");
+
+		VGA_DebugAddEvent(ev);
+
+		dbg_event_color_plane_enable = false;
+	}
+
+	if (dbg_event_color_select) {
+		debugline_event ev;
+
+		ev.event = DBGEV_SPLIT;
+		ev.addline("CSL");
+
+		VGA_DebugAddEvent(ev);
+
+		dbg_event_color_select = false;
+	}
+
 	/* line points into part of the image past active display */
 	switch (VGA_debug_screen_bpp) {
 		case 8:
@@ -4295,6 +4331,9 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 
     dbg_event_maxscan = false;
     dbg_event_scanstep = false;
+    dbg_event_hretrace = false;
+    dbg_event_color_select = false;
+    dbg_event_color_plane_enable = false;
     debugline_events.clear();
 
     if (IS_PC98_ARCH) {

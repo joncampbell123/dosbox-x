@@ -29,6 +29,7 @@
 
 extern bool dbg_event_maxscan;
 extern bool dbg_event_scanstep;
+extern bool dbg_event_hretrace;
 
 extern bool vga_render_on_demand;
 void VGA_RenderOnDemandUpTo(void);
@@ -124,6 +125,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	case 0x04:	/* Start Horizontal Retrace Register */
 		if (crtc(read_only)) break;
+		if (crtc(start_horizontal_retrace)^(uint8_t)val) dbg_event_hretrace = true;
 		crtc(start_horizontal_retrace)=(uint8_t)val;
 		/*	0-7  Horizontal Retrace starts when the Character Counter reaches this value. */
 		break;

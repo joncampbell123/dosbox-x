@@ -25,6 +25,8 @@
 /* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
 #include "cpu_io_is_forbidden.h"
 
+extern bool dbg_event_color_plane_enable;
+extern bool dbg_event_color_select;
 extern bool vga_render_on_demand;
 void VGA_RenderOnDemandUpTo(void);
 
@@ -271,6 +273,7 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 			/* Why disable colour planes? */
 			/* To support weird modes. */
 			if ((attr(color_plane_enable)^val) & 0xf) {
+				dbg_event_color_plane_enable = true;
 				// in case the plane enable bits change...
 				attr(color_plane_enable)=(uint8_t)val;
 				for (uint8_t i=0;i<0x10;i++)
@@ -326,6 +329,7 @@ void write_p3c0(Bitu /*port*/,Bitu val,Bitu iolen) {
 				break;
 			}
 			if (attr(color_select) ^ val) {
+				dbg_event_color_select = true;
 				attr(color_select)=(uint8_t)val;
 				for (uint8_t i=0;i<0x10;i++)
 					VGA_ATTR_SetPalette(i,vga.attr.palette[i]);
