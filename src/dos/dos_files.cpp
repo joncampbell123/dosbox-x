@@ -143,8 +143,8 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive,
 #endif
 	}
 
-	char tempdir[DOS_PATHLENGTH];
-	char upname[DOS_PATHLENGTH];
+    char tempdir[DOS_PATHLENGTH] = {};
+    char upname[DOS_PATHLENGTH] = {};
     Bitu r,w, q=0;
 	/* First get the drive */
 	*drive = DOS_GetDefaultDrive();
