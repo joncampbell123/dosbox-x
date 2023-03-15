@@ -2618,8 +2618,8 @@ nextfile:
     if(sectbuf[entryoffset].attrib == DOS_ATTR_VOLUME)
         trimString(find_name);
 
-	// Drive emulation does not need to require a LFN in case there is no corresponding 8.3 names.
-	if (lfind_name[0] == 0) strcpy(lfind_name,find_name);
+    // Drive emulation does not need to require a LFN in case there is no corresponding 8.3 names.
+    if (lfind_name[0] == 0) strcpy(lfind_name,find_name);
 
 	copyDirEntry(&sectbuf[entryoffset], foundEntry);
 

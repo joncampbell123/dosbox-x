@@ -578,8 +578,8 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
     if (attr & DOS_ATTR_DEVICE)
         device = DOS_FindDevice(search) != DOS_DEVICES;
 
-	/* Split the search in dir and pattern */
-	forcelfn = false;
+    /* Split the search in dir and pattern */
+    forcelfn = false;
 	char *find_last = NULL;
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 	bool net = Network_IsNetworkResource(search);
