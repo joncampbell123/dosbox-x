@@ -27,9 +27,20 @@ jobs:
           msystem: MINGW64
           update: true
           install: git mingw-w64-x86_64-toolchain mingw-w64-x86_64-libslirp mingw-w64-x86_64-libtool mingw-w64-x86_64-nasm autoconf automake
+      - name: Update build info
+        shell: bash
+        run: |
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
+          export copyrightyear=`git show -s --format=%at | xargs -I# date -d @# +'%Y'`
+          export updatestr=`git show -s --format=%at | xargs -I# date -d @# +'%b %d, %Y %I:%M:%S%P'`
+          echo '/* auto generated */' > include/build_timestamp.h
+          echo "#define UPDATED_STR \"${updatestr}\"" >> include/build_timestamp.h
+          echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
+          echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
+          cat include/build_timestamp.h
       - name: Build MinGW64 SDL1
         run: |
-          echo "timestamp=`date +%F-%T | sed -e 's/:/-/g' | sed -e 's/-//g'`" >> $GITHUB_ENV
           top=`pwd`
           ln -s $top/build-scripts/mingw/lowend-bin/make.exe /usr/bin/make.exe
           ./build-mingw

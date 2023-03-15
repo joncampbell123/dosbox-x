@@ -26,8 +26,17 @@ jobs:
       - name: Prepare Visual Studio build for WinXP
         shell: bash
         run: |
-          echo "timestamp=`date +%F-%T | sed -e 's/:/-/g' | sed -e 's/-//g'`" >> $GITHUB_ENV
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
           ls -1 vs/dosbox-x.vcxproj vs/freetype/builds/windows/vc2010/freetype.vcxproj vs/libpdcurses/libpdcurses.vcxproj vs/libpng/projects/vstudio/libpng/libpng.vcxproj vs/libpng/projects/vstudio/libpng/libpng.vcxproj vs/sdl/VisualC/SDL/SDL.vcxproj vs/sdl/VisualC/SDLmain/SDLmain.vcxproj vs/sdl2/VisualC/SDL/SDL.vcxproj vs/sdl2/VisualC/SDLmain/SDLmain.vcxproj vs/sdlnet/VisualC/SDL_net_VS2008.vcxproj vs/sdlnet/VisualC/SDL_net_VS2008.vcxproj vs/zlib/zlib/zlib.vcxproj | xargs sed -b -i 's/v14[2-9]/v141/g;s/>10.0</>10.0.22000.0</g'
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
+          export copyrightyear=`git show -s --format=%at | xargs -I# date -d @# +'%Y'`
+          export updatestr=`git show -s --format=%at | xargs -I# date -d @# +'%b %d, %Y %I:%M:%S%P'`
+          echo '/* auto generated */' > include/build_timestamp.h
+          echo "#define UPDATED_STR \"${updatestr}\"" >> include/build_timestamp.h
+          echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
+          echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
+          cat include/build_timestamp.h
       - name: Build Visual Studio Win32 SDL1
         shell: pwsh
         run: |
@@ -115,9 +124,20 @@ jobs:
         shell: bash
     steps:
       - uses: actions/checkout@v3
+      - name: Update build info
+        shell: bash
+        run: |
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
+          export copyrightyear=`git show -s --format=%at | xargs -I# date -d @# +'%Y'`
+          export updatestr=`git show -s --format=%at | xargs -I# date -d @# +'%b %d, %Y %I:%M:%S%P'`
+          echo '/* auto generated */' > include/build_timestamp.h
+          echo "#define UPDATED_STR \"${updatestr}\"" >> include/build_timestamp.h
+          echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
+          echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
+          cat include/build_timestamp.h
       - name: Prepare MinGW32 lowend
         run: |
-          echo "timestamp=`date +%F-%T | sed -e 's/:/-/g' | sed -e 's/-//g'`" >> $GITHUB_ENV
           top=`pwd`
           pwd>pwd.txt
           mkdir mingw-get
@@ -180,9 +200,7 @@ jobs:
       - name: Prepare files
         shell: bash
         run: |
-          #DOSBOX_X_RELEASE=`gh release list -L1 | grep -o "....-..-.." | head -n 1 | sed -e "s/-/./g"`
-          #echo "DOSBOX_X_RELEASE=$DOSBOX_X_RELEASE" >> $GITHUB_ENV
-          echo "timestamp=`date +%F-%T | sed -e 's/:/-/g' | sed -e 's/-//g'`" >> $GITHUB_ENV
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
           cp dosbox-*.conf contrib/windows/installer/
           #ls -lg vs-bin
           #ls -lg mingw-bin
@@ -206,7 +224,7 @@ jobs:
       - name: Clean cache
         run: |
           gh extension install actions/gh-actions-cache
-          ## need permission? disabled the following lines if error occurs when deleting cache
+          ## need permission? disable the following lines if error occurs when deleting cache
           set +e
           gh actions-cache delete mingw-bin-${{ github.sha }} --confirm
           gh actions-cache delete vs-bin-${{ github.sha }} --confirm
