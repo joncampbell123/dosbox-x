@@ -871,7 +871,7 @@ nextfile:
 		if (sectbuf[entryoffset].entryname[0] == 0xe5)
 			goto nextfile;
 
-		if (sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME) {
+		if (sectbuf[entryoffset].attrib == DOS_ATTR_VOLUME) {
 			/* TODO: There needs to be a way for FCB delete to erase the volume label by name instead
 			 *       of just picking the first one */
 			/* found one */
@@ -2604,7 +2604,7 @@ nextfile:
 	}
 
 	/* Compare name to search pattern. Skip long filename match if no long filename given. */
-    if(attrs & DOS_ATTR_VOLUME) {
+    if(attrs == DOS_ATTR_VOLUME) {
         if (!(wild_match(find_name, srch_pattern)))
             goto nextfile;
     }
@@ -2615,7 +2615,7 @@ nextfile:
 		goto nextfile;
 	}
 
-    if(sectbuf[entryoffset].attrib & DOS_ATTR_VOLUME)
+    if(sectbuf[entryoffset].attrib == DOS_ATTR_VOLUME)
         trimString(find_name);
 
 	// Drive emulation does not need to require a LFN in case there is no corresponding 8.3 names.
