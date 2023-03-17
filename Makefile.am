@@ -3,9 +3,17 @@
 EXTRA_DIST = autogen.sh
 SUBDIRS = src include
 
+if MACOSX
+if MACOS_UNIVERSAL
+MACOS_BINARIES=src/dosbox-x-arm64 src/dosbox-x-x86_64
+else
+MACOS_BINARIES=src/dosbox-x-$(shell uname -m)
+endif
+endif
+
 .PHONY: dosbox-x.app
 
-dosbox-x.app: src/dosbox-x-arm64 src/dosbox-x-x86_64 contrib/macos/dosbox.icns src/tool/mach-o-matic
+dosbox-x.app: $(MACOS_BINARIES) contrib/macos/dosbox.icns src/tool/mach-o-matic
 	rm -Rfv dosbox-x.app
 	mkdir dosbox-x.app
 	mkdir dosbox-x.app/Contents
@@ -33,18 +41,21 @@ dosbox-x.app: src/dosbox-x-arm64 src/dosbox-x-x86_64 contrib/macos/dosbox.icns s
 # this is where it gets ugly
 # Find dependent libraries and copy them into the app bundle separated by architecture
 	for exe in dosbox-x.app/Contents/MacOS/arm64/dosbox-x dosbox-x.app/Contents/MacOS/x86_64/dosbox-x; do \
-		[ -f "$$exe" ] && otool -L "$$exe" | grep -E '/usr/local/lib|/usr/local/opt|/usr/local/Cellar|/usr/local/Homebrew|/opt/homebrew/' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
-			dylib=`basename $$Y`; \
-			if echo $$Y | grep -Eq '/opt/homebrew'; then \
-				cp -v $$Y dosbox-x.app/Contents/MacOS/arm64/; \
-				codesign --remove-signature "dosbox-x.app/Contents/MacOS/arm64/$$dylib" || exit 1; \
-				chmod 0755 "dosbox-x.app/Contents/MacOS/arm64/$$dylib" || exit 1; \
-			else \
-				cp -v $$Y dosbox-x.app/Contents/MacOS/x86_64/; \
-				codesign --remove-signature "dosbox-x.app/Contents/MacOS/x86_64/$$dylib" || exit 1; \
-				chmod 0755 "dosbox-x.app/Contents/MacOS/x86_64/$$dylib" || exit 1; \
-			fi; \
-		done; \
+		if [ -f "$$exe" ]; then \
+			otool -L "$$exe" | grep -E '/usr/local/lib|/usr/local/opt|/usr/local/Cellar|/usr/local/Homebrew|/opt/homebrew/' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
+				dylib=`basename $$Y`; \
+				echo "Copying $$dylib"; \
+				if echo $$Y | grep -Eq '/opt/homebrew'; then \
+					cp -v $$Y dosbox-x.app/Contents/MacOS/arm64/; \
+					codesign --remove-signature "dosbox-x.app/Contents/MacOS/arm64/$$dylib" || exit 1; \
+					chmod 0755 "dosbox-x.app/Contents/MacOS/arm64/$$dylib" || exit 1; \
+				else \
+					cp -v $$Y dosbox-x.app/Contents/MacOS/x86_64/; \
+					codesign --remove-signature "dosbox-x.app/Contents/MacOS/x86_64/$$dylib" || exit 1; \
+					chmod 0755 "dosbox-x.app/Contents/MacOS/x86_64/$$dylib" || exit 1; \
+				fi; \
+			done; \
+		fi; \
 	done
 # Find all the libraries we copied and copy any libraries they depend on
 # separated by architecture, and remove their signatures, too.

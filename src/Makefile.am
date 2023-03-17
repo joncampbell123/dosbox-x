@@ -75,4 +75,6 @@ endif
 
 EXTRA_DIST = winres.rc ../contrib/icons/dosbox-x.ico
 
-
+# Ensure the macOS universal executables are correctly removed when cleaning
+distclean-local:
+	rm -f dosbox-x-arm64 dosbox-x-x86_64
