@@ -1237,12 +1237,14 @@ fi
 
 dnl BUILD: whether to enable universal binary support
 if test x"$macosx" = x"1" && test x"$host_cpu" = x"arm"; then
-  AC_ARG_ENABLE(MACOS_UNIVERSAL,AC_HELP_STRING([--enable-universal],[Enable macOS universal binary support]),
+  AC_ARG_ENABLE(universal,AC_HELP_STRING([--enable-universal],[Enable macOS universal binary support]),
     [enable_universal=$enableval],
     [enable_universal=no])
 else
-  AM_CONDITIONAL(MACOS_UNIVERSAL, false)
+  enable_universal=no
 fi
+
+AM_CONDITIONAL(MACOS_UNIVERSAL, [ test x$enable_universal = xyes ])
 
 AC_CONFIG_FILES([ 
 Makefile
