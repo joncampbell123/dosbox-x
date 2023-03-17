@@ -1835,6 +1835,7 @@ public:
     }
 
     CBind * CreateConfigBind(char *& buf) {
+        if (is_dummy) return 0;
         if (strncasecmp(configname,buf,strlen(configname))) return 0;
         StripWord(buf);char * type=StripWord(buf);
         CBind * bind=0;
