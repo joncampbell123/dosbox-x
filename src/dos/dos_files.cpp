@@ -572,7 +572,7 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 		DOS_SetError(DOSERR_NO_MORE_FILES);
 		return false;
 	}
-	if (!DOS_MakeName(search,fullsearch,&drive,attr & DOS_ATTR_VOLUME)) return false;
+	if (!DOS_MakeName(search,fullsearch,&drive,attr == DOS_ATTR_VOLUME)) return false;
 	//Check for devices. FindDevice checks for leading subdir as well
     bool device = false;
     if (attr & DOS_ATTR_DEVICE)
