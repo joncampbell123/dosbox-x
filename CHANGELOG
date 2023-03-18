@@ -1,4 +1,6 @@
 Next
+  - Fix 'pc98 force ibm keyboard layout' was always forced to be 'true'
+    for left & right bracket keys on US keyboards. (maron2000)  
   - Fix dynamic_nodhfpu FPU stack bugs, the same bugs that once plagued
     dynrec. dynamic_x86 never seemed to have the same problem because
     in reality the DH FPU case was normally used, to hit this bug you
