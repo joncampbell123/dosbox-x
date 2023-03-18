@@ -1260,6 +1260,12 @@ bool getSwapRequest(void) {
 }
 
 void swapInDrive(int drive, int position=0) {
+    if (drive>1||swapInDisksSpecificDrive!=drive) return;
+    if (position<1) swapPosition++;
+    else swapPosition=position-1;
+    if(diskSwap[swapPosition] == NULL) swapPosition = 0;
+    swapInDisks(drive);
+    swapping_requested = true;
     DriveManager::CycleDisks(drive, true, position);
     /* Hack/feature: rescan all disks as well */
     LOG_MSG("Diskcaching reset for drive %c.", drive+'A');
@@ -1267,12 +1273,6 @@ void swapInDrive(int drive, int position=0) {
         Drives[drive]->EmptyCache();
         Drives[drive]->MediaChange();
     }
-    if (drive>1||swapInDisksSpecificDrive!=drive) return;
-    if (position<1) swapPosition++;
-    else swapPosition=position-1;
-    if(diskSwap[swapPosition] == NULL) swapPosition = 0;
-    swapInDisks(drive);
-    swapping_requested = true;
 }
 
 void swapInNextDisk(bool pressed) {
