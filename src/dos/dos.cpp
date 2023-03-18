@@ -5166,18 +5166,21 @@ void DOS_Int21_7160(char *name1, char *name2) {
             CALLBACK_SCF(true);
             return;
         }
+		bool tail = check_last_split_char(name1 + 1, strlen(name1 + 1), '\\');
 		*name1='\"';
 		char *p=name1+strlen(name1);
 		while (*p==' '||*p==0) p--;
 		*(p+1)='\"';
 		*(p+2)=0;
 		if (DOS_Canonicalize(name1,name2)) {
-				strcpy(name1,"\"");
-				strcat(name1,name2);
-				strcat(name1,"\"");
+				if(reg_cl != 0) {
+					strcpy(name1,"\"");
+					strcat(name1,name2);
+					strcat(name1,"\"");
+				}
 				switch(reg_cl)          {
 						case 0:         // Canonoical path name
-								strcpy(name2,name1);
+								if(tail) strcat(name2, "\\");
 								MEM_BlockWrite(SegPhys(es)+reg_di,name2,(Bitu)(strlen(name2)+1));
 								reg_ax=0;
 								CALLBACK_SCF(false);
@@ -5185,6 +5188,7 @@ void DOS_Int21_7160(char *name1, char *name2) {
 						case 1:         // SFN path name
                                 checkwat=true;
 								if (DOS_GetSFNPath(name1,name2,false)) {
+									if(tail) strcat(name2, "\\");
 									MEM_BlockWrite(SegPhys(es)+reg_di,name2,(Bitu)(strlen(name2)+1));
 									reg_ax=0;
 									CALLBACK_SCF(false);
@@ -5196,6 +5200,7 @@ void DOS_Int21_7160(char *name1, char *name2) {
 								break;
 						case 2:         // LFN path name
 								if (DOS_GetSFNPath(name1,name2,true)) {
+									if(tail) strcat(name2, "\\");
 									MEM_BlockWrite(SegPhys(es)+reg_di,name2,(Bitu)(strlen(name2)+1));
 									reg_ax=0;
 									CALLBACK_SCF(false);
