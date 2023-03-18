@@ -1236,10 +1236,10 @@ bool pc98_force_ibm_layout = false;
 /* this version sends to the PC-98 8251 emulation NOT the AT 8042 emulation */
 void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     uint8_t ret=0;
-    bool usesdl1dib = false;
-#if defined(WIN32) && !defined(C_SDL2)
-    if (GFX_SDLUsingWinDIB()) usesdl1dib = true;
-#endif
+//    bool usesdl1dib = false;
+//#if defined(WIN32) && !defined(C_SDL2)
+//    if (GFX_SDLUsingWinDIB()) usesdl1dib = true;
+//#endif
 
     switch (keytype) {                          // NAME or
                                                 // NM SH KA KA+SH       NM=no-mod SH=shift KA=kana KA+SH=kana+shift
@@ -1271,8 +1271,8 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_o:             ret=0x18;break;     // o  O  ラ
     case KBD_p:             ret=0x19;break;     // p  P  セ
     case KBD_atsign:        ret=0x1A;break;     // @  ~  ﾞ
-    case KBD_leftbracket:   ret=pc98_force_ibm_layout||usesdl1dib?0x1B:0x1A;break;     // @  ~  ﾞ
-    case KBD_rightbracket:  ret=pc98_force_ibm_layout||usesdl1dib?0x28:0x1B;break;     // [  {  ﾟ  ｢ / ]  }  ム ｣
+    case KBD_leftbracket:   ret=pc98_force_ibm_layout?0x1B:0x1A;break;     // @  ~  ﾞ
+    case KBD_rightbracket:  ret=pc98_force_ibm_layout?0x28:0x1B;break;     // [  {  ﾟ  ｢ / ]  }  ム ｣
     case KBD_enter:         ret=0x1C;break;     // ENTER/RETURN
     case KBD_kpenter:       ret=0x1C;break;     // ENTER/RETURN (KEYPAD)
     case KBD_a:             ret=0x1D;break;     // a  A  チ
