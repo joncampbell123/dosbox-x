@@ -3161,7 +3161,7 @@ static void SetPriority(PRIORITY_LEVELS level) {
 }
 
 static void OutputString(Bitu x,Bitu y,const char * text,uint32_t color,uint32_t color2,SDL_Surface * output_surface) {
-    uint32_t * draw=(uint32_t*)(((uint8_t *)output_surface->pixels)+((y)*output_surface->pitch))+x;
+    uint32_t * draw=(uint32_t*)(((uint8_t *)output_surface->pixels)+(y*output_surface->pitch))+x;
     while (*text) {
         uint8_t * font=&int10_font_14[(*text)*14];
         Bitu i,j;
@@ -6125,10 +6125,10 @@ void GFX_Events() {
 #if defined(WIN32)
             if (event.type == SDL_KEYDOWN && isModifierApplied())
                 ClipKeySelect(event.key.keysym.sym);
-            if (((event.key.keysym.sym==SDLK_TAB)) &&
+            if ((event.key.keysym.sym==SDLK_TAB) &&
                 ((sdl.laltstate==SDL_KEYDOWN) || (sdl.raltstate==SDL_KEYDOWN))) { MAPPER_LosingFocus(); break; }
             // This can happen as well.
-            if (((event.key.keysym.sym == SDLK_TAB )) && (event.key.keysym.mod & KMOD_ALT)) break;
+            if ((event.key.keysym.sym == SDLK_TAB) && (event.key.keysym.mod & KMOD_ALT)) break;
             // ignore tab events that arrive just after regaining focus. (likely the result of alt-tab)
             if ((event.key.keysym.sym == SDLK_TAB) && (GetTicks() - sdl.focus_ticks < 2)) break;
             if (GetACP() == 932 && GetKeyboardType(0) != 7) {
@@ -8559,7 +8559,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 ""
 #endif
         " %s)",VERSION,SDL_STRING);
-        LOG(LOG_MISC,LOG_NORMAL)(("Copyright 2011-%s The DOSBox-X Team. Project maintainer: joncampbell123 (The Great Codeholio). DOSBox-X published under GNU GPL."),std::string(COPYRIGHT_END_YEAR).c_str());
+        LOG(LOG_MISC,LOG_NORMAL)("Copyright 2011-%s The DOSBox-X Team. Project maintainer: joncampbell123 (The Great Codeholio). DOSBox-X published under GNU GPL.",std::string(COPYRIGHT_END_YEAR).c_str());
 
 #if defined(MACOSX)
         LOG_MSG("macOS EXE path: %s",MacOSXEXEPath.c_str());

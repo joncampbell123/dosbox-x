@@ -416,9 +416,9 @@ extern "C" int _nhandle;
  bool Network_CloseFile(uint16_t entry)
 {
 	uint32_t handle=RealHandle(entry);
-	int _Expr_val=!!((handle >= 0 && (unsigned)handle < (unsigned)_nhandle));
+	int _Expr_val=!!(handle >= 0 && (unsigned)handle < (unsigned)_nhandle);
 	//_ASSERT_EXPR( ( _Expr_val ), _CRT_WIDE(#(handle >= 0 && (unsigned)handle < (unsigned)_nhandle)) );
-	if (!(handle > 0) || ( !( _Expr_val ))) {
+	if (!(handle > 0) || ( ! _Expr_val )) {
 		_doserrno = 0L;
 		errno = EBADF;
 		dos.errorcode=(uint16_t)_doserrno;
