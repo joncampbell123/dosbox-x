@@ -465,7 +465,7 @@ private:
 			if (EmptyClipboard())
 				{
 				int bytes = ftell(fh);
-				HGLOBAL hCbData = GlobalAlloc(NULL, bytes);
+				HGLOBAL hCbData = GlobalAlloc(0, bytes);
 				uint8_t* pChData = (uint8_t*)GlobalLock(hCbData);
 				if (pChData)
 					{
