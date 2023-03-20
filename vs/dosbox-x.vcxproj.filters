@@ -52,7 +52,7 @@
     <Filter Include="Sources\libs\gui_tk">
       <UniqueIdentifier>{5d5417f9-58a8-4b86-a8f7-8626b7120043}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Sources\libs\porttalk">
+    <Filter Include="Sources\libs\passthroughio">
       <UniqueIdentifier>{cd3f8fa5-7241-4256-a47c-a74ae8a95284}</UniqueIdentifier>
     </Filter>
     <Filter Include="Sources\misc">
@@ -546,7 +546,7 @@
     <ClCompile Include="..\src\hardware\glide.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\hardware\parport\directlpt_win32.cpp">
+    <ClCompile Include="..\src\hardware\parport\directlpt.cpp">
       <Filter>Sources\hardware\parport</Filter>
     </ClCompile>
     <ClCompile Include="..\src\hardware\parport\filelpt.cpp">
@@ -645,8 +645,8 @@
     <ClCompile Include="..\src\libs\gui_tk\gui_tk.cpp">
       <Filter>Sources\libs\gui_tk</Filter>
     </ClCompile>
-    <ClCompile Include="..\src\libs\porttalk\porttalk.cpp">
-      <Filter>Sources\libs\porttalk</Filter>
+    <ClCompile Include="..\src\libs\passthroughio\passthroughio.cpp">
+      <Filter>Sources\libs\passthroughio</Filter>
     </ClCompile>
     <ClCompile Include="..\src\misc\clipboard.cpp">
       <Filter>Sources\misc</Filter>
@@ -1757,7 +1757,7 @@
     <ClInclude Include="..\src\hardware\voodoo_vogl.h">
       <Filter>Sources\hardware</Filter>
     </ClInclude>
-    <ClInclude Include="..\src\hardware\parport\directlpt_win32.h">
+    <ClInclude Include="..\src\hardware\parport\directlpt.h">
       <Filter>Sources\hardware\parport</Filter>
     </ClInclude>
     <ClInclude Include="..\src\hardware\parport\filelpt.h">
