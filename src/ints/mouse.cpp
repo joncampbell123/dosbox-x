@@ -1042,12 +1042,12 @@ void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h, bool select) {
 #if defined(USE_TTF)
     ttfuse = ttf.inUse;
     ttfcols = ttf.cols;
-    if (ttfuse&&(!IS_EGAVGA_ARCH||CurMode->mode!=3||isDBCSCP()&&dbcs_sbcs)) {
+    if (ttfuse&&(!IS_EGAVGA_ARCH||CurMode->mode!=3||(isDBCSCP()&&dbcs_sbcs))) {
         ttf_cell *newAC = newAttrChar;
         for (unsigned int y = 0; y < ttf.lins; y++) {
             if (y>=r1&&y<=r2)
                 for (unsigned int x = 0; x < ttf.cols; x++)
-                    if ((x>=c1||((IS_PC98_ARCH||isDBCSCP()&&dbcs_sbcs)&&c1>0&&x==c1-1&&(newAC[rtl?ttf.cols-x-1:x].chr&0xFF00)&&(newAC[rtl?ttf.cols-x:x+1].chr&0xFF)==32))&&x<=c2)
+                    if ((x>=c1||((IS_PC98_ARCH||(isDBCSCP()&&dbcs_sbcs))&&c1>0&&x==c1-1&&(newAC[rtl?ttf.cols-x-1:x].chr&0xFF00)&&(newAC[rtl?ttf.cols-x:x+1].chr&0xFF)==32))&&x<=c2)
                         newAC[rtl?ttf.cols-x-1:x].selected = select?1:0;
             newAC += ttf.cols;
         }

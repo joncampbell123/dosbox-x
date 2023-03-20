@@ -1992,7 +1992,7 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
     }
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-    if (!sdl.desktop.fullscreen && menu_gui && menu.toggle && ((width == 640 || (vga.draw.char9_set && width == 720)) && ((machine != MCH_CGA && !IS_VGA_ARCH && !IS_PC98_ARCH && height == 350) || height == 400)) || ((render.aspect || IS_DOSV) && checkmenuwidth)) {
+    if ((!sdl.desktop.fullscreen && menu_gui && menu.toggle && ((width == 640 || (vga.draw.char9_set && width == 720)) && ((machine != MCH_CGA && !IS_VGA_ARCH && !IS_PC98_ARCH && height == 350) || height == 400))) || ((render.aspect || IS_DOSV) && checkmenuwidth)) {
         RECT r;
         bool res = GetWindowRect(GetHWND(), &r);
         unsigned int maxWidth, maxHeight;
@@ -6159,7 +6159,7 @@ void GFX_Events() {
 			if(event.key.keysym.scancode == 0 && event.key.keysym.sym == 0) {
 				int len;
 				char chars[10];
-				if(len = SDL_FlushIMString(NULL)) {
+				if((len = SDL_FlushIMString(NULL))) {
 					uint16_t *buff = (uint16_t *)malloc((len + 1)*sizeof(uint16_t)), uname[2];
 					SDL_FlushIMString(buff);
 					SetIMPosition();
@@ -7622,7 +7622,7 @@ std::wstring win32_prompt_folder(const char *default_folder) {
     of.lpstrFilter = L"DOSBox-X configuration file\0" L"dosbox-x.conf;dosbox.conf\0";
     if (GetOpenFileNameW(&of)) {
         if (of.nFileOffset >= sizeof(tmp)) return std::wstring();
-        while (of.nFileOffset > 0 && tmp[of.nFileOffset - 1] == '/' || tmp[of.nFileOffset - 1] == '\\') of.nFileOffset--;
+        while ((of.nFileOffset > 0 && tmp[of.nFileOffset - 1] == '/') || tmp[of.nFileOffset - 1] == '\\') of.nFileOffset--;
         if (of.nFileOffset == 0) return std::wstring();
         res = std::wstring(tmp, (size_t)of.nFileOffset);
     }

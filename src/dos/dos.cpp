@@ -2033,7 +2033,7 @@ static Bitu DOS_21Handler(void) {
                 }
                 else
                 {
-                    if(fRead = DOS_ReadFile(reg_bx, dos_copybuf, &toread)) {
+                    if((fRead = DOS_ReadFile(reg_bx, dos_copybuf, &toread))) {
                         MEM_BlockWrite(SegPhys(ds) + reg_dx, dos_copybuf, toread);
                         diskio_delay_handle(reg_bx, toread);
                     }
@@ -2114,7 +2114,7 @@ static Bitu DOS_21Handler(void) {
                         fWritten = !(((DOS_ExtDevice*)Files[handle])->CallDeviceFunction(8, 26, SegValue(ds), reg_dx, towrite) & 0x8000);
                     }
                     else {
-                        if(fWritten = DOS_WriteFile(reg_bx, dos_copybuf, &towrite)) {
+                        if((fWritten = DOS_WriteFile(reg_bx, dos_copybuf, &towrite))) {
                             diskio_delay_handle(reg_bx, towrite);
                         }
                     }

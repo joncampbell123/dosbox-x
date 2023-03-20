@@ -863,7 +863,7 @@ resize1:
 	}
 #endif
 resize2:
-    if (fontSize>=MIN_PTSIZE && 100*ttf.cols*ttf.width/maxWidth*ttf.lins*ttf.height/maxHeight > 100 || (lesssize && (ttf.cols*ttf.width>maxWidth || ttf.lins*ttf.height>maxHeight))) {
+    if ((fontSize>=MIN_PTSIZE && 100*ttf.cols*ttf.width/maxWidth*ttf.lins*ttf.height/maxHeight > 100) || (lesssize && (ttf.cols*ttf.width>maxWidth || ttf.lins*ttf.height>maxHeight))) {
         if (lesssize && curSize > MIN_PTSIZE) {
             curSize--;
             GFX_SelectFontByPoints(curSize);

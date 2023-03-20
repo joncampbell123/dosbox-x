@@ -42,9 +42,9 @@ extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CRO
 
  bool Network_IsNetworkResource(const char * filename)
 {
-	if(strlen(filename)>1 && enable_network_redirector && !control->SecureMode() && (filename[0]=='\\' && filename[1]=='\\' || strlen(filename)>2 && filename[0]=='"' && filename[1]=='\\' && filename[2]=='\\')) {
+	if(strlen(filename)>1 && enable_network_redirector && !control->SecureMode() && ((filename[0]=='\\' && filename[1]=='\\') || (strlen(filename)>2 && filename[0]=='"' && filename[1]=='\\' && filename[2]=='\\'))) {
         char *p = strrchr_dbcs((char *)filename, '\\');
-        return p && (filename[0]=='\\' && p > filename+1 || filename[0]=='"' && p > filename+2);
+        return p && ((filename[0]=='\\' && p > filename+1) || (filename[0]=='"' && p > filename+2));
     } else
 		return false;
 }//bool	Network_IsNetworkFile(uint16_t entry)
