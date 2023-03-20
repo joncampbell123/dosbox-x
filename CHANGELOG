@@ -221,6 +221,8 @@ Next
     do 16-color dithered graphics. (joncampbell123).
   - Fix installers for Dynamix games not working.
     (Allofich & halcyon00)
+  - Fix crash related to swapping between disk
+    images. (Allofich)
   - SVN r4482: Correct CMS sound pitch. (Allofich)
 
 2022.12.26
