@@ -646,6 +646,7 @@ bool DOS_IOCTL(void) {
 			return false;
 		} else {
 			if (Files[handle]->GetInformation() & DeviceInfoFlags::Device) {	//Check for device
+				((DOS_Device *)(Files[handle]))->SetInformation(reg_dx);
 				reg_al=(uint8_t)(Files[handle]->GetInformation() & 0xff);
 			} else {
 				DOS_SetError(DOSERR_FUNCTION_NUMBER_INVALID);
