@@ -127,7 +127,7 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive,
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 	} else if (Network_IsNetworkResource(name)) {
 		int j=0, k=name[0]=='"'?1:0;
-		if (strlen(name)==2+k||name[2+k]=='*'||name[2+k]=='?'||name[2+k]=='\\'||strlen(name)==3+k&&name[2+k]=='"') {
+		if (strlen(name)==2+k||name[2+k]=='*'||name[2+k]=='?'||name[2+k]=='\\'||(strlen(name)==3+k&&name[2+k]=='"')) {
 			DOS_SetError(DOSERR_PATH_NOT_FOUND);
 			return false;
 		}
@@ -143,8 +143,8 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive,
 #endif
 	}
 
-	char tempdir[DOS_PATHLENGTH];
-	char upname[DOS_PATHLENGTH];
+    char tempdir[DOS_PATHLENGTH] = {};
+    char upname[DOS_PATHLENGTH] = {};
     Bitu r,w, q=0;
 	/* First get the drive */
 	*drive = DOS_GetDefaultDrive();
@@ -578,8 +578,8 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
     if (attr & DOS_ATTR_DEVICE)
         device = DOS_FindDevice(search) != DOS_DEVICES;
 
-	/* Split the search in dir and pattern */
-	forcelfn = false;
+    /* Split the search in dir and pattern */
+    forcelfn = false;
 	char *find_last = NULL;
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 	bool net = Network_IsNetworkResource(search);
@@ -1123,7 +1123,7 @@ bool DOS_SetFileAttr(char const * const name,uint16_t attr)
 	 * Also Windows 95 setup likes to create WINBOOT.INI as a file and then chattr it into a directory for some stupid reason. */
 	uint16_t old_attr;
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-	if (Network_IsNetworkResource(name)&&!Network_GetFileAttr(name,&old_attr)||!Network_IsNetworkResource(name)&&!Drives[drive]->GetFileAttr(fullname,&old_attr))
+	if ((Network_IsNetworkResource(name)&&!Network_GetFileAttr(name,&old_attr))||(!Network_IsNetworkResource(name)&&!Drives[drive]->GetFileAttr(fullname,&old_attr)))
 #else
 	if (!Drives[drive]->GetFileAttr(fullname,&old_attr))
 #endif

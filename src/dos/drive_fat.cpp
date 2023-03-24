@@ -121,7 +121,7 @@ int MBRAutoChoose_FAT(const std::vector<partTable::partentry_t> &parts,imageDisk
                                 prompt1 = false;
                 }
                 else if (pe.parttype == 0x0B || pe.parttype == 0x0C) { /* FAT32 types */
-                        if ((use_ver_maj < 7 || ((use_ver_maj == 7 && use_ver_min < 10))) && prompt2) {
+                        if ((use_ver_maj < 7 || (use_ver_maj == 7 && use_ver_min < 10)) && prompt2) {
                             if (fat32setver == 1 || (fat32setver == -1 && systemmessagebox("Mounting FAT32 disk image","Mounting this type of disk images requires a reported DOS version of 7.10 or higher. Do you want to auto-change the reported DOS version to 7.10 now and mount the disk image?","yesno", "question", 1))) {
                                 use_ver_maj = dos.version.major = 7;
                                 use_ver_min = dos.version.minor = 10;
@@ -1089,7 +1089,7 @@ uint32_t fatDrive::getAbsoluteSectFromChain(uint32_t startClustNum, uint32_t log
 				if(testvalue >= 0x0ffffff8) isEOF = true; /* FAT32 is really FAT28 with 4 reserved bits */
 				break;
 		}
-		if((isEOF) && (skipClust>=1)) {
+		if(isEOF && (skipClust>=1)) {
 			//LOG_MSG("End of cluster chain reached before end of logical sector seek!");
 			if (skipClust == 1 && fattype == FAT12) {
 				//break;
@@ -2618,8 +2618,8 @@ nextfile:
     if(sectbuf[entryoffset].attrib == DOS_ATTR_VOLUME)
         trimString(find_name);
 
-	// Drive emulation does not need to require a LFN in case there is no corresponding 8.3 names.
-	if (lfind_name[0] == 0) strcpy(lfind_name,find_name);
+    // Drive emulation does not need to require a LFN in case there is no corresponding 8.3 names.
+    if (lfind_name[0] == 0) strcpy(lfind_name,find_name);
 
 	copyDirEntry(&sectbuf[entryoffset], foundEntry);
 

@@ -2126,9 +2126,9 @@ bool intensity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
         reg_bl = 0;
     else
         reg_bl = 1;
-	reg_ax = 0x1003;
+    reg_ax = 0x1003;
     reg_bh = 0;
-	CALLBACK_RunRealInt(0x10);
+    CALLBACK_RunRealInt(0x10);
     reg_ax = oldax;
     reg_bx = oldbx;
     return true;

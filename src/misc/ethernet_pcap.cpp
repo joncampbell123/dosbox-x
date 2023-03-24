@@ -210,7 +210,7 @@ bool PcapEthernetConnection::Initialize(Section* config)
 	const char *timeoutstr = section->Get_string("timeout");
         char *end;
         int timeout = -1;
-        if (!strlen(timeoutstr)||timeoutstr[0]!='-'&&!isdigit(timeoutstr[0])) { // Default timeout values
+        if (!strlen(timeoutstr)||(timeoutstr[0]!='-'&&!isdigit(timeoutstr[0]))) { // Default timeout values
 #ifdef MACOSX
             timeout = 3000; // For macOS, use 3000ms as it does not appear to support -1
 #else

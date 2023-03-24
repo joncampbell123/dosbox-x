@@ -867,8 +867,8 @@ void HostAppRun() {
                 uint16_t s = (uint16_t)strlen(msg);
                 DOS_WriteFile(STDOUT,(uint8_t*)msg,&s);
             }
-            DWORD temp = (DWORD)SHGetFileInfo(winName,NULL,NULL,NULL,SHGFI_EXETYPE);
-            if (temp==0) temp = (DWORD)SHGetFileInfo((std::string(winDirNew)+"\\"+std::string(fullname)).c_str(),NULL,NULL,NULL,SHGFI_EXETYPE);
+            DWORD temp = (DWORD)SHGetFileInfo(winName,0,NULL,0,SHGFI_EXETYPE);
+            if (temp==0) temp = (DWORD)SHGetFileInfo((std::string(winDirNew)+"\\"+std::string(fullname)).c_str(),0,NULL,0,SHGFI_EXETYPE);
             if (HIWORD(temp)==0 && LOWORD(temp)==0x4550) { // Console applications
                 lpExecInfo.cbSize  = sizeof(SHELLEXECUTEINFO);
                 lpExecInfo.fMask=SEE_MASK_DOENVSUBST|SEE_MASK_NOCLOSEPROCESS;
@@ -2033,7 +2033,7 @@ static Bitu DOS_21Handler(void) {
                 }
                 else
                 {
-                    if(fRead = DOS_ReadFile(reg_bx, dos_copybuf, &toread)) {
+                    if((fRead = DOS_ReadFile(reg_bx, dos_copybuf, &toread))) {
                         MEM_BlockWrite(SegPhys(ds) + reg_dx, dos_copybuf, toread);
                         diskio_delay_handle(reg_bx, toread);
                     }
@@ -2114,7 +2114,7 @@ static Bitu DOS_21Handler(void) {
                         fWritten = !(((DOS_ExtDevice*)Files[handle])->CallDeviceFunction(8, 26, SegValue(ds), reg_dx, towrite) & 0x8000);
                     }
                     else {
-                        if(fWritten = DOS_WriteFile(reg_bx, dos_copybuf, &towrite)) {
+                        if((fWritten = DOS_WriteFile(reg_bx, dos_copybuf, &towrite))) {
                             diskio_delay_handle(reg_bx, towrite);
                         }
                     }
