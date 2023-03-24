@@ -117,7 +117,6 @@ private:
 		bool warned;
 		bool key;
 	} ansi;
-	uint16_t keepcursor;
 	uint16_t binary;
 
 	struct key_change {
@@ -888,7 +887,7 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 				}
 			}
 			data[count++]=reg_al;
-			if ((*size > 1 || !inshell) && reg_al == 3 && !(GetInformation() & DeviceInfoFlags::Binary)) {
+			if ((*size > 1 || !inshell) && reg_al == 3 && !binary) {
 				dos.errorcode=77;
 				*size=count;
 				reg_ax=oldax;
@@ -897,7 +896,7 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 			break;
 		}
 
-		if(dos.echo && !(GetInformation() & DeviceInfoFlags::Binary)) { //what to do if *size==1 and character is BS ?????
+		if(dos.echo && !binary) { //what to do if *size==1 and character is BS ?????
 			// TODO: If CTRL+C checking is applicable do not echo (reg_al == 3)
 #if defined(USE_TTF)
 			if (IS_DOSV || ttf_dosv) {
