@@ -180,7 +180,6 @@ CDROM_Interface_Ioctl::dxPlayer CDROM_Interface_Ioctl::player = {
 CDROM_Interface_Ioctl::CDROM_Interface_Ioctl(cdioctl_cdatype ioctl_cda) {
 	pathname[0] = 0;
 	hIOCTL = INVALID_HANDLE_VALUE;
-	memset(&oldLeadOut,0,sizeof(oldLeadOut));
 	cdioctl_cda_selected = ioctl_cda;
 }
 

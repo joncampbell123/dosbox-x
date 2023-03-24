@@ -1127,7 +1127,7 @@ private:
 		uint32_t index;
 		uint32_t pos;
 		UDFextents udfdirext;
-	} dirIterators[MAX_OPENDIRS];
+    } dirIterators[MAX_OPENDIRS] = {};
 private:
 	bool GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDescriptor &fid, UDFFileEntry &fe, UDFextents &dirext, char fname[LFN_NAMELENGTH],unsigned int dirIteratorIndex);
 };

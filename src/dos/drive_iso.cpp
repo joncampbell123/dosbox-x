@@ -1015,7 +1015,6 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
 	this->discLabel[0] = '\0';
 	subUnit = 0;
 	nextFreeDirIterator = 0;
-	memset(dirIterators, 0, sizeof(dirIterators));
 	memset(sectorHashEntries, 0, sizeof(sectorHashEntries));
 	memset(&rootEntry, 0, sizeof(isoDirEntry));
 	

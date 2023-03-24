@@ -462,7 +462,7 @@ private:
 	HANDLE		hEvent;											// global event
 	DWORD		(*pGetASPI32SupportInfo)	(void);             // ptrs to aspi funcs
 	DWORD		(*pSendASPI32Command)		(LPSRB);
-	TMSF		oldLeadOut;
+    TMSF        oldLeadOut = {};
 };
 
 class CDROM_Interface_Ioctl : public CDROM_Interface
