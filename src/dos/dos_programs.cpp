@@ -5747,6 +5747,7 @@ private:
     }
 
     bool MountFat(Bitu sizes[], const char drive, const bool isHardDrive, const std::string &str_size, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave, const int reserved_cylinders, bool roflag) {
+        (void)reserved_cylinders;
         if (Drives[drive - 'A']) {
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
             return false;

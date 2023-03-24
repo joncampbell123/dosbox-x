@@ -1430,6 +1430,7 @@ Bits isoDrive::UnMount(void) {
 }
 
 int isoDrive::GetDirIterator(const UDFFileEntry &fe) {
+    (void)fe;
 	if (!is_udf) return 0;
 
 	int dirIterator = nextFreeDirIterator;

@@ -1868,6 +1868,9 @@ void localDrive::remove_special_file_from_disk(const char* dosname, const char* 
 		ht_unlink(host_name);
 	else
 		unlink(newname.c_str());
+#else
+    (void)dosname;
+    (void)operation;
 #endif
 }
 
@@ -1903,6 +1906,10 @@ bool localDrive::add_special_file_to_disk(const char* dosname, const char* opera
 	delete[] buf;
 	return true;
 #else
+    (void)dosname;
+    (void)operation;
+    (void)value;
+    (void)isdir;
 	return false;
 #endif
 }
