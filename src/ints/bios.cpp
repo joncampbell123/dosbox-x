@@ -5643,7 +5643,11 @@ static Bitu PC98_BIOS_LIO(void) {
     return CBRET_NONE;
 }
 
+
+extern bool enable_weitek;
+
 static Bitu INT11_Handler(void) {
+    if (enable_weitek) reg_eax = (1u << 24u)/*Weitek math coprocessor present*/;
     reg_ax=mem_readw(BIOS_CONFIGURATION);
     return CBRET_NONE;
 }

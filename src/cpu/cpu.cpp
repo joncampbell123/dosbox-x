@@ -3344,29 +3344,29 @@ public:
 };
 
 uint8_t Weitek_PageHandler::readb(PhysPt addr) {
-    LOG_MSG("Weitek stub: readb at 0x%lx",(unsigned long)addr);
+	LOG_MSG("Weitek stub: readb at 0x%lx",(unsigned long)addr);
 	return (uint8_t)-1;
 }
 void Weitek_PageHandler::writeb(PhysPt addr,uint8_t val) {
-    LOG_MSG("Weitek stub: writeb at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
+	LOG_MSG("Weitek stub: writeb at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
 }
 
 uint16_t Weitek_PageHandler::readw(PhysPt addr) {
-    LOG_MSG("Weitek stub: readw at 0x%lx",(unsigned long)addr);
+	LOG_MSG("Weitek stub: readw at 0x%lx",(unsigned long)addr);
 	return (uint16_t)-1;
 }
 
 void Weitek_PageHandler::writew(PhysPt addr,uint16_t val) {
-    LOG_MSG("Weitek stub: writew at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
+	LOG_MSG("Weitek stub: writew at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
 }
 
 uint32_t Weitek_PageHandler::readd(PhysPt addr) {
-    LOG_MSG("Weitek stub: readd at 0x%lx",(unsigned long)addr);
+	LOG_MSG("Weitek stub: readd at 0x%lx",(unsigned long)addr);
 	return (uint32_t)-1;
 }
 
 void Weitek_PageHandler::writed(PhysPt addr,uint32_t val) {
-    LOG_MSG("Weitek stub: writed at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
+	LOG_MSG("Weitek stub: writed at 0x%lx val=0x%lx",(unsigned long)addr,(unsigned long)val);
 }
 
 Weitek_PageHandler weitek_pagehandler(0);
