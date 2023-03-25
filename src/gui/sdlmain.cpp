@@ -142,6 +142,10 @@ extern int tryconvertcp, Reflect_Menu(void);
 #include "display2.cpp"
 #endif
 
+#if (defined __i386__ || defined __x86_64__) && (defined BSD || defined LINUX)
+#include "libs/passthroughio/passthroughio.h" // for dropPrivileges()
+#endif
+
 #if defined(LINUX) && defined(HAVE_ALSA)
 # include <alsa/asoundlib.h>
 #endif
@@ -9165,6 +9169,18 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         /* The machine just "powered on", and then reset finished */
         if (!VM_PowerOn()) E_Exit("VM failed to power on");
+
+#if (defined __i386__ || defined __x86_64__) && (defined BSD || defined LINUX)
+        /*
+          Drop root privileges after they are no longer needed, which is a good
+          practice if the executable is setuid root.
+          dropPrivileges() is called by PARPORTS::PARPORTS() after contructing
+          CDirectLPT instances, but only if the constant C_DIRECTLPT is
+          non-zero. dropPrivileges() should be called regardless (if
+          initPassthroughIO() is used anywhere else).
+        */
+        dropPrivileges(); // Ignore whether we could actually drop privileges.
+#endif
 
         /* go! */
         sdl.init_ignore = false;

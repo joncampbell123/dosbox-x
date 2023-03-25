@@ -185,7 +185,7 @@ fi
 
 if test x$enable_emscripten = xyes; then
 	AC_DEFINE(C_EMSCRIPTEN,1,[Targeting Emscripten])
-  AC_DEFINE(C_DIRECTSERIAL, 0, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
+  AC_DEFINE(C_DIRECTSERIAL, 0, [ Define to 1 if you want serial pass-through support (Win32, Posix and OS/2).])
 fi
 
 dnl Some stuff for the icon.
@@ -490,10 +490,10 @@ case "$host" in
     *-*-cygwin* | *-*-mingw32*)
        LIBS="$LIBS -lwinmm -ldsound -limm32 -lole32 -loleaut32 -lversion -lsetupapi"
        CXXFLAGS="$CXXFLAGS -mno-ms-bitfields"
-       dnl FEATURE: Whether to support direct parallel port passthrough
-       AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
-       dnl FEATURE: Whether to support direct serial port passthrough
-       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
+       dnl FEATURE: Whether to support direct parallel port pass-through
+       AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel pass-through support (Win32, Linux and BSD).])
+       dnl FEATURE: Whether to support direct serial port pass-through
+       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial pass-through support (Win32, Posix and OS/2).])
        ;;
     *-*-darwin*)
        dnl We have a problem here: both Mac OS X and Darwin report 
@@ -508,38 +508,40 @@ case "$host" in
        fi
        AC_DEFINE(MACOSX, 1, [Compiling on Mac OS X])
        LIBS="$LIBS -framework Carbon -framework CoreFoundation -framework CoreMIDI -framework AudioUnit -framework AudioToolbox -framework ApplicationServices -framework AppKit -framework IOKit"
-       dnl FEATURE: Whether to support direct serial port passthrough
-       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
+       dnl FEATURE: Whether to support direct serial port pass-through
+       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial pass-through support (Win32, Posix and OS/2).])
        ;;
     *-*-linux*)
        AC_DEFINE(LINUX, 1, [Compiling on GNU/Linux])
        CXXFLAGS="$CXXFLAGS -D_XOPEN_SOURCE=700 -D_POSIX_C_SOURCE=200809L"
        LIBS="$LIBS -lrt" # uses shm_* functions which requires librt on Linux
-       dnl FEATURE: Whether to support direct parallel port passthrough
-       AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel passthrough support (Win32, Linux).])
-       dnl FEATURE: Whether to support direct serial port passthrough
-       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
+       dnl FEATURE: Whether to support direct parallel port pass-through
+       AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel pass-through support (Win32, Linux and BSD).])
+       dnl FEATURE: Whether to support direct serial port pass-through
+       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial pass-through support (Win32, Posix and OS/2).])
        ;;
     *-*-haiku*)
        AC_DEFINE(HAIKU, 1, [Compiling on Haiku])
-       dnl FEATURE: Whether to support direct serial port passthrough
-       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
+       dnl FEATURE: Whether to support direct serial port pass-through
+       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial pass-through support (Win32, Posix and OS/2).])
        LIBS="$LIBS -lnetwork -lbsd -lbe"
        ;;
     *-*-freebsd* | *-*-dragonfly* | *-*-netbsd* | *-*-openbsd*)
+       dnl FEATURE: Whether to support direct parallel port pass-through
+       AC_DEFINE(C_DIRECTLPT, 1, [ Define to 1 if you want parallel pass-through support (Win32, Linux and BSD).])
        dnl Disabled directserial for now. It doesn't do anything without
        dnl specifying an extra ifdef in directserial_posix.*
        dnl directserial detection should be rewritten to test for the needed
        dnl functions and headers. I currently do not know 
        dnl which ones are needed for BSD
        AC_DEFINE(BSD, 1, [Compiling on BSD])
-       dnl FEATURE: Whether to support direct serial port passthrough
-       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
+       dnl FEATURE: Whether to support direct serial port pass-through
+       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial pass-through support (Win32, Posix and OS/2).])
        ;;
     *-*-os2-emx*)
        AC_DEFINE(OS2, 1, [Compiling on OS/2 EMX])
-       dnl FEATURE: Whether to support direct serial port passthrough
-       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial passthrough support (Win32, Posix and OS/2).])
+       dnl FEATURE: Whether to support direct serial port pass-through
+       AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial pass-through support (Win32, Posix and OS/2).])
        ;;
     *-*-riscos*)
        AC_DEFINE(RISCOS, 1, [Compiling on RISC OS])
@@ -553,6 +555,20 @@ case "$host" in
     *-*-freebsd*)
        LIBS="$LIBS -lpthread"
     ;;
+esac
+
+dnl OpenBSD/i386 and NetBSD/i386 require linking to libi386.a for i386_iopl() (for initPassthroughIO()).
+dnl OpenBSD/x86_64 requires linking to libamd64.a for amd64_iopl(). NetBSD/x86_64 requires linking to libx86_64.a for x86_64_iopl().
+case "$host" in
+    i*86-*-openbsd* | i*86-*-netbsd*)
+       LIBS="$LIBS -li386"
+       ;;
+    x86_64-*-openbsd*)
+       LIBS="$LIBS -lamd64"
+       ;;
+    x86_64-*-netbsd*)
+       LIBS="$LIBS -lx86_64"
+       ;;
 esac
 fi
 
@@ -1048,8 +1064,8 @@ else
   AC_MSG_RESULT([no])
 fi
 
-dnl FEATURE: Whether to use libpcap, and enable ethernet passthrough
-AH_TEMPLATE(C_PCAP,[Define to 1 to enable ethernet passthrough, requires libpcap])
+dnl FEATURE: Whether to use libpcap, and enable ethernet pass-through
+AH_TEMPLATE(C_PCAP,[Define to 1 to enable ethernet pass-through, requires libpcap])
 case "$host" in
     *-*-cygwin* | *-*-mingw32*)
        CFLAGS="$CFLAGS -I$pwd/vs/pcap"
@@ -1061,7 +1077,7 @@ case "$host" in
          LIBS="$LIBS -lpcap";
          AC_DEFINE(C_PCAP,1)
        else
-         AC_MSG_WARN([Can't find libpcap, ethernet passthrough disabled])
+         AC_MSG_WARN([Can't find libpcap, ethernet pass-through disabled])
        fi
     ;;
 esac
@@ -1267,7 +1283,7 @@ src/ints/Makefile
 src/libs/Makefile
 src/libs/zmbv/Makefile
 src/libs/gui_tk/Makefile
-src/libs/porttalk/Makefile
+src/libs/passthroughio/Makefile
 src/libs/mt32/Makefile
 src/libs/xBRZ/Makefile
 src/libs/fluidsynth/Makefile
