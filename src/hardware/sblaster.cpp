@@ -737,7 +737,6 @@ static void gen_input(Bitu dmabytes,unsigned char *buf) {
 			break;
 		default:
 			abort();
-			break;
 	}
 }
 
@@ -970,8 +969,6 @@ static void DMA_Silent_Event(Bitu val) {
     }
 
 }
-
-#include <assert.h>
 
 void updateSoundBlasterFilter(Bitu rate);
 
@@ -1653,10 +1650,6 @@ static void ESS_DoWrite(uint8_t reg,uint8_t data) {
             }
             break;
         case 0xB1: /* Legacy Audio Interrupt Control */
-            chg = ESSreg(reg) ^ data;
-            ESSreg(reg) = (ESSreg(reg) & 0x0F) + (data & 0xF0); // lower 4 bits not writeable
-            if (chg & 0x40) ESS_CheckDMAEnable();
-            break;
         case 0xB2: /* DRQ Control */
             chg = ESSreg(reg) ^ data;
             ESSreg(reg) = (ESSreg(reg) & 0x0F) + (data & 0xF0); // lower 4 bits not writeable
@@ -3165,7 +3158,6 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
             return sb.dsp.out.used ? 0xAA : 0x2A; /* observed return values on SB 2.0---any significance? */
         else
             return sb.dsp.out.used ? 0xFF : 0x7F; /* normal return values */
-        break;
     case DSP_ACK_16BIT:
         if (sb.ess_type == ESS_NONE && sb.type == SBT_16) {
             if (sb.irq.pending_16bit)  {
@@ -3200,7 +3192,7 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
             else
                 return busy ? 0xFF : 0x7F; /* normal return values */
             
-            } break;
+            }
         case DSP_S_RESET:
         case DSP_S_RESET_WAIT:
             return 0xff;
