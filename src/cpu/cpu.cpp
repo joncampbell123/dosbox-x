@@ -3876,7 +3876,7 @@ public:
 				}
 			}
 			else if (CPU_ArchitectureType >= CPU_ARCHTYPE_286) {
-				if (FPU_ArchitectureType < FPU_ARCHTYPE_8087 || FPU_ArchitectureType > FPU_ARCHTYPE_387) {
+				if (FPU_ArchitectureType == FPU_ARCHTYPE_8087 || FPU_ArchitectureType > FPU_ARCHTYPE_387) {
 					LOG_MSG("WARNING: 286/386 with either 8087 or higher than 387 is an unusual combination");
 				}
 			}
