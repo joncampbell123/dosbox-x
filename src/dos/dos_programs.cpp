@@ -442,7 +442,7 @@ void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
 	uint8_t bit8size=(uint8_t) sizes[1];
 
 	temp_line = drive2;
-	int error, num = -1;
+	int error = 0, num = -1;
 	if(type==DRIVE_CDROM) {
 		int id, major, minor;
 		DOSBox_CheckOS(id, major, minor);
@@ -7328,7 +7328,8 @@ void UTF16::Run()
         return;
     }
     test_char dst;
-    test_char_t *wch, ch;
+    test_char_t *wch;
+    test_char_t ch = 0;
     std::wstring text=L"";
     char temp[4096];
     unsigned int c=0;
@@ -8263,7 +8264,7 @@ int flagged_backup(char *zip)
                 file << "";
                 file.close();
             }
-            uint16_t handle;
+            uint16_t handle = 0;
             if (DOS_FindDevice(("\""+std::string(g_flagged_files[i])+"\"").c_str()) != DOS_DEVICES || !DOS_OpenFile(("\""+std::string(g_flagged_files[i])+"\"").c_str(),0,&handle)) {
                 LOG_MSG(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),g_flagged_files[i]);
                 continue;
