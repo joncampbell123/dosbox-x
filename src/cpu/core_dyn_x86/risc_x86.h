@@ -42,12 +42,11 @@ class GenReg {
 public:
 	GenReg(uint8_t _index) {
 		index=_index;
-		notusable=false;dynreg=0;
 	}
-	DynReg  * dynreg;
+    DynReg* dynreg = nullptr;
 	Bitu last_used;			//Keeps track of last assigned regs 
     uint8_t index;
-	bool notusable;
+    bool notusable = false;
 	void Load(DynReg * _dynreg,bool stale=false) {
 		if (!_dynreg) return;
 		if (GCC_UNLIKELY((Bitu)dynreg)) Clear();
@@ -583,7 +582,7 @@ static void gen_sop_word_imm(ShiftOps op,bool dword,DynReg * dr1,uint8_t imm) {
 		IllegalOption("gen_sop_word_imm");
 	}
 	dr1->flags|=DYNFLG_CHANGED;
-nochange:
+// nochange:
 	cache_addw(tmp+(gr1->index<<8));
 	cache_addb(imm);
 }

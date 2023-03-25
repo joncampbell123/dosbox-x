@@ -180,7 +180,6 @@ CDROM_Interface_Ioctl::dxPlayer CDROM_Interface_Ioctl::player = {
 CDROM_Interface_Ioctl::CDROM_Interface_Ioctl(cdioctl_cdatype ioctl_cda) {
 	pathname[0] = 0;
 	hIOCTL = INVALID_HANDLE_VALUE;
-	memset(&oldLeadOut,0,sizeof(oldLeadOut));
 	cdioctl_cda_selected = ioctl_cda;
 }
 
@@ -192,6 +191,8 @@ CDROM_Interface_Ioctl::~CDROM_Interface_Ioctl() {
 }
 
 bool CDROM_Interface_Ioctl::GetUPC(unsigned char& attr, char* upc) {
+    (void)attr;
+    (void)upc;
 	// FIXME : To Do
 	return true;
 }
@@ -574,6 +575,7 @@ void CDROM_Interface_Ioctl::dx_CDAudioCallBack(Bitu len) {
 }
 
 bool CDROM_Interface_Ioctl::SetDevice(char* path, int forceCD) {
+    (void)forceCD;
 	mci_devid = 0;
 	use_mciplay = false;
 	use_dxplay = false;
@@ -623,6 +625,10 @@ void CDROM_Interface_Ioctl::Close(void) {
 
 bool CDROM_Interface_Ioctl::ReadSectorsHost(void *buffer, bool raw, unsigned long sector, unsigned long num)
 {
+    (void)buffer;
+    (void)raw;
+    (void)sector;
+    (void)num;
 	return false;/*TODO*/
 };
 

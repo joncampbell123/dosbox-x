@@ -913,7 +913,9 @@
 #endif
 	CASE_W(0xc2)												/* RETN Iw */
 		{
+#if CPU_CORE < CPU_ARCHTYPE_80186
         opcode_c2:
+#endif
 			uint32_t old_esp = reg_esp;
 
 			try {
@@ -994,14 +996,18 @@
 #endif
 	CASE_W(0xca)												/* RETF Iw */
 		{
+#if CPU_CORE < CPU_ARCHTYPE_80186
         opcode_ca:
+#endif
 			Bitu words=Fetchw();
 			FillFlags();
 			CPU_RET(false,words,GETIP);
 			continue;
 		}
 	CASE_W(0xcb)												/* RETF */
+#if CPU_CORE < CPU_ARCHTYPE_80186
         opcode_cb:
+#endif
 		FillFlags();
 		CPU_RET(false,0,GETIP);
 		continue;
@@ -1274,7 +1280,9 @@
 		IO_WriteW(reg_dx,reg_ax);
 		break;
 	CASE_B(0xf0)												/* LOCK */
+#if CPU_CORE < CPU_ARCHTYPE_80186
         opcode_f0:
+#endif
 		REMEMBER_PREFIX(MP_NONE);
 // todo: make an option to show this
 //		LOG(LOG_CPU,LOG_NORMAL)("CPU:LOCK"); /* FIXME: see case D_LOCK in core_full/load.h */

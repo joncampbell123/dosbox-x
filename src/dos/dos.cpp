@@ -1156,7 +1156,7 @@ static Bitu DOS_21Handler(void) {
             }
         case 0x09:      /* Write string to STDOUT */
             {
-                uint8_t c;uint16_t n=1;
+                uint8_t c=0;uint16_t n=1;
                 PhysPt buf=SegPhys(ds)+reg_dx;
                 std::string str="";
                 if (mem_readb(buf)=='T')
@@ -3595,7 +3595,6 @@ static Bitu DOS_29Handler(void)
 			/* expand tab if not direct output */
 			page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
 			do {
-				bool CheckAnotherDisplayDriver();
 				if(CheckAnotherDisplayDriver()) {
 					reg_ah = 0x0e;
 					reg_al = ' ';
@@ -5298,7 +5297,8 @@ void DOS_Int21_71a6(const char *name1, const char *name2) {
     (void)name2;
 	char buf[64];
 	unsigned long serial_number=0x1234,st=0,cdate=0,ctime=0,adate=0,atime=0,mdate=0,mtime=0;
-	uint8_t entry=(uint8_t)reg_bx, handle;
+    uint8_t entry = (uint8_t)reg_bx;
+    uint8_t handle = 0;
 	if (entry>=DOS_FILES) {
 		reg_ax=DOSERR_INVALID_HANDLE;
 		CALLBACK_SCF(true);

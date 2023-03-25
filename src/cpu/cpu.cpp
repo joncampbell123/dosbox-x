@@ -2370,7 +2370,6 @@ RET_same_level:
 			return;
 		}
 		LOG(LOG_CPU,LOG_NORMAL)("Prot ret %lX:%lX",(unsigned long)selector,(unsigned long)offset);
-		return;
 	}
 	assert(1);
 }
@@ -3160,7 +3159,7 @@ void CPU_ENTER(bool use32,Bitu bytes,Bitu level) {
 		}
 	}
 	sp_index-=(uint32_t)bytes;
-	reg_esp=(reg_esp&cpu.stack.notmask)|((sp_index)&cpu.stack.mask);
+	reg_esp=(reg_esp&cpu.stack.notmask)|(sp_index&cpu.stack.mask);
 }
 
 void CPU_SyncCycleMaxToProp(void) {
@@ -3876,7 +3875,7 @@ public:
 				}
 			}
 			else if (CPU_ArchitectureType >= CPU_ARCHTYPE_286) {
-				if (FPU_ArchitectureType < FPU_ARCHTYPE_8087 || FPU_ArchitectureType > FPU_ARCHTYPE_387) {
+				if (FPU_ArchitectureType == FPU_ARCHTYPE_8087 || FPU_ArchitectureType > FPU_ARCHTYPE_387) {
 					LOG_MSG("WARNING: 286/386 with either 8087 or higher than 387 is an unusual combination");
 				}
 			}
@@ -3929,7 +3928,7 @@ public:
         pcpu_type = CPU_ArchitectureType;
 
 		if (CPU_ArchitectureType>=CPU_ARCHTYPE_486NEW) CPU_extflags_toggle=(FLAG_ID|FLAG_AC);
-		else if (CPU_ArchitectureType>=CPU_ARCHTYPE_486OLD) CPU_extflags_toggle=(FLAG_AC);
+		else if (CPU_ArchitectureType>=CPU_ARCHTYPE_486OLD) CPU_extflags_toggle=FLAG_AC;
 		else CPU_extflags_toggle=0;
 
 		const char *raw_psn = section->Get_string("processor serial number");
@@ -4104,13 +4103,13 @@ void CPU_OnReset(Section* sec) {
 		reg_eip=0xFFF0;
 		Segs.phys[cs]=0xFFFF0000;
 	}
-	else if (CPU_ArchitectureType >= CPU_ARCHTYPE_286) {
-		/* 286 start at F000:FFF0 (FFFF0) */
+	else if (CPU_ArchitectureType == CPU_ARCHTYPE_286) {
+		/* 286 starts at F000:FFF0 (FFFF0) */
 		SegSet16(cs,0xF000);
 		reg_eip=0xFFF0;
 	}
 	else {
-		/* 8086 start at FFFF:0000 (FFFF0) */
+		/* 8086 starts at FFFF:0000 (FFFF0) */
 		SegSet16(cs,0xFFFF);
 		reg_eip=0x0000;
 	}

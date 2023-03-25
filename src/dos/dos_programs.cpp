@@ -442,7 +442,7 @@ void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
 	uint8_t bit8size=(uint8_t) sizes[1];
 
 	temp_line = drive2;
-	int error, num = -1;
+	int error = 0, num = -1;
 	if(type==DRIVE_CDROM) {
 		int id, major, minor;
 		DOSBox_CheckOS(id, major, minor);
@@ -5747,6 +5747,7 @@ private:
     }
 
     bool MountFat(Bitu sizes[], const char drive, const bool isHardDrive, const std::string &str_size, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave, const int reserved_cylinders, bool roflag) {
+        (void)reserved_cylinders;
         if (Drives[drive - 'A']) {
             WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
             return false;
@@ -7327,7 +7328,8 @@ void UTF16::Run()
         return;
     }
     test_char dst;
-    test_char_t *wch, ch;
+    test_char_t *wch;
+    test_char_t ch = 0;
     std::wstring text=L"";
     char temp[4096];
     unsigned int c=0;
@@ -7810,7 +7812,7 @@ bool setVGAColor(const char *colorArray, int i) {
             if (rgbVal[i] < 0 || rgbVal[i] > 255)
                 return false;
         }
-    } else if (sscanf(nextRGB, " #%6x", (int*)(&rgbVal[3])) == 1) {
+    } else if (sscanf(nextRGB, " #%6x", (unsigned int*)(&rgbVal[3])) == 1) {
         if (rgbVal[3] < 0)
             return false;
         for (int i = 0; i < 3; i++) {
@@ -7907,7 +7909,7 @@ void SETCOLOR::Run()
                         while (*nextRGB != ')')
                             nextRGB++;
                         nextRGB++;
-                    } else if (sscanf(nextRGB, " #%6x", (int*)(&rgbVal[0])) == 1) {
+                    } else if (sscanf(nextRGB, " #%6x", (unsigned int*)(&rgbVal[0])) == 1) {
                         sprintf(value,"#%6x",rgbVal[0]);
                         nextRGB = strchr(nextRGB, '#') + 7;
                     } else {
@@ -8262,7 +8264,7 @@ int flagged_backup(char *zip)
                 file << "";
                 file.close();
             }
-            uint16_t handle;
+            uint16_t handle = 0;
             if (DOS_FindDevice(("\""+std::string(g_flagged_files[i])+"\"").c_str()) != DOS_DEVICES || !DOS_OpenFile(("\""+std::string(g_flagged_files[i])+"\"").c_str(),0,&handle)) {
                 LOG_MSG(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),g_flagged_files[i]);
                 continue;

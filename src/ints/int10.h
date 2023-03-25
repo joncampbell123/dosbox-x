@@ -216,6 +216,8 @@ void INT10_ReadCharAttr(uint16_t * result,uint8_t page);
 void INT10_WriteChar(uint16_t chr,uint8_t attr,uint8_t page,uint16_t count,bool showattr);
 void INT10_WriteString(uint8_t row,uint8_t col,uint8_t flag,uint8_t attr,PhysPt string,uint16_t count,uint8_t page);
 
+bool CheckAnotherDisplayDriver();
+
 /* Graphics Stuff */
 void INT10_PutPixel(uint16_t x,uint16_t y,uint8_t page,uint8_t color);
 void INT10_GetPixel(uint16_t x,uint16_t y,uint8_t page,uint8_t * color);
