@@ -3595,7 +3595,6 @@ static Bitu DOS_29Handler(void)
 			/* expand tab if not direct output */
 			page = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_PAGE);
 			do {
-				bool CheckAnotherDisplayDriver();
 				if(CheckAnotherDisplayDriver()) {
 					reg_ah = 0x0e;
 					reg_al = ' ';
