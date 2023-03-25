@@ -1,4 +1,158 @@
 Next
+  - Fix 'pc98 force ibm keyboard layout' was always forced to be 'true'
+    for left & right bracket keys on US keyboards. (maron2000)  
+  - Fix dynamic_nodhfpu FPU stack bugs, the same bugs that once plagued
+    dynrec. dynamic_x86 never seemed to have the same problem because
+    in reality the DH FPU case was normally used, to hit this bug you
+    had to use core=dynamic_nodhfpu. Also fix dynamic x86 DH FPU code
+    never to restore from DH case if the DH FPU code was never enabled,
+    which periodically caused FPU state to dissapear. (joncampbell123).
+  - Add dosbox.conf option to control the MSCDEX.EXE device name when
+    emulating a CD-ROM drive (joncampbell123).
+  - Wengier coded this nice text-only DOSBox-X logo for the TTF output.
+    Fix border alignment issues and make the text logo the default and
+    only option for MDA and Hercules machine types at boot.
+    (joncampbell123).
+  - Add -print-ticks command line option, which enables code to print
+    both SDL_GetTicks() and emulator time once a second to the console
+    and the log file. This may help in tracking down bugs related to
+    long term laptop suspend or suspension of the process in general.
+    (joncampbell123).
+  - PC-98: Ignore INT 18h AH=0Ch (enable text layer) in 256-color mode.
+    Real hardware doesn't seem to let you turn on the text layer in
+    256-color mode, though I am not certain if this is a restriction
+    imposed by the BIOS or by the hardware. This fixes possible cases
+    where Sim City 2000 in 256-color mode reveals garbage text data at
+    the bottom of the screen if it is there when it starts. This doesn't
+    fix the issue where Sim City 2000 cannot set 640x480 256-color mode
+    properly unless your display is already set to 31Khz hsync because that
+    is evidently a bug in the game, not DOSBox-X. (joncampbell123).
+  - PC-98 256-color mode: Fix "Active Display Words" value set by INT 18h
+    to 40, not 80, for graphics layer. This has no apparent effect on
+    games but it does fix the sometimes erroneous graphics layer width
+    in the video debug display. Neko Project II source code seems to
+    indicate the 31KHz hsync mode is programmed that way even if 256-color
+    mode. This should not break anything since the GDC doesn't let you
+    read back the "SYNC" reset parameters anyway--this isn't VGA hardware,
+    after all. (joncampbell123).
+  - IPX emulation was broken because it set up the virtual file, IRQ
+    and interrupt handler way too early, which the BIOS startup would
+    then overwrite with the default BIOS IRQ handler. IPX emulation
+    should work now, at least multiplayer DOOM. (joncampbell123)
+  - Added debug menu and dosbox.conf option to show debug information
+    at the bottom of the screen when enabled. This debug information
+    reflects the video state at the start of active display. It can be
+    used to see in real time the state of the palette, display offset,
+    display stride, and other useful information. It is rendered into
+    the frame on purpose so that it appears as part of the picture
+    when you take a screenshot or record a video to AVI or MTS for
+    later review. (joncampbell123)
+  - Dynamic core: Fix serious bug in dynrec dynamic core where calls
+    to handle x86 FPU instructions erronously passed the entire
+    FPU status word instead of passing only the FPU stack pointer.
+    The result of this error was that floating point was erratic,
+    buggy, and often caused memory corruption in DOSBox-X eventually
+    leading to a crash. It should now be possible to properly run
+    DOS games on dynrec based systems, including ARM-based M1 Macbooks,
+    that use the FPU. (joncampbell123)
+  - Debugger: When entering debugger interface, force dynamic core
+    to flush it's state so that the debugger can show the correct
+    state to the user when they use the "FPU" command to see it.
+     (joncampbell123).
+  - VGA emulation: Automatically ignore odd/even mode if "Chain 4"
+    mode is enabled in the sequencer (normally enabled only for
+    256-color mode). Some games accidentally set odd/even mode
+    in 256-color mode and yet apparently worked just fine on real
+    hardware. Without this change, such games will display distorted
+    graphics. It makes logical sense "Chain 4" would take priority
+    over odd/even mode. Note: If a game uses 256-color unchained mode
+    AND foolishly enables odd/even mode, then the resulting distorted
+    graphics are probably accurate to what would happen on real
+    hardware, but then programmers would have caught their mistake
+    and fixed it so that is very unlikely to occur. This helps to fix
+    "Seal: Magic Eye" although some remaining visual artifacts in the
+    game can only be resolved by setting machine=svga_et4000
+     (joncampbell123).
+  - Set usescancodes=true when non-US keyboards are detected
+     (Windows builds) (maron2000)
+  - For long double without using x86 FPU, the code still calls the
+    fstcw instruction and can enable FPU exceptions that crash the
+    emulator, therefore mask off all exception bits to stop that.
+    (joncampbell123)
+  - Added code to mouse emulation to control how often the mouse
+    reports events through the interrupt. Added dosbox.conf option
+    to allow the user to force a report rate, which can be used to
+    force a lower than normal report rate for games that cannot
+    proprly handle higher ones. Allow PS/2 mouse emulation, if
+    rate not set by user, to control report rate. (joncampbell123).
+  - Add code to COMMAND.COM to flush keyboard input before running
+    the command given by the user, and flush again when the command
+    returns. Added option to dosbox.conf to enable/disable this
+    function (joncampbell123)
+  - Fix bug where Tandy mode ignored the "allow more than 640kb"
+    setting.
+  - Fix INT13h AH=02 broken conditional branch which prevents
+    installer of game "Inherit the Earth: Quest for the Orb"
+    to obtain free space of hard drive (maron2000)
+  - qcow2 image support: Make image able to be mounted by
+    drive letters (experimental) (maron2000)
+  - VHD image support: Make file name check for .vhd extension
+    to be case insensitive (maron2000)
+  - VHD image support: Fix auto-detection of geometry (maron2000)
+  - Sound Blaster: Added code to periodically check the user's
+    settings regarding recording source selection and listening.
+    This should allow the user to change those settings on the
+    fly. (joncampbell123).
+  - Sound Blaster: Added options to control whether the generated
+    recording source is audible through the speakers, and what
+    generated audio to send to the client. Options are: silence,
+    hiss, and a 1KHz test tone. (joncampbell123).
+  - Sound Blaster: If the DSP is recording rather than playing,
+    then send audio to the guest at the recording sample rate
+    containing some form of generated audio. Default is silence.
+    This ALSO satisfies the Creative driver CTSB16.SYS when it
+    does the DMA test at startup. (joncampbell123).
+  - Sound Blaster: Fixed code to properly recognize when the
+    guest wants to record audio, including through SB16
+    commands. Prior to this fix, all SB16 Bxh-Cxh commands
+    were handled as if playback even if the command would
+    instead trigger recording. (joncampbell123).
+  - Sound Blaster: Add missing update of "last DMA callback"
+    timestamp that is needed for when the guest pauses DMA
+    during playback or recording. (joncampbell123).
+  - VHD image support: If the VHD image is not a fixed type,
+    say so in the log (previously it said nothing) and say
+    what kind of image was mounted (joncampbell123).
+  - Added INT 13h AH=44h Extended Verify to satisfy any disk
+    utilities that might use it. The function doesn't really
+    do anything except return success (joncampbell123).
+  - Fix CPU stack management to use CPU mode agnostic method
+    using mem_readw instead of real_readw. However the real
+    mode version is used if real or virtual 8086 mode because
+    of comments in an older commit that mention UNLZEXE that
+    depends on real mode stack pointer rollover. This fixes
+    a bug related to protected mode APM (Advanced Power
+    Management) emulation that prevented the Linux kernel
+    from booting (joncampbell123).
+  - Add support for INT 2F function 1680h "Idle" and DOS
+    idle (INT 28h), add code to reduce DOSBox-X CPU load
+    during emulation when the idle function is called,
+    add dosbox.conf enable/disable (default enable) to
+    control this behavior (Github user "finalpatch")
+  - Graphical fixes and dialog support for Haiku OS (amol-)
+  - Allow jp106 keyboard layout in DOS/V mode, automatically
+    choose when keyboard layout is auto on Windows with
+    Japanese keyboard, fix jp106 input in SDL1 builds running
+    on Japanese Windows with English keyboard (nanshiki)
+  - Sync dh fpu state with normal fpu when dynamic core
+    calls normal core to handle self modifying code. Add
+    additional code to other cases. (Github user "finalpatch")
+  - Fix incorrect handling of upper 4 bits of character attributes
+    in video mode 72h in DOS/V mode (nanshiki)
+  - Fix BIOS signature at 0xFFFFF to reflect actual value
+    of Tandy machines so "Ninja" works correctly in
+    Tandy mode (rderooy)
+    See also: [https://www.vogons.org/viewtopic.php?f=32&t=92129]
   - Change default mixer rate to 48KHz instead of the
     long standard 44.1KHz. Most modern sound cards on
     modern OSes render at 48KHz anyway and resample
@@ -65,6 +219,11 @@ Next
     a game that sets up EGA 640x200 16-color mode then
     suddenly switches on the 2bpp CGA mode as a way to
     do 16-color dithered graphics. (joncampbell123).
+  - Fix installers for Dynamix games not working.
+    (Allofich & halcyon00)
+  - Fix crash related to swapping between disk
+    images. (Allofich)
+  - SVN r4482: Correct CMS sound pitch. (Allofich)
 
 2022.12.26
   - Allow more than 640KB of conventional memory,

@@ -210,11 +210,11 @@ bool PcapEthernetConnection::Initialize(Section* config)
 	const char *timeoutstr = section->Get_string("timeout");
         char *end;
         int timeout = -1;
-        if (!strlen(timeoutstr)||timeoutstr[0]!='-'&&!isdigit(timeoutstr[0])) { // Default timeout values
-#ifdef WIN32
-            timeout = -1; // For Windows, use -1 which appears to be specific to WinPCap and means "non-blocking mode"
+        if (!strlen(timeoutstr)||(timeoutstr[0]!='-'&&!isdigit(timeoutstr[0]))) { // Default timeout values
+#ifdef MACOSX
+            timeout = 3000; // For macOS, use 3000ms as it does not appear to support -1
 #else
-            timeout = 3000; // For other platforms, use 3000ms as the timeout which should work for platforms like macOS
+            timeout = -1; // For other platforms, use -1 which should mean "non-blocking mode"
 #endif
         } else
             timeout = strtoul(timeoutstr,&end,10);

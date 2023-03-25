@@ -79,6 +79,9 @@ public:
 		ansi.attr = attr;
 	}
 	uint16_t GetInformation(void);
+	void SetInformation(uint16_t info) {
+		binary = info & DeviceInfoFlags::Binary;
+	}
 	bool ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
 	bool WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { (void)bufptr; (void)size; (void)retcode; return false; }
     bool ANSI_SYS_installed();
@@ -114,7 +117,7 @@ private:
 		bool warned;
 		bool key;
 	} ansi;
-	uint16_t keepcursor;
+	uint16_t binary;
 
 	struct key_change {
 		uint16_t	src;
@@ -721,7 +724,29 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
             continue;
         }
 
-		reg_ah=(IS_EGAVGA_ARCH)?0x10:0x0;
+        const uint8_t int16_poll_function=(IS_EGAVGA_ARCH)?0x11:0x1;
+        const uint8_t int16_read_function=(IS_EGAVGA_ARCH)?0x10:0x0;
+
+        static const bool idle_enabled = ((Section_prop*)control->GetSection("dos"))->Get_bool("dos idle api");
+        if (idle_enabled) {
+            // Poll the keyboard until there is a key-press ready to read. If there
+            // is no input (ZF=0) then call INT 28h to release the rest of our
+            // timeslice to host system.
+            while (true) {
+                reg_ah=int16_poll_function;
+                if (IS_PC98_ARCH)
+                    INT16_Handler_Wrap();
+                else
+                    CALLBACK_RunRealInt(0x16);
+                if (GETFLAG(ZF) == 0) {
+                    break;
+                } else {
+                    CALLBACK_RunRealInt(0x28);
+                }
+            }
+        }
+
+		reg_ah=int16_read_function;
 
         /* FIXME: PC-98 emulation should eventually use CONIO emulation that
          *        better emulates the actual platform. The purpose of this
@@ -862,7 +887,7 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 				}
 			}
 			data[count++]=reg_al;
-			if ((*size > 1 || !inshell) && reg_al == 3) {
+			if ((*size > 1 || !inshell) && reg_al == 3 && !binary) {
 				dos.errorcode=77;
 				*size=count;
 				reg_ax=oldax;
@@ -870,7 +895,8 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 			}
 			break;
 		}
-		if(dos.echo) { //what to do if *size==1 and character is BS ?????
+
+		if(dos.echo && !binary) { //what to do if *size==1 and character is BS ?????
 			// TODO: If CTRL+C checking is applicable do not echo (reg_al == 3)
 #if defined(USE_TTF)
 			if (IS_DOSV || ttf_dosv) {
@@ -1434,7 +1460,7 @@ uint16_t device_CON::GetInformation(void) {
         }
 
 		reg_ax = saved_ax;
-		return ret;
+		return ret | binary;
 	}
 	else {
 		/* DOSBox mainline behavior: alternate "fast" way through direct manipulation of keyboard scan buffer */
@@ -1452,7 +1478,7 @@ uint16_t device_CON::GetInformation(void) {
 		mem_writew(BIOS_KEYBOARD_BUFFER_HEAD,head);
 	}
 
-	return deviceWord | DeviceInfoFlags::EofOnInput; /* No Key Available */
+	return deviceWord | DeviceInfoFlags::EofOnInput | binary; /* No Key Available */
 }
 
 device_CON::device_CON() {
@@ -1485,6 +1511,8 @@ device_CON::device_CON() {
 	ansi.savecol=0;
 	ansi.warned=false;
 	ClearAnsi();
+
+	binary = 0;
 }
 
 void device_CON::ClearAnsi(void){

@@ -380,10 +380,14 @@ uint8_t imageDiskVHD::Write_AbsoluteSector(uint32_t sectnum, const void * data) 
 	return 0;
 }
 
+imageDiskVHD::VHDTypes imageDiskVHD::GetVHDType(void) const {
+	return footer.diskType;
+}
+
 imageDiskVHD::VHDTypes imageDiskVHD::GetVHDType(const char* fileName) {
 	imageDisk* disk;
 	if (Open(fileName, true, &disk)) return VHD_TYPE_NONE;
-    const imageDiskVHD* vhd = dynamic_cast<imageDiskVHD*>(disk);
+	const imageDiskVHD* vhd = dynamic_cast<imageDiskVHD*>(disk);
 	VHDTypes ret = VHD_TYPE_FIXED; //fixed if an imageDisk was returned
 	if (vhd) ret = vhd->footer.diskType; //get the actual type if an imageDiskVHD was returned
 	delete disk;

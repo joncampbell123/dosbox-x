@@ -108,7 +108,7 @@ bool DOS_ExtDevice::Read(uint8_t * data,uint16_t * size) {
 	PhysPt bufptr = (dos.dcp << 4) | 32;
 	for(uint16_t no = 0 ; no < *size ; no++) {
 		// INPUT
-		if((CallDeviceFunction(4, 26, dos.dcp + 2, 0, 1) & 0x8000)) {
+		if(CallDeviceFunction(4, 26, dos.dcp + 2, 0, 1) & 0x8000) {
 			return false;
 		} else {
 			if(real_readw(dos.dcp, 18) != 1) {
@@ -125,7 +125,7 @@ bool DOS_ExtDevice::Write(const uint8_t * data,uint16_t * size) {
 	for(uint16_t no = 0 ; no < *size ; no++) {
 		mem_writeb(bufptr, *data);
 		// OUTPUT
-		if((CallDeviceFunction(8, 26, dos.dcp + 2, 0, 1) & 0x8000)) {
+		if(CallDeviceFunction(8, 26, dos.dcp + 2, 0, 1) & 0x8000) {
 			return false;
 		} else {
 			if(real_readw(dos.dcp, 18) != 1) {
@@ -465,7 +465,7 @@ private:
 			if (EmptyClipboard())
 				{
 				int bytes = ftell(fh);
-				HGLOBAL hCbData = GlobalAlloc(NULL, bytes);
+				HGLOBAL hCbData = GlobalAlloc(0, bytes);
 				uint8_t* pChData = (uint8_t*)GlobalLock(hCbData);
 				if (pChData)
 					{
@@ -639,6 +639,12 @@ bool DOS_Device::Close() {
 
 uint16_t DOS_Device::GetInformation(void) {
 	return Devices[devnum]->GetInformation();
+}
+
+void DOS_Device::SetInformation(uint16_t info) {
+	if(Devices[devnum]->IsName("CON") && !(Devices[devnum]->GetInformation() & EXT_DEVICE_BIT)) {
+		Devices[devnum]->SetInformation(info);
+	}
 }
 
 bool DOS_Device::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) {

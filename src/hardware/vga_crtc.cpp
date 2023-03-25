@@ -27,6 +27,10 @@
 #include "video.h"
 #include "pic.h"
 
+extern bool dbg_event_maxscan;
+extern bool dbg_event_scanstep;
+extern bool dbg_event_hretrace;
+
 extern bool vga_render_on_demand;
 void VGA_RenderOnDemandUpTo(void);
 
@@ -121,6 +125,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	case 0x04:	/* Start Horizontal Retrace Register */
 		if (crtc(read_only)) break;
+		if (crtc(start_horizontal_retrace)^(uint8_t)val) dbg_event_hretrace = true;
 		crtc(start_horizontal_retrace)=(uint8_t)val;
 		/*	0-7  Horizontal Retrace starts when the Character Counter reaches this value. */
 		break;
@@ -211,6 +216,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		   6	Bit 9 of Line Compare Register
 		   7	Doubles each scan line if set. I.e. displays 200 lines on a 400 display.
 		   */
+		if ((old^val)&0x9F/*number of lines+double*/) dbg_event_maxscan = true;
 		break;
 	}
 	case 0x0A:	/* Cursor Start Register */
@@ -314,6 +320,7 @@ void vga_write_p3d5(Bitu port,Bitu val,Bitu iolen) {
 		break;
 	case 0x13:	/* Offset register */
 		if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
+		if (crtc(offset)^val) dbg_event_scanstep = true;
 		crtc(offset)=(uint8_t)val;
 		vga.config.scan_len&=0x300;
 		vga.config.scan_len|=val;

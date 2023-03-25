@@ -126,6 +126,7 @@ public:
 	virtual bool	Seek(uint32_t * pos,uint32_t type);
 	virtual bool	Close();
 	virtual uint16_t	GetInformation(void);
+	virtual void	SetInformation(uint16_t info);
 	virtual bool	ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
 	virtual bool	WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode);
 	virtual uint8_t	GetStatus(bool input_flag);

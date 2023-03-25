@@ -448,8 +448,12 @@ void VGA_SetClock(Bitu which,Bitu target) {
     VGA_StartResize();
 }
 
+uint8_t CGAPal2[2] = {0,0};
+uint8_t CGAPal4[4] = {0,0,0,0};
+
 void VGA_SetCGA2Table(uint8_t val0,uint8_t val1) {
     const uint8_t total[2] = {val0,val1};
+    for (unsigned int i=0;i < 2;i++) CGAPal2[i] = total[i];
     for (Bitu i=0;i<16u;i++) {
         CGA_2_Table[i]=
 #ifdef WORDS_BIGENDIAN
@@ -469,6 +473,7 @@ void VGA_SetCGA2Table(uint8_t val0,uint8_t val1) {
 
 void VGA_SetCGA4Table(uint8_t val0,uint8_t val1,uint8_t val2,uint8_t val3) {
     const uint8_t total[4] = {val0,val1,val2,val3};
+    for (unsigned int i=0;i < 4;i++) CGAPal4[i] = total[i];
     for (Bitu i=0;i<256u;i++) {
         CGA_4_Table[i]=
 #ifdef WORDS_BIGENDIAN
@@ -1325,7 +1330,15 @@ static const UINT8 gdc_defsyncm31[8] = {0x10,0x4e,0x47,0x0c,0x07,0x0d,0x90,0x89}
 static const UINT8 gdc_defsyncs31[8] = {0x06,0x26,0x41,0x0c,0x83,0x0d,0x90,0x89};
 
 static const UINT8 gdc_defsyncm31_480[8] = {0x10,0x4e,0x4b,0x0c,0x03,0x06,0xe0,0x95};
-static const UINT8 gdc_defsyncs31_480[8] = {0x06,0x4e,0x4b,0x0c,0x83,0x06,0xe0,0x95};
+static const UINT8 gdc_defsyncs31_480[8] = {0x06,0x26,0x41,0x0c,0x83,0x06,0xe0,0x95};
+
+/* ^ NTS: Even in 256-color mode the expectation for Active Display Words is 40, not 80.
+ *        Writing 80 when INT 18h is used to invoke 256-color mode isn't a problem but
+ *        it does cause erroneous values in debug functions (1280x480 for
+ *        "login 256-color paint tool"?). The correct value is 40 according to NP2
+ *        source code (in what cases exactly?) and some games that manually set up
+ *        640x400 16-color mode AND THEN directly switch to 256-color mode (still 640x400)
+ *        expect the ADW to remain 40 ("battle skin panic"). */
 
 void PC98_Set24KHz(void) {
     pc98_gdc[GDC_MASTER].write_fifo_command(0x0F/*sync DE=1*/);

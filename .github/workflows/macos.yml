@@ -21,11 +21,21 @@ jobs:
       - uses: actions/checkout@v3
       - name: Install libraries
         run: |
-          echo "timestamp=`date +%F-%T | sed -e 's/:/-/g' | sed -e 's/-//g'`" >> $GITHUB_ENV
-          brew install autoconf automake nasm glfw glew sdl_net sdl2
+          brew install autoconf automake nasm glfw glew sdl_net sdl2 coreutils
           mkdir -p package/dosbox-x
           mkdir -p package/dosbox-x-sdl2
           cd vs/sdlnet && ./build-dosbox.sh
+      - name: Update build info
+        run: |
+          echo "timestamp=`git show -s --format=%at | xargs -I# gdate -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
+          export copyrightyear=`git show -s --format=%at | xargs -I# gdate -d @# +'%Y'`
+          export updatestr=`git show -s --format=%at | xargs -I# gdate -d @# +'%b %d, %Y %I:%M:%S%P'`
+          echo '/* auto generated */' > include/build_timestamp.h
+          echo "#define UPDATED_STR \"${updatestr}\"" >> include/build_timestamp.h
+          echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
+          echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
+          cat include/build_timestamp.h
       - name: Build macOS SDL1
         run: |
           top=`pwd`

@@ -146,7 +146,11 @@
 /* #undef C_SDL2 */
 
 /* Define to 1 to use opengl display output support */
-#define C_OPENGL 1
+#if (defined(__arm__) || defined(__aarch64__) || defined(_M_ARM) || defined(_M_ARM64) || defined(_M_ARM_NT)) && defined(WIN32)
+/* do not define for ARM-based Windows, it doesn't seem to work, and Windows RT does not have it */
+#else
+#  define C_OPENGL 1
+#endif
 
 #ifdef C_SDL2
 /* Define to 1 to enable gamelink support (needs SDL2) */

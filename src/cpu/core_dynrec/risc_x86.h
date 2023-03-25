@@ -198,6 +198,11 @@ static void gen_and_imm(HostReg reg,uint32_t imm) {
 	cache_addd(imm);
 }
 
+// shift right a register by an 8-bit constant
+static void gen_shr_imm(HostReg reg,uint8_t imm) {
+	cache_addw(0xe8c1+(reg<<8));		// shr reg,imm
+	cache_addb(imm);
+}
 
 
 // move a 32bit constant value into memory

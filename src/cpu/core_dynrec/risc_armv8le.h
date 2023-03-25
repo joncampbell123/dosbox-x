@@ -662,6 +662,11 @@ static void gen_and_imm(HostReg reg,uint32_t imm) {
 	}
 }
 
+// shift right a register by an 8-bit constant
+static void gen_shr_imm(HostReg reg,uint8_t imm) {
+    cache_addd( LSR64_IMM(reg, reg, imm) );
+}
+
 
 // move a 32bit constant value into memory
 static void gen_mov_direct_dword(void* dest,uint32_t imm) {

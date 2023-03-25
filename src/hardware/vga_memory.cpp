@@ -2688,7 +2688,17 @@ void VGA_SetupHandlers(void) {
 	if(svgaCard == SVGA_S3Trio && (vga.s3.ext_mem_ctrl & 0x10))
 		MEM_SetPageHandler(VGA_PAGE_A0, 16, &vgaph.mmio);
 
-	non_cga_ignore_oddeven_engage = (non_cga_ignore_oddeven && !(vga.mode == M_TEXT || vga.mode == M_CGA2 || vga.mode == M_CGA4));
+	/* NTS: Based on a discussion on GitHub [https://github.com/joncampbell123/dosbox-x/issues/4042] and
+	 *      on Vogons [https://www.vogons.org/viewtopic.php?t=45808] it makes logical sense that Chain 4
+	 *      would take precedence over odd/even mode. There are some DOS games that accidentally clear
+	 *      bit 2 and would normally enable odd/even mode in 256-color mode, but they displayed correctly
+	 *      anyway. This fixes "Seal: Magic Eye" and a 1994 256-byte Demoscene entry.
+	 *
+	 *      If chain 4 (or "compatible chain 4") is enabled, then ignore odd/even mode.
+	 *      If neither text nor CGA display mode and requested by the user through dosbox.conf, ignore odd/even mode. */
+	non_cga_ignore_oddeven_engage =
+		(vga.seq.memory_mode & 8/*Chain 4 enable*/) ||
+		(non_cga_ignore_oddeven && !(vga.mode == M_TEXT || vga.mode == M_CGA2 || vga.mode == M_CGA4));
 
 range_done:
 #if C_DEBUG

@@ -51,7 +51,7 @@ uint32_t DriveCalculateCRC32(const uint8_t *ptr, size_t len, uint32_t crc)
 {
 	// Karl Malbrain's compact CRC-32. See "A compact CCITT crc16 and crc32 C implementation that balances processor cache usage against speed": http://www.geocities.com/malbrain/
 	static const uint32_t s_crc32[16] = { 0, 0x1db71064, 0x3b6e20c8, 0x26d930ac, 0x76dc4190, 0x6b6b51f4, 0x4db26158, 0x5005713c, 0xedb88320, 0xf00f9344, 0xd6d6a3e8, 0xcb61b38c, 0x9b64c2b0, 0x86d3d2d4, 0xa00ae278, 0xbdbdf21c };
-	uint32_t crcu32 = (uint32_t)~crc;
+	uint32_t crcu32 = ~crc;
 	while (len--) { uint8_t b = *ptr++; crcu32 = (crcu32 >> 4) ^ s_crc32[(crcu32 & 0xF) ^ (b & 0xF)]; crcu32 = (crcu32 >> 4) ^ s_crc32[(crcu32 & 0xF) ^ (b >> 4)]; }
 	return ~crcu32;
 }
@@ -62,7 +62,7 @@ bool DriveFileIterator(DOS_Drive* drv, void(*func)(const char* path, bool is_dir
 	uint32_t starttick = GetTicks();
 	struct Iter
 	{
-		static bool ParseDir(DOS_Drive* drv, uint32_t startticks, const std::string& dir, std::vector<std::string>& dirs, void(*func)(const char* path, bool is_dir, uint32_t size, uint16_t date, uint16_t time, uint8_t attr, Bitu data), Bitu data, int timeout)
+		static bool ParseDir(DOS_Drive* drv, uint32_t startticks, const std::string& dir, std::vector<std::string>& dirs, void(*func)(const char* path, bool is_dir, uint32_t size, uint16_t date, uint16_t time, uint8_t attr, Bitu data), Bitu data, uint32_t timeout)
 		{
 			size_t dirlen = dir.length();
 			if (dirlen + DOS_NAMELENGTH >= DOS_PATHLENGTH) return true;
@@ -421,7 +421,7 @@ struct fatFromDOSDrive
 			if (df) { df->Close(); delete df; }
 	}
 
-	fatFromDOSDrive(DOS_Drive* drv, int freeMB, int timeout) : drive(drv)
+	fatFromDOSDrive(DOS_Drive* drv, uint32_t freeMB, int timeout) : drive(drv)
 	{
 		cacheSectorNumber[0] = 1; // must not state that sector 0 is already cached
 		memset(&cacheSectorNumber[1], 0, sizeof(cacheSectorNumber) - sizeof(cacheSectorNumber[0]));
@@ -439,13 +439,13 @@ struct fatFromDOSDrive
 					memset(&ffdd.fat[ffdd.fat.size() - addSz], 0, addSz);
 				}
 				if (ffdd.fatSz == 32) // FAT32
-					var_write((uint32_t * const)&ffdd.fat[idx * 4], (const uint32_t)val);
+					var_write((uint32_t *)&ffdd.fat[idx * 4], val);
 				else if (ffdd.fatSz == 16) // FAT 16
-					var_write((uint16_t * const)&ffdd.fat[idx * 2], (const uint16_t)val);
+					var_write((uint16_t *)&ffdd.fat[idx * 2], (uint16_t)val);
 				else if (idx & 1) // FAT12 odd cluster
-					var_write((uint16_t * const)&ffdd.fat[idx + idx / 2], (const uint16_t)((var_read((uint16_t *)&ffdd.fat[idx + idx / 2]) & 0xF) | ((val & 0xFFF) << 4)));
+					var_write((uint16_t *)&ffdd.fat[idx + idx / 2], (uint16_t)((var_read((uint16_t *)&ffdd.fat[idx + idx / 2]) & 0xF) | ((val & 0xFFF) << 4)));
 				else // FAT12 even cluster
-					var_write((uint16_t * const)&ffdd.fat[idx + idx / 2], (const uint16_t)((var_read((uint16_t *)&ffdd.fat[idx + idx / 2]) & 0xF000) | (val & 0xFFF)));
+					var_write((uint16_t *)&ffdd.fat[idx + idx / 2], (uint16_t)((var_read((uint16_t *)&ffdd.fat[idx + idx / 2]) & 0xF000) | (val & 0xFFF)));
 			}
 
 			static direntry* AddDirEntry(fatFromDOSDrive& ffdd, bool useFAT16Root, size_t& diridx)
@@ -596,7 +596,7 @@ struct fatFromDOSDrive
 					}
 					else if (dta_attr & DOS_ATTR_VOLUME)
 					{
-						if ((dirlen || (e->attrib & DOS_ATTR_DIRECTORY) || dta_size))
+						if (dirlen || (e->attrib & DOS_ATTR_DIRECTORY) || dta_size)
 							LOG_MSG("Invalid volume entry - %s\n", e->entryname);
 					}
 					else if (!(dta_attr & DOS_ATTR_DIRECTORY))
@@ -612,7 +612,7 @@ struct fatFromDOSDrive
                         } catch (...) {
                             LOG_MSG("Too many sectors needed, will discard remaining files (from %s)", lname);
                             ffdd.tomany = ffdd.readOnly = true;
-                            var_write((uint32_t *const)&ffdd.fsinfosec[488], (const uint32_t)0x0);
+                            var_write((uint32_t *)&ffdd.fsinfosec[488], (uint32_t)0x0);
                             break;
                         }
 					}
@@ -647,7 +647,7 @@ struct fatFromDOSDrive
 					}
 					if (e.attrib & DOS_ATTR_DIRECTORY) // this reallocates ffdd.dirs so do this last
 					{
-						var_write(&e.loFirstClust, (const uint16_t)(2 + ffdd.dirs.size() / entriesPerCluster));
+						var_write(&e.loFirstClust, (uint16_t)(2 + ffdd.dirs.size() / entriesPerCluster));
 						ParseDir(ffdd, dir, filter, totlen, myFirstCluster);
 					}
 				}
@@ -672,7 +672,7 @@ struct fatFromDOSDrive
         free_clusters = freec?freec:drv_free_clusters;
         freeSpace = (uint64_t)drv_bytes_sector * drv_sectors_cluster * (freec?freec:free_clusters);
         freeSpaceMB = freeSpace / (1024*1024);
-        if (freeMB > -1 && freeMB < freeSpaceMB) freeSpaceMB = freeMB;
+        if (freeMB < freeSpaceMB) freeSpaceMB = freeMB;
         rsize=false;
         tomany=false;
         readOnly = free_clusters == 0 || freeSpaceMB == 0;
@@ -699,7 +699,7 @@ struct fatFromDOSDrive
                 sasi.cylinders = 310;
             } else {
                 sasi.sectors = 33;
-                uint32_t heads = (std::ceil)((double)(usedMB+(readOnly?0:(usedMB>=2047?freeSpaceMB:5)))/10);
+                uint32_t heads = std::ceil((double)(usedMB+(readOnly?0:(usedMB>=2047?freeSpaceMB:5)))/10);
                 if (heads > 255) {
                     sasi.surfaces = 255;
                     sasi.cylinders = heads * 615 / 255;
@@ -711,7 +711,7 @@ struct fatFromDOSDrive
             tsize = BYTESPERSECTOR * sasi.sectors * sasi.surfaces * sasi.cylinders;
             tsizeMB = sasi.sectors * sasi.surfaces * sasi.cylinders / (1024 * 1024 / BYTESPERSECTOR);
             if (tsizeMB < usedMB) readOnly = true;
-            addFreeMB = readOnly ? 0 : (usedMB >= 2047 ? freeSpaceMB : ((std::ceil)((double)tsize - sum.used_bytes) / (1024 * 1024) + 1));
+            addFreeMB = readOnly ? 0 : (usedMB >= 2047 ? freeSpaceMB : (std::ceil((double)tsize - sum.used_bytes) / (1024 * 1024) + 1));
         } else
             addFreeMB = (readOnly ? 0 : freeSpaceMB);
         totalMB = usedMB + (addFreeMB ? (1 + addFreeMB) : 0);
@@ -749,8 +749,8 @@ struct fatFromDOSDrive
 			for (direntry& e : (rootOrDir ? dirs : root))
 			{
 				if (!e.entrysize || (e.attrib & DOS_ATTR_LONG_NAME_MASK) == DOS_ATTR_LONG_NAME) continue;
-				var_write(&e.hiFirstClust, (const uint16_t)(fileCluster >> 16));
-				var_write(&e.loFirstClust, (const uint16_t)(fileCluster));
+				var_write(&e.hiFirstClust, (uint16_t)(fileCluster >> 16));
+				var_write(&e.loFirstClust, (uint16_t)(fileCluster));
 
 				// Write FAT link chain
 				uint32_t numClusters = (var_read(&e.entrysize) + bytesPerCluster - 1) / bytesPerCluster;
@@ -853,7 +853,7 @@ struct fatFromDOSDrive
 		memset(&bootsec, 0, sizeof(bootsec));
 		memcpy(bootsec.nearjmp, "\xEB\x3C\x90", sizeof(bootsec.nearjmp));
 		memcpy(bootsec.oemname, fatSz == 32 ? "MSWIN4.1" : "MSDOS5.0", sizeof(bootsec.oemname));
-		var_write((uint16_t *const)&bootsec.bytespersector, (const uint16_t)BYTESPERSECTOR);
+		var_write((uint16_t *)&bootsec.bytespersector, (uint16_t)BYTESPERSECTOR);
 		var_write(&bootsec.sectorspercluster, sectorsPerCluster);
 		var_write(&bootsec.reservedsectors, reservedSectors);
 		var_write(&bootsec.fatcopies, 2);
@@ -867,11 +867,11 @@ struct fatFromDOSDrive
 		if (fatSz != 32) // FAT12/FAT16
 		{
 			var_write(&mbr.pentry[0].parttype, (fatSz == 12 ? 0x01 : (sect_disk_end < 65536 ? 0x04 : 0x06))); // FAT12/16
-			var_write((uint16_t *const)&bootsec.rootdirentries, (const uint16_t)root.size());
-			var_write((uint16_t *const)&bootsec.sectorsperfat, (const uint16_t)sectorsPerFat);
+			var_write(&bootsec.rootdirentries, (uint16_t)root.size());
+			var_write(&bootsec.sectorsperfat, (uint16_t)sectorsPerFat);
 			bootsec.bootcode[0] = 0x80; //Physical drive (harddisk) flag
 			bootsec.bootcode[2] = 0x29; //Extended boot signature
-			var_write((uint32_t *const)&bootsec.bootcode[3], (const uint32_t)(serial + 1)); //4 byte partition serial number
+			var_write((uint32_t *)&bootsec.bootcode[3], serial + 1); //4 byte partition serial number
 			memcpy(&bootsec.bootcode[7], "NO NAME    ", 11); // volume label
 			memcpy(&bootsec.bootcode[18], "FAT1    ", 8); // file system string name
 			bootsec.bootcode[22] = (char)('0' + (fatSz % 10)); // '2' or '6'
@@ -879,25 +879,25 @@ struct fatFromDOSDrive
 		else // FAT32
 		{
 			var_write(&mbr.pentry[0].parttype, 0x0C); //FAT32
-			var_write((uint32_t *const)&bootsec.bootcode[0], sectorsPerFat);
-			var_write((uint32_t *const)&bootsec.bootcode[8], (const uint32_t)2); // First cluster number of the root directory
-			var_write((uint16_t *const)&bootsec.bootcode[12], (const uint16_t)1); // Sector of FSInfo structure in offset from top of the FAT32 volume
-			var_write((uint16_t *const)&bootsec.bootcode[14], (const uint16_t)6); // Sector of backup boot sector in offset from top of the FAT32 volume
+			var_write((uint32_t *)&bootsec.bootcode[0], sectorsPerFat);
+			var_write((uint32_t *)&bootsec.bootcode[8], (uint32_t)2); // First cluster number of the root directory
+			var_write((uint16_t *)&bootsec.bootcode[12], (uint16_t)1); // Sector of FSInfo structure in offset from top of the FAT32 volume
+			var_write((uint16_t *)&bootsec.bootcode[14], (uint16_t)6); // Sector of backup boot sector in offset from top of the FAT32 volume
 			bootsec.bootcode[28] = 0x80; //Physical drive (harddisk) flag
 			bootsec.bootcode[30] = 0x29; //Extended boot signature
-			var_write((uint32_t *const)&bootsec.bootcode[31], (const uint32_t)(serial + 1)); //4 byte partition serial number
+			var_write((uint32_t *)&bootsec.bootcode[31], serial + 1); //4 byte partition serial number
 			memcpy(&bootsec.bootcode[35], "NO NAME    ", 11); // volume label
 			memcpy(&bootsec.bootcode[46], "FAT32   ", 8); // file system string name
 
 			memset(fsinfosec, 0, sizeof(fsinfosec));
-			var_write((uint32_t *const)&fsinfosec[0], (const uint32_t)0x41615252); //lead signature
-			var_write((uint32_t *const)&fsinfosec[484], (const uint32_t)0x61417272); //Another signature
+			var_write((uint32_t *)&fsinfosec[0], (uint32_t)0x41615252); //lead signature
+			var_write((uint32_t *)&fsinfosec[484], (uint32_t)0x61417272); //Another signature
 			bool ver71 = dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10);
 			//Bitu freeclusters = readOnly ? 0x0 : (ver71 ? (Bitu)freeSpace / (BYTESPERSECTOR * sectorsPerCluster) : 0xFFFFFFFF);
 			Bitu freeclusters = readOnly ? 0x0 : (ver71 ? (Bitu)((sect_disk_end - sect_files_end) / sectorsPerCluster): 0xFFFFFFFF);
-			var_write((uint32_t *const)&fsinfosec[488], (const uint32_t)(freeclusters < 0xFFFFFFFF ? freeclusters : 0xFFFFFFFF)); //last known free cluster count (all FF is unknown)
-			var_write((uint32_t *const)&fsinfosec[492], (const uint32_t)(ver71 ? (sect_files_end / sectorsPerCluster): 0xFFFFFFFF)); //the cluster number at which the driver should start looking for free clusters (all FF is unknown)
-			var_write((uint32_t *const)&fsinfosec[508], (const uint32_t)0xAA550000); //ending signature
+			var_write((uint32_t *)&fsinfosec[488], (uint32_t)(freeclusters < 0xFFFFFFFF ? freeclusters : 0xFFFFFFFF)); //last known free cluster count (all FF is unknown)
+			var_write((uint32_t *)&fsinfosec[492], (ver71 ? (sect_files_end / sectorsPerCluster): 0xFFFFFFFF)); //the cluster number at which the driver should start looking for free clusters (all FF is unknown)
+			var_write((uint32_t *)&fsinfosec[508], 0xAA550000); //ending signature
 		}
 
 		codepage = dos.loaded_codepage;
@@ -1078,7 +1078,7 @@ struct fatFromDOSDrive
                 for (int i = 0; i < 7; i++)
                     if (fwrite(filebuf, 1, BYTESPERSECTOR, f) != BYTESPERSECTOR) {fclose(f);return false;}
             }
-            for (int i = 0; i < sect_disk_end; i++) {
+            for (unsigned int i = 0; i < sect_disk_end; i++) {
                 ReadSector(i, filebuf);
                 if (fwrite(filebuf, 1, BYTESPERSECTOR, f) != BYTESPERSECTOR) {
                     fclose(f);
@@ -1177,7 +1177,7 @@ void updateDPT(void) {
         phys_writew(dpphysaddr[i] + 0x3, 0);
         phys_writew(dpphysaddr[i] + 0x5, tmpcyl == 0 ? 0 : (uint16_t)-1);
         phys_writeb(dpphysaddr[i] + 0x7, 0);
-        phys_writeb(dpphysaddr[i] + 0x8, tmpcyl == 0 ? 0 : (0xc0 | (((tmpheads) > 8) << 3)));
+        phys_writeb(dpphysaddr[i] + 0x8, tmpcyl == 0 ? 0 : (0xc0 | ((tmpheads > 8) << 3)));
         phys_writeb(dpphysaddr[i] + 0x9, 0);
         phys_writeb(dpphysaddr[i] + 0xa, 0);
         phys_writeb(dpphysaddr[i] + 0xb, 0);
@@ -1260,6 +1260,12 @@ bool getSwapRequest(void) {
 }
 
 void swapInDrive(int drive, int position=0) {
+    if (drive>1||swapInDisksSpecificDrive!=drive) return;
+    if (position<1) swapPosition++;
+    else swapPosition=position-1;
+    if(diskSwap[swapPosition] == NULL) swapPosition = 0;
+    swapInDisks(drive);
+    swapping_requested = true;
     DriveManager::CycleDisks(drive, true, position);
     /* Hack/feature: rescan all disks as well */
     LOG_MSG("Diskcaching reset for drive %c.", drive+'A');
@@ -1267,12 +1273,6 @@ void swapInDrive(int drive, int position=0) {
         Drives[drive]->EmptyCache();
         Drives[drive]->MediaChange();
     }
-    if (drive>1||swapInDisksSpecificDrive!=drive) return;
-    if (position<1) swapPosition++;
-    else swapPosition=position-1;
-    if(diskSwap[swapPosition] == NULL) swapPosition = 0;
-    swapInDisks(drive);
-    swapping_requested = true;
 }
 
 void swapInNextDisk(bool pressed) {
@@ -1353,7 +1353,7 @@ uint8_t imageDisk::Read_AbsoluteSector(uint32_t sectnum, void * data) {
     got = (int)fread(data, 1, sector_size, diskimg);
     if ((unsigned int)got != sector_size) {
         LOG_MSG("fread() failed in Read_AbsoluteSector for sector %lu. Want=%u got=%d\n",
-            (unsigned long)sectnum,(unsigned int)sector_size,(unsigned int)got);
+            (unsigned long)sectnum,sector_size,(unsigned int)got);
         return 0x05;
     }
 
@@ -1409,7 +1409,7 @@ uint32_t imageDisk::Get_Reserved_Cylinders() {
 imageDisk::imageDisk(IMAGE_TYPE class_id) : class_id(class_id) {
 }
 
-imageDisk::imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, uint32_t heads, uint32_t sectors, uint32_t sector_size, bool hardDrive) : ffdd(NULL)
+imageDisk::imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, uint32_t heads, uint32_t sectors, uint32_t sector_size, bool hardDrive)
 {
     if (diskName) this->diskname = diskName;
     this->cylinders = cylinders;
@@ -1430,7 +1430,7 @@ imageDisk::imageDisk(FILE* diskimg, const char* diskName, uint32_t cylinders, ui
 
 imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint32_t imgSizeK, bool isHardDisk) : diskSizeK(imgSizeK), diskimg(imgFile), image_length((uint64_t)imgSizeK * 1024) {
     if (imgName != NULL)
-        diskname = (const char*)imgName;
+        diskname = imgName;
 
     active = false;
     hardDrive = isHardDisk;
@@ -1468,18 +1468,18 @@ imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint32_t imgSizeK, bool
                                 image_base = ofs;
                                 image_length -= ofs;
                                 LOG_MSG("FDI header: sectorsize is %u bytes/sector, header is %u bytes, fdd size (plus header) is %u bytes",
-                                    (unsigned int)sectorsize,(unsigned int)ofs,(unsigned int)fddsize);
+                                    sectorsize,ofs,fddsize);
 
                                 /* take on the geometry. */
                                 sectors = host_readd(fdihdr.sectors);
                                 heads = host_readd(fdihdr.surfaces);
                                 cylinders = host_readd(fdihdr.cylinders);
                                 LOG_MSG("FDI: Geometry is C/H/S %u/%u/%u",
-                                    (unsigned int)cylinders,(unsigned int)heads,(unsigned int)sectors);
+                                    cylinders,heads,sectors);
                             }
                             else {
                                 LOG_MSG("FDI header rejected. sectorsize=%u headersize=%u fddsize=%u",
-                                    (unsigned int)sectorsize,(unsigned int)ofs,(unsigned int)fddsize);
+                                    sectorsize,ofs,fddsize);
                             }
                         }
                         else {
@@ -1557,7 +1557,7 @@ imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint32_t imgSizeK, bool
                                 image_base = ofs;
                                 image_length -= ofs;
                                 LOG_MSG("NHD header: sectorsize is %u bytes/sector, header is %u bytes",
-                                        (unsigned int)sectorsize,(unsigned int)ofs);
+                                        sectorsize,ofs);
 
                                 /* take on the geometry.
                                  * PC-98 IPL1 support will need it to make sense of the partition table. */
@@ -1565,11 +1565,11 @@ imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint32_t imgSizeK, bool
                                 heads = host_readw((ConstHostPt)(&nhdhdr.wHead));
                                 cylinders = host_readd((ConstHostPt)(&nhdhdr.dwCylinder));
                                 LOG_MSG("NHD: Geometry is C/H/S %u/%u/%u",
-                                        (unsigned int)cylinders,(unsigned int)heads,(unsigned int)sectors);
+                                        cylinders,heads,sectors);
                             }
                             else {
                                 LOG_MSG("NHD header rejected. sectorsize=%u headersize=%u",
-                                        (unsigned int)sectorsize,(unsigned int)ofs);
+                                        sectorsize,ofs);
                             }
                         }
                         else {
@@ -1603,7 +1603,7 @@ imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint32_t imgSizeK, bool
                                 image_base = ofs;
                                 image_length -= ofs;
                                 LOG_MSG("HDI header: sectorsize is %u bytes/sector, header is %u bytes, hdd size (plus header) is %u bytes",
-                                    (unsigned int)sectorsize,(unsigned int)ofs,(unsigned int)hddsize);
+                                    sectorsize,ofs,hddsize);
 
                                 /* take on the geometry.
                                  * PC-98 IPL1 support will need it to make sense of the partition table. */
@@ -1611,11 +1611,11 @@ imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint32_t imgSizeK, bool
                                 heads = host_readd(hdihdr.surfaces);
                                 cylinders = host_readd(hdihdr.cylinders);
                                 LOG_MSG("HDI: Geometry is C/H/S %u/%u/%u",
-                                    (unsigned int)cylinders,(unsigned int)heads,(unsigned int)sectors);
+                                    cylinders,heads,sectors);
                             }
                             else {
                                 LOG_MSG("HDI header rejected. sectorsize=%u headersize=%u hddsize=%u",
-                                    (unsigned int)sectorsize,(unsigned int)ofs,(unsigned int)hddsize);
+                                    sectorsize,ofs,hddsize);
                             }
                         }
                         else {
@@ -1631,7 +1631,7 @@ imageDisk::imageDisk(FILE* imgFile, const char* imgName, uint32_t imgSizeK, bool
     }
 }
 
-imageDisk::imageDisk(class DOS_Drive *useDrive, unsigned int letter, int freeMB, int timeout)
+imageDisk::imageDisk(class DOS_Drive *useDrive, unsigned int letter, uint32_t freeMB, int timeout)
 {
 	ffdd = new fatFromDOSDrive(useDrive, freeMB, timeout);
 	if (!ffdd->success) {
@@ -1684,7 +1684,7 @@ void imageDisk::Set_GeometryForHardDisk()
 	fseek(diskimg,0,SEEK_END);
 	diskimgsize = (uint32_t)ftell(diskimg);
 	fseek(diskimg,current_fpos,SEEK_SET);
-	Set_Geometry(16, (uint32_t)(diskimgsize / (512 * 63 * 16)), 63, 512);
+	Set_Geometry(16, diskimgsize / (512 * 63 * 16), 63, 512);
 }
 
 void imageDisk::Set_Geometry(uint32_t setHeads, uint32_t setCyl, uint32_t setSect, uint32_t setSectSize) {
@@ -1866,7 +1866,7 @@ static Bitu INT13_DiskHandler(void) {
             CALLBACK_SCF(true);
             return CBRET_NONE;
         }
-        if (drivenum >= MAX_DISK_IMAGES && imageDiskList[drivenum] == NULL) {
+        if (drivenum >= MAX_DISK_IMAGES || imageDiskList[drivenum] == NULL) {
             if (drivenum >= DOS_DRIVES || !Drives[drivenum] || Drives[drivenum]->isRemovable()) {
                 reg_ah = 0x01;
                 CALLBACK_SCF(true);
@@ -1928,7 +1928,7 @@ static Bitu INT13_DiskHandler(void) {
             /* IDE emulation: simulate change of IDE state that would occur on a real machine after INT 13h */
             IDE_EmuINT13DiskReadByBIOS(reg_dl, (uint32_t)(reg_ch | ((reg_cl & 0xc0)<< 2)), (uint32_t)reg_dh, (uint32_t)((reg_cl & 63)+i));
 
-            if((last_status != 0x00) || (killRead)) {
+            if((last_status != 0x00) || killRead) {
                 LOG_MSG("Error in disk read");
                 killRead = false;
                 reg_ah = 0x04;
@@ -2223,7 +2223,7 @@ static Bitu INT13_DiskHandler(void) {
 
             IDE_EmuINT13DiskReadByBIOS_LBA(reg_dl,dap.sector+i);
 
-            if((last_status != 0x00) || (killRead)) {
+            if((last_status != 0x00) || killRead) {
                 LOG_MSG("Error in disk read");
                 killRead = false;
                 reg_ah = 0x04;
@@ -2265,6 +2265,16 @@ static Bitu INT13_DiskHandler(void) {
                 return CBRET_NONE;
             }
         }
+        reg_ah = 0x00;
+        CALLBACK_SCF(false);
+        break;
+    case 0x44: /* Extended Verify Sectors [http://www.ctyme.com/intr/rb-0711.htm] */
+        if(driveInactive(drivenum)) {
+            reg_ah = 0xff;
+            CALLBACK_SCF(true);
+            return CBRET_NONE;
+        }
+        /* Just signal success, we don't actually verify anything */
         reg_ah = 0x00;
         CALLBACK_SCF(false);
         break;
@@ -2921,7 +2931,7 @@ imageDiskD88::imageDiskD88(FILE *imgFile, const char *imgName, uint32_t imgSizeK
     if (fread(&head,sizeof(head),1,diskimg) != 1) return;
 
     // validate fd_size
-    if ((uint32_t)host_readd((ConstHostPt)(&head.fd_size)) > (uint32_t)fsz) return;
+    if (host_readd((ConstHostPt)(&head.fd_size)) > (uint32_t)fsz) return;
 
     fd_type_major = head.fd_type >> 4U;
     fd_type_minor = head.fd_type & 0xFU;
@@ -3226,8 +3236,8 @@ imageDiskNFD::imageDiskNFD(FILE *imgFile, const char *imgName, uint32_t imgSizeK
     }
 
     // validate fd_size
-    if ((uint32_t)host_readd((ConstHostPt)(&head.headersize)) < sizeof(head)) return;
-    if ((uint32_t)host_readd((ConstHostPt)(&head.headersize)) > (uint32_t)fsz) return;
+    if (host_readd((ConstHostPt)(&head.headersize)) < sizeof(head)) return;
+    if (host_readd((ConstHostPt)(&head.headersize)) > (uint32_t)fsz) return;
 
     unsigned int data_offset = host_readd((ConstHostPt)(&head.headersize));
 
@@ -3262,7 +3272,7 @@ imageDiskNFD::imageDiskNFD(FILE *imgFile, const char *imgName, uint32_t imgSizeK
             vfdentry vent;
             vent.sector_size = 128 << e.sec_len_pow2;
             vent.data_offset = (uint32_t)data_offset;
-            vent.entry_offset = (uint32_t)ofs;
+            vent.entry_offset = ofs;
             vent.track = e.log_cyl;
             vent.head = e.log_head;
             vent.sector = e.log_rec;
@@ -3299,8 +3309,8 @@ imageDiskNFD::imageDiskNFD(FILE *imgFile, const char *imgName, uint32_t imgSizeK
                 if (fread(&e,sizeof(e),1,diskimg) != 1) return;
 
                 LOG_MSG("NFD %u/%u: ofs=%lu data=%lu cyl=%u head=%u sec=%u len=%u rep=%u",
-                        (unsigned int)s,
-                        (unsigned int)sectors,
+                        s,
+                        sectors,
                         (unsigned long)ofs,
                         (unsigned long)data_offset,
                         e.log_cyl,
@@ -3312,7 +3322,7 @@ imageDiskNFD::imageDiskNFD(FILE *imgFile, const char *imgName, uint32_t imgSizeK
                 vfdentry vent;
                 vent.sector_size = 128 << e.sec_len_pow2;
                 vent.data_offset = (uint32_t)data_offset;
-                vent.entry_offset = (uint32_t)ofs;
+                vent.entry_offset = ofs;
                 vent.track = e.log_cyl;
                 vent.head = e.log_head;
                 vent.sector = e.log_rec;
@@ -3532,7 +3542,7 @@ bool PartitionLoadIPL1(std::vector<_PC98RawPartition> &parts,imageDisk *loadedDi
 	memset(ipltable,0,sizeof(ipltable));
 	if (loadedDisk->Read_Sector(0,0,2,ipltable) != 0) return false;
 
-	const unsigned int max_entries = (std::min)(16UL,(unsigned long)(loadedDisk->getSectSize() / sizeof(_PC98RawPartition)));
+	const unsigned int max_entries = std::min(16UL,(unsigned long)(loadedDisk->getSectSize() / sizeof(_PC98RawPartition)));
 
 	for (size_t i=0;i < max_entries;i++) {
 		const _PC98RawPartition *pe = (_PC98RawPartition*)(ipltable+(i * 32));

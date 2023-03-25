@@ -524,6 +524,7 @@ case "$host" in
        AC_DEFINE(HAIKU, 1, [Compiling on Haiku])
        dnl FEATURE: Whether to support direct serial port pass-through
        AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial pass-through support (Win32, Posix and OS/2).])
+       LIBS="$LIBS -lnetwork -lbsd -lbe"
        ;;
     *-*-freebsd* | *-*-dragonfly* | *-*-netbsd* | *-*-openbsd*)
        dnl FEATURE: Whether to support direct parallel port pass-through
@@ -536,11 +537,6 @@ case "$host" in
        AC_DEFINE(BSD, 1, [Compiling on BSD])
        dnl FEATURE: Whether to support direct serial port pass-through
        AC_DEFINE(C_DIRECTSERIAL, 1, [ Define to 1 if you want serial pass-through support (Win32, Posix and OS/2).])
-       ;;
-    *-*-haiku*)
-       AC_DEFINE(BSD, 1, [Compiling on BSD])
-       LIBS="$LIBS -lbsd -lnetwork"
-       CXXFLAGS="$CXXFLAGS -D_BSD_SOURCE"
        ;;
     *-*-os2-emx*)
        AC_DEFINE(OS2, 1, [Compiling on OS/2 EMX])
@@ -1254,6 +1250,17 @@ case "$host" in
     ;;
 esac
 fi
+
+dnl BUILD: whether to enable universal binary support
+if test x"$macosx" = x"1" && test x"$host_cpu" = x"arm"; then
+  AC_ARG_ENABLE(universal,AC_HELP_STRING([--enable-universal],[Enable macOS universal binary support]),
+    [enable_universal=$enableval],
+    [enable_universal=no])
+else
+  enable_universal=no
+fi
+
+AM_CONDITIONAL(MACOS_UNIVERSAL, [ test x$enable_universal = xyes ])
 
 AC_CONFIG_FILES([ 
 Makefile

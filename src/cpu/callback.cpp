@@ -164,9 +164,18 @@ void CALLBACK_RunRealFarInt(uint16_t seg,uint16_t off) {
 	FillFlags();
 
 	reg_sp-=6;
-	real_writew(SegValue(ss),reg_sp+0,RealOff(CALLBACK_RealPointer(call_stop)));
-	real_writew(SegValue(ss),reg_sp+2,RealSeg(CALLBACK_RealPointer(call_stop)));
-	real_writew(SegValue(ss),reg_sp+4,(uint16_t)reg_flags);
+	if (cpu.pmode && !(reg_flags & FLAG_VM)) {
+		mem_writew(SegPhys(ss)+reg_sp+0,RealOff(CALLBACK_RealPointer(call_stop)));
+		mem_writew(SegPhys(ss)+reg_sp+2,RealSeg(CALLBACK_RealPointer(call_stop)));
+		mem_writew(SegPhys(ss)+reg_sp+4,(uint16_t)reg_flags);
+	}
+	else {
+		// See commit [https://github.com/joncampbell123/dosbox-x/commit/00378e8cc2bc5a71c3691be5f3bfd20246a26874]
+		// which mentions UNLZEXE and something about the expectation of stack pointer wraparound in real mode for this case.
+		real_writew(SegValue(ss),reg_sp+0,RealOff(CALLBACK_RealPointer(call_stop)));
+		real_writew(SegValue(ss),reg_sp+2,RealSeg(CALLBACK_RealPointer(call_stop)));
+		real_writew(SegValue(ss),reg_sp+4,(uint16_t)reg_flags);
+	}
 	uint32_t oldeip=reg_eip;
 	uint16_t oldcs=SegValue(cs);
 	reg_eip=off;
@@ -178,8 +187,16 @@ void CALLBACK_RunRealFarInt(uint16_t seg,uint16_t off) {
 
 void CALLBACK_RunRealFar(uint16_t seg,uint16_t off) {
 	reg_sp-=4;
-	real_writew(SegValue(ss),reg_sp+0,RealOff(CALLBACK_RealPointer(call_stop)));
-	real_writew(SegValue(ss),reg_sp+2,RealSeg(CALLBACK_RealPointer(call_stop)));
+	if (cpu.pmode && !(reg_flags & FLAG_VM)) {
+		mem_writew(SegPhys(ss)+reg_sp+0,RealOff(CALLBACK_RealPointer(call_stop)));
+		mem_writew(SegPhys(ss)+reg_sp+2,RealSeg(CALLBACK_RealPointer(call_stop)));
+	}
+	else {
+		// See commit [https://github.com/joncampbell123/dosbox-x/commit/00378e8cc2bc5a71c3691be5f3bfd20246a26874]
+		// which mentions UNLZEXE and something about the expectation of stack pointer wraparound in real mode for this case.
+		real_writew(SegValue(ss),reg_sp+0,RealOff(CALLBACK_RealPointer(call_stop)));
+		real_writew(SegValue(ss),reg_sp+2,RealSeg(CALLBACK_RealPointer(call_stop)));
+	}
 	uint32_t oldeip=reg_eip;
 	uint16_t oldcs=SegValue(cs);
 	reg_eip=off;
@@ -212,54 +229,102 @@ void CALLBACK_RunRealInt(uint8_t intnum) {
 }
 
 void CALLBACK_SZF(bool val) {
-    uint32_t tempf;
+	uint32_t tempf;
 
-    if (cpu.stack.big)
-        tempf = real_readd(SegValue(ss),reg_esp+8); // first word past FAR 32:32
-    else
-        tempf = real_readw(SegValue(ss),reg_sp+4); // first word past FAR 16:16
+	if (cpu.pmode && !(reg_flags & FLAG_VM)) {
+		if (cpu.stack.big)
+			tempf = mem_readd(SegPhys(ss)+reg_esp+8); // first word past FAR 32:32
+		else
+			tempf = mem_readw(SegPhys(ss)+reg_sp+4); // first word past FAR 16:16
+	}
+	else {
+		if (cpu.stack.big)
+			tempf = real_readd(SegValue(ss),reg_esp+8); // first word past FAR 32:32
+		else
+			tempf = real_readw(SegValue(ss),reg_sp+4); // first word past FAR 16:16
+	}
 
-    if (val) tempf |= FLAG_ZF;
-    else tempf &= ~FLAG_ZF;
+	if (val) tempf |= FLAG_ZF;
+	else tempf &= ~FLAG_ZF;
 
-    if (cpu.stack.big)
-        real_writed(SegValue(ss),reg_esp+8,tempf);
-    else
-        real_writew(SegValue(ss),reg_sp+4,(uint16_t)tempf);
+	if (cpu.pmode && !(reg_flags & FLAG_VM)) {
+		if (cpu.stack.big)
+			mem_writed(SegPhys(ss)+reg_esp+8,tempf);
+		else
+			mem_writew(SegPhys(ss)+reg_sp+4,(uint16_t)tempf);
+	}
+	else {
+		if (cpu.stack.big)
+			real_writed(SegValue(ss),reg_esp+8,tempf);
+		else
+			real_writew(SegValue(ss),reg_sp+4,(uint16_t)tempf);
+	}
 }
 
 void CALLBACK_SCF(bool val) {
-    uint32_t tempf;
+	uint32_t tempf;
 
-    if (cpu.stack.big)
-        tempf = real_readd(SegValue(ss),reg_esp+8); // first word past FAR 32:32
-    else
-        tempf = real_readw(SegValue(ss),reg_sp+4); // first word past FAR 16:16
+	if (cpu.pmode && !(reg_flags & FLAG_VM)) {
+		if (cpu.stack.big)
+			tempf = mem_readd(SegPhys(ss)+reg_esp+8); // first word past FAR 32:32
+		else
+			tempf = mem_readw(SegPhys(ss)+reg_sp+4); // first word past FAR 16:16
+	}
+	else {
+		if (cpu.stack.big)
+			tempf = real_readd(SegValue(ss),reg_esp+8); // first word past FAR 32:32
+		else
+			tempf = real_readw(SegValue(ss),reg_sp+4); // first word past FAR 16:16
+	}
 
-    if (val) tempf |= FLAG_CF;
-    else tempf &= ~FLAG_CF;
+	if (val) tempf |= FLAG_CF;
+	else tempf &= ~FLAG_CF;
 
-    if (cpu.stack.big)
-        real_writed(SegValue(ss),reg_esp+8,tempf);
-    else
-        real_writew(SegValue(ss),reg_sp+4,(uint16_t)tempf);
+	if (cpu.pmode && !(reg_flags & FLAG_VM)) {
+		if (cpu.stack.big)
+			mem_writed(SegPhys(ss)+reg_esp+8,tempf);
+		else
+			mem_writew(SegPhys(ss)+reg_sp+4,(uint16_t)tempf);
+	}
+	else {
+		if (cpu.stack.big)
+			real_writed(SegValue(ss),reg_esp+8,tempf);
+		else
+			real_writew(SegValue(ss),reg_sp+4,(uint16_t)tempf);
+	}
 }
 
 void CALLBACK_SIF(bool val) {
-    uint32_t tempf;
+	uint32_t tempf;
 
-    if (cpu.stack.big)
-        tempf = real_readd(SegValue(ss),reg_esp+8); // first word past FAR 32:32
-    else
-        tempf = real_readw(SegValue(ss),reg_sp+4); // first word past FAR 16:16
+	if (cpu.pmode && !(reg_flags & FLAG_VM)) {
+		if (cpu.stack.big)
+			tempf = mem_readd(SegPhys(ss)+reg_esp+8); // first word past FAR 32:32
+		else
+			tempf = mem_readw(SegPhys(ss)+reg_sp+4); // first word past FAR 16:16
+	}
+	else {
+		if (cpu.stack.big)
+			tempf = real_readd(SegValue(ss),reg_esp+8); // first word past FAR 32:32
+		else
+			tempf = real_readw(SegValue(ss),reg_sp+4); // first word past FAR 16:16
+	}
 
-    if (val) tempf |= FLAG_IF;
-    else tempf &= ~FLAG_IF;
+	if (val) tempf |= FLAG_IF;
+	else tempf &= ~FLAG_IF;
 
-    if (cpu.stack.big)
-        real_writed(SegValue(ss),reg_esp+8,tempf);
-    else
-        real_writew(SegValue(ss),reg_sp+4,(uint16_t)tempf);
+	if (cpu.pmode && !(reg_flags & FLAG_VM)) {
+		if (cpu.stack.big)
+			mem_writed(SegPhys(ss)+reg_esp+8,tempf);
+		else
+			mem_writew(SegPhys(ss)+reg_sp+4,(uint16_t)tempf);
+	}
+	else {
+		if (cpu.stack.big)
+			real_writed(SegValue(ss),reg_esp+8,tempf);
+		else
+			real_writew(SegValue(ss),reg_sp+4,(uint16_t)tempf);
+	}
 }
 
 void CALLBACK_SetDescription(Bitu nr, const char* descr) {
@@ -569,11 +634,11 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
 		for (uint8_t i=0;i<=0x0b;i++) phys_writeb(physAddress+0x02+i,0x90);
 		phys_writew(physAddress+0x0e,(uint16_t)0xedeb);	//jmp callback
 		return (use_cb?0x10:0x0c);
-	/*case CB_INT28:	// DOS idle
+	case CB_INT28:	// DOS idle
 		phys_writeb(physAddress+0x00,(uint8_t)0xFB);		// STI
 		phys_writeb(physAddress+0x01,(uint8_t)0xF4);		// HLT
 		phys_writeb(physAddress+0x02,(uint8_t)0xcf);		// An IRET Instruction
-		return (0x04);*/
+		return (0x04);
 	case CB_INT29:	// fast console output
         if (IS_PC98_ARCH) LOG_MSG("WARNING: CB_INT29 callback setup not appropriate for PC-98 mode (INT 10h no longer BIOS call)");
 		if (use_cb) {

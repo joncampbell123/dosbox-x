@@ -813,7 +813,7 @@ static void write_tandy_reg(uint8_t val) {
 		}
 		break;
 	case 0x1:	/* Palette mask */
-		vga.tandy.palette_mask = val;
+		vga.tandy.palette_mask = val; // FIXME: Wait... does this apply always in every mode or just the CGA compatible modes?
 		tandy_update_palette();
 		break;
 	case 0x2:	/* Border color */

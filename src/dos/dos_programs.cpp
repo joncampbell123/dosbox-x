@@ -569,7 +569,7 @@ void MenuBrowseFDImage(char drive, int num, int type) {
 
     if (type==-1 || (Drives[drive-'A'] && !strncmp(Drives[drive-'A']->GetInfo(), "fatDrive ", 9))) {
 #if !defined(HX_DOS)
-        std::string image = type==1||type==-1&&dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[drive-'A'])!=NULL?"El Torito floppy image":(type==2||type==-1&&dynamic_cast<imageDiskMemory *>(imageDiskList[drive-'A'])!=NULL?"RAM floppy image":(type==-1?imageDiskList[drive-'A']->diskname.c_str():Drives[drive-'A']->GetInfo()+9));
+        std::string image = type==1||(type==-1&&dynamic_cast<imageDiskElToritoFloppy *>(imageDiskList[drive-'A'])!=NULL)?"El Torito floppy image":(type==2||(type==-1&&dynamic_cast<imageDiskMemory *>(imageDiskList[drive-'A'])!=NULL)?"RAM floppy image":(type==-1?imageDiskList[drive-'A']->diskname.c_str():Drives[drive-'A']->GetInfo()+9));
         std::string drive_warn = "Floppy drive "+(type==-1?std::string(1, drive-'A'+'0'):(dos_kernel_disabled?std::to_string(num):std::string(1, drive)+":"))+" is currently mounted with the image:\n\n"+image+"\n\nDo you want to change the floppy disk image now?";
         if (!systemmessagebox("Change floppy disk image",drive_warn.c_str(),"yesno","question", 1)) return;
 #endif
@@ -3897,7 +3897,15 @@ restart_int:
                 WriteOut("WARNING: Cluster sizes >= 64KB are not compatible with MS-DOS and SCANDISK\n");
         }
         // write VHD footer if requested, largely copied from RAW2VHD program, no license was included
-        if((mediadesc == 0xF8) && (temp_line.find(".vhd")) != std::string::npos) {
+        char extension[6] = {}; // care extensions longer than 3 letters such as '.vhdd'
+        if(temp_line.find_last_of('.') != std::string::npos) {
+            for(int i = 0; i < sizeof(extension) - 1; i++) {
+                if(temp_line.find_last_of('.') + i > temp_line.length() - 1) break;
+                extension[i] = temp_line[temp_line.find_last_of('.') + i];
+            }
+            extension[sizeof(extension) - 1] = '\0'; // Terminate string just in case
+        }
+        if((mediadesc == 0xF8) && !strcasecmp(extension, ".vhd")) {
             int i;
             uint8_t footer[512];
             // basic information
@@ -4039,7 +4047,7 @@ public:
             ListImgSwaps();
             return;
         }
-        if (!cmd->FindCommand(1,temp_line) || (temp_line.size() > 2) || ((temp_line.size()>1) && (temp_line[1]!=':')) || !(temp_line[0] >= 'A' && temp_line[0] <= 'Z') && !(temp_line[0] >= 'a' && temp_line[0] <= 'z')) {
+        if (!cmd->FindCommand(1,temp_line) || (temp_line.size() > 2) || ((temp_line.size()>1) && (temp_line[1]!=':')) || (!(temp_line[0] >= 'A' && temp_line[0] <= 'Z') && !(temp_line[0] >= 'a' && temp_line[0] <= 'z'))) {
             WriteOut(MSG_Get("SHELL_ILLEGAL_DRIVE"));
             return;
         }
@@ -5755,6 +5763,7 @@ private:
         for (i = 0; i < paths.size(); i++) {
             const char* errorMessage = NULL;
             imageDisk* vhdImage = NULL;
+            imageDisk* newImage = NULL;
             bool ro=false;
 
             //detect hard drive geometry
@@ -5764,6 +5773,7 @@ private:
                 sizes[1] = 0;
                 sizes[2] = 0;
                 sizes[3] = 0;
+
 
                 /* .HDI images contain the geometry explicitly in the header. */
                 if (str_size.size() == 0) {
@@ -5787,13 +5797,23 @@ private:
                             case imageDiskVHD::UNSUPPORTED_WRITE:
                                 options.push_back("readonly");
                             case imageDiskVHD::OPEN_SUCCESS: {
-                                //upon successful, go back to old code if using a fixed disk, which patches chs values for incorrectly identified disks
                                 skipDetectGeometry = true;
                                 const imageDiskVHD* vhdDisk = dynamic_cast<imageDiskVHD*>(vhdImage);
-                                if (vhdDisk == NULL || vhdDisk->vhdType == imageDiskVHD::VHD_TYPE_FIXED) { //fixed disks would be null here
+                                if (vhdDisk != NULL && vhdDisk->GetVHDType() != imageDiskVHD::VHD_TYPE_FIXED) { //fixed disks would be null here
+                                    LOG_MSG("VHD image detected SS,S,H,C: %u,%u,%u,%u",
+                                        (uint32_t)vhdDisk->sector_size, (uint32_t)vhdDisk->sectors, (uint32_t)vhdDisk->heads, (uint32_t)vhdDisk->cylinders);
+                                    if (vhdDisk->cylinders>1023) LOG_MSG("WARNING: cylinders>1023, INT13 will not work unless extensions are used");
+                                    if (vhdDisk->GetVHDType() == imageDiskVHD::VHD_TYPE_DYNAMIC) LOG_MSG("VHD is a dynamic image");
+                                    if (vhdDisk->GetVHDType() == imageDiskVHD::VHD_TYPE_DIFFERENCING) LOG_MSG("VHD is a differencing image");
+                                } else {
                                     delete vhdDisk;
                                     vhdDisk = 0;
-                                    skipDetectGeometry = false;
+                                    sizes[0] = vhdImage->sector_size; // sector size
+                                    sizes[1] = vhdImage->sectors;     // sectors
+                                    sizes[2] = vhdImage->heads;       // heads
+                                    sizes[3] = vhdImage->cylinders;   // cylinders
+                                    LOG_MSG("VHD fixed size image detected SS,S,H,C: %u,%u,%u,%u",
+                                        (uint32_t)sizes[0], (uint32_t)sizes[1], (uint32_t)sizes[2], (uint32_t)sizes[3]);
                                 }
                                 break;
                             }
@@ -5816,6 +5836,43 @@ private:
                             default: break;
                             }
                         }
+                        if(!strcasecmp(ext, ".qcow2")) {
+                            ro = wpcolon && paths[i].length() > 1 && paths[i].c_str()[0] == ':';
+                            const char* fname = ro ? paths[i].c_str() + 1 : paths[i].c_str();
+                            FILE* newDisk = fopen_lock(fname, ro ? "rb" : "rb+", ro);
+                            if(!newDisk) {
+                                if(!qmount) WriteOut("Unable to open '%s'\n", fname);
+                                return NULL;
+                            }
+                            QCow2Image::QCow2Header qcow2_header = QCow2Image::read_header(newDisk);
+                            uint64_t sectors;
+                            uint32_t imagesize;
+                            sizes[0] = 512; // default sector size
+                            if(qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)) {
+                                uint32_t cluster_size = 1u << qcow2_header.cluster_bits;
+                                if((sizes[0] < 512) || ((cluster_size % sizes[0]) != 0)) {
+                                    WriteOut("Sector size must be larger than 512 bytes and evenly divide the image cluster size of %lu bytes.\n", cluster_size);
+                                    return 0;
+                                }
+                                sectors = (uint64_t)qcow2_header.size / (uint64_t)sizes[0]; //sectors
+                                imagesize = (uint32_t)(qcow2_header.size / 1024L); // imagesize
+                                sizes[1] = 63; // sectors
+                                sizes[2] = 16; // heads
+                                sizes[3] = (uint64_t)qcow2_header.size / sizes[0] / sizes[1] / sizes[2]; // cylinders
+                                setbuf(newDisk, NULL);
+                                newImage = new QCow2Disk(qcow2_header, newDisk, fname, imagesize, (uint32_t)sizes[0], (imagesize > 2880));
+                                skipDetectGeometry = true;
+                                newImage->sector_size = sizes[0]; // sector size
+                                newImage->sectors = sizes[1];     // sectors
+                                newImage->heads = sizes[2];       // heads
+                                newImage->cylinders = sizes[3];   // cylinders
+                            }
+                            else {
+                                WriteOut("qcow2 image '%s' is not supported\n", fname);
+                                fclose(newDisk);
+                                newImage = NULL;
+                            }
+                        }
                     }
                 }
                 if (!skipDetectGeometry && !DetectGeometry(NULL, paths[i].c_str(), sizes)) {
@@ -5830,6 +5887,15 @@ private:
                     strcpy(newDrive->info, "fatDrive ");
                     strcat(newDrive->info, ro?paths[i].c_str()+1:paths[i].c_str());
                     vhdImage = NULL;
+                }
+                else if(newImage) {
+                    newDrive = new fatDrive(newImage, options);
+                    strcpy(newDrive->info, "fatDrive ");
+                    strcat(newDrive->info, ro ? paths[i].c_str() + 1 : paths[i].c_str());
+                    LOG_MSG("IMGMOUNT: qcow2 image mounted (experimental)");
+                    LOG_MSG("IMGMOUNT: qcow2 SS,S,H,C: %u,%u,%u,%u",
+                        (uint32_t)newImage->sector_size, (uint32_t)newImage->sectors, (uint32_t)newImage->heads, (uint32_t)newImage->cylinders);
+                    newImage = NULL;
                 }
                 else {
                     if (roflag) options.push_back("readonly");
@@ -7171,7 +7237,7 @@ void UTF8::Run()
     while (true) {
         DOS_ReadFile (STDIN,&c,&m);
         if (m) text+=std::string(1, c);
-        if (m && first && text.size() == 2 && (((uint8_t)text[0] == 0xFE && (uint8_t)text[1] == 0xFF) || (uint8_t)text[0] == 0xFF && (uint8_t)text[1] == 0xFE)) {
+        if (m && first && text.size() == 2 && (((uint8_t)text[0] == 0xFE && (uint8_t)text[1] == 0xFF) || ((uint8_t)text[0] == 0xFF && (uint8_t)text[1] == 0xFE))) {
             WriteOut("The input text is UTF-16.\n");
             break;
         }
@@ -8483,7 +8549,7 @@ void Add_VFiles(bool usecp) {
     if (IS_DOSV)
         PROGRAMS_MakeFile("VTEXT.COM", VTEXT_ProgramStart,"/TEXTUTIL/");
 
-	VFILE_RegisterBuiltinFileBlob(bfb_EDLIN_EXE, "/DOS/");
+    VFILE_RegisterBuiltinFileBlob(bfb_EDLIN_EXE, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_DEBUG_EXE, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_MOVE_EXE, "/DOS/");
 	VFILE_RegisterBuiltinFileBlob(bfb_FIND_EXE, "/DOS/");
@@ -8577,7 +8643,7 @@ void Add_VFiles(bool usecp) {
     if(!IS_PC98_ARCH)
         VFILE_RegisterBuiltinFileBlob(bfb_EVAL_HLP, "/BIN/");
 
-	VFILE_RegisterBuiltinFileBlob(bfb_EGA18_CPX, "/CPI/");
+    VFILE_RegisterBuiltinFileBlob(bfb_EGA18_CPX, "/CPI/");
 	VFILE_RegisterBuiltinFileBlob(bfb_EGA17_CPX, "/CPI/");
 	VFILE_RegisterBuiltinFileBlob(bfb_EGA16_CPX, "/CPI/");
 	VFILE_RegisterBuiltinFileBlob(bfb_EGA15_CPX, "/CPI/");

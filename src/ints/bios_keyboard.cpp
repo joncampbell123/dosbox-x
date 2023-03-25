@@ -16,6 +16,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <queue>
 
 #include "dosbox.h"
 #include "callback.h"
@@ -295,7 +296,6 @@ static scancode_tbl scan_to_scanascii_pc98[0x80] = {
     {   none,   none,   none,   none,   none,   none }  /* 7f      */
 };
 
-#include <queue>
 std::queue <uint16_t>over_key_buffer;
 
 extern bool inshell;
@@ -722,7 +722,6 @@ static Bitu IRQ1_Handler(void) {
     case 0x53: /* del . Not entirely correct, but works fine */
         if (scancode == 0x53 && !(flags3 & 0x01) && !(flags1 & 0x03) && (flags1 & 0x0c) == 0x0c && ((!(flags3 & 0x10) && (flags3 & 0x0c) == 0x0c) || ((flags3 & 0x10) && (flags2 & 0x03) == 0x03))) { /* Ctrl-Alt-Del? */
 			throw int(3);
-            break;
 		}
         if(flags3 &0x02) {  /*extend key. e.g key above arrows or arrows*/
             if(scancode == 0x52) flags2 |=0x80; /* press insert */         
@@ -1080,7 +1079,6 @@ static Bitu IRQ1_Handler_PC98(void) {
                             add_key(scan_add + '\'');
                             break;
                         }
-                        break;
                     default:
                         if (shift){
                             if (scan_to_scanascii_pc98[sc_8251].shift) add_key(scan_to_scanascii_pc98[sc_8251].shift);

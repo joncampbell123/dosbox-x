@@ -3,13 +3,23 @@
 EXTRA_DIST = autogen.sh
 SUBDIRS = src include
 
+if MACOSX
+if MACOS_UNIVERSAL
+MACOS_BINARIES=src/dosbox-x-arm64 src/dosbox-x-x86_64
+else
+MACOS_BINARIES=src/dosbox-x-$(shell uname -m)
+endif
+endif
+
 .PHONY: dosbox-x.app
 
-dosbox-x.app: src/dosbox-x contrib/macos/dosbox.icns src/tool/mach-o-matic
+dosbox-x.app: $(MACOS_BINARIES) contrib/macos/dosbox.icns src/tool/mach-o-matic
 	rm -Rfv dosbox-x.app
 	mkdir dosbox-x.app
 	mkdir dosbox-x.app/Contents
 	mkdir dosbox-x.app/Contents/MacOS
+	mkdir dosbox-x.app/Contents/MacOS/arm64
+	mkdir dosbox-x.app/Contents/MacOS/x86_64
 	mkdir dosbox-x.app/Contents/Resources
 	mkdir dosbox-x.app/Contents/Resources/drivez
 	mkdir dosbox-x.app/Contents/Resources/glshaders
@@ -26,35 +36,77 @@ dosbox-x.app: src/dosbox-x contrib/macos/dosbox.icns src/tool/mach-o-matic
 	cp -v contrib/translations/*/*.lng dosbox-x.app/Contents/Resources/languages/
 	cp -v dosbox-x.reference.conf dosbox-x.app/Contents/Resources/
 	cp -v dosbox-x.reference.full.conf dosbox-x.app/Contents/Resources/
-	cp -v src/dosbox-x dosbox-x.app/Contents/MacOS/dosbox-x
+	if [ -f src/dosbox-x-arm64 ]; then cp -v src/dosbox-x-arm64 dosbox-x.app/Contents/MacOS/arm64/dosbox-x; fi
+	if [ -f src/dosbox-x-x86_64 ]; then cp -v src/dosbox-x-x86_64 dosbox-x.app/Contents/MacOS/x86_64/dosbox-x; fi
 # this is where it gets ugly
-	codesign --remove-signature dosbox-x.app/Contents/MacOS/dosbox-x
-	otool -L dosbox-x.app/Contents/MacOS/dosbox-x | grep -E '/usr/local/lib|/usr/local/opt|/usr/local/Cellar|/opt/homebrew/' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
-		dylib=`basename $$Y`; \
-		cp -v $$Y dosbox-x.app/Contents/MacOS/; \
-		codesign --remove-signature "dosbox-x.app/Contents/MacOS/$$dylib" || exit 1; \
-		chmod 0755 "dosbox-x.app/Contents/MacOS/$$dylib" || exit 1; \
-	done
-# and the libs too. NTS: Cannot use install_name_tool anymore to change anything about dylib files because that invalidates code signing of those files
-	for pass in 1 2 3 4 5; do \
-		for dolib in dosbox-x.app/Contents/MacOS/*.dylib; do \
-			XB=`otool -L "$$dolib" | grep -E '/usr/local/lib|/usr/local/opt|/usr/local/Cellar|/opt/homebrew/' | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
-			for Y in $$XB; do \
+# Find dependent libraries and copy them into the app bundle separated by architecture
+	for exe in dosbox-x.app/Contents/MacOS/arm64/dosbox-x dosbox-x.app/Contents/MacOS/x86_64/dosbox-x; do \
+		if [ -f "$$exe" ]; then \
+			otool -L "$$exe" | grep -E '/usr/local/lib|/usr/local/opt|/usr/local/Cellar|/usr/local/Homebrew|/opt/homebrew/' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
 				dylib=`basename $$Y`; \
-				if [ -f "dosbox-x.app/Contents/MacOS/$$dylib" ]; then true; else \
-					cp -vn $$Y dosbox-x.app/Contents/MacOS/; \
-					codesign --remove-signature "dosbox-x.app/Contents/MacOS/$$dylib" || exit 1; \
-					chmod 0755 "dosbox-x.app/Contents/MacOS/$$dylib" || exit 1; \
+				echo "Copying $$dylib"; \
+				if echo $$Y | grep -Eq '/opt/homebrew'; then \
+					cp -v $$Y dosbox-x.app/Contents/MacOS/arm64/; \
+					codesign --remove-signature "dosbox-x.app/Contents/MacOS/arm64/$$dylib" || exit 1; \
+					chmod 0755 "dosbox-x.app/Contents/MacOS/arm64/$$dylib" || exit 1; \
+				else \
+					cp -v $$Y dosbox-x.app/Contents/MacOS/x86_64/; \
+					codesign --remove-signature "dosbox-x.app/Contents/MacOS/x86_64/$$dylib" || exit 1; \
+					chmod 0755 "dosbox-x.app/Contents/MacOS/x86_64/$$dylib" || exit 1; \
 				fi; \
 			done; \
-		done; \
-	done; \
-	for dylib in dosbox-x.app/Contents/MacOS/*.dylib; do \
-		if [ -f "$$dylib" ]; then \
-	        src/tool/mach-o-matic "$$dylib" || exit 1; \
 		fi; \
-	done; \
-	src/tool/mach-o-matic dosbox-x.app/Contents/MacOS/dosbox-x || exit 1; \
+	done
+# Find all the libraries we copied and copy any libraries they depend on
+# separated by architecture, and remove their signatures, too.
+	for pass in 1 2 3 4 5; do \
+		for dir in dosbox-x.app/Contents/MacOS/arm64 dosbox-x.app/Contents/MacOS/x86_64; do \
+			if [ `ls  $$dir/*.dylib 2>/dev/null | wc -l` -gt 0 ]; then \
+				for dolib in $$dir/*.dylib; do \
+					XB=`otool -L "$$dolib" | grep -E '/usr/local/lib|/usr/local/opt|/usr/local/Cellar|/usr/local/Homebrew|/opt/homebrew/' | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
+					for Y in $$XB; do \
+						dylib=`basename $$Y`; \
+						if echo $$Y | grep -Eq '/opt/homebrew'; then \
+							cp -v $$Y dosbox-x.app/Contents/MacOS/arm64/; \
+							codesign --remove-signature "dosbox-x.app/Contents/MacOS/arm64/$$dylib" || exit 1; \
+							chmod 0755 "dosbox-x.app/Contents/MacOS/arm64/$$dylib" || exit 1; \
+						else \
+							cp -v $$Y dosbox-x.app/Contents/MacOS/x86_64/; \
+							codesign --remove-signature "dosbox-x.app/Contents/MacOS/x86_64/$$dylib" || exit 1; \
+							chmod 0755 "dosbox-x.app/Contents/MacOS/x86_64/$$dylib" || exit 1; \
+						fi; \
+					done; \
+				done; \
+			fi; \
+		done; \
+	done
+# Fix the linker search paths of the libraries we copied
+	for dir in dosbox-x.app/Contents/MacOS/arm64 dosbox-x.app/Contents/MacOS/x86_64; do \
+		if [ `ls  $$dir/*.dylib 2>/dev/null | wc -l` -gt 0 ]; then \
+			for dylib in $$dir/*.dylib; do \
+				[ -f "$$dylib" ] && src/tool/mach-o-matic "$$dylib" || exit 1; \
+			done; \
+		fi; \
+	done
+# Remove the signatures from the architecture-dependant executables, and fix their linker search paths.
+	if [ -f dosbox-x.app/Contents/MacOS/arm64/dosbox-x ]; then \
+		codesign --remove-signature dosbox-x.app/Contents/MacOS/arm64/dosbox-x || exit 1; \
+		src/tool/mach-o-matic dosbox-x.app/Contents/MacOS/arm64/dosbox-x || exit 1; \
+	fi
+	if [ -f dosbox-x.app/Contents/MacOS/x86_64/dosbox-x ]; then \
+		codesign --remove-signature dosbox-x.app/Contents/MacOS/x86_64/dosbox-x || exit 1; \
+		src/tool/mach-o-matic dosbox-x.app/Contents/MacOS/x86_64/dosbox-x || exit 1; \
+	fi
+# Create universal binary executable if both architectures are present or just move the one we have
+	if [ -f dosbox-x.app/Contents/MacOS/arm64/dosbox-x ] && [ -f dosbox-x.app/Contents/MacOS/x86_64/dosbox-x ]; then \
+		lipo -create dosbox-x.app/Contents/MacOS/arm64/dosbox-x dosbox-x.app/Contents/MacOS/x86_64/dosbox-x -output dosbox-x.app/Contents/MacOS/dosbox-x; \
+		rm -f dosbox-x.app/Contents/MacOS/arm64/dosbox-x dosbox-x.app/Contents/MacOS/x86_64/dosbox-x; \
+	elif [ -f dosbox-x.app/Contents/MacOS/arm64/dosbox-x ]; then \
+		mv -f dosbox-x.app/Contents/MacOS/arm64/dosbox-x dosbox-x.app/Contents/MacOS/dosbox-x; \
+	elif [ -f dosbox-x.app/Contents/MacOS/x86_64/dosbox-x ]; then \
+		mv -f dosbox-x.app/Contents/MacOS/x86_64/dosbox-x dosbox-x.app/Contents/MacOS/dosbox-x; \
+	fi
+# Re-sign the universal binary executable and all the libraries
 	codesign --deep -s - dosbox-x.app/Contents/MacOS/dosbox-x || exit 1
 
 debug-dosbox-x-app:

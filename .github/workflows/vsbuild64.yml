@@ -26,8 +26,16 @@ jobs:
       - name: Prepare Visual Studio Win64
         shell: bash
         run: |
-          echo "timestamp=`date +%F-%T | sed -e 's/:/-/g' | sed -e 's/-//g'`" >> $GITHUB_ENV
           #ls -1 vs/dosbox-x.vcxproj vs/freetype/builds/windows/vc2010/freetype.vcxproj vs/libpdcurses/libpdcurses.vcxproj vs/libpng/projects/vstudio/libpng/libpng.vcxproj vs/libpng/projects/vstudio/libpng/libpng.vcxproj vs/sdl/VisualC/SDL/SDL.vcxproj vs/sdl/VisualC/SDLmain/SDLmain.vcxproj vs/sdl2/VisualC/SDL/SDL.vcxproj vs/sdl2/VisualC/SDLmain/SDLmain.vcxproj vs/sdlnet/VisualC/SDL_net_VS2008.vcxproj vs/sdlnet/VisualC/SDL_net_VS2008.vcxproj vs/zlib/zlib/zlib.vcxproj | xargs sed -b -i 's/v142/v141/g;s/>10.0</>10.0.22000.0</g'
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
+          export copyrightyear=`git show -s --format=%at | xargs -I# date -d @# +'%Y'`
+          export updatestr=`git show -s --format=%at | xargs -I# date -d @# +'%b %d, %Y %I:%M:%S%P'`
+          echo '/* auto generated */' > include/build_timestamp.h
+          echo "#define UPDATED_STR \"${updatestr}\"" >> include/build_timestamp.h
+          echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
+          echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
+          cat include/build_timestamp.h
       - name: Build Visual Studio Win64 SDL1
         shell: pwsh
         run: |
@@ -128,7 +136,15 @@ jobs:
       - name: Prepare Visual Studio ARM64
         shell: bash
         run: |
-          echo "timestamp=`date +%F-%T | sed -e 's/:/-/g' | sed -e 's/-//g'`" >> $GITHUB_ENV
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
+          export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
+          export copyrightyear=`git show -s --format=%at | xargs -I# date -d @# +'%Y'`
+          export updatestr=`git show -s --format=%at | xargs -I# date -d @# +'%b %d, %Y %I:%M:%S%P'`
+          echo '/* auto generated */' > include/build_timestamp.h
+          echo "#define UPDATED_STR \"${updatestr}\"" >> include/build_timestamp.h
+          echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
+          echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
+          cat include/build_timestamp.h
       - name: Build Visual Studio ARM64 SDL1
         shell: pwsh
         run: |

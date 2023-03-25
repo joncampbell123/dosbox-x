@@ -18,12 +18,14 @@
 
 
 #include <string.h>
+#include <assert.h>
 #include <ctype.h>
 #include "regs.h"
 #include "callback.h"
 #include "dos_system.h"
 #include "dos_inc.h"
 #include "setup.h"
+#include "control.h"
 #include "support.h"
 #include "bios_disk.h"
 #include "cpu.h"
@@ -84,7 +86,7 @@ public:
 
 class CMscdex {
 public:
-	CMscdex		(void);
+	CMscdex		(const char *name);
 	~CMscdex	(void);
 
 	uint16_t		GetVersion			(void)	{ return (MSCDEX_VERSION_HIGH<<8)+MSCDEX_VERSION_LOW; };
@@ -153,13 +155,19 @@ public:
 	CDROM_Interface*		cdrom[MSCDEX_MAX_DRIVES];
 	uint16_t		rootDriverHeaderSeg = 0;
 
+	char*			name = NULL;
+
 	bool		ChannelControl		(uint8_t subUnit, TCtrl ctrl);
 	bool		GetChannelControl	(uint8_t subUnit, TCtrl& ctrl);
 };
 
-CMscdex::CMscdex(void) {
+CMscdex::CMscdex(const char *_name) {
+	assert(_name != NULL);
+	assert(strlen(_name) <= 8);
 	memset(dinfo,0,sizeof(dinfo));
 	for (uint32_t i=0; i<MSCDEX_MAX_DRIVES; i++) cdrom[i] = 0;
+	name = new char[strlen(_name)+1];
+	strcpy(name,_name);
 }
 
 CMscdex::~CMscdex(void) {
@@ -169,6 +177,7 @@ CMscdex::~CMscdex(void) {
 		delete cdrom[i];
 		cdrom[i] = 0;
 	}
+	delete[] name;
 }
 
 void CMscdex::GetDrives(PhysPt data)
@@ -309,15 +318,20 @@ int CMscdex::AddDrive(uint16_t _drive, char* physicalPath, uint8_t& subUnit)
 	if (rootDriverHeaderSeg==0) {
 		
 		uint16_t driverSize = sizeof(DOS_DeviceHeader::sDeviceHeader) + 10; // 10 = Bytes for 3 callbacks
-		
+
+		/* should have been assigned by SetName() in constructor, with copy stored by DOS_File::SetName */
+		assert(name != NULL);
+		/* should have been either given the user's name or a default name */
+		assert(*name != 0);
+
 		// Create Device Header
 		uint16_t seg = DOS_GetMemory(driverSize/16u+((driverSize%16u)>0u),"MSCDEX device header");
 		DOS_DeviceHeader devHeader(PhysMake(seg,0u));
-		devHeader.SetNextDeviceHeader	(0xFFFFFFFFul);
-		devHeader.SetAttribute(0xc800u);
+		devHeader.SetNextDeviceHeader		(0xFFFFFFFFul);
+		devHeader.SetAttribute			(0xc800u);
 		devHeader.SetDriveLetter		(_drive+1u);
 		devHeader.SetNumSubUnits		(1u);
-		devHeader.SetName				("MSCD001 ");
+		devHeader.SetName			(name);
 
 		//Link it in the device chain
 		uint32_t start = dos_infoblock.GetDeviceChain();
@@ -1360,9 +1374,25 @@ static bool MSCDEX_Handler(void) {
 	return true;
 }
 
+static bool MSCDEX_ValidDevName(const char *s) {
+	if (*s == 0) return false;
+	if (strlen(s) > 8) return false;
+
+	while (*s != 0) {
+		if ((*s >= 'A' && *s <= 'Z') || (*s >= '0' && *s <= '9')) {
+			s++;
+		}
+		else {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 class device_MSCDEX : public DOS_Device {
 public:
-	device_MSCDEX() { SetName("MSCD001"); }
+	device_MSCDEX(const char *devname) { SetName(MSCDEX_ValidDevName(devname) ? devname : "MSCD001"); }
 	bool Read (uint8_t * /*data*/,uint16_t * /*size*/) { return false;}
 	bool Write(const uint8_t * /*data*/,uint16_t * /*size*/) { 
 		LOG(LOG_ALL,LOG_NORMAL)("Write to mscdex device");	
@@ -1479,14 +1509,19 @@ void MSCDEX_Startup(Section* sec) {
 	if (mscdex == NULL) {
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating MSCDEX.EXE emulation");
 
+		const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
+
+		const char *mscdex_devname = dos_section->Get_string("mscdex device name");
+
 		/* Register the mscdex device */
-		DOS_Device * newdev = new device_MSCDEX();
+		DOS_Device * newdev = new device_MSCDEX(mscdex_devname);
 		DOS_AddDevice(newdev);
 		curReqheaderPtr = 0;
 		/* Add Multiplexer */
 		DOS_AddMultiplexHandler(MSCDEX_Handler);
 		/* Create MSCDEX */
-		mscdex = new CMscdex;
+		LOG(LOG_MISC,LOG_DEBUG)("MSCDEX.EXE device name is '%s'",newdev->name);
+		mscdex = new CMscdex(newdev->name);
 	}
 }
 

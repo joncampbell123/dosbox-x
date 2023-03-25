@@ -78,6 +78,7 @@ public:
         opt_fullscreen = false;
         opt_showcycles = false;
         opt_earlydebug = false;
+        opt_print_ticks = false;
         opt_break_start = false;
         opt_defaultconf = false;
         opt_erasemapper = false;
@@ -120,6 +121,7 @@ public:
     bool opt_used_defaultdir;
     bool opt_defaultmapper;
     bool opt_fastbioslogo;
+    bool opt_print_ticks;
     bool opt_break_start;
     bool opt_erasemapper;
     bool opt_resetmapper;

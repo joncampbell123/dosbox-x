@@ -650,7 +650,7 @@ int BE_GL_LoadLibrary(_THIS, const char *path)
 #else
 				if (get_image_symbol((image_id)cookie,"glBegin",B_SYMBOL_TYPE_ANY,&location) == B_OK) { // I don't know if that *did* work in BeOS
 #endif
-					_this->gl_config.dll_handle = (void*)info.id;
+					_this->gl_config.dll_handle = (void*)(addr_t)info.id;
 					_this->gl_config.driver_loaded = 1;
 					SDL_strlcpy(_this->gl_config.driver_path, "libGL.so", SDL_arraysize(_this->gl_config.driver_path));
 				}
@@ -699,7 +699,7 @@ void* BE_GL_GetProcAddress(_THIS, const char *proc)
 	if (_this->gl_config.dll_handle != NULL) {
 		void *location = NULL;
 		status_t err;
-		if ((err = get_image_symbol((image_id)_this->gl_config.dll_handle, proc, B_SYMBOL_TYPE_ANY, &location)) == B_OK) {
+		if ((err = get_image_symbol((image_id)(addr_t)_this->gl_config.dll_handle, proc, B_SYMBOL_TYPE_ANY, &location)) == B_OK) {
 			return location;
 		} else {
 			SDL_SetError("Couldn't find OpenGL symbol");
@@ -832,7 +832,7 @@ void BE_VideoQuit(_THIS)
 
 #if SDL_VIDEO_OPENGL
 	if (_this->gl_config.dll_handle != NULL)
-		unload_add_on((image_id)_this->gl_config.dll_handle);
+		unload_add_on((image_id)(addr_t)_this->gl_config.dll_handle);
 #endif
 
 	SDL_QuitBeApp();

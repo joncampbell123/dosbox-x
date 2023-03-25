@@ -466,7 +466,7 @@ void dosbox_integration_trigger_read() {
             }
             break;
         case 3: /* version number */
-            dosbox_int_register = (INTDEV_VERSION_MAJOR) + (INTDEV_VERSION_MINOR << 8U) + (INTDEV_VERSION_SUB << 16U) + (INTDEV_VERSION_BUMP << 24U);
+            dosbox_int_register = INTDEV_VERSION_MAJOR + (INTDEV_VERSION_MINOR << 8U) + (INTDEV_VERSION_SUB << 16U) + (INTDEV_VERSION_BUMP << 24U);
             break;
         case 4: /* current emulator time as 16.16 fixed point */
             dosbox_int_register = (uint32_t)(PIC_FullIndex() * 0x10000);
@@ -824,7 +824,7 @@ void dosbox_integration_trigger_write() {
                 /* bits  [7:0]  = data byte if 8-bit DNA
                  * bits [15:0]  = data word if 16-bit DMA
                  * bits [18:16] = DMA channel to send to */
-                DmaChannel *ch = GetDMAChannel(((unsigned int)dosbox_int_register>>16u)&7u);
+                DmaChannel *ch = GetDMAChannel((dosbox_int_register>>16u)&7u);
                 if (ch != NULL) {
                     unsigned char tmp[2];
 
@@ -853,7 +853,7 @@ void dosbox_integration_trigger_write() {
                 dosbox_int_register_shf = 0;
                 dosbox_int_regsel_shf = 0;
                 /* bits [18:16] = DMA channel to send to */
-                DmaChannel *ch = GetDMAChannel(((unsigned int)dosbox_int_register>>16u)&7u);
+                DmaChannel *ch = GetDMAChannel((dosbox_int_register>>16u)&7u);
                 if (ch != NULL) {
                     unsigned char tmp[2];
 
@@ -1266,7 +1266,7 @@ void ISAPnPDevice::write_IRQ_Format(const uint16_t IRQ_mask,const unsigned char 
     write_begin_SMALLTAG(SmallTags::IRQFormat,write_irq_info?3:2);
     write_byte(IRQ_mask & 0xFF);
     write_byte(IRQ_mask >> 8);
-    if (write_irq_info) write_byte(((unsigned char)IRQ_signal_type & 0x0F));
+    if (write_irq_info) write_byte(IRQ_signal_type & 0x0F);
 }
 
 void ISAPnPDevice::write_DMA_Format(const uint8_t DMA_mask,const unsigned char transfer_type_preference,const bool is_bus_master,const bool byte_mode,const bool word_mode,const unsigned char speed_supported) {
@@ -1366,10 +1366,9 @@ void ISAPnPDevice::select_logical_device(Bitu val) {
     
 void ISAPnPDevice::checksum_ident() {
     unsigned char checksum = 0x6a,bit;
-    int i,j;
 
-    for (i=0;i < 8;i++) {
-        for (j=0;j < 8;j++) {
+    for (int i=0;i < 8;i++) {
+        for (int j=0;j < 8;j++) {
             bit = (ident[i] >> j) & 1;
             checksum = ((((checksum ^ (checksum >> 1)) & 1) ^ bit) << 7) | (checksum >> 1);
         }
@@ -1431,11 +1430,11 @@ public:
         }
         else {
             if (len > 65535) E_Exit("ISAPNP_SysDevNode data too long");
-            raw = new unsigned char[(size_t)len+1u];
+            raw = new unsigned char[len+1u];
             if (ir == NULL)
                 E_Exit("ISAPNP_SysDevNode cannot allocate buffer");
             else
-                memcpy(raw, ir, (size_t)len);
+                memcpy(raw, ir, len);
             raw_len = len;
             raw[len] = 0;
             own = true;
@@ -1455,9 +1454,7 @@ static Bitu         ISAPNP_SysDevNodeLargest=0;
 static Bitu         ISAPNP_SysDevNodeCount=0;
 
 void ISA_PNP_FreeAllSysNodeDevs() {
-    Bitu i;
-
-    for (i=0;i < MAX_ISA_PNP_SYSDEVNODES;i++) {
+    for (Bitu i=0;i < MAX_ISA_PNP_SYSDEVNODES;i++) {
         if (ISAPNP_SysDevNodes[i] != NULL) delete ISAPNP_SysDevNodes[i];
         ISAPNP_SysDevNodes[i] = NULL;
     }
@@ -3612,11 +3609,18 @@ static Bitu INT18_PC98_Handler(void) {
         //       (Something to do with the buffer [https://ia801305.us.archive.org/8/items/PC9800TechnicalDataBookBIOS1992/PC-9800TechnicalDataBook_BIOS_1992_text.pdf])
         //       Neko Project is also unaware of such a call.
         case 0x0C: /* text layer enable */
-            pc98_gdc[GDC_MASTER].force_fifo_complete();
-            pc98_gdc[GDC_MASTER].display_enable = true;
+            if (pc98_gdc_vramop & (1u << VOPBIT_VGA)) {
+               /* NTS: According to tests on real PC-9821 hardware, you can't turn on the text layer in 256-color mode, at least through the BIOS. */
+               /* FIXME: Is this a restriction imposed by the BIOS, or the hardware itself? */
+               LOG_MSG("INT 18h: Attempt to turn on text layer in 256-color mode");
+            }
+            else {
+                pc98_gdc[GDC_MASTER].force_fifo_complete();
+                pc98_gdc[GDC_MASTER].display_enable = true;
 #if defined(USE_TTF)
-            ttf_switch_on(false);
+                ttf_switch_on(false);
 #endif
+            }
             break;
         case 0x0D: /* text layer disable */
 #if defined(USE_TTF)
@@ -5639,7 +5643,11 @@ static Bitu PC98_BIOS_LIO(void) {
     return CBRET_NONE;
 }
 
+
+extern bool enable_weitek;
+
 static Bitu INT11_Handler(void) {
+    if (enable_weitek) reg_eax = (1u << 24u)/*Weitek math coprocessor present*/;
     reg_ax=mem_readw(BIOS_CONFIGURATION);
     return CBRET_NONE;
 }
@@ -6089,9 +6097,6 @@ static Bitu INT15_Handler(void) {
                 // 02 = NVR checksum error.
                 // AL = Byte read from NVR.
                 // CC.
-            default:
-                LOG(LOG_BIOS,LOG_NORMAL)("INT15 Unsupported PC1512 Call %02X",reg_ah);
-                return CBRET_NONE;
             case 0x03:
                 // Write VDU Colour Plane Write Register.
                 vga.amstrad.write_plane = reg_al & 0x0F;
@@ -6112,6 +6117,9 @@ static Bitu INT15_Handler(void) {
                 reg_bx = 0x0001;
                 CALLBACK_SCF(false);
                 break;
+            default:
+                LOG(LOG_BIOS, LOG_NORMAL)("INT15 Unsupported PC1512 Call %02X", reg_ah);
+                return CBRET_NONE;
         }
     }
     switch (reg_ah) {
@@ -6253,7 +6261,6 @@ static Bitu INT15_Handler(void) {
                             "This condition might result in an infinite wait on "
                             "some BIOSes. Unmasking IRQ to keep things moving along.");
                         IO_Write(0x21,t & ~(1 << 2));
-
                     }
                     if ((t=IO_Read(0xA1)) & (1 << 0)) {
                         LOG(LOG_BIOS,LOG_WARN)("INT15:86:Wait: IRQ 8 masked during wait. "
@@ -6322,9 +6329,6 @@ static Bitu INT15_Handler(void) {
         }
         break;
     case 0x90:  /* OS HOOK - DEVICE BUSY */
-        CALLBACK_SCF(false);
-        reg_ah=0;
-        break;
     case 0x91:  /* OS HOOK - DEVICE POST */
         CALLBACK_SCF(false);
         reg_ah=0;
@@ -6725,7 +6729,7 @@ static Bitu INT15_Handler(void) {
                             APM_ResumeNotificationFromSuspend = true;
                             break;
                         case 0x3: // power off
-                            throw(0);
+                            throw 0;
                         case 0x4: // last request processing notification (used by Windows ME)
                             LOG(LOG_MISC,LOG_DEBUG)("Guest is considering whether to accept the last returned APM event");
                             reg_ah = 0x00;
@@ -8257,6 +8261,11 @@ private:
 
             // STOP interrupt or invalid opcode
             real_writed(0,0x06*4,CALLBACK_RealPointer(call_pc98_default_stop));
+
+            // Magical Girl Pretty Sammy installer
+            // Installer enters an infinite loop if lower 8 bits of the segment portion of int 7 are 0
+            real_writew(0, 7*4, real_readw(0, 7*4) - 0x10);
+            real_writew(0, 7*4+2, real_readw(0, 7*4+2) + 1);
         }
         else {
             /* Clear the vector table */
@@ -9175,21 +9184,24 @@ private:
                 oldcols = oldlins = 0;
         }
 #endif
-        char logostr[8][30];
-        strcpy(logostr[0], "+-------------------+");
-        strcpy(logostr[1], "|    Welcome  To    |");
-        strcpy(logostr[2], "|                   |");
-        strcpy(logostr[3], "| D O S B o x - X ! |");
-        strcpy(logostr[4], "|                   |");
-        sprintf(logostr[5], "|    %d-bit %s    |",
+        if (machine == MCH_MDA || machine == MCH_HERC) {
+            textsplash = true;
+        }
+        char logostr[8][34];
+        strcpy(logostr[0], "+---------------------+");
+        strcpy(logostr[1], "|     Welcome  To     |");
+        strcpy(logostr[2], "|                     |");
+        strcpy(logostr[3], "|  D O S B o x - X !  |");
+        strcpy(logostr[4], "|                     |");
+        sprintf(logostr[5],"|     %d-bit %s     |",
 #if defined(_M_X64) || defined (_M_AMD64) || defined (_M_ARM64) || defined (_M_IA64) || defined(__ia64__) || defined(__LP64__) || defined(_WIN64) || defined(__x86_64__) || defined(__aarch64__) || defined(__powerpc64__)^M
         64
 #else
         32
 #endif
         , SDL_STRING);
-        sprintf(logostr[6], "| Version %9s |", VERSION);
-        strcpy(logostr[7], "+-------------------+");
+        sprintf(logostr[6], "| Version %10s  |", VERSION);
+        strcpy(logostr[7], "+---------------------+");
 startfunction:
         int logo_x,logo_y,x=2,y=2,rowheight=8;
         logo_y = 2;
@@ -9651,7 +9663,7 @@ startfunction:
                             if (pos==4) hour=hour<23?hour+1:0;
                             else if (pos==5) min=min<59?min+1:0;
                             else if (pos==6) sec=sec<59?sec+1:0;
-                            mem_writed(BIOS_TIMER,(uint32_t)(((double)hour*3600+min*60+sec))*18.206481481);
+                            mem_writed(BIOS_TIMER,(uint32_t)((double)hour*3600+min*60+sec)*18.206481481);
                         }
                         mod = true;
                         if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
@@ -9662,15 +9674,15 @@ startfunction:
                         else if (pos==3) dos.date.day=dos.date.day>1?dos.date.day-1:(dos.date.month==1||dos.date.month==3||dos.date.month==5||dos.date.month==7||dos.date.month==8||dos.date.month==10||dos.date.month==12?31:(dos.date.month==2?29:30));
                         else if (pos==4||pos==5||pos==6) {
                             Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * mem_readd(BIOS_TIMER))/100;
-                            unsigned int sec=(uint8_t)((Bitu)time % 60);
+                            unsigned int sec=(uint8_t)(time % 60);
                             time/=60;
-                            unsigned int min=(uint8_t)((Bitu)time % 60);
+                            unsigned int min=(uint8_t)(time % 60);
                             time/=60;
-                            unsigned int hour=(uint8_t)((Bitu)time % 24);
+                            unsigned int hour=(uint8_t)(time % 24);
                             if (pos==4) hour=hour>0?hour-1:23;
                             else if (pos==5) min=min>0?min-1:59;
                             else if (pos==6) sec=sec>0?sec-1:59;
-                            mem_writed(BIOS_TIMER,(uint32_t)(((double)hour*3600+min*60+sec))*18.206481481);
+                            mem_writed(BIOS_TIMER,(uint32_t)((double)hour*3600+min*60+sec)*18.206481481);
                         }
                         mod = true;
                         if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
@@ -9930,12 +9942,12 @@ public:
          *
          *      I am fairly certain that there is nothing on Tandy systems to occupy A0000-AFFFFh. Unless of course you install EGA/VGA
          *      hardware in such a system. */
-        if (allow_more_than_640kb || machine == MCH_TANDY) {
-            if (machine == MCH_CGA || machine == MCH_TANDY)
-                ulimit = 736;       /* 640KB + 64KB + 32KB = 0x00000-0xB7FFF */
+        if (allow_more_than_640kb) {
+            if (machine == MCH_CGA)
+                ulimit = 736;       /* 640KB + 96KB = 0x00000-0xB7FFF */
             else if (machine == MCH_HERC || machine == MCH_MDA)
                 ulimit = 704;       /* 640KB + 64KB = 0x00000-0xAFFFF */
-            else if (machine == MCH_TANDY)
+	    else if (machine == MCH_TANDY)
                 ulimit = 768;       /* 640KB + 128KB = 0x00000-0xBFFFF */
 
             /* NTS: Yes, this means Tandy video memory at B8000 overlaps conventional memory, but the
@@ -9944,7 +9956,9 @@ public:
              *      to be a way to install only 704KB for example. */
 
             if (t_conv > ulimit) t_conv = ulimit;
-            if (t_conv > 640) { /* because the memory emulation has already set things up */
+            if (t_conv > 640 && machine != MCH_TANDY) {
+                /* because the memory emulation has already set things up
+                 * HOWEVER Tandy emulation has already properly mapped A0000-BFFFF so don't mess with it */
                 bool MEM_map_RAM_physmem(Bitu start,Bitu end);
                 MEM_map_RAM_physmem(0xA0000,(t_conv<<10)-1);
                 memset(GetMemBase()+(640<<10),0,(t_conv-640)<<10);
@@ -10641,8 +10655,8 @@ void ROMBIOS_Init() {
         if (top >= ((uint64_t)1UL << (uint64_t)21UL)) { /* 2MB or more */
             unsigned long alias_base,alias_end;
 
-            alias_base = (unsigned long)top + (unsigned long)rombios_minimum_location - (unsigned long)0x100000UL;
-            alias_end = (unsigned long)top - (unsigned long)1UL;
+            alias_base = (unsigned long)top + (unsigned long)rombios_minimum_location - 0x100000UL;
+            alias_end = (unsigned long)top - 1UL;
 
             LOG(LOG_BIOS,LOG_DEBUG)("ROM BIOS also mapping alias to 0x%08lx-0x%08lx",alias_base,alias_end);
             if (!MEM_map_ROM_alias_physmem(alias_base,alias_end)) {
@@ -10688,7 +10702,7 @@ void ROMBIOS_Init() {
 
 			    FILE *fp = fopen(ibm_rom_basic.c_str(),"rb");
 			    if (fp != NULL) {
-				    fread(GetMemBase()+ibm_rom_basic_base,(size_t)ibm_rom_basic_size,1u,fp);
+				    fread(GetMemBase()+ibm_rom_basic_base,ibm_rom_basic_size,1u,fp);
 				    fclose(fp);
 			    }
 		    }

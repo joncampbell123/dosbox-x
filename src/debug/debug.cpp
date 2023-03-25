@@ -3154,8 +3154,8 @@ bool ParseCommand(char* str) {
             cpptmp.clear();
             DEBUG_ShowMsg("PC-98 status: gdc5mhz=%u vsync-int-trig=%u rowheight=%u lines-drawn=%u",
                 gdc_5mhz_mode,GDC_vsync_interrupt,gdc.row_height,(unsigned int)vga.draw.lines_done);
-            DEBUG_ShowMsg("  cur-row-line=%u cur-scan=0x%x cur-partition=%u/%u part-remline=%u",
-                gdc.row_line,gdc.scan_address,gdc.display_partition,gdc.display_partition_mask+1,gdc.display_partition_rem_lines);
+            DEBUG_ShowMsg("  cur-row-line=%u cur-scan=0x%x cur-partition=%u/%u part-remline=%u adw=%u",
+                gdc.row_line,gdc.scan_address,gdc.display_partition,gdc.display_partition_mask+1,gdc.display_partition_rem_lines,gdc.active_display_words_per_line);
             DEBUG_ShowMsg("  vram-bound=%uKB monomode=%u",
                 pc98_256kb_boundary?256:128,pc98_monochrome_mode);
 
@@ -3228,10 +3228,10 @@ bool ParseCommand(char* str) {
             /*--------------------*/
 
             cpptmp.clear();
-            DEBUG_ShowMsg("PC-98 status: gdc5mhz=%u vsync-int-trig=%u rowheight=%u lines-drawn=%u",
-                gdc_5mhz_mode,GDC_vsync_interrupt,gdc.row_height,(unsigned int)vga.draw.lines_done);
-            DEBUG_ShowMsg("  cur-row-line=%u cur-scan=0x%x cur-partition=%u/%u part-remline=%u",
-                gdc.row_line,gdc.scan_address,gdc.display_partition,gdc.display_partition_mask+1,gdc.display_partition_rem_lines);
+            DEBUG_ShowMsg("PC-98 status: gdc5mhz=%u vsync-int-trig=%u rowheight=%u lines-drawn=%u pitch=%u",
+                gdc_5mhz_mode,GDC_vsync_interrupt,gdc.row_height,(unsigned int)vga.draw.lines_done,gdc.display_pitch);
+            DEBUG_ShowMsg("  cur-row-line=%u cur-scan=0x%x cur-partition=%u/%u part-remline=%u adw=%u",
+                gdc.row_line,gdc.scan_address,gdc.display_partition,gdc.display_partition_mask+1,gdc.display_partition_rem_lines,gdc.active_display_words_per_line);
 
             /*--------------------*/
 
@@ -4262,6 +4262,12 @@ void DEBUG_WaitNoExecute(void) {
     cpudecoder = oldcore;
 }
 
+int GetDynamicType();
+
+#if (C_DYNAMIC_X86)
+void dyn_core_dh_debug_flush (void);
+#endif
+
 Bitu DEBUG_Loop(void) {
     if (debug_running) {
         Bitu now = SDL_GetTicks();
@@ -4282,6 +4288,14 @@ Bitu DEBUG_Loop(void) {
         uint32_t oldEIP	= reg_eip;
         PIC_runIRQs();
         SDL_Delay(1);
+
+#if (C_DYNAMIC_X86)
+	if (GetDynamicType() > 0) {
+		/* Force dynamic core to flush whatever internal FPU state to the FPU state we can see */
+		dyn_core_dh_debug_flush();
+	}
+#endif
+
         if ((oldCS!=SegValue(cs)) || (oldEIP!=reg_eip)) {
             CBreakpoint::AddBreakpoint(oldCS,oldEIP,true);
             CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
@@ -4853,10 +4867,10 @@ static void LogFPUInfo(void) {
                       fpu.p_regs[adj].m3, fpu.p_regs[adj].m2, fpu.p_regs[adj].m1);
 #elif HAS_LONG_DOUBLE
         DEBUG_ShowMsg(" st(%u): %s val=%.20Lg (0x%04x%016llx)", i, FPU_tag(fpu.tags[adj]),
-                      fpu.regs_80[adj].v, fpu.regs_80[adj].raw.h, fpu.regs_80[adj].raw.l);
+                      fpu.regs_80[adj].v, fpu.regs_80[adj].raw.h, (unsigned long long)fpu.regs_80[adj].raw.l);
 #else
         DEBUG_ShowMsg(" st(%u): %s use80=%u val=%.16g (0x%016llx)", i, FPU_tag(fpu.tags[adj]),
-                      fpu.use80[adj], fpu.regs[adj].d, fpu.regs[adj].ll);
+                      fpu.use80[adj], fpu.regs[adj].d, (unsigned long long)fpu.regs[adj].ll);
 #endif
     }
 

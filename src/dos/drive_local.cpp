@@ -30,9 +30,6 @@
 #define _DARWIN_C_SOURCE
 #endif
 #ifndef WIN32
-#if defined(EMSCRIPTEN)
-#include <fcntl.h>
-#endif
 #include <utime.h>
 #include <sys/file.h>
 #else
@@ -54,6 +51,10 @@
 #include "timer.h"
 #include "render.h"
 #include "jfont.h"
+
+#if defined(EMSCRIPTEN) || defined(HAIKU)
+#include <fcntl.h>
+#endif
 
 #include "cp437_uni.h"
 #include "cp737_uni.h"
@@ -1163,9 +1164,18 @@ void drivezRegister(std::string path, std::string dir, bool usecp) {
         if (d) {
             while ((dir = readdir(d)) != NULL) {
                 host_cnv_char_t *temp_name = CodePageHostToGuest(dir->d_name);
-                if (dir->d_type == DT_REG)
+#if defined(HAIKU)
+                struct stat path_stat;
+                stat(dir->d_name, &path_stat);
+                bool is_regular_file = S_ISREG(path_stat.st_mode);
+                bool is_directory = S_ISDIR(path_stat.st_mode);
+#else
+                bool is_regular_file = (dir->d_type == DT_REG);
+                bool is_directory = (dir->d_type == DT_DIR);
+#endif
+                if (is_regular_file)
                     names.push_back(temp_name!=NULL?temp_name:dir->d_name);
-                else if (dir->d_type == DT_DIR && strcmp(temp_name != NULL ? temp_name : dir->d_name, ".") && strcmp(temp_name != NULL ? temp_name : dir->d_name, ".."))
+                else if (is_directory && strcmp(temp_name != NULL ? temp_name : dir->d_name, ".") && strcmp(temp_name != NULL ? temp_name : dir->d_name, ".."))
                     names.push_back(std::string(temp_name != NULL ? temp_name : dir->d_name) + "/");
             }
             closedir(d);
@@ -1678,14 +1688,20 @@ bool localDrive::FindFirst(const char * _dir,DOS_DTA & dta,bool fcb_findfirst) {
 	strcat(tempDir,_dir);
 	CROSS_FILENAME(tempDir);
 
-	for (unsigned int i=0;i<strlen(tempDir);i++) tempDir[i]=toupper(tempDir[i]);
+	size_t len = strlen(tempDir);
+	bool lead = false;
+	for (unsigned int i=0;i<len;i++) {
+		if(lead) lead = false;
+		else if((IS_PC98_ARCH || isDBCSCP()) && isKanji1(tempDir[i])) lead = true;
+		else tempDir[i]=toupper(tempDir[i]);
+	}
     if (nocachedir) EmptyCache();
 
 	if (allocation.mediaid==0xF0 ) {
 		EmptyCache(); //rescan floppie-content on each findfirst
 	}
 
-	if (tempDir[strlen(tempDir)-1]!=CROSS_FILESPLIT) {
+	if (!check_last_split_char(tempDir, len, CROSS_FILESPLIT)) {
 		char end[2]={CROSS_FILESPLIT,0};
 		strcat(tempDir,end);
 	}
@@ -1744,7 +1760,7 @@ bool localDrive::FindNext(DOS_DTA & dta) {
     char full_name[CROSS_LEN], lfull_name[LFN_NAMELENGTH+1];
     char dir_entcopy[CROSS_LEN], ldir_entcopy[CROSS_LEN];
 
-    uint8_t srch_attr;char srch_pattern[LFN_NAMELENGTH];
+    uint8_t srch_attr;char srch_pattern[LFN_NAMELENGTH+1];
 	uint8_t find_attr;
 
     dta.GetSearchParams(srch_attr,srch_pattern,false);
@@ -2152,7 +2168,7 @@ bool localDrive::TestDir(const char * dir) {
 
 	// Skip directory test, if "\"
 	size_t len = strlen(newdir);
-	if (len && (newdir[len-1]!='\\')) {
+	if (len && !check_last_split_char(newdir, len, '\\')) {
 		// It has to be a directory !
 		ht_stat_t test;
 		if (ht_stat(host_name,&test))		return false;

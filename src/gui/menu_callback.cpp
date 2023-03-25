@@ -55,6 +55,7 @@ extern bool addovl, clearline, pcibus_enable, winrun, window_was_maximized, whee
 extern bool mountfro[26], mountiro[26];
 extern struct BuiltinFileBlob bfb_GLIDE2X_OVL;
 extern const char* RunningProgram;
+extern bool video_debug_overlay;
 
 void MSG_Init(void);
 void SendKey(std::string key);
@@ -486,7 +487,7 @@ bool drive_saveimg_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
         }
     if (dos_kernel_disabled || !strcmp(RunningProgram, "LOADLIN")) return false;
     Section_prop *sec = static_cast<Section_prop *>(control->GetSection("dosbox"));
-    int freeMB = sec->Get_int("convert fat free space"), timeout = sec->Get_int("convert fat timeout");
+    uint32_t freeMB = sec->Get_int("convert fat free space"), timeout = sec->Get_int("convert fat timeout");
     imageDisk *imagedrv = new imageDisk(Drives[drive], drive, freeMB, timeout);
     if (!saveDiskImage(imagedrv, lTheSaveFileName)) systemmessagebox("Error", "Failed to save disk image.", "ok","error", 1);
     if (imagedrv) delete imagedrv;
@@ -2125,9 +2126,9 @@ bool intensity_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const me
         reg_bl = 0;
     else
         reg_bl = 1;
-	reg_ax = 0x1003;
+    reg_ax = 0x1003;
     reg_bh = 0;
-	CALLBACK_RunRealInt(0x10);
+    CALLBACK_RunRealInt(0x10);
     reg_ax = oldax;
     reg_bx = oldbx;
     return true;
@@ -2405,6 +2406,18 @@ bool show_codetext_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
     GUI_Shortcut(44);
+    return true;
+}
+
+bool video_debug_callback(DOSBoxMenu * const menu, DOSBoxMenu::item * const menuitem) {
+    (void)menu;//UNUSED
+    (void)menuitem;//UNUSED
+    video_debug_overlay = !video_debug_overlay;
+    mainMenu.get_item("video_debug_overlay").check(video_debug_overlay).refresh_item(mainMenu);
+
+    if (!vga.draw.vga_override)
+        RENDER_SetSize(vga.draw.width,vga.draw.height,render.src.bpp,render.src.fps,render.src.scrn_ratio);
+
     return true;
 }
 
@@ -3594,6 +3607,7 @@ void AllocCallback1() {
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debugger_runnormal").set_text("Debugger option: Run normal").set_callback_function(debugger_runnormal_menu_callback).check(debugrunmode==1);
                 mainMenu.alloc_item(DOSBoxMenu::item_type_id,"debugger_runwatch").set_text("Debugger option: Run watch").set_callback_function(debugger_runwatch_menu_callback).check(debugrunmode==2);
 #endif
+                mainMenu.alloc_item(DOSBoxMenu::item_type_id,"video_debug_overlay").set_text("Video debug overlay").set_callback_function(video_debug_callback).check(video_debug_overlay);
             }
 
             {

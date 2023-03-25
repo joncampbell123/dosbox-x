@@ -819,7 +819,7 @@ const char *modifier;
 #elif defined(MACOSX)
 # define DEFAULT_CONFIG_FILE            "/Library/Preferences/DOSBox Preferences"
 #elif defined(HAIKU)
-#define DEFAULT_CONFIG_FILE "~/config/settings/dosbox-x/dosbox-x.conf"
+#define DEFAULT_CONFIG_FILE             "~/config/settings/dosbox-x/dosbox-x.conf"
 #else /*linux freebsd*/
 # define DEFAULT_CONFIG_FILE            "/.dosboxrc"
 #endif
@@ -1996,7 +1996,7 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
     }
 #endif
 #if DOSBOXMENU_TYPE == DOSBOXMENU_HMENU
-    if (!sdl.desktop.fullscreen && menu_gui && menu.toggle && ((width == 640 || (vga.draw.char9_set && width == 720)) && ((machine != MCH_CGA && !IS_VGA_ARCH && !IS_PC98_ARCH && height == 350) || height == 400)) || ((render.aspect || IS_DOSV) && checkmenuwidth)) {
+    if ((!sdl.desktop.fullscreen && menu_gui && menu.toggle && ((width == 640 || (vga.draw.char9_set && width == 720)) && ((machine != MCH_CGA && !IS_VGA_ARCH && !IS_PC98_ARCH && height == 350) || height == 400))) || ((render.aspect || IS_DOSV) && checkmenuwidth)) {
         RECT r;
         bool res = GetWindowRect(GetHWND(), &r);
         unsigned int maxWidth, maxHeight;
@@ -3165,7 +3165,7 @@ static void SetPriority(PRIORITY_LEVELS level) {
 }
 
 static void OutputString(Bitu x,Bitu y,const char * text,uint32_t color,uint32_t color2,SDL_Surface * output_surface) {
-    uint32_t * draw=(uint32_t*)(((uint8_t *)output_surface->pixels)+((y)*output_surface->pitch))+x;
+    uint32_t * draw=(uint32_t*)(((uint8_t *)output_surface->pixels)+(y*output_surface->pitch))+x;
     while (*text) {
         uint8_t * font=&int10_font_14[(*text)*14];
         Bitu i,j;
@@ -5099,7 +5099,7 @@ static bool CheckEnableImmOnKey(SDL_KeyboardEvent key)
 	  #if defined(SDL_DOSBOX_X_IME) && !defined(MACOSX)
 	  !SDL_IM_Composition() &&
 	  #endif
-	  (key.keysym.sym == 0x08 || key.keysym.sym == 0x09 || (key.keysym.sym >= 0x20 && key.keysym.sym <= 0x7F) || (key.keysym.sym >= 0x100 && key.keysym.sym <= 0x119) || key.keysym.sym == 0x12C || key.keysym.sym == 0x12D) || (strPasteBuffer.length() && key.keysym.sym >= 0x80))
+	  (key.keysym.sym == 0x08 || key.keysym.sym == 0x09 || (!IS_JDOSV && !IS_PC98_ARCH && key.keysym.sym >= 0x20 && key.keysym.sym <= 0x7F) || (key.keysym.sym >= 0x100 && key.keysym.sym <= 0x119) || key.keysym.sym == 0x12C || key.keysym.sym == 0x12D) || (strPasteBuffer.length() && key.keysym.sym >= 0x80))
 	) {
 		// BS, <-, ->, PgUp, PgDn, etc.
 		return true;
@@ -5129,7 +5129,7 @@ static bool CheckEnableImmOnKey(SDL_KeyboardEvent key)
 	if(key.keysym.scancode == 0x29 ||
 #if defined(SDL_DOSBOX_X_IME)
 	(!SDL_IM_Composition(4) && (key.keysym.sym == 0x20 || (key.keysym.sym >= 0x30 && key.keysym.sym <= 0x39))) ||
-	(!SDL_IM_Composition(1) && (key.keysym.sym == 0x08 || key.keysym.sym == 0x09 || (key.keysym.sym > 0x20 && key.keysym.sym <= 0x2F) || (key.keysym.sym > 0x3A && key.keysym.sym <= 0x7F) || key.keysym.scancode == 0x39 || (key.keysym.scancode >= 0x53 && key.keysym.scancode <= 0x63))) ||
+	(!SDL_IM_Composition(1) && (key.keysym.sym == 0x08 || key.keysym.sym == 0x09 || (!IS_JDOSV && !IS_PC98_ARCH && key.keysym.sym > 0x20 && key.keysym.sym <= 0x2F) || (!IS_JDOSV && !IS_PC98_ARCH && key.keysym.sym > 0x3A && key.keysym.sym <= 0x7F) || key.keysym.scancode == 0x39 || (key.keysym.scancode >= 0x53 && key.keysym.scancode <= 0x63))) ||
 #endif
 	(key.keysym.scancode >= 0x49 && key.keysym.scancode <= 0x52) || (key.keysym.scancode >= 0xe0 && key.keysym.scancode <= 0xe6) || (strPasteBuffer.length() && key.keysym.sym >= 0x20)) {
 		// ESC, shift, control, alt, PgUp, PgDn, etc.
@@ -6129,12 +6129,19 @@ void GFX_Events() {
 #if defined(WIN32)
             if (event.type == SDL_KEYDOWN && isModifierApplied())
                 ClipKeySelect(event.key.keysym.sym);
-            if (((event.key.keysym.sym==SDLK_TAB)) &&
+            if ((event.key.keysym.sym==SDLK_TAB) &&
                 ((sdl.laltstate==SDL_KEYDOWN) || (sdl.raltstate==SDL_KEYDOWN))) { MAPPER_LosingFocus(); break; }
             // This can happen as well.
-            if (((event.key.keysym.sym == SDLK_TAB )) && (event.key.keysym.mod & KMOD_ALT)) break;
+            if ((event.key.keysym.sym == SDLK_TAB) && (event.key.keysym.mod & KMOD_ALT)) break;
             // ignore tab events that arrive just after regaining focus. (likely the result of alt-tab)
             if ((event.key.keysym.sym == SDLK_TAB) && (GetTicks() - sdl.focus_ticks < 2)) break;
+            if (GetACP() == 932 && GetKeyboardType(0) != 7) {
+                // If the Windows code page is 932 and you are using a non-Japanese keyboard
+                if(event.key.keysym.scancode == 0x0d) event.key.keysym.sym = SDLK_EQUALS;
+                else if(event.key.keysym.scancode == 0x2b) event.key.keysym.sym = SDLK_BACKSLASH;
+                else if(event.key.keysym.scancode == 0x27) event.key.keysym.sym = SDLK_SEMICOLON;
+                else if(event.key.keysym.scancode == 0x28) event.key.keysym.sym = SDLK_QUOTE;
+            }
 #if !defined(HX_DOS) && defined(SDL_DOSBOX_X_SPECIAL)
 			int onoff;
 			if(SDL_GetIMValues(SDL_IM_ONOFF, &onoff, NULL) == NULL) {
@@ -6156,7 +6163,7 @@ void GFX_Events() {
 			if(event.key.keysym.scancode == 0 && event.key.keysym.sym == 0) {
 				int len;
 				char chars[10];
-				if(len = SDL_FlushIMString(NULL)) {
+				if((len = SDL_FlushIMString(NULL))) {
 					uint16_t *buff = (uint16_t *)malloc((len + 1)*sizeof(uint16_t)), uname[2];
 					SDL_FlushIMString(buff);
 					SetIMPosition();
@@ -6919,7 +6926,9 @@ bool DOSBOX_parse_argv() {
             fprintf(stderr,"  -log-int21                              Log calls to INT 21h (debug level)\n");
             fprintf(stderr,"  -log-fileio                             Log file I/O through INT 21h (debug level)\n");
             fprintf(stderr,"  -nolog                                  Do not log anything to log file\n");
-            fprintf(stderr,"  -tests                                  Run unit tests to test the DOSBox-X code\n\n");
+            fprintf(stderr,"  -tests                                  Run unit tests to test the DOSBox-X code\n");
+            fprintf(stderr,"  -print-ticks                            (Debug) Print emulator time and SDL_GetTicks()\n");
+            fprintf(stderr,"\n");
 
 #if defined(WIN32)
             DOSBox_ConsolePauseWait();
@@ -7147,6 +7156,10 @@ bool DOSBOX_parse_argv() {
         }
         else if (optname == "early-debug") {
             control->opt_earlydebug = true;
+            control->opt_console = true;
+        }
+        else if (optname == "print-ticks") {
+            control->opt_print_ticks = true;
             control->opt_console = true;
         }
         else if (optname == "socket") {
@@ -7613,7 +7626,7 @@ std::wstring win32_prompt_folder(const char *default_folder) {
     of.lpstrFilter = L"DOSBox-X configuration file\0" L"dosbox-x.conf;dosbox.conf\0";
     if (GetOpenFileNameW(&of)) {
         if (of.nFileOffset >= sizeof(tmp)) return std::wstring();
-        while (of.nFileOffset > 0 && tmp[of.nFileOffset - 1] == '/' || tmp[of.nFileOffset - 1] == '\\') of.nFileOffset--;
+        while ((of.nFileOffset > 0 && tmp[of.nFileOffset - 1] == '/') || tmp[of.nFileOffset - 1] == '\\') of.nFileOffset--;
         if (of.nFileOffset == 0) return std::wstring();
         res = std::wstring(tmp, (size_t)of.nFileOffset);
     }
@@ -8550,7 +8563,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 ""
 #endif
         " %s)",VERSION,SDL_STRING);
-        LOG(LOG_MISC,LOG_NORMAL)(("Copyright 2011-%s The DOSBox-X Team. Project maintainer: joncampbell123 (The Great Codeholio). DOSBox-X published under GNU GPL."),std::string(COPYRIGHT_END_YEAR).c_str());
+        LOG(LOG_MISC,LOG_NORMAL)("Copyright 2011-%s The DOSBox-X Team. Project maintainer: joncampbell123 (The Great Codeholio). DOSBox-X published under GNU GPL.",std::string(COPYRIGHT_END_YEAR).c_str());
 
 #if defined(MACOSX)
         LOG_MSG("macOS EXE path: %s",MacOSXEXEPath.c_str());

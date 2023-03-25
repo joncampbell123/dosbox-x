@@ -25,7 +25,7 @@ jobs:
       - name: Prepare HX-DOS
         shell: bash
         run: |
-          echo "timestamp=`date +%F-%T | sed -e 's/:/-/g' | sed -e 's/-//g'`" >> $GITHUB_ENV
+          echo "timestamp=`git show -s --format=%at | xargs -I# date -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
           pwd>pwd.txt
           mkdir package
           mkdir mingw-get
@@ -35,6 +35,17 @@ jobs:
           cp build-scripts/mingw/lowend-bin/msys.bat mingw-get/msys/1.0
           cp build-scripts/mingw/lowend-bin/runbuild.sh mingw-get/msys/1.0
           cp build-scripts/mingw/lowend-bin/gawk.exe mingw-get/msys/1.0/bin
+      - name: Update build info
+        shell: bash
+        run: |
+          export updatestr=`git show -s --format=%at | xargs -I# date -d @# +'%b %d, %Y %I:%M:%S%P'`
+          export shortsha=`echo ${GITHUB_SHA} | cut -c1-7`
+          export copyrightyear=`git show -s --format=%at | xargs -I# date -d @# +'%Y'`
+          echo '/* auto generated */' > include/build_timestamp.h
+          echo "#define UPDATED_STR \"${updatestr}\"" >> include/build_timestamp.h
+          echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
+          echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
+          cat include/build_timestamp.h
       - name: Build HX-DOS
         shell: pwsh
         run: |

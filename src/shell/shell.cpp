@@ -50,6 +50,7 @@
 #endif
 #include "build_timestamp.h"
 
+extern bool shell_keyboard_flush;
 extern bool dos_shell_running_program, mountwarning, winautorun;
 extern bool startcmd, startwait, startquiet, internal_program;
 extern bool addovl, addipx, addne2k, enableime, showdbcs;
@@ -1065,8 +1066,10 @@ void DOS_Shell::Run(void) {
 
 		/* do it */
 		if(strlen(input_line)!=0) {
+			if (bf == NULL/*not running a batch file*/ && shell_keyboard_flush) DOS_FlushSTDIN();
 			ParseLine(input_line);
 			if (echo && !bf) WriteOut_NoParsing("\n");
+			if (bf == NULL/*not running a batch file*/ && shell_keyboard_flush) DOS_FlushSTDIN();
 		}
 	} while (perm||!exit);
 	shellrun=false;

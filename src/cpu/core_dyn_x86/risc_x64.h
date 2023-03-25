@@ -861,6 +861,29 @@ nochange:
 	i.setrm(dst).Emit8(tmp);
 }
 
+static void gen_sop_word_imm(ShiftOps op,bool dword,DynReg * dr1,uint8_t imm) {
+	uint8_t tmp=0xC1;
+	int dst = FindDynReg(dr1,dword && op==DOP_MOV)->index;
+	opcode i;
+	i.setimm(imm, 1);
+
+	switch (op) {
+	case SHIFT_ROL:	i.setreg(0); break; 
+	case SHIFT_ROR:	i.setreg(1); break; 
+	case SHIFT_RCL:	i.setreg(2); break; 
+	case SHIFT_RCR:	i.setreg(3); break; 
+	case SHIFT_SHL:	i.setreg(4); break; 
+	case SHIFT_SHR:	i.setreg(5); break; 
+	case SHIFT_SAL:	i.setreg(6); break; 
+	case SHIFT_SAR:	i.setreg(7); break; 
+	default:
+		IllegalOption("gen_sop_word_imm");
+	}
+	dr1->flags|=DYNFLG_CHANGED;
+nochange:
+	i.setrm(dst).Emit8(tmp);
+}
+
 static void gen_dop_word(DualOps op,DynReg *dr1,opcode &i) {
 	uint8_t tmp;
 	switch (op) {

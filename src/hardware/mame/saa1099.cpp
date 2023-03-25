@@ -175,7 +175,7 @@ void saa1099_device::device_start()
 {
 	/* copy global parameters */
 	m_master_clock = clock();
-	m_sample_rate = clock() / 256;
+	m_sample_rate = static_cast<double>(sample_rate);
 
 	/* for each chip allocate one stream */
 	m_stream = stream_alloc(0, 2, (int)m_sample_rate);

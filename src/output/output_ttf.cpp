@@ -863,7 +863,7 @@ resize1:
 	}
 #endif
 resize2:
-    if (fontSize>=MIN_PTSIZE && 100*ttf.cols*ttf.width/maxWidth*ttf.lins*ttf.height/maxHeight > 100 || (lesssize && (ttf.cols*ttf.width>maxWidth || ttf.lins*ttf.height>maxHeight))) {
+    if ((fontSize>=MIN_PTSIZE && 100*ttf.cols*ttf.width/maxWidth*ttf.lins*ttf.height/maxHeight > 100) || (lesssize && (ttf.cols*ttf.width>maxWidth || ttf.lins*ttf.height>maxHeight))) {
         if (lesssize && curSize > MIN_PTSIZE) {
             curSize--;
             GFX_SelectFontByPoints(curSize);
@@ -995,7 +995,7 @@ void processWP(uint8_t *pcolorBG, uint8_t *pcolorFG) {
 
 bool hasfocus = true, lastfocus = true;
 void GFX_EndTextLines(bool force) {
-    if (!force&&!IS_PC98_ARCH&&((!CurMode||CurMode->type!=M_TEXT))) return;
+    if (!force&&!IS_PC98_ARCH&&(!CurMode||CurMode->type!=M_TEXT)) return;
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
     if (!ttf.fullScrn) {
         mainMenu.setRedraw();
@@ -1200,7 +1200,7 @@ void GFX_EndTextLines(bool force) {
 				ttf_textRect.y = ttf.offY+y*ttf.height;
 				SDL_BlitSurface(textSurface, &ttf_textClip, sdl.surface, &ttf_textRect);
 				SDL_FreeSurface(textSurface);
-				if ((vga.draw.cursor.blinkon || blinkCursor<0)) {
+				if (vga.draw.cursor.blinkon || blinkCursor<0) {
                     // second reverse lower lines
                     textSurface = TTF_RenderUNICODE_Shaded(ttf.SDL_font, unimap, ttf_bgColor, ttf_fgColor, ttf.width*(dw?2:1));
                     ttf_textClip.y = (ttf.height*(vga.draw.cursor.sline>15?15:vga.draw.cursor.sline))>>4;

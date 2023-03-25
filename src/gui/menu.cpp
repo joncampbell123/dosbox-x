@@ -819,6 +819,8 @@ static const char* def_menu_debug[] =
     "disable_logging",
     "wait_on_error",
     "--",
+    "video_debug_overlay",
+    "--",
     "debug_logint21",
     "debug_logfileio",
     NULL
@@ -828,6 +830,8 @@ static const char* def_menu_help_debug[] =
 {
     "show_console",
     "wait_on_error",
+    "--",
+    "video_debug_overlay",
     NULL
 };
 #endif

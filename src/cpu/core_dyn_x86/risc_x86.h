@@ -566,6 +566,28 @@ finish:
 	else cache_addw(imm);
 }
 
+static void gen_sop_word_imm(ShiftOps op,bool dword,DynReg * dr1,uint8_t imm) {
+	GenReg * gr1=FindDynReg(dr1,dword);
+	uint16_t tmp;
+
+	switch (op) {
+	case SHIFT_ROL:	tmp=0xc0c1; break; 
+	case SHIFT_ROR:	tmp=0xc8c1; break; 
+	case SHIFT_RCL:	tmp=0xd0c1; break; 
+	case SHIFT_RCR:	tmp=0xd8c1; break; 
+	case SHIFT_SHL:	tmp=0xe0c1; break; 
+	case SHIFT_SHR:	tmp=0xe8c1; break; 
+	case SHIFT_SAL:	tmp=0xf0c1; break; 
+	case SHIFT_SAR:	tmp=0xf8c1; break; 
+	default:
+		IllegalOption("gen_sop_word_imm");
+	}
+	dr1->flags|=DYNFLG_CHANGED;
+nochange:
+	cache_addw(tmp+(gr1->index<<8));
+	cache_addb(imm);
+}
+
 static void gen_dop_word_imm_mem(DualOps op,bool dword,DynReg * dr1,void* data) {
 	GenReg * gr1=FindDynReg(dr1,dword && op==DOP_MOV);
 	uint16_t tmp;
