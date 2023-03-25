@@ -583,7 +583,7 @@ static void gen_sop_word_imm(ShiftOps op,bool dword,DynReg * dr1,uint8_t imm) {
 		IllegalOption("gen_sop_word_imm");
 	}
 	dr1->flags|=DYNFLG_CHANGED;
-nochange:
+// nochange:
 	cache_addw(tmp+(gr1->index<<8));
 	cache_addb(imm);
 }
