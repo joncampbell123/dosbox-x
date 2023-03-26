@@ -1,4 +1,6 @@
 Next
+  - Page Up/Down vs Roll Down/Up was in the wrong order, switch order
+    to correct it. (joncampbell123)
   - Fix 'pc98 force ibm keyboard layout' was always forced to be 'true'
     for left & right bracket keys on US keyboards. (maron2000)  
   - Fix dynamic_nodhfpu FPU stack bugs, the same bugs that once plagued

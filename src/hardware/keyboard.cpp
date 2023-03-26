@@ -1301,8 +1301,8 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
     case KBD_jp_ro:         ret=0x33;break;     //    _  ロ
     case KBD_space:         ret=0x34;break;     // SPACEBAR
     case KBD_xfer:          ret=0x35;break;     // XFER
-    case KBD_pageup:        ret=0x36;break;     // ROLL UP
-    case KBD_pagedown:      ret=0x37;break;     // ROLL DOWN
+    case KBD_pageup:        ret=0x36;break;     // ROLL DOWN     [https://github.com/joncampbell123/dosbox-x/issues/4106]
+    case KBD_pagedown:      ret=0x37;break;     // ROLL UP       [https://github.com/joncampbell123/dosbox-x/issues/4106]
     case KBD_insert:        ret=0x38;break;     // INS
     case KBD_delete:        ret=0x39;break;     // DEL
     case KBD_up:            ret=0x3A;break;     // UP ARROW
