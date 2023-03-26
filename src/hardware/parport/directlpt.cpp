@@ -18,17 +18,8 @@
 
 #include "dosbox.h"
 
-#if C_DIRECTLPT
-/*
-  For MinGW and MinGW-w64, _M_IX86 and _M_X64 are not defined by the compiler,
-  but in a header file, which has to be (indirectly) included, usually through a
-  C (not C++) standard header file. For MinGW it is sdkddkver.h and for
-  MinGW-w64 it is _mingw_mac.h. Do not rely on constants that may not be
-  defined, depending on what was included before these lines.
-*/
-#if ((defined __i386__ || defined __x86_64__ || defined _M_IX86 || defined _M_X64) && \
-     (defined WIN32 || defined BSD || defined __CYGWIN__)) || /* WIN32 is not defined by default on Cygwin */ \
-    defined LINUX /* Linux, including non-x86 (e.g. Raspberry Pi) */
+#include "directlpt.h" // for HAS_CDIRECTLPT
+#if HAS_CDIRECTLPT
 #include <SDL.h>
 #ifdef LINUX
 #include <errno.h>
@@ -41,7 +32,6 @@
 #endif
 #include "libs/passthroughio/passthroughio.h"
 #include "callback.h"
-#include "directlpt.h"
 #include "logging.h"
 
 #define PPORT_CON_IRQ 0x10
@@ -358,5 +348,4 @@ void CDirectLPT::Write_IOSEL(Bitu val) {
 
 void CDirectLPT::handleUpperEvent(uint16_t type) { (void)type; }
 
-#endif // Win32 / BSD / Linux
-#endif // C_DIRECTLPT
+#endif // HAS_CDIRECTLPT
