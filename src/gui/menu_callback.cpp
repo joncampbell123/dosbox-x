@@ -523,7 +523,7 @@ bool drive_unmount_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     return true;
 }
 
-void swapInDrive(int drive, int position=0);
+void swapInDrive(int drive, unsigned int position=0);
 bool drive_swap_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED

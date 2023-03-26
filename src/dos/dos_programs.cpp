@@ -3994,7 +3994,7 @@ void runImgmake(const char *str) {
 	imgmake.Run();
 }
 
-void swapInDrive(int drive, int position=0);
+void swapInDrive(int drive, unsigned int position=0);
 class IMGSWAP : public Program
 {
 public:
@@ -4061,7 +4061,7 @@ public:
             return;
         }
         if (cmd->FindCommand(2,temp_line)) {
-            int swap=atoi(temp_line.c_str());
+            unsigned int swap=atoi(temp_line.c_str());
             if (swap<1||swap>DriveManager::GetDisksSize(d)) {
                 WriteOut(MSG_Get("PROGRAM_IMGSWAP_ERROR"), DriveManager::GetDisksSize(d));
                 return;
