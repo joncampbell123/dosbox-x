@@ -289,7 +289,7 @@ static const char* UnmountHelper(char umount) {
     return msgget.c_str();
 }
 
-void MountHelper(char drive, const char drive2[DOS_PATHLENGTH], std::string drive_type) {
+void MountHelper(char drive, const char drive2[DOS_PATHLENGTH], std::string const& drive_type) {
 	std::vector<std::string> options;
 	DOS_Drive * newdrive;
 	std::string temp_line;
@@ -723,7 +723,7 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 #endif
 }
 
-void MenuBrowseFolder(char drive, std::string drive_type) {
+void MenuBrowseFolder(char drive, std::string const& drive_type) {
     std::string str(1, drive);
 	if (Drives[drive-'A']) {
 		std::string drive_warn="Drive "+str+": is already mounted. Unmount it first, and then try again.";
