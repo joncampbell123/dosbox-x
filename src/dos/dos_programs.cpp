@@ -4901,7 +4901,7 @@ public:
         std::string el_torito;
         std::string ideattach="auto";
         std::string type="hdd";
-        uint8_t tdr;
+        uint8_t tdr = 0;
 	std::string bdisk;
 	int bdisk_number=-1;
 
