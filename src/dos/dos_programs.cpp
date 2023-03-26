@@ -289,7 +289,7 @@ static const char* UnmountHelper(char umount) {
     return msgget.c_str();
 }
 
-void MountHelper(char drive, const char drive2[DOS_PATHLENGTH], std::string drive_type) {
+void MountHelper(char drive, const char drive2[DOS_PATHLENGTH], std::string const& drive_type) {
 	std::vector<std::string> options;
 	DOS_Drive * newdrive;
 	std::string temp_line;
@@ -723,7 +723,7 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 #endif
 }
 
-void MenuBrowseFolder(char drive, std::string drive_type) {
+void MenuBrowseFolder(char drive, std::string const& drive_type) {
     std::string str(1, drive);
 	if (Drives[drive-'A']) {
 		std::string drive_warn="Drive "+str+": is already mounted. Unmount it first, and then try again.";
@@ -933,9 +933,11 @@ public:
     void Move_Z(char new_z) {
         char newz_drive = (char)toupper(new_z);
         int i_newz = (int)newz_drive - (int)'A';
-        if (Drives[i_newz])
-            WriteOut("Drive %c is already in use\n", new_z);
-        else if (i_newz >= 0 && i_newz < DOS_DRIVES) {
+        if (i_newz >= 0 && i_newz < DOS_DRIVES) {
+            if(Drives[i_newz]) {
+                WriteOut("Drive %c is already in use\n", new_z);
+                return;
+            }
             /* remap drives */
             Drives[i_newz] = Drives[ZDRIVE_NUM];
             Drives[ZDRIVE_NUM] = 0;
@@ -970,6 +972,8 @@ public:
             if (DOS_GetDefaultDrive() == ZDRIVE_NUM) DOS_SetDrive(i_newz);
             ZDRIVE_NUM = i_newz;
         }
+        else
+            WriteOut("Drive %c is not a valid drive\n", new_z);
     }
     void ListMounts(bool quiet, bool local) {
         char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
@@ -3990,7 +3994,7 @@ void runImgmake(const char *str) {
 	imgmake.Run();
 }
 
-void swapInDrive(int drive, int position=0);
+void swapInDrive(int drive, unsigned int position=0);
 class IMGSWAP : public Program
 {
 public:
@@ -4057,7 +4061,7 @@ public:
             return;
         }
         if (cmd->FindCommand(2,temp_line)) {
-            int swap=atoi(temp_line.c_str());
+            unsigned int swap=atoi(temp_line.c_str());
             if (swap<1||swap>DriveManager::GetDisksSize(d)) {
                 WriteOut(MSG_Get("PROGRAM_IMGSWAP_ERROR"), DriveManager::GetDisksSize(d));
                 return;
@@ -4901,7 +4905,7 @@ public:
         std::string el_torito;
         std::string ideattach="auto";
         std::string type="hdd";
-        uint8_t tdr;
+        uint8_t tdr = 0;
 	std::string bdisk;
 	int bdisk_number=-1;
 
@@ -5796,7 +5800,7 @@ private:
                             imageDiskVHD::ErrorCodes ret = imageDiskVHD::Open(ro?paths[i].c_str()+1:paths[i].c_str(), ro||roflag, &vhdImage);
                             switch (ret) {
                             case imageDiskVHD::UNSUPPORTED_WRITE:
-                                options.push_back("readonly");
+                                options.emplace_back("readonly");
                             case imageDiskVHD::OPEN_SUCCESS: {
                                 skipDetectGeometry = true;
                                 const imageDiskVHD* vhdDisk = dynamic_cast<imageDiskVHD*>(vhdImage);
@@ -5899,7 +5903,7 @@ private:
                     newImage = NULL;
                 }
                 else {
-                    if (roflag) options.push_back("readonly");
+                    if (roflag) options.emplace_back("readonly");
                     newDrive = new fatDrive(paths[i].c_str(), (uint32_t)sizes[0], (uint32_t)sizes[1], (uint32_t)sizes[2], (uint32_t)sizes[3], options);
                 }
                 imgDisks.push_back(newDrive);

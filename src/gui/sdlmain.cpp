@@ -158,6 +158,8 @@ extern int tryconvertcp, Reflect_Menu(void);
 #include "resource.h"
 #if !defined(HX_DOS)
 BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam) {
+    (void)hMon;
+    (void)dcMon;
 	xyp* xy = reinterpret_cast<xyp*>(lParam);
 	curscreen++;
 	if (sdl.displayNumber==curscreen) monrect=*pRcMon;
@@ -7528,6 +7530,7 @@ bool custom_bios = false;
 #if defined(WIN32) && !defined(HX_DOS)
 #include "Shlobj.h"
 int CALLBACK FolderBrowserCallback(HWND h_Dlg, UINT uMsg, LPARAM lParam, LPARAM lpData) {
+    (void)lParam;
     if (uMsg == BFFM_INITIALIZED)
         SendMessageW(h_Dlg, BFFM_SETEXPANDED, TRUE, lpData);
     return 0;

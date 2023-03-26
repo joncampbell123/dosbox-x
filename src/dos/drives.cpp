@@ -459,14 +459,14 @@ void DriveManager::CycleDisk(bool pressed) {
 }
 */
 
-void DriveManager::CycleDisks(int drive, bool notify, int position) {
+void DriveManager::CycleDisks(int drive, bool notify, unsigned int position) {
 	unsigned int numDisks = (unsigned int)driveInfos[drive].disks.size();
 	if (numDisks > 1) {
 		// cycle disk
-		unsigned int currentDisk = (unsigned int)driveInfos[drive].currentDisk;
-        const DOS_Drive* oldDisk = driveInfos[drive].disks[(unsigned int)currentDisk];
+		unsigned int currentDisk = driveInfos[drive].currentDisk;
+        const DOS_Drive* oldDisk = driveInfos[drive].disks[currentDisk];
         if (position<1)
-            currentDisk = ((unsigned int)currentDisk + 1u) % (unsigned int)numDisks;
+            currentDisk = (currentDisk + 1u) % numDisks;
         else if (position>numDisks)
             currentDisk = 0;
         else
@@ -481,7 +481,7 @@ void DriveManager::CycleDisks(int drive, bool notify, int position) {
 			if ((drive == 2 || drive == 3) && imageDiskList[drive]->hardDrive) updateDPT();
 		}
 		
-		// copy working directory, acquire system resources and finally switch to next drive		
+		// copy working directory, acquire system resources and finally switch to next drive
 		strcpy(newDisk->curdir, oldDisk->curdir);
 		newDisk->Activate();
         if (!dos_kernel_disabled) newDisk->UpdateDPB(currentDrive);
@@ -502,11 +502,11 @@ void DriveManager::CycleAllCDs(void) {
 			unsigned int currentDisk = driveInfos[idrive].currentDisk;
             const DOS_Drive* oldDisk = driveInfos[idrive].disks[currentDisk];
             if (dynamic_cast<const isoDrive*>(oldDisk) == NULL) continue;
-			currentDisk = ((unsigned int)currentDisk + 1u) % (unsigned int)numDisks;		
+			currentDisk = (currentDisk + 1u) % numDisks;
 			DOS_Drive* newDisk = driveInfos[idrive].disks[currentDisk];
 			driveInfos[idrive].currentDisk = currentDisk;
 			
-			// copy working directory, acquire system resources and finally switch to next drive		
+			// copy working directory, acquire system resources and finally switch to next drive
 			strcpy(newDisk->curdir, oldDisk->curdir);
 			newDisk->Activate();
             if (!dos_kernel_disabled) newDisk->UpdateDPB(currentDrive);

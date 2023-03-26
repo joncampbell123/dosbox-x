@@ -1259,7 +1259,7 @@ bool getSwapRequest(void) {
     return sreq;
 }
 
-void swapInDrive(int drive, int position=0) {
+void swapInDrive(int drive, unsigned int position=0) {
     if (drive>1||swapInDisksSpecificDrive!=drive) return;
     if (position<1) swapPosition++;
     else swapPosition=position-1;

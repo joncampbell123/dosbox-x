@@ -126,7 +126,7 @@ bool DOS_MakeName(char const * const name,char * const fullname,uint8_t * drive,
 			} else if (i<10) name_int[i]=toupper(name_int[i]);
 #if defined(WIN32) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 	} else if (Network_IsNetworkResource(name)) {
-		int j=0, k=name[0]=='"'?1:0;
+		unsigned int j=0, k=name[0]=='"'?1:0;
 		if (strlen(name)==2+k||name[2+k]=='*'||name[2+k]=='?'||name[2+k]=='\\'||(strlen(name)==3+k&&name[2+k]=='"')) {
 			DOS_SetError(DOSERR_PATH_NOT_FOUND);
 			return false;

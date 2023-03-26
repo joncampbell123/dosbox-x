@@ -72,7 +72,7 @@ void GLIDE_ShutDown(Section* sec), GLIDE_PowerOn(Section* sec);
 void DOSBox_ShowConsole(void);
 void Load_Language(std::string name);
 void RebootLanguage(std::string filename, bool confirm=false);
-void MenuBrowseFolder(char drive, std::string drive_type);
+void MenuBrowseFolder(char drive, std::string const& drive_type);
 void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple);
 void MenuBootDrive(char drive);
 void MenuUnmountDrive(char drive);
@@ -523,7 +523,7 @@ bool drive_unmount_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * cons
     return true;
 }
 
-void swapInDrive(int drive, int position=0);
+void swapInDrive(int drive, unsigned int position=0);
 bool drive_swap_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED

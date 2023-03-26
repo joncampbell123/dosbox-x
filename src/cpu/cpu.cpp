@@ -1119,6 +1119,10 @@ void On_Software_CPU_Reset();
 void CPU_Exception(Bitu which,Bitu error ) {
 	assert(which < 0x20);
 //	LOG_MSG("Exception %d error %x",which,error);
+
+    if(which >= 0x20)
+        E_Exit("CPU_Exception: Exception %d is out of range.", (int)which);
+
 	if (CPU_Exception_Level[which] != 0) {
 		if (CPU_Exception_Level[EXCEPTION_DF] != 0 && cpu_triple_fault_reset) {
 			if (always_report_triple_fault || !has_printed_triple_fault) {
