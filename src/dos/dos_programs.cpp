@@ -933,9 +933,11 @@ public:
     void Move_Z(char new_z) {
         char newz_drive = (char)toupper(new_z);
         int i_newz = (int)newz_drive - (int)'A';
-        if (Drives[i_newz])
-            WriteOut("Drive %c is already in use\n", new_z);
-        else if (i_newz >= 0 && i_newz < DOS_DRIVES) {
+        if (i_newz >= 0 && i_newz < DOS_DRIVES) {
+            if(Drives[i_newz]) {
+                WriteOut("Drive %c is already in use\n", new_z);
+                return;
+            }
             /* remap drives */
             Drives[i_newz] = Drives[ZDRIVE_NUM];
             Drives[ZDRIVE_NUM] = 0;
@@ -970,6 +972,8 @@ public:
             if (DOS_GetDefaultDrive() == ZDRIVE_NUM) DOS_SetDrive(i_newz);
             ZDRIVE_NUM = i_newz;
         }
+        else
+            WriteOut("Drive %c is not a valid drive\n", new_z);
     }
     void ListMounts(bool quiet, bool local) {
         char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH];
