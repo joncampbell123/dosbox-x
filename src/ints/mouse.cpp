@@ -2318,6 +2318,8 @@ static inline void CmdAbsPointerCommand() {
 // IO port handling
 
 static Bitu PortRead(Bitu port, Bitu iolen) {
+    (void)port;
+    (void)iolen;
 
         if (reg_eax != VMWARE_MAGIC)
                 return 0;
