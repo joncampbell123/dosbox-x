@@ -138,7 +138,7 @@ static Bitu PARALLEL_Read (Bitu port, Bitu iolen) {
 			parallelPortObjects[i]->log_par(parallelPortObjects[i]->dbg_cregs,
 				"read  0x%2x from %s.",retval,dbgtext[port&3]);
 #endif
-			return retval;	
+			return retval;
 		}
 	}
 	return 0xff;
@@ -209,9 +209,9 @@ CParallel::CParallel(CommandLine* cmd, Bitu portnr, uint8_t initirq) {
 	dbg_cregs	= cmd->FindExist("dbgregs", false);
 	dbg_plainputchar = cmd->FindExist("dbgputplain", false);
 	dbg_plaindr = cmd->FindExist("dbgdataplain", false);
-	
+
 	if(cmd->FindExist("dbgall", false)) {
-		dbg_data= 
+		dbg_data=
 		dbg_putchar=
 		dbg_cregs=true;
 		dbg_plainputchar=dbg_plaindr=false;
@@ -222,7 +222,7 @@ CParallel::CParallel(CommandLine* cmd, Bitu portnr, uint8_t initirq) {
 	else debugfp=0;
 
 	if(debugfp == 0) {
-		dbg_data= 
+		dbg_data=
 		dbg_putchar=dbg_plainputchar=
 		dbg_cregs=false;
 	} else {
@@ -337,7 +337,7 @@ void BIOS_Post_register_parports() {
 			BIOS_SetLPTPort(i,(uint16_t)DISNEY_BasePort());
 	}
 }
-	
+
 class PARPORTS:public Module_base {
 	public:
 		PARPORTS (Section * configuration):Module_base (configuration) {
@@ -380,7 +380,7 @@ class PARPORTS:public Module_base {
 				if (i == 0 && DISNEY_ShouldInit())
 					continue;
 
-#if C_DIRECTLPT
+#if C_DIRECTLPT && HAS_CDIRECTLPT
 				if(str=="reallpt") {
 					CDirectLPT* cdlpt= new CDirectLPT(i, defaultirq[i],&cmd);
 					if(cdlpt->InstallationSuccessful) {
@@ -426,7 +426,7 @@ class PARPORTS:public Module_base {
 								parallelPortObjects[i] = 0;
 							}
 						} else
-#endif				
+#endif
 							if(str=="disabled") {
 								parallelPortObjects[i] = 0;
 							} else if (str == "disney") {
@@ -473,7 +473,7 @@ static PARPORTS *testParallelPortsBaseclass = NULL;
 
 static const char *parallelTypes[PARALLEL_TYPE_COUNT] = {
 	"disabled",
-#if C_DIRECTLPT
+#if C_DIRECTLPT && HAS_CDIRECTLPT
 	"reallpt",
 #endif
 	"file",
@@ -620,7 +620,7 @@ void PARALLEL::Run()
 			case PARALLEL_TYPE_DISABLED:
 				parallelPortObjects[port-1] = 0;
 				break;
-#if C_DIRECTLPT
+#if C_DIRECTLPT && HAS_CDIRECTLPT
 			case PARALLEL_TYPE_REALLPT:
 				{
 					CDirectLPT* cdlpt= new CDirectLPT(port-1, defaultirq[port-1],&cmd);

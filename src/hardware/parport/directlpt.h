@@ -34,6 +34,9 @@
     defined LINUX /* Linux, including non-x86 (e.g. Raspberry Pi) */
 #include "parport.h"
 
+// Instead of repeating the preprocessor logic above, use 1 constant in client code
+#define HAS_CDIRECTLPT 1
+
 class CDirectLPT : public CParallel {
 public:
 	CDirectLPT(Bitu nr, uint8_t initIrq, CommandLine* cmd);
@@ -64,5 +67,10 @@ private:                                // something was wrong, delete it right 
 #endif
 };
 
+#else
 #endif // Win32 / BSD / Linux
 #endif // C_DIRECTLPT
+
+#ifndef HAS_CDIRECTLPT
+#define HAS_CDIRECTLPT 0
+#endif
