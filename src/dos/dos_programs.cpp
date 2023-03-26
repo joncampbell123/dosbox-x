@@ -5796,7 +5796,7 @@ private:
                             imageDiskVHD::ErrorCodes ret = imageDiskVHD::Open(ro?paths[i].c_str()+1:paths[i].c_str(), ro||roflag, &vhdImage);
                             switch (ret) {
                             case imageDiskVHD::UNSUPPORTED_WRITE:
-                                options.push_back("readonly");
+                                options.emplace_back("readonly");
                             case imageDiskVHD::OPEN_SUCCESS: {
                                 skipDetectGeometry = true;
                                 const imageDiskVHD* vhdDisk = dynamic_cast<imageDiskVHD*>(vhdImage);
@@ -5899,7 +5899,7 @@ private:
                     newImage = NULL;
                 }
                 else {
-                    if (roflag) options.push_back("readonly");
+                    if (roflag) options.emplace_back("readonly");
                     newDrive = new fatDrive(paths[i].c_str(), (uint32_t)sizes[0], (uint32_t)sizes[1], (uint32_t)sizes[2], (uint32_t)sizes[3], options);
                 }
                 imgDisks.push_back(newDrive);
