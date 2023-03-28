@@ -220,24 +220,28 @@ typedef unsigned int uintptr_t;
 #define SDL_VIDEO_RENDER_D3D11  0
 #endif
 
+#if defined(__WIN32__) && (defined(__arm__) || defined(__arm64__) || defined(_M_ARM) || defined(_M_ARM64))
+/* no */
+#else
 /* Enable OpenGL support */
-#ifndef SDL_VIDEO_OPENGL
-#define SDL_VIDEO_OPENGL    1
-#endif
-#ifndef SDL_VIDEO_OPENGL_WGL
-#define SDL_VIDEO_OPENGL_WGL    1
-#endif
-#ifndef SDL_VIDEO_RENDER_OGL
-#define SDL_VIDEO_RENDER_OGL    1
-#endif
-#ifndef SDL_VIDEO_RENDER_OGL_ES2
-#define SDL_VIDEO_RENDER_OGL_ES2    1
-#endif
-#ifndef SDL_VIDEO_OPENGL_ES2
-#define SDL_VIDEO_OPENGL_ES2    1
-#endif
-#ifndef SDL_VIDEO_OPENGL_EGL
-#define SDL_VIDEO_OPENGL_EGL    1
+# ifndef SDL_VIDEO_OPENGL
+#  define SDL_VIDEO_OPENGL    1
+# endif
+# ifndef SDL_VIDEO_OPENGL_WGL
+#  define SDL_VIDEO_OPENGL_WGL    1
+# endif
+# ifndef SDL_VIDEO_RENDER_OGL
+#  define SDL_VIDEO_RENDER_OGL    1
+# endif
+# ifndef SDL_VIDEO_RENDER_OGL_ES2
+#  define SDL_VIDEO_RENDER_OGL_ES2    1
+# endif
+# ifndef SDL_VIDEO_OPENGL_ES2
+#  define SDL_VIDEO_OPENGL_ES2    1
+# endif
+# ifndef SDL_VIDEO_OPENGL_EGL
+#  define SDL_VIDEO_OPENGL_EGL    1
+# endif
 #endif
 
 /* Enable Vulkan support */
