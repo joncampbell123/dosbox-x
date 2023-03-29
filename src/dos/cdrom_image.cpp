@@ -117,7 +117,7 @@ CDROM_Interface_Image::BinaryFile::BinaryFile(const char *filename, bool &error)
         typedef wchar_t host_cnv_char_t;
         host_cnv_char_t *CodePageGuestToHost(const char *s);
         const host_cnv_char_t* host_name = CodePageGuestToHost(filename);
-        if (host_name != NULL) {
+        if (host_name != nullptr) {
             file = new ifstream(host_name, ios::in | ios::binary);
             error = file->fail();
         }
@@ -304,7 +304,7 @@ int64_t CDROM_Interface_Image::AudioFile::getLength()
 CDROM_Interface_Image::CHDFile::CHDFile(const char* filename, bool& error)
     :TrackFile(RAW_SECTOR_SIZE) // CDAudioCallBack needs 2352
 {
-    error = chd_open(filename, CHD_OPEN_READ, NULL, &this->chd) != CHDERR_NONE;
+    error = chd_open(filename, CHD_OPEN_READ, nullptr, &this->chd) != CHDERR_NONE;
     if (!error) {
         this->header           = chd_get_header(this->chd);
         this->hunk_buffer      = new uint8_t[this->header->hunkbytes];
@@ -472,7 +472,7 @@ CDROM_Interface_Image::CDROM_Interface_Image(uint8_t subUnit)
 {
 	images[subUnit] = this;
 	if (refCount == 0) {
-		if (player.channel == NULL) {
+		if (player.channel == nullptr) {
 			// channel is kept dormant except during cdrom playback periods
 			player.channel = MIXER_AddChannel(&CDAudioCallBack, 0, "CDAUDIO");
 			player.channel->Enable(false);
@@ -485,13 +485,13 @@ CDROM_Interface_Image::CDROM_Interface_Image(uint8_t subUnit)
 CDROM_Interface_Image::~CDROM_Interface_Image()
 {
 	refCount--;
-	if (player.cd == this) player.cd = NULL;
+	if (player.cd == this) player.cd = nullptr;
 	ClearTracks();
 	// Stop playback before wiping out the CD Player
 	if (refCount == 0) {
 		StopAudio();
 		MIXER_DelChannel(player.channel);
-		player.channel = NULL;
+		player.channel = nullptr;
 		// LOG_MSG("CDROM: Audio channel freed");
 	}
 }
@@ -647,7 +647,7 @@ bool CDROM_Interface_Image::PlayAudioSector(unsigned long start, unsigned long l
     else if(track > end)
         LOG_MSG("CDROM: Tried to load track #  % d, which does not exist in cue sheet", track);
 
-    else if (tracks[track].file == NULL)
+    else if (tracks[track].file == nullptr)
         LOG_MSG("CDROM: Tried to load track #  % d, but corresponding audio file not found", track);
 
 	// Checks passed, setup the audio stream
@@ -966,12 +966,12 @@ bool CDROM_Interface_Image::LoadIsoFile(char* filename)
 {
 	tracks.clear();
 	// data track
-	Track track = {0, 0, 0, 0, 0, 0, 0, false, NULL};
+	Track track = {0, 0, 0, 0, 0, 0, 0, false, nullptr};
 	bool error;
 	track.file = new BinaryFile(filename, error);
 	if (error) {
 		delete track.file;
-		track.file = NULL;
+		track.file = nullptr;
 		return false;
 	}
 	track.number = 1;
@@ -995,7 +995,7 @@ bool CDROM_Interface_Image::LoadIsoFile(char* filename)
 		track.mode2 = false;
 	} else {
         delete track.file;
-        track.file = NULL;
+        track.file = nullptr;
 		return false;
 	}
     int64_t len=track.file->getLength();
@@ -1009,7 +1009,7 @@ bool CDROM_Interface_Image::LoadIsoFile(char* filename)
 	track.attr = 0;
 	track.start = track.length;
 	track.length = 0;
-	track.file = NULL;
+	track.file = nullptr;
 	tracks.push_back(track);
 	return true;
 }
@@ -1061,7 +1061,7 @@ static string dirname(char * file) {
 
 bool CDROM_Interface_Image::LoadCueSheet(char *cuefile)
 {
-	Track track = {0, 0, 0, 0, 0, 0, 0, false, NULL};
+	Track track = {0, 0, 0, 0, 0, 0, 0, false, nullptr};
 	tracks.clear();
 //	int curr_track = 0; // unused
 	int shift = 0;
@@ -1154,7 +1154,7 @@ bool CDROM_Interface_Image::LoadCueSheet(char *cuefile)
 			string type;
 			GetCueKeyword(type, line);
 
-			track.file = NULL;
+			track.file = nullptr;
 			bool error = true;
 			if (type == "BINARY") {
 				track.file = new BinaryFile(filename.c_str(), error);
@@ -1166,7 +1166,7 @@ bool CDROM_Interface_Image::LoadCueSheet(char *cuefile)
                 // giving up.
             if (error) {
                 delete track.file;
-                track.file = NULL;
+                track.file = nullptr;
                 success = false;
             }
 		}
@@ -1179,7 +1179,7 @@ bool CDROM_Interface_Image::LoadCueSheet(char *cuefile)
 		// failure
 		else {
 			delete track.file;
-			track.file = NULL;
+			track.file = nullptr;
 			success = false;
 		}
 		if (!success) return false;
@@ -1192,7 +1192,7 @@ bool CDROM_Interface_Image::LoadCueSheet(char *cuefile)
 	track.attr = 0;//sync with load iso
 	track.start = 0;
 	track.length = 0;
-	track.file = NULL;
+	track.file = nullptr;
 	if(!AddTrack(track, shift, -1, totalPregap, 0)) return false;
 
 #ifdef DEBUG
@@ -1340,7 +1340,7 @@ bool CDROM_Interface_Image::LoadChdFile(char* chdfile)
         track.attr   = 0; // sync with load iso
         track.start  = 0;
         track.length = 0;
-        track.file   = NULL;
+        track.file   = nullptr;
         if (!AddTrack(track, shift, -1, totalPregap, 0)) return false;
 
         return true;
@@ -1538,7 +1538,7 @@ void CDROM_Interface_Image::ClearTracks()
 	vector<Track>::iterator i = tracks.begin();
 	vector<Track>::iterator end = tracks.end();
 
-	TrackFile* last = NULL;
+	TrackFile* last = nullptr;
 	while(i != end) {
 		Track &curr = *i;
 		if (curr.file != last) {

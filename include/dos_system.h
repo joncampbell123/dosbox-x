@@ -67,7 +67,7 @@ class DOS_DTA;
 
 class DOS_File {
 public:
-    DOS_File() :flags(0) { name = 0; attr = 0; date = 0; drive = 0; refCtr = 0; open = false; time = 0; hdrive = 0xff; newtime = false; };
+    DOS_File() :flags(0) { name = nullptr; attr = 0; date = 0; drive = 0; refCtr = 0; open = false; time = 0; hdrive = 0xff; newtime = false; };
 	DOS_File(const DOS_File& orig);
 	DOS_File & operator= (const DOS_File & orig);
 	virtual ~DOS_File(){ delete [] name;};
@@ -92,7 +92,7 @@ public:
 	virtual void 	LoadState( std::istream& stream, bool pop );
     virtual void    Flush(void) { }
 
-	char* name = NULL;
+	char* name = nullptr;
 	uint8_t drive = 0;
 	uint32_t flags;
 	bool open;
@@ -279,7 +279,7 @@ private:
 
 	CFileInfo*	dirBase;
 	char		dirPath				[CROSS_LEN] = {};
-	DOS_Drive*	drive = NULL;
+	DOS_Drive*	drive = nullptr;
 	char		basePath			[CROSS_LEN] = {};
 	bool		dirFirstTime = false;
 	TDirSort	sortDirType;
@@ -329,7 +329,7 @@ public:
 	virtual Bits UnMount(void)=0;
 
 	/* these 4 may only be used by DOS_Drive_Cache because they have special calling conventions */
-	virtual void *opendir(const char *dir) { (void)dir; return NULL; };
+	virtual void *opendir(const char *dir) { (void)dir; return nullptr; };
 	virtual void closedir(void *handle) { (void)handle; };
     virtual bool read_directory_first(void *handle, char* entry_name, char* entry_sname, bool& is_directory) { (void)handle; (void)entry_name; (void)entry_sname; (void)is_directory; return false; };
     virtual bool read_directory_next(void *handle, char* entry_name, char* entry_sname, bool& is_directory) { (void)handle; (void)entry_name; (void)entry_sname; (void)is_directory; return false; };

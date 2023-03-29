@@ -871,7 +871,7 @@ isoFile::isoFile(isoDrive* drive, const char* name, const FileStat_Block* stat, 
 	filePos = fileBegin;
 	fileEnd = fileBegin + stat->size;
 	open = true;
-	this->name = NULL;
+	this->name = nullptr;
 	SetName(name);
 }
 
@@ -1008,7 +1008,7 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
     if (!CDROM_Interface_Image::images_init) {
         CDROM_Interface_Image::images_init = true;
         for (size_t i=0;i < 26;i++)
-            CDROM_Interface_Image::images[i] = NULL;
+            CDROM_Interface_Image::images[i] = nullptr;
     }
 
 	this->fileName[0]  = '\0';
@@ -1476,7 +1476,7 @@ bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDes
 	if (!is_udf) return 0;
 
 	UDFTagId ctag;
-	uint8_t* buffer = NULL;
+	uint8_t* buffer = nullptr;
 	unsigned char dirent[4096];
 	DirIterator& dirIterator = dirIterators[dirIteratorHandle];
 
@@ -1545,7 +1545,7 @@ bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDes
 	strcpy((char*)fname,(char*)enname);
 
 	{
-		const char *ext = NULL;
+		const char *ext = nullptr;
 		size_t tailsize = 0;
 		bool lfn = false;
 		char tail[128];
@@ -1651,7 +1651,7 @@ bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, isoDirEntry* de) {
 	if (is_udf) return 0;
 
 	bool result = false;
-	uint8_t* buffer = NULL;
+	uint8_t* buffer = nullptr;
 	DirIterator& dirIterator = dirIterators[dirIteratorHandle];
 
 	// check if the directory entry is valid
@@ -1837,7 +1837,7 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 	bool jolietrr = is_joliet || (is_rock_ridge_name && filename_not_strict_8x3((char*)de->ident));
 	if (!jolietrr && !(dos.version.major >= 7 || uselfn)) {
 		char* dotpos = strchr((char*)de->ident, '.');
-		if (dotpos!=NULL) {
+		if (dotpos!=nullptr) {
 			if (strlen(dotpos)>4) dotpos[4]=0;
 			if (dotpos-(char*)de->ident>8) {
 				strcpy((char*)(&de->ident[8]),dotpos);
@@ -1845,7 +1845,7 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 		} else if (strlen((char*)de->ident)>8) de->ident[8]=0;
 	}
 	if (jolietrr || filename_not_8x3((char*)de->ident)) {
-		const char *ext = NULL;
+		const char *ext = nullptr;
 		size_t tailsize = 0;
 		bool lfn = false;
 		char tail[128];
@@ -2246,7 +2246,7 @@ bool isoDrive :: lookup(UDFFileIdentifierDescriptor &fid, UDFFileEntry &fe, cons
 	cisdir = true;
 
 	// iterate over all path elements (name), and search each of them in the current de
-	for(char* name = strtok(isoPath, "/"); NULL != name; name = strtok(NULL, "/")) {
+	for(char* name = strtok(isoPath, "/"); nullptr != name; name = strtok(nullptr, "/")) {
 		bool found = false;
 
 		// current entry must be a directory, abort otherwise
@@ -2291,7 +2291,7 @@ bool isoDrive :: lookup(isoDirEntry *de, const char *path) {
 	strreplace_dbcs(isoPath, '\\', '/');
 	
 	// iterate over all path elements (name), and search each of them in the current de
-	for(char* name = strtok(isoPath, "/"); NULL != name; name = strtok(NULL, "/")) {
+	for(char* name = strtok(isoPath, "/"); nullptr != name; name = strtok(nullptr, "/")) {
 		bool found = false;
 
 		// current entry must be a directory, abort otherwise

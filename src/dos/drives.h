@@ -410,7 +410,7 @@ public:
 	bool directoryChange(uint32_t dirClustNumber, const direntry *useEntry, int32_t entNum);
 	const FAT_BootSector::bpb_union_t &GetBPB(void);
 	void SetBPB(const FAT_BootSector::bpb_union_t &bpb);
-	imageDisk *loadedDisk = NULL;
+	imageDisk *loadedDisk = nullptr;
 	uint8_t req_ver_major = 0,req_ver_minor = 0;
 	bool created_successfully = true;
 	uint32_t partSectOff;
@@ -435,7 +435,7 @@ private:
 	bool FindNextInternal(uint32_t dirClustNumber, DOS_DTA & dta, direntry *foundEntry);
 	bool getDirClustNum(const char * dir, uint32_t * clustNum, bool parDir);
 	bool getFileDirEntry(char const * const filename, direntry * useEntry, uint32_t * dirClust, uint32_t * subEntry,bool dirOk=false);
-	bool addDirectoryEntry(uint32_t dirClustNumber, const direntry& useEntry,const char *lfn=NULL);
+	bool addDirectoryEntry(uint32_t dirClustNumber, const direntry& useEntry,const char *lfn=nullptr);
 	void zeroOutCluster(uint32_t clustNumber);
 	bool getEntryName(const char *fullname, char *entname);
 	friend void DOS_Shell::CMD_SUBST(char* args); 	
@@ -1164,7 +1164,7 @@ public:
 	virtual Bits UnMount(void);
 	virtual char const* GetLabel(void);
 private:
-	VFILE_Block* search_file = 0;
+	VFILE_Block* search_file = nullptr;
 };
 
 class Overlay_Drive: public localDrive {
