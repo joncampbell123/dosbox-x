@@ -187,6 +187,8 @@ void CNullModem::WriteChar(uint8_t data) {
 
 Bits CNullModem::readChar(uint8_t &val) {
 	SocketState state = clientsocket->GetcharNonBlock(val);
+	if (state == SocketState::Closed)
+		return -2;
 	if (state != SocketState::Good)
 		return -1;
 	Bits rxchar = val;
