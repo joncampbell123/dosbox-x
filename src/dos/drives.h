@@ -1117,7 +1117,7 @@ public:
 	void UDFextent_rewind(struct UDFextents &ex);
 	void UDFFileEntryToExtents(UDFextents &ex,UDFFileEntry &fe);
 	uint64_t UDFextent_seek(struct UDFextents &ex,uint64_t ofs);
-	int UDFextent_read(struct UDFextents &ex,unsigned char *buf,size_t count);
+	unsigned int UDFextent_read(struct UDFextents &ex,unsigned char *buf,size_t count);
 	uint64_t UDFtotalsize(struct UDFextents &ex) const;
 private:
 	struct DirIterator {

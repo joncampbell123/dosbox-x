@@ -3910,7 +3910,7 @@ restart_int:
         // write VHD footer if requested, largely copied from RAW2VHD program, no license was included
         char extension[6] = {}; // care extensions longer than 3 letters such as '.vhdd'
         if(temp_line.find_last_of('.') != std::string::npos) {
-            for(int i = 0; i < sizeof(extension) - 1; i++) {
+            for(unsigned int i = 0; i < sizeof(extension) - 1; i++) {
                 if(temp_line.find_last_of('.') + i > temp_line.length() - 1) break;
                 extension[i] = temp_line[temp_line.find_last_of('.') + i];
             }
@@ -4068,7 +4068,7 @@ public:
             return;
         }
         if (cmd->FindCommand(2,temp_line)) {
-            unsigned int swap=atoi(temp_line.c_str());
+            int swap=atoi(temp_line.c_str());
             if (swap<1||swap>DriveManager::GetDisksSize(d)) {
                 WriteOut(MSG_Get("PROGRAM_IMGSWAP_ERROR"), DriveManager::GetDisksSize(d));
                 return;

@@ -1355,7 +1355,7 @@ bool CDROM_Interface_Image::AddTrack(Track &curr, int &shift, int prestart, int 
 	// frames between index 0(prestart) and 1(curr.start) must be skipped
 	int skip;
 	if (prestart >= 0) {
-		if (prestart > curr.start) return false;
+		if ((unsigned int)prestart > curr.start) return false;
 		skip = curr.start - prestart;
         //LOG_MSG("CDROM Addtrack skip=%d prestart=%d curr.start=%d", skip, prestart, curr.start);
 	} else skip = 0;

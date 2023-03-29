@@ -2784,7 +2784,7 @@ bool localFile::Seek(uint32_t * pos,uint32_t type) {
 #if defined(WIN32)
     if (file_access_tries>0) {
         HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
-        int32_t dwPtr = SetFilePointer(hFile, *pos, NULL, type);
+        DWORD dwPtr = SetFilePointer(hFile, *pos, NULL, type);
         if (dwPtr == INVALID_SET_FILE_POINTER && !strcmp(RunningProgram, "BTHORNE"))	// Fix for Black Thorne
             dwPtr = SetFilePointer(hFile, 0, NULL, DOS_SEEK_END);
         if (dwPtr != INVALID_SET_FILE_POINTER) {										// If success

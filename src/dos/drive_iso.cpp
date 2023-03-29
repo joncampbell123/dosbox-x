@@ -783,8 +783,8 @@ uint64_t isoDrive::UDFextent_seek(struct UDFextents &ex,uint64_t ofs) {
 	return (uint64_t)ex.extofs + (uint64_t)ex.relofs;
 }
 
-int isoDrive::UDFextent_read(struct UDFextents &ex,unsigned char *buf,size_t count) {
-	int rd = 0;
+unsigned int isoDrive::UDFextent_read(struct UDFextents &ex,unsigned char *buf,size_t count) {
+	unsigned int rd = 0;
 
 	if (ex.is_indata) {
 		assert(ex.relofs <= (uint32_t)ex.indata.size());
