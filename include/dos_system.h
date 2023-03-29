@@ -192,7 +192,7 @@ public:
 	uint32_t GetSeekPos(void);
 	FILE * fhandle;
 private:
-	bool read_only_medium;
+	bool read_only_medium = false;
 	enum { NONE,READ,WRITE } last_action;
 };
 

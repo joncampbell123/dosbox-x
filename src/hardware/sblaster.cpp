@@ -3614,7 +3614,7 @@ private:
     OPL_Mode oplmode;
 
     /* Support Functions */
-    void Find_Type_And_Opl(Section_prop* config,SB_TYPES& type, OPL_Mode& opl_mode){
+    void Find_Type_And_Opl(Section_prop* config,SB_TYPES& type, OPL_Mode& opl_mode) const {
         sb.vibra = false;
         sb.ess_type = ESS_NONE;
         sb.reveal_sc_type = RSC_NONE;
