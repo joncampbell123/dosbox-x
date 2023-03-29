@@ -388,4 +388,6 @@ private:
 	void CreateAutoexec(void);
 };
 
+size_t GetPauseCount();
+
 #endif

@@ -301,7 +301,6 @@ void resetFontSize(), increaseFontSize(), decreaseFontSize();
 void GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight);
 void MAPPER_CheckEvent(SDL_Event * event), MAPPER_CheckKeyboardLayout(), MAPPER_ReleaseAllKeys();
 bool isDBCSCP(), InitCodePage();
-int GetNumScreen();
 
 SDL_Block sdl;
 Bitu frames = 0;
@@ -945,7 +944,7 @@ void GFX_SetIcon(void)
 bool IsDebuggerActive(void);
 #endif
 
-extern std::string dosbox_title, GetDefaultOutput();
+extern std::string dosbox_title;
 
 void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
     (void)frameskip;//UNUSED

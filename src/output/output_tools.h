@@ -73,4 +73,6 @@ inline void aspectCorrectFitClip(volatile WH &clipW, volatile WH &clipH, volatil
 //    assert((sdl.clip.y + sdl.clip.h) <= sdl.desktop.full.height);
 }
 
+std::string GetDefaultOutput();
+
 #endif

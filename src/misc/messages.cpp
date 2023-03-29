@@ -30,6 +30,7 @@
 #include "shell.h"
 #include "menu.h"
 #include "jfont.h"
+#include "mapper.h"
 #include <map>
 #include <list>
 #include <string>
@@ -442,7 +443,7 @@ bool MSG_Write(const char * location, const char * name) {
                 fprintf(out,":MENU:%s\n%s\n.\n",idname.c_str(),temp);
         }
 	}
-    std::map<std::string,std::string> get_event_map(), event_map = get_event_map();
+    std::map<std::string,std::string> event_map = get_event_map();
     for (auto it=event_map.begin();it!=event_map.end();++it) {
         if (mainMenu.item_exists("mapper_"+it->first) && mainMenu.get_item("mapper_"+it->first).get_text() == it->second) continue;
         if (!CodePageGuestToHostUTF8(temp,it->second.c_str()))

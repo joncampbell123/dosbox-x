@@ -962,7 +962,6 @@ void DOS_Shell::InputCommand(char * line) {
                         ++w_count;
                         if (w_count % col == 0) {p_count++;WriteOut_NoParsing("\n");lastcr=true;}
                     }
-                    size_t GetPauseCount();
                     if (p_count>GetPauseCount()) {
                         WriteOut(MSG_Get("SHELL_CMD_PAUSE"));
                         lastcr=false;
