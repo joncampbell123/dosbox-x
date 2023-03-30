@@ -1325,12 +1325,7 @@ OPL_Mode Module::oplmode=OPL_none;
 }	//Adlib Namespace
 
 std::string getoplmode() {
-#if !defined(__FreeBSD__) && !defined(__OpenBSD__)
-	// Todo: is this needed at all? opmode cannot be null...
-	if (Adlib::Module::oplmode == NULL || Adlib::Module::oplmode == OPL_none) return "None";
-#else
-	if (Adlib::Module::oplmode == 0 || Adlib::Module::oplmode == OPL_none) return "None";
-#endif
+    if (Adlib::Module::oplmode == OPL_none) return "None";
     else if (Adlib::Module::oplmode == OPL_cms) return "CMS";
     else if (Adlib::Module::oplmode == OPL_opl2) return "OPL2";
     else if (Adlib::Module::oplmode == OPL_dualopl2) return "Dual OPL2";
