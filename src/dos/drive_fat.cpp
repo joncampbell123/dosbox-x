@@ -1161,6 +1161,7 @@ void fatDrive::deleteClustChain(uint32_t startCluster, uint32_t bytePos) {
 			return; /* No need to write EOF because EOF is already there */
 
 		setClusterValue(currentClust,eofClust);
+		if (searchFreeCluster > (currentClust - 2)) searchFreeCluster = currentClust - 2;
 		currentClust = testvalue;
 		countClust++;
 	}
@@ -1175,6 +1176,7 @@ void fatDrive::deleteClustChain(uint32_t startCluster, uint32_t bytePos) {
 		}
 
 		setClusterValue(currentClust,0);
+		if (searchFreeCluster > (currentClust - 2)) searchFreeCluster = currentClust - 2;
 		currentClust = testvalue;
 		countClust++;
 
@@ -1241,6 +1243,8 @@ bool fatDrive::allocateCluster(uint32_t useCluster, uint32_t prevCluster) {
 		setClusterValue(prevCluster, useCluster);
 		//LOG_MSG("Chaining cluster %d to %d", prevCluster, useCluster);
 	} 
+
+	if (searchFreeCluster > (useCluster - 2)) searchFreeCluster = useCluster - 2;
 
 	switch(fattype) {
 		case FAT12:
@@ -2029,11 +2033,15 @@ bool fatDrive::AllocationInfo(uint16_t *_bytes_sector, uint8_t *_sectors_cluster
 
 uint32_t fatDrive::getFirstFreeClust(void) {
 	uint32_t i;
+	for(i=searchFreeCluster;i<CountOfClusters;i++) {
+		if(!getClusterValue(i+2)) return ((searchFreeCluster=i)+2);
+	}
 	for(i=0;i<CountOfClusters;i++) {
-		if(!getClusterValue(i+2)) return (i+2);
+		if(!getClusterValue(i+2)) return ((searchFreeCluster=i)+2);
 	}
 
 	/* No free cluster found */
+	searchFreeCluster = 0;
 	return 0;
 }
 
