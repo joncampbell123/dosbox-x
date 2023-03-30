@@ -1,4 +1,8 @@
 Next
+  - FAT filesystem driver: Instead of searching from cluster 0 every
+    time a new cluster is to be allocated, keep track of the search
+    to help reduce slowdowns on fairly large filesystems when many
+    files are copied onto it (joncampbell123)
   - Page Up/Down vs Roll Down/Up was in the wrong order, switch order
     to correct it. (joncampbell123)
   - Fix 'pc98 force ibm keyboard layout' was always forced to be 'true'
