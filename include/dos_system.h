@@ -87,7 +87,7 @@ public:
 	virtual bool	UpdateDateTimeFromHost()	{ return true; }
 	virtual uint32_t	GetSeekPos()	{ return 0xffffffff; }
 	void SetDrive(uint8_t drv) { hdrive=drv;}
-	uint8_t GetDrive(void) { return hdrive;}
+	uint8_t GetDrive(void) const { return hdrive;}
 	virtual void 	SaveState( std::ostream& stream );
 	virtual void 	LoadState( std::istream& stream, bool pop );
     virtual void    Flush(void) { }

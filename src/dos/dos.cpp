@@ -2734,7 +2734,7 @@ static Bitu DOS_21Handler(void) {
                         else len = mem_strlen(data); /* Is limited to 1024 */
 
                         if(len > DOS_COPYBUFSIZE - 1) E_Exit("DOS:0x65 Buffer overflow");
-                        if(len) {
+                        else if(len) {
                             MEM_BlockRead(data,dos_copybuf,len);
                             dos_copybuf[len] = 0;
                             //No upcase as String(0x21) might be multiple asciz strings
