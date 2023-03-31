@@ -1,4 +1,7 @@
 Next
+  - Add dosbox.conf option to set a fixed RTDSC tick rate to use at
+    all times during emulation instead of the CPU cycle count
+    (joncampbell123).
   - Fix RDTSC to maintain a monotonic increasing count even if the
     CPU cycles count changes, and better handle timestamp writes
     through WRMSR (joncampbell123).

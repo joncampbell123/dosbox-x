@@ -118,8 +118,17 @@ CPU_Regs cpu_regs;
 CPUBlock cpu;
 Segments Segs;
 
+uint64_t CPU_fixed_RDTSC_rate = 0;
+
 int64_t CPU_RDTSC() {
-	return (int64_t)(((PIC_FullIndex()-rdtsc_pic_base)*(pic_tickindex_t)(CPU_CycleAutoAdjust?70000:CPU_CycleMax))+rdtsc_count_base);
+	pic_tickindex_t rate;
+
+	if (CPU_fixed_RDTSC_rate > (uint64_t)0)
+		rate = (pic_tickindex_t)CPU_fixed_RDTSC_rate;
+	else
+		rate = (pic_tickindex_t)(CPU_CycleAutoAdjust?70000:CPU_CycleMax);
+
+	return (int64_t)(((PIC_FullIndex()-rdtsc_pic_base)*rate)+rdtsc_count_base);
 }
 
 void RDTSC_rebase() {
@@ -3841,6 +3850,8 @@ public:
 		}
 
 		cpu_custom_cpuid[0] = 0;
+
+		CPU_fixed_RDTSC_rate = section->Get_int("rdtsc rate");
 
 		const char *fpus = section->Get_string("fpu");
 

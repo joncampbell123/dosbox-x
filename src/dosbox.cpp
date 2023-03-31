@@ -2671,6 +2671,11 @@ void DOSBOX_SetupConfigSections(void) {
 	    "Enter as 4 sets of 16-bit hexadecimal digits XXXX-XXXX-XXXX-XXXX.\n"
 	    "Note that the processor info and feature bits form the topmost 32 bits of the PSN and cannot be changed.");
 
+    Pint = secprop->Add_int("rdtsc rate",Property::Changeable::Always,0);
+    Pint->SetMinMax(0,0x7FFFFFFE);
+    Pint->Set_help("If nonzero, the Pentium RDTSC counter will tick at this rate per millisecond instead of by the cycle count");
+    Pint->SetBasic(true);
+
     Pbool = secprop->Add_bool("segment limits",Property::Changeable::Always,true);
     Pbool->Set_help("Enforce checks for segment limits on 80286 and higher CPU types.");
     Pbool->SetBasic(true);
