@@ -3,7 +3,7 @@ Next
     that refer to drive @ (at sign). Note that in ASCII the at sign
     is one code below capital "A". Windows 95 FORMAT.COM due to
     another issue was asking for "@:\WINBOOT.SYS" and sometimes
-    causing a segfault in DOS path resolution due to an initialized
+    causing a segfault in DOS path resolution due to an uninitialized
     drive index. The fix for the other issue removes the need for this
     kludge. In it's place a message will be logged to your log file if
     anything attempts to access files on drive "@:" because it likely
