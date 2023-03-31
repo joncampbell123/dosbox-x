@@ -91,7 +91,8 @@ extern bool dos_kernel_disabled;
 extern bool use_dynamic_core_with_paging;
 extern bool auto_determine_dynamic_core_paging;
 
-uint64_t rdtsc_adjust = 0;
+uint64_t rdtsc_count_base = 0;
+pic_tickindex_t rdtsc_pic_base = 0;
 
 bool cpu_double_fault_enable;
 bool cpu_triple_fault_reset;
@@ -117,12 +118,13 @@ CPU_Regs cpu_regs;
 CPUBlock cpu;
 Segments Segs;
 
-int64_t CPU_RDTSC_RAW_internal() {
-	return (int64_t)(PIC_FullIndex()*(double) (CPU_CycleAutoAdjust?70000:CPU_CycleMax));
+int64_t CPU_RDTSC() {
+	return (int64_t)(((PIC_FullIndex()-rdtsc_pic_base)*(pic_tickindex_t)(CPU_CycleAutoAdjust?70000:CPU_CycleMax))+rdtsc_count_base);
 }
 
-int64_t CPU_RDTSC() {
-	return (int64_t)(CPU_RDTSC_RAW_internal() + rdtsc_adjust);
+void RDTSC_rebase() {
+	rdtsc_count_base = CPU_RDTSC();
+	rdtsc_pic_base = PIC_FullIndex();
 }
 
 /* [cpu] setting realbig16.
@@ -3186,6 +3188,7 @@ void CPU_CycleIncrease(bool pressed) {
 		LOG_MSG("CPU speed: max %ld percent.",(unsigned long)CPU_CyclePercUsed);
 		GFX_SetTitle((int32_t)CPU_CyclePercUsed,-1,-1,false);
 	} else {
+		RDTSC_rebase();
 		int32_t old_cycles= (int32_t)CPU_CycleMax;
 		if (CPU_CycleUp < 100) {
 			CPU_CycleMax = (int32_t)(CPU_CycleMax * (1 + (float)CPU_CycleUp / 100.0));
@@ -3223,6 +3226,7 @@ void CPU_CycleDecrease(bool pressed) {
 			LOG_MSG("CPU speed: max %ld percent.",(unsigned long)CPU_CyclePercUsed);
 		GFX_SetTitle((int32_t)CPU_CyclePercUsed,-1,-1,false);
 	} else {
+		RDTSC_rebase();
 		if (CPU_CycleDown < 100) {
 			CPU_CycleMax = (int32_t)(CPU_CycleMax / (1 + (float)CPU_CycleDown / 100.0));
 		} else {
@@ -3307,6 +3311,7 @@ static void CPU_ToggleDynamicCore(bool pressed) {
 
 void CPU_Enable_SkipAutoAdjust(void) {
 	if (CPU_CycleAutoAdjust) {
+		RDTSC_rebase();
 		CPU_CycleMax /= 2;
 		if (CPU_CycleMax < CPU_CYCLES_LOWER_LIMIT)
 			CPU_CycleMax = CPU_CYCLES_LOWER_LIMIT;
@@ -3582,6 +3587,7 @@ public:
 		std::string str ;
 		CommandLine cmd(0,p->GetSection()->Get_string("parameters"));
 		if (type=="max") {
+			RDTSC_rebase();
 			CPU_CycleMax=0;
 			CPU_CyclePercUsed=100;
 			CPU_CycleAutoAdjust=true;
@@ -3607,6 +3613,7 @@ public:
 			}
 		} else {
 			if (type=="auto") {
+				RDTSC_rebase();
 				CPU_AutoDetermineMode|=CPU_AUTODETERMINE_CYCLES;
 				CPU_CycleMax=3000;
 				CPU_OldCycleMax=3000;
@@ -3632,6 +3639,7 @@ public:
 							std::istringstream stream(str);
 							stream >> rmdval;
 							if (rmdval>0) {
+								RDTSC_rebase();
 								CPU_CycleMax=(int32_t)rmdval;
 								CPU_OldCycleMax=(int32_t)rmdval;
 							}
@@ -3643,12 +3651,14 @@ public:
 				int rmdval=0;
 				std::istringstream stream(str);
 				stream >> rmdval;
+				RDTSC_rebase();
 				CPU_CycleMax=(int32_t)rmdval;
 			} else {
 				std::istringstream stream(type);
 				int rmdval=0;
 				stream >> rmdval;
 				if(rmdval) {
+					RDTSC_rebase();
 					CPU_CycleMax=(int32_t)rmdval;
 					CPU_CyclesSet=(int32_t)rmdval;
 				}
@@ -4003,6 +4013,7 @@ public:
 
 		if (cpu_rep_max < 0) cpu_rep_max = 4;	/* compromise to help emulation speed without too much loss of accuracy */
 
+		RDTSC_rebase();
 		if(CPU_CycleMax <= 0) CPU_CycleMax = 3000;
 		if(CPU_CycleUp <= 0)   CPU_CycleUp = 500;
 		if(CPU_CycleDown <= 0) CPU_CycleDown = 20;
@@ -4541,8 +4552,8 @@ bool CPU_WRMSR() {
 
 	switch (reg_ecx) {
 		case 0x00000010: /* You can change the time stamp counter by writing this MSR */
-			rdtsc_adjust = ((uint64_t)reg_edx << (uint64_t)32ul) + (uint64_t)reg_eax;
-			rdtsc_adjust -= CPU_RDTSC_RAW_internal();
+			rdtsc_count_base = ((uint64_t)reg_edx << (uint64_t)32ul) + (uint64_t)reg_eax;
+			rdtsc_pic_base = PIC_FullIndex();
 			return true;
 		case 0x0000001b: /* Local APIC */
 			/* NTS: Windows ME assumes this MSR is present if we report ourself as a Pentium II,

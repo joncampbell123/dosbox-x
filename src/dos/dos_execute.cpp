@@ -72,6 +72,7 @@ unsigned int ENV_KEEPFREE = 83;
 #define LOAD    1
 #define OVERLAY 3
 
+void RDTSC_rebase();
 
 extern bool force_sfn;
 extern uint8_t ZDRIVE_NUM;
@@ -136,6 +137,7 @@ void DOS_Terminate(uint16_t pspseg,bool tsr,uint8_t exitcode) {
 
 	CPU_AutoDetermineMode>>=CPU_AUTODETERMINE_SHIFT;
 	if (CPU_AutoDetermineMode&CPU_AUTODETERMINE_CYCLES) {
+		RDTSC_rebase();
 		CPU_CycleAutoAdjust=false;
 		CPU_CycleLeft=0;
 		CPU_Cycles=0;

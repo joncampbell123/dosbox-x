@@ -586,6 +586,7 @@ void increaseticks() { //Make it return ticksRemain and set it in the function a
                has taken place are most likely caused by heavy load through a
                different application, the cycles adjusting is skipped as well */
             if ((ratio > 120) || (ticksDone < 700)) {
+                RDTSC_rebase();
                 CPU_CycleMax = new_cmax;
                 if (CPU_CycleLimit > 0) {
                     if (CPU_CycleMax > CPU_CycleLimit) CPU_CycleMax = CPU_CycleLimit;
@@ -605,6 +606,7 @@ void increaseticks() { //Make it return ticksRemain and set it in the function a
         /* ticksAdded > 15 but ticksScheduled < 5, lower the cycles
            but do not reset the scheduled/done ticks to take them into
            account during the next auto cycle adjustment */
+        RDTSC_rebase();
         CPU_CycleMax /= 3;
         if (CPU_CycleMax < CPU_CYCLES_LOWER_LIMIT)
             CPU_CycleMax = CPU_CYCLES_LOWER_LIMIT;
@@ -661,6 +663,7 @@ static void DOSBOX_UnlockSpeed( bool pressed ) {
         turbolasttick = GetTicks();
         ticksLocked = true;
         if (CPU_CycleAutoAdjust) {
+            RDTSC_rebase();
             autoadjust = true;
             CPU_CycleAutoAdjust = false;
             CPU_CycleMax /= 3;

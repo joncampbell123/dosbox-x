@@ -1,4 +1,7 @@
 Next
+  - Fix RDTSC to maintain a monotonic increasing count even if the
+    CPU cycles count changes, and better handle timestamp writes
+    through WRMSR (joncampbell123).
   - FAT filesystem driver: Instead of searching from cluster 0 every
     time a new cluster is to be allocated, keep track of the search
     to help reduce slowdowns on fairly large filesystems when many
