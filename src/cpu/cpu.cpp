@@ -132,8 +132,10 @@ int64_t CPU_RDTSC() {
 }
 
 void RDTSC_rebase() {
-	rdtsc_count_base = CPU_RDTSC();
-	rdtsc_pic_base = PIC_FullIndex();
+	if (CPU_CycleMax > 0) {
+		rdtsc_count_base = CPU_RDTSC();
+		rdtsc_pic_base = PIC_FullIndex();
+	}
 }
 
 /* [cpu] setting realbig16.
