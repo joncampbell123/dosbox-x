@@ -1,4 +1,20 @@
 Next
+  - Remove kludges from DOS path resolution to handle drive paths
+    that refer to drive @ (at sign). Note that in ASCII the at sign
+    is one code below capital "A". Windows 95 FORMAT.COM due to
+    another issue was asking for "@:\WINBOOT.SYS" and sometimes
+    causing a segfault in DOS path resolution due to an initialized
+    drive index. The fix for the other issue removes the need for this
+    kludge. In it's place a message will be logged to your log file if
+    anything attempts to access files on drive "@:" because it likely
+    means a failure to determine the drive index properly. (joncampbell123).
+  - In addition to reporting the "boot drive" via INT 21h AX=3305h, also
+    write boot drive in the "List of Lists" structure. Windows 95
+    FORMAT.COM reads the boot drive from the LoL and does not do any
+    error checking if that value is out of range (such as if it was
+    never set and the byte value is zero). Failure to set this field
+    will result in FORMAT.COM attempting to access "@:\WINBOOT.SYS"
+    and "@:\IO.SYS" and failing. (joncampbell123).
   - Add dosbox.conf option to set a fixed RTDSC tick rate to use at
     all times during emulation instead of the CPU cycle count
     (joncampbell123).

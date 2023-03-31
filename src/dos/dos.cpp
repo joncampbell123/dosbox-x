@@ -1756,7 +1756,7 @@ static Bitu DOS_21Handler(void) {
                 case 4: /* Set cpsw */
                        LOG(LOG_DOSMISC,LOG_ERROR)("Someone playing with cpsw %x",reg_ax);
                        break;
-                case 5:reg_dl=3;break;//TODO should be z                        /* Always boot from c: :) */
+		case 5:reg_dl=3;break; /* Drive C: (TODO: Make configurable, or else initially set to Z: then re-set to the first drive mounted */
                 case 6:                                         /* Get true version number */
                        reg_bl=dos.version.major;
                        reg_bh=dos.version.minor;

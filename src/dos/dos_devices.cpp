@@ -696,9 +696,26 @@ uint8_t DOS_FindDevice(char const * name) {
 	char fullname[DOS_PATHLENGTH];uint8_t drive;
 	bool ime_flag = false;
 //	if(!name || !(*name)) return DOS_DEVICES; //important, but makename does it
+
+	// NTS: If a program is trying to open paths like "@:\\WINBOOT.SYS" the most likely
+	//      reason is that it's a Microsoft program like FORMAT.COM and it's reading
+	//      locations in the DOS kernel that are supposed to hold the drive letter of
+	//      the boot drive, but carry zero instead.
+	//
+	//      "@:" paths are a sign the program is possibly trying to read files from
+	//      the boot device but is using nonstandard means to determine that i.e.
+	//      not using INT 21h AX=3305h as documented for MS-DOS 4.0 or higher.
+	//      Real MS-DOS probably does not accept "@:" drive paths and neither should
+	//      we.
+	//
+	//      The other reason for this rejection is that the code that was here to
+	//      convert "@:" to normal paths did not initialize local variable "drive"
+	//      and Windows 95 FORMAT.COM requesting "@:\\WINBOOT.SYS" prior to this fix
+	//      sometimes caused a segfault.
 	if(*name == '@' && *(name + 1) == ':') {
-		strcpy(fullname, name + 2);
-		ime_flag = true;
+		LOG_MSG("DOS_FindDevice(): Rejecting path '%s'. @: paths are not valid. It may be a sign the program is attempting to locate the boot drive in an undocumented manner not supported by this emulator",name);
+		return DOS_DEVICES;
+		//ime_flag = true;   // FIXME: <- Why?
 	} else {
 		if (!DOS_MakeName(name,fullname,&drive)) return DOS_DEVICES;
 	}

@@ -539,6 +539,9 @@ public:
 	RealPt	GetPointer(void);
 	uint32_t GetDeviceChain(void);
 
+	void SetBootDrive(uint8_t drv) { sSave(sDIB,bootDrive,drv); }
+	uint8_t GetBootDrive(void) { return sGet(sDIB,bootDrive); }
+
 	#ifdef _MSC_VER
 	#pragma pack(1)
 	#endif

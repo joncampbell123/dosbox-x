@@ -431,6 +431,17 @@ void DOS_SetupTables(void) {
         dos.tables.country=country_info;
     }
 
+    /* Windows 95 FORMAT.COM does not use INT 21h to determine the boot drive. It uses
+     * the List of Lists and reads it directly from this infoblock. This value matches
+     * the hardcoded "C" drive the INT 21h emulation returns.
+     *
+     * No error checking of any kind is done by FORMAT.COM either, so if this value is
+     * zero, it will try to query for "@:\\WINBOOT.SYS" which of course does not exist.
+     *
+     * I'm given the impression from DOS_FindDevice() that someone probably ran into
+     * "@:" paths and did not understand this problem, which is fair enough. */
+    dos_infoblock.SetBootDrive(3); /* Drive C: (TODO: Make configurable, or else initially set to Z: then re-set to the first drive mounted */
+
     /* PC-98 INT 1Bh device list (60:6Ch-7Bh).
      * For now, just write a fake list to satisfy any PC-98 game that
      * requires a "master disk" to run even if running from an HDI.
