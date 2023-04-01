@@ -1,4 +1,9 @@
 Next
+  - "mount -t overlay" will now print a message on the console to
+    let you know if the act of mounting the overlay replaced a
+    previous overlay mount. Overlay mounts cannot be stacked in
+    DOSBox-X (and probably most DOSBox forks that support overlays)
+    and the user should understand that. (joncampbell123).
   - Remove kludges from DOS path resolution to handle drive paths
     that refer to drive @ (at sign). Note that in ASCII the at sign
     is one code below capital "A". Windows 95 FORMAT.COM due to

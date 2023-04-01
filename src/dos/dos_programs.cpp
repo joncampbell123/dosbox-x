@@ -1509,20 +1509,27 @@ public:
                           delete newdrive;
                           return;
                       } else {
-						  Overlay_Drive* odrive=dynamic_cast<Overlay_Drive*>(newdrive);
-						  if (odrive!=NULL) {
-							odrive->ovlnocachedir = nocachedir;
-							odrive->ovlreadonly = readonly;
-						  }
-					  }
+                          Overlay_Drive* odrive=dynamic_cast<Overlay_Drive*>(newdrive);
+                          if (odrive!=NULL) {
+                              odrive->ovlnocachedir = nocachedir;
+                              odrive->ovlreadonly = readonly;
+                          }
+                      }
 
-						//Copy current directory if not marked as deleted.
-						if (newdrive->TestDir(ldp->curdir)) {
-							strcpy(newdrive->curdir,ldp->curdir);
-						}
+                      //Copy current directory if not marked as deleted.
+                      if (newdrive->TestDir(ldp->curdir)) {
+                          strcpy(newdrive->curdir,ldp->curdir);
+                      }
 
-                      delete Drives[drive-'A'];
-                      Drives[drive-'A'] = 0;
+                      if (Drives[drive-'A'] != NULL) {
+                          if (dynamic_cast<Overlay_Drive*>(Drives[drive-'A']) != NULL) { /* Yeah, this relies on RTTI but it's probably worth it */
+                              /* Let the user know in case experience with other OSes or emulators leads them to think
+                               * that they can "stack" overlays by mounting multiple times. */
+                              WriteOut("Existing overlay has been replaced with new overlay.\n");
+                          }
+                          delete Drives[drive-'A'];
+                          Drives[drive-'A'] = 0;
+                      }
                   } else { 
                       if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_ERROR"));
                       return;
