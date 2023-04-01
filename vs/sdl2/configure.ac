@@ -1334,25 +1334,17 @@ CheckStackBoundary()
 dnl See if GCC's -Wdeclaration-after-statement is supported.
 dnl  This lets us catch things that would fail on a C89 compiler when using
 dnl  a modern GCC.
+dnl
+dnl EDIT 2023/04/01 DOSBox-X: We don't care about ancient compilers. A compiler
+dnl that old doesn't support C++ and even if it did, it wouldn't be new enough
+dnl for this code base. We have to disable this because this is preventing
+dnl DOSBox-X from compiling with the latest XCode on ARM-based Macbooks because
+dnl the *.m files have variable declarations after statements. At no point is
+dnl this code going to compile itself like it's 1993. Come on guys. --J.C.
 CheckDeclarationAfterStatement()
 {
-    AC_MSG_CHECKING(for GCC -Wdeclaration-after-statement option)
-    have_gcc_declaration_after_statement=no
-
-    save_CFLAGS="$CFLAGS"
-    CFLAGS="$save_CFLAGS -Wdeclaration-after-statement -Werror=declaration-after-statement"
-    AC_TRY_COMPILE([
-    int x = 0;
-    ],[
-    ],[
-    have_gcc_declaration_after_statement=yes
-    ])
-    AC_MSG_RESULT($have_gcc_declaration_after_statement)
-    CFLAGS="$save_CFLAGS"
-
-    if test x$have_gcc_declaration_after_statement = xyes; then
-        EXTRA_CFLAGS="$EXTRA_CFLAGS -Wdeclaration-after-statement -Werror=declaration-after-statement"
-    fi
+    dnl We don't care about C89 compilers.
+    true
 }
 
 dnl See if GCC's -Wall is supported.

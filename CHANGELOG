@@ -1,3 +1,11 @@
+Next:
+  - SDL2: Stop checking for compiler flags that make it an error to
+    declare variables after statements in a function or any other
+    terrible sins that would offend old C89 standard compilers.
+    DOSBox-X is never going to compile for a C standard that old.
+    Furthermore this check is preventing compilation on ARM-based
+    Macbooks for some reason, though not Intel based Macbooks.
+
 2023.03.31
   - "mount -t overlay" will now print a message on the console to
     let you know if the act of mounting the overlay replaced a
