@@ -1193,15 +1193,21 @@ public:
 	}
 };
 
-static IPX* test;
+static IPX* test = NULL;
 
 void IPX_ShutDown(Section*) {
-	delete test;
+	if (test != NULL) {
+		delete test;
+		test = NULL;
+	}
 }
 
 void IPX_OnReset(Section*) {
 	/* reset signal */
-	delete test;
+	if (test != NULL) {
+		delete test;
+		test = NULL;
+	}
 }
 
 void IPX_Setup(Section*) {
