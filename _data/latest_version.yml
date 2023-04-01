@@ -3,24 +3,15 @@
 
 # Release date and secondary version label is retrieved from
 # the release note of the version
-version: 2022.12.26
-git_tag: dosbox-x-v2022.12.26
+version: 2023.03.31
+git_tag: dosbox-x-v2023.03.31
 
-#win32_setup_file: dosbox-x-win32-2022.12.26-setup.exe
-#win64_setup_file: dosbox-x-win64-2022.12.26-setup.exe
-#winXP_setup_file: dosbox-x-winXP-2022.12.26-setup.exe
+win32_setup_file: dosbox-x-win32-2023.03.31-setup.exe
+win64_setup_file: dosbox-x-win64-2023.03.31-setup.exe
+winXP_setup_file: dosbox-x-winXP-2023.03.31-setup.exe
 
-# Linking to the portable packages to at least avoid a 404 error,
-# since installers are not released for 2022.12.26.
-# The actual installers should be linked in the next release,
-# where they are available.
-win32_setup_file: dosbox-x-vsbuild-win32-20221226190454.zip
-win64_setup_file: dosbox-x-vsbuild-win64-20221226190454.zip
-# Does not exist yet
-winXP_setup_file: dosbox-x-winXP-2022.12.26-setup.exe
-
-macos_intel_file: dosbox-x-macosx-x86_64-20221226190321.zip
-macos_arm_file: dosbox-x-macosx-arm64-20221226183221.zip
+macos_intel_file: dosbox-x-macosx-x86_64-20230401002212.zip
+macos_arm_file: dosbox-x-macosx-arm64-20230331203847.zip
 #macos_special_file: dosbox-x-macosx-2022.12.26-high-sierra.zip
 
 dos_hx_file: dosbox-x-mingw-hx-dos-20221227040431.zip
