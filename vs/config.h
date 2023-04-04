@@ -389,5 +389,20 @@ typedef         double     Real64;
 # pragma warning(disable:4996)
 #endif
 
+/*
+  Define HAS_CDIRECTLPT as 1 if C_DIRECTLPT is defined (as 1) *and* parallel
+  pass-through is available on the current platform. It is only available on
+  x86{_64} with Windows or BSD, and on Linux.
+*/
+#ifdef C_DIRECTLPT
+#if (defined __i386__ || defined __x86_64__ || defined _M_IX86 || defined _M_X64) && \
+    defined WIN32
+#define HAS_CDIRECTLPT 1
+#endif
+#endif // C_DIRECTLPT
+#ifndef HAS_CDIRECTLPT
+#define HAS_CDIRECTLPT 0
+#endif
+
 /* Linux-side configure script will write/rewrite this file so both Windows and Linux builds carry the same information --J.C. */
 #include "config_package.h"

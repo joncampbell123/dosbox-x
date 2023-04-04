@@ -9177,7 +9177,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
           Drop root privileges after they are no longer needed, which is a good
           practice if the executable is setuid root.
           dropPrivileges() is called by PARPORTS::PARPORTS() after contructing
-          CDirectLPT instances, but only if the constant C_DIRECTLPT is
+          CDirectLPT instances, but only if the constant HAS_CDIRECTLPT is
           non-zero. dropPrivileges() should be called regardless (if
           initPassthroughIO() is used anywhere else).
         */

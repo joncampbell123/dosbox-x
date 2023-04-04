@@ -64,6 +64,24 @@ AC_CANONICAL_BUILD
 dnl Setup for automake
 AM_INIT_AUTOMAKE([foreign subdir-objects])
 AC_CONFIG_HEADER(config.h)
+AH_BOTTOM([/*
+  Define HAS_CDIRECTLPT as 1 if C_DIRECTLPT is defined (as 1) *and* parallel
+  pass-through is available on the current platform. It is only available on
+  x86{_64} with Windows or BSD, and on Linux.
+  We cannot override the value of C_DIRECTLPT, because configure will replace
+  "#undef C_DIRECTLPT" or "#define C_DIRECTLPT 0" with "#define C_DIRECTLPT 1".
+*/
+#ifdef C_DIRECTLPT
+#if ((defined __i386__ || defined __x86_64__ || defined _M_IX86 || defined _M_X64) && \
+     (defined WIN32 || defined BSD || defined __CYGWIN__)) || \
+     /* WIN32 is not defined by default on Cygwin */ \
+    defined LINUX /* Linux, including non-x86 (e.g. Raspberry Pi) */
+#define HAS_CDIRECTLPT 1
+#endif
+#endif // C_DIRECTLPT
+#ifndef HAS_CDIRECTLPT
+#define HAS_CDIRECTLPT 0
+#endif])
 
 dnl Checks for programs.
 AC_PROG_MAKE_SET
