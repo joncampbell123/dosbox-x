@@ -1096,6 +1096,7 @@ void DOSBOX_RealInit() {
     else if (mtype == "hercules")      { machine = MCH_HERC; hercCard = HERC_GraphicsCard; }
     else if (mtype == "hercules_plus") { machine = MCH_HERC; hercCard = HERC_GraphicsCardPlus; }
     else if (mtype == "hercules_incolor") { machine = MCH_HERC; hercCard = HERC_InColor; }
+    else if (mtype == "hercules_color") { machine = MCH_CGA; mono_cga = false; new_cga = true; } /* guess */
     else if (mtype == "svga_ati_egavgawonder") { svgaCard = SVGA_ATI; atiCard = ATI_EGAVGAWonder; }
     else if (mtype == "svga_ati_vgawonder") { svgaCard = SVGA_ATI; atiCard = ATI_VGAWonder; }
     else if (mtype == "svga_ati_vgawonderplus") { svgaCard = SVGA_ATI; atiCard = ATI_VGAWonderPlus; }
@@ -1349,7 +1350,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* machines[] = {
         "mda",
         "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2",
-        "hercules","hercules_plus","hercules_incolor",
+        "hercules","hercules_plus","hercules_incolor", "hercules_color",
         "tandy",
         "pcjr", "pcjr_composite", "pcjr_composite2",
         "amstrad",
