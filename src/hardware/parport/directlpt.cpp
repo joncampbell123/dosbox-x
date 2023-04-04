@@ -16,8 +16,6 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
-#include "dosbox.h"
-
 #include "directlpt.h" // for HAS_CDIRECTLPT
 #if HAS_CDIRECTLPT
 #include <SDL.h>
@@ -29,6 +27,8 @@
 #include <linux/parport.h>
 #include <linux/ppdev.h>
 #include <sys/ioctl.h>
+#elif defined BSD
+#include <unistd.h>
 #endif
 #include "libs/passthroughio/passthroughio.h"
 #include "callback.h"
@@ -103,7 +103,7 @@ CDirectLPT::CDirectLPT(Bitu nr, uint8_t initIrq, CommandLine* cmd)
 			return;
 		}
 
-		if(ioctl(porthandle, PPCLAIM, NULL) == -1) {
+		if(ioctl(porthandle, PPCLAIM) == -1) {
 			LOG_MSG("parallel%d: Failed to claim parallel port. Pass-through I/O disabled.", (int)nr + 1);
 			return;
 		}

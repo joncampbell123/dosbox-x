@@ -199,7 +199,16 @@ static uint16_t dlportio_input_word(uint16_t port) { return DlPortReadPortUshort
 static void dlportio_output_word(uint16_t port, uint16_t value) { DlPortWritePortUshort(port, value); }
 
 static uint32_t dlportio_input_dword(uint16_t port) { return DlPortReadPortUlong(port); }
-static void dlportio_output_dword(uint16_t port, uint32_t value) { DlPortWritePortUlong(port, value); }
+static void dlportio_output_dword(uint16_t port, uint32_t value) {
+#if 0
+	// DlPortWritePortUlong() in InpOut32/InpOutx64 v1.5.0.1 is broken. See
+	// InpOutInterfaceDriver.zip, hwinterfacedrv.c, line 172.
+	DlPortWritePortUlong(port, value);
+#else
+	DlPortWritePortUshort(port, (USHORT)value);
+	DlPortWritePortUshort(port + 2, (USHORT)(value >> 16));
+#endif
+}
 
 #ifdef __CYGWIN__
 static void ioSignalHandler(int signum, siginfo_t* info, void* ctx) {
@@ -392,7 +401,6 @@ bool initPassthroughIO(void) {
 #ifndef __ANDROID__
 #include <sys/io.h>
 #endif
-#include <sys/types.h>
 #elif defined __OpenBSD__ || defined __NetBSD__
 #include <machine/sysarch.h>
 #include <sys/types.h>

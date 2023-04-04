@@ -67,7 +67,6 @@ private:                                // something was wrong, delete it right 
 #endif
 };
 
-#else
 #endif // Win32 / BSD / Linux
 #endif // C_DIRECTLPT
 
