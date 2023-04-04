@@ -323,10 +323,10 @@ static void VGA_CopyRow(uint8_t cleft,uint8_t cright,uint8_t rold,uint8_t rnew,P
     }
 }
 
-static void TEXT_CopyRow(uint8_t cleft,uint8_t cright,uint8_t rold,uint8_t rnew,PhysPt base) {
+static void TEXT_CopyRow(uint8_t cleft,uint8_t cright,uint8_t rold,uint8_t rnew,PhysPt base,uint8_t ncols) {
     PhysPt src,dest;
-    src=base+(rold*CurMode->twidth+cleft)*2u;
-    dest=base+(rnew*CurMode->twidth+cleft)*2u;
+    src=base+(rold*ncols+cleft)*2u;
+    dest=base+(rnew*ncols+cleft)*2u;
     MEM_BlockCopy(dest,src,(Bitu)(cright-cleft)*2u);
 }
 
@@ -497,10 +497,10 @@ static void PC98_FillRow(uint8_t cleft,uint8_t cright,uint8_t row,PhysPt base,ui
     }
 }
 
-static void TEXT_FillRow(uint8_t cleft,uint8_t cright,uint8_t row,PhysPt base,uint8_t attr) {
+static void TEXT_FillRow(uint8_t cleft,uint8_t cright,uint8_t row,PhysPt base,uint8_t attr,uint8_t ncols) {
     /* Do some filing */
     PhysPt dest;
-    dest=base+(row*CurMode->twidth+cleft)*2;
+    dest=base+(row*ncols+cleft)*2;
     uint16_t fill=(attr<<8)+' ';
     for (uint8_t x=0;x<(Bitu)(cright-cleft);x++) {
         mem_writew(dest,fill);
@@ -1072,7 +1072,7 @@ void INT10_ScrollWindow(uint8_t rul,uint8_t cul,uint8_t rlr,uint8_t clr,int8_t n
         case M_PC98:
             PC98_CopyRow(cul,clr,start,start+nlines,base);break;
         case M_TEXT:
-            TEXT_CopyRow(cul,clr,start,start+nlines,base);break;
+            TEXT_CopyRow(cul,clr,start,start+nlines,base,ncols);break;
         case M_DCGA:
             DCGA_CopyRow(cul,clr,start,start+nlines,base);
             if(J3_IsJapanese()) {
@@ -1128,7 +1128,7 @@ filling:
         case M_PC98:
             PC98_FillRow(cul,clr,start,base,attr);break;
         case M_TEXT:
-            TEXT_FillRow(cul,clr,start,base,attr);break;
+            TEXT_FillRow(cul,clr,start,base,attr,ncols);break;
         case M_DCGA:
             DCGA_FillRow(cul,clr,start,base,attr);
             if(J3_IsJapanese()) {
