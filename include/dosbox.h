@@ -128,7 +128,8 @@ enum SVGACards {
 	SVGA_S3Trio,
 	SVGA_TsengET4K,
 	SVGA_TsengET3K,
-	SVGA_ParadisePVGA1A
+	SVGA_ParadisePVGA1A,
+	SVGA_ATI
 };
 
 enum S3Card {
@@ -148,10 +149,22 @@ enum S3Card {
     S3_ViRGEVX                       // ViRGE VX [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/S3%20Graphics%2c%20Ltd/S3%20ViRGE%E2%88%95VX%20Integrated%203D%20Accelerator%20(1996-06).pdf]
 };
 
+enum ATICard {
+	ATI_EGAVGAWonder,            // ATI 18800 EGA/VGA Wonder
+	ATI_VGAWonder,               // ATI 28800-1 VGA Wonder
+	ATI_VGAWonderPlus,           // ATI 28800-2 VGA Wonder+
+	ATI_VGAWonderXL,             // ATI 28800-4 VGA WonderXL
+	ATI_VGAWonderXL24,           // ATI 28800-6 VGA Wonder
+	ATI_Mach8,                   // ATI 38800-1
+	ATI_Mach32,                  // ATI 68800-3
+	ATI_Mach64                   // ATI 88800GX
+};
+
 typedef Bitu				(LoopHandler)(void);
 
 extern Config*				control;
 extern SVGACards			svgaCard;
+extern ATICard				atiCard;
 extern S3Card				s3Card;
 extern HerculesCard			hercCard;
 extern MachineType			machine;

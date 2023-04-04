@@ -9417,6 +9417,19 @@ startfunction:
                             case S3_ViRGEVX:    card = "S3 ViRGE VX SVGA"; break;
                         }
                         break;
+                    case SVGA_ATI:
+                        card = "ATI SVGA";
+                        switch (atiCard) {
+                            case ATI_EGAVGAWonder:     card = "ATI EGA/VGA Wonder"; break;
+                            case ATI_VGAWonder:        card = "ATI VGA Wonder"; break;
+                            case ATI_VGAWonderPlus:    card = "ATI VGA Wonder+"; break;
+                            case ATI_VGAWonderXL:      card = "ATI VGA WonderXL"; break;
+                            case ATI_VGAWonderXL24:    card = "ATI VGA WonderXL24"; break;
+                            case ATI_Mach8:            card = "ATI Mach8"; break;
+                            case ATI_Mach32:           card = "ATI Mach32"; break;
+                            case ATI_Mach64:           card = "ATI Mach64"; break;
+                        }
+                        break;
                     default:
                         card = "Standard VGA";
                         break;

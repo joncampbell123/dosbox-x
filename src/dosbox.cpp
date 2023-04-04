@@ -187,6 +187,7 @@ MachineType         machine;
 bool                PS1AudioCard;       // Perhaps have PS1 as a machine type...?
 SVGACards           svgaCard;
 S3Card              s3Card;
+ATICard             atiCard;
 HerculesCard        hercCard;
 bool                SDLNetInited;
 int32_t              ticksDone;
@@ -1074,6 +1075,7 @@ void DOSBOX_RealInit() {
     //       provides video.
     std::string mtype(section->Get_string("machine"));
     hercCard = HERC_GraphicsCard;
+    atiCard = ATI_VGAWonder;
     svgaCard = SVGA_None;
     s3Card = S3_Generic;
     machine = MCH_VGA;
@@ -1094,6 +1096,14 @@ void DOSBOX_RealInit() {
     else if (mtype == "hercules")      { machine = MCH_HERC; hercCard = HERC_GraphicsCard; }
     else if (mtype == "hercules_plus") { machine = MCH_HERC; hercCard = HERC_GraphicsCardPlus; }
     else if (mtype == "hercules_incolor") { machine = MCH_HERC; hercCard = HERC_InColor; }
+    else if (mtype == "svga_ati_egavgawonder") { svgaCard = SVGA_ATI; atiCard = ATI_EGAVGAWonder; }
+    else if (mtype == "svga_ati_vgawonder") { svgaCard = SVGA_ATI; atiCard = ATI_VGAWonder; }
+    else if (mtype == "svga_ati_vgawonderplus") { svgaCard = SVGA_ATI; atiCard = ATI_VGAWonderPlus; }
+    else if (mtype == "svga_ati_vgawonderxl") { svgaCard = SVGA_ATI; atiCard = ATI_VGAWonderXL; }
+    else if (mtype == "svga_ati_vgawonderxl24") { svgaCard = SVGA_ATI; atiCard = ATI_VGAWonderXL24; }
+    else if (mtype == "svga_ati_mach8") { svgaCard = SVGA_ATI; atiCard = ATI_Mach8; }
+    else if (mtype == "svga_ati_mach32") { svgaCard = SVGA_ATI; atiCard = ATI_Mach32; }
+    else if (mtype == "svga_ati_mach64") { svgaCard = SVGA_ATI; atiCard = ATI_Mach64; }
     else if (mtype == "mda")           { machine = MCH_MDA; }
     else if (mtype == "ega")           { machine = MCH_EGA; ega200 = false; }
     else if (mtype == "ega200")        { machine = MCH_EGA; ega200 = true; }
@@ -1359,7 +1369,15 @@ void DOSBOX_SetupConfigSections(void) {
         "svga_paradise",
         "vesa_nolfb", "vesa_oldvbe", "vesa_oldvbe10",
         "pc98", "pc9801", "pc9821",
-        "fm_towns", // STUB
+	"svga_ati_egavgawonder",
+	"svga_ati_vgawonder",
+	"svga_ati_vgawonderplus",
+	"svga_ati_vgawonderxl",
+	"svga_ati_vgawonderxl24",
+	"svga_ati_mach8",
+	"svga_ati_mach32",
+	"svga_ati_mach64",
+	"fm_towns", // STUB
         0 };
 
     const char* backendopts[] = {
