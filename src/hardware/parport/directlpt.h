@@ -21,21 +21,8 @@
 
 #include "config.h"
 
-#if C_DIRECTLPT
-/*
-  For MinGW and MinGW-w64, _M_IX86 and _M_X64 are not defined by the compiler,
-  but in a header file, which has to be (indirectly) included, usually through a
-  C (not C++) standard header file. For MinGW it is sdkddkver.h and for
-  MinGW-w64 it is _mingw_mac.h. Do not rely on constants that may not be
-  defined, depending on what was included before these lines.
-*/
-#if ((defined __i386__ || defined __x86_64__ || defined _M_IX86 || defined _M_X64) && \
-     (defined WIN32 || defined BSD || defined __CYGWIN__)) || /* WIN32 is not defined by default on Cygwin */ \
-    defined LINUX /* Linux, including non-x86 (e.g. Raspberry Pi) */
+#if HAS_CDIRECTLPT
 #include "parport.h"
-
-// Instead of repeating the preprocessor logic above, use 1 constant in client code
-#define HAS_CDIRECTLPT 1
 
 class CDirectLPT : public CParallel {
 public:
@@ -67,9 +54,4 @@ private:                                // something was wrong, delete it right 
 #endif
 };
 
-#endif // Win32 / BSD / Linux
-#endif // C_DIRECTLPT
-
-#ifndef HAS_CDIRECTLPT
-#define HAS_CDIRECTLPT 0
-#endif
+#endif // HAS_CDIRECTLPT
