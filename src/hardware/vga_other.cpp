@@ -1088,6 +1088,15 @@ Bitu read_herc_status(Bitu /*port*/,Bitu /*iolen*/) {
         if ((retval&0x81)==0x80) retval |= 0x8;
     }
 
+    switch (hercCard) {
+        case HERC_GraphicsCardPlus:
+            retval |= 0x10;
+            break;
+        case HERC_InColor:
+            retval |= 0x50;
+            break;
+    }
+
 	return retval;
 }
 

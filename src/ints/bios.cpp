@@ -9370,7 +9370,17 @@ startfunction:
                 card = "IBM Monochrome Display Adapter";
                 break;
             case MCH_HERC:
-                card = "Hercules Monochrome Graphics Adapter";
+                switch (hercCard) {
+                    case HERC_GraphicsCardPlus:
+                        card = "Hercules+ Graphics Adapter";
+                        break;
+                    case HERC_InColor:
+                        card = "Hercules InColor Graphics Adapter";
+                        break;
+                    default:
+                        card = "Hercules Graphics Adapter";
+                        break;
+                }
                 break;
             case MCH_EGA:
                 card = "IBM Enhanced Graphics Adapter";

@@ -187,6 +187,7 @@ MachineType         machine;
 bool                PS1AudioCard;       // Perhaps have PS1 as a machine type...?
 SVGACards           svgaCard;
 S3Card              s3Card;
+HerculesCard        hercCard;
 bool                SDLNetInited;
 int32_t              ticksDone;
 uint32_t              ticksScheduled;
@@ -1072,6 +1073,7 @@ void DOSBOX_RealInit() {
     //       base video of it's own, and then to specify an ISA or PCI card attached to the bus that
     //       provides video.
     std::string mtype(section->Get_string("machine"));
+    hercCard = HERC_GraphicsCard;
     svgaCard = SVGA_None;
     s3Card = S3_Generic;
     machine = MCH_VGA;
@@ -1089,7 +1091,9 @@ void DOSBOX_RealInit() {
     else if (mtype == "pcjr")          { machine = MCH_PCJR; }
     else if (mtype == "pcjr_composite") { machine = MCH_PCJR; cga_comp = 1; new_cga = false; }
     else if (mtype == "pcjr_composite2"){ machine = MCH_PCJR; cga_comp = 1; new_cga = true; }
-    else if (mtype == "hercules")      { machine = MCH_HERC; }
+    else if (mtype == "hercules")      { machine = MCH_HERC; hercCard = HERC_GraphicsCard; }
+    else if (mtype == "hercules_plus") { machine = MCH_HERC; hercCard = HERC_GraphicsCardPlus; }
+    else if (mtype == "hercules_incolor") { machine = MCH_HERC; hercCard = HERC_InColor; }
     else if (mtype == "mda")           { machine = MCH_MDA; }
     else if (mtype == "ega")           { machine = MCH_EGA; ega200 = false; }
     else if (mtype == "ega200")        { machine = MCH_EGA; ega200 = true; }
@@ -1335,7 +1339,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* machines[] = {
         "mda",
         "cga", "cga_mono", "cga_rgb", "cga_composite", "cga_composite2",
-        "hercules",
+        "hercules","hercules_plus","hercules_incolor",
         "tandy",
         "pcjr", "pcjr_composite", "pcjr_composite2",
         "amstrad",

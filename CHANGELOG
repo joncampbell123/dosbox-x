@@ -1,4 +1,10 @@
 Next:
+  - Added "machine=hercules_plus" and "machine=hercules_incolor" as
+    stubs to be developed on going forward to emulate the HGC+ and
+    InColor cards. Note that InColor will require the MCH_HERC case
+    to generate 64-color EGA-like output going forward even if the
+    documented stratup state still emulates the MDA-like monochrome
+    attributes. (joncampbell123)
   - SDL2: Stop checking for compiler flags that make it an error to
     declare variables after statements in a function or any other
     terrible sins that would offend old C89 standard compilers.

@@ -117,6 +117,12 @@ enum MachineType {
     MCH_MDA
 };
 
+enum HerculesCard {
+	HERC_GraphicsCard,
+	HERC_GraphicsCardPlus,
+	HERC_InColor
+};
+
 enum SVGACards {
 	SVGA_None,
 	SVGA_S3Trio,
@@ -147,6 +153,7 @@ typedef Bitu				(LoopHandler)(void);
 extern Config*				control;
 extern SVGACards			svgaCard;
 extern S3Card				s3Card;
+extern HerculesCard			hercCard;
 extern MachineType			machine;
 extern bool             SDLNetInited, uselfn;
 extern bool				mono_cga;
