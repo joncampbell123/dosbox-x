@@ -43,7 +43,7 @@ private:
 
 enum ParallelTypesE {
 	PARALLEL_TYPE_DISABLED = 0,
-#if C_DIRECTLPT
+#if HAS_CDIRECTLPT
 	PARALLEL_TYPE_REALLPT,
 #endif
 	PARALLEL_TYPE_FILE,
@@ -68,7 +68,7 @@ public:
 
 	// Constructor
 	CParallel(CommandLine* cmd, Bitu portnr, uint8_t initirq);
-	
+
 	virtual ~CParallel();
 
 	IO_ReadHandleObject ReadHandler[3];
@@ -85,7 +85,7 @@ public:
 	Bitu port_nr;
 	Bitu base;
 	Bitu irq;
-	
+
 	// read data line register
 	virtual Bitu Read_PR()=0;
 	virtual Bitu Read_COM()=0;

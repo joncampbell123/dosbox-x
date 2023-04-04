@@ -32,7 +32,7 @@
 #include "bios.h"					// SetLPTPort(..)
 #include "hardware.h"				// OpenCaptureFile
 
-#if C_DIRECTLPT && (defined __i386__ || defined __x86_64__) && (defined BSD || defined LINUX)
+#if HAS_CDIRECTLPT && (defined __i386__ || defined __x86_64__) && (defined BSD || defined LINUX)
 #include "libs/passthroughio/passthroughio.h" // for dropPrivileges()
 #endif
 #include "parport.h"
@@ -380,7 +380,7 @@ class PARPORTS:public Module_base {
 				if (i == 0 && DISNEY_ShouldInit())
 					continue;
 
-#if C_DIRECTLPT && HAS_CDIRECTLPT
+#if HAS_CDIRECTLPT
 				if(str=="reallpt") {
 					CDirectLPT* cdlpt= new CDirectLPT(i, defaultirq[i],&cmd);
 					if(cdlpt->InstallationSuccessful) {
@@ -444,9 +444,9 @@ class PARPORTS:public Module_base {
 								parallelPortObjects[i] = 0;
 							}
 			} // for lpt 1-9
-#if C_DIRECTLPT && (defined __i386__ || defined __x86_64__) && (defined BSD || defined LINUX)
+#if HAS_CDIRECTLPT && (defined __i386__ || defined __x86_64__) && (defined BSD || defined LINUX)
 			// Drop root privileges after they are no longer needed, which is a
-			// good practice if the executable is setuid root,
+			// good practice if the executable is setuid root.
 			dropPrivileges(); // Ignore whether we could actually drop privileges.
 #endif
 		}
@@ -473,7 +473,7 @@ static PARPORTS *testParallelPortsBaseclass = NULL;
 
 static const char *parallelTypes[PARALLEL_TYPE_COUNT] = {
 	"disabled",
-#if C_DIRECTLPT && HAS_CDIRECTLPT
+#if HAS_CDIRECTLPT
 	"reallpt",
 #endif
 	"file",
@@ -620,7 +620,7 @@ void PARALLEL::Run()
 			case PARALLEL_TYPE_DISABLED:
 				parallelPortObjects[port-1] = 0;
 				break;
-#if C_DIRECTLPT && HAS_CDIRECTLPT
+#if HAS_CDIRECTLPT
 			case PARALLEL_TYPE_REALLPT:
 				{
 					CDirectLPT* cdlpt= new CDirectLPT(port-1, defaultirq[port-1],&cmd);
