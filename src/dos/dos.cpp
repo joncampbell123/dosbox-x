@@ -257,7 +257,7 @@ DOS_InfoBlock dos_infoblock;
 extern int bootdrive;
 extern bool force_sfn, dos_kernel_disabled;
 
-uint16_t DOS_Block::psp() {
+uint16_t DOS_Block::psp() const {
 	if (dos_kernel_disabled) {
 		LOG_MSG("BUG: DOS kernel is disabled (booting a guest OS), and yet somebody is still asking for DOS's current PSP segment\n");
 		return 0x0000;
@@ -266,7 +266,7 @@ uint16_t DOS_Block::psp() {
 	return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetPSP();
 }
 
-void DOS_Block::psp(uint16_t _seg) {
+void DOS_Block::psp(uint16_t _seg) const {
 	if (dos_kernel_disabled) {
 		LOG_MSG("BUG: DOS kernel is disabled (booting a guest OS), and yet somebody is still attempting to change DOS's current PSP segment\n");
 		return;
@@ -275,7 +275,7 @@ void DOS_Block::psp(uint16_t _seg) {
 	DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetPSP(_seg);
 }
 
-RealPt DOS_Block::dta() {
+RealPt DOS_Block::dta() const {
 	if (dos_kernel_disabled) {
 		LOG_MSG("BUG: DOS kernel is disabled (booting a guest OS), and yet somebody is still asking for DOS's DTA (disk transfer address)\n");
 		return 0;
@@ -284,7 +284,7 @@ RealPt DOS_Block::dta() {
 	return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetDTA();
 }
 
-void DOS_Block::dta(RealPt _dta) {
+void DOS_Block::dta(RealPt _dta) const {
 	if (dos_kernel_disabled) {
 		LOG_MSG("BUG: DOS kernel is disabled (booting a guest OS), and yet somebody is still attempting to change DOS's DTA (disk transfer address)\n");
 		return;
@@ -2734,7 +2734,7 @@ static Bitu DOS_21Handler(void) {
                         else len = mem_strlen(data); /* Is limited to 1024 */
 
                         if(len > DOS_COPYBUFSIZE - 1) E_Exit("DOS:0x65 Buffer overflow");
-                        if(len) {
+                        else if(len) {
                             MEM_BlockRead(data,dos_copybuf,len);
                             dos_copybuf[len] = 0;
                             //No upcase as String(0x21) might be multiple asciz strings

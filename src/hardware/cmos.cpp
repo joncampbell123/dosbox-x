@@ -30,12 +30,13 @@
 #include "setup.h"
 #include "cross.h" //fmod on certain platforms
 #include "control.h"
-bool date_host_forced=false;
 #if defined (WIN32) && !defined (__MINGW32__)
 #include "sys/timeb.h"
 #else
 #include "sys/time.h"
 #endif
+
+bool date_host_forced = false;
 
 // sigh... Windows doesn't know gettimeofday
 #if defined (WIN32) && !defined (__MINGW32__)
@@ -47,6 +48,7 @@ struct timeval {
 };
 
 static void gettimeofday (timeval* ptime, void* pdummy) {
+    (void)pdummy;
     struct _timeb thetime;
     _ftime(&thetime);
 
@@ -456,7 +458,7 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
         drive_b = 0;
         if(imageDiskList[0] != NULL) drive_a = imageDiskList[0]->GetBiosType();
         if(imageDiskList[1] != NULL) drive_b = imageDiskList[1]->GetBiosType();
-        return ((drive_a << 4) | (drive_b));
+        return ((drive_a << 4) | drive_b);
     /* First harddrive info */
     case 0x12:
         /* NTS: DOSBox 0.74 mainline has these backwards: the upper nibble is the first hard disk,
@@ -480,8 +482,6 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
         if(imageDiskList[2] != NULL) return (imageDiskList[2]->heads);
         return 0;
     case 0x1e:
-        if(imageDiskList[2] != NULL) return 0xff;
-        return 0;
     case 0x1f:
         if(imageDiskList[2] != NULL) return 0xff;
         return 0;
@@ -511,8 +511,6 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
         if(imageDiskList[3] != NULL) return (imageDiskList[3]->heads);
         return 0;
     case 0x27:
-        if(imageDiskList[3] != NULL) return 0xff;
-        return 0;
     case 0x28:
         if(imageDiskList[3] != NULL) return 0xff;
         return 0;

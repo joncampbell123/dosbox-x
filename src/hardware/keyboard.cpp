@@ -35,6 +35,7 @@
 #include "8255.h"
 #include "jfont.h"
 #include "keymap.h"
+#include "control.h"
 
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
@@ -519,8 +520,6 @@ void KEYBOARD_AUX_Write(Bitu val) {
             break;
     }
 }
-
-#include "control.h"
 
 bool allow_keyb_reset = true;
 
@@ -1942,12 +1941,9 @@ static Bitu pc98_8255prn_read(Bitu port,Bitu /*iolen*/) {
 }
 
 static struct pc98_keyboard {
-    pc98_keyboard() : caps(false), kana(false), num(false) {
-    }
-
-    bool                        caps;
-    bool                        kana;
-    bool                        num;
+    bool                        caps = false;
+    bool                        kana = false;
+    bool                        num = false;
 } pc98_keyboard_state;
 
 bool pc98_caps(void) {
@@ -1982,32 +1978,27 @@ static struct pc98_8251_keyboard_uart {
         COMMAND_STATE
     };
 
-    unsigned char               data;
-    unsigned char               txdata;
-    enum cmdreg_state           state;
-    unsigned char               mode_byte;
-    bool                        keyboard_reset;
-    bool                        rx_enable;
-    bool                        tx_enable;
-    bool                        valid_state;
+    unsigned char               data = 0xFF;
+    unsigned char               txdata = 0xFF;
+    enum cmdreg_state           state = MODE_STATE;
+    unsigned char               mode_byte = 0;
+    bool                        keyboard_reset = false;
+    bool                        rx_enable = false;
+    bool                        tx_enable = false;
+    bool                        valid_state = false;
 
-    bool                        rx_busy;
-    bool                        rx_ready;
-    bool                        tx_busy;
-    bool                        tx_empty;
+    bool                        rx_busy = false;
+    bool                        rx_ready = false;
+    bool                        tx_busy = false;
+    bool                        tx_empty = true;
 
     /* io_delay in milliseconds for use with PIC delay code */
-    double                      io_delay_ms;
-    double                      tx_load_ms;
+    double                      io_delay_ms = (((1/*start*/ + 8/*data*/ + 1/*parity*/ + 1/*stop*/) * 1000.0) / 19200);
+    double                      tx_load_ms = (((1/*start*/ + 8/*data*/) * 1000.0) / 19200);
 
     /* recv data from keyboard */
     unsigned char               recv_buffer[32] = {};
-    unsigned char               recv_in,recv_out;
-
-    pc98_8251_keyboard_uart() : data(0xFF), txdata(0xFF), state(MODE_STATE), mode_byte(0), keyboard_reset(false), rx_enable(false), tx_enable(false), valid_state(false), rx_busy(false), rx_ready(false), tx_busy(false), tx_empty(true), recv_in(0), recv_out(0) {
-        io_delay_ms = (((1/*start*/+8/*data*/+1/*parity*/+1/*stop*/) * 1000.0) / 19200);
-        tx_load_ms = (((1/*start*/+8/*data*/) * 1000.0) / 19200);
-    }
+    unsigned char               recv_in = 0,recv_out = 0;
 
     void reset(void) {
         PIC_RemoveEvents(uart_tx_load);
@@ -2096,7 +2087,7 @@ static struct pc98_8251_keyboard_uart {
         tx_busy = false;
     }
 
-    unsigned char read_status(void) {
+    unsigned char read_status(void) const {
         unsigned char r = 0;
 
         /* bit[7:7] = DSR (1=DSR at zero level)
@@ -2230,8 +2221,12 @@ uint8_t p7fd9_8255_mouse_latch = 0;
 uint8_t p7fd8_8255_mouse_int_enable = 0;
 
 void pc98_mouse_movement_apply(int x,int y) {
-    x += p7fd9_8255_mouse_x; if (x < -128) x = -128; if (x > 127) x = 127;
-    y += p7fd9_8255_mouse_y; if (y < -128) y = -128; if (y > 127) y = 127;
+    x += p7fd9_8255_mouse_x;
+    if (x < -128) x = -128;
+    if (x > 127) x = 127;
+    y += p7fd9_8255_mouse_y;
+    if (y < -128) y = -128;
+    if (y > 127) y = 127;
     p7fd9_8255_mouse_x = (int8_t)x;
     p7fd9_8255_mouse_y = (int8_t)y;
 }

@@ -1014,7 +1014,7 @@ bool CDROM_Interface_Image::LoadIsoFile(char* filename)
 	return true;
 }
 
-bool CDROM_Interface_Image::CanReadPVD(TrackFile *file, int sectorSize, bool mode2)
+bool CDROM_Interface_Image::CanReadPVD(TrackFile *file, int sectorSize, bool mode2) const
 {
 	uint8_t pvd[COOKED_SECTOR_SIZE];
 	int seek = 16 * sectorSize;	// first vd is located at sector 16
@@ -1355,14 +1355,14 @@ bool CDROM_Interface_Image::AddTrack(Track &curr, int &shift, int prestart, int 
 	// frames between index 0(prestart) and 1(curr.start) must be skipped
 	int skip;
 	if (prestart >= 0) {
-		if (prestart > curr.start) return false;
+		if ((unsigned int)prestart > curr.start) return false;
 		skip = curr.start - prestart;
         //LOG_MSG("CDROM Addtrack skip=%d prestart=%d curr.start=%d", skip, prestart, curr.start);
 	} else skip = 0;
 
 	// first track (track number must be 1)
 	if (tracks.empty()) {
-		if (curr.number != 1) return false;
+        if(curr.number != 1) return false;
         curr.pregap = 0; // first track starts from sector zero, right?
         curr.skip = skip * curr.sectorSize; //
 		curr.start += currPregap;
@@ -1416,7 +1416,7 @@ bool CDROM_Interface_Image::AddTrack(Track &curr, int &shift, int prestart, int 
 	return true;
 }
 
-bool CDROM_Interface_Image::HasDataTrack(void)
+bool CDROM_Interface_Image::HasDataTrack(void) const
 {
 	//Data track has attribute 0x40
 	for (const auto &track : tracks) {
@@ -1427,7 +1427,7 @@ bool CDROM_Interface_Image::HasDataTrack(void)
 	return false;
 }
 
-bool CDROM_Interface_Image::HasAudioTrack(void)
+bool CDROM_Interface_Image::HasAudioTrack(void) const
 {
 	//Audio track has attribute 0x00
 	for (const auto &track : tracks) {
@@ -1438,7 +1438,7 @@ bool CDROM_Interface_Image::HasAudioTrack(void)
 	return false;
 }
 
-bool CDROM_Interface_Image::GetRealFileName(string &filename, string &pathname)
+bool CDROM_Interface_Image::GetRealFileName(string &filename, string &pathname) const
 {
 	// check if file exists
 	struct stat test;
@@ -1496,7 +1496,7 @@ bool CDROM_Interface_Image::GetRealFileName(string &filename, string &pathname)
 	return false;
 }
 
-bool CDROM_Interface_Image::GetCueKeyword(string &keyword, istream &in)
+bool CDROM_Interface_Image::GetCueKeyword(string &keyword, istream &in) const
 {
 	in >> keyword;
 	for (Bitu i = 0; i < keyword.size(); i++) {
@@ -1505,7 +1505,7 @@ bool CDROM_Interface_Image::GetCueKeyword(string &keyword, istream &in)
 	return true;
 }
 
-bool CDROM_Interface_Image::GetCueFrame(int &frames, istream &in)
+bool CDROM_Interface_Image::GetCueFrame(int &frames, istream &in) const
 {
 	string msf;
 	in >> msf;
@@ -1515,7 +1515,7 @@ bool CDROM_Interface_Image::GetCueFrame(int &frames, istream &in)
 	return success;
 }
 
-bool CDROM_Interface_Image::GetCueString(string &str, istream &in)
+bool CDROM_Interface_Image::GetCueString(string &str, istream &in) const
 {
 	int pos = (int)in.tellg();
 	in >> str;

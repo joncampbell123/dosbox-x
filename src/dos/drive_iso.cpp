@@ -115,7 +115,7 @@ void UDFTagId::parse(const unsigned int sz,const unsigned char *b) {
 	}
 }
 
-bool UDFTagId::tagChecksumOK(const unsigned int sz,const unsigned char *b) {
+bool UDFTagId::tagChecksumOK(const unsigned int sz,const unsigned char *b) const {
 	uint8_t chksum = 0;
 
 	if (sz < 16)
@@ -132,7 +132,7 @@ bool UDFTagId::tagChecksumOK(const unsigned int sz,const unsigned char *b) {
 	return true;
 }
 
-bool UDFTagId::dataChecksumOK(const unsigned int sz,const unsigned char *b) {
+bool UDFTagId::dataChecksumOK(const unsigned int sz,const unsigned char *b) const {
 	if (DescriptorCRCLength != 0) {
 		if ((DescriptorCRCLength+16u) > sz)
 			return false;
@@ -696,8 +696,7 @@ UDFlong_ad::UDFlong_ad() {
 UDFextent::UDFextent() {
 }
 
-UDFextent::UDFextent(const struct UDFextent_ad &s) {
-	ex = s;
+UDFextent::UDFextent(const struct UDFextent_ad &s) : ex(s) {
 }
 
 ////////////////////////////////////
@@ -711,7 +710,7 @@ UDFextents::UDFextents(const struct UDFextent_ad &s) {
 
 ////////////////////////////////////
 
-void isoDrive::UDFFileEntryToExtents(UDFextents &ex,UDFFileEntry &fe) {
+void isoDrive::UDFFileEntryToExtents(UDFextents &ex,UDFFileEntry &fe) const {
 	ex.xl.clear();
 	ex.indata.clear();
 	ex.is_indata = false;
@@ -739,7 +738,7 @@ void isoDrive::UDFFileEntryToExtents(UDFextents &ex,UDFFileEntry &fe) {
 
 ////////////////////////////////////
 
-void isoDrive::UDFextent_rewind(struct UDFextents &ex) {
+void isoDrive::UDFextent_rewind(struct UDFextents &ex) const {
 	ex.relofs = 0;
 	ex.extent = 0;
 	ex.extofs = 0;
@@ -755,7 +754,7 @@ uint64_t isoDrive::UDFtotalsize(struct UDFextents &ex) const {
         return total;
 }
 
-uint64_t isoDrive::UDFextent_seek(struct UDFextents &ex,uint64_t ofs) {
+uint64_t isoDrive::UDFextent_seek(struct UDFextents &ex,uint64_t ofs) const {
 	UDFextent_rewind(ex);
 
 	if (ex.is_indata) {
@@ -783,8 +782,8 @@ uint64_t isoDrive::UDFextent_seek(struct UDFextents &ex,uint64_t ofs) {
 	return (uint64_t)ex.extofs + (uint64_t)ex.relofs;
 }
 
-int isoDrive::UDFextent_read(struct UDFextents &ex,unsigned char *buf,size_t count) {
-	int rd = 0;
+unsigned int isoDrive::UDFextent_read(struct UDFextents &ex,unsigned char *buf,size_t count) const {
+	unsigned int rd = 0;
 
 	if (ex.is_indata) {
 		assert(ex.relofs <= (uint32_t)ex.indata.size());
@@ -975,9 +974,6 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
     enable_udf = (dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10));//default
     enable_rock_ridge = (dos.version.major >= 7 || uselfn);//default
     enable_joliet = (dos.version.major >= 7 || uselfn);//default
-    is_rock_ridge = false;
-    is_joliet = false;
-    is_udf = false;
     for (const auto &opt : options) {
         size_t equ = opt.find_first_of('=');
         std::string name,value;
@@ -1590,7 +1586,7 @@ bool isoDrive::GetNextDirEntry(const int dirIteratorHandle, UDFFileIdentifierDes
 			while (*s == '.'||*s == ' ') s++;
 			bool lead = false;
 			while (*s != 0) {
-				if (s == ext) break; // doesn't match if ext == NULL, so no harm in that case
+                if(s == ext) break; // doesn't match if ext == NULL, so no harm in that case
                 if (!lead && ((IS_PC98_ARCH && shiftjis_lead_byte(*s & 0xFF)) || (isDBCSCP() && isKanji1_gbk(*s & 0xFF)))) {
                     if (c >= (7-tailsize)) break;
                     lead = true;
@@ -1713,11 +1709,11 @@ bool isoDrive::ReadCachedSector(uint8_t** buffer, const uint32_t sector) {
 	return true;
 }
 
-inline bool isoDrive :: readSector(uint8_t *buffer, uint32_t sector) {
+inline bool isoDrive :: readSector(uint8_t *buffer, uint32_t sector) const {
 	return CDROM_Interface_Image::images[subUnit]->ReadSector(buffer, false, sector);
 }
 
-int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dirIteratorIndex) {
+int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dirIteratorIndex) const {
 	// This code is NOT for UDF filesystem access!
 	if (is_udf) return -1;
 
@@ -1890,7 +1886,7 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 			while (*s == '.'||*s == ' ') s++;
 			bool lead = false;
 			while (*s != 0) {
-				if (s == ext) break; // doesn't match if ext == NULL, so no harm in that case
+                if(s == ext) break; // doesn't match if ext == NULL, so no harm in that case
                 if (!lead && ((IS_PC98_ARCH && shiftjis_lead_byte(*s & 0xFF)) || (isDBCSCP() && isKanji1_gbk(*s & 0xFF)))) {
                     if (c >= (7-tailsize)) break;
                     lead = true;
@@ -1955,7 +1951,7 @@ static bool escape_is_joliet(const unsigned char *esc) {
 	return false;
 }
 
-bool isoDrive :: loadImageUDFAnchorVolumePointer(UDFAnchorVolumeDescriptorPointer &avdp,uint8_t pvd[COOKED_SECTOR_SIZE],uint32_t sector) {
+bool isoDrive :: loadImageUDFAnchorVolumePointer(UDFAnchorVolumeDescriptorPointer &avdp,uint8_t pvd[COOKED_SECTOR_SIZE],uint32_t sector) const {
 	UDFTagId aid;
 
 	if (!aid.get(COOKED_SECTOR_SIZE,pvd)) return false;
