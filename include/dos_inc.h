@@ -422,7 +422,7 @@ protected:
 
 class DOS_PSP :public MemStruct {
 public:
-	DOS_PSP						(uint16_t segment)		{ SetPt(segment);seg=segment;};
+	DOS_PSP						(uint16_t segment):seg(segment)		{ SetPt(segment);};
 	void	MakeNew				(uint16_t mem_size);
 	void	CopyFileTable		(DOS_PSP* srcpsp,bool createchildpsp);
 	uint16_t	FindFreeFileEntry	(void);
@@ -522,7 +522,7 @@ public:
 
 class DOS_InfoBlock:public MemStruct {
 public:
-    DOS_InfoBlock() : seg(0) {};
+    DOS_InfoBlock() {};
 	void SetLocation(uint16_t  segment);
     void SetFirstDPB(uint32_t _first_dpb);
 	void SetFirstMCB(uint16_t _firstmcb);
@@ -599,7 +599,7 @@ public:
 	#ifdef _MSC_VER
 	#pragma pack ()
 	#endif
-	uint16_t	seg;
+	uint16_t	seg = 0;
 };
 
 class DOS_DTA:public MemStruct{

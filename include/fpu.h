@@ -313,7 +313,7 @@ struct FPUControlWord
 {
 	union
 	{
-		uint16_t reg;
+		uint16_t reg = initValue;
 		RegBit<decltype(reg), 0>     IM;  // Invalid operation mask
 		RegBit<decltype(reg), 1>     DM;  // Denormalized operand mask
 		RegBit<decltype(reg), 2>     ZM;  // Zero divide mask
@@ -341,7 +341,7 @@ struct FPUControlWord
 		Chop    = 3
 	};
 
-	FPUControlWord() : reg(initValue) {}
+	FPUControlWord() {}
 	FPUControlWord(const FPUControlWord& other) = default;
 	FPUControlWord& operator=(const FPUControlWord& other)
 	{
@@ -377,7 +377,7 @@ struct FPUStatusWord
 {
 	union
 	{
-		uint16_t reg;
+		uint16_t reg = 0;
 		RegBit<decltype(reg), 0>     IE;  // Invalid operation
 		RegBit<decltype(reg), 1>     DE;  // Denormalized operand
 		RegBit<decltype(reg), 2>     ZE;  // Divide-by-zero
@@ -395,7 +395,7 @@ struct FPUStatusWord
 		RegBit<decltype(reg), 15>    B;   // Busy flag
 	};
 
-	FPUStatusWord() : reg(0) {}
+	FPUStatusWord() {}
 	FPUStatusWord(const FPUStatusWord& other) = default;
 	FPUStatusWord& operator=(const FPUStatusWord& other)
 	{

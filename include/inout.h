@@ -92,10 +92,10 @@ static inline constexpr Bitu IOMASK_Combine(const Bitu a,const Bitu b) {
  * The io objects will remove itself on destruction.*/
 class IO_Base{
 protected:
-	bool installed;
+	bool installed = false;
 	Bitu m_port, m_mask/*IO_MB, etc.*/, m_range/*number of ports*/;
 public:
-	IO_Base() : installed(false), m_port(0), m_mask(0), m_range(0) {};
+	IO_Base() : m_port(0), m_mask(0), m_range(0) {};
 };
 /* NTS: To explain the Install() method, the caller not only provides the IOMASK_.. value, but ANDs
  *      the least significant bits to define the range of I/O ports to respond to. An ISA Sound Blaster
@@ -108,18 +108,18 @@ public:
  *      move on to the next device or mark the I/O port as empty. */
 class IO_CalloutObject: private IO_Base {
 public:
-    IO_CalloutObject() : IO_Base(), io_mask(0xFFFFU), range_mask(0U), alias_mask(0xFFFFU), getcounter(0), m_r_handler(NULL), m_w_handler(NULL), alloc(false) {};
+    IO_CalloutObject() : IO_Base() {};
     void InvalidateCachedHandlers(void);
 	void Install(Bitu port,Bitu portmask/*IOMASK_ISA_10BIT, etc.*/,IO_ReadCalloutHandler *r_handler,IO_WriteCalloutHandler *w_handler);
 	void Uninstall();
 public:
-    uint16_t io_mask;
-    uint16_t range_mask;
-    uint16_t alias_mask;
-    unsigned int getcounter;
-    IO_ReadCalloutHandler *m_r_handler;
-    IO_WriteCalloutHandler *m_w_handler;
-    bool alloc;
+    uint16_t io_mask = 0xFFFF;
+    uint16_t range_mask = 0;
+    uint16_t alias_mask = 0xFFFF;
+    unsigned int getcounter = 0;
+    IO_ReadCalloutHandler *m_r_handler = NULL;
+    IO_WriteCalloutHandler *m_w_handler = NULL;
+    bool alloc = false;
 public:
     inline bool MatchPort(const uint16_t p) {
         /* (p & io_mask) == (m_port & io_mask) but this also works.

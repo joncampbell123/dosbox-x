@@ -349,22 +349,22 @@ private:
     class RawBytes
     {
     public:
-        RawBytes() : dataExists(false), isCompressed(false) {}
+        RawBytes() {}
         void set(const std::string& stream);
         std::string get() const; //throw (Error)
         void compress() const;   //throw (Error)
         bool dataAvailable() const;
     private:
-        bool dataExists; //determine whether set method (even with empty string) was called
-        mutable bool isCompressed; //design for logical not binary const
+        bool dataExists = false; //determine whether set method (even with empty string) was called
+        mutable bool isCompressed = false; //design for logical not binary const
         mutable std::string bytes; //
     };
 
     struct CompData
     {
-        CompData(Component& cmp) : comp(cmp), rawBytes(MAX_PAGE*SLOT_COUNT) {}
+        CompData(Component& cmp) : comp(cmp) {}
         Component& comp;
-        std::vector<RawBytes> rawBytes;
+        std::vector<RawBytes> rawBytes = std::vector<RawBytes>(MAX_PAGE * SLOT_COUNT);
     };
 
     typedef std::map<std::string, CompData> CompEntry;

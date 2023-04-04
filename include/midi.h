@@ -38,23 +38,23 @@ public:
 
 #define SYSEX_SIZE 8192
 struct DB_Midi {
-	Bitu status;
-	Bitu cmd_len;
-	Bitu cmd_pos;
+	Bitu status = 0;
+	Bitu cmd_len = 0;
+	Bitu cmd_pos = 0;
     uint8_t cmd_buf[8] = {};
     uint8_t rt_buf[8] = {};
 	struct midi_state_sysex_t {
         uint8_t buf[SYSEX_SIZE] = {};
-		Bitu used;
-		Bitu delay;
-		uint32_t start;
+		Bitu used = 0;
+		Bitu delay = 0;
+		uint32_t start = 0;
 
-		midi_state_sysex_t() : used(0), delay(0), start(0) { }
+		midi_state_sysex_t() {}
 	} sysex;
-	bool available;
-	MidiHandler * handler;
+	bool available = false;
+	MidiHandler * handler = NULL;
 
-	DB_Midi() : status(0x00), cmd_len(0), cmd_pos(0), available(false), handler(NULL) { }
+	DB_Midi() {}
 };
 
 extern DB_Midi midi;

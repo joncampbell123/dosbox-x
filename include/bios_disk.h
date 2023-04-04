@@ -150,14 +150,13 @@ public:
     };
 
     struct vfdentry {
-        uint8_t         track,head,sector;
-        uint16_t        sector_size;
+        uint8_t         track = 0,head = 0,sector = 0;
+        uint16_t        sector_size = 0;
 
-        uint32_t        data_offset;
-        uint32_t        entry_offset; // offset of the 12-byte entry this came from (if nonzero)
+        uint32_t        data_offset = 0;
+        uint32_t        entry_offset = 0; // offset of the 12-byte entry this came from (if nonzero)
 
-        vfdentry() : track(0), head(0), sector(0), sector_size(0), data_offset(0), entry_offset(0) {
-        }
+        vfdentry() {}
 
         uint16_t getSectorSize(void) const {
             return sector_size;
@@ -180,14 +179,13 @@ public:
 	virtual ~imageDiskNFD();
 
     struct vfdentry {
-        uint8_t         track,head,sector;
-        uint16_t        sector_size;
+        uint8_t         track = 0,head = 0,sector = 0;
+        uint16_t        sector_size = 0;
 
-        uint32_t        data_offset;
-        uint32_t        entry_offset; // offset of the 12-byte entry this came from (if nonzero)
+        uint32_t        data_offset = 0;
+        uint32_t        entry_offset = 0; // offset of the 12-byte entry this came from (if nonzero)
 
-        vfdentry() : track(0), head(0), sector(0), sector_size(0), data_offset(0), entry_offset(0) {
-        }
+        vfdentry() {}
 
         uint16_t getSectorSize(void) const {
             return sector_size;
@@ -210,14 +208,13 @@ public:
 	virtual ~imageDiskVFD();
 
     struct vfdentry {
-        uint8_t         track,head,sector,sizebyte;
-        uint8_t         fillbyte;
+        uint8_t         track = 0,head = 0,sector = 0,sizebyte = 0;
+        uint8_t         fillbyte = 0xFF;
 
-        uint32_t        data_offset;
-        uint32_t        entry_offset; // offset of the 12-byte entry this came from (if nonzero)
+        uint32_t        data_offset = 0;
+        uint32_t        entry_offset = 0; // offset of the 12-byte entry this came from (if nonzero)
 
-        vfdentry() : track(0), head(0), sector(0), sizebyte(0), fillbyte(0xFF), data_offset(0), entry_offset(0) {
-        }
+        vfdentry() {}
 
         bool hasSectorData(void) const {
             return fillbyte == 0xFF && data_offset != 0xFFFFFFFFUL;
@@ -403,13 +400,9 @@ public:
         (void)data;//UNUSED
         return 0x05; /* fail, read only */
     }
-    imageDiskElToritoFloppy(unsigned char new_CDROM_drive,unsigned long new_cdrom_sector_offset,unsigned char floppy_emu_type) : imageDisk((FILE *)NULL,NULL,0,false) {
+    imageDiskElToritoFloppy(unsigned char new_CDROM_drive,unsigned long new_cdrom_sector_offset,unsigned char floppy_emu_type) : imageDisk((FILE *)NULL,NULL,0,false), CDROM_drive(new_CDROM_drive), cdrom_sector_offset(new_cdrom_sector_offset), floppy_type(floppy_emu_type) {
         diskimg = NULL;
         sector_size = 512;
-        CDROM_drive = new_CDROM_drive;
-        cdrom_sector_offset = new_cdrom_sector_offset;
-        floppy_type = floppy_emu_type;
-
         class_id = ID_EL_TORITO_FLOPPY;
 
         if (floppy_emu_type == 1) { /* 1.2MB */
