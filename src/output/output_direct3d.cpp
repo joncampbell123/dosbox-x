@@ -7,11 +7,21 @@
 #include "logging.h"
 #include "menudef.h"
 #include "render.h"
+
 #include <output/output_direct3d.h>
+#include <output/output_surface.h>
+#include <output/output_tools.h>
+#include <output/output_tools_xbrz.h>
 
 #include "sdlmain.h"
 
 using namespace std;
+
+extern Bitu frames;
+extern Bitu userResizeWindowWidth;
+extern Bitu userResizeWindowHeight;
+extern Bitu currentWindowWidth;
+extern Bitu currentWindowHeight;
 
 #if C_DIRECT3D
 

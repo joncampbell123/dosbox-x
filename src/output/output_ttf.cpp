@@ -35,6 +35,8 @@
 #include "callback.h"
 #include "../ints/int10.h"
 
+#include <output/output_ttf.h>
+
 using namespace std;
 
 std::map<int, int> lowboxdrawmap {

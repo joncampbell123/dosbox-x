@@ -68,6 +68,8 @@
 #include "../libs/tinyfiledialogs/tinyfiledialogs.h"
 #endif
 
+#include <output/output_ttf.h>
+
 #ifdef DOSBOXMENU_EXTERNALLY_MANAGED
 static DOSBoxMenu guiMenu, nullMenu;
 #endif

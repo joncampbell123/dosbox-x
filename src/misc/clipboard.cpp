@@ -29,6 +29,8 @@
 #include <malloc.h>
 #endif
 
+#include <output/output_ttf.h>
+
 uint8_t *clipAscii = NULL;
 uint32_t clipSize = 0;
 bool direct_mouse_clipboard = false;

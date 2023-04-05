@@ -24,6 +24,13 @@
 /* for mkdir_p, needed by emscripten */
 #include <sys/stat.h>
 #endif
+#include <algorithm>
+#include <functional>
+#include <map>
+#include <sstream>
+#include <vector>
+
+#include "clockdomain.h"
 #include "config.h"
 
 #if defined(C_ICONV)
@@ -89,8 +96,6 @@ GCC_ATTRIBUTE(noreturn) void		E_Exit(const char * format,...) GCC_ATTRIBUTE( __f
 
 typedef Bits cpu_cycles_count_t;
 typedef Bitu cpu_cycles_countu_t;
-
-#include "clockdomain.h"
 
 class Config;
 class Section;
@@ -296,13 +301,6 @@ static inline constexpr bytecount_t _tebibytes(const bytecount_t x) {
 
 #ifndef SAVE_STATE_H_INCLUDED
 #define SAVE_STATE_H_INCLUDED
-
-#include <sstream>
-#include <map>
-#include <algorithm>
-#include <functional>
-#include <vector>
-
 
 #define WRITE_POD(x,y) \
 	stream.write(reinterpret_cast<const char*>( (x) ), sizeof( (y) ) );

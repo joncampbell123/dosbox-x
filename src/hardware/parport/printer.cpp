@@ -39,6 +39,8 @@
 #include "../../ints/int10.h"
 #include "sdlmain.h"
 
+#include <output/output_ttf.h>
+
 #if defined(USE_TTF)
 extern unsigned char DOSBoxTTFbi[48868];
 extern bool printfont;

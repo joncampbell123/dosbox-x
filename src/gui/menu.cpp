@@ -37,6 +37,9 @@
 #include "sdlmain.h"
 #include "../ints/int10.h"
 
+#include <output/output_opengl.h>
+#include <output/output_ttf.h>
+
 #if DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
 unsigned int min_sdldraw_menu_width = 500;
 unsigned int min_sdldraw_menu_height = 300;

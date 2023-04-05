@@ -51,6 +51,9 @@ RECT monrect;
 int curscreen;
 #endif
 
+#include <output/output_tools.h>
+#include <output/output_ttf.h>
+
 Bitu call_program;
 extern char lastmount;
 extern const char *modifier;

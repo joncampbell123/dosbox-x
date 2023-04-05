@@ -20,6 +20,8 @@
 #ifndef DOSBOX_PAGING_H
 #define DOSBOX_PAGING_H
 
+#include <exception>
+
 #include "mem.h"
 
 // disable this to reduce the size of the TLB
@@ -494,8 +496,6 @@ static INLINE bool mem_writed_checked(const PhysPt address,const uint32_t val) {
 }
 
 extern bool dosbox_allow_nonrecursive_page_fault;	/* when set, do nonrecursive mode (when executing instruction) */
-
-#include <exception>
 
 class GuestPageFaultException : public std::exception {
 public:
