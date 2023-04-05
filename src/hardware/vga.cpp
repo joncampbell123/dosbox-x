@@ -1031,7 +1031,12 @@ void VGA_Reset(Section*) {
      * for selecting machine type AND video card. */
     switch (machine) {
         case MCH_HERC:
-            if (vga.mem.memsize < _KB_bytes(64)) vga.mem.memsize = _KB_bytes(64);
+            if (hercCard >= HERC_InColor) {
+                if (vga.mem.memsize < _KB_bytes(256)) vga.mem.memsize = _KB_bytes(256);
+            }
+            else {
+                if (vga.mem.memsize < _KB_bytes(64)) vga.mem.memsize = _KB_bytes(64);
+            }
             break;
         case MCH_MDA:
             if (vga.mem.memsize < _KB_bytes(4)) vga.mem.memsize = _KB_bytes(4);
