@@ -1025,7 +1025,10 @@ static void write_hercules(Bitu port,Bitu val,Bitu /*iolen*/) {
 		} else {
 			if ((val & 0x80) && (vga.herc.enable_bits & 0x2)) {
 				vga.herc.mode_control |= 0x80;
-				vga.tandy.draw_base = &vga.mem.linear[32*1024];
+				if (hercCard == HERC_InColor)
+					vga.tandy.draw_base = &vga.mem.linear[32*1024*4/*planar memory*/];
+				else
+					vga.tandy.draw_base = &vga.mem.linear[32*1024];
 			}
 		}
 		vga.draw.blinking = (val&0x20)!=0;
@@ -1062,40 +1065,42 @@ Bitu read_herc_status(Bitu /*port*/,Bitu /*iolen*/) {
 
 	double timeInFrame = PIC_FullIndex()-vga.draw.delay.framestart;
 	uint8_t retval=0x72; // Hercules ident; from a working card (Winbond W86855AF)
-					// Another known working card has 0x76 ("KeysoGood", full-length)
+	// Another known working card has 0x76 ("KeysoGood", full-length)
 
-    if (machine == MCH_HERC) {
-        /* NTS: Vertical retrace bit is hercules-specific, as documented.
-         *      DOSLIB uses this to detect MDA vs Hercules.
-         *
-         *      This (and DOSLIB) will be revised when I get around to
-         *      plugging in my old MDA in one machine and Hercules card
-         *      in another machine to double-check ---J.C. */
-        if (timeInFrame < vga.draw.delay.vrstart ||
-                timeInFrame > vga.draw.delay.vrend) retval |= 0x80;
-    }
-    else {
-        retval |= 0x80; // bit 7 always set on MDA (right??)
-    }
+	if (machine == MCH_HERC) {
+		/* NTS: Vertical retrace bit is hercules-specific, as documented.
+		 *      DOSLIB uses this to detect MDA vs Hercules.
+		 *
+		 *      This (and DOSLIB) will be revised when I get around to
+		 *      plugging in my old MDA in one machine and Hercules card
+		 *      in another machine to double-check ---J.C. */
+		if (timeInFrame < vga.draw.delay.vrstart ||
+			timeInFrame > vga.draw.delay.vrend) retval |= 0x80;
+	}
+	else {
+		retval |= 0x80; // bit 7 always set on MDA (right??)
+	}
 
 	double timeInLine=fmod(timeInFrame,vga.draw.delay.htotal);
 	if (timeInLine >= vga.draw.delay.hrstart &&
 		timeInLine <= vga.draw.delay.hrend) retval |= 0x1;
 
-    if (machine == MCH_HERC) {
-        // 688 Attack sub checks bit 3 - as a workaround have the bit enabled
-        // if no sync active (corresponds to a completely white screen)
-        if ((retval&0x81)==0x80) retval |= 0x8;
-    }
+	if (machine == MCH_HERC) {
+		// 688 Attack sub checks bit 3 - as a workaround have the bit enabled
+		// if no sync active (corresponds to a completely white screen)
+		if ((retval&0x81)==0x80) retval |= 0x8;
+	}
 
-    switch (hercCard) {
-        case HERC_GraphicsCardPlus:
-            retval |= 0x10;
-            break;
-        case HERC_InColor:
-            retval |= 0x50;
-            break;
-    }
+	switch (hercCard) {
+		case HERC_GraphicsCardPlus:
+			retval |= 0x10;
+			break;
+		case HERC_InColor:
+			retval |= 0x50;
+			break;
+		default:
+			break;
+	}
 
 	return retval;
 }
