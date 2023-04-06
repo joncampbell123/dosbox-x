@@ -12,6 +12,8 @@
 #ifndef DOSBOX_SDLMAIN_H
 #define DOSBOX_SDLMAIN_H
 
+#include "zipfile.h"
+
 #include <output/output_gamelink.h>
 
 enum SCREEN_TYPES {
@@ -211,16 +213,6 @@ extern "C" unsigned int SDL1_hax_inhibit_WM_PAINT;
 
 extern Bitu frames;
 extern SDL_Block sdl;
-
-#include <output/output_surface.h>
-#include <output/output_direct3d.h>
-#include <output/output_opengl.h>
-#include <output/output_tools.h>
-#include <output/output_tools_xbrz.h>
-#include <output/output_ttf.h>
-
-#include "zipfile.h"
-
 extern Bitu userResizeWindowWidth;
 extern Bitu userResizeWindowHeight;
 extern Bitu currentWindowWidth;
@@ -238,6 +230,7 @@ void DoKillSwitch();
 void ResetSystem(bool pressed);
 void PauseDOSBox(bool pressed);
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+int GetNumScreen();
 
 #if defined(C_SDL2)
 SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES screenType);

@@ -154,9 +154,17 @@ extern int tryconvertcp, Reflect_Menu(void);
 # include <shobjidl.h>
 #endif
 
+#include <output/output_direct3d.h>
+#include <output/output_opengl.h>
+#include <output/output_surface.h>
+#include <output/output_tools.h>
+#include <output/output_ttf.h>
+#include <output/output_tools_xbrz.h>
+
 #if defined(WIN32)
 #include "resource.h"
 #if !defined(HX_DOS)
+
 BOOL CALLBACK EnumDispProc(HMONITOR hMon, HDC dcMon, RECT* pRcMon, LPARAM lParam) {
     (void)hMon;
     (void)dcMon;
@@ -301,7 +309,6 @@ void resetFontSize(), increaseFontSize(), decreaseFontSize();
 void GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight);
 void MAPPER_CheckEvent(SDL_Event * event), MAPPER_CheckKeyboardLayout(), MAPPER_ReleaseAllKeys();
 bool isDBCSCP(), InitCodePage();
-int GetNumScreen();
 
 SDL_Block sdl;
 Bitu frames = 0;
@@ -945,7 +952,7 @@ void GFX_SetIcon(void)
 bool IsDebuggerActive(void);
 #endif
 
-extern std::string dosbox_title, GetDefaultOutput();
+extern std::string dosbox_title;
 
 void GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused) {
     (void)frameskip;//UNUSED
@@ -9178,7 +9185,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
           Drop root privileges after they are no longer needed, which is a good
           practice if the executable is setuid root.
           dropPrivileges() is called by PARPORTS::PARPORTS() after contructing
-          CDirectLPT instances, but only if the constant C_DIRECTLPT is
+          CDirectLPT instances, but only if the constant HAS_CDIRECTLPT is
           non-zero. dropPrivileges() should be called regardless (if
           initPassthroughIO() is used anywhere else).
         */

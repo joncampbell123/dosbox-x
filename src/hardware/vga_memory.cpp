@@ -2346,6 +2346,70 @@ public:
 	}
 };
 
+/* Text region of the InColor which is documented to write to all bitplanes bypassing the masking functions entirely */
+/* NTS: If the InColor is documented as writing all bitplanes unconditionally in monochrome backwards compatible mode,
+ *      then it stands to reason that it doesn't have the Odd/Even mode EGA/VGA does and the text and attribute bytes
+ *      remain interleaved even as four copies across all four bitplanes. Am I right? */
+class HERC_InColor_Mono_Handler : public PageHandler {
+public:
+	uint8_t readHandler(PhysPt start) {
+		/* TODO: Load hardware latch? */
+		/* TODO: Which bitplane does it read? */
+		return (((VGA_Latch*)vga.mem.linear)[start]).b[0];
+	}
+	void writeHandler(PhysPt start, uint8_t val) {
+		((uint32_t*)vga.mem.linear)[start] = ExpandTable[val];
+	}
+public:
+	HERC_InColor_Mono_Handler() : PageHandler(PFLAG_NOCODE) {}
+	uint8_t readb(PhysPt addr ) {
+		VGAMEM_USEC_read_delay();
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+//		addr = CHECKED(addr);
+		return (uint8_t)readHandler( addr );
+	}
+	uint16_t readw(PhysPt addr ) {
+		VGAMEM_USEC_read_delay();
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+//		addr = CHECKED(addr);
+		uint16_t ret = (uint16_t)(readHandler( addr+0 ) << 0 );
+		ret     |= (readHandler( addr+1 ) << 8 );
+		return ret;
+	}
+	uint32_t readd(PhysPt addr ) {
+		VGAMEM_USEC_read_delay();
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+//		addr = CHECKED(addr);
+		uint32_t ret = (uint32_t)(readHandler( addr+0 ) << 0 );
+		ret     |= (readHandler( addr+1 ) << 8 );
+		ret     |= (readHandler( addr+2 ) << 16 );
+		ret     |= (readHandler( addr+3 ) << 24 );
+		return ret;
+	}
+	void writeb(PhysPt addr,uint8_t val) {
+		VGAMEM_USEC_write_delay();
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+//		addr = CHECKED2(addr);
+		writeHandler(addr+0,val);
+	}
+	void writew(PhysPt addr,uint16_t val) {
+		VGAMEM_USEC_write_delay();
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+//		addr = CHECKED2(addr);
+		writeHandler(addr+0,(uint8_t)(val >> 0));
+		writeHandler(addr+1,(uint8_t)(val >> 8));
+	}
+	void writed(PhysPt addr,uint32_t val) {
+		VGAMEM_USEC_write_delay();
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+//		addr = CHECKED2(addr);
+		writeHandler(addr+0,(uint8_t)(val >> 0));
+		writeHandler(addr+1,(uint8_t)(val >> 8));
+		writeHandler(addr+2,(uint8_t)(val >> 16));
+		writeHandler(addr+3,(uint8_t)(val >> 24));
+	}
+};
+
 static struct vg {
 	VGA_PC98_LFB_Handler		map_lfb_pc98;
 	VGA_Map_Handler				map;
@@ -2364,6 +2428,7 @@ static struct vg {
 	VGA_UnchainedVGA_Fast_Handler	uvga_fast;
 	VGA_PCJR_Handler			pcjr;
 	VGA_HERC_Handler			herc;
+	HERC_InColor_Mono_Handler		herc_incolor_mono;
 //	VGA_LIN4_Handler			lin4;
 	VGA_LFB_Handler				lfb;
 	VGA_MMIO_Handler			mmio;
@@ -2455,23 +2520,29 @@ void VGA_SetupHandlers(void) {
 		vgapages.base=VGA_PAGE_B0;
 		/* NTS: Implemented according to [http://www.seasip.info/VintagePC/hercplus.html#regs] */
 		if (vga.herc.enable_bits & 0x2) { /* bit 1: page in upper 32KB */
-			vgapages.mask=0xffff;
 			/* NTS: I don't know what Hercules graphics cards do if you set bit 1 but not bit 0.
 			 *      For the time being, I'm assuming that they respond to 0xB8000+ because of bit 1
 			 *      but only map to the first 4KB because of bit 0. Basically, a configuration no
 			 *      software would actually use. */
-			if (vga.herc.enable_bits & 0x1) /* allow graphics and enable 0xB1000-0xB7FFF */
-				MEM_SetPageHandler(VGA_PAGE_B0,16,&vgaph.map);
-			else
-				MEM_SetPageHandler(VGA_PAGE_B0,16,&vgaph.herc);
+			if (vga.herc.enable_bits & 0x1) { /* allow graphics and enable 0xB1000-0xB7FFF */
+				vgapages.mask=0xffff;
+				MEM_SetPageHandler(VGA_PAGE_B0,16,(machine == MCH_HERC && hercCard == HERC_InColor)?(PageHandler*)(&vgaph.herc_incolor_mono):(PageHandler*)(&vgaph.map));
+			}
+			else {
+				vgapages.mask=0xfff;
+				MEM_SetPageHandler(VGA_PAGE_B0,16,(machine == MCH_HERC && hercCard == HERC_InColor)?(PageHandler*)(&vgaph.herc_incolor_mono):(PageHandler*)(&vgaph.herc));
+			}
 		} else {
-			vgapages.mask=0x7fff;
 			// With hercules in 32kB mode it leaves a memory hole on 0xb800
 			// and has MDA-compatible address wrapping when graphics are disabled
-			if (vga.herc.enable_bits & 0x1)
-				MEM_SetPageHandler(VGA_PAGE_B0,8,&vgaph.map);
-			else
-				MEM_SetPageHandler(VGA_PAGE_B0,8,&vgaph.herc);
+			if (vga.herc.enable_bits & 0x1) {
+				vgapages.mask=0x7fff;
+				MEM_SetPageHandler(VGA_PAGE_B0,16,(machine == MCH_HERC && hercCard == HERC_InColor)?(PageHandler*)(&vgaph.herc_incolor_mono):(PageHandler*)(&vgaph.map));
+			}
+			else {
+				vgapages.mask=0xfff;
+				MEM_SetPageHandler(VGA_PAGE_B0,16,(machine == MCH_HERC && hercCard == HERC_InColor)?(PageHandler*)(&vgaph.herc_incolor_mono):(PageHandler*)(&vgaph.herc));
+			}
 			MEM_SetPageHandler(VGA_PAGE_B8,8,&vgaph.empty);
 		}
 		goto range_done;

@@ -3565,6 +3565,45 @@ class ViBRA_PnP : public ISAPnPDevice {
 bool JOYSTICK_IsEnabled(Bitu which);
 extern void HARDOPL_Init(Bitu hardwareaddr, Bitu sbbase, bool isCMS);
 
+std::string GetSBtype() {
+    switch (sb.type) {
+        case SBT_NONE:
+            return "None";
+        case SBT_1:
+            return "SB1";
+        case SBT_PRO1:
+            return "SBPro";
+        case SBT_2:
+            return "SB2";
+        case SBT_PRO2:
+            return "SBPro 2";
+        case SBT_16:
+            return "SB16";
+        case SBT_GB:
+            return "GB";
+        default:
+            return "Unknown";
+    }
+}
+
+std::string GetSBbase() {
+    std::stringstream ss;
+    ss << std::hex << sb.hw.base;
+    return ss.str();
+}
+
+std::string GetSBirq() {
+    return sb.hw.irq==0xff?"None":std::to_string(sb.hw.irq);
+}
+
+std::string GetSBldma() {
+    return sb.hw.dma8==0xff?"None":std::to_string((int)sb.hw.dma8);
+}
+
+std::string GetSBhdma() {
+    return sb.hw.dma16==0xff?"None":std::to_string((int)sb.hw.dma16);
+}
+
 class SBLASTER: public Module_base {
 private:
     /* Data */
@@ -3575,7 +3614,7 @@ private:
     OPL_Mode oplmode;
 
     /* Support Functions */
-    void Find_Type_And_Opl(Section_prop* config,SB_TYPES& type, OPL_Mode& opl_mode){
+    void Find_Type_And_Opl(Section_prop* config,SB_TYPES& type, OPL_Mode& opl_mode) const {
         sb.vibra = false;
         sb.ess_type = ESS_NONE;
         sb.reveal_sc_type = RSC_NONE;
@@ -3793,7 +3832,7 @@ public:
 
         Find_Type_And_Opl(section,sb.type,oplmode);
         if (sb.hw.irq == 0) {
-            std::string GetSBtype(), sbtype=GetSBtype();
+            std::string sbtype=GetSBtype();
             sb.hw.irq=sbtype=="SBPro 2"||sbtype=="SB16"||IS_PC98_ARCH?5:7;
         }
 
@@ -4132,45 +4171,6 @@ ASP>
         DSP_Reset(); // Stop everything
     }
 }; //End of SBLASTER class
-
-std::string GetSBtype() {
-    switch (sb.type) {
-        case SBT_NONE:
-            return "None";
-        case SBT_1:
-            return "SB1";
-        case SBT_PRO1:
-            return "SBPro";
-        case SBT_2:
-            return "SB2";
-        case SBT_PRO2:
-            return "SBPro 2";
-        case SBT_16:
-            return "SB16";
-        case SBT_GB:
-            return "GB";
-        default:
-            return "Unknown";
-    }
-}
-
-std::string GetSBbase() {
-    std::stringstream ss;
-    ss << std::hex << sb.hw.base;
-    return ss.str();
-}
-
-std::string GetSBirq() {
-    return sb.hw.irq==0xff?"None":std::to_string(sb.hw.irq);
-}
-
-std::string GetSBldma() {
-    return sb.hw.dma8==0xff?"None":std::to_string((int)sb.hw.dma8);
-}
-
-std::string GetSBhdma() {
-    return sb.hw.dma16==0xff?"None":std::to_string((int)sb.hw.dma16);
-}
 
 extern void HWOPL_Cleanup();
 

@@ -52,6 +52,8 @@
 #include "menudef.h"
 #include "build_timestamp.h"
 
+#include <output/output_ttf.h>
+
 #if defined(_MSC_VER)
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 #endif

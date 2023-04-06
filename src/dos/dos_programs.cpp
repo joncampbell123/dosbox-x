@@ -60,6 +60,7 @@
 #include "mouse.h"
 #include "../ints/int10.h"
 #include "../output/output_opengl.h"
+#include "paging.h"
 #if !defined(HX_DOS)
 #include "../libs/tinyfiledialogs/tinyfiledialogs.c"
 #endif
@@ -73,7 +74,6 @@ host_cnv_char_t *CodePageGuestToHost(const char *s);
 #if !defined(S_ISREG)
 # define S_ISREG(x) ((x & S_IFREG) == S_IFREG)
 #endif
-#include "../dos/cdrom.h"
 #include <ShlObj.h>
 #else
 #include <libgen.h>
@@ -110,7 +110,7 @@ extern int toSetCodePage(DOS_Shell *shell, int newCP, int opt);
 void MSG_Init(), JFONT_Init(), InitFontHandle(), ShutFontHandle(), DOSBox_SetSysMenu(), Load_Language(std::string name);
 void DOS_EnableDriveMenu(char drv), GFX_SetTitle(int32_t cycles, int frameskip, Bits timing, bool paused), UpdateSDLDrawTexture();
 void runBoot(const char *str), runMount(const char *str), runImgmount(const char *str), runRescan(const char *str), show_prompt(), ttf_reset(void);
-void getdrivezpath(std::string &path, std::string dirname), drivezRegister(std::string path, std::string dir, bool usecp), UpdateDefaultPrinterFont(void);
+void getdrivezpath(std::string &path, std::string const& dirname), drivezRegister(std::string const& path, std::string const& dir, bool usecp), UpdateDefaultPrinterFont(void);
 std::string GetDOSBoxXPath(bool withexe=false);
 FILE *testLoadLangFile(const char *fname);
 
@@ -480,8 +480,8 @@ void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
 	Drives[drive-'A']=newdrive;
 	DOS_EnableDriveMenu(drive);
 	mem_writeb(Real2Phys(dos.tables.mediaid)+(drive-'A')*2,mediaid);
-	if(type==DRIVE_CDROM) LOG_MSG("GUI: Drive %c is mounted as CD-ROM %c:\\",drive,drive);
-	else LOG_MSG("GUI: Drive %c is mounted as local directory %c:\\",drive,drive);
+    if(type == DRIVE_CDROM) LOG_MSG("GUI: Drive %c is mounted as CD-ROM %c:\\", drive, drive);
+    else LOG_MSG("GUI: Drive %c is mounted as local directory %c:\\", drive, drive);
     if(drive == drive2[0] && strlen(drive2) == 3) {
         // automatic mount
     } else {
@@ -691,10 +691,10 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 		strcat(mountstring,temp_str);
 		if (!multiple) strcat(mountstring,"\"");
 		strcat(mountstring,files.size()?files.c_str():fname.c_str());
-		if (!multiple) strcat(mountstring,"\"");
-		if (mountiro[drive-'A']) strcat(mountstring," -ro");
-		if (boot) strcat(mountstring," -u");
-        if (arc) {
+        if(!multiple) strcat(mountstring, "\"");
+        if(mountiro[drive - 'A']) strcat(mountstring, " -ro");
+        if(boot) strcat(mountstring, " -u");
+        if(arc) {
             strcat(mountstring," -q");
             runMount(mountstring);
         } else {
@@ -1157,7 +1157,7 @@ public:
 					uint16_t numc=type=="cdrom"?1:32;
                     uint32_t total_size_cyl=32765;
 					uint32_t tmp=(uint32_t)freesize*1024*1024/(type=="cdrom"?2048*1:512*32);
-					if (tmp>65534) numc=type=="cdrom"?(tmp+65535)/65536:64;
+                    if(tmp > 65534) numc = type == "cdrom" ? (tmp + 65535) / 65536 : 64;
                     uint32_t free_size_cyl=(uint32_t)freesize*1024*1024/(numc*(type=="cdrom"?2048:512));
                     if (free_size_cyl>65534) free_size_cyl=65534;
                     if (total_size_cyl<free_size_cyl) total_size_cyl=free_size_cyl+10;
@@ -1207,9 +1207,9 @@ public:
 			if (cmd->FindExist("-u",true)) {
                 bool curdrv = toupper(i_drive)-'A' == DOS_GetDefaultDrive();
                 const char *msg=UnmountHelper(i_drive);
-				if (!quiet) WriteOut(msg, toupper(i_drive));
-				if (!cmd->FindCommand(2,temp_line)||!temp_line.size()) return;
-                if (curdrv && toupper(i_drive)-'A' != DOS_GetDefaultDrive()) removed = true;
+                if(!quiet) WriteOut(msg, toupper(i_drive));
+                if(!cmd->FindCommand(2, temp_line) || !temp_line.size()) return;
+                if(curdrv && toupper(i_drive) - 'A' != DOS_GetDefaultDrive()) removed = true;
 			}
             drive = static_cast<char>(i_drive);
             if (type == "overlay") {
@@ -1301,7 +1301,7 @@ public:
             /* Removing trailing backslash if not root dir so stat will succeed */
             if(temp_line.size() > 3 && temp_line[temp_line.size()-1]=='\\') temp_line.erase(temp_line.size()-1,1);
             if(temp_line.size() == 2 && toupper(temp_line[0])>='A' && toupper(temp_line[0])<='Z' && temp_line[1]==':') temp_line.append("\\");
-			if(temp_line.size() > 4 && temp_line[0]=='\\' && temp_line[1]=='\\' && temp_line[2]!='\\' && std::count(temp_line.begin()+3, temp_line.end(), '\\')==1) temp_line.append("\\");
+            if(temp_line.size() > 4 && temp_line[0] == '\\' && temp_line[1] == '\\' && temp_line[2] != '\\' && std::count(temp_line.begin() + 3, temp_line.end(), '\\') == 1) temp_line.append("\\");
             notrycp = true;
             const host_cnv_char_t* host_name = CodePageGuestToHost(temp_line.c_str());
             notrycp = false;
@@ -1446,17 +1446,17 @@ public:
                 else
                     newdrive  = new cdromDrive(drive,temp_line.c_str(),sizes[0],bit8size,sizes[2],sizes[3],mediaid,error,options);
                 // Check Mscdex, if it worked out...
-                if (!quiet)
-                switch (error) {
-                    case 0  :   WriteOut(MSG_Get("MSCDEX_SUCCESS"));                break;
-                    case 1  :   WriteOut(MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS"));  break;
-                    case 2  :   WriteOut(MSG_Get("MSCDEX_ERROR_NOT_SUPPORTED"));    break;
-                    case 3  :   WriteOut(MSG_Get("MSCDEX_ERROR_PATH"));             break;
-                    case 4  :   WriteOut(MSG_Get("MSCDEX_TOO_MANY_DRIVES"));        break;
-                    case 5  :   WriteOut(MSG_Get("MSCDEX_LIMITED_SUPPORT"));        break;
-                    case 10 :   WriteOut(MSG_Get("PROGRAM_MOUNT_PHYSFS_ERROR"));WriteOut(MSG_Get("PROGRAM_MOUNT_IMGMOUNT"));break;
-                    default :   WriteOut(MSG_Get("MSCDEX_UNKNOWN_ERROR"));          break;
-                }
+                if(!quiet)
+                    switch(error) {
+                    case 0:   WriteOut(MSG_Get("MSCDEX_SUCCESS"));                break;
+                    case 1:   WriteOut(MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS"));  break;
+                    case 2:   WriteOut(MSG_Get("MSCDEX_ERROR_NOT_SUPPORTED"));    break;
+                    case 3:   WriteOut(MSG_Get("MSCDEX_ERROR_PATH"));             break;
+                    case 4:   WriteOut(MSG_Get("MSCDEX_TOO_MANY_DRIVES"));        break;
+                    case 5:   WriteOut(MSG_Get("MSCDEX_LIMITED_SUPPORT"));        break;
+                    case 10:   WriteOut(MSG_Get("PROGRAM_MOUNT_PHYSFS_ERROR")); WriteOut(MSG_Get("PROGRAM_MOUNT_IMGMOUNT")); break;
+                    default:   WriteOut(MSG_Get("MSCDEX_UNKNOWN_ERROR"));          break;
+                    }
                 if (error && error!=5) {
                     delete newdrive;
                     return;
@@ -1492,8 +1492,8 @@ public:
                   }
                   localDrive* ldp = dynamic_cast<localDrive*>(Drives[drive-'A']);
                   cdromDrive* cdp = dynamic_cast<cdromDrive*>(Drives[drive-'A']);
-                  if (!ldp || cdp || pcdp) {
-					  if (!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE"));
+                  if(!ldp || cdp || pcdp) {
+                      if(!quiet) WriteOut(MSG_Get("PROGRAM_MOUNT_OVERLAY_INCOMPAT_BASE"));
                       return;
                   }
                   std::string base = ldp->getBasedir();
@@ -1630,9 +1630,6 @@ void SBLASTER_DOS_Shutdown();
 unsigned char PC98_ITF_ROM[0x8000];
 bool PC98_ITF_ROM_init = false;
 unsigned char PC98_BANK_Select = 0x12;
-
-#include "mem.h"
-#include "paging.h"
 
 class PC98ITFPageHandler : public PageHandler {
 public:
@@ -2082,8 +2079,8 @@ public:
 			}
 		}
 
-		if (!bootbyDrive)
-		while(i<cmd->GetCount()) {
+        if(!bootbyDrive)
+            while(i < cmd->GetCount()) {
             if(cmd->FindCommand((unsigned int)(i+1), temp_line)) {
 				if ((temp_line == "/?") || (temp_line == "-?")) {
 					printError();
@@ -3056,7 +3053,7 @@ const uint8_t freedos_mbr[] = {
 class IMGMAKE : public Program {
 public:
 #ifdef WIN32
-    bool OpenDisk(HANDLE* f, OVERLAPPED* o, uint8_t* name) {
+    bool OpenDisk(HANDLE* f, OVERLAPPED* o, uint8_t* name) const {
         o->hEvent = INVALID_HANDLE_VALUE;
         *f = CreateFile( (LPCSTR)name, GENERIC_READ | GENERIC_WRITE,
             0,    // exclusive access 
@@ -3081,12 +3078,12 @@ public:
         return true;
     }
 
-    void CloseDisk(HANDLE f, OVERLAPPED* o) {
+    void CloseDisk(HANDLE f, OVERLAPPED* o) const {
         if(f != INVALID_HANDLE_VALUE) CloseHandle(f);
         if(o->hEvent != INVALID_HANDLE_VALUE) CloseHandle(o->hEvent);
     }
 
-    bool StartReadDisk(HANDLE f, OVERLAPPED* o, uint8_t* buffer, Bitu offset, Bitu size) { 
+    bool StartReadDisk(HANDLE f, OVERLAPPED* o, uint8_t* buffer, Bitu offset, Bitu size) const { 
         o->Offset = (DWORD)offset;
         if (!ReadFile(f, buffer, (DWORD)size, NULL, o) &&
             (GetLastError()==ERROR_IO_PENDING)) return true;
@@ -3094,7 +3091,7 @@ public:
     }
 
     // 0=still waiting, 1=catastrophic failure, 2=success, 3=sector not found, 4=crc error
-    Bitu CheckDiskReadComplete(HANDLE f, OVERLAPPED* o) {
+    Bitu CheckDiskReadComplete(HANDLE f, OVERLAPPED* o) const {
         DWORD numret;
         BOOL b = GetOverlappedResult( f, o, &numret,false); 
         if(b) return 2;
@@ -3910,7 +3907,7 @@ restart_int:
         // write VHD footer if requested, largely copied from RAW2VHD program, no license was included
         char extension[6] = {}; // care extensions longer than 3 letters such as '.vhdd'
         if(temp_line.find_last_of('.') != std::string::npos) {
-            for(int i = 0; i < sizeof(extension) - 1; i++) {
+            for(unsigned int i = 0; i < sizeof(extension) - 1; i++) {
                 if(temp_line.find_last_of('.') + i > temp_line.length() - 1) break;
                 extension[i] = temp_line[temp_line.find_last_of('.') + i];
             }
@@ -4068,7 +4065,7 @@ public:
             return;
         }
         if (cmd->FindCommand(2,temp_line)) {
-            unsigned int swap=atoi(temp_line.c_str());
+            int swap=atoi(temp_line.c_str());
             if (swap<1||swap>DriveManager::GetDisksSize(d)) {
                 WriteOut(MSG_Get("PROGRAM_IMGSWAP_ERROR"), DriveManager::GetDisksSize(d));
                 return;
@@ -4452,7 +4449,7 @@ public:
     void DisplayMenuCursorEnd(void) { WriteOut("\033[0m\n"); }
     void DisplayMenuNone(void) { WriteOut("\033[44m\033[K\033[0m\n"); }
 
-    bool CON_IN(uint8_t * data) {
+    bool CON_IN(uint8_t * data) const {
         uint8_t c;
         uint16_t n=1;
 
@@ -4508,7 +4505,11 @@ public:
             return;
         }
 
-        if(cmd->FindExist("usage",false)) {DisplayUsage(); if (attr) DOS_SetAnsiAttr(attr); return; }
+        if(cmd->FindExist("usage", false)) {
+            DisplayUsage();
+            if(attr) DOS_SetAnsiAttr(attr);
+            return;
+        }
         uint8_t c;uint16_t n=1;
 
 #define CURSOR(option) \
@@ -4953,7 +4954,7 @@ public:
 
         //look for -el-torito parameter and remove it from the command line
         cmd->FindString("-el-torito",el_torito,true);
-		if (el_torito == "") cmd->FindString("-bootcd",el_torito,true);
+        if(el_torito == "") cmd->FindString("-bootcd", el_torito, true);
         if (el_torito != "") {
             //get el-torito floppy from cdrom mounted at drive letter el_torito_cd_drive
             el_torito_cd_drive = toupper(el_torito[0]);
@@ -6023,12 +6024,12 @@ private:
         return true;
     }
 
-    void AddToDriveManager(const char drive, DOS_Drive* imgDisk, const uint8_t mediaid) {
+    void AddToDriveManager(const char drive, DOS_Drive* imgDisk, const uint8_t mediaid) const {
         std::vector<DOS_Drive*> imgDisks = { imgDisk };
         AddToDriveManager(drive, imgDisks, mediaid);
     }
 
-    void AddToDriveManager(const char drive, const std::vector<DOS_Drive*> &imgDisks, const uint8_t mediaid) {
+    void AddToDriveManager(const char drive, const std::vector<DOS_Drive*> &imgDisks, const uint8_t mediaid) const {
         std::vector<DOS_Drive*>::size_type ct;
 
         // Update DriveManager
@@ -6193,7 +6194,7 @@ private:
         }
     }
 
-    bool DetectMFMsectorPartition(uint8_t buf[], uint32_t fcsize, Bitu sizes[]) {
+    bool DetectMFMsectorPartition(uint8_t buf[], uint32_t fcsize, Bitu sizes[]) const {
         // This is used for plain MFM sector format as created by IMGMAKE
         // It tries to find the first partition. Addressing is in CHS format.
         /* Offset   | Length    | Description
@@ -6256,7 +6257,7 @@ private:
         return false;
     }
     
-    bool DetectBximagePartition(uint32_t fcsize, Bitu sizes[]) {
+    bool DetectBximagePartition(uint32_t fcsize, Bitu sizes[]) const {
         // Try bximage disk geometry
         uint32_t cylinders = fcsize / (16 * 63);
         // Int13 only supports up to 1023 cylinders
@@ -6284,17 +6285,17 @@ private:
             int error = -1;
             DOS_Drive* newDrive = new isoDrive(drive, wpcolon&&paths[i].length()>1&&paths[i].c_str()[0]==':'?paths[i].c_str()+1:paths[i].c_str(), mediaid, error, options);
             isoDisks.push_back(newDrive);
-            if (!qmount)
-            switch (error) {
-            case 0: break;
-            case 1: WriteOut(MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS"));  break;
-            case 2: WriteOut(MSG_Get("MSCDEX_ERROR_NOT_SUPPORTED"));    break;
-            case 3: WriteOut(MSG_Get("MSCDEX_ERROR_OPEN"));             break;
-            case 4: WriteOut(MSG_Get("MSCDEX_TOO_MANY_DRIVES"));        break;
-            case 5: WriteOut(MSG_Get("MSCDEX_LIMITED_SUPPORT"));        break;
-            case 6: WriteOut(MSG_Get("MSCDEX_INVALID_FILEFORMAT"));     break;
-            default: WriteOut(MSG_Get("MSCDEX_UNKNOWN_ERROR"));         break;
-            }
+            if(!qmount)
+                switch(error) {
+                case 0: break;
+                case 1: WriteOut(MSG_Get("MSCDEX_ERROR_MULTIPLE_CDROMS"));  break;
+                case 2: WriteOut(MSG_Get("MSCDEX_ERROR_NOT_SUPPORTED"));    break;
+                case 3: WriteOut(MSG_Get("MSCDEX_ERROR_OPEN"));             break;
+                case 4: WriteOut(MSG_Get("MSCDEX_TOO_MANY_DRIVES"));        break;
+                case 5: WriteOut(MSG_Get("MSCDEX_LIMITED_SUPPORT"));        break;
+                case 6: WriteOut(MSG_Get("MSCDEX_INVALID_FILEFORMAT"));     break;
+                default: WriteOut(MSG_Get("MSCDEX_UNKNOWN_ERROR"));         break;
+                }
             // error: clean up and leave
             if (error) {
                 for (ct = 0; ct < isoDisks.size(); ct++) {
@@ -6620,9 +6621,9 @@ private:
 	void PrintStatus() {
         WriteOut("Status for device CON:\n----------------------\nColumns=%d\nLines=%d\n", COLS, LINES);
 #if defined(USE_TTF)
-        if (!ttf.inUse)
+        if(!ttf.inUse)
 #endif
-        WriteOut("\nCode page operation not supported on this device\n");
+            WriteOut("\nCode page operation not supported on this device\n");
 	}
     int LINES = 25, COLS = 80;
 };

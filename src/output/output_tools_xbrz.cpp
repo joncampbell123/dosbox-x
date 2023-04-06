@@ -8,6 +8,8 @@
 #include "render.h"
 #include "sdlmain.h"
 
+#include <output/output_tools_xbrz.h>
+
 using namespace std;
 
 #if C_XBRZ

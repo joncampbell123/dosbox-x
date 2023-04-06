@@ -1,4 +1,6 @@
 Next:
+  - Add expected data structures and signatures to VGA ROM BIOS at
+    C000:0000 if machine type selects ATI emulation (joncampbell123).
   - Add ATI machine types, which at this time, is just a placeholder
     for development to go in that direction over time for those
     machine types. (joncampbell123)

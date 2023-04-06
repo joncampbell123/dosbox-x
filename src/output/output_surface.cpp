@@ -9,7 +9,16 @@
 #include "render.h"
 #include "vga.h"
 
+#include <output/output_tools.h>
+#include <output/output_tools_xbrz.h>
+
 using namespace std;
+
+extern Bitu frames;
+extern Bitu userResizeWindowWidth;
+extern Bitu userResizeWindowHeight;
+extern Bitu currentWindowWidth;
+extern Bitu currentWindowHeight;
 
 bool setSizeButNotResize();
 

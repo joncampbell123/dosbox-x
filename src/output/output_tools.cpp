@@ -31,6 +31,11 @@
 #include "resource.h"
 #endif
 
+#include <output/output_direct3d.h>
+#include <output/output_opengl.h>
+#include <output/output_surface.h>
+#include <output/output_ttf.h>
+
 #if C_DIRECT3D
 void d3d_init(void);
 #endif

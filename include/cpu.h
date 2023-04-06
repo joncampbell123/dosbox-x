@@ -545,7 +545,7 @@ public:
 		return saved.seg.type & 8;
 	}
 	void SetBusy(const bool busy) {
-		if (busy) saved.seg.type|=(2U);
+		if (busy) saved.seg.type|=2U;
 		else saved.seg.type&=(~2U); /* -Wconversion cannot silence without hard-coding ~2U & 0x1F */
 	}
 };

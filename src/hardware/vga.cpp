@@ -155,6 +155,8 @@
 
 #include "zipfile.h"
 
+#include <output/output_ttf.h>
+
 using namespace std;
 
 Bitu pc98_read_9a8(Bitu /*port*/,Bitu /*iolen*/);
@@ -1031,7 +1033,12 @@ void VGA_Reset(Section*) {
      * for selecting machine type AND video card. */
     switch (machine) {
         case MCH_HERC:
-            if (vga.mem.memsize < _KB_bytes(64)) vga.mem.memsize = _KB_bytes(64);
+            if (hercCard >= HERC_InColor) {
+                if (vga.mem.memsize < _KB_bytes(256)) vga.mem.memsize = _KB_bytes(256);
+            }
+            else {
+                if (vga.mem.memsize < _KB_bytes(64)) vga.mem.memsize = _KB_bytes(64);
+            }
             break;
         case MCH_MDA:
             if (vga.mem.memsize < _KB_bytes(4)) vga.mem.memsize = _KB_bytes(4);
@@ -1811,6 +1818,65 @@ void SVGA_Setup_JEGA(void) {
 	phys_writeb(rom_base + 0x40 * 512 - 18 + 3, 'A');
 }
 
+struct ATIState {
+	uint8_t			index = 0;
+	uint8_t			input_status_register = 0; /* index 0xBB */
+};
+
+ATIState ati_state;
+
+Bitu ATIExtIndex_Read(Bitu /*port*/, Bitu /*len*/) {
+	return ati_state.index;
+}
+
+void ATIExtIndex_Write(Bitu /*port*/, Bitu val, Bitu /*len*/) {
+	ati_state.index = (uint8_t)val;
+}
+
+Bitu ATIExtData_Read(Bitu port, Bitu /*len*/) {
+	switch (ati_state.index) {
+		case 0xBB: /* Input status register */
+			return ati_state.input_status_register;
+		default:
+			break;
+	};
+
+	LOG(LOG_MISC,LOG_DEBUG)("Unhandled ATI extended read port=%x index=%x",(unsigned int)port,ati_state.index);
+	return 0;
+}
+
+void ATIExtData_Write(Bitu port, Bitu val, Bitu /*len*/) {
+	switch (ati_state.index) {
+		case 0xBB: /* Input status register */
+			ati_state.input_status_register = (uint8_t)val;
+			break;
+		default:
+			break;
+	};
+
+	LOG(LOG_MISC,LOG_DEBUG)("Unhandled ATI extended write port=%x index=%x val=%x",(unsigned int)port,ati_state.index,(unsigned int)val);
+}
+
+void SVGA_Setup_ATI(void) {
+	if (vga.mem.memsize == 0)
+		vga.mem.memsize = 512*1024;
+
+	if (vga.mem.memsize >= (512*1024))
+		vga.mem.memsize = (512*1024);
+	else
+		vga.mem.memsize = (256*1024);
+
+	ati_state.input_status_register = 0x05/*multisync monitor*/;
+
+	/* FIXME: ATI 188xx-specific */
+	if (vga.mem.memsize >= (512*1024)) ati_state.input_status_register |= 0x20; /* 512KB, not 256KB, of RAM */
+
+	IO_RegisterWriteHandler(0x1ce,&ATIExtIndex_Write,IO_MB);
+	IO_RegisterReadHandler(0x1ce,&ATIExtIndex_Read,IO_MB);
+	IO_RegisterWriteHandler(0x1cf,&ATIExtData_Write,IO_MB);
+	IO_RegisterReadHandler(0x1cf,&ATIExtData_Read,IO_MB);
+}
+
 void SVGA_Setup_Driver(void) {
     memset(&svga, 0, sizeof(SVGA_Driver));
 
@@ -1826,6 +1892,9 @@ void SVGA_Setup_Driver(void) {
         break;
     case SVGA_ParadisePVGA1A:
         SVGA_Setup_ParadisePVGA1A();
+        break;
+    case SVGA_ATI:
+        SVGA_Setup_ATI();
         break;
     default:
         if (IS_JEGA_ARCH) SVGA_Setup_JEGA();

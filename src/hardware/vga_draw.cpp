@@ -305,11 +305,22 @@ void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode) {
 
 void VGA_TweakUserVsyncOffset(float val) { uservsyncjolt = val; }
 
+static uint8_t * VGA_Draw_HercInColor_Mono_1BPP_Line(Bitu vidstart, Bitu line) {
+    const uint32_t *base = (const uint32_t*)vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
+    uint32_t *draw = (uint32_t *)TempLine;
+    for (Bitu x=vga.draw.blocks;x>0;x--, vidstart++) {
+        const uint8_t val = base[vidstart & (8 * 1024 -1)] & 0xFFu;
+        *draw++=CGA_2_Table[val >> 4];
+        *draw++=CGA_2_Table[val & 0xf];
+    }
+    return TempLine;
+}
+
 static uint8_t * VGA_Draw_1BPP_Line(Bitu vidstart, Bitu line) {
     const uint8_t *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
     uint32_t *draw = (uint32_t *)TempLine;
     for (Bitu x=vga.draw.blocks;x>0;x--, vidstart++) {
-        Bitu val = base[vidstart & (8 * 1024 -1)];
+        const uint8_t val = base[vidstart & (8 * 1024 -1)];
         *draw++=CGA_2_Table[val >> 4];
         *draw++=CGA_2_Table[val & 0xf];
     }
@@ -1665,6 +1676,63 @@ static uint8_t * VGA_TEXT_Herc_Draw_Line(Bitu vidstart, Bitu line) {
     for (Bitu cx=0;cx<vga.draw.blocks;cx++) {
         Bitu chr=vidmem[cx*2];
         Bitu attrib=vidmem[cx*2+1];
+        if (!(attrib&0x77)) {
+            // 00h, 80h, 08h, 88h produce black space
+            *draw++=0;
+            *draw++=0;
+        } else {
+            uint32_t bg, fg;
+            bool underline=false;
+            if ((attrib&0x77)==0x70) {
+                bg = TXT_BG_Table[0x7];
+                if (attrib&0x8) fg = TXT_FG_Table[0xf];
+                else fg = TXT_FG_Table[0x0];
+            } else {
+                if (((Bitu)(vga.crtc.underline_location&0x1f)==line) && ((attrib&0x77)==0x1)) underline=true;
+                bg = TXT_BG_Table[0x0];
+                if (attrib&0x8) fg = TXT_FG_Table[0xf];
+                else fg = TXT_FG_Table[0x7];
+            }
+            uint32_t mask1, mask2;
+            if (GCC_UNLIKELY(underline)) mask1 = mask2 = FontMask[attrib >> 7];
+            else {
+                Bitu font=vga.draw.font_tables[0][chr*32+line];
+                mask1=TXT_Font_Table[font>>4] & FontMask[attrib >> 7]; // blinking
+                mask2=TXT_Font_Table[font&0xf] & FontMask[attrib >> 7];
+            }
+            *draw++=(fg&mask1) | (bg&~mask1);
+            *draw++=(fg&mask2) | (bg&~mask2);
+        }
+    }
+    if (!vga.draw.cursor.enabled || !(vga.draw.cursor.count&0x8)) goto skip_cursor;
+    font_addr = ((Bits)vga.draw.cursor.address - (Bits)vidstart) >> 1ll;
+    if (font_addr>=0 && font_addr<(Bits)vga.draw.blocks) {
+        if (line<vga.draw.cursor.sline) goto skip_cursor;
+        if (line>vga.draw.cursor.eline) goto skip_cursor;
+        draw=(uint32_t *)&TempLine[(unsigned long)font_addr*8ul];
+        uint8_t attr = vga.tandy.draw_base[vga.draw.cursor.address+1];
+        uint32_t cg;
+        if (attr&0x8) {
+            cg = TXT_FG_Table[0xf];
+        } else if ((attr&0x77)==0x70) {
+            cg = TXT_FG_Table[0x0];
+        } else {
+            cg = TXT_FG_Table[0x7];
+        }
+        *draw++=cg;*draw++=cg;
+    }
+skip_cursor:
+    return TempLine;
+}
+
+static uint8_t * VGA_TEXT_HercInColor_Mono_Draw_Line(Bitu vidstart, Bitu line) {
+    Bits font_addr;
+    uint32_t * draw=(uint32_t *)TempLine;
+    const uint32_t* vidmem = VGA_Planar_Memwrap(vidstart); // pointer to chars+attribs
+
+    for (Bitu cx=0;cx<vga.draw.blocks;cx++) {
+        Bitu chr=vidmem[cx*2]&0xFF;
+        Bitu attrib=vidmem[cx*2+1]&0xFF;
         if (!(attrib&0x77)) {
             // 00h, 80h, 08h, 88h produce black space
             *draw++=0;
@@ -4782,7 +4850,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
         // fall-through
     case M_TANDY_TEXT:
     case M_HERC_TEXT:
-        if (machine==MCH_HERC || machine==MCH_MDA) vga.draw.linear_mask = 0xfff; // 1 page
+        if (machine==MCH_HERC && hercCard == HERC_InColor) vga.draw.linear_mask = 0x3fff; // 1 page x 4 bitplanes
+        else if (machine==MCH_HERC || machine==MCH_MDA) vga.draw.linear_mask = 0xfff; // 1 page
         else if (IS_EGAVGA_ARCH || machine == MCH_MCGA) {
             if (vga.config.compatible_chain4 || svgaCard == SVGA_None)
                 vga.draw.linear_mask = vga.mem.memmask & 0x3ffff;
@@ -4808,6 +4877,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             || !vga.draw.blinking) ? true:false;
         break;
     case M_HERC_GFX:
+        if (machine==MCH_HERC && hercCard == HERC_InColor) vga.draw.linear_mask = 0x1ffff; // 32KB x 4 bitplanes
+        // fall through
     case M_CGA4:
     case M_CGA2:
     case M_DCGA:
@@ -4825,6 +4896,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
     }
 
     if (IS_EGAVGA_ARCH)
+        vga.draw.planar_mask = vga.draw.linear_mask >> 2;
+    else if (machine == MCH_HERC && hercCard >= HERC_InColor)
         vga.draw.planar_mask = vga.draw.linear_mask >> 2;
     else
         vga.draw.planar_mask = vga.draw.linear_mask >> 1;
@@ -6049,8 +6122,13 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         break;
     case M_HERC_GFX:
         vga.draw.blocks=width*2;
-        if (vga.herc.blend) VGA_DrawLine=VGA_Draw_1BPP_Blend_Line;
-        else VGA_DrawLine=VGA_Draw_1BPP_Line;
+        if (hercCard >= HERC_InColor) {
+            VGA_DrawLine=VGA_Draw_HercInColor_Mono_1BPP_Line;
+        }
+        else {
+            if (vga.herc.blend) VGA_DrawLine=VGA_Draw_1BPP_Blend_Line;
+            else VGA_DrawLine=VGA_Draw_1BPP_Line;
+        }
         pix_per_char = 16;
         break;
     case M_TANDY2:
@@ -6136,7 +6214,12 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         break;
     case M_HERC_TEXT:
         vga.draw.blocks=width;
-        VGA_DrawLine=VGA_TEXT_Herc_Draw_Line;
+        if (hercCard >= HERC_InColor) {
+            VGA_DrawLine=VGA_TEXT_HercInColor_Mono_Draw_Line;
+        }
+        else {
+            VGA_DrawLine=VGA_TEXT_Herc_Draw_Line;
+        }
         break;
     case M_AMSTRAD: // Probably OK?
         pix_per_char = 16;

@@ -422,7 +422,7 @@ protected:
 
 class DOS_PSP :public MemStruct {
 public:
-	DOS_PSP						(uint16_t segment)		{ SetPt(segment);seg=segment;};
+	DOS_PSP						(uint16_t segment):seg(segment)		{ SetPt(segment);};
 	void	MakeNew				(uint16_t mem_size);
 	void	CopyFileTable		(DOS_PSP* srcpsp,bool createchildpsp);
 	uint16_t	FindFreeFileEntry	(void);
@@ -522,7 +522,7 @@ public:
 
 class DOS_InfoBlock:public MemStruct {
 public:
-    DOS_InfoBlock() : seg(0) {};
+    DOS_InfoBlock() {};
 	void SetLocation(uint16_t  segment);
     void SetFirstDPB(uint32_t _first_dpb);
 	void SetFirstMCB(uint16_t _firstmcb);
@@ -599,7 +599,7 @@ public:
 	#ifdef _MSC_VER
 	#pragma pack ()
 	#endif
-	uint16_t	seg;
+	uint16_t	seg = 0;
 };
 
 class DOS_DTA:public MemStruct{
@@ -779,10 +779,10 @@ struct DOS_Block {
     DOS_Version version = {};
     uint16_t firstMCB = 0;
     uint16_t errorcode = 0;
-    uint16_t psp();//{return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetPSP();};
-    void psp(uint16_t _seg);//{ DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetPSP(_seg);};
-    RealPt dta();//{return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetDTA();};
-    void dta(RealPt _dta);//{DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetDTA(_dta);};
+    uint16_t psp() const;//{return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetPSP();};
+    void psp(uint16_t _seg) const;//{ DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetPSP(_seg);};
+    RealPt dta() const;//{return DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).GetDTA();};
+    void dta(RealPt _dta) const;//{DOS_SDA(DOS_SDA_SEG,DOS_SDA_OFS).SetDTA(_dta);};
     uint8_t return_code = 0, return_mode = 0;
 
     uint8_t current_drive = 0;

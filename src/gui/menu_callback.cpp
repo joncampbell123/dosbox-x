@@ -16,6 +16,8 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <assert.h>
+
 #include "dosbox.h"
 #include "menu.h"
 #include "menudef.h"
@@ -44,6 +46,9 @@
 #endif
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#include <output/output_opengl.h>
+#include <output/output_ttf.h>
 
 int oldblinkc = -1;
 std::string savefilename = "";

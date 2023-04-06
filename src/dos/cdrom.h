@@ -346,8 +346,8 @@ public:
 	//! \brief Indicate whether the image has a data track
 	bool	ReadSector              (uint8_t *buffer, bool raw, unsigned long sector);
 	//! \brief Indicate whether the image has a data track
-	bool	HasDataTrack            (void);
-	bool	HasAudioTrack           (void);
+	bool	HasDataTrack            (void) const;
+	bool	HasAudioTrack           (void) const;
     //! \brief Flag to track if images have been initialized
     //!
     //! \description Whether images[] has been initialized.
@@ -388,17 +388,17 @@ private:
 	// Private utility functions
 	void  ClearTracks();
 	bool  LoadIsoFile(char *filename);
-	bool  CanReadPVD(TrackFile *file, int sectorSize, bool mode2);
+	bool  CanReadPVD(TrackFile *file, int sectorSize, bool mode2) const;
 	int	  GetTrack(unsigned long sector);
 	static void CDAudioCallBack (Bitu len);
 
 	// Private functions for cue sheet processing
 	bool  LoadCueSheet(char *cuefile);
 	bool  LoadChdFile(char* chdfile);
-	bool  GetRealFileName(std::string& filename, std::string& pathname);
-	bool  GetCueKeyword(std::string &keyword, std::istream &in);
-	bool  GetCueFrame(int &frames, std::istream &in);
-	bool  GetCueString(std::string &str, std::istream &in);
+	bool  GetRealFileName(std::string& filename, std::string& pathname) const;
+	bool  GetCueKeyword(std::string &keyword, std::istream &in) const;
+	bool  GetCueFrame(int &frames, std::istream &in) const;
+	bool  GetCueString(std::string &str, std::istream &in) const;
 	bool  AddTrack(Track &curr, int &shift, int prestart, int &totalPregap, int currPregap);
 	// member variables
 	std::vector<Track>   tracks;

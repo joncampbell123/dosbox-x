@@ -51,6 +51,9 @@ RECT monrect;
 int curscreen;
 #endif
 
+#include <output/output_tools.h>
+#include <output/output_ttf.h>
+
 Bitu call_program;
 extern char lastmount;
 extern const char *modifier;
@@ -733,7 +736,6 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
                     } else if (GFX_IsFullscreen()) {GFX_LosingFocus();GFX_SwitchFullScreen();}
                 }
                 if (!strcasecmp(inputline.substr(0, 7).c_str(), "output=")) {
-                    std::string GetDefaultOutput();
                     std::string output=section->Get_string("output");
                     if (output == "default") output=GetDefaultOutput();
                     GFX_LosingFocus();
@@ -775,7 +777,6 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
 #endif
                 if (!strcasecmp(inputline.substr(0, 8).c_str(), "display=")) {
                     void SetDisplayNumber(int display);
-                    int GetNumScreen();
                     int numscreen = GetNumScreen();
                     const int display = section->Get_int("display");
                     if (display >= 0 && display <= numscreen)

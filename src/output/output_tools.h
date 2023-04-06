@@ -9,6 +9,7 @@
 #include "sdlmain.h"
 
 extern int aspect_ratio_x, aspect_ratio_y;
+extern SDL_Block sdl;
 
 // common headers and static routines reused in different outputs go there
 
@@ -72,5 +73,7 @@ inline void aspectCorrectFitClip(volatile WH &clipW, volatile WH &clipH, volatil
 //    assert((sdl.clip.x + sdl.clip.w) <= sdl.desktop.full.width);
 //    assert((sdl.clip.y + sdl.clip.h) <= sdl.desktop.full.height);
 }
+
+std::string GetDefaultOutput();
 
 #endif

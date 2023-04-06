@@ -96,6 +96,12 @@
 #include "cp1258_uni.h"
 #include "cp3021_uni.h"
 
+#if defined (WIN32)
+#include <Shellapi.h>
+#else
+#include <glob.h>
+#endif
+
 #if defined(PATH_MAX) && !defined(MAX_PATH)
 #define MAX_PATH PATH_MAX
 #endif
@@ -1090,7 +1096,7 @@ int FileDirExistUTF8(std::string &localname, const char *name) {
 extern uint16_t fztime, fzdate;
 extern bool force_conversion, InitCodePage();
 std::string GetDOSBoxXPath(bool withexe=false);
-void getdrivezpath(std::string &path, std::string dirname) {
+void getdrivezpath(std::string &path, std::string const& dirname) {
     const host_cnv_char_t* host_name = CodePageGuestToHost(path.c_str());
     if (host_name == NULL) {path = "";return;}
     struct stat cstat;
@@ -1126,7 +1132,7 @@ void getdrivezpath(std::string &path, std::string dirname) {
     }
 }
 
-void drivezRegister(std::string path, std::string dir, bool usecp) {
+void drivezRegister(std::string const& path, std::string const& dir, bool usecp) {
     int cp = dos.loaded_codepage;
     if (!usecp || !cp) {
         force_conversion = true;
@@ -1494,13 +1500,13 @@ bool localDrive::FileOpen(DOS_File * * file,const char * name,uint32_t flags) {
 			break;
 		}
 	}
-	if (!dos_kernel_disabled)
-	for (i=0;i<DOS_FILES;i++) {
-		if (Files[i] && Files[i]->IsOpen() && Files[i]->GetDrive()==drive && Files[i]->IsName(name)) {
-			lfp=dynamic_cast<localFile*>(Files[i]);
-			if (lfp) lfp->Flush();
-		}
-	}
+    if(!dos_kernel_disabled)
+        for(i = 0; i < DOS_FILES; i++) {
+            if(Files[i] && Files[i]->IsOpen() && Files[i]->GetDrive() == drive && Files[i]->IsName(name)) {
+                lfp = dynamic_cast<localFile*>(Files[i]);
+                if(lfp) lfp->Flush();
+            }
+        }
 
     // guest to host code page translation
     const host_cnv_char_t* host_name = CodePageGuestToHost(newname);
@@ -1612,11 +1618,6 @@ bool localDrive::GetSystemFilename(char *sysName, char const * const dosName) {
 #endif
 }
 
-#if defined (WIN32)
-#include <Shellapi.h>
-#else
-#include <glob.h>
-#endif
 bool localDrive::FileUnlink(const char * name) {
     if (readonly) {
         DOS_SetError(DOSERR_WRITE_PROTECTED);
@@ -2784,7 +2785,7 @@ bool localFile::Seek(uint32_t * pos,uint32_t type) {
 #if defined(WIN32)
     if (file_access_tries>0) {
         HANDLE hFile = (HANDLE)_get_osfhandle(_fileno(fhandle));
-        int32_t dwPtr = SetFilePointer(hFile, *pos, NULL, type);
+        DWORD dwPtr = SetFilePointer(hFile, *pos, NULL, type);
         if (dwPtr == INVALID_SET_FILE_POINTER && !strcmp(RunningProgram, "BTHORNE"))	// Fix for Black Thorne
             dwPtr = SetFilePointer(hFile, 0, NULL, DOS_SEEK_END);
         if (dwPtr != INVALID_SET_FILE_POINTER) {										// If success
@@ -2888,14 +2889,12 @@ uint32_t localFile::GetSeekPos() {
 
 localFile::localFile() {}
 
-localFile::localFile(const char* _name, FILE * handle) {
-	fhandle=handle;
+localFile::localFile(const char* _name, FILE* handle) : fhandle(handle) {
 	open=true;
 	localFile::UpdateDateTimeFromHost();
 
 	attr=DOS_ATTR_ARCHIVE;
 	last_action=NONE;
-	read_only_medium=false;
 
 	name=0;
 	SetName(_name);
@@ -2982,15 +2981,12 @@ bool MSCDEX_HasMediaChanged(uint8_t subUnit);
 bool MSCDEX_GetVolumeName(uint8_t subUnit, char* name);
 
 cdromDrive::cdromDrive(const char driveLetter, const char * startdir,uint16_t _bytes_sector,uint8_t _sectors_cluster,uint16_t _total_clusters,uint16_t _free_clusters,uint8_t _mediaid, int& error, std::vector<std::string> &options)
-		   :localDrive(startdir,_bytes_sector,_sectors_cluster,_total_clusters,_free_clusters,_mediaid,options),
-		    subUnit(0),
-		    driveLetter('\0')
+		   :localDrive(startdir,_bytes_sector,_sectors_cluster,_total_clusters,_free_clusters,_mediaid,options), driveLetter(driveLetter)
 {
 	// Init mscdex
 	error = MSCDEX_AddDrive(driveLetter,startdir,subUnit);
 	strcpy(info, "CDRom ");
 	strcat(info, startdir);
-	this->driveLetter = driveLetter;
 	// Get Volume Label
 	char name[32];
 	if (MSCDEX_GetVolumeName(subUnit,name)) dirCache.SetLabel(name,true,true);

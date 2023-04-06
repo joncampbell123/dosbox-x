@@ -6,6 +6,8 @@
 #include "dosbox.h"
 #endif
 
+#include "setup.h"
+
 /* AX Global Area */
 #define BIOSMEM_AX_SEG		0x40
 

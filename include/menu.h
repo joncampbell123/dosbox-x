@@ -16,8 +16,9 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <map>
 #include <string>
-void SetVal(const std::string& secname, const std::string& preval, const std::string& val);
+#include <vector>
 
 #include <SDL_video.h>
 
@@ -93,6 +94,8 @@ void DOSBox_NoMenu(void);
 
 #endif
 
+void SetVal(const std::string & secname, const std::string & preval, const std::string & val);
+
 /* menu interface mode */
 #define DOSBOXMENU_NULL     (0)     /* nothing */
 #define DOSBOXMENU_HMENU    (1)     /* Windows HMENU resources */
@@ -124,9 +127,6 @@ void GUI_Shortcut(int select);
 
 #define DOSBOXMENU_ACCELMARK_STR        "\x01"
 #define DOSBOXMENU_ACCELMARK_CHAR       '\x01'
-
-#include <map>
-#include <vector>
 
 #ifndef MENU_DOSBOXMENU_H
 #define MENU_DOSBOXMENU_H

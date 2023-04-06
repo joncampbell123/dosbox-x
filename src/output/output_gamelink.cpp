@@ -17,6 +17,7 @@
 #include "mapper.h"
 #include "../gamelink/scancodes_windows.h"
 #include "../output/output_surface.h"
+#include <output/output_tools_xbrz.h>
 
 using namespace std;
 

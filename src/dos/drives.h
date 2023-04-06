@@ -101,7 +101,7 @@ public:
 	virtual bool add_special_file_to_disk(const char* dosname, const char* operation, uint16_t value, bool isdir);
 	virtual void EmptyCache(void) { dirCache.EmptyCache(); };
 	virtual void MediaChange() {};
-	const char* getBasedir() {return basedir;};
+	const char* getBasedir() const {return basedir;};
 	struct {
 		uint16_t bytes_sector;
 		uint8_t sectors_cluster;
@@ -537,7 +537,7 @@ public:
 	virtual bool isRemote(void);
 	virtual bool isRemovable(void);virtual Bits UnMount(void);
 private:
-	uint8_t subUnit;	char driveLetter;
+	uint8_t subUnit = 0;	char driveLetter = '\0';
 };
 
 class physfscdromDrive : public physfsDrive
@@ -688,8 +688,8 @@ struct UDFTagId { /* ECMA-167 7.2.1 */
 
 	bool					get(const unsigned int sz,const unsigned char *b);
 	void					parse(const unsigned int sz,const unsigned char *b);
-	bool					tagChecksumOK(const unsigned int sz,const unsigned char *b);
-	bool					dataChecksumOK(const unsigned int sz,const unsigned char *b);
+	bool					tagChecksumOK(const unsigned int sz,const unsigned char *b) const;
+	bool					dataChecksumOK(const unsigned int sz,const unsigned char *b) const;
 	bool					checksumOK(const unsigned int sz,const unsigned char *b);
 						UDFTagId(const unsigned int sz,const unsigned char *b);
 						UDFTagId();
@@ -1059,13 +1059,13 @@ public:
 	virtual Bits UnMount(void);
 	bool loadImage();
 	bool loadImageUDF();
-	bool loadImageUDFAnchorVolumePointer(UDFAnchorVolumeDescriptorPointer &avdp,uint8_t *pvd/*COOKED_SECTOR_SIZE*/,uint32_t sector);
-	bool readSector(uint8_t *buffer, uint32_t sector);
+	bool loadImageUDFAnchorVolumePointer(UDFAnchorVolumeDescriptorPointer &avdp,uint8_t *pvd/*COOKED_SECTOR_SIZE*/,uint32_t sector) const;
+	bool readSector(uint8_t *buffer, uint32_t sector) const;
 	void setFileName(const char* fileName);
 	virtual char const* GetLabel(void) {return discLabel;};
 	virtual void Activate(void);
 private:
-    int  readDirEntry(isoDirEntry* de, const uint8_t* data, unsigned int direntindex);
+    int  readDirEntry(isoDirEntry* de, const uint8_t* data, unsigned int direntindex) const;
 	bool lookup(isoDirEntry *de, const char *path);
 	bool lookup(UDFFileIdentifierDescriptor &fid, UDFFileEntry &fe, const char *path);
 	int  UpdateMscdex(char driveLetter, const char* path, uint8_t& subUnit);
@@ -1114,10 +1114,10 @@ private:
 	UDFFileSetDescriptor						fsetd;
 	UDFPartitionDescriptor						partd;
 public:
-	void UDFextent_rewind(struct UDFextents &ex);
-	void UDFFileEntryToExtents(UDFextents &ex,UDFFileEntry &fe);
-	uint64_t UDFextent_seek(struct UDFextents &ex,uint64_t ofs);
-	int UDFextent_read(struct UDFextents &ex,unsigned char *buf,size_t count);
+	void UDFextent_rewind(struct UDFextents &ex) const;
+	void UDFFileEntryToExtents(UDFextents &ex,UDFFileEntry &fe) const;
+	uint64_t UDFextent_seek(struct UDFextents &ex,uint64_t ofs) const;
+	unsigned int UDFextent_read(struct UDFextents &ex,unsigned char *buf,size_t count) const;
 	uint64_t UDFtotalsize(struct UDFextents &ex) const;
 private:
 	struct DirIterator {
@@ -1190,7 +1190,7 @@ public:
 	virtual bool TestDir(const char * dir);
 	virtual bool RemoveDir(const char * dir);
 	virtual bool MakeDir(const char * dir);
-	const char* getOverlaydir() {return overlaydir;};
+	const char* getOverlaydir() const {return overlaydir;};
 	bool ovlnocachedir = false;
 	bool ovlreadonly = false;
 private:
