@@ -14,23 +14,11 @@
 
 class ClockDomain {
 public:
-	ClockDomain() {
-		freq = 0;
-		freq_div = 1;
-        counter = 0;
-	}
-	ClockDomain(unsigned long long freq_new) {
-		freq = freq_new;
-		freq_div = 1;
-        counter = 0;
-	}
+	ClockDomain() : freq(0) {}
+	ClockDomain(unsigned long long freq_new) : freq(freq_new) {}
 	/* we allow non-integer frequencies as integer fractions.
 	 * example: 33.3333333...MHz as 100,000,000Hz / 3 */
-	ClockDomain(unsigned long long freq_new,unsigned long long div) {
-		freq = freq_new;
-		freq_div = div;
-        counter = 0;
-	}
+	ClockDomain(unsigned long long freq_new,unsigned long long div) : freq(freq_new), freq_div(div) {}
 public:
 	void set_name(const char *s) {
 		name = s;
@@ -49,8 +37,8 @@ public:
 	 *       - Do not set clock time by floating point time (only the toplevel clocks in the tree should do that)
 	 *       - Must rebase at the same reference time as the master
 	 *       - Must maintain time according to master time divided by master's clock divider */
-	unsigned long long		freq,freq_div;	/* frequency of clock as integer ratio */
-	unsigned long long		counter;	/* in units of freq */
+	unsigned long long		freq,freq_div = 1;	/* frequency of clock as integer ratio */
+	unsigned long long		counter = 0;	/* in units of freq */
 	std::string			name;
 };
 

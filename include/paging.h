@@ -20,6 +20,8 @@
 #ifndef DOSBOX_PAGING_H
 #define DOSBOX_PAGING_H
 
+#include <exception>
+
 #include "mem.h"
 
 // disable this to reduce the size of the TLB
@@ -137,19 +139,19 @@ private:
  *      move on to the next device or mark the I/O port as empty. */
 class MEM_CalloutObject {
 public:
-    MEM_CalloutObject() : installed(false), mem_mask(0xFFFFFFFFU), range_mask(0U), alias_mask(0xFFFFFFFFU), getcounter(0), m_handler(NULL), m_base(0), alloc(false) {};
+    MEM_CalloutObject() {};
     void InvalidateCachedHandlers(void);
 	void Install(Bitu page,Bitu pagemask/*MEMMASK_ISA_24BIT, etc.*/,MEM_CalloutHandler *handler);
 	void Uninstall();
 public:
-	bool installed;
-    Bitu mem_mask;
-    Bitu range_mask;
-    Bitu alias_mask;
-    unsigned int getcounter;
-    MEM_CalloutHandler *m_handler;
-	Bitu m_base;
-    bool alloc;
+	bool installed = false;
+    Bitu mem_mask = 0xFFFFFFFF;
+    Bitu range_mask = 0;
+    Bitu alias_mask = 0xFFFFFFFF;
+    unsigned int getcounter = 0;
+    MEM_CalloutHandler *m_handler = NULL;
+	Bitu m_base = 0;
+    bool alloc = false;
 public:
     inline bool MatchPage(const Bitu p) {
         /* (p & io_mask) == (m_port & io_mask) but this also works.
@@ -495,17 +497,12 @@ static INLINE bool mem_writed_checked(const PhysPt address,const uint32_t val) {
 
 extern bool dosbox_allow_nonrecursive_page_fault;	/* when set, do nonrecursive mode (when executing instruction) */
 
-#include <exception>
-
 class GuestPageFaultException : public std::exception {
 public:
 	virtual const char *what() const throw() {
 		return "Guest page fault exception";
 	}
-	GuestPageFaultException(PhysPt n_lin_addr, Bitu n_page_addr, Bitu n_faultcode) {
-		lin_addr = n_lin_addr;
-		page_addr = n_page_addr;
-		faultcode = n_faultcode;
+	GuestPageFaultException(PhysPt n_lin_addr, Bitu n_page_addr, Bitu n_faultcode) : lin_addr(n_lin_addr), page_addr(n_page_addr), faultcode(n_faultcode) {
 	}
 public:
 	PhysPt lin_addr;

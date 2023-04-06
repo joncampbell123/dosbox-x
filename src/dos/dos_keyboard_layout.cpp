@@ -16,6 +16,7 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#include <assert.h>
 #include <set>
 
 #include "dosbox.h"
@@ -40,6 +41,8 @@
 #if defined (WIN32)
 #include <windows.h>
 #endif
+
+#include <output/output_ttf.h>
 
 int lastcp = 0;
 void DOSBox_SetSysMenu(void);

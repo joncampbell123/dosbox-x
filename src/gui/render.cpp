@@ -49,6 +49,9 @@
 #include <emmintrin.h>
 #endif
 
+#include <output/output_tools_xbrz.h>
+#include <output/output_opengl.h>
+
 extern bool video_debug_overlay;
 
 Render_t                                render;

@@ -24,6 +24,13 @@
 /* for mkdir_p, needed by emscripten */
 #include <sys/stat.h>
 #endif
+#include <algorithm>
+#include <functional>
+#include <map>
+#include <sstream>
+#include <vector>
+
+#include "clockdomain.h"
 #include "config.h"
 
 #if defined(C_ICONV)
@@ -75,11 +82,9 @@
 // TODO: The autoconf script should test the size of long double
 #if defined(_MSC_VER)
 // Microsoft C++ sizeof(long double) == sizeof(double)
-#undef HAS_LONG_DOUBLE
 #elif defined(__arm__) || defined(__aarch64__)
 // ARMv7 (Raspberry Pi) does not have long double, sizeof(long double) == sizeof(double)
 // ARM 64 has a quadruple-precision float instead of the 80-bit extended precision one used by x87
-#undef HAS_LONG_DOUBLE
 #else
 // GCC, other compilers, have sizeof(long double) == 10 80-bit IEEE
 #define HAS_LONG_DOUBLE		1
@@ -89,8 +94,6 @@ GCC_ATTRIBUTE(noreturn) void		E_Exit(const char * format,...) GCC_ATTRIBUTE( __f
 
 typedef Bits cpu_cycles_count_t;
 typedef Bitu cpu_cycles_countu_t;
-
-#include "clockdomain.h"
 
 class Config;
 class Section;
@@ -297,13 +300,6 @@ static inline constexpr bytecount_t _tebibytes(const bytecount_t x) {
 #ifndef SAVE_STATE_H_INCLUDED
 #define SAVE_STATE_H_INCLUDED
 
-#include <sstream>
-#include <map>
-#include <algorithm>
-#include <functional>
-#include <vector>
-
-
 #define WRITE_POD(x,y) \
 	stream.write(reinterpret_cast<const char*>( (x) ), sizeof( (y) ) );
 
@@ -349,22 +345,22 @@ private:
     class RawBytes
     {
     public:
-        RawBytes() : dataExists(false), isCompressed(false) {}
+        RawBytes() {}
         void set(const std::string& stream);
         std::string get() const; //throw (Error)
         void compress() const;   //throw (Error)
         bool dataAvailable() const;
     private:
-        bool dataExists; //determine whether set method (even with empty string) was called
-        mutable bool isCompressed; //design for logical not binary const
+        bool dataExists = false; //determine whether set method (even with empty string) was called
+        mutable bool isCompressed = false; //design for logical not binary const
         mutable std::string bytes; //
     };
 
     struct CompData
     {
-        CompData(Component& cmp) : comp(cmp), rawBytes(MAX_PAGE*SLOT_COUNT) {}
+        CompData(Component& cmp) : comp(cmp) {}
         Component& comp;
-        std::vector<RawBytes> rawBytes;
+        std::vector<RawBytes> rawBytes = std::vector<RawBytes>(MAX_PAGE * SLOT_COUNT);
     };
 
     typedef std::map<std::string, CompData> CompEntry;

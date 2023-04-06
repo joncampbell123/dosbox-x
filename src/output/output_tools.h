@@ -9,6 +9,7 @@
 #include "sdlmain.h"
 
 extern int aspect_ratio_x, aspect_ratio_y;
+extern SDL_Block sdl;
 
 // common headers and static routines reused in different outputs go there
 

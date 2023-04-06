@@ -63,6 +63,8 @@
 #include <unistd.h>
 #endif
 
+#include <output/output_ttf.h>
+
 static bool first_run=true;
 bool sync_time = false, manualtime = false;
 extern std::string log_dev_con_str;

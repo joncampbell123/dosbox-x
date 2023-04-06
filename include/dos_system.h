@@ -67,7 +67,7 @@ class DOS_DTA;
 
 class DOS_File {
 public:
-    DOS_File() :flags(0) { name = 0; attr = 0; date = 0; drive = 0; refCtr = 0; open = false; time = 0; hdrive = 0xff; newtime = false; };
+    DOS_File() {};
 	DOS_File(const DOS_File& orig);
 	DOS_File & operator= (const DOS_File & orig);
 	virtual ~DOS_File(){ delete [] name;};
@@ -94,23 +94,22 @@ public:
 
 	char* name = NULL;
 	uint8_t drive = 0;
-	uint32_t flags;
-	bool open;
+	uint32_t flags = 0;
+	bool open = false;
 
-	uint16_t attr;
-	uint16_t time;
-	uint16_t date;
-	Bits refCtr;
+	uint16_t attr = 0;
+	uint16_t time = 0;
+	uint16_t date = 0;
+	Bits refCtr = 0;
 	bool newtime = false;
 	/* Some Device Specific Stuff */
 private:
-	uint8_t hdrive;
+	uint8_t hdrive = 0xff;
 };
 
 class DOS_Device : public DOS_File {
 public:
-	DOS_Device(const DOS_Device& orig):DOS_File(orig) {
-		devnum=orig.devnum;
+	DOS_Device(const DOS_Device& orig):DOS_File(orig), devnum(orig.devnum) {
 		open=true;
 	}
 	DOS_Device & operator= (const DOS_Device & orig) {
@@ -119,7 +118,7 @@ public:
 		open=true;
 		return *this;
 	}
-	DOS_Device():DOS_File(),devnum(0){};
+	DOS_Device():DOS_File() {};
 	virtual ~DOS_Device() {};
 	virtual bool	Read(uint8_t * data,uint16_t * size);
 	virtual bool	Write(const uint8_t * data,uint16_t * size);
@@ -132,7 +131,7 @@ public:
 	virtual uint8_t	GetStatus(bool input_flag);
 	void SetDeviceNumber(Bitu num) { devnum=num;}
 private:
-	Bitu devnum;
+	Bitu devnum = 0;
 };
 
 struct ExtDeviceData {
@@ -144,8 +143,7 @@ struct ExtDeviceData {
 
 class DOS_ExtDevice : public DOS_Device {
 public:
-    DOS_ExtDevice(const DOS_ExtDevice& orig) :DOS_Device(orig) {
-        ext = orig.ext;
+    DOS_ExtDevice(const DOS_ExtDevice& orig) :DOS_Device(orig), ext(orig.ext) {
     }
     DOS_ExtDevice(const char* name, uint16_t seg, uint16_t off) {
         SetName(name);
@@ -238,7 +236,6 @@ public:
 		CFileInfo(void) {
 			orgname[0] = shortname[0] = 0;
 			isOverlayDir = isDir = false;
-			id = MAX_OPENDIRS;
 			nextEntry = shortNr = 0;
 		}
 		~CFileInfo(void) {
@@ -250,7 +247,7 @@ public:
 		char		shortname	[DOS_NAMELENGTH_ASCII];
 		bool        isOverlayDir;
 		bool		isDir;
-		uint16_t		id;
+		uint16_t		id = MAX_OPENDIRS;
 		Bitu		nextEntry;
 		Bitu		shortNr;
 		// contents

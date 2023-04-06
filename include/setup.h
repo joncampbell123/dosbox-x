@@ -106,7 +106,7 @@ public:
 	const std::string propname;
 	std::vector<Value> suggested_values;
 
-	Property(std::string const& _propname, Changeable::Value when):propname(_propname),is_modified(false),change(when) { use_global_config_str=false; }
+	Property(std::string const& _propname, Changeable::Value when):propname(_propname),change(when) {}
 	void Set_values(const char * const * in);
 	void Set_help(std::string const& in);
 	char const* Get_help();
@@ -150,11 +150,11 @@ protected:
 	}
 	Value value;
 	bool is_basic=false;
-	bool is_modified;
+	bool is_modified = false;
 	typedef std::vector<Value>::const_iterator const_iter;
 	Value default_value;
 	const Changeable::Value change;
-	bool use_global_config_str;
+	bool use_global_config_str = false;
 	std::string help_string;
 };
 
@@ -253,9 +253,7 @@ struct Function_wrapper {
 	SectionFunction function;
 	bool canchange;
 	std::string name;
-	Function_wrapper(SectionFunction const _fun,bool _ch,const char *_name) {
-		function=_fun;
-		canchange=_ch;
+	Function_wrapper(SectionFunction const _fun,bool _ch,const char *_name) : function(_fun), canchange(_ch) {
 		if (_name != NULL) name = _name;
 	}
 };
@@ -319,7 +317,7 @@ enum vm_event {
 
 class VMDispatchState {
 public:
-	VMDispatchState() : current_event(VM_EVENT_MAX), event_in_progress(false) { }
+	VMDispatchState() {}
 	void begin_event(enum vm_event event) {
 		event_in_progress = true;
 		current_event = event;
@@ -328,8 +326,8 @@ public:
 		event_in_progress = false;
 	}
 public:
-	enum vm_event			current_event;
-	bool				event_in_progress;
+	enum vm_event			current_event = VM_EVENT_MAX;
+	bool				event_in_progress = false;
 };
 
 extern VMDispatchState vm_dispatch_state;
@@ -382,11 +380,11 @@ public:
 
 class Prop_multival:public Property{
 protected:
-	Section_prop* section;
+	Section_prop* section = new Section_prop("");
 	std::string separator;
 	void make_default_value();
 public:
-	Prop_multival(std::string const& _propname, Changeable::Value when,std::string const& sep):Property(_propname,when), section(new Section_prop("")),separator(sep) {
+	Prop_multival(std::string const& _propname, Changeable::Value when,std::string const& sep):Property(_propname,when),separator(sep) {
 		default_value = value = "";
 	}
 	Section_prop *GetSection() { return section; }
@@ -421,7 +419,7 @@ class Module_base {
 protected:
 	Section* m_configuration;
 public:
-	Module_base(Section* configuration){m_configuration=configuration;};
+	Module_base(Section* configuration) : m_configuration(configuration) {};
 //	Module_base(Section* configuration, SaveState* state) {};
 	virtual ~Module_base(){/*LOG_MSG("executed")*/;};//Destructors are required
 	/* Returns true if succesful.*/

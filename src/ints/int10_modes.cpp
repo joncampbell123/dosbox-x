@@ -35,6 +35,8 @@
 #include "sdlmain.h"
 #include "bitop.h"
 
+#include <output/output_ttf.h>
+
 #define SEQ_REGS 0x05
 #define GFX_REGS 0x09
 #define ATT_REGS 0x15

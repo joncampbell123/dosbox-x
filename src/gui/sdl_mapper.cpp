@@ -65,6 +65,8 @@
 #include <map>
 #include <cctype>
 
+#include <output/output_ttf.h>
+
 #define BMOD_Mod1               0x0001
 #define BMOD_Mod2               0x0002
 #define BMOD_Mod3               0x0004
