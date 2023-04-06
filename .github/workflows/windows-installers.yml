@@ -2,13 +2,13 @@ name: Windows installers
 
 on:
   push:
-  pull_request:
   workflow_dispatch:
 permissions:
   contents: read
 
 jobs:
   build-dosbox-x-windows-installers:
+    if: startsWith(github.ref, 'refs/tags/')
     permissions:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
       contents: write # for actions/checkout to fetch code and softprops/action-gh-release
