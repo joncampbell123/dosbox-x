@@ -516,6 +516,9 @@
     <ClCompile Include="..\src\hardware\vga_pc98_gdc.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\hardware\vga_ati.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\hardware\vga_s3.cpp">
       <Filter>Sources\hardware</Filter>
     </ClCompile>
