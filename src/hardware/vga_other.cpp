@@ -221,7 +221,7 @@ static void write_crtc_data_other(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 	case 0x1C:	/* Hercules InColor */
 		if (hercCard == HERC_InColor) {
 			vga.herc.palette[vga.herc.palette_index] = (uint8_t)val & 63u;
-			VGA_DAC_CombineColor(vga.herc.palette_index,vga.herc.palette_index);
+			VGA_ATTR_SetPalette(vga.herc.palette_index,vga.herc.palette_index);
 			if (++vga.herc.palette_index >= 0x10) vga.herc.palette_index = 0;
 			break;
 		}

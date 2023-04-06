@@ -1065,7 +1065,10 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 		case MCH_HERC:
 			IO_WriteB(0x3b8,0x28);	// TEXT mode and blinking characters
 
-			if (hercCard < HERC_InColor) {
+			if (hercCard >= HERC_InColor) {
+				VGA_ATTR_SetEGAMonitorPalette(EGA);
+			}
+			else {
 				Herc_Palette();
 				VGA_DAC_CombineColor(0,0);
 			}
