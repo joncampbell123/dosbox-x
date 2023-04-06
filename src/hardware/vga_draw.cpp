@@ -305,13 +305,38 @@ void VGA_VsyncUpdateMode(VGA_Vsync vsyncmode) {
 
 void VGA_TweakUserVsyncOffset(float val) { uservsyncjolt = val; }
 
+template <const unsigned int card,typename templine_type_t> static inline templine_type_t InColor_Planar_Common_Block_xlat(const uint8_t t) {
+    return t&vga.herc.planemask_visible;
+}
+
 static uint8_t * VGA_Draw_HercInColor_Mono_1BPP_Line(Bitu vidstart, Bitu line) {
     const uint32_t *base = (const uint32_t*)vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
-    uint32_t *draw = (uint32_t *)TempLine;
+    uint8_t *draw = (uint8_t *)TempLine;
+    uint32_t t1,t2,tmp;
+
     for (Bitu x=vga.draw.blocks;x>0;x--, vidstart++) {
-        const uint8_t val = base[vidstart & (8 * 1024 -1)] & 0xFFu;
-        *draw++=CGA_2_Table[val >> 4];
-        *draw++=CGA_2_Table[val & 0xf];
+        t1 = t2 = base[vidstart & ((8 * 1024) - 1)];
+        t1 = (t1 >> 4) & 0x0f0f0f0f;
+        t2 &= 0x0f0f0f0f;
+
+        tmp =   Expand16Table[0][(t1>>0)&0xFF] |
+                Expand16Table[1][(t1>>8)&0xFF] |
+                Expand16Table[2][(t1>>16)&0xFF] |
+                Expand16Table[3][(t1>>24)&0xFF];
+        draw[0] = InColor_Planar_Common_Block_xlat<MCH_HERC,uint8_t>((tmp>> 0ul)&0xFFul);
+        draw[1] = InColor_Planar_Common_Block_xlat<MCH_HERC,uint8_t>((tmp>> 8ul)&0xFFul);
+        draw[2] = InColor_Planar_Common_Block_xlat<MCH_HERC,uint8_t>((tmp>>16ul)&0xFFul);
+        draw[3] = InColor_Planar_Common_Block_xlat<MCH_HERC,uint8_t>((tmp>>24ul)&0xFFul);
+
+        tmp =   Expand16Table[0][(t2>>0)&0xFF] |
+                Expand16Table[1][(t2>>8)&0xFF] |
+                Expand16Table[2][(t2>>16)&0xFF] |
+                Expand16Table[3][(t2>>24)&0xFF];
+        draw[4] = InColor_Planar_Common_Block_xlat<MCH_HERC,uint8_t>((tmp>> 0ul)&0xFFul);
+        draw[5] = InColor_Planar_Common_Block_xlat<MCH_HERC,uint8_t>((tmp>> 8ul)&0xFFul);
+        draw[6] = InColor_Planar_Common_Block_xlat<MCH_HERC,uint8_t>((tmp>>16ul)&0xFFul);
+        draw[7] = InColor_Planar_Common_Block_xlat<MCH_HERC,uint8_t>((tmp>>24ul)&0xFFul);
+	draw += 8;
     }
     return TempLine;
 }
@@ -3609,7 +3634,12 @@ void VGA_DrawDebugLine(uint8_t *line,unsigned int w) {
 	switch (VGA_debug_screen_bpp) {
 		case 8:
 			// CGA/Tandy/PCjr/Herc/MDA
-			if (machine == MCH_HERC || machine == MCH_MDA) {
+			if (machine == MCH_HERC && hercCard == HERC_InColor) {
+				dkgray = 0x38;
+				white = 0x3F;
+			}
+			else if (machine == MCH_HERC || machine == MCH_MDA) {
+				dkgray = 0;
 				white = 1;
 			}
 			else if (machine == MCH_EGA) {
@@ -3854,7 +3884,11 @@ void VGA_sof_debug_video_info(void) {
 	switch (VGA_debug_screen_bpp) {
 		case 8:
 			// CGA/Tandy/PCjr/Herc/MDA
-			if (machine == MCH_HERC || machine == MCH_MDA) {
+			if (machine == MCH_HERC && hercCard == HERC_InColor) {
+				white = 0x3F;
+				green = 0x12; /* xxRGBrgb */
+			}
+			else if (machine == MCH_HERC || machine == MCH_MDA) {
 				white = 1;
 				green = 1;
 			}
@@ -5822,8 +5856,14 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     // Display end
     vga.draw.delay.vdend = vdend * vga.draw.delay.htotal;
 
+    // Hercules InColor outputs EGA-like 64 color EGA mode (350 lines) and I don't think there's ever a case where it would do 200-line CGA modes
+    // even though you COULD do that.
+    if (machine == MCH_HERC && hercCard == HERC_InColor) {
+        // 64 color EGA mode
+        VGA_ATTR_SetEGAMonitorPalette(EGA);
+    }
     // EGA frequency dependent monitor palette
-    if (machine == MCH_EGA) {
+    else if (machine == MCH_EGA) {
         if (vga.misc_output & 1) {
             // EGA card is in color mode
             if ((1.0f/vga.draw.delay.htotal) > 19.0f) {
@@ -6391,7 +6431,10 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     }
     vga.draw.delay.singleline_delay = (float)vga.draw.delay.htotal;
 
-    if (machine == MCH_HERC || machine == MCH_MDA) {
+    if (machine == MCH_HERC && hercCard == HERC_InColor) {
+        VGA_DAC_UpdateColorPalette();
+    }
+    else if (machine == MCH_HERC || machine == MCH_MDA) {
         Herc_Palette();
     }
     else {

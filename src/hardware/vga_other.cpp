@@ -141,6 +141,94 @@ static void write_crtc_data_other(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 		vga.other.lightpen &= 0xff00;
 		vga.other.lightpen |= (uint8_t)val;
 		break;
+	case 0x14:	/* Hercules InColor and HGC+: xMode */
+		if (hercCard == HERC_InColor || hercCard == HERC_GraphicsCardPlus) {
+			if (vga.herc.xMode != (uint8_t)val) {
+				// TODO: HGC+ and InColor bit 1 selects 80-column 9x14 or 90-column 8x14 which means monitor timing change
+				// TODO: HGC+ and InColor bit 0 controls whether the RAM font at B4000h is drawn in text mode, and bit 2 the 48k RAMfont mode.
+				//       Depending on implementation this affects which VGA draw line function to assign.
+				vga.herc.xMode = (uint8_t)val;
+			}
+			break;
+		}
+		else {
+			goto unhandled;
+		}
+	case 0x15:	/* Hercules InColor and HGC+ */
+		if (hercCard == HERC_InColor || hercCard == HERC_GraphicsCardPlus) {
+			vga.herc.underline = (uint8_t)val;
+			break;
+		}
+		else {
+			goto unhandled;
+		}
+	case 0x16:	/* Hercules InColor and HGC+ */
+		if (hercCard == HERC_InColor || hercCard == HERC_GraphicsCardPlus) {
+			vga.herc.strikethrough = (uint8_t)val;
+			break;
+		}
+		else {
+			goto unhandled;
+		}
+	case 0x17:	/* Hercules InColor */
+		if (hercCard == HERC_InColor) {
+			if (vga.herc.exception != (uint8_t)val) {
+				vga.herc.exception = (uint8_t)val;
+				for (uint8_t i=0;i<0x10;i++)
+					VGA_ATTR_SetPalette(i,i);
+			}
+			break;
+		}
+		else {
+			goto unhandled;
+		}
+	case 0x18:	/* Hercules InColor */
+		if (hercCard == HERC_InColor) {
+			vga.herc.planemask_protect = (uint8_t)((val >> 4u) & 0xFu);
+			vga.herc.planemask_visible = (uint8_t)(val & 0xFu);
+			break;
+		}
+		else {
+			goto unhandled;
+		}
+	case 0x19:	/* Hercules InColor */
+		if (hercCard == HERC_InColor) {
+			vga.herc.maskpolarity = (val & 0x40u) ? 0xFFu : 0x00u;
+			vga.herc.write_mode = (val >> 4u) & 3u;
+			vga.herc.dont_care = (val & 0xFu);
+			break;
+		}
+		else {
+			goto unhandled;
+		}
+	case 0x1A:	/* Hercules InColor */
+		if (hercCard == HERC_InColor) {
+			vga.herc.fgcolor = (uint8_t)(val & 0xFu);
+			vga.herc.bgcolor = (uint8_t)((val >> 4u) & 0xFu);
+			break;
+		}
+		else {
+			goto unhandled;
+		}
+	case 0x1B:	/* Hercules InColor */
+		if (hercCard == HERC_InColor) {
+			vga.herc.latchprotect = (uint8_t)(val & 0xFu);
+			break;
+		}
+		else {
+			goto unhandled;
+		}
+	case 0x1C:	/* Hercules InColor */
+		if (hercCard == HERC_InColor) {
+			vga.herc.palette[vga.herc.palette_index] = (uint8_t)val & 63u;
+			VGA_DAC_CombineColor(vga.herc.palette_index,vga.herc.palette_index);
+			if (++vga.herc.palette_index >= 0x10) vga.herc.palette_index = 0;
+			break;
+		}
+		else {
+			goto unhandled;
+		}
+	unhandled:
 	default:
 		LOG(LOG_VGAMISC,LOG_NORMAL)("MC6845:Write %X to illegal index %x",(int)val,(int)vga.other.index);
 	}
@@ -183,6 +271,15 @@ static Bitu read_crtc_data_other(Bitu /*port*/,Bitu /*iolen*/) {
 		return (uint8_t)(vga.other.lightpen >> 8u);
 	case 0x11:	/* Light Pen Low */
 		return (uint8_t)(vga.other.lightpen & 0xffu);
+	case 0x1C:	/* Hercules InColor */
+		if (hercCard == HERC_InColor) {
+			vga.herc.palette_index = 0;
+			break;
+		}
+		else {
+			goto unhandled;
+		}
+	unhandled:
 	default:
 		LOG(LOG_VGAMISC,LOG_NORMAL)("MC6845:Read from illegal index %x",vga.other.index);
 	}
@@ -966,6 +1063,8 @@ void HercBlend(bool pressed) {
 }
 
 void Herc_Palette(void) {
+	if (hercCard == HERC_InColor) return;
+
 	switch (herc_pal) {
 	case MonochromeColor::White:
 		VGA_DAC_SetEntry(0x7,0x2a,0x2a,0x2a);
@@ -984,8 +1083,6 @@ void Herc_Palette(void) {
 		VGA_DAC_SetEntry(0xf,0x00,0x3f,0x00);
 		break;
 	}
-	VGA_DAC_CombineColor(1,0x7);
-	VGA_DAC_CombineColor(2,0xf);
 }
 
 void Mono_CGA_Palette(void) {	

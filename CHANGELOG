@@ -1,4 +1,12 @@
 Next:
+  - Add InColor CRTC registers and add code to emulate the planar
+    bitplane operations. Microsoft Flight Simulator 3.0 renders
+    correctly now. (joncampbell123)
+  - Update Hercules InColor code to render the same 64-color EGA
+    palette as machine=ega. (joncampbell123)
+  - Correct machine=hercules text rendering flaw that prevented
+    the bright attribute (bit 3/7) from working, making all text
+    output the same normal brightness. (joncampbell123)
   - Add expected data structures and signatures to VGA ROM BIOS at
     C000:0000 if machine type selects ATI emulation (joncampbell123).
   - Add ATI machine types, which at this time, is just a placeholder

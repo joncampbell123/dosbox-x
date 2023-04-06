@@ -1065,8 +1065,10 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 		case MCH_HERC:
 			IO_WriteB(0x3b8,0x28);	// TEXT mode and blinking characters
 
-			Herc_Palette();
-			VGA_DAC_CombineColor(0,0);
+			if (hercCard < HERC_InColor) {
+				Herc_Palette();
+				VGA_DAC_CombineColor(0,0);
+			}
 
 			real_writeb(BIOSMEM_SEG,BIOSMEM_CURRENT_MSR,0x29); // attribute controls blinking
 			break;

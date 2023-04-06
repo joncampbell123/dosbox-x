@@ -1524,6 +1524,21 @@ void VGA_Init() {
 
 	vga.config.chained = false;
 
+    vga.herc.xMode = 0;
+    vga.herc.underline = 0xD;
+    vga.herc.strikethrough = 0xD;
+    vga.herc.latch = 0;
+    vga.herc.exception = 0x20;
+    vga.herc.planemask_protect = 0;
+    vga.herc.planemask_visible = 0xF;
+    vga.herc.maskpolarity = 0xFF;
+    vga.herc.write_mode = 0;
+    vga.herc.dont_care = 0;
+    vga.herc.fgcolor = 0xF;
+    vga.herc.bgcolor = 0x0;
+    vga.herc.latchprotect = 0;
+    vga.herc.palette_index = 0;
+    for (unsigned int i=0;i < 16;i++) vga.herc.palette[i] = i;
     vga.draw.render_step = 0;
     vga.draw.render_max = 1;
 

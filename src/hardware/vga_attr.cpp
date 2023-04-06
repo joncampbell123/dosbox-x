@@ -34,6 +34,13 @@ void VGA_RenderOnDemandUpTo(void);
 
 static EGAMonitorMode currentMonitorMode = CGA;
 
+static const uint8_t InColorRGBI[16] = {
+	0x00,0x01,0x02,0x03,
+	0x04,0x05,0x06,0x07,
+	0x38,0x39,0x3A,0x3B,
+	0x3C,0x3D,0x3E,0x3F
+};
+
 EGAMonitorMode egaMonitorMode(void) {
 	return currentMonitorMode;
 }
@@ -83,8 +90,14 @@ void VGA_ATTR_SetEGAMonitorPalette(EGAMonitorMode m) {
 	}
 
 	// update the mappings
-	for (uint8_t i=0;i<0x10;i++)
-		VGA_ATTR_SetPalette(i,vga.attr.palette[i]);
+	if (machine == MCH_HERC && hercCard == HERC_InColor) {
+		for (uint8_t i=0;i<0x10;i++)
+			VGA_ATTR_SetPalette(i,i);
+	}
+	else {
+		for (uint8_t i=0;i<0x10;i++)
+			VGA_ATTR_SetPalette(i,vga.attr.palette[i]);
+	}
 }
 
 void VGA_ATTR_SetPalette(uint8_t index, uint8_t val) {
@@ -130,6 +143,12 @@ void VGA_ATTR_SetPalette(uint8_t index, uint8_t val) {
 
 		// apply
 		VGA_DAC_CombineColor(index,val);
+	}
+	else if (machine == MCH_HERC && hercCard == HERC_InColor) {
+		if (vga.herc.exception & 0x10)
+			VGA_DAC_CombineColor(index,vga.herc.palette[index&0xF]);
+		else
+			VGA_DAC_CombineColor(index,InColorRGBI[index&0xF]);
 	}
 	else {
 		VGA_DAC_CombineColor(index,index);

@@ -2346,6 +2346,11 @@ public:
 	}
 };
 
+void InColorLoadLatch(const VGA_Latch &latch) {
+	const uint32_t nochangemask = FillTable[vga.herc.latchprotect&0xFu];
+	vga.herc.latch = (vga.herc.latch & nochangemask) + (latch.d & (~nochangemask));
+}
+
 /* Text region of the InColor which is documented to write to all bitplanes bypassing the masking functions entirely */
 /* NTS: If the InColor is documented as writing all bitplanes unconditionally in monochrome backwards compatible mode,
  *      then it stands to reason that it doesn't have the Odd/Even mode EGA/VGA does and the text and attribute bytes
@@ -2355,13 +2360,126 @@ public:
 	uint8_t readHandler(PhysPt start) {
 		/* TODO: Load hardware latch? */
 		/* TODO: Which bitplane does it read? */
-		return (((VGA_Latch*)vga.mem.linear)[start]).b[0];
+		VGA_Latch latch;
+		latch.d = ((uint32_t*)vga.mem.linear)[start];
+		InColorLoadLatch(latch);
+		return latch.b[0];
 	}
 	void writeHandler(PhysPt start, uint8_t val) {
 		((uint32_t*)vga.mem.linear)[start] = ExpandTable[val];
 	}
 public:
 	HERC_InColor_Mono_Handler() : PageHandler(PFLAG_NOCODE) {}
+	uint8_t readb(PhysPt addr ) {
+		VGAMEM_USEC_read_delay();
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+//		addr = CHECKED(addr);
+		return (uint8_t)readHandler( addr );
+	}
+	uint16_t readw(PhysPt addr ) {
+		VGAMEM_USEC_read_delay();
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+//		addr = CHECKED(addr);
+		uint16_t ret = (uint16_t)(readHandler( addr+0 ) << 0 );
+		ret     |= (readHandler( addr+1 ) << 8 );
+		return ret;
+	}
+	uint32_t readd(PhysPt addr ) {
+		VGAMEM_USEC_read_delay();
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+//		addr = CHECKED(addr);
+		uint32_t ret = (uint32_t)(readHandler( addr+0 ) << 0 );
+		ret     |= (readHandler( addr+1 ) << 8 );
+		ret     |= (readHandler( addr+2 ) << 16 );
+		ret     |= (readHandler( addr+3 ) << 24 );
+		return ret;
+	}
+	void writeb(PhysPt addr,uint8_t val) {
+		VGAMEM_USEC_write_delay();
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+//		addr = CHECKED2(addr);
+		writeHandler(addr+0,val);
+	}
+	void writew(PhysPt addr,uint16_t val) {
+		VGAMEM_USEC_write_delay();
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+//		addr = CHECKED2(addr);
+		writeHandler(addr+0,(uint8_t)(val >> 0));
+		writeHandler(addr+1,(uint8_t)(val >> 8));
+	}
+	void writed(PhysPt addr,uint32_t val) {
+		VGAMEM_USEC_write_delay();
+		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
+//		addr = CHECKED2(addr);
+		writeHandler(addr+0,(uint8_t)(val >> 0));
+		writeHandler(addr+1,(uint8_t)(val >> 8));
+		writeHandler(addr+2,(uint8_t)(val >> 16));
+		writeHandler(addr+3,(uint8_t)(val >> 24));
+	}
+};
+
+/* Graphics region of the InColor */
+class HERC_InColor_Graphics_Handler : public PageHandler {
+public:
+	uint8_t readHandler(PhysPt start) {
+		/* TODO: Load hardware latch? */
+		/* TODO: Which bitplane does it read? */
+		const uint8_t idcmask = vga.herc.dont_care ^ 0xFu;
+		uint32_t t1,t2,tmp;
+		uint8_t result = 0;
+		VGA_Latch latch;
+
+		t1 = t2 = latch.d = ((uint32_t*)vga.mem.linear)[start];
+		t1 = (t1 >> 4) & 0x0f0f0f0f;
+		t2 &= 0x0f0f0f0f;
+
+		tmp =   Expand16Table[0][(t1>>0)&0xFF] |
+			Expand16Table[1][(t1>>8)&0xFF] |
+			Expand16Table[2][(t1>>16)&0xFF] |
+			Expand16Table[3][(t1>>24)&0xFF];
+
+		for (unsigned int c=0;c < 4;c++)
+			{ result |= (((tmp&idcmask) == (vga.herc.bgcolor&idcmask))?1u:0u) << (7-c); tmp >>= 8u; }
+
+		tmp =   Expand16Table[0][(t2>>0)&0xFF] |
+			Expand16Table[1][(t2>>8)&0xFF] |
+			Expand16Table[2][(t2>>16)&0xFF] |
+			Expand16Table[3][(t2>>24)&0xFF];
+
+		for (unsigned int c=0;c < 4;c++)
+			{ result |= (((tmp&idcmask) == (vga.herc.bgcolor&idcmask))?1u:0u) << (3-c); tmp >>= 8u; }
+
+		InColorLoadLatch(latch);
+
+		return result ^ vga.herc.maskpolarity;
+	}
+	void writeHandler(PhysPt start, uint8_t val) {
+		const uint32_t valmask = ExpandTable[val];
+		const uint32_t nochangemask = FillTable[vga.herc.planemask_protect];
+		const uint32_t bgplane = FillTable[vga.herc.bgcolor];
+		const uint32_t fgplane = FillTable[vga.herc.fgcolor];
+		VGA_Latch pl;
+
+		switch (vga.herc.write_mode) {
+			case 0: // 0=bgcolor 1=fgcolor
+				pl.d = (fgplane & valmask) + (bgplane & (~valmask));
+				break;
+			case 1: // 0=latch 1=fgcolor
+				pl.d = (fgplane & valmask) + (vga.herc.latch & (~valmask));
+				break;
+			case 2: // 0=bgcolor 1=latch
+				pl.d = (vga.herc.latch & valmask) + (bgplane & (~valmask));
+				break;
+			case 3: // 0=~latch 1=latch
+			default:
+				pl.d = vga.herc.latch ^ (~valmask);
+				break;
+		}
+
+		((uint32_t*)vga.mem.linear)[start] = (((uint32_t*)vga.mem.linear)[start] & nochangemask) + (pl.d & (~nochangemask));
+	}
+public:
+	HERC_InColor_Graphics_Handler() : PageHandler(PFLAG_NOCODE) {}
 	uint8_t readb(PhysPt addr ) {
 		VGAMEM_USEC_read_delay();
 		addr = PAGING_GetPhysicalAddress(addr) & vgapages.mask;
@@ -2429,6 +2547,7 @@ static struct vg {
 	VGA_PCJR_Handler			pcjr;
 	VGA_HERC_Handler			herc;
 	HERC_InColor_Mono_Handler		herc_incolor_mono;
+	HERC_InColor_Graphics_Handler		herc_incolor_graphics;
 //	VGA_LIN4_Handler			lin4;
 	VGA_LFB_Handler				lfb;
 	VGA_MMIO_Handler			mmio;
@@ -2526,24 +2645,28 @@ void VGA_SetupHandlers(void) {
 			 *      software would actually use. */
 			if (vga.herc.enable_bits & 0x1) { /* allow graphics and enable 0xB1000-0xB7FFF */
 				vgapages.mask=0xffff;
-				MEM_SetPageHandler(VGA_PAGE_B0,16,(machine == MCH_HERC && hercCard == HERC_InColor)?(PageHandler*)(&vgaph.herc_incolor_mono):(PageHandler*)(&vgaph.map));
+				MEM_SetPageHandler(VGA_PAGE_B0,16,(machine == MCH_HERC && hercCard == HERC_InColor)?(PageHandler*)(&vgaph.herc_incolor_graphics):(PageHandler*)(&vgaph.map));
 			}
 			else {
 				vgapages.mask=0xfff;
-				MEM_SetPageHandler(VGA_PAGE_B0,16,(machine == MCH_HERC && hercCard == HERC_InColor)?(PageHandler*)(&vgaph.herc_incolor_mono):(PageHandler*)(&vgaph.herc));
+				MEM_SetPageHandler(VGA_PAGE_B0,16,(machine == MCH_HERC && hercCard == HERC_InColor)?(PageHandler*)(&vgaph.herc_incolor_graphics):(PageHandler*)(&vgaph.herc));
 			}
 		} else {
 			// With hercules in 32kB mode it leaves a memory hole on 0xb800
 			// and has MDA-compatible address wrapping when graphics are disabled
 			if (vga.herc.enable_bits & 0x1) {
 				vgapages.mask=0x7fff;
-				MEM_SetPageHandler(VGA_PAGE_B0,16,(machine == MCH_HERC && hercCard == HERC_InColor)?(PageHandler*)(&vgaph.herc_incolor_mono):(PageHandler*)(&vgaph.map));
+				MEM_SetPageHandler(VGA_PAGE_B0,16,(machine == MCH_HERC && hercCard == HERC_InColor)?(PageHandler*)(&vgaph.herc_incolor_graphics):(PageHandler*)(&vgaph.map));
 			}
 			else {
 				vgapages.mask=0xfff;
-				MEM_SetPageHandler(VGA_PAGE_B0,16,(machine == MCH_HERC && hercCard == HERC_InColor)?(PageHandler*)(&vgaph.herc_incolor_mono):(PageHandler*)(&vgaph.herc));
+				MEM_SetPageHandler(VGA_PAGE_B0,16,(machine == MCH_HERC && hercCard == HERC_InColor)?(PageHandler*)(&vgaph.herc_incolor_graphics):(PageHandler*)(&vgaph.herc));
 			}
 			MEM_SetPageHandler(VGA_PAGE_B8,8,&vgaph.empty);
+		}
+		if (machine == MCH_HERC && hercCard == HERC_InColor && !(vga.herc.enable_bits & 1)) {
+			// Text area in the first 16KB is less subject to planar functions
+			MEM_SetPageHandler(VGA_PAGE_B0,4,&vgaph.herc_incolor_mono);
 		}
 		goto range_done;
 	case MCH_TANDY:
