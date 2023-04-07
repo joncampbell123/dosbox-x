@@ -1696,6 +1696,7 @@ static uint8_t * MCGA_TEXT_Draw_Line(Bitu vidstart, Bitu line) {
 template <const unsigned int hercCard,typename vram_t,const unsigned int pixw,const bool color> static uint8_t * VGA_TEXT_Herc_Draw_Line_common(Bitu vidstart, Bitu line) {
         Bits font_addr;
 	uint8_t * draw=(uint8_t *)TempLine;
+	const uint8_t attrmask = (vga.herc.mode_control & 0x20/*blink*/) ? 0x7F : 0xFF;
 	const vram_t* vidmem = (sizeof(vram_t) == 4) ? (const vram_t*)VGA_Planar_Memwrap(vidstart) : (const vram_t*)VGA_Text_Memwrap(vidstart);
 
 	for (Bitu cx=0;cx<vga.draw.blocks;cx++) {
@@ -1703,7 +1704,7 @@ template <const unsigned int hercCard,typename vram_t,const unsigned int pixw,co
 		Bitu attrib=vidmem[cx*2+1]&0xffu;
 		if (color/*template compile time*/) {
 			uint32_t bg, fg;
-			bg = TXT_BG_Table[attrib>>4u];
+			bg = TXT_BG_Table[(attrib&attrmask)>>4u];
 			fg = TXT_FG_Table[attrib&0xFu];
 			uint32_t mask1, mask2;
 			{
@@ -1756,7 +1757,10 @@ template <const unsigned int hercCard,typename vram_t,const unsigned int pixw,co
 		uint8_t attr = *cvidmem & 0xFFu;
 		uint32_t cg;
 		if (color/*template compile time*/) {
-			cg = TXT_FG_Table[attr&0xFu];
+			if ((vga.herc.exception & 0xF) != 0)/*cursor color*/
+				cg = TXT_FG_Table[vga.herc.exception&0xFu];
+			else
+				cg = TXT_FG_Table[attr&0xFu];
 		}
 		else {
 			if (attr&0x8) {
