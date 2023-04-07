@@ -1784,11 +1784,17 @@ static uint8_t * VGA_TEXT9_Herc_Draw_Line(Bitu vidstart, Bitu line) {
 }
 
 static uint8_t * VGA_TEXT8_HercInColor_Draw_Line(Bitu vidstart, Bitu line) {
-	return VGA_TEXT_Herc_Draw_Line_common<HERC_InColor,uint32_t,8,/*color*/false>(vidstart,line);
+	if (vga.herc.exception & 0x20/*MDA attributes*/)
+		return VGA_TEXT_Herc_Draw_Line_common<HERC_InColor,uint32_t,8,/*color*/false>(vidstart,line);
+	else/*CGA attributes*/
+		return VGA_TEXT_Herc_Draw_Line_common<HERC_InColor,uint32_t,8,/*color*/true>(vidstart,line);
 }
 
 static uint8_t * VGA_TEXT9_HercInColor_Draw_Line(Bitu vidstart, Bitu line) {
-	return VGA_TEXT_Herc_Draw_Line_common<HERC_InColor,uint32_t,9,/*color*/false>(vidstart,line);
+	if (vga.herc.exception & 0x20/*MDA attributes*/)
+		return VGA_TEXT_Herc_Draw_Line_common<HERC_InColor,uint32_t,9,/*color*/false>(vidstart,line);
+	else/*CGA attributes*/
+		return VGA_TEXT_Herc_Draw_Line_common<HERC_InColor,uint32_t,9,/*color*/true>(vidstart,line);
 }
 
 // Wengier: Auto-detect box-drawing characters in CJK mode for TTF output
