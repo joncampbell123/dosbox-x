@@ -1,4 +1,9 @@
 Next:
+  - Change Hercules/MDA text output to render 9 pixels per char
+    if the char9 setting is on, to match the 9x14 character cell
+    that those cards emit to the screen. The user can always turn
+    it back off to get the 8x14 text they're probably accustomed
+    to in other DOSBox forks. (joncampbell123)
   - Render output fixed to never double pixels vertically on render
     if the machine type is emulating VGA and the Doublescan option
     is enabled, in order to help resolve SVGA text mode issues
