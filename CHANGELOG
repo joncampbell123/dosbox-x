@@ -1,4 +1,8 @@
 Next:
+  - Render output fixed to never double pixels vertically on render
+    if the machine type is emulating VGA and the Doublescan option
+    is enabled, in order to help resolve SVGA text mode issues
+    reported by ThomasKjoernes (joncampbell123)
   - Add InColor CRTC registers and add code to emulate the planar
     bitplane operations. Microsoft Flight Simulator 3.0 renders
     correctly now. (joncampbell123)
