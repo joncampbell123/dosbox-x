@@ -1490,6 +1490,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     <ClCompile Include="..\src\hardware\vga_misc.cpp" />
     <ClCompile Include="..\src\hardware\vga_other.cpp" />
     <ClCompile Include="..\src\hardware\vga_paradise.cpp" />
+    <ClCompile Include="..\src\hardware\vga_ati.cpp" />
     <ClCompile Include="..\src\hardware\vga_s3.cpp" />
     <ClCompile Include="..\src\hardware\vga_seq.cpp" />
     <ClCompile Include="..\src\hardware\vga_tseng.cpp" />
