@@ -5722,7 +5722,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         case MCH_MDA:
         case MCH_HERC:
             oscclock=16257000;
-            if (vga.mode == M_HERC_GFX)
+            if (vga.mode == M_HERC_GFX || (vga.herc.xMode & 2)/*90 column mode HGC+ and InColor 8 pixels/char*/)
                 clock=oscclock/8;
             else
                 clock=oscclock/9;
@@ -6217,8 +6217,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         break;
     case M_HERC_TEXT:
         vga.draw.blocks=width;
-        // TODO: HGC+ and InColor allow control between 80-char 9x14 and 90-char 8x14
-        if (!vga.draw.char9_set) {
+        if ((vga.herc.xMode & 2)/*90 column mode HGC+ and InColor 8 pixels/char*/ || !vga.draw.char9_set) {
             // 8-pixel wide
             pix_per_char = 8;
             vga.draw.char9dot = false;
