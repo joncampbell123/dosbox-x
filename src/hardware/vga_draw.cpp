@@ -1702,8 +1702,9 @@ template <const unsigned int hercCard,typename vram_t,const unsigned int pixw,co
 	for (Bitu cx=0;cx<vga.draw.blocks;cx++) {
 		Bitu chr=vidmem[cx*2]&0xffu;
 		Bitu attrib=vidmem[cx*2+1]&0xffu;
+		uint32_t bg, fg;
+
 		if (color/*template compile time*/) {
-			uint32_t bg, fg;
 			bg = TXT_BG_Table[(attrib&attrmask)>>4u];
 			fg = TXT_FG_Table[attrib&0xFu];
 			uint32_t mask1, mask2;
@@ -1720,8 +1721,8 @@ template <const unsigned int hercCard,typename vram_t,const unsigned int pixw,co
 				// 00h, 80h, 08h, 88h produce black space
 				((uint32_t*)draw)[0]=0;
 				((uint32_t*)draw)[1]=0;
+				bg = fg = 0;
 			} else {
-				uint32_t bg, fg;
 				bool underline=false;
 				if ((attrib&0x77)==0x70) {
 					bg = TXT_BG_Table[0x7];
@@ -1744,7 +1745,7 @@ template <const unsigned int hercCard,typename vram_t,const unsigned int pixw,co
 				((uint32_t*)draw)[1]=(fg&mask2) | (bg&~mask2);
 			}
 		}
-		if (pixw == 9/*template compile time*/) draw[8] = ((chr&0xE0) == 0xC0/*C0h-DFh*/) ? draw[7] : 0;
+		if (pixw == 9/*template compile time*/) draw[8] = ((chr&0xE0) == 0xC0/*C0h-DFh*/) ? draw[7] : (uint8_t)bg;
 		draw += pixw;
 	}
 	if (!vga.draw.cursor.enabled || !(vga.draw.cursor.count&0x8)) goto skip_cursor;
