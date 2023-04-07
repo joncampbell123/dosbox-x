@@ -1703,8 +1703,8 @@ template <const unsigned int hercCard,typename vram_t,const unsigned int pixw> s
         Bitu attrib=vidmem[cx*2+1]&0xffu;
         if (!(attrib&0x77)) {
             // 00h, 80h, 08h, 88h produce black space
-            *draw++=0;
-            *draw++=0;
+            ((uint32_t*)draw)[0]=0;
+            ((uint32_t*)draw)[1]=0;
         } else {
             uint32_t bg, fg;
             bool underline=false;
@@ -1728,8 +1728,8 @@ template <const unsigned int hercCard,typename vram_t,const unsigned int pixw> s
             ((uint32_t*)draw)[0]=(fg&mask1) | (bg&~mask1);
             ((uint32_t*)draw)[1]=(fg&mask2) | (bg&~mask2);
             if (pixw == 9/*template compile time*/) draw[8] = ((chr&0xE0) == 0xC0/*C0h-DFh*/) ? draw[7] : 0;
-            draw += pixw;
         }
+        draw += pixw;
     }
     if (!vga.draw.cursor.enabled || !(vga.draw.cursor.count&0x8)) goto skip_cursor;
     font_addr = ((Bits)vga.draw.cursor.address - (Bits)vidstart) >> 1ll;
