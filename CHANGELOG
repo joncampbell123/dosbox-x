@@ -1,4 +1,12 @@
 Next:
+  - Fixed keyboard emulation so that upon the keyboard reset command
+    FFh, the keyboard does the reset process and THEN sends back
+    bytes 0xAA (power on/reset OK) and 0x00 (interface self-test).
+    This resolves the issue where Windows NT 3.1 pauses at startup and
+    does not resume booting until you press a key on the keyboard.
+    This also resolves the issue where Windows NT 3.5 keyboard and
+    mouse input stops working completely if you press a key on the
+    keyboard. (joncampbell123).
   - Add Hercules InColor emulation of MDA vs CGA attribute select,
     and make sure it obeys the blink setting (joncampbell123)
   - Change Hercules/MDA text output to render 9 pixels per char

@@ -265,6 +265,7 @@ static void KEYBOARD_ResetDelay(Bitu val) {
     (void)val;//UNUSED
     keyb.reset=false;
     KEYBOARD_SetLEDs(0);
+    KEYBOARD_Add8042Response(0xAA); /* SELF TEST OK */
     KEYBOARD_Add8042Response(0x00); /* BAT */
 }
 
@@ -573,8 +574,7 @@ static void write_p60(Bitu port,Bitu val,Bitu iolen) {
             break;
         case 0xff:      /* keyboard resets take a long time (about 250ms), most keyboards flash the LEDs during reset */
             KEYBOARD_Reset();
-            KEYBOARD_Add8042Response(0xFA); /* ACK */
-            KEYBOARD_Add8042Response(0xAA); /* SELF TEST OK (TODO: Need delay!) */
+            KEYBOARD_Add8042Response(0xFA); /* ACK (TODO: The host has to read the ACK byte first before starting reset?? According to IBM, anyway) */
             keyb.reset=true;
             KEYBOARD_SetLEDs(7); /* most keyboard I test with tend to flash the LEDs during reset */
             PIC_AddEvent(KEYBOARD_ResetDelay,RESETDELAY);
