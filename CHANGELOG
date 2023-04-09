@@ -1,4 +1,10 @@
 Next:
+  - Fixed S3 XGA emulation bitmap rendering to correctly handle
+    8/16/32-bit pixel transfer I/O and update comments to reflect
+    the 32-bit byte aligned transfer mode of the Trio chipset.
+    This fixes incorrectly drawn radio buttons and 16x16 icons
+    in Windows NT 3.5, Windows NT 3.51, Windows NT 4.0, and
+    Windows 2000. (joncampbell123).
   - Fixed keyboard emulation so that upon the keyboard reset command
     FFh, the keyboard does the reset process and THEN sends back
     bytes 0xAA (power on/reset OK) and 0x00 (interface self-test).
