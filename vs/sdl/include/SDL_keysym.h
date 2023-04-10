@@ -299,7 +299,7 @@ typedef enum {
         /*@}*/
 
 	/* Add any other keys here */
-
+    SDLK_KP_COMMA   = 323,
 	SDLK_LAST
 } SDLKey;
 

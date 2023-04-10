@@ -1449,6 +1449,7 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
     case KBD_minus:ret=12;break;
     case KBD_equals:ret=13;break;
     case KBD_kpequals:ret=0x59;break; /* According to Battler */
+    case KBD_kpcomma: ret=0x7e;break; /* Keypad comma and ABNT C2 (Brazilian KP period)*/
     case KBD_backspace:ret=14;break;
     case KBD_tab:ret=15;break;
 
@@ -1631,7 +1632,7 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
     case KBD_jp_muhenkan:ret=0x7B;break;
     case KBD_jp_henkan:ret=0x79;break;
     case KBD_jp_hiragana:ret=0x70;break;/*also Katakana */
-    case KBD_jp_backslash:ret=0x73;break;/*JP 106-key: _ \ or ろ (ro)  <-- WARNING: UTF-8 unicode */
+    case KBD_jp_backslash:ret=0x73;break;/*JP 106-key: _ \ or ろ (ro)  <-- WARNING: UTF-8 unicode also ABNT C1(Brazilian /)*/
     case KBD_jp_yen:ret=0x7d;break;/*JP 106-key: | ¥ (yen) or ー (prolonged sound mark)  <-- WARNING: UTF-8 unicode */
 	case KBD_colon:if (!pc98_force_ibm_layout) {ret = 0x28; break;} /*JP106-key : or * same position with Quote key */
 	case KBD_caret:if (!pc98_force_ibm_layout) {ret = 0x0d; break;} /*JP106-key ^ or ~ same position with Equals key */

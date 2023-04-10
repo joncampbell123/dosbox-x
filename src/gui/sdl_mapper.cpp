@@ -1115,7 +1115,7 @@ static SDLKey sdlkey_map[MAX_SCANCODES] = {
 	SDLK_LESS, //0x56 Non-US \ and |
 	SDLK_F11, //0x57
 	SDLK_F12, //0x58
-	Z, //0x59 Keypad =
+	SDLK_KP_EQUALS, //0x59 Keypad =
 	Z, Z, //0x5a-0x5b unknown
 	Z, //0x5c Keyboard International6
 	Z, Z, Z, //0x5d-0x5f unknown
@@ -1137,7 +1137,7 @@ static SDLKey sdlkey_map[MAX_SCANCODES] = {
 	SDLK_WORLD_13, //0x7b Keyboard International5 Muhenkan
 	Z, //0x7c unknown
 	SDLK_JP_YEN, //0x7d Keyboard International3 \ and |
-	Z, //0x7e Keypad Comma
+	SDLK_KP_COMMA, //0x7e Keypad Comma
 	Z, //0x7f unknown
 	/* 0x80-0x8f unknown */
 	Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z,
@@ -4091,8 +4091,10 @@ static void CreateLayout(void) {
 #define XO 19
 #define YO 2
 
-    AddKeyButtonEvent(PX(XO + 3) - 3, PY(YO - 1), BU(1) - 1, BV(1), "Neq", "kp_equals", KBD_kpequals);
-
+    AddKeyButtonEvent(PX(XO + 3) - 3, PY(YO - 1), BU(1) - 1, BV(1), "KP=", "kp_equals", KBD_kpequals);
+    if(!IS_PC98_ARCH) {
+        AddKeyButtonEvent(PX(XO + 2) - 3, PY(YO - 1), BU(1) - 1, BV(1), "KP,", "kp_comma", KBD_kpcomma);
+    }
     num_lock_event =
     AddKeyButtonEvent(PX(XO + 0) - 0, PY(YO + 0), BU(1) - 1, BV(1), "Num", "numlock", KBD_numlock);
     AddKeyButtonEvent(PX(XO + 1) - 1, PY(YO + 0), BU(1) - 1, BV(1), "/", "kp_divide", KBD_kpdivide);
@@ -4472,6 +4474,7 @@ static struct {
     {"kp_divide",SDL_SCANCODE_KP_DIVIDE},   {"kp_multiply",SDL_SCANCODE_KP_MULTIPLY},
     {"kp_minus",SDL_SCANCODE_KP_MINUS},     {"kp_plus",SDL_SCANCODE_KP_PLUS},
     {"kp_period",SDL_SCANCODE_KP_PERIOD},   {"kp_enter",SDL_SCANCODE_KP_ENTER},
+    {"kp_equals",SDL_SCANCODE_KP_EQUALS},   {"kp_comma",SDL_SCANCODE_KP_COMMA},
 
     /* Is that the extra backslash key ("less than" key) */
     /* on some keyboards with the 102-keys layout??      */
@@ -4557,6 +4560,7 @@ static struct {
      *      This default assignment should allow Apple Mac users (who's keyboards DO have one)
      *      to use theirs as a normal equals sign. */
     {"kp_equals",SDLK_KP_EQUALS},
+    {"kp_comma", SDLK_KP_COMMA},
 
 #if defined(C_SDL2)
     // TODO??
@@ -4584,7 +4588,7 @@ static struct {
 #else
     /* hack for Japanese keyboards with \ and _ */
     {"jp_bckslash",SDLK_JP_RO}, // Same difference
-    {"jp_ro",SDLK_JP_RO}, // DOSBox proprietary
+    //{"jp_ro",SDLK_JP_RO}, // DOSBox proprietary
     /* hack for Japanese keyboards with Yen and | */
     {"jp_yen",SDLK_JP_YEN },
 #endif
