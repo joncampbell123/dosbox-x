@@ -1,4 +1,9 @@
 Next:
+  - NE2000 emulation: Looking at recent Bochs source code, ne2k.cc
+    appears to have downgraded the "IMR write, reserved bit set"
+    message from BX_PANIC to BX_ERROR. Update the same in DOSBox-X
+    so that Windows 2000 no longer crashes the emulator with E_Exit()
+    when probing the NE2000 hardware. (joncampbell123).
   - INT 33h mouse services: Add "Get General Driver Information"
     function for Microsoft Word 5.5 (joncampbell123).
   - INT 33h mouse services: Render cursorType == 2 (graphics cursor)

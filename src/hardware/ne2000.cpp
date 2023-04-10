@@ -769,8 +769,8 @@ bx_ne2k_c::page0_write(uint32_t offset, uint32_t value, unsigned io_len)
 
   case 0xf:  // IMR
     // Check for reserved bit
-	if (value & 0x80)
-      BX_PANIC(("IMR write, reserved bit set"));
+    if (value & 0x80)
+      BX_ERROR(("IMR write, reserved bit set"));
 
     // Set other values
     BX_NE2K_THIS s.IMR.rx_inte    = ((value & 0x01) == 0x01);
