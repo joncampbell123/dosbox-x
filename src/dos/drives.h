@@ -367,8 +367,8 @@ class fatDrive : public DOS_Drive {
 public:
 	fatDrive(const char * sysFilename, uint32_t bytesector, uint32_t cylsector, uint32_t headscyl, uint32_t cylinders, std::vector<std::string> &options);
 	fatDrive(imageDisk *sourceLoadedDisk, std::vector<std::string> &options);
-    void fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32_t cylsector, uint32_t headscyl, uint32_t cylinders, uint64_t filesize, const std::vector<std::string> &options);
-    virtual ~fatDrive();
+	void fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32_t cylsector, uint32_t headscyl, uint32_t cylinders, uint64_t filesize, const std::vector<std::string> &options);
+	virtual ~fatDrive();
 	virtual bool FileOpen(DOS_File * * file,const char * name,uint32_t flags);
 	virtual bool FileCreate(DOS_File * * file,const char * name,uint16_t attributes);
 	virtual bool FileUnlink(const char * name);
@@ -414,18 +414,18 @@ public:
 	uint8_t req_ver_major = 0,req_ver_minor = 0;
 	bool created_successfully = true;
 	uint32_t partSectOff;
-    struct {
-        uint32_t bytesector;
-        uint32_t cylsector;
-        uint32_t headscyl;
-        uint32_t cylinders;
-        int mounttype;
-    } opts = {0, 0, 0, 0, -1};
-    struct {
-        unsigned char CDROM_drive;
-        unsigned long cdrom_sector_offset;
-        unsigned char floppy_emu_type;
-    } el = {0, 0, 0};
+	struct {
+		uint32_t bytesector;
+		uint32_t cylsector;
+		uint32_t headscyl;
+		uint32_t cylinders;
+		int mounttype;
+	} opts = {0, 0, 0, 0, -1};
+	struct {
+		unsigned char CDROM_drive;
+		unsigned long cdrom_sector_offset;
+		unsigned char floppy_emu_type;
+	} el = {0, 0, 0};
 
 private:
 	char* Generate_SFN(const char *path, const char *name);
@@ -441,7 +441,7 @@ private:
 	friend void DOS_Shell::CMD_SUBST(char* args); 	
 	struct {
 		char srch_dir[CROSS_LEN];
-    } srchInfo[MAX_OPENDIRS] = {};
+	} srchInfo[MAX_OPENDIRS] = {};
 
 	/* directory entry range of LFN entries after FindNextInternal(), needed by
 	 * filesystem code such as RemoveDir() which needs to delete the dirent AND
@@ -468,8 +468,8 @@ private:
 		uint16_t total_clusters;
 		uint16_t free_clusters;
 		uint8_t mediaid;
-    } allocation = {};
-	
+	} allocation = {};
+
 	FAT_BootSector::bpb_union_t BPB = {}; // BPB in effect (translated from on-disk BPB as needed)
 	bool absolute = false;
 	uint8_t fattype = 0;
@@ -483,27 +483,27 @@ private:
 
 	uint32_t cwdDirCluster = 0;
 
-    uint8_t fatSectBuffer[SECTOR_SIZE_MAX * 2] = {};
+	uint8_t fatSectBuffer[SECTOR_SIZE_MAX * 2] = {};
 	uint32_t curFatSect = 0;
 
 	DOS_Drive_Cache labelCache;
 public:
-    /* the driver code must use THESE functions to read the disk, not directly from the disk drive,
-     * in order to support a drive with a smaller sector size than the FAT filesystem's "sector".
-     *
-     * It is very common for instance to have PC-98 HDI images formatted with 256 bytes/sector at
-     * the disk level and a FAT filesystem marked as having 1024 bytes/sector. */
+	/* the driver code must use THESE functions to read the disk, not directly from the disk drive,
+	 * in order to support a drive with a smaller sector size than the FAT filesystem's "sector".
+	 *
+	 * It is very common for instance to have PC-98 HDI images formatted with 256 bytes/sector at
+	 * the disk level and a FAT filesystem marked as having 1024 bytes/sector. */
 	virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data);
 	virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, void * data);
 	virtual uint32_t getSectSize(void);
 	uint32_t sector_size = 0;
 
-    // INT 25h/INT 26h
-    virtual uint32_t GetSectorCount(void);
-    virtual uint32_t GetSectorSize(void);
+	// INT 25h/INT 26h
+	virtual uint32_t GetSectorCount(void);
+	virtual uint32_t GetSectorSize(void);
 	virtual uint8_t Read_AbsoluteSector_INT25(uint32_t sectnum, void * data);
 	virtual uint8_t Write_AbsoluteSector_INT25(uint32_t sectnum, void * data);
-    virtual void UpdateDPB(unsigned char dos_drive);
+	virtual void UpdateDPB(unsigned char dos_drive);
 
 	virtual char const * GetLabel(){return labelCache.GetLabel();};
 	virtual void SetLabel(const char *label, bool iscdrom, bool updatable);

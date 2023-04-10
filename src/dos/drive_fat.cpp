@@ -1244,8 +1244,6 @@ bool fatDrive::allocateCluster(uint32_t useCluster, uint32_t prevCluster) {
 		//LOG_MSG("Chaining cluster %d to %d", prevCluster, useCluster);
 	} 
 
-	if (searchFreeCluster > (useCluster - 2)) searchFreeCluster = useCluster - 2;
-
 	switch(fattype) {
 		case FAT12:
 			setClusterValue(useCluster, 0xfff);
