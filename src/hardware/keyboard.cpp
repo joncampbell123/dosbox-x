@@ -144,8 +144,12 @@ static struct {
     bool cb_irq1;
     bool cb_xlat;
     bool cb_sys;
+    bool leftalt_pressed;
+    bool rightalt_pressed;
     bool leftctrl_pressed;
     bool rightctrl_pressed;
+    bool leftshift_pressed;
+    bool rightshift_pressed;
 } keyb;
 
 void PCjr_stuff_scancode(const unsigned char c) {
@@ -1485,7 +1489,10 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
     case KBD_quote:ret=40;break;
     case KBD_jp_hankaku:ret=41;break;
     case KBD_grave:ret=41;break;
-    case KBD_leftshift:ret=42;break;
+    case KBD_leftshift:
+        ret=42;
+        keyb.leftshift_pressed=pressed;
+        break;
     case KBD_backslash:ret=43;break;
     case KBD_z:ret=44;break;
     case KBD_x:ret=45;break;
@@ -1498,9 +1505,15 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
     case KBD_comma:ret=51;break;
     case KBD_period:ret=52;break;
     case KBD_slash:ret=53;break;
-    case KBD_rightshift:ret=54;break;
+    case KBD_rightshift:
+        ret=54;
+        keyb.rightshift_pressed=pressed;
+        break;
     case KBD_kpmultiply:ret=55;break;
-    case KBD_leftalt:ret=56;break;
+    case KBD_leftalt:
+        ret=56;
+        keyb.leftalt_pressed=pressed;
+        break;
     case KBD_space:ret=57;break;
     case KBD_capslock:ret=58;break;
 
@@ -1558,7 +1571,10 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
         keyb.rightctrl_pressed=pressed;
         break;
     case KBD_kpdivide:extend=true;ret=53;break;
-    case KBD_rightalt:extend=true;ret=56;break;
+    case KBD_rightalt:
+        extend=true;ret=56;
+        keyb.rightalt_pressed=pressed;
+        break;
     case KBD_home:extend=true;ret=71;break;
     case KBD_up:extend=true;ret=72;break;
     case KBD_pageup:extend=true;ret=73;break;
@@ -1598,10 +1614,19 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
         /* NTS: Check previous assertion that the Print Screen sent these bytes in
          *      one order when pressed and reverse order when released. Or perhaps
          *      that's only what some keyboards do. --J.C. */
-        KEYBOARD_AddBuffer(0xe0);
-        KEYBOARD_AddBuffer(0x2a | (pressed ? 0 : 0x80)); /* 0x2a == 42 */
-        KEYBOARD_AddBuffer(0xe0);
-        KEYBOARD_AddBuffer(0x37 | (pressed ? 0 : 0x80)); /* 0x37 == 55 */
+        if (keyb.leftalt_pressed || keyb.rightalt_pressed) {
+            KEYBOARD_AddBuffer(0x54 | (pressed ? 0 : 0x80));
+        }
+        else if (keyb.leftctrl_pressed || keyb.rightctrl_pressed || keyb.leftshift_pressed || keyb.rightshift_pressed) {
+            KEYBOARD_AddBuffer(0xe0);
+            KEYBOARD_AddBuffer(0x37 | (pressed ? 0 : 0x80));
+        }
+        else {
+            KEYBOARD_AddBuffer(0xe0);
+            KEYBOARD_AddBuffer(0x2a | (pressed ? 0 : 0x80)); /* 0x2a == 42 */
+            KEYBOARD_AddBuffer(0xe0);
+            KEYBOARD_AddBuffer(0x37 | (pressed ? 0 : 0x80)); /* 0x37 == 55 */
+        }
         /* pressing this key also disables any previous key repeat */
         keyb.repeat.key = KBD_NONE;
         keyb.repeat.wait = 0;
@@ -2711,8 +2736,12 @@ void KEYBOARD_Reset() {
     keyb.repeat.pause=500;
     keyb.repeat.rate=33;
     keyb.repeat.wait=0;
+    keyb.leftalt_pressed=false;
+    keyb.rightalt_pressed=false;
     keyb.leftctrl_pressed=false;
     keyb.rightctrl_pressed=false;
+    keyb.leftshift_pressed=false;
+    keyb.rightshift_pressed=false;
     keyb.scanset=1;
     /* command byte */
     keyb.cb_override_inhibit=false;

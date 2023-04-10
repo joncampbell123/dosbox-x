@@ -1,4 +1,8 @@
 Next:
+  - Updated IBM PC keyboard emulation to correctly encode Pause and
+    Print Screen key scan codes when shift, alt, and ctrl are held
+    down. This makes it possible to type "Alt+SysRq" for programs
+    that expect it, including SoftICE. (joncampbell123).
   - NE2000 emulation: Looking at recent Bochs source code, ne2k.cc
     appears to have downgraded the "IMR write, reserved bit set"
     message from BX_PANIC to BX_ERROR. Update the same in DOSBox-X
