@@ -181,8 +181,8 @@ int SDL_KeyboardInit(void)
 	keynames[SDLK_WORLD_14] = "JP Henkan/Int'l 4";
 	keynames[SDLK_WORLD_15] = "JP Kata&Hira/Int'l 2";
 	keynames[SDLK_WORLD_16] = "world 16";
-	keynames[SDLK_WORLD_17] = "world 17";
-	keynames[SDLK_WORLD_18] = "world 18";
+	keynames[SDLK_WORLD_17] = "JP Eisu";
+	keynames[SDLK_WORLD_18] = "JP Kana";
 	keynames[SDLK_WORLD_19] = "world 19";
 	keynames[SDLK_WORLD_20] = "JP ro/Int'l 6";
 	keynames[SDLK_WORLD_21] = "world 21";

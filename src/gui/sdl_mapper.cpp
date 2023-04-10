@@ -866,39 +866,37 @@ static uint8_t scancode_map[MAX_SDLKEYS];
 static SDLKey sdlkey_map[]={
     /* Main block printables */
     /*00-05*/ Z, SDLK_s, SDLK_d, SDLK_f, SDLK_h, SDLK_g,
-    /*06-0B*/ SDLK_z, SDLK_x, SDLK_c, SDLK_v, SDLK_WORLD_0, SDLK_b,
+    /*06-0B*/ SDLK_z, SDLK_x, SDLK_c, SDLK_v, SDLK_BACKQUOTE /* 'Section' key */, SDLK_b,
     /*0C-11*/ SDLK_q, SDLK_w, SDLK_e, SDLK_r, SDLK_y, SDLK_t, 
     /*12-17*/ SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_6, SDLK_5, 
     /*18-1D*/ SDLK_EQUALS, SDLK_9, SDLK_7, SDLK_MINUS, SDLK_8, SDLK_0, 
     /*1E-21*/ SDLK_RIGHTBRACKET, SDLK_o, SDLK_u, SDLK_LEFTBRACKET, 
     /*22-23*/ SDLK_i, SDLK_p,
     /*24-29*/ SDLK_RETURN, SDLK_l, SDLK_j, SDLK_QUOTE, SDLK_k, SDLK_SEMICOLON, 
-    /*2A-29*/ SDLK_BACKSLASH, SDLK_COMMA, SDLK_SLASH, SDLK_n, SDLK_m, 
-    /*2F-2F*/ SDLK_PERIOD,
+    /*2A-2F*/ SDLK_BACKSLASH, SDLK_COMMA, SDLK_SLASH, SDLK_n, SDLK_m, SDLK_PERIOD,
 
     /* Spaces, controls, modifiers (dosbox uses LMETA only for
      * hotkeys, it's not really mapped to an emulated key) */
     /*30-33*/ SDLK_TAB, SDLK_SPACE, SDLK_BACKQUOTE, SDLK_BACKSPACE,
-    /*34-37*/ Z, SDLK_ESCAPE, Z, SDLK_LMETA,
+    /*34-37*/ Z, SDLK_ESCAPE, SDLK_RSUPER, SDLK_LSUPER,
     /*38-3B*/ SDLK_LSHIFT, SDLK_CAPSLOCK, SDLK_LALT, SDLK_LCTRL,
-
-    /*3C-40*/ Z, Z, Z, Z, Z,
+    /*3C-40*/ SDLK_RSHIFT, SDLK_RALT, SDLK_RCTRL, Z, SDLK_F17,
 
     /* Keypad (KP_EQUALS not supported, NUMLOCK used on what is CLEAR
      * in Mac OS X) */
     /*41-46*/ SDLK_KP_PERIOD, Z, SDLK_KP_MULTIPLY, Z, SDLK_KP_PLUS, Z,
     /*47-4A*/ SDLK_NUMLOCK /*==SDLK_CLEAR*/, Z, Z, Z,
     /*4B-4D*/ SDLK_KP_DIVIDE, SDLK_KP_ENTER, Z,
-    /*4E-51*/ SDLK_KP_MINUS, Z, Z, SDLK_KP_EQUALS,
+    /*4E-51*/ SDLK_KP_MINUS, SDLK_F18, SDLK_F19, SDLK_KP_EQUALS,
     /*52-57*/ SDLK_KP0, SDLK_KP1, SDLK_KP2, SDLK_KP3, SDLK_KP4, SDLK_KP5, 
     /*58-5C*/ SDLK_KP6, SDLK_KP7, Z, SDLK_KP8, SDLK_KP9, 
 
-	/*5D-5F*/ SDLK_WORLD_1, SDLK_UNDERSCORE, SDLK_a,
+	/*5D-5F*/ SDLK_JP_YEN, SDLK_JP_RO, SDLK_KP_COMMA,
     
     /* Function keys and cursor blocks (F13 not supported, F14 =>
      * PRINT[SCREEN], F15 => SCROLLOCK, F16 => PAUSE, HELP => INSERT) */
     /*60-64*/ SDLK_F5, SDLK_F6, SDLK_F7, SDLK_F3, SDLK_F8,
-    /*65-6A*/ SDLK_F9, Z, SDLK_F11, Z, SDLK_F13, SDLK_PAUSE /*==SDLK_F16*/,
+    /*65-6A*/ SDLK_F9, SDLK_WORLD_17, SDLK_F11, SDLK_WORLD_18, SDLK_F13, SDLK_PAUSE /*==SDLK_F16*/,
     /*6B-70*/ SDLK_PRINT /*==SDLK_F14*/, Z, SDLK_F10, Z, SDLK_F12, Z,
     /*71-72*/ SDLK_SCROLLOCK /*==SDLK_F15*/, SDLK_INSERT /*==SDLK_HELP*/, 
     /*73-77*/ SDLK_HOME, SDLK_PAGEUP, SDLK_DELETE, SDLK_F4, SDLK_END,
@@ -4583,8 +4581,8 @@ static struct {
 #else
 #ifdef SDL_DOSBOX_X_SPECIAL
 #if defined(MACOSX)
-    {"jp_bckslash",SDLK_UNDERSCORE},
-    {"jp_yen",SDLK_WORLD_1 },
+    {"jp_bckslash",SDLK_JP_RO},
+    {"jp_yen",SDLK_JP_YEN },
 #else
     /* hack for Japanese keyboards with \ and _ */
     {"jp_bckslash",SDLK_JP_RO}, // Same difference
@@ -5739,7 +5737,7 @@ void loadScanCode() {
             sdlkey_map[0x67]=SDLK_PRINT;
             sdlkey_map[0x69]=SDLK_RALT;
         }
-#else
+#else //defined(WIN32) Is this really required?
         sdlkey_map[0xc8]=SDLK_UP;
         sdlkey_map[0xd0]=SDLK_DOWN;
         sdlkey_map[0xcb]=SDLK_LEFT;
