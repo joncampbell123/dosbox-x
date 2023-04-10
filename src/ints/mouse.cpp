@@ -494,7 +494,7 @@ void DrawCursorText() {
     //use current page (CV program)
     uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
 
-    if (mouse.cursorType == 0) {
+    if (mouse.cursorType == 0 || mouse.cursorType == 2/*Microsoft Word 5.5 even in text mode*/) {
         uint16_t result;
         ReadCharAttr((uint16_t)mouse.backposx,(uint16_t)mouse.backposy,page,&result);
         mouse.backData[0]	= (uint8_t)(result & 0xFF);
@@ -1641,7 +1641,7 @@ static Bitu INT33_Handler(void) {
             mouse.cursorMask = userdefCursorMask;
             mouse.hotx = (int16_t)reg_bx;
             mouse.hoty = (int16_t)reg_cx;
-            mouse.cursorType = 2;
+            mouse.cursorType = 2;/*NTS: Microsoft Word calls this even in text mode!*/
             DrawCursor();
             break;
         }
@@ -1818,7 +1818,11 @@ static Bitu INT33_Handler(void) {
 	//       BX = fCursor lock
 	//       CX = FinMouse code
 	//       DX = fMouse busy
-        LOG(LOG_MOUSE, LOG_ERROR)("Get general driver information not implemented");
+        reg_al = 1; // GUESS for MDDs
+        reg_ah = 0x40/*integrated*/ | (mouse.cursorType << 4) | 0x01/*30 reports/sec*/;
+        reg_bx = 0;
+        reg_cx = 0;
+        reg_dx = 0;
         break;
     case 0x26:  /* MS MOUSE v6.26+ - GET MAXIMUM VIRTUAL COORDINATES */
         reg_bx = (mouse.enabled ? 0x0000 : 0xffff);

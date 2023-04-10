@@ -1,4 +1,13 @@
 Next:
+  - INT 33h mouse services: Add "Get General Driver Information"
+    function for Microsoft Word 5.5 (joncampbell123).
+  - INT 33h mouse services: Render cursorType == 2 (graphics cursor)
+    as if text cursorType == 0 if the current mode is text mode.
+    Microsoft Word 5.5 always calls functions to set text AND graphics
+    cursor regardless of whether the actual mode is graphics or not.
+    This fix allows the cursor to show correctly as the block cursor
+    it wanted in text mode instead of a moving hardware blinking cursor.
+    (joncampbell123).
   - Fixed S3 XGA emulation bitmap rendering to correctly handle
     8/16/32-bit pixel transfer I/O and update comments to reflect
     the 32-bit byte aligned transfer mode of the Trio chipset.
