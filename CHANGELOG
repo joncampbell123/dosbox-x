@@ -1,4 +1,7 @@
 Next:
+  - Increased PIC event queue size, there are corner cases especially
+    with Windows XP that can occasionally overrun the queue.
+    (joncampbell123).
   - Updated IBM PC keyboard emulation to correctly encode Pause and
     Print Screen key scan codes when shift, alt, and ctrl are held
     down. This makes it possible to type "Alt+SysRq" for programs

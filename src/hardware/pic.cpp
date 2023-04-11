@@ -32,7 +32,7 @@
 # pragma warning(disable:4244) /* const fmath::local::uint64_t to double possible loss of data */
 #endif
 
-#define PIC_QUEUESIZE 512
+#define PIC_QUEUESIZE 8192
 
 unsigned long PIC_irq_delay_ns = 0;
 
