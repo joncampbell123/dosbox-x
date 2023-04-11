@@ -1,4 +1,8 @@
 Next:
+  - DOS INT 21h: Fix date and time functions to call the BIOS for
+    time instead of trying to fake it only at the DOS level. This
+    includes allowing INT 21h to change the date/time using the
+    BIOS. (joncampbell123).
   - DOS shell: Make TIME actually use INT 21h to set time instead of
     directly modifying the BIOS timer tick count in the BDA.
     (joncampbell123).

@@ -1013,7 +1013,6 @@ static Bitu DOS_21Handler(void) {
     char name1[DOSNAMEBUF+2+DOS_NAMELENGTH_ASCII];
     char name2[DOSNAMEBUF+2+DOS_NAMELENGTH_ASCII];
     
-    static Bitu time_start = 0; //For emulating temporary time changes.
     if (reg_ah!=0x4c&&reg_ah!=0x51) {packerr=false;reqwin=false;}
     switch (reg_ah) {
         case 0x00:      /* Terminate Program */
@@ -1442,109 +1441,93 @@ static Bitu DOS_21Handler(void) {
             LOG(LOG_FCB,LOG_NORMAL)("DOS:29:FCB Parse Filename, result:al=%d",reg_al);
             break;
         case 0x2a:      /* Get System Date */
-            {
-                if(date_host_forced || IS_PC98_ARCH) {
-                    // use BIOS to get system date
-                    if (IS_PC98_ARCH) {
-                        CPU_Push16(reg_ax);
-                        CPU_Push16(reg_bx);
-                        CPU_Push16(SegValue(es));
-                        reg_sp -= 6;
+            // use BIOS to get system date
+            if (IS_PC98_ARCH) {
+                CPU_Push16(reg_ax);
+                CPU_Push16(reg_bx);
+                CPU_Push16(SegValue(es));
+                reg_sp -= 6;
 
-                        reg_ah = 0;     // get time
-                        reg_bx = reg_sp;
-                        SegSet16(es,SegValue(ss));
-                        CALLBACK_RunRealInt(0x1c);
+                reg_ah = 0;     // get time
+                reg_bx = reg_sp;
+                SegSet16(es,SegValue(ss));
+                CALLBACK_RunRealInt(0x1c);
 
-                        uint32_t memaddr = ((uint32_t)SegValue(es) << 4u) + reg_bx;
+                uint32_t memaddr = ((uint32_t)SegValue(es) << 4u) + reg_bx;
 
-                        reg_sp += 6;
-                        SegSet16(es,CPU_Pop16());
-                        reg_bx = CPU_Pop16();
-                        reg_ax = CPU_Pop16();
+                reg_sp += 6;
+                SegSet16(es,CPU_Pop16());
+                reg_bx = CPU_Pop16();
+                reg_ax = CPU_Pop16();
 
-                        reg_cx = 1900u + BCD2BIN(mem_readb(memaddr+0u));                  // year
-                        if (reg_cx < 1980u) reg_cx += 100u;
-                        reg_dh = BCD2BIN((unsigned int)mem_readb(memaddr+1) >> 4u);
-                        reg_dl = BCD2BIN(mem_readb(memaddr+2));
-                        reg_al = BCD2BIN(mem_readb(memaddr+1) & 0xFu);
-                    }
-                    else {
-                        CPU_Push16(reg_ax);
-                        reg_ah = 4;     // get RTC date
-                        CALLBACK_RunRealInt(0x1a);
-                        reg_ax = CPU_Pop16();
-
-                        reg_ch = BCD2BIN(reg_ch);       // century
-                        reg_cl = BCD2BIN(reg_cl);       // year
-                        reg_cx = reg_ch * 100u + reg_cl; // compose century + year
-                        reg_dh = BCD2BIN(reg_dh);       // month
-                        reg_dl = BCD2BIN(reg_dl);       // day
-
-                        // calculate day of week (we could of course read it from CMOS, but never mind)
-                        unsigned int a = (14u - reg_dh) / 12u;
-                        unsigned int y = reg_cl - a;
-                        unsigned int m = reg_dh + 12u * a - 2u;
-                        reg_al = (reg_dl + y + (y / 4u) - (y / 100u) + (y / 400u) + (31u * m) / 12u) % 7u;
-                    }
-                } else {
-                    reg_ax=0; // get time
-                    CALLBACK_RunRealInt(0x1a);
-                    if(reg_al) DOS_AddDays(reg_al);
-                    int a = (14 - dos.date.month)/12;
-                    int y = dos.date.year - a;
-                    int m = dos.date.month + 12*a - 2;
-                    reg_al=(dos.date.day+y+(y/4)-(y/100)+(y/400)+(31*m)/12) % 7;
-                    reg_cx=dos.date.year;
-                    reg_dh=dos.date.month;
-                    reg_dl=dos.date.day;
-                }
+                reg_cx = 1900u + BCD2BIN(mem_readb(memaddr+0u));                  // year
+                if (reg_cx < 1980u) reg_cx += 100u;
+                reg_dh = BCD2BIN((unsigned int)mem_readb(memaddr+1) >> 4u);
+                reg_dl = BCD2BIN(mem_readb(memaddr+2));
+                reg_al = BCD2BIN(mem_readb(memaddr+1) & 0xFu);
             }
+            else {
+                CPU_Push16(reg_ax);
+                reg_ah = 4;     // get RTC date
+                CALLBACK_RunRealInt(0x1a);
+                reg_ax = CPU_Pop16();
+
+                reg_ch = BCD2BIN(reg_ch);       // century
+                reg_cl = BCD2BIN(reg_cl);       // year
+                reg_cx = reg_ch * 100u + reg_cl; // compose century + year
+                reg_dh = BCD2BIN(reg_dh);       // month
+                reg_dl = BCD2BIN(reg_dl);       // day
+
+                // calculate day of week (we could of course read it from CMOS, but never mind)
+                unsigned int a = (14u - reg_dh) / 12u;
+                unsigned int y = reg_cl - a;
+                unsigned int m = reg_dh + 12u * a - 2u;
+                reg_al = (reg_dl + y + (y / 4u) - (y / 100u) + (y / 400u) + (31u * m) / 12u) % 7u;
+            }
+            dos.date.year=reg_cx;
+            dos.date.month=reg_dh;
+            dos.date.day=reg_dl;
             break;
         case 0x2b:      /* Set System Date */
-            if(date_host_forced) {
+            {
                 // unfortunately, BIOS does not return whether succeeded
                 // or not, so do a sanity check first
 
-                int maxday[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31};
+                int maxday[12] = {31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31}; /* cannot be const, see maxday[1]++ increment below! */
 
                 if (reg_cx % 4 == 0 && (reg_cx % 100 != 0 || reg_cx % 400 == 0))
                     maxday[1]++;
 
-                if (reg_cx < 1980 || reg_cx > 9999 || reg_dh < 1 || reg_dh > 12 ||
-                        reg_dl < 1 || reg_dl > maxday[reg_dh])
+                if (reg_cx < 1980 || reg_cx > 9999 || reg_dh < 1 || reg_dh > 12 || reg_dl < 1 || reg_dl > maxday[reg_dh])
                 {
                     reg_al = 0xff;              // error!
                     break;                      // done
                 }
 
-                uint16_t cx = reg_cx;
+                if (IS_PC98_ARCH) {
+                    /* TODO! */
+                }
+                else {
+                    uint16_t cx = reg_cx;
 
-                CPU_Push16(reg_ax);
-                CPU_Push16(reg_cx);
-                CPU_Push16(reg_dx);
+                    CPU_Push16(reg_ax);
+                    CPU_Push16(reg_cx);
+                    CPU_Push16(reg_dx);
 
-                reg_al = 5;
-                reg_ch = BIN2BCD(cx / 100);     // century
-                reg_cl = BIN2BCD(cx % 100);     // year
-                reg_dh = BIN2BCD(reg_dh);       // month
-                reg_dl = BIN2BCD(reg_dl);       // day
+                    reg_ah = 5;
+                    reg_ch = BIN2BCD(cx / 100);     // century
+                    reg_cl = BIN2BCD(cx % 100);     // year
+                    reg_dh = BIN2BCD(reg_dh);       // month
+                    reg_dl = BIN2BCD(reg_dl);       // day
 
-                CALLBACK_RunRealInt(0x1a);
+                    CALLBACK_RunRealInt(0x1a);
 
-                reg_dx = CPU_Pop16();
-                reg_cx = CPU_Pop16();
-                reg_ax = CPU_Pop16();
+                    reg_dx = CPU_Pop16();
+                    reg_cx = CPU_Pop16();
+                    reg_ax = CPU_Pop16();
 
-                reg_al = 0;                     // OK
-                break;
-            }
-            if (reg_cx<1980) { reg_al=0xff;break;}
-            if ((reg_dh>12) || (reg_dh==0)) { reg_al=0xff;break;}
-            if (reg_dl==0) { reg_al=0xff;break;}
-            if (reg_dl>GetMonthDays(reg_dh)) {
-                if(!((reg_dh==2)&&(reg_cx%4 == 0)&&(reg_dl==29))) // february pass
-                { reg_al=0xff;break; }
+                    reg_al = 0;                     // OK
+                }
             }
             dos.date.year=reg_cx;
             dos.date.month=reg_dh;
@@ -1553,66 +1536,47 @@ static Bitu DOS_21Handler(void) {
             if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
             break;
         case 0x2c: {    /* Get System Time */
-            if(date_host_forced || IS_PC98_ARCH) {
-                // use BIOS to get RTC time
-                if (IS_PC98_ARCH) {
-                    CPU_Push16(reg_ax);
-                    CPU_Push16(reg_bx);
-                    CPU_Push16(SegValue(es));
-                    reg_sp -= 6;
+            // use BIOS to get RTC time
+            if (IS_PC98_ARCH) {
+                CPU_Push16(reg_ax);
+                CPU_Push16(reg_bx);
+                CPU_Push16(SegValue(es));
+                reg_sp -= 6;
 
-                    reg_ah = 0;     // get time
-                    reg_bx = reg_sp;
-                    SegSet16(es,SegValue(ss));
-                    CALLBACK_RunRealInt(0x1c);
+                reg_ah = 0;     // get time
+                reg_bx = reg_sp;
+                SegSet16(es,SegValue(ss));
+                CALLBACK_RunRealInt(0x1c);
 
-                    uint32_t memaddr = ((PhysPt)SegValue(es) << 4u) + reg_bx;
+                uint32_t memaddr = ((PhysPt)SegValue(es) << 4u) + reg_bx;
 
-                    reg_sp += 6;
-                    SegSet16(es,CPU_Pop16());
-                    reg_bx = CPU_Pop16();
-                    reg_ax = CPU_Pop16();
+                reg_sp += 6;
+                SegSet16(es,CPU_Pop16());
+                reg_bx = CPU_Pop16();
+                reg_ax = CPU_Pop16();
 
-                    reg_ch = BCD2BIN(mem_readb(memaddr+3));     // hours
-                    reg_cl = BCD2BIN(mem_readb(memaddr+4));     // minutes
-                    reg_dh = BCD2BIN(mem_readb(memaddr+5));     // seconds
+                reg_ch = BCD2BIN(mem_readb(memaddr+3));     // hours
+                reg_cl = BCD2BIN(mem_readb(memaddr+4));     // minutes
+                reg_dh = BCD2BIN(mem_readb(memaddr+5));     // seconds
 
-                    reg_dl = 0;
-                }
-                else {
-                    CPU_Push16(reg_ax);
-
-                    reg_ah = 2;     // get RTC time
-                    CALLBACK_RunRealInt(0x1a);
-
-                    reg_ax = CPU_Pop16();
-
-                    reg_ch = BCD2BIN(reg_ch);       // hours
-                    reg_cl = BCD2BIN(reg_cl);       // minutes
-                    reg_dh = BCD2BIN(reg_dh);       // seconds
-
-                    // calculate milliseconds (% 20 to prevent overflow, .55ms has period of 20)
-                    // directly read BIOS_TIMER, don't want to destroy regs by calling int 1a
-                    reg_dl = (uint8_t)((mem_readd(BIOS_TIMER) % 20) * 55 % 100);
-                }
-                break;
+                reg_dl = 0;
             }
-            reg_ax=0; // get time
-            CALLBACK_RunRealInt(0x1a);
-            if(reg_al) DOS_AddDays(reg_al);
-            reg_ah=0x2c;
+            else {
+                CPU_Push16(reg_ax);
 
-            Bitu ticks=((Bitu)reg_cx<<16)|reg_dx;
-            if(time_start<=ticks) ticks-=time_start;
-            Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * (double)ticks);
+                reg_ah = 2;     // get RTC time
+                CALLBACK_RunRealInt(0x1a);
 
-            reg_dl=(uint8_t)((Bitu)time % 100); // 1/100 seconds
-            time/=100;
-            reg_dh=(uint8_t)((Bitu)time % 60); // seconds
-            time/=60;
-            reg_cl=(uint8_t)((Bitu)time % 60); // minutes
-            time/=60;
-            reg_ch=(uint8_t)((Bitu)time % 24); // hours
+                reg_ax = CPU_Pop16();
+
+                reg_ch = BCD2BIN(reg_ch);       // hours
+                reg_cl = BCD2BIN(reg_cl);       // minutes
+                reg_dh = BCD2BIN(reg_dh);       // seconds
+
+                // calculate milliseconds (% 20 to prevent overflow, .55ms has period of 20)
+                // directly read BIOS_TIMER, don't want to destroy regs by calling int 1a
+                reg_dl = (uint8_t)((mem_readd(BIOS_TIMER) % 20) * 55 % 100);
+            }
 
             //Simulate DOS overhead for timing-sensitive games
             //Robomaze 2
@@ -1620,7 +1584,7 @@ static Bitu DOS_21Handler(void) {
             break;
         }
         case 0x2d:      /* Set System Time */
-            if(date_host_forced) {
+            {
                 // unfortunately, BIOS does not return whether succeeded
                 // or not, so do a sanity check first
                 if (reg_ch > 23 || reg_cl > 59 || reg_dh > 59 || reg_dl > 99)
@@ -1629,48 +1593,41 @@ static Bitu DOS_21Handler(void) {
                     break;              // done
                 }
 
-                // timer ticks every 55ms
-                uint32_t ticks = ((((reg_ch * 60u + reg_cl) * 60u + reg_dh) * 100u) + reg_dl) * 10u / 55u;
+                if (IS_PC98_ARCH) {
+                    /* TODO! */
+                }
+                else {
+                    // timer ticks every 55ms
+                    uint32_t ticks = ((((reg_ch * 60u + reg_cl) * 60u + reg_dh) * 100u) + reg_dl) * 10u / 55u;
+                    mem_writed(BIOS_TIMER,(uint32_t)(((double)ticks)*18.206481481));
 
-                CPU_Push16(reg_ax);
-                CPU_Push16(reg_cx);
-                CPU_Push16(reg_dx);
+                    CPU_Push16(reg_ax);
+                    CPU_Push16(reg_cx);
+                    CPU_Push16(reg_dx);
 
-                // use BIOS to set RTC time
-                reg_ah = 3;     // set RTC time
-                reg_ch = BIN2BCD(reg_ch);       // hours
-                reg_cl = BIN2BCD(reg_cl);       // minutes
-                reg_dh = BIN2BCD(reg_dh);       // seconds
-                reg_dl = 0;                     // no DST
+                    // use BIOS to set RTC time
+                    reg_ah = 3;     // set RTC time
+                    reg_ch = BIN2BCD(reg_ch);       // hours
+                    reg_cl = BIN2BCD(reg_cl);       // minutes
+                    reg_dh = BIN2BCD(reg_dh);       // seconds
+                    reg_dl = 0;                     // no DST
 
-                CALLBACK_RunRealInt(0x1a);
+                    CALLBACK_RunRealInt(0x1a);
 
-                // use BIOS to update clock ticks to sync time
-                // could set directly, but setting is safer to do via dedicated call (at least in theory)
-                reg_ah = 1;     // set system time
-                reg_cx = (uint16_t)(ticks >> 16);
-                reg_dx = (uint16_t)(ticks & 0xffff);
+                    // use BIOS to update clock ticks to sync time
+                    // could set directly, but setting is safer to do via dedicated call (at least in theory)
+                    reg_ah = 1;     // set system time
+                    reg_cx = (uint16_t)(ticks >> 16);
+                    reg_dx = (uint16_t)(ticks & 0xffff);
 
-                CALLBACK_RunRealInt(0x1a);
+                    CALLBACK_RunRealInt(0x1a);
 
-                reg_dx = CPU_Pop16();
-                reg_cx = CPU_Pop16();
-                reg_ax = CPU_Pop16();
+                    reg_dx = CPU_Pop16();
+                    reg_cx = CPU_Pop16();
+                    reg_ax = CPU_Pop16();
 
-                reg_al = 0;                     // OK
-                break;
-            }
-            //Check input parameters nonetheless
-            if( reg_ch > 23 || reg_cl > 59 || reg_dh > 59 || reg_dl > 99 )
-                reg_al = 0xff; 
-            else { //Allow time to be set to zero. Restore the original time for all other parameters. (QuickBasic)
-                if (reg_cx == 0 && reg_dx == 0) {time_start = mem_readd(BIOS_TIMER);LOG_MSG("Warning: game messes with DOS time!");}
-                else time_start = 0;
-				uint32_t ticks=(uint32_t)(((double)(reg_ch*3600+
-												reg_cl*60+
-												reg_dh))*18.206481481);
-				mem_writed(BIOS_TIMER,ticks);
-                reg_al = 0;
+                    reg_al = 0;                     // OK
+                }
             }
             if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
             break;
