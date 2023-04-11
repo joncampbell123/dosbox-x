@@ -3214,23 +3214,13 @@ void DOS_Shell::CMD_TIME(char * args) {
 	uint32_t newhour,newminute,newsecond;
 	char c=dos.tables.country[13], c1, c2;
 	if (sscanf(args,"%u%c%u%c%u",&newhour,&c1,&newminute,&c2,&newsecond)==5 && c1==c && c2==c) {
-		//reg_ch = static_cast<uint16_t>(newhour);
-		//reg_cl = static_cast<uint8_t>(newminute);
-		//reg_dx = static_cast<uint8_t>(newsecond)<<8;
+		reg_ch = static_cast<uint16_t>(newhour);
+		reg_cl = static_cast<uint8_t>(newminute);
+		reg_dx = static_cast<uint8_t>(newsecond)<<8;
 
-		//reg_ah=0x2d; // set system time
-		//CALLBACK_RunRealInt(0x21);
-		//if(reg_al==0xff) WriteOut(MSG_Get("SHELL_CMD_TIME_ERROR"));
-
-		if( newhour > 23 || newminute > 59 || newsecond > 59)
-			WriteOut(MSG_Get("SHELL_CMD_TIME_ERROR"));
-		else {
-			uint32_t ticks=(uint32_t)(((double)(newhour*3600+
-											newminute*60+
-											newsecond+0.2))*18.206481481);
-			mem_writed(BIOS_TIMER,ticks);
-		}
-		if (sync_time) {manualtime=true;mainMenu.get_item("sync_host_datetime").check(false).refresh_item(mainMenu);}
+		reg_ah=0x2d; // set system time
+		CALLBACK_RunRealInt(0x21);
+		if(reg_al==0xff) WriteOut(MSG_Get("SHELL_CMD_TIME_ERROR"));
 		return;
 	}
 	bool timeonly = ScanCMDBool(args,"T");

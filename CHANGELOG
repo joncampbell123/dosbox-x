@@ -1,4 +1,7 @@
 Next:
+  - DOS shell: Make TIME actually use INT 21h to set time instead of
+    directly modifying the BIOS timer tick count in the BDA.
+    (joncampbell123).
   - Increased PIC event queue size, there are corner cases especially
     with Windows XP that can occasionally overrun the queue.
     (joncampbell123).
