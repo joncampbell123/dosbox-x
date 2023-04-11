@@ -1,4 +1,7 @@
 Next:
+  - BIOS INT 1Ah: Fix functions to get and set time and date
+    instead of faking on read and ignoring set. Use the CMOS
+    registers. (joncampbell123).
   - DOS INT 21h: Fix date and time functions to call the BIOS for
     time instead of trying to fake it only at the DOS level. This
     includes allowing INT 21h to change the date/time using the
