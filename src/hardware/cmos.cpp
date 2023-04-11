@@ -138,7 +138,7 @@ void cmos_selreg(Bitu port,Bitu val,Bitu iolen) {
 static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
     (void)port;//UNUSED
     (void)iolen;//UNUSED
-    if (date_host_forced && (cmos.reg <= 0x09 || cmos.reg == 0x32)) {   // date/time related registers
+    if (cmos.reg <= 0x09 || cmos.reg == 0x32) {   // date/time related registers
         if (cmos.bcd)           // values supplied are BCD, convert to binary values
         {
             if ((val & 0xf0) > 0x90 || (val & 0x0f) > 0x09) return;     // invalid BCD value
@@ -205,18 +205,20 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
             break;
 
         case 0x08:      /* Month */
-            if (val > 12) return;               // invalid month value
-            loctime->tm_mon = (int)val;
+            if (val < 1 || val > 12) return;               // invalid month value
+            loctime->tm_mon = (int)val - 1;
             break;
 
         case 0x09:      /* Year */
-            loctime->tm_year = (int)val;
+            loctime->tm_year -= loctime->tm_year % 100;
+            loctime->tm_year += (int)val;
             break;
 
         case 0x32:      /* Century */
         case 0x37:      /* Century (alternate used by Windows NT/2000/XP) */
             if (val < 19) return;               // invalid century value?
-            loctime->tm_year += (int)((val * 100) - 1900);
+            loctime->tm_year %= 100;
+            loctime->tm_year += (int)((val - 19) * 100);
             break;
 
         case 0x01:      /* Seconds Alarm */
@@ -333,7 +335,7 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
     }
 
     // JAL_20060817 - rewrote most of the date/time part
-    if (date_host_forced && (cmos.reg <= 0x09 || cmos.reg == 0x32)) {       // date/time related registers
+    if (cmos.reg <= 0x09 || cmos.reg == 0x32) {       // date/time related registers
         struct tm* loctime;
 
         if (cmos.lock)              // if locked, use locktime instead of current time

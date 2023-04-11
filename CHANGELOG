@@ -1,4 +1,6 @@
 Next:
+  - CMOS registers: Fix code to allow getting and setting time,
+    fix year vs century registers to work properly. (joncampbell123).
   - BIOS INT 1Ah: Fix functions to get and set time and date
     instead of faking on read and ignoring set. Use the CMOS
     registers. (joncampbell123).
