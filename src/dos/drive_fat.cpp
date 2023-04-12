@@ -1053,8 +1053,8 @@ uint32_t fatDrive::getClusterSize(void) {
 	return (unsigned int)BPB.v.BPB_SecPerClus * (unsigned int)BPB.v.BPB_BytsPerSec;
 }
 
-uint32_t fatDrive::getAbsoluteSectFromBytePos(uint32_t startClustNum, uint32_t bytePos) {
-	return  getAbsoluteSectFromChain(startClustNum, bytePos / BPB.v.BPB_BytsPerSec);
+uint32_t fatDrive::getAbsoluteSectFromBytePos(uint32_t startClustNum, uint32_t bytePos,clusterChainMemory *ccm) {
+	return  getAbsoluteSectFromChain(startClustNum, bytePos / BPB.v.BPB_BytsPerSec,ccm);
 }
 
 bool fatDrive::iseofFAT(const uint32_t cv) const {
@@ -1068,9 +1068,10 @@ bool fatDrive::iseofFAT(const uint32_t cv) const {
 	return true;
 }
 
-uint32_t fatDrive::getAbsoluteSectFromChain(uint32_t startClustNum, uint32_t logicalSector) {
-	int32_t skipClust = (int32_t)(logicalSector / BPB.v.BPB_SecPerClus);
+uint32_t fatDrive::getAbsoluteSectFromChain(uint32_t startClustNum, uint32_t logicalSector,clusterChainMemory *ccm) {
+	uint32_t targClust = (uint32_t)(logicalSector / BPB.v.BPB_SecPerClus);
 	uint32_t sectClust = (uint32_t)(logicalSector % BPB.v.BPB_SecPerClus);
+	uint32_t indxClust = (uint32_t)0;
 
 	/* startClustNum == 0 means the file is (likely) zero length and has no allocation chain yet.
 	 * Nothing to map. Without this check, this code would permit the FAT file reader/writer to
@@ -1081,16 +1082,35 @@ uint32_t fatDrive::getAbsoluteSectFromChain(uint32_t startClustNum, uint32_t log
 
 	uint32_t currentClust = startClustNum;
 
-	while(skipClust!=0) {
+	if (ccm != NULL && ccm->current_cluster_no >= 2) {
+		/* If the cluster index is the same as last time or farther down, avoid re-reading the
+		 * entire allocation chain again and start from where we last read from. If the
+		 * cluster index is going back from current, then re-read the entire allocation chain again.
+		 * This is the nature of a singly-linked file allocation table and is the reason seek()
+		 * is faster going forward than backwards in MS-DOS, especially on FAT32 partitions. */
+		if (targClust >= ccm->current_cluster_index) {
+			indxClust = ccm->current_cluster_index;
+			currentClust = ccm->current_cluster_no;
+		}
+	}
+
+	while(indxClust<targClust) {
 		const uint32_t testvalue = getClusterValue(currentClust);
-		--skipClust;
+		++indxClust;
 
 		if (iseofFAT(testvalue)) {
-			if (skipClust != 0) LOG(LOG_MISC,LOG_DEBUG)("FAT: Seek past allocation chain");
+			if (indxClust!=targClust) LOG(LOG_MISC,LOG_DEBUG)("FAT: Seek past allocation chain");
 			return 0;
 		}
 
 		currentClust = testvalue;
+	}
+
+	assert(indxClust<=targClust);
+
+	if (ccm != NULL) {
+		ccm->current_cluster_index = currentClust;
+		ccm->current_cluster_no = indxClust;
 	}
 
 	/* this should not happen! */
@@ -3216,3 +3236,9 @@ uint32_t fatDrive::GetFirstClusterOffset(void) {
 uint32_t fatDrive::GetHighestClusterNumber(void) {
     return CountOfClusters + 1ul;
 }
+
+void fatDrive::clusterChainMemory::clear(void) {
+	current_cluster_no = 0;
+	current_cluster_index = 0;
+}
+
