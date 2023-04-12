@@ -1,4 +1,7 @@
 Next:
+  - FAT driver: Major performance boost is possible by eliminating
+    unnecessary code that re-reads the entire directory when looking
+    up or changing one particular directory entry. (joncampbell123).
   - CMOS registers: Fix code to allow getting and setting time,
     fix year vs century registers to work properly. (joncampbell123).
   - BIOS INT 1Ah: Fix functions to get and set time and date

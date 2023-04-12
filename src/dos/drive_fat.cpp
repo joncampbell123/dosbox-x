@@ -2722,82 +2722,71 @@ unsigned long fatDrive::GetSerial() {
 
 bool fatDrive::directoryBrowse(uint32_t dirClustNumber, direntry *useEntry, int32_t entNum, int32_t start/*=0*/) {
 	direntry sectbuf[MAX_DIRENTS_PER_SECTOR];	/* 16 directory entries per 512 byte sector */
-	uint32_t entryoffset = 0;	/* Index offset within sector */
 	uint32_t tmpsector;
-	uint16_t dirPos = 0;
 
-    (void)start;//UNUSED
+	(void)start;//UNUSED
 
-    size_t dirent_per_sector = getSectSize() / sizeof(direntry);
-    assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
-    assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
+	const size_t dirent_per_sector = getSectSize() / sizeof(direntry);
+	assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
+	assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
 
-	while(entNum>=0) {
-		uint32_t logentsector = ((uint32_t)((size_t)dirPos / dirent_per_sector)); /* Logical entry sector */
-		entryoffset = ((uint32_t)((size_t)dirPos % dirent_per_sector));
+	/* NTS: This change provides a massive performance boost for the FAT driver. The previous code, inherited
+	 *      from SVN, would read every directory entry in sequence up to entNum. It would also re-read the
+	 *      sector every dirent even if the same sector, and it called getAbsoluteSectFromChain() every single
+	 *      time. Which means that for every directory entry this was asked to scan (and called a LOT especially
+	 *      in a directory with more than 100 files!) this code would read the sector, re-read the allocation
+	 *      chain up to the desired offset, and do it entNum times! No wonder it was so slow! --J.C. 2023/04/11 */
+	const uint16_t dirPos = (uint16_t)entNum;
+	const uint32_t logentsector = ((uint32_t)((size_t)dirPos / dirent_per_sector)); /* Logical entry sector */
+	const uint32_t entryoffset = ((uint32_t)((size_t)dirPos % dirent_per_sector));
 
-		if(dirClustNumber==0) {
-            assert(!BPB.is_fat32());
-            if(dirPos >= BPB.v.BPB_RootEntCnt) return false;
-			tmpsector = firstRootDirSect+logentsector;
-			readSector(tmpsector,sectbuf);
-		} else {
-			tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
-			/* A zero sector number can't happen */
-			if(tmpsector == 0) return false;
-			readSector(tmpsector,sectbuf);
-		}
-		dirPos++;
-
-
-		/* End of directory list */
-		if (sectbuf[entryoffset].entryname[0] == 0x00) return false;
-		--entNum;
+	if(dirClustNumber==0) {
+		assert(!BPB.is_fat32());
+		if(dirPos >= BPB.v.BPB_RootEntCnt) return false;
+		tmpsector = firstRootDirSect+logentsector;
+	} else {
+		tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
+		if(tmpsector == 0) return false;
 	}
 
+	readSector(tmpsector,sectbuf);
+	if (sectbuf[entryoffset].entryname[0] == 0x00) return false; /* End of directory list? */
 	copyDirEntry(&sectbuf[entryoffset], useEntry);
 	return true;
 }
 
 bool fatDrive::directoryChange(uint32_t dirClustNumber, const direntry *useEntry, int32_t entNum) {
 	direntry sectbuf[MAX_DIRENTS_PER_SECTOR];	/* 16 directory entries per 512 byte sector */
-	uint32_t entryoffset = 0;	/* Index offset within sector */
 	uint32_t tmpsector = 0;
-	uint16_t dirPos = 0;
-	
-    size_t dirent_per_sector = getSectSize() / sizeof(direntry);
-    assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
-    assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
 
-	while(entNum>=0) {		
-		uint32_t logentsector = ((uint32_t)((size_t)dirPos / dirent_per_sector)); /* Logical entry sector */
-		entryoffset = ((uint32_t)((size_t)dirPos % dirent_per_sector));
+	const size_t dirent_per_sector = getSectSize() / sizeof(direntry);
+	assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
+	assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
 
-		if(dirClustNumber==0) {
-            assert(!BPB.is_fat32());
-            if(dirPos >= BPB.v.BPB_RootEntCnt) return false;
-			tmpsector = firstRootDirSect+logentsector;
-			readSector(tmpsector,sectbuf);
-		} else {
-			tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
-			/* A zero sector number can't happen */
-			if(tmpsector == 0) return false;
-			readSector(tmpsector,sectbuf);
-		}
-		dirPos++;
+	/* NTS: This change provides a massive performance boost for the FAT driver. The previous code, inherited
+	 *      from SVN, would read every directory entry in sequence up to entNum. It would also re-read the
+	 *      sector every dirent even if the same sector, and it called getAbsoluteSectFromChain() every single
+	 *      time. Which means that for every directory entry this was asked to scan (and called a LOT especially
+	 *      in a directory with more than 100 files!) this code would read the sector, re-read the allocation
+	 *      chain up to the desired offset, and do it entNum times! No wonder it was so slow! --J.C. 2023/04/11 */
+	const uint16_t dirPos = (uint16_t)entNum;
+	const uint32_t logentsector = ((uint32_t)((size_t)dirPos / dirent_per_sector)); /* Logical entry sector */
+	const uint32_t entryoffset = ((uint32_t)((size_t)dirPos % dirent_per_sector));
 
-
-		/* End of directory list */
-		if (sectbuf[entryoffset].entryname[0] == 0x00) return false;
-		--entNum;
-	}
-	if(tmpsector != 0) {
-		copyDirEntry(useEntry, &sectbuf[entryoffset]);
-		writeSector(tmpsector, sectbuf);
-		return true;
+	if(dirClustNumber==0) {
+		assert(!BPB.is_fat32());
+		if(dirPos >= BPB.v.BPB_RootEntCnt) return false;
+		tmpsector = firstRootDirSect+logentsector;
 	} else {
-		return false;
+		tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
+		if(tmpsector == 0) return false;
 	}
+
+	readSector(tmpsector,sectbuf);
+	if (sectbuf[entryoffset].entryname[0] == 0x00) return false; /* End of directory list? */
+	copyDirEntry(useEntry, &sectbuf[entryoffset]);
+	writeSector(tmpsector, sectbuf);
+	return true;
 }
 
 bool fatDrive::addDirectoryEntry(uint32_t dirClustNumber, const direntry& useEntry,const char *lfn) {
