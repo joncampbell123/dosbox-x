@@ -1057,6 +1057,17 @@ uint32_t fatDrive::getAbsoluteSectFromBytePos(uint32_t startClustNum, uint32_t b
 	return  getAbsoluteSectFromChain(startClustNum, bytePos / BPB.v.BPB_BytsPerSec);
 }
 
+bool fatDrive::iseofFAT(const uint32_t cv) const {
+	switch(fattype) {
+		case FAT12: return cv < 2 || cv >= 0xff8;
+		case FAT16: return cv < 2 || cv >= 0xfff8;
+		case FAT32: return cv < 2 || cv >= 0x0ffffff8;
+		default: break;
+	}
+
+	return true;
+}
+
 uint32_t fatDrive::getAbsoluteSectFromChain(uint32_t startClustNum, uint32_t logicalSector) {
 	int32_t skipClust = (int32_t)(logicalSector / BPB.v.BPB_SecPerClus);
 	uint32_t sectClust = (uint32_t)(logicalSector % BPB.v.BPB_SecPerClus);
@@ -1071,34 +1082,15 @@ uint32_t fatDrive::getAbsoluteSectFromChain(uint32_t startClustNum, uint32_t log
 	uint32_t currentClust = startClustNum;
 
 	while(skipClust!=0) {
-		bool isEOF = false;
-		uint32_t testvalue = getClusterValue(currentClust);
-		if(testvalue == 0) {
-			/* What the crap?  Cluster is already empty - BAIL! */
-			LOG(LOG_DOSMISC,LOG_ERROR)("End of cluster chain and cluster value at the end is zero.");
-			return 0;
-		}
-		switch(fattype) {
-			case FAT12:
-				if(testvalue >= 0xff8) isEOF = true;
-				break;
-			case FAT16:
-				if(testvalue >= 0xfff8) isEOF = true;
-				break;
-			case FAT32:
-				if(testvalue >= 0x0ffffff8) isEOF = true; /* FAT32 is really FAT28 with 4 reserved bits */
-				break;
-		}
-		if(isEOF && (skipClust>=1)) {
-			//LOG_MSG("End of cluster chain reached before end of logical sector seek!");
-			if (skipClust == 1 && fattype == FAT12) {
-				//break;
-				LOG(LOG_DOSMISC,LOG_ERROR)("End of cluster chain reached, but maybe good after all ?");
-			}
-			return 0;
-		}
-		currentClust = testvalue;
+		const uint32_t testvalue = getClusterValue(currentClust);
 		--skipClust;
+
+		if (iseofFAT(testvalue)) {
+			if (skipClust != 0) LOG(LOG_MISC,LOG_DEBUG)("FAT: Seek past allocation chain");
+			return 0;
+		}
+
+		currentClust = testvalue;
 	}
 
 	/* this should not happen! */

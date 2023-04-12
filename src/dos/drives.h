@@ -428,6 +428,7 @@ public:
 	} el = {0, 0, 0};
 
 private:
+	bool iseofFAT(const uint32_t cv) const;
 	char* Generate_SFN(const char *path, const char *name);
 	uint32_t getClusterValue(uint32_t clustNum);
 	void setClusterValue(uint32_t clustNum, uint32_t clustValue);
