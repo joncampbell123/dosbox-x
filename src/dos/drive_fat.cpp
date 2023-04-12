@@ -323,28 +323,28 @@ void fatFile::Flush(void) {
 		loadedSector = false;
 	}
 
-    if (modified || newtime) {
-        direntry tmpentry = {};
+	if (modified || newtime) {
+		direntry tmpentry = {};
 
-        myDrive->directoryBrowse(dirCluster, &tmpentry, (int32_t)dirIndex);
+		myDrive->directoryBrowse(dirCluster, &tmpentry, (int32_t)dirIndex);
 
-        if (newtime) {
-            tmpentry.modTime = time;
-            tmpentry.modDate = date;
-        }
-        else {
-            uint16_t ct,cd;
+		if (newtime) {
+			tmpentry.modTime = time;
+			tmpentry.modDate = date;
+		}
+		else {
+			uint16_t ct,cd;
 
-            time_t_to_DOS_DateTime(/*&*/ct,/*&*/cd,::time(NULL));
+			time_t_to_DOS_DateTime(/*&*/ct,/*&*/cd,::time(NULL));
 
-            tmpentry.modTime = ct;
-            tmpentry.modDate = cd;
-        }
+			tmpentry.modTime = ct;
+			tmpentry.modDate = cd;
+		}
 
-        myDrive->directoryChange(dirCluster, &tmpentry, (int32_t)dirIndex);
-        modified = false;
-        newtime = false;
-    }
+		myDrive->directoryChange(dirCluster, &tmpentry, (int32_t)dirIndex);
+		modified = false;
+		newtime = false;
+	}
 }
 
 bool fatFile::Read(uint8_t * data, uint16_t *size) {
@@ -561,26 +561,26 @@ bool fatFile::Close() {
 	/* Flush buffer */
 	if (loadedSector) myDrive->writeSector(currentSector, sectorBuffer);
 
-    if (modified || newtime) {
-        direntry tmpentry = {};
+	if (modified || newtime) {
+		direntry tmpentry = {};
 
-        myDrive->directoryBrowse(dirCluster, &tmpentry, (int32_t)dirIndex);
+		myDrive->directoryBrowse(dirCluster, &tmpentry, (int32_t)dirIndex);
 
-        if (newtime) {
-            tmpentry.modTime = time;
-            tmpentry.modDate = date;
-        }
-        else {
-            uint16_t ct,cd;
+		if (newtime) {
+			tmpentry.modTime = time;
+			tmpentry.modDate = date;
+		}
+		else {
+			uint16_t ct,cd;
 
-            time_t_to_DOS_DateTime(/*&*/ct,/*&*/cd,::time(NULL));
+			time_t_to_DOS_DateTime(/*&*/ct,/*&*/cd,::time(NULL));
 
-            tmpentry.modTime = ct;
-            tmpentry.modDate = cd;
-        }
+			tmpentry.modTime = ct;
+			tmpentry.modDate = cd;
+		}
 
-        myDrive->directoryChange(dirCluster, &tmpentry, (int32_t)dirIndex);
-    }
+		myDrive->directoryChange(dirCluster, &tmpentry, (int32_t)dirIndex);
+	}
 
 	return false;
 }
@@ -3053,12 +3053,12 @@ bool fatDrive::MakeDir(const char *dir) {
 }
 
 bool fatDrive::RemoveDir(const char *dir) {
-    if (readonly) {
+	if (readonly) {
 		DOS_SetError(DOSERR_WRITE_PROTECTED);
-        return false;
-    }
+		return false;
+	}
 	uint32_t dummyClust, dirClust, subEntry;
-    direntry tmpentry = {};
+	direntry tmpentry = {};
 	char dirName[DOS_NAMELENGTH_ASCII];
 	char pathName[11];
 
@@ -3084,12 +3084,14 @@ bool fatDrive::RemoveDir(const char *dir) {
 	if(BPB.is_fat32() && dummyClust==BPB.v32.BPB_RootClus) return false;
 
 	/* Check to make sure directory is empty */
+	/* NTS: The code below only cares if there are non-deleted files, not *how many*, therefore
+	 *      the loop will now terminate immediately upon finding one. --J.C. 2023/04/11 */
 	uint32_t filecount = 0;
 	/* Set to 2 to skip first 2 entries, [.] and [..] */
 	int32_t fileidx = 2;
 	while(directoryBrowse(dummyClust, &tmpentry, fileidx)) {
-		/* Check for non-deleted files */
-		if(tmpentry.entryname[0] != 0xe5) filecount++;
+		/* Check for non-deleted files. NTS: directoryBrowse() will return false if entryname[0] == 0 */
+		if(tmpentry.entryname[0] != 0xe5) { filecount++; break; }
 		fileidx++;
 	}
 
