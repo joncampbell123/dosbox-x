@@ -423,21 +423,13 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
     case 0x05:      /* Hours Alarm */
         return cmos.regs[cmos.reg];
     case 0x0a:      /* Status register A */
-        if(date_host_forced) {
-            // take bit 7 of reg b into account (if set, never updates)
-            gettimeofday (&cmos.safetime, NULL);        // get current UTC time
-            if (cmos.lock ||                            // if lock then never updated, so reading safe
-                cmos.safetime.tv_usec < (1000-244)) {   // if 0, at least 244 usec should be available
-                return cmos.regs[0x0a];                 // reading safe
-            } else {
-                return cmos.regs[0x0a] | 0x80;          // reading not safe!
-            }
+        // take bit 7 of reg b into account (if set, never updates)
+        gettimeofday (&cmos.safetime, NULL);        // get current UTC time
+        if (cmos.lock ||                            // if lock then never updated, so reading safe
+            cmos.safetime.tv_usec >= (1000-244)) {  // if 0, at least 244 usec should be available
+            return cmos.regs[0x0a];                 // reading safe
         } else {
-            if (PIC_TickIndex()<0.002) {
-                return (cmos.regs[0x0a]&0x7f) | 0x80;
-            } else {
-                return (cmos.regs[0x0a]&0x7f);
-            }
+            return cmos.regs[0x0a] | 0x80;          // reading not safe!
         }
     case 0x0c:      /* Status register C */
     {
