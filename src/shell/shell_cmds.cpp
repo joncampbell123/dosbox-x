@@ -3158,28 +3158,7 @@ void DOS_Shell::CMD_DATE(char * args) {
 	}
 	bool dateonly = ScanCMDBool(args,"T");
 	if(!dateonly) WriteOut(MSG_Get("SHELL_CMD_DATE_NOW"));
-	
-	if(date_host_forced) {
-		time_t curtime;
-
-		struct tm *loctime;
-		curtime = time (NULL);
-
-		loctime = localtime (&curtime);
-		int hosty=loctime->tm_year+1900;
-		int hostm=loctime->tm_mon+1;
-		int hostd=loctime->tm_mday;
-		if (hostm == 1 || hostm == 2) hosty--;
-		hostm = (hostm + 9) % 12 + 1;
-		int y = hosty % 100;
-		int century = hosty / 100;
-		int week = ((13 * hostm - 1) / 5 + hostd + y + y/4 + century/4 - 2*century) % 7;
-		if (week < 0) week = (week + 7) % 7;
-
-		const char* my_week[7]={"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
-		if (!dateonly) WriteOut("%s ", my_week[week]);
-	} else
-		if (!dateonly) WriteOut("%s ", day);
+	if (!dateonly) WriteOut("%s ", day);
 	WriteOut("%s\n",FormatDate((uint16_t)reg_cx, (uint8_t)reg_dh, (uint8_t)reg_dl));
 	if(!dateonly) {
 		char format[11];

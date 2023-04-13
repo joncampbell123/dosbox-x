@@ -36,8 +36,6 @@
 #include "sys/time.h"
 #endif
 
-bool date_host_forced = false;
-
 // sigh... Windows doesn't know gettimeofday
 #if defined (WIN32) && !defined (__MINGW32__)
 typedef Bitu suseconds_t;
@@ -313,9 +311,7 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
     case 0x0c:      /* Status reg C */
         break;
     case 0x0d:      /* Status reg D */
-        if(!date_host_forced) {
-            cmos.regs[cmos.reg]=val & 0x80; /*Bit 7=1:RTC Power on*/
-        }
+        cmos.regs[cmos.reg]=val & 0x80; /*Bit 7=1:RTC Power on*/
         break;
     case 0x0f:      /* Shutdown status byte */
         cmos.regs[cmos.reg]=val & 0x7f;
@@ -588,12 +584,7 @@ void CMOS_Reset(Section* sec) {
     cmos.reg=0xb;
     cmos_writereg(0x71,0x2,1);  //Struct tm *loctime is of 24 hour format,
     cmos.regs[0x0c] = 0;
-    if(date_host_forced) {
-        cmos.regs[0x0d]=(uint8_t)0x80;
-    } else {
-        cmos.reg=0xd;
-        cmos_writereg(0x71,0x80,1); /* RTC power on */
-    }
+    cmos.regs[0x0d]=(uint8_t)0x80;
     // Equipment is updated from bios.cpp and bios_disk.cpp
     /* Fill in base memory size, it is 640K always */
     cmos.regs[0x15]=(uint8_t)0x80;
@@ -607,19 +598,12 @@ void CMOS_Reset(Section* sec) {
     cmos.regs[0x18]=(uint8_t)(exsize >> 8);
     cmos.regs[0x30]=(uint8_t)exsize;
     cmos.regs[0x31]=(uint8_t)(exsize >> 8);
-    if (date_host_forced) {
-        cmos.time_diff = 0;
-        cmos.locktime.tv_sec = 0;
-    }
+    cmos.time_diff = 0;
+    cmos.locktime.tv_sec = 0;
 }
 
 void CMOS_Init() {
     LOG(LOG_MISC,LOG_DEBUG)("Initializing CMOS/RTC");
-
-    if (control->opt_date_host_forced) {
-        LOG_MSG("Synchronize date with host: Forced");
-        date_host_forced=true;
-    }
 
     AddExitFunction(AddExitFunctionFuncPair(CMOS_Destroy),true);
     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(CMOS_Reset));
