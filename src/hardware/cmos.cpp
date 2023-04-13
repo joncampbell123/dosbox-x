@@ -444,13 +444,13 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
         cmos.timer.acknowledged=true;
         uint8_t val = cmos.regs[0xc];
         if (cmos.timer.enabled && ((cmos.regs[0xc] & 0x40) > 0)) { // If both PF and PIE are 1
-            val |= 0x80; // Set Interrupt Request Flag (IRQF) to 1
+            val |= 0x80 | 0x40; // Set Interrupt Request Flag (IRQF) to 1, PF = 1
         }
-        else if(((cmos.regs[0xb] & 0x10) > 0) && ((cmos.regs[0xc] & 0x10) > 0)) { // If both UF and UIE are 1
-            val |= 0x80; // Set Interrupt Request Flag (IRQF) to 1
+        if(((cmos.regs[0xb] & 0x10) > 0) && ((cmos.regs[0xc] & 0x10) > 0)) { // If both UF and UIE are 1
+            val |= 0x80 | 0x10; // Set Interrupt Request Flag (IRQF) to 1, UF = 1
         }
-        else if(((cmos.regs[0xb] & 0x20) > 0) && ((cmos.regs[0xc] & 0x20) > 0)) { // If both AF and AIE are 1
-            val |= 0x80; // Set Interrupt Request Flag (IRQF) to 1
+        if(((cmos.regs[0xb] & 0x20) > 0) && ((cmos.regs[0xc] & 0x20) > 0)) { // If both AF and AIE are 1
+            val |= 0x80 | 0x20; // Set Interrupt Request Flag (IRQF) to 1, AF = 1
         }
         cmos.regs[0xc] = 0; // All flags are cleared by reading the register
         return val;
