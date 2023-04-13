@@ -27,6 +27,8 @@
 #include "serialmouse.h"
 #include "serialport.h"
 
+extern bool user_cursor_locked;
+
 static CSerialMouse *serial_mice[4] = {NULL};
 
 /* this function is the method the GUI and mouse emulation notifies us of movement/button events.
@@ -75,8 +77,12 @@ void CSerialMouse::start_packet() {
 
 void CSerialMouse::on_mouse_event(int delta_x,int delta_y,uint8_t buttonstate) {
 	mouse_buttons = ((buttonstate & 1) ? 2 : 0) | ((buttonstate & 2) ? 1 : 0);
-	mouse_delta_x += delta_x;
-	mouse_delta_y += delta_y;
+
+	if (user_cursor_locked) {
+		/* send relative mouse motion only if the cursor is captured */
+		mouse_delta_x += delta_x;
+		mouse_delta_y += delta_y;
+	}
 
 	/* initiate data transfer and form the packet to transmit. if another packet
 	 * is already transmitting now then wait for it to finish before transmitting ours,

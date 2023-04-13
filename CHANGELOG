@@ -1,4 +1,7 @@
 Next:
+  - Fix serial and AUX PS/2 mouse emulation to not send relative
+    motion unless mouse captured, to make it consistent with the
+    BIOS PS/2 mouse emulation (joncampbell123)
   - FAT driver: Add some optimization paths for the code that adds
     to the allocation chain (joncampbell123).
   - FAT driver: Major performance boost is possible by eliminating

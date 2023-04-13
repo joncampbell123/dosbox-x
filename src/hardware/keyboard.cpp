@@ -55,6 +55,7 @@ static void KEYBOARD_Add8042Response(uint8_t data);
 void KEYBOARD_SetLEDs(uint8_t bits);
 void KeyboardLayoutDetect(void);
 
+extern bool user_cursor_locked;
 extern unsigned int host_keyboard_layout;
 bool enable_pc98_bus_mouse = true;
 
@@ -190,8 +191,12 @@ void KEYBOARD_AUX_Event(float x,float y,Bitu buttons,int scrollwheel) {
         return;
     }
 
-    keyb.ps2mouse.acx += x;
-    keyb.ps2mouse.acy += y;
+    if (user_cursor_locked) {
+        /* send relative mouse motion only if the cursor is captured */
+        keyb.ps2mouse.acx += x;
+        keyb.ps2mouse.acy += y;
+    }
+
     keyb.ps2mouse.l = (buttons & 1)>0;
     keyb.ps2mouse.r = (buttons & 2)>0;
     keyb.ps2mouse.m = (buttons & 4)>0;
