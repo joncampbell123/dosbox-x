@@ -2597,14 +2597,16 @@ static bool RtcUpdateDone () {
 }
 
 static void InitRtc () {
-    WriteCmosByte(0x0a, 0x26);      // default value (32768Hz, 1024Hz)
-
-    // leave bits 6 (pirq), 5 (airq), 0 (dst) untouched
-    // reset bits 7 (freeze), 4 (uirq), 3 (sqw), 2 (bcd)
-    // set bit 1 (24h)
-    WriteCmosByte(0x0b, (ReadCmosByte(0x0b) & 0x61u) | 0x02u);
-
-    ReadCmosByte(0x0c);             // clear any bits set
+    // Change the RTC to return BCD and set the 24h bit. Clear the SET bit.
+    // That's it. Do not change any other bits.
+    //
+    // Some games ("The Tales of Peter Rabbit") use the RTC clock periodic
+    // interrupt for timing and music at rates other than 1024Hz and we must
+    // not change that rate nor clear any interrupt enable bits. Do not clear
+    // pending interrupts, either! The periodic interrupt does not affect reading
+    // the RTC clock. The point of this function and INT 15h code calling this
+    // function is to read the clock.
+    WriteCmosByte(0x0b, (ReadCmosByte(0x0b) & 0x7du/*clear=SET[7]|DM[2]*/) | 0x03u/*set=24/12[1]|DSE[0]*/);
 }
 
 static Bitu INT1A_Handler(void) {
