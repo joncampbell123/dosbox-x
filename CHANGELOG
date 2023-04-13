@@ -1,4 +1,8 @@
 Next:
+  - Fix RTC clock emulation to correctly signal IRQ8 interrupt for
+    both periodic tick and update-ended events. Prior to this fix,
+    only periodic tick events were reported even if the bit was set
+    to enable update-ended. (joncampbell123)
   - Fix serial and AUX PS/2 mouse emulation to not send relative
     motion unless mouse captured, to make it consistent with the
     BIOS PS/2 mouse emulation (joncampbell123)

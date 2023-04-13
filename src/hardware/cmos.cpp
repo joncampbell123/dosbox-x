@@ -82,30 +82,41 @@ static struct {
     struct timeval safetime;    // UTC time of last safe time
 } cmos;
 
-static bool fired_irq8 = false;
 static void cmos_timerevent(Bitu val) {
     (void)val;//UNUSED
-    if (cmos.timer.acknowledged) {
-        cmos.timer.acknowledged=false;
-        PIC_ActivateIRQ(8);
-        fired_irq8 = true;
-    }
     if (cmos.timer.enabled) {
         double index = PIC_FullIndex();
         double remd = fma((index/(double)cmos.timer.delay), -(double)cmos.timer.delay, index);
         //double remd = fmod(index, (double)cmos.timer.delay); // original delay calculation
         //double remd = index - trunc(index / (double)cmos.timer.delay) * (double)cmos.timer.delay; // alternative fix
-        PIC_AddEvent(cmos_timerevent, (float)((double)cmos.timer.delay - remd));
         //LOG_MSG("cmos timerevent: index=%f, interval=%f", index, cmos.timer.delay - remd);
-        cmos.regs[0xc] |= 0x40;    // Periodic Interrupt Flag (PF)
-        if(index >= (cmos.last.ended + 1000 - 0.001)) { // consider sometimes index is slightly before 1.0sec
+
+        // Periodic Interrupt Flag (PF)
+        if (cmos.regs[0xb] & 0x40) cmos.regs[0xc] |= 0x40;
+
+        if (index >= (cmos.last.ended + 1000 - 0.001)) { // consider sometimes index is slightly before 1.0sec
             //LOG_MSG("cmos timerevent: index=%f, interval=%f", index, cmos.last.ended - index);
-            if(!fired_irq8 && (cmos.regs[0x0b] & 0x10)) PIC_ActivateIRQ(8); // ensure to fire IRQ when UIE flag is set
-            cmos.last.ended = index;
-            cmos.regs[0xc] |= 0x10;    // Update-Ended Interrupt Flag (UF)
+            if (cmos.last.ended < (index-1000)) cmos.last.ended = (index-1000);
+            cmos.last.ended -= fmod(cmos.last.ended,1000);
+            cmos.last.ended += 1000;
+
+            // Update-Ended Interrupt Flag (UF)
+            if (cmos.regs[0xb] & 0x10) cmos.regs[0xc] |= 0x10;
+        }
+
+        if (cmos.regs[0xb] & 0x40) { /* PIE */
+            PIC_AddEvent(cmos_timerevent, (float)((double)cmos.timer.delay - remd));
+        }
+        else if (cmos.regs[0xb] & 0x10) { /* UIE */
+            double delay = (double)cmos.last.ended + 1000 - index;
+            if (delay < 0.01) delay = 0.01;
+            PIC_AddEvent(cmos_timerevent, (float)delay);
         }
     }
-    fired_irq8 = false;
+    if (cmos.timer.acknowledged && (cmos.regs[0x0c] & 0x70/*PIE|AIE|UIE*/)) {
+        cmos.timer.acknowledged=false;
+        PIC_ActivateIRQ(8);
+    }
 }
 
 static void cmos_checktimer(void) {
@@ -272,12 +283,12 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
         cmos_checktimer();
         break;
     case 0x0b:      /* Status reg B */
-        if(date_host_forced) {
+        {
             bool waslocked = cmos.lock;
 
             cmos.ampm = !(val & 0x02);
             cmos.bcd = !(val & 0x04);
-            cmos.timer.enabled = (val & 0x40) > 0;
+            cmos.timer.enabled = (val & 0x50/*PIE|UIE*/) > 0;
             cmos.lock = (val & 0x80) != 0;
 
             if (cmos.lock)              // if locked, set locktime for later use
@@ -296,11 +307,6 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
             }
 
             cmos.regs[cmos.reg] = (uint8_t)val;
-            cmos_checktimer();
-        } else {
-            cmos.bcd=!(val & 0x4);
-            cmos.regs[cmos.reg]=(uint8_t)val;
-            cmos.timer.enabled=(val & 0x40)>0;
             cmos_checktimer();
         }
         break;
@@ -435,7 +441,7 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
     {
         cmos.timer.acknowledged=true;
         uint8_t val = cmos.regs[0xc];
-        if (cmos.timer.enabled && ((cmos.regs[0xc] & 0x40) > 0)) { // If both PF and PIE are 1
+        if(((cmos.regs[0xb] & 0x40) > 0) && ((cmos.regs[0xc] & 0x40) > 0)) { // If both PF and PIE are 1
             val |= 0x80 | 0x40; // Set Interrupt Request Flag (IRQF) to 1, PF = 1
         }
         if(((cmos.regs[0xb] & 0x10) > 0) && ((cmos.regs[0xc] & 0x10) > 0)) { // If both UF and UIE are 1
