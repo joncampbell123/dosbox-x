@@ -1,4 +1,6 @@
 Next:
+  - FAT driver: Add some optimization paths for the code that adds
+    to the allocation chain (joncampbell123).
   - FAT driver: Major performance boost is possible by eliminating
     unnecessary code that re-reads the entire directory when looking
     up or changing one particular directory entry. (joncampbell123).

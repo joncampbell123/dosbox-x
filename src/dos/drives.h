@@ -410,7 +410,7 @@ public:
 	uint32_t getClusterSize(void);
 	uint32_t getAbsoluteSectFromChain(uint32_t startClustNum, uint32_t logicalSector,clusterChainMemory *ccm=NULL);
 	bool allocateCluster(uint32_t useCluster, uint32_t prevCluster);
-	uint32_t appendCluster(uint32_t startCluster);
+	uint32_t appendCluster(uint32_t startCluster,clusterChainMemory *ccm=NULL);
 	void deleteClustChain(uint32_t startCluster, uint32_t bytePos);
 	uint32_t getFirstFreeClust(void);
 	bool directoryBrowse(uint32_t dirClustNumber, direntry *useEntry, int32_t entNum, int32_t start=0);
