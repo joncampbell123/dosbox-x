@@ -1,4 +1,7 @@
 Next:
+  - Fix mistakes in CPUID emulation that threw a #UD exception for
+    specific cases where EAX was not recognized by particular CPU
+    types. (joncampbell123)
   - Fix RTC clock emulation to correctly signal IRQ8 interrupt for
     both periodic tick and update-ended events. Prior to this fix,
     only periodic tick events were reported even if the bit was set
