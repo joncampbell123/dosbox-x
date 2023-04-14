@@ -1,4 +1,10 @@
 Next:
+  - DOS kernel: Fix programming mistake that allocated perhaps a bit
+    too much DOS kernel memory for the "List of Lists" info block.
+    Fix the sizes of the info block and other structures to make sure
+    specific kernel structures are placed at fixed addresses because
+    later Microsoft software for MS-DOS checks those values.
+    (joncampbell123)
   - Serial port: Add multiplier: setting as requested to enable
     faster than 115200 baud rates. (joncampbell123)
   - Fix mistakes in CPUID emulation that threw a #UD exception for
