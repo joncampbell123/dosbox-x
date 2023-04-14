@@ -213,7 +213,7 @@ void CSerial::log_ser(bool active, char const* format,...) {
 		// copied from DEBUG_SHOWMSG
 		char buf[512];
 		buf[0]=0;
-		sprintf(buf,"%12.3f [%7u] ",PIC_FullIndex(), SDL_GetTicks());
+		sprintf(buf,"%12.3f [%7u] ",(double)PIC_FullIndex(), (unsigned int)SDL_GetTicks());
 		va_list msg;
 		va_start(msg,format);
 		vsprintf(buf+strlen(buf),format,msg);
@@ -230,8 +230,8 @@ void CSerial::changeLineProperties() {
 	// update the event wait time
 	float bitlen;
 
-	if(baud_divider==0) bitlen=(1000.0f/115200.0f);
-	else bitlen = (1000.0f/115200.0f)*(float)baud_divider;
+	if(baud_divider==0) bitlen=(1000.0f/(115200.0f*baud_multiplier));
+	else bitlen = (1000.0f/(115200.0f*baud_multiplier))*(float)baud_divider;
 	bytetime=bitlen*(float)(1+5+1);		// startbit + minimum length + stopbit
 	bytetime+= bitlen*(float)(LCR&0x3); // databits
 	if(LCR&0x4) bytetime+=bitlen;		// 2nd stopbit
@@ -242,7 +242,7 @@ void CSerial::changeLineProperties() {
 	log_ser(dbg_serialtraffic,"New COM parameters: baudrate %5.0f, parity %s, wordlen %d, stopbits %d",
 		1.0/bitlen*1000.0f,dbgtext[(LCR&0x38)>>3],(LCR&0x3)+5,((LCR&0x4)>>2)+1);
 #endif	
-	updatePortConfig (baud_divider, LCR);
+	updatePortConfig (baud_divider*baud_multiplier, LCR);
 }
 
 static void Serial_EventHandler(Bitu val) {
@@ -1341,17 +1341,17 @@ public:
 	SERIALPORTS (Section * configuration):Module_base (configuration) {
 		Section_prop *section = static_cast <Section_prop*>(configuration);
 
-        // TODO: PC-98 does have serial ports, though differently.
-        //       COM1 is a 8251 UART, while COM2 and higher if they exist are 8250/16xxx UARTs
-        if (IS_PC98_ARCH) return;
+		// TODO: PC-98 does have serial ports, though differently.
+		//       COM1 is a 8251 UART, while COM2 and higher if they exist are 8250/16xxx UARTs
+		if (IS_PC98_ARCH) return;
 
 #if C_MODEM
 		const Prop_path *pbFilename = section->Get_path("phonebookfile");
-        std::string path=pbFilename->realpath;
-        ResolvePath(path);
+		std::string path=pbFilename->realpath;
+		ResolvePath(path);
 		MODEM_ReadPhonebook(path);
 #endif
-                
+
 		char s_property[] = "serialx"; 
 		for(uint8_t i = 0; i < 9; i++) {
 			// get the configuration property
@@ -1359,34 +1359,45 @@ public:
 			Prop_multival* p = section->Get_multival(s_property);
 			std::string type = p->GetSection()->Get_string("type");
 			CommandLine cmd(0,p->GetSection()->Get_string("parameters"));
-            CommandLine tmp(0,p->GetSection()->Get_string("parameters"), CommandLine::either, true);
-            std::string str;
-            bool squote = false;
-            // single quotes to quote string?
-            if(cmd.FindStringBegin("squote",str,false)) {
-                squote = true;
-                cmd=tmp;
-            }
-			
+			CommandLine tmp(0,p->GetSection()->Get_string("parameters"), CommandLine::either, true);
+			double multiplier = 1;
+			std::string str;
+			bool squote = false;
+			// single quotes to quote string?
+			if(cmd.FindStringBegin("squote",str,false)) {
+				squote = true;
+				cmd=tmp;
+			}
+
+			if(cmd.FindStringBegin("multiplier:",str,false)) {
+				multiplier = atof(str.c_str());
+				if (multiplier < 1) multiplier = 1;
+				if (multiplier > 1000000) multiplier = 1000000;
+			}
+
 			// detect the type
 			if (type=="dummy") {
 				serialports[i] = new CSerialDummy (i, &cmd);
 				serialports[i]->serialType = SERIAL_TYPE_DUMMY;
+				serialports[i]->baud_multiplier = multiplier;
 				cmd.GetStringRemain(serialports[i]->commandLineString);
 			}
 			else if (type=="log") {
 				serialports[i] = new CSerialLog (i, &cmd);
 				serialports[i]->serialType = SERIAL_TYPE_LOG;
+				serialports[i]->baud_multiplier = multiplier;
 				cmd.GetStringRemain(serialports[i]->commandLineString);
 			}
 			else if (type=="file") {
 				serialports[i] = new CSerialFile (i, &cmd, squote);
 				serialports[i]->serialType = SERIAL_TYPE_FILE;
+				serialports[i]->baud_multiplier = multiplier;
 				cmd.GetStringRemain(serialports[i]->commandLineString);
 			}
 			else if (type=="serialmouse") {
 				serialports[i] = new CSerialMouse (i, &cmd);
 				serialports[i]->serialType = SERIAL_TYPE_MOUSE;
+				serialports[i]->baud_multiplier = multiplier;
 				cmd.GetStringRemain(serialports[i]->commandLineString);
 				serialMouseEmulated = true;
 			}
@@ -1394,6 +1405,7 @@ public:
 			else if (type=="directserial") {
 				serialports[i] = new CDirectSerial (i, &cmd);
 				serialports[i]->serialType = SERIAL_TYPE_DIRECT_SERIAL;
+				serialports[i]->baud_multiplier = multiplier;
 				cmd.GetStringRemain(serialports[i]->commandLineString);
 				if (!serialports[i]->InstallationSuccessful)  {
 					// serial port name was wrong or already in use
@@ -1406,6 +1418,7 @@ public:
 			else if(type=="modem") {
 				serialports[i] = new CSerialModem (i, &cmd);
 				serialports[i]->serialType = SERIAL_TYPE_MODEM;
+				serialports[i]->baud_multiplier = multiplier;
 				cmd.GetStringRemain(serialports[i]->commandLineString);
 				if (!serialports[i]->InstallationSuccessful)  {
 					delete serialports[i];
@@ -1415,6 +1428,7 @@ public:
 			else if(type=="nullmodem") {
 				serialports[i] = new CNullModem (i, &cmd);
 				serialports[i]->serialType = SERIAL_TYPE_NULL_MODEM;
+				serialports[i]->baud_multiplier = multiplier;
 				cmd.GetStringRemain(serialports[i]->commandLineString);
 				if (!serialports[i]->InstallationSuccessful)  {
 					delete serialports[i];

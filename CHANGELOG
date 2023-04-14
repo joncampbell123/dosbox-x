@@ -1,4 +1,6 @@
 Next:
+  - Serial port: Add multiplier: setting as requested to enable
+    faster than 115200 baud rates. (joncampbell123)
   - Fix mistakes in CPUID emulation that threw a #UD exception for
     specific cases where EAX was not recognized by particular CPU
     types. (joncampbell123)

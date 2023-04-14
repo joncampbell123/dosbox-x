@@ -3899,6 +3899,7 @@ void DOSBOX_SetupConfigSections(void) {
         "    shellhide to hide the command window when opening programs on the Windows platform.\n"
         "    openwith:<program>: start a program to open the output file.\n"
         "    openerror:<program>: start a program to open the output file if an error had occurred.\n"
+        "    multiplier:<x>: Actual baud rate is the programmed rate times X to allow rates higher than 115200.\n"
         "Example: serial1=file file:output1.txt timeout:1000 openwith:notepad\n"
         "for directserial: realport (required), rxdelay (optional).\n"
         "                 (realport:COM1 realport:ttyS0).\n"
