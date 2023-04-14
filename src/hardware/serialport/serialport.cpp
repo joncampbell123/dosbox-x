@@ -1491,8 +1491,8 @@ void SERIAL::showPort(int port) {
 
 void SERIAL::Run()
 {
-    if (!testSerialPortsBaseclass) return;
-    if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
+	if (!testSerialPortsBaseclass) return;
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
 		WriteOut("Views or changes the serial port settings.\n\nSERIAL [port] [type] [option]\n\n"
 				" port   Serial port number (between 1 and 9).\n type   Type of the serial port, including:\n        ");
 		for (int x=0; x<SERIAL_TYPE_COUNT; x++) {
@@ -1553,25 +1553,34 @@ void SERIAL::Run()
 			commandLineString.append(temp_line);
 			commandLineString.append(" ");
 		}
-            CommandLine cmd("SERIAL.COM",commandLineString.c_str());
-            CommandLine tmp("SERIAL.COM",commandLineString.c_str(), CommandLine::either, true);
-            std::string str;
-            bool squote = false;
-            // single quotes to quote string?
-            if(cmd.FindStringBegin("squote",str,false)) {
-                squote = true;
-                cmd=tmp;
-            }
+		CommandLine cmd("SERIAL.COM",commandLineString.c_str());
+		CommandLine tmp("SERIAL.COM",commandLineString.c_str(), CommandLine::either, true);
+		std::string str;
+		bool squote = false;
+		double baud_multiplier = 1;
+		// single quotes to quote string?
+		if(cmd.FindStringBegin("squote",str,false)) {
+			squote = true;
+			cmd=tmp;
+		}
 		// Remove existing port.
 		if (serialports[port-1]) {
+			baud_multiplier = serialports[port-1]->baud_multiplier;
+			if (baud_multiplier < 1) baud_multiplier = 1;
 			DOS_PSP curpsp(dos.psp());
 			if (dos.psp()!=curpsp.GetParent()) {
-                char name[5];
-                sprintf(name, "COM%d", port);
-                curpsp.CloseFile(name);
+				char name[5];
+				sprintf(name, "COM%d", port);
+				curpsp.CloseFile(name);
 			}
 			delete serialports[port-1];
 			serialports[port-1] = NULL;
+		}
+		// multiplier update?
+		if(cmd.FindStringBegin("multiplier:",str,false)) {
+			baud_multiplier = atof(str.c_str());
+			if (baud_multiplier < 1) baud_multiplier = 1;
+			if (baud_multiplier > 1000000) baud_multiplier = 1000000;
 		}
 		// Recreate the port with the new mode.
 		switch (mode) {
@@ -1618,9 +1627,10 @@ void SERIAL::Run()
 #endif
 		}
 		if (serialports[port-1] != NULL) {
-            serialports[port-1]->registerDOSDevice();
+			serialports[port-1]->registerDOSDevice();
 			serialports[port-1]->serialType = (SerialTypesE)mode;
 			serialports[port-1]->commandLineString = commandLineString;
+			serialports[port-1]->baud_multiplier = baud_multiplier;
 		}
 		showPort(port-1);
 		return;
