@@ -1,3 +1,9 @@
+/*
+OPL3Duo Board Driver
+note:(josephillips85) To perform changes please peform for the specific target platform
+Ex. MacOS , Windows , Linux
+Don't change the behaivor of the target platform if you don't have the way to test it.
+*/   
 #include "../serialport/libserial.h"
 #include "setup.h"
 #include "opl3duoboard.h"
@@ -75,21 +81,27 @@ void Opl3DuoBoard::write(uint32_t reg, uint8_t val) {
 		#if OPL3_DUO_BOARD_DEBUG
 			printf("OPL3 Duo! Board: Write %d --> %d | buffer size %d\n", val, reg, sendBuffer.size());
 		#endif
-#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-		sendBuffer.push((reg >> 6) | 0x80);
-		sendBuffer.push(((reg & 0x3f) << 1) | (val >> 7));
-		sendBuffer.push((val & 0x7f));
+
+ 
+#if !defined(MACOS)
+    SERIAL_sendchar(comport, (reg >> 6) | 0x80);
+	SERIAL_sendchar(comport, ((reg & 0x3f) << 1) | (val >> 7));
+	SERIAL_sendchar(comport, val & 0x7f);
+#elif !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	sendBuffer.push((reg >> 6) | 0x80);
+	sendBuffer.push(((reg & 0x3f) << 1) | (val >> 7));
+	sendBuffer.push((val & 0x7f));
 #else
-		SERIAL_sendchar(comport, (reg >> 6) | 0x80);
-		SERIAL_sendchar(comport, ((reg & 0x3f) << 1) | (val >> 7));
-		SERIAL_sendchar(comport, val & 0x7f);
+	SERIAL_sendchar(comport, (reg >> 6) | 0x80);
+	SERIAL_sendchar(comport, ((reg & 0x3f) << 1) | (val >> 7));
+	SERIAL_sendchar(comport, val & 0x7f);
 #endif
 
 	}
 }
 
 void Opl3DuoBoard::writeBuffer() {
-#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)) 
 
 	#if !defined(MACOS)
 	/* Note:(josephillips85) This is a workaround to fix the thread stop issue presented on MacOS

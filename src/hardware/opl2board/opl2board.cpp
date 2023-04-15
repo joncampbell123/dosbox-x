@@ -1,3 +1,9 @@
+/*
+OPL2 Board Driver
+note:(josephillips85) To perform changes please peform for the specific target platform
+Ex. MacOS , Windows , Linux
+Don't change the behaivor of the target platform if you don't have the way to test it.
+*/ 
 #include "../serialport/libserial.h"
 #include "setup.h"
 #include "opl2board.h"
@@ -11,6 +17,7 @@ void OPL2AudioBoard::connect(const char* port) {
 	comport = nullptr;
 	if (SERIAL_open(port, &comport)) {
 		SERIAL_setCommParameters(comport, 115200, 'n', SERIAL_1STOP, 8);
+
 #if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
 		resetBuffer();
 		stopThread = false;
@@ -93,12 +100,16 @@ void OPL2AudioBoard::write(uint8_t reg, uint8_t val) {
 		#if OPL2_AUDIO_BOARD_DEBUG
 			printf("OPL2 Audio Board: Write %d --> %d | buffer size %d\n", val, reg, sendBuffer.size());
 		#endif
-#if !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
-		sendBuffer.push(reg);
-		sendBuffer.push(val);
+#if !defined(MACOS)
+    SERIAL_sendchar(comport, reg);
+    SERIAL_sendchar(comport, val);       
+
+#elif !defined(HX_DOS) && !(defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR))
+	sendBuffer.push(reg);
+	sendBuffer.push(val);
 #else
-		SERIAL_sendchar(comport, reg);
-		SERIAL_sendchar(comport, val);
+	SERIAL_sendchar(comport, reg);
+	SERIAL_sendchar(comport, val);
 #endif
 	}
 }
