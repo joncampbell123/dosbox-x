@@ -1,5 +1,26 @@
 #!/usr/bin/env bash
 
+# allow 32-bit on 64-bit (x86) builds
+if [ "$1" == "32" ]; then
+    CC="$(which gcc) -m32"
+    CXX="$(which g++) -m32"
+    export CC
+    export CXX
+    no_host_sdl2=1
+    shift
+    opt="--host=i686-pc-linux-gnu --target=i686-pc-linux-gnu"
+fi
+
+# Jonathan C dev hack: refer to LNKDOS16 in /usr/src/doslib
+doslib=
+if [ -d "/usr/src/doslib" ]; then doslib="/usr/src/doslib"; fi
+
+if [ -n "${doslib}" ]; then
+    if [ -x "${doslib}/tool/linker/linux-host/lnkdos16" ]; then
+        export PATH="${doslib}/tool/linker/linux-host:${PATH}"
+    fi
+fi
+
 # I'm sick and tired of all the churn the three versions of autoconf
 # are causing in this repo. Stop committing the configure scripts
 # and just autoregen.
@@ -8,17 +29,24 @@
 # fix
 chmod +x vs/sdl/build-scripts/strip_fPIC.sh
 
-# prefer to compile against our own copy of SDL 2.x
-echo Compiling our internal SDL 2.x
-(cd vs/sdl2 && ./build-dosbox.sh) || exit 1
+# prefer to compile against our own copy of SDL 2.x IF the system does not provide one
+if [[ "$no_host_sdl2" ]]; then
+    x= # doesn't work well cross-compiling
+else
+    x=$(which sdl2-config)
+fi
+if test -z "${x}" ; then
+    echo "Compiling our internal SDL 2.x"
+    (cd vs/sdl2 && ./build-dosbox.sh) || exit 1
+fi
 
 # prefer to compile against our own copy of SDLnet 1.x
-echo Compiling our internal SDLnet 1.x
+echo "Compiling our internal SDLnet 1.x"
 (cd vs/sdlnet && ./build-dosbox.sh) || exit 1
 
 # now compile ourself
-echo Compiling DOSBox-X
+echo "Compiling DOSBox-X"
 chmod +x configure
-./configure --enable-debug --prefix=/usr --enable-sdl2 "$@" || exit 1
+./configure --enable-debug --prefix=/usr --enable-sdl2 "${@}" "${opt}" || exit 1
 make -j3 || exit 1
 

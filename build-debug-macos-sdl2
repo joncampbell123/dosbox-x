@@ -6,48 +6,48 @@
 ./autogen.sh || exit 1
 
 # where are we?
-top=`pwd`
-if test -z "$top" ; then exit 1; fi
+top=$(pwd)
+if test -z "${top}" ; then exit 1; fi
 
 # fix
 chmod +x vs/sdl/build-scripts/strip_fPIC.sh
 
 # prefer to compile against our own copy of SDL 2.x IF the system does not provide one
-x=`which sdl2-config`
-#if test -z "$x" ; then
-    echo Compiling our internal SDL 2.x
+#x=$(which sdl2-config)
+#if test -z "${x}" ; then
+    echo "Compiling our internal SDL 2.x"
     (cd vs/sdl2 && ./build-dosbox.sh) || exit 1
 #fi
 
 # prefer to compile against our own zlib
-echo Compiling our internal zlib
+echo "Compiling our internal zlib"
 (cd vs/zlib && ./build-dosbox.sh) || exit 1
-new="-I$top/vs/zlib/linux-host/include "
-nld="-L$top/vs/zlib/linux-host/lib "
-export CFLAGS="$new$CFLAGS -g3"
-export LDFLAGS="$nld$LDFLAGS -g3"
-export CPPFLAGS="$new$CPPFLAGS -g3"
-export CXXFLAGS="$new$CXXFLAGS -g3"
+new="-I${top}/vs/zlib/linux-host/include "
+nld="-L${top}/vs/zlib/linux-host/lib "
+export CFLAGS="${new}${CFLAGS} -g3"
+export LDFLAGS="${nld}${LDFLAGS} -g3"
+export CPPFLAGS="${new}${CPPFLAGS} -g3"
+export CXXFLAGS="${new}${CXXFLAGS} -g3"
 
 # prefer to compile against our own libpng (comment this out to disable)
-echo Compiling our internal libpng
+echo "Compiling our internal libpng"
 (cd vs/libpng && ./build-dosbox.sh) || exit 1
-new="-I$top/vs/libpng/linux-host/include "
-nld="-L$top/vs/libpng/linux-host/lib "
-export CFLAGS="$new$CFLAGS -g3"
-export LDFLAGS="$nld$LDFLAGS -g3"
-export CPPFLAGS="$new$CPPFLAGS -g3"
-export CXXFLAGS="$new$CXXFLAGS -g3"
+new="-I${top}/vs/libpng/linux-host/include "
+nld="-L${top}/vs/libpng/linux-host/lib "
+export CFLAGS="${new}${CFLAGS} -g3"
+export LDFLAGS="${nld}${LDFLAGS} -g3"
+export CPPFLAGS="${new}${CPPFLAGS} -g3"
+export CXXFLAGS="${new}${CXXFLAGS} -g3"
 
 # prefer to compile against our own freetype
-echo Compiling our internal freetype
+echo "Compiling our internal freetype"
 (cd vs/freetype && ./build-dosbox.sh) || exit 1
-new="-I$top/vs/freetype/linux-host/include/freetype2 "
-nld="-L$top/vs/freetype/linux-host/lib -lfreetype "
-export CFLAGS="$new$CFLAGS -g3"
-export LDFLAGS="$nld$LDFLAGS -g3"
-export CPPFLAGS="$new$CPPFLAGS -g3"
-export CXXFLAGS="$new$CXXFLAGS -g3"
+new="-I${top}/vs/freetype/linux-host/include/freetype2 "
+nld="-L${top}/vs/freetype/linux-host/lib -lfreetype "
+export CFLAGS="${new}${CFLAGS} -g3"
+export LDFLAGS="${nld}${LDFLAGS} -g3"
+export CPPFLAGS="${new}${CPPFLAGS} -g3"
+export CXXFLAGS="${new}${CXXFLAGS} -g3"
 export INTERNAL_FREETYPE=1
 
 brew list fluid-synth &>/dev/null || brew install fluid-synth
@@ -58,20 +58,20 @@ opts=
 
 # if Brew has installed packages, try to use those too
 brew="/opt/homebrew"
-if [[ -d "$brew" && -d "$brew/include" && -d "$brew/lib" ]]; then
+if [[ -d "${brew}" && -d "${brew}/include" && -d "${brew}/lib" ]]; then
     echo "Brew is installed, I'm going to use it's libraries too"
-    new=" -I$brew/include"
-    nld=" -L$brew/lib"
-    export CFLAGS="$CFLAGS$new -g3"
-    export LDFLAGS="$LDFLAGS$nld -g3"
-    export CPPFLAGS="$CPPFLAGS$new -g3"
-    export CXXFLAGS="$CXXFLAGS$new -g3"
-    export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$brew/lib/pkgconfig"
+    new=" -I${brew}/include"
+    nld=" -L${brew}/lib"
+    export CFLAGS="${CFLAGS}${new} -g3"
+    export LDFLAGS="${LDFLAGS}${nld} -g3"
+    export CPPFLAGS="${CPPFLAGS}${new} -g3"
+    export CXXFLAGS="${CXXFLAGS}${new} -g3"
+    export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:${brew}/lib/pkgconfig"
 fi
 
 # now compile ourself
-echo Compiling DOSBox-X
+echo "Compiling DOSBox-X"
 chmod +x configure
-./configure --enable-debug=heavy --prefix=/usr --enable-sdl2 $opts "$@" || exit 1
+./configure --enable-debug=heavy --prefix=/usr --enable-sdl2 "${opts}" "${@}" || exit 1
 make -j3 || exit 1
 
