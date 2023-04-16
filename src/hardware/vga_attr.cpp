@@ -145,7 +145,7 @@ void VGA_ATTR_SetPalette(uint8_t index, uint8_t val) {
 		VGA_DAC_CombineColor(index,val);
 	}
 	else if (machine == MCH_HERC && hercCard == HERC_InColor) {
-		if ((vga.herc.exception & 0x30) == 0x10/*CGA attributes + enable palette*/)
+		if (vga.herc.exception & 0x10)
 			VGA_DAC_CombineColor(index,vga.herc.palette[index&0xF]);
 		else
 			VGA_DAC_CombineColor(index,InColorRGBI[index&0xF]);
