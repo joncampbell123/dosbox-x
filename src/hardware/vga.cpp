@@ -1540,7 +1540,7 @@ void VGA_Init() {
     vga.herc.latchprotect = 0;
     vga.herc.palette_index = 0;
     for (unsigned int i=0;i < 8;i++) vga.herc.palette[i] = i;
-    for (unsigned int i=8;i < 16;i++) vga.herc.palette[i] = i + 0x38;
+    for (unsigned int i=8;i < 16;i++) vga.herc.palette[i] = i + 0x30;
     vga.draw.render_step = 0;
     vga.draw.render_max = 1;
 
