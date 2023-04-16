@@ -1896,7 +1896,10 @@ static uint8_t * VGA_TEXT9_Herc_Draw_Line(Bitu vidstart, Bitu line) {
 }
 
 static uint8_t * VGA_TEXT8_HercInColor_Draw_Line(Bitu vidstart, Bitu line) {
-	/* TODO: RAMFONTS plus InColor bitplanes means a weird bitplanar masking color scheme which requires a separate function */
+	/* TODO: If RAMFONTS are enabled, call a completely separate function that renders each bitplane's text cells
+	 *       and combines into a 16-color render to support InColor's really strange planar font support that
+	 *       allows 4 times the font data of an InColor. However InColor without RAMFONTS can continue to use the
+	 *       standard Hercules text renderer. So far, I know of no program that uses InColor planar font layout. */
 	if (vga.herc.exception & 0x20/*MDA attributes*/)
 		return VGA_TEXT_Herc_Draw_Line_mode_dispatch<uint32_t,8,/*color*/false>(vidstart,line);
 	else/*CGA attributes*/
@@ -1904,7 +1907,10 @@ static uint8_t * VGA_TEXT8_HercInColor_Draw_Line(Bitu vidstart, Bitu line) {
 }
 
 static uint8_t * VGA_TEXT9_HercInColor_Draw_Line(Bitu vidstart, Bitu line) {
-	/* TODO: RAMFONTS plus InColor bitplanes means a weird bitplanar masking color scheme which requires a separate function */
+	/* TODO: If RAMFONTS are enabled, call a completely separate function that renders each bitplane's text cells
+	 *       and combines into a 16-color render to support InColor's really strange planar font support that
+	 *       allows 4 times the font data of an InColor. However InColor without RAMFONTS can continue to use the
+	 *       standard Hercules text renderer. So far, I know of no program that uses InColor planar font layout. */
 	if (vga.herc.exception & 0x20/*MDA attributes*/)
 		return VGA_TEXT_Herc_Draw_Line_mode_dispatch<uint32_t,9,/*color*/false>(vidstart,line);
 	else/*CGA attributes*/
