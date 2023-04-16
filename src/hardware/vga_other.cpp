@@ -156,6 +156,7 @@ static void write_crtc_data_other(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 	case 0x15:	/* Hercules InColor and HGC+ */
 		if (hercCard == HERC_InColor || hercCard == HERC_GraphicsCardPlus) {
 			vga.herc.underline = (uint8_t)val;
+			vga.crtc.underline_location = (uint8_t)val & 0xFu;
 			break;
 		}
 		else {

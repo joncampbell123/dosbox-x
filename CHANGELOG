@@ -1,4 +1,7 @@
 Next:
+  - Added RAMFONT emulation to Hercules Plus machine type, fixed code
+    to allow Hercules Plus text mode to draw farther than the first 4KB
+    of RAM if RAMFONT enabled. (joncampbell123)
   - DOS kernel: Fix programming mistake that allocated perhaps a bit
     too much DOS kernel memory for the "List of Lists" info block.
     Fix the sizes of the info block and other structures to make sure
