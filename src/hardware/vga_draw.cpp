@@ -1798,7 +1798,7 @@ template <const unsigned int renderMode,const bool color> static void VGA_TEXT_H
 
 template <const unsigned int renderMode,typename vram_t,const unsigned int pixw,const bool color> static uint8_t * VGA_TEXT_Herc_Draw_Line_common(Bitu vidstart, Bitu line) {
 	const uint8_t attrmask = (vga.herc.mode_control & 0x20/*blink*/) ? 0x7F : 0xFF;
-	const unsigned int vram_mask = (renderMode >= HERCRENDER_HGC_RAMFONT) ? (0x7fff*sizeof(vram_t)) : vga.draw.linear_mask;
+	const unsigned int vram_mask = (vga.herc.enable_bits & 0x1)/*if graphics enable bit enabled*/ ? (0x7fff*sizeof(vram_t)) : vga.draw.linear_mask;
 	const vram_t* vidmem = (const vram_t*)(vga.tandy.draw_base + ((vidstart*sizeof(vram_t))&vram_mask));
 	uint8_t * draw=(uint8_t *)TempLine;
 	uint32_t mask1, mask2;
