@@ -145,10 +145,27 @@ void VGA_ATTR_SetPalette(uint8_t index, uint8_t val) {
 		VGA_DAC_CombineColor(index,val);
 	}
 	else if (machine == MCH_HERC && hercCard == HERC_InColor) {
-		if (vga.herc.exception & 0x10)
+		// If the card is in graphics mode, then pay attention only to bit 4 to enable color palette.
+		// If the card is in text mode, then bit 4 must be set AND bit 5 must be clear to enable color palette.
+		// bit 4 = enable palette  bit 5 = set for MDA attributes, clear for CGA attributes.
+		//
+		// NTS: For some strange reason, most programs that support InColor including Microsoft Flight Simulator
+		// and Framework III like to write 0x30 to the Hercules "exception" register, which is a strange value
+		// to write because it means you want both MDA attributes and a color palette. However if you think about
+		// it, CGA/MDA attributes have no meaning in graphics mode, because it isn't text mode. Framework III
+		// however will write 0x30 to this register while using the InColor/HGC+ 2-color RAMFONT driver. Even
+		// though that sets the bit for a color palette, at no time does Framework III ever write a color palette.
+		// That would mean that if Framework III had actually managed to enable the color palette, it would display
+		// with whatever random garbage happened to exist in the hardware palette, and I don't think such a
+		// program would let that stand in that kind of corporate office work type software that probably cost a
+		// fair amount in it's day.
+		if (	((vga.herc.exception & 0x10) && vga.mode == M_HERC_GFX)/*graphics mode and palette enable*/ ||
+			((vga.herc.exception & 0x30) == 0x10 && vga.mode == M_HERC_TEXT/*text mode, CGA attributes and palette enable*/)) {
 			VGA_DAC_CombineColor(index,vga.herc.palette[index&0xF]);
-		else
+		}
+		else {
 			VGA_DAC_CombineColor(index,InColorRGBI[index&0xF]);
+		}
 	}
 	else {
 		VGA_DAC_CombineColor(index,index);
