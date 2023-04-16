@@ -217,13 +217,13 @@ DOSBox-X 模擬 DOS 命令列介面讓您覺得好像在真正使用 DOS.
 IDE 位置
 .
 :SWAP_SLOT
-切換槽
+換片位置
 .
 :EMPTY_SLOT
 空位
 .
 :SLOT
-位置
+欄位
 .
 :SELECT_EVENT
 選擇要修改的事件.
@@ -2907,7 +2907,7 @@ MPEG-TS + H.264
 儲存/載入選項
 .
 :MENU:saveslotmenu
-選擇儲存位置
+選擇儲存欄位
 .
 :MENU:enable_autosave
 啟用自動儲存功能
@@ -2925,10 +2925,10 @@ MPEG-TS + H.264
 更新顯示狀態
 .
 :MENU:lastautosaveslot
-選擇上次自動儲存位置
+選擇上次自動儲存欄位
 .
 :MENU:usesavefile
-改用存檔取代儲存位置
+改用存檔取代儲存欄位
 .
 :MENU:autosavecfg
 自動儲存設定...
@@ -3111,10 +3111,10 @@ Turbo (快轉模式)
 顯示狀態資訊
 .
 :MENU:mapper_prevslot
-選擇上一個位置
+選擇上一個欄位
 .
 :MENU:mapper_nextslot
-選擇下一個位置
+選擇下一個欄位
 .
 :MENU:mapper_decfskip
 減少跳過影格
@@ -3420,13 +3420,13 @@ CPU: 完全核心
 載入對應表檔案
 .
 :MAPPER:nextslot
-下一個儲存位置
+下一個儲存欄位
 .
 :MAPPER:normal
 CPU: 一般核心
 .
 :MAPPER:prevslot
-上一個儲存位置
+上一個儲存欄位
 .
 :MENU:printtext
 列印畫面文字
