@@ -1,4 +1,9 @@
 Next:
+  - Hercules palette selection now provides a "dark gray" color
+    mapping to match the green, amber, or gray palette selection of
+    the user (joncampbell123)
+  - Fix Hercules vs MDA attribute handling of "dark gray" background
+    color when hardware blink is disabled. (joncampbell123)
   - Added RAMFONT emulation to Hercules Plus machine type, fixed code
     to allow Hercules Plus text mode to draw farther than the first 4KB
     of RAM if RAMFONT enabled. (joncampbell123)
