@@ -2,8 +2,9 @@
 
 # allow 32-bit on 64-bit (x86) builds
 if [ "$1" == "32" ]; then
-    export CC=`which gcc`" -m32"
-    export CXX=`which g++`" -m32"
+    CC="$(which gcc) -m32"
+    CXX="$(which g++) -m32"
+    export CC CXX
     shift
     opt="--host=i686-pc-linux-gnu --target=i686-pc-linux-gnu"
 fi
@@ -13,8 +14,9 @@ fi
 # and just autoregen.
 ./autogen.sh || exit 1
 
-export CFLAGS="$CFLAGS -pg -fprofile-arcs"
-export CXXFLAGS="$CXXFLAGS -pg -fprofile-arcs"
+CFLAGS="${CFLAGS} -pg -fprofile-arcs"
+CXXFLAGS="${CXXFLAGS} -pg -fprofile-arcs"
+export CFLAGS CXXFLAGS
 
 # fix
 chmod +x vs/sdl/build-scripts/strip_fPIC.sh
@@ -30,6 +32,6 @@ echo Compiling our internal SDLnet 1.x
 # now compile ourself
 echo Compiling DOSBox-X
 chmod +x configure
-./configure --enable-debug=heavy --prefix=/usr "$@" $opt || exit 1
+./configure --enable-debug=heavy --prefix=/usr "${@}" "${opt}" || exit 1
 make -j3 || exit 1
 

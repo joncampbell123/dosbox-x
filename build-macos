@@ -6,16 +6,16 @@
 ./autogen.sh || exit 1
 
 # where are we?
-top=`pwd`
-if test -z "$top" ; then exit 1; fi
+top=$(pwd)
+if test -z "${top}" ; then exit 1; fi
 
 # fix
 chmod +x vs/sdl/build-scripts/strip_fPIC.sh
 
-orig_CFLAGS="$CFLAGS"
-orig_LDFLAGS="$LDFLAGS"
-orig_CPPFLAGS="$CPPFLAGS"
-orig_CXXFLAGS="$CXXFLAGS"
+orig_CFLAGS="${CFLAGS}"
+orig_LDFLAGS="${LDFLAGS}"
+orig_CPPFLAGS="${CPPFLAGS}"
+orig_CXXFLAGS="${CXXFLAGS}"
 
 # Ensure sdl2 isn't detected as we aren't going to use it, and the presence of
 # this folder will cause the build to fail.
@@ -35,9 +35,9 @@ do_cleanup() {
 
 universal=0
 architectures="$(uname -m)"
-if [ "$1" = "universal" ]; then
+if [ "${1}" = "universal" ]; then
     shift
-    if [ "$architectures" = "arm64" ]; then
+    if [ "${architectures}" = "arm64" ]; then
         # We can only build universal binaries on an arm64 host because we
         # need homebrew functional under both architectures.
         universal=1
@@ -62,11 +62,11 @@ elif [ -x /usr/local/Homebrew/bin/brew ]; then
 fi
 
 # x86_64 on arm64 for universal builds if x86_64 Homebrew is installed
-if [ -n "$x86_64_brew_cmd" ] && [ "$universal" -eq 1 ]; then
-    x86_64_brew_cmd="/usr/bin/arch -x86_64 $x86_64_brew_cmd"
+if [ -n "${x86_64_brew_cmd}" ] && [ "${universal}" -eq 1 ]; then
+    x86_64_brew_cmd="/usr/bin/arch -x86_64 ${x86_64_brew_cmd}"
 fi
 
-for arch in $architectures; do
+for arch in ${architectures}; do
     declare brew_cmd="${arch}_brew_cmd"
     if [ -n "${!brew_cmd}" ]; then
         ${!brew_cmd} list fluid-synth &>/dev/null || ${!brew_cmd} install fluid-synth
@@ -76,56 +76,61 @@ for arch in $architectures; do
 
     do_cleanup
 
-    arch_flags="-arch $arch -mmacosx-version-min=10.12 " 
-    export CFLAGS="$arch_flags$orig_CFLAGS"
-    export LDFLAGS="$arch_flags$orig_LDFLAGS"
-    export CPPFLAGS="$arch_flags$orig_CPPFLAGS"
-    export CXXFLAGS="$arch_flags$orig_CXXFLAGS"
+    arch_flags="-arch ${arch} -mmacosx-version-min=10.12 "
+    CFLAGS="${arch_flags}${orig_CFLAGS}"
+    LDFLAGS="${arch_flags}${orig_LDFLAGS}"
+    CPPFLAGS="${arch_flags}${orig_CPPFLAGS}"
+    CXXFLAGS="${arch_flags}${orig_CXXFLAGS}"
+    export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS
 
     # prefer to compile against our own copy of SDL 1.x
-    echo Compiling our internal SDL 1.x
+    echo "Compiling our internal SDL 1.x"
     (cd vs/sdl && ./build-dosbox.sh) || exit 1
     new=" -I$top/vs/sdl/linux-host/include"
     nld=" -L$top/vs/sdl/linux-host/lib"
-    export CFLAGS="$CFLAGS$new"
-    export LDFLAGS="$LDFLAGS$nld"
-    export CPPFLAGS="$CPPFLAGS$new"
-    export CXXFLAGS="$CXXFLAGS$new"
+    CFLAGS="${CFLAGS}${new}"
+    LDFLAGS="${LDFLAGS}${nld}"
+    CPPFLAGS="${CPPFLAGS}${new}"
+    CXXFLAGS="${CXXFLAGS}${new}"
+    export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS
 
     # prefer to compile against our own copy of SDLnet 1.x
-    echo Compiling our internal SDLnet 1.x
+    echo "Compiling our internal SDLnet 1.x"
     (cd vs/sdlnet && ./build-dosbox.sh) || exit 1
 
     # prefer to compile against our own zlib
-    echo Compiling our internal zlib
+    echo "Compiling our internal zlib"
     (cd vs/zlib && ./build-dosbox.sh) || exit 1
     new=" -I$top/vs/zlib/linux-host/include"
     nld=" -L$top/vs/zlib/linux-host/lib"
-    export CFLAGS="$CFLAGS$new"
-    export LDFLAGS="$LDFLAGS$nld"
-    export CPPFLAGS="$CPPFLAGS$new"
-    export CXXFLAGS="$CXXFLAGS$new"
+    CFLAGS="${CFLAGS}${new}"
+    LDFLAGS="${LDFLAGS}${nld}"
+    CPPFLAGS="${CPPFLAGS}${new}"
+    CXXFLAGS="${CXXFLAGS}${new}"
+    export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS
 
     # prefer to compile against our own libpng (comment this out to disable)
-    echo Compiling our internal libpng
+    echo "Compiling our internal libpng"
     (cd vs/libpng && ./build-dosbox.sh) || exit 1
     new=" -I$top/vs/libpng/linux-host/include"
     nld=" -L$top/vs/libpng/linux-host/lib"
-    export CFLAGS="$CFLAGS$new"
-    export LDFLAGS="$LDFLAGS$nld"
-    export CPPFLAGS="$CPPFLAGS$new"
-    export CXXFLAGS="$CXXFLAGS$new"
+    CFLAGS="${CFLAGS}${new}"
+    LDFLAGS="${LDFLAGS}${nld}"
+    CPPFLAGS="${CPPFLAGS}${new}"
+    CXXFLAGS="${CXXFLAGS}${new}"
+    export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS
 
     # prefer to compile against our own freetype
     echo Compiling our internal freetype
     (cd vs/freetype && ./build-dosbox.sh) || exit 1
     new=" -I$top/vs/freetype/linux-host/include/freetype2"
     nld=" -L$top/vs/freetype/linux-host/lib -lfreetype"
-    export CFLAGS="$CFLAGS$new"
-    export LDFLAGS="$LDFLAGS$nld"
-    export CPPFLAGS="$CPPFLAGS$new"
-    export CXXFLAGS="$CXXFLAGS$new"
-    export INTERNAL_FREETYPE=1
+    CFLAGS="${CFLAGS}${new}"
+    LDFLAGS="${LDFLAGS}${nld}"
+    CPPFLAGS="${CPPFLAGS}${new}"
+    CXXFLAGS="${CXXFLAGS}${new}"
+    INTERNAL_FREETYPE=1
+    export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS INTERNAL_FREETYPE
 
     opts=
 
@@ -134,22 +139,23 @@ for arch in $architectures; do
         echo "Brew is installed, I'm going to use it's libraries too"
         new=" -I$(${!brew_cmd} --prefix)/include"
         nld=" -L$(${!brew_cmd} --prefix)/lib"
-        export CFLAGS="$CFLAGS$new"
-        export LDFLAGS="$LDFLAGS$nld"
-        export CPPFLAGS="$CPPFLAGS$new"
-        export CXXFLAGS="$CXXFLAGS$new"
-        export PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$(${!brew_cmd} --prefix)/lib/pkgconfig"
+        CFLAGS="${CFLAGS}${new}"
+        LDFLAGS="${LDFLAGS}${nld}"
+        CPPFLAGS="${CPPFLAGS}${new}"
+        CXXFLAGS="${CXXFLAGS}${new}"
+        PKG_CONFIG_PATH="$PKG_CONFIG_PATH:$(${!brew_cmd} --prefix)/lib/pkgconfig"
+        export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS PKG_CONFIG_PATH
     fi
 
-    if [ "$universal" = 1 ]; then
-        opts="$opts --enable-universal"
+    if [ "${universal}" = 1 ]; then
+        opts="${opts} --enable-universal"
     fi
 
     # now compile ourself
-    echo Compiling DOSBox-X
+    echo "Compiling DOSBox-X"
     chmod +x configure
-    ./configure --enable-debug=heavy --prefix=/usr $opts "$@" || exit 1
+    ./configure --enable-debug=heavy --prefix=/usr "${opts}" "${@}" || exit 1
     make -j3 || exit 1
 
-    cp src/dosbox-x src/dosbox-x-$arch
+    cp src/dosbox-x "src/dosbox-x-${arch}"
 done

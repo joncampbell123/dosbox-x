@@ -1,29 +1,29 @@
 #!/usr/bin/env bash
 
-if [ -z "$1" ]
+if [ -z "${1}" ]
   then
     echo "No version number specified."
     exit
 fi
 
-ver=$1
+ver=${1}
 
 pushd "$(git rev-parse --show-toplevel)" > /dev/null || exit
 
-find contrib/translations -type f -name '*.lng' | xargs sed -b -i "s/^:DOSBOX-X:VERSION:\([0-9.]\+\)/:DOSBOX-X:VERSION:$ver/"
+find contrib/translations -type f -name '*.lng' -exec sed -b -i "s/^:DOSBOX-X:VERSION:\([0-9.]\+\)/:DOSBOX-X:VERSION:${ver}/" {} +
 
-ls -1 dosbox-x.reference.conf dosbox-x.reference.full.conf contrib/windows/installer/dosbox-x.reference.setup.conf | xargs sed -b -i "s/^# This is the configuration file for DOSBox-X \([0-9.]\+\)/# This is the configuration file for DOSBox-X $ver./"
+find . -type f -name '*.conf' -exec sed -b -i "s/^# This is the configuration file for DOSBox-X \([0-9.]\+\)/# This is the configuration file for DOSBox-X ${ver}./" {} +
 
-sed -b -i "s/PACKAGE_STRING \"dosbox-x \([0-9.]\+\)\"/PACKAGE_STRING \"dosbox-x $ver\"/" vs/config_package.h
+sed -b -i "s/PACKAGE_STRING \"dosbox-x \([0-9.]\+\)\"/PACKAGE_STRING \"dosbox-x ${ver}\"/" vs/config_package.h
 
-sed -b -i "s/VERSION \"\([0-9.]\+\)\"/VERSION \"$ver\"/g" vs/config_package.h
+sed -b -i "s/VERSION \"\([0-9.]\+\)\"/VERSION \"${ver}\"/g" vs/config_package.h
 
-sed -b -i "s/^AC_INIT(dosbox-x,\([0-9.]\+\)/AC_INIT(dosbox-x,$ver/" configure.ac
+sed -b -i "s/^AC_INIT(dosbox-x,\([0-9.]\+\)/AC_INIT(dosbox-x,${ver}/" configure.ac
 
-sed -b -i "s/^#define MyAppVersion \"\([0-9.]\+\)\"/#define MyAppVersion \"$ver\"/" contrib/windows/installer/DOSBox-X-setup.iss
+sed -b -i "s/^#define MyAppVersion \"\([0-9.]\+\)\"/#define MyAppVersion \"${ver}\"/" contrib/windows/installer/DOSBox-X-setup.iss
 
-ver=`echo $ver | tr . ,`
+ver=$(echo "${ver}" | tr . ,)
 
-sed -b -i "s/^#define VERSION_NUMBER \([0-9,]\+\)/#define VERSION_NUMBER $ver,0/" src/winres.rc
+sed -b -i "s/^#define VERSION_NUMBER \([0-9,]\+\)/#define VERSION_NUMBER ${ver},0/" src/winres.rc
 
 popd > /dev/null || exit
