@@ -30,9 +30,9 @@ chmod +x vs/sdl/build-scripts/strip_fPIC.sh
 
 # prefer to compile against our own copy of SDL 2.x IF the system does not provide one
 if [[ "$no_host_sdl2" ]]; then
-    x= # doesn't work well cross-compiling
+    x="" # doesn't work well cross-compiling
 else
-    x=$(which sdl2-config)
+    x="$(which sdl2-config)"
 fi
 if test -z "${x}" ; then
     echo "Compiling our internal SDL 2.x"
@@ -40,8 +40,8 @@ if test -z "${x}" ; then
 fi
 
 # prefer to compile against our own copy of SDLnet 1.x
-echo "Compiling our internal SDLnet 1.x"
-(cd vs/sdlnet && ./build-dosbox.sh) || exit 1
+#echo "Compiling our internal SDLnet 1.x"
+#(cd vs/sdlnet && ./build-dosbox.sh) || exit 1
 
 # now compile ourself
 echo "Compiling DOSBox-X"
