@@ -1,4 +1,7 @@
 Next:
+  - Fixed refcount -1 error and abort when multiple floppies are
+    attached to a floppy drive and the "Swap floppy" mapper shortcut
+    is used at least once (joncampbell123).
   - Hercules palette selection now provides a "dark gray" color
     mapping to match the green, amber, or gray palette selection of
     the user (joncampbell123)

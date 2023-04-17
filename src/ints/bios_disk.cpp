@@ -1150,7 +1150,7 @@ void FreeBIOSDiskList() {
     for (int i=0;i < MAX_DISK_IMAGES;i++) {
         if (imageDiskList[i] != NULL) {
             if (i >= 2) IDE_Hard_Disk_Detach(i);
-            if (!imageDiskList[i]->ffdd) imageDiskList[i]->Release();
+            imageDiskList[i]->Release();
             imageDiskList[i] = NULL;
         }
     }
@@ -1278,6 +1278,7 @@ void swapInDrive(int drive, unsigned int position=0) {
 void swapInNextDisk(bool pressed) {
     if (!pressed)
         return;
+
     DriveManager::CycleAllDisks();
     /* Hack/feature: rescan all disks as well */
     LOG_MSG("Diskcaching reset for floppy drives.");
