@@ -4,16 +4,15 @@
 if [ "$1" == "32" ]; then
     CC="$(which gcc) -m32"
     CXX="$(which g++) -m32"
-    export CC
-    export CXX
+    export CC CXX
     no_host_sdl2=1
     shift
     opt="--host=i686-pc-linux-gnu --target=i686-pc-linux-gnu"
 fi
 
 # Jonathan C dev hack: refer to LNKDOS16 in /usr/src/doslib
-doslib=
-if [ -d "/usr/src/doslib" ]; then doslib="/usr/src/doslib"; fi
+doslib=""
+if [ -d /usr/src/doslib ]; then doslib="/usr/src/doslib"; fi
 
 if [ -n "${doslib}" ]; then
     if [ -x "${doslib}/tool/linker/linux-host/lnkdos16" ]; then
@@ -31,9 +30,9 @@ chmod +x vs/sdl/build-scripts/strip_fPIC.sh
 
 # prefer to compile against our own copy of SDL 2.x IF the system does not provide one
 if [[ "$no_host_sdl2" ]]; then
-    x= # doesn't work well cross-compiling
+    x="" # doesn't work well cross-compiling
 else
-    x=$(which sdl2-config)
+    x="$(which sdl2-config)"
 fi
 if test -z "${x}" ; then
     echo "Compiling our internal SDL 2.x"

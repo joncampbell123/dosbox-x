@@ -87,7 +87,7 @@ for arch in ${architectures}; do
     LDFLAGS="${LDFLAGS}${nld}"
     CPPFLAGS="${CPPFLAGS}${new}"
     CXXFLAGS="${CXXFLAGS}${new}"
-    export  CFLAGS LDFLAGS CPPFLAGS CXXFLAGS
+    export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS
 
     # prefer to compile against our own zlib
     echo "Compiling our internal zlib"
@@ -98,7 +98,7 @@ for arch in ${architectures}; do
     LDFLAGS="${LDFLAGS}${nld}"
     CPPFLAGS="${CPPFLAGS}${new}"
     CXXFLAGS="${CXXFLAGS}${new}"
-    export  CFLAGS LDFLAGS CPPFLAGS CXXFLAGS
+    export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS
 
     # prefer to compile against our own libpng (comment this out to disable)
     echo "Compiling our internal libpng"
@@ -109,7 +109,7 @@ for arch in ${architectures}; do
     LDFLAGS="${LDFLAGS}${nld}"
     CPPFLAGS="${CPPFLAGS}${new}"
     CXXFLAGS="${CXXFLAGS}${new}"
-    export  CFLAGS LDFLAGS CPPFLAGS CXXFLAGS
+    export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS
 
     # prefer to compile against our own freetype
     echo "Compiling our internal freetype"
@@ -121,21 +121,21 @@ for arch in ${architectures}; do
     CPPFLAGS="${CPPFLAGS}${new}"
     CXXFLAGS="${CXXFLAGS}${new}"
     INTERNAL_FREETYPE=1
-    export  CFLAGS LDFLAGS CPPFLAGS CXXFLAGS INTERNAL_FREETYPE
+    export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS INTERNAL_FREETYPE
 
     opts=
 
     # if Brew has installed packages, try to use those too
     if [ -n "${!brew_cmd}" ]; then
         echo "Brew is installed, I'm going to use it's libraries too"
-        new=" -I$(${!brew_cmd} --prefix)/include"
-        nld=" -L$(${!brew_cmd} --prefix)/lib"
+        new="-I$(${!brew_cmd} --prefix)/include "
+        nld="-L$(${!brew_cmd} --prefix)/lib "
         CFLAGS="${CFLAGS}${new}"
         LDFLAGS="${LDFLAGS}${nld}"
         CPPFLAGS="${CPPFLAGS}${new}"
         CXXFLAGS="${CXXFLAGS}${new}"
         PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:$(${!brew_cmd} --prefix)/lib/pkgconfig"
-        export  CFLAGS LDFLAGS CPPFLAGS CXXFLAGS PKG_CONFIG_PATH
+        export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS PKG_CONFIG_PATH
     fi
 
     if [ "${universal}" = 1 ]; then
@@ -148,5 +148,5 @@ for arch in ${architectures}; do
     ./configure --enable-debug=heavy --prefix=/usr --enable-sdl2 "${opts}" "${@}" || exit 1
     make -j3 || exit 1
 
-    cp src/dosbox-x "src/dosbox-x-{$arch}"
+    cp src/dosbox-x "src/dosbox-x-${arch}"
 done

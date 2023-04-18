@@ -25,31 +25,34 @@ echo "Compiling our internal zlib"
 (cd vs/zlib && ./build-dosbox.sh) || exit 1
 new="-I${top}/vs/zlib/linux-host/include "
 nld="-L${top}/vs/zlib/linux-host/lib "
-export CFLAGS="${new}${CFLAGS} -g3"
-export LDFLAGS="${nld}${LDFLAGS} -g3"
-export CPPFLAGS="${new}${CPPFLAGS} -g3"
-export CXXFLAGS="${new}${CXXFLAGS} -g3"
+CFLAGS="${new}${CFLAGS} -g3"
+LDFLAGS="${nld}${LDFLAGS} -g3"
+CPPFLAGS="${new}${CPPFLAGS} -g3"
+CXXFLAGS="${new}${CXXFLAGS} -g3"
+export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS
 
 # prefer to compile against our own libpng (comment this out to disable)
 echo "Compiling our internal libpng"
 (cd vs/libpng && ./build-dosbox.sh) || exit 1
 new="-I${top}/vs/libpng/linux-host/include "
 nld="-L${top}/vs/libpng/linux-host/lib "
-export CFLAGS="${new}${CFLAGS} -g3"
-export LDFLAGS="${nld}${LDFLAGS} -g3"
-export CPPFLAGS="${new}${CPPFLAGS} -g3"
-export CXXFLAGS="${new}${CXXFLAGS} -g3"
+CFLAGS="${new}${CFLAGS} -g3"
+LDFLAGS="${nld}${LDFLAGS} -g3"
+CPPFLAGS="${new}${CPPFLAGS} -g3"
+CXXFLAGS="${new}${CXXFLAGS} -g3"
+export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS
 
 # prefer to compile against our own freetype
 echo "Compiling our internal freetype"
 (cd vs/freetype && ./build-dosbox.sh) || exit 1
 new="-I${top}/vs/freetype/linux-host/include/freetype2 "
 nld="-L${top}/vs/freetype/linux-host/lib -lfreetype "
-export CFLAGS="${new}${CFLAGS} -g3"
-export LDFLAGS="${nld}${LDFLAGS} -g3"
-export CPPFLAGS="${new}${CPPFLAGS} -g3"
-export CXXFLAGS="${new}${CXXFLAGS} -g3"
-export INTERNAL_FREETYPE=1
+CFLAGS="${new}${CFLAGS} -g3"
+LDFLAGS="${nld}${LDFLAGS} -g3"
+CPPFLAGS="${new}${CPPFLAGS} -g3"
+CXXFLAGS="${new}${CXXFLAGS} -g3"
+INTERNAL_FREETYPE=1
+export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS INTERNAL_FREETYPE
 
 brew list fluid-synth &>/dev/null || brew install fluid-synth
 brew list libslirp &>/dev/null || brew install libslirp
@@ -61,13 +64,14 @@ opts=
 brew="/opt/homebrew"
 if [[ -d "${brew}" && -d "${brew}/include" && -d "${brew}/lib" ]]; then
     echo "Brew is installed, I'm going to use it's libraries too"
-    new=" -I${brew}/include"
-    nld=" -L${brew}/lib"
-    export CFLAGS="${CFLAGS}${new} -g3"
-    export LDFLAGS="${LDFLAGS}${nld} -g3"
-    export CPPFLAGS="${CPPFLAGS}${new} -g3"
-    export CXXFLAGS="${CXXFLAGS}${new} -g3"
-    export PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:${brew}/lib/pkgconfig"
+    new="-I${brew}/include "
+    nld="-L${brew}/lib "
+    CFLAGS="${new}${CFLAGS} -g3"
+    LDFLAGS="${nld}${LDFLAGS} -g3"
+    CPPFLAGS="${new}${CPPFLAGS} -g3"
+    CXXFLAGS="${new}${CXXFLAGS} -g3"
+    PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:${brew}/lib/pkgconfig"
+    export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS PKG_CONFIG_PATH
 fi
 
 # now compile ourself
