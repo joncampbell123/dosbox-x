@@ -2,10 +2,6 @@
 :DOSBOX-X:CODEPAGE:950
 :DOSBOX-X:VERSION:2023.03.31
 :DOSBOX-X:REMARK:建議將國家和字碼頁設為 886,950 並搭配中文字型; 或使用 cht 或 tw 中文 DOS/V 模式以直接支援中文顯示和列印
-:PROGRAM_BOOT_IMAGE_MOUNTED
-軟碟映像檔已掛載.
-
-.
 :AUTOEXEC_CONFIGFILE_HELP
 段落中的指令行會在啟動時執行.
 您可以在這裡下達 MOUNT 指令.
@@ -217,7 +213,7 @@ DOSBox-X 模擬 DOS 命令列介面讓您覺得好像在真正使用 DOS.
 IDE 位置
 .
 :SWAP_SLOT
-換片位置
+欄位切換
 .
 :EMPTY_SLOT
 空位
@@ -3451,4 +3447,8 @@ CPU: 簡單核心
 .
 :MAPPER:togmenu
 切換選單列顯示
+.
+:PROGRAM_BOOT_IMAGE_MOUNTED
+軟碟映像檔已掛載.
+
 .
