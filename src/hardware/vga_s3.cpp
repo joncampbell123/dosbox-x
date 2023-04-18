@@ -449,9 +449,9 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
             case S3_Trio32:
             case S3_Trio64:
             case S3_Trio64V:
+            case S3_ViRGEVX:
                 return 0x88;
             case S3_ViRGE:
-            case S3_ViRGEVX:
                 return 0x56;
             default:
                 break;
@@ -482,8 +482,9 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
             case S3_Trio64V:
                 return 0x11; // Trio64 (rev 00h) / Trio64V+ (rev 40h)
             case S3_ViRGE:
-            case S3_ViRGEVX:
                 return 0x31;
+            case S3_ViRGEVX:
+                return 0x3D;
             default:
                 break;
         };

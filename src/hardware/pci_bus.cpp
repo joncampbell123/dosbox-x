@@ -149,8 +149,9 @@ public:
 			case S3_Trio64V:
 				return 0x8811; // Trio64 (rev 00h) / Trio64V+ (rev 40h)
 			case S3_ViRGE:
-			case S3_ViRGEVX:
 				return 0x5631;
+			case S3_ViRGEVX:
+				return 0x883D;
 			default:
 				break;
 		};
