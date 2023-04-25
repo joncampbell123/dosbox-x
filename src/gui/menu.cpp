@@ -678,6 +678,7 @@ static const char *def_menu_capture[] =
 {
 #if defined(C_SSHOT)
     "mapper_scrshot",
+    "mapper_rawscrshot",
     "--",
 #endif
 #if !defined(C_EMSCRIPTEN)
