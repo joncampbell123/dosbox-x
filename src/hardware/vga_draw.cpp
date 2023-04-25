@@ -4786,7 +4786,7 @@ void SetRawImagePalette(void) {
 	const uint8_t dacshr = 8u - (dacshift * 2u); /* take 8 - dacshift bit field and shift right by dacshift i.e. 6 bit field shift right by 4 to fill lower bits. */
 	const uint8_t dacmask = (0x100 >> dacshift) - 1u; /* 8-bit = 0xFF 6-bit = 0x3F */
 
-	if (IS_VGA_ARCH) {
+	if (IS_VGA_ARCH || machine == MCH_MCGA) {
 		rawshot.allocpalette(256); // raw image, translated palette
 		rawshot2.allocpalette(256); // raw image, raw palette
 
