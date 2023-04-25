@@ -890,6 +890,11 @@ static uint8_t * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*
     return TempLine + (poff * 4);
 }
 
+static void VGA_RawDraw_Xlat32_Linear_Line(uint8_t *dst,Bitu vidstart, Bitu /*line*/) {
+    for(Bitu i = 0; i < vga.draw.width; i++)
+        dst[i]=vga.draw.linear_base[(vidstart+i)&vga.draw.linear_mask];
+}
+
 static uint8_t * VGA_Draw_Xlat32_Linear_Line(Bitu vidstart, Bitu /*line*/) {
     uint32_t* temps = (uint32_t*) TempLine;
 
@@ -3157,7 +3162,7 @@ again:
             }
             RENDER_DrawLine(TempLine);
         } else {
-            if (VGA_DrawRawLine) {
+            if ((CaptureState & CAPTURE_RAWIMAGE) && VGA_DrawRawLine) {
                 if (rawshot.render_y < rawshot.image_height && rawshot.image != NULL) {
                     VGA_DrawRawLine(rawshot.image+(rawshot.render_y*rawshot.image_stride), vga.draw.address, vga.draw.address_line );
                     rawshot.render_y++;
@@ -4943,6 +4948,7 @@ void WriteRawImage(void) {
 		WriteARawImage(rawshot/*img*/,rawshot2/*pal*/,".raw2.png");
 #endif
 #endif
+	rawshot.render_y = 0;
 }
 
 void FreeRawImage(void) {
@@ -4990,8 +4996,8 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
             else {
                 AllocateRawImage();
                 SetRawImagePalette();
-                rawshot.render_y = 0;
             }
+            rawshot.render_y = 0;
         }
         else {
             LOG(LOG_VGAMISC,LOG_ERROR)("Raw capture not supported in the current video mode");
@@ -6447,10 +6453,12 @@ void VGA_SetupDrawing(Bitu /*val*/) {
             /* ET4000 chipsets handle the chained mode (in my opinion) with sanity and we can scan linearly for it.
              * Chained VGA mode maps planar byte addr = (addr >> 2) and plane = (addr & 3) */
             VGA_DrawLine = VGA_Draw_Xlat32_Linear_Line;
+            VGA_DrawRawLine = VGA_RawDraw_Xlat32_Linear_Line;
         }
         else if (machine == MCH_MCGA) {
             pix_per_char = 8;
             VGA_DrawLine = VGA_Draw_Xlat32_Linear_Line;
+            VGA_DrawRawLine = VGA_RawDraw_Xlat32_Linear_Line;
             vga.tandy.draw_base = vga.mem.linear;
             vga.draw.address_line_total = 1;
         }
