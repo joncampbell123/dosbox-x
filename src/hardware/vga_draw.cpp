@@ -288,7 +288,7 @@ void memxor_greendotted_32bpp(uint32_t *d,unsigned int count,unsigned int line) 
     }
 }
 
-typedef void (* VGA_RawLine_Handler)(uint8_t *dst,Bitu vidstart, Bitu line);
+typedef void (* VGA_RawLine_Handler)(uint8_t *dst,uint8_t *dst2,Bitu vidstart, Bitu line);
 typedef uint8_t * (* VGA_Line_Handler)(Bitu vidstart, Bitu line);
 
 static VGA_Line_Handler VGA_DrawLine;
@@ -817,7 +817,7 @@ static uint8_t * VGA_Draw_Linear_Line(Bitu vidstart, Bitu /*line*/) {
     return ret;
 }
 
-static void VGA_RawDraw_Xlat32_VGA_CRTC_bmode_Line(uint8_t *dst,Bitu vidstart, Bitu /*line*/) {
+static void VGA_RawDraw_Xlat32_VGA_CRTC_bmode_Line(uint8_t *dst,uint8_t* /*dst2*/,Bitu vidstart, Bitu /*line*/) {
     const Bitu skip = 4u << vga.config.addr_shift; /* how much to skip after drawing 4 pixels */
 
     /* *sigh* it looks like DOSBox's VGA scanline code will pass nonzero bits 0-1 in vidstart */
@@ -890,7 +890,7 @@ static uint8_t * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*
     return TempLine + (poff * 4);
 }
 
-static void VGA_RawDraw_Xlat32_Linear_Line(uint8_t *dst,Bitu vidstart, Bitu /*line*/) {
+static void VGA_RawDraw_Xlat32_Linear_Line(uint8_t *dst,uint8_t* /*dst*/,Bitu vidstart, Bitu /*line*/) {
     for(Bitu i = 0; i < vga.draw.width; i++)
         dst[i]=vga.draw.linear_base[(vidstart+i)&vga.draw.linear_mask];
 }
@@ -3164,7 +3164,10 @@ again:
         } else {
             if ((CaptureState & CAPTURE_RAWIMAGE) && VGA_DrawRawLine) {
                 if (rawshot.render_y < rawshot.image_height && rawshot.image != NULL) {
-                    VGA_DrawRawLine(rawshot.image+(rawshot.render_y*rawshot.image_stride), vga.draw.address, vga.draw.address_line );
+                    VGA_DrawRawLine(
+                        rawshot.image+(rawshot.render_y*rawshot.image_stride),
+                        rawshot2.image ? (rawshot2.image+(rawshot2.render_y*rawshot2.image_stride)) : NULL,
+                        vga.draw.address, vga.draw.address_line );
                     rawshot.render_y++;
                 }
             }
@@ -4807,9 +4810,11 @@ void AllocateRawImage(void) {
 		case M_VGA:
 		case M_LIN8:
 			rawshot.allocate(vga.draw.width,vga.draw.height,8);
+			rawshot2.free();
 			break;
 		default:
 			rawshot.free();
+			rawshot2.free();
 			break;
 	}
 }
@@ -4945,7 +4950,7 @@ void WriteRawImage(void) {
 	if (rawshot.image != NULL && rawshot.image_palette != NULL && rawshot.image_palette_size > 0)
 		WriteARawImage(rawshot/*img*/,rawshot/*pal*/,".raw1.png");
 	if (rawshot.image != NULL && rawshot2.image_palette != NULL && rawshot2.image_palette_size > 0 && !rawpalette_is_same(rawshot,rawshot2))
-		WriteARawImage(rawshot/*img*/,rawshot2/*pal*/,".raw2.png");
+		WriteARawImage((rawshot2.image != NULL ? rawshot2 : rawshot)/*img*/,rawshot2/*pal*/,".raw2.png");
 #endif
 #endif
 	rawshot.render_y = 0;
