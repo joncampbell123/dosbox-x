@@ -114,6 +114,8 @@ Next:
     DOSBox-X is never going to compile for a C standard that old.
     Furthermore this check is preventing compilation on ARM-based
     Macbooks for some reason, though not Intel based Macbooks.
+  - Automatically mount directories found in DOSBox-X's executable
+    directory with naming scheme 'drive[drive letter]'. (aybe)
 
 2023.03.31
   - "mount -t overlay" will now print a message on the console to
