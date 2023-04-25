@@ -8468,6 +8468,31 @@ static void FLAGSAVE_ProgramStart(Program** make)
     *make = new FLAGSAVE;
 }
 
+/**
+ * \brief Mounts directories 'drive[c-z]' found in DOSBox-X directory.
+ */
+void Add_Existing_Drive_Directories()
+{
+    for(char drive = 'C'; drive < 'Z'; drive++)
+    {
+        std::string name = "drive";
+        std::string path = ".";
+
+        name += drive;
+        path += CROSS_FILESPLIT;
+        path += name;
+
+        getdrivezpath(path, name);
+
+        if (path == "")
+            continue;
+
+        LOG_MSG("Mounting directory 'drive%c' found in DOSBox-X directory as drive %c.\n", (char)(drive + 32), drive);
+
+        MountHelper(drive, path.c_str(), "LOCAL");
+    }
+}
+
 void Add_VFiles(bool usecp) {
     VFILE_Register("TEXTUTIL", 0, 0, "/");
     VFILE_Register("SYSTEM", 0, 0, "/");
@@ -9155,4 +9180,6 @@ void DOS_SetupPrograms(void) {
 
     /*regular setup*/
     Add_VFiles(false);
+
+    Add_Existing_Drive_Directories();
 }
