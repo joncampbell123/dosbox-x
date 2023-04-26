@@ -951,13 +951,13 @@ template <const unsigned int card,typename templine_type_t> static inline void E
 }
 
 /* NTS: For EGA/VGA machine types this code is also used to render the CGA 640x200 2-color and MCGA 640x480 2-color modes.
- *      The reason is that on EGA/VGA, CGA graphics modes are really just a tweaked EGA 16-color mode with color select set
+ *      The reason is that on EGA/VGA, CGA graphics modes are really just a tweaked EGA 16-color mode with color plane enable set
  *      to show only one bitplane. The attribute controller is set to map 0 to black and anything else to white. The
  *      doublescan bit is set AND the max scanline register is set to 1. The MEM13 bit in the CRTC is set to instruct the
  *      CRTC to wrap around 8KB and use the low bit of the row counter as bit 13 of the address. This is how EGA/VGA make
  *      themselves backwards compatible with CGA graphics modes.
  *
- *      MCGA 640x480 2-color is even easier. It's just 640x480 16-color mode with color select set to show only one bitplane
+ *      MCGA 640x480 2-color is even easier. It's just 640x480 16-color mode with color plane enable set to show only one bitplane
  *      and the attribute controller set to a black and white palette.
  *
  *      Don't believe me? Look at the VGA register dumps on Hackipedia.org and see for yourself. */
