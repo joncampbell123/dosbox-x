@@ -4191,6 +4191,27 @@ void VGA_sof_debug_video_info(void) {
 
 	x = y = 4;
 	x = VGA_debug_screen_puts8(x,y,mode_texts[vga.mode],green) + 8;
+
+	/* 2023/04/26: DOSBox-X users are probably going to discover the "Video debug overlay" and then immediately
+	 *             point out the "bug" that it's showing M_EGA for CGA/MCGA 2-color graphics modes. It's not a
+	 *             bug, because those modes on EGA/VGA hardware are really just EGA 16-color IBM standard tweakmodes
+	 *             added for backwards compatibility. To make this clear, say so! */
+	if (IS_EGAVGA_ARCH) {
+		if (vga.mode == M_EGA) {
+			/* DOSBox SVN CGA 640x200 2-color detection logic: If video memory is mapped at 0xB8000, it's a CGA graphics mode (ha ha!).
+			 * Joking aside, the color plane enable register is also considered here. If a DOS program sets up the CGA graphics mode
+			 * and then tweaks registers to enable all the bitplanes, then it's no longer CGA graphics mode, now is it? */
+			if ((vga.gfx.miscellaneous & 0x0c)==0x0c/*mapped to B8000h*/) {
+				if (vga.attr.color_plane_enable == 0x1) {
+					x = VGA_debug_screen_puts8(x,y,"(CGA2)",green) + 8;
+				}
+				else if (vga.attr.color_plane_enable == 0x3 && (vga.gfx.mode & 0x20)/*shift register interleave needed for CGA 4-color mode to work*/) {
+					x = VGA_debug_screen_puts8(x,y,"(CGA4)",green) + 8;
+				}
+			}
+		}
+	}
+
 	if (vga.mode == M_PC98) {
 		/* PC-98 has two video "layers" that can contain both text and graphics at the same time.
 		 * Each one can be turned off at any time and it's helpful here to indicate if that's the case. */
