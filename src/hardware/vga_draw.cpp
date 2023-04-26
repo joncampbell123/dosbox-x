@@ -105,12 +105,15 @@ struct rawscreenshot {
 	unsigned int		image_width = 0,image_height = 0;
 	unsigned int		image_bpp = 0;
 	unsigned char*		image_palette = NULL;
+	unsigned char*		image_palette2 = NULL;
 	unsigned int		image_palette_size = 0;
+	unsigned int		image_palette2_size = 0;
 	unsigned int		render_y = 0;
 
 	void free(void);
 	void allocate(unsigned int w,unsigned int h,unsigned int bpp);
 	void allocpalette(unsigned int count);
+	void allocpalette2(unsigned int count);
 	rawscreenshot();
 	~rawscreenshot();
 };
@@ -130,6 +133,10 @@ void rawscreenshot::free(void) {
 	if (image_palette != NULL) {
 		delete[] image_palette;
 		image_palette = NULL;
+	}
+	if (image_palette2 != NULL) {
+		delete[] image_palette2;
+		image_palette2 = NULL;
 	}
 }
 
@@ -156,8 +163,14 @@ void rawscreenshot::allocpalette(unsigned int count) {
 	image_palette_size = count;
 }
 
+void rawscreenshot::allocpalette2(unsigned int count) {
+	if (count > 256) return;
+	if (count == 0) return;
+	if (image_palette2 == NULL) image_palette2 = new unsigned char[256*3];
+	image_palette2_size = count;
+}
+
 static rawscreenshot rawshot; // raw image data, translated palette
-static rawscreenshot rawshot2; // raw image data, raw palette
 
 struct debugline_event {
 	unsigned int	colorline = 0;
@@ -288,7 +301,7 @@ void memxor_greendotted_32bpp(uint32_t *d,unsigned int count,unsigned int line) 
     }
 }
 
-typedef void (* VGA_RawLine_Handler)(uint8_t *dst,uint8_t *dst2,Bitu vidstart, Bitu line);
+typedef void (* VGA_RawLine_Handler)(uint8_t *dst,Bitu vidstart, Bitu line);
 typedef uint8_t * (* VGA_Line_Handler)(Bitu vidstart, Bitu line);
 
 static VGA_Line_Handler VGA_DrawLine;
@@ -817,7 +830,7 @@ static uint8_t * VGA_Draw_Linear_Line(Bitu vidstart, Bitu /*line*/) {
     return ret;
 }
 
-static void VGA_RawDraw_Xlat32_VGA_CRTC_bmode_Line(uint8_t *dst,uint8_t* /*dst2*/,Bitu vidstart, Bitu /*line*/) {
+static void VGA_RawDraw_Xlat32_VGA_CRTC_bmode_Line(uint8_t *dst,Bitu vidstart, Bitu /*line*/) {
     const Bitu skip = 4u << vga.config.addr_shift; /* how much to skip after drawing 4 pixels */
 
     /* *sigh* it looks like DOSBox's VGA scanline code will pass nonzero bits 0-1 in vidstart */
@@ -890,7 +903,7 @@ static uint8_t * VGA_Draw_Xlat32_VGA_CRTC_bmode_Line(Bitu vidstart, Bitu /*line*
     return TempLine + (poff * 4);
 }
 
-static void VGA_RawDraw_Xlat32_Linear_Line(uint8_t *dst,uint8_t* /*dst*/,Bitu vidstart, Bitu /*line*/) {
+static void VGA_RawDraw_Xlat32_Linear_Line(uint8_t *dst,Bitu vidstart, Bitu /*line*/) {
     for(Bitu i = 0; i < vga.draw.width; i++)
         dst[i]=vga.draw.linear_base[(vidstart+i)&vga.draw.linear_mask];
 }
@@ -1040,9 +1053,8 @@ template <const unsigned int card,const unsigned int xlat,typename templine_type
     }
 }
 
-static void VGA_RawDraw_VGA_Planar_Xlat32_Line(uint8_t *dst,uint8_t* dst2,Bitu vidstart, Bitu line) {
+static void VGA_RawDraw_VGA_Planar_Xlat32_Line(uint8_t *dst,Bitu vidstart, Bitu line) {
     EGA_Planar_Common_RawLine<MCH_VGA,0/*xlat*/,uint8_t>(dst,vidstart,line);
-    if (dst2 != NULL) EGA_Planar_Common_RawLine<MCH_VGA,1/*xlat*/,uint8_t>(dst2,vidstart,line);
 }
 
 static uint8_t * VGA_Draw_VGA_Packed4_Xlat32_Line(Bitu vidstart, Bitu /*line*/) {
@@ -3223,7 +3235,6 @@ again:
                 if (rawshot.render_y < rawshot.image_height && rawshot.image != NULL) {
                     VGA_DrawRawLine(
                         rawshot.image+(rawshot.render_y*rawshot.image_stride),
-                        rawshot2.image ? (rawshot2.image+(rawshot.render_y*rawshot2.image_stride)) : NULL,
                         vga.draw.address, vga.draw.address_line );
                     rawshot.render_y++;
                 }
@@ -4848,16 +4859,16 @@ void SetRawImagePalette(void) {
 
 	if (IS_VGA_ARCH || machine == MCH_MCGA) {
 		rawshot.allocpalette(256); // raw image, translated palette
-		rawshot2.allocpalette(256); // raw image, raw palette
+		rawshot.allocpalette2(256); // raw image, translated palette
 
 		for (unsigned int i=0;i < 256;i++) {
 			rawshot.image_palette[i*3+0] = (vga.dac.xlat32[i] & GFX_Rmask) >> GFX_Rshift;
 			rawshot.image_palette[i*3+1] = (vga.dac.xlat32[i] & GFX_Gmask) >> GFX_Gshift;
 			rawshot.image_palette[i*3+2] = (vga.dac.xlat32[i] & GFX_Bmask) >> GFX_Bshift;
 
-			rawshot2.image_palette[i*3+0] = dacexpand(vga.dac.rgb[i].red&dacmask,dacshl,dacshr);
-			rawshot2.image_palette[i*3+1] = dacexpand(vga.dac.rgb[i].green&dacmask,dacshl,dacshr);
-			rawshot2.image_palette[i*3+2] = dacexpand(vga.dac.rgb[i].blue&dacmask,dacshl,dacshr);
+			rawshot.image_palette2[i*3+0] = dacexpand(vga.dac.rgb[i].red&dacmask,dacshl,dacshr);
+			rawshot.image_palette2[i*3+1] = dacexpand(vga.dac.rgb[i].green&dacmask,dacshl,dacshr);
+			rawshot.image_palette2[i*3+2] = dacexpand(vga.dac.rgb[i].blue&dacmask,dacshl,dacshr);
 		}
 	}
 }
@@ -4867,16 +4878,13 @@ void AllocateRawImage(void) {
 		case M_VGA:
 		case M_LIN8:
 			rawshot.allocate(vga.draw.width,vga.draw.height,8);
-			rawshot2.free();
 			break;
 		case M_EGA:
 		case M_LIN4:
 			rawshot.allocate(vga.draw.width,vga.draw.height,8);
-			rawshot2.allocate(vga.draw.width,vga.draw.height,8);
 			break;
 		default:
 			rawshot.free();
-			rawshot2.free();
 			break;
 	}
 }
@@ -4982,6 +4990,8 @@ void WriteARawImage(rawscreenshot &rawimg,rawscreenshot &rawpal,const char *ext)
 	}
 	/* Finish writing */
 	png_write_end(png_ptr, 0);
+	/* If a second palette was provided, write it */
+	if (rawpal.image_palette2 != NULL) png_write_chunk(png_ptr, (png_const_bytep)("rPAL"), rawpal.image_palette2, rawpal.image_palette2_size*3);
 	/*Destroy PNG structs*/
 	png_destroy_write_struct(&png_ptr, &info_ptr);
 	/*close file*/
@@ -4991,28 +5001,11 @@ void WriteARawImage(rawscreenshot &rawimg,rawscreenshot &rawpal,const char *ext)
 #endif
 #endif
 
-#if !defined(C_EMSCRIPTEN)
-#if (C_SSHOT)
-static bool rawpalette_is_same(const rawscreenshot &r1,const rawscreenshot &r2) {
-	if ((r1.image_palette != NULL) != (r2.image_palette != NULL))
-		return false;
-	if (r1.image_palette_size != r2.image_palette_size)
-		return false;
-	if (memcmp(r1.image_palette,r2.image_palette,r1.image_palette_size*3) != 0)
-		return false;
-
-	return true;
-}
-#endif
-#endif
-
 void WriteRawImage(void) {
 #if !defined(C_EMSCRIPTEN)
 #if (C_SSHOT)
 	if (rawshot.image != NULL && rawshot.image_palette != NULL && rawshot.image_palette_size > 0)
 		WriteARawImage(rawshot/*img*/,rawshot/*pal*/,".raw1.png");
-	if (rawshot.image != NULL && rawshot2.image_palette != NULL && rawshot2.image_palette_size > 0 && !rawpalette_is_same(rawshot,rawshot2))
-		WriteARawImage((rawshot2.image != NULL ? rawshot2 : rawshot)/*img*/,rawshot2/*pal*/,".raw2.png");
 #endif
 #endif
 	rawshot.render_y = 0;
@@ -5020,7 +5013,6 @@ void WriteRawImage(void) {
 
 void FreeRawImage(void) {
 	rawshot.free();
-	rawshot2.free();
 }
 
 static void VGA_VerticalTimer(Bitu /*val*/) {
