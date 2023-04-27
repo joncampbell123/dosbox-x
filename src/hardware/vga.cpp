@@ -355,7 +355,8 @@ void VGA_DetermineMode(void) {
                 if (vga.s3.reg_31 & 0x8) VGA_SetMode(M_LIN8);
                 else VGA_SetMode(M_VGA);
             }
-            else if (vga.gfx.mode & 0x20) VGA_SetMode(M_CGA4);
+// NTS: Also handled by M_EGA case
+//          else if (vga.gfx.mode & 0x20) VGA_SetMode(M_CGA4);
 
 // NTS: Two things here. One is that CGA 2-color mode (and the MCGA 640x480 2-color mode)
 //      are just EGA planar modes with fewer bitplanes enabled. The planar render mode can

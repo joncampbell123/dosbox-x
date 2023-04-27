@@ -955,23 +955,39 @@ static void VGA_RawDraw_VGA_Planar_Xlat32_Line(uint8_t *dst,Bitu vidstart, Bitu 
 }
 
 template <const unsigned int card,typename templine_type_t> static inline void EGA_Planar2BPP_Common_Block(templine_type_t * const draw,const VGA_Latch pixels) {
-    uint8_t val,val2;
+    uint16_t val,val2;
 
     /* CGA odd/even mode, first plane and maybe third plane */
-    val=pixels.b[0],val2=pixels.b[2]<<2;
+    val=pixels.b[0]; val2=pixels.b[2]<<2;
     for (Bitu i=0;i < 4;i++,val <<= 2,val2 <<= 2)
         draw[i] = EGA_Planar_Common_Block_xlat<card,templine_type_t>(((val>>6)&0x3)|((val2>>6)&0xC));
 
     /* CGA odd/even mode, second plane and maybe fourth plane */
-    val=pixels.b[1],val2=pixels.b[3]<<2;
+    val=pixels.b[1]; val2=pixels.b[3]<<2;
     for (Bitu i=0;i < 4;i++,val <<= 2,val2 <<= 2)
         draw[i+4] = EGA_Planar_Common_Block_xlat<card,templine_type_t>(((val>>6)&0x3)|((val2>>6)&0xC));
 }
 
 template <const unsigned int card,typename templine_type_t> static uint8_t * EGA_Planar2BPP_Common_Line(uint8_t *dst,Bitu vidstart, Bitu line) {
-    const uint32_t *base = (uint32_t*)vga.draw.linear_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
-    templine_type_t * draw=(templine_type_t *)dst;
+    if (vga.crtc.maximum_scan_line & 0x80) line >>= 1u; /* CGA modes (and 200-line EGA) have the VGA doublescan bit set. We need to compensate to properly map lines. */
+    uint8_t *vram = vga.draw.linear_base + ((line & vga.tandy.line_mask) << (2+vga.tandy.line_shift));
+    Bitu vidmask = vga.tandy.line_mask ? ((vga.tandy.addr_mask << 2) | 3) : vga.draw.linear_mask;
+    templine_type_t* temps = (templine_type_t*)dst;
+    Bitu count = vga.draw.blocks + ((vga.draw.panning + 7u) >> 3u);
     VGA_Latch pixels;
+    Bitu i = 0;
+
+    /* All EGA/VGA modes obey the MEM13 bits and other bits present in the hardware that
+     * exist purely for CGA backwards compatibility. CGA graphics modes are just EGA planar
+     * modes with fewer bitplanes enabled, and for 4-color mode, an odd bit in the graphics
+     * controller that tells the hardware to make 2-bit groups of the 1-bit pixels in the
+     * bitplanes. That's it.
+     *
+     * Also, Prehistorik likes to abuse the CGA memory mapping in the difficulty select
+     * screen (text with a rapidly panning repeating background) when starting a game.
+     *
+     * Also, even though it is rarely used, EGA/VGA do have another bit that enables a
+     * 4-way interleave that was obviously added with Hercules graphics mode in mind. */
 
     /* NTS: In reality the 2bpp "shift reg" mode of EGA/VGA bundles odd/even bits for CGA 4-color
      *      across bitplanes 0+1 and 2+3, but the INT 10h CGA 4-color mode disables bitplanes 2 and 3
@@ -981,25 +997,22 @@ template <const unsigned int card,typename templine_type_t> static uint8_t * EGA
      *
      *      (ref: "Leather Goddesses of Phobos 2" according to ripsaw8080 when machine=ega). */
 
-    for (Bitu x=0;x<vga.draw.blocks;x++) {
-        pixels.d = base[vidstart & vga.tandy.addr_mask];
-        vidstart += (Bitu)1u << (Bitu)vga.config.addr_shift;
-        EGA_Planar2BPP_Common_Block<card,templine_type_t>(draw,pixels);
-        draw += 8;
+    while (count > 0u) {
+        pixels.d = *((uint32_t*)(&vram[ vidstart & vidmask ]));
+        vidstart += (uintptr_t)4 << (uintptr_t)vga.config.addr_shift;
+        EGA_Planar2BPP_Common_Block<card,templine_type_t>(temps+i,pixels);
+        count--;
+        i += 8;
     }
 
     if (card != MCH_RAW_SNAPSHOT)
-        return dst;
+        return dst + (vga.draw.panning*sizeof(templine_type_t));
     else
         return NULL;
 }
 
 static uint8_t * EGA_Draw_2BPP_Line_as_EGA(Bitu vidstart, Bitu line) {
     return EGA_Planar2BPP_Common_Line<MCH_EGA,uint8_t>(TempLine,vidstart,line);
-}
-
-static void EGA_RawDraw_2BPP_Line_as_EGA(uint8_t *dst,Bitu vidstart, Bitu line) {
-    EGA_Planar2BPP_Common_Line<MCH_RAW_SNAPSHOT,uint8_t>(dst,vidstart,line);
 }
 
 static uint8_t * VGA_Draw_2BPP_Line_as_VGA(Bitu vidstart, Bitu line) {
@@ -5861,15 +5874,17 @@ void VGA_CheckScanLength(void) {
         break;
     case M_TEXT:
     case M_CGA2:
-    case M_CGA4:
     case M_CGA16:
     case M_DCGA:
     case M_AMSTRAD: // Next line.
-        // 2023/04/26: This path M_CGA2 is no longer set for EGA/VGA.
         if (IS_EGAVGA_ARCH)
             vga.draw.address_add=vga.config.scan_len*(2u<<vga.config.addr_shift);
         else
             vga.draw.address_add=vga.draw.blocks;
+        break;
+    case M_CGA4:
+        // 2023/04/26: This path M_CGA2 and M_CGA4 is no longer set for EGA/VGA.
+        vga.draw.address_add=vga.draw.blocks;
         break;
     case M_TANDY2:
         if (machine == MCH_MCGA)
@@ -6539,15 +6554,26 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     case M_LIN4:
     case M_EGA:
         vga.draw.blocks = width;
-
         if (IS_EGA_ARCH) {
-            VGA_DrawLine = EGA_Draw_VGA_Planar_Xlat8_Line;
-            VGA_DrawRawLine = VGA_RawDraw_VGA_Planar_Xlat32_Line;
+            if (vga.gfx.mode & 0x20) {
+                VGA_DrawLine = EGA_Draw_2BPP_Line_as_EGA;
+                VGA_DrawRawLine = VGA_RawDraw_2BPP_Line_as_VGA;
+            }
+            else {
+                VGA_DrawLine = EGA_Draw_VGA_Planar_Xlat8_Line;
+                VGA_DrawRawLine = VGA_RawDraw_VGA_Planar_Xlat32_Line;
+            }
             bpp = 8;
         }
         else {
-            VGA_DrawLine = VGA_Draw_VGA_Planar_Xlat32_Line;
-            VGA_DrawRawLine = VGA_RawDraw_VGA_Planar_Xlat32_Line;
+            if (vga.gfx.mode & 0x20) {
+                VGA_DrawLine = VGA_Draw_2BPP_Line_as_VGA;
+                VGA_DrawRawLine = VGA_RawDraw_2BPP_Line_as_VGA;
+            }
+            else {
+                VGA_DrawLine = VGA_Draw_VGA_Planar_Xlat32_Line;
+                VGA_DrawRawLine = VGA_RawDraw_VGA_Planar_Xlat32_Line;
+            }
             bpp = 32;
         }
         break;
@@ -6557,19 +6583,8 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         VGA_DrawLine=VGA_Draw_CGA16_Line;
         break;
     case M_CGA4:
-        if (IS_EGA_ARCH) {
-            vga.draw.blocks=width;
-            VGA_DrawLine=EGA_Draw_2BPP_Line_as_EGA;
-            VGA_DrawRawLine=EGA_RawDraw_2BPP_Line_as_EGA;
-            bpp = 8;
-        }
-        else if (IS_EGAVGA_ARCH || IS_PC98_ARCH) {
-            vga.draw.blocks=width;
-            VGA_DrawLine=VGA_Draw_2BPP_Line_as_VGA;
-            VGA_DrawRawLine=VGA_RawDraw_2BPP_Line_as_VGA;
-            bpp = 32;
-        }
-        else if (machine == MCH_MCGA) {
+        // 2023/04/26: This path M_CGA2 is no longer set for EGA/VGA.
+        if (machine == MCH_MCGA) {
             vga.draw.blocks=width*2;
             VGA_DrawLine=VGA_Draw_2BPP_Line_as_MCGA;
             bpp = 32;
