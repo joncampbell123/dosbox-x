@@ -2193,9 +2193,9 @@ struct first_equal {
     }
 };
 
-template <const unsigned int card,typename templine_type_t> static inline uint8_t* EGAVGA_TEXT_Combined_Draw_Line(Bitu vidstart,Bitu line) {
+template <const unsigned int card,typename templine_type_t> static inline uint8_t* EGAVGA_TEXT_Combined_Draw_Line(uint8_t *dst,Bitu vidstart,Bitu line) {
     // keep it aligned:
-    templine_type_t* draw = ((templine_type_t*)TempLine) + 16 - vga.draw.panning;
+    templine_type_t* draw = (card == MCH_RAW_SNAPSHOT) ? ((templine_type_t*)dst) : (((templine_type_t*)dst) + 16 - vga.draw.panning);
     const uint32_t* vidmem = VGA_Planar_Memwrap(vidstart); // pointer to chars+attribs
     Bitu blocks = vga.draw.blocks;
     if (vga.draw.panning) blocks++; // if the text is panned part of an 
@@ -2209,7 +2209,7 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
 #endif
                    && showdbcs) && CurMode && CurMode->type == M_TEXT && !dos_kernel_disabled && strcmp(RunningProgram, "LOADLIN"));
 
-    if (usedbcs && (vga.draw.height < 16u || vga.draw.width < 8u)) return TempLine;
+    if (usedbcs && (vga.draw.height < 16u || vga.draw.width < 8u)) return dst;
 
     unsigned int row = usedbcs ? ((vidstart - vga.config.real_start - vga.draw.bytes_skip) / vga.draw.address_add) : 0, col = 0;
     unsigned int rows = usedbcs ? ((vga.draw.height / 16u) - 1u) : 0, cols = usedbcs ? ((vga.draw.address_add / 2u) - 1u) : 0;
@@ -2459,7 +2459,7 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
         Bits attr_addr = ((Bits)vga.draw.cursor.address - (Bits)vidstart) >> (Bits)vga.config.addr_shift; /* <- FIXME: This right? */
         if (attr_addr >= 0 && attr_addr < (Bits)vga.draw.blocks) {
             Bitu index = (Bitu)attr_addr * (vga.draw.char9dot ? 9u : 8u);
-            draw = (((templine_type_t*)TempLine) + index) + 16 - vga.draw.panning;
+            draw = (((templine_type_t*)dst) + index) + 16 - vga.draw.panning;
             
             Bitu foreground = vga.tandy.draw_base[(vga.draw.cursor.address<<2ul)+1] & 0xf;
             for (Bitu i = 0; i < 8; i++) {
@@ -2471,17 +2471,20 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
         }
     }
 
-    return TempLine+(16*sizeof(templine_type_t));
+    if (card != MCH_RAW_SNAPSHOT)
+        return dst+(16*sizeof(templine_type_t));
+    else
+        return NULL;
 }
 
 // combined 8/9-dot wide text mode 16bpp line drawing function
 static uint8_t* EGA_TEXT_Xlat8_Draw_Line(Bitu vidstart, Bitu line) {
-    return EGAVGA_TEXT_Combined_Draw_Line<MCH_EGA,uint8_t>(vidstart,line);
+    return EGAVGA_TEXT_Combined_Draw_Line<MCH_EGA,uint8_t>(TempLine,vidstart,line);
 }
 
 // combined 8/9-dot wide text mode 16bpp line drawing function
 static uint8_t* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
-    return EGAVGA_TEXT_Combined_Draw_Line<MCH_VGA,uint32_t>(vidstart,line);
+    return EGAVGA_TEXT_Combined_Draw_Line<MCH_VGA,uint32_t>(TempLine,vidstart,line);
 }
 
 extern bool pc98_attr4_graphic;
