@@ -3321,6 +3321,14 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
                         break;
                 }
             }
+            if ((CaptureState & CAPTURE_RAWIMAGE) && VGA_DrawRawLine) {
+                if (rawshot.render_y < rawshot.image_height && rawshot.image != NULL) {
+                    VGA_DrawRawLine(
+                        rawshot.image+(rawshot.render_y*rawshot.image_stride),
+                        vga.draw.address, vga.draw.address_line );
+                    rawshot.render_y++;
+                }
+            }
             uint8_t * data=VGA_DrawLine(address, vga.draw.address_line ); 
             if (video_debug_overlay && vga.draw.width < render.src.width) VGA_DrawDebugLine(data+(vga.draw.width*((vga.draw.bpp+7u)>>3u)),render.src.width-vga.draw.width);
 
@@ -4847,6 +4855,24 @@ void SetRawImagePalette(void) {
 			rawshot.image_palette2[i*3+0] = dacexpand(vga.dac.rgb[i].red&dacmask,dacshl,dacshr);
 			rawshot.image_palette2[i*3+1] = dacexpand(vga.dac.rgb[i].green&dacmask,dacshl,dacshr);
 			rawshot.image_palette2[i*3+2] = dacexpand(vga.dac.rgb[i].blue&dacmask,dacshl,dacshr);
+		}
+	}
+	else if (IS_EGA_ARCH) {
+		rawshot.allocpalette(16); // raw image, translated palette
+		rawshot.allocpalette2(16); // raw image, translated palette
+
+		for (unsigned int i=0;i < 16;i++) {
+			const unsigned int ti = vga.attr.palette[i&vga.attr.color_plane_enable];
+
+			rawshot.image_palette[i*3+0] = dacexpand(vga.dac.rgb[ti].red&dacmask,dacshl,dacshr);
+			rawshot.image_palette[i*3+1] = dacexpand(vga.dac.rgb[ti].green&dacmask,dacshl,dacshr);
+			rawshot.image_palette[i*3+2] = dacexpand(vga.dac.rgb[ti].blue&dacmask,dacshl,dacshr);
+
+			const unsigned int t2 = vga.attr.palette[i];
+
+			rawshot.image_palette2[i*3+0] = dacexpand(vga.dac.rgb[t2].red&dacmask,dacshl,dacshr);
+			rawshot.image_palette2[i*3+1] = dacexpand(vga.dac.rgb[t2].green&dacmask,dacshl,dacshr);
+			rawshot.image_palette2[i*3+2] = dacexpand(vga.dac.rgb[t2].blue&dacmask,dacshl,dacshr);
 		}
 	}
 }
