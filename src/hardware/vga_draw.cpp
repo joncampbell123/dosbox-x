@@ -57,6 +57,8 @@
 /* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
 #include "cpu_io_is_forbidden.h"
 
+static constexpr unsigned int MCH_RAW_SNAPSHOT = 0xFFFF;
+
 bool ega200 = false;
 bool mcga_double_scan = false;
 bool dbg_event_maxscan = false;
@@ -924,6 +926,8 @@ template <const unsigned int card,typename templine_type_t> static inline templi
         return vga.dac.xlat32[t];
     else if (card == MCH_EGA)
         return vga.attr.palette[t&vga.attr.color_plane_enable];
+    else if (card == MCH_RAW_SNAPSHOT)
+        return t;
 
     return 0;
 }
@@ -961,11 +965,11 @@ template <const unsigned int card,typename templine_type_t> static inline void E
  *      and the attribute controller set to a black and white palette.
  *
  *      Don't believe me? Look at the VGA register dumps on Hackipedia.org and see for yourself. */
-template <const unsigned int card,typename templine_type_t> static uint8_t * EGA_Planar_Common_Line(Bitu vidstart, Bitu line) {
+template <const unsigned int card,typename templine_type_t> static uint8_t * EGA_Planar_Common_Line(uint8_t *dst,Bitu vidstart, Bitu line) {
     if (vga.crtc.maximum_scan_line & 0x80) line >>= 1u; /* CGA modes (and 200-line EGA) have the VGA doublescan bit set. We need to compensate to properly map lines. */
     uint8_t *vram = vga.draw.linear_base + ((line & vga.tandy.line_mask) << (2+vga.tandy.line_shift));
     Bitu vidmask = vga.tandy.line_mask ? ((vga.tandy.addr_mask << 2) | 3) : vga.draw.linear_mask;
-    templine_type_t* temps = (templine_type_t*)TempLine;
+    templine_type_t* temps = (templine_type_t*)dst;
     Bitu count = vga.draw.blocks + ((vga.draw.panning + 7u) >> 3u);
     Bitu i = 0;
 
@@ -992,69 +996,22 @@ template <const unsigned int card,typename templine_type_t> static uint8_t * EGA
         i += 8;
     }
 
-    return TempLine + (vga.draw.panning*sizeof(templine_type_t));
+    if (card != MCH_RAW_SNAPSHOT)
+        return dst + (vga.draw.panning*sizeof(templine_type_t));
+    else
+        return NULL;
 }
 
 static uint8_t * EGA_Draw_VGA_Planar_Xlat8_Line(Bitu vidstart, Bitu line) {
-    return EGA_Planar_Common_Line<MCH_EGA,uint8_t>(vidstart,line);
+    return EGA_Planar_Common_Line<MCH_EGA,uint8_t>(TempLine,vidstart,line);
 }
 
 static uint8_t * VGA_Draw_VGA_Planar_Xlat32_Line(Bitu vidstart, Bitu line) {
-    return EGA_Planar_Common_Line<MCH_VGA,uint32_t>(vidstart,line);
-}
-
-template <const unsigned int card,typename templine_type_t> static inline templine_type_t EGA_Planar_Common_RawBlock_xlat(const uint8_t t) {
-    if (card == MCH_VGA) {
-        return t;
-    }
-    else if (card == MCH_EGA) {
-        return t;
-    }
-
-    return 0;
-}
-
-template <const unsigned int card,typename templine_type_t> static inline void EGA_Planar_Common_RawBlock(templine_type_t * const temps,const uint32_t t1,const uint32_t t2) {
-    uint32_t tmp;
-
-    tmp =   Expand16Table[0][(t1>>0)&0xFF] |
-            Expand16Table[1][(t1>>8)&0xFF] |
-            Expand16Table[2][(t1>>16)&0xFF] |
-            Expand16Table[3][(t1>>24)&0xFF];
-    temps[0] = EGA_Planar_Common_RawBlock_xlat<card,templine_type_t>((tmp>> 0ul)&0xFFul);
-    temps[1] = EGA_Planar_Common_RawBlock_xlat<card,templine_type_t>((tmp>> 8ul)&0xFFul);
-    temps[2] = EGA_Planar_Common_RawBlock_xlat<card,templine_type_t>((tmp>>16ul)&0xFFul);
-    temps[3] = EGA_Planar_Common_RawBlock_xlat<card,templine_type_t>((tmp>>24ul)&0xFFul);
-
-    tmp =   Expand16Table[0][(t2>>0)&0xFF] |
-            Expand16Table[1][(t2>>8)&0xFF] |
-            Expand16Table[2][(t2>>16)&0xFF] |
-            Expand16Table[3][(t2>>24)&0xFF];
-    temps[4] = EGA_Planar_Common_RawBlock_xlat<card,templine_type_t>((tmp>> 0ul)&0xFFul);
-    temps[5] = EGA_Planar_Common_RawBlock_xlat<card,templine_type_t>((tmp>> 8ul)&0xFFul);
-    temps[6] = EGA_Planar_Common_RawBlock_xlat<card,templine_type_t>((tmp>>16ul)&0xFFul);
-    temps[7] = EGA_Planar_Common_RawBlock_xlat<card,templine_type_t>((tmp>>24ul)&0xFFul);
-}
-
-template <const unsigned int card,typename templine_type_t> static void EGA_Planar_Common_RawLine(uint8_t *dst,Bitu vidstart, Bitu /*line*/) {
-    templine_type_t* temps = (templine_type_t*)dst;
-    Bitu count = vga.draw.blocks;
-    Bitu i = 0;
-
-    while (count > 0u) {
-        uint32_t t1,t2;
-        t1 = t2 = *((uint32_t*)(&vga.draw.linear_base[ vidstart & vga.draw.linear_mask ]));
-        t1 = (t1 >> 4) & 0x0f0f0f0f;
-        t2 &= 0x0f0f0f0f;
-        vidstart += (uintptr_t)4 << (uintptr_t)vga.config.addr_shift;
-        EGA_Planar_Common_RawBlock<card,templine_type_t>(temps+i,t1,t2);
-        count--;
-        i += 8;
-    }
+    return EGA_Planar_Common_Line<MCH_VGA,uint32_t>(TempLine,vidstart,line);
 }
 
 static void VGA_RawDraw_VGA_Planar_Xlat32_Line(uint8_t *dst,Bitu vidstart, Bitu line) {
-    EGA_Planar_Common_RawLine<MCH_VGA,uint8_t>(dst,vidstart,line);
+	EGA_Planar_Common_Line<MCH_RAW_SNAPSHOT,uint8_t>(dst,vidstart,line);
 }
 
 static uint8_t * VGA_Draw_VGA_Packed4_Xlat32_Line(Bitu vidstart, Bitu /*line*/) {
@@ -6564,6 +6521,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 
         if (IS_EGA_ARCH) {
             VGA_DrawLine = EGA_Draw_VGA_Planar_Xlat8_Line;
+            VGA_DrawRawLine = VGA_RawDraw_VGA_Planar_Xlat32_Line;
             bpp = 8;
         }
         else {
