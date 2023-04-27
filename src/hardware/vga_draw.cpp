@@ -4976,7 +4976,7 @@ void SetRawImagePalette(void) {
 			rawshot.image_palette2[i*3+2] = dacexpand(vga.dac.rgb[t2].blue&dacmask,dacshl,dacshr);
 		}
 	}
-	else if (machine == MCH_CGA) {
+	else if (machine == MCH_CGA || machine == MCH_MDA || machine == MCH_HERC) {
 		if (vga.mode == M_CGA4 || vga.mode == M_TANDY4) {
 			rawshot.allocpalette(4); // raw image, translated palette
 
@@ -4997,6 +4997,15 @@ void SetRawImagePalette(void) {
 				rawshot.image_palette[i*3+0] = dacexpand(vga.dac.rgb[ti].red&dacmask,dacshl,dacshr);
 				rawshot.image_palette[i*3+1] = dacexpand(vga.dac.rgb[ti].green&dacmask,dacshl,dacshr);
 				rawshot.image_palette[i*3+2] = dacexpand(vga.dac.rgb[ti].blue&dacmask,dacshl,dacshr);
+			}
+		}
+		else if (vga.mode == M_HERC_GFX && machine == MCH_HERC && hercCard < HERC_InColor) {
+			rawshot.allocpalette(2); // raw image, translated palette
+
+			for (unsigned int i=0;i < 2;i++) {
+				rawshot.image_palette[i*3+0] = i*255;
+				rawshot.image_palette[i*3+1] = i*255;
+				rawshot.image_palette[i*3+2] = i*255;
 			}
 		}
 		else {
@@ -5020,6 +5029,7 @@ void SetRawImagePalette(void) {
 
 void AllocateRawImage(void) {
 	switch (vga.mode) {
+		case M_HERC_GFX:
 		case M_TANDY2:
 		case M_CGA2:
 		case M_TANDY4:
