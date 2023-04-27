@@ -4227,6 +4227,21 @@ void VGA_sof_debug_video_info(void) {
 			(unsigned int)vga.draw.width,(unsigned int)vga.draw.height);
 
 		if (machine == MCH_HERC) {
+			if (hercCard >= HERC_InColor) {
+				if (	((vga.herc.exception & 0x10) && vga.mode == M_HERC_GFX)/*graphics mode and palette enable*/ ||
+					((vga.herc.exception & 0x30) == 0x10 && vga.mode == M_HERC_TEXT/*text mode, CGA attributes and palette enable*/)) {
+					d += sprintf(d," COLOR");
+					d += sprintf(d," PALETTE");
+				}
+				else if (vga.herc.exception & 0x10) {
+					d += sprintf(d," COLOR");
+					d += sprintf(d," PALETTE");
+				}
+				else {
+					if (vga.herc.exception & 0x20)
+						d += sprintf(d," MONO ");
+				}
+			}
 			if (vga.herc.xMode & 1) {
 				if (vga.herc.xMode & 4) {
 					d += sprintf(d," RAMFONT48");
@@ -4240,6 +4255,7 @@ void VGA_sof_debug_video_info(void) {
 	else {
 		unsigned int rowdiv = (unsigned int)vga.draw.address_line_total;
 		unsigned int interleave_mul = 1;
+		char *d = tmp;
 
 		if (machine == MCH_CGA || machine == MCH_TANDY || machine == MCH_PCJR || machine == MCH_HERC || machine == MCH_AMSTRAD) {
 			if (rowdiv == 2 || rowdiv == 4) rowdiv = 1; /* CGA graphics use interleaving to accomplish 200 lines, Tandy and Hercules use 4-way interleaving in some modes */
@@ -4250,9 +4266,35 @@ void VGA_sof_debug_video_info(void) {
 			else if (vga.tandy.line_mask & 1) interleave_mul = 2;
 		}
 
-		sprintf(tmp,"G%ux%u>%ux%u",
+		d += sprintf(d,"G%ux%u>%ux%u",
 			(unsigned int)vga.draw.width,((unsigned int)vga.draw.height * interleave_mul) / rowdiv,
 			(unsigned int)vga.draw.width,(unsigned int)vga.draw.height);
+
+		if (machine == MCH_HERC) {
+			if (hercCard >= HERC_InColor) {
+				if (	((vga.herc.exception & 0x10) && vga.mode == M_HERC_GFX)/*graphics mode and palette enable*/ ||
+					((vga.herc.exception & 0x30) == 0x10 && vga.mode == M_HERC_TEXT/*text mode, CGA attributes and palette enable*/)) {
+					d += sprintf(d," COLOR");
+					d += sprintf(d," PALETTE");
+				}
+				else if (vga.herc.exception & 0x10) {
+					d += sprintf(d," COLOR");
+					d += sprintf(d," PALETTE");
+				}
+				else {
+					if (vga.herc.exception & 0x20)
+						d += sprintf(d," MONO ");
+				}
+			}
+			if (vga.herc.xMode & 1) {
+				if (vga.herc.xMode & 4) {
+					d += sprintf(d," RAMFONT48");
+				}
+				else {
+					d += sprintf(d," RAMFONT");
+				}
+			}
+		}
 	}
 	x = VGA_debug_screen_puts8(x,y,tmp,white) + 8;
 
