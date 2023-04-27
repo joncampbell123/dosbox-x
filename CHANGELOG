@@ -1,4 +1,7 @@
 Next:
+  - CGA 320x200 4-color mode is now rendered using the M_EGA render
+    code for EGA/VGA machine types to better reflect real hardware.
+    (joncampbell123).
   - Fix bug where setting doublescan=false for anything other than
     the VGA machine type would break CGA graphics modes.
     (joncampbell123).
