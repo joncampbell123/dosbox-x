@@ -4987,7 +4987,7 @@ void SetRawImagePalette(void) {
 			rawshot.image_palette2[i*3+2] = dacexpand(vga.dac.rgb[t2].blue&dacmask,dacshl,dacshr);
 		}
 	}
-	else if (machine == MCH_CGA || machine == MCH_MDA || machine == MCH_HERC) {
+	else if (machine == MCH_CGA || machine == MCH_MDA || machine == MCH_HERC || machine == MCH_PCJR || machine == MCH_TANDY) {
 		if (vga.mode == M_CGA4 || vga.mode == M_TANDY4) {
 			rawshot.allocpalette(4); // raw image, translated palette
 
