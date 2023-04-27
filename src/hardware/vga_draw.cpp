@@ -4531,6 +4531,22 @@ void VGA_sof_debug_video_info(void) {
 			x += 8;
 		}
 	}
+	else if (machine == MCH_HERC && hercCard >= HERC_InColor) {
+		if (vga.draw.bpp == 8 && vga.mode != M_CGA16) { /* CGA emulation doesn't use anything else, and do not draw palette in "composite" mode */
+			x = VGA_debug_screen_puts8(x,y,"PAL:",white) + 8;
+			VGA_debug_screen_func->rect(x-1,y,x,y+7,0x8/*dkgray*/);
+
+			VGA_debug_screen_func->rect(x-1,y,x+(8*16),y+1,0x8);
+			VGA_debug_screen_func->rect(x-1,y+7,x+(8*16),y+8,0x8);
+			for (unsigned int c=0;c < 16;c++) {
+				VGA_debug_screen_func->rect(x,y+1,x+7,y+7,c);
+				VGA_debug_screen_func->rect(x+7,y+1,x+8,y+7,0x8);
+				x += 8;
+			}
+
+			x += 8;
+		}
+	}
 	else if (machine == MCH_PCJR || machine == MCH_TANDY) {
 		/* Tandy/PCjr code re-uses the VGA attribute controller palette. CGA emulation re-uses CGA remaps. */
 		if (vga.draw.bpp == 8) { /* Doesn't use anything else */

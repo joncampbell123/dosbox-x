@@ -918,8 +918,14 @@ void RENDER_SetSize(Bitu width,Bitu height,Bitu bpp,float fps,double scrn_ratio)
 		width += 8*32;
 		width += 4;
 	}
-	else if (machine == MCH_MDA || machine == MCH_HERC) {
-		height += 8*2;
+	else if (machine == MCH_MDA) {
+		height += 8*1;
+	}
+	else if (machine == MCH_HERC) {
+		if (hercCard >= HERC_InColor)
+			height += 8*2;
+		else
+			height += 8*1;
 	}
 	else if (machine == MCH_PC98) {
 		height += 8*6;
