@@ -2421,7 +2421,7 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
         Bits attr_addr = ((Bits)vga.draw.cursor.address - (Bits)vidstart) >> (Bits)vga.config.addr_shift; /* <- FIXME: This right? */
         if (attr_addr >= 0 && attr_addr < (Bits)vga.draw.blocks) {
             Bitu index = (Bitu)attr_addr * (vga.draw.char9dot ? 9u : 8u);
-            draw = (((templine_type_t*)dst) + index) + 16 - vga.draw.panning;
+            draw = (card == MCH_RAW_SNAPSHOT) ? (((templine_type_t*)dst) + index) : ((((templine_type_t*)dst) + index) + 16 - vga.draw.panning);
 
             Bitu foreground = vga.tandy.draw_base[(vga.draw.cursor.address<<2ul)+1] & 0xf;
             for (Bitu i = 0; i < 8; i++) {
