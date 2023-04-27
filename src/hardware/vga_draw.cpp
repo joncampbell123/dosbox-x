@@ -4215,15 +4215,27 @@ void VGA_sof_debug_video_info(void) {
 	}
 	else if (vga.mode == M_TEXT || vga.mode == M_TANDY_TEXT || vga.mode == M_HERC_TEXT) {
 		unsigned int pixperclock = 8;
+		char *d = tmp;
 
 		if (machine == MCH_EGA || machine == MCH_VGA)
 			pixperclock = ((vga.seq.clocking_mode&1)?8:9);
 		else if (machine == MCH_HERC || machine == MCH_MDA)
 			pixperclock = vga.draw.char9dot ? 9 : 8;
 
-		sprintf(tmp,"T%ux%u>%ux%u",
+		d += sprintf(d,"T%ux%u>%ux%u",
 			(unsigned int)vga.draw.width / pixperclock,(unsigned int)vga.draw.height / (unsigned int)vga.draw.address_line_total,
 			(unsigned int)vga.draw.width,(unsigned int)vga.draw.height);
+
+		if (machine == MCH_HERC) {
+			if (vga.herc.xMode & 1) {
+				if (vga.herc.xMode & 4) {
+					d += sprintf(d," RAMFONT48");
+				}
+				else {
+					d += sprintf(d," RAMFONT");
+				}
+			}
+		}
 	}
 	else {
 		unsigned int rowdiv = (unsigned int)vga.draw.address_line_total;
