@@ -68,6 +68,7 @@ bool dbg_event_color_select = false;
 bool dbg_event_color_plane_enable = false;
 
 extern bool vga_render_on_demand;
+extern signed char vga_render_on_demand_user;
 
 /* S3 streams processor state.
  * Registers are only loaded into hardware on vertical sync anyway. */
@@ -5960,6 +5961,18 @@ void VGA_ActivateHardwareCursor(void) {
     }
 }
 
+static bool isSVGAMode(void) {
+	if (vga.mode == M_LIN15 || vga.mode == M_LIN16 || vga.mode == M_LIN24 || vga.mode == M_LIN32 || vga.mode == M_PACKED4)
+		return true;
+
+	if (vga.mode == M_LIN8) {
+		if (vga.draw.width >= 512 && vga.draw.height >= 384 && vga.draw.address_line_total == 1)
+			return true;
+	}
+
+	return false;
+}
+
 void VGA_SetupDrawing(Bitu /*val*/) {
     if (vga.mode==M_ERROR) {
         PIC_RemoveEvents(VGA_VerticalTimer);
@@ -5974,6 +5987,15 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     vga.draw.doublescan_effect = true;
     vga.draw.render_step = 0;
     vga.draw.render_max = 1;
+
+    if (vga_render_on_demand_user >= 0)
+        vga_render_on_demand = vga_render_on_demand_user > 0;
+    else if (IS_VGA_ARCH && svgaCard != SVGA_None && isSVGAMode())
+        vga_render_on_demand = true;
+    else
+        vga_render_on_demand = false;
+
+    LOG(LOG_VGAMISC,LOG_DEBUG)("Render On Demand mode is %s for RodU %d",vga_render_on_demand?"on":"off",vga_render_on_demand_user);
 
     rawshot.render_y = 0;
     VGA_DrawRawLine = NULL;

@@ -1,4 +1,10 @@
 Next:
+  - Render on demand (Staging calls it "lazy rendering") now defaults
+    to "auto" and allows an "auto" setting. The auto setting will
+    turn it off for standard VGA modes and will turn it on for SVGA
+    modes where per scanline raster effects are very unlikely to
+    occur. This may provide a performance boost for DOS games in SVGA
+    modes and the Windows desktop (joncampbell123).
   - CGA 320x200 4-color mode is now rendered using the M_EGA render
     code for EGA/VGA machine types to better reflect real hardware.
     (joncampbell123).

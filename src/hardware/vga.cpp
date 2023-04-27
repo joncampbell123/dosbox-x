@@ -183,6 +183,7 @@ bool                                enable_vga_8bit_dac = true;
 bool                                ignore_sequencer_blanking = false;
 bool                                memio_complexity_optimization = true;
 bool                                vga_render_on_demand = false; // Render at vsync or specific changes to hardware instead of every scanline
+signed char                         vga_render_on_demand_user = -1;
 
 bool                                pc98_crt_mode = false;      // see port 6Ah command 40h/41h.
                                                                 // this boolean is the INVERSE of the bit.
@@ -949,12 +950,23 @@ void VGA_Reset(Section*) {
     enable_vga_8bit_dac = section->Get_bool("enable 8-bit dac");
     ignore_sequencer_blanking = section->Get_bool("ignore sequencer blanking");
     memio_complexity_optimization = section->Get_bool("memory io optimization 1");
-    vga_render_on_demand = section->Get_bool("scanline render on demand");
+
+    vga_render_on_demand = false;
+
+    {
+        const char *str = section->Get_string("scanline render on demand");
+        if (!strcmp(str,"true") || !strcmp(str,"1"))
+            vga_render_on_demand_user = 1;
+        else if (!strcmp(str,"false") || !strcmp(str,"0"))
+            vga_render_on_demand_user = 0;
+        else
+            vga_render_on_demand_user = -1;
+    }
 
     if (memio_complexity_optimization)
         LOG_MSG("Memory I/O complexity optimization enabled aka option 'memory io optimization 1'. If the game or demo is unable to draw to the screen properly, set the option to false.");
 
-    if (vga_render_on_demand)
+    if (vga_render_on_demand_user > 0)
         LOG_MSG("'scanline render on demand' option is enabled. If this option breaks the game or demo effects or display, set the option to false.");
     else
         LOG_MSG("The 'scanline render on demand' option is available and may provide a modest boost in video render performance if set to true.");
