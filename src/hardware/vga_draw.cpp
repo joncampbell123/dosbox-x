@@ -152,7 +152,7 @@ void rawscreenshot::allocate(unsigned int w,unsigned int h,unsigned int bpp) {
 	if (w == 0 || h == 0) return;
 
 	image_stride = ((w+31)&(~15))*(bpp>>3);
-	image = new unsigned char[image_stride*h];
+	image = new unsigned char[(image_stride*h)+(bpp*1024)/*FIXME: CGA4 raw render overruns scanline too much?*/];
 	image_bpp = bpp;
 	image_width = w;
 	image_height = h;
@@ -998,8 +998,16 @@ static uint8_t * EGA_Draw_2BPP_Line_as_EGA(Bitu vidstart, Bitu line) {
     return EGA_Planar2BPP_Common_Line<MCH_EGA,uint8_t>(TempLine,vidstart,line);
 }
 
+static void EGA_RawDraw_2BPP_Line_as_EGA(uint8_t *dst,Bitu vidstart, Bitu line) {
+    EGA_Planar2BPP_Common_Line<MCH_RAW_SNAPSHOT,uint8_t>(dst,vidstart,line);
+}
+
 static uint8_t * VGA_Draw_2BPP_Line_as_VGA(Bitu vidstart, Bitu line) {
     return EGA_Planar2BPP_Common_Line<MCH_VGA,uint32_t>(TempLine,vidstart,line);
+}
+
+static void VGA_RawDraw_2BPP_Line_as_VGA(uint8_t *dst,Bitu vidstart, Bitu line) {
+    EGA_Planar2BPP_Common_Line<MCH_RAW_SNAPSHOT,uint8_t>(dst,vidstart,line);
 }
 
 static uint8_t * VGA_Draw_VGA_Packed4_Xlat32_Line(Bitu vidstart, Bitu /*line*/) {
@@ -4867,10 +4875,9 @@ void SetRawImagePalette(void) {
 
 void AllocateRawImage(void) {
 	switch (vga.mode) {
+		case M_CGA4:
 		case M_VGA:
 		case M_LIN8:
-			rawshot.allocate(vga.draw.width,vga.draw.height,8);
-			break;
 		case M_EGA:
 		case M_LIN4:
 			rawshot.allocate(vga.draw.width,vga.draw.height,8);
@@ -6553,11 +6560,13 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         if (IS_EGA_ARCH) {
             vga.draw.blocks=width;
             VGA_DrawLine=EGA_Draw_2BPP_Line_as_EGA;
+            VGA_DrawRawLine=EGA_RawDraw_2BPP_Line_as_EGA;
             bpp = 8;
         }
         else if (IS_EGAVGA_ARCH || IS_PC98_ARCH) {
             vga.draw.blocks=width;
             VGA_DrawLine=VGA_Draw_2BPP_Line_as_VGA;
+            VGA_DrawRawLine=VGA_RawDraw_2BPP_Line_as_VGA;
             bpp = 32;
         }
         else if (machine == MCH_MCGA) {
