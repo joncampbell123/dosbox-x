@@ -2282,33 +2282,18 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
                     }
                     int width = vga.draw.char9dot ? 9 : 8;
                     for (Bitu n = 0; n < width; n++) {
-                        if (card == MCH_RAW_SNAPSHOT)
-                            *draw++ = (font & (vga.draw.char9dot?0x100:0x80))? foreground : background;
-                        else if (card == MCH_VGA)
-                            *draw++ = vga.dac.xlat32[(font & (vga.draw.char9dot?0x100:0x80))? foreground : background];
-                        else
-                            *draw++ = vga.attr.palette[(font & (vga.draw.char9dot?0x100:0x80)) ? foreground : background];
+                        *draw++ = EGA_Planar_Common_Block_xlat<card,templine_type_t>((font & (vga.draw.char9dot?0x100:0x80))? foreground : background);
                         font <<= 1;
                     }
                     if (bsattr & 0x20) {
                         draw -= 8;
-                        if (card == MCH_RAW_SNAPSHOT)
-                            *draw++ = foreground;
-                        else if (card == MCH_VGA)
-                            *draw = vga.dac.xlat32[foreground];
-                        else
-                            *draw = vga.attr.palette[foreground];
+                        *draw = EGA_Planar_Common_Block_xlat<card,templine_type_t>(foreground);
                         draw += 8;
                     }
                     if (line == 18 && (bsattr & 0x10)) {
                         draw -= 8;
                         for (Bitu n = 0; n < 8; n++)
-                            if (card == MCH_RAW_SNAPSHOT)
-                                *draw++ = foreground;
-                            else if (card == MCH_VGA)
-                                *draw++ = vga.dac.xlat32[foreground];
-                            else
-                                *draw++ = vga.attr.palette[foreground];
+                            *draw++ = EGA_Planar_Common_Block_xlat<card,templine_type_t>(foreground);
                     }
                     chr_wide=false;
                 }
@@ -2346,17 +2331,7 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
                             }
                             int width = vga.draw.char9dot ? 9 : 8;
                             for (Bitu n = 0; n < width; n++) {
-                                if (card == MCH_RAW_SNAPSHOT) {
-                                    *draw++ = (font & (vga.draw.char9dot?0x100:0x80)) ? foreground : background;
-                                    *draw++ = (font & (vga.draw.char9dot?0x100:0x80)) ? foreground : background;
-                                }
-                                else if (card == MCH_VGA) {
-                                    *draw++ = vga.dac.xlat32[(font & (vga.draw.char9dot?0x100:0x80)) ? foreground : background];
-                                    *draw++ = vga.dac.xlat32[(font & (vga.draw.char9dot?0x100:0x80)) ? foreground : background];
-                                } else {
-                                    *draw++ = vga.attr.palette[(font & (vga.draw.char9dot?0x100:0x80)) ? foreground : background];
-                                    *draw++ = vga.attr.palette[(font & (vga.draw.char9dot?0x100:0x80)) ? foreground : background];
-                                }
+                                *draw++ = EGA_Planar_Common_Block_xlat<card,templine_type_t>((font & (vga.draw.char9dot?0x100:0x80)) ? foreground : background);
                                 font <<= 1;
                             }
                         } else {
@@ -2377,48 +2352,23 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
                             }
                             int width = vga.draw.char9dot ? 9 : 8;
                             for (Bitu n = 0; n < width * 2; n++) {
-                                if (card == MCH_RAW_SNAPSHOT)
-                                    *draw++ = (font & (vga.draw.char9dot?0x10000:0x8000))? foreground : background;
-                                else if (card == MCH_VGA)
-                                    *draw++ = vga.dac.xlat32[(font & (vga.draw.char9dot?0x10000:0x8000))? foreground : background];
-                                else
-                                    *draw++ = vga.attr.palette[(font & (vga.draw.char9dot?0x10000:0x8000)) ? foreground : background];
+                                *draw++ = EGA_Planar_Common_Block_xlat<card,templine_type_t>((font & (vga.draw.char9dot?0x10000:0x8000))? foreground : background);
                                 font <<= 1;
                             }
                         }
                     } else for (Bitu n = 0; n < 16; n++) {
-                        if (card == MCH_RAW_SNAPSHOT)
-                            *draw++ = background;
-                        else if (card == MCH_VGA)
-                            *draw++ = vga.dac.xlat32[background];
-                        else
-                            *draw++ = vga.attr.palette[background];
+                        *draw++ = EGA_Planar_Common_Block_xlat<card,templine_type_t>(background);
                     }
                 } else if (line == (17 + pad_y) && (bsattr & 0x10)) {
-                        for (Bitu n = 0; n < 16; n++) {
-                            if (card == MCH_RAW_SNAPSHOT)
-                                *draw++ = foreground;
-                            else if (card == MCH_VGA)
-                                *draw++ = vga.dac.xlat32[foreground];
-                            else
-                                *draw++ = vga.attr.palette[foreground];
-                        }
+                    for (Bitu n = 0; n < 16; n++) {
+                        *draw++ = EGA_Planar_Common_Block_xlat<card,templine_type_t>(foreground);
+                    }
                 } else for (Bitu n = 0; n < 16; n++) {
-                    if (card == MCH_RAW_SNAPSHOT)
-                        *draw++ = background;
-                    else if (card == MCH_VGA)
-                        *draw++ = vga.dac.xlat32[background];
-                    else
-                        *draw++ = vga.attr.palette[background];
+                    *draw++ = EGA_Planar_Common_Block_xlat<card,templine_type_t>(background);
                 }
                 if (bsattr & 0x20) {
                     draw -= 16;
-                    if (card == MCH_RAW_SNAPSHOT)
-                        *draw++ = foreground;
-                    else if (card == MCH_VGA)
-                        *draw = vga.dac.xlat32[foreground];
-                    else
-                        *draw = vga.attr.palette[foreground];
+                    *draw++ = EGA_Planar_Common_Block_xlat<card,templine_type_t>(foreground);
                     draw += 16;
                 }
                 chr_wide=false;
@@ -2452,24 +2402,12 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
                 if ((font&0x2) && (vga.attr.mode_control&0x04) &&
                     (chr>=0xc0) && (chr<=0xdf)) font |= 1;
                 for (Bitu n = 0; n < 9; n++) {
-                    if (card == MCH_RAW_SNAPSHOT)
-                        *draw++ = (font&0x100)? foreground:background;
-                    else if (card == MCH_VGA)
-                        *draw++ = vga.dac.xlat32[(font&0x100)? foreground:background];
-                    else /*MCH_EGA*/
-                        *draw++ = vga.attr.palette[(font&0x100)? foreground:background];
-
+                    *draw++ = EGA_Planar_Common_Block_xlat<card,templine_type_t>((font&0x100)? foreground:background);
                     font <<= 1;
                 }
             } else {
                 for (Bitu n = 0; n < 8; n++) {
-                    if (card == MCH_RAW_SNAPSHOT)
-                        *draw++ = (font&0x80)? foreground:background;
-                    else if (card == MCH_VGA)
-                        *draw++ = vga.dac.xlat32[(font&0x80)? foreground:background];
-                    else /*MCH_EGA*/
-                        *draw++ = vga.attr.palette[(font&0x80)? foreground:background];
-
+                    *draw++ = EGA_Planar_Common_Block_xlat<card,templine_type_t>((font&0x80)? foreground:background);
                     font <<= 1;
                 }
             }
@@ -2487,12 +2425,7 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
 
             Bitu foreground = vga.tandy.draw_base[(vga.draw.cursor.address<<2ul)+1] & 0xf;
             for (Bitu i = 0; i < 8; i++) {
-                if (card == MCH_RAW_SNAPSHOT)
-                    *draw++ = foreground;
-                else if (card == MCH_VGA)
-                    *draw++ = vga.dac.xlat32[foreground];
-                else /*MCH_EGA*/
-                    *draw++ = vga.attr.palette[foreground];
+                *draw++ = EGA_Planar_Common_Block_xlat<card,templine_type_t>(foreground);
             }
         }
     }
