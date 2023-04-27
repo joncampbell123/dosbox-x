@@ -450,66 +450,6 @@ static uint8_t * VGA_Draw_1BPP_Blend_Line(Bitu vidstart, Bitu line) {
     return TempLine;
 }
 
-static uint8_t * EGA_Draw_2BPP_Line_as_EGA(Bitu vidstart, Bitu line) {
-    const uint32_t *base = (uint32_t*)vga.draw.linear_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
-    uint8_t * draw=(uint8_t *)TempLine;
-    VGA_Latch pixels;
-
-    /* NTS: In reality the 2bpp "shift reg" mode of EGA/VGA bundles odd/even bits for CGA 4-color
-     *      across bitplanes 0+1 and 2+3, but the INT 10h CGA 4-color mode disables bitplanes 2 and 3
-     *      so that all you see are bitplanes 0+1 set up to emulate CGA video memory. However some
-     *      games are said to enable bitplanes 2 and 3 and then use the CGA-like 2bpp mode as a hack
-     *      for filling in EGA colors faster, usually with dithering
-     *
-     *      (ref: "Leather Goddesses of Phobos 2" according to ripsaw8080 when machine=ega). */
-
-    for (Bitu x=0;x<vga.draw.blocks;x++) {
-        pixels.d = base[vidstart & vga.tandy.addr_mask];
-        vidstart += (Bitu)1u << (Bitu)vga.config.addr_shift;
-
-        /* CGA odd/even mode, first plane and maybe third plane */
-        Bitu val=pixels.b[0],val2=pixels.b[2]<<2;
-        for (Bitu i=0;i < 4;i++,val <<= 2,val2 <<= 2)
-            *draw++ = vga.attr.palette[(((val>>6)&0x3)|((val2>>6)&0xC))&vga.attr.color_plane_enable];
-
-        /* CGA odd/even mode, second plane and maybe fourth plane */
-        val=pixels.b[1],val2=pixels.b[3]<<2;
-        for (Bitu i=0;i < 4;i++,val <<= 2,val2 <<= 2)
-            *draw++ = vga.attr.palette[(((val>>6)&0x3)|((val2>>6)&0xC))&vga.attr.color_plane_enable];
-    }
-    return TempLine;
-}
-
-static uint8_t * VGA_Draw_2BPP_Line_as_VGA(Bitu vidstart, Bitu line) {
-    const uint32_t *base = (uint32_t*)vga.draw.linear_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
-    uint32_t * draw=(uint32_t *)TempLine;
-    VGA_Latch pixels;
-
-    /* NTS: In reality the 2bpp "shift reg" mode of EGA/VGA bundles odd/even bits for CGA 4-color
-     *      across bitplanes 0+1 and 2+3, but the INT 10h CGA 4-color mode disables bitplanes 2 and 3
-     *      so that all you see are bitplanes 0+1 set up to emulate CGA video memory. However some
-     *      games are said to enable bitplanes 2 and 3 and then use the CGA-like 2bpp mode as a hack
-     *      for filling in EGA colors faster, usually with dithering
-     *
-     *      (ref: "Leather Goddesses of Phobos 2" according to ripsaw8080 when machine=ega). */
-
-    for (Bitu x=0;x<vga.draw.blocks;x++) {
-        pixels.d = base[vidstart & vga.tandy.addr_mask];
-        vidstart += (Bitu)1u << (Bitu)vga.config.addr_shift;
-
-        /* CGA odd/even mode, first plane and maybe third plane */
-        Bitu val=pixels.b[0],val2=pixels.b[2]<<2;
-        for (Bitu i=0;i < 4;i++,val <<= 2,val2 <<= 2)
-            *draw++ = vga.dac.xlat32[(((val>>6)&0x3)|((val2>>6)&0xC))&vga.attr.color_plane_enable];
-
-        /* CGA odd/even mode, second plane and maybe fourth plane */
-        val=pixels.b[1],val2=pixels.b[3]<<2;
-        for (Bitu i=0;i < 4;i++,val <<= 2,val2 <<= 2)
-            *draw++ = vga.dac.xlat32[(((val>>6)&0x3)|((val2>>6)&0xC))&vga.attr.color_plane_enable];
-    }
-    return TempLine;
-}
-
 static uint8_t * VGA_Draw_1BPP_Line_as_MCGA(Bitu vidstart, Bitu line) {
 	const uint8_t *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
 	uint32_t * draw=(uint32_t *)TempLine;
@@ -1012,6 +952,54 @@ static uint8_t * VGA_Draw_VGA_Planar_Xlat32_Line(Bitu vidstart, Bitu line) {
 
 static void VGA_RawDraw_VGA_Planar_Xlat32_Line(uint8_t *dst,Bitu vidstart, Bitu line) {
 	EGA_Planar_Common_Line<MCH_RAW_SNAPSHOT,uint8_t>(dst,vidstart,line);
+}
+
+template <const unsigned int card,typename templine_type_t> static inline void EGA_Planar2BPP_Common_Block(templine_type_t * const draw,const VGA_Latch pixels) {
+    uint8_t val,val2;
+
+    /* CGA odd/even mode, first plane and maybe third plane */
+    val=pixels.b[0],val2=pixels.b[2]<<2;
+    for (Bitu i=0;i < 4;i++,val <<= 2,val2 <<= 2)
+        draw[i] = EGA_Planar_Common_Block_xlat<card,templine_type_t>(((val>>6)&0x3)|((val2>>6)&0xC));
+
+    /* CGA odd/even mode, second plane and maybe fourth plane */
+    val=pixels.b[1],val2=pixels.b[3]<<2;
+    for (Bitu i=0;i < 4;i++,val <<= 2,val2 <<= 2)
+        draw[i+4] = EGA_Planar_Common_Block_xlat<card,templine_type_t>(((val>>6)&0x3)|((val2>>6)&0xC));
+}
+
+template <const unsigned int card,typename templine_type_t> static uint8_t * EGA_Planar2BPP_Common_Line(uint8_t *dst,Bitu vidstart, Bitu line) {
+    const uint32_t *base = (uint32_t*)vga.draw.linear_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
+    templine_type_t * draw=(templine_type_t *)dst;
+    VGA_Latch pixels;
+
+    /* NTS: In reality the 2bpp "shift reg" mode of EGA/VGA bundles odd/even bits for CGA 4-color
+     *      across bitplanes 0+1 and 2+3, but the INT 10h CGA 4-color mode disables bitplanes 2 and 3
+     *      so that all you see are bitplanes 0+1 set up to emulate CGA video memory. However some
+     *      games are said to enable bitplanes 2 and 3 and then use the CGA-like 2bpp mode as a hack
+     *      for filling in EGA colors faster, usually with dithering
+     *
+     *      (ref: "Leather Goddesses of Phobos 2" according to ripsaw8080 when machine=ega). */
+
+    for (Bitu x=0;x<vga.draw.blocks;x++) {
+        pixels.d = base[vidstart & vga.tandy.addr_mask];
+        vidstart += (Bitu)1u << (Bitu)vga.config.addr_shift;
+        EGA_Planar2BPP_Common_Block<card,templine_type_t>(draw,pixels);
+        draw += 8;
+    }
+
+    if (card != MCH_RAW_SNAPSHOT)
+        return dst;
+    else
+        return NULL;
+}
+
+static uint8_t * EGA_Draw_2BPP_Line_as_EGA(Bitu vidstart, Bitu line) {
+    return EGA_Planar2BPP_Common_Line<MCH_EGA,uint8_t>(TempLine,vidstart,line);
+}
+
+static uint8_t * VGA_Draw_2BPP_Line_as_VGA(Bitu vidstart, Bitu line) {
+    return EGA_Planar2BPP_Common_Line<MCH_VGA,uint32_t>(TempLine,vidstart,line);
 }
 
 static uint8_t * VGA_Draw_VGA_Packed4_Xlat32_Line(Bitu vidstart, Bitu /*line*/) {
