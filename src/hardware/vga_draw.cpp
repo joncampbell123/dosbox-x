@@ -521,15 +521,36 @@ static uint8_t * VGA_Draw_2BPP_Line_as_MCGA(Bitu vidstart, Bitu line) {
     return TempLine;
 }
 
-static uint8_t * VGA_Draw_2BPP_Line(Bitu vidstart, Bitu line) {
+template <const unsigned int card,typename templine_type_t> static uint8_t * VGA_Draw_2BPP_Line_Common(uint8_t *dst,Bitu vidstart, Bitu line) {
     const uint8_t *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
-    uint32_t * draw=(uint32_t *)TempLine;
-    for (Bitu x=0;x<vga.draw.blocks;x++) {
-        Bitu val = base[vidstart & vga.tandy.addr_mask];
-        vidstart++;
-        *draw++=CGA_4_Table[val];
+    if (card == MCH_RAW_SNAPSHOT) {
+        for (unsigned int x=0;x < vga.draw.blocks;x++) {
+            uint8_t val = base[vidstart & vga.tandy.addr_mask];
+            vidstart++;
+            dst[0] = (val >> 6) & 3;
+            dst[1] = (val >> 4) & 3;
+            dst[2] = (val >> 2) & 3;
+            dst[3] = (val >> 0) & 3;
+            dst += 4;
+        }
     }
-    return TempLine;
+    else {
+        uint32_t * draw=(uint32_t *)dst;
+        for (Bitu x=0;x<vga.draw.blocks;x++) {
+            Bitu val = base[vidstart & vga.tandy.addr_mask];
+            vidstart++;
+            *draw++=CGA_4_Table[val];
+        }
+    }
+    return dst;
+}
+
+static void VGA_RawDraw_2BPP_Line(uint8_t *dst,Bitu vidstart, Bitu line) {
+	VGA_Draw_2BPP_Line_Common<MCH_RAW_SNAPSHOT,uint8_t>(dst,vidstart,line);
+}
+
+static uint8_t * VGA_Draw_2BPP_Line(Bitu vidstart, Bitu line) {
+	return VGA_Draw_2BPP_Line_Common<MCH_CGA,uint8_t>(TempLine,vidstart,line);
 }
 
 static uint8_t * VGA_Draw_2BPPHiRes_Line(Bitu vidstart, Bitu line) {
@@ -4932,10 +4953,40 @@ void SetRawImagePalette(void) {
 			rawshot.image_palette2[i*3+2] = dacexpand(vga.dac.rgb[t2].blue&dacmask,dacshl,dacshr);
 		}
 	}
+	else if (machine == MCH_CGA) {
+		if (vga.mode == M_CGA4 || vga.mode == M_TANDY4) {
+			rawshot.allocpalette(4); // raw image, translated palette
+
+			for (unsigned int i=0;i < 4;i++) {
+				const unsigned int ti = CGAPal4[i];
+
+				rawshot.image_palette[i*3+0] = dacexpand(vga.dac.rgb[ti].red&dacmask,dacshl,dacshr);
+				rawshot.image_palette[i*3+1] = dacexpand(vga.dac.rgb[ti].green&dacmask,dacshl,dacshr);
+				rawshot.image_palette[i*3+2] = dacexpand(vga.dac.rgb[ti].blue&dacmask,dacshl,dacshr);
+			}
+		}
+		else {
+			rawshot.allocpalette(16); // raw image, translated palette
+			rawshot.allocpalette2(16); // raw image, translated palette
+
+			for (unsigned int i=0;i < 16;i++) {
+				const unsigned int ti = vga.dac.combine[i];
+
+				rawshot.image_palette[i*3+0] = dacexpand(vga.dac.rgb[ti].red&dacmask,dacshl,dacshr);
+				rawshot.image_palette[i*3+1] = dacexpand(vga.dac.rgb[ti].green&dacmask,dacshl,dacshr);
+				rawshot.image_palette[i*3+2] = dacexpand(vga.dac.rgb[ti].blue&dacmask,dacshl,dacshr);
+
+				rawshot.image_palette2[i*3+0] = dacexpand(vga.dac.rgb[i].red&dacmask,dacshl,dacshr);
+				rawshot.image_palette2[i*3+1] = dacexpand(vga.dac.rgb[i].green&dacmask,dacshl,dacshr);
+				rawshot.image_palette2[i*3+2] = dacexpand(vga.dac.rgb[i].blue&dacmask,dacshl,dacshr);
+			}
+		}
+	}
 }
 
 void AllocateRawImage(void) {
 	switch (vga.mode) {
+		case M_TANDY4:
 		case M_CGA4:
 		case M_VGA:
 		case M_LIN8:
@@ -6664,6 +6715,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         }
         else {
             VGA_DrawLine=VGA_Draw_2BPP_Line;
+            VGA_DrawRawLine=VGA_RawDraw_2BPP_Line;
             vga.draw.blocks=width*2;
         }
         break;
@@ -6786,6 +6838,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         }
         else {
             VGA_DrawLine=VGA_Draw_2BPP_Line;
+            VGA_DrawRawLine=VGA_RawDraw_2BPP_Line;
         }
 
         /* MCGA CGA-compatible modes will always refer to the last half of the 64KB of RAM */
