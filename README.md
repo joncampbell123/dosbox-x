@@ -1,9 +1,7 @@
 
-**Welcome to the DOSBox-X project homepage located on GitHub.**
+**Welcome to the DOSBox-X project!**
 
-**Be sure to also visit DOSBox-X's website at [https://dosbox-x.com](https://dosbox-x.com) (or [http://dosbox-x.software](http://dosbox-x.software))**
-
-**Discord channel for the DOSBox-X project: [https://discord.gg/5cnTmcsTpG](https://discord.gg/5cnTmcsTpG)**
+**Check out the official [website](https://dosbox-x.com), the [wiki](http://dosbox-x.com/wiki/) and the [Discord channel](https://discord.gg/5cnTmcsTpG).**
 
 ## Introduction
 
