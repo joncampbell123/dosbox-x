@@ -1,4 +1,9 @@
 Next:
+  - Write BIOS data area fields for number of rows, char height, etc.
+    for MCGA machine type in addition to EGA/VGA machine types because
+    IBM technical references suggest it's there for MCGA as well.
+    This also resolves an issue where with the MCGA machine type, INT 10h
+    failed to print any text to screen whatsoever. (joncampbell123).
   - Render on demand (Staging calls it "lazy rendering") now defaults
     to "auto" and allows an "auto" setting. The auto setting will
     turn it off for standard VGA modes and will turn it on for SVGA
