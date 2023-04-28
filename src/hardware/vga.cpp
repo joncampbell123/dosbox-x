@@ -315,6 +315,7 @@ void vsync_poll_debug_notify() {
 uint32_t CGA_2_Table[16];
 uint32_t CGA_4_Table[256];
 uint32_t CGA_4_HiRes_Table[256];
+uint32_t CGA_4_HiRes_TableNP[256];
 uint32_t CGA_16_Table[256];
 uint32_t TXT_Font_Table[16];
 uint32_t TXT_FG_Table[16];
@@ -508,6 +509,15 @@ void VGA_SetCGA4Table(uint8_t val0,uint8_t val1,uint8_t val2,uint8_t val3) {
             ((Bitu)total[((i >> 3u) & 1u) | ((i >> 6u) & 2u)] << 0u  ) | (Bitu)(total[((i >> 2u) & 1u) | ((i >> 5u) & 2u)] << 8u  ) |
             ((Bitu)total[((i >> 1u) & 1u) | ((i >> 4u) & 2u)] << 16u ) | (Bitu)(total[((i >> 0u) & 1u) | ((i >> 3u) & 2u)] << 24u );
 #endif
+        CGA_4_HiRes_TableNP[i]=
+#ifdef WORDS_BIGENDIAN
+            ((Bitu)(((i >> 0u) & 1u) | ((i >> 3u) & 2u)) << 0u  ) | (Bitu)((((i >> 1u) & 1u) | ((i >> 4u) & 2u)) << 8u  ) |
+            ((Bitu)(((i >> 2u) & 1u) | ((i >> 5u) & 2u)) << 16u ) | (Bitu)((((i >> 3u) & 1u) | ((i >> 6u) & 2u)) << 24u );
+#else
+            ((Bitu)(((i >> 3u) & 1u) | ((i >> 6u) & 2u)) << 0u  ) | (Bitu)((((i >> 2u) & 1u) | ((i >> 5u) & 2u)) << 8u  ) |
+            ((Bitu)(((i >> 1u) & 1u) | ((i >> 4u) & 2u)) << 16u ) | (Bitu)((((i >> 0u) & 1u) | ((i >> 3u) & 2u)) << 24u );
+#endif
+
     }
 
     if (machine == MCH_MCGA) {

@@ -556,27 +556,27 @@ static uint8_t * VGA_Draw_2BPP_Line_as_MCGA(Bitu vidstart, Bitu line) {
 }
 
 template <const unsigned int card,typename templine_type_t> static uint8_t * VGA_Draw_2BPP_Line_Common(uint8_t *dst,Bitu vidstart, Bitu line) {
-    const uint8_t *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
-    if (card == MCH_RAW_SNAPSHOT) {
-        for (unsigned int x=0;x < vga.draw.blocks;x++) {
-            uint8_t val = base[vidstart & vga.tandy.addr_mask];
-            vidstart++;
-            dst[0] = (val >> 6) & 3;
-            dst[1] = (val >> 4) & 3;
-            dst[2] = (val >> 2) & 3;
-            dst[3] = (val >> 0) & 3;
-            dst += 4;
-        }
-    }
-    else {
-        uint32_t * draw=(uint32_t *)dst;
-        for (Bitu x=0;x<vga.draw.blocks;x++) {
-            Bitu val = base[vidstart & vga.tandy.addr_mask];
-            vidstart++;
-            *draw++=CGA_4_Table[val];
-        }
-    }
-    return dst;
+	const uint8_t *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
+	if (card == MCH_RAW_SNAPSHOT) {
+		for (unsigned int x=0;x < vga.draw.blocks;x++) {
+			uint8_t val = base[vidstart & vga.tandy.addr_mask];
+			vidstart++;
+			dst[0] = (val >> 6) & 3;
+			dst[1] = (val >> 4) & 3;
+			dst[2] = (val >> 2) & 3;
+			dst[3] = (val >> 0) & 3;
+			dst += 4;
+		}
+	}
+	else {
+		uint32_t * draw=(uint32_t *)dst;
+		for (Bitu x=0;x<vga.draw.blocks;x++) {
+			Bitu val = base[vidstart & vga.tandy.addr_mask];
+			vidstart++;
+			*draw++=CGA_4_Table[val];
+		}
+	}
+	return dst;
 }
 
 static void VGA_RawDraw_2BPP_Line(uint8_t *dst,Bitu vidstart, Bitu line) {
@@ -587,18 +587,34 @@ static uint8_t * VGA_Draw_2BPP_Line(Bitu vidstart, Bitu line) {
 	return VGA_Draw_2BPP_Line_Common<MCH_CGA,uint8_t>(TempLine,vidstart,line);
 }
 
+extern uint32_t CGA_4_HiRes_TableNP[256];
+
+template <const unsigned int card,typename templine_type_t> static uint8_t * VGA_Draw_2BPPHiRes_Line_Common(uint8_t *dst,Bitu vidstart, Bitu line) {
+	const uint8_t *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
+	uint32_t * draw=(uint32_t *)dst;
+	for (Bitu x=0;x<vga.draw.blocks;x++) {
+		Bitu val1 = base[vidstart & vga.tandy.addr_mask];
+		++vidstart;
+		Bitu val2 = base[vidstart & vga.tandy.addr_mask];
+		++vidstart;
+		if (card == MCH_RAW_SNAPSHOT) {
+			*draw++=CGA_4_HiRes_TableNP[(val1>>4)|(val2&0xf0)];
+			*draw++=CGA_4_HiRes_TableNP[(val1&0x0f)|((val2&0x0f)<<4)];
+		}
+		else {
+			*draw++=CGA_4_HiRes_Table[(val1>>4)|(val2&0xf0)];
+			*draw++=CGA_4_HiRes_Table[(val1&0x0f)|((val2&0x0f)<<4)];
+		}
+	}
+	return dst;
+}
+
+static void VGA_RawDraw_2BPPHiRes_Line(uint8_t *dst,Bitu vidstart, Bitu line) {
+	VGA_Draw_2BPPHiRes_Line_Common<MCH_RAW_SNAPSHOT,uint8_t>(dst,vidstart,line);
+}
+
 static uint8_t * VGA_Draw_2BPPHiRes_Line(Bitu vidstart, Bitu line) {
-    const uint8_t *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
-    uint32_t * draw=(uint32_t *)TempLine;
-    for (Bitu x=0;x<vga.draw.blocks;x++) {
-        Bitu val1 = base[vidstart & vga.tandy.addr_mask];
-        ++vidstart;
-        Bitu val2 = base[vidstart & vga.tandy.addr_mask];
-        ++vidstart;
-        *draw++=CGA_4_HiRes_Table[(val1>>4)|(val2&0xf0)];
-        *draw++=CGA_4_HiRes_Table[(val1&0x0f)|((val2&0x0f)<<4)];
-    }
-    return TempLine;
+	return VGA_Draw_2BPPHiRes_Line_Common<MCH_TANDY,uint8_t>(TempLine,vidstart,line);
 }
 
 static Bitu temp[643]={0};
@@ -6930,6 +6946,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         if ((machine==MCH_TANDY && (vga.tandy.gfx_control & 0x8)) ||
             (machine==MCH_PCJR && (vga.tandy.mode_control==0x0b))) {
             VGA_DrawLine=VGA_Draw_2BPPHiRes_Line;
+            VGA_DrawRawLine=VGA_RawDraw_2BPPHiRes_Line;
         }
         else {
             VGA_DrawLine=VGA_Draw_2BPP_Line;
