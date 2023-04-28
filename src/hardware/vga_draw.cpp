@@ -634,23 +634,37 @@ static uint8_t * VGA_Draw_CGA16_Line(Bitu vidstart, Bitu line) {
 #undef CGA16_READER
 }
 
-static uint8_t * VGA_Draw_4BPP_Line(Bitu vidstart, Bitu line) {
-    const uint8_t *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
-    uint8_t* draw=TempLine;
-    Bitu end = vga.draw.blocks*2;
-    while(end) {
-        uint8_t byte = base[vidstart & vga.tandy.addr_mask];
-        *draw++=vga.attr.palette[byte >> 4];
-        *draw++=vga.attr.palette[byte & 0x0f];
-        vidstart++;
-        end--;
-    }
-    return TempLine;
+template <const unsigned int card,typename templine_type_t> static uint8_t * VGA_Draw_4BPP_Line_Common(uint8_t *dst,Bitu vidstart, Bitu line) {
+	const uint8_t *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
+	uint8_t* draw=dst;
+	Bitu end = vga.draw.blocks*2;
+	while(end) {
+		uint8_t byte = base[vidstart & vga.tandy.addr_mask];
+		if (card == MCH_RAW_SNAPSHOT) {
+			*draw++=byte >> 4;
+			*draw++=byte & 0x0f;
+		}
+		else {
+			*draw++=vga.attr.palette[byte >> 4];
+			*draw++=vga.attr.palette[byte & 0x0f];
+		}
+		vidstart++;
+		end--;
+	}
+	return dst;
 }
 
-static uint8_t * VGA_Draw_4BPP_Line_Double(Bitu vidstart, Bitu line) {
+static void VGA_RawDraw_4BPP_Line(uint8_t *dst,Bitu vidstart, Bitu line) {
+	VGA_Draw_4BPP_Line_Common<MCH_RAW_SNAPSHOT,uint8_t>(dst,vidstart,line);
+}
+
+static uint8_t * VGA_Draw_4BPP_Line(Bitu vidstart, Bitu line) {
+	return VGA_Draw_4BPP_Line_Common<MCH_TANDY,uint8_t>(TempLine,vidstart,line);
+}
+
+template <const unsigned int card,typename templine_type_t> static uint8_t * VGA_Draw_4BPP_Line_Double_Common(uint8_t *dst,Bitu vidstart, Bitu line) {
     const uint8_t *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
-    uint8_t* draw=TempLine;
+    uint8_t* draw=dst;
     Bitu end = vga.draw.blocks;
     while(end) {
         uint8_t byte = base[vidstart & vga.tandy.addr_mask];
@@ -661,7 +675,15 @@ static uint8_t * VGA_Draw_4BPP_Line_Double(Bitu vidstart, Bitu line) {
         vidstart++;
         end--;
     }
-    return TempLine;
+    return dst;
+}
+
+static void VGA_RawDraw_4BPP_Line_Double(uint8_t *dst,Bitu vidstart, Bitu line) {
+	VGA_Draw_4BPP_Line_Double_Common<MCH_RAW_SNAPSHOT,uint8_t>(dst,vidstart,line);
+}
+
+static uint8_t * VGA_Draw_4BPP_Line_Double(Bitu vidstart, Bitu line) {
+	return VGA_Draw_4BPP_Line_Double_Common<MCH_TANDY,uint8_t>(TempLine,vidstart,line);
 }
 
 #if SDL_BYTEORDER == SDL_LIL_ENDIAN && defined(MACOSX) && !defined(C_SDL2) /* Mac OS X Intel builds use a weird RGBA order (alpha in the low 8 bits) */
@@ -4987,6 +5009,17 @@ void SetRawImagePalette(void) {
 			rawshot.image_palette2[i*3+2] = dacexpand(vga.dac.rgb[t2].blue&dacmask,dacshl,dacshr);
 		}
 	}
+	else if ((machine == MCH_TANDY || machine == MCH_PCJR) && vga.mode == M_TANDY16) {
+		rawshot.allocpalette(16); // raw image, translated palette
+
+		for (unsigned int i=0;i < 16;i++) {
+			const unsigned int ti = vga.attr.palette[i];
+
+			rawshot.image_palette[i*3+0] = dacexpand(vga.dac.rgb[ti].red&dacmask,dacshl,dacshr);
+			rawshot.image_palette[i*3+1] = dacexpand(vga.dac.rgb[ti].green&dacmask,dacshl,dacshr);
+			rawshot.image_palette[i*3+2] = dacexpand(vga.dac.rgb[ti].blue&dacmask,dacshl,dacshr);
+		}
+	}
 	else if (machine == MCH_CGA || machine == MCH_MDA || machine == MCH_HERC || machine == MCH_PCJR || machine == MCH_TANDY) {
 		if (vga.mode == M_CGA4 || vga.mode == M_TANDY4) {
 			rawshot.allocpalette(4); // raw image, translated palette
@@ -5040,6 +5073,7 @@ void SetRawImagePalette(void) {
 
 void AllocateRawImage(void) {
 	switch (vga.mode) {
+		case M_TANDY16:
 		case M_HERC_GFX:
 		case M_TANDY2:
 		case M_CGA2:
@@ -6921,10 +6955,12 @@ void VGA_SetupDrawing(Bitu /*val*/) {
                 pix_per_char = 4;
             }
             VGA_DrawLine=VGA_Draw_4BPP_Line;
+            VGA_DrawRawLine=VGA_RawDraw_4BPP_Line;
         } else {
             vga.draw.blocks=width*2;
             pix_per_char = 8;
             VGA_DrawLine=VGA_Draw_4BPP_Line_Double;
+            VGA_DrawRawLine=VGA_RawDraw_4BPP_Line_Double;
         }
         break;
     case M_TANDY_TEXT: /* Also CGA */
