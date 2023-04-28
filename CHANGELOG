@@ -1,4 +1,27 @@
 Next:
+  - Render on demand (Staging calls it "lazy rendering") now defaults
+    to "auto" and allows an "auto" setting. The auto setting will
+    turn it off for standard VGA modes and will turn it on for SVGA
+    modes where per scanline raster effects are very unlikely to
+    occur. This may provide a performance boost for DOS games in SVGA
+    modes and the Windows desktop (joncampbell123).
+  - CGA 320x200 4-color mode is now rendered using the M_EGA render
+    code for EGA/VGA machine types to better reflect real hardware.
+    (joncampbell123).
+  - Fix bug where setting doublescan=false for anything other than
+    the VGA machine type would break CGA graphics modes.
+    (joncampbell123).
+  - Fix video debug overlay calculations of source video mode for
+    CGA graphics modes. (joncampbell123).
+  - CGA 640x200 2-color mode and MCGA 640x480 2-color mode are no
+    longer rendered as M_CGA2 for EGA/VGA machine types. The reason
+    is that at the hardware level they are really just IBM standard
+    tweaked versions of the EGA/VGA 16-color modes with additional
+    bits for the interleave emulation and can be properly emulated
+    with the M_EGA renderer. M_CGA2 is still used for the CGA and
+    MCGA machine types for those modes. The DCGA DOS/V mode has been
+    carefully made into it's own render mode instead of part of the
+    M_CGA2 case. (joncampbell123).
   - Fixed refcount -1 error and abort when multiple floppies are
     attached to a floppy drive and the "Swap floppy" mapper shortcut
     is used at least once (joncampbell123).
