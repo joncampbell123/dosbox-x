@@ -2703,6 +2703,103 @@ extern uint8_t              pc98_pal_digital[8];    /* G R B    0x0..0x7 */
 extern bool                 pc98_256kb_boundary;
 extern bool                 gdc_5mhz_mode;
 
+// NTS: This code only renders the graphics layer. I don't think anyone particularly cares about getting
+//      a raw capture of the text layer.
+static void VGA_PC98_Xlat32_RawDraw_Line(uint8_t *dst,Bitu vidstart, Bitu /*line*/) {
+    uint8_t* draw = ((uint8_t*)dst);
+    Bitu blocks = vga.draw.blocks;
+    uint32_t vidmem = vidstart;
+    unsigned char foreground;
+    bool ok_raster = true;
+
+    // 200-line modes: The BIOS or DOS game can elect to hide odd raster lines
+    // NTS: Doublescan seems to be ignored in 256-color mode, thus the HACK! below, according to real hardware.
+    if (pc98_gdc[GDC_SLAVE].doublescan && pc98_graphics_hide_odd_raster_200line && pc98_allow_scanline_effect &&
+        /*HACK!*/(pc98_gdc_vramop & (1u << VOPBIT_VGA)) == 0)
+        ok_raster = (vga.draw.lines_done & 1) == 0;
+
+    // Generally the master and slave GDC are given the same active display area, timing, etc.
+    // however some games reprogram the slave (graphics) GDC to reduce the active display area.
+    //
+    // Without this consideration, graphics display will be incorrect relative to actual hardware.
+    //
+    // This will NOT cause correct display if other parameters like blanking area are changed!
+    //
+    // Examples:
+    //  - "First Queen" and "First Queen II" (reduces active lines count to 384 to display status bar at the bottom of the screen)
+    if (vga.draw.lines_done >= pc98_gdc[GDC_SLAVE].active_display_lines)
+        ok_raster = false;
+
+    // Graphic RAM layer (or blank)
+    // Think of it as a 3-plane GRB color graphics mode, each plane is 1 bit per pixel.
+    // G-RAM is addressed 16 bits per RAM cycle.
+    if (pc98_gdc[GDC_SLAVE].display_enable && ok_raster && pc98_display_enable) {
+        blocks = vga.draw.blocks;
+
+        if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
+            /* WARNING: This code ASSUMES the port A4h page flip emulation will always
+             *          set current_display_page to the same base graphics memory address
+             *          when the 256KB boundary is enabled! If that assumption is WRONG,
+             *          this code will read 256KB past the end of the buffer and possibly
+             *          segfault. */
+            const unsigned long vmask = pc98_256kb_boundary ? 0x7FFFFu : 0x3FFFFu;
+
+            vidmem = (unsigned int)pc98_gdc[GDC_SLAVE].scan_address << (1u+3u); /* as if reading across bitplanes */
+
+            while (blocks--) {
+                const unsigned char *s = (const unsigned char*)(&pc98_pgraph_current_display_page[vidmem & vmask]);
+                for (unsigned char i=0;i < 8;i++) *draw++ = *s++;
+                vidmem += 8;
+            }
+        }
+        else {
+            /* NTS: It is the responsibility of the raw image palette setup to map the digital palette, analog palette,
+	     *      or modified digital palette in monochrome mode. We don't do that. We just provide the raw pixel
+	     *      values */
+            /* NTS: According to real hardware, the 128KB/256KB boundary control bit ONLY works in 256-color mode.
+             *      It has no effect in 8/16-color planar modes, which is probably why the BIOS on such systems
+             *      will not allow a 640x480 16-color mode since the VRAM required exceeds 32KB per bitplane. */
+            const unsigned long vmask = 0x7FFFu;
+
+            vidmem = (unsigned int)pc98_gdc[GDC_SLAVE].scan_address << 1u;
+
+            while (blocks--) {
+                // NTS: Testing on real hardware shows that, when you switch the GDC back to 8-color mode,
+                //      the 4th bitplane is no longer rendered.
+                uint8_t e8;
+
+                if (gdc_analog)
+                    e8 = pc98_pgraph_current_display_page[(vidmem & vmask) + pc98_pgram_bitplane_offset(3)];  /* E0000-E7FFF */
+                else
+                    e8 = 0x00;
+
+                uint8_t g8 = pc98_pgraph_current_display_page[(vidmem & vmask) + pc98_pgram_bitplane_offset(2)];      /* B8000-BFFFF */
+                uint8_t r8 = pc98_pgraph_current_display_page[(vidmem & vmask) + pc98_pgram_bitplane_offset(1)];      /* B0000-B7FFF */
+                uint8_t b8 = pc98_pgraph_current_display_page[(vidmem & vmask) + pc98_pgram_bitplane_offset(0)];      /* A8000-AFFFF */
+
+                for (unsigned char i=0;i < 8;i++) {
+                    foreground  = (e8 & 0x80) ? 8 : 0;
+                    foreground += (g8 & 0x80) ? 4 : 0;
+                    foreground += (r8 & 0x80) ? 2 : 0;
+                    foreground += (b8 & 0x80) ? 1 : 0;
+
+                    e8 <<= 1;
+                    g8 <<= 1;
+                    r8 <<= 1;
+                    b8 <<= 1;
+
+                    *draw++ = foreground;
+                }
+
+                vidmem++;
+            }
+        }
+    }
+    else {
+        memset(dst,0,8 * blocks);
+    }
+}
+
 static uint8_t* VGA_PC98_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
     // keep it aligned:
     uint32_t* draw = ((uint32_t*)TempLine);
@@ -4987,6 +5084,10 @@ static inline uint8_t dacexpand(const uint8_t v,const uint8_t dacshl,const uint8
 			uint8_t((unsigned int)v >> (unsigned int)dacshr);
 }
 
+extern uint8_t                     pc98_pal_vga[256*3];    /* G R B    0x0..0xFF */
+extern uint8_t                     pc98_pal_analog[256*3]; /* G R B    0x0..0xF */
+extern uint8_t                     pc98_pal_digital[8];    /* G R B    0x0..0x7 */
+
 void SetRawImagePalette(void) {
 	const uint8_t dacshift = vga_8bit_dac ? 0u : 2u;
 	const uint8_t dacshl = dacshift;
@@ -5023,6 +5124,28 @@ void SetRawImagePalette(void) {
 			rawshot.image_palette2[i*3+0] = dacexpand(vga.dac.rgb[t2].red&dacmask,dacshl,dacshr);
 			rawshot.image_palette2[i*3+1] = dacexpand(vga.dac.rgb[t2].green&dacmask,dacshl,dacshr);
 			rawshot.image_palette2[i*3+2] = dacexpand(vga.dac.rgb[t2].blue&dacmask,dacshl,dacshr);
+		}
+	}
+	else if (machine == MCH_PC98) {
+		// NTS: PC-98 palettes don't have translation layers like VGA.
+		//      The only exception here is 8-color mode which can be switched into a monochrome mode
+		//      by which after translation one bit becomes the monochrome output. The active PC-98
+		//      palette has already been programmed into vga.dac.rgb[] we just need to copy it out.
+		if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) {
+			rawshot.allocpalette(256);
+		}
+		else if (pc98_gdc_vramop & (1 << VOPBIT_ANALOG)) {
+			rawshot.allocpalette(16);
+		}
+		else {
+			rawshot.allocpalette(8);
+		}
+
+		// TODO: If monochrome mode...
+		for (unsigned int i=0;i < rawshot.image_palette_size;i++) {
+			rawshot.image_palette[i*3+0] = dacexpand(vga.dac.rgb[i].red&dacmask,dacshl,dacshr);
+			rawshot.image_palette[i*3+1] = dacexpand(vga.dac.rgb[i].green&dacmask,dacshl,dacshr);
+			rawshot.image_palette[i*3+2] = dacexpand(vga.dac.rgb[i].blue&dacmask,dacshl,dacshr);
 		}
 	}
 	else if ((machine == MCH_TANDY || machine == MCH_PCJR) && vga.mode == M_TANDY16) {
@@ -5100,6 +5223,7 @@ void AllocateRawImage(void) {
 		case M_EGA:
 		case M_LIN4:
 		case M_TEXT:
+		case M_PC98:
 			rawshot.allocate(vga.draw.width,vga.draw.height,8);
 			break;
 		default:
@@ -6865,6 +6989,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         vga.draw.blocks=width;
         vga.draw.char9dot = false;
         VGA_DrawLine=VGA_PC98_Xlat32_Draw_Line;
+        VGA_DrawRawLine=VGA_PC98_Xlat32_RawDraw_Line;
         bpp = 32;
         break;
     case M_TEXT:
