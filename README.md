@@ -5,21 +5,6 @@
 
 **Discord channel for the DOSBox-X project: [https://discord.gg/5cnTmcsTpG](https://discord.gg/5cnTmcsTpG)**
 
-## Table of Contents
-
-- [Introduction to DOSBox-X](#introduction-to-dosbox-x)
-- [Notable features in DOSBox-X](#notable-features-in-dosbox-x)
-- [DOSBox-X supported platforms and releases](#dosbox-x-supported-platforms-and-releases)
-- [Compatibility with DOS programs and games](#compatibility-with-dos-programs-and-games)
-- [Contributing to DOSBox-X](#contributing-to-dosbox-x)
-- [DOSBox-X development and release pattern](#dosbox-x-development-and-release-pattern)
-- [Future development experiments](#future-development-experiments)
-- [Software security comments](#software-security-comments)
-- [Features that DOSBox-X is unlikely to support at this time](#features-that-dosbox-x-is-unlikely-to-support-at-this-time)
-- [Origin and history of the DOSBox-X project](#origin-and-history-of-the-dosbox-x-project)
-- [Known DOSBox-X forks](#known-dosbox-x-forks)
-- [Support for international language translations and keyboard layouts](#support-for-international-language-translations-and-keyboard-layouts)
-
 ## Introduction to DOSBox-X
 
 DOSBox-X is a cross-platform DOS emulator based on the DOSBox project (www.dosbox.com).
