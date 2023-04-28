@@ -486,19 +486,34 @@ static uint8_t * VGA_Draw_1BPP_Blend_Line(Bitu vidstart, Bitu line) {
     return TempLine;
 }
 
-static uint8_t * VGA_Draw_1BPP_Line_as_MCGA(Bitu vidstart, Bitu line) {
+template <const unsigned int card,typename templine_type_t> static uint8_t * VGA_Draw_1BPP_Line_as_MCGA_Common(uint8_t *dst,Bitu vidstart, Bitu line) {
 	const uint8_t *base = vga.tandy.draw_base + ((line & vga.tandy.line_mask) << vga.tandy.line_shift);
-	uint32_t * draw=(uint32_t *)TempLine;
+	templine_type_t* draw=(templine_type_t*)dst;
+	uint8_t val;
 
 	for (Bitu x=0;x<vga.draw.blocks;x++) {
-		Bitu val = base[vidstart & vga.tandy.addr_mask];
+		val = base[vidstart & vga.tandy.addr_mask];
 		vidstart++;
 
-		for (Bitu i=0;i < 8;i++,val <<= 1)
-			*draw++ = vga.dac.xlat32[(val>>7)&1];
+		if (card == MCH_RAW_SNAPSHOT) {
+			for (Bitu i=0;i < 8;i++,val <<= 1)
+				*draw++ = (val>>7)&1;
+		}
+		else {
+			for (Bitu i=0;i < 8;i++,val <<= 1)
+				*draw++ = vga.dac.xlat32[(val>>7)&1];
+		}
 	}
 
-	return TempLine;
+	return dst;
+}
+
+static void VGA_RawDraw_1BPP_Line_as_MCGA(uint8_t *dst,Bitu vidstart, Bitu line) {
+	VGA_Draw_1BPP_Line_as_MCGA_Common<MCH_RAW_SNAPSHOT,uint8_t>(dst,vidstart,line);
+}
+
+static uint8_t * VGA_Draw_1BPP_Line_as_MCGA(Bitu vidstart, Bitu line) {
+	return VGA_Draw_1BPP_Line_as_MCGA_Common<MCH_MCGA,uint32_t>(TempLine,vidstart,line);
 }
 
 bool J3_IsCga4Dcga();
@@ -6975,6 +6990,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         if (machine == MCH_MCGA) {
             vga.draw.blocks=width;
             VGA_DrawLine=VGA_Draw_1BPP_Line_as_MCGA;
+            VGA_DrawRawLine=VGA_RawDraw_1BPP_Line_as_MCGA;
             pix_per_char = 16;
             bpp = 32;
 
@@ -7058,6 +7074,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
         /* MCGA CGA-compatible modes will always refer to the last half of the 64KB of RAM */
         if (machine == MCH_MCGA) {
             VGA_DrawLine=VGA_Draw_1BPP_Line_as_MCGA;
+            VGA_DrawRawLine=VGA_RawDraw_1BPP_Line_as_MCGA;
             vga.draw.blocks=width * 2;
             pix_per_char = 16;
             bpp = 32;
