@@ -112,6 +112,7 @@ struct rawscreenshot {
 	unsigned int		image_palette_size = 0;
 	unsigned int		image_palette2_size = 0;
 	unsigned int		render_y = 0;
+	bool			capturing = false;
 
 	void free(void);
 	void allocate(unsigned int w,unsigned int h,unsigned int bpp);
@@ -3354,7 +3355,7 @@ again:
             }
             RENDER_DrawLine(TempLine);
         } else {
-            if ((CaptureState & CAPTURE_RAWIMAGE) && VGA_DrawRawLine) {
+            if ((CaptureState & CAPTURE_RAWIMAGE) && VGA_DrawRawLine && rawshot.capturing) {
                 if (rawshot.render_y < rawshot.image_height && rawshot.image != NULL) {
                     VGA_DrawRawLine(
                         rawshot.image+(rawshot.render_y*rawshot.image_stride),
@@ -3487,7 +3488,7 @@ static void VGA_DrawEGASingleLine(Bitu /*blah*/) {
                         break;
                 }
             }
-            if ((CaptureState & CAPTURE_RAWIMAGE) && VGA_DrawRawLine) {
+            if ((CaptureState & CAPTURE_RAWIMAGE) && VGA_DrawRawLine && rawshot.capturing) {
                 if (rawshot.render_y < rawshot.image_height && rawshot.image != NULL) {
                     VGA_DrawRawLine(
                         rawshot.image+(rawshot.render_y*rawshot.image_stride),
@@ -5389,21 +5390,25 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
     }
 
     if (CaptureState & CAPTURE_RAWIMAGE) {
-        if (VGA_DrawRawLine != NULL) {
+        if (!rawshot.capturing) {
+            if (VGA_DrawRawLine != NULL) {
+                AllocateRawImage();
+                SetRawImagePalette();
+                rawshot.render_y = 0;
+                rawshot.capturing = true;
+            }
+            else {
+                LOG(LOG_VGAMISC,LOG_ERROR)("Raw capture not supported in the current video mode");
+                CaptureState &= ~CAPTURE_RAWIMAGE;
+            }
+        }
+        else {
             if (rawshot.render_y >= vga.draw.height) {
                 WriteRawImage();
                 CaptureState &= ~CAPTURE_RAWIMAGE;
                 LOG(LOG_VGAMISC,LOG_NORMAL)("Raw capture saved");
+                rawshot.capturing = false;
             }
-            else {
-                AllocateRawImage();
-                SetRawImagePalette();
-            }
-            rawshot.render_y = 0;
-        }
-        else {
-            LOG(LOG_VGAMISC,LOG_ERROR)("Raw capture not supported in the current video mode");
-            CaptureState &= ~CAPTURE_RAWIMAGE;
         }
     }
 
@@ -6329,6 +6334,9 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 
     rawshot.render_y = 0;
     VGA_DrawRawLine = NULL;
+
+    rawshot.free();
+    rawshot.capturing = false;
 
     // set the drawing mode
     switch (machine) {
