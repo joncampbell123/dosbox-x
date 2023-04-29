@@ -1,78 +1,49 @@
 
 **Welcome to the DOSBox-X project!**
 
-**Check out the official [website](https://dosbox-x.com), the [wiki](http://dosbox-x.com/wiki/) and the [Discord channel](https://discord.gg/5cnTmcsTpG).**
+**Check out the official [website](https://dosbox-x.com), [wiki](http://dosbox-x.com/wiki/) and [Discord channel](https://discord.gg/5cnTmcsTpG).**
 
 ## Introduction
 
-DOSBox-X is a cross-platform emulator based on the original [DOSBox](https://www.dosbox.com) project.
+DOSBox-X is a cross-platform emulator based on the DOS emulator [DOSBox](https://www.dosbox.com).
 
-Not only DOSBox-X can run games just as DOSBox can, it goes further than this:
-- Is able to run legacy Windows, from the version 3.1 up to Millenium Edition
-- Emulates the NEC PC-98 hardware platform including the support of DOS/V
+It is open-source and released under the [GNU General Public License, version 2](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html).
 
-TODO
+The DOSBox-X project is brought to you and led by Jonathan Campbell ([joncampbell123](https://github.com/joncampbell123)).
 
-Talk about the 3dfx and the preliminary support of NT/2000 and what else I forgot.
+With a focus on general emulation, accuracy and compatibility, it also provides:
 
-ORIGINAL TEXT
+- Running Microsoft Windows, from 3.X up to ME; with preliminary support for NT/2000
+- Japanese NEC PC-98 platform and the DOS/V command-line environment
+- Pentium Pro, Pentium II, Pentium III along the MMX instruction set
+- Voodoo Graphics 3D accelerator chipset from 3dfx Interactive
+- Printing support, either to a real or virtual printer device
 
-However, it is also a platform for running DOS applications but also run Windows 3.x, 9x and ME and software written for those versions of Windows. By adding official support for Windows 95, 98, ME emulation and acceleration, we hope that those old Windows games and applications could be enjoyed or used once more. Moreover, DOSBox-X adds support for DOS/V and NEC PC-98 emulations so that you can play DOS/V and PC-98 games with it.
 
-Compared with DOSBox, DOSBox-X focuses more on general emulation and accuracy. In order to help running DOS games and applications, Windows 3.x/9x/ME, as well as for the purpose of historical preservation, testing and continued DOS developments, it is our desire to implement accurate emulation, accurate enough to [help make new DOS developments possible](https://dosbox-x.com/newdosdevelopment.html) with confidence the program will run properly on actual DOS systems. DOSBox-X includes various features for different purposes (some of them ported from other projects), which are implemented as incremental changes since it was forked from DOSBox SVN Daum. DOSBox-X provides many ways to tweak and configure the DOS virtual machine, as we believe a better way to emulate the DOS platform is to give users all the options they need to emulate everything from the original IBM PC system all the way up to late 1990's configuration, whatever it takes to get your game or software package to run. Our goal is to eventually make DOSBox-X a complete emulation package that covers all pre-2000 DOS and Windows 9x based system scenarios, including peripherals, motherboards, CPUs, and all manner of hardware that was made for PC hardware of that time.
+TODO here some sentence followed with less major features, with GUI stuff separated
 
-Please check out the [DOSBox-X homepage](https://dosbox-x.com) for common packages of the latest release for the supported platforms, as well as screenshots of some DOS programs and games running in DOSBox-X. Also see the [INSTALL](INSTALL.md) page for DOSBox-X installation instructions and other packages, and the [Releases](https://github.com/joncampbell123/dosbox-x/releases) page for archives of all released DOSBox-X versions. For more information about DOSBox-X, such as setting up and running DOSBox-X including its usage tips, please read the user guide in the [DOSBox-X Wiki](https://dosbox-x.com/wiki). Steps for building the source code can be found in the [BUILD](BUILD.md) page.
+- IDE interface, FAT32 file system, long file names
+- GUI drop-down menu and built-in graphical configuration tool
+- Save and load state support (with up to 100 save slots + save files)
+- Fully translatable user interfaces (with language files available)
+- Better support and compatibility with DOS applications
+- Support for more DOS commands and built-in external tools
+- Support for different ways to customize the internal Z: drive
+- Support for pixel-perfect scaling output for improved image quality
+- Support for TrueType font (TTF) output for text-mode DOS programs
+- Support for starting programs to run on the host systems (-hostrun option)
+- Support for cue sheets with FLAC, MP3, WAV, OGG Vorbis and Opus CD-DA tracks
+- Support for FluidSynth MIDI synthesizer (with sound fonts) and MT-32 emulation
+- Support for NE2000 Ethernet for networking features and modem phone book mapping
+- Support for features such as V-Sync, overscan border and stereo swapping
 
-DOSBox-X is completely open-source and free of charge to use and distribute. It is released under the [GNU General Public License, version 2](COPYING). See also the [About DOSBox-X](https://dosbox-x.com/about.html) page for more information about DOSBox-X's goals and non-goals, along with some links to other projects.
+TODO see how these links can be integrated if useful:
 
-This project has a [Code of Conduct](CODE_OF_CONDUCT.md), please read it for general information on contributing to or getting support from the project.
 
-Brought to you by: joncampbell123 (Jonathan Campbell)
+[INSTALL](INSTALL.md), [Releases](https://github.com/joncampbell123/dosbox-x/releases), [DOSBox-X Wiki](https://dosbox-x.com/wiki), [BUILD](BUILD.md), [About DOSBox-X](https://dosbox-x.com/about.html), [GNU General Public License, version 2](COPYING), [Code of Conduct](CODE_OF_CONDUCT.md), [help make new DOS developments possible](https://dosbox-x.com/newdosdevelopment.html), [DOSBox-X homepage](https://dosbox-x.com)
 
 
 ## Notable features
-
-Although based on the DOSBox project, DOSBox-X is now a separate project because both have their own separate schedules and development priorities. For example, the main focus of DOSBox is for running DOS games whereas DOSBox-X goes way beyond this. At this time DOSBox-X already has a great number of features that do not exist in DOSBox. Examples of such features include:
-
-* GUI drop-down menu and built-in graphical configuration tool
-
-* Save and load state support (with up to 100 save slots + save files)
-
-* NEC PC-98, AX, DOS/V emulation and Chinese/Japanese/Korean support
-
-* Fully translatable user interfaces (with language files available)
-
-* Better support and compatibility with DOS applications
-
-* Support for more DOS commands and built-in external tools
-
-* Support for different ways to customize the internal Z: drive
-
-* Support for CPU types like Pentium Pro, II, III and MMX instructions
-
-* Support for IDE interfaces and improved Windows 3.x/9x emulation
-
-* Support for long filenames and FAT32 disk images (DOS 7+ features)
-
-* Support for pixel-perfect scaling output for improved image quality
-
-* Support for TrueType font (TTF) output for text-mode DOS programs
-
-* Support for printing features, either to a real or to a virtual printer
-
-* Support for starting programs to run on the host systems (-hostrun option)
-
-* Support for 3dfx Voodoo chip and Glide emulation (including Glide wrapper)
-
-* Support for cue sheets with FLAC, MP3, WAV, OGG Vorbis and Opus CD-DA tracks
-
-* Support for FluidSynth MIDI synthesizer (with sound fonts) and MT-32 emulation
-
-* Support for NE2000 Ethernet for networking features and modem phone book mapping
-
-* Support for features such as V-Sync, overscan border and stereo swapping
-
-* Plus many more..
 
 While the vast majority of features in DOSBox-X are cross-platform, DOSBox-X does also have several notable platform-dependent features, such as Direct3D output and support for automatic drive mounting on the Windows platform. These features cannot be easily ported to other platforms. More information about DOSBox-X's features can be found in [DOSBox-X’s Feature Highlights](https://dosbox-x.com/wiki/DOSBox%E2%80%90X%E2%80%99s-Feature-Highlights) page in the [DOSBox-X Wiki](https://dosbox-x.com/wiki).
 
