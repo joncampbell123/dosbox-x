@@ -2040,6 +2040,7 @@ template <const unsigned int renderMode,typename vram_t,const unsigned int pixw,
 	const vram_t* vidmem = (const vram_t*)(vga.tandy.draw_base + ((vidstart*sizeof(vram_t))&vram_mask));
 	uint8_t * draw=(uint8_t *)TempLine;
 	uint32_t mask1, mask2;
+	bool extendline;
 	uint32_t bg, fg;
 	Bits font_addr;
 	uint8_t font;
@@ -2049,15 +2050,19 @@ template <const unsigned int renderMode,typename vram_t,const unsigned int pixw,
 		uint8_t attrib = vidmem[cx*2+1]&0xffu;
 		VGA_TEXT_Herc_Draw_Attribute<renderMode,color>(fg,bg,attrib,attrmask);
 		font=VGA_TEXT_Herc_Draw_FontLookup<renderMode,vram_t>(chr,attrib,(unsigned int)line);
+		extendline = false;
 
 		if (renderMode == HERCRENDER_HGC_RAMFONT48 && !color && (vga.herc.underline&0xf) == line && (attrib & 0x10)) { // underline
 			mask1 = mask2 = FontMask[attrib >> 7];
+			extendline = true;
 		}
 		else if (renderMode == HERCRENDER_HGC_RAMFONT48 && !color && (vga.herc.strikethrough&0xf) == line && (attrib & 0x20)) { // strikethrough
 			mask1 = mask2 = FontMask[attrib >> 7];
+			extendline = true;
 		}
 		else if (renderMode != HERCRENDER_HGC_RAMFONT48 && !color && ((Bitu)(vga.crtc.underline_location&0x1f)==line) && ((attrib&0x07)==0x1)) { // underline
 			mask1 = mask2 = FontMask[attrib >> 7];
+			extendline = true;
 		}
 		else {
 			mask1=TXT_Font_Table[font>>4] & FontMask[attrib >> 7]; // blinking
@@ -2066,7 +2071,7 @@ template <const unsigned int renderMode,typename vram_t,const unsigned int pixw,
 
 		((uint32_t*)draw)[0]=(fg&mask1) | (bg&~mask1);
 		((uint32_t*)draw)[1]=(fg&mask2) | (bg&~mask2);
-		if (pixw == 9/*template compile time*/) draw[8] = ((chr&0xE0) == 0xC0/*C0h-DFh*/) ? draw[7] : (uint8_t)bg;
+		if (pixw == 9/*template compile time*/) draw[8] = ((chr&0xE0) == 0xC0/*C0h-DFh*/ || extendline) ? draw[7] : (uint8_t)bg;
 		draw += pixw;
 	}
 
