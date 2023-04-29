@@ -1193,9 +1193,11 @@ Bitu read_herc_status(Bitu /*port*/,Bitu /*iolen*/) {
 
 	switch (hercCard) {
 		case HERC_GraphicsCardPlus:
+			retval &= 0x8F;
 			retval |= 0x10;
 			break;
 		case HERC_InColor:
+			retval &= 0x8F;
 			retval |= 0x50;
 			break;
 		default:
