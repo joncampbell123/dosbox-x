@@ -13,29 +13,39 @@ The DOSBox-X project is brought to you and led by Jonathan Campbell ([joncampbel
 
 With a focus on general emulation, accuracy and compatibility, it also provides:
 
-- Running Microsoft Windows, from 3.X up to ME; with preliminary support for NT/2000
+- Running Microsoft Windows, from 3.X up to ME; experimental support for NT/2000
 - Japanese NEC PC-98 platform and the DOS/V command-line environment
-- Pentium Pro, Pentium II, Pentium III along the MMX instruction set
+- Pentium Pro, II and III processors support along MMX instruction set
 - Voodoo Graphics 3D accelerator chipset from 3dfx Interactive
 - Printing support, either to a real or virtual printer device
 
 
 TODO here some sentence followed with less major features, with GUI stuff separated
 
-- IDE interface, FAT32 file system, long file names
-- GUI drop-down menu and built-in graphical configuration tool
-- Save and load state support (with up to 100 save slots + save files)
-- Fully translatable user interfaces (with language files available)
-- Better support and compatibility with DOS applications
-- Support for more DOS commands and built-in external tools
-- Support for different ways to customize the internal Z: drive
-- Support for pixel-perfect scaling output for improved image quality
-- Support for TrueType font (TTF) output for text-mode DOS programs
-- Support for starting programs to run on the host systems (-hostrun option)
+Hardware:
 - Support for cue sheets with FLAC, MP3, WAV, OGG Vorbis and Opus CD-DA tracks
 - Support for FluidSynth MIDI synthesizer (with sound fonts) and MT-32 emulation
 - Support for NE2000 Ethernet for networking features and modem phone book mapping
+- IDE interface, FAT32 file system, long file names
+
+UI:
+
+- Menu-driven user interface and integrated graphical configuration tool
+- Support of save states ~~Save and load state support (with up to 100 save slots + save files)~~
+- Fully translatable user interfaces (with language files available)
+- Support for pixel-perfect scaling output for improved image quality
+- Support for TrueType font (TTF) output for text-mode DOS programs
 - Support for features such as V-Sync, overscan border and stereo swapping
+
+Shell:
+
+- Support for more DOS commands and built-in external tools
+
+Unlikely:
+- Support for different ways to customize the internal Z: drive
+- Support for starting programs to run on the host systems (-hostrun option)
+- Better support and compatibility with DOS applications
+
 
 TODO see how these links can be integrated if useful:
 
