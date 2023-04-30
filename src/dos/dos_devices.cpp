@@ -930,15 +930,49 @@ void INTDC_CL10h_AH09h(uint16_t count) {
         DOS_CON->INTDC_CL10h_AH09h(count);
 }
 
+/* The CB_INT28 handler calls this callback then executes STI+HLT.
+ * This works great when called from the CON device because on return,
+ * when IRQ1 keyboard input breaks the HLT and returns to CON, this
+ * keeps CPU load down. But what if you're some DOS program that
+ * likes to call INT 28h a lot just to appease some multitasking OS
+ * or NetWare servers? INT 28h will block until any interrupt
+ * happens whether or not pending keyboard data is waiting for the
+ * CON device. Usually it's the regular tick of IRQ0 that finally
+ * breaks HLT, but that's only at 18.2 ticks/sec and some programs
+ * like the Pacific C freeware compiler like to call INT 28h a lot
+ * before processing keyboard input. So to avoid stalls in that
+ * case, INT 28h will use STI+HLT only once. The CON driver will
+ * set that flag every time it calls it and then set it again when
+ * it completes to allow one more STI+HLT should external DOS
+ * programs call INT 28h. */
+bool INT28_AllowOnce = true;
+Bitu INT28_HANDLER(void) {
+	bool skip = false;
+
+	if (INT28_AllowOnce) {
+		INT28_AllowOnce = false;
+	}
+	else {
+		skip = true;
+	}
+
+	if (skip) {
+		/* skip STI+HLT */
+		reg_ip += 2;
+	}
+
+	return CBRET_NONE;
+}
+
 Bitu INT29_HANDLER(void) {
-    if (DOS_CON != NULL) {
-        unsigned char b = reg_al;
-        uint16_t sz = 1;
+	if (DOS_CON != NULL) {
+		unsigned char b = reg_al;
+		uint16_t sz = 1;
 
-        DOS_CON->Write(&b,&sz);
-    }
+		DOS_CON->Write(&b,&sz);
+	}
 
-    return CBRET_NONE;
+	return CBRET_NONE;
 }
 
 extern bool dos_kernel_disabled;

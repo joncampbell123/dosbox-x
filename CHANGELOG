@@ -1,4 +1,9 @@
 Next:
+  - When the DOS IDLE API is enabled (by default), limit STI+HLT to
+    occur on INT 28h only once after any call to read the CON device
+    or call to BIOS INT 16h to read the keyboard. This fixes stalls
+    and sluggish input problems with programs that like to call INT 28h
+    often like the Pacific C compiler PPD IDE interface. (joncampbell123).
   - Hercules InColor machine type: Fixed attribute and RAMFONT handling
     of 48K RAMFONT mode and added planar text rendering. (joncampbell123).
   - Write BIOS data area fields for number of rows, char height, etc.

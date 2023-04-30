@@ -1178,6 +1178,7 @@ extern void IME_SetEnable(int state);
 
 extern bool DOS_BreakFlag;
 extern bool DOS_BreakConioFlag;
+extern bool INT28_AllowOnce;
 
 bool int16_unmask_irq1_on_read = true;
 bool int16_ah_01_cf_undoc = true;
@@ -1196,6 +1197,7 @@ Bitu INT16_Handler(void) {
             return CBRET_NONE;
         }
 
+        INT28_AllowOnce = true;
         if ((get_key(temp)) && (!IsEnhancedKey(temp))) {
             /* normal key found, return translated key in ax */
             reg_ax=temp;
@@ -1215,6 +1217,7 @@ Bitu INT16_Handler(void) {
             return CBRET_NONE;
         }
 
+        INT28_AllowOnce = true;
         if (get_key(temp)) {
             if (!IS_PC98_ARCH && ((temp&0xff)==0xf0) && (temp>>8)) {
                 /* special enhanced key, clear low part before returning key */
@@ -1232,6 +1235,7 @@ Bitu INT16_Handler(void) {
         if (int16_unmask_irq1_on_read)
             PIC_SetIRQMask(1,false); /* unmask keyboard */
 
+        INT28_AllowOnce = true;
         for (;;) {
             if (check_key(temp)) {
                 if (!IsEnhancedKey(temp)) {
@@ -1269,6 +1273,7 @@ Bitu INT16_Handler(void) {
          *
          * TODO: If you run EDIT.COM on real MS-DOS, does the same problem come up? */
 
+        INT28_AllowOnce = true;
         if (!check_key(temp)) {
             CALLBACK_SZF(true);
         } else {
