@@ -6382,6 +6382,8 @@ void ChooseRenderOnDemand(void) {
 		vga_render_on_demand = true;
 	else if (IS_PC98_ARCH && (pc98_gdc_vramop & (1u << VOPBIT_VGA))/*PC-9821 256-color mode*/)
 		vga_render_on_demand = true;
+	else if (machine == MCH_MDA || machine == MCH_HERC) /* I don't believe raster effects are used for MDA and all variants of Hercules cards text or otherwise */
+		vga_render_on_demand = true;
 	else
 		vga_render_on_demand = false;
 
