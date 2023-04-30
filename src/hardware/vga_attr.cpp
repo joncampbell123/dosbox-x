@@ -41,6 +41,13 @@ static const uint8_t InColorRGBI[16] = {
 	0x3C,0x3D,0x3E,0x3F
 };
 
+static const uint8_t InColorRGBIMono[16] = {
+	0x00,0x07,0x07,0x07,
+	0x07,0x07,0x07,0x07,
+	0x38,0x3F,0x3F,0x3F,
+	0x3F,0x3F,0x3F,0x3F
+};
+
 EGAMonitorMode egaMonitorMode(void) {
 	return currentMonitorMode;
 }
@@ -159,13 +166,12 @@ void VGA_ATTR_SetPalette(uint8_t index, uint8_t val) {
 		// with whatever random garbage happened to exist in the hardware palette, and I don't think such a
 		// program would let that stand in that kind of corporate office work type software that probably cost a
 		// fair amount in it's day.
-		if (	((vga.herc.exception & 0x10) && vga.mode == M_HERC_GFX)/*graphics mode and palette enable*/ ||
-			((vga.herc.exception & 0x30) == 0x10 && vga.mode == M_HERC_TEXT/*text mode, CGA attributes and palette enable*/)) {
+		if (vga.herc.exception & 0x10)
 			VGA_DAC_CombineColor(index,vga.herc.palette[index&0xF]);
-		}
-		else {
+		else if (vga.herc.exception & 0x20)
+			VGA_DAC_CombineColor(index,InColorRGBIMono[index&0xF]);
+		else
 			VGA_DAC_CombineColor(index,InColorRGBI[index&0xF]);
-		}
 	}
 	else {
 		VGA_DAC_CombineColor(index,index);

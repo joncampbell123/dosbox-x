@@ -1957,9 +1957,9 @@ template <const unsigned int renderMode,typename vram_t> static inline uint8_t V
 template <const unsigned int renderMode,const bool color> static void VGA_TEXT_Herc_Draw_Attribute(uint32_t &fg,uint32_t &bg,const uint8_t attrib,const uint8_t attrmask) {
 	if (color/*template compile time*/) {
 		if (renderMode == HERCRENDER_HGC_RAMFONT48) {
-			/* FFFF ffff F=foreground f=char bits 11-8 thus allowing (12*256) = 3072 characters */
+			/* FFFF ffff F=~foreground f=char bits 11-8 thus allowing (12*256) = 3072 characters */
 			bg = 0;
-			fg = TXT_BG_Table[(attrib&attrmask)>>4u];
+			fg = TXT_BG_Table[(attrib>>4u)^0xF];
 		}
 		else {
 			/* LBBB FFFF L=blink or 3rd bit of background B=background F=foreground */
@@ -4439,27 +4439,19 @@ void VGA_sof_debug_video_info(void) {
 
 		if (machine == MCH_HERC) {
 			if (hercCard >= HERC_InColor) {
-				if (	((vga.herc.exception & 0x10) && vga.mode == M_HERC_GFX)/*graphics mode and palette enable*/ ||
-					((vga.herc.exception & 0x30) == 0x10 && vga.mode == M_HERC_TEXT/*text mode, CGA attributes and palette enable*/)) {
+				if (vga.herc.exception & 0x20)
+					d += sprintf(d," MONO");
+				else
 					d += sprintf(d," COLOR");
+
+				if (vga.herc.exception & 0x10)
 					d += sprintf(d," PALETTE");
-				}
-				else if (vga.herc.exception & 0x10) {
-					d += sprintf(d," COLOR");
-					d += sprintf(d," PALETTE");
-				}
-				else {
-					if (vga.herc.exception & 0x20)
-						d += sprintf(d," MONO ");
-				}
 			}
 			if (vga.herc.xMode & 1) {
-				if (vga.herc.xMode & 4) {
+				if (vga.herc.xMode & 4)
 					d += sprintf(d," RAMFONT48");
-				}
-				else {
+				else
 					d += sprintf(d," RAMFONT");
-				}
 			}
 		}
 	}
