@@ -1,4 +1,7 @@
 2023.05.01
+  - PC-98 256-color mode will also trigger the auto mode of "render on
+    demand" for performance reasons because per-scanline raster effects
+    are very unlikely in that case (joncampbell123).
   - When the DOS IDLE API is enabled (by default), limit STI+HLT to
     occur on INT 28h only once after any call to read the CON device
     or call to BIOS INT 16h to read the keyboard. This fixes stalls

@@ -6361,11 +6361,31 @@ static bool isSVGAMode(void) {
 		return true;
 
 	if (vga.mode == M_LIN8) {
+		/* 256-color SVGA modes are unlikely to use raster effects that need the per scanline rendition */
 		if (vga.draw.width >= 512 && vga.draw.height >= 384 && vga.draw.address_line_total == 1)
 			return true;
 	}
 
 	return false;
+}
+
+void ChooseRenderOnDemand(void) {
+	/* PC-98 mode: I don't believe anything in the PC-98 world ever does scanline tricks with the 256-color mode.
+	 *             The only uses of 256-color mode are Windows and a handful of games. Unlike the 8/16-color modes
+	 *             you can't doublescan it (PC-9821 port of Alone in the Dark proves this) and other tricks probably
+	 *             don't apply. As far as I know the display partitions of the NEC display controller don't work in
+	 *             256-color mode either. */
+
+	if (vga_render_on_demand_user >= 0)
+		vga_render_on_demand = vga_render_on_demand_user > 0;
+	else if (IS_VGA_ARCH && svgaCard != SVGA_None && isSVGAMode())
+		vga_render_on_demand = true;
+	else if (IS_PC98_ARCH && (pc98_gdc_vramop & (1u << VOPBIT_VGA))/*PC-9821 256-color mode*/)
+		vga_render_on_demand = true;
+	else
+		vga_render_on_demand = false;
+
+	LOG(LOG_VGAMISC,LOG_DEBUG)("Render On Demand mode is %s for RodU %d",vga_render_on_demand?"on":"off",vga_render_on_demand_user);
 }
 
 void VGA_SetupDrawing(Bitu /*val*/) {
@@ -6383,14 +6403,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
     vga.draw.render_step = 0;
     vga.draw.render_max = 1;
 
-    if (vga_render_on_demand_user >= 0)
-        vga_render_on_demand = vga_render_on_demand_user > 0;
-    else if (IS_VGA_ARCH && svgaCard != SVGA_None && isSVGAMode())
-        vga_render_on_demand = true;
-    else
-        vga_render_on_demand = false;
-
-    LOG(LOG_VGAMISC,LOG_DEBUG)("Render On Demand mode is %s for RodU %d",vga_render_on_demand?"on":"off",vga_render_on_demand_user);
+    ChooseRenderOnDemand();
 
     rawshot.render_y = 0;
     VGA_DrawRawLine = NULL;
