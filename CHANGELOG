@@ -1,4 +1,6 @@
 Next:
+  - Hercules InColor machine type: Fixed attribute and RAMFONT handling
+    of 48K RAMFONT mode and added planar text rendering. (joncampbell123).
   - Write BIOS data area fields for number of rows, char height, etc.
     for MCGA machine type in addition to EGA/VGA machine types because
     IBM technical references suggest it's there for MCGA as well.
