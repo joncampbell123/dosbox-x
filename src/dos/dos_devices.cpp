@@ -93,7 +93,7 @@ bool DOS_ExtDevice::ReadFromControlChannel(PhysPt bufptr,uint16_t size,uint16_t 
 	return false;
 }
 
-bool DOS_ExtDevice::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) { 
+bool DOS_ExtDevice::WriteToControlChannel(PhysPt bufptr,uint16_t size,uint16_t * retcode) {
 	if(ext.attribute & DeviceAttributeFlags::SupportsIoctl) {
 		// IOCTL OUTPUT
 		if((CallDeviceFunction(12, 26, (uint16_t)(bufptr >> 4), (uint16_t)(bufptr & 0x000f), size) & 0x8000) == 0) {
@@ -235,7 +235,7 @@ public:
 	device_NUL() { SetName("NUL"); };
 	virtual bool Read(uint8_t * data,uint16_t * size) {
         (void)data; // UNUSED
-		*size = 0; //Return success and no data read. 
+		*size = 0; //Return success and no data read.
 //		LOG(LOG_IOCTL,LOG_NORMAL)("%s:READ",GetName());
 		return true;
 	}
@@ -730,7 +730,7 @@ uint8_t DOS_FindDevice(char const * name) {
 		//Check validity of leading directory.
 		if(!Drives[drive]->TestDir(fullname) && !strcasecmp(name_part, "NUL")) return DOS_DEVICES; //can be invalid
 	} else name_part = fullname;
-   
+
 	char* dot = strrchr(name_part,'.');
 	if(dot) *dot = 0; //no ext checking
 
@@ -773,29 +773,52 @@ uint8_t DOS_FindDevice(char const * name) {
 	return DOS_DEVICES;
 }
 
-
 void DOS_AddDevice(DOS_Device * adddev) {
 //Caller creates the device. We store a pointer to it
 //TODO Give the Device a real handler in low memory that responds to calls
-	if (adddev == NULL) E_Exit("DOS_AddDevice with null ptr");
-	for(Bitu i = 0; i < DOS_DEVICES;i++) {
+	if (adddev == NULL) E_Exit("DOS_AddDevice() with null ptr");
+	for(Bitu i = 0; i < DOS_DEVICES; i++) {
 		if (Devices[i] == NULL){
-//			LOG_MSG("DOS_AddDevice %s (%p)\n",adddev->name,(void*)adddev);
+//			LOG_MSG("DOS_AddDevice() %s (%p)",adddev->name,(void*)adddev);
 			Devices[i] = adddev;
 			Devices[i]->SetDeviceNumber(i);
 			return;
 		}
 	}
-	E_Exit("DOS:Too many devices added");
+	E_Exit("DOS_AddDevice(): Too many devices added");
+}
+
+static void DelDeviceUpdateFiles(const char * deviceName) {
+	for (uint8_t handle = 0; handle < DOS_FILES; handle++) {
+		DOS_File* file = Files[handle];
+		if (file && !strcmp(file->name, deviceName)) {
+//			LOG_MSG("Closing %s (%p)",file->name,(void*)file);
+			/* DOS_CloseFile() takes care of bookkeeping, including updating
+			 * Files. However, we cannot allow references to remain to the
+			 * device that we are about to delete. So, we force the reference
+			 * counter to be 1. If we do not, DOS_Device::Close() may be called
+			 * by DOS_CloseFile() for a deleted device (and crash the process). */
+			file->refCtr = 1;
+			if (!DOS_CloseFile(handle, true))
+				LOG_MSG("WARNING: DOS_CloseFile() failed to close %s",deviceName);
+		}
+	}
 }
 
 void DOS_DelDevice(DOS_Device * dev) {
 // We will destroy the device if we find it in our list.
-// TODO:The file table is not checked to see the device is opened somewhere!
-	if (dev == NULL) return E_Exit("DOS_DelDevice with null ptr");
-	for (Bitu i = 0; i <DOS_DEVICES;i++) {
-		if (Devices[i] == dev) { /* NTS: The mainline code deleted by matching names??? Why? */
-//			LOG_MSG("DOS_DelDevice %s (%p)\n",dev->name,(void*)dev);
+	if (dev == NULL) return E_Exit("DOS_DelDevice() with null ptr");
+
+	/* We should match names, because neither files nor devices have a proper
+	 * ID. The address of neither DOS_File nor DOS_Device objects is a proper
+	 * ID, because the objects can be copied. Note that device names are
+	 * unique, but that separate DOS_File objects can refer to the same device.
+	 * - dbjh */
+	DelDeviceUpdateFiles(dev->name);
+
+	for (Bitu i = 0; i < DOS_DEVICES; i++) {
+		if (!strcmp(Devices[i]->name, dev->name)) {
+//			LOG_MSG("DOS_DelDevice() %s (%p)",dev->name,(void*)dev);
 			delete Devices[i];
 			Devices[i] = 0;
 			return;
@@ -804,7 +827,7 @@ void DOS_DelDevice(DOS_Device * dev) {
 
 	/* hm. unfortunately, too much code in DOSBox assumes that we delete the object.
 	 * prior to this fix, failure to delete caused a memory leak */
-	LOG_MSG("WARNING: DOS_DelDevice() failed to match device object '%s' (%p). Deleting anyway\n",dev->name,(void*)dev);
+	LOG_MSG("WARNING: DOS_DelDevice() failed to match device object '%s' (%p). Deleting anyway",dev->name,(void*)dev);
 	delete dev;
 }
 
