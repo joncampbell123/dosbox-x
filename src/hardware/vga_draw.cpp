@@ -1955,7 +1955,6 @@ template <const unsigned int renderMode,typename vram_t> static inline uint8_t V
 }
 
 template <const unsigned int renderMode,const bool color> static void VGA_TEXT_Herc_Draw_Attribute(uint32_t &fg,uint32_t &bg,const uint8_t attrib,const uint8_t attrmask) {
-	/* FIXME: The Hercules tint does not affect dark gray (color 8) and it looks wrong when shown against green or amber */
 	if (color/*template compile time*/) {
 		if (renderMode == HERCRENDER_HGC_RAMFONT48) {
 			/* FFFF ffff F=foreground f=char bits 11-8 thus allowing (12*256) = 3072 characters */
