@@ -978,7 +978,7 @@ void VGA_Reset(Section*) {
 
     if (vga_render_on_demand_user > 0)
         LOG_MSG("'scanline render on demand' option is enabled. If this option breaks the game or demo effects or display, set the option to false.");
-    else
+    else if (vga_render_on_demand_user < 0)
         LOG_MSG("The 'scanline render on demand' option is available and may provide a modest boost in video render performance if set to true.");
 
     vga_memio_delay_ns = section->Get_int("vmemdelay");
