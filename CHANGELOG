@@ -1,4 +1,4 @@
-Next:
+2023.05.01
   - When the DOS IDLE API is enabled (by default), limit STI+HLT to
     occur on INT 28h only once after any call to read the CON device
     or call to BIOS INT 16h to read the keyboard. This fixes stalls
