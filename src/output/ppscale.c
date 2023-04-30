@@ -22,7 +22,7 @@ int pp_getscale /* calculate integer scales for pixel-perfect magnification */
 	double par,            /* input pixel aspect ratio          */
 	int    wout, int hout, /* output  dimensions                */
 	double parweight,      /* weight of PAR in scale estimation */
-	int    *sx,  int *sy   /* horisontal and vertical scales    */
+	int    *sx,  int *sy   /* horizontal and vertical scales    */
 ) /* returns -1 on error and 0 on success */
 {	int    sxc, syc, sxm, sym;   /* current and maximum x and y scales     */
 	int    exactpar;             /* whether to enforce exact aspect ratio  */
@@ -83,19 +83,19 @@ int pp_getscale /* calculate integer scales for pixel-perfect magnification */
 	return 0;
 }
 
-/* RAT: the many scalar arguments are not unifined into one of more stucts */
+/* RAT: the many scalar arguments are not unified into one of more structs */
 /*      because doing so somehow thwarts GCC's O3 optimisations, and the   */
-/*      alrorithm works up to 30% slower.                                  */
+/*      algorithm works up to 30% slower.                                  */
 int pp_scale /* magnify an image in a pixel-perfect manner */
 (	char* simg, int spitch, /* source image and pitch           */
 	int   *rx,  int *ry,    /* location and                     */
 	int   *rw,  int *rh,    /* size of the rectangle to process */
 	char* dimg, int dpitch, /* destination image and pitch      */
 	int   bypp,             /* bytes per pixel                  */
-	int   sx,   int sy      /* horisontal and vertical scales   */
+	int   sx,   int sy      /* horizontal and vertical scales   */
 ) /* return -1 on error and 0 on success */
 {	int    x,  y,  /* coordinate of a source pixel             */
-	      ix, iy,  /* horisontal and vertical subpixel indices */
+	      ix, iy,  /* horizontal and vertical subpixel indices */
 	      b,       /* index of byte in a source pixel          */
 	      drowsz;  /* destination row size in bytes            */
 
@@ -141,7 +141,7 @@ int pp_scale /* magnify an image in a pixel-perfect manner */
 		srow = srow + spitch; /* next source row */
 	}
 
-	/* return the output rectagle: */
+	/* return the output rectangle: */
 	*rx *= sx; * ry *= sy; *rw *= sx; *rh *= sy;
 
 	return 0;

@@ -270,7 +270,7 @@ void pc98_port6A_command_write(unsigned char b) {
 /* Port 0x68 command handling */
 void pc98_port68_command_write(unsigned char b) {
     switch (b) {
-        case 0x00: // text screeen attribute bit 4 meaning: 0=vertical line
+        case 0x00: // text screen attribute bit 4 meaning: 0=vertical line
         case 0x01: //                                       1=simple graphic
             if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
             pc98_attr4_graphic = !!(b&1);

@@ -147,7 +147,7 @@ static void setinterp(double xcenter, double ycenter, double percentage_inside, 
     factors[0] = 255-factors[1]-factors[2]-factors[3];/*(unsigned char)((d0/totaldistance_i*percentage_inside)*255+.5);*/
 }
 
-/* Wanna have gcc fun? #define this as a macro, get a fast machine and go fetch a coffe or two. See how it is used to get an idea why.
+/* Wanna have gcc fun? #define this as a macro, get a fast machine and go fetch a coffee or two. See how it is used to get an idea why.
    I aborted compilation after 5 minutes of CPU time on an Athlon64 3700+. */
 static int swap_bits(int num, int bit1, int bit2) {
     return ((num & ~(bit1|bit2))|((num&bit1)?bit2:0)|((num&bit2)?bit1:0));

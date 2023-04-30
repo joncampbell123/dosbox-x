@@ -18,7 +18,7 @@
 **  - fixed BRDY flag implementation.
 **
 ** 24-07-2003 Jarek Burczynski, Frits Hilderink:
-**  - fixed delault value for control2 in YM_DELTAT_ADPCM_Reset
+**  - fixed default value for control2 in YM_DELTAT_ADPCM_Reset
 **
 ** 22-07-2003 Jarek Burczynski, Frits Hilderink:
 **  - fixed external memory support

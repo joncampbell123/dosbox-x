@@ -90,7 +90,7 @@ void CSerialLog::transmitByte(uint8_t val, bool first) {
 
 void CSerialLog::setBreak(bool value) {
     (void)value;//UNUSED
-	//LOG_MSG("UART 0x%x: Break toggeled: %d", base, value);
+	//LOG_MSG("UART 0x%x: Break toggled: %d", base, value);
 }
 
 /*****************************************************************************/
