@@ -2031,6 +2031,7 @@ template <const unsigned int renderMode,typename vram_t,const unsigned int pixw,
 	const vram_t* vidmem = (const vram_t*)(vga.tandy.draw_base + ((vidstart*sizeof(vram_t))&vram_mask));
 	const uint8_t blinkshift = (renderMode == HERCRENDER_HGC_RAMFONT48) ? 6 : 7;
 	uint8_t * draw=(uint8_t *)TempLine;
+	uint32_t pfontbold = 0;
 	uint32_t mask1, mask2;
 	bool extendline;
 	uint32_t bg, fg;
@@ -2081,6 +2082,16 @@ template <const unsigned int renderMode,typename vram_t,const unsigned int pixw,
 
 				if (renderMode == HERCRENDER_HGC_RAMFONT48) {
 					if (!color) fg = bg ^ 0x0F0F0F0F;
+					if ((attrib&0x80) && !vga.draw.blinking) {
+						/* "Boldface" which I have no documentation on other than the name of the bit. This is a guess how it works. */
+						const uint32_t sav = (font & 0x01010101) << 7u;
+						font |= ((font >> 1u) & 0x7F7F7F7F) | pfontbold;
+						extendline = true;
+						pfontbold = sav;
+					}
+					else {
+						pfontbold = 0;
+					}
 				}
 
 				for (unsigned int b=0;b < 4;b++) {
@@ -2102,7 +2113,13 @@ template <const unsigned int renderMode,typename vram_t,const unsigned int pixw,
 			}
 		}
 
-		if (pixw == 9/*template compile time*/) draw[8] = ((chr&0xE0) == 0xC0/*C0h-DFh*/ || extendline) ? draw[7] : (uint8_t)bg;
+		if (renderMode == HERCRENDER_HGC_RAMFONT48 && pixw == 9 && (attrib&0x80) && !vga.draw.blinking) {
+			draw[8] = ((pfontbold >> 7) & 1) + ((pfontbold >> (15-1)) & 2) + ((pfontbold >> (23-2)) & 4) + ((pfontbold >> (31-3)) & 8);
+			pfontbold = 0;
+		}
+		else if (pixw == 9/*template compile time*/) {
+			draw[8] = ((chr&0xE0) == 0xC0/*C0h-DFh*/ || extendline) ? draw[7] : (uint8_t)bg;
+		}
 		draw += pixw;
 	}
 
