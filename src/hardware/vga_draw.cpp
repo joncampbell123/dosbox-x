@@ -1938,26 +1938,30 @@ enum {
 	HERCRENDER_HGC_RAMFONT48
 };
 
-template <const unsigned int renderMode,typename vram_t> static inline uint8_t VGA_TEXT_Herc_Draw_FontLookup(const uint8_t chr,const uint8_t attrib,const unsigned int line) {
+template <const unsigned int renderMode,typename vram_t> static inline vram_t VGA_TEXT_Herc_Draw_FontLookup(const uint8_t chr,const uint8_t attrib,const unsigned int line) {
 	if (renderMode == HERCRENDER_HGC_RAMFONT48) {
 		unsigned int offset = ((chr+((attrib&0xFu)<<8u))*16u)+line+0x4000u;
 		if (offset >= 0x10000u) offset -= 0xC000u;
-		const vram_t* vidmem = (const vram_t*)vga.mem.linear + (offset&0xFFFFu);
-		return (uint8_t)(*vidmem & 0xFFu);
+		return *((const vram_t*)vga.mem.linear + (offset&0xFFFFu));
 	}
 	else if (renderMode == HERCRENDER_HGC_RAMFONT) {
 		const unsigned int offset = (chr*16u)+line+0x4000u;
-		const vram_t* vidmem = (const vram_t*)vga.mem.linear + (offset&0xFFFFu);
-		return (uint8_t)(*vidmem & 0xFFu);
+		return *((const vram_t*)vga.mem.linear + (offset&0xFFFFu));
 	}
 
-	return vga.draw.font_tables[0][chr*32+line];
+	if (sizeof(vram_t) == 1)
+		return vga.draw.font_tables[0][chr*32+line];
+	else
+		return ExpandTable[vga.draw.font_tables[0][chr*32+line]];
 }
+
+static uint32_t herc_ramfont48_bright[2];
+static uint32_t herc_ramfont48_reverse[2];
 
 template <const unsigned int renderMode,const bool color> static void VGA_TEXT_Herc_Draw_Attribute(uint32_t &fg,uint32_t &bg,const uint8_t attrib,const uint8_t attrmask) {
 	if (color/*template compile time*/) {
 		if (renderMode == HERCRENDER_HGC_RAMFONT48) {
-			/* FFFF ffff F=~foreground f=char bits 11-8 thus allowing (12*256) = 3072 characters */
+			/* FFFF ffff F=foreground f=char bits 11-8 thus allowing (12*256) = 3072 characters */
 			bg = 0;
 			fg = TXT_BG_Table[(attrib>>4u)^0xF];
 		}
@@ -1978,36 +1982,24 @@ template <const unsigned int renderMode,const bool color> static void VGA_TEXT_H
 			 * f=char bits 11-8 thus allowing (12*256) = 3072 characters */
 			switch ((attrib>>6)/*0x00,0x40,0x80,0xC0->0,1,2,3*/+(vga.draw.blinking?0:4)) {
 				case 0+0: /* blink on, -bright -blink */
+				case 1+0: /* blink on, -bright +blink */
 					bg = TXT_BG_Table[0];
 					fg = TXT_FG_Table[7];
 					break;
-				case 1+0: /* blink on, -bright +blink */
-					bg = TXT_BG_Table[0];
-					fg = TXT_FG_Table[7] & FontMask[1];
-					break;
 				case 2+0: /* blink on, +bright -blink */
-					bg = TXT_BG_Table[0];
-					fg = TXT_FG_Table[15];
-					break;
 				case 3+0: /* blink on, +bright +blink */
-					bg = TXT_BG_Table[0];
-					fg = TXT_FG_Table[15] & FontMask[1];
+					bg = herc_ramfont48_bright[0];//TXT_BG_Table[8];
+					fg = herc_ramfont48_bright[1];//TXT_FG_Table[7];
 					break;
 				case 4+0: /* blink off, -bold -inverse */
+				case 4+2: /* blink off, +bold -inverse */
 					bg = TXT_BG_Table[0];
 					fg = TXT_FG_Table[7];
 					break;
 				case 4+1: /* blink off, -bold +inverse */
-					bg = TXT_BG_Table[7];
-					fg = TXT_FG_Table[0];
-					break;
-				case 4+2: /* blink off, +bold -inverse */
-					bg = TXT_BG_Table[0];
-					fg = TXT_FG_Table[15]; /* FIXME: what does "boldface" mean? Foreground==15? Or the output is current pixel OR previous pixel of font? */
-					break;
 				case 4+3: /* blink off, +bold +inverse */
-					bg = TXT_BG_Table[15];
-					fg = TXT_FG_Table[0]; /* FIXME: what does "boldface" mean? Foreground==15? Or the output is current pixel OR previous pixel of font? */
+					bg = herc_ramfont48_reverse[0];//TXT_BG_Table[15];
+					fg = herc_ramfont48_reverse[1];//TXT_FG_Table[0];
 					break;
 				default:/* should not happen */
 					bg = fg = 0;
@@ -2043,34 +2035,73 @@ template <const unsigned int renderMode,typename vram_t,const unsigned int pixw,
 	bool extendline;
 	uint32_t bg, fg;
 	Bits font_addr;
-	uint8_t font;
+	vram_t font;
+
+	if (hercCard == HERC_InColor) {
+		herc_ramfont48_bright[0] = TXT_FG_Table[8];
+		herc_ramfont48_bright[1] = TXT_FG_Table[7];
+		herc_ramfont48_reverse[0] = TXT_FG_Table[15];
+		herc_ramfont48_reverse[1] = TXT_FG_Table[7];
+	}
+	else {
+		herc_ramfont48_bright[0] = TXT_FG_Table[0];
+		herc_ramfont48_bright[1] = TXT_FG_Table[15];
+		herc_ramfont48_reverse[0] = TXT_FG_Table[7];
+		herc_ramfont48_reverse[1] = TXT_FG_Table[0];
+	}
 
 	for (Bitu cx=0;cx<vga.draw.blocks;cx++) {
 		uint8_t chr = vidmem[cx*2]&0xffu;
 		uint8_t attrib = vidmem[cx*2+1]&0xffu;
 		VGA_TEXT_Herc_Draw_Attribute<renderMode,color>(fg,bg,attrib,attrmask);
-		font=VGA_TEXT_Herc_Draw_FontLookup<renderMode,vram_t>(chr,attrib,(unsigned int)line);
 		extendline = false;
 
 		if (renderMode == HERCRENDER_HGC_RAMFONT48 && !color && (vga.herc.underline&0xf) == line && (attrib & 0x10)) { // underline
 			mask1 = mask2 = FontMask[(attrib >> blinkshift) & 1];
+			((uint32_t*)draw)[0]=(fg&mask1) | (bg&~mask1);
+			((uint32_t*)draw)[1]=(fg&mask2) | (bg&~mask2);
 			extendline = true;
 		}
 		else if (renderMode == HERCRENDER_HGC_RAMFONT48 && !color && (vga.herc.strikethrough&0xf) == line && (attrib & 0x20)) { // strikethrough
 			mask1 = mask2 = FontMask[(attrib >> blinkshift) & 1];
+			((uint32_t*)draw)[0]=(fg&mask1) | (bg&~mask1);
+			((uint32_t*)draw)[1]=(fg&mask2) | (bg&~mask2);
 			extendline = true;
 		}
 		else if (renderMode != HERCRENDER_HGC_RAMFONT48 && !color && ((Bitu)(vga.crtc.underline_location&0x1f)==line) && ((attrib&0x07)==0x1)) { // underline
 			mask1 = mask2 = FontMask[(attrib >> blinkshift) & 1];
+			((uint32_t*)draw)[0]=(fg&mask1) | (bg&~mask1);
+			((uint32_t*)draw)[1]=(fg&mask2) | (bg&~mask2);
 			extendline = true;
 		}
 		else {
-			mask1=TXT_Font_Table[font>>4] & FontMask[(attrib >> blinkshift) & 1]; // blinking
-			mask2=TXT_Font_Table[font&0xf] & FontMask[(attrib >> blinkshift) & 1];
+			font=VGA_TEXT_Herc_Draw_FontLookup<renderMode,vram_t>(chr,attrib,(unsigned int)line);
+			if (sizeof(vram_t) > 1) { // Strange planar InColor font RAM mode
+				uint32_t f1 = 0,f2 = 0,fm = 0x01010101 & FontMask[(attrib >> blinkshift) & 1];
+
+				if (renderMode == HERCRENDER_HGC_RAMFONT48) {
+					if (!color) fg = bg ^ 0x0F0F0F0F;
+				}
+
+				for (unsigned int b=0;b < 4;b++) {
+					mask1=TXT_Font_Table[(font>>4)&0xF];
+					mask2=TXT_Font_Table[ font    &0xF];
+					f1 |= ((fg&mask1) | (bg&~mask1))&fm;
+					f2 |= ((fg&mask2) | (bg&~mask2))&fm;
+					font >>= 8u;
+					fm <<= 1u;
+				}
+				((uint32_t*)draw)[0]=f1;
+				((uint32_t*)draw)[1]=f2;
+			}
+			else {
+				mask1=TXT_Font_Table[font>>4] & FontMask[(attrib >> blinkshift) & 1]; // blinking
+				mask2=TXT_Font_Table[font&0xf] & FontMask[(attrib >> blinkshift) & 1];
+				((uint32_t*)draw)[0]=(fg&mask1) | (bg&~mask1);
+				((uint32_t*)draw)[1]=(fg&mask2) | (bg&~mask2);
+			}
 		}
 
-		((uint32_t*)draw)[0]=(fg&mask1) | (bg&~mask1);
-		((uint32_t*)draw)[1]=(fg&mask2) | (bg&~mask2);
 		if (pixw == 9/*template compile time*/) draw[8] = ((chr&0xE0) == 0xC0/*C0h-DFh*/ || extendline) ? draw[7] : (uint8_t)bg;
 		draw += pixw;
 	}
