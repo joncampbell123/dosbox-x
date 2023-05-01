@@ -11,46 +11,48 @@ It is open-source and released under the [GNU General Public License, version 2]
 
 The DOSBox-X project is brought to you and led by Jonathan Campbell ([joncampbell123](https://github.com/joncampbell123)).
 
-With a focus on general emulation, accuracy and compatibility, it also provides:
+Focusing on general emulation, accuracy and compatibility, DOSBox-X offers the following:
 
-- Running Microsoft Windows, from 3.X up to ME; experimental support for NT/2000
-- Japanese NEC PC-98 platform and the DOS/V command-line environment
-- Pentium Pro, II and III processors support along MMX instruction set
-- Voodoo Graphics 3D accelerator chipset from 3dfx Interactive
+### Emulated hardware and technologies
+
+- Amstrad, AX, Fujitsu FM Towns, NEC PC-9801, NEC PC-9821, IBM PC, IBM PCjr, Tandy.
+- 3dfx Voodoo, Hercules Graphics Card, JEGA, S3 Trio/Virge/Vision, Tseng Labs ET Series.
+- MDA, Hercules, CGA (B/W, CVBS, RGB), EGA, MCGA, VGA, Tandy, VESA extensions.
+- Intel CPUs: 8086, 80186, 286, 386, 486, Pentium [Pro, II, III] + MMX instruction set.
+
+### Quality of life improvements
+
 - Printing support, either to a real or virtual printer device
+- TrueType Font (TTF) output for text-mode DOS software
+- Extended  support of DOS commands and built-in utilities
+- Overscan, pixel-perfect scaling, stereo swapping, V-Sync
+- Cue sheets support (FLAC, MP3, OGG Vorbis, Opus, WAV)
+- Support of save states
 
+### Supported operating systems
 
-TODO here some sentence followed with less major features, with GUI stuff separated
+DOSBox-X is able to run legacy version of Microsoft Windows, ranging from 3.X up to ME.
+
+Furthermore, ongoing effort brought up experimental support for NT, from 3.X up to 2000.
+
+# TODO
 
 Hardware:
-- Support for cue sheets with FLAC, MP3, WAV, OGG Vorbis and Opus CD-DA tracks
 - Support for FluidSynth MIDI synthesizer (with sound fonts) and MT-32 emulation
 - Support for NE2000 Ethernet for networking features and modem phone book mapping
 - IDE interface, FAT32 file system, long file names
-
-UI:
-
+- DOS/V command-line environment, with Chinese, Japanese and Korean support.
 - Menu-driven user interface and integrated graphical configuration tool
-- Support of save states ~~Save and load state support (with up to 100 save slots + save files)~~
 - Fully translatable user interfaces (with language files available)
-- Support for pixel-perfect scaling output for improved image quality
-- Support for TrueType font (TTF) output for text-mode DOS programs
-- Support for features such as V-Sync, overscan border and stereo swapping
-
-Shell:
-
-- Support for more DOS commands and built-in external tools
-
-Unlikely:
-- Support for different ways to customize the internal Z: drive
-- Support for starting programs to run on the host systems (-hostrun option)
-- Better support and compatibility with DOS applications
 
 
-TODO see how these links can be integrated if useful:
-
+**TODO see how these links can be integrated if useful:**
 
 [INSTALL](INSTALL.md), [Releases](https://github.com/joncampbell123/dosbox-x/releases), [DOSBox-X Wiki](https://dosbox-x.com/wiki), [BUILD](BUILD.md), [About DOSBox-X](https://dosbox-x.com/about.html), [GNU General Public License, version 2](COPYING), [Code of Conduct](CODE_OF_CONDUCT.md), [help make new DOS developments possible](https://dosbox-x.com/newdosdevelopment.html), [DOSBox-X homepage](https://dosbox-x.com)
+
+---
+---
+---
 
 
 ## Notable features
