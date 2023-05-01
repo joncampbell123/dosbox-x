@@ -91,8 +91,7 @@ jobs:
         shell: bash
         run: |
           top=`pwd`
-          #$top/vs/tool/unzip.exe -o dosbox-x-vsbuild-win32-*.zip bin/Win32/Release/dosbox-x.*
-          $top/vs/tool/unzip.exe -o dosbox-x-vsbuild-win32-20230401005056.zip bin/Win32/Release/dosbox-x.*
+          $top/vs/tool/unzip.exe -o dosbox-x-vsbuild-win32-*.zip bin/Win32/Release/dosbox-x.*
           cp $top/package/dosbox-x.ref $top/hxdos.cfg
           echo mount b ..>>$top/hxdos.cfg
           echo "echo success>b:\SUCCESS.TXT">>$top/hxdos.cfg
