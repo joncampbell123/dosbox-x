@@ -1745,7 +1745,7 @@ SET [變數名稱=[字串]]
 
 .
 :SHELL_CMD_IF_HELP
-批次檔的條件語句.
+批次檔的條件敘述.
 
 .
 :SHELL_CMD_IF_HELP_LONG
