@@ -1,7 +1,13 @@
 2023.05.01
+  - IMGMAKE will choose LBA partition types for 2GB or larger disk
+    images, but the user can also use -chs and -lba options to override
+    that choice. The CHS or LBA partition types do matter because it
+    affects which version of INT 13h is used by Windows 98/ME to boot up
+    and, if drive C: is in compatibility mode, at all times. (joncampbell123)
   - PC-98 256-color mode will also trigger the auto mode of "render on
     demand" for performance reasons because per-scanline raster effects
-    are very unlikely in that case (joncampbell123).
+    are very unlikely in that case, as will MDA and Hercules machine
+    types. (joncampbell123)
   - When the DOS IDLE API is enabled (by default), limit STI+HLT to
     occur on INT 28h only once after any call to read the CON device
     or call to BIOS INT 16h to read the keyboard. This fixes stalls
