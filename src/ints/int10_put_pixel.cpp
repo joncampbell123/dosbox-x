@@ -163,7 +163,7 @@ void INT10_PutPixel(uint16_t x,uint16_t y,uint8_t page,uint8_t color) {
 		if ((machine!=MCH_VGA) || (svgaCard!=SVGA_TsengET4K) ||
 				(CurMode->swidth>800)) {
 			// the ET4000 BIOS supports text output in 800x600 SVGA (Gateway 2)
-			// putpixel warining?
+			// putpixel warning?
 			break;
 		}
 	case M_EGA:
@@ -174,7 +174,7 @@ void INT10_PutPixel(uint16_t x,uint16_t y,uint8_t page,uint8_t color) {
 			IO_Write(0x3ce,0x0);IO_Write(0x3cf,color);
 			/* Enable all the set/resets */
 			IO_Write(0x3ce,0x1);IO_Write(0x3cf,0xf);
-			/* test for xorring */
+			/* test for xoring */
 			if (color & 0x80) { IO_Write(0x3ce,0x3);IO_Write(0x3cf,0x18); }
 			//Perhaps also set mode 1 
 			/* Calculate where the pixel is in video memory */

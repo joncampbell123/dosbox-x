@@ -15,20 +15,20 @@ int pp_getscale /* calculate integer scales for pixel-perfect magnification */
 	double par,            /* input pixel aspect ratio          */
 	int    wout, int hout, /* output  dimensions                */
 	double parweight,      /* weight of PAR in scale estimation */
-	int    *sx,  int *sy   /* horisontal and vertical scales    */
+	int    *sx,  int *sy   /* horizontal and vertical scales    */
 ); /* returns -1 on error and 0 on success */
 
 
-/* RAT: the many scalar arguments are not unifined into one of more stucts */
+/* RAT: the many scalar arguments are not unified into one of more structs */
 /*      because doing so somehow thwarts GCC's O3 optimisations, and the   */
-/*      alrorithm works up to 30% slower.                                  */
+/*      algorithm works up to 30% slower.                                  */
 int pp_scale /* magnify an image in a pixel-perfect manner */
 (	char* simg, int spitch, /* source image and pitch           */
 	int   *rx,  int *ry,    /* location and                     */
 	int   *rw,  int *rh,    /* size of the rectangle to process */
 	char* dimg, int dpitch, /* destination image and pitch      */
 	int   bypp,             /* bytes per pixel                  */
-	int   sx,   int sy      /* horisontal and vertical scales   */
+	int   sx,   int sy      /* horizontal and vertical scales   */
 ); /* return -1 on error and 0 on success */
 
 #endif /* PPSCALE_H */

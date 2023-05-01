@@ -257,7 +257,7 @@ void DOS_PSP::MakeNew(uint16_t mem_size) {
 	sSave(sPSP,psp_parent,dos.psp());
 	sSave(sPSP,prev_psp,0xffffffff);
 	sSave(sPSP,dos_version,0x0005);
-	/* terminate 22,break 23,crititcal error 24 address stored */
+	/* terminate 22,break 23,critical error 24 address stored */
 	SaveVectors();
 
 	/* FCBs are filled with 0 */
