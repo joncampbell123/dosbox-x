@@ -817,11 +817,13 @@ void DOS_DelDevice(DOS_Device * dev) {
 	DelDeviceUpdateFiles(dev->name);
 
 	for (Bitu i = 0; i < DOS_DEVICES; i++) {
-		if (!strcmp(Devices[i]->name, dev->name)) {
-//			LOG_MSG("DOS_DelDevice() %s (%p)",dev->name,(void*)dev);
-			delete Devices[i];
-			Devices[i] = 0;
-			return;
+		if (Devices[i] != NULL) { /* This code sets Devices[i] to NULL after delete on device name match so don't assume it's non-NULL! */
+			if (!strcmp(Devices[i]->name, dev->name)) {
+//				LOG_MSG("DOS_DelDevice() %s (%p)",dev->name,(void*)dev);
+				delete Devices[i];
+				Devices[i] = 0;
+				return;
+			}
 		}
 	}
 
