@@ -634,45 +634,45 @@ bool is_ANSI_installed(Program *shell) {
 }
 
 std::string GetPlatform(bool save);
-char *str_replace(char *orig, char *rep, char *with);
+char *str_replace(const char *orig, const char *rep, const char *with);
 const char *ParseMsg(const char *msg) {
     char str[13];
     strncpy(str, UPDATED_STR, 12);
     str[12]=0;
     if (machine != MCH_PC98) {
         if (!ansiinstalled || J3_IsJapanese()) {
-            msg = str_replace(str_replace((char *)msg, (char*)"\033[0m", (char*)""), (char*)"\033[1m", (char*)"");
+            msg = str_replace(str_replace(msg, "\033[0m", ""), "\033[1m", "");
             for (int i=1; i<8; i++) {
                 sprintf(str, "\033[3%dm", i);
-                msg = str_replace((char *)msg, str, (char*)"");
+                msg = str_replace(msg, str, "");
                 sprintf(str, "\033[4%d;1m", i);
-                msg = str_replace((char *)msg, str, (char*)"");
+                msg = str_replace(msg, str, "");
             }
         }
         Section_prop *section = static_cast<Section_prop *>(control->GetSection("dosbox"));
         std::string theme = section->Get_string("bannercolortheme");
         if (theme == "black")
-            msg = str_replace((char *)msg, (char*)"\033[44;1m", (char*)"\033[40;1m");
+            msg = str_replace(msg, "\033[44;1m", "\033[40;1m");
         else if (theme == "red")
-            msg = str_replace(str_replace((char *)msg, (char*)"\033[31m", (char*)"\033[34m"), (char*)"\033[44;1m", (char*)"\033[41;1m");
+            msg = str_replace(str_replace(msg, "\033[31m", "\033[34m"), "\033[44;1m", "\033[41;1m");
         else if (theme == "green")
-            msg = str_replace(str_replace(str_replace((char *)msg, (char*)"\033[36m", (char*)"\033[34m"), (char*)"\033[32m", (char*)"\033[36m"), (char*)"\033[44;1m", (char*)"\033[42;1m");
+            msg = str_replace(str_replace(str_replace(msg, "\033[36m", "\033[34m"), "\033[32m", "\033[36m"), "\033[44;1m", "\033[42;1m");
         else if (theme == "yellow")
-            msg = str_replace(str_replace((char *)msg, (char*)"\033[31m", (char*)"\033[34m"), (char*)"\033[44;1m", (char*)"\033[43;1m");
+            msg = str_replace(str_replace(msg, "\033[31m", "\033[34m"), "\033[44;1m", "\033[43;1m");
         else if (theme == "blue")
-            msg = str_replace((char *)msg, (char*)"\033[44;1m", (char*)"\033[44;1m");
+            msg = str_replace(msg, "\033[44;1m", "\033[44;1m");
         else if (theme == "magenta")
-            msg = str_replace(str_replace((char *)msg, (char*)"\033[31m", (char*)"\033[34m"), (char*)"\033[44;1m", (char*)"\033[45;1m");
+            msg = str_replace(str_replace(msg, "\033[31m", "\033[34m"), "\033[44;1m", "\033[45;1m");
         else if (theme == "cyan")
-            msg = str_replace(str_replace((char *)msg, (char*)"\033[36m", (char*)"\033[34m"), (char*)"\033[44;1m", (char*)"\033[46;1m");
+            msg = str_replace(str_replace(msg, "\033[36m", "\033[34m"), "\033[44;1m", "\033[46;1m");
         else if (theme == "white")
-            msg = str_replace(str_replace((char *)msg, (char*)"\033[36m", (char*)"\033[34m"), (char*)"\033[44;1m", (char*)"\033[47;1m");
+            msg = str_replace(str_replace(msg, "\033[36m", "\033[34m"), "\033[44;1m", "\033[47;1m");
     }
     if (machine == MCH_PC98)
         return msg;
     else {
         if (real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS)>80)
-            msg = str_replace(str_replace(str_replace((char *)msg, (char*)"\xBA\033[0m", (char*)"\xBA\033[0m\n"), (char*)"\xBB\033[0m", (char*)"\xBB\033[0m\n"), (char*)"\xBC\033[0m", (char*)"\xBC\033[0m\n");
+            msg = str_replace(str_replace(str_replace(msg, "\xBA\033[0m", "\xBA\033[0m\n"), "\xBB\033[0m", "\xBB\033[0m\n"), "\xBC\033[0m", "\xBC\033[0m\n");
         bool uselowbox = false;
         force_conversion = true;
         int cp=dos.loaded_codepage;
@@ -691,34 +691,34 @@ const char *ParseMsg(const char *msg) {
             std::string m=msg;
             if (strstr(msg, "\xCD\xCD\xCD\xCD") != NULL) {
                 if (IS_JEGA_ARCH) {
-                    msg = str_replace((char *)msg, (char*)"\xC9", (char *)std::string(1, 0x15).c_str());
-                    msg = str_replace((char *)msg, (char*)"\xBB", (char *)std::string(1, 0x16).c_str());
-                    msg = str_replace((char *)msg, (char*)"\xC8", (char *)std::string(1, 0x18).c_str());
-                    msg = str_replace((char *)msg, (char*)"\xBC", (char *)std::string(1, 0x17).c_str());
-                    msg = str_replace((char *)msg, (char*)"\xCD", (char *)std::string(1, 0x13).c_str());
+                    msg = str_replace(msg, "\xC9", std::string(1, 0x15).c_str());
+                    msg = str_replace(msg, "\xBB", std::string(1, 0x16).c_str());
+                    msg = str_replace(msg, "\xC8", std::string(1, 0x18).c_str());
+                    msg = str_replace(msg, "\xBC", std::string(1, 0x17).c_str());
+                    msg = str_replace(msg, "\xCD", std::string(1, 0x13).c_str());
                 } else if(J3_IsJapanese()) {
-                    msg = str_replace((char *)msg, (char*)"\xC9", "+");
-                    msg = str_replace((char *)msg, (char*)"\xBB", "+");
-                    msg = str_replace((char *)msg, (char*)"\xC8", "+");
-                    msg = str_replace((char *)msg, (char*)"\xBC", "+");
-                    msg = str_replace((char *)msg, (char*)"\xCD", "-");
+                    msg = str_replace(msg, "\xC9", "+");
+                    msg = str_replace(msg, "\xBB", "+");
+                    msg = str_replace(msg, "\xC8", "+");
+                    msg = str_replace(msg, "\xBC", "+");
+                    msg = str_replace(msg, "\xCD", "-");
                 } else {
-                    msg = str_replace((char *)msg, (char*)"\xC9", (char *)std::string(1, 1).c_str());
-                    msg = str_replace((char *)msg, (char*)"\xBB", (char *)std::string(1, 2).c_str());
-                    msg = str_replace((char *)msg, (char*)"\xC8", (char *)std::string(1, 3).c_str());
-                    msg = str_replace((char *)msg, (char*)"\xBC", (char *)std::string(1, 4).c_str());
-                    msg = str_replace((char *)msg, (char*)"\xCD", (char *)std::string(1, 6).c_str());
+                    msg = str_replace(msg, "\xC9", std::string(1, 1).c_str());
+                    msg = str_replace(msg, "\xBB", std::string(1, 2).c_str());
+                    msg = str_replace(msg, "\xC8", std::string(1, 3).c_str());
+                    msg = str_replace(msg, "\xBC", std::string(1, 4).c_str());
+                    msg = str_replace(msg, "\xCD", std::string(1, 6).c_str());
                 }
             } else {
                 if (IS_JEGA_ARCH) {
-                    msg = str_replace((char *)msg, (char*)"\xBA ", (char *)(std::string(1, 0x14)+" ").c_str());
-                    msg = str_replace((char *)msg, (char*)" \xBA", (char *)(" "+std::string(1, 0x14)).c_str());
+                    msg = str_replace(msg, "\xBA ", (std::string(1, 0x14)+" ").c_str());
+                    msg = str_replace(msg, " \xBA", (" "+std::string(1, 0x14)).c_str());
                 } else if(J3_IsJapanese()) {
-                    msg = str_replace((char *)msg, (char*)"\xBA ", "| ");
-                    msg = str_replace((char *)msg, (char*)" \xBA", " |");
+                    msg = str_replace(msg, "\xBA ", "| ");
+                    msg = str_replace(msg, " \xBA", " |");
                 } else {
-                    msg = str_replace((char *)msg, (char*)"\xBA ", (char *)(std::string(1, 5)+" ").c_str());
-                    msg = str_replace((char *)msg, (char*)" \xBA", (char *)(" "+std::string(1, 5)).c_str());
+                    msg = str_replace(msg, "\xBA ", (std::string(1, 5)+" ").c_str());
+                    msg = str_replace(msg, " \xBA", (" "+std::string(1, 5)).c_str());
                 }
             }
         }
@@ -733,20 +733,20 @@ static char const * const full_name="Z:\\COMMAND.COM";
 static char const * const init_line="/INIT AUTOEXEC.BAT";
 extern uint8_t ZDRIVE_NUM;
 
-char *str_replace(char *orig, char *rep, char *with);
+char *str_replace(const char *orig, const char *rep, const char *with);
 void GetExpandedPath(std::string &path) {
     std::string udrive = std::string(1,ZDRIVE_NUM+'A'), ldrive = std::string(1,ZDRIVE_NUM+'a');
     char pathstr[100];
     strcpy(pathstr, path_string+5);
     if (path==udrive+":\\"||path==ldrive+":\\")
-        path=ZDRIVE_NUM==25?pathstr:str_replace(pathstr, (char*)"Z:\\", (char *)(udrive+":\\").c_str());
+        path=ZDRIVE_NUM==25?pathstr:str_replace(pathstr, "Z:\\", (udrive+":\\").c_str());
     else if (path.size()>3&&(path.substr(0, 4)==udrive+":\\;"||path.substr(0, 4)==ldrive+":\\;")&&path.substr(4).find(udrive+":\\")==std::string::npos&&path.substr(4).find(ldrive+":\\")==std::string::npos)
-        path=std::string(ZDRIVE_NUM==25?pathstr:str_replace(pathstr, (char*)"Z:\\", (char *)(udrive+":\\").c_str()))+path.substr(3);
+        path=std::string(ZDRIVE_NUM==25?pathstr:str_replace(pathstr, "Z:\\", (udrive+":\\").c_str()))+path.substr(3);
     else if (path.size()>3) {
         size_t pos = path.find(";"+udrive+":\\");
         if (pos == std::string::npos) pos = path.find(";"+ldrive+":\\");
         if (pos != std::string::npos && (!path.substr(pos+4).size() || (path[pos+4]==';'&&path.substr(pos+4).find(udrive+":\\")==std::string::npos&&path.substr(pos+4).find(ldrive+":\\")==std::string::npos)))
-            path=path.substr(0, pos+1)+std::string(ZDRIVE_NUM==25?pathstr:str_replace(pathstr, (char*)"Z:\\", (char *)(udrive+":\\").c_str()))+path.substr(pos+4);
+            path=path.substr(0, pos+1)+std::string(ZDRIVE_NUM==25?pathstr:str_replace(pathstr, "Z:\\", (udrive+":\\").c_str()))+path.substr(pos+4);
     }
 }
 
@@ -765,14 +765,14 @@ void showWelcome(Program *shell) {
         shell->WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
         shell->WriteOut(ParseMsg((std::string("\x86\x46 ")+MSG_Get("SHELL_STARTUP_HEAD1_PC98")+std::string(" \x86\x46\n")).c_str()));
         shell->WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
-        shell->WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT1_PC98"), (char*)"\n", (char*)" \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
+        shell->WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace(MSG_Get("SHELL_STARTUP_TEXT1_PC98"), "\n", " \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
         shell->WriteOut(ParseMsg((std::string("\x86\x46 ")+MSG_Get("SHELL_STARTUP_EXAMPLE_PC98")+std::string(" \x86\x46\n")).c_str()));
         shell->WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
-        shell->WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT2_PC98"), (char*)"\n", (char*)" \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
+        shell->WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace(MSG_Get("SHELL_STARTUP_TEXT2_PC98"), "\n", " \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
         shell->WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
-        shell->WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_INFO_PC98"), (char*)"\n", (char*)" \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
+        shell->WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace(MSG_Get("SHELL_STARTUP_INFO_PC98"), "\n", " \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
         shell->WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
-        shell->WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT3_PC98"), (char*)"\n", (char*)" \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
+        shell->WriteOut(ParseMsg((std::string("\x86\x46 ")+str_replace(MSG_Get("SHELL_STARTUP_TEXT3_PC98"), "\n", " \x86\x46\n\x86\x46 ")+std::string(" \x86\x46\n")).c_str()));
         shell->WriteOut(ParseMsg("\x86\x5A\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
             "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
             "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
@@ -788,26 +788,26 @@ void showWelcome(Program *shell) {
         shell->WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
         shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_HEAD1")+std::string(" \xBA\033[0m")).c_str()));
         shell->WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
-        shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT1"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+        shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace(MSG_Get("SHELL_STARTUP_TEXT1"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
         if (IS_VGA_ARCH) shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_EXAMPLE")+std::string(" \xBA\033[0m")).c_str()));
         shell->WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
         shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_HEAD2")+std::string(" \xBA\033[0m")).c_str()));
         shell->WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
-        shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT2"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+        shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace(MSG_Get("SHELL_STARTUP_TEXT2"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
         shell->WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
         if (IS_DOSV) {
-            shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_DOSV"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+            shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace(MSG_Get("SHELL_STARTUP_DOSV"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
             shell->WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
         } else if (machine == MCH_CGA || machine == MCH_PCJR || machine == MCH_AMSTRAD) {
-            shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get(mono_cga?"SHELL_STARTUP_CGA_MONO":"SHELL_STARTUP_CGA"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+            shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace(MSG_Get(mono_cga?"SHELL_STARTUP_CGA_MONO":"SHELL_STARTUP_CGA"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
             shell->WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
         } else if (machine == MCH_HERC || machine == MCH_MDA) {
-            shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_HERC"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+            shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace(MSG_Get("SHELL_STARTUP_HERC"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
             shell->WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
         }
         shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+MSG_Get("SHELL_STARTUP_HEAD3")+std::string(" \xBA\033[0m")).c_str()));
         shell->WriteOut(ParseMsg("\033[44;1m\xBA                                                                              \xBA\033[0m"));
-        shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace((char *)MSG_Get("SHELL_STARTUP_TEXT3"), (char*)"\n", (char*)" \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
+        shell->WriteOut(ParseMsg((std::string("\033[44;1m\xBA ")+str_replace(MSG_Get("SHELL_STARTUP_TEXT3"), "\n", " \xBA\033[0m\033[44;1m\xBA ")+std::string(" \xBA\033[0m")).c_str()));
         shell->WriteOut(ParseMsg("\033[44;1m\xC8\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
             "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD"
             "\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xCD\xBC\033[0m"));

@@ -1338,6 +1338,7 @@ std::string DOSBoxMenu::item::winConstructMenuText(void) {
 
 void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
     wchar_t* buffer = NULL;
+    wchar_t emptyStr[] = L"";
     if (type == separator_type_id) {
         AppendMenu(handle, MF_SEPARATOR, 0, NULL);
     }
@@ -1346,7 +1347,7 @@ void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
     }
     else if (type == submenu_type_id) {
         if (winMenu != NULL) {
-            LPWSTR str = getWString(winConstructMenuText(), L"", buffer);
+            LPWSTR str = getWString(winConstructMenuText(), emptyStr, buffer);
             if (wcscmp(str, L""))
                 AppendMenuW(handle, MF_POPUP | MF_STRING, (uintptr_t)winMenu, str);
             else
@@ -1359,7 +1360,7 @@ void DOSBoxMenu::item::winAppendMenu(HMENU handle) {
         attr |= (status.checked) ? MF_CHECKED : MF_UNCHECKED;
         attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
 
-        LPWSTR str = getWString(winConstructMenuText(), L"", buffer);
+        LPWSTR str = getWString(winConstructMenuText(), emptyStr, buffer);
         if (wcscmp(str, L""))
             AppendMenuW(handle, attr, (uintptr_t)(master_id + winMenuMinimumID), str);
         else
@@ -1471,7 +1472,8 @@ void DOSBoxMenu::item::refresh_item(DOSBoxMenu &menu) {
                 attr |= (status.enabled) ? MF_ENABLED : (MF_DISABLED | MF_GRAYED);
 
                 wchar_t* buffer = NULL;
-                LPWSTR str = getWString(winConstructMenuText(), L"", buffer);
+                wchar_t emptyStr[] = L"";
+                LPWSTR str = getWString(winConstructMenuText(), emptyStr, buffer);
                 if (wcscmp(str, L""))
                     ModifyMenuW(phandle, (uintptr_t)(master_id + winMenuMinimumID), attr | MF_BYCOMMAND, (uintptr_t)(master_id + winMenuMinimumID), str);
                 else
@@ -2052,7 +2054,8 @@ void DOSBox_SetSysMenu(void) {
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
         mii.fState = (menu.toggle ? MFS_CHECKED : 0) | (GFX_GetPreventFullscreen() ? MFS_DISABLED : MFS_ENABLED);
         mii.wID = ID_WIN_SYSMENU_TOGGLEMENU;
-        mii.dwTypeData = getWString(msg, L"Show menu bar", buffer);
+        wchar_t showMenuBarStr[] = L"Show menu bar";
+        mii.dwTypeData = getWString(msg, showMenuBarStr, buffer);
         mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
 
         InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
@@ -2067,7 +2070,8 @@ void DOSBox_SetSysMenu(void) {
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
         mii.fState = (is_paused ? MFS_CHECKED : 0) | MFS_ENABLED;
         mii.wID = ID_WIN_SYSMENU_PAUSE;
-        mii.dwTypeData = getWString(msg, L"Pause emulation", buffer);
+        wchar_t pauseEmulationStr[] = L"Pause emulation";
+        mii.dwTypeData = getWString(msg, pauseEmulationStr, buffer);
         mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
 
         InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
@@ -2084,7 +2088,8 @@ void DOSBox_SetSysMenu(void) {
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
         mii.fState = MFS_ENABLED;
         mii.wID = ID_WIN_SYSMENU_RESETSIZE;
-        mii.dwTypeData = getWString(msg, L"Reset window size", buffer);
+        wchar_t resetWindowSizeStr[] = L"Reset window size";
+        mii.dwTypeData = getWString(msg, resetWindowSizeStr, buffer);
         mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
 
         InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
@@ -2100,7 +2105,8 @@ void DOSBox_SetSysMenu(void) {
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
         mii.fState = TTF_using() ? MFS_ENABLED : MFS_DISABLED;
         mii.wID = ID_WIN_SYSMENU_TTFINCSIZE;
-        mii.dwTypeData = getWString(msg, L"Increase TTF font size", buffer);
+        wchar_t increaseTTFFontSizeStr[] = L"Increase TTF font size";
+        mii.dwTypeData = getWString(msg, increaseTTFFontSizeStr, buffer);
         mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
 
         InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
@@ -2115,7 +2121,8 @@ void DOSBox_SetSysMenu(void) {
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
         mii.fState = TTF_using() ? MFS_ENABLED : MFS_DISABLED;
         mii.wID = ID_WIN_SYSMENU_TTFDECSIZE;
-        mii.dwTypeData = getWString(msg, L"Decrease TTF font size", buffer);
+        wchar_t decreaseTTFFontSizeStr[] = L"Decrease TTF font size";
+        mii.dwTypeData = getWString(msg, decreaseTTFFontSizeStr, buffer);
         mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
 
         InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
@@ -2133,7 +2140,8 @@ void DOSBox_SetSysMenu(void) {
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
         mii.fState = MFS_ENABLED;
         mii.wID = ID_WIN_SYSMENU_CFG_GUI;
-        mii.dwTypeData = getWString(msg, L"Configuration tool", buffer);
+        wchar_t configurationToolStr[] = L"Configuration tool";
+        mii.dwTypeData = getWString(msg, configurationToolStr, buffer);
         mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
 
         InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
@@ -2148,7 +2156,8 @@ void DOSBox_SetSysMenu(void) {
         mii.fMask = MIIM_ID | MIIM_STRING | MIIM_STATE;
         mii.fState = MFS_ENABLED;
         mii.wID = ID_WIN_SYSMENU_MAPPER;
-        mii.dwTypeData = getWString(msg, L"Mapper editor", buffer);
+        wchar_t mapperEditorStr[] = L"Mapper editor";
+        mii.dwTypeData = getWString(msg, mapperEditorStr, buffer);
         mii.cch = (UINT)(wcslen(mii.dwTypeData)+1);
 
         InsertMenuItemW(sysmenu, GetMenuItemCount(sysmenu), TRUE, &mii);
