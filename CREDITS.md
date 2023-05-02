@@ -72,8 +72,6 @@ FluidSynth synthesizer (Tom Moebert; GPLv2+) src/libs/fluidsynth/.c src/libs/flu
 
 Framework-agnostic GUI toolkit (Jorg Walter; GPLv3+) src/libs/gui_tk/.cpp src/libs/gui_tk/.h
 
-Porttalk library, to read/write I/O ports directly (Unknown source) src/libs/porttalk/.cpp src/libs/porttalk/.h
-
 FLAC, MP3, WAV, and Vorbis libraries (David Reid, Kevin Croft, et al; GPLv2+) src/libs/decoders/mp3*.cpp src/libs/decoders/.c src/libs/decoders/.h
 
 FreeDOS utilities as binary blobs (FreeDOS; no license) src/builtin/*.cpp

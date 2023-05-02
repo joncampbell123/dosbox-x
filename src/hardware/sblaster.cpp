@@ -66,6 +66,7 @@
 #include "setup.h"
 #include "support.h"
 #include "shell.h"
+#include "hardopl.h"
 using namespace std;
 
 void MIDI_RawOutByte(uint8_t data);
@@ -998,7 +999,7 @@ static void DMA_DAC_Event(Bitu val) {
 
     if (!sb.single_sample_dma) {
         // WARNING: This assumes Sound Blaster Pro emulation!
-        LOG(LOG_SB,LOG_NORMAL)("Goldplay mode unexpectedly switched off, normal DMA playback follows"); 
+        LOG(LOG_SB,LOG_NORMAL)("Goldplay mode unexpectedly switched off, normal DMA playback follows");
         sb.dma_dac_mode = 0;
         sb.dma_dac_srcrate = sb.freq / (sb.mixer.stereo ? 2 : 1);
         sb.chan->SetFreq(sb.dma_dac_srcrate);
@@ -1093,7 +1094,7 @@ static void CheckDMAEnd(void) {
         LOG(LOG_SB,LOG_NORMAL)("Silent DMA Transfer scheduling IRQ in %.3f milliseconds",delay);
     } else if (sb.dma.left<sb.dma.min) {
         float delay=(sb.dma.left*1000.0f)/sb.dma.rate;
-        LOG(LOG_SB,LOG_NORMAL)("Short transfer scheduling IRQ in %.3f milliseconds",delay); 
+        LOG(LOG_SB,LOG_NORMAL)("Short transfer scheduling IRQ in %.3f milliseconds",delay);
         PIC_AddEvent(END_DMA_Event,delay,sb.dma.left);
     }
 }
@@ -1123,7 +1124,7 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo,bool dontInit
      *              The way the hacked DMA mode works, is that the Sound Blaster is told the transfer
      *              length is 65536 or some other large value. Then, the DMA controller is programmed
      *              to point at a specific byte (or two bytes for stereo) and the counter value for
-     *              that DMA channel is set to 0 (or 1 for stereo). This means that as the Sound Blaster 
+     *              that DMA channel is set to 0 (or 1 for stereo). This means that as the Sound Blaster
      *              fetches bytes to play, the DMA controller ends up sending the same byte value
      *              over and over again. However, the demo has the timer running at the desired sample
      *              rate (IRQ 0) and the interrupt routine is modifying the byte to reflect the latest
@@ -1136,7 +1137,7 @@ static void DSP_DoDMATransfer(DMA_MODES mode,Bitu freq,bool stereo,bool dontInit
      *              The problem here in DOSBox is that the DMA block-transfer code here is not precise
      *              enough to handle that properly. When you run such a program in DOSBox 0.74 and
      *              earlier, you get a low-frequency digital "rumble" that kinda-sorta sounds like
-     *              what the demo is playing (the same byte value repeated over and over again, 
+     *              what the demo is playing (the same byte value repeated over and over again,
      *              remember?). The only way to properly render such output, is to read the memory
      *              value at the sample rate and buffer it for output.
      *
@@ -2538,7 +2539,7 @@ static void DSP_DoWrite(uint8_t val) {
             sb.dsp.cmd=val;
             if (sb.type == SBT_16)
                 sb.dsp.cmd_len=DSP_cmd_len_sb16[val];
-            else if (sb.ess_type != ESS_NONE) 
+            else if (sb.ess_type != ESS_NONE)
                 sb.dsp.cmd_len=DSP_cmd_len_ess[val];
             else if (sb.reveal_sc_type != RSC_NONE)
                 sb.dsp.cmd_len=DSP_cmd_len_sc400[val];
@@ -3104,7 +3105,7 @@ static uint8_t CTMIXER_Read(void) {
         return ret;
     case 0x82:      /* IRQ Status */
         return  (sb.irq.pending_8bit ? 0x1 : 0) |
-                (sb.irq.pending_16bit ? 0x2 : 0) | 
+                (sb.irq.pending_16bit ? 0x2 : 0) |
                 ((sb.type == SBT_16) ? 0x20 : 0);
     default:
         if (    ((sb.type == SBT_PRO1 || sb.type == SBT_PRO2) && sb.mixer.index==0x0c) || /* Input control on SBPro */
@@ -3191,7 +3192,7 @@ static Bitu read_sb(Bitu port,Bitu /*iolen*/) {
                 return busy ? 0xAA : 0x2A; /* observed return values on SB 2.0---any significance? */
             else
                 return busy ? 0xFF : 0x7F; /* normal return values */
-            
+
             }
         case DSP_S_RESET:
         case DSP_S_RESET_WAIT:
@@ -3563,7 +3564,6 @@ class ViBRA_PnP : public ISAPnPDevice {
 };
 
 bool JOYSTICK_IsEnabled(Bitu which);
-extern void HARDOPL_Init(Bitu hardwareaddr, Bitu sbbase, bool isCMS);
 
 std::string GetSBtype() {
     switch (sb.type) {
@@ -3859,8 +3859,9 @@ public:
             sb.mixer.stereo=true;
         }
 
+#if HAS_HARDOPL
         bool isCMSpassthrough = false;
-
+#endif
         switch (oplmode) {
         case OPL_none:
             if (!IS_PC98_ARCH)
@@ -3877,17 +3878,25 @@ public:
             // fall-through
         case OPL_dualopl2:
             assert(!IS_PC98_ARCH);
+            // fall-through
         case OPL_opl3:
         case OPL_opl3gold:
             OPL_Init(section,oplmode);
             break;
         case OPL_hardwareCMS:
             assert(!IS_PC98_ARCH);
+#if HAS_HARDOPL
             isCMSpassthrough = true;
+#endif
+            // fall-through
         case OPL_hardware:
             assert(!IS_PC98_ARCH);
+#if HAS_HARDOPL
             Bitu base = (unsigned int)section->Get_hex("hardwarebase");
             HARDOPL_Init(base, sb.hw.base, isCMSpassthrough);
+#else
+            LOG_MSG("OPL pass-through is disabled. It may not be supported on this operating system.");
+#endif
             break;
         }
         if (sb.type==SBT_NONE || sb.type==SBT_GB) return;
@@ -4084,23 +4093,23 @@ public:
 /* Reference: Command 0xF9 result map taken from Sound Blaster 16 with DSP 4.4 and ASP chip version ID 0x10:
  *
  * ASP> F9 result map:
-00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ff 07 
-10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-20: f9 00 00 00 00 aa 96 00 00 00 00 00 00 00 00 00 
-30: f9 00 00 00 00 00 00 38 00 00 00 00 00 00 00 00 
-40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-80: 00 19 0a 00 00 00 00 00 00 00 00 00 00 00 00 00 
-90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 
-ASP> 
+00: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ff 07
+10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: f9 00 00 00 00 aa 96 00 00 00 00 00 00 00 00 00
+30: f9 00 00 00 00 00 00 38 00 00 00 00 00 00 00 00
+40: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+50: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+60: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+70: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+80: 00 19 0a 00 00 00 00 00 00 00 00 00 00 00 00 00
+90: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+ASP>
  * End reference */
         memset(sb16_8051_mem,0x00,256);
         sb16_8051_mem[0x0E] = 0xFF;
@@ -4148,7 +4157,7 @@ ASP>
             autoexecline.Install(temp.str());
         }
     }
-    
+
     ~SBLASTER() {
         switch (oplmode) {
         case OPL_none:
@@ -4172,8 +4181,6 @@ ASP>
     }
 }; //End of SBLASTER class
 
-extern void HWOPL_Cleanup();
-
 static SBLASTER* test = NULL;
 
 void SBLASTER_DOS_Shutdown() {
@@ -4185,7 +4192,9 @@ void SBLASTER_ShutDown(Section* /*sec*/) {
         delete test;
         test = NULL;
     }
+#if HAS_HARDOPL
     HWOPL_Cleanup();
+#endif
 }
 
 void SBLASTER_OnReset(Section *sec) {
@@ -4196,7 +4205,9 @@ void SBLASTER_OnReset(Section *sec) {
         delete test;
         test = NULL;
     }
+#if HAS_HARDOPL
     HWOPL_Cleanup();
+#endif
 
     if (test == NULL) {
         LOG(LOG_MISC,LOG_DEBUG)("Allocating Sound Blaster emulation");
@@ -4247,7 +4258,7 @@ void POD_Save_Sblaster( std::ostream& stream )
 
 
 	WRITE_POD( &pod_name, pod_name );
-	
+
 
 	//*******************************************
 	//*******************************************
@@ -4309,7 +4320,7 @@ void POD_Load_Sblaster( std::istream& stream )
 	uint8_t dma_idx;
 	MixerChannel *mixer_old;
 
-	
+
 	// save static ptr
 	mixer_old = sb.chan;
 
