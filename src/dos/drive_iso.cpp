@@ -2338,7 +2338,10 @@ void isoDrive :: EmptyCache(void) {
 	//this->fileName[0]  = '\0'; /* deleted to fix issue #3848. Revert this if there are any flaws */
 	//this->discLabel[0] = '\0'; /* deleted to fix issue #3848. Revert this if there are any flaws */
 	nextFreeDirIterator = 0;
-	memset(dirIterators, 0, sizeof(dirIterators));
+    size_t dirIteratorsSize = sizeof(dirIterators);
+    for(std::size_t i = 0; i < dirIteratorsSize; ++i) {
+        dirIterators[i] = isoDrive::DirIterator{};
+    }
 	memset(sectorHashEntries, 0, sizeof(sectorHashEntries));
 	memset(&rootEntry, 0, sizeof(isoDirEntry));
 	//safe_strncpy(this->fileName, fileName, CROSS_LEN); /* deleted to fix issue #3848. Revert this if there are any flaws */

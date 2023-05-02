@@ -61,15 +61,6 @@ typedef union {
 // Windows ASPI functions (should work for all WIN with ASPI layer)
 // *****************************************************************
 
-CDROM_Interface_Aspi::CDROM_Interface_Aspi(void)
-{
-	hASPI					= NULL;
-	hEvent					= NULL;
-	pGetASPI32SupportInfo	= NULL;
-	pSendASPI32Command		= NULL;
-	memset(&oldLeadOut,0,sizeof(oldLeadOut));
-};
-
 CDROM_Interface_Aspi::~CDROM_Interface_Aspi(void)
 {
 	// Stop Audio
