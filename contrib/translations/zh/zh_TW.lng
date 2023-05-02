@@ -3455,7 +3455,3 @@ CPU: 簡單核心
 :MAPPER:togmenu
 切換選單列顯示
 .
-:PROGRAM_BOOT_IMAGE_MOUNTED
-軟碟映像檔已掛載.
-
-.
