@@ -2215,6 +2215,10 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 按 [31mCtrl+F7[37m 鍵在單色間切換： 綠色、黃褐色、白色.                             
 按 [31mCtrl+F8[37m 鍵變更高對比度/亮度設定.                                         
 .
+:PROGRAM_BOOT_IMAGE_MOUNTED
+軟碟映像檔已掛載.
+
+.
 :MENU:mapper_reset
 重設虛擬機器
 .
@@ -3141,6 +3145,9 @@ Turbo (快轉模式)
 .
 :MENU:mapper_scrshot
 抓取螢幕畫面
+.
+:MENU:mapper_rawscrshot
+抓取原始螢幕畫面
 .
 :MENU:mapper_volup
 提高音量
