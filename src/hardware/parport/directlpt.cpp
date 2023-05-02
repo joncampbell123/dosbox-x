@@ -85,6 +85,10 @@ CDirectLPT::CDirectLPT(Bitu nr, uint8_t initIrq, CommandLine* cmd)
 			LOG_MSG("parallel%d: ecpbase (raw I/O) requires root privileges. Pass-through I/O disabled.", (int)nr + 1);
 			return;
 		}
+#ifdef BSD
+		LOG_MSG("parallel%d: Raw I/O requires root privileges. Pass-through I/O disabled.", (int)nr + 1);
+		return;
+#endif
 	}
 #endif
 #endif // x86{_64}
