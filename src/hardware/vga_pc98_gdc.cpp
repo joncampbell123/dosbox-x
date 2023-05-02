@@ -630,6 +630,8 @@ uint8_t PC98_GDC_state::read_status(void) {
     double timeInLine=fmod(timeInFrame,vga.draw.delay.htotal);
     uint8_t ret;
 
+    if (vga_render_on_demand && display_enable) VGA_RenderOnDemandUpTo();
+
     ret  = 0x00; // light pen not present
 
     if (timeInLine >= vga.draw.delay.hblkstart && 

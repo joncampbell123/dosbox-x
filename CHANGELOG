@@ -1,3 +1,5 @@
+Next
+  - 
 2023.05.01
   - IMGMAKE will choose LBA partition types for 2GB or larger disk
     images, but the user can also use -chs and -lba options to override
