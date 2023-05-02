@@ -284,7 +284,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
 
     if (dw < 640) dw = 640;
     if (dh < 350) dh = 350;
-    scalex = dw / 640; /* maximum horisontal scale */
+    scalex = dw / 640; /* maximum horizontal scale */
     scaley = dh / 350; /* maximum vertical   scale */
     if( scalex > scaley ) scale = scaley;
     else                  scale = scalex;

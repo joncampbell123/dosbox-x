@@ -1,4 +1,92 @@
-Next:
+2023.05.01
+  - IMGMAKE will choose LBA partition types for 2GB or larger disk
+    images, but the user can also use -chs and -lba options to override
+    that choice. The CHS or LBA partition types do matter because it
+    affects which version of INT 13h is used by Windows 98/ME to boot up
+    and, if drive C: is in compatibility mode, at all times. (joncampbell123)
+  - PC-98 256-color mode will also trigger the auto mode of "render on
+    demand" for performance reasons because per-scanline raster effects
+    are very unlikely in that case, as will MDA and Hercules machine
+    types. (joncampbell123)
+  - When the DOS IDLE API is enabled (by default), limit STI+HLT to
+    occur on INT 28h only once after any call to read the CON device
+    or call to BIOS INT 16h to read the keyboard. This fixes stalls
+    and sluggish input problems with programs that like to call INT 28h
+    often like the Pacific C compiler PPD IDE interface. (joncampbell123).
+  - Hercules InColor machine type: Fixed attribute and RAMFONT handling
+    of 48K RAMFONT mode and added planar text rendering. (joncampbell123).
+  - Write BIOS data area fields for number of rows, char height, etc.
+    for MCGA machine type in addition to EGA/VGA machine types because
+    IBM technical references suggest it's there for MCGA as well.
+    This also resolves an issue where with the MCGA machine type, INT 10h
+    failed to print any text to screen whatsoever. (joncampbell123).
+  - Render on demand (Staging calls it "lazy rendering") now defaults
+    to "auto" and allows an "auto" setting. The auto setting will
+    turn it off for standard VGA modes and will turn it on for SVGA
+    modes where per scanline raster effects are very unlikely to
+    occur. This may provide a performance boost for DOS games in SVGA
+    modes and the Windows desktop (joncampbell123).
+  - CGA 320x200 4-color mode is now rendered using the M_EGA render
+    code for EGA/VGA machine types to better reflect real hardware.
+    (joncampbell123).
+  - Fix bug where setting doublescan=false for anything other than
+    the VGA machine type would break CGA graphics modes.
+    (joncampbell123).
+  - Fix video debug overlay calculations of source video mode for
+    CGA graphics modes. (joncampbell123).
+  - CGA 640x200 2-color mode and MCGA 640x480 2-color mode are no
+    longer rendered as M_CGA2 for EGA/VGA machine types. The reason
+    is that at the hardware level they are really just IBM standard
+    tweaked versions of the EGA/VGA 16-color modes with additional
+    bits for the interleave emulation and can be properly emulated
+    with the M_EGA renderer. M_CGA2 is still used for the CGA and
+    MCGA machine types for those modes. The DCGA DOS/V mode has been
+    carefully made into it's own render mode instead of part of the
+    M_CGA2 case. (joncampbell123).
+  - Fixed refcount -1 error and abort when multiple floppies are
+    attached to a floppy drive and the "Swap floppy" mapper shortcut
+    is used at least once (joncampbell123).
+  - Hercules palette selection now provides a "dark gray" color
+    mapping to match the green, amber, or gray palette selection of
+    the user (joncampbell123)
+  - Fix Hercules vs MDA attribute handling of "dark gray" background
+    color when hardware blink is disabled. (joncampbell123)
+  - Added RAMFONT emulation to Hercules Plus machine type, fixed code
+    to allow Hercules Plus text mode to draw farther than the first 4KB
+    of RAM if RAMFONT enabled. (joncampbell123)
+  - DOS kernel: Fix programming mistake that allocated perhaps a bit
+    too much DOS kernel memory for the "List of Lists" info block.
+    Fix the sizes of the info block and other structures to make sure
+    specific kernel structures are placed at fixed addresses because
+    later Microsoft software for MS-DOS checks those values.
+    (joncampbell123)
+  - Serial port: Add multiplier: setting as requested to enable
+    faster than 115200 baud rates. (joncampbell123)
+  - Fix mistakes in CPUID emulation that threw a #UD exception for
+    specific cases where EAX was not recognized by particular CPU
+    types. (joncampbell123)
+  - Fix RTC clock emulation to correctly signal IRQ8 interrupt for
+    both periodic tick and update-ended events. Prior to this fix,
+    only periodic tick events were reported even if the bit was set
+    to enable update-ended. (joncampbell123)
+  - Fix serial and AUX PS/2 mouse emulation to not send relative
+    motion unless mouse captured, to make it consistent with the
+    BIOS PS/2 mouse emulation (joncampbell123)
+  - FAT driver: Major performance boost is possible by eliminating
+    unnecessary code that re-reads the entire directory when looking
+    up or changing one particular directory entry. (joncampbell123).
+  - CMOS registers: Fix code to allow getting and setting time,
+    fix year vs century registers to work properly. (joncampbell123).
+  - BIOS INT 1Ah: Fix functions to get and set time and date
+    instead of faking on read and ignoring set. Use the CMOS
+    registers. (joncampbell123).
+  - DOS INT 21h: Fix date and time functions to call the BIOS for
+    time instead of trying to fake it only at the DOS level. This
+    includes allowing INT 21h to change the date/time using the
+    BIOS. (joncampbell123).
+  - DOS shell: Make TIME actually use INT 21h to set time instead of
+    directly modifying the BIOS timer tick count in the BDA.
+    (joncampbell123).
   - Increased PIC event queue size, there are corner cases especially
     with Windows XP that can occasionally overrun the queue.
     (joncampbell123).

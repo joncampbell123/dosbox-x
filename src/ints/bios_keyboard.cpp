@@ -102,9 +102,9 @@ static scancode_tbl scan_to_scanascii[MAX_SCAN_CODE + 1] = {
       { 0x266c, 0x264c, 0x260c, 0x2600 ,0x26d8, 0x2600 }, /* 26 L */
       { 0x273b, 0x273a,   none, 0x27f0 ,0x27da, 0x2700 }, /* 27 ;: */
       { 0x2827, 0x2822,   none, 0x28f0 ,0x28b9, 0x2800 }, /* 28 '" */
-      { 0x2960, 0x297e,   none, 0x29f0 ,0x29d1, 0x29a3 }, /* 29 `~ */ //29h `~ﾑ｣
-      {   none,   none,   none,   none,   none,   none }, /*  2a L shift */
-      { 0x2b5c, 0x2b7c, 0x2b1c, 0x2bf0 ,0x2bb0, 0x2bf0 }, /* 2b */ //2bh \|ｰ
+      { 0x2960, 0x297e,   none, 0x29f0 ,0x29d1, 0x29a3 }, /* 29 "`" "~"  /  29h "`" "~" "ﾑ" "｣" */
+      {   none,   none,   none,   none,   none,   none }, /* 2a L shift */
+      { 0x2b5c, 0x2b7c, 0x2b1c, 0x2bf0 ,0x2bb0, 0x2bf0 }, /* 2b "*" "/"  /  2bh "\\" "|" "ｰ" */
       { 0x2c7a, 0x2c5a, 0x2c1a, 0x2c00 ,0x2cc2, 0x2caf }, /* 2c Z */
       { 0x2d78, 0x2d58, 0x2d18, 0x2d00 ,0x2dbb, 0x2d00 }, /* 2d X */
       { 0x2e63, 0x2e43, 0x2e03, 0x2e00 ,0x2ebf, 0x2e00 }, /* 2e C */
@@ -120,7 +120,7 @@ static scancode_tbl scan_to_scanascii[MAX_SCAN_CODE + 1] = {
       {   none,   none,   none,   none ,   none,   none }, /*  38 L Alt */
       { 0x3920, 0x3920, 0x3920, 0x3920 , 0x3920, 0x3920 }, /* 39 space */
       {   none,   none,   none,   none ,   none,   none }, /*  3a caps lock */
-//    { 0x3a00, 0x3a00,   none,   none , 0x3a00, 0x3a00 }, /* 3a Kanji */
+//    { 0x3a00, 0x3a00,   none,   none , 0x3a00, 0x3a00 }, -- 3a Kanji --
       { 0x3b00, 0x5400, 0x5e00, 0x6800 ,0x3b00, 0x5400 }, /* 3b F1 */
       { 0x3c00, 0x5500, 0x5f00, 0x6900 ,0x3c00, 0x5500 }, /* 3c F2 */
       { 0x3d00, 0x5600, 0x6000, 0x6a00 ,0x3d00, 0x5600 }, /* 3d F3 */
@@ -1178,6 +1178,7 @@ extern void IME_SetEnable(int state);
 
 extern bool DOS_BreakFlag;
 extern bool DOS_BreakConioFlag;
+extern bool INT28_AllowOnce;
 
 bool int16_unmask_irq1_on_read = true;
 bool int16_ah_01_cf_undoc = true;
@@ -1196,6 +1197,7 @@ Bitu INT16_Handler(void) {
             return CBRET_NONE;
         }
 
+        INT28_AllowOnce = true;
         if ((get_key(temp)) && (!IsEnhancedKey(temp))) {
             /* normal key found, return translated key in ax */
             reg_ax=temp;
@@ -1215,6 +1217,7 @@ Bitu INT16_Handler(void) {
             return CBRET_NONE;
         }
 
+        INT28_AllowOnce = true;
         if (get_key(temp)) {
             if (!IS_PC98_ARCH && ((temp&0xff)==0xf0) && (temp>>8)) {
                 /* special enhanced key, clear low part before returning key */
@@ -1232,6 +1235,7 @@ Bitu INT16_Handler(void) {
         if (int16_unmask_irq1_on_read)
             PIC_SetIRQMask(1,false); /* unmask keyboard */
 
+        INT28_AllowOnce = true;
         for (;;) {
             if (check_key(temp)) {
                 if (!IsEnhancedKey(temp)) {
@@ -1269,6 +1273,7 @@ Bitu INT16_Handler(void) {
          *
          * TODO: If you run EDIT.COM on real MS-DOS, does the same problem come up? */
 
+        INT28_AllowOnce = true;
         if (!check_key(temp)) {
             CALLBACK_SZF(true);
         } else {

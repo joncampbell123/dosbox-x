@@ -474,17 +474,22 @@ void DriveManager::CycleDisks(int drive, bool notify, unsigned int position) {
 		DOS_Drive* newDisk = driveInfos[drive].disks[currentDisk];
 		driveInfos[drive].currentDisk = currentDisk;
 		if (drive < MAX_DISK_IMAGES && imageDiskList[drive] != NULL) {
+			imageDiskList[drive]->Release();
+			imageDiskList[drive] = NULL;
+
 			if (strncmp(newDisk->GetInfo(),"fatDrive",8) == 0)
 				imageDiskList[drive] = ((fatDrive *)newDisk)->loadedDisk;
 			else
 				imageDiskList[drive] = (imageDisk *)newDisk;
+
+			if (imageDiskList[drive] != NULL) imageDiskList[drive]->Addref();
 			if ((drive == 2 || drive == 3) && imageDiskList[drive]->hardDrive) updateDPT();
 		}
 		
 		// copy working directory, acquire system resources and finally switch to next drive
 		strcpy(newDisk->curdir, oldDisk->curdir);
 		newDisk->Activate();
-        if (!dos_kernel_disabled) newDisk->UpdateDPB(currentDrive);
+		if (!dos_kernel_disabled) newDisk->UpdateDPB(currentDrive);
 		Drives[drive] = newDisk;
 		if (notify) LOG_MSG("Drive %c: disk %d of %d now active", 'A'+drive, currentDisk+1, numDisks);
 	}

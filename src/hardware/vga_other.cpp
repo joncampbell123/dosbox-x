@@ -143,8 +143,7 @@ static void write_crtc_data_other(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 		break;
 	case 0x14:	/* Hercules InColor and HGC+: xMode */
 		if (hercCard == HERC_InColor || hercCard == HERC_GraphicsCardPlus) {
-			// TODO: HGC+ and InColor bit 0 controls whether the RAM font at B4000h is drawn in text mode, and bit 2 the 48k RAMfont mode.
-			//       Depending on implementation this affects which VGA draw line function to assign.
+			// HGC+ and InColor bit 0 controls whether the RAM font at B4000h is drawn in text mode, and bit 2 the 48k RAMfont mode.
 			const uint8_t chg = vga.herc.xMode ^ (uint8_t)val;
 			if (chg & 2/*bit 1: change 80/90 column mode*/) VGA_StartResize();
 			vga.herc.xMode = (uint8_t)val;
@@ -156,6 +155,7 @@ static void write_crtc_data_other(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 	case 0x15:	/* Hercules InColor and HGC+ */
 		if (hercCard == HERC_InColor || hercCard == HERC_GraphicsCardPlus) {
 			vga.herc.underline = (uint8_t)val;
+			vga.crtc.underline_location = (uint8_t)val & 0xFu;
 			break;
 		}
 		else {
@@ -1067,18 +1067,22 @@ void Herc_Palette(void) {
 	switch (herc_pal) {
 	case MonochromeColor::White:
 		VGA_DAC_SetEntry(0x7,0x2a,0x2a,0x2a);
+		VGA_DAC_SetEntry(0x8,0x15,0x15,0x15);
 		VGA_DAC_SetEntry(0xf,0x3f,0x3f,0x3f);
 		break;
 	case MonochromeColor::Amber:
 		VGA_DAC_SetEntry(0x7,0x34,0x20,0x00);
+		VGA_DAC_SetEntry(0x8,0x20,0x13,0x00);
 		VGA_DAC_SetEntry(0xf,0x3f,0x34,0x00);
 		break;
 	case MonochromeColor::Gray:
 		VGA_DAC_SetEntry(0x7,0x2c,0x2d,0x2c);
+		VGA_DAC_SetEntry(0x8,0x17,0x18,0x17);
 		VGA_DAC_SetEntry(0xf,0x3f,0x3f,0x3b);
 		break;
 	case MonochromeColor::Green:
 		VGA_DAC_SetEntry(0x7,0x00,0x26,0x00);
+		VGA_DAC_SetEntry(0x8,0x00,0x12,0x00);
 		VGA_DAC_SetEntry(0xf,0x00,0x3f,0x00);
 		break;
 	}
@@ -1189,9 +1193,11 @@ Bitu read_herc_status(Bitu /*port*/,Bitu /*iolen*/) {
 
 	switch (hercCard) {
 		case HERC_GraphicsCardPlus:
+			retval &= 0x8F;
 			retval |= 0x10;
 			break;
 		case HERC_InColor:
+			retval &= 0x8F;
 			retval |= 0x50;
 			break;
 		default:

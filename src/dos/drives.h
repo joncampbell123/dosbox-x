@@ -395,13 +395,20 @@ public:
 	virtual bool isRemovable(void);
 	virtual Bits UnMount(void);
 public:
+	struct clusterChainMemory {
+		uint32_t	current_cluster_no = 0;
+		uint32_t	current_cluster_index = 0;
+
+		void clear(void);
+	};
+public:
 	uint8_t readSector(uint32_t sectnum, void * data);
 	uint8_t writeSector(uint32_t sectnum, void * data);
-	uint32_t getAbsoluteSectFromBytePos(uint32_t startClustNum, uint32_t bytePos);
+	uint32_t getAbsoluteSectFromBytePos(uint32_t startClustNum, uint32_t bytePos,clusterChainMemory *ccm=NULL);
 	uint32_t getSectorCount(void);
 	uint32_t getSectorSize(void);
 	uint32_t getClusterSize(void);
-	uint32_t getAbsoluteSectFromChain(uint32_t startClustNum, uint32_t logicalSector);
+	uint32_t getAbsoluteSectFromChain(uint32_t startClustNum, uint32_t logicalSector,clusterChainMemory *ccm=NULL);
 	bool allocateCluster(uint32_t useCluster, uint32_t prevCluster);
 	uint32_t appendCluster(uint32_t startCluster);
 	void deleteClustChain(uint32_t startCluster, uint32_t bytePos);
@@ -428,6 +435,7 @@ public:
 	} el = {0, 0, 0};
 
 private:
+	bool iseofFAT(const uint32_t cv) const;
 	char* Generate_SFN(const char *path, const char *name);
 	uint32_t getClusterValue(uint32_t clustNum);
 	void setClusterValue(uint32_t clustNum, uint32_t clustValue);

@@ -8,34 +8,35 @@
 ./autogen.sh || exit 1
 
 # for sdl2-config and sdl-config
-export PATH=$EMSDK/upstream/emscripten/system/bin:$PATH
+export PATH=${EMSDK}/upstream/emscripten/system/bin:${PATH}
 
-export CC="emcc"
-export CXX="em++"
-export LD="emcc"
-export LD_CXX="em++"
-export AR="emar"
-export RANLIB="emranlib"
-export CFLAGS="-DEMTERPRETER_SYNC"
-export CXXFLAGS="-DEMSCRIPTEN=1 -DEMTERPRETER_SYNC -s USE_ZLIB=1 -s USE_SDL=2"
-export LDFLAGS="-DEMSCRIPTEN=1 -DEMTERPRETER_SYNC -s USE_ZLIB=1 -s USE_SDL=2 -s FORCE_FILESYSTEM=1 -s ALLOW_MEMORY_GROWTH=1 -s TOTAL_MEMORY=100663296 -s ASYNCIFY -s ERROR_ON_UNDEFINED_SYMBOLS=0"
+CC="emcc"
+CXX="em++"
+LD="emcc"
+LD_CXX="em++"
+AR="emar"
+RANLIB="emranlib"
+CFLAGS="-DEMTERPRETER_SYNC"
+CXXFLAGS="-DEMSCRIPTEN=1 -DEMTERPRETER_SYNC -s USE_ZLIB=1 -s USE_SDL=2"
+LDFLAGS="-DEMSCRIPTEN=1 -DEMTERPRETER_SYNC -s USE_ZLIB=1 -s USE_SDL=2 -s FORCE_FILESYSTEM=1 -s ALLOW_MEMORY_GROWTH=1 -s TOTAL_MEMORY=100663296 -s ASYNCIFY -s ERROR_ON_UNDEFINED_SYMBOLS=0"
+export CC CXX LD LD_CXX AR RANLIB CFLAGS CXXFLAGS LDFLAGS
 
 # where are we?
-top=`pwd`
-if test -z "$top" ; then exit 1; fi
+top=$(pwd)
+if test -z "${top}" ; then exit 1; fi
 
 # fix
 chmod +x vs/sdl/build-scripts/strip_fPIC.sh
 
-echo Compiling DOSBox-X
+echo "Compiling DOSBox-X"
 chmod +x configure
 
 # build command borrowed from Yksoft1 vanilla DOSBox-X port with modifications
 ./configure \
     --host=x86_64-linux --disable-dynrec --disable-dynamic-x86 --disable-fpu-x86 --disable-dynamic-core \
-    --enable-sdl2 --with-sdl-prefix=$EMSDK/upstream/emscripten/system --disable-screenshots \
+    --enable-sdl2 --with-sdl-prefix="${EMSDK}/upstream/emscripten/system" --disable-screenshots \
     --disable-opengl --disable-mt32 --enable-emscripten --enable-force-menu-sdldraw --disable-x11 \
-    --disable-avcodec --disable-libslirp --disable-libfluidsynth --disable-freetype "$@"
+    --disable-avcodec --disable-libslirp --disable-libfluidsynth --disable-freetype "${@}"
 
 make -j6 || exit 1
 

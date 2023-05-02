@@ -323,28 +323,28 @@ void fatFile::Flush(void) {
 		loadedSector = false;
 	}
 
-    if (modified || newtime) {
-        direntry tmpentry = {};
+	if (modified || newtime) {
+		direntry tmpentry = {};
 
-        myDrive->directoryBrowse(dirCluster, &tmpentry, (int32_t)dirIndex);
+		myDrive->directoryBrowse(dirCluster, &tmpentry, (int32_t)dirIndex);
 
-        if (newtime) {
-            tmpentry.modTime = time;
-            tmpentry.modDate = date;
-        }
-        else {
-            uint16_t ct,cd;
+		if (newtime) {
+			tmpentry.modTime = time;
+			tmpentry.modDate = date;
+		}
+		else {
+			uint16_t ct,cd;
 
-            time_t_to_DOS_DateTime(/*&*/ct,/*&*/cd,::time(NULL));
+			time_t_to_DOS_DateTime(/*&*/ct,/*&*/cd,::time(NULL));
 
-            tmpentry.modTime = ct;
-            tmpentry.modDate = cd;
-        }
+			tmpentry.modTime = ct;
+			tmpentry.modDate = cd;
+		}
 
-        myDrive->directoryChange(dirCluster, &tmpentry, (int32_t)dirIndex);
-        modified = false;
-        newtime = false;
-    }
+		myDrive->directoryChange(dirCluster, &tmpentry, (int32_t)dirIndex);
+		modified = false;
+		newtime = false;
+	}
 }
 
 bool fatFile::Read(uint8_t * data, uint16_t *size) {
@@ -561,26 +561,26 @@ bool fatFile::Close() {
 	/* Flush buffer */
 	if (loadedSector) myDrive->writeSector(currentSector, sectorBuffer);
 
-    if (modified || newtime) {
-        direntry tmpentry = {};
+	if (modified || newtime) {
+		direntry tmpentry = {};
 
-        myDrive->directoryBrowse(dirCluster, &tmpentry, (int32_t)dirIndex);
+		myDrive->directoryBrowse(dirCluster, &tmpentry, (int32_t)dirIndex);
 
-        if (newtime) {
-            tmpentry.modTime = time;
-            tmpentry.modDate = date;
-        }
-        else {
-            uint16_t ct,cd;
+		if (newtime) {
+			tmpentry.modTime = time;
+			tmpentry.modDate = date;
+		}
+		else {
+			uint16_t ct,cd;
 
-            time_t_to_DOS_DateTime(/*&*/ct,/*&*/cd,::time(NULL));
+			time_t_to_DOS_DateTime(/*&*/ct,/*&*/cd,::time(NULL));
 
-            tmpentry.modTime = ct;
-            tmpentry.modDate = cd;
-        }
+			tmpentry.modTime = ct;
+			tmpentry.modDate = cd;
+		}
 
-        myDrive->directoryChange(dirCluster, &tmpentry, (int32_t)dirIndex);
-    }
+		myDrive->directoryChange(dirCluster, &tmpentry, (int32_t)dirIndex);
+	}
 
 	return false;
 }
@@ -1053,13 +1053,25 @@ uint32_t fatDrive::getClusterSize(void) {
 	return (unsigned int)BPB.v.BPB_SecPerClus * (unsigned int)BPB.v.BPB_BytsPerSec;
 }
 
-uint32_t fatDrive::getAbsoluteSectFromBytePos(uint32_t startClustNum, uint32_t bytePos) {
-	return  getAbsoluteSectFromChain(startClustNum, bytePos / BPB.v.BPB_BytsPerSec);
+uint32_t fatDrive::getAbsoluteSectFromBytePos(uint32_t startClustNum, uint32_t bytePos,clusterChainMemory *ccm) {
+	return  getAbsoluteSectFromChain(startClustNum, bytePos / BPB.v.BPB_BytsPerSec,ccm);
 }
 
-uint32_t fatDrive::getAbsoluteSectFromChain(uint32_t startClustNum, uint32_t logicalSector) {
-	int32_t skipClust = (int32_t)(logicalSector / BPB.v.BPB_SecPerClus);
+bool fatDrive::iseofFAT(const uint32_t cv) const {
+	switch(fattype) {
+		case FAT12: return cv < 2 || cv >= 0xff8;
+		case FAT16: return cv < 2 || cv >= 0xfff8;
+		case FAT32: return cv < 2 || cv >= 0x0ffffff8;
+		default: break;
+	}
+
+	return true;
+}
+
+uint32_t fatDrive::getAbsoluteSectFromChain(uint32_t startClustNum, uint32_t logicalSector,clusterChainMemory *ccm) {
+	uint32_t targClust = (uint32_t)(logicalSector / BPB.v.BPB_SecPerClus);
 	uint32_t sectClust = (uint32_t)(logicalSector % BPB.v.BPB_SecPerClus);
+	uint32_t indxClust = (uint32_t)0;
 
 	/* startClustNum == 0 means the file is (likely) zero length and has no allocation chain yet.
 	 * Nothing to map. Without this check, this code would permit the FAT file reader/writer to
@@ -1070,35 +1082,35 @@ uint32_t fatDrive::getAbsoluteSectFromChain(uint32_t startClustNum, uint32_t log
 
 	uint32_t currentClust = startClustNum;
 
-	while(skipClust!=0) {
-		bool isEOF = false;
-		uint32_t testvalue = getClusterValue(currentClust);
-		if(testvalue == 0) {
-			/* What the crap?  Cluster is already empty - BAIL! */
-			LOG(LOG_DOSMISC,LOG_ERROR)("End of cluster chain and cluster value at the end is zero.");
+	if (ccm != NULL && ccm->current_cluster_no >= 2) {
+		/* If the cluster index is the same as last time or farther down, avoid re-reading the
+		 * entire allocation chain again and start from where we last read from. If the
+		 * cluster index is going back from current, then re-read the entire allocation chain again.
+		 * This is the nature of a singly-linked file allocation table and is the reason seek()
+		 * is faster going forward than backwards in MS-DOS, especially on FAT32 partitions. */
+		if (targClust >= ccm->current_cluster_index) {
+			indxClust = ccm->current_cluster_index;
+			currentClust = ccm->current_cluster_no;
+		}
+	}
+
+	while(indxClust<targClust) {
+		const uint32_t testvalue = getClusterValue(currentClust);
+		++indxClust;
+
+		if (iseofFAT(testvalue)) {
+			if (indxClust!=targClust) LOG(LOG_MISC,LOG_DEBUG)("FAT: Seek past allocation chain");
 			return 0;
 		}
-		switch(fattype) {
-			case FAT12:
-				if(testvalue >= 0xff8) isEOF = true;
-				break;
-			case FAT16:
-				if(testvalue >= 0xfff8) isEOF = true;
-				break;
-			case FAT32:
-				if(testvalue >= 0x0ffffff8) isEOF = true; /* FAT32 is really FAT28 with 4 reserved bits */
-				break;
-		}
-		if(isEOF && (skipClust>=1)) {
-			//LOG_MSG("End of cluster chain reached before end of logical sector seek!");
-			if (skipClust == 1 && fattype == FAT12) {
-				//break;
-				LOG(LOG_DOSMISC,LOG_ERROR)("End of cluster chain reached, but maybe good after all ?");
-			}
-			return 0;
-		}
+
 		currentClust = testvalue;
-		--skipClust;
+	}
+
+	assert(indxClust<=targClust);
+
+	if (ccm != NULL) {
+		ccm->current_cluster_index = currentClust;
+		ccm->current_cluster_no = indxClust;
 	}
 
 	/* this should not happen! */
@@ -2710,82 +2722,71 @@ unsigned long fatDrive::GetSerial() {
 
 bool fatDrive::directoryBrowse(uint32_t dirClustNumber, direntry *useEntry, int32_t entNum, int32_t start/*=0*/) {
 	direntry sectbuf[MAX_DIRENTS_PER_SECTOR];	/* 16 directory entries per 512 byte sector */
-	uint32_t entryoffset = 0;	/* Index offset within sector */
 	uint32_t tmpsector;
-	uint16_t dirPos = 0;
 
-    (void)start;//UNUSED
+	(void)start;//UNUSED
 
-    size_t dirent_per_sector = getSectSize() / sizeof(direntry);
-    assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
-    assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
+	const size_t dirent_per_sector = getSectSize() / sizeof(direntry);
+	assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
+	assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
 
-	while(entNum>=0) {
-		uint32_t logentsector = ((uint32_t)((size_t)dirPos / dirent_per_sector)); /* Logical entry sector */
-		entryoffset = ((uint32_t)((size_t)dirPos % dirent_per_sector));
+	/* NTS: This change provides a massive performance boost for the FAT driver. The previous code, inherited
+	 *      from SVN, would read every directory entry in sequence up to entNum. It would also re-read the
+	 *      sector every dirent even if the same sector, and it called getAbsoluteSectFromChain() every single
+	 *      time. Which means that for every directory entry this was asked to scan (and called a LOT especially
+	 *      in a directory with more than 100 files!) this code would read the sector, re-read the allocation
+	 *      chain up to the desired offset, and do it entNum times! No wonder it was so slow! --J.C. 2023/04/11 */
+	const uint16_t dirPos = (uint16_t)entNum;
+	const uint32_t logentsector = ((uint32_t)((size_t)dirPos / dirent_per_sector)); /* Logical entry sector */
+	const uint32_t entryoffset = ((uint32_t)((size_t)dirPos % dirent_per_sector));
 
-		if(dirClustNumber==0) {
-            assert(!BPB.is_fat32());
-            if(dirPos >= BPB.v.BPB_RootEntCnt) return false;
-			tmpsector = firstRootDirSect+logentsector;
-			readSector(tmpsector,sectbuf);
-		} else {
-			tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
-			/* A zero sector number can't happen */
-			if(tmpsector == 0) return false;
-			readSector(tmpsector,sectbuf);
-		}
-		dirPos++;
-
-
-		/* End of directory list */
-		if (sectbuf[entryoffset].entryname[0] == 0x00) return false;
-		--entNum;
+	if(dirClustNumber==0) {
+		assert(!BPB.is_fat32());
+		if(dirPos >= BPB.v.BPB_RootEntCnt) return false;
+		tmpsector = firstRootDirSect+logentsector;
+	} else {
+		tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
+		if(tmpsector == 0) return false;
 	}
 
+	readSector(tmpsector,sectbuf);
+	if (sectbuf[entryoffset].entryname[0] == 0x00) return false; /* End of directory list? */
 	copyDirEntry(&sectbuf[entryoffset], useEntry);
 	return true;
 }
 
 bool fatDrive::directoryChange(uint32_t dirClustNumber, const direntry *useEntry, int32_t entNum) {
 	direntry sectbuf[MAX_DIRENTS_PER_SECTOR];	/* 16 directory entries per 512 byte sector */
-	uint32_t entryoffset = 0;	/* Index offset within sector */
 	uint32_t tmpsector = 0;
-	uint16_t dirPos = 0;
-	
-    size_t dirent_per_sector = getSectSize() / sizeof(direntry);
-    assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
-    assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
 
-	while(entNum>=0) {		
-		uint32_t logentsector = ((uint32_t)((size_t)dirPos / dirent_per_sector)); /* Logical entry sector */
-		entryoffset = ((uint32_t)((size_t)dirPos % dirent_per_sector));
+	const size_t dirent_per_sector = getSectSize() / sizeof(direntry);
+	assert(dirent_per_sector <= MAX_DIRENTS_PER_SECTOR);
+	assert((dirent_per_sector * sizeof(direntry)) <= SECTOR_SIZE_MAX);
 
-		if(dirClustNumber==0) {
-            assert(!BPB.is_fat32());
-            if(dirPos >= BPB.v.BPB_RootEntCnt) return false;
-			tmpsector = firstRootDirSect+logentsector;
-			readSector(tmpsector,sectbuf);
-		} else {
-			tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
-			/* A zero sector number can't happen */
-			if(tmpsector == 0) return false;
-			readSector(tmpsector,sectbuf);
-		}
-		dirPos++;
+	/* NTS: This change provides a massive performance boost for the FAT driver. The previous code, inherited
+	 *      from SVN, would read every directory entry in sequence up to entNum. It would also re-read the
+	 *      sector every dirent even if the same sector, and it called getAbsoluteSectFromChain() every single
+	 *      time. Which means that for every directory entry this was asked to scan (and called a LOT especially
+	 *      in a directory with more than 100 files!) this code would read the sector, re-read the allocation
+	 *      chain up to the desired offset, and do it entNum times! No wonder it was so slow! --J.C. 2023/04/11 */
+	const uint16_t dirPos = (uint16_t)entNum;
+	const uint32_t logentsector = ((uint32_t)((size_t)dirPos / dirent_per_sector)); /* Logical entry sector */
+	const uint32_t entryoffset = ((uint32_t)((size_t)dirPos % dirent_per_sector));
 
-
-		/* End of directory list */
-		if (sectbuf[entryoffset].entryname[0] == 0x00) return false;
-		--entNum;
-	}
-	if(tmpsector != 0) {
-		copyDirEntry(useEntry, &sectbuf[entryoffset]);
-		writeSector(tmpsector, sectbuf);
-		return true;
+	if(dirClustNumber==0) {
+		assert(!BPB.is_fat32());
+		if(dirPos >= BPB.v.BPB_RootEntCnt) return false;
+		tmpsector = firstRootDirSect+logentsector;
 	} else {
-		return false;
+		tmpsector = getAbsoluteSectFromChain(dirClustNumber, logentsector);
+		if(tmpsector == 0) return false;
 	}
+
+	readSector(tmpsector,sectbuf);
+	if (sectbuf[entryoffset].entryname[0] == 0x00) return false; /* End of directory list? */
+	copyDirEntry(useEntry, &sectbuf[entryoffset]);
+	writeSector(tmpsector, sectbuf);
+	return true;
 }
 
 bool fatDrive::addDirectoryEntry(uint32_t dirClustNumber, const direntry& useEntry,const char *lfn) {
@@ -3052,12 +3053,12 @@ bool fatDrive::MakeDir(const char *dir) {
 }
 
 bool fatDrive::RemoveDir(const char *dir) {
-    if (readonly) {
+	if (readonly) {
 		DOS_SetError(DOSERR_WRITE_PROTECTED);
-        return false;
-    }
+		return false;
+	}
 	uint32_t dummyClust, dirClust, subEntry;
-    direntry tmpentry = {};
+	direntry tmpentry = {};
 	char dirName[DOS_NAMELENGTH_ASCII];
 	char pathName[11];
 
@@ -3083,12 +3084,14 @@ bool fatDrive::RemoveDir(const char *dir) {
 	if(BPB.is_fat32() && dummyClust==BPB.v32.BPB_RootClus) return false;
 
 	/* Check to make sure directory is empty */
+	/* NTS: The code below only cares if there are non-deleted files, not *how many*, therefore
+	 *      the loop will now terminate immediately upon finding one. --J.C. 2023/04/11 */
 	uint32_t filecount = 0;
 	/* Set to 2 to skip first 2 entries, [.] and [..] */
 	int32_t fileidx = 2;
 	while(directoryBrowse(dummyClust, &tmpentry, fileidx)) {
-		/* Check for non-deleted files */
-		if(tmpentry.entryname[0] != 0xe5) filecount++;
+		/* Check for non-deleted files. NTS: directoryBrowse() will return false if entryname[0] == 0 */
+		if(tmpentry.entryname[0] != 0xe5) { filecount++; break; }
 		fileidx++;
 	}
 
@@ -3224,3 +3227,9 @@ uint32_t fatDrive::GetFirstClusterOffset(void) {
 uint32_t fatDrive::GetHighestClusterNumber(void) {
     return CountOfClusters + 1ul;
 }
+
+void fatDrive::clusterChainMemory::clear(void) {
+	current_cluster_no = 0;
+	current_cluster_index = 0;
+}
+

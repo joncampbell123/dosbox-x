@@ -175,16 +175,16 @@ int SDL_KeyboardInit(void)
 	keynames[SDLK_WORLD_8] = "world 8";
 	keynames[SDLK_WORLD_9] = "world 9";
 	keynames[SDLK_WORLD_10] = "world 10";
-	keynames[SDLK_WORLD_11] = "world 11";
-	keynames[SDLK_WORLD_12] = "world 12";
-	keynames[SDLK_WORLD_13] = "world 13";
-	keynames[SDLK_WORLD_14] = "world 14";
-	keynames[SDLK_WORLD_15] = "world 15";
+	keynames[SDLK_WORLD_11] = "JP Yen/Int'l 3";
+	keynames[SDLK_WORLD_12] = "JP Hankaku/Lang 5";
+	keynames[SDLK_WORLD_13] = "JP Muhenkan/Int'l 5";
+	keynames[SDLK_WORLD_14] = "JP Henkan/Int'l 4";
+	keynames[SDLK_WORLD_15] = "JP Kata&Hira/Int'l 2";
 	keynames[SDLK_WORLD_16] = "world 16";
-	keynames[SDLK_WORLD_17] = "world 17";
-	keynames[SDLK_WORLD_18] = "world 18";
+	keynames[SDLK_WORLD_17] = "JP Eisu";
+	keynames[SDLK_WORLD_18] = "JP Kana";
 	keynames[SDLK_WORLD_19] = "world 19";
-	keynames[SDLK_WORLD_20] = "world 20";
+	keynames[SDLK_WORLD_20] = "JP ro/Int'l 6";
 	keynames[SDLK_WORLD_21] = "world 21";
 	keynames[SDLK_WORLD_22] = "world 22";
 	keynames[SDLK_WORLD_23] = "world 23";
@@ -277,7 +277,8 @@ int SDL_KeyboardInit(void)
 	keynames[SDLK_KP_MINUS] = "[-]";
 	keynames[SDLK_KP_PLUS] = "[+]";
 	keynames[SDLK_KP_ENTER] = "enter";
-	keynames[SDLK_KP_EQUALS] = "equals";
+	keynames[SDLK_KP_EQUALS] = "[=]";
+    keynames[SDLK_KP_COMMA] = "[,]";
 
 	keynames[SDLK_UP] = "up";
 	keynames[SDLK_DOWN] = "down";

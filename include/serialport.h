@@ -141,6 +141,8 @@ public:
 	void log_ser(bool active, char const* format,...);
 #endif
 
+	double baud_multiplier = 1;
+
 	static bool getBituSubstring(const char* name,Bitu* data, CommandLine* cmd);
 
 	bool InstallationSuccessful;// check after constructing. If

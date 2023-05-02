@@ -183,6 +183,7 @@ bool                                enable_vga_8bit_dac = true;
 bool                                ignore_sequencer_blanking = false;
 bool                                memio_complexity_optimization = true;
 bool                                vga_render_on_demand = false; // Render at vsync or specific changes to hardware instead of every scanline
+signed char                         vga_render_on_demand_user = -1;
 
 bool                                pc98_crt_mode = false;      // see port 6Ah command 40h/41h.
                                                                 // this boolean is the INVERSE of the bit.
@@ -314,6 +315,7 @@ void vsync_poll_debug_notify() {
 uint32_t CGA_2_Table[16];
 uint32_t CGA_4_Table[256];
 uint32_t CGA_4_HiRes_Table[256];
+uint32_t CGA_4_HiRes_TableNP[256];
 uint32_t CGA_16_Table[256];
 uint32_t TXT_Font_Table[16];
 uint32_t TXT_FG_Table[16];
@@ -339,6 +341,8 @@ void VGA_SetMode(VGAModes mode) {
     VGA_StartResize();
 }
 
+bool J3_IsCga4Dcga();
+
 void VGA_DetermineMode(void) {
     if (svga.determine_mode) {
         svga.determine_mode();
@@ -353,8 +357,19 @@ void VGA_DetermineMode(void) {
                 if (vga.s3.reg_31 & 0x8) VGA_SetMode(M_LIN8);
                 else VGA_SetMode(M_VGA);
             }
-            else if (vga.gfx.mode & 0x20) VGA_SetMode(M_CGA4);
-            else if ((vga.gfx.miscellaneous & 0x0c)==0x0c) VGA_SetMode(M_CGA2);
+// NTS: Also handled by M_EGA case
+//          else if (vga.gfx.mode & 0x20) VGA_SetMode(M_CGA4);
+
+// NTS: Two things here. One is that CGA 2-color mode (and the MCGA 640x480 2-color mode)
+//      are just EGA planar modes with fewer bitplanes enabled. The planar render mode can
+//      display them just fine. The other is that checking for 2-color CGA mode entirely by
+//      whether video RAM is mapped to B8000h is a really lame way to go about it.
+//
+//      The only catch here is that a contributer (Wengier, I think?) tied a DOS/V CGA rendering
+//      mode into M_CGA2 that we need to watch for.
+//
+            else if ((vga.gfx.miscellaneous & 0x0c)==0x0c && J3_IsCga4Dcga()) VGA_SetMode(M_DCGA);
+
             else {
                 // access above 256k?
                 if (vga.s3.reg_31 & 0x8) VGA_SetMode(M_LIN4);
@@ -494,6 +509,15 @@ void VGA_SetCGA4Table(uint8_t val0,uint8_t val1,uint8_t val2,uint8_t val3) {
             ((Bitu)total[((i >> 3u) & 1u) | ((i >> 6u) & 2u)] << 0u  ) | (Bitu)(total[((i >> 2u) & 1u) | ((i >> 5u) & 2u)] << 8u  ) |
             ((Bitu)total[((i >> 1u) & 1u) | ((i >> 4u) & 2u)] << 16u ) | (Bitu)(total[((i >> 0u) & 1u) | ((i >> 3u) & 2u)] << 24u );
 #endif
+        CGA_4_HiRes_TableNP[i]=
+#ifdef WORDS_BIGENDIAN
+            ((Bitu)(((i >> 0u) & 1u) | ((i >> 3u) & 2u)) << 0u  ) | (Bitu)((((i >> 1u) & 1u) | ((i >> 4u) & 2u)) << 8u  ) |
+            ((Bitu)(((i >> 2u) & 1u) | ((i >> 5u) & 2u)) << 16u ) | (Bitu)((((i >> 3u) & 1u) | ((i >> 6u) & 2u)) << 24u );
+#else
+            ((Bitu)(((i >> 3u) & 1u) | ((i >> 6u) & 2u)) << 0u  ) | (Bitu)((((i >> 2u) & 1u) | ((i >> 5u) & 2u)) << 8u  ) |
+            ((Bitu)(((i >> 1u) & 1u) | ((i >> 4u) & 2u)) << 16u ) | (Bitu)((((i >> 0u) & 1u) | ((i >> 3u) & 2u)) << 24u );
+#endif
+
     }
 
     if (machine == MCH_MCGA) {
@@ -936,14 +960,25 @@ void VGA_Reset(Section*) {
     enable_vga_8bit_dac = section->Get_bool("enable 8-bit dac");
     ignore_sequencer_blanking = section->Get_bool("ignore sequencer blanking");
     memio_complexity_optimization = section->Get_bool("memory io optimization 1");
-    vga_render_on_demand = section->Get_bool("scanline render on demand");
+
+    vga_render_on_demand = false;
+
+    {
+        const char *str = section->Get_string("scanline render on demand");
+        if (!strcmp(str,"true") || !strcmp(str,"1"))
+            vga_render_on_demand_user = 1;
+        else if (!strcmp(str,"false") || !strcmp(str,"0"))
+            vga_render_on_demand_user = 0;
+        else
+            vga_render_on_demand_user = -1;
+    }
 
     if (memio_complexity_optimization)
         LOG_MSG("Memory I/O complexity optimization enabled aka option 'memory io optimization 1'. If the game or demo is unable to draw to the screen properly, set the option to false.");
 
-    if (vga_render_on_demand)
+    if (vga_render_on_demand_user > 0)
         LOG_MSG("'scanline render on demand' option is enabled. If this option breaks the game or demo effects or display, set the option to false.");
-    else
+    else if (vga_render_on_demand_user < 0)
         LOG_MSG("The 'scanline render on demand' option is available and may provide a modest boost in video render performance if set to true.");
 
     vga_memio_delay_ns = section->Get_int("vmemdelay");
@@ -1539,7 +1574,8 @@ void VGA_Init() {
     vga.herc.bgcolor = 0x0;
     vga.herc.latchprotect = 0;
     vga.herc.palette_index = 0;
-    for (unsigned int i=0;i < 16;i++) vga.herc.palette[i] = i;
+    for (unsigned int i=0;i < 8;i++) vga.herc.palette[i] = i;
+    for (unsigned int i=8;i < 16;i++) vga.herc.palette[i] = i + 0x30;
     vga.draw.render_step = 0;
     vga.draw.render_max = 1;
 

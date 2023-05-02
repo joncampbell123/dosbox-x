@@ -1133,8 +1133,8 @@ void CPU_Exception(Bitu which,Bitu error ) {
 	assert(which < 0x20);
 //	LOG_MSG("Exception %d error %x",which,error);
 
-    if(which >= 0x20)
-        E_Exit("CPU_Exception: Exception %d is out of range.", (int)which);
+	if(which >= 0x20)
+		E_Exit("CPU_Exception: Exception %d is out of range.", (int)which);
 
 	if (CPU_Exception_Level[which] != 0) {
 		if (CPU_Exception_Level[EXCEPTION_DF] != 0 && cpu_triple_fault_reset) {
@@ -1158,16 +1158,16 @@ void CPU_Exception(Bitu which,Bitu error ) {
 	}
 
 	if (cpu_double_fault_enable) {
-        /* NTS: Putting some thought into it, I don't think divide by zero counts as something to throw a double fault
-         *      over. I may be wrong. The behavior of Intel processors will ultimately decide.
-         *
-         *      Until then, don't count Divide Overflow exceptions, so that the "EFP loader" can do it's disgusting
-         *      anti-debugger hackery when loading parts of a demo. --J.C. */
-        if (!(which == 0/*divide by zero/overflow*/)) {
-            /* CPU_Interrupt() could cause another fault during memory access. This needs to happen here */
-            CPU_Exception_Level[which]++;
-            CPU_Exception_In_Progress.push((int)which);
-        }
+		/* NTS: Putting some thought into it, I don't think divide by zero counts as something to throw a double fault
+		 *      over. I may be wrong. The behavior of Intel processors will ultimately decide.
+		 *
+		 *      Until then, don't count Divide Overflow exceptions, so that the "EFP loader" can do it's disgusting
+		 *      anti-debugger hackery when loading parts of a demo. --J.C. */
+		if (!(which == 0/*divide by zero/overflow*/)) {
+			/* CPU_Interrupt() could cause another fault during memory access. This needs to happen here */
+			CPU_Exception_Level[which]++;
+			CPU_Exception_In_Progress.push((int)which);
+		}
 	}
 
 	cpu.exception.error=error;
@@ -3011,107 +3011,107 @@ bool CPU_PopSeg(SegNames seg,bool use32) {
 extern bool enable_fpu;
 
 bool CPU_CPUID(void) {
+	/* NTS: This function must return false ONLY if CPUID is not supported.
+	 *      Otherwise, it must always return true even if it doesn't recognize
+	 *      the value of reg_eax. */
 	if (CPU_ArchitectureType < CPU_ARCHTYPE_486NEW) return false;
+
 	switch (reg_eax) {
-	case 0:	/* Vendor ID String and maximum level? */
-		if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII)
-			reg_eax=3;  /* Maximum level */
-		else
-			reg_eax=1;  /* Maximum level */
-		if (cpu_custom_cpuid[0] != 0) {
-			reg_ebx=cpu_custom_cpuid[0] | (cpu_custom_cpuid[1] << 8) | (cpu_custom_cpuid[ 2] << 16) | (cpu_custom_cpuid[ 3] << 24);
-			reg_edx=cpu_custom_cpuid[4] | (cpu_custom_cpuid[5] << 8) | (cpu_custom_cpuid[ 6] << 16) | (cpu_custom_cpuid[ 7] << 24);
-			reg_ecx=cpu_custom_cpuid[8] | (cpu_custom_cpuid[9] << 8) | (cpu_custom_cpuid[10] << 16) | (cpu_custom_cpuid[11] << 24);
-		}
-		else {
-			reg_ebx='G' | ('e' << 8) | ('n' << 16) | ('u'<< 24);
-			reg_edx='i' | ('n' << 8) | ('e' << 16) | ('I'<< 24);
-			reg_ecx='n' | ('t' << 8) | ('e' << 16) | ('l'<< 24);
-		}
-		break;
-	case 1:	/* get processor type/family/model/stepping and feature flags */
-		if ((CPU_ArchitectureType == CPU_ARCHTYPE_486NEW) ||
-			(CPU_ArchitectureType == CPU_ARCHTYPE_MIXED)) {
-			reg_eax=enable_fpu?0x402:0x422; /* intel 486dx or 486sx */
-			reg_ebx=0;			/* Not Supported */
-			reg_ecx=0;			/* No features */
-			reg_edx=enable_fpu?1:0;	/* FPU */
-		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM) {
-			reg_eax=report_fdiv_bug?0x513:0x517;	/* intel pentium */
-			reg_ebx=0;			/* Not Supported */
-			reg_ecx=0;			/* No features */
-			reg_edx=0x00000010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC */
-			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
-			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
-		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PMMXSLOW) {
-			reg_eax=0x543;		/* intel pentium mmx (PMMX) */
-			reg_ebx=0;			/* Not Supported */
-			reg_ecx=0;			/* No features */
-			reg_edx=0x00800010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC+MMX+ModelSpecific/MSR */
-			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
-			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
-		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW) {
-			reg_eax=0x612;		/* intel pentium pro */
-			reg_ebx=0;			/* Not Supported */
-			reg_ecx=0;			/* No features */
-			reg_edx=0x00008011;	/* FPU+TimeStamp/RDTSC */
-			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
-			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
-		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII) {
-			/* NTS: Most operating systems will not attempt SYSENTER/SYSEXIT unless this returns model 3, stepping 3, or higher. */
-			/* From Intel [https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-vol-2b-manual.pdf]:
-			 *
-			 * "The SYSENTER and SYSEXIT instructions were introduced into the IA-32 architecture in the Pentium II processor."
-			 *
-			 * "An operating system that qualifies the SEP flag must also qualify the processor family and model to ensure that
-			 * the SYSENTER/SYSEXIT instructions are actually present"
-			 *
-			 * "When the CPUID instruction is executed on the Pentium Pro processor (model 1), the processor returns a the SEP
-			 * flag as set, but does not support the SYSENTER/SYSEXIT instructions."
-			 *
-			 * Therefore, always return with bit 11 (SEP) set whether or not SYSCALL is enabled because Intel made a stupid mistake.
-			 *
-			 * This website [https://www.geoffchappell.com/studies/windows/km/cpu/sep.htm?tx=256] notes how the Windows NT kernel
-			 * follows this rule, and the Linux kernel does too */
-			reg_eax=enable_syscall?0x633:0x631; /* intel pentium II */
-			reg_ebx=0;			/* Not Supported */
-			reg_ecx=0;			/* No features */
-			reg_edx=0x00808011;	/* FPU+TimeStamp/RDTSC */
-			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
-			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
-			reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT [SEE NOTES AT TOP OF THIS IF STATEMENT] */
-		} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII || CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
-			reg_eax=0x673; /* intel pentium III */
-			reg_ebx=0;			/* Not Supported */
-			reg_ecx=0;			/* No features */
-			reg_edx=0x03808011;	/* FPU+TimeStamp/RDTSC+SSE+FXSAVE/FXRESTOR */
-			if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
-			if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
-			if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII && p3psn.enabled) reg_edx |= 0x40000;
-			reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT */
-		} else {
-			return false;
-		}
-		break;
-	case 3: /* Processor Serial Number */
-		if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII && p3psn.enabled) {
-			reg_eax = 0;
-			reg_ebx = 0;
-			reg_ecx = p3psn.lo;
-			reg_edx = p3psn.hi;
-		}
-		else {
-			return false;
-		}
-		break;
-	default:
-		LOG(LOG_CPU,LOG_ERROR)("Unhandled CPUID Function %x",reg_eax);
-		reg_eax=0;
-		reg_ebx=0;
-		reg_ecx=0;
-		reg_edx=0;
-		break;
+		case 0:	/* Vendor ID String and maximum level? */
+			if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII)
+				reg_eax=3;  /* Maximum level */
+			else
+				reg_eax=1;  /* Maximum level */
+			if (cpu_custom_cpuid[0] != 0) {
+				reg_ebx=cpu_custom_cpuid[0] | (cpu_custom_cpuid[1] << 8) | (cpu_custom_cpuid[ 2] << 16) | (cpu_custom_cpuid[ 3] << 24);
+				reg_edx=cpu_custom_cpuid[4] | (cpu_custom_cpuid[5] << 8) | (cpu_custom_cpuid[ 6] << 16) | (cpu_custom_cpuid[ 7] << 24);
+				reg_ecx=cpu_custom_cpuid[8] | (cpu_custom_cpuid[9] << 8) | (cpu_custom_cpuid[10] << 16) | (cpu_custom_cpuid[11] << 24);
+			}
+			else {
+				reg_ebx='G' | ('e' << 8) | ('n' << 16) | ('u'<< 24);
+				reg_edx='i' | ('n' << 8) | ('e' << 16) | ('I'<< 24);
+				reg_ecx='n' | ('t' << 8) | ('e' << 16) | ('l'<< 24);
+			}
+			break;
+		case 1:	/* get processor type/family/model/stepping and feature flags */
+			if ((CPU_ArchitectureType == CPU_ARCHTYPE_486NEW) ||
+					(CPU_ArchitectureType == CPU_ARCHTYPE_MIXED)) {
+				reg_eax=enable_fpu?0x402:0x422; /* intel 486dx or 486sx */
+				reg_ebx=0;			/* Not Supported */
+				reg_ecx=0;			/* No features */
+				reg_edx=enable_fpu?1:0;	/* FPU */
+			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUM) {
+				reg_eax=report_fdiv_bug?0x513:0x517;	/* intel pentium */
+				reg_ebx=0;			/* Not Supported */
+				reg_ecx=0;			/* No features */
+				reg_edx=0x00000010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC */
+				if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
+				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PMMXSLOW) {
+				reg_eax=0x543;		/* intel pentium mmx (PMMX) */
+				reg_ebx=0;			/* Not Supported */
+				reg_ecx=0;			/* No features */
+				reg_edx=0x00800010|(enable_fpu?1:0);	/* FPU+TimeStamp/RDTSC+MMX+ModelSpecific/MSR */
+				if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
+				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PPROSLOW) {
+				reg_eax=0x612;		/* intel pentium pro */
+				reg_ebx=0;			/* Not Supported */
+				reg_ecx=0;			/* No features */
+				reg_edx=0x00008011;	/* FPU+TimeStamp/RDTSC */
+				if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
+				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMII) {
+				/* NTS: Most operating systems will not attempt SYSENTER/SYSEXIT unless this returns model 3, stepping 3, or higher. */
+				/* From Intel [https://www.intel.com/content/dam/www/public/us/en/documents/manuals/64-ia-32-architectures-software-developer-vol-2b-manual.pdf]:
+				 *
+				 * "The SYSENTER and SYSEXIT instructions were introduced into the IA-32 architecture in the Pentium II processor."
+				 *
+				 * "An operating system that qualifies the SEP flag must also qualify the processor family and model to ensure that
+				 * the SYSENTER/SYSEXIT instructions are actually present"
+				 *
+				 * "When the CPUID instruction is executed on the Pentium Pro processor (model 1), the processor returns a the SEP
+				 * flag as set, but does not support the SYSENTER/SYSEXIT instructions."
+				 *
+				 * Therefore, always return with bit 11 (SEP) set whether or not SYSCALL is enabled because Intel made a stupid mistake.
+				 *
+				 * This website [https://www.geoffchappell.com/studies/windows/km/cpu/sep.htm?tx=256] notes how the Windows NT kernel
+				 * follows this rule, and the Linux kernel does too */
+				reg_eax=enable_syscall?0x633:0x631; /* intel pentium II */
+				reg_ebx=0;			/* Not Supported */
+				reg_ecx=0;			/* No features */
+				reg_edx=0x00808011;	/* FPU+TimeStamp/RDTSC */
+				if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
+				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+				reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT [SEE NOTES AT TOP OF THIS IF STATEMENT] */
+			} else if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII || CPU_ArchitectureType == CPU_ARCHTYPE_EXPERIMENTAL) {
+				reg_eax=0x673; /* intel pentium III */
+				reg_ebx=0;			/* Not Supported */
+				reg_ecx=0;			/* No features */
+				reg_edx=0x03808011;	/* FPU+TimeStamp/RDTSC+SSE+FXSAVE/FXRESTOR */
+				if (enable_msr) reg_edx |= 0x20; /* ModelSpecific/MSR */
+				if (enable_cmpxchg8b) reg_edx |= 0x100; /* CMPXCHG8B */
+				if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII && p3psn.enabled) reg_edx |= 0x40000;
+				reg_edx |= 0x800; /* SEP Fast System Call aka SYSENTER/SYSEXIT */
+			}
+			break;
+		case 3: /* Processor Serial Number */
+			if (CPU_ArchitectureType == CPU_ARCHTYPE_PENTIUMIII && p3psn.enabled) {
+				reg_eax = 0;
+				reg_ebx = 0;
+				reg_ecx = p3psn.lo;
+				reg_edx = p3psn.hi;
+			}
+			break;
+		default:
+			LOG(LOG_CPU,LOG_ERROR)("Unhandled CPUID Function %x",reg_eax);
+			reg_eax=0;
+			reg_ebx=0;
+			reg_ecx=0;
+			reg_edx=0;
+			break;
 	}
+
 	return true;
 }
 

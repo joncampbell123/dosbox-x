@@ -2651,11 +2651,12 @@ void DOSBOX_SetupConfigSections(void) {
 		    "If graphical artifacts or errors occur, try turning this off first. May provide a performance benefit.");
     Pbool->SetBasic(true);
 
-    Pbool = secprop->Add_bool("scanline render on demand",Property::Changeable::Always,false);
-    Pbool->Set_help("Render video output at vsync or when something is changed mid frame, instead of stopping to render every scanline.\n"
+    Pstring = secprop->Add_string("scanline render on demand",Property::Changeable::Always,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("Render video output at vsync or when something is changed mid frame, instead of stopping to render every scanline.\n"
 		    "May provide a performance benefit to most DOS games. However this may also break timing-dependent game or Demoscene effects.\n"
-		    "Default OFF (false)");
-    Pbool->SetBasic(true);
+		    "Default auto, which will turn if off for VGA modes and turn it on for SVGA modes.");
+    Pstring->SetBasic(true);
 
     secprop=control->AddSection_prop("vsync",&Null_Init,true);//done
 
@@ -3899,6 +3900,7 @@ void DOSBOX_SetupConfigSections(void) {
         "    shellhide to hide the command window when opening programs on the Windows platform.\n"
         "    openwith:<program>: start a program to open the output file.\n"
         "    openerror:<program>: start a program to open the output file if an error had occurred.\n"
+        "    multiplier:<x>: Actual baud rate is the programmed rate times X to allow rates higher than 115200.\n"
         "Example: serial1=file file:output1.txt timeout:1000 openwith:notepad\n"
         "for directserial: realport (required), rxdelay (optional).\n"
         "                 (realport:COM1 realport:ttyS0).\n"

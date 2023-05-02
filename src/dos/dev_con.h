@@ -31,6 +31,7 @@
 
 extern bool inshell;
 extern bool DOS_BreakFlag;
+extern bool INT28_AllowOnce;
 extern bool DOS_BreakConioFlag;
 extern unsigned char pc98_function_row_mode;
 
@@ -741,6 +742,7 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
                 if (GETFLAG(ZF) == 0) {
                     break;
                 } else {
+                    INT28_AllowOnce=true;
                     CALLBACK_RunRealInt(0x28);
                 }
             }
@@ -925,6 +927,7 @@ bool device_CON::Read(uint8_t * data,uint16_t * size) {
 				Real_INT10_TeletypeOutput(reg_al,defattr);
 		}
 	}
+	INT28_AllowOnce=true;
 	dos.errorcode=0;
 	*size=count;
 	reg_ax=oldax;

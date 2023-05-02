@@ -3217,6 +3217,7 @@ restart_int:
         std::string dpath;
         std::string tmp;
 
+        int lbamode = -1;
         unsigned int c, h, s, sectors; 
         uint64_t size = 0;
 
@@ -3447,6 +3448,13 @@ restart_int:
             bootsect_pos = -1;
         }
 
+        if (cmd->FindExist("-chs",true))
+           lbamode = 0;
+        else if (cmd->FindExist("-lba",true))
+           lbamode = 1;
+        else
+           lbamode = size > (2048ULL << 20ULL); /* automatically choose LBA for 2GB or larger images */
+
         /* beyond this point clamp c */
         if (c > 1023) c = 1023;
 
@@ -3648,7 +3656,7 @@ restart_int:
                     else
                         sbuf[0x1c2]=0x01; /* FAT12 within the first 32MB */
                 }
-                else if ((bootsect_pos+vol_sectors) < 8388608) { /* 4GB or smaller */
+                else if (!lbamode) { /* 4GB or smaller */
                     if (FAT >= 32)
                         sbuf[0x1c2]=0x0B; /* FAT32 C/H/S */
                     else
@@ -9081,6 +9089,7 @@ void DOS_SetupPrograms(void) {
         "  -nofs: Add this parameter if a blank image should be created.\n"
         "  -force: Force to overwrite the existing image file.\n"
         "  -bat: Create a .bat file with the IMGMOUNT command required for this image.\n"
+        "  -chs / -lba: Use partition code for FAT filesystem for C/H/S or LBA geometry.\n"
         "  -fat: FAT filesystem type (12, 16, or 32).\n"
         "  -spc: Sectors per cluster override. Must be a power of 2.\n"
         "  -fatcopies: Override number of FAT table copies.\n"

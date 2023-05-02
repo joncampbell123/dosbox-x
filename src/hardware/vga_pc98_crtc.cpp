@@ -44,6 +44,7 @@ void pc98_update_page_ptrs(void);
 
 extern bool vga_render_on_demand;
 void VGA_RenderOnDemandUpTo(void);
+void ChooseRenderOnDemand(void);
 
 extern bool                 pc98_40col_text;
 extern bool                 pc98_31khz_mode;
@@ -216,6 +217,7 @@ void pc98_port6A_command_write(unsigned char b) {
                 pc98_gdc_vramop &= ~(1 << VOPBIT_VGA);
                 update_gdc_analog();
                 VGA_SetupHandlers(); // memory mapping presented to the CPU changes
+                ChooseRenderOnDemand(); // may affect render on demand
                 pc98_update_palette();
                 pc98_update_page_ptrs();
             }
@@ -226,6 +228,7 @@ void pc98_port6A_command_write(unsigned char b) {
                 pc98_gdc_vramop |= (1 << VOPBIT_VGA);
                 update_gdc_analog();
                 VGA_SetupHandlers(); // memory mapping presented to the CPU changes
+                ChooseRenderOnDemand(); // may affect render on demand
                 pc98_update_palette();
                 pc98_update_page_ptrs();
             }
@@ -267,7 +270,7 @@ void pc98_port6A_command_write(unsigned char b) {
 /* Port 0x68 command handling */
 void pc98_port68_command_write(unsigned char b) {
     switch (b) {
-        case 0x00: // text screeen attribute bit 4 meaning: 0=vertical line
+        case 0x00: // text screen attribute bit 4 meaning: 0=vertical line
         case 0x01: //                                       1=simple graphic
             if (vga_render_on_demand) VGA_RenderOnDemandUpTo();
             pc98_attr4_graphic = !!(b&1);

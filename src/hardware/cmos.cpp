@@ -36,8 +36,6 @@
 #include "sys/time.h"
 #endif
 
-bool date_host_forced = false;
-
 // sigh... Windows doesn't know gettimeofday
 #if defined (WIN32) && !defined (__MINGW32__)
 typedef Bitu suseconds_t;
@@ -82,30 +80,41 @@ static struct {
     struct timeval safetime;    // UTC time of last safe time
 } cmos;
 
-static bool fired_irq8 = false;
 static void cmos_timerevent(Bitu val) {
     (void)val;//UNUSED
-    if (cmos.timer.acknowledged) {
-        cmos.timer.acknowledged=false;
-        PIC_ActivateIRQ(8);
-        fired_irq8 = true;
-    }
     if (cmos.timer.enabled) {
         double index = PIC_FullIndex();
         double remd = fma((index/(double)cmos.timer.delay), -(double)cmos.timer.delay, index);
         //double remd = fmod(index, (double)cmos.timer.delay); // original delay calculation
         //double remd = index - trunc(index / (double)cmos.timer.delay) * (double)cmos.timer.delay; // alternative fix
-        PIC_AddEvent(cmos_timerevent, (float)((double)cmos.timer.delay - remd));
         //LOG_MSG("cmos timerevent: index=%f, interval=%f", index, cmos.timer.delay - remd);
-        cmos.regs[0xc] |= 0x40;    // Periodic Interrupt Flag (PF)
-        if(index >= (cmos.last.ended + 1000 - 0.001)) { // consider sometimes index is slightly before 1.0sec
+
+        // Periodic Interrupt Flag (PF)
+        if (cmos.regs[0xb] & 0x40) cmos.regs[0xc] |= 0x40;
+
+        if (index >= (cmos.last.ended + 1000 - 0.001)) { // consider sometimes index is slightly before 1.0sec
             //LOG_MSG("cmos timerevent: index=%f, interval=%f", index, cmos.last.ended - index);
-            if(!fired_irq8 && (cmos.regs[0x0b] & 0x10)) PIC_ActivateIRQ(8); // ensure to fire IRQ when UIE flag is set
-            cmos.last.ended = index;
-            cmos.regs[0xc] |= 0x10;    // Update-Ended Interrupt Flag (UF)
+            if (cmos.last.ended < (index-1000)) cmos.last.ended = (index-1000);
+            cmos.last.ended -= fmod(cmos.last.ended,1000);
+            cmos.last.ended += 1000;
+
+            // Update-Ended Interrupt Flag (UF)
+            if (cmos.regs[0xb] & 0x10) cmos.regs[0xc] |= 0x10;
+        }
+
+        if (cmos.regs[0xb] & 0x40) { /* PIE */
+            PIC_AddEvent(cmos_timerevent, (float)((double)cmos.timer.delay - remd));
+        }
+        else if (cmos.regs[0xb] & 0x10) { /* UIE */
+            double delay = (double)cmos.last.ended + 1000 - index;
+            if (delay < 0.01) delay = 0.01;
+            PIC_AddEvent(cmos_timerevent, (float)delay);
         }
     }
-    fired_irq8 = false;
+    if (cmos.timer.acknowledged && (cmos.regs[0x0c] & 0x70/*PIE|AIE|UIE*/)) {
+        cmos.timer.acknowledged=false;
+        PIC_ActivateIRQ(8);
+    }
 }
 
 static void cmos_checktimer(void) {
@@ -138,7 +147,7 @@ void cmos_selreg(Bitu port,Bitu val,Bitu iolen) {
 static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
     (void)port;//UNUSED
     (void)iolen;//UNUSED
-    if (date_host_forced && (cmos.reg <= 0x09 || cmos.reg == 0x32)) {   // date/time related registers
+    if (cmos.reg <= 0x09 || cmos.reg == 0x32) {   // date/time related registers
         if (cmos.bcd)           // values supplied are BCD, convert to binary values
         {
             if ((val & 0xf0) > 0x90 || (val & 0x0f) > 0x09) return;     // invalid BCD value
@@ -205,18 +214,20 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
             break;
 
         case 0x08:      /* Month */
-            if (val > 12) return;               // invalid month value
-            loctime->tm_mon = (int)val;
+            if (val < 1 || val > 12) return;               // invalid month value
+            loctime->tm_mon = (int)val - 1;
             break;
 
         case 0x09:      /* Year */
-            loctime->tm_year = (int)val;
+            loctime->tm_year -= loctime->tm_year % 100;
+            loctime->tm_year += (int)val;
             break;
 
         case 0x32:      /* Century */
         case 0x37:      /* Century (alternate used by Windows NT/2000/XP) */
             if (val < 19) return;               // invalid century value?
-            loctime->tm_year += (int)((val * 100) - 1900);
+            loctime->tm_year %= 100;
+            loctime->tm_year += (int)((val - 19) * 100);
             break;
 
         case 0x01:      /* Seconds Alarm */
@@ -270,12 +281,12 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
         cmos_checktimer();
         break;
     case 0x0b:      /* Status reg B */
-        if(date_host_forced) {
+        {
             bool waslocked = cmos.lock;
 
             cmos.ampm = !(val & 0x02);
             cmos.bcd = !(val & 0x04);
-            cmos.timer.enabled = (val & 0x40) > 0;
+            cmos.timer.enabled = (val & 0x50/*PIE|UIE*/) > 0;
             cmos.lock = (val & 0x80) != 0;
 
             if (cmos.lock)              // if locked, set locktime for later use
@@ -295,19 +306,12 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
 
             cmos.regs[cmos.reg] = (uint8_t)val;
             cmos_checktimer();
-        } else {
-            cmos.bcd=!(val & 0x4);
-            cmos.regs[cmos.reg]=(uint8_t)val;
-            cmos.timer.enabled=(val & 0x40)>0;
-            cmos_checktimer();
         }
         break;
     case 0x0c:      /* Status reg C */
         break;
     case 0x0d:      /* Status reg D */
-        if(!date_host_forced) {
-            cmos.regs[cmos.reg]=val & 0x80; /*Bit 7=1:RTC Power on*/
-        }
+        cmos.regs[cmos.reg]=val & 0x80; /*Bit 7=1:RTC Power on*/
         break;
     case 0x0f:      /* Shutdown status byte */
         cmos.regs[cmos.reg]=val & 0x7f;
@@ -333,7 +337,7 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
     }
 
     // JAL_20060817 - rewrote most of the date/time part
-    if (date_host_forced && (cmos.reg <= 0x09 || cmos.reg == 0x32)) {       // date/time related registers
+    if (cmos.reg <= 0x09 || cmos.reg == 0x32) {       // date/time related registers
         struct tm* loctime;
 
         if (cmos.lock)              // if locked, use locktime instead of current time
@@ -421,34 +425,26 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
     case 0x05:      /* Hours Alarm */
         return cmos.regs[cmos.reg];
     case 0x0a:      /* Status register A */
-        if(date_host_forced) {
-            // take bit 7 of reg b into account (if set, never updates)
-            gettimeofday (&cmos.safetime, NULL);        // get current UTC time
-            if (cmos.lock ||                            // if lock then never updated, so reading safe
-                cmos.safetime.tv_usec < (1000-244)) {   // if 0, at least 244 usec should be available
-                return cmos.regs[0x0a];                 // reading safe
-            } else {
-                return cmos.regs[0x0a] | 0x80;          // reading not safe!
-            }
+        // take bit 7 of reg b into account (if set, never updates)
+        gettimeofday (&cmos.safetime, NULL);        // get current UTC time
+        if (cmos.lock ||                            // if lock then never updated, so reading safe
+            cmos.safetime.tv_usec >= (1000-244)) {  // if 0, at least 244 usec should be available
+            return cmos.regs[0x0a];                 // reading safe
         } else {
-            if (PIC_TickIndex()<0.002) {
-                return (cmos.regs[0x0a]&0x7f) | 0x80;
-            } else {
-                return (cmos.regs[0x0a]&0x7f);
-            }
+            return cmos.regs[0x0a] | 0x80;          // reading not safe!
         }
     case 0x0c:      /* Status register C */
     {
         cmos.timer.acknowledged=true;
         uint8_t val = cmos.regs[0xc];
-        if (cmos.timer.enabled && ((cmos.regs[0xc] & 0x40) > 0)) { // If both PF and PIE are 1
-            val |= 0x80; // Set Interrupt Request Flag (IRQF) to 1
+        if(((cmos.regs[0xb] & 0x40) > 0) && ((cmos.regs[0xc] & 0x40) > 0)) { // If both PF and PIE are 1
+            val |= 0x80 | 0x40; // Set Interrupt Request Flag (IRQF) to 1, PF = 1
         }
-        else if(((cmos.regs[0xb] & 0x10) > 0) && ((cmos.regs[0xc] & 0x10) > 0)) { // If both UF and UIE are 1
-            val |= 0x80; // Set Interrupt Request Flag (IRQF) to 1
+        if(((cmos.regs[0xb] & 0x10) > 0) && ((cmos.regs[0xc] & 0x10) > 0)) { // If both UF and UIE are 1
+            val |= 0x80 | 0x10; // Set Interrupt Request Flag (IRQF) to 1, UF = 1
         }
-        else if(((cmos.regs[0xb] & 0x20) > 0) && ((cmos.regs[0xc] & 0x20) > 0)) { // If both AF and AIE are 1
-            val |= 0x80; // Set Interrupt Request Flag (IRQF) to 1
+        if(((cmos.regs[0xb] & 0x20) > 0) && ((cmos.regs[0xc] & 0x20) > 0)) { // If both AF and AIE are 1
+            val |= 0x80 | 0x20; // Set Interrupt Request Flag (IRQF) to 1, AF = 1
         }
         cmos.regs[0xc] = 0; // All flags are cleared by reading the register
         return val;
@@ -588,12 +584,7 @@ void CMOS_Reset(Section* sec) {
     cmos.reg=0xb;
     cmos_writereg(0x71,0x2,1);  //Struct tm *loctime is of 24 hour format,
     cmos.regs[0x0c] = 0;
-    if(date_host_forced) {
-        cmos.regs[0x0d]=(uint8_t)0x80;
-    } else {
-        cmos.reg=0xd;
-        cmos_writereg(0x71,0x80,1); /* RTC power on */
-    }
+    cmos.regs[0x0d]=(uint8_t)0x80;
     // Equipment is updated from bios.cpp and bios_disk.cpp
     /* Fill in base memory size, it is 640K always */
     cmos.regs[0x15]=(uint8_t)0x80;
@@ -607,19 +598,12 @@ void CMOS_Reset(Section* sec) {
     cmos.regs[0x18]=(uint8_t)(exsize >> 8);
     cmos.regs[0x30]=(uint8_t)exsize;
     cmos.regs[0x31]=(uint8_t)(exsize >> 8);
-    if (date_host_forced) {
-        cmos.time_diff = 0;
-        cmos.locktime.tv_sec = 0;
-    }
+    cmos.time_diff = 0;
+    cmos.locktime.tv_sec = 0;
 }
 
 void CMOS_Init() {
     LOG(LOG_MISC,LOG_DEBUG)("Initializing CMOS/RTC");
-
-    if (control->opt_date_host_forced) {
-        LOG_MSG("Synchronize date with host: Forced");
-        date_host_forced=true;
-    }
 
     AddExitFunction(AddExitFunctionFuncPair(CMOS_Destroy),true);
     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(CMOS_Reset));

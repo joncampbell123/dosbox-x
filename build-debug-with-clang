@@ -1,14 +1,16 @@
 #!/usr/bin/env bash
 
 # Do you like Clang/LLVM? Use this script to build DOSBox-X!
-export CC=`which clang`
-export CXX=`which clang++`
-export CPP=`which clang-cpp`
+CC=$(which clang)
+CXX=$(which clang++)
+CPP=$(which clang-cpp)
+export CC CXX CPP
 
 # allow 32-bit on 64-bit (x86) builds
-if [ "$1" == "32" ]; then
-    export CC=`which clang`" -m32"
-    export CXX=`which clang++`" -m32"
+if [ "${1}" == "32" ]; then
+    CC="$(which clang) -m32"
+    CXX="$(which clang++) -m32"
+    export CC CXX
     shift
     opt="--host=i686-pc-linux-gnu --target=i686-pc-linux-gnu"
 fi
@@ -22,16 +24,16 @@ fi
 chmod +x vs/sdl/build-scripts/strip_fPIC.sh
 
 # prefer to compile against our own copy of SDL 1.x
-echo Compiling our internal SDL 1.x
+echo "Compiling our internal SDL 1.x"
 (cd vs/sdl && ./build-dosbox.sh) || exit 1
 
 # prefer to compile against our own copy of SDLnet 1.x
-echo Compiling our internal SDLnet 1.x
+echo "Compiling our internal SDLnet 1.x"
 (cd vs/sdlnet && ./build-dosbox.sh) || exit 1
 
 # now compile ourself
-echo Compiling DOSBox-X
+echo "Compiling DOSBox-X"
 chmod +x configure
-./configure --enable-debug=heavy --prefix=/usr "$@" $opt || exit 1
+./configure --enable-debug=heavy --prefix=/usr "${@}" "${opt}" || exit 1
 make -j3 || exit 1
 

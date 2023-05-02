@@ -1150,7 +1150,7 @@ void FreeBIOSDiskList() {
     for (int i=0;i < MAX_DISK_IMAGES;i++) {
         if (imageDiskList[i] != NULL) {
             if (i >= 2) IDE_Hard_Disk_Detach(i);
-            if (!imageDiskList[i]->ffdd) imageDiskList[i]->Release();
+            imageDiskList[i]->Release();
             imageDiskList[i] = NULL;
         }
     }
@@ -1278,6 +1278,7 @@ void swapInDrive(int drive, unsigned int position=0) {
 void swapInNextDisk(bool pressed) {
     if (!pressed)
         return;
+
     DriveManager::CycleAllDisks();
     /* Hack/feature: rescan all disks as well */
     LOG_MSG("Diskcaching reset for floppy drives.");
@@ -1787,7 +1788,8 @@ static void readDAP(uint16_t seg, uint16_t off) {
     dap.sector = real_readd(seg,off); off +=4;
 
     if (real_readd(seg,off)) {
-        E_Exit("INT13: 64-bit sector addressing not supported");
+        LOG(LOG_BIOS,LOG_WARN)("INT13: 64-bit sector addressing not supported");
+        dap.num = 0; /* this will cause calling INT 13h code to return an error */
     }
 }
 
@@ -2197,6 +2199,7 @@ static Bitu INT13_DiskHandler(void) {
             CALLBACK_SCF(true);
             return CBRET_NONE;
         }
+
         if (!any_images) {
             // Inherit the Earth cdrom (uses it as disk test)
             if (((reg_dl&0x80)==0x80) && (reg_dh==0) && ((reg_cl&0x3f)==1)) {
@@ -2247,6 +2250,13 @@ static Bitu INT13_DiskHandler(void) {
 
         /* Read Disk Address Packet */
         readDAP(SegValue(ds),reg_si);
+
+        if (dap.num==0) {
+            reg_ah = 0x01;
+            CALLBACK_SCF(true);
+            return CBRET_NONE;
+        }
+
         bufptr = dap.off;
         for(i=0;i<dap.num;i++) {
             for(t=0;t<imageDiskList[drivenum]->getSectSize();t++) {

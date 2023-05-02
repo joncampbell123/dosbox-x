@@ -139,7 +139,7 @@ static void write_p201_timed(Bitu port,Bitu val,Bitu iolen) {
     (void)port;//UNUSED
     (void)iolen;//UNUSED
 	// Store writetime index
-	// Axes take time = 24.2 microseconds + ( 0.011 microsecons/ohm * resistance )
+	// Axes take time = 24.2 microseconds + ( 0.011 microseconds/ohm * resistance )
 	// to reset to 0
 	// Precalculate the time at which each axis hits 0 here
 	double currentTick = PIC_FullIndex();

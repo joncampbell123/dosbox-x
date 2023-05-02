@@ -866,39 +866,37 @@ static uint8_t scancode_map[MAX_SDLKEYS];
 static SDLKey sdlkey_map[]={
     /* Main block printables */
     /*00-05*/ Z, SDLK_s, SDLK_d, SDLK_f, SDLK_h, SDLK_g,
-    /*06-0B*/ SDLK_z, SDLK_x, SDLK_c, SDLK_v, SDLK_WORLD_0, SDLK_b,
+    /*06-0B*/ SDLK_z, SDLK_x, SDLK_c, SDLK_v, SDLK_BACKQUOTE /* 'Section' key */, SDLK_b,
     /*0C-11*/ SDLK_q, SDLK_w, SDLK_e, SDLK_r, SDLK_y, SDLK_t, 
     /*12-17*/ SDLK_1, SDLK_2, SDLK_3, SDLK_4, SDLK_6, SDLK_5, 
     /*18-1D*/ SDLK_EQUALS, SDLK_9, SDLK_7, SDLK_MINUS, SDLK_8, SDLK_0, 
     /*1E-21*/ SDLK_RIGHTBRACKET, SDLK_o, SDLK_u, SDLK_LEFTBRACKET, 
     /*22-23*/ SDLK_i, SDLK_p,
     /*24-29*/ SDLK_RETURN, SDLK_l, SDLK_j, SDLK_QUOTE, SDLK_k, SDLK_SEMICOLON, 
-    /*2A-29*/ SDLK_BACKSLASH, SDLK_COMMA, SDLK_SLASH, SDLK_n, SDLK_m, 
-    /*2F-2F*/ SDLK_PERIOD,
+    /*2A-2F*/ SDLK_BACKSLASH, SDLK_COMMA, SDLK_SLASH, SDLK_n, SDLK_m, SDLK_PERIOD,
 
     /* Spaces, controls, modifiers (dosbox uses LMETA only for
      * hotkeys, it's not really mapped to an emulated key) */
     /*30-33*/ SDLK_TAB, SDLK_SPACE, SDLK_BACKQUOTE, SDLK_BACKSPACE,
-    /*34-37*/ Z, SDLK_ESCAPE, Z, SDLK_LMETA,
+    /*34-37*/ Z, SDLK_ESCAPE, SDLK_RSUPER, SDLK_LSUPER,
     /*38-3B*/ SDLK_LSHIFT, SDLK_CAPSLOCK, SDLK_LALT, SDLK_LCTRL,
-
-    /*3C-40*/ Z, Z, Z, Z, Z,
+    /*3C-40*/ SDLK_RSHIFT, SDLK_RALT, SDLK_RCTRL, Z, SDLK_F17,
 
     /* Keypad (KP_EQUALS not supported, NUMLOCK used on what is CLEAR
      * in Mac OS X) */
     /*41-46*/ SDLK_KP_PERIOD, Z, SDLK_KP_MULTIPLY, Z, SDLK_KP_PLUS, Z,
     /*47-4A*/ SDLK_NUMLOCK /*==SDLK_CLEAR*/, Z, Z, Z,
     /*4B-4D*/ SDLK_KP_DIVIDE, SDLK_KP_ENTER, Z,
-    /*4E-51*/ SDLK_KP_MINUS, Z, Z, SDLK_KP_EQUALS,
+    /*4E-51*/ SDLK_KP_MINUS, SDLK_F18, SDLK_F19, SDLK_KP_EQUALS,
     /*52-57*/ SDLK_KP0, SDLK_KP1, SDLK_KP2, SDLK_KP3, SDLK_KP4, SDLK_KP5, 
     /*58-5C*/ SDLK_KP6, SDLK_KP7, Z, SDLK_KP8, SDLK_KP9, 
 
-	/*5D-5F*/ SDLK_WORLD_1, SDLK_UNDERSCORE, SDLK_a,
+	/*5D-5F*/ SDLK_JP_YEN, SDLK_JP_RO, SDLK_KP_COMMA,
     
     /* Function keys and cursor blocks (F13 not supported, F14 =>
      * PRINT[SCREEN], F15 => SCROLLOCK, F16 => PAUSE, HELP => INSERT) */
     /*60-64*/ SDLK_F5, SDLK_F6, SDLK_F7, SDLK_F3, SDLK_F8,
-    /*65-6A*/ SDLK_F9, Z, SDLK_F11, Z, SDLK_F13, SDLK_PAUSE /*==SDLK_F16*/,
+    /*65-6A*/ SDLK_F9, SDLK_WORLD_17, SDLK_F11, SDLK_WORLD_18, SDLK_F13, SDLK_PAUSE /*==SDLK_F16*/,
     /*6B-70*/ SDLK_PRINT /*==SDLK_F14*/, Z, SDLK_F10, Z, SDLK_F12, Z,
     /*71-72*/ SDLK_SCROLLOCK /*==SDLK_F15*/, SDLK_INSERT /*==SDLK_HELP*/, 
     /*73-77*/ SDLK_HOME, SDLK_PAGEUP, SDLK_DELETE, SDLK_F4, SDLK_END,
@@ -1115,7 +1113,7 @@ static SDLKey sdlkey_map[MAX_SCANCODES] = {
 	SDLK_LESS, //0x56 Non-US \ and |
 	SDLK_F11, //0x57
 	SDLK_F12, //0x58
-	Z, //0x59 Keypad =
+	SDLK_KP_EQUALS, //0x59 Keypad =
 	Z, Z, //0x5a-0x5b unknown
 	Z, //0x5c Keyboard International6
 	Z, Z, Z, //0x5d-0x5f unknown
@@ -1137,7 +1135,7 @@ static SDLKey sdlkey_map[MAX_SCANCODES] = {
 	SDLK_WORLD_13, //0x7b Keyboard International5 Muhenkan
 	Z, //0x7c unknown
 	SDLK_JP_YEN, //0x7d Keyboard International3 \ and |
-	Z, //0x7e Keypad Comma
+	SDLK_KP_COMMA, //0x7e Keypad Comma
 	Z, //0x7f unknown
 	/* 0x80-0x8f unknown */
 	Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z, Z,
@@ -4091,8 +4089,10 @@ static void CreateLayout(void) {
 #define XO 19
 #define YO 2
 
-    AddKeyButtonEvent(PX(XO + 3) - 3, PY(YO - 1), BU(1) - 1, BV(1), "Neq", "kp_equals", KBD_kpequals);
-
+    AddKeyButtonEvent(PX(XO + 3) - 3, PY(YO - 1), BU(1) - 1, BV(1), "KP=", "kp_equals", KBD_kpequals);
+    if(!IS_PC98_ARCH) {
+        AddKeyButtonEvent(PX(XO + 2) - 3, PY(YO - 1), BU(1) - 1, BV(1), "KP,", "kp_comma", KBD_kpcomma);
+    }
     num_lock_event =
     AddKeyButtonEvent(PX(XO + 0) - 0, PY(YO + 0), BU(1) - 1, BV(1), "Num", "numlock", KBD_numlock);
     AddKeyButtonEvent(PX(XO + 1) - 1, PY(YO + 0), BU(1) - 1, BV(1), "/", "kp_divide", KBD_kpdivide);
@@ -4472,6 +4472,7 @@ static struct {
     {"kp_divide",SDL_SCANCODE_KP_DIVIDE},   {"kp_multiply",SDL_SCANCODE_KP_MULTIPLY},
     {"kp_minus",SDL_SCANCODE_KP_MINUS},     {"kp_plus",SDL_SCANCODE_KP_PLUS},
     {"kp_period",SDL_SCANCODE_KP_PERIOD},   {"kp_enter",SDL_SCANCODE_KP_ENTER},
+    {"kp_equals",SDL_SCANCODE_KP_EQUALS},   {"kp_comma",SDL_SCANCODE_KP_COMMA},
 
     /* Is that the extra backslash key ("less than" key) */
     /* on some keyboards with the 102-keys layout??      */
@@ -4557,6 +4558,7 @@ static struct {
      *      This default assignment should allow Apple Mac users (who's keyboards DO have one)
      *      to use theirs as a normal equals sign. */
     {"kp_equals",SDLK_KP_EQUALS},
+    {"kp_comma", SDLK_KP_COMMA},
 
 #if defined(C_SDL2)
     // TODO??
@@ -4579,12 +4581,12 @@ static struct {
 #else
 #ifdef SDL_DOSBOX_X_SPECIAL
 #if defined(MACOSX)
-    {"jp_bckslash",SDLK_UNDERSCORE},
-    {"jp_yen",SDLK_WORLD_1 },
+    {"jp_bckslash",SDLK_JP_RO},
+    {"jp_yen",SDLK_JP_YEN },
 #else
     /* hack for Japanese keyboards with \ and _ */
     {"jp_bckslash",SDLK_JP_RO}, // Same difference
-    {"jp_ro",SDLK_JP_RO}, // DOSBox proprietary
+    //{"jp_ro",SDLK_JP_RO}, // DOSBox proprietary
     /* hack for Japanese keyboards with Yen and | */
     {"jp_yen",SDLK_JP_YEN },
 #endif
@@ -5735,7 +5737,7 @@ void loadScanCode() {
             sdlkey_map[0x67]=SDLK_PRINT;
             sdlkey_map[0x69]=SDLK_RALT;
         }
-#else
+#else //defined(WIN32) Is this really required?
         sdlkey_map[0xc8]=SDLK_UP;
         sdlkey_map[0xd0]=SDLK_DOWN;
         sdlkey_map[0xcb]=SDLK_LEFT;

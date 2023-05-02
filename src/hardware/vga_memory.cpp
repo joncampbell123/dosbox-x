@@ -2664,7 +2664,7 @@ void VGA_SetupHandlers(void) {
 			}
 			MEM_SetPageHandler(VGA_PAGE_B8,8,&vgaph.empty);
 		}
-		if (machine == MCH_HERC && hercCard == HERC_InColor && !(vga.herc.enable_bits & 1)) {
+		if (machine == MCH_HERC && hercCard == HERC_InColor && !(vga.herc.mode_control&0x2)/*not in graphics mode (bit 1 of 3b8h)*/) {
 			// Text area in the first 16KB is less subject to planar functions
 			MEM_SetPageHandler(VGA_PAGE_B0,4,&vgaph.herc_incolor_mono);
 		}

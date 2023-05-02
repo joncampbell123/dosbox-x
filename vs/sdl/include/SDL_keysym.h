@@ -132,8 +132,8 @@ typedef enum {
 	SDLK_WORLD_14		= 174,		// HACK : JP Keyboard Henkan
 	SDLK_WORLD_15		= 175,		// HACK : JP Keyboard Hiragana
 	SDLK_WORLD_16		= 176,
-	SDLK_WORLD_17		= 177,
-	SDLK_WORLD_18		= 178,
+	SDLK_WORLD_17		= 177,      // HACK : JP Eisu (Mac)
+	SDLK_WORLD_18		= 178,      // HACK : JP Kana (Mac)
 	SDLK_WORLD_19		= 179,
 	SDLK_WORLD_20		= 180,
 	SDLK_JP_RO			= 180,		// HACK : SDLK_JP_RO == SDLK_WORLD_20
@@ -269,9 +269,9 @@ typedef enum {
 
 	/** @name Key state modifier keys */
         /*@{*/
-	SDLK_NUMLOCK		= 300,
-	SDLK_CAPSLOCK		= 301,
-	SDLK_SCROLLOCK		= 302,
+	SDLK_NUMLOCK    = 300,
+	SDLK_CAPSLOCK   = 301,
+	SDLK_SCROLLOCK  = 302,
 	SDLK_RSHIFT		= 303,
 	SDLK_LSHIFT		= 304,
 	SDLK_RCTRL		= 305,
@@ -283,7 +283,7 @@ typedef enum {
 	SDLK_LSUPER		= 311,		/**< Left "Windows" key */
 	SDLK_RSUPER		= 312,		/**< Right "Windows" key */
 	SDLK_MODE		= 313,		/**< "Alt Gr" key */
-	SDLK_COMPOSE		= 314,		/**< Multi-key compose key */
+	SDLK_COMPOSE    = 314,		/**< Multi-key compose key */
         /*@}*/
 
 	/** @name Miscellaneous function keys */
@@ -299,6 +299,11 @@ typedef enum {
         /*@}*/
 
 	/* Add any other keys here */
+    SDLK_KP_COMMA   = 323,
+    SDLK_F16        = 324, /* Mac keyboards with keypad have F13-F19 keys */
+    SDLK_F17        = 325,
+    SDLK_F18        = 326,
+    SDLK_F19        = 327,
 
 	SDLK_LAST
 } SDLKey;
