@@ -2587,7 +2587,7 @@ static Bitu back_color_list[colorMax] = {
 };
 
 static struct J3_MACHINE_LIST {
-	char *name;
+	const char *name;
 	uint16_t code;
 	enum J3_COLOR color;
 } j3_machine_list[] = {

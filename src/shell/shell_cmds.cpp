@@ -4015,31 +4015,36 @@ void DOS_Shell::CMD_DEBUGBOX(char * args) {
 }
 #endif
 
-char *str_replace(char *orig, char *rep, char *with) {
+char *str_replace(const char *orig, const char *rep, const char *with) {
     char *result, *ins, *tmp;
     size_t len_rep, len_with, len_front;
     int count;
 
     if (!orig || !rep) return NULL;
+
+    char* mutable_orig = strdup(orig); // Make a mutable copy of orig
+    char* original_mutable_orig = mutable_orig; // Store the original address for freeing below
+
     len_rep = strlen(rep);
     if (len_rep == 0) return NULL;
     len_with = with?strlen(with):0;
 
-    ins = orig;
+    ins = mutable_orig;
     for (count = 0; (tmp = strstr(ins, rep)) != NULL; ++count)
         ins = tmp + len_rep;
 
-    tmp = result = (char *)malloc(strlen(orig) + (len_with - len_rep) * count + 1);
-
+    tmp = result = (char *)malloc(strlen(mutable_orig) + (len_with - len_rep) * count + 1);
     if (!result) return NULL;
+
     while (count--) {
-        ins = strstr(orig, rep);
-        len_front = ins - orig;
-        tmp = strncpy(tmp, orig, len_front) + len_front;
+        ins = strstr(mutable_orig, rep);
+        len_front = ins - mutable_orig;
+        tmp = strncpy(tmp, mutable_orig, len_front) + len_front;
         tmp = strcpy(tmp, with?with:"") + len_with;
-        orig += len_front + len_rep;
+        mutable_orig += len_front + len_rep;
     }
-    strcpy(tmp, orig);
+    strcpy(tmp, mutable_orig);
+    free(original_mutable_orig);
     return result;
 }
 
@@ -4131,7 +4136,7 @@ void DOS_Shell::CMD_FOR(char *args) {
 				}
 			lfn_filefind_handle=fbak;
 			for (std::vector<std::string>::iterator source = sources.begin(); source != sources.end(); ++source)
-				DoCommand(str_replace(args, s, (char *)source->c_str()));
+				DoCommand(str_replace(args, s, source->c_str()));
 		} else
 			DoCommand(str_replace(args, s, fp));
 		if (last) *p=' ';
