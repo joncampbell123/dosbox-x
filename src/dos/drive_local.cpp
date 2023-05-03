@@ -344,7 +344,7 @@ template <class MT> bool String_DBCS_TO_HOST_UTF8(char *d/*CROSS_LEN*/,const cha
 
 // TODO: This is SLOW. Optimize.
 template <class MT> int SBCS_From_Host_Find(int c,const MT *map,const size_t map_max) {
-    if (morelen && (MT)c<0x20 && map[c] == cp437_to_unicode[c]) return c;
+    if (morelen && (MT)c<0x20 && c >= 0 && c < 256 && map[c] == cp437_to_unicode[c]) return c;
     for (size_t i=0;i < map_max;i++) {
         if ((MT)c == map[i])
             return (int)i;
