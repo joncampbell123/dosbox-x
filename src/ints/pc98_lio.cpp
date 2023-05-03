@@ -425,7 +425,7 @@ uint8_t PC98_BIOS_LIO_GSCREEN() {
     uint8_t active;
     uint8_t disp;
     uint8_t pos;
-    uint8_t plane;
+    uint8_t plane = 0;
     uint8_t plane_max;
     uint8_t mode;
     uint16_t color_bit;
