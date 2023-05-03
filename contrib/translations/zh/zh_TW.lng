@@ -213,13 +213,13 @@ DOSBox-X 模擬 DOS 命令列介面讓您覺得好像在真正使用 DOS.
 IDE 位置
 .
 :SWAP_SLOT
-切換槽
+欄位切換
 .
 :EMPTY_SLOT
 空位
 .
 :SLOT
-位置
+欄位
 .
 :SELECT_EVENT
 選擇要修改的事件.
@@ -617,7 +617,7 @@ MOUSE [/?] [/U] [/V]
 
 .
 :PROGRAM_LOADFIX_HELP
-通過減少記憶體的可用量來將程式載入到第一個 64 KB 以上記憶體區域.
+減少記憶體的可用量以將程式載入到開頭 64 KB 以上記憶體區域.
 
 LOADFIX [-xms] [-ems] [-{記憶體用量}] [{程式}] [{選項}]
 LOADFIX -f [-xms] [-ems]
@@ -626,14 +626,14 @@ LOADFIX -f [-xms] [-ems]
   -ems              於擴充記憶體 (EMS) 配置用量而不是主記憶體
   -{記憶體用量}     指定要配置的記憶體用量 (單位: KB)
                     主記憶體預設為 64KB; XMS/EMS 記憶體預設為 1MB
-  -a                自動配置足夠的用量佔滿最低層 64KB 記憶體位址
+  -a                自動配置足夠的用量佔滿主記憶體最低層 64KB 位址
   -f (或 -d)        釋放先前配置的記憶體用量
   {程式}            執行指定的程式
   {選項}            程式選項 (如果有)
 
 舉例:
   [32;1mLOADFIX game.exe[0m     配置 64KB 用量於主記憶體並執行 game.exe
-  [32;1mLOADFIX -a[0m           自動配置足夠的用量於主記憶體
+  [32;1mLOADFIX -a[0m           自動配置開頭 64KB 用量於主記憶體
   [32;1mLOADFIX -128[0m         配置 128KB 用量於主記憶體
   [32;1mLOADFIX -xms[0m         配置 1MB 用量於 XMS 記憶體
   [32;1mLOADFIX -f[0m           釋放主記憶體的已配置用量
@@ -877,7 +877,7 @@ DOSBox-X 提供多程度的光碟機模擬.
 :PROGRAM_BOOT_PRINT_ERROR
 此命令將使 DOSBox-X 從軟碟或硬碟映像開機.
 
-您可以在此命令中使用多個軟碟映像檔, 並可通過選單指令進行切換.
+您可以在此命令中使用多個軟碟映像檔, 並可透過選單指令進行切換.
 "磁碟機:" 將從指定的已掛載的磁碟機開機. 如果沒有指定磁碟機代號,
 將預設從磁碟機 A: 開機. 如果沒有指定參數將試著從目前磁碟機開機.
 只支援從以下磁碟機代號開機: A:, C:, 以及 D:. 如果要從硬碟機
@@ -1132,7 +1132,7 @@ BIOSTEST 映像檔
   -force: 強制覆寫已存在的映像檔.
   -bat: 建立一個包含 IMGMOUNT 命令的批次檔以掛載此映像檔.
   -fat: FAT 檔案系統類型 (12, 16, 或 32).
-  -spc: 強制指定每個磁簇所包含的磁區數值. 必須為 2 的乘方數值 (冪).
+  -spc: 強制指定每個磁簇所包含的磁區數. 必須為 2 的冪次方.
   -fatcopies: 強制指定此數量的 FAT 表格複本.
   -rootdir: 根目錄下的項目數. FAT32 檔案系統將忽略此參數.
   -source: 軟碟機代號 - 如果指定了此參數, 映像檔將從軟碟機中的磁片讀取.
@@ -1570,7 +1570,7 @@ DOS/V V-text 目前狀態為關.
 .
 :SHELL_STARTUP_TEXT1
 輸入 [32mHELP[37m 命令檢視 DOS 命令清單，或輸入 [32mINTRO[37m 命令進入 DOSBox-X 的簡短介紹。
-您同樣可以通過 DOSBox-X 所帶的[33m下拉式選單[37m來完成 DOSBox-X 的各種操作和功能。  
+您同樣可以透過 DOSBox-X 所帶的[33m下拉式選單[37m來完成 DOSBox-X 的各種操作和功能。  
 .
 :SHELL_STARTUP_EXAMPLE
 [32m舉例[37m：您可以試著在[32m影像[37m選單中選擇 [33mTrueType 字型[37m或者 [33mOpenGL perfect[37m 輸出選項。
@@ -1745,7 +1745,7 @@ SET [變數名稱=[字串]]
 
 .
 :SHELL_CMD_IF_HELP
-批次檔的條件語句.
+批次檔的條件敘述.
 
 .
 :SHELL_CMD_IF_HELP_LONG
@@ -1755,7 +1755,7 @@ IF [NOT] EXIST 檔名 命令
 
   NOT               指定命令僅在條件為偽的情況下執行.
 
-  ERRORLEVEL 數字   如果上一個程式執行所傳回的結束代碼等於或大於指定的數字,
+  ERRORLEVEL 數字   如果上一個程式執行所傳回的結束碼等於或大於指定的數字,
                     則條件為真.
 
   字串1==字串2      指定的文字字串相符合時, 則條件為真.
@@ -2044,7 +2044,7 @@ PROMPT [文字]
   $B   | (直線)
   $C   ( (左括弧)
   $D   目前日期
-  $E   跳脫碼 (美國標準資訊交換碼 (ASCII) 字碼 27)
+  $E   跳脫字元代碼 (美國標準資訊交換碼 (ASCII) 編碼 27)
   $F   ) (右括弧)
   $G   > (大於符號)
   $H   退位字元 (清除前一個字元)
@@ -2099,7 +2099,7 @@ CHCP nnn[:[語言]]
 
 以及雙位元組字碼頁, 包括: 932, 936, 949, 950/951
 
-通過提供字碼頁檔案支援自訂字碼頁.
+通過提供字碼頁檔案來支援自訂的字碼頁.
 
 .
 :SHELL_CMD_CHCP_ACTIVE
@@ -2215,6 +2215,10 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 按 [31mCtrl+F7[37m 鍵在單色間切換： 綠色、黃褐色、白色.                             
 按 [31mCtrl+F8[37m 鍵變更高對比度/亮度設定.                                         
 .
+:PROGRAM_BOOT_IMAGE_MOUNTED
+軟碟映像檔已掛載.
+
+.
 :MENU:mapper_reset
 重設虛擬機器
 .
@@ -2273,7 +2277,7 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 中日韓文字: 切換雙位元組/單位元組模式
 .
 :MENU:mapper_autoboxdraw
-中日韓文字: 自動檢測製表符號
+中日韓文字: 自動檢測製表字元
 .
 :MENU:mapper_incsize
 放大 TTF 字型
@@ -2903,7 +2907,7 @@ MPEG-TS + H.264
 儲存/載入選項
 .
 :MENU:saveslotmenu
-選擇儲存位置
+選擇儲存欄位
 .
 :MENU:enable_autosave
 啟用自動儲存功能
@@ -2921,10 +2925,10 @@ MPEG-TS + H.264
 更新顯示狀態
 .
 :MENU:lastautosaveslot
-選擇上次自動儲存位置
+選擇上次自動儲存欄位
 .
 :MENU:usesavefile
-改用存檔取代儲存位置
+改用存檔取代儲存欄位
 .
 :MENU:autosavecfg
 自動儲存設定...
@@ -3025,6 +3029,9 @@ DOSBox-X 支援
 :MENU:show_console
 顯示記錄主控台
 .
+:MENU:clear_console
+清除記錄主控台
+.
 :MENU:disable_logging
 停用記錄輸出
 .
@@ -3049,6 +3056,9 @@ DOSBox-X 支援
 :MENU:debugger_runwatch
 偵錯工具選項: 監看執行方式
 .
+:MENU:video_debug_overlay
+重疊影像偵錯畫面
+.
 :MENU:HelpCommandMenu
 DOS 命令
 .
@@ -3059,16 +3069,16 @@ DOS 命令
 記錄主控台
 .
 :MENU:debug_blankrefreshtest
-畫面更新測試 (空白顯示)
+影像更新測試 (空白顯示)
 .
 :MENU:debug_generatenmi
 產生 NMI 插斷
 .
 :MENU:debug_int2fhook
-攔截 INT 2F 呼叫
+攔截 INT 2Fh 呼叫
 .
 :MENU:debug_logint21
-記錄 INT 21 呼叫
+記錄 INT 21h 呼叫
 .
 :MENU:debug_logfileio
 記錄檔案 I/O
@@ -3101,10 +3111,10 @@ Turbo (快轉模式)
 顯示狀態資訊
 .
 :MENU:mapper_prevslot
-選擇上一個位置
+選擇上一個欄位
 .
 :MENU:mapper_nextslot
-選擇下一個位置
+選擇下一個欄位
 .
 :MENU:mapper_decfskip
 減少跳過影格
@@ -3135,6 +3145,9 @@ Turbo (快轉模式)
 .
 :MENU:mapper_scrshot
 抓取螢幕畫面
+.
+:MENU:mapper_rawscrshot
+抓取原始螢幕畫面
 .
 :MENU:mapper_volup
 提高音量
@@ -3263,13 +3276,13 @@ Turbo (快轉模式)
 自動鎖定滑鼠
 .
 :MENU:clipboard_right
-通過滑鼠右鍵
+透過滑鼠右鍵
 .
 :MENU:clipboard_middle
-通過滑鼠中鍵
+透過滑鼠中鍵
 .
 :MENU:clipboard_arrows
-通過方向鍵 (Home=開始選取, End=結束選取)
+透過方向鍵 (Home=開始選取, End=結束選取)
 .
 :MENU:screen_to_clipboard
 複製 DOS 畫面上的所有文字
@@ -3410,13 +3423,13 @@ CPU: 完全核心
 載入對應表檔案
 .
 :MAPPER:nextslot
-下一個儲存位置
+下一個儲存欄位
 .
 :MAPPER:normal
 CPU: 一般核心
 .
 :MAPPER:prevslot
-上一個儲存位置
+上一個儲存欄位
 .
 :MENU:printtext
 列印畫面文字
