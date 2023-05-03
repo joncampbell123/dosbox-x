@@ -500,7 +500,7 @@ struct fatFromDOSDrive
 					ffddFile f;
 					memcpy(f.path, dir, dirlen);
 					memcpy(f.path + dirlen, dta_name, fend - dta_name + 1);
-					if (filter && filter->Get(f.path)) continue;
+					if (filter && filter->Get(f.path, sizeof(f.path))) continue;
 
 					const bool isLongFileName = (!dot && !dotdot && !(dta_attr & DOS_ATTR_VOLUME));
 					if (isLongFileName)
