@@ -628,7 +628,7 @@ enum {
 };
 
 // optimization tracking, the "complexity" of the arrangement.
-typedef union {
+typedef struct VGA_Complexity_t {
 	unsigned int	flags = 0;
 
 	INLINE unsigned int setf(unsigned int flag) {
