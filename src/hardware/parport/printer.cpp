@@ -395,7 +395,7 @@ void CPrinter::updateFont()
 #if defined(WIN32)
         const char* windir = "C:\\WINDOWS";
         if(stat(windir,&wstat) || !(wstat.st_mode & S_IFDIR)) {
-            TCHAR dir[MAX_PATH];
+            TCHAR dir[MAX_PATH] = {};
             if (GetWindowsDirectory(dir, MAX_PATH))
                 windir=dir;
         }

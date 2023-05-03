@@ -586,8 +586,8 @@ void WriteCharDCGASbcs(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr)
 {
 	Bitu x, y, off, net, pos;
 	uint8_t data;
-	uint8_t *font;
-	RealPt fontdata;
+	uint8_t *font = NULL;
+	RealPt fontdata = 0;
 
 	if(J3_IsJapanese() && chr >= 0x20) {
 		font = GetSbcsFont(chr);
@@ -601,7 +601,7 @@ void WriteCharDCGASbcs(uint16_t col, uint16_t row, uint8_t chr, uint8_t attr)
 	y = row * 16;
 	off = (y >> 2) * 80 + 8 * 1024 * (y & 3) + x;
 	for(uint8_t h = 0 ; h < 16 ; h++) {
-		if(J3_IsJapanese() && chr >= 0x20) {
+		if(font && J3_IsJapanese() && chr >= 0x20) {
 			data = *font++;
 		} else {
 			data = mem_readb(Real2Phys(fontdata++));
