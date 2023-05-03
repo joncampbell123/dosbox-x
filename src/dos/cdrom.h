@@ -418,7 +418,6 @@ private:
 class CDROM_Interface_Aspi : public CDROM_Interface
 {
 public:
-	CDROM_Interface_Aspi		(void);
 	virtual ~CDROM_Interface_Aspi(void);
 
 	bool	SetDevice			(char* path, int forceCD);
@@ -452,16 +451,16 @@ private:
 	bool	GetVendor			(BYTE HA_num, BYTE SCSI_Id, BYTE SCSI_Lun, char* szBuffer);
 		
 	// ASPI stuff
-	BYTE	haId;
-	BYTE	target;
-	BYTE	lun;
-	char	letter;
+	BYTE	haId = 0;
+	BYTE	target = 0;
+	BYTE	lun = 0;
+	char	letter = 0;
 
 	// Windows stuff
-	HINSTANCE	hASPI;
-	HANDLE		hEvent;											// global event
-	DWORD		(*pGetASPI32SupportInfo)	(void);             // ptrs to aspi funcs
-	DWORD		(*pSendASPI32Command)		(LPSRB);
+	HINSTANCE	hASPI = NULL;
+	HANDLE		hEvent = NULL;											// global event
+	DWORD		(*pGetASPI32SupportInfo)	(void) = NULL;             // ptrs to aspi funcs
+	DWORD		(*pSendASPI32Command)		(LPSRB) = NULL;
     TMSF        oldLeadOut = {};
 };
 
