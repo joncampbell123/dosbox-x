@@ -167,15 +167,17 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
         struct tm *loctime;         // local dosbox time (based on dosbox UTC)
 
         if (cmos.lock)              // if locked, use locktime instead of current time
-        {
-            loctime = localtime((const time_t*)&cmos.locktime.tv_sec);
+		{
+			time_t t = cmos.locktime.tv_sec;
+			loctime = localtime(&t);
         }
         else                        // not locked, use current time
         {
             struct timeval curtime;
             gettimeofday(&curtime, NULL);
-            curtime.tv_sec += cmos.time_diff;
-            loctime = localtime((const time_t*)&curtime.tv_sec);
+			curtime.tv_sec += cmos.time_diff;
+			time_t t = curtime.tv_sec;
+			loctime = localtime(&t);
         }
 
         switch (cmos.reg)
@@ -341,8 +343,9 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
         struct tm* loctime;
 
         if (cmos.lock)              // if locked, use locktime instead of current time
-        {
-            loctime = localtime((const time_t*)&cmos.locktime.tv_sec);
+		{
+			time_t t = cmos.locktime.tv_sec;
+			loctime = localtime(&t);
         }
         else                        // not locked, get current time
         {
@@ -356,8 +359,9 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
                 curtime = cmos.safetime;        // within safe range, use safetime instead of current time
             }
 
-            curtime.tv_sec += cmos.time_diff;
-            loctime = localtime((const time_t*)&curtime.tv_sec);
+			curtime.tv_sec += cmos.time_diff;
+			time_t t = curtime.tv_sec;
+			loctime = localtime(&t);
         }
 
         switch (cmos.reg)
