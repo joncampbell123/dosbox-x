@@ -16,9 +16,9 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
  */
 
+#pragma once
 
-#ifndef DOSBOX_HARDWARE_H
-#define DOSBOX_HARDWARE_H
+#include <stdio.h> // for FILE*, for OpenCaptureFile()
 
 class Section;
 enum OPL_Mode {
@@ -53,5 +53,3 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 void CAPTURE_AddMidi(bool sysex, Bitu len, uint8_t * data);
 void CAPTURE_VideoStart();
 void CAPTURE_VideoStop();
-
-#endif

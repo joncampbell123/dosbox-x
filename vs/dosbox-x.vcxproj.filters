@@ -1730,6 +1730,9 @@
     <ClInclude Include="..\src\hardware\dbopl.h">
       <Filter>Sources\hardware</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\hardware\hardopl.h">
+      <Filter>Sources\hardware</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\hardware\nukedopl.h">
       <Filter>Sources\hardware</Filter>
     </ClInclude>
