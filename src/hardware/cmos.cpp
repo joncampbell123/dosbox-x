@@ -297,6 +297,13 @@ unsigned char CMOS_GetShutdownByte() {
 
 #define MAKE_RETURN(_VAL) ((unsigned char)(cmos.bcd ? (((((unsigned int)_VAL) / 10U) << 4U) | (((unsigned int)_VAL) % 10U)) : ((unsigned int)_VAL)))
 
+/* NOTES: Some implementations of the RTC and how they differ.
+ *
+ *        Compaq Elite 486 laptop: If you write port 70h, you are allowed *ONE* read or write to 71h.
+ *                                 If you read or write again, it is ignored until you write port 70h again.
+ *                                 Here at DOSBox-X, as many DOSBox forks are, we're not that stingy.
+ */
+
 static Bitu cmos_readreg(Bitu port,Bitu iolen) {
     (void)port;//UNUSED
     (void)iolen;//UNUSED
