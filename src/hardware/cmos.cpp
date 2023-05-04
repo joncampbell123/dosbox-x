@@ -478,6 +478,7 @@ void CMOS_Reset(Section* sec) {
     if (IS_PC98_ARCH)
         return;
 
+    cmos.last.ended = PIC_FullIndex() - 1000; /* PIC time resets when the guest VM is reset */
     WriteHandler[0].Install(0x70,cmos_selreg,IO_MB);
     WriteHandler[1].Install(0x71,cmos_writereg,IO_MB);
     ReadHandler[0].Install(0x71,cmos_readreg,IO_MB);
