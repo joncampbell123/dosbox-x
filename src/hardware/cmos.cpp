@@ -133,8 +133,10 @@ static void cmos_timerevent(Bitu val) {
             cmos.last.ended -= fmod(cmos.last.ended,1000);
             cmos.last.ended += 1000;
 
-            cmos_tick();
-            if (cmos.regs[0xb] & 0x20/*AIE*/) cmos_checkalarm();
+            if (!cmos.lock) {
+                cmos_tick();
+                if (cmos.regs[0xb] & 0x20/*AIE*/) cmos_checkalarm();
+            }
 
             // Update-Ended Interrupt Flag (UF)
             if (cmos.regs[0xb] & 0x10) cmos.regs[0xc] |= 0x10;
@@ -269,6 +271,7 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
                 cmos.ampm = !(val & 0x02);
                 cmos.bcd = !(val & 0x04);
                 cmos.lock = (val & 0x80) != 0;
+                if (cmos.lock) val &= ~0x10; /* Setting bit 7 clears bit 4 (UEI) */
                 cmos.regs[cmos.reg] = (uint8_t)val;
                 cmos_checktimer();
             }
