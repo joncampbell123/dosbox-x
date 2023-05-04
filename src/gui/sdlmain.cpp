@@ -7260,6 +7260,7 @@ void DEBUG_Init();
 #endif
 void SBLASTER_Init();
 void GUS_Init();
+void IMFC_Init();
 void INNOVA_Init();
 void PCSPEAKER_Init();
 void TANDYSOUND_Init();
@@ -8939,6 +8940,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         DISNEY_Init();
         GUS_Init();
         IDE_Init();
+        IMFC_Init();
         INNOVA_Init();
         BIOS_Init();
         INT10_Init();

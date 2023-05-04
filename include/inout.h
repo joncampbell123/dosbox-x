@@ -23,6 +23,8 @@
 #include <stdio.h>
 #include <stdint.h>
 
+using io_port_t = uint16_t; // DOS only supports 16-bit port addresses
+
 #define IO_MAX (64*1024+3)
 
 #define IO_MB	0x1

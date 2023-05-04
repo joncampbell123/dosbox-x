@@ -310,9 +310,9 @@ void MixerChannel::SetScale( float f ) {
 }
 
 void MixerChannel::SetScale(float _left, float _right) {
-	// Constrain application-defined volume between 0% and 100%
+	// Constrain application-defined volume between 0% and 400%
 	const float min_volume(0.0);
-	const float max_volume(1.0);
+	const float max_volume(4.0);
 	_left  = clamp(_left,  min_volume, max_volume);
 	_right = clamp(_right, min_volume, max_volume);
 	if (scale[0] != _left || scale[1] != _right) {
