@@ -330,13 +330,16 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
     case 0x37:      /* Century (alternate used by Windows NT/2000/XP) */
         return    MAKE_RETURN(cmos.clock.year / 100);
     case 0x0a:      /* Status register A */
-        // take bit 7 of reg b into account (if set, never updates)
-        if (cmos.lock ||                            // if lock then never updated, so reading safe
-            true) {  // if 0, at least 244 usec should be available
-            return cmos.regs[0x0a];                 // reading safe
-        } else {
-            return cmos.regs[0x0a] | 0x80;          // reading not safe!
-        }
+	{ // take bit 7 of reg b into account (if set, never updates)
+            pic_tickindex_t dt = PIC_FullIndex() - cmos.last.ended;
+
+            if (cmos.lock ||                            // if lock then never updated, so reading safe
+                dt >= 0.244) {                          // if 0, at least 244 usec should be available
+                return cmos.regs[0x0a];                 // reading safe
+            } else {
+                return cmos.regs[0x0a] | 0x80;          // reading not safe!
+            }
+	}
     case 0x0c:      /* Status register C */
     {
         cmos.timer.acknowledged=true;
