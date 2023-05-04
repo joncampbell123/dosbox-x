@@ -74,11 +74,11 @@ static struct {
         uint16_t year = 1980;
     } clock;
     struct {
-        double timer;
+        uint8_t sec = 0,min = 0,hour = 0;
+    } alarm;
+    struct {
         double ended;
-        double alarm;
     } last;
-    bool update_ended;
 } cmos;
 
 const uint8_t BIOS_DATE_months[] = {
@@ -110,6 +110,11 @@ static void cmos_tick(void) {
     ++cmos.clock.year;
 }
 
+static void cmos_checkalarm(void) {
+    if (cmos.clock.sec == cmos.alarm.sec && cmos.clock.min == cmos.alarm.min && cmos.clock.hour == cmos.alarm.hour)
+        cmos.regs[0xc] |= 0x20; /* Alarm Flag (AF) */
+}
+
 static void cmos_timerevent(Bitu val) {
     (void)val;//UNUSED
     {
@@ -128,7 +133,8 @@ static void cmos_timerevent(Bitu val) {
             cmos.last.ended -= fmod(cmos.last.ended,1000);
             cmos.last.ended += 1000;
 
-	    cmos_tick();
+            cmos_tick();
+            if (cmos.regs[0xb] & 0x20/*AIE*/) cmos_checkalarm();
 
             // Update-Ended Interrupt Flag (UF)
             if (cmos.regs[0xb] & 0x10) cmos.regs[0xc] |= 0x10;
@@ -201,9 +207,15 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
         case 0x00:      /* Seconds */
             if (val > 59) return;       // invalid seconds value
             cmos.clock.sec = val; break;
+        case 0x01:      /* Seconds, alarm */
+            if (val > 59) return;       // invalid seconds value
+            cmos.alarm.sec = val; break;
         case 0x02:      /* Minutes */
             if (val > 59) return;       // invalid minutes value
             cmos.clock.min = val; break;
+        case 0x03:      /* Minutes, alarm */
+            if (val > 59) return;       // invalid minutes value
+            cmos.alarm.min = val; break;
         case 0x04:      /* Hours */
             if (cmos.ampm)              // 12h am/pm mode
             {
@@ -216,6 +228,18 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
             }
 
             cmos.clock.hour = val; break;
+        case 0x05:      /* Hours, alarm */
+            if (cmos.ampm)              // 12h am/pm mode
+            {
+                if ((val > 12 && val < 0x81) || val > 0x8c) return; // invalid hour value
+                if (val > 12) val -= (0x80-12);         // convert pm to 24h
+            }
+            else                        // 24h mode
+            {
+                if (val > 23) return;                               // invalid hour value
+            }
+
+            cmos.alarm.hour = val; break;
         case 0x06:      /* Day of week */
             cmos.clock.weekday = val; break;
         case 0x07:      /* Date of month */
@@ -233,12 +257,6 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
             if (val < 19) return;               // invalid century value?
             cmos.clock.year %= 100;
             cmos.clock.year += val * 100;
-            break;
-        case 0x01:      /* Seconds Alarm */
-        case 0x03:      /* Minutes Alarm */
-        case 0x05:      /* Hours Alarm */
-            LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Writing to an alarm register");
-            cmos.regs[cmos.reg]=(uint8_t)val;
             break;
         case 0x0a:      /* Status reg A */
             cmos.regs[cmos.reg]=val & 0x7f;
@@ -290,10 +308,16 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
     switch (cmos.reg) {
     case 0x00:      /* Seconds */
         return    MAKE_RETURN(cmos.clock.sec);
+    case 0x01:      /* Seconds, alarm */
+        return    MAKE_RETURN(cmos.alarm.sec);
     case 0x02:      /* Minutes */
         return    MAKE_RETURN(cmos.clock.min);
+    case 0x03:      /* Minutes, alarm */
+        return    MAKE_RETURN(cmos.alarm.min);
     case 0x04:      /* Hours */
         return    MAKE_RETURN(cmos.clock.hour);
+    case 0x05:      /* Hours, alarm */
+        return    MAKE_RETURN(cmos.alarm.hour);
     case 0x06:      /* Day of week */
         return    MAKE_RETURN(cmos.clock.weekday);
     case 0x07:      /* Date of month */
@@ -305,10 +329,6 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
     case 0x32:      /* Century */
     case 0x37:      /* Century (alternate used by Windows NT/2000/XP) */
         return    MAKE_RETURN(cmos.clock.year / 100);
-    case 0x01:      /* Seconds Alarm */
-    case 0x03:      /* Minutes Alarm */
-    case 0x05:      /* Hours Alarm */
-        return cmos.regs[cmos.reg];
     case 0x0a:      /* Status register A */
         // take bit 7 of reg b into account (if set, never updates)
         if (cmos.lock ||                            // if lock then never updated, so reading safe
@@ -522,10 +542,7 @@ public:
         registerPOD(cmos.timer.div);
         registerPOD(cmos.timer.delay);
         registerPOD(cmos.timer.acknowledged);
-        registerPOD(cmos.last.timer);
         registerPOD(cmos.last.ended);
-        registerPOD(cmos.last.alarm);
-        registerPOD(cmos.update_ended);
     }
 } dummy;
 }
