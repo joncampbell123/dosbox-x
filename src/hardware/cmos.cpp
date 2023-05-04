@@ -76,6 +76,7 @@ static struct {
     struct {
         uint8_t sec = 0,min = 0,hour = 0;
     } alarm;
+    time_t clock_time_t = 0;
     struct {
         double ended;
     } last;
@@ -85,7 +86,59 @@ const uint8_t BIOS_DATE_months[] = {
 	0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
 };
 
+extern bool         sync_time;
+
+void cmos_sync_time(time_t t) {
+    struct tm *tm = localtime(&t);
+
+    cmos.clock.sec = tm->tm_sec;
+    cmos.clock.min = tm->tm_min;
+    cmos.clock.hour = tm->tm_hour;
+    cmos.clock.weekday = tm->tm_wday + 1;
+    cmos.clock.day = tm->tm_mday;
+    cmos.clock.month = tm->tm_mon + 1;
+    cmos.clock.year = tm->tm_year + 1900;
+    cmos.clock_time_t = t;
+
+    LOG(LOG_MISC,LOG_DEBUG)("CMOS sync to %04u-%02u-%02u %02u:%02u:%02u",cmos.clock.year,cmos.clock.month,cmos.clock.day,cmos.clock.hour,cmos.clock.min,cmos.clock.sec);
+}
+
+bool cmos_sync_flag = false;
+uint8_t cmos_sync_sec = 0,cmos_sync_min = 0,cmos_sync_hour = 0;
+
 static void cmos_tick(void) {
+    ++cmos.clock_time_t;
+
+    if (sync_time) {
+        time_t now = time(NULL);
+        long dt = (long)now - (long)cmos.clock_time_t;
+        if (labs(dt) >= 5l) {
+            cmos_sync_time(now);
+            cmos_sync_flag = true;
+            cmos_sync_sec = cmos.clock.sec;
+            cmos_sync_min = cmos.clock.min;
+            cmos_sync_hour = cmos.clock.hour;
+            dos.date.year = cmos.clock.year;
+            dos.date.month = cmos.clock.month;
+            dos.date.day = cmos.clock.day;
+            return;
+        }
+        else if ((unsigned int)now & 1u) {
+            if (dt >= 2l) cmos_sync_time(cmos.clock_time_t+1l);
+            else if (dt <= -2l) cmos_sync_time(cmos.clock_time_t-1l);
+            if (labs(dt) >= 2l) {
+                cmos_sync_flag = true;
+                cmos_sync_sec = cmos.clock.sec;
+                cmos_sync_min = cmos.clock.min;
+                cmos_sync_hour = cmos.clock.hour;
+                dos.date.year = cmos.clock.year;
+                dos.date.month = cmos.clock.month;
+                dos.date.day = cmos.clock.day;
+            }
+            return;
+        }
+    }
+
     if (++cmos.clock.sec < 60) return;
     cmos.clock.sec = 0;
 
@@ -515,20 +568,6 @@ void CMOS_Reset(Section* sec) {
     cmos.regs[0x18]=(uint8_t)(exsize >> 8);
     cmos.regs[0x30]=(uint8_t)exsize;
     cmos.regs[0x31]=(uint8_t)(exsize >> 8);
-}
-
-void cmos_sync_time(time_t t) {
-    struct tm *tm = localtime(&t);
-
-    cmos.clock.sec = tm->tm_sec;
-    cmos.clock.min = tm->tm_min;
-    cmos.clock.hour = tm->tm_hour;
-    cmos.clock.weekday = tm->tm_wday + 1;
-    cmos.clock.day = tm->tm_mday;
-    cmos.clock.month = tm->tm_mon + 1;
-    cmos.clock.year = tm->tm_year + 1900;
-
-    LOG(LOG_MISC,LOG_DEBUG)("CMOS sync to %04u-%02u-%02u %02u:%02u:%02u",cmos.clock.year,cmos.clock.month,cmos.clock.day,cmos.clock.hour,cmos.clock.min,cmos.clock.sec);
 }
 
 void CMOS_Init() {

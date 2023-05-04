@@ -5733,6 +5733,10 @@ static Bitu INT8_PC98_Handler(void) {
     return CBRET_NONE;
 }
 
+
+extern bool cmos_sync_flag;
+extern uint8_t cmos_sync_sec,cmos_sync_min,cmos_sync_hour;
+
 extern bool sync_time, manualtime;
 bool sync_time_timerrate_warning = false;
 
@@ -5763,6 +5767,10 @@ static Bitu INT8_Handler(void) {
             BIOS_KEYBOARD_SetLEDs(should_be);
     }
 
+    if (sync_time && cmos_sync_flag) {
+        value = (uint32_t)((cmos_sync_hour*3600+cmos_sync_min*60+cmos_sync_sec)*(float)PIT_TICK_RATE/65536.0);
+        cmos_sync_flag = false;
+    }
 #if 0//DISABLED TEMPORARILY
     if (sync_time&&!manualtime) {
 #if DOSBOX_CLOCKSYNC
