@@ -64,7 +64,6 @@ static struct {
     bool lock;                  // lock bit set (no updates)
     uint8_t reg;
     struct {
-        bool enabled;
         uint8_t div;
         float delay;
         bool acknowledged;
@@ -82,9 +81,38 @@ static struct {
     bool update_ended;
 } cmos;
 
+const uint8_t BIOS_DATE_months[] = {
+	0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31
+};
+
+static void cmos_tick(void) {
+    if (++cmos.clock.sec < 60) return;
+    cmos.clock.sec = 0;
+
+    if (++cmos.clock.min < 60) return;
+    cmos.clock.min = 0;
+
+    if (++cmos.clock.hour < 24) return;
+    cmos.clock.hour = 0;
+
+    if (++cmos.clock.weekday > 7)
+        cmos.clock.weekday = 1;
+
+    if (cmos.clock.month < 1 || cmos.clock.month > 12) cmos.clock.month = 1;
+    uint8_t mdays = BIOS_DATE_months[cmos.clock.month];
+    if (cmos.clock.month == 2 && cmos.clock.year%4==0 && (cmos.clock.year%100!=0 || cmos.clock.year%400==0)) mdays++; /* Feb 29th leap year */
+    if (++cmos.clock.day < mdays) return;
+    cmos.clock.day = 1;
+
+    if (++cmos.clock.month < 12) return;
+    cmos.clock.month = 1;
+
+    ++cmos.clock.year;
+}
+
 static void cmos_timerevent(Bitu val) {
     (void)val;//UNUSED
-    if (cmos.timer.enabled) {
+    {
         double index = PIC_FullIndex();
         double remd = fma((index/(double)cmos.timer.delay), -(double)cmos.timer.delay, index);
         //double remd = fmod(index, (double)cmos.timer.delay); // original delay calculation
@@ -100,6 +128,8 @@ static void cmos_timerevent(Bitu val) {
             cmos.last.ended -= fmod(cmos.last.ended,1000);
             cmos.last.ended += 1000;
 
+	    cmos_tick();
+
             // Update-Ended Interrupt Flag (UF)
             if (cmos.regs[0xb] & 0x10) cmos.regs[0xc] |= 0x10;
         }
@@ -107,7 +137,7 @@ static void cmos_timerevent(Bitu val) {
         if (cmos.regs[0xb] & 0x40) { /* PIE */
             PIC_AddEvent(cmos_timerevent, (float)((double)cmos.timer.delay - remd));
         }
-        else if (cmos.regs[0xb] & 0x10) { /* UIE */
+        else { /* UIE, or the RTC always ticks once a second anyway */
             double delay = (double)cmos.last.ended + 1000 - index;
             if (delay < 0.01) delay = 0.01;
             PIC_AddEvent(cmos_timerevent, (float)delay);
@@ -123,7 +153,7 @@ static void cmos_checktimer(void) {
     PIC_RemoveEvents(cmos_timerevent);
     if (cmos.timer.div<=2) cmos.timer.div+=7;
     cmos.timer.delay=(1000.0f/(32768.0f / (1 << (cmos.timer.div - 1))));
-    if (!cmos.timer.div || !cmos.timer.enabled) return;
+    if (!cmos.timer.div) return;
     LOG(LOG_PIT,LOG_NORMAL)("RTC Timer at %.2f hz",1000.0/cmos.timer.delay);
 //  PIC_AddEvent(cmos_timerevent,cmos.timer.delay);
     /* A rtc is always running */
@@ -220,7 +250,6 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
             {
                 cmos.ampm = !(val & 0x02);
                 cmos.bcd = !(val & 0x04);
-                cmos.timer.enabled = (val & 0x50/*PIE|UIE*/) > 0;
                 cmos.lock = (val & 0x80) != 0;
                 cmos.regs[cmos.reg] = (uint8_t)val;
                 cmos_checktimer();
@@ -432,7 +461,6 @@ void CMOS_Reset(Section* sec) {
     WriteHandler[0].Install(0x70,cmos_selreg,IO_MB);
     WriteHandler[1].Install(0x71,cmos_writereg,IO_MB);
     ReadHandler[0].Install(0x71,cmos_readreg,IO_MB);
-    cmos.timer.enabled=false;
     cmos.timer.acknowledged=true;
     cmos.reg=0xa;
     cmos_writereg(0x71,0x26,1);
@@ -491,7 +519,6 @@ public:
         registerPOD(cmos.regs);
         registerPOD(cmos.nmi);
         registerPOD(cmos.reg);
-        registerPOD(cmos.timer.enabled);
         registerPOD(cmos.timer.div);
         registerPOD(cmos.timer.delay);
         registerPOD(cmos.timer.acknowledged);
