@@ -1,4 +1,5 @@
 Next
+  - Added alarm interrupt function to RTC CMOS emulation (joncampbell123)
   - Reverted DOS to using the BIOS_DATA tick count for time and the cached
     copy of date it keeps internally, rather than always calling INT 1Ah.
     It turns out that is how DOS actually behaves, which is also why it is
