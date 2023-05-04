@@ -1174,6 +1174,8 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     <ClCompile Include="..\src\gui\zipcrc.c" />
     <ClCompile Include="..\src\gui\zipfile.cpp" />
     <ClCompile Include="..\src\hardware\8255.cpp" />
+    <ClCompile Include="..\src\hardware\imfc.cpp" />
+    <ClCompile Include="..\src\hardware\imfc_rom.c" />
     <ClCompile Include="..\src\hardware\mame\fmopl.cpp" />
     <ClCompile Include="..\src\hardware\mame\saa1099.cpp" />
     <ClCompile Include="..\src\hardware\mame\sn76496.cpp" />

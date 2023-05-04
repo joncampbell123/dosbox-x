@@ -1605,6 +1605,12 @@
     <ClCompile Include="..\src\gamelink\gamelink.cpp" />
     <ClCompile Include="..\src\gamelink\gamelink_term.cpp" />
     <ClCompile Include="..\src\output\output_gamelink.cpp" />
+    <ClCompile Include="..\src\hardware\imfc_rom.c">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\imfc.cpp">
+      <Filter>Sources\hardware</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\src\aviwriter\avi.h">

@@ -262,6 +262,7 @@ void                TANDYSOUND_Init(Section*);
 void                DISNEY_Init(Section*);
 void                PS1SOUND_Init(Section*);
 void                INNOVA_Init(Section*);
+void                IMFC_Init(Section*);
 void                SERIAL_Init(Section*);
 void                DONGLE_Init(Section*);
 #if C_IPX
@@ -3725,6 +3726,23 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_values(qualityno);
     Pint->Set_help("Set SID emulation quality level (0 to 3).");
     Pint->SetBasic(true);
+
+    secprop = control->AddSection_prop("imfc", &Null_Init, Property::Changeable::WhenIdle);
+    Pbool = secprop->Add_bool("imfc", Property::Changeable::WhenIdle, false);
+    Pbool->Set_help("Enable the IBM Music Feature Card (disabled by default).");
+    Phex = secprop->Add_hex("imfc_base", Property::Changeable::WhenIdle, 0x2A20);
+    const char* const bases[] = { "2A20", "2A30", nullptr };
+    Phex->Set_values(bases);
+    Phex->Set_help("The IO base address of the IBM Music Feature Card (2A20 by default).");
+    Pint = secprop->Add_int("imfc_irq", Property::Changeable::WhenIdle, 3);
+    const char* const irqs[] = { "2", "3", "4", "5", "6", "7", nullptr };
+    Pint->Set_values(irqs);
+    Pint->Set_help("The IRQ number of the IBM Music Feature Card (3 by default).");
+    Pstring = secprop->Add_string("imfc_filter", Property::Changeable::WhenIdle, "on");
+    Pstring->Set_help(
+        "Filter for the IBM Music Feature Card output:\n"
+        "  on:        Filter the output (default).\n"
+        "  off:       Don't filter the output.");
 
     secprop = control->AddSection_prop("speaker",&Null_Init,true);//done
     Pbool = secprop->Add_bool("pcspeaker",Property::Changeable::WhenIdle,true);
