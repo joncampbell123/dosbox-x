@@ -1,5 +1,10 @@
 Next
-  - 
+  - Reverted DOS to using the BIOS_DATA tick count for time and the cached
+    copy of date it keeps internally, rather than always calling INT 1Ah.
+    It turns out that is how DOS actually behaves, which is also why it is
+    possible for the DOS and CMOS RTC to diverge. Fix CMOS emulation to
+    allow get/set time and to run in emulation time, not real time, though
+    the clock starts from the host time. (joncampbell123)
 2023.05.01
   - IMGMAKE will choose LBA partition types for 2GB or larger disk
     images, but the user can also use -chs and -lba options to override

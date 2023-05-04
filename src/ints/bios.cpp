@@ -5637,6 +5637,7 @@ static Bitu INT11_Handler(void) {
 #endif
 
 uint32_t BIOS_HostTimeSync(uint32_t ticks) {
+#if 0//DISABLED TEMPORARILY
     uint32_t milli = 0;
 #if defined(DB_HAVE_CLOCK_GETTIME) && ! defined(WIN32)
     struct timespec tp;
@@ -5663,6 +5664,7 @@ uint32_t BIOS_HostTimeSync(uint32_t ticks) {
     loctime->tm_year = 2007 - 1900;
     */
 
+// FIXME: Why is the BIOS filling in the DOS kernel's date? That should be done when DOS boots!
     dos.date.day=(uint8_t)loctime->tm_mday;
     dos.date.month=(uint8_t)loctime->tm_mon+1;
     dos.date.year=(uint16_t)loctime->tm_year+1900;
@@ -5678,6 +5680,8 @@ uint32_t BIOS_HostTimeSync(uint32_t ticks) {
         nticks = ticks;
 
     return nticks;
+#endif
+    return 0;
 }
 
 // TODO: make option
@@ -5759,6 +5763,7 @@ static Bitu INT8_Handler(void) {
             BIOS_KEYBOARD_SetLEDs(should_be);
     }
 
+#if 0//DISABLED TEMPORARILY
     if (sync_time&&!manualtime) {
 #if DOSBOX_CLOCKSYNC
         static bool check = false;
@@ -5811,6 +5816,7 @@ static Bitu INT8_Handler(void) {
             }
         }
     }
+#endif
     mem_writed(BIOS_TIMER,value);
 
 	if(bootdrive>=0) {
@@ -7836,6 +7842,11 @@ static Bitu pc98_default_stop_handler(void) {
     return CBRET_NONE;
 }
 
+static unsigned char BCD2BIN(unsigned char x) {
+	return ((x >> 4) * 10) + (x & 0xF);
+}
+
+
 /* NTS: Remember the 8259 is non-sentient, and the term "slave" is used in a computer programming context */
 static Bitu Default_IRQ_Handler_Cooperative_Slave_Pic(void) {
     /* PC-98 style IRQ 8-15 handling.
@@ -8726,8 +8737,19 @@ private:
 
             uint32_t value = 0;
 
-            /* Read date/time from host at start */
-            value = BIOS_HostTimeSync(value);
+            RtcUpdateDone();
+            IO_Write(0x70,0xB);
+            IO_Write(0x71,0x02); // BCD
+
+            /* set BIOS_TIMER according to time/date of RTC */
+            IO_Write(0x70,0);
+            const unsigned char sec = BCD2BIN(IO_Read(0x71));
+            IO_Write(0x70,2);
+            const unsigned char min = BCD2BIN(IO_Read(0x71));
+            IO_Write(0x70,4);
+            const unsigned char hour = BCD2BIN(IO_Read(0x71));
+
+            value = (uint32_t)(((hour * 3600.00) + (min * 60.00) + sec) * ((double)PIT_TICK_RATE/65536.0));
 
             mem_writed(BIOS_TIMER,value);
         }

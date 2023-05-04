@@ -70,14 +70,16 @@ static struct {
         bool acknowledged;
     } timer;
     struct {
+        uint8_t sec = 0,min = 0,hour = 0;
+        uint8_t weekday = 1,day = 1,month = 1;
+        uint16_t year = 1980;
+    } clock;
+    struct {
         double timer;
         double ended;
         double alarm;
     } last;
     bool update_ended;
-    time_t time_diff;           // difference between real UTC and DOSbox UTC
-    struct timeval locktime;    // UTC time of setting lock bit
-    struct timeval safetime;    // UTC time of last safe time
 } cmos;
 
 static void cmos_timerevent(Bitu val) {
@@ -147,7 +149,7 @@ void cmos_selreg(Bitu port,Bitu val,Bitu iolen) {
 static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
     (void)port;//UNUSED
     (void)iolen;//UNUSED
-    if (cmos.reg <= 0x09 || cmos.reg == 0x32) {   // date/time related registers
+    if (cmos.reg <= 0x09 || cmos.reg == 0x32 || cmos.reg == 0x37) {   // date/time related registers
         if (cmos.bcd)           // values supplied are BCD, convert to binary values
         {
             if ((val & 0xf0) > 0x90 || (val & 0x0f) > 0x09) return;     // invalid BCD value
@@ -163,35 +165,15 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
                 val = ((val >> 4) * 10) + (val & 0x0f);
             }
         }
+    }
 
-        struct tm *loctime;         // local dosbox time (based on dosbox UTC)
-
-        if (cmos.lock)              // if locked, use locktime instead of current time
-		{
-			time_t t = cmos.locktime.tv_sec;
-			loctime = localtime(&t);
-        }
-        else                        // not locked, use current time
-        {
-            struct timeval curtime;
-            gettimeofday(&curtime, NULL);
-			curtime.tv_sec += cmos.time_diff;
-			time_t t = curtime.tv_sec;
-			loctime = localtime(&t);
-        }
-
-        switch (cmos.reg)
-        {
+    switch (cmos.reg) {
         case 0x00:      /* Seconds */
             if (val > 59) return;       // invalid seconds value
-            loctime->tm_sec = (int)val;
-            break;
-
+            cmos.clock.sec = val; break;
         case 0x02:      /* Minutes */
             if (val > 59) return;       // invalid minutes value
-            loctime->tm_min = (int)val;
-            break;
-
+            cmos.clock.min = val; break;
         case 0x04:      /* Hours */
             if (cmos.ampm)              // 12h am/pm mode
             {
@@ -203,124 +185,59 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
                 if (val > 23) return;                               // invalid hour value
             }
 
-            loctime->tm_hour = (int)val;         
-            break;
-
+            cmos.clock.hour = val; break;
         case 0x06:      /* Day of week */
-            // seems silly to set this, as it is calculated? ignore for now
-            break;
-
+            cmos.clock.weekday = val; break;
         case 0x07:      /* Date of month */
             if (val > 31) return;               // invalid date value (mktime() should catch the rest)
-            loctime->tm_mday = (int)val;
-            break;
-
+            cmos.clock.day = val; break;
         case 0x08:      /* Month */
             if (val < 1 || val > 12) return;               // invalid month value
-            loctime->tm_mon = (int)val - 1;
-            break;
-
+            cmos.clock.month = val; break;
         case 0x09:      /* Year */
-            loctime->tm_year -= loctime->tm_year % 100;
-            loctime->tm_year += (int)val;
+            cmos.clock.year -= cmos.clock.year % 100;
+            cmos.clock.year += val;
             break;
-
         case 0x32:      /* Century */
         case 0x37:      /* Century (alternate used by Windows NT/2000/XP) */
             if (val < 19) return;               // invalid century value?
-            loctime->tm_year %= 100;
-            loctime->tm_year += (int)((val - 19) * 100);
+            cmos.clock.year %= 100;
+            cmos.clock.year += val * 100;
             break;
-
         case 0x01:      /* Seconds Alarm */
         case 0x03:      /* Minutes Alarm */
         case 0x05:      /* Hours Alarm */
             LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Writing to an alarm register");
-            cmos.regs[cmos.reg] = (uint8_t)val;
-            return;     // done
-        }
-
-        time_t newtime = mktime(loctime);       // convert new local time back to dosbox UTC
-
-        if (newtime != (time_t)-1)
-        {
-            if (!cmos.lock)         // no lock, takes immediate effect
-            {
-                cmos.time_diff = newtime - time(NULL);  // calculate new diff
-            }
-            else
-            {
-                cmos.locktime.tv_sec = newtime;         // store for later use
-                // no need to set usec, we don't use it
-            }
-        }
-
-        return;
-    }
-
-    switch (cmos.reg) {
-    case 0x00:      /* Seconds */
-    case 0x02:      /* Minutes */
-    case 0x04:      /* Hours */
-    case 0x06:      /* Day of week */
-    case 0x07:      /* Date of month */
-    case 0x08:      /* Month */
-    case 0x09:      /* Year */
-    case 0x32:      /* Century */
-    case 0x37:      /* Century (alternate used by Windows NT/2000/XP) */
-        /* Ignore writes to change alarm */
-        break;
-    case 0x01:      /* Seconds Alarm */
-    case 0x03:      /* Minutes Alarm */
-    case 0x05:      /* Hours Alarm */
-        LOG(LOG_BIOS,LOG_NORMAL)("CMOS:Writing to an alarm register");
-        cmos.regs[cmos.reg]=(uint8_t)val;
-        break;
-    case 0x0a:      /* Status reg A */
-        cmos.regs[cmos.reg]=val & 0x7f;
-        if ((val & 0x70)!=0x20) LOG(LOG_BIOS,LOG_ERROR)("CMOS:Illegal 22 stage divider value");
-        cmos.timer.div=(val & 0xf);
-        cmos_checktimer();
-        break;
-    case 0x0b:      /* Status reg B */
-        {
-            bool waslocked = cmos.lock;
-
-            cmos.ampm = !(val & 0x02);
-            cmos.bcd = !(val & 0x04);
-            cmos.timer.enabled = (val & 0x50/*PIE|UIE*/) > 0;
-            cmos.lock = (val & 0x80) != 0;
-
-            if (cmos.lock)              // if locked, set locktime for later use
-            {
-                if (!waslocked)         // if already locked, no further action
-                {
-                    // locked for the first time, calculate dosbox UTC
-                    gettimeofday(&cmos.locktime, NULL);
-                    cmos.locktime.tv_sec += cmos.time_diff;
-                }
-            }
-            else if (waslocked)         // time was locked, now unlock
-            {
-                // calculate new diff between real UTC and dosbox UTC
-                cmos.time_diff = cmos.locktime.tv_sec - time(NULL);
-            }
-
-            cmos.regs[cmos.reg] = (uint8_t)val;
+            cmos.regs[cmos.reg]=(uint8_t)val;
+            break;
+        case 0x0a:      /* Status reg A */
+            cmos.regs[cmos.reg]=val & 0x7f;
+            if ((val & 0x70)!=0x20) LOG(LOG_BIOS,LOG_ERROR)("CMOS:Illegal 22 stage divider value");
+            cmos.timer.div=(val & 0xf);
             cmos_checktimer();
-        }
-        break;
-    case 0x0c:      /* Status reg C */
-        break;
-    case 0x0d:      /* Status reg D */
-        cmos.regs[cmos.reg]=val & 0x80; /*Bit 7=1:RTC Power on*/
-        break;
-    case 0x0f:      /* Shutdown status byte */
-        cmos.regs[cmos.reg]=val & 0x7f;
-        break;
-    default:
-        LOG(LOG_BIOS, LOG_NORMAL)("CMOS:Writing to register %x", cmos.reg);
-        cmos.regs[cmos.reg]=val & 0x7f;
+            break;
+        case 0x0b:      /* Status reg B */
+            {
+                cmos.ampm = !(val & 0x02);
+                cmos.bcd = !(val & 0x04);
+                cmos.timer.enabled = (val & 0x50/*PIE|UIE*/) > 0;
+                cmos.lock = (val & 0x80) != 0;
+                cmos.regs[cmos.reg] = (uint8_t)val;
+                cmos_checktimer();
+            }
+            break;
+        case 0x0c:      /* Status reg C */
+            break;
+        case 0x0d:      /* Status reg D */
+            cmos.regs[cmos.reg]=val & 0x80; /*Bit 7=1:RTC Power on*/
+            break;
+        case 0x0f:      /* Shutdown status byte */
+            cmos.regs[cmos.reg]=val & 0x7f;
+            break;
+        default:
+            LOG(LOG_BIOS, LOG_NORMAL)("CMOS:Writing to register %x", cmos.reg);
+            cmos.regs[cmos.reg]=val;
+            break;
     }
 }
 
@@ -338,101 +255,35 @@ static Bitu cmos_readreg(Bitu port,Bitu iolen) {
         return 0xff;
     }
 
-    // JAL_20060817 - rewrote most of the date/time part
-    if (cmos.reg <= 0x09 || cmos.reg == 0x32) {       // date/time related registers
-        struct tm* loctime;
-
-        if (cmos.lock)              // if locked, use locktime instead of current time
-		{
-			time_t t = cmos.locktime.tv_sec;
-			loctime = localtime(&t);
-        }
-        else                        // not locked, get current time
-        {
-            struct timeval curtime;
-            gettimeofday(&curtime, NULL);
-    
-            // allow a little more leeway (1 sec) than the .244 sec officially given
-            if (curtime.tv_sec - cmos.safetime.tv_sec == 1 &&
-                curtime.tv_usec < cmos.safetime.tv_usec)
-            {
-                curtime = cmos.safetime;        // within safe range, use safetime instead of current time
-            }
-
-			curtime.tv_sec += cmos.time_diff;
-			time_t t = curtime.tv_sec;
-			loctime = localtime(&t);
-        }
-
-        switch (cmos.reg)
-        {
-        case 0x00:      // seconds
-            return MAKE_RETURN(loctime->tm_sec);
-        case 0x02:      // minutes
-            return MAKE_RETURN(loctime->tm_min);
-        case 0x04:      // hours
-            if (cmos.ampm && loctime->tm_hour > 12)     // time pm, convert
-            {
-                loctime->tm_hour -= 12;
-                loctime->tm_hour += (cmos.bcd) ? 80 : 0x80;
-            }
-            return MAKE_RETURN(loctime->tm_hour);
-        case 0x06:      /* Day of week */
-            return MAKE_RETURN(loctime->tm_wday + 1);
-        case 0x07:      /* Date of month */
-            return MAKE_RETURN(loctime->tm_mday);
-        case 0x08:      /* Month */
-            return MAKE_RETURN(loctime->tm_mon + 1);
-        case 0x09:      /* Year */
-            return MAKE_RETURN(loctime->tm_year % 100);
-        case 0x32:      /* Century */
-        case 0x37:      /* Century (alternate used by Windows NT/2000/XP) */
-            return MAKE_RETURN(loctime->tm_year / 100 + 19);
-
-        case 0x01:      /* Seconds Alarm */
-        case 0x03:      /* Minutes Alarm */
-        case 0x05:      /* Hours Alarm */
-            return MAKE_RETURN(cmos.regs[cmos.reg]);
-        }
-    }
-
     Bitu drive_a, drive_b;
     uint8_t hdparm;
-    time_t curtime;
-    struct tm *loctime;
-    /* Get the current time. */
-    curtime = time (NULL);
-
-    /* Convert it to local time representation. */
-    loctime = localtime (&curtime);
 
     switch (cmos.reg) {
     case 0x00:      /* Seconds */
-        return    MAKE_RETURN(loctime->tm_sec);
+        return    MAKE_RETURN(cmos.clock.sec);
     case 0x02:      /* Minutes */
-        return    MAKE_RETURN(loctime->tm_min);
+        return    MAKE_RETURN(cmos.clock.min);
     case 0x04:      /* Hours */
-        return    MAKE_RETURN(loctime->tm_hour);
+        return    MAKE_RETURN(cmos.clock.hour);
     case 0x06:      /* Day of week */
-        return    MAKE_RETURN(loctime->tm_wday + 1);
+        return    MAKE_RETURN(cmos.clock.weekday);
     case 0x07:      /* Date of month */
-        return    MAKE_RETURN(loctime->tm_mday);
+        return    MAKE_RETURN(cmos.clock.day);
     case 0x08:      /* Month */
-        return    MAKE_RETURN(loctime->tm_mon + 1);
+        return    MAKE_RETURN(cmos.clock.month);
     case 0x09:      /* Year */
-        return    MAKE_RETURN(loctime->tm_year % 100);
+        return    MAKE_RETURN(cmos.clock.year % 100);
     case 0x32:      /* Century */
     case 0x37:      /* Century (alternate used by Windows NT/2000/XP) */
-        return    MAKE_RETURN(loctime->tm_year / 100 + 19);
+        return    MAKE_RETURN(cmos.clock.year / 100);
     case 0x01:      /* Seconds Alarm */
     case 0x03:      /* Minutes Alarm */
     case 0x05:      /* Hours Alarm */
         return cmos.regs[cmos.reg];
     case 0x0a:      /* Status register A */
         // take bit 7 of reg b into account (if set, never updates)
-        gettimeofday (&cmos.safetime, NULL);        // get current UTC time
         if (cmos.lock ||                            // if lock then never updated, so reading safe
-            cmos.safetime.tv_usec >= (1000-244)) {  // if 0, at least 244 usec should be available
+            true) {  // if 0, at least 244 usec should be available
             return cmos.regs[0x0a];                 // reading safe
         } else {
             return cmos.regs[0x0a] | 0x80;          // reading not safe!
@@ -586,7 +437,7 @@ void CMOS_Reset(Section* sec) {
     cmos.reg=0xa;
     cmos_writereg(0x71,0x26,1);
     cmos.reg=0xb;
-    cmos_writereg(0x71,0x2,1);  //Struct tm *loctime is of 24 hour format,
+    cmos_writereg(0x71,0x2,1);
     cmos.regs[0x0c] = 0;
     cmos.regs[0x0d]=(uint8_t)0x80;
     // Equipment is updated from bios.cpp and bios_disk.cpp
@@ -602,12 +453,26 @@ void CMOS_Reset(Section* sec) {
     cmos.regs[0x18]=(uint8_t)(exsize >> 8);
     cmos.regs[0x30]=(uint8_t)exsize;
     cmos.regs[0x31]=(uint8_t)(exsize >> 8);
-    cmos.time_diff = 0;
-    cmos.locktime.tv_sec = 0;
+}
+
+void cmos_sync_time(time_t t) {
+    struct tm *tm = localtime(&t);
+
+    cmos.clock.sec = tm->tm_sec;
+    cmos.clock.min = tm->tm_min;
+    cmos.clock.hour = tm->tm_hour;
+    cmos.clock.weekday = tm->tm_wday + 1;
+    cmos.clock.day = tm->tm_mday;
+    cmos.clock.month = tm->tm_mon + 1;
+    cmos.clock.year = tm->tm_year + 1900;
+
+    LOG(LOG_MISC,LOG_DEBUG)("CMOS sync to %04u-%02u-%02u %02u:%02u:%02u",cmos.clock.year,cmos.clock.month,cmos.clock.day,cmos.clock.hour,cmos.clock.min,cmos.clock.sec);
 }
 
 void CMOS_Init() {
     LOG(LOG_MISC,LOG_DEBUG)("Initializing CMOS/RTC");
+
+    cmos_sync_time(time(NULL));
 
     AddExitFunction(AddExitFunctionFuncPair(CMOS_Destroy),true);
     AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(CMOS_Reset));

@@ -605,6 +605,24 @@ char appname[DOSNAMEBUF+2+DOS_NAMELENGTH_ASCII], appargs[CTBUF];
 bool dos_program_running = false;
 bool DOS_BreakINT23InProgress = false;
 
+void DOS_InitClock() {
+    if (IS_PC98_ARCH) {
+        /* TODO */
+    }
+    else {
+        /* initialize date from BIOS */
+        reg_ah = 4;
+        reg_cx = reg_dx = 0;
+        CALLBACK_RunRealInt(0x1a);
+        dos.date.year=BCD2BIN(reg_cl);
+        dos.date.month=BCD2BIN(reg_dh);
+        dos.date.day=BCD2BIN(reg_dl);
+        if (reg_ch >= 0x19 && reg_ch <= 0x20) dos.date.year += BCD2BIN(reg_ch) * 100;
+        else dos.date.year += 1900;
+        if (dos.date.year < 1980) dos.date.year += 100;
+    }
+}
+
 void DOS_PrintCBreak() {
 	/* print ^C <newline> */
 	uint16_t n = 4;
@@ -1466,18 +1484,18 @@ static Bitu DOS_21Handler(void) {
                 reg_dh = BCD2BIN((unsigned int)mem_readb(memaddr+1) >> 4u);
                 reg_dl = BCD2BIN(mem_readb(memaddr+2));
                 reg_al = BCD2BIN(mem_readb(memaddr+1) & 0xFu);
+
+                dos.date.year=reg_cx;
+                dos.date.month=reg_dh;
+                dos.date.day=reg_dl;
             }
             else {
-                CPU_Push16(reg_ax);
-                reg_ah = 4;     // get RTC date
-                CALLBACK_RunRealInt(0x1a);
-                reg_ax = CPU_Pop16();
-
-                reg_ch = BCD2BIN(reg_ch);       // century
-                reg_cl = BCD2BIN(reg_cl);       // year
-                reg_cx = reg_ch * 100u + reg_cl; // compose century + year
-                reg_dh = BCD2BIN(reg_dh);       // month
-                reg_dl = BCD2BIN(reg_dl);       // day
+                // Real hardware testing: DOS appears to read the CMOS once at startup and then the date
+                // is stored and counted internally. It does not read via INT 1Ah. This means it is possible
+                // for DOS and the BIOS 1Ah/CMOS to have totally different time and date!
+                reg_cx = dos.date.year;
+                reg_dh = dos.date.month;
+                reg_dl = dos.date.day;
 
                 // calculate day of week (we could of course read it from CMOS, but never mind)
                 unsigned int a = (14u - reg_dh) / 12u;
@@ -1485,9 +1503,6 @@ static Bitu DOS_21Handler(void) {
                 unsigned int m = reg_dh + 12u * a - 2u;
                 reg_al = (reg_dl + y + (y / 4u) - (y / 100u) + (y / 400u) + (31u * m) / 12u) % 7u;
             }
-            dos.date.year=reg_cx;
-            dos.date.month=reg_dh;
-            dos.date.day=reg_dl;
             break;
         case 0x2b:      /* Set System Date */
             {
@@ -1563,20 +1578,24 @@ static Bitu DOS_21Handler(void) {
                 reg_dl = 0;
             }
             else {
-                CPU_Push16(reg_ax);
-
-                reg_ah = 2;     // get RTC time
+                // It turns out according to real hardware, that DOS reads the date and time once on startup
+                // and then relies on the BIOS_TIMER counter after that for time, and caches the date. So
+                // the code prior to the April 2023 change was correct after all.
+                reg_ax=0; // get time
                 CALLBACK_RunRealInt(0x1a);
+                if(reg_al) DOS_AddDays(reg_al);
+                reg_ah=0x2c;
 
-                reg_ax = CPU_Pop16();
+                Bitu ticks=((Bitu)reg_cx<<16)|reg_dx;
+                Bitu time=(Bitu)((100.0/((double)PIT_TICK_RATE/65536.0)) * (double)ticks);
 
-                reg_ch = BCD2BIN(reg_ch);       // hours
-                reg_cl = BCD2BIN(reg_cl);       // minutes
-                reg_dh = BCD2BIN(reg_dh);       // seconds
-
-                // calculate milliseconds (% 20 to prevent overflow, .55ms has period of 20)
-                // directly read BIOS_TIMER, don't want to destroy regs by calling int 1a
-                reg_dl = (uint8_t)((mem_readd(BIOS_TIMER) % 20) * 55 % 100);
+                reg_dl=(uint8_t)((Bitu)time % 100); // 1/100 seconds
+                time/=100;
+                reg_dh=(uint8_t)((Bitu)time % 60); // seconds
+                time/=60;
+                reg_cl=(uint8_t)((Bitu)time % 60); // minutes
+                time/=60;
+                reg_ch=(uint8_t)((Bitu)time % 24); // hours
             }
 
             //Simulate DOS overhead for timing-sensitive games
@@ -1599,8 +1618,8 @@ static Bitu DOS_21Handler(void) {
                 }
                 else {
                     // timer ticks every 55ms
-                    uint32_t ticks = ((((reg_ch * 60u + reg_cl) * 60u + reg_dh) * 100u) + reg_dl) * 10u / 55u;
-                    mem_writed(BIOS_TIMER,(uint32_t)(((double)ticks)*18.206481481));
+                    const uint32_t csec = (((((reg_ch * 60u) + reg_cl) * 60u + reg_dh) * 100u) + reg_dl);
+                    const uint32_t ticks = (uint32_t)((double)csec * ((double)PIT_TICK_RATE/6553600.0));
 
                     CPU_Push16(reg_ax);
                     CPU_Push16(reg_cx);
