@@ -338,7 +338,7 @@ uint8_t imageDiskVHD::Write_AbsoluteSector(uint32_t sectnum, const void * data) 
 			if (fflush(diskimg)) return 0x05;
 		}
 		//calculate new location of footer, and round up to nearest 512 byte increment "just in case"
-		uint64_t newFooterPosition = (((footerPosition - 512ull + blockMapSize + dynamicHeader.blockSize) + 511ull) / 512ull) * 512ull;
+        uint64_t newFooterPosition = (((footerPosition + blockMapSize + dynamicHeader.blockSize) + 511ull) / 512ull) * 512ull;
 		//attempt to extend the length appropriately first (on some operating systems this will extend the file)
 		if (fseeko64(diskimg, (off_t)newFooterPosition + 512, SEEK_SET)) return 0x05;
 		//now write the footer
