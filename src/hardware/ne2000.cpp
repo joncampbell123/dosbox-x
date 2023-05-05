@@ -13,6 +13,7 @@
 #include "cpu.h"
 #include "setup.h"
 #include "control.h"
+#include "hardware.h"
 
 /* Couldn't find a real spec for the NE2000 out there, hence this is adapted heavily from Bochs */
 
@@ -53,6 +54,7 @@ EthernetConnection* ethernet = nullptr;
 
 static void NE2000_TX_Event(Bitu val);
 void VFILE_Remove(const char *name,const char *dir = "");
+void Capture_WritePacket(bool send,const unsigned char *buf,size_t len);
 
 //Never completely fill the ne2k ring so that we never
 // hit the unclear completely full buffer condition.
@@ -275,7 +277,9 @@ bx_ne2k_c::write_cr(uint32_t value)
 	printf("\t");
     }
     printf("");
-#endif    
+#endif
+
+    if (CaptureState & CAPTURE_NETWORK) Capture_WritePacket(true/*send*/,&s.mem[s.tx_page_start*256 - BX_NE2K_MEMSTART],s.tx_bytes);
 
     // Send the packet to the system driver
 	/* TODO: Transmit packet */
@@ -1252,6 +1256,8 @@ bx_ne2k_c::rx_frame(const void *buf, unsigned io_len)
   unsigned char *pktbuf = (unsigned char *) buf;
   unsigned char *startptr;
   static unsigned char bcast_addr[6] = {0xff,0xff,0xff,0xff,0xff,0xff};
+
+  if (CaptureState & CAPTURE_NETWORK) Capture_WritePacket(false/*send*/,pktbuf,io_len);
 
   if(io_len != 60) {
 	BX_DEBUG("rx_frame with length %d", io_len);

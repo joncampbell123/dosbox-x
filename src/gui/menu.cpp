@@ -691,6 +691,7 @@ static const char *def_menu_capture[] =
     "mapper_recmtwave",
     "mapper_caprawopl",
     "mapper_caprawmidi",
+    "mapper_capnetrf",
     "--",
 #endif
     "saveoptionmenu",

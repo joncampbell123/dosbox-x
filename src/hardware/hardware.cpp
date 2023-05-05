@@ -68,8 +68,17 @@ extern "C" {
 
 bool video_debug_overlay = false;
 bool skip_encoding_unchanged_frames = false, show_recorded_filename = true;
-std::string pathvid = "", pathwav = "", pathmtw = "", pathmid = "", pathopl = "", pathscr = "", pathprt = "";
+std::string pathvid = "", pathwav = "", pathmtw = "", pathmid = "", pathopl = "", pathscr = "", pathprt = "", pathpcap = "";
 bool systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
+
+FILE* pcap_fp = NULL;
+
+void pcap_writer_close(void) {
+	if (pcap_fp != NULL) {
+		fclose(pcap_fp);
+		pcap_fp = NULL;
+	}
+}
 
 #if (C_AVCODEC)
 bool ffmpeg_init = false;
@@ -703,6 +712,7 @@ void CAPTURE_StopCapture(void) {
 
 #if !defined(C_EMSCRIPTEN)
 void CAPTURE_WaveEvent(bool pressed);
+void CAPTURE_NetworkEvent(bool pressed);
 #endif
 
 void CAPTURE_StartWave(void) {
@@ -1712,6 +1722,68 @@ skip_mt_wav:
 #endif
 }
 
+#pragma pack(push,1)
+typedef struct pcap_hdr_struct_t {
+	uint32_t magic_number;   /* magic number */
+	uint16_t version_major;  /* major version number */
+	uint16_t version_minor;  /* minor version number */
+	int32_t  thiszone;       /* GMT to local correction */
+	uint32_t sigfigs;        /* accuracy of timestamps */
+	uint32_t snaplen;        /* max length of captured packets, in octets */
+	uint32_t network;        /* data link type */
+};
+
+typedef struct pcaprec_hdr_struct_t {
+	uint32_t ts_sec;         /* timestamp seconds */
+	uint32_t ts_usec;        /* timestamp microseconds */
+	uint32_t incl_len;       /* number of octets of packet saved in file */
+	uint32_t orig_len;       /* actual length of packet */
+};
+#pragma pack(pop)
+
+void Capture_WritePacket(bool /*send*/,const unsigned char *buf,size_t len) {
+	if (!(CaptureState & CAPTURE_NETWORK)) return;
+
+	if (pcap_fp == NULL) {
+		std::string path = GetCaptureFilePath("PCAP Output",".pcap");
+		if (path == "") {
+			CaptureState &= ~((unsigned int)CAPTURE_NETWORK);
+			return;
+		}
+		pathpcap = path;
+
+		pcap_fp = fopen(pathpcap.c_str(),"wb");
+		if (pcap_fp == NULL) {
+			CaptureState &= ~((unsigned int)CAPTURE_NETWORK);
+			return;
+		}
+
+		static_assert( sizeof(pcap_hdr_struct_t) == 24, "pcap struct error" );
+
+		pcap_hdr_struct_t p;
+
+		p.magic_number = 0xa1b2c3d4;
+		p.version_major = 2;
+		p.version_minor = 4;
+		p.thiszone = 0;
+		p.sigfigs = 0;
+		p.snaplen = 0x10000;
+		p.network = 1; // ethernet
+		fwrite(&p,sizeof(p),1,pcap_fp);
+		fflush(pcap_fp);
+	}
+
+	if (pcap_fp != NULL && len <= 0x10000) {
+		pcaprec_hdr_struct_t h;
+
+		h.ts_sec = (uint32_t)time(NULL);
+		h.ts_usec = 0;
+		h.incl_len = h.orig_len = (uint32_t)len;
+		fwrite(&h,sizeof(h),1,pcap_fp);
+		if (len != 0) fwrite(buf,len,1,pcap_fp);
+	}
+}
+
 void CAPTURE_AddWave(uint32_t freq, uint32_t len, int16_t * data) {
 #if !defined(C_EMSCRIPTEN)
 #if (C_SSHOT)
@@ -1818,6 +1890,24 @@ void CAPTURE_MTWaveEvent(bool pressed) {
     pathmtw = "";
 
 	mainMenu.get_item("mapper_recmtwave").check(!!(CaptureState & CAPTURE_MULTITRACK_WAVE)).refresh_item(mainMenu);
+#endif
+}
+
+void CAPTURE_NetworkEvent(bool pressed) {
+	if (!pressed)
+		return;
+
+#if !defined(C_EMSCRIPTEN)
+	if (CaptureState & CAPTURE_NETWORK) {
+		pcap_writer_close();
+		CaptureState &= ~((unsigned int)CAPTURE_NETWORK);
+		if (show_recorded_filename && pathpcap.size()) systemmessagebox("Recording completed",("Saved PCAP output to the file:\n\n"+pathpcap).c_str(),"ok", "info", 1);
+	}
+	else {
+		CaptureState |= CAPTURE_NETWORK;
+	}
+
+	mainMenu.get_item("mapper_capnetrf").check(!!(CaptureState & CAPTURE_NETWORK)).refresh_item(mainMenu);
 #endif
 }
 
@@ -2106,6 +2196,10 @@ void CAPTURE_Init() {
 
 	MAPPER_AddHandler(OPL_SaveRawEvent,MK_nothing,0,"caprawopl","Record FM/OPL output",&item);
 	item->set_text("Record FM (OPL) output");
+
+	MAPPER_AddHandler(CAPTURE_NetworkEvent,MK_nothing,0,"capnetrf","Record Network traffic",&item);
+	item->set_text("Record network traffic");
+
 #if (C_SSHOT)
 	MAPPER_AddHandler(CAPTURE_VideoEvent,MK_i,MMODHOST,"video","Record video to AVI", &item);
 	item->set_text("Record video to AVI");

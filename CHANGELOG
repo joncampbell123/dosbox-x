@@ -1,4 +1,6 @@
 Next
+  - Added record function to capture NE2000 network traffic to a
+    pcap/Wireshark file in the capture directory. (joncampbell123)
   - Fixed bug where guest VM reset causes the CMOS to stop ticking for
     exactly the amount of time it was running before reset. (joncampbell123)
   - Added alarm interrupt function to RTC CMOS emulation (joncampbell123)
