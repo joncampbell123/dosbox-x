@@ -443,7 +443,7 @@ table.hide-table-appearence > tbody > tr > td {
 .page-content-flex {
   display: flex;
   margin: auto;
-  max-width: 50%;
+  max-width: 62.5em;
   text-align: left;
   justify-content: center;
   flex-direction: column;
