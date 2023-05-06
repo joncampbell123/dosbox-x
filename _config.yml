@@ -73,12 +73,12 @@ defaults:
       permalink: /blog/devtest/:year-:month-:day-:hour:minute/
 
 exclude:
-  # Script files.
+  # Script files
   - git-source-pickup.pl
   - git-update-all
   - git-update-all-wo-push
   - update-wiki
-  # Pre-convert-to-HTML raw wiki markup files.
+  # Pre-convert-to-HTML raw wiki markup files
   - wiki/*.asciidoc
   - wiki/*.md
   # RubyGem / Bundler files

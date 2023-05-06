@@ -442,7 +442,8 @@ table.hide-table-appearence > tbody > tr > td {
 
 .page-content-flex {
   display: flex;
-  padding: 0 12.5vw;
+  margin: auto;
+  max-width: 50%;
   text-align: left;
   justify-content: center;
   flex-direction: column;
