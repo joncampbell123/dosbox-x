@@ -45,7 +45,7 @@ bundle exec asciidoctor \
   -b html5 -d article \
   -a source-highlighter=rouge -a docinfo=shared \
   -a docinfodir=docinfo \
-  -a linkcss \
+  -a linkcss -a copycss \
   $tempdir/*.asciidoc
 rm $tempdir/*.asciidoc
 
