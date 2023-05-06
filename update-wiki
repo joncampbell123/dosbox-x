@@ -37,7 +37,7 @@ echo "Copying files"
 rmdir $tempdir || true
 cp -r $srcdir $tempdir
 rm -rf $tempdir/.git || true
-cp -t $tempdir $spfiles
+cp -r -t $tempdir $spfiles
 
 echo "Generating wiki in $tempdir"
 bundle exec asciidoctor \
