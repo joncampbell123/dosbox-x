@@ -1,13 +1,13 @@
-.book .listingblock > .content,
-.book .literalblock > .content {
+.article .listingblock > .content,
+.article .literalblock > .content {
   position: relative;
 }
 
-.book .listingblock code[data-lang]::before {
+.article .listingblock code[data-lang]::before {
   content: none;
 }
 
-.book .source-toolbox {
+.article .source-toolbox {
   display: flex;
   position: absolute;
   visibility: hidden;
@@ -18,24 +18,24 @@
   font-size: 0.85em;
 }
 
-.book .listingblock:hover .source-toolbox,
-.book .literalblock:hover .source-toolbox {
+.article .listingblock:hover .source-toolbox,
+.article .literalblock:hover .source-toolbox {
   visibility: visible;
 }
 
-.book .source-toolbox .source-lang {
+.article .source-toolbox .source-lang {
   font-family: "Droid Sans Mono", "DejaVu Sans Mono", monospace;
   text-transform: uppercase;
   letter-spacing: 0.075em;
 }
 
-.book .source-toolbox > :not(:last-child)::after {
+.article .source-toolbox > :not(:last-child)::after {
   content: "|";
   letter-spacing: 0;
   padding: 0 1ch;
 }
 
-.book .source-toolbox .copy-button {
+.article .source-toolbox .copy-button {
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -52,7 +52,7 @@
   height: 1em;
 }
 
-.book .source-toolbox .copy-icon {
+.article .source-toolbox .copy-icon {
   flex: none;
   width: inherit;
   height: inherit;
@@ -60,7 +60,7 @@
   margin-top: 0.05em;
 }
 
-.book .source-toolbox .copy-toast {
+.article .source-toolbox .copy-toast {
   flex: none;
   position: relative;
   display: inline-flex;
@@ -75,7 +75,7 @@
   color: #fff;
 }
 
-.book .source-toolbox .copy-toast::after {
+.article .source-toolbox .copy-toast::after {
   content: "";
   position: absolute;
   top: 0;
@@ -87,7 +87,7 @@
   transform-origin: left;
 }
 
-.book .source-toolbox .copy-button.clicked .copy-toast {
+.article .source-toolbox .copy-button.clicked .copy-toast {
   opacity: 1;
   transition: none;
 }

@@ -5,10 +5,10 @@
     var LINE_CONTINUATION_RX = /( ) *\\\n *|\\\n( ?) */g
     var TRAILING_SPACE_RX = / +$/gm
   
-    var uiRootPath = "docinfo/"
+    var uiRootPath = "docinfo"
     var supportsCopy = window.navigator.clipboard
   
-    ;[].slice.call(document.querySelectorAll('.book pre.highlight, .book .literalblock pre')).forEach(function (pre) {
+    ;[].slice.call(document.querySelectorAll('.article pre.highlight, .article .literalblock pre')).forEach(function (pre) {
       var code, language, lang, copy, toast, toolbox
       if (pre.classList.contains('highlight')) {
         code = pre.querySelector('code')
@@ -26,7 +26,6 @@
         code.appendChild(pre.firstChild)
         pre.appendChild(code)
       } else {
-        /*return*/
         code = pre
       }
       ;(toolbox = document.createElement('div')).className = 'source-toolbox'

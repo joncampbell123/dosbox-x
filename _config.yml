@@ -67,11 +67,6 @@ defaults:
       layout: "release_notes"
   -
     scope:
-      path: "wiki"
-    values:
-      layout: ""
-  -
-    scope:
       path: "_posts"
     values:
       layout: "blog/post"
