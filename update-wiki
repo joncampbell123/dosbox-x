@@ -5,7 +5,7 @@ set -e
 # on the dosbox-x site
 # ./update-wiki path/to/site/wiki path/to/dosbox-x.wiki
 
-if [! -d "$1"] || [! -d "$2"] then
+if [ ! -d "$1" ] || [ ! -d "$2" ]; then
   echo "Usage: update-wiki path/to/site/wiki path/to/dosbox-x.wiki"
   exit 1
 fi
