@@ -29,7 +29,8 @@ jobs:
         run: |
           # Wait long enough to make sure the new release has been created and the Windows binaries have been built.
           #MINUTES_WAIT=0
-          MINUTES_WAIT=45
+          #MINUTES_WAIT=45
+          MINUTES_WAIT=120
           for minutes in `seq $MINUTES_WAIT`; do
             sleep 60
             echo "Waiting: $minutes of $MINUTES_WAIT minutes"
@@ -60,7 +61,6 @@ jobs:
             if [ `ls dosbox-x-vsbuild-win64-*.zip 1>/dev/null 2>&1; echo $?` != 0 ]; then DOSBOX_BUILDS_AVAILABLE=false; fi
             if [ `ls dosbox-x-vsbuild-arm32-*.zip 1>/dev/null 2>&1; echo $?` != 0 ]; then DOSBOX_BUILDS_AVAILABLE=false; fi
             if [ `ls dosbox-x-vsbuild-arm64-*.zip 1>/dev/null 2>&1; echo $?` != 0 ]; then DOSBOX_BUILDS_AVAILABLE=false; fi
-            if [ `ls dosbox-x-mingw-win32-*.zip 1>/dev/null 2>&1; echo $?` != 0 ]; then DOSBOX_BUILDS_AVAILABLE=false; fi
             if [ `ls dosbox-x-mingw-win32-*.zip 1>/dev/null 2>&1; echo $?` != 0 ]; then DOSBOX_BUILDS_AVAILABLE=false; fi
             if [ `ls dosbox-x-mingw-win64-*.zip 1>/dev/null 2>&1; echo $?` != 0 ]; then DOSBOX_BUILDS_AVAILABLE=false; fi
             if [ $DOSBOX_BUILDS_AVAILABLE == false ]; then
