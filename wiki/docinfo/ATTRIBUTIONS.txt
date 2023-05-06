@@ -1,4 +1,4 @@
-copy-to-clipboard.js and docinfo-*.html are
+copy-to-clipboard.js and docinfo*.html are
 licensed under the Mozilla Public License, version 2.0.
 Copyright © 2017-present OpenDevise Inc. and the Antora Project
 Copyright © 2023 The DOSBox-X Team (for modifications)

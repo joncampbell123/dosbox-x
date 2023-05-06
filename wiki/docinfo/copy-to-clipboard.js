@@ -5,7 +5,7 @@
     var LINE_CONTINUATION_RX = /( ) *\\\n *|\\\n( ?) */g
     var TRAILING_SPACE_RX = / +$/gm
   
-    var uiRootPath = "docinfo"
+    var uiRootPath = "./docinfo"
     var supportsCopy = window.navigator.clipboard
   
     ;[].slice.call(document.querySelectorAll('.article pre.highlight, .article .literalblock pre')).forEach(function (pre) {
