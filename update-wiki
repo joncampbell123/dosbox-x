@@ -3,8 +3,12 @@ set -e
 
 # Poorly written shell script to update the wiki
 # on the dosbox-x site
-# ./update-wiki
-#   path/to/site/wiki path/to/copy/of/dosbox-x.wiki
+# ./update-wiki path/to/site/wiki path/to/dosbox-x.wiki
+
+if [! -d "$1"] || [! -d "$2"] then
+  echo "Usage: update-wiki path/to/site/wiki path/to/dosbox-x.wiki"
+  exit 1
+fi
 
 localbak="`pwd`"
 tempdir="`mktemp -d`"
@@ -12,15 +16,7 @@ destdir="`realpath $1`"
 srcdir="`realpath $2`"
 spfiles="$destdir/index.html
 $destdir/guides.html
-$destdir/copy-to-clipboard.js
-$destdir/octicons-16.svg
-$destdir/docinfo-footer.html"
-
-function no_deps {
-  echo "Please install project deps with Bundler"
-  echo "  $ bundle install"
-  exit 1
-}
+$destdir/docinfo"
 
 function cleanup {
   echo "Removing temp files"
@@ -29,6 +25,11 @@ function cleanup {
 }
 trap cleanup EXIT
 
+function no_deps {
+  echo "Please install project deps with Bundler"
+  echo "  $ bundle install"
+  exit 1
+}
 which bundle 1>/dev/null || no_deps
 bundle exec asciidoctor -v 1>/dev/null || no_deps
 
@@ -36,15 +37,16 @@ echo "Copying files"
 rmdir $tempdir || true
 cp -r $srcdir $tempdir
 rm -rf $tempdir/.git || true
-
-echo "Adding header to files"
-sed -i -e '
-1i:source-highlighter: rouge\
-:docinfo: shared-footer' $tempdir/*.asciidoc
 cp -t $tempdir $spfiles
 
 echo "Generating wiki in $tempdir"
-bundle exec asciidoctor -b html5 -d book $tempdir/*.asciidoc
+bundle exec asciidoctor \
+  -S server \
+  -b html5 -d article \
+  -a source-highlighter=rouge -a docinfo=shared \
+  -a docinfodir=docinfo \
+  -a linkcss \
+  $tempdir/*.asciidoc
 rm $tempdir/*.asciidoc
 
 echo "Copying files over"
