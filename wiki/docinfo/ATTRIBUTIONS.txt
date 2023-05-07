@@ -1,0 +1,8 @@
+copy-to-clipboard.js and docinfo*.html are
+licensed under the Mozilla Public License, version 2.0.
+Copyright © 2017-present OpenDevise Inc. and the Antora Project
+Copyright © 2023 The DOSBox-X Team (for modifications)
+See LICENSE.copy-to-clipboard for the full license text.
+
+octicons-16.svg is licensed under the MIT License.
+See LICENSE.octicons for the full license text.

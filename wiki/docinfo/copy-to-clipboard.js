@@ -5,12 +5,10 @@
     var LINE_CONTINUATION_RX = /( ) *\\\n *|\\\n( ?) */g
     var TRAILING_SPACE_RX = / +$/gm
   
-    var config = (document.getElementById('site-script') || { dataset: {} }).dataset
-    var uiRootPath = config.uiRootPath == null ? '.' : config.uiRootPath
-    var svgAs = config.svgAs
+    var uiRootPath = "./docinfo"
     var supportsCopy = window.navigator.clipboard
   
-    ;[].slice.call(document.querySelectorAll('.book pre.highlight, .book .literalblock pre')).forEach(function (pre) {
+    ;[].slice.call(document.querySelectorAll('.article pre.highlight, .article .literalblock pre')).forEach(function (pre) {
       var code, language, lang, copy, toast, toolbox
       if (pre.classList.contains('highlight')) {
         code = pre.querySelector('code')
@@ -28,7 +26,6 @@
         code.appendChild(pre.firstChild)
         pre.appendChild(code)
       } else {
-        /*return*/
         code = pre
       }
       ;(toolbox = document.createElement('div')).className = 'source-toolbox'
@@ -37,20 +34,11 @@
         ;(copy = document.createElement('button')).className = 'copy-button'
         copy.type = "button";
         copy.setAttribute('title', 'Copy to clipboard')
-        if (svgAs === 'svg') {
-          var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-          svg.setAttribute('class', 'copy-icon')
-          var use = document.createElementNS('http://www.w3.org/2000/svg', 'use')
-          use.setAttribute('href', uiRootPath + '/octicons-16.svg#icon-clippy')
-          svg.appendChild(use)
-          copy.appendChild(svg)
-        } else {
-          var img = document.createElement('img')
-          img.src = uiRootPath + '/octicons-16.svg#view-clippy'
-          img.alt = 'copy icon'
-          img.className = 'copy-icon'
-          copy.appendChild(img)
-        }
+        var img = document.createElement('img')
+        img.src = uiRootPath + '/octicons-16.svg#view-clippy'
+        img.alt = 'copy icon'
+        img.className = 'copy-icon'
+        copy.appendChild(img)
         ;(toast = document.createElement('span')).className = 'copy-toast'
         toast.appendChild(document.createTextNode('Copied!'))
         copy.appendChild(toast)
