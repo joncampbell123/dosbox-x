@@ -3140,7 +3140,7 @@ void DOSBOX_SetupConfigSections(void) {
                       "See the README/Manual for more details.");
     Pstring->SetBasic(true);
 
-    Pint = secprop->Add_int("samplerate",Property::Changeable::WhenIdle,44100);
+    Pint = secprop->Add_int("samplerate",Property::Changeable::WhenIdle,48000);
     Pint->Set_values(rates);
     Pint->Set_help("Sample rate for MIDI synthesizer, if applicable.");
     Pint->SetBasic(true);
@@ -3489,7 +3489,7 @@ void DOSBOX_SetupConfigSections(void) {
 		"'nuked' is the most accurate (but the most CPU-intensive). See oplrate as well.");
     Pstring->SetBasic(true);
 
-    Pint = secprop->Add_int("oplrate",Property::Changeable::WhenIdle,44100);
+    Pint = secprop->Add_int("oplrate",Property::Changeable::WhenIdle,48000);
     Pint->Set_values(rates);
     Pint->Set_help("Sample rate of OPL music emulation. Use 49716 for highest quality (set the mixer rate accordingly).");
     Pint->SetBasic(true);
@@ -3653,7 +3653,7 @@ void DOSBOX_SetupConfigSections(void) {
             "accurate emulation attempts to better reflect how the actual hardware handles panning,\n"
             "while the old emulation uses a simpler idealistic mapping.");
 
-    Pint = secprop->Add_int("gusrate",Property::Changeable::WhenIdle,44100);
+    Pint = secprop->Add_int("gusrate",Property::Changeable::WhenIdle,48000);
     Pint->Set_values(rates);
     Pint->Set_help("Sample rate of Ultrasound emulation.");
     Pint->SetBasic(true);
@@ -3776,7 +3776,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help("Enable Tandy Sound System emulation. For 'auto', emulation is present only if machine is set to 'tandy'.");
     Pstring->SetBasic(true);
 
-    Pint = secprop->Add_int("tandyrate",Property::Changeable::WhenIdle,44100);
+    Pint = secprop->Add_int("tandyrate",Property::Changeable::WhenIdle,48000);
     Pint->Set_values(rates);
     Pint->Set_help("Sample rate of the Tandy 3-Voice generation.");
     Pint->SetBasic(true);
