@@ -29,7 +29,8 @@ jobs:
         run: |
           # Wait long enough to make sure the new release has been created and the Windows binaries have been built.
           #MINUTES_WAIT=0
-          MINUTES_WAIT=45
+          #MINUTES_WAIT=45
+          MINUTES_WAIT=120
           for minutes in `seq $MINUTES_WAIT`; do
             sleep 60
             echo "Waiting: $minutes of $MINUTES_WAIT minutes"
@@ -45,7 +46,7 @@ jobs:
           # Wait until all required DOSBox-X builds are available.
           DOSBOX_BUILDS_AVAILABLE=false
           while [ $DOSBOX_BUILDS_AVAILABLE != true ]; do
-            gh release download -p 'dosbox-x-mingw-win*.zip' -p 'dosbox-x-vsbuild-*.zip'
+            gh release download --skip-existing -p 'dosbox-x-mingw-win*.zip' -p 'dosbox-x-vsbuild-*.zip'
             # Rename the files so that the date in the file name matches the release date.
             DOSBOX_X_RELEASE_COMPACT=`echo ${DOSBOX_X_RELEASE} | sed -e "s/\.//g"`
             for file in `ls dosbox-x-*.zip`; do
@@ -60,7 +61,6 @@ jobs:
             if [ `ls dosbox-x-vsbuild-win64-*.zip 1>/dev/null 2>&1; echo $?` != 0 ]; then DOSBOX_BUILDS_AVAILABLE=false; fi
             if [ `ls dosbox-x-vsbuild-arm32-*.zip 1>/dev/null 2>&1; echo $?` != 0 ]; then DOSBOX_BUILDS_AVAILABLE=false; fi
             if [ `ls dosbox-x-vsbuild-arm64-*.zip 1>/dev/null 2>&1; echo $?` != 0 ]; then DOSBOX_BUILDS_AVAILABLE=false; fi
-            if [ `ls dosbox-x-mingw-win32-*.zip 1>/dev/null 2>&1; echo $?` != 0 ]; then DOSBOX_BUILDS_AVAILABLE=false; fi
             if [ `ls dosbox-x-mingw-win32-*.zip 1>/dev/null 2>&1; echo $?` != 0 ]; then DOSBOX_BUILDS_AVAILABLE=false; fi
             if [ `ls dosbox-x-mingw-win64-*.zip 1>/dev/null 2>&1; echo $?` != 0 ]; then DOSBOX_BUILDS_AVAILABLE=false; fi
             if [ $DOSBOX_BUILDS_AVAILABLE == false ]; then
