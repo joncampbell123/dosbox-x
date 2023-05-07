@@ -56,6 +56,7 @@
 #include <vector>
 #include <functional>
 #include "dosbox.h"
+#include "logging.h"
 #include "control.h"
 #include "inout.h"
 #include "mixer.h"
@@ -95,6 +96,7 @@ SDL_mutex* m_loggerMutex;
 template <typename... Args>
 void IMF_LOG(std::string format, Args const&... args)
 {
+	LOG(LOG_MISC,LOG_DEBUG)(format.c_str(), args...);
 	/*SDL_LockMutex(m_loggerMutex);
 	printf((format + "\n").c_str(), args...); // Causes "error: format not a string literal and no format arguments [-Werror=format-security]" on GCC 13.1.1
 	SDL_UnlockMutex(m_loggerMutex);*/
@@ -662,6 +664,8 @@ private:
 
 	OperatorDefinition& operator=(const OperatorDefinition& other)
 	{ /* don't use */
+		(void)other;
+		return *this;
 	}
 
 public:
@@ -841,6 +845,8 @@ private:
 
 	VoiceDefinition& operator=(const VoiceDefinition& other)
 	{ /* don't use */
+		(void)other;
+		return *this;
 	}
 
 public:
@@ -1043,6 +1049,8 @@ struct VoiceDefinitionBank {
 private:
 	VoiceDefinitionBank& operator=(const VoiceDefinitionBank& other)
 	{ /* don't use */
+		(void)other;
+		return *this;
 	}
 
 public:
@@ -1102,6 +1110,8 @@ struct InstrumentConfiguration {
 private:
 	InstrumentConfiguration& operator=(const InstrumentConfiguration& other)
 	{ /* don't use */
+		(void)other;
+		return *this;
 	}
 
 public:
@@ -1226,6 +1236,8 @@ struct ConfigurationData {
 private:
 	ConfigurationData& operator=(const ConfigurationData& other)
 	{ /* don't use */
+		(void)other;
+		return *this;
 	}
 
 public:
@@ -1290,6 +1302,8 @@ struct InstrumentParameters {
 private:
 	InstrumentParameters& operator=(const InstrumentParameters& other)
 	{ /* don't use */
+		(void)other;
+		return *this;
 	}
 
 public:
@@ -1347,6 +1361,8 @@ struct YmChannelData {
 private:
 	YmChannelData& operator=(const YmChannelData& other)
 	{ /* don't use */
+		(void)other;
+		return *this;
 	}
 
 public:
@@ -2118,7 +2134,7 @@ public:
 		dataProvider->notifyOnChange(this);
 	}
 
-	void valueChanged(bool oldValue, bool newValue) override {}
+	void valueChanged(bool oldValue, bool newValue) override { (void)oldValue; (void)newValue; }
 
 	uint8_t readPort()
 	{
@@ -2130,6 +2146,7 @@ public:
 	}
 	void writePort(uint8_t val)
 	{
+		(void)val;
 		// IMF_LOG("IMFC.TSR:writePort / value=0x%X", val);
 		/// I really don't think that we are allowed to write to this
 		/// port based on the schematics
@@ -2815,7 +2832,10 @@ Based on the output generated, the following frequencies are captured
 
 #define u8     uint8_t
 #define offs_t uint8_t
+
+#ifndef M_PI
 #define M_PI   3.14159265358979323846264338327950288
+#endif
 
 enum {
 	FREQ_SH  = 16, /* 16.16 fixed point (frequency calculations) */
@@ -4825,6 +4845,7 @@ public:
 	// MIDI_PORT_1 = 0x10
 	void writePort1(uint8_t value)
 	{
+		(void)value;
 		// This doesn't do anything for now
 	}
 
@@ -5062,6 +5083,8 @@ private:
 	template <typename... Args>
 	void log_debug(std::string format, Args const&... args)
 	{
+		(void)format;
+		(void)sizeof...(args);
 		// IMF_LOG(("[%s] [DEBUG] " + format).c_str(),
 		// getCurrentThreadName().c_str(), args...);
 	}
@@ -5069,6 +5092,8 @@ private:
 	template <typename... Args>
 	void log_info(std::string format, Args const&... args)
 	{
+		(void)format;
+		(void)sizeof...(args);
 		// IMF_LOG(("[%s] [INFO] " + format).c_str(),
 		// getCurrentThreadName().c_str(), args...);
 	}
@@ -12855,101 +12880,121 @@ static void check8bit(Bitu iolen)
 
 static Bitu readPortPIU0(Bitu port, Bitu iolen)
 {
+	(void)port;
 	check8bit(iolen);
 	return imfcSingleton->readPortPIU0();
 }
 static void writePortPIU0(Bitu port, Bitu val, Bitu iolen)
 {
+	(void)port;
 	check8bit(iolen);
 	imfcSingleton->writePortPIU0(val);
 }
 static Bitu readPortPIU1(Bitu port, Bitu iolen)
 {
+	(void)port;
 	check8bit(iolen);
 	return imfcSingleton->readPortPIU1();
 }
 static void writePortPIU1(Bitu port, Bitu val, Bitu iolen)
 {
+	(void)port;
 	check8bit(iolen);
 	imfcSingleton->writePortPIU1(val);
 }
 static Bitu readPortPIU2(Bitu port, Bitu iolen)
 {
+	(void)port;
 	check8bit(iolen);
 	return imfcSingleton->readPortPIU2();
 }
 static void writePortPIU2(Bitu port, Bitu val, Bitu iolen)
 {
+	(void)port;
 	check8bit(iolen);
 	imfcSingleton->writePortPIU2(val);
 }
 static Bitu readPortPCR(Bitu port, Bitu iolen)
 {
+	(void)port;
 	check8bit(iolen);
 	return imfcSingleton->readPortPCR();
 }
 static void writePortPCR(Bitu port, Bitu val, Bitu iolen)
 {
+	(void)port;
 	check8bit(iolen);
 	imfcSingleton->writePortPCR(val);
 }
 static Bitu readPortCNTR0(Bitu port, Bitu iolen)
 {
+	(void)port;
 	check8bit(iolen);
 	return imfcSingleton->readPortCNTR0();
 }
 static void writePortCNTR0(Bitu port, Bitu val, Bitu iolen)
 {
+	(void)port;
 	check8bit(iolen);
 	imfcSingleton->writePortCNTR0(val);
 }
 static Bitu readPortCNTR1(Bitu port, Bitu iolen)
 {
+	(void)port;
 	check8bit(iolen);
 	return imfcSingleton->readPortCNTR1();
 }
 static void writePortCNTR1(Bitu port, Bitu val, Bitu iolen)
 {
+	(void)port;
 	check8bit(iolen);
 	imfcSingleton->writePortCNTR1(val);
 }
 static Bitu readPortCNTR2(Bitu port, Bitu iolen)
 {
+	(void)port;
 	check8bit(iolen);
 	return imfcSingleton->readPortCNTR2();
 }
 static void writePortCNTR2(Bitu port, Bitu val, Bitu iolen)
 {
+	(void)port;
 	check8bit(iolen);
 	imfcSingleton->writePortCNTR2(val);
 }
 static Bitu readPortTCWR(Bitu port, Bitu iolen)
 {
+	(void)port;
 	check8bit(iolen);
 	return imfcSingleton->readPortTCWR();
 }
 static void writePortTCWR(Bitu port, Bitu val, Bitu iolen)
 {
+	(void)port;
 	check8bit(iolen);
 	imfcSingleton->writePortTCWR(val);
 }
 static Bitu readPortTCR(Bitu port, Bitu iolen)
 {
+	(void)port;
 	check8bit(iolen);
 	return imfcSingleton->readPortTCR();
 }
 static void writePortTCR(Bitu port, Bitu val, Bitu iolen)
 {
+	(void)port;
 	check8bit(iolen);
 	imfcSingleton->writePortTCR(val);
 }
 static Bitu readPortTSR(Bitu port, Bitu iolen)
 {
+	(void)port;
 	check8bit(iolen);
 	return imfcSingleton->readPortTSR();
 }
 static void writePortTSR(Bitu port, Bitu val, Bitu iolen)
 {
+	(void)port;
 	check8bit(iolen);
 	imfcSingleton->writePortTSR(val);
 }
