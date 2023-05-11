@@ -318,6 +318,7 @@ public:
 	virtual bool AllocationInfo32(uint32_t * _bytes_sector,uint32_t * _sectors_cluster,uint32_t * _total_clusters,uint32_t * _free_clusters) { (void)_bytes_sector; (void)_sectors_cluster; (void)_total_clusters; (void)_free_clusters; return false; }
 	virtual bool FileExists(const char* name)=0;
 	virtual bool FileStat(const char* name, FileStat_Block * const stat_block)=0;
+   	virtual bool GetDiskSize64(uint64_t * _disk_size64) { (void) _disk_size64; return false; }
 	virtual uint8_t GetMediaByte(void)=0;
 	virtual void SetDir(const char* path) { strcpy(curdir,path); };
 //	virtual void EmptyCache(void) { dirCache.EmptyCache(); };
