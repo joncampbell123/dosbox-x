@@ -1016,25 +1016,52 @@ bool fatDrive::getDirClustNum(const char *dir, uint32_t *clustNum, bool parDir) 
 	return true;
 }
 
+/*
+   The following sector# to CHS-sector# conversion is unclear to me, since
+   the sector nature would be RELATIVE (but here... to what???), while we
+   need an ABSOLUTE (disk-relative) sector number to pass to loadedDisk
+   read/write functions, which calculate:
+	  sectnum = ( (cylinder * heads + head) * sectors ) + sector - 1L;
+   where heads and sectors are from *DISK* geometry, not *BPB*.
+   
+   However, if CHS is expressed in terms of the loadedDisk geometry
+   (instead of fatDrive's, which can differ), VHD access works fine, and
+   RAW images keep working.  2023.05.11 - maxpat78 */
 uint8_t fatDrive::readSector(uint32_t sectnum, void * data) {
 	if (absolute) return Read_AbsoluteSector(sectnum, data);
     assert(!IS_PC98_ARCH);
+#ifdef OLD_CHS_CONVERSION
 	uint32_t cylindersize = (unsigned int)BPB.v.BPB_NumHeads * (unsigned int)BPB.v.BPB_SecPerTrk;
 	uint32_t cylinder = sectnum / cylindersize;
 	sectnum %= cylindersize;
 	uint32_t head = sectnum / BPB.v.BPB_SecPerTrk;
 	uint32_t sector = sectnum % BPB.v.BPB_SecPerTrk + 1L;
+#else
+	uint32_t cylindersize = (unsigned int)loadedDisk->heads * (unsigned int)loadedDisk->sectors;
+	uint32_t cylinder = sectnum / cylindersize;
+	sectnum %= cylindersize;
+	uint32_t head = sectnum / loadedDisk->sectors;
+	uint32_t sector = sectnum % loadedDisk->sectors + 1L;
+#endif
 	return loadedDisk->Read_Sector(head, cylinder, sector, data);
 }	
 
 uint8_t fatDrive::writeSector(uint32_t sectnum, void * data) {
 	if (absolute) return Write_AbsoluteSector(sectnum, data);
     assert(!IS_PC98_ARCH);
+#ifdef OLD_CHS_CONVERSION
 	uint32_t cylindersize = (unsigned int)BPB.v.BPB_NumHeads * (unsigned int)BPB.v.BPB_SecPerTrk;
 	uint32_t cylinder = sectnum / cylindersize;
 	sectnum %= cylindersize;
 	uint32_t head = sectnum / BPB.v.BPB_SecPerTrk;
 	uint32_t sector = sectnum % BPB.v.BPB_SecPerTrk + 1L;
+#else
+	uint32_t cylindersize = (unsigned int)loadedDisk->heads * (unsigned int)loadedDisk->sectors;
+	uint32_t cylinder = sectnum / cylindersize;
+	sectnum %= cylindersize;
+	uint32_t head = sectnum / loadedDisk->sectors;
+	uint32_t sector = sectnum % loadedDisk->sectors + 1L;
+#endif
 	return loadedDisk->Write_Sector(head, cylinder, sector, data);
 }
 
