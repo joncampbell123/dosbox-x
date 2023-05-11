@@ -1,7 +1,11 @@
-:DOSBOX-X:LANGUAGE:Deutsch
-:DOSBOX-X:CODEPAGE:850
-:DOSBOX-X:VERSION:2022.09.0
+:DOSBOX-X:LANGUAGE:German
+:DOSBOX-X:CODEPAGE:858
+:DOSBOX-X:VERSION:2023.05.01
 :DOSBOX-X:REMARK:
+:PROGRAM_BOOT_IMAGE_MOUNTED
+Disketten-Image(s) bereits eingehangen.
+
+.
 :AUTOEXEC_CONFIGFILE_HELP
 Befehle in diesen Zeilen werden zum Start ausgefuehrt.
 Alle Befehle fuer MOUNT koennen hier eingefuegt werden.
@@ -136,7 +140,7 @@ CD-ROM-Support
 Laufwerksinfo
 .
 :MOUNTED_DRIVE_NUMBER
-Liste eingehaengter Laufwerken
+Liste eingehaengter Laufwerke
 .
 :IDE_CONTROLLER_ASSIGNMENT
 IDE-Controller-Zuweisung
@@ -234,7 +238,7 @@ Waehle ein Event oder klick auf die Buttons Hinzf/Entf/Weiter.
 Joystick bewegen oder Button druecken.
 .
 :CAPTURE_ENABLED
-Capture enabled. Hit ESC to release capture.
+Aufnahme aktiv. ESC druecken zum Beenden.
 .
 :MAPPER_FILE_SAVED
 Mapper-Datei gespeichert
@@ -280,13 +284,13 @@ Globale Konfig-Datei:
 
 .
 :PROGRAM_CONFIG_CONFDIR
-DOSBox-X %s Nutzer-Konfig-Ordner: 
+DOSBox-X %s Nutzer-Konfig-Ordner:
 %s
 
 
 .
 :PROGRAM_CONFIG_WORKDIR
-Arbeitsverzeichnis von DOSBox-X: 
+Arbeitsverzeichnis von DOSBox-X:
 %s
 
 
@@ -317,19 +321,23 @@ Das DOSBox-X Kommandozeilen Konfig-Werkzeug. Optionen:
 -wcboot, -wcpboot, oder -wcdboot starten DOSBox-X neu nach Speichern der Datei.
 -bootconf (oder -bc) startet neu mit primaerer Konfig-Datei
   (oder angegebener Datei).
--norem Ignoriert alle Kommentare, wenn zusammen mit -wc, -wcp, oder -wcd benutzt.
+-norem Ignoriert alle Kommentare, wenn mit -wc, -wcp, oder -wcd benutzt.
 -l Listet Konfig-Parameter von DOSBox-X auf.
 -h, -help, -? Zeigt diese Hilfe
--h, -help, -? section / property Zeigt Info fuer bestimmten Abschnitt oder Eigenschaft.
+-h, -help, -? section / property Zeigt Info fuer bestimmten Abschnitt
+  oder Eigenschaft.
 -axclear Loescht den Abschnitt [autoexec].
 -axadd [line] Fuegt eine Zeile dem Abschnitt [autoexec] hinzu.
 -axtype Zeigt den Inhalt des [autoexec]-Abschnitts.
 -avistart, -avistop Startet oder stoppt AVI-Aufnahme.
--securemode Aktiviert abgesicherten Modus, wo Funktionen wie Einhaengen abgeschaltet sind.
+-securemode Aktiviert abgesicherten Modus, wo Funktionen wie Einhaengen
+  abgeschaltet sind.
 -startmapper Startet den DOSBox-X-Mapper-Editor.
 -gui Startet das grafische Konfig-Tool.
--get "section property" gibt den Wert einer Eigenschaft zurueck (ebenso %%CONFIG%%).
--set (-setf for force) "section property=value" setzt den Wert einer Eigenschaft.
+-get "section property" gibt den Wert einer Eigenschaft zurueck
+  (ebenso %%CONFIG%%).
+-set (-setf for force) "section property=value" setzt den Wert einer
+  Eigenschaft.
 
 .
 :PROGRAM_CONFIG_HLP_PROPHLP
@@ -746,8 +754,7 @@ Beenden
 .
 :PROGRAM_INTRO_USAGE_TOP
 ←[2J←[32;1mEine Uebersicht der Kommandooptionen, die man DOSBox-X geben kann.←[0m
-Windows-Nutzer muessen cmd.exe oeffnen oder eine Verknuepfung zu DOSBox-X.exe
-dafuer bearbeiten.
+Windows-Nutzer muessen cmd.exe oeffnen oder eine Verknuepfung zu DOSBox-X.exe dafuer bearbeiten.
 
 dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
          [-conf congfigfile] [-lang languagefile] [-machine machinetype]
@@ -761,12 +768,16 @@ dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
 ○Wenn name ein Ordner ist, wird er als Laufwerk C: eingehaengt.
 ○Wenn name ein Programm ist, wird sein Ordner als Laufwerk C:
 ○eingehaengt und das Programm ausgefuehrt.
+
 ←[33;1m  -exit←[0m
 ○DOSBox-X schliesst sich selbst, wenn die DOS-Anwendung beendet wurde.
+
 ←[33;1m  -version←[0m
 ○Zeigt die Versionsinfos an und beendet sich. Nuetzlich fuer Frontends.
+
 ←[33;1m  -fastlaunch←[0m
 ○Aktiviert Schnellstartmodus (ueberspr. BIOS-Logo und Willkommensbanner).
+
 ←[33;1m  -fullscreen←[0m
 ○Startet DOSBox-X im Vollbildmodus.
 .
@@ -774,11 +785,14 @@ dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
 ←[33;1m  -conf←[0m configfile
 ○Startet DOSBox-X mit den Optionen aus der Konfig-Datei.
 ○Siehe Dokumentation fuer mehr Details.
+
 ←[33;1m  -lang←[0m languagefile
 ○Startet DOSBox-X mit der angegebenen Sprachdatei.
+
 ←[33;1m  -startmapper←[0m
 ○Startet den Keymapper zuerst. Nuetzlich fuer Leute mit
 ○Tastaturproblemen.
+
 ←[33;1m  -machine←[0m machinetype
 ○Startet DOSBox-X mit dem angegebenen Maschinenentyp. Gueltige Optionen:
 ○hercules, cga, cga_mono, mcga, mda, pcjr, tandy, ega, vga, vgaonly,
@@ -789,14 +803,17 @@ dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
 :PROGRAM_INTRO_USAGE_3
 ←[33;1m  -noautoexec←[0m
 ○Ueberspringt den [autoexec] Abschnitt der Konfig-Datei.
+
 ←[33;1m  -o←[0m options
 ○Zeigt die Kommandooption(en) fuer "name" an, wenn es eine Anwendung ist.
 ○Mehrere -o koennen fuer mehrere Anwendungen benutzt werden.
+
 ←[33;1m  -c←[0m command
 ○Fuehrt zuerst command aus, dann name. Mehrere Kommandos sind moeglich.
 ○Jedes Kommando sollte mit -c beginnen.
 ○Ein Kommando ist: ein internes Programm, ein DOS-Kommando oder eine
 ○ausfuehrbahre Datei auf einem eingehaengten Laufwerk.
+
 ←[33;1m  -set←[0m <section property=value>
 ○Legt die Konfig-Option fest (ignoriert die Konfig-Datei). Jede Option
 ○sollte mit -set beginnen, wenn mehrere angegeben werden sollen.
@@ -826,16 +843,16 @@ muss man einen Ordner mit den noetigen Dateien einhaengen.
 
 .
 :PROGRAM_INTRO_MOUNT_EXST_WINDOWS
-←[32mmount c c:\dosgames\←[37m erstellt LW C mit c:\dosgames als Inhalt.   
+←[32mmount c c:\dosgames\←[37m erstellt LW C mit c:\dosgames als Inhalt.
 .
 :PROGRAM_INTRO_MOUNT_EXEN_WINDOWS
-c:\dosgames\←[37m ist ein Beispiel. Ersetze es mit deinem eigenen Ordner.←[37m 
+c:\dosgames\←[37m ist ein Beispiel. Ersetze es mit deinem eigenen Ordner.←[37m
 .
 :PROGRAM_INTRO_MOUNT_EXST_OTHER
-←[32mmount c ~/dosgames←[37m erstellt LW C mit ~/dosgames als Inhalt.          
+←[32mmount c ~/dosgames←[37m erstellt LW C mit ~/dosgames als Inhalt.
 .
 :PROGRAM_INTRO_MOUNT_EXEN_OTHER
-←[32m~/dosgames←[37m ist ein Beispiel. Ersetze es mit deinem eigenen Ordner.←[37m   
+←[32m~/dosgames←[37m ist ein Beispiel. Ersetze es mit deinem eigenen Ordner.←[37m
 .
 :PROGRAM_INTRO_MOUNT_END
 Wurde das Laufwerk eingehaengt, tippe ←[34;1mc:←[0m, um dein gerade eingerichtetes
@@ -879,7 +896,7 @@ Kann Bootdisk-Datei nicht oeffnen.  Fehlschlag.
 
 .
 :PROGRAM_BOOT_WRITE_PROTECTED
-Image-Datei ist SCHREIBGESCHUETZT! Starte mit Schreibschutz.
+Image-Datei ist SCHREIBGESCHUeTZT! Starte mit Schreibschutz.
 
 .
 :PROGRAM_BOOT_PRINT_ERROR
@@ -983,8 +1000,7 @@ Die uebergeordnete VHD-Datei konnte nicht gefunden werden.
 
 .
 :VHD_PARENT_INVALID_DATA
-Die uebergeordnete VHD-Datei ist beschaedigt und
-kann nicht geoeffnet werden.
+Die uebergeordnete VHD-Datei ist beschaedigt und kann nicht geoeffnet werden.
 
 .
 :VHD_PARENT_UNSUPPORTED_TYPE
@@ -1019,7 +1035,7 @@ Dynamische VHD-Dateien sind nicht unterstuetzt.
 .
 :PROGRAM_IMGMOUNT_INVALID_GEOMETRY
 Konnte Laufwerksgeometrie aus dem Image nicht extrahieren.
-Nutze die Parameter -size bps,spc,hpc,cyl um die 
+Nutze die Parameter -size bps,spc,hpc,cyl um die
 korrekte Geometrie anzugeben.
 
 .
@@ -1110,12 +1126,9 @@ Ein paar Beispiele fuer IMGMOUNT:
 
   ←[32;1mIMGMOUNT←[0m                       - listet alle eingehaengten FAT/ISO-LW und
                                    -LW-Nummern
-  ←[32;1mIMGMOUNT C←[0m                     - Festplattenimage ←[33;1mIMGMAKE.IMG←[0m als
-                                   C: einhaengen
-  ←[32;1mIMGMOUNT C ~/image.img←[0m         - Image ~/image.img als Festplatte
-                                   C: einhaengen
-  ←[32;1mIMGMOUNT D ~/files/game.iso←[0m    - CD-Image ~/files/game.iso als
-                                   D: einhaengen
+  ←[32;1mIMGMOUNT C←[0m                     - Festplattenimage ←[33;1mIMGMAKE.IMG←[0m als C: einhaengen
+  ←[32;1mIMGMOUNT C ~/image.img←[0m         - Image ~/image.img als Festplatte C: einhaengen
+  ←[32;1mIMGMOUNT D ~/files/game.iso←[0m    - CD-Image ~/files/game.iso als D: einhaengen
   ←[32;1mIMGMOUNT D cdaudio.cue←[0m         - CUE-Datei von CUE/BIN-Paar als
                                    CD-LW einhaengen
   ←[32;1mIMGMOUNT 0 dos.ima←[0m             - Diskettenimage dos.ima als LW-Nummer 0
@@ -1159,7 +1172,7 @@ Usage: ←[34;1mIMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc]
   -fat: FAT-Dateisystemtyp (12, 16, oder 32).
   -spc: Sektoren pro Cluster ueberschreiben. Muss Potenz von 2 sein.
   -fatcopies: Ueberschreibe Anzahl von FAT-Tabellen-Kopien.
-  -rootdir:Groesse des Wurzelverzeichnisses in Eintraegen.Ignoriert fuer FAT32.
+  -rootdir: Groesse des Wurzelverzeichnisses in Eintraegen. Ignoriert fuer FAT32.
   ←[32;1m-examples: Beispiele anzeigen.←[0m
 .
 :PROGRAM_IMGMAKE_EXAMPLE
@@ -1271,10 +1284,10 @@ Laufwerk %s enthaelt folgende Ordner
 .
 :SHELL_CMD_VOL_DRIVE
 
- Belegung in Laufwerk %c 
+ Belegung in Laufwerk %c
 .
 :SHELL_CMD_VOL_SERIAL
- Seriennummer des Laufwerks ist 
+ Seriennummer des Laufwerks ist
 .
 :SHELL_CMD_VOL_SERIAL_NOLABEL
 hat keine Bezeichnung
@@ -1299,8 +1312,7 @@ Eine kurze Liste der haeufigsten Kommandos:
 
 .
 :SHELL_CMD_HELP_END1
-Externe Kommandos wie ←[33;1mMOUNT←[0m und ←[33;1mIMGMOUNT←[0m koennen
-auf Laufwerk Z: gefunden werden.
+Externe Kommandos wie ←[33;1mMOUNT←[0m und ←[33;1mIMGMOUNT←[0m koennen auf Laufwerk Z: gefunden werden.
 
 .
 :SHELL_CMD_HELP_END2
@@ -1362,7 +1374,7 @@ Das angegebene Datum ist nicht korrekt.
 3SonMonDieMitDonFreSam
 .
 :SHELL_CMD_DATE_NOW
-Aktuelles Datum: 
+Aktuelles Datum:
 .
 :SHELL_CMD_DATE_SETHLP
 Tippe 'date %s' zum Aendern.
@@ -1386,7 +1398,7 @@ Die angegebene Zeit ist nicht korrekt.
 
 .
 :SHELL_CMD_TIME_NOW
-Aktuelle Zeit: 
+Aktuelle Zeit:
 .
 :SHELL_CMD_TIME_SETHLP
 Tippe 'time %s' zum Aendern.
@@ -1584,23 +1596,23 @@ DOS/V V-Text ist momentan deaktiviert.
 Willkommen zu DOSBox-X !
 .
 :SHELL_STARTUP_HEAD1_PC98
-←[36mEinfuehrung zu DOSBox-X:     ←[37m                                     
+←[36mEinfuehrung zu DOSBox-X:     ←[37m
 .
 :SHELL_STARTUP_TEXT1_PC98
-Tippe ←[32mHELP←[37m fuer Shell-Kommandos und ←[32mINTRO←[37m fuer eine Einfuehrung.  
-Ueber die ←[33mDrop-Down-Menues←[37m koennen Aktionen ausgefuehrt werden.   
+Tippe ←[32mHELP←[37m fuer Shell-Kommandos und ←[32mINTRO←[37m fuer eine Einfuehrung.
+Ueber die ←[33mDrop-Down-Menues←[37m koennen Aktionen ausgefuehrt werden.
 .
 :SHELL_STARTUP_EXAMPLE_PC98
-←[32mBeispiel←[37m: Probiere ←[33mTrueType font←[37m oder die ←[33mOpenGL perfect←[37m Option.  
+←[32mBeispiel←[37m: Probiere ←[33mTrueType font←[37m oder die ←[33mOpenGL perfect←[37m Option.
 .
 :SHELL_STARTUP_TEXT2_PC98
-Fuer das ←[33mKonfigurations-Tool←[37m, druecke ←[31mHost+C←[37m. Host-Key ist ←[32mF12←[37m.   
-Starte den ←[33mMapper Editor←[37m zur Tastenbelegung ueber ←[31mhost+M←[37m.         
-Wechsle zwischen Fenster- und Vollbildmodus ueber ←[31mHost+F←[37m.         
-Zum Aendern von CPU-Speed druecke ←[31mHost+Plus←[37m oder ←[31mHost+Minus←[37m.      
+Fuer das ←[33mKonfigurations-Tool←[37m, druecke ←[31mHost+C←[37m. Host-Key ist ←[32mF12←[37m.
+Starte den ←[33mMapper Editor←[37m zur Tastenbelegung ueber ←[31mhost+M←[37m.
+Wechsle zwischen Fenster- und Vollbildmodus ueber ←[31mHost+F←[37m.
+Zum Aendern von CPU-Speed druecke ←[31mHost+Plus←[37m oder ←[31mHost+Minus←[37m.
 .
 :SHELL_STARTUP_INFO_PC98
-←[36mDOSBox-X laeuft jetzt im ←[32mjapanischen NEC PC-98←[36m Emulationsmodus.←[37m   
+←[36mDOSBox-X laeuft jetzt im ←[32mjapanischen NEC PC-98←[36m Emulationsmodus.←[37m
 .
 :SHELL_STARTUP_TEXT3_PC98
 ←[32mDOSBox-X Projekt ←[33mhttps://dosbox-x.com/     ←[36mKomplette DOS-Emulation←[37m
@@ -1611,42 +1623,42 @@ Zum Aendern von CPU-Speed druecke ←[31mHost+Plus←[37m oder ←[31mHost+Minus
 ←[36mEinfuehrung zu DOSBox-X:                                                     ←[37m
 .
 :SHELL_STARTUP_TEXT1
-Tippe ←[32mHELP←[37m fuer Shell-Kommandos und ←[32mINTRO←[37m fuer eine Einfuehrung.               
-Ueber die ←[33mDrop-Down-Menues←[37m koennen verschiedene Aktionen ausgefuehrt werden.    
+Tippe ←[32mHELP←[37m fuer Shell-Kommandos und ←[32mINTRO←[37m fuer eine Einfuehrung.
+Ueber die ←[33mDrop-Down-Menues←[37m koennen verschiedene Aktionen ausgefuehrt werden.
 .
 :SHELL_STARTUP_EXAMPLE
-←[32mBeispiel←[37m: Probiere ←[33mTrueType font←[37m oder die ←[33mOpenGL pixel-perfect←[37m Option.      
+←[32mBeispiel←[37m: Probiere ←[33mTrueType font←[37m oder die ←[33mOpenGL pixel-perfect←[37m Option.
 .
 :SHELL_STARTUP_HEAD2
 ←[36mNuetzliche Tastaturkuerzel:                                                   ←[37m
 .
 :SHELL_STARTUP_TEXT2
-- wechsle zwischen Fenster- und Vollbildmodus mit der Kombination ←[31mF12 ←[37m+ ←[31mF←[37m ←[37m  
-- starte ←[33mKonfigurations-Tool←[37m mit ←[31mF12 ←[37m+ ←[31mC←[37m←[37m und ←[33mMapper Editor←[37m mit ←[31mF12 ←[37m+ ←[31mM←[37m  ←[37m    
-- Aendere die emulierte Geschwindigkeit mit ←[31mF12 ←[37m+ ←[31mPlus←[37m←[37m oder ←[31mF12 ←[37m+ ←[31mMinus←[37m   ←[37m   
+- wechsle zwischen Fenster- und Vollbildmodus mit der Kombination ←[31mF12 ←[37m+ ←[31mF←[37m ←[37m
+- starte ←[33mKonfigurations-Tool←[37m mit ←[31mF12 ←[37m+ ←[31mC←[37m←[37m und ←[33mMapper Editor←[37m mit ←[31mF12 ←[37m+ ←[31mM←[37m  ←[37m
+- Aendere die emulierte Geschwindigkeit mit ←[31mF12 ←[37m+ ←[31mPlus←[37m←[37m oder ←[31mF12 ←[37m+ ←[31mMinus←[37m   ←[37m
 .
 :SHELL_STARTUP_DOSV
 ←[32mDOS/V Modus←[37m aktiviert. Probiere auch den ←[32mTTF CJK mode←[37m fuer allg. DOS-Emulation.
 .
 :SHELL_STARTUP_CGA
 Composite-CGA-Modus unterstuetzt. Druecke ←[31mCtrl+F8←[37m fuer Composite-Output ON/OFF.
-Druecke ←[31mCtrl+Shift+[F7/F8]←[37m fuer andere Farben; ←[31mCtrl+F7←[37m waehlt fruehes/spaetes CGA-Modell. 
+Druecke ←[31mCtrl+Shift+[F7/F8]←[37m fuer andere Farben; ←[31mCtrl+F7←[37m waehlt fruehes/spaetes CGA-Modell.
 .
 :SHELL_STARTUP_CGA_MONO
-Druecke ←[31mCtrl+F7←[37m zum Wechseln zwischen gruen, gelb und weisser Monochrom-Farbe,      
-und ←[31mCtrl+F8←[37m zum Aendern von Kontrast/Helligkeit.                         
+Druecke ←[31mCtrl+F7←[37m zum Wechseln zwischen gruen, gelb und weisser Monochrom-Farbe,
+und ←[31mCtrl+F8←[37m zum Aendern von Kontrast/Helligkeit.
 .
 :SHELL_STARTUP_HERC
-Druecke ←[31mCtrl+F7←[37m zum Wechseln zwischen gruen, gelb und weisser Monochrom-Farbe.      
-Druecke ←[31mCtrl+F8←[37m zum Wechseln der horizontalen Blende (nur im Grafikmodus).          
+Druecke ←[31mCtrl+F7←[37m zum Wechseln zwischen gruen, gelb und weisser Monochrom-Farbe.
+Druecke ←[31mCtrl+F8←[37m zum Wechseln der horizontalen Blende (nur im Grafikmodus).
 .
 :SHELL_STARTUP_HEAD3
 ←[36mDOSBox-X-Project im Web:                                                    ←[37m
 .
 :SHELL_STARTUP_TEXT3
-←[32mHomepage des Projects←[37m: ←[33mhttps://dosbox-x.com/        ←[36mKomplette DOS-Emulation←[37m 
-←[32mHandbuecher im Wiki←[37m: ←[33mhttps://dosbox-x.com/wiki←[32m       ←[36mDOS, Windows 3.x und 9x←[37m 
-←[32mVorschlaege ←[37m: ←[33mhttps://github.com/joncampbell123/dosbox-x/issues      ←[37m        
+←[32mHomepage des Projects←[37m: ←[33mhttps://dosbox-x.com/        ←[36mKomplette DOS-Emulation←[37m
+←[32mHandbuecher im Wiki←[37m: ←[33mhttps://dosbox-x.com/wiki←[32m       ←[36mDOS, Windows 3.x und 9x←[37m
+←[32mVorschlaege ←[37m: ←[33mhttps://github.com/joncampbell123/dosbox-x/issues      ←[37m
 .
 :SHELL_STARTUP_LAST
 VIEL SPASS MIT DOSBOX-X !
@@ -1703,12 +1715,12 @@ DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|D]]
               H  Versteckt             A  Zur Archivierung bereit
               S  Systemdateien         -  Negation
   /O         Listet Dateien in sortierter Reihenfolge.
-  sortorder   N  Name (Alphabetisch)     S  Groesse (kleinste zuerst)
-              E  Endung (Alphabetisch)   D  Nach Datum & Zeit (fruehste zuerst)
-              G  Ordner zuerst           -  Umgekehrte Reihenfolge
+  sortorder   N  Name (Alphabetisch)      S  Groesse (kleinste zuerst)
+              E  Endung (Alphabetisch)    D  Nach Datum & Zeit (fruehste zuerst)
+              G  Ordner zuerst            -  Umgekehrte Reihenfolge
 
-Schalter koennen in der DIRCMD Umgebungsvariable gespeichert sein.
-Ueberschreibe vordefinierte Schalter mit - (Bindestrich)--z.B., /-W.
+Schalter koennen in der DIRCMD Umgebungsvariable gespeichert sein. Ueberschreibe
+vordefinierte Schalter mit - (Bindestrich)--z.B., /-W.
 
 .
 :SHELL_CMD_ECHO_HELP
@@ -1855,7 +1867,7 @@ SHIFT
 
 .
 :SHELL_CMD_FOR_HELP
-Führt das angegebene Kommando aus, für jede Datei in einer Liste.
+Fuehrt das angegebene Kommando aus, fuer jede Datei in einer Liste.
 
 .
 :SHELL_CMD_FOR_HELP_LONG
@@ -1981,7 +1993,7 @@ aufzulisten.
 
 .
 :SHELL_CMD_LOADHIGH_HELP
-Lädt ein Programm in den oberen Speicher (mit XMS und UMB Speicher).
+Laedt ein Programm in den oberen Speicher (mit XMS und UMB Speicher).
 
 .
 :SHELL_CMD_LOADHIGH_HELP_LONG
@@ -2196,7 +2208,7 @@ Zeigt oder aendert die aktuelle Laendereinstellung.
 
 .
 :SHELL_CMD_COUNTRY_HELP_LONG
-COUNTRY [nnn] 
+COUNTRY [nnn]
 
   nnn   Legt den Laendercode fest.
 
@@ -2277,7 +2289,7 @@ Starte Gastsystem neu
 :MENU:mapper_loadmap
 Lade Mapper-Datei...
 .
-:MENU:mapper_loadlanguage
+:MENU:loadlang
 Lade Sprachdatei...
 .
 :MENU:mapper_quickrun
@@ -3067,13 +3079,16 @@ DOSBox-X Support
 Netzwerkschnittstellen auflisten
 .
 :MENU:help_prt
-Druckergeräte auflisten
+Druckergeraete auflisten
 .
 :MENU:help_about
 Ueber DOSBox-X
 .
 :MENU:show_console
 Zeige Log
+.
+:MENU:clear_console
+Loesche Log
 .
 :MENU:disable_logging
 Deaktiviere Log-Output
@@ -3098,6 +3113,9 @@ Debugger-Option: Starte normal
 .
 :MENU:debugger_runwatch
 Debugger-Option: Beobachtung
+.
+:MENU:video_debug_overlay
+Video-Debug-Overlay
 .
 :MENU:HelpCommandMenu
 DOS-Kommandos
@@ -3185,6 +3203,9 @@ Video als AVI aufnehmen
 .
 :MENU:mapper_scrshot
 Bildschirmfoto machen
+.
+:MENU:mapper_rawscrshot
+Bildschirmfoto machen (roh)
 .
 :MENU:mapper_volup
 Lauter
@@ -3306,8 +3327,8 @@ Starte DOSBox-X-Instanz neu
 :MENU:restartconf
 Starte DOSBox-X mit Konfig-Datei neu...
 .
-:MENU:restartlang
-Starte DOSBox-X mit Sprachdatei neu...
+:MENU:loadlang
+Lade Sprachdatei...
 .
 :MENU:auto_lock_mouse
 Maus automatisch einfangen
