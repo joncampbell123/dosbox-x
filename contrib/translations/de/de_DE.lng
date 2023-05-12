@@ -1,7 +1,11 @@
 :DOSBOX-X:LANGUAGE:German
-:DOSBOX-X:CODEPAGE:850
+:DOSBOX-X:CODEPAGE:858
 :DOSBOX-X:VERSION:2023.05.01
 :DOSBOX-X:REMARK:
+:PROGRAM_BOOT_IMAGE_MOUNTED
+Disketten-Image(s) bereits eingehangen.
+
+.
 :AUTOEXEC_CONFIGFILE_HELP
 Befehle in diesen Zeilen werden zum Start ausgeführt.
 Alle Befehle für MOUNT können hier eingefügt werden.
@@ -280,13 +284,13 @@ Globale Konfig-Datei:
 
 .
 :PROGRAM_CONFIG_CONFDIR
-DOSBox-X %s Nutzer-Konfig-Ordner: 
+DOSBox-X %s Nutzer-Konfig-Ordner:
 %s
 
 
 .
 :PROGRAM_CONFIG_WORKDIR
-Arbeitsverzeichnis von DOSBox-X: 
+Arbeitsverzeichnis von DOSBox-X:
 %s
 
 
@@ -839,16 +843,16 @@ muss man einen Ordner mit den nötigen Dateien einhängen.
 
 .
 :PROGRAM_INTRO_MOUNT_EXST_WINDOWS
-←[32mmount c c:\dosgames\←[37m erstellt LW C mit c:\dosgames als Inhalt.   
+←[32mmount c c:\dosgames\←[37m erstellt LW C mit c:\dosgames als Inhalt.
 .
 :PROGRAM_INTRO_MOUNT_EXEN_WINDOWS
-c:\dosgames\←[37m ist ein Beispiel. Ersetze es mit deinem eigenen Ordner.←[37m 
+c:\dosgames\←[37m ist ein Beispiel. Ersetze es mit deinem eigenen Ordner.←[37m
 .
 :PROGRAM_INTRO_MOUNT_EXST_OTHER
-←[32mmount c ~/dosgames←[37m erstellt LW C mit ~/dosgames als Inhalt.          
+←[32mmount c ~/dosgames←[37m erstellt LW C mit ~/dosgames als Inhalt.
 .
 :PROGRAM_INTRO_MOUNT_EXEN_OTHER
-←[32m~/dosgames←[37m ist ein Beispiel. Ersetze es mit deinem eigenen Ordner.←[37m   
+←[32m~/dosgames←[37m ist ein Beispiel. Ersetze es mit deinem eigenen Ordner.←[37m
 .
 :PROGRAM_INTRO_MOUNT_END
 Wurde das Laufwerk eingehängt, tippe ←[34;1mc:←[0m, um dein gerade eingerichtetes
@@ -1031,7 +1035,7 @@ Dynamische VHD-Dateien sind nicht unterstützt.
 .
 :PROGRAM_IMGMOUNT_INVALID_GEOMETRY
 Konnte Laufwerksgeometrie aus dem Image nicht extrahieren.
-Nutze die Parameter -size bps,spc,hpc,cyl um die 
+Nutze die Parameter -size bps,spc,hpc,cyl um die
 korrekte Geometrie anzugeben.
 
 .
@@ -1280,10 +1284,10 @@ Laufwerk %s enthält folgende Ordner
 .
 :SHELL_CMD_VOL_DRIVE
 
- Belegung in Laufwerk %c 
+ Belegung in Laufwerk %c
 .
 :SHELL_CMD_VOL_SERIAL
- Seriennummer des Laufwerks ist 
+ Seriennummer des Laufwerks ist
 .
 :SHELL_CMD_VOL_SERIAL_NOLABEL
 hat keine Bezeichnung
@@ -1370,7 +1374,7 @@ Das angegebene Datum ist nicht korrekt.
 3SonMonDieMitDonFreSam
 .
 :SHELL_CMD_DATE_NOW
-Aktuelles Datum: 
+Aktuelles Datum:
 .
 :SHELL_CMD_DATE_SETHLP
 Tippe 'date %s' zum Ändern.
@@ -1394,7 +1398,7 @@ Die angegebene Zeit ist nicht korrekt.
 
 .
 :SHELL_CMD_TIME_NOW
-Aktuelle Zeit: 
+Aktuelle Zeit:
 .
 :SHELL_CMD_TIME_SETHLP
 Tippe 'time %s' zum Ändern.
@@ -1592,23 +1596,23 @@ DOS/V V-Text ist momentan deaktiviert.
 Willkommen zu DOSBox-X !
 .
 :SHELL_STARTUP_HEAD1_PC98
-←[36mEinfuehrung zu DOSBox-X:     ←[37m                                     
+←[36mEinfuehrung zu DOSBox-X:     ←[37m
 .
 :SHELL_STARTUP_TEXT1_PC98
-Tippe ←[32mHELP←[37m fuer Shell-Kommandos und ←[32mINTRO←[37m fuer eine Einfuehrung.  
-Ueber die ←[33mDrop-Down-Menues←[37m koennen Aktionen ausgefuehrt werden.   
+Tippe ←[32mHELP←[37m fuer Shell-Kommandos und ←[32mINTRO←[37m fuer eine Einfuehrung.
+Ueber die ←[33mDrop-Down-Menues←[37m koennen Aktionen ausgefuehrt werden.
 .
 :SHELL_STARTUP_EXAMPLE_PC98
-←[32mBeispiel←[37m: Probiere ←[33mTrueType font←[37m oder die ←[33mOpenGL perfect←[37m Option.  
+←[32mBeispiel←[37m: Probiere ←[33mTrueType font←[37m oder die ←[33mOpenGL perfect←[37m Option.
 .
 :SHELL_STARTUP_TEXT2_PC98
-Fuer das ←[33mKonfigurations-Tool←[37m, druecke ←[31mHost+C←[37m. Host-Key ist ←[32mF12←[37m.   
-Starte den ←[33mMapper Editor←[37m zur Tastenbelegung ueber ←[31mhost+M←[37m.         
-Wechsle zwischen Fenster- und Vollbildmodus ueber ←[31mHost+F←[37m.         
-Zum Aendern von CPU-Speed druecke ←[31mHost+Plus←[37m oder ←[31mHost+Minus←[37m.      
+Fuer das ←[33mKonfigurations-Tool←[37m, druecke ←[31mHost+C←[37m. Host-Key ist ←[32mF12←[37m.
+Starte den ←[33mMapper Editor←[37m zur Tastenbelegung ueber ←[31mhost+M←[37m.
+Wechsle zwischen Fenster- und Vollbildmodus ueber ←[31mHost+F←[37m.
+Zum Aendern von CPU-Speed druecke ←[31mHost+Plus←[37m oder ←[31mHost+Minus←[37m.
 .
 :SHELL_STARTUP_INFO_PC98
-←[36mDOSBox-X laeuft jetzt im ←[32mjapanischen NEC PC-98←[36m Emulationsmodus.←[37m  
+←[36mDOSBox-X laeuft jetzt im ←[32mjapanischen NEC PC-98←[36m Emulationsmodus.←[37m
 .
 :SHELL_STARTUP_TEXT3_PC98
 ←[32mDOSBox-X Projekt ←[33mhttps://dosbox-x.com/     ←[36mKomplette DOS-Emulation←[37m
@@ -1619,42 +1623,42 @@ Zum Aendern von CPU-Speed druecke ←[31mHost+Plus←[37m oder ←[31mHost+Minus
 ←[36mEinführung zu DOSBox-X:                                                     ←[37m
 .
 :SHELL_STARTUP_TEXT1
-Tippe ←[32mHELP←[37m für Shell-Kommandos und ←[32mINTRO←[37m für eine Einführung.               
-Über die ←[33mDrop-Down-Menüs←[37m können verschiedene Aktionen ausgeführt werden.    
+Tippe ←[32mHELP←[37m für Shell-Kommandos und ←[32mINTRO←[37m für eine Einführung.
+Über die ←[33mDrop-Down-Menüs←[37m können verschiedene Aktionen ausgeführt werden.
 .
 :SHELL_STARTUP_EXAMPLE
-←[32mBeispiel←[37m: Probiere ←[33mTrueType font←[37m oder die ←[33mOpenGL pixel-perfect←[37m Option.      
+←[32mBeispiel←[37m: Probiere ←[33mTrueType font←[37m oder die ←[33mOpenGL pixel-perfect←[37m Option.
 .
 :SHELL_STARTUP_HEAD2
 ←[36mNützliche Tastaturkürzel:                                                   ←[37m
 .
 :SHELL_STARTUP_TEXT2
-- wechsle zwischen Fenster- und Vollbildmodus mit der Kombination ←[31mF12 ←[37m+ ←[31mF←[37m ←[37m  
-- starte ←[33mKonfigurations-Tool←[37m mit ←[31mF12 ←[37m+ ←[31mC←[37m←[37m und ←[33mMapper Editor←[37m mit ←[31mF12 ←[37m+ ←[31mM←[37m  ←[37m    
-- Ändere die emulierte Geschwindigkeit mit ←[31mF12 ←[37m+ ←[31mPlus←[37m←[37m oder ←[31mF12 ←[37m+ ←[31mMinus←[37m   ←[37m   
+- wechsle zwischen Fenster- und Vollbildmodus mit der Kombination ←[31mF12 ←[37m+ ←[31mF←[37m ←[37m
+- starte ←[33mKonfigurations-Tool←[37m mit ←[31mF12 ←[37m+ ←[31mC←[37m←[37m und ←[33mMapper Editor←[37m mit ←[31mF12 ←[37m+ ←[31mM←[37m  ←[37m
+- Ändere die emulierte Geschwindigkeit mit ←[31mF12 ←[37m+ ←[31mPlus←[37m←[37m oder ←[31mF12 ←[37m+ ←[31mMinus←[37m   ←[37m
 .
 :SHELL_STARTUP_DOSV
 ←[32mDOS/V Modus←[37m aktiviert. Probiere auch den ←[32mTTF CJK mode←[37m für allg. DOS-Emulation.
 .
 :SHELL_STARTUP_CGA
 Composite-CGA-Modus unterstützt. Drücke ←[31mCtrl+F8←[37m für Composite-Output ON/OFF.
-Drücke ←[31mCtrl+Shift+[F7/F8]←[37m für andere Farben; ←[31mCtrl+F7←[37m wählt frühes/spätes CGA-Modell. 
+Drücke ←[31mCtrl+Shift+[F7/F8]←[37m für andere Farben; ←[31mCtrl+F7←[37m wählt frühes/spätes CGA-Modell.
 .
 :SHELL_STARTUP_CGA_MONO
-Drücke ←[31mCtrl+F7←[37m zum Wechseln zwischen grün, gelb und weißer Monochrom-Farbe,      
-und ←[31mCtrl+F8←[37m zum Ändern von Kontrast/Helligkeit.                         
+Drücke ←[31mCtrl+F7←[37m zum Wechseln zwischen grün, gelb und weißer Monochrom-Farbe,
+und ←[31mCtrl+F8←[37m zum Ändern von Kontrast/Helligkeit.
 .
 :SHELL_STARTUP_HERC
-Drücke ←[31mCtrl+F7←[37m zum Wechseln zwischen grün, gelb und weißer Monochrom-Farbe.      
-Drücke ←[31mCtrl+F8←[37m zum Wechseln der horizontalen Blende (nur im Grafikmodus).          
+Drücke ←[31mCtrl+F7←[37m zum Wechseln zwischen grün, gelb und weißer Monochrom-Farbe.
+Drücke ←[31mCtrl+F8←[37m zum Wechseln der horizontalen Blende (nur im Grafikmodus).
 .
 :SHELL_STARTUP_HEAD3
 ←[36mDOSBox-X-Project im Web:                                                    ←[37m
 .
 :SHELL_STARTUP_TEXT3
-←[32mHomepage des Projects←[37m: ←[33mhttps://dosbox-x.com/        ←[36mKomplette DOS-Emulation←[37m 
-←[32mHandbücher im Wiki←[37m: ←[33mhttps://dosbox-x.com/wiki←[32m       ←[36mDOS, Windows 3.x und 9x←[37m 
-←[32mVorschläge ←[37m: ←[33mhttps://github.com/joncampbell123/dosbox-x/issues      ←[37m        
+←[32mHomepage des Projects←[37m: ←[33mhttps://dosbox-x.com/        ←[36mKomplette DOS-Emulation←[37m
+←[32mHandbücher im Wiki←[37m: ←[33mhttps://dosbox-x.com/wiki←[32m       ←[36mDOS, Windows 3.x und 9x←[37m
+←[32mVorschläge ←[37m: ←[33mhttps://github.com/joncampbell123/dosbox-x/issues      ←[37m
 .
 :SHELL_STARTUP_LAST
 VIEL SPASS MIT DOSBOX-X !
@@ -2204,7 +2208,7 @@ Zeigt oder ändert die aktuelle Ländereinstellung.
 
 .
 :SHELL_CMD_COUNTRY_HELP_LONG
-COUNTRY [nnn] 
+COUNTRY [nnn]
 
   nnn   Legt den Ländercode fest.
 
@@ -3083,6 +3087,9 @@ Druckergeräte auflisten
 :MENU:show_console
 Zeige Log
 .
+:MENU:clear_console
+Lösche Log
+.
 :MENU:disable_logging
 Deaktiviere Log-Output
 .
@@ -3106,6 +3113,9 @@ Debugger-Option: Starte normal
 .
 :MENU:debugger_runwatch
 Debugger-Option: Beobachtung
+.
+:MENU:video_debug_overlay
+Video-Debug-Overlay
 .
 :MENU:HelpCommandMenu
 DOS-Kommandos
@@ -3193,6 +3203,9 @@ Video als AVI aufnehmen
 .
 :MENU:mapper_scrshot
 Bildschirmfoto machen
+.
+:MENU:mapper_rawscrshot
+Bildschirmfoto machen (roh)
 .
 :MENU:mapper_volup
 Lauter
@@ -3314,8 +3327,8 @@ Starte DOSBox-X-Instanz neu
 :MENU:restartconf
 Starte DOSBox-X mit Konfig-Datei neu...
 .
-:MENU:restartlang
-Starte DOSBox-X mit Sprachdatei neu...
+:MENU:loadlang
+Lade Sprachdatei...
 .
 :MENU:auto_lock_mouse
 Maus automatisch einfangen
