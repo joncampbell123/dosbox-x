@@ -364,13 +364,15 @@ static void CloseSocket(void) {
 		if(tmpECB->getSocket()==sockNum) {
 			tmpECB->setCompletionFlag(COMP_CANCELLED);
 			tmpECB->setInUseFlag(USEFLAG_AVAILABLE);
+
+			/* If we're about to delete the head of the list, update ECBList to the next entry to avoid possible use-after-free bugs.
+			 * If the next entry is NULL, then the list is now empty. */
+			if (ECBList == tmpECB) ECBList = tmp2ECB;
+
 			delete tmpECB;
 		}
 		tmpECB = tmp2ECB;
 	}
-
-	/* FIXME: What happens if tmpECB is deleted when tmpECB == ECBList?
-	 *        Is that a possible use-after-free bug waiting to happen? */
 }
 
 //static RealPt IPXVERpointer;
