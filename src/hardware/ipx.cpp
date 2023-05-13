@@ -814,6 +814,7 @@ bool ConnectToServer(char const *strAddr) {
 			// Bind UDP port to address to channel
 			UDPChannel = SDLNet_UDP_Bind(ipxClientSocket,-1,&ipxServConnIp);
 			//ipxClientSocket = SDLNet_TCP_Open(&ipxServConnIp);
+			memset(&regHeader,0,sizeof(regHeader));
 			SDLNet_Write16(0xffff, regHeader.checkSum);
 			SDLNet_Write16(sizeof(regHeader), regHeader.length);
 
