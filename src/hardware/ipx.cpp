@@ -1169,6 +1169,14 @@ public:
 		ipx_init = true;
 	}
 
+	void RemoveISR(void) {
+		if (old_73_vector != 0) {
+			RealSetVec(0x73,old_73_vector);
+			IO_WriteB(0xa1,IO_ReadB(0xa1)|8);	// disable IRQ11
+			old_73_vector = 0;
+		}
+	}
+
 	~IPX() {
 		// FIXME: This now gets called at DOSBox exit.
 		//        We should do this elsewhere, such as booting a guest OS or "power off"
@@ -1182,8 +1190,7 @@ public:
 		DisconnectFromServer(false);
 
 		DOS_DelMultiplexHandler(IPX_Multiplex);
-		RealSetVec(0x73,old_73_vector);
-		IO_WriteB(0xa1,IO_ReadB(0xa1)|8);	// disable IRQ11
+		RemoveISR();
    
 		PhysPt phyDospage = PhysMake(dospage,0);
 		for(uint8_t i = 0;i < 32;i++)
@@ -1194,6 +1201,10 @@ public:
 };
 
 static IPX* test = NULL;
+
+void IPX_GuestOSBoot(Section*) {
+	if (test != NULL) test->RemoveISR(); /* Remove ISR but keep IPX tunnel open */
+}
 
 void IPX_ShutDown(Section*) {
 	if (test != NULL) {
@@ -1222,6 +1233,7 @@ void IPX_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(IPX_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(IPX_OnReset));
+	AddVMEventFunction(VM_EVENT_DOS_EXIT_KERNEL,AddVMEventFunctionFuncPair(IPX_GuestOSBoot));
 }
 
 #endif
