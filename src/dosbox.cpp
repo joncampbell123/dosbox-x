@@ -1383,7 +1383,7 @@ void DOSBOX_SetupConfigSections(void) {
         0 };
 
     const char* backendopts[] = {
-        "pcap", "slirp", "auto", "none",
+        "pcap", "slirp", "nothing", "auto", "none",
         0 };
 
     const char* workdiropts[] = {

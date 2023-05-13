@@ -21,6 +21,7 @@
 #include "ethernet.h"
 #include "ethernet_pcap.h"
 #include "ethernet_slirp.h"
+#include "ethernet_nothing.h"
 #include "logging.h"
 #include <cstring>
 #include "dosbox.h"
@@ -37,6 +38,8 @@ EthernetConnection* OpenEthernetConnection(std::string backendstr)
         backend = "slirp";
 #elif defined(C_PCAP)
         backend = "pcap";
+#else
+        backend = "nothing";
 #endif
     } else
         backend = backendstr;
@@ -55,13 +58,21 @@ EthernetConnection* OpenEthernetConnection(std::string backendstr)
         settings = control->GetSection("ethernet, pcap");
     }
 #endif
-    if (backendstr == "auto" && !conn) backend = "none";
+    if (backendstr == "auto" && !conn) backend = "nothing";
+    if (backend == "nothing")
+    {
+        conn = ((EthernetConnection*)new NothingEthernetConnection);
+        settings = control->GetSection("ethernet, pcap");//NTS: The Nothing uses no settings, but there is an assert below to ensure settings != NULL
+    }
+    if (backendstr == "auto" && !conn) backend = "nothing";
     if (!conn)
     {
         if (backend == "pcap" || backend == "slirp")
             LOG_MSG("ETHERNET: Backend not supported in this build: %s", backend.c_str());
+	else if (backend == "nothing")
+            LOG_MSG("ETHERNET: Somehow, the nothing backend failed");
         else if (backend == "none")
-            LOG_MSG("ETHERNET: No backend available for NE2000 Ethernet emulation.");
+            LOG_MSG("ETHERNET: Explictly no backend for NE2000 emulation");
         else
             LOG_MSG("ETHERNET: Unknown ethernet backend: %s", backend.c_str());
         return nullptr;

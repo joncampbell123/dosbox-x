@@ -1,4 +1,11 @@
 Next
+  - NE2000: Add "nothing" backend. It receives nothing and send packets go
+    nowhere. If no other backend is available, this backend is a fallback
+    so that at least the NE2000 emulation can work. The other purpose of
+    a nothing callback is to give NE2000 something to talk to for those
+    who wish to use the upcoming IPX packet redirection to link DOS and
+    Windows games over the IPX client or server connection to other
+    instances of DOSBox. (joncampbell123)
   - Added record function to capture NE2000 network traffic to a
     pcap/Wireshark file in the capture directory. (joncampbell123)
   - Fixed bug where guest VM reset causes the CMOS to stop ticking for
