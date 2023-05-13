@@ -24,6 +24,7 @@
 #include <string.h>
 #include <time.h>
 #include <stdio.h>
+#include <assert.h>
 #include "cross.h"
 #include "logging.h"
 #include "support.h"
@@ -92,6 +93,8 @@ Bitu ECBAmount = 0;
 
 
 ECBClass::ECBClass(uint16_t segment, uint16_t offset) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
+
 	ECBAddr = RealMake(segment, offset);
 	databuffer = 0;
 	
@@ -128,6 +131,7 @@ ECBClass::ECBClass(uint16_t segment, uint16_t offset) {
 	mysocket = getSocket();
 }
 void ECBClass::writeDataBuffer(uint8_t* buffer, uint16_t length) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	if(databuffer!=0) delete [] databuffer;
 	databuffer = new uint8_t[length];
 	memcpy(databuffer,buffer,length);
@@ -135,6 +139,7 @@ void ECBClass::writeDataBuffer(uint8_t* buffer, uint16_t length) {
 
 }
 bool ECBClass::writeData() {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	Bitu length=buflen;
 	uint8_t* buffer = databuffer;
 	fragmentDescriptor tmpFrag;
@@ -161,27 +166,33 @@ bool ECBClass::writeData() {
 }
 
 uint16_t ECBClass::getSocket(void) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	return swapByte(real_readw(RealSeg(ECBAddr), RealOff(ECBAddr) + 0xa));
 }
 
 uint8_t ECBClass::getInUseFlag(void) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	return real_readb(RealSeg(ECBAddr), RealOff(ECBAddr) + 0x8);
 }
 
 void ECBClass::setInUseFlag(uint8_t flagval) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	iuflag = flagval;
 	real_writeb(RealSeg(ECBAddr), RealOff(ECBAddr) + 0x8, flagval);
 }
 
 void ECBClass::setCompletionFlag(uint8_t flagval) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	real_writeb(RealSeg(ECBAddr), RealOff(ECBAddr) + 0x9, flagval);
 }
 
 uint16_t ECBClass::getFragCount(void) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	return real_readw(RealSeg(ECBAddr), RealOff(ECBAddr) + 34);
 }
 
 void ECBClass::getFragDesc(uint16_t descNum, fragmentDescriptor *fragDesc) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	uint16_t memoff = RealOff(ECBAddr) + 30 + ((descNum+1) * 6);
 	fragDesc->offset = real_readw(RealSeg(ECBAddr), memoff);
 	memoff += 2;
@@ -191,6 +202,7 @@ void ECBClass::getFragDesc(uint16_t descNum, fragmentDescriptor *fragDesc) {
 }
 
 RealPt ECBClass::getESRAddr(void) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	return RealMake(real_readw(RealSeg(ECBAddr),
 		RealOff(ECBAddr)+6),
 		real_readw(RealSeg(ECBAddr),
@@ -198,6 +210,7 @@ RealPt ECBClass::getESRAddr(void) {
 }
 
 void ECBClass::NotifyESR(void) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	uint32_t ESRval = real_readd(RealSeg(ECBAddr), RealOff(ECBAddr)+4);
 	if(ESRval || databuffer) { // databuffer: write data at realmode/v86 time
 		// LOG_IPX("ECB: SN%7d to be notified.", SerialNumber);
@@ -232,11 +245,13 @@ void ECBClass::NotifyESR(void) {
 }
 
 void ECBClass::setImmAddress(uint8_t *immAddr) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	for(uint8_t i=0;i<6;i++)
 		real_writeb(RealSeg(ECBAddr), RealOff(ECBAddr)+28+i, immAddr[i]);
 }
 
 void ECBClass::getImmAddress(uint8_t* immAddr) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	for(uint8_t i=0;i<6;i++)
 		immAddr[i] = real_readb(RealSeg(ECBAddr), RealOff(ECBAddr)+28+i);
 }
@@ -304,10 +319,32 @@ static void OpenSocket(void) {
 	reg_dx = swapByte(sockNum);  // Convert back to big-endian
 }
 
+static void DumpAllSockets(void) {
+	/* This is called for booting the guest OS.
+	 * Managing IPX socket state in memory is not a good idea once a guest OS is running. */
+	ECBClass* tmpECB = ECBList;
+	ECBClass* tmp2ECB = ECBList;
+
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
+
+	LOG(LOG_MISC,LOG_DEBUG)("IPX: Dumping all active sockets");
+	while(tmpECB!=0) {
+		tmp2ECB = tmpECB->nextECB;
+		tmpECB->setCompletionFlag(COMP_CANCELLED);
+		tmpECB->setInUseFlag(USEFLAG_AVAILABLE);
+		delete tmpECB;
+		tmpECB = tmp2ECB;
+	}
+
+	ECBList = NULL;
+}
+
 static void CloseSocket(void) {
 	uint16_t sockNum, i;
 	ECBClass* tmpECB = ECBList;
 	ECBClass* tmp2ECB = ECBList;
+
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 
 	sockNum = swapByte(reg_dx);
 	if(!sockInUse(sockNum)) return;
@@ -331,11 +368,15 @@ static void CloseSocket(void) {
 		}
 		tmpECB = tmp2ECB;
 	}
+
+	/* FIXME: What happens if tmpECB is deleted when tmpECB == ECBList?
+	 *        Is that a possible use-after-free bug waiting to happen? */
 }
 
 //static RealPt IPXVERpointer;
 
 static bool IPX_Multiplex(void) {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	if(reg_ax != 0x7a00) return false;
 	reg_al = 0xff;
 	SegSet16(es,RealSeg(ipx_callback));
@@ -348,6 +389,7 @@ static bool IPX_Multiplex(void) {
 
 static void IPX_AES_EventHandler(Bitu param)
 {
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 	ECBClass* tmpECB = ECBList;
 	ECBClass* tmp2ECB;
 	while(tmpECB!=0) {
@@ -368,6 +410,8 @@ static void sendPacket(ECBClass* sendecb);
 
 static void handleIpxRequest(void) {
 	ECBClass *tmpECB;
+
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
 
 	switch (reg_bx) {
 		case 0x0000:	// Open socket
@@ -629,7 +673,9 @@ static void sendPacket(ECBClass* sendecb) {
 	uint16_t *wordptr;
 	Bits result;
 	UDPpacket outPacket;
-		
+
+	assert(!dos_kernel_disabled);//Do NOT touch guest memory if the DOSBox kernel is not running!
+
 	sendecb->setInUseFlag(USEFLAG_AVAILABLE);
 	packetsize = 0;
 	fragCount = sendecb->getFragCount(); 
@@ -1212,8 +1258,16 @@ public:
 
 static IPX* test = NULL;
 
-void IPX_GuestOSBoot(Section*) {
-	if (test != NULL) test->RemoveISR(); /* Remove ISR but keep IPX tunnel open */
+void IPX_DOSBeginExit(Section*) {
+	if (test != NULL) {
+		DumpAllSockets(); /* dump and notify all sockets first */
+	}
+}
+
+void IPX_DOSExit(Section*) {
+	if (test != NULL) {
+		test->RemoveISR(); /* Remove ISR but keep IPX tunnel open */
+	}
 }
 
 void IPX_ShutDown(Section*) {
@@ -1243,7 +1297,8 @@ void IPX_Init() {
 
 	AddExitFunction(AddExitFunctionFuncPair(IPX_ShutDown),true);
 	AddVMEventFunction(VM_EVENT_RESET,AddVMEventFunctionFuncPair(IPX_OnReset));
-	AddVMEventFunction(VM_EVENT_DOS_EXIT_KERNEL,AddVMEventFunctionFuncPair(IPX_GuestOSBoot));
+	AddVMEventFunction(VM_EVENT_DOS_EXIT_BEGIN,AddVMEventFunctionFuncPair(IPX_DOSBeginExit));
+	AddVMEventFunction(VM_EVENT_DOS_EXIT_KERNEL,AddVMEventFunctionFuncPair(IPX_DOSExit));
 }
 
 #endif
