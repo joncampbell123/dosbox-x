@@ -1171,9 +1171,23 @@ public:
 
 	void RemoveISR(void) {
 		if (old_73_vector != 0) {
+			LOG(LOG_MISC,LOG_DEBUG)("IPX: Removing ISR handler from interrupt");
 			RealSetVec(0x73,old_73_vector);
 			IO_WriteB(0xa1,IO_ReadB(0xa1)|8);	// disable IRQ11
 			old_73_vector = 0;
+		}
+
+		/* The ISR was contained in dospage.
+		 * The most likely reason for this call is that the emulator is booting a guest OS.
+		 * In that case it is pointless to hold onto dospage because DOS memory allocation has
+		 * no meaning once a guest OS is running. */
+		if (dospage != 0) {
+			LOG(LOG_MISC,LOG_DEBUG)("IPX: Freeing DOS memory used to hold ISR");
+			PhysPt phyDospage = PhysMake(dospage,0);
+			for(uint8_t i = 0;i < 32;i++)
+				phys_writeb(phyDospage+i,(uint8_t)0x00);
+
+			dospage = 0;
 		}
 	}
 
@@ -1191,10 +1205,6 @@ public:
 
 		DOS_DelMultiplexHandler(IPX_Multiplex);
 		RemoveISR();
-   
-		PhysPt phyDospage = PhysMake(dospage,0);
-		for(uint8_t i = 0;i < 32;i++)
-			phys_writeb(phyDospage+i,(uint8_t)0x00);
 
 		if (addipx) VFILE_Remove("IPXNET.COM","SYSTEM");
 	}
