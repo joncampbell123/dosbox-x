@@ -47,6 +47,8 @@
 
 #define SOCKTABLESIZE	150 // DOS IPX driver was limited to 150 open sockets
 
+extern bool ne2k_ipx_redirect;
+
 bool NE2K_IsInit(void);
 bool NE2K_GetMacAddress(unsigned char *buf);
 
@@ -613,6 +615,8 @@ static void pingSend(void) {
 	}
 }
 
+void NE2K_IncomingIPX(const unsigned char *buf,unsigned int len);
+
 static void receivePacket(uint8_t *buffer, int16_t bufSize) {
 	ECBClass *useECB;
 	ECBClass *nextECB;
@@ -620,6 +624,11 @@ static void receivePacket(uint8_t *buffer, int16_t bufSize) {
 	uint16_t useSocket = swapByte(bufword[8]);
 	IPXHeader * tmpHeader;
 	tmpHeader = (IPXHeader *)buffer;
+
+	if (ne2k_ipx_redirect) {
+		NE2K_IncomingIPX(buffer,bufSize);
+		return;
+	}
 
 	// Check to see if ping packet
 	if(useSocket == 0x2) {
@@ -667,6 +676,28 @@ void DisconnectFromServer(bool unexpected) {
 		incomingPacket.connected = false;
 		TIMER_DelTickHandler(&IPX_ClientLoop);
 		SDLNet_UDP_Close(ipxClientSocket);
+	}
+}
+
+void ethernetSendToIPX(const unsigned char *outptr, unsigned int outlen, unsigned int vari) {
+	UDPpacket outPacket;
+	Bits result;
+
+	(void)vari;
+
+	outPacket.channel = UDPChannel;
+	outPacket.data = (unsigned char*)outptr;
+	outPacket.len = outlen;
+	outPacket.maxlen = outlen;
+	// Since we're using a channel, we won't send the IP address again
+	result = SDLNet_UDP_Send(ipxClientSocket, UDPChannel, &outPacket);
+
+	if(result == 0) {
+		LOG_MSG("IPX: Could not send packet: %s", SDLNet_GetError());
+		DisconnectFromServer(true);
+		return;
+	} else {
+		LOG_IPX("Packet sent: size: %d",packetsize);
 	}
 }
 
@@ -1286,6 +1317,10 @@ void IPX_DOSBeginExit(Section*) {
 void IPX_DOSExit(Section*) {
 	if (test != NULL) {
 		test->RemoveISR(); /* Remove ISR but keep IPX tunnel open */
+		if ((incomingPacket.connected || isIpxServer) && NE2K_IsInit()) {
+			LOG(LOG_MISC,LOG_DEBUG)("IPX: Leaving connection open and switching on NE2000 IPX redirection");
+			ne2k_ipx_redirect = true;
+		}
 	}
 }
 
@@ -1294,6 +1329,7 @@ void IPX_ShutDown(Section*) {
 		delete test;
 		test = NULL;
 	}
+	ne2k_ipx_redirect = false;
 }
 
 void IPX_OnReset(Section*) {
@@ -1302,10 +1338,12 @@ void IPX_OnReset(Section*) {
 		delete test;
 		test = NULL;
 	}
+	ne2k_ipx_redirect = false;
 }
 
 void IPX_Setup(Section*) {
 	if (test == NULL) {
+		ne2k_ipx_redirect = false;
 		LOG(LOG_MISC,LOG_DEBUG)("Allocating IPX emulation");
 		test = new IPX(control->GetSection("ipx"));
 	}

@@ -156,4 +156,11 @@ void PackIP(IPaddress ipAddr, PackedIP *ipPack);
 #pragma pack()
 #endif
 
+enum {
+	IPX_NONE=0,
+	IPX_OLD,
+	IPX_OLD_LLC,
+	IPX_8137
+};
+
 #endif

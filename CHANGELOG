@@ -1,4 +1,10 @@
 Next
+  - IPX: If NE2000 and IPX are enabled, and an IPX tunneling connection is
+    active, and the user boots a guest OS, switch on a mode where all IPX
+    packets going to and coming from the guest are re-routed through the
+    IPX tunnel instead of to the NE2000 ethernet backend. This feature
+    makes it possible to play IPX-based games in a guest OS like MS-DOS
+    and Windows 95. (joncampbell123).
   - IPX: Add extension to server to allow clients to register their own
     MAC address instead of using the default MAC address given by their
     IP address and port number. The extension is designed so that if DOSBox-X

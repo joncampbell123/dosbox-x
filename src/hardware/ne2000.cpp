@@ -48,9 +48,71 @@
 // NE2000/ether stuff.
 
 #include "ne2000.h"
+#include "ipx.h"
 
 #include "ethernet.h"
 EthernetConnection* ethernet = nullptr;
+
+bool ne2k_ipx_redirect = false;
+unsigned int ne2k_ipx_highest_variant = 0; // Windows 95 likes to try all three variations as it runs
+
+void ethernetSendToIPX(const unsigned char *outptr, unsigned int outlen, unsigned int vari);
+
+bool is_IPX_ethernet_frame(const unsigned char *buf,unsigned int len,const unsigned char **outbuf,unsigned int *outlen,unsigned int *vari) {
+	if (outbuf && outlen) {
+		*outbuf = NULL;
+		*outlen = 0;
+		*vari = 0;
+	}
+
+	if (len >= 32) {
+		/* bytes 0-5: destination Ethernet MAC
+		 * bytes 6-11: source Ethernet MAC
+		 * bytes 12-13: EtherType (or length if less than 1536) */
+		const unsigned int EtherType = be16toh( *((uint16_t*)(buf+12)) );
+
+		/* NTS: I noticed Windows 95 likes to try all three forms of IPX packet */
+
+		if (EtherType == 0x8137) {
+			if (outbuf && outlen) {
+				*outbuf = buf+14;
+				*outlen = len-14;
+				*vari = IPX_8137;
+			}
+
+			return true;
+		}
+
+		if (EtherType < 1536) {
+			/* <16-bit len> 0xFFFF
+			 *
+			 * or
+			 *
+			 * <16-bit len> 0xE0E003 0xFFFF    (LLC header between len and packet) */
+			if ( *((uint16_t*)(buf+14)) == 0xFFFF) {
+				if (outbuf && outlen) {
+					*outbuf = buf+14;
+					*outlen = len-14;
+					*vari = IPX_OLD;
+				}
+
+				return true;
+			}
+
+			if ( memcmp(buf+14,"\xE0\xE0\x03\xFF\xFF",5) == 0) {
+				if (outbuf && outlen) {
+					*outbuf = buf+17;
+					*outlen = len-17;
+					*vari = IPX_OLD_LLC;
+				}
+
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
 
 static void NE2000_TX_Event(Bitu val);
 void VFILE_Remove(const char *name,const char *dir = "");
@@ -284,7 +346,21 @@ bx_ne2k_c::write_cr(uint32_t value)
     // Send the packet to the system driver
 	/* TODO: Transmit packet */
     //BX_NE2K_THIS ethdev->sendpkt(& BX_NE2K_THIS s.mem[BX_NE2K_THIS s.tx_page_start*256 - BX_NE2K_MEMSTART], BX_NE2K_THIS s.tx_bytes);
-    	ethernet->SendPacket(&s.mem[s.tx_page_start*256 - BX_NE2K_MEMSTART], s.tx_bytes);
+
+	{
+		const unsigned char *outptr = NULL;
+		unsigned int outlen = 0;
+		unsigned int vari = 0;
+
+		if (ne2k_ipx_redirect && is_IPX_ethernet_frame(&s.mem[s.tx_page_start*256 - BX_NE2K_MEMSTART], s.tx_bytes, &outptr, &outlen, &vari)) {
+			if (ne2k_ipx_highest_variant < vari) ne2k_ipx_highest_variant = vari;
+			if (vari == IPX_OLD_LLC/*TODO: Make configurable*//*Best for Windows 95*/) ethernetSendToIPX(outptr, outlen, vari);
+		}
+		else {
+			ethernet->SendPacket(&s.mem[s.tx_page_start*256 - BX_NE2K_MEMSTART], s.tx_bytes);
+		}
+	}
+
 	// Trigger any pending timers
 	if (BX_NE2K_THIS s.tx_timer_active) {
 	  NE2000_TX_Event(0);
@@ -1459,8 +1535,32 @@ static void NE2000_Poller(void) {
 		// don't receive in loopback modes
 		if((theNE2kDevice->s.DCR.loop == 0) || (theNE2kDevice->s.TCR.loop_cntl != 0))
 			return;
+
+		// If NE2000 IPX redirection is enabled, block incoming IPX packets
+		if (ne2k_ipx_redirect && is_IPX_ethernet_frame(packet,len,NULL,NULL,NULL))
+			return;
+
 		theNE2kDevice->rx_frame(packet, len);
 	});
+}
+
+void NE2K_IncomingIPX(const unsigned char *buf,unsigned int len) {
+	if (buf == NULL || len < 30) return;
+	if (theNE2kDevice == NULL) return;
+	if (len >= 1536) return;
+
+	/* Use the IPX_OLD_LLC variant preferred by Windows 95 */
+	unsigned char *tmp = new unsigned char[len + 17];
+
+	memcpy(tmp,buf+10,6); // destination MAC address
+	memcpy(tmp+6,buf+22,6); // source MAC address
+	*((uint16_t*)(tmp+12)) = htobe16(len); // EtherType (as length)
+	memcpy(tmp+14,"\xE0\xE0\x03",3); // LLC header
+	memcpy(tmp+17,buf,len); // payload
+
+	theNE2kDevice->rx_frame(tmp, len + 17);
+
+	delete[] tmp;
 }
 
 extern std::string niclist;
