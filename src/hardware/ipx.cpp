@@ -695,9 +695,6 @@ void ethernetSendToIPX(const unsigned char *outptr, unsigned int outlen, unsigne
 	if(result == 0) {
 		LOG_MSG("IPX: Could not send packet: %s", SDLNet_GetError());
 		DisconnectFromServer(true);
-		return;
-	} else {
-		LOG_IPX("Packet sent: size: %d",packetsize);
 	}
 }
 
