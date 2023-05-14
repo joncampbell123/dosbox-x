@@ -1557,6 +1557,21 @@ public:
 
 static NE2K* test = NULL;
 
+bool NE2K_IsInit(void) {
+	return (test != NULL) && (theNE2kDevice != NULL) && (ethernet != NULL);;
+}
+
+bool NE2K_GetMacAddress(unsigned char *buf) {
+	if (test == NULL || theNE2kDevice == NULL || ethernet == NULL) return false;
+
+	// If the MAC address is the stock default, then don't use it, because the DOSBox-X scheme
+	// will cause all clients to use the same MAC address and then IPX won't work.
+	if (!memcmp(theNE2kDevice->s.physaddr,"\xAC\xDE\x48\x88\x99\xAA",6)) return false;
+
+	memcpy(buf,theNE2kDevice->s.physaddr,6);
+	return true;
+}
+
 void NE2K_ShutDown(Section* sec) {
     (void)sec;//UNUSED
 	if (test) {

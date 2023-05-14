@@ -47,6 +47,9 @@
 
 #define SOCKTABLESIZE	150 // DOS IPX driver was limited to 150 open sockets
 
+bool NE2K_IsInit(void);
+bool NE2K_GetMacAddress(unsigned char *buf);
+
 struct ipxnetaddr {
 	Uint8 netnum[4];   // Both are big endian
 	Uint8 netnode[6];
@@ -800,8 +803,10 @@ static bool pingCheck(IPXHeader * outHeader) {
 bool ConnectToServer(char const *strAddr) {
 	int numsent;
 	UDPpacket regPacket;
-	IPXHeader regHeader;
 	if(!SDLNet_ResolveHost(&ipxServConnIp, strAddr, (uint16_t)udpPort)) {
+		size_t regHeaderSz = sizeof(IPXHeader);
+		unsigned char regHeaderRaw[sizeof(IPXHeader)+12];
+		IPXHeader &regHeader = *((IPXHeader*)regHeaderRaw);
 
 		// Generate the MAC address.  This is made by zeroing out the first two
 		// octets and then using the actual IP address for the last 4 octets.
@@ -830,9 +835,20 @@ bool ConnectToServer(char const *strAddr) {
 			SDLNet_Write16(0x2, regHeader.src.socket);
 			regHeader.transControl = 0;
 
-			regPacket.data = (Uint8 *)&regHeader;
-			regPacket.len = sizeof(regHeader);
-			regPacket.maxlen = sizeof(regHeader);
+			if (NE2K_IsInit()) {
+				static_assert(sizeof(regHeader) == 30,"Oops");
+				static_assert(sizeof(regHeaderRaw) >= 36,"Oops");
+				if (NE2K_GetMacAddress(regHeaderRaw+30)) {
+					// Specify the MAC address we want to use (DOSBox-X server extension)
+					LOG(LOG_MISC,LOG_DEBUG)("IPX: NE2000 emulation active, using NE2000 MAC address if supported by IPX server.");
+					regHeader.transControl = (unsigned char)'M';
+					regHeaderSz += 6;
+				}
+			}
+
+			regPacket.data = (Uint8*)regHeaderRaw;
+			regPacket.len = regHeaderSz;
+			regPacket.maxlen = regHeaderSz;
 			regPacket.channel = UDPChannel;
 			// Send registration string to server.  If server doesn't get
 			// this, client will not be registered

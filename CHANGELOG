@@ -1,4 +1,17 @@
 Next
+  - IPX: Add extension to server to allow clients to register their own
+    MAC address instead of using the default MAC address given by their
+    IP address and port number. The extension is designed so that if DOSBox-X
+    is a client to another DOSBox fork's IPX tunneling server, it will
+    be ignored and DOSBox-X will get the usual MAC address instead. This
+    extension is required for guest OSes to be able to use the IPX protocol
+    through the NE2000 card given upcoming code changes as they normally
+    use the network card MAC address when picking an IPX address because
+    the IPX interface is not available once booted into a guest OS. (joncampbell123).
+  - IPX client: If both IPX and NE2000 emulation are enabled, IPX emulation
+    will use the NE2000 card's MAC address instead. It will use the IPX
+    server DOSBox-X extension to try. If it doesn't work, then the normal
+    MAC address assignment is accepted without complaint. (joncampbell123).
   - NE2000: Add "nothing" backend. It receives nothing and send packets go
     nowhere. If no other backend is available, this backend is a fallback
     so that at least the NE2000 emulation can work. The other purpose of

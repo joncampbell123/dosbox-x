@@ -35,6 +35,7 @@ UDPsocket ipxServerSocket;  // Listening server socket
 packetBuffer connBuffer[SOCKETTABLESIZE];
 
 uint8_t inBuffer[IPXBUFFERSIZE];
+PackedIP ipconnguest[SOCKETTABLESIZE]; // the MAC address associated with each connection
 IPaddress ipconn[SOCKETTABLESIZE];  // Active TCP/IP connection 
 UDPsocket tcpconn[SOCKETTABLESIZE];  // Active TCP/IP connections
 SDLNet_SocketSet serverSocketSet;
@@ -82,12 +83,11 @@ static void sendIPXPacket(uint8_t *buffer, int16_t bufSize) {
 
 	srcport = tmpHeader->src.addr.byIP.port;
 	destport = tmpHeader->dest.addr.byIP.port;
-	
 
 	if(desthost == 0xffffffff) {
 		// Broadcast
 		for(i=0;i<SOCKETTABLESIZE;i++) {
-			if(connBuffer[i].connected && ((ipconn[i].host != srchost)||(ipconn[i].port!=srcport))) {
+			if(connBuffer[i].connected && ((ipconnguest[i].host != srchost)||(ipconnguest[i].port!=srcport))) {
 				outPacket.address = ipconn[i];
 				result = SDLNet_UDP_Send(ipxServerSocket,-1,&outPacket);
 				if(result == 0) {
@@ -100,7 +100,7 @@ static void sendIPXPacket(uint8_t *buffer, int16_t bufSize) {
 	} else {
 		// Specific address
 		for(i=0;i<SOCKETTABLESIZE;i++) {
-			if((connBuffer[i].connected) && (ipconn[i].host == desthost) && (ipconn[i].port == destport)) {
+			if((connBuffer[i].connected) && (ipconnguest[i].host == desthost) && (ipconnguest[i].port == destport)) {
 				outPacket.address = ipconn[i];
 				result = SDLNet_UDP_Send(ipxServerSocket,-1,&outPacket);
 				if(result == 0) {
@@ -123,7 +123,7 @@ bool IPX_isConnectedToServer(Bits tableNum, IPaddress ** ptrAddr) {
 	return connBuffer[tableNum].connected;
 }
 
-static void ackClient(IPaddress clientAddr) {
+static void ackClient(IPaddress clientAddr,bool extAck,PackedIP *guestmac) {
 	IPXHeader regHeader;
 	UDPpacket regPacket;
 
@@ -138,6 +138,12 @@ static void ackClient(IPaddress clientAddr) {
 	PackIP(ipxServerIp, &regHeader.src.addr.byIP);
 	SDLNet_Write16(0x2, regHeader.src.socket);
 	regHeader.transControl = 0;
+
+	/* This is a way for the client to know whether the extension worked or not */
+	if (extAck && guestmac != NULL) {
+		memcpy(&regHeader.dest.addr.byNode,guestmac,6);
+		regHeader.transControl = (unsigned char)'M';
+	}
 
 	regPacket.data = (Uint8 *)&regHeader;
 	regPacket.len = sizeof(regHeader);
@@ -168,7 +174,7 @@ static void IPX_ServerLoop() {
 		// For this, I just spoofed the echo protocol packet designation 0x02
 		IPXHeader *tmpHeader;
 		tmpHeader = (IPXHeader *)&inBuffer[0];
-	
+
 		// Check to see if echo packet
 		if(SDLNet_Read16(tmpHeader->dest.socket) == 0x2) {
 			// Null destination node means its a server registration packet
@@ -176,22 +182,35 @@ static void IPX_ServerLoop() {
 				UnpackIP(tmpHeader->src.addr.byIP, &tmpAddr);
 				for(i=0;i<SOCKETTABLESIZE;i++) {
 					if(!connBuffer[i].connected) {
+						bool extAck = false;
+
 						// Use preferred host IP rather than the reported source IP
 						// It may be better to use the reported source
 						ipconn[i] = inPacket.address;
 
+						// Other DOSBox forks may expect the MAC address to match the IP host + port combined. Default behavior.
+						ipconnguest[i].host = inPacket.address.host;
+						ipconnguest[i].port = inPacket.address.port;
+
+						// Allow client to register their own MAC address. Guest MAC address sits just after header at offset 30.
+						if (tmpHeader->transControl == (unsigned char)'M' && inPacket.len >= (30+6)) {
+							LOG_MSG("IPXSERVER: Allowing client to register their own MAC address (DOSBox-X extension) %02x:%02x:%02x:%02x:%02x:%02x",
+								inBuffer[30],inBuffer[31],inBuffer[32],inBuffer[33],inBuffer[34],inBuffer[35]);
+							memcpy(&ipconnguest[i],&inBuffer[30],6);
+							extAck = true;
+						}
+
 						connBuffer[i].connected = true;
 						host = ipconn[i].host;
 						LOG_MSG("IPXSERVER: Connect from %d.%d.%d.%d", CONVIP(host));
-						ackClient(inPacket.address);
+						ackClient(inPacket.address,extAck,&ipconnguest[i]);
 						return;
 					} else {
-						if((ipconn[i].host == tmpAddr.host) && (ipconn[i].port == tmpAddr.port)) {
-
+						if((ipconnguest[i].host == tmpAddr.host) && (ipconnguest[i].port == tmpAddr.port)) {
 							LOG_MSG("IPXSERVER: Reconnect from %d.%d.%d.%d", CONVIP(tmpAddr.host));
 							// Update anonymous port number if changed
 							ipconn[i].port = inPacket.address.port;
-							ackClient(inPacket.address);
+							ackClient(inPacket.address,false,&ipconnguest[i]);
 							return;
 						}
 					}
