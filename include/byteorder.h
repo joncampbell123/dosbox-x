@@ -9,6 +9,8 @@
 
 # if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
 
+# include <winsock.h>
+
 #  define htobe16(x) htons(x)
 #  define htole16(x) (x)
 #  define be16toh(x) ntohs(x)
@@ -49,6 +51,8 @@
 #elif defined(_MSC_VER)
 
 # if BYTE_ORDER == LITTLE_ENDIAN
+
+# include <winsock.h>
 
 # define htobe16(x) htons(x)
 # define htole16(x) (x)
