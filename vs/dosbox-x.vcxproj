@@ -1527,6 +1527,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     <ClCompile Include="..\src\misc\messages.cpp" />
     <ClCompile Include="..\src\misc\ethernet_pcap.cpp" />
     <ClCompile Include="..\src\misc\ethernet_slirp.cpp" />
+    <ClCompile Include="..\src\misc\ethernet_nothing.cpp" />
     <ClCompile Include="..\src\misc\programs.cpp" />
     <ClCompile Include="..\src\ints\qcow2_disk.cpp" />
     <ClCompile Include="..\src\misc\regionalloctracking.cpp" />
