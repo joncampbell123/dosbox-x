@@ -32,8 +32,7 @@ EthernetConnection* OpenEthernetConnection(std::string backendstr)
     EthernetConnection* conn = nullptr;
     Section* settings = nullptr;
     std::string backend = "none";
-    if (backendstr == "auto")
-    {
+    if (backendstr == "auto") {
 #if defined(C_SLIRP)
         backend = "slirp";
 #elif defined(C_PCAP)
@@ -41,51 +40,47 @@ EthernetConnection* OpenEthernetConnection(std::string backendstr)
 #else
         backend = "nothing";
 #endif
-    } else
+    } else {
         backend = backendstr;
+    }
+
 #ifdef C_SLIRP
-    if (backend == "slirp")
-    {
+    if (backend == "slirp") {
+        assert(conn == NULL);
         conn = ((EthernetConnection*)new SlirpEthernetConnection);
         settings = control->GetSection("ethernet, slirp");
+        if (!conn->Initialize(settings)) { delete conn; conn = NULL; }
     }
 #endif
     if (backendstr == "auto" && !conn) backend = "pcap";
 #ifdef C_PCAP
-    if (backend == "pcap")
-    {
+    if (backend == "pcap") {
+        assert(conn == NULL);
         conn = ((EthernetConnection*)new PcapEthernetConnection);
         settings = control->GetSection("ethernet, pcap");
+        if (!conn->Initialize(settings)) { delete conn; conn = NULL; }
     }
 #endif
     if (backendstr == "auto" && !conn) backend = "nothing";
-    if (backend == "nothing")
-    {
+    if (backend == "nothing") {
+        assert(conn == NULL);
         conn = ((EthernetConnection*)new NothingEthernetConnection);
         settings = control->GetSection("ethernet, pcap");//NTS: The Nothing uses no settings, but there is an assert below to ensure settings != NULL
+        if (!conn->Initialize(settings)) { delete conn; conn = NULL; }
     }
-    if (backendstr == "auto" && !conn) backend = "nothing";
-    if (!conn)
-    {
+
+    if (!conn) {
         if (backend == "pcap" || backend == "slirp")
             LOG_MSG("ETHERNET: Backend not supported in this build: %s", backend.c_str());
 	else if (backend == "nothing")
             LOG_MSG("ETHERNET: Somehow, the nothing backend failed");
         else if (backend == "none")
-            LOG_MSG("ETHERNET: Explictly no backend for NE2000 emulation");
+            LOG_MSG("ETHERNET: Explicitly no backend for NE2000 emulation");
         else
             LOG_MSG("ETHERNET: Unknown ethernet backend: %s", backend.c_str());
-        return nullptr;
-    } else
+    } else {
         LOG_MSG("ETHERNET: NE2000 Ethernet emulation backend selected: %s", backend.c_str());
-    assert(settings);
-    if (conn->Initialize(settings))
-    {
-        return conn;
     }
-    else
-    {
-        delete conn;
-        return nullptr;
-    }
+
+    return conn;
 }
