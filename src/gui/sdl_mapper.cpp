@@ -1256,6 +1256,8 @@ Bitu GetKeyCode(SDL_keysym keysym) {
             if(keysym.win32_vk >= 0xa6 && keysym.win32_vk <= 0xb7) return SDLK_UNKNOWN; // Ignore all media keys
 #endif
             switch(keysym.scancode) {
+            case 0x45:  // PAUSE
+                return (keysym.win32_vk == VK_CANCEL ? SDLK_BREAK : SDLK_PAUSE);
             case 0x46:  // Scroll Lock
                 // LOG_MSG("Scroll_lock scancode=%x, vk_key=%x", keysym.scancode, keysym.win32_vk);
                 return (keysym.win32_vk == VK_CANCEL ? SDLK_BREAK : SDLK_SCROLLOCK);
@@ -1267,7 +1269,6 @@ Bitu GetKeyCode(SDL_keysym keysym) {
             case 0x1d:  // CONTROL
             case 0x37:  // PRINTSCREEN
             case 0x38:  // ALT
-            case 0x45:  // PAUSE
             case 0x47:  // HOME
             case 0x48:  // cursor UP
             case 0x49:  // PAGE UP
@@ -4069,7 +4070,8 @@ static void CreateLayout(void) {
 
     AddKeyButtonEvent(PX(XO + 0), PY(YO + 0), BU(1), BV(1), "Prn", "printscreen", KBD_printscreen);
     AddKeyButtonEvent(PX(XO + 1), PY(YO + 0), BU(1), BV(1), "Scr", "scrolllock", KBD_scrolllock);
-    AddKeyButtonEvent(PX(XO + 2), PY(YO + 0), BU(1), BV(1), "Brk", "pause", KBD_pause);
+    AddKeyButtonEvent(PX(XO + 2), PY(YO + 0), BU(1), BV(1), "Pau", "pause", KBD_pause);
+    AddKeyButtonEvent(PX(XO + 3), PY(YO + 0), BU(1), BV(1), "Brk", "break", KBD_break);
 
     AddKeyButtonEvent(PX(XO + 0), PY(YO + 2), BU(1), BV(1), "Ins", "insert", KBD_insert);
     AddKeyButtonEvent(PX(XO + 1), PY(YO + 2), BU(1), BV(1), "Hom", "home", KBD_home);
@@ -4540,7 +4542,7 @@ static struct {
     {"printscreen",SDLK_PRINT},
     {"scrolllock",SDLK_SCROLLOCK},
 
-    {"pause",SDLK_PAUSE},       {"pagedown",SDLK_PAGEDOWN},
+    {"pause",SDLK_PAUSE}, {"break", SDLK_BREAK}, {"pagedown",SDLK_PAGEDOWN},
     {"pageup",SDLK_PAGEUP}, {"insert",SDLK_INSERT},     {"home",SDLK_HOME},
     {"delete",SDLK_DELETE}, {"end",SDLK_END},           {"up",SDLK_UP},
     {"left",SDLK_LEFT},     {"down",SDLK_DOWN},         {"right",SDLK_RIGHT},

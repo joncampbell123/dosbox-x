@@ -1419,7 +1419,6 @@ void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
 
 void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
     uint8_t ret=0,ret2=0;bool extend=false;
-
     if (keyb.reset)
         return;
 
@@ -1551,8 +1550,19 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
     case KBD_f24:ret=0x2A;ret2=88;break;
 
     case KBD_numlock:ret=69;break;
-    case KBD_scrolllock:ret=70;break;
-
+    case KBD_scrolllock:
+#if defined(C_SDL2)
+        if(keyb.leftctrl_pressed ^ keyb.rightctrl_pressed) {
+            extend = true; ret = 70;
+        }
+        else {
+            ret = 70;
+        }
+#else
+        ret = 70;
+#endif
+        break;
+    case KBD_break: extend = true; ret = 70; break;
     case KBD_kp7:ret=71;break;
     case KBD_kp8:ret=72;break;
     case KBD_kp9:ret=73;break;
@@ -1592,11 +1602,11 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
     case KBD_insert:extend=true;ret=82;break;
     case KBD_delete:extend=true;ret=83;break;
     case KBD_pause:
-        if (!pressed) {
+        //if (!pressed) {
             /* keyboards send both make&break codes for this key on
                key press and nothing on key release */
-            return;
-        }
+        //    return;
+        //}
         if (!keyb.leftctrl_pressed && !keyb.rightctrl_pressed) {
             /* neither leftctrl, nor rightctrl pressed -> PAUSE key */
             KEYBOARD_AddBuffer(0xe1);
@@ -1605,7 +1615,7 @@ void KEYBOARD_AddKey1(KBD_KEYS keytype,bool pressed) {
             KEYBOARD_AddBuffer(0xe1);
             KEYBOARD_AddBuffer(29|0x80);
             KEYBOARD_AddBuffer(69|0x80);
-        } else if (!keyb.leftctrl_pressed || !keyb.rightctrl_pressed) {
+        } else if (keyb.leftctrl_pressed ^ keyb.rightctrl_pressed) {
             /* exactly one of [leftctrl, rightctrl] is pressed -> Ctrl+BREAK */
             KEYBOARD_AddBuffer(0xe0);
             KEYBOARD_AddBuffer(70);
