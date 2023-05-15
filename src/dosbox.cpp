@@ -4621,11 +4621,12 @@ void DOSBOX_SetupConfigSections(void) {
     Pint->Set_help("The interrupt it uses. Note serial2 uses IRQ3 as default.");
     Pint->SetBasic(true);
 
-    Pstring = secprop->Add_string("macaddr", Property::Changeable::WhenIdle,"AC:DE:48:88:99:AA");
+    Pstring = secprop->Add_string("macaddr", Property::Changeable::WhenIdle,"random");
     Pstring->Set_help("The MAC address the emulator will use for its network adapter.\n"
         "If you have multiple DOSBox-Xes running on the same network,\n"
         "this has to be changed for each. AC:DE:48 is an address range reserved for\n"
-        "private use, so modify the last three number blocks, e.g. AC:DE:48:88:99:AB.");
+        "private use, so modify the last three number blocks, e.g. AC:DE:48:88:99:AB.\n"
+        "Default setting is 'random' which randomly choses a MAC address.");
     Pstring->SetBasic(true);
 
     Pstring = secprop->Add_string("backend", Property::Changeable::WhenIdle, "auto");

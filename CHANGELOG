@@ -1,4 +1,6 @@
 Next
+  - NE2000 macaddr default is now "random", which instructs the NE2000
+    hardware at startup to pick a random MAC address. (joncampbell123).
   - IPX: If NE2000 and IPX are enabled, and an IPX tunneling connection is
     active, and the user boots a guest OS, switch on a mode where all IPX
     packets going to and coming from the guest are re-routed through the
