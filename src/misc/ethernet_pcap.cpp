@@ -152,30 +152,31 @@ bool PcapEthernetConnection::Initialize(Section* config)
 #ifdef WIN32
 	if (pcap_findalldevs_ex(pcap_src_if_string, NULL, &alldevs, errbuf) == -1)
 #else
-	if (pcap_findalldevs(&alldevs, errbuf) == -1)
+		if (pcap_findalldevs(&alldevs, errbuf) == -1)
 #endif
-	{
-            niclist = "Cannot enumerate network interfaces: "+std::string(errbuf);
+		{
+			niclist = "Cannot enumerate network interfaces: "+std::string(errbuf);
 			LOG_MSG("%s", niclist.c_str());
-		return false;
-	}
-        {
-            Bitu i = 0;
-            niclist = "Network Interface List\n-------------------------------------------------------------\n";
-            for(currentdev=alldevs; currentdev!=NULL; currentdev=currentdev->next) {
-                const char* desc = "no description";
-                if(currentdev->description) desc=currentdev->description;
-                i++;
-                niclist+=(i<10?"0":"")+std::to_string(i)+" "+currentdev->name+"\n    ("+desc+")\n";
-            }
-        }
-	if (!strcasecmp(realnicstring,"list")) {
-			// print list and quit
-            std::istringstream in(("\n"+niclist+"\n").c_str());
-            if (in)	for (std::string line; std::getline(in, line); )
-                LOG_MSG("%s", line.c_str());
-			pcap_freealldevs(alldevs);
 			return false;
+		}
+	{
+		Bitu i = 0;
+		niclist = "Network Interface List\n-------------------------------------------------------------\n";
+		for(currentdev=alldevs; currentdev!=NULL; currentdev=currentdev->next) {
+			const char* desc = "no description";
+			if(currentdev->description) desc=currentdev->description;
+			i++;
+			niclist+=(i<10?" ":"")+std::to_string(i)+" "+currentdev->name+"\n    ("+desc+")\n";
+		}
+	}
+	if (!strcasecmp(realnicstring,"list")) {
+		// print list and quit
+		std::istringstream in(("\n"+niclist+"\n").c_str());
+		if (in)	for (std::string line; std::getline(in, line); )
+			LOG_MSG("%s", line.c_str());
+		LOG_MSG("NOTE: No interface was chosen because the realnic setting is set to 'list', set realnic to the number of the interface you want to use.");
+		pcap_freealldevs(alldevs);
+		return false;
 	} else if(1==sscanf(realnicstring,"%u",&userdev)) {
 		// user passed us a number
 		Bitu i = 0;
@@ -191,7 +192,7 @@ bool PcapEthernetConnection::Initialize(Section* config)
 			if(strstr(currentdev->name,realnicstring)) {
 				break;
 			}else if(currentdev->description!=NULL &&
-				strstr(currentdev->description,realnicstring)) {
+					strstr(currentdev->description,realnicstring)) {
 				break;
 			}
 		}
@@ -203,50 +204,50 @@ bool PcapEthernetConnection::Initialize(Section* config)
 		return false;
 	}
 	// print out which interface we are going to use
-        const char* desc = "no description"; 
+	const char* desc = "no description"; 
 	if(currentdev->description) desc=currentdev->description;
 	LOG_MSG("Using Network interface:\n%s\n(%s)\n",currentdev->name,desc);
-	
+
 	const char *timeoutstr = section->Get_string("timeout");
-        char *end;
-        int timeout = -1;
-        if (!strlen(timeoutstr)||(timeoutstr[0]!='-'&&!isdigit(timeoutstr[0]))) { // Default timeout values
+	char *end;
+	int timeout = -1;
+	if (!strlen(timeoutstr)||(timeoutstr[0]!='-'&&!isdigit(timeoutstr[0]))) { // Default timeout values
 #ifdef MACOSX
-            timeout = 3000; // For macOS, use 3000ms as it does not appear to support -1
+		timeout = 3000; // For macOS, use 3000ms as it does not appear to support -1
 #else
-            timeout = -1; // For other platforms, use -1 which should mean "non-blocking mode"
+		timeout = -1; // For other platforms, use -1 which should mean "non-blocking mode"
 #endif
-        } else
-            timeout = strtoul(timeoutstr,&end,10);
+	} else
+		timeout = strtoul(timeoutstr,&end,10);
 	// attempt to open it
 #ifdef WIN32
 	if ( (adhandle= pcap_open(
-			currentdev->name, // name of the device
-            65536,            // portion of the packet to capture
-                              // 65536 = whole packet 
-            PCAP_OPENFLAG_PROMISCUOUS,    // promiscuous mode
-            timeout,          // read timeout
-            NULL,             // authentication on the remote machine
-            errbuf            // error buffer
-            ) ) == NULL)
+					currentdev->name, // name of the device
+					65536,            // portion of the packet to capture
+					// 65536 = whole packet 
+					PCAP_OPENFLAG_PROMISCUOUS,    // promiscuous mode
+					timeout,          // read timeout
+					NULL,             // authentication on the remote machine
+					errbuf            // error buffer
+				 ) ) == NULL)
 #else
-	/*pcap_t *pcap_open_live(const char *device, int snaplen,
-        int promisc, int to_ms, char *errbuf)*/
-	if ( (adhandle= pcap_open_live(
-			currentdev->name, // name of the device
-            65536,            // portion of the packet to capture
-                              // 65536 = whole packet 
-            true,    // promiscuous mode
-            timeout,          // read timeout
-            errbuf            // error buffer
-            ) ) == NULL)
+		/*pcap_t *pcap_open_live(const char *device, int snaplen,
+		  int promisc, int to_ms, char *errbuf)*/
+		if ( (adhandle= pcap_open_live(
+						currentdev->name, // name of the device
+						65536,            // portion of the packet to capture
+						// 65536 = whole packet 
+						true,    // promiscuous mode
+						timeout,          // read timeout
+						errbuf            // error buffer
+					      ) ) == NULL)
 
 #endif        
-        {
-		LOG_MSG("\nUnable to open the interface: %s.", errbuf);
-        	pcap_freealldevs(alldevs);
-		return false;
-	}
+		{
+			LOG_MSG("\nUnable to open the interface: %s.", errbuf);
+			pcap_freealldevs(alldevs);
+			return false;
+		}
 	pcap_freealldevs(alldevs);
 #ifndef WIN32
 	pcap_setnonblock(adhandle,1,errbuf);
