@@ -595,8 +595,13 @@ uint32_t imageDiskVHD::CreateDynamic(char* filename, uint64_t size) {
     memset(Footer, 0, 1536);
     memcpy(Footer, footer_head, sizeof(footer_head));
     memcpy(Header, dyn_head, sizeof(dyn_head));
-
+#ifdef _MSC_VER
     _time32((__time32_t*)&Footer + 24);
+#else
+    time_t T;
+    time(&T);
+    *((uint32_t*)(Footer+24)) = (uint32_t)T;
+#endif
     *((uint32_t*)(Footer + 24)) -= 946681200;
     *((uint32_t*)(Footer + 24)) = SDL_SwapBE32(*(uint32_t*)(Footer + 24));
 
