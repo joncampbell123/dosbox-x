@@ -514,3 +514,130 @@ bool imageDiskVHD::DynamicHeader::IsValid() {
 		headerVersion <= 0x0001FFFF &&
 		checksum == CalculateChecksum());
 }
+
+// Computates VHD CRC on Footer/Header
+uint32_t imageDiskVHD::mk_crc(uint8_t* s, uint32_t size) {
+    uint32_t crc = 0;
+    for(size_t i = 0; i < size; i++)
+        crc += s[i];
+    return ~crc;
+}
+
+// Computates VHD CHS geometry
+void imageDiskVHD::mk_chs(uint64_t size, char* chs) {
+    uint32_t sectors = size / 512;
+    uint8_t spt, hh;
+    uint16_t cth, cyls;
+
+    if(sectors > 65535 * 16 * 255)
+        sectors = 65535 * 16 * 255;
+
+    if(sectors >= 65535 * 16 * 63) {
+        spt = 255;
+        hh = 16;
+        cth = sectors / spt;
+    }
+    else {
+        spt = 17;
+        cth = sectors / spt;
+        hh = (cth + 1023) / 1024;
+        if(hh < 4) hh = 4;
+        if(cth >= hh * 1024 || hh > 16) {
+            spt = 31;
+            hh = 16;
+            cth = sectors / spt;
+        }
+        if(cth >= hh * 1024) {
+            spt = 63;
+            hh = 16;
+            cth = sectors / spt;
+        }
+    }
+    cyls = cth / hh;
+
+    *((uint16_t*)(chs)) = SDL_SwapBE16(cyls);
+    *(chs + 2) = hh;
+    *(chs + 3) = spt;
+}
+
+
+// Default VHD Footer
+unsigned char footer_head[64] = {
+    0x63, 0x6F, 0x6E, 0x65, 0x63, 0x74, 0x69, 0x78, 0x00, 0x00, 0x00, 0x02,
+    0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x44, 0x42, 0x4F, 0x58, 0x00, 0x01, 0x00, 0x00,
+    0x57, 0x69, 0x32, 0x6B, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x03
+};
+
+// Default Dynamic VHD Header
+unsigned char dyn_head[48] = {
+    0x63, 0x78, 0x73, 0x70, 0x61, 0x72, 0x73, 0x65, 0xFF, 0xFF, 0xFF, 0xFF,
+    0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x06, 0x00,
+    0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x20, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+};
+
+// Creates a blank Dynamic VHD image. Returns zero for success, 1-4 in case of errors.
+uint32_t imageDiskVHD::CreateDynamic(char* filename, uint64_t size) {
+    if(!filename) return 1;
+    if(size < 5242880) return 2;
+    // This is the Windows 11 mounter limit
+    if(size > 2190433320960) return 3;
+
+    FILE* vhd = fopen(filename, "wb");
+    if(!vhd) return 4;
+
+    // Setup main VHD structures with default values
+    char* Footer = (char*)malloc(1536);
+    char* Header = Footer + 512;
+    memset(Footer, 0, 1536);
+    memcpy(Footer, footer_head, sizeof(footer_head));
+    memcpy(Header, dyn_head, sizeof(dyn_head));
+
+    _time32((__time32_t*)&Footer + 24);
+    *((uint32_t*)(Footer + 24)) -= 946681200;
+    *((uint32_t*)(Footer + 24)) = SDL_SwapBE32(*(uint32_t*)(Footer + 24));
+
+    srand(time(NULL));
+
+    *((uint64_t*)(Footer + 40)) = SDL_SwapBE64((uint64_t)size);  // u64OriginalSize
+    *((uint64_t*)(Footer + 48)) = SDL_SwapBE64((uint64_t)size);  // u64CurrentSize
+    *((uint16_t*)(Footer + 68)) = rand();                        // UUID
+    *((uint16_t*)(Footer + 70)) = rand();
+    *((uint16_t*)(Footer + 72)) = rand();
+    *((uint16_t*)(Footer + 74)) = rand();
+    *((uint16_t*)(Footer + 76)) = rand();
+    *((uint16_t*)(Footer + 78)) = rand();
+    *((uint16_t*)(Footer + 80)) = rand();
+    *((uint16_t*)(Footer + 82)) = rand();
+
+    mk_chs(size, Footer + 56);
+
+    *((uint32_t*)(Footer + 64)) = SDL_SwapBE32(mk_crc((uint8_t*)Footer, 512));
+
+    // Footer copy
+    fwrite(Footer, 512, 1, vhd);
+
+    *((uint32_t*)(Header + 28)) = SDL_SwapBE32(size / (2 << 20));   // dwMaxTableEntries
+    *((uint32_t*)(Header + 36)) = SDL_SwapBE32(mk_crc((uint8_t*)Header, 1024));
+
+    // Dynamic Header
+    fwrite(Header, 1024, 1, vhd);
+
+    // Creates the empty BAT
+    uint32_t table_size = (4 * (size / (2 << 20)) + 511) / 512 * 512; // must span full sectors!
+    void* table = malloc(table_size);
+    memset(table, 0xFF, table_size);
+    fwrite(table, table_size, 1, vhd);
+
+    // Main Footer
+    fwrite(Footer, 512, 1, vhd);
+
+    free(Footer);
+    free(table);
+    fclose(vhd);
+
+    return 0;
+}
