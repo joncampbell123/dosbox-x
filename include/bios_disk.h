@@ -299,9 +299,9 @@ public:
 	static VHDTypes GetVHDType(const char* fileName);
 	VHDTypes GetVHDType(void) const;
 	virtual ~imageDiskVHD();
-	uint32_t mk_crc(uint8_t* s, uint32_t size);
-	void mk_chs(uint64_t size, char* chs);
-	uint32_t CreateDynamic(char* filename, uint64_t size);
+	static uint32_t mk_crc(uint8_t* s, uint32_t size);
+	static void mk_chs(uint64_t size, char* chs);
+	static uint32_t CreateDynamic(char* filename, uint64_t size);
 
 private:
 	struct Geometry {
