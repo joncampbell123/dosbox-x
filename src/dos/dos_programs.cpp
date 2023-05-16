@@ -7729,6 +7729,82 @@ static void TITLE_ProgramStart(Program * * make) {
     *make=new TITLE;
 }
 
+class VHDMAKE : public Program {
+public:
+    void Run(void);
+private:
+    uint64_t ssizetou64(const char* s_size);
+	void PrintUsage() {
+        constexpr const char *msg =
+           "Creates a blank Dynamic VHD image.\n\n"
+           "VHDMAKE filename nnn[BKMGT]\n\n"
+           "  filename   Specifies the name of the new VHD image file.\n"
+           "  nnn        Specifies the virtual disk size.\n";
+        WriteOut(msg);
+	}
+};
+
+// Converts a string disk size with unit into a 64-bit unsigned integer
+uint64_t VHDMAKE::ssizetou64(const char* s_size) {
+    char* sizes = "BKMGT";
+    char* sd_size = strdup(s_size);
+    char* last = sd_size + strlen(s_size) - 1;
+    char* c;
+    uint64_t size;
+
+    if((c = strchr(sizes, toupper(*last)))) {
+        *last = 0;
+        size = atoll(sd_size);
+        size <<= ((c - sizes) * 10);
+    }
+    else {
+        size = atoll(sd_size);
+    }
+    free(sd_size);
+    return size;
+}
+
+void VHDMAKE::Run()
+{
+	// Hack To allow long commandlines
+	ChangeToLongCmd();
+
+	// Usage
+	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false) || cmd->GetCount() < 2) {
+		PrintUsage();
+		return;
+	}
+
+    char filename[256], size[16];
+    cmd->FindCommand(1, temp_line);
+    safe_strcpy(filename, temp_line.c_str());
+
+    cmd->FindCommand(2, temp_line);
+    safe_strcpy(size, temp_line.c_str());
+
+    uint32_t ret = imageDiskVHD::CreateDynamic(filename, ssizetou64(size));
+
+    switch(ret) {
+    case 2:
+        WriteOut("Can't create a VHD < 5 MB !\n");
+        break;
+    case 3:
+        WriteOut("Can't create a VHD > 2040 GB !\n");
+        break;
+    case 4:
+        WriteOut("Error, could not open %s for writing", filename);
+        break;
+    default:
+        WriteOut("New blank VHD image succesfully created. You can mount it with \033[34;1mIMGMOUNT\033[0m.\n");
+        break;
+    }
+}
+
+
+static void VHDMAKE_ProgramStart(Program * * make) {
+    *make=new VHDMAKE;
+}
+
 class COLOR : public Program {
 public:
     void Run(void);
@@ -8540,6 +8616,7 @@ void Add_VFiles(bool usecp) {
 
     PROGRAMS_MakeFile("COLOR.COM",COLOR_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("TITLE.COM",TITLE_ProgramStart,"/BIN/");
+    PROGRAMS_MakeFile("VHDMAKE.COM",VHDMAKE_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("LS.COM",LS_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("ADDKEY.COM",ADDKEY_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart,"/SYSTEM/");
