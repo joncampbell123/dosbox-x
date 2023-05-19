@@ -299,9 +299,8 @@ public:
 	static VHDTypes GetVHDType(const char* fileName);
 	VHDTypes GetVHDType(void) const;
 	virtual ~imageDiskVHD();
-	static uint32_t mk_crc(uint8_t* s, uint32_t size);
-	static void mk_chs(uint64_t size, char* chs);
-	static uint32_t CreateDynamic(char* filename, uint64_t size);
+	static uint32_t CreateDynamic(const char* filename, uint64_t size);
+	static uint32_t CreateDifferencing(const char* filename, const char* basename);
 
 private:
 	struct Geometry {
@@ -363,6 +362,8 @@ private:
 	static ErrorCodes Open(const char* fileName, const bool readOnly, imageDisk** disk, const uint8_t* matchUniqueId);
 	virtual bool loadBlock(const uint32_t blockNumber);
 	static bool convert_UTF16_for_fopen(std::string &string, const void* data, const uint32_t dataLength);
+    static uint32_t mk_crc(uint8_t* s, uint32_t size);
+    static void mk_chs(uint64_t size, char* chs);
 
     imageDisk* parentDisk = NULL;
 	uint64_t footerPosition = 0;
