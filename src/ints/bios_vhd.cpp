@@ -579,8 +579,8 @@ unsigned char dyn_head[48] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-// Creates a blank Dynamic VHD image. Returns zero for success, 1-4 in case of errors.
-uint32_t imageDiskVHD::CreateDynamic(char* filename, uint64_t size) {
+// Creates a Dynamic VHD image. Returns zero for success, 1-4 in case of errors.
+uint32_t imageDiskVHD::CreateDynamic(const char* filename, uint64_t size) {
     if(!filename) return 1;
     if(size < 5242880) return 2;
     // This is the Windows 11 mounter limit
@@ -595,13 +595,8 @@ uint32_t imageDiskVHD::CreateDynamic(char* filename, uint64_t size) {
     memset(Footer, 0, 1536);
     memcpy(Footer, footer_head, sizeof(footer_head));
     memcpy(Header, dyn_head, sizeof(dyn_head));
-#ifdef _MSC_VER
-    _time32((__time32_t*)&Footer + 24);
-#else
-    time_t T;
-    time(&T);
-    *((uint32_t*)(Footer+24)) = (uint32_t)T;
-#endif
+
+    time((time_t*)(Footer + 24));
     *((uint32_t*)(Footer + 24)) -= 946681200;
     *((uint32_t*)(Footer + 24)) = SDL_SwapBE32(*(uint32_t*)(Footer + 24));
 
@@ -631,7 +626,7 @@ uint32_t imageDiskVHD::CreateDynamic(char* filename, uint64_t size) {
     // Dynamic Header
     fwrite(Header, 1024, 1, vhd);
 
-    // Creates the empty BAT
+    // Creates the empty BAT (max 4MB)
     uint32_t table_size = (4 * (size / (2 << 20)) + 511) / 512 * 512; // must span full sectors!
     void* table = malloc(table_size);
     memset(table, 0xFF, table_size);
@@ -643,6 +638,97 @@ uint32_t imageDiskVHD::CreateDynamic(char* filename, uint64_t size) {
     free(Footer);
     free(table);
     fclose(vhd);
+
+    return 0;
+}
+
+// Creates a Differencing VHD image. Returns zero for success, 1-4 in case of errors.
+uint32_t imageDiskVHD::CreateDifferencing(const char* filename, const char* basename) {
+    if(!filename) return 1;
+    if(!basename) return 2;
+
+    imageDiskVHD* base_vhd = new imageDiskVHD();
+    imageDisk* base_ima;
+
+    if(base_vhd->Open(basename, true, &base_ima) != OPEN_SUCCESS)
+        return 3;
+
+    base_vhd = (imageDiskVHD*) base_ima;
+    FILE* vhd = fopen(filename, "wb");
+    if(!vhd) return 4;
+
+    // Clones parent's VHD structures
+    char* Footer = (char*)malloc(1536);
+    char* Header = Footer + 512;
+    memcpy(Footer, &base_vhd->originalFooter, 512);
+    base_vhd->dynamicHeader.SwapByteOrder();
+    memcpy(Header, &base_vhd->dynamicHeader, 1024);
+
+    // Updates
+    memcpy(Header + 0x28, Footer + 0x44, 16); // sParentUniqueId
+    memcpy(Header + 0x38, Footer + 0x18, 4);  // dwParentTimeStamp
+
+    *((uint32_t*)(Footer + 0x3C)) = SDL_SwapBE32(4); // dwDiskType
+
+    time((time_t*)(Footer + 24));             // dwTimestamp
+    *((uint32_t*)(Footer + 24)) -= 946681200;
+    *((uint32_t*)(Footer + 24)) = SDL_SwapBE32(*(uint32_t*)(Footer + 24));
+
+    srand(time(NULL));
+    *((uint16_t*)(Footer + 68)) = rand(); // UUID
+    *((uint16_t*)(Footer + 70)) = rand();
+    *((uint16_t*)(Footer + 72)) = rand();
+    *((uint16_t*)(Footer + 74)) = rand();
+    *((uint16_t*)(Footer + 76)) = rand();
+    *((uint16_t*)(Footer + 78)) = rand();
+    *((uint16_t*)(Footer + 80)) = rand();
+    *((uint16_t*)(Footer + 82)) = rand();
+
+    // Blanks old CRC and computates new one
+    *((uint32_t*)(Footer + 64)) = 0;
+    *((uint32_t*)(Footer + 64)) = SDL_SwapBE32(mk_crc((uint8_t*)Footer, 512));
+
+    // Footer copy
+    fwrite(Footer, 512, 1, vhd);
+
+    // BAT size
+    uint32_t dwMaxTableEntries = SDL_SwapBE32(*(uint32_t*)(Header + 0x1C));
+    uint32_t table_size = (4 * dwMaxTableEntries + 511) / 512 * 512;
+
+    // Windows 11 wants at least the relative W2ru locator, or won't mount!
+    // sParentLocatorEntries[0]
+    *((uint32_t*)(Header + 0x240)) = SDL_SwapBE32(basename[1]==':'? 0x57326B75 : 0x57327275); // W2ku : W2ru
+    uint32_t l_basename = strlen(basename);
+    uint32_t platsize = (2 * l_basename + 511) / 512 * 512;
+    *((uint32_t*)(Header + 0x244)) = SDL_SwapBE32(platsize);                  // dwPlatformDataSpace (1+ sectors)
+    *((uint32_t*)(Header + 0x248)) = SDL_SwapBE32(2*l_basename);              // dwPlatformDataLength
+    *((uint64_t*)(Header + 0x250)) = SDL_SwapBE64((uint64_t)1536+table_size); // u64PlatformDataOffset
+
+    // Dynamic Header
+    *((uint32_t*)(Header + 36)) = 0;
+    *((uint32_t*)(Header + 36)) = SDL_SwapBE32(mk_crc((uint8_t*)Header, 1024));
+    fwrite(Header, 1024, 1, vhd);
+
+    // BAT
+    void* table = malloc(table_size);
+    memset(table, 0xFF, table_size);
+    fwrite(table, table_size, 1, vhd);
+
+    // Relative Parent Locator sector(s)
+    wchar_t* w_basename = (wchar_t*)malloc(platsize);
+    memset(w_basename, 0, platsize);
+    for(uint32_t i = 0; i < l_basename; i++)
+        w_basename[i] = SDL_SwapLE16((uint16_t)basename[i]); // dirty hack to quickly convert ASCII -> UTF-16 *LE*
+    fwrite(w_basename, platsize, 1, vhd);
+ 
+    // Footer copy
+    fwrite(Footer, 512, 1, vhd);
+
+    delete base_vhd;
+    fclose(vhd);
+    free(Footer);
+    free(table);
+    free(w_basename);
 
     return 0;
 }
