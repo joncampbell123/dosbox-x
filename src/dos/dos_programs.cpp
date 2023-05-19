@@ -7735,12 +7735,18 @@ public:
 private:
     uint64_t ssizetou64(const char* s_size);
 	void PrintUsage() {
-        constexpr const char *msg =
-           "Creates a blank Dynamic VHD image.\n\n"
-           "VHDMAKE filename nnn[BKMGT]\n\n"
-           "  filename   Specifies the name of the new VHD image file.\n"
-           "  nnn        Specifies the virtual disk size.\n";
-        WriteOut(msg);
+        constexpr const char* msg =
+            "Creates a new Dynamic or Differencing VHD image.\n\n"
+            "VHDMAKE [-F] new.vhd nnn[BKMGT]\n"
+            "VHDMAKE [-F] -l parent.vhd new.vhd\n\n"
+            "  -F         Force overwriting a file\n"
+            "  -l         Links to a parent VHD image\n"
+            "  filename   Specifies the name of the new VHD image file\n"
+            "  nnn        Specifies the disk size (eventually with size unit)\n"
+            "             (B)ytes is implicit\n"
+            "  parent.vhd Specifies the base VHD to link the new differencing VHD to\n"
+            "  new.vhd    Specifies the new differencing VHD to make\n";
+            WriteOut(msg);
 	}
 };
 
@@ -7766,37 +7772,91 @@ uint64_t VHDMAKE::ssizetou64(const char* s_size) {
 
 void VHDMAKE::Run()
 {
+    bool bOverwrite = false;
+
 	// Hack To allow long commandlines
 	ChangeToLongCmd();
 
 	// Usage
-	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false) || cmd->GetCount() < 2) {
-		PrintUsage();
-		return;
-	}
+    if(cmd->FindExist("-?", false) || cmd->FindExist("/?", false) || cmd->GetCount() < 2) {
+        PrintUsage();
+        return;
+    }
 
-    char filename[256], size[16];
-    cmd->FindCommand(1, temp_line);
-    safe_strcpy(filename, temp_line.c_str());
+    if(cmd->FindExist("-F", true))
+        bOverwrite = true;
 
-    cmd->FindCommand(2, temp_line);
-    safe_strcpy(size, temp_line.c_str());
+    if(cmd->FindExist("-l", true)) {
+        char basename[256], newname[256];
+        cmd->FindCommand(1, temp_line);
+        safe_strcpy(basename, temp_line.c_str());
 
-    uint32_t ret = imageDiskVHD::CreateDynamic(filename, ssizetou64(size));
+        cmd->FindCommand(2, temp_line);
+        safe_strcpy(newname, temp_line.c_str());
 
-    switch(ret) {
-    case 2:
-        WriteOut("Can't create a VHD < 5 MB !\n");
-        break;
-    case 3:
-        WriteOut("Can't create a VHD > 2040 GB !\n");
-        break;
-    case 4:
-        WriteOut("Error, could not open %s for writing", filename);
-        break;
-    default:
-        WriteOut("New blank VHD image succesfully created. You can mount it with \033[34;1mIMGMOUNT\033[0m.\n");
-        break;
+#ifdef WIN32
+        if(basename[1] == ':')
+            WriteOut("Warning: using an absolute path for parent strongly limits portability.\nPlease prefer a path relative to differencing image file!\n");
+#else
+        if(basename[0] == '/') {
+            WriteOut("ERROR: using an absolute path for parent inhibits portability.\nUse a path relative to differencing image file!\n");
+            return;
+        }
+#endif
+        if(! bOverwrite && access(newname, 0) == 0) {
+            WriteOut("A pre-existing VHD image can't be silently overwritten without -F option!\n");
+            return;
+        }
+
+        uint32_t ret = imageDiskVHD::CreateDifferencing(newname, basename);
+        switch(ret) {
+        case 3:
+            WriteOut("Couldn't open \"%s\" for linking, aborting!\n", basename);
+            break;
+        case 4:
+            WriteOut("Couldn't create new differencing image \"%s\", aborting!\n", newname);
+            break;
+        case 0:
+            WriteOut("New Differencing VHD image succesfully created. You can mount it with \033[34;1mIMGMOUNT\033[0m.\n");
+            break;
+        }
+
+    }
+    else {
+        char filename[256], size[16];
+        cmd->FindCommand(1, temp_line);
+        safe_strcpy(filename, temp_line.c_str());
+
+        cmd->FindCommand(2, temp_line);
+        safe_strcpy(size, temp_line.c_str());
+
+        uint64_t vhd_size = ssizetou64(size);
+        if(!vhd_size) {
+            WriteOut("Bad VHD size specified, aborting!\n");
+            return;
+        }
+
+        if(!bOverwrite && access(filename, 0) == 0) {
+            WriteOut("A pre-existing VHD image can't be silently overwritten without -F option!\n");
+            return;
+        }
+
+        uint32_t ret = imageDiskVHD::CreateDynamic(filename, vhd_size);
+
+        switch(ret) {
+        case 2:
+            WriteOut("Can't create a VHD < 5 MB !\n");
+            break;
+        case 3:
+            WriteOut("Can't create a VHD > 2040 GB !\n");
+            break;
+        case 4:
+            WriteOut("Error, could not open %s for writing", filename);
+            break;
+        default:
+            WriteOut("New Dynamic VHD image succesfully created. You can mount it with \033[34;1mIMGMOUNT\033[0m.\n");
+            break;
+        }
     }
 }
 
@@ -7804,7 +7864,7 @@ void VHDMAKE::Run()
 static void VHDMAKE_ProgramStart(Program * * make) {
     *make=new VHDMAKE;
 }
-
+    
 class COLOR : public Program {
 public:
     void Run(void);
