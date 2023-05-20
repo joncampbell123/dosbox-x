@@ -326,8 +326,10 @@ uint8_t imageDiskVHD::Read_AbsoluteSector(uint32_t sectnum, void * data) {
 
 bool is_zeroed_sector(const void* data) {
     uint32_t *p = (uint32_t*) data;
-    while(*p++ == 0);
-    if((uint8_t*)p < ((uint8_t*)data + 512)) return false;
+    uint8_t* q = ((uint8_t*)data + 512);
+    while((void*)p < (void*)q && *p++ == 0);
+    if((void*)p < (void*)q)
+        return false;
     return true;
 }
 
