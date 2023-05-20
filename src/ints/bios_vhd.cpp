@@ -596,9 +596,9 @@ uint32_t imageDiskVHD::CreateDynamic(const char* filename, uint64_t size) {
     memcpy(Footer, footer_head, sizeof(footer_head));
     memcpy(Header, dyn_head, sizeof(dyn_head));
 
-    time((time_t*)(Footer + 24));
-    *((uint32_t*)(Footer + 24)) -= 946681200;
-    *((uint32_t*)(Footer + 24)) = SDL_SwapBE32(*(uint32_t*)(Footer + 24));
+    time_t T;
+    time(&T);
+    *((uint32_t*)(Footer + 24)) = SDL_SwapBE32((uint32_t)T - 946681200);
 
     srand(time(NULL));
 
@@ -670,9 +670,9 @@ uint32_t imageDiskVHD::CreateDifferencing(const char* filename, const char* base
 
     *((uint32_t*)(Footer + 0x3C)) = SDL_SwapBE32(4); // dwDiskType
 
-    time((time_t*)(Footer + 24));             // dwTimestamp
-    *((uint32_t*)(Footer + 24)) -= 946681200;
-    *((uint32_t*)(Footer + 24)) = SDL_SwapBE32(*(uint32_t*)(Footer + 24));
+    time_t T;
+    time(&T);
+    *((uint32_t*)(Footer + 24)) = SDL_SwapBE32((uint32_t)T - 946681200);
 
     srand(time(NULL));
     *((uint16_t*)(Footer + 68)) = rand(); // UUID
