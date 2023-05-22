@@ -339,7 +339,7 @@ uint8_t imageDiskVHD::Write_AbsoluteSector(uint32_t sectnum, const void * data) 
 	uint32_t sectorOffset = sectnum % sectorsPerBlock;
 	if (!loadBlock(blockNumber)) return 0x05; //can't load block
 	if (!currentBlockAllocated) {
-        //an unallocated block is kept virtual until zeroed
+        //an unallocated block is kept virtualized until zeroed
         if(is_zeroed_sector(data)) return 0;
 
 		if (!copiedFooter) {
