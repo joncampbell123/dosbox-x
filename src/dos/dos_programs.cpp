@@ -7737,9 +7737,9 @@ private:
 	void PrintUsage() {
         constexpr const char* msg =
             "Creates a new Dynamic or Differencing VHD image.\n\n"
-            "VHDMAKE [-F] new.vhd nnn[BKMGT]\n"
-            "VHDMAKE [-F] -l parent.vhd new.vhd\n\n"
-            "  -F         Force overwriting a file\n"
+            "VHDMAKE [-f] new.vhd nnn[BKMGT]\n"
+            "VHDMAKE [-f] -l parent.vhd new.vhd\n\n"
+            "  -f         Force overwriting a file\n"
             "  -l         Links to a parent VHD image\n"
             "  filename   Specifies the name of the new VHD image file\n"
             "  nnn        Specifies the disk size (eventually with size unit)\n"
@@ -7783,7 +7783,7 @@ void VHDMAKE::Run()
         return;
     }
 
-    if(cmd->FindExist("-F", true))
+    if(cmd->FindExist("-f", true))
         bOverwrite = true;
 
     if(cmd->FindExist("-l", true)) {
@@ -7816,8 +7816,11 @@ void VHDMAKE::Run()
         case 4:
             WriteOut("Couldn't create new differencing image \"%s\", aborting!\n", newname);
             break;
+        case 5:
+            WriteOut("Couldn't write to differencing image \"%s\", aborting!\n", newname);
+            break;
         case 0:
-            WriteOut("New Differencing VHD image succesfully created. You can mount it with \033[34;1mIMGMOUNT\033[0m.\n");
+            WriteOut("New Differencing VHD succesfully created. You can mount it with \033[34;1mIMGMOUNT\033[0m.\n");
             break;
         }
 
@@ -7853,13 +7856,15 @@ void VHDMAKE::Run()
         case 4:
             WriteOut("Error, could not open %s for writing", filename);
             break;
+        case 5:
+            WriteOut("Couldn't write to new VHD image \"%s\", aborting!\n", filename);
+            break;
         default:
             WriteOut("New Dynamic VHD image succesfully created. You can mount it with \033[34;1mIMGMOUNT\033[0m.\n");
             break;
         }
     }
 }
-
 
 static void VHDMAKE_ProgramStart(Program * * make) {
     *make=new VHDMAKE;
