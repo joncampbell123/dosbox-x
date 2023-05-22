@@ -18,6 +18,8 @@
 */
 
 #include <assert.h>
+#include <stdlib.h>
+#include <time.h>
 
 #include "dosbox.h"
 #include "callback.h"
@@ -579,7 +581,7 @@ unsigned char dyn_head[48] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-// Creates a Dynamic VHD image. Returns zero for success, 1-4 in case of errors.
+// Creates a Dynamic VHD image. Returns zero for success, 1-5 in case of errors.
 uint32_t imageDiskVHD::CreateDynamic(const char* filename, uint64_t size) {
     if(!filename) return 1;
     if(size < 5242880) return 2;
@@ -618,22 +620,22 @@ uint32_t imageDiskVHD::CreateDynamic(const char* filename, uint64_t size) {
     *((uint32_t*)(Footer + 64)) = SDL_SwapBE32(mk_crc((uint8_t*)Footer, 512));
 
     // Footer copy
-    fwrite(Footer, 512, 1, vhd);
+    if (fwrite(Footer, 1, 512, vhd) != 512) return 5;
 
     *((uint32_t*)(Header + 28)) = SDL_SwapBE32(size / (2 << 20));   // dwMaxTableEntries
     *((uint32_t*)(Header + 36)) = SDL_SwapBE32(mk_crc((uint8_t*)Header, 1024));
 
     // Dynamic Header
-    fwrite(Header, 1024, 1, vhd);
+    if (fwrite(Header, 1, 1024, vhd) != 1024) return 5;
 
     // Creates the empty BAT (max 4MB)
     uint32_t table_size = (4 * (size / (2 << 20)) + 511) / 512 * 512; // must span full sectors!
     void* table = malloc(table_size);
     memset(table, 0xFF, table_size);
-    fwrite(table, table_size, 1, vhd);
+    if (fwrite(table, 1, table_size, vhd) != table_size) return 5;
 
     // Main Footer
-    fwrite(Footer, 512, 1, vhd);
+    if(fwrite(Footer, 1, 512, vhd) != 512) return 5;
 
     free(Footer);
     free(table);
@@ -642,7 +644,7 @@ uint32_t imageDiskVHD::CreateDynamic(const char* filename, uint64_t size) {
     return 0;
 }
 
-// Creates a Differencing VHD image. Returns zero for success, 1-4 in case of errors.
+// Creates a Differencing VHD image. Returns zero for success, 1-5 in case of errors.
 uint32_t imageDiskVHD::CreateDifferencing(const char* filename, const char* basename) {
     if(!filename) return 1;
     if(!basename) return 2;
@@ -689,7 +691,7 @@ uint32_t imageDiskVHD::CreateDifferencing(const char* filename, const char* base
     *((uint32_t*)(Footer + 64)) = SDL_SwapBE32(mk_crc((uint8_t*)Footer, 512));
 
     // Footer copy
-    fwrite(Footer, 512, 1, vhd);
+    if (fwrite(Footer, 1, 512, vhd) != 512) return 5;
 
     // BAT size
     uint32_t dwMaxTableEntries = SDL_SwapBE32(*(uint32_t*)(Header + 0x1C));
@@ -707,12 +709,12 @@ uint32_t imageDiskVHD::CreateDifferencing(const char* filename, const char* base
     // Dynamic Header
     *((uint32_t*)(Header + 36)) = 0;
     *((uint32_t*)(Header + 36)) = SDL_SwapBE32(mk_crc((uint8_t*)Header, 1024));
-    fwrite(Header, 1024, 1, vhd);
+    if(fwrite(Header, 1, 1024, vhd) != 1024) return 5;
 
     // BAT
     void* table = malloc(table_size);
     memset(table, 0xFF, table_size);
-    fwrite(table, table_size, 1, vhd);
+    if(fwrite(table, 1, table_size, vhd) != table_size) return 5;
 
     // Relative Parent Locator sector(s)
     wchar_t* w_basename = (wchar_t*)malloc(platsize);
@@ -720,10 +722,10 @@ uint32_t imageDiskVHD::CreateDifferencing(const char* filename, const char* base
     for(uint32_t i = 0; i < l_basename; i++)
         // dirty hack to quickly convert ASCII -> UTF-16 *LE* and fix slashes
         w_basename[i] = SDL_SwapLE16(basename[i]=='/'? (uint16_t)'\\' : (uint16_t)basename[i]);
-    fwrite(w_basename, platsize, 1, vhd);
+    if (fwrite(w_basename, 1, platsize, vhd) != platsize) return 5;
  
     // Footer copy
-    fwrite(Footer, 512, 1, vhd);
+    if(fwrite(Footer, 1, 512, vhd) != 512) return 5;
 
     delete base_vhd;
     fclose(vhd);
