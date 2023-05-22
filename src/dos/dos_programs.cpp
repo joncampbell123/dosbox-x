@@ -3371,7 +3371,7 @@ restart_int:
             c = 820; h = 6; s = 17;
         } else if(disktype=="hd_st225") { // even older 20mb drive
             c = 615; h = 4; s = 17;
-        } else if(disktype=="hd") {
+        } else if(disktype=="hd" || disktype=="vhd") {
             // get size from parameter
             std::string isize;
             if (!(cmd->FindString("-size",isize,true))) {
@@ -3481,16 +3481,17 @@ restart_int:
         if (!pref_stat(dirname((char *)homepath.c_str()), &test) && test.st_mode & S_IFDIR)
             temp_line = homedir;
 #endif
-        FILE* f = fopen(temp_line.c_str(),"r");
+        FILE* f;
+        imageDiskVHD* vhd;
+        f = fopen(temp_line.c_str(), "r");
         if (f){
             fclose(f);
             if (!ForceOverwrite) {
-                if (!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_FILE_EXISTS"),temp_line.c_str());
+                if (!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_FILE_EXISTS"), temp_line.c_str());
                 if (setdir) chdir(dirCur);
                 return;
             }
         }
-
         if (!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),temp_line.c_str(),c,h,s);
         LOG_MSG(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),temp_line.c_str(),c,h,s);
 
@@ -3498,33 +3499,50 @@ restart_int:
         sectors = (unsigned int)(size / 512);
 
         // create the image file
-        f = fopen64(temp_line.c_str(),"wb+");
-        if (!f) {
-            if (!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"),temp_line.c_str());
-            if (setdir) chdir(dirCur);
-            return;
+        if(disktype == "vhd") {
+            uint32_t ret = imageDiskVHD::CreateDynamic(temp_line.c_str(), size);
+            switch(ret) {
+            case 3:
+                WriteOut("Can't create a VHD >2040 GB!\n");
+                return;
+            case 4:
+                WriteOut("Error, could not open %s for writing", temp_line.c_str());
+                return;
+            case 5:
+                WriteOut("Couldn't write to new VHD image \"%s\", aborting!\n", temp_line.c_str());
+                return;
+            }
+            if(imageDiskVHD::Open(temp_line.c_str(), false, (imageDisk**) &vhd) != imageDiskVHD::OPEN_SUCCESS)
+                return;
         }
+        else {
+            f = fopen64(temp_line.c_str(), "wb+");
+            if(!f) {
+                if(!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"), temp_line.c_str());
+                if(setdir) chdir(dirCur);
+                return;
+            }
 
 #if defined (_MSC_VER) && (_MSC_VER >= 1400)
-        if(fseeko64(f,(__int64)(size - 1ull),SEEK_SET)) {
+            if(fseeko64(f, (__int64)(size - 1ull), SEEK_SET)) {
 #else
-        if(fseeko64(f,static_cast<off_t>(size - 1ull),SEEK_SET)) {
+            if(fseeko64(f, static_cast<off_t>(size - 1ull), SEEK_SET)) {
 #endif
-            if (!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE"),size);
-            fclose(f);
-            unlink(temp_line.c_str());
-            if (setdir) chdir(dirCur);
-            return;
+                if(!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE"), size);
+                fclose(f);
+                unlink(temp_line.c_str());
+                if(setdir) chdir(dirCur);
+                return;
+            }
+            uint8_t bufferbyte = 0;
+            if(fwrite(&bufferbyte, 1, 1, f) != 1) {
+                if(!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE"), size);
+                fclose(f);
+                unlink(temp_line.c_str());
+                if(setdir) chdir(dirCur);
+                return;
+            }
         }
-        uint8_t bufferbyte=0;
-        if(fwrite(&bufferbyte,1,1,f)!=1) {
-            if (!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE"),size);
-            fclose(f);
-            unlink(temp_line.c_str());
-            if (setdir) chdir(dirCur);
-            return;
-        }
-
         // Format the image if not unrequested (and image size<2GB)
         if(bootsect_pos > -1) {
             unsigned int reserved_sectors = 1; /* 1 for the boot sector + BPB. FAT32 will require more */
@@ -3680,8 +3698,13 @@ restart_int:
                 host_writed(&sbuf[0x1ca],vol_sectors);
 
                 // write partition table
-                fseeko64(f,0,SEEK_SET);
-                fwrite(&sbuf,512,1,f);
+                if(disktype != "vhd") {
+                    fseeko64(f, 0, SEEK_SET);
+                    fwrite(&sbuf, 512, 1, f);
+                }
+                else {
+                    vhd->Write_AbsoluteSector(0, sbuf);
+                }
             }
 
             // set boot sector values
@@ -3863,16 +3886,24 @@ restart_int:
             }
 
             // write the boot sector
-            fseeko64(f,bootsect_pos*512,SEEK_SET);
-            fwrite(&sbuf,512,1,f);
-
+            if(disktype == "vhd") {
+                vhd->Write_AbsoluteSector(bootsect_pos, sbuf);
+            }
+            else {
+                fseeko64(f, bootsect_pos * 512, SEEK_SET);
+                fwrite(&sbuf, 512, 1, f);
+            }
             // FAT32: Write backup copy too.
             //        The BPB we wrote says sector 6 from start of volume
-            if (FAT >= 32) {
-                fseeko64(f,(bootsect_pos+6u)*512,SEEK_SET);
-                fwrite(&sbuf,512,1,f);
+            if(FAT >= 32) {
+                if(disktype != "vhd") {
+                    fseeko64(f, (bootsect_pos + 6u) * 512, SEEK_SET);
+                    fwrite(&sbuf, 512, 1, f);
+                } 
+                else {
+                    vhd->Write_AbsoluteSector((bootsect_pos + 6u), sbuf);
+                }
             }
-
             // FAT32: Write FSInfo sector too at sector 1 from start of volume.
             //        Windows 98 behavior shows that the FSInfo is duplicated
             //        along with the boot sector.
@@ -3883,10 +3914,16 @@ restart_int:
                 host_writed(&sbuf[0x1e8],(uint32_t)(clusters-1)); /* Last known free cluster count */
                 host_writed(&sbuf[0x1ec],3);          /* Next free cluster. We used 2 for the root dir, so 3 is next */
                 host_writed(&sbuf[0x1fc],0xAA550000); /* signature */
-                fseeko64(f,(bootsect_pos+1u)*512,SEEK_SET);
-                fwrite(&sbuf,512,1,f);
-                fseeko64(f,(bootsect_pos+6u+1u)*512,SEEK_SET);
-                fwrite(&sbuf,512,1,f);
+                if(disktype != "vhd") {
+                    fseeko64(f, (bootsect_pos + 1u) * 512, SEEK_SET);
+                    fwrite(&sbuf, 512, 1, f);
+                    fseeko64(f, (bootsect_pos + 6u + 1u) * 512, SEEK_SET);
+                    fwrite(&sbuf, 512, 1, f);
+                }
+                else {
+                    vhd->Write_AbsoluteSector((bootsect_pos + 1u), sbuf);
+                    vhd->Write_AbsoluteSector((bootsect_pos + 6u +1u), sbuf);
+                }
             }
 
             // write FATs
@@ -3904,14 +3941,20 @@ restart_int:
                 host_writed(&sbuf[0],0xFFFF00 | mediadesc);
 
             for (unsigned int fat=0;fat < fat_copies;fat++) {
-                fseeko64(f,(off_t)(((unsigned long long)bootsect_pos+reserved_sectors+(unsigned long long)sect_per_fat*(unsigned long long)fat)*512ull),SEEK_SET);
-                fwrite(&sbuf,512,1,f);
+                if(disktype != "vhd") {
+                    fseeko64(f, (off_t)(((unsigned long long)bootsect_pos + reserved_sectors + (unsigned long long)sect_per_fat * (unsigned long long)fat) * 512ull), SEEK_SET);
+                    fwrite(&sbuf, 512, 1, f);
+                }
+                else {
+                    vhd->Write_AbsoluteSector((unsigned long long)bootsect_pos + reserved_sectors + (unsigned long long)sect_per_fat * (unsigned long long)fat, sbuf);
+                }
             }
 
             // warning
             if ((sectors_per_cluster*512ul) >= 65536ul)
                 WriteOut("WARNING: Cluster sizes >= 64KB are not compatible with MS-DOS and SCANDISK\n");
         }
+#if 0
         // write VHD footer if requested, largely copied from RAW2VHD program, no license was included
         char extension[6] = {}; // care extensions longer than 3 letters such as '.vhdd'
         if(temp_line.find_last_of('.') != std::string::npos) {
@@ -3961,8 +4004,13 @@ restart_int:
             fseeko64(f, 0L, SEEK_END);
             fwrite(&footer,512,1,f);
         }
-        fclose(f);
-
+#endif
+        if(disktype != "vhd") {
+            fclose(f);
+        }
+        else {
+            delete vhd;
+        }
         // create the batch file
         if(t2 == "-bat") {
             if(temp_line.length() > 3) {
@@ -7804,7 +7852,7 @@ void VHDMAKE::Run()
         }
 #endif
         if(! bOverwrite && access(newname, 0) == 0) {
-            WriteOut("A pre-existing VHD image can't be silently overwritten without -F option!\n");
+            WriteOut("A pre-existing VHD image can't be silently overwritten without -f option!\n");
             return;
         }
 
@@ -7840,7 +7888,7 @@ void VHDMAKE::Run()
         }
 
         if(!bOverwrite && access(filename, 0) == 0) {
-            WriteOut("A pre-existing VHD image can't be silently overwritten without -F option!\n");
+            WriteOut("A pre-existing VHD image can't be silently overwritten without -f option!\n");
             return;
         }
 
@@ -7848,10 +7896,10 @@ void VHDMAKE::Run()
 
         switch(ret) {
         case 2:
-            WriteOut("Can't create a VHD < 5 MB !\n");
+            WriteOut("Can't create a VHD <3 MB!\n");
             break;
         case 3:
-            WriteOut("Can't create a VHD > 2040 GB !\n");
+            WriteOut("Can't create a VHD >2040 GB!\n");
             break;
         case 4:
             WriteOut("Error, could not open %s for writing", filename);
@@ -7866,10 +7914,11 @@ void VHDMAKE::Run()
     }
 }
 
+
 static void VHDMAKE_ProgramStart(Program * * make) {
     *make=new VHDMAKE;
 }
-    
+
 class COLOR : public Program {
 public:
     void Run(void);
