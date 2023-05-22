@@ -20,7 +20,6 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <time.h>
-
 #include "dosbox.h"
 #include "callback.h"
 #include "bios.h"
@@ -96,7 +95,7 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	if (matchUniqueId && memcmp(matchUniqueId, footer.uniqueId, 16)) { fclose(file); return INVALID_MATCH; }
 	//calculate disk size
 	uint64_t calcDiskSize = (uint64_t)footer.geometry.cylinders * (uint64_t)footer.geometry.heads * (uint64_t)footer.geometry.sectors * (uint64_t)512;
-	if (!calcDiskSize) { fclose(file); return INVALID_DATA; }
+    if (!calcDiskSize) { fclose(file); return INVALID_DATA; }
 	//if fixed image, return plain imageDisk rather than imageDiskVFD
 	if (footer.diskType == VHD_TYPE_FIXED) {
 		//make sure that the image size is at least as big as the geometry
@@ -326,11 +325,23 @@ uint8_t imageDiskVHD::Read_AbsoluteSector(uint32_t sectnum, void * data) {
 	}
 }
 
+bool is_zeroed_sector(const void* data) {
+    uint32_t *p = (uint32_t*) data;
+    uint8_t* q = ((uint8_t*)data + 512);
+    while((void*)p < (void*)q && *p++ == 0);
+    if((void*)p < (void*)q)
+        return false;
+    return true;
+}
+
 uint8_t imageDiskVHD::Write_AbsoluteSector(uint32_t sectnum, const void * data) {
 	uint32_t blockNumber = sectnum / sectorsPerBlock;
 	uint32_t sectorOffset = sectnum % sectorsPerBlock;
 	if (!loadBlock(blockNumber)) return 0x05; //can't load block
 	if (!currentBlockAllocated) {
+        //an unallocated block is kept virtual until zeroed
+        if(is_zeroed_sector(data)) return 0;
+
 		if (!copiedFooter) {
 			//write backup of footer at start of file (should already exist, but we never checked to be sure it is readable or matches the footer we used)
 			if (fseeko64(diskimg, (off_t)0, SEEK_SET)) return 0x05;
@@ -584,7 +595,7 @@ unsigned char dyn_head[48] = {
 // Creates a Dynamic VHD image. Returns zero for success, 1-5 in case of errors.
 uint32_t imageDiskVHD::CreateDynamic(const char* filename, uint64_t size) {
     if(!filename) return 1;
-    if(size < 5242880) return 2;
+    if(size < 3145728) return 2;
     // This is the Windows 11 mounter limit
     if(size > 2190433320960) return 3;
 
@@ -622,14 +633,16 @@ uint32_t imageDiskVHD::CreateDynamic(const char* filename, uint64_t size) {
     // Footer copy
     if (fwrite(Footer, 1, 512, vhd) != 512) return 5;
 
-    *((uint32_t*)(Header + 28)) = SDL_SwapBE32(size / (2 << 20));   // dwMaxTableEntries
+    uint32_t dwMaxTableEntries = (size + ((2 << 20) - 1)) / (2 << 20);
+
+    *((uint32_t*)(Header + 28)) = SDL_SwapBE32(dwMaxTableEntries);    // dwMaxTableEntries
     *((uint32_t*)(Header + 36)) = SDL_SwapBE32(mk_crc((uint8_t*)Header, 1024));
 
     // Dynamic Header
     if (fwrite(Header, 1, 1024, vhd) != 1024) return 5;
 
     // Creates the empty BAT (max 4MB)
-    uint32_t table_size = (4 * (size / (2 << 20)) + 511) / 512 * 512; // must span full sectors!
+    uint32_t table_size = (4 * dwMaxTableEntries + 511) / 512 * 512;  // must span sectors
     void* table = malloc(table_size);
     memset(table, 0xFF, table_size);
     if (fwrite(table, 1, table_size, vhd) != table_size) return 5;
@@ -649,13 +662,10 @@ uint32_t imageDiskVHD::CreateDifferencing(const char* filename, const char* base
     if(!filename) return 1;
     if(!basename) return 2;
 
-    imageDiskVHD* base_vhd = new imageDiskVHD();
-    imageDisk* base_ima;
-
-    if(base_vhd->Open(basename, true, &base_ima) != OPEN_SUCCESS)
+    imageDiskVHD* base_vhd;
+    if(Open(basename, true, (imageDisk**)&base_vhd) != OPEN_SUCCESS)
         return 3;
 
-    base_vhd = (imageDiskVHD*) base_ima;
     FILE* vhd = fopen(filename, "wb");
     if(!vhd) return 4;
 
