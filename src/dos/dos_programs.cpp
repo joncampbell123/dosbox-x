@@ -3514,6 +3514,11 @@ restart_int:
             }
             if(imageDiskVHD::Open(temp_line.c_str(), false, (imageDisk**) &vhd) != imageDiskVHD::OPEN_SUCCESS)
                 return;
+            // Resets these according to VHD pseudo-CHS geometry, avoiding IMGMOUNT issues!
+            // VHD psuedo-CHS algorithm != BPB algorithm (above)
+            c = vhd->cylinders > 1023? 1023 : vhd->cylinders;
+            h = vhd->heads;
+            s = vhd->sectors;
         }
         else {
             f = fopen64(temp_line.c_str(), "wb+");
