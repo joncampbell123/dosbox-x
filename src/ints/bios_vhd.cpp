@@ -669,13 +669,26 @@ uint32_t imageDiskVHD::CreateDifferencing(const char* filename, const char* base
     FILE* vhd = fopen(filename, "wb");
     if(!vhd) return 4;
 
-    // Clones parent's VHD structures
     char* Footer = (char*)malloc(1536);
     char* Header = Footer + 512;
-    memcpy(Footer, &base_vhd->originalFooter, 512);
-    base_vhd->dynamicHeader.SwapByteOrder();
-    memcpy(Header, &base_vhd->dynamicHeader, 1024);
-
+    //handles a Fixed VHD
+    if(((imageDisk*)base_vhd)->class_id != ID_VHD) {
+        imageDisk* ima = base_vhd;
+        fseeko64(ima->diskimg, (uint64_t) ima->diskSizeK*1024, SEEK_SET);
+        fread(Footer, 1, 512, ima->diskimg);
+        //fills presets
+        *((uint64_t*)(Footer + 16)) = SDL_SwapBE64(512); //u64DataOffset
+        memset(Header, 0, 1024);
+        memcpy(Header, dyn_head, sizeof(dyn_head));
+        *((uint64_t*)(Header + 16)) = SDL_SwapBE64(1536); //u64TableOffset
+        *(uint32_t*)(Header + 0x1C) = SDL_SwapBE32((ima->diskSizeK + 2047) / 2048); //dwMaxTableEntries
+    }
+    else {
+        //clones parent's VHD structures
+        memcpy(Footer, &base_vhd->originalFooter, 512);
+        base_vhd->dynamicHeader.SwapByteOrder();
+        memcpy(Header, &base_vhd->dynamicHeader, 1024);
+    }
     // Updates
     memcpy(Header + 0x28, Footer + 0x44, 16); // sParentUniqueId
     memcpy(Header + 0x38, Footer + 0x18, 4);  // dwParentTimeStamp
