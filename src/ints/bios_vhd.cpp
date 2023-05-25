@@ -536,15 +536,15 @@ uint32_t imageDiskVHD::mk_crc(uint8_t* s, uint32_t size) {
     return ~crc;
 }
 
-// Computates VHD CHS geometry
-void imageDiskVHD::mk_chs(uint64_t size, char* chs) {
+//computates pseudo CHS geometry according to MS VHD specification
+void imageDiskVHD::PseudoCHSFromSize(uint64_t size, uint32_t* c, uint32_t* h, uint32_t* s)
+{
     uint32_t sectors = size / 512;
     uint8_t spt, hh;
     uint16_t cth, cyls;
 
     if(sectors > 65535 * 16 * 255)
         sectors = 65535 * 16 * 255;
-
     if(sectors >= 65535 * 16 * 63) {
         spt = 255;
         hh = 16;
@@ -567,12 +567,10 @@ void imageDiskVHD::mk_chs(uint64_t size, char* chs) {
         }
     }
     cyls = cth / hh;
-
-    *((uint16_t*)(chs)) = SDL_SwapBE16(cyls);
-    *(chs + 2) = hh;
-    *(chs + 3) = spt;
+    *c = cyls;
+    *h = hh;
+    *s = spt;
 }
-
 
 // Default VHD Footer
 unsigned char footer_head[64] = {
@@ -592,15 +590,14 @@ unsigned char dyn_head[48] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
 };
 
-// Creates a Dynamic VHD image. Returns zero for success, 1-5 in case of errors.
+//creates a Dynamic VHD image
 uint32_t imageDiskVHD::CreateDynamic(const char* filename, uint64_t size) {
-    if(!filename) return 1;
-    if(size < 3145728) return 2;
-    // This is the Windows 11 mounter limit
-    if(size > 2190433320960) return 3;
+    if(filename == NULL) return ERROR_OPENING;
+    if(size < 3145728 || size > 2190433320960) // 2040GB is the Windows 11 mounter limit
+        return UNSUPPORTED_SIZE;
 
     FILE* vhd = fopen(filename, "wb");
-    if(!vhd) return 4;
+    if(!vhd) return ERROR_OPENING;
 
     // Setup main VHD structures with default values
     char* Footer = (char*)malloc(1536);
@@ -614,7 +611,6 @@ uint32_t imageDiskVHD::CreateDynamic(const char* filename, uint64_t size) {
     *((uint32_t*)(Footer + 24)) = SDL_SwapBE32((uint32_t)T - 946681200);
 
     srand(time(NULL));
-
     *((uint64_t*)(Footer + 40)) = SDL_SwapBE64((uint64_t)size);  // u64OriginalSize
     *((uint64_t*)(Footer + 48)) = SDL_SwapBE64((uint64_t)size);  // u64CurrentSize
     *((uint16_t*)(Footer + 68)) = rand();                        // UUID
@@ -626,12 +622,15 @@ uint32_t imageDiskVHD::CreateDynamic(const char* filename, uint64_t size) {
     *((uint16_t*)(Footer + 80)) = rand();
     *((uint16_t*)(Footer + 82)) = rand();
 
-    mk_chs(size, Footer + 56);
-
+    uint32_t c, h, s;
+    PseudoCHSFromSize(size,&c,&h,&s);
+    *((uint16_t*)(Footer + 56)) = SDL_SwapBE16((uint16_t)c);
+    *((uint16_t*)(Footer + 58)) = (uint8_t)h;
+    *((uint16_t*)(Footer + 59)) = (uint8_t)s;
     *((uint32_t*)(Footer + 64)) = SDL_SwapBE32(mk_crc((uint8_t*)Footer, 512));
 
     // Footer copy
-    if (fwrite(Footer, 1, 512, vhd) != 512) return 5;
+    if (fwrite(Footer, 1, 512, vhd) != 512) return ERROR_WRITING;
 
     uint32_t dwMaxTableEntries = (size + ((2 << 20) - 1)) / (2 << 20);
 
@@ -639,44 +638,45 @@ uint32_t imageDiskVHD::CreateDynamic(const char* filename, uint64_t size) {
     *((uint32_t*)(Header + 36)) = SDL_SwapBE32(mk_crc((uint8_t*)Header, 1024));
 
     // Dynamic Header
-    if (fwrite(Header, 1, 1024, vhd) != 1024) return 5;
+    if (fwrite(Header, 1, 1024, vhd) != 1024) return ERROR_WRITING;
 
     // Creates the empty BAT (max 4MB)
     uint32_t table_size = (4 * dwMaxTableEntries + 511) / 512 * 512;  // must span sectors
     void* table = malloc(table_size);
     memset(table, 0xFF, table_size);
-    if (fwrite(table, 1, table_size, vhd) != table_size) return 5;
+    if (fwrite(table, 1, table_size, vhd) != table_size) return ERROR_WRITING;
 
     // Main Footer
-    if(fwrite(Footer, 1, 512, vhd) != 512) return 5;
+    if(fwrite(Footer, 1, 512, vhd) != 512) return ERROR_WRITING;
 
     free(Footer);
     free(table);
     fclose(vhd);
 
-    return 0;
+    return OPEN_SUCCESS;
 }
 
-// Creates a Differencing VHD image. Returns zero for success, 1-5 in case of errors.
+//creates a Differencing VHD image
 uint32_t imageDiskVHD::CreateDifferencing(const char* filename, const char* basename) {
-    if(!filename) return 1;
-    if(!basename) return 2;
+    if(filename == NULL || basename == NULL)
+        return ERROR_OPENING;
 
     imageDiskVHD* base_vhd;
     if(Open(basename, true, (imageDisk**)&base_vhd) != OPEN_SUCCESS)
-        return 3;
+        return ERROR_OPENING_PARENT;
 
     FILE* vhd = fopen(filename, "wb");
-    if(!vhd) return 4;
+    if(!vhd) return ERROR_OPENING;
 
     char* Footer = (char*)malloc(1536);
     char* Header = Footer + 512;
-    //handles a Fixed VHD
+    // Handle a Fixed VHD
     if(((imageDisk*)base_vhd)->class_id != ID_VHD) {
         imageDisk* ima = base_vhd;
-        fseeko64(ima->diskimg, (uint64_t) ima->diskSizeK*1024, SEEK_SET);
-        fread(Footer, 1, 512, ima->diskimg);
-        //fills presets
+        fseeko64(ima->diskimg, -512, SEEK_END);
+        if (fread(Footer, 1, 512, ima->diskimg) != 512)
+            return ERROR_OPENING_PARENT;
+        //fill presets
         *((uint64_t*)(Footer + 16)) = SDL_SwapBE64(512); //u64DataOffset
         memset(Header, 0, 1024);
         memcpy(Header, dyn_head, sizeof(dyn_head));
@@ -684,7 +684,7 @@ uint32_t imageDiskVHD::CreateDifferencing(const char* filename, const char* base
         *(uint32_t*)(Header + 0x1C) = SDL_SwapBE32((ima->diskSizeK + 2047) / 2048); //dwMaxTableEntries
     }
     else {
-        //clones parent's VHD structures
+        // Clones parent's VHD structures
         memcpy(Footer, &base_vhd->originalFooter, 512);
         base_vhd->dynamicHeader.SwapByteOrder();
         memcpy(Header, &base_vhd->dynamicHeader, 1024);
@@ -714,7 +714,7 @@ uint32_t imageDiskVHD::CreateDifferencing(const char* filename, const char* base
     *((uint32_t*)(Footer + 64)) = SDL_SwapBE32(mk_crc((uint8_t*)Footer, 512));
 
     // Footer copy
-    if (fwrite(Footer, 1, 512, vhd) != 512) return 5;
+    if (fwrite(Footer, 1, 512, vhd) != 512) return ERROR_WRITING;
 
     // BAT size
     uint32_t dwMaxTableEntries = SDL_SwapBE32(*(uint32_t*)(Header + 0x1C));
@@ -732,12 +732,12 @@ uint32_t imageDiskVHD::CreateDifferencing(const char* filename, const char* base
     // Dynamic Header
     *((uint32_t*)(Header + 36)) = 0;
     *((uint32_t*)(Header + 36)) = SDL_SwapBE32(mk_crc((uint8_t*)Header, 1024));
-    if(fwrite(Header, 1, 1024, vhd) != 1024) return 5;
+    if(fwrite(Header, 1, 1024, vhd) != 1024) return ERROR_WRITING;
 
     // BAT
     void* table = malloc(table_size);
     memset(table, 0xFF, table_size);
-    if(fwrite(table, 1, table_size, vhd) != table_size) return 5;
+    if(fwrite(table, 1, table_size, vhd) != table_size) return ERROR_WRITING;
 
     // Relative Parent Locator sector(s)
     wchar_t* w_basename = (wchar_t*)malloc(platsize);
@@ -745,10 +745,10 @@ uint32_t imageDiskVHD::CreateDifferencing(const char* filename, const char* base
     for(uint32_t i = 0; i < l_basename; i++)
         // dirty hack to quickly convert ASCII -> UTF-16 *LE* and fix slashes
         w_basename[i] = SDL_SwapLE16(basename[i]=='/'? (uint16_t)'\\' : (uint16_t)basename[i]);
-    if (fwrite(w_basename, 1, platsize, vhd) != platsize) return 5;
+    if (fwrite(w_basename, 1, platsize, vhd) != platsize) return ERROR_WRITING;
  
     // Footer copy
-    if(fwrite(Footer, 1, 512, vhd) != 512) return 5;
+    if(fwrite(Footer, 1, 512, vhd) != 512) return ERROR_WRITING;
 
     delete base_vhd;
     fclose(vhd);
@@ -756,5 +756,98 @@ uint32_t imageDiskVHD::CreateDifferencing(const char* filename, const char* base
     free(table);
     free(w_basename);
 
-    return 0;
+    return OPEN_SUCCESS;
+}
+
+// Converts a raw fixed hard disk image into a Fixed VHD
+uint32_t imageDiskVHD::ConvertFixed(const char* filename) {
+    if(filename == NULL) return ERROR_OPENING;
+    FILE* vhd = fopen(filename, "r+b");
+    if(vhd == NULL) return ERROR_OPENING;
+    fseeko64(vhd, 0, SEEK_END);
+    uint64_t size = ftello64(vhd);
+    if(size < 3145728 || size > 2190433320960) {
+        LOG_MSG("Bad VHD size: valid range 3 MB - 2040 GB");
+        fclose(vhd);
+        return UNSUPPORTED_SIZE;
+    }
+
+    char* Footer = (char*)malloc(512);
+
+    //since IMGMOUNT fails when VHD pseudo CHS does not match BPB,
+    //we're coerced doing detection ourselves...
+ 
+    //detects FAT recorded geometry (MBR LBA only)
+    fseeko64(vhd, 0, SEEK_SET);
+    if(fread(Footer, 1, 512, vhd) != 512) {
+        free(Footer);
+        fclose(vhd);
+        return ERROR_OPENING;
+    }
+    if(*((uint32_t*)(Footer + 0x1C6))) {
+        uint32_t lba = *((uint32_t*)(Footer + 0x1C6)) * 512;
+        if(lba > (size - 512)) {
+            LOG_MSG("Bad LBA partition start in MBR");
+            free(Footer);
+            fclose(vhd);
+            return ERROR_OPENING;
+        }
+        fseeko64(vhd, (uint64_t) lba, SEEK_SET);
+    }
+    else { // CHS
+        LOG_MSG("CHS partition start not supported during VHD conversion");
+        free(Footer);
+        fclose(vhd);
+        return ERROR_OPENING;
+    }
+
+    fread(Footer, 1, 512, vhd);
+    uint16_t s = *((uint16_t*)(Footer + 0x18));
+    uint16_t h = *((uint16_t*)(Footer + 0x1A));
+    if(s > 63 || h > 255) {
+        LOG_MSG("Bad geometry detected in FAT BPB");
+        free(Footer);
+        fclose(vhd);
+        return ERROR_OPENING;
+    }
+
+    //new VHD Footer initialization
+    memset(Footer, 0, 512);
+    memcpy(Footer, footer_head, sizeof(footer_head));
+
+    *((uint64_t*)(Footer + 0x10)) = 0xFFFFFFFFFFFFFFFF; // Fixed type
+    *((uint32_t*)(Footer + 0x3C)) = SDL_SwapBE32(2);
+
+    time_t T;
+    time(&T);
+    *((uint32_t*)(Footer + 24)) = SDL_SwapBE32((uint32_t)T - 946681200);
+
+    srand(time(NULL));
+    *((uint64_t*)(Footer + 40)) = SDL_SwapBE64((uint64_t)size);  // u64OriginalSize
+    *((uint64_t*)(Footer + 48)) = SDL_SwapBE64((uint64_t)size);  // u64CurrentSize
+    *((uint16_t*)(Footer + 68)) = rand();                        // UUID
+    *((uint16_t*)(Footer + 70)) = rand();
+    *((uint16_t*)(Footer + 72)) = rand();
+    *((uint16_t*)(Footer + 74)) = rand();
+    *((uint16_t*)(Footer + 76)) = rand();
+    *((uint16_t*)(Footer + 78)) = rand();
+    *((uint16_t*)(Footer + 80)) = rand();
+    *((uint16_t*)(Footer + 82)) = rand();
+
+#if 0
+    //things could be easier
+    uint32_t c, h, s;
+    PseudoCHSFromSize(size, &c, &h, &s);
+#endif
+    uint16_t c = size / 512 / (h * s);
+    *((uint16_t*)(Footer + 56)) = SDL_SwapBE16((uint16_t)c);
+    *((uint16_t*)(Footer + 58)) = (uint8_t)h;
+    *((uint16_t*)(Footer + 59)) = (uint8_t)s;
+    *((uint32_t*)(Footer + 64)) = SDL_SwapBE32(mk_crc((uint8_t*)Footer, 512));
+
+    fseeko64(vhd, 0, SEEK_END);
+    if(fwrite(Footer, 1, 512, vhd) != 512) return ERROR_WRITING;
+    fclose(vhd);
+    free(Footer);
+    return OPEN_SUCCESS;
 }
