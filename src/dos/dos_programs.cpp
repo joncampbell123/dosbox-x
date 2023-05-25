@@ -3496,6 +3496,20 @@ restart_int:
                 return;
             }
         }
+        char extension[6] = {}; // care extensions longer than 3 letters such as '.vhdd'
+        if(temp_line.find_last_of('.') != std::string::npos) {
+            for(unsigned int i = 0; i < sizeof(extension) - 1; i++) {
+                if(temp_line.find_last_of('.') + i > temp_line.length() - 1) break;
+                extension[i] = temp_line[temp_line.find_last_of('.') + i];
+            }
+            extension[sizeof(extension) - 1] = '\0'; // Terminate string just in case
+        }
+        //avoids IMGMOUNT issues, since VHD psuedo-CHS != BPB algorithm (above)
+        //Windows 11 actually does NOT complain, other utilities (i.e. 7-zip) CAN!
+        if(disktype == "vhd" || !strcasecmp(extension, ".vhd")) {
+            imageDiskVHD::PseudoCHSFromSize(size, &c, &h, &s);
+            LOG_MSG("VHD geometry reset conforming to VHD specification");
+        }
         if (!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),temp_line.c_str(),c,h,s);
         LOG_MSG(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),temp_line.c_str(),c,h,s);
 
@@ -3506,25 +3520,17 @@ restart_int:
         if(disktype == "vhd") {
             uint32_t ret = imageDiskVHD::CreateDynamic(temp_line.c_str(), size);
             switch(ret) {
-            case 3:
-                WriteOut(MSG_Get("PROGRAM_IMGMAKE_VHD_ERR3"));
+            case imageDiskVHD::ERROR_OPENING:
+                WriteOut(MSG_Get("PROGRAM_VHDMAKE_ERROPEN"), temp_line.c_str());
                 return;
-            case 4:
-                WriteOut(MSG_Get("PROGRAM_IMGMAKE_VHD_ERR4"), temp_line.c_str());
-                return;
-            case 5:
-                WriteOut(MSG_Get("PROGRAM_IMGMAKE_VHD_ERR5"), temp_line.c_str());
+            case imageDiskVHD::ERROR_WRITING:
+                WriteOut(MSG_Get("PROGRAM_VHDMAKE_WRITERR"), temp_line.c_str());
                 return;
             }
-            if(imageDiskVHD::Open(temp_line.c_str(), false, (imageDisk**) &vhd) != imageDiskVHD::OPEN_SUCCESS)
+            if(imageDiskVHD::Open(temp_line.c_str(), false, (imageDisk**)&vhd) != imageDiskVHD::OPEN_SUCCESS) {
+                WriteOut(MSG_Get("PROGRAM_VHDMAKE_ERROPEN"), temp_line.c_str());
                 return;
-            // Reset these according to VHD pseudo-CHS geometry, avoiding IMGMOUNT issues!
-            // VHD psuedo-CHS algorithm != BPB algorithm (above)
-            c = vhd->cylinders > 1023? 1023 : vhd->cylinders;
-            h = vhd->heads;
-            s = vhd->sectors;
-            if(!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"), temp_line.c_str(), c, h, s);
-            LOG_MSG(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"), temp_line.c_str(), c, h, s);
+            }
         }
         else {
             f = fopen64(temp_line.c_str(), "wb+");
@@ -3966,14 +3972,6 @@ restart_int:
                 WriteOut("WARNING: Cluster sizes >= 64KB are not compatible with MS-DOS and SCANDISK\n");
         }
         // write VHD footer if requested, largely copied from RAW2VHD program, no license was included
-        char extension[6] = {}; // care extensions longer than 3 letters such as '.vhdd'
-        if(temp_line.find_last_of('.') != std::string::npos) {
-            for(unsigned int i = 0; i < sizeof(extension) - 1; i++) {
-                if(temp_line.find_last_of('.') + i > temp_line.length() - 1) break;
-                extension[i] = temp_line[temp_line.find_last_of('.') + i];
-            }
-            extension[sizeof(extension) - 1] = '\0'; // Terminate string just in case
-        }
         if((mediadesc == 0xF8) && disktype != "vhd" && !strcasecmp(extension, ".vhd")) {
             int i;
             uint8_t footer[512];
@@ -3991,9 +3989,6 @@ restart_int:
 #endif
             // size and geometry
             *(uint64_t*)(footer+0x30) = *(uint64_t*)(footer+0x28) = SDL_SwapBE64(size);
-            // WARNING: CHS geometry calculated by IMGMAKE differs from
-            // pseudo CHS geometry described in VHD spec: Windows 11 actually does
-            // NOT complain, other utilities (i.e. 7zFM) CAN!
             *(uint16_t*)(footer+0x38) = SDL_SwapBE16(c);
             *(uint8_t*)( footer+0x3A) = h;
             *(uint8_t*)( footer+0x3B) = s;
@@ -7823,6 +7818,9 @@ uint64_t VHDMAKE::ssizetou64(const char* s_size) {
 void VHDMAKE::Run()
 {
     bool bOverwrite = false;
+    bool bExists = false;
+    uint32_t ret;
+    char basename[256], filename[256];
 
 	// Hack To allow long commandlines
 	ChangeToLongCmd();
@@ -7836,14 +7834,39 @@ void VHDMAKE::Run()
     if(cmd->FindExist("-f", true))
         bOverwrite = true;
 
-    if(cmd->FindExist("-l", true)) {
-        char basename[256], newname[256];
+    if(cmd->FindExist("-c", true)) {
+        if(cmd->GetCount() > 2) {
+            PrintUsage();
+            return;
+        }
+        cmd->FindCommand(1, temp_line);
+        safe_strcpy(filename, temp_line.c_str()); // image to convert
+        cmd->FindCommand(2, temp_line);
+        safe_strcpy(basename, temp_line.c_str()); // resulting VHD (after renaming)
+        if(access(basename, 0) == 0) {
+            if(!bOverwrite) {
+                WriteOut(MSG_Get("PROGRAM_VHDMAKE_FNEEDED"));
+                return;
+            }
+            if(remove(basename)) {
+                WriteOut(MSG_Get("PROGRAM_VHDMAKE_REMOVEERR"), basename);
+            }
+        }
+        ret = imageDiskVHD::ConvertFixed(filename);
+        if(ret == imageDiskVHD::OPEN_SUCCESS) {
+            if (rename(filename, basename))
+                WriteOut(MSG_Get("PROGRAM_VHDMAKE_RENAME"));
+        }
+    }
+    else if(cmd->FindExist("-l", true)) {
+        if(cmd->GetCount() > 2) {
+            PrintUsage();
+            return;
+        }
         cmd->FindCommand(1, temp_line);
         safe_strcpy(basename, temp_line.c_str());
-
         cmd->FindCommand(2, temp_line);
-        safe_strcpy(newname, temp_line.c_str());
-
+        safe_strcpy(filename, temp_line.c_str());
 #ifdef WIN32
         if(basename[1] == ':')
             WriteOut(MSG_Get("PROGRAM_VHDMAKE_ABSPATH_WIN"));
@@ -7853,66 +7876,50 @@ void VHDMAKE::Run()
             return;
         }
 #endif
-        if(! bOverwrite && access(newname, 0) == 0) {
+        if(! bOverwrite && access(filename, 0) == 0) {
             WriteOut(MSG_Get("PROGRAM_VHDMAKE_FNEEDED"));
             return;
         }
-
-        uint32_t ret = imageDiskVHD::CreateDifferencing(newname, basename);
-        switch(ret) {
-        case 3:
-            WriteOut(MSG_Get("PROGRAM_VHDMAKE_BADPARENT"), basename);
-            break;
-        case 4:
-            WriteOut(MSG_Get("PROGRAM_IMGMAKE_VHD_ERR4"), basename);
-            break;
-        case 5:
-            WriteOut(MSG_Get("PROGRAM_IMGMAKE_VHD_ERR5"), basename);
-            break;
-        case 0:
-            WriteOut(MSG_Get("PROGRAM_VHDMAKE_SUCCESS"));
-            break;
-        }
-
+        ret = imageDiskVHD::CreateDifferencing(filename, basename);
     }
     else {
-        char filename[256], size[16];
+        if(cmd->GetCount() > 2) {
+            PrintUsage();
+            return;
+        }
+        char size[16];
         cmd->FindCommand(1, temp_line);
         safe_strcpy(filename, temp_line.c_str());
-
         cmd->FindCommand(2, temp_line);
         safe_strcpy(size, temp_line.c_str());
-
         uint64_t vhd_size = ssizetou64(size);
-        if(!vhd_size) {
+        if(!vhd_size || vhd_size < 3145728 || vhd_size > 2190433320960) {
             WriteOut(MSG_Get("PROGRAM_VHDMAKE_BADSIZE"));
             return;
         }
-
         if(!bOverwrite && access(filename, 0) == 0) {
             WriteOut(MSG_Get("PROGRAM_VHDMAKE_FNEEDED"));
             return;
         }
+        ret = imageDiskVHD::CreateDynamic(filename, vhd_size);
+    }
 
-        uint32_t ret = imageDiskVHD::CreateDynamic(filename, vhd_size);
-
-        switch(ret) {
-        case 2:
-            WriteOut(MSG_Get("PROGRAM_VHDMAKE_VHD_ERR2"));
-            break;
-        case 3:
-            WriteOut(MSG_Get("PROGRAM_IMGMAKE_VHD_ERR3"));
-            break;
-        case 4:
-            WriteOut(MSG_Get("PROGRAM_IMGMAKE_VHD_ERR4"), filename);
-            break;
-        case 5:
-            WriteOut(MSG_Get("PROGRAM_IMGMAKE_VHD_ERR5"), filename);
-            break;
-        default:
-            WriteOut(MSG_Get("PROGRAM_VHDMAKE_SUCCESS"));
-            break;
-        }
+    switch(ret) {
+    case imageDiskVHD::UNSUPPORTED_SIZE:
+        WriteOut(MSG_Get("PROGRAM_VHDMAKE_BADSIZE"));
+        break;
+    case imageDiskVHD::ERROR_OPENING:
+        WriteOut(MSG_Get("PROGRAM_VHDMAKE_ERROPEN"), filename);
+        break;
+    case imageDiskVHD::ERROR_OPENING_PARENT:
+        WriteOut(MSG_Get("PROGRAM_VHDMAKE_BADPARENT"), filename);
+        break;
+    case imageDiskVHD::ERROR_WRITING:
+        WriteOut(MSG_Get("PROGRAM_VHDMAKE_WRITERR"), filename);
+        break;
+    case imageDiskVHD::OPEN_SUCCESS:
+        WriteOut(MSG_Get("PROGRAM_VHDMAKE_SUCCESS"));
+        break;
     }
 }
 
@@ -9298,6 +9305,7 @@ void DOS_SetupPrograms(void) {
         "  \033[32;1mIMGMAKE -t fd\033[0m                   - create a 1.44MB floppy image \033[33;1mIMGMAKE.IMG\033[0m\n"
         "  \033[32;1mIMGMAKE -t fd_1440 -force\033[0m       - force to create a floppy image \033[33;1mIMGMAKE.IMG\033[0m\n"
         "  \033[32;1mIMGMAKE dos.img -t fd_2880\033[0m      - create a 2.88MB floppy image named dos.img\n"
+        "  \033[32;1mIMGMAKE new.vhd -t vhd -size 520\033[0m- create a 520MB Dynamic VHD named new.vhd\n"
 #ifdef WIN32
         "  \033[32;1mIMGMAKE c:\\disk.img -t hd -size 50\033[0m      - create a 50MB HDD image c:\\disk.img\n"
         "  \033[32;1mIMGMAKE c:\\disk.img -t hd_520 -nofs\033[0m     - create a 520MB blank HDD image\n"
@@ -9351,28 +9359,32 @@ void DOS_SetupPrograms(void) {
             "\033[34;1mMODE CON RATE=\033[0mr \033[34;1mDELAY=\033[0md :typematic rates, r=1-32 (32=fastest), d=1-4 (1=lowest)\n");
     MSG_Add("PROGRAM_MODE_INVALID_PARAMETERS","Invalid parameter(s).\n");
     MSG_Add("PROGRAM_PORT_INVALID_NUMBER","Must specify a port number between 1 and 9.\n");
-    MSG_Add("PROGRAM_IMGMAKE_VHD_ERR2", "Can't create a VHD <3 MB!\n");
-    MSG_Add("PROGRAM_IMGMAKE_VHD_ERR3", "Can't create a VHD >2040 GB!\n");
-    MSG_Add("PROGRAM_IMGMAKE_VHD_ERR4", "Error, could not open image file \"%s\" for writing.\n");
-    MSG_Add("PROGRAM_IMGMAKE_VHD_ERR5", "Could not write to new VHD image \"%s\", aborting.\n");
+    MSG_Add("PROGRAM_VHDMAKE_WRITERR", "Could not write to new VHD image \"%s\", aborting.\n");
+    MSG_Add("PROGRAM_VHDMAKE_REMOVEERR", "Could not erase file \"%s\"\n");
+    MSG_Add("PROGRAM_VHDMAKE_RENAME", "You'll have to manually rename the newly created VHD image.\n");
     MSG_Add("PROGRAM_VHDMAKE_SUCCESS", "New VHD image succesfully created. You can mount it with \033[34;1mIMGMOUNT\033[0m.\n");
+    MSG_Add("PROGRAM_VHDMAKE_ERROPEN", "Error, could not open image file \"%s\".\n");
     MSG_Add("PROGRAM_VHDMAKE_BADSIZE", "Bad VHD size specified, aborting!\n");
     MSG_Add("PROGRAM_VHDMAKE_FNEEDED", "A pre-existing VHD image can't be silently overwritten without -f option!\n");
     MSG_Add("PROGRAM_VHDMAKE_BADPARENT", "The parent VHD image \"%s\" can't be opened for linking, aborting!\n");
     MSG_Add("PROGRAM_VHDMAKE_ABSPATH_WIN", "Warning: an absolute path to parent limits portability to Windows.\nPlease prefer a path relative to differencing image file!\n");
     MSG_Add("PROGRAM_VHDMAKE_ABSPATH_UX", "ERROR: an absolute path to parent inhibits portability.\nUse a path relative to differencing image file!\n");
     MSG_Add("PROGRAM_VHDMAKE_HELP",
-        "Creates a new VHD image.\n\n"
-        "VHDMAKE [-f] new.vhd nnn[BKMGT]\n"
-        "VHDMAKE [-f] -l parent.vhd new.vhd\n\n"
-        " -f         Force overwriting a file\n"
-        " -l         Links to a parent VHD image\n"
-        " filename   Specifies the name of the new VHD image file\n"
-        " nnn        Specifies the disk size(eventually with size unit)\n"
-        "            (B)ytes is implicit\n"
-        " parent.vhd Specifies the base VHD to link the new differencing VHD to\n"
-        " new.vhd    Specifies the new differencing VHD to make\n\n"
-        "Default VHD image type is Dynamic.\n\n");
+        "Creates Dynamic or Differencing VHD images, or converts raw images\ninto Fixed VHD.\n"
+        "\033[32;1mVHDMAKE\033[0m \033[34;1m-c\033[0m raw.hdd new.vhd\n"
+        "\033[32;1mVHDMAKE\033[0m [-f] new.vhd size[BKMGT]\n"
+        "\033[32;1mVHDMAKE\033[0m [-f] \033[34;1m-l\033[0m parent.vhd new.vhd\n"
+        " -c         convert a raw hd image to Fixed VHD, renaming it to new.vhd\n"
+        " -l         create a new Differencing VHD new.vhd and link it to the\n"
+        "            pre-existing parent image parent.vhd\n"
+        " -f         force overwriting a pre-existing image file\n"
+        " new.vhd    name of the new Dynamic VHD image to create\n"
+        " size       disk size (eventually with size unit, Bytes is implicit)\n"
+        "When converting a raw disk image to Fixed VHD, it has to be partitioned with\n"
+        "MBR scheme and formatted with FAT format.\n"
+        "When creating a Dynamic VHD, its size must be >=3MB and <=2040GB.\n"
+        "The Dynamic VHD created is not partitioned nor formatted: to directly mount to\n"
+        "a drive letter with \033[34;1mIMGMOUNT\033[0m, please consider using \033[34;1mIMGMAKE\033[0m instead.");
 
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");
