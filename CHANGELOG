@@ -40,6 +40,7 @@ Next
     the clock starts from the host time. (joncampbell123)
   - Fixed VHD disk image calculation of footer position and, thus, of newly
     allocated block position. (maxpat78)
+  - Enhanced Dynamic and Differencing VHD support #4273 (maxpat78)
   - Imported IBM Music Feature Card support from DOSBox Staging. (Allofich)
 2023.05.01
   - IMGMAKE will choose LBA partition types for 2GB or larger disk
