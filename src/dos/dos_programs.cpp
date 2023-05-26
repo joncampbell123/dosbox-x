@@ -2595,15 +2595,11 @@ public:
 
 			if (quiet<2) {
 				if (!strlen(msg)) strcat(msg, CURSOR_POS_COL(page)>0?"\r\n":"");
-#if 1
-                WriteOut(MSG_Get("PROGRAM_BOOT_BOOTING"), drive);
-#else
-				strcat(msg, "Booting from drive ");
+				strcat(msg, MSG_Get("PROGRAM_BOOT_BOOTING"));
 				strcat(msg, std::string(1, drive).c_str());
 				strcat(msg, "...\r\n");
 				uint16_t s = (uint16_t)strlen(msg);
 				DOS_WriteFile(STDERR,(uint8_t*)msg,&s);
-#endif
 			}
             if (IS_DOSV) {
                 uint8_t mode = real_readb(BIOSMEM_SEG, BIOSMEM_CURRENT_MODE);
@@ -3388,7 +3384,7 @@ restart_int:
                 else {
                     // got chs data: -chs 1023,16,63
                     if(sscanf(isize.c_str(),"%u,%u,%u",&c,&h,&s) != 3) {
-                        printHelp();
+                        WriteOut(MSG_Get("PROGRAM_IMGMAKE_BADSIZE"));
                         return;
                     }
                     // sanity-check chs values
@@ -3399,7 +3395,7 @@ restart_int:
                     size = (unsigned long long)c * (unsigned long long)h * (unsigned long long)s * 512ULL;
                     if((size < 3u*1024u*1024u) || (size > 0x1FFFFFFFFLL)/*8GB*/) {
                         // user picked geometry resulting in wrong size
-                        printHelp();
+                        WriteOut(MSG_Get("PROGRAM_IMGMAKE_BADSIZE"));
                         return;
                     }
                 }
@@ -3412,7 +3408,12 @@ restart_int:
                 // Int13 limit would be 8 gigs
                 if((size < 3*1024*1024LL) || (size > 0x1FFFFFFFFFFLL)/*2TB*/) {
                     // wrong size
-                    printHelp();
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_BADSIZE"));
+                    return;
+                }
+                if(disktype == "vhd" && size > 2190433320960) {/*2040GB*/
+                    // wrong size
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_BADSIZE"));
                     return;
                 }
                 sectors = (unsigned int)(size / 512);
@@ -9167,7 +9168,8 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_BOOT_IMAGE_NOT_OPEN","Cannot open %s\n");
     MSG_Add("PROGRAM_BOOT_CART_WO_PCJR","PCjr cartridge found, but machine is not PCjr");
     MSG_Add("PROGRAM_BOOT_CART_LIST_CMDS","Available PCjr cartridge commandos:%s");
-    MSG_Add("PROGRAM_BOOT_CART_NO_CMDS","No PCjr cartridge commandos found");
+    MSG_Add("PROGRAM_BOOT_CART_NO_CMDS", "No PCjr cartridge commandos found");
+    MSG_Add("PROGRAM_BOOT_BOOTING", "Booting from drive ");
 
     MSG_Add("PROGRAM_LOADROM_HELP","Loads the specified ROM image file for video BIOS or IBM BASIC.\n\nLOADROM ROM_file\n");
     MSG_Add("PROGRAM_LOADROM_HELP","Must specify ROM file to load.\n");
@@ -9284,6 +9286,7 @@ void DOS_SetupPrograms(void) {
         "     hd_2gig: 2GB image, hd_4gig: 4GB image, hd_8gig: 8GB image\n"
         "     hd_st251: 40MB image, hd_st225: 20MB image (geometry from old drives)\n"
         "    \033[33;1mCustom hard disk images:\033[0m hd vhd (requires -size or -chs)\n"
+        "     vhd size is from 3 to 2088960 MB (2040 GB)\n"
         "  -size: Size of a custom hard disk image in MB.\n"
         "  -chs: Disk geometry in cylinders(1-1023),heads(1-255),sectors(1-63).\n"
         "  -nofs: Add this parameter if a blank image should be created.\n"
@@ -9331,6 +9334,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE","Not enough space available for the image file. Need %u bytes.\n");
     MSG_Add("PROGRAM_IMGMAKE_PRINT_CHS","Creating image file \"%s\" with %u cylinders, %u heads and %u sectors\n");
     MSG_Add("PROGRAM_IMGMAKE_CANT_READ_FLOPPY","\n\nUnable to read floppy.");
+    MSG_Add("PROGRAM_IMGMAKE_BADSIZE","Wrong -size or -chs arguments.\n");
 
     MSG_Add("PROGRAM_KEYB_INFO","Codepage %i has been loaded\n");
     MSG_Add("PROGRAM_KEYB_INFO_LAYOUT","Codepage %i has been loaded for layout %s\n");
