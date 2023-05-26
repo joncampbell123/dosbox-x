@@ -278,6 +278,8 @@ public:
 		INVALID_MATCH = 4,
 		INVALID_DATE = 5,
 		UNSUPPORTED_WRITE = 6,
+        UNSUPPORTED_SIZE = 7,
+        ERROR_WRITING = 8,
 		PARENT_ERROR = 0x10,
 		ERROR_OPENING_PARENT = 0x11,
 		PARENT_INVALID_DATA = 0x12,
@@ -298,7 +300,12 @@ public:
 	static ErrorCodes Open(const char* fileName, const bool readOnly, imageDisk** disk);
 	static VHDTypes GetVHDType(const char* fileName);
 	VHDTypes GetVHDType(void) const;
-	virtual ~imageDiskVHD();
+    static uint32_t CreateFixed(const char* filename, uint64_t size);
+    static uint32_t ConvertFixed(const char* filename);
+    static uint32_t CreateDynamic(const char* filename, uint64_t size);
+	static uint32_t CreateDifferencing(const char* filename, const char* basename);
+    static void PseudoCHSFromSize(uint64_t size, uint32_t* c, uint32_t* h, uint32_t* s);
+    virtual ~imageDiskVHD();
 
 private:
 	struct Geometry {
@@ -360,6 +367,7 @@ private:
 	static ErrorCodes Open(const char* fileName, const bool readOnly, imageDisk** disk, const uint8_t* matchUniqueId);
 	virtual bool loadBlock(const uint32_t blockNumber);
 	static bool convert_UTF16_for_fopen(std::string &string, const void* data, const uint32_t dataLength);
+    static uint32_t mk_crc(uint8_t* s, uint32_t size);
 
     imageDisk* parentDisk = NULL;
 	uint64_t footerPosition = 0;
