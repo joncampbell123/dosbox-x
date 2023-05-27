@@ -274,7 +274,7 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
         case 0x04:      /* Hours */
             if (cmos.ampm)              // 12h am/pm mode
             {
-                if ((val > 12 && val < 0x81) || val > 0x8c) return; // invalid hour value
+                if (val < 1 || (val > 12 && val < 0x81) || val > 0x8c) return; // invalid hour value
                 if (val > 12) val -= (0x80-12);         // convert pm to 24h
             }
             else                        // 24h mode
@@ -286,7 +286,7 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
         case 0x05:      /* Hours, alarm */
             if (cmos.ampm)              // 12h am/pm mode
             {
-                if ((val > 12 && val < 0x81) || val > 0x8c) return; // invalid hour value
+                if (val < 1 || (val > 12 && val < 0x81) || val > 0x8c) return; // invalid hour value
                 if (val > 12) val -= (0x80-12);         // convert pm to 24h
             }
             else                        // 24h mode
@@ -296,14 +296,16 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
 
             cmos.alarm.hour = val; break;
         case 0x06:      /* Day of week */
+            if (val < 1 || val > 7) return;                // invalid day of week value
             cmos.clock.weekday = val; break;
         case 0x07:      /* Date of month */
-            if (val > 31) return;               // invalid date value (mktime() should catch the rest)
+            if (val < 1 || val > 31) return;               // invalid date value (mktime() should catch the rest)
             cmos.clock.day = val; break;
         case 0x08:      /* Month */
             if (val < 1 || val > 12) return;               // invalid month value
             cmos.clock.month = val; break;
         case 0x09:      /* Year */
+            if (val > 99) return;                          // invalid year value
             cmos.clock.year -= cmos.clock.year % 100;
             cmos.clock.year += val;
             break;
