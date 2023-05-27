@@ -5,11 +5,11 @@ title: DOSBox-X Development Builds
 <script type="text/javascript">
 const repo = "joncampbell123/dosbox-x";
 
-function reportError(msg, e, alert=true, show_trace=false) {
+function reportError(msg, e, show_alert=true, show_trace=false) {
 	let stack = e ? "\n" + e.stack : "";
     console.error(e);
 	console.info(msg);
-    if (alert)
+    if (show_alert)
 	    alert(msg + show_trace ? stack : "");
 }
 
