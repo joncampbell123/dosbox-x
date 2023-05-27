@@ -26,11 +26,9 @@ function add_ci_build_entry(workflow_id, description, page = 1) {
     }
 
     function report_error_as_build_link(text) {
-        let error_text_el = document.createElement("span");
-        error_text_el.innerText = text;
-        error_text_el.style.color = "red";
+        let error_text_el = document.createTextNode(text);
         let build_status_el = build_entry.querySelector(".build-loading-status");
-        build_status_el.replaceChildren(error_text_el);
+        build_status_el.style.color = "red";
     }
 
     // GitHub has strict rate-limits for anonymous users: 60 requests per hour;
