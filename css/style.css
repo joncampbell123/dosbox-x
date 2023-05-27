@@ -366,6 +366,7 @@ table.hide-table-appearence > tbody > tr > td {
 
 .index-flex {
   margin: 0 10px;
+  margin-bottom: 10px;
   display: flex;
   justify-content: space-between;
   gap: 10px;
