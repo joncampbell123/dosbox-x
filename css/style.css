@@ -283,26 +283,6 @@ form {
   margin-bottom: 5px;
 }
 
-.home-link {
-  display: block;
-  padding: 10px;
-  color: #fff;
-  font-weight: 700;
-  box-shadow: 0 0 10px rgba(0,0,0,.5);
-  border-radius: 2px;
-}
-
-#linkwiki {
-  background-color: green;
-}
-#linktracker {
-  background-color: purple;
-}
-#linkproject {
-  background: url('../images/blacktocat.png') #0090ff no-repeat 95% 50%;
-  padding-right: 50px;
-}
-
 #header_wrap {
   background: #333399;
   background: -moz-linear-gradient(top, #373737, #333399);
@@ -435,7 +415,36 @@ table.hide-table-appearence > tbody > tr > td {
   display: none;
 }
 .home-links > tbody > tr > td {
+  vertical-align: middle;
+  text-align: center;
   border: 0;
+  padding: 0 5px;
+  height: 100%;
+}
+.home-links > tbody > tr > td > a {
+  display: block;
+  padding: 10px;
+  height: 100%;
+  box-shadow: 0 0 10px rgba(0,0,0,.5);
+  border-radius: 2px;
+  color: #fff;
+  font-weight: 700;
+}
+
+#linkwiki {
+  background-color: green;
+}
+#linktracker {
+  background-color: purple;
+}
+#linkproject {
+  background-color: #0090ff;
+}
+#linkproject > img {
+  vertical-align: middle;
+  width: 20px; /* hack, would be full size if i knew what im doing */
+  margin: 0;
+  margin-left: 5px;
 }
 
 h4.release-date {
