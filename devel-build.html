@@ -8,7 +8,7 @@ const repo = "joncampbell123/dosbox-x";
 function reportError(msg, e) {
 	let stack = e ? "\n" + e.stack : "";
 	alert(msg + stack);
-	console.log(msg, e);
+	console.log(msg, e ? "\n" : "", e);
 }
 
 // Fetch build status using GitHub API and update HTML
@@ -56,8 +56,6 @@ function add_ci_build_entry(workflow_id, description, page = 1) {
             }
 
             response.json().then((data) => {
-                // console.log(data.workflow_runs);
-
                 let status = data.workflow_runs
                     .filter(run => run.head_branch == "master")
                     .filter(run => (run.event == "push" || run.event == "workflow_dispatch"))
