@@ -406,6 +406,7 @@ table.hide-table-appearence > tbody > tr > td {
 @media (max-width: 720px) {
   .index-flex {
     flex-direction: column;
+    gap: 0;
   }
   .index-flex > div:nth-child(1) {
     order: 2;
