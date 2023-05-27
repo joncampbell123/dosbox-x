@@ -385,16 +385,6 @@ table.hide-table-appearence > tbody > tr > td {
 }
 */
 
-.home-links {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
-}
-.home-links > div {
-  flex-grow: 0;
-}
-
 .page-content-flex {
   display: flex;
   margin: auto;
@@ -426,11 +416,26 @@ table.hide-table-appearence > tbody > tr > td {
   }
 }
 
+.index-demos > thead {
+  display: none;
+}
 .index-demos > tbody > tr:nth-child(odd) > td {
   width: calc(100%/3);
 }
 .index-demos > tbody > tr:nth-child(odd) > td img {
   width: 90%;
+}
+
+.home-links {
+  border: 0;
+  margin-left: auto;
+  margin-right: auto;
+}
+.home-links > thead {
+  display: none;
+}
+.home-links > tbody > tr > td {
+  border: 0;
 }
 
 h4.release-date {

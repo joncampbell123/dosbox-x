@@ -8,26 +8,19 @@ Compared with DOSBox, DOSBox-X focuses more on general emulation and accuracy. I
 
 {% capture lang_file_loc %}https://raw.githubusercontent.com/joncampbell123/dosbox-x/{{ site.data.latest_version.git_tag }}{% endcapture %}
 
-| [![Word for DOS running in DOSBox-X](images/msword.png)](images/msword.png) | [![Tomb Raider 3dfx running in DOSBox-X](images/tomb3d.png)](images/tomb3d.png) | [![Windows 98 guest running in DOSBox-X](images/win98guest.png)](images/win98guest.png) |
-| **Word for DOS running in DOSBox-X** | **Tomb Raider 3dfx running in DOSBox-X** | **Windows 98 guest running in DOSBox-X** |
-| [![PC-98 Touhou game running in DOSBox-X](images/pc98touhou.png)](images/pc98touhou.png) | [![Configuration Tool running in DOSBox-X](images/configtool.png)](images/configtool.png) | [![Traditional Chinese TTF mode in DOSBox-X](images/ttfhe5.png)](images/ttfhe5.png) |
-| **PC-98 Touhou game running in DOSBox-X** (With [Japanese [日本語] language file]({{ lang_file_loc }}/contrib/translations/ja/ja_JP.lng)) | **Configuration Tool running in DOSBox-X** (With [Spanish [Español] language file]({{ lang_file_loc }}/contrib/translations/es/es_ES.lng)) | **Traditional Chinese TTF mode in DOSBox-X** (Chinese [中文] language files: [zh_CN]({{ lang_file_loc }}/contrib/translations/zh/zh_CN.lng) \| [zh_TW]({{ lang_file_loc }}/contrib/translations/zh/zh_TW.lng)) |
+|  |   |  |
+---|---|---
+[![Word for DOS running in DOSBox-X](images/msword.png)](images/msword.png) | [![Tomb Raider 3dfx running in DOSBox-X](images/tomb3d.png)](images/tomb3d.png) | [![Windows 98 guest running in DOSBox-X](images/win98guest.png)](images/win98guest.png)
+**Word for DOS running in DOSBox-X** | **Tomb Raider 3dfx running in DOSBox-X** | **Windows 98 guest running in DOSBox-X**
+[![PC-98 Touhou game running in DOSBox-X](images/pc98touhou.png)](images/pc98touhou.png) | [![Configuration Tool running in DOSBox-X](images/configtool.png)](images/configtool.png) | [![Traditional Chinese TTF mode in DOSBox-X](images/ttfhe5.png)](images/ttfhe5.png)
+**PC-98 Touhou game running in DOSBox-X** (With [Japanese [日本語] language file]({{ lang_file_loc }}/contrib/translations/ja/ja_JP.lng)) | **Configuration Tool running in DOSBox-X** (With [Spanish [Español] language file]({{ lang_file_loc }}/contrib/translations/es/es_ES.lng)) | **Traditional Chinese TTF mode in DOSBox-X** (Chinese [中文] language files: [zh_CN]({{ lang_file_loc }}/contrib/translations/zh/zh_CN.lng) \| [zh_TW]({{ lang_file_loc }}/contrib/translations/zh/zh_TW.lng))
 {:.align-center .index-demos}
 
 A few examples of DOSBox-X's unique features are available in the [DOSBox-X's Feature Highlights](wiki/DOSBox%E2%80%90X%E2%80%99s-Feature-Highlights){:target="_blank"} page. It is our hope to cover all features needed by DOS programs and games (and DOS-based Windows, etc), including, among many others, printing, networking, file/record-locking, clipboard, multimedia, 3dfx Voodoo & Glide, disk controller and IDE emulation, debugging features, etc, which are already supported; in some applications the software may also work in combination with 3rd-party solutions like [Printfil](https://www.printfil.com/) or [WinPrint](http://sourceforge.net/projects/winprint/) on Windows host systems for even smoother experiences.
 
 DOSBox-X maintains a [Wiki system](wiki/){:target="_blank"} (see also [guide page list](wiki/guides.html){:target="_blank"}) which explains how to set up DOSBox-X and configure different types of DOS software to run in DOSBox-X. Also, as DOSBox-X is an open-source project, we encourage you to contribute to DOSBox-X in order to make it work even better, such as suggesting or making enhancements, reporting or fixing bugs, language translations, and more. Please visit [our project website on GitHub](https://github.com/joncampbell123/dosbox-x) for further information. Feel free to leave comments or feedbacks as we would like to hear from you, and help is greatly appreciated since the main project developer only has limited time to work on DOSBox-X.
 
-<p>
-<div class="home-links">
-<div markdown="span">
-[View Wiki Guide](wiki/){:class="home-link" id="linkwiki" target="_blank"}
-</div>
-<div markdown="span">
-[View Issue Tracker](https://github.com/joncampbell123/dosbox-x/issues){:class="home-link" id="linktracker" target="_blank"}
-</div>
-<div markdown="span">
-[View Project on GitHub](https://github.com/joncampbell123/dosbox-x){:class="home-link" id="linkproject" target="_blank"}
-</div>
-</div>
-</p>
+|  |   |  |
+---|---|---
+| [View Wiki Guide](wiki/){:class="home-link" id="linkwiki" target="_blank"} | [View Issue Tracker](https://github.com/joncampbell123/dosbox-x/issues){:class="home-link" id="linktracker" target="_blank"} | [View Project on GitHub](https://github.com/joncampbell123/dosbox-x){:class="home-link" id="linkproject" target="_blank"} |
+{:.home-links}

@@ -14,8 +14,8 @@ layout: default
         <div>
             {% include version.html %}
         </div>
-        <div markdown="1">
-{{ content }}
+        <div>
+{{ content | markdownify }}
         </div>
     </div>
 </section>
