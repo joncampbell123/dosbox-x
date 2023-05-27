@@ -5,14 +5,16 @@ title: DOSBox-X Development Builds
 <script type="text/javascript">
 const repo = "joncampbell123/dosbox-x";
 
-function reportError(msg, e) {
+function reportError(msg, e, alert=true, show_trace=false) {
 	let stack = e ? "\n" + e.stack : "";
-	alert(msg + stack);
-	console.log(msg, e ? "\n" : "", e);
+    console.error(e);
+	console.info(msg);
+    if (alert)
+	    alert(msg + show_trace ? stack : "");
 }
 
 // Fetch build status using GitHub API and update HTML
-// The function is originally written by the DOSBox Staging Team
+// This code is originally written by the DOSBox Staging Team
 function add_ci_build_entry(workflow_id, description, page = 1) {
     let builds = document.querySelector("#builds");
     let build_entry_id = "build-" + workflow_id;
@@ -46,10 +48,10 @@ function add_ci_build_entry(workflow_id, description, page = 1) {
         "?page=" + page + "&per_page=" + per_page)
         .then((response) => {
             // Handle HTTP error
-            if (response.status != 200) {
-                reportError(`Looks like there was a problem while fetching the info of "${description}". ` +
-                            `Status code: ${response.status}`);
-                report_error_as_build_link(`Failed to fetch (${response.status})`);
+            if (!response.ok) {
+                reportError(`Looks like there was a problem while getting the info of "${description}". ` +
+                            `Status code: ${response.status}`, null, false);
+                report_error_as_build_link(`Got error (status code: ${response.status})`);
                 return;
             }
 
@@ -85,8 +87,8 @@ function add_ci_build_entry(workflow_id, description, page = 1) {
             });
       })
     .catch((err) => {
-        reportError(`Fetch Error for "${description}" :-S`, err);
-        report_error_as_build_link("Failed to fetch");
+        reportError(`Error ocurred for "${description}" :-S`, err, false);
+        report_error_as_build_link("Network error");
     });
 }
 
