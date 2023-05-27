@@ -7,21 +7,13 @@ const repo = "joncampbell123/dosbox-x";
 
 function reportError(msg, e) {
 	let stack = e ? "\n" + e.stack : "";
-	if (false)
-		alert(msg + stack);
+	alert(msg + stack);
 	console.log(msg, e);
 }
 
 // Fetch build status using GitHub API and update HTML
 // The function is originally written by the DOSBox Staging Team
 function add_ci_build_entry(workflow_id, description, page = 1) {
-    // GitHub has strict rate-limits for anonymous users: 60 requests per hour;
-    // We request 100 results per page (max allowed); main builds are very
-    // likely to be included in the first page anyway.
-    if (page > 10) {
-        return;
-    }
-
     let builds = document.querySelector("#builds");
     let build_entry_id = "build-" + workflow_id;
     let build_entry = builds.querySelector("#" + build_entry_id);
@@ -29,6 +21,24 @@ function add_ci_build_entry(workflow_id, description, page = 1) {
         build_entry = document.importNode(document.querySelector("#build-template").content.querySelector("tr"), true);
         build_entry.setAttribute("id", build_entry_id);
         builds.appendChild(build_entry);
+        let build_name_el = build_entry.querySelector(".build-loading-name");
+        build_name_el.innerText = description;
+    }
+
+    function report_error_as_build_link(text) {
+        let error_text_el = document.createElement("span");
+        error_text_el.innerText = text;
+        error_text_el.style.color = "red";
+        let build_status_el = build_entry.querySelector(".build-loading-status");
+        build_status_el.replaceChildren(error_text_el);
+    }
+
+    // GitHub has strict rate-limits for anonymous users: 60 requests per hour;
+    // We request 100 results per page (max allowed); main builds are very
+    // likely to be included in the first page anyway.
+    if (page > 10) {
+        report_error_as_build_link("Couldn't find most recent build");
+        return;
     }
 
     const per_page = 100;
@@ -38,9 +48,10 @@ function add_ci_build_entry(workflow_id, description, page = 1) {
         "?page=" + page + "&per_page=" + per_page)
         .then((response) => {
             // Handle HTTP error
-            if (response.status !== 200) {
-                reportError("Looks like there was a problem. " +
-                            "Status code: " + response.status);
+            if (response.status != 200) {
+                reportError(`Looks like there was a problem while fetching the info of "${description}". ` +
+                            `Status code: ${response.status}`);
+                report_error_as_build_link(`Failed to fetch (${response.status})`);
                 return;
             }
 
@@ -54,7 +65,7 @@ function add_ci_build_entry(workflow_id, description, page = 1) {
 
                 // If result not found, query the next page
                 if (!status) {
-                    add_ci_build_entry(workflow_id, page + 1);
+                    add_ci_build_entry(workflow_id, description, page + 1);
                     return;
                 }
 
@@ -77,9 +88,10 @@ function add_ci_build_entry(workflow_id, description, page = 1) {
                 date_el.textContent = build_date.toUTCString();
             });
       })
-      .catch((err) => {
-          reportError("Fetch Error :-S", err);
-      });
+    .catch((err) => {
+        reportError(`Fetch Error for "${description}" :-S`, err);
+        report_error_as_build_link("Failed to fetch");
+    });
 }
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -114,7 +126,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
 <template id="build-template">
     <tr>
-        <td class="build-link"><img style="margin: auto; margin-left: 0.1em;" src="images/dots.svg" class="devel-builds-dots"/></td>
+        <td class="build-link">
+            <span class="build-loading-name"></span>
+            <br/>
+            <span class="build-loading-status">
+                <img style="margin: auto; margin-left: 0.1em;" src="images/dots.svg" class="devel-builds-dots img-no-styling"/>
+            </span>
+        </td>
         <td class="build-commit">-</td>
         <td class="build-date">-</td>
     </tr>
