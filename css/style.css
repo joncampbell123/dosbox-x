@@ -65,30 +65,30 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
-  font-size: 36px;
+  font-size: 2em;
   font-weight: 700;
 }
 
 h2 {
+  font-size: 1.8em;
   padding-bottom: 10px;
-  font-size: 32px;
   background: url('../images/bg_hr.png') repeat-x bottom;
 }
 
 h3 {
-  font-size: 24px;
+  font-size: 1.5em;
 }
 
 h4 {
-  font-size: 21px;
+  font-size: 1.2em;
 }
 
 h5 {
-  font-size: 18px;
+  font-size: 1em;
 }
 
 h6 {
-  font-size: 16px;
+  font-size: 0.8em;
 }
 
 p {
@@ -131,7 +131,7 @@ strong {
   font-weight: bold;
 }
 
-img:not(#dosbox-x-logo, .devel-builds-dots) {
+img:not(.img-no-styling) {
   position: relative;
   margin: 0 auto;
   max-width: 739px;
@@ -192,7 +192,6 @@ blockquote {
   padding: 0 0 0 20px;
   border-left: 3px solid #bbb;
 }
-
 
 :not(li) > ul, ol, dl { /* HACK */
   margin-bottom: 15px
@@ -255,29 +254,33 @@ form {
   padding: 20px;
 }
 
-/*******************************************************************************
-*******************************************************************************/
+@media (max-width: 480px) {
+  body {
+    font-size: 14px;
+  }
+
+  code, pre {
+    min-width: calc(100%/1.5);
+    max-width: 100%;
+    font-size: 0.8em;
+  }
+}
 
 .outer {
   width: 100%;
 }
 
 .inner {
-  max-width: 62.5vw;
-  padding: 20px 10px;
+  min-width: calc(100%/1.5);
+  max-width: 62.5%;
   margin: 0 auto;
+  padding: 20px 10px;
 }
 
 #main_header p {
-  font-size: 18px;
+  font-size: 1.125em;
   margin: 0;
   margin-bottom: 5px;
-}
-
-@media screen and (max-width: 980px) {
-  #intro {
-    font-size: 17px;
-  }
 }
 
 .home-link {
@@ -312,16 +315,20 @@ form {
 }
 
 #header_wrap .inner {
-  padding: 20px 0;
-  max-width: 80vw;
+  max-width: 100%;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 50px;
 }
 
 #header_wrap .inner > :nth-child(1) {
   text-align: center;
+  flex-basis: 200px;
+}
+#header_wrap .inner > :nth-child(1) > img {
+  width: 90px;
+  height: auto;
+  margin: auto;
 }
 
 #header_wrap .inner > :nth-child(2) > :is(h1, h2) {
@@ -331,14 +338,14 @@ form {
 #project_title {
   margin: 0;
   color: #fff;
-  font-size: 42px;
+  font-size: 3em;
   font-weight: 700;
   text-shadow: #111 0px 0px 10px;
 }
 
 #project_tagline {
   color: #fff;
-  font-size: 24px;
+  font-size: 1.5em;
   font-weight: 300;
   background: none;
   text-shadow: #111 0px 0px 10px;
@@ -352,59 +359,6 @@ form {
 
 #footer_wrap {
   background: #000066;
-}
-
-@media screen and (max-width: 480px) {
-  body {
-    font-size: 14px;
-  }
-
-  #downloads {
-    display: none;
-  }
-
-  .inner {
-    min-width: 320px;
-    max-width: 480px;
-  }
-
-  #project_title {
-    font-size: 32px;
-  }
-
-  h1 {
-    font-size: 28px;
-  }
-
-  h2 {
-    font-size: 24px;
-  }
-
-  h3 {
-    font-size: 21px;
-  }
-
-  h4 {
-    font-size: 18px;
-  }
-
-  h5 {
-    font-size: 14px;
-  }
-
-  h6 {
-    font-size: 12px;
-  }
-
-  code, pre {
-    min-width: 320px;
-    max-width: 480px;
-    font-size: 11px;
-  }
-
-  #main_header p {
-    font-size: 14px;
-  }
 }
 
 .align-center,
@@ -443,16 +397,34 @@ table.hide-table-appearence > tbody > tr > td {
 .page-content-flex {
   display: flex;
   margin: auto;
+  width: 90%;
   max-width: 62.5em;
   text-align: left;
   justify-content: center;
   flex-direction: column;
 }
+
 .index-flex {
+  margin: 10px;
   display: flex;
   justify-content: space-between;
-  padding: 10px;
+  gap: 5px;
 }
+.index-flex > div:nth-child(1) {
+  flex: 0 0 auto;
+}
+@media (max-width: 480px) {
+  .index-flex {
+    flex-direction: column;
+  }
+  .index-flex > div:nth-child(1) {
+    order: 2;
+  }
+  .index-flex > div:nth-child(2) {
+    order: 1;
+  }
+}
+
 h4.release-date {
   font-weight: normal;
 }
@@ -462,6 +434,7 @@ h4.release-date {
 .release-date-text {
   color: green;
 }
+
 .wiki-flex {
   display: flex;
   flex-direction: column;
