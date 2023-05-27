@@ -36,26 +36,6 @@
 #include "sys/time.h"
 #endif
 
-// sigh... Windows doesn't know gettimeofday
-#if defined (WIN32) && !defined (__MINGW32__)
-typedef Bitu suseconds_t;
-
-struct timeval {
-    time_t tv_sec;
-    suseconds_t tv_usec;
-};
-
-static void gettimeofday (timeval* ptime, void* pdummy) {
-    (void)pdummy;
-    struct _timeb thetime;
-    _ftime(&thetime);
-
-    ptime->tv_sec = thetime.time;
-    ptime->tv_usec = (Bitu)thetime.millitm;
-}
-
-#endif
-
 static struct {
     uint8_t regs[0x40];
     bool nmi;
@@ -247,9 +227,9 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
             // other checks for valid values are done in case-switch
 
             // convert pm hours differently (bcd 81-92 corresponds to hex 81-8c)
-            if (cmos.reg == 0x04 && val >= 0x80)
+            if ((cmos.reg == 0x04 || cmos.reg == 0x05) && val >= 0x80)
             {
-                val = (val < 90) ? 0x80 : 0x8a + (val & 0x0f);
+                val = 0x8a + (val & 0x0f);
             }
             else
             {
