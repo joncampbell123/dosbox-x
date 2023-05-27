@@ -391,10 +391,10 @@ table.hide-table-appearence > tbody > tr > td {
   display: none;
 }
 .index-demos > tbody > tr:nth-child(odd) > td {
-  max-width: calc(100%/3);
+  width: calc(100%/3);
 }
 .index-demos > tbody > tr:nth-child(odd) > td img {
-  max-width: 90%;
+  width: 90%;
 }
 
 .home-links {
