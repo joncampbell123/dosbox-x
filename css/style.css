@@ -247,7 +247,6 @@ th {
 td {
   padding: 10px;
   border: 1px solid #373737;
-  min-width: 100px;
 }
 
 form {
@@ -369,7 +368,7 @@ table.align-center > tbody > tr > td {
 }
 #main_header {
   text-align: center;
-  padding: 5px 6.25vw;
+  padding: 5px 6.25%;
 }
 .subtitle-mute {
   font-size: 16px;
@@ -399,12 +398,12 @@ table.hide-table-appearence > tbody > tr > td {
   margin: 10px;
   display: flex;
   justify-content: space-between;
-  gap: 5px;
+  gap: 10px;
 }
 .index-flex > div:nth-child(1) {
   flex: 0 0 auto;
 }
-@media (max-width: 480px) {
+@media (max-width: 720px) {
   .index-flex {
     flex-direction: column;
   }
@@ -420,10 +419,10 @@ table.hide-table-appearence > tbody > tr > td {
   display: none;
 }
 .index-demos > tbody > tr:nth-child(odd) > td {
-  width: calc(100%/3);
+  max-width: calc(100%/3);
 }
 .index-demos > tbody > tr:nth-child(odd) > td img {
-  width: 90%;
+  max-width: 90%;
 }
 
 .home-links {
