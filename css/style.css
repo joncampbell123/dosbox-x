@@ -247,6 +247,7 @@ th {
 td {
   padding: 10px;
   border: 1px solid #373737;
+  min-width: 100px;
 }
 
 form {

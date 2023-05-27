@@ -103,22 +103,16 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
-<div style="text-align: center;">
+<div class="align-center">
+<p>These are development (preview) builds intended for testing purposes for the supported platforms.</p>
+<p>If you instead want to download the release builds, go to the <a href="{{ '/' | relative_url }}">DOSBox-X homepage</a> or <a href="https://github.com/joncampbell123/dosbox-x/releases">Releases page</a>.</p>
+<p>Both SDL1 &amp; SDL2 builds are provided for each platform below except the SDL1-only HX-DOS target.</p>
+<p><em><strong>Note:</strong> Build artifacts are hosted on <a href="https://github.com/">GitHub</a>; you need to be logged in to download them.</em></p>
 
-<p>
-    These are development (preview) builds intended for testing purposes for the supported platforms.
-    <br />
-    If you instead want to download the release builds, go to the <a href="{{ '/' | relative_url }}">DOSBox-X homepage</a> or <a href="https://github.com/joncampbell123/dosbox-x/releases">Release page</a>.
-    <br />
-    Both SDL1 &amp; SDL2 builds are provided for each platform below except the SDL1-only HX-DOS target.
-</p>
-
-<p>
-    <em><strong>Note:</strong> Build artifacts are hosted on <a href="https://github.com/">GitHub</a>; you need to be logged in to download them.</em>
-</p>
 <noscript>
-	<p>This page requires JavaScript.</p>
+	<p><strong>This page requires JavaScript.</strong></p>
 </noscript>
+</div>
 
 <template id="build-template">
     <tr>
@@ -141,5 +135,3 @@ document.addEventListener("DOMContentLoaded", () => {
         <th>Date</th>
     </tr>
 </table>
-
-</div>
