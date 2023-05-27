@@ -426,6 +426,13 @@ table.hide-table-appearence > tbody > tr > td {
   }
 }
 
+.index-demos > tbody > tr:nth-child(odd) > td {
+  width: calc(100%/3);
+}
+.index-demos > tbody > tr:nth-child(odd) > td img {
+  width: 90%;
+}
+
 h4.release-date {
   font-weight: normal;
 }

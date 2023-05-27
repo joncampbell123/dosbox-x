@@ -8,56 +8,11 @@ Compared with DOSBox, DOSBox-X focuses more on general emulation and accuracy. I
 
 {% capture lang_file_loc %}https://raw.githubusercontent.com/joncampbell123/dosbox-x/{{ site.data.latest_version.git_tag }}{% endcapture %}
 
-<!-- TODO: convert this to use a Markdown table -->
-<table style="width: 100%" class="align-center">
-<tr>
-<td width="33%" markdown="span">
-[![Word for DOS running in DOSBox-X](images/msword.png){:width="90%"}](images/msword.png)
-</td>
-<td width="33%" markdown="span">
-[![Tomb Raider 3dfx running in DOSBox-X](images/tomb3d.png){:width="90%"}](images/tomb3d.png)
-</td>
-<td width="33%" markdown="span">
-[![Windows 98 guest running in DOSBox-X](images/win98guest.png){:width="90%"}](images/win98guest.png)
-</td>
-</tr>
-
-<tr>
-<td markdown="span">
-**Word for DOS running in DOSBox-X**
-</td>
-<td markdown="span">
-**Tomb Raider 3dfx running in DOSBox-X**
-</td>
-<td markdown="span">
-**Windows 98 guest running in DOSBox-X**
-</td>
-</tr>
-
-<tr>
-<td width="33%" markdown="span">
-[![PC-98 Touhou game running in DOSBox-X](images/pc98touhou.png){:width="90%"}](images/pc98touhou.png)
-</td>
-<td width="33%" markdown="span">
-[![Configuration Tool running in DOSBox-X](images/configtool.png){:width="90%"}](images/configtool.png)
-</td>
-<td width="33%" markdown="span">
-[![Traditional Chinese TTF mode in DOSBox-X](images/ttfhe5.png){:width="90%"}](images/ttfhe5.png)
-</td>
-</tr>
-
-<tr>
-<td markdown="span">
-**PC-98 Touhou game running in DOSBox-X** (With [Japanese [日本語] language file]({{ lang_file_loc }}/contrib/translations/ja/ja_JP.lng))
-</td>
-<td markdown="span">
-**Configuration Tool running in DOSBox-X** (With [Spanish [Español] language file]({{ lang_file_loc }}/contrib/translations/es/es_ES.lng))
-</td>
-<td markdown="span">
-**Traditional Chinese TTF mode in DOSBox-X** (Chinese [中文] language files: [zh_CN]({{ lang_file_loc }}/contrib/translations/zh/zh_CN.lng) \| [zh_TW]({{ lang_file_loc }}/contrib/translations/zh/zh_TW.lng))
-</td>
-</tr>
-</table>
+| [![Word for DOS running in DOSBox-X](images/msword.png)](images/msword.png) | [![Tomb Raider 3dfx running in DOSBox-X](images/tomb3d.png)](images/tomb3d.png) | [![Windows 98 guest running in DOSBox-X](images/win98guest.png)](images/win98guest.png) |
+| **Word for DOS running in DOSBox-X** | **Tomb Raider 3dfx running in DOSBox-X** | **Windows 98 guest running in DOSBox-X** |
+| [![PC-98 Touhou game running in DOSBox-X](images/pc98touhou.png)](images/pc98touhou.png) | [![Configuration Tool running in DOSBox-X](images/configtool.png)](images/configtool.png) | [![Traditional Chinese TTF mode in DOSBox-X](images/ttfhe5.png)](images/ttfhe5.png) |
+| **PC-98 Touhou game running in DOSBox-X** (With [Japanese [日本語] language file]({{ lang_file_loc }}/contrib/translations/ja/ja_JP.lng)) | **Configuration Tool running in DOSBox-X** (With [Spanish [Español] language file]({{ lang_file_loc }}/contrib/translations/es/es_ES.lng)) | **Traditional Chinese TTF mode in DOSBox-X** (Chinese [中文] language files: [zh_CN]({{ lang_file_loc }}/contrib/translations/zh/zh_CN.lng) \| [zh_TW]({{ lang_file_loc }}/contrib/translations/zh/zh_TW.lng)) |
+{:.align-center .index-demos}
 
 A few examples of DOSBox-X's unique features are available in the [DOSBox-X's Feature Highlights](wiki/DOSBox%E2%80%90X%E2%80%99s-Feature-Highlights){:target="_blank"} page. It is our hope to cover all features needed by DOS programs and games (and DOS-based Windows, etc), including, among many others, printing, networking, file/record-locking, clipboard, multimedia, 3dfx Voodoo & Glide, disk controller and IDE emulation, debugging features, etc, which are already supported; in some applications the software may also work in combination with 3rd-party solutions like [Printfil](https://www.printfil.com/) or [WinPrint](http://sourceforge.net/projects/winprint/) on Windows host systems for even smoother experiences.
 
