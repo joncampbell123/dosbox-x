@@ -1,11 +1,20 @@
+{%- assign title = site.title -%}
+{%- assign tagline = site.tagline -%}
+{%- assign main_page = "/" -%}
+{%- if page.blog or layout.blog -%}
+{%- assign title = site.blog.title -%}
+{%- assign tagline = site.blog.description -%}
+{%- assign main_page = "/blog/devtest" -%}
+{%- endif -%}
+
 <header>
     <div>
         <div>
             <img id="dosbox-x-logo" class="img-no-styling" src="{{ '/images/dosbox-x-logo.svg' | relative_url }}" title="DOSBox-X" alt="DOSBox-X logo" />
         </div>
         <div>
-            <h1 id="project_title">{{ site.title }}</h1>
-            <h2 id="project_tagline">{{ site.tagline }}</h2>
+            <h1 id="project_title"><a href="{{ main_page | relative_url }}" title="{{ title | escape }} main page">{{ title | escape }}</a></h1>
+            <h2 id="project_tagline">{{ tagline | escape | newline_to_br }}</h2>
         </div>
     </div>
     <hr />
