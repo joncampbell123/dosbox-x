@@ -11,7 +11,7 @@
     <title>
         {%- if page.layout == "release_notes" -%}
         {%- comment -%} FIXME: Hardcoding this because I don't know how to implement this otherwise {%- endcomment -%}
-        DOSBox-X {{ page.slug }}{%- if page.version_secondary -%} ({{ page.version_secondary }}){%- endif -%} Release Notes - {{ site.title }}
+        DOSBox-X {{ page.slug }}{%- if page.version_secondary %} ({{ page.version_secondary }}){%- endif %} Release Notes - {{ site.title }}
         {%- elsif page.title -%}
         {{ page.title }} - {{ site.title }}
         {%- else -%}
