@@ -322,18 +322,9 @@ table.align-center > tbody > tr > td,
   color: grey;
 }
 
-/*
-This should never be used
-table.hide-table-appearence,
-table.hide-table-appearence > tbody > tr > th,
-table.hide-table-appearence > tbody > tr > td {
-  border: none;
-}
-*/
-
 article,
 .align-left,
-table.align-left > tbody > tr > th,
+table.align-left > thead > tr > th,
 table.align-left > tbody > tr > td {
   text-align: left;
 }
