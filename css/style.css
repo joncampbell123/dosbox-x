@@ -453,5 +453,6 @@ footer {
   background: #000066;
 }
 footer > :nth-child(2) {
-  padding: 10px calc(10% + 20px);
+  text-align: center;
+  margin: auto;
 }
