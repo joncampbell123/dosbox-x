@@ -448,14 +448,16 @@ h4.release-date {
   color: green;
 }
 
-.wiki-flex {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+.wiki-index-html {
+  max-height: 100vh;
 }
-.wiki-flex > :nth-child(2) {
-  display: contents;
-  flex-grow: 1;
+.wiki-index-html nav {
+  background-color: #F8F8F7;
+  text-align: center;
+  height: 15vh;
+}
+.wiki-index-html main {
+  overflow: hidden;
 }
 
 footer {
