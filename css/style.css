@@ -366,7 +366,7 @@ table.hide-table-appearence > tbody > tr > td {
 
 .index-flex {
   margin: 0 10px;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
   display: flex;
   justify-content: space-between;
   gap: 10px;
@@ -398,44 +398,44 @@ table.hide-table-appearence > tbody > tr > td {
 }
 
 .home-links {
-  border: 0;
+  border: none;
+  margin: 0;
   margin-left: auto;
   margin-right: auto;
+  border-collapse: separate;
+  border-spacing: 5px 0;
 }
 .home-links > thead {
   display: none;
 }
 .home-links > tbody > tr > td {
-  vertical-align: middle;
-  text-align: center;
-  border: 0;
-  padding: 0 5px;
   height: 100%;
+  border: 0;
+  border-radius: 2px;
+  box-shadow: 0 0 10px rgba(0,0,0,.5);
+  padding: 5px 10px;
+  text-align: center;
 }
 .home-links > tbody > tr > td > a {
-  display: block;
-  padding: 10px;
-  height: 100%;
-  box-shadow: 0 0 10px rgba(0,0,0,.5);
-  border-radius: 2px;
   color: #fff;
   font-weight: 700;
+  vertical-align: middle;
 }
 
-#linkwiki {
+.home-links > tbody > tr > td:has(#linkwiki) {
   background-color: green;
 }
-#linktracker {
+.home-links > tbody > tr > td:has(#linktracker) {
   background-color: purple;
 }
-#linkproject {
+.home-links > tbody > tr > td:has(#linkproject) {
   background-color: #0090ff;
 }
-#linkproject > img {
-  vertical-align: middle;
-  width: 20px; /* hack, would be full size if i knew what im doing */
+#linkproject ~ img {
   margin: 0;
   margin-left: 5px;
+  vertical-align: middle;
+  width: calc(30px*75%);
 }
 
 h4.release-date {
