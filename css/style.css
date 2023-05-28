@@ -319,6 +319,10 @@ table.align-center > tbody > tr > td,
 .index-demos > tbody > tr > td {
   text-align: center;
 }
+.index-demos > thead > tr > th,
+.index-demos > tbody > tr > td {
+  vertical-align: middle;
+}
 
 article,
 .align-left,
