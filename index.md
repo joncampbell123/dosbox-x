@@ -7,13 +7,14 @@ DOSBox-X emulates a PC necessary for running many DOS games and applications tha
 Compared with DOSBox, DOSBox-X focuses more on general emulation and accuracy. In order to help running DOS games and applications, Windows 3.x/9x/Me, as well as for the purpose of historical preservation, testing and continued DOS developments, it is our desire to implement accurate emulation, accurate enough to [help make new DOS developments possible](newdosdevelopment.html) with confidence the program will run properly on actual DOS systems. DOSBox-X includes various features for different purposes (some of them ported from other projects), which are implemented as incremental changes since it was forked from DOSBox SVN Daum. DOSBox-X provides many ways to tweak and configure the DOS virtual machine, as we believe a better way to emulate the DOS platform is to give users all the options they need to emulate everything from the original IBM PC system all the way up to late 1990's configuration, whatever it takes to get your game or software package to run. Our goal is to eventually make DOSBox-X a complete emulation package that covers all pre-2000 DOS and Windows 9x based system scenarios, including peripherals, motherboards, CPUs, and all manner of hardware that was made for PC hardware of that time. Below are screenshots of some DOS programs and games running in DOSBox-X.
 
 {% capture lang_file_loc %}https://raw.githubusercontent.com/joncampbell123/dosbox-x/{{ site.data.latest_version.git_tag }}{% endcapture %}
+{:img-size-limit: width="90%"}
 
-[![Word for DOS running in DOSBox-X](images/msword.png)](images/msword.png) | [![Tomb Raider 3dfx running in DOSBox-X](images/tomb3d.png)](images/tomb3d.png) | [![Windows 98 guest running in DOSBox-X](images/win98guest.png)](images/win98guest.png)
+[![Word for DOS running in DOSBox-X](images/msword.png){:img-size-limit}](images/msword.png) | [![Tomb Raider 3dfx running in DOSBox-X](images/tomb3d.png){:img-size-limit}](images/tomb3d.png) | [![Windows 98 guest running in DOSBox-X](images/win98guest.png){:img-size-limit}](images/win98guest.png)
 ---|---|---
 **Word for DOS running in DOSBox-X** | **Tomb Raider 3dfx running in DOSBox-X** | **Windows 98 guest running in DOSBox-X**
 {:.index-demos}
 
-[![PC-98 Touhou game running in DOSBox-X](images/pc98touhou.png)](images/pc98touhou.png) | [![Configuration Tool running in DOSBox-X](images/configtool.png)](images/configtool.png) | [![Traditional Chinese TTF mode in DOSBox-X](images/ttfhe5.png)](images/ttfhe5.png)
+[![PC-98 Touhou game running in DOSBox-X](images/pc98touhou.png){:img-size-limit}](images/pc98touhou.png) | [![Configuration Tool running in DOSBox-X](images/configtool.png){:img-size-limit}](images/configtool.png) | [![Traditional Chinese TTF mode in DOSBox-X](images/ttfhe5.png){:img-size-limit}](images/ttfhe5.png)
 ---|---|---
 **PC-98 Touhou game running in DOSBox-X** (With [Japanese [日本語] language file]({{ lang_file_loc }}/contrib/translations/ja/ja_JP.lng)) | **Configuration Tool running in DOSBox-X** (With [Spanish [Español] language file]({{ lang_file_loc }}/contrib/translations/es/es_ES.lng)) | **Traditional Chinese TTF mode in DOSBox-X** (Chinese [中文] language files: [zh_CN]({{ lang_file_loc }}/contrib/translations/zh/zh_CN.lng) \| [zh_TW]({{ lang_file_loc }}/contrib/translations/zh/zh_TW.lng))
 {:.index-demos}

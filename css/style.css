@@ -383,9 +383,6 @@ table.align-left > tbody > tr > td {
 .index-demos > thead > tr > th {
   background: none;
 }
-.index-demos > thead > tr > th img {
-  width: 90%;
-}
 .index-demos > thead > tr > th,
 .index-demos > tbody > tr > td {
   padding: 0;
