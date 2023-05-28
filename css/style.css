@@ -384,6 +384,7 @@ table.hide-table-appearence > tbody > tr > td {
   }
   .index-flex > div:nth-child(2) {
     order: 1;
+    margin-bottom: 10px;
   }
 }
 
