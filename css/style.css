@@ -356,21 +356,23 @@ table.align-left > tbody > tr > td {
   text-align: left;
 }
 .index-flex > :nth-child(1) {
-  flex: 0 1 20%;
+  order: 2;
+  flex: 1 1 80%;
 }
 .index-flex > :nth-child(2) {
-  flex: 1 1 80%;
+  order: 1;
+  flex: 0 1 20%;
 }
 @media (max-width: 720px) {
   .index-flex {
     flex-direction: column;
   }
   .index-flex > :nth-child(1) {
-    order: 2;
-  }
-  .index-flex > :nth-child(2) {
     order: 1;
     margin-bottom: 10px;
+  }
+  .index-flex > :nth-child(2) {
+    order: 2;
   }
 }
 
