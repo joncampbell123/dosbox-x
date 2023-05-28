@@ -448,13 +448,13 @@ h4.release-date {
   color: green;
 }
 
+html:has(.wiki-index-html),
 .wiki-index-html {
   max-height: 100vh;
 }
 .wiki-index-html nav {
   background-color: #F8F8F7;
   text-align: center;
-  height: 15vh;
 }
 .wiki-index-html main {
   overflow: hidden;
