@@ -462,5 +462,5 @@ html:has(.wiki-index-html),
 
 footer {
   background: #000066;
-  padding: 10px calc(18.75% + 20px);
+  padding: 10px calc(10% + 20px);
 }
