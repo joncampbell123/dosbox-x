@@ -394,7 +394,7 @@ table.align-left > tbody > tr > td {
   margin-left: auto;
   margin-right: auto;
   border-collapse: separate;
-  border-spacing: 5px 0;
+  border-spacing: 10px 0;
 }
 .home-links > thead {
   display: none;
@@ -403,11 +403,11 @@ table.align-left > tbody > tr > td {
   height: 100%;
   border: 0;
   border-radius: 2px;
-  box-shadow: 0 0 10px rgba(0,0,0,.5);
-  padding: 5px 10px;
+  box-shadow: 0 0 5px rgba(0,0,0,.5);
+  padding: 10px 15px;
   text-align: center;
 }
-.home-links > tbody > tr > td > a {
+.home-links > tbody > tr > td > * {
   color: #fff;
   font-weight: 700;
   vertical-align: middle;
@@ -425,8 +425,7 @@ table.align-left > tbody > tr > td {
 #linkproject ~ img {
   margin: 0;
   margin-left: 5px;
-  vertical-align: middle;
-  width: calc(30px*75%);
+  width: 24px;
 }
 
 h4.release-date {
