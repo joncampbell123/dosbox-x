@@ -8,11 +8,13 @@ Compared with DOSBox, DOSBox-X focuses more on general emulation and accuracy. I
 
 {% capture lang_file_loc %}https://raw.githubusercontent.com/joncampbell123/dosbox-x/{{ site.data.latest_version.git_tag }}{% endcapture %}
 
-|  |   |  |
----|---|---
 [![Word for DOS running in DOSBox-X](images/msword.png)](images/msword.png) | [![Tomb Raider 3dfx running in DOSBox-X](images/tomb3d.png)](images/tomb3d.png) | [![Windows 98 guest running in DOSBox-X](images/win98guest.png)](images/win98guest.png)
+---|---|---
 **Word for DOS running in DOSBox-X** | **Tomb Raider 3dfx running in DOSBox-X** | **Windows 98 guest running in DOSBox-X**
+{:.align-center .index-demos}
+
 [![PC-98 Touhou game running in DOSBox-X](images/pc98touhou.png)](images/pc98touhou.png) | [![Configuration Tool running in DOSBox-X](images/configtool.png)](images/configtool.png) | [![Traditional Chinese TTF mode in DOSBox-X](images/ttfhe5.png)](images/ttfhe5.png)
+---|---|---
 **PC-98 Touhou game running in DOSBox-X** (With [Japanese [日本語] language file]({{ lang_file_loc }}/contrib/translations/ja/ja_JP.lng)) | **Configuration Tool running in DOSBox-X** (With [Spanish [Español] language file]({{ lang_file_loc }}/contrib/translations/es/es_ES.lng)) | **Traditional Chinese TTF mode in DOSBox-X** (Chinese [中文] language files: [zh_CN]({{ lang_file_loc }}/contrib/translations/zh/zh_CN.lng) \| [zh_TW]({{ lang_file_loc }}/contrib/translations/zh/zh_TW.lng))
 {:.align-center .index-demos}
 
