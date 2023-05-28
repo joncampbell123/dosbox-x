@@ -275,21 +275,16 @@ header > :nth-child(1) > img {
 header > :nth-child(2) {
   vertical-align: middle;
 }
-header > :nth-child(2) > p {
+header > :nth-child(2) > * {
   margin: 0;
+  background: none;
   color: #fff;
   text-shadow: #111 0px 0px 10px;
   letter-spacing: -1px;
-}
-
-#project_title {
-  font-size: 3em;
-  font-weight: 700;
   line-height: 1.25;
 }
 
 #project_tagline {
-  font-size: 1.5em;
   font-weight: 300;
 }
 
