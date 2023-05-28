@@ -307,9 +307,9 @@ header > :nth-child(2) > * {
 
 .main_content_wrap,
 .align-center,
-table.align-center > tbody > tr > th,
+table.align-center > thead > tr > th,
 table.align-center > tbody > tr > td,
-.index-demos > tbody > tr > th,
+.index-demos > thead > tr > th,
 .index-demos > tbody > tr > td {
   text-align: center;
 }
