@@ -1,17 +1,17 @@
-{% assign version = site.data.latest_version -%}
-{% for release in site.release_notes -%}
+{%- assign version = site.data.latest_version -%}
+{%- for release in site.release_notes -%}
     {%- if release.slug == version.version -%}
         {%- assign release_note = release -%}
-        {% break %}
+        {%- break -%}
     {%- endif -%}
-{%- endfor %}
+{%- endfor -%}
 
-<h4>Latest Release: <span class="latest-release-text">{{ version.version }}</span>{% if release_note and release_note.version_secondary %} ({{ release_note.version_secondary }}){% endif %}</h4>
+<h4>Latest Release: <span class="latest-release-text">{{ version.version }}</span>{%- if release_note and release_note.version_secondary -%} ({{ release_note.version_secondary }}){%- endif -%}</h4>
 
-{% if release_note -%}
+{%- if release_note -%}
 <h4>Release Date: <span class="release-date-text">{{ release_note.date | date: site.release_date_format }}</span></h4>
 <h4><a href="{{ release_note.url | relative_url }}">DOSBox-X {{ version.version }} Release Notes</a></h4>
-{%- endif %}
+{%- endif -%}
 
 <h4>Supported Platforms:</h4>
 <img src="{{ '/images/windows_logo.png' | relative_url }}" title="Windows" alt="Windows" width="50" height="50" />&nbsp;
@@ -46,12 +46,12 @@
   <a href="{{ latest_version_release_link }}/{{ version.macos_arm_file }}">ARM-based Mac</a>
 </h5>
 <h5>
-  {% if version.macos_special_file %}<a href="{{ latest_version_release_link }}/{{ version.macos_special_file }}">Builds for macOS 10.13+</a>
-  |{% endif %}
+  {%- if version.macos_special_file -%}<a href="{{ latest_version_release_link }}/{{ version.macos_special_file }}">Builds for macOS 10.13+</a>
+  |{%- endif -%}
   <a href="https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md#macos-packages-portable">More info</a>
 </h5>
 
-{% if version.dos_hx_file or version.dos_loadlin_file %}
+{%- if version.dos_hx_file or version.dos_loadlin_file -%}
 <h4>DOS version:</h4>
 <h5 class="subtitle-mute" style="font-size: 13px;">(Yes, you can emulate another DOS system within DOS itself)</h5>
 <h5>
@@ -59,7 +59,7 @@
   |
   <a href="https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md#dos-packages-portable">More info</a>
 </h5>
-{% endif %}
+{%- endif -%}
 
 <h4>Source code:</h4>
 <h5 class="subtitle-mute">(Latest code also available from the GitHub repository)</h5>

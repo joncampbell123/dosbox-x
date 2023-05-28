@@ -3,7 +3,7 @@ layout: default
 ---
 
 <section id="main_header">
-    {%- capture header -%}{% include index_header.md %}{%- endcapture -%}
+    {%- capture header -%}{%- include index_header.md -%}{%- endcapture -%}
     {{ header | markdownify }}
 </section>
 
@@ -15,6 +15,6 @@ layout: default
     </article>
 
     <aside>
-        {% include version.html %}
+        {%- include version.html -%}
     </aside>
 </main>

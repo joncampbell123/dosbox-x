@@ -2,9 +2,8 @@
 layout: default
 ---
 
-{%- capture version_text %}{{ page.slug | escape }}{% if page.version_secondary %} ({{ page.version_secondary }}){% endif %}{% endcapture -%}
 <main id="main_content">
-    <h1>DOSBox-X {{ version_text }} Release Notes</h1>
+    <h1>DOSBox-X {{ page.slug | escape }}{%- if page.version_secondary -%} ({{ page.version_secondary }}){%- endif -%} Release Notes</h1>
 
     <section>
         <h3 class="release-date">
@@ -28,7 +27,7 @@ layout: default
             <tr>
                 <td width="50%"><strong>
                     Previous release: {{ page.previous.slug | default: site.last_version }}
-                    ({% if page.previous %}<a href="{{ page.previous.url | relative_url }}">release notes</a>{% else %}release notes{% endif %})
+                    ({%- if page.previous -%}<a href="{{ page.previous.url | relative_url }}">release notes</a>{%- else -%}release notes{%- endif -%})
                 </strong></td>
                 <td width="50%"><strong>
                     {%- if page.next -%}

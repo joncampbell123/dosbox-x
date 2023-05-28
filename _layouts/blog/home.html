@@ -12,7 +12,7 @@ blog: true
 
     <section class="align-left">
         {%- if site.paginate -%}
-            {% assign posts = paginator.posts %}
+            {%- assign posts = paginator.posts -%}
         {%- else -%}
             {%- assign posts = site.posts -%}
         {%- endif -%}
@@ -39,17 +39,17 @@ blog: true
         <table width="100%" class="align-center">
             <tr>
                 <td width="33%">
-                    {%- if paginator.previous_page %}
+                    {%- if paginator.previous_page -%}
                     <a href="{{ paginator.previous_page_path | relative_url }}">Page {{ paginator.previous_page }}</a>
-                    {%- endif %}
+                    {%- endif -%}
                 </td>
                 <td width="33%">
                     Page {{ paginator.page }}
                 </td>
                 <td width="33%">
-                    {%- if paginator.next_page %}
+                    {%- if paginator.next_page -%}
                     <a href="{{ paginator.next_page_path | relative_url }}">Page {{ paginator.next_page }}</a>
-                    {%- endif %}
+                    {%- endif -%}
                 </td>
             </tr>
         </table>
