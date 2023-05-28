@@ -280,10 +280,12 @@ header > :first-child > :nth-child(1) > img {
 header > :first-child > :nth-child(2) > * {
   margin: 0;
   background: none;
-  color: #fff;
   text-shadow: #111 0px 0px 10px;
   letter-spacing: -1px;
   line-height: 1.25;
+}
+header > :first-child > :nth-child(2) * {
+  color: #fff;
 }
 header > :first-child > :nth-child(2) > :last-child {
   padding-bottom: 0;
