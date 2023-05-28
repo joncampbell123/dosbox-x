@@ -327,7 +327,7 @@ table.align-left > tbody > tr > td {
 
 #main_header {
   text-align: center;
-  padding: 5px 6.25%;
+  padding-bottom: 10px;
 }
 #main_header p {
   font-size: 1.125em;
