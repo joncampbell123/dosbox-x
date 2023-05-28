@@ -2,20 +2,19 @@
 layout: default
 ---
 
-<div id="main_header">
-{%- capture header -%}{% include index_header.md %}{%- endcapture -%}
-{{ header | markdownify }}
-</div>
+<section id="main_header">
+    {%- capture header -%}{% include index_header.md %}{%- endcapture -%}
+    {{ header | markdownify }}
+</section>
 
 <hr />
 
-<section id="main_content">
-    <div class="index-flex">
-        <div>
-            {% include version.html %}
-        </div>
-        <div>
-{{ content | markdownify }}
-        </div>
-    </div>
-</section>
+<main id="main_content" class="index-flex">
+    <aside>
+        {% include version.html %}
+    </aside>
+
+    <article>
+        {{ content }}
+    </article>
+</main>

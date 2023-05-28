@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 
-  <head>
+<head>
     {%- include head_common.html -%}
 
     {%- unless layout.blog or page.blog -%}
@@ -9,14 +9,14 @@
     <meta name="description" content="{{ site.description }}">
 
     <title>
-      {%- if page.layout == "release_notes" -%}
+        {%- if page.layout == "release_notes" -%}
         {%- comment -%} FIXME: Hardcoding this because I don't know how to implement this otherwise {%- endcomment -%}
-        DOSBox-X {{ page.slug }}{% if page.version_secondary %} ({{ page.version_secondary }}{% endif %} Release Notes - {{ site.title }}
-      {%- elsif page.title -%}
+        DOSBox-X {{ page.slug }}{% if page.version_secondary %} ({{ page.version_secondary }}){% endif %} Release Notes - {{ site.title }}
+        {%- elsif page.title -%}
         {{ page.title }} - {{ site.title }}
-      {%- else -%}
+        {%- else -%}
         {{ site.title_verbose }}
-      {%- endif -%}
+        {%- endif -%}
     </title>
 
     {%- else -%}
@@ -24,30 +24,27 @@
     <meta name="description" content="{{ site.blog.description }}">
 
     <title>
-      {%- if page.title -%}
+        {%- if page.title -%}
         {{ page.title }} - {{ site.blog.title }}
-      {%- else -%}
+        {%- else -%}
         {{ site.blog.title }}
-      {%- endif -%}
+        {%- endif -%}
     </title>
 
     {%- endunless -%}
-  </head>
+</head>
 
-  <body>
+<body>
     <!-- HEADER -->
-    <div id="header_wrap" class="outer">
-        {%- include header.html -%}
-    </div>
+    {%- include header.html -%}
 
     <!-- MAIN CONTENT -->
-    <div id="main_content_wrap" class="outer">
-        {{ content }}
+    <div class="main_content_wrap">
+      {{ content }}
     </div>
 
     <!-- FOOTER  -->
-    <div id="footer_wrap" class="outer">
-        {%- include footer.html -%}
-    </div>
-  </body>
+    {%- include footer.html -%}
+</body>
+
 </html>

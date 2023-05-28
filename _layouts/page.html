@@ -2,15 +2,16 @@
 layout: default
 ---
 
-<div class="align-center">
-    <h3>{{ page.title | escape }}</h3>
+<main id="main_content">
+    {%- unless layout.disable_title -%}
+    <h1>{{ page.title | escape }}</h1>
+    {%- endunless -%}
 
-    <div class="page-content-flex">
-        <div>
-{{ content }}
-        </div>
-        <div class="align-center">
-            <p>Return to <a href="{{ '/' | relative_url }}">main page</a></p>
-        </div>
-    </div>
-</div>
+    <article>
+        {{ content }}
+    </article>
+
+    <section>
+        <p>Return to <a href="{{ '/' | relative_url }}">main page</a></p>
+    </section>
+</main>
