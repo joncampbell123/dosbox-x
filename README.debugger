@@ -81,7 +81,7 @@ view will show 'pf' to indicate this.
 Debugging a program and breaking on start
 -----------------------------------------
 
-Dosbox-x includes a built-in command to launch a program and
+DOSBox-X includes a built-in command to launch a program and
 break at the entry point.
 
 DEBUGBOX [command] [options]
