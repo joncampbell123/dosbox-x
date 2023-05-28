@@ -260,21 +260,21 @@ header {
   justify-content: center;
   align-items: center;
 }
+header > * {
+  vertical-align: middle;
+}
 
 header > :nth-child(1) {
   text-align: center;
-  vertical-align: middle;
   flex-basis: 200px;
 }
 header > :nth-child(1) > img {
   width: 90px;
   height: auto;
   margin: auto;
-}
-
-header > :nth-child(2) {
   vertical-align: middle;
 }
+
 header > :nth-child(2) > * {
   margin: 0;
   background: none;
@@ -282,6 +282,9 @@ header > :nth-child(2) > * {
   text-shadow: #111 0px 0px 10px;
   letter-spacing: -1px;
   line-height: 1.25;
+}
+header > :nth-child(2) > :last-child {
+  padding-bottom: 0;
 }
 
 #project_tagline {
@@ -299,12 +302,6 @@ header > :nth-child(2) > * {
   max-width: 62.5em;
 }
 
-#main_header p {
-  font-size: 1.125em;
-  margin: 0;
-  margin-bottom: 5px;
-}
-
 .main_content_wrap,
 .align-center,
 table.align-center > thead > tr > th,
@@ -313,20 +310,22 @@ table.align-center > tbody > tr > td,
 .index-demos > tbody > tr > td {
   text-align: center;
 }
-#main_header {
-  text-align: center;
-  padding: 5px 6.25%;
-}
-.subtitle-mute {
-  font-size: 1em;
-  color: grey;
-}
 
 article,
 .align-left,
 table.align-left > thead > tr > th,
 table.align-left > tbody > tr > td {
   text-align: left;
+}
+
+#main_header {
+  text-align: center;
+  padding: 5px 6.25%;
+}
+#main_header p {
+  font-size: 1.125em;
+  margin: 0;
+  margin-bottom: 5px;
 }
 
 .index-flex {
@@ -360,6 +359,11 @@ table.align-left > tbody > tr > td {
   .index-flex > :nth-child(2) {
     order: 2;
   }
+}
+
+.subtitle-mute {
+  font-size: 1em;
+  color: grey;
 }
 
 .index-demos:first-of-type {
