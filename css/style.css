@@ -254,28 +254,30 @@ header {
   background: -o-linear-gradient(top, #373737, #333399);
   background: linear-gradient(to bottom, #373737, #333399);
   margin: 0;
-  padding: 20px 10px;
+}
 
+header > :first-child {
+  padding: 20px 10px;
   display: flex;
   justify-content: center;
   align-items: center;
 }
-header > * {
+header > :first-child > * {
   vertical-align: middle;
 }
 
-header > :nth-child(1) {
+header > :first-child > :nth-child(1) {
   text-align: center;
   flex-basis: 200px;
 }
-header > :nth-child(1) > img {
+header > :first-child > :nth-child(1) > img {
   width: 90px;
   height: auto;
   margin: auto;
   vertical-align: middle;
 }
 
-header > :nth-child(2) > * {
+header > :first-child > :nth-child(2) > * {
   margin: 0;
   background: none;
   color: #fff;
@@ -283,8 +285,15 @@ header > :nth-child(2) > * {
   letter-spacing: -1px;
   line-height: 1.25;
 }
-header > :nth-child(2) > :last-child {
+header > :first-child > :nth-child(2) > :last-child {
   padding-bottom: 0;
+}
+
+header > hr, footer > hr {
+  height: 0;
+  margin-bottom: 0;
+  border-bottom: 1px solid #111;
+  background: none;
 }
 
 #project_tagline {
@@ -293,8 +302,6 @@ header > :nth-child(2) > :last-child {
 
 .main_content_wrap {
   background: #fafacf;
-  border-top: 1px solid #111;
-  border-bottom: 1px solid #111;
 }
 #main_content {
   margin: auto;
@@ -446,5 +453,7 @@ html:has(.wiki-index-html),
 
 footer {
   background: #000066;
+}
+footer > :nth-child(2) {
   padding: 10px calc(10% + 20px);
 }
