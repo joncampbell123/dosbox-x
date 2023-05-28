@@ -55,11 +55,6 @@ body {
   display: grid;
   grid-template-rows: auto 1fr auto;
 }
-@media (max-width: 480px) {
-  body {
-    font-size: 14px;
-  }
-}
 body.wiki-index-html {
   /* hack to prevent blue flashbang */
   background: #ffffff;
