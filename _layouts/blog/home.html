@@ -1,50 +1,58 @@
 ---
-layout: page_alt
+layout: default
 blog: true
 ---
 
-<h1>{{ site.blog.title }}</h1>
+<main id="main_content">
+    <h1>{{ site.blog.title | escape }}</h1>
 
-{{ content }}
+    <article class="align-center">
+        {{ content }}
+    </article>
 
-{%- if site.paginate -%}
-    {% assign posts = paginator.posts %}
-{%- else -%}
-    {%- assign posts = site.posts -%}
-{%- endif -%}
+    <section class="align-left">
+        {%- if site.paginate -%}
+            {%- assign posts = paginator.posts -%}
+        {%- else -%}
+            {%- assign posts = site.posts -%}
+        {%- endif -%}
 
-{%- if posts.size > 0 -%}
-<ul class="post-list">
-    {%- assign date_format = site.blog.date_format | default: "%Y/%m/%d %H:%M" -%}
-    {%- for post in posts -%}
-        <li>
-            <span class="post-meta">{{ post.date | date: date_format }}</span>
-            <h3>
-            <a class="post-link" href="{{ post.url | relative_url }}">
-                {{ post.title | escape }}
-            </a>
-            </h3>
-        </li>
-{%- endfor -%}
-</ul>
-{%- endif -%}
+        {%- if posts.size > 0 -%}
+        <ul class="post-list">
+            {%- assign date_format = site.blog.date_format | default: "%Y/%m/%d %H:%M" -%}
+            {%- for post in posts -%}
+                <li>
+                    <span class="post-meta">{{ post.date | date: date_format }}</span>
+                    <h3>
+                    <a class="post-link" href="{{ post.url | relative_url }}">
+                        {{ post.title | escape }}
+                    </a>
+                    </h3>
+                </li>
+        {%- endfor -%}
+        </ul>
+        {%- endif -%}
+    </section>
 
-{%- if paginator.page -%}
-<table width="100%" class="align-center">
-    <tr>
-        <td width="33%">
-            {%- if paginator.previous_page %}
-            <a href="{{ paginator.previous_page_path | relative_url }}">Page {{ paginator.previous_page }}</a>
-            {%- endif %}
-        </td>
-        <td width="33%">
-            Page {{ paginator.page }}
-        </td>
-        <td width="33%">
-            {%- if paginator.next_page %}
-            <a href="{{ paginator.next_page_path | relative_url }}">Page {{ paginator.next_page }}</a>
-            {%- endif %}
-        </td>
-    </tr>
-</table>
-{%- endif -%}
+    <section>
+        {%- if paginator.page -%}
+        <table width="100%" class="align-center">
+            <tr>
+                <td width="33%">
+                    {%- if paginator.previous_page -%}
+                    <a href="{{ paginator.previous_page_path | relative_url }}">Page {{ paginator.previous_page }}</a>
+                    {%- endif -%}
+                </td>
+                <td width="33%">
+                    Page {{ paginator.page }}
+                </td>
+                <td width="33%">
+                    {%- if paginator.next_page -%}
+                    <a href="{{ paginator.next_page_path | relative_url }}">Page {{ paginator.next_page }}</a>
+                    {%- endif -%}
+                </td>
+            </tr>
+        </table>
+        {%- endif -%}
+    </section>
+</main>

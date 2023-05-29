@@ -19,8 +19,8 @@ title_verbose: DOSBox-X - Accurate DOS emulation for Windows, Linux, macOS, and 
 # Site description. Will appear in head meta (for search engine results).
 description: "DOSBox-X: Free, cross-platform and complete DOS, Windows 3.x and 9x emulation package"
 # Tagline shown on pages.
-tagline:
-  Cross-platform DOS emulation package<br />
+tagline: |
+  Cross-platform DOS emulation package
   Complete, accurate emulation and more
 
 theme: null

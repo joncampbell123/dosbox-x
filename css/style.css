@@ -42,6 +42,7 @@ html {
   text-size-adjust: 100%;
   box-sizing: border-box;
 }
+
 body {
   height: 100%;
   color: #373737;
@@ -50,6 +51,9 @@ body {
   font-family: 'Myriad Pro', Calibri, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
 }
 body.wiki-index-html {
   /* hack to prevent blue flashbang */
@@ -65,30 +69,30 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1 {
-  font-size: 36px;
+  font-size: 2em;
   font-weight: 700;
 }
 
 h2 {
+  font-size: 1.8em;
   padding-bottom: 10px;
-  font-size: 32px;
   background: url('../images/bg_hr.png') repeat-x bottom;
 }
 
 h3 {
-  font-size: 24px;
+  font-size: 1.5em;
 }
 
 h4 {
-  font-size: 21px;
+  font-size: 1.2em;
 }
 
 h5 {
-  font-size: 18px;
+  font-size: 1em;
 }
 
 h6 {
-  font-size: 16px;
+  font-size: 0.8em;
 }
 
 p {
@@ -102,18 +106,6 @@ footer p {
 a {
   text-decoration: none;
   color: #007edf;
-  text-shadow: none;
-
-  -ms-transition: color 0.5s ease;
-  -ms-transition: text-shadow 0.5s ease;
-  -moz-transition: color 0.5s ease;
-  -moz-transition: text-shadow 0.5s ease;
-  -o-transition: color 0.5s ease;
-  -o-transition: text-shadow 0.5s ease;
-  -webkit-transition: color 0.5s ease;
-  -webkit-transition: text-shadow 0.5s ease;
-  transition: color 0.5s ease;
-  transition: text-shadow 0.5s ease;
 }
 
 a:hover, a:focus {text-decoration: underline;}
@@ -131,7 +123,7 @@ strong {
   font-weight: bold;
 }
 
-img:not(#dosbox-x-logo, .devel-builds-dots) {
+img:not(.img-no-styling) {
   position: relative;
   margin: 0 auto;
   max-width: 739px;
@@ -161,7 +153,7 @@ pre, code {
   background-color: #fff;
 
   font-family: Monaco, "Bitstream Vera Sans Mono", "Lucida Console", Terminal, monospace;
-  font-size: 14px;
+  font-size: 0.8em;
 
   -moz-border-radius: 2px;
   -webkit-border-radius: 2px;
@@ -192,7 +184,6 @@ blockquote {
   padding: 0 0 0 20px;
   border-left: 3px solid #bbb;
 }
-
 
 :not(li) > ul, ol, dl { /* HACK */
   margin-bottom: 15px
@@ -255,52 +246,7 @@ form {
   padding: 20px;
 }
 
-/*******************************************************************************
-*******************************************************************************/
-
-.outer {
-  width: 100%;
-}
-
-.inner {
-  max-width: 62.5vw;
-  padding: 20px 10px;
-  margin: 0 auto;
-}
-
-#main_header p {
-  font-size: 18px;
-  margin: 0;
-  margin-bottom: 5px;
-}
-
-@media screen and (max-width: 980px) {
-  #intro {
-    font-size: 17px;
-  }
-}
-
-.home-link {
-  display: block;
-  padding: 10px;
-  color: #fff;
-  font-weight: 700;
-  box-shadow: 0 0 10px rgba(0,0,0,.5);
-  border-radius: 2px;
-}
-
-#linkwiki {
-  background-color: green;
-}
-#linktracker {
-  background-color: purple;
-}
-#linkproject {
-  background: url('../images/blacktocat.png') #0090ff no-repeat 95% 50%;
-  padding-right: 50px;
-}
-
-#header_wrap {
+header {
   background: #333399;
   background: -moz-linear-gradient(top, #373737, #333399);
   background: -webkit-linear-gradient(top, #373737, #333399);
@@ -308,151 +254,185 @@ form {
   background: -o-linear-gradient(top, #373737, #333399);
   background: linear-gradient(to bottom, #373737, #333399);
   margin: 0;
-  padding: 0;
 }
 
-#header_wrap .inner {
-  padding: 20px 0;
-  max-width: 80vw;
+header > :first-child {
+  padding: 20px 10px;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 50px;
+}
+header > :first-child > * {
+  vertical-align: middle;
 }
 
-#header_wrap .inner > :nth-child(1) {
+header > :first-child > :nth-child(1) {
   text-align: center;
+  flex-basis: 200px;
+}
+header > :first-child > :nth-child(1) > img {
+  width: 90px;
+  height: auto;
+  margin: auto;
+  vertical-align: middle;
 }
 
-#header_wrap .inner > :nth-child(2) > :is(h1, h2) {
+header > :first-child > :nth-child(2) > * {
+  margin: 0;
+  background: none;
+  text-shadow: #111 0px 0px 10px;
+  letter-spacing: -1px;
+  line-height: 1.25;
+}
+header > :first-child > :nth-child(2) * {
+  color: #fff;
+}
+header > :first-child > :nth-child(2) > :last-child {
   padding-bottom: 0;
 }
 
-#project_title {
-  margin: 0;
-  color: #fff;
-  font-size: 42px;
-  font-weight: 700;
-  text-shadow: #111 0px 0px 10px;
+header > hr, footer > hr {
+  height: 0;
+  margin-bottom: 0;
+  border-bottom: 1px solid #111;
+  background: none;
 }
 
 #project_tagline {
-  color: #fff;
-  font-size: 24px;
   font-weight: 300;
-  background: none;
-  text-shadow: #111 0px 0px 10px;
 }
 
-#main_content_wrap {
+.main_content_wrap {
   background: #fafacf;
-  border-top: 1px solid #111;
-  border-bottom: 1px solid #111;
+}
+#main_content {
+  margin: auto;
+  width: 90%;
+  max-width: 62.5em;
 }
 
-#footer_wrap {
-  background: #000066;
-}
-
-@media screen and (max-width: 480px) {
-  body {
-    font-size: 14px;
-  }
-
-  #downloads {
-    display: none;
-  }
-
-  .inner {
-    min-width: 320px;
-    max-width: 480px;
-  }
-
-  #project_title {
-    font-size: 32px;
-  }
-
-  h1 {
-    font-size: 28px;
-  }
-
-  h2 {
-    font-size: 24px;
-  }
-
-  h3 {
-    font-size: 21px;
-  }
-
-  h4 {
-    font-size: 18px;
-  }
-
-  h5 {
-    font-size: 14px;
-  }
-
-  h6 {
-    font-size: 12px;
-  }
-
-  code, pre {
-    min-width: 320px;
-    max-width: 480px;
-    font-size: 11px;
-  }
-
-  #main_header p {
-    font-size: 14px;
-  }
-}
-
+.main_content_wrap,
 .align-center,
-table.align-center > tbody > tr > th,
-table.align-center > tbody > tr > td {
+table.align-center > thead > tr > th,
+table.align-center > tbody > tr > td,
+.index-demos > thead > tr > th,
+.index-demos > tbody > tr > td {
   text-align: center;
 }
+.index-demos > thead > tr > th,
+.index-demos > tbody > tr > td {
+  vertical-align: middle;
+}
+
+article,
+.align-left,
+table.align-left > thead > tr > th,
+table.align-left > tbody > tr > td {
+  text-align: left;
+}
+
 #main_header {
   text-align: center;
-  padding: 5px 6.25vw;
+  padding-bottom: 10px;
 }
+#main_header p {
+  font-size: 1.125em;
+  margin: 0;
+  margin-bottom: 5px;
+}
+
+.index-flex {
+  margin: 0 !important;
+  margin-bottom: 15px !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  display: flex;
+  justify-content: space-between;
+}
+.index-flex > * {
+  padding: 0 10px;
+  text-align: left;
+}
+.index-flex > :nth-child(1) {
+  order: 2;
+  flex: 1 1 80%;
+}
+.index-flex > :nth-child(2) {
+  order: 1;
+  flex: 0 1 20%;
+}
+@media (max-width: 720px) {
+  .index-flex {
+    flex-direction: column;
+  }
+  .index-flex > :nth-child(1) {
+    order: 1;
+    margin-bottom: 10px;
+  }
+  .index-flex > :nth-child(2) {
+    order: 2;
+  }
+}
+
 .subtitle-mute {
-  font-size: 16px;
+  font-size: 1em;
   color: grey;
 }
 
-/*
-This should never be used
-table.hide-table-appearence,
-table.hide-table-appearence > tbody > tr > th,
-table.hide-table-appearence > tbody > tr > td {
+.index-demos:first-of-type {
+  margin-bottom: 10px;
+}
+.index-demos, .index-demos > tbody > tr > td {
   border: none;
 }
-*/
+.index-demos > thead > tr > th {
+  background: none;
+}
+.index-demos > thead > tr > th,
+.index-demos > tbody > tr > td {
+  padding: 0;
+  width: calc(100%/3);
+}
 
 .home-links {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 10px;
+  border: none;
+  margin: 0;
+  margin-left: auto;
+  margin-right: auto;
+  border-collapse: separate;
+  border-spacing: 10px 0;
 }
-.home-links > div {
-  flex-grow: 0;
+.home-links > thead {
+  display: none;
+}
+.home-links > tbody > tr > td {
+  height: 100%;
+  border: 0;
+  border-radius: 2px;
+  box-shadow: 0 0 5px rgba(0,0,0,.5);
+  padding: 10px 15px;
+  text-align: center;
+}
+.home-links > tbody > tr > td > * {
+  color: #fff;
+  font-weight: 700;
+  vertical-align: middle;
 }
 
-.page-content-flex {
-  display: flex;
-  margin: auto;
-  max-width: 62.5em;
-  text-align: left;
-  justify-content: center;
-  flex-direction: column;
+.home-links > tbody > tr > td:has(#linkwiki) {
+  background-color: green;
 }
-.index-flex {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px;
+.home-links > tbody > tr > td:has(#linktracker) {
+  background-color: purple;
 }
+.home-links > tbody > tr > td:has(#linkproject) {
+  background-color: #0090ff;
+}
+#linkproject ~ img {
+  margin: 0;
+  margin-left: 5px;
+}
+
 h4.release-date {
   font-weight: normal;
 }
@@ -462,12 +442,23 @@ h4.release-date {
 .release-date-text {
   color: green;
 }
-.wiki-flex {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+
+html:has(.wiki-index-html),
+.wiki-index-html {
+  max-height: 100vh;
 }
-.wiki-flex > div:nth-child(2) {
-  display: contents;
-  flex-grow: 1;
+.wiki-index-html nav {
+  background-color: #F8F8F7;
+  text-align: center;
+}
+.wiki-index-html main {
+  overflow: hidden;
+}
+
+footer {
+  background: #000066;
+}
+footer > :nth-child(2) {
+  text-align: center;
+  margin: auto;
 }
