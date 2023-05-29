@@ -500,7 +500,7 @@ struct FractionalNote {
 	Note note;
 
 	FractionalNote() {}
-	FractionalNote(Note nn, Fraction nf) : note(nn), fraction(nf) {}
+	FractionalNote(Note nn, Fraction nf) : fraction(nf), note(nn) {}
 	uint16_t getuint16_t() const
 	{
 		return note.value << 8 | fraction.value;
@@ -1349,11 +1349,31 @@ public:
 
 	inline void clear()
 	{
-		memset(this, 0, sizeof(InstrumentParameters));
-	}
-	inline void copyFrom(InstrumentParameters* other)
-	{
-		memcpy(this, other, sizeof(InstrumentParameters));
+		instrumentConfiguration.clear();
+		voiceDefinition.deepClear();
+		pitchbenderValueMSB = PitchbenderValueMSB();
+		pitchbenderValueLSB = PitchbenderValueLSB();
+		detuneAndPitchbendAsNoteFraction = FractionalNote();
+		detuneAsNoteFraction = FractionalNote();
+		volume = 0;
+		_sustain = 0;
+		_portamento = 0;
+		_unused0 = 0;
+		_lfoSyncMode = 0;
+		operator1TotalLevel = 0;
+		operator2TotalLevel = 0;
+		operator3TotalLevel = 0;
+		operator4TotalLevel = 0;
+		unused1 = 0;
+		channelMask = 0;
+		lastUsedChannel = 0;
+		_lastMidiOnOff_Duration_XX = Duration();
+		_lastMidiOnOff_FractionAndNoteNumber_XXX = FractionalNote();
+		_lastMidiOnOff_Duration_YY = Duration();
+		_lastMidiOnOff_FractionAndNoteNumber_YYY = FractionalNote();
+		ymChannelData = nullptr;
+		overflowToMidiOut = 0;
+		std::fill_n(unused2, 22, 0);
 	}
 };
 
@@ -2953,7 +2973,7 @@ private:
 		uint8_t       eg_sh_ar = 0;               /*  (attack state) */
 		uint8_t       eg_sel_ar = 0;              /*  (attack state) */
 		uint32_t      tl = 0;                     /* Total attenuation Level */
-		int32_t       volume = 0;                 /* current envelope attenuation level */
+		uint32_t      volume = 0;                 /* current envelope attenuation level */
 		uint8_t       eg_sh_d1r = 0;              /*  (decay state) */
 		uint8_t       eg_sel_d1r = 0;             /*  (decay state) */
 		uint32_t      d1l = 0;                    /* envelope switches to sustain state after reaching this level */
@@ -3073,7 +3093,7 @@ private:
 	void set_connect(YM2151Operator* om1, int cha, int v);
 	void advance();
 	void advance_eg();
-	void write_reg(int r, int v);
+	void write_reg(int r, unsigned int v);
 	void chan_calc(unsigned int chan);
 	void chan7_calc();
 	int op_calc(YM2151Operator* OP, unsigned int env, signed int pm);
@@ -3490,14 +3510,16 @@ void ym2151_device::YM2151Operator::key_on(uint32_t key_set, uint32_t eg_cnt)
 		phase = 0;      /* clear phase */
 		state = EG_ATT; /* KEY ON = attack */
 		// IMF_LOG("ym2151_device - operator now in state EG_ATT");
-		volume += (~volume *
+		int32_t temp_volume = static_cast<int32_t>(volume);
+		temp_volume += (~temp_volume *
 		           (eg_inc[eg_sel_ar + ((eg_cnt >> eg_sh_ar) & 7)])) >>
 		          4;
-		if (volume <= MIN_ATT_INDEX) {
-			volume = MIN_ATT_INDEX;
+		if (temp_volume <= MIN_ATT_INDEX) {
+			temp_volume = MIN_ATT_INDEX;
 			state  = EG_DEC;
 			// IMF_LOG("ym2151_device - operator now in state EG_DEC");
 		}
+		volume = static_cast<uint32_t>(temp_volume);
 	}
 	key |= key_set;
 }
@@ -3700,7 +3722,7 @@ void ym2151_device::refresh_EG(YM2151Operator* op)
 }
 
 /* write a register on YM2151 chip number 'n' */
-void ym2151_device::write_reg(int r, int v)
+void ym2151_device::write_reg(int r, unsigned int v)
 {
 	// IMF_LOG("ym2151_device - write to reg 0x%02x = 0x%02x", r, v);
 	YM2151Operator* op = &oper[(r & 0x07) * 4 + ((r & 0x18) >> 3)];
@@ -4302,19 +4324,22 @@ void ym2151_device::advance_eg()
 			switch (op->state) {
 			case EG_ATT: /* attack phase */
 				if ((eg_cnt & ((1 << op->eg_sh_ar) - 1)) == 0U) {
-					op->volume +=
-					        (~op->volume *
+					int32_t temp_volume = static_cast<int32_t>(op->volume);
+					temp_volume +=
+					        (~temp_volume *
 					         (eg_inc[op->eg_sel_ar +
 					                 ((eg_cnt >> op->eg_sh_ar) & 7)])) >>
 					        4;
 
-					if (op->volume <= MIN_ATT_INDEX) {
-						op->volume = MIN_ATT_INDEX;
+					if (temp_volume <= MIN_ATT_INDEX) {
+						temp_volume = MIN_ATT_INDEX;
 						op->state  = EG_DEC;
 						// IMF_LOG("ym2151_device -
 						// operator %i now in state
 						// EG_DEC", i);
 					}
+
+					op->volume = static_cast<uint32_t>(temp_volume);
 				}
 				break;
 
@@ -4622,7 +4647,7 @@ void ym2151_device::device_reset()
 	int i = 0;
 	/* initialize hardware registers */
 	for (i = 0; i < 32; i++) {
-		memset(&oper[i], '\0', sizeof(YM2151Operator));
+		oper[i] = YM2151Operator();
 		oper[i].volume = MAX_ATT_INDEX;
 		oper[i].kc_i   = 768; /* min kc_i value */
 	}
@@ -4879,14 +4904,14 @@ public:
 		case WAITING_FOR_SYNC_CHAR2: setState(NORMAL_OPERATION); break;
 		case NORMAL_OPERATION:
 			// command mode
-			const bool transmitEnable     = (value & 0x01) != 0;
-			const bool notDTR_pin_control = (value & 0x02) != 0;
-			const bool receiveEnable      = (value & 0x04) != 0;
-			const bool sendBreak          = (value & 0x08) != 0;
-			const bool errorClear         = (value & 0x10) != 0;
-			const bool notRTS_pin_control = (value & 0x20) != 0;
+			//const bool transmitEnable     = (value & 0x01) != 0;
+			//const bool notDTR_pin_control = (value & 0x02) != 0;
+			//const bool receiveEnable      = (value & 0x04) != 0;
+			//const bool sendBreak          = (value & 0x08) != 0;
+			//const bool errorClear         = (value & 0x10) != 0;
+			//const bool notRTS_pin_control = (value & 0x20) != 0;
 			const bool softwareReset      = (value & 0x40) != 0;
-			const bool enterHuntPhase     = (value & 0x80) != 0;
+			//const bool enterHuntPhase     = (value & 0x80) != 0;
 			if (softwareReset) {
 				setState(WAITING_FOR_WRITE_MODE);
 			}
@@ -4921,55 +4946,61 @@ class MusicFeatureCard : public Module_base {
 private:
 	ym2151_device m_ya2151;
 	PD71051 m_midi = {};
-	TotalControlRegister m_tcr;
+	TotalControlRegister m_tcr = TotalControlRegister("TCR");
 
-	PD71055 m_piuPC;
+	PD71055 m_piuPC = PD71055("PIU_PC");
 	// this is the PIU that connects to the PC
 
-	DataContainer<bool> m_piuPC_int0;
+	DataContainer<bool> m_piuPC_int0 = DataContainer<bool>("PIU_PC.RxRDY(INT0)", false);
 	// This is the INT0 line for the PIU connected to the PC
 
-	DataContainer<bool> m_piuPC_int1;
+	DataContainer<bool> m_piuPC_int1 = DataContainer<bool>("PIU_PC.TxRDY(INT1)", false);
 	// This is the INT1 line for the PIU connected to the PC
 
-	PD71055 m_piuIMF;
+	PD71055 m_piuIMF = PD71055("PIU_IMF");
 	// this is the PIU that connects to the card processor
 
-	DataContainer<bool> m_piuIMF_int0;
+	DataContainer<bool> m_piuIMF_int0 = DataContainer<bool>("PIU_IMF.TxRDY(INT0)", false);
 	// This is the INT0 line for the PIU connected to the IMF
 
-	DataContainer<bool> m_piuIMF_int1;
+	DataContainer<bool> m_piuIMF_int1 = DataContainer<bool>("PIU_IMF.RxRDY(INT1)", false);
 	// This is the INT1 line for the PIU connected to the IMF
 
-	DataContainer<uint8_t> m_piuPort0Data;
+	DataContainer<uint8_t> m_piuPort0Data = DataContainer<uint8_t>("PIU.port0", 0);
 	// port0 data that connects the PIU_PC to PIU_IMF
 
-	DataContainer<uint8_t> m_piuPort1Data;
+	DataContainer<uint8_t> m_piuPort1Data = DataContainer<uint8_t>("PIU.port1", 0);
 	// port1 data that connects the PIU_PC to PIU_IMF
 
-	DataContainer<bool> m_piuEXR8;
+	DataContainer<bool> m_piuEXR8 = DataContainer<bool>("PIU.EXR8", false);
 	// Extended bit8
 
-	DataContainer<bool> m_piuEXR9;
+	DataContainer<bool> m_piuEXR9 = DataContainer<bool>("PIU.EXR9", false);
 	// Extended bit9
 
-	DataContainer<bool> m_piuGroup0DataAvailable;
-	DataContainer<bool> m_piuGroup0DataAcknowledgement;
-	DataContainer<bool> m_piuGroup1DataAvailable;
-	DataContainer<bool> m_piuGroup1DataAcknowledgement;
+	DataContainer<bool> m_piuGroup0DataAvailable = DataContainer<bool>("PIU.Group0DataAvailable", false);
+	DataContainer<bool> m_piuGroup0DataAcknowledgement = DataContainer<bool>("PIU.Group0DataAcknowledgement", false);
+	DataContainer<bool> m_piuGroup1DataAvailable = DataContainer<bool>("PIU.Group1DataAvailable", false);
+	DataContainer<bool> m_piuGroup1DataAcknowledgement = DataContainer<bool>("PIU.Group1DataAcknowledgement", false);
 
 	SDL_mutex* m_hardwareMutex = {};
-	Intel8253 m_timer;
-	InverterGate m_invTimerAClear;
-	DFlipFlop m_df1;
-	InverterGate m_invTimerBClear;
-	DFlipFlop m_df2;
-	OrGate m_totalCardStatus;
-	AndGate m_irqMaskGate;
-	TriStateBuffer m_irqStatus;
-	IrqController m_irqTriggerPc;
+	Intel8253 m_timer = Intel8253("TIMER");
+	InverterGate m_invTimerAClear = InverterGate("TCR.timerAClear.inverted");
+	DFlipFlop m_df1 = DFlipFlop("DF1");
+	InverterGate m_invTimerBClear = InverterGate("TCR.timerBClear.inverted");
+	DFlipFlop m_df2 = DFlipFlop("DF2");
+	OrGate m_totalCardStatus = OrGate("TCS");
+	AndGate m_irqMaskGate = AndGate("IRQ Mask Gate");
+	TriStateBuffer m_irqStatus = TriStateBuffer("TriStateIrqBuffer");
+	IrqController m_irqTriggerPc = IrqController(
+        "TriggerPcIrq",
+        []() {
+            IMF_LOG("ACTIVATING PC IRQ!!!");
+            PIC_ActivateIRQ(IMFC_IRQ);
+        } /*callbackOnLowToHigh*/,
+        nullptr /*callbackOnToHighToLow*/);
 	IrqController m_irqTriggerImf;
-	TotalStatusRegister m_tsr;
+	TotalStatusRegister m_tsr = TotalStatusRegister("TSR");
 
 	volatile bool m_finishedBootupSequence    = {};
 	SDL_Thread* m_mainThread                  = nullptr;
@@ -5028,15 +5059,17 @@ private:
 	uint8_t m_readMidiDataTimeoutCountdown     = 0;
 	uint8_t m_midi_ReceiveSource_SendTarget    = 0;
 	uint8_t m_midiTransmitReceiveFlag = 0; // FIXME: change to flags
-	CyclicBufferState<uint8_t> m_bufferFromMidiInState;
+	CyclicBufferState<uint8_t> m_bufferFromMidiInState = CyclicBufferState<uint8_t>("bufferFromMidiInState", 2048);
 	uint8_t m_bufferFromMidiIn_lastActiveSenseCodeCountdown = 0;
-	CyclicBufferState<uint8_t> m_bufferToMidiOutState;
+	CyclicBufferState<uint8_t> m_bufferToMidiOutState = CyclicBufferState<uint8_t>("bufferToMidiOutState", 256);
 	uint8_t m_midiOutActiveSensingCountdown        = 0;
 	uint8_t m_midiOut_CommandInProgress            = 0;
 	uint8_t m_runningCommandOnMidiInTimerCountdown = 0;
 	uint8_t m_activeSenseSendingState              = 0;
-	CyclicBufferState<uint16_t> m_bufferFromSystemState;
-	CyclicBufferState<uint16_t> m_bufferToSystemState;
+	// FIXME: The original only has a buffer of 256, but since the
+	// "main" thread is a bit slow, we need to increase it a LOT
+	CyclicBufferState<uint16_t> m_bufferFromSystemState = CyclicBufferState<uint16_t>("bufferFromSystemState", 0x2000);
+	CyclicBufferState<uint16_t> m_bufferToSystemState = CyclicBufferState<uint16_t>("bufferToSystemState", 256);
 	uint8_t m_sendDataToSystemTimoutCountdown         = 0;
 	uint8_t m_system_CommandInProgress                = 0;
 	uint8_t m_runningCommandOnSystemInTimerCountdown  = 0;
@@ -7883,6 +7916,7 @@ private:
 	// ROM Address: 0x1268
 	void logError(char* errorMsg)
 	{
+		(void)errorMsg;
 		// this really does nothing except clearing the a-register
 	}
 
@@ -9306,7 +9340,7 @@ private:
 	{
 		log_debug("setNodeParameterMasterTune()");
 		m_masterTune             = val;
-		int8_t const tmpVal      = val;
+		//int8_t const tmpVal      = val;
 		int16_t const masterTune = ((int8_t)(val << 1)) - 0x1EC;
 		m_masterTuneAsNoteFraction = FractionalNote(Note(masterTune >> 8),
 		                                            Fraction(masterTune &
@@ -11091,16 +11125,9 @@ private:
 		        m_activeConfiguration.amplitudeModulationDepth;
 		const uint8_t pitchModulationDepth = m_activeConfiguration.pitchModulationDepth;
 		const uint8_t lfoWaveForm = m_activeConfiguration.lfoWaveForm;
-		memcpy(&m_activeConfiguration,
-		       &m_sp_MidiDataOfMidiCommandInProgress,
-		       sizeof(ConfigurationData) -
-		               8 * sizeof(InstrumentConfiguration)); // just copy
-		                                                     // the pure
-		                                                     // configuration
-		                                                     // data
-		                                                     // without
-		                                                     // the
-		                                                     // instrumentConfigurations
+		ConfigurationData* sourceConfiguration = reinterpret_cast<ConfigurationData*>(&m_sp_MidiDataOfMidiCommandInProgress);
+		m_activeConfiguration.shallowCopyFrom(sourceConfiguration);
+		// just copy the pure configuration data without the instrumentConfigurations
 		m_activeConfiguration.lfoWaveForm = lfoWaveForm;
 		m_activeConfiguration.pitchModulationDepth = pitchModulationDepth;
 		m_activeConfiguration.amplitudeModulationDepth = amplitudeModulationDepth;
@@ -11171,7 +11198,7 @@ private:
 		if (receiveDataPacketTypeB(readResult.data,
 		                           (uint8_t*)&m_sp_MidiDataOfMidiCommandInProgress,
 		                           sizeof(InstrumentConfiguration)) !=
-		    WRITE_SUCCESS) {
+		    READ_SUCCESS) {
 			return sendResponse(0x02, NAK_MESSAGE);
 		}
 		log_debug("processSysExCmd_InstrumentMessage_SetInstrumentConfiguration1() - copy start");
@@ -11206,7 +11233,7 @@ private:
 		}
 		if (receiveDataPacketTypeB(readResult.data,
 		                           (uint8_t*)&m_sp_MidiDataOfMidiCommandInProgress,
-		                           0x0B) != WRITE_SUCCESS) {
+		                           0x0B) != READ_SUCCESS) {
 			return sendResponse(0x02, NAK_MESSAGE);
 		}
 		// this copy is kind of strange. It's not copying all the bytes.
@@ -12483,7 +12510,7 @@ private:
 				}
 			} else {
 				// for all the 0x8X values -> Xn
-				b = (b << 4) & 0xF0 | m_nodeNumber;
+				b = ((b << 4) & 0xF0) | m_nodeNumber;
 			}
 			m_sp_SysExStateMatchTable[i] = b;
 		}
@@ -12494,48 +12521,6 @@ public:
 	MusicFeatureCard(Section* configuration, MixerChannel* mixerChannel)
 	        : Module_base(configuration),
 	          m_ya2151(mixerChannel),
-	          // initialize all the internal structures
-	          keep_running(true),
-	          m_bufferFromMidiInState("bufferFromMidiInState", 2048),
-	          m_bufferToMidiOutState("bufferToMidiOutState", 256),
-
-			  // FIXME: The original only has a buffer of 256, but since the
-			  // "main" thread is a bit slow, we need to increase it a LOT
-	          m_bufferFromSystemState("bufferFromSystemState", 0x2000),
-	          m_bufferToSystemState("bufferToSystemState", 256),
-	          // create all the instances
-	          m_tcr("TCR"),
-	          m_piuPC("PIU_PC"),
-	          m_piuPC_int0("PIU_PC.RxRDY(INT0)", false),
-	          m_piuPC_int1("PIU_PC.TxRDY(INT1)", false),
-	          m_piuIMF("PIU_IMF"),
-	          m_piuIMF_int0("PIU_IMF.TxRDY(INT0)", false),
-	          m_piuIMF_int1("PIU_IMF.RxRDY(INT1)", false),
-	          m_piuPort0Data("PIU.port0", 0),
-	          m_piuPort1Data("PIU.port1", 0),
-	          m_piuEXR8("PIU.EXR8", false),
-	          m_piuEXR9("PIU.EXR9", false),
-	          m_piuGroup0DataAvailable("PIU.Group0DataAvailable", false),
-	          m_piuGroup0DataAcknowledgement("PIU.Group0DataAcknowledgement",
-	                                         false),
-	          m_piuGroup1DataAvailable("PIU.Group1DataAvailable", false),
-	          m_piuGroup1DataAcknowledgement("PIU.Group1DataAcknowledgement",
-	                                         false),
-	          m_timer("TIMER"),
-	          m_invTimerAClear("TCR.timerAClear.inverted"),
-	          m_df1("DF1"),
-	          m_invTimerBClear("TCR.timerBClear.inverted"),
-	          m_df2("DF2"),
-	          m_totalCardStatus("TCS"),
-	          m_irqMaskGate("IRQ Mask Gate"),
-	          m_irqStatus("TriStateIrqBuffer"),
-	          m_irqTriggerPc(
-	                  "TriggerPcIrq",
-	                  []() {
-		                  IMF_LOG("ACTIVATING PC IRQ!!!");
-		                  PIC_ActivateIRQ(IMFC_IRQ);
-	                  } /*callbackOnLowToHigh*/,
-	                  nullptr /*callbackOnToHighToLow*/),
 	          m_irqTriggerImf(
 	                  "TriggerImfIrq",
 	                  [this]() {
@@ -12552,7 +12537,7 @@ public:
 		                  SDL_CondSignal(m_interruptHandlerRunningCond);
 		                  SDL_UnlockMutex(m_interruptHandlerRunningMutex);
 	                  } /*callbackOnToHighToLow*/),
-	          m_tsr("TSR")
+	          keep_running(true)
 	{
 		// now wire everything up (see Figure "2-1 Music Card Interrupt
 		// System" in the Techniucal Reference Manual)
