@@ -136,13 +136,6 @@ for arch in ${architectures}; do
         CXXFLAGS="${CXXFLAGS}${new}"
         PKG_CONFIG_PATH="${PKG_CONFIG_PATH}:$(${!brew_cmd} --prefix)/lib/pkgconfig"
         export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS PKG_CONFIG_PATH
-
-        # help configure.ac find SDL2_net
-        sdl2net_cflags=`pkg-config --cflags SDL2_net`
-        sdl2net_libs=`pkg-config --libs SDL2_net`
-        CFLAGS="${CFLAGS}${sdl2net_cflags}"
-        CXXFLAGS="${CXXFLAGS}${sdl2net_cflags}"
-        LDFLAGS="${LDFLAGS}${sdl2net_libs}"
     fi
 
     if [ "${universal}" = 1 ]; then
