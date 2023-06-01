@@ -52,7 +52,10 @@
 // NE2000/ether stuff.
 
 #include "ne2000.h"
+
+#if C_IPX
 #include "ipx.h"
+#endif
 
 #include "ethernet.h"
 EthernetConnection* ethernet = nullptr;
@@ -60,6 +63,7 @@ EthernetConnection* ethernet = nullptr;
 bool ne2k_ipx_redirect = false;
 unsigned int ne2k_ipx_highest_variant = 0; // Windows 95 likes to try all three variations as it runs
 
+#if C_IPX
 void ethernetSendToIPX(const unsigned char *outptr, unsigned int outlen, unsigned int vari);
 
 bool is_IPX_ethernet_frame(const unsigned char *buf,unsigned int len,const unsigned char **outbuf,unsigned int *outlen,unsigned int *vari) {
@@ -117,6 +121,7 @@ bool is_IPX_ethernet_frame(const unsigned char *buf,unsigned int len,const unsig
 
 	return false;
 }
+#endif
 
 static void NE2000_TX_Event(Bitu val);
 void VFILE_Remove(const char *name,const char *dir = "");
@@ -352,17 +357,23 @@ bx_ne2k_c::write_cr(uint32_t value)
     //BX_NE2K_THIS ethdev->sendpkt(& BX_NE2K_THIS s.mem[BX_NE2K_THIS s.tx_page_start*256 - BX_NE2K_MEMSTART], BX_NE2K_THIS s.tx_bytes);
 
 	{
+#if C_IPX
 		const unsigned char *outptr = NULL;
 		unsigned int outlen = 0;
 		unsigned int vari = 0;
+#endif
 
+#if C_IPX
 		if (ne2k_ipx_redirect && is_IPX_ethernet_frame(&s.mem[s.tx_page_start*256 - BX_NE2K_MEMSTART], s.tx_bytes, &outptr, &outlen, &vari)) {
 			if (ne2k_ipx_highest_variant < vari) ne2k_ipx_highest_variant = vari;
 			if (vari == IPX_OLD_LLC/*TODO: Make configurable*//*Best for Windows 95*/) ethernetSendToIPX(outptr, outlen, vari);
 		}
 		else {
+#endif
 			ethernet->SendPacket(&s.mem[s.tx_page_start*256 - BX_NE2K_MEMSTART], s.tx_bytes);
+#if C_IPX
 		}
+#endif
 	}
 
 	// Trigger any pending timers
@@ -1540,14 +1551,17 @@ static void NE2000_Poller(void) {
 		if((theNE2kDevice->s.DCR.loop == 0) || (theNE2kDevice->s.TCR.loop_cntl != 0))
 			return;
 
+#if C_IPX
 		// If NE2000 IPX redirection is enabled, block incoming IPX packets
 		if (ne2k_ipx_redirect && is_IPX_ethernet_frame(packet,len,NULL,NULL,NULL))
 			return;
+#endif
 
 		theNE2kDevice->rx_frame(packet, len);
 	});
 }
 
+#if C_IPX
 void NE2K_IncomingIPX(const unsigned char *buf,unsigned int len) {
 	if (buf == NULL || len < 30) return;
 	if (theNE2kDevice == NULL) return;
@@ -1566,6 +1580,7 @@ void NE2K_IncomingIPX(const unsigned char *buf,unsigned int len) {
 
 	delete[] tmp;
 }
+#endif
 
 extern std::string niclist;
 
@@ -1676,9 +1691,11 @@ bool NE2K_IsInit(void) {
 bool NE2K_GetMacAddress(unsigned char *buf) {
 	if (test == NULL || theNE2kDevice == NULL || ethernet == NULL) return false;
 
+#if C_IPX
 	// If the MAC address is the stock default, then don't use it, because the DOSBox-X scheme
 	// will cause all clients to use the same MAC address and then IPX won't work.
 	if (!memcmp(theNE2kDevice->s.physaddr,"\xAC\xDE\x48\x88\x99\xAA",6)) return false;
+#endif
 
 	memcpy(buf,theNE2kDevice->s.physaddr,6);
 	return true;

@@ -78,6 +78,17 @@ view will show 'pf' to indicate this.
   pf = segment:offset or linear address is paged out or
        not present according to page tables.
 
+Debugging a program and breaking on start
+-----------------------------------------
+
+DOSBox-X includes a built-in command to launch a program and
+break at the entry point.
+
+DEBUGBOX [command] [options]
+
+You can also type DEBUGBOX without a parameter to start the
+debugger.
+
 Debugger keyboard shortcuts
 ---------------------------
 

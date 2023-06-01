@@ -36,26 +36,6 @@
 #include "sys/time.h"
 #endif
 
-// sigh... Windows doesn't know gettimeofday
-#if defined (WIN32) && !defined (__MINGW32__)
-typedef Bitu suseconds_t;
-
-struct timeval {
-    time_t tv_sec;
-    suseconds_t tv_usec;
-};
-
-static void gettimeofday (timeval* ptime, void* pdummy) {
-    (void)pdummy;
-    struct _timeb thetime;
-    _ftime(&thetime);
-
-    ptime->tv_sec = thetime.time;
-    ptime->tv_usec = (Bitu)thetime.millitm;
-}
-
-#endif
-
 static struct {
     uint8_t regs[0x40];
     bool nmi;
@@ -247,9 +227,9 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
             // other checks for valid values are done in case-switch
 
             // convert pm hours differently (bcd 81-92 corresponds to hex 81-8c)
-            if (cmos.reg == 0x04 && val >= 0x80)
+            if ((cmos.reg == 0x04 || cmos.reg == 0x05) && val >= 0x80)
             {
-                val = (val < 90) ? 0x80 : 0x8a + (val & 0x0f);
+                val = 0x8a + (val & 0x0f);
             }
             else
             {
@@ -260,56 +240,60 @@ static void cmos_writereg(Bitu port,Bitu val,Bitu iolen) {
 
     switch (cmos.reg) {
         case 0x00:      /* Seconds */
-            if (val > 59) return;       // invalid seconds value
+            if (val > 59) { LOG(LOG_BIOS, LOG_ERROR)("CMOS:Tried to write invalid second value %d for clock.", val); return; }       // invalid second value
             cmos.clock.sec = val; break;
         case 0x01:      /* Seconds, alarm */
-            if (val > 59) return;       // invalid seconds value
+            if (val > 59) { LOG(LOG_BIOS, LOG_ERROR)("CMOS:Tried to write invalid second value %d for alarm.", val); return; }       // invalid second value
             cmos.alarm.sec = val; break;
         case 0x02:      /* Minutes */
-            if (val > 59) return;       // invalid minutes value
+            if (val > 59) { LOG(LOG_BIOS, LOG_ERROR)("CMOS:Tried to write invalid minute value %d for clock.", val); return; }       // invalid minute value
             cmos.clock.min = val; break;
         case 0x03:      /* Minutes, alarm */
-            if (val > 59) return;       // invalid minutes value
+            if (val > 59) { LOG(LOG_BIOS, LOG_ERROR)("CMOS:Tried to write invalid minute value %d for alarm.", val); return; }       // invalid minute value
             cmos.alarm.min = val; break;
         case 0x04:      /* Hours */
             if (cmos.ampm)              // 12h am/pm mode
             {
-                if ((val > 12 && val < 0x81) || val > 0x8c) return; // invalid hour value
+                if (val < 1 || (val > 12 && val < 0x81) || val > 0x8c)
+                    { LOG(LOG_BIOS, LOG_ERROR)("CMOS:Tried to write invalid hour value %d for clock.", val); return; }               // invalid hour value
                 if (val > 12) val -= (0x80-12);         // convert pm to 24h
             }
             else                        // 24h mode
             {
-                if (val > 23) return;                               // invalid hour value
+                if (val > 23) { LOG(LOG_BIOS, LOG_ERROR)("CMOS:Tried to write invalid hour value %d for clock.", val); return; }     // invalid hour value
             }
 
             cmos.clock.hour = val; break;
         case 0x05:      /* Hours, alarm */
             if (cmos.ampm)              // 12h am/pm mode
             {
-                if ((val > 12 && val < 0x81) || val > 0x8c) return; // invalid hour value
+                if (val < 1 || (val > 12 && val < 0x81) || val > 0x8c)
+                    { LOG(LOG_BIOS, LOG_ERROR)("CMOS:Tried to write invalid hour value %d for alarm.", val); return; }               // invalid hour value
                 if (val > 12) val -= (0x80-12);         // convert pm to 24h
             }
             else                        // 24h mode
             {
-                if (val > 23) return;                               // invalid hour value
+                if (val > 23) { LOG(LOG_BIOS, LOG_ERROR)("CMOS:Tried to write invalid hour value %d for alarm.", val); return; }     // invalid hour value
             }
 
             cmos.alarm.hour = val; break;
         case 0x06:      /* Day of week */
+            if (val < 1 || val > 7) { LOG(LOG_BIOS, LOG_ERROR)("CMOS:Tried to write invalid day of week value %d.", val); return; }  // invalid day of week value
             cmos.clock.weekday = val; break;
-        case 0x07:      /* Date of month */
-            if (val > 31) return;               // invalid date value (mktime() should catch the rest)
+        case 0x07:      /* Day of month */
+            if (val < 1 || val > 31) { LOG(LOG_BIOS, LOG_ERROR)("CMOS:Tried to write invalid day of month value %d.", val); return; } // invalid day of month value
             cmos.clock.day = val; break;
         case 0x08:      /* Month */
-            if (val < 1 || val > 12) return;               // invalid month value
+            if (val < 1 || val > 12) { LOG(LOG_BIOS, LOG_ERROR)("CMOS:Tried to write invalid month value %d.", val); return; }       // invalid month value
             cmos.clock.month = val; break;
         case 0x09:      /* Year */
+            if (val > 99) { LOG(LOG_BIOS, LOG_ERROR)("CMOS:Tried to write invalid year value %d.", val); return; }                   // invalid year value
             cmos.clock.year -= cmos.clock.year % 100;
             cmos.clock.year += val;
             break;
         case 0x32:      /* Century */
         case 0x37:      /* Century (alternate used by Windows NT/2000/XP) */
-            if (val < 19) return;               // invalid century value?
+            if (val < 19) { LOG(LOG_BIOS, LOG_ERROR)("CMOS:Tried to write invalid century value %d.", val); return; }                // invalid century value
             cmos.clock.year %= 100;
             cmos.clock.year += val * 100;
             break;
