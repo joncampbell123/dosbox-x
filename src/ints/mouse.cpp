@@ -388,7 +388,6 @@ Bitu PS2_Handler(void) {
 #define MOUSE_MIDDLE_RELEASED 64
 #define MOUSE_WHEEL_MOVED 128
 #define MOUSE_ABSOLUTE 256
-#define MOUSE_DUMMY 256
 
 unsigned int user_mouse_report_rate = 0;
 unsigned int mouse_report_rate = 200; /* DOSBox SVN compatible default (MOUSE_DELAY = 5.0 ms) */
@@ -454,10 +453,6 @@ INLINE void Mouse_AddEvent(uint8_t type) {
                 PIC_ActivateIRQ(MOUSE_IRQ);
         }
     }
-}
-
-void MOUSE_DummyEvent(void) {
-    Mouse_AddEvent(MOUSE_DUMMY);
 }
 
 // ***************************************************************************
@@ -889,8 +884,8 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
     ttfcols = ttf.cols;
     if (ttfuse&&isDBCSCP()&&dbcs_sbcs&&!(c1==0&&c2==(int)(ttf.cols-1)&&r1==0&&r2==(int)(ttf.lins-1))) {
         ttf_cell *curAC = curAttrChar;
-        for (unsigned int y = 0; y < ttf.lins; y++) {
-            if ((int)y>=r1&&(int)y<=r2) {
+        for (int y = 0; y < (int)ttf.lins; y++) {
+            if (y>=r1&&y<=r2) {
                 for (unsigned int x = 0; x < ttf.cols; x++)
                     if ((int)x>=c1&&(int)x<=c2&&curAC[rtl?ttf.cols-x-1:x].selected) {
                         if ((int)x==c1&&c1>0&&curAC[rtl?ttf.cols-x-1:x].skipped&&!curAC[rtl?ttf.cols-x-2:x-1].selected&&curAC[rtl?ttf.cols-x-2:x-1].doublewide) {
@@ -1011,7 +1006,7 @@ const char* Mouse_GetSelected(int x1, int y1, int x2, int y2, int w, int h, uint
 #if defined(WIN32) || defined(MACOSX) || defined(C_SDL2)
 void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h, bool select) {
     int c1=x1, r1=y1, c2=x2, r2=y2, t;
-    uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
+//    uint8_t page = real_readb(BIOSMEM_SEG,BIOSMEM_CURRENT_PAGE);
     uint16_t c=0, r=0;
     if (IS_PC98_ARCH) {
         c=80;
@@ -1045,8 +1040,8 @@ void Mouse_Select(int x1, int y1, int x2, int y2, int w, int h, bool select) {
     if (ttfuse&&(!IS_EGAVGA_ARCH||CurMode->mode!=3||(isDBCSCP()&&dbcs_sbcs))) {
         ttf_cell *newAC = newAttrChar;
         for (unsigned int y = 0; y < ttf.lins; y++) {
-            if (y>=r1&&y<=r2)
-                for (unsigned int x = 0; x < ttf.cols; x++)
+            if ((int)y>=r1&&(int)y<=r2)
+                for (int x = 0; x < (int)ttf.cols; x++)
                     if ((x>=c1||((IS_PC98_ARCH||(isDBCSCP()&&dbcs_sbcs))&&c1>0&&x==c1-1&&(newAC[rtl?ttf.cols-x-1:x].chr&0xFF00)&&(newAC[rtl?ttf.cols-x:x+1].chr&0xFF)==32))&&x<=c2)
                         newAC[rtl?ttf.cols-x-1:x].selected = select?1:0;
             newAC += ttf.cols;
