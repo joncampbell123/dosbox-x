@@ -2595,7 +2595,7 @@ public:
 
 			if (quiet<2) {
 				if (!strlen(msg)) strcat(msg, CURSOR_POS_COL(page)>0?"\r\n":"");
-				strcat(msg, "Booting from drive ");
+				strcat(msg, MSG_Get("PROGRAM_BOOT_BOOTING"));
 				strcat(msg, std::string(1, drive).c_str());
 				strcat(msg, "...\r\n");
 				uint16_t s = (uint16_t)strlen(msg);
@@ -3371,7 +3371,7 @@ restart_int:
             c = 820; h = 6; s = 17;
         } else if(disktype=="hd_st225") { // even older 20mb drive
             c = 615; h = 4; s = 17;
-        } else if(disktype=="hd") {
+        } else if(disktype=="hd" || disktype=="vhd") {
             // get size from parameter
             std::string isize;
             if (!(cmd->FindString("-size",isize,true))) {
@@ -3384,7 +3384,7 @@ restart_int:
                 else {
                     // got chs data: -chs 1023,16,63
                     if(sscanf(isize.c_str(),"%u,%u,%u",&c,&h,&s) != 3) {
-                        printHelp();
+                        WriteOut(MSG_Get("PROGRAM_IMGMAKE_BADSIZE"));
                         return;
                     }
                     // sanity-check chs values
@@ -3395,7 +3395,7 @@ restart_int:
                     size = (unsigned long long)c * (unsigned long long)h * (unsigned long long)s * 512ULL;
                     if((size < 3u*1024u*1024u) || (size > 0x1FFFFFFFFLL)/*8GB*/) {
                         // user picked geometry resulting in wrong size
-                        printHelp();
+                        WriteOut(MSG_Get("PROGRAM_IMGMAKE_BADSIZE"));
                         return;
                     }
                 }
@@ -3408,7 +3408,12 @@ restart_int:
                 // Int13 limit would be 8 gigs
                 if((size < 3*1024*1024LL) || (size > 0x1FFFFFFFFFFLL)/*2TB*/) {
                     // wrong size
-                    printHelp();
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_BADSIZE"));
+                    return;
+                }
+                if(disktype == "vhd" && size > 2190433320960) {/*2040GB*/
+                    // wrong size
+                    WriteOut(MSG_Get("PROGRAM_IMGMAKE_BADSIZE"));
                     return;
                 }
                 sectors = (unsigned int)(size / 512);
@@ -3481,16 +3486,31 @@ restart_int:
         if (!pref_stat(dirname((char *)homepath.c_str()), &test) && test.st_mode & S_IFDIR)
             temp_line = homedir;
 #endif
-        FILE* f = fopen(temp_line.c_str(),"r");
-        if (f){
+        FILE* f;
+        imageDiskVHD* vhd;
+        f = fopen(temp_line.c_str(), "r");
+        if(f) {
             fclose(f);
-            if (!ForceOverwrite) {
-                if (!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_FILE_EXISTS"),temp_line.c_str());
-                if (setdir) chdir(dirCur);
+            if(!ForceOverwrite) {
+                if(!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_FILE_EXISTS"), temp_line.c_str());
+                if(setdir) chdir(dirCur);
                 return;
             }
         }
-
+        char extension[6] = {}; // care extensions longer than 3 letters such as '.vhdd'
+        if(temp_line.find_last_of('.') != std::string::npos) {
+            for(unsigned int i = 0; i < sizeof(extension) - 1; i++) {
+                if(temp_line.find_last_of('.') + i > temp_line.length() - 1) break;
+                extension[i] = temp_line[temp_line.find_last_of('.') + i];
+            }
+            extension[sizeof(extension) - 1] = '\0'; // Terminate string just in case
+        }
+        //avoids IMGMOUNT issues, since VHD psuedo-CHS != BPB algorithm (above)
+        //Windows 11 actually does NOT complain, other utilities can
+        if(disktype == "vhd" || !strcasecmp(extension, ".vhd")) {
+            imageDiskVHD::SizeToCHS(size, (uint16_t*) &c, (uint8_t*) &h, (uint8_t*) &s);
+            LOG_MSG("VHD geometry reset conforming to VHD specification");
+        }
         if (!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),temp_line.c_str(),c,h,s);
         LOG_MSG(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),temp_line.c_str(),c,h,s);
 
@@ -3498,33 +3518,49 @@ restart_int:
         sectors = (unsigned int)(size / 512);
 
         // create the image file
-        f = fopen64(temp_line.c_str(),"wb+");
-        if (!f) {
-            if (!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"),temp_line.c_str());
-            if (setdir) chdir(dirCur);
-            return;
+        if(disktype == "vhd") {
+            uint32_t ret = imageDiskVHD::CreateDynamic(temp_line.c_str(), size);
+            switch(ret) {
+            case imageDiskVHD::ERROR_OPENING:
+                WriteOut(MSG_Get("PROGRAM_VHDMAKE_ERROPEN"), temp_line.c_str());
+                return;
+            case imageDiskVHD::ERROR_WRITING:
+                WriteOut(MSG_Get("PROGRAM_VHDMAKE_WRITERR"), temp_line.c_str());
+                return;
+            }
+            if(imageDiskVHD::Open(temp_line.c_str(), false, (imageDisk**)&vhd) != imageDiskVHD::OPEN_SUCCESS) {
+                WriteOut(MSG_Get("PROGRAM_VHDMAKE_ERROPEN"), temp_line.c_str());
+                return;
+            }
         }
+        else {
+            f = fopen64(temp_line.c_str(), "wb+");
+            if(!f) {
+                if(!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_CANNOT_WRITE"), temp_line.c_str());
+                if(setdir) chdir(dirCur);
+                return;
+            }
 
 #if defined (_MSC_VER) && (_MSC_VER >= 1400)
-        if(fseeko64(f,(__int64)(size - 1ull),SEEK_SET)) {
+            if(fseeko64(f, (__int64)(size - 1ull), SEEK_SET)) {
 #else
-        if(fseeko64(f,static_cast<off_t>(size - 1ull),SEEK_SET)) {
+            if(fseeko64(f, static_cast<off_t>(size - 1ull), SEEK_SET)) {
 #endif
-            if (!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE"),size);
-            fclose(f);
-            unlink(temp_line.c_str());
-            if (setdir) chdir(dirCur);
-            return;
+                if(!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE"), size);
+                fclose(f);
+                unlink(temp_line.c_str());
+                if(setdir) chdir(dirCur);
+                return;
+            }
+            uint8_t bufferbyte = 0;
+            if(fwrite(&bufferbyte, 1, 1, f) != 1) {
+                if(!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE"), size);
+                fclose(f);
+                unlink(temp_line.c_str());
+                if(setdir) chdir(dirCur);
+                return;
+            }
         }
-        uint8_t bufferbyte=0;
-        if(fwrite(&bufferbyte,1,1,f)!=1) {
-            if (!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE"),size);
-            fclose(f);
-            unlink(temp_line.c_str());
-            if (setdir) chdir(dirCur);
-            return;
-        }
-
         // Format the image if not unrequested (and image size<2GB)
         if(bootsect_pos > -1) {
             unsigned int reserved_sectors = 1; /* 1 for the boot sector + BPB. FAT32 will require more */
@@ -3680,8 +3716,13 @@ restart_int:
                 host_writed(&sbuf[0x1ca],vol_sectors);
 
                 // write partition table
-                fseeko64(f,0,SEEK_SET);
-                fwrite(&sbuf,512,1,f);
+                if(disktype != "vhd") {
+                    fseeko64(f, 0, SEEK_SET);
+                    fwrite(&sbuf, 512, 1, f);
+                }
+                else {
+                    vhd->Write_AbsoluteSector(0, sbuf);
+                }
             }
 
             // set boot sector values
@@ -3863,16 +3904,24 @@ restart_int:
             }
 
             // write the boot sector
-            fseeko64(f,bootsect_pos*512,SEEK_SET);
-            fwrite(&sbuf,512,1,f);
-
+            if(disktype == "vhd") {
+                vhd->Write_AbsoluteSector(bootsect_pos, sbuf);
+            }
+            else {
+                fseeko64(f, bootsect_pos * 512, SEEK_SET);
+                fwrite(&sbuf, 512, 1, f);
+            }
             // FAT32: Write backup copy too.
             //        The BPB we wrote says sector 6 from start of volume
-            if (FAT >= 32) {
-                fseeko64(f,(bootsect_pos+6u)*512,SEEK_SET);
-                fwrite(&sbuf,512,1,f);
+            if(FAT >= 32) {
+                if(disktype != "vhd") {
+                    fseeko64(f, (bootsect_pos + 6u) * 512, SEEK_SET);
+                    fwrite(&sbuf, 512, 1, f);
+                } 
+                else {
+                    vhd->Write_AbsoluteSector((bootsect_pos + 6u), sbuf);
+                }
             }
-
             // FAT32: Write FSInfo sector too at sector 1 from start of volume.
             //        Windows 98 behavior shows that the FSInfo is duplicated
             //        along with the boot sector.
@@ -3883,10 +3932,16 @@ restart_int:
                 host_writed(&sbuf[0x1e8],(uint32_t)(clusters-1)); /* Last known free cluster count */
                 host_writed(&sbuf[0x1ec],3);          /* Next free cluster. We used 2 for the root dir, so 3 is next */
                 host_writed(&sbuf[0x1fc],0xAA550000); /* signature */
-                fseeko64(f,(bootsect_pos+1u)*512,SEEK_SET);
-                fwrite(&sbuf,512,1,f);
-                fseeko64(f,(bootsect_pos+6u+1u)*512,SEEK_SET);
-                fwrite(&sbuf,512,1,f);
+                if(disktype != "vhd") {
+                    fseeko64(f, (bootsect_pos + 1u) * 512, SEEK_SET);
+                    fwrite(&sbuf, 512, 1, f);
+                    fseeko64(f, (bootsect_pos + 6u + 1u) * 512, SEEK_SET);
+                    fwrite(&sbuf, 512, 1, f);
+                }
+                else {
+                    vhd->Write_AbsoluteSector((bootsect_pos + 1u), sbuf);
+                    vhd->Write_AbsoluteSector((bootsect_pos + 6u +1u), sbuf);
+                }
             }
 
             // write FATs
@@ -3904,65 +3959,42 @@ restart_int:
                 host_writed(&sbuf[0],0xFFFF00 | mediadesc);
 
             for (unsigned int fat=0;fat < fat_copies;fat++) {
-                fseeko64(f,(off_t)(((unsigned long long)bootsect_pos+reserved_sectors+(unsigned long long)sect_per_fat*(unsigned long long)fat)*512ull),SEEK_SET);
-                fwrite(&sbuf,512,1,f);
+                if(disktype != "vhd") {
+                    fseeko64(f, (off_t)(((unsigned long long)bootsect_pos + reserved_sectors + (unsigned long long)sect_per_fat * (unsigned long long)fat) * 512ull), SEEK_SET);
+                    fwrite(&sbuf, 512, 1, f);
+                }
+                else {
+                    vhd->Write_AbsoluteSector((unsigned long long)bootsect_pos + reserved_sectors + (unsigned long long)sect_per_fat * (unsigned long long)fat, sbuf);
+                }
             }
 
             // warning
             if ((sectors_per_cluster*512ul) >= 65536ul)
                 WriteOut("WARNING: Cluster sizes >= 64KB are not compatible with MS-DOS and SCANDISK\n");
         }
-        // write VHD footer if requested, largely copied from RAW2VHD program, no license was included
-        char extension[6] = {}; // care extensions longer than 3 letters such as '.vhdd'
-        if(temp_line.find_last_of('.') != std::string::npos) {
-            for(unsigned int i = 0; i < sizeof(extension) - 1; i++) {
-                if(temp_line.find_last_of('.') + i > temp_line.length() - 1) break;
-                extension[i] = temp_line[temp_line.find_last_of('.') + i];
-            }
-            extension[sizeof(extension) - 1] = '\0'; // Terminate string just in case
-        }
-        if((mediadesc == 0xF8) && !strcasecmp(extension, ".vhd")) {
-            int i;
-            uint8_t footer[512];
-            // basic information
-            memcpy(footer,"conectix" "\0\0\0\2\0\1\0\0" "\xff\xff\xff\xff\xff\xff\xff\xff" "????rawv" "\0\1\0\0Wi2k",40);
-            memset(footer+40,0,512-40);
-            // time
-            struct tm tm20000101 = { /*sec*/0,/*min*/0,/*hours*/0, /*day of month*/1,/*month*/0,/*year*/100, /*wday*/0,/*yday*/0,/*isdst*/0 };
-            time_t basetime = mktime(&tm20000101);
-            time_t vhdtime = time(NULL) - basetime;
-#if defined (_MSC_VER)
-            *(uint32_t*)(footer+0x18) = SDL_SwapBE32((__time32_t)vhdtime);
-#else
-            *(uint32_t*)(footer+0x18) = uint32_t(SDL_SwapBE32((Uint32)vhdtime));
-#endif
-            // size and geometry
-            *(uint64_t*)(footer+0x30) = *(uint64_t*)(footer+0x28) = SDL_SwapBE64(size);
-
-            *(uint16_t*)(footer+0x38) = SDL_SwapBE16(c);
-            *(uint8_t*)( footer+0x3A) = h;
-            *(uint8_t*)( footer+0x3B) = s;
-            *(uint32_t*)(footer+0x3C) = SDL_SwapBE32(2);
-
-            // generate UUID
-            for (i=0; i<16; ++i) {
-                *(footer+0x44+i) = (uint8_t)(rand()>>4);
-            }
-
-            // calculate checksum
-            uint32_t sum;
-            for (i=0,sum=0; i<512; ++i) {
-                sum += footer[i];
-            }
-
-            *(uint32_t*)(footer+0x40) = SDL_SwapBE32(~sum);
-
+        // write VHD footer if requested
+        if((mediadesc == 0xF8) && disktype != "vhd" && !strcasecmp(extension, ".vhd")) {
+            imageDiskVHD::VHDFooter footer;
+            footer.SetDefaults();
+            footer.dataOffset = 0xFFFFFFFFFFFFFFFF;
+            footer.originalSize = footer.currentSize = size;
+            footer.geometry.cylinders = c;
+            footer.geometry.heads = h;
+            footer.geometry.sectors = s;
+            footer.diskType = imageDiskVHD::VHD_TYPE_FIXED;
+            imageDiskVHD::mk_uuid((uint8_t*)footer.uniqueId);
+            footer.checksum = footer.CalculateChecksum();
+            footer.SwapByteOrder();
             // write footer
             fseeko64(f, 0L, SEEK_END);
             fwrite(&footer,512,1,f);
         }
-        fclose(f);
-
+        if(disktype != "vhd") {
+            fclose(f);
+        }
+        else {
+            delete vhd;
+        }
         // create the batch file
         if(t2 == "-bat") {
             if(temp_line.length() > 3) {
@@ -5820,21 +5852,13 @@ private:
                             case imageDiskVHD::OPEN_SUCCESS: {
                                 skipDetectGeometry = true;
                                 const imageDiskVHD* vhdDisk = dynamic_cast<imageDiskVHD*>(vhdImage);
-                                if (vhdDisk != NULL && vhdDisk->GetVHDType() != imageDiskVHD::VHD_TYPE_FIXED) { //fixed disks would be null here
+                                if (vhdDisk != NULL) {
                                     LOG_MSG("VHD image detected SS,S,H,C: %u,%u,%u,%u",
                                         (uint32_t)vhdDisk->sector_size, (uint32_t)vhdDisk->sectors, (uint32_t)vhdDisk->heads, (uint32_t)vhdDisk->cylinders);
                                     if (vhdDisk->cylinders>1023) LOG_MSG("WARNING: cylinders>1023, INT13 will not work unless extensions are used");
-                                    if (vhdDisk->GetVHDType() == imageDiskVHD::VHD_TYPE_DYNAMIC) LOG_MSG("VHD is a dynamic image");
-                                    if (vhdDisk->GetVHDType() == imageDiskVHD::VHD_TYPE_DIFFERENCING) LOG_MSG("VHD is a differencing image");
-                                } else {
-                                    delete vhdDisk;
-                                    vhdDisk = 0;
-                                    sizes[0] = vhdImage->sector_size; // sector size
-                                    sizes[1] = vhdImage->sectors;     // sectors
-                                    sizes[2] = vhdImage->heads;       // heads
-                                    sizes[3] = vhdImage->cylinders;   // cylinders
-                                    LOG_MSG("VHD fixed size image detected SS,S,H,C: %u,%u,%u,%u",
-                                        (uint32_t)sizes[0], (uint32_t)sizes[1], (uint32_t)sizes[2], (uint32_t)sizes[3]);
+                                    if(vhdDisk->GetVHDType() == imageDiskVHD::VHD_TYPE_FIXED) LOG_MSG("VHD is a fixed image");
+                                    if(vhdDisk->GetVHDType() == imageDiskVHD::VHD_TYPE_DYNAMIC) LOG_MSG("VHD is a dynamic image");
+                                    if(vhdDisk->GetVHDType() == imageDiskVHD::VHD_TYPE_DIFFERENCING) LOG_MSG("VHD is a differencing image");
                                 }
                                 break;
                             }
@@ -6118,11 +6142,6 @@ private:
             return false;
         }
         if (file==NULL) fclose(diskfile);
-        // check it is not dynamic VHD image
-        if (!strcmp((const char*)buf, "conectix")) {
-            if (!qmount) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_DYNAMIC_VHD_UNSUPPORTED"));
-            return false;
-        }
         // check MBR signature for unknown images
         if (!yet_detected && ((buf[510] != 0x55) || (buf[511] != 0xaa))) {
             if (!qmount) WriteOut(MSG_Get("PROGRAM_IMGMOUNT_INVALID_GEOMETRY"));
@@ -7729,6 +7748,230 @@ static void TITLE_ProgramStart(Program * * make) {
     *make=new TITLE;
 }
 
+class VHDMAKE : public Program {
+public:
+    void Run(void);
+private:
+    const char* vhdTypes[5] = { "", "", "Fixed", "Dynamic", "Differencing" };
+    uint64_t ssizetou64(const char* s_size);
+	void PrintUsage() {
+        const char* msg = MSG_Get("PROGRAM_VHDMAKE_HELP");
+        WriteOut(msg);
+	}
+};
+
+// Converts a string disk size with unit into a 64-bit unsigned integer
+uint64_t VHDMAKE::ssizetou64(const char* s_size) {
+    char* sizes = "BKMGT";
+    char* sd_size = strdup(s_size);
+    char* last = sd_size + strlen(s_size) - 1;
+    char* c;
+    uint64_t size;
+
+    if((c = strchr(sizes, toupper(*last)))) {
+        *last = 0;
+        size = atoll(sd_size);
+        size <<= ((c - sizes) * 10);
+    }
+    else {
+        size = atoll(sd_size);
+    }
+    free(sd_size);
+    return size;
+}
+
+void VHDMAKE::Run()
+{
+    bool bOverwrite = false;
+    bool bExists = false;
+    uint32_t ret;
+    char basename[256], filename[256];
+
+	// Hack To allow long commandlines
+	ChangeToLongCmd();
+
+	// Usage
+    if(cmd->FindExist("-?", false) || cmd->FindExist("/?", false) || cmd->GetCount() < 2) {
+        PrintUsage();
+        return;
+    }
+
+    if(cmd->FindExist("-f", true) || cmd->FindExist("-force", true))
+        bOverwrite = true;
+
+    if(cmd->FindExist("-i", true) || cmd->FindExist("-info", true)) {
+        if(cmd->GetCount() > 1) {
+            PrintUsage();
+            return;
+        }
+        cmd->FindCommand(1, temp_line);
+        safe_strcpy(filename, temp_line.c_str()); // image to query
+
+        imageDiskVHD::VHDInfo* info = NULL;
+        if(imageDiskVHD::GetInfo(filename, &info)) {
+            WriteOut(MSG_Get("PROGRAM_VHDMAKE_NOINFO"), filename);
+            return;
+        }
+        WriteOut(MSG_Get("PROGRAM_VHDMAKE_INFO"), filename, vhdTypes[(int)info->vhdType], info->vhdSizeMB);
+        if(info->vhdType != imageDiskVHD::VHD_TYPE_FIXED)
+            WriteOut(MSG_Get("PROGRAM_VHDMAKE_BLOCKSTATS"), info->allocatedBlocks, info->totalBlocks);
+        else
+            WriteOut(".\n");
+        if(info->parentInfo != NULL) {
+            uint32_t index = 0;
+            imageDiskVHD::VHDInfo* p = info->parentInfo;
+            while(p != NULL) {
+                index++;
+                for(int i = 0; i < index; i++) WriteOut(" ");
+                WriteOut("child of \"%s\" (%s)", p->diskname.c_str(), vhdTypes[(int)p->vhdType]);
+                if (p->vhdType != imageDiskVHD::VHD_TYPE_FIXED)
+                    WriteOut(MSG_Get("PROGRAM_VHDMAKE_BLOCKSTATS"), p->allocatedBlocks, p->totalBlocks);
+                else
+                    WriteOut(".\n");
+                p = p->parentInfo;
+            }
+        }
+        delete info;
+        return;
+    }
+
+    if(cmd->FindExist("-m", true) || cmd->FindExist("-merge", true)) {
+        if(cmd->GetCount() > 1) {
+            PrintUsage();
+            return;
+        }
+        cmd->FindCommand(1, temp_line);
+        safe_strcpy(basename, temp_line.c_str());
+        imageDiskVHD* vhd;
+        if(imageDiskVHD::Open(basename, true, (imageDisk**)&vhd) != imageDiskVHD::OPEN_SUCCESS) {
+            WriteOut(MSG_Get("PROGRAM_VHDMAKE_ERROPEN"), basename);
+            return;
+        }
+        if(vhd->vhdType != imageDiskVHD::VHD_TYPE_DIFFERENCING) {
+            WriteOut(MSG_Get("PROGRAM_VHDMAKE_CANTMERGE"), basename);
+            delete vhd;
+            return;
+        }
+        imageDiskVHD::VHDInfo* info = new imageDiskVHD::VHDInfo;
+        if(vhd->GetInfo(info)) {
+            WriteOut(MSG_Get("PROGRAM_VHDMAKE_NOINFO"), basename);
+            return;
+        }
+        uint32_t totalSectorsMerged, totalBlocksUpdated;
+        std::string parentName = info->parentInfo->diskname;
+        if(vhd->MergeSnapshot(&totalSectorsMerged, &totalBlocksUpdated)) {
+            WriteOut(MSG_Get("PROGRAM_VHDMAKE_MERGEREPORT"), totalSectorsMerged, totalBlocksUpdated, basename, parentName.c_str());
+            delete vhd;
+            if(remove(basename))
+                WriteOut(MSG_Get("PROGRAM_VHDMAKE_MERGENODELETE"), basename);
+            else
+                WriteOut(MSG_Get("PROGRAM_VHDMAKE_MERGEOKDELETE"));
+        }
+        else {
+            WriteOut(MSG_Get("PROGRAM_VHDMAKE_MERGEFAILED"));
+            if(totalSectorsMerged)
+                WriteOut(MSG_Get("PROGRAM_VHDMAKE_MERGEWARNCORRUPTION"), parentName.c_str());
+            else
+                WriteOut("\n");
+        }
+        delete info;
+        return;
+    }
+
+    if(cmd->FindExist("-c", true) || cmd->FindExist("-convert", true)) {
+        if(cmd->GetCount() > 2) {
+            PrintUsage();
+            return;
+        }
+        cmd->FindCommand(1, temp_line);
+        safe_strcpy(filename, temp_line.c_str()); // image to convert
+        cmd->FindCommand(2, temp_line);
+        safe_strcpy(basename, temp_line.c_str()); // resulting VHD (after renaming)
+        if(access(basename, 0) == 0) {
+            if(!bOverwrite) {
+                WriteOut(MSG_Get("PROGRAM_VHDMAKE_FNEEDED"));
+                return;
+            }
+            if(remove(basename)) {
+                WriteOut(MSG_Get("PROGRAM_VHDMAKE_REMOVEERR"), basename);
+            }
+        }
+        ret = imageDiskVHD::ConvertFixed(filename);
+        if(ret == imageDiskVHD::OPEN_SUCCESS) {
+            if (rename(filename, basename))
+                WriteOut(MSG_Get("PROGRAM_VHDMAKE_RENAME"));
+        }
+    }
+    else if(cmd->FindExist("-l", true) || cmd->FindExist("-link", true)) {
+        if(cmd->GetCount() > 2) {
+            PrintUsage();
+            return;
+        }
+        cmd->FindCommand(1, temp_line);
+        safe_strcpy(basename, temp_line.c_str());
+        cmd->FindCommand(2, temp_line);
+        safe_strcpy(filename, temp_line.c_str());
+#ifdef WIN32
+        if(basename[1] == ':')
+            WriteOut(MSG_Get("PROGRAM_VHDMAKE_ABSPATH_WIN"));
+#else
+        if(basename[0] == '/') {
+            WriteOut(MSG_Get("PROGRAM_VHDMAKE_ABSPATH_UX"));
+            return;
+        }
+#endif
+        if(! bOverwrite && access(filename, 0) == 0) {
+            WriteOut(MSG_Get("PROGRAM_VHDMAKE_FNEEDED"));
+            return;
+        }
+        ret = imageDiskVHD::CreateDifferencing(filename, basename);
+    }
+    else {
+        if(cmd->GetCount() > 2) {
+            PrintUsage();
+            return;
+        }
+        char size[16];
+        cmd->FindCommand(1, temp_line);
+        safe_strcpy(filename, temp_line.c_str());
+        cmd->FindCommand(2, temp_line);
+        safe_strcpy(size, temp_line.c_str());
+        uint64_t vhd_size = ssizetou64(size);
+        if(!vhd_size || vhd_size < 3145728 || vhd_size > 2190433320960) {
+            WriteOut(MSG_Get("PROGRAM_VHDMAKE_BADSIZE"));
+            return;
+        }
+        if(!bOverwrite && access(filename, 0) == 0) {
+            WriteOut(MSG_Get("PROGRAM_VHDMAKE_FNEEDED"));
+            return;
+        }
+        ret = imageDiskVHD::CreateDynamic(filename, vhd_size);
+    }
+
+    switch(ret) {
+    case imageDiskVHD::UNSUPPORTED_SIZE:
+        WriteOut(MSG_Get("PROGRAM_VHDMAKE_BADSIZE"));
+        break;
+    case imageDiskVHD::ERROR_OPENING:
+        WriteOut(MSG_Get("PROGRAM_VHDMAKE_ERROPEN"), filename);
+        break;
+    case imageDiskVHD::ERROR_OPENING_PARENT:
+        WriteOut(MSG_Get("PROGRAM_VHDMAKE_BADPARENT"), filename);
+        break;
+    case imageDiskVHD::ERROR_WRITING:
+        WriteOut(MSG_Get("PROGRAM_VHDMAKE_WRITERR"), filename);
+        break;
+    case imageDiskVHD::OPEN_SUCCESS:
+        WriteOut(MSG_Get("PROGRAM_VHDMAKE_SUCCESS"));
+        break;
+    }
+}
+
+
+static void VHDMAKE_ProgramStart(Program * * make) {
+    *make=new VHDMAKE;
+}
+
 class COLOR : public Program {
 public:
     void Run(void);
@@ -8540,6 +8783,7 @@ void Add_VFiles(bool usecp) {
 
     PROGRAMS_MakeFile("COLOR.COM",COLOR_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("TITLE.COM",TITLE_ProgramStart,"/BIN/");
+    PROGRAMS_MakeFile("VHDMAKE.COM",VHDMAKE_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("LS.COM",LS_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("ADDKEY.COM",ADDKEY_ProgramStart,"/BIN/");
     PROGRAMS_MakeFile("CFGTOOL.COM",CFGTOOL_ProgramStart,"/SYSTEM/");
@@ -8967,7 +9211,8 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_BOOT_IMAGE_NOT_OPEN","Cannot open %s\n");
     MSG_Add("PROGRAM_BOOT_CART_WO_PCJR","PCjr cartridge found, but machine is not PCjr");
     MSG_Add("PROGRAM_BOOT_CART_LIST_CMDS","Available PCjr cartridge commandos:%s");
-    MSG_Add("PROGRAM_BOOT_CART_NO_CMDS","No PCjr cartridge commandos found");
+    MSG_Add("PROGRAM_BOOT_CART_NO_CMDS", "No PCjr cartridge commandos found");
+    MSG_Add("PROGRAM_BOOT_BOOTING", "Booting from drive ");
 
     MSG_Add("PROGRAM_LOADROM_HELP","Loads the specified ROM image file for video BIOS or IBM BASIC.\n\nLOADROM ROM_file\n");
     MSG_Add("PROGRAM_LOADROM_HELP","Must specify ROM file to load.\n");
@@ -8998,7 +9243,6 @@ void DOS_SetupPrograms(void) {
         "\033[34;1mIMGMOUNT drive-letter location-of-image -size bps,spc,hpc,cyl\033[0m\n");*/
     MSG_Add("PROGRAM_IMGMOUNT_INVALID_IMAGE","Could not load image file.\n"
         "Check that the path is correct and the image is accessible.\n");
-    MSG_Add("PROGRAM_IMGMOUNT_DYNAMIC_VHD_UNSUPPORTED", "Dynamic VHD files are not supported.\n");
     MSG_Add("PROGRAM_IMGMOUNT_INVALID_GEOMETRY","Could not extract drive geometry from image.\n"
         "Use parameter -size bps,spc,hpc,cyl to specify the geometry.\n");
     MSG_Add("PROGRAM_IMGMOUNT_AUTODET_VALUES","Image geometry auto detection: -size %u,%u,%u,%u\n");
@@ -9083,8 +9327,8 @@ void DOS_SetupPrograms(void) {
         "     hd_250: 250MB image, hd_520: 520MB image, hd_1gig: 1GB image\n"
         "     hd_2gig: 2GB image, hd_4gig: 4GB image, hd_8gig: 8GB image\n"
         "     hd_st251: 40MB image, hd_st225: 20MB image (geometry from old drives)\n"
-        "    \033[33;1mCustom hard disk images:\033[0m hd (requires -size or -chs)\n"
-        "  -size: Size of a custom hard disk image in MB.\n"
+        "    \033[33;1mCustom hard disk images:\033[0m hd vhd (requires -size or -chs)\n"
+        "  -size: Size of a custom hard disk image in MB (vhd: up to 2088960).\n"
         "  -chs: Disk geometry in cylinders(1-1023),heads(1-255),sectors(1-63).\n"
         "  -nofs: Add this parameter if a blank image should be created.\n"
         "  -force: Force to overwrite the existing image file.\n"
@@ -9105,6 +9349,7 @@ void DOS_SetupPrograms(void) {
         "  \033[32;1mIMGMAKE -t fd\033[0m                   - create a 1.44MB floppy image \033[33;1mIMGMAKE.IMG\033[0m\n"
         "  \033[32;1mIMGMAKE -t fd_1440 -force\033[0m       - force to create a floppy image \033[33;1mIMGMAKE.IMG\033[0m\n"
         "  \033[32;1mIMGMAKE dos.img -t fd_2880\033[0m      - create a 2.88MB floppy image named dos.img\n"
+        "  \033[32;1mIMGMAKE new.vhd -t vhd -size 520\033[0m- create a 520MB Dynamic VHD named new.vhd\n"
 #ifdef WIN32
         "  \033[32;1mIMGMAKE c:\\disk.img -t hd -size 50\033[0m      - create a 50MB HDD image c:\\disk.img\n"
         "  \033[32;1mIMGMAKE c:\\disk.img -t hd_520 -nofs\033[0m     - create a 520MB blank HDD image\n"
@@ -9130,6 +9375,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE","Not enough space available for the image file. Need %u bytes.\n");
     MSG_Add("PROGRAM_IMGMAKE_PRINT_CHS","Creating image file \"%s\" with %u cylinders, %u heads and %u sectors\n");
     MSG_Add("PROGRAM_IMGMAKE_CANT_READ_FLOPPY","\n\nUnable to read floppy.");
+    MSG_Add("PROGRAM_IMGMAKE_BADSIZE","Wrong -size or -chs arguments.\n");
 
     MSG_Add("PROGRAM_KEYB_INFO","Codepage %i has been loaded\n");
     MSG_Add("PROGRAM_KEYB_INFO_LAYOUT","Codepage %i has been loaded for layout %s\n");
@@ -9158,6 +9404,46 @@ void DOS_SetupPrograms(void) {
             "\033[34;1mMODE CON RATE=\033[0mr \033[34;1mDELAY=\033[0md :typematic rates, r=1-32 (32=fastest), d=1-4 (1=lowest)\n");
     MSG_Add("PROGRAM_MODE_INVALID_PARAMETERS","Invalid parameter(s).\n");
     MSG_Add("PROGRAM_PORT_INVALID_NUMBER","Must specify a port number between 1 and 9.\n");
+    MSG_Add("PROGRAM_VHDMAKE_WRITERR", "Could not write to new VHD image \"%s\", aborting.\n");
+    MSG_Add("PROGRAM_VHDMAKE_REMOVEERR", "Could not erase file \"%s\"\n");
+    MSG_Add("PROGRAM_VHDMAKE_RENAME", "You'll have to manually rename the newly created VHD image.\n");
+    MSG_Add("PROGRAM_VHDMAKE_SUCCESS", "New VHD image succesfully created. You can mount it with \033[34;1mIMGMOUNT\033[0m.\n");
+    MSG_Add("PROGRAM_VHDMAKE_ERROPEN", "Error, could not open image file \"%s\".\n");
+    MSG_Add("PROGRAM_VHDMAKE_BADSIZE", "Bad VHD size specified, aborting!\n");
+    MSG_Add("PROGRAM_VHDMAKE_FNEEDED", "A pre-existing VHD image can't be silently overwritten without -f option!\n");
+    MSG_Add("PROGRAM_VHDMAKE_BADPARENT", "The parent VHD image \"%s\" can't be opened for linking, aborting!\n");
+    MSG_Add("PROGRAM_VHDMAKE_NOINFO", "Couldn't query info for \"%s\".\n");
+    MSG_Add("PROGRAM_VHDMAKE_BLOCKSTATS", " with %d/%d blocks allocated.\n");
+    MSG_Add("PROGRAM_VHDMAKE_INFO", "VHD \"%s\" type is %s.\nIts virtual size is %.02f MB");
+    MSG_Add("PROGRAM_VHDMAKE_CANTMERGE", "%s is not a Differencing disk, can't merge!\n");
+    MSG_Add("PROGRAM_VHDMAKE_MERGEREPORT", "%d sectors in %d blocks from \"%s\" merged into \"%s\".\n");
+    MSG_Add("PROGRAM_VHDMAKE_MERGENODELETE", "Couldn't remove snapshot \"%s\", you'll have to do it yourself!");
+    MSG_Add("PROGRAM_VHDMAKE_MERGEOKDELETE", "Snapshot VHD merged and deleted.\n");
+    MSG_Add("PROGRAM_VHDMAKE_MERGEFAILED", "Failure while merging, aborted!\n");
+    MSG_Add("PROGRAM_VHDMAKE_MERGEWARNCORRUPTION", " Parent \"%s\" contents could be corrupted!\n");
+    MSG_Add("PROGRAM_VHDMAKE_ABSPATH_WIN", "Warning: an absolute path to parent limits portability to Windows.\nPlease prefer a path relative to differencing image file!\n");
+    MSG_Add("PROGRAM_VHDMAKE_ABSPATH_UX", "ERROR: an absolute path to parent inhibits portability.\nUse a path relative to differencing image file!\n");
+    MSG_Add("PROGRAM_VHDMAKE_HELP",
+        "Creates Dynamic or Differencing VHD images, or converts raw images\ninto Fixed VHD.\n"
+        "\033[32;1mVHDMAKE\033[0m [-f] new.vhd size[BKMGT]\n"
+        "\033[32;1mVHDMAKE\033[0m \033[34;1m-convert\033[0m raw.hdd new.vhd\n"
+        "\033[32;1mVHDMAKE\033[0m [-f] \033[34;1m-link\033[0m parent.vhd new.vhd\n"
+        "\033[32;1mVHDMAKE\033[0m \033[34;1m-merge\033[0m parent.vhd delta.vhd\n"
+        "\033[32;1mVHDMAKE\033[0m \033[34;1m-info\033[0m a.vhd\n"
+        " -c | -convert  convert a raw hd image to Fixed VHD, renaming it to new.vhd\n"
+        " -l | -link     create a new Differencing VHD new.vhd and link it to the\n"
+        "                pre-existing parent image parent.vhd\n"
+        " -f | -force    force overwriting a pre-existing image file\n"
+        " -i | -info     show useful informations about a.vhd image\n"
+        " -m | -merge    merge differencing delta.vhd to its parent.vhd\n"
+        " new.vhd        name of the new Dynamic VHD image to create\n"
+        " size           disk size (eventually with size unit, Bytes is implicit)\n"
+        "When converting a raw disk image to Fixed VHD, it has to be partitioned with\n"
+        "MBR scheme and formatted with FAT format.\n"
+        "When creating a Dynamic VHD, its size must range from 3 MB to 2040 GB.\n"
+        "The Dynamic VHD created is not partitioned nor formatted: to directly mount to\n"
+        "a drive letter with \033[34;1mIMGMOUNT\033[0m, please consider using \033[34;1mIMGMAKE\033[0m instead.\n"
+        "A merged snapshot VHD is automatically deleted if merge is successful.\n");
 
     const Section_prop * dos_section=static_cast<Section_prop *>(control->GetSection("dos"));
     hidefiles = dos_section->Get_string("drive z hide files");
