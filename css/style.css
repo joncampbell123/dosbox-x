@@ -343,11 +343,11 @@ table.align-left > tbody > tr > td {
 }
 .index-flex > :nth-child(1) {
   order: 2;
-  flex: 1 1 85%;
+  flex: 1 1 80%;
 }
 .index-flex > :nth-child(2) {
   order: 1;
-  flex: 0 1 15%;
+  flex: 0 1 20%;
 }
 @media (max-width: 720px) {
   .index-flex {
