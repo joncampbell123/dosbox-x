@@ -638,7 +638,8 @@ uint32_t imageDiskVHD::CreateDynamic(const char* filename, uint64_t size) {
     //setup dynamic header
     DynamicHeader header;
     header.SetDefaults();
-    header.maxTableEntries = (size + (header.blockSize - 1)) / header.blockSize;
+    uint32_t dwMaxTableEntries = (size + (header.blockSize - 1)) / header.blockSize;
+    header.maxTableEntries = dwMaxTableEntries;
     header.checksum = header.CalculateChecksum();
     header.SwapByteOrder();
 
@@ -648,7 +649,7 @@ uint32_t imageDiskVHD::CreateDynamic(const char* filename, uint64_t size) {
     //creates the empty BAT (max 4MB) - must span sectors
     uint8_t sect[512];
     memset(sect, 255, 512);
-    uint32_t table_size = (4 * header.maxTableEntries + 511) / 512 * 512;
+    uint32_t table_size = (4 * dwMaxTableEntries + 511) / 512 * 512;
     while(table_size && STATUS == OPEN_SUCCESS) {
         if(fwrite(sect, 1, 512, vhd) != 512) {
             STATUS = ERROR_WRITING;
