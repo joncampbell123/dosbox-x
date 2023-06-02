@@ -35,5 +35,5 @@ $ cd path/to/dosbox-x.wiki.git
 $ git pull
 
 $ cd path/to/dosbox-x-gh-pages
-$ ./update-wiki wiki path/to/dosbox-x.wiki.git
+$ ./update-wiki ./wiki path/to/dosbox-x.wiki.git
 ```
