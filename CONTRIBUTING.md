@@ -50,4 +50,4 @@ $ ./update-wiki ./wiki path/to/dosbox-x.wiki.git
 
 ## Writing a new page
 
-Just do it as one would with a normal Jekyll site (see [this](https://jekyllrb.com/docs/pages/) for pages and [this](https://jekyllrb.com/docs/posts/) for posts), except if you're writing a blog post for some reason - don't set the layout if so. You can use Jekyll Compose for this if you'd like some shortcuts.
+Just do it as one would with a normal Jekyll site (see [this](https://jekyllrb.com/docs/pages/) for pages and [this](https://jekyllrb.com/docs/posts/) for posts), except if you're writing a blog post for some reason - don't set the layout if so. You can [use Jekyll Compose](https://github.com/jekyll/jekyll-compose#usage) for this if you'd like some shortcuts.
