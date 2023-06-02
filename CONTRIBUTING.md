@@ -1,3 +1,15 @@
+## Setting up the dev environment (extremely brief version)
+
+This is a [Jekyll](https://jekyllrb.com/) site. If you want to develop it, I recommend to install the site's dependencies with [Bundler](https://bundler.io) assuming that you have Ruby installed:
+```sh
+$ bundle install
+```
+
+Then you can utilize the Jekyll CLI to preview your changes to the site locally and live:
+```
+$ bundle exec jekyll serve
+```
+
 ## Updating the latest version
 
 Before doing this, you probably want to make sure all files for the release are ready and uploaded to GitHub, to make users' life easier
@@ -24,10 +36,7 @@ Before doing this, you probably want to make sure all files for the release are 
 
 > If you mean to contribute to the wiki, I'll direct you to [rderooy/dosbox-x-wiki](https://github.com/rderooy/dosbox-x-wiki) as that's where wiki updates are pulled from right now
 
-First if you haven't yet, clone https://github.com/joncampbell123/dosbox-x.wiki.git outside this repo first, and install site dependencies with [Bundler](https://bundler.io):
-```sh
-$ bundle install
-```
+First if you haven't yet, clone https://github.com/joncampbell123/dosbox-x.wiki.git outside this repo first, and install site dependencies.
 
 After you have those stuff ready, you can now do something like this in Bash to update the wiki:
 ```bash
