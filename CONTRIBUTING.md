@@ -29,7 +29,8 @@ Before doing this, you probably want to make sure all files for the release are 
     ---
     ```
 3. Extract the release notes from `CHANGELOG` or write your own, make sure it's in Markdown format, then append it to the file
-4. Optionally, serve the site and tinker until the page looks OK
+4. Optionally, serve the site and tinker with the page until it looks OK
+    > The page will be located at `/release-<version name>.html`
 5. You're basically done
 
 ## Updating the wiki
