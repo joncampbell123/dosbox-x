@@ -72,6 +72,11 @@ defaults:
       layout: "blog/post"
       permalink: /blog/devtest/:year-:month-:day-:hour:minute/
 
+jekyll_compose:
+  default_front_matter:
+    posts:
+      layout: null
+
 exclude:
   # RubyGem / Bundler files
   - vendor/bundle/
