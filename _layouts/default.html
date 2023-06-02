@@ -35,19 +35,21 @@
 </head>
 
 <body>
-    <header>
-        {%- include header.html -%}
-    </header>
-    <hr class="content-sep" />
-
-    <div class="main_content_wrap">
-      {{ content }}
+    <div>
+        <header>
+            {%- include header.html -%}
+        </header>
+        <hr class="content-sep" />
     </div>
 
-    <hr class="content-sep" />
-    <footer>
-        {%- include footer.html -%}
-    </footer>
+    {{ content }}
+
+    <div>
+        <hr class="content-sep" />
+        <footer>
+            {%- include footer.html -%}
+        </footer>
+    </div>
 </body>
 
 </html>

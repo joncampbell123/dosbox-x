@@ -15,6 +15,7 @@ MeyerWeb Reset
   border: 0;
   font: inherit;
   vertical-align: baseline;
+  box-sizing: inherit;
 }
 
 /* HTML5 display-role reset for older browsers */
@@ -38,6 +39,7 @@ Theme Styles
 
 html {
   height: 100%;
+  min-height: 100vh;
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   box-sizing: border-box;
@@ -51,7 +53,6 @@ body {
   font-family: 'Myriad Pro', Calibri, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
-  min-height: 100vh;
   display: grid;
   grid-template-rows: auto 1fr auto;
 }
@@ -301,13 +302,13 @@ hr.content-sep {
 }
 
 #main_content {
-  margin: auto;
+  margin: 0 auto;
   width: 90%;
   max-width: 62.5em;
 }
 
-.main_content_wrap,
 .align-center,
+table.align-center,
 table.align-center > thead > tr > th,
 table.align-center > tbody > tr > td,
 .index-demos > thead > tr > th,
@@ -446,6 +447,13 @@ html:has(.wiki-index-html),
 }
 .wiki-index-html main {
   overflow: hidden;
+}
+
+#builds {
+  width: 100%;
+}
+.devel-builds-dots {
+  margin: auto;
 }
 
 footer {
