@@ -427,10 +427,7 @@ table.align-left > tbody > tr > td {
 }
 .home-links > tbody > tr > td:has(#linkproject) {
   background-color: #0090ff;
-}
-#linkproject ~ img {
-  margin: 0;
-  margin-left: 5px;
+  white-space: pre-wrap;
 }
 
 h4.release-date {
