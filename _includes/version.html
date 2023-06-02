@@ -19,16 +19,18 @@
 <img src="{{ '/images/macos_logo.png' | relative_url }}" title="macOS" alt="macOS" width="50" height="50" />&nbsp;
 <img src="{{ '/images/msdos_logo.png' | relative_url }}" title="MS-DOS" alt="MS-DOS" width="50" height="50" />
 
-{%- capture latest_version_release_link -%}https://github.com/joncampbell123/dosbox-x/releases/download/{{ version.git_tag }}{%- endcapture -%}
 <h4>Windows version:</h4>
 <h5 class="subtitle-mute">(Windows XP and later versions supported)</h5>
 <h5>
-  <a href="{{ latest_version_release_link }}/{{ version.win32_setup_file }}">32-bit Setup (Vista+)</a>
+  {% include version_file.html version=version name="win32_setup_file" display_name="32-bit Setup (Vista+)" %}
   |
-  <a href="{{ latest_version_release_link }}/{{ version.win64_setup_file }}">64-bit Setup (7+)</a>
+  {% include version_file.html version=version name="win64_setup_file" display_name="64-bit Setup (7+)" %}
 </h5>
-<h5><a href="{{ latest_version_release_link }}/{{ version.winXP_setup_file }}">32/64-bit Setup (XP+)</a></h5>
-<h5><a href="https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md#windows-packages-installer-or-portable">More options including portable packages</a></h5>
+<h5>{% include version_file.html version=version name="winXP_setup_file" display_name="32/64-bit Setup (XP+)" %}</h5>
+<h5>
+  <a href="https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md#windows-packages-installer-or-portable">More options including portable packages</a>
+  {%- unless version.win32_setup_file and version.win64_setup_file -%}<abbr title="Recommended at the moment">*</abbr>{%- endunless -%}
+</h5>
 
 <h4>Linux version:</h4>
 <h5 class="subtitle-mute">(Linux distros and Raspberry Pi supported)</h5>
@@ -41,25 +43,30 @@
 <h4>macOS version:</h4>
 <h5 class="subtitle-mute">(Intel-based and ARM-based Macs supported)</h5>
 <h5>
-  <a href="{{ latest_version_release_link }}/{{ version.macos_intel_file }}">Intel-based Mac</a>
+  {% include version_file.html version=version name="macos_intel_file" display_name="Intel-based Mac" %}
   |
-  <a href="{{ latest_version_release_link }}/{{ version.macos_arm_file }}">ARM-based Mac</a>
+  {% include version_file.html version=version name="macos_arm_file" display_name="ARM-based Mac" %}
 </h5>
 <h5>
-  {%- if version.macos_special_file -%}<a href="{{ latest_version_release_link }}/{{ version.macos_special_file }}">Builds for macOS 10.13+</a>
-  |{%- endif -%}
+  {%- if version.macos_special_file -%}
+  {% include version_file.html version=version name="macos_special_file" display_name="Builds for macOS 10.13+" %}
+  |
+  {%- endif -%}
   <a href="https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md#macos-packages-portable">More info</a>
 </h5>
 
-{%- if version.dos_hx_file or version.dos_loadlin_file -%}
 <h4>DOS version:</h4>
-<h5 class="subtitle-mute" style="font-size: 13px;">(Yes, you can emulate another DOS system within DOS itself)</h5>
+<h5 class="subtitle-mute">(Yes, you can emulate another DOS system within DOS itself)</h5>
 <h5>
-  <a href="{{ latest_version_release_link }}/{{ version.dos_hx_file }}">HX-DOS package</a>
+  {% include version_file.html version=version name="dos_hx_file" display_name="HX-DOS package" %}
+  {%- if version.dos_loadlin_file -%}
   |
+  {% include version_file.html version=version name="dos_loadlin_file" display_name="LOADLIN package" %}
+  {%- endif -%}
+</h5>
+<h5>
   <a href="https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md#dos-packages-portable">More info</a>
 </h5>
-{%- endif -%}
 
 <h4>Source code:</h4>
 <h5 class="subtitle-mute">(Latest code also available from the GitHub repository)</h5>
@@ -76,7 +83,7 @@
 <h5><a target="_blank" href="{{ '/devel-build.html' | relative_url }}">Development (preview/testing) builds</a></h5>
 
 <h4>General information on project:</h4>
-<h5><a href="about.html">About the DOSBox-X project</a></h5>
+<h5><a href="{{ '/about.html' | relative_url }}">About the DOSBox-X project</a></h5>
 <h5><a href="https://github.com/joncampbell123/dosbox-x/blob/master/README.md">View README</a></h5>
 <h5><a href="https://github.com/joncampbell123/dosbox-x/blob/master/CONTRIBUTING.md">Contributing Guidelines</a></h5>
 
