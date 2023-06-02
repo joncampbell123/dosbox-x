@@ -47,3 +47,7 @@ $ git pull
 $ cd path/to/dosbox-x-gh-pages
 $ ./update-wiki ./wiki path/to/dosbox-x.wiki.git
 ```
+
+## Writing a new page for the blog
+
+IDK why you'd want to do this, but just do it as one would with a normal Jekyll blog, just don't set the layout. You can use Jekyll Compose for this if you want shortcuts.
