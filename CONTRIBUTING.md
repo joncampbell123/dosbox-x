@@ -36,9 +36,9 @@ Before doing this, you probably want to make sure all files for the release are 
 
 > If you mean to contribute to the wiki, I'll direct you to [rderooy/dosbox-x-wiki](https://github.com/rderooy/dosbox-x-wiki) as that's where wiki updates are pulled from right now
 
-First if you haven't yet, clone https://github.com/joncampbell123/dosbox-x.wiki.git outside this repo first
+First if you haven't yet, make a clone of https://github.com/joncampbell123/dosbox-x.wiki.git outside this repo first
 
-After you have those stuff ready, you can then do something like this in Bash to update the wiki:
+After you have that ready, you can then do something like this in Bash to update the wiki:
 ```bash
 $ cd path/to/dosbox-x.wiki.git
 $ git pull
