@@ -497,7 +497,7 @@ void imageDiskVHD::VHDFooter::SetDefaults() {
     dataOffset = 512;
     time_t T;
     time(&T);
-    timeStamp = (uint32_t)T - 946681200;
+    timeStamp = mktime(gmtime(&T)) - 946681200; // ss from 1/1/2000 UTC
     memcpy(creatorApp, "DBox", 4);
     creatorVersion = 0x10000;
     creatorHostOS = 0x5769326B; // Wi2k
@@ -585,8 +585,8 @@ bool imageDiskVHD::UpdateUUID() {
 void imageDiskVHD::SizeToCHS(uint64_t size, uint16_t* c, uint8_t* h, uint8_t* s)
 {
     uint32_t sectors = size / 512;
-    uint8_t spt, hh;
-    uint16_t cth, cyls;
+    uint32_t spt, hh;
+    uint32_t cth, cyls;
 
     if(sectors > 65535 * 16 * 255)
         sectors = 65535 * 16 * 255;
@@ -612,9 +612,9 @@ void imageDiskVHD::SizeToCHS(uint64_t size, uint16_t* c, uint8_t* h, uint8_t* s)
         }
     }
     cyls = cth / hh;
-    *c = cyls;
-    *h = hh;
-    *s = spt;
+    *c = (uint16_t) cyls;
+    *h = (uint8_t) hh;
+    *s = (uint8_t) spt;
 }
 
 //creates a Dynamic VHD image
