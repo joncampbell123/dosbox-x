@@ -442,6 +442,10 @@ imageDiskVHD::~imageDiskVHD() {
 		parentDisk->Release();
 		parentDisk = 0;
 	}
+    if(fixedDisk) {
+        delete fixedDisk;
+        fixedDisk = 0;
+    }
 }
 
 void imageDiskVHD::VHDFooter::SwapByteOrder() {
@@ -774,7 +778,7 @@ uint32_t imageDiskVHD::ConvertFixed(const char* filename) {
     //CAVE: search effective slot!
     if(*((uint32_t*)(mbr + 0x1C6))) {
         uint64_t lba = SDL_SwapLE32(*((uint32_t*)(mbr + 0x1C6))) * 512;
-        if(lba > (size - 512)) {
+        if(lba < 1 || lba > (size - 512)) {
             LOG_MSG("Bad LBA partition start in MBR");
             STATUS = ERROR_OPENING;
         }
@@ -795,7 +799,7 @@ uint32_t imageDiskVHD::ConvertFixed(const char* filename) {
         s = (unsigned)*(mbr + 0x1C0) & 0x3F;
         c = (unsigned)*(mbr + 0x1C0) & 0xC0 | *(mbr + 0x1C1);
         uint64_t lba = ((c * heads + h) * spc + s - 1) * 512;
-        if(lba > (size - 512)) {
+        if(lba < 1 || lba > (size - 512)) {
             LOG_MSG("Bad MBR partition start in MBR");
             STATUS = ERROR_OPENING;
         }
