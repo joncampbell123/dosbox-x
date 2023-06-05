@@ -199,9 +199,9 @@ void DetachFromBios(imageDisk* image) {
 }
 
 void SwitchLanguage(int oldcp, int newcp, bool confirm) {
-    auto iterold = langcp_map.find(oldcp), iternew = langcp_map.find(newcp);
+    auto iterold = langcp_map.find(lastmsgcp), iternew = langcp_map.find(newcp);
     std::string langold = iterold != langcp_map.end() ? iterold->second : "", langnew = iternew != langcp_map.end() ? iternew->second : "";
-    if (loadlang && (oldcp == lastmsgcp || (oldcp == 951 && lastmsgcp == 950) || (oldcp == 950 && lastmsgcp == 951) || !confirm) && oldcp != newcp && newcp == dos.loaded_codepage && langnew.size() && !(langold.size() && langold == langnew)) {
+    if (loadlang && langnew.size() && strcasecmp(langold.c_str(), langnew.c_str())) {
         FILE *file = testLoadLangFile(langnew.c_str());
         if (file) {
             fclose(file);
@@ -209,6 +209,7 @@ void SwitchLanguage(int oldcp, int newcp, bool confirm) {
             if (!confirm || systemmessagebox("DOSBox-X language file", msg.c_str(), "yesno","question", 2)) {
                 SetVal("dosbox", "language", langnew);
                 Load_Language(langnew);
+                lastmsgcp = newcp;
             }
         }
     }
