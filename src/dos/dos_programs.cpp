@@ -6547,9 +6547,9 @@ void KEYB::Run(void) {
             cmd->FindCommand(2,cp_string); /* second parameter is codepage number */
             int32_t cp = cp_string.size() ? atoi(cp_string.c_str()) : 0;;
             int32_t tocp = !strcasecmp(layout_id, "jp") ? 932 : (!strcasecmp(layout_id, "ko") ? 949 : (!strcasecmp(layout_id, "tw") || !strcasecmp(layout_id, "hk") || !strcasecmp(layout_id, "zht") || (!strcasecmp(layout_id, "zh") && ((cp == 950 || cp == 951) || (!cp_string.size() && (dos.loaded_codepage == 950 || dos.loaded_codepage == 951)))) ? (cp == 951 || (!cp_string.size() && dos.loaded_codepage == 951) ? 951 : 950) : (!strcasecmp(layout_id, "cn") || !strcasecmp(layout_id, "zhs") || !strcasecmp(layout_id, "zh") ? 936 : 0)));
+            int32_t cpbak = dos.loaded_codepage;
             const char* layout_name = DOS_GetLoadedLayout();
             if(tocp && !IS_PC98_ARCH) {
-                int32_t cpbak = dos.loaded_codepage;
                 dos.loaded_codepage = tocp;
 #if defined(USE_TTF)
                 if(ttf.inUse) {
@@ -6573,10 +6573,10 @@ void KEYB::Run(void) {
                         UpdateSDLDrawTexture();
 #endif
                 }
-                SwitchLanguage(cpbak, tocp, true);
                 if(!strcasecmp(layout_id, "jp")) {
-                    keyb_error = DOS_ChangeCodepage(cp ? cp : tocp, "auto");
-                    if(keyb_error == KEYB_NOERROR) keyb_error = DOS_ChangeKeyboardLayout(layout_id, tocp);
+                    keyb_error = DOS_LoadKeyboardLayout("jp", tocp, "auto"); /* Load a default layout if not loaded at all */
+                    if(cp) keyb_error = DOS_ChangeCodepage(cp , "auto");
+                    if(keyb_error == KEYB_NOERROR) DOS_ChangeKeyboardLayout("jp", cp ? cp : tocp);
                 }
                 else {
                     keyb_error = DOS_SwitchKeyboardLayout("us", tocp); /* set Korean and Chinese keyboard layout to be "us" */
@@ -6609,13 +6609,13 @@ void KEYB::Run(void) {
             switch (keyb_error) {
                 case KEYB_NOERROR:
                 {
+                    SwitchLanguage(cpbak, cp ? cp : tocp, true);
                     WriteOut(MSG_Get("PROGRAM_KEYB_NOERROR"),layout_id, dos.loaded_codepage);
                     runRescan("-A -Q");
 #if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
                     if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
                         UpdateSDLDrawTexture();
 #endif
-                    SwitchLanguage(cp, dos.loaded_codepage, true);
                     break;
                 }
                 case KEYB_FILENOTFOUND:
