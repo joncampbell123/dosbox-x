@@ -4448,6 +4448,10 @@ int toSetCodePage(DOS_Shell *shell, int newCP, int opt) {
     return -1;
 }
 
+const char* DOS_GetLoadedLayout(void);
+Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile);
+Bitu DOS_ChangeKeyboardLayout(const char* layoutname, int32_t codepage);
+
 void DOS_Shell::CMD_CHCP(char * args) {
 	HELP("CHCP");
 	args = trim(args);
@@ -4464,72 +4468,143 @@ void DOS_Shell::CMD_CHCP(char * args) {
         WriteOut("Changing code page is not supported for the DOS/V or J-3100 system.\n");
         return;
     }
-	int newCP;
+	int32_t newCP;
 	char buff[256], *r;
     int missing = 0, n = sscanf(args, "%d%s", &newCP, buff);
-    if (!TTF_using() && n && newCP != 437 && newCP != 932 && newCP != 936 && newCP != 949 && newCP != 950 && newCP != 951)
-    {
-        WriteOut("Changing to this code page is only supported for the TrueType font output.\n");
-        return;
-    }
     auto iter = langcp_map.find(newCP);
-	if (n == 1) {
-        int cp = dos.loaded_codepage;
-        missing = toSetCodePage(this, newCP, -1);
-        if (missing > -1) SwitchLanguage(cp, newCP, true);
-        WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
+    const char* layout_name = DOS_GetLoadedLayout();
+    int32_t cp = dos.loaded_codepage;
+    Bitu keyb_error;
+    if(n == 1) {
+        if(newCP == 932 || newCP == 936 || newCP == 949 || newCP == 950 || newCP == 951
 #if defined(USE_TTF)
-        if (missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
+            || (ttf.inUse && (newCP >= 1250 && newCP <= 1258))
 #endif
-    } else if (n == 2 && strlen(buff)) {
-        if (*buff == ':' && strchr(StripArg(args), ':')) {
-            std::string name = buff+1;
-            if (name.empty() && iter != langcp_map.end()) name = iter->second;
+            ) {
             missing = toSetCodePage(this, newCP, -1);
-            if (missing > -1 && name.size() && dos.loaded_codepage == newCP) {
+            if(missing > -1) SwitchLanguage(cp, newCP, true);
+            if(missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
+        }
+        else {
+#if defined(USE_TTF)
+            if(ttf.inUse && !isSupportedCP(newCP)) {
+                WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
+                LOG_MSG("CHCP: Codepage %d not supported for TTF output", newCP);
+                return;
+            }
+#endif
+            keyb_error = DOS_ChangeCodepage(newCP, "auto");
+            if(keyb_error == KEYB_NOERROR) {
+                SwitchLanguage(cp, newCP, true);
+                if(layout_name != NULL) {
+                    keyb_error = DOS_ChangeKeyboardLayout(layout_name, cp);
+                }
+            }
+            else
+                WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
+        }
+        WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
+    }
+    else if(n == 2 && strlen(buff)) {
+        if(*buff == ':' && strchr(StripArg(args), ':')) {
+            std::string name = buff + 1;
+            if(name.empty() && iter != langcp_map.end()) name = iter->second;
+            if(newCP == 932 || newCP == 936 || newCP == 949 || newCP == 950 || newCP == 951) {
+                missing = toSetCodePage(this, newCP, -1);
+                if(missing > -1) SwitchLanguage(cp, newCP, true);
+                if(missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
+            }
+#if defined(USE_TTF)
+            else if(ttf.inUse) {
+                if(newCP >= 1250 && newCP <= 1258) {
+                    missing = toSetCodePage(this, newCP, -1);
+                    if(missing > -1) SwitchLanguage(cp, newCP, true);
+                    if(missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
+                }
+                else if(!isSupportedCP(newCP)) {
+                    WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
+                    LOG_MSG("CHCP: Codepage %d not supported for TTF output", newCP);
+                    return;
+                }
+            }
+#endif
+            else {
+                keyb_error = DOS_ChangeCodepage(newCP, "auto");
+                if(keyb_error == KEYB_NOERROR) {
+                    if(layout_name != NULL) {
+                        keyb_error = DOS_ChangeKeyboardLayout(layout_name, cp);
+                    }
+                }
+                else
+                    WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
+            }
+            if(name.size() && dos.loaded_codepage == newCP) {
                 SetVal("dosbox", "language", name);
                 Load_Language(name);
             }
             WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
-#if defined(USE_TTF)
-            if (missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
-#endif
             return;
         }
-        altcp = 0;
-        for (int i=0; i<256; i++) altcp_to_unicode[i] = 0;
-        std::string cpfile = buff;
-        FILE* file = fopen(cpfile.c_str(), "r"); /* should check the result */
-        std::string exepath = GetDOSBoxXPath();
-        if (!file && exepath.size()) file = fopen((exepath+CROSS_FILESPLIT+cpfile).c_str(), "r");
-        if (file && newCP > 0 && newCP != 932 && newCP != 936 && newCP != 949 && newCP != 950 && newCP != 951) {
-            altcp = newCP;
-            char line[256], *l=line;
-            while (fgets(line, sizeof(line), file)) {
-                l=trim(l);
-                if (!strlen(l)) continue;
-                r = strchr(l, '#');
-                if (r) *r = 0;
-                l=trim(l);
-                if (!strlen(l)||strncasecmp(l, "0x", 2)) continue;
-                r = strchr(l, ' ');
-                if (!r) r = strchr(l, '\t');
-                if (!r) continue;
-                *r = 0;
-                int ind = (int)strtol(l+2, NULL, 16);
-                r = trim(r+1);
-                if (ind>0xFF||strncasecmp(r, "0x", 2)) continue;
-                int map = (int)strtol(r+2, NULL, 16);
-                altcp_to_unicode[ind] = map;
-            }
-            missing = toSetCodePage(this, newCP, -1);
-            WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
 #if defined(USE_TTF)
-            if (missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
+        if(ttf.inUse) {
+            if(isSupportedCP(newCP)) {
+                missing = toSetCodePage(this, newCP, -1);
+                if(missing > -1) SwitchLanguage(cp, newCP, true);
+                if(missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
+                LOG_MSG("CHCP: Loading cpi/cpx files ignored for TTF output");
+            }
+            else {
+                WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
+                LOG_MSG("CHCP: Codepage %d not supported for TTF output", newCP);
+                return;
+            }
+        }
+        else {
 #endif
-        } else
-            WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
-        if (file) fclose(file);
+            altcp = 0;
+            for(int i = 0; i < 256; i++) altcp_to_unicode[i] = 0;
+            std::string cpfile = buff;
+            FILE* file = fopen(cpfile.c_str(), "r"); /* should check the result */
+            std::string exepath = GetDOSBoxXPath();
+            if(!file && exepath.size()) file = fopen((exepath + CROSS_FILESPLIT + cpfile).c_str(), "r");
+            if(file && newCP > 0 && newCP != 932 && newCP != 936 && newCP != 949 && newCP != 950 && newCP != 951) {
+                altcp = newCP;
+                char line[256], * l = line;
+                while(fgets(line, sizeof(line), file)) {
+                    l = trim(l);
+                    if(!strlen(l)) continue;
+                    r = strchr(l, '#');
+                    if(r) *r = 0;
+                    l = trim(l);
+                    if(!strlen(l) || strncasecmp(l, "0x", 2)) continue;
+                    r = strchr(l, ' ');
+                    if(!r) r = strchr(l, '\t');
+                    if(!r) continue;
+                    *r = 0;
+                    int ind = (int)strtol(l + 2, NULL, 16);
+                    r = trim(r + 1);
+                    if(ind > 0xFF || strncasecmp(r, "0x", 2)) continue;
+                    int map = (int)strtol(r + 2, NULL, 16);
+                    altcp_to_unicode[ind] = map;
+                }
+                if(file) fclose(file);
+                keyb_error = DOS_ChangeCodepage(newCP, cpfile.c_str());
+                if(keyb_error == KEYB_NOERROR) {
+                    if(layout_name != NULL) {
+                        keyb_error = DOS_ChangeKeyboardLayout(layout_name, cp);
+                    }
+                }
+                WriteOut(MSG_Get("SHELL_CMD_CHCP_ACTIVE"), dos.loaded_codepage);
+#if defined(USE_TTF)
+                if(missing > 0) WriteOut(MSG_Get("SHELL_CMD_CHCP_MISSING"), missing);
+#endif
+            }
+            else
+                WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
+            if(file) fclose(file);
+#if defined(USE_TTF)
+        }
+#endif
     }
     else WriteOut(MSG_Get("SHELL_CMD_CHCP_INVALID"), StripArg(args));
 	return;
