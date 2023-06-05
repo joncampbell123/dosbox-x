@@ -35,13 +35,23 @@
 </head>
 
 <body>
-    {%- include header.html -%}
+    <section> {%- comment %} note: we wrap these in section tags for the grid setting in style.css {% endcomment %}
+        <header>
+            {%- include header.html -%}
+        </header>
+        <hr class="content-sep" />
+    </section>
 
-    <div class="main_content_wrap">
-      {{ content }}
-    </div>
+    <section>
+        {{ content }}
+    </section>
 
-    {%- include footer.html -%}
+    <section>
+        <hr class="content-sep" />
+        <footer>
+            {%- include footer.html -%}
+        </footer>
+    </section>
 </body>
 
 </html>

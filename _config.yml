@@ -72,15 +72,12 @@ defaults:
       layout: "blog/post"
       permalink: /blog/devtest/:year-:month-:day-:hour:minute/
 
+jekyll_compose:
+  default_front_matter:
+    posts:
+      layout: null
+
 exclude:
-  # Script files
-  - git-source-pickup.pl
-  - git-update-all
-  - git-update-all-wo-push
-  - update-wiki
-  # Pre-convert-to-HTML raw wiki markup files
-  - wiki/*.asciidoc
-  - wiki/*.md
   # RubyGem / Bundler files
   - vendor/bundle/
   - vendor/cache/
@@ -88,5 +85,14 @@ exclude:
   - vendor/ruby/
   - Gemfile
   - Gemfile.lock
+
   # Jekyll build cache directory
   - .jekyll-cache/
+
+  # Script files
+  - git-source-pickup.pl
+  - git-update-all
+  - git-update-all-wo-push
+  - update-wiki
+
+  - CONTRIBUTING.md

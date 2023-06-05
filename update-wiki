@@ -43,9 +43,10 @@ echo "Generating wiki in $tempdir"
 bundle exec asciidoctor \
   -S server \
   -b html5 -d article \
-  -a source-highlighter=rouge -a docinfo=shared \
-  -a docinfodir=docinfo \
   -a linkcss -a copycss \
+  -a reproducible \
+  -a source-highlighter=rouge \
+  -a docinfo=shared -a docinfodir=docinfo \
   $tempdir/*.asciidoc
 rm $tempdir/*.asciidoc
 

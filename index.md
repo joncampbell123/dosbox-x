@@ -16,7 +16,7 @@ Compared with DOSBox, DOSBox-X focuses more on general emulation and accuracy. I
 
 [![PC-98 Touhou game running in DOSBox-X](images/pc98touhou.png){:img-size-limit}](images/pc98touhou.png) | [![Configuration Tool running in DOSBox-X](images/configtool.png){:img-size-limit}](images/configtool.png) | [![Traditional Chinese TTF mode in DOSBox-X](images/ttfhe5.png){:img-size-limit}](images/ttfhe5.png)
 ---|---|---
-**PC-98 Touhou game running in DOSBox-X** (With [Japanese [日本語] language file]({{ lang_file_loc }}/contrib/translations/ja/ja_JP.lng)) | **Configuration Tool running in DOSBox-X** (With [Spanish [Español] language file]({{ lang_file_loc }}/contrib/translations/es/es_ES.lng)) | **Traditional Chinese TTF mode in DOSBox-X** (Chinese [中文] language files: [zh_CN]({{ lang_file_loc }}/contrib/translations/zh/zh_CN.lng) \| [zh_TW]({{ lang_file_loc }}/contrib/translations/zh/zh_TW.lng))
+**PC-98 Touhou game running in DOSBox-X**<br />(with [Japanese [日本語] language file]({{ lang_file_loc }}/contrib/translations/ja/ja_JP.lng)) | **Configuration Tool running in DOSBox-X**<br />(with [Spanish [Español] language file]({{ lang_file_loc }}/contrib/translations/es/es_ES.lng)) | **Traditional Chinese TTF mode in DOSBox-X**<br />(Chinese [中文] language files: [zh_CN]({{ lang_file_loc }}/contrib/translations/zh/zh_CN.lng) \| [zh_TW]({{ lang_file_loc }}/contrib/translations/zh/zh_TW.lng))
 {:.index-demos}
 
 A few examples of DOSBox-X's unique features are available in the [DOSBox-X's Feature Highlights](wiki/DOSBox%E2%80%90X%E2%80%99s-Feature-Highlights){:target="_blank"} page. It is our hope to cover all features needed by DOS programs and games (and DOS-based Windows, etc), including, among many others, printing, networking, file/record-locking, clipboard, multimedia, 3dfx Voodoo & Glide, disk controller and IDE emulation, debugging features, etc, which are already supported; in some applications the software may also work in combination with 3rd-party solutions like [Printfil](https://www.printfil.com/) or [WinPrint](http://sourceforge.net/projects/winprint/) on Windows host systems for even smoother experiences.
@@ -25,5 +25,5 @@ DOSBox-X maintains a [Wiki system](wiki/){:target="_blank"} (see also [guide pag
 
 |  |   |  |
 ---|---|---
-[View Wiki Guide](wiki/){:#linkwiki target="_blank"} | [View Issue Tracker](https://github.com/joncampbell123/dosbox-x/issues){:#linktracker target="_blank"} | [View Project on GitHub](https://github.com/joncampbell123/dosbox-x){:#linkproject target="_blank"} ![octocat icon](images/blacktocat.png){:.img-no-styling align="center" width="24px"}
+[View Wiki Guide](wiki/){:#linkwiki target="_blank"} | [View Issue Tracker](https://github.com/joncampbell123/dosbox-x/issues){:#linktracker target="_blank"} | [View Project on GitHub](https://github.com/joncampbell123/dosbox-x){:#linkproject target="_blank"}  ![octocat icon](images/blacktocat.png){:.img-no-styling align="center" width="24px"}
 {:.home-links}

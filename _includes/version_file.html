@@ -1,0 +1,9 @@
+{%- assign version = include.version -%}
+{%- capture latest_version_release_link -%}https://github.com/joncampbell123/dosbox-x/releases/download/{{ version.git_tag }}{%- endcapture -%}
+{%- assign filename = version[include.name] -%}
+
+{%- if filename -%}
+<a href="{{ latest_version_release_link }}/{{ filename }}">{{ include.display_name }}</a>
+{%- else -%}
+{{ include.display_name }}<abbr title="Currently unavaliable"><sup>*</sup></abbr>
+{%- endif -%}
