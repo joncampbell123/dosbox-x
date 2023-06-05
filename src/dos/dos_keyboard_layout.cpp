@@ -1403,6 +1403,32 @@ Bitu DOS_SwitchKeyboardLayout(const char* new_layout, int32_t& tried_cp) {
 	} else return 0xff;
 }
 
+
+Bitu DOS_ChangeKeyboardLayout(const char* layoutname, int32_t codepage) {
+    keyboard_layout* temp_layout = new keyboard_layout();
+    // try to read the layout for the specified codepage
+    Bitu kerrcode = temp_layout->read_keyboard_file(layoutname, codepage);
+    if(kerrcode) {
+        delete temp_layout;
+        return kerrcode;
+    }
+    // Everything went fine, switch to new layout
+    loaded_layout = temp_layout;
+    return KEYB_NOERROR;
+}
+
+Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile) {
+    keyboard_layout* temp_layout = new keyboard_layout();
+    // try to read the layout for the specified codepage
+    Bitu kerrcode = temp_layout->read_codepage_file(codepagefile, codepage);
+    if(kerrcode) {
+        delete temp_layout;
+        return kerrcode;
+    }
+    // Everything went fine
+    return KEYB_NOERROR;
+}
+
 // get currently loaded layout name (NULL if no layout is loaded)
 const char* DOS_GetLoadedLayout(void) {
 	if (loaded_layout) {
