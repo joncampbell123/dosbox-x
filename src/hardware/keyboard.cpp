@@ -2262,8 +2262,6 @@ void pc98_mouse_movement_apply(int x,int y) {
     p7fd9_8255_mouse_y = (int8_t)y;
 }
 
-void MOUSE_DummyEvent(void);
-
 unsigned int pc98_mouse_rate_hz = 120;
 
 static double pc98_mouse_tick_interval_ms(void) {
