@@ -903,6 +903,9 @@ drive: はマウントされているもののうち、起動するドライブ�
 :PROGRAM_BOOT_UNABLE
 %cドライブから起動できません。
 .
+:PROGRAM_BOOT_IMAGE_MOUNTED
+フロッピーイメージはすでにマウントされています。
+.
 :PROGRAM_BOOT_IMAGE_OPEN
 イメージファイルを開きます: %s
 .
@@ -1187,6 +1190,10 @@ IMGMAKE の使用例:
 
 フロッピーを読み取りできません。
 .
+:PROGRAM_IMGMAKE_BADSIZE
+無効な-size または -chs の値です。
+
+.
 :PROGRAM_KEYB_INFO
 コードページ %i に設定しました。
 
@@ -1249,6 +1256,103 @@ IMGMAKE の使用例:
 :PROGRAM_PORT_INVALID_NUMBER
 1〜9のポート番号を指定する必要があります。
 
+.
+:PROGRAM_VHDMAKE_WRITERR
+新規VHDイメージ "%s" へ書き込めませんでした。中止します。
+
+.
+:PROGRAM_VHDMAKE_REMOVEERR
+ファイル %s を削除できませんでした。
+
+.
+:PROGRAM_VHDMAKE_RENAME
+新規作成したVHDイメージの名前の変更は手動で行ってください。
+
+.
+:PROGRAM_VHDMAKE_SUCCESS
+新規VHDイメージを作成しました。[34;1mIMGMOUNT[0mでマウントできます。
+
+.
+:PROGRAM_VHDMAKE_ERROPEN
+イメージファイル %s を開くことができませんでした。
+
+.
+:PROGRAM_VHDMAKE_BADSIZE
+無効な VHD 容量です。中止します。
+
+.
+:PROGRAM_VHDMAKE_FNEEDED
+既存のVHDイメージを上書きする場合は -f オプションを指定してください。
+
+.
+:PROGRAM_VHDMAKE_BADPARENT
+結合する親VHDイメージ %s を開くことができませんでした。中止します。
+
+.
+:PROGRAM_VHDMAKE_NOINFO
+VHDイメージ "%s" の情報が取得できませんでした。
+.
+:PROGRAM_VHDMAKE_BLOCKSTATS"
+ %d/%d ブロックが使用済みです。
+
+.
+:PROGRAM_VHDMAKE_INFO
+VHD "%s" 形式は %s、容量は %.02f MB です。
+.
+:PROGRAM_VHDMAKE_CANTMERGE
+%s は差分ディスクではないため結合できません。
+
+.
+:PROGRAM_VHDMAKE_MERGEREPORT
+"%s" からセクタ数 %d ブロック数 %d を "%s" と結合しました。
+
+.
+:PROGRAM_VHDMAKE_MERGENODELETE
+スナップショット"%s"を削除できませんでした。手動で削除してみてください。
+.
+:PROGRAM_VHDMAKE_MERGEOKDELETE
+スナップショット VHD を結合し、削除しました。
+
+.
+:PROGRAM_VHDMAKE_MERGEFAILED
+結合に失敗しました。中止します!
+
+.
+:PROGRAM_VHDMAKE_MERGEWARNCORRUPTION
+親VHDイメージ %s の内容が破損する可能性があります!
+
+.
+:PROGRAM_VHDMAKE_ABSPATH_WIN
+注意: 親イメージへの絶対パスの指定はWindowsとの互換性に制約があります。
+差分イメージとの相対パスでの指定を推奨します。
+
+.
+:PROGRAM_VHDMAKE_ABSPATH_UX
+エラー: 親イメージへの絶対パスは互換性の問題で指定できません。
+差分イメージとの相対パスで指定してください。
+
+.
+:PROGRAM_VHDMAKE_HELP
+容量可変・差分VHDイメージの作成、またはrawイメージを容量固定VHDに変換します。
+[32;1mVHDMAKE[0m [-f] new.vhd size[BKMGT]
+[32;1mVHDMAKE[0m [34;1m-convert[0m raw.hdd new.vhd
+[32;1mVHDMAKE[0m [-f] [34;1m-link[0m parent.vhd new.vhd
+[32;1mVHDMAKE[0m [34;1m-merge[0m delta.vhd
+[32;1mVHDMAKE[0m [34;1m-info[0m a.vhd
+ -c | -convert  raw hdイメージをファイル名new.vhdの容量固定VHDに変換します。
+ -l | -link     新規差分VHD new.vhdを作成し既存の親イメージparent.vhdとリンク
+                します。
+ -f | -force    既存のイメージファイルに強制上書きします。
+ -i | -info     a.vhd イメージの情報を表示します。
+ -m | -merge    差分イメージ delta.vhd を親イメージとマージします。
+ new.vhd        新規作成する容量可変 VHD イメージの名前
+ size           ディスクの容量 (単位をつける, バイトのBは不要)
+raw ディスクイメージを容量固定VHDに変換する場合、MBR形式で領域確保かつFAT形式
+でフォーマットされている必要があります。
+容量可変VHDのサイズは3MB以上、2040GB以下とする必要があります。
+作成される容量可変VHDイメージは領域確保・フォーマットされていません: [34;1mIMGMOUNT[0m
+でドライブ文字でマウントしたい場合は[34;1mIMGMAKE[0mを使用してください。
+結合に成功したスナップショットVHDは自動的に削除されます。
 .
 :SHELL_CMD_TREE_ERROR
 サブディレクトリがありません。
@@ -2144,7 +2248,7 @@ TrueType フォント出力への変更をサポートするコードページ:
 
 932, 936, 949, 950/951 等の2バイト言語のコードページもサポートします。
 
-カスタマイズされたコードページは、コードページファイルを提供することでサポートされます。
+カスタマイズされたコードページは、コードページファイルを指定することでサポートされます。
 
 .
 :SHELL_CMD_CHCP_ACTIVE
