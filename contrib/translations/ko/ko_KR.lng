@@ -1265,6 +1265,107 @@ IMGMAKE의 몇 가지 사용 예:
 1~9의 포트 번호를 지정해야 합니다.
 
 .
+:PROGRAM_VHDMAKE_WRITERR
+Could not write to new VHD image "%s", aborting.
+
+.
+:PROGRAM_VHDMAKE_REMOVEERR
+Could not erase file "%s"
+
+.
+:PROGRAM_VHDMAKE_RENAME
+You'll have to manually rename the newly created VHD image.
+
+.
+:PROGRAM_VHDMAKE_SUCCESS
+New VHD image succesfully created. You can mount it with [34;1mIMGMOUNT[0m.
+
+.
+:PROGRAM_VHDMAKE_ERROPEN
+Error, could not open image file "%s".
+
+.
+:PROGRAM_VHDMAKE_BADSIZE
+Bad VHD size specified, aborting!
+
+.
+:PROGRAM_VHDMAKE_FNEEDED
+A pre-existing VHD image can't be silently overwritten without -f option!
+
+.
+:PROGRAM_VHDMAKE_BADPARENT
+The parent VHD image "%s" can't be opened for linking, aborting!
+
+.
+:PROGRAM_VHDMAKE_NOINFO
+Couldn't query info for "%s".
+
+.
+:PROGRAM_VHDMAKE_BLOCKSTATS
+with %d/%d blocks allocated.
+
+.
+:PROGRAM_VHDMAKE_INFO
+VHD "%s" type is %s.
+Its virtual size is %.02f MB
+
+.
+:PROGRAM_VHDMAKE_CANTMERGE
+%s is not a Differencing disk, can't merge!
+
+.
+:PROGRAM_VHDMAKE_MERGEREPORT
+%d sectors in %d blocks from "%s" merged into "%s".
+
+.
+:PROGRAM_VHDMAKE_MERGENODELETE
+Couldn't remove snapshot "%s", you'll have to do it yourself!
+
+.
+:PROGRAM_VHDMAKE_MERGEOKDELETE
+Snapshot VHD merged and deleted.
+
+.
+:PROGRAM_VHDMAKE_MERGEFAILED
+Failure while merging, aborted!
+.
+:PROGRAM_VHDMAKE_MERGEWARNCORRUPTION
+Parent "%s" contents could be corrupted!
+
+.
+:PROGRAM_VHDMAKE_ABSPATH_WIN
+Warning: an absolute path to parent limits portability to Windows.
+Please prefer a path relative to differencing image file!
+
+.
+:PROGRAM_VHDMAKE_ABSPATH_UX
+ERROR: an absolute path to parent inhibits portability.
+Use a path relative to differencing image file!
+
+.
+:PROGRAM_VHDMAKE_HELP
+Creates Dynamic or Differencing VHD images, or converts raw images
+into Fixed VHD.
+[32;1mVHDMAKE[0m [-f] new.vhd size[BKMGT]
+[32;1mVHDMAKE[0m [34;1m-convert[0m raw.hdd new.vhd
+[32;1mVHDMAKE[0m [-f] [34;1m-link[0m parent.vhd new.vhd
+[32;1mVHDMAKE[0m [34;1m-merge[0m delta.vhd
+[32;1mVHDMAKE[0m [34;1m-info[0m a.vhd
+ -c | -convert  convert a raw hd image to Fixed VHD, renaming it to new.vhd
+ -l | -link     create a new Differencing VHD new.vhd and link it to the
+                pre-existing parent image parent.vhd
+ -f | -force    force overwriting a pre-existing image file
+ -i | -info     show useful informations about a.vhd image
+ -m | -merge    merge differencing delta.vhd to its parent
+ new.vhd        name of the new Dynamic VHD image to create
+ size           disk size (eventually with size unit, Bytes is implicit)
+When converting a raw disk image to Fixed VHD, it has to be partitioned with
+MBR scheme and formatted with FAT format.
+When creating a Dynamic VHD, its size must range from 3 MB to 2040 GB.
+The Dynamic VHD created is not partitioned nor formatted: to directly mount to
+a drive letter with [34;1mIMGMOUNT[0m, please consider using [34;1mIMGMAKE[0m instead.
+A merged snapshot VHD is automatically deleted if merge is successful.
+.
 :SHELL_CMD_TREE_ERROR
 하위 디렉토리가 없습니다.
 
