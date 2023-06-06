@@ -199,9 +199,9 @@ void DetachFromBios(imageDisk* image) {
 }
 
 void SwitchLanguage(int oldcp, int newcp, bool confirm) {
-    auto iterold = langcp_map.find(oldcp), iternew = langcp_map.find(newcp);
+    auto iterold = langcp_map.find(lastmsgcp), iternew = langcp_map.find(newcp);
     std::string langold = iterold != langcp_map.end() ? iterold->second : "", langnew = iternew != langcp_map.end() ? iternew->second : "";
-    if (loadlang && (oldcp == lastmsgcp || (oldcp == 951 && lastmsgcp == 950) || (oldcp == 950 && lastmsgcp == 951) || !confirm) && oldcp != newcp && newcp == dos.loaded_codepage && langnew.size() && !(langold.size() && langold == langnew)) {
+    if (loadlang && langnew.size() && strcasecmp(langold.c_str(), langnew.c_str())) {
         FILE *file = testLoadLangFile(langnew.c_str());
         if (file) {
             fclose(file);
@@ -209,6 +209,7 @@ void SwitchLanguage(int oldcp, int newcp, bool confirm) {
             if (!confirm || systemmessagebox("DOSBox-X language file", msg.c_str(), "yesno","question", 2)) {
                 SetVal("dosbox", "language", langnew);
                 Load_Language(langnew);
+                lastmsgcp = newcp;
             }
         }
     }
@@ -6525,6 +6526,8 @@ void runImgmount(const char *str) {
 
 Bitu DOS_SwitchKeyboardLayout(const char* new_layout, int32_t& tried_cp);
 Bitu DOS_LoadKeyboardLayout(const char * layoutname, int32_t codepage, const char * codepagefile);
+Bitu DOS_ChangeKeyboardLayout(const char* layoutname, int32_t codepage);
+Bitu DOS_ChangeCodepage(int32_t codepage, const char* codepagefile);
 const char* DOS_GetLoadedLayout(void);
 
 class KEYB : public Program {
@@ -6533,36 +6536,32 @@ public:
 };
 
 void KEYB::Run(void) {
-    if (cmd->FindCommand(1,temp_line)) {
-        if (cmd->FindString("?",temp_line,false)) {
+    if (cmd->FindCommand(1,temp_line)) { /* first parameter is layout ID */
+        if (cmd->FindString("?",temp_line,false)) { 
             resetcolor = true;
             WriteOut(MSG_Get("PROGRAM_KEYB_SHOWHELP"));
         } else {
-            /* first parameter is layout ID */
-            Bitu keyb_error=0;
+            Bitu keyb_error=0;  /* Return code of switching keyboard layouts */
             std::string cp_string="";
-            int32_t tried_cp = -1;
-            cmd->FindCommand(2,cp_string);
-            int tocp=!strcmp(temp_line.c_str(), "jp")?932:(!strcmp(temp_line.c_str(), "ko")?949:(!strcmp(temp_line.c_str(), "tw")||!strcmp(temp_line.c_str(), "hk")||!strcmp(temp_line.c_str(), "zht")||(!strcmp(temp_line.c_str(), "zh")&&((cp_string.size()&&(atoi(cp_string.c_str())==950||atoi(cp_string.c_str())==951))||(!cp_string.size()&&(dos.loaded_codepage==950||dos.loaded_codepage==951))))?((cp_string.size()&&atoi(cp_string.c_str())==951)||(!cp_string.size()&&dos.loaded_codepage==951)?951:950):(!strcmp(temp_line.c_str(), "cn")||!strcmp(temp_line.c_str(), "zhs")||!strcmp(temp_line.c_str(), "zh")?936:0)));
-            int cp = dos.loaded_codepage;
-            if (tocp && !IS_PC98_ARCH) {
-                uint16_t cpbak = dos.loaded_codepage;
-                dos.loaded_codepage=tocp;
-                const char* layout_name = DOS_GetLoadedLayout();
-                if (layout_name==NULL)
-                    WriteOut(MSG_Get("PROGRAM_KEYB_INFO"),dos.loaded_codepage);
-                else
-                    WriteOut(MSG_Get("PROGRAM_KEYB_INFO_LAYOUT"),dos.loaded_codepage,layout_name);
+            const char* layout_id = temp_line.c_str();
+            cmd->FindCommand(2,cp_string); /* second parameter is codepage number */
+            int32_t cp = cp_string.size() ? atoi(cp_string.c_str()) : 0;;
+            int32_t tocp = !strcasecmp(layout_id, "jp") ? 932 : (!strcasecmp(layout_id, "ko") ? 949 : (!strcasecmp(layout_id, "tw") || !strcasecmp(layout_id, "hk") || !strcasecmp(layout_id, "zht") || (!strcasecmp(layout_id, "zh") && ((cp == 950 || cp == 951) || (!cp_string.size() && (dos.loaded_codepage == 950 || dos.loaded_codepage == 951)))) ? (cp == 951 || (!cp_string.size() && dos.loaded_codepage == 951) ? 951 : 950) : (!strcasecmp(layout_id, "cn") || !strcasecmp(layout_id, "zhs") || !strcasecmp(layout_id, "zh") ? 936 : 0)));
+            int32_t cpbak = dos.loaded_codepage;
+            const char* layout_name = DOS_GetLoadedLayout();
+            if(tocp && !IS_PC98_ARCH) {
+                dos.loaded_codepage = tocp;
 #if defined(USE_TTF)
-                if (ttf.inUse) {
+                if(ttf.inUse) {
                     dos.loaded_codepage = cpbak;
                     toSetCodePage(NULL, tocp, -1);
-                } else
+                }
+                else
 #endif
                 {
                     MSG_Init();
                     DOSBox_SetSysMenu();
-                    if (isDBCSCP()) {
+                    if(isDBCSCP()) {
                         ShutFontHandle();
                         InitFontHandle();
                         JFONT_Init();
@@ -6570,16 +6569,21 @@ void KEYB::Run(void) {
                     SetupDBCSTable();
                     runRescan("-A -Q");
 #if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
-                    if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
+                    if(OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
                         UpdateSDLDrawTexture();
 #endif
                 }
-                SwitchLanguage(cp, tocp, true);
-                return;
+                if(!strcasecmp(layout_id, "jp")) {
+                    keyb_error = DOS_LoadKeyboardLayout("jp", tocp, "auto"); /* Load a default layout if not loaded at all */
+                    if(cp) keyb_error = DOS_ChangeCodepage(cp , "auto");
+                    if(keyb_error == KEYB_NOERROR) DOS_ChangeKeyboardLayout("jp", cp ? cp : tocp);
+                }
+                else {
+                    keyb_error = DOS_SwitchKeyboardLayout("us", tocp); /* set Korean and Chinese keyboard layout to be "us" */
+                    /* FIX_ME: Chinese keyboards are identical to US keyboards, but some fixes may be needed for Korean unique keys */
+                }
             }
-            if (cp_string.size()) {
-                /* second parameter is codepage number */
-                tried_cp=atoi(cp_string.c_str());
+            else if (cp) {
                 char cp_file_name[256];
                 if (cmd->FindCommand(3,cp_string)) {
                     /* third parameter is codepage file */
@@ -6588,35 +6592,44 @@ void KEYB::Run(void) {
                     /* no codepage file specified, use automatic selection */
                     strcpy(cp_file_name, "auto");
                 }
-
-                keyb_error=DOS_LoadKeyboardLayout(temp_line.c_str(), tried_cp, cp_file_name);
-            } else {
-                keyb_error=DOS_SwitchKeyboardLayout(temp_line.c_str(), tried_cp);
+                keyb_error = DOS_LoadKeyboardLayout(layout_id, cp, cp_file_name);
+            }
+            else {
+                if(!strcasecmp(layout_id, "us")) {
+                    keyb_error = DOS_LoadKeyboardLayout("us", 437, "auto"); /* set 437 as default codepage for US layout */
+                    dos.loaded_codepage = 437;
+                }
+                else {
+                    if(layout_name == NULL) {
+                        keyb_error = DOS_LoadKeyboardLayout("us", 437, "auto"); /* Load a default layout if not loaded at all */
+                    }
+                    keyb_error = DOS_SwitchKeyboardLayout(layout_id, cp);
+                }
             }
             switch (keyb_error) {
                 case KEYB_NOERROR:
                 {
-                    WriteOut(MSG_Get("PROGRAM_KEYB_NOERROR"),temp_line.c_str(),dos.loaded_codepage);
+                    SwitchLanguage(cpbak, cp ? cp : tocp, true);
+                    WriteOut(MSG_Get("PROGRAM_KEYB_NOERROR"),layout_id, dos.loaded_codepage);
                     runRescan("-A -Q");
 #if C_OPENGL && DOSBOXMENU_TYPE == DOSBOXMENU_SDLDRAW
                     if (OpenGL_using() && control->opt_lang.size() && lastcp && lastcp != dos.loaded_codepage)
                         UpdateSDLDrawTexture();
 #endif
-                    SwitchLanguage(cp, dos.loaded_codepage, true);
                     break;
                 }
                 case KEYB_FILENOTFOUND:
-                    if (temp_line!="/?"&&temp_line!="-?") WriteOut(MSG_Get("PROGRAM_KEYB_FILENOTFOUND"),temp_line.c_str());
+                    if (temp_line!="/?"&&temp_line!="-?") WriteOut(MSG_Get("PROGRAM_KEYB_FILENOTFOUND"),layout_id);
                     WriteOut(MSG_Get("PROGRAM_KEYB_SHOWHELP"));
                     break;
                 case KEYB_INVALIDFILE:
-                    WriteOut(MSG_Get("PROGRAM_KEYB_INVALIDFILE"),temp_line.c_str());
+                    WriteOut(MSG_Get("PROGRAM_KEYB_INVALIDFILE"),layout_id);
                     break;
                 case KEYB_LAYOUTNOTFOUND:
-                    WriteOut(MSG_Get("PROGRAM_KEYB_LAYOUTNOTFOUND"),temp_line.c_str(),tried_cp);
+                    WriteOut(MSG_Get("PROGRAM_KEYB_LAYOUTNOTFOUND"),layout_id, cp ? cp : tocp);
                     break;
                 case KEYB_INVALIDCPFILE:
-                    WriteOut(MSG_Get("PROGRAM_KEYB_INVCPFILE"),temp_line.c_str());
+                    WriteOut(MSG_Get("PROGRAM_KEYB_INVCPFILE"),layout_id);
                     WriteOut(MSG_Get("PROGRAM_KEYB_SHOWHELP"));
                     break;
                 default:
