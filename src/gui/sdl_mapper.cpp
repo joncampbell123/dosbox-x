@@ -999,7 +999,7 @@ static SDLKey sdlkey_map[MAX_SCANCODES] = { // Convert hardware scancode (XKB = 
     SDLK_WORLD_14, //0x64 Henkan
     SDLK_WORLD_15, //0x65 Hiragana/Katakana
     SDLK_WORLD_13, //0x66 Muhenkan
-    Z,Z,Z,Z, //0x67-0x6a
+    Z,SDLK_KP_ENTER,SDLK_RCTRL,SDLK_KP_DIVIDE, //0x67-0x6a
     Z, //SDLK_PRINTSCREEN, //0x6b
     SDLK_RALT,  //0x6c
     Z, //0x6d unknown
@@ -1159,6 +1159,8 @@ static SDLKey sdlkey_map[MAX_SCANCODES] = {
 
 #undef Z
 
+unsigned int Linux_GetKeyboardLayout(void); // defined in sdlmain_linux.cpp
+
 #if !defined(C_SDL2)
 void setScanCode(Section_prop * section) {
 	usescancodes = -1;
@@ -1180,6 +1182,19 @@ void setScanCode(Section_prop * section) {
         }
     }
 #endif // defined(WIN32)
+#if defined(__linux__)
+    else {
+        if(Linux_GetKeyboardLayout() == DKM_US) { /* Locale ID: en-us */
+            usescancodes = 0;
+            LOG_MSG("SDL_mapper: US keyboard detected, set usescancodes=false");
+        }
+        else {
+            usescancodes = 1;
+            LOG_MSG("SDL_mapper: non-US keyboard detected, set usescancodes=true");
+        }
+    }
+#endif //defined(__linux__)
+
 }
 void loadScanCode();
 const char* DOS_GetLoadedLayout(void);
