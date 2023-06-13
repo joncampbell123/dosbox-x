@@ -42,6 +42,8 @@ Next
     allocated block position. (maxpat78)
   - Enhanced Dynamic and Differencing VHD support #4273 (maxpat78)
   - Imported IBM Music Feature Card support from DOSBox Staging. (Allofich)
+  - Set usescancodes=true when non-US keyboards are detected (Linux builds)
+    (maron2000)
 2023.05.01
   - IMGMAKE will choose LBA partition types for 2GB or larger disk
     images, but the user can also use -chs and -lba options to override
