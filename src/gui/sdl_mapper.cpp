@@ -67,6 +67,10 @@
 
 #include <output/output_ttf.h>
 
+#if defined(MACOSX)
+#include <Carbon/Carbon.h> 
+#endif
+
 #define BMOD_Mod1               0x0001
 #define BMOD_Mod2               0x0002
 #define BMOD_Mod3               0x0004
@@ -1181,8 +1185,7 @@ void setScanCode(Section_prop * section) {
             LOG_MSG("SDL_mapper: non-US keyboard detected, set usescancodes=true");
         }
     }
-#endif // defined(WIN32)
-#if defined(__linux__)
+#elif defined(__linux__)
     else {
         if(Linux_GetKeyboardLayout() == DKM_US) { /* Locale ID: en-us */
             usescancodes = 0;
@@ -1193,8 +1196,26 @@ void setScanCode(Section_prop * section) {
             LOG_MSG("SDL_mapper: non-US keyboard detected, set usescancodes=true");
         }
     }
-#endif //defined(__linux__)
-
+#elif defined(MACOSX)
+    else {
+        char layout[128];
+        memset(layout, '\0', sizeof(layout));
+        TISInputSourceRef source = TISCopyCurrentKeyboardInputSource();
+        // get input source id - kTISPropertyInputSourceID
+        // get layout name - kTISPropertyLocalizedName
+        CFStringRef layoutID = CFStringRef(TISGetInputSourceProperty(source, kTISPropertyInputSourceID));
+        CFStringGetCString(layoutID, layout, sizeof(layout), kCFStringEncodingUTF8);
+        //LOG_MSG("SDL_mapper: %s\n", layout);
+        if(!strcasecmp(layout, "com.apple.keylayout.US")) { /* US keyboard layout */
+            usescancodes = 0;
+            LOG_MSG("SDL_mapper: US keyboard detected, set usescancodes=false");
+        }
+        else {
+            usescancodes = 1;
+            LOG_MSG("SDL_mapper: non-US keyboard detected, set usescancodes=true");
+        }    
+    }
+#endif //defined(MACOSX)
 }
 void loadScanCode();
 const char* DOS_GetLoadedLayout(void);
