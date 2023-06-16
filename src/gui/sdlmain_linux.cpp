@@ -240,7 +240,7 @@ void Linux_JPXKBFix(void) {
 }
 
 unsigned int Linux_GetKeyboardLayout(void) {
-    unsigned int ret = DKM_US;
+    unsigned int ret = DKM_NON_US; // a non-US keyboard
 
     SDL_SysWMinfo wminfo;
     memset(&wminfo,0,sizeof(wminfo));
