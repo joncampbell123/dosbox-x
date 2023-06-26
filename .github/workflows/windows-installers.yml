@@ -153,7 +153,7 @@ jobs:
         uses: actions/cache/save@v3
         with:
           path: ${{ github.workspace }}/vs-bin
-          key: vs-bin-${{ github.sha }}
+          key: vs-${{ github.sha }}
   MinGW32_CI_build:
     permissions:
       actions: write  # for styfle/cancel-workflow-action to cancel/stop running workflows
@@ -287,7 +287,7 @@ jobs:
         uses: actions/cache/restore@v3
         with:
           path: ${{ github.workspace }}/vs-bin
-          key: vs-bin-${{ github.sha }}
+          key: vs-${{ github.sha }}
       - name: Package MinGW builds
         run: |
           set +e
