@@ -363,7 +363,7 @@ jobs:
           set +e
           gh actions-cache delete mingw-x86-bin-${{ github.sha }} --confirm
           gh actions-cache delete mingw-x64-bin-${{ github.sha }} --confirm
-          gh actions-cache delete vs-bin-${{ github.sha }} --confirm
+          gh actions-cache delete vs-${{ github.sha }} --confirm
           gh actions-cache list
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
