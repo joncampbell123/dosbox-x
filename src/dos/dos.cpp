@@ -1504,7 +1504,7 @@ static Bitu DOS_21Handler(void) {
                     year--;
                     month += 12;
                 }
-                reg_al = (year + year / 4u  - year / 100u + year / 400u + (13u * month + 8u) / 5u + day) % 7;
+                reg_al = (year + year / 4u  - year / 100u + year / 400u + (13u * month + 8u) / 5u + day + 7) % 7;
                 /* Sunday=0, Monday=1, ... */
             }
             break;
