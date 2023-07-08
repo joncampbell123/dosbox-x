@@ -1500,11 +1500,13 @@ static Bitu DOS_21Handler(void) {
                 // calculate day of week (we could of course read it from CMOS, but never mind)
                 /* Use Zeller's congruence */
                 uint16_t year = reg_cx, month = reg_dh, day = reg_dl;
+                int8_t weekday;
                 if(month <= 2) {
                     year--;
                     month += 12;
                 }
-                reg_al = (year + year / 4u  - year / 100u + year / 400u + (13u * month + 8u) / 5u + day + 7) % 7;
+                weekday = (year + year / 4u  - year / 100u + year / 400u + (13u * month + 8u) / 5u + day) % 7;
+                reg_al = weekday < 0 ? weekday + 7 : weekday;
                 /* Sunday=0, Monday=1, ... */
             }
             break;
