@@ -3542,7 +3542,7 @@ restart_int:
                 return;
             }
 
-#if defined (_MSC_VER) && (_MSC_VER >= 1400)
+#if (defined (_MSC_VER) && (_MSC_VER >= 1400)) || defined(__MINGW32__)
             if(fseeko64(f, (__int64)(size - 1ull), SEEK_SET)) {
 #else
             if(fseeko64(f, static_cast<off_t>(size - 1ull), SEEK_SET)) {
@@ -3568,8 +3568,8 @@ restart_int:
             unsigned int sectors_per_cluster = 0;
             unsigned int vol_sectors = 0;
             unsigned int fat_copies = 2; /* number of copies of the FAT. always 2. TODO: Allow the user to specify */
-            unsigned int fatlimitmin;
-            unsigned int fatlimit;
+            uint32_t fatlimitmin;
+            uint32_t fatlimit;
             int FAT = -1;
 
             /* FAT filesystem, user choice */
@@ -3655,16 +3655,16 @@ restart_int:
             /* highest cluster number + 1 */
             switch (FAT) {
                 case 32:
-                    fatlimit = 0x0FFFFFF6;
-                    fatlimitmin = 0xFFF6;
+                    fatlimit = 0x0FFFFFF6u;
+                    fatlimitmin = 0xFFF6u;
                     break;
                 case 16:
-                    fatlimit = 0xFFF6;
-                    fatlimitmin = 0xFF6;
+                    fatlimit = 0xFFF6u;
+                    fatlimitmin = 0xFF6u;
                     break;
                 case 12:
-                    fatlimit = 0xFF6;
-                    fatlimitmin = 0;
+                    fatlimit = 0xFF6u;
+                    fatlimitmin = 0u;
                     break;
                 default:
                     abort();
@@ -7741,6 +7741,8 @@ private:
 	}
 };
 
+bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+
 void TITLE::Run()
 {
 	// Hack To allow long commandlines
@@ -7751,8 +7753,13 @@ void TITLE::Run()
 		PrintUsage();
 		return;
 	}
-	char *args=(char *)cmd->GetRawCmdline().c_str();
-    dosbox_title=trim(args);
+	char *args=trim((char *)cmd->GetRawCmdline().c_str());
+    char title[4096];
+    if(CodePageGuestToHostUTF8(title, args)) {
+        dosbox_title=title;
+    } else {
+        dosbox_title=args;
+    }
     SetVal("dosbox", "title", dosbox_title);
     GFX_SetTitle(-1,-1,-1,false);
 }
@@ -9385,7 +9392,7 @@ void DOS_SetupPrograms(void) {
 #endif
     MSG_Add("PROGRAM_IMGMAKE_FILE_EXISTS","The file \"%s\" already exists. You can specify \"-force\" to overwrite.\n");
     MSG_Add("PROGRAM_IMGMAKE_CANNOT_WRITE","The file \"%s\" cannot be opened for writing.\n");
-    MSG_Add("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE","Not enough space available for the image file. Need %u bytes.\n");
+    MSG_Add("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE","Not enough space available for the image file. Need %lld bytes.\n");
     MSG_Add("PROGRAM_IMGMAKE_PRINT_CHS","Creating image file \"%s\" with %u cylinders, %u heads and %u sectors\n");
     MSG_Add("PROGRAM_IMGMAKE_CANT_READ_FLOPPY","\n\nUnable to read floppy.");
     MSG_Add("PROGRAM_IMGMAKE_BADSIZE","Wrong -size or -chs arguments.\n");

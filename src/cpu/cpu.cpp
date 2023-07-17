@@ -1834,6 +1834,7 @@ CODE_jmp:
 			break;
 		case DESC_386_CALL_GATE: /* CAUTION: Copy-pasta from CPU_CALL() with stack switching removed */
 		case DESC_286_CALL_GATE:
+		case DESC_TASK_GATE:
 			{
 				CPU_CHECK_COND(desc.DPL()<cpu.cpl,
 					"JMP:Gate:Gate DPL<CPL",
@@ -1864,6 +1865,16 @@ CODE_jmp:
 
 				Bitu n_eip		= desc.GetOffset();
 				switch (n_cs_desc.Type()) {
+				case DESC_386_TSS_A:
+					CPU_CHECK_COND(n_cs_desc.DPL()<cpu.cpl,
+						"JMP:TSS:dpl<cpl",
+						EXCEPTION_GP,n_cs_sel & 0xfffc)
+					CPU_CHECK_COND(n_cs_desc.DPL()<rpl,
+						"JMP:TSS:dpl<rpl",
+						EXCEPTION_GP,n_cs_sel & 0xfffc)
+					LOG(LOG_CPU,LOG_NORMAL)("JMP:TSS to %X",n_cs_sel);
+					CPU_SwitchTask(n_cs_sel,TSwitch_JMP,oldeip);
+					break;
 				case DESC_CODE_N_NC_A:case DESC_CODE_N_NC_NA:
 				case DESC_CODE_R_NC_A:case DESC_CODE_R_NC_NA:
                     CPU_CHECK_COND(n_cs_dpl != cpu.cpl, "JMP:Gate:NC CS DPL!=CPL",
@@ -1980,6 +1991,7 @@ call_code:
 			return;
 		case DESC_386_CALL_GATE: 
 		case DESC_286_CALL_GATE:
+		case DESC_TASK_GATE:
 			{
 				CPU_CHECK_COND(call.DPL()<cpu.cpl,
 					"CALL:Gate:Gate DPL<CPL",
@@ -2010,6 +2022,16 @@ call_code:
 
 				Bitu n_eip		= call.GetOffset();
 				switch (n_cs_desc.Type()) {
+				case DESC_386_TSS_A:
+					CPU_CHECK_COND(n_cs_desc.DPL()<cpu.cpl,
+						"CALL:TSS:dpl<cpl",
+						EXCEPTION_GP,n_cs_sel & 0xfffc)
+					CPU_CHECK_COND(n_cs_desc.DPL()<rpl,
+						"CALL:TSS:dpl<rpl",
+						EXCEPTION_GP,n_cs_sel & 0xfffc)
+					LOG(LOG_CPU,LOG_NORMAL)("CALL:TSS to %X",n_cs_sel);
+					CPU_SwitchTask(n_cs_sel,TSwitch_CALL_INT,oldeip);
+					break;
 				case DESC_CODE_N_NC_A:case DESC_CODE_N_NC_NA:
 				case DESC_CODE_R_NC_A:case DESC_CODE_R_NC_NA:
 					/* Check if we goto inner privilege */
