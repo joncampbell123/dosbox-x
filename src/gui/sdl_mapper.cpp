@@ -67,6 +67,10 @@
 
 #include <output/output_ttf.h>
 
+#if defined(MACOSX)
+#include <Carbon/Carbon.h> 
+#endif
+
 #define BMOD_Mod1               0x0001
 #define BMOD_Mod2               0x0002
 #define BMOD_Mod3               0x0004
@@ -999,7 +1003,7 @@ static SDLKey sdlkey_map[MAX_SCANCODES] = { // Convert hardware scancode (XKB = 
     SDLK_WORLD_14, //0x64 Henkan
     SDLK_WORLD_15, //0x65 Hiragana/Katakana
     SDLK_WORLD_13, //0x66 Muhenkan
-    Z,Z,Z,Z, //0x67-0x6a
+    Z,SDLK_KP_ENTER,SDLK_RCTRL,SDLK_KP_DIVIDE, //0x67-0x6a
     Z, //SDLK_PRINTSCREEN, //0x6b
     SDLK_RALT,  //0x6c
     Z, //0x6d unknown
@@ -1159,6 +1163,8 @@ static SDLKey sdlkey_map[MAX_SCANCODES] = {
 
 #undef Z
 
+unsigned int Linux_GetKeyboardLayout(void); // defined in sdlmain_linux.cpp
+
 #if !defined(C_SDL2)
 void setScanCode(Section_prop * section) {
 	usescancodes = -1;
@@ -1179,7 +1185,37 @@ void setScanCode(Section_prop * section) {
             LOG_MSG("SDL_mapper: non-US keyboard detected, set usescancodes=true");
         }
     }
-#endif // defined(WIN32)
+#elif defined(__linux__)
+    else {
+        if(Linux_GetKeyboardLayout() == DKM_US) { /* Locale ID: en-us */
+            usescancodes = 0;
+            LOG_MSG("SDL_mapper: US keyboard detected, set usescancodes=false");
+        }
+        else {
+            usescancodes = 1;
+            LOG_MSG("SDL_mapper: non-US keyboard detected, set usescancodes=true");
+        }
+    }
+#elif defined(MACOSX)
+    else {
+        char layout[128];
+        memset(layout, '\0', sizeof(layout));
+        TISInputSourceRef source = TISCopyCurrentKeyboardInputSource();
+        // get input source id - kTISPropertyInputSourceID
+        // get layout name - kTISPropertyLocalizedName
+        CFStringRef layoutID = CFStringRef(TISGetInputSourceProperty(source, kTISPropertyInputSourceID));
+        CFStringGetCString(layoutID, layout, sizeof(layout), kCFStringEncodingUTF8);
+        //LOG_MSG("SDL_mapper: %s\n", layout);
+        if(!strcasecmp(layout, "com.apple.keylayout.US")) { /* US keyboard layout */
+            usescancodes = 0;
+            LOG_MSG("SDL_mapper: US keyboard detected, set usescancodes=false");
+        }
+        else {
+            usescancodes = 1;
+            LOG_MSG("SDL_mapper: non-US keyboard detected, set usescancodes=true");
+        }    
+    }
+#endif //defined(MACOSX)
 }
 void loadScanCode();
 const char* DOS_GetLoadedLayout(void);
