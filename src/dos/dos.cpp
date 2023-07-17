@@ -1498,10 +1498,16 @@ static Bitu DOS_21Handler(void) {
                 reg_dl = dos.date.day;
 
                 // calculate day of week (we could of course read it from CMOS, but never mind)
-                unsigned int a = (14u - reg_dh) / 12u;
-                unsigned int y = reg_cl - a;
-                unsigned int m = reg_dh + 12u * a - 2u;
-                reg_al = (reg_dl + y + (y / 4u) - (y / 100u) + (y / 400u) + (31u * m) / 12u) % 7u;
+                /* Use Zeller's congruence */
+                uint16_t year = reg_cx, month = reg_dh, day = reg_dl;
+                int8_t weekday;
+                if(month <= 2) {
+                    year--;
+                    month += 12;
+                }
+                weekday = (year + year / 4u  - year / 100u + year / 400u + (13u * month + 8u) / 5u + day) % 7;
+                reg_al = weekday < 0 ? weekday + 7 : weekday;
+                /* Sunday=0, Monday=1, ... */
             }
             break;
         case 0x2b:      /* Set System Date */

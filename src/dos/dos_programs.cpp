@@ -7741,6 +7741,8 @@ private:
 	}
 };
 
+bool CodePageGuestToHostUTF8(char *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/);
+
 void TITLE::Run()
 {
 	// Hack To allow long commandlines
@@ -7751,8 +7753,13 @@ void TITLE::Run()
 		PrintUsage();
 		return;
 	}
-	char *args=(char *)cmd->GetRawCmdline().c_str();
-    dosbox_title=trim(args);
+	char *args=trim((char *)cmd->GetRawCmdline().c_str());
+    char title[4096];
+    if(CodePageGuestToHostUTF8(title, args)) {
+        dosbox_title=title;
+    } else {
+        dosbox_title=args;
+    }
     SetVal("dosbox", "title", dosbox_title);
     GFX_SetTitle(-1,-1,-1,false);
 }
