@@ -3261,6 +3261,14 @@ int tfd_isDarwin(void)
         return lsIsDarwin ;
 }
 
+int tdf_isHaikuOS(void)
+{
+#if defined(__HAIKU__)
+    return 1;
+#else
+    return 0;
+#endif
+}
 
 static int dirExists( char const * aDirPath )
 {
@@ -3623,7 +3631,7 @@ static int whiptailPresent(void)
 static int graphicMode(void)
 {
         return !( tinyfd_forceConsole && (isTerminalRunning() || terminalName()) )
-			&& ( getenvDISPLAY()
+			&& ( getenvDISPLAY() || tdf_isHaikuOS()
 			|| (tfd_isDarwin() && (!getenv("SSH_TTY") || getenvDISPLAY() ) ) ) ;
 }
 
