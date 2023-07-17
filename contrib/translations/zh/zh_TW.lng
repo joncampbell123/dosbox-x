@@ -306,7 +306,7 @@ DOSBox-X 命令列組態工具. 支援的選項有:
 -wc (或 -writeconf) 不加參數時: 寫入已載入的主組態檔案.
 -wc (或 -writeconf) 加檔名: 寫入設定目錄中的組態檔案.
 -wl (或 -writelang) 加檔名: 將目前的語言字串寫入檔案.
--ln (或 -langname) 顯示 (不加參數時) 或指定語言名稱.
+-ln (或 -langname) 顯示 (不加引數時) 或指定語言名稱.
 -wcp [檔名] 將組態檔案寫入程式目錄 (dosbox-x.conf 或指定檔名).
 -wcd 寫入設定目錄中的預設組態檔案.
 -all, -mod 與 -wc, -wcp, 或 -wcd 一起使用以寫入「所有的」或者修改過的組態選項.
@@ -516,7 +516,7 @@ MOUSE [/?] [/U] [/V]
  -usecd [光碟機編號] 支援直接硬體模擬比如 CD 音訊播放.
  -ioctl            使用最低階的硬體存取 (與 -usecd 選項一起使用).
  -aspi             使用已安裝的 ASPI 層 (與 -usecd 選項一起使用).
- -freesize [大小]  指定磁碟機中的剩餘磁碟空間 (單位: MB, 或軟碟: KB).
+ -freesize [大小]  指定磁碟機中的剩餘磁碟空間 MB 數 (軟式磁碟機為 KB 數).
  -nocachedir       啟用即時更新而不使用磁碟機快取.
  -z 磁碟機         將虛擬磁碟機 Z: 移動到另一個磁碟機代號.
  -o                將磁碟機報告為: local, remote.
@@ -624,7 +624,7 @@ LOADFIX -f [-xms] [-ems]
 
   -xms              於延伸記憶體 (XMS) 配置用量而不是主記憶體
   -ems              於擴充記憶體 (EMS) 配置用量而不是主記憶體
-  -{記憶體用量}     指定要配置的記憶體用量 (單位: KB)
+  -{記憶體用量}     指定要配置的記憶體用量 KB 數
                     主記憶體預設為 64KB; XMS/EMS 記憶體預設為 1MB
   -a                自動配置足夠的用量佔滿主記憶體最低層 64KB 位址
   -f (或 -d)        釋放先前配置的記憶體用量
@@ -902,6 +902,10 @@ leading colon write protect image = true
 無法從磁碟機 %c 開機.
 
 .
+:PROGRAM_BOOT_IMAGE_MOUNTED
+軟碟映像檔已掛載.
+
+.
 :PROGRAM_BOOT_IMAGE_OPEN
 正在開啟映像檔: %s
 
@@ -918,6 +922,9 @@ leading colon write protect image = true
 .
 :PROGRAM_BOOT_CART_NO_CMDS
 找不到 PCjr cartridge commandos
+.
+:PROGRAM_BOOT_BOOTING
+從磁碟機開機
 .
 :PROGRAM_LOADROM_HELP
 載入指定的影像 BIOS 或 IBM BASIC ROM 映像檔.
@@ -1000,13 +1007,10 @@ BIOSTEST 映像檔
 請檢查路徑是否正確以及映像檔是否可以存取.
 
 .
-:PROGRAM_IMGMOUNT_DYNAMIC_VHD_UNSUPPORTED
-不支援動態 VHD 檔案.
-
-.
 :PROGRAM_IMGMOUNT_INVALID_GEOMETRY
 無法獲得映像檔中的磁碟機版面.
-請使用參數 -size 每一磁區佔用的位元組數,磁區數,磁頭數,磁柱數 指定磁碟機版面.
+請使用參數 -size 每個磁區的位元組數,每個磁柱的磁區數,每個磁柱的磁頭數,磁柱總數
+指定磁碟機版面.
 
 .
 :PROGRAM_IMGMOUNT_AUTODET_VALUES
@@ -1084,7 +1088,7 @@ BIOSTEST 映像檔
  -fs none            不檢測檔案系統 (提供磁碟機編號時自動假設).
  -reservecyl 數字    在 BIOS 中報告使用比實際更少的磁柱數目.
  -ide 控制器         指定 IDE 控制器 (1m, 1s, 2m, 2s) 以掛載磁碟機.
- -size size|ss,s,h,c 指定大小 (單位: KB), 或磁區大小和 CHS 版面.
+ -size size|ss,s,h,c 指定大小 KB 數, 或磁區大小和 CHS 版面.
  -bootcd 光碟機代號  指定載入開機磁片映像所用的光碟機代號.
  -o partidx=數字     指定要掛載為磁碟機的硬碟分割區編號.
  -ro                 以唯讀模式掛載映像檔 (或用 ':' 首碼表示唯讀).
@@ -1115,18 +1119,18 @@ BIOSTEST 映像檔
 .
 :PROGRAM_IMGMAKE_SYNTAX
 建立軟碟或硬碟映像檔.
-用法: [34;1mIMGMAKE [檔案] [-t 類型] [[-size 大小] | [-chs 版面]] [-spc] [-nofs][0m
+用法: [34;1mIMGMAKE [檔案] [-t 類型] [[-size 容量大小] | [-chs 版面]] [-spc] [-nofs][0m
   [34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source 來源] [-retries 數字][0m
   檔案: 要建立的映像檔 (如未指定將使用 [33;1mIMGMAKE.IMG[0m) - [31;1m路徑為主機系統路徑[0m
   -t: 映像檔類型.
-    [33;1m軟碟範本[0m (名稱為以 KB 為單位的軟碟大小或者 fd=fd_1440):
+    [33;1m軟碟範本[0m (列出名稱之數字為磁片的大小 KB 數, 或者 fd=fd_1440):
      fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880
     [33;1m硬碟範本:[0m
      hd_250: 250MB 映像檔, hd_520: 520MB 映像檔, hd_1gig: 1GB 映像檔
      hd_2gig: 2GB 映像檔, hd_4gig: 4GB 映像檔, hd_8gig: 8GB 映像檔
      hd_st251: 40MB 映像檔, hd_st225: 20MB 映像檔 (舊磁碟機版面)
-    [33;1m自訂硬碟映像檔:[0m hd (需要 -size 或 -chs 選項)
-  -size: 自訂硬碟映像檔大小 (單位: MB).
+    [33;1m自訂的硬碟映像:[0m hd vhd (需要 -size 或 -chs)
+  -size: 自訂硬碟映像的大小 MB 數 (vhd: 上限 2088960).
   -chs: CHS 磁碟版面: 磁柱(1-1023),磁頭(1-255),磁區(1-63).
   -nofs: 如果想建立空白映像檔請加入此參數.
   -force: 強制覆寫已存在的映像檔.
@@ -1145,6 +1149,7 @@ BIOSTEST 映像檔
   [32;1mIMGMAKE -t fd[0m                   - 建立 1.44MB 軟碟映像檔 [33;1mIMGMAKE.IMG[0m
   [32;1mIMGMAKE -t fd_1440 -force[0m       - 強制建立軟碟映像檔 [33;1mIMGMAKE.IMG[0m
   [32;1mIMGMAKE dos.img -t fd_2880[0m      - 建立 2.88MB 軟碟映像檔 dos.img
+  [32;1mIMGMAKE new.vhd -t vhd -size 520[0m- 建立 520MB 動態擴充的 VHD 檔案 new.vhd
   [32;1mIMGMAKE c:\disk.img -t hd -size 50[0m      - 建立 50MB 硬碟映像檔 c:\disk.img
   [32;1mIMGMAKE c:\disk.img -t hd_520 -nofs[0m     - 建立 520MB 空白硬碟映像檔
   [32;1mIMGMAKE c:\disk.img -t hd_2gig -fat 32[0m  - 建立 2GB FAT32 硬碟映像檔
@@ -1182,6 +1187,10 @@ BIOSTEST 映像檔
 
 
 無法讀取軟碟.
+.
+:PROGRAM_IMGMAKE_BADSIZE
+錯誤的 -size 或 -chs 引數.
+
 .
 :PROGRAM_KEYB_INFO
 字碼頁 %i 已載入
@@ -1247,105 +1256,105 @@ BIOSTEST 映像檔
 
 .
 :PROGRAM_VHDMAKE_WRITERR
-Could not write to new VHD image "%s", aborting.
+不能寫入到新的 VHD 映像檔 "%s", 中止程序.
 
 .
 :PROGRAM_VHDMAKE_REMOVEERR
-Could not erase file "%s"
+不能清除檔案 "%s"
 
 .
 :PROGRAM_VHDMAKE_RENAME
-You'll have to manually rename the newly created VHD image.
+您必須將新建立好的 VHD 映像檔手動改名.
 
 .
 :PROGRAM_VHDMAKE_SUCCESS
-New VHD image succesfully created. You can mount it with [34;1mIMGMOUNT[0m.
+新的 VHD 映像檔成功建立. 您可以使用 [34;1mIMGMOUNT[0m 來掛載.
 
 .
 :PROGRAM_VHDMAKE_ERROPEN
-Error, could not open image file "%s".
+錯誤, 不能開啟映像檔 "%s".
 
 .
 :PROGRAM_VHDMAKE_BADSIZE
-Bad VHD size specified, aborting!
+指定的 VHD 大小錯誤, 中止程序!
 
 .
 :PROGRAM_VHDMAKE_FNEEDED
-A pre-existing VHD image can't be silently overwritten without -f option!
+未使用 -f 選項, 先前存在的 VHD 映像檔不能無訊息覆寫!
 
 .
 :PROGRAM_VHDMAKE_BADPARENT
-The parent VHD image "%s" can't be opened for linking, aborting!
+父系 VHD 映像檔 "%s" 不能開啟並鏈結, 中止程序!
 
 .
 :PROGRAM_VHDMAKE_NOINFO
-Couldn't query info for "%s".
+不能查詢到 "%s" 的資訊.
 
 .
 :PROGRAM_VHDMAKE_BLOCKSTATS
-with %d/%d blocks allocated.
+已配置的區塊數 %d/%d.
 
 .
 :PROGRAM_VHDMAKE_INFO
-VHD "%s" type is %s.
-Its virtual size is %.02f MB
+VHD "%s" 的類型是 %s.
+此虛擬硬碟的大小是 %.02f MB
 
 .
 :PROGRAM_VHDMAKE_CANTMERGE
-%s is not a Differencing disk, can't merge!
+%s 不是差異磁碟, 不能合併!
 
 .
 :PROGRAM_VHDMAKE_MERGEREPORT
-%d sectors in %d blocks from "%s" merged into "%s".
+%d 個磁區於 %d 個區塊, 已從 "%s" 合併至 "%s".
 
 .
 :PROGRAM_VHDMAKE_MERGENODELETE
-Couldn't remove snapshot "%s", you'll have to do it yourself!
+不能移除快照 "%s", 你得必須自己動手移除!
 
 .
 :PROGRAM_VHDMAKE_MERGEOKDELETE
-Snapshot VHD merged and deleted.
+快照 VHD 已合併且已刪除.
 
 .
 :PROGRAM_VHDMAKE_MERGEFAILED
-Failure while merging, aborted!
+合併過程失敗, 中止程序!
 .
 :PROGRAM_VHDMAKE_MERGEWARNCORRUPTION
-Parent "%s" contents could be corrupted!
+父磁碟 "%s" 內容可能已毀損!
 
 .
 :PROGRAM_VHDMAKE_ABSPATH_WIN
-Warning: an absolute path to parent limits portability to Windows.
-Please prefer a path relative to differencing image file!
+警告: 鏈結至父磁碟的絕對路徑在 Windows 上限制了檔案可攜性.
+請優先選擇相對路徑給差異映像檔!
 
 .
 :PROGRAM_VHDMAKE_ABSPATH_UX
-ERROR: an absolute path to parent inhibits portability.
-Use a path relative to differencing image file!
+錯誤: 鏈結至父磁碟的絕對路徑禁止了檔案可攜性.
+要使用相對路徑給差異映像檔!
 
 .
 :PROGRAM_VHDMAKE_HELP
-Creates Dynamic or Differencing VHD images, or converts raw images
-into Fixed VHD.
+建立動態擴充或差異的 VHD 映像檔, 或將原始映像轉成大小固定的 VHD.
 [32;1mVHDMAKE[0m [-f] new.vhd size[BKMGT]
 [32;1mVHDMAKE[0m [34;1m-convert[0m raw.hdd new.vhd
 [32;1mVHDMAKE[0m [-f] [34;1m-link[0m parent.vhd new.vhd
 [32;1mVHDMAKE[0m [34;1m-merge[0m delta.vhd
 [32;1mVHDMAKE[0m [34;1m-info[0m a.vhd
- -c | -convert  convert a raw hd image to Fixed VHD, renaming it to new.vhd
- -l | -link     create a new Differencing VHD new.vhd and link it to the
-                pre-existing parent image parent.vhd
- -f | -force    force overwriting a pre-existing image file
- -i | -info     show useful informations about a.vhd image
- -m | -merge    merge differencing delta.vhd to its parent
- new.vhd        name of the new Dynamic VHD image to create
- size           disk size (eventually with size unit, Bytes is implicit)
-When converting a raw disk image to Fixed VHD, it has to be partitioned with
-MBR scheme and formatted with FAT format.
-When creating a Dynamic VHD, its size must range from 3 MB to 2040 GB.
-The Dynamic VHD created is not partitioned nor formatted: to directly mount to
-a drive letter with [34;1mIMGMOUNT[0m, please consider using [34;1mIMGMAKE[0m instead.
-A merged snapshot VHD is automatically deleted if merge is successful.
+ -c | -convert  將原始硬碟映像檔轉成大小固定的 VHD, 並改名為 new.vhd
+ -l | -link     建立一個新的差異 VHD new.vhd, 並鏈結至先前存在的父系
+                映像檔 parent.vhd
+ -f | -force    強制覆寫先前存在的映像檔
+ -i | -info     顯示關於 a.vhd 映像檔的實用資訊
+ -m | -merge    將差異 delta.vhd 的變化合併到它的父磁碟
+ new.vhd        建立新的動態擴充 VHD 映像檔名稱
+ size           磁碟大小 (最後面加上大小單位, 位元組 B 隱含在裡面)
+當轉換一個原始磁碟映像到大小固定的 VHD, 這個磁碟映像必須以 MBR 配置分割,
+並且用 FAT 格式來格式化.
+當建立一個動態擴充 VHD, 它的大小必須介在 3 MB 到 2040 GB.
+已建立好的動態擴充 VHD 沒有經過分割也沒有格式化: 直接用 [34;1mIMGMOUNT[0m
+掛載到一個磁碟機代號, 也請考慮改成用 [34;1mIMGMAKE[0m 製作.
+如果合併作業成功, 會自動刪除已被合併的快照 VHD.
+
 .
 :SHELL_CMD_TREE_ERROR
 不存在子目錄
@@ -1999,16 +2008,16 @@ CALL [磁碟機:][路徑]檔名 [批次處理參數]
 
 .
 :SHELL_CMD_SUBST_HELP
-將內部目錄指派給磁碟機.
+將內部目錄指派到一個磁碟機.
 
 .
 :SHELL_CMD_SUBST_HELP_LONG
 SUBST [磁碟機1: [磁碟機2:]路徑]
 SUBST 磁碟機1: /D
 
-  磁碟機1:        指定您想指派路徑給它的磁碟機.
-  [磁碟機2:]路徑  指定您想要指派, 且已掛載的本機磁碟機和路徑.
-  /D              刪除已掛載或代替的磁碟機.
+  磁碟機1:        指定您想要把路徑指派到的磁碟機.
+  [磁碟機2:]路徑  指定您想要用來指派且已掛載的本機磁碟機和路徑.
+  /D              刪除已掛載或替代的磁碟機.
 
 輸入不含參數的 SUBST 命令顯示已掛載的本機磁碟機清單.
 
@@ -2141,11 +2150,11 @@ PROMPT [文字]
   文字    指定新的命令提示字元.
 
 提示字元可以由一般字元和以下特殊代碼組成:
-  $A   & (& 符號)
+  $A   & (and 符號)
   $B   | (直線)
   $C   ( (左括弧)
   $D   目前日期
-  $E   跳脫字元代碼 (美國標準資訊交換碼 (ASCII) 編碼 27)
+  $E   跳脫字元代碼 (美國標準資訊交換碼 (ASCII) 內碼 27)
   $F   ) (右括弧)
   $G   > (大於符號)
   $H   退位字元 (清除前一個字元)
@@ -2224,7 +2233,7 @@ COUNTRY [nnn]
 
   nnn   指定國家代碼.
 
-特定國家/地區的資訊(例如日期和時間格式)將受到影響.
+依國別設定的資訊(例如日期和時間格式)將受到影響.
 
 .
 :SHELL_CMD_CTTY_HELP
@@ -2315,10 +2324,6 @@ To adjust the emulated CPU speed, use [31mhost+Plus[37m and [31mhost+Minus[3
 :SHELL_STARTUP_CGA_MONO
 按 [31mCtrl+F7[37m 鍵在單色間切換： 綠色、黃褐色、白色.                             
 按 [31mCtrl+F8[37m 鍵變更高對比度/亮度設定.                                         
-.
-:PROGRAM_BOOT_IMAGE_MOUNTED
-軟碟映像檔已掛載.
-
 .
 :MENU:mapper_reset
 重設虛擬機器
@@ -2858,7 +2863,7 @@ PC-98 選項
 3dfx 模擬
 .
 :MENU:3dfx_voodoo
-內接式 Voodoo 卡
+內部巫毒卡
 .
 :MENU:3dfx_glide
 Glide 直通
@@ -3241,6 +3246,9 @@ Turbo (快轉模式)
 :MENU:mapper_caprawopl
 錄製 FM (OPL) 輸出
 .
+:MENU:mapper_capnetrf
+記錄網路流量
+.
 :MENU:mapper_video
 錄製影片到 AVI
 .
@@ -3338,7 +3346,7 @@ Turbo (快轉模式)
 奔騰 III
 .
 :MENU:cputype_experimental
-實驗 CPU
+實驗性 CPU
 .
 :MENU:debug_pageflip
 頁面翻轉偵錯行
@@ -3383,7 +3391,7 @@ Turbo (快轉模式)
 透過滑鼠中鍵
 .
 :MENU:clipboard_arrows
-透過方向鍵 (Home=開始選取, End=結束選取)
+透過方向鍵 (Home=開始, End=結束)
 .
 :MENU:screen_to_clipboard
 複製 DOS 畫面上的所有文字
@@ -3498,6 +3506,9 @@ Mapper "傳送特殊鍵": Ctrl+Alt+Del
 .
 :MENU:pc98_use_uskb
 使用美式鍵盤配置
+.
+:MAPPER:capnetrf
+記錄網路流量
 .
 :MAPPER:caprawopl
 錄製 FM/OPL 輸出
