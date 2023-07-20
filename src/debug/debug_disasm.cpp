@@ -290,7 +290,7 @@ static char const *second[] = {
   "%x0",              "%x0",             "%x0",            "%x0",
   "%x0",              "%x0",             "%x0",            "%x0",
 /* 3 */
-  0,                  "rdtsc",           0,                0,
+  "wrmsr",            "rdtsc",           "rdmsr",          0,
   "sysenter",         "sysexit",         0,                0,
   0,                  0,                 0,                0,
   0,                  0,                 0,                0,
