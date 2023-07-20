@@ -47,6 +47,9 @@ Next
     builds) (maron2000)
   - Fix day of week detection (INT 21h 0x2Ah). (maron2000)
   - Refine KEYB and CHCP command (maron2000)
+  - Use segment descriptor's big flag (if present) when disassembling code in
+    the debugger code view (cimarronm)
+  - Add decoding of rdmsr/wrmsr instructions to disassembler (cimarronm)
 2023.05.01
   - IMGMAKE will choose LBA partition types for 2GB or larger disk
     images, but the user can also use -chs and -lba options to override
