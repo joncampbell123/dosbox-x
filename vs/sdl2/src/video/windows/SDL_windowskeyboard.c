@@ -892,6 +892,16 @@ IME_HandleMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM *lParam, SDL_VideoD
         IME_InputLangChanged(videodata);
         break;
     case WM_IME_CHAR:
+        if(wParam == 0x20) {
+            // enable IME input space
+            PostMessage(hwnd, WM_KEYDOWN, 0x20, 0x390001);
+        } else if(wParam == 0x3000) {
+            // input Zenkaku space
+            videodata->ime_composition[0] = 0x3000;
+            videodata->ime_composition[1] = 0;
+            IME_SendEditingEvent(videodata);
+            IME_SendInputEvent(videodata);
+        }
         trap = SDL_TRUE;
         break;
     case WM_IME_SETCONTEXT:
