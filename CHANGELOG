@@ -47,6 +47,9 @@ Next
     builds) (maron2000)
   - Fix day of week detection (INT 21h function 0x2Ah). (maron2000)
   - Refine KEYB and CHCP command (maron2000)
+  - Use segment descriptor's big flag (if present) when disassembling code in
+    the debugger code view (cimarronm)
+  - Add decoding of rdmsr/wrmsr instructions to disassembler (cimarronm)
   - Fix disassembly for far jmp/call decoding (cimarronm)
   - Fix memory limits on expand-down segment descriptors (cimarronm)
   - Bump tinyfiledialog to ver 3.13.3 (maron2000)
