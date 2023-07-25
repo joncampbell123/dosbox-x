@@ -8707,6 +8707,13 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             sdl.inited = true;
         else
             E_Exit("Can't init SDL %s",SDL_GetError());
+#if defined(C_SDL2)
+        SDL_version sdl_version;
+        SDL_GetVersion(&sdl_version);
+        LOG_MSG("SDL: version %d.%d.%d, Video %s, Audio %s)",
+            sdl_version.major, sdl_version.minor, sdl_version.patch,
+            SDL_GetCurrentVideoDriver(), SDL_GetCurrentAudioDriver());
+#endif //defined (C_SDL2)
 
         /* -- -- decide whether to show menu in GUI */
         if (control->opt_nogui || menu.compatible)
