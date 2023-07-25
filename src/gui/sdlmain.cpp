@@ -5744,7 +5744,7 @@ void GFX_Events() {
             if (event.type == SDL_KEYDOWN && isModifierApplied())
                 ClipKeySelect(event.key.keysym.sym);
             if(dos.im_enable_flag) {
-#if defined (WIN32) && !defined(HX_DOS) || defined(MACOSX)
+#if defined(MACOSX)
                 if(event.type == SDL_KEYDOWN && IME_GetEnable()) {
                     // Enter, BS, TAB, <-, ->
                     if(event.key.keysym.sym == 0x0d || event.key.keysym.sym == 0x08 || event.key.keysym.sym == 0x09 || (event.key.keysym.scancode >= 0x4f && event.key.keysym.scancode <= 0x52)) {
@@ -5752,16 +5752,14 @@ void GFX_Events() {
                             break;
                         }
                     } else {
-                        if((event.key.keysym.mod & 0x03) == 0 && event.key.keysym.scancode == 0x2c && ime_text.size() == 0 && dos.loaded_codepage == 932) {
-                            // Zenkaku space
-                            BIOS_AddKeyToBuffer(0xf100 | 0x81);
-                            BIOS_AddKeyToBuffer(0xf000 | 0x40);
-                            break;
-                        }
-#if defined(WIN32)
-                        else if(ime_text.size() != 0)
-#endif
-                            break;
+                        if(event.key.keysym.scancode == 0x2c && ime_text.size() == 0 && dos.loaded_codepage == 932) {
+                            if((event.key.keysym.mod & 0x03) == 0) {
+                                // Zenkaku space
+                                BIOS_AddKeyToBuffer(0xf100 | 0x81);
+                                BIOS_AddKeyToBuffer(0xf000 | 0x40);
+                                break;
+                            }
+                        } else break;
                     }
                 }
 #endif
