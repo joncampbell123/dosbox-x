@@ -391,7 +391,8 @@ uint64_t LinMakeProt(uint16_t selector, uint32_t offset)
 
     if (cpu.gdt.GetDescriptor(selector,desc)) {
         if (selector >= 8 && desc.Type() != 0) {
-            if (offset <= desc.GetLimit())
+            if ( (!desc.GetExpandDown() && offset <= desc.GetLimit()) ||
+                 ( desc.GetExpandDown() && offset >  desc.GetLimit()) )
                 return desc.GetBase()+(uint64_t)offset;
         }
     }
