@@ -47,6 +47,8 @@ Next
     builds) (maron2000)
   - Fix day of week detection (INT 21h function 0x2Ah). (maron2000)
   - Refine KEYB and CHCP command (maron2000)
+  - Fix disassembly for far jmp/call decoding (cimarronm)
+  - Fix memory limits on expand-down segment descriptors (cimarronm)
   - Bump tinyfiledialog to ver 3.13.3 (maron2000)
 2023.05.01
   - IMGMAKE will choose LBA partition types for 2GB or larger disk

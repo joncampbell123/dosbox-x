@@ -1046,7 +1046,7 @@ static void percent(char type, char subtype)
 
   switch (type) {
   case 'A':                          /* direct address */
-       outhex(subtype, extend, 0, addrsize, 0);
+       outhex(subtype, extend, 0, opsize, 0);
        break;
 
   case 'C':                          /* reg(r/m) picks control reg */
