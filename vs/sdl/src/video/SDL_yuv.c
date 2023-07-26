@@ -123,7 +123,7 @@ int SDL_DisplayYUVOverlay(SDL_Overlay *overlay, SDL_Rect *dstrect)
 		dsth -= extra;
 	}
 	if ( srcw <= 0 || srch <= 0 ||
-	     srch <= 0 || dsth <= 0 ) {
+	     dstw <= 0 || dsth <= 0 ) {
 		return 0;
 	}
 	/* Ugh, I can't wait for SDL_Rect to be int values */
