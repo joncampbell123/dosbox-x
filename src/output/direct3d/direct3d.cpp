@@ -1413,7 +1413,7 @@ HRESULT CDirect3D::CreateDisplayTexture(void)
 	// Set textures
 	if(FAILED(psEffect->SetTextures(lpTexture, lpWorkTexture1, lpWorkTexture2, lpHq2xLookupTexture))) {
 	    LOG_MSG("D3D:Failed to set PS textures");
-	    return false;
+	    return E_FAIL;
 	}
 
     }
