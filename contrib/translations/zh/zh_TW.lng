@@ -1176,7 +1176,7 @@ BIOSTEST 映像檔
 
 .
 :PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE
-沒有足夠的空間產生映像檔. 需要 %u 位元組.
+沒有足夠的空間產生映像檔. 需要 %llu 位元組.
 
 .
 :PROGRAM_IMGMAKE_PRINT_CHS

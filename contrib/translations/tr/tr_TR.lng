@@ -1182,7 +1182,7 @@ Disk geometrisi: %d silindir, %d kafa, %d sektör, %d kilobayt
 
 .
 :PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE
-Kalıp dosyası için yeterli boş alan yok. %u bayt daha gerekli.
+Kalıp dosyası için yeterli boş alan yok. %llu bayt daha gerekli.
 
 .
 :PROGRAM_IMGMAKE_PRINT_CHS

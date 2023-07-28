@@ -1182,7 +1182,7 @@ Het bestand "%s" kan niet worden geopend om te schrijven.
 
 .
 :PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE
-Onvoldoende ruimte beschikbaar voor het imagebestand. %u bytes nodig.
+Onvoldoende ruimte beschikbaar voor het imagebestand. %llu bytes nodig.
 
 .
 :PROGRAM_IMGMAKE_PRINT_CHS
