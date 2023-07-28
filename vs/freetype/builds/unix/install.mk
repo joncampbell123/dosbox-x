@@ -3,7 +3,7 @@
 #
 
 
-# Copyright 1996-2018 by
+# Copyright (C) 1996-2023 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -62,7 +62,7 @@ endif
           $(DESTDIR)$(includedir)/freetype2/freetype/config/ftmodule.h
 	$(INSTALL_DATA) $(OBJ_BUILD)/ftoption.h                        \
           $(DESTDIR)$(includedir)/freetype2/freetype/config/ftoption.h
-	$(INSTALL_SCRIPT) -m 644 $(BUILD_DIR)/freetype2.m4             \
+	$(INSTALL_SCRIPT) -m 644 $(PLATFORM_DIR)/freetype2.m4          \
           $(DESTDIR)$(datadir)/aclocal/freetype2.m4
 	$(INSTALL_SCRIPT) -m 644 $(OBJ_BUILD)/freetype2.pc             \
           $(DESTDIR)$(libdir)/pkgconfig/freetype2.pc

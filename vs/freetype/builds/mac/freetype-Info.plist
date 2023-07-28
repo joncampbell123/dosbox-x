@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
-          "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          "https://www.apple.com/DTDs/PropertyList-1.0.dtd">
 
 <plist version="1.0">
 
@@ -9,7 +9,7 @@
   <string>English</string>
 
   <key>CFBundleExecutable</key>
-  <string>FreeType</string>
+  <string>freetype</string>
 
   <key>CFBundleGetInfoString</key>
   <string>FreeType ${PROJECT_VERSION}</string>

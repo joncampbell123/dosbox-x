@@ -1,26 +1,26 @@
-/***************************************************************************/
-/*                                                                         */
-/*  ttgxvar.h                                                              */
-/*                                                                         */
-/*    TrueType GX Font Variation loader (specification)                    */
-/*                                                                         */
-/*  Copyright 2004-2018 by                                                 */
-/*  David Turner, Robert Wilhelm, Werner Lemberg and George Williams.      */
-/*                                                                         */
-/*  This file is part of the FreeType project, and may only be used,       */
-/*  modified, and distributed under the terms of the FreeType project      */
-/*  license, LICENSE.TXT.  By continuing to use, modify, or distribute     */
-/*  this file you indicate that you have read the license and              */
-/*  understand and accept it fully.                                        */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * ttgxvar.h
+ *
+ *   TrueType GX Font Variation loader (specification)
+ *
+ * Copyright (C) 2004-2023 by
+ * David Turner, Robert Wilhelm, Werner Lemberg and George Williams.
+ *
+ * This file is part of the FreeType project, and may only be used,
+ * modified, and distributed under the terms of the FreeType project
+ * license, LICENSE.TXT.  By continuing to use, modify, or distribute
+ * this file you indicate that you have read the license and
+ * understand and accept it fully.
+ *
+ */
 
 
 #ifndef TTGXVAR_H_
 #define TTGXVAR_H_
 
 
-#include <ft2build.h>
+#include <freetype/internal/ftmmtypes.h>
 #include "ttobjs.h"
 
 
@@ -29,15 +29,15 @@ FT_BEGIN_HEADER
 
 #ifdef TT_CONFIG_OPTION_GX_VAR_SUPPORT
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* <Struct>                                                              */
-  /*    GX_AVarCorrespondenceRec                                           */
-  /*                                                                       */
-  /* <Description>                                                         */
-  /*    A data structure representing `shortFracCorrespondence' in `avar'  */
-  /*    table according to the specifications from Apple.                  */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * @Struct:
+   *   GX_AVarCorrespondenceRec
+   *
+   * @Description:
+   *   A data structure representing `shortFracCorrespondence' in `avar'
+   *   table according to the specifications from Apple.
+   */
   typedef struct  GX_AVarCorrespondenceRec_
   {
     FT_Fixed  fromCoord;
@@ -46,15 +46,15 @@ FT_BEGIN_HEADER
   } GX_AVarCorrespondenceRec_, *GX_AVarCorrespondence;
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* <Struct>                                                              */
-  /*    GX_AVarRec                                                         */
-  /*                                                                       */
-  /* <Description>                                                         */
-  /*    Data from the segment field of `avar' table.                       */
-  /*    There is one of these for each axis.                               */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * @Struct:
+   *   GX_AVarRec
+   *
+   * @Description:
+   *   Data from the segment field of `avar' table.
+   *   There is one of these for each axis.
+   */
   typedef struct  GX_AVarSegmentRec_
   {
     FT_UShort              pairCount;
@@ -63,65 +63,31 @@ FT_BEGIN_HEADER
   } GX_AVarSegmentRec, *GX_AVarSegment;
 
 
-  typedef struct  GX_ItemVarDataRec_
+  /**************************************************************************
+   *
+   * @Struct:
+   *   GX_AVarTableRec
+   *
+   * @Description:
+   *   Data from the `avar' table.
+   */
+  typedef struct  GX_AVarTableRec_
   {
-    FT_UInt    itemCount;      /* number of delta sets per item         */
-    FT_UInt    regionIdxCount; /* number of region indices in this data */
-    FT_UInt*   regionIndices;  /* array of `regionCount' indices;       */
-                               /* these index `varRegionList'           */
-    FT_Short*  deltaSet;       /* array of `itemCount' deltas           */
-                               /* use `innerIndex' for this array       */
+    GX_AVarSegment        avar_segment;   /* avar_segment[num_axis] */
+    GX_ItemVarStoreRec    itemStore;      /* Item Variation Store   */
+    GX_DeltaSetIdxMapRec  axisMap;        /* Axis Mapping           */
 
-  } GX_ItemVarDataRec, *GX_ItemVarData;
+  } GX_AVarTableRec, *GX_AVarTable;
 
 
-  /* contribution of one axis to a region */
-  typedef struct  GX_AxisCoordsRec_
-  {
-    FT_Fixed  startCoord;
-    FT_Fixed  peakCoord;      /* zero means no effect (factor = 1) */
-    FT_Fixed  endCoord;
-
-  } GX_AxisCoordsRec, *GX_AxisCoords;
-
-
-  typedef struct  GX_VarRegionRec_
-  {
-    GX_AxisCoords  axisList;               /* array of axisCount records */
-
-  } GX_VarRegionRec, *GX_VarRegion;
-
-
-  /* item variation store */
-  typedef struct  GX_ItemVarStoreRec_
-  {
-    FT_UInt         dataCount;
-    GX_ItemVarData  varData;            /* array of dataCount records;     */
-                                        /* use `outerIndex' for this array */
-    FT_UShort     axisCount;
-    FT_UInt       regionCount;          /* total number of regions defined */
-    GX_VarRegion  varRegionList;
-
-  } GX_ItemVarStoreRec, *GX_ItemVarStore;
-
-
-  typedef struct  GX_DeltaSetIdxMapRec_
-  {
-    FT_UInt   mapCount;
-    FT_UInt*  outerIndex;             /* indices to item var data */
-    FT_UInt*  innerIndex;             /* indices to delta set     */
-
-  } GX_DeltaSetIdxMapRec, *GX_DeltaSetIdxMap;
-
-
-  /*************************************************************************/
-  /*                                                                       */
-  /* <Struct>                                                              */
-  /*    GX_HVVarTableRec                                                   */
-  /*                                                                       */
-  /* <Description>                                                         */
-  /*    Data from either the `HVAR' or `VVAR' table.                       */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * @Struct:
+   *   GX_HVVarTableRec
+   *
+   * @Description:
+   *   Data from either the `HVAR' or `VVAR' table.
+   */
   typedef struct  GX_HVVarTableRec_
   {
     GX_ItemVarStoreRec    itemStore;        /* Item Variation Store  */
@@ -191,14 +157,14 @@ FT_BEGIN_HEADER
   } GX_ValueRec, *GX_Value;
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* <Struct>                                                              */
-  /*    GX_MVarTableRec                                                    */
-  /*                                                                       */
-  /* <Description>                                                         */
-  /*    Data from the `MVAR' table.                                        */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * @Struct:
+   *   GX_MVarTableRec
+   *
+   * @Description:
+   *   Data from the `MVAR' table.
+   */
   typedef struct  GX_MVarTableRec_
   {
     FT_UShort  valueCount;
@@ -209,95 +175,95 @@ FT_BEGIN_HEADER
   } GX_MVarTableRec, *GX_MVarTable;
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* <Struct>                                                              */
-  /*    GX_BlendRec                                                        */
-  /*                                                                       */
-  /* <Description>                                                         */
-  /*    Data for interpolating a font from a distortable font specified    */
-  /*    by the GX *var tables ([fgcahvm]var).                              */
-  /*                                                                       */
-  /* <Fields>                                                              */
-  /*    num_axis ::                                                        */
-  /*      The number of axes along which interpolation may happen.         */
-  /*                                                                       */
-  /*    coords ::                                                          */
-  /*      An array of design coordinates (in user space) indicating the    */
-  /*      contribution along each axis to the final interpolated font.     */
-  /*      `normalizedcoords' holds the same values.                        */
-  /*                                                                       */
-  /*    normalizedcoords ::                                                */
-  /*      An array of normalized values (between [-1,1]) indicating the    */
-  /*      contribution along each axis to the final interpolated font.     */
-  /*      `coords' holds the same values.                                  */
-  /*                                                                       */
-  /*    mmvar ::                                                           */
-  /*      Data from the `fvar' table.                                      */
-  /*                                                                       */
-  /*    mmvar_len ::                                                       */
-  /*      The length of the `mmvar' structure.                             */
-  /*                                                                       */
-  /*    normalized_stylecoords ::                                          */
-  /*      A two-dimensional array that holds the named instance data from  */
-  /*      `mmvar' as normalized values.                                    */
-  /*                                                                       */
-  /*    avar_loaded ::                                                     */
-  /*      A Boolean; if set, FreeType tried to load (and parse) the `avar' */
-  /*      table.                                                           */
-  /*                                                                       */
-  /*    avar_segment ::                                                    */
-  /*      Data from the `avar' table.                                      */
-  /*                                                                       */
-  /*    hvar_loaded ::                                                     */
-  /*      A Boolean; if set, FreeType tried to load (and parse) the `hvar' */
-  /*      table.                                                           */
-  /*                                                                       */
-  /*    hvar_checked ::                                                    */
-  /*      A Boolean; if set, FreeType successfully loaded and parsed the   */
-  /*      `hvar' table.                                                    */
-  /*                                                                       */
-  /*    hvar_error ::                                                      */
-  /*      If loading and parsing of the `hvar' table failed, this field    */
-  /*      holds the corresponding error code.                              */
-  /*                                                                       */
-  /*    hvar_table ::                                                      */
-  /*      Data from the `hvar' table.                                      */
-  /*                                                                       */
-  /*    vvar_loaded ::                                                     */
-  /*      A Boolean; if set, FreeType tried to load (and parse) the `vvar' */
-  /*      table.                                                           */
-  /*                                                                       */
-  /*    vvar_checked ::                                                    */
-  /*      A Boolean; if set, FreeType successfully loaded and parsed the   */
-  /*      `vvar' table.                                                    */
-  /*                                                                       */
-  /*    vvar_error ::                                                      */
-  /*      If loading and parsing of the `vvar' table failed, this field    */
-  /*      holds the corresponding error code.                              */
-  /*                                                                       */
-  /*    vvar_table ::                                                      */
-  /*      Data from the `vvar' table.                                      */
-  /*                                                                       */
-  /*    mvar_table ::                                                      */
-  /*      Data from the `mvar' table.                                      */
-  /*                                                                       */
-  /*    tuplecount ::                                                      */
-  /*      The number of shared tuples in the `gvar' table.                 */
-  /*                                                                       */
-  /*    tuplecoords ::                                                     */
-  /*      A two-dimensional array that holds the shared tuple coordinates  */
-  /*      in the `gvar' table.                                             */
-  /*                                                                       */
-  /*    gv_glyphcnt ::                                                     */
-  /*      The number of glyphs handled in the `gvar' table.                */
-  /*                                                                       */
-  /*    glyphoffsets ::                                                    */
-  /*      Offsets into the glyph variation data array.                     */
-  /*                                                                       */
-  /*    gvar_size ::                                                       */
-  /*      The size of the `gvar' table.                                    */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * @Struct:
+   *   GX_BlendRec
+   *
+   * @Description:
+   *   Data for interpolating a font from a distortable font specified
+   *   by the GX *var tables ([fgcahvm]var).
+   *
+   * @Fields:
+   *   num_axis ::
+   *     The number of axes along which interpolation may happen.
+   *
+   *   coords ::
+   *     An array of design coordinates (in user space) indicating the
+   *     contribution along each axis to the final interpolated font.
+   *     `normalizedcoords' holds the same values.
+   *
+   *   normalizedcoords ::
+   *     An array of normalized values (between [-1,1]) indicating the
+   *     contribution along each axis to the final interpolated font.
+   *     `coords' holds the same values.
+   *
+   *   mmvar ::
+   *     Data from the `fvar' table.
+   *
+   *   mmvar_len ::
+   *     The length of the `mmvar' structure.
+   *
+   *   normalized_stylecoords ::
+   *     A two-dimensional array that holds the named instance data from
+   *     `mmvar' as normalized values.
+   *
+   *   avar_loaded ::
+   *     A Boolean; if set, FreeType tried to load (and parse) the `avar'
+   *     table.
+   *
+   *   avar_table ::
+   *     Data from the `avar' table.
+   *
+   *   hvar_loaded ::
+   *     A Boolean; if set, FreeType tried to load (and parse) the `hvar'
+   *     table.
+   *
+   *   hvar_checked ::
+   *     A Boolean; if set, FreeType successfully loaded and parsed the
+   *     `hvar' table.
+   *
+   *   hvar_error ::
+   *     If loading and parsing of the `hvar' table failed, this field
+   *     holds the corresponding error code.
+   *
+   *   hvar_table ::
+   *     Data from the `hvar' table.
+   *
+   *   vvar_loaded ::
+   *     A Boolean; if set, FreeType tried to load (and parse) the `vvar'
+   *     table.
+   *
+   *   vvar_checked ::
+   *     A Boolean; if set, FreeType successfully loaded and parsed the
+   *     `vvar' table.
+   *
+   *   vvar_error ::
+   *     If loading and parsing of the `vvar' table failed, this field
+   *     holds the corresponding error code.
+   *
+   *   vvar_table ::
+   *     Data from the `vvar' table.
+   *
+   *   mvar_table ::
+   *     Data from the `mvar' table.
+   *
+   *   tuplecount ::
+   *     The number of shared tuples in the `gvar' table.
+   *
+   *   tuplecoords ::
+   *     A two-dimensional array that holds the shared tuple coordinates
+   *     in the `gvar' table.
+   *
+   *   gv_glyphcnt ::
+   *     The number of glyphs handled in the `gvar' table.
+   *
+   *   glyphoffsets ::
+   *     Offsets into the glyph variation data array.
+   *
+   *   gvar_size ::
+   *     The size of the `gvar' table.
+   */
   typedef struct  GX_BlendRec_
   {
     FT_UInt         num_axis;
@@ -311,7 +277,7 @@ FT_BEGIN_HEADER
                       /* normalized_stylecoords[num_namedstyles][num_axis] */
 
     FT_Bool         avar_loaded;
-    GX_AVarSegment  avar_segment;                /* avar_segment[num_axis] */
+    GX_AVarTable    avar_table;
 
     FT_Bool         hvar_loaded;
     FT_Bool         hvar_checked;
@@ -336,14 +302,14 @@ FT_BEGIN_HEADER
   } GX_BlendRec;
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* <enum>                                                                */
-  /*    GX_TupleCountFlags                                                 */
-  /*                                                                       */
-  /* <Description>                                                         */
-  /*    Flags used within the `TupleCount' field of the `gvar' table.      */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * @enum:
+   *   GX_TupleCountFlags
+   *
+   * @Description:
+   *   Flags used within the `TupleCount' field of the `gvar' table.
+   */
   typedef enum  GX_TupleCountFlags_
   {
     GX_TC_TUPLES_SHARE_POINT_NUMBERS = 0x8000,
@@ -353,15 +319,15 @@ FT_BEGIN_HEADER
   } GX_TupleCountFlags;
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* <enum>                                                                */
-  /*    GX_TupleIndexFlags                                                 */
-  /*                                                                       */
-  /* <Description>                                                         */
-  /*    Flags used within the `TupleIndex' field of the `gvar' and `cvar'  */
-  /*    tables.                                                            */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * @enum:
+   *   GX_TupleIndexFlags
+   *
+   * @Description:
+   *   Flags used within the `TupleIndex' field of the `gvar' and `cvar'
+   *   tables.
+   */
   typedef enum  GX_TupleIndexFlags_
   {
     GX_TI_EMBEDDED_TUPLE_COORD  = 0x8000,
@@ -377,35 +343,43 @@ FT_BEGIN_HEADER
 #define TTAG_wdth  FT_MAKE_TAG( 'w', 'd', 't', 'h' )
 #define TTAG_opsz  FT_MAKE_TAG( 'o', 'p', 's', 'z' )
 #define TTAG_slnt  FT_MAKE_TAG( 's', 'l', 'n', 't' )
+#define TTAG_ital  FT_MAKE_TAG( 'i', 't', 'a', 'l' )
 
 
   FT_LOCAL( FT_Error )
-  TT_Set_MM_Blend( TT_Face    face,
+  TT_Set_MM_Blend( FT_Face    face,
                    FT_UInt    num_coords,
                    FT_Fixed*  coords );
 
   FT_LOCAL( FT_Error )
-  TT_Get_MM_Blend( TT_Face    face,
+  TT_Get_MM_Blend( FT_Face    face,
                    FT_UInt    num_coords,
                    FT_Fixed*  coords );
 
   FT_LOCAL( FT_Error )
-  TT_Set_Var_Design( TT_Face    face,
+  TT_Set_Var_Design( FT_Face    face,
                      FT_UInt    num_coords,
                      FT_Fixed*  coords );
 
   FT_LOCAL( FT_Error )
-  TT_Get_MM_Var( TT_Face      face,
+  TT_Get_MM_Var( FT_Face      face,
                  FT_MM_Var*  *master );
 
   FT_LOCAL( FT_Error )
-  TT_Get_Var_Design( TT_Face    face,
+  TT_Get_Var_Design( FT_Face    face,
                      FT_UInt    num_coords,
                      FT_Fixed*  coords );
 
   FT_LOCAL( FT_Error )
-  TT_Set_Named_Instance( TT_Face  face,
+  TT_Set_Named_Instance( FT_Face  face,
                          FT_UInt  instance_index );
+
+  FT_LOCAL( FT_Error )
+  TT_Get_Default_Named_Instance( FT_Face   face,
+                                 FT_UInt  *instance_index );
+
+  FT_LOCAL( void )
+  tt_construct_ps_name( FT_Face  face );
 
   FT_LOCAL( FT_Error )
   tt_face_vary_cvt( TT_Face    face,
@@ -413,33 +387,59 @@ FT_BEGIN_HEADER
 
 
   FT_LOCAL( FT_Error )
-  TT_Vary_Apply_Glyph_Deltas( TT_Face      face,
-                              FT_UInt      glyph_index,
+  TT_Vary_Apply_Glyph_Deltas( TT_Loader    loader,
                               FT_Outline*  outline,
-                              FT_UInt      n_points );
+                              FT_Vector*   unrounded );
 
   FT_LOCAL( FT_Error )
-  tt_hadvance_adjust( TT_Face  face,
+  tt_hadvance_adjust( FT_Face  face,
                       FT_UInt  gindex,
                       FT_Int  *adelta );
 
   FT_LOCAL( FT_Error )
-  tt_vadvance_adjust( TT_Face  face,
+  tt_vadvance_adjust( FT_Face  face,
                       FT_UInt  gindex,
                       FT_Int  *adelta );
 
   FT_LOCAL( void )
-  tt_apply_mvar( TT_Face  face );
+  tt_apply_mvar( FT_Face  face );
 
   FT_LOCAL( FT_Error )
-  tt_get_var_blend( TT_Face      face,
+  tt_var_load_item_variation_store( FT_Face          face,
+                                    FT_ULong         offset,
+                                    GX_ItemVarStore  itemStore );
+
+  FT_LOCAL( FT_Error )
+  tt_var_load_delta_set_index_mapping( FT_Face            face,
+                                       FT_ULong           offset,
+                                       GX_DeltaSetIdxMap  map,
+                                       GX_ItemVarStore    itemStore,
+                                       FT_ULong           table_len );
+
+  FT_LOCAL( FT_ItemVarDelta )
+  tt_var_get_item_delta( FT_Face          face,
+                         GX_ItemVarStore  itemStore,
+                         FT_UInt          outerIndex,
+                         FT_UInt          innerIndex );
+
+  FT_LOCAL( void )
+  tt_var_done_item_variation_store( FT_Face          face,
+                                    GX_ItemVarStore  itemStore );
+
+  FT_LOCAL( void )
+  tt_var_done_delta_set_index_map( FT_Face            face,
+                                   GX_DeltaSetIdxMap  deltaSetIdxMap );
+
+
+  FT_LOCAL( FT_Error )
+  tt_get_var_blend( FT_Face      face,
                     FT_UInt     *num_coords,
                     FT_Fixed*   *coords,
                     FT_Fixed*   *normalizedcoords,
                     FT_MM_Var*  *mm_var );
 
   FT_LOCAL( void )
-  tt_done_blend( TT_Face  face );
+  tt_done_blend( FT_Face  face );
 
 #endif /* TT_CONFIG_OPTION_GX_VAR_SUPPORT */
 

@@ -1,34 +1,33 @@
-/***************************************************************************/
-/*                                                                         */
-/*  ttpost.c                                                               */
-/*                                                                         */
-/*    PostScript name table processing for TrueType and OpenType fonts     */
-/*    (body).                                                              */
-/*                                                                         */
-/*  Copyright 1996-2018 by                                                 */
-/*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
-/*                                                                         */
-/*  This file is part of the FreeType project, and may only be used,       */
-/*  modified, and distributed under the terms of the FreeType project      */
-/*  license, LICENSE.TXT.  By continuing to use, modify, or distribute     */
-/*  this file you indicate that you have read the license and              */
-/*  understand and accept it fully.                                        */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * ttpost.c
+ *
+ *   PostScript name table processing for TrueType and OpenType fonts
+ *   (body).
+ *
+ * Copyright (C) 1996-2023 by
+ * David Turner, Robert Wilhelm, and Werner Lemberg.
+ *
+ * This file is part of the FreeType project, and may only be used,
+ * modified, and distributed under the terms of the FreeType project
+ * license, LICENSE.TXT.  By continuing to use, modify, or distribute
+ * this file you indicate that you have read the license and
+ * understand and accept it fully.
+ *
+ */
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* The post table is not completely loaded by the core engine.  This     */
-  /* file loads the missing PS glyph names and implements an API to access */
-  /* them.                                                                 */
-  /*                                                                       */
-  /*************************************************************************/
+  /**************************************************************************
+   *
+   * The post table is not completely loaded by the core engine.  This
+   * file loads the missing PS glyph names and implements an API to access
+   * them.
+   *
+   */
 
 
-#include <ft2build.h>
-#include FT_INTERNAL_DEBUG_H
-#include FT_INTERNAL_STREAM_H
-#include FT_TRUETYPE_TAGS_H
+#include <freetype/internal/ftdebug.h>
+#include <freetype/internal/ftstream.h>
+#include <freetype/tttags.h>
 
 
 #ifdef TT_CONFIG_OPTION_POSTSCRIPT_NAMES
@@ -38,33 +37,33 @@
 #include "sferrors.h"
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* The macro FT_COMPONENT is used in trace mode.  It is an implicit      */
-  /* parameter of the FT_TRACE() and FT_ERROR() macros, used to print/log  */
-  /* messages during execution.                                            */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * The macro FT_COMPONENT is used in trace mode.  It is an implicit
+   * parameter of the FT_TRACE() and FT_ERROR() macros, used to print/log
+   * messages during execution.
+   */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_ttpost
+#define FT_COMPONENT  ttpost
 
 
-  /* If this configuration macro is defined, we rely on the `PSNames' */
+  /* If this configuration macro is defined, we rely on the `psnames' */
   /* module to grab the glyph names.                                  */
 
 #ifdef FT_CONFIG_OPTION_POSTSCRIPT_NAMES
 
 
-#include FT_SERVICE_POSTSCRIPT_CMAPS_H
+#include <freetype/internal/services/svpscmap.h>
 
 #define MAC_NAME( x )  (FT_String*)psnames->macintosh_name( (FT_UInt)(x) )
 
 
-#else /* FT_CONFIG_OPTION_POSTSCRIPT_NAMES */
+#else /* !FT_CONFIG_OPTION_POSTSCRIPT_NAMES */
 
 
-   /* Otherwise, we ignore the `PSNames' module, and provide our own  */
+   /* Otherwise, we ignore the `psnames' module, and provide our own  */
    /* table of Mac names.  Thus, it is possible to build a version of */
-   /* FreeType without the Type 1 driver & PSNames module.            */
+   /* FreeType without the Type 1 driver & psnames module.            */
 
 #define MAC_NAME( x )  (FT_String*)tt_post_default_names[x]
 
@@ -153,154 +152,108 @@
   };
 
 
-#endif /* FT_CONFIG_OPTION_POSTSCRIPT_NAMES */
+#endif /* !FT_CONFIG_OPTION_POSTSCRIPT_NAMES */
 
 
   static FT_Error
-  load_format_20( TT_Face    face,
-                  FT_Stream  stream,
-                  FT_ULong   post_limit )
+  load_format_20( TT_Post_Names  names,
+                  FT_Stream      stream,
+                  FT_UShort      num_glyphs,
+                  FT_ULong       post_len )
   {
     FT_Memory   memory = stream->memory;
     FT_Error    error;
 
-    FT_Int      num_glyphs;
-    FT_UShort   num_names;
+    FT_UShort   n;
+    FT_UShort   num_names = 0;
 
     FT_UShort*  glyph_indices = NULL;
-    FT_Char**   name_strings  = NULL;
+    FT_Byte**   name_strings  = NULL;
+    FT_Byte*    q;
 
 
-    if ( FT_READ_USHORT( num_glyphs ) )
-      goto Exit;
-
-    /* UNDOCUMENTED!  The number of glyphs in this table can be smaller */
-    /* than the value in the maxp table (cf. cyberbit.ttf).             */
-
-    /* There already exist fonts which have more than 32768 glyph names */
-    /* in this table, so the test for this threshold has been dropped.  */
-
-    if ( num_glyphs > face->max_profile.numGlyphs )
+    if ( (FT_ULong)num_glyphs * 2 > post_len )
     {
       error = FT_THROW( Invalid_File_Format );
       goto Exit;
     }
 
-    /* load the indices */
+    /* load the indices and note their maximum */
+    if ( FT_QNEW_ARRAY( glyph_indices, num_glyphs ) ||
+         FT_FRAME_ENTER( num_glyphs * 2 )           )
+      goto Fail;
+
+    q = (FT_Byte*)stream->cursor;
+
+    for ( n = 0; n < num_glyphs; n++ )
     {
-      FT_Int  n;
+      FT_UShort  idx = FT_NEXT_USHORT( q );
 
 
-      if ( FT_NEW_ARRAY ( glyph_indices, num_glyphs ) ||
-           FT_FRAME_ENTER( num_glyphs * 2L )          )
-        goto Fail;
+      if ( idx > num_names )
+        num_names = idx;
 
-      for ( n = 0; n < num_glyphs; n++ )
-        glyph_indices[n] = FT_GET_USHORT();
-
-      FT_FRAME_EXIT();
+      glyph_indices[n] = idx;
     }
 
-    /* compute number of names stored in table */
-    {
-      FT_Int  n;
+    FT_FRAME_EXIT();
 
-
-      num_names = 0;
-
-      for ( n = 0; n < num_glyphs; n++ )
-      {
-        FT_Int  idx;
-
-
-        idx = glyph_indices[n];
-        if ( idx >= 258 )
-        {
-          idx -= 257;
-          if ( idx > num_names )
-            num_names = (FT_UShort)idx;
-        }
-      }
-    }
+    /* compute number of names stored in the table */
+    num_names = num_names > 257 ? num_names - 257 : 0;
 
     /* now load the name strings */
+    if ( num_names )
     {
-      FT_UShort  n;
+      FT_ULong   p;
+      FT_Byte*   strings;
 
 
-      if ( FT_NEW_ARRAY( name_strings, num_names ) )
+      post_len -= (FT_ULong)num_glyphs * 2;
+
+      if ( FT_QALLOC( name_strings, num_names * sizeof ( FT_Byte* ) +
+                                    post_len + 1 ) )
         goto Fail;
 
-      for ( n = 0; n < num_names; n++ )
+      strings = (FT_Byte*)( name_strings + num_names );
+      if ( FT_STREAM_READ( strings, post_len ) )
+        goto Fail;
+
+      /* convert from Pascal- to C-strings and set pointers */
+      for ( p = 0, n = 0; p < post_len && n < num_names; n++ )
       {
-        FT_UInt  len;
+        FT_UInt  len = strings[p];
 
 
-        if ( FT_STREAM_POS() >= post_limit )
-          break;
-        else
+        if ( len > 63U )
         {
-          FT_TRACE6(( "load_format_20: %d byte left in post table\n",
-                      post_limit - FT_STREAM_POS() ));
-
-          if ( FT_READ_BYTE( len ) )
-            goto Fail1;
+          error = FT_THROW( Invalid_File_Format );
+          goto Fail;
         }
 
-        if ( len > post_limit                   ||
-             FT_STREAM_POS() > post_limit - len )
-        {
-          FT_Int  d = (FT_Int)post_limit - (FT_Int)FT_STREAM_POS();
-
-
-          FT_ERROR(( "load_format_20:"
-                     " exceeding string length (%d),"
-                     " truncating at end of post table (%d byte left)\n",
-                     len, d ));
-          len = (FT_UInt)FT_MAX( 0, d );
-        }
-
-        if ( FT_NEW_ARRAY( name_strings[n], len + 1 ) ||
-             FT_STREAM_READ( name_strings[n], len   ) )
-          goto Fail1;
-
-        name_strings[n][len] = '\0';
+        strings[p]      = 0;
+        name_strings[n] = strings + p + 1;
+        p              += len + 1;
       }
+      strings[post_len] = 0;
 
+      /* deal with missing or insufficient string data */
       if ( n < num_names )
       {
-        FT_ERROR(( "load_format_20:"
-                   " all entries in post table are already parsed,"
-                   " using NULL names for gid %d - %d\n",
-                    n, num_names - 1 ));
+        FT_TRACE4(( "load_format_20: %hu PostScript names are truncated\n",
+                    num_names - n ));
+
         for ( ; n < num_names; n++ )
-          if ( FT_NEW_ARRAY( name_strings[n], 1 ) )
-            goto Fail1;
-          else
-            name_strings[n][0] = '\0';
+          name_strings[n] = strings + post_len;
       }
     }
 
     /* all right, set table fields and exit successfully */
-    {
-      TT_Post_20  table = &face->postscript_names.names.format_20;
+    names->num_glyphs    = num_glyphs;
+    names->num_names     = num_names;
+    names->glyph_indices = glyph_indices;
+    names->glyph_names   = name_strings;
 
-
-      table->num_glyphs    = (FT_UShort)num_glyphs;
-      table->num_names     = (FT_UShort)num_names;
-      table->glyph_indices = glyph_indices;
-      table->glyph_names   = name_strings;
-    }
     return FT_Err_Ok;
-
-  Fail1:
-    {
-      FT_UShort  n;
-
-
-      for ( n = 0; n < num_names; n++ )
-        FT_FREE( name_strings[n] );
-    }
 
   Fail:
     FT_FREE( name_strings );
@@ -312,66 +265,55 @@
 
 
   static FT_Error
-  load_format_25( TT_Face    face,
-                  FT_Stream  stream,
-                  FT_ULong   post_limit )
+  load_format_25( TT_Post_Names  names,
+                  FT_Stream      stream,
+                  FT_UShort      num_glyphs,
+                  FT_ULong       post_len )
   {
     FT_Memory  memory = stream->memory;
     FT_Error   error;
 
-    FT_Int     num_glyphs;
-    FT_Char*   offset_table = NULL;
+    FT_UShort   n;
+    FT_UShort*  glyph_indices = NULL;
+    FT_Byte*    q;
 
-    FT_UNUSED( post_limit );
 
-
-    if ( FT_READ_USHORT( num_glyphs ) )
-      goto Exit;
-
-    /* check the number of glyphs */
-    if ( num_glyphs > face->max_profile.numGlyphs ||
-         num_glyphs > 258                         ||
-         num_glyphs < 1                           )
+    /* check the number of glyphs, including the theoretical limit */
+    if ( num_glyphs > post_len  ||
+         num_glyphs > 258 + 128 )
     {
       error = FT_THROW( Invalid_File_Format );
       goto Exit;
     }
 
-    if ( FT_NEW_ARRAY( offset_table, num_glyphs )   ||
-         FT_STREAM_READ( offset_table, num_glyphs ) )
+    /* load the indices and check their Mac range */
+    if ( FT_QNEW_ARRAY( glyph_indices, num_glyphs ) ||
+         FT_FRAME_ENTER( num_glyphs )               )
       goto Fail;
 
-    /* now check the offset table */
+    q = (FT_Byte*)stream->cursor;
+
+    for ( n = 0; n < num_glyphs; n++ )
     {
-      FT_Int  n;
+      FT_Int  idx = n + FT_NEXT_CHAR( q );
 
 
-      for ( n = 0; n < num_glyphs; n++ )
-      {
-        FT_Long  idx = (FT_Long)n + offset_table[n];
+      if ( idx < 0 || idx > 257 )
+        idx = 0;
 
-
-        if ( idx < 0 || idx > num_glyphs )
-        {
-          error = FT_THROW( Invalid_File_Format );
-          goto Fail;
-        }
-      }
+      glyph_indices[n] = (FT_UShort)idx;
     }
+
+    FT_FRAME_EXIT();
 
     /* OK, set table fields and exit successfully */
-    {
-      TT_Post_25  table = &face->postscript_names.names.format_25;
-
-
-      table->num_glyphs = (FT_UShort)num_glyphs;
-      table->offsets    = offset_table;
-    }
+    names->num_glyphs    = num_glyphs;
+    names->glyph_indices = glyph_indices;
 
     return FT_Err_Ok;
 
   Fail:
-    FT_FREE( offset_table );
+    FT_FREE( glyph_indices );
 
   Exit:
     return error;
@@ -381,40 +323,37 @@
   static FT_Error
   load_post_names( TT_Face  face )
   {
-    FT_Stream  stream;
-    FT_Error   error;
-    FT_Fixed   format;
+    FT_Error   error = FT_Err_Ok;
+    FT_Stream  stream = face->root.stream;
+    FT_Fixed   format = face->postscript.FormatType;
     FT_ULong   post_len;
-    FT_ULong   post_limit;
+    FT_UShort  num_glyphs;
 
-
-    /* get a stream for the face's resource */
-    stream = face->root.stream;
 
     /* seek to the beginning of the PS names table */
     error = face->goto_table( face, TTAG_post, stream, &post_len );
     if ( error )
       goto Exit;
 
-    post_limit = FT_STREAM_POS() + post_len;
-
-    format = face->postscript.FormatType;
-
-    /* go to beginning of subtable */
-    if ( FT_STREAM_SKIP( 32 ) )
+    /* UNDOCUMENTED!  The number of glyphs in this table can be smaller */
+    /* than the value in the maxp table (cf. cyberbit.ttf).             */
+    if ( post_len < 34                            ||
+         FT_STREAM_SKIP( 32 )                     ||
+         FT_READ_USHORT( num_glyphs )             ||
+         num_glyphs > face->max_profile.numGlyphs ||
+         num_glyphs == 0 )
       goto Exit;
 
-    /* now read postscript table */
+    /* now read postscript names data */
     if ( format == 0x00020000L )
-      error = load_format_20( face, stream, post_limit );
+      error = load_format_20( &face->postscript_names, stream,
+                              num_glyphs, post_len - 34 );
     else if ( format == 0x00025000L )
-      error = load_format_25( face, stream, post_limit );
-    else
-      error = FT_THROW( Invalid_File_Format );
-
-    face->postscript_names.loaded = 1;
+      error = load_format_25( &face->postscript_names, stream,
+                              num_glyphs, post_len - 34 );
 
   Exit:
+    face->postscript_names.loaded = 1;  /* even if failed */
     return error;
   }
 
@@ -424,70 +363,55 @@
   {
     FT_Memory      memory = face->root.memory;
     TT_Post_Names  names  = &face->postscript_names;
-    FT_Fixed       format;
 
 
-    if ( names->loaded )
+    if ( names->num_glyphs )
     {
-      format = face->postscript.FormatType;
-
-      if ( format == 0x00020000L )
-      {
-        TT_Post_20  table = &names->names.format_20;
-        FT_UShort   n;
-
-
-        FT_FREE( table->glyph_indices );
-        table->num_glyphs = 0;
-
-        for ( n = 0; n < table->num_names; n++ )
-          FT_FREE( table->glyph_names[n] );
-
-        FT_FREE( table->glyph_names );
-        table->num_names = 0;
-      }
-      else if ( format == 0x00025000L )
-      {
-        TT_Post_25  table = &names->names.format_25;
-
-
-        FT_FREE( table->offsets );
-        table->num_glyphs = 0;
-      }
+      FT_FREE( names->glyph_indices );
+      names->num_glyphs = 0;
     }
+
+    if ( names->num_names )
+    {
+      FT_FREE( names->glyph_names );
+      names->num_names = 0;
+    }
+
     names->loaded = 0;
   }
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* <Function>                                                            */
-  /*    tt_face_get_ps_name                                                */
-  /*                                                                       */
-  /* <Description>                                                         */
-  /*    Get the PostScript glyph name of a glyph.                          */
-  /*                                                                       */
-  /* <Input>                                                               */
-  /*    face   :: A handle to the parent face.                             */
-  /*                                                                       */
-  /*    idx    :: The glyph index.                                         */
-  /*                                                                       */
-  /* <InOut>                                                               */
-  /*    PSname :: The address of a string pointer.  Undefined in case of   */
-  /*              error, otherwise it is a pointer to the glyph name.      */
-  /*                                                                       */
-  /*              You must not modify the returned string!                 */
-  /*                                                                       */
-  /* <Output>                                                              */
-  /*    FreeType error code.  0 means success.                             */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * @Function:
+   *   tt_face_get_ps_name
+   *
+   * @Description:
+   *   Get the PostScript glyph name of a glyph.
+   *
+   * @Input:
+   *   face ::
+   *     A handle to the parent face.
+   *
+   *   idx ::
+   *     The glyph index.
+   *
+   * @InOut:
+   *   PSname ::
+   *     The address of a string pointer.  Undefined in case of
+   *     error, otherwise it is a pointer to the glyph name.
+   *
+   *     You must not modify the returned string!
+   *
+   * @Output:
+   *   FreeType error code.  0 means success.
+   */
   FT_LOCAL_DEF( FT_Error )
   tt_face_get_ps_name( TT_Face      face,
                        FT_UInt      idx,
                        FT_String**  PSname )
   {
     FT_Error       error;
-    TT_Post_Names  names;
     FT_Fixed       format;
 
 #ifdef FT_CONFIG_OPTION_POSTSCRIPT_NAMES
@@ -507,8 +431,6 @@
       return FT_THROW( Unimplemented_Feature );
 #endif
 
-    names = &face->postscript_names;
-
     /* `.notdef' by default */
     *PSname = MAC_NAME( 0 );
 
@@ -519,9 +441,10 @@
       if ( idx < 258 )                    /* paranoid checking */
         *PSname = MAC_NAME( idx );
     }
-    else if ( format == 0x00020000L )
+    else if ( format == 0x00020000L ||
+              format == 0x00025000L )
     {
-      TT_Post_20  table = &names->names.format_20;
+      TT_Post_Names  names = &face->postscript_names;
 
 
       if ( !names->loaded )
@@ -531,43 +454,29 @@
           goto End;
       }
 
-      if ( idx < (FT_UInt)table->num_glyphs )
+      if ( idx < (FT_UInt)names->num_glyphs )
       {
-        FT_UShort  name_index = table->glyph_indices[idx];
+        FT_UShort  name_index = names->glyph_indices[idx];
 
 
         if ( name_index < 258 )
           *PSname = MAC_NAME( name_index );
-        else
-          *PSname = (FT_String*)table->glyph_names[name_index - 258];
+        else  /* only for version 2.0 */
+          *PSname = (FT_String*)names->glyph_names[name_index - 258];
       }
-    }
-    else if ( format == 0x00025000L )
-    {
-      TT_Post_25  table = &names->names.format_25;
-
-
-      if ( !names->loaded )
-      {
-        error = load_post_names( face );
-        if ( error )
-          goto End;
-      }
-
-      if ( idx < (FT_UInt)table->num_glyphs )    /* paranoid checking */
-        *PSname = MAC_NAME( (FT_Int)idx + table->offsets[idx] );
     }
 
     /* nothing to do for format == 0x00030000L */
 
   End:
+    /* post format errors ignored */
     return FT_Err_Ok;
   }
 
 #else /* !TT_CONFIG_OPTION_POSTSCRIPT_NAMES */
 
   /* ANSI C doesn't like empty source files */
-  typedef int  _tt_post_dummy;
+  typedef int  tt_post_dummy_;
 
 #endif /* !TT_CONFIG_OPTION_POSTSCRIPT_NAMES */
 

@@ -1,39 +1,39 @@
-/***************************************************************************/
-/*                                                                         */
-/*  psfixed.h                                                              */
-/*                                                                         */
-/*    Adobe's code for Fixed Point Mathematics (specification only).       */
-/*                                                                         */
-/*  Copyright 2007-2013 Adobe Systems Incorporated.                        */
-/*                                                                         */
-/*  This software, and all works of authorship, whether in source or       */
-/*  object code form as indicated by the copyright notice(s) included      */
-/*  herein (collectively, the "Work") is made available, and may only be   */
-/*  used, modified, and distributed under the FreeType Project License,    */
-/*  LICENSE.TXT.  Additionally, subject to the terms and conditions of the */
-/*  FreeType Project License, each contributor to the Work hereby grants   */
-/*  to any individual or legal entity exercising permissions granted by    */
-/*  the FreeType Project License and this section (hereafter, "You" or     */
-/*  "Your") a perpetual, worldwide, non-exclusive, no-charge,              */
-/*  royalty-free, irrevocable (except as stated in this section) patent    */
-/*  license to make, have made, use, offer to sell, sell, import, and      */
-/*  otherwise transfer the Work, where such license applies only to those  */
-/*  patent claims licensable by such contributor that are necessarily      */
-/*  infringed by their contribution(s) alone or by combination of their    */
-/*  contribution(s) with the Work to which such contribution(s) was        */
-/*  submitted.  If You institute patent litigation against any entity      */
-/*  (including a cross-claim or counterclaim in a lawsuit) alleging that   */
-/*  the Work or a contribution incorporated within the Work constitutes    */
-/*  direct or contributory patent infringement, then any patent licenses   */
-/*  granted to You under this License for that Work shall terminate as of  */
-/*  the date such litigation is filed.                                     */
-/*                                                                         */
-/*  By using, modifying, or distributing the Work you indicate that you    */
-/*  have read and understood the terms and conditions of the               */
-/*  FreeType Project License as well as those provided in this section,    */
-/*  and you accept them fully.                                             */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * psfixed.h
+ *
+ *   Adobe's code for Fixed-Point Mathematics (specification only).
+ *
+ * Copyright 2007-2013 Adobe Systems Incorporated.
+ *
+ * This software, and all works of authorship, whether in source or
+ * object code form as indicated by the copyright notice(s) included
+ * herein (collectively, the "Work") is made available, and may only be
+ * used, modified, and distributed under the FreeType Project License,
+ * LICENSE.TXT.  Additionally, subject to the terms and conditions of the
+ * FreeType Project License, each contributor to the Work hereby grants
+ * to any individual or legal entity exercising permissions granted by
+ * the FreeType Project License and this section (hereafter, "You" or
+ * "Your") a perpetual, worldwide, non-exclusive, no-charge,
+ * royalty-free, irrevocable (except as stated in this section) patent
+ * license to make, have made, use, offer to sell, sell, import, and
+ * otherwise transfer the Work, where such license applies only to those
+ * patent claims licensable by such contributor that are necessarily
+ * infringed by their contribution(s) alone or by combination of their
+ * contribution(s) with the Work to which such contribution(s) was
+ * submitted.  If You institute patent litigation against any entity
+ * (including a cross-claim or counterclaim in a lawsuit) alleging that
+ * the Work or a contribution incorporated within the Work constitutes
+ * direct or contributory patent infringement, then any patent licenses
+ * granted to You under this License for that Work shall terminate as of
+ * the date such litigation is filed.
+ *
+ * By using, modifying, or distributing the Work you indicate that you
+ * have read and understood the terms and conditions of the
+ * FreeType Project License as well as those provided in this section,
+ * and you accept them fully.
+ *
+ */
 
 
 #ifndef PSFIXED_H_
@@ -43,10 +43,10 @@
 FT_BEGIN_HEADER
 
 
-  /* rasterizer integer and fixed point arithmetic must be 32-bit */
+  /* rasterizer integer and fixed-point arithmetic must be 32-bit */
 
 #define   CF2_Fixed  CF2_F16Dot16
-  typedef FT_Int32   CF2_Frac;   /* 2.30 fixed point */
+  typedef FT_Int32   CF2_Frac;   /* 2.30 fixed-point */
 
 
 #define CF2_FIXED_MAX      ( (CF2_Fixed)0x7FFFFFFFL )
@@ -72,8 +72,7 @@ FT_BEGIN_HEADER
 #define cf2_fixedFraction( x )                                           \
           ( (x) - cf2_fixedFloor( x ) )
 #define cf2_fracToFixed( x )                                             \
-          ( (x) < 0 ? -( ( -(x) + 0x2000 ) >> 14 )                       \
-                    :  ( (  (x) + 0x2000 ) >> 14 ) )
+          ( ( (x) + 0x2000 - ( (x) < 0 ) ) >> 14 )
 
 
   /* signed numeric types */
