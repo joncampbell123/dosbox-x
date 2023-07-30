@@ -1136,7 +1136,7 @@ bool CPrinter::processCommandChar(uint8_t ch)
 			    numParam = 0;
 			    break;
 		    case 0x274: // Assign character table (ESC (t)
-			    if (params[2] < 4 && params[3] < 16)
+			    if (params[2] < 4 && params[3] < 15)
 			    {
 				    charTables[params[2]] = codepages[params[3]];
 				    //LOG_MSG("curr table: %d, p2: %d, p3: %d",curCharTable,params[2],params[3]);
