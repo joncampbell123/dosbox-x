@@ -1288,6 +1288,9 @@ void Mouse_AfterNewVideoMode(bool setmode) {
             Bitu rows = IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24;
             if ((rows == 0) || (rows > 250)) rows = 25 - 1;
             mouse.max_y = 8*(rows+1) - 1;
+            uint16_t cols = real_readb(BIOSMEM_SEG, BIOSMEM_NB_COLS);
+            if((cols == 0) || (cols > 250)) cols = 80;
+            mouse.max_x = cols * 8 - 1;
         }
         break;
     }
