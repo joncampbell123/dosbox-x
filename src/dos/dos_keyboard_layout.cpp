@@ -1712,7 +1712,7 @@ public:
 			}
 		}
         if (tocp && !IS_PC98_ARCH) {
-            if(dos.loaded_codepage == 932 && !strcmp(layoutname, "jp106")) loaded_layout->read_keyboard_file(layoutname, dos.loaded_codepage);
+            if((dos.loaded_codepage == 932 || tocp == 932) && (!strcmp(layoutname, "jp106") || !strcmp(layoutname, "jp"))) loaded_layout->read_keyboard_file(layoutname, 932);
 
             uint16_t cpbak = dos.loaded_codepage;
 #if defined(USE_TTF)
