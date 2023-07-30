@@ -1188,7 +1188,7 @@ O arquivo "%s" não pode ser aberto para escrita.
 
 .
 :PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE
-Espaço insuficiente para o arquivo de imagem. Precisa de %u bytes.
+Espaço insuficiente para o arquivo de imagem. Precisa de %llu bytes.
 
 .
 :PROGRAM_IMGMAKE_PRINT_CHS

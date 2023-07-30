@@ -9392,7 +9392,7 @@ void DOS_SetupPrograms(void) {
 #endif
     MSG_Add("PROGRAM_IMGMAKE_FILE_EXISTS","The file \"%s\" already exists. You can specify \"-force\" to overwrite.\n");
     MSG_Add("PROGRAM_IMGMAKE_CANNOT_WRITE","The file \"%s\" cannot be opened for writing.\n");
-    MSG_Add("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE","Not enough space available for the image file. Need %lld bytes.\n");
+    MSG_Add("PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE","Not enough space available for the image file. Need %llu bytes.\n");
     MSG_Add("PROGRAM_IMGMAKE_PRINT_CHS","Creating image file \"%s\" with %u cylinders, %u heads and %u sectors\n");
     MSG_Add("PROGRAM_IMGMAKE_CANT_READ_FLOPPY","\n\nUnable to read floppy.");
     MSG_Add("PROGRAM_IMGMAKE_BADSIZE","Wrong -size or -chs arguments.\n");

@@ -1179,7 +1179,8 @@ IMGMAKE の使用例:
 
 .
 :PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE
-イメージファイルを作成するのに必要な空き容量が %u バイト足りません。
+イメージファイルを作成するのにディスクの空き容量が不足しています。
+%llu バイト必要です。
 
 .
 :PROGRAM_IMGMAKE_PRINT_CHS
