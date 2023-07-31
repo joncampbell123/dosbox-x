@@ -1171,7 +1171,7 @@ BIOSTEST 镜像文件
 
 .
 :PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE
-没有足够的空间生成镜像文件. 需要 %u 字节.
+没有足够的空间生成镜像文件. 需要 %llu 字节.
 
 .
 :PROGRAM_IMGMAKE_PRINT_CHS

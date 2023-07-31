@@ -1182,7 +1182,7 @@ Le fichier "%s" ne peut pas être ouvert en écriture.
 
 .
 :PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE
-Pas assez d'espace disponible pour le fichier image. Besoin de %u octets.
+Pas assez d'espace disponible pour le fichier image. Besoin de %llu octets.
 
 .
 :PROGRAM_IMGMAKE_PRINT_CHS
