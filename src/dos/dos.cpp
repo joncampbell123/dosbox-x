@@ -1520,7 +1520,7 @@ static Bitu DOS_21Handler(void) {
                 if (reg_cx % 4 == 0 && (reg_cx % 100 != 0 || reg_cx % 400 == 0))
                     maxday[1]++;
 
-                if (reg_cx < 1980 || reg_cx > 9999 || reg_dh < 1 || reg_dh > 12 || reg_dl < 1 || reg_dl > maxday[reg_dh])
+                if (reg_cx < 1980 || reg_cx > 9999 || reg_dh < 1 || reg_dh > 12 || reg_dl < 1 || reg_dl > maxday[reg_dh - 1])
                 {
                     reg_al = 0xff;              // error!
                     break;                      // done
