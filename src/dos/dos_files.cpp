@@ -575,7 +575,7 @@ bool DOS_FindFirst(const char * search,uint16_t attr,bool fcb_findfirst) {
 	if (!DOS_MakeName(search,fullsearch,&drive,attr == DOS_ATTR_VOLUME)) return false;
 	//Check for devices. FindDevice checks for leading subdir as well
     bool device = false;
-    if (attr & DOS_ATTR_DEVICE)
+    //if (attr & DOS_ATTR_DEVICE) /* FIX_ME: This line deleted to fix launching Blocek editor (Issue #4385), revert this if this induces other errors */
         device = DOS_FindDevice(search) != DOS_DEVICES;
 
     /* Split the search in dir and pattern */
