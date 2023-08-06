@@ -1,22 +1,21 @@
-/***************************************************************************/
-/*                                                                         */
-/*  t1driver.c                                                             */
-/*                                                                         */
-/*    Type 1 driver interface (body).                                      */
-/*                                                                         */
-/*  Copyright 1996-2018 by                                                 */
-/*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
-/*                                                                         */
-/*  This file is part of the FreeType project, and may only be used,       */
-/*  modified, and distributed under the terms of the FreeType project      */
-/*  license, LICENSE.TXT.  By continuing to use, modify, or distribute     */
-/*  this file you indicate that you have read the license and              */
-/*  understand and accept it fully.                                        */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * t1driver.c
+ *
+ *   Type 1 driver interface (body).
+ *
+ * Copyright (C) 1996-2023 by
+ * David Turner, Robert Wilhelm, and Werner Lemberg.
+ *
+ * This file is part of the FreeType project, and may only be used,
+ * modified, and distributed under the terms of the FreeType project
+ * license, LICENSE.TXT.  By continuing to use, modify, or distribute
+ * this file you indicate that you have read the license and
+ * understand and accept it fully.
+ *
+ */
 
 
-#include <ft2build.h>
 #include "t1driver.h"
 #include "t1gload.h"
 #include "t1load.h"
@@ -27,58 +26,62 @@
 #include "t1afm.h"
 #endif
 
-#include FT_INTERNAL_DEBUG_H
-#include FT_INTERNAL_STREAM_H
-#include FT_INTERNAL_HASH_H
-#include FT_INTERNAL_POSTSCRIPT_PROPS_H
-#include FT_DRIVER_H
+#include <freetype/internal/ftdebug.h>
+#include <freetype/internal/ftstream.h>
+#include <freetype/internal/fthash.h>
+#include <freetype/internal/ftpsprop.h>
+#include <freetype/ftdriver.h>
 
-#include FT_SERVICE_MULTIPLE_MASTERS_H
-#include FT_SERVICE_GLYPH_DICT_H
-#include FT_SERVICE_FONT_FORMAT_H
-#include FT_SERVICE_POSTSCRIPT_NAME_H
-#include FT_SERVICE_POSTSCRIPT_CMAPS_H
-#include FT_SERVICE_POSTSCRIPT_INFO_H
-#include FT_SERVICE_PROPERTIES_H
-#include FT_SERVICE_KERNING_H
+#include <freetype/internal/services/svmm.h>
+#include <freetype/internal/services/svgldict.h>
+#include <freetype/internal/services/svfntfmt.h>
+#include <freetype/internal/services/svpostnm.h>
+#include <freetype/internal/services/svpscmap.h>
+#include <freetype/internal/services/svpsinfo.h>
+#include <freetype/internal/services/svprop.h>
+#include <freetype/internal/services/svkern.h>
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* The macro FT_COMPONENT is used in trace mode.  It is an implicit      */
-  /* parameter of the FT_TRACE() and FT_ERROR() macros, used to print/log  */
-  /* messages during execution.                                            */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * The macro FT_COMPONENT is used in trace mode.  It is an implicit
+   * parameter of the FT_TRACE() and FT_ERROR() macros, used to print/log
+   * messages during execution.
+   */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_t1driver
+#define FT_COMPONENT  t1driver
 
- /*
-  *  GLYPH DICT SERVICE
-  *
-  */
+  /*
+   * GLYPH DICT SERVICE
+   *
+   */
 
-  static FT_Error
-  t1_get_glyph_name( T1_Face     face,
+  FT_CALLBACK_DEF( FT_Error )
+  t1_get_glyph_name( FT_Face     face,        /* T1_Face */
                      FT_UInt     glyph_index,
                      FT_Pointer  buffer,
                      FT_UInt     buffer_max )
   {
-    FT_STRCPYN( buffer, face->type1.glyph_names[glyph_index], buffer_max );
+    T1_Face  t1face = (T1_Face)face;
+
+
+    FT_STRCPYN( buffer, t1face->type1.glyph_names[glyph_index], buffer_max );
 
     return FT_Err_Ok;
   }
 
 
-  static FT_UInt
-  t1_get_name_index( T1_Face     face,
-                     FT_String*  glyph_name )
+  FT_CALLBACK_DEF( FT_UInt )
+  t1_get_name_index( FT_Face           face,        /* T1_Face */
+                     const FT_String*  glyph_name )
   {
-    FT_Int  i;
+    T1_Face  t1face = (T1_Face)face;
+    FT_Int   i;
 
 
-    for ( i = 0; i < face->type1.num_glyphs; i++ )
+    for ( i = 0; i < t1face->type1.num_glyphs; i++ )
     {
-      FT_String*  gname = face->type1.glyph_names[i];
+      FT_String*  gname = t1face->type1.glyph_names[i];
 
 
       if ( !ft_strcmp( glyph_name, gname ) )
@@ -91,20 +94,23 @@
 
   static const FT_Service_GlyphDictRec  t1_service_glyph_dict =
   {
-    (FT_GlyphDict_GetNameFunc)  t1_get_glyph_name,    /* get_name   */
-    (FT_GlyphDict_NameIndexFunc)t1_get_name_index     /* name_index */
+    t1_get_glyph_name,  /* FT_GlyphDict_GetNameFunc   get_name   */
+    t1_get_name_index   /* FT_GlyphDict_NameIndexFunc name_index */
   };
 
 
   /*
-   *  POSTSCRIPT NAME SERVICE
+   * POSTSCRIPT NAME SERVICE
    *
    */
 
   static const char*
-  t1_get_ps_name( T1_Face  face )
+  t1_get_ps_name( FT_Face  face )    /* T1_Face */
   {
-    return (const char*) face->type1.font_name;
+    T1_Face  t1face = (T1_Face)face;
+
+
+    return (const char*) t1face->type1.font_name;
   }
 
 
@@ -115,30 +121,41 @@
 
 
   /*
-   *  MULTIPLE MASTERS SERVICE
+   * MULTIPLE MASTERS SERVICE
    *
    */
 
 #ifndef T1_CONFIG_OPTION_NO_MM_SUPPORT
   static const FT_Service_MultiMastersRec  t1_service_multi_masters =
   {
-    (FT_Get_MM_Func)        T1_Get_Multi_Master,   /* get_mm         */
-    (FT_Set_MM_Design_Func) T1_Set_MM_Design,      /* set_mm_design  */
-    (FT_Set_MM_Blend_Func)  T1_Set_MM_Blend,       /* set_mm_blend   */
-    (FT_Get_MM_Blend_Func)  T1_Get_MM_Blend,       /* get_mm_blend   */
-    (FT_Get_MM_Var_Func)    T1_Get_MM_Var,         /* get_mm_var     */
-    (FT_Set_Var_Design_Func)T1_Set_Var_Design,     /* set_var_design */
-    (FT_Get_Var_Design_Func)T1_Get_Var_Design,     /* get_var_design */
-    (FT_Set_Instance_Func)  T1_Reset_MM_Blend,     /* set_instance   */
+    T1_Get_Multi_Master,    /* FT_Get_MM_Func             get_mm             */
+    T1_Set_MM_Design,       /* FT_Set_MM_Design_Func      set_mm_design      */
+    T1_Set_MM_Blend,        /* FT_Set_MM_Blend_Func       set_mm_blend       */
+    T1_Get_MM_Blend,        /* FT_Get_MM_Blend_Func       get_mm_blend       */
+    T1_Get_MM_Var,          /* FT_Get_MM_Var_Func         get_mm_var         */
+    T1_Set_Var_Design,      /* FT_Set_Var_Design_Func     set_var_design     */
+    T1_Get_Var_Design,      /* FT_Get_Var_Design_Func     get_var_design     */
+    T1_Reset_MM_Blend,      /* FT_Set_Named_Instance_Func set_named_instance */
+    NULL,   /* FT_Get_Default_Named_Instance_Func get_default_named_instance */
+    T1_Set_MM_WeightVector,
+            /* FT_Set_MM_WeightVector_Func        set_mm_weightvector        */
+    T1_Get_MM_WeightVector,
+            /* FT_Get_MM_WeightVector_Func        get_mm_weightvector        */
 
-    (FT_Get_Var_Blend_Func) NULL,                  /* get_var_blend  */
-    (FT_Done_Blend_Func)    T1_Done_Blend          /* done_blend     */
+    NULL,   /* FT_Construct_PS_Name_Func          construct_ps_name          */
+    NULL,   /* FT_Var_Load_Delta_Set_Idx_Map_Func load_delta_set_idx_map     */
+    NULL,   /* FT_Var_Load_Item_Var_Store_Func    load_item_variation_store  */
+    NULL,   /* FT_Var_Get_Item_Delta_Func         get_item_delta             */
+    NULL,   /* FT_Var_Done_Item_Var_Store_Func    done_item_variation_store  */
+    NULL,   /* FT_Var_Done_Delta_Set_Idx_Map_Func done_delta_set_index_map   */
+    NULL,           /* FT_Get_Var_Blend_Func      get_var_blend              */
+    T1_Done_Blend   /* FT_Done_Blend_Func         done_blend                 */
   };
 #endif
 
 
   /*
-   *  POSTSCRIPT INFO SERVICE
+   * POSTSCRIPT INFO SERVICE
    *
    */
 
@@ -270,9 +287,12 @@
       break;
 
     case PS_DICT_FONT_NAME:
-      retval = (FT_ULong)(ft_strlen( type1->font_name ) + 1);
-      if ( value && value_len >= retval )
-        ft_memcpy( value, (void *)( type1->font_name ), retval );
+      if ( type1->font_name )
+      {
+        retval = ft_strlen( type1->font_name ) + 1;
+        if ( value && value_len >= retval )
+          ft_memcpy( value, (void *)( type1->font_name ), retval );
+      }
       break;
 
     case PS_DICT_UNIQUE_ID:
@@ -290,7 +310,7 @@
     case PS_DICT_CHAR_STRING_KEY:
       if ( idx < (FT_UInt)type1->num_glyphs )
       {
-        retval = (FT_ULong)(ft_strlen( type1->glyph_names[idx] ) + 1);
+        retval = ft_strlen( type1->glyph_names[idx] ) + 1;
         if ( value && value_len >= retval )
         {
           ft_memcpy( value, (void *)( type1->glyph_names[idx] ), retval );
@@ -322,7 +342,7 @@
       if ( type1->encoding_type == T1_ENCODING_TYPE_ARRAY &&
            idx < (FT_UInt)type1->encoding.num_chars       )
       {
-        retval = (FT_ULong)(ft_strlen( type1->encoding.char_name[idx] ) + 1);
+        retval = ft_strlen( type1->encoding.char_name[idx] ) + 1;
         if ( value && value_len >= retval )
         {
           ft_memcpy( value, (void *)( type1->encoding.char_name[idx] ),
@@ -352,7 +372,7 @@
 
           if ( val )
           {
-            idx = (FT_UInt)(*val);
+            idx = *val;
             ok  = 1;
           }
         }
@@ -362,7 +382,7 @@
             ok = 1;
         }
 
-        if ( ok )
+        if ( ok && type1->subrs )
         {
           retval = type1->subrs_len[idx] + 1;
           if ( value && value_len >= retval )
@@ -559,33 +579,49 @@
       break;
 
     case PS_DICT_VERSION:
-      retval = (FT_ULong)(ft_strlen( type1->font_info.version ) + 1);
-      if ( value && value_len >= retval )
-        ft_memcpy( value, (void *)( type1->font_info.version ), retval );
+      if ( type1->font_info.version )
+      {
+        retval = ft_strlen( type1->font_info.version ) + 1;
+        if ( value && value_len >= retval )
+          ft_memcpy( value, (void *)( type1->font_info.version ), retval );
+      }
       break;
 
     case PS_DICT_NOTICE:
-      retval = (FT_ULong)(ft_strlen( type1->font_info.notice ) + 1);
-      if ( value && value_len >= retval )
-        ft_memcpy( value, (void *)( type1->font_info.notice ), retval );
+      if ( type1->font_info.notice )
+      {
+        retval = ft_strlen( type1->font_info.notice ) + 1;
+        if ( value && value_len >= retval )
+          ft_memcpy( value, (void *)( type1->font_info.notice ), retval );
+      }
       break;
 
     case PS_DICT_FULL_NAME:
-      retval = (FT_ULong)(ft_strlen( type1->font_info.full_name ) + 1);
-      if ( value && value_len >= retval )
-        ft_memcpy( value, (void *)( type1->font_info.full_name ), retval );
+      if ( type1->font_info.full_name )
+      {
+        retval = ft_strlen( type1->font_info.full_name ) + 1;
+        if ( value && value_len >= retval )
+          ft_memcpy( value, (void *)( type1->font_info.full_name ), retval );
+      }
       break;
 
     case PS_DICT_FAMILY_NAME:
-      retval = (FT_ULong)(ft_strlen( type1->font_info.family_name ) + 1);
-      if ( value && value_len >= retval )
-        ft_memcpy( value, (void *)( type1->font_info.family_name ), retval );
+      if ( type1->font_info.family_name )
+      {
+        retval = ft_strlen( type1->font_info.family_name ) + 1;
+        if ( value && value_len >= retval )
+          ft_memcpy( value, (void *)( type1->font_info.family_name ),
+                     retval );
+      }
       break;
 
     case PS_DICT_WEIGHT:
-      retval = (FT_ULong)(ft_strlen( type1->font_info.weight ) + 1);
-      if ( value && value_len >= retval )
-        ft_memcpy( value, (void *)( type1->font_info.weight ), retval );
+      if ( type1->font_info.weight )
+      {
+        retval = ft_strlen( type1->font_info.weight ) + 1;
+        if ( value && value_len >= retval )
+          ft_memcpy( value, (void *)( type1->font_info.weight ), retval );
+      }
       break;
 
     case PS_DICT_ITALIC_ANGLE:
@@ -601,11 +637,11 @@
 
   static const FT_Service_PsInfoRec  t1_service_ps_info =
   {
-    (PS_GetFontInfoFunc)   t1_ps_get_font_info,    /* ps_get_font_info    */
-    (PS_GetFontExtraFunc)  t1_ps_get_font_extra,   /* ps_get_font_extra   */
-    (PS_HasGlyphNamesFunc) t1_ps_has_glyph_names,  /* ps_has_glyph_names  */
-    (PS_GetFontPrivateFunc)t1_ps_get_font_private, /* ps_get_font_private */
-    (PS_GetFontValueFunc)  t1_ps_get_font_value,   /* ps_get_font_value   */
+    t1_ps_get_font_info,     /* PS_GetFontInfoFunc    ps_get_font_info    */
+    t1_ps_get_font_extra,    /* PS_GetFontExtraFunc   ps_get_font_extra   */
+    t1_ps_has_glyph_names,   /* PS_HasGlyphNamesFunc  ps_has_glyph_names  */
+    t1_ps_get_font_private,  /* PS_GetFontPrivateFunc ps_get_font_private */
+    t1_ps_get_font_value,    /* PS_GetFontValueFunc   ps_get_font_value   */
   };
 
 
@@ -618,19 +654,19 @@
 
 
   /*
-   *  PROPERTY SERVICE
+   * PROPERTY SERVICE
    *
    */
 
   FT_DEFINE_SERVICE_PROPERTIESREC(
     t1_service_properties,
 
-    (FT_Properties_SetFunc)ps_property_set,      /* set_property */
-    (FT_Properties_GetFunc)ps_property_get )     /* get_property */
-
+    ps_property_set,  /* FT_Properties_SetFunc set_property */
+    ps_property_get   /* FT_Properties_GetFunc get_property */
+  )
 
   /*
-   *  SERVICE LIST
+   * SERVICE LIST
    *
    */
 
@@ -665,38 +701,42 @@
 
 #ifndef T1_CONFIG_OPTION_NO_AFM
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* <Function>                                                            */
-  /*    Get_Kerning                                                        */
-  /*                                                                       */
-  /* <Description>                                                         */
-  /*    A driver method used to return the kerning vector between two      */
-  /*    glyphs of the same face.                                           */
-  /*                                                                       */
-  /* <Input>                                                               */
-  /*    face        :: A handle to the source face object.                 */
-  /*                                                                       */
-  /*    left_glyph  :: The index of the left glyph in the kern pair.       */
-  /*                                                                       */
-  /*    right_glyph :: The index of the right glyph in the kern pair.      */
-  /*                                                                       */
-  /* <Output>                                                              */
-  /*    kerning     :: The kerning vector.  This is in font units for      */
-  /*                   scalable formats, and in pixels for fixed-sizes     */
-  /*                   formats.                                            */
-  /*                                                                       */
-  /* <Return>                                                              */
-  /*    FreeType error code.  0 means success.                             */
-  /*                                                                       */
-  /* <Note>                                                                */
-  /*    Only horizontal layouts (left-to-right & right-to-left) are        */
-  /*    supported by this function.  Other layouts, or more sophisticated  */
-  /*    kernings are out of scope of this method (the basic driver         */
-  /*    interface is meant to be simple).                                  */
-  /*                                                                       */
-  /*    They can be implemented by format-specific interfaces.             */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * @Function:
+   *   Get_Kerning
+   *
+   * @Description:
+   *   A driver method used to return the kerning vector between two
+   *   glyphs of the same face.
+   *
+   * @Input:
+   *   face ::
+   *     A handle to the source face object.
+   *
+   *   left_glyph ::
+   *     The index of the left glyph in the kern pair.
+   *
+   *   right_glyph ::
+   *     The index of the right glyph in the kern pair.
+   *
+   * @Output:
+   *   kerning ::
+   *     The kerning vector.  This is in font units for
+   *     scalable formats, and in pixels for fixed-sizes
+   *     formats.
+   *
+   * @Return:
+   *   FreeType error code.  0 means success.
+   *
+   * @Note:
+   *   Only horizontal layouts (left-to-right & right-to-left) are
+   *   supported by this function.  Other layouts, or more sophisticated
+   *   kernings are out of scope of this method (the basic driver
+   *   interface is meant to be simple).
+   *
+   *   They can be implemented by format-specific interfaces.
+   */
   static FT_Error
   Get_Kerning( FT_Face     t1face,        /* T1_Face */
                FT_UInt     left_glyph,

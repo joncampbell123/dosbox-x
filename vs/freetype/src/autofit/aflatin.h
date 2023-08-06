@@ -1,20 +1,20 @@
-/***************************************************************************/
-/*                                                                         */
-/*  aflatin.h                                                              */
-/*                                                                         */
-/*    Auto-fitter hinting routines for latin writing system                */
-/*    (specification).                                                     */
-/*                                                                         */
-/*  Copyright 2003-2018 by                                                 */
-/*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
-/*                                                                         */
-/*  This file is part of the FreeType project, and may only be used,       */
-/*  modified, and distributed under the terms of the FreeType project      */
-/*  license, LICENSE.TXT.  By continuing to use, modify, or distribute     */
-/*  this file you indicate that you have read the license and              */
-/*  understand and accept it fully.                                        */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * aflatin.h
+ *
+ *   Auto-fitter hinting routines for latin writing system
+ *   (specification).
+ *
+ * Copyright (C) 2003-2023 by
+ * David Turner, Robert Wilhelm, and Werner Lemberg.
+ *
+ * This file is part of the FreeType project, and may only be used,
+ * modified, and distributed under the terms of the FreeType project
+ * license, LICENSE.TXT.  By continuing to use, modify, or distribute
+ * this file you indicate that you have read the license and
+ * understand and accept it fully.
+ *
+ */
 
 
 #ifndef AFLATIN_H_
@@ -45,9 +45,9 @@ FT_BEGIN_HEADER
 
 
   /*
-   *  The following declarations could be embedded in the file `aflatin.c';
-   *  they have been made semi-public to allow alternate writing system
-   *  hinters to re-use some of them.
+   * The following declarations could be embedded in the file `aflatin.c';
+   * they have been made semi-public to allow alternate writing system
+   * hinters to re-use some of them.
    */
 
 
@@ -116,11 +116,11 @@ FT_BEGIN_HEADER
 
 
   FT_LOCAL( FT_Error )
-  af_latin_metrics_init( AF_LatinMetrics  metrics,
+  af_latin_metrics_init( AF_StyleMetrics  metrics,
                          FT_Face          face );
 
   FT_LOCAL( void )
-  af_latin_metrics_scale( AF_LatinMetrics  metrics,
+  af_latin_metrics_scale( AF_StyleMetrics  metrics,
                           AF_Scaler        scaler );
 
   FT_LOCAL( void )
@@ -161,8 +161,8 @@ FT_BEGIN_HEADER
 
 
   /*
-   *  The next functions shouldn't normally be exported.  However, other
-   *  writing systems might like to use these functions as-is.
+   * The next functions shouldn't normally be exported.  However, other
+   * writing systems might like to use these functions as-is.
    */
   FT_LOCAL( FT_Error )
   af_latin_hints_compute_segments( AF_GlyphHints  hints,

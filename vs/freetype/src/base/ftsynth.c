@@ -1,37 +1,36 @@
-/***************************************************************************/
-/*                                                                         */
-/*  ftsynth.c                                                              */
-/*                                                                         */
-/*    FreeType synthesizing code for emboldening and slanting (body).      */
-/*                                                                         */
-/*  Copyright 2000-2018 by                                                 */
-/*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
-/*                                                                         */
-/*  This file is part of the FreeType project, and may only be used,       */
-/*  modified, and distributed under the terms of the FreeType project      */
-/*  license, LICENSE.TXT.  By continuing to use, modify, or distribute     */
-/*  this file you indicate that you have read the license and              */
-/*  understand and accept it fully.                                        */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * ftsynth.c
+ *
+ *   FreeType synthesizing code for emboldening and slanting (body).
+ *
+ * Copyright (C) 2000-2023 by
+ * David Turner, Robert Wilhelm, and Werner Lemberg.
+ *
+ * This file is part of the FreeType project, and may only be used,
+ * modified, and distributed under the terms of the FreeType project
+ * license, LICENSE.TXT.  By continuing to use, modify, or distribute
+ * this file you indicate that you have read the license and
+ * understand and accept it fully.
+ *
+ */
 
 
-#include <ft2build.h>
-#include FT_SYNTHESIS_H
-#include FT_INTERNAL_DEBUG_H
-#include FT_INTERNAL_OBJECTS_H
-#include FT_OUTLINE_H
-#include FT_BITMAP_H
+#include <freetype/ftsynth.h>
+#include <freetype/internal/ftdebug.h>
+#include <freetype/internal/ftobjs.h>
+#include <freetype/ftoutln.h>
+#include <freetype/ftbitmap.h>
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* The macro FT_COMPONENT is used in trace mode.  It is an implicit      */
-  /* parameter of the FT_TRACE() and FT_ERROR() macros, used to print/log  */
-  /* messages during execution.                                            */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * The macro FT_COMPONENT is used in trace mode.  It is an implicit
+   * parameter of the FT_TRACE() and FT_ERROR() macros, used to print/log
+   * messages during execution.
+   */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_synth
+#define FT_COMPONENT  synth
 
 
   /*************************************************************************/
@@ -46,6 +45,18 @@
 
   FT_EXPORT_DEF( void )
   FT_GlyphSlot_Oblique( FT_GlyphSlot  slot )
+  {
+    /* Value '0x0366A' corresponds to a shear angle of about 12 degrees. */
+    FT_GlyphSlot_Slant( slot, 0x0366A, 0 );
+  }
+
+
+  /* documentation is in ftsynth.h */
+
+  FT_EXPORT_DEF( void )
+  FT_GlyphSlot_Slant( FT_GlyphSlot  slot,
+                      FT_Fixed      xslant,
+                      FT_Fixed      yslant )
   {
     FT_Matrix    transform;
     FT_Outline*  outline;
@@ -62,13 +73,11 @@
 
     /* we don't touch the advance width */
 
-    /* For italic, simply apply a shear transform, with an angle */
-    /* of about 12 degrees.                                      */
-
+    /* For italic, simply apply a shear transform */
     transform.xx = 0x10000L;
-    transform.yx = 0x00000L;
+    transform.yx = -yslant;
 
-    transform.xy = 0x0366AL;
+    transform.xy = xslant;
     transform.yy = 0x10000L;
 
     FT_Outline_Transform( outline, &transform );
@@ -89,8 +98,17 @@
   FT_EXPORT_DEF( void )
   FT_GlyphSlot_Embolden( FT_GlyphSlot  slot )
   {
+    FT_GlyphSlot_AdjustWeight( slot, 0x0AAA, 0x0AAA );
+  }
+
+
+  FT_EXPORT_DEF( void )
+  FT_GlyphSlot_AdjustWeight( FT_GlyphSlot  slot,
+                             FT_Fixed      xdelta,
+                             FT_Fixed      ydelta )
+  {
     FT_Library  library;
-    FT_Face     face;
+    FT_Size     size;
     FT_Error    error;
     FT_Pos      xstr, ystr;
 
@@ -99,16 +117,15 @@
       return;
 
     library = slot->library;
-    face    = slot->face;
+    size    = slot->face->size;
 
     if ( slot->format != FT_GLYPH_FORMAT_OUTLINE &&
          slot->format != FT_GLYPH_FORMAT_BITMAP  )
       return;
 
-    /* some reasonable strength */
-    xstr = FT_MulFix( face->units_per_EM,
-                      face->size->metrics.y_scale ) / 24;
-    ystr = xstr;
+    /* express deltas in pixels in 26.6 format */
+    xstr = (FT_Pos)size->metrics.x_ppem * xdelta / 1024;
+    ystr = (FT_Pos)size->metrics.y_ppem * ydelta / 1024;
 
     if ( slot->format == FT_GLYPH_FORMAT_OUTLINE )
       FT_Outline_EmboldenXY( &slot->outline, xstr, ystr );
@@ -130,7 +147,7 @@
       if ( ( ystr >> 6 ) > FT_INT_MAX || ( ystr >> 6 ) < FT_INT_MIN )
       {
         FT_TRACE1(( "FT_GlyphSlot_Embolden:" ));
-        FT_TRACE1(( "too strong emboldening parameter ystr=%d\n", ystr ));
+        FT_TRACE1(( "too strong emboldening parameter ystr=%ld\n", ystr ));
         return;
       }
       error = FT_GlyphSlot_Own_Bitmap( slot );

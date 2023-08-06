@@ -1,41 +1,41 @@
-/***************************************************************************/
-/*                                                                         */
-/*  gxvmorx.c                                                              */
-/*                                                                         */
-/*    TrueTypeGX/AAT morx table validation (body).                         */
-/*                                                                         */
-/*  Copyright 2005-2018 by                                                 */
-/*  suzuki toshiya, Masatake YAMATO, Red Hat K.K.,                         */
-/*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
-/*                                                                         */
-/*  This file is part of the FreeType project, and may only be used,       */
-/*  modified, and distributed under the terms of the FreeType project      */
-/*  license, LICENSE.TXT.  By continuing to use, modify, or distribute     */
-/*  this file you indicate that you have read the license and              */
-/*  understand and accept it fully.                                        */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * gxvmorx.c
+ *
+ *   TrueTypeGX/AAT morx table validation (body).
+ *
+ * Copyright (C) 2005-2023 by
+ * suzuki toshiya, Masatake YAMATO, Red Hat K.K.,
+ * David Turner, Robert Wilhelm, and Werner Lemberg.
+ *
+ * This file is part of the FreeType project, and may only be used,
+ * modified, and distributed under the terms of the FreeType project
+ * license, LICENSE.TXT.  By continuing to use, modify, or distribute
+ * this file you indicate that you have read the license and
+ * understand and accept it fully.
+ *
+ */
 
-/***************************************************************************/
-/*                                                                         */
-/* gxvalid is derived from both gxlayout module and otvalid module.        */
-/* Development of gxlayout is supported by the Information-technology      */
-/* Promotion Agency(IPA), Japan.                                           */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * gxvalid is derived from both gxlayout module and otvalid module.
+ * Development of gxlayout is supported by the Information-technology
+ * Promotion Agency(IPA), Japan.
+ *
+ */
 
 
 #include "gxvmorx.h"
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* The macro FT_COMPONENT is used in trace mode.  It is an implicit      */
-  /* parameter of the FT_TRACE() and FT_ERROR() macros, used to print/log  */
-  /* messages during execution.                                            */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * The macro FT_COMPONENT is used in trace mode.  It is an implicit
+   * parameter of the FT_TRACE() and FT_ERROR() macros, used to print/log
+   * messages during execution.
+   */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_gxvmorx
+#define FT_COMPONENT  gxvmorx
 
 
   static void
@@ -84,7 +84,7 @@
       p += 4;
 #endif
 
-      GXV_TRACE(( "validating chain subtable %d/%d (%d bytes)\n",
+      GXV_TRACE(( "validating chain subtable %d/%d (%lu bytes)\n",
                   i + 1, nSubtables, length ));
 
       type = coverage & 0x0007;
@@ -99,7 +99,7 @@
 
       func = fmt_funcs_table[type];
       if ( !func )
-        GXV_TRACE(( "morx type %d is reserved\n", type ));
+        GXV_TRACE(( "morx type %lu is reserved\n", type ));
 
       func( p, p + rest, gxvalid );
 
@@ -186,7 +186,7 @@
 
     for ( i = 0; i < nChains; i++ )
     {
-      GXV_TRACE(( "validating chain %d/%d\n", i + 1, nChains ));
+      GXV_TRACE(( "validating chain %lu/%lu\n", i + 1, nChains ));
       GXV_32BIT_ALIGNMENT_VALIDATE( p - table );
       gxv_morx_chain_validate( p, limit, gxvalid );
       p += gxvalid->subtable_length;

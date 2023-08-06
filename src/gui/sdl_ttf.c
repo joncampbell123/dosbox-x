@@ -337,6 +337,7 @@ static void TTF_SetFTError(const char *msg, FT_Error error)
 int TTF_Init( void )
 {
 	int status = 0;
+    FT_Int major, minor, patch;
 
 	if ( ! TTF_initialized ) {
 		FT_Error error = FT_Init_FreeType( &library );
@@ -347,7 +348,9 @@ int TTF_Init( void )
 	}
 	if ( status == 0 ) {
 		++TTF_initialized;
-	}
+        FT_Library_Version(library, &major, &minor, &patch);
+        LOG_MSG("LOG: freetype version %d.%d.%d\n", major, minor, patch);
+    }
 	return status;
 }
 

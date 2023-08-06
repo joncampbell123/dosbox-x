@@ -1,39 +1,38 @@
-/***************************************************************************/
-/*                                                                         */
-/*  t1afm.c                                                                */
-/*                                                                         */
-/*    AFM support for Type 1 fonts (body).                                 */
-/*                                                                         */
-/*  Copyright 1996-2018 by                                                 */
-/*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
-/*                                                                         */
-/*  This file is part of the FreeType project, and may only be used,       */
-/*  modified, and distributed under the terms of the FreeType project      */
-/*  license, LICENSE.TXT.  By continuing to use, modify, or distribute     */
-/*  this file you indicate that you have read the license and              */
-/*  understand and accept it fully.                                        */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * t1afm.c
+ *
+ *   AFM support for Type 1 fonts (body).
+ *
+ * Copyright (C) 1996-2023 by
+ * David Turner, Robert Wilhelm, and Werner Lemberg.
+ *
+ * This file is part of the FreeType project, and may only be used,
+ * modified, and distributed under the terms of the FreeType project
+ * license, LICENSE.TXT.  By continuing to use, modify, or distribute
+ * this file you indicate that you have read the license and
+ * understand and accept it fully.
+ *
+ */
 
 
-#include <ft2build.h>
 #include "t1afm.h"
-#include FT_INTERNAL_DEBUG_H
-#include FT_INTERNAL_STREAM_H
-#include FT_INTERNAL_POSTSCRIPT_AUX_H
+#include <freetype/internal/ftdebug.h>
+#include <freetype/internal/ftstream.h>
+#include <freetype/internal/psaux.h>
 #include "t1errors.h"
 
 
 #ifndef T1_CONFIG_OPTION_NO_AFM
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* The macro FT_COMPONENT is used in trace mode.  It is an implicit      */
-  /* parameter of the FT_TRACE() and FT_ERROR() macros, used to print/log  */
-  /* messages during execution.                                            */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * The macro FT_COMPONENT is used in trace mode.  It is an implicit
+   * parameter of the FT_TRACE() and FT_ERROR() macros, used to print/log
+   * messages during execution.
+   */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_t1afm
+#define FT_COMPONENT  t1afm
 
 
   FT_LOCAL_DEF( void )
@@ -84,7 +83,7 @@
 
 
   /* compare two kerning pairs */
-  FT_CALLBACK_DEF( int )
+  FT_COMPARE_DEF( int )
   compare_kern_pairs( const void*  a,
                       const void*  b )
   {
@@ -179,7 +178,6 @@
     /* temporarily.  If we find no PostScript charmap, then just use    */
     /* the default and hope it is the right one.                        */
     oldcharmap = t1_face->charmap;
-    charmap    = NULL;
 
     for ( n = 0; n < t1_face->num_charmaps; n++ )
     {
@@ -187,9 +185,7 @@
       /* check against PostScript pseudo platform */
       if ( charmap->platform_id == 7 )
       {
-        error = FT_Set_Charmap( t1_face, charmap );
-        if ( error )
-          goto Exit;
+        t1_face->charmap = charmap;
         break;
       }
     }
@@ -204,16 +200,13 @@
       kp->index1 = FT_Get_Char_Index( t1_face, p[0] );
       kp->index2 = FT_Get_Char_Index( t1_face, p[1] );
 
-      kp->x = (FT_Int)FT_PEEK_SHORT_LE(p + 2);
+      kp->x = (FT_Int)FT_PEEK_SHORT_LE( p + 2 );
       kp->y = 0;
 
       kp++;
     }
 
-    if ( oldcharmap )
-      error = FT_Set_Charmap( t1_face, oldcharmap );
-    if ( error )
-      goto Exit;
+    t1_face->charmap = oldcharmap;
 
     /* now, sort the kern pairs according to their glyph indices */
     ft_qsort( fi->KernPairs, fi->NumKernPair, sizeof ( AFM_KernPairRec ),
@@ -303,9 +296,14 @@
       t1_face->bbox.xMax = ( fi->FontBBox.xMax + 0xFFFF ) >> 16;
       t1_face->bbox.yMax = ( fi->FontBBox.yMax + 0xFFFF ) >> 16;
 
-      /* no `U' suffix here to 0x8000! */
-      t1_face->ascender  = (FT_Short)( ( fi->Ascender  + 0x8000 ) >> 16 );
-      t1_face->descender = (FT_Short)( ( fi->Descender + 0x8000 ) >> 16 );
+      /* ascender and descender are optional and could both be zero */
+      /* check if values are meaningful before overriding defaults  */
+      if ( fi->Ascender > fi->Descender )
+      {
+        /* no `U' suffix here to 0x8000! */
+        t1_face->ascender  = (FT_Short)( ( fi->Ascender  + 0x8000 ) >> 16 );
+        t1_face->descender = (FT_Short)( ( fi->Descender + 0x8000 ) >> 16 );
+      }
 
       if ( fi->NumKernPair )
       {
@@ -407,7 +405,7 @@
 #else /* T1_CONFIG_OPTION_NO_AFM */
 
   /* ANSI C doesn't like empty source files */
-  typedef int  _t1_afm_dummy;
+  typedef int  t1_afm_dummy_;
 
 #endif /* T1_CONFIG_OPTION_NO_AFM */
 

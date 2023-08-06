@@ -1,23 +1,23 @@
-/***************************************************************************/
-/*                                                                         */
-/*  ftmac.c                                                                */
-/*                                                                         */
-/*    Mac FOND support.  Written by just@letterror.com.                    */
-/*  Heavily modified by mpsuzuki, George Williams, and Sean McBride.       */
-/*                                                                         */
-/*  This file is for Mac OS X only; see builds/mac/ftoldmac.c for          */
-/*  classic platforms built by MPW.                                        */
-/*                                                                         */
-/*  Copyright 1996-2018 by                                                 */
-/*  Just van Rossum, David Turner, Robert Wilhelm, and Werner Lemberg.     */
-/*                                                                         */
-/*  This file is part of the FreeType project, and may only be used,       */
-/*  modified, and distributed under the terms of the FreeType project      */
-/*  license, LICENSE.TXT.  By continuing to use, modify, or distribute     */
-/*  this file you indicate that you have read the license and              */
-/*  understand and accept it fully.                                        */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * ftmac.c
+ *
+ *   Mac FOND support.  Written by just@letterror.com.
+ * Heavily modified by mpsuzuki, George Williams, and Sean McBride.
+ *
+ * This file is for Mac OS X only; see builds/mac/ftoldmac.c for
+ * classic platforms built by MPW.
+ *
+ * Copyright (C) 1996-2023 by
+ * Just van Rossum, David Turner, Robert Wilhelm, and Werner Lemberg.
+ *
+ * This file is part of the FreeType project, and may only be used,
+ * modified, and distributed under the terms of the FreeType project
+ * license, LICENSE.TXT.  By continuing to use, modify, or distribute
+ * this file you indicate that you have read the license and
+ * understand and accept it fully.
+ *
+ */
 
 
   /*
@@ -65,10 +65,10 @@
   */
 
 
-#include <ft2build.h>
-#include FT_FREETYPE_H
-#include FT_TRUETYPE_TAGS_H
-#include FT_INTERNAL_STREAM_H
+#include <freetype/freetype.h>
+#include <freetype/tttags.h>
+#include <freetype/internal/ftdebug.h>
+#include <freetype/internal/ftstream.h>
 #include "ftbase.h"
 
 
@@ -106,7 +106,7 @@
   /* Don't want warnings about our own use of deprecated functions. */
 #define FT_DEPRECATED_ATTRIBUTE
 
-#include FT_MAC_H
+#include <freetype/ftmac.h>
 
 #ifndef kATSOptionFlagsUnRestrictedScope /* since Mac OS X 10.1 */
 #define kATSOptionFlagsUnRestrictedScope kATSOptionFlagsDefault
@@ -315,7 +315,7 @@
                                     NULL, NULL, NULL ) )
       return ( OSType ) 0;
 
-    return ((FInfo *)(info.finderInfo))->fdType;
+    return ( (FInfo *)( info.finderInfo ) )->fdType;
   }
 
 
@@ -463,7 +463,7 @@
 
         if ( ps_name_len != 0 )
         {
-          ft_memcpy(ps_name, names[0] + 1, ps_name_len);
+          ft_memcpy( ps_name, names[0] + 1, ps_name_len );
           ps_name[ps_name_len] = 0;
         }
         if ( style->indexes[face_index] > 1 &&
@@ -561,7 +561,7 @@
     if ( lwfn_file_name[0] )
     {
       err = lookup_lwfn_by_fond( pathname, lwfn_file_name,
-                                 buff, sizeof ( buff )  );
+                                 buff, sizeof ( buff ) );
       if ( !err )
         have_lwfn = 1;
     }
@@ -632,7 +632,7 @@
       old_total_size = total_size;
     }
 
-    if ( FT_ALLOC( buffer, (FT_Long)total_size ) )
+    if ( FT_QALLOC( buffer, (FT_Long)total_size ) )
       goto Error;
 
     /* Second pass: append all POST data to the buffer, add PFB fields. */
@@ -753,7 +753,7 @@
     if ( FT_MAC_RFORK_MAX_LEN < sfnt_size )
       return FT_THROW( Array_Too_Large );
 
-    if ( FT_ALLOC( sfnt_data, (FT_Long)sfnt_size ) )
+    if ( FT_QALLOC( sfnt_data, (FT_Long)sfnt_size ) )
     {
       ReleaseResource( sfnt );
       return error;
@@ -954,17 +954,17 @@
   }
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* <Function>                                                            */
-  /*    FT_New_Face                                                        */
-  /*                                                                       */
-  /* <Description>                                                         */
-  /*    This is the Mac-specific implementation of FT_New_Face.  In        */
-  /*    addition to the standard FT_New_Face() functionality, it also      */
-  /*    accepts pathnames to Mac suitcase files.  For further              */
-  /*    documentation see the original FT_New_Face() in freetype.h.        */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * @Function:
+   *   FT_New_Face
+   *
+   * @Description:
+   *   This is the Mac-specific implementation of FT_New_Face.  In
+   *   addition to the standard FT_New_Face() functionality, it also
+   *   accepts pathnames to Mac suitcase files.  For further
+   *   documentation see the original FT_New_Face() in freetype.h.
+   */
   FT_EXPORT_DEF( FT_Error )
   FT_New_Face( FT_Library   library,
                const char*  pathname,
@@ -995,17 +995,18 @@
   }
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* <Function>                                                            */
-  /*    FT_New_Face_From_FSRef                                             */
-  /*                                                                       */
-  /* <Description>                                                         */
-  /*    FT_New_Face_From_FSRef is identical to FT_New_Face except it       */
-  /*    accepts an FSRef instead of a path.                                */
-  /*                                                                       */
-  /* This function is deprecated because Carbon data types (FSRef)         */
-  /* are not cross-platform, and thus not suitable for the FreeType API.   */
+  /**************************************************************************
+   *
+   * @Function:
+   *   FT_New_Face_From_FSRef
+   *
+   * @Description:
+   *   FT_New_Face_From_FSRef is identical to FT_New_Face except it
+   *   accepts an FSRef instead of a path.
+   *
+   * This function is deprecated because Carbon data types (FSRef)
+   * are not cross-platform, and thus not suitable for the FreeType API.
+   */
   FT_EXPORT_DEF( FT_Error )
   FT_New_Face_From_FSRef( FT_Library    library,
                           const FSRef*  ref,
@@ -1040,16 +1041,17 @@
   }
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* <Function>                                                            */
-  /*    FT_New_Face_From_FSSpec                                            */
-  /*                                                                       */
-  /* <Description>                                                         */
-  /*    FT_New_Face_From_FSSpec is identical to FT_New_Face except it      */
-  /*    accepts an FSSpec instead of a path.                               */
-  /*                                                                       */
-  /* This function is deprecated because FSSpec is deprecated in Mac OS X  */
+  /**************************************************************************
+   *
+   * @Function:
+   *   FT_New_Face_From_FSSpec
+   *
+   * @Description:
+   *   FT_New_Face_From_FSSpec is identical to FT_New_Face except it
+   *   accepts an FSSpec instead of a path.
+   *
+   * This function is deprecated because FSSpec is deprecated in Mac OS X
+   */
   FT_EXPORT_DEF( FT_Error )
   FT_New_Face_From_FSSpec( FT_Library     library,
                            const FSSpec*  spec,
@@ -1080,7 +1082,7 @@
 #else /* !FT_MACINTOSH */
 
   /* ANSI C doesn't like empty source files */
-  typedef int  _ft_mac_dummy;
+  typedef int  ft_mac_dummy_;
 
 #endif /* !FT_MACINTOSH */
 

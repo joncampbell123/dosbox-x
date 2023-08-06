@@ -495,8 +495,15 @@
     <ClCompile Include="..\..\..\src\pshinter\pshinter.c" />
     <ClCompile Include="..\..\..\src\psnames\psmodule.c" />
     <ClCompile Include="..\..\..\src\raster\raster.c" />
+    <ClCompile Include="..\..\..\src\sdf\ftbsdf.c" />
+    <ClCompile Include="..\..\..\src\sdf\ftsdf.c" />
+    <ClCompile Include="..\..\..\src\sdf\ftsdfcommon.c" />
+    <ClCompile Include="..\..\..\src\sdf\ftsdfrend.c" />
+    <ClCompile Include="..\..\..\src\sdf\sdf.c" />
     <ClCompile Include="..\..\..\src\sfnt\sfnt.c" />
     <ClCompile Include="..\..\..\src\smooth\smooth.c" />
+    <ClCompile Include="..\..\..\src\svg\ftsvg.c" />
+    <ClCompile Include="..\..\..\src\svg\svg.c" />
     <ClCompile Include="..\..\..\src\truetype\truetype.c" />
     <ClCompile Include="..\..\..\src\type1\type1.c" />
     <ClCompile Include="..\..\..\src\type42\type42.c" />
@@ -505,6 +512,17 @@
       <DisableLanguageExtensions>false</DisableLanguageExtensions>
     </ClCompile>
     <ResourceCompile Include="..\..\..\src\base\ftver.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\src\sdf\ftsdf.h" />
+    <ClInclude Include="..\..\..\src\sdf\ftsdfcommon.h" />
+    <ClInclude Include="..\..\..\src\sdf\ftsdferrs.h" />
+    <ClInclude Include="..\..\..\src\sdf\ftsdfrend.h" />
+    <ClInclude Include="..\..\..\src\svg\ftsvg.h" />
+    <ClInclude Include="..\..\..\src\svg\svgtypes.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\src\sdf\module.mk" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

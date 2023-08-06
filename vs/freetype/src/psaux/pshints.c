@@ -1,43 +1,43 @@
-/***************************************************************************/
-/*                                                                         */
-/*  pshints.c                                                              */
-/*                                                                         */
-/*    Adobe's code for handling CFF hints (body).                          */
-/*                                                                         */
-/*  Copyright 2007-2014 Adobe Systems Incorporated.                        */
-/*                                                                         */
-/*  This software, and all works of authorship, whether in source or       */
-/*  object code form as indicated by the copyright notice(s) included      */
-/*  herein (collectively, the "Work") is made available, and may only be   */
-/*  used, modified, and distributed under the FreeType Project License,    */
-/*  LICENSE.TXT.  Additionally, subject to the terms and conditions of the */
-/*  FreeType Project License, each contributor to the Work hereby grants   */
-/*  to any individual or legal entity exercising permissions granted by    */
-/*  the FreeType Project License and this section (hereafter, "You" or     */
-/*  "Your") a perpetual, worldwide, non-exclusive, no-charge,              */
-/*  royalty-free, irrevocable (except as stated in this section) patent    */
-/*  license to make, have made, use, offer to sell, sell, import, and      */
-/*  otherwise transfer the Work, where such license applies only to those  */
-/*  patent claims licensable by such contributor that are necessarily      */
-/*  infringed by their contribution(s) alone or by combination of their    */
-/*  contribution(s) with the Work to which such contribution(s) was        */
-/*  submitted.  If You institute patent litigation against any entity      */
-/*  (including a cross-claim or counterclaim in a lawsuit) alleging that   */
-/*  the Work or a contribution incorporated within the Work constitutes    */
-/*  direct or contributory patent infringement, then any patent licenses   */
-/*  granted to You under this License for that Work shall terminate as of  */
-/*  the date such litigation is filed.                                     */
-/*                                                                         */
-/*  By using, modifying, or distributing the Work you indicate that you    */
-/*  have read and understood the terms and conditions of the               */
-/*  FreeType Project License as well as those provided in this section,    */
-/*  and you accept them fully.                                             */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * pshints.c
+ *
+ *   Adobe's code for handling CFF hints (body).
+ *
+ * Copyright 2007-2014 Adobe Systems Incorporated.
+ *
+ * This software, and all works of authorship, whether in source or
+ * object code form as indicated by the copyright notice(s) included
+ * herein (collectively, the "Work") is made available, and may only be
+ * used, modified, and distributed under the FreeType Project License,
+ * LICENSE.TXT.  Additionally, subject to the terms and conditions of the
+ * FreeType Project License, each contributor to the Work hereby grants
+ * to any individual or legal entity exercising permissions granted by
+ * the FreeType Project License and this section (hereafter, "You" or
+ * "Your") a perpetual, worldwide, non-exclusive, no-charge,
+ * royalty-free, irrevocable (except as stated in this section) patent
+ * license to make, have made, use, offer to sell, sell, import, and
+ * otherwise transfer the Work, where such license applies only to those
+ * patent claims licensable by such contributor that are necessarily
+ * infringed by their contribution(s) alone or by combination of their
+ * contribution(s) with the Work to which such contribution(s) was
+ * submitted.  If You institute patent litigation against any entity
+ * (including a cross-claim or counterclaim in a lawsuit) alleging that
+ * the Work or a contribution incorporated within the Work constitutes
+ * direct or contributory patent infringement, then any patent licenses
+ * granted to You under this License for that Work shall terminate as of
+ * the date such litigation is filed.
+ *
+ * By using, modifying, or distributing the Work you indicate that you
+ * have read and understood the terms and conditions of the
+ * FreeType Project License as well as those provided in this section,
+ * and you accept them fully.
+ *
+ */
 
 
 #include "psft.h"
-#include FT_INTERNAL_DEBUG_H
+#include <freetype/internal/ftdebug.h>
 
 #include "psglue.h"
 #include "psfont.h"
@@ -45,14 +45,14 @@
 #include "psintrp.h"
 
 
-  /*************************************************************************/
-  /*                                                                       */
-  /* The macro FT_COMPONENT is used in trace mode.  It is an implicit      */
-  /* parameter of the FT_TRACE() and FT_ERROR() macros, used to print/log  */
-  /* messages during execution.                                            */
-  /*                                                                       */
+  /**************************************************************************
+   *
+   * The macro FT_COMPONENT is used in trace mode.  It is an implicit
+   * parameter of the FT_TRACE() and FT_ERROR() macros, used to print/log
+   * messages during execution.
+   */
 #undef  FT_COMPONENT
-#define FT_COMPONENT  trace_cf2hints
+#define FT_COMPONENT  cf2hints
 
 
   typedef struct  CF2_HintMoveRec_
@@ -217,52 +217,49 @@
   FT_LOCAL_DEF( FT_Bool )
   cf2_hint_isValid( const CF2_Hint  hint )
   {
-    return (FT_Bool)( hint->flags != 0 );
+    return FT_BOOL( hint->flags );
   }
 
 
   static FT_Bool
   cf2_hint_isPair( const CF2_Hint  hint )
   {
-    return (FT_Bool)( ( hint->flags                      &
-                        ( CF2_PairBottom | CF2_PairTop ) ) != 0 );
+    return FT_BOOL( hint->flags & ( CF2_PairBottom | CF2_PairTop ) );
   }
 
 
   static FT_Bool
   cf2_hint_isPairTop( const CF2_Hint  hint )
   {
-    return (FT_Bool)( ( hint->flags & CF2_PairTop ) != 0 );
+    return FT_BOOL( hint->flags & CF2_PairTop );
   }
 
 
   FT_LOCAL_DEF( FT_Bool )
   cf2_hint_isTop( const CF2_Hint  hint )
   {
-    return (FT_Bool)( ( hint->flags                    &
-                        ( CF2_PairTop | CF2_GhostTop ) ) != 0 );
+    return FT_BOOL( hint->flags & ( CF2_PairTop | CF2_GhostTop ) );
   }
 
 
   FT_LOCAL_DEF( FT_Bool )
   cf2_hint_isBottom( const CF2_Hint  hint )
   {
-    return (FT_Bool)( ( hint->flags                          &
-                        ( CF2_PairBottom | CF2_GhostBottom ) ) != 0 );
+    return FT_BOOL( hint->flags & ( CF2_PairBottom | CF2_GhostBottom ) );
   }
 
 
   static FT_Bool
   cf2_hint_isLocked( const CF2_Hint  hint )
   {
-    return (FT_Bool)( ( hint->flags & CF2_Locked ) != 0 );
+    return FT_BOOL( hint->flags & CF2_Locked );
   }
 
 
   static FT_Bool
   cf2_hint_isSynthetic( const CF2_Hint  hint )
   {
-    return (FT_Bool)( ( hint->flags & CF2_Synthetic ) != 0 );
+    return FT_BOOL( hint->flags & CF2_Synthetic );
   }
 
 
@@ -313,7 +310,7 @@
       CF2_Hint  hint = &hintmap->edge[i];
 
 
-      FT_TRACE6(( "  %3d    %7.2f  %7.2f  %5d  %s%s%s%s\n",
+      FT_TRACE6(( "  %3ld    %7.2f  %7.2f  %5d  %s%s%s%s\n",
                   hint->index,
                   hint->csCoord / 65536.0,
                   hint->dsCoord / ( hint->scale * 1.0 ),
@@ -334,7 +331,7 @@
   cf2_hintmap_map( CF2_HintMap  hintmap,
                    CF2_Fixed    csCoord )
   {
-    if ( hintmap->count == 0 || ! hintmap->hinted )
+    if ( hintmap->count == 0 || !hintmap->hinted )
     {
       /* there are no hints; use uniform scale and zero offset */
       return FT_MulFix( csCoord, hintmap->scale );
@@ -415,6 +412,12 @@
     {
       FT_Bool  isPair = cf2_hint_isPair( &hintmap->edge[i] );
 
+      /* final amount to move edge or edge pair */
+      CF2_Fixed  move = 0;
+
+      CF2_Fixed  dsCoord_i;
+      CF2_Fixed  dsCoord_j;
+
 
       /* index of upper edge (same value for ghost hint) */
       j = isPair ? i + 1 : i;
@@ -425,11 +428,14 @@
       FT_ASSERT( cf2_hint_isLocked( &hintmap->edge[i] ) ==
                    cf2_hint_isLocked( &hintmap->edge[j] ) );
 
+      dsCoord_i = hintmap->edge[i].dsCoord;
+      dsCoord_j = hintmap->edge[j].dsCoord;
+
       if ( !cf2_hint_isLocked( &hintmap->edge[i] ) )
       {
         /* hint edge is not locked, we can adjust it */
-        CF2_Fixed  fracDown = cf2_fixedFraction( hintmap->edge[i].dsCoord );
-        CF2_Fixed  fracUp   = cf2_fixedFraction( hintmap->edge[j].dsCoord );
+        CF2_Fixed  fracDown = cf2_fixedFraction( dsCoord_i );
+        CF2_Fixed  fracUp   = cf2_fixedFraction( dsCoord_j );
 
         /* calculate all four possibilities; moves down are negative */
         CF2_Fixed  downMoveDown = 0 - fracDown;
@@ -445,9 +451,6 @@
         CF2_Fixed  moveUp   = FT_MIN( downMoveUp, upMoveUp );
         /* smallest move down */
         CF2_Fixed  moveDown = FT_MAX( downMoveDown, upMoveDown );
-
-        /* final amount to move edge or edge pair */
-        CF2_Fixed  move;
 
         CF2_Fixed  downMinCounter = CF2_MIN_COUNTER;
         CF2_Fixed  upMinCounter   = CF2_MIN_COUNTER;
@@ -470,16 +473,14 @@
         /* is there room to move up?                                    */
         /* there is if we are at top of array or the next edge is at or */
         /* beyond proposed move up?                                     */
-        if ( j >= hintmap->count - 1                ||
+        if ( j >= hintmap->count - 1                         ||
              hintmap->edge[j + 1].dsCoord >=
-               ADD_INT32( hintmap->edge[j].dsCoord,
-                          moveUp + upMinCounter )   )
+               ADD_INT32( dsCoord_j, moveUp + upMinCounter ) )
         {
           /* there is room to move up; is there also room to move down? */
-          if ( i == 0                                   ||
+          if ( i == 0                                              ||
                hintmap->edge[i - 1].dsCoord <=
-                 ADD_INT32( hintmap->edge[i].dsCoord,
-                            moveDown - downMinCounter ) )
+                 ADD_INT32( dsCoord_i, moveDown - downMinCounter ) )
           {
             /* move smaller absolute amount */
             move = ( -moveDown < moveUp ) ? moveDown : moveUp;  /* optimum */
@@ -490,14 +491,13 @@
         else
         {
           /* is there room to move down? */
-          if ( i == 0                                   ||
+          if ( i == 0                                              ||
                hintmap->edge[i - 1].dsCoord <=
-                 ADD_INT32( hintmap->edge[i].dsCoord,
-                            moveDown - downMinCounter ) )
+                 ADD_INT32( dsCoord_i, moveDown - downMinCounter ) )
           {
             move     = moveDown;
             /* true if non-optimum move */
-            saveEdge = (FT_Bool)( moveUp < -moveDown );
+            saveEdge = FT_BOOL( moveUp < -moveDown );
           }
           else
           {
@@ -527,17 +527,21 @@
         }
 
         /* move the edge(s) */
-        hintmap->edge[i].dsCoord = ADD_INT32( hintmap->edge[i].dsCoord,
-                                              move );
+        hintmap->edge[i].dsCoord = ADD_INT32( dsCoord_i, move );
         if ( isPair )
-          hintmap->edge[j].dsCoord = ADD_INT32( hintmap->edge[j].dsCoord,
-                                                move );
+          hintmap->edge[j].dsCoord = ADD_INT32( dsCoord_j, move );
       }
 
-      /* assert there are no overlaps in device space */
+      /* assert there are no overlaps in device space;     */
+      /* ignore tests if there was overflow (that is, if   */
+      /* operands have the same sign but the sum does not) */
       FT_ASSERT( i == 0                                                   ||
+                 ( ( dsCoord_i ^ move ) >= 0                    &&
+                   ( dsCoord_i ^ hintmap->edge[i].dsCoord ) < 0 )         ||
                  hintmap->edge[i - 1].dsCoord <= hintmap->edge[i].dsCoord );
       FT_ASSERT( i < j                                                ||
+                 ( ( dsCoord_j ^ move ) >= 0                    &&
+                   ( dsCoord_j ^ hintmap->edge[j].dsCoord ) < 0 )     ||
                  hintmap->edge[i].dsCoord <= hintmap->edge[j].dsCoord );
 
       /* adjust the scales, avoiding divide by zero */
@@ -689,8 +693,10 @@
         CF2_Fixed  midpoint =
                      cf2_hintmap_map(
                        hintmap->initialHintMap,
-                       ADD_INT32( secondHintEdge->csCoord,
-                                  firstHintEdge->csCoord ) / 2 );
+                       ADD_INT32(
+                         firstHintEdge->csCoord,
+                         SUB_INT32 ( secondHintEdge->csCoord,
+                                     firstHintEdge->csCoord ) / 2 ) );
         CF2_Fixed  halfWidth =
                      FT_MulFix( SUB_INT32( secondHintEdge->csCoord,
                                            firstHintEdge->csCoord ) / 2,
@@ -1025,10 +1031,17 @@
       }
     }
 
-    FT_TRACE6(( initialMap ? "flags: [p]air [g]host [t]op "
-                             "[b]ottom [L]ocked [S]ynthetic\n"
-                             "Initial hintmap\n"
-                           : "Hints:\n" ));
+#ifdef FT_DEBUG_LEVEL_TRACE
+    if ( initialMap )
+    {
+      FT_TRACE6(( "flags: [p]air [g]host [t]op"
+                  " [b]ottom [L]ocked [S]ynthetic\n" ));
+      FT_TRACE6(( "Initial hintmap:\n" ));
+    }
+    else
+      FT_TRACE6(( "Hints:\n" ));
+#endif
+
     cf2_hintmap_dump( hintmap );
 
     /*
@@ -1043,7 +1056,7 @@
     /* adjust positions of hint edges that are not locked to blue zones */
     cf2_hintmap_adjustHints( hintmap );
 
-    FT_TRACE6(( "(adjusted)\n" ));
+    FT_TRACE6(( "Hints adjusted:\n" ));
     cf2_hintmap_dump( hintmap );
 
     /* save the position of all hints that were used in this hint map; */
@@ -1215,7 +1228,7 @@
      * (`u').
      *
      * See notation in
-     * http://softsurfer.com/Archive/algorithm_0104/algorithm_0104B.htm.
+     * http://geomalgorithms.com/a05-_intersect-1.html.
      * Calculations are done in 16.16, but must handle the squaring of
      * line lengths in character space.  We scale all vectors by 1/32 to
      * avoid overflow.  This allows values up to 4095 to be squared.  The

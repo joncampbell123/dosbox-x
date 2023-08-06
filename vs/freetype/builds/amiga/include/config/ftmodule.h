@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Amiga-specific FreeType module selection.                            */
 /*                                                                         */
-/*  Copyright 2005-2018 by                                                 */
+/*  Copyright (C) 2005-2023 by                                             */
 /*  Werner Lemberg and Detlef Würkner.                                     */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -137,8 +137,6 @@ FT_USE_MODULE( FT_Module_Class, sfnt_module_class )
 
 #ifdef FT_USE_SMOOTH
 FT_USE_MODULE( FT_Renderer_Class, ft_smooth_renderer_class )
-FT_USE_MODULE( FT_Renderer_Class, ft_smooth_lcd_renderer_class )
-FT_USE_MODULE( FT_Renderer_Class, ft_smooth_lcdv_renderer_class )
 #endif
 
 #ifdef FT_USE_OTV

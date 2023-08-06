@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-# Copyright 2015-2018 by
+# Copyright (C) 2015-2023 by
 # David Turner, Robert Wilhelm, and Werner Lemberg.
 #
 # This file is part of the FreeType project, and may only be used, modified,
@@ -93,7 +93,7 @@ cat >$tmpdir/main.c << END
 #include <stdlib.h>
 
 #include <ft2build.h>
-#include FT_FREETYPE_H
+#include <freetype/freetype.h>
 
 
 FT_Library library;

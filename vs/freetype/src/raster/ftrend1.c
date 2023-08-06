@@ -1,36 +1,37 @@
-/***************************************************************************/
-/*                                                                         */
-/*  ftrend1.c                                                              */
-/*                                                                         */
-/*    The FreeType glyph rasterizer interface (body).                      */
-/*                                                                         */
-/*  Copyright 1996-2018 by                                                 */
-/*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
-/*                                                                         */
-/*  This file is part of the FreeType project, and may only be used,       */
-/*  modified, and distributed under the terms of the FreeType project      */
-/*  license, LICENSE.TXT.  By continuing to use, modify, or distribute     */
-/*  this file you indicate that you have read the license and              */
-/*  understand and accept it fully.                                        */
-/*                                                                         */
-/***************************************************************************/
+/****************************************************************************
+ *
+ * ftrend1.c
+ *
+ *   The FreeType glyph rasterizer interface (body).
+ *
+ * Copyright (C) 1996-2023 by
+ * David Turner, Robert Wilhelm, and Werner Lemberg.
+ *
+ * This file is part of the FreeType project, and may only be used,
+ * modified, and distributed under the terms of the FreeType project
+ * license, LICENSE.TXT.  By continuing to use, modify, or distribute
+ * this file you indicate that you have read the license and
+ * understand and accept it fully.
+ *
+ */
 
 
-#include <ft2build.h>
-#include FT_INTERNAL_DEBUG_H
-#include FT_INTERNAL_OBJECTS_H
-#include FT_OUTLINE_H
+#include <freetype/internal/ftdebug.h>
+#include <freetype/internal/ftobjs.h>
+#include <freetype/ftoutln.h>
 #include "ftrend1.h"
 #include "ftraster.h"
-#include "rastpic.h"
 
 #include "rasterrs.h"
 
 
   /* initialize renderer -- init its raster */
   static FT_Error
-  ft_raster1_init( FT_Renderer  render )
+  ft_raster1_init( FT_Module  module )   /* FT_Renderer */
   {
+    FT_Renderer  render = (FT_Renderer)module;
+
+
     render->clazz->raster_class->raster_reset( render->raster, NULL, 0 );
 
     return FT_Err_Ok;
@@ -128,7 +129,11 @@
       slot->internal->flags &= ~FT_GLYPH_OWN_BITMAP;
     }
 
-    ft_glyphslot_preset_bitmap( slot, mode, origin );
+    if ( ft_glyphslot_preset_bitmap( slot, mode, origin ) )
+    {
+      error = FT_THROW( Raster_Overflow );
+      goto Exit;
+    }
 
     /* allocate new one */
     if ( FT_ALLOC_MULT( bitmap->buffer, bitmap->rows, bitmap->pitch ) )
@@ -186,18 +191,18 @@
 
       NULL,    /* module specific interface */
 
-      (FT_Module_Constructor)ft_raster1_init,  /* module_init   */
-      (FT_Module_Destructor) NULL,             /* module_done   */
-      (FT_Module_Requester)  NULL,             /* get_interface */
+      ft_raster1_init,  /* FT_Module_Constructor module_init   */
+      NULL,             /* FT_Module_Destructor  module_done   */
+      NULL,             /* FT_Module_Requester   get_interface */
 
     FT_GLYPH_FORMAT_OUTLINE,
 
-    (FT_Renderer_RenderFunc)   ft_raster1_render,     /* render_glyph    */
-    (FT_Renderer_TransformFunc)ft_raster1_transform,  /* transform_glyph */
-    (FT_Renderer_GetCBoxFunc)  ft_raster1_get_cbox,   /* get_glyph_cbox  */
-    (FT_Renderer_SetModeFunc)  ft_raster1_set_mode,   /* set_mode        */
+    ft_raster1_render,     /* FT_Renderer_RenderFunc    render_glyph    */
+    ft_raster1_transform,  /* FT_Renderer_TransformFunc transform_glyph */
+    ft_raster1_get_cbox,   /* FT_Renderer_GetCBoxFunc   get_glyph_cbox  */
+    ft_raster1_set_mode,   /* FT_Renderer_SetModeFunc   set_mode        */
 
-    (FT_Raster_Funcs*)&FT_STANDARD_RASTER_GET         /* raster_class    */
+    &ft_standard_raster    /* FT_Raster_Funcs*          raster_class    */
   )
 
 
