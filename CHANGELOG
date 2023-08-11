@@ -1,4 +1,7 @@
 Next
+  - Fix stuck Ins key problems by fixing a typo in src/ints/bios_keyboard.cpp.
+    The code is supposed to clear the "Ins key down" flag, but instead cleared
+    all bits EXCEPT "Ins key down" (joncampbell123).
   - NE2000 macaddr default is now "random", which instructs the NE2000
     hardware at startup to pick a random MAC address. (joncampbell123).
   - IPX: If NE2000 and IPX are enabled, and an IPX tunneling connection is

@@ -706,7 +706,7 @@ static Bitu IRQ1_Handler(void) {
 		if (flags3 & BIOS_KEYBOARD_FLAGS3_HIDDEN_E0 || !(flags1 & BIOS_KEYBOARD_FLAGS1_NUMLOCK_ACTIVE))
 		{
 			flags1 ^= BIOS_KEYBOARD_FLAGS1_INSERT_ACTIVE;
-			flags2 &= BIOS_KEYBOARD_FLAGS2_INSERT_PRESSED;
+			flags2 &= ~BIOS_KEYBOARD_FLAGS2_INSERT_PRESSED;
 		}
 	    break; 
     case 0x47:      /* Numpad */
