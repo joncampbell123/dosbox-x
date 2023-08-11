@@ -62,11 +62,15 @@ CXXFLAGS="${new}${CXXFLAGS}"
 INTERNAL_FREETYPE=1
 export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS INTERNAL_FREETYPE
 
-pacman -S --needed --noconfirm mingw-w64-x86_64-libslirp &>/dev/null
+#pacman -S --needed --noconfirm mingw-w64-x86_64-libslirp &>/dev/null
+
+CXXFLAGS="$CXXFLAGS -DNCURSES_STATIC "
+CPPFLAGS="$CPPFLAGS -DNCURSES_STATIC "
+CFLAGS="$CFLAGS -DNCURSES_STATIC "
+export CFLAGS CPPFLAGS CXXFLAGS
 
 # now compile ourself
 echo "Compiling DOSBox-X"
 chmod +x configure
-# FIXME: I would like MinGW builds to enable the debugger, eventually
-./configure --enable-d3d9 --enable-d3d-shaders --disable-libfluidsynth --prefix=/usr "${@}" || exit 1
+./configure --enable-debug --disable-avcodec --enable-d3d9 --enable-d3d-shaders --disable-libfluidsynth --prefix=/usr "${@}" || exit 1
 make -j3 || exit 1
