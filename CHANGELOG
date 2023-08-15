@@ -1,4 +1,4 @@
-2023.08.11
+2023.08.15
   - Fix stuck Ins key problems by fixing a typo in src/ints/bios_keyboard.cpp.
     The code is supposed to clear the "Ins key down" flag, but instead cleared
     all bits EXCEPT "Ins key down" (joncampbell123).
