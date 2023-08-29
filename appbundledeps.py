@@ -17,12 +17,14 @@ class DepInfo:
     slname = None
     modpath = None
     exepath = None
+    rpath = None
     loaderpath = None # @loader_path
     dependencies = None
     def __init__(self,modpath=None,exepath=None,slname=None):
         self.modpath = str(modpath)
         self.slname = slname
         self.loaderpath = None
+        self.rpath = [ ]
         self.exepath = exepath;
         if not modpath == None:
             self.loaderpath = os.path.basename(modpath)
@@ -35,6 +37,19 @@ def help():
 
 def GetDepList(exe,modpath=None,exepath=None):
     rl = [ ]
+    rpath = [ ]
+    #
+    p = subprocess.Popen(["otool","-l",exe],stdout=subprocess.PIPE,encoding="utf8")
+    ldcmd = None
+    for lin in p.stdout:
+        lin = lin.strip().split(' ')
+        if len(lin) == 0:
+            continue
+        if lin[0] == "cmd" and len(lin) > 1:
+            ldcmd = lin[1]
+        if lin[0] == "path" and len(lin) > 1 and not lin[1] == "" and ldcmd == "LC_RPATH":
+            rpath.append(lin[1])
+    #
     p = subprocess.Popen(["otool","-L",exe],stdout=subprocess.PIPE,encoding="utf8")
     for lin in p.stdout:
         if lin == None or lin == "":
@@ -48,16 +63,25 @@ def GetDepList(exe,modpath=None,exepath=None):
             continue
         deppath = lin[0].split('/')
         #
+        if deppath[0] == "@rpath":
+            if len(rpath) > 0:
+                deppath = rpath[0].split('/') + deppath[1:]
+        #
         if deppath[0] == "@loader_path":
-            deppath[0] = os.path.dirname(modpath)
+            deppath = os.path.dirname(modpath).split('/') + deppath[1:]
         # dosbox-x refers to the name of the dylib symlink not the raw name, store that name!
         slname = deppath[-1]
         # NTS: Realpath is needed because Brew uses symlinks and .. rel path resolution will fail trying to access /opt/opt/...
-        deppath = os.path.realpath('/'.join(deppath))
+        if len(deppath[0]) > 0 and deppath[0][0] == "@":
+            deppath = '/'.join(deppath)
+        else:
+            deppath = os.path.realpath('/'.join(deppath))
         if deppath == None:
             raise Exception("Unable to resolve")
         #
-        rl.append(DepInfo(modpath=deppath,exepath=exepath,slname=slname))
+        di = DepInfo(modpath=deppath,exepath=exepath,slname=slname)
+        di.rpath = rpath
+        rl.append(di)
     #
     p.terminate()
     return rl
