@@ -40,17 +40,18 @@ dosbox-x.app: $(MACOS_BINARIES) contrib/macos/dosbox.icns src/tool/mach-o-matic
 	if [ -f src/dosbox-x-x86_64 ]; then cp -v src/dosbox-x-x86_64 dosbox-x.app/Contents/MacOS/x86_64/dosbox-x; fi
 # Find all dependencies of the binary. This time we have a Python script to find them all, so it is not as ugly.
 # Find dependent libraries and copy them into the app bundle separated by architecture
-	for exe in dosbox-x.app/Contents/MacOS/arm64/dosbox-x dosbox-x.app/Contents/MacOS/x86_64/dosbox-x; do \
+	@for exe in dosbox-x.app/Contents/MacOS/arm64/dosbox-x dosbox-x.app/Contents/MacOS/x86_64/dosbox-x; do \
 		if [ -f "$$exe" ]; then \
-			./appbundledeps.py --exe "$$exe" | while read Y; do \
-				dylib=`basename $$Y`; \
+			./appbundledeps.py --exe "$$exe" | while read R; do \
+				Y=`echo "$$R" | cut -d $$'\t' -f 1`; \
+				dylib=`echo "$$R" | cut -d $$'\t' -f 2`; \
 				echo "Copying $$dylib"; \
 				if echo $$Y | grep -Eq '/opt/homebrew'; then \
-					cp -v $$Y dosbox-x.app/Contents/MacOS/arm64/; \
+					cp -v $$Y dosbox-x.app/Contents/MacOS/arm64/$$dylib; \
 					codesign --remove-signature "dosbox-x.app/Contents/MacOS/arm64/$$dylib" || exit 1; \
 					chmod 0755 "dosbox-x.app/Contents/MacOS/arm64/$$dylib" || exit 1; \
 				else \
-					cp -v $$Y dosbox-x.app/Contents/MacOS/x86_64/; \
+					cp -v $$Y dosbox-x.app/Contents/MacOS/x86_64/$$dylib; \
 					codesign --remove-signature "dosbox-x.app/Contents/MacOS/x86_64/$$dylib" || exit 1; \
 					chmod 0755 "dosbox-x.app/Contents/MacOS/x86_64/$$dylib" || exit 1; \
 				fi; \
@@ -58,7 +59,7 @@ dosbox-x.app: $(MACOS_BINARIES) contrib/macos/dosbox.icns src/tool/mach-o-matic
 		fi; \
 	done
 # Fix the linker search paths of the libraries we copied
-	for dir in dosbox-x.app/Contents/MacOS/arm64 dosbox-x.app/Contents/MacOS/x86_64; do \
+	@for dir in dosbox-x.app/Contents/MacOS/arm64 dosbox-x.app/Contents/MacOS/x86_64; do \
 		if [ `ls  $$dir/*.dylib 2>/dev/null | wc -l` -gt 0 ]; then \
 			for dylib in $$dir/*.dylib; do \
 				[ -f "$$dylib" ] && src/tool/mach-o-matic "$$dylib" || exit 1; \
@@ -66,16 +67,16 @@ dosbox-x.app: $(MACOS_BINARIES) contrib/macos/dosbox.icns src/tool/mach-o-matic
 		fi; \
 	done
 # Remove the signatures from the architecture-dependant executables, and fix their linker search paths.
-	if [ -f dosbox-x.app/Contents/MacOS/arm64/dosbox-x ]; then \
+	@if [ -f dosbox-x.app/Contents/MacOS/arm64/dosbox-x ]; then \
 		codesign --remove-signature dosbox-x.app/Contents/MacOS/arm64/dosbox-x || exit 1; \
 		src/tool/mach-o-matic dosbox-x.app/Contents/MacOS/arm64/dosbox-x || exit 1; \
 	fi
-	if [ -f dosbox-x.app/Contents/MacOS/x86_64/dosbox-x ]; then \
+	@if [ -f dosbox-x.app/Contents/MacOS/x86_64/dosbox-x ]; then \
 		codesign --remove-signature dosbox-x.app/Contents/MacOS/x86_64/dosbox-x || exit 1; \
 		src/tool/mach-o-matic dosbox-x.app/Contents/MacOS/x86_64/dosbox-x || exit 1; \
 	fi
 # Create universal binary executable if both architectures are present or just move the one we have
-	if [ -f dosbox-x.app/Contents/MacOS/arm64/dosbox-x ] && [ -f dosbox-x.app/Contents/MacOS/x86_64/dosbox-x ]; then \
+	@if [ -f dosbox-x.app/Contents/MacOS/arm64/dosbox-x ] && [ -f dosbox-x.app/Contents/MacOS/x86_64/dosbox-x ]; then \
 		lipo -create dosbox-x.app/Contents/MacOS/arm64/dosbox-x dosbox-x.app/Contents/MacOS/x86_64/dosbox-x -output dosbox-x.app/Contents/MacOS/dosbox-x; \
 		rm -f dosbox-x.app/Contents/MacOS/arm64/dosbox-x dosbox-x.app/Contents/MacOS/x86_64/dosbox-x; \
 	elif [ -f dosbox-x.app/Contents/MacOS/arm64/dosbox-x ]; then \

@@ -14,12 +14,14 @@ sit = iter(sys.argv)
 next(sit) # toss argv[0]
 
 class DepInfo:
+    slname = None
     modpath = None
     exepath = None
     loaderpath = None # @loader_path
     dependencies = None
-    def __init__(self,modpath=None,exepath=None):
+    def __init__(self,modpath=None,exepath=None,slname=None):
         self.modpath = str(modpath)
+        self.slname = slname
         self.loaderpath = None
         self.exepath = exepath;
         if not modpath == None:
@@ -48,12 +50,14 @@ def GetDepList(exe,modpath=None,exepath=None):
         #
         if deppath[0] == "@loader_path":
             deppath[0] = os.path.dirname(modpath)
+        # dosbox-x refers to the name of the dylib symlink not the raw name, store that name!
+        slname = deppath[-1]
         # NTS: Realpath is needed because Brew uses symlinks and .. rel path resolution will fail trying to access /opt/opt/...
         deppath = os.path.realpath('/'.join(deppath))
         if deppath == None:
             raise Exception("Unable to resolve")
         #
-        rl.append(DepInfo(modpath=deppath,exepath=exepath))
+        rl.append(DepInfo(modpath=deppath,exepath=exepath,slname=slname))
     #
     p.terminate()
     return rl
@@ -101,5 +105,6 @@ for deppath in deps:
     # do not list /usr/lib or /System libraries, only /opt (Brew) dependencies
     # TODO: Make an option to list them if wanted
     if re.match(r"^/opt/",deppath):
-        print(deppath)
+        depobj = deps[deppath]
+        print(str(deppath)+"\t"+str(depobj.slname))
 
