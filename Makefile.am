@@ -38,11 +38,11 @@ dosbox-x.app: $(MACOS_BINARIES) contrib/macos/dosbox.icns src/tool/mach-o-matic
 	cp -v dosbox-x.reference.full.conf dosbox-x.app/Contents/Resources/
 	if [ -f src/dosbox-x-arm64 ]; then cp -v src/dosbox-x-arm64 dosbox-x.app/Contents/MacOS/arm64/dosbox-x; fi
 	if [ -f src/dosbox-x-x86_64 ]; then cp -v src/dosbox-x-x86_64 dosbox-x.app/Contents/MacOS/x86_64/dosbox-x; fi
-# this is where it gets ugly
+# Find all dependencies of the binary. This time we have a Python script to find them all, so it is not as ugly.
 # Find dependent libraries and copy them into the app bundle separated by architecture
 	for exe in dosbox-x.app/Contents/MacOS/arm64/dosbox-x dosbox-x.app/Contents/MacOS/x86_64/dosbox-x; do \
 		if [ -f "$$exe" ]; then \
-			otool -L "$$exe" | grep -E '/usr/local/lib|/usr/local/opt|/usr/local/Cellar|/usr/local/Homebrew|/opt/homebrew/' | while read X; do Y=`echo "$$X" | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
+			./appbundledeps.py --exe "$$exe" | while read Y; do \
 				dylib=`basename $$Y`; \
 				echo "Copying $$dylib"; \
 				if echo $$Y | grep -Eq '/opt/homebrew'; then \
@@ -56,29 +56,6 @@ dosbox-x.app: $(MACOS_BINARIES) contrib/macos/dosbox.icns src/tool/mach-o-matic
 				fi; \
 			done; \
 		fi; \
-	done
-# Find all the libraries we copied and copy any libraries they depend on
-# separated by architecture, and remove their signatures, too.
-	for pass in 1 2 3 4 5; do \
-		for dir in dosbox-x.app/Contents/MacOS/arm64 dosbox-x.app/Contents/MacOS/x86_64; do \
-			if [ `ls  $$dir/*.dylib 2>/dev/null | wc -l` -gt 0 ]; then \
-				for dolib in $$dir/*.dylib; do \
-					XB=`otool -L "$$dolib" | grep -E '/usr/local/lib|/usr/local/opt|/usr/local/Cellar|/usr/local/Homebrew|/opt/homebrew/' | sed -E '/^ +/s///' | cut -d ' ' -f 1`; \
-					for Y in $$XB; do \
-						dylib=`basename $$Y`; \
-						if echo $$Y | grep -Eq '/opt/homebrew'; then \
-							cp -v $$Y dosbox-x.app/Contents/MacOS/arm64/; \
-							codesign --remove-signature "dosbox-x.app/Contents/MacOS/arm64/$$dylib" || exit 1; \
-							chmod 0755 "dosbox-x.app/Contents/MacOS/arm64/$$dylib" || exit 1; \
-						else \
-							cp -v $$Y dosbox-x.app/Contents/MacOS/x86_64/; \
-							codesign --remove-signature "dosbox-x.app/Contents/MacOS/x86_64/$$dylib" || exit 1; \
-							chmod 0755 "dosbox-x.app/Contents/MacOS/x86_64/$$dylib" || exit 1; \
-						fi; \
-					done; \
-				done; \
-			fi; \
-		done; \
 	done
 # Fix the linker search paths of the libraries we copied
 	for dir in dosbox-x.app/Contents/MacOS/arm64 dosbox-x.app/Contents/MacOS/x86_64; do \
