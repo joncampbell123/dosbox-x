@@ -50,6 +50,13 @@ string dylib_replace(string path) {
     if (str_startswith(s,"/usr/local/Cellar/"))
         return string("@executable_path/x86_64/") + fn;
 
+    if (str_startswith(s,"@loader_path/")) { /* often in Brew followed by ../../.. etc */
+        s = fn;
+        while (!strncmp(s,"../",3)) s += 3;
+        printf("'%s' = '%s'\n",path.c_str(),s);
+        return string("@loader_path/") + s;
+    }
+
     return path;
 }
 
