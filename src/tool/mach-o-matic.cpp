@@ -22,6 +22,8 @@
 
 #include <string>
 
+std::string arch_prefix = "arm64";
+
 using namespace std;
 
 bool str_startswith(const char *str,const char *starts) {
@@ -40,25 +42,25 @@ string dylib_replace(string path) {
         fn = s;
 
     if (str_startswith(s,"/opt/homebrew/"))
-        return string("@executable_path/arm64/") + fn;
+        return string("@executable_path/") + arch_prefix + "/" + fn;
     if (str_startswith(s,"/usr/local/Homebrew/"))
-        return string("@executable_path/x86_64/") + fn;
+        return string("@executable_path/") + arch_prefix + "/" + fn;
     if (str_startswith(s,"/usr/local/lib/"))
-        return string("@executable_path/x86_64/") + fn;
+        return string("@executable_path/") + arch_prefix + "/" + fn;
     if (str_startswith(s,"/usr/local/opt/"))
-        return string("@executable_path/x86_64/") + fn;
+        return string("@executable_path/") + arch_prefix + "/" + fn;
     if (str_startswith(s,"/usr/local/Cellar/"))
-        return string("@executable_path/x86_64/") + fn;
+        return string("@executable_path/") + arch_prefix + "/" + fn;
 
     if (str_startswith(s,"@loader_path/")) { /* often in Brew followed by ../../.. etc */
         s = fn;
         while (!strncmp(s,"../",3)) s += 3;
         printf("'%s' = '%s'\n",path.c_str(),s);
-        return string("@executable_path/arm64/") + s;
+        return string("@executable_path/") + arch_prefix + "/" + s;
     }
 
     if (str_startswith(s,"@rpath/"))
-        return string("@executable_path/arm64/") + fn;
+        return string("@executable_path/") + arch_prefix + "/" + fn;
 
     return path;
 }
@@ -102,6 +104,11 @@ int main(int argc,char **argv) {
     if (argc < 2) {
         fprintf(stderr,"mach-o-matic <Mach-O executable or dylib>\n");
         return 1;
+    }
+
+    {
+        char *x = getenv("ARCHPREF");
+        if (x != NULL) arch_prefix = x;
     }
 
     fpath = argv[1];

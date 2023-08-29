@@ -60,9 +60,10 @@ dosbox-x.app: $(MACOS_BINARIES) contrib/macos/dosbox.icns src/tool/mach-o-matic
 	done
 # Fix the linker search paths of the libraries we copied
 	@for dir in dosbox-x.app/Contents/MacOS/arm64 dosbox-x.app/Contents/MacOS/x86_64; do \
-		if [ `ls  $$dir/*.dylib 2>/dev/null | wc -l` -gt 0 ]; then \
+		if [ `ls $$dir/*.dylib 2>/dev/null | wc -l` -gt 0 ]; then \
+			arpf=`basename $$dir`; \
 			for dylib in $$dir/*.dylib; do \
-				[ -f "$$dylib" ] && src/tool/mach-o-matic "$$dylib" || exit 1; \
+				[ -f "$$dylib" ] && (ARCHPREF=$$arpf src/tool/mach-o-matic "$$dylib") || exit 1; \
 			done; \
 		fi; \
 	done
