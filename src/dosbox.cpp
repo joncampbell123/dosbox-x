@@ -1588,7 +1588,7 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool = secprop->Add_bool("compresssaveparts", Property::Changeable::WhenIdle,true);
     Pbool->Set_help("If set, DOSBox-X will compress components of saved states to save space.");
 
-    Pbool = secprop->Add_bool("show recorded filename", Property::Changeable::WhenIdle,true);
+    Pbool = secprop->Add_bool("show recorded filename", Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, DOSBox-X will show message boxes with recorded filenames when making audio or video captures.");
 
     /* will change to default true unless this causes compatibility issues with other users or their editing software */
