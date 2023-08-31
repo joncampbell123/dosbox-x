@@ -1,4 +1,8 @@
 2023.08.15
+  - Disable by default message confirmation after snapshot and AVI video
+    capture, but leave the option there for those who want to enable it (joncampbell123).
+  - Remove "LOG: Logging output has been disabled." output when -nolog
+    is specified on the command line (joncampbell123).
   - Fix stuck Ins key problems by fixing a typo in src/ints/bios_keyboard.cpp.
     The code is supposed to clear the "Ins key down" flag, but instead cleared
     all bits EXCEPT "Ins key down" (joncampbell123).

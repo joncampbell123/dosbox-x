@@ -902,8 +902,7 @@ void LOG::Init() {
 		debuglog=0;
 	}
 	if (control->opt_nolog && !control->opt_test) {
-		control->opt_nolog = false;
-		LOG_MSG("Logging output has been disabled.");
+		// If the user says no log, that means NO LOGGING AT ALL. [https://github.com/joncampbell123/dosbox-x/issues/4405]
 		control->opt_nolog = true;
 	}
 
