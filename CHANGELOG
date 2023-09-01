@@ -1,4 +1,4 @@
-2023.08.15
+2023.09.01
   - Disable by default message confirmation after snapshot and AVI video
     capture, but leave the option there for those who want to enable it (joncampbell123).
   - Remove "LOG: Logging output has been disabled." output when -nolog

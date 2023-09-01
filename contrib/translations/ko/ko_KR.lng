@@ -1,6 +1,6 @@
 :DOSBOX-X:LANGUAGE:Korean
 :DOSBOX-X:CODEPAGE:949
-:DOSBOX-X:VERSION:2023.08.15
+:DOSBOX-X:VERSION:2023.09.01
 :DOSBOX-X:REMARK:DOS/V 에뮬레이션 또는 코드 페이지 949의 한국어 글꼴을 사용하여 한국어 표시 및 인쇄를 직접 지원합니다.
 :AUTOEXEC_CONFIGFILE_HELP
 이 섹션에 나열된 줄은 시작할 때 실행됩니다.
