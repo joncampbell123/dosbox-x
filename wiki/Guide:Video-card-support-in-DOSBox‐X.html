@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.18">
+<meta name="generator" content="Asciidoctor 2.0.20">
 <title>Selecting a video adapter in DOSBox-X</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <link rel="stylesheet" href="./asciidoctor.css">
@@ -75,8 +75,87 @@
 <li><a href="#_svga">SVGA</a>
 <ul class="sectlevel3">
 <li><a href="#_ati_technologies">ATI Technologies</a></li>
+<li><a href="#_s3_graphics">S3 Graphics</a></li>
+<li><a href="#_s3_graphics_experimental_support">S3 Graphics - Experimental support</a></li>
+<li><a href="#_tseng_labs">Tseng Labs</a></li>
+<li><a href="#_paradise_systems_pvga1a">Paradise Systems PVGA1A</a></li>
 </ul>
 </li>
+<li><a href="#_vesa_bios_extensions_vbe">VESA BIOS Extensions (VBE)</a></li>
+</ul>
+</li>
+<li><a href="#_dual_monitor">Dual monitor</a></li>
+<li><a href="#_video_config_section">[video] config section</a>
+<ul class="sectlevel2">
+<li><a href="#_vmemdelay">vmemdelay</a></li>
+<li><a href="#_vmemsize">vmemsize</a></li>
+<li><a href="#_vmemsizekb">vmemsizekb</a></li>
+<li><a href="#_vbe_window_granularity">vbe window granularity</a></li>
+<li><a href="#_vbe_window_size">vbe window size</a></li>
+<li><a href="#_enable_8_bit_dac">enable 8-bit dac</a></li>
+<li><a href="#_high_intensity_blinking">high intensity blinking</a></li>
+<li><a href="#_svga_lfb_base">svga lfb base</a></li>
+<li><a href="#_pci_vga">pci vga</a></li>
+<li><a href="#_vga_attribute_controller_mapping">vga attribute controller mapping</a></li>
+<li><a href="#_vga_bios_use_rom_image">vga bios use rom image</a></li>
+<li><a href="#_vga_bios_rom_image">vga bios rom image</a></li>
+<li><a href="#_vga_bios_size_override">vga bios size override</a></li>
+<li><a href="#_video_bios_dont_duplicate_cga_first_half_rom_font">video bios dont duplicate cga first half rom font</a></li>
+<li><a href="#_video_bios_always_offer_14_pixel_high_rom_font">video bios always offer 14-pixel high rom font</a></li>
+<li><a href="#_video_bios_always_offer_16_pixel_high_rom_font">video bios always offer 16-pixel high rom font</a></li>
+<li><a href="#_video_bios_enable_cga_second_half_rom_font">video bios enable cga second half rom font</a></li>
+<li><a href="#_forcerate">forcerate</a></li>
+<li><a href="#_sierra_ramdac">sierra ramdac</a></li>
+<li><a href="#_sierra_ramdac_lock_565">sierra ramdac lock 565</a></li>
+<li><a href="#_vga_fill_active_memory">vga fill active memory</a></li>
+<li><a href="#_page_flip_debug_line">page flip debug line</a></li>
+<li><a href="#_vertical_retrace_poll_debug_line">vertical retrace poll debug line</a></li>
+<li><a href="#_cgasnow">cgasnow</a></li>
+<li><a href="#_vga_3da_undefined_bits">vga 3da undefined bits</a></li>
+<li><a href="#_rom_bios_8x8_cga_font">rom bios 8x8 CGA font</a></li>
+<li><a href="#_rom_bios_video_parameter_table">rom bios video parameter table</a></li>
+<li><a href="#_int_10h_points_at_vga_bios">int 10h points at vga bios</a></li>
+<li><a href="#_unmask_timer_on_int_10_setmode">unmask timer on int 10 setmode</a></li>
+<li><a href="#_vesa_bank_switching_window_mirroring">vesa bank switching window mirroring</a></li>
+<li><a href="#_vesa_bank_switching_window_range_check">vesa bank switching window range check</a></li>
+<li><a href="#_vesa_zero_buffer_on_get_information">vesa zero buffer on get information</a></li>
+<li><a href="#_vesa_set_display_vsync">vesa set display vsync</a></li>
+<li><a href="#_vesa_lfb_base_scanline_adjust">vesa lfb base scanline adjust</a></li>
+<li><a href="#_vesa_map_non_lfb_modes_to_128kb_region">vesa map non-lfb modes to 128kb region</a></li>
+<li><a href="#_ega_per_scanline_hpel">ega per scanline hpel</a></li>
+<li><a href="#_allow_hpel_effects">allow hpel effects</a></li>
+<li><a href="#_allow_hretrace_effects">allow hretrace effects</a></li>
+<li><a href="#_hretrace_effect_weight">hretrace effect weight</a></li>
+<li><a href="#_vesa_modelist_cap">vesa modelist cap</a></li>
+<li><a href="#_vesa_modelist_width_limit">vesa modelist width limit</a></li>
+<li><a href="#_vesa_modelist_height_limit">vesa modelist height limit</a></li>
+<li><a href="#_vesa_vbe_put_modelist_in_vesa_information">vesa vbe put modelist in vesa information</a></li>
+<li><a href="#_vesa_vbe_1_2_modes_are_32bpp">vesa vbe 1.2 modes are 32bpp</a></li>
+<li><a href="#_allow_low_resolution_vesa_modes">allow low resolution vesa modes</a></li>
+<li><a href="#_allow_explicit_24bpp_vesa_modes">allow explicit 24bpp vesa modes</a></li>
+<li><a href="#_allow_high_definition_vesa_modes">allow high definition vesa modes</a></li>
+<li><a href="#_allow_unusual_vesa_modes">allow unusual vesa modes</a></li>
+<li><a href="#_allow_32bpp_vesa_modes">allow 32bpp vesa modes</a></li>
+<li><a href="#_allow_24bpp_vesa_modes">allow 24bpp vesa modes</a></li>
+<li><a href="#_allow_16bpp_vesa_modes">allow 16bpp vesa modes</a></li>
+<li><a href="#_allow_15bpp_vesa_modes">allow 15bpp vesa modes</a></li>
+<li><a href="#_allow_8bpp_vesa_modes">allow 8bpp vesa modes</a></li>
+<li><a href="#_allow_4bpp_vesa_modes">allow 4bpp vesa modes</a></li>
+<li><a href="#_allow_4bpp_packed_vesa_modes">allow 4bpp packed vesa modes</a></li>
+<li><a href="#_allow_tty_vesa_modes">allow tty vesa modes</a></li>
+<li><a href="#_double_buffered_line_compare">double-buffered line compare</a></li>
+<li><a href="#_ignore_vblank_wraparound">ignore vblank wraparound</a></li>
+<li><a href="#_ignore_extended_memory_bit">ignore extended memory bit</a></li>
+<li><a href="#_enable_vga_resize_delay">enable vga resize delay</a></li>
+<li><a href="#_resize_only_on_vga_active_display_width_increase">resize only on vga active display width increase</a></li>
+<li><a href="#_vga_palette_update_on_full_load">vga palette update on full load</a></li>
+<li><a href="#_ignore_odd_even_mode_in_non_cga_modes">ignore odd-even mode in non-cga modes</a></li>
+</ul>
+</li>
+<li><a href="#_vsync_config_section">[vsync] config section</a>
+<ul class="sectlevel2">
+<li><a href="#_vsyncmode">vsyncmode</a></li>
+<li><a href="#_vsyncrate">vsyncrate</a></li>
 </ul>
 </li>
 </ul>
@@ -1652,6 +1731,2280 @@ ATI support is in an early stage of development. Unless you want to <strong>assi
 </tr>
 </tbody>
 </table>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/ATI_Technologies">Wikipedia: ATI Technologies</a></p>
+</li>
+<li>
+<p><a href="http://dosdays.co.uk/topics/Manufacturers/ati.php">DOS Days: ATI Technologies</a></p>
+</li>
+<li>
+<p><a href="http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20IBM%20compatible/Video/VGA/SVGA/ATI%2c%20Array%20Technology%20Inc">Hackipedia: ATI Technology Inc.</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_s3_graphics">S3 Graphics</h4>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/S3_Graphics">Wikipedia: S3 Graphics</a></p>
+</li>
+<li>
+<p><a href="https://www.dosdays.co.uk/topics/Manufacturers/s3.php">DOS Days: S3 Graphics</a></p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The default <code>machine=svga_s3</code> option refers to the S3 Trio64.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+All the emulated S3 cards have VESA VBE 2.0 support.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect4">
+<h5 id="_s3_vision864">S3 Vision864</h5>
+<div class="paragraph">
+<p>Introduced in early 1994.</p>
+</div>
+<div class="paragraph">
+<p>Available in 1, 2 and 4MB video memory configurations.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set as follows in your DOSBox-X config file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[dosbox]</span>
+<span class="py">machine</span><span class="p">=</span><span class="s">svga_s3vision864</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Links:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.vgamuseum.info/index.php/component/k2/item/351-s3-vision864">VGA Museum: S3 Vision864</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_s3_vision964">S3 Vision964</h5>
+<div class="paragraph">
+<p>Introduced in early 1994.
+Apart from faster dual-ported video memory and larger memory sizes, identical to the Vision864.</p>
+</div>
+<div class="paragraph">
+<p>Available in 2 and 4 MB video memory configurations.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set as follows in your DOSBox-X config file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[dosbox]</span>
+<span class="py">machine</span><span class="p">=</span><span class="s">svga_s3vision964</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Links:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.vgamuseum.info/index.php/cpu/item/354-s3-vision964">VGA Museum: S3 Vision964</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_s3_vision868">S3 Vision868</h5>
+<div class="paragraph">
+<p>Introduced in 1995.</p>
+</div>
+<div class="paragraph">
+<p>Available in 1, 2 and 4MB video memory configurations.
+Based on the Vision864, with added motion video acceleration.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set as follows in your DOSBox-X config file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[dosbox]</span>
+<span class="py">machine</span><span class="p">=</span><span class="s">svga_s3vision868</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Links:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.vgamuseum.info/index.php/component/k2/item/353-s3-vision868">VGA Museum: S3 Vision868</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_s3_vision968">S3 Vision968</h5>
+<div class="paragraph">
+<p>Introduced in April 1995.
+Apart from faster dual-ported video memory and larger memory sizes, identical to the Vision868.</p>
+</div>
+<div class="paragraph">
+<p>Available in 2, 4 and 8MB video memory configurations.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set as follows in your DOSBox-X config file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[dosbox]</span>
+<span class="py">machine</span><span class="p">=</span><span class="s">svga_s3vision968</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Links:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.vgamuseum.info/index.php/cpu/item/355-s3-vision968">VGA Museum: S3 Vision968</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_s3_trio32">S3 Trio32</h5>
+<div class="paragraph">
+<p>Introduced in 1994.
+Low-cost 32bit version of the Trio64. Available in 1 or 2MB video memory configurations.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set as follows in your DOSBox-X config file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[dosbox]</span>
+<span class="py">machine</span><span class="p">=</span><span class="s">svga_s3trio32</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Links:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.vgamuseum.info/index.php/component/k2/item/356-s3-trio32">VGA Museum: S3 Trio32</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_s3_trio64">S3 Trio64</h5>
+<div class="paragraph">
+<p>Introduced in 1994. Successor to the S3 Vision864, and has support for VESA Video BIOS Extensions (VBE).</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The original S3 Trio64 cards would have had VESA VBE 1.2, but the card emulated by DOSBox-X defaults to VESA VBE 2.0.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>This mode can be set using either <code>machine=svga_s3</code> or <code>machine=svga_s3trio64</code> in your DOSBox-X config file.
+Defaults to 2MiB video memory, but can be changed to 512KiB, 1MiB, 4MiB, 8MiB and 16MiB.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Original S3 Trio64 cards were only produced with 1MiB or 2MiB and expandable up to 4MiB.
+This is reflected by the official S3 drivers which do not support more than 4MiB with the S3 Video drivers for Windows.
+More video memory can however be used in VESA mode.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>There are a few variations of the Trio64 that are available:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>machine=vesa_nolfb</code> - The same as svga_s3 with VESA VBE 2.0, but with a no-linear frame buffer hack. Sometimes runs faster than plain svga_s3. Only needed in a few games due to either a bug in DOSBox or the linear-frame buffer mode of the game.</p>
+</li>
+<li>
+<p><code>machine=vesa_oldvbe</code> - The same as svga_s3, but with VESA VBE 1.2. This is necessary for some older VESA VBE programs.</p>
+</li>
+<li>
+<p><code>machine=vesa_oldvbe10</code> - The same as svga_s3, but with VESA VBE 1.0, which does not provide some optional mode information (mainly for testing)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Links:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/S3_Trio">Wikipedia: S3 Trio series</a></p>
+</li>
+<li>
+<p><a href="https://www.vgamuseum.info/index.php/component/k2/item/357-s3-trio64">VGA Museum: S3 Trio64</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_s3_trio64v">S3 Trio64V+</h5>
+<div class="paragraph">
+<p>Introduced in June 1995.</p>
+</div>
+<div class="paragraph">
+<p>Similar to the Trio64, but adds partial MPEG-1 decode acceleration.
+Available in 1, 2 or 4MB video memory configurations.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set as follows in your DOSBox-X config file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[dosbox]</span>
+<span class="py">machine</span><span class="p">=</span><span class="s">svga_s3trio64v+</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Links:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.vgamuseum.info/index.php/component/k2/item/359-s3-trio64v">VGA Museum: S3 Trio64V+</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_s3_graphics_experimental_support">S3 Graphics - Experimental support</h4>
+<div class="paragraph">
+<p>The emulation of the following S3 SVGA models should be considered experimental for the time being.</p>
+</div>
+<div class="sect4">
+<h5 id="_s3_86c928">S3 86c928</h5>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+The emulation of this card is considered experimental. It is not recommended for normal use at this time.
+The only known issue remaining is a display issue with Win95 and highcolor (16-bit) affecting the start menu and window decorations.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Introduced in July 1992.
+Early Windows and CAD accelerator card. Available in 1, 2, 3 or 4MB video RAM configurations.</p>
+</div>
+<div class="paragraph">
+<p>The emulated PCI card has 2048KiB video RAM.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set as follows in your DOSBox-X config file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[dosbox]</span>
+<span class="py">machine</span><span class="p">=</span><span class="s">svga_s386c928</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Links:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.vgamuseum.info/index.php/component/k2/item/344-s3-p86c928">VGA Museum: S3 86c928</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_s3_virge">S3 ViRGE</h5>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+The emulation of this card is considered experimental. It is not recommended for normal use at this time.
+It seems to work well enough for regular use, but the S3D functionality still needs to be implemented.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The S3 Video and Rendering Graphics Engine (ViRGE) was introduced in November 1995. Available in 2 or 4MB video RAM configurations.</p>
+</div>
+<div class="paragraph">
+<p>These cards introduced S3&#8217;s own <strong>S3D</strong> 3D acceleration technology for games. This card also introduced DirectX support.</p>
+</div>
+<div class="paragraph">
+<p>Very few games exist that made use of the proprietary S3D technology.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set as follows in your DOSBox-X config file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[dosbox]</span>
+<span class="py">machine</span><span class="p">=</span><span class="s">svga_s3virge</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Links:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/S3_ViRGE">Wikipedia: S3 ViRGE</a></p>
+</li>
+<li>
+<p><a href="https://www.vgamuseum.info/index.php/component/k2/item/365-s3-virge">VGA Museum: S3 ViRGE</a></p>
+</li>
+<li>
+<p><a href="https://www.vogons.org/viewtopic.php?t=33483">Vogons: List of games supporting S3D mode</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_s3_virgevx">S3 ViRGE/VX</h5>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+Like the regular S3 ViRGE, the emulation of this card is considered experimental. It is not recommended for normal use at this time.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Introduced in November 1995.
+Similar to the regular S3 ViRGE but available with 2, 4 or 8MB VRAM, allowing higher resolution and higher colour depth&#8217;s graphics modes.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set as follows in your DOSBox-X config file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[dosbox]</span>
+<span class="py">machine</span><span class="p">=</span><span class="s">svga_s3virgevx</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Links:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.vgamuseum.info/index.php/component/k2/item/366-s3-virge-vx">VGA Museum: S3 ViRGE/VX</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_tseng_labs">Tseng Labs</h4>
+<div class="paragraph">
+<p>Links:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/Tseng_Labs">Wikipedia: Tseng Labs</a></p>
+</li>
+<li>
+<p><a href="https://www.dosdays.co.uk/topics/Manufacturers/tseng_labs.php">DOS Days: Tseng Labs</a></p>
+</li>
+<li>
+<p><a href="https://dosdays.co.uk/topics/Manufacturers/tsenglabs_downloads.php">DOS Days: Tseng Labs Downloads</a></p>
+</li>
+<li>
+<p><a href="https://vogonsdrivers.com/index.php?catid=63">VOGONS Vintage Driver Library: Tseng Labs</a></p>
+</li>
+</ul>
+</div>
+<div class="sect4">
+<h5 id="_tseng_labs_et3000ax">Tseng Labs ET3000AX</h5>
+<div class="paragraph">
+<p>Introduced in 1987.
+Early VGA clone card.</p>
+</div>
+<div class="paragraph">
+<p>In addition to standard CGA (RGBI mode only), EGA and VGA this card supports the following display modes with the right drivers:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>640x480 with 2, 16 or 256 colours</p>
+</li>
+<li>
+<p>800x600 with 16 colours</p>
+</li>
+<li>
+<p>1024x768 with 16 colours</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This mode can be set as follows in your DOSBox-X config file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[dosbox]</span>
+<span class="py">machine</span><span class="p">=</span><span class="s">svga_et3000</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Video memory defaults to 512KiB and cannot be adjusted.</p>
+</div>
+<div class="paragraph">
+<p>Links:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.vgamuseum.info/index.php/companies/item/460-tseng-et3000ax">VGA Museum: Tseng Labs ET3000</a></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_tseng_labs_et4000ax">Tseng Labs ET4000AX</h5>
+<div class="paragraph">
+<p>Introduced in 1989.
+Became fairly popular, and supported in SVGA mode by various games.</p>
+</div>
+<div class="paragraph">
+<p>In addition to standard CGA (RGBI mode only), EGA and VGA this card supports the following display modes with the right drivers:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>640x480 with 2, 16, 256, 32768, 65535 or 16.7M (*) colours</p>
+</li>
+<li>
+<p>800x600 with 16, 256, 32768 or 65535 colours</p>
+</li>
+<li>
+<p>1024x768 with 16 or 256 colours</p>
+</li>
+<li>
+<p>1280x1024 with 16 colours</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Known issues with the above modes:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>(*) Hangs on startup of Windows 3.0 in 16.7M colour mode</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This mode can be set as follows in your DOSBox-X config file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[dosbox]</span>
+<span class="py">machine</span><span class="p">=</span><span class="s">svga_et4000</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Video memory defaults to 1024KiB, but can be reduced to 256 or 512KiB as such:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[dosbox]
+machine=svga_et4000
+
+[video]
+vmemsize=0
+vmemsizekb=512</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The ET4000 Turbo and ET4000/W32 variants are not emulated.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Links:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="http://files.mpoli.fi/hardware/DISPLAY/TSENG/ET-4000.ZIP">Tseng Labs ET4000 driver package</a></p>
+</li>
+<li>
+<p><a href="https://dosdays.co.uk/topics/Manufacturers/tseng_labs.php#ET4000">DOS Days: ET4000AX</a></p>
+</li>
+<li>
+<p><a href="https://www.vgamuseum.info/index.php/companies/item/461-tseng-et4000ax">VGA Museum: Tseng Labs ET4000AX</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_paradise_systems_pvga1a">Paradise Systems PVGA1A</h4>
+<div class="paragraph">
+<p>The Paradise Systems PVGA1A is a SuperVGA (SVGA) card introduced in 1988.
+It is backward compatible with CGA (RGBI only), EGA, MCGA and VGA.</p>
+</div>
+<div class="paragraph">
+<p>This mode can be set as follows in your DOSBox-X config file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[dosbox]</span>
+<span class="py">machine</span><span class="p">=</span><span class="s">svga_paradise</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Video memory defaults to 512 KiB, but can be adjusted to 256 or 1024 KiB.</p>
+</div>
+<div class="paragraph">
+<p>For 256 KiB, set your config as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[dosbox]</span>
+<span class="py">machine</span><span class="p">=</span><span class="s">svga_paradise</span>
+
+<span class="nn">[video]</span>
+<span class="py">vmemsize</span><span class="p">=</span><span class="s">0</span>
+<span class="py">vmemsizekb</span><span class="p">=</span><span class="s">256</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For 1024 KiB, set your config as follows:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="rouge highlight"><code data-lang="ini"><span class="nn">[dosbox]</span>
+<span class="py">machine</span><span class="p">=</span><span class="s">svga_paradise</span>
+
+<span class="nn">[video]</span>
+<span class="py">vmemsize</span><span class="p">=</span><span class="s">1</span>
+<span class="py">vmemsizekb</span><span class="p">=</span><span class="s">0</span></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Links:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.dosdays.co.uk/topics/Manufacturers/paradise.php">DOS Days: Paradise Systems</a></p>
+</li>
+<li>
+<p><a href="https://www.vgamuseum.info/index.php/companies/item/478-paradise-systems-pvga1a">VGA Museum: Paradise Systems PVGA1A</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vesa_bios_extensions_vbe">VESA BIOS Extensions (VBE)</h3>
+<div class="paragraph">
+<p>During the late 80&#8217;s and early 90&#8217;s many video card manufacturers existed, and as IBM was no longer leading the market, each manufacturer was doing its own thing in regard to setting their cards SVGA modes.
+Even different video chips from the same manufacturer were not necessarily compatible with each other.</p>
+</div>
+<div class="paragraph">
+<p>This made it very difficult for software developers as they needed to support a plethora of different cards if they wanted to offer more than basic VGA.</p>
+</div>
+<div class="paragraph">
+<p>As such the Video Electronics Standards Association (VESA) was born, and one of the first standardization efforts they led was the VESA BIOS Extensions (VBE).</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>VBE 1.0 was defined in 1989</p>
+</li>
+<li>
+<p>VBE 1.1 was defined in 1990</p>
+</li>
+<li>
+<p>VBE 1.2 was defined in 1991</p>
+</li>
+<li>
+<p>VBE 2.0 was defined in 1994</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The only emulated cards supported by DOSBox-X to provide VBE support are the S3 models, which all default to VBE 2.0.</p>
+</div>
+<div class="paragraph">
+<p>There are many VESA settings available in the <code>[video]</code> section of the DOSBox-x config file, which are documented below.</p>
+</div>
+<div class="paragraph">
+<p>links:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://en.wikipedia.org/wiki/VESA_BIOS_Extensions">Wikipedia: VESA BIOS Extensions (VBE)</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_dual_monitor">Dual monitor</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The original IBM PC could already support dual-monitor by using both MDA and CGA video cards at the same time.
+This also works with MDA+EGA, MDA+VGA and MDA+SVGA. Hercules can also be used as a more capable substitute for MDA.</p>
+</div>
+<div class="paragraph">
+<p>This is possible because MDA (and Hercules), when properly setup don&#8217;t conflict with the resources needed for CGA/EGA/VGA and SVGA.
+As such it is not possible for instance to have two VGA cards, as they would conflict.</p>
+</div>
+<div class="paragraph">
+<p>Programs known to support a dual monitor setup:</p>
+</div>
+<div class="paragraph">
+<p>*- AutoCAD
+* Borland Turbo Debugger
+* CodeView debugger
+* Desqview
+* GEM (debugging only)
+* Lotus 123
+* <a href="https://www.mobygames.com/game/dos/mah-jongg-v-g-a-">MobyGames: Mah Jongg -V-G-A</a>
+* <a href="https://www.mobygames.com/game/mechwarrior-2-mercenaries">Mobygames: Mechwarrior 2: Mercenaries</a> v1.06 (debugging only)
+* PowerBASIC DOS
+* Softice debugger
+* Windows 3.x (debugging only)</p>
+</div>
+<div class="paragraph">
+<p>The use of a secondary monitor is partially supported by DOSBox-X.
+It works by starting DOSBox-X with the <code>-display2</code> option as such:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>dosbox-x -display2</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The secondary (MDA only) display will output on a terminal window.
+If you started DOSBox-X from a terminal, it will output the second display to that same terminal.</p>
+</div>
+<div class="paragraph">
+<p>Be sure to keep the focus on the primary DOSBox-X window, even if you&#8217;re interacting with the secondary display in the terminal.
+If the application focus is on the secondary display in the terminal, keyboard input will not work correctly, and pressing CTRL-C will kill DOSBox-X.</p>
+</div>
+<div class="paragraph">
+<p>The second display will default to white text, but you can get it to use green with <code>-display2 green</code> or amber with <code>-display2 amber</code>.</p>
+</div>
+<div class="paragraph">
+<p>At the DOS prompt you can switch primary display by use of the <code>mode</code> command.
+To make the MDA display primary:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>mode mono</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To make the CGA/EGA/VGA or SVGA display primary:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>mode co80</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The current dual monitor support is limited, in part because it uses the terminal window instead of a real (SDL) window.
+As such it may not work properly with some programs, and it is limited to MDA only (no Hercules).
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+It is advised that you set your terminal window to 80x25 as to minimize character placement issues (most terminals default to 80x24, which is not ideal).
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The 2nd display output to the terminal window will be in the DOS codepage that is set in DOSBox-X.
+However, most terminal programs expect Unicode these days, which will result in unicode question marks for a lot of characters.
+This can be minimized by using a terminal program that allows setting an encoding other than unicode, which a lot of Linux terminal programs allow.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Because both the second display code and the integrated debugger uses the terminal, they are mutually exclusive. e.g., the "Start DOSBox-X Debugger" option will be greyed out when you start with the <code>-display2</code> option.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>links:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><a href="https://www.seasip.info/VintagePC/dualhead.html">Dual-Head Operation on a Vintage PC</a></p>
+</li>
+<li>
+<p><a href="https://www.vogons.org/viewtopic.php?f=32&amp;t=26110">Vogons thread on this topic</a></p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_video_config_section">[video] config section</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Various video configuration settings can be set in the DOSBox-X configuration file in the <code>[video]</code> section.</p>
+</div>
+<div class="sect2">
+<h3 id="_vmemdelay">vmemdelay</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: 0</p>
+</li>
+<li>
+<p>recommended values: -1, 0 to 2000</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>VGA Memory I/O delay in nanoseconds.
+Set to -1 to use default, 0 to disable.</p>
+</div>
+<div class="paragraph">
+<p>Enable this option (-1 or nonzero) if you are running a game or demo that needs slower VGA memory (like that of older ISA hardware) to work properly.
+If your game is not sensitive to VGA RAM I/O speed, then turning on this option will do nothing but cause a significant drop in frame rate which is probably not what you want.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vmemsize">vmemsize</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: -1</p>
+</li>
+<li>
+<p>possible values: -1, 0, 1, 2, 4, 8, 16</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Amount of video memory in megabytes for the emulated SVGA adapter.</p>
+</div>
+<div class="paragraph">
+<p>The maximum resolution and color depth the emulated SVGA adapter will be able to display is determined by this value.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>vmemsize=-1</code>: auto (<code>vmemsizekb</code> is ignored), and default value is dependent on the emulated SVGA adapter.</p>
+</li>
+<li>
+<p><code>vmemsize=0</code>: 512kB for 800x600 at 256 colors (if vmemsizekb=0)</p>
+</li>
+<li>
+<p><code>vmemsize=1</code>: 1MB for 1024x768 at 256 colors or 800x600  at 64k colors</p>
+</li>
+<li>
+<p><code>vmemsize=2</code>: 2MB for 1600x1200 at 256 colors or 1024x768 at 64k colors or 640x480 at 16M colors</p>
+</li>
+<li>
+<p><code>vmemsize=4</code>: 4MB for 1600x1200 at 64k colors or 1024x768 at 16M colors</p>
+</li>
+<li>
+<p><code>vmemsize=8</code>: 8MB for up to 1600x1200 at 16M colors</p>
+</li>
+<li>
+<p><code>vmemsize=16</code>: 16MB only supported for VESA modes (regular S3 will be limited to 8MB)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For <a href="https://en.wikipedia.org/wiki/Build_(game_engine)">build engine games</a>, use more memory than in the list above, so it can use triple buffering and thus won&#8217;t flicker.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+The minimum and maximum amount of video memory depends on the emulated video adapter.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vmemsizekb">vmemsizekb</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: 0</p>
+</li>
+<li>
+<p>Possible values: 64, 128, 256, 512</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Amount of video memory in kilobytes, in addition to that specified with <code>vmemsize</code>.</p>
+</div>
+<div class="paragraph">
+<p>This setting is only supported by the emulated EGA and SVGA video adapters.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vbe_window_granularity">vbe window granularity</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: 0</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Controls VESA BIOS non-linear framebuffer window granularity in KB.
+This affects ONLY the VESA BIOS extensions.</p>
+</div>
+<div class="paragraph">
+<p>Set 0 to functional normally.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vbe_window_size">vbe window size</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: 0</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Controls VESA BIOS non-linear framebuffer window size in KB.
+This affects ONLY the VESA BIOS extensions.</p>
+</div>
+<div class="paragraph">
+<p>Set 0 to functional normally.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_enable_8_bit_dac">enable 8-bit dac</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: true</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If set, allow VESA BIOS calls in IBM PC mode to set DAC width.
+Has no effect in PC-98 mode.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_high_intensity_blinking">high intensity blinking</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: true</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Set to false if you want to see high-intensity background colors instead of blinking foreground text.
+This option has no effect in PC-98 and some other video modes.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_svga_lfb_base">svga lfb base</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: 0</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If non-zero, define the physical memory address in hexadecimal of the linear framebuffer.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_pci_vga">pci vga</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: true</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Determines if the emulated SVGA adapter is PCI based.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If true, SVGA is emulated as if a PCI device (when <code>enable pci bus=true</code>).</p>
+</li>
+<li>
+<p>If false, it will be emulated as an ISA device.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vga_attribute_controller_mapping">vga attribute controller mapping</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: auto</p>
+</li>
+<li>
+<p>valid values: auto, 4x4, 4low, first16</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This affects how the attribute controller maps colors, especially in 256-color mode.</p>
+</div>
+<div class="paragraph">
+<p>Some SVGA cards handle the attribute controller palette differently than most SVGA cards.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>auto</code> : Automatically pick the mapping based on the SVGA chipset.</p>
+</li>
+<li>
+<p><code>4x4</code> : Split into two 4-bit nibbles, map through attribute controller and recombine. This is standard VGA behavior including clone SVGA cards.</p>
+</li>
+<li>
+<p><code>4low</code> : Split into two 4-bit nibbles, remap only the low 4 bits, recombine. This is standard ET4000 behavior.</p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Demoscene executable 'COPPER.EXE' requires the '4low' behavior in order to display line-fading effects
+(including scrolling credits) correctly, else those parts of the demo show up as a blank screen.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vga_bios_use_rom_image">vga bios use rom image</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If true, load a VGA BIOS from a ROM image file. If false, provide our own INT 10h emulation as normal.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vga_bios_rom_image">vga bios rom image</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: &lt;none&gt;</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If set, load the VGA BIOS from the specified file (must be between 1KB to 64KB in size).</p>
+</div>
+<div class="paragraph">
+<p>If left unset, and DOSBox-X is asked to load a VGA BIOS from a file, a file name is chosen automatically based on the machine type.
+For example, Tseng ET4000 emulation (<code>machine=svga_et4000</code>) will look for <code>et4000.bin</code>.</p>
+</div>
+<div class="paragraph">
+<p>VGA BIOS ROM images can be dumped from real hardware or downloaded from the PCem or 86Box ROMs collection.</p>
+</div>
+<div class="paragraph">
+<p>Default ROM filenames:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>machine=svga_s3</code> default ROM filename: <code>TRIO64 (Ver. 1.5-07) [VGA] (S3 Incorporated).bin</code></p>
+</li>
+<li>
+<p><code>machine=svga_et4000</code> default ROM filename: <code>et4000.bin</code></p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vga_bios_size_override">vga bios size override</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: 0</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>VGA BIOS size override.
+Override the size of the VGA BIOS (normally 32KB in compatible or 12KB in non-compatible).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_video_bios_dont_duplicate_cga_first_half_rom_font">video bios dont duplicate cga first half rom font</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If true, save 4KB of EGA/VGA ROM space by pointing to the copy in the ROM BIOS of the first 128 chars.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_video_bios_always_offer_14_pixel_high_rom_font">video bios always offer 14-pixel high rom font</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Determines if a 14-pixel high font is available in the video BIOS ROM.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If true, the video BIOS will always have the 14-pixel ROM font.</p>
+</li>
+<li>
+<p>If false, the 14-pixel ROM font will not be offered except for EGA/VGA emulation.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_video_bios_always_offer_16_pixel_high_rom_font">video bios always offer 16-pixel high rom font</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Determines if a 16-pixel high font is available in the video BIOS ROM.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If true, video BIOS will always have the 16-pixel ROM font.</p>
+</li>
+<li>
+<p>If false, the 16-pixel ROM font will not be offered except for VGA emulation.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_video_bios_enable_cga_second_half_rom_font">video bios enable cga second half rom font</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: true</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If true, and emulating CGA/PCjr/Tandy, automatically provide the second half of the 8x8 ROM font.</p>
+</div>
+<div class="paragraph">
+<p>This setting is ignored for EGA/VGA emulation.
+If false, you will need a utility like GRAFTABL.COM to load the second half of the ROM font for graphics.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+If you disable the 14 &amp; 16 pixel high font AND the second half when <code>machine=cga</code>, you will disable the video BIOS completely.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_forcerate">forcerate</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: &lt;none&gt;</p>
+</li>
+<li>
+<p>valid values: ntsc, pal, &lt;rate in Hz&gt;</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Force the VGA framerate (refresh rate) to a specific value (ntsc, pal, or specific hz), no matter what.
+* <code>ntsc</code> = As used in North America is 60Hz
+* <code>pal</code> = As used in Europe and many other places is 50Hz</p>
+</div>
+<div class="paragraph">
+<p>VGA specific resolutions normally default to 70Hz, although many clone VGA and SVGA cards supported higher values.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+Almost all modern LCDs only support 60Hz, which is not ideal for games meant to run at 70Hz.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_sierra_ramdac">sierra ramdac</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: true</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Whether to emulate a Sierra or compatible RAMDAC at IO port 3C6h-3C9h.</p>
+</div>
+<div class="paragraph">
+<p>Some DOS games expect to access IO port 3C6h to enable highcolor/truecolor SVGA modes on older chipsets.
+Disable if you wish to emulate SVGA hardware that lacks a RAMDAC or (depending on the chipset) does not emulate a RAMDAC that is accessible through IO port 3C6h.</p>
+</div>
+<div class="paragraph">
+<p>This option has no effect for non-VGA video hardware.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_sierra_ramdac_lock_565">sierra ramdac lock 565</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>When emulating High Sierra highcolor RAMDAC, assume 5:6:5 at all times if set.
+Else, bit 6 of the DAC command selects between 5:5:5 and 5:6:5.</p>
+</div>
+<div class="paragraph">
+<p>Set this option for demos or games that got the command byte wrong (MFX Transgrassion 2) or any other demo that is not rendering highcolor 16bpp correctly.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vga_fill_active_memory">vga fill active memory</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If true, DOSBox-X will fill inactive video memory regions with RAM rather than mapping them as empty.</p>
+</div>
+<div class="paragraph">
+<p>This allows the ETen Chinese DOS system (e.g. ET16V and ET24VA) to run.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_page_flip_debug_line">page flip debug line</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>VGA debugging switch.</p>
+</div>
+<div class="paragraph">
+<p>If true, an inverse line will be drawn on the exact scanline that the CRTC display offset registers were written.</p>
+</div>
+<div class="paragraph">
+<p>This can be used to help diagnose whether the DOS game is page flipping properly according to vertical retrace if the display on-screen is flickering.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vertical_retrace_poll_debug_line">vertical retrace poll debug line</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>VGA debugging switch.</p>
+</div>
+<div class="paragraph">
+<p>If true, an inverse green dotted line will be drawn on the exact scanline that the CRTC status port (0x3DA) was read.</p>
+</div>
+<div class="paragraph">
+<p>This can be used to help diagnose whether the DOS game is properly waiting for vertical retrace.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_cgasnow">cgasnow</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: true</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>IBM CGA in 80x25 text mode, when directly accessing the video memory during screen drawing, suffered from a distortion referred to as CGA "snow".
+This effect is not visible when the software uses the BIOS to write to the screen.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If true, this emulates the "snow" distortion</p>
+</li>
+<li>
+<p>If false, the "snow" distortion is disabled</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This only applies when <code>machine=cga</code>.
+Later video cards were not effected by this, nor were some clone CGA cards.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Note</div>
+</td>
+<td class="content">
+This parameter can also be changed with the built-in <code>CGASNOW</code> command when in CGA mode.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vga_3da_undefined_bits">vga 3da undefined bits</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: 4</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>VGA status IO port 3BA/3DAh only defines bits 0 and 3.
+This setting allows you to assign a bit pattern in hexadecimal to the undefined bits.</p>
+</div>
+<div class="paragraph">
+<p>The purpose of this hack is to deal with demos that read and handle IO port 3DAh in ways that might crash if all are zero.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_rom_bios_8x8_cga_font">rom bios 8x8 CGA font</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: true</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If true, similar to the mainline DOSBox compatible BIOS mapping, a legacy 8x8 CGA font (first 128 characters) is stored at 0xF000:0xFA6E.</p>
+</div>
+<div class="paragraph">
+<p>DOS programs that do not use INT 10h to locate fonts might require that the font is located there.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_rom_bios_video_parameter_table">rom bios video parameter table</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: true</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If true, similar to the mainline DOSBox compatible BIOS mapping, DOSBox-X will emulate the video parameter table and assign that to INT 1Dh.
+If false, the table will not be provided.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_int_10h_points_at_vga_bios">int 10h points at vga bios</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: true</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This option only affects EGA, VGA and SVGA emulation.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If true, INT 10h points at the VGA BIOS.</p>
+</li>
+<li>
+<p>If false, INT 10h points into the system BIOS.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This option is needed for some older DOS applications that do some additional checks before detecting EGA/VGA hardware (SuperCalc).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_unmask_timer_on_int_10_setmode">unmask timer on int 10 setmode</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If true, INT 10h will unmask IRQ 0 (timer) when setting video modes.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vesa_bank_switching_window_mirroring">vesa bank switching window mirroring</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If set, bank switch (windowed) VESA BIOS modes will ignore the window selection when asked to bank switch.
+Requests to control either Window A or Window B will succeed.
+This is needed for some demoscene productions with SVGA support that assume Window B is available, without which graphics do not render properly.
+If clear, Window B is presented as not available and attempts to use it will fail.
+Only Window A will be available, which is also DOSBox SVN behaviour.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vesa_bank_switching_window_range_check">vesa bank switching window range check</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: true</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Controls whether calls to bank switch (set the window number) through the VESA BIOS apply range checking.
+If set, out of range window numbers will return with an error code.
+This is also DOSBox SVN behaviour.
+If clear, out of range window numbers are silently truncated to a number within range of available video memory and allowed to succeed.
+This is needed for some demoscene productions that rely on the silent truncation to render correctly without which drawing errors occur (e.g. end credits of Pill by Opiate)</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vesa_zero_buffer_on_get_information">vesa zero buffer on get information</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: true</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This setting affects VESA BIOS function INT 10h AX=4F00h.
+If set, the VESA BIOS will zero the 256-byte buffer defined by the standard at ES:DI, then fill in the structure.
+If clear, only the structure members will be filled in, and memory outside the initial 20-32 bytes will remain unmodified.</p>
+</div>
+<div class="paragraph">
+<p>Some very early 1990s DOS games that support VESA BIOS standards may need this setting turned OFF if the programmer did not provide enough space for the entire 256 byte structure and the game crashes if it detects VESA BIOS extensions</p>
+</div>
+<div class="paragraph">
+<p>Needed for: GETSADAM.EXE</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vesa_set_display_vsync">vesa set display vsync</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: -1</p>
+</li>
+<li>
+<p>valid values: -1, 0, 1</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Whether to wait for vertical retrace if VESA Set Display Address is used to pan the display.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The default value -1 will wait if vesa_oldvbe, or not otherwise.</p>
+</li>
+<li>
+<p>0 means not to wait.</p>
+</li>
+<li>
+<p>1 means always to wait</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This affects only subfunction 0x00. Subfunction 0x80 will always wait as specified in the VESA BIOS standard.</p>
+</div>
+<div class="paragraph">
+<p>It is recommended to set this to 1 for VBETEST.EXE so that the panning test and information does not go by too fast.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vesa_lfb_base_scanline_adjust">vesa lfb base scanline adjust</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: 0</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If non-zero, the VESA BIOS will report the linear framebuffer offset by this many scanlines.
+This does not affect the linear framebuffer’s location.
+It only affects the linear framebuffer location reported by the VESA BIOS.
+Set to nonzero for DOS games with sloppy VESA graphics pointer management.</p>
+</div>
+<div class="paragraph">
+<p>MFX "Melvindale" (1996): Set this option to 2 to centre the picture properly.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vesa_map_non_lfb_modes_to_128kb_region">vesa map non-lfb modes to 128kb region</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If set, VESA BIOS SVGA modes will be set to map 128KB of video memory to A0000-BFFFF instead of 64KB at A0000-AFFFF.
+This does not affect the SVGA window size or granularity.</p>
+</div>
+<div class="paragraph">
+<p>Some games or demoscene productions assume that they can render into the next SVGA window/bank by writing to video memory beyond the current SVGA window address and will not appear correctly without this option.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ega_per_scanline_hpel">ega per scanline hpel</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: true</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If true, EGA emulation allows changing horizontal pel (panning) register per scanline.</p>
+</div>
+<div class="paragraph">
+<p>This is reportedly the behavior of IBM EGA hardware according to DOSBox SVN and enabled by default.</p>
+</div>
+<div class="paragraph">
+<p>If false, EGA emulation latches hpel on vertical retrace end (like VGA does), which may have been EGA clone behavior that some games were written against.</p>
+</div>
+<div class="paragraph">
+<p>Commander Keen episodes 4-6 need this option set to false when <code>machine=ega</code>.</p>
+</div>
+<div class="paragraph">
+<p>This option affects only EGA emulation. To change VGA hpel behavior, use the <code>allow hpel effects</code> setting instead.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_allow_hpel_effects">allow hpel effects</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If true, allow the DOS demo or program to change the horizontal pel (panning) register per scanline.
+Some early DOS demos use this to create waving or sinus effects on the picture.</p>
+</div>
+<div class="paragraph">
+<p>Not very many VGA chipsets allow this, so far, only ATI chipsets are known to support this effect.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_allow_hretrace_effects">allow hretrace effects</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If true, allow the DOS demo or program to make the picture wavy by playing with the 'start horizontal retrace' register of the CRTC during the active picture.</p>
+</div>
+<div class="paragraph">
+<p>Some early DOS demos (Copper by Surprise!productions) need this option set for some demo effects to work.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_hretrace_effect_weight">hretrace effect weight</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: 4.00</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If emulating hretrace effects, this parameter adds 'weight' to the offset to smooth it out.</p>
+</div>
+<div class="paragraph">
+<p>The larger the number, the more averaging is applied.
+This is intended to emulate the inertia of the electron beam in a CRT monitor</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vesa_modelist_cap">vesa modelist cap</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: 0</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If non-zero, the VESA modelist is capped so that it contains no more than the specified number of video modes.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vesa_modelist_width_limit">vesa modelist width limit</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: 1200</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If non-zero, VESA modes with horizontal resolution higher than the specified pixel count will not be listed.</p>
+</div>
+<div class="paragraph">
+<p>This is another way the modelist can be capped for DOS applications that have trouble with long modelists.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vesa_modelist_height_limit">vesa modelist height limit</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: 1024</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If non-zero, VESA modes with vertical resolution higher than the specified pixel count will not be listed.</p>
+</div>
+<div class="paragraph">
+<p>This is another way the modelist can be capped for DOS applications that have trouble with long modelists.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vesa_vbe_put_modelist_in_vesa_information">vesa vbe put modelist in vesa information</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If true, the VESA modelist is placed in the VESA information structure itself when the DOS application queries information on the VESA BIOS.</p>
+</div>
+<div class="paragraph">
+<p>Setting this option may help with some games, though it limits the mode list reported to the DOS application.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vesa_vbe_1_2_modes_are_32bpp">vesa vbe 1.2 modes are 32bpp</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: auto</p>
+</li>
+<li>
+<p>valid values: true, false, auto</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Some DOS games and demos assume one bit depth or the other and do not enumerate VESA BIOS modes, which is why this option exists.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If true, truecolor (16M color) VESA BIOS modes in the 0x100-0x11F range are 32bpp.</p>
+</li>
+<li>
+<p>If false, they are 24bpp.</p>
+</li>
+<li>
+<p>If set to auto, this is determined by the type of SVGA chipset emulated.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_allow_low_resolution_vesa_modes">allow low resolution vesa modes</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: true</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If true, allow low resolution VESA modes (320x200x16/24/32bpp and so on).</p>
+</div>
+<div class="paragraph">
+<p>You could set this too false to simulate SVGA hardware with a BIOS that does not support the low resolution modes for testing purposes, or to limit the amount of modes available.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_allow_explicit_24bpp_vesa_modes">allow explicit 24bpp vesa modes</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If set, additional 24bpp modes are listed in the modelist regardless whether modes 0x100-0x11F are configured to be 24bpp or 32bpp.
+Setting this option can provide the best testing and development environment for new retro DOS code.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If true, 24bpp will only be available in the 0x100-0x11F range if the "vesa vbe 1.2 modes are 32bpp" is false.</p>
+</li>
+<li>
+<p>Setting to false helps to emulate typical SVGA hardware in which either 24bpp is supported, or 32bpp is supported, but not both.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_allow_high_definition_vesa_modes">allow high definition vesa modes</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If set, offer HD video (16:9 aspect ratio) modes in the VESA modelist (such as 1280x720 aka 720p or 1920x1080 aka 1080p).</p>
+</div>
+<div class="paragraph">
+<p>This option also offers 4:3 versions (960x720 and 1440x1080) for DOS games that cannot properly handle a 16:9 aspect ratio, and several other HD modes.
+The modes enabled by this option are still limited by the width and height limits and available video memory.</p>
+</div>
+<div class="paragraph">
+<p>This is unusual for VESA BIOSes to do and is therefore disabled by default.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_allow_unusual_vesa_modes">allow unusual vesa modes</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If true, unusual (uncommon) modes are added to the VESA modelist.</p>
+</div>
+<div class="paragraph">
+<p>The modes reflect uncommon resolutions added by external drivers (UNIVBE), some VESA BIOSes, some laptop and netbook displays, and some added by DOSBox-X for additional fun.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_allow_32bpp_vesa_modes">allow 32bpp vesa modes</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: true</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If the DOS game or demo has problems with 32bpp VESA modes, set to 'false'.</p>
+</div>
+<div class="paragraph">
+<p>These modes have the same 16-color planar memory layout as standard VGA, but at SVGA resolution.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_allow_24bpp_vesa_modes">allow 24bpp vesa modes</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: true</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If the DOS game or demo has problems with 24bpp (aka True Color) VESA modes, set to 'false'.</p>
+</div>
+<div class="paragraph">
+<p>These modes have the same 16-color planar memory layout as standard VGA, but at SVGA resolution.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_allow_16bpp_vesa_modes">allow 16bpp vesa modes</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: true</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If the DOS game or demo has problems with 16bpp (aka High Color) VESA modes, set to 'false'.</p>
+</div>
+<div class="paragraph">
+<p>These modes have the same 16-color planar memory layout as standard VGA, but at SVGA resolution.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_allow_15bpp_vesa_modes">allow 15bpp vesa modes</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: true</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If the DOS game or demo has problems with 15bpp VESA modes, set to 'false'.</p>
+</div>
+<div class="paragraph">
+<p>These modes have the same 16-color planar memory layout as standard VGA, but at SVGA resolution.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_allow_8bpp_vesa_modes">allow 8bpp vesa modes</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: true</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If the DOS game or demo has problems with 8bpp (256 color) VESA modes, set to 'false'.</p>
+</div>
+<div class="paragraph">
+<p>These modes have the same 16-color planar memory layout as standard VGA, but at SVGA resolution.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_allow_4bpp_vesa_modes">allow 4bpp vesa modes</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: true</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If the DOS game or demo has problems with 4bpp (16 color) VESA modes, set to 'false'.</p>
+</div>
+<div class="paragraph">
+<p>These modes have the same 16-color planar memory layout as standard VGA, but at SVGA resolution.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_allow_4bpp_packed_vesa_modes">allow 4bpp packed vesa modes</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If the DOS game or demo has problems with 4bpp (16 color) packed VESA modes, set to 'false'.</p>
+</div>
+<div class="paragraph">
+<p>4bpp (16-color) packed is an unusual novelty mode only seen on specific Chips &amp; Tech 65550 VESA BIOSes such as the one in a Toshiba Libretto laptop.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_allow_tty_vesa_modes">allow tty vesa modes</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: true</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If the DOS game or demo has problems with VESA text modes, set to 'false'</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_double_buffered_line_compare">double-buffered line compare</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>This setting affects the VGA Line Compare register.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Set too false to emulate most VGA behavior</p>
+</li>
+<li>
+<p>Set to true for the value to latch once at the start of the frame.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ignore_vblank_wraparound">ignore vblank wraparound</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>DOSBox-X can handle active display properly if games or demos reprogram vertical blanking to end in the active picture area.
+If the wraparound handling prevents the game from displaying properly, set this to false.</p>
+</div>
+<div class="paragraph">
+<p>Out of bounds vblank values will be ignored.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ignore_extended_memory_bit">ignore extended memory bit</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Some DOS applications use VGA 256-color mode but accidentally clear the extended memory bit originally defined to indicate whether EGA hardware has more than 64KB of RAM.</p>
+</div>
+<div class="paragraph">
+<p>Setting this option can correct for that.
+Needed for Mr. Blobby.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_enable_vga_resize_delay">enable vga resize delay</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If the DOS game you are running relies on certain VGA raster tricks that affect active display area, enable this option.</p>
+</div>
+<div class="paragraph">
+<p>This adds a delay between VGA mode changes and window updates.
+It also means that if you are capturing a demo or game, that your capture will also show a few garbled frames at any point mode changes occur, which is why this option is disabled by default.</p>
+</div>
+<div class="paragraph">
+<p>If you intend to run certain DOS games and demos like DoWhackaDo, enable this option.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_resize_only_on_vga_active_display_width_increase">resize only on vga active display width increase</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If true, changes to the Display End register of the CRTC do not trigger DOSBox-X to resize its window <strong>IF</strong> the value written is less than the current value.</p>
+</div>
+<div class="paragraph">
+<p>Some demos like DoWhackaDo need this option set because of the way its raster effects work.
+If the DOSBox-X window rapidly changes size during a demo try setting this option.
+Else, leave it turned off.</p>
+</div>
+<div class="paragraph">
+<p>Changes to other VGA CRTC registers will trigger a DOSBox-X mode change as normal regardless of this setting.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vga_palette_update_on_full_load">vga palette update on full load</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: true</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Update the VGA palette only on setting all 3 bytes.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>If true, all three bytes of the palette entry must be loaded before taking the color, which is fairly typical SVGA behavior.</p>
+</li>
+<li>
+<p>If false, partial changes are allowed.</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ignore_odd_even_mode_in_non_cga_modes">ignore odd-even mode in non-cga modes</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: false</p>
+</li>
+<li>
+<p>valid values: true, false</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Some demoscene productions use VGA Mode X but accidentally enable odd/even mode.</p>
+</div>
+<div class="paragraph">
+<p>Setting this option can correct for that and render the demo properly.</p>
+</div>
+<div class="paragraph">
+<p>This option forces VGA emulation to ignore odd/even mode except in text and CGA modes.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_vsync_config_section">[vsync] config section</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Various vsync configuration settings can be set in the DOSBox-X configuration file in the <code>[vsync]</code> section.</p>
+</div>
+<div class="sect2">
+<h3 id="_vsyncmode">vsyncmode</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: off</p>
+</li>
+<li>
+<p>valid values: off, on, force, host</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Synchronize vsync timing to the host display. Requires calibration within DOSBox-X.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<div class="title">Warning</div>
+</td>
+<td class="content">
+Synchronizing to the host may cause issues with some games. For instance Sierra AGI games use VSYNC as part of their Hercules detection and will fail to find the adapter.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_vsyncrate">vsyncrate</h3>
+<div class="ulist">
+<ul>
+<li>
+<p>default value: 75</p>
+</li>
+<li>
+<p>valid values:</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Vsync rate used if vsync is enabled. Ignored if vsyncmode is set to host (win32).</p>
 </div>
 </div>
 </div>
@@ -1659,7 +4012,6 @@ ATI support is in an early stage of development. Unless you want to <strong>assi
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-05-06 21:06:49 +0800
 </div>
 </div>
 <script src="./docinfo/copy-to-clipboard.js"></script>

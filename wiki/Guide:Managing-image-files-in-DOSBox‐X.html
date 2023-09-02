@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 2.0.18">
+<meta name="generator" content="Asciidoctor 2.0.20">
 <title>Managing images files</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <link rel="stylesheet" href="./asciidoctor.css">
@@ -967,13 +967,6 @@ You can unmount it by clicking on the "Eject" button next to it in the Finder.</
 </li>
 <li>
 <p><a href="https://en.wikipedia.org/wiki/VHD_(file_format)">Virtual Hard Disk</a> Volume (<code>.vhd</code>) (aka Virtual PC)</p>
-<div class="ulist">
-<ul>
-<li>
-<p>No support in DOSBox-X for the newer VHDX format</p>
-</li>
-</ul>
-</div>
 </li>
 <li>
 <p>Bochs bximage (typically <code>.img</code>)</p>
@@ -1005,18 +998,6 @@ This option allows a few common HDD sizes to be created, for less common types y
 <div class="paragraph">
 <p>DOSBox-X has a built-in <code>IMGMAKE</code> command with which you can create partitioned and FAT formatted harddisk images in RAW MFM sector image format from the DOSBox-X command prompt.
 <code>IMGMAKE</code> only creates a single primary DOS partition per harddisk image file.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-<code>IMGMAKE</code> will create fixed-size VHD image files, if the filename extension is <code>.vhd</code>. <code>IMGMAKE</code> cannot create dynamic VHD image files.
-</td>
-</tr>
-</table>
 </div>
 <div class="sect3">
 <h4 id="_fat_version">FAT version</h4>
@@ -2308,30 +2289,32 @@ This saves disk space compared to maintaining multiple full installations, and c
 <h2 id="_vhd_support">VHD support</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>DOSBox-X provides limited support for VHD (aka Virtual PC) disk images. There is no support for the newer VHDX format.</p>
+<p>DOSBox-X provides support for VHD (aka Virtual PC) disk images. This supports was enhanced in DOSBox-X 2023.09.01.</p>
 </div>
 <div class="paragraph">
 <p>There are various ways to create VHD images. Either external tools can be used, or the integrated <code>IMGMAKE</code> utility can be used.</p>
 </div>
 <div class="paragraph">
-<p>For example to create a 40 MiB VHD image using <a href="https://www.qemu.org/download/">qemu-img</a>:</p>
+<p>For example to create a 2GiB dynamic VHD image using the integrated <code>IMGMAKE</code> utility:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="console"><span class="go">qemu-img create -f vpc hdd.vhd 40M</span></code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmake hdd.vhd -type vhd -size 2097152</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Or to create it with <code>IMGMAKE</code>, simply ensure the filename extension is <code>.vhd</code>. e.g.,</p>
+<p>Or to create a 2GiB fixed-size VHD image using the integrated 'IMGMAKE' utility:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="rouge highlight"><code data-lang="console"><span class="go">IMGMAKE -t hd -size 40 hdd.vhd</span></code></pre>
+<pre class="rouge highlight"><code data-lang="console"><span class="go">imgmake hdd.vhd -type hd -size 2097152</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The advantage of using <code>IMGMAKE</code> is that the created image file will be partitioned and formatted and as such is ready to be mounted.
-The disadvantage is that only fixed size VHD images can be created this way. If you want dynamic images, another method will have to be used.</p>
+<p>The advantage of using <code>IMGMAKE</code> is that the created image file will be partitioned and formatted and as such is ready to be mounted.</p>
+</div>
+<div class="paragraph">
+<p>Alternatively, external tools such as <a href="https://www.qemu.org/download/">qemu-img</a> can be used to create VHD files, with the disadvantage that they may not be partitioned and formatted.</p>
 </div>
 <div class="paragraph">
 <p>If you have a VHD image file that is not partitioned or formatted, it will have to be mounted on a drive-number, after which you can boot from a DOS floppy disk to partition and format the image:</p>
@@ -2450,7 +2433,6 @@ This is because, once you boot a guest OS, the drive letter mapping loses its me
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2023-05-06 21:06:49 +0800
 </div>
 </div>
 <script src="./docinfo/copy-to-clipboard.js"></script>
