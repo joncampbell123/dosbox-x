@@ -649,6 +649,11 @@ typedef struct VGA_Complexity_t {
 	}
 } VGA_Complexity;
 
+typedef struct VGA_Override_t {
+	bool			enable = false;
+	uint32_t		start = ~uint32_t(0u);
+} VGA_Override;
+
 typedef struct VGA_Type_t {
     VGAModes mode = {};                              /* The mode the vga system is in */
     VGAModes lastmode = {};
@@ -672,6 +677,7 @@ typedef struct VGA_Type_t {
     VGA_Memory mem;
     VGA_LFB lfb = {};
     VGA_Complexity complexity = {};
+    VGA_Override overopts = {};
 } VGA_Type;
 
 

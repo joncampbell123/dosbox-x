@@ -3691,6 +3691,10 @@ static void VGA_DisplayStartLatch(Bitu /*val*/) {
     vga.config.real_start=vga.config.display_start & vga.mem.memmask;
     vga.draw.bytes_skip = vga.config.bytes_skip;
 
+    if (vga.overopts.enable) {
+	    if (vga.overopts.start != ~uint32_t(0u)) vga.config.real_start = vga.overopts.start & vga.mem.memmask;
+    }
+
     /* TODO: When does 640x480 2-color mode latch foreground/background colors from the DAC? */
     if (machine == MCH_MCGA && (vga.other.mcga_mode_control & 2)) {//640x480 2-color mode MCGA
         VGA_DAC_UpdateColorPalette();
@@ -6202,6 +6206,7 @@ bool IsDebuggerActive(void);
 void VGA_DebugRedraw(void) {
 	if (IsDebuggerActive()) {
 		RENDER_EndUpdate(true);
+		vga.draw.lines_done = vga.draw.lines_total;
 		PIC_RemoveEvents(VGA_Other_VertInterrupt);
 		PIC_RemoveEvents(VGA_VerticalTimer);
 		PIC_RemoveEvents(VGA_PanningLatch);
@@ -6210,6 +6215,16 @@ void VGA_DebugRedraw(void) {
 		VGA_VerticalTimer(0);
 		VGA_RenderOnDemandComplete();
 	}
+}
+
+void VGA_DebugOverrideStart(uint32_t ofs) {
+	vga.overopts.start = ofs;
+	vga.overopts.enable = true;
+}
+
+void VGA_ResetDebugOverrides(void) {
+	vga.overopts.start = ~uint32_t(0ul);
+	vga.overopts.enable = false;
 }
 
 void VGA_CheckScanLength(void) {
