@@ -6197,6 +6197,21 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 	}
 }
 
+bool IsDebuggerActive(void);
+
+void VGA_DebugRedraw(void) {
+	if (IsDebuggerActive()) {
+		RENDER_EndUpdate(true);
+		PIC_RemoveEvents(VGA_Other_VertInterrupt);
+		PIC_RemoveEvents(VGA_VerticalTimer);
+		PIC_RemoveEvents(VGA_PanningLatch);
+		PIC_RemoveEvents(VGA_DisplayStartLatch);
+		VGA_DisplayStartLatch(0);
+		VGA_VerticalTimer(0);
+		VGA_RenderOnDemandComplete();
+	}
+}
+
 void VGA_CheckScanLength(void) {
 	switch (vga.mode) {
 		case M_EGA:

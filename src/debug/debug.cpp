@@ -302,6 +302,8 @@ static bool check_rescroll = false;
 
 static FPU_rec oldfpu;
 
+void VGA_DebugRedraw(void);
+
 bool IsDebuggerActive(void) {
     return debugging;
 }
@@ -2793,6 +2795,11 @@ bool ParseCommand(char* str) {
         }
     }
 
+    if (command == "VRD") {
+        VGA_DebugRedraw();
+        return true;
+    }
+
     if (command == "VGA") {
         while (*found == ' ') found++;
         stream >> command;
@@ -3545,6 +3552,7 @@ bool ParseCommand(char* str) {
 		DEBUG_ShowMsg("SV [filename]             - Save var list in file.\n");
 		DEBUG_ShowMsg("LV [filename]             - Load var list from file.\n");
 
+		DEBUG_ShowMsg("VRD                       - Redraw video.\n");
 		DEBUG_ShowMsg("VGA cmd                   - VGA related debugging commands.\n");
 		DEBUG_ShowMsg("PC98 cmd                  - PC98 related debugging commands.\n");
 		DEBUG_ShowMsg("EMU MEM/MACHINE           - Show emulator memory or machine info.\n");

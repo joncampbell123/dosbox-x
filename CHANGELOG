@@ -1,5 +1,5 @@
 Next version:
-  - 
+  - Add "VRD" debugger command to force redraw of the VGA screen.
 
 2023.09.01
   - Disable by default message confirmation after snapshot and AVI video
