@@ -304,7 +304,7 @@ static FPU_rec oldfpu;
 
 void VGA_DebugRedraw(void);
 
-void VGA_DebugOverrideStart(uint32_t ofs);
+void VGA_DebugOverrideStart(uint32_t ofs,bool sum);
 void VGA_ResetDebugOverrides(void);
 
 bool IsDebuggerActive(void) {
@@ -2822,7 +2822,9 @@ bool ParseCommand(char* str) {
 		while (*found == ' ') found++;
 
 		if (cmd2 == "START") {
-			VGA_DebugOverrideStart(strtoul(found,NULL,16/*hexadecimal*/));
+			bool sum = false;
+			if (*found == '+') { sum = true; found++; }
+			VGA_DebugOverrideStart(strtoul(found,NULL,16/*hexadecimal*/),sum);
 			VGA_DebugRedraw();
 		}
 		else if (cmd2 == "X") {

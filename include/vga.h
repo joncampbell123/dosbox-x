@@ -651,6 +651,7 @@ typedef struct VGA_Complexity_t {
 
 typedef struct VGA_Override_t {
 	bool			enable = false;
+	bool			start_sum = false;
 	uint32_t		start = ~uint32_t(0u);
 } VGA_Override;
 

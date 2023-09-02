@@ -3692,7 +3692,12 @@ static void VGA_DisplayStartLatch(Bitu /*val*/) {
     vga.draw.bytes_skip = vga.config.bytes_skip;
 
     if (vga.overopts.enable) {
-	    if (vga.overopts.start != ~uint32_t(0u)) vga.config.real_start = vga.overopts.start & vga.mem.memmask;
+	    if (vga.overopts.start != ~uint32_t(0u)) {
+		    if (vga.overopts.start_sum)
+			    vga.config.real_start = (vga.config.real_start + vga.overopts.start) & vga.mem.memmask;
+		    else
+			    vga.config.real_start = vga.overopts.start & vga.mem.memmask;
+	    }
     }
 
     /* TODO: When does 640x480 2-color mode latch foreground/background colors from the DAC? */
@@ -6217,13 +6222,15 @@ void VGA_DebugRedraw(void) {
 	}
 }
 
-void VGA_DebugOverrideStart(uint32_t ofs) {
+void VGA_DebugOverrideStart(uint32_t ofs,bool sum) {
+	vga.overopts.start_sum = sum;
 	vga.overopts.start = ofs;
 	vga.overopts.enable = true;
 }
 
 void VGA_ResetDebugOverrides(void) {
 	vga.overopts.start = ~uint32_t(0ul);
+	vga.overopts.start_sum = false;
 	vga.overopts.enable = false;
 }
 
