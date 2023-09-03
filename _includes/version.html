@@ -23,12 +23,12 @@
 <h5 class="subtitle-mute">(Windows XP and later versions supported)</h5>
 <h5>
   {% include version_file.html version=version name="win64_setup_file" display_name="32/64-bit Setup (Vista+)" %}
+  {%- unless version.win32_setup_file and version.win64_setup_file -%}<abbr title="Recommended at the moment">*</abbr>{%- endunless -%}
 </h5>
 <h5>
   {% include version_file.html version=version name="winXP_setup_file" display_name="32/64-bit Setup (XP+)" %}
 <h5>
   <a href="https://github.com/joncampbell123/dosbox-x/blob/master/INSTALL.md#windows-packages-installer-or-portable">More options including portable packages</a>
-  {%- unless version.win32_setup_file and version.win64_setup_file -%}<abbr title="Recommended at the moment">*</abbr>{%- endunless -%}
 </h5>
 
 <h4>Linux version:</h4>
