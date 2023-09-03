@@ -6206,9 +6206,12 @@ static void VGA_VerticalTimer(Bitu /*val*/) {
 	}
 }
 
+#if C_DEBUG
 bool IsDebuggerActive(void);
+#endif
 
 void VGA_DebugRedraw(void) {
+#if C_DEBUG
 	if (IsDebuggerActive()) {
 		RENDER_EndUpdate(true);
 		vga.draw.lines_done = vga.draw.lines_total;
@@ -6220,6 +6223,7 @@ void VGA_DebugRedraw(void) {
 		VGA_VerticalTimer(0);
 		VGA_RenderOnDemandComplete();
 	}
+#endif
 }
 
 void VGA_DebugOverrideStart(uint32_t ofs,bool sum) {
