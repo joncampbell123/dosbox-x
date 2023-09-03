@@ -3,15 +3,15 @@
 
 # Release date and secondary version label is retrieved from
 # the release note of the version
-version: 2023.05.01
-git_tag: dosbox-x-v2023.05.01
+version: 2023.09.01
+git_tag: dosbox-x-v2023.09.01
 
 win32_setup_file: null
-win64_setup_file: null
-winXP_setup_file: dosbox-x-winXP-2023.05.01-setup.exe
+win64_setup_file: dosbox-x-windows-2023.09.01-setup.exe
+winXP_setup_file: dosbox-x-winXP-2023.09.01-setup.exe
 
-macos_intel_file: dosbox-x-macosx-x86_64-20230501092707.zip
-macos_arm_file: dosbox-x-macosx-arm64-20230501092707.zip
+macos_intel_file: dosbox-x-macosx-x86_64-20230901155520.zip
+macos_arm_file: dosbox-x-macosx-arm64-20230901150441.zip
 macos_special_file: null
 
 dos_hx_file: null
