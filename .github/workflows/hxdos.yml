@@ -21,7 +21,7 @@ jobs:
         uses: styfle/cancel-workflow-action@0.11.0
         with:
           access_token: ${{ github.token }}
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Prepare HX-DOS
         shell: bash
         run: |
