@@ -1,9 +1,14 @@
 
 **Welcome to the DOSBox-X project homepage located on GitHub.**
 
-**Be sure to also visit DOSBox-X's website at [https://dosbox-x.com](https://dosbox-x.com) (or [http://dosbox-x.software](http://dosbox-x.software))**
-
-**Discord channel for the DOSBox-X project: [https://discord.gg/5cnTmcsTpG](https://discord.gg/5cnTmcsTpG)**
+## Useful links
+- [DOSBox-X's website](https://dosbox-x.com) ([https://dosbox-x.com](https://dosbox-x.com) or [http://dosbox-x.software](http://dosbox-x.software))  
+- [DOSBox-X's Wiki page](https://dosbox-x.com/wiki)  
+- [Discord channel for the DOSBox-X project](https://discord.gg/5cnTmcsTpG) ([https://discord.gg/5cnTmcsTpG](https://discord.gg/5cnTmcsTpG))  
+- [Releases](https://github.com/joncampbell123/dosbox-x/releases)  
+- [Development/Nightly builds](https://dosbox-x.com/devel-build.html)  
+- [Install instructions](INSTALL.md)  
+- [Build instructions](BUILD.md)  
 
 ## Table of Contents
 
@@ -381,6 +386,7 @@ See also the [CREDITS](CREDITS.md) page for crediting of the source code.
 
 ## Support for international language translations and keyboard layouts
 
+# Translations
 DOSBox-X displays English as the default language, and uses the U.S. code page (437) by default, just like DOSBox.
 
 All messages displayed by DOSBox-X are in English with the default setting. DOSBox-X does support the feature to
@@ -388,7 +394,7 @@ change the display messages with the use of language files. The language files c
 internal commands and the internal DOS, as well as the text in DOSBox-X's drop-down menus. If you are a speaker of
 a non-English language, you are encouraged to create additional language files for use with DOSBox-X by translating
 messages in DOSBox-X to your language. Other DOSBox-X users can also use these language files for DOSBox-X to display
-messages in such languages. There are several language files available in the DOSBox-X repository, e.g.:
+messages in such languages. Language files can be found in the `languages` directory of your DOSBox-X installation.
 
 |Language name|Language file|
 | --- | --- |
@@ -402,6 +408,7 @@ messages in such languages. There are several language files available in the DO
 |Spanish|[contrib/translations/es/es_ES.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/es/es_ES.lng)|
 |Turkish|[contrib/translations/tr/tr_TR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/tr/tr_TR.lng)|
 
+# Keyboard layouts
 The fact that DOSBox-X was developed around the U.S. keyboard layout is primarily due to limitations around the SDL1
 library which provides input handling. As such when using the SDL1 version and a non-US keyboard, DOSBox-X automatically
 uses scancodes with the default setting to work around keyboard layout issues. Scancodes are not needed when using
