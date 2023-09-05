@@ -136,10 +136,10 @@ Source: ".\windows\dosbox-x_x64_SDL1.exe"; DestDir: "{app}"; Check: IsWin64; Fla
 Source: ".\windows\dosbox-x_x64_SDL2.exe"; DestDir: "{app}"; Check: IsWin64; Flags: ignoreversion; Components: full
 Source: ".\windows\dosbox-x_x86_SDL1.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: full
 Source: ".\windows\dosbox-x_x86_SDL2.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: full
-Source: ".\windows\dosbox-x_MinGWx64_SDL1.exe"; DestDir: "{app}"; Check: IsWin64; Flags: ignoreversion; Components: full
-Source: ".\windows\dosbox-x_MinGWx64_SDL2.exe"; DestDir: "{app}"; Check: IsWin64; Flags: ignoreversion; Components: full
-Source: ".\windows\dosbox-x_MinGWx86_SDL1.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: full
-Source: ".\windows\dosbox-x_MinGWx86_SDL2.exe"; DestDir: "{app}"; Flags: ignoreversion; Components: full
+Source: ".\windows\dosbox-x_MinGWx64_SDL1.exe"; DestDir: "{app}"; Check: IsWin64 and IsWindowsVersionOrNewer(6,1); Flags: ignoreversion; Components: full
+Source: ".\windows\dosbox-x_MinGWx64_SDL2.exe"; DestDir: "{app}"; Check: IsWin64 and IsWindowsVersionOrNewer(6,1); Flags: ignoreversion; Components: full
+Source: ".\windows\dosbox-x_MinGWx86_SDL1.exe"; DestDir: "{app}"; Check: IsWindowsVersionOrNewer(6,1); Flags: ignoreversion; Components: full
+Source: ".\windows\dosbox-x_MinGWx86_SDL2.exe"; DestDir: "{app}"; Check: IsWindowsVersionOrNewer(6,1); Flags: ignoreversion; Components: full
 Source: ".\windows\dosbox-x_ARM64_SDL1.exe"; DestDir: "{app}"; Check: not (IsX86 or IsX64); Flags: ignoreversion; Components: full
 Source: ".\windows\dosbox-x_ARM64_SDL2.exe"; DestDir: "{app}"; Check: not (IsX86 or IsX64); Flags: ignoreversion; Components: full
 Source: ".\windows\dosbox-x_ARM_SDL1.exe"; DestDir: "{app}"; Check: not (IsX86 or IsX64); Flags: ignoreversion; Components: full
@@ -158,10 +158,10 @@ Name: "{group}\All DOSBox-X builds\x64 Release SDL1"; Filename: "{app}\dosbox-x_
 Name: "{group}\All DOSBox-X builds\x64 Release SDL2"; Filename: "{app}\dosbox-x_x64_SDL2.exe"; WorkingDir: "{app}"; Check: IsWin64; Components: full
 Name: "{group}\All DOSBox-X builds\x86 Release SDL1"; Filename: "{app}\dosbox-x_x86_SDL1.exe"; WorkingDir: "{app}"; Components: full
 Name: "{group}\All DOSBox-X builds\x86 Release SDL2"; Filename: "{app}\dosbox-x_x86_SDL2.exe"; WorkingDir: "{app}"; Components: full
-Name: "{group}\All DOSBox-X builds\MinGW x64 Release SDL1"; Filename: "{app}\dosbox-x_MinGWx64_SDL1.exe"; WorkingDir: "{app}"; Check: IsWin64; Components: full
-Name: "{group}\All DOSBox-X builds\MinGW x64 Release SDL2"; Filename: "{app}\dosbox-x_MinGWx64_SDL1.exe"; WorkingDir: "{app}"; Check: IsWin64; Components: full
-Name: "{group}\All DOSBox-X builds\MinGW x86 Release SDL1"; Filename: "{app}\dosbox-x_MinGWx86_SDL1.exe"; WorkingDir: "{app}"; Components: full
-Name: "{group}\All DOSBox-X builds\MinGW x86 Release SDL2"; Filename: "{app}\dosbox-x_MinGWx86_SDL2.exe"; WorkingDir: "{app}"; Components: full
+Name: "{group}\All DOSBox-X builds\MinGW x64 Release SDL1"; Filename: "{app}\dosbox-x_MinGWx64_SDL1.exe"; WorkingDir: "{app}"; Check: IsWin64 and IsWindowsVersionOrNewer(6,1); Components: full
+Name: "{group}\All DOSBox-X builds\MinGW x64 Release SDL2"; Filename: "{app}\dosbox-x_MinGWx64_SDL2.exe"; WorkingDir: "{app}"; Check: IsWin64 and IsWindowsVersionOrNewer(6,1); Components: full
+Name: "{group}\All DOSBox-X builds\MinGW x86 Release SDL1"; Filename: "{app}\dosbox-x_MinGWx86_SDL1.exe"; WorkingDir: "{app}"; Check: IsWindowsVersionOrNewer(6,1); Components: full
+Name: "{group}\All DOSBox-X builds\MinGW x86 Release SDL2"; Filename: "{app}\dosbox-x_MinGWx86_SDL2.exe"; WorkingDir: "{app}"; Check: IsWindowsVersionOrNewer(6,1); Components: full
 Name: "{group}\All DOSBox-X builds\ARM64 Release SDL1"; Filename: "{app}\dosbox-x_ARM64_SDL1.exe"; WorkingDir: "{app}"; Check: not (IsX86 or IsX64); Components: full
 Name: "{group}\All DOSBox-X builds\ARM64 Release SDL2"; Filename: "{app}\dosbox-x_ARM64_SDL2.exe"; WorkingDir: "{app}"; Check: not (IsX86 or IsX64); Components: full
 Name: "{group}\All DOSBox-X builds\ARM Release SDL1"; Filename: "{app}\dosbox-x_ARM_SDL1.exe"; WorkingDir: "{app}"; Check: not (IsX86 or IsX64); Components: full
@@ -407,6 +407,12 @@ begin
             PageBuild.Values[5] := True;
           end
       end;
+    if not IsWindowsVersionOrNewer(6,1) then
+      begin
+        PageBuild.CheckListBox.ItemEnabled[2] := False;
+        PageBuild.CheckListBox.ItemEnabled[3] := False;  
+      end;
+     
     PageBuild.CheckListBox.AddGroup('Check the following box to select the SDL2 build as the default DOSBox-X build.', '', 0, nil);
     PageBuild.CheckListBox.AddCheckBox('Default to SDL2 build (instead of SDL1 build) ', '', 0, False, True, False, True, nil);
     CreateHelpButton(ScaleX(20), WizardForm.CancelButton.Top, WizardForm.CancelButton.Width, WizardForm.CancelButton.Height);
