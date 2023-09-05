@@ -81,6 +81,11 @@ jobs:
           cd $top/package/
           $top/vs/tool/zip.exe -r -9 $top/dosbox-x-mingw-hx-dos-${{ env.timestamp }}.zip *
           cd $top
+      - name: Wait for VS 32bit build to finish (Release only)
+        if: startsWith(github.ref, 'refs/tags/')
+        shell: bash
+        run: |
+          sleep 40m
       - name: Download Windows build
         uses: robinraju/release-downloader@v1.8
         with:
