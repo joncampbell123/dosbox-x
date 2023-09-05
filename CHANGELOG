@@ -2,6 +2,12 @@ Next version:
   - Add "VRD" debugger command to force redraw of the VGA screen.
   - Add VGA debug set commands to force a video start address and another
     to clear all debug settings.
+  - Add "PITSYNC" option to VFRCRATE command. "VFRCRATE PITSYNC ON"
+    directs the system timer interrupt to synchronize tick rate with
+    vertical refresh rate of VGA emulation if the game or demo set
+    the timer tick rate to a value close enough to vertical refresh.
+    This is intended for games or demos that use the system timer for
+    a vsync interrupt.
 
 2023.09.01
   - Disable by default message confirmation after snapshot and AVI video

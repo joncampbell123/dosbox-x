@@ -170,6 +170,8 @@ void VGA_CaptureStartNextFrame(void);
 void VGA_CaptureMarkError(void);
 bool VGA_CaptureValidateCurrentFrame(void);
 
+bool                                VGA_PITsync = false;
+
 unsigned int                        vbe_window_granularity = 0;
 unsigned int                        vbe_window_size = 0;
 
@@ -528,6 +530,13 @@ void VGA_SetCGA4Table(uint8_t val0,uint8_t val1,uint8_t val2,uint8_t val3) {
     }
 }
 
+void SetPITSync(char *x) {
+	if (!strncasecmp(x,"off",3))
+		VGA_PITsync = false;
+	else if (!strncasecmp(x,"on",3))
+		VGA_PITsync = true;
+}
+
 void SetRate(char *x) {
     if (!strncasecmp(x,"off",3))
         vga_force_refresh_rate = -1;
@@ -574,11 +583,14 @@ public:
 			WriteOut("  SET rate  Lock to integer frame rate, e.g. 15\n");
 			WriteOut("  SET rate  Lock to decimal frame rate, e.g. 29.97\n");
 			WriteOut("  SET rate  Lock to fractional frame rate, e.g. 60000/1001\n\n");
+			WriteOut("  PITSYNC <ON|OFF> Make PIT timer tick at refresh rate if close enough\n\n");
 			WriteOut("Type VFRCRATE without a parameter to show the current status.\n");
 			return;
 		}
         if (cmd->FindString("SET",temp_line,false))
             SetRate((char *)temp_line.c_str());
+        if (cmd->FindString("PITSYNC",temp_line,false))
+            SetPITSync((char *)temp_line.c_str());
 #if defined(USE_TTF)
         if (TTF_using()) PIC_AddEvent(&resetSize, 1);
 #endif

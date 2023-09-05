@@ -5428,6 +5428,15 @@ void FreeRawImage(void) {
 	rawshot.free();
 }
 
+pic_tickindex_t VGA_PITSync_delay(void) {
+	pic_tickindex_t current_time = PIC_GetCurrentEventTime();
+	pic_tickindex_t dt = current_time - vga.draw.delay.framestart;
+	pic_tickindex_t et = vga.draw.delay.vrstart - dt;
+	if (et < (vga.draw.delay.vtotal/2.0)) et += vga.draw.delay.vtotal;
+//	LOG_MSG("dt %.3f et %.3f\n",double(dt),double(et));
+	return et;
+}
+
 static void VGA_VerticalTimer(Bitu /*val*/) {
 	double current_time = PIC_GetCurrentEventTime();
 

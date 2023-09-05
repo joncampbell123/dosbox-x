@@ -29,6 +29,9 @@
 #include "setup.h"
 #include "control.h"
 
+extern bool VGA_PITsync;
+extern double vga_fps;
+
 // This is only set in PC-98 mode and only if emulating PC-9801.
 // There is at least one game (PC-98 port of Thexder) that depends on PC-9801 PIT 1
 // behavior where the counter cycles at all times whether or not the PC speaker is
@@ -308,12 +311,25 @@ static bool latched_timerstatus_locked;
 
 unsigned long PIT_TICK_RATE = PIT_TICK_RATE_IBM;
 
+pic_tickindex_t VGA_PITSync_delay(void);
+
 static void PIT0_Event(Bitu /*val*/) {
 	PIC_ActivateIRQ(0);
 	/* NTS: "Days of Thunder" leaves PIT 0 in mode 1 for some reason, which triggers once and then stops. "start" does not advance in that mode.
 	 *      For any non-periodic mode, this code would falsely detect an ever increasing error and act badly. */
 	if (pit[0].mode == 2 || pit[0].mode == 3) {
 		pit[0].track_time(PIC_FullIndex());
+
+		/* If enabled option and VGA refresh rate is close to PIT 0 timer tick rate,
+		 * make them line up so that demos that use PIT0 for vsync can run without
+		 * shearing artifacts */
+		if (VGA_PITsync) {
+			pic_tickindex_t vga_delay = 1000.0 / vga_fps;
+			if (fabs(vga_delay - pit[0].delay) < (vga_delay * 0.05)) {
+				PIC_AddEvent(PIT0_Event,VGA_PITSync_delay());
+				return;
+			}
+		}
 
 		/* event timing error checking */
 		pic_tickindex_t err = PIC_GetCurrentEventTime() - pit[0].start;
