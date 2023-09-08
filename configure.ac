@@ -371,6 +371,7 @@ AC_CHECK_CXXFLAGS([ -Wall ])
 AC_CHECK_CXXFLAGS([ -Wextra ])
 AC_CHECK_CXXFLAGS([ -Wunused ])
 AC_CHECK_CXXFLAGS([ -pedantic ])
+AC_CHECK_CXXFLAGS([ -Wno-error=format-security ])     # imfc.cpp and later versions of GCC, see https://github.com/joncampbell123/dosbox-x/issues/4436
 #AC_CHECK_CXXFLAGS([ -Wconversion ])      DO NOT ENABLE. THIS WARNING IS WAY TOO PEDANTIC TO BE USEFUL, EXCEPT FOR SPECIFIC CASES
 #AC_CHECK_CXXFLAGS([ -Wsign-conversion ])
 AC_CHECK_CXXFLAGS([ -Wlogical-op ])
