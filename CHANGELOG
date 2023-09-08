@@ -10,6 +10,8 @@ Next version:
     a vsync interrupt.
   - IMGMAKE: Fix bug where if -bat was specified, the generated .bat
     file would attempt to mount the .bat file, not the disk image.
+  - IMGMAKE: If -nofs and -bat was specified, the generated .bat file
+    will refer to "IMGMAKE 2" instead of "IMGMAKE C"
 
 2023.09.01
   - Disable by default message confirmation after snapshot and AVI video

@@ -4013,7 +4013,12 @@ restart_int:
                 }
                 return;
             }
-            fprintf(f,"imgmount c %s -size 512,%u,%u,%u\r\n",temp_line.c_str(),s,h,c);
+
+            if (bootsect_pos < 0) /* -nofs */
+                fprintf(f,"imgmount 2 %s -size 512,%u,%u,%u\r\n",temp_line.c_str(),s,h,c);
+            else
+                fprintf(f,"imgmount c %s -size 512,%u,%u,%u\r\n",temp_line.c_str(),s,h,c);
+
             fclose(f);
         }
         if (setdir) {
