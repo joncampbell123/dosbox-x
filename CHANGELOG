@@ -8,6 +8,8 @@ Next version:
     the timer tick rate to a value close enough to vertical refresh.
     This is intended for games or demos that use the system timer for
     a vsync interrupt.
+  - IMGMAKE: Fix bug where if -bat was specified, the generated .bat
+    file would attempt to mount the .bat file, not the disk image.
 
 2023.09.01
   - Disable by default message confirmation after snapshot and AVI video
