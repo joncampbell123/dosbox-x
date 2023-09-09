@@ -159,7 +159,6 @@ jobs:
           chmod +x ${MSYSTEM_PREFIX}/i686-w64-mingw32/bin/*.*
           chmod +x ${MSYSTEM_PREFIX}/opt/bin/*.*
       - name: Build MinGW32 lowend SDL2
-        shell: bash
         run: |
           top=`pwd`
           export "MSYSTEM_PREFIX=/d/a/_temp/msys64/mingw32"
@@ -168,7 +167,6 @@ jobs:
           mkdir -p mingw-bin
           cp src/dosbox-x.exe mingw-bin/dosbox-x_mingw_lowend_SDL2.exe
       - name: Build MinGW32 lowend SDL1
-        shell: bash
         run: |
           export "MSYSTEM_PREFIX=/d/a/_temp/msys64/mingw32"
           ./build-mingw
