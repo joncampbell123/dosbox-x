@@ -24,6 +24,9 @@ Next version:
     and end up with a working drive letter (just like MS-DOS). So far
     verified against MS-DOS 6.22 and Windows 98 versions of FDISK,
     FORMAT, SYS, and SCANDISK.
+  - DOS FAT driver: Add options -o sectoff and -o sectlen to make it
+    possible to manually specify the start and length of a partition.
+    Future code will use this internally as well.
 
 2023.09.01
   - Disable by default message confirmation after snapshot and AVI video

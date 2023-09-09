@@ -1526,6 +1526,7 @@ void fatDrive::UpdateDPB(unsigned char dos_drive) {
 }
 
 void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32_t cylsector, uint32_t headscyl, uint32_t cylinders, uint64_t filesize, const std::vector<std::string> &options) {
+	Bits opt_startsector = Bits(-1),opt_countsector = Bits(-1);
 	uint32_t startSector = 0,countSector = 0;
 	bool pc98_512_to_1024_allow = false;
 	int opt_partition_index = -1;
@@ -1556,6 +1557,14 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 			if (!value.empty())
 				opt_partition_index = (int)atol(value.c_str());
 		}
+		else if (name == "sectoff") {
+			if (!value.empty())
+				opt_startsector = Bits(strtoul(value.c_str(),NULL,0));
+		}
+		else if (name == "sectlen") {
+			if (!value.empty())
+				opt_countsector = Bits(strtoul(value.c_str(),NULL,0));
+		}
 		else {
 			LOG(LOG_DOSMISC,LOG_DEBUG)("FAT: option '%s' = '%s' ignored, unknown",name.c_str(),value.c_str());
 		}
@@ -1575,7 +1584,19 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 			return;
 		}
 
-		if(is_hdd) {
+		if(opt_startsector >= Bits(0)) {
+			/* User knows best! */
+			startSector = uint32_t(opt_startsector);
+
+			if (opt_countsector > Bits(0))
+				countSector = uint32_t(opt_countsector);
+			else
+				countSector = 0;
+
+			partSectOff = startSector;
+			partSectSize = countSector;
+		}
+		else if(is_hdd) {
 			/* Set user specified harddrive parameters */
 			if (headscyl > 0 && cylinders > 0 && cylsector > 0 && bytesector > 0)
 				loadedDisk->Set_Geometry(headscyl, cylinders,cylsector, bytesector);
