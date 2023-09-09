@@ -12,6 +12,18 @@ Next version:
     file would attempt to mount the .bat file, not the disk image.
   - IMGMAKE: If -nofs and -bat was specified, the generated .bat file
     will refer to "IMGMAKE 2" instead of "IMGMAKE C"
+  - DOS FAT driver: When the guest sends in a new BIOS Parameter Block,
+    recalculate the disk locations and FAT type properly instead of
+    assuming that FORMAT.COM is using the same format already present.
+  - DOS FAT driver: If the partition is unformatted and looks as if
+    freshly written by FDISK, then instead of failing to mount, mount
+    the partition instead as an unformatted partition and fail file
+    I/O until a BPB is set and the partition formatted by FORMAT.COM.
+    This matches MS-DOS behavior and it makes it possible to mount an
+    image, FDISK it, restart, FORMAT.COM the unformatted partition,
+    and end up with a working drive letter (just like MS-DOS). So far
+    verified against MS-DOS 6.22 and Windows 98 versions of FDISK,
+    FORMAT, SYS, and SCANDISK.
 
 2023.09.01
   - Disable by default message confirmation after snapshot and AVI video

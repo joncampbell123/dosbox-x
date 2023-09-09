@@ -519,6 +519,8 @@ public:
 	virtual uint32_t GetPartitionOffset(void);
 	virtual uint32_t GetFirstClusterOffset(void);
 	virtual uint32_t GetHighestClusterNumber(void);
+
+	bool unformatted = false;
 };
 
 PhysPt DOS_Get_DPB(unsigned int dos_drive);
