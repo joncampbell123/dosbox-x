@@ -3572,6 +3572,9 @@ bool PartitionLoadIPL1(std::vector<_PC98RawPartition> &parts,imageDisk *loadedDi
 std::string PartitionIdentifyType(imageDisk *loadedDisk) {
 	struct partTable mbrData;
 
+	if (loadedDisk->getSectSize() > sizeof(mbrData))
+		return std::string(); /* That would cause a buffer overrun */
+
 	if (loadedDisk->Read_Sector(0,0,1,&mbrData) != 0)
 		return std::string();
 
