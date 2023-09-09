@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 #### Configuration:
 # The name of the executable. It is assumed

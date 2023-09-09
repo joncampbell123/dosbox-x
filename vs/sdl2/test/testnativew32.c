@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -52,7 +52,7 @@ CreateWindowNative(int w, int h)
     wc.hInstance = GetModuleHandle(NULL);
     wc.hIcon = LoadIcon(NULL, IDI_APPLICATION);
     wc.hCursor = LoadCursor(NULL, IDC_ARROW);
-    wc.hbrBackground = (HBRUSH) (COLOR_WINDOW + 1);
+    wc.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
     wc.lpszMenuName = NULL;
     wc.lpszClassName = "SDL Test";
 
@@ -80,7 +80,7 @@ CreateWindowNative(int w, int h)
 static void
 DestroyWindowNative(void *window)
 {
-    DestroyWindow((HWND) window);
+    DestroyWindow((HWND)window);
 }
 
 #endif

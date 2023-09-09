@@ -1,6 +1,6 @@
 Summary: Simple DirectMedia Layer
 Name: SDL2
-Version: 2.0.9
+Version: 2.28.2
 Release: 2
 Source: http://www.libsdl.org/release/%{name}-%{version}.tar.gz
 URL: http://www.libsdl.org/
@@ -63,7 +63,7 @@ rm -rf $RPM_BUILD_ROOT
 
 %files
 %{__defattr}
-%doc README*.txt COPYING.txt CREDITS.txt BUGS.txt
+%doc README*.txt LICENSE.txt CREDITS.txt BUGS.txt
 %{_libdir}/lib*.%{__soext}.*
 
 %files devel
@@ -74,7 +74,8 @@ rm -rf $RPM_BUILD_ROOT
 %{_libdir}/lib*.la
 %{_libdir}/lib*.%{__soext}
 %{_includedir}/*/*.h
-%{_libdir}/pkgconfig/*
+%{_libdir}/cmake/*
+%{_libdir}/pkgconfig/SDL2/*
 %{_datadir}/aclocal/*
 
 %changelog

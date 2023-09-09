@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -23,7 +23,7 @@ int main(int argc, char **argv)
 
     total = SDL_GetNumVideoDisplays();
     for (i = 0; i < total; i++) {
-        SDL_Rect bounds = { -1,-1,-1,-1 }, usable = { -1,-1,-1,-1 };
+        SDL_Rect bounds = { -1, -1, -1, -1 }, usable = { -1, -1, -1, -1 };
         SDL_GetDisplayBounds(i, &bounds);
         SDL_GetDisplayUsableBounds(i, &usable);
         SDL_Log("Display #%d ('%s'): bounds={(%d,%d),%dx%d}, usable={(%d,%d),%dx%d}",

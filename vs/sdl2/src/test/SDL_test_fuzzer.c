@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -59,8 +59,7 @@ static SDLTest_RandomContext rndContext;
  * Note: doxygen documentation markup for functions is in the header file.
  */
 
-void
-SDLTest_FuzzerInit(Uint64 execKey)
+void SDLTest_FuzzerInit(Uint64 execKey)
 {
     Uint32 a = (execKey >> 32) & 0x00000000FFFFFFFF;
     Uint32 b = execKey & 0x00000000FFFFFFFF;
@@ -69,64 +68,57 @@ SDLTest_FuzzerInit(Uint64 execKey)
     fuzzerInvocationCounter = 0;
 }
 
-int
-SDLTest_GetFuzzerInvocationCount()
+int SDLTest_GetFuzzerInvocationCount()
 {
     return fuzzerInvocationCounter;
 }
 
-Uint8
-SDLTest_RandomUint8()
+Uint8 SDLTest_RandomUint8()
 {
     fuzzerInvocationCounter++;
 
-    return (Uint8) SDLTest_RandomInt(&rndContext) & 0x000000FF;
+    return (Uint8)SDLTest_RandomInt(&rndContext) & 0x000000FF;
 }
 
-Sint8
-SDLTest_RandomSint8()
+Sint8 SDLTest_RandomSint8()
 {
     fuzzerInvocationCounter++;
 
-    return (Sint8) SDLTest_RandomInt(&rndContext) & 0x000000FF;
+    return (Sint8)SDLTest_RandomInt(&rndContext) & 0x000000FF;
 }
 
-Uint16
-SDLTest_RandomUint16()
+Uint16 SDLTest_RandomUint16()
 {
     fuzzerInvocationCounter++;
 
-    return (Uint16) SDLTest_RandomInt(&rndContext) & 0x0000FFFF;
+    return (Uint16)SDLTest_RandomInt(&rndContext) & 0x0000FFFF;
 }
 
-Sint16
-SDLTest_RandomSint16()
+Sint16 SDLTest_RandomSint16()
 {
     fuzzerInvocationCounter++;
 
-    return (Sint16) SDLTest_RandomInt(&rndContext) & 0x0000FFFF;
+    return (Sint16)SDLTest_RandomInt(&rndContext) & 0x0000FFFF;
 }
 
-Sint32
-SDLTest_RandomSint32()
+Sint32 SDLTest_RandomSint32()
 {
     fuzzerInvocationCounter++;
 
-    return (Sint32) SDLTest_RandomInt(&rndContext);
+    return (Sint32)SDLTest_RandomInt(&rndContext);
 }
 
-Uint32
-SDLTest_RandomUint32()
+Uint32 SDLTest_RandomUint32()
 {
     fuzzerInvocationCounter++;
 
-    return (Uint32) SDLTest_RandomInt(&rndContext);
+    return (Uint32)SDLTest_RandomInt(&rndContext);
 }
 
-Uint64
-SDLTest_RandomUint64()
+Uint64 SDLTest_RandomUint64()
 {
-    union {
+    union
+    {
         Uint64 v64;
         Uint32 v32[2];
     } value;
@@ -140,10 +132,10 @@ SDLTest_RandomUint64()
     return value.v64;
 }
 
-Sint64
-SDLTest_RandomSint64()
+Sint64 SDLTest_RandomSint64()
 {
-    union {
+    union
+    {
         Uint64 v64;
         Uint32 v32[2];
     } value;
@@ -157,21 +149,18 @@ SDLTest_RandomSint64()
     return (Sint64)value.v64;
 }
 
-
-
-Sint32
-SDLTest_RandomIntegerInRange(Sint32 pMin, Sint32 pMax)
+Sint32 SDLTest_RandomIntegerInRange(Sint32 pMin, Sint32 pMax)
 {
     Sint64 min = pMin;
     Sint64 max = pMax;
     Sint64 temp;
     Sint64 number;
 
-    if(pMin > pMax) {
+    if (pMin > pMax) {
         temp = min;
         min = max;
         max = temp;
-    } else if(pMin == pMax) {
+    } else if (pMin == pMax) {
         return (Sint32)min;
     }
 
@@ -204,48 +193,47 @@ SDLTest_RandomIntegerInRange(Sint32 pMin, Sint32 pMax)
  *
  * \returns Returns a random boundary value for the domain or 0 in case of error
  */
-static Uint64
-SDLTest_GenerateUnsignedBoundaryValues(const Uint64 maxValue, Uint64 boundary1, Uint64 boundary2, SDL_bool validDomain)
+static Uint64 SDLTest_GenerateUnsignedBoundaryValues(const Uint64 maxValue, Uint64 boundary1, Uint64 boundary2, SDL_bool validDomain)
 {
-        Uint64 b1, b2;
+    Uint64 b1, b2;
     Uint64 delta;
     Uint64 tempBuf[4];
     Uint8 index;
 
-        /* Maybe swap */
+    /* Maybe swap */
     if (boundary1 > boundary2) {
         b1 = boundary2;
         b2 = boundary1;
     } else {
         b1 = boundary1;
         b2 = boundary2;
-        }
+    }
 
     index = 0;
     if (validDomain == SDL_TRUE) {
-            if (b1 == b2) {
-                return b1;
-            }
+        if (b1 == b2) {
+            return b1;
+        }
 
-            /* Generate up to 4 values within bounds */
-            delta = b2 - b1;
-            if (delta < 4) {
-                do {
+        /* Generate up to 4 values within bounds */
+        delta = b2 - b1;
+        if (delta < 4) {
+            do {
                 tempBuf[index] = b1 + index;
                 index++;
-                    } while (index < delta);
-            } else {
-          tempBuf[index] = b1;
-          index++;
-          tempBuf[index] = b1 + 1;
-          index++;
-          tempBuf[index] = b2 - 1;
-          index++;
-          tempBuf[index] = b2;
-          index++;
-            }
+            } while (index < delta);
         } else {
-            /* Generate up to 2 values outside of bounds */
+            tempBuf[index] = b1;
+            index++;
+            tempBuf[index] = b1 + 1;
+            index++;
+            tempBuf[index] = b2 - 1;
+            index++;
+            tempBuf[index] = b2;
+            index++;
+        }
+    } else {
+        /* Generate up to 2 values outside of bounds */
         if (b1 > 0) {
             tempBuf[index] = b1 - 1;
             index++;
@@ -266,49 +254,44 @@ SDLTest_GenerateUnsignedBoundaryValues(const Uint64 maxValue, Uint64 boundary1, 
     return tempBuf[SDLTest_RandomUint8() % index];
 }
 
-
-Uint8
-SDLTest_RandomUint8BoundaryValue(Uint8 boundary1, Uint8 boundary2, SDL_bool validDomain)
+Uint8 SDLTest_RandomUint8BoundaryValue(Uint8 boundary1, Uint8 boundary2, SDL_bool validDomain)
 {
     /* max value for Uint8 */
     const Uint64 maxValue = UCHAR_MAX;
     return (Uint8)SDLTest_GenerateUnsignedBoundaryValues(maxValue,
-                (Uint64) boundary1, (Uint64) boundary2,
-                validDomain);
+                                                         (Uint64)boundary1, (Uint64)boundary2,
+                                                         validDomain);
 }
 
-Uint16
-SDLTest_RandomUint16BoundaryValue(Uint16 boundary1, Uint16 boundary2, SDL_bool validDomain)
+Uint16 SDLTest_RandomUint16BoundaryValue(Uint16 boundary1, Uint16 boundary2, SDL_bool validDomain)
 {
     /* max value for Uint16 */
     const Uint64 maxValue = USHRT_MAX;
     return (Uint16)SDLTest_GenerateUnsignedBoundaryValues(maxValue,
-                (Uint64) boundary1, (Uint64) boundary2,
-                validDomain);
+                                                          (Uint64)boundary1, (Uint64)boundary2,
+                                                          validDomain);
 }
 
-Uint32
-SDLTest_RandomUint32BoundaryValue(Uint32 boundary1, Uint32 boundary2, SDL_bool validDomain)
+Uint32 SDLTest_RandomUint32BoundaryValue(Uint32 boundary1, Uint32 boundary2, SDL_bool validDomain)
 {
-    /* max value for Uint32 */
-    #if ((ULONG_MAX) == (UINT_MAX))
-      const Uint64 maxValue = ULONG_MAX;
-        #else
-      const Uint64 maxValue = UINT_MAX;
-        #endif
+/* max value for Uint32 */
+#if ((ULONG_MAX) == (UINT_MAX))
+    const Uint64 maxValue = ULONG_MAX;
+#else
+    const Uint64 maxValue = UINT_MAX;
+#endif
     return (Uint32)SDLTest_GenerateUnsignedBoundaryValues(maxValue,
-                (Uint64) boundary1, (Uint64) boundary2,
-                validDomain);
+                                                          (Uint64)boundary1, (Uint64)boundary2,
+                                                          validDomain);
 }
 
-Uint64
-SDLTest_RandomUint64BoundaryValue(Uint64 boundary1, Uint64 boundary2, SDL_bool validDomain)
+Uint64 SDLTest_RandomUint64BoundaryValue(Uint64 boundary1, Uint64 boundary2, SDL_bool validDomain)
 {
     /* max value for Uint64 */
     const Uint64 maxValue = UINT64_MAX;
     return SDLTest_GenerateUnsignedBoundaryValues(maxValue,
-                (Uint64) boundary1, (Uint64) boundary2,
-                validDomain);
+                                                  boundary1, boundary2,
+                                                  validDomain);
 }
 
 /* !
@@ -336,48 +319,47 @@ SDLTest_RandomUint64BoundaryValue(Uint64 boundary1, Uint64 boundary2, SDL_bool v
  *
  * \returns Returns a random boundary value for the domain or 0 in case of error
  */
-static Sint64
-SDLTest_GenerateSignedBoundaryValues(const Sint64 minValue, const Sint64 maxValue, Sint64 boundary1, Sint64 boundary2, SDL_bool validDomain)
+static Sint64 SDLTest_GenerateSignedBoundaryValues(const Sint64 minValue, const Sint64 maxValue, Sint64 boundary1, Sint64 boundary2, SDL_bool validDomain)
 {
-        Sint64 b1, b2;
+    Sint64 b1, b2;
     Sint64 delta;
     Sint64 tempBuf[4];
     Uint8 index;
 
-        /* Maybe swap */
+    /* Maybe swap */
     if (boundary1 > boundary2) {
         b1 = boundary2;
         b2 = boundary1;
     } else {
         b1 = boundary1;
         b2 = boundary2;
-        }
+    }
 
     index = 0;
     if (validDomain == SDL_TRUE) {
-            if (b1 == b2) {
-                return b1;
-            }
+        if (b1 == b2) {
+            return b1;
+        }
 
-            /* Generate up to 4 values within bounds */
-            delta = b2 - b1;
-            if (delta < 4) {
-                do {
+        /* Generate up to 4 values within bounds */
+        delta = b2 - b1;
+        if (delta < 4) {
+            do {
                 tempBuf[index] = b1 + index;
                 index++;
-                    } while (index < delta);
-            } else {
-          tempBuf[index] = b1;
-          index++;
-          tempBuf[index] = b1 + 1;
-          index++;
-          tempBuf[index] = b2 - 1;
-          index++;
-          tempBuf[index] = b2;
-          index++;
-            }
+            } while (index < delta);
         } else {
-            /* Generate up to 2 values outside of bounds */
+            tempBuf[index] = b1;
+            index++;
+            tempBuf[index] = b1 + 1;
+            index++;
+            tempBuf[index] = b2 - 1;
+            index++;
+            tempBuf[index] = b2;
+            index++;
+        }
+    } else {
+        /* Generate up to 2 values outside of bounds */
         if (b1 > minValue) {
             tempBuf[index] = b1 - 1;
             index++;
@@ -398,72 +380,65 @@ SDLTest_GenerateSignedBoundaryValues(const Sint64 minValue, const Sint64 maxValu
     return tempBuf[SDLTest_RandomUint8() % index];
 }
 
-
-Sint8
-SDLTest_RandomSint8BoundaryValue(Sint8 boundary1, Sint8 boundary2, SDL_bool validDomain)
+Sint8 SDLTest_RandomSint8BoundaryValue(Sint8 boundary1, Sint8 boundary2, SDL_bool validDomain)
 {
     /* min & max values for Sint8 */
     const Sint64 maxValue = SCHAR_MAX;
     const Sint64 minValue = SCHAR_MIN;
     return (Sint8)SDLTest_GenerateSignedBoundaryValues(minValue, maxValue,
-                (Sint64) boundary1, (Sint64) boundary2,
-                validDomain);
+                                                       (Sint64)boundary1, (Sint64)boundary2,
+                                                       validDomain);
 }
 
-Sint16
-SDLTest_RandomSint16BoundaryValue(Sint16 boundary1, Sint16 boundary2, SDL_bool validDomain)
+Sint16 SDLTest_RandomSint16BoundaryValue(Sint16 boundary1, Sint16 boundary2, SDL_bool validDomain)
 {
     /* min & max values for Sint16 */
     const Sint64 maxValue = SHRT_MAX;
     const Sint64 minValue = SHRT_MIN;
     return (Sint16)SDLTest_GenerateSignedBoundaryValues(minValue, maxValue,
-                (Sint64) boundary1, (Sint64) boundary2,
-                validDomain);
+                                                        (Sint64)boundary1, (Sint64)boundary2,
+                                                        validDomain);
 }
 
-Sint32
-SDLTest_RandomSint32BoundaryValue(Sint32 boundary1, Sint32 boundary2, SDL_bool validDomain)
+Sint32 SDLTest_RandomSint32BoundaryValue(Sint32 boundary1, Sint32 boundary2, SDL_bool validDomain)
 {
-    /* min & max values for Sint32 */
-    #if ((ULONG_MAX) == (UINT_MAX))
-      const Sint64 maxValue = LONG_MAX;
-      const Sint64 minValue = LONG_MIN;
-        #else
-      const Sint64 maxValue = INT_MAX;
-      const Sint64 minValue = INT_MIN;
-        #endif
+/* min & max values for Sint32 */
+#if ((ULONG_MAX) == (UINT_MAX))
+    const Sint64 maxValue = LONG_MAX;
+    const Sint64 minValue = LONG_MIN;
+#else
+    const Sint64 maxValue = INT_MAX;
+    const Sint64 minValue = INT_MIN;
+#endif
     return (Sint32)SDLTest_GenerateSignedBoundaryValues(minValue, maxValue,
-                (Sint64) boundary1, (Sint64) boundary2,
-                validDomain);
+                                                        (Sint64)boundary1, (Sint64)boundary2,
+                                                        validDomain);
 }
 
-Sint64
-SDLTest_RandomSint64BoundaryValue(Sint64 boundary1, Sint64 boundary2, SDL_bool validDomain)
+Sint64 SDLTest_RandomSint64BoundaryValue(Sint64 boundary1, Sint64 boundary2, SDL_bool validDomain)
 {
     /* min & max values for Sint64 */
     const Sint64 maxValue = INT64_MAX;
     const Sint64 minValue = INT64_MIN;
     return SDLTest_GenerateSignedBoundaryValues(minValue, maxValue,
-                boundary1, boundary2,
-                validDomain);
+                                                boundary1, boundary2,
+                                                validDomain);
 }
 
-float
-SDLTest_RandomUnitFloat()
+float SDLTest_RandomUnitFloat()
 {
-    return SDLTest_RandomUint32() / (float) UINT_MAX;
+    return SDLTest_RandomUint32() / (float)UINT_MAX;
 }
 
-float
-SDLTest_RandomFloat()
+float SDLTest_RandomFloat()
 {
-        return (float) (SDLTest_RandomUnitDouble() * (double)2.0 * (double)FLT_MAX - (double)(FLT_MAX));
+    return (float)(SDLTest_RandomUnitDouble() * 2.0 * (double)FLT_MAX - (double)(FLT_MAX));
 }
 
 double
 SDLTest_RandomUnitDouble()
 {
-    return (double) (SDLTest_RandomUint64() >> 11) * (1.0/9007199254740992.0);
+    return (double)(SDLTest_RandomUint64() >> 11) * (1.0 / 9007199254740992.0);
 }
 
 double
@@ -472,8 +447,8 @@ SDLTest_RandomDouble()
     double r = 0.0;
     double s = 1.0;
     do {
-      s /= UINT_MAX + 1.0;
-      r += (double)SDLTest_RandomInt(&rndContext) * s;
+        s /= UINT_MAX + 1.0;
+        r += (double)SDLTest_RandomInt(&rndContext) * s;
     } while (s > DBL_EPSILON);
 
     fuzzerInvocationCounter++;
@@ -481,20 +456,17 @@ SDLTest_RandomDouble()
     return r;
 }
 
-
-char *
-SDLTest_RandomAsciiString()
+char *SDLTest_RandomAsciiString()
 {
     return SDLTest_RandomAsciiStringWithMaximumLength(255);
 }
 
-char *
-SDLTest_RandomAsciiStringWithMaximumLength(int maxLength)
+char *SDLTest_RandomAsciiStringWithMaximumLength(int maxLength)
 {
     int size;
 
-    if(maxLength < 1) {
-                SDL_InvalidParamError("maxLength");
+    if (maxLength < 1) {
+        SDL_InvalidParamError("maxLength");
         return NULL;
     }
 
@@ -503,24 +475,22 @@ SDLTest_RandomAsciiStringWithMaximumLength(int maxLength)
     return SDLTest_RandomAsciiStringOfSize(size);
 }
 
-char *
-SDLTest_RandomAsciiStringOfSize(int size)
+char *SDLTest_RandomAsciiStringOfSize(int size)
 {
     char *string;
     int counter;
 
-
-    if(size < 1) {
-                SDL_InvalidParamError("size");
+    if (size < 1) {
+        SDL_InvalidParamError("size");
         return NULL;
     }
 
     string = (char *)SDL_malloc((size + 1) * sizeof(char));
-    if (string==NULL) {
-      return NULL;
-        }
+    if (string == NULL) {
+        return NULL;
+    }
 
-    for(counter = 0; counter < size; ++counter) {
+    for (counter = 0; counter < size; ++counter) {
         string[counter] = (char)SDLTest_RandomIntegerInRange(32, 126);
     }
 

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -21,16 +21,18 @@
 
 #include "SDL_test.h"
 #include "SDL_test_common.h"
-
+#include "testutils.h"
 
 static SDLTest_CommonState *state;
 
-SDL_Rect viewport;
-int done, j;
-SDL_bool use_target = SDL_FALSE;
+static SDL_Rect viewport;
+static int done, j;
+static SDL_bool use_target = SDL_FALSE;
 #ifdef __EMSCRIPTEN__
-Uint32 wait_start;
+static Uint32 wait_start;
 #endif
+static SDL_Texture *sprite;
+static int sprite_w, sprite_h;
 
 /* Call this instead of exit(), so we can clean up SDL: atexit() is evil. */
 static void
@@ -40,45 +42,42 @@ quit(int rc)
     exit(rc);
 }
 
-void
-DrawOnViewport(SDL_Renderer * renderer, SDL_Rect viewport)
-{    
+void DrawOnViewport(SDL_Renderer *renderer)
+{
     SDL_Rect rect;
 
     /* Set the viewport */
     SDL_RenderSetViewport(renderer, &viewport);
-    
+
     /* Draw a gray background */
     SDL_SetRenderDrawColor(renderer, 0x80, 0x80, 0x80, 0xFF);
     SDL_RenderClear(renderer);
 
     /* Test inside points */
-    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xF, 0xFF);
-    SDL_RenderDrawPoint(renderer, viewport.h/2 + 10, viewport.w/2);
-    SDL_RenderDrawPoint(renderer, viewport.h/2 - 10, viewport.w/2);
-    SDL_RenderDrawPoint(renderer, viewport.h/2     , viewport.w/2 - 10);
-    SDL_RenderDrawPoint(renderer, viewport.h/2     , viewport.w/2 + 10);
+    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0x00, 0xFF);
+    SDL_RenderDrawPoint(renderer, viewport.h / 2 + 20, viewport.w / 2);
+    SDL_RenderDrawPoint(renderer, viewport.h / 2 - 20, viewport.w / 2);
+    SDL_RenderDrawPoint(renderer, viewport.h / 2, viewport.w / 2 - 20);
+    SDL_RenderDrawPoint(renderer, viewport.h / 2, viewport.w / 2 + 20);
 
     /* Test horizontal and vertical lines */
     SDL_SetRenderDrawColor(renderer, 0x00, 0xFF, 0x00, 0xFF);
-    SDL_RenderDrawLine(renderer, 1, 0, viewport.w-2, 0);
-    SDL_RenderDrawLine(renderer, 1, viewport.h-1, viewport.w-2, viewport.h-1);
-    SDL_RenderDrawLine(renderer, 0, 1, 0, viewport.h-2);
-    SDL_RenderDrawLine(renderer, viewport.w-1, 1, viewport.w-1, viewport.h-2);
+    SDL_RenderDrawLine(renderer, 1, 0, viewport.w - 2, 0);
+    SDL_RenderDrawLine(renderer, 1, viewport.h - 1, viewport.w - 2, viewport.h - 1);
+    SDL_RenderDrawLine(renderer, 0, 1, 0, viewport.h - 2);
+    SDL_RenderDrawLine(renderer, viewport.w - 1, 1, viewport.w - 1, viewport.h - 2);
 
     /* Test diagonal lines */
     SDL_SetRenderDrawColor(renderer, 0x00, 0x00, 0xFF, 0xFF);
-    SDL_RenderDrawLine(renderer, 0, 0,
-                       viewport.w-1, viewport.h-1);
-    SDL_RenderDrawLine(renderer, viewport.w-1, 0,
-                       0, viewport.h-1);                      
+    SDL_RenderDrawLine(renderer, 0, 0, viewport.w - 1, viewport.h - 1);
+    SDL_RenderDrawLine(renderer, viewport.w - 1, 0, 0, viewport.h - 1);
 
     /* Test outside points */
-    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0xF, 0xFF);
-    SDL_RenderDrawPoint(renderer, viewport.h/2 + viewport.h, viewport.w/2);
-    SDL_RenderDrawPoint(renderer, viewport.h/2 - viewport.h, viewport.w/2);
-    SDL_RenderDrawPoint(renderer, viewport.h/2     , viewport.w/2 - viewport.w);
-    SDL_RenderDrawPoint(renderer, viewport.h/2     , viewport.w/2 + viewport.w);
+    SDL_SetRenderDrawColor(renderer, 0xFF, 0xFF, 0x00, 0xFF);
+    SDL_RenderDrawPoint(renderer, viewport.h / 2 + viewport.h, viewport.w / 2);
+    SDL_RenderDrawPoint(renderer, viewport.h / 2 - viewport.h, viewport.w / 2);
+    SDL_RenderDrawPoint(renderer, viewport.h / 2, viewport.w / 2 - viewport.w);
+    SDL_RenderDrawPoint(renderer, viewport.h / 2, viewport.w / 2 + viewport.w);
 
     /* Add a box at the top */
     rect.w = 8;
@@ -86,19 +85,27 @@ DrawOnViewport(SDL_Renderer * renderer, SDL_Rect viewport)
     rect.x = (viewport.w - rect.w) / 2;
     rect.y = 0;
     SDL_RenderFillRect(renderer, &rect);
+
+    /* Add a clip rect and fill it with the sprite */
+    SDL_QueryTexture(sprite, NULL, NULL, &rect.w, &rect.h);
+    rect.x = (viewport.w - rect.w) / 2;
+    rect.y = (viewport.h - rect.h) / 2;
+    SDL_RenderSetClipRect(renderer, &rect);
+    SDL_RenderCopy(renderer, sprite, NULL, &rect);
+    SDL_RenderSetClipRect(renderer, NULL);
 }
 
-void
-loop()
+void loop()
 {
-#ifdef __EMSCRIPTEN__
-    /* Avoid using delays */
-    if(SDL_GetTicks() - wait_start < 1000)
-        return;
-    wait_start = SDL_GetTicks();
-#endif
     SDL_Event event;
     int i;
+#ifdef __EMSCRIPTEN__
+    /* Avoid using delays */
+    if (SDL_GetTicks() - wait_start < 1000) {
+        return;
+    }
+    wait_start = SDL_GetTicks();
+#endif
     /* Check for events */
     while (SDL_PollEvent(&event)) {
         SDLTest_CommonEvent(state, &event, &done);
@@ -113,11 +120,12 @@ loop()
     SDL_Log("Current Viewport x=%i y=%i w=%i h=%i", viewport.x, viewport.y, viewport.w, viewport.h);
 
     for (i = 0; i < state->num_windows; ++i) {
-        if (state->windows[i] == NULL)
+        if (state->windows[i] == NULL) {
             continue;
+        }
 
         /* Draw using viewport */
-        DrawOnViewport(state->renderers[i], viewport);
+        DrawOnViewport(state->renderers[i]);
 
         /* Update the screen! */
         if (use_target) {
@@ -137,15 +145,14 @@ loop()
 #endif
 }
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     int i;
     Uint32 then, now, frames;
 
     /* Initialize test framework */
     state = SDLTest_CommonCreateState(argv, SDL_INIT_VIDEO);
-    if (!state) {
+    if (state == NULL) {
         return 1;
     }
 
@@ -161,13 +168,19 @@ main(int argc, char *argv[])
             }
         }
         if (consumed < 0) {
-            SDL_Log("Usage: %s %s [--target]\n",
-                    argv[0], SDLTest_CommonUsage(state));
+            static const char *options[] = { "[--target]", NULL };
+            SDLTest_CommonLogUsage(state, argv[0], options);
             quit(1);
         }
         i += consumed;
     }
     if (!SDLTest_CommonInit(state)) {
+        quit(2);
+    }
+
+    sprite = LoadTexture(state->renderers[0], "icon.bmp", SDL_TRUE, &sprite_w, &sprite_h);
+
+    if (sprite == NULL) {
         quit(2);
     }
 
@@ -207,7 +220,7 @@ main(int argc, char *argv[])
     /* Print out some timing information */
     now = SDL_GetTicks();
     if (now > then) {
-        double fps = ((double) frames * 1000) / (now - then);
+        double fps = ((double)frames * 1000) / (now - then);
         SDL_Log("%2.2f frames per second\n", fps);
     }
     quit(0);

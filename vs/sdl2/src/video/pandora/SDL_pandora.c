@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -41,14 +41,12 @@
 static NativeWindowType hNativeWnd = 0; /* A handle to the window we will create. */
 #endif
 
-static int
-PND_available(void)
+static int PND_available(void)
 {
     return 1;
 }
 
-static void
-PND_destroy(SDL_VideoDevice * device)
+static void PND_destroy(SDL_VideoDevice * device)
 {
     if (device->driverdata != NULL) {
         SDL_free(device->driverdata);
@@ -57,8 +55,7 @@ PND_destroy(SDL_VideoDevice * device)
     SDL_free(device);
 }
 
-static SDL_VideoDevice *
-PND_create()
+static SDL_VideoDevice *PND_create()
 {
     SDL_VideoDevice *device;
     SDL_VideoData *phdata;
@@ -114,7 +111,6 @@ PND_create()
     device->MaximizeWindow = PND_maximizewindow;
     device->MinimizeWindow = PND_minimizewindow;
     device->RestoreWindow = PND_restorewindow;
-    device->SetWindowGrab = PND_setwindowgrab;
     device->DestroyWindow = PND_destroywindow;
 #if 0
     device->GetWindowWMInfo = PND_getwindowwminfo;
@@ -150,8 +146,7 @@ VideoBootStrap PND_bootstrap = {
 /*****************************************************************************/
 /* SDL Video and Display initialization/handling functions                   */
 /*****************************************************************************/
-int
-PND_videoinit(_THIS)
+int PND_videoinit(_THIS)
 {
     SDL_VideoDisplay display;
     SDL_DisplayMode current_mode;
@@ -173,31 +168,27 @@ PND_videoinit(_THIS)
     display.current_mode = current_mode;
     display.driverdata = NULL;
 
-    SDL_AddVideoDisplay(&display);
+    SDL_AddVideoDisplay(&display, SDL_FALSE);
 
     return 1;
 }
 
-void
-PND_videoquit(_THIS)
+void PND_videoquit(_THIS)
 {
 
 }
 
-void
-PND_getdisplaymodes(_THIS, SDL_VideoDisplay * display)
+void PND_getdisplaymodes(_THIS, SDL_VideoDisplay * display)
 {
 
 }
 
-int
-PND_setdisplaymode(_THIS, SDL_VideoDisplay * display, SDL_DisplayMode * mode)
+int PND_setdisplaymode(_THIS, SDL_VideoDisplay * display, SDL_DisplayMode * mode)
 {
     return 0;
 }
 
-int
-PND_createwindow(_THIS, SDL_Window * window)
+int PND_createwindow(_THIS, SDL_Window * window)
 {
     SDL_VideoData *phdata = (SDL_VideoData *) _this->driverdata;
 
@@ -240,58 +231,42 @@ PND_createwindow(_THIS, SDL_Window * window)
     return 0;
 }
 
-int
-PND_createwindowfrom(_THIS, SDL_Window * window, const void *data)
+int PND_createwindowfrom(_THIS, SDL_Window * window, const void *data)
 {
     return -1;
 }
 
-void
-PND_setwindowtitle(_THIS, SDL_Window * window)
+void PND_setwindowtitle(_THIS, SDL_Window * window)
 {
 }
-void
-PND_setwindowicon(_THIS, SDL_Window * window, SDL_Surface * icon)
+void PND_setwindowicon(_THIS, SDL_Window * window, SDL_Surface * icon)
 {
 }
-void
-PND_setwindowposition(_THIS, SDL_Window * window)
+void PND_setwindowposition(_THIS, SDL_Window * window)
 {
 }
-void
-PND_setwindowsize(_THIS, SDL_Window * window)
+void PND_setwindowsize(_THIS, SDL_Window * window)
 {
 }
-void
-PND_showwindow(_THIS, SDL_Window * window)
+void PND_showwindow(_THIS, SDL_Window * window)
 {
 }
-void
-PND_hidewindow(_THIS, SDL_Window * window)
+void PND_hidewindow(_THIS, SDL_Window * window)
 {
 }
-void
-PND_raisewindow(_THIS, SDL_Window * window)
+void PND_raisewindow(_THIS, SDL_Window * window)
 {
 }
-void
-PND_maximizewindow(_THIS, SDL_Window * window)
+void PND_maximizewindow(_THIS, SDL_Window * window)
 {
 }
-void
-PND_minimizewindow(_THIS, SDL_Window * window)
+void PND_minimizewindow(_THIS, SDL_Window * window)
 {
 }
-void
-PND_restorewindow(_THIS, SDL_Window * window)
+void PND_restorewindow(_THIS, SDL_Window * window)
 {
 }
-void
-PND_setwindowgrab(_THIS, SDL_Window * window, SDL_bool grabbed)
-{
-}
-void
-PND_destroywindow(_THIS, SDL_Window * window)
+void PND_destroywindow(_THIS, SDL_Window * window)
 {
     SDL_VideoData *phdata = (SDL_VideoData *) _this->driverdata;
     eglTerminate(phdata->egl_display);
@@ -301,14 +276,13 @@ PND_destroywindow(_THIS, SDL_Window * window)
 /* SDL Window Manager function                                               */
 /*****************************************************************************/
 #if 0
-SDL_bool
-PND_getwindowwminfo(_THIS, SDL_Window * window, struct SDL_SysWMinfo *info)
+SDL_bool PND_getwindowwminfo(_THIS, SDL_Window * window, struct SDL_SysWMinfo *info)
 {
     if (info->version.major <= SDL_MAJOR_VERSION) {
         return SDL_TRUE;
     } else {
-        SDL_SetError("application not compiled with SDL %d.%d",
-                     SDL_MAJOR_VERSION, SDL_MINOR_VERSION);
+        SDL_SetError("application not compiled with SDL %d",
+                     SDL_MAJOR_VERSION);
         return SDL_FALSE;
     }
 
@@ -320,8 +294,7 @@ PND_getwindowwminfo(_THIS, SDL_Window * window, struct SDL_SysWMinfo *info)
 /*****************************************************************************/
 /* SDL OpenGL/OpenGL ES functions                                            */
 /*****************************************************************************/
-int
-PND_gl_loadlibrary(_THIS, const char *path)
+int PND_gl_loadlibrary(_THIS, const char *path)
 {
     /* Check if OpenGL ES library is specified for GF driver */
     if (path == NULL) {
@@ -357,8 +330,7 @@ PND_gl_loadlibrary(_THIS, const char *path)
     return 0;
 }
 
-void *
-PND_gl_getprocaddres(_THIS, const char *proc)
+void *PND_gl_getprocaddres(_THIS, const char *proc)
 {
     void *function_address;
 
@@ -382,8 +354,7 @@ PND_gl_getprocaddres(_THIS, const char *proc)
     return NULL;
 }
 
-void
-PND_gl_unloadlibrary(_THIS)
+void PND_gl_unloadlibrary(_THIS)
 {
     SDL_VideoData *phdata = (SDL_VideoData *) _this->driverdata;
 
@@ -398,8 +369,7 @@ PND_gl_unloadlibrary(_THIS)
     }
 }
 
-SDL_GLContext
-PND_gl_createcontext(_THIS, SDL_Window * window)
+SDL_GLContext PND_gl_createcontext(_THIS, SDL_Window * window)
 {
     SDL_VideoData *phdata = (SDL_VideoData *) _this->driverdata;
     SDL_WindowData *wdata = (SDL_WindowData *) window->driverdata;
@@ -617,7 +587,7 @@ PND_gl_createcontext(_THIS, SDL_Window * window)
 
 #ifdef WIZ_GLES_LITE
     if( !hNativeWnd ) {
-    hNativeWnd = (NativeWindowType)malloc(16*1024);
+    hNativeWnd = (NativeWindowType)SDL_malloc(16*1024);
 
     if(!hNativeWnd)
         printf( "Error: Wiz framebuffer allocatation failed\n" );
@@ -703,8 +673,7 @@ PND_gl_createcontext(_THIS, SDL_Window * window)
     return wdata->gles_context;
 }
 
-int
-PND_gl_makecurrent(_THIS, SDL_Window * window, SDL_GLContext context)
+int PND_gl_makecurrent(_THIS, SDL_Window * window, SDL_GLContext context)
 {
     SDL_VideoData *phdata = (SDL_VideoData *) _this->driverdata;
     SDL_WindowData *wdata;
@@ -747,8 +716,7 @@ PND_gl_makecurrent(_THIS, SDL_Window * window, SDL_GLContext context)
     return 0;
 }
 
-int
-PND_gl_setswapinterval(_THIS, int interval)
+int PND_gl_setswapinterval(_THIS, int interval)
 {
     SDL_VideoData *phdata = (SDL_VideoData *) _this->driverdata;
     EGLBoolean status;
@@ -772,14 +740,12 @@ PND_gl_setswapinterval(_THIS, int interval)
     return SDL_SetError("PND: Cannot set swap interval");
 }
 
-int
-PND_gl_getswapinterval(_THIS)
+int PND_gl_getswapinterval(_THIS)
 {
     return ((SDL_VideoData *) _this->driverdata)->swapinterval;
 }
 
-int
-PND_gl_swapwindow(_THIS, SDL_Window * window)
+int PND_gl_swapwindow(_THIS, SDL_Window * window)
 {
     SDL_VideoData *phdata = (SDL_VideoData *) _this->driverdata;
     SDL_WindowData *wdata = (SDL_WindowData *) window->driverdata;
@@ -798,8 +764,7 @@ PND_gl_swapwindow(_THIS, SDL_Window * window)
     return 0;
 }
 
-void
-PND_gl_deletecontext(_THIS, SDL_GLContext context)
+void PND_gl_deletecontext(_THIS, SDL_GLContext context)
 {
     SDL_VideoData *phdata = (SDL_VideoData *) _this->driverdata;
     EGLBoolean status;
@@ -824,7 +789,7 @@ PND_gl_deletecontext(_THIS, SDL_GLContext context)
 #ifdef WIZ_GLES_LITE
     if( hNativeWnd != 0 )
     {
-      free(hNativeWnd);
+      SDL_free(hNativeWnd);
       hNativeWnd = 0;
       printf( "SDL: Wiz framebuffer released\n" );
     }

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -22,7 +22,9 @@
 
 #if defined(__IPHONEOS__) || defined(__ANDROID__) || defined(__EMSCRIPTEN__) || defined(__NACL__) \
     || defined(__WINDOWS__) || defined(__LINUX__)
+#ifndef HAVE_OPENGLES2
 #define HAVE_OPENGLES2
+#endif
 #endif
 
 #ifdef HAVE_OPENGLES2
@@ -31,18 +33,37 @@
 
 typedef struct GLES2_Context
 {
-#define SDL_PROC(ret,func,params) ret (APIENTRY *func) params;
+#define SDL_PROC(ret, func, params) ret (APIENTRY *func) params;
 #include "../src/render/opengles2/SDL_gles2funcs.h"
 #undef SDL_PROC
 } GLES2_Context;
 
+typedef struct shader_data
+{
+    GLuint shader_program, shader_frag, shader_vert;
+
+    GLint attr_position;
+    GLint attr_color, attr_mvp;
+
+    int angle_x, angle_y, angle_z;
+
+    GLuint position_buffer;
+    GLuint color_buffer;
+} shader_data;
+
+typedef struct thread_data
+{
+    SDL_Thread *thread;
+    int done;
+    int index;
+} thread_data;
 
 static SDLTest_CommonState *state;
 static SDL_GLContext *context = NULL;
 static int depth = 16;
 static GLES2_Context ctx;
 
-static int LoadContext(GLES2_Context * data)
+static int LoadContext(GLES2_Context *data)
 {
 #if SDL_VIDEO_DRIVER_UIKIT
 #define __SDL_NOGETPROCADDR__
@@ -53,15 +74,15 @@ static int LoadContext(GLES2_Context * data)
 #endif
 
 #if defined __SDL_NOGETPROCADDR__
-#define SDL_PROC(ret,func,params) data->func=func;
+#define SDL_PROC(ret, func, params) data->func = func;
 #else
-#define SDL_PROC(ret,func,params) \
-    do { \
-        data->func = SDL_GL_GetProcAddress(#func); \
-        if ( ! data->func ) { \
+#define SDL_PROC(ret, func, params)                                                            \
+    do {                                                                                       \
+        data->func = SDL_GL_GetProcAddress(#func);                                             \
+        if (!data->func) {                                                                     \
             return SDL_SetError("Couldn't load GLES2 function %s: %s", #func, SDL_GetError()); \
-        } \
-    } while ( 0 );
+        }                                                                                      \
+    } while (0);
 #endif /* __SDL_NOGETPROCADDR__ */
 
 #include "../src/render/opengles2/SDL_gles2funcs.h"
@@ -89,19 +110,19 @@ quit(int rc)
     exit(rc);
 }
 
-#define GL_CHECK(x) \
-        x; \
-        { \
-          GLenum glError = ctx.glGetError(); \
-          if(glError != GL_NO_ERROR) { \
+#define GL_CHECK(x)                                                                         \
+    x;                                                                                      \
+    {                                                                                       \
+        GLenum glError = ctx.glGetError();                                                  \
+        if (glError != GL_NO_ERROR) {                                                       \
             SDL_Log("glGetError() = %i (0x%.8x) at line %i\n", glError, glError, __LINE__); \
-            quit(1); \
-          } \
-        }
+            quit(1);                                                                        \
+        }                                                                                   \
+    }
 
-/* 
- * Simulates desktop's glRotatef. The matrix is returned in column-major 
- * order. 
+/*
+ * Simulates desktop's glRotatef. The matrix is returned in column-major
+ * order.
  */
 static void
 rotate_matrix(float angle, float x, float y, float z, float *r)
@@ -140,16 +161,16 @@ rotate_matrix(float angle, float x, float y, float z, float *r)
     }
 }
 
-/* 
- * Simulates gluPerspectiveMatrix 
+/*
+ * Simulates gluPerspectiveMatrix
  */
-static void 
+static void
 perspective_matrix(float fovy, float aspect, float znear, float zfar, float *r)
 {
     int i;
     float f;
 
-    f = 1.0f/SDL_tanf(fovy * 0.5f);
+    f = 1.0f / SDL_tanf(fovy * 0.5f);
 
     for (i = 0; i < 16; i++) {
         r[i] = 0.0;
@@ -163,12 +184,12 @@ perspective_matrix(float fovy, float aspect, float znear, float zfar, float *r)
     r[15] = 0.0f;
 }
 
-/* 
+/*
  * Multiplies lhs by rhs and writes out to r. All matrices are 4x4 and column
  * major. In-place multiplication is supported.
  */
 static void
-multiply_matrix(float *lhs, float *rhs, float *r)
+multiply_matrix(const float *lhs, const float *rhs, float *r)
 {
     int i, j, k;
     float tmp[16];
@@ -188,20 +209,20 @@ multiply_matrix(float *lhs, float *rhs, float *r)
     }
 }
 
-/* 
+/*
  * Create shader, load in source, compile, dump debug as necessary.
  *
  * shader: Pointer to return created shader ID.
  * source: Passed-in shader source code.
  * shader_type: Passed to GL, e.g. GL_VERTEX_SHADER.
  */
-void 
-process_shader(GLuint *shader, const char * source, GLint shader_type)
+static void
+process_shader(GLuint *shader, const char *source, GLint shader_type)
 {
     GLint status = GL_FALSE;
     const char *shaders[1] = { NULL };
     char buffer[1024];
-    GLsizei length;
+    GLsizei length = 0;
 
     /* Create shader and load into GL. */
     *shader = GL_CHECK(ctx.glCreateShader(shader_type));
@@ -218,76 +239,168 @@ process_shader(GLuint *shader, const char * source, GLint shader_type)
     GL_CHECK(ctx.glGetShaderiv(*shader, GL_COMPILE_STATUS, &status));
 
     /* Dump debug info (source and log) if compilation failed. */
-    if(status != GL_TRUE) {
-        ctx.glGetProgramInfoLog(*shader, sizeof(buffer), &length, &buffer[0]);
+    if (status != GL_TRUE) {
+        ctx.glGetShaderInfoLog(*shader, sizeof(buffer), &length, &buffer[0]);
         buffer[length] = '\0';
-        SDL_Log("Shader compilation failed: %s", buffer);fflush(stderr);
+        SDL_Log("Shader compilation failed: %s", buffer);
+        fflush(stderr);
         quit(-1);
     }
 }
 
-/* 3D data. Vertex range -0.5..0.5 in all axes.
-* Z -0.5 is near, 0.5 is far. */
-const float _vertices[] =
+static void
+link_program(struct shader_data *data)
 {
+    GLint status = GL_FALSE;
+    char buffer[1024];
+    GLsizei length = 0;
+
+    GL_CHECK(ctx.glAttachShader(data->shader_program, data->shader_vert));
+    GL_CHECK(ctx.glAttachShader(data->shader_program, data->shader_frag));
+    GL_CHECK(ctx.glLinkProgram(data->shader_program));
+    GL_CHECK(ctx.glGetProgramiv(data->shader_program, GL_LINK_STATUS, &status));
+
+    if (status != GL_TRUE) {
+         ctx.glGetProgramInfoLog(data->shader_program, sizeof(buffer), &length, &buffer[0]);
+         buffer[length] = '\0';
+         SDL_Log("Program linking failed: %s", buffer);
+         fflush(stderr);
+         quit(-1);
+    }
+}
+
+/* 3D data. Vertex range -0.5..0.5 in all axes.
+ * Z -0.5 is near, 0.5 is far. */
+const float _vertices[] = {
     /* Front face. */
     /* Bottom left */
-    -0.5,  0.5, -0.5,
-    0.5, -0.5, -0.5,
-    -0.5, -0.5, -0.5,
+    -0.5,
+    0.5,
+    -0.5,
+    0.5,
+    -0.5,
+    -0.5,
+    -0.5,
+    -0.5,
+    -0.5,
     /* Top right */
-    -0.5,  0.5, -0.5,
-    0.5,  0.5, -0.5,
-    0.5, -0.5, -0.5,
+    -0.5,
+    0.5,
+    -0.5,
+    0.5,
+    0.5,
+    -0.5,
+    0.5,
+    -0.5,
+    -0.5,
     /* Left face */
     /* Bottom left */
-    -0.5,  0.5,  0.5,
-    -0.5, -0.5, -0.5,
-    -0.5, -0.5,  0.5,
+    -0.5,
+    0.5,
+    0.5,
+    -0.5,
+    -0.5,
+    -0.5,
+    -0.5,
+    -0.5,
+    0.5,
     /* Top right */
-    -0.5,  0.5,  0.5,
-    -0.5,  0.5, -0.5,
-    -0.5, -0.5, -0.5,
+    -0.5,
+    0.5,
+    0.5,
+    -0.5,
+    0.5,
+    -0.5,
+    -0.5,
+    -0.5,
+    -0.5,
     /* Top face */
     /* Bottom left */
-    -0.5,  0.5,  0.5,
-    0.5,  0.5, -0.5,
-    -0.5,  0.5, -0.5,
+    -0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    -0.5,
+    -0.5,
+    0.5,
+    -0.5,
     /* Top right */
-    -0.5,  0.5,  0.5,
-    0.5,  0.5,  0.5,
-    0.5,  0.5, -0.5,
+    -0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    -0.5,
     /* Right face */
     /* Bottom left */
-    0.5,  0.5, -0.5,
-    0.5, -0.5,  0.5,
-    0.5, -0.5, -0.5,
+    0.5,
+    0.5,
+    -0.5,
+    0.5,
+    -0.5,
+    0.5,
+    0.5,
+    -0.5,
+    -0.5,
     /* Top right */
-    0.5,  0.5, -0.5,
-    0.5,  0.5,  0.5,
-    0.5, -0.5,  0.5,
+    0.5,
+    0.5,
+    -0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    -0.5,
+    0.5,
     /* Back face */
     /* Bottom left */
-    0.5,  0.5,  0.5,
-    -0.5, -0.5,  0.5,
-    0.5, -0.5,  0.5,
+    0.5,
+    0.5,
+    0.5,
+    -0.5,
+    -0.5,
+    0.5,
+    0.5,
+    -0.5,
+    0.5,
     /* Top right */
-    0.5,  0.5,  0.5,
-    -0.5,  0.5,  0.5,
-    -0.5, -0.5,  0.5,
+    0.5,
+    0.5,
+    0.5,
+    -0.5,
+    0.5,
+    0.5,
+    -0.5,
+    -0.5,
+    0.5,
     /* Bottom face */
     /* Bottom left */
-    -0.5, -0.5, -0.5,
-    0.5, -0.5,  0.5,
-    -0.5, -0.5,  0.5,
+    -0.5,
+    -0.5,
+    -0.5,
+    0.5,
+    -0.5,
+    0.5,
+    -0.5,
+    -0.5,
+    0.5,
     /* Top right */
-    -0.5, -0.5, -0.5,
-    0.5, -0.5, -0.5,
-    0.5, -0.5,  0.5,
+    -0.5,
+    -0.5,
+    -0.5,
+    0.5,
+    -0.5,
+    -0.5,
+    0.5,
+    -0.5,
+    0.5,
 };
 
-const float _colors[] =
-{
+const float _colors[] = {
     /* Front face */
     /* Bottom left */
     1.0, 0.0, 0.0, /* red */
@@ -344,43 +457,32 @@ const float _colors[] =
     1.0, 0.0, 1.0, /* magenta */
 };
 
-const char* _shader_vert_src = 
-" attribute vec4 av4position; "
-" attribute vec3 av3color; "
-" uniform mat4 mvp; "
-" varying vec3 vv3color; "
-" void main() { "
-"    vv3color = av3color; "
-"    gl_Position = mvp * av4position; "
-" } ";
+const char *_shader_vert_src =
+    " attribute vec4 av4position; "
+    " attribute vec3 av3color; "
+    " uniform mat4 mvp; "
+    " varying vec3 vv3color; "
+    " void main() { "
+    "    vv3color = av3color; "
+    "    gl_Position = mvp * av4position; "
+    " } ";
 
-const char* _shader_frag_src = 
-" precision lowp float; "
-" varying vec3 vv3color; "
-" void main() { "
-"    gl_FragColor = vec4(vv3color, 1.0); "
-" } ";
-
-typedef struct shader_data
-{
-    GLuint shader_program, shader_frag, shader_vert;
-
-    GLint attr_position;
-    GLint attr_color, attr_mvp;
-
-    int angle_x, angle_y, angle_z;
-
-} shader_data;
+const char *_shader_frag_src =
+    " precision lowp float; "
+    " varying vec3 vv3color; "
+    " void main() { "
+    "    gl_FragColor = vec4(vv3color, 1.0); "
+    " } ";
 
 static void
-Render(unsigned int width, unsigned int height, shader_data* data)
+Render(unsigned int width, unsigned int height, shader_data *data)
 {
     float matrix_rotate[16], matrix_modelview[16], matrix_perspective[16], matrix_mvp[16];
 
-    /* 
-    * Do some rotation with Euler angles. It is not a fixed axis as
-    * quaterions would be, but the effect is cool. 
-    */
+    /*
+     * Do some rotation with Euler angles. It is not a fixed axis as
+     * quaterions would be, but the effect is cool.
+     */
     rotate_matrix((float)data->angle_x, 1.0f, 0.0f, 0.0f, matrix_modelview);
     rotate_matrix((float)data->angle_y, 0.0f, 1.0f, 0.0f, matrix_rotate);
 
@@ -393,7 +495,7 @@ Render(unsigned int width, unsigned int height, shader_data* data)
     /* Pull the camera back from the cube */
     matrix_modelview[14] -= 2.5;
 
-    perspective_matrix(45.0f, (float)width/height, 0.01f, 100.0f, matrix_perspective);
+    perspective_matrix(45.0f, (float)width / height, 0.01f, 100.0f, matrix_perspective);
     multiply_matrix(matrix_perspective, matrix_modelview, matrix_mvp);
 
     GL_CHECK(ctx.glUniformMatrix4fv(data->attr_mvp, 1, GL_FALSE, matrix_mvp));
@@ -402,13 +504,26 @@ Render(unsigned int width, unsigned int height, shader_data* data)
     data->angle_y += 2;
     data->angle_z += 1;
 
-    if(data->angle_x >= 360) data->angle_x -= 360;
-    if(data->angle_x < 0) data->angle_x += 360;
-    if(data->angle_y >= 360) data->angle_y -= 360;
-    if(data->angle_y < 0) data->angle_y += 360;
-    if(data->angle_z >= 360) data->angle_z -= 360;
-    if(data->angle_z < 0) data->angle_z += 360;
+    if (data->angle_x >= 360) {
+        data->angle_x -= 360;
+    }
+    if (data->angle_x < 0) {
+        data->angle_x += 360;
+    }
+    if (data->angle_y >= 360) {
+        data->angle_y -= 360;
+    }
+    if (data->angle_y < 0) {
+        data->angle_y += 360;
+    }
+    if (data->angle_z >= 360) {
+        data->angle_z -= 360;
+    }
+    if (data->angle_z < 0) {
+        data->angle_z += 360;
+    }
 
+    GL_CHECK(ctx.glViewport(0, 0, width, height));
     GL_CHECK(ctx.glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT));
     GL_CHECK(ctx.glDrawArrays(GL_TRIANGLES, 0, 36));
 }
@@ -416,56 +531,86 @@ Render(unsigned int width, unsigned int height, shader_data* data)
 int done;
 Uint32 frames;
 shader_data *datas;
+thread_data *threads;
 
-void loop()
+static void
+render_window(int index)
+{
+    int w, h, status;
+
+    if (!state->windows[index]) {
+        return;
+    }
+
+    status = SDL_GL_MakeCurrent(state->windows[index], context[index]);
+    if (status) {
+        SDL_Log("SDL_GL_MakeCurrent(): %s\n", SDL_GetError());
+        return;
+    }
+
+    SDL_GL_GetDrawableSize(state->windows[index], &w, &h);
+    Render(w, h, &datas[index]);
+    SDL_GL_SwapWindow(state->windows[index]);
+    ++frames;
+}
+
+#ifndef __EMSCRIPTEN__
+static int SDLCALL
+render_thread_fn(void *render_ctx)
+{
+    thread_data *thread = render_ctx;
+
+    while (!done && !thread->done && state->windows[thread->index]) {
+        render_window(thread->index);
+    }
+
+    SDL_GL_MakeCurrent(state->windows[thread->index], NULL);
+    return 0;
+}
+
+static void
+loop_threaded()
 {
     SDL_Event event;
     int i;
-    int status;
 
-    /* Check for events */
-    ++frames;
-    while (SDL_PollEvent(&event) && !done) {
-        switch (event.type) {
-        case SDL_WINDOWEVENT:
-            switch (event.window.event) {
-                case SDL_WINDOWEVENT_RESIZED:
-                    for (i = 0; i < state->num_windows; ++i) {
-                        if (event.window.windowID == SDL_GetWindowID(state->windows[i])) {
-                            int w, h;
-                            status = SDL_GL_MakeCurrent(state->windows[i], context[i]);
-                            if (status) {
-                                SDL_Log("SDL_GL_MakeCurrent(): %s\n", SDL_GetError());
-                                break;
-                            }
-                            /* Change view port to the new window dimensions */
-                            SDL_GL_GetDrawableSize(state->windows[i], &w, &h);
-                            ctx.glViewport(0, 0, w, h);
-                            state->window_w = event.window.data1;
-                            state->window_h = event.window.data2;
-                            /* Update window content */
-                            Render(event.window.data1, event.window.data2, &datas[i]);
-                            SDL_GL_SwapWindow(state->windows[i]);
-                            break;
+    /* Wait for events */
+    while (SDL_WaitEvent(&event) && !done) {
+        if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE) {
+            SDL_Window *window = SDL_GetWindowFromID(event.window.windowID);
+            if (window) {
+                for (i = 0; i < state->num_windows; ++i) {
+                    if (window == state->windows[i]) {
+                        /* Stop the render thread when the window is closed */
+                        threads[i].done = 1;
+                        if (threads[i].thread) {
+                            SDL_WaitThread(threads[i].thread, NULL);
+                            threads[i].thread = NULL;
                         }
+                        break;
                     }
-                    break;
+                }
             }
         }
         SDLTest_CommonEvent(state, &event, &done);
     }
-    if (!done) {
-      for (i = 0; i < state->num_windows; ++i) {
-          status = SDL_GL_MakeCurrent(state->windows[i], context[i]);
-          if (status) {
-              SDL_Log("SDL_GL_MakeCurrent(): %s\n", SDL_GetError());
+}
+#endif
 
-              /* Continue for next window */
-              continue;
-          }
-          Render(state->window_w, state->window_h, &datas[i]);
-          SDL_GL_SwapWindow(state->windows[i]);
-      }
+static void
+loop()
+{
+    SDL_Event event;
+    int i;
+
+    /* Check for events */
+    while (SDL_PollEvent(&event) && !done) {
+        SDLTest_CommonEvent(state, &event, &done);
+    }
+    if (!done) {
+        for (i = 0; i < state->num_windows; ++i) {
+            render_window(i);
+        }
     }
 #ifdef __EMSCRIPTEN__
     else {
@@ -474,10 +619,9 @@ void loop()
 #endif
 }
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
-    int fsaa, accel;
+    int fsaa, accel, threaded;
     int value;
     int i;
     SDL_DisplayMode mode;
@@ -488,10 +632,11 @@ main(int argc, char *argv[])
     /* Initialize parameters */
     fsaa = 0;
     accel = 0;
+    threaded = 0;
 
     /* Initialize test framework */
     state = SDLTest_CommonCreateState(argv, SDL_INIT_VIDEO);
-    if (!state) {
+    if (state == NULL) {
         return 1;
     }
     for (i = 1; i < argc;) {
@@ -504,6 +649,9 @@ main(int argc, char *argv[])
                 consumed = 1;
             } else if (SDL_strcasecmp(argv[i], "--accel") == 0) {
                 ++accel;
+                consumed = 1;
+            } else if (SDL_strcasecmp(argv[i], "--threaded") == 0) {
+                ++threaded;
                 consumed = 1;
             } else if (SDL_strcasecmp(argv[i], "--zdepth") == 0) {
                 i++;
@@ -518,15 +666,15 @@ main(int argc, char *argv[])
             }
         }
         if (consumed < 0) {
-            SDL_Log ("Usage: %s %s [--fsaa] [--accel] [--zdepth %%d]\n", argv[0],
-                    SDLTest_CommonUsage(state));
+            static const char *options[] = { "[--fsaa]", "[--accel]", "[--zdepth %d]", "[--threaded]", NULL };
+            SDLTest_CommonLogUsage(state, argv[0], options);
             quit(1);
         }
         i += consumed;
     }
 
     /* Set OpenGL parameters */
-    state->window_flags |= SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_BORDERLESS;
+    state->window_flags |= SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE;
     state->gl_red_size = 5;
     state->gl_green_size = 5;
     state->gl_blue_size = 5;
@@ -536,23 +684,23 @@ main(int argc, char *argv[])
     state->gl_profile_mask = SDL_GL_CONTEXT_PROFILE_ES;
 
     if (fsaa) {
-        state->gl_multisamplebuffers=1;
-        state->gl_multisamplesamples=fsaa;
+        state->gl_multisamplebuffers = 1;
+        state->gl_multisamplesamples = fsaa;
     }
     if (accel) {
-        state->gl_accelerated=1;
+        state->gl_accelerated = 1;
     }
     if (!SDLTest_CommonInit(state)) {
         quit(2);
         return 0;
     }
 
-    context = (SDL_GLContext *)SDL_calloc(state->num_windows, sizeof(context));
+    context = (SDL_GLContext *)SDL_calloc(state->num_windows, sizeof(*context));
     if (context == NULL) {
         SDL_Log("Out of memory!\n");
         quit(2);
     }
-    
+
     /* Create OpenGL ES contexts */
     for (i = 0; i < state->num_windows; i++) {
         context[i] = SDL_GL_CreateContext(state->windows[i]);
@@ -569,8 +717,6 @@ main(int argc, char *argv[])
         return 0;
     }
 
-
-
     if (state->render_flags & SDL_RENDERER_PRESENTVSYNC) {
         SDL_GL_SetSwapInterval(1);
     } else {
@@ -578,6 +724,7 @@ main(int argc, char *argv[])
     }
 
     SDL_GetCurrentDisplayMode(0, &mode);
+    SDL_Log("Threaded  : %s\n", threaded ? "yes" : "no");
     SDL_Log("Screen bpp: %d\n", SDL_BITSPERPIXEL(mode.format));
     SDL_Log("\n");
     SDL_Log("Vendor     : %s\n", ctx.glGetString(GL_VENDOR));
@@ -590,28 +737,28 @@ main(int argc, char *argv[])
     if (!status) {
         SDL_Log("SDL_GL_RED_SIZE: requested %d, got %d\n", 5, value);
     } else {
-        SDL_Log( "Failed to get SDL_GL_RED_SIZE: %s\n",
+        SDL_Log("Failed to get SDL_GL_RED_SIZE: %s\n",
                 SDL_GetError());
     }
     status = SDL_GL_GetAttribute(SDL_GL_GREEN_SIZE, &value);
     if (!status) {
         SDL_Log("SDL_GL_GREEN_SIZE: requested %d, got %d\n", 5, value);
     } else {
-        SDL_Log( "Failed to get SDL_GL_GREEN_SIZE: %s\n",
+        SDL_Log("Failed to get SDL_GL_GREEN_SIZE: %s\n",
                 SDL_GetError());
     }
     status = SDL_GL_GetAttribute(SDL_GL_BLUE_SIZE, &value);
     if (!status) {
         SDL_Log("SDL_GL_BLUE_SIZE: requested %d, got %d\n", 5, value);
     } else {
-        SDL_Log( "Failed to get SDL_GL_BLUE_SIZE: %s\n",
+        SDL_Log("Failed to get SDL_GL_BLUE_SIZE: %s\n",
                 SDL_GetError());
     }
     status = SDL_GL_GetAttribute(SDL_GL_DEPTH_SIZE, &value);
     if (!status) {
         SDL_Log("SDL_GL_DEPTH_SIZE: requested %d, got %d\n", depth, value);
     } else {
-        SDL_Log( "Failed to get SDL_GL_DEPTH_SIZE: %s\n",
+        SDL_Log("Failed to get SDL_GL_DEPTH_SIZE: %s\n",
                 SDL_GetError());
     }
     if (fsaa) {
@@ -619,15 +766,15 @@ main(int argc, char *argv[])
         if (!status) {
             SDL_Log("SDL_GL_MULTISAMPLEBUFFERS: requested 1, got %d\n", value);
         } else {
-            SDL_Log( "Failed to get SDL_GL_MULTISAMPLEBUFFERS: %s\n",
+            SDL_Log("Failed to get SDL_GL_MULTISAMPLEBUFFERS: %s\n",
                     SDL_GetError());
         }
         status = SDL_GL_GetAttribute(SDL_GL_MULTISAMPLESAMPLES, &value);
         if (!status) {
             SDL_Log("SDL_GL_MULTISAMPLESAMPLES: requested %d, got %d\n", fsaa,
-                   value);
+                    value);
         } else {
-            SDL_Log( "Failed to get SDL_GL_MULTISAMPLESAMPLES: %s\n",
+            SDL_Log("Failed to get SDL_GL_MULTISAMPLESAMPLES: %s\n",
                     SDL_GetError());
         }
     }
@@ -636,7 +783,7 @@ main(int argc, char *argv[])
         if (!status) {
             SDL_Log("SDL_GL_ACCELERATED_VISUAL: requested 1, got %d\n", value);
         } else {
-            SDL_Log( "Failed to get SDL_GL_ACCELERATED_VISUAL: %s\n",
+            SDL_Log("Failed to get SDL_GL_ACCELERATED_VISUAL: %s\n",
                     SDL_GetError());
         }
     }
@@ -658,7 +805,9 @@ main(int argc, char *argv[])
         ctx.glViewport(0, 0, w, h);
 
         data = &datas[i];
-        data->angle_x = 0; data->angle_y = 0; data->angle_z = 0;
+        data->angle_x = 0;
+        data->angle_y = 0;
+        data->angle_z = 0;
 
         /* Shader Initialization */
         process_shader(&data->shader_vert, _shader_vert_src, GL_VERTEX_SHADER);
@@ -668,9 +817,7 @@ main(int argc, char *argv[])
         data->shader_program = GL_CHECK(ctx.glCreateProgram());
 
         /* Attach shaders and link shader_program */
-        GL_CHECK(ctx.glAttachShader(data->shader_program, data->shader_vert));
-        GL_CHECK(ctx.glAttachShader(data->shader_program, data->shader_frag));
-        GL_CHECK(ctx.glLinkProgram(data->shader_program));
+        link_program(data);
 
         /* Get attribute locations of non-fixed attributes like color and texture coordinates. */
         data->attr_position = GL_CHECK(ctx.glGetAttribLocation(data->shader_program, "av4position"));
@@ -686,11 +833,23 @@ main(int argc, char *argv[])
         GL_CHECK(ctx.glEnableVertexAttribArray(data->attr_color));
 
         /* Populate attributes for position, color and texture coordinates etc. */
-        GL_CHECK(ctx.glVertexAttribPointer(data->attr_position, 3, GL_FLOAT, GL_FALSE, 0, _vertices));
-        GL_CHECK(ctx.glVertexAttribPointer(data->attr_color, 3, GL_FLOAT, GL_FALSE, 0, _colors));
+
+        GL_CHECK(ctx.glGenBuffers(1, &data->position_buffer));
+        GL_CHECK(ctx.glBindBuffer(GL_ARRAY_BUFFER, data->position_buffer));
+        GL_CHECK(ctx.glBufferData(GL_ARRAY_BUFFER, sizeof(_vertices), _vertices, GL_STATIC_DRAW));
+        GL_CHECK(ctx.glVertexAttribPointer(data->attr_position, 3, GL_FLOAT, GL_FALSE, 0, 0));
+        GL_CHECK(ctx.glBindBuffer(GL_ARRAY_BUFFER, 0));
+
+        GL_CHECK(ctx.glGenBuffers(1, &data->color_buffer));
+        GL_CHECK(ctx.glBindBuffer(GL_ARRAY_BUFFER, data->color_buffer));
+        GL_CHECK(ctx.glBufferData(GL_ARRAY_BUFFER, sizeof(_colors), _colors, GL_STATIC_DRAW));
+        GL_CHECK(ctx.glVertexAttribPointer(data->attr_color, 3, GL_FLOAT, GL_FALSE, 0, 0));
+        GL_CHECK(ctx.glBindBuffer(GL_ARRAY_BUFFER, 0));
 
         GL_CHECK(ctx.glEnable(GL_CULL_FACE));
         GL_CHECK(ctx.glEnable(GL_DEPTH_TEST));
+
+        SDL_GL_MakeCurrent(state->windows[i], NULL);
     }
 
     /* Main render loop */
@@ -701,8 +860,30 @@ main(int argc, char *argv[])
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop(loop, 0, 1);
 #else
-    while (!done) {
-        loop();
+    if (threaded) {
+        threads = (thread_data *)SDL_calloc(state->num_windows, sizeof(thread_data));
+
+        /* Start a render thread for each window */
+        for (i = 0; i < state->num_windows; ++i) {
+            threads[i].index = i;
+            threads[i].thread = SDL_CreateThread(render_thread_fn, "RenderThread", &threads[i]);
+        }
+
+        while (!done) {
+            loop_threaded();
+        }
+
+        /* Join the remaining render threads (if any) */
+        for (i = 0; i < state->num_windows; ++i) {
+            threads[i].done = 1;
+            if (threads[i].thread) {
+                SDL_WaitThread(threads[i].thread, NULL);
+            }
+        }
+    } else {
+        while (!done) {
+            loop();
+        }
     }
 #endif
 
@@ -710,7 +891,7 @@ main(int argc, char *argv[])
     now = SDL_GetTicks();
     if (now > then) {
         SDL_Log("%2.2f frames per second\n",
-               ((double) frames * 1000) / (now - then));
+                ((double)frames * 1000) / (now - then));
     }
 #if !defined(__ANDROID__) && !defined(__NACL__)  
     quit(0);
@@ -720,8 +901,7 @@ main(int argc, char *argv[])
 
 #else /* HAVE_OPENGLES2 */
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     SDL_Log("No OpenGL ES support on this system\n");
     return 1;

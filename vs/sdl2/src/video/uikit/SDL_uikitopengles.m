@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -20,7 +20,7 @@
 */
 #include "../../SDL_internal.h"
 
-#if SDL_VIDEO_DRIVER_UIKIT
+#if SDL_VIDEO_DRIVER_UIKIT && (SDL_VIDEO_OPENGL_ES || SDL_VIDEO_OPENGL_ES2)
 
 #include "SDL_uikitopengles.h"
 #import "SDL_uikitopenglview.h"
@@ -52,8 +52,7 @@
 
 @end
 
-void *
-UIKit_GL_GetProcAddress(_THIS, const char *proc)
+void *UIKit_GL_GetProcAddress(_THIS, const char *proc)
 {
     /* Look through all SO's for the proc symbol.  Here's why:
      * -Looking for the path to the OpenGL Library seems not to work in the iOS Simulator.
@@ -64,8 +63,7 @@ UIKit_GL_GetProcAddress(_THIS, const char *proc)
 /*
   note that SDL_GL_DeleteContext makes it current without passing the window
 */
-int
-UIKit_GL_MakeCurrent(_THIS, SDL_Window * window, SDL_GLContext context)
+int UIKit_GL_MakeCurrent(_THIS, SDL_Window * window, SDL_GLContext context)
 {
     @autoreleasepool {
         SDLEAGLContext *eaglcontext = (__bridge SDLEAGLContext *) context;
@@ -82,8 +80,7 @@ UIKit_GL_MakeCurrent(_THIS, SDL_Window * window, SDL_GLContext context)
     return 0;
 }
 
-void
-UIKit_GL_GetDrawableSize(_THIS, SDL_Window * window, int * w, int * h)
+void UIKit_GL_GetDrawableSize(_THIS, SDL_Window * window, int * w, int * h)
 {
     @autoreleasepool {
         SDL_WindowData *data = (__bridge SDL_WindowData *)window->driverdata;
@@ -96,12 +93,13 @@ UIKit_GL_GetDrawableSize(_THIS, SDL_Window * window, int * w, int * h)
             if (h) {
                 *h = glview.backingHeight;
             }
+        } else {
+            SDL_GetWindowSize(window, w, h);
         }
     }
 }
 
-int
-UIKit_GL_LoadLibrary(_THIS, const char *path)
+int UIKit_GL_LoadLibrary(_THIS, const char *path)
 {
     /* We shouldn't pass a path to this function, since we've already loaded the
      * library. */
@@ -130,8 +128,7 @@ int UIKit_GL_SwapWindow(_THIS, SDL_Window * window)
     return 0;
 }
 
-SDL_GLContext
-UIKit_GL_CreateContext(_THIS, SDL_Window * window)
+SDL_GLContext UIKit_GL_CreateContext(_THIS, SDL_Window * window)
 {
     @autoreleasepool {
         SDLEAGLContext *context = nil;
@@ -148,9 +145,8 @@ UIKit_GL_CreateContext(_THIS, SDL_Window * window)
          * versions. */
         EAGLRenderingAPI api = major;
 
-        /* iOS currently doesn't support GLES >3.0. iOS 6 also only supports up
-         * to GLES 2.0. */
-        if (major > 3 || (major == 3 && (minor > 0 || !UIKit_IsSystemVersionAtLeast(7.0)))) {
+        /* iOS currently doesn't support GLES >3.0. */
+        if (major > 3 || (major == 3 && minor > 0)) {
             SDL_SetError("OpenGL ES %d.%d context could not be created", major, minor);
             return NULL;
         }
@@ -160,22 +156,15 @@ UIKit_GL_CreateContext(_THIS, SDL_Window * window)
         }
 
         if (_this->gl_config.share_with_current_context) {
-            EAGLContext *context = (__bridge EAGLContext *) SDL_GL_GetCurrentContext();
-            sharegroup = context.sharegroup;
+            EAGLContext *currContext = (__bridge EAGLContext *) SDL_GL_GetCurrentContext();
+            sharegroup = currContext.sharegroup;
         }
 
         if (window->flags & SDL_WINDOW_ALLOW_HIGHDPI) {
             /* Set the scale to the natural scale factor of the screen - the
              * backing dimensions of the OpenGL view will match the pixel
              * dimensions of the screen rather than the dimensions in points. */
-#ifdef __IPHONE_8_0
-            if ([data.uiwindow.screen respondsToSelector:@selector(nativeScale)]) {
-                scale = data.uiwindow.screen.nativeScale;
-            } else
-#endif
-            {
-                scale = data.uiwindow.screen.scale;
-            }
+            scale = data.uiwindow.screen.nativeScale;
         }
 
         context = [[SDLEAGLContext alloc] initWithAPI:api sharegroup:sharegroup];
@@ -216,8 +205,7 @@ UIKit_GL_CreateContext(_THIS, SDL_Window * window)
     }
 }
 
-void
-UIKit_GL_DeleteContext(_THIS, SDL_GLContext context)
+void UIKit_GL_DeleteContext(_THIS, SDL_GLContext context)
 {
     @autoreleasepool {
         /* The context was retained in SDL_GL_CreateContext, so we release it
@@ -227,8 +215,7 @@ UIKit_GL_DeleteContext(_THIS, SDL_GLContext context)
     }
 }
 
-void
-UIKit_GL_RestoreCurrentContext(void)
+void UIKit_GL_RestoreCurrentContext(void)
 {
     @autoreleasepool {
         /* Some iOS system functionality (such as Dictation on the on-screen

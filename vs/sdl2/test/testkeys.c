@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -19,8 +19,7 @@
 
 #include "SDL.h"
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     SDL_Scancode scancode;
 
@@ -33,8 +32,8 @@ main(int argc, char *argv[])
     }
     for (scancode = 0; scancode < SDL_NUM_SCANCODES; ++scancode) {
         SDL_Log("Scancode #%d, \"%s\"\n", scancode,
-               SDL_GetScancodeName(scancode));
+                SDL_GetScancodeName(scancode));
     }
     SDL_Quit();
-    return (0);
+    return 0;
 }

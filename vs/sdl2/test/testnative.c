@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -13,9 +13,10 @@
 
 #include <stdio.h>
 #include <stdlib.h> /* for srand() */
-#include <time.h> /* for time() */
+#include <time.h>   /* for time() */
 
 #include "testnative.h"
+#include "testutils.h"
 
 #define WINDOW_W    640
 #define WINDOW_H    480
@@ -32,6 +33,9 @@ static NativeWindowFactory *factories[] = {
 #ifdef TEST_NATIVE_COCOA
     &CocoaWindowFactory,
 #endif
+#ifdef TEST_NATIVE_OS2
+    &OS2WindowFactory,
+#endif
     NULL
 };
 static NativeWindowFactory *factory = NULL;
@@ -43,45 +47,13 @@ static void
 quit(int rc)
 {
     SDL_VideoQuit();
-    if (native_window) {
+    if (native_window != NULL && factory != NULL) {
         factory->DestroyNativeWindow(native_window);
     }
     exit(rc);
 }
 
-SDL_Texture *
-LoadSprite(SDL_Renderer *renderer, char *file)
-{
-    SDL_Surface *temp;
-    SDL_Texture *sprite;
-
-    /* Load the sprite image */
-    temp = SDL_LoadBMP(file);
-    if (temp == NULL) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load %s: %s", file, SDL_GetError());
-        return 0;
-    }
-
-    /* Set transparent pixel as the pixel at (0,0) */
-    if (temp->format->palette) {
-        SDL_SetColorKey(temp, 1, *(Uint8 *) temp->pixels);
-    }
-
-    /* Create textures from the image */
-    sprite = SDL_CreateTextureFromSurface(renderer, temp);
-    if (!sprite) {
-        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create texture: %s\n", SDL_GetError());
-        SDL_FreeSurface(temp);
-        return 0;
-    }
-    SDL_FreeSurface(temp);
-
-    /* We're ready to roll. :) */
-    return sprite;
-}
-
-void
-MoveSprites(SDL_Renderer * renderer, SDL_Texture * sprite)
+void MoveSprites(SDL_Renderer *renderer, SDL_Texture *sprite)
 {
     int sprite_w, sprite_h;
     int i;
@@ -119,8 +91,7 @@ MoveSprites(SDL_Renderer * renderer, SDL_Texture * sprite)
     SDL_RenderPresent(renderer);
 }
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     int i, done;
     const char *driver;
@@ -136,7 +107,7 @@ main(int argc, char *argv[])
 
     if (SDL_VideoInit(NULL) < 0) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL video: %s\n",
-                SDL_GetError());
+                     SDL_GetError());
         exit(1);
     }
     driver = SDL_GetCurrentVideoDriver();
@@ -148,19 +119,19 @@ main(int argc, char *argv[])
             break;
         }
     }
-    if (!factory) {
+    if (factory == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't find native window code for %s driver\n",
-                driver);
+                     driver);
         quit(2);
     }
     SDL_Log("Creating native window for %s driver\n", driver);
     native_window = factory->CreateNativeWindow(WINDOW_W, WINDOW_H);
-    if (!native_window) {
+    if (native_window == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create native window\n");
         quit(3);
     }
     window = SDL_CreateWindowFrom(native_window);
-    if (!window) {
+    if (window == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create SDL window: %s\n", SDL_GetError());
         quit(4);
     }
@@ -168,7 +139,7 @@ main(int argc, char *argv[])
 
     /* Create the renderer */
     renderer = SDL_CreateRenderer(window, -1, 0);
-    if (!renderer) {
+    if (renderer == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't create renderer: %s\n", SDL_GetError());
         quit(5);
     }
@@ -177,21 +148,21 @@ main(int argc, char *argv[])
     SDL_SetRenderDrawColor(renderer, 0xA0, 0xA0, 0xA0, 0xFF);
     SDL_RenderClear(renderer);
 
-    sprite = LoadSprite(renderer, "icon.bmp");
-    if (!sprite) {
+    sprite = LoadTexture(renderer, "icon.bmp", SDL_TRUE, NULL, NULL);
+    if (sprite == NULL) {
         quit(6);
     }
 
     /* Allocate memory for the sprite info */
     SDL_GetWindowSize(window, &window_w, &window_h);
     SDL_QueryTexture(sprite, NULL, NULL, &sprite_w, &sprite_h);
-    positions = (SDL_Rect *) SDL_malloc(NUM_SPRITES * sizeof(SDL_Rect));
-    velocities = (SDL_Rect *) SDL_malloc(NUM_SPRITES * sizeof(SDL_Rect));
-    if (!positions || !velocities) {
+    positions = (SDL_Rect *)SDL_malloc(NUM_SPRITES * sizeof(SDL_Rect));
+    velocities = (SDL_Rect *)SDL_malloc(NUM_SPRITES * sizeof(SDL_Rect));
+    if (positions == NULL || velocities == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Out of memory!\n");
         quit(2);
     }
-    srand(time(NULL));
+    srand((unsigned int)time(NULL));
     for (i = 0; i < NUM_SPRITES; ++i) {
         positions[i].x = rand() % (window_w - sprite_w);
         positions[i].y = rand() % (window_h - sprite_h);

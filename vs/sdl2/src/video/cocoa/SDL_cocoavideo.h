@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -97,21 +97,24 @@ DECLARE_ALERT_STYLE(Critical);
 
 @class SDLTranslatorResponder;
 
-typedef struct SDL_VideoData
-{
-    int allow_spaces;
-    unsigned int modifierFlags;
-    void *key_layout;
-    SDLTranslatorResponder *fieldEdit;
-    NSInteger clipboard_count;
-    Uint32 screensaver_activity;
-    BOOL screensaver_use_iopm;
-    IOPMAssertionID screensaver_assertion;
-    SDL_mutex *swaplock;
-} SDL_VideoData;
+@interface SDL_VideoData : NSObject
+    @property (nonatomic) int allow_spaces;
+    @property (nonatomic) int trackpad_is_touch_only;
+    @property (nonatomic) unsigned int modifierFlags;
+    @property (nonatomic) void *key_layout;
+    @property (nonatomic) SDLTranslatorResponder *fieldEdit;
+    @property (nonatomic) NSInteger clipboard_count;
+    @property (nonatomic) IOPMAssertionID screensaver_assertion;
+    @property (nonatomic) SDL_mutex *swaplock;
+@end
 
 /* Utility functions */
 extern NSImage * Cocoa_CreateImage(SDL_Surface * surface);
+
+/* Fix build with the 10.11 SDK */
+#if MAC_OS_X_VERSION_MAX_ALLOWED < 101200
+#define NSEventSubtypeMouseEvent NSMouseEventSubtype
+#endif
 
 #endif /* SDL_cocoavideo_h_ */
 

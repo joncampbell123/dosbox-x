@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -55,15 +55,13 @@
 static Uint8 snd2au(int sample);
 
 /* Audio driver bootstrap functions */
-static void
-SUNAUDIO_DetectDevices(void)
+static void SUNAUDIO_DetectDevices(void)
 {
     SDL_EnumUnixAudioDevices(1, (int (*)(int)) NULL);
 }
 
 #ifdef DEBUG_AUDIO
-void
-CheckUnderflow(_THIS)
+void CheckUnderflow(_THIS)
 {
 #ifdef AUDIO_GETBUFINFO
     audio_info_t info;
@@ -78,8 +76,7 @@ CheckUnderflow(_THIS)
 }
 #endif
 
-static void
-SUNAUDIO_WaitDevice(_THIS)
+static void SUNAUDIO_WaitDevice(_THIS)
 {
 #ifdef AUDIO_GETBUFINFO
 #define SLEEP_FUDGE 10      /* 10 ms scheduling fudge factor */
@@ -98,12 +95,11 @@ SUNAUDIO_WaitDevice(_THIS)
         }
     }
 #else
-    SDL_IOReady(this->hidden->audio_fd, SDL_TRUE, -1);
+    SDL_IOReady(this->hidden->audio_fd, SDL_IOR_WRITE, -1);
 #endif
 }
 
-static void
-SUNAUDIO_PlayDevice(_THIS)
+static void SUNAUDIO_PlayDevice(_THIS)
 {
     /* Write the audio data */
     if (this->hidden->ulaw_only) {
@@ -170,14 +166,12 @@ SUNAUDIO_PlayDevice(_THIS)
     }
 }
 
-static Uint8 *
-SUNAUDIO_GetDeviceBuf(_THIS)
+static Uint8 *SUNAUDIO_GetDeviceBuf(_THIS)
 {
     return (this->hidden->mixbuf);
 }
 
-static void
-SUNAUDIO_CloseDevice(_THIS)
+static void SUNAUDIO_CloseDevice(_THIS)
 {
     SDL_free(this->hidden->ulaw_buf);
     if (this->hidden->audio_fd >= 0) {
@@ -187,12 +181,12 @@ SUNAUDIO_CloseDevice(_THIS)
     SDL_free(this->hidden);
 }
 
-static int
-SUNAUDIO_OpenDevice(_THIS, void *handle, const char *devname, int iscapture)
+static int SUNAUDIO_OpenDevice(_THIS, const char *devname)
 {
 #ifdef AUDIO_SETINFO
     int enc;
 #endif
+    SDL_bool iscapture = this->iscapture;
     int desired_freq = 0;
     const int flags = ((iscapture) ? OPEN_FLAGS_INPUT : OPEN_FLAGS_OUTPUT);
     SDL_AudioFormat format = 0;
@@ -208,8 +202,7 @@ SUNAUDIO_OpenDevice(_THIS, void *handle, const char *devname, int iscapture)
     }
 
     /* Initialize all variables that we clean on shutdown */
-    this->hidden = (struct SDL_PrivateAudioData *)
-        SDL_malloc((sizeof *this->hidden));
+    this->hidden = (struct SDL_PrivateAudioData *)SDL_malloc(sizeof(*this->hidden));
     if (this->hidden == NULL) {
         return SDL_OutOfMemory();
     }
@@ -359,8 +352,7 @@ SUNAUDIO_OpenDevice(_THIS, void *handle, const char *devname, int iscapture)
 /*      provided "as is" without express or implied warranty.           */
 /************************************************************************/
 
-static Uint8
-snd2au(int sample)
+static Uint8 snd2au(int sample)
 {
 
     int mask;
@@ -394,8 +386,7 @@ snd2au(int sample)
     return (mask & sample);
 }
 
-static int
-SUNAUDIO_Init(SDL_AudioDriverImpl * impl)
+static SDL_bool SUNAUDIO_Init(SDL_AudioDriverImpl * impl)
 {
     /* Set the function pointers */
     impl->DetectDevices = SUNAUDIO_DetectDevices;
@@ -405,13 +396,13 @@ SUNAUDIO_Init(SDL_AudioDriverImpl * impl)
     impl->GetDeviceBuf = SUNAUDIO_GetDeviceBuf;
     impl->CloseDevice = SUNAUDIO_CloseDevice;
 
-    impl->AllowsArbitraryDeviceNames = 1;
+    impl->AllowsArbitraryDeviceNames = SDL_TRUE;
 
-    return 1; /* this audio target is available. */
+    return SDL_TRUE; /* this audio target is available. */
 }
 
 AudioBootStrap SUNAUDIO_bootstrap = {
-    "audio", "UNIX /dev/audio interface", SUNAUDIO_Init, 0
+    "audio", "UNIX /dev/audio interface", SUNAUDIO_Init, SDL_FALSE
 };
 
 #endif /* SDL_AUDIO_DRIVER_SUNAUDIO */

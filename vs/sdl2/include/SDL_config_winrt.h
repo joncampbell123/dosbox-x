@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -42,54 +42,14 @@
 
 /* This is a set of defines to configure the SDL features */
 
-#if !defined(_STDINT_H_) && (!defined(HAVE_STDINT_H) || !_HAVE_STDINT_H)
-#if defined(__GNUC__) || defined(__DMC__) || defined(__WATCOMC__)
-#define HAVE_STDINT_H   1
-#elif defined(_MSC_VER)
-typedef signed __int8 int8_t;
-typedef unsigned __int8 uint8_t;
-typedef signed __int16 int16_t;
-typedef unsigned __int16 uint16_t;
-typedef signed __int32 int32_t;
-typedef unsigned __int32 uint32_t;
-typedef signed __int64 int64_t;
-typedef unsigned __int64 uint64_t;
-#ifndef _UINTPTR_T_DEFINED
-#ifdef  _WIN64
-typedef unsigned __int64 uintptr_t;
-#else
-typedef unsigned int uintptr_t;
-#endif
-#define _UINTPTR_T_DEFINED
-#endif
-/* Older Visual C++ headers don't have the Win64-compatible typedefs... */
-#if ((_MSC_VER <= 1200) && (!defined(DWORD_PTR)))
-#define DWORD_PTR DWORD
-#endif
-#if ((_MSC_VER <= 1200) && (!defined(LONG_PTR)))
-#define LONG_PTR LONG
-#endif
-#else /* !__GNUC__ && !_MSC_VER */
-typedef signed char int8_t;
-typedef unsigned char uint8_t;
-typedef signed short int16_t;
-typedef unsigned short uint16_t;
-typedef signed int int32_t;
-typedef unsigned int uint32_t;
-typedef signed long long int64_t;
-typedef unsigned long long uint64_t;
-#ifndef _SIZE_T_DEFINED_
-#define _SIZE_T_DEFINED_
-typedef unsigned int size_t;
-#endif
-typedef unsigned int uintptr_t;
-#endif /* __GNUC__ || _MSC_VER */
-#endif /* !_STDINT_H_ && !HAVE_STDINT_H */
-
 #ifdef _WIN64
 # define SIZEOF_VOIDP 8
 #else
 # define SIZEOF_VOIDP 4
+#endif
+
+#ifdef __clang__
+# define HAVE_GCC_ATOMICS 1
 #endif
 
 /* Useful headers */
@@ -100,7 +60,7 @@ typedef unsigned int uintptr_t;
 
 #define HAVE_MMDEVICEAPI_H 1
 #define HAVE_AUDIOCLIENT_H 1
-#define HAVE_ENDPOINTVOLUME_H 1
+#define HAVE_TPCSHRD_H 1
 
 #define HAVE_LIBC 1
 #define STDC_HEADERS 1
@@ -109,6 +69,7 @@ typedef unsigned int uintptr_t;
 #define HAVE_LIMITS_H 1
 #define HAVE_MATH_H 1
 #define HAVE_SIGNAL_H 1
+#define HAVE_STDINT_H 1
 #define HAVE_STDIO_H 1
 #define HAVE_STRING_H 1
 
@@ -119,6 +80,7 @@ typedef unsigned int uintptr_t;
 #define HAVE_FREE 1
 #define HAVE_ALLOCA 1
 #define HAVE_QSORT 1
+#define HAVE_BSEARCH 1
 #define HAVE_ABS 1
 #define HAVE_MEMSET 1
 #define HAVE_MEMCPY 1
@@ -127,16 +89,13 @@ typedef unsigned int uintptr_t;
 #define HAVE_STRLEN 1
 #define HAVE__STRREV 1
 #define HAVE__STRUPR 1
-//#define HAVE__STRLWR 1    // TODO, WinRT: consider using _strlwr_s instead
 #define HAVE_STRCHR 1
 #define HAVE_STRRCHR 1
 #define HAVE_STRSTR 1
-//#define HAVE_ITOA 1   // TODO, WinRT: consider using _itoa_s instead
-//#define HAVE__LTOA 1  // TODO, WinRT: consider using _ltoa_s instead
-//#define HAVE__ULTOA 1 // TODO, WinRT: consider using _ultoa_s instead
 #define HAVE_STRTOL 1
 #define HAVE_STRTOUL 1
-//#define HAVE_STRTOLL 1
+/* #undef HAVE_STRTOLL */
+/* #undef HAVE_STRTOULL */
 #define HAVE_STRTOD 1
 #define HAVE_ATOI 1
 #define HAVE_ATOF 1
@@ -145,7 +104,12 @@ typedef unsigned int uintptr_t;
 #define HAVE__STRICMP 1
 #define HAVE__STRNICMP 1
 #define HAVE_VSNPRINTF 1
-//#define HAVE_SSCANF 1 // TODO, WinRT: consider using sscanf_s instead
+/* TODO, WinRT: consider using ??_s versions of the following */
+/* #undef HAVE__STRLWR */
+/* #undef HAVE_ITOA */
+/* #undef HAVE__LTOA */
+/* #undef HAVE__ULTOA */
+/* #undef HAVE_SSCANF */
 #define HAVE_M_PI 1
 #define HAVE_ACOS   1
 #define HAVE_ACOSF  1
@@ -172,8 +136,12 @@ typedef unsigned int uintptr_t;
 #define HAVE_LOGF   1
 #define HAVE_LOG10  1
 #define HAVE_LOG10F 1
+#define HAVE_LROUND 1
+#define HAVE_LROUNDF 1
 #define HAVE_POW    1
 #define HAVE_POWF   1
+#define HAVE_ROUND 1
+#define HAVE_ROUNDF 1
 #define HAVE__SCALB 1
 #define HAVE_SIN    1
 #define HAVE_SINF   1
@@ -181,7 +149,11 @@ typedef unsigned int uintptr_t;
 #define HAVE_SQRTF  1
 #define HAVE_TAN    1
 #define HAVE_TANF   1
+#define HAVE_TRUNC  1
+#define HAVE_TRUNCF 1
 #define HAVE__FSEEKI64 1
+
+#define HAVE_ROAPI_H  1
 
 /* Enable various audio drivers */
 #define SDL_AUDIO_DRIVER_WASAPI 1
@@ -193,9 +165,18 @@ typedef unsigned int uintptr_t;
 #define SDL_JOYSTICK_DISABLED 1
 #define SDL_HAPTIC_DISABLED 1
 #else
+#define SDL_JOYSTICK_VIRTUAL    1
+#if (NTDDI_VERSION >= NTDDI_WIN10)
+#define SDL_JOYSTICK_WGI    1
+#define SDL_HAPTIC_DISABLED 1
+#else
 #define SDL_JOYSTICK_XINPUT 1
 #define SDL_HAPTIC_XINPUT   1
+#endif /* WIN10 */
 #endif
+
+/* WinRT doesn't have HIDAPI available */
+#define SDL_HIDAPI_DISABLED    1
 
 /* Enable the dummy sensor driver */
 #define SDL_SENSOR_DUMMY  1
@@ -205,6 +186,7 @@ typedef unsigned int uintptr_t;
 
 /* Enable various threading systems */
 #if (NTDDI_VERSION >= NTDDI_WINBLUE)
+#define SDL_THREAD_GENERIC_COND_SUFFIX 1
 #define SDL_THREAD_WINDOWS  1
 #else
 /* WinRT on Windows 8.0 and Windows Phone 8.0 don't support CreateThread() */
@@ -225,16 +207,14 @@ typedef unsigned int uintptr_t;
 /* Enable appropriate renderer(s) */
 #define SDL_VIDEO_RENDER_D3D11  1
 
+/* Disable D3D12 as it's not implemented for WinRT */
+#define SDL_VIDEO_RENDER_D3D12  0
+
 #if SDL_VIDEO_OPENGL_ES2
 #define SDL_VIDEO_RENDER_OGL_ES2 1
 #endif
 
 /* Enable system power support */
 #define SDL_POWER_WINRT 1
-
-/* Enable assembly routines (Win64 doesn't have inline asm) */
-#ifndef _WIN64
-#define SDL_ASSEMBLY_ROUTINES   1
-#endif
 
 #endif /* SDL_config_winrt_h_ */

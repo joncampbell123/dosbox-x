@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -22,25 +22,33 @@
 
 #if SDL_VIDEO_DRIVER_DIRECTFB
 
-#include "SDL_assert.h"
 #include "SDL_DirectFB_video.h"
 #include "SDL_DirectFB_shape.h"
 #include "SDL_DirectFB_window.h"
 
 #include "../SDL_shape_internals.h"
 
-SDL_WindowShaper*
-DirectFB_CreateShaper(SDL_Window* window) {
+SDL_WindowShaper *DirectFB_CreateShaper(SDL_Window* window)
+{
     SDL_WindowShaper* result = NULL;
     SDL_ShapeData* data;
     int resized_properly;
 
-    result = malloc(sizeof(SDL_WindowShaper));
+    result = SDL_malloc(sizeof(SDL_WindowShaper));
+    if (!result) {
+        SDL_OutOfMemory();
+        return NULL;
+    }
     result->window = window;
     result->mode.mode = ShapeModeDefault;
     result->mode.parameters.binarizationCutoff = 1;
     result->userx = result->usery = 0;
     data = SDL_malloc(sizeof(SDL_ShapeData));
+    if (!data) {
+        SDL_free(result);
+        SDL_OutOfMemory();
+        return NULL;
+    }
     result->driverdata = data;
     data->surface = NULL;
     window->shaper = result;
@@ -50,8 +58,8 @@ DirectFB_CreateShaper(SDL_Window* window) {
     return result;
 }
 
-int
-DirectFB_ResizeWindowShape(SDL_Window* window) {
+int DirectFB_ResizeWindowShape(SDL_Window* window)
+{
     SDL_ShapeData* data = window->shaper->driverdata;
     SDL_assert(data != NULL);
 
@@ -65,8 +73,8 @@ DirectFB_ResizeWindowShape(SDL_Window* window) {
     return 0;
 }
 
-int
-DirectFB_SetWindowShape(SDL_WindowShaper *shaper,SDL_Surface *shape,SDL_WindowShapeMode *shape_mode) {
+int DirectFB_SetWindowShape(SDL_WindowShaper *shaper,SDL_Surface *shape,SDL_WindowShapeMode *shape_mode)
+{
 
     if(shaper == NULL || shape == NULL || shaper->driverdata == NULL)
         return -1;
@@ -95,10 +103,9 @@ DirectFB_SetWindowShape(SDL_WindowShaper *shaper,SDL_Surface *shape,SDL_WindowSh
         dsc.pixelformat = DSPF_ARGB;
 
         SDL_DFB_CHECKERR(devdata->dfb->CreateSurface(devdata->dfb, &dsc, &data->surface));
-
+        SDL_DFB_CALLOC(bitmap, shape->w * shape->h, 1);
         /* Assume that shaper->alphacutoff already has a value, because SDL_SetWindowShape() should have given it one. */
-        SDL_DFB_ALLOC_CLEAR(bitmap, shape->w * shape->h);
-        SDL_CalculateShapeBitmap(shaper->mode,shape,bitmap,1);
+        SDL_CalculateShapeBitmap(shaper->mode, shape, bitmap, 1);
 
         src = bitmap;
 

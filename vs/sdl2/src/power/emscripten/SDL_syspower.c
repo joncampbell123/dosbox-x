@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,14 +27,14 @@
 
 #include "SDL_power.h"
 
-SDL_bool
-SDL_GetPowerInfo_Emscripten(SDL_PowerState *state, int *seconds, int *percent)
+SDL_bool SDL_GetPowerInfo_Emscripten(SDL_PowerState *state, int *seconds, int *percent)
 {
     EmscriptenBatteryEvent batteryState;
     int haveBattery = 0;
 
-    if (emscripten_get_battery_status(&batteryState) == EMSCRIPTEN_RESULT_NOT_SUPPORTED)
+    if (emscripten_get_battery_status(&batteryState) == EMSCRIPTEN_RESULT_NOT_SUPPORTED) {
         return SDL_FALSE;
+    }
 
     haveBattery = batteryState.level != 1.0 || !batteryState.charging || batteryState.chargingTime != 0.0;
 

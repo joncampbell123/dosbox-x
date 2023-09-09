@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,7 +27,6 @@
 #include "../../core/windows/SDL_windows.h"
 #include <mmsystem.h>
 
-#include "SDL_assert.h"
 #include "SDL_timer.h"
 #include "SDL_audio.h"
 #include "../SDL_audio_c.h"
@@ -36,7 +35,7 @@
 /* MinGW32 mmsystem.h doesn't include these structures */
 #if defined(__MINGW32__) && defined(_MMSYSTEM_H)
 
-typedef struct tagWAVEINCAPS2W 
+typedef struct tagWAVEINCAPS2W
 {
     WORD wMid;
     WORD wPid;
@@ -76,12 +75,19 @@ static void DetectWave##typ##Devs(void) { \
     const UINT iscapture = iscap ? 1 : 0; \
     const UINT devcount = wave##typ##GetNumDevs(); \
     capstyp##2W caps; \
+    SDL_AudioSpec spec; \
     UINT i; \
+    SDL_zero(spec); \
     for (i = 0; i < devcount; i++) { \
         if (wave##typ##GetDevCaps(i,(LP##capstyp##W)&caps,sizeof(caps))==MMSYSERR_NOERROR) { \
             char *name = WIN_LookupAudioDeviceName(caps.szPname,&caps.NameGuid); \
             if (name != NULL) { \
-                SDL_AddAudioDevice((int) iscapture, name, (void *) ((size_t) i+1)); \
+                /* Note that freq/format are not filled in, as this information \
+                 * is not provided by the caps struct! At best, we get possible \
+                 * sample formats, but not an _active_ format. \
+                 */ \
+                spec.channels = (Uint8)caps.wChannels; \
+                SDL_AddAudioDevice((int) iscapture, name, &spec, (void *) ((size_t) i+1)); \
                 SDL_free(name); \
             } \
         } \
@@ -91,16 +97,13 @@ static void DetectWave##typ##Devs(void) { \
 DETECT_DEV_IMPL(SDL_FALSE, Out, WAVEOUTCAPS)
 DETECT_DEV_IMPL(SDL_TRUE, In, WAVEINCAPS)
 
-static void
-WINMM_DetectDevices(void)
+static void WINMM_DetectDevices(void)
 {
     DetectWaveInDevs();
     DetectWaveOutDevs();
 }
 
-static void CALLBACK
-CaptureSound(HWAVEIN hwi, UINT uMsg, DWORD_PTR dwInstance,
-          DWORD_PTR dwParam1, DWORD_PTR dwParam2)
+static void CALLBACK CaptureSound(HWAVEIN hwi, UINT uMsg, DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2)
 {
     SDL_AudioDevice *this = (SDL_AudioDevice *) dwInstance;
 
@@ -114,9 +117,7 @@ CaptureSound(HWAVEIN hwi, UINT uMsg, DWORD_PTR dwInstance,
 
 
 /* The Win32 callback for filling the WAVE device */
-static void CALLBACK
-FillSound(HWAVEOUT hwo, UINT uMsg, DWORD_PTR dwInstance,
-          DWORD_PTR dwParam1, DWORD_PTR dwParam2)
+static void CALLBACK FillSound(HWAVEOUT hwo, UINT uMsg, DWORD_PTR dwInstance, DWORD_PTR dwParam1, DWORD_PTR dwParam2)
 {
     SDL_AudioDevice *this = (SDL_AudioDevice *) dwInstance;
 
@@ -128,8 +129,7 @@ FillSound(HWAVEOUT hwo, UINT uMsg, DWORD_PTR dwInstance,
     ReleaseSemaphore(this->hidden->audio_sem, 1, NULL);
 }
 
-static int
-SetMMerror(char *function, MMRESULT code)
+static int SetMMerror(const char *function, MMRESULT code)
 {
     int len;
     char errbuf[MAXERRORLENGTH];
@@ -145,22 +145,19 @@ SetMMerror(char *function, MMRESULT code)
     return SDL_SetError("%s", errbuf);
 }
 
-static void
-WINMM_WaitDevice(_THIS)
+static void WINMM_WaitDevice(_THIS)
 {
     /* Wait for an audio chunk to finish */
     WaitForSingleObject(this->hidden->audio_sem, INFINITE);
 }
 
-static Uint8 *
-WINMM_GetDeviceBuf(_THIS)
+static Uint8 *WINMM_GetDeviceBuf(_THIS)
 {
     return (Uint8 *) (this->hidden->
                       wavebuf[this->hidden->next_buffer].lpData);
 }
 
-static void
-WINMM_PlayDevice(_THIS)
+static void WINMM_PlayDevice(_THIS)
 {
     /* Queue it up */
     waveOutWrite(this->hidden->hout,
@@ -169,8 +166,7 @@ WINMM_PlayDevice(_THIS)
     this->hidden->next_buffer = (this->hidden->next_buffer + 1) % NUM_BUFFERS;
 }
 
-static int
-WINMM_CaptureFromDevice(_THIS, void *buffer, int buflen)
+static int WINMM_CaptureFromDevice(_THIS, void *buffer, int buflen)
 {
     const int nextbuf = this->hidden->next_buffer;
     MMRESULT result;
@@ -186,7 +182,7 @@ WINMM_CaptureFromDevice(_THIS, void *buffer, int buflen)
     /* requeue the buffer that just finished. */
     result = waveInAddBuffer(this->hidden->hin,
                              &this->hidden->wavebuf[nextbuf],
-                             sizeof (this->hidden->wavebuf[nextbuf]));
+                             sizeof(this->hidden->wavebuf[nextbuf]));
     if (result != MMSYSERR_NOERROR) {
         return -1;  /* uhoh! Disable the device. */
     }
@@ -196,8 +192,7 @@ WINMM_CaptureFromDevice(_THIS, void *buffer, int buflen)
     return this->spec.size;
 }
 
-static void
-WINMM_FlushCapture(_THIS)
+static void WINMM_FlushCapture(_THIS)
 {
     /* Wait for an audio chunk to finish */
     if (WaitForSingleObject(this->hidden->audio_sem, 0) == WAIT_OBJECT_0) {
@@ -205,13 +200,12 @@ WINMM_FlushCapture(_THIS)
         /* requeue the buffer that just finished without reading from it. */
         waveInAddBuffer(this->hidden->hin,
                         &this->hidden->wavebuf[nextbuf],
-                        sizeof (this->hidden->wavebuf[nextbuf]));
+                        sizeof(this->hidden->wavebuf[nextbuf]));
         this->hidden->next_buffer = (nextbuf + 1) % NUM_BUFFERS;
     }
 }
 
-static void
-WINMM_CloseDevice(_THIS)
+static void WINMM_CloseDevice(_THIS)
 {
     int i;
 
@@ -223,7 +217,7 @@ WINMM_CloseDevice(_THIS)
             if (this->hidden->wavebuf[i].dwUser != 0xFFFF) {
                 waveOutUnprepareHeader(this->hidden->hout,
                                        &this->hidden->wavebuf[i],
-                                       sizeof (this->hidden->wavebuf[i]));
+                                       sizeof(this->hidden->wavebuf[i]));
             }
         }
 
@@ -238,7 +232,7 @@ WINMM_CloseDevice(_THIS)
             if (this->hidden->wavebuf[i].dwUser != 0xFFFF) {
                 waveInUnprepareHeader(this->hidden->hin,
                                        &this->hidden->wavebuf[i],
-                                       sizeof (this->hidden->wavebuf[i]));
+                                       sizeof(this->hidden->wavebuf[i]));
             }
         }
         waveInClose(this->hidden->hin);
@@ -252,8 +246,7 @@ WINMM_CloseDevice(_THIS)
     SDL_free(this->hidden);
 }
 
-static SDL_bool
-PrepWaveFormat(_THIS, UINT devId, WAVEFORMATEX *pfmt, const int iscapture)
+static SDL_bool PrepWaveFormat(_THIS, UINT devId, WAVEFORMATEX *pfmt, const int iscapture)
 {
     SDL_zerop(pfmt);
 
@@ -276,11 +269,11 @@ PrepWaveFormat(_THIS, UINT devId, WAVEFORMATEX *pfmt, const int iscapture)
     }
 }
 
-static int
-WINMM_OpenDevice(_THIS, void *handle, const char *devname, int iscapture)
+static int WINMM_OpenDevice(_THIS, const char *devname)
 {
-    SDL_AudioFormat test_format = SDL_FirstAudioFormat(this->spec.format);
-    int valid_datatype = 0;
+    SDL_AudioFormat test_format;
+    SDL_bool iscapture = this->iscapture;
+    void *handle = this->handle;
     MMRESULT result;
     WAVEFORMATEX waveformat;
     UINT devId = WAVE_MAPPER;  /* WAVE_MAPPER == choose system's default */
@@ -293,8 +286,7 @@ WINMM_OpenDevice(_THIS, void *handle, const char *devname, int iscapture)
     }
 
     /* Initialize all variables that we clean on shutdown */
-    this->hidden = (struct SDL_PrivateAudioData *)
-        SDL_malloc((sizeof *this->hidden));
+    this->hidden = (struct SDL_PrivateAudioData *)SDL_malloc(sizeof(*this->hidden));
     if (this->hidden == NULL) {
         return SDL_OutOfMemory();
     }
@@ -307,7 +299,7 @@ WINMM_OpenDevice(_THIS, void *handle, const char *devname, int iscapture)
     if (this->spec.channels > 2)
         this->spec.channels = 2;        /* !!! FIXME: is this right? */
 
-    while ((!valid_datatype) && (test_format)) {
+    for (test_format = SDL_FirstAudioFormat(this->spec.format); test_format; test_format = SDL_NextAudioFormat()) {
         switch (test_format) {
         case AUDIO_U8:
         case AUDIO_S16:
@@ -315,20 +307,17 @@ WINMM_OpenDevice(_THIS, void *handle, const char *devname, int iscapture)
         case AUDIO_F32:
             this->spec.format = test_format;
             if (PrepWaveFormat(this, devId, &waveformat, iscapture)) {
-                valid_datatype = 1;
-            } else {
-                test_format = SDL_NextAudioFormat();
+                break;
             }
-            break;
-
+            continue;
         default:
-            test_format = SDL_NextAudioFormat();
-            break;
+            continue;
         }
+        break;
     }
 
-    if (!valid_datatype) {
-        return SDL_SetError("Unsupported audio format");
+    if (!test_format) {
+        return SDL_SetError("%s: Unsupported audio format", "winmm");
     }
 
     /* Update the fragment size as size in bytes */
@@ -357,7 +346,7 @@ WINMM_OpenDevice(_THIS, void *handle, const char *devname, int iscapture)
         if (iscapture) {
             WAVEINCAPS caps;
             result = waveInGetDevCaps((UINT) this->hidden->hout,
-                                      &caps, sizeof (caps));
+                                      &caps, sizeof(caps));
             if (result != MMSYSERR_NOERROR) {
                 return SetMMerror("waveInGetDevCaps()", result);
             }
@@ -387,7 +376,7 @@ WINMM_OpenDevice(_THIS, void *handle, const char *devname, int iscapture)
         return SDL_OutOfMemory();
     }
 
-    SDL_zero(this->hidden->wavebuf);
+    SDL_zeroa(this->hidden->wavebuf);
     for (i = 0; i < NUM_BUFFERS; ++i) {
         this->hidden->wavebuf[i].dwBufferLength = this->spec.size;
         this->hidden->wavebuf[i].dwFlags = WHDR_DONE;
@@ -428,9 +417,7 @@ WINMM_OpenDevice(_THIS, void *handle, const char *devname, int iscapture)
     return 0;                   /* Ready to go! */
 }
 
-
-static int
-WINMM_Init(SDL_AudioDriverImpl * impl)
+static SDL_bool WINMM_Init(SDL_AudioDriverImpl * impl)
 {
     /* Set the function pointers */
     impl->DetectDevices = WINMM_DetectDevices;
@@ -444,11 +431,11 @@ WINMM_Init(SDL_AudioDriverImpl * impl)
 
     impl->HasCaptureSupport = SDL_TRUE;
 
-    return 1;   /* this audio target is available. */
+    return SDL_TRUE;   /* this audio target is available. */
 }
 
 AudioBootStrap WINMM_bootstrap = {
-    "winmm", "Windows Waveform Audio", WINMM_Init, 0
+    "winmm", "Windows Waveform Audio", WINMM_Init, SDL_FALSE
 };
 
 #endif /* SDL_AUDIO_DRIVER_WINMM */

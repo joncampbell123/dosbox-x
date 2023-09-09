@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -31,7 +31,7 @@
 #include <storage/File.h>
 #include <unistd.h>
 
-#include "SDL_BApp.h"   /* SDL_BApp class definition */
+#include "SDL_BApp.h"   /* SDL_BLooper class definition */
 #include "SDL_BeApp.h"
 #include "SDL_timer.h"
 #include "SDL_error.h"
@@ -44,17 +44,43 @@ extern "C" {
 
 #include "../../thread/SDL_systhread.h"
 
-/* Flag to tell whether or not the Be application is active or not */
+/* Flag to tell whether or not the Be application and looper are active or not */
 static int SDL_BeAppActive = 0;
 static SDL_Thread *SDL_AppThread = NULL;
+SDL_BLooper *SDL_Looper = NULL;
 
-static int
-StartBeApp(void *unused)
+
+/* Default application signature */
+const char *SDL_signature = "application/x-SDL-executable";
+
+
+/* Create a descendant of BApplication */
+class SDL_BApp : public BApplication {
+public:
+    SDL_BApp(const char* signature) :
+        BApplication(signature) {
+    }
+
+
+    virtual ~SDL_BApp() {
+    }
+
+
+    virtual void RefsReceived(BMessage* message) {
+        entry_ref entryRef;
+        for (int32 i = 0; message->FindRef("refs", i, &entryRef) == B_OK; i++) {
+            BPath referencePath = BPath(&entryRef);
+            SDL_SendDropFile(NULL, referencePath.Path());
+        }
+        return;
+    }
+};
+
+
+static int StartBeApp(void *unused)
 {
     BApplication *App;
 
-    // default application signature
-    const char *signature = "application/x-SDL-executable";
     // dig resources for correct signature
     image_info info;
     int32 cookie = 0;
@@ -64,48 +90,61 @@ StartBeApp(void *unused)
             BAppFileInfo app_info(&f);
             if (app_info.InitCheck() == B_OK) {
                 char sig[B_MIME_TYPE_LENGTH];
-                if (app_info.GetSignature(sig) == B_OK)
-                    signature = strndup(sig, B_MIME_TYPE_LENGTH);
+                if (app_info.GetSignature(sig) == B_OK) {
+                    SDL_signature = strndup(sig, B_MIME_TYPE_LENGTH);
+                }
             }
         }
     }
 
-    App = new SDL_BApp(signature);
+    App = new SDL_BApp(SDL_signature);
 
     App->Run();
     delete App;
-    return (0);
+    return 0;
 }
 
-/* Initialize the Be Application, if it's not already started */
-int
-SDL_InitBeApp(void)
+
+static int StartBeLooper()
 {
-    /* Create the BApplication that handles appserver interaction */
-    if (SDL_BeAppActive <= 0) {
+    if (!be_app) {
         SDL_AppThread = SDL_CreateThreadInternal(StartBeApp, "SDLApplication", 0, NULL);
         if (SDL_AppThread == NULL) {
             return SDL_SetError("Couldn't create BApplication thread");
         }
 
-        /* Change working directory to that of executable */
-        app_info info;
-        if (B_OK == be_app->GetAppInfo(&info)) {
-            entry_ref ref = info.ref;
-            BEntry entry;
-            if (B_OK == entry.SetTo(&ref)) {
-                BPath path;
-                if (B_OK == path.SetTo(&entry)) {
-                    if (B_OK == path.GetParent(&path)) {
-                        chdir(path.Path());
-                    }
-                }
-            }
-        }
-
         do {
             SDL_Delay(10);
         } while ((be_app == NULL) || be_app->IsLaunching());
+    }
+
+     /* Change working directory to that of executable */
+    app_info info;
+    if (B_OK == be_app->GetAppInfo(&info)) {
+        entry_ref ref = info.ref;
+        BEntry entry;
+        if (B_OK == entry.SetTo(&ref)) {
+            BPath path;
+            if (B_OK == path.SetTo(&entry)) {
+                if (B_OK == path.GetParent(&path)) {
+                    chdir(path.Path());
+                }
+            }
+        }
+    }
+
+    SDL_Looper = new SDL_BLooper("SDLLooper");
+    SDL_Looper->Run();
+    return (0);
+}
+
+
+/* Initialize the Be Application, if it's not already started */
+int SDL_InitBeApp(void)
+{
+    /* Create the BApplication that handles appserver interaction */
+    if (SDL_BeAppActive <= 0) {
+        StartBeLooper();
 
         /* Mark the application active */
         SDL_BeAppActive = 0;
@@ -115,18 +154,20 @@ SDL_InitBeApp(void)
     ++SDL_BeAppActive;
 
     /* The app is running, and we're ready to go */
-    return (0);
+    return 0;
 }
 
 /* Quit the Be Application, if there's nothing left to do */
-void
-SDL_QuitBeApp(void)
+void SDL_QuitBeApp(void)
 {
     /* Decrement the application reference count */
     --SDL_BeAppActive;
 
     /* If the reference count reached zero, clean up the app */
     if (SDL_BeAppActive == 0) {
+        SDL_Looper->Lock();
+        SDL_Looper->Quit();
+        SDL_Looper = NULL;
         if (SDL_AppThread != NULL) {
             if (be_app != NULL) {       /* Not tested */
                 be_app->PostMessage(B_QUIT_REQUESTED);
@@ -143,10 +184,10 @@ SDL_QuitBeApp(void)
 #endif
 
 /* SDL_BApp functions */
-void SDL_BApp::ClearID(SDL_BWin *bwin) {
+void SDL_BLooper::ClearID(SDL_BWin *bwin) {
     _SetSDLWindow(NULL, bwin->GetID());
     int32 i = _GetNumWindowSlots() - 1;
-    while(i >= 0 && GetSDLWindow(i) == NULL) {
+    while (i >= 0 && GetSDLWindow(i) == NULL) {
         _PopBackWindow();
         --i;
     }

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -22,7 +22,12 @@
 
 #include "SDL_test_common.h"
 
-#define SWAP(typ,a,b) do{typ t=a;a=b;b=t;}while(0)
+#define SWAP(typ, a, b) \
+    do {                \
+        typ t = a;      \
+        a = b;          \
+        b = t;          \
+    } while (0)
 #define NUM_OBJECTS 100
 
 static SDLTest_CommonState *state;
@@ -37,8 +42,7 @@ static SDL_BlendMode blendMode = SDL_BLENDMODE_NONE;
 int mouse_begin_x = -1, mouse_begin_y = -1;
 int done;
 
-void
-DrawPoints(SDL_Renderer * renderer)
+void DrawPoints(SDL_Renderer *renderer)
 {
     int i;
     int x, y;
@@ -71,8 +75,8 @@ DrawPoints(SDL_Renderer * renderer)
                 cycle_direction = -cycle_direction;
             }
         }
-        SDL_SetRenderDrawColor(renderer, 255, (Uint8) current_color,
-                               (Uint8) current_color, (Uint8) current_alpha);
+        SDL_SetRenderDrawColor(renderer, 255, (Uint8)current_color,
+                               (Uint8)current_color, (Uint8)current_alpha);
 
         x = rand() % viewport.w;
         y = rand() % viewport.h;
@@ -86,10 +90,12 @@ SDL_Rect lines[MAX_LINES];
 static int
 add_line(int x1, int y1, int x2, int y2)
 {
-    if (num_lines >= MAX_LINES)
+    if (num_lines >= MAX_LINES) {
         return 0;
-    if ((x1 == x2) && (y1 == y2))
+    }
+    if ((x1 == x2) && (y1 == y2)) {
         return 0;
+    }
 
     SDL_Log("adding line (%d, %d), (%d, %d)\n", x1, y1, x2, y2);
     lines[num_lines].x = x1;
@@ -100,9 +106,7 @@ add_line(int x1, int y1, int x2, int y2)
     return ++num_lines;
 }
 
-
-void
-DrawLines(SDL_Renderer * renderer)
+void DrawLines(SDL_Renderer *renderer)
 {
     int i;
     SDL_Rect viewport;
@@ -130,18 +134,22 @@ SDL_Rect rects[MAX_RECTS];
 static int
 add_rect(int x1, int y1, int x2, int y2)
 {
-    if (num_rects >= MAX_RECTS)
+    if (num_rects >= MAX_RECTS) {
         return 0;
-    if ((x1 == x2) || (y1 == y2))
+    }
+    if ((x1 == x2) || (y1 == y2)) {
         return 0;
+    }
 
-    if (x1 > x2)
+    if (x1 > x2) {
         SWAP(int, x1, x2);
-    if (y1 > y2)
+    }
+    if (y1 > y2) {
         SWAP(int, y1, y2);
+    }
 
     SDL_Log("adding rect (%d, %d), (%d, %d) [%dx%d]\n", x1, y1, x2, y2,
-           x2 - x1, y2 - y1);
+            x2 - x1, y2 - y1);
 
     rects[num_rects].x = x1;
     rects[num_rects].y = y1;
@@ -152,20 +160,20 @@ add_rect(int x1, int y1, int x2, int y2)
 }
 
 static void
-DrawRects(SDL_Renderer * renderer)
+DrawRects(SDL_Renderer *renderer)
 {
     SDL_SetRenderDrawColor(renderer, 255, 127, 0, 255);
     SDL_RenderFillRects(renderer, rects, num_rects);
 }
 
 static void
-DrawRectLineIntersections(SDL_Renderer * renderer)
+DrawRectLineIntersections(SDL_Renderer *renderer)
 {
     int i, j;
 
     SDL_SetRenderDrawColor(renderer, 0, 255, 55, 255);
 
-    for (i = 0; i < num_rects; i++)
+    for (i = 0; i < num_rects; i++) {
         for (j = 0; j < num_lines; j++) {
             int x1, y1, x2, y2;
             SDL_Rect r;
@@ -180,26 +188,27 @@ DrawRectLineIntersections(SDL_Renderer * renderer)
                 SDL_RenderDrawLine(renderer, x1, y1, x2, y2);
             }
         }
+    }
 }
 
 static void
-DrawRectRectIntersections(SDL_Renderer * renderer)
+DrawRectRectIntersections(SDL_Renderer *renderer)
 {
     int i, j;
 
     SDL_SetRenderDrawColor(renderer, 255, 200, 0, 255);
 
-    for (i = 0; i < num_rects; i++)
+    for (i = 0; i < num_rects; i++) {
         for (j = i + 1; j < num_rects; j++) {
             SDL_Rect r;
             if (SDL_IntersectRect(&rects[i], &rects[j], &r)) {
                 SDL_RenderFillRect(renderer, &r);
             }
         }
+    }
 }
 
-void
-loop()
+void loop()
 {
     int i;
     SDL_Event event;
@@ -213,28 +222,30 @@ loop()
             mouse_begin_y = event.button.y;
             break;
         case SDL_MOUSEBUTTONUP:
-            if (event.button.button == 3)
-                add_line(mouse_begin_x, mouse_begin_y, event.button.x,
-                         event.button.y);
-            if (event.button.button == 1)
-                add_rect(mouse_begin_x, mouse_begin_y, event.button.x,
-                         event.button.y);
+            if (event.button.button == 3) {
+                add_line(mouse_begin_x, mouse_begin_y, event.button.x, event.button.y);
+            }
+            if (event.button.button == 1) {
+                add_rect(mouse_begin_x, mouse_begin_y, event.button.x, event.button.y);
+            }
             break;
         case SDL_KEYDOWN:
             switch (event.key.keysym.sym) {
             case 'l':
-                if (event.key.keysym.mod & KMOD_SHIFT)
+                if (event.key.keysym.mod & KMOD_SHIFT) {
                     num_lines = 0;
-                else
+                } else {
                     add_line(rand() % 640, rand() % 480, rand() % 640,
                              rand() % 480);
+                }
                 break;
             case 'r':
-                if (event.key.keysym.mod & KMOD_SHIFT)
+                if (event.key.keysym.mod & KMOD_SHIFT) {
                     num_rects = 0;
-                else
+                } else {
                     add_rect(rand() % 640, rand() % 480, rand() % 640,
                              rand() % 480);
+                }
                 break;
             }
             break;
@@ -244,8 +255,9 @@ loop()
     }
     for (i = 0; i < state->num_windows; ++i) {
         SDL_Renderer *renderer = state->renderers[i];
-        if (state->windows[i] == NULL)
+        if (state->windows[i] == NULL) {
             continue;
+        }
         SDL_SetRenderDrawColor(renderer, 0xA0, 0xA0, 0xA0, 0xFF);
         SDL_RenderClear(renderer);
 
@@ -264,8 +276,7 @@ loop()
 #endif
 }
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     int i;
     Uint32 then, now, frames;
@@ -278,7 +289,7 @@ main(int argc, char *argv[])
 
     /* Initialize test framework */
     state = SDLTest_CommonCreateState(argv, SDL_INIT_VIDEO);
-    if (!state) {
+    if (state == NULL) {
         return 1;
     }
     for (i = 1; i < argc;) {
@@ -315,8 +326,8 @@ main(int argc, char *argv[])
             }
         }
         if (consumed < 0) {
-            SDL_Log("Usage: %s %s [--blend none|blend|add|mod] [--cyclecolor] [--cyclealpha]\n",
-                    argv[0], SDLTest_CommonUsage(state));
+            static const char *options[] = { "[--blend none|blend|add|mod]", "[--cyclecolor]", "[--cyclealpha]", NULL };
+            SDLTest_CommonLogUsage(state, argv[0], options);
             return 1;
         }
         i += consumed;
@@ -333,7 +344,7 @@ main(int argc, char *argv[])
         SDL_RenderClear(renderer);
     }
 
-    srand(time(NULL));
+    srand((unsigned int)time(NULL));
 
     /* Main render loop */
     frames = 0;
@@ -354,7 +365,7 @@ main(int argc, char *argv[])
     /* Print out some timing information */
     now = SDL_GetTicks();
     if (now > then) {
-        double fps = ((double) frames * 1000) / (now - then);
+        double fps = ((double)frames * 1000) / (now - then);
         SDL_Log("%2.2f frames per second\n", fps);
     }
     return 0;
