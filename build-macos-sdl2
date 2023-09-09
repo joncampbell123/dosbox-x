@@ -11,6 +11,7 @@ if test -z "${top}" ; then exit 1; fi
 
 # fix
 chmod +x vs/sdl/build-scripts/strip_fPIC.sh
+chmod +x vs/sdl2/build-dosbox.sh
 
 orig_CFLAGS="${CFLAGS}"
 orig_LDFLAGS="${LDFLAGS}"
