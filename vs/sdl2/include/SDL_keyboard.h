@@ -208,6 +208,7 @@ extern DECLSPEC const char *SDLCALL SDL_GetScancodeName(SDL_Scancode scancode);
  * \sa SDL_GetScancodeName
  */
 extern DECLSPEC SDL_Scancode SDLCALL SDL_GetScancodeFromName(const char *name);
+extern DECLSPEC SDL_bool SDLCALL SDL_IM_Composition(int more); // Added for DOSBox-X
 
 /**
  * Get a human-readable name for a key.

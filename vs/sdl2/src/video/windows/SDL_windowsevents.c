@@ -996,7 +996,8 @@ WIN_WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
             }
         }
 
-        if (code != SDL_SCANCODE_UNKNOWN) {
+            //if (code != SDL_SCANCODE_UNKNOWN) {
+            if(wParam != VK_PROCESSKEY && code != SDL_SCANCODE_UNKNOWN) { //Changed for DOSBox-X
             SDL_SendKeyboardKey(SDL_PRESSED, code);
         }
     }
