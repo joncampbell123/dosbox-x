@@ -14,7 +14,7 @@ chmod +x vs/sdl/build-scripts/strip_fPIC.sh
 
 if [ -f ${MSYSTEM_PREFIX}/i686-7.3.0-release-posix-dwarf-rt_v5-rev0.txt ] ; then
  echo "set flags for lowend build"
- PATH="${MSYSTEM_PREFIX}/bin:${MSYSTEM_PREFIX}/i686-w64-mingw32/bin:${MSYSTEM_PREFIX}/opt/bin:$PATH"
+ PATH="${MSYSTEM_PREFIX}/bin:${MSYSTEM_PREFIX}/i686-w64-mingw32/bin:${MSYSTEM_PREFIX}/opt/bin:${PATH}"
  CXXFLAGS="-I${MSYSTEM_PREFIX}/include -I${MSYSTEM_PREFIX}/i686-w64-mingw32/include $CXXFLAGS -I${MSYSTEM_PREFIX}/opt/include "
  CPPFLAGS="-I${MSYSTEM_PREFIX}/include -I${MSYSTEM_PREFIX}/i686-w64-mingw32/include $CPPFLAGS -I${MSYSTEM_PREFIX}/opt/include "
  CFLAGS="-I${MSYSTEM_PREFIX}/include -I${MSYSTEM_PREFIX}/i686-w64-mingw32/include $CFLAGS -I${MSYSTEM_PREFIX}/opt/include "

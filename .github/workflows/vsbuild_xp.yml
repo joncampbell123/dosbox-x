@@ -163,7 +163,7 @@ jobs:
         run: |
           top=`pwd`
           export "MSYSTEM_PREFIX=/d/a/_temp/msys64/mingw32"
-          ./build-mingw
+          ./build-mingw-sdl2
           strip -s src/dosbox-x.exe
           mkdir -p mingw-bin
           cp src/dosbox-x.exe mingw-bin/dosbox-x_mingw_lowend_SDL2.exe
