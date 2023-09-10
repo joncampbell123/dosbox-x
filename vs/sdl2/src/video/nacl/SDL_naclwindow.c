@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -29,14 +29,12 @@
 #include "SDL_naclvideo.h"
 #include "SDL_naclwindow.h"
 
-int
-NACL_CreateWindow(_THIS, SDL_Window * window)
+int NACL_CreateWindow(_THIS, SDL_Window * window)
 {
     SDL_VideoData *driverdata = (SDL_VideoData *) _this->driverdata;
-    
+
     if (driverdata->window) {
-        SDL_SetError("NaCl only supports one window");
-        return -1;
+        return SDL_SetError("NaCl only supports one window");
     }
     driverdata->window = window;
 
@@ -50,23 +48,21 @@ NACL_CreateWindow(_THIS, SDL_Window * window)
     window->flags |= SDL_WINDOW_FULLSCREEN;     /* window is always fullscreen */
     window->flags &= ~SDL_WINDOW_HIDDEN;
     window->flags |= SDL_WINDOW_SHOWN;          /* only one window on NaCl */
-    window->flags |= SDL_WINDOW_INPUT_FOCUS;    /* always has input focus */    
+    window->flags |= SDL_WINDOW_INPUT_FOCUS;    /* always has input focus */
     window->flags |= SDL_WINDOW_OPENGL;
-  
+
     SDL_SetMouseFocus(window);
     SDL_SetKeyboardFocus(window);
-    
+
     return 0;
 }
 
-void
-NACL_SetWindowTitle(_THIS, SDL_Window * window)
+void NACL_SetWindowTitle(_THIS, SDL_Window * window)
 {
     /* TODO */
 }
 
-void
-NACL_DestroyWindow(_THIS, SDL_Window * window)
+void NACL_DestroyWindow(_THIS, SDL_Window * window)
 {
     SDL_VideoData *driverdata = (SDL_VideoData *) _this->driverdata;
     if (window == driverdata->window) {

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -22,59 +22,58 @@
 /* Stolen from the mailing list */
 /* Creates a new mouse cursor from an XPM */
 
-
 /* XPM */
 static const char *arrow[] = {
-  /* width height num_colors chars_per_pixel */
-  "    32    32        3            1",
-  /* colors */
-  "X c #000000",
-  ". c #ffffff",
-  "  c None",
-  /* pixels */
-  "X                               ",
-  "XX                              ",
-  "X.X                             ",
-  "X..X                            ",
-  "X...X                           ",
-  "X....X                          ",
-  "X.....X                         ",
-  "X......X                        ",
-  "X.......X                       ",
-  "X........X                      ",
-  "X.....XXXXX                     ",
-  "X..X..X                         ",
-  "X.X X..X                        ",
-  "XX  X..X                        ",
-  "X    X..X                       ",
-  "     X..X                       ",
-  "      X..X                      ",
-  "      X..X                      ",
-  "       XX                       ",
-  "                                ",
-  "                                ",
-  "                                ",
-  "                                ",
-  "                                ",
-  "                                ",
-  "                                ",
-  "                                ",
-  "                                ",
-  "                                ",
-  "                                ",
-  "                                ",
-  "                                ",
-  "0,0"
-};  
+    /* width height num_colors chars_per_pixel */
+    "    32    32        3            1",
+    /* colors */
+    "X c #000000",
+    ". c #ffffff",
+    "  c None",
+    /* pixels */
+    "X                               ",
+    "XX                              ",
+    "X.X                             ",
+    "X..X                            ",
+    "X...X                           ",
+    "X....X                          ",
+    "X.....X                         ",
+    "X......X                        ",
+    "X.......X                       ",
+    "X........X                      ",
+    "X.....XXXXX                     ",
+    "X..X..X                         ",
+    "X.X X..X                        ",
+    "XX  X..X                        ",
+    "X    X..X                       ",
+    "     X..X                       ",
+    "      X..X                      ",
+    "      X..X                      ",
+    "       XX                       ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "                                ",
+    "0,0"
+};
 
-static SDL_Cursor*
+static SDL_Cursor *
 init_color_cursor(const char *file)
 {
     SDL_Cursor *cursor = NULL;
     SDL_Surface *surface = SDL_LoadBMP(file);
     if (surface) {
         if (surface->format->palette) {
-            SDL_SetColorKey(surface, 1, *(Uint8 *) surface->pixels);
+            SDL_SetColorKey(surface, 1, *(Uint8 *)surface->pixels);
         } else {
             switch (surface->format->BitsPerPixel) {
             case 15:
@@ -97,44 +96,47 @@ init_color_cursor(const char *file)
     return cursor;
 }
 
-static SDL_Cursor*
+static SDL_Cursor *
 init_system_cursor(const char *image[])
 {
-  int i, row, col;
-  Uint8 data[4*32];
-  Uint8 mask[4*32];
-  int hot_x, hot_y;
+    int i, row, col;
+    Uint8 data[4 * 32];
+    Uint8 mask[4 * 32];
+    int hot_x = 0;
+    int hot_y = 0;
 
-  i = -1;
-  for (row=0; row<32; ++row) {
-    for (col=0; col<32; ++col) {
-      if (col % 8) {
-        data[i] <<= 1;
-        mask[i] <<= 1;
-      } else {
-        ++i;
-        data[i] = mask[i] = 0;
-      }
-      switch (image[4+row][col]) {
-        case 'X':
-          data[i] |= 0x01;
-          mask[i] |= 0x01;
-          break;
-        case '.':
-          mask[i] |= 0x01;
-          break;
-        case ' ':
-          break;
-      }
+    i = -1;
+    for (row = 0; row < 32; ++row) {
+        for (col = 0; col < 32; ++col) {
+            if (col % 8) {
+                data[i] <<= 1;
+                mask[i] <<= 1;
+            } else {
+                ++i;
+                data[i] = mask[i] = 0;
+            }
+            switch (image[4 + row][col]) {
+            case 'X':
+                data[i] |= 0x01;
+                mask[i] |= 0x01;
+                break;
+            case '.':
+                mask[i] |= 0x01;
+                break;
+            case ' ':
+                break;
+            }
+        }
     }
-  }
-  sscanf(image[4+row], "%d,%d", &hot_x, &hot_y);
-  return SDL_CreateCursor(data, mask, 32, 32, hot_x, hot_y);
+    (void)SDL_sscanf(image[4 + row], "%d,%d", &hot_x, &hot_y);
+    return SDL_CreateCursor(data, mask, 32, 32, hot_x, hot_y);
 }
 
 static SDLTest_CommonState *state;
 int done;
-static SDL_Cursor *cursors[1+SDL_NUM_SYSTEM_CURSORS];
+static SDL_Cursor *cursors[1 + SDL_NUM_SYSTEM_CURSORS];
+static SDL_SystemCursor cursor_types[1 + SDL_NUM_SYSTEM_CURSORS];
+static int num_cursors;
 static int current_cursor;
 static int show_cursor;
 
@@ -146,8 +148,7 @@ quit(int rc)
     exit(rc);
 }
 
-void
-loop()
+void loop()
 {
     int i;
     SDL_Event event;
@@ -156,18 +157,69 @@ loop()
         SDLTest_CommonEvent(state, &event, &done);
         if (event.type == SDL_MOUSEBUTTONDOWN) {
             if (event.button.button == SDL_BUTTON_LEFT) {
+                if (num_cursors == 0) {
+                    continue;
+                }
+
                 ++current_cursor;
-                if (current_cursor == SDL_arraysize(cursors)) {
+                if (current_cursor == num_cursors) {
                     current_cursor = 0;
                 }
+
                 SDL_SetCursor(cursors[current_cursor]);
+
+                switch ((int)cursor_types[current_cursor]) {
+                case (SDL_SystemCursor)-1:
+                    SDL_Log("Custom cursor");
+                    break;
+                case SDL_SYSTEM_CURSOR_ARROW:
+                    SDL_Log("Arrow");
+                    break;
+                case SDL_SYSTEM_CURSOR_IBEAM:
+                    SDL_Log("I-beam");
+                    break;
+                case SDL_SYSTEM_CURSOR_WAIT:
+                    SDL_Log("Wait");
+                    break;
+                case SDL_SYSTEM_CURSOR_CROSSHAIR:
+                    SDL_Log("Crosshair");
+                    break;
+                case SDL_SYSTEM_CURSOR_WAITARROW:
+                    SDL_Log("Small wait cursor (or Wait if not available)");
+                    break;
+                case SDL_SYSTEM_CURSOR_SIZENWSE:
+                    SDL_Log("Double arrow pointing northwest and southeast");
+                    break;
+                case SDL_SYSTEM_CURSOR_SIZENESW:
+                    SDL_Log("Double arrow pointing northeast and southwest");
+                    break;
+                case SDL_SYSTEM_CURSOR_SIZEWE:
+                    SDL_Log("Double arrow pointing west and east");
+                    break;
+                case SDL_SYSTEM_CURSOR_SIZENS:
+                    SDL_Log("Double arrow pointing north and south");
+                    break;
+                case SDL_SYSTEM_CURSOR_SIZEALL:
+                    SDL_Log("Four pointed arrow pointing north, south, east, and west");
+                    break;
+                case SDL_SYSTEM_CURSOR_NO:
+                    SDL_Log("Slashed circle or crossbones");
+                    break;
+                case SDL_SYSTEM_CURSOR_HAND:
+                    SDL_Log("Hand");
+                    break;
+                default:
+                    SDL_Log("UNKNOWN CURSOR TYPE, FIX THIS PROGRAM.");
+                    break;
+                }
+
             } else {
                 show_cursor = !show_cursor;
                 SDL_ShowCursor(show_cursor);
             }
         }
     }
-    
+
     for (i = 0; i < state->num_windows; ++i) {
         SDL_Renderer *renderer = state->renderers[i];
         SDL_RenderClear(renderer);
@@ -180,8 +232,7 @@ loop()
 #endif
 }
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     int i;
     const char *color_cursor = NULL;
@@ -191,7 +242,7 @@ main(int argc, char *argv[])
 
     /* Initialize test framework */
     state = SDLTest_CommonCreateState(argv, SDL_INIT_VIDEO);
-    if (!state) {
+    if (state == NULL) {
         return 1;
     }
     for (i = 1; i < argc;) {
@@ -203,7 +254,7 @@ main(int argc, char *argv[])
             break;
         }
         if (consumed < 0) {
-            SDL_Log("Usage: %s %s\n", argv[0], SDLTest_CommonUsage(state));
+            SDLTest_CommonLogUsage(state, argv[0], NULL);
             quit(1);
         }
         i += consumed;
@@ -219,23 +270,38 @@ main(int argc, char *argv[])
         SDL_RenderClear(renderer);
     }
 
+    num_cursors = 0;
+
     if (color_cursor) {
-        cursors[0] = init_color_cursor(color_cursor);
+        SDL_Cursor *cursor = init_color_cursor(color_cursor);
+        if (cursor) {
+            cursors[num_cursors] = cursor;
+            cursor_types[num_cursors] = (SDL_SystemCursor)-1;
+            num_cursors++;
+        }
     } else {
-        cursors[0] = init_system_cursor(arrow);
-    }
-    if (!cursors[0]) {
-        SDL_Log("Error, couldn't create cursor\n");
-        quit(2);
-    }
-    for (i = 0; i < SDL_NUM_SYSTEM_CURSORS; ++i) {
-        cursors[1+i] = SDL_CreateSystemCursor((SDL_SystemCursor)i);
-        if (!cursors[1+i]) {
-            SDL_Log("Error, couldn't create system cursor %d\n", i);
-            quit(2);
+        SDL_Cursor *cursor = init_system_cursor(arrow);
+        if (cursor) {
+            cursors[num_cursors] = cursor;
+            cursor_types[num_cursors] = (SDL_SystemCursor)-1;
+            num_cursors++;
         }
     }
-    SDL_SetCursor(cursors[0]);
+
+    for (i = 0; i < SDL_NUM_SYSTEM_CURSORS; ++i) {
+        SDL_Cursor *cursor = SDL_CreateSystemCursor((SDL_SystemCursor)i);
+        if (cursor) {
+            cursors[num_cursors] = cursor;
+            cursor_types[num_cursors] = i;
+            num_cursors++;
+        }
+    }
+
+    if (num_cursors > 0) {
+        SDL_SetCursor(cursors[0]);
+    }
+
+    show_cursor = SDL_ShowCursor(SDL_QUERY);
 
     /* Main render loop */
     done = 0;
@@ -247,13 +313,13 @@ main(int argc, char *argv[])
     }
 #endif
 
-    for (i = 0; i < SDL_arraysize(cursors); ++i) {
+    for (i = 0; i < num_cursors; ++i) {
         SDL_FreeCursor(cursors[i]);
     }
     quit(0);
 
     /* keep the compiler happy ... */
-    return(0);
+    return 0;
 }
 
 /* vi: set ts=4 sw=4 expandtab: */

@@ -58,7 +58,7 @@ render(SDL_Renderer *renderer, int w, int h, double deltaTime)
         ay * SDL_IPHONE_MAX_GFORCE / SINT16_MAX * GRAVITY_CONSTANT *
         deltaMilliseconds;
 
-    speed = sqrt(shipData.vx * shipData.vx + shipData.vy * shipData.vy);
+    speed = SDL_sqrt(shipData.vx * shipData.vx + shipData.vy * shipData.vy);
 
     if (speed > 0) {
         /* compensate for friction */
@@ -127,7 +127,7 @@ initializeTextures(SDL_Renderer *renderer)
 
     /* create ship texture from surface */
     ship = SDL_CreateTextureFromSurface(renderer, bmp_surface);
-    if (ship == 0) {
+    if (ship == NULL) {
         fatalError("could not create ship texture");
     }
     SDL_SetTextureBlendMode(ship, SDL_BLENDMODE_BLEND);
@@ -145,7 +145,7 @@ initializeTextures(SDL_Renderer *renderer)
     }
     /* create space texture from surface */
     space = SDL_CreateTextureFromSurface(renderer, bmp_surface);
-    if (space == 0) {
+    if (space == NULL) {
         fatalError("could not create space texture");
     }
     SDL_FreeSurface(bmp_surface);

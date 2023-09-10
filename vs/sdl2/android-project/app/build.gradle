@@ -8,20 +8,25 @@ else {
 }
 
 android {
-    compileSdkVersion 26
+    compileSdkVersion 31
     defaultConfig {
         if (buildAsApplication) {
             applicationId "org.libsdl.app"
         }
-        minSdkVersion 14
-        targetSdkVersion 26
+        minSdkVersion 16
+        targetSdkVersion 31
         versionCode 1
         versionName "1.0"
         externalNativeBuild {
             ndkBuild {
-                arguments "APP_PLATFORM=android-14"
+                arguments "APP_PLATFORM=android-16"
                 abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
             }
+            // cmake {
+            //     arguments "-DANDROID_APP_PLATFORM=android-16", "-DANDROID_STL=c++_static"
+            //     // abiFilters 'armeabi-v7a', 'arm64-v8a', 'x86', 'x86_64'
+            //     abiFilters 'arm64-v8a'
+            // }
         }
     }
     buildTypes {
@@ -29,6 +34,10 @@ android {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+    }
+    applicationVariants.all { variant ->
+        tasks["merge${variant.name.capitalize()}Assets"]
+            .dependsOn("externalNativeBuild${variant.name.capitalize()}")
     }
     if (!project.hasProperty('EXCLUDE_NATIVE_LIBS')) {
         sourceSets.main {
@@ -38,6 +47,9 @@ android {
             ndkBuild {
                 path 'jni/Android.mk'
             }
+            // cmake {
+            //     path 'jni/CMakeLists.txt'
+            // }
         }
        
     }

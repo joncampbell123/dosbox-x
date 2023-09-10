@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -11,7 +11,7 @@
 */
 
 /* Test program to test dynamic loading with the loadso subsystem.
-*/
+ */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -19,10 +19,9 @@
 
 #include "SDL.h"
 
-typedef int (*fntype) (const char *);
+typedef int (*fntype)(const char *);
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     int retval = 0;
     int hello = 0;
@@ -44,7 +43,7 @@ main(int argc, char *argv[])
         return 2;
     }
 
-    if (strcmp(argv[1], "--hello") == 0) {
+    if (SDL_strcmp(argv[1], "--hello") == 0) {
         hello = 1;
         libname = argv[2];
         symname = "puts";
@@ -56,23 +55,21 @@ main(int argc, char *argv[])
     lib = SDL_LoadObject(libname);
     if (lib == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_LoadObject('%s') failed: %s\n",
-                libname, SDL_GetError());
+                     libname, SDL_GetError());
         retval = 3;
     } else {
-        fn = (fntype) SDL_LoadFunction(lib, symname);
+        fn = (fntype)SDL_LoadFunction(lib, symname);
         if (fn == NULL) {
             SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "SDL_LoadFunction('%s') failed: %s\n",
-                    symname, SDL_GetError());
+                         symname, SDL_GetError());
             retval = 4;
         } else {
             SDL_Log("Found %s in %s at %p\n", symname, libname, fn);
             if (hello) {
                 SDL_Log("Calling function...\n");
-                fflush(stdout);
                 fn("     HELLO, WORLD!\n");
                 SDL_Log("...apparently, we survived.  :)\n");
                 SDL_Log("Unloading library...\n");
-                fflush(stdout);
             }
         }
         SDL_UnloadObject(lib);

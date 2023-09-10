@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -35,8 +35,7 @@
 
 #include "../SDL_pixels_c.h"
 
-int
-DirectFB_CreateWindow(_THIS, SDL_Window * window)
+int DirectFB_CreateWindow(_THIS, SDL_Window * window)
 {
     SDL_DFB_DEVICEDATA(_this);
     SDL_DFB_DISPLAYDATA(window);
@@ -173,14 +172,12 @@ DirectFB_CreateWindow(_THIS, SDL_Window * window)
     return -1;
 }
 
-int
-DirectFB_CreateWindowFrom(_THIS, SDL_Window * window, const void *data)
+int DirectFB_CreateWindowFrom(_THIS, SDL_Window * window, const void *data)
 {
     return SDL_Unsupported();
 }
 
-void
-DirectFB_SetWindowTitle(_THIS, SDL_Window * window)
+void DirectFB_SetWindowTitle(_THIS, SDL_Window * window)
 {
     SDL_DFB_WINDOWDATA(window);
 
@@ -192,8 +189,7 @@ DirectFB_SetWindowTitle(_THIS, SDL_Window * window)
     }
 }
 
-void
-DirectFB_SetWindowIcon(_THIS, SDL_Window * window, SDL_Surface * icon)
+void DirectFB_SetWindowIcon(_THIS, SDL_Window * window, SDL_Surface * icon)
 {
     SDL_DFB_DEVICEDATA(_this);
     SDL_DFB_WINDOWDATA(window);
@@ -227,7 +223,7 @@ DirectFB_SetWindowIcon(_THIS, SDL_Window * window, SDL_Surface * icon)
 
         p = surface->pixels;
         for (i = 0; i < surface->h; i++)
-            memcpy((char *) dest + i * pitch,
+            SDL_memcpy((char *) dest + i * pitch,
                    (char *) p + i * surface->pitch, 4 * surface->w);
 
         SDL_DFB_CHECK(windata->icon->Unlock(windata->icon));
@@ -242,8 +238,7 @@ DirectFB_SetWindowIcon(_THIS, SDL_Window * window, SDL_Surface * icon)
     return;
 }
 
-void
-DirectFB_SetWindowPosition(_THIS, SDL_Window * window)
+void DirectFB_SetWindowPosition(_THIS, SDL_Window * window)
 {
     SDL_DFB_WINDOWDATA(window);
     int x, y;
@@ -255,8 +250,7 @@ DirectFB_SetWindowPosition(_THIS, SDL_Window * window)
     SDL_DFB_CHECK(windata->dfbwin->MoveTo(windata->dfbwin, x, y));
 }
 
-void
-DirectFB_SetWindowSize(_THIS, SDL_Window * window)
+void DirectFB_SetWindowSize(_THIS, SDL_Window * window)
 {
     SDL_DFB_WINDOWDATA(window);
 
@@ -294,8 +288,7 @@ DirectFB_SetWindowSize(_THIS, SDL_Window * window)
     return;
 }
 
-void
-DirectFB_ShowWindow(_THIS, SDL_Window * window)
+void DirectFB_ShowWindow(_THIS, SDL_Window * window)
 {
     SDL_DFB_WINDOWDATA(window);
 
@@ -303,8 +296,7 @@ DirectFB_ShowWindow(_THIS, SDL_Window * window)
 
 }
 
-void
-DirectFB_HideWindow(_THIS, SDL_Window * window)
+void DirectFB_HideWindow(_THIS, SDL_Window * window)
 {
     SDL_DFB_WINDOWDATA(window);
 
@@ -312,8 +304,7 @@ DirectFB_HideWindow(_THIS, SDL_Window * window)
     SDL_DFB_CHECK(windata->dfbwin->SetOpacity(windata->dfbwin, 0));
 }
 
-void
-DirectFB_RaiseWindow(_THIS, SDL_Window * window)
+void DirectFB_RaiseWindow(_THIS, SDL_Window * window)
 {
     SDL_DFB_WINDOWDATA(window);
 
@@ -321,8 +312,7 @@ DirectFB_RaiseWindow(_THIS, SDL_Window * window)
     SDL_DFB_CHECK(windata->dfbwin->RequestFocus(windata->dfbwin));
 }
 
-void
-DirectFB_MaximizeWindow(_THIS, SDL_Window * window)
+void DirectFB_MaximizeWindow(_THIS, SDL_Window * window)
 {
     SDL_DFB_WINDOWDATA(window);
     SDL_VideoDisplay *display = SDL_GetDisplayForWindow(window);
@@ -345,16 +335,14 @@ DirectFB_MaximizeWindow(_THIS, SDL_Window * window)
     SDL_DFB_CHECK(windata->dfbwin->SetOptions(windata->dfbwin, wopts));
 }
 
-void
-DirectFB_MinimizeWindow(_THIS, SDL_Window * window)
+void DirectFB_MinimizeWindow(_THIS, SDL_Window * window)
 {
     /* FIXME: Size to 32x32 ? */
 
     SDL_Unsupported();
 }
 
-void
-DirectFB_RestoreWindow(_THIS, SDL_Window * window)
+void DirectFB_RestoreWindow(_THIS, SDL_Window * window)
 {
     SDL_DFB_WINDOWDATA(window);
     DFBWindowOptions wopts;
@@ -382,31 +370,29 @@ DirectFB_RestoreWindow(_THIS, SDL_Window * window)
 
 }
 
-void
-DirectFB_SetWindowGrab(_THIS, SDL_Window * window, SDL_bool grabbed)
+void DirectFB_SetWindowMouseGrab(_THIS, SDL_Window * window, SDL_bool grabbed)
 {
-    SDL_DFB_DEVICEDATA(_this);
     SDL_DFB_WINDOWDATA(window);
-    DFB_WindowData *gwindata = ((devdata->grabbed_window) ? (DFB_WindowData *) ((devdata->grabbed_window)->driverdata) : NULL);
 
-    if ((window->flags & SDL_WINDOW_INPUT_GRABBED)) {
-        if (gwindata != NULL)
-        {
-            SDL_DFB_CHECK(gwindata->dfbwin->UngrabPointer(gwindata->dfbwin));
-            SDL_DFB_CHECK(gwindata->dfbwin->UngrabKeyboard(gwindata->dfbwin));
-        }
+    if (grabbed) {
         SDL_DFB_CHECK(windata->dfbwin->GrabPointer(windata->dfbwin));
-        SDL_DFB_CHECK(windata->dfbwin->GrabKeyboard(windata->dfbwin));
-        devdata->grabbed_window = window;
     } else {
         SDL_DFB_CHECK(windata->dfbwin->UngrabPointer(windata->dfbwin));
-        SDL_DFB_CHECK(windata->dfbwin->UngrabKeyboard(windata->dfbwin));
-        devdata->grabbed_window = NULL;
     }
 }
 
-void
-DirectFB_DestroyWindow(_THIS, SDL_Window * window)
+void DirectFB_SetWindowKeyboardGrab(_THIS, SDL_Window * window, SDL_bool grabbed)
+{
+    SDL_DFB_WINDOWDATA(window);
+
+    if (grabbed) {
+        SDL_DFB_CHECK(windata->dfbwin->GrabKeyboard(windata->dfbwin));
+    } else {
+        SDL_DFB_CHECK(windata->dfbwin->UngrabKeyboard(windata->dfbwin));
+    }
+}
+
+void DirectFB_DestroyWindow(_THIS, SDL_Window * window)
 {
     SDL_DFB_DEVICEDATA(_this);
     SDL_DFB_WINDOWDATA(window);
@@ -454,8 +440,7 @@ DirectFB_DestroyWindow(_THIS, SDL_Window * window)
     return;
 }
 
-SDL_bool
-DirectFB_GetWindowWMInfo(_THIS, SDL_Window * window,
+SDL_bool DirectFB_GetWindowWMInfo(_THIS, SDL_Window * window,
                          struct SDL_SysWMinfo * info)
 {
     const Uint32 version = ((((Uint32) info->version.major) * 1000000) +
@@ -481,22 +466,20 @@ DirectFB_GetWindowWMInfo(_THIS, SDL_Window * window,
         return SDL_FALSE;
     }
 
-    if (info->version.major == SDL_MAJOR_VERSION &&
-        info->version.minor == SDL_MINOR_VERSION) {
+    if (info->version.major == SDL_MAJOR_VERSION) {
         info->subsystem = SDL_SYSWM_DIRECTFB;
         info->info.dfb.dfb = devdata->dfb;
         info->info.dfb.window = windata->dfbwin;
         info->info.dfb.surface = windata->surface;
         return SDL_TRUE;
     } else {
-        SDL_SetError("Application not compiled with SDL %d.%d",
-                     SDL_MAJOR_VERSION, SDL_MINOR_VERSION);
+        SDL_SetError("Application not compiled with SDL %d",
+                     SDL_MAJOR_VERSION);
         return SDL_FALSE;
     }
 }
 
-void
-DirectFB_AdjustWindowSurface(SDL_Window * window)
+void DirectFB_AdjustWindowSurface(SDL_Window * window)
 {
     SDL_DFB_WINDOWDATA(window);
     int adjust = windata->wm_needs_redraw;
@@ -549,8 +532,7 @@ DirectFB_AdjustWindowSurface(SDL_Window * window)
     return;
 }
 
-int
-DirectFB_SetWindowOpacity(_THIS, SDL_Window * window, float opacity)
+int DirectFB_SetWindowOpacity(_THIS, SDL_Window * window, float opacity)
 {
     const Uint8 alpha = (Uint8) ((unsigned int) (opacity * 255.0f));
     SDL_DFB_WINDOWDATA(window);

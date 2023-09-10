@@ -12,6 +12,19 @@ if test -z "${top}" ; then exit 1; fi
 # fix
 chmod +x vs/sdl/build-scripts/strip_fPIC.sh
 
+if [ -f ${MSYSTEM_PREFIX}/i686-7.3.0-release-posix-dwarf-rt_v5-rev0.txt ] ; then
+ echo "set flags for lowend build"
+ PATH="${MSYSTEM_PREFIX}/bin:${MSYSTEM_PREFIX}/i686-w64-mingw32/bin:${MSYSTEM_PREFIX}/opt/bin:${PATH}"
+ CXXFLAGS="-I${MSYSTEM_PREFIX}/include -I${MSYSTEM_PREFIX}/i686-w64-mingw32/include $CXXFLAGS -I${MSYSTEM_PREFIX}/opt/include "
+ CPPFLAGS="-I${MSYSTEM_PREFIX}/include -I${MSYSTEM_PREFIX}/i686-w64-mingw32/include $CPPFLAGS -I${MSYSTEM_PREFIX}/opt/include "
+ CFLAGS="-I${MSYSTEM_PREFIX}/include -I${MSYSTEM_PREFIX}/i686-w64-mingw32/include $CFLAGS -I${MSYSTEM_PREFIX}/opt/include "
+ LDFLAGS="-L${MSYSTEM_PREFIX}/lib -L${MSYSTEM_PREFIX}/i686-w64-mingw32/lib -L${MSYSTEM_PREFIX}/opt/lib $LDFLAGS "
+ export LDFLAGS PATH
+ sed -i 's@\(^#if !defined(__MINGW32__)\)\(.*|| defined(__MINGW64_VERSION_MAJOR)\)@//\1\2 Fix for lowend build. Revert this for normal versions\n\1@g' src/hardware/serialport/misc_util.cpp
+fi
+export CXXFLAGS CPPFLAGS CFLAGS
+echo "path=$PATH"
+
 sed -i 's/^#define ENABLE_IM_EVENT 1$/\/\/#define ENABLE_IM_EVENT 1/g' vs/sdl/include/SDL_platform.h
 
 # prefer to compile against our own copy of SDL 1.x
@@ -62,12 +75,11 @@ CXXFLAGS="${new}${CXXFLAGS}"
 INTERNAL_FREETYPE=1
 export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS INTERNAL_FREETYPE
 
-#pacman -S --needed --noconfirm mingw-w64-x86_64-libslirp &>/dev/null
-
+# pacman -S --needed --noconfirm mingw-w64-x86_64-libslirp &>/dev/null
 CXXFLAGS="$CXXFLAGS -DNCURSES_STATIC "
 CPPFLAGS="$CPPFLAGS -DNCURSES_STATIC "
 CFLAGS="$CFLAGS -DNCURSES_STATIC "
-export CFLAGS CPPFLAGS CXXFLAGS
+export CXXFLAGS CPPFLAGS CFLAGS
 
 # now compile ourself
 echo "Compiling DOSBox-X"

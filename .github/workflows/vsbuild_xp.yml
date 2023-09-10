@@ -121,9 +121,14 @@ jobs:
     runs-on: windows-latest
     defaults:
       run:
-        shell: bash
+        shell: msys2 {0}
     steps:
       - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW32
+          update: true
+          install: git make mingw-w64-i686-libtool autoconf automake
       - name: Update build info
         shell: bash
         run: |
@@ -136,37 +141,35 @@ jobs:
           echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
           echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
           cat include/build_timestamp.h
-      - name: Prepare MinGW32 lowend
+      - name: setup lowend build environment
+        shell: bash
         run: |
           top=`pwd`
-          pwd>pwd.txt
-          mkdir mingw-get
-          vs/tool/unzip.exe $top/build-scripts/mingw/lowend-bin/mingw-get-0.6.2-mingw32-beta-20131004-1-bin.zip -d mingw-get
-          mingw-get/bin/mingw-get.exe install msys-base gcc g++ autoconf automake libiconv libpdcurses libz
-          mv pwd.txt mingw-get/msys/1.0
-          cp build-scripts/mingw/lowend-bin/msys.bat mingw-get/msys/1.0
-          cp build-scripts/mingw/lowend-bin/runbuild.sh mingw-get/msys/1.0
-          cp build-scripts/mingw/lowend-bin/gawk.exe mingw-get/msys/1.0/bin
-          vs/tool/unzip.exe $top/build-scripts/mingw/lowend-bin/d3d9.zip -d d3d9
-          cp d3d9/*.inl mingw-get/include
-          cp d3d9/*.h mingw-get/include
-          cp d3d9/*.a mingw-get/lib
+          echo "${top}"
+          export "MSYSTEM_PREFIX=/d/a/_temp/msys64/mingw32"
+          echo "path=$PATH"
+          cd ${MSYSTEM_PREFIX}/..
+          ls -lg
+          rm -rf /d/a/_temp/msys64/mingw32
+          mkdir mingw32
+          7z x $top/build-scripts/mingw/lowend-bin/i686-7.3.0-release-posix-dwarf-rt_v5-rev0+nasm.7z -o${MSYSTEM_PREFIX}
+          cp $top/build-scripts/mingw/lowend-bin/make.exe ${MSYSTEM_PREFIX}/bin/make.exe
+          echo "MSYSTEM_PREFIX=${MSYSTEM_PREFIX}"
+          chmod +x ${MSYSTEM_PREFIX}/bin/*.*
+          chmod +x ${MSYSTEM_PREFIX}/i686-w64-mingw32/bin/*.*
+          chmod +x ${MSYSTEM_PREFIX}/opt/bin/*.*
       - name: Build MinGW32 lowend SDL2
-        shell: pwsh
         run: |
-          mingw-get\msys\1.0\msys.bat /mingw/msys/1.0/runbuild.sh build-mingw-lowend-sdl2 nodup
-          if (-not(Test-Path -Path src\dosbox-x.exe -PathType Leaf)) {exit 1}
-          #top=`pwd`
+          top=`pwd`
+          export "MSYSTEM_PREFIX=/d/a/_temp/msys64/mingw32"
+          ./build-mingw-sdl2
           strip -s src/dosbox-x.exe
           mkdir -p mingw-bin
           cp src/dosbox-x.exe mingw-bin/dosbox-x_mingw_lowend_SDL2.exe
       - name: Build MinGW32 lowend SDL1
-        shell: pwsh
         run: |
-          make clean
-          mingw-get\msys\1.0\msys.bat /mingw/msys/1.0/runbuild.sh build-mingw-lowend
-          if (-not(Test-Path -Path src\dosbox-x.exe -PathType Leaf)) {exit 1}
-          #top=`pwd`
+          export "MSYSTEM_PREFIX=/d/a/_temp/msys64/mingw32"
+          ./build-mingw
           strip -s src/dosbox-x.exe
           cp src/dosbox-x.exe mingw-bin/dosbox-x_mingw_lowend_SDL1.exe
       - name: Cache MinGW32 lowend builds

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -38,14 +38,14 @@ CreateWindowX11(int w, int h)
         XMapRaised(dpy, window);
         XSync(dpy, False);
     }
-    return (void *) window;
+    return (void *)window;
 }
 
 static void
 DestroyWindowX11(void *window)
 {
     if (dpy) {
-        XDestroyWindow(dpy, (Window) window);
+        XDestroyWindow(dpy, (Window)window);
         XCloseDisplay(dpy);
     }
 }

@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -26,8 +26,7 @@
 #include "SDL_power.h"
 
 extern "C"
-SDL_bool
-SDL_GetPowerInfo_WinRT(SDL_PowerState * state, int *seconds, int *percent)
+SDL_bool SDL_GetPowerInfo_WinRT(SDL_PowerState * state, int *seconds, int *percent)
 {
     /* TODO, WinRT: Battery info is available on at least one WinRT platform (Windows Phone 8).  Implement SDL_GetPowerInfo_WinRT as appropriate. */
     /* Notes:

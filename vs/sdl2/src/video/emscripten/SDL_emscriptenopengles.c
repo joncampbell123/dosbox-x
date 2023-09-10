@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -27,13 +27,14 @@
 
 #include "SDL_emscriptenvideo.h"
 #include "SDL_emscriptenopengles.h"
+#include "SDL_hints.h"
 
 #define LOAD_FUNC(NAME) _this->egl_data->NAME = NAME;
 
 /* EGL implementation of SDL OpenGL support */
 
-int
-Emscripten_GLES_LoadLibrary(_THIS, const char *path) {
+int Emscripten_GLES_LoadLibrary(_THIS, const char *path)
+{
     /*we can't load EGL dynamically*/
     _this->egl_data = (struct SDL_EGL_VideoData *) SDL_calloc(1, sizeof(SDL_EGL_VideoData));
     if (!_this->egl_data) {
@@ -67,7 +68,7 @@ Emscripten_GLES_LoadLibrary(_THIS, const char *path) {
     if (!_this->egl_data->egl_display) {
         return SDL_SetError("Could not get EGL display");
     }
-    
+
     if (_this->egl_data->eglInitialize(_this->egl_data->egl_display, NULL, NULL) != EGL_TRUE) {
         return SDL_SetError("Could not initialize EGL");
     }
@@ -77,45 +78,23 @@ Emscripten_GLES_LoadLibrary(_THIS, const char *path) {
     } else {
         *_this->gl_config.driver_path = '\0';
     }
-    
+
     return 0;
 }
 
-void
-Emscripten_GLES_DeleteContext(_THIS, SDL_GLContext context)
-{
-    /*
-    WebGL contexts can't actually be deleted, so we need to reset it.
-    ES2 renderer resets state on init anyway, clearing the canvas should be enough
-    */
-
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-
-    SDL_EGL_DeleteContext(_this, context);
-}
-
 SDL_EGL_CreateContext_impl(Emscripten)
-SDL_EGL_SwapWindow_impl(Emscripten)
 SDL_EGL_MakeCurrent_impl(Emscripten)
 
-void
-Emscripten_GLES_GetDrawableSize(_THIS, SDL_Window * window, int * w, int * h)
+int Emscripten_GLES_SwapWindow(_THIS, SDL_Window *window)
 {
-    SDL_WindowData *data;
-    if (window->driverdata) {
-        data = (SDL_WindowData *) window->driverdata;
-
-        if (w) {
-            *w = window->w * data->pixel_ratio;
-        }
-
-        if (h) {
-            *h = window->h * data->pixel_ratio;
-        }
+    EGLBoolean ret = SDL_EGL_SwapBuffers(_this, ((SDL_WindowData *) window->driverdata)->egl_surface);
+    if (emscripten_has_asyncify() && SDL_GetHintBoolean(SDL_HINT_EMSCRIPTEN_ASYNCIFY, SDL_TRUE)) {
+        /* give back control to browser for screen refresh */
+        emscripten_sleep(0);
     }
+    return ret;
 }
 
 #endif /* SDL_VIDEO_DRIVER_EMSCRIPTEN && SDL_VIDEO_OPENGL_EGL */
 
 /* vi: set ts=4 sw=4 expandtab: */
-

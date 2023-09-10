@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -19,7 +19,7 @@ report_power(void)
 {
     int seconds, percent;
     const SDL_PowerState state = SDL_GetPowerInfo(&seconds, &percent);
-    char *statestr = NULL;
+    const char *statestr = NULL;
 
     SDL_Log("SDL-reported power info...\n");
     switch (state) {
@@ -54,14 +54,11 @@ report_power(void)
     if (seconds == -1) {
         SDL_Log("Time left: unknown\n");
     } else {
-        SDL_Log("Time left: %d minutes, %d seconds\n", (int) (seconds / 60),
-               (int) (seconds % 60));
+        SDL_Log("Time left: %d minutes, %d seconds\n", seconds / 60, seconds % 60);
     }
 }
 
-
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
     /* Enable standard application logging */
     SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);

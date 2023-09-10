@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -26,14 +26,12 @@
 #include "SDL_androidclipboard.h"
 #include "../../core/android/SDL_android.h"
 
-int
-Android_SetClipboardText(_THIS, const char *text)
+int Android_SetClipboardText(_THIS, const char *text)
 {
     return Android_JNI_SetClipboardText(text);
 }
 
-char *
-Android_GetClipboardText(_THIS)
+char *Android_GetClipboardText(_THIS)
 {
     return Android_JNI_GetClipboardText();
 }

@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -67,9 +67,9 @@ loop()
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
         SDL_Quit();
-        #ifdef __EMSCRIPTEN__
+#ifdef __EMSCRIPTEN__
         emscripten_cancel_main_loop();
-        #endif
+#endif
         exit(0);
     }
 
@@ -78,16 +78,15 @@ loop()
         trying to test the API, so we use SDL_DequeueAudio() here. */
     while (SDL_TRUE) {
         Uint8 buf[1024];
-        const Uint32 br = SDL_DequeueAudio(devid_in, buf, sizeof (buf));
+        const Uint32 br = SDL_DequeueAudio(devid_in, buf, sizeof(buf));
         SDL_QueueAudio(devid_out, buf, br);
-        if (br < sizeof (buf)) {
+        if (br < sizeof(buf)) {
             break;
         }
     }
 }
 
-int
-main(int argc, char **argv)
+int main(int argc, char **argv)
 {
     /* (argv[1] == NULL means "open default device.") */
     const char *devname = argv[1];
@@ -101,7 +100,7 @@ main(int argc, char **argv)
     /* Load the SDL library */
     if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_AUDIO) < 0) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s\n", SDL_GetError());
-        return (1);
+        return 1;
     }
 
     window = SDL_CreateWindow("testaudiocapture", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 320, 240, 0);
@@ -157,7 +156,10 @@ main(int argc, char **argv)
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop(loop, 0, 1);
 #else
-    while (1) { loop(); SDL_Delay(16); }
+    while (1) {
+        loop();
+        SDL_Delay(16);
+    }
 #endif
 
     return 0;

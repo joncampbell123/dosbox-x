@@ -3748,6 +3748,12 @@ static void GUI_StartUp() {
 #if defined(USE_TTF)
     else if (output == "ttf")
     {
+        LOG_MSG("SDL(sdlmain.cpp): TTF activated");
+#if C_OPENGL
+        OUTPUT_OPENGL_Select(GLBilinear); // Initialize screen before switching to TTF (required for macOS builds)     
+#else
+        OUTPUT_SURFACE_Select();
+#endif // C_OPENGL
         OUTPUT_TTF_Select(0);
     }
 #endif
@@ -5759,7 +5765,8 @@ void GFX_Events() {
                                 BIOS_AddKeyToBuffer(0xf000 | 0x40);
                                 break;
                             }
-                        } else break;
+                        }
+                        else break;
                     }
                 }
 #endif

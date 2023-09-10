@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -37,13 +37,13 @@
 int Wayland_Vulkan_LoadLibrary(_THIS, const char *path);
 void Wayland_Vulkan_UnloadLibrary(_THIS);
 SDL_bool Wayland_Vulkan_GetInstanceExtensions(_THIS,
-                                          SDL_Window *window,
-                                          unsigned *count,
-                                          const char **names);
+                                              SDL_Window *window,
+                                              unsigned *count,
+                                              const char **names);
 SDL_bool Wayland_Vulkan_CreateSurface(_THIS,
-                                  SDL_Window *window,
-                                  VkInstance instance,
-                                  VkSurfaceKHR *surface);
+                                      SDL_Window *window,
+                                      VkInstance instance,
+                                      VkSurfaceKHR *surface);
 
 #endif
 

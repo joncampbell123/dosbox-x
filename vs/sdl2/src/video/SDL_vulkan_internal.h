@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -25,23 +25,23 @@
 
 #include "SDL_stdinc.h"
 
-#if defined(SDL_LOADSO_DISABLED)
-#undef SDL_VIDEO_VULKAN
-#define SDL_VIDEO_VULKAN 0
-#endif
-
 #if SDL_VIDEO_VULKAN
+#if SDL_LOADSO_DISABLED || SDL_LOADSO_DUMMY
+#error You should not be here.
+#endif
 
 #if SDL_VIDEO_DRIVER_ANDROID
 #define VK_USE_PLATFORM_ANDROID_KHR
 #endif
 #if SDL_VIDEO_DRIVER_COCOA
+#define VK_USE_PLATFORM_METAL_EXT
 #define VK_USE_PLATFORM_MACOS_MVK
 #endif
-#if SDL_VIDEO_DRIVER_MIR
-#define VK_USE_PLATFORM_MIR_KHR
+#if SDL_VIDEO_DRIVER_DIRECTFB
+#define VK_USE_PLATFORM_DIRECTFB_EXT
 #endif
 #if SDL_VIDEO_DRIVER_UIKIT
+#define VK_USE_PLATFORM_METAL_EXT
 #define VK_USE_PLATFORM_IOS_MVK
 #endif
 #if SDL_VIDEO_DRIVER_WAYLAND
@@ -62,7 +62,6 @@
 
 #include "SDL_vulkan.h"
 
-
 extern const char *SDL_Vulkan_GetResultString(VkResult result);
 
 extern VkExtensionProperties *SDL_Vulkan_CreateInstanceExtensionsList(
@@ -76,13 +75,20 @@ extern SDL_bool SDL_Vulkan_GetInstanceExtensions_Helper(unsigned *userCount,
                                                         unsigned nameCount,
                                                         const char *const *names);
 
+/* Create a surface directly from a display connected to a physical device
+ * using the DisplayKHR extension.
+ * This needs to be passed an instance that was created with the VK_KHR_DISPLAY_EXTENSION_NAME
+ * exension. */
+extern SDL_bool SDL_Vulkan_Display_CreateSurface(void *vkGetInstanceProcAddr,
+                                                 VkInstance instance,
+                                                 VkSurfaceKHR *surface);
 #else
 
 /* No SDL Vulkan support, just include the header for typedefs */
 #include "SDL_vulkan.h"
 
-typedef void (*PFN_vkGetInstanceProcAddr) (void);
-typedef int  (*PFN_vkEnumerateInstanceExtensionProperties) (void);
+typedef void (*PFN_vkGetInstanceProcAddr)(void);
+typedef int (*PFN_vkEnumerateInstanceExtensionProperties)(void);
 
 #endif /* SDL_VIDEO_VULKAN */
 

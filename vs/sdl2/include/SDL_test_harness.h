@@ -1,6 +1,6 @@
 /*
   Simple DirectMedia Layer
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -76,9 +76,9 @@ typedef struct SDLTest_TestCaseReference {
     /* !< Func2Stress */
     SDLTest_TestCaseFp testCase;
     /* !< Short name (or function name) "Func2Stress" */
-    char *name;
+    const char *name;
     /* !< Long name or full description "This test pushes func2() to the limit." */
-    char *description;
+    const char *description;
     /* !< Set to TEST_ENABLED or TEST_DISABLED (test won't be run) */
     int enabled;
 } SDLTest_TestCaseReference;
@@ -88,7 +88,7 @@ typedef struct SDLTest_TestCaseReference {
  */
 typedef struct SDLTest_TestSuiteReference {
     /* !< "PlatformSuite" */
-    char *name;
+    const char *name;
     /* !< The function that is run before each test. NULL skips. */
     SDLTest_TestCaseSetUpFp testSetUp;
     /* !< The test cases that are run as part of the suite. Last item should be NULL. */
@@ -105,7 +105,7 @@ typedef struct SDLTest_TestSuiteReference {
  *
  * \param length The length of the seed string to generate
  *
- * \returns The generated seed string
+ * \returns the generated seed string
  */
 char *SDLTest_GenerateRunSeed(const int length);
 
@@ -118,7 +118,7 @@ char *SDLTest_GenerateRunSeed(const int length);
  * \param filter Filter specification. NULL disables. Case sensitive.
  * \param testIterations Number of iterations to run each test case.
  *
- * \returns Test run result; 0 when all tests passed, 1 if any tests failed.
+ * \returns the test run result: 0 when all tests passed, 1 if any tests failed.
  */
 int SDLTest_RunSuites(SDLTest_TestSuiteReference *testSuites[], const char *userRunSeed, Uint64 userExecKey, const char *filter, int testIterations);
 

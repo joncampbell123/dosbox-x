@@ -1,5 +1,5 @@
 /*
-  Copyright (C) 1997-2018 Sam Lantinga <slouken@libsdl.org>
+  Copyright (C) 1997-2023 Sam Lantinga <slouken@libsdl.org>
 
   This software is provided 'as-is', without any express or implied
   warranty.  In no event will the authors be held liable for any damages
@@ -25,13 +25,14 @@
 #include <signal.h>
 #endif
 
+#include "testutils.h"
+
 static struct
 {
     SDL_AudioSpec spec;
-    Uint8 *sound;               /* Pointer to wave data */
-    Uint32 soundlen;            /* Length of wave data */
+    Uint8 *sound;    /* Pointer to wave data */
+    Uint32 soundlen; /* Length of wave data */
 } wave;
-
 
 /* Call this instead of exit(), so we can clean up SDL: atexit() is evil. */
 static void
@@ -42,39 +43,35 @@ quit(int rc)
 }
 
 static int done = 0;
-void
-poked(int sig)
+void poked(int sig)
 {
     done = 1;
 }
 
-void
-loop()
+void loop()
 {
 #ifdef __EMSCRIPTEN__
     if (done || (SDL_GetAudioStatus() != SDL_AUDIO_PLAYING)) {
         emscripten_cancel_main_loop();
-    }
-    else
+    } else
 #endif
     {
         /* The device from SDL_OpenAudio() is always device #1. */
         const Uint32 queued = SDL_GetQueuedAudioSize(1);
-        SDL_Log("Device has %u bytes queued.\n", (unsigned int) queued);
-        if (queued <= 8192) {  /* time to requeue the whole thing? */
+        SDL_Log("Device has %u bytes queued.\n", (unsigned int)queued);
+        if (queued <= 8192) { /* time to requeue the whole thing? */
             if (SDL_QueueAudio(1, wave.sound, wave.soundlen) == 0) {
-                SDL_Log("Device queued %u more bytes.\n", (unsigned int) wave.soundlen);
+                SDL_Log("Device queued %u more bytes.\n", (unsigned int)wave.soundlen);
             } else {
-                SDL_Log("Device FAILED to queue %u more bytes: %s\n", (unsigned int) wave.soundlen, SDL_GetError());
+                SDL_Log("Device FAILED to queue %u more bytes: %s\n", (unsigned int)wave.soundlen, SDL_GetError());
             }
         }
     }
 }
 
-int
-main(int argc, char *argv[])
+int main(int argc, char *argv[])
 {
-    char filename[4096];
+    char *filename = NULL;
 
     /* Enable standard application logging */
     SDL_LogSetPriority(SDL_LOG_CATEGORY_APPLICATION, SDL_LOG_PRIORITY_INFO);
@@ -82,32 +79,34 @@ main(int argc, char *argv[])
     /* Load the SDL library */
     if (SDL_Init(SDL_INIT_AUDIO) < 0) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't initialize SDL: %s\n", SDL_GetError());
-        return (1);
+        return 1;
     }
 
-    if (argc > 1) {
-        SDL_strlcpy(filename, argv[1], sizeof(filename));
-    } else {
-        SDL_strlcpy(filename, "sample.wav", sizeof(filename));
+    filename = GetResourceFilename(argc > 1 ? argv[1] : NULL, "sample.wav");
+
+    if (filename == NULL) {
+        SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "%s\n", SDL_GetError());
+        quit(1);
     }
+
     /* Load the wave file into memory */
     if (SDL_LoadWAV(filename, &wave.spec, &wave.sound, &wave.soundlen) == NULL) {
         SDL_LogError(SDL_LOG_CATEGORY_APPLICATION, "Couldn't load %s: %s\n", filename, SDL_GetError());
         quit(1);
     }
 
-    wave.spec.callback = NULL;  /* we'll push audio. */
+    wave.spec.callback = NULL; /* we'll push audio. */
 
 #if HAVE_SIGNAL_H
     /* Set the signals */
 #ifdef SIGHUP
-    signal(SIGHUP, poked);
+    (void)signal(SIGHUP, poked);
 #endif
-    signal(SIGINT, poked);
+    (void)signal(SIGINT, poked);
 #ifdef SIGQUIT
-    signal(SIGQUIT, poked);
+    (void)signal(SIGQUIT, poked);
 #endif
-    signal(SIGTERM, poked);
+    (void)signal(SIGTERM, poked);
 #endif /* HAVE_SIGNAL_H */
 
     /* Initialize fillerup() variables */
@@ -127,21 +126,21 @@ main(int argc, char *argv[])
     /* Note that we stuff the entire audio buffer into the queue in one
        shot. Most apps would want to feed it a little at a time, as it
        plays, but we're going for simplicity here. */
-    
+
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop(loop, 0, 1);
 #else
-    while (!done && (SDL_GetAudioStatus() == SDL_AUDIO_PLAYING))
-    {
+    while (!done && (SDL_GetAudioStatus() == SDL_AUDIO_PLAYING)) {
         loop();
 
-        SDL_Delay(100);  /* let it play for awhile. */
+        SDL_Delay(100); /* let it play for awhile. */
     }
 #endif
 
     /* Clean up on signal */
     SDL_CloseAudio();
     SDL_FreeWAV(wave.sound);
+    SDL_free(filename);
     SDL_Quit();
     return 0;
 }
