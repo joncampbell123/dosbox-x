@@ -124,7 +124,7 @@ jobs:
           cd $top
           ls -lg
       - name: Upload preview package(VS x86/x64)
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v3.1.3
         with:
           name: dosbox-x-vsbuild-win-x86_x64-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
@@ -145,7 +145,7 @@ jobs:
           $top/vs/tool/zip.exe -r -9 "$top/dosbox-x-vsbuild-ARM32_64-${{ env.timestamp }}.zip" "*"
           cd $top
       - name: Upload preview package(ARM 32/64-bit)
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v3.1.3
         with:
           name: dosbox-x-vsbuild-ARM32_64-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
@@ -320,7 +320,7 @@ jobs:
           cd $top/package/
           cd $top
       - name: Upload preview package (MinGW)
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v3.1.3
         with:
           name: dosbox-x-mingw-x86_x64-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
@@ -346,7 +346,7 @@ jobs:
           cd contrib/windows/installer/
           ISCC.exe ./DOSBox-X-installer.iss
       - name: Upload preview installer
-        uses: actions/upload-artifact@v3.1.2
+        uses: actions/upload-artifact@v3.1.3
         with:
           name: dosbox-x-windows-${{ env.timestamp }}-setup.exe
           path: contrib/windows/installer/dosbox-x-windows*.exe
