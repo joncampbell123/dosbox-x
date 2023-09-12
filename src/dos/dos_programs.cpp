@@ -5092,12 +5092,28 @@ class IMGMOUNT : public Program {
 					WriteOut_NoParsing(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY_DRIVE"));
 					return;
 				}
-				int i_drive = toupper(temp_line[0]);
-				if (!isalpha(i_drive) || (i_drive - 'A') >= DOS_DRIVES || (i_drive - 'A') < 0) {
-					WriteOut_NoParsing(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY_DRIVE"));
-					return;
+
+				/* if fs type if "fat" and we're asked to mount *: then check for that here */
+				if (temp_line[0] == '*' && temp_line[1] == ':') {
+					/* What drives are available? */
+					int i_drive = IS_PC98_ARCH ? 'A' : 'C';
+					while (i_drive <= 'Z' && Drives[i_drive-'A'] != NULL && (i_drive-'A') < DOS_DRIVES) i_drive++;
+
+					if (i_drive > 'Z') {
+						WriteOut_NoParsing("No drive letters available");
+						return;
+					}
+
+					drive = static_cast<char>(i_drive);
 				}
-				drive = static_cast<char>(i_drive);
+				else {
+					int i_drive = toupper(temp_line[0]);
+					if (!isalpha(i_drive) || (i_drive - 'A') >= DOS_DRIVES || (i_drive - 'A') < 0) {
+						WriteOut_NoParsing(MSG_Get("PROGRAM_IMGMOUNT_SPECIFY_DRIVE"));
+						return;
+					}
+					drive = static_cast<char>(i_drive);
+				}
 			} else if (fstype=="none") {
 				cmd->FindCommand(1,temp_line);
 				if ((temp_line.size() > 1) || (!isdigit(temp_line[0]))) {

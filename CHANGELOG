@@ -27,6 +27,8 @@ Next version:
   - DOS FAT driver: Add options -o sectoff and -o sectlen to make it
     possible to manually specify the start and length of a partition.
     Future code will use this internally as well.
+  - IMGMOUNT: Allow *: as a drive letter to mean automatically pick a
+    drive letter.
 
 2023.09.01
   - Disable by default message confirmation after snapshot and AVI video
