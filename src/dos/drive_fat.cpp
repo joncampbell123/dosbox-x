@@ -1339,23 +1339,23 @@ fatDrive::fatDrive(const char* sysFilename, uint32_t bytesector, uint32_t cylsec
 		imgDTA    = new DOS_DTA(imgDTAPtr);
 	}
 
-    std::vector<std::string>::iterator it = std::find(options.begin(), options.end(), "readonly");
-    bool roflag = it!=options.end();
+	std::vector<std::string>::iterator it = std::find(options.begin(), options.end(), "readonly");
+	bool roflag = it!=options.end();
 	readonly = wpcolon&&strlen(sysFilename)>1&&sysFilename[0]==':';
-    const char *fname=readonly?sysFilename+1:sysFilename;
-    diskfile = fopen_lock(fname, readonly||roflag?"rb":"rb+", readonly);
-    if (!diskfile) {created_successfully = false;return;}
-    opts.bytesector = bytesector;
-    opts.cylsector = cylsector;
-    opts.headscyl = headscyl;
-    opts.cylinders = cylinders;
-    opts.mounttype = 0;
+	const char *fname=readonly?sysFilename+1:sysFilename;
+	diskfile = fopen_lock(fname, readonly||roflag?"rb":"rb+", readonly);
+	if (!diskfile) {created_successfully = false;return;}
+	opts.bytesector = bytesector;
+	opts.cylsector = cylsector;
+	opts.headscyl = headscyl;
+	opts.cylinders = cylinders;
+	opts.mounttype = 0;
 
-    // all disk I/O is in sector-sized blocks.
-    // modern OSes have good caching.
-    // there are plenty of cases where this code aborts, exits, or re-execs itself (such as reboot)
-    // where stdio buffering can cause loss of data.
-    setbuf(diskfile,NULL);
+	// all disk I/O is in sector-sized blocks.
+	// modern OSes have good caching.
+	// there are plenty of cases where this code aborts, exits, or re-execs itself (such as reboot)
+	// where stdio buffering can cause loss of data.
+	setbuf(diskfile,NULL);
 
 	QCow2Image::QCow2Header qcow2_header = QCow2Image::read_header(diskfile);
 
@@ -1370,43 +1370,43 @@ fatDrive::fatDrive(const char* sysFilename, uint32_t bytesector, uint32_t cylsec
 	}
 	else{
 		fseeko64(diskfile, 0L, SEEK_SET);
-        assert(sizeof(bootcode) >= 256);
-        size_t readResult = fread(bootcode,256,1,diskfile); // look for magic signatures
-        if (readResult != 1) {
-            LOG(LOG_IO, LOG_ERROR) ("Reading error in fatDrive constructor\n");
-            return;
-        }
+		assert(sizeof(bootcode) >= 256);
+		size_t readResult = fread(bootcode,256,1,diskfile); // look for magic signatures
+		if (readResult != 1) {
+			LOG(LOG_IO, LOG_ERROR) ("Reading error in fatDrive constructor\n");
+			return;
+		}
 
-        const char *ext = strrchr(sysFilename,'.');
+		const char *ext = strrchr(sysFilename,'.');
 
-        if (ext != NULL && !strcasecmp(ext, ".d88")) {
-            fseeko64(diskfile, 0L, SEEK_END);
-            filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-            loadedDisk = new imageDiskD88(diskfile, fname, filesize, (filesize > 2880));
-        }
-        else if (!memcmp(bootcode,"VFD1.",5)) { /* FDD files */
-            fseeko64(diskfile, 0L, SEEK_END);
-            filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-            loadedDisk = new imageDiskVFD(diskfile, fname, filesize, (filesize > 2880));
-        }
-        else if (!memcmp(bootcode,"T98FDDIMAGE.R0\0\0",16)) {
-            fseeko64(diskfile, 0L, SEEK_END);
-            filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-            loadedDisk = new imageDiskNFD(diskfile, fname, filesize, (filesize > 2880), 0);
-        }
-        else if (!memcmp(bootcode,"T98FDDIMAGE.R1\0\0",16)) {
-            fseeko64(diskfile, 0L, SEEK_END);
-            filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-            loadedDisk = new imageDiskNFD(diskfile, fname, filesize, (filesize > 2880), 1);
-        }
-        else {
-            fseeko64(diskfile, 0L, SEEK_END);
-            filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-            loadedDisk = new imageDisk(diskfile, fname, filesize, (filesize > 2880));
-        }
+		if (ext != NULL && !strcasecmp(ext, ".d88")) {
+			fseeko64(diskfile, 0L, SEEK_END);
+			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
+			loadedDisk = new imageDiskD88(diskfile, fname, filesize, (filesize > 2880));
+		}
+		else if (!memcmp(bootcode,"VFD1.",5)) { /* FDD files */
+			fseeko64(diskfile, 0L, SEEK_END);
+			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
+			loadedDisk = new imageDiskVFD(diskfile, fname, filesize, (filesize > 2880));
+		}
+		else if (!memcmp(bootcode,"T98FDDIMAGE.R0\0\0",16)) {
+			fseeko64(diskfile, 0L, SEEK_END);
+			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
+			loadedDisk = new imageDiskNFD(diskfile, fname, filesize, (filesize > 2880), 0);
+		}
+		else if (!memcmp(bootcode,"T98FDDIMAGE.R1\0\0",16)) {
+			fseeko64(diskfile, 0L, SEEK_END);
+			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
+			loadedDisk = new imageDiskNFD(diskfile, fname, filesize, (filesize > 2880), 1);
+		}
+		else {
+			fseeko64(diskfile, 0L, SEEK_END);
+			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
+			loadedDisk = new imageDisk(diskfile, fname, filesize, (filesize > 2880));
+		}
 	}
 
-    fatDriveInit(sysFilename, bytesector, cylsector, headscyl, cylinders, filesize, options);
+	fatDriveInit(sysFilename, bytesector, cylsector, headscyl, cylinders, filesize, options);
 }
 
 fatDrive::fatDrive(imageDisk *sourceLoadedDisk, std::vector<std::string> &options) {
@@ -1415,33 +1415,33 @@ fatDrive::fatDrive(imageDisk *sourceLoadedDisk, std::vector<std::string> &option
 		return;
 	}
 	created_successfully = true;
-	
+
 	if(imgDTASeg == 0) {
 		imgDTASeg = DOS_GetMemory(4,"imgDTASeg");
 		imgDTAPtr = RealMake(imgDTASeg, 0);
 		imgDTA    = new DOS_DTA(imgDTAPtr);
 	}
-    std::vector<std::string>::iterator it = std::find(options.begin(), options.end(), "readonly");
-    if (it!=options.end()) readonly = true;
-    opts = {0,0,0,0,-1};
-    imageDiskElToritoFloppy *idelt=dynamic_cast<imageDiskElToritoFloppy *>(sourceLoadedDisk);
-    imageDiskMemory* idmem=dynamic_cast<imageDiskMemory *>(sourceLoadedDisk);
-    imageDiskVHD* idvhd=dynamic_cast<imageDiskVHD *>(sourceLoadedDisk);
-    if (idelt!=NULL) {
-        readonly = true;
-        opts.mounttype = 1;
-        el.CDROM_drive = idelt->CDROM_drive;
-        el.cdrom_sector_offset = idelt->cdrom_sector_offset;
-        el.floppy_emu_type = idelt->floppy_type;
-    } else if (idmem!=NULL) {
-        opts.mounttype=2;
-    } else if (idvhd!=NULL) {
-        opts.mounttype=3;
-    }
+	std::vector<std::string>::iterator it = std::find(options.begin(), options.end(), "readonly");
+	if (it!=options.end()) readonly = true;
+	opts = {0,0,0,0,-1};
+	imageDiskElToritoFloppy *idelt=dynamic_cast<imageDiskElToritoFloppy *>(sourceLoadedDisk);
+	imageDiskMemory* idmem=dynamic_cast<imageDiskMemory *>(sourceLoadedDisk);
+	imageDiskVHD* idvhd=dynamic_cast<imageDiskVHD *>(sourceLoadedDisk);
+	if (idelt!=NULL) {
+		readonly = true;
+		opts.mounttype = 1;
+		el.CDROM_drive = idelt->CDROM_drive;
+		el.cdrom_sector_offset = idelt->cdrom_sector_offset;
+		el.floppy_emu_type = idelt->floppy_type;
+	} else if (idmem!=NULL) {
+		opts.mounttype=2;
+	} else if (idvhd!=NULL) {
+		opts.mounttype=3;
+	}
 
-    loadedDisk = sourceLoadedDisk;
+	loadedDisk = sourceLoadedDisk;
 
-    fatDriveInit("", loadedDisk->sector_size, loadedDisk->sectors, loadedDisk->heads, loadedDisk->cylinders, loadedDisk->diskSizeK, options);
+	fatDriveInit("", loadedDisk->sector_size, loadedDisk->sectors, loadedDisk->heads, loadedDisk->cylinders, loadedDisk->diskSizeK, options);
 }
 
 uint8_t fatDrive::Read_AbsoluteSector(uint32_t sectnum, void * data) {
