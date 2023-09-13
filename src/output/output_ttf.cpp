@@ -1392,7 +1392,10 @@ void ttf_switch_on(bool ss=true) {
 #endif
         }
         bool OpenGL_using(void), gl = OpenGL_using();
-        change_output(10);
+#if defined(WIN32) && !defined(C_SDL2)
+        change_output(3); // call OUTPUT_OPENGL_Select(GLBilinear) to initialize output before enabling TTF output on Windows builds (does nothing if OpenGL not available)
+#endif
+        change_output(10); // call OUTPUT_TTF_Select()
         SetVal("sdl", "output", "ttf");
         std::string showdbcsstr = static_cast<Section_prop *>(control->GetSection("dosv"))->Get_string("showdbcsnodosv");
         showdbcs = showdbcsstr=="true"||showdbcsstr=="1"||(showdbcsstr=="auto" && (loadlang || dbcs_sbcs));
