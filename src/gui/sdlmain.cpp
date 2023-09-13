@@ -3756,12 +3756,12 @@ static void GUI_StartUp() {
     else if (output == "ttf")
     {
         LOG_MSG("SDL(sdlmain.cpp): TTF activated");
-#if C_DIRECT3D
-        if(!init_output) OUTPUT_DIRECT3D_Select();
+#if defined(WIN32) && !defined(C_SDL2)
+        if(!init_output) OUTPUT_SURFACE_Select(); // Initialize screen by output=surface for Windows for SDL1
 #elif C_OPENGL
         if(!init_output) OUTPUT_OPENGL_Select(GLBilinear); // Initialize screen before switching to TTF (required for macOS builds)     
 #else
-        OUTPUT_SURFACE_Select();
+        if(!init_output) OUTPUT_SURFACE_Select();
 #endif // C_DIRECT3D || C_OPENGL
         OUTPUT_TTF_Select(0);
         init_output = true;
