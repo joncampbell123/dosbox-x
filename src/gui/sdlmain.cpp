@@ -3717,7 +3717,7 @@ static void GUI_StartUp() {
     {
 #if C_DIRECT3D
         if(!init_output) OUTPUT_DIRECT3D_Select();
-#elif C_OPENGL
+#elif C_OPENGL && defined(MACOSX) // JC: This is breaking SDL1 on Linux! Limit this to MAC OS! Windows users may use this if needed.
         if(!init_output) OUTPUT_OPENGL_Select(GLBilinear); // Initialize screen before switching to TTF (required for macOS builds)     
 #endif
         OUTPUT_SURFACE_Select();
