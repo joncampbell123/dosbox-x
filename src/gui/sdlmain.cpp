@@ -160,6 +160,7 @@ extern int tryconvertcp, Reflect_Menu(void);
 #include <output/output_tools.h>
 #include <output/output_ttf.h>
 #include <output/output_tools_xbrz.h>
+static bool init_output = false;
 
 #if defined(WIN32)
 #include "resource.h"
@@ -3714,7 +3715,13 @@ static void GUI_StartUp() {
     sdl.desktop.isperfect = false; /* Reset before selection */
     if (output == "surface") 
     {
+#if C_DIRECT3D
+        if(!init_output) OUTPUT_DIRECT3D_Select();
+#elif C_OPENGL
+        if(!init_output) OUTPUT_OPENGL_Select(GLBilinear); // Initialize screen before switching to TTF (required for macOS builds)     
+#endif
         OUTPUT_SURFACE_Select();
+        init_output = true;
 #if C_OPENGL
     } 
     else if (output == "opengl" || output == "openglhq") 
@@ -3749,18 +3756,21 @@ static void GUI_StartUp() {
     else if (output == "ttf")
     {
         LOG_MSG("SDL(sdlmain.cpp): TTF activated");
-#if C_OPENGL
-        OUTPUT_OPENGL_Select(GLBilinear); // Initialize screen before switching to TTF (required for macOS builds)     
-#else
-        OUTPUT_SURFACE_Select();
-#endif // C_OPENGL
+#if ((WIN32 && !defined(C_SDL2)) || MACOSX) && C_OPENGL
+        if(!init_output) OUTPUT_OPENGL_Select(GLBilinear); // Initialize screen before switching to TTF (required for Windows & macOS builds)
+#endif
         OUTPUT_TTF_Select(0);
+        init_output = true;
     }
 #endif
     else 
     {
         LOG_MSG("SDL: Unsupported output device %s, switching back to surface",output.c_str());
+#if MACOSX && C_OPENGL
+        if(!init_output) OUTPUT_OPENGL_Select(GLBilinear); // Initialize screen before switching to surface (required for macOS builds)     
+#endif
         OUTPUT_SURFACE_Select(); // should not reach there anymore
+        init_output = true;
     }
 
     sdl.overscan_width=(unsigned int)section->Get_int("overscan");
