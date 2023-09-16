@@ -1393,7 +1393,7 @@ void ttf_switch_on(bool ss=true) {
         }
         bool OpenGL_using(void), gl = OpenGL_using();
 #if defined(WIN32) && !defined(C_SDL2)
-        change_output(3); // call OUTPUT_OPENGL_Select(GLBilinear) to initialize output before enabling TTF output on Windows builds (does nothing if OpenGL not available)
+        change_output(0); // call OUTPUT_SURFACE_Select() to initialize output before enabling TTF output on Windows builds
 #endif
         change_output(10); // call OUTPUT_TTF_Select()
         SetVal("sdl", "output", "ttf");
