@@ -106,6 +106,15 @@ But please note that this package is not built or updated by the DOSBox-X Team.
 - SDL1 build: https://aur.archlinux.org/packages/dosbox-x/
 - SDL2 build: https://aur.archlinux.org/packages/dosbox-x-sdl2/
 
+### DEB Package
+DOSBox-X is packaged for Debian, and available in the
+[trixie](https://packages.debian.org/trixie/dosbox-x) and
+[unstable](https://packages.debian.org/unstable/dosbox-x)
+repositories.
+But please note that this package is not built or updated by the
+DOSBox-X Team, and that it only contains a small subset of the DOS
+programs provided in the Z: drive.
+
 ## macOS Packages (Portable)
 
 If you use macOS as your operating system, we also release portable packages for the macOS (64-bit) platform. The official macOS packages for the latest DOSBox-X version are available from the [DOSBox-X homepage](https://dosbox-x.com/).
