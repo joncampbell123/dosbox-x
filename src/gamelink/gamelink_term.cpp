@@ -21,7 +21,9 @@
 #include "dosbox.h"
 #include "gamelink.h"
 #include "sdlmain.h"
+#ifdef WIN32
 #include "../resource.h"
+#endif
 #include <stdio.h>
 #include "mem.h"
 
