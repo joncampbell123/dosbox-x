@@ -17,7 +17,9 @@
 #include "gamelink.h"
 #include "logging.h"
 #include "sdlmain.h"
+#ifdef WIN32
 #include "../resource.h"
+#endif
 
 // External Dependencies
 #ifdef WIN32
