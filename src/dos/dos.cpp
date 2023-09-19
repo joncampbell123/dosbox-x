@@ -2744,9 +2744,9 @@ static Bitu DOS_21Handler(void) {
                             else
                                 c = reg_dl; // SBCS
 
-                            if (tolower(c) == 'y')
+                            if (tolower(c) == MSG_Get("INT21_6523_YESNO_CHARS")[0])
                                 reg_ax = 1;/*yes*/
-                            else if (tolower(c) == 'n')
+                            else if (tolower(c) == MSG_Get("INT21_6523_YESNO_CHARS")[1])
                                 reg_ax = 0;/*no*/
                             else
                                 reg_ax = 2;/*neither*/
