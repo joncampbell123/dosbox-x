@@ -9438,6 +9438,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_KEYB_INVALIDFILE","Keyboard file %s invalid\n");
     MSG_Add("PROGRAM_KEYB_LAYOUTNOTFOUND","No layout in %s for codepage %i\n");
     MSG_Add("PROGRAM_KEYB_INVCPFILE","None or invalid codepage file for layout %s\n\n");
+    MSG_Add("INT21_6523_YESNO_CHARS", "yn");
     MSG_Add("PROGRAM_MODE_USAGE","Configures system devices.\n\n"
             "\033[34;1mMODE\033[0m display-type       :display-type codes are "
             "\033[1mCO80\033[0m, \033[1mBW80\033[0m, \033[1mCO40\033[0m, \033[1mBW40\033[0m, or \033[1mMONO\033[0m\n"
