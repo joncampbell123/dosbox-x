@@ -51,6 +51,12 @@ using namespace std;
 #include "keyboard.h"
 #include "control.h"
 
+/* [https://github.com/joncampbell123/dosbox-x/issues/1264] ncurses non-ASCII keys are outside ASCII range (start at octal 0400 == hex 0x100) */
+static inline int ncurses_aware_toupper(int x) {
+	if (x >= 0x00 && x <= 0xFF) return toupper(x);
+	return x;
+}
+
 #ifdef WIN32
 void WIN32_Console();
 #else
@@ -3957,7 +3963,7 @@ uint32_t DEBUG_CheckKeys(void) {
 			break;
 		}
 #endif
-		switch (toupper(key)) {
+		switch (ncurses_aware_toupper(key)) {
 		case 27:	// escape (a bit slow): Clears line. and processes alt commands.
 			key=getch();
 			if(key < 0) { //Purely escape Clear line
@@ -3965,7 +3971,7 @@ uint32_t DEBUG_CheckKeys(void) {
 				break;
 			}
 
-			switch(toupper(key)) {
+			switch(ncurses_aware_toupper(key)) {
 			case 'D' : // ALT - D: DS:SI
 				dataSeg = SegValue(ds);
 				if (cpu.pmode && !(reg_flags & FLAG_VM)) dataOfs = reg_esi;

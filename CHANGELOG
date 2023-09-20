@@ -29,6 +29,8 @@ Next version:
     Future code will use this internally as well.
   - IMGMOUNT: Allow *: as a drive letter to mean automatically pick a
     drive letter.
+  - Fix debugger to use toupper(), but only for ASCII range ncurses
+    keycodes.
 
 2023.09.01
   - Disable by default message confirmation after snapshot and AVI video
