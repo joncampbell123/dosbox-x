@@ -74,14 +74,17 @@ Bitu INT10_Handler(void) {
 	case 0x00:								/* Set VideoMode */
 		Mouse_BeforeNewVideoMode(true);
 		SetTrueVideoMode(reg_al);
-		if(IS_DOSV && IS_DOS_CJK && (reg_al == 0x03 || reg_al == 0x70 || reg_al == 0x72 || reg_al == 0x78)) {
-			uint8_t mode = reg_al;
-			if(reg_al == 0x03 || reg_al == 0x72) {
+		if(IS_DOSV && IS_DOS_CJK && (reg_al == 0x03 || (reg_al >= 0x70 && reg_al <= 0x73) || reg_al == 0x78)) {
+			uint8_t mode = 0x03;
+			if(reg_al == 0x03 || reg_al == 0x72 || reg_al == 0x73) {
 				INT10_SetVideoMode(0x12);
 				INT10_SetDOSVModeVtext(mode, DOSV_VGA);
-			} else if(reg_al == 0x70 || reg_al == 0x78) {
+				if(reg_al == 0x72 || reg_al == 0x73) {
+					real_writeb(BIOSMEM_SEG, BIOSMEM_CURRENT_MODE, reg_al);
+				}
+			} else if(reg_al == 0x70 || reg_al == 0x71 || reg_al == 0x78) {
 				mode = 0x70;
-				enum DOSV_VTEXT_MODE vtext_mode = DOSV_GetVtextMode((reg_al == 0x70) ? 0 : 1);
+				enum DOSV_VTEXT_MODE vtext_mode = DOSV_GetVtextMode((reg_al == 0x78) ? 1 : 0);
 				if(vtext_mode == DOSV_VTEXT_XGA || vtext_mode == DOSV_VTEXT_XGA_24) {
 					if(svgaCard == SVGA_TsengET4K) {
 						INT10_SetVideoMode(0x37);
@@ -102,6 +105,9 @@ Bitu INT10_Handler(void) {
 				} else {
 					INT10_SetVideoMode(0x12);
 					INT10_SetDOSVModeVtext(mode, DOSV_VTEXT_VGA);
+				}
+				if(reg_al == 0x71) {
+					real_writeb(BIOSMEM_SEG, BIOSMEM_CURRENT_MODE, reg_al);
 				}
 			}
 			DOSV_FillScreen();

@@ -1701,7 +1701,7 @@ void SetTrueVideoMode(uint8_t mode)
 
 bool DOSV_CheckJapaneseVideoMode()
 {
-	if(IS_DOS_JAPANESE && (TrueVideoMode == 0x03 || TrueVideoMode == 0x12 || TrueVideoMode == 0x70 || TrueVideoMode == 0x72 || TrueVideoMode == 0x78)) {
+	if(IS_DOS_JAPANESE && (TrueVideoMode == 0x03 || TrueVideoMode == 0x12 || (TrueVideoMode >= 0x70 && TrueVideoMode <= 0x73) || TrueVideoMode == 0x78)) {
 		return true;
 	}
 	return false;
@@ -1709,7 +1709,7 @@ bool DOSV_CheckJapaneseVideoMode()
 
 bool DOSV_CheckCJKVideoMode()
 {
-	if(IS_DOS_CJK && (TrueVideoMode == 0x03 || TrueVideoMode == 0x12 || TrueVideoMode == 0x70 || TrueVideoMode == 0x72 || TrueVideoMode == 0x78)) {
+	if(IS_DOS_CJK && (TrueVideoMode == 0x03 || TrueVideoMode == 0x12 || (TrueVideoMode >= 0x70 && TrueVideoMode <= 0x73) || TrueVideoMode == 0x78)) {
 		return true;
 	}
 	return false;
@@ -1956,11 +1956,31 @@ void DOSV_CursorXor(Bitu x, Bitu y)
 			DOSV_CursorXor24(x, y, start, end);
 			return;
 		} else if(height == 19) {
-			if(start < 8) start = dosv_cursor_19[start];
-			if(end < 8) end = dosv_cursor_19[end];
+			if(end == 28) {
+				end = 18;
+				if(start >= 26) {
+					start -= 11;
+					end--;
+				} else if(start >= 3) {
+					start = 10;
+				}
+			} else {
+				if(start < 8) start = dosv_cursor_19[start];
+				if(end < 8) end = dosv_cursor_19[end];
+			}
 		} else if(height == 16) {
-			if(start < 8) start = dosv_cursor_16[start];
-			if(end < 8) end = dosv_cursor_16[end];
+			if(end == 28) {
+				end = 15;
+				if(start >= 26) {
+					start -= 14;
+					end--;
+				} else if(start >= 3) {
+					start = 8;
+				}
+			} else {
+				if(start < 8) start = dosv_cursor_16[start];
+				if(end < 8) end = dosv_cursor_16[end];
+			}
 		}
 		IO_Write(0x3ce, 0x05); IO_Write(0x3cf, 0x03);
 		IO_Write(0x3ce, 0x00); IO_Write(0x3cf, 0x0f);
