@@ -993,7 +993,7 @@ void DOSBOX_RealInit() {
 
     LOG(LOG_MISC,LOG_DEBUG)("DOSBOX-X RealInit: loading settings and initializing");
 
-    MAPPER_AddHandler(DOSBOX_UnlockSpeed, MK_rightarrow, MMODHOST,"speedlock","Toggle Speedlock");
+    MAPPER_AddHandler(DOSBOX_UnlockSpeed2, MK_rightarrow, MMODHOST,"speedlock","Toggle Speedlock");
     {
         MAPPER_AddHandler(DOSBOX_UnlockSpeed2, MK_nothing, 0, "speedlock2", "Turbo (Fast Forward)", &item);
         item->set_description("Toggle emulation speed, to allow running faster than realtime (fast forward)");
