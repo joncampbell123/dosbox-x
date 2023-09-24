@@ -31,6 +31,11 @@ Next version:
     drive letter.
   - Fix debugger to use toupper(), but only for ASCII range ncurses
     keycodes.
+  - Timer PIT: If the guest writes the counter value while the counter
+    gate is off, make sure the counter read back is the same value
+    written regardless of gate status. Prior code returned the stale
+    latched value of the counter as it was prior to shutting off the
+    gate and writing the counter, causing timing issues.
 
 2023.09.01
   - Disable by default message confirmation after snapshot and AVI video

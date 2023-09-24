@@ -95,6 +95,22 @@ struct PIT_Block {
 
         cntr_cur = new_cntr;
         delay = ((pic_tickindex_t)(1000ul * cntr_cur)) / PIT_TICK_RATE;
+
+        /* Make sure the new counter value is returned if read back even if the gate is off!
+         * Some games like to constantly reprogram PIT 2 with precise event timey stuff and
+         * might shut the PC speaker PIT gate off during that time.
+         *
+         * Previous versions of this code failed to update the last_counter value when the
+         * game wrote a new counter and the PIT gate was off, causing the game to read back a
+         * stale counter value that was wrong.
+         *
+         * This fixes "Tony & Friends in Kellogg's Land" which does some rather weird elaborate
+         * timing stuff with both PIT 0 (timer) and PIT 2 (PC speaker but the output is off) to
+         * do it's event timing and to modify the VGA DAC mask mid-frame precisely to do that
+         * effect of making the bottom half look like there is water.
+         * Ref: [https://github.com/joncampbell123/dosbox-x/issues/4467] */
+        last_counter.cycle = 0;
+        last_counter.counter = cntr_cur;
     }
     void latch_next_counter(void) {
         set_active_counter(cntr);
