@@ -766,63 +766,88 @@ uint32_t imageDiskVHD::ConvertFixed(const char* filename) {
     }
 
     uint8_t mbr[512];
+    bool partFound = false;
     uint32_t STATUS = OPEN_SUCCESS;
+    uint32_t c, h, s;
+    uint32_t heads, spc;
+    uint8_t* part;
 
     //since IMGMOUNT fails when VHD pseudo CHS does not match BPB,
     //we're coerced doing detection ourselves...
  
-    //detects FAT recorded geometry (MBR only)
+    //detects recorded geometry (MBR only)
     fseeko64(vhd, 0, SEEK_SET);
     if(fread(mbr, 1, 512, vhd) != 512) STATUS = ERROR_OPENING;
-    //prefer LBA, if present (PC-DOS 2.0+ FDISK)
-    //CAVE: search effective slot!
-    if(*((uint32_t*)(mbr + 0x1C6))) {
-        uint64_t lba = SDL_SwapLE32(*((uint32_t*)(mbr + 0x1C6))) * 512;
-        if(lba < 1 || lba > (size - 512)) {
-            LOG_MSG("Bad LBA partition start in MBR");
-            STATUS = ERROR_OPENING;
-        }
-        if (fseeko64(vhd, (uint64_t) lba, SEEK_SET)) STATUS = ERROR_OPENING;
+    //search for the first DOS partition
+    for(part = mbr + 0x1BE; part < mbr + 0x1FE; part += 16) {
+        uint8_t partType = *((uint8_t*)(part + 4));
+        if(partType != 1 && partType != 4 && partType != 6 &&
+            partType != 11 && partType != 12 && partType != 14) continue;
+        partFound = true;
+        break;
     }
-    else { // CHS
-        uint32_t c, h, s, heads, spc;
+    if (!partFound) {
+        //if there's no DOS partition yet, we create the VHD and MBR geometry
+        SizeToCHS(size, (uint16_t*)&c, (uint8_t*)&h, (uint8_t*)&s);
+    }
+    else {
         //partition end
-        h = (unsigned)*(mbr + 0x1C3);
-        s = (unsigned)*(mbr + 0x1C4) & 0x3F;
-        c = (unsigned)*(mbr + 0x1C4) & 0xC0 | *(mbr + 0x1C5);
+        h = (unsigned)*(part + 5);
+        s = (unsigned)*(part + 6) & 0x3F;
+        c = (unsigned)*(part + 6) & 0xC0 | *(part + 7);
         //since a MBR partition *should* be aligned to a cylinder boundary,
         //the last sector CHS reveals total heads and sectors per cylinder
         heads = h + 1;
         spc = s;
         // partition start (0,1,1... what?)
-        h = (unsigned)*(mbr + 0x1BF);
-        s = (unsigned)*(mbr + 0x1C0) & 0x3F;
-        c = (unsigned)*(mbr + 0x1C0) & 0xC0 | *(mbr + 0x1C1);
+        h = (unsigned)*(part + 1);
+        s = (unsigned)*(part + 2) & 0x3F;
+        c = (unsigned)*(part + 2) & 0xC0 | *(part + 3);
         uint64_t lba = ((c * heads + h) * spc + s - 1) * 512;
         if(lba < 1 || lba > (size - 512)) {
-            LOG_MSG("Bad MBR partition start in MBR");
-            STATUS = ERROR_OPENING;
+            LOG_MSG("Bad CHS partition start in MBR");
+            lba = 0;
         }
+        //prefer LBA, if present (PC-DOS 2.0+ FDISK)
+        if(*((uint32_t*)(part + 8))) {
+            uint64_t lba2 = SDL_SwapLE32(*((uint32_t*)(part + 8))) * 512;
+            if(lba2 < 1 || lba2 > (size - 512)) {
+                LOG_MSG("Bad LBA partition start in MBR");
+                lba2 = 0;
+            }
+            if(!lba && !lba2) {
+                STATUS = ERROR_OPENING;
+            }
+            if(lba != lba2) {
+                LOG_MSG("CHS and LBA partition start differ, using LBA");
+            }
+            if(fseeko64(vhd, (uint64_t)lba, SEEK_SET)) STATUS = ERROR_OPENING;
+        }
+
         if(fseeko64(vhd, (uint64_t)lba, SEEK_SET)) STATUS = ERROR_OPENING;
+        //load FAT boot sector and scan BPB
+        if(fread(mbr, 1, 512, vhd) != 512) STATUS = ERROR_OPENING;
+        uint16_t s2 = *((uint16_t*)(mbr + 0x18));
+        uint16_t h2 = *((uint16_t*)(mbr + 0x1A));
+        if(!s2 || !h2 || s2 > 63 || h2 > 255) {
+            LOG_MSG("Bad geometry detected in FAT BPB, using MBR");
+            s = spc;
+            h = heads;
+        }
+        else {
+            s = s2;
+            h = h2;
+        }
     }
-
-    if(fread(mbr, 1, 512, vhd) != 512) STATUS = ERROR_OPENING;
-    uint16_t s = *((uint16_t*)(mbr + 0x18));
-    uint16_t h = *((uint16_t*)(mbr + 0x1A));
-    if(s == 0 || h == 0 || s > 63 || h > 255) {
-        LOG_MSG("Bad geometry detected in FAT BPB");
-        STATUS = ERROR_OPENING;
-    }
-
     //new VHD Footer initialization
     VHDFooter footer;
     footer.SetDefaults();
     footer.dataOffset = 0xFFFFFFFFFFFFFFFF;
     footer.originalSize = footer.currentSize = size;
-    uint16_t c = size / 512 / (h * s);
-    footer.geometry.cylinders = c;
-    footer.geometry.heads = h;
-    footer.geometry.sectors = s;
+    c = size / 512 / (h * s);
+    footer.geometry.cylinders = (uint16_t)c;
+    footer.geometry.heads = (uint8_t)h;
+    footer.geometry.sectors = (uint8_t)s;
     footer.diskType = VHD_TYPE_FIXED;
     mk_uuid((uint8_t*)footer.uniqueId);
     footer.checksum = footer.CalculateChecksum();
