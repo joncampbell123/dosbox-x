@@ -322,15 +322,15 @@ public:
         bool IsValid();
         void SetDefaults();
     };
-    typedef struct _VHDInfo {
+    struct VHDInfo {
         uint32_t allocatedBlocks;
         uint32_t totalBlocks;
         uint32_t blockSize;
         float vhdSizeMB;
         uint32_t vhdType;
-        _VHDInfo *parentInfo = NULL;
+        VHDInfo *parentInfo = NULL;
         std::string diskname;
-    } VHDInfo;
+    };
     VHDTypes vhdType = VHD_TYPE_NONE;
 	virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data);
 	virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data);
