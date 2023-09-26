@@ -42,6 +42,8 @@ Next version:
   - Updated build tool for MinGW lowend builds required for the updated SDL2
     library. As a result, MinGW lowend builds are now able to enable debugger
     features. (maron2000)
+  - Debugger RUN and RUNWATCH commands were broken, fix. Make sure debugger
+    shortcut triggers execution to stop whether in RUN or RUNWATCH mode.
 
 2023.09.01
   - Disable by default message confirmation after snapshot and AVI video

@@ -1855,6 +1855,7 @@ bool lookslikefloat(char* str) {
 
 void VGA_DumpFontRamBIN(const char *filename);
 void VGA_DumpFontRamBMP(const char *filename);
+int32_t DEBUG_Run(int32_t amount,bool quickexit);
 
 bool ParseCommand(char* str) {
     std::string copy_str = str;
@@ -2197,47 +2198,48 @@ bool ParseCommand(char* str) {
 		return true;
 	}
 
-    if (command == "RUN") {
-        DrawRegistersUpdateOld();
-        debugging = false;
-        runnormal = true;
+	if (command == "RUN") {
+		DrawRegistersUpdateOld();
+		debug_running = false;
+		debugging=false;
+		DrawCode();
+		DrawInput();
+		logBuffSuppressConsole = false;
+		if (logBuffSuppressConsoleNeedUpdate) {
+			logBuffSuppressConsoleNeedUpdate = false;
+			DEBUG_RefreshPage(0);
+		}
 
-        logBuffSuppressConsole = false;
-        if (logBuffSuppressConsoleNeedUpdate) {
-            logBuffSuppressConsoleNeedUpdate = false;
-            DEBUG_RefreshPage(0);
-        }
+		Bits DEBUG_NullCPUCore(void);
 
-        Bits DEBUG_NullCPUCore(void);
+		inhibit_int_breakpoint = true;
+		DEBUG_Run(1,false);
+		inhibit_int_breakpoint = false;
+		mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
+		mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
+		mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
 
-        CPU_Cycles = 1;
-        inhibit_int_breakpoint = true;
-        if (cpudecoder != DEBUG_NullCPUCore)
-            (*cpudecoder)();
+		DOSBOX_SetNormalLoop();	
+		GFX_SetTitle(-1,-1,-1,is_paused);
+		return true;
+	}
 
-        inhibit_int_breakpoint = false;
-
-        void DEBUG_DrawScreen(void);
-        DEBUG_DrawScreen();
-
-        CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
-        mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
-        mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
-        mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
-        DOSBOX_SetNormalLoop();	
-        GFX_SetTitle(-1,-1,-1,is_paused);
-        return true;
-    }
-
-    if (command == "RUNWATCH") {
-        debug_running = true;
-        runnormal = false;
-        mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
-        mainMenu.get_item("debugger_runnormal").check(false).refresh_item(mainMenu);
-        mainMenu.get_item("debugger_runwatch").check(true).refresh_item(mainMenu);
-        DEBUG_DrawScreen();
-        return true;
-    }
+	if (command == "RUNWATCH") {
+		auto oldcore = cpudecoder;
+		runnormal = false;
+		inhibit_int_breakpoint = true;
+		DEBUG_Run(1,true);
+		inhibit_int_breakpoint = false;
+		cpudecoder = oldcore;
+		debug_running = true;
+		debugging = true;
+		CBreakpoint::ActivateBreakpoints();
+		mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
+		mainMenu.get_item("debugger_runnormal").check(false).refresh_item(mainMenu);
+		mainMenu.get_item("debugger_runwatch").check(true).refresh_item(mainMenu);
+		DEBUG_DrawScreen();
+		return true;
+	}
 
     if (command == "A20") {
         void MEM_A20_Enable(bool enabled);
@@ -4147,26 +4149,26 @@ uint32_t DEBUG_CheckKeys(void) {
 				codeViewData.inputPos = (int)strlen(codeViewData.inputStr);
 				break;
 		case KEY_F(5):	// Run Program
-                DrawRegistersUpdateOld();
+				DrawRegistersUpdateOld();
 				debugging=false;
 				DrawCode();
-                DrawInput();
-                logBuffSuppressConsole = false;
-                if (logBuffSuppressConsoleNeedUpdate) {
-                    logBuffSuppressConsoleNeedUpdate = false;
-                    DEBUG_RefreshPage(0);
-                }
+				DrawInput();
+				logBuffSuppressConsole = false;
+				if (logBuffSuppressConsoleNeedUpdate) {
+					logBuffSuppressConsoleNeedUpdate = false;
+					DEBUG_RefreshPage(0);
+				}
 
-                Bits DEBUG_NullCPUCore(void);
+				Bits DEBUG_NullCPUCore(void);
 
-                inhibit_int_breakpoint = true;
+				inhibit_int_breakpoint = true;
 				ret = DEBUG_Run(1,false);
-                if(cpudecoder == DEBUG_NullCPUCore)
-                    ret = -1; /* DEBUG_Loop() must exit */
-                inhibit_int_breakpoint = false;
-                mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
-                mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
-                mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
+				if(cpudecoder == DEBUG_NullCPUCore)
+					ret = -1; /* DEBUG_Loop() must exit */
+				inhibit_int_breakpoint = false;
+				mainMenu.get_item("debugger_rundebug").check(false).refresh_item(mainMenu);
+				mainMenu.get_item("debugger_runnormal").check(true).refresh_item(mainMenu);
+				mainMenu.get_item("debugger_runwatch").check(false).refresh_item(mainMenu);
 
 				skipDraw = true; // don't update screen after this instruction
 				break;
@@ -4186,12 +4188,12 @@ uint32_t DEBUG_CheckKeys(void) {
 				}
 				break;
 		case KEY_F(10):	// Step over inst
-                DrawRegistersUpdateOld();
+				DrawRegistersUpdateOld();
 				if (StepOver()) {
 					mustCompleteInstruction = true;
 					inhibit_int_breakpoint = true;
 					ret = DEBUG_Run(1,false);
-                    inhibit_int_breakpoint = false;
+					inhibit_int_breakpoint = false;
 					mustCompleteInstruction = false;
 					skipDraw = true;
 					break;
@@ -4199,7 +4201,7 @@ uint32_t DEBUG_CheckKeys(void) {
 				// If we aren't stepping over something, do a normal step.
 				/* FALLTHROUGH */
 		case KEY_F(11):	// trace into
-                DrawRegistersUpdateOld();
+				DrawRegistersUpdateOld();
 				exitLoop = false;
 				mustCompleteInstruction = true;
 				ret = DEBUG_Run(1,true);
@@ -4425,6 +4427,7 @@ void DEBUG_Enable_Handler(bool pressed) {
         DEBUG_DrawScreen();
         if (tohide&&!debugging) return;
     }
+
     if (debugging) {
         DrawRegistersUpdateOld();
         debugging=false;
@@ -4440,7 +4443,7 @@ void DEBUG_Enable_Handler(bool pressed) {
         CBreakpoint::ActivateBreakpointsExceptAt(SegPhys(cs)+reg_eip);
         DOSBOX_SetNormalLoop();	
         GFX_SetTitle(-1,-1,-1,is_paused);
-        if (tohide) return;
+//      if (tohide) return;
     }
 
 	static bool showhelp=false;
@@ -5119,7 +5122,7 @@ Bitu DEBUG_EnableDebugger(void)
 {
 	exitLoop = true;
 
-	if (!debugging)
+	if (!debugging || (debugging && debug_running))
 		DEBUG_Enable_Handler(true);
 
 	CPU_Cycles=CPU_CycleLeft=0;
