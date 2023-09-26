@@ -273,7 +273,7 @@ bool setColors(const char *colorArray, int n) {
 			while (*nextRGB != ')')
 				nextRGB++;
 			nextRGB++;
-		} else if (sscanf(nextRGB, " #%6x", &rgbVal[0]) == 1) {							// Hexadecimal
+		} else if (sscanf(nextRGB, " #%6x", ((unsigned int*)(&rgbVal[0]))) == 1) {							// Hexadecimal
 			if (rgbVal[0] < 0)
 				return false;
 			for (int i = 0; i < 3; i++) {
@@ -470,7 +470,7 @@ void SetBlinkRate(Section_prop* section) {
     const char * blinkCstr = section->Get_string("blinkc");
     unsigned int num=-1;
     if (!strcasecmp(blinkCstr, "false")||!strcmp(blinkCstr, "-1")) blinkCursor = -1;
-    else if (1==sscanf(blinkCstr,"%u",&num)&&num>=0&&num<=7) blinkCursor = num;
+    else if (1==sscanf(blinkCstr,"%u",&num)&&int(num)>=0&&int(num)<=7) blinkCursor = num;
     else blinkCursor = IS_PC98_ARCH?6:4; // default cursor blinking is slower on PC-98 systems
 }
 
@@ -1360,7 +1360,7 @@ void ttf_reset() {
 #endif
 }
 
-void ttfreset(Bitu val) {
+void ttfreset(Bitu /*val*/) {
     ttf_reset();
 }
 
@@ -1392,6 +1392,7 @@ void ttf_switch_on(bool ss=true) {
 #endif
         }
         bool OpenGL_using(void), gl = OpenGL_using();
+	(void)gl; // unused var warning
 #if defined(WIN32) && !defined(C_SDL2)
         change_output(0); // call OUTPUT_SURFACE_Select() to initialize output before enabling TTF output on Windows builds
 #endif
