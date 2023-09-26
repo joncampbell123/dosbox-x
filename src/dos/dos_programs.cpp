@@ -135,6 +135,13 @@ FILE *testLoadLangFile(const char *fname);
 Bitu DEBUG_EnableDebugger(void);
 #endif
 
+/* Microsoft likes to make POSIX library functions less convenient and your code
+ * less portable by nagging you to add a leading underscore to those functions. */
+#if !defined(_MSC_VER)
+#define _access access
+#define _strdup strdup
+#endif
+
 class MOUSE : public Program {
 public:
     void Run(void);
@@ -7809,7 +7816,7 @@ uint64_t VHDMAKE::ssizetou64(const char* s_size) {
     char* c;
     uint64_t size;
 
-    if((c = strchr(sizes, toupper(*last)))) {
+    if((c = strchr((char*)sizes, toupper(*last)))) {
         *last = 0;
         size = atoll(sd_size);
         size <<= ((c - sizes) * 10);
