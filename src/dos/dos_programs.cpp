@@ -2591,6 +2591,7 @@ public:
                         imageDisk *imagedrv = new imageDisk(Drives[drv], drv, (convertro || Drives[drv]->readonly || (od && od->ovlreadonly)) ? 0 : freeMB, timeout);
                         if (imagedrv && imagedrv->ffdd) {
                             imageDiskList[nextdrv] = imagedrv;
+                            imagedrv->Addref();
                             bool ide_slave = false;
                             signed char ide_index = -1;
                             IDE_Auto(ide_index,ide_slave);
