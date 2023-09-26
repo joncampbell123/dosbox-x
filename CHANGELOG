@@ -36,6 +36,12 @@ Next version:
     written regardless of gate status. Prior code returned the stale
     latched value of the counter as it was prior to shutting off the
     gate and writing the counter, causing timing issues.
+  - Fix restoring minimized window on TTF output (issue #4248) (maron2000)
+  - Fix macos crash on launch when output=surface or auto (SDL2) (maron2000)
+  - Update in-tree SDL2 library to ver 2.28.2 (maron2000)
+  - Updated build tool for MinGW lowend builds required for the updated SDL2
+    library. As a result, MinGW lowend builds are now able to enable debugger
+    features. (maron2000)
 
 2023.09.01
   - Disable by default message confirmation after snapshot and AVI video
