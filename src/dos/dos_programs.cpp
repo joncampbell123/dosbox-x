@@ -7803,7 +7803,7 @@ private:
 
 // Converts a string disk size with unit into a 64-bit unsigned integer
 uint64_t VHDMAKE::ssizetou64(const char* s_size) {
-    char* sizes = "BKMGT";
+    const char* sizes = "BKMGT";
     char* sd_size = _strdup(s_size);
     char* last = sd_size + strlen(s_size) - 1;
     char* c;
