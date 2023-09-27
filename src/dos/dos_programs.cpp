@@ -135,6 +135,13 @@ FILE *testLoadLangFile(const char *fname);
 Bitu DEBUG_EnableDebugger(void);
 #endif
 
+/* Microsoft likes to make POSIX library functions less convenient and your code
+ * less portable by nagging you to add a leading underscore to those functions. */
+#if !defined(_MSC_VER)
+#define _access access
+#define _strdup strdup
+#endif
+
 class MOUSE : public Program {
 public:
     void Run(void);
@@ -2584,6 +2591,7 @@ public:
                         imageDisk *imagedrv = new imageDisk(Drives[drv], drv, (convertro || Drives[drv]->readonly || (od && od->ovlreadonly)) ? 0 : freeMB, timeout);
                         if (imagedrv && imagedrv->ffdd) {
                             imageDiskList[nextdrv] = imagedrv;
+                            imagedrv->Addref();
                             bool ide_slave = false;
                             signed char ide_index = -1;
                             IDE_Auto(ide_index,ide_slave);
@@ -7803,13 +7811,13 @@ private:
 
 // Converts a string disk size with unit into a 64-bit unsigned integer
 uint64_t VHDMAKE::ssizetou64(const char* s_size) {
-    char* sizes = "BKMGT";
-    char* sd_size = strdup(s_size);
+    const char* sizes = "BKMGT";
+    char* sd_size = _strdup(s_size);
     char* last = sd_size + strlen(s_size) - 1;
     char* c;
     uint64_t size;
 
-    if((c = strchr(sizes, toupper(*last)))) {
+    if((c = strchr((char*)sizes, toupper(*last)))) {
         *last = 0;
         size = atoll(sd_size);
         size <<= ((c - sizes) * 10);
@@ -7920,15 +7928,21 @@ void VHDMAKE::Run()
     }
 
     if(cmd->FindExist("-c", true) || cmd->FindExist("-convert", true)) {
-        if(cmd->GetCount() > 2) {
+        if(cmd->GetCount() != 2) {
             PrintUsage();
             return;
         }
         cmd->FindCommand(1, temp_line);
         safe_strcpy(filename, temp_line.c_str()); // image to convert
+        FILE* f;
+        if(!(f = fopen(filename, "r"))) {
+            WriteOut(MSG_Get("PROGRAM_VHDMAKE_ERROPEN"), filename);
+            return;
+        }
+        fclose(f);
         cmd->FindCommand(2, temp_line);
         safe_strcpy(basename, temp_line.c_str()); // resulting VHD (after renaming)
-        if(access(basename, 0) == 0) {
+        if(_access(basename, 0) == 0) {
             if(!bOverwrite) {
                 WriteOut(MSG_Get("PROGRAM_VHDMAKE_FNEEDED"));
                 return;
@@ -7961,7 +7975,7 @@ void VHDMAKE::Run()
             return;
         }
 #endif
-        if(! bOverwrite && access(filename, 0) == 0) {
+        if(! bOverwrite && _access(filename, 0) == 0) {
             WriteOut(MSG_Get("PROGRAM_VHDMAKE_FNEEDED"));
             return;
         }
@@ -7982,7 +7996,7 @@ void VHDMAKE::Run()
             WriteOut(MSG_Get("PROGRAM_VHDMAKE_BADSIZE"));
             return;
         }
-        if(!bOverwrite && access(filename, 0) == 0) {
+        if(!bOverwrite && _access(filename, 0) == 0) {
             WriteOut(MSG_Get("PROGRAM_VHDMAKE_FNEEDED"));
             return;
         }
@@ -9466,7 +9480,8 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_VHDMAKE_ABSPATH_WIN", "Warning: an absolute path to parent limits portability to Windows.\nPlease prefer a path relative to differencing image file!\n");
     MSG_Add("PROGRAM_VHDMAKE_ABSPATH_UX", "ERROR: an absolute path to parent inhibits portability.\nUse a path relative to differencing image file!\n");
     MSG_Add("PROGRAM_VHDMAKE_HELP",
-        "Creates Dynamic or Differencing VHD images, or converts raw images\ninto Fixed VHD.\n"
+        "Creates Dynamic or Differencing VHD images, converts raw images into Fixed VHD,\n"
+        "shows informations about VHD images and merges them.\n"
         "\033[32;1mVHDMAKE\033[0m [-f] new.vhd size[BKMGT]\n"
         "\033[32;1mVHDMAKE\033[0m \033[34;1m-convert\033[0m raw.hdd new.vhd\n"
         "\033[32;1mVHDMAKE\033[0m [-f] \033[34;1m-link\033[0m parent.vhd new.vhd\n"
