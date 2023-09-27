@@ -22,6 +22,8 @@ You do not necessarily need to be versed in coding; there are other ways to cont
 
 Information on building/compiling the DOSBox-X source code can be found in the [BUILD](BUILD.md) page.
 
+DOSBox-X is still intended to support compilation as C++11. If you add new code please make sure it works as C++11. One way to do so is to run `./configure` with `--enable-force-cxx11` option added, and build the code.
+
 For the code style, please refer to the .editorconfig file, your development environment probably supports it (see https://editorconfig.org/).
 
 The emphasis is put on code clarity, simplicity and documented whenever possible.
