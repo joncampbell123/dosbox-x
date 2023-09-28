@@ -1,7 +1,118 @@
 :DOSBOX-X:LANGUAGE:Italiano (Italy)
 :DOSBOX-X:CODEPAGE:437
-:DOSBOX-X:VERSION:2023.05.01
+:DOSBOX-X:VERSION:2023.09.01
 :DOSBOX-X:REMARK:
+:PROGRAM_IMGMAKE_BADSIZE
+Argomenti errati per -size o -chs.
+
+.
+:INT21_6523_YESNO_CHARS
+sn
+.
+:PROGRAM_VHDMAKE_WRITERR
+Non posso scrivere sulla nuova immagine VHD "%s", abbandono.
+
+.
+:PROGRAM_VHDMAKE_REMOVEERR
+Non posso cancellare il file "%s"
+
+.
+:PROGRAM_VHDMAKE_RENAME
+Dovrai rinominare manualmente la nuova immagine VHD.
+
+.
+:PROGRAM_VHDMAKE_SUCCESS
+Nuova immagine VHD creata con successo. Puoi montarla con ←[34;1mIMGMOUNT←[0m.
+
+.
+:PROGRAM_VHDMAKE_ERROPEN
+Errore, non posso aprire il file immagine "%s".
+
+.
+:PROGRAM_VHDMAKE_BADSIZE
+Dimensione non consentita per il VHD, abbandono!
+
+.
+:PROGRAM_VHDMAKE_FNEEDED
+Un'immagine VHD preesistente non può essere sovrascritta senza l'opzione -f!
+
+.
+:PROGRAM_VHDMAKE_BADPARENT
+L'immagine VHD madre "%s" non può essere aperta per il collegamento, abbandono!
+
+.
+:PROGRAM_VHDMAKE_NOINFO
+Impossibile ricavare le informazioni da "%s".
+
+.
+:PROGRAM_VHDMAKE_BLOCKSTATS
+ con %d su %d blocchi allocati.
+
+.
+:PROGRAM_VHDMAKE_INFO
+Il VHD "%s" è di tipo %s.
+La sua dimensione virtuale è %.02f MB
+.
+:PROGRAM_VHDMAKE_CANTMERGE
+%s non è un VHD differenziale, non si può unire!
+
+.
+:PROGRAM_VHDMAKE_MERGEREPORT
+%d settori in %d blocchi di "%s" uniti in "%s".
+
+.
+:PROGRAM_VHDMAKE_MERGENODELETE
+Impossibile rimuovere lo snapshot "%s", dovrai farlo manualmente!
+.
+:PROGRAM_VHDMAKE_MERGEOKDELETE
+VHD differenziale unito e cancellato.
+
+.
+:PROGRAM_VHDMAKE_MERGEFAILED
+Errore durante l'unione, abbandonata!
+
+.
+:PROGRAM_VHDMAKE_MERGEWARNCORRUPTION
+ Il contenuto della VHD madre "%s" potrebbe essere danneggiato!
+
+.
+:PROGRAM_VHDMAKE_ABSPATH_WIN
+Attenzione: un percorso assoluto della VHD madre limita la portabilità a Windows.
+Preferire un percorso relativo per l'immagine differenziale!
+
+.
+:PROGRAM_VHDMAKE_ABSPATH_UX
+ERRORE: un percorso assoluto alla VHD madre impedisce la portabilità.
+Usa un percorso relativo all'immagine differenziale!
+
+.
+:PROGRAM_VHDMAKE_HELP
+Crea immagini VHD dinamiche o differenziali, converte immagini fisse in
+VHD fissi, mostra informazioni sui VHD e li unisce.
+←[32;1mVHDMAKE←[0m [-f] new.vhd size[BKMGT]
+←[32;1mVHDMAKE←[0m ←[34;1m-convert←[0m raw.hdd new.vhd
+←[32;1mVHDMAKE←[0m [-f] ←[34;1m-link←[0m parent.vhd new.vhd
+←[32;1mVHDMAKE←[0m ←[34;1m-merge←[0m delta.vhd
+←[32;1mVHDMAKE←[0m ←[34;1m-info←[0m a.vhd
+ -c | -convert  converte un disco in VHD fisso e lo rinomina new.vhd
+ -l | -link     crea un VHD differenziale new.vhd e lo collega all'immagine
+                madre parent.vhd preesistente
+ -f | -force    forza la sovrascrittura di un'immagine preesistente
+ -i | -info     mostra informazioni sull'immagine a.vhd
+ -m | -merge    unisce l'immagine differenziale delta.vhd alla madre
+ new.vhd        nome della nuova immagine VHD dinamica da creare
+ size           dimensione virtuale del disco (con eventuale unità di misura,
+                Byte è implicita)
+L'immagine da convertire in VHD fissa dev'essere partizionata con lo schema
+MBR e formattata con FAT.
+La dimensione di un VHD dinamico può variare da 3 MB a 2040 GB.
+Il VHD dinamico creato non è partizionato né formattato: per montarlo
+e assegnargli direttamente una lettera di unità con ←[34;1mIMGMOUNT←[0m, può
+essere preferibile usare ←[34;1mIMGMAKE←[0m.
+Un VHD differenziale è automaticamente cancellato dopo che l'unione ha avuto
+successo.
+
+.
 :DEBUGCMD
 Comando del Debugger
 .
@@ -597,7 +708,7 @@ L'unità numero %c è stata rimossa.
 
 .
 :PROGRAM_MOUNT_UMOUNT_NO_VIRTUAL
-Le unità viortuali non possono essere (s)montate.
+Le unità virtuali non possono essere (s)montate.
 
 .
 :PROGRAM_MOUNT_WARNING_WIN
@@ -759,19 +870,19 @@ Uscita
 .
 :PROGRAM_INTRO_MENU_INFO_HELP
 
-←[1m   ←[1m←[KHow to get more information about DOSBox-X.←[0m
+←[1m   ←[1m←[KOttenere ulteriori informazioni su DOSBox-X.←[0m
 
 .
 :PROGRAM_INTRO_MENU_QUIT_HELP
 
-←[1m   ←[1m←[KExit from Intro.←[0m
+←[1m   ←[1m←[KEsci dall'introduzione.←[0m
 
 .
 :PROGRAM_INTRO_USAGE_TOP
-←[2J←[32;1mAn overview of the command line options you can give to DOSBox-X.←[0m
-Windows users must open cmd.exe or edit the shortcut to DOSBox-X.exe for this.
+←[2J←[32;1mUna panoramica delle opzioni usabili nella riga di comando di DOSBox-X.←[0m
+Gli utenti Windows devono aprire CMD.EXE o modificare il collegamento a DOSBox-X.exe.
 
-dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
+dosbox-x [nome] [-exit] [-version] [-fastlaunch] [-fullscreen]
          [-conf congfigfile] [-lang languagefile] [-machine machinetype]
          [-startmapper] [-noautoexec] [-scaler scaler | -forcescaler scaler]
          [-noconsole] [-c command] [-set <section property=value>]
@@ -779,41 +890,41 @@ dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
 
 .
 :PROGRAM_INTRO_USAGE_1
-←[33;1m  name←[0m
-○If name is a cartella it will mount that as the C: drive.
-○If name is an executable it will mount the cartella of name
-○as the C: drive and execute name.
+←[33;1m  nome←[0m
+○Se nome è una cartella, sarà montata come unità C:.
+○Se nome è un eseguibile, lo eseguirà, montando la cartella che lo contiene
+come unità C:
 
 ←[33;1m  -exit←[0m
-○DOSBox-X will close itself when the DOS application name ends.
+○DOSBox-X terminerà con l'esecuzione dell'applicazione nome.
 
 ←[33;1m  -version←[0m
-○Outputs version information and exit. Useful for frontends.
+○Mostra la versione e termina. Utile per le interfacce.
 
 ←[33;1m  -fastlaunch←[0m
-○Enables fast launch mode (skip BIOS logo and welcome banner).
+○Abilita il lancio rapido (sopprime logo BIOS e messaggio di benvenuto).
 
 ←[33;1m  -fullscreen←[0m
-○Starts DOSBox-X in fullscreen mode.
+○Avvia DOSBox-X a schermo intero.
 
 .
 :PROGRAM_INTRO_USAGE_2
 ←[33;1m  -conf←[0m configfile
-○Start DOSBox-X with the options specified in configfile.
-○See the documentation for more details.
+○Avvia DOSBox-X caricando la configurazione da configfile.
+○Vedere la documentazione per i dettagli.
 
 ←[33;1m  -lang←[0m languagefile
-○Start DOSBox-X using the language specified in languagefile.
+○Avvia DOSBox-X caricando i messaggi tradotti da languagefile.
 
-←[33;1m  -noconsole←[0m (Windows Only)
-○Start DOSBox-X without showing the console window. Output will
-○be redirected to stdout.txt and stderr.txt
+←[33;1m  -noconsole←[0m (solo Windows)
+○Avvia DOSBox-X senza mostrare la finestra console. L'output sarà rediretto
+○su stdout.txt e stderr.txt
 
 ←[33;1m  -machine←[0m machinetype
-○Setup DOSBox-X to emulate a specific type of machine. Valid choices:
+○Fa emulare a DOSBox-X un dato tipo di macchina. Scelte possibili:
 ○hercules, cga, cga_mono, mcga, mda, pcjr, tandy, ega, vga, vgaonly,
 ○pc98, vesa_nolfb, vesa_oldvbe, svga_paradise, svga_s3 (default).
-○The machinetype affects both the video card and available sound cards.
+○Il tipo di macchina determina le schede audio e video disponibili.
 
 .
 :PROGRAM_INTRO_USAGE_3
@@ -1002,35 +1113,35 @@ BIOSTEST image_file
 
 .
 :VHD_ERROR_OPENING
-Could not open the specified VHD file.
+Impossibile aprire il file VHD specificato.
 
 .
 :VHD_INVALID_DATA
-The specified VHD file is corrupt and cannot be opened.
+Il file VHD specificato è corrotto e non può essere aperto.
 
 .
 :VHD_UNSUPPORTED_TYPE
-The specified VHD file is of an unsupported type.
+Il VHD specificato è di tipo non supportato.
 
 .
 :VHD_ERROR_OPENING_PARENT
-The parent of the specified VHD file could not be found.
+Impossibile trovare l'ascendente del VHD differenziale specificato.
 
 .
 :VHD_PARENT_INVALID_DATA
-The parent of the specified VHD file is corrupt and cannot be opened.
+L'ascendente del VHD differenziale è corrotto e non può essere aperto.
 
 .
 :VHD_PARENT_UNSUPPORTED_TYPE
-The parent of the specified VHD file is of an unsupported type.
+L'ascendente del VHD differenziale è di tipo non supportato.
 
 .
 :VHD_PARENT_INVALID_MATCH
-The parent of the specified VHD file does not contain the expected identifier.
+L'ascendente del VHD differenziale non contiene l'identificatore atteso.
 
 .
 :VHD_PARENT_INVALID_DATE
-The parent of the specified VHD file has been changed and cannot be loaded.
+L'ascendente del VHD differenziale è modificato e non può essere caricato.
 
 .
 :PROGRAM_IMGMOUNT_SPECIFY_DRIVE
@@ -1120,154 +1231,156 @@ Monta un'immagine di disco floppy, rigido od ottico.
 ←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m [-t floppy] -bootcd cdDrive (or -el-torito cdDrive)
 ←[32;1mIMGMOUNT←[0m ←[37;1mdrive←[0m -t ram -size size
 ←[32;1mIMGMOUNT←[0m -u ←[37;1mdrive|driveNum←[0m (or ←[32;1mIMGMOUNT←[0m ←[37;1mdrive|driveNum←[0m ←[36;1mfile←[0m [options] -u)
- ←[37;1mdrive←[0m               Drive letter to mount the image at.
- ←[37;1mdriveNum←[0m            Drive number to mount, where 0-1 are FDDs, 2-5 are HDDs.
- ←[36;1mfile←[0m                Image filename(s), or ←[33;1mIMGMAKE.IMG←[0m if not specified.
- -t iso              Image type is optical disc iso or cue / bin image.
- -t hdd|floppy|ram   Image type is hard disk (inc. VHD/HDI)|floppy|RAM drive.
- -fs iso             Filesystem is ISO 9660 (auto-assumed for .iso/.cue files).
- -fs fat             Filesystem is FAT - FAT12, FAT16 and FAT32 are supported.
- -fs none            Do not detect filesystem (auto-assumed for drive numbers).
- -reservecyl #       Report # number of cylinders less than actual in BIOS.
- -ide controller     Specify IDE controller (1m, 1s, 2m, 2s) to mount drive.
- -size size|ss,s,h,c Specify the size in KB, or sector size and CHS geometry.
- -bootcd cdDrive     Specify the CD drive to load the bootable floppy from.
- -o partidx=#        Specify a hard disk partition number to mount as drive.
- -ro                 Mount image(s) read-only (or leading ':' for read-only).
- -u                  Unmount the drive or drive number.
- ←[32;1m-examples           Show some usage examples.←[0m
+ ←[37;1mdrive←[0m               Lettera di unità su cui montare l'immagine.
+ ←[37;1mdriveNum←[0m            Numero di unità su cui montare, dove 0-1 è floppy, 2-5 dischi rigidi.
+ ←[36;1mfile←[0m                Nome/i di file immagine, o ←[33;1mIMGMAKE.IMG←[0m se non specificato.
+ -t iso              L'immagine è di tipo disco ottico iso o cue / bin.
+ -t hdd|floppy|ram   L'immagine è di tipo disco rigido (inc. VHD/HDI)|floppy|RAM drive.
+ -fs iso             Il filesystem è ISO 9660 (auto assunto per file .iso/.cue).
+ -fs fat             Il filesystem è FAT - FAT12, FAT16 e FAT32 sono supportati.
+ -fs none            Non rileva il filesystem (implicito con numero di unità).
+ -reservecyl #       Fa riportare al BIOS un numero di cilindri # inferiore al reale
+ -ide controller     Specifica il controller IDE (1m, 1s, 2m, 2s) dove montare l'unità.
+ -size size|ss,s,h,c Specifica la dimensione in KB, o la misura del settore e la geometria CHS.
+ -bootcd cdDrive     Specifica l'unità CD da cui caricare il floppy di avvio emulato.
+ -o partidx=#        Specifica il numero di partizione del disco rigido da montare come unità.
+ -ro                 Monta l'immagine in sola lettura (o premettere ':').
+ -u                  Smonta l'unità numero.
+ ←[32;1m-examples           Mostra alcuni esempi d'uso.←[0m
 .
 :PROGRAM_IMGMOUNT_EXAMPLE
-Some usage examples of IMGMOUNT:
+Alcuni esempi d'uso di IMGMOUNT:
 
-  ←[32;1mIMGMOUNT←[0m                       - list mounted FAT/ISO drives & drive numbers
-  ←[32;1mIMGMOUNT C←[0m                     - mount hard disk image ←[33;1mIMGMAKE.IMG←[0m as C:
-  ←[32;1mIMGMOUNT C c:\image.img←[0m        - mount hard disk image c:\image.img as C:
-  ←[32;1mIMGMOUNT D c:\files\game.iso←[0m   - mount CD image c:\files\game.iso as D:
-  ←[32;1mIMGMOUNT D cdaudio.cue←[0m         - mount cue file of a cue/bin pair as CD drive
-  ←[32;1mIMGMOUNT 0 dos.ima←[0m             - mount floppy image dos.ima as drive number 0
-                                   (←[33;1mBOOT A:←[0m will boot from drive if bootable)
-  ←[32;1mIMGMOUNT A -ro dos.ima←[0m         - mount floppy image dos.ima as A: read-only
-  ←[32;1mIMGMOUNT A :dsk1.img dsk2.img←[0m  - mount floppy images dsk1.img and dsk2.img as
-                                   A:, swappable via menu item "Swap floppy",
-                                   with dsk1.img read-only (but not dsk2.img)
-  ←[32;1mIMGMOUNT A -bootcd D←[0m           - mount bootable floppy A: from CD drive D:
-  ←[32;1mIMGMOUNT C -t ram -size 10000←[0m  - mount hard drive C: as a 10MB RAM drive
-  ←[32;1mIMGMOUNT D d.img -o partidx=4←[0m  - mount 1st logical partition of d.img as D:
-  ←[32;1mIMGMOUNT C disk.img -u←[0m         - force mount hard disk image disk.img as C:,
-                                   auto-unmount drive beforehand if necessary
-  ←[32;1mIMGMOUNT A -u←[0m                  - unmount previously-mounted drive A:
+  ←[32;1mIMGMOUNT←[0m                       - elenca le unità FAT/ISO montate e i relativi numeri
+  ←[32;1mIMGMOUNT C←[0m                     - monta il disco rigido in ←[33;1mIMGMAKE.IMG←[0m come C:
+  ←[32;1mIMGMOUNT C c:\image.img←[0m        - monta il disco rigido in c:\image.img come C:
+  ←[32;1mIMGMOUNT D c:\files\game.iso←[0m   - monta la ISO c:\files\game.iso come D:
+  ←[32;1mIMGMOUNT D cdaudio.cue←[0m         - monta il file CUE di una coppia CUE/BIN come unità CD
+  ←[32;1mIMGMOUNT 0 dos.ima←[0m             - monta il floppy in dos.ima come unità numero 0
+                                   (←[33;1mBOOT A:←[0m avvierà da quel disco, se avviabile)
+  ←[32;1mIMGMOUNT A -ro dos.ima←[0m         - monta il floppy in dos.ima come A: e per sola lettura
+  ←[32;1mIMGMOUNT A :dsk1.img dsk2.img←[0m  - monta i floppy in dsk1.img e dsk2.img su
+                                   A:, scambiabili dal menù "Cambia floppy",
+                                   con dsk1.img per sola lettura (non dsk2.img)
+  ←[32;1mIMGMOUNT A -bootcd D←[0m           - monta come A: l'immagine floppy contenuta nel CD D:
+  ←[32;1mIMGMOUNT C -t ram -size 10000←[0m  - monta come unità C: un RAM drive da 10 MB
+  ←[32;1mIMGMOUNT D d.img -o partidx=4←[0m  - monta la prima partizione logica di d.img come D:
+  ←[32;1mIMGMOUNT C disk.img -u←[0m         - forza il montaggio di disk.img come C:, smontando
+                                   l'eventuale immagine già montata come C:
+  ←[32;1mIMGMOUNT A -u←[0m                  - smonta l'unità A: precedentemente montata
 
 .
 :PROGRAM_IMGMAKE_SYNTAX
-Creates floppy or hard disk images.
-Usage: ←[34;1mIMGMAKE [file] [-t type] [[-size size] | [-chs geometry]] [-spc] [-nofs]←[0m
-  ←[34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source source] [-retries #]←[0m
-  file: Image file to create (or ←[33;1mIMGMAKE.IMG←[0m if not set) - ←[31;1mpath on the host←[0m
-  -t: Type of image.
-    ←[33;1mFloppy disk templates←[0m (names resolve to floppy sizes in KB or fd=fd_1440):
+Crea immagini di dischi floppy o rigidi.
+Usa: ←[34;1mIMGMAKE [file] [-t tipo] [[-size dim.] | [-chs geometria]] [-spc] [-nofs]←[0m
+  ←[34;1m[-bat] [-fat] [-fatcopies] [-rootdir] [-force] [-source sorgente] [-retries #]←[0m
+  file: File immagine da creare (o ←[33;1mIMGMAKE.IMG←[0m se non indicato) - ←[31;1mpercorso sull'host←[0m
+  -t: Tipo di immagine.
+    ←[33;1mModelli di disco floppy←[0m (i nomi sottintendono misure in KB o fd=fd_1440):
      fd_160 fd_180 fd_200 fd_320 fd_360 fd_400 fd_720 fd_1200 fd_1440 fd_2880
-    ←[33;1mHard disk templates:←[0m
+    ←[33;1mModelli di disco rigido:←[0m
      hd_250: 250MB image, hd_520: 520MB image, hd_1gig: 1GB image
      hd_2gig: 2GB image, hd_4gig: 4GB image, hd_8gig: 8GB image
-     hd_st251: 40MB image, hd_st225: 20MB image (geometry from old drives)
-    ←[33;1mCustom hard disk images:←[0m hd (requires -size or -chs)
-  -size: Size of a custom hard disk image in MB.
-  -chs: Disk geometry in cylinders(1-1023),heads(1-255),sectors(1-63).
-  -nofs: Add this parameter if a blank image should be created.
-  -force: Force to overwrite the existing image file.
-  -bat: Create a .bat file with the IMGMOUNT command required for this image.
-  -fat: FAT filesystem type (12, 16, or 32).
-  -spc: Sectors per cluster override. Must be a power of 2.
-  -fatcopies: Override number of FAT table copies.
-  -rootdir: Size of root cartella in entries. Ignored for FAT32.
-  -source: drive letter - if specified the image is read from a floppy disk.
-  -retries: how often to retry when attempting to read a bad floppy disk(1-99).
-  ←[32;1m-examples: Show some usage examples.←[0m
+     hd_st251: 40MB image, hd_st225: 20MB image (geometria di vecchi dischi)
+    ←[33;1mImmagini personalizzate di disco rigido:←[0m hd vhd (richiede -size o -chs)
+  -size: dim. in MB di un disco rigido personalizzato (vhd: max. 2088960).
+  -chs: geometria del disco in cilindri(1-1023),testine(1-255),settori(1-63).
+  -nofs: Forza la creazione di un'immagine vuota.
+  -force: Forza la sostituzione di un file preesistente.
+  -bat: Crea un file .bat con il comando IMGMOUNT richiesto da tale immagine.
+  -chs/-lba: Usa il codice di partizione per il filesystem FAT o la geometria LBA.
+  -fat: Tipo di FAT (12, 16, o 32 bit).
+  -spc: Forza un dato numero di settori per cluster (in potenza di 2).
+  -fatcopies: Forza il numero di tabelle FAT.
+  -rootdir: Voci nella directory radice (ignorato con FAT32).
+  -source: lettera di unità - se specificato, l'immagine è letta da un floppy.
+  -retries: numero di tentate ripetizioni di lettura di un floppy difettoso (1-99).
+  ←[32;1m-examples: Mostra alcuni esempi.←[0m
 .
 :PROGRAM_IMGMAKE_EXAMPLE
-Some usage examples of IMGMAKE:
+Esempi di uso di IMGMAKE per la creazione di immagini disco:
 
-  ←[32;1mIMGMAKE -t fd←[0m                   - create a 1.44MB floppy image ←[33;1mIMGMAKE.IMG←[0m
-  ←[32;1mIMGMAKE -t fd_1440 -force←[0m       - force to create a floppy image ←[33;1mIMGMAKE.IMG←[0m
-  ←[32;1mIMGMAKE dos.img -t fd_2880←[0m      - create a 2.88MB floppy image named dos.img
-  ←[32;1mIMGMAKE c:\disk.img -t hd -size 50←[0m      - create a 50MB HDD image c:\disk.img
-  ←[32;1mIMGMAKE c:\disk.img -t hd_520 -nofs←[0m     - create a 520MB blank HDD image
-  ←[32;1mIMGMAKE c:\disk.img -t hd_2gig -fat 32←[0m  - create a 2GB FAT32 HDD image
-  ←[32;1mIMGMAKE c:\disk.img -t hd -chs 130,2,17←[0m - create a HDD image of specified CHS
-  ←[32;1mIMGMAKE c:\disk.img -source a←[0m           - read image from physical drive A:
+  ←[32;1mIMGMAKE -t fd←[0m                   - crea un'immagine ←[33;1mIMGMAKE.IMG←[0m di floppy da 1.44MB
+  ←[32;1mIMGMAKE -t fd_1440 -force←[0m       - forza la creazione di un'immagine floppy ←[33;1mIMGMAKE.IMG←[0m
+  ←[32;1mIMGMAKE dos.img -t fd_2880←[0m      - crea un'immagine floppy da 2.88MB di nome dos.img
+  ←[32;1mIMGMAKE new.vhd -t vhd -size 520←[0m      - crea un VHD dinamico da 520MB di nome new.vhd
+  ←[32;1mIMGMAKE c:\disk.img -t hd -size 50←[0m      - crea un disco rigido da 50MB nel file c:\disk.img
+  ←[32;1mIMGMAKE c:\disk.img -t hd_520 -nofs←[0m     - crea un disco rigido vuoto da 520MB
+  ←[32;1mIMGMAKE c:\disk.img -t hd_2gig -fat 32←[0m  - crea un disco rigido FAT32 da 2GB
+  ←[32;1mIMGMAKE c:\disk.img -t hd -chs 130,2,17←[0m - crea un disco rigido con la geometria CHS indicata
+  ←[32;1mIMGMAKE c:\disk.img -source a←[0m           - legge un'immagine dal floppy fisico A:
 
 .
 :PROGRAM_IMGMAKE_FLREAD
-Disk geometry: %d Cylinders, %d Heads, %d Sectors, %d Kilobytes
+Geometria del disco: %d Cilindri, %d Testine, %d Settori, %d Kilobyte
 
 
 .
 :PROGRAM_IMGMAKE_FLREAD2
-%s =good, %s =good after retries, ! =CRC error, x =sector not found, ? =unknown
+%s =sano, %s =sano dopo tentativi, ! =errore CRC, x =settore non trovato, ? =ignoto
 
 
 .
 :PROGRAM_IMGMAKE_FILE_EXISTS
-The file "%s" already exists. You can specify "-force" to overwrite.
+Il file "%s" esiste. Usa "-force" per sovrascriverlo.
 
 .
 :PROGRAM_IMGMAKE_CANNOT_WRITE
-The file "%s" cannot be opened for writing.
+Il file "%s" non può essere aperto per scrivervi.
 
 .
 :PROGRAM_IMGMAKE_NOT_ENOUGH_SPACE
-Not enough space availible for the image file. Need %u bytes.
+Spazio insufficiente per il file di immagine. Servono %u byte.
 
 .
 :PROGRAM_IMGMAKE_PRINT_CHS
-Creating image file "%s" with %u cylinders, %u heads and %u sectors
+Creazione del file di immagine "%s" con %u Cilindri, %u Testine e %u Settori
 
 .
 :PROGRAM_IMGMAKE_CANT_READ_FLOPPY
 
 
-Unable to read floppy.
+Impossibile leggere il floppy.
 .
 :PROGRAM_KEYB_INFO
-Codepage %i has been loaded
+La pagina dei codici %i è stata caricata
 
 .
 :PROGRAM_KEYB_INFO_LAYOUT
-Codepage %i has been loaded for layout %s
+La pagina dei codici %i è stata caricata per la disposizione di tastiera %s
 
 .
 :PROGRAM_KEYB_SHOWHELP
-Configures a keyboard for a specific language.
+Configura una tastiera per una data lingua.
 
 KEYB [keyboard layout ID [codepage number [codepage file]]]
 
-Some examples:
-  ←[32;1mKEYB←[0m          Display currently loaded codepage.
-  ←[32;1mKEYB sp←[0m       Load the Spanish (SP) layout, use an appropriate codepage.
-  ←[32;1mKEYB sp 850←[0m   Load the Spanish (SP) layout, use codepage 850.
-  ←[32;1mKEYB sp 850 mycp.cpi←[0m Same as above, but use file mycp.cpi.
+Esempi:
+  ←[32;1mKEYB←[0m          Mostra la tavola codici in uso.
+  ←[32;1mKEYB sp←[0m       Usa la disposizione spagnola (SP) applicando la tavola codici appropriata.
+  ←[32;1mKEYB sp 850←[0m   Usa la disposizione spagnola (SP) con la tavola codici 850.
+  ←[32;1mKEYB sp 850 mycp.cpi←[0m Come sopra, ma usa il file mycp.cpi per la tavola codici.
 
 .
 :PROGRAM_KEYB_NOERROR
-Keyboard layout %s loaded for codepage %i
+La disposizione dei tasti %s è caricata per la tavola codici %i
 
 .
 :PROGRAM_KEYB_FILENOTFOUND
-Keyboard file %s not found
+File di tastiera %s non trovato
 
 
 .
 :PROGRAM_KEYB_INVALIDFILE
-Keyboard file %s invalid
+File di tastiera %s non valido
 
 .
 :PROGRAM_KEYB_LAYOUTNOTFOUND
-No layout in %s for codepage %i
+Non c'è una disposizione SP nella tavola codici %i
 
 .
 :PROGRAM_KEYB_INVCPFILE
-None or invalid codepage file for layout %s
+File di tavola codici inesistente o invalido per la disposizione %s
 
 
 .
@@ -1280,272 +1393,272 @@ Configures system devices.
 
 .
 :PROGRAM_MODE_INVALID_PARAMETERS
-Invalid parameter(s).
+Parametri non validi.
 
 .
 :PROGRAM_PORT_INVALID_NUMBER
-Must specify a port number between 1 and 9.
+Si deve indicare un numero di porta da 1 a 9.
 
 .
 :SHELL_CMD_TREE_ERROR
-No subdirectories exist
+Non ci sono sotto-cartelle
 
 .
 :SHELL_CMD_VOL_TREE
-cartella PATH listing for Volume %s
+lista delle cartelle nel PATH per il Volume %s
 
 .
 :SHELL_CMD_VOL_DRIVE
 
- Volume in drive %c 
+ Volume nell'unità %c 
 .
 :SHELL_CMD_VOL_SERIAL
- Volume Serial Number is 
+ Il numero di serie del volume è  
 .
 :SHELL_CMD_VOL_SERIAL_NOLABEL
-has no label
+non ha etichetta
 
 .
 :SHELL_CMD_VOL_SERIAL_LABEL
-is %s
+è %s
 
 .
 :SHELL_ILLEGAL_PATH
-Path not found
+Percorso non trovato
 
 .
 :SHELL_ILLEGAL_DRIVE
-Invalid drive specification
+Unità specificata non valida
 
 .
 :SHELL_CMD_HELP
-If you want a list of all supported internal commands type ←[33;1mHELP /ALL←[0m.
-You can also find external commands on the Z: drive as programs.
-A short list of the most often used commands:
+Se vuoi un elenco di tutti i comandi interni, digita ←[33;1mHELP /ALL←[0m.
+Puoi trovare vari comandi esterni anche nell'unità Z:
+Una breve lista dei comandi più usati:
 
 .
 :SHELL_CMD_HELP_END1
-External commands such as ←[33;1mMOUNT←[0m and ←[33;1mIMGMOUNT←[0m can be found on the Z: drive.
+Comandi esterni come ←[33;1mMOUNT←[0m e ←[33;1mIMGMOUNT←[0m sono nell'unità Z:.
 
 .
 :SHELL_CMD_HELP_END2
-Type ←[33;1mHELP command←[0m or ←[33;1mcommand /?←[0m for help information for the specified command.
+Usa ←[33;1mHELP comando←[0m o ←[33;1mcomando /?←[0m per un aiuto su quel comando.
 
 .
 :SHELL_CMD_ECHO_ON
-ECHO is on.
+ECHO è attivo.
 
 .
 :SHELL_CMD_ECHO_OFF
-ECHO is off.
+ECHO è inattivo.
 
 .
 :SHELL_ILLEGAL_SWITCH
-Invalid switch - %s
+Opzione non valida - %s
 
 .
 :SHELL_INVALID_PARAMETER
-Invalid parameter - %s
+Parametro non valido - %s
 
 .
 :SHELL_MISSING_PARAMETER
-Required parameter missing.
+Parametro richiesto mancante.
 
 .
 :SHELL_MISSING_FILE
-The following file is missing or corrupted: %s
+Il file seguente manca o è danneggiato: %s
 
 .
 :SHELL_CMD_CHDIR_ERROR
-Invalid cartella - %s
+Cartella non valida - %s
 
 .
 :SHELL_CMD_CHDIR_HINT
-Hint: To change to different drive type ←[31m%c:←[0m
+Nota: Per cambiare unità digita ←[31m%c:←[0m
 
 .
 :SHELL_CMD_CHDIR_HINT_2
-cartellaname contains unquoted spaces.
-Try ←[31mcd %s←[0m or properly quote them with quotation marks.
+il nome di cartella contiene spazi senza virgolette.
+Prova ←[31mcd %s←[0m o usa le virgolette appropriate.
 
 .
 :SHELL_CMD_CHDIR_HINT_3
-You are still on drive Z:, and the specified cartella cannot be found.
-For accessing a mounted drive, change to the drive with a syntax like ←[31mC:←[0m.
+Sei ancora sull'unità Z:, e la cartella indicata non è stata trovata.
+Per accedere a un'unità montata, cambia unità con un comando tipo ←[31mC:←[0m.
 
 .
 :SHELL_CMD_DATE_HELP
-Displays or changes the internal date.
+Mostra o cambia la data.
 
 .
 :SHELL_CMD_DATE_ERROR
-The specified date is not correct.
+La data indicata non è corretta.
 
 .
 :SHELL_CMD_DATE_DAYS
-3SunMonTueWedThuFriSat
+3DomLunMarMerGioVenSab
 .
 :SHELL_CMD_DATE_NOW
-Current date: 
+Data corrente: 
 .
 :SHELL_CMD_DATE_SETHLP
-Type 'date %s' to change.
+Digita 'date %s' per modificare.
 
 .
 :SHELL_CMD_DATE_HELP_LONG
-DATE [[/T] [/H] [/S] | date]
-  date:       New date to set
-  /S:         Permanently use host time and date as DOS time
-  /F:         Switch back to DOSBox-X internal time (opposite of /S)
-  /T:         Only display date
-  /H:         Synchronize with host
+DATE [[/T] [/H] [/S] | data]
+  data:       Nuova data da impostare
+  /S:         Rileva sempre data e ora dal sistema ospite
+  /F:         Torna a usare l'orologio interno di DOSBox-X (contrario di /S)
+  /T:         Mostra la sola data
+  /H:         Sincronizza con il sistema ospite
 
 .
 :SHELL_CMD_TIME_HELP
-Displays or changes the internal time.
+Mostra o imposta l'orologio interno.
 
 .
 :SHELL_CMD_TIME_ERROR
-The specified time is not correct.
+L'ora indicata non è corretta.
 
 .
 :SHELL_CMD_TIME_NOW
-Current time: 
+Ora attuale: 
 .
 :SHELL_CMD_TIME_SETHLP
-Type 'time %s' to change.
+Digita 'time %s' per modificare.
 
 .
 :SHELL_CMD_TIME_HELP_LONG
-TIME [[/T] [/H] | time]
-  time:       New time to set
-  /T:         Display simple time
-  /H:         Synchronize with host
+TIME [[/T] [/H] | ora]
+  time:       Nuova ora da impostare
+  /T:         Mostra l'ora
+  /H:         Sincronizza con il sistema ospite
 
 .
 :SHELL_CMD_MKDIR_EXIST
-cartella already exists - %s
+la cartella esiste già - %s
 
 .
 :SHELL_CMD_MKDIR_ERROR
-Unable to create cartella - %s
+Impossibile creare la cartella - %s
 
 .
 :SHELL_CMD_RMDIR_ERROR
-Invalid path, not cartella, or cartella not empty - %s
+Percorso invalido, non è una cartella o non è vuota - %s
 
 .
 :SHELL_CMD_RENAME_ERROR
-Unable to rename - %s
+Impossibile rinominare - %s
 
 .
 :SHELL_CMD_ATTRIB_GET_ERROR
-Unable to get attributes: %s
+Impossibile leggere gli attributi: %s
 
 .
 :SHELL_CMD_ATTRIB_SET_ERROR
-Unable to set attributes: %s
+Impossibile impostare gli attributi: %s
 
 .
 :SHELL_CMD_DEL_ERROR
-Unable to delete - %s
+Impossibile cancellare - %s
 
 .
 :SHELL_CMD_DEL_SURE
-All files in cartella will be deleted!
-Are you sure [Y/N]?
+Tutti i file nella cartella saranno rimossi!
+Sei sicuro? [S/N]
 .
 :SHELL_SYNTAXERROR
-Syntax error
+Errore di sintassi
 
 .
 :SHELL_CMD_SET_NOT_SET
-Environment variable %s not defined.
+La variabile d'ambiente %s non è definita.
 
 .
 :SHELL_CMD_SET_OUT_OF_SPACE
-Not enough environment space left.
+Spazio esaurito per la variabile d'ambiente.
 
 .
 :SHELL_CMD_IF_EXIST_MISSING_FILENAME
-IF EXIST: Missing filename.
+IF EXIST: Manca il nome di file.
 
 .
 :SHELL_CMD_IF_ERRORLEVEL_MISSING_NUMBER
-IF ERRORLEVEL: Missing number.
+IF ERRORLEVEL: Manca il numero.
 
 .
 :SHELL_CMD_IF_ERRORLEVEL_INVALID_NUMBER
-IF ERRORLEVEL: Invalid number.
+IF ERRORLEVEL: Numero non valido.
 
 .
 :SHELL_CMD_GOTO_MISSING_LABEL
-No label supplied to GOTO command.
+Nessuna etichetta fornita al comando GOTO.
 
 .
 :SHELL_CMD_GOTO_LABEL_NOT_FOUND
-GOTO: Label %s not found.
+GOTO: L'etichetta %s non esiste.
 
 .
 :SHELL_CMD_FILE_ACCESS_DENIED
-Access denied - %s
+Accesso negato - %s
 
 .
 :SHELL_CMD_FILE_NOT_FOUND
-File not found - %s
+File non trovato - %s
 
 .
 :SHELL_CMD_FILE_EXISTS
-File %s already exists.
+Il file %s già esiste.
 
 .
 :SHELL_CMD_DIR_INTRO
- cartella of %s
+ cartella di %s
 
 
 .
 :SHELL_CMD_DIR_BYTES_USED
-%5d File(s) %17s Bytes
+%5d File %17s Byte
 
 .
 :SHELL_CMD_DIR_BYTES_FREE
-%5d Dir(s)  %17s Bytes free
+%5d Dir  %17s Byte liberi
 
 .
 :SHELL_CMD_DIR_FILES_LISTED
-Total files listed:
+Totale file elencati:
 
 .
 :SHELL_EXECUTE_DRIVE_NOT_FOUND
 L'unità %c non esiste!
-You must ←[31mmount←[0m it first. Type ←[1;33mintro←[0m or ←[1;33mintro mount←[0m for more information.
+Devi prima ←[31mmount←[0marla. Digita ←[1;33mintro←[0m o ←[1;33mintro mount←[0m per informazioni.
 
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_CDROM
-Do you want to give DOSBox-X access to your real CD-ROM drive %c [Y/N]?
+Vuoi dare a DOSBox-X l'accesso alla tua vera unità CD-ROM %c [S/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_FLOPPY
-Do you want to give DOSBox-X access to your real floppy drive %c [Y/N]?
+Vuoi dare a DOSBox-X l'accesso alla tua vera unità floppy %c [S/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_REMOVABLE
-Do you want to give DOSBox-X access to your real removable drive %c [Y/N]?
+Vuoi dare a DOSBox-X l'accesso alla tua vera unità rimovibile %c [S/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_NETWORK
-Do you want to give DOSBox-X access to your real network drive %c [Y/N]?
+Vuoi dare a DOSBox-X l'accesso alla tua vera unità di rete %c [S/N]?
 .
 :SHELL_EXECUTE_DRIVE_ACCESS_FIXED
-Do you really want to give DOSBox-X access to your real hard drive %c [Y/N]?
+Vuoi *davvero* dare a DOSBox-X l'accesso al tuo vero disco rigido %c [S/N]?
 .
 :SHELL_EXECUTE_ILLEGAL_COMMAND
-Bad command or filename - "%s"
+Comando o nome di file errato - "%s"
 
 .
 :SHELL_CMD_PAUSE
-Press any key to continue . . .
+Premi un tasto per continuare . . .
 
 .
 :SHELL_CMD_PAUSE_HELP
-Waits for one keystroke to continue.
+Attende la pressione di un tasto per continuare.
 
 .
 :SHELL_CMD_PAUSE_HELP_LONG
@@ -1553,54 +1666,54 @@ PAUSE
 
 .
 :SHELL_CMD_COPY_FAILURE
-Copy failure - %s
+Errore di copia - %s
 
 .
 :SHELL_CMD_COPY_SUCCESS
-   %d File(s) copied.
+   %d File copiati.
 
 .
 :SHELL_CMD_COPY_CONFIRM
-Overwrite %s (Yes/No/All)?
+Sovrascrivo %s (Yes/No/All)?
 .
 :SHELL_CMD_COPY_NOSPACE
-Insufficient disk space - %s
+Spazio su disco insufficiente - %s
 
 .
 :SHELL_CMD_COPY_ERROR
-Copy error - %s
+Errore di copia - %s
 
 .
 :SHELL_CMD_SUBST_DRIVE_LIST
-The currently mounted local drives are:
+Le unità locali attualmente montate sono:
 
 .
 :SHELL_CMD_SUBST_NO_REMOVE
-Unable to remove, drive not in use.
+Impossibile rimuovere un'unità non in uso.
 
 .
 :SHELL_CMD_SUBST_IN_USE
-Target drive is already in use.
+L'unità di destinazione è già in uso.
 
 .
 :SHELL_CMD_SUBST_NOT_LOCAL
-It is only possible to use SUBST on local drives.
+È possibile usare SUBST solo con le unità locali.
 
 .
 :SHELL_CMD_SUBST_INVALID_PATH
-The specified drive or path is invalid.
+L'unità o il percorso indicato è invalida/o.
 
 .
 :SHELL_CMD_SUBST_FAILURE
-SUBST: There is an error in your command line.
+SUBST: c'è un errore nella tua riga di comando.
 
 .
 :SHELL_CMD_VTEXT_ON
-DOS/V V-text is currently enabled.
+DOS/V V-text è abilitato.
 
 .
 :SHELL_CMD_VTEXT_OFF
-DOS/V V-text is currently disabled.
+DOS/V V-text è disabilitato.
 
 .
 :SHELL_STARTUP_TITLE
@@ -1614,7 +1727,7 @@ Digita ←[32mHELP←[37m l'elenco dei comandi o ←[32mINTRO←[37m per una bre
 Puoi eseguire molte operazioni anche usando i ←[33mmenu←[37m.
 .
 :SHELL_STARTUP_EXAMPLE_PC98
-←[32mExample←[37m: Try select ←[33mTrueType font←[37m or ←[33mOpenGL perfect←[37m output option.
+←[32mExample←[37m: Prova a selezionare ←[33mTrueType font←[37m o ←[33mOpenGL perfect←[37m come opzione di output.
 .
 :SHELL_STARTUP_TEXT2_PC98
 To launch the ←[33mConfiguration Tool←[37m, use ←[31mhost+C←[37m. Host key is ←[32mF11←[37m.    
@@ -1701,7 +1814,7 @@ Type CD without parameters to display the current drive and cartella.
 
 .
 :SHELL_CMD_CLS_HELP
-Clears screen.
+Cancella lo schermo.
 
 .
 :SHELL_CMD_CLS_HELP_LONG
@@ -1709,44 +1822,44 @@ CLS
 
 .
 :SHELL_CMD_DIR_HELP
-Displays a list of files and subdirectories in a cartella.
+Mostra un elenco di file e sotto-cartelle in una cartella.
 
 .
 :SHELL_CMD_DIR_HELP_LONG
 DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|D]]
 
   [drive:][path][filename]
-              Specifies drive, cartella, and/or files to list.
-  /W          Uses wide list format.
-  /B          Uses bare format (no heading information or summary).
-  /S          Displays files in specified cartella and all subdirectories.
-  /P          Pauses after each screenful of information.
-  /A          Displays files with specified attributes.
-  attributes   D  Directories                R  Read-only files
-               H  Hidden files               A  Files ready for archiving
-               S  System files               -  Prefix meaning not
-  /O          List by files in sorted order.
-  sortorder    N  By name (alphabetic)       S  By size (smallest first)
-               E  By extension (alphabetic)  D  By date & time (earliest first)
-               G  Group directories first    -  Prefix to reverse order
+              Specifica unità, cartelle e/o file da elencare.
+  /W          Usa un formato di elenco ampio.
+  /B          Usa un formato semplice (senza intestazione né riepilogo).
+  /S          Mostra i file nella cartella specificata e nelle discendenti.
+  /P          Pausa dopo ogni schermo di informazione.
+  /A          Mostra i file con gli attributi indicati.
+  attributes   D  Cartelle                R  File di sola lettura
+               H  File nascosti           A  Files pronti per l'archiviazione
+               S  File di sistema         -  Prefisso per "non"
+  /O          Elenca i file con un dato ordine.
+  ordine       N  Per nome, alfabetico        S  Per dimensione (dal minore)
+               E  Per estensione, alfabetico  D  Per data/ora (dal più antico)
+               G  Raggruppa prima le cartelle -  Prefisso, inverte l'ordine
 
-Switches may be preset in the DIRCMD environment variable.  Override
-preset switches by prefixing any switch with - (hyphen)--for example, /-W.
+Le opzioni possono essere predefinite nella variabile d'ambiente DIRCMD.
+Per bypassarla, premettere un - (meno) sulla riga di comando, p.e. /-W.
 
 .
 :SHELL_CMD_ECHO_HELP
-Displays messages, or turns command-echoing on or off.
+Mostra messaggi, o (dis)attiva l'eco dei comandi.
 
 .
 :SHELL_CMD_ECHO_HELP_LONG
   ECHO [ON | OFF]
-  ECHO [message]
+  ECHO [messaggio]
 
-Type ECHO without parameters to display the current echo setting.
+Digita ECHO senza argomenti per vedere lo stato dell'eco.
 
 .
 :SHELL_CMD_EXIT_HELP
-Exits from the command shell.
+Esce dall'interprete dei comandi.
 
 .
 :SHELL_CMD_EXIT_HELP_LONG
@@ -1754,15 +1867,15 @@ EXIT
 
 .
 :SHELL_CMD_HELP_HELP
-Shows DOSBox-X command help.
+Mostra l'aiuto in linea di DOSBox-X.
 
 .
 :SHELL_CMD_HELP_HELP_LONG
-HELP [/A or /ALL]
-HELP [command]
+HELP [/A o /ALL]
+HELP [comando]
 
-   /A or /ALL   Lists all supported internal commands.
-   [command]    Shows help for the specified command.
+   /A o /ALL    Elenca tutti i comandi interni.
+   [comando]    Mostra l'aiuto per il comando indicato.
 
 ←[0mE.g., ←[37;1mHELP COPY←[0m or ←[37;1mCOPY /?←[0m shows help information for COPY command.
 
