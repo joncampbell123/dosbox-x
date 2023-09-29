@@ -451,6 +451,10 @@ MOUSE [/?] [/U] [/V]
 当前已挂载的驱动器为:
 
 .
+:PROGRAM_MOUNT_NOT_FORMATTED
+Drive not formatted. Format it before accessing the drive.
+
+.
 :PROGRAM_IMGMOUNT_STATUS_FORMAT
 %-5s  %-47s  %-12s  %s
 
