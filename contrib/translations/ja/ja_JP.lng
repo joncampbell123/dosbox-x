@@ -448,6 +448,10 @@ MOUSE [/?] [/U] [/V]
 ドライブがフォーマットされてません。フォーマットしてください。
 
 .
+:PROGRAM_MOUNT_UNSUPPORTED_EXT
+サポートされてない拡張子 %s: raw IMG ファイルとしてマウントします。
+
+.
 :PROGRAM_IMGMOUNT_STATUS_FORMAT
 %-5s  %-41s  %-10s  %s
 
