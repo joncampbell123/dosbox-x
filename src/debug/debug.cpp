@@ -894,6 +894,7 @@ void CBreakpoint::ShowList(void)
 
 bool DEBUG_Breakpoint(void)
 {
+	if (inhibit_int_breakpoint) return false; /* or else stepping over INT 21h when BPINT 21h does nothing */
 	/* First get the physical address and check for a set Breakpoint */
 	if (!CBreakpoint::CheckBreakpoint(SegValue(cs),reg_eip)) return false;
 	// Found. Breakpoint is valid
@@ -904,7 +905,7 @@ bool DEBUG_Breakpoint(void)
 
 bool DEBUG_IntBreakpoint(uint8_t intNum)
 {
-    if (inhibit_int_breakpoint) return false; /* or else stepping over INT 21h when BPINT 21h does nothing */
+	if (inhibit_int_breakpoint) return false; /* or else stepping over INT 21h when BPINT 21h does nothing */
 	/* First get the physical address and check for a set Breakpoint */
 	PhysPt where=(PhysPt)GetAddress(SegValue(cs),reg_eip);
 	if (!CBreakpoint::CheckIntBreakpoint(where,intNum,reg_ah,reg_al)) return false;
