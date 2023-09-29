@@ -64,6 +64,7 @@ bool shellrun = false, prepared = false, testerr = false;
 
 uint16_t shell_psp = 0;
 Bitu call_int2e = 0;
+Bitu call_int23 = 0;
 
 std::string GetDOSBoxXPath(bool withexe=false);
 const char* DOS_GetLoadedLayout(void);
@@ -272,13 +273,13 @@ DOS_Shell::DOS_Shell():Program(){
 	input_handle=STDIN;
 	echo=true;
 	exit=false;
-    perm = false;
+	perm = false;
 	bf=0;
 	call=false;
 	exec=false;
 	lfnfor = uselfn;
-    input_eof=false;
-    completion_index = 0;
+	input_eof=false;
+	completion_index = 0;
 }
 
 Bitu DOS_Shell::GetRedirection(char *s, char **ifn, char **ofn, char **toc,bool * append) {
@@ -1321,6 +1322,12 @@ void AUTOEXEC_Init() {
 	AddVMEventFunction(VM_EVENT_DOS_SURPRISE_REBOOT,AddVMEventFunctionFuncPair(AUTOEXEC_ShutDown));
 }
 
+static Bitu INT23_Handler(void) {
+	LOG(LOG_MISC,LOG_DEBUG)("DOS shell received CTRL+C signal");
+	SETFLAGBIT(CF,true);
+	return CBRET_NONE;
+}
+
 static Bitu INT2E_Handler(void) {
 	/* Save return address and current process */
 	RealPt save_ret=real_readd(SegValue(ss),reg_sp);
@@ -1816,20 +1823,27 @@ void SHELL_Init() {
 	real_writed(psp_seg+16+1,1,real_readd(0,0x24*4));
 	real_writed(0,0x24*4,((uint32_t)psp_seg<<16) | ((16+1)<<4));
 
-	/* Set up int 23 to "int 20" in the psp. Fixes what.exe */
-	real_writed(0,0x23*4,((uint32_t)psp_seg<<16));
+	/* Old comment: Set up int 23 to "int 20" in the psp. Fixes what.exe */
+	/* 2023/09/28: Point INT 23h at a vector that calls our callback and then calls INT 21h AH=4Ch. Real COMMAND.COM does this too. */
+	if (call_int23 == 0)
+		call_int23 = CALLBACK_Allocate();
+
+	RealPt addr_int23=RealMake(psp_seg,8+((16+2)*16));
+
+	CALLBACK_Setup(call_int23,&INT23_Handler,CB_RETF,Real2Phys(addr_int23),"Shell Int 23 CTRL+C");
+	RealSetVec(0x23,addr_int23);
 
 	/* Set up int 2e handler */
-    if (call_int2e == 0)
-        call_int2e = CALLBACK_Allocate();
+	if (call_int2e == 0)
+		call_int2e = CALLBACK_Allocate();
 
-    //	RealPt addr_int2e=RealMake(psp_seg+16+1,8);
-    // NTS: It's apparently common practice to enumerate MCBs by reading the segment value of INT 2Eh and then
-    //      scanning forward from there. The assumption seems to be that COMMAND.COM writes INT 2Eh there using
-    //      it's PSP segment and an offset like that of a COM executable even though COMMAND.COM is often an EXE file.
+	//	RealPt addr_int2e=RealMake(psp_seg+16+1,8);
+	// NTS: It's apparently common practice to enumerate MCBs by reading the segment value of INT 2Eh and then
+	//      scanning forward from there. The assumption seems to be that COMMAND.COM writes INT 2Eh there using
+	//      it's PSP segment and an offset like that of a COM executable even though COMMAND.COM is often an EXE file.
 	RealPt addr_int2e=RealMake(psp_seg,8+((16+1)*16));
 
-    CALLBACK_Setup(call_int2e,&INT2E_Handler,CB_IRET_STI,Real2Phys(addr_int2e),"Shell Int 2e");
+	CALLBACK_Setup(call_int2e,&INT2E_Handler,CB_IRET_STI,Real2Phys(addr_int2e),"Shell Int 2e");
 	RealSetVec(0x2e,addr_int2e);
 
 	/* Setup environment */

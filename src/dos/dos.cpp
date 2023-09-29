@@ -640,11 +640,11 @@ bool DOS_BreakTest(bool print=true) {
 		if (print) DOS_PrintCBreak();
 
 		DOS_BreakFlag = false;
-        DOS_BreakConioFlag = false;
+		DOS_BreakConioFlag = false;
 
 		offv = mem_readw((0x23*4)+0);
 		segv = mem_readw((0x23*4)+2);
-		if (offv != 0 && segv != 0) { /* HACK: DOSBox's shell currently does not assign INT 23h */
+		if (segv != 0) {
 			/* NTS: DOS calls are allowed within INT 23h! */
 			Bitu save_sp = reg_sp;
 
@@ -658,6 +658,11 @@ bool DOS_BreakTest(bool print=true) {
 			 *      termination completes!
 			 *
 			 *      This fixes: PC Mix compiler PCL.EXE
+			 *
+			 *      2023/09/28: Some basic debugging with MS-DOS 6.22 shows the INT 23h handler
+			 *                  installed by COMMAND.COM does the same thing (INT 21h AH=0x4C)
+			 *                  which is normally still there unless the DOS application itself
+			 *                  replaces the vector.
 			 *
 			 *      FIXME: This is an ugly hack! */
 			try {
@@ -690,6 +695,12 @@ bool DOS_BreakTest(bool print=true) {
 
 				if (reg_sp != save_sp) reg_sp += 2;
 			}
+		}
+		else {
+			/* Old comment: "HACK: DOSBox's shell currently does not assign INT 23h"
+			 * 2023/09/28: The DOSBox command shell now installs a handler, therefore
+			 *             a null vector is now something to warn about. */
+			LOG_MSG("WARNING: INT 23h CTRL+C vector is NULL\n");
 		}
 
 		if (terminate) {
