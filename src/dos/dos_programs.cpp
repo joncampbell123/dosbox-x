@@ -206,6 +206,7 @@ void DetachFromBios(imageDisk* image) {
 }
 
 void SwitchLanguage(int oldcp, int newcp, bool confirm) {
+    (void)oldcp; //unused
     auto iterold = langcp_map.find(lastmsgcp), iternew = langcp_map.find(newcp);
     std::string langold = iterold != langcp_map.end() ? iterold->second : "", langnew = iternew != langcp_map.end() ? iternew->second : "";
     if (loadlang && langnew.size() && strcasecmp(langold.c_str(), langnew.c_str())) {
@@ -5921,7 +5922,7 @@ class IMGMOUNT : public Program {
 									return NULL;
 								}
 								QCow2Image::QCow2Header qcow2_header = QCow2Image::read_header(newDisk);
-								uint64_t sectors;
+								// uint64_t sectors; /* unused */
 								uint32_t imagesize;
 								sizes[0] = 512; // default sector size
 								if(qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)) {
@@ -5930,8 +5931,8 @@ class IMGMOUNT : public Program {
 										WriteOut("Sector size must be larger than 512 bytes and evenly divide the image cluster size of %lu bytes.\n", cluster_size);
 										return 0;
 									}
-									sectors = (uint64_t)qcow2_header.size / (uint64_t)sizes[0]; //sectors
-									imagesize = (uint32_t)(qcow2_header.size / 1024L); // imagesize
+									// sectors = (uint64_t)qcow2_header.size / (uint64_t)sizes[0]; /* unused */
+									imagesize = (uint32_t)(qcow2_header.size / 1024L);
 									sizes[1] = 63; // sectors
 									sizes[2] = 16; // heads
 									sizes[3] = (uint64_t)qcow2_header.size / sizes[0] / sizes[1] / sizes[2]; // cylinders
@@ -7300,7 +7301,7 @@ void UTF8::Run()
         WriteOut("No input text found.\n");
         return;
     }
-    int cp=dos.loaded_codepage;
+    // int cp=dos.loaded_codepage; /* unused */
     char target[11] = "CP437";
     if (dos.loaded_codepage==808) strcpy(target, "CP866");
     else if (dos.loaded_codepage==859) strcpy(target, "CP858");
@@ -7837,7 +7838,7 @@ uint64_t VHDMAKE::ssizetou64(const char* s_size) {
 void VHDMAKE::Run()
 {
     bool bOverwrite = false;
-    bool bExists = false;
+    // bool bExists = false; /* unused */
     uint32_t ret;
     char basename[256], filename[256];
 
@@ -7876,7 +7877,7 @@ void VHDMAKE::Run()
             imageDiskVHD::VHDInfo* p = info->parentInfo;
             while(p != NULL) {
                 index++;
-                for(int i = 0; i < index; i++) WriteOut(" ");
+                for(uint32_t i = 0; i < index; i++) WriteOut(" ");
                 WriteOut("child of \"%s\" (%s)", p->diskname.c_str(), vhdTypes[(int)p->vhdType]);
                 if (p->vhdType != imageDiskVHD::VHD_TYPE_FIXED)
                     WriteOut(MSG_Get("PROGRAM_VHDMAKE_BLOCKSTATS"), p->allocatedBlocks, p->totalBlocks);
