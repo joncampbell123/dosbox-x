@@ -206,6 +206,7 @@ void DetachFromBios(imageDisk* image) {
 }
 
 void SwitchLanguage(int oldcp, int newcp, bool confirm) {
+    (void)oldcp; //unused
     auto iterold = langcp_map.find(lastmsgcp), iternew = langcp_map.find(newcp);
     std::string langold = iterold != langcp_map.end() ? iterold->second : "", langnew = iternew != langcp_map.end() ? iternew->second : "";
     if (loadlang && langnew.size() && strcasecmp(langold.c_str(), langnew.c_str())) {
@@ -5167,9 +5168,7 @@ class IMGMOUNT : public Program {
 					return; 
 				}
 				if (!rtype&&!rfstype&&fstype!="none"&&paths[0].length()>4) {
-					char ext[5];
-					strncpy(ext, paths[0].substr(paths[0].length()-4).c_str(), 4);
-					ext[4]=0;
+					const char *ext = strrchr(paths[0].c_str(), '.');
 					if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".chd")||!strcasecmp(ext, ".mdf")||!strcasecmp(ext, ".gog")||!strcasecmp(ext, ".ins")) {
 						type="iso";
 						fstype="iso";
@@ -5256,7 +5255,12 @@ class IMGMOUNT : public Program {
 				else {
 					if (AttachToBiosAndIdeByIndex(newImage, (unsigned char)driveIndex, (unsigned char)ide_index, ide_slave)) {
 						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', (!paths.empty()) ? (wpcolon&&paths[0].length()>1&&paths[0].c_str()[0]==':'?paths[0].c_str()+1:paths[0].c_str()) : (el_torito != ""?"El Torito floppy drive":(type == "ram"?"RAM drive":"-")));
-						if (swapInDisksSpecificDrive == driveIndex || swapInDisksSpecificDrive == -1) {
+						const char *ext = strrchr(paths[0].c_str(), '.');
+                        if ((!IS_PC98_ARCH && strcasecmp(ext,".img") && strcasecmp(ext,".ima") && strcasecmp(ext,".vhd") && strcasecmp(ext,".qcow2"))
+                           || (IS_PC98_ARCH && strcasecmp(ext,".hdi") && strcasecmp(ext,".nhd") && strcasecmp(ext,".img") && strcasecmp(ext,".ima"))){
+                            WriteOut(MSG_Get("PROGRAM_MOUNT_UNSUPPORTED_EXT"), ext);
+                        }
+                        if (swapInDisksSpecificDrive == driveIndex || swapInDisksSpecificDrive == -1) {
 							for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
 								if (diskSwap[si] != NULL) {
 									diskSwap[si]->Release();
@@ -5828,6 +5832,9 @@ class IMGMOUNT : public Program {
 			return true;
 		}
 
+        bool unformatted = false;
+        bool unsupported_ext = false;
+        int  path_no;
 		bool MountFat(Bitu sizes[], const char drive, const bool isHardDrive, const std::string &str_size, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave, const int reserved_cylinders, bool roflag) {
 			(void)reserved_cylinders;
 			if (Drives[drive - 'A']) {
@@ -5865,14 +5872,14 @@ class IMGMOUNT : public Program {
 							if (!strcasecmp(ext, ".hdi")) {
 								skipDetectGeometry = true;
 							}
-							if (!strcasecmp(ext, ".nhd")) {
+							else if (!strcasecmp(ext, ".nhd")) {
 								skipDetectGeometry = true;
 							}
-							if (!strcasecmp(ext, ".nfd")) {
+							else if (!strcasecmp(ext, ".nfd")) {
 								skipDetectGeometry = true;
 							}
 							//for all vhd files where the system will autodetect the chs values,
-							if (!strcasecmp(ext, ".vhd")) {
+							else if (!strcasecmp(ext, ".vhd")) {
 								ro=wpcolon&&paths[i].length()>1&&paths[i].c_str()[0]==':';
 								//load the file with imageDiskVHD, which supports fixed/dynamic/differential disks
 								imageDiskVHD::ErrorCodes ret = imageDiskVHD::Open(ro?paths[i].c_str()+1:paths[i].c_str(), ro||roflag, &vhdImage);
@@ -5911,7 +5918,7 @@ class IMGMOUNT : public Program {
 									default: break;
 								}
 							}
-							if(!strcasecmp(ext, ".qcow2")) {
+							else if(!strcasecmp(ext, ".qcow2")) {
 								ro = wpcolon && paths[i].length() > 1 && paths[i].c_str()[0] == ':';
 								const char* fname = ro ? paths[i].c_str() + 1 : paths[i].c_str();
 								FILE* newDisk = fopen_lock(fname, ro ? "rb" : "rb+", ro);
@@ -5920,7 +5927,7 @@ class IMGMOUNT : public Program {
 									return NULL;
 								}
 								QCow2Image::QCow2Header qcow2_header = QCow2Image::read_header(newDisk);
-								uint64_t sectors;
+								// uint64_t sectors; /* unused */
 								uint32_t imagesize;
 								sizes[0] = 512; // default sector size
 								if(qcow2_header.magic == QCow2Image::magic && (qcow2_header.version == 2 || qcow2_header.version == 3)) {
@@ -5929,8 +5936,8 @@ class IMGMOUNT : public Program {
 										WriteOut("Sector size must be larger than 512 bytes and evenly divide the image cluster size of %lu bytes.\n", cluster_size);
 										return 0;
 									}
-									sectors = (uint64_t)qcow2_header.size / (uint64_t)sizes[0]; //sectors
-									imagesize = (uint32_t)(qcow2_header.size / 1024L); // imagesize
+									// sectors = (uint64_t)qcow2_header.size / (uint64_t)sizes[0]; /* unused */
+									imagesize = (uint32_t)(qcow2_header.size / 1024L);
 									sizes[1] = 63; // sectors
 									sizes[2] = 16; // heads
 									sizes[3] = (uint64_t)qcow2_header.size / sizes[0] / sizes[1] / sizes[2]; // cylinders
@@ -5948,6 +5955,14 @@ class IMGMOUNT : public Program {
 									newImage = NULL;
 								}
 							}
+                            else if (!strcasecmp(ext,".img") || !strcasecmp(ext,".ima")){ // Raw MFM image format is typically .img or .ima
+                                unsupported_ext = false;
+                            }
+                            else {
+                                LOG_MSG("IMGMOUNT: Perhaps unsupported extension %s", ext);
+                                unsupported_ext = true;
+                                path_no = i;
+                            }
 						}
 					}
 					if (!skipDetectGeometry && !DetectGeometry(NULL, paths[i].c_str(), sizes)) {
@@ -5989,6 +6004,7 @@ class IMGMOUNT : public Program {
 						diskfiles[i]=fdrive->loadedDisk->diskimg;
 						if ((vhdImage&&ro)||roflag) fdrive->readonly=true;
 					}
+                    unformatted = fdrive->unformatted;
 				}
 				if (errorMessage) {
 					if (!qmount) WriteOut(errorMessage);
@@ -6008,7 +6024,15 @@ class IMGMOUNT : public Program {
 			}
 			lastmount = drive;
 			if (!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
-
+            if (unformatted) {
+                if(!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_NOT_FORMATTED"));
+                LOG_MSG("IMGMOUNT: Drive %c not formatted", drive);
+            }
+            if (unsupported_ext) {
+                const char *ext = strrchr(paths[path_no].c_str(), '.');
+                if(!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_UNSUPPORTED_EXT"), ext);
+                LOG_MSG("Unsupported extension %s: Mounted as raw IMG image.", ext);
+            }
 			unsigned char driveIndex = drive-'A';
 			if (imgDisks.size() == 1 || (imgDisks.size() > 1 && driveIndex < 2 && (swapInDisksSpecificDrive == driveIndex || swapInDisksSpecificDrive == -1))) {
 				imageDisk* image = ((fatDrive*)imgDisks[0])->loadedDisk;
@@ -7295,7 +7319,7 @@ void UTF8::Run()
         WriteOut("No input text found.\n");
         return;
     }
-    int cp=dos.loaded_codepage;
+    // int cp=dos.loaded_codepage; /* unused */
     char target[11] = "CP437";
     if (dos.loaded_codepage==808) strcpy(target, "CP866");
     else if (dos.loaded_codepage==859) strcpy(target, "CP858");
@@ -7832,7 +7856,7 @@ uint64_t VHDMAKE::ssizetou64(const char* s_size) {
 void VHDMAKE::Run()
 {
     bool bOverwrite = false;
-    bool bExists = false;
+    // bool bExists = false; /* unused */
     uint32_t ret;
     char basename[256], filename[256];
 
@@ -7871,7 +7895,7 @@ void VHDMAKE::Run()
             imageDiskVHD::VHDInfo* p = info->parentInfo;
             while(p != NULL) {
                 index++;
-                for(int i = 0; i < index; i++) WriteOut(" ");
+                for(uint32_t i = 0; i < index; i++) WriteOut(" ");
                 WriteOut("child of \"%s\" (%s)", p->diskname.c_str(), vhdTypes[(int)p->vhdType]);
                 if (p->vhdType != imageDiskVHD::VHD_TYPE_FIXED)
                     WriteOut(MSG_Get("PROGRAM_VHDMAKE_BLOCKSTATS"), p->allocatedBlocks, p->totalBlocks);
@@ -9000,6 +9024,8 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_MOUNT_STATUS_RAMDRIVE", "Drive %c is mounted as RAM drive\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_2","Drive %c is mounted as %s\n");
     MSG_Add("PROGRAM_MOUNT_STATUS_1","The currently mounted drives are:\n");
+    MSG_Add("PROGRAM_MOUNT_NOT_FORMATTED","Drive not formatted. Format it before accessing the drive.\n");
+    MSG_Add("PROGRAM_MOUNT_UNSUPPORTED_EXT","Unsupported extension %s: Mounted as raw IMG image.\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_FORMAT","%-5s  %-47s  %-12s  %s\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_NUMBER_FORMAT","%-12s  %-40s  %-12s  %s\n");
     MSG_Add("PROGRAM_IMGMOUNT_STATUS_2","The currently mounted drive numbers are:\n");
