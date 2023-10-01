@@ -455,11 +455,11 @@ Les lecteurs actuellement montés sont :
 
 .
 :PROGRAM_MOUNT_NOT_FORMATTED
-Drive not formatted. Format it before accessing the drive.
+Le lecteur n'est pas formaté. Formatez-le avant d'accéder au lecteur.
 
 .
 :PROGRAM_MOUNT_UNSUPPORTED_EXT
-Unsupported extension %s: Mounted as raw IMG image.
+Extension non supportée %s: Monté comme une image RAW.
 
 .
 :PROGRAM_IMGMOUNT_STATUS_FORMAT
