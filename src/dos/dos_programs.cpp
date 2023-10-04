@@ -8145,7 +8145,9 @@ static void COLOR_ProgramStart(Program * * make) {
     *make=new COLOR;
 }
 
-bool setVGAColor(const char *colorArray, int i) {
+alt_rgb altBGR[16], *rgbcolors = (alt_rgb*)render.pal.rgb;
+
+bool setVGAColor(const char *colorArray, int j) {
     if (!IS_VGA_ARCH||!CurMode) return false;
     const char * nextRGB = colorArray;
     int rgbVal[4] = {-1,-1,-1,-1};
@@ -8164,16 +8166,18 @@ bool setVGAColor(const char *colorArray, int i) {
     } else
         return false;
     IO_ReadB(mem_readw(BIOS_VIDEO_PORT)+6);
-    IO_WriteB(VGAREG_ACTL_ADDRESS, i+32);
+    IO_WriteB(VGAREG_ACTL_ADDRESS, j+32);
     uint8_t imap=IO_ReadB(VGAREG_ACTL_READ_DATA);
     IO_WriteB(VGAREG_DAC_WRITE_ADDRESS, imap);
-    IO_WriteB(VGAREG_DAC_DATA, (rgbVal[0]+3)*63/255);
-    IO_WriteB(VGAREG_DAC_DATA, (rgbVal[1]+3)*63/255);
-    IO_WriteB(VGAREG_DAC_DATA, (rgbVal[2]+3)*63/255);
+    IO_WriteB(VGAREG_DAC_DATA, rgbVal[0] >> 2);
+    IO_WriteB(VGAREG_DAC_DATA, rgbVal[1] >> 2);
+    IO_WriteB(VGAREG_DAC_DATA, rgbVal[2] >> 2);
+    rgbcolors[j].red = rgbVal[0];
+    rgbcolors[j].green = rgbVal[1];
+    rgbcolors[j].blue = rgbVal[2];
     return true;
 }
 
-alt_rgb altBGR[16], *rgbcolors = (alt_rgb*)render.pal.rgb;
 #if defined(USE_TTF)
 extern alt_rgb altBGR1[16];
 extern bool colorChanged;
@@ -8275,9 +8279,12 @@ void SETCOLOR::Run()
 #if defined(USE_TTF)
 			} else if (setColors(value,i)) {
                 bool colornul = staycolors || (IS_VGA_ARCH && (altBGR1[i].red > 4 || altBGR1[i].green > 4 || altBGR1[i].blue > 4) && rgbcolors[i].red < 5 && rgbcolors[i].green < 5 && rgbcolors[i].blue < 5);
-                altBGR[i].red = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[i].red:rgbcolors[i].red;
-                altBGR[i].green = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[i].green:rgbcolors[i].green;
-                altBGR[i].blue = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[i].blue:rgbcolors[i].blue;
+                LOG_MSG("%d,%d,%d %d,%d,%d",altBGR[i].red, altBGR[i].green, altBGR[i].blue, rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue);
+                LOG_MSG("colornul=%d, colorChanged=%d, IS_VGA_ARCH=%d",colornul, colorChanged, IS_VGA_ARCH);
+                altBGR[i].red = (colornul||(colorChanged&&!IS_VGA_ARCH))?altBGR1[i].red:rgbcolors[i].red;
+                altBGR[i].green = (colornul||(colorChanged&&!IS_VGA_ARCH))?altBGR1[i].green:rgbcolors[i].green;
+                altBGR[i].blue = (colornul||(colorChanged&&!IS_VGA_ARCH))?altBGR1[i].blue:rgbcolors[i].blue;
+                LOG_MSG("%d,%d,%d %d,%d,%d",altBGR[i].red, altBGR[i].green, altBGR[i].blue, rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue);
 				WriteOut("Color %d => (%d,%d,%d) or #%02x%02x%02x\n",i,altBGR[i].red,altBGR[i].green,altBGR[i].blue,altBGR[i].red,altBGR[i].green,altBGR[i].blue);
 				resetFontSize();
 			} else

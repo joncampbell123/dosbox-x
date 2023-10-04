@@ -242,9 +242,9 @@ void setVGADAC() {
             IO_WriteB(VGAREG_ACTL_ADDRESS, i+32);
             imap[i]=IO_ReadB(VGAREG_ACTL_READ_DATA);
             IO_WriteB(VGAREG_DAC_WRITE_ADDRESS, imap[i]);
-            IO_WriteB(VGAREG_DAC_DATA, (altBGR1[i].red+3)*63/255);
-            IO_WriteB(VGAREG_DAC_DATA, (altBGR1[i].green+3)*63/255);
-            IO_WriteB(VGAREG_DAC_DATA, (altBGR1[i].blue+3)*63/255);
+            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].red>>2);
+            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].green>>2);
+            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].blue>>2);
         }
     }
 }
@@ -261,7 +261,7 @@ bool setColors(const char *colorArray, int n) {
     staycolors = strlen(colorArray) && *colorArray == '+';
     const char* nextRGB = colorArray + (staycolors?1:0);
 	uint8_t * altPtr = (uint8_t *)altBGR1;
-	int rgbVal[3] = {-1,-1,-1};
+	int rgbVal[4] = {-1,-1,-1,-1};
 	for (int colNo = 0; colNo < (n>-1?1:16); colNo++) {
 		if (n>-1) altPtr+=4*n;
 		if (sscanf(nextRGB, " ( %d , %d , %d)", &rgbVal[0], &rgbVal[1], &rgbVal[2]) == 3) {	// Decimal: (red,green,blue)
@@ -273,22 +273,24 @@ bool setColors(const char *colorArray, int n) {
 			while (*nextRGB != ')')
 				nextRGB++;
 			nextRGB++;
-		} else if (sscanf(nextRGB, " #%6x", ((unsigned int*)(&rgbVal[0]))) == 1) {							// Hexadecimal
-			if (rgbVal[0] < 0)
+		} else if (sscanf(nextRGB, " #%6x", ((uint32_t*)(&rgbVal[3]))) == 1) {							// Hexadecimal
+			if (rgbVal[3] < 0)
 				return false;
 			for (int i = 0; i < 3; i++) {
-				altPtr[2-i] = rgbVal[0]&255;
-				rgbVal[0] >>= 8;
+				rgbVal[2-i] = rgbVal[3]&255;
+				rgbVal[3] >>= 8;
 			}
 			nextRGB = strchr(nextRGB, '#') + 7;
 		} else
 			return false;
 		altPtr += 4;
-	}
-	for (int i = n>-1?n:0; i < (n>-1?n+1:16); i++) {
-		altBGR0[i].blue = (altBGR1[i].blue*2 + 128)/4;
-		altBGR0[i].green = (altBGR1[i].green*2 + 128)/4;
-		altBGR0[i].red = (altBGR1[i].red*2 + 128)/4;
+ 		altBGR1[n].blue = rgbVal[2];
+  		altBGR1[n].green = rgbVal[1];
+  		altBGR1[n].red = rgbVal[0];
+        rgbColors[n].blue = rgbVal[2];
+  		rgbColors[n].green = rgbVal[1];
+  		rgbColors[n].red = rgbVal[0];
+
 	}
     setVGADAC();
     colorChanged=justChanged=true;
