@@ -1,4 +1,4 @@
-Next version:
+2023.10.06
   - Add "VRD" debugger command to force redraw of the VGA screen.
   - Add VGA debug set commands to force a video start address and another
     to clear all debug settings.
