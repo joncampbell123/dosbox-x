@@ -951,19 +951,6 @@ void XGA_DrawWait(Bitu val, Bitu len) {
 							else chunks=1;
 							break;
 						case 0x40: // 32 bit
-							if(len!=4) { // In case of two 16-bit transfers, first combine both WORDs into a 32-bit DWORD and then operate
-								// Needed for Windows 3.1 with S386c928 drivers, and Windows NT/2000 to display 16x16 radio buttons and icons properly
-								if(xga.waitcmd.datasize == 0) {
-									// set it up to wait for the next word
-									xga.waitcmd.data = (uint32_t)val;
-									xga.waitcmd.datasize = 2;
-									return;
-								} else {
-									srcval = (val<<16)|xga.waitcmd.data;
-									xga.waitcmd.data = 0;
-									xga.waitcmd.datasize = 0;
-								}
-							}
 							chunksize=32;
 							chunks=1;
 							break;
