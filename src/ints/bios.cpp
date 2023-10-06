@@ -2631,16 +2631,26 @@ static Bitu INT1A_Handler(void) {
             reg_cl = ReadCmosByte(0x02);    // minutes
             reg_dh = ReadCmosByte(0x00);    // seconds
             reg_dl = ReadCmosByte(0x0b) & 0x01; // daylight saving time
+	    /* 2023/10/06 - Let interrupts and CPU cycles catch up and the RTC clock a chance to tick. This is needed for
+	     * "Pizza Tycoon" which appears to start by running in a loop reading time from the BIOS and writing
+	     * time to INT 21h in a loop until the second value changes. */
+            for (unsigned int c=0;c < 4;c++) CALLBACK_Idle();
         }
         CALLBACK_SCF(false);
         break;
     case 0x03:  // set RTC time
         InitRtc();                          // make sure BCD and no am/pm
-        WriteCmosByte(0x0b, ReadCmosByte(0x0b) | 0x80u);     // prohibit updates
-        WriteCmosByte(0x04, reg_ch);        // hours
-        WriteCmosByte(0x02, reg_cl);        // minutes
-        WriteCmosByte(0x00, reg_dh);        // seconds
-        WriteCmosByte(0x0b, (ReadCmosByte(0x0b) & 0x7eu) | (reg_dh & 0x01u)); // dst + implicitly allow updates
+        if (RtcUpdateDone()) {              // make sure it's safe to read
+            WriteCmosByte(0x0b, ReadCmosByte(0x0b) | 0x80u);     // prohibit updates
+            WriteCmosByte(0x04, reg_ch);        // hours
+            WriteCmosByte(0x02, reg_cl);        // minutes
+            WriteCmosByte(0x00, reg_dh);        // seconds
+            WriteCmosByte(0x0b, (ReadCmosByte(0x0b) & 0x7eu) | (reg_dh & 0x01u)); // dst + implicitly allow updates
+	    /* 2023/10/06 - Let interrupts and CPU cycles catch up and the RTC clock a chance to tick. This is needed for
+	     * "Pizza Tycoon" which appears to start by running in a loop reading time from the BIOS and writing
+	     * time to INT 21h in a loop until the second value changes. */
+            for (unsigned int c=0;c < 4;c++) CALLBACK_Idle();
+        }
         break;
     case 0x04:  /* GET REAL-TIME ClOCK DATE  (AT,XT286,PS) */
         InitRtc();                          // make sure BCD and no am/pm
@@ -2649,17 +2659,27 @@ static Bitu INT1A_Handler(void) {
             reg_cl = ReadCmosByte(0x09);    // year
             reg_dh = ReadCmosByte(0x08);    // month
             reg_dl = ReadCmosByte(0x07);    // day
+	    /* 2023/10/06 - Let interrupts and CPU cycles catch up and the RTC clock a chance to tick. This is needed for
+	     * "Pizza Tycoon" which appears to start by running in a loop reading time from the BIOS and writing
+	     * time to INT 21h in a loop until the second value changes. */
+            for (unsigned int c=0;c < 4;c++) CALLBACK_Idle();
         }
         CALLBACK_SCF(false);
         break;
     case 0x05:  // set RTC date
         InitRtc();                          // make sure BCD and no am/pm
-        WriteCmosByte(0x0b, ReadCmosByte(0x0b) | 0x80);     // prohibit updates
-        WriteCmosByte(0x32, reg_ch);    // century
-        WriteCmosByte(0x09, reg_cl);    // year
-        WriteCmosByte(0x08, reg_dh);    // month
-        WriteCmosByte(0x07, reg_dl);    // day
-        WriteCmosByte(0x0b, (ReadCmosByte(0x0b) & 0x7f));   // allow updates
+        if (RtcUpdateDone()) {              // make sure it's safe to read
+            WriteCmosByte(0x0b, ReadCmosByte(0x0b) | 0x80);     // prohibit updates
+            WriteCmosByte(0x32, reg_ch);    // century
+            WriteCmosByte(0x09, reg_cl);    // year
+            WriteCmosByte(0x08, reg_dh);    // month
+            WriteCmosByte(0x07, reg_dl);    // day
+            WriteCmosByte(0x0b, (ReadCmosByte(0x0b) & 0x7f));   // allow updates
+	    /* 2023/10/06 - Let interrupts and CPU cycles catch up and the RTC clock a chance to tick. This is needed for
+	     * "Pizza Tycoon" which appears to start by running in a loop reading time from the BIOS and writing
+	     * time to INT 21h in a loop until the second value changes. */
+            for (unsigned int c=0;c < 4;c++) CALLBACK_Idle();
+        }
         break;
     case 0x80:  /* Pcjr Setup Sound Multiplexer */
         LOG(LOG_BIOS,LOG_ERROR)("INT1A:80:Setup tandy sound multiplexer to %d",reg_al);

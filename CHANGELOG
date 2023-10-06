@@ -46,6 +46,10 @@ Next version:
     shortcut triggers execution to stop whether in RUN or RUNWATCH mode.
   - Fix SETCOLORS command didn't change color when output=ttf.(Issue #4503)
     Also fixed the values reported were wrong. (maron2000)
+  - BIOS CMOS date/time functions will now idle the CPU 4 times after reading
+    or setting the clock to allow interrupts, CPU time, and RTC clock ticks
+    to proceed normally. This fixes "Pizza Tycoon" and allows it to continue
+    past the initial logo. (joncampbell123)
 
 2023.09.01
   - Disable by default message confirmation after snapshot and AVI video
