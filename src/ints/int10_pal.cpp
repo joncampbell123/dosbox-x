@@ -29,6 +29,7 @@
 void GFX_EndTextLines(bool force);
 bool setColors(const char *colorArray, int n);
 #endif
+bool setVGAColor(const char* colorArray, int j);
 static INLINE void ResetACTL(void) {
 	IO_Read(real_readw(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS) + 6u);
 }
@@ -241,6 +242,7 @@ void INT10_SetSingleDACRegister(uint8_t index,uint8_t red,uint8_t green,uint8_t 
     }
     setColors(value,imap[index]);
     if (ttf.inUse) GFX_EndTextLines(true);
+    setVGAColor(value, imap[index]);
 #endif
 }
 
@@ -270,7 +272,7 @@ void INT10_SetDACBlock(uint16_t index,uint16_t count,PhysPt data) {
 			IO_Write(VGAREG_DAC_DATA,blue);
 #if defined(USE_TTF)
             if (start==16) {
-                sprintf(value,"(%d,%d,%d)",red*255/63, green*255/63, blue*255/63);
+                sprintf(value,"(%d,%d,%d)",(red<<2|red>>4), (green<<2|green>>4), (blue<<2|blue>>4));
                 str+=std::string(value)+" ";
             }
 #endif
@@ -289,18 +291,20 @@ void INT10_SetDACBlock(uint16_t index,uint16_t count,PhysPt data) {
 			IO_Write(VGAREG_DAC_DATA,ic);
 #if defined(USE_TTF)
             if (start==16) {
-                sprintf(value,"(%d,%d,%d)",red*255/63, green*255/63, blue*255/63);
+                sprintf(value,"(%d,%d,%d)", (red << 2 | red >> 4), (green << 2 | green >> 4), (blue << 2 | blue >> 4));
                 str+=std::string(value);
             }
 #endif
 		}
 	}
+
+    if(str.size()) {
 #if defined(USE_TTF)
-    if (str.size()) {
-        setColors(str.c_str(),-1);
-        if (ttf.inUse) GFX_EndTextLines(true);
-    }
+        setColors(str.c_str(), -1);
+        if(ttf.inUse) GFX_EndTextLines(true);
 #endif
+        setVGAColor(str.c_str(), -1);
+    }
 }
 
 void INT10_GetDACBlock(uint16_t index,uint16_t count,PhysPt data) {
