@@ -124,7 +124,6 @@ int menuwidth_atleast(int width), FileDirExistCP(const char *name), FileDirExist
 void AdjustIMEFontSize(void),refreshExtChar(void), initcodepagefont(void), change_output(int output), drawmenu(Bitu val), KEYBOARD_Clear(void), RENDER_Reset(void), DOSBox_SetSysMenu(void), GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight), SetWindowTransparency(int trans), resetFontSize(void), RENDER_CallBack( GFX_CallBackFunctions_t function );
 bool isDBCSCP(void), InitCodePage(void), CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CROSS_LEN*/), systemmessagebox(char const * aTitle, char const * aMessage, char const * aDialogType, char const * aIconType, int aDefaultButton);
 std::string GetDOSBoxXPath(bool withexe=false);
-bool setVGAColor(const char* colorArray, int i);
 
 #if defined(C_SDL2)
 void GFX_SetResizeable(bool enable);
@@ -243,9 +242,9 @@ void setVGADAC() {
             IO_WriteB(VGAREG_ACTL_ADDRESS, i+32);
             imap[i]=IO_ReadB(VGAREG_ACTL_READ_DATA);
             IO_WriteB(VGAREG_DAC_WRITE_ADDRESS, imap[i]);
-            IO_WriteB(VGAREG_DAC_DATA, rgbColors[i].red>>2);
-            IO_WriteB(VGAREG_DAC_DATA, rgbColors[i].green>>2);
-            IO_WriteB(VGAREG_DAC_DATA, rgbColors[i].blue>>2);
+            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].red>>2);
+            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].green>>2);
+            IO_WriteB(VGAREG_DAC_DATA, altBGR1[i].blue>>2);
         }
     }
 }
@@ -262,35 +261,36 @@ bool setColors(const char *colorArray, int n) {
     staycolors = strlen(colorArray) && *colorArray == '+';
     const char* nextRGB = colorArray + (staycolors?1:0);
 	uint8_t * altPtr = (uint8_t *)altBGR1;
-	int8_t rgbVal[3] = {-1,-1,-1};
-    int32_t nextRGB_val = -1;
-	for (int colNo = n>-1?n:0; colNo < (n>-1?n+1:16); colNo++) {
-		if (sscanf(nextRGB, " ( %d , %d , %d)", (int32_t*)&rgbVal[0], (int32_t*)&rgbVal[1], (int32_t*)&rgbVal[2]) == 3) {	// Decimal: (red,green,blue)
+	int rgbVal[4] = {-1,-1,-1,-1};
+	for (int colNo = 0; colNo < (n>-1?1:16); colNo++) {
+		if (n>-1) altPtr+=4*n;
+		if (sscanf(nextRGB, " ( %d , %d , %d)", &rgbVal[0], &rgbVal[1], &rgbVal[2]) == 3) {	// Decimal: (red,green,blue)
 			for (int i = 0; i< 3; i++) {
 				if (rgbVal[i] < 0 || rgbVal[i] > 255)
 					return false;
+				altPtr[i] = rgbVal[i];
 			}
 			while (*nextRGB != ')')
 				nextRGB++;
 			nextRGB++;
-		} else if (sscanf(nextRGB, " #%6x", (uint32_t*)&nextRGB_val) == 1) {							// Hexadecimal
-			if (nextRGB_val < 0)
+		} else if (sscanf(nextRGB, " #%6x", ((uint32_t*)(&rgbVal[3]))) == 1) {							// Hexadecimal
+			if (rgbVal[3] < 0)
 				return false;
-			for (int i = 2; i >= 0; i--) {
-				rgbVal[i] = nextRGB_val&255;
-				nextRGB_val >>= 8;
+			for (int i = 0; i < 3; i++) {
+				rgbVal[2-i] = rgbVal[3]&255;
+				rgbVal[3] >>= 8;
 			}
 			nextRGB = strchr(nextRGB, '#') + 7;
 		} else
 			return false;
-        for(int i = n > -1 ? n : 0; i < (n > -1 ? n + 1 : 16); i++) {
-            altBGR0[i].red = rgbColors[i].red;
-            altBGR0[i].green = rgbColors[i].green;
-            altBGR0[i].blue = rgbColors[i].blue;
-        }
-        rgbColors[colNo].blue = (uint8_t)rgbVal[2];
-        rgbColors[colNo].green = (uint8_t)rgbVal[1];
-        rgbColors[colNo].red = (uint8_t)rgbVal[0];
+		altPtr += 4;
+ 		altBGR1[n].blue = rgbVal[2];
+  		altBGR1[n].green = rgbVal[1];
+  		altBGR1[n].red = rgbVal[0];
+        rgbColors[n].blue = rgbVal[2];
+  		rgbColors[n].green = rgbVal[1];
+  		rgbColors[n].red = rgbVal[0];
+
 	}
     setVGADAC();
     colorChanged=justChanged=true;
@@ -696,9 +696,8 @@ void OUTPUT_TTF_Select(int fsize) {
                 str+=std::string(value)+" ";
             }
             if (str.size()) {
-                colorChanged = justChanged = false;
-                setColors(str.c_str(), -1);
-                //setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
+                setColors(str.c_str(),-1);
+                colorChanged=justChanged=false;
             }
         }
         SetBlinkRate(ttf_section);
@@ -1332,6 +1331,7 @@ void AutoBoxDraw_mapper_shortcut(bool pressed) {
     if (ttf.inUse) resetFontSize();
 }
 
+bool setVGAColor(const char *colorArray, int i);
 void ttf_reset_colors() {
     if (ttf.inUse) {
         SetVal("ttf", "colors", "");
