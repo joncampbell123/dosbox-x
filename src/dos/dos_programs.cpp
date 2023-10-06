@@ -5256,11 +5256,13 @@ class IMGMOUNT : public Program {
 					if (AttachToBiosAndIdeByIndex(newImage, (unsigned char)driveIndex, (unsigned char)ide_index, ide_slave)) {
 						WriteOut(MSG_Get("PROGRAM_IMGMOUNT_MOUNT_NUMBER"), drive - '0', (!paths.empty()) ? (wpcolon&&paths[0].length()>1&&paths[0].c_str()[0]==':'?paths[0].c_str()+1:paths[0].c_str()) : (el_torito != ""?"El Torito floppy drive":(type == "ram"?"RAM drive":"-")));
 						const char *ext = strrchr(paths[0].c_str(), '.');
-                        if ((!IS_PC98_ARCH && strcasecmp(ext,".img") && strcasecmp(ext,".ima") && strcasecmp(ext,".vhd") && strcasecmp(ext,".qcow2"))
-                           || (IS_PC98_ARCH && strcasecmp(ext,".hdi") && strcasecmp(ext,".nhd") && strcasecmp(ext,".img") && strcasecmp(ext,".ima"))){
-                            WriteOut(MSG_Get("PROGRAM_MOUNT_UNSUPPORTED_EXT"), ext);
-                        }
-                        if (swapInDisksSpecificDrive == driveIndex || swapInDisksSpecificDrive == -1) {
+						if (ext != NULL) {
+							if ((!IS_PC98_ARCH && strcasecmp(ext,".img") && strcasecmp(ext,".ima") && strcasecmp(ext,".vhd") && strcasecmp(ext,".qcow2")) ||
+								(IS_PC98_ARCH && strcasecmp(ext,".hdi") && strcasecmp(ext,".nhd") && strcasecmp(ext,".img") && strcasecmp(ext,".ima"))){
+								WriteOut(MSG_Get("PROGRAM_MOUNT_UNSUPPORTED_EXT"), ext);
+							}
+						}
+						if (swapInDisksSpecificDrive == driveIndex || swapInDisksSpecificDrive == -1) {
 							for (size_t si=0;si < MAX_SWAPPABLE_DISKS;si++) {
 								if (diskSwap[si] != NULL) {
 									diskSwap[si]->Release();
@@ -6030,8 +6032,10 @@ class IMGMOUNT : public Program {
             }
             if (unsupported_ext) {
                 const char *ext = strrchr(paths[path_no].c_str(), '.');
-                if(!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_UNSUPPORTED_EXT"), ext);
-                LOG_MSG("Unsupported extension %s: Mounted as raw IMG image.", ext);
+                if (ext != NULL) {
+                    if(!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_UNSUPPORTED_EXT"), ext);
+                    LOG_MSG("Unsupported extension %s: Mounted as raw IMG image.", ext);
+                }
             }
 			unsigned char driveIndex = drive-'A';
 			if (imgDisks.size() == 1 || (imgDisks.size() > 1 && driveIndex < 2 && (swapInDisksSpecificDrive == driveIndex || swapInDisksSpecificDrive == -1))) {

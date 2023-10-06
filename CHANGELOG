@@ -50,6 +50,8 @@ Next version:
     or setting the clock to allow interrupts, CPU time, and RTC clock ticks
     to proceed normally. This fixes "Pizza Tycoon" and allows it to continue
     past the initial logo. (joncampbell123)
+  - Fix segfault when mounting hard disk images with no file extension
+    (joncampbell123).
 
 2023.09.01
   - Disable by default message confirmation after snapshot and AVI video
