@@ -128,7 +128,7 @@ while True:
 for deppath in deps:
     # do not list /usr/lib or /System libraries, only /opt (Brew) dependencies
     # TODO: Make an option to list them if wanted
-    if re.match(r"^/opt/",deppath):
+    if re.match(r"^/opt/",deppath) or re.match(r"^/usr/local/Cellar/",deppath):
         depobj = deps[deppath]
         print(str(deppath)+"\t"+str(depobj.slname))
 
