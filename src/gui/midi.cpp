@@ -540,7 +540,12 @@ void MIDI_RawOutByte(uint8_t data) {
 						midi.sysex.delay = 145; // Viking Child
 					} else if (midi.sysex.buf[5] == 0x10 && midi.sysex.buf[6] == 0x00 && midi.sysex.buf[7] == 0x01) {
 						midi.sysex.delay = 30; // Dark Sun 1
-					} else midi.sysex.delay = (Bitu)(((float)(midi.sysex.used) * 1.25f) * 1000.0f / 3125.0f) + 2;
+					} else {
+						midi.sysex.delay = (Bitu)(((float)(midi.sysex.used) * 1.25f) * 1000.0f / 3125.0f) + 2;
+						if (midi.sysex.extra_delay && midi.sysex.delay < 40) {
+							midi.sysex.delay = 40;
+						}
+					}
 					midi.sysex.start = GetTicks();
 				}
 			}
@@ -602,6 +607,7 @@ public:
 			midi.sysex.start = GetTicks();
 			fullconf.erase(fullconf.find("delaysysex"));
 			LOG(LOG_MISC,LOG_DEBUG)("MIDI:Using delayed SysEx processing");
+			midi.sysex.extra_delay = true;
 		}
 		trim(fullconf);
 		const char * conf = fullconf.c_str();
