@@ -242,7 +242,7 @@ void INT10_SetSingleDACRegister(uint8_t index,uint8_t red,uint8_t green,uint8_t 
     }
     setColors(value,imap[index]);
     if (ttf.inUse) GFX_EndTextLines(true);
-    setVGAColor(value, imap[index]);
+    if (ttf.inUse) setVGAColor(value, imap[index]);
 #endif
 }
 
@@ -302,8 +302,8 @@ void INT10_SetDACBlock(uint16_t index,uint16_t count,PhysPt data) {
 #if defined(USE_TTF)
         setColors(str.c_str(), -1);
         if(ttf.inUse) GFX_EndTextLines(true);
+        if(ttf.inUse) setVGAColor(str.c_str(), -1);
 #endif
-        setVGAColor(str.c_str(), -1);
     }
 }
 
