@@ -3442,6 +3442,7 @@ void DOS_Shell::CMD_CHOICE(char * args){
 	} while (!c || !(ptr = strchr(rem,(optS?c:toupper(c)))));
 	c = optS?c:(uint8_t)toupper(c);
 	DOS_WriteFile (STDOUT,&c, &n);
+	c = '\r'; DOS_WriteFile (STDOUT,&c, &n);
 	c = '\n'; DOS_WriteFile (STDOUT,&c, &n);
 	dos.return_code = (uint8_t)(ptr-rem+1);
 }
