@@ -47,6 +47,7 @@ struct DB_Midi {
         uint8_t buf[SYSEX_SIZE] = {};
 		Bitu used = 0;
 		Bitu delay = 0;
+		bool extra_delay = false;
 		uint32_t start = 0;
 
 		midi_state_sysex_t() {}
