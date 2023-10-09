@@ -9918,7 +9918,16 @@ public:
             bochs_port_e9 = section->Get_bool("bochs debug port e9");
 
             // TODO: motherboard init, especially when we get around to full Intel Triton/i440FX chipset emulation
-            isa_memory_hole_512kb = section->Get_bool("isa memory hole at 512kb");
+            {
+                std::string s = section->Get_string("isa memory hole at 512kb");
+
+                if (s == "true" || s == "1")
+                    isa_memory_hole_512kb = true;
+                else if (s == "false" || s == "0")
+                    isa_memory_hole_512kb = false;
+                else
+                    isa_memory_hole_512kb = false;
+            }
 
             // FIXME: Erm, well this couldv'e been named better. It refers to the amount of conventional memory
             //        made available to the operating system below 1MB, which is usually DOS.

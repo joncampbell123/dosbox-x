@@ -1,5 +1,5 @@
 Next:
-  - 
+  - Change ISA memory hole 512kb option from boolean to true/false/auto.
 
 2023.10.06
   - Add "VRD" debugger command to force redraw of the VGA screen.

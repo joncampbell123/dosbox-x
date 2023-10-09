@@ -1800,8 +1800,9 @@ void DOSBOX_SetupConfigSections(void) {
             "A few DOS games & demos require this option to be set:\n"
             "     Majic 12 \"Show\": If UMBs are enabled, set this option to 639 to avoid MCB chain corruption error.");
 
-    Pbool = secprop->Add_bool("isa memory hole at 512kb",Property::Changeable::WhenIdle,false);
-    Pbool->Set_help("If set, emulate an ISA memory hole at the 512KB to 640KB area (0x80000-0x9FFFF).");
+    Pstring = secprop->Add_string("isa memory hole at 512kb",Property::Changeable::WhenIdle,"auto");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("If set, emulate an ISA memory hole at the 512KB to 640KB area (0x80000-0x9FFFF).");
 
     Pint = secprop->Add_int("reboot delay", Property::Changeable::WhenIdle,-1);
     Pint->SetMinMax(-1,10000);
