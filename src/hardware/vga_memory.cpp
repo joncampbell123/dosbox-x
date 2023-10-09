@@ -47,6 +47,7 @@ extern bool vga_ignore_extended_memory_bit;
 extern bool memio_complexity_optimization;
 extern bool enable_pc98_256color_planar;
 extern bool enable_pc98_256color;
+extern bool isa_memory_hole_15mb;
 
 extern unsigned int vbe_window_granularity;
 extern unsigned int vbe_window_size;
@@ -2725,10 +2726,8 @@ void VGA_SetupHandlers(void) {
 		else
 			MEM_ResetPageHandler_Unmapped(0xE0, 8);
 
-		// TODO: What about PC-9821 systems with more than 15MB of RAM? Do they maintain a "hole"
-		//       in memory for this linear framebuffer? Intel motherboard chipsets of that era do
-		//       support a 15MB memory hole.
-		if (MEM_TotalPages() <= 0xF00/*FIXME*/) {
+		/* If the system has 15MB or less RAM, OR the ISA memory hole at 15MB is enabled */
+		if (MEM_TotalPages() <= 0xF00 || isa_memory_hole_15mb) {
 			/* F00000-FF7FFFh linear framebuffer (256-packed)
 			 *  - Does not exist except in 256-color mode.
 			 *  - Switching from 256-color mode immediately unmaps this linear framebuffer.

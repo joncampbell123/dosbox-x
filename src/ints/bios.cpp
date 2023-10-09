@@ -136,6 +136,7 @@ bool APM_PowerButtonSendsSuspend = true;
 
 bool bochs_port_e9 = false;
 bool isa_memory_hole_512kb = false;
+bool isa_memory_hole_15mb = false;
 bool int15_wait_force_unmask_irq = false;
 
 int unhandled_irq_method = UNHANDLED_IRQ_SIMPLE;
@@ -7216,11 +7217,17 @@ void BIOS_ZeroExtendedSize(bool in) {
              * capacity does not include conventional memory below 1MB, nor any memory
              * above 16MB.
              *
-             * PC-98 systems may reserve the top 1MB, limiting the top to 15MB instead.
+             * PC-98 systems may reserve the top 1MB, limiting the top to 15MB instead,
+             * for the ISA memory hole needed for DOS games that use the 256-color linear framebuffer.
              *
              * 0x70 = 128KB * 0x70 = 14MB
              * 0x78 = 128KB * 0x70 = 15MB */
-            if (ext > 0x78) ext = 0x78;
+            if (isa_memory_hole_15mb) {
+                if (ext > 0x70) ext = 0x70;
+            }
+            else {
+                if (ext > 0x78) ext = 0x78;
+            }
 
             mem_writeb(0x401,ext);
         }
@@ -9929,6 +9936,20 @@ public:
                     isa_memory_hole_512kb = false;
             }
 
+            // TODO: motherboard init, especially when we get around to full Intel Triton/i440FX chipset emulation
+            {
+                std::string s = section->Get_string("isa memory hole at 15mb");
+
+                if (s == "true" || s == "1")
+                    isa_memory_hole_15mb = true;
+                else if (s == "false" || s == "0")
+                    isa_memory_hole_15mb = false;
+                else if (IS_PC98_ARCH)
+                    isa_memory_hole_15mb = true; // For the sake of some DOS games, enable by default
+                else
+                    isa_memory_hole_15mb = false;
+            }
+
             // FIXME: Erm, well this couldv'e been named better. It refers to the amount of conventional memory
             //        made available to the operating system below 1MB, which is usually DOS.
             dos_conventional_limit = (unsigned int)section->Get_int("dos mem limit");
@@ -10069,6 +10090,8 @@ public:
             Bitu end = ulimit/4;        /* end = 1KB to page round down */
             if (start < end) MEM_ResetPageHandler_Unmapped(start,end-start);
         }
+
+        if (isa_memory_hole_15mb) MEM_ResetPageHandler_Unmapped(0xf00,0x100); /* 0xF00000-0xFFFFFF */
 
         if (machine == MCH_TANDY) {
             /* Take 16KB off the top for video RAM.

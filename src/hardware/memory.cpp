@@ -61,6 +61,8 @@ public:
 
 static MEM_callout_vector MEM_callouts[MEM_callouts_max];
 
+extern bool isa_memory_hole_15mb;
+
 bool a20_guest_changeable = true;
 bool a20_fake_changeable = false;
 bool a20_fast_changeable = false;
@@ -279,8 +281,13 @@ static PageHandler *MEM_SlowPath(Bitu page) {
 
     /* TEMPORARY, REMOVE LATER. SHOULD NOT HAPPEN. */
     if (page < memory.reported_pages) {
-        LOG(LOG_MISC,LOG_WARN)("MEM_SlowPath called within system RAM at page %x",(unsigned int)page);
-        f = (PageHandler*)(&ram_page_handler);
+        if (page >= 0xf00 && page <= 0xfff && isa_memory_hole_15mb) { /* 0xF00000-0xFFFFFF (15MB-16MB) */
+            /* ignore, ISA memory hole */
+        }
+        else {
+            LOG(LOG_MISC,LOG_WARN)("MEM_SlowPath called within system RAM at page %x",(unsigned int)page);
+            f = (PageHandler*)(&ram_page_handler);
+        }
     }
 
     /* check motherboard devices (ROM BIOS, system RAM, etc.) */
@@ -1885,6 +1892,12 @@ void Init_RAM() {
     for (;i < memory.handler_pages;i++)
         memory.phandlers[i] = NULL;//&illegal_page_handler;
 
+    /* ISA 15MB memory hole? */
+    if (isa_memory_hole_15mb) {
+        for (i=0xf00;i <= 0xfff && i < memory.handler_pages;i++)
+            memory.phandlers[i] = NULL;//&illegal_page_handler;
+    }
+
     /* FIXME: VGA emulation will selectively respond to 0xA0000-0xBFFFF according to the video mode,
      *        what we want however is for the VGA emulation to assign illegal_page_handler for
      *        address ranges it is not responding to when mapping changes. */
@@ -2059,6 +2072,11 @@ void Init_MemHandles() {
 
     for (i = 0;i < memory.pages;i++)
         memory.mhandles[i] = 0;             //Set to 0 for memory allocation
+
+    // ISA memory hole awareness (15MB region). Block off 0xF00000-0xFFFFFF with a dummy handle.
+    if (isa_memory_hole_15mb) {
+        for (i=0xF00;i<=0xFFF && i < memory.pages;i++) memory.mhandles[i] = 0x7FFFFFFF;
+    }
 }
 
 void Init_MemoryAccessArray() {

@@ -1,5 +1,9 @@
 Next:
   - Change ISA memory hole 512kb option from boolean to true/false/auto.
+  - Add ISA memory hole 15mb option, make it true/false/auto. Auto
+    means off for IBM compatible mode and on for PC-9821 compatible mode.
+    This should allow some DOS games that depend on the linear framebuffer
+    to work properly even if memsize=16 or higher.
 
 2023.10.06
   - Add "VRD" debugger command to force redraw of the VGA screen.
