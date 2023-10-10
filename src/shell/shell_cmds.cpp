@@ -3384,7 +3384,7 @@ bool get_param(char *&args, char *&rem, char *&temp, char &wait_char, int &wait_
 
 void DOS_Shell::CMD_CHOICE(char * args){
 	HELP("CHOICE");
-	static char defchoice[3] = {'y','n',0};
+	static char defchoice[3] = {MSG_Get("INT21_6523_YESNO_CHARS")[0],MSG_Get("INT21_6523_YESNO_CHARS")[1],0};
 	char *rem1 = NULL, *rem2 = NULL, *rem = NULL, *temp = NULL, waitchar = 0, *ptr;
 	int waitsec = 0;
 	bool optC = false, optT = false;
@@ -3401,7 +3401,7 @@ void DOS_Shell::CMD_CHOICE(char * args){
 			return;
 		}
 	}
-	if (!rem || !*rem) rem = defchoice; /* No choices specified use YN */
+	if (!rem || !*rem) rem = defchoice; /* No choices specified use (national) YN */
 	ptr = rem;
 	uint8_t c;
 	if(!optS) while ((c = (uint8_t)(*ptr))) *ptr++ = (char)toupper(c); /* When in no case-sensitive mode. make everything upcase */
