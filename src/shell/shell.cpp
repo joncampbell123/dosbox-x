@@ -1419,6 +1419,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_ATTRIB_GET_ERROR","Unable to get attributes: %s\n");
 	MSG_Add("SHELL_CMD_ATTRIB_SET_ERROR","Unable to set attributes: %s\n");
 	MSG_Add("SHELL_CMD_DEL_ERROR","Unable to delete - %s\n");
+    MSG_Add("SHELL_CMD_DEL_CONFIRM", "Delete %s (Y/N)?");
 	MSG_Add("SHELL_CMD_DEL_SURE","All files in directory will be deleted!\nAre you sure [Y/N]?");
 	MSG_Add("SHELL_SYNTAXERROR","Syntax error\n");
 	MSG_Add("SHELL_CMD_SET_NOT_SET","Environment variable %s not defined.\n");
