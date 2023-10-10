@@ -488,9 +488,14 @@ void DOS_Shell::CMD_CLS(char * args) {
 
 void DOS_Shell::CMD_DELETE(char * args) {
 	HELP("DELETE");
-	bool optP=ScanCMDBool(args,"P");
+    bool optP=ScanCMDBool(args,"P");
 	bool optF=ScanCMDBool(args,"F");
 	bool optQ=ScanCMDBool(args,"Q");
+
+    const char ch_y = MSG_Get("INT21_6523_YESNO_CHARS")[0];
+    const char ch_n = MSG_Get("INT21_6523_YESNO_CHARS")[1];
+    const char ch_Y = toupper(ch_y);
+    const char ch_N = toupper(ch_n);
 
 	// ignore /f, /s, /ar, /as, /ah and /aa switches for compatibility
 	ScanCMDBool(args,"S");
@@ -549,28 +554,28 @@ first_1:
 first_2:
 			uint8_t c;uint16_t n=1;
 			DOS_ReadFile (STDIN,&c,&n);
-			do switch (c) {
-			case 'n':			case 'N':
-			{
-				DOS_WriteFile (STDOUT,&c, &n);
-				DOS_ReadFile (STDIN,&c,&n);
-				do switch (c) {
-					case 0xD: WriteOut("\n");dos.dta(save_dta);return;
-					case 0x03: dos.dta(save_dta);return;
-					case 0x08: WriteOut("\b \b"); goto first_2;
-				} while (DOS_ReadFile (STDIN,&c,&n));
-			}
-			case 'y':			case 'Y':
-			{
-				DOS_WriteFile (STDOUT,&c, &n);
-				DOS_ReadFile (STDIN,&c,&n);
-				do switch (c) {
-					case 0xD: WriteOut("\n"); goto continue_1;
-					case 0x03: dos.dta(save_dta);return;
-					case 0x08: WriteOut("\b \b"); goto first_2;
-				} while (DOS_ReadFile (STDIN,&c,&n));
-			}
-			case 0xD: WriteOut("\n"); goto first_1;
+            do switch (c) {
+            if(c == ch_n || c == ch_N)
+            {
+                DOS_WriteFile(STDOUT, &c, &n);
+                DOS_ReadFile(STDIN, &c, &n);
+                do switch(c) {
+                case 0xD: WriteOut("\n"); dos.dta(save_dta); return;
+                case 0x03: dos.dta(save_dta); return;
+                case 0x08: WriteOut("\b \b"); goto first_2;
+                } while(DOS_ReadFile(STDIN, &c, &n));
+            }
+            if(c == ch_y || c == ch_Y)
+            {
+                DOS_WriteFile(STDOUT, &c, &n);
+                DOS_ReadFile(STDIN, &c, &n);
+                do switch(c) {
+                case 0xD: WriteOut("\n"); goto continue_1;
+                case 0x03: dos.dta(save_dta); return;
+                case 0x08: WriteOut("\b \b"); goto first_2;
+                } while(DOS_ReadFile(STDIN, &c, &n));
+            }
+            case 0xD: WriteOut("\n"); goto first_1;
 			case 0x03: dos.dta(save_dta);return;
 			case '\t':
 			case 0x08:
@@ -644,14 +649,14 @@ continue_1:
 			strcpy(end,name);
 			strcpy(lend,lname);
 			if (optP) {
-				WriteOut("Delete %s (Y/N)?", uselfn?sfull:full);
+				WriteOut(MSG_Get("SHELL_CMD_DEL_CONFIRM"), uselfn?sfull:full);
 				uint8_t c;
 				uint16_t n=1;
 				DOS_ReadFile (STDIN,&c,&n);
 				if (c==3) break;
-				c = c=='y'||c=='Y' ? 'Y':'N';
+				c = c==ch_y||c== ch_Y ? ch_Y:ch_N;
 				WriteOut("%c\r\n", c);
-				if (c=='N') {lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;res = DOS_FindNext();continue;}
+				if (c==ch_N) {lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;res = DOS_FindNext();continue;}
 			}
 			if (strlen(full)) {
 				std::string pfull=(uselfn||strchr(full, ' ')?(full[0]!='"'?"\"":""):"")+std::string(full)+(uselfn||strchr(full, ' ')?(full[strlen(full)-1]!='"'?"\"":""):"");
