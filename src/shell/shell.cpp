@@ -1415,6 +1415,8 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_MKDIR_EXIST","Directory already exists - %s\n");
 	MSG_Add("SHELL_CMD_MKDIR_ERROR","Unable to create directory - %s\n");
 	MSG_Add("SHELL_CMD_RMDIR_ERROR","Invalid path, not directory, or directory not empty - %s\n");
+    MSG_Add("SHELL_CMD_RMDIR_FULLTREE_CONFIRM", "Delete directory \"%s\" and all its subdirectories? (Y/N)?");
+    MSG_Add("SHELL_CMD_RMDIR_SINGLE_CONFIRM", "Delete file \"%s\" (Y/N)?");
     MSG_Add("SHELL_CMD_RENAME_ERROR","Unable to rename - %s\n");
 	MSG_Add("SHELL_CMD_ATTRIB_GET_ERROR","Unable to get attributes: %s\n");
 	MSG_Add("SHELL_CMD_ATTRIB_SET_ERROR","Unable to set attributes: %s\n");
