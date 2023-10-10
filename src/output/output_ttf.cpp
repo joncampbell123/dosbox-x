@@ -279,8 +279,8 @@ bool setColors(const char *colorArray, int n) {
 			if (rgbVal[3] < 0 || rgbVal[3] > 0xFFFFF)
 				return false;
 			for (int i = 2; i >= 0; i--) {
-				rgbVal[i] = nextRGB_val&255;
-				nextRGB_val >>= 8;
+				rgbVal[i] = rgbVal[3]&255;
+				rgbVal[3] >>= 8;
 			}
 			nextRGB = strchr(nextRGB, '#') + 7;
 		} else

@@ -8214,9 +8214,11 @@ void SETCOLOR::Run()
             altBGR0[i].red = rgbcolors[i].red;
             altBGR0[i].green = rgbcolors[i].green;
             altBGR0[i].blue = rgbcolors[i].blue;
+#ifdef USE_TTF
             altBGR1[i].red = rgbcolors[i].red;
             altBGR1[i].green = rgbcolors[i].green;
             altBGR1[i].blue = rgbcolors[i].blue;
+#endif
             get_pal = true;
         }
     }
