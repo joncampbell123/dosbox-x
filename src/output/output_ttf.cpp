@@ -276,7 +276,7 @@ bool setColors(const char *colorArray, int n) {
 				nextRGB++;
 			nextRGB++;
 		} else if (sscanf(nextRGB, " #%6x", ((uint32_t*)(&rgbVal[3]))) == 1) {							// Hexadecimal
-			if (rgbVal[3] < 0 || rgbVal[3] > 0xFFFFF)
+			if (rgbVal[3] < 0 || rgbVal[3] > 0xFFFFFF)
 				return false;
 			for (int i = 2; i >= 0; i--) {
 				rgbVal[i] = rgbVal[3]&255;
