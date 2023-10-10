@@ -2282,10 +2282,15 @@ struct copysource {
 	copysource():filename(""),concat(false){ };
 };
 
-
 void DOS_Shell::CMD_COPY(char * args) {
 	HELP("COPY");
 	static std::string defaulttarget = ".";
+    const char ch_y = MSG_Get("INT21_6523_YESNO_CHARS")[0];
+    const char ch_n = MSG_Get("INT21_6523_YESNO_CHARS")[1];
+    const char ch_Y = toupper(ch_y);
+    const char ch_N = toupper(ch_n);
+    const char ch_a = MSG_Get("SHELL_ALLFILES_CHAR")[0];
+    const char ch_A = toupper(ch_a);
 	StripSpaces(args);
 	/* Command uses dta so set it to our internal dta */
 	RealPt save_dta=dos.dta();
@@ -2564,7 +2569,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 						strcpy(nametmp, nameSource);
 					if (!oldsource.concat && (!strcasecmp(nameSource, nameTarget) || !strcasecmp(nametmp, nameTarget)))
 						{
-						WriteOut("File cannot be copied onto itself\r\n");
+						WriteOut(MSG_Get("SHELL_CMD_COPY_NOSELF"));
 						dos.dta(save_dta);
 						DOS_CloseFile(sourceHandle);
 						if (targetHandle)
@@ -2583,11 +2588,11 @@ void DOS_Shell::CMD_COPY(char * args) {
 								{
 								DOS_ReadFile (STDIN,&c,&n);
 								if (c==3) {dos.dta(save_dta);DOS_CloseFile(sourceHandle);dos.echo=echo;return;}
-								if (c=='y'||c=='Y') {WriteOut("Y\r\n", c);break;}
-								if (c=='n'||c=='N') {WriteOut("N\r\n", c);break;}
-								if (c=='a'||c=='A') {WriteOut("A\r\n", c);optY=true;break;}
+								if (c==ch_y||c==ch_Y) {WriteOut("%c\r\n", ch_Y);break;}
+								if (c==ch_n||c==ch_N) {WriteOut("%c\r\n", ch_N);break;}
+								if (c==ch_a||c==ch_A) {WriteOut("%c\r\n", ch_A);optY=true;break;}
 								}
-							if (c=='n'||c=='N') {DOS_CloseFile(sourceHandle);ret = DOS_FindNext();continue;}
+							if (c==ch_n||c==ch_N) {DOS_CloseFile(sourceHandle);ret = DOS_FindNext();continue;}
 						}
 						if (!exist&&size) {
 							int drive=strlen(nameTarget)>1&&(nameTarget[1]==':'||nameTarget[2]==':')?(toupper(nameTarget[nameTarget[0]=='"'?1:0])-'A'):-1;
@@ -2682,6 +2687,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 	dos.echo=echo;
 	Drives[DOS_GetDefaultDrive()]->EmptyCache();
 }
+
 
 /* NTS: WARNING, this function modifies the buffer pointed to by char *args */
 void DOS_Shell::CMD_SET(char * args) {
