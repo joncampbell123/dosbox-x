@@ -1453,6 +1453,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_COPY_CONFIRM","Overwrite %s (Yes/No/All)?");
 	MSG_Add("SHELL_CMD_COPY_NOSPACE","Insufficient disk space - %s\n");
 	MSG_Add("SHELL_CMD_COPY_ERROR","Copy error - %s\n");
+    MSG_Add("SHELL_CMD_COPY_NOSELF", "File cannot be copied onto itself\r\n");
 	MSG_Add("SHELL_CMD_SUBST_DRIVE_LIST","The currently mounted local drives are:\n");
 	MSG_Add("SHELL_CMD_SUBST_NO_REMOVE","Unable to remove, drive not in use.\n");
 	MSG_Add("SHELL_CMD_SUBST_IN_USE","Target drive is already in use.\n");
@@ -1461,6 +1462,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_SUBST_FAILURE","SUBST: There is an error in your command line.\n");
 	MSG_Add("SHELL_CMD_VTEXT_ON","DOS/V V-text is currently enabled.\n");
 	MSG_Add("SHELL_CMD_VTEXT_OFF","DOS/V V-text is currently disabled.\n");
+    MSG_Add("SHELL_ALLFILES_CHAR", "a");
 
     std::string mapper_keybind = mapper_event_keybind_string("host");
     if (mapper_keybind.empty()) mapper_keybind = "unbound";
