@@ -8149,39 +8149,39 @@ static void COLOR_ProgramStart(Program * * make) {
     *make=new COLOR;
 }
 
-alt_rgb altBGR[16], *rgbcolors = (alt_rgb*)render.pal.rgb;
+alt_rgb altBGR[16]={0}, altBGR0[16]={0}, *rgbcolors = (alt_rgb*)render.pal.rgb;
+
 bool setVGAColor(const char *colorArray, int j) {
     if (!IS_VGA_ARCH||!CurMode) return false;
     const char * nextRGB = colorArray;
-    uint8_t rgbVal[3] = {0};
-    int32_t red, green, blue;
-    int32_t nextRGB_val = -1;
-    if (sscanf(nextRGB, " ( %d , %d , %d)", (int32_t*)&red, (int32_t*)&green, (int32_t*)&blue) == 3) {
-        if(red >= 0) rgbVal[0] = (uint8_t)(red & 0xFF);
-        if(green >= 0) rgbVal[1] = (uint8_t)(green & 0xFF);
-        if(blue >= 0) rgbVal[2] = (uint8_t)(blue & 0xFF);
-    } else if (sscanf(nextRGB, " #%6x", (uint32_t*)&nextRGB_val) == 1) {
-        if (nextRGB_val < 0)
+    int32_t rgbVal[4] = {-1,-1,-1,-1};
+    if (sscanf(nextRGB, " ( %d , %d , %d)", &rgbVal[0], &rgbVal[1], &rgbVal[2]) == 3) {
+        for (int i = 0; i< 3; i++) {
+            if (rgbVal[i] < 0 || rgbVal[i] > 255)
+                return false;
+        }
+    } else if (sscanf(nextRGB, " #%6x", (unsigned int*)(&rgbVal[3])) == 1) {
+        if (rgbVal[3] < 0 || rgbVal[3] > 0xFFFFFF)
             return false;
         for (int i = 2; i >= 0; i--) {
-            rgbVal[i] = nextRGB_val&255;
-            nextRGB_val >>= 8;
+            rgbVal[i] = rgbVal[3]&255;
+            rgbVal[3] >>= 8;
         }
     } else
         return false;
-
-    for(int i = j > -1 ? j : 0; i < (j > -1 ? j + 1 : 16); i++) {
-        IO_ReadB(mem_readw(BIOS_VIDEO_PORT) + 6);
-        IO_WriteB(VGAREG_ACTL_ADDRESS, i + 32);
-        uint8_t imap = IO_ReadB(VGAREG_ACTL_READ_DATA);
-        IO_WriteB(VGAREG_DAC_WRITE_ADDRESS, imap);
-        IO_WriteB(VGAREG_DAC_DATA, rgbVal[0] >> 2);
-        IO_WriteB(VGAREG_DAC_DATA, rgbVal[1] >> 2);
-        IO_WriteB(VGAREG_DAC_DATA, rgbVal[2] >> 2);
-        rgbcolors[j].red = rgbVal[0];
-        rgbcolors[j].green = rgbVal[1];
-        rgbcolors[j].blue = rgbVal[2];
-    }
+    IO_ReadB(mem_readw(BIOS_VIDEO_PORT)+6);
+    IO_WriteB(VGAREG_ACTL_ADDRESS, j+32);
+    uint8_t imap=IO_ReadB(VGAREG_ACTL_READ_DATA);
+    IO_WriteB(VGAREG_DAC_WRITE_ADDRESS, imap);
+    IO_WriteB(VGAREG_DAC_DATA, rgbVal[0] >> 2);
+    IO_WriteB(VGAREG_DAC_DATA, rgbVal[1] >> 2);
+    IO_WriteB(VGAREG_DAC_DATA, rgbVal[2] >> 2);
+    rgbcolors[j].red = rgbVal[0] & 0xFF;
+    rgbcolors[j].green = rgbVal[1] & 0xFF;
+    rgbcolors[j].blue = rgbVal[2] & 0xFF;
+    altBGR0[j].red = rgbVal[0];
+    altBGR0[j].green = rgbVal[1];
+    altBGR0[j].blue = rgbVal[2];
     return true;
 }
 
@@ -8192,6 +8192,7 @@ bool setColors(const char *colorArray, int n);
 void resetFontSize();
 #endif
 
+bool get_pal = false;
 class SETCOLOR : public Program {
 public:
     void Run(void);
@@ -8207,6 +8208,20 @@ void SETCOLOR::Run()
 {
 	// Hack To allow long commandlines
 	ChangeToLongCmd();
+
+    if (!get_pal){
+        for (uint8_t i=0; i<16; i++){
+            altBGR0[i].red = rgbcolors[i].red;
+            altBGR0[i].green = rgbcolors[i].green;
+            altBGR0[i].blue = rgbcolors[i].blue;
+#ifdef USE_TTF
+            altBGR1[i].red = rgbcolors[i].red;
+            altBGR1[i].green = rgbcolors[i].green;
+            altBGR1[i].blue = rgbcolors[i].blue;
+#endif
+            get_pal = true;
+        }
+    }
 
 	// Usage
 	if (cmd->FindExist("-?", false) || cmd->FindExist("/?", false)) {
@@ -8235,13 +8250,10 @@ void SETCOLOR::Run()
 			if (p==NULL) {
 #if defined(USE_TTF)
                 bool colornul = staycolors || (IS_VGA_ARCH && (altBGR1[i].red > 4 || altBGR1[i].green > 4 || altBGR1[i].blue > 4) && rgbcolors[i].red < 5 && rgbcolors[i].green < 5 && rgbcolors[i].blue < 5);
-                rgbcolors[i].red = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[i].red:rgbcolors[i].red;
-                rgbcolors[i].green = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[i].green:rgbcolors[i].green;
-                rgbcolors[i].blue = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[i].blue:rgbcolors[i].blue;
-                altBGR[i].red = rgbcolors[i].red;
-                altBGR[i].green = rgbcolors[i].green;
-                altBGR[i].blue = rgbcolors[i].blue;
-                WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,altBGR[i].red,altBGR[i].green,altBGR[i].blue,altBGR[i].red,altBGR[i].green,altBGR[i].blue);
+                altBGR[i].red = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[i].red:rgbcolors[i].red;
+                altBGR[i].green = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[i].green:rgbcolors[i].green;
+                altBGR[i].blue = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[i].blue:rgbcolors[i].blue;
+                WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,altBGR0[i].red,altBGR0[i].green,altBGR0[i].blue,altBGR0[i].red,altBGR0[i].green,altBGR0[i].blue);
 #else
                 WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue);
 #endif
@@ -8283,21 +8295,18 @@ void SETCOLOR::Run()
                 if (!IS_VGA_ARCH)
                     WriteOut("Changing color scheme is not supported for the current video mode.\n");
                 else if (setVGAColor(value, i))
-                    WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue);
+                    //WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue);
+                    WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,altBGR0[i].red,altBGR0[i].green,altBGR0[i].blue,altBGR0[i].red,altBGR0[i].green,altBGR0[i].blue);
                 else
                     WriteOut("Invalid color value - %s\n",value);
 #if defined(USE_TTF)
 			} else if (setColors(value,i)) {
                 bool colornul = staycolors || (IS_VGA_ARCH && (altBGR1[i].red > 4 || altBGR1[i].green > 4 || altBGR1[i].blue > 4) && rgbcolors[i].red < 5 && rgbcolors[i].green < 5 && rgbcolors[i].blue < 5);
-                rgbcolors[i].red = (colornul || (colorChanged && !IS_VGA_ARCH)) ? altBGR1[i].red : rgbcolors[i].red;
-                rgbcolors[i].green = (colornul || (colorChanged && !IS_VGA_ARCH)) ? altBGR1[i].green : rgbcolors[i].green;
-                rgbcolors[i].blue = (colornul || (colorChanged && !IS_VGA_ARCH)) ? altBGR1[i].blue : rgbcolors[i].blue;
-                altBGR[i].red = rgbcolors[i].red;
-                altBGR[i].green = rgbcolors[i].green;
-                altBGR[i].blue = rgbcolors[i].blue;
-				WriteOut("Color %d => (%d,%d,%d) or #%02x%02x%02x\n",i, rgbcolors[i].red, rgbcolors[i].green, rgbcolors[i].blue, rgbcolors[i].red, rgbcolors[i].green, rgbcolors[i].blue);
+                altBGR[i].red = (colornul||(colorChanged&&!IS_VGA_ARCH))?altBGR1[i].red:rgbcolors[i].red;
+                altBGR[i].green = (colornul||(colorChanged&&!IS_VGA_ARCH))?altBGR1[i].green:rgbcolors[i].green;
+                altBGR[i].blue = (colornul||(colorChanged&&!IS_VGA_ARCH))?altBGR1[i].blue:rgbcolors[i].blue;
+				WriteOut("Color %d => (%d,%d,%d) or #%02x%02x%02x\n",i,altBGR[i].red,altBGR[i].green,altBGR[i].blue,altBGR[i].red,altBGR[i].green,altBGR[i].blue);
 				resetFontSize();
-                setVGAColor(value, i); // also change pallette value for non-TTF output
 			} else
 				WriteOut("Invalid color value - %s\n",value);
 #endif
@@ -8307,13 +8316,10 @@ void SETCOLOR::Run()
 		for (int i = 0; i < 16; i++) {
 #if defined(USE_TTF)
             bool colornul = staycolors || (IS_VGA_ARCH && (altBGR1[i].red > 4 || altBGR1[i].green > 4 || altBGR1[i].blue > 4) && rgbcolors[i].red < 5 && rgbcolors[i].green < 5 && rgbcolors[i].blue < 5);
-            rgbcolors[i].red = colornul || (colorChanged && !IS_VGA_ARCH) ? altBGR1[i].red : rgbcolors[i].red;
-            rgbcolors[i].green = colornul || (colorChanged && !IS_VGA_ARCH) ? altBGR1[i].green : rgbcolors[i].green;
-            rgbcolors[i].blue = colornul || (colorChanged && !IS_VGA_ARCH) ? altBGR1[i].blue : rgbcolors[i].blue;
-            altBGR[i].red = rgbcolors[i].red;
-            altBGR[i].green = rgbcolors[i].green;
-            altBGR[i].blue = rgbcolors[i].blue;
-			WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i, rgbcolors[i].red, rgbcolors[i].green, rgbcolors[i].blue, rgbcolors[i].red, rgbcolors[i].green, rgbcolors[i].blue);
+            altBGR[i].red = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[i].red:rgbcolors[i].red;
+            altBGR[i].green = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[i].green:rgbcolors[i].green;
+            altBGR[i].blue = colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[i].blue:rgbcolors[i].blue;
+			WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,altBGR[i].red,altBGR[i].green,altBGR[i].blue,altBGR[i].red,altBGR[i].green,altBGR[i].blue);
 #else
 			WriteOut("Color %d: (%d,%d,%d) or #%02x%02x%02x\n",i,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue,rgbcolors[i].red,rgbcolors[i].green,rgbcolors[i].blue);
 #endif
