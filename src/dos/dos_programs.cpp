@@ -5169,21 +5169,23 @@ class IMGMOUNT : public Program {
 				}
 				if (!rtype&&!rfstype&&fstype!="none"&&paths[0].length()>4) {
 					const char *ext = strrchr(paths[0].c_str(), '.');
-					if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".chd")||!strcasecmp(ext, ".mdf")||!strcasecmp(ext, ".gog")||!strcasecmp(ext, ".ins")) {
-						type="iso";
-						fstype="iso";
-						if(ide_index < 0 || ideattach == "auto") {
-							if(!IDE_controller_occupied(1, false)) { // check if secondary master is already occupied
-								ide_index = 1;
-								ide_slave = false;
-							}
-							else IDE_Auto(ide_index, ide_slave);
-							LOG_MSG("IDE: index %d slave=%d", ide_index, ide_slave ? 1 : 0);
-						}
-					} else if (!strcasecmp(ext, ".ima")) {
-						type="floppy";
-						ideattach="none";
-					}
+					if (ext != NULL) {
+                        if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".chd")||!strcasecmp(ext, ".mdf")||!strcasecmp(ext, ".gog")||!strcasecmp(ext, ".ins")) {
+                            type="iso";
+                            fstype="iso";
+                            if(ide_index < 0 || ideattach == "auto") {
+                                if(!IDE_controller_occupied(1, false)) { // check if secondary master is already occupied
+                                    ide_index = 1;
+                                    ide_slave = false;
+                                }
+                                else IDE_Auto(ide_index, ide_slave);
+                                LOG_MSG("IDE: index %d slave=%d", ide_index, ide_slave ? 1 : 0);
+                            }
+                        } else if (!strcasecmp(ext, ".ima")) {
+                            type="floppy";
+                            ideattach="none";
+                        }
+                    }
 				}
 			}
 
