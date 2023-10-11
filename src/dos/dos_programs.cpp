@@ -6917,7 +6917,7 @@ class LABEL : public Program
 {
 	public:
 		void Help() {
-			WriteOut("Creates, changes, or deletes the volume label of a drive.\n\nLABEL [drive:][label]\n\n  [drive:]\tSpecifies the drive letter\n  [label]\tSpecifies the volume label\n");
+			WriteOut(MSG_Get("PROGRAM_LABEL_HELP"));
 		}
 		void Run() override
 		{
@@ -6966,11 +6966,11 @@ class LABEL : public Program
 
 			/* if the label is longer than 11 chars or contains a dot, MS-DOS will reject it and then prompt for another label */
 			if (label.length() > 11) {
-				WriteOut("Label is too long (more than 11 characters).\n");
+				WriteOut(MSG_Get("PROGRAM_LABEL_TOOLONG"));
 				label.clear();
 			}
 			else if (label.find_first_of(".:/\\") != std::string::npos) {
-				WriteOut("Label has invalid characters.\n");
+				WriteOut(MSG_Get("PROGRAM_LABEL_BADCHARS"));
 				label.clear();
 			}
 
@@ -6979,9 +6979,9 @@ class LABEL : public Program
 				std::string clabel = Drives[drive]->GetLabel();
 
 				if (!clabel.empty())
-					WriteOut("Volume in drive %c is %s\n",drive+'A',clabel.c_str());
+					WriteOut(MSG_Get("PROGRAM_LABEL_VOLUMEIS"),drive+'A',clabel.c_str());
 				else
-					WriteOut("Volume in drive %c has no label\n",drive+'A');
+					WriteOut(MSG_Get("PROGRAM_LABEL_NOLABEL"),drive+'A');
 			}
 
 			/* If no label is provided, MS-DOS will prompt the user whether to delete the label. */
@@ -6994,16 +6994,16 @@ class LABEL : public Program
 
 				inshell = true;
 				do {
-					WriteOut("Delete the volume label (Y/N)? ");
+					WriteOut(MSG_Get("PROGRAM_LABEL_DELETE"));
 					s = 1;
 					DOS_ReadFile(STDIN,&c,&s);
 					WriteOut("\n");
 					if (s != 1 || c == 3) {inshell=false;return;}
 					ans = uint8_t(tolower(char(c)));
-				} while (!(ans == 'y' || ans == 'n'));
+				} while (!(ans == MSG_Get("INT21_6523_YESNO_CHARS")[0] || ans == MSG_Get("INT21_6523_YESNO_CHARS")[1]));
 				inshell = false;
 
-				if (ans != 'y') return;
+				if (ans != MSG_Get("INT21_6523_YESNO_CHARS")[0]) return;
 			}
 
 			/* delete then create the label */
@@ -9500,6 +9500,12 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_KEYB_LAYOUTNOTFOUND","No layout in %s for codepage %i\n");
     MSG_Add("PROGRAM_KEYB_INVCPFILE","None or invalid codepage file for layout %s\n\n");
     MSG_Add("INT21_6523_YESNO_CHARS", "yn");
+    MSG_Add("PROGRAM_LABEL_HELP", "Creates, changes, or deletes the volume label of a drive.\n\nLABEL [drive:][label]\n\n  [drive:]\tSpecifies the drive letter\n  [label]\tSpecifies the volume label\n");
+    MSG_Add("PROGRAM_LABEL_DELETE", "Delete the volume label (Y/N)? ");
+    MSG_Add("PROGRAM_LABEL_TOOLONG", "Label is too long (more than 11 characters).\n");
+    MSG_Add("PROGRAM_LABEL_BADCHARS", "Label has invalid characters.\n");
+    MSG_Add("PROGRAM_LABEL_VOLUMEIS", "Volume in drive %c is %s\n");
+    MSG_Add("PROGRAM_LABEL_NOLABEL", "Volume in drive %c has no label\n");
     MSG_Add("PROGRAM_MODE_USAGE","Configures system devices.\n\n"
             "\033[34;1mMODE\033[0m display-type       :display-type codes are "
             "\033[1mCO80\033[0m, \033[1mBW80\033[0m, \033[1mCO40\033[0m, \033[1mBW40\033[0m, or \033[1mMONO\033[0m\n"

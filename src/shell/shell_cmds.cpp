@@ -488,9 +488,14 @@ void DOS_Shell::CMD_CLS(char * args) {
 
 void DOS_Shell::CMD_DELETE(char * args) {
 	HELP("DELETE");
-	bool optP=ScanCMDBool(args,"P");
+    bool optP=ScanCMDBool(args,"P");
 	bool optF=ScanCMDBool(args,"F");
 	bool optQ=ScanCMDBool(args,"Q");
+
+    const char ch_y = MSG_Get("INT21_6523_YESNO_CHARS")[0];
+    const char ch_n = MSG_Get("INT21_6523_YESNO_CHARS")[1];
+    const char ch_Y = toupper(ch_y);
+    const char ch_N = toupper(ch_n);
 
 	// ignore /f, /s, /ar, /as, /ah and /aa switches for compatibility
 	ScanCMDBool(args,"S");
@@ -549,28 +554,28 @@ first_1:
 first_2:
 			uint8_t c;uint16_t n=1;
 			DOS_ReadFile (STDIN,&c,&n);
-			do switch (c) {
-			case 'n':			case 'N':
-			{
-				DOS_WriteFile (STDOUT,&c, &n);
-				DOS_ReadFile (STDIN,&c,&n);
-				do switch (c) {
-					case 0xD: WriteOut("\n");dos.dta(save_dta);return;
-					case 0x03: dos.dta(save_dta);return;
-					case 0x08: WriteOut("\b \b"); goto first_2;
-				} while (DOS_ReadFile (STDIN,&c,&n));
-			}
-			case 'y':			case 'Y':
-			{
-				DOS_WriteFile (STDOUT,&c, &n);
-				DOS_ReadFile (STDIN,&c,&n);
-				do switch (c) {
-					case 0xD: WriteOut("\n"); goto continue_1;
-					case 0x03: dos.dta(save_dta);return;
-					case 0x08: WriteOut("\b \b"); goto first_2;
-				} while (DOS_ReadFile (STDIN,&c,&n));
-			}
-			case 0xD: WriteOut("\n"); goto first_1;
+            do switch (c) {
+            if(c == ch_n || c == ch_N)
+            {
+                DOS_WriteFile(STDOUT, &c, &n);
+                DOS_ReadFile(STDIN, &c, &n);
+                do switch(c) {
+                case 0xD: WriteOut("\n"); dos.dta(save_dta); return;
+                case 0x03: dos.dta(save_dta); return;
+                case 0x08: WriteOut("\b \b"); goto first_2;
+                } while(DOS_ReadFile(STDIN, &c, &n));
+            }
+            if(c == ch_y || c == ch_Y)
+            {
+                DOS_WriteFile(STDOUT, &c, &n);
+                DOS_ReadFile(STDIN, &c, &n);
+                do switch(c) {
+                case 0xD: WriteOut("\n"); goto continue_1;
+                case 0x03: dos.dta(save_dta); return;
+                case 0x08: WriteOut("\b \b"); goto first_2;
+                } while(DOS_ReadFile(STDIN, &c, &n));
+            }
+            case 0xD: WriteOut("\n"); goto first_1;
 			case 0x03: dos.dta(save_dta);return;
 			case '\t':
 			case 0x08:
@@ -644,14 +649,14 @@ continue_1:
 			strcpy(end,name);
 			strcpy(lend,lname);
 			if (optP) {
-				WriteOut("Delete %s (Y/N)?", uselfn?sfull:full);
+				WriteOut(MSG_Get("SHELL_CMD_DEL_CONFIRM"), uselfn?sfull:full);
 				uint8_t c;
 				uint16_t n=1;
 				DOS_ReadFile (STDIN,&c,&n);
 				if (c==3) break;
-				c = c=='y'||c=='Y' ? 'Y':'N';
+				c = c==ch_y||c== ch_Y ? ch_Y:ch_N;
 				WriteOut("%c\r\n", c);
-				if (c=='N') {lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;res = DOS_FindNext();continue;}
+				if (c==ch_N) {lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;res = DOS_FindNext();continue;}
 			}
 			if (strlen(full)) {
 				std::string pfull=(uselfn||strchr(full, ' ')?(full[0]!='"'?"\"":""):"")+std::string(full)+(uselfn||strchr(full, ' ')?(full[strlen(full)-1]!='"'?"\"":""):"");
@@ -717,6 +722,10 @@ extern bool ctrlbrk;
 std::vector<std::string> tdirs;
 
 static bool doDeltree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optY, bool first) {
+    const char ch_y = MSG_Get("INT21_6523_YESNO_CHARS")[0];
+    const char ch_n = MSG_Get("INT21_6523_YESNO_CHARS")[1];
+    const char ch_Y = toupper(ch_y);
+    const char ch_N = toupper(ch_n);
     char spath[DOS_PATHLENGTH],sargs[DOS_PATHLENGTH+4],path[DOS_PATHLENGTH+4],full[DOS_PATHLENGTH],sfull[DOS_PATHLENGTH+2];
 	if (!DOS_Canonicalize(args,full)||strrchr_dbcs(full,'\\')==NULL) { shell->WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));return false; }
 	if (!DOS_GetSFNPath(args,spath,false)) {
@@ -764,12 +773,12 @@ static bool doDeltree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optY, bo
                 if(attr&DOS_ATTR_DIRECTORY) {
                     if (strcmp(name, ".")&&strcmp(name, "..")) {
                         if (!optY&&first) {
-                            shell->WriteOut("Delete directory \"%s\" and all its subdirectories? (Y/N)?", uselfn?sfull:full);
+                            shell->WriteOut(MSG_Get("SHELL_CMD_RMDIR_FULLTREE_CONFIRM"), uselfn ? sfull : full);
                             DOS_ReadFile (STDIN,&c,&n);
                             if (c==3) {shell->WriteOut("^C\r\n");break;}
-                            c = c=='y'||c=='Y' ? 'Y':'N';
+                            c = c==ch_y||c==ch_Y ? ch_Y:ch_N;
                             shell->WriteOut("%c\r\n", c);
-                            if (c=='N') {res = DOS_FindNext();continue;}
+                            if (c==ch_N) {res = DOS_FindNext();continue;}
                         }
                         fdir=true;
                         strcat(spath, name);
@@ -778,12 +787,12 @@ static bool doDeltree(DOS_Shell * shell, char * args, DOS_DTA dta, bool optY, bo
                     }
                 } else {
                     if (!optY&&first) {
-                        shell->WriteOut("Delete file \"%s\" (Y/N)?", uselfn?sfull:full);
+                        shell->WriteOut(MSG_Get("SHELL_CMD_RMDIR_SINGLE_CONFIRM"), uselfn ? sfull : full);
                         DOS_ReadFile (STDIN,&c,&n);
                         if (c==3) {shell->WriteOut("^C\r\n");break;}
-                        c = c=='y'||c=='Y' ? 'Y':'N';
+                        c = c==ch_y||c==ch_Y ? ch_Y:ch_N;
                         shell->WriteOut("%c\r\n", c);
-                        if (c=='N') {res = DOS_FindNext();continue;}
+                        if (c==ch_N) {res = DOS_FindNext();continue;}
                     }
                     pfull=(uselfn||strchr(uselfn?sfull:full, ' ')?((uselfn?sfull:full)[0]!='"'?"\"":""):"")+std::string(uselfn?sfull:full)+(uselfn||strchr(uselfn?sfull:full, ' ')?((uselfn?sfull:full)[strlen(uselfn?sfull:full)-1]!='"'?"\"":""):"");
                     cfiles.push_back(pfull);
@@ -2273,10 +2282,15 @@ struct copysource {
 	copysource():filename(""),concat(false){ };
 };
 
-
 void DOS_Shell::CMD_COPY(char * args) {
 	HELP("COPY");
 	static std::string defaulttarget = ".";
+    const char ch_y = MSG_Get("INT21_6523_YESNO_CHARS")[0];
+    const char ch_n = MSG_Get("INT21_6523_YESNO_CHARS")[1];
+    const char ch_Y = toupper(ch_y);
+    const char ch_N = toupper(ch_n);
+    const char ch_a = MSG_Get("SHELL_ALLFILES_CHAR")[0];
+    const char ch_A = toupper(ch_a);
 	StripSpaces(args);
 	/* Command uses dta so set it to our internal dta */
 	RealPt save_dta=dos.dta();
@@ -2555,7 +2569,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 						strcpy(nametmp, nameSource);
 					if (!oldsource.concat && (!strcasecmp(nameSource, nameTarget) || !strcasecmp(nametmp, nameTarget)))
 						{
-						WriteOut("File cannot be copied onto itself\r\n");
+						WriteOut(MSG_Get("SHELL_CMD_COPY_NOSELF"));
 						dos.dta(save_dta);
 						DOS_CloseFile(sourceHandle);
 						if (targetHandle)
@@ -2574,11 +2588,11 @@ void DOS_Shell::CMD_COPY(char * args) {
 								{
 								DOS_ReadFile (STDIN,&c,&n);
 								if (c==3) {dos.dta(save_dta);DOS_CloseFile(sourceHandle);dos.echo=echo;return;}
-								if (c=='y'||c=='Y') {WriteOut("Y\r\n", c);break;}
-								if (c=='n'||c=='N') {WriteOut("N\r\n", c);break;}
-								if (c=='a'||c=='A') {WriteOut("A\r\n", c);optY=true;break;}
+								if (c==ch_y||c==ch_Y) {WriteOut("%c\r\n", ch_Y);break;}
+								if (c==ch_n||c==ch_N) {WriteOut("%c\r\n", ch_N);break;}
+								if (c==ch_a||c==ch_A) {WriteOut("%c\r\n", ch_A);optY=true;break;}
 								}
-							if (c=='n'||c=='N') {DOS_CloseFile(sourceHandle);ret = DOS_FindNext();continue;}
+							if (c==ch_n||c==ch_N) {DOS_CloseFile(sourceHandle);ret = DOS_FindNext();continue;}
 						}
 						if (!exist&&size) {
 							int drive=strlen(nameTarget)>1&&(nameTarget[1]==':'||nameTarget[2]==':')?(toupper(nameTarget[nameTarget[0]=='"'?1:0])-'A'):-1;
@@ -2673,6 +2687,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 	dos.echo=echo;
 	Drives[DOS_GetDefaultDrive()]->EmptyCache();
 }
+
 
 /* NTS: WARNING, this function modifies the buffer pointed to by char *args */
 void DOS_Shell::CMD_SET(char * args) {
