@@ -937,89 +937,88 @@ come unità C:
 .
 :PROGRAM_INTRO_USAGE_3
 ←[33;1m  -startmapper←[0m
-○Enter the keymapper directly on startup. Useful for people with
-○keyboard problems.
+○Avvia direttamente l'editore della mappa di tastiera. Utile in caso
+○di problemi con la tastiera.
 
 ←[33;1m  -noautoexec←[0m
-○Skips the [autoexec] section of the loaded configuration file.
+○Salta la sezione [autoexec] del file di configurazione caricato.
 
 ←[33;1m  -c←[0m command
-○Runs the specified command before running name. Multiple commands
-○can be specified. Each command should start with -c, though.
-○A command can be: an Internal Program, a DOS command or an executable
-○on a mounted drive.
+○Esegue uno o più comandi prima di lanciare nome, ciascuno preceduto
+○da -c. Un comando può essere un programma interno, un comando DOS
+○o un eseguibile in un'unità montata.
 
-←[33;1m  -set←[0m <section property=value>
-○Sets the config option (overriding the config file). Multiple options
-○can be specified. Each option should start with -set, though.
+←[33;1m  -set←[0m <sezione proprietà=valore>
+○Imposta un'opzione di configurazione, scavalcando il file di configurazione.
+○Possono essere specificati più comandi -set.
 
 .
 :PROGRAM_INTRO_INFO
-←[32;1mInformation:←[0m
+←[32;1mInformazioni:←[0m
 
-For information about basic mount, type ←[34;1mintro mount←[0m
-For information about CD-ROM support, type ←[34;1mintro cdrom←[0m
-For information about special keys, type ←[34;1mintro special←[0m
-For information about usage, type ←[34;1mintro usage←[0m
+Per il montaggio di unità, digita ←[34;1mintro mount←[0m
+Per il supporto del CD-ROM, digita ←[34;1mintro cdrom←[0m
+Per i tasti speciali, digita ←[34;1mintro special←[0m
+Per l'uso generale, digita ←[34;1mintro usage←[0m
 
-For the latest version of DOSBox-X, go to its homepage:←[34;1m
+Per ottenere l'ultima versione di DOSBox-X, vai alla homepage:←[34;1m
 
-←[34;1mhttps://dosbox-x.com/←[0m or ←[34;1mhttp://dosbox-x.software←[0m
+←[34;1mhttps://dosbox-x.com/←[0m o ←[34;1mhttp://dosbox-x.software←[0m
 
-For more information about DOSBox-X, please take a look at its Wiki:
+Per maggiori informazioni su DOSBox-X, dai un'occhiata alla sua Wiki:
 
 ←[34;1mhttps://dosbox-x.com/wiki←[0m
 
 .
 :PROGRAM_INTRO_MOUNT_START
-←[32;1mHere are some commands to get you started:←[0m
-Before you can use the files located on your own filesystem,
-you have to mount the cartella containing the files.
+←[32;1mAlcuni comandi di base per cominciare:←[0m
+Prima di usare i file presenti nel sistema reale, occorre
+montare la cartella che li contiene.
 
 
 .
 :PROGRAM_INTRO_MOUNT_EXST_WINDOWS
-←[32mmount c c:\dosgames\←[37m will create a C drive with c:\dosgames as contents.
+←[32mmount c c:\dosgames\←[37m crea l'unità C emulata con il contenuto di c:\dosgames.
 .
 :PROGRAM_INTRO_MOUNT_EXEN_WINDOWS
-c:\dosgames\←[37m is an example. Replace it with your own games cartella.  ←[37m 
+c:\dosgames\←[37m è un esempio. Cambiala con la tua cartella dei giochi.  ←[37m 
 .
 :PROGRAM_INTRO_MOUNT_EXST_OTHER
-←[32mmount c ~/dosgames←[37m will create a C drive with ~/dosgames as contents.
+←[32mmount c ~/dosgames←[37m crea l'unità C emulata con il contenuto di ~/dosgames.
 .
 :PROGRAM_INTRO_MOUNT_EXEN_OTHER
-←[32m~/dosgames←[37m is an example. Replace it with your own games cartella.←[37m  
+←[32m~/dosgames←[37m è un esempio. Cambiala con la tua cartella dei giochi.←[37m  
 .
 :PROGRAM_INTRO_MOUNT_END
-When the mount has successfully completed you can type ←[34;1mc:←[0m to go to your freshly
-mounted C: drive. Typing ←[34;1mdir←[0m there will show its contents. ←[34;1mcd←[0m will allow you to
-enter a cartella (recognised by the ←[33;1m[]←[0m in a cartella listing).
-You can run programs/files which end with ←[31m.exe .bat←[0m and ←[31m.com←[0m.
+Quando il montaggio ha avuto successo, puoi digitare ←[34;1mc:←[0m per entrare nella
+tua nuova unità C:. Usa ←[34;1mdir←[0m per vederne il contenuto. ←[34;1mcd←[0m permetterà di
+entrare in una cartella (segnalata da ←[33;1m[]←[0m nell'elenco).
+Puoi eseguire programmi e file con le estensioni ←[31m.exe .bat←[0m e ←[31m.com←[0m.
 
 .
 :PROGRAM_INTRO_CDROM
-←[2J←[32;1mHow to mount a Real/Virtual CD-ROM Drive in DOSBox-X:←[0m
-DOSBox-X provides CD-ROM emulation on several levels.
+←[2J←[32;1mCome montare un'unità CD-ROM reale o virtuale in DOSBox-X:←[0m
+DOSBox-X emula le unità CD-ROM a diversi livelli.
 
-The ←[33mbasic←[0m level works on all CD-ROM drives and normal directories.
-It installs MSCDEX and marks the files read-only.
-Usually this is enough for most games:
-←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom←[0m   or   ←[34;1mmount d C:\example -t cdrom←[0m
-If it doesn't work you might have to tell DOSBox-X the label of the CD-ROM:
+Il livello ←[33mbasic←[0m funziona con tutte le unità CD-ROM e le normali cartelle.
+Esso installa MSCDEX e contrassegna i file per la sola lettura.
+Di solito ciò è sufficiente per la maggior parte dei giochi:
+←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom←[0m   o   ←[34;1mmount d C:\example -t cdrom←[0m
+Se non funziona, potresti dover indicare a DOSBox-X l'etichetta del CD-ROM:
 ←[34;1mmount d C:\example -t cdrom -label CDLABEL←[0m
 
-The ←[33mnext←[0m level adds some low-level support.
-Therefore only works on CD-ROM drives:
+Il livello ←[33mnext←[0m aggiunge supporto a basso livello.
+Perciò funziona solo con le unità CD-ROM:
 ←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom -usecd ←[33m0←[0m
 
-The ←[33mlast←[0m level of support depends on your Operating System:
-For ←[1mWindows 2000←[0m, ←[1mWindows XP←[0m and ←[1mLinux←[0m:
+Il livello ←[33mlast←[0m dipende dal tuo sistema operativo:
+Per ←[1mWindows 2000←[0m, ←[1mWindows XP←[0m e ←[1mLinux←[0m:
 ←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom -usecd ←[33m0 ←[34m-ioctl←[0m
-For ←[1mWindows 9x←[0m with a ASPI layer installed:
+Per ←[1mWindows 9x←[0m con un driver ASPI installato:
 ←[34;1mmount d ←[0;31mD:\←[34;1m -t cdrom -usecd ←[33m0 ←[34m-aspi←[0m
 
-Replace ←[0;31mD:\←[0m with the location of your CD-ROM.
-Replace the ←[33;1m0←[0m in ←[34;1m-usecd ←[33m0←[0m with the number reported for your CD-ROM if you type:
+Sostituisci ←[0;31mD:\←[0m con la lettera del tuo CD-ROM.
+Cambia lo ←[33;1m0←[0m in ←[34;1m-usecd ←[33m0←[0m con il numero del tuo CD-ROM riportato dal comando:
 ←[34;1mmount -cd←[0m
 
 .
@@ -1035,32 +1034,33 @@ Impossibile aprire il disco di avvio. Abbandono.
 
 .
 :PROGRAM_BOOT_WRITE_PROTECTED
-Image file is read-only! Boot in write-protected mode.
+Il file immagine è di sola lettura! Avvio con protezione contro la scrittura.
 
 .
 :PROGRAM_BOOT_PRINT_ERROR
-This command boots DOSBox-X from either a floppy or hard disk image.
+Questo comando avvia DOSBox-X con un'immagine di floppy o disco rigido.
 
-For this command, one can specify a succession of floppy disks swappable
-by the menu command, and drive: specifies the mounted drive to boot from.
-If no drive letter is specified, this defaults to boot from the A drive.
-If no parameter is specified, it will try to boot from the current drive.
-The only bootable drive letters are A, C, and D.  For booting from a hard
-drive (C or D), ensure the image is already mounted by ←[34;1mIMGMOUNT←[0m command.
+Si può usare una sequenza di floppy da scambiare tramite menù.
+unità: specifica l'unità montata da cui avviare.
+Se non è indicata una lettera, l'avvio avverrà dall'unità A:.
+Senza parametri, proverà ad avviare l'unità corrente.
+Le uniche lettere di unità avviabile sono A, C e D. Per avviare da un
+disco rigido, assicurati che l'immagine sia già stata montata con il
+comando ←[34;1mIMGMOUNT←[0m.
 
-The syntax of this command is one of the following:
+La sintassi di questo comando è una delle seguenti:
 
-←[34;1mBOOT [driveletter:]←[0m
+←[34;1mBOOT [unità:]←[0m
 
-←[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L driveletter]←[0m
+←[34;1mBOOT diskimg1.img [diskimg2.img ...] [-L unità]←[0m
 
-Note: An image file with a leading colon (:) will be booted in write-protected
-mode if the "leading colon write protect image" option is enabled.
+Nota: un file immagine con premessi duepunti (:) sarà avviato con protezione
+contro la scrittura, se la relativa opzione è stata abilitata.
 
-Examples:
+Esempi:
 
-←[32;1mBOOT A:←[0m       - boot from drive A: if it is mounted and bootable.
-←[32;1mBOOT :DOS.IMG←[0m - boot from floppy image DOS.IMG in write-protected mode.
+←[32;1mBOOT A:←[0m       - avvia dall'unità A:, se è montata e avviabile.
+←[32;1mBOOT :DOS.IMG←[0m - avvia l'immagine floppy DOS.IMG protetta dalla scrittura.
 
 .
 :PROGRAM_BOOT_UNABLE
@@ -1076,46 +1076,46 @@ Impossibile aprire %s
 
 .
 :PROGRAM_BOOT_CART_WO_PCJR
-PCjr cartridge found, but machine is not PCjr
+Trovata una cartuccia PCjr, ma la macchina non è PCjr
 .
 :PROGRAM_BOOT_CART_LIST_CMDS
-Available PCjr cartridge commandos:%s
+Comandi disponibili per la cartuccia PCjr:%s
 .
 :PROGRAM_BOOT_CART_NO_CMDS
-No PCjr cartridge commandos found
+Non sono stati trovati comandi per la cartuccia PCjr
 .
 :PROGRAM_LOADROM_HELP
-Loads the specified ROM image file for video BIOS or IBM BASIC.
+Carica il file di immagine ROM indicato come BIOS video o IBM BASIC.
 
 LOADROM ROM_file
 
 .
 :PROGRAM_LOADROM_SPECIFY_FILE
-Must specify ROM file to load.
+Si deve indicare un file ROM da caricare.
 
 .
 :PROGRAM_LOADROM_CANT_OPEN
-ROM file not accessible.
+File ROM non accessibile.
 
 .
 :PROGRAM_LOADROM_TOO_LARGE
-ROM file too large.
+File ROM troppo grande.
 
 .
 :PROGRAM_LOADROM_INCOMPATIBLE
-Video BIOS not supported by machine type.
+Il BIOS video non è supportato dal tipo corrente di macchina.
 
 .
 :PROGRAM_LOADROM_UNRECOGNIZED
-ROM file not recognized.
+File ROM non riconosciuto.
 
 .
 :PROGRAM_LOADROM_BASIC_LOADED
-BASIC ROM loaded.
+Caricata ROM BASIC.
 
 .
 :PROGRAM_BIOSTEST_HELP
-Boots into a BIOS image for running CPU tester BIOS.
+Avvia un'immagine BIOS per l'esecuzione di test.
 
 BIOSTEST image_file
 
@@ -1393,11 +1393,11 @@ File di tavola codici inesistente o invalido per la disposizione %s
 
 .
 :PROGRAM_MODE_USAGE
-Configures system devices.
+Configura dispositivi di sistema.
 
-←[34;1mMODE←[0m display-type       :display-type codes are ←[1mCO80←[0m, ←[1mBW80←[0m, ←[1mCO40←[0m, ←[1mBW40←[0m, or ←[1mMONO←[0m
-←[34;1mMODE CON COLS=←[0mc ←[34;1mLINES=←[0mn :columns and lines, c=80 or 132, n=25, 43, 50, or 60
-←[34;1mMODE CON RATE=←[0mr ←[34;1mDELAY=←[0md :typematic rates, r=1-32 (32=fastest), d=1-4 (1=lowest)
+←[34;1mMODE←[0m tipovideo       :tipovideo è ←[1mCO80←[0m, ←[1mBW80←[0m, ←[1mCO40←[0m, ←[1mBW40←[0m, o ←[1mMONO←[0m
+←[34;1mMODE CON COLS=←[0mc ←[34;1mLINES=←[0mn :colonne e righe, c=80 o 132, n=25, 43, 50, o 60
+←[34;1mMODE CON RATE=←[0mr ←[34;1mDELAY=←[0md :ritmo di stampa, r=1-32 (32=massimo), d=1-4 (1=minimo)
 
 .
 :PROGRAM_MODE_INVALID_PARAMETERS
@@ -1682,7 +1682,7 @@ Errore di copia - %s
 
 .
 :SHELL_CMD_COPY_CONFIRM
-Sovrascrivo %s (Yes/No/All)?
+Sovrascrivo %s (Sì/No/Tutti)?
 .
 :SHELL_CMD_COPY_NOSPACE
 Spazio su disco insufficiente - %s
@@ -1735,7 +1735,7 @@ Digita ←[32mHELP←[37m l'elenco dei comandi o ←[32mINTRO←[37m per una bre
 Puoi eseguire molte operazioni anche usando i ←[33mmenu←[37m.
 .
 :SHELL_STARTUP_EXAMPLE_PC98
-←[32mExample←[37m: Prova a selezionare ←[33mTrueType font←[37m o ←[33mOpenGL perfect←[37m come opzione di output.
+←[32mEsempio←[37m: Prova a selezionare ←[33mTrueType font←[37m o ←[33mOpenGL perfect←[37m come opzione di output.
 .
 :SHELL_STARTUP_TEXT2_PC98
 To launch the ←[33mConfiguration Tool←[37m, use ←[31mhost+C←[37m. Host key is ←[32mF11←[37m.    
@@ -1744,12 +1744,12 @@ To switch between windowed and full-screen mode, use ←[31mhost+F←[37m.
 To adjust the emulated CPU speed, use ←[31mhost+Plus←[37m and ←[31mhost+Minus←[37m.   
 .
 :SHELL_STARTUP_INFO_PC98
-←[36mDOSBox-X is now running in ←[32mJapanese NEC PC-98←[36m emulation mode.←[37m     
+←[36mDOSBox-X è in esecuzione in modalità ←[32mJapanese NEC PC-98←[36m.←[37m     
 .
 :SHELL_STARTUP_TEXT3_PC98
-←[32mDOSBox-X (progetto) ←[33mhttps://dosbox-x.com/     ←[36mComplete DOS emulations←[37m
-←[32mDOSBox-X (guida)   ←[33mhttps://dosbox-x.com/wiki←[37m ←[36mDOS, Windows 3.x and 9x←[37m
-←[32mDOSBox-X (supporto) ←[33mhttps://github.com/joncampbell123/dosbox-x/issues←[37m
+←[32mHomepage del progetto←[37m: ←[33mhttps://dosbox-x.com/      ←[36mEmulazioni complete di DOS←[37m
+←[32mGuide utente su Wiki←[37m:  ←[33mhttps://dosbox-x.com/wiki←[32m  ←[36mDOS, Windows 3.x e 9x     ←[37m
+←[32mSegnalazioni←[37m:          ←[33mhttps://github.com/joncampbell123/dosbox-x/issues    ←[37m
 .
 :SHELL_STARTUP_HEAD1
 ←[36mInizia a usare DOSBox-X:                                                    ←[37m
@@ -1770,19 +1770,19 @@ Puoi eseguire molte operazioni anche usando i ←[33mmenu.                      
 - regola la velocità di emulazione con ←[31mF11 ←[37m+ ←[31m+←[37m←[37m o ←[31mF11 ←[37m+ ←[31m-←[37m   ←[37m                 
 .
 :SHELL_STARTUP_DOSV
-←[32mDOS/V mode←[37m is now active. Try also ←[32mTTF CJK mode←[37m for a general DOS emulation.
+←[32mDOS/V mode←[37m è attivo. Prova anche ←[32mTTF CJK mode←[37m per un'emulazione DOS generale.
 .
 :SHELL_STARTUP_CGA
-Composite CGA mode is supported. Use ←[31mCtrl+F8←[37m to set composite output ON/OFF.
-Use ←[31mCtrl+Shift+[F7/F8]←[37m to change hue; ←[31mCtrl+F7←[37m selects early/late CGA model. 
+Il modo CGA composito è supportato. Usa ←[31mCtrl+F8←[37m per (dis)attivarlo.
+Cambia tinta con ←[31mCtrl+Shift+[F7/F8]←[37m; ←[31mCtrl+F7←[37m sceglie un tipo CGA più o meno recente. 
 .
 :SHELL_STARTUP_CGA_MONO
-Use ←[31mCtrl+F7←[37m to cycle through green, amber, and white monochrome color,      
-and ←[31mCtrl+F8←[37m to change contrast/brightness settings.                         
+Use ←[31mCtrl+F7←[37m per cambiare tinta fra verde, ambra e bianco monocromatici
+e ←[31mCtrl+F8←[37m per cambiare contrasto e luminosità.
 .
 :SHELL_STARTUP_HERC
-Use ←[31mCtrl+F7←[37m to cycle through white, amber, and green monochrome color.      
-Use ←[31mCtrl+F8←[37m to toggle horizontal blending (only in graphics mode).          
+Use ←[31mCtrl+F7←[37m per cambiare tinta fra bianco, verde e ambra monocromatici
+Usa ←[31mCtrl+F8←[37m per (dis)attivare la sfumatura orizzontale (solo in modo grafico).
 .
 :SHELL_STARTUP_HEAD3
 ←[36mIl progetto DOSBox-X sul web:                                               ←[37m
@@ -1796,29 +1796,29 @@ Use ←[31mCtrl+F8←[37m to toggle horizontal blending (only in graphics mode).
 BUON DIVERTIMENTO CON DOSBox-X !
 .
 :SHELL_CMD_BREAK_HELP
-Sets or clears extended CTRL+C checking.
+Attiva o spegne il controllo esteso di CTRL+C.
 
 .
 :SHELL_CMD_BREAK_HELP_LONG
 BREAK [ON | OFF]
 
-Type BREAK without a parameter to display the current BREAK setting.
+Digita BREAK senza parametro per vedere l'impostazione attuale.
 
 .
 :SHELL_CMD_CHDIR_HELP
-Displays or changes the current cartella.
+Mostra o cambia la cartella corrente.
 
 .
 :SHELL_CMD_CHDIR_HELP_LONG
-CHDIR [drive:][path]
+CHDIR [unità:][percorso]
 CHDIR [..]
-CD [drive:][path]
+CD [unità:][percorso]
 CD [..]
 
-  ..   Specifies that you want to change to the parent cartella.
+  ..   specifica la cartella superiore.
 
-Type CD drive: to display the current cartella in the specified drive.
-Type CD without parameters to display the current drive and cartella.
+Digita CD unità: per vedere la cartella corrente in quell'unità.
+Digita CD senza parametri per vedere unità e cartella correnti.
 
 .
 :SHELL_CMD_CLS_HELP
@@ -1834,9 +1834,9 @@ Mostra un elenco di file e sotto-cartelle in una cartella.
 
 .
 :SHELL_CMD_DIR_HELP_LONG
-DIR [drive:][path][filename] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|D]]
+DIR [unità:][percorso][nomefile] [/[W|B]] [/S] [/P] [/A[D|H|S|R|A]] [/O[N|E|G|S|D]]
 
-  [drive:][path][filename]
+  [unità:][percorso][nomefile]
               Specifica unità, cartelle e/o file da elencare.
   /W          Usa un formato di elenco ampio.
   /B          Usa un formato semplice (senza intestazione né riepilogo).
@@ -1885,101 +1885,99 @@ HELP [comando]
    /A o /ALL    Elenca tutti i comandi interni.
    [comando]    Mostra l'aiuto per il comando indicato.
 
-←[0mE.g., ←[37;1mHELP COPY←[0m or ←[37;1mCOPY /?←[0m shows help information for COPY command.
+←[0mP.e., ←[37;1mHELP COPY←[0m o ←[37;1mCOPY /?←[0m mostra l'aiuto per il comando COPY.
 
-Note: External commands like ←[33;1mMOUNT←[0m and ←[33;1mIMGMOUNT←[0m are not listed by HELP [/A].
-      These commands can be found on the Z: drive as programs (e.g. MOUNT.COM).
-      Type ←[33;1mcommand /?←[0m or ←[33;1mHELP command←[0m for help information for that command.
+Nota: comandi esterni come ←[33;1mMOUNT←[0m e ←[33;1mIMGMOUNT←[0m non sono gestiti da HELP [/A].
+      Tali comandi si trovano nell'unità Z: sotto forma di file eseguibili (p.e. MOUNT.COM).
+      Digita ←[33;1mcomando /?←[0m o ←[33;1mHELP comando←[0m per un aiuto su quel comando.
 
 .
 :SHELL_CMD_LS_HELP
-Lists cartella contents.
+Elenca il contenuto di una cartella.
 
 .
 :SHELL_CMD_LS_HELP_LONG
-LS [drive:][path][filename] [/A] [/L] [/P] [/Z]
+LS [unità:][percorso][nomefile] [/A] [/L] [/P] [/Z]
 
-  /A     Lists hidden and system files also.
-  /L     Lists names one per line.
-  /P     Pauses after each screenful of information.
-  /Z     Displays short names even if LFN support is available.
+  /A     Elenca anche i file nascosti e di sistema.
+  /L     Elenca un nome per riga.
+  /P     Fa pausa dopo ogni schermo di risultati.
+  /Z     Mostra i nomi brevi anche con il supporto LFN attivo.
 
 .
 :SHELL_CMD_MKDIR_HELP
-Creates a cartella.
+Crea una cartella.
 
 .
 :SHELL_CMD_MKDIR_HELP_LONG
-MKDIR [drive:][path]
-MD [drive:][path]
+MKDIR [unità:][percorso]
+MD [unità:][percorso]
 
 .
 :SHELL_CMD_RMDIR_HELP
-Removes a cartella.
+Rimuove una cartella.
 
 .
 :SHELL_CMD_RMDIR_HELP_LONG
-RMDIR [drive:][path]
-RD [drive:][path]
+RMDIR [unità:][percorso]
+RD [unità:][percorso]
 
 .
 :SHELL_CMD_SET_HELP
-Displays or changes environment variables.
+Mostra o imposta le variabili d'ambiente.
 
 .
 :SHELL_CMD_SET_HELP_LONG
-SET [variable=[string]]
+SET [variabile=[stringa]]
 
-   variable     Specifies the environment-variable name.
-   string       Specifies a series of characters to assign to the variable.
+   variabile     nome della variabile.
+   stringa       sequenza di caratteri da assegnare alla variabile.
 
-* If no string is specified, the variable is removed from the environment.
+* Se non è indicata una stringa, la variabile viene rimossa.
 
-Type SET without parameters to display the current environment variables.
+Digitare SET senza parametri per elencare le variabili d'ambiente impostate.
 
 .
 :SHELL_CMD_IF_HELP
-Performs conditional processing in batch programs.
+Permette l'esecuzione condizionale nei programmi batch.
 
 .
 :SHELL_CMD_IF_HELP_LONG
-IF [NOT] ERRORLEVEL number command
-IF [NOT] string1==string2 command
-IF [NOT] EXIST filename command
+IF [NOT] ERRORLEVEL numero comando
+IF [NOT] stringa1==stringa2 comando
+IF [NOT] EXIST nomefile comando
 
-  NOT               Specifies that DOS should carry out
-                    the command only if the condition is false.
+  NOT               Indica al DOS di eseguire il comando solo se la condizione
+                    è falsa.
 
-  ERRORLEVEL number Specifies a true condition if the last program run
-                    returned an exit code equal to or greater than the number
-                    specified.
+  ERRORLEVEL numero La condizione è vera se l'ultimo programma eseguito è
+                    uscito con un codice di errore maggiore o uguale al
+                    numero indicato
 
-  string1==string2  Specifies a true condition if the specified text strings
-                    match.
+  stringa1==stringa2 La condizione è vera se le stringhe sono uguali.
 
-  EXIST filename    Specifies a true condition if the specified filename
-                    exists.
+  EXIST nomefile    La condizione è vera se nomefile esiste.
 
-  command           Specifies the command to carry out if the condition is
-                    met.  Command can be followed by ELSE command which
-                    will execute the command after the ELSE keyword if the
-                    specified condition is FALSE
+  comando           Comando da eseguire se la condizione si verifica.
+                    Può essere seguito dalla parola chiave ELSE per 
+                    specificare un comando da eseguire se la condizione
+                    NON si verifica.
 
 .
 :SHELL_CMD_GOTO_HELP
-Jumps to a labeled line in a batch program.
+Sposta l'esecuzione a una riga etichettata in un programma batch.
 
 .
 :SHELL_CMD_GOTO_HELP_LONG
-GOTO label
+GOTO etichetta
 
-   label   Specifies a text string used in the batch program as a label.
+   etichetta   Stringa di testo usata come etichetta in un programma batch.
 
-You type a label on a line by itself, beginning with a colon.
+Un'etichetta si colloca su una riga a sé, e inizia con duepunti (:).
 
 .
 :SHELL_CMD_SHIFT_HELP
-Changes the position of replaceable parameters in a batch file.
+Cambia la posizione dei parametri sostituibili in un file batch.
 
 .
 :SHELL_CMD_SHIFT_HELP_LONG
@@ -1987,193 +1985,192 @@ SHIFT
 
 .
 :SHELL_CMD_FOR_HELP
-Runs a specified command for each file in a set of files.
+Esegue un dato comando per ciascun file di un insieme.
 
 .
 :SHELL_CMD_FOR_HELP_LONG
-FOR %%variable IN (set) DO command [command-parameters]
+FOR %%variabile IN (set) DO comando [parametri]
 
-  %%variable  Specifies a replaceable parameter.
-  (set)      Specifies a set of one or more files. Wildcards may be used.
-  command    Specifies the command to carry out for each file.
-  command-parameters
-             Specifies parameters or switches for the specified command.
+  %%variabile  Indica un parametro sostituibile.
+  (set)      Insieme di uno o più file. Si possono usare i jolly.
+  comando    Comando da eseguire per ogni file.
+  parametri  Parametri eventuali per il comando.
 
-To use the command in a batch program, specify %%%%variable instead of %%variable.
+In un programma batch, usare %%%%variabile invece di %%variabile.
 
 .
 :SHELL_CMD_LFNFOR_HELP
-Enables or disables long filenames when processing FOR wildcards.
+Attiva o disattiva i nomi lunghi quando elabora un comando FOR con jolly.
 
 .
 :SHELL_CMD_LFNFOR_HELP_LONG
 LFNFOR [ON | OFF]
 
-Type LFNFOR without a parameter to display the current LFNFOR setting.
+Digita LFNFOR senza parametro per vedere l'impostazione attuale.
 
-This command is only useful if LFN support is currently enabled.
+Questo comando ha effetto solo se il supporto LFN è attivo.
 
 .
 :SHELL_CMD_TYPE_HELP
-Displays the contents of a text file.
+Mostra il contenuto di un file di testo.
 
 .
 :SHELL_CMD_TYPE_HELP_LONG
-TYPE [drive:][path][filename]
+TYPE [unità:][percorso][nomefile]
 
 .
 :SHELL_CMD_REM_HELP
-Adds comments in a batch file.
+Introduce un commento in un file batch.
 
 .
 :SHELL_CMD_REM_HELP_LONG
-REM [comment]
+REM [commento]
 
 .
 :SHELL_CMD_RENAME_HELP
-Renames a file/cartella or files.
+Rinomina un file/cartella o più file.
 
 .
 :SHELL_CMD_RENAME_HELP_LONG
-RENAME [drive:][path][cartellaname1 | filename1] [cartellaname2 | filename2]
-REN [drive:][path][cartellaname1 | filename1] [cartellaname2 | filename2]
+RENAME [unità:][percorso][cartella1 | file1] [cartella2 | file2]
+REN [unità:][path][cartella1 | file1] [cartella2 | file2]
 
-Note that you can not specify a new drive or path for your destination.
+Nota che non puoi indicare un'unità o percorso diversi per la destinazione.
 
-Wildcards (* and ?) are supported for files. For example, the following command
-renames all text files: ←[37;1mREN *.TXT *.BAK←[0m
+I jolly (* e ?) sono permessi per i file. Per esempio, il comando  ←[37;1mREN *.TXT *.BAK←[0m
+rinomina tutti i file di testo (cambiando estensione da TXT a BAK).
 
 .
 :SHELL_CMD_DELETE_HELP
-Removes one or more files.
+Rimuove uno o più file.
 
 .
 :SHELL_CMD_DELETE_HELP_LONG
-DEL [/P] [/F] [/Q] names
-ERASE [/P] [/F] [/Q] names
+DEL [/P] [/F] [/Q] nome/i
+ERASE [/P] [/F] [/Q] nome/i
 
-  names         Specifies a list of one or more files or directories.
-                Wildcards may be used to delete multiple files. If a
-                cartella is specified, all files within the cartella
-                will be deleted.
-  /P            Prompts for confirmation before deleting one or more files.
-  /F            Force deleting of read-only files.
-  /Q            Quiet mode, do not ask if ok to delete on global wildcard.
+  nome/i        Un elenco di uno o più file o cartelle.
+                I jolly possono essere usati per cancellare plurimi
+                file. Se è indicata una cartella, saranno cancellati
+                tutti i file in essa contenuti.
+  /P            Chiede conferma prima di cancellare.
+  /F            Forza la rimozione dei file di sola lettura.
+  /Q            Modo quieto, non chiede conferma.
 
 .
 :SHELL_CMD_COPY_HELP
-Copies one or more files.
+Copia uno o più file.
 
 .
 :SHELL_CMD_COPY_HELP_LONG
-COPY [/Y | /-Y] source [+source [+ ...]] [destination]
+COPY [/Y | /-Y] sorgente [+sorgente [+ ...]] [destinazione]
 
-  source        Specifies the file or files to be copied.
-  destination   Specifies the cartella and/or filename for the new file(s).
-  /Y            Suppresses prompting to confirm you want to overwrite an
-                existing destination file.
-  /-Y           Causes prompting to confirm you want to overwrite an
-                existing destination file.
+  sorgente      Uno o più file da copiare.
+  destinazione  Cartella di destinazione del/dei file, o nome del nuovo file.
+  /Y            Sovrascrive un file preesistente senza chiedere conferma.
+  /-Y           Chiede sempre conferma prima di sovrascrivere un file
+                preesistente.
 
-The switch /Y may be preset in the COPYCMD environment variable.
-This may be overridden with /-Y on the command line.
+L'opzione /Y può essere predefinita nella variabile d'ambiente COPYCMD.
+Questa può essere bypassata con /-Y sulla riga di comando.
 
-To append files, specify a single file for destination, but multiple files
-for source (using wildcards or file1+file2+file3 format).
+Per concatenare più file, indicare un singolo file come destinazione e più
+file come sorgente (usando i jolly o il formato file1+file2+file3).
 
 .
 :SHELL_CMD_CALL_HELP
-Starts a batch file from within another batch file.
+Richiama un file batch dall'interno di un file batch.
 
 .
 :SHELL_CMD_CALL_HELP_LONG
-CALL [drive:][path]filename [batch-parameters]
+CALL [unità:][percorso]nomefile [parametri]
 
-batch-parameters   Specifies any command-line information required by
-                   the batch program.
+parametri          Eventuali argomenti da passare al batch richiamato.
 
 .
 :SHELL_CMD_SUBST_HELP
-Assigns an internal cartella to a drive.
+Assegna una lettera di unità a una cartella.
 
 .
 :SHELL_CMD_SUBST_HELP_LONG
-SUBST [drive1: [drive2:]path]
-SUBST drive1: /D
+SUBST [unità1: [unità2:]percorso]
+SUBST unità1: /D
 
-  drive1:       Specifies a drive to which you want to assign a path.
-  [drive2:]path Specifies a mounted local drive and path you want to assign to.
-  /D            Deletes a mounted or substituted drive.
+  unità1:       Lettera di unità da assegnare a una cartella.
+  [unità2:]percorso
+                Percorso della cartella emulata cui assegnare la lettera.
+  /D            Rimuove un'unità montata o sostituita.
 
-Type SUBST with no parameters to display a list of mounted local drives.
+Digita SUBST senza parametri per vedere l'elenco delle unità montate
+o sostituite.
 
 .
 :SHELL_CMD_LOADHIGH_HELP
-Loads a program into upper memory (requires XMS and UMB memory).
+Carica un programma nella memoria superiore (richiede le memorie XMS e UMB).
 
 .
 :SHELL_CMD_LOADHIGH_HELP_LONG
-LH              [drive:][path]filename [parameters]
-LOADHIGH        [drive:][path]filename [parameters]
+LH              [unità:][percorso]nomefile [parametri]
+LOADHIGH        [unità:][percorso]nomefile [parametri]
 
 .
 :SHELL_CMD_CHOICE_HELP
-Waits for a keypress and sets ERRORLEVEL.
+Attende la pressione di un tasto e imposta il codice ERRORLEVEL.
 
 .
 :SHELL_CMD_CHOICE_HELP_LONG
-CHOICE [/C:choices] [/N] [/S] text
-  /C[:]choices  -  Specifies allowable keys.  Default is: yn.
-  /N  -  Do not display the choices at end of prompt.
-  /S  -  Enables case-sensitive choices to be selected.
-  text  -  The text to display as a prompt.
+CHOICE [/C:scelte] [/N] [/S] testo
+  /C[:]scelte  Tasti permessi. In mancanza: sn.
+  /N           Non mostra le scelte al termine del testo.
+  /S           Distingue tra maiuscole e minuscole.
+  testo        Testo introduttivo alla scelta.
 
 .
 :SHELL_CMD_ATTRIB_HELP
-Displays or changes file attributes.
+Mostra o cambia attributi ai file.
 
 .
 :SHELL_CMD_ATTRIB_HELP_LONG
-ATTRIB [+R | -R] [+A | -A] [+S | -S] [+H | -H] [drive:][path][filename] [/S]
+ATTRIB [+R | -R] [+A | -A] [+S | -S] [+H | -H] [unità:][percorso][nomefile] [/S]
 
-  +   Sets an attribute.
-  -   Clears an attribute.
-  R   Read-only file attribute.
-  A   Archive file attribute.
-  S   System file attribute.
-  H   Hidden file attribute.
-  [drive:][path][filename]
-      Specifies file(s) or cartella for ATTRIB to process.
-  /S  Processes files in all directories in the specified path.
+  +   Attiva un attributo.
+  -   Rimuove un attributo.
+  R   Attributo: file di sola lettura.
+  A   Attributo: file da archivio.
+  S   Attributo: file di sistema.
+  H   Attributo: file nascosto.
+  [unità:][percorso][nomefile]
+      Indica i file o una cartella da elaborare.
+  /S  Elabora i file di tutte le cartelle nel percorso indicato.
 
 .
 :SHELL_CMD_PATH_HELP
-Displays or sets a search path for executable files.
+Mostra o imposta il percorso di ricerca dei file eseguibili.
 
 .
 :SHELL_CMD_PATH_HELP_LONG
-PATH [[drive:]path[;...][;%PATH%]
+PATH [[unità:]percorso[;...][;%PATH%]
 PATH ;
 
-Type PATH ; to clear all search path settings.
-Type PATH without parameters to display the current path.
+Digita PATH ; per azzerare il percorso registrato.
+Digita PATH senza argomenti per vedere il percorso attuale.
 
 .
 :SHELL_CMD_PUSHD_HELP
-Stores the current cartella for use by the POPD command, then
-changes to the specified cartella.
+Registra il percorso attuale per l'uso con il comando POPD, quindi
+cambia con la cartella specificata.
 
 .
 :SHELL_CMD_PUSHD_HELP_LONG
-PUSHD [path]
+PUSHD [percorso]
 
-path        Specifies the cartella to make the current cartella.
+percorso      Indica la cartella da rendere corrente.
 
-Type PUSHD with no parameters to display currently stored directories.
+Digita PUSHD senza parametro per vedere le cartelle memorizzate.
 
 .
 :SHELL_CMD_POPD_HELP
-Changes to the cartella stored by the PUSHD command.
+Cambia con l'ultima cartella registrata dal comando PUSHD.
 
 .
 :SHELL_CMD_POPD_HELP_LONG
@@ -2181,150 +2178,150 @@ POPD
 
 .
 :SHELL_CMD_VERIFY_HELP
-Controls whether to verify files are written correctly to a disk.
+Determina se verificare la corretta scrittura dei file su disco.
 
 .
 :SHELL_CMD_VERIFY_HELP_LONG
 VERIFY [ON | OFF]
 
-Type VERIFY without a parameter to display the current VERIFY setting.
+Digita VERIFY senza parametro per vedere l'impostazione attuale.
 
 .
 :SHELL_CMD_VER_HELP
-Displays or sets DOSBox-X's reported DOS version.
+Mostra o imposta la versione di DOS riportata da DOSBox-X.
 
 .
 :SHELL_CMD_VER_HELP_LONG
 VER [/R]
-VER [SET] number or VER SET [major minor]
+VER [SET] numero o VER SET [versione revisione]
 
-  /R                 Display DOSBox-X's Git commit version and build date.
-  [SET] number       Set the specified number as the reported DOS version.
-  SET [major minor]  Set the reported DOS version in major and minor format.
+  /R                 Mostra la versione e la data di DOSBox-X's da Git.
+  [SET] numero       Imposta il numero indicato come versione di DOS riportata.
+  SET [major minor]  Imposta la versione di DOS nel formato versione e revisione.
 
-  ←[0mE.g., ←[37;1mVER 6.0←[0m or ←[37;1mVER 7.1←[0m sets the DOS version to 6.0 and 7.1, respectively.
-  On the other hand, ←[37;1mVER SET 7 1←[0m sets the DOS version to 7.01 instead of 7.1.
+  ←[0mP.e., ←[37;1mVER 6.0←[0m o ←[37;1mVER 7.1←[0m imposta la versione di DOS a 6.0 e 7.1, rispettivamente.
+  D'altra parte, ←[37;1mVER SET 7 1←[0m imposta la versione di DOS a 7.01 invece di 7.1.
 
-Type VER without parameters to display DOSBox-X and the reported DOS version.
+Digita VER senza parametri per vedere la versione di DOS riportata da DOSBox-X.
 
 .
 :SHELL_CMD_VER_VER
-DOSBox-X version %s (%s). Reported DOS version %d.%02d.
+DOSBox-X versione %s (%s). Versione DOS riportata %d.%02d.
 
 .
 :SHELL_CMD_VER_INVALID
-The specified DOS version is not correct.
+La versione di DOS specificata non è corretta.
 
 .
 :SHELL_CMD_VOL_HELP
-Displays the disk volume label and serial number, if they exist.
+Mostra etichetta e numero seriale del disco, se presenti.
 
 .
 :SHELL_CMD_VOL_HELP_LONG
-VOL [drive]
+VOL [unità]
 
 .
 :SHELL_CMD_PROMPT_HELP
-Changes the command prompt.
+Cambia il prompt dei comandi.
 
 .
 :SHELL_CMD_PROMPT_HELP_LONG
-PROMPT [text]
-  text    Specifies a new command prompt.
+PROMPT [testo]
+  testo    Specifica il nuovo prompt dei comandi.
 
-Prompt can be made up of normal characters and the following special codes:
-  $A   & (Ampersand)
+Il prompt può contenere normali caratteri e i seguenti codici speciali:
+  $A   & (e commerciale)
   $B   | (pipe)
-  $C   ( (Left parenthesis)
-  $D   Current date
-  $E   Escape code (ASCII code 27)
-  $F   ) (Right parenthesis)
-  $G   > (greater-than sign)
-  $H   Backspace (erases previous character)
-  $L   < (less-than sign)
-  $N   Current drive
-  $P   Current drive and path
-  $Q   = (equal sign)
-  $S     (space)
-  $T   Current time
-  $V   DOS version number
-  $_   Carriage return and linefeed
-  $$   $ (dollar sign)
+  $C   ( (parentesi aperta)
+  $D   Data attuale
+  $E   Codice di escape (ASCII cod. 27)
+  $F   ) (parentesi chiusa)
+  $G   > (segno maggiore)
+  $H   Cancella (cancella il carattere precedente)
+  $L   < (segno minore)
+  $N   Unità corrente
+  $P   Unità e percorso correnti
+  $Q   = (segno uguale)
+  $S     (spazio)
+  $T   Ora attuale
+  $V   Numero di versione del DOS
+  $_   A capo
+  $$   $ (segno del dollaro)
 
 .
 :SHELL_CMD_ALIAS_HELP
-Defines or displays aliases.
+Definisce o mostra gli alias di comando.
 
 .
 :SHELL_CMD_ALIAS_HELP_LONG
-ALIAS [name[=value] ... ]
+ALIAS [nome[=valore] ... ]
 
-Type ALIAS without parameters to display the list of aliases in the form:
-`ALIAS NAME = VALUE'
+Digita ALIAS senza parametri per vedere la lista degli alias nella forma:
+`ALIAS NOME = VALORE`
 
 .
 :SHELL_CMD_CHCP_HELP
-Displays or changes the current DOS code page.
+Mostra o cambia la tavola codici corrente per il DOS.
 
 .
 :SHELL_CMD_CHCP_HELP_LONG
 CHCP [nnn [file]]
 
-  nnn   Specifies a code page number.
-  file  Specifies a code page file.
+  nnn   Specifica un numero di tavola codici.
+  file  Specifica un file con la tavola codici.
 
-Supported code pages for changing in the TrueType font output:
+Le tavole codici supportate con l'output TrueType:
 
 437,808,850,852,853,855,857,858,860-866,869,872,874,1250-1258
 
-Also double-byte code pages including 932, 936, 949, and 950.
+E inoltre le tavole DBCS tra cui 932, 936, 949 e 950.
 
 .
 :SHELL_CMD_CHCP_ACTIVE
-Active code page: %d
+Tavola codici attiva: %d
 
 .
 :SHELL_CMD_CHCP_MISSING
-ASCII characters not defined in TTF font: %d
+Caratteri ASCII non definiti nel font TTF: %d
 
 .
 :SHELL_CMD_CHCP_INVALID
-Invalid code page number - %s
+Numero di tavola codici invalido - %s
 
 .
 :SHELL_CMD_COUNTRY_HELP
-Displays or changes the current country.
+Mostra o cambia il paese corrente.
 
 .
 :SHELL_CMD_COUNTRY_HELP_LONG
 COUNTRY [nnn] 
 
-  nnn   Specifies a country code.
+  nnn   Specifica un codice di paese.
 
-Date and time formats will be affected by the specified country code.
+Il formato di data e ora sarà influenzato dal codice di paese indicato.
 
 .
 :SHELL_CMD_CTTY_HELP
-Changes the terminal device used to control the system.
+Cambia il terminale usato per controllare il sistema.
 
 .
 :SHELL_CMD_CTTY_HELP_LONG
-CTTY device
-  device        The terminal device to use, such as CON.
+CTTY dispositivo
+  dispositivo        Il terminale da usare, p.e. CON.
 
 .
 :SHELL_CMD_MORE_HELP
-Displays output one screen at a time.
+Impagina l'output uno schermo alla volta.
 
 .
 :SHELL_CMD_MORE_HELP_LONG
-MORE [drive:][path][filename]
-MORE < [drive:][path]filename
-command-name | MORE [drive:][path][filename]
+MORE [unità:][percorso][nomefile]
+MORE < [unità:][percorso][nomefile]
+comando | MORE [unità:][percorso][nomefile]
 
 .
 :SHELL_CMD_TRUENAME_HELP
-Finds the fully-expanded name for a file.
+Trova il nome espanso di un file.
 
 .
 :SHELL_CMD_TRUENAME_HELP_LONG
@@ -2332,34 +2329,34 @@ TRUENAME [/H] file
 
 .
 :SHELL_CMD_DXCAPTURE_HELP
-Runs program with video or audio capture.
+Esegue un programma attivando la cattura video o audio.
 
 .
 :SHELL_CMD_DXCAPTURE_HELP_LONG
-DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]
+DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [comando] [opzioni]
 
-It will start video or audio capture, run program, and then automatically stop capture when the program exits.
+Avvia la cattura video o audio, esegue il comando e, al termine, arresta automaticamente la cattura.
 
 .
 :SHELL_CMD_DEBUGBOX_HELP
-Runs program and breaks into debugger at entry point.
+Carica un programma e lo interrompe all'inizio avviando il debugger.
 
 .
 :SHELL_CMD_DEBUGBOX_HELP_LONG
-DEBUGBOX [command] [options]
+DEBUGBOX [comando] [opzioni]
 
-Type DEBUGBOX without a parameter to start the debugger.
+Digita DEBUGBOX senza parametri per avviare il debugger.
 
 .
 :SHELL_CMD_COMMAND_HELP
-Starts the DOSBox-X command shell.
+Avvia l'interprete dei comandi di DOSBox-X.
 
-The following options are accepted:
+Sono permesse le seguenti opzioni:
 
-  /C    Executes the specified command and returns.
-  /K    Executes the specified command and continues running.
-  /P    Loads a permanent copy of the command shell.
-  /INIT Initializes the command shell.
+  /C    Esegue il comando indicato e termina.
+  /K    Esegue il comando indicato e continua l'esecuzione.
+  /P    Carica una copia permanente dell'interprete.
+  /INIT Inizializza l'interprete.
 
 .
 :PROGRAM_BOOT_IMAGE_MOUNTED
@@ -2367,24 +2364,24 @@ Le immagini di uno o più floppy sono già montate.
 
 .
 :SHELL_CMD_HISTORY_HELP
-Displays or clears the command history list.
+Mostra o cancella lo storico delle righe di comando.
 
 .
 :SHELL_CMD_HISTORY_HELP_LONG
 HISTORY [/C]
 
-  /C  Clears the command history list.
+  /C  Cancella lo storico dei comandi.
 
 .
 :SHELL_CMD_ASSOC_HELP
-Displays or changes file extension associations.
+Mostra o cambia il comando associato all'estensione dei file.
 
 .
 :SHELL_CMD_ASSOC_HELP_LONG
-ASSOC [.ext[=command] ... ]
+ASSOC [.est[=comando] ... ]
 
-Type ASSOC without parameters to display the current file associations.
-File extensions must start with a dot (.); wildcards (* and ?) are allowed.
+Digita ASSOC senza parametri per elencare le associazioni correnti.
+Le estensioni devono iniziare con il punto (.); i jolly (* e ?) sono permessi.
 
 .
 :MENU:mapper_reset
@@ -2715,10 +2712,10 @@ xBRZ
 xBRZ Bilinear
 .
 :MENU:set_titletext
-Set title bar text...
+Imposta la barra del titolo...
 .
 :MENU:set_transparency
-Set transparency...
+Imposta la trasparenza...
 .
 :MENU:refresh_rate
 Refresh rate...
@@ -2805,58 +2802,58 @@ Off
 Text-mode
 .
 :MENU:clear_screen
-Clear the screen
+Cancella lo schermo
 .
 :MENU:vga_9widetext
-Allow 9-pixel wide fonts
+Abilita font a 9 pixel
 .
 :MENU:text_background
-High intensity: background color
+Alta intensità: colore di sfondo
 .
 :MENU:text_blinking
-High intensity: blinking text
+Alta intensità: testo lampeggiante
 .
 :MENU:line_80x25
-Screen: 80 columns x 25 lines
+Schermo: 80 colonne x 25 righe
 .
 :MENU:line_80x43
-Screen: 80 columns x 43 lines
+Schermo: 80 colonne x 43 righe
 .
 :MENU:line_80x50
-Screen: 80 columns x 50 lines
+Schermo: 80 colonne x 50 righe
 .
 :MENU:line_80x60
-Screen: 80 columns x 60 lines
+Schermo: 80 colonne x 60 righe
 .
 :MENU:line_132x25
-Screen: 132 columns x 25 lines
+Schermo: 132 colonne x 25 righe
 .
 :MENU:line_132x43
-Screen: 132 columns x 43 lines
+Schermo: 132 colonne x 43 righe
 .
 :MENU:line_132x50
-Screen: 132 columns x 50 lines
+Schermo: 132 colonne x 50 righe
 .
 :MENU:line_132x60
-Screen: 132 columns x 60 lines
+Schermo: 132 colonne x 60 righe
 .
 :MENU:VideoTTFMenu
-TTF options
+Opzioni TTF
 .
 :MENU:ttf_showbold
-Display bold text in TTF
+Testo grassetto in TTF
 .
 :MENU:ttf_showital
-Display italic text in TTF
+Testo corsivo in TTF
 .
 :MENU:ttf_showline
-Display underlined text in TTF
+Testo sottolineato in TTF
 .
 :MENU:ttf_showsout
-Display strikeout text in TTF
+Testo barrato in TTF
 .
 :MENU:ttf_wpno
-TTF word processor: None
+TTF word processor: Nessuno
 .
 :MENU:ttf_wpwp
 TTF word processor: WordPerfect
@@ -2871,13 +2868,13 @@ TTF word processor: XyWrite
 TTF word processor: FastEdit
 .
 :MENU:ttf_blinkc
-Display TTF blinking cursor
+Cursore lampeggiante TTF
 .
 :MENU:ttf_right_left
-Display text from right to left
+Orienta il testo da destra a sinistra
 .
 :MENU:ttf_printfont
-Use current TTF font for printing
+Usa il font TTF corrente per stampare
 .
 :MENU:ttf_halfwidthkana
 CJK: Allow half-width Japanese Katakana
@@ -2886,7 +2883,7 @@ CJK: Allow half-width Japanese Katakana
 CJK: Enable extended Chinese character set
 .
 :MENU:VideoPC98Menu
-PC-98 options
+Opzioni PC-98
 .
 :MENU:pc98_5mhz_gdc
 5MHz GDC clock
@@ -2898,25 +2895,25 @@ Allow 200-line scanline effect
 Allow 4 display partitions in graphics layer
 .
 :MENU:pc98_enable_egc
-Enable EGC
+Attiva EGC
 .
 :MENU:pc98_enable_grcg
-Enable GRCG
+Attiva GRCG
 .
 :MENU:pc98_enable_analog
-Enable analog display
+Attiva schermo analogico
 .
 :MENU:pc98_enable_analog256
-Enable analog 256-color display
+Attiva schermo analogico a 256 colori
 .
 :MENU:pc98_enable_188user
-Enable 188+ user CG cells
+Attiva 188+ user CG cells
 .
 :MENU:pc98_clear_text
-Clear text layer
+Cancella il livello testo
 .
 :MENU:pc98_clear_graphics
-Clear graphics layer
+Cancella il livello grafico
 .
 :MENU:Video3dfxMenu
 Emulazione 3dfx
