@@ -554,34 +554,31 @@ first_1:
 first_2:
 			uint8_t c;uint16_t n=1;
 			DOS_ReadFile (STDIN,&c,&n);
-            do switch (c) {
-            if(c == ch_n || c == ch_N)
-            {
-                DOS_WriteFile(STDOUT, &c, &n);
-                DOS_ReadFile(STDIN, &c, &n);
-                do switch(c) {
-                case 0xD: WriteOut("\n"); dos.dta(save_dta); return;
-                case 0x03: dos.dta(save_dta); return;
-                case 0x08: WriteOut("\b \b"); goto first_2;
-                } while(DOS_ReadFile(STDIN, &c, &n));
-            }
-            if(c == ch_y || c == ch_Y)
-            {
-                DOS_WriteFile(STDOUT, &c, &n);
-                DOS_ReadFile(STDIN, &c, &n);
-                do switch(c) {
-                case 0xD: WriteOut("\n"); goto continue_1;
-                case 0x03: dos.dta(save_dta); return;
-                case 0x08: WriteOut("\b \b"); goto first_2;
-                } while(DOS_ReadFile(STDIN, &c, &n));
-            }
-            case 0xD: WriteOut("\n"); goto first_1;
-			case 0x03: dos.dta(save_dta);return;
-			case '\t':
-			case 0x08:
-				goto first_2;
-			default:
-			{
+            do {
+                if(c == ch_n || c == ch_N) {
+                    DOS_WriteFile(STDOUT, &c, &n);
+                    DOS_ReadFile(STDIN, &c, &n);
+                    do switch(c) {
+                    case 0xD: WriteOut("\n"); dos.dta(save_dta); return;
+                    case 0x03: dos.dta(save_dta); return;
+                    case 0x08: WriteOut("\b \b"); goto first_2;
+                    } while(DOS_ReadFile(STDIN, &c, &n));
+                }
+
+                if(c == ch_y || c == ch_Y) {
+                    DOS_WriteFile(STDOUT, &c, &n);
+                    DOS_ReadFile(STDIN, &c, &n);
+                    do switch(c) {
+                    case 0xD: WriteOut("\n"); goto continue_1;
+                    case 0x03: dos.dta(save_dta); return;
+                    case 0x08: WriteOut("\b \b"); goto first_2;
+                    } while(DOS_ReadFile(STDIN, &c, &n));
+                }
+
+                if (c == 0xD) WriteOut("\n"); goto first_1;
+			    if (c == 0x03) dos.dta(save_dta);return;
+			    if (c == '\t' || c == 0x08) goto first_2;
+
 				DOS_WriteFile (STDOUT,&c, &n);
 				DOS_ReadFile (STDIN,&c,&n);
 				do switch (c) {
@@ -590,7 +587,6 @@ first_2:
 					case 0x08: WriteOut("\b \b"); goto first_2;
 				} while (DOS_ReadFile (STDIN,&c,&n));
 				goto first_2;
-			}
 		} while (DOS_ReadFile (STDIN,&c,&n));
 	}
 }
