@@ -486,74 +486,75 @@ void DOS_Shell::CMD_CLS(char * args) {
    } 
 }
 
-void DOS_Shell::CMD_DELETE(char * args) {
-	HELP("DELETE");
-    bool optP=ScanCMDBool(args,"P");
-	bool optF=ScanCMDBool(args,"F");
-	bool optQ=ScanCMDBool(args,"Q");
+void DOS_Shell::CMD_DELETE(char* args) {
+    HELP("DELETE");
+    bool optP = ScanCMDBool(args, "P");
+    bool optF = ScanCMDBool(args, "F");
+    bool optQ = ScanCMDBool(args, "Q");
 
     const char ch_y = MSG_Get("INT21_6523_YESNO_CHARS")[0];
     const char ch_n = MSG_Get("INT21_6523_YESNO_CHARS")[1];
     const char ch_Y = toupper(ch_y);
     const char ch_N = toupper(ch_n);
 
-	// ignore /f, /s, /ar, /as, /ah and /aa switches for compatibility
-	ScanCMDBool(args,"S");
-	ScanCMDBool(args,"AR");
-	ScanCMDBool(args,"AS");
-	ScanCMDBool(args,"AH");
-	ScanCMDBool(args,"AA");
+    // ignore /f, /s, /ar, /as, /ah and /aa switches for compatibility
+    ScanCMDBool(args, "S");
+    ScanCMDBool(args, "AR");
+    ScanCMDBool(args, "AS");
+    ScanCMDBool(args, "AH");
+    ScanCMDBool(args, "AA");
 
-	char * rem=ScanCMDRemain(args);
-	if (rem) {
-		WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"),rem);
-		return;
-	}
-	if (!*args) {
-		WriteOut(MSG_Get("SHELL_MISSING_PARAMETER"));
-		return;
-	}
+    char* rem = ScanCMDRemain(args);
+    if(rem) {
+        WriteOut(MSG_Get("SHELL_ILLEGAL_SWITCH"), rem);
+        return;
+    }
+    if(!*args) {
+        WriteOut(MSG_Get("SHELL_MISSING_PARAMETER"));
+        return;
+    }
 
-	StripSpaces(args);
-	args=trim(args);
+    StripSpaces(args);
+    args = trim(args);
 
-	/* Command uses dta so set it to our internal dta */
-	//DOS_DTA dta(dos.dta());
-	RealPt save_dta=dos.dta();
-	dos.dta(dos.tables.tempdta);
-	DOS_DTA dta(dos.dta());
-	/* If delete accept switches mind the space in front of them. See the dir /p code */ 
+    /* Command uses dta so set it to our internal dta */
+    //DOS_DTA dta(dos.dta());
+    RealPt save_dta = dos.dta();
+    dos.dta(dos.tables.tempdta);
+    DOS_DTA dta(dos.dta());
+    /* If delete accept switches mind the space in front of them. See the dir /p code */
 
-	char full[DOS_PATHLENGTH],sfull[DOS_PATHLENGTH+2];
-	char buffer[CROSS_LEN];
-    char name[DOS_NAMELENGTH_ASCII],lname[LFN_NAMELENGTH+1];
-    uint32_t size,hsize;uint16_t time,date;uint8_t attr;
-	args = ExpandDot(args,buffer, CROSS_LEN, false);
-	StripSpaces(args);
-	if (!DOS_Canonicalize(args,full)) { WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));dos.dta(save_dta);return; }
-	if (strlen(args)&&args[strlen(args)-1]!='\\') {
-		uint16_t fattr;
-		if (strcmp(args,"*.*")&&DOS_GetFileAttr(args, &fattr) && (fattr&DOS_ATTR_DIRECTORY))
-			strcat(args, "\\");
-	}
-	if (strlen(args)&&args[strlen(args)-1]=='\\') strcat(args, "*.*");
-	else if (!strcmp(args,".")||(strlen(args)>1&&(args[strlen(args)-2]==':'||args[strlen(args)-2]=='\\')&&args[strlen(args)-1]=='.')) {
-		args[strlen(args)-1]='*';
-		strcat(args, ".*");
-	} else if (uselfn&&strchr(args, '*')) {
-		char * find_last;
-		find_last=strrchr_dbcs(args,'\\');
-		if (find_last==NULL) find_last=args;
-		else find_last++;
-		if (strlen(find_last)>0&&args[strlen(args)-1]=='*'&&strchr(find_last, '.')==NULL) strcat(args, ".*");
-	}
-	if (!strcmp(args,"*.*")||(strlen(args)>3&&(!strcmp(args+strlen(args)-4, "\\*.*") || !strcmp(args+strlen(args)-4, ":*.*")))) {
-		if (!optQ) {
-first_1:
-			WriteOut(MSG_Get("SHELL_CMD_DEL_SURE"));
-first_2:
-			uint8_t c;uint16_t n=1;
-			DOS_ReadFile (STDIN,&c,&n);
+    char full[DOS_PATHLENGTH], sfull[DOS_PATHLENGTH + 2];
+    char buffer[CROSS_LEN];
+    char name[DOS_NAMELENGTH_ASCII], lname[LFN_NAMELENGTH + 1];
+    uint32_t size, hsize; uint16_t time, date; uint8_t attr;
+    args = ExpandDot(args, buffer, CROSS_LEN, false);
+    StripSpaces(args);
+    if(!DOS_Canonicalize(args, full)) { WriteOut(MSG_Get("SHELL_ILLEGAL_PATH")); dos.dta(save_dta); return; }
+    if(strlen(args) && args[strlen(args) - 1] != '\\') {
+        uint16_t fattr;
+        if(strcmp(args, "*.*") && DOS_GetFileAttr(args, &fattr) && (fattr & DOS_ATTR_DIRECTORY))
+            strcat(args, "\\");
+    }
+    if(strlen(args) && args[strlen(args) - 1] == '\\') strcat(args, "*.*");
+    else if(!strcmp(args, ".") || (strlen(args) > 1 && (args[strlen(args) - 2] == ':' || args[strlen(args) - 2] == '\\') && args[strlen(args) - 1] == '.')) {
+        args[strlen(args) - 1] = '*';
+        strcat(args, ".*");
+    }
+    else if(uselfn && strchr(args, '*')) {
+        char* find_last;
+        find_last = strrchr_dbcs(args, '\\');
+        if(find_last == NULL) find_last = args;
+        else find_last++;
+        if(strlen(find_last) > 0 && args[strlen(args) - 1] == '*' && strchr(find_last, '.') == NULL) strcat(args, ".*");
+    }
+    if(!strcmp(args, "*.*") || (strlen(args) > 3 && (!strcmp(args + strlen(args) - 4, "\\*.*") || !strcmp(args + strlen(args) - 4, ":*.*")))) {
+        if(!optQ) {
+        first_1:
+            WriteOut(MSG_Get("SHELL_CMD_DEL_SURE"));
+        first_2:
+            uint8_t c; uint16_t n = 1;
+            DOS_ReadFile(STDIN, &c, &n);
             do {
                 if(c == ch_n || c == ch_N) {
                     DOS_WriteFile(STDOUT, &c, &n);
@@ -575,100 +576,103 @@ first_2:
                     } while(DOS_ReadFile(STDIN, &c, &n));
                 }
 
-                if (c == 0xD) WriteOut("\n"); goto first_1;
-			    if (c == 0x03) dos.dta(save_dta);return;
-			    if (c == '\t' || c == 0x08) goto first_2;
+                if(c == 0xD) { WriteOut("\n"); goto first_1; }
+                if(c == 0x03) { dos.dta(save_dta); return; }
+                if(c == '\t' || c == 0x08) goto first_2;
 
-				DOS_WriteFile (STDOUT,&c, &n);
-				DOS_ReadFile (STDIN,&c,&n);
-				do switch (c) {
-					case 0xD: WriteOut("\n"); goto first_1;
-					case 0x03: dos.dta(save_dta);return;
-					case 0x08: WriteOut("\b \b"); goto first_2;
-				} while (DOS_ReadFile (STDIN,&c,&n));
-				goto first_2;
-		} while (DOS_ReadFile (STDIN,&c,&n));
-	}
-}
+                DOS_WriteFile(STDOUT, &c, &n);
+                DOS_ReadFile(STDIN, &c, &n);
+                do switch(c) {
+                case 0xD: WriteOut("\n"); goto first_1;
+                case 0x03: dos.dta(save_dta); return;
+                case 0x08: WriteOut("\b \b"); goto first_2;
+                } while(DOS_ReadFile(STDIN, &c, &n));
+                goto first_2;
+            } while(DOS_ReadFile(STDIN, &c, &n));
+        }
+    }
 
 continue_1:
-	/* Command uses dta so set it to our internal dta */
-	if (!DOS_Canonicalize(args,full)) { WriteOut(MSG_Get("SHELL_ILLEGAL_PATH"));dos.dta(save_dta);return; }
-	char path[DOS_PATHLENGTH], spath[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], *r=strrchr_dbcs(full, '\\');
-	if (r!=NULL) {
-		*r=0;
-		strcpy(path, full);
-		strcat(path, "\\");
-		strcpy(pattern, r+1);
-		*r='\\';
-	} else {
-		strcpy(path, "");
-		strcpy(pattern, full);
-	}
-	int k=0;
-	for (int i=0;i<(int)strlen(pattern);i++)
-		if (pattern[i]!='\"')
-			pattern[k++]=pattern[i];
-	pattern[k]=0;
-	strcpy(spath, path);
-	if (strchr(args,'\"')||uselfn) {
-		if (!DOS_GetSFNPath(("\""+std::string(path)+"\\").c_str(), spath, false)) strcpy(spath, path);
-		if (!strlen(spath)||spath[strlen(spath)-1]!='\\') strcat(spath, "\\");
-	}
-	std::string pfull=std::string(spath)+std::string(pattern);
-	int fbak=lfn_filefind_handle;
-	lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
-    bool res=DOS_FindFirst(((uselfn&&pfull.length()&&pfull[0]!='"'?"\"":"")+pfull+(uselfn&&pfull.length()&&pfull[pfull.length()-1]!='"'?"\"":"")).c_str(),0xffff & ~DOS_ATTR_VOLUME);
-	if (!res) {
-		lfn_filefind_handle=fbak;
-		WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),args);
-		dos.dta(save_dta);
-		return;
-	}
-	lfn_filefind_handle=fbak;
-	//end can't be 0, but if it is we'll get a nice crash, who cares :)
-	strcpy(sfull,full);
-	char * end=strrchr_dbcs(full,'\\')+1;*end=0;
-	char * lend=strrchr_dbcs(sfull,'\\')+1;*lend=0;
-	dta=dos.dta();
-	bool exist=false;
-	lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;
-	while (res) {
-		dta.GetResult(name,lname,size,hsize,date,time,attr);
-		if (!optF && (attr & DOS_ATTR_READ_ONLY) && !(attr & DOS_ATTR_DIRECTORY)) {
-			exist=true;
-			strcpy(end,name);
-			strcpy(lend,lname);
-			WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),uselfn?sfull:full);
-		} else if (!(attr & DOS_ATTR_DIRECTORY)) {
-			exist=true;
-			strcpy(end,name);
-			strcpy(lend,lname);
-			if (optP) {
-				WriteOut(MSG_Get("SHELL_CMD_DEL_CONFIRM"), uselfn?sfull:full);
-				uint8_t c;
-				uint16_t n=1;
-				DOS_ReadFile (STDIN,&c,&n);
-				if (c==3) break;
-				c = c==ch_y||c== ch_Y ? ch_Y:ch_N;
-				WriteOut("%c\r\n", c);
-				if (c==ch_N) {lfn_filefind_handle=uselfn?LFN_FILEFIND_INTERNAL:LFN_FILEFIND_NONE;res = DOS_FindNext();continue;}
-			}
-			if (strlen(full)) {
-				std::string pfull=(uselfn||strchr(full, ' ')?(full[0]!='"'?"\"":""):"")+std::string(full)+(uselfn||strchr(full, ' ')?(full[strlen(full)-1]!='"'?"\"":""):"");
-				bool reset=false;
-				if (optF && (attr & DOS_ATTR_READ_ONLY)&&DOS_SetFileAttr(pfull.c_str(), attr & ~DOS_ATTR_READ_ONLY)) reset=true;
-				if (!DOS_UnlinkFile(pfull.c_str())) {
-					if (optF&&reset) DOS_SetFileAttr(pfull.c_str(), attr);
-					WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),uselfn?sfull:full);
-				}
-			} else WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"),uselfn?sfull:full);
-		}
-		res=DOS_FindNext();
-	}
-	lfn_filefind_handle=fbak;
-	if (!exist) WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"),args);
-	dos.dta(save_dta);
+    /* Command uses dta so set it to our internal dta */
+    if(!DOS_Canonicalize(args, full)) { WriteOut(MSG_Get("SHELL_ILLEGAL_PATH")); dos.dta(save_dta); return; }
+    char path[DOS_PATHLENGTH], spath[DOS_PATHLENGTH], pattern[DOS_PATHLENGTH], * r = strrchr_dbcs(full, '\\');
+    if(r != NULL) {
+        *r = 0;
+        strcpy(path, full);
+        strcat(path, "\\");
+        strcpy(pattern, r + 1);
+        *r = '\\';
+    }
+    else {
+        strcpy(path, "");
+        strcpy(pattern, full);
+    }
+    int k = 0;
+    for(int i = 0; i < (int)strlen(pattern); i++)
+        if(pattern[i] != '\"')
+            pattern[k++] = pattern[i];
+    pattern[k] = 0;
+    strcpy(spath, path);
+    if(strchr(args, '\"') || uselfn) {
+        if(!DOS_GetSFNPath(("\"" + std::string(path) + "\\").c_str(), spath, false)) strcpy(spath, path);
+        if(!strlen(spath) || spath[strlen(spath) - 1] != '\\') strcat(spath, "\\");
+    }
+    std::string pfull = std::string(spath) + std::string(pattern);
+    int fbak = lfn_filefind_handle;
+    lfn_filefind_handle = uselfn ? LFN_FILEFIND_INTERNAL : LFN_FILEFIND_NONE;
+    bool res = DOS_FindFirst(((uselfn && pfull.length() && pfull[0] != '"' ? "\"" : "") + pfull + (uselfn && pfull.length() && pfull[pfull.length() - 1] != '"' ? "\"" : "")).c_str(), 0xffff & ~DOS_ATTR_VOLUME);
+    if(!res) {
+        lfn_filefind_handle = fbak;
+        WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"), args);
+        dos.dta(save_dta);
+        return;
+    }
+    lfn_filefind_handle = fbak;
+    //end can't be 0, but if it is we'll get a nice crash, who cares :)
+    strcpy(sfull, full);
+    char* end = strrchr_dbcs(full, '\\') + 1; *end = 0;
+    char* lend = strrchr_dbcs(sfull, '\\') + 1; *lend = 0;
+    dta = dos.dta();
+    bool exist = false;
+    lfn_filefind_handle = uselfn ? LFN_FILEFIND_INTERNAL : LFN_FILEFIND_NONE;
+    while(res) {
+        dta.GetResult(name, lname, size, hsize, date, time, attr);
+        if(!optF && (attr & DOS_ATTR_READ_ONLY) && !(attr & DOS_ATTR_DIRECTORY)) {
+            exist = true;
+            strcpy(end, name);
+            strcpy(lend, lname);
+            WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"), uselfn ? sfull : full);
+        }
+        else if(!(attr & DOS_ATTR_DIRECTORY)) {
+            exist = true;
+            strcpy(end, name);
+            strcpy(lend, lname);
+            if(optP) {
+                WriteOut(MSG_Get("SHELL_CMD_DEL_CONFIRM"), uselfn ? sfull : full);
+                uint8_t c;
+                uint16_t n = 1;
+                DOS_ReadFile(STDIN, &c, &n);
+                if(c == 3) break;
+                c = c == ch_y || c == ch_Y ? ch_Y : ch_N;
+                WriteOut("%c\r\n", c);
+                if(c == ch_N) { lfn_filefind_handle = uselfn ? LFN_FILEFIND_INTERNAL : LFN_FILEFIND_NONE; res = DOS_FindNext(); continue; }
+            }
+            if(strlen(full)) {
+                std::string pfull = (uselfn || strchr(full, ' ') ? (full[0] != '"' ? "\"" : "") : "") + std::string(full) + (uselfn || strchr(full, ' ') ? (full[strlen(full) - 1] != '"' ? "\"" : "") : "");
+                bool reset = false;
+                if(optF && (attr & DOS_ATTR_READ_ONLY) && DOS_SetFileAttr(pfull.c_str(), attr & ~DOS_ATTR_READ_ONLY)) reset = true;
+                if(!DOS_UnlinkFile(pfull.c_str())) {
+                    if(optF && reset) DOS_SetFileAttr(pfull.c_str(), attr);
+                    WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"), uselfn ? sfull : full);
+                }
+            }
+            else WriteOut(MSG_Get("SHELL_CMD_DEL_ERROR"), uselfn ? sfull : full);
+        }
+        res = DOS_FindNext();
+    }
+    lfn_filefind_handle = fbak;
+    if(!exist) WriteOut(MSG_Get("SHELL_CMD_FILE_NOT_FOUND"), args);
+    dos.dta(save_dta);
 }
 
 size_t GetPauseCount() {
