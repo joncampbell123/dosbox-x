@@ -4,6 +4,8 @@ Next:
     means off for IBM compatible mode and on for PC-9821 compatible mode.
     This should allow some DOS games that depend on the linear framebuffer
     to work properly even if memsize=16 or higher.
+  - Fix palette setting bugs due to SETCOLOR fix in 2023.10.06 release.
+    (Issues #4510, #4511, #4534)(maron2000)
 
 2023.10.06
   - Add "VRD" debugger command to force redraw of the VGA screen.
