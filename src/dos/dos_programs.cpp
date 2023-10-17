@@ -9524,7 +9524,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_VHDMAKE_WRITERR", "Could not write to new VHD image \"%s\", aborting.\n");
     MSG_Add("PROGRAM_VHDMAKE_REMOVEERR", "Could not erase file \"%s\"\n");
     MSG_Add("PROGRAM_VHDMAKE_RENAME", "You'll have to manually rename the newly created VHD image.\n");
-    MSG_Add("PROGRAM_VHDMAKE_SUCCESS", "New VHD image succesfully created. You can mount it with \033[34;1mIMGMOUNT\033[0m.\n");
+    MSG_Add("PROGRAM_VHDMAKE_SUCCESS", "New VHD image successfully created. You can mount it with \033[34;1mIMGMOUNT\033[0m.\n");
     MSG_Add("PROGRAM_VHDMAKE_ERROPEN", "Error, could not open image file \"%s\".\n");
     MSG_Add("PROGRAM_VHDMAKE_BADSIZE", "Bad VHD size specified, aborting!\n");
     MSG_Add("PROGRAM_VHDMAKE_FNEEDED", "A pre-existing VHD image can't be silently overwritten without -f option!\n");
@@ -9542,7 +9542,7 @@ void DOS_SetupPrograms(void) {
     MSG_Add("PROGRAM_VHDMAKE_ABSPATH_UX", "ERROR: an absolute path to parent inhibits portability.\nUse a path relative to differencing image file!\n");
     MSG_Add("PROGRAM_VHDMAKE_HELP",
         "Creates Dynamic or Differencing VHD images, converts raw images into Fixed VHD,\n"
-        "shows informations about VHD images and merges them.\n"
+        "shows information about VHD images and merges them.\n"
         "\033[32;1mVHDMAKE\033[0m [-f] new.vhd size[BKMGT]\n"
         "\033[32;1mVHDMAKE\033[0m \033[34;1m-convert\033[0m raw.hdd new.vhd\n"
         "\033[32;1mVHDMAKE\033[0m [-f] \033[34;1m-link\033[0m parent.vhd new.vhd\n"
@@ -9552,7 +9552,7 @@ void DOS_SetupPrograms(void) {
         " -l | -link     create a new Differencing VHD new.vhd and link it to the\n"
         "                pre-existing parent image parent.vhd\n"
         " -f | -force    force overwriting a pre-existing image file\n"
-        " -i | -info     show useful informations about a.vhd image\n"
+        " -i | -info     show useful information about a.vhd image\n"
         " -m | -merge    merge differencing delta.vhd to its parent\n"
         " new.vhd        name of the new Dynamic VHD image to create\n"
         " size           disk size (eventually with size unit, Bytes is implicit)\n"
