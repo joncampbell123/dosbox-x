@@ -948,7 +948,7 @@ bool imageDiskVHD::MergeSnapshot(uint32_t* totalSectorsMerged, uint32_t* totalBl
     }
     LOG_MSG("Merged %d sectors in %d blocks", *totalSectorsMerged, *totalBlocksUpdated);
     if (! ((imageDiskVHD*)parentDisk)->UpdateUUID() )
-        LOG_MSG("Warning: parent UUID not updated, invalid childs could exist around!");
+        LOG_MSG("Warning: parent UUID not updated, invalid children might remain!");
     return true;
 }
 

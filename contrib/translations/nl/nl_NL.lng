@@ -1278,7 +1278,7 @@ You'll have to manually rename the newly created VHD image.
 
 .
 :PROGRAM_VHDMAKE_SUCCESS
-New VHD image succesfully created. You can mount it with ←[34;1mIMGMOUNT←[0m.
+New VHD image successfully created. You can mount it with ←[34;1mIMGMOUNT←[0m.
 
 .
 :PROGRAM_VHDMAKE_ERROPEN
@@ -1355,7 +1355,7 @@ into Fixed VHD.
  -l | -link     create a new Differencing VHD new.vhd and link it to the
                 pre-existing parent image parent.vhd
  -f | -force    force overwriting a pre-existing image file
- -i | -info     show useful informations about a.vhd image
+ -i | -info     show useful information about a.vhd image
  -m | -merge    merge differencing delta.vhd to its parent
  new.vhd        name of the new Dynamic VHD image to create
  size           disk size (eventually with size unit, Bytes is implicit)
