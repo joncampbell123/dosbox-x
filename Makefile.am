@@ -69,10 +69,12 @@ dosbox-x.app: $(MACOS_BINARIES) contrib/macos/dosbox.icns src/tool/mach-o-matic
 	done
 # Remove the signatures from the architecture-dependant executables, and fix their linker search paths.
 	@if [ -f dosbox-x.app/Contents/MacOS/arm64/dosbox-x ]; then \
+		export ARCHPREF=arm64; \
 		codesign --remove-signature dosbox-x.app/Contents/MacOS/arm64/dosbox-x || exit 1; \
 		src/tool/mach-o-matic dosbox-x.app/Contents/MacOS/arm64/dosbox-x || exit 1; \
 	fi
 	@if [ -f dosbox-x.app/Contents/MacOS/x86_64/dosbox-x ]; then \
+		export ARCHPREF=x86_64; \
 		codesign --remove-signature dosbox-x.app/Contents/MacOS/x86_64/dosbox-x || exit 1; \
 		src/tool/mach-o-matic dosbox-x.app/Contents/MacOS/x86_64/dosbox-x || exit 1; \
 	fi
