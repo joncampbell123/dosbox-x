@@ -385,6 +385,7 @@ private:
 	virtual bool loadBlock(const uint32_t blockNumber);
 	static bool convert_UTF16_for_fopen(std::string &string, const void* data, const uint32_t dataLength);
     bool is_zeroed_sector(const void* data);
+	bool is_block_allocated(uint32_t blockNumber);
 
     imageDisk* parentDisk = NULL;
     imageDisk* fixedDisk = NULL;

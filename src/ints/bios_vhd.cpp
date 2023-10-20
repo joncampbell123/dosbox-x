@@ -337,14 +337,23 @@ bool imageDiskVHD::is_zeroed_sector(const void* data) {
     return true;
 }
 
+bool imageDiskVHD::is_block_allocated(uint32_t blockNumber) {
+    if(currentBlockAllocated) return true;
+    if(parentDisk && ((imageDiskVHD*) parentDisk)->is_block_allocated(blockNumber)) return true;
+    return false;
+}
+
 uint8_t imageDiskVHD::Write_AbsoluteSector(uint32_t sectnum, const void * data) {
     if(vhdType == VHD_TYPE_FIXED) return fixedDisk->Write_AbsoluteSector(sectnum, data);
 	uint32_t blockNumber = sectnum / sectorsPerBlock;
 	uint32_t sectorOffset = sectnum % sectorsPerBlock;
 	if (!loadBlock(blockNumber)) return 0x05; //can't load block
 	if (!currentBlockAllocated) {
-        //an unallocated block is kept virtualized until zeroed
-        if(is_zeroed_sector(data)) return 0;
+        //an unallocated block is kept virtual until zeroed
+        if(is_zeroed_sector(data)) {
+            if(vhdType != VHD_TYPE_DIFFERENCING) return 0;
+            if(!is_block_allocated(blockNumber)) return 0;
+        }
 
 		if (!copiedFooter) {
 			//write backup of footer at start of file (should already exist, but we never checked to be sure it is readable or matches the footer we used)
