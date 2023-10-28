@@ -699,7 +699,11 @@ static bool SetCurMode(VideoModeBlock modeblock[],uint16_t mode) {
 		else {
 			if ((!int10.vesa_oldvbe) || (ModeList_VGA[i].mode<0x120)) {
 				CurMode=&modeblock[i];
-				return true;
+#if defined(USE_TTF)
+                if(modeblock[i].type == M_TEXT) ttf_switch_on(false);
+                else ttf_switch_off(false); // Disable TTF output when switching to graphics mode
+#endif
+                return true;
 			}
 			return false;
 		}
@@ -936,7 +940,7 @@ bool INT10_SetVideoMode_OTHER(uint16_t mode,bool clearmem) {
 				LOG(LOG_INT10,LOG_ERROR)("Trying to set illegal mode %X",mode);
 				return false;
 			}
-			break;
+            break;
 		case MCH_MCGA:
 			if (!SetCurMode(ModeList_MCGA,mode)) {
 				LOG(LOG_INT10,LOG_ERROR)("Trying to set illegal mode %X",mode);
