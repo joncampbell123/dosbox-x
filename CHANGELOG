@@ -7,6 +7,8 @@ Next:
   - Fix palette setting bugs due to SETCOLOR fix in 2023.10.06 release.
     (Issues #4510, #4511, #4534)(maron2000)
   - Fix crash when mounting floppy/ISO images with no extension (maron2000)
+  - Fix TTF mode didn't switch to graphics mode on certain types of machines
+    such as tandy/pcjr.(Issue #4559)(maron2000)
 
 2023.10.06
   - Add "VRD" debugger command to force redraw of the VGA screen.
