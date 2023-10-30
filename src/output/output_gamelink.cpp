@@ -16,7 +16,8 @@
 #include "mixer.h"
 #include "mapper.h"
 #include "../gamelink/scancodes_windows.h"
-#include "../output/output_surface.h"
+#include "output/output_surface.h"
+#include "output/output_opengl.h"
 #include <output/output_tools_xbrz.h>
 
 using namespace std;
@@ -36,9 +37,14 @@ void OUTPUT_GAMELINK_Select()
         MessageBoxA( NULL, "ERROR: Game Link output disabled.",
                                 "DOSBox \"Game Link\" Error", MB_OK | MB_ICONSTOP );
 #else // WIN32
+#if defined(MACOSX) && !defined(__arm64__) && C_OPENGL
+        LOG_MSG( "OUTPUT_GAMELINK: Not enabled via `gamelink master = true`, falling back to `output=opengl`." );
+        OUTPUT_OPENGL_Select(GLBilinear);
+#else // MACOSX
         LOG_MSG( "OUTPUT_GAMELINK: Not enabled via `gamelink master = true`, falling back to `output=surface`." );
-#endif // WIN32
         OUTPUT_SURFACE_Select();
+#endif //!MACOSX
+#endif
         return;
     }
 
