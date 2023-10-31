@@ -80,7 +80,7 @@ std::string GetDefaultOutput() {
 # else
     output = "surface";
 # endif
-#elif defined(C_OPENGL) && !(defined(LINUX) && !defined(C_SDL2)) && !(defined(MACOSX) && defined(C_SDL2))
+#elif defined(C_OPENGL) && (!(defined(LINUX) && !defined(C_SDL2)) || (defined(MACOSX) && !defined(__arm64__)))
     /* NTS: Lately, especially on Macbooks with Retina displays, OpenGL gives better performance
             than the CG bitmap-based "surface" output.
 
