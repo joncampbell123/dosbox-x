@@ -342,6 +342,8 @@ extern unsigned int hostkeyalt, sendkeymap;
 extern const char* RunningProgram;
 Bitu CaptureState = 0;
 
+void OPL_SaveRawEvent(bool pressed), SetGameState_Run(int value), ResolvePath(std::string& in);
+
 #define WAVE_BUF 16*1024
 #define MIDI_BUF 4*1024
 
@@ -744,6 +746,24 @@ void CAPTURE_StopMTWave(void) {
 #if !defined(C_EMSCRIPTEN)
 	if (CaptureState & CAPTURE_MULTITRACK_WAVE)
         CAPTURE_MTWaveEvent(true);
+#endif
+}
+
+#if !defined(C_EMSCRIPTEN)
+void CAPTURE_OPLEvent(bool pressed);
+#endif
+
+void CAPTURE_StartOPL(void) {
+#if !defined(C_EMSCRIPTEN)
+	if (!(CaptureState & CAPTURE_OPL))
+        OPL_SaveRawEvent(true);
+#endif
+}
+
+void CAPTURE_StopOPL(void) {
+#if !defined(C_EMSCRIPTEN)
+	if (CaptureState & CAPTURE_OPL)
+        OPL_SaveRawEvent(true);
 #endif
 }
 
@@ -2045,7 +2065,6 @@ void CAPTURE_Destroy(Section *sec) {
 bool enable_autosave = false;
 int autosave_second = 0, autosave_count = 0, autosave_start[10], autosave_end[10], autosave_last[10];
 std::string autosave_name[10];
-void OPL_SaveRawEvent(bool pressed), SetGameState_Run(int value), ResolvePath(std::string& in);
 
 void ParseAutoSaveArg(std::string arg) {
     if (arg.size()) {

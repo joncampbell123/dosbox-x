@@ -2324,10 +2324,11 @@ Voert programma uit met video- of audio-opname.
 
 .
 :SHELL_CMD_DXCAPTURE_HELP_LONG
-DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [commando] [opties]
+DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [O|/-O] [commando] [opties]
 
 Het zal video- of audio-opname starten, het programma uitvoeren en vervolgens
 automatisch stoppen met vastleggen wanneer het programma wordt afgesloten.
+/V voor video, /A voor audio, /M voor multi-track audio en /O voor OPL FM (DROv2 formaat)
 
 .
 :SHELL_CMD_DEBUGBOX_HELP

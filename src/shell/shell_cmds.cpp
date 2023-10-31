@@ -4268,6 +4268,9 @@ void CAPTURE_StopWave(void);
 void CAPTURE_StartMTWave(void);
 void CAPTURE_StopMTWave(void);
 
+void CAPTURE_StartOPL(void);
+void CAPTURE_StopOPL(void);
+
 // Explanation: Start capture, run program, stop capture when program exits.
 //              Great for gameplay footage or demoscene capture.
 //
@@ -4281,6 +4284,7 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
     bool cap_video = false;
     bool cap_audio = false;
     bool cap_mtaudio = false;
+    bool cap_opl = false;
     unsigned long post_exit_delay_ms = 3000; /* 3 sec */
 
     if (!strcmp(args,"-?")) {
@@ -4300,8 +4304,12 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
 			cap_video = false;
 		else if (!(strcmp(arg1,"/A")))
 			cap_audio = true;
+        else if (!(strcmp(arg1,"/O")))
+			cap_opl = true;
 		else if (!(strcmp(arg1,"/-A")))
 			cap_audio = false;
+        else if (!(strcmp(arg1,"/-O")))
+			cap_opl = false;
 		else if (!(strcmp(arg1,"/M")))
 			cap_mtaudio = true;
 		else if (!(strcmp(arg1,"/-M")))
@@ -4312,7 +4320,7 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
 		}
     }
 
-    if (!cap_video && !cap_audio && !cap_mtaudio)
+    if (!cap_video && !cap_audio && !cap_mtaudio && !cap_opl)
         cap_video = true;
 
     if (cap_video)
@@ -4321,6 +4329,8 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
         CAPTURE_StartWave();
     if (cap_mtaudio)
         CAPTURE_StartMTWave();
+    if (cap_opl)
+        CAPTURE_StartOPL();
 
     DoCommand(args);
 
@@ -4363,6 +4373,8 @@ void DOS_Shell::CMD_DXCAPTURE(char * args) {
         CAPTURE_StopWave();
     if (cap_mtaudio)
         CAPTURE_StopMTWave();
+    if (cap_opl)
+        CAPTURE_StopOPL();
 }
 
 void DOS_Shell::CMD_CTTY(char * args) {
