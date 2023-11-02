@@ -601,7 +601,7 @@ void GFX_SelectFontByPoints(int ptsize) {
 
 void SetOutputSwitch(const char *outputstr) {
 #if C_DIRECT3D
-        if (!strcasecmp(outputstr, "direct3d"))
+        if (!strcasecmp(outputstr, "direct3d") || !strcasecmp(outputstr, "auto"))
             switchoutput = 6;
         else
 #endif
@@ -610,7 +610,7 @@ void SetOutputSwitch(const char *outputstr) {
             switchoutput = 5;
         else if (!strcasecmp(outputstr, "openglnb"))
             switchoutput = 4;
-        else if (!strcasecmp(outputstr, "opengl")||!strcasecmp(outputstr, "openglnq"))
+        else if (!strcasecmp(outputstr, "opengl")||!strcasecmp(outputstr, "openglnq") || !strcasecmp(outputstr, "auto"))
             switchoutput = 3;
         else
 #endif
@@ -624,7 +624,7 @@ void OUTPUT_TTF_Select(int fsize) {
     if (!initttf&&TTF_Init()) {											// Init SDL-TTF
         std::string message = "Could not init SDL-TTF: " + std::string(SDL_GetError());
         systemmessagebox("Error", message.c_str(), "ok","error", 1);
-        sdl.desktop.want_type = SCREEN_SURFACE;
+        change_output(switchoutput == -1 ? 0 : switchoutput);
         return;
     }
     int fontSize = 0;
