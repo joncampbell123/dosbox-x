@@ -5928,7 +5928,7 @@ class IMGMOUNT : public Program {
 								FILE* newDisk = fopen_lock(fname, ro ? "rb" : "rb+", ro);
 								if(!newDisk) {
 									if(!qmount) WriteOut("Unable to open '%s'\n", fname);
-									return NULL;
+									return false;
 								}
 								QCow2Image::QCow2Header qcow2_header = QCow2Image::read_header(newDisk);
 								// uint64_t sectors; /* unused */
@@ -5938,7 +5938,7 @@ class IMGMOUNT : public Program {
 									uint32_t cluster_size = 1u << qcow2_header.cluster_bits;
 									if((sizes[0] < 512) || ((cluster_size % sizes[0]) != 0)) {
 										WriteOut("Sector size must be larger than 512 bytes and evenly divide the image cluster size of %lu bytes.\n", cluster_size);
-										return 0;
+										return false;
 									}
 									// sectors = (uint64_t)qcow2_header.size / (uint64_t)sizes[0]; /* unused */
 									imagesize = (uint32_t)(qcow2_header.size / 1024L);
