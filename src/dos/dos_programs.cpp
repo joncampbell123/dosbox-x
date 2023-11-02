@@ -611,7 +611,7 @@ void MenuBrowseFDImage(char drive, int num, int type) {
                 if (imageDiskList[drive-'A']) {
                     imageDiskList[drive-'A']->Release();
                     imageDiskList[drive-'A'] = newDrive->loadedDisk;
-                    imageDiskList[drive-'A']->Addref();
+                    //imageDiskList[drive-'A']->Addref();
                     imageDiskChange[drive-'A'] = true;
                 }
                 if (swapInDisksSpecificDrive == drive-'A' && diskSwap[swapPosition]) {
