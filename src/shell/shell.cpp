@@ -1735,7 +1735,7 @@ void SHELL_Init() {
 	MSG_Add("SHELL_CMD_TRUENAME_HELP","Finds the fully-expanded name for a file.\n");
 	MSG_Add("SHELL_CMD_TRUENAME_HELP_LONG","TRUENAME [/H] file\n");
 	MSG_Add("SHELL_CMD_DXCAPTURE_HELP","Runs program with video or audio capture.\n");
-	MSG_Add("SHELL_CMD_DXCAPTURE_HELP_LONG","DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]\n\nIt will start video or audio capture, run program, and then automatically stop capture when the program exits.\n");
+	MSG_Add("SHELL_CMD_DXCAPTURE_HELP_LONG","DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [/O|/-O] [command] [options]\n\nIt will start video or audio capture, run program, and then automatically stop capture when the program exits.\n /V for video, /A for audio, /M multi-track audio and /O for OPL FM (DROv2 format)");
 #if C_DEBUG
 	MSG_Add("SHELL_CMD_DEBUGBOX_HELP","Runs program and breaks into debugger at entry point.\n");
 	MSG_Add("SHELL_CMD_DEBUGBOX_HELP_LONG","DEBUGBOX [command] [options]\n\nType DEBUGBOX without a parameter to start the debugger.\n");

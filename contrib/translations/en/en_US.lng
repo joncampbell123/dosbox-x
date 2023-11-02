@@ -2328,7 +2328,7 @@ Runs program with video or audio capture.
 DX-CAPTURE [/V|/-V] [/A|/-A] [/M|/-M] [command] [options]
 
 It will start video or audio capture, run program, and then automatically stop capture when the program exits.
-
+/V for video, /A for audio, /M multi-track audio and /O for OPL FM (DROv2 format).
 .
 :SHELL_CMD_DEBUGBOX_HELP
 Runs program and breaks into debugger at entry point.
