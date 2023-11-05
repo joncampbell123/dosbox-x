@@ -8151,7 +8151,8 @@ static void COLOR_ProgramStart(Program * * make) {
     *make=new COLOR;
 }
 
-alt_rgb altBGR[16]={0}, altBGR0[16]={0}, *rgbcolors = (alt_rgb*)render.pal.rgb;
+alt_rgb altBGR[16], altBGR0[16], *rgbcolors = (alt_rgb*)render.pal.rgb;
+bool init_altBGR = false,init_altBGR0 = false;
 
 bool setVGAColor(const char *colorArray, int j) {
     if (!IS_VGA_ARCH||!CurMode) return false;
