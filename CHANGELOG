@@ -4,9 +4,13 @@ Next:
     means off for IBM compatible mode and on for PC-9821 compatible mode.
     This should allow some DOS games that depend on the linear framebuffer
     to work properly even if memsize=16 or higher.
-  - Fix palette setting bugs due to SETCOLOR fix in 2023.10.06 release.
-    (Issues #4510, #4511, #4534)(maron2000)
+  - Fix palette setting bugs due to SETCOLOR fix in 2023.10.06 release. (maron2000)
+      Graphical glitches in Ultima VI(#4507), Chessmaster 3000(#4510), Wizardry VII(#4534) 
+      Crash Sid Meyer's Civilization I (#4511)     
+      TTF color settings regarding 'colors' option (#4579, #3318)
   - Fix crash when mounting floppy/ISO images with no extension (maron2000)
+  - Fix Intel macOS CI builds crashed on startup due to missing dylibs
+    (Issue #4438)(maron2000) 
   - Fix TTF mode didn't switch to graphics mode on certain types of machines
     such as tandy/pcjr.(Issue #4559)(maron2000)
 
