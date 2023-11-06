@@ -61,8 +61,8 @@ uint16_t cpMap_AX[32] = {
 #define MIN_PTSIZE 9
 
 #ifdef _MSC_VER
-# define MIN(a,b) ((a) < (b) ? (a) : (b))
-# define MAX(a,b) ((a) > (b) ? (a) : (b))
+# define MIN(a,b) (std::min)(a,b)
+# define MAX(a,b) (std::max)(a,b)
 #else
 # define MIN(a,b) std::min(a,b)
 # define MAX(a,b) std::max(a,b)
@@ -113,13 +113,14 @@ ttf_cell curAttrChar[txtMaxLins*txtMaxCols];					// currently displayed textpage
 ttf_cell newAttrChar[txtMaxLins*txtMaxCols];					// to be replaced by
 
 extern alt_rgb altBGR0[16];
-alt_rgb altBGR1[16] = {0};
+alt_rgb altBGR1[16];
 int blinkCursor = -1;
 static int prev_sline = -1;
 static int charSet = 0;
 static alt_rgb *rgbColors = (alt_rgb*)render.pal.rgb;
 static bool blinkstate = false;
-bool colorChanged = false, justChanged = false, staycolors = false, firstsize = true, ttfswitch=false, switch_output_from_ttf=false;
+bool colorChanged = false, justChanged = false, staycolors = false, firstsize = true, ttfswitch = false, switch_output_from_ttf = false;
+bool init_once = false, init_twice = false;
 
 int menuwidth_atleast(int width), FileDirExistCP(const char *name), FileDirExistUTF8(std::string &localname, const char *name);
 void AdjustIMEFontSize(void),refreshExtChar(void), initcodepagefont(void), change_output(int output), drawmenu(Bitu val), KEYBOARD_Clear(void), RENDER_Reset(void), DOSBox_SetSysMenu(void), GetMaxWidthHeight(unsigned int *pmaxWidth, unsigned int *pmaxHeight), SetWindowTransparency(int trans), resetFontSize(void), RENDER_CallBack( GFX_CallBackFunctions_t function );
@@ -253,45 +254,42 @@ void setVGADAC() {
 /* NTS: EGA/VGA etc have at least 16 DOS colors. Check also CGA etc. */
 bool setColors(const char *colorArray, int n) {
     if (IS_PC98_ARCH) return false;
-    if (!colorChanged)
-        for (uint8_t i = 0; i < 0x10; i++) {
-            altBGR1[i].red=rgbColors[i].red;
-            altBGR1[i].green=rgbColors[i].green;
-            altBGR1[i].blue=rgbColors[i].blue;
-            altBGR0[i].red=rgbColors[i].red;
-            altBGR0[i].green=rgbColors[i].green;
-            altBGR0[i].blue=rgbColors[i].blue;
-        }
     staycolors = strlen(colorArray) && *colorArray == '+';
     const char* nextRGB = colorArray + (staycolors?1:0);
 	uint8_t * altPtr = (uint8_t *)altBGR1;
 	int32_t rgbVal[4] = {-1,-1,-1,-1};
-	for (int colNo = n>-1?n:0; colNo < (n>-1?n+1:16); colNo++) {
-		if (sscanf(nextRGB, " ( %d , %d , %d)", &rgbVal[0], &rgbVal[1], &rgbVal[2]) == 3) {	// Decimal: (red,green,blue)
-			for (int i = 0; i< 3; i++) {
-				if (rgbVal[i] < 0 || rgbVal[i] > 255)
-					return false;
-			}
-			while (*nextRGB != ')')
-				nextRGB++;
-			nextRGB++;
-		} else if (sscanf(nextRGB, " #%6x", ((uint32_t*)(&rgbVal[3]))) == 1) {							// Hexadecimal
-			if (rgbVal[3] < 0 || rgbVal[3] > 0xFFFFFF)
-				return false;
-			for (int i = 2; i >= 0; i--) {
-				rgbVal[i] = rgbVal[3]&255;
-				rgbVal[3] >>= 8;
-			}
-			nextRGB = strchr(nextRGB, '#') + 7;
-		} else
-			return false;
+    for(int colNo = n > -1 ? n : 0; colNo < (n > -1 ? n + 1 : 16); colNo++) {
+        if(sscanf(nextRGB, " ( %d , %d , %d)", &rgbVal[0], &rgbVal[1], &rgbVal[2]) == 3) {	// Decimal: (red,green,blue)
+            for(int i = 0; i < 3; i++) {
+                if(rgbVal[i] < 0 || rgbVal[i] > 255)
+                    return false;
+            }
+            while(*nextRGB != ')')
+                nextRGB++;
+            nextRGB++;
+        }
+        else if(sscanf(nextRGB, " #%6x", ((uint32_t*)(&rgbVal[3]))) == 1) {	// Hexadecimal
+            if(rgbVal[3] < 0 || rgbVal[3] > 0xFFFFFF)
+                return false;
+            for(int i = 2; i >= 0; i--) {
+                rgbVal[i] = rgbVal[3] & 255;
+                rgbVal[3] >>= 8;
+            }
+            nextRGB = strchr(nextRGB, '#') + 7;
+        }
+        else
+            return false;
+
         altBGR0[colNo].blue = rgbVal[2];
         altBGR0[colNo].green = rgbVal[1];
         altBGR0[colNo].red = rgbVal[0];
         rgbColors[colNo].blue = (uint8_t)rgbVal[2];
         rgbColors[colNo].green = (uint8_t)rgbVal[1];
         rgbColors[colNo].red = (uint8_t)rgbVal[0];
-	}
+        altBGR1[colNo].blue = rgbVal[2];
+        altBGR1[colNo].green = rgbVal[1];
+        altBGR1[colNo].red = rgbVal[0];
+    }
     setVGADAC();
     colorChanged=justChanged=true;
 	return true;
@@ -682,12 +680,17 @@ void OUTPUT_TTF_Select(int fsize) {
             }
         }
         const char * colors = ttf_section->Get_string("colors");
-        if (*colors) {
+        staycolors = strlen(colors) && *colors == '+'; // Always switch to preset value when '+' is specified
+        if ((*colors && (!init_once || !init_twice))|| staycolors) {
             if (!setColors(colors,-1)) {
                 LOG_MSG("Incorrect color scheme: %s", colors);
                 //setColors("#000000 #0000aa #00aa00 #00aaaa #aa0000 #aa00aa #aa5500 #aaaaaa #555555 #5555ff #55ff55 #55ffff #ff5555 #ff55ff #ffff55 #ffffff",-1);
             }
-        } else if (IS_EGAVGA_ARCH) {
+            if(ttf.inUse) init_once = true;
+            if(!init_once) init_once = true;
+            else if(!init_twice) init_twice = true;
+        }
+        else if (IS_EGAVGA_ARCH) {
             alt_rgb *rgbcolors = (alt_rgb*)render.pal.rgb;
             std::string str = "";
             char value[30];
