@@ -344,6 +344,8 @@ public:
     static uint32_t CreateDynamic(const char* filename, uint64_t size);
     static uint32_t CreateDifferencing(const char* filename, const char* basename);
     uint32_t CreateSnapshot();
+    void DetectGeometry(Bitu sizes[]);
+    static uint64_t scanMBR(uint8_t* mbr, Bitu sizes[], uint64_t disksize=0);
     bool MergeSnapshot(uint32_t* totalSectorsMerged, uint32_t* totalBlocksUpdated);
     static void SizeToCHS(uint64_t size, uint16_t* c, uint8_t* h, uint8_t* s);
     bool UpdateUUID();
