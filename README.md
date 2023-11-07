@@ -402,6 +402,7 @@ messages in such languages. Language files can be found in the `languages` direc
 |Chinese (Traditional)|[contrib/translations/zh/zh_TW.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/zh/zh_TW.lng)|
 |French|[contrib/translations/fr/fr_FR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/fr/fr_FR.lng)|
 |German|[contrib/translations/de/de_DE.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/de/de_DE.lng)|
+|Italian|[contrib/translations/it/it_IT.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/it/it_IT.lng)|
 |Japanese|[contrib/translations/ja/ja_JP.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ja/ja_JP.lng)|
 |Korean|[contrib/translations/ko/ko_KR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/ko/ko_KR.lng)|
 |Portuguese (Brazilian)|[contrib/translations/pt/pt_BR.lng](https://github.com/joncampbell123/dosbox-x/blob/master/contrib/translations/pt/pt_BR.lng)|
