@@ -3515,12 +3515,6 @@ restart_int:
             }
             extension[sizeof(extension) - 1] = '\0'; // Terminate string just in case
         }
-        //avoids IMGMOUNT issues, since VHD psuedo-CHS != BPB algorithm (above)
-        //Windows 11 actually does NOT complain, other utilities can
-        if(disktype == "vhd" || !strcasecmp(extension, ".vhd")) {
-            imageDiskVHD::SizeToCHS(size, (uint16_t*) &c, (uint8_t*) &h, (uint8_t*) &s);
-            LOG_MSG("VHD geometry reset conforming to VHD specification");
-        }
         if (!dos_kernel_disabled) WriteOut(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),temp_line.c_str(),c,h,s);
         LOG_MSG(MSG_Get("PROGRAM_IMGMAKE_PRINT_CHS"),temp_line.c_str(),c,h,s);
 
@@ -6163,6 +6157,9 @@ class IMGMOUNT : public Program {
 			fseeko64(diskfile, 0L, SEEK_END);
 			uint32_t fcsize = (uint32_t)(ftello64(diskfile) / 512L);
 			uint8_t buf[512];
+#if 0       // VHD pseudo geometry should be avoided always!
+            // New VHD driver is capable of MBR/BPB analysis.
+
 			// check for vhd signature
 			fseeko64(diskfile, -512, SEEK_CUR);
 			if (fread(buf, sizeof(uint8_t), 512, diskfile)<512) {
@@ -6194,7 +6191,7 @@ class IMGMOUNT : public Program {
 				if (sizes[3]>1023) LOG_MSG("WARNING: cylinders>1023, INT13 will not work unless extensions are used");
 				yet_detected = true;
 			}
-
+#endif
 			fseeko64(diskfile, 0L, SEEK_SET);
 			if (fread(buf, sizeof(uint8_t), 512, diskfile)<512) {
 				fclose(diskfile);

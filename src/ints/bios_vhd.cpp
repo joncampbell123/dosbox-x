@@ -38,7 +38,6 @@
 *
 * Notes:
 * - create instance using Open()
-* - code assumes that c/h/s values stored within VHD file are accurate, and does not scan the MBR
 * - VHDs with 511 byte footers are not yet supported
 * - VHDX files are not supported
 * - checksum values are verified; and the backup header is used if the footer cannot be found or has an invalid checksum
@@ -94,8 +93,9 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 	//check that uniqueId matches
 	if (matchUniqueId && memcmp(matchUniqueId, footer.uniqueId, 16)) { fclose(file); return INVALID_MATCH; }
 	//calculate disk size
-	uint64_t calcDiskSize = (uint64_t)footer.geometry.cylinders * (uint64_t)footer.geometry.heads * (uint64_t)footer.geometry.sectors * (uint64_t)512;
-    if (!calcDiskSize) { fclose(file); return INVALID_DATA; }
+    // WRONG! Max pseudo-CHS is 65535*16*255 or ~127GB, but a VHD can reach 2040GB!
+	//uint64_t calcDiskSize = (uint64_t)footer.geometry.cylinders * (uint64_t)footer.geometry.heads * (uint64_t)footer.geometry.sectors * (uint64_t)512;
+    //if (!calcDiskSize) { fclose(file); return INVALID_DATA; }
 
     //set up imageDiskVHD here
     imageDiskVHD* vhd = new imageDiskVHD();
@@ -103,11 +103,12 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
     vhd->footer = footer;
     vhd->vhdType = footer.diskType;
     vhd->originalFooter = originalfooter;
-    vhd->cylinders = footer.geometry.cylinders;
+    vhd->cylinders = footer.geometry.cylinders; // temporary geometry
     vhd->heads = footer.geometry.heads;
     vhd->sectors = footer.geometry.sectors;
     vhd->sector_size = 512;
-    vhd->diskSizeK = calcDiskSize / 1024;
+    //vhd->diskSizeK = calcDiskSize / 1024;
+    vhd->diskSizeK = footer.currentSize / 1024;
     vhd->diskimg = file;
     vhd->diskname = fileName;
     vhd->hardDrive = true;
@@ -117,11 +118,20 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
     //if fixed image, store a plain imageDisk also
 	if (footer.diskType == VHD_TYPE_FIXED) {
 		//make sure that the image size is at least as big as the geometry
-		if (calcDiskSize > footerPosition) {
+		//if (calcDiskSize > footerPosition) {
+		if (footer.currentSize > footerPosition) {
 			fclose(file);
 			return INVALID_DATA;
 		}
-        vhd->fixedDisk = new imageDisk(file, fileName, footer.geometry.cylinders, footer.geometry.heads, footer.geometry.sectors, 512, true);
+        Bitu sizes[4];
+        uint8_t buf[512];
+        if(fseeko64(file, 0, SEEK_SET)) { fclose(file); return INVALID_DATA; }
+        if(fread(&buf, sizeof(uint8_t), 512, file) != 512) { fclose(file); return INVALID_DATA; }
+        imageDiskVHD::scanMBR(buf, sizes, footer.currentSize);
+        vhd->cylinders = sizes[3];
+        vhd->heads = sizes[2];
+        vhd->sectors = sizes[1];
+        vhd->fixedDisk = new imageDisk(file, fileName, vhd->cylinders, vhd->heads, vhd->sectors, 512, true);
         *disk = vhd;
 		return !readOnly && roflag ? UNSUPPORTED_WRITE : OPEN_SUCCESS;
 	}
@@ -184,7 +194,8 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 		+ 7) / 8) /* convert to bytes and round up to nearest byte; 4096/8 = 512 bytes required */
 		+ 511) / 512); /* convert to sectors and round up to nearest sector; 512/512 = 1 sector */
 	//check that the BAT is large enough for the disk
-	uint32_t tablesRequired = (uint32_t)((calcDiskSize + (dynHeader.blockSize - 1)) / dynHeader.blockSize);
+	//uint32_t tablesRequired = (uint32_t)((calcDiskSize + (dynHeader.blockSize - 1)) / dynHeader.blockSize);
+	uint32_t tablesRequired = (uint32_t)((footer.currentSize + (dynHeader.blockSize - 1)) / dynHeader.blockSize);
 	if (dynHeader.maxTableEntries < tablesRequired) { delete vhd; return INVALID_DATA; }
 	//check that the BAT is contained within the file
 	if (((uint64_t)dynHeader.tableOffset + ((uint64_t)dynHeader.maxTableEntries * (uint64_t)4)) > footerPosition) { delete vhd; return INVALID_DATA; }
@@ -202,6 +213,13 @@ imageDiskVHD::ErrorCodes imageDiskVHD::Open(const char* fileName, const bool rea
 		delete vhd; 
 		return INVALID_DATA; 
 	}
+
+    //detect real DOS geometry (MBR, BPB or default X-255-63)
+    Bitu sizes[4];
+    vhd->DetectGeometry(sizes);
+    vhd->cylinders = sizes[3];
+    vhd->heads = sizes[2];
+    vhd->sectors = sizes[1];
 
 	*disk = vhd;
 	return !readOnly && roflag ? UNSUPPORTED_WRITE : OPEN_SUCCESS;
@@ -774,86 +792,18 @@ uint32_t imageDiskVHD::ConvertFixed(const char* filename) {
         return UNSUPPORTED_SIZE;
     }
 
-    uint8_t mbr[512];
-    bool partFound = false;
     uint32_t STATUS = OPEN_SUCCESS;
-    uint32_t c, h, s;
-    uint32_t heads, spc;
-    uint8_t* part;
+    uint32_t c=0, h=0, s=0;
 
-    //since IMGMOUNT fails when VHD pseudo CHS does not match BPB,
-    //we're coerced doing detection ourselves...
- 
-    //detects recorded geometry (MBR only)
-    fseeko64(vhd, 0, SEEK_SET);
-    if(fread(mbr, 1, 512, vhd) != 512) STATUS = ERROR_OPENING;
-    //search for the first DOS partition
-    for(part = mbr + 0x1BE; part < mbr + 0x1FE; part += 16) {
-        uint8_t partType = *((uint8_t*)(part + 4));
-        if(partType != 1 && partType != 4 && partType != 6 &&
-            partType != 11 && partType != 12 && partType != 14) continue;
-        partFound = true;
-        break;
-    }
-    if (!partFound) {
-        //if there's no DOS partition yet, we create the VHD and MBR geometry
-        SizeToCHS(size, (uint16_t*)&c, (uint8_t*)&h, (uint8_t*)&s);
-    }
-    else {
-        //partition end
-        h = (unsigned)*(part + 5);
-        s = (unsigned)*(part + 6) & 0x3F;
-        c = (unsigned)*(part + 6) & 0xC0 | *(part + 7);
-        //since a MBR partition *should* be aligned to a cylinder boundary,
-        //the last sector CHS reveals total heads and sectors per cylinder
-        heads = h + 1;
-        spc = s;
-        // partition start (0,1,1... what?)
-        h = (unsigned)*(part + 1);
-        s = (unsigned)*(part + 2) & 0x3F;
-        c = (unsigned)*(part + 2) & 0xC0 | *(part + 3);
-        uint64_t lba = ((c * heads + h) * spc + s - 1) * 512;
-        if(lba < 1 || lba > (size - 512)) {
-            LOG_MSG("Bad CHS partition start in MBR");
-            lba = 0;
-        }
-        //prefer LBA, if present (PC-DOS 2.0+ FDISK)
-        if(*((uint32_t*)(part + 8))) {
-            uint64_t lba2 = SDL_SwapLE32(*((uint32_t*)(part + 8))) * 512;
-            if(lba2 < 1 || lba2 > (size - 512)) {
-                LOG_MSG("Bad LBA partition start in MBR");
-                lba2 = 0;
-            }
-            if(!lba && !lba2) {
-                STATUS = ERROR_OPENING;
-            }
-            if(lba != lba2) {
-                LOG_MSG("CHS and LBA partition start differ, using LBA");
-            }
-            if(fseeko64(vhd, (uint64_t)lba, SEEK_SET)) STATUS = ERROR_OPENING;
-        }
+    //we create the VHD pseudo-geometry, since loader parses MBR & BPB
+    SizeToCHS(size, (uint16_t*)&c, (uint8_t*)&h, (uint8_t*)&s);
 
-        if(fseeko64(vhd, (uint64_t)lba, SEEK_SET)) STATUS = ERROR_OPENING;
-        //load FAT boot sector and scan BPB
-        if(fread(mbr, 1, 512, vhd) != 512) STATUS = ERROR_OPENING;
-        uint16_t s2 = *((uint16_t*)(mbr + 0x18));
-        uint16_t h2 = *((uint16_t*)(mbr + 0x1A));
-        if(!s2 || !h2 || s2 > 63 || h2 > 255) {
-            LOG_MSG("Bad geometry detected in FAT BPB, using MBR");
-            s = spc;
-            h = heads;
-        }
-        else {
-            s = s2;
-            h = h2;
-        }
-    }
     //new VHD Footer initialization
     VHDFooter footer;
     footer.SetDefaults();
     footer.dataOffset = 0xFFFFFFFFFFFFFFFF;
     footer.originalSize = footer.currentSize = size;
-    c = size / 512 / (h * s);
+    //c = size / 512 / (h * s);
     footer.geometry.cylinders = (uint16_t)c;
     footer.geometry.heads = (uint8_t)h;
     footer.geometry.sectors = (uint8_t)s;
@@ -862,10 +812,8 @@ uint32_t imageDiskVHD::ConvertFixed(const char* filename) {
     footer.checksum = footer.CalculateChecksum();
     footer.SwapByteOrder();
 
-    if(STATUS == OPEN_SUCCESS) {
-        if(fseeko64(vhd, 0, SEEK_END)) STATUS = ERROR_WRITING;
-        if(fwrite(&footer, 1, 512, vhd) != 512) STATUS = ERROR_WRITING;
-    }
+    if(fseeko64(vhd, 0, SEEK_END)) STATUS = ERROR_WRITING;
+    if(fwrite(&footer, 1, 512, vhd) != 512) STATUS = ERROR_WRITING;
     fclose(vhd);
     return STATUS;
 }
@@ -969,4 +917,113 @@ uint32_t imageDiskVHD::CreateSnapshot() {
     sprintf(name, "{%08x-%08x-%08x-%08x}.vhd", *((uint32_t*)(buf)), *((uint32_t*)(buf+4)), *((uint32_t*)(buf+8)), *((uint32_t*)(buf+12)));
     uint32_t ret = CreateDifferencing(name, diskname.c_str());
     return ret;
+}
+
+//scans MBR & BPB for real disk geometry or returns a default X-255-63 geometry
+void imageDiskVHD::DetectGeometry(Bitu sizes[]) {
+    uint8_t buf[512];
+
+    //load and check MBR
+    Read_AbsoluteSector(0, buf);
+    uint64_t lba = scanMBR(buf, sizes, footer.currentSize);
+    if(lba < 512 || lba > (footer.currentSize - 512)) {
+        LOG_MSG("Bad CHS partition start in MBR");
+        lba = 0;
+    }
+
+    if (lba) {
+        //load FAT boot sector and scan BPB
+        Read_AbsoluteSector(lba / 512, buf);
+        uint16_t s2 = *((uint16_t*)(buf + 0x18));
+        uint16_t h2 = *((uint16_t*)(buf + 0x1A));
+        if(!s2 || !h2 || s2 > 63 || h2 > 255) {
+            LOG_MSG("Bad geometry detected in FAT BPB, using MBR");
+        }
+        else {
+            sizes[0] = 512;
+            sizes[1] = s2;
+            sizes[2] = h2;
+            sizes[3] = footer.currentSize / 512 / s2 / h2;
+        }
+    }
+}
+
+//scans a MBR and returns
+//0 for failure
+//1 for GPT partition
+//absolute starting address for success
+//sizes contains recorded geometry or default one
+uint64_t imageDiskVHD::scanMBR(uint8_t* mbr, Bitu sizes[], uint64_t disksize) {
+    bool partFound = false;
+    uint32_t c, h, s;
+    uint32_t heads, spc;
+    uint8_t* part;
+
+    //default DOS geometry
+    sizes[0] = 512; //default sector size
+    sizes[1] = 63;  //default (max) sectors per track/cylinder
+    sizes[2] = 255; //default (max) heads per track/cylinder
+    sizes[3] = disksize / 512 / 255 / 63;
+
+    //check MBR
+    if(mbr[510] != 0x55 || mbr[511] != 0xAA) {
+        LOG_MSG("Invalid MBR, no signature");
+        return 0;
+    }
+
+    //search for the first DOS partition
+    for(part = mbr + 0x1BE; part < mbr + 0x1FE; part += 16) {
+        uint8_t partType = *((uint8_t*)(part + 4));
+        if(partType != 1 && partType != 4 && partType != 6 &&
+            partType != 11 && partType != 12 && partType != 14) continue;
+        partFound = true;
+        break;
+    }
+    if(!partFound) {
+        LOG_MSG("No DOS partition in MBR");
+        return 0;
+    }
+
+    //partition end
+    h = (unsigned)*(part + 5);
+    s = (unsigned)*(part + 6) & 0x3F;
+    c = (unsigned)*(part + 6) & 0xC0 | *(part + 7);
+    //since a MBR partition *should* be aligned to a cylinder boundary,
+    //the last sector CHS reveals total heads and sectors per cylinder
+    spc = s;
+    heads = h + 1;
+    if(heads > 255 || spc > 63) {
+        LOG_MSG("Bad CHS partition end in MBR");
+        return 0;
+    }
+
+    // partition start (0,1,1... what?)
+    h = (unsigned)*(part + 1);
+    s = (unsigned)*(part + 2) & 0x3F;
+    c = (unsigned)*(part + 2) & 0xC0 | *(part + 3);
+    uint64_t lba = ((c * heads + h) * spc + s - 1) * 512;
+    if(lba < 1) {
+        LOG_MSG("Bad CHS partition start in MBR");
+        lba = 0;
+    }
+    //prefer LBA, if present (PC-DOS 2.0+ FDISK)
+    if(*((uint32_t*)(part + 8))) {
+        uint64_t lba2 = SDL_SwapLE32(*((uint32_t*)(part + 8))) * 512;
+        if(lba2 < 1) {
+            LOG_MSG("Bad LBA partition start in MBR");
+            lba2 = 0;
+        }
+        if(!lba && !lba2) return 0;
+
+        if(lba != lba2) {
+            LOG_MSG("CHS and LBA partition start differ, choosing LBA");
+            if(!lba || lba2) lba = lba2;
+        }
+    }
+    sizes[0] = 512;
+    sizes[1] = spc;
+    sizes[2] = heads;
+    sizes[3] = disksize / 512 / spc / heads;
+
+    return lba;
 }
