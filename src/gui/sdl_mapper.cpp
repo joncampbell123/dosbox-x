@@ -83,7 +83,7 @@
 
 #define MAXSTICKS               8
 #define MAXACTIVE               16
-#define MAXBUTTON               32
+#define MAXBUTTON               96
 #define MAXBUTTON_CAP           16
 #define MAXAXIS                 8
 #define MAXHAT                  2
