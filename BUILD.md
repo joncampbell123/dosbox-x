@@ -103,27 +103,36 @@ sudo make install
     make dosbox-x.app
     ```
 
-* MinGW compile (using MinGW-w64) for Windows Vista/7 or later (SDL1)
-```
-./build-mingw
-```
+* MinGW compile for Windows 7 or later
+  * First install the required libraries needed.  
+    Libraries for mingw32(32-bit)
+    ```
+    pacman -S git make mingw-w64-i686-toolchain mingw-w64-i686-libslirp mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake mingw-w64-i686-ncurses
+    ```
+    Libraries for mingw64(64-bit)
+    ```
+    pacman -S git make mingw-w64-x86_64-toolchain mingw-w64-x86_64-libslirp mingw-w64-x86_64-libtool mingw-w64-x86_64-nasm autoconf automake  mingw-w64-x86_64-ncurses
+    ```
+  * Compile SDL1 (32-bit or 64-bit)
+    ```
+    ./build-mingw
+    ```
+    Compile SDL2 (32-bit or 64-bit)
+    ```
+    ./build-mingw-sdl2
+    ```
 
-* MinGW compile (using MinGW-w64) for Windows Vista/7 or later (SDL2)
-```
-./build-mingw-sdl2
-```
-
-* MinGW compile (using MinGW32, not MinGW-w64) for lower-end systems including Windows XP or later (SDL1)
+* MinGW compile (using MinGW32, not MinGW-w64: see NOTICE below) for lower-end systems including Windows XP or later (SDL1)
 ```
 ./build-mingw-lowend
 ```
 
-* MinGW compile (using MinGW32, not MinGW-w64) for lower-end systems including Windows XP or later (SDL2)
+* MinGW compile (using MinGW32, not MinGW-w64: see NOTICE below) for lower-end systems including Windows XP or later (SDL2)
 ```
 ./build-mingw-lowend-sdl2
 ```
 
-* MinGW compile (using MinGW32, not MinGW-w64) on Windows to target the DOS platform (MS-DOS or compatible with HX DOS Extender)
+* MinGW compile (using MinGW32, not MinGW-w64: see NOTICE below) on Windows to target the DOS platform (MS-DOS or compatible with HX DOS Extender)
 ```
 ./build-mingw-hx-dos
 ```
