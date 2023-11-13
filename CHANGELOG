@@ -13,6 +13,8 @@ Next:
     (Issue #4438)(maron2000) 
   - Fix TTF mode didn't switch to graphics mode on certain types of machines
     such as tandy/pcjr.(Issue #4559)(maron2000)
+  - Fix floppy images lock bug (maxpat78)
+  - Fix VHD geometry bugs by performing MBR analysis (maxpat78)
 
 2023.10.06
   - Add "VRD" debugger command to force redraw of the VGA screen.
