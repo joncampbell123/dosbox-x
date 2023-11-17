@@ -1938,37 +1938,67 @@ void DOSBOX_SetupConfigSections(void) {
     Pstring->Set_help(
         "Aspect ratio correction mode. Can be set to the following values:\n"
         "  'false' (default):\n"
-        "      'direct3d'/opengl outputs: image is simply scaled to full window/fullscreen size, possibly resulting in disproportional image\n"
-        "      'surface' output: it does no aspect ratio correction (default), resulting in disproportional images if VGA mode pixel ratio is not 4:3\n"
+        "      'direct3d'/opengl outputs: image is simply scaled to full\n"
+        "         window/fullscreen size, possibly resulting in dis-\n"
+        "         proportional image\n"
+        "      'surface' output: it does no aspect ratio correction,\n"
+        "         resulting in disproportional images if VGA mode pixel\n"
+        "         ratio is not 4:3 (default)\n"
         "  'true':\n"
-        "      'direct3d'/opengl outputs: uses output driver functions to scale / pad image with black bars, correcting output to proportional 4:3 image\n"
-        "          In most cases image degradation should not be noticeable (it all depends on the video adapter and how much the image is upscaled).\n"
-        "          Should have none to negligible impact on performance, mostly being done in hardware\n"
-        "          For the pixel-perfect scaling (output=openglpp), it is recommended to enable this whenever the emulated display has an aspect ratio of 4:3\n"
-        "      'surface' output: inherits old DOSBox aspect ratio correction method (adjusting rendered image line count to correct output to 4:3 ratio)\n"
-        "          Due to source image manipulation this mode does not mix well with scalers, i.e. multiline scalers like hq2x/hq3x will work poorly\n"
-        "          Slightly degrades visual image quality. Has a tiny impact on performance"
+        "      'direct3d'/opengl outputs: uses output driver functions to\n"
+        "         scale / pad image with black bars, correcting output \n"
+        "         to proportional 4:3 image\n"
+        "         In most cases image degradation should not be noticeable\n"
+        "        (it all depends on the video adapter and how much the image\n"
+        "         is upscaled).\n"
+        "         Should have none to negligible impact on performance,\n"
+        "         mostly being done in hardware.\n"
+        "         For the pixel-perfect scaling (output=openglpp), it is\n"
+        "         recommended to enable this whenever the emulated display\n"
+        "         has an aspect ratio of 4:3\n"
+        "      'surface' output: inherits old DOSBox aspect ratio correction\n"
+        "         method (adjusting rendered image line count to correct\n"
+        "         output to 4:3 ratio)\n"
+        "         Due to source image manipulation this mode does not mix\n"
+        "         well with scalers, i.e. multiline scalers like hq2x/hq3x\n"
+        "         will work poorly\n"
+        "         Slightly degrades visual image quality. Has a tiny impact\n"
+        "         on performance."
 #if C_XBRZ
         "\n"
-        "          When using xBRZ scaler with 'surface' output, aspect ratio correction is done by the scaler itself, so none of the above apply"
+        "         When using xBRZ scaler with 'surface' output, aspect\n"
+        "         ratio correction is done by the scaler itself, so none of\n"
+        "         the above apply."
 #endif
 #if C_SURFACE_POSTRENDER_ASPECT
         "\n"
         "  'nearest':\n"
-        "      'direct3d'/opengl outputs: not available, fallbacks to 'true' mode automatically\n"
-        "      'surface' output: scaler friendly aspect ratio correction, works by rescaling rendered image using nearest neighbor scaler\n"
-        "          Complex scalers work. Image quality is on par with 'true' mode (and better with scalers). More CPU intensive than 'true' mode\n"
+        "      'direct3d'/opengl outputs: not available, fallbacks to 'true'\n"
+        "         mode automatically\n"
+        "      'surface' output: scaler friendly aspect ratio correction, \n"
+        "         works by rescaling rendered image using nearest neighbor\n"
+        "         scaler.\n"
+        "         Complex scalers work. Image quality is on par with 'true'\n"
+        "         mode (and better with scalers). More CPU intensive than\n"
+        "         'true' mode\n"
 #if C_XBRZ
-        "          When using xBRZ scaler with 'surface' output, aspect ratio correction is done by the scaler itself, so it fallbacks to 'true' mode\n"
+        "         When using xBRZ scaler with 'surface' output, aspect\n"
+        "         ratio correction is done by the scaler itself, so it\n"
+        "         falls back to 'true' mode.\n"
 #endif
         "  'bilinear':\n"
-        "      'direct3d'/opengl outputs: not available, fallbacks to 'true' mode automatically\n"
-        "      'surface' output: scaler friendly aspect ratio correction, works by rescaling rendered image using bilinear scaler\n"
-        "          Complex scalers work. Image quality is much better, should be on par with using 'direct3d' output + 'true' mode\n"
-        "          Very CPU intensive, high end CPU may be required"
+        "      'direct3d'/opengl outputs: not available, fallbacks to 'true'\n"
+        "         mode automatically\n"
+        "      'surface' output: scaler friendly aspect ratio correction,\n"
+        "         works by rescaling rendered image using bilinear scaler.\n"
+        "         Complex scalers work. Image quality is much better,\n"
+        "         should be on par with using 'direct3d' output + 'true'\n"
+        "         mode. Very CPU intensive, high end CPU may be required."
 #if C_XBRZ
         "\n"
-        "          When using xBRZ scaler with 'surface' output, aspect ratio correction is done by the scaler itself, so it fallbacks to 'true' mode"
+        "         When using xBRZ scaler with 'surface' output, aspect\n"
+        "         ratio correction is done by the scaler itself, so it\n"
+        "         falls back to 'true' mode."
 #endif
 #endif
     );
@@ -1990,21 +2020,24 @@ void DOSBOX_SetupConfigSections(void) {
     /* NTS: In the original code borrowed from yhkong, this was named "multiscan". All it really does is disable
      *      the doublescan down-rezzing DOSBox normally does with 320x240 graphics so that you get the full rendition of what a VGA output would emit. */
     Pbool = secprop->Add_bool("doublescan",Property::Changeable::Always,true);
-    Pbool->Set_help("If set, doublescanned output emits two scanlines for each source line, in the\n"
-            "same manner as the actual VGA output (320x200 is rendered as 640x400 for example).\n"
+    Pbool->Set_help("If set, doublescanned output emits two scanlines for each source line, "
+            "in the same manner as the actual VGA output (320x200 is rendered as 640x400 for example).\n"
             "If clear, doublescanned output is rendered at the native source resolution (320x200 as 320x200).\n"
-            "This affects the raster PRIOR to the software or hardware scalers. Choose wisely.\n"
+            "This affects the raster PRIOR to the software or hardware scalers.\n"
+            "Setting this option may prevent some scalers to work as expected.\n"
+            "Try turning this option off in such case.\n"
             "For pixel-perfect scaling (output=openglpp), it is recommended to turn this option off.");
     Pbool->SetBasic(true);
 
     Pmulti = secprop->Add_multi("scaler",Property::Changeable::Always," ");
     Pmulti->SetValue("normal2x",/*init*/true);
-    Pmulti->Set_help("Scaler used to enlarge/enhance low resolution modes. If 'forced' is appended,\n"
-                     "then the scaler will be used even if the result might not be desired.\n"
-                     "Appending 'prompt' will cause a confirmation message for forcing the scaler.\n"
-                     "To fit a scaler in the resolution used at full screen may require a border or side bars.\n"
-                     "To fill the screen entirely, depending on your hardware, a different scaler/fullresolution might work.\n"
-                     "Scalers should work with most output options, but they are ignored for openglpp and TrueType font outputs.");
+    Pmulti->Set_help("Scaler used to enlarge/enhance low resolution modes. Add keyword 'forced', "
+            "after the name of the scaler to always use the scaler even if the result might not be desired."
+            "(e.g. 'normal2x forced')\n"
+            "Appending 'prompt' will cause a confirmation message for forcing the scaler.\n"
+            "To fit a scaler in the resolution used at full screen may require a border or side bars.\n"
+            "To fill the screen entirely, depending on your hardware, a different scaler/fullresolution might work.\n"
+            "Scalers should work with most output options, but they are ignored for openglpp and TrueType font outputs.");
     Pmulti->SetBasic(true);
     Pstring = Pmulti->GetSection()->Add_string("type",Property::Changeable::Always,"normal2x");
     Pstring->Set_values(scalers);
@@ -2014,15 +2047,15 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pstring = secprop->Add_path("glshader",Property::Changeable::Always,"none");
     Pstring->Set_help("Path to GLSL shader source to use with OpenGL output (\"none\" to disable, or \"default\" for default shader).\n"
-                    "Can be either an absolute path, a file in the \"glshaders\" subdirectory of the DOSBox-X configuration directory,\n"
-                    "or one of the built-in shaders (e.g. \"sharp\" for the pixel-perfect scaling mode):\n"
-                    "advinterp2x, advinterp3x, advmame2x, advmame3x, rgb2x, rgb3x, scan2x, scan3x, tv2x, tv3x, sharp.");
+            "Can be either an absolute path, a file in the \"glshaders\" subdirectory of the DOSBox-X configuration directory, "
+            "or one of the built-in shaders (e.g. \"sharp\" for the pixel-perfect scaling mode):\n"
+            "advinterp2x, advinterp3x, advmame2x, advmame3x, rgb2x, rgb3x, scan2x, scan3x, tv2x, tv3x, sharp.");
     Pstring->SetBasic(true);
 
     Pmulti = secprop->Add_multi("pixelshader",Property::Changeable::Always," ");
     Pmulti->SetValue("none",/*init*/true);
-    Pmulti->Set_help("Set Direct3D pixel shader program (effect file must be in Shaders subdirectory). If 'forced' is appended,\n"
-        "then the pixel shader will be used even if the result might not be desired.");
+    Pmulti->Set_help("Set Direct3D pixel shader program (effect file must be in Shaders subdirectory). If 'forced' is appended, "
+            "then the pixel shader will be used even if the result might not be desired.");
     Pmulti->SetBasic(true);
 
     Pstring = Pmulti->GetSection()->Add_string("type",Property::Changeable::Always,"none");
@@ -2044,20 +2077,17 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("autofit",Property::Changeable::Always,true);
     Pbool->Set_help(
-        "Best fits image to window\n"
-        "- Intended for output=direct3d, fullresolution=original, aspect=true");
+           "Best fits image to window\n"
+           "  Intended for output=direct3d, fullresolution=original, aspect=true");
     Pbool->SetBasic(true);
 
     Pmulti = secprop->Add_multi("monochrome_pal",Property::Changeable::Always," ");
     Pmulti->SetValue("green",/*init*/true);
     Pmulti->Set_help("Specify the color of monochrome display.\n"
-        "Possible values: green, amber, gray, white\n"
-        "Append 'bright' for a brighter look.");
+            "Append 'bright' for a brighter look.");
     Pmulti->SetBasic(true);
     Pstring = Pmulti->GetSection()->Add_string("color",Property::Changeable::Always,"green");
-    const char* monochrome_pal_colors[]={
-      "green","amber","gray","white",0
-    };
+    const char* monochrome_pal_colors[]={"green","amber","gray","white",0};
     Pstring->Set_values(monochrome_pal_colors);
     Pstring = Pmulti->GetSection()->Add_string("bright",Property::Changeable::Always,"");
     const char* bright[] = { "", "bright", 0 };
@@ -2070,13 +2100,13 @@ void DOSBOX_SetupConfigSections(void) {
 
     Pbool = secprop->Add_bool("pc-98 int 1b fdc timer wait",Property::Changeable::WhenIdle,false);
     Pbool->Set_help("If set, INT 1Bh floppy access will wait for the timer to count down before returning.\n"
-                    "This is needed for Ys II to run without crashing.");
+            "This is needed for Ys II to run without crashing.");
 
     Pbool = secprop->Add_bool("pc-98 pic init to read isr",Property::Changeable::WhenIdle,true);
-    Pbool->Set_help("If set, the programmable interrupt controllers are initialized by default (if PC-98 mode)\n"
-                    "so that the in-service interrupt status can be read immediately. There seems to be a common\n"
-                    "convention in PC-98 games to program and/or assume this mode for cooperative interrupt handling.\n"
-                    "This option is enabled by default for best compatibility with PC-98 games.");
+    Pbool->Set_help("If set, the programmable interrupt controllers are initialized by default (if PC-98 mode) "
+            "so that the in-service interrupt status can be read immediately. There seems to be a common "
+            "convention in PC-98 games to program and/or assume this mode for cooperative interrupt handling. "
+            "This option is enabled by default for best compatibility with PC-98 games.");
 
     Pstring = secprop->Add_string("pc-98 fm board",Property::Changeable::Always,"auto");
     Pstring->Set_values(pc98fmboards);
