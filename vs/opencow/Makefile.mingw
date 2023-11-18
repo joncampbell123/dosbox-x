@@ -1,0 +1,24 @@
+
+
+#ifeq ($(strip $(CXX)),)
+#$(CXX) = i686-w64-mingw32-g++
+#endif
+
+ifeq ($(strip $(CXXFLAGS)),)
+CXXFLAGS = -mwin32 -march=pentium3
+endif
+CXXFLAGS := -DSTATIC_OPENCOW -fno-exceptions -std=gnu++14 -O2 $(CXXFLAGS)
+
+build/%.o: src/%.cpp src/MbcsBuffer.h
+	@mkdir -p build
+	$(CXX) -c $(CXXFLAGS) $< -o $@
+
+build/libopencow.a:	build/advapi32.o  build/comdlg32.o  build/imm32.o  build/kernel32.o \
+				build/msvcrt.o  build/oleacc.o build/sensapi.o build/MbcsBuffer.o \
+				build/shell32.o  build/user32.o  build/winspool.o build/opencow.o
+	$(AR) cr $@ $?
+
+
+.PHONY: clean
+clean:
+	rm -fR build
