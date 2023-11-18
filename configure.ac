@@ -177,6 +177,10 @@ dnl This is how the build script can specify a HX DOS extender target
 AH_TEMPLATE(C_HX_DOS,[Define to 1 to target HX DOS])
 AC_ARG_ENABLE(hx-dos,AC_HELP_STRING([--enable-hx-dos],[Enable HX target]),enable_hx=yes)
 
+dnl This is how the build script can use libopencow for win9x unicode 
+# AH_TEMPLATE(C_OPENCOW,[Define to 1 to enable opencow])
+AC_ARG_ENABLE(opencow,AC_HELP_STRING([--enable-opencow],[Enable OpenCOW]),enable_opencow=yes)
+
 dnl Let me know if you're targeting Emscripten
 AH_TEMPLATE(C_EMSCRIPTEN,[Define to 1 to target Emscripten])
 AC_ARG_ENABLE(emscripten,AC_HELP_STRING([--enable-emscripten],[Enable Emscripten target]),enable_emscripten=$enableval,enable_emscripten=no)
@@ -1273,6 +1277,20 @@ case "$host" in
     ;;
 esac
 fi
+
+dnl LIBRARY USE: opencow
+case "$host" in
+    *-*-cygwin* | *-*-mingw32*)
+    if test x$enable_opencow = xyes; then
+      LIBS="-lopencow $LIBS -lstdc++ -lopencow" #need to put at the first, also better at the last too.
+      LDFLAGS="$LDFLAGS -Wl,--allow-multiple-definition "
+      if test -n "$SDL_LIBS"; then
+        LIBS="${LIBS//-luser32/\-lopencow -luser32}"
+        #SDL_LIBS="${SDL_LIBS//-luser32/\-lopencow -luser32}"
+      fi
+    fi
+    ;;
+esac
 
 dnl BUILD: whether to enable universal binary support
 if test x"$macosx" = x"1" && test x"$host_cpu" = x"arm"; then

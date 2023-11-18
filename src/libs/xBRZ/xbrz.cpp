@@ -359,6 +359,9 @@ template <> inline unsigned char rotateBlendInfo<ROT_90 >(unsigned char b) { ret
 template <> inline unsigned char rotateBlendInfo<ROT_180>(unsigned char b) { return ((b << 4) | (b >> 4)) & 0xff; }
 template <> inline unsigned char rotateBlendInfo<ROT_270>(unsigned char b) { return ((b << 6) | (b >> 2)) & 0xff; }
 
+#if defined(_WIN32_WINDOWS)
+#define NDEBUG
+#endif
 
 #ifndef NDEBUG
     int debugPixelX = -1;

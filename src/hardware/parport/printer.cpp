@@ -100,7 +100,7 @@ void CPrinter::FillPalette(uint8_t redmax, uint8_t greenmax, uint8_t bluemax, ui
 extern std::string prtlist;
 
 void CPrinter::getPrinterContext() {
-#if defined (WIN32)
+#if defined (WIN32) && !defined(_WIN32_WINDOWS)
     if (device.size()&&device!="-") {
         printerDC = CreateDC("WINSPOOL", device.c_str(), NULL, NULL);
         return;
@@ -2569,7 +2569,7 @@ void PRINTER_Init()
 	//IO_RegisterWriteHandler(LPTPORT+2,PRINTER_writecontrol,IO_MB);
 	//IO_RegisterReadHandler(LPTPORT+2,PRINTER_readcontrol,IO_MB);
 
-#if defined(WIN32)
+#if defined(WIN32) && !defined(_WIN32_WINDOWS)
     if (!inited && !strcasecmp(confoutputDevice, "printer")) {
         DWORD dwNeeded = 0, dwReturned = 0;
         bool fnReturn = EnumPrinters(PRINTER_ENUM_LOCAL | PRINTER_ENUM_CONNECTIONS, NULL, 1L, (LPBYTE)NULL, 0L, &dwNeeded, &dwReturned);        PRINTER_INFO_1* pInfo = NULL;

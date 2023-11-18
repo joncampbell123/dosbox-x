@@ -525,9 +525,18 @@ char *__PHYSFS_platformCalcPrefDir(const char *org, const char *app)
     size_t len = 0;
     char *retval = NULL;
 
+    #if !defined(_WIN32_WINDOWS)
     if (!SUCCEEDED(SHGetFolderPathW(NULL, CSIDL_APPDATA | CSIDL_FLAG_CREATE,
                                    NULL, 0, path)))
         BAIL(PHYSFS_ERR_OS_ERROR, NULL);
+    #else
+    {
+        int len = 0;
+        if((len=GetModuleFileNameW(NULL, path, MAX_PATH)) == 0)
+           BAIL(PHYSFS_ERR_OS_ERROR, NULL);
+        while(len > 0 && path[len] != L'\\') path[len--] = L'\0';
+    }
+    #endif
 
     utf8 = unicodeToUtf8Heap(path);
     BAIL_IF_ERRPASS(!utf8, NULL);

@@ -44,7 +44,7 @@
 
 #include "render_scalers.h"
 #include "render_glsl.h"
-#if defined(__SSE__)
+#if defined(__SSE3__)
 #include <xmmintrin.h>
 #include <emmintrin.h>
 #endif
@@ -151,7 +151,7 @@ static void RENDER_EmptyLineHandler(const void * src) {
 /* SSE2 is always available on x86_64 and Elbrus */
 # define sse2_available (1)
 extern bool             avx2_available;
-#elif defined(__SSE__)
+#elif defined(__SSE3__)
 #ifdef __AVX2__
 /* We are building with -mavx2 */
 # define sse2_available (1)
@@ -179,7 +179,7 @@ static inline bool cacheHit_AVX2(const Bitu *src, Bitu *cache, Bits count) {
     }
     return true;
 }
-#endif // __SSE__
+#endif // __SSE3__
 
 /* NTS: In normal conditions, the renderer at the start of the frame
  *      does not call the scaler but instead compares line by line
@@ -204,7 +204,7 @@ static inline bool RENDER_DrawLine_scanline_cacheHit(const void *s) {
         const Bitu *src = (Bitu*)s;
         Bitu *cache = (Bitu*)(render.scale.cacheRead);
         Bits count = (Bits)render.src.start;
-#if defined(__SSE__) && !(defined(_M_AMD64) || defined(__amd64__) || defined(__e2k__))
+#if defined(__SSE3__) && !(defined(_M_AMD64) || defined(__amd64__) || defined(__e2k__))
 #define MY_SIZEOF_INT_P sizeof(*src)
         if (GCC_LIKELY(avx2_available)) {
             if (!cacheHit_AVX2(src, cache, count))
@@ -222,7 +222,7 @@ static inline bool RENDER_DrawLine_scanline_cacheHit(const void *s) {
         }
 #undef MY_SIZEOF_INT_P
         else
-#endif // __SSE__
+#endif // __SSE3__
         {
             while (count) {
                 if (GCC_UNLIKELY(src[0] != cache[0]))

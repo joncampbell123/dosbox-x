@@ -4977,3 +4977,49 @@ private:
 	}
 } dummy;
 }
+
+#if defined(_WIN32_WINDOWS)
+
+//win9x's default msvcrt.dll doesn't have fstat64
+//used by libstdc++
+#include <sys/stat.h>
+#undef _fstat
+extern "C" int __cdecl internal_fstat64(int _FileDes,struct _stat64 *_Stat)
+{
+    struct stat st;
+    //memset(&st,0,sizeof(st));
+    int ret = fstat(_FileDes, &st);
+    if (ret == -1) {
+      memset(_Stat,0,sizeof(*_Stat));
+      return -1;
+    }
+    _Stat->st_dev=st.st_dev;
+    _Stat->st_ino=st.st_ino;
+    _Stat->st_mode=st.st_mode;
+    _Stat->st_nlink=st.st_nlink;
+    _Stat->st_uid=st.st_uid;
+    _Stat->st_gid=st.st_gid;
+    _Stat->st_rdev=st.st_rdev;
+    _Stat->st_size=(_off_t) st.st_size;
+    _Stat->st_atime=st.st_atime;
+    _Stat->st_mtime=st.st_mtime;
+    _Stat->st_ctime=st.st_ctime;
+    return ret;
+}
+extern "C" int __cdecl (*__MINGW_IMP_SYMBOL(_fstat64))(int,struct _stat64*) = internal_fstat64;
+
+//win9x's default msvcrt.dll doesn't have strtoll/strtoull/strtoi64
+//libstdc++ (__USE_MINGW_ANSI_STDIO=1)
+//strtoll = _strtoi64
+//*scanf -> __mingw_*scanf -> strtoll 
+extern "C" long long  __cdecl strtoll(const char * __restrict__ str, char ** __restrict ptr, int base)
+{
+    return strtol(str, ptr, base);
+}
+
+extern "C" unsigned long long  __cdecl strtoull(const char * __restrict__ str, char ** __restrict ptr, int base)
+{
+    return strtoul(str, ptr, base);
+}
+
+#endif

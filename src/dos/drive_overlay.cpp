@@ -1124,7 +1124,7 @@ again:
 	find_size=(uint32_t) (stat_block.st_size % 0x100000000);
 	struct tm *time;
 	if((time=
-#if defined(__MINGW32__) && !defined(HX_DOS)
+#if defined(__MINGW32__) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     _localtime64
 #else
     localtime
@@ -2075,7 +2075,7 @@ bool Overlay_Drive::FileStat(const char* name, FileStat_Block * const stat_block
 	/* Convert the stat to a FileStat */
 	struct tm *time;
 	if((time=
-#if defined(__MINGW32__) && !defined(HX_DOS)
+#if defined(__MINGW32__) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     _localtime64
 #else
     localtime

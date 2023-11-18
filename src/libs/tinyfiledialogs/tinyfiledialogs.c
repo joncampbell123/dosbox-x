@@ -100,6 +100,10 @@ Thanks for contributions, bug corrections & thorough testing to:
 #endif
 #define LOW_MULTIPLE_FILES 32
 
+#if defined(_WIN32_WINDOWS)
+#define GetConsoleWindow() FALSE
+#endif
+
 char tinyfd_version[8] = "3.13.3";
 
 /******************************************************************************************************/

@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+
+# I'm sick and tired of all the churn the three versions of autoconf
+# are causing in this repo. Stop committing the configure scripts
+# and just autoregen.
+./autogen.sh || exit 1
+
+# where are we?
+top=$(pwd)
+if test -z "${top}" ; then exit 1; fi
+
+# fix
+chmod +x vs/sdl/build-scripts/strip_fPIC.sh
+
+LOWEND9X_FLAGS=" -D_WIN32_WINDOWS=0x0400 -D_FILE_OFFSET_BITS=32 -D__USE_MINGW_ANSI_STDIO=1 -mwin32 -march=pentium3 "
+
+CFLAGS="${LOWEND9X_FLAGS} ${CFLAGS}"
+CXXFLAGS="${LOWEND9X_FLAGS} ${CXXFLAGS}"
+CPPFLAGS="${LOWEND9X_FLAGS} ${CPPFLAGS}"
+export CFLAGS CPPFLAGS CXXFLAGS
+
+# prefer to compile against our own copy of SDL 1.x
+echo "Compiling our internal SDL 1.x"
+(cd vs/sdl && ./build-dosbox.sh) || exit 1
+
+# prefer to compile against our own copy of SDLnet 1.x
+echo "Compiling our internal SDLnet 1.x"
+(cd vs/sdlnet && ./build-dosbox.sh) || exit 1
+
+# NTS: MinGW provides zlib for us
+if false; then
+	# prefer to compile against our own zlib
+	echo "Compiling our internal zlib"
+	(cd vs/zlib && ./build-dosbox.sh) || exit 1
+	new="-I${top}/vs/zlib/linux-host/include "
+	nld="-L${top}/vs/zlib/linux-host/lib "
+	CFLAGS="${new}${CFLAGS}"
+	LDFLAGS="${nld}${LDFLAGS}"
+	CPPFLAGS="${new}${CPPFLAGS}"
+	CXXFLAGS="${new}${CXXFLAGS}"
+	export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS
+fi
+
+# prefer to compile against our own libpng (comment this out to disable)
+echo "Compiling our internal libpng"
+(cd vs/libpng && ./build-dosbox.sh) || exit 1
+new="-I${top}/vs/libpng/linux-host/include "
+nld="-L${top}/vs/libpng/linux-host/lib "
+CFLAGS="${new}${CFLAGS}"
+LDFLAGS="${nld}${LDFLAGS}"
+CPPFLAGS="${new}${CPPFLAGS}"
+CXXFLAGS="${new}${CXXFLAGS}"
+export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS
+
+# prefer to compile against our own freetype
+echo "Compiling our internal freetype"
+(cd vs/freetype && ./build-dosbox.sh) || exit 1
+new="-I${top}/vs/freetype/linux-host/include/freetype2 "
+nld="-L${top}/vs/freetype/linux-host/lib -lfreetype "
+CFLAGS="${new}${CFLAGS}"
+LDFLAGS="${nld}${LDFLAGS}"
+CPPFLAGS="${new}${CPPFLAGS}"
+CXXFLAGS="${new}${CXXFLAGS}"
+INTERNAL_FREETYPE=1
+export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS INTERNAL_FREETYPE
+
+# build opencow for win9x unicode
+echo "Compiling opencow"
+(cd vs/opencow && make -f ./Makefile.mingw) || exit 1
+nld=" -L${top}/vs/opencow/build " #-Wl,--allow-multiple-definition "
+LDFLAGS="${nld}${LDFLAGS}"
+#LIBS=" -lopencow ${LIBS} " # should be the first one before all win32 libs.
+export LDFLAGS #LIBS
+
+# now compile ourself
+echo "Compiling DOSBox-X"
+chmod +x configure
+# FIXME: I would like MinGW builds to enable the debugger, eventually
+./configure --disable-libfluidsynth --disable-libslirp --enable-d3d9=no --enable-d3d-shaders=no --prefix=/usr --enable-xbrz=no --disable-printer --disable-largefile --enable-opencow "${@}" || exit 1
+make -j3 || exit 1

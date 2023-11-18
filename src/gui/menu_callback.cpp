@@ -2306,7 +2306,7 @@ bool video_frameskip_common_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::it
 bool show_console_menu_callback(DOSBoxMenu * const menu,DOSBoxMenu::item * const menuitem) {
     (void)menu;//UNUSED
     (void)menuitem;//UNUSED
-#if !defined(C_EMSCRIPTEN) && defined(WIN32) && !defined(HX_DOS)
+#if !defined(C_EMSCRIPTEN) && defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
 #if C_DEBUG
     bool DEBUG_IsDebuggerConsoleVisible(void);
     if (DEBUG_IsDebuggerConsoleVisible())

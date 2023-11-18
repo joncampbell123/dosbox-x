@@ -93,7 +93,7 @@
   #if __has_builtin(__builtin_ia32_pabsd256)
     #define FLAC__AVX2_SUPPORTED 1
   #endif
-#elif defined __GNUC__ && !defined __clang__ && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)) /* GCC 4.9+ */
+#elif defined __GNUC__ && !defined __clang__ && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)) /* GCC 4.9+ */ && !defined(_WIN32_WINDOWS)
   #define FLAC__SSE_TARGET(x) __attribute__ ((__target__ (x)))
   #define FLAC__SSE_SUPPORTED 1
   #define FLAC__SSE2_SUPPORTED 1
