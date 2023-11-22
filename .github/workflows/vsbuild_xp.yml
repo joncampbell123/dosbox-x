@@ -97,7 +97,9 @@ jobs:
           cp $top/contrib/glshaders/* $top/package/glshaders/
           cp $top/contrib/translations/*/*.lng $top/package/languages/
           cp $top/COPYING $top/package/COPYING
-          '${{ github.workspace }}/vs/tool/zip.exe' -r -9 '${{ github.workspace }}/dosbox-x-vsbuild-XP-${{ env.timestamp }}.zip' '${{ github.workspace }}/package/*'
+          cd $top/package/
+          $top/vs/tool/zip.exe -r -9 $top/dosbox-x-vsbuild-XP-${{ env.timestamp }}.zip *
+          cd $top
       - name: Upload preview package
         uses: actions/upload-artifact@v3.1.3
         with:
