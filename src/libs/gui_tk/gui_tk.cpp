@@ -36,6 +36,7 @@
 #include "dos_inc.h"
 
 #include <SDL.h>
+#include "logging.h"
 #include "gui_tk.h"
 
 #include <math.h> /* floor */
@@ -1835,78 +1836,142 @@ static MouseButton SDL_to_GUI(const int button)
 static GUI::Char SDLSymToChar(const SDL_Keysym &key) {
     /* SDL will not uppercase the char for us with shift, etc. */
     /* Additionally we have to filter out non-char values */
-    if (key.sym == 0 || key.sym > 0x7f) return 0;
-
-    GUI::Char ret = key.sym;
-
-    if (key.mod & KMOD_SHIFT) {
+    GUI::Char ret = key.scancode;
+    bool is_shift = (key.mod & KMOD_SHIFT) > 0; /* True if Shift key is pressed */
+    bool is_caps = (key.mod & KMOD_CAPS) > 0;   /* True if caps lock is enabled */
+    bool is_num = (key.mod & KMOD_NUM) > 0; /* True if NumLock is enabled */
+    if (key.sym < 0x40000000){ // key.sym of printable characters are < 0x40000000 except for those of Keypad 
         switch (ret) {
-            case '[':
-                ret = (GUI::Char)('{');
+            case 45: // '-'
+                ret = is_shift ? (GUI::Char)('_') : (GUI::Char)('-');
                 break;
-            case ']':
-                ret = (GUI::Char)('}');
+            case 46: // '='
+                ret = is_shift ? (GUI::Char)('+') : (GUI::Char)('=');
                 break;
-            case '\\':
-                ret = (GUI::Char)('|');
+            case 47: // '['
+                ret = is_shift ? (GUI::Char)('{') : (GUI::Char)('[');
                 break;
-            case ';':
-                ret = (GUI::Char)(':');
+            case 48: // ']'
+                ret = is_shift ? (GUI::Char)('}') : (GUI::Char)(']');
                 break;
-            case '\'':
-                ret = (GUI::Char)('"');
+            case 49: // '\\'
+                ret = is_shift ? (GUI::Char)('|') : (GUI::Char)('\\');
                 break;
-            case ',':
-                ret = (GUI::Char)('<');
+            //case 50: /* FIX_ME: Key with this scancode is not known. Please report if character is not correct */
+            case 51: //';'
+                ret = is_shift ? (GUI::Char)(':') : (GUI::Char)(';');
                 break;
-            case '.':
-                ret = (GUI::Char)('>');
+            case 52: //'\''
+                ret = is_shift ? (GUI::Char)('"') : (GUI::Char)('\'');
                 break;
-            case '/':
-                ret = (GUI::Char)('?');
+            case 53: //'`'
+                ret = is_shift ? (GUI::Char)('~') : (GUI::Char)('`');
                 break;
-            case '-':
-                ret = (GUI::Char)('_');
+            case 54: //','
+                ret = is_shift ? (GUI::Char)('<') : (GUI::Char)(',');
                 break;
-            case '=':
-                ret = (GUI::Char)('+');
+            case 55: //'.'
+                ret = is_shift ? (GUI::Char)('>') : (GUI::Char)('.');
                 break;
-            case '1':
-                ret = (GUI::Char)('!');
+            case 56: //'/'
+                ret = is_shift ? (GUI::Char)('?') : (GUI::Char)('/');
                 break;
-            case '2':
-                ret = (GUI::Char)('@');
+            case 135: // Int'l 5
+                ret = is_shift ? (GUI::Char)('_') : (GUI::Char)('\\');
                 break;
-            case '3':
-                ret = (GUI::Char)('#');
+            case 137: // JP Yen
+                ret = is_shift ? (GUI::Char)('|') : (GUI::Char)('\\');
                 break;
-            case '4':
-                ret = (GUI::Char)('$');
+            case 30:
+                ret = is_shift ? (GUI::Char)('!') : (GUI::Char)('1');
                 break;
-            case '5':
-                ret = (GUI::Char)('%');
+            case 31:
+                ret = is_shift ? (GUI::Char)('@') : (GUI::Char)('2');
                 break;
-            case '6':
-                ret = (GUI::Char)('^');
+            case 32:
+                ret = is_shift ? (GUI::Char)('#') : (GUI::Char)('3');
                 break;
-            case '7':
-                ret = (GUI::Char)('&');
+            case 33:
+                ret = is_shift ? (GUI::Char)('$') : (GUI::Char)('4');
                 break;
-            case '8':
-                ret = (GUI::Char)('*');
+            case 34:
+                ret = is_shift ? (GUI::Char)('%') : (GUI::Char)('5');
                 break;
-            case '9':
-                ret = (GUI::Char)('(');
+            case 35:
+                ret = is_shift ? (GUI::Char)('^') : (GUI::Char)('6');
                 break;
-            case '0':
-                ret = (GUI::Char)(')');
+            case 36:
+                ret = is_shift ? (GUI::Char)('&') : (GUI::Char)('7');
+                break;
+            case 37:
+                ret = is_shift ? (GUI::Char)('*') : (GUI::Char)('8');
+                break;
+            case 38:
+                ret = is_shift ? (GUI::Char)('(') : (GUI::Char)('9');
+                break;
+            case 39: //'0'
+                ret = is_shift ? (GUI::Char)(')') : (GUI::Char)('0');
                 break;
             default:
-                ret = (GUI::Char)toupper((int)ret);
+                if(ret == 50) LOG_MSG("gui_tk: scancode 0x50 sym=%x", key.sym);
+                ret = (is_shift ^ is_caps) ? (GUI::Char)toupper((int)key.sym) : key.sym;
                 break;
         }
+    } else {
+        switch(ret){
+            case 53:
+                ret = is_shift ? (GUI::Char)('~') : (GUI::Char)('`'); // Zenkaku/Hankaku
+                break;
+            case 84:
+                ret = (GUI::Char)('/');
+                break;
+            case 85:
+                ret = (GUI::Char)('*');
+                break;
+            case 86:
+                ret = (GUI::Char)('-');
+                break;
+            case 87:
+                ret = (GUI::Char)('+');
+                break;
+         // case 88: /* Kp enter */
+            case 89:
+                ret = (is_num && !is_shift) ? (GUI::Char)('1') : 0;
+                break;
+            case 90:
+                ret = (is_num && !is_shift) ? (GUI::Char)('2') : 0;
+                break;
+            case 91:
+                ret = (is_num && !is_shift) ? (GUI::Char)('3') : 0;
+                break;
+            case 92:
+                ret = (is_num && !is_shift) ? (GUI::Char)('4') : 0;
+                break;
+            case 93:
+                ret = (is_num && !is_shift) ? (GUI::Char)('5') : 0;
+                break;
+            case 94:
+                ret = (is_num && !is_shift) ? (GUI::Char)('6') : 0;
+                break;
+            case 95:
+                ret = (is_num && !is_shift) ? (GUI::Char)('7') : 0;
+                break;
+            case 96:
+                ret = (is_num && !is_shift) ? (GUI::Char)('8') : 0;
+                break;
+            case 97:
+                ret = (is_num && !is_shift) ? (GUI::Char)('9') : 0;
+                break;
+            case 98:
+                ret = (is_num && !is_shift) ? (GUI::Char)('0') : 0;
+                break;
+            case 99:
+                ret = (is_num && !is_shift) ? (GUI::Char)('.') : 0;
+                break;
+            default:
+                ret = 0; // ignore all other keys as non-printable
+            }
     }
-
     return ret;
 }
 #endif
@@ -1939,6 +2004,7 @@ static const Key SDL_to_GUI(const SDL_keysym &key)
 	case SDLK_DELETE: ksym = GUI::Key::Delete; break;
 	case SDLK_INSERT: ksym = GUI::Key::Insert; break;
 	case SDLK_RETURN: ksym = GUI::Key::Enter; break;
+    case SDLK_KP_ENTER: ksym = GUI::Key::Enter; break;
 	case SDLK_MENU: ksym = GUI::Key::Menu; break;
 	case SDLK_PAGEUP: ksym = GUI::Key::PageUp; break;
 	case SDLK_PAGEDOWN: ksym = GUI::Key::PageDown; break;
@@ -1979,7 +2045,7 @@ static const Key SDL_to_GUI(const SDL_keysym &key)
         break;
 	}
 #if defined(C_SDL2)
-	return Key(SDLSymToChar(key), ksym,
+    return Key(SDLSymToChar(key), ksym,
 		(key.mod&KMOD_SHIFT)>0,
 		(key.mod&KMOD_CTRL)>0,
 		(key.mod&KMOD_ALT)>0,
@@ -2140,6 +2206,7 @@ bool ScreenSDL::event(SDL_Event &event) {
 	}
 	case SDL_KEYDOWN: {
 		const Key &key = SDL_to_GUI(event.key.keysym);
+        //LOG_MSG("scancode=%x, sim=%x", event.key.keysym.scancode, event.key.keysym.sym);
 		if (key.special == GUI::Key::None && key.character == 0) break;
 		rc = keyDown(key);
 		if (key.special == GUI::Key::CapsLock || key.special == GUI::Key::NumLock) keyUp(key);
