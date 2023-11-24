@@ -36,6 +36,7 @@
 #include "dos_inc.h"
 
 #include <SDL.h>
+#include "logging.h"
 #include "gui_tk.h"
 
 #include <math.h> /* floor */
@@ -1837,76 +1838,83 @@ static GUI::Char SDLSymToChar(const SDL_Keysym &key) {
     /* Additionally we have to filter out non-char values */
     if (key.sym == 0 || key.sym > 0x7f) return 0;
 
-    GUI::Char ret = key.sym;
-
-    if (key.mod & KMOD_SHIFT) {
-        switch (ret) {
-            case '[':
-                ret = (GUI::Char)('{');
-                break;
-            case ']':
-                ret = (GUI::Char)('}');
-                break;
-            case '\\':
-                ret = (GUI::Char)('|');
-                break;
-            case ';':
-                ret = (GUI::Char)(':');
-                break;
-            case '\'':
-                ret = (GUI::Char)('"');
-                break;
-            case ',':
-                ret = (GUI::Char)('<');
-                break;
-            case '.':
-                ret = (GUI::Char)('>');
-                break;
-            case '/':
-                ret = (GUI::Char)('?');
-                break;
-            case '-':
-                ret = (GUI::Char)('_');
-                break;
-            case '=':
-                ret = (GUI::Char)('+');
-                break;
-            case '1':
-                ret = (GUI::Char)('!');
-                break;
-            case '2':
-                ret = (GUI::Char)('@');
-                break;
-            case '3':
-                ret = (GUI::Char)('#');
-                break;
-            case '4':
-                ret = (GUI::Char)('$');
-                break;
-            case '5':
-                ret = (GUI::Char)('%');
-                break;
-            case '6':
-                ret = (GUI::Char)('^');
-                break;
-            case '7':
-                ret = (GUI::Char)('&');
-                break;
-            case '8':
-                ret = (GUI::Char)('*');
-                break;
-            case '9':
-                ret = (GUI::Char)('(');
-                break;
-            case '0':
-                ret = (GUI::Char)(')');
-                break;
-            default:
-                ret = (GUI::Char)toupper((int)ret);
-                break;
-        }
+    //GUI::Char ret = key.sym;
+    GUI::Char ret = key.scancode;
+    bool is_shift = key.mod & KMOD_SHIFT;
+    switch (ret) {
+        case 45: //'-'
+            ret = is_shift ? (GUI::Char)('_') : (GUI::Char)('-');
+            break;
+        case 46: //'='
+            ret = is_shift ? (GUI::Char)('+') : (GUI::Char)('=');
+            break;
+        case 47:
+            ret = is_shift ? (GUI::Char)('{') : (GUI::Char)('[');
+            break;
+        case 48:
+            ret = is_shift ? (GUI::Char)('}') : (GUI::Char)(']');
+            break;
+        case 49:
+            ret = is_shift ? (GUI::Char)('|') : (GUI::Char)('\\');
+            break;
+        case 51: //';'
+            ret = is_shift ? (GUI::Char)(':') : (GUI::Char)(';');
+            break;
+        case 52: //'\''
+            ret = is_shift ? (GUI::Char)('"') : (GUI::Char)('\'');
+            break;
+        case 53: //'`'
+            ret = is_shift ? (GUI::Char)('~') : (GUI::Char)('`');
+            break;
+        case 54: //','
+            ret = is_shift ? (GUI::Char)('<') : (GUI::Char)(',');
+            break;
+        case 55: //'.'
+            ret = is_shift ? (GUI::Char)('>') : (GUI::Char)('.');
+            break;
+        case 56: //'/'
+            ret = is_shift ? (GUI::Char)('?') : (GUI::Char)('/');
+            break;
+        case 100: //Intl 5
+            ret = is_shift ? (GUI::Char)('_') : (GUI::Char)('\\');
+            break;
+        case 137: //JP Yen
+            ret = is_shift ? (GUI::Char)('|') : (GUI::Char)('\\');
+            break;
+        case 30:
+            ret = is_shift ? (GUI::Char)('!') : (GUI::Char)('1');
+            break;
+        case 31:
+            ret = is_shift ? (GUI::Char)('@') : (GUI::Char)('2');
+            break;
+        case 32:
+            ret = is_shift ? (GUI::Char)('#') : (GUI::Char)('3');
+            break;
+        case 33:
+            ret = is_shift ? (GUI::Char)('$') : (GUI::Char)('4');
+            break;
+        case 34:
+            ret = is_shift ? (GUI::Char)('%') : (GUI::Char)('5');
+            break;
+        case 35:
+            ret = is_shift ? (GUI::Char)('^') : (GUI::Char)('6');
+            break;
+        case 36:
+            ret = is_shift ? (GUI::Char)('&') : (GUI::Char)('7');
+            break;
+        case 37:
+            ret = is_shift ? (GUI::Char)('*') : (GUI::Char)('8');
+            break;
+        case 38:
+            ret = is_shift ? (GUI::Char)('(') : (GUI::Char)('9');
+            break;
+        case 39: //'0'
+            ret = is_shift ? (GUI::Char)(')') : (GUI::Char)('0');
+            break;
+        default:
+            ret = is_shift ? (GUI::Char)toupper((int)key.sym) : key.sym;
+            break;
     }
-
     return ret;
 }
 #endif
@@ -2140,6 +2148,7 @@ bool ScreenSDL::event(SDL_Event &event) {
 	}
 	case SDL_KEYDOWN: {
 		const Key &key = SDL_to_GUI(event.key.keysym);
+        LOG_MSG("scancode=%x, sim=%x", event.key.keysym.scancode, event.key.keysym.sym);
 		if (key.special == GUI::Key::None && key.character == 0) break;
 		rc = keyDown(key);
 		if (key.special == GUI::Key::CapsLock || key.special == GUI::Key::NumLock) keyUp(key);
