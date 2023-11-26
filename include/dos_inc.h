@@ -390,7 +390,7 @@ static INLINE uint16_t DOS_PackDate(uint16_t year,uint16_t mon,uint16_t day) {
 
 
 /* Remains some classes used to access certain things */
-#define sOffset(s,m) ((char*)&(((s*)NULL)->m)-(char*)NULL)
+#define sOffset(s,m) offsetof(s,m)
 #define sGet(s,m) GetIt(sizeof(((s *)&pt)->m),(PhysPt)sOffset(s,m))
 #define sSave(s,m,val) SaveIt(sizeof(((s *)&pt)->m),(PhysPt)sOffset(s,m),val)
 
