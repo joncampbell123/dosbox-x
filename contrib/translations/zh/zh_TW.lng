@@ -1254,10 +1254,10 @@ yn
 :PROGRAM_LABEL_HELP
 建立、變更或刪除磁碟機中的磁碟區標籤.
 
-LABEL [drive:][label]
+LABEL [磁碟機:][標籤]
 
-  [drive:]	指定磁碟機代號
-  [label]	指定磁碟區標籤
+  [磁碟機:]	指定磁碟機代號
+  [標籤]	指定磁碟區標籤
 
 .
 :PROGRAM_LABEL_DELETE
