@@ -40,7 +40,9 @@
 #include <windows.h>
 #include <wchar.h>
 #include <direct.h>
+#if defined(__MINGW64_VERSION_MAJOR)
 #include <crtdbg.h>
+#endif
 #include <stdio.h>
 #include <io.h>
 #include <stdarg.h>

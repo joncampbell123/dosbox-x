@@ -34,7 +34,7 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <windows.h>
-#include <sensapi.h>
+
 
 #include "MbcsBuffer.h"
 

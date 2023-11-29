@@ -217,14 +217,22 @@ typedef BOOL (WINAPI *fpImmSetCompositionStringW)(IN HIMC, IN DWORD dwIndex, IN 
 OCOW_DEF(BOOL, ImmSetCompositionStringW,
     (IN HIMC hIMC,        
     IN DWORD dwIndex,    
+#if defined(__MINGW64_VERSION_MAJOR)
     IN LPVOID lpComp,    
+#else
+    IN PCVOID lpComp,    
+#endif
     IN DWORD dwCompLen,  
+#if defined(__MINGW64_VERSION_MAJOR)
     IN LPVOID lpRead,    
+#else
+    IN PCVOID lpRead,    
+#endif
     IN DWORD dwReadLen   
     ))
 {
     IMPLEMENT_IMM_FUNCTION(SetCompositionString, 
-        (hIMC, dwIndex, lpComp, dwCompLen, lpRead, dwReadLen), FALSE)
+        (hIMC, dwIndex, (LPVOID)lpComp, dwCompLen, (LPVOID)lpRead, dwReadLen), FALSE)
 
     // --- Windows 95 only ---
 

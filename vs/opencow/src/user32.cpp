@@ -38,7 +38,11 @@
 #define _USER32_
 
 #include <windows.h>
+#if defined(__MINGW64_VERSION_MAJOR)
 #include <crtdbg.h>
+#else
+#define _ASSERTE(...) 
+#endif
 
 #include "MbcsBuffer.h"
 
@@ -380,7 +384,9 @@ OCOW_DEF(BOOL, InsertMenuItemW, (HMENU hMenu,UINT item,BOOL fByPosition,LPCMENUI
         lpmi->dwItemData,
         (LPSTR)lpmi->dwTypeData,
         lpmi->cch,
+#if defined(_WIN32_WINNT) && _WIN32_WINNT >= 0x0500
         lpmi->hbmpItem,
+#endif
     };
     if((lpmi->fMask&MIIM_STRING))
     {

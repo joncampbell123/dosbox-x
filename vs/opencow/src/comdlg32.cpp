@@ -59,7 +59,11 @@ OpenSaveFileNameW(
     OPENFILENAMEA ofnA;
     ::ZeroMemory(&ofnA, sizeof(ofnA));
 
+#if defined(__MINGW64_VERSION_MAJOR) //32bit mingw on mingw-w64 https://sourceforge.net/p/predef/wiki/Compilers/
     ofnA.lStructSize = OPENFILENAME_SIZE_VERSION_400A;//sizeof(OPENFILENAME_NT4A);
+#else
+    ofnA.lStructSize = sizeof(ofnA);
+#endif
     ofnA.hwndOwner = lpofn->hwndOwner;
     ofnA.hInstance = lpofn->hInstance;
 

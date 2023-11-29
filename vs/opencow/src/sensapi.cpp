@@ -34,7 +34,9 @@
  * ***** END LICENSE BLOCK ***** */
 
 #include <windows.h>
+#if defined(__MINGW64_VERSION_MAJOR)
 #include <sensapi.h>
+
 
 #include "MbcsBuffer.h"
 
@@ -81,3 +83,5 @@ OCOW_DEF(BOOL, IsDestinationReachableW,
     return pIsDestinationReachableA(mbcsDestination, lpQOCInfo);
 }
 }//EXTERN_C 
+
+#endif//__MINGW64_VERSION_MAJOR

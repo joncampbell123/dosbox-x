@@ -908,8 +908,13 @@ OCOW_DEF(DWORD, GetLongPathNameW,(
             if (!mbcsLongPath.SetCapacity((int) dwResult))
                 return 0;
         }
-
+#if (defined(_WIN32_WINDOWS) && _WIN32_WINDOWS >= 0x0410) || (defined(_WIN32_WINNT) && _WIN32_WINNT >= 0x0500) //Win98+/2k+
         dwResult = ::GetLongPathNameA(mbcsShortPath, mbcsLongPath, (DWORD) mbcsLongPath.BufferSize());
+#else
+        dwResult = mbcsShortPath.BufferSize() + 1;
+        if(dwResult <= mbcsLongPath.BufferSize())
+            memcpy(mbcsLongPath, mbcsShortPath, dwResult);
+#endif
         if (!dwResult)
             return 0;
     }

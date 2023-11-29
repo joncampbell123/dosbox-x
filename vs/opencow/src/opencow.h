@@ -33,63 +33,49 @@
  *
  * ***** END LICENSE BLOCK ***** */
 
-#ifndef INCLUDED_MbcsBuffer
-#define INCLUDED_MbcsBuffer
+#ifndef OPENCOW_H
+#define OPENCOW_H
+#include <stdlib.h> //__MINGW64_VERSION_MAJOR
 
-#include <stdlib.h>
-#include <errno.h>
-#include "opencow.h"
+#if !defined(OCOW_API)
+#define OCOW_API WINAPI
+#endif
 
-#define ARRAY_SIZE(x)   (sizeof(x)/sizeof((x)[0]))
+//for static linking
+#if defined(STATIC_OPENCOW)
 
+#if !defined(__MINGW64_VERSION_MAJOR) //https://sourceforge.net/p/predef/wiki/Compilers/
+//legacy MinGW32 (no "_imp_" prefix, no indirect call)
 
-// ----------------------------------------------------------------------------
-// UNICODE -> MBCS conversion and general buffer
+// #ifndef __MINGW_IMP_SYMBOL
+// #define __MINGW_IMP_SYMBOL(x) x
+// #endif
 
-class CMbcsBuffer
-{
-public:
-    CMbcsBuffer()
-        : mBuffer(mStackBuffer),
-          mBufferSize(sizeof(mStackBuffer)),
-          mLength(0)
-    {
-        mStackBuffer[0] = '\0';
-    }
+#   define OCOW_DEF(RetT, x, ...) RetT OCOW_API x __VA_ARGS__
 
-    ~CMbcsBuffer()
-    {
-        if (IsBufferAllocated())
-            ::free(mBuffer);
-    }
+#else
+//MinGW32 on MinGW-w64
+//indrect call with __imp_wrapper
 
-    bool SetCapacity(int aMinCapacity);
+//(hack. they are read only symbols)
+//a faked "imported entry" is added as if the imported symbol is a function pointer:
+//naked function _imp__xxx() {
+//raw addr of next (as a 'pointer')
+//next: jmp xxx()
+//}
+//asm name (symbol) is used for the internal implementation xxx(), because name mangling for stdcall is hard to utilize.
+//asm name used is used for the "export" function to avoid function re-definitions.
 
-    // if the source string is NULL then we will return NULL, regardless of the setting
-    // for aMinCapacity. If you want a resizable buffer then use SetCapacity() instead.
-    bool FromUnicode(LPCWSTR aString = 0, int aStringLen = -1, int aMinCapacity = 0);
+#   define OCOW_DEF(RetT, x, ...) RetT OCOW_API ocow_##x __VA_ARGS__ asm("_ocow_"#x); \
+                                   RetT OCOW_API __attribute__((naked)) __MINGW_IMP_SYMBOL(x) __VA_ARGS__ {asm(".long 1f \n\t 1: jmp _ocow_"#x);} \
+                                   RetT OCOW_API ocow_##x __VA_ARGS__
 
-    void SetNull()
-    {
-        if (IsBufferAllocated())
-            ::free(mBuffer);
-        mBuffer     = 0;
-        mBufferSize = 0;
-        mLength     = 0;
-    }
+#endif
 
-    bool IsBufferAllocated() const { return (mBuffer && mBuffer != mStackBuffer); }
+#else
 
-    char * get()            { return mBuffer; }
-    operator LPSTR()        { return mBuffer; }
-    int BufferSize() const  { return mBufferSize; }
-    int Length() const      { return mLength; }
+#   define OCOW_DEF(RetT, x, ...) RetT OCOW_API x __VA_ARGS__
 
-private:
-    char    mStackBuffer[256];
-    char *  mBuffer;
-    int     mBufferSize;
-    int     mLength;
-};
+#endif
 
-#endif // INCLUDED_MbcsBuffer
+#endif //OPENCOW_H
