@@ -830,7 +830,7 @@ void ApplySetting(std::string pvar, std::string inputline, bool quiet) {
                     RECT rect;
                     MONITORINFO info;
                     GetWindowRect(GetHWND(), &rect);
-#if !defined(HX_DOS)
+#if !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
                     if (GetDisplayNumber()>0) {
                         xyp xy={0};
                         xy.x=-1;

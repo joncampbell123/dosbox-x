@@ -439,7 +439,7 @@ static GUI::ScreenSDL *UI_Startup(GUI::ScreenSDL *screen) {
     SDL_UpdateRect(sdlscreen, 0, 0, 0, 0);
 #endif
 
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     WindowsTaskbarResetPreviewRegion();
 #endif
 
@@ -595,7 +595,7 @@ static void UI_Shutdown(GUI::ScreenSDL *screen) {
 #endif
 #endif
 
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     DOSBox_SetSysMenu();
     WindowsTaskbarUpdatePreviewRegion();
 #endif

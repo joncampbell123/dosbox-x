@@ -4978,7 +4978,7 @@ private:
 } dummy;
 }
 
-#if defined(_WIN32_WINDOWS)
+#if defined(_WIN32_WINDOWS) && defined(__MINGW64_VERSION_MAJOR) //win9x && mingw-w64 toolchain
 
 //win9x's default msvcrt.dll doesn't have fstat64
 //used by libstdc++

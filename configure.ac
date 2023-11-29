@@ -1285,7 +1285,7 @@ case "$host" in
       LIBS="-lopencow $LIBS -lstdc++ -lopencow" #need to put at the first, also better at the last too.
       LDFLAGS="$LDFLAGS -Wl,--allow-multiple-definition "
       if test -n "$SDL_LIBS"; then
-        LIBS="${LIBS//-luser32/\-lopencow -luser32}"
+        LIBS="${LIBS//-luser32/-lopencow -luser32}"
         #SDL_LIBS="${SDL_LIBS//-luser32/\-lopencow -luser32}"
       fi
     fi
