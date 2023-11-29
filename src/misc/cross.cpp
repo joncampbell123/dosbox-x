@@ -94,8 +94,13 @@ void ResolvePath(std::string& in) {
 static void W32_ConfDir(std::string& in,bool create) {
 	int c = create?1:0;
 	char result[MAX_PATH] = { 0 };
+    #if !defined(_WIN32_WINDOWS)
 	BOOL r = SHGetSpecialFolderPath(NULL,result,CSIDL_LOCAL_APPDATA,c);
 	if(!r || result[0] == 0) r = SHGetSpecialFolderPath(NULL,result,CSIDL_APPDATA,c);
+    #else
+    BOOL r = GetModuleFileNameA(NULL, result, MAX_PATH);
+    while(r && result[r] != '\\') result[r--] = '\0';
+    #endif
 	if(!r || result[0] == 0) {
 		char const * windir = getenv("windir");
 		if(!windir) windir = "c:\\windows";
