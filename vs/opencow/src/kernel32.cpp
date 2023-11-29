@@ -39,7 +39,7 @@
 
 #include <windows.h>
 #include <mbstring.h>
-
+#include <sys/stat.h>
 #include "MbcsBuffer.h"
 
 // ----------------------------------------------------------------------------
@@ -571,7 +571,7 @@ OCOW_GetCPInfo(
 }
 
 //TODO: MSLU adds support for CP_UTF7 and CP_UTF8
-
+#if defined(_WIN32_WINDOWS) && _WIN32_WINDOWS >= 0x0410
 OCOW_DEF(BOOL, GetCPInfoExW,(
     IN UINT          CodePage,
     IN DWORD         dwFlags,
@@ -592,7 +592,7 @@ OCOW_DEF(BOOL, GetCPInfoExW,(
 
     return TRUE;
 }
-
+#endif
 // GetCalendarInfoW
 
 
@@ -787,6 +787,15 @@ OCOW_DEF(DWORD, GetEnvironmentVariableW,(
     return nRequiredSize - 1; // don't include NULL 
 }
 
+//https://learn.microsoft.com/en-us/windows/win32/sysinfo/converting-a-time-t-value-to-a-file-time
+static void TimetToFileTime(time_t t, LPFILETIME pft)
+{
+    ULARGE_INTEGER time_value;
+    time_value.QuadPart = (t * 10000000LL) + 116444736000000000LL;
+    pft->dwLowDateTime = time_value.LowPart;
+    pft->dwHighDateTime = time_value.HighPart;
+}
+
 OCOW_DEF(BOOL, GetFileAttributesExW,(
     IN LPCWSTR lpFileName,
     IN GET_FILEEX_INFO_LEVELS  fInfoLevelId,
@@ -796,8 +805,38 @@ OCOW_DEF(BOOL, GetFileAttributesExW,(
     CMbcsBuffer mbcsFileName;
     if (!mbcsFileName.FromUnicode(lpFileName))
         return INVALID_FILE_ATTRIBUTES;
-
+#if defined(_WIN32_WINDOWS) && _WIN32_WINDOWS >= 0x0410
     return ::GetFileAttributesExA(mbcsFileName, fInfoLevelId, lpFileInformation);
+#else
+    if(lpFileInformation == NULL)
+    {
+        ::SetLastError(ERROR_INVALID_PARAMETER);
+        return FALSE;
+    }
+    
+    WIN32_FILE_ATTRIBUTE_DATA* lpData = (WIN32_FILE_ATTRIBUTE_DATA*)lpFileInformation;
+    memset(lpFileInformation, 0, sizeof(*lpData));
+    //fallback to crt
+    struct stat st;
+    memset(&st, 0 , sizeof(st));
+    if(stat(mbcsFileName, &st) != 0)
+    {
+        ::SetLastError(ERROR_CANT_ACCESS_FILE);
+        return FALSE;
+    }
+    TimetToFileTime(st.st_ctime, &lpData->ftCreationTime);
+    TimetToFileTime(st.st_atime, &lpData->ftLastAccessTime);
+    TimetToFileTime(st.st_mtime, &lpData->ftLastWriteTime);
+    lpData->nFileSizeLow = st.st_size;
+    #if defined(_FILE_OFFSET_BITS) && _FILE_OFFSET_BITS == 64
+    lpData->nFileSizeHigh = st.st_size >> 32;
+    #endif
+    if(!(st.st_mode&_S_IWRITE)) lpData->dwFileAttributes |= FILE_ATTRIBUTE_READONLY;
+    if(!(st.st_mode&_S_IFDIR)) lpData->dwFileAttributes |= FILE_ATTRIBUTE_DIRECTORY;
+    if(lpData->dwFileAttributes == 0 && (st.st_mode&_S_IFREG))
+        lpData->dwFileAttributes |= FILE_ATTRIBUTE_NORMAL;
+    return TRUE;
+#endif
 }
 
 OCOW_DEF(DWORD, GetFileAttributesW,(
