@@ -77,5 +77,5 @@ export LDFLAGS #LIBS
 echo "Compiling DOSBox-X"
 chmod +x configure
 # FIXME: I would like MinGW builds to enable the debugger, eventually
-./configure --disable-libfluidsynth --disable-libslirp --enable-d3d9=no --enable-d3d-shaders=no --prefix=/usr --enable-xbrz=no --disable-printer --disable-largefile --enable-opencow "${@}" || exit 1
+./configure --disable-libfluidsynth --disable-libslirp --disable-d3d9 --disable-d3d-shaders --prefix=/usr --disable-xbrz --disable-printer --disable-largefile --enable-opencow --disable-sdlnet "${@}" || exit 1
 make -j3 || exit 1

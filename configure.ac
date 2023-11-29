@@ -181,6 +181,9 @@ dnl This is how the build script can use libopencow for win9x unicode
 # AH_TEMPLATE(C_OPENCOW,[Define to 1 to enable opencow])
 AC_ARG_ENABLE(opencow,AC_HELP_STRING([--enable-opencow],[Enable OpenCOW]),enable_opencow=yes)
 
+dnl Disable SDLnet for win9x builds
+AC_ARG_ENABLE(sdlnet,AC_HELP_STRING([--disable-sdlnet],[Disable SDLNet]),disable_sdl_net=yes)
+
 dnl Let me know if you're targeting Emscripten
 AH_TEMPLATE(C_EMSCRIPTEN,[Define to 1 to target Emscripten])
 AC_ARG_ENABLE(emscripten,AC_HELP_STRING([--enable-emscripten],[Enable Emscripten target]),enable_emscripten=$enableval,enable_emscripten=no)
@@ -1039,7 +1042,9 @@ case "$host" in
 esac
 dnl enable SDL2 net if SDL2
 if test -n "$SDL2_LIBS"; then
- if test x$have_sdl2_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
+ if test x$disable_sdl_net = xyes ; then
+  AC_MSG_WARN([SDL_net is disabled in parameters])
+ elif test x$have_sdl2_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
   LIBS="$LIBS -lSDL2_net"
   AC_DEFINE(C_SDL_NET,1)
   AC_DEFINE(C_MODEM,1)
@@ -1055,7 +1060,9 @@ if test -n "$SDL2_LIBS"; then
   AC_MSG_WARN([Can't find SDL_net, internal modem and ipx disabled])
  fi
 else
- if test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
+ if test x$disable_sdl_net = xyes ; then
+  AC_MSG_WARN([SDL_net is disabled in parameters])
+ elif test x$have_sdl_net_lib = xyes -a x$have_sdl_net_h = xyes ; then
   LIBS="$LIBS -lSDL_net"
   AC_DEFINE(C_SDL_NET,1)
   AC_DEFINE(C_MODEM,1)

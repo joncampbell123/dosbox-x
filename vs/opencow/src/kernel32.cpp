@@ -832,7 +832,7 @@ OCOW_DEF(BOOL, GetFileAttributesExW,(
     lpData->nFileSizeHigh = st.st_size >> 32;
     #endif
     if(!(st.st_mode&_S_IWRITE)) lpData->dwFileAttributes |= FILE_ATTRIBUTE_READONLY;
-    if(!(st.st_mode&_S_IFDIR)) lpData->dwFileAttributes |= FILE_ATTRIBUTE_DIRECTORY;
+    if((st.st_mode&_S_IFDIR)) lpData->dwFileAttributes |= FILE_ATTRIBUTE_DIRECTORY;
     if(lpData->dwFileAttributes == 0 && (st.st_mode&_S_IFREG))
         lpData->dwFileAttributes |= FILE_ATTRIBUTE_NORMAL;
     return TRUE;
