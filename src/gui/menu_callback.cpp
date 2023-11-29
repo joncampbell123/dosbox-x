@@ -2148,7 +2148,7 @@ int GetNumScreen() {
     int numscreen = 1;
 #if defined(C_SDL2)
     numscreen = SDL_GetNumVideoDisplays();
-#elif defined(WIN32) && !defined(HX_DOS)
+#elif defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     xyp xy={0};
     xy.x=-1;
     xy.y=-1;

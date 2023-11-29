@@ -8061,7 +8061,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     {
         std::string tmp,config_path,res_path,config_combined;
 
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
         {
             DISPLAY_DEVICE dd;
             unsigned int i = 0;
@@ -8525,7 +8525,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
         }
     }
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
         if (!enableime&&!tonoime) ImmDisableIME((DWORD)(-1));
 #endif
     }
@@ -8538,7 +8538,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         /* -- initialize logging first, so that higher level inits can report problems to the log file */
         LOG::Init();
 
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
         {
             DISPLAY_DEVICE dd;
             unsigned int i = 0;

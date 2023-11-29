@@ -12,7 +12,7 @@ if test -z "${top}" ; then exit 1; fi
 # fix
 chmod +x vs/sdl/build-scripts/strip_fPIC.sh
 
-LOWEND9X_FLAGS=" -D_WIN32_WINDOWS=0x0400 -D_FILE_OFFSET_BITS=32 -D__USE_MINGW_ANSI_STDIO=1 -mwin32 -march=pentium3 "
+LOWEND9X_FLAGS=" -D_WIN32_WINDOWS=0x0400 -D_FILE_OFFSET_BITS=32 -mwin32 -march=pentium "
 
 CFLAGS="${LOWEND9X_FLAGS} ${CFLAGS}"
 CXXFLAGS="${LOWEND9X_FLAGS} ${CXXFLAGS}"
@@ -23,9 +23,10 @@ export CFLAGS CPPFLAGS CXXFLAGS
 echo "Compiling our internal SDL 1.x"
 (cd vs/sdl && ./build-dosbox.sh) || exit 1
 
+# Win95 doesn't have IPHLPAPI.dll, skip networking.
 # prefer to compile against our own copy of SDLnet 1.x
-echo "Compiling our internal SDLnet 1.x"
-(cd vs/sdlnet && ./build-dosbox.sh) || exit 1
+# echo "Compiling our internal SDLnet 1.x"
+# (cd vs/sdlnet && ./build-dosbox.sh) || exit 1
 
 # NTS: MinGW provides zlib for us
 if false; then
