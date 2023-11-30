@@ -40,6 +40,7 @@
 #include <windows.h>
 #include <mbstring.h>
 #include <sys/stat.h>
+#include "SystemVersion.h"
 #include "MbcsBuffer.h"
 
 // ----------------------------------------------------------------------------
@@ -570,16 +571,31 @@ OCOW_GetCPInfo(
     return ::GetCPInfo(CodePage, lpCPInfo);
 }
 
+typedef BOOL (WINAPI *fpGetCPInfoExA)(INT,INT,LPCPINFOEXA);
+static fpGetCPInfoExA pGetCPInfoExA;
+
 //TODO: MSLU adds support for CP_UTF7 and CP_UTF8
-#if defined(_WIN32_WINDOWS) && _WIN32_WINDOWS >= 0x0410
 OCOW_DEF(BOOL, GetCPInfoExW,(
     IN UINT          CodePage,
     IN DWORD         dwFlags,
     OUT LPCPINFOEXW  lpCPInfoEx
     ))
 {
+    if(g_nPlatform <= MZ_PLATFORM_95 || (g_nPlatform > MZ_PLATFORM_ME && g_nPlatform < MZ_PLATFORM_2K))
+    {
+        SetLastError(ERROR_CALL_NOT_IMPLEMENTED); 
+        return FALSE;
+    }
+
     CPINFOEXA cpInfoA;
-    BOOL bSuccess = ::GetCPInfoExA(CodePage, dwFlags, &cpInfoA);
+    if(!pGetCPInfoExA)
+        pGetCPInfoExA = (fpGetCPInfoExA) ::GetProcAddress(
+            ::GetModuleHandleA("kernel32.dll"), "GetCPInfoExA");
+    if (!pGetCPInfoExA) {
+        SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+        return FALSE;
+    }
+    BOOL bSuccess = pGetCPInfoExA(CodePage, dwFlags, &cpInfoA);
     if (!bSuccess)
         return FALSE;
 
@@ -592,7 +608,6 @@ OCOW_DEF(BOOL, GetCPInfoExW,(
 
     return TRUE;
 }
-#endif
 // GetCalendarInfoW
 
 
@@ -796,6 +811,9 @@ static void TimetToFileTime(time_t t, LPFILETIME pft)
     pft->dwHighDateTime = time_value.HighPart;
 }
 
+typedef BOOL (WINAPI *fpGetFileAttributesExA)(LPCSTR,GET_FILEEX_INFO_LEVELS,LPVOID);
+static fpGetFileAttributesExA pGetFileAttributesExA;
+
 OCOW_DEF(BOOL, GetFileAttributesExW,(
     IN LPCWSTR lpFileName,
     IN GET_FILEEX_INFO_LEVELS  fInfoLevelId,
@@ -805,9 +823,19 @@ OCOW_DEF(BOOL, GetFileAttributesExW,(
     CMbcsBuffer mbcsFileName;
     if (!mbcsFileName.FromUnicode(lpFileName))
         return INVALID_FILE_ATTRIBUTES;
-#if defined(_WIN32_WINDOWS) && _WIN32_WINDOWS >= 0x0410
-    return ::GetFileAttributesExA(mbcsFileName, fInfoLevelId, lpFileInformation);
-#else
+
+    if((g_nPlatform > MZ_PLATFORM_95 && g_nPlatform <= MZ_PLATFORM_ME) || g_nPlatform >= MZ_PLATFORM_2K)
+    {
+        if(!pGetFileAttributesExA)
+            pGetFileAttributesExA = (fpGetFileAttributesExA) ::GetProcAddress(
+                ::GetModuleHandleA("kernel32.dll"), "GetFileAttributesExA");
+        if (!pGetFileAttributesExA) {
+            SetLastError(ERROR_CALL_NOT_IMPLEMENTED);
+            return FALSE;
+        }
+        return pGetFileAttributesExA(mbcsFileName, fInfoLevelId, lpFileInformation);
+    }
+
     if(lpFileInformation == NULL)
     {
         ::SetLastError(ERROR_INVALID_PARAMETER);
@@ -836,7 +864,6 @@ OCOW_DEF(BOOL, GetFileAttributesExW,(
     if(lpData->dwFileAttributes == 0 && (st.st_mode&_S_IFREG))
         lpData->dwFileAttributes |= FILE_ATTRIBUTE_NORMAL;
     return TRUE;
-#endif
 }
 
 OCOW_DEF(DWORD, GetFileAttributesW,(

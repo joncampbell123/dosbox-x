@@ -136,6 +136,8 @@ DllMain(
 
     return TRUE;
 }
+#else
+static BOOL g_bPlatformInited = InitializeSystemVersion();
 #endif
 // ----------------------------------------------------------------------------
 // API

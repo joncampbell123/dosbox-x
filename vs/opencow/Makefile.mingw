@@ -5,7 +5,7 @@
 #endif
 
 ifeq ($(strip $(CXXFLAGS)),)
-CXXFLAGS = -mwin32 -march=pentium3
+CXXFLAGS = -mwin32 -march=pentium
 endif
 CXXFLAGS := -DSTATIC_OPENCOW -D_WIN32_WINDOWS=0x0400 -fno-exceptions -std=gnu++14 -O2 $(CXXFLAGS)
 
