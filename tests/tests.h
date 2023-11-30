@@ -34,7 +34,7 @@
 namespace testing {
 void InitGoogleTest(int* argc, char** argv) {}
 
-UnitTest* UnitTest::GetInstance() {UnitTest ut; return &ut;}
+UnitTest* UnitTest::GetInstance() {static UnitTest ut; return &ut;}
 UnitTest::UnitTest(){}
 UnitTest::~UnitTest(){}
 int UnitTest::Run() {return 0;}
