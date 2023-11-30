@@ -4403,12 +4403,12 @@ void DEBUG_Enable_Handler(bool pressed) {
 
     if (hidedebugger) {
         hidedebugger=false;
-#if defined(WIN32)
+#if defined(WIN32) && !defined(_WIN32_WINDOWS)
         ShowWindow(GetConsoleWindow(), SW_SHOW);
 #endif
     } else if (tohide && (runnormal||debug_running||debugging)) {
         hidedebugger=true;
-#if defined(WIN32)
+#if defined(WIN32) && !defined(_WIN32_WINDOWS)
         ShowWindow(GetConsoleWindow(), SW_HIDE);
 #endif
         debugrunmode=debuggerrun;
