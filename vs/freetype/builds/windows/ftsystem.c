@@ -298,7 +298,7 @@
     !defined( _WIN32_WINNT ) || _WIN32_WINNT <= 0x0400
 
   FT_LOCAL_DEF( BOOL )
-  GetFileSizeEx( HANDLE          hFile,
+  GetFileSizeEx2( HANDLE          hFile,
                  PLARGE_INTEGER  lpFileSize )
   {
     lpFileSize->u.LowPart = GetFileSize( hFile,
@@ -310,7 +310,7 @@
     else
       return TRUE;
   }
-
+#define GetFileSizeEx GetFileSizeEx2
 #endif
 
 

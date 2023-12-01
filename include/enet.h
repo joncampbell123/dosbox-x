@@ -5216,7 +5216,7 @@ extern "C" {
         ((uint8_t *)&out->s_addr)[2] = in->s6_addr[14];
         ((uint8_t *)&out->s_addr)[3] = in->s6_addr[15];
     }
-
+#if !defined(_WIN32_WINDOWS)
     int enet_in6addr_lookup_host(const char *name, bool nodns, ENetAddress *out) {
         struct addrinfo hints, *resultList = NULL, *result = NULL;
 
@@ -5318,6 +5318,8 @@ extern "C" {
 
         return enet_address_get_host_ip_new(address, name, nameLength);
     } /* enet_address_get_host_new */
+
+#endif
 
 // =======================================================================//
 // !
@@ -5770,9 +5772,13 @@ extern "C" {
         hostEntry = gethostbyname(name);
 
         if (hostEntry == NULL || hostEntry->h_addrtype != AF_INET) {
+            #if !defined(_WIN32_WINDOWS)
             if (!inet_pton(AF_INET6, name, &address->host)) {
                 return -1;
             }
+            #else
+            return -1;
+            #endif
 
             return 0;
         }
@@ -5786,9 +5792,13 @@ extern "C" {
     }
 
     int enet_address_get_host_ip_old(const ENetAddress *address, char *name, size_t nameLength) {
+        #if !defined(_WIN32_WINDOWS)
         if (inet_ntop(AF_INET6, (PVOID)&address->host, name, nameLength) == NULL) {
             return -1;
         }
+        #else
+        return -1;
+        #endif
 
         return 0;
     }

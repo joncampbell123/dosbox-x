@@ -53,7 +53,7 @@
 #include "sdlmain.h"
 #if defined(WIN32)
 #include "../dos/cdrom.h"
-#if !defined(HX_DOS)
+#if !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
 #include <process.h>
 #include <shellapi.h>
 #include <shlwapi.h>
@@ -825,7 +825,7 @@ const char * TranslateHostPath(const char * arg, bool next = false) {
     return result;
 }
 
-#if defined (WIN32) && !defined(HX_DOS)
+#if defined (WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
 intptr_t hret=0;
 void EndRunProcess() {
     if(hret) {
@@ -2324,7 +2324,7 @@ static Bitu DOS_21Handler(void) {
                 result_errorcode = 0;
             }
             if (DOS_BreakINT23InProgress) throw int(0); /* HACK: Ick */
-#if defined (WIN32) && !defined(HX_DOS)
+#if defined (WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
             if (winautorun&&reqwin&&*appname&&!control->SecureMode())
                 HostAppRun();
             reqwin=false;
@@ -2567,7 +2567,7 @@ static Bitu DOS_21Handler(void) {
             break;
         }
         case 0x5f:                  /* Network redirection */
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
             switch(reg_al)
             {
                 case    0x34:   //Set pipe state
@@ -4625,7 +4625,7 @@ public:
 	}
 	~DOS(){
 		infix=-1;
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
 		if (startwait) {
 			void EndStartProcess();
 			EndStartProcess();

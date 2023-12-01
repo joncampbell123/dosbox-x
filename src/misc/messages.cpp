@@ -483,7 +483,7 @@ void MSG_Init() {
         }
         if (tonoime) {
             tonoime = enableime = false;
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
             ImmDisableIME((DWORD)(-1));
 #endif
             SetIME();

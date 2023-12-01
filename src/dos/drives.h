@@ -1256,7 +1256,7 @@ int get_expanded_files(const std::string &path, std::vector<std::string> &paths,
 typedef wchar_t host_cnv_char_t;
 # define host_cnv_use_wchar
 # define _HT(x) L##x
-# if defined(HX_DOS)
+# if defined(HX_DOS) || defined(_WIN32_WINDOWS)
 #  define ht_stat_t struct _stat
 #  define ht_stat(x,y) _wstat(x,y)
 # elif defined(__MINGW32__)

@@ -389,7 +389,7 @@ extern bool bootguest, bootfast, bootvm;
 std::string dosboxpath="";
 std::string GetDOSBoxXPath(bool withexe=false) {
     std::string full;
-#if defined(HX_DOS) || defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
+#if defined(HX_DOS) || defined(_WIN32_WINDOWS) /*wai_* is problematic */ || defined(__MINGW32__) && !defined(__MINGW64_VERSION_MAJOR)
     char exepath[MAX_PATH];
     GetModuleFileName(NULL, exepath, sizeof(exepath));
     full=std::string(exepath);
@@ -451,11 +451,11 @@ const char *DKM_to_descriptive_string(const unsigned int dkm) {
     return "";
 }
 
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
 ITaskbarList3 *winTaskbarList = NULL;
 #endif
 
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
 void WindowsTaskbarUpdatePreviewRegion(void) {
     if (winTaskbarList != NULL) {
         /* Windows 7/8/10: Tell the taskbar which part of our window contains the DOS screen */
@@ -707,7 +707,7 @@ void PrintScreenSizeInfo(void) {
 void Windows_GetWindowDPI(ScreenSizeInfo &info) {
     info.clear();
 
-# if !defined(HX_DOS)
+# if !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     HMONITOR mon;
     HWND hwnd;
 
@@ -2023,14 +2023,14 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
 #endif
     UpdateWindowDimensions();
 
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     WindowsTaskbarUpdatePreviewRegion();
 #endif
 
     return retFlags;
 }
 
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
 // WARNING: Not recommended, there is danger you cannot exit emulator because mouse+keyboard are taken
 static bool enable_hook_everything = false;
 #endif
@@ -2041,7 +2041,7 @@ static bool enable_hook_everything = false;
 // danger you become trapped in the DOSBox-X emulator!
 static bool enable_hook_special_keys = true;
 
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
 // Whether or not to hook Num/Scroll/Caps lock in order to give the guest OS full control of the
 // LEDs on the keyboard (i.e. the LEDs do not change until the guest OS changes their state).
 // This flag also enables code to set the LEDs to guest state when setting mouse+keyboard capture,
@@ -2049,7 +2049,7 @@ static bool enable_hook_special_keys = true;
 static bool enable_hook_lock_toggle_keys = true;
 #endif
 
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
 // and this is where we store host LED state when capture is set.
 static bool on_capture_num_lock_was_on = true; // reasonable guess
 static bool on_capture_scroll_lock_was_on = false;
@@ -2057,7 +2057,7 @@ static bool on_capture_caps_lock_was_on = false;
 #endif
 
 static bool exthook_enabled = false;
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
 static HHOOK exthook_winhook = NULL;
 
 #if !defined(__MINGW32__)
@@ -2218,7 +2218,7 @@ void DoExtendedKeyboardHook(bool enable) {
     if (exthook_enabled == enable)
         return;
 
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     if (enable) {
         if (!exthook_winhook) {
             exthook_winhook = SetWindowsHookEx(WH_KEYBOARD_LL, WinExtHookKeyboardHookProc, GetModuleHandle(NULL), 0);
@@ -2397,7 +2397,7 @@ void CaptureMouseNotifyWin32(bool lck)
     break;
     case AUTOLOCK_FEEDBACK_FLASH:
     {
-# if !defined(HX_DOS)
+# if !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
         const auto cnt = lck ? 4 : 2;
         const auto tim = lck ? 80 : 40;
         const auto wnd = GetHWND();
@@ -3798,7 +3798,7 @@ static void GUI_StartUp() {
     // SDL_VIDEO_WINDOW_POS environment variable then "windowposition" setting should have no effect.
     // SDL2 position is set later, using SDL_SetWindowPosition()
 #if !defined(C_SDL2)
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     MONITORINFO info;
     if (sdl.displayNumber>0) {
         xyp xy={0};
@@ -3824,7 +3824,7 @@ static void GUI_StartUp() {
 #else
         setenv("SDL_VIDEO_WINDOW_POS",(std::to_string(posx)+","+std::to_string(posy)).c_str(),0);
 #endif
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     } else if (sdl.displayNumber>0 && !(posx == -2 && posy == -2)) {
         safe_strncpy(pos, "SDL_VIDEO_WINDOW_POS=", sizeof(pos));
         safe_strcat(pos, (std::to_string(info.rcMonitor.left+200)+","+std::to_string(info.rcMonitor.top+200)).c_str());
@@ -4979,7 +4979,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 #if !defined(C_SDL2)
         case SDL_BUTTON_WHEELUP: /* Ick, really SDL? */
 			if (wheel_key && (wheel_guest || !dos_kernel_disabled)) {
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
                 if (wheel_key<4) {
                     INPUT ip = {0};
                     ip.type = INPUT_KEYBOARD;
@@ -5012,7 +5012,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 			break;
         case SDL_BUTTON_WHEELDOWN: /* Ick, really SDL? */
 			if (wheel_key && (wheel_guest || !dos_kernel_disabled)) {
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
                 if (wheel_key<4) {
                     INPUT ip = {0};
                     ip.type = INPUT_KEYBOARD;
@@ -6764,7 +6764,7 @@ bool DEBUG_IsDebuggerConsoleVisible(void);
 #endif
 
 void DOSBox_ShowConsole() {
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     CONSOLE_SCREEN_BUFFER_INFO csbi;
     COORD crd;
     HWND hwnd;
@@ -7436,7 +7436,7 @@ void SetWindowTransparency(int trans) {
     double alpha = (double)(100-trans)/100;
 #if defined(C_SDL2)
     SDL_SetWindowOpacity(sdl.window,alpha);
-#elif defined(WIN32) && !defined(HX_DOS)
+#elif defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     SetWindowLong(GetHWND(), GWL_EXSTYLE, GetWindowLong(GetHWND(), GWL_EXSTYLE) | WS_EX_LAYERED);
     SetLayeredWindowAttributes(GetHWND(), 0, 255 * alpha, LWA_ALPHA);
 #elif defined(MACOSX)
@@ -7540,6 +7540,11 @@ std::wstring win32_prompt_folder(const char *default_folder) {
     const size_t size = default_folder == NULL? 0 : strlen(default_folder)+1;
     wchar_t* wfolder = default_folder == NULL ? NULL : new wchar_t[size];
     if (default_folder != NULL) mbstowcs (wfolder, default_folder, size);
+
+    //fix memory leaks
+    std::wstring wsfolder = wfolder ? wfolder : L"";
+    if(wfolder) delete[] wfolder;
+    wfolder = &wsfolder[0];
 
 #if 0 // Browse for folder using SHBrowseForFolder, which works on Windows XP and higher
     WCHAR szDir[MAX_PATH];
@@ -8056,7 +8061,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
     {
         std::string tmp,config_path,res_path,config_combined;
 
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
         {
             DISPLAY_DEVICE dd;
             unsigned int i = 0;
@@ -8520,7 +8525,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
         }
     }
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
         if (!enableime&&!tonoime) ImmDisableIME((DWORD)(-1));
 #endif
     }
@@ -8533,7 +8538,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         /* -- initialize logging first, so that higher level inits can report problems to the log file */
         LOG::Init();
 
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
         {
             DISPLAY_DEVICE dd;
             unsigned int i = 0;
@@ -8573,7 +8578,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 
         /* -- [debug] setup console */
 #if C_DEBUG
-# if defined(WIN32) && !defined(HX_DOS)
+# if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
         /* Can't disable the console with debugger enabled */
         if (control->opt_noconsole) {
             LOG(LOG_MISC,LOG_DEBUG)("-noconsole: hiding Win32 console window");
@@ -8593,7 +8598,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
             int id, major, minor;
 
             DOSBox_CheckOS(id, major, minor);
-            if (id == 1) menu.compatible=true;
+            //if (id == 1) menu.compatible=true; //?
 
             /* use all variables to shut up the compiler about unused vars */
             LOG(LOG_MISC,LOG_DEBUG)("DOSBox-X CheckOS results: id=%u major=%u minor=%u",id,major,minor);
@@ -9220,7 +9225,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         mainMenu.screenHeight = (unsigned int)sdl.surface->h;
         mainMenu.updateRect();
 #endif
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
         /* Windows 7 taskbar extension support */
         {
             HRESULT hr;
@@ -9697,7 +9702,7 @@ fresh_boot:
 #endif
         SDL_Quit();//Let's hope sdl will quit as well when it catches an exception
 
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
         if (winTaskbarList != NULL) {
                 winTaskbarList->Release();
                 winTaskbarList = NULL;

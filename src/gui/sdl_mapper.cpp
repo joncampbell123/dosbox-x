@@ -5376,7 +5376,7 @@ void MAPPER_RunInternal() {
     }
 #endif
 
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     WindowsTaskbarResetPreviewRegion();
 #endif
 
@@ -5434,7 +5434,7 @@ void MAPPER_RunInternal() {
     SDL_ShowCursor(cursor);
     DOSBox_RefreshMenu();
     if(!menu_gui) GFX_RestoreMode();
-#if defined(__WIN32__) && !defined(HX_DOS)
+#if defined(__WIN32__) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     if(GetAsyncKeyState(0x11)) {
         INPUT ip;
 
@@ -5454,7 +5454,7 @@ void MAPPER_RunInternal() {
     }
 #endif
 
-#if defined(WIN32) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     WindowsTaskbarUpdatePreviewRegion();
 #endif
 

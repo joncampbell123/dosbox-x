@@ -97,6 +97,7 @@ FILE* flac_internal_fopen_utf8(const char *filename, const char *mode)
 
 int flac_internal_stat64_utf8(const char *path, struct __stat64 *buffer)
 {
+#if defined(_FILE_OFFSET_BITS) && (_FILE_OFFSET_BITS == 64)
 	if (!utf8_filenames) {
 		return _stat64(path, buffer);
 	} else {
@@ -109,6 +110,35 @@ int flac_internal_stat64_utf8(const char *path, struct __stat64 *buffer)
 
 		return ret;
 	}
+#else
+    int ret;
+    struct stat st; 
+	if (!utf8_filenames) {
+		ret = stat(path, &st);
+	} else {
+		wchar_t *wpath;
+
+		if (!(wpath = wchar_from_utf8(path))) return -1;
+		ret = wstat(wpath, &st);
+		free(wpath);
+	}
+    if(ret == 0)
+    {
+        buffer->st_dev=st.st_dev;
+        buffer->st_ino=st.st_ino;
+        buffer->st_mode=st.st_mode;
+        buffer->st_nlink=st.st_nlink;
+        buffer->st_uid=st.st_uid;
+        buffer->st_gid=st.st_gid;
+        buffer->st_rdev=st.st_rdev;
+        buffer->st_size=(_off_t) st.st_size;
+        buffer->st_atime=st.st_atime;
+        buffer->st_mtime=st.st_mtime;
+        buffer->st_ctime=st.st_ctime;
+    }
+    else memset(buffer, 0, sizeof(*buffer));
+    return ret;
+#endif
 }
 
 int flac_internal_chmod_utf8(const char *filename, int pmode)
@@ -133,13 +163,13 @@ int flac_internal_utime_utf8(const char *filename, struct utimbuf *times)
 		return utime(filename, times);
 	} else {
 		wchar_t *wname;
-		struct __utimbuf64 ut;
+		struct _utimbuf ut;
 		int ret;
 
 		if (!(wname = wchar_from_utf8(filename))) return -1;
 		ut.actime = times->actime;
 		ut.modtime = times->modtime;
-		ret = _wutime64(wname, &ut);
+		ret = _wutime(wname, &ut);
 		free(wname);
 
 		return ret;

@@ -244,7 +244,11 @@ ENETServerSocket::~ENETServerSocket()
 static char *enet_address_to_string(const ENetAddress &address)
 {
 	static char ip_buf[INET_ADDRSTRLEN];
+    #if !defined(_WIN32_WINDOWS)
 	enet_address_get_host_ip_new(&address, ip_buf, sizeof(ip_buf));
+    #else
+    ip_buf[0] = 0;
+    #endif
 	return ip_buf;
 }
 
@@ -475,7 +479,11 @@ bool ENETClientSocket::GetRemoteAddressString(char *buffer)
 {
 	updateState();
 	assert(buffer);
+    #if !defined(_WIN32_WINDOWS)
 	enet_address_get_host_ip(&address, buffer, 16);
+    #else
+    buffer[0] = 0;
+    #endif
 	return true;
 }
 

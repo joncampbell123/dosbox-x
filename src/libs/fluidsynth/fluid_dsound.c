@@ -20,7 +20,7 @@
 
 #define FLUIDINC
 #include "config.h"
-#if !C_FLUIDSYNTH && defined(WIN32) && !defined(C_HX_DOS)
+#if !C_FLUIDSYNTH && defined(WIN32) && !defined(C_HX_DOS) && !defined(_WIN32_WINDOWS)
 #include "fluid_synth.h"
 #include "fluid_adriver.h"
 #include "fluid_settings.h"

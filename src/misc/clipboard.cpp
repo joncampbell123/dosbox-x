@@ -52,6 +52,11 @@ bool Unicode2Ascii(const uint16_t* unicode) {
     char temp[4096];
     bool ret=false;
     morelen=true;
+    int flags = 0;
+#ifdef WC_NO_BEST_FIT_CHARS
+    flags |= WC_NO_BEST_FIT_CHARS;
+#endif
+
     if (CodePageHostToGuestUTF16(temp,unicode) && (clipAscii = (uint8_t *)malloc(strlen(temp)+1))) {
         morelen=false;
         ret=true;
@@ -59,13 +64,13 @@ bool Unicode2Ascii(const uint16_t* unicode) {
         memNeeded = strlen(temp);
     } else {
         morelen=false;
-        int memNeeded = WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==859?858:(dos.loaded_codepage==872?855:(dos.loaded_codepage==951?950:dos.loaded_codepage))), WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, NULL, 0, "\x07", NULL);
+        int memNeeded = WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==859?858:(dos.loaded_codepage==872?855:(dos.loaded_codepage==951?950:dos.loaded_codepage))), flags, (LPCWSTR)unicode, -1, NULL, 0, "\x07", NULL);
         if (memNeeded <= 1)																// Includes trailing null
             return false;
         if (!(clipAscii = (uint8_t *)malloc(memNeeded)))
             return false;
         // Untranslated characters will be set to 0x07 (BEL), and later stripped
-        if (WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==859?858:(dos.loaded_codepage==872?855:(dos.loaded_codepage==951?950:dos.loaded_codepage))), WC_NO_BEST_FIT_CHARS, (LPCWSTR)unicode, -1, (LPSTR)clipAscii, memNeeded, "\x07", NULL) != memNeeded) {																			// Can't actually happen of course
+        if (WideCharToMultiByte(dos.loaded_codepage==808?866:(dos.loaded_codepage==859?858:(dos.loaded_codepage==872?855:(dos.loaded_codepage==951?950:dos.loaded_codepage))), flags, (LPCWSTR)unicode, -1, (LPSTR)clipAscii, memNeeded, "\x07", NULL) != memNeeded) {																			// Can't actually happen of course
             free(clipAscii);
             clipAscii = NULL;
             return false;

@@ -10,7 +10,7 @@
 #include <windows.h>
 
 int SDL_windib_multimonitor_adjust_from_window(int *x, int *y, int width, int height, HWND hwnd) {
-#if !defined(SDL_WIN32_HX_DOS)
+#if !defined(SDL_WIN32_HX_DOS) && !defined(_WIN32_WINDOWS)
     // Win98+ multi-monitor awareness.
     // Try to go fullscreen on whatever monitor this window exists on
     HMONITOR mon = NULL;

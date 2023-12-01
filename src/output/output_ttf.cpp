@@ -190,7 +190,7 @@ Bitu OUTPUT_TTF_SetSize() {
         SDL_FULLSCREEN
 #endif
         );
-#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS)
+#if defined(WIN32) && !defined(C_SDL2) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
         if (sdl.displayNumber>0) {
             xyp xy={0};
             xy.x=-1;

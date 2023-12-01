@@ -1206,7 +1206,7 @@ void drivezRegister(std::string const& path, std::string const& dir, bool usecp)
                 res = ht_stat(host_name,&temp_stat);
             }
             if (res==0&&(ltime=
-#if defined(__MINGW32__) && !defined(HX_DOS)
+#if defined(__MINGW32__) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
             _localtime64
 #else
             localtime
@@ -1845,7 +1845,7 @@ again:
 	find_size=(uint32_t) (stat_block.st_size % 0x100000000);
     const struct tm* time;
 	if((time=
-#if defined(__MINGW32__) && !defined(HX_DOS)
+#if defined(__MINGW32__) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     _localtime64
 #else
     localtime
@@ -2392,7 +2392,7 @@ bool localDrive::FileStat(const char* name, FileStat_Block * const stat_block) {
 	/* Convert the stat to a FileStat */
     const struct tm* time;
 	if((time=
-#if defined(__MINGW32__) && !defined(HX_DOS)
+#if defined(__MINGW32__) && !defined(HX_DOS) && !defined(_WIN32_WINDOWS)
     _localtime64
 #else
     localtime
