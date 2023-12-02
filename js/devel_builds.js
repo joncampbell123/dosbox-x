@@ -54,7 +54,7 @@ function add_ci_build_entry(repo, workflow_id, description) {
 
     const gh_api_url = "https://api.github.com/repos/" + repo + "/";
 
-    fetch(gh_api_url + "actions/workflows/" + workflow_file + "/runs?" +
+    fetch(gh_api_url + "actions/workflows/" + workflow_id + ".yml" + "/runs?" +
         queryParams.toString())
     .then((response) => {
         // Handle HTTP error
