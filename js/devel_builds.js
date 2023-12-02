@@ -19,10 +19,22 @@ function report_error(msg, e, show_alert=true, show_trace=false) {
         alert(msg + (show_trace ? stack : ""));
 }
 
-function add_ci_build_entry(repo, workflow_id, description, page = 1) {
+function handle_error(error_message, os_name) {
+    let build_link_tr_el = document.getElementById(os_name + "-build-link");
+    build_link_tr_el.innerHTML = error_message;
+
+    let version_el = document.getElementById(os_name + "-build-version");
+    version_el.textContent = '';
+
+    let date_el = document.getElementById(os_name + "-build-date");
+    date_el.textContent = '';
+}
+
+function add_ci_build_entry(repo, workflow_id, description) {
     let builds = document.querySelector("#builds");
     let build_entry_id = "build-" + workflow_id;
     let build_entry = builds.querySelector("#" + build_entry_id);
+
     if (!build_entry) {
         build_entry = document.importNode(document.querySelector("#build-template").content.querySelector("tr"), true);
         build_entry.setAttribute("id", build_entry_id);
@@ -45,11 +57,24 @@ function add_ci_build_entry(repo, workflow_id, description, page = 1) {
         return;
     }
 
-    const per_page = 100;
+    let filter_branch = "main";
+    let filter_event = "push";
+    let filter_status = "success";
+
+    const queryParams = new URLSearchParams();
+    queryParams.set("page", page);
+    queryParams.set("per_page", per_page);
+    queryParams.set("branch", filter_branch);
+    queryParams.set("event", filter_event);
+    queryParams.set("status", filter_status);
+
+    let page = 1;
+    let per_page = 1;
+
     const gh_api_url = "https://api.github.com/repos/" + repo + "/";
 
-    fetch(gh_api_url + "actions/workflows/" + workflow_id + ".yml" + "/runs" +
-        "?page=" + page + "&per_page=" + per_page)
+    fetch(gh_api_url + "actions/workflows/" + workflow_file + "/runs?" +
+        queryParams.toString())
     .then((response) => {
         // Handle HTTP error
         if (!response.ok) {
@@ -79,14 +104,11 @@ function add_ci_build_entry(repo, workflow_id, description, page = 1) {
 
         response.json()
         .then((data) => {
-            let status = data.workflow_runs
-                .filter(run => run.head_branch == "master")
-                .filter(run => (run.event == "push" || run.event == "workflow_dispatch"))
-                .find(run => run.conclusion == "success");
+            const status = data.workflow_runs.length && data.workflow_runs[0];
 
             // If result not found, query the next page
             if (!status) {
-                add_ci_build_entry(repo, workflow_id, description, page + 1);
+                .catch (show_generic_error);
                 return;
             }
 
