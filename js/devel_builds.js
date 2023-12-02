@@ -19,10 +19,11 @@ function report_error(msg, e, show_alert=true, show_trace=false) {
         alert(msg + (show_trace ? stack : ""));
 }
 
-function add_ci_build_entry(repo, workflow_id, description, page = 1) {
+function add_ci_build_entry(repo, workflow_id, description) {
     let builds = document.querySelector("#builds");
     let build_entry_id = "build-" + workflow_id;
     let build_entry = builds.querySelector("#" + build_entry_id);
+
     if (!build_entry) {
         build_entry = document.importNode(document.querySelector("#build-template").content.querySelector("tr"), true);
         build_entry.setAttribute("id", build_entry_id);
@@ -37,19 +38,24 @@ function add_ci_build_entry(repo, workflow_id, description, page = 1) {
         build_status_el.innerText = text;
     }
 
-    // GitHub has strict rate-limits for anonymous users: 60 requests per hour;
-    // We request 100 results per page (max allowed); main builds are very
-    // likely to be included in the first page anyway.
-    if (page > 10) {
-        report_error_as_build_link("Couldn't find most recent build");
-        return;
-    }
+    let page = 1;
+    let per_page = 1;
 
-    const per_page = 100;
+    let filter_branch = "master";
+    let filter_event = "push";
+    let filter_status = "success";
+
+        const queryParams = new URLSearchParams();
+    queryParams.set("page", page);
+    queryParams.set("per_page", per_page);
+    queryParams.set("branch", filter_branch);
+    queryParams.set("event", filter_event);
+    queryParams.set("status", filter_status);
+
     const gh_api_url = "https://api.github.com/repos/" + repo + "/";
 
-    fetch(gh_api_url + "actions/workflows/" + workflow_id + ".yml" + "/runs" +
-        "?page=" + page + "&per_page=" + per_page)
+    fetch(gh_api_url + "actions/workflows/" + workflow_id + ".yml" + "/runs?" +
+        queryParams.toString())
     .then((response) => {
         // Handle HTTP error
         if (!response.ok) {
@@ -79,14 +85,11 @@ function add_ci_build_entry(repo, workflow_id, description, page = 1) {
 
         response.json()
         .then((data) => {
-            let status = data.workflow_runs
-                .filter(run => run.head_branch == "master")
-                .filter(run => (run.event == "push" || run.event == "workflow_dispatch"))
-                .find(run => run.conclusion == "success");
+            const status = data.workflow_runs.length && data.workflow_runs[0];
 
             // If result not found, query the next page
             if (!status) {
-                add_ci_build_entry(repo, workflow_id, description, page + 1);
+                show_generic_error("Result not found");
                 return;
             }
 
