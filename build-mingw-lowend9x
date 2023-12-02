@@ -73,6 +73,12 @@ LDFLAGS="${nld}${LDFLAGS}"
 #LIBS=" -lopencow ${LIBS} " # should be the first one before all win32 libs.
 export LDFLAGS #LIBS
 
+#find /mingw32/include/pdcurses/curses.h, needed for --enable-debug
+CFLAGS="${CFLAGS} -I/mingw32/include/pdcurses "
+CXXFLAGS="${CXXFLAGS} -I/mingw32/include/pdcurses "
+CPPFLAGS="${CPPFLAGS} -I/mingw32/include/pdcurses "
+export CFLAGS CPPFLAGS CXXFLAGS
+
 # now compile ourself
 echo "Compiling DOSBox-X"
 chmod +x configure
