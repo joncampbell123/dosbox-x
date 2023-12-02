@@ -5303,11 +5303,22 @@ void DOS_Int21_71a1(const char *name1, const char *name2) {
 		CALLBACK_SCF(false);
 }
 
+void set_dword(char *buff, uint32_t data)
+{
+	*buff++ = (char)data;
+	data >>= 8;
+	*buff++ = (char)data;
+	data >>= 8;
+	*buff++ = (char)data;
+	data >>= 8;
+	*buff = (char)data;
+}
+
 void DOS_Int21_71a6(const char *name1, const char *name2) {
     (void)name1;
     (void)name2;
 	char buf[64];
-	unsigned long serial_number=0x1234,st=0,cdate=0,ctime=0,adate=0,atime=0,mdate=0,mtime=0;
+	unsigned long serial_number=0x1234;
     uint8_t entry = (uint8_t)reg_bx;
     uint8_t handle = 0;
 	if (entry>=DOS_FILES) {
@@ -5316,7 +5327,7 @@ void DOS_Int21_71a6(const char *name1, const char *name2) {
 		return;
 	}
 	DOS_PSP psp(dos.psp());
-	for (unsigned int i=0;i<=DOS_FILES;i++)
+	for (unsigned int i=0;i<DOS_FILES;i++)
 		if (Files[i] && psp.FindEntryByHandle(i)==entry)
 			handle=i;
 	if (handle < DOS_FILES && Files[handle] && Files[handle]->name!=NULL) {
@@ -5335,35 +5346,29 @@ void DOS_Int21_71a6(const char *name1, const char *name2) {
 		}
 		struct stat status;
 		if (DOS_GetFileAttrEx(Files[handle]->name, &status, Files[handle]->GetDrive())) {
-#if !defined(HX_DOS)
-			time_t ttime;
-			const struct tm * ltime;
-			ttime=status.st_ctime;
-			if ((ltime=localtime(&ttime))!=0) {
-				ctime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
-				cdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
-			}
-			ttime=status.st_atime;
-			if ((ltime=localtime(&ttime))!=0) {
-				atime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
-				adate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
-			}
-			ttime=status.st_mtime;
-			if ((ltime=localtime(&ttime))!=0) {
-				mtime=DOS_PackTime((uint16_t)ltime->tm_hour,(uint16_t)ltime->tm_min,(uint16_t)ltime->tm_sec);
-				mdate=DOS_PackDate((uint16_t)(ltime->tm_year+1900),(uint16_t)(ltime->tm_mon+1),(uint16_t)ltime->tm_mday);
-			}
-#endif
-			sprintf(buf,"%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s%-4s",(char*)&st,(char*)&ctime,(char*)&cdate,(char*)&atime,(char*)&adate,(char*)&mtime,(char*)&mdate,(char*)&serial_number,(char*)&st,(char*)&st,(char*)&st,(char*)&st,(char*)&handle);
-			for (int i=32;i<36;i++) buf[i]=0;
-			buf[36]=(char)((uint32_t)status.st_size%256);
-			buf[37]=(char)(((uint32_t)status.st_size%65536)/256);
-			buf[38]=(char)(((uint32_t)status.st_size%16777216)/65536);
-			buf[39]=(char)((uint32_t)status.st_size/16777216);
-			buf[40]=(char)status.st_nlink;
-			for (int i=41;i<47;i++) buf[i]=0;
-			buf[52]=0;
-			MEM_BlockWrite(SegPhys(ds)+reg_dx,buf,53);
+			int64_t ff;
+			unsigned long st;
+
+			if(status.st_mode & S_IFDIR) st = DOS_ATTR_DIRECTORY;
+			else st = DOS_ATTR_ARCHIVE;
+
+			memset(buf, 0, 52);
+			set_dword(buf, st);
+			// 116444736000000000LL = FILETIME 1970/01/01 00:00:00
+			ff = 116444736000000000LL + (int64_t)status.st_ctime * 10000000LL;
+			set_dword(&buf[4], (uint32_t)ff);
+			set_dword(&buf[8], (uint32_t)(ff >> 32));
+			ff = 116444736000000000LL + (int64_t)status.st_atime * 10000000LL;
+			set_dword(&buf[12], (uint32_t)ff);
+			set_dword(&buf[16], (uint32_t)(ff >> 32));
+			ff = 116444736000000000LL + (int64_t)status.st_mtime * 10000000LL;
+			set_dword(&buf[20], (uint32_t)ff);
+			set_dword(&buf[24], (uint32_t)(ff >> 32));
+			set_dword(&buf[28], serial_number);
+			set_dword(&buf[36], status.st_size);
+			set_dword(&buf[40], status.st_nlink);
+			set_dword(&buf[48], handle);
+			MEM_BlockWrite(SegPhys(ds)+reg_dx,buf,52);
 			reg_ax=0;
 			CALLBACK_SCF(false);
 		} else {
@@ -5381,22 +5386,36 @@ void DOS_Int21_71a7(const char *name1, const char *name2) {
     (void)name2;
 	switch (reg_bl) {
 			case 0x00:
-					reg_cl=mem_readb(SegPhys(ds)+reg_si);	//not yet a proper implementation,
-					reg_ch=mem_readb(SegPhys(ds)+reg_si+1);	//but MS-DOS 7 and 4DOS DIR should
-					reg_dl=mem_readb(SegPhys(ds)+reg_si+4);	//show date/time correctly now
-					reg_dh=mem_readb(SegPhys(ds)+reg_si+5);
-					reg_bh=0;
-					reg_ax=0;
+				{
+					int64_t ff = ((int64_t)mem_readd(SegPhys(ds) + reg_si + 4) << 32) | mem_readd(SegPhys(ds) + reg_si);
+					time_t tt = (time_t)((ff - 116444736000000000LL) / 10000000LL);
+					struct tm *ftm = localtime(&tt);
+					if(ftm != NULL) {
+						reg_cx = DOS_PackTime((uint16_t)ftm->tm_hour, (uint16_t)ftm->tm_min, (uint16_t)ftm->tm_sec);
+						reg_dx = DOS_PackDate((uint16_t)(ftm->tm_year + 1900), (uint16_t)(ftm->tm_mon + 1), (uint16_t)ftm->tm_mday);
+						reg_bh = (ff / 100000LL) % 200;
+					}
+					reg_ax = 0;
 					CALLBACK_SCF(false);
-					break;
+				}
+				break;
 			case 0x01:
-					mem_writeb(SegPhys(es)+reg_di,reg_cl);
-					mem_writeb(SegPhys(es)+reg_di+1,reg_ch);
-					mem_writeb(SegPhys(es)+reg_di+4,reg_dl);
-					mem_writeb(SegPhys(es)+reg_di+5,reg_dh);
-					reg_ax=0;
+				{
+					struct tm ftm = {0};
+					ftm.tm_year = ((reg_dx >> 9) & 0x7f) + 80;
+					ftm.tm_mon = ((reg_dx >> 5) & 0x0f) - 1;
+					ftm.tm_mday = (reg_dx & 0x1f);
+					ftm.tm_hour = (reg_cx >> 11) & 0x1f;
+					ftm.tm_min = (reg_cx >> 5) & 0x3f;
+					ftm.tm_sec = (reg_cx & 0x1f) * 2;
+					ftm.tm_isdst = -1;
+					int64_t ff = 116444736000000000LL + (int64_t)mktime(&ftm) * 10000000LL + reg_bh * 100000LL;
+					mem_writed(SegPhys(es) + reg_di, (uint32_t)ff);
+					mem_writed(SegPhys(es) + reg_di + 4, (uint32_t)(ff >> 32));
+					reg_ax = 0;
 					CALLBACK_SCF(false);
-					break;
+				}
+				break;
 			default:
 					E_Exit("DOS:Illegal LFN TimeConv call %2X",reg_bl);
 	}
