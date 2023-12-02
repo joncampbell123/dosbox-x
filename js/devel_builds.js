@@ -41,7 +41,7 @@ function add_ci_build_entry(repo, workflow_id, description) {
     let page = 1;
     let per_page = 1;
 
-    let filter_branch = "main";
+    let filter_branch = "master";
     let filter_event = "push";
     let filter_status = "success";
 
