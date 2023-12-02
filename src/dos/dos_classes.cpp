@@ -19,6 +19,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 #include "dosbox.h"
 #include "mem.h"
 #include "dos_inc.h"

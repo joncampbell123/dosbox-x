@@ -25,6 +25,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <sys/stat.h>
+#include <time.h>
 
 #include "control.h"
 #include "dosbox.h"
