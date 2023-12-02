@@ -19,17 +19,6 @@ function report_error(msg, e, show_alert=true, show_trace=false) {
         alert(msg + (show_trace ? stack : ""));
 }
 
-function handle_error(error_message, os_name) {
-    let build_link_tr_el = document.getElementById(os_name + "-build-link");
-    build_link_tr_el.innerHTML = error_message;
-
-    let version_el = document.getElementById(os_name + "-build-version");
-    version_el.textContent = '';
-
-    let date_el = document.getElementById(os_name + "-build-date");
-    date_el.textContent = '';
-}
-
 function add_ci_build_entry(repo, workflow_id, description) {
     let builds = document.querySelector("#builds");
     let build_entry_id = "build-" + workflow_id;
@@ -49,27 +38,19 @@ function add_ci_build_entry(repo, workflow_id, description) {
         build_status_el.innerText = text;
     }
 
-    // GitHub has strict rate-limits for anonymous users: 60 requests per hour;
-    // We request 100 results per page (max allowed); main builds are very
-    // likely to be included in the first page anyway.
-    if (page > 10) {
-        report_error_as_build_link("Couldn't find most recent build");
-        return;
-    }
+    let page = 1;
+    let per_page = 1;
 
     let filter_branch = "main";
     let filter_event = "push";
     let filter_status = "success";
 
-    const queryParams = new URLSearchParams();
+        const queryParams = new URLSearchParams();
     queryParams.set("page", page);
     queryParams.set("per_page", per_page);
     queryParams.set("branch", filter_branch);
     queryParams.set("event", filter_event);
     queryParams.set("status", filter_status);
-
-    let page = 1;
-    let per_page = 1;
 
     const gh_api_url = "https://api.github.com/repos/" + repo + "/";
 
@@ -108,7 +89,7 @@ function add_ci_build_entry(repo, workflow_id, description) {
 
             // If result not found, query the next page
             if (!status) {
-                .catch (show_generic_error);
+                show_generic_error("Result not found");
                 return;
             }
 
