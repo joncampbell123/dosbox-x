@@ -241,11 +241,17 @@ public:
 	}
 
     void ListAll(Program* base) {
-        auto print_port = [base, this](auto *client_info, auto *port_info) {
-            const auto *addr = snd_seq_port_info_get_addr(port_info);
+#if __cplusplus <= 201103L // C++11 compliant code not tested
+        auto print_port = [base, this](snd_seq_client_info_t *client_info, snd_seq_port_info_t *port_info) {
+            const auto* addr = snd_seq_port_info_get_addr(port_info);
             const unsigned int type = snd_seq_port_info_get_type(port_info);
             const unsigned int caps = snd_seq_port_info_get_capability(port_info);
-
+#else
+        auto print_port = [base, this](auto* client_info, auto* port_info) {
+            const auto* addr = snd_seq_port_info_get_addr(port_info);
+            const unsigned int type = snd_seq_port_info_get_type(port_info);
+            const unsigned int caps = snd_seq_port_info_get_capability(port_info);
+#endif
             if ((type & SND_SEQ_PORT_TYPE_SYNTHESIZER) || port_is_writable(caps)) {
                 const bool selected = (addr->client == this->seq.client && addr->port == this->seq.port);
                 const char esc_color[] = "\033[32;1m";
