@@ -686,7 +686,7 @@ void GameLink::Out( const uint16_t frame_width,
 				int base = g_p_shared_memory->peek.addr[ 0 ];
 				for (int i = 0; i < g_p_shared_memory->peek.addr_count; i++) {
 					uint8_t seek = g_p_shared_memory->peek.data[ i ];
-					if (g_p_shared_memory->peek.addr[ i ] > 0x1000'0000) continue;
+                    if (g_p_shared_memory->peek.addr[ i ] > 0x10000000) continue;
 					int oaddr = g_p_shared_memory->peek.addr[ i ] - base + addr;
 					if (oaddr >= g_membase_size || p_sysmem[ oaddr ] != seek) {
 						match = false;

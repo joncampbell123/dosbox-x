@@ -4,6 +4,8 @@ Next:
     means off for IBM compatible mode and on for PC-9821 compatible mode.
     This should allow some DOS games that depend on the linear framebuffer
     to work properly even if memsize=16 or higher.
+  - MIDI: set minimum sysex delay when enabled (mistydemeo)
+  - International support in LABEL, COPY, DEL builtin commands (maxpat)
   - Fix palette setting bugs due to SETCOLOR fix in 2023.10.06 release. (maron2000)
       Graphical glitches in Ultima VI(#4507), Chessmaster 3000(#4510), Wizardry VII(#4534) 
       Crash Sid Meyer's Civilization I (#4511)     
@@ -13,8 +15,22 @@ Next:
     (Issue #4438)(maron2000) 
   - Fix TTF mode didn't switch to graphics mode on certain types of machines
     such as tandy/pcjr.(Issue #4559)(maron2000)
+  - Fix crash on switching to fullscreen when output=opengl (Intel macOS) (maron2000)
+  - Update DXCapture shell command to support /O for OPL capture (AranVink)
   - Fix floppy images lock bug (maxpat78)
+  - Fix type of return value at bool MountFat() (jg1uaa)
   - Fix VHD geometry bugs by performing MBR analysis (maxpat78)
+  - Change maximum number of joystick buttons allowed by the mapper (mattcaron)
+  - Enable Win9x support on a Pentium3 PC (crazii)
+  - Add PC98 image extensions in file open dialogs (maron2000)
+  - Fix input in configuration tool (SDL2) (maron2000)
+  - Reduce warnings by replacing sOffset (use offsetof) (jg1uaa)
+  - Fix LFN functions (nanshiki, SmileTheory)
+     Fixed a bug in which 2 extra bytes were copied to the buffer (ax=714eh,714fh).
+     Fixed wrong value of date/time etc. in file information (ax=714eh,714fh,71a6h).
+     Fixed date/time conversion to be correct (ax=71a7h)
+     Report correct file size on win32 when file is open (ax=71a6h).
+  - Fix C++11 uncompliant codes (midi_alsa.h, gamelink.cpp) (maron2000)
 
 2023.10.06
   - Add "VRD" debugger command to force redraw of the VGA screen.
