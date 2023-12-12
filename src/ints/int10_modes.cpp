@@ -105,6 +105,7 @@ VideoModeBlock ModeList_VGA[]={
 
 /* Toshiba T3100, J-3100 */
 { 0x074  ,M_DCGA   ,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xB8000 ,0x8000 ,100 ,449 ,80 ,400 ,0	},
+{ 0x075  ,M_EGA    ,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0xA000 ,100 ,525 ,80 ,400 ,0	},
 
 /* Follow vesa 1.2 for first 0x20 */
 { 0x100  ,M_LIN8   ,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 ,0   },
@@ -399,6 +400,7 @@ VideoModeBlock ModeList_VGA_Tseng[]={
 
 /* Toshiba T3100, J-3100 */
 { 0x074  ,M_DCGA   ,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xB8000 ,0x8000 ,100 ,449 ,80 ,400 ,0	},
+{ 0x075  ,M_EGA    ,640 ,400 ,80 ,25 ,8 ,16 ,1 ,0xA0000 ,0xA000 ,100 ,525 ,80 ,400 ,0	},
 
 // Sierra SC1148x Hi-Color DAC modes
 { 0x213  ,M_LIN15  ,320 ,200 ,40 ,25 ,8 ,8  ,1 ,0xA0000 ,0x10000,100 ,449 ,80 ,400 , _VGA_PIXEL_DOUBLE | _REPEAT1 },
@@ -1850,6 +1852,8 @@ bool INT10_SetVideoMode(uint16_t mode) {
 				case 0x10:
 				case 0x12: 
 					goto att_text16;
+				case 0x75: 
+					if(IS_J3100) goto att_text16;
 				default:
 					if ( CurMode->type == M_LIN4 )
 						goto att_text16;

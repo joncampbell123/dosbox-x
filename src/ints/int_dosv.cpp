@@ -1712,6 +1712,9 @@ bool DOSV_CheckCJKVideoMode()
 	if(IS_DOS_CJK && (TrueVideoMode == 0x03 || TrueVideoMode == 0x12 || (TrueVideoMode >= 0x70 && TrueVideoMode <= 0x73) || TrueVideoMode == 0x78)) {
 		return true;
 	}
+	if(IS_J3100 && TrueVideoMode == 0x75) {
+		return true;
+	}
 	return false;
 }
 
