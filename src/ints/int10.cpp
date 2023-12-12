@@ -1100,8 +1100,8 @@ CX	640x480	800x600	  1024x768/1280x1024
 			break;
 		}
 		break;
-	case 0x82:// Set/Read the scroll mode when the video mode is JEGA graphic mode
-		if (J3_IsJapanese()) {
+		case 0x82:// Set/Read the scroll mode when the video mode is JEGA graphic mode
+		if (J3_IsJapanese() || (IS_J3100 && GetTrueVideoMode() == 0x75)) {
 			if(reg_al == 0x00) {
 				// scroll mode
 				reg_al = real_readb(BIOSMEM_J3_SEG, BIOSMEM_J3_SCROLL);
