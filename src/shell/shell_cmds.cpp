@@ -2962,8 +2962,9 @@ void DOS_Shell::CMD_MORE(char * args) {
 	uint16_t n=1;
 	StripSpaces(args);
 	if (IS_PC98_ARCH) {
-		LINES=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
-		COLS=80;
+        LINES=real_readb(0x60,0x113) & 0x01 ? 25 : 20;
+        COLS=80;
+        if (real_readb(0x60,0x111)) LINES--; // Function keys displayed
 	} else {
 		LINES=(IS_EGAVGA_ARCH?real_readb(BIOSMEM_SEG,BIOSMEM_NB_ROWS):24)+1;
 		COLS=real_readw(BIOSMEM_SEG,BIOSMEM_NB_COLS);
