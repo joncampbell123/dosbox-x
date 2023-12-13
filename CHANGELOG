@@ -1,15 +1,15 @@
 Next:
-  - Change ISA memory hole 512kb option from boolean to true/false/auto.
-  - Add ISA memory hole 15mb option, make it true/false/auto. Auto
-    means off for IBM compatible mode and on for PC-9821 compatible mode.
+  - Change ISA memory hole 512kb option from boolean to true/false/auto. (joncampbell123)
+  - Add ISA memory hole 15mb option, make it true/false/auto.
+    Auto means off for IBM compatible mode and on for PC-9821 compatible mode.
     This should allow some DOS games that depend on the linear framebuffer
-    to work properly even if memsize=16 or higher.
+    to work properly even if memsize=16 or higher. (joncampbell123)
   - MIDI: set minimum sysex delay when enabled (mistydemeo)
   - International support in LABEL, COPY, DEL builtin commands (maxpat)
   - Fix palette setting bugs due to SETCOLOR fix in 2023.10.06 release. (maron2000)
       Graphical glitches in Ultima VI(#4507), Chessmaster 3000(#4510), Wizardry VII(#4534) 
       Crash Sid Meyer's Civilization I (#4511)     
-      TTF color settings regarding 'colors' option (#4579, #3318)
+      TTF color settings regarding 'colors' option (#4579, #3318) and some more
   - Fix crash when mounting floppy/ISO images with no extension (maron2000)
   - Fix Intel macOS CI builds crashed on startup due to missing dylibs
     (Issue #4438)(maron2000) 
@@ -31,24 +31,27 @@ Next:
      Fixed date/time conversion to be correct (ax=71a7h)
      Report correct file size on win32 when file is open (ax=71a6h).
   - Fix C++11 uncompliant codes (midi_alsa.h, gamelink.cpp) (maron2000)
+  - Consider function key display in MORE command (PC-98) (maron2000)
+  - Fix crash when menu item "ttf_extcharset" not exists (output_ttf.cpp)(Yogi-baer)
+  - Add support for J-3100 video mode 75h (nanshiki)
 
 2023.10.06
-  - Add "VRD" debugger command to force redraw of the VGA screen.
+  - Add "VRD" debugger command to force redraw of the VGA screen. (joncampbell123)
   - Add VGA debug set commands to force a video start address and another
-    to clear all debug settings.
+    to clear all debug settings. (joncampbell123)
   - Add "PITSYNC" option to VFRCRATE command. "VFRCRATE PITSYNC ON"
     directs the system timer interrupt to synchronize tick rate with
     vertical refresh rate of VGA emulation if the game or demo set
     the timer tick rate to a value close enough to vertical refresh.
     This is intended for games or demos that use the system timer for
-    a vsync interrupt.
+    a vsync interrupt. (joncampbell123)
   - IMGMAKE: Fix bug where if -bat was specified, the generated .bat
-    file would attempt to mount the .bat file, not the disk image.
+    file would attempt to mount the .bat file, not the disk image. (joncampbell123)
   - IMGMAKE: If -nofs and -bat was specified, the generated .bat file
-    will refer to "IMGMAKE 2" instead of "IMGMAKE C"
+    will refer to "IMGMAKE 2" instead of "IMGMAKE C" (joncampbell123)
   - DOS FAT driver: When the guest sends in a new BIOS Parameter Block,
     recalculate the disk locations and FAT type properly instead of
-    assuming that FORMAT.COM is using the same format already present.
+    assuming that FORMAT.COM is using the same format already present. (joncampbell123)
   - DOS FAT driver: If the partition is unformatted and looks as if
     freshly written by FDISK, then instead of failing to mount, mount
     the partition instead as an unformatted partition and fail file
@@ -57,19 +60,19 @@ Next:
     image, FDISK it, restart, FORMAT.COM the unformatted partition,
     and end up with a working drive letter (just like MS-DOS). So far
     verified against MS-DOS 6.22 and Windows 98 versions of FDISK,
-    FORMAT, SYS, and SCANDISK.
+    FORMAT, SYS, and SCANDISK. (joncampbell123)
   - DOS FAT driver: Add options -o sectoff and -o sectlen to make it
     possible to manually specify the start and length of a partition.
-    Future code will use this internally as well.
+    Future code will use this internally as well. (joncampbell123)
   - IMGMOUNT: Allow *: as a drive letter to mean automatically pick a
-    drive letter.
+    drive letter. (joncampbell123)
   - Fix debugger to use toupper(), but only for ASCII range ncurses
-    keycodes.
+    keycodes. (joncampbell123)
   - Timer PIT: If the guest writes the counter value while the counter
     gate is off, make sure the counter read back is the same value
     written regardless of gate status. Prior code returned the stale
     latched value of the counter as it was prior to shutting off the
-    gate and writing the counter, causing timing issues.
+    gate and writing the counter, causing timing issues. (joncampbell123)
   - Fix restoring minimized window on TTF output (Issue #4248) (maron2000)
   - Fix macos crash on launch when output=surface or auto (SDL2) (maron2000)
   - Update in-tree SDL2 library to ver 2.28.2 (maron2000)
@@ -153,6 +156,7 @@ Next:
   - Fix Blocek launching failure (issue #4385) (maron2000)
   - Bump in-tree FreeType library to ver 2.13.1 (maron2000)
   - Enable debugger function for MinGW builds (maron2000)
+
 2023.05.01
   - IMGMAKE will choose LBA partition types for 2GB or larger disk
     images, but the user can also use -chs and -lba options to override
