@@ -7,7 +7,7 @@
 #include "logging.h"
 #include "pc98_gdc.h"
 #include "pc98_gdc_const.h"
-#include "timer.h"
+#include "pic.h"
 #include <math.h>
 
 /* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
@@ -221,9 +221,7 @@ void PC98_GDC_state::draw_dot(uint16_t x, uint16_t y) {
             }
         }
     }
-#if defined(C_SDL2)
     dot_count++;
-#endif
 }
 
 void PC98_GDC_state::pset(void) {
@@ -453,11 +451,9 @@ void PC98_GDC_state::box(void) {
         y -= vectdir[draw.dir].y2;
     }
 }
-
+#include <windows.h>
 void PC98_GDC_state::exec(uint8_t command) {
-#if defined(C_SDL2)
     dot_count = 0;
-#endif
     switch(draw.ope & 0xf8) {
         case 0x00:
             pset();
@@ -483,12 +479,6 @@ void PC98_GDC_state::exec(uint8_t command) {
     draw_reset();
     // GDC status drawing bit
     drawing_status = 0x08;
-#if defined(C_SDL2)
     // uPD7220's 1-dot drawing time is 800ns
-    drawing_time = (uint64_t)(SDL_GetPerformanceFrequency() * (0.0000008 * dot_count));
-    drawing_start = SDL_GetPerformanceCounter();
-#else
-    // Number of read_status() calls
-    drawing_count = 3;
-#endif
+    drawing_end = PIC_FullIndex() + (0.0008 * dot_count);
 }

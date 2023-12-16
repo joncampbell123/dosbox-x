@@ -658,16 +658,9 @@ uint8_t PC98_GDC_state::read_status(void) {
         ret |= 0x01; // data ready
     else if (fifo_read == fifo_write) {
         if(drawing_status) {
-#if defined(C_SDL2)
-            if(SDL_GetPerformanceCounter() - drawing_start > drawing_time) {
+            if(PIC_FullIndex() > drawing_end) {
                 drawing_status = 0;
             }
-#else
-            drawing_count--;
-            if(drawing_count <= 0) {
-                drawing_status = 0;
-            }
-#endif
             ret |= drawing_status;
         }
     }
