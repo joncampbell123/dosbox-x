@@ -451,7 +451,7 @@ void PC98_GDC_state::box(void) {
         y -= vectdir[draw.dir].y2;
     }
 }
-#include <windows.h>
+
 void PC98_GDC_state::exec(uint8_t command) {
     dot_count = 0;
     switch(draw.ope & 0xf8) {
