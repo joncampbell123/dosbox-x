@@ -150,6 +150,7 @@ PC98_GDC_state::PC98_GDC_state() {
     horizontal_back_porch_width = 0;
     vertical_front_porch_width = 0;
     vertical_back_porch_width = 0;
+    drawing_status = 0;
     reset_fifo();
     reset_rfifo();
     draw_reset();
@@ -656,16 +657,12 @@ uint8_t PC98_GDC_state::read_status(void) {
     if (rfifo_has_content())
         ret |= 0x01; // data ready
     else if (fifo_read == fifo_write) {
-#if 0 // THIS IS CAUSING SEVERE PERFORMANCE ISSUES, DISABLED!
-	// According to
-	// [http://hackipedia.org/browse.cgi/Computer/Platform/PC%2c%20NEC%20PC%2d98/Collections/Undocumented%209801%2c%209821%20Volume%202%20%28webtech.co.jp%29/io%5fdisp%2etxt]
-	// bit 3 (0x08) is supposed to indicate when the GDC is drawing. Perhaps the contributer who's
-	// pull request added this found a PC-98 game that failed to run without it. Re-enable when a
-	// higher performance implementation is possible. Also, recent commits in 2022 added actual
-	// GDC drawing functionality, so perhaps this should mirror that too?
-        initRand();
-        if (rand()%20<1) ret |= 0x08;
-#endif
+        if(drawing_status) {
+            if(PIC_FullIndex() > drawing_end) {
+                drawing_status = 0;
+            }
+            ret |= drawing_status;
+        }
     }
 
     return ret;

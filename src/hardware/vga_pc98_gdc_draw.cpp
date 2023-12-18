@@ -7,6 +7,7 @@
 #include "logging.h"
 #include "pc98_gdc.h"
 #include "pc98_gdc_const.h"
+#include "pic.h"
 #include <math.h>
 
 /* do not issue CPU-side I/O here -- this code emulates functions that the GDC itself carries out, not on the CPU */
@@ -191,7 +192,8 @@ void PC98_GDC_state::draw_dot(uint16_t x, uint16_t y) {
     //       The GDC is documented to issue 16-bit read/modify/write when drawing, so
     //       that's what this code should do. Additionally, drawing with 8-bit memio
     //       and EGC causes minor artifacts.
-    if ((pc98_gdc_vramop & 0xE) == 0xA || (pc98_gdc_vramop & 0xE) == 0xE) {
+    // NOTE: It seems that the same behavior as EGC is required for GRCG+RMW.
+    if ((pc98_gdc_vramop & 0xE) == 0xA || (pc98_gdc_vramop & 0xC) == 0xC) {
         if(dot) {
             // REPLACE. COMPLEMENT or SET
             if(draw.mode == 0x00 || draw.mode == 0x01 || draw.mode == 0x03) {
@@ -219,6 +221,7 @@ void PC98_GDC_state::draw_dot(uint16_t x, uint16_t y) {
             }
         }
     }
+    dot_count++;
 }
 
 void PC98_GDC_state::pset(void) {
@@ -450,6 +453,7 @@ void PC98_GDC_state::box(void) {
 }
 
 void PC98_GDC_state::exec(uint8_t command) {
+    dot_count = 0;
     switch(draw.ope & 0xf8) {
         case 0x00:
             pset();
@@ -473,4 +477,8 @@ void PC98_GDC_state::exec(uint8_t command) {
             break;
     }
     draw_reset();
+    // GDC status drawing bit
+    drawing_status = 0x08;
+    // uPD7220's 1-dot drawing time is 800ns
+    drawing_end = PIC_FullIndex() + (0.0008 * dot_count);
 }

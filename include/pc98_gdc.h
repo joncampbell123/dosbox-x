@@ -174,6 +174,10 @@ struct PC98_GDC_state {
     bool                    doublescan;                 /* 200-line as 400-line */
 
     bool                    dbg_ev_partition;
+
+    double                  drawing_end;
+    int                     dot_count;
+    uint8_t                 drawing_status;
 };
 
 typedef union pc98_tile             egc_quad[4];
