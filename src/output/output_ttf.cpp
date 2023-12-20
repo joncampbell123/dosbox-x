@@ -244,7 +244,7 @@ void setVGADAC() {
             IO_WriteB(VGAREG_ACTL_ADDRESS, i+32);
             imap[i]=IO_ReadB(VGAREG_ACTL_READ_DATA);
             IO_WriteB(VGAREG_DAC_WRITE_ADDRESS, imap[i]);
-            IO_WriteB(VGAREG_DAC_DATA, altBGR0[i].red>>2);
+            IO_WriteB(VGAREG_DAC_DATA, altBGR0[i].red>>2);   // Convert 8-bit to 6-bit for VGA DAC
             IO_WriteB(VGAREG_DAC_DATA, altBGR0[i].green>>2);
             IO_WriteB(VGAREG_DAC_DATA, altBGR0[i].blue>>2);
         }
@@ -1090,12 +1090,30 @@ void GFX_EndTextLines(bool force) {
                 }
                 bool colornul = staycolors || (IS_VGA_ARCH && (altBGR1[colorBG&15].red > 4 || altBGR1[colorBG&15].green > 4 || altBGR1[colorBG&15].blue > 4 || altBGR1[colorFG&15].red > 4 || altBGR1[colorFG&15].green > 4 || altBGR1[colorFG&15].blue > 4) && rgbColors[colorBG].red < 5 && rgbColors[colorBG].green < 5 && rgbColors[colorBG].blue < 5 && rgbColors[colorFG].red < 5 && rgbColors[colorFG].green <5 && rgbColors[colorFG].blue < 5);
 				ttf_textRect.x = ttf.offX+(rtl?(ttf.cols-x-1):x)*ttf.width;
-				ttf_bgColor.r = !y&&!hasfocus&&noframe?altBGR0[colorBG&15].red:(colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorBG&15].red:rgbColors[colorBG].red);
-				ttf_bgColor.g = !y&&!hasfocus&&noframe?altBGR0[colorBG&15].green:(colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorBG&15].green:rgbColors[colorBG].green);
-				ttf_bgColor.b = !y&&!hasfocus&&noframe?altBGR0[colorBG&15].blue:(colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorBG&15].blue:rgbColors[colorBG].blue);
-				ttf_fgColor.r = !y&&!hasfocus&&noframe?altBGR0[colorFG&15].red:(colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorFG&15].red:rgbColors[colorFG].red);
-				ttf_fgColor.g = !y&&!hasfocus&&noframe?altBGR0[colorFG&15].green:(colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorFG&15].green:rgbColors[colorFG].green);
-				ttf_fgColor.b = !y&&!hasfocus&&noframe?altBGR0[colorFG&15].blue:(colornul||(colorChanged&&!IS_VGA_ARCH)?altBGR1[colorFG&15].blue:rgbColors[colorFG].blue);
+                if(colornul||(colorChanged&&!IS_VGA_ARCH)){
+                    ttf_bgColor.r = altBGR1[colorBG&15].red;
+                    ttf_bgColor.g = altBGR1[colorBG&15].green;
+                    ttf_bgColor.b = altBGR1[colorBG&15].blue;
+                    ttf_fgColor.r = altBGR1[colorFG&15].red;
+                    ttf_fgColor.g = altBGR1[colorFG&15].green;
+                    ttf_fgColor.b = altBGR1[colorFG&15].blue;
+                }
+                else {
+                    ttf_bgColor.r = rgbColors[colorBG].red;
+                    ttf_bgColor.g = rgbColors[colorBG].green;
+                    ttf_bgColor.b = rgbColors[colorBG].blue;
+                    ttf_fgColor.r = rgbColors[colorFG].red;
+                    ttf_fgColor.g = rgbColors[colorFG].green;
+                    ttf_fgColor.b = rgbColors[colorFG].blue;
+                }
+                if(noframe&&!hasfocus&&!y) { // Dim top line if focus is lost in Fullscreen mode
+                    ttf_bgColor.r = (((uint16_t)ttf_bgColor.r * 2 +128) / 4) & 0xFF;
+                    ttf_bgColor.g = (((uint16_t)ttf_bgColor.g * 2 +128) / 4) & 0xFF;
+                    ttf_bgColor.b = (((uint16_t)ttf_bgColor.b * 2 +128) / 4) & 0xFF;
+                    ttf_fgColor.r = (((uint16_t)ttf_fgColor.r * 2 +128) / 4) & 0xFF;
+                    ttf_fgColor.g = (((uint16_t)ttf_fgColor.g * 2 +128) / 4) & 0xFF;
+                    ttf_fgColor.b = (((uint16_t)ttf_fgColor.b * 2 +128) / 4) & 0xFF;
+                }
 
                 if (newAC[x].unicode) {
                     dw = newAC[x].doublewide;
@@ -1187,12 +1205,22 @@ void GFX_EndTextLines(bool force) {
 						colorFG=colorBG;
 				}
 				bool dw = newAttrChar[ttf.cursor].unicode && newAttrChar[ttf.cursor].doublewide;
-				ttf_bgColor.r = colorChanged&&!IS_VGA_ARCH?altBGR1[colorBG&15].red:rgbColors[colorBG].red;
-				ttf_bgColor.g = colorChanged&&!IS_VGA_ARCH?altBGR1[colorBG&15].green:rgbColors[colorBG].green;
-				ttf_bgColor.b = colorChanged&&!IS_VGA_ARCH?altBGR1[colorBG&15].blue:rgbColors[colorBG].blue;
-				ttf_fgColor.r = colorChanged&&!IS_VGA_ARCH?altBGR1[colorFG&15].red:rgbColors[colorFG].red;
-				ttf_fgColor.g = colorChanged&&!IS_VGA_ARCH?altBGR1[colorFG&15].green:rgbColors[colorFG].green;
-				ttf_fgColor.b = colorChanged&&!IS_VGA_ARCH?altBGR1[colorFG&15].blue:rgbColors[colorFG].blue;
+                if(colorChanged&&!IS_VGA_ARCH){
+                    ttf_bgColor.r = altBGR1[colorBG&15].red;
+                    ttf_bgColor.g = altBGR1[colorBG&15].green;
+                    ttf_bgColor.b = altBGR1[colorBG&15].blue;
+                    ttf_fgColor.r = altBGR1[colorFG&15].red;
+                    ttf_fgColor.g = altBGR1[colorFG&15].green;
+                    ttf_fgColor.b = altBGR1[colorFG&15].blue;
+                }
+                else {
+                    ttf_bgColor.r = rgbColors[colorBG].red;
+                    ttf_bgColor.g = rgbColors[colorBG].green;
+                    ttf_bgColor.b = rgbColors[colorBG].blue;
+                    ttf_fgColor.r = rgbColors[colorFG].red;
+                    ttf_fgColor.g = rgbColors[colorFG].green;
+                    ttf_fgColor.b = rgbColors[colorFG].blue;
+                }
 				unimap[0] = newAttrChar[ttf.cursor].unicode?newAttrChar[ttf.cursor].chr:cpMap[newAttrChar[ttf.cursor].chr&255];
                 if (dw) {
                     unimap[1] = newAttrChar[ttf.cursor].chr;
