@@ -34,6 +34,8 @@ Next:
   - Consider function key display in MORE command (PC-98) (maron2000)
   - Fix crash when menu item "ttf_extcharset" not exists (output_ttf.cpp)(Yogi-baer)
   - Add support for J-3100 video mode 75h (nanshiki)
+  - Reflect drawing status bit of GDC status I/O port (PC-98) (nanshiki)
+  - Re-enable top line dimming when focus is lost in fullscreen (TTF mode) (maron2000)
 
 2023.10.06
   - Add "VRD" debugger command to force redraw of the VGA screen. (joncampbell123)
