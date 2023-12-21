@@ -2252,14 +2252,8 @@ uint8_t p7fd9_8255_mouse_latch = 0;
 uint8_t p7fd8_8255_mouse_int_enable = 0;
 
 void pc98_mouse_movement_apply(int x,int y) {
-    x += p7fd9_8255_mouse_x;
-    if (x < -128) x = -128;
-    if (x > 127) x = 127;
-    y += p7fd9_8255_mouse_y;
-    if (y < -128) y = -128;
-    if (y > 127) y = 127;
-    p7fd9_8255_mouse_x = (int8_t)x;
-    p7fd9_8255_mouse_y = (int8_t)y;
+    p7fd9_8255_mouse_x += x;
+    p7fd9_8255_mouse_y += y;
 }
 
 unsigned int pc98_mouse_rate_hz = 120;
