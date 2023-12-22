@@ -3634,6 +3634,26 @@ static Bitu DOS_29Handler(void)
 					col--;
 				}
 			} else {
+				if(isDBCSCP() && isKanji1(reg_al) && col == ncols - 1) {
+					col = 0;
+					if(row < nrows) {
+						row++;
+					} else {
+						uint8_t tmp_al = reg_al;
+						reg_bh = 0x07;
+						reg_ax = 0x0601;
+						reg_cx = 0x0000;
+						reg_dl = (uint8_t)(ncols - 1);
+						reg_dh = (uint8_t)nrows;
+						CALLBACK_RunRealInt(0x10);
+						reg_al = tmp_al;
+					}
+					reg_ah = 0x02;
+					reg_bh = page;
+					reg_dl = col;
+					reg_dh = row;
+					CALLBACK_RunRealInt(0x10);
+				}
 				reg_ah = 0x09;
 				reg_bh = page;
 				reg_bl = int29h_data.ansi.attr;
