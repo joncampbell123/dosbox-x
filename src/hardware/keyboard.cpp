@@ -2256,9 +2256,6 @@ void pc98_mouse_movement_apply(int x,int y) {
      *      the counter values to stay within signed integer range,
      *      they just count.
      *
-     *      Also newer hardware is said to auto-reset the counter
-     *      when reading, instead of on bit 7.
-     *
      *      According to Nanshiki: [https://github.com/joncampbell123/dosbox-x/pull/4697]
      *
      *      -- 2023/12/21 J.C. */
