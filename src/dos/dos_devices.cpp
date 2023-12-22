@@ -955,6 +955,26 @@ void INTDC_CL10h_AH09h(uint16_t count) {
         DOS_CON->INTDC_CL10h_AH09h(count);
 }
 
+void INTDC_CL10h_AH0Ah(uint16_t pattern) {
+    if (DOS_CON != NULL)
+        DOS_CON->INTDC_CL10h_AH0Ah(pattern);
+}
+
+void INTDC_CL10h_AH0Bh(uint16_t pattern) {
+    if (DOS_CON != NULL)
+        DOS_CON->INTDC_CL10h_AH0Bh(pattern);
+}
+
+void INTDC_CL10h_AH0Ch(uint16_t count) {
+    if (DOS_CON != NULL)
+        DOS_CON->INTDC_CL10h_AH0Ch(count);
+}
+
+void INTDC_CL10h_AH0Dh(uint16_t count) {
+    if (DOS_CON != NULL)
+        DOS_CON->INTDC_CL10h_AH0Dh(count);
+}
+
 /* The CB_INT28 handler calls this callback then executes STI+HLT.
  * This works great when called from the CON device because on return,
  * when IRQ1 keyboard input breaks the HLT and returns to CON, this

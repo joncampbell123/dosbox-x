@@ -5505,6 +5505,31 @@ static Bitu INTDC_PC98_Handler(void) {
                 INTDC_CL10h_AH09h(reg_dx);
                 goto done;
             }
+            else if (reg_ah == 0x0a) { /* CL=0x10 AH=0x0A DL=pattern Erase screen */
+                void INTDC_CL10h_AH0Ah(uint16_t pattern);
+                INTDC_CL10h_AH0Ah(reg_dx);
+                goto done;
+            }
+            else if (reg_ah == 0x0b) { /* CL=0x10 AH=0x0B DL=pattern Erase lines */
+                void INTDC_CL10h_AH0Bh(uint16_t pattern);
+                INTDC_CL10h_AH0Bh(reg_dx);
+                goto done;
+            }
+            else if (reg_ah == 0x0c) { /* CL=0x10 AH=0x0C DL=count Insert lines */
+                void INTDC_CL10h_AH0Ch(uint16_t count);
+                INTDC_CL10h_AH0Ch(reg_dx);
+                goto done;
+            }
+            else if (reg_ah == 0x0d) { /* CL=0x10 AH=0x0D DL=count Erase lines */
+                void INTDC_CL10h_AH0Dh(uint16_t count);
+                INTDC_CL10h_AH0Dh(reg_dx);
+                goto done;
+            }
+            else if (reg_ah == 0x0E) { /* CL=0x10 AH=0x0E DL=mode Change character mode */
+                void pc98_set_char_mode(bool mode);
+                pc98_set_char_mode(reg_dl == 0);
+                goto done;
+            }
             goto unknown;
         default: /* some compilers don't like not having a default case */
             goto unknown;
