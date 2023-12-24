@@ -373,7 +373,7 @@ void MountHelper(char drive, const char drive2[DOS_PATHLENGTH], std::string cons
 	if (!newdrive) E_Exit("DOS:Can't create drive");
 	Drives[drive-'A']=newdrive;
 	DOS_EnableDriveMenu(drive);
-	mem_writeb(Real2Phys(dos.tables.mediaid)+(drive-'A')*2,mediaid);
+	mem_writeb(Real2Phys(dos.tables.mediaid)+(drive-'A')*dos.tables.dpb_size,mediaid);
 	if(drive_type=="CDROM")
 		LOG_MSG("GUI: Drive %c is mounted as CD-ROM",drive);
 	else
@@ -488,7 +488,7 @@ void MenuMountDrive(char drive, const char drive2[DOS_PATHLENGTH]) {
 	if(error && (type==DRIVE_CDROM)) return;
 	Drives[drive-'A']=newdrive;
 	DOS_EnableDriveMenu(drive);
-	mem_writeb(Real2Phys(dos.tables.mediaid)+(drive-'A')*2,mediaid);
+	mem_writeb(Real2Phys(dos.tables.mediaid)+(drive-'A')*dos.tables.dpb_size,mediaid);
     if(type == DRIVE_CDROM) LOG_MSG("GUI: Drive %c is mounted as CD-ROM %c:\\", drive, drive);
     else LOG_MSG("GUI: Drive %c is mounted as local directory %c:\\", drive, drive);
     if(drive == drive2[0] && strlen(drive2) == 3) {
