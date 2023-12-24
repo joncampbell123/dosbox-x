@@ -2357,7 +2357,7 @@ void unmount(int lcv) {
         if (cdrom) IDE_CDROM_Detach(lcv);
         Drives[lcv]=0;
         DOS_EnableDriveMenu('A'+lcv);
-        mem_writeb(Real2Phys(dos.tables.mediaid)+(unsigned int)'A'+lcv*dos.tables.dpb_size,0);
+        mem_writeb(Real2Phys(dos.tables.mediaid)+lcv*dos.tables.dpb_size,0);
     }
 }
 
