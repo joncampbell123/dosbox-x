@@ -1699,6 +1699,7 @@ for /d %%i in ($(SolutionDir)\..\contrib\translations\*) do copy %%i\*.lng "$(Ou
     <ClInclude Include="..\include\util_math.h" />
     <ClInclude Include="..\include\util_pointer.h" />
     <ClInclude Include="..\include\util_units.h" />
+    <ClInclude Include="..\include\version_string.h" />
     <ClInclude Include="..\include\vga.h" />
     <ClInclude Include="..\include\video.h" />
     <ClInclude Include="..\include\voodoo.h" />

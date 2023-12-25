@@ -51,6 +51,7 @@
 #include "sdlmain.h"
 #include "menudef.h"
 #include "build_timestamp.h"
+#include "version_string.h"
 
 #include <output/output_ttf.h>
 
@@ -235,7 +236,7 @@ bool DOS_Shell::CheckConfig(char* cmd_in,char*line) {
 bool enable_config_as_shell_commands = false;
 
 bool DOS_Shell::execute_shell_cmd(char *name, char *arguments) {
-	SHELL_Cmd shell_cmd = {};
+	// SHELL_Cmd shell_cmd = {}; /* unused */
 	uint32_t cmd_index=0;
 	while (cmd_list[cmd_index].name) {
 		if (strcasecmp(cmd_list[cmd_index].name,name)==0) {
@@ -3401,9 +3402,10 @@ bool get_param(char *&args, char *&rem, char *&temp, char &wait_char, int &wait_
 void DOS_Shell::CMD_CHOICE(char * args){
 	HELP("CHOICE");
 	static char defchoice[3] = {MSG_Get("INT21_6523_YESNO_CHARS")[0],MSG_Get("INT21_6523_YESNO_CHARS")[1],0};
-	char *rem1 = NULL, *rem2 = NULL, *rem = NULL, *temp = NULL, waitchar = 0, *ptr;
+	//char *rem1 = NULL, *rem2 = NULL; /* unused */
+	char *rem = NULL, *temp = NULL, waitchar = 0, *ptr;
 	int waitsec = 0;
-	bool optC = false, optT = false;
+	//bool optC = false, optT = false; /* unused */
 	bool optN = ScanCMDBool(args,"N");
 	bool optS = ScanCMDBool(args,"S"); //Case-sensitive matching
 	// ignore /b and /m switches for compatibility
@@ -3705,7 +3707,7 @@ void DOS_Shell::CMD_VER(char *args) {
 		dos_ver_menu(false);
 	} else {
 		WriteOut(MSG_Get("SHELL_CMD_VER_VER"),VERSION,SDL_STRING,dos.version.major,dos.version.minor);
-		if (optR) WriteOut("DOSBox-X Git commit %s, built on %s\n", GIT_COMMIT_HASH, UPDATED_STR);
+		if (optR) WriteOut("DOSBox-X Git commit %s, built on %s\nPlatform: %s %d-bit", GIT_COMMIT_HASH, UPDATED_STR, OS_PLATFORM, OS_BIT_INT);
 	}
 }
 
