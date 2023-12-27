@@ -8821,11 +8821,9 @@ private:
             else size_extended = 0;
         }
 
-        if (!IS_PC98_ARCH) {
-            /* PS/2 mouse */
-            void BIOS_PS2Mouse_Startup(Section *sec);
-            BIOS_PS2Mouse_Startup(NULL);
-        }
+        /* PS/2 mouse */
+        void BIOS_PS2Mouse_Startup(Section *sec);
+        BIOS_PS2Mouse_Startup(NULL);
 
         if (!IS_PC98_ARCH) {
             /* this belongs HERE not on-demand from INT 15h! */
