@@ -2513,7 +2513,24 @@ static Bitu DOS_21Handler(void) {
             break;
             }
         case 0x5d:                  /* Network Functions */
-            if(reg_al == 0x06) {
+            if(reg_al == 0x00) {
+                LOG(LOG_DOSMISC,LOG_NORMAL)("DOS:5D:00:Remote Server Call");
+                /* Remote Server Call
+                 * From FeeDOS inthndlr.c line 1276:
+                 * DS:DX point to remote register content to be used with this handler
+                 * ax, bx, cx, dx, si, di, ds, es */
+                unsigned short int temp_ds = mem_readw(SegPhys(ds)+reg_dx+12);
+                unsigned short int temp_dx = mem_readw(SegPhys(ds)+reg_dx+6);
+                reg_ax = mem_readw(SegPhys(ds)+reg_dx);
+                reg_bx = mem_readw(SegPhys(ds)+reg_dx+2);
+                reg_cx = mem_readw(SegPhys(ds)+reg_dx+4);
+                reg_si = mem_readw(SegPhys(ds)+reg_dx+8);
+                reg_di = mem_readw(SegPhys(ds)+reg_dx+10);
+                SegSet16(es,mem_readw(SegPhys(ds)+reg_dx+14));
+                SegSet16(ds,temp_ds);
+                reg_dx = temp_dx;
+                DOS_21Handler();
+            } else if(reg_al == 0x06) {
                 /* FIXME: I'm still not certain, @emendelson, why this matters so much
                  *        to WordPerfect 5.1 and 6.2 and why it causes problems otherwise.
                  *        DOSBox and DOSBox-X only use the first 0x1A bytes anyway. */
