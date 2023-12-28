@@ -33,6 +33,7 @@ int Reflect_Menu(void);
 void gdc_5mhz_mode_update_vars(void);
 void gdc_egc_enable_update_vars(void);
 void gdc_grcg_enable_update_vars(void);
+void PC98_ChangeMouseFunction(bool nec);
 
 /* ====================== PC98UTIL.COM ====================== */
 class PC98UTIL : public Program {
@@ -123,6 +124,14 @@ public:
 
                 WriteOut("Hsync is now 31khz");
             }
+            else if (arg == "nec") {
+                PC98_ChangeMouseFunction(true);
+                WriteOut("Use NEC mouse function in int 33h");
+            }
+            else if (arg == "ms") {
+                PC98_ChangeMouseFunction(false);
+                WriteOut("Use Microsoft mouse function in int 33h");
+            }
             else {
                 WriteOut("Unknown switch %s",arg.c_str());
                 break;
@@ -139,6 +148,8 @@ public:
         WriteOut("  /noegc     Disable EGC\n");
         WriteOut("  /24khz     Set hsync to 24KHz\n");
         WriteOut("  /31khz     Set hsync to 31KHz\n");
+        WriteOut("  /nec       Use NEC mouse function in int 33h\n");
+        WriteOut("  /ms        Use Microsoft mouse function in int 33h\n");
     }
 };
 

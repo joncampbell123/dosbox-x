@@ -84,6 +84,8 @@ bool cell_granularity_disable=false;
 bool en_int33_hide_if_polling=false;
 bool en_int33_hide_if_intsub=false;
 bool en_int33_pc98_show_graphics=true; // NEC MOUSE.COM behavior
+bool pc98_nec_mouse = false;
+uint8_t pc98_nec_mouse_plane = 2;
 
 double int33_last_poll = 0;
 
@@ -174,8 +176,19 @@ static uint16_t defaultCursorMask[CURSORY] = {
         0x0600, 0x0300, 0x0300, 0x0000
 };
 
+static uint16_t defaultCursorMaskNEC[CURSORY*2] = {
+        0xc000, 0xe000, 0xf000, 0xf800,
+        0xfc00, 0xfe00, 0xff00, 0xff80,
+        0xffc0, 0xffe0, 0xfff0, 0xfff8,
+        0xfffc, 0xfffe, 0xffff, 0xffff,
+        0xff80, 0xfb80, 0xf1c0, 0xe1c0,
+        0xc0e0, 0x80e0, 0x0070, 0x0070,
+        0x0038, 0x0038, 0x001c, 0x001c,
+        0x000e, 0x000e, 0x0007, 0x0007
+};
+
 static uint16_t userdefScreenMask[CURSORY];
-static uint16_t userdefCursorMask[CURSORY];
+static uint16_t userdefCursorMask[CURSORY*2];
 
 static struct {
     uint8_t buttons;
@@ -573,6 +586,41 @@ void ClipCursorArea(int16_t& x1, int16_t& x2, int16_t& y1, int16_t& y2,
     }
 }
 
+static uint16_t pc98_graph_seg[4] = { 0xa800,0xb000,0xb800,0xe000 };
+
+void PC98_XorPixel(uint16_t x, uint16_t y, uint8_t plane)
+{
+    uint16_t addr = y * 80 + x / 8;
+    real_writeb(pc98_graph_seg[plane], addr, real_readb(pc98_graph_seg[plane], addr) ^ (1 << (7 - (x % 8))));
+}
+
+void PC98_PutPixel(uint16_t x, uint16_t y, uint8_t color)
+{
+    uint16_t addr = y * 80 + x / 8;
+    uint8_t bit = 7 - (x % 8);
+    uint8_t data;
+    for(uint8_t plane = 0 ; plane < 4 ; plane++) {
+        data = real_readb(pc98_graph_seg[plane], addr);
+        if(color & (1 << plane)) {
+            real_writeb(pc98_graph_seg[plane], addr, data | (1 << bit));
+        } else {
+            real_writeb(pc98_graph_seg[plane], addr, data & ~(1 << bit));
+        }
+    }
+}
+
+void PC98_GetPixel(uint16_t x, uint16_t y, uint8_t *color)
+{
+    uint16_t addr = y * 80 + x / 8;
+    uint8_t bit = 7 - (x % 8);
+    *color = 0;
+    for(uint8_t plane = 0 ; plane < 4 ; plane++) {
+        if(real_readb(pc98_graph_seg[plane], addr) & (1 << bit)) {
+            *color |= (1 << plane);
+        }
+    }
+}
+
 void RestoreCursorBackground() {
     if (mouse.hidden || mouse.inhibit_draw) return;
 
@@ -587,19 +635,41 @@ void RestoreCursorBackground() {
         int16_t x2       = x1 + CURSORX - 1;
         int16_t y2       = y1 + CURSORY - 1; 
 
+        if(pc98_nec_mouse) y2 += CURSORY;
+
         ClipCursorArea(x1, x2, y1, y2, addx1, addx2, addy);
 
         dataPos = addy * CURSORX;
-        for (y=y1; y<=y2; y++) {
-            dataPos += addx1;
-            for (x=x1; x<=x2; x++) {
-                INT10_PutPixel((uint16_t)x,(uint16_t)y,mouse.page,mouse.backData[dataPos++]);
+        if(pc98_nec_mouse) {
+            for (y=y1; y<=y2; y++) {
+                uint16_t cuMask = mouse.cursorMask[addy+y-y1];
+                if (addx1>0) { cuMask<<=addx1; dataPos += addx1; }
+                for (x=x1; x<=x2; x++) {
+                    if (cuMask & HIGHESTBIT) PC98_XorPixel((uint16_t)x,(uint16_t)y, pc98_nec_mouse_plane);
+                    cuMask<<=1;
+                    dataPos++;
+                }
+                dataPos += addx2;
             }
-            dataPos += addx2;
+        } else {
+            for (y=y1; y<=y2; y++) {
+                dataPos += addx1;
+                for (x=x1; x<=x2; x++) {
+                    if(IS_PC98_ARCH) PC98_PutPixel((uint16_t)x, (uint16_t)y, mouse.backData[dataPos++]);
+                    else INT10_PutPixel((uint16_t)x,(uint16_t)y,mouse.page,mouse.backData[dataPos++]);
+                }
+                dataPos += addx2;
+            }
         }
         mouse.background = false;
     }
     RestoreVgaRegisters();
+}
+
+void PC98_ChangeMouseFunction(bool nec)
+{
+    RestoreCursorBackground();
+    pc98_nec_mouse = nec;
 }
 
 void DrawCursor() {
@@ -656,15 +726,20 @@ void DrawCursor() {
     int16_t x2       = x1 + CURSORX - 1;
     int16_t y2       = y1 + CURSORY - 1; 
 
+    if(pc98_nec_mouse) y2 += CURSORY;
+
     ClipCursorArea(x1,x2,y1,y2, addx1, addx2, addy);
 
-    dataPos = addy * CURSORX;
-    for (y=y1; y<=y2; y++) {
-        dataPos += addx1;
-        for (x=x1; x<=x2; x++) {
-            INT10_GetPixel((uint16_t)x,(uint16_t)y,mouse.page,&mouse.backData[dataPos++]);
+    if(!pc98_nec_mouse) {
+        dataPos = addy * CURSORX;
+        for (y=y1; y<=y2; y++) {
+            dataPos += addx1;
+            for (x=x1; x<=x2; x++) {
+                if(IS_PC98_ARCH) PC98_GetPixel((uint16_t)x, (uint16_t)y, &mouse.backData[dataPos++]);
+                else INT10_GetPixel((uint16_t)x,(uint16_t)y,mouse.page,&mouse.backData[dataPos++]);
+            }
+            dataPos += addx2;
         }
-        dataPos += addx2;
     }
     mouse.background= true;
     mouse.backposx  = POS_X / xratio - mouse.hotx;
@@ -677,15 +752,21 @@ void DrawCursor() {
         uint16_t cuMask = mouse.cursorMask[addy+y-y1];
         if (addx1>0) { scMask<<=addx1; cuMask<<=addx1; dataPos += addx1; }
         for (x=x1; x<=x2; x++) {
-            uint8_t pixel = 0;
-            // ScreenMask
-            if (scMask & HIGHESTBIT) pixel = mouse.backData[dataPos];
-            scMask<<=1;
-            // CursorMask
-            if (cuMask & HIGHESTBIT) pixel = pixel ^ 0x0F;
-            cuMask<<=1;
-            // Set Pixel
-            INT10_PutPixel((uint16_t)x,(uint16_t)y,mouse.page,pixel);
+            if(pc98_nec_mouse) {
+                if(cuMask & HIGHESTBIT) PC98_XorPixel((uint16_t)x,(uint16_t)y, pc98_nec_mouse_plane);
+                cuMask<<=1;
+            } else {
+                uint8_t pixel = 0;
+                // ScreenMask
+                if (scMask & HIGHESTBIT) pixel = mouse.backData[dataPos];
+                scMask<<=1;
+                // CursorMask
+                if (cuMask & HIGHESTBIT) pixel = pixel ^ 0x0F;
+                cuMask<<=1;
+                // Set Pixel
+                if(IS_PC98_ARCH) PC98_PutPixel((uint16_t)x, (uint16_t)y, pixel);
+                else INT10_PutPixel((uint16_t)x,(uint16_t)y,mouse.page,pixel);
+            }
             dataPos++;
         }
         dataPos += addx2;
@@ -1282,6 +1363,8 @@ void Mouse_AfterNewVideoMode(bool setmode) {
         mouse.gran_x = (mode<2)?0xfff0:0xfff8;
         mouse.gran_y = (int16_t)0xfff8;
         if (IS_PC98_ARCH) {
+            mouse.gran_x = (int16_t)0xffff;
+            mouse.gran_y = (int16_t)0xffff;
             mouse.max_y = 400 - 1;
         }
         else {
@@ -1359,7 +1442,10 @@ void Mouse_AfterNewVideoMode(bool setmode) {
     mouse.hoty       = 0;
     mouse.background = false;
     mouse.screenMask = defaultScreenMask;
-    mouse.cursorMask = defaultCursorMask;
+    if(pc98_nec_mouse) {
+        mouse.cursorMask = defaultCursorMaskNEC;
+        pc98_nec_mouse_plane = 2;
+    } else mouse.cursorMask = defaultCursorMask;
     mouse.textAndMask= defaultTextAndMask;
     mouse.textXorMask= defaultTextXorMask;
     mouse.language   = 0;
@@ -1444,8 +1530,14 @@ static Bitu INT33_Handler(void) {
         }
         break;
     case 0x03:  /* MS MOUSE v1.0+ - RETURN POSITION AND BUTTON STATUS */
-        reg_bl=mouse.buttons;
-        reg_bh=GetWheel8bit(); /* CuteMouse wheel extension */
+        if(pc98_nec_mouse) {
+            /* NEC MOUSE - Buttons are in different states */
+            reg_ax = (mouse.buttons & 1) ? 0xffff : 0;
+            reg_bx = (mouse.buttons & 2) ? 0xffff : 0;
+        } else {
+            reg_bl=mouse.buttons;
+            reg_bh=GetWheel8bit(); /* CuteMouse wheel extension */
+        }
         reg_cx=POS_X;
         reg_dx=POS_Y;
         mouse.first_range_setx = false;
@@ -1468,7 +1560,15 @@ static Bitu INT33_Handler(void) {
         if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
         break;
     case 0x05:  /* MS MOUSE v1.0+ - RETURN BUTTON PRESS DATA */
-        {
+        if(pc98_nec_mouse) {
+            /* NEC MOUSE - RETURN LEFT BUTTON PRESS DATA */
+            reg_ax = (mouse.buttons & 1) ? 0xffff: 0;
+            reg_cx = mouse.last_pressed_x[0];
+            reg_dx = mouse.last_pressed_y[0];
+            reg_bx = mouse.times_pressed[0];
+            mouse.times_pressed[0] = 0;
+            if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
+        } else {
             uint16_t but = reg_bx;
             if (but==0xFFFF){
 			    /* CuteMouse wheel extension */
@@ -1488,7 +1588,15 @@ static Bitu INT33_Handler(void) {
         Mouse_Used();
         break;
     case 0x06:  /* MS MOUSE v1.0+ - RETURN BUTTON RELEASE DATA */
-        {
+        if(pc98_nec_mouse) {
+            /* NEC MOUSE - RETURN LEFT BUTTON RELEASE DATA */
+            reg_ax = (mouse.buttons & 1) ? 0xffff: 0;
+            reg_cx = mouse.last_released_x[0];
+            reg_dx = mouse.last_released_y[0];
+            reg_bx = mouse.times_released[0];
+            mouse.times_released[0] = 0;
+            if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
+        } else {
             uint16_t but = reg_bx;
             if (but==0xFFFF){
 			    /* CuteMouse wheel extension */
@@ -1509,7 +1617,15 @@ static Bitu INT33_Handler(void) {
         Mouse_Used();
         break;
     case 0x07:  /* MS MOUSE v1.0+ - DEFINE HORIZONTAL CURSOR RANGE */
-        {
+        if(pc98_nec_mouse) {
+            /* NEC MOUSE - RETURN RIGHT BUTTON PRESS DATA */
+            reg_ax = (mouse.buttons & 2) ? 0xffff: 0;
+            reg_cx = mouse.last_pressed_x[1];
+            reg_dx = mouse.last_pressed_y[1];
+            reg_bx = mouse.times_pressed[1];
+            mouse.times_pressed[1] = 0;
+            if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
+        } else {
             //Lemmings sets 1-640 and wants that. Ironseed sets 0-640 but doesn't like 640
             //Ironseed works if newvideo mode with mode 13 sets 0-639
             //Larry 6 actually wants newvideo mode with mode 13 to set it to 0-319
@@ -1570,7 +1686,15 @@ static Bitu INT33_Handler(void) {
         }
         break;
     case 0x08:  /* MS MOUSE v1.0+ - DEFINE VERTICAL CURSOR RANGE */
-        {
+        if(pc98_nec_mouse) {
+            /* NEC MOUSE - RETURN RIGHT BUTTON RELEASE DATA */
+            reg_ax = (mouse.buttons & 2) ? 0xffff: 0;
+            reg_cx = mouse.last_released_x[1];
+            reg_dx = mouse.last_released_y[1];
+            reg_bx = mouse.times_released[1];
+            mouse.times_released[1] = 0;
+            if (en_int33_hide_if_polling) int33_last_poll = PIC_FullIndex();
+        } else {
             // Not sure what to take instead of the CurMode (see case 0x07 as well)
             // especially the cases where sheight= 400 and we set it with the mouse_reset to 200
             // disabled it at the moment. Seems to break Syndicate which wants 400 in mode 13
@@ -1631,18 +1755,25 @@ static Bitu INT33_Handler(void) {
         }
         break;
     case 0x09:  /* MS MOUSE v3.0+ - DEFINE GRAPHICS CURSOR */
-        {
+        if(pc98_nec_mouse) {
+            /* NEC MOUSE - Different data formats */
+            PhysPt src = SegPhys(es) + reg_dx;
+            for(uint16_t y = 0 ; y < CURSORY*2 ; y++) {
+                userdefCursorMask[y] = (mem_readb(src) << 8) | mem_readb(src + 1);
+                src += 2;
+            }
+        } else {
             PhysPt src = SegPhys(es) + reg_dx;
             MEM_BlockRead(src, userdefScreenMask, CURSORY * 2);
             MEM_BlockRead(src + CURSORY * 2, userdefCursorMask, CURSORY * 2);
             mouse.screenMask = userdefScreenMask;
-            mouse.cursorMask = userdefCursorMask;
-            mouse.hotx = (int16_t)reg_bx;
-            mouse.hoty = (int16_t)reg_cx;
-            mouse.cursorType = 2;/*NTS: Microsoft Word calls this even in text mode!*/
-            DrawCursor();
-            break;
         }
+        mouse.cursorMask = userdefCursorMask;
+        mouse.hotx = (int16_t)reg_bx;
+        mouse.hoty = (int16_t)reg_cx;
+        mouse.cursorType = 2;/*NTS: Microsoft Word calls this even in text mode!*/
+        DrawCursor();
+        break;
     case 0x0a:  /* MS MOUSE v3.0+ - DEFINE TEXT CURSOR */
         mouse.cursorType = (reg_bx ? 1 : 0);
         mouse.textAndMask = reg_cx;
@@ -1672,26 +1803,55 @@ static Bitu INT33_Handler(void) {
         Mouse_SetMickeyPixelRate((int16_t)reg_cx, (int16_t)reg_dx);
         break;
     case 0x10:  /* MS MOUSE v1.0+ - DEFINE SCREEN REGION FOR UPDATING */
-        mouse.updateRegion_x[0] = (int16_t)reg_cx;
-        mouse.updateRegion_y[0] = (int16_t)reg_dx;
-        mouse.updateRegion_x[1] = (int16_t)reg_si;
-        mouse.updateRegion_y[1] = (int16_t)reg_di;
-        DrawCursor();
+        if(pc98_nec_mouse) {
+            /* NEC MOUSE - DEFINE HORIZONTAL CURSOR RANGE */
+            int16_t max, min;
+            if ((int16_t)reg_cx < (int16_t)reg_dx) { min = (int16_t)reg_cx; max = (int16_t)reg_dx; }
+            else { min = (int16_t)reg_dx; max = (int16_t)reg_cx; }
+            mouse.min_x = min;
+            mouse.max_x = max;
+        } else {
+            mouse.updateRegion_x[0] = (int16_t)reg_cx;
+            mouse.updateRegion_y[0] = (int16_t)reg_dx;
+            mouse.updateRegion_x[1] = (int16_t)reg_si;
+            mouse.updateRegion_y[1] = (int16_t)reg_di;
+            DrawCursor();
+        }
         break;
     case 0x11:  /* Genius Mouse 9.06 - GET NUMBER OF BUTTONS */
-        reg_ax = 0x574D; /* Identifier for detection purposes */
-		reg_bx = 0;      /* Reserved capabilities flags */
-		reg_cx = 1;      /* Wheel is supported */
-		/* Previous implementation provided Genius mouse-specific function to get
-		   number of buttons (https://sourceforge.net/p/dosbox/patches/32/), it was
-		   returning 0xffff in reg_ax and number of buttons in reg_bx; I suppose
-		   the CuteMouse extensions are more useful */
+        if(pc98_nec_mouse) {
+            /* NEC MOUSE - DEFINE VERTICAL CURSOR RANGE */
+            int16_t max, min;
+            if ((int16_t)reg_cx < (int16_t)reg_dx) { min = (int16_t)reg_cx; max = (int16_t)reg_dx; }
+            else { min = (int16_t)reg_dx; max = (int16_t)reg_cx; }
+            mouse.min_y = min;
+            mouse.max_y = max;
+        } else {
+            reg_ax = 0x574D; /* Identifier for detection purposes */
+            reg_bx = 0;      /* Reserved capabilities flags */
+            reg_cx = 1;      /* Wheel is supported */
+            /* Previous implementation provided Genius mouse-specific function to get
+               number of buttons (https://sourceforge.net/p/dosbox/patches/32/), it was
+               returning 0xffff in reg_ax and number of buttons in reg_bx; I suppose
+               the CuteMouse extensions are more useful */
+        }
         break;
     case 0x12:  /* MS MOUSE - SET LARGE GRAPHICS CURSOR BLOCK */
-        LOG(LOG_MOUSE, LOG_ERROR)("Set large graphics cursor block not implemented");
+        if(pc98_nec_mouse) {
+            /* NEC MOUSE - Set the drawing plane */
+            RestoreCursorBackground();
+            pc98_nec_mouse_plane = reg_bx;
+        } else {
+            LOG(LOG_MOUSE, LOG_ERROR)("Set large graphics cursor block not implemented");
+        }
         break;
     case 0x13:  /* MS MOUSE v5.0+ - DEFINE DOUBLE-SPEED THRESHOLD */
-        mouse.doubleSpeedThreshold = (reg_dx ? reg_dx : 64);
+        if(pc98_nec_mouse) {
+            /* NEC MOUSE - Get available planes */
+            reg_bx = 0xffff; /* 0xffff = enable plane 3 */
+        } else {
+            mouse.doubleSpeedThreshold = (reg_dx ? reg_dx : 64);
+        }
         break;
     case 0x14:  /* MS MOUSE v3.0+ - EXCHANGE INTERRUPT SUBROUTINES */
         {
@@ -1971,6 +2131,11 @@ static Bitu MOUSE_BD_Handler(void) {
     return CBRET_NONE;
 }
 
+static Bitu PC98_INT15_Handler(void) {
+    if(AllowINT33RMAccess() && en_int33) DrawCursor();
+    return CBRET_NONE;
+}
+
 static Bitu INT74_Handler(void) {
     if (mouse.events>0 && !mouse.in_UIR) {
         mouse.events--;
@@ -2053,7 +2218,18 @@ void BIOS_PS2MOUSE_ShutDown(Section *sec) {
     (void)sec;//UNUSED
 }
 
+static CALLBACK_HandlerObject callback_pc98_mouse;
+
 void BIOS_PS2Mouse_Startup(Section *sec) {
+    if(IS_PC98_ARCH) {
+        Section_prop * pc98_section=static_cast<Section_prop *>(control->GetSection("pc98"));
+        pc98_nec_mouse = pc98_section->Get_bool("pc-98 nec mouse function");
+        callback_pc98_mouse.Uninstall();
+        callback_pc98_mouse.Install(&PC98_INT15_Handler, CB_IRET_EOI_PIC2,"PC-98 Mouse");
+        callback_pc98_mouse.Set_RealVec(0x15, true);
+        return;
+    }
+
     (void)sec;//UNUSED
     Section_prop *section=static_cast<Section_prop *>(control->GetSection("dos"));
 

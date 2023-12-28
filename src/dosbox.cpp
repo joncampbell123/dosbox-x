@@ -2169,6 +2169,9 @@ void DOSBOX_SetupConfigSections(void) {
     Pbool->Set_help("Enable PC-98 bus mouse emulation. Disabling this option does not disable INT 33h emulation.");
     Pbool->SetBasic(true);
 
+    Pbool = secprop->Add_bool("pc-98 nec mouse function",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, Use NEC mouse function in int 33h.");
+
     Pstring = secprop->Add_string("pc-98 video mode",Property::Changeable::WhenIdle,"");
     Pstring->Set_values(pc98videomodeopt);
     Pstring->Set_help("Specify the preferred PC-98 video mode.\n"
