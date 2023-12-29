@@ -36,6 +36,12 @@ Next:
   - Add support for J-3100 video mode 75h (nanshiki)
   - Reflect drawing status bit of GDC status I/O port (PC-98) (nanshiki)
   - Re-enable top line dimming when focus is lost in fullscreen (TTF mode) (maron2000)
+  - Fix PC98 mouse counter value range to unsigned value (0-255) (nanshiki)
+  - Added function for int DCh cl=10h ah=0Ah to 0Eh (nanshiki)
+  - Added escape sequences (ESC[0J ESC[1J ESC[0K ESC[1K ESC[2K ESC[nL) (nanshiki)
+  - Fixed behavior of Kanji character output at the right edge of screen (nanshiki)
+  - Fixed Media ID was being written to an incorrect location in DPB (nanshiki)
+  - Bump Nuked-OPL3 code to commit 730f8c2 (13 Nov. 2023) (maron2000)
 
 2023.10.06
   - Add "VRD" debugger command to force redraw of the VGA screen. (joncampbell123)
