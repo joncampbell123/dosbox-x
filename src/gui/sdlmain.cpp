@@ -8557,7 +8557,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
 
         /* -- Welcome to DOSBox-X! */
-        LOG_MSG("DOSBox-X version %s (%s %s %d-bit)",VERSION, OS_PLATFORM, SDL_STRING, OS_BIT_INT);
+        LOG_MSG("DOSBox-X version %s Commit %s (%s %s %d-bit)",VERSION, GIT_COMMIT_HASH, OS_PLATFORM_LONG, SDL_STRING, OS_BIT_INT);
         LOG(LOG_MISC,LOG_NORMAL)("Copyright 2011-%s The DOSBox-X Team. Project maintainer: joncampbell123 (The Great Codeholio). DOSBox-X published under GNU GPL.",std::string(COPYRIGHT_END_YEAR).c_str());
 
 #if defined(MACOSX)
