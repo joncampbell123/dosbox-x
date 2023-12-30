@@ -755,7 +755,7 @@ void GetExpandedPath(std::string &path) {
 void showWelcome(Program *shell) {
     /* Start a normal shell and check for a first command init */
     ansiinstalled = is_ANSI_installed(shell);
-    std::string verstr = "v"+std::string(VERSION)+", "+OS_PLATFORM_LONG+" "+OS_BIT+"-bit";
+    std::string verstr = "v"+std::string(VERSION)+", "+OS_PLATFORM_LONG+" "+SDL_STRING+" " + OS_BIT + "-bit";
     if (machine == MCH_PC98) {
         shell->WriteOut(ParseMsg("\x86\x52\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
             "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
