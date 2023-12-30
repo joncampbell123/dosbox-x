@@ -1,5 +1,5 @@
 /*
- *  Copyright (C) 2002-2023  The DOSBox Team
+ *  Copyright (C) 2011-2023  The DOSBox-X Team
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
