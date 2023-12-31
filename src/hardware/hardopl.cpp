@@ -51,8 +51,7 @@ void HARDOPL_Init(Bitu hardwareaddr, Bitu blasteraddr, bool isCMSp) {
 	isCMS = isCMSp;
 
 #if defined BSD || defined LINUX
-	// Make sure that privileges have not been dropped with a previous call to
-	// dropPrivileges(). You may have to disabled the call in parport.cpp.
+	regainPrivileges();
 	if(geteuid() != (uid_t)0) {
 		LOG_MSG("OPL pass-through: Raw I/O requires root privileges. Pass-through I/O disabled.");
 		return;
@@ -98,9 +97,13 @@ void HARDOPL_Init(Bitu hardwareaddr, Bitu blasteraddr, bool isCMSp) {
 			LOG_MSG("%x -> %x",(unsigned)port,i < 6 ? (unsigned)port - hardopldiff : (unsigned)port);
 		}
 	}
+
+#if defined BSD || defined LINUX
+	dropPrivilegesTemp();
+#endif
 }
 
-void HWOPL_Cleanup() {
+void HARDOPL_Cleanup() {
 	if(hwopl_dirty) {
 		if(logfp) fclose(logfp);
 		if(isCMS) {

@@ -4193,7 +4193,7 @@ void SBLASTER_ShutDown(Section* /*sec*/) {
         test = NULL;
     }
 #if HAS_HARDOPL
-    HWOPL_Cleanup();
+    HARDOPL_Cleanup();
 #endif
 }
 
@@ -4206,7 +4206,7 @@ void SBLASTER_OnReset(Section *sec) {
         test = NULL;
     }
 #if HAS_HARDOPL
-    HWOPL_Cleanup();
+    HARDOPL_Cleanup();
 #endif
 
     if (test == NULL) {

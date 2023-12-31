@@ -355,6 +355,9 @@ class PARPORTS:public Module_base {
 			uint8_t defaultirq[] = { 7, 5, 12, 0, 0, 0, 0, 0, 0};
 			Section_prop *section = static_cast <Section_prop*>(configuration);
 
+#if HAS_CDIRECTLPT && (defined __i386__ || defined __x86_64__) && (defined BSD || defined LINUX)
+			regainPrivileges(); // Ignore whether we could actually regain privileges.
+#endif
 			char pname[]="parallelx";
 			// iterate through all 3 lpt ports
 			for (Bitu i = 0; i < 9; i++) {
@@ -445,9 +448,10 @@ class PARPORTS:public Module_base {
 							}
 			} // for lpt 1-9
 #if HAS_CDIRECTLPT && (defined __i386__ || defined __x86_64__) && (defined BSD || defined LINUX)
-			// Drop root privileges after they are no longer needed, which is a
-			// good practice if the executable is setuid root.
-			dropPrivileges(); // Ignore whether we could actually drop privileges.
+			// Drop root privileges (temporarily) when they are not
+			// needed, which is a good practice if the executable is
+			// setuid root.
+			dropPrivilegesTemp(); // Ignore whether we could actually drop privileges.
 #endif
 		}
 #if C_PRINTER
