@@ -3707,7 +3707,7 @@ void DOS_Shell::CMD_VER(char *args) {
 		dos_ver_menu(false);
 	} else {
 		WriteOut(MSG_Get("SHELL_CMD_VER_VER"),VERSION,SDL_STRING,dos.version.major,dos.version.minor);
-		if (optR) WriteOut("DOSBox-X Git commit %s, built on %s\nPlatform: %s %d-bit", GIT_COMMIT_HASH, UPDATED_STR, OS_PLATFORM, OS_BIT_INT);
+		if (optR) WriteOut("DOSBox-X Git commit %s, built on %s\nPlatform: %s %d-bit", GIT_COMMIT_HASH, UPDATED_STR, OS_PLATFORM_LONG, OS_BIT_INT);
 	}
 }
 

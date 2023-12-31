@@ -49,6 +49,7 @@
 #include <dirent.h>
 #endif
 #include "build_timestamp.h"
+#include "version_string.h"
 
 extern bool shell_keyboard_flush;
 extern bool dos_shell_running_program, mountwarning, winautorun;
@@ -754,7 +755,7 @@ void GetExpandedPath(std::string &path) {
 void showWelcome(Program *shell) {
     /* Start a normal shell and check for a first command init */
     ansiinstalled = is_ANSI_installed(shell);
-    std::string verstr = "v"+std::string(VERSION)+", "+GetPlatform(false);
+    std::string verstr = "v"+std::string(VERSION)+", "+OS_PLATFORM_LONG+" "+SDL_STRING+" " + OS_BIT + "-bit";
     if (machine == MCH_PC98) {
         shell->WriteOut(ParseMsg("\x86\x52\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
             "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
