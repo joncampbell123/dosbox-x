@@ -130,7 +130,7 @@ jobs:
         with:
           msystem: MINGW32
           update: true
-          install: git make mingw-w64-i686-libtool autoconf automake
+          install: git make mingw-w64-i686-libtool autoconf automake p7zip
       - name: Update build info
         shell: bash
         run: |
@@ -143,19 +143,19 @@ jobs:
           echo "#define GIT_COMMIT_HASH \"${shortsha}\""  >> include/build_timestamp.h
           echo "#define COPYRIGHT_END_YEAR \"${copyrightyear}\"" >> include/build_timestamp.h
           cat include/build_timestamp.h
+          sed -i -e "s/#define OS_PLATFORM \"MinGW\"/#define OS_PLATFORM \"MinGWLE\"/" include/version_string.h
+          sed -i -e "s/#define OS_PLATFORM_LONG \"MinGW\"/#define OS_PLATFORM_LONG \"MinGW Low-end\"/" include/version_string.h
       - name: setup lowend build environment
-        shell: bash
         run: |
           top=`pwd`
           echo "${top}"
           export "MSYSTEM_PREFIX=/d/a/_temp/msys64/mingw32"
           echo "path=$PATH"
           cd ${MSYSTEM_PREFIX}/..
-          ls -lg
           rm -rf /d/a/_temp/msys64/mingw32
           mkdir mingw32
           7z x $top/build-scripts/mingw/lowend-bin/i686-7.3.0-release-posix-dwarf-rt_v5-rev0+nasm.7z -o${MSYSTEM_PREFIX}
-          cp $top/build-scripts/mingw/lowend-bin/make.exe ${MSYSTEM_PREFIX}/bin/make.exe
+          # cp $top/build-scripts/mingw/lowend-bin/make.exe ${MSYSTEM_PREFIX}/bin/make.exe
           echo "MSYSTEM_PREFIX=${MSYSTEM_PREFIX}"
           chmod +x ${MSYSTEM_PREFIX}/bin/*.*
           chmod +x ${MSYSTEM_PREFIX}/i686-w64-mingw32/bin/*.*
