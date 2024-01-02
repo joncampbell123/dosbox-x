@@ -214,7 +214,7 @@ static void dlportio_output_dword(uint16_t port, uint32_t value) {
 static void ioSignalHandler(int signum, siginfo_t* info, void* ctx) {
 	if(signum == SIGILL && info->si_code == ILL_PRVOPC &&
 		*(uint8_t*)info->si_addr == 0xec) { // in al, dx
-		ucontext_t* ucontext = (ucontext_t *) ctx, ucontext2;
+		ucontext_t* ucontext = (ucontext_t*)ctx, ucontext2;
 #ifdef __x86_64__
 		ucontext->uc_mcontext.rip++;            // skip 1 byte in instruction
 #else
@@ -397,10 +397,8 @@ bool initPassthroughIO(void) {
 
 #if (defined __i386__ || defined __x86_64__) && (defined BSD || defined LINUX)
 #include <unistd.h>
-#ifdef LINUX
-#ifndef __ANDROID__
+#if defined LINUX && !defined __ANDROID__
 #include <sys/io.h>
-#endif
 #elif defined __OpenBSD__ || defined __NetBSD__
 #include <machine/sysarch.h>
 #include <sys/types.h>
@@ -443,14 +441,38 @@ bool initPassthroughIO(void) {
 }
 
 bool dropPrivileges(void) {
+	regainPrivileges();                         // The saved UID and GID must be changed too.
+
 	gid_t gid = getgid();
 	if(setgid(gid) == -1) {
-		LOG_MSG("Error: Could not set GID.");
+		LOG_MSG("Error: Could not set GID to %u.", gid);
 		return false;
 	}
 	uid_t uid = getuid();
 	if(setuid(uid) == -1) {
-		LOG_MSG("Error: Could not set UID.");
+		LOG_MSG("Error: Could not set UID to %u.", uid);
+		return false;
+	}
+	return true;
+}
+
+bool dropPrivilegesTemp(void) {
+	gid_t gid = getgid();
+	if(setegid(gid) == -1) {
+		LOG_MSG("Error: Could not set effective GID to %u.", gid);
+		return false;
+	}
+	uid_t uid = getuid();
+	if(seteuid(uid) == -1) {
+		LOG_MSG("Error: Could not set effective UID to %u.", uid);
+		return false;
+	}
+	return true;
+}
+
+bool regainPrivileges(void) {
+	if(seteuid((uid_t)0) == -1) {
+//		LOG_MSG("Error: Could not set effective UID to 0.");
 		return false;
 	}
 	return true;

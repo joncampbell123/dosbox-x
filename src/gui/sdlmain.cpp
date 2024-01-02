@@ -931,7 +931,7 @@ bool GFX_SDLUsingWinDIB(void) {
 }
 #endif
 
-void GFX_SetIcon(void) 
+void GFX_SetIcon(void)
 {
 #if !defined(MACOSX)
     /* Set Icon (must be done before any sdl_setvideomode call) */
@@ -946,7 +946,7 @@ void GFX_SetIcon(void)
     hIcon1 = (HICON) LoadImage( GetModuleHandle(NULL), MAKEINTRESOURCE(dosbox_ico), IMAGE_ICON,
         16,16,LR_DEFAULTSIZE);
 
-    SendMessage(GetHWND(), WM_SETICON, ICON_SMALL, (LPARAM) hIcon1 ); 
+    SendMessage(GetHWND(), WM_SETICON, ICON_SMALL, (LPARAM) hIcon1 );
 #endif
 }
 
@@ -1374,7 +1374,7 @@ void PauseDOSBoxLoop(Bitu /*unused*/) {
         }
         if (event.type==SDL_SYSWMEVENT && msg == WM_COMMAND && (LOWORD(wparam) == ID_WIN_SYSMENU_PAUSE || LOWORD(wparam) == (mainMenu.get_item("mapper_pause").get_master_id()+DOSBoxMenu::winMenuMinimumID))) {
             paused=false;
-            GFX_SetTitle(-1,-1,-1,false);   
+            GFX_SetTitle(-1,-1,-1,false);
             break;
         }
         if (event.type == SDL_SYSWMEVENT && msg == WM_SYSCOMMAND && LOWORD(wparam) == ID_WIN_SYSMENU_PAUSE) {
@@ -1405,7 +1405,7 @@ void PauseDOSBoxLoop(Bitu /*unused*/) {
                 /* On macs, all apps exit when pressing cmd-q */
                 KillSwitch(true);
                 break;
-            } 
+            }
 #endif
         case SDL_MOUSEMOTION:
 #if defined(C_SDL2)
@@ -1490,7 +1490,7 @@ SDL_Window* GFX_GetSDLWindow(void) {
     return sdl.window;
 }
 
-SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES screenType) 
+SDL_Window* GFX_SetSDLWindowMode(uint16_t width, uint16_t height, SCREEN_TYPES screenType)
 {
     static SCREEN_TYPES lastType = SCREEN_SURFACE;
     if (sdl.renderer) {
@@ -1648,11 +1648,11 @@ static SDL_Window * GFX_SetSDLOpenGLWindow(uint16_t width, uint16_t height) {
 
 #if !defined(C_SDL2)
 /* Reset the screen with current values in the sdl structure */
-Bitu GFX_GetBestMode(Bitu flags) 
+Bitu GFX_GetBestMode(Bitu flags)
 {
     Bitu retFlags = 0;
 
-    switch (sdl.desktop.want_type) 
+    switch (sdl.desktop.want_type)
     {
         case SCREEN_SURFACE:
             retFlags = OUTPUT_SURFACE_GetBestMode(flags);
@@ -1730,7 +1730,7 @@ void GFX_ForceRedrawScreen(void) {
 }
 
 void GFX_ResetScreen(void) {
-    fullscreen_switch=false; 
+    fullscreen_switch=false;
 	if(glide.enabled) {
 		GLIDE_ResetScreen(true);
 		return;
@@ -1774,7 +1774,7 @@ unsigned int GFX_GetBShift() {
     return sdl.surface->format->Bshift;
 }
 
-void GFX_LogSDLState(void) 
+void GFX_LogSDLState(void)
 {
     LOG(LOG_MISC,LOG_DEBUG)("SDL video mode: %ux%u (clip %ux%u with upper-left at %ux%u) %ubpp",
         (unsigned)sdl.surface->w,(unsigned)sdl.surface->h,
@@ -1872,7 +1872,7 @@ void drawmenu(Bitu val) {
 
 void RENDER_Reset(void);
 
-Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scaley, GFX_CallBack_t callback) 
+Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scaley, GFX_CallBack_t callback)
 {
     if ((width == 0 || height == 0) && !TTF_using()) {
         E_Exit("GFX_SetSize with width=%d height=%d zero dimensions not allowed",(int)width,(int)height);
@@ -1934,7 +1934,7 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
 #endif
 
 #if C_DIRECT3D
-        case SCREEN_DIRECT3D: 
+        case SCREEN_DIRECT3D:
             retFlags = OUTPUT_DIRECT3D_SetSize();
             break;
 #endif
@@ -1974,7 +1974,7 @@ Bitu GFX_SetSize(Bitu width, Bitu height, Bitu flags, double scalex, double scal
 
     GFX_LogSDLState();
 
-    if (retFlags) 
+    if (retFlags)
         GFX_Start();
 
     if (!sdl.mouse.autoenable && !sdl.mouse.locked)
@@ -2450,7 +2450,7 @@ void sticky_keys(bool restore){
     if (!inited){
         inited = true;
         SystemParametersInfo(SPI_GETSTICKYKEYS, sizeof(STICKYKEYS), &stick_keys, 0);
-    } 
+    }
     if (restore) {
         SystemParametersInfo(SPI_SETSTICKYKEYS, sizeof(STICKYKEYS), &stick_keys, 0);
         return;
@@ -2528,13 +2528,13 @@ void res_init(void) {
 
     int width = 1024;
     int height = 768;
-    
+
     // fullresolution == desktop -> get/set desktop size
     auto sdlSection = control->GetSection("sdl");
     auto sdlSectionProp = static_cast<Section_prop*>(sdlSection);
     auto fullRes = sdlSectionProp->Get_string("fullresolution");
     if (!strcmp(fullRes, "desktop")) GetDesktopResolution(&width, &height);
-    
+
     if (!sdl.desktop.full.width) {
         sdl.desktop.full.width=width;
     }
@@ -2867,17 +2867,17 @@ void GFX_ReleaseSurfacePtr(void) {
     if (GFX_GetSurfacePtrLock) {
         if (SDL_MUSTLOCK(sdl.surface))
             SDL_UnlockSurface(sdl.surface);
- 
+
         GFX_GetSurfacePtrLock = false;
     }
 }
 
-bool GFX_StartUpdate(uint8_t* &pixels,Bitu &pitch) 
+bool GFX_StartUpdate(uint8_t* &pixels,Bitu &pitch)
 {
     if (!sdl.active || sdl.updating)
         return false;
 
-    switch (sdl.desktop.type) 
+    switch (sdl.desktop.type)
     {
         case SCREEN_SURFACE:
             return OUTPUT_SURFACE_StartUpdate(pixels, pitch);
@@ -2953,7 +2953,7 @@ void GFX_EndUpdate(const uint16_t *changedLines) {
     }
 #endif
 
-    switch (sdl.desktop.type) 
+    switch (sdl.desktop.type)
     {
         case SCREEN_SURFACE:
             OUTPUT_SURFACE_EndUpdate(changedLines);
@@ -2996,7 +2996,7 @@ void GFX_EndUpdate(const uint16_t *changedLines) {
     OUTPUT_GAMELINK_Transfer();
 #endif
 
-    if (changedLines != NULL) 
+    if (changedLines != NULL)
     {
         sdl.must_redraw_all = false;
 
@@ -3004,7 +3004,7 @@ void GFX_EndUpdate(const uint16_t *changedLines) {
         sdl.surface->flags &= ~((unsigned int)SDL_HAX_NOREFRESH);
 #endif
 
-        if (changedLines != NULL && sdl.deferred_resize) 
+        if (changedLines != NULL && sdl.deferred_resize)
         {
             sdl.deferred_resize = false;
 #if !defined(C_SDL2)
@@ -3012,7 +3012,7 @@ void GFX_EndUpdate(const uint16_t *changedLines) {
             GFX_RedrawScreen(sdl.draw.width, sdl.draw.height);
 #endif
         }
-        else if (sdl.gfx_force_redraw_count > 0) 
+        else if (sdl.gfx_force_redraw_count > 0)
         {
             void RENDER_CallBack( GFX_CallBackFunctions_t function );
             RENDER_CallBack(GFX_CallBackRedraw);
@@ -3196,7 +3196,7 @@ static void OutputString(Bitu x,Bitu y,const char * text,uint32_t color,uint32_t
 
 void ResetSystem(bool pressed) {
     if (!pressed) return;
-	
+
 	if (is_paused) {
 		is_paused = false;
 		mainMenu.get_item("mapper_pause").check(false).refresh_item(mainMenu);
@@ -3442,7 +3442,7 @@ static void GUI_StartUp() {
         int sdl_h = vidinfo->current_h;
         int win_w = GetSystemMetrics(SM_CXSCREEN);
         int win_h = GetSystemMetrics(SM_CYSCREEN);
-        if (sdl_w != win_w && sdl_h != win_h) 
+        if (sdl_w != win_w && sdl_h != win_h)
             LOG_MSG("Windows DPI/blurry apps scaling detected as it might be a large screen.\n"
 				"Please see the DOSBox-X documentation for more details.\n");
         }
@@ -3714,22 +3714,22 @@ static void GUI_StartUp() {
 
     // FIXME: this selection of output is duplicated in change_output:
     sdl.desktop.isperfect = false; /* Reset before selection */
-    if (output == "surface") 
+    if (output == "surface")
     {
 #if C_DIRECT3D
         if(!init_output) OUTPUT_DIRECT3D_Select();
 #elif C_OPENGL && defined(MACOSX) // JC: This is breaking SDL1 on Linux! Limit this to MAC OS! Windows users may use this if needed.
-        if(!init_output) OUTPUT_OPENGL_Select(GLBilinear); // Initialize screen before switching to TTF (required for macOS builds)     
+        if(!init_output) OUTPUT_OPENGL_Select(GLBilinear); // Initialize screen before switching to TTF (required for macOS builds)
 #endif
         OUTPUT_SURFACE_Select();
         init_output = true;
 #if C_OPENGL
-    } 
-    else if (output == "opengl" || output == "openglhq") 
+    }
+    else if (output == "opengl" || output == "openglhq")
     {
         OUTPUT_OPENGL_Select(GLBilinear);
     }
-    else if (output == "openglnb") 
+    else if (output == "openglnb")
     {
         OUTPUT_OPENGL_Select(GLNearest);
     }
@@ -3738,14 +3738,14 @@ static void GUI_StartUp() {
         OUTPUT_OPENGL_Select(GLPerfect);
 #endif
 #if C_GAMELINK
-    } 
-    else if (output == "gamelink") 
+    }
+    else if (output == "gamelink")
     {
         OUTPUT_GAMELINK_Select();
 #endif
 #if C_DIRECT3D
-    } 
-    else if (output == "direct3d") 
+    }
+    else if (output == "direct3d")
     {
         OUTPUT_DIRECT3D_Select();
 #if LOG_D3D
@@ -3764,11 +3764,11 @@ static void GUI_StartUp() {
         init_output = true;
     }
 #endif
-    else 
+    else
     {
         LOG_MSG("SDL: Unsupported output device %s, switching back to surface",output.c_str());
 #if MACOSX && C_OPENGL
-        if(!init_output) OUTPUT_OPENGL_Select(GLBilinear); // Initialize screen before switching to surface (required for macOS builds)     
+        if(!init_output) OUTPUT_OPENGL_Select(GLBilinear); // Initialize screen before switching to surface (required for macOS builds)
 #endif
         OUTPUT_SURFACE_Select(); // should not reach there anymore
         init_output = true;
@@ -3934,10 +3934,10 @@ static void RedrawScreen(uint32_t nWidth, uint32_t nHeight) {
 //  int width;
 //  int height;
 #ifdef __WIN32__
-//   width=sdl.clip.w; 
+//   width=sdl.clip.w;
 //   height=sdl.clip.h;
 #else
-//  width=sdl.draw.width; 
+//  width=sdl.draw.width;
 //  height=sdl.draw.height;
 #endif
     void RENDER_CallBack( GFX_CallBackFunctions_t function );
@@ -3959,7 +3959,7 @@ static void RedrawScreen(uint32_t nWidth, uint32_t nHeight) {
         RENDER_CallBack( GFX_CallBackReset);
         return;
     }
-    Section_prop * section=static_cast<Section_prop *>(control->GetSection("sdl")); 
+    Section_prop * section=static_cast<Section_prop *>(control->GetSection("sdl"));
     if ((!strcmp(section->Get_string("windowresolution"),"original") || (!strcmp(section->Get_string("windowresolution"),"desktop"))) && (render.src.dblw && render.src.dblh)) {
         switch (render.scale.op) {
             case scalerOpNormal:
@@ -4278,7 +4278,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
 # endif
 #endif
         }
- 
+
         return;
     }
     else {
@@ -4309,7 +4309,7 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
         if (!sdl.mouse.locked && !sdl.desktop.fullscreen)
 #endif
             SDL_ShowCursor(SDL_ENABLE);
- 
+
         return;
     }
 
@@ -4510,7 +4510,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
                             (int)mainMenu.menuBox.w,
                             (int)DOSBoxMenu::dropshadowY - 1/*menubar border*/);
 
-                    mainMenu.setRedraw();                  
+                    mainMenu.setRedraw();
                     GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
 
                     for (auto i=popup_stack.begin();i!=popup_stack.end();i++) {
@@ -4600,7 +4600,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 
                                 x = (Sint32)(event.tfinger.x * currentWindowWidth);
                                 y = (Sint32)(event.tfinger.y * currentWindowHeight);
-                                
+
                                 memset(&event.button,0,sizeof(event.button));
                                 event.type = SDL_MOUSEBUTTONUP;
                                 event.button.x = x;
@@ -4819,8 +4819,8 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
                             glClear(GL_COLOR_BUFFER_BIT);
 
                             GFX_OpenGLRedrawScreen();
-  
-                            mainMenu.setRedraw();                  
+
+                            mainMenu.setRedraw();
                             GFX_DrawSDLMenu(mainMenu,mainMenu.display_list);
 #endif
                         }
@@ -4890,7 +4890,7 @@ static void HandleMouseButton(SDL_MouseButtonEvent * button, SDL_MouseMotionEven
 #if C_OPENGL
                     glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
                     glClear(GL_COLOR_BUFFER_BIT);
-        
+
                     GFX_OpenGLRedrawScreen();
 
                     mainMenu.setRedraw();
@@ -5323,7 +5323,7 @@ void GFX_EventsMouseWin32()
 
 /**
  * \brief Processes mouse movements when outside the window.
- * 
+ *
  * This method will send an extra mouse event to the SDL pump
  * when some relative movement has occurred.
  */
@@ -6180,7 +6180,7 @@ void GFX_Events() {
 				int len;
 				if(len = SDL_FlushIMString(NULL)) {
 					int flag = 0;
-					unsigned char *buff = (unsigned char *)malloc((len + 2)); 
+					unsigned char *buff = (unsigned char *)malloc((len + 2));
 
 					SDL_FlushIMString(buff);
 					for(int no = 0 ; no < len ; no++) {
@@ -6228,7 +6228,7 @@ void GFX_Events() {
             if (event.key.keysym.sym == SDLK_q && (event.key.keysym.mod == KMOD_RMETA || event.key.keysym.mod == KMOD_LMETA) ) {
                 KillSwitch(true);
                 break;
-            } 
+            }
 #endif
         default:
 #if defined(WIN32) && !defined(HX_DOS) && defined(SDL_DOSBOX_X_SPECIAL)
@@ -6538,7 +6538,7 @@ static void show_warning(char const * const message) {
     uint32_t bmask = 0x0000ff00;
 #else
     uint32_t rmask = 0x000000ff;
-    uint32_t gmask = 0x0000ff00;                    
+    uint32_t gmask = 0x0000ff00;
     uint32_t bmask = 0x00ff0000;
 #endif
     SDL_Surface* splash_surf = SDL_CreateRGBSurface(SDL_SWSURFACE, 640, 400, 32, rmask, gmask, bmask, 0);
@@ -6547,17 +6547,17 @@ static void show_warning(char const * const message) {
     int x = 120,y = 20;
     std::string m(message),m2;
     std::string::size_type a,b,c,d;
-   
+
     while(m.size()) { //Max 50 characters. break on space before or on a newline
         c = m.find('\n');
         d = m.rfind(' ',50);
         if(c>d) a=b=d; else a=b=c;
-        if( a != std::string::npos) b++; 
+        if( a != std::string::npos) b++;
         m2 = m.substr(0,a); m.erase(0,b);
         OutputString((unsigned int)x,(unsigned int)y,m2.c_str(),0xffffffffu,0,splash_surf);
         y += 20;
     }
-   
+
     SDL_BlitSurface(splash_surf, NULL, sdl.surface, NULL);
 #if defined(C_SDL2)
     SDL_UpdateWindowSurface(sdl.window);
@@ -6566,7 +6566,7 @@ static void show_warning(char const * const message) {
 #endif
     SDL_Delay(12000);
 }
-   
+
 static void launcheditor(std::string edit) {
     if (control->configfiles.size() && control->configfiles.front().size())
         execlp(edit.c_str(),edit.c_str(),control->configfiles.front().c_str(),(char*) 0);
@@ -6662,7 +6662,7 @@ static void printconfiglocation() {
     Cross::CreatePlatformConfigDir(path);
     Cross::GetPlatformConfigName(file);
     path += file;
-     
+
     FILE* f = fopen(path.c_str(),"r");
     if(!f && !control->PrintConfig(path.c_str())) {
         printf("tried creating %s. but failed",path.c_str());
@@ -7647,6 +7647,9 @@ void DISP2_Init(uint8_t color), DISP2_Shut();
 //extern void UI_Init(void);
 void grGlideShutdown(void);
 int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
+#if (defined __i386__ || defined __x86_64__) && (defined BSD || defined LINUX)
+    dropPrivilegesTemp();
+#endif
     CommandLine com_line(argc,argv);
     Config myconf(&com_line);
     bool saved_opt_test;
@@ -8382,7 +8385,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
                 sec = control->GetSectionFromProperty(p.c_str());
             }
 
-			if ((equpos != std::string::npos) && 
+			if ((equpos != std::string::npos) &&
 				((spcpos == std::string::npos) || (equpos < spcpos) || sec)) {
 				// If we have a '=' possibly before a ' ' split on the =
 				pvars.insert(pvars.begin()+1,pvars[0].substr(equpos+1));
@@ -8431,7 +8434,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 					// is this a property?
 					Section* sec2 = control->GetSectionFromProperty(pvars[1].c_str());
 					if (!sec2) {
-						// not a property, 
+						// not a property,
 						Section* sec3 = control->GetSectionFromProperty(pvars[0].c_str());
 						if (sec3 && !(equpos != std::string::npos && spcpos != std::string::npos && equpos > spcpos)) {
 							// section and property name are identical
@@ -8832,7 +8835,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
 #endif
 
         AllocCallback1();
-        
+
         if (control->opt_editconf.length() != 0)
             launcheditor(control->opt_editconf);
         if (control->opt_opencaptures.length() != 0)
@@ -9179,10 +9182,10 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         /*
           Drop root privileges after they are no longer needed, which is a good
           practice if the executable is setuid root.
-          dropPrivileges() is called by PARPORTS::PARPORTS() after contructing
-          CDirectLPT instances, but only if the constant HAS_CDIRECTLPT is
-          non-zero. dropPrivileges() should be called regardless (if
-          initPassthroughIO() is used anywhere else).
+          dropPrivilegesTemp() is called by PARPORTS::PARPORTS() after
+          contructing CDirectLPT instances, but only if the constant
+          HAS_CDIRECTLPT is non-zero. dropPrivileges() should be called
+          regardless (if initPassthroughIO() is used anywhere else).
         */
         dropPrivileges(); // Ignore whether we could actually drop privileges.
 #endif

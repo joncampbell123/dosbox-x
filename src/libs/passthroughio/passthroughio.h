@@ -15,6 +15,8 @@
 bool initPassthroughIO(void);
 #if defined BSD || defined LINUX
 bool dropPrivileges(void);
+bool dropPrivilegesTemp(void);
+bool regainPrivileges(void);
 #endif
 #endif
 
