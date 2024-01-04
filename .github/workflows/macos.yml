@@ -21,10 +21,10 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install libraries
         run: |
-          brew install autoconf automake nasm glfw glew sdl_net sdl2 coreutils sevenzip
+          brew install autoconf automake nasm glfw glew coreutils sevenzip
           mkdir -p package/dosbox-x
           mkdir -p package/dosbox-x-sdl2
-          cd vs/sdlnet && ./build-dosbox.sh
+          # cd vs/sdlnet && ./build-dosbox.sh
       - name: Update build info
         run: |
           echo "timestamp=`git show -s --format=%at | xargs -I# gdate -d @# +%Y%m%d%H%M%S`" >> $GITHUB_ENV
