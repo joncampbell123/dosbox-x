@@ -1,4 +1,14 @@
 Next:
+  - Add DOS Int21 0x5D 0x00 - remote server call
+    Inspired by FeeDOS inthndlr.c
+    With this change it is possible use a plain dosbox-x to install and run
+    Windows for Workgroups V3.11 as an IPX server on the pcap ne2000 interface
+    offering a host directory for read and persistent write access to an
+    MSDOS machine running a WfW 3.11 IPX network client.
+    Please don't forget mounting with -nocachedir
+    (Issue #4162)(Yogi-baer)
+  - Fix missing keystroke SDLK_LESS on DE keyboard on Raspbian OS (Yogi-baer)
+  - Fix crash when loading a language file without existing menu item "ttf_extcharset" (Yogi-baer)
   - Change ISA memory hole 512kb option from boolean to true/false/auto. (joncampbell123)
   - Add ISA memory hole 15mb option, make it true/false/auto.
     Auto means off for IBM compatible mode and on for PC-9821 compatible mode.
