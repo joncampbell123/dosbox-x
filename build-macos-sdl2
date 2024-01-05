@@ -90,6 +90,10 @@ for arch in ${architectures}; do
     CXXFLAGS="${CXXFLAGS}${new}"
     export CFLAGS LDFLAGS CPPFLAGS CXXFLAGS
 
+    # prefer to compile against our own copy of SDLnet 1.x
+    echo "Compiling our internal SDLnet 1.x"
+    (cd vs/sdlnet && ./build-dosbox.sh) || exit 1
+
     # prefer to compile against our own zlib
     echo "Compiling our internal zlib"
     (cd vs/zlib && ./build-dosbox.sh) || exit 1

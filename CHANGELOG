@@ -41,7 +41,13 @@ Next:
   - Added escape sequences (ESC[0J ESC[1J ESC[0K ESC[1K ESC[2K ESC[nL) (nanshiki)
   - Fixed behavior of Kanji character output at the right edge of screen (nanshiki)
   - Fixed Media ID was being written to an incorrect location in DPB (nanshiki)
+  - Refined version info (maron2000)
+  - Added NEC mouse functions in INT33h (nanshiki)
   - Bump Nuked-OPL3 code to commit 730f8c2 (13 Nov. 2023) (maron2000)
+  - Implemented INT21 function 0x5D subfunction 0x00 (Remote Server Call) (Yogi-baer)
+  - Fixed missing keystroke SDLK_LESS on DE keyboard (Yogi-baer)
+  - Enabled OPL pass-through code (oplmode=hardware)(dbjh)
+  - Fixed crash on startup due to SDLnet library linked externally (macOS) (maron2000)
 
 2023.10.06
   - Add "VRD" debugger command to force redraw of the VGA screen. (joncampbell123)
