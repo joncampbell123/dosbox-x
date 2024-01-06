@@ -347,6 +347,9 @@ private:// Sorry, IDE devices and external code don't get to force IDE IRQs anym
     void lower_irq();
 };
 
+const char* ideslot[] = { "Primary", "Secondary", "Tertiary", "Quaternary", "Quinternary","Sexternary", "Septernary", "Octernary" };
+const char* master_slave[] = { "Master", "Slave" };
+
 static IDEController* idecontroller[MAX_IDE_CONTROLLERS]={NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
 
 static void IDE_DelayedCommand(Bitu pk/*which IDE device*/);
@@ -2704,10 +2707,14 @@ void IDE_CDROM_Attach(signed char index,bool slave,unsigned char drive_index) {
 
     if (index < 0 || index >= MAX_IDE_CONTROLLERS) return;
     c = idecontroller[index];
-    if (c == NULL) return;
+    if(c == NULL) {
+        LOG_MSG("IDE: WARNING: IDE %s controller not available. Check setting or specify another controller.", ideslot[index]);
+        return;
+    }
+
 
     if (c->device[slave?1:0] != NULL) {
-        LOG_MSG("IDE: Controller %u %s already taken\n",index,slave?"slave":"master");
+        LOG_MSG("IDE: WARNING: IDE controller %s %s already occupied, specify another slot.",ideslot[index],master_slave[slave?1:0]);
         return;
     }
 
@@ -2717,9 +2724,13 @@ void IDE_CDROM_Attach(signed char index,bool slave,unsigned char drive_index) {
     }
 
     dev = new IDEATAPICDROMDevice(c,drive_index,slave);
-    if (dev == NULL) return;
+    if(dev == NULL) {
+        LOG_MSG("IMGMOUNT: Failed to allocate CD-ROM drive %c to IDE %s %s", drive_index + 'A', ideslot[index], master_slave[slave ? 1 : 0]);
+        return;
+    }
     dev->update_from_cdrom();
     c->device[slave?1:0] = (IDEDevice*)dev;
+    LOG_MSG("IMGMOUNT: CD-ROM image mounted to drive %c (IDE %s %s)", drive_index + 'A', ideslot[index], master_slave[slave ? 1 : 0]);
 }
 
 /* drive_index = drive letter 0...A to 25...Z */
@@ -2778,10 +2789,13 @@ void IDE_Hard_Disk_Attach(signed char index,bool slave,unsigned char bios_disk_i
 
     if (index < 0 || index >= MAX_IDE_CONTROLLERS) return;
     c = idecontroller[index];
-    if (c == NULL) return;
+    if(c == NULL) {
+        LOG_MSG("IDE: WARNING: IDE %s controller not available. Check setting or specify another controller.", ideslot[index]);
+        return;
+    }
 
     if (c->device[slave?1:0] != NULL) {
-        LOG_MSG("IDE: Controller %u %s already taken\n",index,slave?"slave":"master");
+        LOG_MSG("IDE: WARNING: IDE controller %s %s already occupied, specify another slot.", ideslot[index], master_slave[slave ? 1 : 0]);
         return;
     }
 
@@ -2794,6 +2808,7 @@ void IDE_Hard_Disk_Attach(signed char index,bool slave,unsigned char bios_disk_i
     if (dev == NULL) return;
     dev->update_from_biosdisk();
     c->device[slave?1:0] = (IDEDevice*)dev;
+    LOG_MSG("IMGMOUNT: HDD image mounted to drive no. %d (IDE %s %s)", bios_disk_index, ideslot[index], master_slave[slave?1:0]);
 }
 
 /* bios_disk_index = index into BIOS INT 13h disk array: imageDisk *imageDiskList[MAX_DISK_IMAGES]; */
@@ -2812,25 +2827,26 @@ void IDE_Hard_Disk_Detach(unsigned char bios_disk_index) {
     }
 }
 
-char idepos[4];
-char * GetIDEPosition(unsigned char bios_disk_index) {
+
+std::string GetIDEPosition(unsigned char bios_disk_index) {
+    std::string idepos;
     for (int index = 0; index < MAX_IDE_CONTROLLERS; index++) {
         IDEController *c = GetIDEController(index);
         if (c)
         for (int slave = 0; slave < 2; slave++) {
             IDEATADevice *dev = dynamic_cast<IDEATADevice*>(c->device[slave]);
             if (dev && dev->bios_disk_index == bios_disk_index) {
-                sprintf(idepos, "%d%c", index+1, slave?'s':'m');
+                idepos = std::to_string(index + 1) + (slave ? 's' : 'm');
                 return idepos;
             }
         }
     }
-    return (char*)("");
+    idepos = "n/a";
+    return idepos;
 }
 
-std::string info="";
 std::string GetIDEInfo() {
-    info="";
+    std::string info;
     for (int index = 0; index < MAX_IDE_CONTROLLERS; index++) {
         IDEController *c = GetIDEController(index);
         if (c)
