@@ -103,3 +103,5 @@ Tiny File Dialogs (vareille; zlib licence) src/libs/tinyfiledialogs/*
 MAME CHD support (Romain Tisserand; BSD 3-clause) src/libs/libchdr/*
 
 Game Link IPC protocol (David Walters, ported by Jörg Walter; GPLv2+) src/gamelink/* src/output/output_gamelink*
+
+passthroughio library, port I/O to/from the host system (Daniël Hörchner; GPLv2+) src/libs/passthroughio/*
