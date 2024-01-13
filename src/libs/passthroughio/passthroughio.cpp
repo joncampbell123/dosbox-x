@@ -1,3 +1,22 @@
+/*
+ *  I/O port pass-through for DOSBox-X
+ *  Copyright (C) 2023-2024 Daniël Hörchner
+
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
+ */
+
 #include "passthroughio.h"
 #include "logging.h"
 
@@ -5,8 +24,8 @@
 // non-Clang) Windows compilers
 #if (defined _M_IX86 || defined _M_X64) && defined _WIN32
 #if defined _MSC_VER && _MSC_VER >= 1900        // Visual Studio 2015 or later
-#include <intrin.h>                             // __in{byte, word}() & __out{byte, word}()
-#else
+#include <intrin.h>                             // __in{byte, word, dword}() &
+#else                                           //  __out{byte, word, dword}()
 #include <conio.h>                              // inp{w}() & outp{w}()
 #endif
 #endif // x86{_64} & Windows
@@ -149,20 +168,20 @@ void outportw(uint16_t port, uint16_t value) { output_word(port, value); }
 uint32_t inportd(uint16_t port) { return input_dword(port); }
 void outportd(uint16_t port, uint32_t value) { output_dword(port, value); }
 
-#if ((defined __i386__ || defined __x86_64__ || defined _M_IX86 || defined _M_X64) && \
-     (defined _WIN32 || defined BSD || defined LINUX || defined __CYGWIN__)) // _WIN32 is not defined by default on Cygwin
+#if (defined __i386__ || defined __x86_64__ || defined _M_IX86 || defined _M_X64) && \
+    (defined _WIN32 || defined BSD || defined LINUX || defined __CYGWIN__) // _WIN32 is not defined by default on Cygwin
 static bool passthroughIO_enabled = false;      // must default to false for UNIX version
 #endif
 
 /*
   For MinGW and MinGW-w64, _M_IX86 and _M_X64 are not defined by the compiler,
-  but in a header file, which has to be (indirectly) included, usually through a
-  C (not C++) standard header file. For MinGW it is sdkddkver.h and for
+  but in a header file, which has to be (indirectly) included, usually through
+  a C (not C++) standard header file. For MinGW it is sdkddkver.h and for
   MinGW-w64 it is _mingw_mac.h. Do not rely on constants that may not be
   defined, depending on what was included before these lines.
 */
-#if ((defined __i386__ || defined __x86_64__ || defined _M_IX86 || defined _M_X64) && \
-     (defined _WIN32 || defined __CYGWIN__))    // _WIN32 is not defined by default on Cygwin
+#if (defined __i386__ || defined __x86_64__ || defined _M_IX86 || defined _M_X64) && \
+    (defined _WIN32 || defined __CYGWIN__)      // _WIN32 is not defined by default on Cygwin
 #include <io.h>
 #include <string.h>
 #include <windows.h>
@@ -206,7 +225,7 @@ static void dlportio_output_dword(uint16_t port, uint32_t value) {
 	DlPortWritePortUlong(port, value);
 #else
 	DlPortWritePortUshort(port, (USHORT)value);
-	DlPortWritePortUshort(port + 2, (USHORT)(value >> 16));
+	DlPortWritePortUshort(port + 2U, (USHORT)(value >> 16));
 #endif
 }
 
@@ -278,6 +297,24 @@ static bool loadIODriver(const char* filename, HMODULE& driver_handle) {
 	return true;
 }
 
+static void resetPassthroughIO(void) {
+	input_byte = x86_input_byte;
+	output_byte = x86_output_byte;
+
+	input_word = x86_input_word;
+	output_word = x86_output_word;
+
+	input_dword = x86_input_dword;
+	output_dword = x86_output_dword;
+
+	if(io_driver != NULL) {
+		FreeLibrary(io_driver);
+		io_driver = NULL;
+	}
+
+	passthroughIO_enabled = false;
+}
+
 bool initPassthroughIO(void) {
 	// With giveio64 running, direct I/O will not cause an exception.
 	passthroughIO_enabled = true;
@@ -307,28 +344,29 @@ bool initPassthroughIO(void) {
 		LOG_MSG("Pass-through I/O caused exception. Right driver required (inpout32.dll).");
 #endif
 
-		// if non-null a previous call to this function must have failed
-		if(io_driver == NULL) {
-			const char* io_driver_filename = "inpout32.dll";
-			if(!loadIODriver(io_driver_filename, io_driver)) {
-#if defined __x86_64__ || defined _M_X64
-				io_driver_filename = "inpoutx64.dll";
-				if(!loadIODriver(io_driver_filename, io_driver)) {
-#endif
-					LOG_MSG("Error: Could not load driver.");
-					return false;
-#if defined __x86_64__ || defined _M_X64
-				}
-#endif
-			}
+		// if io_driver is non-null the driver stopped working since the previous call
+		resetPassthroughIO();
 
-			/*
-			  GetProcAddress() returns a FARPROC value, which is
-			  int (__attribute__((stdcall)) *)(), so we should cast to the right
-			  type. Visual Studio 2022 (with /Wall) cannot be shut up and
-			  neither can GCC 8+ (with -Wextra), directly, without specifically
-			  turning the warning off.
-			*/
+		const char* io_driver_filename = "inpout32.dll";
+		if(!loadIODriver(io_driver_filename, io_driver)) {
+#if defined __x86_64__ || defined _M_X64
+			io_driver_filename = "inpoutx64.dll";
+			if(!loadIODriver(io_driver_filename, io_driver)) {
+#endif
+				LOG_MSG("Error: Could not load driver.");
+				return false;
+#if defined __x86_64__ || defined _M_X64
+			}
+#endif
+		}
+
+		/*
+		  GetProcAddress() returns a FARPROC value, which is
+		  int (__attribute__((stdcall)) *)(), so we should cast to the right
+		  type. Visual Studio 2022 (with /Wall) cannot be shut up and neither
+		  can GCC 8+ (with -Wextra), directly, without specifically turning
+		  the warning off.
+		*/
 #ifdef _MSC_VER
 #pragma warning(push)
 #pragma warning(disable: 4191) // 'operator/operation' : unsafe conversion from 'type of expression' to 'type required'
@@ -337,36 +375,36 @@ bool initPassthroughIO(void) {
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wcast-function-type"
 #endif
-			/*
-			  Later ports of inpout32.dll/inpoutx64.dll also contain the API
-			  provided by dlportio.dll. Since the API of dlportio.dll does not
-			  have the flaws of the original inpout32.dll (*signed* short return
-			  value and arguments), and it has functions for 16-bit and 32-bit
-			  I/O, we prefer it.
-			*/
-			DlPortReadPortUchar = (UCHAR(__stdcall *)(USHORT))GetProcAddress(io_driver, "DlPortReadPortUchar");
-			if(DlPortReadPortUchar == NULL) return false;
-			input_byte = dlportio_input_byte;
+		/*
+		  Later ports of inpout32.dll/inpoutx64.dll also contain the API
+		  provided by dlportio.dll. Since the API of dlportio.dll does not have
+		  the flaws of the original inpout32.dll (*signed* short return value
+		  and arguments), and it has functions for 16-bit and 32-bit I/O, we
+		  prefer it.
+		*/
+		DlPortReadPortUchar = (UCHAR(__stdcall *)(USHORT))GetProcAddress(io_driver, "DlPortReadPortUchar");
+		if(DlPortReadPortUchar == NULL) { resetPassthroughIO(); return false; }
+		input_byte = dlportio_input_byte;
 
-			DlPortWritePortUchar = (void(__stdcall *)(USHORT, UCHAR))GetProcAddress(io_driver, "DlPortWritePortUchar");
-			if(DlPortWritePortUchar == NULL) return false;
-			output_byte = dlportio_output_byte;
+		DlPortWritePortUchar = (void(__stdcall *)(USHORT, UCHAR))GetProcAddress(io_driver, "DlPortWritePortUchar");
+		if(DlPortWritePortUchar == NULL) { resetPassthroughIO(); return false; }
+		output_byte = dlportio_output_byte;
 
-			DlPortReadPortUshort = (USHORT(__stdcall *)(USHORT))GetProcAddress(io_driver, "DlPortReadPortUshort");
-			if(DlPortReadPortUshort == NULL) return false;
-			input_word = dlportio_input_word;
+		DlPortReadPortUshort = (USHORT(__stdcall *)(USHORT))GetProcAddress(io_driver, "DlPortReadPortUshort");
+		if(DlPortReadPortUshort == NULL) { resetPassthroughIO(); return false; }
+		input_word = dlportio_input_word;
 
-			DlPortWritePortUshort = (void(__stdcall *)(USHORT, USHORT))GetProcAddress(io_driver, "DlPortWritePortUshort");
-			if(DlPortWritePortUshort == NULL) return false;
-			output_word = dlportio_output_word;
+		DlPortWritePortUshort = (void(__stdcall *)(USHORT, USHORT))GetProcAddress(io_driver, "DlPortWritePortUshort");
+		if(DlPortWritePortUshort == NULL) { resetPassthroughIO(); return false; }
+		output_word = dlportio_output_word;
 
-			DlPortReadPortUlong = (ULONG(__stdcall *)(ULONG))GetProcAddress(io_driver, "DlPortReadPortUlong");
-			if(DlPortReadPortUlong == NULL) return false;
-			input_dword = dlportio_input_dword;
+		DlPortReadPortUlong = (ULONG(__stdcall *)(ULONG))GetProcAddress(io_driver, "DlPortReadPortUlong");
+		if(DlPortReadPortUlong == NULL) { resetPassthroughIO(); return false; }
+		input_dword = dlportio_input_dword;
 
-			DlPortWritePortUlong = (void(__stdcall *)(ULONG, ULONG))GetProcAddress(io_driver, "DlPortWritePortUlong");
-			if(DlPortWritePortUlong == NULL) return false;
-			output_dword = dlportio_output_dword;
+		DlPortWritePortUlong = (void(__stdcall *)(ULONG, ULONG))GetProcAddress(io_driver, "DlPortWritePortUlong");
+		if(DlPortWritePortUlong == NULL) { resetPassthroughIO(); return false; }
+		output_dword = dlportio_output_dword;
 #ifdef _MSC_VER
 #pragma warning(pop)
 #endif
@@ -374,22 +412,21 @@ bool initPassthroughIO(void) {
 #pragma GCC diagnostic pop
 #endif
 
-			passthroughIO_enabled = true;
+		passthroughIO_enabled = true;
 #ifdef __CYGWIN__                               // Cygwin
-			if(sigaction(SIGILL, &new_sigaction, &org_sigaction) == -1)
-				LOG_MSG("Error: sigaction() failed: %s", strerror(errno));
-			input_byte(TESTIOPORT);
-			if(sigaction(SIGILL, &org_sigaction, NULL) == -1)
-				LOG_MSG("Error: sigaction() failed: %s", strerror(errno));
+		if(sigaction(SIGILL, &new_sigaction, &org_sigaction) == -1)
+			LOG_MSG("Error: sigaction() failed: %s", strerror(errno));
+		input_byte(TESTIOPORT);
+		if(sigaction(SIGILL, &org_sigaction, NULL) == -1)
+			LOG_MSG("Error: sigaction() failed: %s", strerror(errno));
 #elif defined _WIN32                            // MinGW & Visual C++
-			org_exception_filter = SetUnhandledExceptionFilter(ioExceptionFilter);
-			input_byte(TESTIOPORT);
-			SetUnhandledExceptionFilter(org_exception_filter);
+		org_exception_filter = SetUnhandledExceptionFilter(ioExceptionFilter);
+		input_byte(TESTIOPORT);
+		SetUnhandledExceptionFilter(org_exception_filter);
 #endif
 
-			if(!passthroughIO_enabled) return false;
-			LOG_MSG("Using driver %s.", io_driver_filename);
-		}
+		if(!passthroughIO_enabled) { resetPassthroughIO(); return false; };
+		LOG_MSG("Using driver %s.", io_driver_filename);
 	}
 	return passthroughIO_enabled;
 }
@@ -400,8 +437,8 @@ bool initPassthroughIO(void) {
 #if defined LINUX && !defined __ANDROID__
 #include <sys/io.h>
 #elif defined __OpenBSD__ || defined __NetBSD__
-#include <machine/sysarch.h>
 #include <sys/types.h>
+#include <machine/sysarch.h>
 #elif defined __FreeBSD__ || defined __DragonFly__
 #include <fcntl.h>
 
