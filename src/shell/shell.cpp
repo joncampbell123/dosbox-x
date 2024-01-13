@@ -763,7 +763,7 @@ void showWelcome(Program *shell) {
             "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
             "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44"
             "\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x44\x86\x56\n"));
-        shell->WriteOut(ParseMsg((std::string("\x86\x46 \033[32m")+(MSG_Get("SHELL_STARTUP_TITLE")+std::string("             ")).substr(0,30)+std::string("  \033[33m%*s\033[37m \x86\x46\n")).c_str()),34,verstr.c_str());
+        shell->WriteOut(ParseMsg((std::string("\x86\x46 \033[32m")+(MSG_Get("SHELL_STARTUP_TITLE")+std::string("      ")).substr(0,22)+std::string("  \033[33m%*s\033[37m \x86\x46\n")).c_str()),42,verstr.c_str());
         shell->WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
         shell->WriteOut(ParseMsg((std::string("\x86\x46 ")+MSG_Get("SHELL_STARTUP_HEAD1_PC98")+std::string(" \x86\x46\n")).c_str()));
         shell->WriteOut(ParseMsg("\x86\x46                                                                    \x86\x46\n"));
