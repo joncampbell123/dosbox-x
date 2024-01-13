@@ -981,14 +981,14 @@ void HostAppRun() {
 /* called by shell to flush keyboard buffer right before executing the program to avoid
  * having the Enter key in the buffer to confuse programs that act immediately on keyboard input. */
 void DOS_FlushSTDIN(void) {
-	LOG_MSG("Flush STDIN");
-	uint8_t handle=RealHandle(STDIN);
-	if (handle!=0xFF && Files[handle] && Files[handle]->IsName("CON")) {
-		uint8_t c;uint16_t n;
-		while (DOS_GetSTDINStatus()) {
-			n=1; DOS_ReadFile(STDIN,&c,&n);
-		}
-	}
+    LOG(LOG_DOSMISC, LOG_DEBUG)("Flush STDIN");
+    uint8_t handle=RealHandle(STDIN);
+    if (handle!=0xFF && Files[handle] && Files[handle]->IsName("CON")) {
+	    uint8_t c;uint16_t n;
+	    while (DOS_GetSTDINStatus()) {
+		    n=1; DOS_ReadFile(STDIN,&c,&n);
+	    }
+    }
 }
 
 static Bitu DOS_21Handler(void) {

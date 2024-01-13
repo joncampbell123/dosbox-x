@@ -2625,7 +2625,7 @@ public:
     }
 };
 
-char * GetIDEPosition(unsigned char bios_disk_index);
+std::string GetIDEPosition(unsigned char bios_disk_index);
 class ShowDriveNumber : public GUI::ToplevelWindow {
 protected:
     GUI::Input *name;
