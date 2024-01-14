@@ -4819,7 +4819,11 @@ bool AttachToBiosByLetter(imageDisk* image, const char drive) {
         }
         LOG_MSG("BIOS: Warning: Four hard drives (Disk no. 2-5) attached to BIOS already. Drive %c not attached", drive);
     }
+#if 0
     else if (IS_PC98_ARCH) {
+        // FIX_ME: This code is not correct. PC-98 boots from Drive 2 only if Drive 1 is empty.
+        //         Currently disable this code since DOSBox-X supports only Drive A (Drive 1) as floppy boot drive anyway. 
+
         //for pc-98 machines, mount floppies at first available index
         for (int index = 0; index < 2; index++) {
             if (imageDiskList[index] == NULL) {
@@ -4827,6 +4831,7 @@ bool AttachToBiosByLetter(imageDisk* image, const char drive) {
             }
         }
     }
+#endif
     else if ((drive - 'A') < 2) {
         //for PCs, mount floppies only if A: or B: is specified, and then if so, at specified index
         return AttachToBiosByIndex(image, drive - 'A');
@@ -4844,14 +4849,20 @@ bool AttachToBiosAndIdeByLetter(imageDisk* image, const char drive, const unsign
         }
         LOG_MSG("BIOS: Warning: Four hard drives (Disk no. 2-5) attached to BIOS already. Drive %c not attached", drive);
     }
+#if 0
     else if (IS_PC98_ARCH) {
+        // FIX_ME: This code is not correct. PC-98 boots from Drive 2 only if Drive 1 is empty.
+        //         Currently disable this code since DOSBox-X supports only Drive A (Drive 1) as floppy boot drive anyway. 
+
         //for pc-98 machines, mount floppies at first available index
         for (int index = 0; index < 2; index++) {
             if (imageDiskList[index] == NULL) {
                 return AttachToBiosByIndex(image, index);
             }
         }
-    } else if ((drive - 'A') < 2) {
+    }
+#endif
+    else if ((drive - 'A') < 2) {
         //for PCs, mount floppies only if A: or B: is specified, and then if so, at specified index
         return AttachToBiosByIndex(image, drive - 'A');
     }
