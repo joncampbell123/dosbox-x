@@ -1907,19 +1907,35 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 		var = &bootbuffer.bpb.v.BPB_VolID;
 		bootbuffer.bpb.v.BPB_VolID = var_read((uint32_t*)var);
 
-		if (!is_hdd) {
-			/* Identify floppy format */
-			if ((bootbuffer.BS_jmpBoot[0] == 0x69 || bootbuffer.BS_jmpBoot[0] == 0xe9 ||
-				(bootbuffer.BS_jmpBoot[0] == 0xeb && bootbuffer.BS_jmpBoot[2] == 0x90)) &&
-				(bootbuffer.bpb.v.BPB_Media & 0xf0) == 0xf0) {
-				/* DOS 2.x or later format, BPB assumed valid */
+        if(!is_hdd) {
+            /* Identify floppy format */
+            if((bootbuffer.BS_jmpBoot[0] == 0x69 || bootbuffer.BS_jmpBoot[0] == 0xe9 ||
+                (bootbuffer.BS_jmpBoot[0] == 0xeb && bootbuffer.BS_jmpBoot[2] == 0x90)) &&
+                (bootbuffer.bpb.v.BPB_Media & 0xf0) == 0xf0) {
+                /* DOS 2.x or later format, BPB assumed valid */
 
-				if ((bootbuffer.bpb.v.BPB_Media != 0xf0 && !(bootbuffer.bpb.v.BPB_Media & 0x1)) &&
-					(bootbuffer.BS_OEMName[5] != '3' || bootbuffer.BS_OEMName[6] != '.' || bootbuffer.BS_OEMName[7] < '2')) {
-					/* Fix pre-DOS 3.2 single-sided floppy */
-					bootbuffer.bpb.v.BPB_SecPerClus = 1;
-				}
-			} else {
+                if((bootbuffer.bpb.v.BPB_Media != 0xf0 && !(bootbuffer.bpb.v.BPB_Media & 0x1)) &&
+                    (bootbuffer.BS_OEMName[5] != '3' || bootbuffer.BS_OEMName[6] != '.' || bootbuffer.BS_OEMName[7] < '2')) {
+                    /* Fix pre-DOS 3.2 single-sided floppy */
+                    bootbuffer.bpb.v.BPB_SecPerClus = 1;
+                }
+            }
+            else if(bootbuffer.BS_jmpBoot[0] == 0x60 && bootbuffer.BS_jmpBoot[1] == 0x1c) {
+                LOG_MSG("Experimental: Detected Human68k v1.00 or v2.00 floppy disk. Assuming PC-98 2HD(1.25MB disk).");
+                bootbuffer.bpb.v.BPB_BytsPerSec = 0x400;  //Offset 0x12,0x13
+                bootbuffer.bpb.v.BPB_SecPerClus = 1;      //Offset 0x14
+                bootbuffer.bpb.v.BPB_RsvdSecCnt = 1;      
+                bootbuffer.bpb.v.BPB_NumFATs = 2;         //Offset 0x15?
+                bootbuffer.bpb.v.BPB_RootEntCnt = 0xc0;   //Offset 0x18,0x19
+                bootbuffer.bpb.v.BPB_TotSec16 = 0x4d0;    //Offset 0x1a,0x1b
+                bootbuffer.bpb.v.BPB_Media = 0xfe;        //Offset 0x1c
+                bootbuffer.bpb.v.BPB_FATSz16 = 2;         //Offset 0x1d?
+                bootbuffer.bpb.v.BPB_SecPerTrk = 8;
+                bootbuffer.bpb.v.BPB_NumHeads = 2;
+                bootbuffer.magic1 = 0x55;	// to silence warning
+                bootbuffer.magic2 = 0xaa;
+            }
+            else {
 				/* Read media descriptor in FAT */
 				uint8_t sectorBuffer[512];
 				loadedDisk->Read_AbsoluteSector(1,&sectorBuffer);
