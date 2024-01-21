@@ -44,7 +44,7 @@
 #define OS_PLATFORM "Linux"
 #define OS_PLATFORM_LONG "Linux"
 #elif defined(MACOSX)
-#ifdef __arm__
+#ifdef __arm64__
 #define OS_PLATFORM "ARM mac"
 #define OS_PLATFORM_LONG "macOS ARM"
 #else
