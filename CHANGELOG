@@ -60,6 +60,7 @@ Next:
   - Fixed crash on startup due to SDLnet library linked externally (macOS) (maron2000)
   - Changed PC-98 floppy boot behavior when Drive 2 is mounted before Drive 1(maron2000)
   - Added Human68k ver.1.0&2.0 floppy disk support (maron2000)
+  - Fixed attribute copy behavior of FreeDOS XCOPY.exe to match genuine DOS (maron2000)
 
 2023.10.06
   - Add "VRD" debugger command to force redraw of the VGA screen. (joncampbell123)
