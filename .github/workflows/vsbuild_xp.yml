@@ -111,7 +111,7 @@ jobs:
         with:
           files: dosbox-x-vsbuild-XP-${{ env.timestamp }}.zip
       - name: Cache Visual Studio builds
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v4
         with:
           path: ${{ github.workspace }}/vs-bin
           key: vs-bin-${{ github.sha }}
@@ -175,7 +175,7 @@ jobs:
           strip -s src/dosbox-x.exe
           cp src/dosbox-x.exe mingw-bin/dosbox-x_mingw_lowend_SDL1.exe
       - name: Cache MinGW32 lowend builds
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v4
         with:
           path: ${{ github.workspace }}/mingw-bin
           key: mingw-bin-${{ github.sha }}
@@ -193,12 +193,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Restore Visual Studio builds
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           path: ${{ github.workspace }}/vs-bin
           key: vs-bin-${{ github.sha }}
       - name: Restore MinGW builds
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           path: ${{ github.workspace }}/mingw-bin
           key: mingw-bin-${{ github.sha }}

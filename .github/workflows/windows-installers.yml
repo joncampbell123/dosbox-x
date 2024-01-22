@@ -150,7 +150,7 @@ jobs:
           name: dosbox-x-vsbuild-ARM32_64-${{ env.timestamp }}
           path: ${{ github.workspace }}/package/
       - name: Cache Visual Studio builds
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v4
         with:
           path: ${{ github.workspace }}/vs-bin
           key: vs-${{ github.sha }}
@@ -203,7 +203,7 @@ jobs:
           cp $top/src/dosbox-x.exe $top/package/dosbox-x_MinGWx86_SDL2.exe
           cp $top/src/dosbox-x.exe $top/mingw-x86-bin/dosbox-x_MinGWx86_SDL2.exe
       - name: Cache MinGW x86 builds
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v4
         with:
           path: ${{ github.workspace }}/mingw-x86-bin
           key: mingw-x86-bin-${{ github.sha }}
@@ -256,7 +256,7 @@ jobs:
           cp $top/src/dosbox-x.exe $top/package/dosbox-x_MinGWx64_SDL2.exe
           cp $top/src/dosbox-x.exe $top/mingw-x64-bin/dosbox-x_MinGWx64_SDL2.exe
       - name: Cache MinGW x64 builds
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v4
         with:
           path: ${{ github.workspace }}/mingw-x64-bin
           key: mingw-x64-bin-${{ github.sha }}
@@ -274,17 +274,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Restore MinGW x86 builds
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           path: ${{ github.workspace }}/mingw-x86-bin
           key: mingw-x86-bin-${{ github.sha }}
       - name: Restore MinGW x64 builds
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           path: ${{ github.workspace }}/mingw-x64-bin
           key: mingw-x64-bin-${{ github.sha }}
       - name: Restore Visual Studio builds
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           path: ${{ github.workspace }}/vs-bin
           key: vs-${{ github.sha }}
