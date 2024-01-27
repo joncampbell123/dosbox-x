@@ -25,4 +25,6 @@ libhardware_a_SOURCES = adlib.cpp dma.cpp gameblaster.cpp hardware.cpp imfc.cpp 
 			RetroWaveLib/Platform/Linux_SPI.c \
 			RetroWaveLib/Protocol/Serial.c \
 			RetroWaveLib/RetroWave_DOSBoX.cpp \
-			RetroWaveLib/RetroWave.c
+			RetroWaveLib/RetroWave.c \
+			esfmu/esfm.c \
+			esfmu/esfm_registers.c

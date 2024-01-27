@@ -1288,8 +1288,8 @@ void DOSBOX_SetupConfigSections(void) {
     const char *mt32reverbTimes[] = {"0", "1", "2", "3", "4", "5", "6", "7",0};
     const char *mt32reverbLevels[] = {"0", "1", "2", "3", "4", "5", "6", "7",0};
     const char* gustypes[] = { "classic", "classic37", "max", "interwave", 0 };
-    const char* sbtypes[] = { "sb1", "sb2", "sbpro1", "sbpro2", "sb16", "sb16vibra", "gb", "ess688", "reveal_sc400", "none", 0 };
-    const char* oplmodes[]={ "auto", "cms", "opl2", "dualopl2", "opl3", "opl3gold", "none", "hardware", "hardwaregb", 0};
+    const char* sbtypes[] = { "sb1", "sb2", "sbpro1", "sbpro2", "sb16", "sb16vibra", "gb", "ess688", "ess1488", "reveal_sc400", "none", 0 };
+    const char* oplmodes[]={ "auto", "cms", "opl2", "dualopl2", "opl3", "opl3gold", "none", "hardware", "hardwaregb", "esfm", 0};
     const char* serials[] = { "dummy", "disabled", "modem", "nullmodem", "serialmouse", "directserial", "log", "file", 0 };
     const char* acpi_rsd_ptr_settings[] = { "auto", "bios", "ebda", 0 };
     const char* cpm_compat_modes[] = { "auto", "off", "msdos2", "msdos5", "direct", 0 };
@@ -1323,7 +1323,7 @@ void DOSBOX_SetupConfigSections(void) {
     const char* irqssb[] = { "7", "5", "3", "9", "10", "11", "12", "0", "-1", 0 };
     const char* dmasgus[] = { "3", "0", "1", "5", "6", "7", 0 };
     const char* dmassb[] = { "1", "5", "0", "3", "6", "7", "-1", 0 };
-    const char* oplemus[] = { "default", "compat", "fast", "nuked", "mame", "opl2board", "opl3duoboard", "retrowave_opl3", 0 };
+    const char* oplemus[] = { "default", "compat", "fast", "nuked", "mame", "opl2board", "opl3duoboard", "retrowave_opl3", "esfmu", 0 };
     const char *qualityno[] = { "0", "1", "2", "3", 0 };
     const char* tandys[] = { "auto", "on", "off", 0};
     const char* ps1opt[] = { "on", "off", 0};
@@ -5067,7 +5067,7 @@ extern "C" int __cdecl (*__MINGW_IMP_SYMBOL(_fstat64))(int,struct _stat64*) = in
 //win9x's default msvcrt.dll doesn't have strtoll/strtoull/strtoi64
 //libstdc++ (__USE_MINGW_ANSI_STDIO=1)
 //strtoll = _strtoi64
-//*scanf -> __mingw_*scanf -> strtoll 
+//*scanf -> __mingw_*scanf -> strtoll
 extern "C" long long  __cdecl strtoll(const char * __restrict__ str, char ** __restrict ptr, int base)
 {
     return strtol(str, ptr, base);
