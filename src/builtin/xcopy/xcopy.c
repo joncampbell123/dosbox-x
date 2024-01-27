@@ -129,7 +129,7 @@ void xcopy_files(const char *src_pathname,
                  const char *dest_filename);
 void xcopy_file(const char *src_filename,
                 const char *dest_filename);
-
+unsigned int getDOSVersion(void);
 
 /*-------------------------------------------------------------------------*/
 /* MAIN-PROGRAM                                                            */
@@ -714,7 +714,6 @@ void xcopy_files(const char *src_pathname,
   }
 }
 
-
 /*-------------------------------------------------------------------------*/
 /* Checks all dependencies of the source and destination file and calls    */
 /* function "copy_file".                                                   */
@@ -725,11 +724,17 @@ void xcopy_file(const char *src_filename,
   int fileattrib;
   struct stat src_statbuf;
   struct stat dest_statbuf;
+#if defined(__TURBOC__) && !defined(__BORLANDC__)
+  struct diskfree_t disk;
+#else
   struct dfree disktable;
-  unsigned long free_diskspace;
+#endif
+  unsigned long free_diskspace = -1;
+  unsigned long bsec = 512;
   char ch;
   char msg_prompt[255];
-
+  unsigned int dos_version = 0;
+  struct DiskInfo diskinfo;
 
   if (switch_prompt) {
     /* ask for confirmation to create file */
@@ -766,11 +771,40 @@ void xcopy_file(const char *src_filename,
   stat((char *)src_filename, &src_statbuf);
   dest_file_exists = !stat((char *)dest_filename, &dest_statbuf);
 
-  /* get amount of free disk space in destination drive */
-  getdfree(dest_drive, &disktable);
-  free_diskspace = (unsigned long) disktable.df_avail *
-                   disktable.df_sclus * disktable.df_bsec;
+  dos_version = getDOSVersion();
 
+  /* get amount of free disk space in destination drive */
+  if(((dos_version >> 8) > 7) || (((dos_version >> 8) == 7) && ((dos_version & 0xFF) >= 10))){
+      //printf("%d %s", dest_drive, dest_drive);
+      if(!get_extendedDiskInfo(dest_drive, &diskinfo)){
+      	bsec = diskinfo.bytesPerSector;
+      	free_diskspace = diskinfo.availableClusters * diskinfo.sectorsPerCluster;
+      	//printf("free_diskspace=%lu avail_clusters=%lu,sectors_per_cluster=%lu \n", free_diskspace, diskinfo.availableClusters, diskinfo.sectorsPerCluster);
+	  }
+	  else {
+	    goto int21_36h; /* Try the old DOS method if failed */
+	  }
+  }
+  else {
+int21_36h:
+#if defined(__TURBOC__) && !defined(__BORLANDC__)
+  	if(_dos_getdiskfree(dest_drive, &disk) != 0) {
+		printf("Failed to obtain free disk space. Aborting\n");
+		exit(39);
+  	}
+  	bsec = disk.bytes_per_sector;
+  	free_diskspace = (unsigned long) disk.avail_clusters * disk.sectors_per_cluster;
+  	//printf("dest_drive=%d,free_diskspace=%lu avail_clusters=%u,sectors_per_cluster=%u \n",dest_drive, free_diskspace, disk.avail_clusters, disk.sectors_per_cluster);
+#else
+	getdfree(dest_drive, &disktable);
+	bsec = disktable.df_bsec;
+	free_diskspace = (unsigned long) disktable.df_avail * disktable.df_sclus;
+	//printf("disktable.df_avail=%d,disktable.df_sclus=%d\n",disktable.df_avail * disktable.df_sclus);
+	//free_diskspace = (unsigned long) disktable.df_avail *
+	//                 (unsigned long) disktable.df_sclus *
+	//                 (unsigned long) disktable.df_bsec;
+#endif
+  }
   if (dest_file_exists) {
     if (switch_date) {
       if (switch_date < 0) {
@@ -822,7 +856,7 @@ void xcopy_file(const char *src_filename,
     /* check free space on destination disk */
     /* *** was wrong, was: "if (src... > free... - dest...) ..." */
     if ( (src_statbuf.st_size > dest_statbuf.st_size) &&
-         ((src_statbuf.st_size - dest_statbuf.st_size) > free_diskspace) ) {
+         (((src_statbuf.st_size - dest_statbuf.st_size) / bsec) > free_diskspace) ) {
       printf("%s - %s\n", catgets(cat, 1, 23, "Insufficient disk space in destination path"), dest_filename);
       catclose(cat);
       exit(39);
@@ -854,7 +888,10 @@ void xcopy_file(const char *src_filename,
   }
   else {
     /* check free space on destination disk */
-    if (src_statbuf.st_size > free_diskspace) {
+    unsigned long st_size_sec = (unsigned long)src_statbuf.st_size / bsec;
+    
+    if (st_size_sec > (unsigned long)free_diskspace) {
+      printf("%lu - %lu\n", st_size_sec, free_diskspace);
       printf("%s - %s\n", catgets(cat, 1, 25, "Insufficient disk space in destination path"), dest_filename);
       catclose(cat);
       exit(39);
@@ -873,18 +910,7 @@ void xcopy_file(const char *src_filename,
 
   /* check, if file copying should be simulated */
   if (!switch_listmode) {
-    copy_file(src_filename, dest_filename, switch_continue);
-    fileattrib = _chmod(dest_filename, 0);
-    if(switch_keep_attr)
-	    _chmod(dest_filename, 1, fileattrib);
-	else
-	    _chmod(dest_filename, 1, fileattrib & FA_ARCH);
-
-    if (switch_archive_reset) {
-      /* remove archive attribute from source file */
-      fileattrib = _chmod(src_filename, 0);
-      _chmod(src_filename, 1, fileattrib ^ FA_ARCH);
-    }
+    copy_file(src_filename, dest_filename, switch_continue, switch_keep_attr, switch_archive_reset);
   }
 
   file_counter++;
