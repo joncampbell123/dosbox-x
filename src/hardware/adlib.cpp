@@ -1387,7 +1387,7 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 	ctrl.rvol = 0xff;
 	handler = 0;
 	capture = 0;
-    esfm_nativemode = false;
+	esfm_nativemode = false;
 
 	Section_prop * section=static_cast<Section_prop *>(configuration);
 	Bitu base = (Bitu)section->Get_hex("sbbase");

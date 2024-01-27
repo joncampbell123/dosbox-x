@@ -128,7 +128,7 @@ struct Chip {
 	bool Write( uint32_t reg, uint8_t val );
 	//Read the current timer state, will use current double
 	uint8_t Read( );
-    uint8_t *ReadbackReg( uint32_t reg, uint8_t *ret );
+	uint8_t *ReadbackReg( uint32_t reg, uint8_t *ret );
 
 	Chip();
 	//poll counter
@@ -199,7 +199,7 @@ public:
 	static OPL_Mode oplmode;
 	MixerChannel* mixerChan;
 	uint32_t lastUsed;				//Ticks when adlib was last used to turn of mixing after a few second
-	bool esfm_nativemode;           // When using MODE_ESFM, whether the synth is in native mode or not - affects port mapping
+	bool esfm_nativemode;			// When using MODE_ESFM, whether the synth is in native mode or not - affects port mapping
 
 	Handler* handler;				//Handler that will generate the sound
     RegisterCache cache = {};
