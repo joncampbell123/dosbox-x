@@ -1753,7 +1753,6 @@ static void sb16asp_next_RAM_byte(void) {
  */
 
 static void DSP_DoCommand(void) {
-    LOG(LOG_SB,LOG_DEBUG)("Executing command 0x%02x",sb.dsp.cmd);
     if (sb.ess_type != ESS_NONE && sb.dsp.cmd >= 0xA0 && sb.dsp.cmd <= 0xCF) {
         // ESS overlap with SB16 commands. Handle it here, not mucking up the switch statement.
 
@@ -2490,7 +2489,6 @@ static bool DSP_busy_cycle() {
 }
 
 static void DSP_DoWrite(uint8_t val) {
-    LOG(LOG_SB,LOG_DEBUG)("DSP_DoWrite(0x%02x)", val);
     if (sb.dsp.write_busy || (sb.dsp.highspeed && sb.type != SBT_16 && sb.ess_type == ESS_NONE && sb.reveal_sc_type == RSC_NONE)) {
         LOG(LOG_SB,LOG_WARN)("DSP:Command write %2X ignored, DSP not ready. DOS game or OS is not polling status",val);
         return;
