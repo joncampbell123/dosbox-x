@@ -2597,13 +2597,22 @@ void DOS_Shell::CMD_COPY(char * args) {
 						}
 						if (!exist&&size) {
 							int drive=strlen(nameTarget)>1&&(nameTarget[1]==':'||nameTarget[2]==':')?(toupper(nameTarget[nameTarget[0]=='"'?1:0])-'A'):-1;
-							if (drive>=0&&Drives[drive]) {
-								uint16_t bytes_sector;uint8_t sectors_cluster;uint16_t total_clusters;uint16_t free_clusters;
-								rsize=true;
-								freec=0;
-								Drives[drive]->AllocationInfo(&bytes_sector,&sectors_cluster,&total_clusters,&free_clusters);
-								rsize=false;
-								if ((Bitu)bytes_sector * (Bitu)sectors_cluster * (Bitu)(freec?freec:free_clusters)<size) {
+                            if(drive >= 0 && Drives[drive]) {
+                                uint16_t bytes_sector; uint8_t sectors_cluster; uint16_t total_clusters; uint16_t free_clusters;
+                                uint32_t bytes32, sectors32, clusters32, free32;
+                                bool no_free_space = false;
+                                rsize = true;
+                                freec = 0;
+                                if(dos.version.major > 7 || (dos.version.major == 7 && dos.version.minor >= 10)) {
+                                    Drives[drive]->AllocationInfo32(&bytes32, &sectors32, &clusters32, &free32);
+                                    no_free_space = (uint64_t)bytes32 * (uint64_t)sectors32 * (uint64_t)free32 < size ? true : false;
+                                }
+                                else {
+                                    Drives[drive]->AllocationInfo(&bytes_sector, &sectors_cluster, &total_clusters, &free_clusters);
+                                    no_free_space = (Bitu)bytes_sector* (Bitu)sectors_cluster* (Bitu)(freec ? freec : free_clusters) < size ? true : false;
+                                }
+                                rsize = false;
+								if (no_free_space) {
 									WriteOut(MSG_Get("SHELL_CMD_COPY_NOSPACE"), uselfn?lname:name);
 									DOS_CloseFile(sourceHandle);
 									ret = DOS_FindNext();

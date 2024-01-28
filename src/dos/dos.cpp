@@ -3066,9 +3066,16 @@ static Bitu DOS_21Handler(void) {
 			} else if (reg_al==3) {
 				/* Get extended free disk space */
 				MEM_StrCopy(SegPhys(ds)+reg_dx,name1,reg_cx);
-				if (name1[1]==':'&&name1[2]=='\\')
-					reg_dl=name1[0]-'A'+1;
-				else {
+                if(name1[1] == ':' && name1[2] == '\\') {
+                    name1[0] = toupper(name1[0]);
+                    if((name1[0] < 'A') || (name1[0] > 'Z')) {
+                        reg_ax = 0x15; // Invalid drive letter
+                        CALLBACK_SCF(true);
+                        break;
+                    }
+                    reg_dl = name1[0] - 'A' + 1; // Drive A = 1, B = 2, ...
+                }
+                else {
 					reg_ax=0xffff;
 					CALLBACK_SCF(true);
 					break;
