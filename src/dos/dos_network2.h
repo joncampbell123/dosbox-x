@@ -42,11 +42,23 @@ extern bool CodePageGuestToHostUTF16(uint16_t *d/*CROSS_LEN*/,const char *s/*CRO
 
  bool Network_IsNetworkResource(const char * filename)
 {
-	if(strlen(filename)>1 && enable_network_redirector && !control->SecureMode() && ((filename[0]=='\\' && filename[1]=='\\') || (strlen(filename)>2 && filename[0]=='"' && filename[1]=='\\' && filename[2]=='\\'))) {
-        char *p = strrchr_dbcs((char *)filename, '\\');
-        return p && ((filename[0]=='\\' && p > filename+1) || (filename[0]=='"' && p > filename+2));
-    } else
-		return false;
+    if (!enable_network_redirector || control->SecureMode())
+        return false;
+
+    // Must begin with two backslashes optionally preceded by a double quote:
+    switch (*filename) {
+        case '"':
+            if (*++filename != '\\')
+                return false;
+            /* fallthrough */
+        case '\\':
+            if (*++filename != '\\')
+                return false;
+            // The rest of the string must contain at least one backslash:
+            return strchr_dbcs(const_cast<char *>(filename + 1), '\\');
+        default:
+            return false;
+    }
 }//bool	Network_IsNetworkFile(uint16_t entry)
 
 
