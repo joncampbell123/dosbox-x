@@ -1374,6 +1374,7 @@ bool INT10_SetVideoMode(uint16_t mode) {
 			misc_output|=0x20;
 	}
 	IO_Write(0x3c2,misc_output);		//Setup for 3b4 or 3d4
+	real_writew(BIOSMEM_SEG,BIOSMEM_CRTC_ADDRESS,((CurMode->mode==7 )|| (CurMode->mode==0x0f)) ? 0x3b4 : 0x3d4); // update immediately
 
 	if (IS_VGA_ARCH && (svgaCard == SVGA_S3Trio)) {
 		// unlock the S3 registers
@@ -2219,7 +2220,7 @@ dac_text16:
 		J3_SetBiosArea(mode);
 	}
 
-	INT10_ToggleBlinkingBit(blinking?1:0);
+	INT10_ToggleBlinkingBit(blinking?1:0); // WARNING: The CRTC I/O port in the BDA must have been written by this point or the Attribute Controller will be mis-programmed
 	FinishSetMode(clearmem);
 
 	/* Set vga attrib register into defined state */

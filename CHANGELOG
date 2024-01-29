@@ -1,4 +1,8 @@
 Next:
+  - Fix INT 10h to keep hardware CRTC I/O port synchronized with BIOS DATA area
+    copy so that other parts of INT 10h called by SetVideoMode do not accidentally
+    talk to the wrong I/O ports. This fixes corrupted INT 10 Mode F display
+    (640x350 monochrome graphics mode). (joncampbell123).
   - Add DOS Int21 0x5D 0x00 - remote server call
     Inspired by FeeDOS inthndlr.c
     With this change it is possible use a plain dosbox-x to install and run
