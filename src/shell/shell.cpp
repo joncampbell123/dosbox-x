@@ -538,6 +538,7 @@ void DOS_Shell::ParseLine(char * line) {
 		SyntaxError(); /* No command to pass output */
 		if(in) free(in);
 		if(out) free(out);
+		if(err) free(err);
 		if(toc) free(toc);
 		return;
 	}
@@ -564,7 +565,7 @@ void DOS_Shell::ParseLine(char * line) {
 	bool fail=false;
 	char pipetmp[270];
 	uint16_t fattr;
-	if(toc) {
+	if (toc) {
 		// Initialize random number generator
 		initRand();
 
@@ -641,6 +642,23 @@ void DOS_Shell::ParseLine(char * line) {
 			status = false;
 		} else {
 			bool device=DOS_FindDevice(pipetmp)!=DOS_DEVICES;
+		}
+		/* Create if not exist. Open if exist. Both in read/write mode */
+		if(err&&append[1]) {
+			if (DOS_GetFileAttr(err, &fattr) && fattr&DOS_ATTR_READ_ONLY) {
+				DOS_SetError(DOSERR_ACCESS_DENIED);
+				status = false;
+			} else if( (status = DOS_OpenFile(err,OPEN_READWRITE,&dummy)) ) {
+				 DOS_SeekFile(1,&bigdummy,DOS_SEEK_END);
+			} else {
+				status = DOS_CreateFile(err,DOS_ATTR_ARCHIVE,&dummy);	//Create if not exists.
+			}
+		} else if (err&&DOS_GetFileAttr(err, &fattr) && fattr&DOS_ATTR_READ_ONLY) {
+			DOS_SetError(DOSERR_ACCESS_DENIED);
+			status = false;
+		}
+		if (toc) {
+            		bool device=DOS_FindDevice(pipetmp)!=DOS_DEVICES;
 			if (toc&&!device&&DOS_FindFirst(pipetmp, ~DOS_ATTR_VOLUME)&&!DOS_UnlinkFile(pipetmp))
 				fail=true;
 			status = device?false:DOS_OpenFileExtended(toc&&!fail?pipetmp:out,OPEN_READWRITE,DOS_ATTR_ARCHIVE,0x12,&dummy,&dummy2);
