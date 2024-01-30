@@ -1120,8 +1120,8 @@ void Module::PortWrite( Bitu port, Bitu val, Bitu iolen ) {
 						LOG_MSG("WARNING: ESFM native mode has been enabled by the application, but it's not supported during Raw OPL capture. Nothing will be captured after this point.");
 					}
 				}
-				handler->WriteReg( reg.normal, (uint8_t)val );
-				CacheWrite( reg.normal, (uint8_t)val );
+				handler->WriteReg( reg.normal & 0x1ff, (uint8_t)val );
+				CacheWrite( reg.normal & 0x1ff, (uint8_t)val );
 			}
 			break;
 		}
