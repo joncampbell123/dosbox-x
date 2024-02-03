@@ -2223,6 +2223,15 @@ void DOSBOX_SetupConfigSections(void) {
                       "If you specify a font here then it will be tried first, perhaps before FONT.ROM (see previous option).");
     Pstring->SetBasic(true);
 
+    Pstring = secprop->Add_path("pc-98 fontx sbcs",Property::Changeable::OnlyAtStart,"");
+    Pstring->Set_help("Specifies a FONTX2 file (8x16) to be used in PC-98 mode.\n"
+                      "This file has priority over ANEX86.BMP and FREECG98.BMP.");
+    Pstring = secprop->Add_path("pc-98 fontx dbcs",Property::Changeable::OnlyAtStart,"");
+    Pstring->Set_help("Specifies a FONTX2 file (16x16) to be used in PC-98 mode.\n"
+                      "This file has priority over ANEX86.BMP and FREECG98.BMP.");
+    Pbool = secprop->Add_bool("pc-98 fontx internal symbol",Property::Changeable::WhenIdle,false);
+    Pbool->Set_help("If set, Use the internal data for hankaku symbols instead of the data in the FONTX2 file.");
+
     /* Explanation: NEC's mouse driver MOUSE.COM enables the graphics layer on startup and when INT 33h AX=0 is called.
      *              Some games by "Orange House" assume this behavior and do not make any effort on their
      *              own to show and enable graphics. Without this option, those games will not show any

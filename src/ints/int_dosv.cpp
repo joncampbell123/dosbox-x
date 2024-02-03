@@ -633,7 +633,7 @@ void readfontxtbl(fontxTbl *table, Bitu size, FILE *fp) {
     }
 }
 
-static bool LoadFontxFile(const char *fname, int height, bool dbcs) {
+bool LoadFontxFile(const char *fname, int height, bool dbcs) {
     fontx_h head;
     fontxTbl *table;
     Bitu code;
