@@ -1497,7 +1497,7 @@ fail:
  * Holds the font as a giant 2048x2048 1-bit monochromatic bitmap. */
 /* We load it separately because I am uncertain whether it is legal or not to
  * incorporate this directly into DOSBox-X. */
-bool Load_Anex86_Font(const char *fontname) {
+void Load_Anex86_Font(const char *fontname, bool &sbcs_ok, bool &dbcs_ok) {
     unsigned char tmp[(2048/8)*16]; /* enough for one 2048x16 row and bitmap header */
     unsigned int hibyte,lowbyte,r;
     unsigned int bmp_ofs;
@@ -1529,7 +1529,7 @@ bool Load_Anex86_Font(const char *fontname) {
 
     if (!fp) {
         LOG_MSG("PC-98 font loading: neither ANEX86.BMP nor FREECG98.BMP found");
-        return false;
+        return;
     }
 
     if (fread(tmp,14,1,fp) != 1) goto fail; // BITMAPFILEHEADER
@@ -1547,67 +1547,150 @@ bool Load_Anex86_Font(const char *fontname) {
     /* first row is 8x16 single width */
     fseek(fp,long(bmp_ofs+((2048u-16u)*(2048u/8u))),SEEK_SET); /* arrrgh bitmaps are upside-down */
     if (fread(tmp,(2048/8)*16,1,fp) != 1) goto fail;
-    for (lowbyte=0;lowbyte < 256;lowbyte++) {
-        for (r=0;r < 16;r++) {
-            vga.draw.font[(lowbyte*16)+r] = tmp[lowbyte+((15-r/*upside-down!*/)*(2048/8))] ^ 0xFF/*ANEX86 has inverse color scheme*/;
+    if(!sbcs_ok) {
+        for (lowbyte=0;lowbyte < 256;lowbyte++) {
+            for (r=0;r < 16;r++) {
+                vga.draw.font[(lowbyte*16)+r] = tmp[lowbyte+((15-r/*upside-down!*/)*(2048/8))] ^ 0xFF/*ANEX86 has inverse color scheme*/;
+            }
         }
+        sbcs_ok = true;
     }
     /* everything after is 16x16 fullwidth.
      * note: 2048 / 16 = 128 */
-    for (hibyte=1;hibyte < 128;hibyte++) {
-        fseek(fp,long(bmp_ofs+((2048u-(16u*hibyte)-16u)*(2048u/8u))),SEEK_SET); /* arrrgh bitmaps are upside-down */
-        if (fread(tmp,(2048/8)*16,1,fp) != 1) goto fail;
+    if(!dbcs_ok) {
+        for (hibyte=1;hibyte < 128;hibyte++) {
+            fseek(fp,long(bmp_ofs+((2048u-(16u*hibyte)-16u)*(2048u/8u))),SEEK_SET); /* arrrgh bitmaps are upside-down */
+            if (fread(tmp,(2048/8)*16,1,fp) != 1) goto fail;
 
-        for (lowbyte=0;lowbyte < 128;lowbyte++) {
-            for (r=0;r < 16;r++) {
-                unsigned int i;
-                unsigned int o;
+            for (lowbyte=0;lowbyte < 128;lowbyte++) {
+                for (r=0;r < 16;r++) {
+                    unsigned int i;
+                    unsigned int o;
 
-                /* NTS: fullwidth is 16x16 128 chars across.
-                 * each row of the char bitmap is TWO bytes. */
-                i = (lowbyte*2)+((15-r/*upside-down!*/)*(2048/8));
-                o = ((((hibyte*128)+lowbyte)*16)+r)*2;
+                    /* NTS: fullwidth is 16x16 128 chars across.
+                     * each row of the char bitmap is TWO bytes. */
+                    i = (lowbyte*2)+((15-r/*upside-down!*/)*(2048/8));
+                    o = ((((hibyte*128)+lowbyte)*16)+r)*2;
 
-                assert((i+2) <= sizeof(tmp));
-                assert((o+2) <= sizeof(vga.draw.font));
+                    assert((i+2) <= sizeof(tmp));
+                    assert((o+2) <= sizeof(vga.draw.font));
 
-                vga.draw.font[o+0] = tmp[i+0] ^ 0xFF;
-                vga.draw.font[o+1] = tmp[i+1] ^ 0xFF;
+                    vga.draw.font[o+0] = tmp[i+0] ^ 0xFF;
+                    vga.draw.font[o+1] = tmp[i+1] ^ 0xFF;
+                }
             }
         }
+        dbcs_ok = true;
     }
 
     LOG_MSG("ANEX86.BMP/FREECG98.BMP font loaded");
     fclose(fp);
-    return true;
+    return;
 fail:
     LOG_MSG("ANEX86.BMP/FREECG98.BMP invalid, ignoring");
     fclose(fp);
-    return false;
 }
 
 extern VideoModeBlock PC98_Mode;
 extern uint8_t pc98_freecg_sbcs[256 * 16];
 
-bool Load_JFont_As_PC98(void) {
+void Load_JFont_As_PC98(bool &sbcs_ok, bool &dbcs_ok) {
     unsigned int hibyte,lowbyte,r,o,i,i1,i2;
 
-    for (lowbyte=0;lowbyte < 256;lowbyte++) {
-        for (r=0;r < 16;r++)
-            vga.draw.font[(lowbyte*16)+r] = pc98_freecg_sbcs[(lowbyte*16)+r];
+    if(!sbcs_ok) {
+        for (lowbyte=0;lowbyte < 256;lowbyte++) {
+            for (r=0;r < 16;r++)
+                vga.draw.font[(lowbyte*16)+r] = pc98_freecg_sbcs[(lowbyte*16)+r];
+        }
+        sbcs_ok = true;
     }
-    for (lowbyte=33;lowbyte < 125;lowbyte++) {
-        for (hibyte=32;hibyte < 128;hibyte++) {
-            i1=(lowbyte+1)/2+(lowbyte<95?112:176);
-            i2=hibyte+(lowbyte%2?31+(hibyte/96):126);
-            i = i1 * 0x100 + i2;
-            o = ((hibyte * 128) + (lowbyte - 32)) * 16 * 2;
-            uint8_t *font = GetDbcsFont(i);
-            for (r=0;r < 32;r++) vga.draw.font[o+r] = font[r];
+    if(!dbcs_ok) {
+        for (lowbyte=33;lowbyte < 125;lowbyte++) {
+            for (hibyte=32;hibyte < 128;hibyte++) {
+                i1=(lowbyte+1)/2+(lowbyte<95?112:176);
+                i2=hibyte+(lowbyte%2?31+(hibyte/96):126);
+                i = i1 * 0x100 + i2;
+                o = ((hibyte * 128) + (lowbyte - 32)) * 16 * 2;
+                uint8_t *font = GetDbcsFont(i);
+                for (r=0;r < 32;r++) vga.draw.font[o+r] = font[r];
+            }
+        }
+        dbcs_ok = true;
+    }
+}
+
+extern bool LoadFontxFile(const char *fname, int height, bool dbcs);
+extern uint8_t jfont_cache_dbcs_16[];
+
+void Load_FontX2_As_PC98(Section_prop *section, bool &sbcs_ok, bool &dbcs_ok) {
+    unsigned int hibyte, lowbyte, r, o, i, i1, i2;
+
+    bool pc98_symbol = section->Get_bool("pc-98 fontx internal symbol");
+    Prop_path *pathprop = section->Get_path("pc-98 fontx sbcs");
+    if(pathprop) {
+        std::string path = pathprop->realpath;
+        ResolvePath(path);
+        if(LoadFontxFile(path.c_str(), 16, false)) {
+            uint8_t *font = GetSbcsFont(0);
+            memcpy(vga.draw.font, font, 16 * 256);
+            bool flag = true;
+            // In the case of a normal FONTX2 file for DOS/V, character codes 80h to AFh are empty.
+            // For FONTX2 files created using MKXFNT98.EXE, character codes 80h to AFh are not empty.
+            for(r = 0x80 * 16 ; r < 0xa0 * 16 ; r++) {
+                if(font[r] != 0) {
+                    flag = false;
+                    break;
+                }
+            }
+            // When judged as a FONTX2 file for DOS/V, character codes 00h to 1Fh, 80h to AFh,
+            // and E0h to FFh use font data for PC-98.
+            if(flag || pc98_symbol) {
+                memcpy(&vga.draw.font, &pc98_freecg_sbcs, 0x20 * 16);
+                memcpy(&vga.draw.font[0x80 * 16], &pc98_freecg_sbcs[0x80 * 16], 0x20 * 16);
+                memcpy(&vga.draw.font[0xe0 * 16], &pc98_freecg_sbcs[0xe0 * 16], 0x20 * 16);
+            }
+            sbcs_ok = true;
         }
     }
-
-    return true;
+    pathprop = section->Get_path("pc-98 fontx dbcs");
+    if(pathprop) {
+        std::string path = pathprop->realpath;
+        ResolvePath(path);
+        if(LoadFontxFile(path.c_str(), 16, true)) {
+            uint8_t *font = GetDbcsFont(0x8645);
+            bool fontx98_flag = true;
+            bool empty_flag = true;
+            for(r = 0 ; r < 32 ; r++) {
+                if(font[r] != 0) {
+                    empty_flag = false;
+                    if(r >= 16) {
+                        fontx98_flag = false;
+                    }
+                }
+            }
+            for(lowbyte = 33 ; lowbyte < 125 ; lowbyte++) {
+                for(hibyte = 32 ; hibyte < 128 ; hibyte++) {
+                    i1 = (lowbyte + 1) / 2 + (lowbyte < 95 ? 112 : 176);
+                    i2 = hibyte + (lowbyte % 2 ? 31 + (hibyte / 96) : 126);
+                    i = i1 * 0x100 + i2;
+                    o = ((hibyte * 128) + (lowbyte - 32)) * 16 * 2;
+                    if(i >= 0x8640 && i <= 0x868f && (empty_flag || pc98_symbol)) {
+                        // Use internal font data for 2byte hankaku characters.
+                        jfont_cache_dbcs_16[i] = 0;
+                    }
+                    font = GetDbcsFont(i);
+                    if(i >= 0x8640 && i <= 0x868f && fontx98_flag) {
+                        // For FONTX2 files created with MKXFNT98.EXE,
+                        // the data format of 2byte hankaku characters is different.
+                        for(r = 0 ; r < 16 ; r++) vga.draw.font[o + r * 2] = font[r];
+                    } else {
+                        memcpy(&vga.draw.font[o], font, 32);
+                    }
+                }
+            }
+            dbcs_ok = true;
+        }
+    }
 }
 
 void INT10_EnterPC98(Section *sec) {
@@ -1744,11 +1827,14 @@ void INT10_Startup(Section *sec) {
         /* load PC-98 character ROM data, if possible */
         {
             /* We can use FONT.ROM as generated by T98Tools */
-            bool ok = try_font_rom?Load_FONT_ROM():false;
+            bool sbcs_ok = try_font_rom?Load_FONT_ROM():false;
+            bool dbcs_ok = sbcs_ok;
+             /* We can use FONTX2 font file */
+            if(!sbcs_ok) Load_FontX2_As_PC98(pc98_section, sbcs_ok, dbcs_ok);
             /* We can use ANEX86.BMP from the Anex86 emulator */
-            if (!ok) ok = Load_Anex86_Font(anex86_font);
+            if(!sbcs_ok || !dbcs_ok) Load_Anex86_Font(anex86_font, sbcs_ok, dbcs_ok);
             /* Failing all else we can use the internal FREECG 8x16 font and default Japanese font to show text on the screen. */
-            if (!ok) ok = Load_JFont_As_PC98();
+            if(!sbcs_ok || !dbcs_ok) Load_JFont_As_PC98(sbcs_ok, dbcs_ok);
         }
 
         CurMode = &PC98_Mode;
