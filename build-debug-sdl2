@@ -5,7 +5,7 @@ if [ "$1" == "32" ]; then
     CC="$(which gcc) -m32"
     CXX="$(which g++) -m32"
     export CC CXX
-    no_host_sdl2=1
+    # no_host_sdl2=1
     shift
     opt="--host=i686-pc-linux-gnu --target=i686-pc-linux-gnu"
 fi
@@ -37,6 +37,16 @@ fi
 if test -z "${x}" ; then
     echo "Compiling our internal SDL 2.x"
     (cd vs/sdl2 && ./build-dosbox.sh) || exit 1
+    exit 1
+else
+  sdl2_bin_dir=`dirname $x`
+  sdl2_prefix=`dirname $sdl2_bin_dir`
+  sdl2_include=$sdl2_prefix/include/SDL2
+
+  sdl2_opt="--with-sdl2-prefix=$sdl2_prefix --with-sdl2-exec-prefix=$sdl2_prefix"
+  export CFLAGS="-I $sdl2_include"
+  export CXXFLAGS="-I $sdl2_include"
+  export LDFLAGS="-L $sdl2_prefix/lib" 
 fi
 
 # prefer to compile against our own copy of SDLnet 1.x
@@ -44,8 +54,8 @@ fi
 #(cd vs/sdlnet && ./build-dosbox.sh) || exit 1
 
 # now compile ourself
-echo "Compiling DOSBox-X"
+echo "Compiling DOSBox-X with $sdl2_opt"
 chmod +x configure
-./configure --enable-debug=heavy --prefix=/usr --enable-sdl2 "${@}" ${opt} || exit 1
+./configure --enable-debug=heavy --prefix=$HOME/gnu --enable-sdl2 $sdl2_opt "${@}" ${opt} || exit 1
 make -j3 || exit 1
 
