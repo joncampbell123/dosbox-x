@@ -28,6 +28,7 @@ extern bool gdc_5mhz_mode_initial;
 extern bool gdc_5mhz_mode;
 extern bool enable_pc98_egc;
 extern bool enable_pc98_grcg;
+extern bool pc98_timestamp5c;
 
 int Reflect_Menu(void);
 void gdc_5mhz_mode_update_vars(void);

@@ -98,6 +98,8 @@ extern bool rom_bios_8x8_cga_font;
 extern bool pcibus_enable;
 extern bool enable_fpu;
 
+bool pc98_timestamp5c = true; // port 5ch and 5eh "time stamp/hardware wait"
+
 uint32_t Keyb_ig_status();
 bool VM_Boot_DOSBox_Kernel();
 uint32_t MEM_get_address_bits();
@@ -8050,6 +8052,17 @@ private:
              * bit[0:0] = 480-line mode    1=640x480     0=640x400 or 640x200 */
             mem_writeb(0x459,0x08/*non-interlaced*/);
 
+            /* Time stamper */
+            /* bit[7:7] = 1=Port 5Fh exists  0=No such port    Write to port 0x5F to wait 0.6us
+             * bit[6:6] = ?
+             * bit[5:5] = "Power" ?
+             * bit[4:4] = 1=PCMCIA BIOS running 0=not running
+             * bit[3:3] = ?
+             * bit[2:2] = 1=Time stamper (I/O ports 0x5C and 0x5E) available
+             * bit[1:1] = 1=Card I/O slot function 0=No card slot function
+             * bit[0:0] = 1=386SL(98)  0=Other */
+            mem_writeb(0x45B,(pc98_timestamp5c?0x4:0x0)|0x80/*port 5Fh*/);
+
             /* CPU/Display */
             /* bit[7:7] = 486SX equivalent (?)                                                                      1=yes
              * bit[6:6] = PC-9821 Extended Graph Architecture supported (FIXME: Is this the same as having EGC?)    1=yes
@@ -9935,6 +9948,8 @@ public:
         { // TODO: Eventually, move this to BIOS POST or init phase
             Section_prop * section=static_cast<Section_prop *>(control->GetSection("dosbox"));
 			Section_prop * pc98_section=static_cast<Section_prop *>(control->GetSection("pc98"));
+
+            pc98_timestamp5c = pc98_section->Get_bool("pc-98 time stamp");
 
             enable_pc98_copyright_string = pc98_section->Get_bool("pc-98 BIOS copyright string");
 

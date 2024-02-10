@@ -1,4 +1,8 @@
 Next:
+  - PC-98 mode: There is a 302KHz timer behind I/O ports 5Ch/5Eh that some MS-DOS
+    drivers depend on for timing, particularly a popular IDE CD-ROM device driver
+    in many PC-98 game HDI images. This change allows the driver to time out after
+    about 5-10 seconds instead of an infinite hang. (joncampbell123)
   - Fix INT 10h to keep hardware CRTC I/O port synchronized with BIOS DATA area
     copy so that other parts of INT 10h called by SetVideoMode do not accidentally
     talk to the wrong I/O ports. This fixes corrupted INT 10 Mode F display
