@@ -1,7 +1,7 @@
-:DOSBOX-X:ЯЗЫК:Русский (Россия)
-:DOSBOX-X:КОДОВАЯ СТРАНИЦА:437
-:DOSBOX-X:ВЕРСИЯ:2023.10.06
-:DOSBOX-X:ПРИМЕЧАНИЕ:
+:DOSBOX-X:LANGUAGE:Русский (Россия)
+:DOSBOX-X:CODEPAGE:866
+:DOSBOX-X:VERSION:2023.10.06
+:DOSBOX-X:REMARK:
 :AUTOEXEC_CONFIGFILE_HELP
 Строки в этом разделе будут выполнены при запуске.
 Вы можете поместить сюда свои строки MOUNT.
