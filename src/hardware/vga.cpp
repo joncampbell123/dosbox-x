@@ -170,6 +170,8 @@ void VGA_CaptureStartNextFrame(void);
 void VGA_CaptureMarkError(void);
 bool VGA_CaptureValidateCurrentFrame(void);
 
+extern bool pc98_timestamp5c;
+
 bool                                VGA_PITsync = false;
 
 unsigned int                        vbe_window_granularity = 0;
@@ -303,6 +305,31 @@ Bitu pc98_egc4a0_read(Bitu port,Bitu iolen);
 void pc98_egc4a0_write(Bitu port,Bitu val,Bitu iolen);
 Bitu pc98_egc4a0_read_warning(Bitu port,Bitu iolen);
 void pc98_egc4a0_write_warning(Bitu port,Bitu val,Bitu iolen);
+
+/* ARTIC (A Relative Time Indication Counter) I/O read.
+ * Ports 0x5C and 0x5E.
+ * This is required for some MS-DOS drivers such as the OAK CD-ROM driver
+ * in order for them to time out properly instead of infinitely hang.
+ *
+ * "A 24-bit binary counter that counts up at 307.2KHz" */
+Bitu pc98_read_artic(Bitu port,Bitu iolen) {
+	Bitu count = ((Bitu)(PIC_FullIndex()/*milliseconds*/ * 307.2)) & (Bitu)0xFFFFFFul/*mask at 24 bits*/;
+	Bitu r = ~0ul;
+
+	if ((port&0xFFFEul) == 0x5C) /* bits 15:0 */
+		r = count & 0xFFFFul;
+	else if ((port&0xFFFEul) == 0x5E) /* bits 23:8 */
+		r = (count >> 8u) & 0xFFFFul;
+
+	if (iolen == 1) {
+		if (port&1) r >>= 8;
+		r &= 0xFF;
+	}
+
+//	LOG_MSG("ARTIC port %x read %x iolen %u",(unsigned int)port,(unsigned int)r,(unsigned int)iolen);
+
+	return r;
+}
 
 void page_flip_debug_notify() {
     if (enable_page_flip_debugging_marker)
@@ -1437,6 +1464,16 @@ void VGA_OnEnterPC98_phase2(Section *sec) {
 
     /* GDC 2.5/5.0MHz setting is also reflected in BIOS data area and DIP switch registers */
     gdc_5mhz_mode_update_vars();
+
+    /* ARTIC (A Relative Time Indication Counter) at 0x5C and 0x5E */
+    if (pc98_timestamp5c) {
+        IO_RegisterReadHandler(0x5C,pc98_read_artic,IO_MB);
+        IO_RegisterReadHandler(0x5D,pc98_read_artic,IO_MB);
+        IO_RegisterReadHandler(0x5E,pc98_read_artic,IO_MB);
+        IO_RegisterReadHandler(0x5F,pc98_read_artic,IO_MB);
+        IO_RegisterReadHandler(0x5C,pc98_read_artic,IO_MW);
+        IO_RegisterReadHandler(0x5E,pc98_read_artic,IO_MW);
+    }
 
     /* delay I/O port at 0x5F (0.6us) */
     IO_RegisterWriteHandler(0x5F,pc98_wait_write,IO_MB);
