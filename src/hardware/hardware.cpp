@@ -32,6 +32,7 @@
 #include "mem.h"
 #include "mapper.h"
 #include "pic.h"
+#include "vga.h"
 #include "mixer.h"
 #include "render.h"
 #include "cross.h"
@@ -837,7 +838,19 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 		png_set_compression_window_bits(png_ptr, 15);
 		png_set_compression_method(png_ptr, 8);
 		png_set_compression_buffer_size(png_ptr, 8192);
-	
+
+#ifdef PNG_pHYs_SUPPORTED
+		{
+			png_uint_32 x=0,y=0;
+			if (vga.draw.screen_ratio > 0) {
+				double par = vga.draw.screen_ratio / ((double)width / (double)height);
+				x = (png_uint_32)floor(par * 65536);
+				y = (png_uint_32)65536;
+				png_set_pHYs(png_ptr, info_ptr, x, y, PNG_RESOLUTION_UNKNOWN);
+			}
+		}
+#endif
+
 		if (bpp==8) {
 			png_set_IHDR(png_ptr, info_ptr, (png_uint_32)width, (png_uint_32)height,
 				8, PNG_COLOR_TYPE_PALETTE, PNG_INTERLACE_NONE,
