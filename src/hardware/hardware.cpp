@@ -794,6 +794,13 @@ void CAPTURE_VideoStop() {
 #endif
 }
 
+#ifdef PNG_pHYs_SUPPORTED
+static inline unsigned long math_gcd_png_uint_32(const png_uint_32 a,const png_uint_32 b) {
+        if (b) return math_gcd_png_uint_32(b,a%b);
+        return a;
+}
+#endif
+
 void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags, float fps, uint8_t * data, uint8_t * pal) {
 #if (C_SSHOT)
 	Bitu i;
@@ -840,11 +847,12 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 		png_set_compression_buffer_size(png_ptr, 8192);
 
 #ifdef PNG_pHYs_SUPPORTED
-		{
-			png_uint_32 x=0,y=0;
+		if (width >= 8 && height >= 8) {
+			png_uint_32 x=0,y=0,g;
 			x = (png_uint_32)(4 * height);
 			y = (png_uint_32)(3 * width);
-			png_set_pHYs(png_ptr, info_ptr, x, y, PNG_RESOLUTION_UNKNOWN);
+			g = math_gcd_png_uint_32(x,y);
+			png_set_pHYs(png_ptr, info_ptr, x/g, y/g, PNG_RESOLUTION_UNKNOWN);
 		}
 #endif
 
