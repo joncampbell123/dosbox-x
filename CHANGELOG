@@ -1,4 +1,8 @@
 Next:
+  - libpng supports the pHYs PNG chunk which describes the pixel aspect ratio of
+    the PNG image. libpng 1.6 has it, use it. Programs that support the information
+    like FFMPEG will then display the PNG image with the correct aspect ratio.
+    (joncampbell123). [https://github.com/joncampbell123/dosbox-x/issues/4754]
   - PC-98 mode: There is a 302KHz timer behind I/O ports 5Ch/5Eh that some MS-DOS
     drivers depend on for timing, particularly a popular IDE CD-ROM device driver
     in many PC-98 game HDI images. This change allows the driver to time out after
