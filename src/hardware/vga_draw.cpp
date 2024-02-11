@@ -5310,6 +5310,13 @@ extern std::string pathscr;
 #endif
 #endif
 
+#ifdef PNG_pHYs_SUPPORTED
+static inline unsigned long math_gcd_png_uint_32(const png_uint_32 a,const png_uint_32 b) {
+        if (b) return math_gcd_png_uint_32(b,a%b);
+        return a;
+}
+#endif
+
 #if !defined(C_EMSCRIPTEN)
 #if (C_SSHOT)
 void WriteARawImage(rawscreenshot &rawimg,rawscreenshot &rawpal,const char *ext) {
@@ -5352,6 +5359,16 @@ void WriteARawImage(rawscreenshot &rawimg,rawscreenshot &rawpal,const char *ext)
 
 	if (flags & CAPTURE_FLAG_DBLW) finalw *= 2;
 	if (flags & CAPTURE_FLAG_DBLH) finalh *= 2;
+
+#ifdef PNG_pHYs_SUPPORTED
+	if (finalw >= 8 && finalh >= 8) {
+		png_uint_32 x=0,y=0,g;
+		x = (png_uint_32)(4 * finalh);
+		y = (png_uint_32)(3 * finalw);
+		g = math_gcd_png_uint_32(x,y);
+		png_set_pHYs(png_ptr, info_ptr, x/g, y/g, PNG_RESOLUTION_UNKNOWN);
+	}
+#endif
 
 	if (rawimg.image_bpp == 8) {
 		png_set_IHDR(png_ptr, info_ptr, (png_uint_32)finalw, (png_uint_32)finalh,
