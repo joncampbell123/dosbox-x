@@ -843,7 +843,7 @@ void CAPTURE_AddImage(Bitu width, Bitu height, Bitu bpp, Bitu pitch, Bitu flags,
 		{
 			png_uint_32 x=0,y=0;
 			if (vga.draw.screen_ratio > 0) {
-				double par = vga.draw.screen_ratio / ((double)width / (double)height);
+				const double par = vga.draw.screen_ratio * ((double)height / (double)width);
 				x = (png_uint_32)floor(par * 65536);
 				y = (png_uint_32)65536;
 				png_set_pHYs(png_ptr, info_ptr, x, y, PNG_RESOLUTION_UNKNOWN);
