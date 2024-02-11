@@ -395,6 +395,7 @@ private:
 	// Private functions for cue sheet processing
 	bool  LoadCueSheet(char *cuefile);
 	bool  LoadChdFile(char* chdfile);
+	bool  LoadCloneCDSheet(char *cuefile);
 	bool  GetRealFileName(std::string& filename, std::string& pathname) const;
 	bool  GetCueKeyword(std::string &keyword, std::istream &in) const;
 	bool  GetCueFrame(int &frames, std::istream &in) const;

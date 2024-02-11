@@ -5178,7 +5178,7 @@ class IMGMOUNT : public Program {
 				if (!rtype&&!rfstype&&fstype!="none"&&paths[0].length()>4) {
 					const char *ext = strrchr(paths[0].c_str(), '.');
 					if (ext != NULL) {
-                        if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".chd")||!strcasecmp(ext, ".mdf")||!strcasecmp(ext, ".gog")||!strcasecmp(ext, ".ins")) {
+                        if (!strcasecmp(ext, ".iso")||!strcasecmp(ext, ".cue")||!strcasecmp(ext, ".bin")||!strcasecmp(ext, ".chd")||!strcasecmp(ext, ".mdf")||!strcasecmp(ext, ".gog")||!strcasecmp(ext, ".ins")||!strcasecmp(ext, ".ccd")) {
                             type="iso";
                             fstype="iso";
                             if(ide_index < 0 || ideattach == "auto") {
