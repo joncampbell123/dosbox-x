@@ -500,7 +500,7 @@ extern bool qmount;
 bool CDROM_Interface_Image::SetDevice(char* path, int forceCD)
 {
 	(void)forceCD;//UNUSED
-	const bool result = LoadCueSheet(path) || LoadIsoFile(path) || LoadChdFile(path);
+	const bool result = LoadCueSheet(path) || LoadCloneCDSheet(path) || LoadIsoFile(path) || LoadChdFile(path);
 	if (!result && !qmount) {
 		// print error message on dosbox-x console
 		char buf[MAX_LINE_LENGTH];
@@ -1059,8 +1059,239 @@ static string dirname(char * file) {
 }
 #endif
 
+struct ImageCCDEntry {
+	int		Point = -1;
+	int		Session = -1;
+	int		ADR = -1;
+	int		Control = -1;
+	int		TrackNo = -1;
+	int		AMin = -1,ASec = -1,AFrame = -1;
+	long		ALBA = -99999999/*can be -150*/,Zero = -1;
+	int		PMin = -1,PSec = -1,PFrame = -1;
+	long		PLBA = -99999999;
+};
+
+static void CloneCDEntryToTrack(CDROM_Interface_Image::Track &trk,ImageCCDEntry &ent) {
+	trk.number = ent.Point;
+	trk.sectorSize = RAW_SECTOR_SIZE;
+	if (ent.Control & 0x04) trk.attr = 0x40;//data
+	else trk.attr = 0x00;//audio
+	trk.start = ent.PLBA;
+}
+
+bool CDROM_Interface_Image::LoadCloneCDSheet(char *cuefile) {
+	// If we're going to support CUE vs CCD vs anything else then this function must
+	// reject any file who's file extension is not .CCD
+	{
+		char *s = strrchr(cuefile,'.');
+		if (!s) return false;
+		if (strcasecmp(s,".ccd")) return false;
+	}
+
+	enum {
+		NONE=0,
+		CLONECD,
+		DISC,
+		ENTRY
+	};
+
+	/* locate corresponding IMG file */
+	std::string imgfile;
+	{
+		char *ext = strrchr(cuefile,'.');
+		if (!ext) return false;
+		imgfile = std::string(cuefile,(size_t)(ext-cuefile));
+		imgfile += ".img";
+//		LOG_MSG("CUE: %s",cuefile);
+//		LOG_MSG("IMG: %s",imgfile.c_str());
+	}
+
+	Track track = {0, 0, 0, 0, 0, 0, 0, false, NULL};
+	long leadOutLBA = -1;
+	ImageCCDEntry entry;
+	tracks.clear();
+	bool success;
+	int mode=NONE;
+	int shift = 0;
+	int currPregap = 0;
+	int totalPregap = 0;
+	int prestart = -1;
+	int Version=0;
+	int Sessions=0;
+	int TocEntries=0;
+	bool isCloneCD=false;
+	int currentEntry = -1;
+	std::string currentSection;
+	char tmp[MAX_FILENAME_LENGTH];  // dirname can change its argument
+	safe_strncpy(tmp, cuefile, MAX_FILENAME_LENGTH);
+	string pathname(dirname(tmp));
+	ifstream in;
+	in.open(cuefile, ios::in);
+	if (in.fail()) return false;
+
+	bool error = true;
+	track.file = new BinaryFile(imgfile.c_str(), error);
+	if (!track.file) {
+		LOG_MSG("Unable to load image file %s\n",imgfile.c_str());
+		return false;
+	}
+
+	while(!in.eof()) {
+		// get next line
+		char buf[MAX_LINE_LENGTH],*s;
+		in.getline(buf, MAX_LINE_LENGTH);
+		if (in.fail() && !in.eof()) return false;  // probably a binary file
+		s = buf;
+
+		while (*s == ' ') s++;
+		if (*s == 0) continue;
+
+		if (*s == '[') {
+			s++;
+			char *base = s;
+			while (*s != 0 && *s != ']') s++;
+			currentSection = std::string(base,(size_t)(s-base));
+
+			if (mode == ENTRY) {
+				LOG_MSG("Entry point %02x\n",entry.Point);
+				if (entry.Point == 0xA2) leadOutLBA = entry.PLBA;
+				else if (entry.Point > 0 && entry.Point <= TocEntries) {
+					CloneCDEntryToTrack(track,entry);
+					AddTrack(track, shift, prestart, totalPregap, currPregap);
+				}
+				entry = ImageCCDEntry();
+			}
+
+			mode = NONE;
+			if (currentSection == "CloneCD") {
+				mode = CLONECD;
+			}
+			else if (currentSection == "Disc") {
+				mode = DISC;
+			}
+			else if (strncmp(currentSection.c_str(),"Entry ",6) == 0) {
+				const char *s = currentSection.c_str()+5;
+				while (*s == ' ') s++;
+
+				if (isdigit(*s)) {
+					currentEntry = atoi(s);
+					if (currentEntry >= 0 && currentEntry < TocEntries) {
+						mode = ENTRY;
+					}
+				}
+			}
+
+//			LOG_MSG("[%s]",currentSection.c_str());
+
+			continue;
+		}
+		else {
+			std::string name,value;
+			char *base_name = s;
+			while (*s != 0 && *s != '=' && *s != '\r' && *s != '\n') s++;
+			name = std::string(base_name,(size_t)(s-base_name));
+			if (*s == '=') {
+				s++;
+				char *base_value = s;
+				while (*s != 0 && *s != '\r' && *s != '\n') s++;
+				value = std::string(base_value,(size_t)(s-base_value));
+			}
+
+			switch (mode) {
+				case CLONECD:
+					if (name == "Version") {
+						Version = atoi(value.c_str());
+						if (Version >= 3) {
+							isCloneCD = true;
+						}
+					}
+					break;
+				case DISC:
+					if (name == "TocEntries")
+						TocEntries = strtol(value.c_str(),NULL,0);
+					else if (name == "Sessions")
+						Sessions = strtol(value.c_str(),NULL,0);
+					break;
+				case ENTRY:
+					if (name == "Session")
+						entry.Session = strtol(value.c_str(),NULL,0);
+					else if (name == "Point")
+						entry.Point = strtol(value.c_str(),NULL,0);
+					else if (name == "ADR")
+						entry.ADR = strtol(value.c_str(),NULL,0);
+					else if (name == "Control")
+						entry.Control = strtol(value.c_str(),NULL,0);
+					else if (name == "TrackNo")
+						entry.TrackNo = strtol(value.c_str(),NULL,0);
+					else if (name == "AMin")
+						entry.AMin = strtol(value.c_str(),NULL,0);
+					else if (name == "ASec")
+						entry.ASec = strtol(value.c_str(),NULL,0);
+					else if (name == "AFrame")
+						entry.AFrame = strtol(value.c_str(),NULL,0);
+					else if (name == "ALBA")
+						entry.ALBA = strtol(value.c_str(),NULL,0);
+					else if (name == "Zero")
+						entry.Zero = strtol(value.c_str(),NULL,0);
+					else if (name == "PMin")
+						entry.PMin = strtol(value.c_str(),NULL,0);
+					else if (name == "PSec")
+						entry.PSec = strtol(value.c_str(),NULL,0);
+					else if (name == "PFrame")
+						entry.PFrame = strtol(value.c_str(),NULL,0);
+					else if (name == "PLBA")
+						entry.PLBA = strtol(value.c_str(),NULL,0);
+					break;
+			};
+
+//			LOG_MSG("[%s] '%s'='%s' mode=%u curEnt=%d",currentSection.c_str(),name.c_str(),value.c_str(),(unsigned int)mode,currentEntry);
+		}
+	}
+
+	if (mode == ENTRY) {
+		if (entry.Point == 0xA2) leadOutLBA = entry.PLBA;
+		else if (entry.Point > 0 && entry.Point <= TocEntries) {
+			CloneCDEntryToTrack(track,entry);
+			AddTrack(track, shift, prestart, totalPregap, currPregap);
+			entry = ImageCCDEntry();
+		}
+	}
+
+	// lead out
+	if (leadOutLBA >= 0) {
+		track.number = 1+tracks.size();
+		track.attr = 0;//sync with load iso
+		track.start = leadOutLBA;
+		track.length = 0;
+		track.file = NULL;
+		AddTrack(track, shift, -1, totalPregap, 0);
+	}
+
+//	LOG_MSG("Version=%d TocEntries=%d Sessions=%d\n",Version,TocEntries,Sessions);
+
+#if 0//DEBUG
+	LOG_MSG("Tracks:");
+	for (size_t si=0;si < tracks.size();si++) {
+		LOG_MSG("  Number:     %u",tracks[si].number);
+		LOG_MSG("  Attr:       0x%02x",tracks[si].attr);
+		LOG_MSG("  Start:      %lu",(unsigned long)tracks[si].start);
+		LOG_MSG("  Length:     %lu\n",(unsigned long)tracks[si].length);
+	}
+#endif
+
+	return (leadOutLBA >= 0 && isCloneCD);
+}
+
 bool CDROM_Interface_Image::LoadCueSheet(char *cuefile)
 {
+	// If we're going to support CUE vs CCD vs anything else then this function must
+	// reject any file who's file extension is not .CUE
+	{
+		char *s = strrchr(cuefile,'.');
+		if (!s) return false;
+		if (strcasecmp(s,".cue")) return false;
+	}
+
 	Track track = {0, 0, 0, 0, 0, 0, 0, false, NULL};
 	tracks.clear();
 //	int curr_track = 0; // unused
