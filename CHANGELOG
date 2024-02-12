@@ -68,6 +68,9 @@ Next:
   - Fixed attribute copy behavior of FreeDOS XCOPY.exe to match genuine DOS (maron2000)
   - Added Russian translation (Lartenik)
   - Fixed COPY/XCOPY command fails to recognize 2GB+ free disk space (maron2000)
+  - Enable FONTX2 files in PC-98 mode (nanshiki)
+  - Fix codepage switching when loading lang files (maron2000)
+  - Add missing quotation marks in vcxproj (bredbored)
 
 2023.10.06
   - Add "VRD" debugger command to force redraw of the VGA screen. (joncampbell123)
