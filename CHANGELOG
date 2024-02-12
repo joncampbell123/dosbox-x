@@ -1,4 +1,11 @@
 Next:
+  - IDE ATAPI CD-ROM emulation: In PC-98 mode when emulating a NEC CD-ROM drive,
+    also limit sector reads to one CD-ROM sector per DRQ because the MS-DOS driver
+    assumes that behavior. The driver will stall and error out if it requests a
+    multi-sector read and the drive does NOT limit transfers to one sector at a
+    time per IDE data transfer. This is in line with my experience writing the
+    DOSLIB IDE testing program and laptops from the 1990s with IDE ATAPI CD-ROM
+    drives, so it's understandable. (joncampbell123).
   - The reason the CD-ROM driver in PC-98 game HDI images refused to talk to our
     IDE CD-ROM emulation is... (drumroll) we didn't report ourself as an NEC
     CD-ROM drive when given the MMC INQUIRY command. Yes, really. The OAK CD-ROM
