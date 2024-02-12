@@ -266,6 +266,7 @@ public:
     std::string id_firmware_rev;
     std::string id_model;
     unsigned char drive_index;
+    Bitu sector_transfer_limit = 16;
     CDROM_Interface *getMSCDEXDrive();
     void update_from_cdrom();
     virtual Bitu data_read(Bitu iolen); /* read from 1F0h data port from IDE device */
@@ -1464,12 +1465,19 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
     /* INQUIRY strings */
     if (IS_PC98_ARCH) {
         /* The OAK IDE CD-ROM driver that most PC-98 HDI game images use?
-	 * It will NOT talk to this emulation unless we report ourself as an NEC CD-ROM drive.
-	 * Yes, really. It will issue an INQUIRY and then do a REP CMPSW on the first 20 bytes
-	 * to make sure it says "NEC CD-ROM DRIVE". */
+         * It will NOT talk to this emulation unless we report ourself as an NEC CD-ROM drive.
+         * Yes, really. It will issue an INQUIRY and then do a REP CMPSW on the first 20 bytes
+         * to make sure it says "NEC CD-ROM DRIVE". */
         id_mmc_vendor_id = "NEC";
         id_mmc_product_id = "CD-ROM DRIVE";
         id_mmc_product_rev = "FAKE";
+        /* Second thing: That particular driver seems to assume the CD-ROM drive only transfers
+         * one CD-ROM sector per DRQ (like many CD-ROM drives in the 1990s did because they had
+         * small transfer buffers).
+         *
+         * We HAVE to emulate this behavior or else the PC-98 driver will stall and error out
+         * if any attempt is made to read more than one sector at a time! */
+        sector_transfer_limit = 1;
     }
     else {
         id_mmc_vendor_id = "DOSBox-X";
@@ -1539,6 +1547,8 @@ void IDEATAPICDROMDevice::atapi_io_completion() {
                 /* NTS: In case you're wondering, it's legal to issue READ(10) with transfer length == 0.
                    MSCDEX.EXE does it when starting up, for example */
                 TransferLength = TransferLengthRemaining;
+                if (TransferLength > sector_transfer_limit)
+                    TransferLength = sector_transfer_limit;
                 if ((TransferLength*2048) > sizeof(sector))
                     TransferLength = sizeof(sector)/2048;
                 if ((TransferLength*2048) > sector_total)
@@ -1569,6 +1579,8 @@ void IDEATAPICDROMDevice::atapi_io_completion() {
 
                 TransferLength = TransferLengthRemaining;
                 if (TransferSectorSize > 0) {
+                    if (TransferLength > sector_transfer_limit)
+                        TransferLength = sector_transfer_limit;
                     if ((TransferLength*TransferSectorSize) > sizeof(sector))
                         TransferLength = sizeof(sector)/TransferSectorSize;
                     if ((TransferLength*TransferSectorSize) > sector_total)
@@ -1979,6 +1991,8 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                 TransferLengthRemaining = TransferLength;
 
                 if (TransferSectorSize > 0) {
+                    if (TransferLength > sector_transfer_limit)
+                        TransferLength = sector_transfer_limit;
                     if ((TransferLength*TransferSectorSize) > sizeof(sector))
                         TransferLength = sizeof(sector)/TransferSectorSize;
                     if ((TransferLength*TransferSectorSize) > sector_total)
@@ -2042,6 +2056,8 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                    happily set itself up to transfer that many sectors in one IDE command! */
                 /* NTS: In case you're wondering, it's legal to issue READ(10) with transfer length == 0.
                    MSCDEX.EXE does it when starting up, for example */
+                if (TransferLength > sector_transfer_limit)
+                    TransferLength = sector_transfer_limit;
                 if ((TransferLength*2048) > sizeof(sector))
                     TransferLength = sizeof(sector)/2048;
                 if ((TransferLength*2048) > sector_total)
@@ -2100,6 +2116,8 @@ void IDEATAPICDROMDevice::atapi_cmd_completion() {
                    happily set itself up to transfer that many sectors in one IDE command! */
                 /* NTS: In case you're wondering, it's legal to issue READ(10) with transfer length == 0.
                    MSCDEX.EXE does it when starting up, for example */
+                if (TransferLength > sector_transfer_limit)
+                    TransferLength = sector_transfer_limit;
                 if ((TransferLength*2048) > sizeof(sector))
                     TransferLength = sizeof(sector)/2048;
                 if ((TransferLength*2048) > sector_total)
