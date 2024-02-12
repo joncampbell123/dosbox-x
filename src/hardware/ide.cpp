@@ -1462,9 +1462,20 @@ IDEATAPICDROMDevice::IDEATAPICDROMDevice(IDEController *c,unsigned char drive_in
     id_model = "DOSBox-X ATAPI CD-ROM";
 
     /* INQUIRY strings */
-    id_mmc_vendor_id = "DOSBox-X";
-    id_mmc_product_id = "ATAPI CD-ROM";
-    id_mmc_product_rev = "0.84-X";
+    if (IS_PC98_ARCH) {
+        /* The OAK IDE CD-ROM driver that most PC-98 HDI game images use?
+	 * It will NOT talk to this emulation unless we report ourself as an NEC CD-ROM drive.
+	 * Yes, really. It will issue an INQUIRY and then do a REP CMPSW on the first 20 bytes
+	 * to make sure it says "NEC CD-ROM DRIVE". */
+        id_mmc_vendor_id = "NEC";
+        id_mmc_product_id = "CD-ROM DRIVE";
+        id_mmc_product_rev = "FAKE";
+    }
+    else {
+        id_mmc_vendor_id = "DOSBox-X";
+        id_mmc_product_id = "ATAPI CD-ROM";
+        id_mmc_product_rev = "0.84-X";
+    }
 }
 
 IDEATAPICDROMDevice::~IDEATAPICDROMDevice() {

@@ -1,4 +1,11 @@
 Next:
+  - The reason the CD-ROM driver in PC-98 game HDI images refused to talk to our
+    IDE CD-ROM emulation is... (drumroll) we didn't report ourself as an NEC
+    CD-ROM drive when given the MMC INQUIRY command. Yes, really. The OAK CD-ROM
+    driver in these HDI images really does care whether or the drive is an NEC
+    brand drive. What a stupid reason not to talk to a CD-ROM drive. Add code to
+    default to "NEC" "CD-ROM DRIVE" as the INQUIRY result if running in PC-98 mode.
+    (joncampbell123).
   - Add basic rudimentary support for CloneCD (*.ccd *.img) images. It might not
     work with more complex arrangements but it is enough for most CD-ROM PC-98
     games so far. (joncampbell123).
