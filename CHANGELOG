@@ -1,4 +1,11 @@
 Next:
+  - Emulate PEGC PC-98 linear framebuffer at both 0xF00000-0xF7FFFF (at 15MB
+    memory mark) but also make it appear at top of memory below BIOS (normally
+    at 0xFFF00000-0xFFF7FFFF). Some 32-bit PC-9821 CD-ROM MS-DOS games assume
+    the top of memory alias and will fail to show anything on screen without
+    it (unless, alternatively, the memalias setting is set to emulate 24 address
+    lines like a 386SX). Now to figure out why these same games are programming
+    a GDC PITCH value that's double what it should be... (joncampbell123).
   - PC-98 GDC scan offset no longer pays attention to scan offset of data
     partition in 256-color mode. Required to help fix broken 256-color graphics
     for some PC-98 CD-ROM games. (joncampbell123).
