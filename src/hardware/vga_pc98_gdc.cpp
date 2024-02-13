@@ -534,9 +534,16 @@ void PC98_GDC_state::load_display_partition(void) {
 
     dbg_ev_partition = true;
 
-    scan_address  =  pram[0];
-    scan_address +=  pram[1]         << 8;
-    scan_address += (pram[2] & 0x03) << 16;
+    if (!master_sync/*graphics layer*/ && (pc98_gdc_vramop & (1u << VOPBIT_VGA))) {
+        /* 256-color mode does not support display partition scan offsets. It doesn't matter if the
+         * game for whatever reason tries to program partitions, 256-color mode doesn't do it */
+        scan_address = 0;
+    }
+    else {
+        scan_address  =  pram[0];
+        scan_address +=  pram[1]         << 8;
+        scan_address += (pram[2] & 0x03) << 16;
+    }
 
     display_partition_rem_lines  =  pram[2]         >> 4;
     display_partition_rem_lines += (pram[3] & 0x3F) << 4;
