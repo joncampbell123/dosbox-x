@@ -1,4 +1,7 @@
 Next:
+  - Refuse to enable ISA 15MB-16MB memory hole if memalias is set to 24 bits or
+    less. Not only is it redundant to do that but it also causes the BIOS to
+    immediately crash on startup. (joncampbell123).
   - IDE ATAPI CD-ROM emulation: In PC-98 mode when emulating a NEC CD-ROM drive,
     also limit sector reads to one CD-ROM sector per DRQ because the MS-DOS driver
     assumes that behavior. The driver will stall and error out if it requests a

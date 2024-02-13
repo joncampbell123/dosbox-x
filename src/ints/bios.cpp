@@ -9974,13 +9974,20 @@ public:
             {
                 std::string s = section->Get_string("isa memory hole at 15mb");
 
-                if (s == "true" || s == "1")
+                // Do NOT emulate the memory hole if emulating 24 or less address bits! BIOS crashes will result at startup!
+                // The whole point of the 15MB memory hole is to emulate a hole into hardware as if a 24-bit 386SX. A memalias
+                // setting of 24 makes it redundant. Furthermore memalias=24 and 15MB memory hole prevents the BIOS from
+                // mapping correctly and crashes immediately at startup. This is especially necessary for PC-98 mode where
+		// memalias==24 and memory hole enabled for the PEGC linear framebuffer prevents booting.
+
+                if (MEM_get_address_bits() <= 24)
+                    isa_memory_hole_15mb = false;
+                else if (s == "true" || s == "1")
                     isa_memory_hole_15mb = true;
                 else if (s == "false" || s == "0")
                     isa_memory_hole_15mb = false;
                 else if (IS_PC98_ARCH)
-                    isa_memory_hole_15mb = true;
- // For the sake of some DOS games, enable by default
+                    isa_memory_hole_15mb = true; // For the sake of some PC-98 DOS games, enable by default
                 else
                     isa_memory_hole_15mb = false;
             }
