@@ -328,6 +328,15 @@ Bitu pc98_read_9a0(Bitu /*port*/,Bitu /*iolen*/) {
         case 0x04:      // palette mode (used by Sim City 2000)
             if (pc98_gdc_vramop & (1 << VOPBIT_ANALOG)) retval |= 1u;
             break;
+        case 0x07:      // EGC mode
+            if (pc98_gdc_vramop & (1 << VOPBIT_EGC)) retval |= 1u;
+            break;
+        case 0x0A:      // Graphics mode + 256-color
+            if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) retval |= 1u;
+            break;
+        case 0x0D:      // VRAM boundary mode
+            if (pc98_256kb_boundary) retval |= 1u;
+            break;
         default:
             retval |= 0xFF;//FIXME: Is this true?
             break;
