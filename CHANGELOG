@@ -1,4 +1,7 @@
 Next:
+  - PC-98 GDC scan offset no longer pays attention to scan offset of data
+    partition in 256-color mode. Required to help fix broken 256-color graphics
+    for some PC-98 CD-ROM games. (joncampbell123).
   - Refuse to enable ISA 15MB-16MB memory hole if memalias is set to 24 bits or
     less. Not only is it redundant to do that but it also causes the BIOS to
     immediately crash on startup. (joncampbell123).
