@@ -36,6 +36,8 @@
 #include "zipfile.h"
 #include "src/ints/int10.h"
 
+uint32_t MEM_get_address_bits();
+
 unsigned char pc98_pegc_mmio[0x200] = {0}; /* PC-98 memory-mapped PEGC registers at E0000h */
 uint32_t pc98_pegc_banks[2] = {0x0000,0x0000}; /* bank switching offsets */
 bool enveten = false, TTF_using(void);
@@ -2736,6 +2738,23 @@ void VGA_SetupHandlers(void) {
 				MEM_SetPageHandler(0xF00, 512/*kb*/ / 4/*kb*/, &vgaph.map_lfb_pc98 );
 			else
 				MEM_ResetPageHandler_Unmapped(0xF00, 512/*kb*/ / 4/*kb*/);
+		}
+
+		/* There is a confirmed alias of the PEGC framebuffer at 0xFFF00000-0xFFF7FFFF.
+		 * Some PC-9821 CD-ROM games require this alias or else they display nothing on the screen.
+		 * These games run in 32-bit protected mode and for whatever reason direct the DPMI server
+		 * to map linear address 0xF00000-0xF7FFFF to physical memory address 0xFFF00000-0xFFF7FFFF,
+		 * so that they can write to the linear address just as if a 386SX where that mapping existed.
+		 * This is basically the same idea as "just under the BIOS at top of CPU addressable RAM"
+		 * so if memalias is more than 24 bits map it to (1 << memalias) - 1MB to be consistent
+		 * because that address will map to whereever PEGC's LFB is even if, say, running on a 486SX
+		 * with 26 address pins. */
+		if (MEM_get_address_bits() > 24) {
+			Bitu page = ((Bitu)1 << (Bitu)(MEM_get_address_bits() - 12/*pages not bytes*/)) - (Bitu)0x100/*1MB in pages*/;
+			if ((pc98_gdc_vramop & (1 << VOPBIT_VGA)) && pc98_pegc_linear_framebuffer_enabled())
+				MEM_SetPageHandler(page, 512/*kb*/ / 4/*kb*/, &vgaph.map_lfb_pc98 );
+			else
+				MEM_ResetPageHandler_Unmapped(page, 512/*kb*/ / 4/*kb*/);
 		}
 
 		goto range_done;
