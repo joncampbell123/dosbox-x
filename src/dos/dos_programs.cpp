@@ -6426,6 +6426,7 @@ class IMGMOUNT : public Program {
 		}
 
 		imageDisk* MountImageNone(const char* fileName, FILE* file, const Bitu sizesOriginal[], const int reserved_cylinders, bool roflag) {
+			bool assumeHardDisk = false;
 			imageDisk* newImage = 0;
 			Bitu sizes[4];
 			sizes[0] = sizesOriginal[0];
@@ -6453,6 +6454,9 @@ class IMGMOUNT : public Program {
 							default: break;
 						}
 						return newImage;
+					}
+					else if (!strcasecmp(ext, ".hdi")) {
+						assumeHardDisk = true; /* bugfix for HDI images smaller than 2.88MB so that the .hdi file is not mistaken for a floppy disk image */
 					}
 				}
 			}
@@ -6500,35 +6504,35 @@ class IMGMOUNT : public Program {
 					sectors = (uint64_t)ftello64(newDisk) / (uint64_t)sizes[0];
 					imagesize = (uint32_t)(sectors / 2); /* orig. code wants it in KBs */
 					setbuf(newDisk, NULL);
-					newImage = new imageDiskD88(newDisk, fname, imagesize, (imagesize > 2880));
+					newImage = new imageDiskD88(newDisk, fname, imagesize, false/*this is a FLOPPY image format*/);
 				}
 				else if (!memcmp(tmp, "VFD1.", 5)) { /* FDD files */
 					fseeko64(newDisk, 0L, SEEK_END);
 					sectors = (uint64_t)ftello64(newDisk) / (uint64_t)sizes[0];
 					imagesize = (uint32_t)(sectors / 2); /* orig. code wants it in KBs */
 					setbuf(newDisk, NULL);
-					newImage = new imageDiskVFD(newDisk, fname, imagesize, (imagesize > 2880));
+					newImage = new imageDiskVFD(newDisk, fname, imagesize, false/*this is a FLOPPY image format*/);
 				}
 				else if (!memcmp(tmp,"T98FDDIMAGE.R0\0\0",16)) {
 					fseeko64(newDisk, 0L, SEEK_END);
 					sectors = (uint64_t)ftello64(newDisk) / (uint64_t)sizes[0];
 					imagesize = (uint32_t)(sectors / 2); /* orig. code wants it in KBs */
 					setbuf(newDisk, NULL);
-					newImage = new imageDiskNFD(newDisk, fname, imagesize, (imagesize > 2880), 0);
+					newImage = new imageDiskNFD(newDisk, fname, imagesize, false/*this is a FLOPPY image format*/, 0);
 				}
 				else if (!memcmp(tmp,"T98FDDIMAGE.R1\0\0",16)) {
 					fseeko64(newDisk, 0L, SEEK_END);
 					sectors = (uint64_t)ftello64(newDisk) / (uint64_t)sizes[0];
 					imagesize = (uint32_t)(sectors / 2); /* orig. code wants it in KBs */
 					setbuf(newDisk, NULL);
-					newImage = new imageDiskNFD(newDisk, fname, imagesize, (imagesize > 2880), 1);
+					newImage = new imageDiskNFD(newDisk, fname, imagesize, false/*this is a FLOPPY image format*/, 1);
 				}
 				else {
 					fseeko64(newDisk, 0L, SEEK_END);
 					sectors = (uint64_t)ftello64(newDisk) / (uint64_t)sizes[0];
 					imagesize = (uint32_t)(sectors / 2); /* orig. code wants it in KBs */
 					setbuf(newDisk, NULL);
-					newImage = new imageDisk(newDisk, fname, imagesize, (imagesize > 2880));
+					newImage = new imageDisk(newDisk, fname, imagesize, (imagesize > 2880) || assumeHardDisk);
 				}
 			}
 

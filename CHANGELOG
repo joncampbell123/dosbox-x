@@ -1,4 +1,9 @@
 Next:
+  - IMGMOUNT: If the file extension is HDI, assume a hard disk image even if the
+    image file is small enough to qualify as a floppy disk image. There is an
+    HDI image of PC-98 game "D.O. Doki Doki Disk 8" that is 2.2MB, small enough
+    to be mistaken as a 2.88MB IBM PC floppy disk and therefore fail to mount
+    as an HDI image, this change fixes it. (joncampbell123).
   - Emulate PEGC PC-98 linear framebuffer at both 0xF00000-0xF7FFFF (at 15MB
     memory mark) but also make it appear at top of memory below BIOS (normally
     at 0xFFF00000-0xFFF7FFFF). Some 32-bit PC-9821 CD-ROM MS-DOS games assume
