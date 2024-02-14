@@ -3610,7 +3610,18 @@ static Bitu INT18_PC98_Handler(void) {
         //       (Something to do with the buffer [https://ia801305.us.archive.org/8/items/PC9800TechnicalDataBookBIOS1992/PC-9800TechnicalDataBook_BIOS_1992_text.pdf])
         //       Neko Project is also unaware of such a call.
         case 0x0C: /* text layer enable */
-            if (pc98_gdc_vramop & (1u << VOPBIT_VGA)) {
+	    /* PROBLEM: Okay, so it's unclear when text layer is or is not allowed.
+             *          I was unable to turn on the text layer with this BIOS call on real PC-9821 hardware, so I believed that it did not allow it.
+             *
+             *          But PC-9821 CD-ROM game "Shamat, The Holy Circlet" expects to turn on the text layer in 640x400 256-color PEGC mode,
+             *          because it displays graphics in the background while scrolling Japanese text up over it, and if sound hardware is available,
+             *          plays a voice reading the text synchronized to it.
+             *
+             *          Perhaps in my case it was 640x480 256-color mode, not 640x400 256-color mode, but then, 640x480 also enables a text mode with
+             *          either more rows or a taller character cell which is apparently recognized by the MS-DOS console driver.
+             *
+             *          So then, what exactly decides whether or not to allow this call to enable the text layer? */
+            if (pc98_gdc_vramop & (1u << VOPBIT_VGA) && 0/*DISABLED*/) {
                /* NTS: According to tests on real PC-9821 hardware, you can't turn on the text layer in 256-color mode, at least through the BIOS. */
                /* FIXME: Is this a restriction imposed by the BIOS, or the hardware itself? */
                LOG_MSG("INT 18h: Attempt to turn on text layer in 256-color mode");
