@@ -1795,7 +1795,6 @@ DOS/V V-text в настоящее время выключен.
 
 :SHELL_STARTUP_TITLE
 Добро пожаловать в DOSBox-X!
-
 .
 
 :SHELL_STARTUP_HEAD1_PC98
@@ -1828,36 +1827,25 @@ DOS/V V-text в настоящее время выключен.
 ←[32mПроект DOSBox-X ←[33mhttps://dosbox-x.com/     ←[36mПолная эмуляция DOS←[37m
 ←[32mРуководство DOSBox-X   ←[33mhttps://dosbox-x.com/wiki←[37m ←[36mDOS, Windows 3.x и 9x←[37m
 ←[32mПоддержка DOSBox-X ←[33mhttps://github.com/joncampbell123/dosbox-x/issues←[37m
-
 .
-
 :SHELL_STARTUP_HEAD1
-←[36mНачало работы с DOSBox-X:                                              ←[37m
-
+←[36mНачало работы с DOSBox-X:                                                   ←[37m
 .
-
 :SHELL_STARTUP_TEXT1
-Введите ←[32mHELP←[37m, чтобы увидеть список команд оболочки, ←[32mINTRO←[37m для краткого введения.
+Введите←[32mHELP←[37m,чтобы увидеть список команд оболочки,←[32mINTRO←[37m для краткого введения
 Вы также можете выполнять различные задачи в DOSBox-X через ←[33mвыпадающие меню←[37m.
-
 .
-
 :SHELL_STARTUP_EXAMPLE
-←[32mПример:←[37m Попробуйте выбрать опцию ←[33mTrueType font←[37m или ←[33mOpenGL pixel-perfect←[37m output.
+←[32mПример:←[37m Попробуйте выбрать опцию ←[33mTrueTypefont←[37m или ←[33mOpenGLpixel-perfect←[37m output
 .
-
 :SHELL_STARTUP_HEAD2
-←[36mПолезные сочетания клавиш по умолчанию:                                ←[37m
-
+←[36mПолезные сочетания клавиш по умолчанию:                                     ←[37m
 .
-
 :SHELL_STARTUP_TEXT2
-- переключение между оконным и полноэкранным режимами сочетанием клавиш ←[31mF11 ←[37m+ ←[31mF←[37m
-- запуск ←[33mКонфигурационного инструмента←[37m с использованием ←[31mF11 ←[37m+ ←[31mC←[37m, и ←[33mредактора отображения←[37m с использованием ←[31mF11 ←[37m+ ←[31mM←[37m  ←[37m
-- увеличение или уменьшение скорости эмуляции с помощью ←[31mF11 ←[37m+ ←[31mPlus←[37m←[37m или ←[31mF11 ←[37m+ ←[31mMinus←[37m   ←[37m
-
+- переключение между оконным и полноэкранным режимами сочетанием клавиш←[31mF11←[37m+←[31mF←[37m
+- ←[33mКонфигурационного инструмента←[37m ←[31mF11 ←[37m+ ←[31mC←[37m, и ←[33mредактора отображения←[37m ←[31mF11 ←[37m+ ←[31mM←[37m    
+- увеличение или уменьшение скорости эмуляции с помощью ←[31mF11←[37m+←[31mPlus←[37m←[37mили←[31mF11←[37m+←[31mMinus←[37m
 .
-
 :SHELL_STARTUP_DOSV
 Режим ←[32mDOS/V←[37m активен. Попробуйте также режим ←[32mTTF CJK←[37m для общей эмуляции DOS.
 
@@ -1882,20 +1870,15 @@ DOS/V V-text в настоящее время выключен.
 .
 
 :SHELL_STARTUP_HEAD3
-←[36mПроект DOSBox-X в сети:                                                 ←[37m
-
+←[36mПроект DOSBox-X в сети:                                                     ←[37m
 .
-
 :SHELL_STARTUP_TEXT3
-←[32mДомашняя страница проекта←[37m: ←[33mhttps://dosbox-x.com/           ←[36mПолная эмуляция DOS←[37m
-←[32mРуководства пользователя в Wiki←[37m: ←[33mhttps://dosbox-x.com/wiki←[32m       ←[36mDOS, Windows 3.x и 9x←[37m
-←[32mПроблемы или предложения←[37m: ←[33mhttps://github.com/joncampbell123/dosbox-x/issues      ←[37m
-
+←[32mДомашняя страница проекта←[37m: ←[33mhttps://dosbox-x.com/         ←[36mПолная эмуляция DOS←[37m
+←[32mРуководства пользователя в Wiki←[37m: ←[33mhttps://dosbox-x.com/wiki←[32m←[36mDOS,Windows 3.x,9x←[37m
+←[32mПроблемы или предложения←[37m: ←[33mhttps://github.com/joncampbell123/dosbox-x/issues←[37m 
 .
-
 :SHELL_STARTUP_LAST
 ВЕСЕЛИТЕСЬ С DOSBox-X!
-
 .
 
 :SHELL_CMD_BREAK_HELP
@@ -3758,6 +3741,7 @@ CPU: простое ядро
 :MAPPER:togmenu
 Переключить панель меню
 .
+
 
 
 
