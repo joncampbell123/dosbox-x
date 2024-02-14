@@ -1,4 +1,7 @@
 Next:
+  - Undo the "no parition offset" change. DOOM II for PC-9821 requires it to work
+    else the page flipping fails and sprites and rendering flickers as you play.
+    (joncampbell123).
   - Allow text layer to appear in PC-98 256-color mode. Even though I was unable
     to enable it on real hardware, "Shamat, The Holy Circlet" requires having
     the text layer visible on top of 640x400 256-color mode for the introductory
