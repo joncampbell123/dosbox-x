@@ -1,4 +1,11 @@
 Next:
+  - The reason some PC-9821 games have been giving bad PITCH values (double the
+    correct value) to the GDC in 256-color mode has been determined. They read
+    port 9A0h to determine if the GDC is running at 5MHz or not. That port 9A0h
+    index was not implemented and therefore gave the game the impression it was
+    running at 5MHz when it was not, therefore the doubled PITCH value. This fix
+    corrects the squeezed 256-color mode and allows it to appear properly.
+    (joncampbell123).
   - IMGMOUNT: If the file extension is HDI, assume a hard disk image even if the
     image file is small enough to qualify as a floppy disk image. There is an
     HDI image of PC-98 game "D.O. Doki Doki Disk 8" that is 2.2MB, small enough

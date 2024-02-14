@@ -331,6 +331,9 @@ Bitu pc98_read_9a0(Bitu /*port*/,Bitu /*iolen*/) {
         case 0x07:      // EGC mode
             if (pc98_gdc_vramop & (1 << VOPBIT_EGC)) retval |= 1u;
             break;
+        case 0x09:      // GDC clock #0
+            if (gdc_5mhz_mode) retval |= 1u;
+            break;
         case 0x0A:      // Graphics mode + 256-color
             if (pc98_gdc_vramop & (1 << VOPBIT_VGA)) retval |= 1u;
             break;
