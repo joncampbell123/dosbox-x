@@ -1,4 +1,8 @@
 Next:
+  - Allow text layer to appear in PC-98 256-color mode. Even though I was unable
+    to enable it on real hardware, "Shamat, The Holy Circlet" requires having
+    the text layer visible on top of 640x400 256-color mode for the introductory
+    scrolling text to appear on screen. So for now, just allow it. (joncampbell123).
   - The reason some PC-9821 games have been giving bad PITCH values (double the
     correct value) to the GDC in 256-color mode has been determined. They read
     port 9A0h to determine if the GDC is running at 5MHz or not. That port 9A0h
