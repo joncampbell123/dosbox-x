@@ -1378,31 +1378,33 @@ fatDrive::fatDrive(const char* sysFilename, uint32_t bytesector, uint32_t cylsec
 		}
 
 		const char *ext = strrchr(sysFilename,'.');
+        bool is_hdd = false;
+        if((ext != NULL) && (!strcasecmp(ext, ".hdi") || !strcasecmp(ext, ".nhd"))) is_hdd = true;
 
 		if (ext != NULL && !strcasecmp(ext, ".d88")) {
 			fseeko64(diskfile, 0L, SEEK_END);
 			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-			loadedDisk = new imageDiskD88(diskfile, fname, filesize, (filesize > 2880));
+			loadedDisk = new imageDiskD88(diskfile, fname, filesize, false);
 		}
 		else if (!memcmp(bootcode,"VFD1.",5)) { /* FDD files */
 			fseeko64(diskfile, 0L, SEEK_END);
 			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-			loadedDisk = new imageDiskVFD(diskfile, fname, filesize, (filesize > 2880));
+			loadedDisk = new imageDiskVFD(diskfile, fname, filesize, false);
 		}
 		else if (!memcmp(bootcode,"T98FDDIMAGE.R0\0\0",16)) {
 			fseeko64(diskfile, 0L, SEEK_END);
 			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-			loadedDisk = new imageDiskNFD(diskfile, fname, filesize, (filesize > 2880), 0);
+			loadedDisk = new imageDiskNFD(diskfile, fname, filesize, false, 0);
 		}
 		else if (!memcmp(bootcode,"T98FDDIMAGE.R1\0\0",16)) {
 			fseeko64(diskfile, 0L, SEEK_END);
 			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-			loadedDisk = new imageDiskNFD(diskfile, fname, filesize, (filesize > 2880), 1);
+			loadedDisk = new imageDiskNFD(diskfile, fname, filesize, false, 1);
 		}
 		else {
 			fseeko64(diskfile, 0L, SEEK_END);
 			filesize = (uint32_t)(ftello64(diskfile) / 1024L);
-			loadedDisk = new imageDisk(diskfile, fname, filesize, (filesize > 2880));
+			loadedDisk = new imageDisk(diskfile, fname, filesize, (is_hdd | (filesize > 2880)));
 		}
 	}
 
@@ -1531,6 +1533,11 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 	bool pc98_512_to_1024_allow = false;
 	int opt_partition_index = -1;
 	bool is_hdd = (filesize > 2880);
+    if(!is_hdd) {
+        char* ext = strrchr((char*)sysFilename, '.');
+        if(ext != NULL && (!strcasecmp(ext, ".hdi") || !strcasecmp(ext, ".nhd"))) is_hdd = true;
+    }
+    //LOG_MSG("is_hdd = %s", is_hdd ? "true" : "false");
 
 	physToLogAdj = 0;
 	req_ver_major = req_ver_minor = 0;
