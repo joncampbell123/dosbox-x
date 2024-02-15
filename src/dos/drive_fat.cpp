@@ -1948,7 +1948,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 				loadedDisk->Read_AbsoluteSector(1,&sectorBuffer);
 				uint8_t mdesc = sectorBuffer[0];
 
-				if (mdesc >= 0xf8) {
+				if (mdesc >= 0xf8 && !IS_PC98_ARCH) {
 					/* DOS 1.x format, create BPB for 160kB floppy */
 					bootbuffer.bpb.v.BPB_BytsPerSec = 512;
 					bootbuffer.bpb.v.BPB_SecPerClus = 1;
@@ -1975,7 +1975,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 						bootbuffer.bpb.v.BPB_TotSec16 *= 2;
 						bootbuffer.bpb.v.BPB_NumHeads = 2;
 					}
-				} else {
+				} else if (!IS_PC98_ARCH) {
 					/* Unknown format */
 					created_successfully = false;
 					return;
