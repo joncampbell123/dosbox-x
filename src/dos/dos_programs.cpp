@@ -706,7 +706,21 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
 		strcat(mountstring,files.size()?files.c_str():fname.c_str());
         if(!multiple) strcat(mountstring, "\"");
         if(mountiro[drive - 'A']) strcat(mountstring, " -ro");
-        if(boot) strcat(mountstring, " -u");
+        if(boot) {
+            strcat(mountstring, " -u");
+            mountstring[0] = drive - 'A' + '0';
+            runImgmount(mountstring);   // mount by drive number
+            std::string bootstr = "-Q ";
+            bootstr += drive;
+            bootstr += ':';
+            runBoot(bootstr.c_str());
+            std::string drive_warn = "Drive " + std::string(1, drive) + ": failed to boot.";
+            systemmessagebox("Error", drive_warn.c_str(), "ok", "error", 1);
+            bootstr = "-u ";
+            bootstr += drive - 'A' + '0';
+            runImgmount(bootstr.c_str()); // unmount if boot failed
+            return;
+        }
         if(arc) {
             strcat(mountstring," -q");
             runMount(mountstring);
@@ -716,17 +730,11 @@ void MenuBrowseImageFile(char drive, bool arc, bool boot, bool multiple) {
             qmount=false;
         }
 		chdir( Temp_CurrentDir );
-		if (!Drives[drive-'A']) {
+		if (!Drives[drive - 'A']) {
 			drive_warn="Drive "+str+": failed to mount.";
 			systemmessagebox("Error",drive_warn.c_str(),"ok","error", 1);
 			return;
-		} else if (boot) {
-			char str[] = "-Q A:";
-			str[3]=drive;
-			runBoot(str);
-			std::string drive_warn="Drive "+std::string(1, drive)+": failed to boot.";
-			systemmessagebox("Error",drive_warn.c_str(),"ok","error", 1);
-		} else if (multiple) {
+        } else if (multiple) {
 			systemmessagebox("Information",("Mounted disk images to Drive "+std::string(1,drive)+(dos.loaded_codepage==437?":\n"+files:".")+(mountiro[drive-'A']?"\n(Read-only mode)":"")).c_str(),"ok","info", 1);
 		} else if (lTheOpenFileName) {
 			systemmessagebox("Information",(std::string(arc?"Mounted archive":"Mounted disk image")+" to Drive "+std::string(1,drive)+":\n"+std::string(lTheOpenFileName)+(arc||mountiro[drive-'A']?"\n(Read-only mode)":"")).c_str(),"ok","info", 1);
