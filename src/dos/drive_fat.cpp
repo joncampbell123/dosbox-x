@@ -2109,9 +2109,57 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 	 * 17        17 & 16       10001 AND 10000     RESULT: 10000 (16) */
 	if (BPB.v.BPB_BytsPerSec < 128 || BPB.v.BPB_BytsPerSec > SECTOR_SIZE_MAX ||
 		(BPB.v.BPB_BytsPerSec & (BPB.v.BPB_BytsPerSec - 1)) != 0/*not a power of 2*/) {
-		LOG_MSG("FAT bytes/sector value %u not supported",BPB.v.BPB_BytsPerSec);
-		created_successfully = false;
-		return;
+        if(IS_PC98_ARCH && ((bytesector == 1024)||(bytesector == 512))) {
+            LOG_MSG("Experimental: PC-98 autodetect BPB parameters when it is corrupted");
+            BPB.v.BPB_BytsPerSec = bytesector;
+            BPB.v.BPB_SecPerClus = 1;
+            BPB.v.BPB_RsvdSecCnt = 1;
+            BPB.v.BPB_NumFATs = 2;
+            BPB.v.BPB_SecPerTrk = cylsector;
+            BPB.v.BPB_NumHeads = headscyl;
+			if((bytesector == 1024) && (cylsector == 8) && (cylinders == 77)) { // PC-98 2HD 1.25MB
+				BPB.v.BPB_RootEntCnt = 0xc0;
+				BPB.v.BPB_TotSec16 = 0x4d0;
+				BPB.v.BPB_FATSz16 = 2;
+				BPB.v.BPB_Media = 0xfe;
+			}
+			else if((bytesector == 512) && (cylsector == 15) && (cylinders == 80)) { // PC-98 2HC 1.21MB
+                BPB.v.BPB_RootEntCnt = 0xe0;
+                BPB.v.BPB_TotSec16 = 0x960;
+                BPB.v.BPB_FATSz16 = 7;
+                BPB.v.BPB_Media = 0xf9;
+			}
+			else if((bytesector == 512) && (cylsector == 18) && (cylinders == 80)) { // PC-98 2HD 1.44MB
+                BPB.v.BPB_RootEntCnt = 0xe0;
+                BPB.v.BPB_TotSec16 = 0xb40;
+                BPB.v.BPB_FATSz16 = 9;
+                BPB.v.BPB_Media = 0xf0;
+			}
+			else if((bytesector == 512) && (cylsector == 8) && (cylinders == 80)) { // PC-98 2DD 640kB
+				BPB.v.BPB_RootEntCnt = 0x70;
+				BPB.v.BPB_TotSec16 = 0x500;
+				BPB.v.BPB_FATSz16 = 2;
+				BPB.v.BPB_Media = 0xfb;
+			}
+			else if((bytesector == 512) && (cylsector == 9) && (cylinders == 80)) { // PC-98 2DD 720kB
+				BPB.v.BPB_RootEntCnt = 0x70;
+				BPB.v.BPB_TotSec16 = 0x5a0;
+				BPB.v.BPB_FATSz16 = 3;
+				BPB.v.BPB_Media = 0xf9;
+			}
+			else {
+				LOG_MSG("Experimental: PC-98 assuming BPB parameters to be 1.25MB 2HD floppy, this may not work.");
+				BPB.v.BPB_RootEntCnt = 0xc0;
+				BPB.v.BPB_TotSec16 = 0x4d0;
+				BPB.v.BPB_Media = 0xfe;
+				BPB.v.BPB_FATSz16 = 2;
+			}
+        }
+        else {
+            LOG_MSG("FAT bytes/sector value %u not supported", BPB.v.BPB_BytsPerSec);
+            created_successfully = false;
+            return;
+        }
 	}
 
 	/* another fault of this code is that it assumes the sector size of the medium matches
