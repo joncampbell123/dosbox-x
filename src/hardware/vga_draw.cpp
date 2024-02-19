@@ -4667,6 +4667,10 @@ void VGA_sof_debug_video_info(void) {
 			/* anything else is weird */
 		}
 
+		if (IS_VGA_ARCH && (vga.attr.mode_control & 0x40) && enable_supermegazeux_256colortext) {
+			d += sprintf(d," SMZX"); // Super MegaZeux 256-color text mode
+		}
+
 		*d = 0;
 	}
 	else {
