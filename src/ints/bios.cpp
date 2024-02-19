@@ -10050,8 +10050,8 @@ public:
         BIOS_DEFAULT_IRQ815_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(9/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ8-15 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFE880));
 
 	if (IS_PC98_ARCH) {
-		/* Keyboard translation tables, must exist at segment 0xFD80 */
-		BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x80/*TODO: multiple tables eventually*/,"Keyboard translation tables",/*align*/1,0xFD800+0x124));
+		/* Keyboard translation tables, must exist at segment 0xFD80:0x0E00 because PC-98 MS-DOS assumes it (it writes 0x522 itself on boot) */
+		BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x80/*TODO: multiple tables eventually*/,"Keyboard translation tables",/*align*/1,0xFD800+0xE00));
 		BIOSKEY_PC98_Write_Tables();
 	}
 
