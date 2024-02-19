@@ -10033,6 +10033,13 @@ public:
             }
         }
 
+	if (IS_PC98_ARCH) {
+		/* Keyboard translation tables, must exist at segment 0xFD80:0x0E00 because PC-98 MS-DOS assumes it (it writes 0x522 itself on boot) */
+		/* The table must be placed back far enough so that (0x60 * 10) bytes do not overlap the lookup table at 0xE28 */
+		BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x60 * 10,"Keyboard translation tables",/*align*/1,0xFD800+0xA13));
+		if (ROMBIOS_GetMemory(0x2 * 10,"Keyboard translation shift tables",/*align*/1,0xFD800+0xE28) == (~0u)) E_Exit("Failed to allocate shift tables");//reserve it
+		BIOSKEY_PC98_Write_Tables();
+	}
 
         /* pick locations */
 	/* IBM PC mode: See [https://github.com/skiselev/8088_bios/blob/master/bios.asm]. Some values also provided by Allofich.
@@ -10050,12 +10057,6 @@ public:
         BIOS_DEFAULT_IRQ1_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x20/*see callback.cpp for IRQ1*/,"BIOS default IRQ1 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFE987));
         BIOS_DEFAULT_IRQ07_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(7/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ2-7 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFFF55));
         BIOS_DEFAULT_IRQ815_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(9/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ8-15 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFE880));
-
-	if (IS_PC98_ARCH) {
-		/* Keyboard translation tables, must exist at segment 0xFD80:0x0E00 because PC-98 MS-DOS assumes it (it writes 0x522 itself on boot) */
-		BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x80/*TODO: multiple tables eventually*/,"Keyboard translation tables",/*align*/1,0xFD800+0xB31));
-		BIOSKEY_PC98_Write_Tables();
-	}
 
         write_FFFF_signature();
 
@@ -10419,11 +10420,10 @@ public:
                  * (0xE31 instead of 0xE28). The table mentioned here is used to update the 0x522 offset WORD in the
                  * BIOS data area to reflect the translation table in effect based on the shift key status, so if you
                  * misread the table you end up pointing it at junk and then keyboard input doesn't work anymore. */
-                // FIXME: This implementation does not yet implement all tables!
                 // NTS: On a real PC-9821 laptop, the table is apparently 10 entries long. If BDA byte 0x53A is less than
                 //      8 then it's just a simple lookup. If BDA byte 0x53A has bit 4 set, then use the 8th entry, and
                 //      if bit 4 and 3 are set, use the 9th entry.
-                for (unsigned int i=0;i < 10;i++) phys_writew(0xFD800+0xE28+(i*2),(unsigned int)(Real2Phys(BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION) - 0xFD800));
+                for (unsigned int i=0;i < 10;i++) phys_writew(0xFD800+0xE28+(i*2),(unsigned int)(Real2Phys(BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION) - 0xFD800) + (i * 0x60));
             }
 	    else {
 		    if (ibm_rom_basic_size == 0) {

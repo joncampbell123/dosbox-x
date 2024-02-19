@@ -300,11 +300,62 @@ static scancode_tbl scan_to_scanascii_pc98[0x80] = {
 
 void BIOSKEY_PC98_Write_Tables(void) {
 	unsigned int i;
-	Bitu o;
+	Bitu o = Real2Phys(BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION);
 
-	/* Assume this function will not be called unless BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION points to ROM BIOS */
-	o = Real2Phys(BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION);
-	for (i=0;i < 0x80;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i].normal);
+	/* Assume this function will not be called unless BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION points to ROM BIOS.
+	 * It's actually not exactly a 1:1 mapping, the empty range between 0x56-0x61 is skipped according to the
+	 * tables on real hardare. On real hardware the tables are noticeably 0x60 (not 0x80) bytes apart from each other.
+	 * Special processing is done for the shift state keys that do not involve the table. */
+
+	/* [0] Normal */
+	for (i=0x00;i < 0x56;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i].normal);
+	for (i=0x62;i < 0x6C;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i-0xC].normal); /* NTS: 0x62-0x0C = 0x56, 10 codes fill 0x56-0x5F. 0x60-0x56 = 0x0A (10). 0x60 bytes total */
+	o += 0x60;
+
+	/* [1] Shift */
+	for (i=0x00;i < 0x56;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i].shift);
+	for (i=0x62;i < 0x6C;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i-0xC].shift); /* NTS: 0x62-0x0C = 0x56, 10 codes fill 0x56-0x5F. 0x60-0x56 = 0x0A (10). 0x60 bytes total */
+	o += 0x60;
+
+	/* [2] Caps */ //FIXME
+	for (i=0x00;i < 0x56;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i].shift);
+	for (i=0x62;i < 0x6C;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i-0xC].shift); /* NTS: 0x62-0x0C = 0x56, 10 codes fill 0x56-0x5F. 0x60-0x56 = 0x0A (10). 0x60 bytes total */
+	o += 0x60;
+
+	/* [3] Shift+Caps */ //FIXME
+	for (i=0x00;i < 0x56;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i].normal);
+	for (i=0x62;i < 0x6C;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i-0xC].normal); /* NTS: 0x62-0x0C = 0x56, 10 codes fill 0x56-0x5F. 0x60-0x56 = 0x0A (10). 0x60 bytes total */
+	o += 0x60;
+
+	/* [4] Kana */ //FIXME
+	for (i=0x00;i < 0x56;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i].normal);
+	for (i=0x62;i < 0x6C;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i-0xC].normal); /* NTS: 0x62-0x0C = 0x56, 10 codes fill 0x56-0x5F. 0x60-0x56 = 0x0A (10). 0x60 bytes total */
+	o += 0x60;
+
+	/* [5] Kana+Shift */ //FIXME
+	for (i=0x00;i < 0x56;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i].shift);
+	for (i=0x62;i < 0x6C;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i-0xC].shift); /* NTS: 0x62-0x0C = 0x56, 10 codes fill 0x56-0x5F. 0x60-0x56 = 0x0A (10). 0x60 bytes total */
+	o += 0x60;
+
+	/* [6] Kana+Caps */ //FIXME
+	for (i=0x00;i < 0x56;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i].shift);
+	for (i=0x62;i < 0x6C;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i-0xC].shift); /* NTS: 0x62-0x0C = 0x56, 10 codes fill 0x56-0x5F. 0x60-0x56 = 0x0A (10). 0x60 bytes total */
+	o += 0x60;
+
+	/* [7] Kana+Shift+Caps */ //FIXME
+	for (i=0x00;i < 0x56;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i].normal);
+	for (i=0x62;i < 0x6C;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i-0xC].normal); /* NTS: 0x62-0x0C = 0x56, 10 codes fill 0x56-0x5F. 0x60-0x56 = 0x0A (10). 0x60 bytes total */
+	o += 0x60;
+
+	/* [8] Kana */ //FIXME
+	for (i=0x00;i < 0x56;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i].normal);
+	for (i=0x62;i < 0x6C;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i-0xC].normal); /* NTS: 0x62-0x0C = 0x56, 10 codes fill 0x56-0x5F. 0x60-0x56 = 0x0A (10). 0x60 bytes total */
+	o += 0x60;
+
+	/* [9] Kana+Shift */ //FIXME
+	for (i=0x00;i < 0x56;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i].shift);
+	for (i=0x62;i < 0x6C;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i-0xC].shift); /* NTS: 0x62-0x0C = 0x56, 10 codes fill 0x56-0x5F. 0x60-0x56 = 0x0A (10). 0x60 bytes total */
+	o += 0x60;
 }
 
 std::queue <uint16_t>over_key_buffer;
