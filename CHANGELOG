@@ -1,4 +1,12 @@
 Next:
+  - MegaZeux from the MS-DOS days had a 256-color tweakmode that worked on some
+    popular SVGA chipsets of it's time though on others it does nothing but halve
+    the display resolution of text mode. The basic idea is that it makes the VGA
+    card latch two 4-bit outputs of the VGA text mode into one 8-bit value, thus,
+    256 colors possible. Add support for this. However I am not sure whether this
+    tweakmode is supported by S3 chipsets, so it is OFF by default and you will
+    need to add "enable supermegazeux tweakmode=true" to the [video] section of
+    your dosbox.conf to enable it. (joncampbell123).
   - Undo the "no parition offset" change. DOOM II for PC-9821 requires it to work
     else the page flipping fails and sprites and rendering flickers as you play.
     (joncampbell123).

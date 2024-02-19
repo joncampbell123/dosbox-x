@@ -170,6 +170,7 @@ void VGA_CaptureStartNextFrame(void);
 void VGA_CaptureMarkError(void);
 bool VGA_CaptureValidateCurrentFrame(void);
 
+extern bool enable_supermegazeux_256colortext;
 extern bool pc98_timestamp5c;
 
 bool                                VGA_PITsync = false;
@@ -719,6 +720,14 @@ void VGA_Reset(Section*) {
 //    uint64_t cpu_max_addr = (uint64_t)1 << (uint64_t)cpu_addr_bits;
 
     LOG(LOG_MISC,LOG_DEBUG)("VGA_Reset() reinitializing VGA emulation");
+
+    str = section->Get_string("enable supermegazeux tweakmode");
+    if (str == "1" || str == "true")
+        enable_supermegazeux_256colortext = true;
+    else if (str == "0" || str == "false")
+        enable_supermegazeux_256colortext = false;
+    else
+        enable_supermegazeux_256colortext = false; // TODO: Default true if emulating a chipset that supports SuperMegazeux 256-color text mode
 
     GDC_display_plane_wait_for_vsync = pc98_section->Get_bool("pc-98 buffer page flip");
 

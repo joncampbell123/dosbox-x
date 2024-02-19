@@ -2427,6 +2427,12 @@ void DOSBOX_SetupConfigSections(void) {
             "  \n"
             "  4low behavior is default for ET4000 emulation.");
 
+    Pstring = secprop->Add_string("enable supermegazeux tweakmode", Property::Changeable::OnlyAtStart, "");
+    Pstring->Set_values(truefalseautoopt);
+    Pstring->Set_help("If set, allow old MegaZeux 256-color text tweakmode aka 'Super MegaZeux mode'. Not all cards support this tweakmode.\n"
+		      "The ones that do are not emulated yet by DOSBox-X. It is not known at this time whether S3 chipsets support the hack.\n"
+		      "On normal cards the tweakmode does nothing but halve the text mode resolution without any other effects.");
+
     Pbool = secprop->Add_bool("vga bios use rom image", Property::Changeable::OnlyAtStart, false);
     Pbool->Set_help("If set, load a VGA BIOS from a ROM image file. If clear, provide our own INT 10h emulation as normal.");
 

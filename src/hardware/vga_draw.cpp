@@ -66,6 +66,7 @@ bool dbg_event_scanstep = false;
 bool dbg_event_hretrace = false;
 bool dbg_event_color_select = false;
 bool dbg_event_color_plane_enable = false;
+bool enable_supermegazeux_256colortext = false;
 
 extern bool vga_render_on_demand;
 extern signed char vga_render_on_demand_user;
@@ -2598,6 +2599,60 @@ template <const unsigned int card,typename templine_type_t> static inline uint8_
         return NULL;
 }
 
+static uint8_t* EGAVGA_TEXT_Combined_Draw_Line_SuperMegazeux(uint8_t *dst,Bitu vidstart,Bitu line) {
+	/* Render it like EGA so that only that part of the VGA pipeline is simulated, to produce
+	 * the 6-bit attribute controller values PRIOR to color palette translation that this
+	 * function needs to pair, take the low 4 bits, and combine into an 8-bit value in the
+	 * same manner that 256-color mode normally works, except that instead it's the 4-bit
+	 * output of the VGA character generator logic in text mode. A rather odd tweakmode in
+	 * MegaZeux known as Super Megazeux mode, apparently.
+	 *
+	 * [https://github.com/joncampbell123/dosbox-x/issues/4764]
+	 *
+	 * See ref code from [https://github.com/AliceLR/megazeux/blob/88a20a39ac50e70eabd4925a6a1433ae0be0e127/arch/djgpp/render_ega.c#L98]:
+	 *
+	 * static void ega_set_smzx(boolean is_ati)
+{
+  // Super MegaZeux mode:
+  // In a nutshell, this sets bit 6 of the VGA Mode Control Register.
+  // Bit 6 controls the pixel width - if 1, the pixel width is doubled,
+  // creating one 8-bit pixel instead of two 4-bit pixels. HOWEVER,
+  // normally, this is only done in Mode 13h.
+  //
+  // nVidia and some Cirrus Logic cards support this; ATI cards
+  // also "support" it, but swap the order of joining the pixels
+  // and require a weird horizontal pixel shift value - see below.
+  outportb(0x3C0, 0x10);
+  outportb(0x3C0, 0x4C);
+
+  if(is_ati)
+  {
+    // set horizontal pixel shift to Undefined (0.5 pixels, in theory)
+    outportb(0x3C0, 0x13);
+    outportb(0x3C0, 0x01);
+  }
+}
+	 */
+	uint8_t *row = EGAVGA_TEXT_Combined_Draw_Line<MCH_EGA,uint8_t>(dst,vidstart,line);
+	uint32_t *row32 = (uint32_t*)row;
+	if (vga.draw.width >= 4) {
+		/* then convert it in place to 8-bit value as two four-bit values and then through the palette.
+		 * it's a form of EXPANSION so the conversion must be done backwards */
+		size_t i=(vga.draw.width&(~1u))-2u;
+		do {
+			const uint8_t b = ((row[i+1u] & 0xfu) << 4u) + (row[i+2u] & 0xfu);
+			row32[i] = row32[i+1u] =
+				((vga.dac.rgb[b].red&0x3fu) << (GFX_Rshift+2u)) +
+				((vga.dac.rgb[b].green&0x3fu) << (GFX_Gshift+2u)) +
+				((vga.dac.rgb[b].blue&0x3fu) << (GFX_Bshift+2u));
+			if (i == 0) break;
+			i -= 2u;
+		} while (1);
+	}
+
+	return row;
+}
+
 // combined 8/9-dot wide text mode 16bpp line drawing function
 static uint8_t* EGA_TEXT_Xlat8_Draw_Line(Bitu vidstart, Bitu line) {
     return EGAVGA_TEXT_Combined_Draw_Line<MCH_EGA,uint8_t>(TempLine,vidstart,line);
@@ -2605,6 +2660,9 @@ static uint8_t* EGA_TEXT_Xlat8_Draw_Line(Bitu vidstart, Bitu line) {
 
 // combined 8/9-dot wide text mode 16bpp line drawing function
 static uint8_t* VGA_TEXT_Xlat32_Draw_Line(Bitu vidstart, Bitu line) {
+    /* Pixels are 8 bits wide (two four), which is NORMALLY used in 256-color mode.
+     * Why would anyone set this bit in text mode? Super Megazeux tweakmode, 256-color text mode, of course! */
+    if ((vga.attr.mode_control & 0x40) && enable_supermegazeux_256colortext) return EGAVGA_TEXT_Combined_Draw_Line_SuperMegazeux(TempLine,vidstart,line);
     return EGAVGA_TEXT_Combined_Draw_Line<MCH_VGA,uint32_t>(TempLine,vidstart,line);
 }
 
