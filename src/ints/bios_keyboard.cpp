@@ -45,6 +45,8 @@
  * The proper way is in the mapper, but the repeating key is an unwanted side effect for lower versions of SDL */
 #endif
 
+extern Bitu BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION;
+
 static Bitu call_int16 = 0,call_irq1 = 0,irq1_ret_ctrlbreak_callback = 0,call_irq6 = 0,call_irq_pcjr_nmi = 0;
 static uint8_t fep_line = 0x01;
 
@@ -295,6 +297,15 @@ static scancode_tbl scan_to_scanascii_pc98[0x80] = {
     {   none,   none,   none,   none,   none,   none }, /* 7e      */
     {   none,   none,   none,   none,   none,   none }  /* 7f      */
 };
+
+void BIOSKEY_PC98_Write_Tables(void) {
+	unsigned int i;
+	Bitu o;
+
+	/* Assume this function will not be called unless BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION points to ROM BIOS */
+	o = Real2Phys(BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION);
+	for (i=0;i < 0x80;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i].normal);
+}
 
 std::queue <uint16_t>over_key_buffer;
 
