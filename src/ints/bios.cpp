@@ -3519,11 +3519,11 @@ static Bitu INT18_PC98_Handler(void) {
             IO_WriteB(0x43, 0x16);
             for (int i=0; i<0x20; i++) mem_writeb(0x502+i, 0);
             for (int i=0; i<0x13; i++) mem_writeb(0x528+i, 0);
-            mem_writew(0x522, 0x0e00);
+            mem_writew(0x522,(unsigned int)(Real2Phys(BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION) - 0xFD800));
             mem_writew(0x524, 0x0502);
             mem_writew(0x526, 0x0502);
-            mem_writew(0x5c6, 0x0e00);
-            mem_writew(0x5c8, 0xfd80);
+            mem_writew(0x5C6,(unsigned int)(Real2Phys(BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION) - 0xFD800));
+            mem_writew(0x5C8,0xFD80);
             break;
         case 0x04: /* Sense of key input state (キー入力状態のセンス) */
             reg_ah = mem_readb(0x52A + (unsigned int)(reg_al & 0x0Fu));
@@ -8224,6 +8224,8 @@ private:
 
             /* Set up the translation table poiner, which is relative to segment 0xFD80 */
             mem_writew(0x522,(unsigned int)(Real2Phys(BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION) - 0xFD800));
+            mem_writew(0x5C6,(unsigned int)(Real2Phys(BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION) - 0xFD800));
+            mem_writew(0x5C8,0xFD80);
         }
 
         if (bios_user_reset_vector_blob != 0 && !bios_user_reset_vector_blob_run) {
@@ -10051,7 +10053,7 @@ public:
 
 	if (IS_PC98_ARCH) {
 		/* Keyboard translation tables, must exist at segment 0xFD80:0x0E00 because PC-98 MS-DOS assumes it (it writes 0x522 itself on boot) */
-		BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x80/*TODO: multiple tables eventually*/,"Keyboard translation tables",/*align*/1,0xFD800+0xE00));
+		BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x80/*TODO: multiple tables eventually*/,"Keyboard translation tables",/*align*/1,0xFD800+0xB31));
 		BIOSKEY_PC98_Write_Tables();
 	}
 
@@ -10394,6 +10396,34 @@ public:
                 bo = 0xE8000;
                 phys_writeb(bo+0x00,(uint8_t)0xEB);                       // JMP $+2 (to next instruction)
                 phys_writeb(bo+0x01,(uint8_t)0x00);
+
+                /* "Nut Berry" expects a 8-byte lookup table for [AL&7] -> 1 << (AL&7) at 0xFD80:0x0E3C so it's
+                 * custom keyboard interrupt handler can update the keyboard status bitmap in the BIOS data area.
+                 * I don't know if the game even uses it. On a BIOS.ROM image I have, and on real hardware, there
+                 * is clearly that table but at slightly different addresses (One PC-9821 laptop has it at
+                 * 0xFD80:0x0E45) which means whether the game uses it or not the bitmap may have random bits set
+                 * when you exit to DOS.
+                 *
+                 * Assuming no other game does this, this fixed address should be fine.
+                 *
+                 * NOTE: After disassembling the IRQ1 handler on a real PC-9821 laptop, I noticed this game's
+                 *       custom ISR bears a strong resemblance to it. In fact, you might say it's an exact instruction
+                 *       for instruction copy of the ISR, except that the table addresses in ROM are slightly different.
+                 *       Ha. Theoretically then, that means we could also get this game to work fully properly by patching
+                 *       it not to hook the keyboard interrupt at all! */
+                for (unsigned int i=0;i < 8;i++) phys_writeb(0xFD800+0xE3C+i,1u << i);
+
+                /* "Nut Berry" also assumes shift state table offsets (for all 16 possible combinations) exist
+                 * at 0xFD80:0x0E28. Once again, this means it will not work properly on anything other than the dev's
+                 * machine because on a real PC-9821 laptop used for testing, the table offset is slightly different
+                 * (0xE31 instead of 0xE28). The table mentioned here is used to update the 0x522 offset WORD in the
+                 * BIOS data area to reflect the translation table in effect based on the shift key status, so if you
+                 * misread the table you end up pointing it at junk and then keyboard input doesn't work anymore. */
+                // FIXME: This implementation does not yet implement all tables!
+                // NTS: On a real PC-9821 laptop, the table is apparently 10 entries long. If BDA byte 0x53A is less than
+                //      8 then it's just a simple lookup. If BDA byte 0x53A has bit 4 set, then use the 8th entry, and
+                //      if bit 4 and 3 are set, use the 9th entry.
+                for (unsigned int i=0;i < 10;i++) phys_writew(0xFD800+0xE28+(i*2),(unsigned int)(Real2Phys(BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION) - 0xFD800));
             }
 	    else {
 		    if (ibm_rom_basic_size == 0) {
