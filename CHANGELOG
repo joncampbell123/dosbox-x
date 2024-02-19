@@ -1,4 +1,13 @@
 Next:
+  - Write PC-98 keyboard translation table (non-shifted) in ROM BIOS and set the
+    keyboard translation table pointer in the BIOS data area for "Nut Berry".
+    This should allow keyboard input to work as long as you don't touch any
+    modifier keys (because the game will zero that pointer if you do because of
+    assumptions about the ROM BIOS), but keyboard input should work otherwise.
+    The "Nut Berry" game uses it's own entirely custom keyboard interrupt handler
+    instead of the BIOS (DOSBox-X provided) one and it makes quite a few assumptions
+    about where some tables are in the ROM BIOS. Time to pull out the PC-98 hardware
+    and do some more ROM BIOS examination. (joncampbell123).
   - MegaZeux from the MS-DOS days had a 256-color tweakmode that worked on some
     popular SVGA chipsets of it's time though on others it does nothing but halve
     the display resolution of text mode. The basic idea is that it makes the VGA

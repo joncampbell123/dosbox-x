@@ -149,6 +149,7 @@ unsigned int reset_post_delay = 0;
 Bitu call_irq_default = 0;
 uint16_t biosConfigSeg=0;
 
+Bitu BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION = ~0u;
 Bitu BIOS_DEFAULT_IRQ0_LOCATION = ~0u;       // (RealMake(0xf000,0xfea5))
 Bitu BIOS_DEFAULT_IRQ1_LOCATION = ~0u;       // (RealMake(0xf000,0xe987))
 Bitu BIOS_DEFAULT_IRQ07_DEF_LOCATION = ~0u;  // (RealMake(0xf000,0xff55))
@@ -7951,6 +7952,7 @@ extern uint32_t tandy_128kbase;
 
 static int bios_post_counter = 0;
 
+extern void BIOSKEY_PC98_Write_Tables(void);
 extern Bitu PC98_AVSDRV_PCM_Handler(void);
 
 class BIOS:public Module_base{
@@ -8219,6 +8221,9 @@ private:
              *
              *       NOTED: Neko Project II determines INT 18h AH=30h availability by whether or not it was compiled
              *              with 31khz hsync support (SUPPORT_CRT31KHZ) */
+
+            /* Set up the translation table poiner, which is relative to segment 0xFD80 */
+            mem_writew(0x522,(unsigned int)(Real2Phys(BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION) - 0xFD800));
         }
 
         if (bios_user_reset_vector_blob != 0 && !bios_user_reset_vector_blob_run) {
@@ -10043,6 +10048,12 @@ public:
         BIOS_DEFAULT_IRQ1_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x20/*see callback.cpp for IRQ1*/,"BIOS default IRQ1 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFE987));
         BIOS_DEFAULT_IRQ07_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(7/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ2-7 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFFF55));
         BIOS_DEFAULT_IRQ815_DEF_LOCATION = PhysToReal416(ROMBIOS_GetMemory(9/*see callback.cpp for EOI_PIC1*/,"BIOS default IRQ8-15 location",/*align*/1,IS_PC98_ARCH ? 0 : 0xFE880));
+
+	if (IS_PC98_ARCH) {
+		/* Keyboard translation tables, must exist at segment 0xFD80 */
+		BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION = PhysToReal416(ROMBIOS_GetMemory(0x80/*TODO: multiple tables eventually*/,"Keyboard translation tables",/*align*/1,0xFD800+0x124));
+		BIOSKEY_PC98_Write_Tables();
+	}
 
         write_FFFF_signature();
 
