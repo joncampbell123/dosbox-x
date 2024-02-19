@@ -3,8 +3,8 @@ Next:
     keyboard translation table pointer in the BIOS data area for "Nut Berry".
     This Nut Berry game also assumes lookup and translation tables exist at
     specific locations in the ROM BIOS, so put those tables there. The shift
-    state table in BIOS has also been added, though at the moment, they all
-    reflect the normal unshifted state which shouldn't be a problem. (joncampbell123).
+    state table in BIOS has also been added, though at the moment, the tables
+    are incomplete. (joncampbell123).
   - MegaZeux from the MS-DOS days had a 256-color tweakmode that worked on some
     popular SVGA chipsets of it's time though on others it does nothing but halve
     the display resolution of text mode. The basic idea is that it makes the VGA
