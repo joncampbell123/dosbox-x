@@ -905,6 +905,7 @@ bool CPU_PUSHF(Bitu use32);
 void CPU_Push16(uint16_t value);
 unsigned char AT_read_60(void);
 extern bool pc98_force_ibm_layout;
+extern bool pc98_force_jis_layout;
 
 /* BIOS INT 18h output vs keys:
  *
@@ -1079,10 +1080,18 @@ static Bitu IRQ1_Handler_PC98(void) {
             else {
                 if (!pc98_force_ibm_layout){
                     if (shift){
-                        if (scan_to_scanascii_pc98[sc_8251].shift) add_key(scan_to_scanascii_pc98[sc_8251].shift);
+                        if (!pc98_force_jis_layout) {
+                            if(scan_to_scanascii_pc98[sc_8251].shift) add_key(scan_to_scanascii_pc98[sc_8251].shift);
+                        }
+                        else {
+                            if(sc_8251 == 0x1a) add_key(scan_add + '`');
+                            else if(sc_8251 == 0x0c) add_key(scan_add + '~');
+                            else if(scan_to_scanascii_pc98[sc_8251].shift) add_key(scan_to_scanascii_pc98[sc_8251].shift);
+                        }
                     }
                     else{
-                        if (scan_to_scanascii_pc98[sc_8251].normal){
+                        if(pc98_force_jis_layout && sc_8251 == 0x33) add_key(scan_add + '\\');
+                        else if (scan_to_scanascii_pc98[sc_8251].normal){
                             add_key(scan_to_scanascii_pc98[sc_8251].normal);
                         }
                     }
