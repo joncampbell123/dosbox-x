@@ -1240,6 +1240,7 @@ void pc98_kana_toggle(void);
 void pc98_numlock_toggle(void);
 void pc98_keyboard_send(const unsigned char b);
 bool pc98_force_ibm_layout = false;
+bool pc98_force_jis_layout = false;
 
 /* this version sends to the PC-98 8251 emulation NOT the AT 8042 emulation */
 void KEYBOARD_PC98_AddKey(KBD_KEYS keytype,bool pressed) {
@@ -2526,6 +2527,9 @@ void KEYBOARD_OnEnterPC98(Section *sec) {
             KeyboardLayoutDetect();
         if (pc98_force_ibm_layout)
             LOG_MSG("Forcing PC-98 keyboard to use IBM US-English like default layout");
+        pc98_force_jis_layout = pc98_section->Get_bool("pc-98 force JIS keyboard layout") & !pc98_force_ibm_layout;
+        if (pc98_force_jis_layout)
+            LOG_MSG("Forcing PC-98 keyboard to use JIS (JP106) layout");
     }
 
     if (!IS_PC98_ARCH) {
