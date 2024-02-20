@@ -1748,7 +1748,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 		}
 
 		BPB = {};
-		loadedDisk->Read_AbsoluteSector(0+partSectOff,&bootbuffer);
+        loadedDisk->Read_AbsoluteSector(0 + partSectOff, &bootbuffer);
 
 		/* If the sector is full of 0xF6, the partition is brand new and was just created with Microsoft FDISK.EXE (Windows 98 behavior)
 		 * and therefore there is NO FAT filesystem here. We'll go farther and check if all bytes are just the same.
@@ -1942,13 +1942,13 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
                 bootbuffer.magic1 = 0x55;	// to silence warning
                 bootbuffer.magic2 = 0xaa;
             }
-            else {
+            else if(!IS_PC98_ARCH){
 				/* Read media descriptor in FAT */
 				uint8_t sectorBuffer[512];
 				loadedDisk->Read_AbsoluteSector(1,&sectorBuffer);
 				uint8_t mdesc = sectorBuffer[0];
 
-				if (mdesc >= 0xf8 && !IS_PC98_ARCH) {
+                if (mdesc >= 0xf8) {
 					/* DOS 1.x format, create BPB for 160kB floppy */
 					bootbuffer.bpb.v.BPB_BytsPerSec = 512;
 					bootbuffer.bpb.v.BPB_SecPerClus = 1;
@@ -1975,18 +1975,18 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 						bootbuffer.bpb.v.BPB_TotSec16 *= 2;
 						bootbuffer.bpb.v.BPB_NumHeads = 2;
 					}
-				} else if (!IS_PC98_ARCH) {
+				} else {
 					/* Unknown format */
 					created_successfully = false;
 					return;
 				}
-			}
-		}
+            }
+        }
 
 		/* accept BPB.. so far */
-		BPB = bootbuffer.bpb;
+        BPB = bootbuffer.bpb;
 
-		/* DEBUG */
+        /* DEBUG */
 		LOG(LOG_DOSMISC,LOG_DEBUG)("FAT: BPB says %u sectors/track %u heads %u bytes/sector",
 			BPB.v.BPB_SecPerTrk,
 			BPB.v.BPB_NumHeads,
@@ -2109,7 +2109,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 	 * 17        17 & 16       10001 AND 10000     RESULT: 10000 (16) */
 	if (BPB.v.BPB_BytsPerSec < 128 || BPB.v.BPB_BytsPerSec > SECTOR_SIZE_MAX ||
 		(BPB.v.BPB_BytsPerSec & (BPB.v.BPB_BytsPerSec - 1)) != 0/*not a power of 2*/) {
-        if(IS_PC98_ARCH && ((bytesector == 1024)||(bytesector == 512))) {
+        if(IS_PC98_ARCH && !is_hdd && ((bytesector == 1024)||(bytesector == 512))) {
             LOG_MSG("Experimental: PC-98 autodetect BPB parameters when it is corrupted");
             BPB.v.BPB_BytsPerSec = bytesector;
             BPB.v.BPB_SecPerClus = 1;
