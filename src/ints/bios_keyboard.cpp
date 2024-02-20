@@ -347,12 +347,12 @@ void BIOSKEY_PC98_Write_Tables(void) {
 	for (i=0x62;i < 0x6C;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i-0xC].normal); /* NTS: 0x62-0x0C = 0x56, 10 codes fill 0x56-0x5F. 0x60-0x56 = 0x0A (10). 0x60 bytes total */
 	o += 0x60;
 
-	/* [8] Kana */ //FIXME
+	/* [8] Graph (Alt) */ //FIXME
 	for (i=0x00;i < 0x56;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i].normal);
 	for (i=0x62;i < 0x6C;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i-0xC].normal); /* NTS: 0x62-0x0C = 0x56, 10 codes fill 0x56-0x5F. 0x60-0x56 = 0x0A (10). 0x60 bytes total */
 	o += 0x60;
 
-	/* [9] Kana+Shift */ //FIXME
+	/* [9] Control */ //FIXME
 	for (i=0x00;i < 0x56;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i].shift);
 	for (i=0x62;i < 0x6C;i++) phys_writeb(o+i,scan_to_scanascii_pc98[i-0xC].shift); /* NTS: 0x62-0x0C = 0x56, 10 codes fill 0x56-0x5F. 0x60-0x56 = 0x0A (10). 0x60 bytes total */
 	o += 0x60;
