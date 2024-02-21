@@ -1,4 +1,17 @@
 Next:
+  - BOOT --bios no longer triggers a system reset VM event, but instead just
+    jumps to the new BIOS image after DOS kernel shutdown. This is needed for
+    hardware and resources to stay as they were when running the BIOS i.e.
+    keeping any IDE devices configured within the DOS kernel intact so that the
+    BIOS can find and use them. Prior to this change, all hardware was fully
+    reset and unmapped prior to running the BIOS which made IDE emulation
+    unusable with BIOS images. (joncampbell123).
+  - BOOT --bios no longer immediately loads the new BIOS into memory, but instead
+    loads and stores the image to a temporary buffer. The ROM image does not
+    actually get mapped in until the DOS kernel and everything else has had a
+    chance to shut down fully. (joncampbell123).
+  - Fix BOOT --bios not to try to load PC-98 ITF firmware unless actually running
+    in PC-98 mode (joncampbell123).
   - Write PC-98 keyboard translation table (non-shifted) in ROM BIOS and set the
     keyboard translation table pointer in the BIOS data area for "Nut Berry".
     This Nut Berry game also assumes lookup and translation tables exist at
