@@ -62,18 +62,22 @@ bool systemmessagebox(char const * aTitle, char const * aMessage, char const * a
 int PC98AutoChoose_FAT(const std::vector<_PC98RawPartition> &parts,imageDisk *loadedDisk) {
         for (size_t i=0;i < parts.size();i++) {
                 const _PC98RawPartition &pe = parts[i];
-
                 /* skip partitions already in use */
                 if (loadedDisk->partitionInUse(i)) continue;
+                uint8_t syss = parts[i].sid;
 
                 /* We're looking for MS-DOS partitions.
                  * I've heard that some other OSes were once ported to PC-98, including Windows NT and OS/2,
                  * so I would rather not mistake NTFS or HPFS as FAT and cause damage. --J.C.
                  * FIXME: Is there a better way? */
-                if (    !strncasecmp(pe.name,"MS-DOS",6) ||
-                        !strncasecmp(pe.name,"MSDOS",5) ||
-                        !strncasecmp(pe.name,"Windows",7))
-                        return (int)i;
+                if(!strncasecmp(pe.name, "MS-DOS", 6) ||
+                    !strncasecmp(pe.name, "MSDOS", 5) ||
+                    !strncasecmp(pe.name, "Windows", 7) ||
+                    ((parts[i].mid == 0x20 || (parts[i].mid >= 0xa1 && parts[i].mid <= 0xaf)) // bootable or non-bootable MS-DOS partition
+                        && (syss == 0x81 || syss == 0x91 || syss == 0xa1 || syss == 0xe1) // is an active MS-DOS partition
+                        && (parts[i].end_cyl <= loadedDisk->cylinders))) {   // end_cyl is a valid value 
+                    return (int)i;
+                }
         }
 
         return -1;
@@ -1632,7 +1636,7 @@ void fatDrive::fatDriveInit(const char *sysFilename, uint32_t bytesector, uint32
 
 				LogPrintPartitionTable(parts);
 
-				/* user knows best! */
+                /* user knows best! */
 				if (opt_partition_index >= 0)
 					chosen_idx = opt_partition_index;
 				else
