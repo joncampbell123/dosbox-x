@@ -485,8 +485,8 @@ public:
  * Maximum 16 entries. */
 #pragma pack(push,1)
 struct _PC98RawPartition {
-	uint8_t		mid;		/* 0x80 - boot */
-	uint8_t		sid;		/* 0x80 - active */
+	uint8_t		mid;		/* 0x00: unused, 0x20: MS-DOS(not bootable), 0xa1-0xaf: MS-DOS(bootable) */
+	uint8_t		sid;		/* 0x00: unused, 0x81,0x91,0xa1,0xe1: MS-DOS(active), 0x01,0x11,0x21,0x61: MS-DOS(sleep) */
 	uint8_t		dum1;		/* dummy for padding */
 	uint8_t		dum2;		/* dummy for padding */
 	uint8_t		ipl_sect;	/* IPL sector */
