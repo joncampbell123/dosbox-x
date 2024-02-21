@@ -7520,6 +7520,9 @@ bool is_always_on_top(void) {
 }
 
 bool custom_bios = false;
+size_t custom_bios_image_size = 0;
+Bitu custom_bios_image_offset = 0;
+unsigned char *custom_bios_image = NULL;
 
 // OK why isn't this being set for Linux??
 #ifndef SDL_MAIN_NOEXCEPT
@@ -7642,6 +7645,8 @@ std::wstring win32_prompt_folder(const char *default_folder) {
     return res;
 }
 #endif
+
+void CPU_OnReset(Section* sec);
 
 void DISP2_Init(uint8_t color), DISP2_Shut();
 //extern void UI_Init(void);
@@ -9298,6 +9303,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         Reflect_Menu();
 #endif
 
+        bool run_bios;
         bool reboot_dos;
         bool run_machine;
         bool wait_debugger;
@@ -9305,6 +9311,7 @@ int main(int argc, char* argv[]) SDL_MAIN_NOEXCEPT {
         bool dos_kernel_shutdown;
 
 fresh_boot:
+        run_bios = false;
         reboot_dos = false;
         run_machine = false;
         wait_debugger = false;
@@ -9356,7 +9363,7 @@ fresh_boot:
             else if (x == 8) { /* Booting to a BIOS, shutting down DOSBox-X BIOS */
                 LOG(LOG_MISC,LOG_DEBUG)("Emulation threw a signal to boot into BIOS image");
 
-                reboot_machine = true;
+                run_bios = true;
                 dos_kernel_shutdown = !dos_kernel_disabled; /* only if DOS kernel enabled */
             }
             else if (x == 9) { /* BIOS caught a JMP to F000:FFF0 without any other hardware reset signal */
@@ -9537,7 +9544,52 @@ fresh_boot:
         Reflect_Menu();
 #endif
 
-        if (reboot_machine) {
+        if (run_bios) {
+            LOG_MSG("Running a custom BIOS");
+
+            boothax = BOOTHAX_NONE;
+            guest_msdos_LoL = 0;
+            guest_msdos_mcb_chain = 0;
+
+            void CPU_Snap_Back_Forget();
+            /* Shutdown everything. For shutdown to work properly we must force CPU to real mode */
+            CPU_Snap_Back_To_Real_Mode();
+            CPU_Snap_Back_Forget();
+
+            /* TODO: Should we tell the system? */
+
+            /* force the mapper to let go of all keys so that the host key is not stuck (Issue #1320) */
+            MAPPER_ReleaseAllKeys();
+            void MAPPER_LosingFocus(void);
+            MAPPER_LosingFocus();
+
+            if (custom_bios) {
+                if (custom_bios_image && custom_bios_image_size != 0 && custom_bios_image_offset != 0) {
+		    memcpy(GetMemBase()+custom_bios_image_offset,custom_bios_image,custom_bios_image_size);
+                }
+
+		if (custom_bios_image) delete[] custom_bios_image;
+
+                /* need to relocate BIOS allocations */
+                void ROMBIOS_InitForCustomBIOS(void);
+                ROMBIOS_InitForCustomBIOS();
+            }
+
+            CPU_OnReset(NULL);
+
+#if C_DEBUG
+            if (boot_debug_break) {
+                boot_debug_break = false;
+
+                Bitu DEBUG_EnableDebugger(void);
+                DEBUG_EnableDebugger();
+            }
+#endif
+
+            /* run again */
+            goto fresh_boot;
+        }
+        else if (reboot_machine) {
             LOG_MSG("Rebooting the system\n");
 
             boothax = BOOTHAX_NONE;

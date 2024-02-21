@@ -1637,6 +1637,9 @@ static void CFGTOOL_ProgramStart(Program * * make) {
 }
 
 extern bool custom_bios;
+extern size_t custom_bios_image_size;
+extern Bitu custom_bios_image_offset;
+extern unsigned char *custom_bios_image;
 extern uint32_t floppytype;
 extern bool boot_debug_break;
 extern Bitu BIOS_bootfail_code_offset;
@@ -2005,7 +2008,15 @@ public:
             Bitu segbase = 0x100000 - loadsz;
             LOG_MSG("Loading BIOS image %s to 0x%lx, 0x%lx bytes",bios.c_str(),(unsigned long)segbase,(unsigned long)loadsz);
             fseek(romfp, 0, SEEK_SET);
-            size_t readResult = fread(GetMemBase()+segbase,loadsz,1,romfp);
+
+            // To avoid crashes should any interrupt be called on the way to running the BIOS,
+            // don't actually map it in until it's good and ready to go.
+            if (custom_bios_image != NULL) delete[] custom_bios_image;
+            custom_bios_image_size = loadsz;
+            custom_bios_image_offset = segbase;
+            custom_bios_image = new unsigned char[custom_bios_image_size];
+
+            size_t readResult = fread(custom_bios_image,loadsz,1,romfp);
             fclose(romfp);
             if (readResult != 1) {
                 LOG(LOG_IO, LOG_ERROR) ("Reading error in Run\n");
