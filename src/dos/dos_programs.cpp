@@ -2012,36 +2012,38 @@ public:
                 return;
             }
 
-            // The PC-98 BIOS has a bank switching system where at least the last 32KB
-            // can be switched to an Initial Firmware Test BIOS, which initializes the
-            // system then switches back to the full 96KB visible during runtime.
-            //
-            // We can emulate the same if a file named ITF.ROM exists in the same directory
-            // as the BIOS image we were given.
-            //
-            // To enable multiple ITFs per ROM image, we first try <bios filename>.itf.rom
-            // before trying itf.rom, for the user's convenience.
-            FILE *itffp;
+            if (IS_PC98_ARCH) {
+                // The PC-98 BIOS has a bank switching system where at least the last 32KB
+                // can be switched to an Initial Firmware Test BIOS, which initializes the
+                // system then switches back to the full 96KB visible during runtime.
+                //
+                // We can emulate the same if a file named ITF.ROM exists in the same directory
+                // as the BIOS image we were given.
+                //
+                // To enable multiple ITFs per ROM image, we first try <bios filename>.itf.rom
+                // before trying itf.rom, for the user's convenience.
+                FILE *itffp;
 
-                               itffp = getFSFile((bios + ".itf.rom").c_str(), &isz1, &isz2);
-            if (itffp == NULL) itffp = getFSFile((bios + ".ITF.ROM").c_str(), &isz1, &isz2);
-            if (itffp == NULL) itffp = getFSFile("itf.rom", &isz1, &isz2);
-            if (itffp == NULL) itffp = getFSFile("ITF.ROM", &isz1, &isz2);
+                                   itffp = getFSFile((bios + ".itf.rom").c_str(), &isz1, &isz2);
+                if (itffp == NULL) itffp = getFSFile((bios + ".ITF.ROM").c_str(), &isz1, &isz2);
+                if (itffp == NULL) itffp = getFSFile("itf.rom", &isz1, &isz2);
+                if (itffp == NULL) itffp = getFSFile("ITF.ROM", &isz1, &isz2);
 
-            if (itffp != NULL && isz2 <= 0x8000ul) {
-                LOG_MSG("Found ITF (initial firmware test) BIOS image (0x%lx bytes)",(unsigned long)isz2);
+                if (itffp != NULL && isz2 <= 0x8000ul) {
+                    LOG_MSG("Found ITF (initial firmware test) BIOS image (0x%lx bytes)",(unsigned long)isz2);
 
-                memset(PC98_ITF_ROM,0xFF,sizeof(PC98_ITF_ROM));
-                readResult = fread(PC98_ITF_ROM,isz2,1,itffp);
-                fclose(itffp);
-                if (readResult != 1) {
-                    LOG(LOG_IO, LOG_ERROR) ("Reading error in Run\n");
-                    return;
+                    memset(PC98_ITF_ROM,0xFF,sizeof(PC98_ITF_ROM));
+                    readResult = fread(PC98_ITF_ROM,isz2,1,itffp);
+                    fclose(itffp);
+                    if (readResult != 1) {
+                        LOG(LOG_IO, LOG_ERROR) ("Reading error in Run\n");
+                        return;
+                    }
+                    PC98_ITF_ROM_init = true;
                 }
-                PC98_ITF_ROM_init = true;
-            }
 
-            IO_RegisterWriteHandler(0x43D,pc98_43d_write,IO_MB);
+                IO_RegisterWriteHandler(0x43D,pc98_43d_write,IO_MB);
+            }
 
             custom_bios = true;
 
