@@ -31,7 +31,7 @@ Next:
     image file is small enough to qualify as a floppy disk image. There is an
     HDI image of PC-98 game "D.O. Doki Doki Disk 8" that is 2.2MB, small enough
     to be mistaken as a 2.88MB IBM PC floppy disk and therefore fail to mount
-    as an HDI image, this change fixes it. (joncampbell123).
+    as an HDI image, this change fixes it. (joncampbell123, maron2000).
   - Emulate PEGC PC-98 linear framebuffer at both 0xF00000-0xF7FFFF (at 15MB
     memory mark) but also make it appear at top of memory below BIOS (normally
     at 0xFFF00000-0xFFF7FFFF). Some 32-bit PC-9821 CD-ROM MS-DOS games assume
@@ -138,6 +138,9 @@ Next:
   - Enable FONTX2 files in PC-98 mode (nanshiki)
   - Fix codepage switching when loading lang files (maron2000)
   - Add missing quotation marks in vcxproj (bredbored)
+  - Fixed BPB detection of PC-98 floppies (maron2000)
+  - Changed sequence to boot with drive numbers when booting from image (maron2000) 
+  - Added force JIS (JP106) keyboard layout option in PC-98 mode (maron2000)
 
 2023.10.06
   - Add "VRD" debugger command to force redraw of the VGA screen. (joncampbell123)
