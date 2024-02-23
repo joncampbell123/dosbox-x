@@ -1111,6 +1111,8 @@ diskGeo DiskGeometryList[] = {
     {2880, 36, 2, 80, 6, 512, 240, 2, 0xF0},      // IBM PC high density 3.5" double-sided 2.88MB
 
     {1232,  8, 2, 77, 7, 1024,192, 1, 0xFE},      // NEC PC-98 high density 3.5" double-sided 1.2MB "3-mode"
+    {1520, 19, 2, 80, 2, 512, 224, 1, 0xF9},      // IBM PC high density 5.25" double-sided 1.52MB (XDF)
+    {1840, 23, 2, 80, 4, 512, 224, 1, 0xF0},      // IBM PC high density 3.5" double-sided 1.84MB (XDF)
 
     {   0,  0, 0,  0, 0,    0,  0, 0,    0}
 };
@@ -3592,7 +3594,7 @@ void LogPrintPartitionTable(const std::vector<_PC98RawPartition> &parts) {
 		const _PC98RawPartition &part = parts[i];
 
 		LOG(LOG_DOSMISC,LOG_DEBUG)("IPL #%u: boot=%u active=%u startchs=%u/%u/%u endchs=%u/%u/%u '%s'",
-			(unsigned int)i,(part.mid&0x80)?1:0,(part.sid&0x80)?1:0,
+        (unsigned int)i,(part.mid&0x80)?1:0,(part.sid&0x80)?1:0,
 			part.cyl,part.head,part.sector,part.end_cyl,part.end_head,part.end_sector,
 			std::string((char*)part.name,sizeof(part.name)).c_str());
 	}

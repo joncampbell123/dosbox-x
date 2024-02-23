@@ -154,7 +154,9 @@ Next:
   - Fixed BPB detection of PC-98 floppies (maron2000)
   - Changed sequence to boot with drive numbers when booting from image (maron2000) 
   - Added force JIS (JP106) keyboard layout option in PC-98 mode (maron2000)
-
+  - PC-98: Enable mounting partitions with non-genuine IPL entry names (maron2000)
+  - Added support for XDF disk format (maron2000)
+   
 2023.10.06
   - Add "VRD" debugger command to force redraw of the VGA screen. (joncampbell123)
   - Add VGA debug set commands to force a video start address and another
