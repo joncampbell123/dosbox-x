@@ -23,7 +23,6 @@
 #include <sys/types.h>
 #include "adlib.h"
 
-#include "hardware.h"
 #include "logging.h"
 #include "setup.h"
 #include "mapper.h"
