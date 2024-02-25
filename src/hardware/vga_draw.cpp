@@ -4226,6 +4226,12 @@ void VGA_DrawDebugLine(uint8_t *line,unsigned int w) {
 				white = 0xF;
 			}
 			break;
+		case 15:
+			white = 0x7FFFu;
+			break;
+		case 16:
+			white = 0xFFFFu;
+			break;
 		case 32: // VGA/MCGA/SVGA/PC98
 			white = GFX_Bmask | GFX_Gmask | GFX_Rmask;
 			break;
@@ -4284,7 +4290,24 @@ void VGA_DrawDebugLine(uint8_t *line,unsigned int w) {
 		}
 	}
 	else if (machine == MCH_VGA) {
-		if (vga.draw.bpp == 32) { /* Doesn't use anything else */
+		if (vga.draw.bpp == 15 || vga.draw.bpp == 16) {
+			uint16_t *draw = (uint16_t*)line;
+			unsigned int dw = w;
+
+			if (dw <= 4) return;
+			for (unsigned int c=0;c < 4;c++) {
+				*draw++ = 0;
+				dw--;
+			}
+
+			minw = (unsigned int)(draw+4-(uint16_t*)line);
+
+			while (dw > 0) {
+				*draw++ = 0;
+				dw--;
+			}
+		}
+		else if (vga.draw.bpp == 32) { /* Doesn't use anything else */
 			uint32_t *draw = (uint32_t*)line;
 			unsigned int dw = w;
 
@@ -4417,6 +4440,26 @@ void VGA_DrawDebugLine(uint8_t *line,unsigned int w) {
 							}
 						}
 					}
+					else if (vga.draw.bpp == 15 || vga.draw.bpp == 16) {
+						if ((ev.x+ev.w) <= w) {
+							uint16_t *dp = (uint16_t*)line+ev.x;
+							const char *str = ev.text[ev.tline].c_str();
+							unsigned int dw = ev.w;
+							while (*str != 0 && dw >= 8) {
+								unsigned char c = (unsigned char)(*str++);
+								unsigned char b = int10_font_08[(c*8)+ev.trow];
+								for (unsigned int x=0;x < 8;x++) {
+									*dp++ = (b & 0x80) ? 0 : ev.colorline;
+									b <<= 1u;
+								}
+								dw -= 8;
+							}
+							while (dw >= 8) {
+								for (unsigned int x=0;x < 8;x++) *dp++ = ev.colorline;
+								dw -= 8;
+							}
+						}
+					}
 					else if (vga.draw.bpp == 32) {
 						if ((ev.x+ev.w) <= w) {
 							uint32_t *dp = (uint32_t*)line+ev.x;
@@ -4478,6 +4521,14 @@ void VGA_sof_debug_video_info(void) {
 				white = 0xF;
 				green = 0xA; /* xxxxIRGB */
 			}
+			break;
+		case 15:
+			green = 0x1Fu << 5u;
+			white = 0x7FFFu;
+			break;
+		case 16:
+			green = 0x3Fu << 5u;
+			white = 0xFFFFu;
 			break;
 		case 32: // VGA/MCGA/SVGA/PC98
 			green = GFX_Gmask;
