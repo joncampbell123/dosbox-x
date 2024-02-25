@@ -7,6 +7,9 @@ Next:
     One symptom was that the video debug info on the side failed to appear at
     all, unless running in Windows and only within the vertical range of the
     mouse cursor. (joncampbell123).
+  - Video debug overlay: Do not bother showing the Attribute Controller palette
+    in 15/16/24/32bpp SVGA modes because it doesn't matter there and is not
+    involved with how anything is displayed. (joncampbell123).
   - BOOT --bios no longer triggers a system reset VM event, but instead just
     jumps to the new BIOS image after DOS kernel shutdown. This is needed for
     hardware and resources to stay as they were when running the BIOS i.e.
