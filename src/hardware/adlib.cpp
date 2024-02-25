@@ -36,6 +36,7 @@
 #include "mame/ymf262.h"
 #include "opl2board/opl2board.h"
 #include "opl3duoboard/opl3duoboard.h"
+#include "esfmu/esfm.h"
 
 #define RETROWAVE_USE_BUFFER
 #include "RetroWaveLib/RetroWave_DOSBoX.hpp"
@@ -178,6 +179,101 @@ namespace OPL3 {
 		~Handler() {
 		}
 	};
+}
+
+namespace ESFMu {
+
+struct Handler : public Adlib::Handler {
+	esfm_chip chip = {};
+
+	void WriteReg(uint32_t reg, uint8_t val) override {
+		ESFM_write_reg_buffered_fast(&chip, (uint16_t)reg, val);
+	}
+
+	uint8_t ReadbackReg( uint32_t reg ) override {
+		uint8_t val = ESFM_readback_reg(&chip, (uint16_t)reg);
+		return val;
+	}
+
+	void ESFMSetEmulationMode() override {
+		ESFM_write_port(&chip, 0, 0);
+	}
+
+	uint32_t WriteAddr(uint32_t port, uint8_t val) override {
+		uint16_t addr;
+		if (chip.native_mode) {
+			ESFM_write_port(&chip, (port & 3) | 2, val);
+			return (uint32_t)chip.addr_latch & 0x7ff;
+		} else {
+			addr = val;
+			if ((port & 2) && (addr == 0x05 || chip.emu_newmode)) {
+				addr |= 0x100;
+			}
+			return addr;
+		}
+	}
+
+#if 0
+	void debugDumpMemory() {
+		static uint8_t register_dump[0x800];
+		int i, j;
+		bool data_is_new = false;
+		bool was_native_mode = chip.native_mode;
+		chip.native_mode = 1;
+		for (i = 0; i < 0x800; i++) {
+			uint8_t old_data = register_dump[i];
+			uint8_t data = ESFM_readback_reg(&chip, i);
+			if (old_data != data) {
+				data_is_new = true;
+			}
+			register_dump[i] = data;
+		}
+		chip.native_mode = was_native_mode;
+		if (data_is_new) {
+			DEBUG_ShowMsg("*** ESFM DUMP ***");
+			DEBUG_ShowMsg("Native mode status: %d", was_native_mode);
+			DEBUG_ShowMsg("0xBassdrum: %02x, vib %d, trem %d", register_dump[0x4bd], chip.emu_vibrato_deep, chip.emu_tremolo_deep);
+			DEBUG_ShowMsg("       0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f");
+			for (i = 0; i < 0x260; i += 0x10) {
+				char log_line[1024];
+				char *needle;
+				int written_chars;
+				written_chars = snprintf(log_line, sizeof(log_line), "%04x:", i);
+				needle = log_line + written_chars;
+				for (j = 0; j < 16; j++) {
+					written_chars = snprintf(needle, sizeof(log_line) - (needle - log_line), " %02x", register_dump[i + j]);
+					needle = needle + written_chars;
+					if ((needle - log_line) > sizeof(log_line)){
+						break;
+					}
+				}
+				DEBUG_ShowMsg(log_line);
+			}
+		}
+	}
+#endif
+
+	void Generate(MixerChannel *chan, Bitu samples) override {
+		int16_t buf[1024 * 2];
+
+		while (samples > 0) {
+			uint32_t todo = samples > 1024 ? 1024 : (uint32_t)samples;
+			ESFM_generate_stream(&chip, buf, todo);
+			chan->AddSamples_s16(todo, buf);
+			samples -= todo;
+		}
+	}
+
+	void Init(Bitu rate) override {
+		// ESFMu only ever runs at ~49716 Hz.
+		(void)rate;
+		ESFM_init(&chip);
+	}
+
+	~Handler() {
+	}
+};
+
 }
 
 namespace NukedOPL {
@@ -524,14 +620,14 @@ struct RawHeader {
 	uint8_t format;				/* 0x15, uint8_t Format 0=cmd/data interleaved, 1 maybe all cdms, followed by all data */
 	uint8_t compression;			/* 0x16, uint8_t Compression Type, 0 = No Compression */
 	uint8_t delay256;				/* 0x17, uint8_t Delay 1-256 msec command */
-	uint8_t delayShift8;			/* 0x18, uint8_t (delay + 1)*256 */			
+	uint8_t delayShift8;			/* 0x18, uint8_t (delay + 1)*256 */
 	uint8_t conversionTableSize;	/* 0x191, uint8_t Raw Conversion Table size */
 } GCC_ATTRIBUTE(packed);
 #ifdef _MSC_VER
 #pragma pack()
 #endif
 /*
-	The Raw Tables is < 128 and is used to convert raw commands into a full register index 
+	The Raw Tables is < 128 and is used to convert raw commands into a full register index
 	When the high bit of a raw command is set it indicates the cmd/data pair is to be sent to the 2nd port
 	After the conversion table the raw data follows immediately till the end of the chunk
 */
@@ -579,8 +675,8 @@ class Capture {
 		for ( int i = 0 ; i < 24; i++ ) {
 			if ( (i & 7) < 6 ) {
 				MakeEntry(0x20 + i, index );		//20-35: Tremolo / Vibrato / Sustain / KSR / Frequency Multiplication Facto
-				MakeEntry(0x40 + i, index );		//40-55: Key Scale Level / Output Level 
-				MakeEntry(0x60 + i, index );		//60-75: Attack Rate / Decay Rate 
+				MakeEntry(0x40 + i, index );		//40-55: Key Scale Level / Output Level
+				MakeEntry(0x60 + i, index );		//60-75: Attack Rate / Decay Rate
 				MakeEntry(0x80 + i, index );		//80-95: Sustain Level / Release Rate
 				MakeEntry(0xe0 + i, index );		//E0-F5: Waveform Select
 			}
@@ -588,14 +684,14 @@ class Capture {
 		//Add the 9 byte range that hold the 9 channels
 		for ( int i = 0 ; i < 9; i++ ) {
 			MakeEntry(0xa0 + i, index );			//A0-A8: Frequency Number
-			MakeEntry(0xb0 + i, index );			//B0-B8: Key On / Block Number / F-Number(hi bits) 
+			MakeEntry(0xb0 + i, index );			//B0-B8: Key On / Block Number / F-Number(hi bits)
 			MakeEntry(0xc0 + i, index );			//C0-C8: FeedBack Modulation Factor / Synthesis Type
 		}
 		//Store the amount of bytes the table contains
 		RawUsed = index;
 //		assert( RawUsed <= 127 );
 		delay256 = RawUsed;
-		delayShift8 = RawUsed+1; 
+		delayShift8 = RawUsed+1;
 	}
 
 	void ClearBuf( void ) {
@@ -619,7 +715,7 @@ class Capture {
 		//Enabling opl3 4op modes will make us go into opl3 mode
 		if ( header.hardware != HW_OPL3 && regFull == 0x104 && val && (*cache)[0x105] ) {
 			header.hardware = HW_OPL3;
-		} 
+		}
 		//Writing a keyon to a 2nd address enables dual opl2 otherwise
 		//Maybe also check for rhythm
 		if ( header.hardware == HW_OPL2 && regFull >= 0x1b0 && regFull <=0x1b8 && val ) {
@@ -694,7 +790,7 @@ public:
 			if ( raw == 0xff ) {
 				return true;
 			}
-			/* Check if this command will not just replace the same value 
+			/* Check if this command will not just replace the same value
 			   in a reg that doesn't do anything with it
 			*/
 			if ( (*cache)[ regFull ] == val )
@@ -705,11 +801,11 @@ public:
 			header.milliseconds += (uint32_t)passed;
 
 			//if ( passed > 0 ) LOG_MSG( "Delay %d", passed ) ;
-			
+
 			// If we passed more than 30 seconds since the last command, we'll restart the the capture
 			if ( passed > 30000 ) {
 				CloseFile();
-				goto skipWrite; 
+				goto skipWrite;
 			}
 			while (passed > 0) {
 				if (passed < 257) {			//1-256 millisecond delay
@@ -728,7 +824,7 @@ skipWrite:
 		//Not yet capturing to a file here
 		//Check for commands that would start capturing, if it's not one of them return
 		if ( !(
-			//note on in any channel 
+			//note on in any channel
 			( regMask>=0xb0 && regMask<=0xb8 && (val&0x020) ) ||
 			//Percussion mode enabled and a note on in any percussion instrument
 			( regMask == 0xbd && ( (val&0x3f) > 0x20 ) )
@@ -748,7 +844,7 @@ skipWrite:
 		/* Write the command that triggered this */
 		AddWrite( regFull, val );
 		//Init the timing information for the next commands
-		lastTicks = (uint32_t)PIC_Ticks;	
+		lastTicks = (uint32_t)PIC_Ticks;
 		startTicks = (uint32_t)PIC_Ticks;
 		return true;
 	}
@@ -817,6 +913,36 @@ bool Chip::Write( uint32_t reg, uint8_t val ) {
 	return false;
 }
 
+uint8_t *Chip::ReadbackReg( uint32_t reg, uint8_t *ret ) {
+	if (ret == NULL) {
+		return NULL;
+	}
+
+	if (adlib_force_timer_overflow_on_polling) {
+		/* detect end of polling loop by whether it writes */
+		last_poll = PIC_FullIndex();
+		poll_counter = 0;
+	}
+
+	uint8_t val = 0;
+	switch ( reg ) {
+	case 0x02:
+		*ret = timer0.GetCounter();
+		return ret;
+	case 0x03:
+		*ret = timer1.GetCounter();
+		return ret;
+	case 0x04:
+		val = timer0.IsEnabled() & 1;
+		val |= (timer1.IsEnabled() & 1) << 1;
+		val |= (timer1.IsMasked() & 1) << 5;
+		val |= (timer1.IsMasked() & 1) << 6;
+		*ret = val;
+		return ret;
+	}
+
+	return NULL;
+}
 
 uint8_t Chip::Read( ) {
 	const double time( PIC_FullIndex() );
@@ -868,16 +994,16 @@ void Module::CacheWrite( uint32_t reg, uint8_t val ) {
 
 void Module::DualWrite( uint8_t index, uint8_t reg, uint8_t val ) {
 	//Make sure you don't use opl3 features
-	//Don't allow write to disable opl3		
+	//Don't allow write to disable opl3
 	if ( reg == 5 ) {
 		return;
 	}
 	//Only allow 4 waveforms
 	if ( reg >= 0xE0 ) {
 		val &= 3;
-	} 
+	}
 	//Write to the timer?
-	if ( chip[index].Write( reg, val ) ) 
+	if ( chip[index].Write( reg, val ) )
 		return;
 	//Enabling panning
 	if ( reg >= 0xc0 && reg <=0xc8 ) {
@@ -928,6 +1054,34 @@ void Module::PortWrite( Bitu port, Bitu val, Bitu iolen ) {
 	if ( !mixerChan->enabled ) {
 		mixerChan->Enable(true);
 	}
+
+	if ( mode == MODE_ESFM && esfm_nativemode ) {
+		switch (port & 3)
+		{
+		case 0:
+			// disable native mode
+			handler->ESFMSetEmulationMode();
+			esfm_nativemode = false;
+			break;
+		case 1:
+			if ( (reg.normal & 0x500) == 0x400) {
+				// Emulation mode register pokehole region at 0x400 (mirrored at 0x600)
+				if ( !chip[0].Write( reg.normal & 0xff, (uint8_t)val ) ) {
+					handler->WriteReg( reg.normal, (uint8_t)val );
+				}
+			} else {
+				handler->WriteReg( reg.normal, (uint8_t)val );
+			}
+			// TODO: capture for ESFM native mode? it's complicated...
+			//CacheWrite( reg.normal, (uint8_t)val );
+			break;
+		case 2: case 3:
+			reg.normal = handler->WriteAddr( (uint32_t)port, (uint8_t)val ) & 0x7ff;
+			break;
+		}
+		return;
+	}
+
 	if ( port&1 ) {
 		switch ( mode ) {
 		case MODE_OPL3GOLD:
@@ -956,6 +1110,19 @@ void Module::PortWrite( Bitu port, Bitu val, Bitu iolen ) {
 				DualWrite( 1, reg.dual[1], (uint8_t)val );
 			}
 			break;
+		case MODE_ESFM:
+			if ( !chip[0].Write( reg.normal, (uint8_t)val ) ) {
+				if ( reg.normal == 0x105 && (val & 0x80) ) {
+					// This write will enable ESFM native mode
+					esfm_nativemode = true;
+					if ( capture ) {
+						LOG_MSG("WARNING: ESFM native mode has been enabled by the application, but it's not supported during Raw OPL capture. Nothing will be captured after this point.");
+					}
+				}
+				handler->WriteReg( reg.normal & 0x1ff, (uint8_t)val );
+				CacheWrite( reg.normal & 0x1ff, (uint8_t)val );
+			}
+			break;
 		}
 	} else {
 		//Ask the handler to write the address
@@ -979,6 +1146,7 @@ void Module::PortWrite( Bitu port, Bitu val, Bitu iolen ) {
 			} //Fall-through if not handled by control chip
 			/* FALLTHROUGH */
 		case MODE_OPL3:
+		case MODE_ESFM:
 			reg.normal = handler->WriteAddr( (uint32_t)port, (uint8_t)val ) & 0x1ff;
 			break;
 		case MODE_DUALOPL2:
@@ -999,7 +1167,7 @@ void Module::PortWrite( Bitu port, Bitu val, Bitu iolen ) {
 Bitu Module::PortRead( Bitu port, Bitu iolen ) {
     (void)iolen;//UNUSED
 	//roughly half a micro (as we already do 1 micro on each port read and some tests revealed it taking 1.5 micros to read an adlib port)
-	Bits delaycyc = (CPU_CycleMax/2048); 
+	Bits delaycyc = (CPU_CycleMax/2048);
 	if(GCC_UNLIKELY(delaycyc > CPU_Cycles)) delaycyc = CPU_Cycles;
 	CPU_Cycles -= delaycyc;
 	CPU_IODelayRemoved += delaycyc;
@@ -1036,6 +1204,27 @@ Bitu Module::PortRead( Bitu port, Bitu iolen ) {
 		}
 		//Make sure the low bits are 6 on opl2
 		return chip[ (port >> 1) & 1].Read() | 0x6;
+	case MODE_ESFM:
+		switch ( port & 3 ) {
+		case 0:
+			return chip[0].Read();
+		case 1:
+			if ( esfm_nativemode ) {
+				if ( ( reg.normal & 0x500 ) == 0x400 ) {
+					// Emulation mode register pokehole region at 0x400 (mirrored at 0x600)
+					uint8_t val;
+					if ( chip[0].ReadbackReg( reg.normal & 0xff, &val ) ) {
+						return val;
+					}
+				}
+				return handler->ReadbackReg( reg.normal );
+			} else {
+				return 0x00;
+			}
+		case 2: case 3:
+			return 0xff;
+		}
+		break;
 	}
 	return 0;
 }
@@ -1045,6 +1234,7 @@ void Module::Init( Mode m ) {
 	mode = m;
 	memset(cache, 0, sizeof(cache));
 	switch ( mode ) {
+	case MODE_ESFM:
 	case MODE_OPL3:
 	case MODE_OPL3GOLD:
 	case MODE_OPL2:
@@ -1153,8 +1343,15 @@ void OPL_SaveRawEvent(bool pressed) {
 		LOG_MSG("Stopped Raw OPL capturing.");
 		if (show_recorded_filename && pathopl.size()) systemmessagebox("Recording completed",("Saved Raw OPL output to the file:\n\n"+pathopl).c_str(),"ok", "info", 1);
 	} else {
-		LOG_MSG("Preparing to capture Raw OPL, will start with first note played.");
-		module->capture = new Adlib::Capture( &module->cache );
+		if (module->oplmode == OPL_esfm && module->esfm_nativemode) {
+			LOG_MSG("ERROR: Cannot capture Raw OPL output because ESFM native mode is being used by the current application, which is not supported by the Raw OPL format.");
+			if (show_recorded_filename) {
+				systemmessagebox("Error", "Cannot capture Raw OPL output because ESFM native mode is being used by the current application, which is not supported by the Raw OPL format.", "ok", "error", 1);
+			}
+		} else {
+			LOG_MSG("Preparing to capture Raw OPL, will start with first note played.");
+			module->capture = new Adlib::Capture( &module->cache );
+		}
 	}
 	pathopl = "";
 
@@ -1189,6 +1386,7 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 	ctrl.rvol = 0xff;
 	handler = 0;
 	capture = 0;
+	esfm_nativemode = false;
 
 	Section_prop * section=static_cast<Section_prop *>(configuration);
 	Bitu base = (Bitu)section->Get_hex("sbbase");
@@ -1205,9 +1403,16 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 	std::string retrowave_spi_cs(section->Get_string("retrowave_spi_cs"));
 	adlib_force_timer_overflow_on_polling = section->Get_bool("adlib force timer overflow on detect");
 
-	mixerChan = mixerObject.Install(OPL_CallBack,rate,"FM");
-	//Used to be 2.0, which was measured to be too high. Exact value depends on card/clone.
-	mixerChan->SetScale( 1.5f );  
+	if (oplmode == OPL_esfm && oplemu != "esfmu") {
+		LOG_MSG("Adlib: WARN: an ESFM-capable sbtype (or the 'esfm' oplmode) was chosen, but the chosen oplemu is not ESFM-capable. ESFM native mode features will not work!");
+		// Fall back to OPL3 mode, because ESFM port read/write mode will cause
+		// unintended behavior with non-ESFM emulators
+		oplmode = OPL_opl3;
+	}
+
+	if (oplemu == "esfmu" && oplmode != OPL_esfm) {
+		LOG_MSG("Adlib: WARN: an ESFM-capable oplemu was chosen, but the chosen sbtype (or oplmode) is not ESFM-capable. ESFM native mode features will not work!");
+	}
 
 	if (oplemu == "compat") {
 		if (oplmode == OPL_opl2) {
@@ -1237,12 +1442,22 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 		else {
 			handler = new MAMEOPL3::Handler();
 		}
-	} 
+	}
+	else if (oplemu == "esfmu") {
+		handler = new ESFMu::Handler();
+		// ESFMu only supports 49716 Hz sample rate, override it here.
+		rate = 49716;
+	}
 	//Fall back to dbop, will also catch auto
 	else if (oplemu == "fast" || 1) {
 		const bool opl3Mode = oplmode >= OPL_opl3;
 		handler = new DBOPL::Handler( opl3Mode );
 	}
+
+	mixerChan = mixerObject.Install(OPL_CallBack,rate,"FM");
+	//Used to be 2.0, which was measured to be too high. Exact value depends on card/clone.
+	mixerChan->SetScale( 1.5f );
+
 	usedoplemu = oplemu;
 	handler->Init( rate );
 	bool single = false;
@@ -1259,6 +1474,9 @@ Module::Module( Section* configuration ) : Module_base(configuration) {
 		break;
 	case OPL_opl3gold:
 		Init( Adlib::MODE_OPL3GOLD );
+		break;
+	case OPL_esfm:
+		Init( Adlib::MODE_ESFM );
 		break;
 	default:
 		break;
@@ -1333,6 +1551,7 @@ std::string getoplmode() {
     else if (Adlib::Module::oplmode == OPL_opl3gold) return "OPL3 Gold";
     else if (Adlib::Module::oplmode == OPL_hardware) return "Hardware";
     else if (Adlib::Module::oplmode == OPL_hardwareCMS) return "Hardware CMS";
+    else if (Adlib::Module::oplmode == OPL_esfm) return "ESFM";
     else return "Unknown";
 }
 
@@ -1340,6 +1559,7 @@ std::string getoplemu() {
     std::string emu=Adlib::usedoplemu;
     if (emu=="mame") emu="MAME";
     else if (emu=="opl2board") emu="OPL2 board";
+    else if (emu=="esfmu") emu="ESFMu";
     else emu[0]=toupper(emu[0]);
     return emu;
 }

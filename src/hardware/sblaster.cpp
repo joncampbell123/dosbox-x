@@ -101,7 +101,7 @@ enum {DSP_S_RESET,DSP_S_RESET_WAIT,DSP_S_NORMAL,DSP_S_HIGHSPEED};
 enum SB_TYPES {SBT_NONE=0,SBT_1=1,SBT_PRO1=2,SBT_2=3,SBT_PRO2=4,SBT_16=6,SBT_GB=7}; /* TODO: Need SB 2.0 vs SB 2.01 */
 enum REVEAL_SC_TYPES {RSC_NONE=0,RSC_SC400=1};
 enum SB_IRQS {SB_IRQ_8,SB_IRQ_16,SB_IRQ_MPU};
-enum ESS_TYPES {ESS_NONE=0,ESS_688=1};
+enum ESS_TYPES {ESS_NONE=0,ESS_688=1,ESS_1488=2};
 
 enum DSP_MODES {
     MODE_NONE,
@@ -231,6 +231,8 @@ struct SB_INFO {
         bool filtered;
         bool sbpro_stereo; /* Game or OS is attempting SB Pro type stereo */
         uint8_t unhandled[0x48];
+        uint8_t ess_id_str[4];
+        uint8_t ess_id_str_pos;
     } mixer;
     struct {
         uint8_t reference;
@@ -2288,8 +2290,16 @@ static void DSP_DoCommand(void) {
     case 0xe7:  /* ESS detect/read config */
         if (sb.ess_type != ESS_NONE) {
             DSP_FlushData();
-            DSP_AddData(0x68);
-            DSP_AddData(0x80 | 0x04/*ESS 688 version*/);
+            switch (sb.ess_type) {
+            case ESS_NONE:
+                break;
+            case ESS_688:
+            case ESS_1488:
+                // FIXME: This works for DOS games, but the ES1488 Windows driver seems to be rejecting it. Needs to be verified on a real ES1488 card.
+                DSP_AddData(0x68);
+                DSP_AddData(0x80 | 0x04/*ESS 688/1488 version*/);
+                break;
+            }
         }
         break;
     case 0xe8:  /* Read Test Register */
@@ -3060,6 +3070,32 @@ static uint8_t CTMIXER_Read(void) {
     case 0x3e:      /* Line Volume (ESS 688) */
         if (sb.ess_type != ESS_NONE) return ((sb.mixer.lin[0] << 3) & 0xF0) + (sb.mixer.lin[1] >> 1);
         break;
+    case 0x40:      /* ESS identification value (ES1488 and later) */
+        if (sb.ess_type != ESS_NONE) {
+            switch (sb.ess_type) {
+            case ESS_688:
+                ret=0xa;
+                break;
+            case ESS_1488:
+                ret=sb.mixer.ess_id_str[sb.mixer.ess_id_str_pos];
+                sb.mixer.ess_id_str_pos++;
+                if (sb.mixer.ess_id_str_pos >= 4) {
+                    sb.mixer.ess_id_str_pos = 0;
+                }
+                break;
+            default:
+                ret=0xa;
+                LOG(LOG_SB,LOG_WARN)("MIXER:FIXME:ESS identification function (0x%X) for selected card is not implemented",sb.mixer.index);
+            }
+        } else {
+            if (sb.type == SBT_16) {
+                ret=sb.mixer.unhandled[sb.mixer.index];
+            } else {
+                ret=0xa;
+            }
+            LOG(LOG_SB,LOG_WARN)("MIXER:Read from unhandled index %X",sb.mixer.index);
+        }
+        break;
     case 0x80:      /* IRQ Select */
         ret=0;
         if (IS_PC98_ARCH) {
@@ -3234,6 +3270,9 @@ static void write_sb(Bitu port,Bitu val,Bitu /*iolen*/) {
         break;
     case MIXER_INDEX:
         sb.mixer.index=val8;
+        if (sb.mixer.index == 0x40 && sb.ess_type != ESS_NONE) {
+            sb.mixer.ess_id_str_pos = 0;
+        }
         break;
     case MIXER_DATA:
         CTMIXER_Write(val8);
@@ -3642,6 +3681,14 @@ private:
             LOG(LOG_SB,LOG_WARN)("Reveal SC400 emulation is EXPERIMENTAL at this time and should not yet be used for normal gaming.");
             LOG(LOG_SB,LOG_WARN)("Additional WARNING: This code only emulates the Sound Blaster portion of the card. Attempting to use the Windows Sound System part of the card (i.e. the Voyetra/SC400 Windows drivers) will not work!");
         }
+        else if (!strcasecmp(sbtype,"ess1488")) {
+            type=SBT_PRO2;
+            sb.ess_type=ESS_1488;
+            sb.mixer.ess_id_str[0] = 0x14;
+            sb.mixer.ess_id_str[1] = 0x88;
+            LOG(LOG_SB,LOG_DEBUG)("ESS ES1488 emulation enabled.");
+            LOG(LOG_SB,LOG_WARN)("ESS ES1488 emulation is EXPERIMENTAL at this time and should not yet be used for normal gaming.");
+        }
         else type=SBT_16;
 
         if (type == SBT_16) {
@@ -3673,6 +3720,7 @@ private:
         else if (!strcasecmp(omode,"opl3gold")) opl_mode=OPL_opl3gold;
         else if (!strcasecmp(omode,"hardware")) opl_mode=OPL_hardware;
         else if (!strcasecmp(omode,"hardwaregb")) opl_mode=OPL_hardwareCMS;
+        else if (!strcasecmp(omode,"esfm")) opl_mode=OPL_esfm;
         /* Else assume auto */
         else {
             switch (type) {
@@ -3691,7 +3739,11 @@ private:
                 break;
             case SBT_PRO2: // NTS: ESS 688 cards also had an OPL3 (http://www.dosdays.co.uk/topics/Manufacturers/ess.php)
             case SBT_16:
-                opl_mode=OPL_opl3;
+                if (sb.ess_type != ESS_NONE && sb.ess_type != ESS_688) {
+                    opl_mode=OPL_esfm;
+                } else {
+                    opl_mode=OPL_opl3;
+                }
                 break;
             }
         }
@@ -3722,6 +3774,11 @@ public:
         Section_prop * section=static_cast<Section_prop *>(configuration);
 
         sb.hw.base=(unsigned int)section->Get_hex("sbbase");
+
+        if (sb.ess_type != ESS_NONE && sb.ess_type != ESS_688) {
+            sb.mixer.ess_id_str[2] = (sb.hw.base >> 8) & 0xff;
+            sb.mixer.ess_id_str[3] = sb.hw.base & 0xff;
+        }
 
         if (IS_PC98_ARCH) {
             if (sb.hw.base >= 0x220 && sb.hw.base <= 0x2E0) /* translate IBM PC to PC-98 (220h -> D2h) */
@@ -3881,6 +3938,7 @@ public:
             // fall-through
         case OPL_opl3:
         case OPL_opl3gold:
+        case OPL_esfm:
             OPL_Init(section,oplmode);
             break;
         case OPL_hardwareCMS:
@@ -4171,6 +4229,7 @@ ASP>
         case OPL_dualopl2:
         case OPL_opl3:
         case OPL_opl3gold:
+        case OPL_esfm:
             OPL_ShutDown(m_configuration);
             break;
         default:

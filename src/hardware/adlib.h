@@ -73,7 +73,7 @@ public:
 		}
 		return overflow;
 	}
-	
+
 	//On a reset make sure the start is in sync with the next cycle
 	void Reset() {
 		overflow = false;
@@ -83,6 +83,18 @@ public:
 		counter = val;
 		//Interval for next cycle
 		counterInterval = (256 - counter) * clockInterval;
+	}
+
+	uint8_t GetCounter() {
+		return counter;
+	}
+
+	bool IsMasked() {
+		return masked;
+	}
+
+	bool IsEnabled() {
+		return enabled;
 	}
 
 	void SetMask(bool set) {
@@ -116,6 +128,7 @@ struct Chip {
 	bool Write( uint32_t reg, uint8_t val );
 	//Read the current timer state, will use current double
 	uint8_t Read( );
+	uint8_t *ReadbackReg( uint32_t reg, uint8_t *ret );
 
 	Chip();
 	//poll counter
@@ -128,7 +141,8 @@ typedef enum {
 	MODE_OPL2,
 	MODE_DUALOPL2,
 	MODE_OPL3,
-	MODE_OPL3GOLD
+	MODE_OPL3GOLD,
+	MODE_ESFM
 } Mode;
 
 class Handler {
@@ -137,6 +151,10 @@ public:
 	virtual uint32_t WriteAddr( uint32_t port, uint8_t val ) = 0;
 	//Write to a specific register in the chip
 	virtual void WriteReg( uint32_t addr, uint8_t val ) = 0;
+	//Read back a specific register in the chip (ESFM-specific)
+	virtual uint8_t ReadbackReg( uint32_t reg ) {(void)reg; return 0xff;}
+	//Sets the card back to emulation mode if it was in native mode (ESFM-specific)
+	virtual void ESFMSetEmulationMode() {};
 	//Generate a certain amount of samples
 	virtual void Generate( MixerChannel* chan, Bitu samples ) = 0;
 	//Initialize at a specific sample rate and mode
@@ -181,6 +199,7 @@ public:
 	static OPL_Mode oplmode;
 	MixerChannel* mixerChan;
 	uint32_t lastUsed;				//Ticks when adlib was last used to turn of mixing after a few second
+	bool esfm_nativemode;			// When using MODE_ESFM, whether the synth is in native mode or not - affects port mapping
 
 	Handler* handler;				//Handler that will generate the sound
     RegisterCache cache = {};
@@ -196,7 +215,7 @@ public:
 	virtual void SaveState( std::ostream& stream );
 	virtual void LoadState( std::istream& stream );
 
-	Module( Section* configuration); 
+	Module( Section* configuration);
 	~Module();
 };
 
