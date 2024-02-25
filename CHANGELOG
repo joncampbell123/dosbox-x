@@ -157,8 +157,8 @@ Next:
   - PC-98: Enable mounting partitions with non-genuine IPL entry names (maron2000)
   - Added support for XDF disk format (maron2000)
   - Added ESFM emulation (ESFMu v1.2 core) (Kagamiin)
-  - Added support for ESS "ESFM" sound synthesis (oplemu=esfmu, oplmode=esfm)(Kagamiin)
-  - Added experimental/WIP support for the ESS ES1488 sblaster type (sbtype=ess1488)(Kagamiin)
+  - Added support for ESS "ESFM" sound synthesis (oplemu=esfmu, oplmode=esfm) (Kagamiin)
+  - Added experimental/WIP support for the ESS ES1488 sblaster type (sbtype=ess1488) (Kagamiin)
    
 2023.10.06
   - Add "VRD" debugger command to force redraw of the VGA screen. (joncampbell123)
