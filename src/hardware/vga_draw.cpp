@@ -4121,12 +4121,20 @@ void VGA_DebugAddEvent(debugline_event &ev) {
 			case DBGEV_SPLIT:
 				if (vga.draw.bpp == 8)
 					ev.colorline = is_ega64 ? 0x12 : 0x0A;
+				else if (vga.draw.bpp == 15)
+					ev.colorline = 0x1Fu << 5u;
+				else if (vga.draw.bpp == 16)
+					ev.colorline = 0x3Fu << 5u;
 				else
 					ev.colorline = GFX_Gmask;
 				break;
 			default:
 				if (vga.draw.bpp == 8)
 					ev.colorline = is_ega64 ? 0x3F : 0x0F;
+				else if (vga.draw.bpp == 15)
+					ev.colorline = 0x7FFFu;
+				else if (vga.draw.bpp == 16)
+					ev.colorline = 0xFFFFu;
 				else
 					ev.colorline = GFX_Rmask | GFX_Gmask | GFX_Bmask;
 				break;
