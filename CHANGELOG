@@ -1,4 +1,6 @@
 Next:
+  - Video debug overlay: Fix mouse integration misalignment when the video
+    debug overlay is enabled while Windows is running (joncampbell123).
   - Video debug overlay: Fix segfault when enabled with 15/16bpp SVGA modes.
     (joncampbell123).
   - Video debug overlay: Fix bug where video debug failed to appear in SVGA

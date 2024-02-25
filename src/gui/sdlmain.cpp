@@ -4221,6 +4221,8 @@ void GFX_SDLMenuTrackHilight(DOSBoxMenu &menu,DOSBoxMenu::item_handle_t item_id)
 }
 #endif
 
+extern bool video_debug_overlay;
+
 uint8_t Mouse_GetButtonState(void);
 
 bool GFX_CursorInOrNearScreen(int wx,int wy) {
@@ -4319,6 +4321,11 @@ static void HandleMouseMotion(SDL_MouseMotionEvent * motion) {
     user_cursor_emulation = sdl.mouse.emulation;
     user_cursor_sw     = sdl.clip.w;
     user_cursor_sh     = sdl.clip.h;
+
+    if (video_debug_overlay && vga.draw.width < render.src.width) {
+        user_cursor_sw     = (vga.draw.width*user_cursor_sw)/render.src.width;
+        user_cursor_sh     = (vga.draw.height*user_cursor_sh)/render.src.height;
+    }
 
     auto xrel = static_cast<float>(motion->xrel) * sdl.mouse.xsensitivity / 100.0f;
     auto yrel = static_cast<float>(motion->yrel) * sdl.mouse.ysensitivity / 100.0f;
