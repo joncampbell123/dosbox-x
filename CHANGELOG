@@ -1,4 +1,12 @@
 Next:
+  - Video debug overlay: Fix segfault when enabled with 15/16bpp SVGA modes.
+    (joncampbell123).
+  - Video debug overlay: Fix bug where video debug failed to appear in SVGA
+    15/16/24/32bpp display modes because of a design where the VGA drawing
+    code points directly at video RAM except when drawing the hardware cursor.
+    One symptom was that the video debug info on the side failed to appear at
+    all, unless running in Windows and only within the vertical range of the
+    mouse cursor. (joncampbell123).
   - BOOT --bios no longer triggers a system reset VM event, but instead just
     jumps to the new BIOS image after DOS kernel shutdown. This is needed for
     hardware and resources to stay as they were when running the BIOS i.e.
