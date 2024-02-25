@@ -4020,6 +4020,7 @@ static void VGA_debug_screen_alloc(size_t w,size_t h,size_t bpp) {
 		case 8:
 			VGA_debug_screen_func = &VGA_debug_screen_funcs8;
 			break;
+		case 15:
 		case 16:
 			VGA_debug_screen_func = &VGA_debug_screen_funcs16;
 			break;
