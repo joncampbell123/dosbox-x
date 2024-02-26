@@ -1420,6 +1420,8 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClCompile Include="..\src\hardware\disney.cpp" />
     <ClCompile Include="..\src\hardware\dma.cpp" />
     <ClCompile Include="..\src\hardware\dongle.cpp" />
+    <ClCompile Include="..\src\hardware\esfmu\esfm.c" />
+    <ClCompile Include="..\src\hardware\esfmu\esfm_registers.c" />
     <ClCompile Include="..\src\hardware\floppy.cpp" />
     <ClCompile Include="..\src\hardware\gameblaster.cpp" />
     <ClCompile Include="..\src\hardware\gus.cpp" />
@@ -1800,6 +1802,7 @@ for /d %%i in ("$(SolutionDir)\..\contrib\translations\*") do copy "%%i\*.lng" "
     <ClInclude Include="..\src\gui\render_templates_sai.h" />
     <ClInclude Include="..\src\hardware\adlib.h" />
     <ClInclude Include="..\src\hardware\dbopl.h" />
+    <ClInclude Include="..\src\hardware\esfmu\esfm.h" />
     <ClInclude Include="..\src\hardware\hardopl.h" />
     <ClInclude Include="..\src\hardware\mame\emu.h" />
     <ClInclude Include="..\src\hardware\mame\fmopl.h" />
