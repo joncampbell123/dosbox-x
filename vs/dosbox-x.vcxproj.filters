@@ -750,6 +750,12 @@
     <ClCompile Include="..\src\shell\shell_misc.cpp">
       <Filter>Sources\shell</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\hardware\esfmu\esfm.c">
+      <Filter>Sources\hardware\esfmu</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\hardware\esfmu\esfm_registers.c">
+      <Filter>Sources\hardware\esfmu</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\hardware\reSID\envelope.cpp">
       <Filter>Sources\hardware\reSID</Filter>
     </ClCompile>
@@ -1738,6 +1744,9 @@
     </ClInclude>
     <ClInclude Include="..\src\hardware\dbopl.h">
       <Filter>Sources\hardware</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\hardware\esfmu\esfm.h">
+      <Filter>Sources\hardware\esfmu</Filter>
     </ClInclude>
     <ClInclude Include="..\src\hardware\hardopl.h">
       <Filter>Sources\hardware</Filter>
