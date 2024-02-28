@@ -172,7 +172,7 @@ jobs:
         with:
           msystem: MINGW32
           update: true
-          install: git mingw-w64-i686-toolchain mingw-w64-i686-libslirp mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake
+          install: git mingw-w64-i686-toolchain mingw-w64-i686-libtool mingw-w64-i686-nasm autoconf automake
       - name: Update build info
         shell: bash
         run: |
