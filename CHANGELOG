@@ -173,7 +173,7 @@ Next:
   - Added support for XDF disk format (maron2000)
   - Added ESFM emulation (ESFMu v1.2 core) (Kagamiin)
   - Added support for ESS "ESFM" sound synthesis (oplemu=esfmu, oplmode=esfm) (Kagamiin)
-  - Added experimental/WIP support for the ESS ES1488 sblaster type (sbtype=ess1488) (Kagamiin)
+  - Added experimental/WIP support for the ESS ES1688 sblaster type (sbtype=ess1688) (Kagamiin)
   - Delete obsolete information regarding "INTRO SPECIAL" option (maron2000)
    
 2023.10.06
