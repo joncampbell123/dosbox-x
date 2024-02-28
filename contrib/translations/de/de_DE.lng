@@ -949,7 +949,6 @@ dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
 
 Für Infos über einfaches Einhängen, tippe ←[34;1mintro mount←[0m
 Für Infos über CD-ROM-Support, tippe ←[34;1mintro cdrom←[0m
-Für Infos über besondere Tasten, tippe ←[34;1mintro special←[0m
 Für Infos über Allgemeines, tippe ←[34;1mintro usage←[0m
 
 Die neuste Version von DOSBox-X findet man auf der Webseite:←[34;1m

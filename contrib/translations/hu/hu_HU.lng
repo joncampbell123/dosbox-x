@@ -814,7 +814,6 @@ dosbox-x [név] [-exit] [-version] [-fastlaunch] [-fullscreen]
 
 Az alap csatolási lehetőségek bemutatásához: ←[34;1mintro mount←[0m
 A CDROM támogatás bemutatásához: ←[34;1mintro cdrom←[0m
-A speciális billentyűzetkombinációk bemutatásához: ←[34;1mintro special←[0m
 A DOSBox-X használatának áttekintéséhez: ←[34;1mintro usage←[0m
 
 A legutolsó DOSBox-X verzió elérhető a honlapján:←[34;1m
