@@ -101,7 +101,7 @@ enum {DSP_S_RESET,DSP_S_RESET_WAIT,DSP_S_NORMAL,DSP_S_HIGHSPEED};
 enum SB_TYPES {SBT_NONE=0,SBT_1=1,SBT_PRO1=2,SBT_2=3,SBT_PRO2=4,SBT_16=6,SBT_GB=7}; /* TODO: Need SB 2.0 vs SB 2.01 */
 enum REVEAL_SC_TYPES {RSC_NONE=0,RSC_SC400=1};
 enum SB_IRQS {SB_IRQ_8,SB_IRQ_16,SB_IRQ_MPU};
-enum ESS_TYPES {ESS_NONE=0,ESS_688=1,ESS_1488=2,ESS_1688=3};
+enum ESS_TYPES {ESS_NONE=0,ESS_688=1,ESS_1688=2};
 
 enum DSP_MODES {
     MODE_NONE,
@@ -2297,11 +2297,6 @@ static void DSP_DoCommand(void) {
                 DSP_AddData(0x68);
                 DSP_AddData(0x80 | 0x04);
                 break;
-            case ESS_1488:
-                // Determined via Windows driver debugging.
-                DSP_AddData(0x48);
-                DSP_AddData(0x80 | 0x09);
-                break;
             case ESS_1688:
                 // Determined via Windows driver debugging.
                 DSP_AddData(0x68);
@@ -3082,7 +3077,6 @@ static uint8_t CTMIXER_Read(void) {
         if (sb.ess_type != ESS_NONE) {
             switch (sb.ess_type) {
             case ESS_688:
-            case ESS_1488:
                 ret=0xa;
                 break;
             case ESS_1688:
@@ -3689,13 +3683,6 @@ private:
             LOG(LOG_SB,LOG_DEBUG)("Reveal SC400 emulation enabled.");
             LOG(LOG_SB,LOG_WARN)("Reveal SC400 emulation is EXPERIMENTAL at this time and should not yet be used for normal gaming.");
             LOG(LOG_SB,LOG_WARN)("Additional WARNING: This code only emulates the Sound Blaster portion of the card. Attempting to use the Windows Sound System part of the card (i.e. the Voyetra/SC400 Windows drivers) will not work!");
-        }
-        else if (!strcasecmp(sbtype,"ess1488")) {
-            type=SBT_PRO2;
-            sb.ess_type=ESS_1488;
-            LOG(LOG_SB,LOG_DEBUG)("ESS ES1488 emulation enabled.");
-            LOG(LOG_SB,LOG_WARN)("ESS ES1488 emulation is EXPERIMENTAL at this time and should not yet be used for normal gaming.");
-            LOG(LOG_SB,LOG_WARN)("Additional WARNING: the ES1488 is not recognized by DOS games using the Miles Sound System, and its MIDI driver under Windows does not use its ESFM capabilites. Therefore the ESFM part of this card is only useful for custom/modern applications that can recognize/work with it.");
         }
         else if (!strcasecmp(sbtype,"ess1688")) {
             type=SBT_PRO2;
