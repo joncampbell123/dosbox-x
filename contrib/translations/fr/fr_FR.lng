@@ -819,7 +819,6 @@ dosbox-x [nom] [-exit] [-version] [-fastlaunch] [-fullscreen].
 
 Pour des informations sur le montage de base, tapez ←[34;1mintro mount←[0m.
 Pour des informations sur la prise en charge des CD-ROM, tapez ←[34;1mintro cdrom←[0m.
-Pour des informations sur les touches spéciales, tapez ←[34;1mintro special←[0m.
 Pour des informations sur l'utilisation, tapez ←[34;1mintro usage←[0m.
 
 Pour la dernière version de DOSBox-X, rendez-vous sur sa page d'accueil :←[34;1m

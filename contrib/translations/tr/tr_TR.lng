@@ -817,7 +817,6 @@ dosbox-x [ad] [-exit] [-version] [-fastlaunch] [-fullscreen]
 
 Bağlama ile ilgili temel bilgiler için ←[34;1mintro mount←[0m yazın.
 CD-ROM desteği ile ilgili bilgi için ←[34;1mintro cdrom←[0m yazın.
-Özel düğmeler üzerine bilgi için ←[34;1mintro special←[0m yazın.
 Genel kullanım üzerine bilgi için ←[34;1mintro usage←[0m yazın.
 
 Güncel DOSBox-X sürümü için web sayfasını ziyaret edin:←[34;1m
