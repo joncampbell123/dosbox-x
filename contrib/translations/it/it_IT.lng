@@ -958,7 +958,6 @@ come unità C:
 
 Per il montaggio di unità, digita ←[34;1mintro mount←[0m
 Per il supporto del CD-ROM, digita ←[34;1mintro cdrom←[0m
-Per i tasti speciali, digita ←[34;1mintro special←[0m
 Per l'uso generale, digita ←[34;1mintro usage←[0m
 
 Per ottenere l'ultima versione di DOSBox-X, vai alla homepage:←[34;1m

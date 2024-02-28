@@ -819,7 +819,6 @@ dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
 
 탑재에 대한 기본 정보는 [34;1mintro mount[0m 을 입력
 CD-ROM 지원에 대한 정보는 [34;1mintro cdrom[0m 을 입력
-특수 키에 대한 정보는 [34;1mintro special[0m 을 입력
 사용법에 대한 정보는 [34;1mintro usage[0m 을 입력
 
 DOSBox-X의 최신판은 홈페이지에 있습니다:[34;1m

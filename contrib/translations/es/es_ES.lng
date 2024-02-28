@@ -816,7 +816,6 @@ dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
 
 Para información del montaje básico, teclee ←[34;1mintro mount←[0m
 Para información del soporte CD-ROM, teclee ←[34;1mintro cdrom←[0m
-Para información de teclas especiales, teclee ←[34;1mintro special←[0m
 Para información de uso, teclee ←[34;1mintro usage←[0m
 
 Para la última versión de DOSBox-X, visita el web:←[34;1m

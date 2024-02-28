@@ -820,7 +820,6 @@ dosbox-x [name] [-exit] [-version] [-fastlaunch] [-fullscreen]
 
 Para informações básicas sobre montagem, digite [34;1mintro mount[0m
 Para informações sobre suporte à CD-ROM, digite [34;1mintro cdrom[0m
-Para informações sobre teclas especiais, digite [34;1mintro special[0m
 Para informações de uso, digite [34;1mintro usage[0m
 
 Para obter a última versão do DOSBox-X, visite a página da web:[34;1m
