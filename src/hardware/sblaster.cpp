@@ -101,7 +101,7 @@ enum {DSP_S_RESET,DSP_S_RESET_WAIT,DSP_S_NORMAL,DSP_S_HIGHSPEED};
 enum SB_TYPES {SBT_NONE=0,SBT_1=1,SBT_PRO1=2,SBT_2=3,SBT_PRO2=4,SBT_16=6,SBT_GB=7}; /* TODO: Need SB 2.0 vs SB 2.01 */
 enum REVEAL_SC_TYPES {RSC_NONE=0,RSC_SC400=1};
 enum SB_IRQS {SB_IRQ_8,SB_IRQ_16,SB_IRQ_MPU};
-enum ESS_TYPES {ESS_NONE=0,ESS_688=1,ESS_1488=2};
+enum ESS_TYPES {ESS_NONE=0,ESS_688=1,ESS_1488=2,ESS_1688=3};
 
 enum DSP_MODES {
     MODE_NONE,
@@ -2294,10 +2294,18 @@ static void DSP_DoCommand(void) {
             case ESS_NONE:
                 break;
             case ESS_688:
-            case ESS_1488:
-                // FIXME: This works for DOS games, but the ES1488 Windows driver seems to be rejecting it. Needs to be verified on a real ES1488 card.
                 DSP_AddData(0x68);
-                DSP_AddData(0x80 | 0x04/*ESS 688/1488 version*/);
+                DSP_AddData(0x80 | 0x04);
+                break;
+            case ESS_1488:
+                // Determined via Windows driver debugging.
+                DSP_AddData(0x48);
+                DSP_AddData(0x80 | 0x09);
+                break;
+            case ESS_1688:
+                // Determined via Windows driver debugging.
+                DSP_AddData(0x68);
+                DSP_AddData(0x80 | 0x09);
                 break;
             }
         }
@@ -3074,9 +3082,10 @@ static uint8_t CTMIXER_Read(void) {
         if (sb.ess_type != ESS_NONE) {
             switch (sb.ess_type) {
             case ESS_688:
+            case ESS_1488:
                 ret=0xa;
                 break;
-            case ESS_1488:
+            case ESS_1688:
                 ret=sb.mixer.ess_id_str[sb.mixer.ess_id_str_pos];
                 sb.mixer.ess_id_str_pos++;
                 if (sb.mixer.ess_id_str_pos >= 4) {
@@ -3684,10 +3693,17 @@ private:
         else if (!strcasecmp(sbtype,"ess1488")) {
             type=SBT_PRO2;
             sb.ess_type=ESS_1488;
-            sb.mixer.ess_id_str[0] = 0x14;
-            sb.mixer.ess_id_str[1] = 0x88;
             LOG(LOG_SB,LOG_DEBUG)("ESS ES1488 emulation enabled.");
             LOG(LOG_SB,LOG_WARN)("ESS ES1488 emulation is EXPERIMENTAL at this time and should not yet be used for normal gaming.");
+            LOG(LOG_SB,LOG_WARN)("Additional WARNING: the ES1488 is not recognized by DOS games using the Miles Sound System, and its MIDI driver under Windows does not use its ESFM capabilites. Therefore the ESFM part of this card is only useful for custom/modern applications that can recognize/work with it.");
+        }
+        else if (!strcasecmp(sbtype,"ess1688")) {
+            type=SBT_PRO2;
+            sb.ess_type=ESS_1688;
+            sb.mixer.ess_id_str[0] = 0x16;
+            sb.mixer.ess_id_str[1] = 0x88;
+            LOG(LOG_SB,LOG_DEBUG)("ESS ES1688 emulation enabled.");
+            LOG(LOG_SB,LOG_WARN)("ESS ES1688 emulation is EXPERIMENTAL at this time and should not yet be used for normal gaming.");
         }
         else type=SBT_16;
 
@@ -3972,6 +3988,8 @@ public:
             ReadHandler[i].Install(sb.hw.base+(IS_PC98_ARCH ? ((i+0x20u) << 8u) : i),read_sb,IO_MB);
             WriteHandler[i].Install(sb.hw.base+(IS_PC98_ARCH ? ((i+0x20u) << 8u) : i),write_sb,IO_MB);
         }
+
+        // TODO: read/write handler for ESS AudioDrive ES1688 (and later) MPU-401 ports (3x0h/3x1h; prevents Windows drivers from working with default settings if missing)
 
         // NTS: Unknown/undefined registers appear to return the register index you requested rather than the actual contents,
         //      according to real SB16 CSP/ASP hardware (chip version id 0x10).
