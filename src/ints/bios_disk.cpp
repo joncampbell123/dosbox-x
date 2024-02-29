@@ -3613,3 +3613,31 @@ void LogPrintPartitionTable(const std::vector<partTable::partentry_t> &parts) {
 	}
 }
 
+
+uint8_t imageDiskEmptyDrive::Read_Sector(uint32_t /*head*/,uint32_t /*cylinder*/,uint32_t /*sector*/,void * /*data*/,unsigned int /*req_sector_size*/) {
+	return 0x05;
+}
+
+uint8_t imageDiskEmptyDrive::Write_Sector(uint32_t /*head*/,uint32_t /*cylinder*/,uint32_t /*sector*/,const void * /*data*/,unsigned int /*req_sector_size*/) {
+	return 0x05;
+}
+
+uint8_t imageDiskEmptyDrive::Read_AbsoluteSector(uint32_t /*sectnum*/, void * /*data*/) {
+	return 0x05;
+}
+
+uint8_t imageDiskEmptyDrive::Write_AbsoluteSector(uint32_t /*sectnum*/, const void * /*data*/) {
+	return 0x05;
+}
+
+imageDiskEmptyDrive::imageDiskEmptyDrive() : imageDisk(ID_EMPTY_DRIVE) {
+	active = true;
+	sector_size = 512;
+	heads = 2;
+	cylinders = 80;
+	sectors = 18;
+}
+
+imageDiskEmptyDrive::~imageDiskEmptyDrive() {
+}
+

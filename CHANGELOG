@@ -1,4 +1,6 @@
 Next:
+  - Add "empty drive" floppy image type "IMGMOUNT 0 -t floppy -fs none -empty"
+    as a way to emulate a floppy drive with no disk in the drive. (joncampbell123).
   - Video debug overlay: Fix mouse integration misalignment when the video
     debug overlay is enabled while Windows is running (joncampbell123).
   - Video debug overlay: Fix segfault when enabled with 15/16bpp SVGA modes.

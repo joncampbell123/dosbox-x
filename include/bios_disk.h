@@ -51,7 +51,8 @@ class imageDisk {
 			ID_MEMORY,
 			ID_VHD,
 			ID_D88,
-			ID_NFD
+			ID_NFD,
+			ID_EMPTY_DRIVE
 		};
 
 		virtual uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0);
@@ -128,6 +129,17 @@ class imageDisk {
 
 			return false;
 		}
+};
+
+class imageDiskEmptyDrive : public imageDisk {
+public:
+	virtual uint8_t Read_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,void * data,unsigned int req_sector_size=0);
+	virtual uint8_t Write_Sector(uint32_t head,uint32_t cylinder,uint32_t sector,const void * data,unsigned int req_sector_size=0);
+	virtual uint8_t Read_AbsoluteSector(uint32_t sectnum, void * data);
+	virtual uint8_t Write_AbsoluteSector(uint32_t sectnum, const void * data);
+
+	imageDiskEmptyDrive();
+	virtual ~imageDiskEmptyDrive();
 };
 
 class imageDiskD88 : public imageDisk {
