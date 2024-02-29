@@ -4994,7 +4994,6 @@ class IMGMOUNT : public Program {
 			//initialize more variables
 			unsigned long el_torito_floppy_base=~0UL;
 			unsigned char el_torito_floppy_type=0xFF;
-			bool empty_drive = false;
 			bool ide_slave = false;
 			signed char ide_index = -1;
 			char el_torito_cd_drive = 0;
@@ -5004,9 +5003,6 @@ class IMGMOUNT : public Program {
 			uint8_t tdr = 0;
 			std::string bdisk;
 			int bdisk_number=-1;
-
-			if (cmd->FindExist("-empty",true))
-				empty_drive = true;
 
 			//this code simply sets default type to "floppy" if mounting at A: or B: --- nothing else
 			// get first parameter - which is probably the drive letter to mount at (A-Z or A:-Z:) - and check it if is A or B or A: or B:
@@ -5178,7 +5174,7 @@ class IMGMOUNT : public Program {
 			}
 
 			// find all file parameters, assuming that all option parameters have been removed
-			bool removed=ParseFiles(temp_line, paths, el_torito != "" || type == "ram" || bdisk != "", empty_drive);
+			bool removed=ParseFiles(temp_line, paths, el_torito != "" || type == "ram" || bdisk != "");
 
 			// some generic checks
 			if (el_torito != "") {
@@ -5192,19 +5188,6 @@ class IMGMOUNT : public Program {
 			else if (type == "ram") {
 				if (paths.size() != 0) {
 					WriteOut("Do not specify files when mounting RAM drives\n");
-					return;
-				}
-			}
-			else if (empty_drive) {
-				if (paths.size() != 0) {
-					WriteOut("Image list cannot be specified with -empty\n");
-					return;
-				}
-				if (type == "iso" && fstype == "iso") {
-					/* OK */
-				}
-				else if (fstype != "none") {
-					WriteOut("-empty must be combined with -fs none\n");
 					return;
 				}
 			}
@@ -5263,7 +5246,7 @@ class IMGMOUNT : public Program {
 					return;
 				}
 				//supports multiple files
-				if (!MountIso(drive, paths, ide_index, ide_slave, empty_drive)) return;
+				if (!MountIso(drive, paths, ide_index, ide_slave)) return;
 				if (removed && !exist && i_drive < DOS_DRIVES && i_drive >= 0 && Drives[i_drive]) DOS_SetDefaultDrive(i_drive);
 			} else if (fstype=="none") {
 				unsigned char driveIndex = drive - '0';
@@ -5282,10 +5265,7 @@ class IMGMOUNT : public Program {
 					}
 				}
 
-				if (empty_drive) {
-					newImage = new imageDiskEmptyDrive();
-				}
-				else if (el_torito != "") {
+				if (el_torito != "") {
 					newImage = new imageDiskElToritoFloppy((unsigned char)el_torito_cd_drive, el_torito_floppy_base, el_torito_floppy_type);
 				}
 				else if (type == "ram") {
@@ -5301,10 +5281,6 @@ class IMGMOUNT : public Program {
 				}
 				else if (!newImage->hardDrive && (driveIndex >= 2)) {
 					WriteOut("Cannot mount floppy in hard drive position.\n");
-				}
-				else if (empty_drive) {
-    					if (AttachToBiosByIndex(newImage, (unsigned char)driveIndex)) {
-					}
 				}
 				else {
 					if (AttachToBiosAndIdeByIndex(newImage, (unsigned char)driveIndex, (unsigned char)ide_index, ide_slave)) {
@@ -5439,18 +5415,23 @@ class IMGMOUNT : public Program {
 			}
 			return true;
 		}
-		bool ParseFiles(std::string &commandLine, std::vector<std::string> &paths, bool nodef, bool empty_drive) {
+		bool ParseFiles(std::string &commandLine, std::vector<std::string> &paths, bool nodef) {
 			char drive=commandLine[0];
 			bool nocont=false;
 			int num = 0;
 			while (!nocont&&cmd->FindCommand((unsigned int)(paths.size() + 1 - num), commandLine)) {
 				bool usedef=false;
 				if (!cmd->FindCommand((unsigned int)(paths.size() + 2 - num), commandLine) || !commandLine.size()) {
-					if (!nodef && !empty_drive && !paths.size()) {
+					if (!nodef && !paths.size()) {
 						commandLine="IMGMAKE.IMG";
 						usedef=true;
 					}
 					else break;
+				}
+				if (commandLine == "empty") {
+					/* special name */
+					paths.push_back(commandLine);
+					continue;
 				}
 #if defined (WIN32) || defined(OS2)
 				// Windows: Workaround for LaunchBox
@@ -5913,13 +5894,15 @@ class IMGMOUNT : public Program {
 				bool ro=false;
 
 				//detect hard drive geometry
-				if (imgsizedetect) {
+				if (paths[i] == "empty") {
+					errorMessage = "empty file not supported for drive letter mount\n";
+				}
+				else if (imgsizedetect) {
 					bool skipDetectGeometry = false;
 					sizes[0] = 0;
 					sizes[1] = 0;
 					sizes[2] = 0;
 					sizes[3] = 0;
-
 
 					/* .HDI images contain the geometry explicitly in the header. */
 					if (str_size.size() == 0) {
@@ -6011,14 +5994,14 @@ class IMGMOUNT : public Program {
 									newImage = NULL;
 								}
 							}
-                            else if (!strcasecmp(ext,".img") || !strcasecmp(ext,".ima")){ // Raw MFM image format is typically .img or .ima
-                                unsupported_ext = false;
-                            }
-                            else {
-                                LOG_MSG("IMGMOUNT: Perhaps unsupported extension %s", ext);
-                                unsupported_ext = true;
-                                path_no = i;
-                            }
+							else if (!strcasecmp(ext,".img") || !strcasecmp(ext,".ima")){ // Raw MFM image format is typically .img or .ima
+								unsupported_ext = false;
+							}
+							else {
+								LOG_MSG("IMGMOUNT: Perhaps unsupported extension %s", ext);
+								unsupported_ext = true;
+								path_no = i;
+							}
 						}
 					}
 					if (!skipDetectGeometry && !DetectGeometry(NULL, paths[i].c_str(), sizes)) {
@@ -6040,7 +6023,7 @@ class IMGMOUNT : public Program {
 						strcat(newDrive->info, ro ? paths[i].c_str() + 1 : paths[i].c_str());
 						LOG_MSG("IMGMOUNT: qcow2 image mounted (experimental)");
 						LOG_MSG("IMGMOUNT: qcow2 SS,S,H,C: %u,%u,%u,%u",
-								(uint32_t)newImage->sector_size, (uint32_t)newImage->sectors, (uint32_t)newImage->heads, (uint32_t)newImage->cylinders);
+							(uint32_t)newImage->sector_size, (uint32_t)newImage->sectors, (uint32_t)newImage->heads, (uint32_t)newImage->cylinders);
 						newImage = NULL;
 					}
 					else {
@@ -6060,7 +6043,7 @@ class IMGMOUNT : public Program {
 						diskfiles[i]=fdrive->loadedDisk->diskimg;
 						if ((vhdImage&&ro)||roflag) fdrive->readonly=true;
 					}
-                    unformatted = fdrive->unformatted;
+					unformatted = fdrive->unformatted;
 				}
 				if (errorMessage) {
 					if (!qmount) WriteOut(errorMessage);
@@ -6080,17 +6063,17 @@ class IMGMOUNT : public Program {
 			}
 			lastmount = drive;
 			if (!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
-            if (unformatted) {
-                if(!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_NOT_FORMATTED"));
-                LOG_MSG("IMGMOUNT: Drive %c not formatted", drive);
-            }
-            if (unsupported_ext) {
-                const char *ext = strrchr(paths[path_no].c_str(), '.');
-                if (ext != NULL) {
-                    if(!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_UNSUPPORTED_EXT"), ext);
-                    LOG_MSG("Unsupported extension %s: Mounted as raw IMG image.", ext);
-                }
-            }
+			if (unformatted) {
+				if(!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_NOT_FORMATTED"));
+				LOG_MSG("IMGMOUNT: Drive %c not formatted", drive);
+			}
+			if (unsupported_ext) {
+				const char *ext = strrchr(paths[path_no].c_str(), '.');
+				if (ext != NULL) {
+					if(!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_UNSUPPORTED_EXT"), ext);
+					LOG_MSG("Unsupported extension %s: Mounted as raw IMG image.", ext);
+				}
+			}
 			unsigned char driveIndex = drive-'A';
 			if (imgDisks.size() == 1 || (imgDisks.size() > 1 && driveIndex < 2 && (swapInDisksSpecificDrive == driveIndex || swapInDisksSpecificDrive == -1))) {
 				imageDisk* image = ((fatDrive*)imgDisks[0])->loadedDisk;
@@ -6411,7 +6394,7 @@ class IMGMOUNT : public Program {
 			return false;
 		}
 
-		bool MountIso(const char drive, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave, const bool empty_drive) {
+		bool MountIso(const char drive, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
 			//mount cdrom
 			if (Drives[drive - 'A']) {
 				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
@@ -6445,12 +6428,6 @@ class IMGMOUNT : public Program {
 					}
 					return false;
 				}
-			}
-			if (empty_drive) {
-				std::vector<std::string> options2 = options;
-				int error = -1;
-				options2.push_back("empty");
-				isoDisks.push_back(new isoDrive(drive, "empty", mediaid, error, options2));
 			}
 			// Update DriveManager
 			for (ct = 0; ct < isoDisks.size(); ct++) {
@@ -6489,6 +6466,10 @@ class IMGMOUNT : public Program {
 			sizes[1] = sizesOriginal[1];
 			sizes[2] = sizesOriginal[2];
 			sizes[3] = sizesOriginal[3];
+
+			if (!strcmp(fileName,"empty")) {
+				return new imageDiskEmptyDrive();
+			}
 
 			//check for VHD files
 			if (sizes[0] == 0 /* auto detect size */) {
