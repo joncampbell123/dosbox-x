@@ -999,6 +999,10 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
             if (value == "1" || value == "") enable_udf = true; // "-o udf" or "-o udf=1"
             else if (value == "0") enable_udf = false;
 	}
+        else if (name == "empty") {
+            empty_drive = true;
+	    fileName = "empty";
+        }
     }
 
     if (!CDROM_Interface_Image::images_init) {
@@ -1015,10 +1019,20 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
 	memset(&rootEntry, 0, sizeof(isoDirEntry));
 	
 	safe_strncpy(this->fileName, fileName, CROSS_LEN);
+	LOG_MSG("UPD");
 	error = UpdateMscdex(driveLetter, fileName, subUnit);
+	LOG_MSG("Error %u",error);
 
 	if (!error) {
-		if (loadImage()) {
+		if (empty_drive) {
+			LOG_MSG("Empty ISO");
+			strcpy(info, "isoDrive ");
+			strcat(info, "empty");
+			this->driveLetter = driveLetter;
+			this->mediaid = mediaid;
+			char buffer[32] = { 0 };
+			Set_Label(buffer,discLabel,true);
+		} else if (loadImage()) {
 			strcpy(info, "isoDrive ");
 			strcat(info, fileName);
 			this->driveLetter = driveLetter;
@@ -1026,7 +1040,6 @@ isoDrive::isoDrive(char driveLetter, const char* fileName, uint8_t mediaid, int&
 			char buffer[32] = { 0 };
 			if (!MSCDEX_GetVolumeName(subUnit, buffer)) strcpy(buffer, "");
 			Set_Label(buffer,discLabel,true);
-
 		} else if (CDROM_Interface_Image::images[subUnit]->HasDataTrack() == false && CDROM_Interface_Image::images[subUnit]->HasAudioTrack() == true) { //Audio only cdrom
 			strcpy(info, "isoDrive ");
 			strcat(info, fileName);
@@ -1050,16 +1063,30 @@ void isoDrive::setFileName(const char* fileName) {
 int isoDrive::UpdateMscdex(char driveLetter, const char* path, uint8_t& subUnit) {
 	if (MSCDEX_HasDrive(driveLetter)) {
 		subUnit = MSCDEX_GetSubUnit(driveLetter);
-		CDROM_Interface_Image* oldCdrom = CDROM_Interface_Image::images[subUnit];
-		CDROM_Interface* cdrom = new CDROM_Interface_Image(subUnit);
-		char pathCopy[CROSS_LEN];
-		safe_strncpy(pathCopy, path, CROSS_LEN);
-		if (!cdrom->SetDevice(pathCopy, 0)) {
-			CDROM_Interface_Image::images[subUnit] = oldCdrom;
-			delete cdrom;
-			return 3;
+		if (empty_drive) {
+			CDROM_Interface_Image* oldCdrom = CDROM_Interface_Image::images[subUnit];
+			CDROM_Interface* cdrom = new CDROM_Interface_Fake();
+			char pathCopy[CROSS_LEN];
+			safe_strncpy(pathCopy, path, CROSS_LEN);
+			if (!cdrom->SetDevice(pathCopy, 0)) {
+				CDROM_Interface_Image::images[subUnit] = oldCdrom;
+				delete cdrom;
+				return 3;
+			}
+			MSCDEX_ReplaceDrive(cdrom, subUnit);
 		}
-		MSCDEX_ReplaceDrive(cdrom, subUnit);
+		else {
+			CDROM_Interface_Image* oldCdrom = CDROM_Interface_Image::images[subUnit];
+			CDROM_Interface* cdrom = new CDROM_Interface_Image(subUnit);
+			char pathCopy[CROSS_LEN];
+			safe_strncpy(pathCopy, path, CROSS_LEN);
+			if (!cdrom->SetDevice(pathCopy, 0)) {
+				CDROM_Interface_Image::images[subUnit] = oldCdrom;
+				delete cdrom;
+				return 3;
+			}
+			MSCDEX_ReplaceDrive(cdrom, subUnit);
+		}
 		return 0;
 	} else {
 		return MSCDEX_AddDrive(driveLetter, path, subUnit);

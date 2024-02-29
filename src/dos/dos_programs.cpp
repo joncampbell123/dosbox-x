@@ -5197,11 +5197,14 @@ class IMGMOUNT : public Program {
 			}
 			else if (empty_drive) {
 				if (paths.size() != 0) {
-					WriteOut("Image list cannot be specified with -empty");
+					WriteOut("Image list cannot be specified with -empty\n");
 					return;
 				}
-				if (fstype != "none") {
-					WriteOut("-empty must be combined with -fs none");
+				if (type == "iso" && fstype == "iso") {
+					/* OK */
+				}
+				else if (fstype != "none") {
+					WriteOut("-empty must be combined with -fs none\n");
 					return;
 				}
 			}
@@ -5260,7 +5263,7 @@ class IMGMOUNT : public Program {
 					return;
 				}
 				//supports multiple files
-				if (!MountIso(drive, paths, ide_index, ide_slave)) return;
+				if (!MountIso(drive, paths, ide_index, ide_slave, empty_drive)) return;
 				if (removed && !exist && i_drive < DOS_DRIVES && i_drive >= 0 && Drives[i_drive]) DOS_SetDefaultDrive(i_drive);
 			} else if (fstype=="none") {
 				unsigned char driveIndex = drive - '0';
@@ -6408,7 +6411,7 @@ class IMGMOUNT : public Program {
 			return false;
 		}
 
-		bool MountIso(const char drive, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave) {
+		bool MountIso(const char drive, const std::vector<std::string> &paths, const signed char ide_index, const bool ide_slave, const bool empty_drive) {
 			//mount cdrom
 			if (Drives[drive - 'A']) {
 				WriteOut(MSG_Get("PROGRAM_IMGMOUNT_ALREADY_MOUNTED"));
@@ -6443,6 +6446,12 @@ class IMGMOUNT : public Program {
 					return false;
 				}
 			}
+			if (empty_drive) {
+				std::vector<std::string> options2 = options;
+				int error = -1;
+				options2.push_back("empty");
+				isoDisks.push_back(new isoDrive(drive, "empty", mediaid, error, options2));
+			}
 			// Update DriveManager
 			for (ct = 0; ct < isoDisks.size(); ct++) {
 				DriveManager::AppendDisk(drive - 'A', isoDisks[ct]);
@@ -6458,12 +6467,17 @@ class IMGMOUNT : public Program {
 
 			// Print status message (success)
 			if (!qmount) WriteOut(MSG_Get("MSCDEX_SUCCESS"));
-			std::string tmp(wpcolon&&paths[0].length()>1&&paths[0].c_str()[0]==':'?paths[0].substr(1):paths[0]);
-			for (i = 1; i < paths.size(); i++) {
-				tmp += "; " + (wpcolon&&paths[i].length()>1&&paths[i].c_str()[0]==':'?paths[i].substr(1):paths[i]);
+			if (!paths.empty()) {
+				std::string tmp(wpcolon&&paths[0].length()>1&&paths[0].c_str()[0]==':'?paths[0].substr(1):paths[0]);
+				for (i = 1; i < paths.size(); i++) {
+					tmp += "; " + (wpcolon&&paths[i].length()>1&&paths[i].c_str()[0]==':'?paths[i].substr(1):paths[i]);
+				}
+				lastmount = drive;
+				if (!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
 			}
-			lastmount = drive;
-			if (!qmount) WriteOut(MSG_Get("PROGRAM_MOUNT_STATUS_2"), drive, tmp.c_str());
+			else {
+				lastmount = drive;
+			}
 			return true;
 		}
 
