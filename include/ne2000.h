@@ -78,7 +78,7 @@ typedef struct {
   // Interrupt Mask Register - 0fh write
   struct IMR_t {
     bx_bool  rx_inte;	// PRXE - packet rx interrupt enable
-    bx_bool  tx_inte;	// PTXE - packet tx interrput enable
+    bx_bool  tx_inte;	// PTXE - packet tx interrupt enable
     bx_bool  rxerr_inte;	// RXEE - rx error interrupt enable
     bx_bool  txerr_inte;	// TXEE - tx error interrupt enable
     bx_bool  overw_inte;	// OVWE - overwrite warn int enable

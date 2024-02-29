@@ -130,7 +130,7 @@ The mapper deadzones are affected by 'axes mapping', this is not likely to be a 
 General notes
 -------------
 
-You will want to try and experiment as on what settings works best for software A and software B, and will probably end up with software-specific configurations.
+You will want to try to experiment as on what settings works best for software A and software B, and will probably end up with software-specific configurations.
 
 Please note that most DOS software supporting joystick input will not react properly when you adjust CPU cycles while they are being run, i.e. either find the appropriate number of CPU cycles it requires first or restart it for a consistent joystick experience.
 

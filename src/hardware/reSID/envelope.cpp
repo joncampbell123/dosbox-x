@@ -65,7 +65,7 @@ void EnvelopeGenerator::reset()
 //
 // NB! Sampling ENV3 shows that the calculated values are not exact.
 // It may seem like most calculated values have been rounded (.5 is rounded
-// down) and 1 has beed added to the result. A possible explanation for this
+// down) and 1 has been added to the result. A possible explanation for this
 // is that the SID designers have used the calculated values directly
 // as rate counter comparison values, not considering a one cycle delay to
 // zero the counter. This would yield an actual period of comparison value + 1.

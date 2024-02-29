@@ -463,7 +463,7 @@ Bitu CALLBACK_SetupExtra(Bitu callback, Bitu type, PhysPt physAddress, bool use_
         if (machine == MCH_PCJR || IS_PC98_ARCH) {
             /* NTS: NEC PC-98 does not have keyboard input on port 60h, it's a 8251 UART elsewhere.
              *
-             *      IBM PCjr reads the infared input on NMI interrupt, which then calls INT 48h to
+             *      IBM PCjr reads the infrared input on NMI interrupt, which then calls INT 48h to
              *      translate to IBM PC/XT scan codes before passing AL directly to IRQ1 (INT 9).
              *      PCjr keyboard handlers, including games made for the PCjr, assume the scan code
              *      is in AL and do not read the I/O port */

@@ -36,7 +36,7 @@ RM=del
 
 ############# TURBO_C ########################
 # -w warn -M create map -f- no floating point -Z register optimize
-# -O jump optimize -k- no standard stack frome -K unsigned char
+# -O jump optimize -k- no standard stack frame -K unsigned char
 # -exxx executable name (name must be part of option in CFLAGS)
 # -mt tiny (default is small -ms)
 # -N stack checking -a- byte alignment  -ln no default libs

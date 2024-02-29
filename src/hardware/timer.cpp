@@ -106,7 +106,7 @@ struct PIT_Block {
          *
          * This fixes "Tony & Friends in Kellogg's Land" which does some rather weird elaborate
          * timing stuff with both PIT 0 (timer) and PIT 2 (PC speaker but the output is off) to
-         * do it's event timing and to modify the VGA DAC mask mid-frame precisely to do that
+         * do its event timing and to modify the VGA DAC mask mid-frame precisely to do that
          * effect of making the bottom half look like there is water.
          * Ref: [https://github.com/joncampbell123/dosbox-x/issues/4467] */
         last_counter.cycle = 0;
@@ -474,7 +474,7 @@ bool TIMER2_ClockGateEnabled(void) {
 //
 //   This is either the result of extremely sloppy code that happened to work on the democoder's
 //   machine (non-Intel hardware that minimally implements a 8254?) or perhaps a race condition
-//   between the program and it's own IRQ 0 interrupt.
+//   between the program and its own IRQ 0 interrupt.
 //
 //   Additional notes from testing: It is indeed some sort of race condition. There is code to
 //   set PIT 0 to mode 2 counter 0 momentarily before going back to mode 0. Interrupts are
@@ -754,7 +754,7 @@ static void write_p43(Bitu /*port*/,Bitu val,Bitu /*iolen*/) {
 			pit[latch].mode = mode;
 
 			/* If the line goes from low to up => generate irq. 
-			 *      ( BUT needs to stay up until acknowlegded by the cpu!!! therefore: )
+			 *      ( BUT needs to stay up until acknowledged by the cpu!!! therefore: )
 			 * If the line goes to low => disable irq.
 			 * Mode 0 starts with a low line. (so always disable irq)
 			 * Mode 2,3 start with a high line.

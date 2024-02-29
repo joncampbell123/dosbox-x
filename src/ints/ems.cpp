@@ -394,7 +394,7 @@ static uint8_t EMM_AllocateSystemHandle(uint16_t pages/*NTS: EMS pages are 16KB,
 	 * Why? Well, if the system handle exists on an even megabyte, then it no longer matters what state the A20
 	 * gate is in. If the DOS game relies on EMM386.EXE but fiddles with the A20 gate while running in virtual 8086
 	 * mode, setting this option can help avoid crashes, where normally clearing the A20 gate prevents EMM386.EXE
-	 * from using it's protected mode structures (GDT, page tables) and the sudden aliasing turns them into junk
+	 * from using its protected mode structures (GDT, page tables) and the sudden aliasing turns them into junk
 	 * and the system crashes (random contents in DOS conventional memory interpreted as protected mode structures
 	 * doesn't work very well). */
 	mem = 0;
@@ -731,7 +731,7 @@ static uint8_t GetSetHandleName(void) {
 
 static uint8_t GetSetHandleAttributes(void) {
 	switch (reg_al) {
-	case 0x00:	// Get handle attribubtes
+	case 0x00:	// Get handle attributes
 		if (!ValidHandle(reg_dx)) return EMM_INVALID_HANDLE;
 		reg_al = EMM_VOLATILE;	// We only support volatile
 		break;

@@ -54,7 +54,7 @@
     Voodoo 2:
         2,4MB frame buffer RAM
         2,4,8,16MB texture RAM
-        90MHz clock frquency
+        90MHz clock frequency
         clears @ 2 pixels/clock (RGB and depth simultaneously)
         renders @ 1 pixel/clock
         ultrafast clears @ 16 pixels/clock
@@ -913,7 +913,7 @@ void ncc_table_update(ncc_table *n)
 {
 	int r, g, b, i;
 
-	/* generte all 256 possibilities */
+	/* generate all 256 possibilities */
 	for (i = 0; i < 256; i++)
 	{
 		int vi = (i >> 2) & 0x03;
@@ -984,7 +984,7 @@ void dacdata_r(dac_state *d, UINT8 regnum)
 
 /*************************************
  *
- *  Texuture parameter computation
+ *  Texture parameter computation
  *
  *************************************/
 

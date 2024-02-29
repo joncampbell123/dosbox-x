@@ -37,7 +37,7 @@ In all cases, the code requires a C++ compiler that can support the C++11
 standard.
 
 Note that DOSBox-X supports both SDL 1.x and 2.x, and it is written to compile
-against the in-tree copy of the SDL 1.x (Simple Directmedia Libary), or against
+against the in-tree copy of the SDL 1.x (Simple Directmedia Library), or against
 the SDL 2.x library provided by your Linux distribution.
 
 For Visual Studio and MinGW compilation, the in-tree copy of SDL is always

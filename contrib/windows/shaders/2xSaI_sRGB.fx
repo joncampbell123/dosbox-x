@@ -666,7 +666,7 @@ half4 PS_Product2_Pass2 ( in VS_OUTPUT_PRODUCT2_PASS2 input ) : COLOR
 // Final combine stage. Outputs to framebuffer.
 //
 // Uses preprocess information, and information about what pixel to output
-// to to various interpolations of the colours where required.
+// to various interpolations of the colours where required.
 //
 half4 PS_Combine ( in VS_OUTPUT_COMBINE input ) : COLOR
 {

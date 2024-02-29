@@ -1,6 +1,6 @@
 
 /*
-	Ripped out some stuff from the mame releae to only make it for 386's 
+	Ripped out some stuff from the mame release to only make it for 386's 
 	Changed some variables to use the standard DOSBox data types 
 	Added my callback opcode 
 	
@@ -44,7 +44,7 @@ Comments:
 
 Health warning:
 
-   When writing and degbugging this code, I didn't have (and still don't have)
+   When writing and debugging this code, I didn't have (and still don't have)
    a 32-bit disassembler to compare this guy's output with.  It's therefore
    quite likely that bugs will appear when disassembling instructions which use
    the 386 and 486's native 32 bit mode.  It seems to work fine in 16 bit mode.

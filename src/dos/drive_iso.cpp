@@ -1719,7 +1719,7 @@ int isoDrive::readDirEntry(isoDirEntry* de, const uint8_t* data,unsigned int dir
 
 	// copy data into isoDirEntry struct, data[0] = length of DirEntry
 //	if (data[0] > sizeof(isoDirEntry)) return -1;//check disabled as isoDirentry is currently 258 bytes large. So it always fits
-	memcpy(de, data, data[0]);//Perharps care about a zero at the end.
+	memcpy(de, data, data[0]);//Perhaps care about a zero at the end.
 	
 	// xa not supported
 	if (de->extAttrLength != 0) return -1;

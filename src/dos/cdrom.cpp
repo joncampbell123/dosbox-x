@@ -202,7 +202,7 @@ int CDROM_GetMountType(const char* path, int forceCD) {
 
 	const char* cdName;
 	int num = SDL_CDNumDrives();
-	// If cd drive is forced then check if its in range and return 0
+	// If cd drive is forced then check if it's in range and return 0
 	if ((forceCD>=0) && (forceCD<num)) {
 		LOG(LOG_ALL,LOG_ERROR)("CDROM: Using drive %d",forceCD);
 		return 0;

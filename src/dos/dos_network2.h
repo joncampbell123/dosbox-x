@@ -219,7 +219,7 @@ HANDLE hFind = INVALID_HANDLE_VALUE;
 	if (wc?MoveFileW((LPCWSTR)namehost, (LPCWSTR)namehost1):MoveFile(name1.c_str(), name2.c_str()))
 		return true;
 	uint16_t error=(uint16_t)GetLastError();
-	if (error == ERROR_ALREADY_EXISTS)												// Not kwnown by DOS
+	if (error == ERROR_ALREADY_EXISTS)												// Not known by DOS
 		error = DOSERR_ACCESS_DENIED;
 	DOS_SetError(error);
 	return false;
@@ -330,7 +330,7 @@ bool Network_SetFileAttr(char const * const filename, uint16_t attr) {
 {
 	int attribs = FILE_ATTRIBUTE_NORMAL;
 	if (attributes&3)																		// Read-only (1), Hidden (2), System (4) are the same in DOS and Windows
-		attribs = attributes&3;															// We dont want (Windows) system files
+		attribs = attributes&3;															// We don't want (Windows) system files
 
     std::string name = filename;
     if (filename[0]=='"') {

@@ -385,7 +385,7 @@ typedef FxI32 GrTextureCombineFnc_t;
 #define GR_TEXTURECOMBINE_OTHER         0x2 /* this TMU in passthru mode */
 #define GR_TEXTURECOMBINE_ADD           0x3 /* tout = tthis + t(this+1) */
 #define GR_TEXTURECOMBINE_MULTIPLY      0x4 /* texout = tthis * t(this+1) */
-#define GR_TEXTURECOMBINE_SUBTRACT      0x5 /* Sutract from upstream TMU */
+#define GR_TEXTURECOMBINE_SUBTRACT      0x5 /* Subtract from upstream TMU */
 #define GR_TEXTURECOMBINE_DETAIL        0x6 /* detail--detail on tthis */
 #define GR_TEXTURECOMBINE_DETAIL_OTHER  0x7 /* detail--detail on tthis+1 */
 #define GR_TEXTURECOMBINE_TRILINEAR_ODD 0x8 /* trilinear--odd levels tthis*/
@@ -534,7 +534,7 @@ typedef struct _GrState_s {
 #define GR_PARAM_DISABLE  0x00
 #define GR_PARAM_ENABLE   0x01
 
-/* Componenets for strips */
+/* Components for strips */
 /* vertex */
 #define GR_VERTEX_XYZ   3
 #define GR_VERTEX_XYZW  4

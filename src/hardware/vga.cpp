@@ -395,7 +395,7 @@ void VGA_DetermineMode(void) {
 //      display them just fine. The other is that checking for 2-color CGA mode entirely by
 //      whether video RAM is mapped to B8000h is a really lame way to go about it.
 //
-//      The only catch here is that a contributer (Wengier, I think?) tied a DOS/V CGA rendering
+//      The only catch here is that a contributor (Wengier, I think?) tied a DOS/V CGA rendering
 //      mode into M_CGA2 that we need to watch for.
 //
             else if ((vga.gfx.miscellaneous & 0x0c)==0x0c && J3_IsCga4Dcga()) VGA_SetMode(M_DCGA);

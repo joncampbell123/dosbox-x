@@ -55,7 +55,7 @@
 
   28/03/2005 : Sebastien Chevalier
   Update th SN76496Write func, according to SN76489 doc found on SMSPower.
-   - On write with 0x80 set to 0, when LastRegister is other then TONE,
+   - On write with 0x80 set to 0, when LastRegister is other than TONE,
    the function is similar than update with 0x80 set to 1
 
   23/04/2007 : Lord Nightmare

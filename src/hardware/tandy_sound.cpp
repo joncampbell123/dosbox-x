@@ -331,7 +331,7 @@ public:
 		/* ports from second DMA controller conflict with tandy ports at 0xC0.
 		 * Furthermore, the default I/O handlers after de-registration are needed
 		 * to ensure the SN76496 is writeable at port 0xC0 whether you're doing
-		 * normal 8-bit I/O or your a weirdo like Prince of Persia using 16-bit
+		 * normal 8-bit I/O or you're a weirdo like Prince of Persia using 16-bit
 		 * I/O to write frequency values. (bugfix for Tandy mode of Prince of
 		 * Persia). */
 		CloseSecondDMAController();

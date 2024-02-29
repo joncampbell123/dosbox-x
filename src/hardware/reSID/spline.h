@@ -40,7 +40,7 @@
 // Engineering Mathematics".
 //
 // Our approach is to approximate the properties of Catmull-Rom splines for
-// piecewice cubic polynomials f(x) = ax^3 + bx^2 + cx + d as follows:
+// piecewise cubic polynomials f(x) = ax^3 + bx^2 + cx + d as follows:
 // Each curve segment is specified by four interpolation points,
 // p0, p1, p2, p3.
 // The curve between p1 and p2 must interpolate both p1 and p2, and in addition

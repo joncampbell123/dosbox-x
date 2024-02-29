@@ -478,7 +478,7 @@ void GLIDE_ResetScreen(bool update)
 	VGA_SetOverride(true);
 	GFX_Stop();
 
-	// OpenGlide will resize the window on it's own (using SDL)
+	// OpenGlide will resize the window on its own (using SDL)
 	if(glide.width && (
 #ifdef WIN32
 	// dgVoodoo needs a little help :)

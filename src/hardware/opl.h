@@ -117,7 +117,7 @@ typedef int8_t		int8_t;
      adlib register set.
      Only the channels 0,1,2 (first set) and 9,10,11 (second set) can act as
      4op channels. The two additional operators for a channel y come from the
-     2op channel y+3 so the operatorss y, (9+y), y+3, (9+y)+3 make up a 4op
+     2op channel y+3 so the operators y, (9+y), y+3, (9+y)+3 make up a 4op
      channel.
 */
 typedef struct operator_struct {

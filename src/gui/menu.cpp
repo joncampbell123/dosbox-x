@@ -1545,7 +1545,7 @@ void ConstructSubMenu(DOSBoxMenu::item_handle_t item_id, const char * const * li
                 mainMenu.get_item(item_id).display_list, separator_handle);
         }
         else if (!strcmp(ref,"||")) {
-            /* dito */
+            /* ditto */
             DOSBoxMenu::item_handle_t separator_handle = separator_get(DOSBoxMenu::vseparator_type_id);
             mainMenu.displaylist_append(
                 mainMenu.get_item(item_id).display_list, separator_handle);

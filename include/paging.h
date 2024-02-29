@@ -64,7 +64,7 @@ static inline Bitu MEMMASK_Combine(const Bitu a,const Bitu b) {
 #if defined(USE_FULL_TLB)
 #define TLB_SIZE		(1024*1024)
 #else
-#define TLB_SIZE		65536	// This must a power of 2 and greater then LINK_START
+#define TLB_SIZE		65536	// This must a power of 2 and greater than LINK_START
 #define BANK_SHIFT		28
 #define BANK_MASK		0xffff // always the same as TLB_SIZE-1?
 #define TLB_BANKS		((1024*1024/TLB_SIZE)-1)

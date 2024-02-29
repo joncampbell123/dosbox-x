@@ -30,8 +30,8 @@ float scaling   : SCALING = 1.0;
 
 const float mx = 1.00;      // start smoothing wt.
 const float k = -1.10;      // wt. decrease factor
-const float max_w = 0.90;   // max filter weigth
-const float min_w = 0.05;   // min filter weigth
+const float max_w = 0.90;   // max filter weight
+const float min_w = 0.05;   // min filter weight
 const float lum_add = 0.33; // effects smoothing
 
 string preprocessTechique : PREPROCESSTECHNIQUE = "GS4xFilter";

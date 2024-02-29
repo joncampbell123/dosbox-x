@@ -794,7 +794,7 @@ public:
              * 
              * MMD.COM, a common MIDI MPU-401 driver in the PC-98 world, seems to have
              * IRQ detection problems unless the IRQ is masked during the detection phase.
-             * It will fail to detect any IRQ that is unmasked during it's detection phase.
+             * It will fail to detect any IRQ that is unmasked during its detection phase.
              * For some reason it's not totally consistent i.e. the MMD.COM driver included
              * with Touhou Project 2 can detect MIDI on IRQ 5 when unmasked, but not 3, 12, or 6,
              * or sometimes only on IRQ 6 if I/O delays are lengthened.

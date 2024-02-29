@@ -24,7 +24,7 @@
 // some configuring defines that specify the capabilities of this architecture
 // or aspects of the recompiling
 
-// protect FC_ADDR over function calls if necessaray
+// protect FC_ADDR over function calls if necessary
 // #define DRC_PROTECT_ADDR_REG
 
 // try to use non-flags generating functions if possible
@@ -483,7 +483,7 @@ static void INLINE gen_fill_branch(DRC_PTR_SIZE_IM data) {
 	*(uint16_t*)data=((uint16_t)((uint32_t)cache.pos-data-4)>>2);
 }
 
-#if 0	// assume for the moment no branch will go farther then +/- 128KB
+#if 0	// assume for the moment no branch will go farther than +/- 128KB
 
 // conditional jump if register is nonzero
 // for isdword==true the 32bit of the register are tested

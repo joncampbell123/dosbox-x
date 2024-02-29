@@ -21,7 +21,7 @@
 // some configuring defines that specify the capabilities of this architecture
 // or aspects of the recompiling
 
-// protect FC_ADDR over function calls if necessaray
+// protect FC_ADDR over function calls if necessary
 // #define DRC_PROTECT_ADDR_REG
 
 // try to use non-flags generating functions if possible
@@ -94,7 +94,7 @@ static void gen_mov_reg_qword(HostReg dest_reg,uint64_t imm);
 static INLINE void gen_reg_memaddr(HostReg reg,void* data,uint8_t op,uint8_t prefix=0) {
 	int64_t diff = (int64_t)data-((int64_t)cache_rwtox(cache.pos+(prefix?7:6)));
 //	if ((diff<0x80000000LL) && (diff>-0x80000000LL)) { //clang messes itself up on this...
-	if ( (diff>>63) == (diff>>31) ) { //signed bit extend, test to see if value fits in a int32_t
+	if ( (diff>>63) == (diff>>31) ) { //signed bit extend, test to see if value fits in an int32_t
 		// mov reg,[rip+diff] (or similar, depending on the op) to fetch *data
 		if(prefix) cache_addb(prefix);
 		cache_addb(op);

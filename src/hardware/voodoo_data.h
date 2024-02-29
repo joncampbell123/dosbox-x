@@ -682,7 +682,7 @@ struct _fbi_state
 
 	UINT8				fogblend[64];			/* 64-entry fog table */
 	UINT8				fogdelta[64];			/* 64-entry fog table */
-	UINT8				fogdelta_mask;			/* mask for for delta (0xff for V1, 0xfc for V2) */
+	UINT8				fogdelta_mask;			/* mask for fog delta (0xff for V1, 0xfc for V2) */
 
 //	rgb_t				clut[512];				/* clut gamma data */
 };
@@ -905,7 +905,7 @@ INLINE INT64 fast_reciplog(INT64 value, INT32 *log2)
 	/* compute the interpolation value */
 	interp = (temp >> (31 - RECIPLOG_LOOKUP_BITS - 8)) & 0xff;
 
-	/* do a linear interpolatation between the two nearest table values */
+	/* do a linear interpolation between the two nearest table values */
 	/* for both the log and the reciprocal */
 	rlog = (table[1] * (0x100 - interp) + table[3] * interp) >> 8;
 	recip = (table[0] * (0x100 - interp) + table[2] * interp) >> 8;

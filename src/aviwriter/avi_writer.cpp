@@ -802,7 +802,7 @@ int avi_writer_emit_opendml_indexes(avi_writer *w) {
                 si++;
             }
 
-            /* make sure the above loop does it's job */
+            /* make sure the above loop does its job */
             assert((chunk_ofs + 0x7FFF0000ULL) > chunk_max);
 
             /* start an AVISUPERINDEX */

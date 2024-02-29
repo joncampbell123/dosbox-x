@@ -73,7 +73,7 @@ Bitu vga_read_p3d4(Bitu port,Bitu iolen) {
     (void)port;//UNUSED
     (void)iolen;//UNUSED
 
-    /* NOTES: Paradise/Westdern Digital SVGA decodes only bits [5:0] inclusive and repeat every 0x40 */
+    /* NOTES: Paradise/Western Digital SVGA decodes only bits [5:0] inclusive and repeat every 0x40 */
 
 	return crtc(index);
 }

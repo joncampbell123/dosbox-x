@@ -317,7 +317,7 @@ void FPU_ESC1_Normal(Bitu rm) {
 
 
 void FPU_ESC2_EA(Bitu rm,PhysPt addr) {
-	/* 32 bits integer operants */
+	/* 32 bits integer operands */
 	FPU_FLD_I32_EA(addr);
 	EATREE(rm);
 }
@@ -439,13 +439,13 @@ void FPU_ESC3_Normal(Bitu rm) {
 			if (FPU_ArchitectureType<=FPU_ARCHTYPE_8087)
 				fpu.cw.M = false;
 			else
-				LOG(LOG_FPU,LOG_ERROR)("8087 only fpu code used esc 3: group 4: subfuntion :%d",(int)sub);
+				LOG(LOG_FPU,LOG_ERROR)("8087 only fpu code used esc 3: group 4: subfunction :%d",(int)sub);
 			break;
 		case 0x01:				//FNDIS
 			if (FPU_ArchitectureType<=FPU_ARCHTYPE_8087)
 				fpu.cw.M = true;
 			else
-				LOG(LOG_FPU,LOG_ERROR)("8087 only fpu code used esc 3: group 4: subfuntion :%d",(int)sub);
+				LOG(LOG_FPU,LOG_ERROR)("8087 only fpu code used esc 3: group 4: subfunction :%d",(int)sub);
 			break;
 		case 0x02:				//FNCLEX FCLEX
 			FPU_FCLEX();
@@ -598,7 +598,7 @@ void FPU_ESC5_Normal(Bitu rm) {
 }
 
 void FPU_ESC6_EA(Bitu rm,PhysPt addr) {
-	/* 16 bit (word integer) operants */
+	/* 16 bit (word integer) operands */
 	FPU_FLD_I16_EA(addr);
 	EATREE(rm);
 }

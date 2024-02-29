@@ -38,7 +38,7 @@ body:
     id: os
     attributes:
       label: What operating system(s) this bug have occurred on?
-      description: Put in the release name of the OS (additionally with a extra version number and/or an architecture name) this problem have occurred on.
+      description: Put in the release name of the OS (additionally with an extra version number and/or an architecture name) this problem have occurred on.
       placeholder: "Ex. Windows 10 21H2, Ubuntu 21.04 etc."
     validations:
       required: true

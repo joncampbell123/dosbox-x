@@ -631,7 +631,7 @@ bool CDROM_Interface_Aspi::GetAudioStatus(bool& playing, bool& pause)
 	s.execscsicmd.CDBByte[0]     = SCSI_SUBCHANNEL;
 	s.execscsicmd.CDBByte[1]     = (lun<<5)|2;   // lun & msf
 	s.execscsicmd.CDBByte[2]     = 0x00;            // no subq
-	s.execscsicmd.CDBByte[3]     = 0x00;            // dont care
+	s.execscsicmd.CDBByte[3]     = 0x00;            // don't care
 	s.execscsicmd.CDBByte[6]     = 0;               // track number (only in isrc mode, ignored)
 	s.execscsicmd.CDBByte[7]     = 0;               // alloc len
 	s.execscsicmd.CDBByte[8]     = sizeof(sub);		

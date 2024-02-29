@@ -3,7 +3,7 @@ Credits
 
 Jonathan Campbell, the maintainer of DOSBox-X does not claim to have written all of the code in this project.
 
-The purpose of this document is to try and build a comprehensive list of source code in this repository that was borrowed from other projects.
+The purpose of this document is to try to build a comprehensive list of source code in this repository that was borrowed from other projects.
 
 The base code is from the [DOSBox](https://www.dosbox.com) project in which most of the SVN commits made since 2011 were incorporated into DOSBox-X. This code had since been heavily modified by the DOSBox-X project.
 

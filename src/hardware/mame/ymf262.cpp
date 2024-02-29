@@ -24,15 +24,15 @@ Revision History:
        sounds, 3 two-operator melody sounds and 5 rhythm sounds (with four operators).
     5. 8 selectable waveforms.
     6. 4-channel sound output.
-    7. YMF262 compabile DAC (YAC512) is available.
-    8. LFO for vibrato and tremolo effedts.
+    7. YMF262 compatible DAC (YAC512) is available.
+    8. LFO for vibrato and tremolo effects.
     9. 2 programmable timers.
    10. Shorter register access time compared with YM3812.
    11. 5V single supply silicon gate CMOS process.
    12. 24 Pin SOP Package (YMF262-M), 48 Pin SQFP Package (YMF262-S).
 
 
-differences between OPL2 and OPL3 not documented in Yamaha datahasheets:
+differences between OPL2 and OPL3 not documented in Yamaha datasheets:
 - sinus table is a little different: the negative part is off by one...
 
 - in order to enable selection of four different waveforms on OPL2
@@ -766,7 +766,7 @@ static inline void advance(OPL3 *chip)
 			case EG_SUS:    /* sustain phase */
 
 				/* this is important behaviour:
-				one can change percusive/non-percussive modes on the fly and
+				one can change percussive/non-percussive modes on the fly and
 				the chip will remain in sustain phase - verified on real YM3812 */
 
 				if(op->eg_type)     /* non-percussive mode */
@@ -1337,7 +1337,7 @@ static void OPLCloseTable( void )
 
 
 
-static void OPL3_initalize(OPL3 *chip)
+static void OPL3_initialize(OPL3 *chip)
 {
 	int i;
 
@@ -1987,7 +1987,7 @@ static void OPL3WriteReg(OPL3 *chip, int r, int v)
 			/* BLK 2,1,0 bits -> bits 3,2,1 of kcode */
 			CH->kcode    = (CH->block_fnum&0x1c00)>>9;
 
-			/* the info below is actually opposite to what is stated in the Manuals (verifed on real YMF262) */
+			/* the info below is actually opposite to what is stated in the Manuals (verified on real YMF262) */
 			/* if notesel == 0 -> lsb of kcode is bit 10 (MSB) of fnum  */
 			/* if notesel == 1 -> lsb of kcode is bit 9 (MSB-1) of fnum */
 			if (chip->nts&0x40)
@@ -2329,10 +2329,10 @@ static void OPL3ResetChip(OPL3 *chip)
 //FIX IT  registers 101, 104 and 105
 
 
-//FIX IT (dont change CH.D, CH.C, CH.B and CH.A in C0-C8 registers)
+//FIX IT (don't change CH.D, CH.C, CH.B and CH.A in C0-C8 registers)
 	for(c = 0xff ; c >= 0x20 ; c-- )
 		OPL3WriteReg(chip,c,0);
-//FIX IT (dont change CH.D, CH.C, CH.B and CH.A in C0-C8 registers)
+//FIX IT (don't change CH.D, CH.C, CH.B and CH.A in C0-C8 registers)
 	for(c = 0x1ff ; c >= 0x120 ; c-- )
 		OPL3WriteReg(chip,c,0);
 
@@ -2368,7 +2368,7 @@ static OPL3 *OPL3Create(device_t *device, int clock, int rate, int type)
 	chip->rate  = rate;
 
 	/* init global tables */
-	OPL3_initalize(chip);
+	OPL3_initialize(chip);
 
 	/* reset chip */
 	OPL3ResetChip(chip);

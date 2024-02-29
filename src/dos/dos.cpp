@@ -219,8 +219,8 @@ uint32_t DOS_HMA_GET_FREE_SPACE() {
 void DOS_HMA_CLAIMED(uint16_t bytes) {
 	uint32_t limit = DOS_HMA_LIMIT();
 
-	if (limit == 0) E_Exit("HMA allocatiom bug: Claim function called when HMA allocation is not enabled");
-	if (dos_hma_allocator == 0) E_Exit("HMA allocatiom bug: Claim function called without having determined start");
+	if (limit == 0) E_Exit("HMA allocation bug: Claim function called when HMA allocation is not enabled");
+	if (dos_hma_allocator == 0) E_Exit("HMA allocation bug: Claim function called without having determined start");
 	dos_hma_allocator += bytes;
 	if (dos_hma_allocator > limit) E_Exit("HMA allocation bug: Exceeded limit");
 }
@@ -518,7 +518,7 @@ void DOS_AddDays(uint8_t days) {
 //       Drive A: can be as slow as a 3.5" 1.44MB floppy disk
 //
 // This fixes MS-DOS games that crash or malfunction if the disk I/O is too fast.
-// This also fixes "380 volt" and prevents the "city animation" from loading too fast for it's music timing (and getting stuck)
+// This also fixes "380 volt" and prevents the "city animation" from loading too fast for its music timing (and getting stuck)
 int disk_data_rate = 2100000;    // 2.1MBytes/sec mid 1990s IDE PIO hard drive without SMARTDRV
 int floppy_data_rate;
 
@@ -1695,11 +1695,11 @@ static Bitu DOS_21Handler(void) {
             // Important: This service does not set the carry flag!
             //
             // Fix for PC-98 game "Yu No". One of the TSRs used by the game, PLAY6.EXE,
-            // frees it's own PSP segment before using this TSR system call to remain
+            // frees its own PSP segment before using this TSR system call to remain
             // resident in memory. On real PC-98 MS-DOS, INT 21h AH=31h appears to
             // change the freed segment back into an allocated segment before resizing
             // as directed by the number of paragraphs in DX. In order for PLAY6.EXE to
-            // do it's job properly without crashing the game we have to do the same.
+            // do its job properly without crashing the game we have to do the same.
             //
             // [Issue #3452]
             //
@@ -1710,7 +1710,7 @@ static Bitu DOS_21Handler(void) {
                 DOS_MCB psp_mcb(dos.psp()-1);
                 if (psp_mcb.GetPSPSeg() == 0/*free block?*/) {
                     /* say so in the log, and then change it into an allocated block */
-                    LOG(LOG_DOSMISC,LOG_DEBUG)("Calling program asking to terminate and stay resident has apparently freed it's own PSP segment");
+                    LOG(LOG_DOSMISC,LOG_DEBUG)("Calling program asking to terminate and stay resident has apparently freed its own PSP segment");
                     psp_mcb.SetPSPSeg(dos.psp());
                 }
             }
@@ -2005,7 +2005,7 @@ static Bitu DOS_21Handler(void) {
                  *
                  * This is needed for "Dark Purpose" to read it's DAT file
                  * correctly, which calls INT 21h AH=3Fh with DX=0004h and CX=FFFFh
-                 * and will mis-render it's fonts, images, and color palettes
+                 * and will mis-render its fonts, images, and color palettes
                  * if we do not do this.
                  *
                  * Ref: http://files.scene.org/get/mirrors/hornet/demos/1995/d/darkp.zip */
@@ -2742,7 +2742,7 @@ static Bitu DOS_21Handler(void) {
                         CALLBACK_SCF(false);
                         break;
                     case 0x21: /* Capitalize String (cx=length) */
-                    case 0x22: /* Capatilize ASCIZ string */
+                    case 0x22: /* Capitalize ASCIZ string */
                         data = SegPhys(ds) + reg_dx;
                         if(reg_al == 0x21) len = reg_cx; 
                         else len = mem_strlen(data); /* Is limited to 1024 */

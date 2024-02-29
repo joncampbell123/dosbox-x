@@ -408,7 +408,7 @@ void XMS_DOS_LocalA20DisableIfNotEnabled_XMSCALL(void) {
     uint32_t old_eax = reg_eax;
     uint32_t old_ebx = reg_ebx;
 
-    LOG(LOG_DOSMISC,LOG_DEBUG)("Temporarily disabling A20 gate by calling XMS entry point. Hopefully the vm86 protected mode kernel will do it's job");
+    LOG(LOG_DOSMISC,LOG_DEBUG)("Temporarily disabling A20 gate by calling XMS entry point. Hopefully the vm86 protected mode kernel will do its job");
 
     reg_ah = 0x06; /* local disable */
     CALLBACK_RunRealFar((uint16_t)(xms_callback>>16ul),(uint16_t)(xms_callback&0xFFFFul));

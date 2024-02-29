@@ -165,7 +165,7 @@ void VGA_ATTR_SetPalette(uint8_t index, uint8_t val) {
 		// That would mean that if Framework III had actually managed to enable the color palette, it would display
 		// with whatever random garbage happened to exist in the hardware palette, and I don't think such a
 		// program would let that stand in that kind of corporate office work type software that probably cost a
-		// fair amount in it's day.
+		// fair amount in its day.
 		if (vga.herc.exception & 0x10)
 			VGA_DAC_CombineColor(index,vga.herc.palette[index&0xF]);
 		else if (vga.herc.exception & 0x20)

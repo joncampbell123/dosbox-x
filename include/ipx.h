@@ -146,7 +146,7 @@ public:
 	~ECBClass();
 };
 
-// The following routines may not be needed on all systems.  On my build of SDL the IPaddress structure is 8 octects 
+// The following routines may not be needed on all systems.  On my build of SDL the IPaddress structure is 8 octets 
 // and therefore screws up my IPXheader structure since it needs to be packed.
 
 void UnpackIP(PackedIP ipPack, IPaddress * ipAddr);

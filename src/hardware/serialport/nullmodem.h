@@ -85,7 +85,7 @@ private:
 	Bitu rx_retry;		// counter of retries
 
 	Bitu rx_retry_max;	// how many POLL_EVENTS to wait before causing
-						// a overrun error.
+						// an overrun error.
 
 	Bitu tx_gather;		// how long to gather tx data before
 						// sending all of them [milliseconds]

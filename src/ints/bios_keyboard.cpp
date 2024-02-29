@@ -37,7 +37,7 @@
 #endif
 
 /* SDL by default treats numlock and scrolllock different from all other keys.
- * In recent versions this can disabled by a environment variable which we set in sdlmain.cpp
+ * In recent versions this can disabled by an environment variable which we set in sdlmain.cpp
  * Define the following if this is the case */
 #if SDL_VERSION_ATLEAST(1, 2, 14)
 #define CAN_USE_LOCK 1
@@ -304,7 +304,7 @@ void BIOSKEY_PC98_Write_Tables(void) {
 
 	/* Assume this function will not be called unless BIOS_PC98_KEYBOARD_TRANSLATION_LOCATION points to ROM BIOS.
 	 * It's actually not exactly a 1:1 mapping, the empty range between 0x56-0x61 is skipped according to the
-	 * tables on real hardare. On real hardware the tables are noticeably 0x60 (not 0x80) bytes apart from each other.
+	 * tables on real hardware. On real hardware the tables are noticeably 0x60 (not 0x80) bytes apart from each other.
 	 * Special processing is done for the shift state keys that do not involve the table. */
 
 	/* [0] Normal */
@@ -628,7 +628,7 @@ static Bitu IRQ1_Handler(void) {
         break;
     case 0x1d:                      /* Ctrl Pressed */
         if (INT16_AX_GetKBDBIOSMode() == 0x51 && (flags3 & 0x02))
-            trimKana();//英数カナ keycode not assignged in AX
+            trimKana();//英数カナ keycode not assigned in AX
         else if (!(flags3 &0x01)) {
             flags1 |=0x04;
             if (flags3 &0x02) flags3 |=0x04;

@@ -178,7 +178,7 @@ uniform vec2 rubyTextureSize;
 	the default	hardware implementation will be used, otherwise the custom
 	implementations below will be used instead.
 
-	These custom implemenations rely on the `rubyTextureSize` uniform variable.
+	These custom implementations rely on the `rubyTextureSize` uniform variable.
 	The code could calculate the texture size from the sampler using the
 	textureSize() GLSL function, but this would require a minimum of GLSL
 	version 130, which may prevent the shader from working on older systems.

@@ -157,7 +157,7 @@ void RDTSC_rebase() {
  * that Intel processors will not update the shadow part of the segment register
  * in real mode. I'm guessing that what Project Angel is doing, is using the same
  * abuse of protected mode to also set the B (big) bit in the code segment so that
- * it's code segment can extend past 64KB (huge unreal mode), which works until
+ * its code segment can extend past 64KB (huge unreal mode), which works until
  * something like an interrupt chops off the top 16 bits of the instruction pointer.
  *
  * I want to clarify that realbig16 is an OPTION that is off by default, because
@@ -538,7 +538,7 @@ void menu_update_autocycle(void) {
  *   processing NMI.
  *
  *   NMI is an active HIGH, rising edge-sensitive asyn-
- *   chronous signal. Setup and hold times, t27 and and t28,
+ *   chronous signal. Setup and hold times, t27 and t28,
  *   relative to the CLK2 signal must be met to guarantee
  *   recognition at a particular clock edge. To assure rec-
  *   ognition of NMI, it must be inactive for at least eight
@@ -626,7 +626,7 @@ void CPU_Check_NMI() {
 #if C_DEBUG
 // #define CPU_CHECK_EXCEPT 1
 // #define CPU_CHECK_IGNORE 1
- /* Use CHECK_EXCEPT when something doesn't work to see if a exception is 
+ /* Use CHECK_EXCEPT when something doesn't work to see if an exception is 
  * needed that isn't enabled by default.*/
 #else
 /* NORMAL NO CHECKING => More Speed */
@@ -1161,7 +1161,7 @@ void CPU_Exception(Bitu which,Bitu error ) {
 		/* NTS: Putting some thought into it, I don't think divide by zero counts as something to throw a double fault
 		 *      over. I may be wrong. The behavior of Intel processors will ultimately decide.
 		 *
-		 *      Until then, don't count Divide Overflow exceptions, so that the "EFP loader" can do it's disgusting
+		 *      Until then, don't count Divide Overflow exceptions, so that the "EFP loader" can do its disgusting
 		 *      anti-debugger hackery when loading parts of a demo. --J.C. */
 		if (!(which == 0/*divide by zero/overflow*/)) {
 			/* CPU_Interrupt() could cause another fault during memory access. This needs to happen here */

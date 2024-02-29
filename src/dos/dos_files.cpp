@@ -1255,7 +1255,7 @@ bool DOS_GetFreeDiskSpace32(uint8_t drive,uint32_t * bytes,uint32_t * sectors,ui
 }
 
 bool DOS_DuplicateEntry(uint16_t entry,uint16_t * newentry) {
-	// Dont duplicate console handles
+	// Don't duplicate console handles
 /*	if (entry<=STDPRN) {
 		*newentry = entry;
 		return true;

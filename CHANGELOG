@@ -41,7 +41,7 @@ Next:
     tweakmode is supported by S3 chipsets, so it is OFF by default and you will
     need to add "enable supermegazeux tweakmode=true" to the [video] section of
     your dosbox.conf to enable it. (joncampbell123).
-  - Undo the "no parition offset" change. DOOM II for PC-9821 requires it to work
+  - Undo the "no partition offset" change. DOOM II for PC-9821 requires it to work
     else the page flipping fails and sprites and rendering flickers as you play.
     (joncampbell123).
   - Allow text layer to appear in PC-98 256-color mode. Even though I was unable
@@ -500,7 +500,7 @@ Next:
     in reality the DH FPU case was normally used, to hit this bug you
     had to use core=dynamic_nodhfpu. Also fix dynamic x86 DH FPU code
     never to restore from DH case if the DH FPU code was never enabled,
-    which periodically caused FPU state to dissapear. (joncampbell123).
+    which periodically caused FPU state to disappear. (joncampbell123).
   - Add dosbox.conf option to control the MSCDEX.EXE device name when
     emulating a CD-ROM drive (joncampbell123).
   - Wengier coded this nice text-only DOSBox-X logo for the TTF output.
@@ -542,7 +542,7 @@ Next:
     when you take a screenshot or record a video to AVI or MTS for
     later review. (joncampbell123)
   - Dynamic core: Fix serious bug in dynrec dynamic core where calls
-    to handle x86 FPU instructions erronously passed the entire
+    to handle x86 FPU instructions erroneously passed the entire
     FPU status word instead of passing only the FPU stack pointer.
     The result of this error was that floating point was erratic,
     buggy, and often caused memory corruption in DOSBox-X eventually
@@ -3164,7 +3164,7 @@ Next:
     functions" menu group (under "Main") to use BIOS
     function for the clipboard pasting instead of the
     keystroke method. Make sure this option is disabled
-    if pasting clipboad text into Windows 3.x/9x apps
+    if pasting clipboard text into Windows 3.x/9x apps
     (e.g. Notepad & Write) is desired. This setting can
     be changed with "clip_paste_bios" config option in
     in [sdl] section of the config file too. (Wengier)
@@ -3270,7 +3270,7 @@ Next:
     to 437 if current codepage is different. (Wengier)
   - The setting "output=default" will enable the OpenGL
     output for Linux systems if possible. (Wengier)
-  - Fixed the CGA/MCGA/MDA/Hercules-specfic shortcut
+  - Fixed the CGA/MCGA/MDA/Hercules-specific shortcut
     function buttons in Mapper Editor, and the screen
     colors after exiting from Mapper Editor when using
     these machine types in Direct3D output (SDL1 build).
@@ -4844,7 +4844,7 @@ Next:
     This prevents Windows 95 Setup from creating WINBOOT.INI
     and then changing it into a directory with the call.
   - FAT driver bugs fixed where a newly created zero length file
-    combined with a lseek() can corrupt filesytem structures
+    combined with a lseek() can corrupt filesystem structures
     (root directory and/or the second FAT table). This fixes
     filesystem corruption when running Windows 95 install.
   - Enabled printer emulation for non-Windows OSes (Linux,
@@ -5455,7 +5455,7 @@ Next:
     been removed.
   - Added INT 25h/INT 26h emulation for FAT drives
     mounted with IMGMOUNT.
-  - Fake disk paramter table fixed to indicate one
+  - Fake disk parameter table fixed to indicate one
     reserved sector.
   - Fixed INT 25h/INT 26h to return an error rather than
     silently fail with success. Emulation of these calls
@@ -5912,7 +5912,7 @@ Next:
     - Add improved breakpoint handling to the debugger
     - Rewrite the order of the debug help list so the keys come
     last
-    - Clip to boundaries when there are no suggeted values for
+    - Clip to boundaries when there are no suggested values for
     Prop_int
     - Implement an obscure behavior of the VGA DAC. Fixes wrong
     colors in Planet Soccer/Football.
@@ -6256,7 +6256,7 @@ Next:
     dates on the host filesystem.
   - VS2017 project files can now compile DOSBox-X to run on
     ARM64 versions of Windows 10 (driver1998)
-  - Fixed FAT driver progamming mistake (inherited from
+  - Fixed FAT driver programming mistake (inherited from
     DOSBox SVN) that used the Windows 95 "Created" date/time
     stamp rather than the original MS-DOS "Modified" date/time
     stamp field.
@@ -6936,7 +6936,7 @@ Next:
     that has random values in DRAM address bits 23-20.
   - Added dosbox.conf option that, if set, lets Gravis Ultrasound emulation
     start a DMA transfer if the game/demo is polling the DMA control register
-    when DMA is unmasked and DMA terminal count has not occured, which helps
+    when DMA is unmasked and DMA terminal count has not occurred, which helps
     some demoscene productions.
   - Added "PIC unmask IRQ" option for Gravis Ultrasound emulation.
   - Gravis Ultrasound emulation now has a dosbox.conf setting to initialize
@@ -6968,7 +6968,7 @@ Next:
     only for non-VESA modes. 1024x768 16-color mode works again.
   - Fixed user-defined VESA BIOS modes to validate the required video
     memory against the available memory on the emulated SVGA hardware.
-  - VESA BIOS modelist generaton moved into it's own function. Modelist
+  - VESA BIOS modelist generation moved into it's own function. Modelist
     is regenerated upon editing/deletion of modes.
   - VESA BIOS modes added as suggested by hail-to-the-ryzen
   - VESA BIOS emulation now allows scriptable editing, deletion, and
@@ -7166,7 +7166,7 @@ Next:
     changes.
   - Renderer SSE line comparison fixed to use correct sizeof()
     of the integer type during compare.
-  - Renderer fixed not to use SSE and non-SSE line comparision
+  - Renderer fixed not to use SSE and non-SSE line comparison
     at the same time, if SSE was enabled at compile time.
   - Fixed in-tree SDL 1.x library to allow DOSBox-X to disable
     auto-refresh of the window in Linux/X11 after SDL_SetVideoMode
@@ -8192,7 +8192,7 @@ https://github.com/joncampbell123/dosbox-x/pull/290
     activity.
   - Fix various mscdex and cdrom detection schemes.
   - Added Coremidi support on Mac OS X.
-  - Improve support for DOS devices when used to detect the existance
+  - Improve support for DOS devices when used to detect the existence
     of directories in various ways.
   - Add IRQ 2 emulation on VRET. (ega only)
   - Added video parameter table and video state functionality.
@@ -8343,7 +8343,7 @@ https://github.com/joncampbell123/dosbox-x/pull/290
   - Add IPX functions needed by netbios.
   - Make ports take emulated time.
   - Tabcompletion is now aware of the CD command.
-  - Add suppport for the dac pel mask.
+  - Add support for the dac pel mask.
   - Fixes to hercules emulation, better detection and bank switching.
   - Fixes to tandy emulation, 640x200x16 mode and different sizes bank.  
   - EGA/VGA memory changes detection for faster rendering.
@@ -8388,7 +8388,7 @@ https://github.com/joncampbell123/dosbox-x/pull/290
   - Fixed a lot of things in the boot code. Most booters work now.
   - Lots of improvements to the IPX emulation.
   - Rewritten modem emulation. Should work with more games.
-  - Improvements to the dos memory managment routines.
+  - Improvements to the dos memory management routines.
   - Add UMB (upper memory blocks) support.
   - Emulate the pause key.
   - Improve Composite CGA mode emulation.
@@ -8638,12 +8638,12 @@ https://github.com/joncampbell123/dosbox-x/pull/290
   - added partial support for int10:01 set cursortype
   - fixed most of the problems/bugs with character input.
   - fixed allocationinfo call.(darksun series)
-  - improved dos support for non-existant functions
+  - improved dos support for non-existent functions
   - Split screen support
   - prefix 66 67 support
   - rewrote timingscheme so 1000 hz timers don't cause problems anymore
   - update adlib emulation
-  - fixed some isues with the mouse (double clicks and visible when it shouldn't be)
+  - fixed some issues with the mouse (double clicks and visible when it shouldn't be)
   - improved mouse behaviour (mickey/pixel rate) and detection routines.
   - basic ansi.sys support
   - Disney sound system emulation 
@@ -8709,4 +8709,4 @@ https://github.com/joncampbell123/dosbox-x/pull/290
   - changed dma 
   - improved dma streams from emm memory
   - added some cga videomodes
-  - added more funtions to the keyboard handler
+  - added more functions to the keyboard handler
