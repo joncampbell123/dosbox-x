@@ -54,7 +54,7 @@ void Value::destroy() {
 }
 
 Value& Value::copy(Value const& in) {
-    if (this != &in) { //Selfassigment!
+    if (this != &in) { //Selfassignment!
         if (type != V_NONE && type != in.type) throw WrongType();
         destroy();
         plaincopy(in);
@@ -318,7 +318,7 @@ bool Prop_int::CheckValue(Value const& in, bool warn) {
 //  if (!suggested_values.empty() && Property::CheckValue(in,warn)) return true;
     if (!suggested_values.empty()) return Property::CheckValue(in,warn);
 
-    //No >= and <= in Value type and == is ambigiuous
+    //No >= and <= in Value type and == is ambiguous
     int mi = min;
     int ma = max;
     int va = static_cast<int>(Value(in));
@@ -470,7 +470,7 @@ bool Prop_multival_remain::SetValue(std::string const& input,bool init) {
         if (loc != string::npos) local.erase(0,loc);
         loc = local.find_first_of(separator);
         string in = "";//default value
-        /* when i == number_of_properties add the total line. (makes more then
+        /* when i == number_of_properties add the total line. (makes more than
          * one string argument possible for parameters of cpu) */
         if (loc != string::npos && i < number_of_properties) { //separator found
             in = local.substr(0,loc);

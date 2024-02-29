@@ -34,17 +34,17 @@ typedef struct {
 		, RDFFB//bc: Font access first byte
 		, RDFSB//bd: Font access second byte
 		, RDFAP//be: Font Access Pattern
-		, RPESL//09: end scan line (superceded by EGA)
-		, RPULP//14: under scan line (superceded by EGA)
+		, RPESL//09: end scan line (superseded by EGA)
+		, RPULP//14: under scan line (superseded by EGA)
 		, RPSSC//db: DBCS start scan line
 		, RPSSU//d9: 2x DBCS upper start scan
 		, RPSSL//da: 2x DBCS lower start scan
 		, RPPAJ//dc: super imposed (only AX-2 system, not implemented)
 		, RCMOD//dd: Cursor Mode (not implemented)
-		, RCCLH//0e: Cursor location Upper bits (superceded by EGA)
-		, RCCLL//0f: Cursor location Lower bits (superceded by EGA)
-		, RCCSL//0a: Cursor Start Line (superceded by EGA)
-		, RCCEL//0b: Cursor End Line (superceded by EGA)
+		, RCCLH//0e: Cursor location Upper bits (superseded by EGA)
+		, RCCLL//0f: Cursor location Lower bits (superseded by EGA)
+		, RCCSL//0a: Cursor Start Line (superseded by EGA)
+		, RCCEL//0b: Cursor End Line (superseded by EGA)
 		, RCSKW//de: Cursor Skew control (not implemented)
 		, ROMSL//df: Unused?
 		, RSTAT//bf: Font register accessible status

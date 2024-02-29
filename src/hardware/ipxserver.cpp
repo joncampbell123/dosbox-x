@@ -177,7 +177,7 @@ static void IPX_ServerLoop() {
 
 		// Check to see if echo packet
 		if(SDLNet_Read16(tmpHeader->dest.socket) == 0x2) {
-			// Null destination node means its a server registration packet
+			// Null destination node means it's a server registration packet
 			if(tmpHeader->dest.addr.byIP.host == 0x0) {
 				UnpackIP(tmpHeader->src.addr.byIP, &tmpAddr);
 				for(i=0;i<SOCKETTABLESIZE;i++) {

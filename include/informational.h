@@ -7,7 +7,7 @@
 
 /* Endianness reminders & markers.
  * And someday, when compiling for, say, PowerPC, it will map
- * to whatever native datatype typedefs that tell PowerPC what endiannes to use */
+ * to whatever native datatype typedefs that tell PowerPC what endianness to use */
 #define _Little_Endian_
 #define _Big_Endian_
 #define _Mixed_Endian_

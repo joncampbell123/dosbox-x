@@ -235,7 +235,7 @@ void AutoexecObject::Uninstall() {
 			char* buf2 = new char[n + 1];
 			safe_strncpy(buf2, buf.c_str(), n + 1);
 			bool stringset = false;
-			// If it's a environment variable remove it from there as well
+			// If it's an environment variable remove it from there as well
 			if ((strncasecmp(buf2,"set ",4) == 0) && (strlen(buf2) > 4)){
 				char* after_set = buf2 + 4;//move to variable that is being set
 				char* test2 = strpbrk(after_set,"=");
@@ -1164,7 +1164,7 @@ public:
 
 		if (control->opt_prerun) RunAdditional();
 
-		/* add stuff from the configfile unless -noautexec or -securemode is specified. */
+		/* add stuff from the configfile unless -noautoexec or -securemode is specified. */
 		const char * extra = section->data.c_str();
 		if (extra && !secure && !control->opt_noautoexec) {
 			/* detect if "echo off" is the first line */
@@ -1240,7 +1240,7 @@ public:
 				if (access(buffer,F_OK)) continue;
 				autoexec[12].Install(std::string("MOUNT C \"") + buffer + "\"");
 				autoexec[13].Install("C:");
-				/* Save the non-modified filename (so boot and imgmount can use it (long filenames, case sensivitive)) */
+				/* Save the non-modified filename (so boot and imgmount can use it (long filenames, case sensitive)) */
 				strcpy(orig,name);
 				upcase(name);
 				if(strstr(name,".BAT") != 0) {

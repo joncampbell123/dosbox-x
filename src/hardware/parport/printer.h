@@ -122,7 +122,7 @@ public:
 
 private:
 
-	// used to fill the color "sub-pallettes"
+	// used to fill the color "sub-palettes"
 	void FillPalette(uint8_t redmax, uint8_t greenmax, uint8_t bluemax, uint8_t colorID,
 							SDL_Palette* pal);
 

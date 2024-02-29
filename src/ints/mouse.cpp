@@ -1483,7 +1483,7 @@ static void Mouse_Reset(void) {
         mouse.last_released_y[but] = 0;
     }
 
-    // Dont set max coordinates here. it is done by SetResolution!
+    // Don't set max coordinates here. it is done by SetResolution!
     mouse.x = static_cast<float>((mouse.max_x + 1)/ 2);
     mouse.y = static_cast<float>((mouse.max_y + 1)/ 2);
     mouse.sub_mask = 0;

@@ -232,7 +232,7 @@ static Bitu IO_ReadSlowPath(Bitu port,Bitu iolen) {
     }
 
     /* if nothing matched, assign default handler to IO handler slot.
-     * if one device responded, assign it's handler to the IO handler slot.
+     * if one device responded, assign its handler to the IO handler slot.
      * if more than one responded, then do not update the IO handler slot. */
     assert(iolen >= 1 && iolen <= 4);
     porti = (iolen >= 4) ? 2 : (unsigned int)(iolen - 1); /* 1 2 x 4 -> 0 1 1 2 */
@@ -292,7 +292,7 @@ void IO_WriteSlowPath(Bitu port,Bitu val,Bitu iolen) {
     }
 
     /* if nothing matched, assign default handler to IO handler slot.
-     * if one device responded, assign it's handler to the IO handler slot.
+     * if one device responded, assign its handler to the IO handler slot.
      * if more than one responded, then do not update the IO handler slot. */
     assert(iolen >= 1 && iolen <= 4);
     porti = (iolen >= 4) ? 2 : (unsigned int)(iolen - 1); /* 1 2 x 4 -> 0 1 1 2 */
@@ -619,7 +619,7 @@ void IO_CalloutObject::InvalidateCachedHandlers(void) {
      *
      *      Not too bad, really. */
 
-    /* for both the base I/O, as well as it's aliases, revert the I/O ports back to "slow path" */
+    /* for both the base I/O, as well as its aliases, revert the I/O ports back to "slow path" */
     for (p=m_port;p < 0x10000ul;p += alias_mask+1ul)
         IO_InvalidateCachedHandler(p,range_mask+1ul);
 }
@@ -746,7 +746,7 @@ void IO_InitCallouts(void) {
  *
  * this allows us to maintain ready-made IO callout objects to return quickly rather
  * than write more complicated code where the caller has to make an IO_CalloutObject
- * and then call install and we have to add it's pointer to a list/vector/whatever.
+ * and then call install and we have to add its pointer to a list/vector/whatever.
  * It also avoids problems where if we have to resize the vector, the pointers become
  * invalid, because callers have only handles and they have to put all the pointers
  * back in order for us to resize the vector. */

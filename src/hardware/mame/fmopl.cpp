@@ -508,7 +508,7 @@ struct FM_OPL
 				case EG_SUS:    /* sustain phase */
 
 					/* this is important behaviour:
-					one can change percusive/non-percussive modes on the fly and
+					one can change percussive/non-percussive modes on the fly and
 					the chip will remain in sustain phase - verified on real YM3812 */
 
 					if(op.eg_type)     /* non-percussive mode */
@@ -1710,7 +1710,7 @@ void FM_OPL::WriteReg(int r, int v)
 			/* BLK 2,1,0 bits -> bits 3,2,1 of kcode */
 			CH->kcode    = (CH->block_fnum&0x1c00)>>9;
 
-				/* the info below is actually opposite to what is stated in the Manuals (verifed on real YM3812) */
+				/* the info below is actually opposite to what is stated in the Manuals (verified on real YM3812) */
 			/* if notesel == 0 -> lsb of kcode is bit 10 (MSB) of fnum  */
 			/* if notesel == 1 -> lsb of kcode is bit 9 (MSB-1) of fnum */
 			if (mode&0x40)

@@ -3631,8 +3631,8 @@ extern "C" {
     }
 
     /** Gets received data buffer. Returns buffer length.
-     *  @param host host to access recevie buffer
-     *  @param data ouput parameter for recevied data
+     *  @param host host to access receive buffer
+     *  @param data output parameter for received data
      *  @retval buffer length
      */
     enet_uint32 enet_host_get_received_data(ENetHost *host, /*out*/ enet_uint8** data) {

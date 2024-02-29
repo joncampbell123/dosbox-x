@@ -967,7 +967,7 @@ static bool dyn_grp7(void) {
 			case 0x02:	// LGDT
 			case 0x03:	// LIDT
 //				if (cpu.pmode && cpu.cpl) EXCEPTION(EXCEPTION_GP);
-				if (cpu.pmode && cpu.cpl) IllegalOptionDynrec("lgdt nonpriviledged");
+				if (cpu.pmode && cpu.cpl) IllegalOptionDynrec("lgdt nonprivileged");
 				dyn_fill_ea(FC_ADDR);
 				gen_protect_addr_reg();
 				dyn_read_word(FC_ADDR,FC_OP1,false);
@@ -1000,7 +1000,7 @@ static bool dyn_grp7(void) {
 				return true;
 			case 0x07:	// INVLPG
 //				if (cpu.pmode && cpu.cpl) EXCEPTION(EXCEPTION_GP);
-				if (cpu.pmode && cpu.cpl) IllegalOptionDynrec("invlpg nonpriviledged");
+				if (cpu.pmode && cpu.cpl) IllegalOptionDynrec("invlpg nonprivileged");
 				gen_call_function_raw(PAGING_ClearTLB);
 				break;
 			default: IllegalOptionDynrec("dyn_grp7_1");

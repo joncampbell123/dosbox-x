@@ -71,7 +71,7 @@ public:
 	~Value() { destroy();};
     Value(std::string const& in, Etype _t) { SetValue(in, _t); }
 
-	/* Assigment operators */
+	/* Assignment operators */
 	Value& operator= (Hex in)                { return copy(Value(in));}
 	Value& operator= (int in)                { return copy(Value(in));}
 	Value& operator= (bool in)               { return copy(Value(in));}
@@ -140,7 +140,7 @@ public:
 
 protected:
 	//Set interval value to in or default if in is invalid. force always sets the value.
-	//Can be overriden to set a different value if invalid.
+	//Can be overridden to set a different value if invalid.
 	virtual bool SetVal(Value const& in, bool forced,bool warn=true,bool init=false) {
 		if(forced || CheckValue(in,warn)) {
 			value = in; is_modified = !init; return true;
@@ -422,7 +422,7 @@ public:
 	Module_base(Section* configuration) : m_configuration(configuration) {};
 //	Module_base(Section* configuration, SaveState* state) {};
 	virtual ~Module_base(){/*LOG_MSG("executed")*/;};//Destructors are required
-	/* Returns true if succesful.*/
+	/* Returns true if successful.*/
 	virtual bool Change_Config(Section* /*newconfig*/) {return false;} ;
 };
 #endif

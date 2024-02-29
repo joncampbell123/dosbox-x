@@ -693,7 +693,7 @@ void IDEATAPICDROMDevice::mode_sense() {
                                  *      1 (0x20) = Tray
                                  *      2 (0x40) = Popup
                                  *      3 (0x60) = Reserved
-                                 *      4 (0x80) = Changer with indivually changeable discs
+                                 *      4 (0x80) = Changer with individually changeable discs
                                  *      5 (0xA0) = Changer using a magazine mechanism
                                  *      6 (0xC0) = Reserved
                                  *      6 (0xE0) = Reserved */
@@ -860,7 +860,7 @@ void IDEATAPICDROMDevice::read_toc() {
     /* NTS: The SCSI MMC standards say we're allowed to indicate the return data
      *      is longer than it's allocation length. But here's the thing: some MS-DOS
      *      CD-ROM drivers will ask for the TOC but only provide enough room for one
-     *      entry (OAKCDROM.SYS) and if we signal more data than it's buffer, it will
+     *      entry (OAKCDROM.SYS) and if we signal more data than its buffer, it will
      *      reject our response and render the CD-ROM drive inaccessible. So to make
      *      this emulation work, we have to cut our response short to the driver's
      *      allocation length */
@@ -2916,7 +2916,7 @@ static Bitu IDE_SelfIO_In(IDEController *ide,Bitu port,Bitu len) {
     if (ide->int13fakev86io && IDE_CPU_Is_Vm86()) {
         /* Trigger I/O in virtual 8086 mode, where the OS can trap it and act on it.
          * Windows 95 uses V86 traps to help "autodetect" what IDE drive and port the
-         * BIOS uses on INT 13h so that it's internal IDE driver can take over, which
+         * BIOS uses on INT 13h so that its internal IDE driver can take over, which
          * is the whole reason for this hack. */
         return CPU_ForceV86FakeIO_In(port,len);
     }
@@ -3031,7 +3031,7 @@ void IDE_EmuINT13DiskReadByBIOS_LBA(unsigned char disk,uint64_t lba) {
                          * what IDE hard disk and controller corresponds to what DOS
                          * drive. So to get 32-bit disk access to work in Windows 95,
                          * we have to put on a good show to convince Windows 95 we're
-                         * a legitimate BIOS INT 13h call doing it's job. */
+                         * a legitimate BIOS INT 13h call doing its job. */
                         IDE_SelfIO_In(ide,ide->base_io+7u,1);        /* dum de dum reading status */
                         IDE_SelfIO_Out(ide,ide->base_io+6u,(ms<<4u)+0xE0u+(lba>>24u),1); /* drive and head */
                         IDE_SelfIO_In(ide,ide->base_io+7u,1);        /* dum de dum reading status */
@@ -3202,7 +3202,7 @@ void IDE_EmuINT13DiskReadByBIOS(unsigned char disk,unsigned int cyl,unsigned int
                          * what IDE hard disk and controller corresponds to what DOS
                          * drive. So to get 32-bit disk access to work in Windows 95,
                          * we have to put on a good show to convince Windows 95 we're
-                         * a legitimate BIOS INT 13h call doing it's job. */
+                         * a legitimate BIOS INT 13h call doing its job. */
                         IDE_SelfIO_In(ide,ide->base_io+7u,1);        /* dum de dum reading status */
                         IDE_SelfIO_Out(ide,ide->base_io+6u,(ms<<4u)+0xA0u+head,1); /* drive and head */
                         IDE_SelfIO_In(ide,ide->base_io+7u,1);        /* dum de dum reading status */

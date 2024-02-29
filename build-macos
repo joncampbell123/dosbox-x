@@ -136,7 +136,7 @@ for arch in ${architectures}; do
 
     # if Brew has installed packages, try to use those too
     if [ -n "${!brew_cmd}" ]; then
-        echo "Brew is installed, I'm going to use it's libraries too"
+        echo "Brew is installed, I'm going to use its libraries too"
         new="-I$(${!brew_cmd} --prefix)/include "
         nld="-L$(${!brew_cmd} --prefix)/lib "
         CFLAGS="${CFLAGS}${new}"

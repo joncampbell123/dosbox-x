@@ -2805,7 +2805,7 @@ Text_Draw_State     pc98_text_draw;
  * packed framebuffer.
  *
  * Since PC-98 also has planar memory, it wouldn't surprise me if the 256-color mode is just the
- * same trick except with 16-bit quantitites loaded from memory instead of VGA's 8-bit quantities.
+ * same trick except with 16-bit quantities loaded from memory instead of VGA's 8-bit quantities.
  *
  * The behavior of the hardware suggest to me that it also allowed NEC to change as little about
  * the video hardware as possible, except how it shifts and interprets the planar word data.
@@ -3490,7 +3490,7 @@ again:
                 }
             }
             uint8_t * data=VGA_DrawLine( vga.draw.address, vga.draw.address_line );
-            /* WARNING: For magic reasons possibly related to gremlins added by the GNU C++ compiler or other otherwordly phenomona,
+            /* WARNING: For magic reasons possibly related to gremlins added by the GNU C++ compiler or other otherworldly phenomena,
              *          modifying the rendered scanline pointed to by *data somehow corrupts the video memory of the guest, even though
              *          *data is 8bpp or 32bpp pixel data that was translated FROM the guest video memory TO a host bitmap and writing
              *          over *data in any way should have no effect on the guest video memory it rendered from, but somehow, it does.
@@ -5191,7 +5191,7 @@ void VGA_sof_debug_video_info(void) {
 		 * the meaning of the pins changes depending on whether the card is emitting 200-line output compatible with a
 		 * CGA monitor or 350-line output for an EGA monitor. In the 200-line mode only the 4 bits have meaning and they
 		 * are handled the same as CGA IRGB output. In 350-line mode the 6 bits define one of 64 possible colors in the
-		 * form rgbRGB as binary bits where the least signficant bits are "rgb" and most significant bits are "RGB".
+		 * form rgbRGB as binary bits where the least significant bits are "rgb" and most significant bits are "RGB".
 		 * This is why you can't do more than 16 colors except in 350-line modes. */
 		if (vga.draw.bpp == 8) { /* Doesn't use anything else */
 			unsigned int dkgray = (egaMonitorMode() == EGA) ? 0x38 : 0x10;
@@ -6657,7 +6657,7 @@ void VGA_SetupDrawing(Bitu /*val*/) {
 
 	/* NTS: PC-98 emulation re-uses VGA state FOR NOW.
 	 *      This will slowly change to accommodate PC-98 display controller over time
-	 *      and IS_PC98_ARCH will become it's own case statement. */
+	 *      and IS_PC98_ARCH will become its own case statement. */
 
 	if (IS_PC98_ARCH) {
 		hdend = pc98_gdc[GDC_MASTER].active_display_words_per_line;

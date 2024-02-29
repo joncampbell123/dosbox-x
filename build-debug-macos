@@ -63,7 +63,7 @@ opts=
 # if Brew has installed packages, try to use those too
 brew="/opt/homebrew"
 if [[ -d "${brew}" && -d "${brew}/include" && -d "${brew}/lib" ]]; then
-    echo "Brew is installed, I'm going to use it's libraries too"
+    echo "Brew is installed, I'm going to use its libraries too"
     new="-I${brew}/include "
     nld="-L${brew}/lib "
     CFLAGS="${new}${CFLAGS} -g3"

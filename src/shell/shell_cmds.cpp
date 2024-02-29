@@ -1419,7 +1419,7 @@ void DOS_Shell::CMD_CHDIR(char * args) {
 		if(drive == 'Z')
 			WriteOut(MSG_Get("SHELL_CMD_CHDIR_HINT"),toupper(targetdisplay));
 	} else if (!DOS_ChangeDir(sargs)) {
-		/* Changedir failed. Check if the filename is longer then 8 and/or contains spaces */
+		/* Changedir failed. Check if the filename is longer than 8 and/or contains spaces */
 	   
 		std::string temps(args),slashpart;
 		std::string::size_type separator = temps.find_first_of("\\/");
@@ -2323,7 +2323,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 		dos.dta(save_dta);
 		return;
 	}
-	// Gather all sources (extension to copy more then 1 file specified at command line)
+	// Gather all sources (extension to copy more than 1 file specified at command line)
 	// Concatenating files go as follows: All parts except for the last bear the concat flag.
 	// This construction allows them to be counted (only the non concat set)
 	char q[]="\"";
@@ -2393,7 +2393,7 @@ void DOS_Shell::CMD_COPY(char * args) {
 	}
 
 	copysource target;
-	// If more then one object exists and last target is not part of a 
+	// If more than one object exists and last target is not part of a 
 	// concat sequence then make it the target.
 	if(sources.size()>1 && !sources[sources.size()-2].concat){
 		target = sources.back();

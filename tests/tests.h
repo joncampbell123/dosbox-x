@@ -27,7 +27,7 @@
 #include "shell_redirection_tests.cpp"
 
 #else
-//google test code causes problem on win9x, remove them and add empty impelmentations for linkage.
+//google test code causes problem on win9x, remove them and add empty implementations for linkage.
 
 #include <assert.h>
 #include "gtest/gtest.h"

@@ -401,7 +401,7 @@ static void dyn_fpu_esc3(){
 			switch (decode.modrm.rm) {
 			case 0x00:				//FNENI
 			case 0x01:				//FNDIS
-				LOG(LOG_FPU,LOG_ERROR)("8087 only fpu code used esc 3: group 4: subfuntion: %d",(int)decode.modrm.rm);
+				LOG(LOG_FPU,LOG_ERROR)("8087 only fpu code used esc 3: group 4: subfunction: %d",(int)decode.modrm.rm);
 				break;
 			case 0x02:				//FNCLEX FCLEX
 				gen_call_function_raw(FPU_FCLEX);

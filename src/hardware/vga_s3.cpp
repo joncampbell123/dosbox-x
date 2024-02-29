@@ -585,7 +585,7 @@ Bitu SVGA_S3_ReadCRTC( Bitu reg, Bitu iolen) {
         return (uint8_t)((vga.config.display_start & 0x1f0000)>>16);
     case 0x6a:  /* Extended System Control 4 */
         return (uint8_t)(vga.svga.bank_read & 0x7f);
-    case 0x6b:  // BIOS scatchpad: LFB address
+    case 0x6b:  // BIOS scratchpad: LFB address
         return vga.s3.reg_6b;
     default:
         return 0x00;

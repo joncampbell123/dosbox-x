@@ -23,7 +23,7 @@
 #pragma parameter brightBoost "brightness boost" 1.0 0.0 2.0 0.05
 #pragma parameter hardBloomPix "bloom-x soft" -1.5 -2.0 -0.5 0.1
 #pragma parameter hardBloomScan "bloom-y soft" -2.0 -4.0 -1.0 0.1
-#pragma parameter bloomAmount "bloom ammount" 0.15 0.0 1.0 0.05
+#pragma parameter bloomAmount "bloom amount" 0.15 0.0 1.0 0.05
 #pragma parameter shape "filter kernel shape" 2.0 0.0 10.0 0.05
 
 #if defined(VERTEX)

@@ -235,7 +235,7 @@ int MidiHandler_timidity::timidity_ctl_command(char * buff, const char *fmt, ...
 	va_list ap;
 
 	if (fmt != NULL) {
-		/* if argumends are present, write them to control connection */
+		/* if arguments are present, write them to control connection */
 		va_start(ap, fmt);
 		len = vsnprintf(buff, BUFSIZ-1, fmt, ap); /* leave one byte for \n */
 		va_end(ap);

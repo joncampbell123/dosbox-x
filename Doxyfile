@@ -1580,7 +1580,7 @@ PERL_PATH              = /usr/bin/perl
 #---------------------------------------------------------------------------
 
 # If the CLASS_DIAGRAMS tag is set to YES (the default) Doxygen will
-# generate a inheritance diagram (in HTML, RTF and LaTeX) for classes with base
+# generate an inheritance diagram (in HTML, RTF and LaTeX) for classes with base
 # or super classes. Setting the tag to NO turns the diagrams off. Note that
 # this option also works with HAVE_DOT disabled, but it is recommended to
 # install and use dot, since it yields more powerful graphs.
@@ -1666,7 +1666,7 @@ UML_LOOK               = NO
 # the class node. If there are many fields or methods and many nodes the
 # graph may become too big to be useful. The UML_LIMIT_NUM_FIELDS
 # threshold limits the number of items for each type to make the size more
-# managable. Set this to 0 for no limit. Note that the threshold may be
+# manageable. Set this to 0 for no limit. Note that the threshold may be
 # exceeded by 50% before the limit is enforced.
 
 UML_LIMIT_NUM_FIELDS   = 10

@@ -941,7 +941,7 @@ The first part concerns IBM PC/XT/AT emulation and VGA
 emulation, with adjustments for some SVGA chipsets and
 for MDA/Hercules/Tandy/EGA as well.
 
-The second part concerns NEC PC-98 and emulation of it's
+The second part concerns NEC PC-98 and emulation of its
 subsystem.
 
 The two parts work somewhat independently. Which one

@@ -620,7 +620,7 @@ static void GUSReset(void) {
 	 *      Global Data High (3X5) is either an 8-bit transfer for one of the GF registers or the high part of a 16-bit wide register with 8-bit I/O.
 	 *
 	 *      Prior to 2015/12/29 DOSBox and DOSBox-X contained a programming error here where reset and master IRQ enable were handled from the
-	 *      LOWER 8 bits, when the code should have been checking the UPPER 8 bits. Programming error #2 was the mis-interpetation of bit 0 (bit 8 of
+	 *      LOWER 8 bits, when the code should have been checking the UPPER 8 bits. Programming error #2 was the mis-interpretation of bit 0 (bit 8 of
 	 *      the gRegData). According to the SDK, clearing bit 0 triggers RESET, setting bit 0 starts the card running again. The original code had
 	 *      it backwards. */
 	GUS_reset_reg = (myGUS.gRegData >> 8) & 7;
@@ -1314,7 +1314,7 @@ static inline uint8_t read_GF1_mapping_control(const unsigned int ch) {
  *    appear to be the same, with the exception that Crystal Semiconductor adds 16 registers with the
  *    "MODE 2" bit.
  *
- *    Perhaps at some point, we can untie this from GUS emulation and let it exist as it's own C++
+ *    Perhaps at some point, we can untie this from GUS emulation and let it exist as its own C++
  *    class that covers CS4231A, AD1848, and other "WSS" chipset emulation on behalf of GUS and SB
  *    emulation, much like the OPL3 emulation already present in this source tree for Sound Blaster.
  *
@@ -1933,7 +1933,7 @@ void GUS_DMA_Event_Transfer(DmaChannel *chan,Bitu dmawords) {
 			//Check for 16 or 8bit channel
 			read*=(chan->DMA16+1u);
 			if((myGUS.DMAControl & 0x80) != 0) {
-				//Invert the MSB to convert twos compliment form
+				//Invert the MSB to convert twos complement form
 				Bitu i;
 				if((myGUS.DMAControl & 0x40) == 0) {
 					// 8-bit data
@@ -2354,7 +2354,7 @@ public:
         if (irq_val > 0) {
             string s = section->Get_string("irq hack");
             if (!s.empty() && s != "none") {
-                LOG(LOG_MISC,LOG_NORMAL)("GUS emulation: Assigning IRQ hack '%s' as instruced",s.c_str());
+                LOG(LOG_MISC,LOG_NORMAL)("GUS emulation: Assigning IRQ hack '%s' as instructed",s.c_str());
                 PIC_Set_IRQ_hack(irq_val,PIC_parse_IRQ_hack_string(s.c_str()));
             }
         }
